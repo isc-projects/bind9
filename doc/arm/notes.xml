@@ -65,7 +65,11 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  When recursion is enabled but the <command>allow-recursion</command>
+	  and <command>allow-query-cache</command> ACLs are not specified, they
+	  should be limited to local networks, but they were inadvertently set
+	  to match the default <command>allow-query</command>, thus allowing
+	  remote queries. [GL #309]
 	</para>
       </listitem>
     </itemizedlist>

@@ -3725,10 +3725,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	CHECKM(named_config_getport(config, &port), "port");
 	dns_view_setdstport(view, port);
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
-				 "allow-query", NULL, actx,
-				 named_g_mctx, &view->queryacl));
-
 	/*
 	 * Make the list of response policy zone names for a view that
 	 * is used for real lookups and so cares about hints.
@@ -4693,6 +4689,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	view->root_key_sentinel = cfg_obj_asboolean(obj);
 
+	CHECK(configure_view_acl(vconfig, config, NULL,
+				 "allow-query", NULL, actx,
+				 named_g_mctx, &view->queryacl));
+
 	CHECK(configure_view_acl(vconfig, config, named_g_config,
 				 "allow-query-cache-on", NULL, actx,
 				 named_g_mctx, &view->cacheonacl));
@@ -4772,6 +4772,13 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		 * set at the options/view level, set it to none.
 		 */
 		CHECK(dns_acl_none(mctx, &view->cacheacl));
+	}
+
+	if (view->queryacl == NULL) {
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
+					 "allow-query", NULL,
+					 actx, named_g_mctx,
+					 &view->queryacl));
 	}
 
 	/*

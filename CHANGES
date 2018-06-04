@@ -1,3 +1,9 @@
+4959.	[security]	When recursion is enabled, but the "allow-recursion"
+			and "allow-query-cache" ACLs are not specified,
+			they should be limited to local networks,
+			but were inadvertently set to match the default
+                        "allow-query", thus allowing remote queries. [GL #309]
+
 4958.	[bug]		Remove redundant space from NSEC3 record. [GL #281]
 
 4957.	[func]		The default setting for "dnssec-validation" is now
