@@ -203,6 +203,12 @@
  */
 #include <isc/likely.h>
 
+#ifdef HAVE_BUILTIN_UNREACHABLE
+#define ISC_UNREACHABLE() __builtin_unreachable();
+#else
+#define ISC_UNREACHABLE()
+#endif
+
 #ifdef UNIT_TESTING
 extern void mock_assert(const int result, const char* const expression,
 			const char * const file, const int line);

@@ -1686,7 +1686,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_buffer_t buf;
 		uint8_t addr[16];
 		uint32_t plen, addrl;
-		uint16_t family;
+		uint16_t family = 0;
 
 		/* Add CLIENT-SUBNET option. */
 

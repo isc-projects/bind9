@@ -2018,6 +2018,21 @@ LIBS="$LIBS $ISC_ATOMIC_LIBS"
 AC_CHECK_HEADERS([uchar.h])
 
 #
+# Check for __builtin_unreachable
+#
+AC_MSG_CHECKING([compiler support for __builtin_unreachable()])
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[]],
+     [[__builtin_unreachable();]]
+   )],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([HAVE_BUILTIN_UNREACHABLE], [1], [define if the compiler supports __builtin_unreachable().])
+  ],
+  [AC_MSG_RESULT([no])
+  ])
+
+#
 # Check for __builtin_expect
 #
 AC_MSG_CHECKING([compiler support for __builtin_expect])
