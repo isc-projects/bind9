@@ -204,6 +204,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if clock_gettime is available. */
 #undef HAVE_CLOCK_GETTIME
 
+/* Define to 1 if you have the <cmocka.h> header file. */
+#undef HAVE_CMOCKA_H
+
 /* Define to 1 if you have the <devpoll.h> header file. */
 #undef HAVE_DEVPOLL_H
 
