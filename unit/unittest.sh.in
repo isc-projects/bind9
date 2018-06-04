@@ -4,6 +4,8 @@ PATH="@ATFBIN@:${PATH}"
 export PATH
 ATFRUN=`command -v atf-run 2>/dev/null`
 KYUA=`command -v kyua 2>/dev/null`
+CMOCKA_MESSAGE_OUTPUT=TAP
+export CMOCKA_MESSAGE_OUTPUT
 
 status=0
 if [ -n "@UNITTESTS@" -a -x "$ATFRUN" -a -f Atffile ]
