@@ -95,7 +95,7 @@ isc_random_buf(void *buf, size_t buflen) {
 	int i;
 	isc_uint32_t r;
 
-	REQUIRE(buf);
+	REQUIRE(buf != NULL);
 	REQUIRE(buflen > 0);
 
 	RUNTIME_CHECK(isc_once_do(&isc_random_once,
