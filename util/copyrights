@@ -924,6 +924,12 @@
 ./bin/tests/system/cookie/ns2/root.db		ZONE	2014,2015,2016,2018
 ./bin/tests/system/cookie/ns3/named.conf.in	CONF-C	2018
 ./bin/tests/system/cookie/ns3/root.hint		ZONE	2015,2016,2018
+./bin/tests/system/cookie/ns4/named.conf.in	CONF-C	2018
+./bin/tests/system/cookie/ns4/root.hint		ZONE	2018
+./bin/tests/system/cookie/ns5/named.conf.in	CONF-C	2018
+./bin/tests/system/cookie/ns5/root.hint		ZONE	2018
+./bin/tests/system/cookie/ns6/named.conf.in	CONF-C	2018
+./bin/tests/system/cookie/ns6/root.hint		ZONE	2018
 ./bin/tests/system/cookie/setup.sh		SH	2018
 ./bin/tests/system/cookie/tests.sh		SH	2014,2015,2016,2017,2018
 ./bin/tests/system/coverage/01-ksk-inactive/README	X	2013,2018
@@ -1686,6 +1692,8 @@
 ./bin/tests/system/notify/ns5/x21.db		ZONE	2015,2016,2018
 ./bin/tests/system/notify/setup.sh		SH	2000,2001,2004,2007,2012,2014,2016,2018
 ./bin/tests/system/notify/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014,2015,2016,2018
+./bin/tests/system/ns4/named.conf.in		CONF-C	2018
+./bin/tests/system/ns4/root.hint		ZONE	2018
 ./bin/tests/system/nslookup/clean.sh		SH	2014,2015,2016,2018
 ./bin/tests/system/nslookup/ns1/example.net.db	ZONE	2016,2018
 ./bin/tests/system/nslookup/ns1/named.conf.in	CONF-C	2018
