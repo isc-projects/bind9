@@ -203,6 +203,19 @@
  */
 #include <isc/likely.h>
 
+#ifdef ISC_ASSERT_TESTING
+extern void mock_assert(const int result, const char* const expression,
+                        const char * const file, const int line);
+#define REQUIRE(expression)						\
+	mock_assert((int)(expression), #expression, __FILE__, __LINE__)
+#define ENSURE(expression)						\
+	mock_assert((int)(expression), #expression, __FILE__, __LINE__)
+#define INSIST(expression)						\
+	mock_assert((int)(expression), #expression, __FILE__, __LINE__)
+#define INVARIANT(expression)						\
+	mock_assert((int)(expression), #expression, __FILE__, __LINE__)
+
+#else /* ISC_ASSERT_TESTING */
 /*
  * Assertions
  */
@@ -217,6 +230,8 @@
 /*% Invariant Assertion */
 #define INVARIANT(e)			ISC_INVARIANT(e)
 
+#endif /* ISC_ASSERT_TESTING */
+
 /*
  * Errors
  */
@@ -226,8 +241,18 @@
 #define UNEXPECTED_ERROR		isc_error_unexpected
 /*% Fatal Error */
 #define FATAL_ERROR			isc_error_fatal
+
+#if ISC_ASSERT_TESTING
+
+#define RUNTIME_CHECK(expression)					\
+	mock_assert((int)(expression), #expression, __FILE__, __LINE__)
+
+#else /* ISC_ASSERT_TESTING */
+
 /*% Runtime Check */
 #define RUNTIME_CHECK(cond)		ISC_ERROR_RUNTIMECHECK(cond)
+
+#endif /* ISC_ASSERT_TESTING */
 
 /*%
  * Time
