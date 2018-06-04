@@ -34,6 +34,8 @@ CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
 CMOCKA_LIBS =	@CMOCKA_LIBS@
 CMOCKA_MEM =	-Wl,--wrap=isc__mem_put,--wrap=isc__mem_get,--wrap=isc_mem_attach,--wrap=isc_mem_detach
 
+LD_WRAP_TESTS =	tkey_test.@EXEEXT@
+
 OBJS =		dnstest.@O@
 SRCS =		acl_test.c \
 		db_test.c \
@@ -98,7 +100,8 @@ TARGETS =	acl_test@EXEEXT@ \
 		tsig_test@EXEEXT@ \
 		update_test@EXEEXT@ \
 		zonemgr_test@EXEEXT@ \
-		zt_test@EXEEXT@
+		zt_test@EXEEXT@ \
+		@LD_WRAP_TESTS@
 
 @BIND9_MAKE_RULES@
 

@@ -22,7 +22,7 @@
 
 #include <dns/tkey.h>
 
-static isc_mem_t mock_mctx = { 0 };
+static isc_mem_t mock_mctx = { .impmagic = 0, .magic = ISCAPI_MCTX_MAGIC, .methods = NULL };
 
 void *
 __wrap_isc__mem_get(isc_mem_t *mctx __attribute__ ((unused)),
