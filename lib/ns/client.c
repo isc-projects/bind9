@@ -1686,7 +1686,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_buffer_t buf;
 		uint8_t addr[16];
 		uint32_t plen, addrl;
-		uint16_t family;
+		uint16_t family = 0;
 
 		/* Add CLIENT-SUBNET option. */
 
@@ -1829,7 +1829,7 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 		isc_netaddr_t netaddr;
 		unsigned char *cp;
 		isc_hmacsha1_t hmacsha1;
-		unsigned int length;
+		unsigned int length = 0;
 
 		cp = isc_buffer_used(buf);
 		isc_buffer_putmem(buf, client->cookie, 8);
@@ -1863,7 +1863,7 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 		isc_netaddr_t netaddr;
 		unsigned char *cp;
 		isc_hmacsha256_t hmacsha256;
-		unsigned int length;
+		unsigned int length = 0;
 
 		cp = isc_buffer_used(buf);
 		isc_buffer_putmem(buf, client->cookie, 8);
