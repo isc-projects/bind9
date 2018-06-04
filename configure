@@ -674,6 +674,7 @@ UNITTESTS
 ATFLIBS
 ATFBIN
 ATFBUILD
+LD_WRAP_TESTS
 CMOCKA_LIBS
 CMOCKA_CFLAGS
 LIBIDN2_LIBS
@@ -1035,6 +1036,7 @@ with_libfstrm
 with_docbook_xsl
 with_libidn2
 with_cmocka
+enable_assert_testing
 with_atf
 with_tuning
 enable_querytrace
@@ -1716,6 +1718,7 @@ Optional Features:
                           [default=$librpz_dl]
   --enable-dnsrps         enable DNS Response Policy Service API
   --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
+  --enable-assert-testing enable assertion testing using cmocka (default=no)
   --enable-querytrace     enable very verbose query trace logging [default=no]
   --enable-auto-validation
                           turn on DNSSEC validation by default, using the IANA
@@ -12103,6 +12106,7 @@ yes)
 	test "${enable_querytrace+set}" = set || enable_querytrace=yes
 	test "${with_atf+set}" = set || with_atf=yes
 	test "${with_cmocka+set}" = set || with_cmocka=yes
+	test "${enable_assert_testing+set}" = set || enable_assert_testing=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
 	test "${enable_symtable+set}" = set || enable_symtable=all
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
@@ -22855,6 +22859,70 @@ fi
 esac
 
 
+
+# Check whether --enable-assert-testing was given.
+if test "${enable_assert_testing+set}" = set; then :
+  enableval=$enable_assert_testing;
+fi
+
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable assertion testing" >&5
+$as_echo_n "checking whether to enable assertion testing... " >&6; }
+case $enable_assert_testing in #(
+  yes) :
+
+	    CFLAGS="$CFLAGS $CMOCKA_CFLAGS"
+	    LIBS="$LIBS $CMOCKA_LIBS"
+
+$as_echo "#define ISC_ASSERT_TESTING 1" >>confdefs.h
+
+	* ;; #(
+  *) :
+    enable_assert_testing=no ;;
+esac
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_assert_testing" >&5
+$as_echo "$enable_assert_testing" >&6; }
+
+#
+# Check for -Wl,--wrap= support
+#
+
+save_LDFLAGS=$LDFLAGS
+LDFLAGS="--wrap=printf"
+
+LD_WRAP_TESTS=false
+enable_ld_wrap=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker support for --wrap option" >&5
+$as_echo_n "checking for linker support for --wrap option... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdio.h>
+int
+main ()
+{
+__wrap_printf("success"); return (0);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  enable_ld_wrap=yes
+     LD_WRAP_TESTS=true
+
+$as_echo "#define LD_WRAP 1" >>confdefs.h
+
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+# AM_CONDITIONAL([LD_WRAP], [test $enable_ld_wrap = yes])
+
+
+LDFLAGS=$save_LDFLAGS
 
 #
 # Check whether to build Automated Test Framework unit tests
