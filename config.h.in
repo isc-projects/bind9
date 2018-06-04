@@ -560,11 +560,17 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to the sockaddr length type used by getnameinfo(3). */
 #undef IRS_GETNAMEINFO_SOCKLEN_T
 
+/* define to enable assertion testing */
+#undef ISC_ASSERT_TESTING
+
 /* Define if you want to use inline buffers */
 #undef ISC_BUFFER_USEINLINE
 
 /* Define to allow building of objects for dlopen(). */
 #undef ISC_DLZ_DLOPEN
+
+/* define if the linker supports --wrap option */
+#undef LD_WRAP
 
 /* have __attribute__s used in librpz.h */
 #undef LIBRPZ_HAVE_ATTR
