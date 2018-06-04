@@ -45,6 +45,12 @@ AC_SUBST(CCOPT)
 AC_SUBST(CCNOOPT)
 AC_SUBST(BACKTRACECFLAGS)
 
+#
+# Use pkg-config
+#
+
+PKG_PROG_PKG_CONFIG
+
 # Warn if the user specified libbind, which is now deprecated
 AC_ARG_ENABLE(libbind, AS_HELP_STRING([--enable-libbind], [deprecated]))
 
@@ -86,6 +92,7 @@ yes)
 	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
 	test "${enable_querytrace+set}" = set || enable_querytrace=yes
 	test "${with_atf+set}" = set || with_atf=yes
+	test "${with_cmocka+set}" = set || with_cmocka=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
 	test "${enable_symtable+set}" = set || enable_symtable=all
 	test "${enable_warn_error+set}" = set || enable_warn_error=yes
@@ -4584,7 +4591,7 @@ AC_SUBST(CURL)
 # empty).  The variable VARIABLE will be substituted into output files.
 #
 
-AC_DEFUN(NOM_PATH_FILE, [
+AC_DEFUN([NOM_PATH_FILE], [
 $1=""
 AC_MSG_CHECKING(for $2)
 for d in $3
@@ -4780,6 +4787,39 @@ if test "$use_idnkit" != no || test "$use_libidn2" != no; then
 		AC_DEFINE(WITH_IDN_OUT_SUPPORT, 1, [define if IDN output support is to be included.])
 	fi
 fi
+
+#
+# Check whether to build with cmocka unit testing framework
+#
+
+AC_ARG_WITH([cmocka],
+	    [AS_HELP_STRING([--with-cmocka=no],[enable cmocka based tests (default is no)])])
+
+AS_CASE([$with_cmocka],
+	[no],[:],
+	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka])],
+	[*],[
+	    save_CFLAGS="$CFLAGS"
+	    save_LIBS="$LIBS"
+	    CFLAGS="$CFLAGS -I$with_cmocka/include"
+	    LIBS="$LIBS -L$with_cmocka/lib"
+	    AC_CHECK_HEADERS([cmocka.h],
+			     [:],
+			     [AC_MSG_ERROR([cmocka.h not found])],
+			     [#include <stdarg.h>
+			      #include <stddef.h>
+			      #include <setjmp.h>
+			     ])
+	    AC_SEARCH_LIBS([cmocka_run_group_tests],
+			   [cmocka],
+			   [
+			       CMOCKA_CFLAGS="-Iwith_cmocka/include"
+			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
+			   ],
+			   [AC_MSG_ERROR([cmocka unit testing framework not found in $with_cmocka path])])
+	    ])
+AC_SUBST([CMOCKA_CFLAGS])
+AC_SUBST([CMOCKA_LIBS])
 
 #
 # Check whether to build Automated Test Framework unit tests
