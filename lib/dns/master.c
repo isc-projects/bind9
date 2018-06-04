@@ -548,8 +548,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 
 	lctx->format = format;
 	switch (format) {
-	default:
-		INSIST(0);
 	case dns_masterformat_text:
 		lctx->openfile = openfile_text;
 		lctx->load = load_text;
@@ -562,6 +560,9 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		lctx->openfile = openfile_map;
 		lctx->load = load_map;
 		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (lex != NULL) {
