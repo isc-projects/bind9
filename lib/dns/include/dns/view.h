@@ -796,18 +796,15 @@ dns_view_findzone(dns_view_t *view, const dns_name_t *name,
  */
 
 isc_result_t
-dns_view_load(dns_view_t *view, isc_boolean_t stop);
+dns_view_load(dns_view_t *view, isc_boolean_t stop, isc_boolean_t newonly);
 
 isc_result_t
-dns_view_loadnew(dns_view_t *view, isc_boolean_t stop);
-
-isc_result_t
-dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg);
+dns_view_asyncload(dns_view_t *view, isc_boolean_t newonly,
+		   dns_zt_allloaded_t callback, void *arg);
 /*%<
  * Load zones attached to this view.  dns_view_load() loads
  * all zones whose master file has changed since the last
- * load; dns_view_loadnew() loads only zones that have never
- * been loaded.
+ * load
  *
  * dns_view_asyncload() loads zones asynchronously.  When all zones
  * in the view have finished loading, 'callback' is called with argument
@@ -815,6 +812,8 @@ dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg);
  *
  * If 'stop' is ISC_TRUE, stop on the first error and return it.
  * If 'stop' is ISC_FALSE (or we are loading asynchronously), ignore errors.
+ *
+ * If 'newonly' is ISC_TRUE load only zones that were never loaded.
  *
  * Requires:
  *
