@@ -81,10 +81,11 @@ main(int argc, char **argv) {
 			}
 #ifdef USE_DNSRPS
 			printf("%s\n", librpz->dnsrpzd_path);
-			return (0);
 #else
 			INSIST(0);
+			ISC_UNREACHABLE();
 #endif
+			return (0);
 
 		case 'n':
 			if (!link_dnsrps(&emsg)) {
@@ -131,10 +132,11 @@ main(int argc, char **argv) {
 			librpz->rsp_detach(&rsp);
 			librpz->client_detach(&client);
 			printf("%u\n", serial);
-			return (0);
 #else
 			INSIST(0);
+			ISC_UNREACHABLE();
 #endif
+			return (0);
 
 		case 'w':
 			seconds = strtod(optarg, &p);

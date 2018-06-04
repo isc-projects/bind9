@@ -2556,7 +2556,7 @@ rpz_get_zbits(ns_client_t *client,
 	      dns_rdatatype_t ip_type, dns_rpz_type_t rpz_type)
 {
 	dns_rpz_st_t *st;
-	dns_rpz_zbits_t zbits;
+	dns_rpz_zbits_t zbits = 0;
 
 	REQUIRE(client != NULL);
 	REQUIRE(client->query.rpz_st != NULL);

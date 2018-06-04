@@ -706,6 +706,7 @@ dnstap_type(dns_dtmsgtype_t msgtype) {
 		return (DNSTAP__MESSAGE__TYPE__TOOL_RESPONSE);
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
