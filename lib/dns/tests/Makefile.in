@@ -30,6 +30,10 @@ DNSDEPLIBS =	../libdns.@A@
 
 LIBS =		@LIBS@ @ATFLIBS@
 
+CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
+CMOCKA_LIBS =	@CMOCKA_LIBS@
+CMOCKA_MEM =	-Wl,--wrap=isc__mem_put,--wrap=isc__mem_get,--wrap=isc_mem_attach,--wrap=isc_mem_detach
+
 OBJS =		dnstest.@O@
 SRCS =		acl_test.c \
 		db_test.c \
@@ -56,6 +60,7 @@ SRCS =		acl_test.c \
 		rsa_test.c \
 		sigs_test.c \
 		time_test.c \
+		tkey_test.c \
 		tsig_test.c \
 		update_test.c \
 		zonemgr_test.c \
@@ -87,6 +92,7 @@ TARGETS =	acl_test@EXEEXT@ \
 		rsa_test@EXEEXT@ \
 		sigs_test@EXEEXT@ \
 		time_test@EXEEXT@ \
+		tkey_test@EXEEXT@ \
 		tsig_test@EXEEXT@ \
 		update_test@EXEEXT@ \
 		zonemgr_test@EXEEXT@ \
@@ -227,6 +233,11 @@ time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 			time_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
+
+tkey_test@EXEEXT@: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} ${LDFLAGS} -o $@ \
+			tkey_test.@O@ ${DNSLIBS} \
+			${ISCLIBS} ${LIBS} ${CMOCKA_LIBS} ${CMOCKA_MEM}
 
 tsig_test@EXEEXT@: tsig_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
