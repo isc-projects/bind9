@@ -77,26 +77,18 @@ _reset(void **state) {
 }
 
 static void
-isc_md_new_test(void **state) {
+isc_md_new_test(void **state __attribute__ ((unused))) {
 	isc_md_t *md = isc_md_new();
 	assert_non_null(md);
 	isc_md_free(md);
 }
 
 static void
-isc_md_free_test(void **state) {
+isc_md_free_test(void **state __attribute__ ((unused))) {
 	isc_md_t *md = isc_md_new();
 	assert_non_null(md);
 	isc_md_free(md);
 	isc_md_free(NULL);
-}
-
-static void
-isc_md_init_null_test(void **state) {
-}
-
-static void
-isc_md_init_invalid_type_test(void **state) {
 }
 
 static void
@@ -126,7 +118,9 @@ isc_md_init_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
+#if UNIT_TESTING
 	expect_assert_failure(isc_md_init(NULL, ISC_MD_MD5));
+#endif
 	assert_int_equal(isc_md_init(md, 0), ISC_R_NOTIMPLEMENTED);
        
 	assert_int_equal(isc_md_init(md, ISC_MD_MD5), ISC_R_SUCCESS);
@@ -151,7 +145,9 @@ isc_md_update_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
+#if UNIT_TESTING
 	expect_assert_failure(isc_md_update(NULL, NULL, 0));
+#endif
 
 	assert_int_equal(isc_md_update(md, NULL, 100), ISC_R_SUCCESS);
 	assert_int_equal(isc_md_update(md, (const unsigned char *)"", 0), ISC_R_SUCCESS);
@@ -160,13 +156,16 @@ isc_md_update_test(void **state) {
 static void
 isc_md_final_test(void **state) {
 	isc_md_t *md = *state;
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen __attribute__ ((unused));
+
 	assert_non_null(md);
 
-	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int digestlen;
+#if UNIT_TESTING
 
 	expect_assert_failure(isc_md_final(NULL, digest, &digestlen));
 	expect_assert_failure(isc_md_final(md, NULL, &digestlen));
+#endif
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA512), ISC_R_SUCCESS);
 	assert_int_equal(isc_md_final(md, digest, NULL), ISC_R_SUCCESS);
@@ -464,8 +463,6 @@ isc_md_sha512_test(void **state) {
 
 int main(void) {
 	OpenSSL_add_all_algorithms();
-
-	void **keep_state;
 	
 	const struct CMUnitTest tests[] = {
 		/* isc_md_new() */
