@@ -12,8 +12,6 @@
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
 
-#include <isc/bind9.h>
-
 /*! \file isc/types.h
  * \brief
  * OS-specific types, from the OS-specific include directories.

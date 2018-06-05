@@ -145,29 +145,27 @@ typedef struct isc_taskmethods {
  * of the isc_task_ routines to work.  task implementations must maintain
  * all task invariants.
  */
-struct isc_taskmgr {
-	unsigned int		impmagic;
-	unsigned int		magic;
-	isc_taskmgrmethods_t	*methods;
-};
+struct isc_taskmgr;
 
 #define ISCAPI_TASKMGR_MAGIC	ISC_MAGIC('A','t','m','g')
 #define ISCAPI_TASKMGR_VALID(m)	((m) != NULL && \
-				 (m)->magic == ISCAPI_TASKMGR_MAGIC)
+				 isc_taskmgr_magic(m) == ISCAPI_TASKMGR_MAGIC)
+
+unsigned int
+isc_taskmgr_magic(isc_taskmgr_t *manager);
 
 /*%
  * This is the common prefix of a task object.  The same note as
  * that for the taskmgr structure applies.
  */
-struct isc_task {
-	unsigned int		impmagic;
-	unsigned int		magic;
-	isc_taskmethods_t	*methods;
-};
+struct isc_task;
 
 #define ISCAPI_TASK_MAGIC	ISC_MAGIC('A','t','s','t')
 #define ISCAPI_TASK_VALID(s)	((s) != NULL && \
-				 (s)->magic == ISCAPI_TASK_MAGIC)
+				 isc_task_magic(s) == ISCAPI_TASK_MAGIC)
+
+unsigned int
+isc_task_magic(isc_task_t *task);
 
 isc_result_t
 isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
@@ -811,31 +809,22 @@ isc_task_register(isc_taskmgrcreatefunc_t createfunc);
  * event library is used than the one contained in the ISC library.
  */
 
-isc_result_t
-isc__task_register(void);
-/*%<
- * A short cut function that specifies the task management module in the ISC
- * library for isc_task_register().  An application that uses the ISC library
- * usually do not have to care about this function: it would call
- * isc_lib_register(), which internally calls this function.
- */
-
 /*%<
  * These functions allow unit tests to manipulate the processing
  * of the task queue. They are not intended as part of the public API.
  */
 #if defined(ISC_PLATFORM_USETHREADS)
 void
-isc__taskmgr_pause(isc_taskmgr_t *taskmgr);
+isc_taskmgr_pause(isc_taskmgr_t *taskmgr);
 
 void
-isc__taskmgr_resume(isc_taskmgr_t *taskmgr);
+isc_taskmgr_resume(isc_taskmgr_t *taskmgr);
 #else
 isc_boolean_t
-isc__taskmgr_ready(isc_taskmgr_t *taskmgr);
+isc_taskmgr_ready(isc_taskmgr_t *taskmgr);
 
 isc_result_t
-isc__taskmgr_dispatch(isc_taskmgr_t *taskmgr);
+isc_taskmgr_dispatch(isc_taskmgr_t *taskmgr);
 #endif /* !ISC_PLATFORM_USETHREADS */
 
 ISC_LANG_ENDDECLS

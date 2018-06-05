@@ -1057,7 +1057,6 @@ main(int argc, char *argv[]) {
 	argv += isc_commandline_index;
 
 	/* Common set up */
-	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_lib_init failed: %u\n", result);

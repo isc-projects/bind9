@@ -15,9 +15,9 @@
 /*! \file */
 
 isc_result_t
-isc__timermgr_nextevent(isc_timermgr_t *timermgr, isc_time_t *when);
+isc_timermgr_nextevent(isc_timermgr_t *timermgr, isc_time_t *when);
 
 void
-isc__timermgr_dispatch(isc_timermgr_t *timermgr);
+isc_timermgr_dispatch(isc_timermgr_t *timermgr);
 
 #endif /* ISC_TIMER_P_H */
