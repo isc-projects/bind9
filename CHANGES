@@ -122,6 +122,7 @@
 			[RT #46602]
 
 	--- 9.12.1 released ---
+
 	--- 9.12.1rc2 released ---
 
 4904.	[bug]		Temporarily revert change #4859. [GL #124]
