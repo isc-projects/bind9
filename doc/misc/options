@@ -265,6 +265,7 @@ options {
             min-ns-dots <integer> ] [ qname-wait-recurse <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        root-key-sentinel <boolean>;
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
         secroots-file <quoted_string>;
@@ -538,6 +539,7 @@ view <string> [ <class> ] {
             [ break-dnssec <boolean> ] [ max-policy-ttl <integer> ] [
             min-ns-dots <integer> ] [ qname-wait-recurse <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
+        root-key-sentinel <boolean>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
