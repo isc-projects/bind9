@@ -140,6 +140,7 @@ precheck:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   stage: precheck
   script:
+    - perl util/check-changes CHANGES
     - perl -w util/merge_copyrights
     - diff -urNap util/copyrights util/newcopyrights
     - rm util/newcopyrights
