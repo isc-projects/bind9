@@ -35,6 +35,7 @@
 #include <dns/dns64.h>
 #include <dns/dnssec.h>
 #include <dns/events.h>
+#include <dns/keytable.h>
 #include <dns/message.h>
 #include <dns/ncache.h>
 #include <dns/nsec3.h>
@@ -443,6 +444,9 @@ query_reset(ns_client_t *client, isc_boolean_t everything) {
 	client->query.isreferral = ISC_FALSE;
 	client->query.dns64_options = 0;
 	client->query.dns64_ttl = ISC_UINT32_MAX;
+	client->query.root_key_sentinel_keyid = 0;
+	client->query.root_key_sentinel_is_ta = ISC_FALSE;
+	client->query.root_key_sentinel_not_ta = ISC_FALSE;
 }
 
 static void
@@ -2885,7 +2889,6 @@ query_addns(ns_client_t *client, dns_db_t *db, dns_dbversion_t *version) {
 	CTRACE(ISC_LOG_DEBUG(3), "query_addns: done");
 	return (eresult);
 }
-
 static isc_result_t
 query_add_cname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 		dns_trust_t trust, dns_ttl_t ttl)
@@ -2960,6 +2963,58 @@ query_add_cname(ns_client_t *client, dns_name_t *qname, dns_name_t *tname,
 		dns_message_puttempname(client->message, &aname);
 
 	return (ISC_R_SUCCESS);
+}
+
+static isc_boolean_t
+get_root_key_sentinel_id(ns_client_t *client, const char *ndata) {
+	unsigned int v = 0;
+	int i;
+
+	for (i = 0; i < 5; i++) {
+		if (ndata[i] < '0' || ndata[i] > '9') {
+			return (ISC_FALSE);
+		}
+		v *= 10;
+		v += ndata[i] - '0';
+	}
+	if (v > 65535U) {
+		return (ISC_FALSE);
+	}
+	client->query.root_key_sentinel_keyid = v;
+	return (ISC_TRUE);
+}
+
+/*%
+ * Find out if the query is for a root key sentinel and if so, record the type
+ * of root key sentinel query and the key id that is being checked for.
+ *
+ * The code is assuming a zero padded decimal field of width 5.
+ */
+static void
+root_key_sentinel_detect(ns_client_t *client) {
+	const char *ndata = (const char *)client->query.qname->ndata;
+
+	if (client->query.qname->length > 30 && ndata[0] == 29 &&
+	    strncasecmp(ndata + 1, "root-key-sentinel-is-ta-", 24) == 0)
+	{
+		if (!get_root_key_sentinel_id(client, ndata + 25)) {
+			return;
+		}
+		client->query.root_key_sentinel_is_ta = ISC_TRUE;
+		ns_client_log(client, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "root-key-sentinel-is-ta query label found");
+	} else if (client->query.qname->length > 31 && ndata[0] == 30 &&
+		   strncasecmp(ndata + 1, "root-key-sentinel-not-ta-", 25) == 0)
+	{
+		if (!get_root_key_sentinel_id(client, ndata + 26)) {
+			return;
+		}
+		client->query.root_key_sentinel_not_ta = ISC_TRUE;
+		ns_client_log(client, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+			      "root-key-sentinel-not-ta query label found");
+	}
 }
 
 /*
@@ -3811,6 +3866,92 @@ free_devent(ns_client_t *client, isc_event_t **eventp,
 	if ((void *)eventp != (void *)deventp)
 		(*deventp) = NULL;
 	isc_event_free(eventp);
+}
+
+/*%
+ * Check the configured trust anchors for a root zone trust anchor
+ * with a key id that matches client->query.root_key_sentinel_keyid.
+ *
+ * Return ISC_TRUE when found, otherwise return ISC_FALSE.
+ */
+static isc_boolean_t
+has_ta(ns_client_t *client) {
+	dns_keytable_t *keytable = NULL;
+	dns_keynode_t *keynode = NULL;
+	isc_result_t result;
+
+	result = dns_view_getsecroots(client->view, &keytable);
+	if (result != ISC_R_SUCCESS) {
+		return (ISC_FALSE);
+	}
+
+	result = dns_keytable_find(keytable, dns_rootname, &keynode);
+	while (result == ISC_R_SUCCESS) {
+		dns_keynode_t *nextnode = NULL;
+		dns_keytag_t keyid = dst_key_id(dns_keynode_key(keynode));
+		if (keyid == client->query.root_key_sentinel_keyid) {
+			dns_keytable_detachkeynode(keytable, &keynode);
+			dns_keytable_detach(&keytable);
+			return (ISC_TRUE);
+		}
+		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
+		dns_keytable_detachkeynode(keytable, &keynode);
+		keynode = nextnode;
+	}
+	dns_keytable_detach(&keytable);
+
+	return (ISC_FALSE);
+}
+
+/*%
+ * Check if a root key sentinel SERVFAIL should be returned.
+ */
+static isc_boolean_t
+root_key_sentinel_return_servfail(ns_client_t *client, isc_boolean_t is_zone,
+				  dns_rdataset_t *rdataset, isc_result_t result)
+{
+	/*
+	 * Are we looking at a "root-key-sentinel" query?
+	 */
+	if (!client->query.root_key_sentinel_is_ta &&
+	    !client->query.root_key_sentinel_not_ta)
+	{
+		return (ISC_FALSE);
+	}
+
+	/*
+	 * We only care about the query if 'result' indicates we have a cached
+	 * answer.
+	 */
+	switch (result) {
+	case ISC_R_SUCCESS:
+	case DNS_R_CNAME:
+	case DNS_R_DNAME:
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+		break;
+	default:
+		return (ISC_FALSE);
+	}
+
+	/*
+	 * Do we meet the specified conditions to return SERVFAIL?
+	 */
+	if (!is_zone && rdataset->trust == dns_trust_secure &&
+	    ((client->query.root_key_sentinel_is_ta && !has_ta(client)) ||
+	     (client->query.root_key_sentinel_not_ta && has_ta(client))))
+	{
+		return (ISC_TRUE);
+	}
+
+	/*
+	 * As special processing may only be triggered by the original QNAME,
+	 * disable it after following a CNAME/DNAME.
+	 */
+	client->query.root_key_sentinel_is_ta = ISC_FALSE;
+	client->query.root_key_sentinel_not_ta = ISC_FALSE;
+
+	return (ISC_FALSE);
 }
 
 static void
@@ -5962,6 +6103,18 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	}
 
 	/*
+	 * Setup for root key sentinel processing.
+	 */
+	if (client->view->root_key_sentinel &&
+	    client->query.restarts == 0 &&
+	    (qtype == dns_rdatatype_a ||
+	     qtype == dns_rdatatype_aaaa) &&
+	    (client->message->flags & DNS_MESSAGEFLAG_CD) == 0)
+	{
+		 root_key_sentinel_detect(client);
+	}
+
+	/*
 	 * First we must find the right database.
 	 */
 	options &= DNS_GETDB_NOLOG; /* Preserve DNS_GETDB_NOLOG. */
@@ -6363,6 +6516,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			rpz_log_rewrite(client, ISC_FALSE, rpz_st->m.policy,
 					rpz_st->m.type, zone, rpz_st->qname);
 		}
+	}
+
+	/*
+	 * If required, handle special "root-key-sentinel-is-ta-<keyid>" and
+	 * "root-key-sentinel-not-ta-<keyid>" labels by returning SERVFAIL.
+	 */
+	if (root_key_sentinel_return_servfail(client, is_zone,
+					      rdataset, result))
+	{
+		QUERY_ERROR(DNS_R_SERVFAIL);
+		goto cleanup;
 	}
 
 	switch (result) {
@@ -8125,7 +8289,7 @@ ns_query_start(ns_client_t *client) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 
 	/*
-	 * Set NS_CLIENTATTR_WANTDNSSEC if the client has set AD in the query.
+	 * Set NS_CLIENTATTR_WANTAD if the client has set AD in the query.
 	 * This allows AD to be returned on queries without DO set.
 	 */
 	if ((message->flags & DNS_MESSAGEFLAG_AD) != 0)

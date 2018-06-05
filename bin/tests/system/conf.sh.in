@@ -84,7 +84,8 @@ PARALLELDIRS="acl additional addzone allow-query autosign builtin
 	 formerr forward glue inline integrity ixfr legacy
 	 limits logfileconfig masterfile masterformat metadata
 	 notify nslookup nsupdate pending reclimit redirect
-	 resolver rndc rpz rrl rrsetorder rsabigexponent runtime smartsign
+	 resolver rndc rootkeysentinel rpz rrl rrsetorder
+         rsabigexponent runtime smartsign
 	 sortlist spf staticstub stub tsig tsiggss unknown
 	 upforwd verify views wildcard xfer xferquota zero zonechecks"
 
@@ -200,6 +201,12 @@ SYSTESTDIR="`basename $PWD`"
 echo_i() {
     echo "$@" | while read LINE ; do
        echoinfo "I:$SYSTESTDIR:$LINE"
+    done
+}
+
+echo_ic() {
+    echo "$@" | while read LINE ; do
+       echoinfo "I:$SYSTESTDIR:  $LINE"
     done
 }
 
