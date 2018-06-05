@@ -263,6 +263,13 @@
 	  [GL #203]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  NSID logging (enabled by the <command>request-nsid</command>
+	  option) now has its own <command>nsid</command> category,
+	  instead of using the <command>resolver</command> category.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

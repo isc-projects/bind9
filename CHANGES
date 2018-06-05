@@ -1,3 +1,7 @@
+4959.	[func]		NSID logging (enabled by the "request-nsid" option)
+			now has its own "nsid" category, instead of using the
+			"resolver" category. [GL !332]
+
 4958.	[bug]		Remove redundant space from NSEC3 record. [GL #281]
 
 4957.	[func]		The default setting for "dnssec-validation" is now
