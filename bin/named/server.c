@@ -4864,7 +4864,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * options/view level.)
 	 */
 	if (view->notifyacl == NULL) {
-		CHECK(configure_view_acl(vconfig, config, named_g_config,
+		CHECK(configure_view_acl(NULL, NULL, named_g_config,
 					 "allow-notify", NULL, actx,
 					 named_g_mctx, &view->notifyacl));
 	}
