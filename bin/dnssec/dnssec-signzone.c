@@ -479,7 +479,7 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	dns_dnsseckey_t *key;
 	isc_result_t result;
 	isc_boolean_t nosigs = ISC_FALSE;
-	isc_boolean_t *wassignedby, *nowsignedby;
+	isc_boolean_t *wassignedby = NULL, *nowsignedby = NULL;
 	int arraysize;
 	dns_difftuple_t *tuple;
 	dns_ttl_t ttl;
@@ -509,15 +509,19 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	vbprintf(1, "%s/%s:\n", namestr, typestr);
 
 	arraysize = keycount;
-	if (!nosigs)
+	if (!nosigs) {
 		arraysize += dns_rdataset_count(&sigset);
-	wassignedby = isc_mem_get(mctx, arraysize * sizeof(isc_boolean_t));
-	nowsignedby = isc_mem_get(mctx, arraysize * sizeof(isc_boolean_t));
-	if (wassignedby == NULL || nowsignedby == NULL)
-		fatal("out of memory");
-
-	for (i = 0; i < arraysize; i++)
-		wassignedby[i] = nowsignedby[i] = ISC_FALSE;
+	}
+	if (arraysize > 0) {
+		wassignedby = isc_mem_get(mctx, arraysize * sizeof(isc_boolean_t));
+		nowsignedby = isc_mem_get(mctx, arraysize * sizeof(isc_boolean_t));
+		if (wassignedby == NULL || nowsignedby == NULL) {
+			fatal("out of memory");
+		}
+		for (i = 0; i < arraysize; i++) {
+			wassignedby[i] = nowsignedby[i] = ISC_FALSE;
+		}
+	}
 
 	if (nosigs)
 		result = ISC_R_NOMORE;
@@ -600,8 +604,9 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		}
 
 		if (keep) {
-			if (key != NULL)
+			if (key != NULL) {
 				nowsignedby[key->index] = ISC_TRUE;
+			}
 			INCSTAT(nretained);
 			if (sigset.ttl != ttl) {
 				vbprintf(2, "\tfixing ttl %s\n", sigstr);
@@ -689,8 +694,12 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		}
 	}
 
-	isc_mem_put(mctx, wassignedby, arraysize * sizeof(isc_boolean_t));
-	isc_mem_put(mctx, nowsignedby, arraysize * sizeof(isc_boolean_t));
+	if (wassignedby != NULL) {
+		isc_mem_put(mctx, wassignedby, arraysize * sizeof(isc_boolean_t));
+	}
+	if (nowsignedby != NULL) {
+		isc_mem_put(mctx, nowsignedby, arraysize * sizeof(isc_boolean_t));
+	}
 }
 
 struct hashlist {
