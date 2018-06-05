@@ -102,11 +102,11 @@ mem_alloc(size_t size FLARG) {
 	void *ptr;
 
 	INSIST(dst__memory_pool != NULL);
-	ptr = isc__mem_allocate(dst__memory_pool, size FLARG_PASS);
+	ptr = isc_mem_allocate(dst__memory_pool, size FLARG_PASS);
 	return (ptr);
 #else
 	INSIST(dst__memory_pool != NULL);
-	return (isc__mem_allocate(dst__memory_pool, size FLARG_PASS));
+	return (isc_mem_allocate(dst__memory_pool, size FLARG_PASS));
 #endif
 }
 
@@ -114,7 +114,7 @@ static void
 mem_free(void *ptr FLARG) {
 	INSIST(dst__memory_pool != NULL);
 	if (ptr != NULL)
-		isc__mem_free(dst__memory_pool, ptr FLARG_PASS);
+		isc_mem_free(dst__memory_pool, ptr FLARG_PASS);
 }
 
 static void *
@@ -123,11 +123,11 @@ mem_realloc(void *ptr, size_t size FLARG) {
 	void *rptr;
 
 	INSIST(dst__memory_pool != NULL);
-	rptr = isc__mem_reallocate(dst__memory_pool, ptr, size FLARG_PASS);
+	rptr = isc_mem_reallocate(dst__memory_pool, ptr, size FLARG_PASS);
 	return (rptr);
 #else
 	INSIST(dst__memory_pool != NULL);
-	return (isc__mem_reallocate(dst__memory_pool, ptr, size FLARG_PASS));
+	return (isc_mem_reallocate(dst__memory_pool, ptr, size FLARG_PASS));
 #endif
 }
 
