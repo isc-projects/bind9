@@ -114,7 +114,7 @@ $ <userinput>./configure --enable-native-pkcs11 \
       </para>
       <screen>
 $ <userinput> cd SoftHSMv2 </userinput>
-$ <userinput> configure --with-crypto-backend=openssl --prefix=/opt/pkcs11/usr --enable-gost </userinput>
+$ <userinput> configure --with-crypto-backend=openssl --prefix=/opt/pkcs11/usr </userinput>
 $ <userinput> make </userinput>
 $ <userinput> make install </userinput>
 $ <userinput> /opt/pkcs11/usr/bin/softhsm-util --init-token 0 --slot 0 --label softhsmv2 </userinput>

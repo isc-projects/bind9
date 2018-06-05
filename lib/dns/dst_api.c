@@ -204,9 +204,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 #ifndef PK11_DH_DISABLE
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 #endif
-#ifdef HAVE_OPENSSL_GOST
-	RETERR(dst__opensslgost_init(&dst_t_func[DST_ALG_ECCGOST]));
-#endif
 #ifdef HAVE_OPENSSL_ECDSA
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA256]));
 	RETERR(dst__opensslecdsa_init(&dst_t_func[DST_ALG_ECDSA384]));
@@ -242,9 +239,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 #endif
 #ifdef HAVE_PKCS11_ED448
 	RETERR(dst__pkcs11eddsa_init(&dst_t_func[DST_ALG_ED448]));
-#endif
-#ifdef HAVE_PKCS11_GOST
-	RETERR(dst__pkcs11gost_init(&dst_t_func[DST_ALG_ECCGOST]));
 #endif
 #endif /* if HAVE_OPENSSL, elif HAVE_PKCS11 */
 #ifdef GSSAPI
@@ -292,16 +286,9 @@ dst_algorithm_supported(unsigned int alg) {
 
 isc_boolean_t
 dst_ds_digest_supported(unsigned int digest_type) {
-#if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
-	return  (ISC_TF(digest_type == DNS_DSDIGEST_SHA1 ||
-			digest_type == DNS_DSDIGEST_SHA256 ||
-			digest_type == DNS_DSDIGEST_GOST ||
-			digest_type == DNS_DSDIGEST_SHA384));
-#else
 	return  (ISC_TF(digest_type == DNS_DSDIGEST_SHA1 ||
 			digest_type == DNS_DSDIGEST_SHA256 ||
 			digest_type == DNS_DSDIGEST_SHA384));
-#endif
 }
 
 isc_result_t
@@ -1244,9 +1231,6 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 		*n = DNS_SIG_DSASIGSIZE;
 		break;
 #endif
-	case DST_ALG_ECCGOST:
-		*n = DNS_SIG_GOSTSIGSIZE;
-		break;
 	case DST_ALG_ECDSA256:
 		*n = DNS_SIG_ECDSA256SIZE;
 		break;
@@ -1598,7 +1582,6 @@ issymmetric(const dst_key_t *key) {
 #ifndef PK11_DH_DISABLE
 	case DST_ALG_DH:
 #endif
-	case DST_ALG_ECCGOST:
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
 	case DST_ALG_ED25519:

@@ -37,7 +37,6 @@ $DSFROMKEY -a SHA-256 $keyname22 > $DSFILENAME2
 
 supported=`cat ../supported`
 case "$supported" in
-    gost) algo=GOST ;;
     *) algo=SHA-384 ;;
 esac
 
