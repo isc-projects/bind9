@@ -682,8 +682,7 @@ mem_putstats(isc_mem_t *ctx, void *ptr, size_t size) {
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
-	if (size == 0U)
-		size = 1;
+	REQUIRE(size > 0U);
 	return (malloc(size));
 }
 
