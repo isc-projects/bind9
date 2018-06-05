@@ -20,7 +20,6 @@ tp: pool_test
 tp: print_test
 tp: queue_test
 tp: radix_test
-tp: random_test
 tp: regex_test
 tp: result_test
 tp: safe_test
