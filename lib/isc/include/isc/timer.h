@@ -129,12 +129,7 @@ typedef struct {
  * of the isc_timer_ routines to work.  timer implementations must maintain
  * all timer invariants.
  */
-struct isc_timermgr {
-	unsigned int		impmagic;
-	unsigned int		magic;
-	isc_timermgrmethods_t	*methods;
-};
-
+struct isc_timermgr;
 #define ISCAPI_TIMERMGR_MAGIC		ISC_MAGIC('A','t','m','g')
 #define ISCAPI_TIMERMGR_VALID(m)	((m) != NULL && \
 					 (m)->magic == ISCAPI_TIMERMGR_MAGIC)
@@ -143,11 +138,7 @@ struct isc_timermgr {
  * This is the common prefix of a timer object.  The same note as
  * that for the timermgr structure applies.
  */
-struct isc_timer {
-	unsigned int		impmagic;
-	unsigned int		magic;
-	isc_timermethods_t	*methods;
-};
+struct isc_timer;
 
 #define ISCAPI_TIMER_MAGIC	ISC_MAGIC('A','t','m','r')
 #define ISCAPI_TIMER_VALID(s)	((s) != NULL && \
@@ -395,29 +386,6 @@ isc_timermgr_destroy(isc_timermgr_t **managerp);
  */
 
 void isc_timermgr_poke(isc_timermgr_t *m);
-
-/*%<
- * See isc_timermgr_create() above.
- */
-typedef isc_result_t
-(*isc_timermgrcreatefunc_t)(isc_mem_t *mctx, isc_timermgr_t **managerp);
-
-isc_result_t
-isc__timer_register(void);
-/*%<
- * Register a new timer management implementation and add it to the list of
- * supported implementations.  This function must be called when a different
- * event library is used than the one contained in the ISC library.
- */
-
-isc_result_t
-isc_timer_register(isc_timermgrcreatefunc_t createfunc);
-/*%<
- * A short cut function that specifies the timer management module in the ISC
- * library for isc_timer_register().  An application that uses the ISC library
- * usually do not have to care about this function: it would call
- * isc_lib_register(), which internally calls this function.
- */
 
 ISC_LANG_ENDDECLS
 

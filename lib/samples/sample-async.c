@@ -321,7 +321,6 @@ main(int argc, char *argv[]) {
 		query_array[i].xid = NULL;
 	}
 
-	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_lib_init failed: %u\n", result);

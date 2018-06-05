@@ -433,7 +433,6 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 	dctx->timermgr = tmgr;
 	dctx->hashinit = hashinit;
 	dctx->lctx = lctx;
-	dctx->refvar = &isc_bind9;
 
 	isc_mem_attach(mctx, &dctx->mctx);
 	dctx->magic = DNS_DYNDBCTX_MAGIC;

@@ -173,7 +173,6 @@ main(int argc, char *argv[]) {
 	if (argc < 2)
 		usage();
 
-	isc_lib_register();
 	result = dns_lib_init();
 	if (result != ISC_R_SUCCESS) {
 		fprintf(stderr, "dns_lib_init failed: %u\n", result);
