@@ -20,6 +20,8 @@ options {
 	listen-on { 10.53.0.7; };
 	listen-on-v6 { none; };
 	minimal-responses no;
+	recursion yes;
+	dnssec-validation yes;
 
 	response-policy {
 	    zone "policy2";
