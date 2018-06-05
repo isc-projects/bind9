@@ -126,6 +126,7 @@ struct dns_view {
 	isc_boolean_t			acceptexpired;
 	isc_boolean_t			requireservercookie;
 	isc_boolean_t			trust_anchor_telemetry;
+	isc_boolean_t			root_key_sentinel;
 	dns_transfer_format_t		transfer_format;
 	dns_acl_t *			cacheacl;
 	dns_acl_t *			cacheonacl;
