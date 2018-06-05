@@ -1,3 +1,5 @@
+4960.	[placeholder]
+
 4959.	[func]		NSID logging (enabled by the "request-nsid" option)
 			now has its own "nsid" category, instead of using the
 			"resolver" category. [GL !332]
