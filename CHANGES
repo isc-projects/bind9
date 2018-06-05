@@ -1,3 +1,6 @@
+4961.	[cleanup]	Fixed an inconsistency in setting up the
+			default "allow-notify" ACL. [GL !342]
+
 4960.	[placeholder]
 
 4959.	[func]		NSID logging (enabled by the "request-nsid" option)
