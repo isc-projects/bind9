@@ -19,7 +19,6 @@ atf_test_program{name='pool_test'}
 atf_test_program{name='print_test'}
 atf_test_program{name='queue_test'}
 atf_test_program{name='radix_test'}
-atf_test_program{name='random_test'}
 atf_test_program{name='regex_test'}
 atf_test_program{name='result_test'}
 atf_test_program{name='safe_test'}
