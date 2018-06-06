@@ -373,6 +373,11 @@
 	  usually long after their end-of-life date and they are
 	  neither developed nor supported by their respective vendors.
 	</para>
+	<para>
+	  Support for DSA and DSA-NSEC3-SHA1 algorithms has been
+	  removed from BIND as the DSA key length is limited to 1024
+	  bits and this is not considered secure enough.
+	</para>
       </listitem>
     </itemizedlist>
   </section>
