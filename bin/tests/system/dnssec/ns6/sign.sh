@@ -16,7 +16,7 @@ zone=optout-tld
 infile=optout-tld.db.in
 zonefile=optout-tld.db
 
-keyname=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+keyname=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 

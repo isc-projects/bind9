@@ -16,8 +16,8 @@ zone=split-rrsig
 infile=split-rrsig.db.in
 zonefile=split-rrsig.db
 
-k1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
-k2=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+k1=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
+k2=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 
 cat $infile $k1.key $k2.key >$zonefile
 

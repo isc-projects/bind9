@@ -15,7 +15,7 @@ SYSTEMTESTTOP=${SYSTEMTESTTOP:=..}
 prog=$0
 
 args=""
-alg="-a RSAMD5 -b 1024"
+alg="-a $ALGO -b $BITS"
 quiet=0
 
 msg1="cryptography"
