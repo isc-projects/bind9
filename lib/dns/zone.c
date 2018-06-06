@@ -805,7 +805,8 @@ static void zone_maintenance(dns_zone_t *zone);
 static void zone_notify(dns_zone_t *zone, isc_time_t *now);
 static void dump_done(void *arg, isc_result_t result);
 static isc_result_t zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
-				     isc_uint16_t keyid, isc_boolean_t deleteit);
+				     isc_uint16_t keyid,
+				     isc_boolean_t deleteit);
 static isc_result_t delete_nsec(dns_db_t *db, dns_dbversion_t *ver,
 				dns_dbnode_t *node, dns_name_t *name,
 				dns_diff_t *diff);
@@ -8246,8 +8247,8 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	dns_rdataset_t rdataset;
 	dns_rdatasetiter_t *iterator = NULL;
 	isc_result_t result;
-	isc_boolean_t all = ISC_TRUE;
-	isc_boolean_t one = ISC_FALSE;
+	isc_boolean_t alg_missed = ISC_FALSE;
+	isc_boolean_t alg_found = ISC_FALSE;
 
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_name_format(name, namebuf, sizeof(namebuf));
@@ -8286,7 +8287,8 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		}
 		for (result = dns_rdataset_first(&rdataset);
 		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset)) {
+		     result = dns_rdataset_next(&rdataset))
+		{
 			dns_rdata_t rdata = DNS_RDATA_INIT;
 			dns_rdataset_current(&rdataset, &rdata);
 			CHECK(dns_rdata_tostruct(&rdata, &rrsig, NULL));
@@ -8306,15 +8308,25 @@ del_sig(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 		dns_rdataset_disassociate(&rdataset);
 		if (result != ISC_R_NOMORE)
 			break;
+
+		/*
+		 * After deleting, if there's still a signature for
+		 * 'algorithm', set alg_found; if not, set alg_missed.
+		 */
 		if (has_alg) {
-			one = ISC_TRUE;
+			alg_found = ISC_TRUE;
 		} else {
-			all = ISC_FALSE;
+			alg_missed = ISC_TRUE;
 		}
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-	*has_algp = ISC_TF(one && all);
+
+	/*
+	 * Set `has_algp` if the algorithm was found in every RRset:
+	 * i.e., found in at least one, and not missing from any.
+	 */
+	*has_algp = ISC_TF(alg_found && !alg_missed);
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
@@ -8602,7 +8614,9 @@ zone_sign(dns_zone_t *zone) {
 				is_ksk = ISC_FALSE;
 
 			/*
-			 * Only sign once with a zsk and ksk if deleting.
+			 * If deleting signatures, we need to ensure that
+			 * the RRset is still signed at least once by a
+			 * KSK and a ZSK.
 			 */
 			if (signing->deleteit && !is_ksk && with_zsk) {
 				continue;
