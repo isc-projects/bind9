@@ -30,8 +30,8 @@ class dnskey:
               'Revoke', 'DSPublish', 'SyncPublish', 'SyncDelete')
     _OPTS = (None, '-P', '-A', '-I', '-D', '-R', None, '-Psync', '-Dsync')
 
-    _ALGNAMES = (None, 'RSAMD5', 'DH', 'DSA', 'ECC', 'RSASHA1',
-                 'NSEC3DSA', 'NSEC3RSASHA1', 'RSASHA256', None,
+    _ALGNAMES = (None, 'RSAMD5', None, 'DSA', 'ECC', 'RSASHA1',
+                 None, 'NSEC3RSASHA1', 'RSASHA256', None,
                  'RSASHA512', None, None, 'ECDSAP256SHA256',
                  'ECDSAP384SHA384', 'ED25519', 'ED448')
 
