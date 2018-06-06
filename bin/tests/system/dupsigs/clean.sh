@@ -15,3 +15,5 @@ rm -f ns1/signing.test.db
 rm -f ns1/signing.test.db.jbk
 rm -f ns1/signing.test.db.signed
 rm -f ns1/signing.test.db.signed.jnl
+rm -f ns1/keys/signing.test/K*
+rm -f ns1/managed-keys.bind*
