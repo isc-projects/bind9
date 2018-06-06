@@ -4016,12 +4016,6 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer)
 
 	LOCK(&mgr->lock);
 
-#ifndef ISC_PLATFORM_USETHREADS
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "references"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%d", mgr->refs));
-	TRY0(xmlTextWriterEndElement(writer));
-#endif
-
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "sockets"));
 	sock = ISC_LIST_HEAD(mgr->socklist);
 	while (sock != NULL) {
