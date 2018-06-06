@@ -53,7 +53,6 @@
 #include <dst/dst.h>
 
 #include <openssl/dh.h>
-#include <openssl/dsa.h>
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>
@@ -109,7 +108,6 @@ struct dst_key {
 	union {
 		void *generic;
 		gss_ctx_id_t gssctx;
-		DSA *dsa;
 		DH *dh;
 #if USE_OPENSSL
 		EVP_PKEY *pkey;
@@ -229,7 +227,6 @@ isc_result_t dst__openssldh_init(struct dst_func **funcp);
 #if USE_OPENSSL
 isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
 				  unsigned char algorithm);
-isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__opensslecdsa_init(struct dst_func **funcp);
 #if HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448
 isc_result_t dst__openssleddsa_init(struct dst_func **funcp);

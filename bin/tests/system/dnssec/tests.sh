@@ -3137,12 +3137,8 @@ do
 	2) # Diffie Helman
 	   alg=`expr $alg + 1`
 	   continue;;
-	3) # DSA/SHA1
-	   size="-b 512";;
 	5) # RSA/SHA-1
 	   size="-b 1024";;
-	6) # DSA-NSEC3-SHA1
-	   size="-b 512";;
 	7) # RSASHA1-NSEC3-SHA1
 	   size="-b 1024";;
 	8) # RSA/SHA-256

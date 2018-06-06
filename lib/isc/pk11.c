@@ -81,7 +81,6 @@ struct pk11_token {
 static ISC_LIST(pk11_token_t) tokens;
 
 static pk11_token_t *best_rsa_token;
-static pk11_token_t *best_dsa_token;
 static pk11_token_t *best_dh_token;
 static pk11_token_t *best_ecdsa_token;
 static pk11_token_t *best_eddsa_token;
@@ -237,9 +236,6 @@ pk11_finalize(void) {
 		ISC_LIST_UNLINK(tokens, token, link);
 		if (token == best_rsa_token) {
 			best_rsa_token = NULL;
-		}
-		if (token == best_dsa_token) {
-			best_dsa_token = NULL;
 		}
 		if (token == best_dh_token) {
 			best_dh_token = NULL;
@@ -563,35 +559,6 @@ scan_slots(void) {
 			}
 		}
 
-		/* Check for DSA support */
-		bad = false;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_PARAMETER_GEN,
-					     &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0)) {
-			bad = true;
-			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_KEY_PAIR_GEN,
-					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-			bad = true;
-			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_SHA1, &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-			bad = true;
-			PK11_TRACEM(CKM_DSA_SHA1);
-		}
-		if (!bad) {
-			token->operations |= 1 << OP_DSA;
-			if (best_dsa_token == NULL) {
-				best_dsa_token = token;
-			}
-		}
-
 		/* Check for DH support */
 		bad = false;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_PARAMETER_GEN,
@@ -683,9 +650,6 @@ pk11_get_best_token(pk11_optype_t optype) {
 	switch (optype) {
 	case OP_RSA:
 		token = best_rsa_token;
-		break;
-	case OP_DSA:
-		token = best_dsa_token;
 		break;
 	case OP_DH:
 		token = best_dh_token;
@@ -1035,8 +999,6 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 	if (token == NULL) {
 		if (optype == OP_RSA) {
 			token = best_rsa_token;
-		} else if (optype == OP_DSA) {
-			token = best_dsa_token;
 		} else if (optype == OP_DH) {
 			token = best_dh_token;
 		} else if (optype == OP_ECDSA) {
@@ -1076,7 +1038,6 @@ pk11_dump_tokens(void) {
 
 	printf("DEFAULTS\n");
 	printf("\tbest_rsa_token=%p\n", best_rsa_token);
-	printf("\tbest_dsa_token=%p\n", best_dsa_token);
 	printf("\tbest_dh_token=%p\n", best_dh_token);
 	printf("\tbest_ecdsa_token=%p\n", best_ecdsa_token);
 	printf("\tbest_eddsa_token=%p\n", best_eddsa_token);
@@ -1096,12 +1057,6 @@ pk11_dump_tokens(void) {
 		if (token->operations & (1 << OP_RSA)) {
 			first = false;
 			printf("RSA");
-		}
-		if (token->operations & (1 << OP_DSA)) {
-			if (!first)
-				printf(",");
-			first = false;
-			printf("DSA");
 		}
 		if (token->operations & (1 << OP_DH)) {
 			if (!first)
