@@ -186,6 +186,10 @@ typedef struct dns_include dns_include_t;
 #define ZONEDB_UNLOCK(l, t)	UNLOCK(l)
 #endif
 
+#ifdef ENABLE_AFL
+extern isc_boolean_t dns_fuzzing_resolver;
+#endif
+
 struct dns_zone {
 	/* Unlocked */
 	unsigned int		magic;
@@ -9767,6 +9771,10 @@ zone_refreshkeys(dns_zone_t *zone) {
 		 * as the latter will have a lower trust level due to not being
 		 * validated until keyfetch_done() is called.
 		 */
+
+#ifdef ENABLE_AFL
+                if (dns_fuzzing_resolver == ISC_FALSE) {
+#endif
 		result = dns_resolver_createfetch(zone->view->resolver,
 						  kname, dns_rdatatype_dnskey,
 						  NULL, NULL, NULL, NULL, 0,
@@ -9778,6 +9786,11 @@ zone_refreshkeys(dns_zone_t *zone) {
 						  &kfetch->dnskeyset,
 						  &kfetch->dnskeysigset,
 						  &kfetch->fetch);
+#ifdef ENABLE_AFL
+                } else {
+                        result = ISC_R_FAILURE;
+                }
+#endif
 		if (result == ISC_R_SUCCESS)
 			fetching = ISC_TRUE;
 		else {
