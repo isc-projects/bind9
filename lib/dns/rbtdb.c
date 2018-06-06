@@ -5419,8 +5419,8 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 		 * Force expire with 25% probability.
 		 * XXXDCL Could stand to have a better policy, like LRU.
 		 */
-		force_expire = ISC_TF(rbtnode->down == NULL && 
-                                      (isc_random32() % 4) == 0);
+		force_expire = ISC_TF(rbtnode->down == NULL &&
+				      (isc_random32() % 4) == 0);
 
 		/*
 		 * Note that 'log' can be true IFF overmem is also true.
