@@ -1,3 +1,5 @@
+5030.	[cleanup]	Remove support for DSA and DSA-NSEC3-SHA1 [GL #22]
+
 5029.	[func]		Workarounds for servers that misbehave when queried
 			with EDNS have been removed, because these broken
 			servers and the workarounds for their noncompliance
