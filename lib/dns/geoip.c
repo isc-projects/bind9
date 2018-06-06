@@ -78,7 +78,6 @@ typedef struct geoip_state {
 	isc_mem_t *mctx;
 } geoip_state_t;
 
-#ifdef ISC_PLATFORM_USETHREADS
 static isc_mutex_t key_mutex;
 static bool state_key_initialized = false;
 static isc_thread_key_t state_key;
@@ -133,9 +132,6 @@ state_key_init(void) {
 
 	return (result);
 }
-#else
-static geoip_state_t saved_state;
-#endif
 
 static void
 clean_state(geoip_state_t *state) {
@@ -165,7 +161,6 @@ set_state(unsigned int family, uint32_t ipnum, const geoipv6_t *ipnum6,
 	  GeoIPRegion *region, char *name, const char *text, int id)
 {
 	geoip_state_t *state = NULL;
-#ifdef ISC_PLATFORM_USETHREADS
 	isc_result_t result;
 
 	result = state_key_init();
@@ -189,10 +184,6 @@ set_state(unsigned int family, uint32_t ipnum, const geoipv6_t *ipnum6,
 		isc_mem_attach(state_mctx, &state->mctx);
 	} else
 		clean_state(state);
-#else
-	state = &saved_state;
-	clean_state(state);
-#endif
 
 	if (family == AF_INET) {
 		state->ipnum = ipnum;
@@ -218,7 +209,6 @@ get_state_for(unsigned int family, uint32_t ipnum,
 {
 	geoip_state_t *state;
 
-#ifdef ISC_PLATFORM_USETHREADS
 	isc_result_t result;
 
 	result = state_key_init();
@@ -228,9 +218,6 @@ get_state_for(unsigned int family, uint32_t ipnum,
 	state = (geoip_state_t *) isc_thread_key_getspecific(state_key);
 	if (state == NULL)
 		return (NULL);
-#else
-	state = &saved_state;
-#endif
 
 	if (state->family == family &&
 	    ((state->family == AF_INET && state->ipnum == ipnum) ||
@@ -830,10 +817,8 @@ void
 dns_geoip_shutdown(void) {
 #ifdef HAVE_GEOIP
 	GeoIP_cleanup();
-#ifdef ISC_PLATFORM_USETHREADS
 	if (state_mctx != NULL)
 		isc_mem_detach(&state_mctx);
-#endif
 #else
 	return;
 #endif
