@@ -142,17 +142,12 @@ cleanup_managers(void) {
 	}
 
 	while (run_managers && !shutdown_done) {
-#ifndef ISC_PLATFORM_USETHREADS
-		while (isc__taskmgr_ready(taskmgr))
-			isc__taskmgr_dispatch(taskmgr);
-#else
 		/*
 		 * There's no straightforward way to determine
 		 * whether all the clients have shut down, so
 		 * we'll just sleep for a bit and hope.
 		 */
 		ns_test_nap(500000);
-#endif
 	}
 
 	if (sctx != NULL)
@@ -178,11 +173,7 @@ create_managers(void) {
 	isc_result_t result;
 	ns_listenlist_t *listenon = NULL;
 	isc_event_t *event = NULL;
-#ifdef ISC_PLATFORM_USETHREADS
 	ncpus = isc_os_ncpus();
-#else
-	ncpus = 1;
-#endif
 
 	CHECK(isc_taskmgr_create(mctx, ncpus, 0, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
@@ -212,17 +203,12 @@ create_managers(void) {
 				   scan_interfaces, NULL,
 				   sizeof (isc_event_t));
 	isc_task_send(maintask, &event);
-#ifndef ISC_PLATFORM_USETHREADS
-	while (isc__taskmgr_ready(taskmgr))
-		isc__taskmgr_dispatch(taskmgr);
-#else
 	/*
 	 * There's no straightforward way to determine
 	 * whether the interfaces have been scanned,
 	 * we'll just sleep for a bit and hope.
 	 */
 	ns_test_nap(500000);
-#endif
 
 	run_managers = true;
 

@@ -808,7 +808,6 @@ INSTALL_LIBRARY
 ISC_THREAD_DIR
 THREADOPTSRCS
 THREADOPTOBJS
-ISC_PLATFORM_USETHREADS
 ALWAYS_DEFINES
 CHECK_DSA
 GEOIPLINKOBJS
@@ -907,6 +906,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1071,6 +1071,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1323,6 +1324,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1460,7 +1470,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1613,6 +1623,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -12092,11 +12103,6 @@ $as_echo "#define ENABLE_AFL 1" >>confdefs.h
 
 fi
 
-case "$enable_afl" in
-yes)
-	LIBS="$LIBS -lpthread"
-	;;
-esac
 
 #
 # Make very sure that these are the first files processed by
@@ -15687,8 +15693,274 @@ done
 
 
 	case "$host" in
-	*solaris-*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sched_yield in -lrt" >&5
+	*-freebsd*)
+		CC="$CC -pthread"
+		CCOPT="$CCOPT -pthread"
+		CCNOOPT="$CCNOOPT -pthread"
+		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+		;;
+	*-openbsd*)
+		CC="$CC -pthread"
+		CCOPT="$CCOPT -pthread"
+		CCNOOPT="$CCNOOPT -pthread"
+		;;
+	*-solaris*)
+		LIBS="$LIBS -lthread"
+		;;
+	*-ibm-aix*)
+		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+		;;
+	esac
+else
+	case $host in
+	*-dec-osf*)
+		CC="$CC -pthread"
+		CCOPT="$CCOPT -pthread"
+		CCNOOPT="$CCNOOPT -pthread"
+		;;
+	*-solaris*)
+		CC="$CC -mt"
+		CCOPT="$CCOPT -mt"
+		CCNOOPT="$CCNOOPT -mt"
+		;;
+	*-ibm-aix*)
+		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
+		;;
+	*-sco-sysv*uw*|*-*-sysv*UnixWare*)
+		CC="$CC -Kthread"
+		CCOPT="$CCOPT -Kthread"
+		CCNOOPT="$CCNOOPT -Kthread"
+		;;
+	*-*-sysv*OpenUNIX*)
+		CC="$CC -Kpthread"
+		CCOPT="$CCOPT -Kpthread"
+		CCNOOPT="$CCNOOPT -Kpthread"
+		;;
+	esac
+fi
+ALWAYS_DEFINES="-D_REENTRANT"
+THREADOPTOBJS='${THREADOPTOBJS}'
+THREADOPTSRCS='${THREADOPTSRCS}'
+thread_dir=pthreads
+#
+# We'd like to use sigwait() too
+#
+ac_fn_c_check_func "$LINENO" "sigwait" "ac_cv_func_sigwait"
+if test "x$ac_cv_func_sigwait" = xyes; then :
+  $as_echo "#define HAVE_SIGWAIT 1" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sigwait in -lc" >&5
+$as_echo_n "checking for sigwait in -lc... " >&6; }
+if ${ac_cv_lib_c_sigwait+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lc  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sigwait ();
+int
+main ()
+{
+return sigwait ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_c_sigwait=yes
+else
+  ac_cv_lib_c_sigwait=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_sigwait" >&5
+$as_echo "$ac_cv_lib_c_sigwait" >&6; }
+if test "x$ac_cv_lib_c_sigwait" = xyes; then :
+  $as_echo "#define HAVE_SIGWAIT 1" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sigwait in -lpthread" >&5
+$as_echo_n "checking for sigwait in -lpthread... " >&6; }
+if ${ac_cv_lib_pthread_sigwait+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthread  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char sigwait ();
+int
+main ()
+{
+return sigwait ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pthread_sigwait=yes
+else
+  ac_cv_lib_pthread_sigwait=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread_sigwait" >&5
+$as_echo "$ac_cv_lib_pthread_sigwait" >&6; }
+if test "x$ac_cv_lib_pthread_sigwait" = xyes; then :
+  $as_echo "#define HAVE_SIGWAIT 1" >>confdefs.h
+
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for _Psigwait in -lpthread" >&5
+$as_echo_n "checking for _Psigwait in -lpthread... " >&6; }
+if ${ac_cv_lib_pthread__Psigwait+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_check_lib_save_LIBS=$LIBS
+LIBS="-lpthread  $LIBS"
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char _Psigwait ();
+int
+main ()
+{
+return _Psigwait ();
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_lib_pthread__Psigwait=yes
+else
+  ac_cv_lib_pthread__Psigwait=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+LIBS=$ac_check_lib_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_pthread__Psigwait" >&5
+$as_echo "$ac_cv_lib_pthread__Psigwait" >&6; }
+if test "x$ac_cv_lib_pthread__Psigwait" = xyes; then :
+  $as_echo "#define HAVE_SIGWAIT 1" >>confdefs.h
+
+fi
+
+fi
+
+fi
+
+fi
+
+
+ac_fn_c_check_func "$LINENO" "pthread_attr_getstacksize" "ac_cv_func_pthread_attr_getstacksize"
+if test "x$ac_cv_func_pthread_attr_getstacksize" = xyes; then :
+  $as_echo "#define HAVE_PTHREAD_ATTR_GETSTACKSIZE 1" >>confdefs.h
+
+fi
+
+
+ac_fn_c_check_func "$LINENO" "pthread_attr_setstacksize" "ac_cv_func_pthread_attr_setstacksize"
+if test "x$ac_cv_func_pthread_attr_setstacksize" = xyes; then :
+  $as_echo "#define HAVE_PTHREAD_ATTR_SETSTACKSIZE 1" >>confdefs.h
+
+fi
+
+
+
+# Check whether --with-locktype was given.
+if test "${with_locktype+set}" = set; then :
+  withval=$with_locktype; locktype="$withval"
+else
+  locktype="adaptive"
+fi
+
+
+case "$locktype" in
+	adaptive)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PTHREAD_MUTEX_ADAPTIVE_NP" >&5
+$as_echo_n "checking for PTHREAD_MUTEX_ADAPTIVE_NP... " >&6; }
+
+		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+		  #ifndef _GNU_SOURCE
+		  #define _GNU_SOURCE
+		  #endif
+		  #include <pthread.h>
+
+int
+main ()
+{
+
+		  return (PTHREAD_MUTEX_ADAPTIVE_NP);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: using adaptive lock type" >&5
+$as_echo "using adaptive lock type" >&6; }
+
+$as_echo "#define HAVE_PTHREAD_MUTEX_ADAPTIVE_NP 1" >>confdefs.h
+
+else
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: using standard lock type" >&5
+$as_echo "using standard lock type" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+		;;
+	standard)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: using standard lock type" >&5
+$as_echo "using standard lock type" >&6; }
+		;;
+	*)
+		as_fn_error $? "You must specify \"adaptive\" or \"standard\" for --with-locktype." "$LINENO" 5
+		;;
+esac
+
+for ac_header in sched.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "sched.h" "ac_cv_header_sched_h" "$ac_includes_default"
+if test "x$ac_cv_header_sched_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SCHED_H 1
+_ACEOF
+
+fi
+
+done
+
+
+case "$host" in
+*solaris-*)
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sched_yield in -lrt" >&5
 $as_echo_n "checking for sched_yield in -lrt... " >&6; }
 if ${ac_cv_lib_rt_sched_yield+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -15733,10 +16005,10 @@ _ACEOF
 
 fi
 
-		;;
-	esac
+	;;
+esac
 
-	for ac_func in sched_yield pthread_yield pthread_yield_np
+for ac_func in sched_yield pthread_yield pthread_yield_np
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -15749,15 +16021,15 @@ fi
 done
 
 
+#
+# Additional OS-specific issues related to pthreads and sigwait.
+#
+case "$host" in
 	#
-	# Additional OS-specific issues related to pthreads and sigwait.
+	# One more place to look for sigwait.
 	#
-	case "$host" in
-		#
-		# One more place to look for sigwait.
-		#
-		*-freebsd*)
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sigwait in -lc_r" >&5
+	*-freebsd*)
+		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sigwait in -lc_r" >&5
 $as_echo_n "checking for sigwait in -lc_r... " >&6; }
 if ${ac_cv_lib_c_r_sigwait+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -15798,60 +16070,60 @@ if test "x$ac_cv_lib_c_r_sigwait" = xyes; then :
 
 fi
 
-			case $host in
-			*-freebsd5.[012]|*-freebsd5.[012].*);;
-			*-freebsd5.[3456789]|*-freebsd5.[3456789].*)
-				$as_echo "#define NEED_PTHREAD_SCOPE_SYSTEM 1" >>confdefs.h
-
-				;;
-			*-freebsd6.*)
-				$as_echo "#define NEED_PTHREAD_SCOPE_SYSTEM 1" >>confdefs.h
-
-				;;
-			esac
-			;;
-		#
-		# BSDI 3.0 through 4.0.1 needs pthread_init() to be
-		# called before certain pthreads calls.	 This is deprecated
-		# in BSD/OS 4.1.
-		#
-		*-bsdi3.*|*-bsdi4.0*)
-			$as_echo "#define NEED_PTHREAD_INIT 1" >>confdefs.h
+		case $host in
+		*-freebsd5.[012]|*-freebsd5.[012].*);;
+		*-freebsd5.[3456789]|*-freebsd5.[3456789].*)
+			$as_echo "#define NEED_PTHREAD_SCOPE_SYSTEM 1" >>confdefs.h
 
 			;;
-		#
-		# LinuxThreads requires some changes to the way we
-		# deal with signals.
-		#
-		*-linux*)
-			$as_echo "#define HAVE_LINUXTHREADS 1" >>confdefs.h
+		*-freebsd6.*)
+			$as_echo "#define NEED_PTHREAD_SCOPE_SYSTEM 1" >>confdefs.h
 
 			;;
-		#
-		# Ensure the right sigwait() semantics on Solaris and make
-		# sure we call pthread_setconcurrency.
-		#
-		*-solaris*)
-			$as_echo "#define _POSIX_PTHREAD_SEMANTICS 1" >>confdefs.h
+		esac
+		;;
+	#
+	# BSDI 3.0 through 4.0.1 needs pthread_init() to be
+	# called before certain pthreads calls.	 This is deprecated
+	# in BSD/OS 4.1.
+	#
+	*-bsdi3.*|*-bsdi4.0*)
+		$as_echo "#define NEED_PTHREAD_INIT 1" >>confdefs.h
 
-			ac_fn_c_check_func "$LINENO" "pthread_setconcurrency" "ac_cv_func_pthread_setconcurrency"
+		;;
+	#
+	# LinuxThreads requires some changes to the way we
+	# deal with signals.
+	#
+	*-linux*)
+		$as_echo "#define HAVE_LINUXTHREADS 1" >>confdefs.h
+
+		;;
+	#
+	# Ensure the right sigwait() semantics on Solaris and make
+	# sure we call pthread_setconcurrency.
+	#
+	*-solaris*)
+		$as_echo "#define _POSIX_PTHREAD_SEMANTICS 1" >>confdefs.h
+
+		ac_fn_c_check_func "$LINENO" "pthread_setconcurrency" "ac_cv_func_pthread_setconcurrency"
 if test "x$ac_cv_func_pthread_setconcurrency" = xyes; then :
   $as_echo "#define CALL_PTHREAD_SETCONCURRENCY 1" >>confdefs.h
 
 fi
 
-			;;
-		#
-		# UnixWare does things its own way.
-		#
-		*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-			$as_echo "#define HAVE_UNIXWARE_SIGWAIT 1" >>confdefs.h
+		;;
+	#
+	# UnixWare does things its own way.
+	#
+	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
+		$as_echo "#define HAVE_UNIXWARE_SIGWAIT 1" >>confdefs.h
 
-			;;
-	esac
+		;;
+esac
 
-	# Look for functions relating to thread naming
-	for ac_func in pthread_setname_np pthread_set_name_np
+# Look for functions relating to thread naming
+for ac_func in pthread_setname_np pthread_set_name_np
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -15863,7 +16135,7 @@ _ACEOF
 fi
 done
 
-	for ac_header in pthread_np.h
+for ac_header in pthread_np.h
 do :
   ac_fn_c_check_header_compile "$LINENO" "pthread_np.h" "ac_cv_header_pthread_np_h" "#include <pthread.h>
 "
@@ -15877,22 +16149,13 @@ fi
 done
 
 
-	#
-	# Look for sysconf to allow detection of the number of processors.
-	#
-	ac_fn_c_check_func "$LINENO" "sysconf" "ac_cv_func_sysconf"
+#
+# Look for sysconf to allow detection of the number of processors.
+#
+ac_fn_c_check_func "$LINENO" "sysconf" "ac_cv_func_sysconf"
 if test "x$ac_cv_func_sysconf" = xyes; then :
   $as_echo "#define HAVE_SYSCONF 1" >>confdefs.h
 
-fi
-
-
-else
-	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
-	thread_dir=nothreads
-	THREADOPTOBJS=""
-	THREADOPTSRCS=""
-	ALWAYS_DEFINES=""
 fi
 
 
@@ -17530,23 +17793,6 @@ if test "x$ac_cv_func_getc_unlocked" = xyes; then :
 
 fi
 
-
-#
-# Indicate what the final decision was regarding threads.
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to build with threads" >&5
-$as_echo_n "checking whether to build with threads... " >&6; }
-if $use_threads; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-#
-# End of pthreads stuff.
-#
 
 #
 # Large File
@@ -20287,14 +20533,12 @@ fi
 #
 # CPU relax (for spin locks)
 #
-if $use_threads
-then
-	case "$host" in
-	i[3456]86-*)
-		# x86_32
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"rep; nop\"); works" >&5
+case "$host" in
+i[3456]86-*)
+	# x86_32
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"rep; nop\"); works" >&5
 $as_echo_n "checking if asm(\"rep; nop\"); works... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -20308,18 +20552,18 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-		 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"
+	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-	x86_64-*|amd64-*)
-		# x86_64
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"rep; nop\"); works" >&5
+	;;
+x86_64-*|amd64-*)
+	# x86_64
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"rep; nop\"); works" >&5
 $as_echo_n "checking if asm(\"rep; nop\"); works... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -20333,18 +20577,18 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-		 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"
+	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-	ia64-*)
-		# ia64
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"hint @pause\"); works" >&5
+	;;
+ia64-*)
+	# ia64
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"hint @pause\"); works" >&5
 $as_echo_n "checking if asm(\"hint @pause\"); works... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -20358,28 +20602,28 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-		 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"hint @pause\")"
+	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"hint @pause\")"
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-	sparc-*)
-		# sparc
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if cpu_relax(); or __cpu_relax(); works" >&5
+	;;
+sparc-*)
+	# sparc
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if cpu_relax(); or __cpu_relax(); works" >&5
 $as_echo_n "checking if cpu_relax(); or __cpu_relax(); works... " >&6; }
-		ac_fn_c_check_func "$LINENO" "cpu_relax" "ac_cv_func_cpu_relax"
+	ac_fn_c_check_func "$LINENO" "cpu_relax" "ac_cv_func_cpu_relax"
 if test "x$ac_cv_func_cpu_relax" = xyes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-		 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP cpu_relax()"
+	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP cpu_relax()"
 else
   ac_fn_c_check_func "$LINENO" "__cpu_relax" "ac_cv_func___cpu_relax"
 if test "x$ac_cv_func___cpu_relax" = xyes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-		   ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP __cpu_relax()"
+	   ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP __cpu_relax()"
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -20387,9 +20631,8 @@ fi
 
 fi
 
-		;;
-	esac
-fi
+	;;
+esac
 
 
 
@@ -20702,9 +20945,6 @@ DNSTAPOBJS=
 DNSTAPTARGETS=
 DNSTAP_PB_C_H=
 if test "x$use_dnstap" != "xno"; then
-	if ! $use_threads; then
-		as_fn_error $? "Dnstap requires threads." "$LINENO" 5
-	fi
 
 # Check whether --with-protobuf-c was given.
 if test "${with_protobuf_c+set}" = set; then :
@@ -21843,8 +22083,8 @@ case $with_libidn2 in #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libidn2" >&5
-$as_echo_n "checking for libidn2... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBIDN2" >&5
+$as_echo_n "checking for LIBIDN2... " >&6; }
 
 if test -n "$LIBIDN2_CFLAGS"; then
     pkg_cv_LIBIDN2_CFLAGS="$LIBIDN2_CFLAGS"
@@ -21884,7 +22124,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21911,7 +22151,7 @@ Alternatively, you may set the environment variables LIBIDN2_CFLAGS
 and LIBIDN2_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -22051,8 +22291,8 @@ case $with_cmocka in #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka" >&5
-$as_echo_n "checking for cmocka... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CMOCKA" >&5
+$as_echo_n "checking for CMOCKA... " >&6; }
 
 if test -n "$CMOCKA_CFLAGS"; then
     pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
@@ -22092,7 +22332,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -22119,7 +22359,7 @@ Alternatively, you may set the environment variables CMOCKA_CFLAGS
 and CMOCKA_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -22392,9 +22632,6 @@ fi
 
 case "$use_tuning" in
 	large)
-		if ! $use_threads; then
-			as_fn_error $? "Large-system tuning requires threads." "$LINENO" 5
-		fi
 
 $as_echo "#define TUNE_LARGE 1" >>confdefs.h
 
@@ -26154,11 +26391,8 @@ report() {
     echo "Configuration summary:"
     echo "-------------------------------------------------------------------------------"
     echo "Optional features enabled:"
-    if $use_threads; then
-	echo "    Multiprocessing support (--enable-threads)"
-	if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
-	    echo "        Mutex lock type: $locktype"
-	fi
+    if test "yes" = "$enable_full_report" -o "standard" = "$locktype"; then
+	echo "        Mutex lock type: $locktype"
     fi
     test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
@@ -26223,7 +26457,6 @@ report() {
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
-    $use_threads || echo "    Multiprocessing support (--enable-threads)"
     test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
 	    echo "    IPv6 support (--enable-ipv6)"
     test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
