@@ -66,11 +66,7 @@
 static dns_sdlzimplementation_t *dlz_bdb = NULL;
 
 /* should the bdb driver use threads. */
-#ifdef ISC_PLATFORM_USETHREADS
 #define bdb_threads DB_THREAD
-#else
-#define bdb_threads 0
-#endif
 
 /* BDB database names */
 #define dlz_data "dns_data"

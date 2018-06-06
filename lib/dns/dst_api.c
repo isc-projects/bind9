@@ -1560,11 +1560,7 @@ issymmetric(const dst_key_t *key) {
 static void
 printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 	isc_result_t result;
-#ifdef ISC_PLATFORM_USETHREADS
 	char output[26]; /* Minimum buffer as per ctime_r() specification. */
-#else
-	const char *output;
-#endif
 	isc_stdtime_t when;
 	time_t t;
 	char utc[sizeof("YYYYMMDDHHSSMM")];
@@ -1577,16 +1573,12 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 
 	/* time_t and isc_stdtime_t might be different sizes */
 	t = when;
-#ifdef ISC_PLATFORM_USETHREADS
 #ifdef WIN32
 	if (ctime_s(output, sizeof(output), &t) != 0)
 		goto error;
 #else
 	if (ctime_r(&t, output) == NULL)
 		goto error;
-#endif
-#else
-	output = ctime(&t);
 #endif
 
 	isc_buffer_init(&b, utc, sizeof(utc));
