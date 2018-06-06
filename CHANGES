@@ -1,3 +1,6 @@
+4968.	[bug]		If glue records are signed, attempt to validate them.
+			[GL #209]
+
 4967.	[cleanup]	Add "answer-cookie" to the parser, marked obsolete.
 
 4966.	[placeholder]
