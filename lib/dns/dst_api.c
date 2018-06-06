@@ -197,10 +197,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 				    DST_ALG_RSASHA256));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA512],
 				    DST_ALG_RSASHA512));
-#if defined(HAVE_OPENSSL_DSA) && !defined(PK11_DSA_DISABLE)
-	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_DSA]));
-	RETERR(dst__openssldsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));
-#endif
 #ifndef PK11_DH_DISABLE
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 #endif
@@ -223,10 +219,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA256]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA512]));
-#ifndef PK11_DSA_DISABLE
-	RETERR(dst__pkcs11dsa_init(&dst_t_func[DST_ALG_DSA]));
-	RETERR(dst__pkcs11dsa_init(&dst_t_func[DST_ALG_NSEC3DSA]));
-#endif
 #ifndef PK11_DH_DISABLE
 	RETERR(dst__pkcs11dh_init(&dst_t_func[DST_ALG_DH]));
 #endif
@@ -1225,12 +1217,6 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 	case DST_ALG_RSASHA512:
 		*n = (key->key_size + 7) / 8;
 		break;
-#ifndef PK11_DSA_DISABLE
-	case DST_ALG_DSA:
-	case DST_ALG_NSEC3DSA:
-		*n = DNS_SIG_DSASIGSIZE;
-		break;
-#endif
 	case DST_ALG_ECDSA256:
 		*n = DNS_SIG_ECDSA256SIZE;
 		break;
@@ -1575,10 +1561,6 @@ issymmetric(const dst_key_t *key) {
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
 	case DST_ALG_RSASHA512:
-#ifndef PK11_DSA_DISABLE
-	case DST_ALG_DSA:
-	case DST_ALG_NSEC3DSA:
-#endif
 #ifndef PK11_DH_DISABLE
 	case DST_ALG_DH:
 #endif
