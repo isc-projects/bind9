@@ -16,8 +16,9 @@ zone=.
 infile=root.db.in
 zonefile=root.db
 
+keyalgn=$(printf "%03u" "$ALGON")
 keyname=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
-keyid=`expr ${keyname} : 'K.+008+\(.*\)'`
+keyid=`expr ${keyname} : 'K.+'${keyalgn}'+\(.*\)'`
 
 (cd ../ns2 && $SHELL sign.sh ${keyid:-00000} )
 

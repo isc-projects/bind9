@@ -29,8 +29,8 @@ do
 	cp ../ns3/dsset-$subdomain.example$TP .
 done
 
-keyname1=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
+keyname2=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -89,8 +89,8 @@ zone=in-addr.arpa.
 infile=in-addr.arpa.db.in
 zonefile=in-addr.arpa.db
 
-keyname1=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
+keyname2=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 $SIGNER -P -g -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
@@ -127,8 +127,8 @@ zone=badparam.
 infile=badparam.db.in
 zonefile=badparam.db
 
-keyname1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone -f KSK $zone`
-keyname2=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+keyname1=`$KEYGEN -q -a $ALGO -b $BITS -n zone -f KSK $zone`
+keyname2=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -142,8 +142,8 @@ zone=single-nsec3.
 infile=single-nsec3.db.in
 zonefile=single-nsec3.db
 
-keyname1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone -f KSK $zone`
-keyname2=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+keyname1=`$KEYGEN -q -a $ALGO -b $BITS -n zone -f KSK $zone`
+keyname2=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -160,8 +160,8 @@ zonefile=algroll.db
 
 keyold1=`$KEYGEN -q -a RSASHA1 -b 1024 -n zone -fk $zone`
 keyold2=`$KEYGEN -q -a RSASHA1 -b 1024 -n zone $zone`
-keynew1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone -fk $zone`
-keynew2=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+keynew1=`$KEYGEN -q -a $ALGO -b $BITS -n zone -fk $zone`
+keynew2=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 
 cat $infile $keynew1.key $keynew2.key >$zonefile
 
@@ -183,8 +183,8 @@ ns3	10	A	10.53.0.3
 EOF
 awk 'END { for (i = 0; i < 300; i++)
 	print "host" i, 10, "NS", "ns.elsewhere"; }' < /dev/null >> $zonefile
-key1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone -fk $zone`
-key2=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+key1=`$KEYGEN -q -a $ALGO -b $BITS -n zone -fk $zone`
+key2=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 cat $key1.key $key2.key >> $zonefile
 $SIGNER -P -3 - -A -H 1 -g -o $zone -k $key1 $zonefile $key2 > /dev/null
 
