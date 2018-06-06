@@ -80,7 +80,6 @@ static ISC_LIST(pk11_token_t) tokens;
 
 static pk11_token_t *rand_token;
 static pk11_token_t *best_rsa_token;
-static pk11_token_t *best_dsa_token;
 static pk11_token_t *best_dh_token;
 static pk11_token_t *digest_token;
 static pk11_token_t *best_ec_token;
@@ -257,8 +256,6 @@ pk11_finalize(void) {
 			rand_token = NULL;
 		if (token == best_rsa_token)
 			best_rsa_token = NULL;
-		if (token == best_dsa_token)
-			best_dsa_token = NULL;
 		if (token == best_dh_token)
 			best_dh_token = NULL;
 		if (token == digest_token)
@@ -684,42 +681,10 @@ scan_slots(void) {
 			PK11_TRACEM(CKM_RSA_PKCS);
 		}
 		if (bad)
-			goto try_dsa;
+			goto try_dh;
 		token->operations |= 1 << OP_RSA;
 		if (best_rsa_token == NULL)
 			best_rsa_token = token;
-
-	try_dsa:
-		bad = ISC_FALSE;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_PARAMETER_GEN,
-					     &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0)) {
-#ifndef PK11_DSA_PARAMETER_GEN_SKIP
-			bad = ISC_TRUE;
-#endif
-			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_KEY_PAIR_GEN,
-					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_SHA1, &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_SIGN) == 0) ||
-		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_DSA_SHA1);
-		}
-		if (bad)
-			goto try_dh;
-#ifndef PK11_DSA_DISABLE
-		token->operations |= 1 << OP_DSA;
-		if (best_dsa_token == NULL)
-			best_dsa_token = token;
-#endif
 
 	try_dh:
 		bad = ISC_FALSE;
@@ -903,9 +868,6 @@ pk11_get_best_token(pk11_optype_t optype) {
 		break;
 	case OP_RSA:
 		token = best_rsa_token;
-		break;
-	case OP_DSA:
-		token = best_dsa_token;
 		break;
 	case OP_DH:
 		token = best_dh_token;
@@ -1261,8 +1223,6 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 	if (token == NULL) {
 		if (optype == OP_RSA)
 			token = best_rsa_token;
-		else if (optype == OP_DSA)
-			token = best_dsa_token;
 		else if (optype == OP_DH)
 			token = best_dh_token;
 		else if (optype == OP_EC)
@@ -1300,7 +1260,6 @@ pk11_dump_tokens(void) {
 	printf("DEFAULTS\n");
 	printf("\trand_token=%p\n", rand_token);
 	printf("\tbest_rsa_token=%p\n", best_rsa_token);
-	printf("\tbest_dsa_token=%p\n", best_dsa_token);
 	printf("\tbest_dh_token=%p\n", best_dh_token);
 	printf("\tdigest_token=%p\n", digest_token);
 	printf("\tbest_ec_token=%p\n", best_ec_token);
@@ -1329,12 +1288,6 @@ pk11_dump_tokens(void) {
 				printf(",");
 			first = ISC_FALSE;
 			printf("RSA");
-		}
-		if (token->operations & (1 << OP_DSA)) {
-			if (!first)
-				printf(",");
-			first = ISC_FALSE;
-			printf("DSA");
 		}
 		if (token->operations & (1 << OP_DH)) {
 			if (!first)
