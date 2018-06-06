@@ -12,8 +12,3 @@
 #pragma once
 
 /*! \file pk11/site.h */
-
-#ifdef HAVE_GETPASSPHRASE
-#undef getpass
-#define getpass(x) getpassphrase(x)
-#endif
