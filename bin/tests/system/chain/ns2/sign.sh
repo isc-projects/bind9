@@ -16,5 +16,5 @@ zone=example.
 zonefile=example.db
 
 ksk=`$KEYGEN -q -a RSASHA256 -b 2048 -fk $zone`
-zsk=`$KEYGEN -q -a RSASHA256 -b 1024 $zone`
+zsk=`$KEYGEN -q -a $ALGO -b $BITS $zone`
 $SIGNER -S -o $zone example.db > /dev/null 2>&1

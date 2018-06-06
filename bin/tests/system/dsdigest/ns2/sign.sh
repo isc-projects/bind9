@@ -19,9 +19,9 @@ zone2=bad.
 infile2=bad.db.in
 zonefile2=bad.db
 
-keyname11=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone1`
+keyname11=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone1`
 keyname12=`$KEYGEN -q -a RSASHA256 -b 2048 -n zone -f KSK $zone1`
-keyname21=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone2`
+keyname21=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone2`
 keyname22=`$KEYGEN -q -a RSASHA256 -b 2048 -n zone -f KSK $zone2`
 
 cat $infile1 $keyname11.key $keyname12.key >$zonefile1
