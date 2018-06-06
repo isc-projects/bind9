@@ -463,6 +463,8 @@
 ./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/allow-query/.gitignore	X	2018
 ./bin/tests/system/allow-query/clean.sh		SH	2018
+./bin/tests/system/allow-query/ns1/named.conf.in	CONF-C	2018
+./bin/tests/system/allow-query/ns1/root.db	ZONE	2018
 ./bin/tests/system/allow-query/ns2/generic.db	ZONE	2018
 ./bin/tests/system/allow-query/ns2/named01.conf.in	CONF-C	2018
 ./bin/tests/system/allow-query/ns2/named02.conf.in	CONF-C	2018
@@ -496,6 +498,8 @@
 ./bin/tests/system/allow-query/ns2/named55.conf.in	CONF-C	2018
 ./bin/tests/system/allow-query/ns2/named56.conf.in	CONF-C	2018
 ./bin/tests/system/allow-query/ns2/named57.conf.in	CONF-C	2018
+./bin/tests/system/allow-query/ns3/named.args	X	2018
+./bin/tests/system/allow-query/ns3/named.conf.in	CONF-C	2018
 ./bin/tests/system/allow-query/setup.sh		SH	2018
 ./bin/tests/system/allow-query/tests.sh		SH	2018
 ./bin/tests/system/ans.pl			PERL	2011,2012,2014,2016,2017,2018
