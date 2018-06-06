@@ -16,7 +16,7 @@
 
 #include <isc/lang.h>
 
-/*! \file isc/entropy.h
+/*! \file isc/entropy_private.h
  * \brief Implements wrapper around CSPRNG cryptographic library calls
  * for getting cryptographically secure pseudo-random numbers.
  *
