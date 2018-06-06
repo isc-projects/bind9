@@ -99,17 +99,7 @@ typedef struct{
  */
 
 typedef struct {
-
-#ifdef ISC_PLATFORM_USETHREADS
-
     db_list_t    *db;       /* handle to a list of DB */
-
-#else
-
-    dbinstance_t *db;       /* handle to db */
-
-#endif
-
     SQLHENV      sql_env;  /* handle to SQL environment */
     SQLCHAR      *dsn;
     SQLCHAR      *user;
@@ -136,9 +126,6 @@ safeLen(void *a) {
 
 static void
 destroy_odbc_instance(odbc_instance_t *odbc_inst) {
-
-#ifdef ISC_PLATFORM_USETHREADS
-
 	dbinstance_t *ndbi = NULL;
 	dbinstance_t *dbi = NULL;
 
@@ -179,34 +166,6 @@ destroy_odbc_instance(odbc_instance_t *odbc_inst) {
 	}
 	/* release memory for the list structure */
 	isc_mem_put(named_g_mctx, odbc_inst->db, sizeof(db_list_t));
-
-#else /* ISC_PLATFORM_USETHREADS */
-
-	/* free statement handle */
-	if (((odbc_db_t *) (odbc_inst->db->dbconn))->stmnt != NULL) {
-		SQLFreeHandle(SQL_HANDLE_STMT,
-			      ((odbc_db_t *) (odbc_inst->db->dbconn))->stmnt);
-		((odbc_db_t *) (odbc_inst->db->dbconn))->stmnt = NULL;
-	}
-
-	/* disconnect from database, free connection handle */
-	if (((odbc_db_t *) (odbc_inst->db->dbconn))->dbc != NULL) {
-		SQLDisconnect(((odbc_db_t *) (odbc_inst->db->dbconn))->dbc);
-		SQLFreeHandle(SQL_HANDLE_DBC,
-			      ((odbc_db_t *) (odbc_inst->db->dbconn))->dbc);
-		((odbc_db_t *) (odbc_inst->db->dbconn))->dbc = NULL;
-	}
-	/*	free mem for the odbc_db_t structure held in db */
-	if (((odbc_db_t *) odbc_inst->db->dbconn) != NULL) {
-		isc_mem_free(named_g_mctx, odbc_inst->db->dbconn);
-		odbc_inst->db->dbconn = NULL;
-	}
-
-	if (odbc_inst->db != NULL)
-		destroy_sqldbinstance(odbc_inst->db);
-
-#endif /* ISC_PLATFORM_USETHREADS */
-
 
 	/* free sql environment */
 	if (odbc_inst->sql_env != NULL)
@@ -327,8 +286,6 @@ odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc) {
  * multithreaded operation.
  */
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 static dbinstance_t *
 odbc_find_avail_conn(db_list_t *dblist)
 {
@@ -361,8 +318,6 @@ odbc_find_avail_conn(db_list_t *dblist)
 		      count);
 	return NULL;
 }
-
-#endif /* ISC_PLATFORM_USETHREADS */
 
 /*% Allocates memory for a new string, and then constructs the new
  * string by "escaping" the input string.  The new string is
@@ -482,20 +437,9 @@ odbc_get_resultset(const char *zone, const char *record,
 	REQUIRE(*r_dbi == NULL);
 
 	/* get db instance / connection */
-#ifdef ISC_PLATFORM_USETHREADS
 
 	/* find an available DBI from the list */
 	dbi = odbc_find_avail_conn(((odbc_instance_t *) dbdata)->db);
-
-#else /* ISC_PLATFORM_USETHREADS */
-
-	/*
-	 * only 1 DBI - no need to lock instance lock either
-	 * only 1 thread in the whole process, no possible contention.
-	 */
-	dbi =  (dbinstance_t *) ((odbc_instance_t *) dbdata)->db;
-
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	/* if DBI is null, can't do anything else */
 	if (dbi == NULL) {
@@ -698,13 +642,9 @@ odbc_get_resultset(const char *zone, const char *record,
 	if (dbi->client != NULL)
 		isc_mem_free(named_g_mctx, dbi->client);
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 	/* if we are done using this dbi, release the lock */
 	if (result != ISC_R_SUCCESS)
 		isc_mutex_unlock(&dbi->instance_lock);
-
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	/* release query string */
 	if (querystring  != NULL)
@@ -937,12 +877,8 @@ odbc_process_rs(dns_sdlzlookup_t *lookup, dbinstance_t *dbi)
 	/* close cursor */
 	SQLCloseCursor(((odbc_db_t *) (dbi->dbconn))->stmnt);
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 	/* free lock on dbi so someone else can use it. */
 	isc_mutex_unlock(&dbi->instance_lock);
-
-#endif
 
 	return result;
 }
@@ -980,11 +916,8 @@ odbc_findzone(void *driverarg, void *dbdata, const char *name,
 		/* get rid of result set, we are done with it. */
 		SQLCloseCursor(((odbc_db_t *) (dbi->dbconn))->stmnt);
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 		/* free lock on dbi so someone else can use it. */
 		isc_mutex_unlock(&dbi->instance_lock);
-#endif
 	}
 
 	return result;
@@ -1032,11 +965,8 @@ odbc_allowzonexfr(void *driverarg, void *dbdata, const char *name,
 		/* get rid of result set, we are done with it. */
 		SQLCloseCursor(((odbc_db_t *) (dbi->dbconn))->stmnt);
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 		/* free lock on dbi so someone else can use it. */
 		isc_mutex_unlock(&dbi->instance_lock);
-#endif
 
 	}
 
@@ -1167,12 +1097,8 @@ odbc_allnodes(const char *zone, void *driverarg, void *dbdata,
 	/* close cursor */
 	SQLCloseCursor(((odbc_db_t *) (dbi->dbconn))->stmnt);
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 	/* free lock on dbi so someone else can use it. */
 	isc_mutex_unlock(&dbi->instance_lock);
-
-#endif
 
 	return result;
 }
@@ -1252,29 +1178,17 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	odbc_instance_t *odbc_inst = NULL;
 	dbinstance_t *db = NULL;
 	SQLRETURN sqlRes;
-
-#ifdef ISC_PLATFORM_USETHREADS
-	/* if multi-threaded, we need a few extra variables. */
 	int dbcount;
 	int i;
 	char *endp;
 
-#endif /* ISC_PLATFORM_USETHREADS */
-
 	UNUSED(dlzname);
 	UNUSED(driverarg);
 
-#ifdef ISC_PLATFORM_USETHREADS
 	/* if debugging, let user know we are multithreaded. */
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(1),
 		      "Odbc driver running multithreaded");
-#else /* ISC_PLATFORM_USETHREADS */
-	/* if debugging, let user know we are single threaded. */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_DEBUG(1),
-		      "Odbc driver running single threaded");
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	/* verify we have at least 5 arg's passed to the driver */
 	if (argc < 5) {
@@ -1295,8 +1209,6 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* multithreaded build can have multiple DB connections */
-#ifdef ISC_PLATFORM_USETHREADS
-
 	/* check how many db connections we should create */
 	dbcount = strtol(argv[1], &endp, 10);
 	if (*endp != '\0' || dbcount < 0) {
@@ -1306,8 +1218,6 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 			      "must be positive.");
 		return (ISC_R_FAILURE);
 	}
-
-#endif /* ISC_PLATFORM_USETHREADS */
 
 	/* allocate memory for odbc instance */
 	odbc_inst = isc_mem_get(named_g_mctx, sizeof(odbc_instance_t));
@@ -1361,8 +1271,6 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 		}
 	}
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 	/* allocate memory for database connection list */
 	odbc_inst->db = isc_mem_get(named_g_mctx, sizeof(db_list_t));
 	if (odbc_inst->db == NULL) {
@@ -1377,8 +1285,6 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* create the appropriate number of database instances (DBI) */
 	/* append each new DBI to the end of the list */
 	for (i=0; i < dbcount; i++) {
-
-#endif /* ISC_PLATFORM_USETHREADS */
 
 		/* how many queries were passed in from config file? */
 		switch(argc) {
@@ -1416,19 +1322,13 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 			goto cleanup;
 		}
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 		/* when multithreaded, build a list of DBI's */
 		ISC_LINK_INIT(db, link);
 		ISC_LIST_APPEND(*odbc_inst->db, db, link);
 
-#endif
-
 		result = odbc_connect(odbc_inst, (odbc_db_t **) &(db->dbconn));
 
 		if (result != ISC_R_SUCCESS) {
-
-#ifdef ISC_PLATFORM_USETHREADS
 
 			/*
 			 * if multi threaded, let user know which
@@ -1442,27 +1342,13 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 				      "Odbc driver failed to create database "
 				      "connection number %u after 3 attempts",
 				      i+1);
-#else
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-				      "Odbc driver failed to create database "
-				      "connection after 3 attempts");
-#endif
 			goto cleanup;
 		}
-
-#ifdef ISC_PLATFORM_USETHREADS
 
 		/* set DB = null for next loop through. */
 		db = NULL;
 
 	}	/* end for loop */
-
-#else
-	/* tell odbc_inst about the db connection we just created. */
-	odbc_inst->db = db;
-
-#endif
 
 	/* set dbdata to the odbc_instance we created. */
 	*dbdata = odbc_inst;
