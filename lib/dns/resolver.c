@@ -544,9 +544,9 @@ struct dns_resolver {
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
 
 #ifdef ENABLE_AFL
-static isc_boolean_t fuzzing_resolver = ISC_FALSE;
+isc_boolean_t dns_fuzzing_resolver = ISC_FALSE;
 void dns_resolver_setfuzzing() {
-	fuzzing_resolver = ISC_TRUE;
+	dns_fuzzing_resolver = ISC_TRUE;
 }
 #endif
 
@@ -1904,7 +1904,7 @@ add_bad_edns(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	isc_sockaddr_t *sa;
 
 #ifdef ENABLE_AFL
-	if (fuzzing_resolver)
+	if (dns_fuzzing_resolver)
 		return;
 #endif
 	if (bad_edns(fctx, address))
@@ -2860,7 +2860,7 @@ mark_bad(fetchctx_t *fctx) {
 	isc_boolean_t all_bad = ISC_TRUE;
 
 #ifdef ENABLE_AFL
-	if (fuzzing_resolver)
+	if (dns_fuzzing_resolver)
 		return ISC_FALSE;
 #endif
 
@@ -2940,7 +2940,7 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 	isc_sockaddr_t *address = &addrinfo->sockaddr;
 
 #ifdef ENABLE_AFL
-	if (fuzzing_resolver)
+	if (dns_fuzzing_resolver)
 		return;
 #endif
 
@@ -8548,7 +8548,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 				 no_response, ISC_FALSE);
 
 #ifdef ENABLE_AFL
-	if (fuzzing_resolver && (keep_trying || resend)) {
+	if (dns_fuzzing_resolver && (keep_trying || resend)) {
 		fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		return;
 	} else
@@ -9787,7 +9787,7 @@ dns_resolver_addbadcache(dns_resolver_t *resolver, dns_name_t *name,
 			 dns_rdatatype_t type, isc_time_t *expire)
 {
 #ifdef ENABLE_AFL
-	if (!fuzzing_resolver)
+	if (!dns_fuzzing_resolver)
 #endif
 	{
 		(void) dns_badcache_add(resolver->badcache, name, type,
