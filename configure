@@ -16710,6 +16710,8 @@ fi
 		*)
 			;;
 		esac
+		/* Temporarily disable Ed448 support because the code is broken */
+		have_ed448=no
 		case $have_ed448 in
 		yes)
 
