@@ -381,9 +381,7 @@ void
 isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
-#ifdef ISC_PLATFORM_USETHREADS
 	struct tm tm;
-#endif
 
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
@@ -391,11 +389,7 @@ isc_time_formattimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t) t->seconds;
-#ifdef ISC_PLATFORM_USETHREADS
 	flen = strftime(buf, len, "%d-%b-%Y %X", localtime_r(&now, &tm));
-#else
-	flen = strftime(buf, len, "%d-%b-%Y %X", localtime(&now));
-#endif
 	INSIST(flen < len);
 	if (flen != 0)
 		snprintf(buf + flen, len - flen,
@@ -409,9 +403,7 @@ void
 isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
-#ifdef ISC_PLATFORM_USETHREADS
 	struct tm tm;
-#endif
 
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
@@ -422,12 +414,8 @@ isc_time_formathttptimestamp(const isc_time_t *t, char *buf, unsigned int len) {
 	 * 5 spaces, 1 comma, 3 GMT, 2 %d, 4 %Y, 8 %H:%M:%S, 3+ %a, 3+ %b (29+)
 	 */
 	now = (time_t)t->seconds;
-#ifdef ISC_PLATFORM_USETHREADS
 	flen = strftime(buf, len, "%a, %d %b %Y %H:%M:%S GMT",
 			gmtime_r(&now, &tm));
-#else
-	flen = strftime(buf, len, "%a, %d %b %Y %H:%M:%S GMT", gmtime(&now));
-#endif
 	INSIST(flen < len);
 }
 
@@ -454,9 +442,7 @@ void
 isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
-#ifdef ISC_PLATFORM_USETHREADS
 	struct tm tm;
-#endif
 
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
@@ -464,11 +450,7 @@ isc_time_formatISO8601L(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
-#ifdef ISC_PLATFORM_USETHREADS
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime_r(&now, &tm));
-#else
-	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime(&now));
-#endif
 	INSIST(flen < len);
 }
 
@@ -476,9 +458,7 @@ void
 isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
-#ifdef ISC_PLATFORM_USETHREADS
 	struct tm tm;
-#endif
 
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
@@ -486,11 +466,7 @@ isc_time_formatISO8601Lms(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
-#ifdef ISC_PLATFORM_USETHREADS
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime_r(&now, &tm));
-#else
-	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%S", localtime(&now));
-#endif
 	INSIST(flen < len);
 	if (flen > 0U && len - flen >= 6) {
 		snprintf(buf + flen, len - flen, ".%03u",
@@ -502,9 +478,7 @@ void
 isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
-#ifdef ISC_PLATFORM_USETHREADS
 	struct tm tm;
-#endif
 
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
@@ -512,11 +486,7 @@ isc_time_formatISO8601(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
-#ifdef ISC_PLATFORM_USETHREADS
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime_r(&now, &tm));
-#else
-	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
-#endif
 	INSIST(flen < len);
 }
 
@@ -524,9 +494,7 @@ void
 isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 	time_t now;
 	unsigned int flen;
-#ifdef ISC_PLATFORM_USETHREADS
 	struct tm tm;
-#endif
 
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
@@ -534,11 +502,7 @@ isc_time_formatISO8601ms(const isc_time_t *t, char *buf, unsigned int len) {
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
-#ifdef ISC_PLATFORM_USETHREADS
 	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime_r(&now, &tm));
-#else
-	flen = strftime(buf, len, "%Y-%m-%dT%H:%M:%SZ", gmtime(&now));
-#endif
 	INSIST(flen < len);
 	if (flen > 0U && len - flen >= 5) {
 		flen -= 1; /* rewind one character (Z) */
@@ -552,9 +516,7 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
 {
 	time_t now;
 	unsigned int flen;
-#ifdef ISC_PLATFORM_USETHREADS
 	struct tm tm;
-#endif
 
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
@@ -562,11 +524,7 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
 	REQUIRE(len > 0);
 
 	now = (time_t)t->seconds;
-#ifdef ISC_PLATFORM_USETHREADS
 	flen = strftime(buf, len, "%Y%m%d%H%M%S", gmtime_r(&now, &tm));
-#else
-	flen = strftime(buf, len, "%Y%m%d%H%M%S", gmtime(&now));
-#endif
 	INSIST(flen < len);
 	if (flen > 0U && len - flen >= 5) {
 		snprintf(buf + flen, len - flen, "%03u",
