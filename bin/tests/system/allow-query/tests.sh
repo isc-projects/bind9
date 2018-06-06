@@ -602,5 +602,16 @@ grep '^a.aclnotallow.example' dig.out.ns2.2.$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# Test 58 - allow-recursion inheritance
+n=`expr $n + 1`
+echo_i "test $n: default recursion configuration"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 -b 127.0.0.1 a.normal.example a > dig.out.ns3.1.$n
+grep 'status: NOERROR' dig.out.ns3.1.$n > /dev/null || ret=1
+$DIG -p ${PORT} @10.53.0.3 -b 10.53.0.1 a.normal.example a > dig.out.ns3.2.$n
+grep 'status: REFUSED' dig.out.ns3.2.$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
