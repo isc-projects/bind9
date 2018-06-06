@@ -1,3 +1,7 @@
+4963.	[test]		ifconfig.sh now uses "ip" instead of "ifconfig",
+			if available, to configure the test interfaces on
+			linux.  [GL #302]
+
 4958.	[bug]		Remove redundant space from NSEC3 record. [GL #281]
 
 4955.	[cleanup]	Silence cppcheck warnings in lib/dns/master.c.
