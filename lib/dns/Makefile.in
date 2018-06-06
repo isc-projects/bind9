@@ -43,11 +43,11 @@ LIBS =		@LIBS@
 
 OPENSSLECDSALINKOBJS = opensslecdsa_link.@O@
 OPENSSLEDDSALINKOBJS = openssleddsa_link.@O@
-OPENSSLLINKOBJS = openssl_link.@O@ openssldh_link.@O@ openssldsa_link.@O@ \
+OPENSSLLINKOBJS = openssl_link.@O@ openssldh_link.@O@ \
 		  @OPENSSLECDSALINKOBJS@ @OPENSSLEDDSALINKOBJS@ \
 		  opensslrsa_link.@O@
 
-PKCS11LINKOBJS	= pkcs11dh_link.@O@ pkcs11dsa_link.@O@ pkcs11rsa_link.@O@ \
+PKCS11LINKOBJS	= pkcs11dh_link.@O@ pkcs11rsa_link.@O@ \
 		pkcs11ecdsa_link.@O@ pkcs11eddsa_link.@O@ \
 		pkcs11.@O@
 
@@ -87,11 +87,11 @@ OBJS=		@DNSTAPOBJS@ ${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} \
 # Alphabetically
 OPENSSLECDSALINKSRCS = opensslecdsa_link.c
 OPENSSLEDDSALINKSRCS = openssleddsa_link.c
-OPENSSLLINKSRCS = openssl_link.c openssldh_link.c openssldsa_link.c \
+OPENSSLLINKSRCS = openssl_link.c openssldh_link.c \
 		  @OPENSSLECDSALINKSRCS@ @OPENSSLEDDSALINKSRCS@ \
 		  opensslrsa_link.c
 
-PKCS11LINKSRCS	= pkcs11dh_link.c pkcs11dsa_link.c pkcs11rsa_link.c \
+PKCS11LINKSRCS	= pkcs11dh_link.c pkcs11rsa_link.c \
 		pkcs11ecdsa_link.c pkcs11eddsa_link.c \
 		pkcs11.c
 
