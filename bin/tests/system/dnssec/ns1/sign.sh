@@ -24,7 +24,7 @@ cp ../ns2/dsset-example$TP .
 cp ../ns2/dsset-dlv$TP .
 cp ../ns2/dsset-in-addr.arpa$TP .
 
-grep "8 [12] " ../ns2/dsset-algroll$TP > dsset-algroll$TP
+grep "$DEFAULT_ALGORITHM_NUMBER [12] " ../ns2/dsset-algroll$TP > dsset-algroll$TP
 cp ../ns6/dsset-optout-tld$TP .
 
 keyname=`$KEYGEN -q -a RSAMD5 -b 1024 -n zone $zone`

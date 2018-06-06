@@ -21,8 +21,8 @@ infile=child.db.in
 zonefile=grand.child1.utld.db
 outfile=grand.child1.signed
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -36,8 +36,8 @@ zonefile=grand.child3.utld.db
 outfile=grand.child3.signed
 dlvzone=dlv.utld.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -51,8 +51,8 @@ zonefile=grand.child4.utld.db
 outfile=grand.child4.signed
 dlvzone=dlv.utld.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -66,8 +66,8 @@ zonefile=grand.child5.utld.db
 outfile=grand.child5.signed
 dlvzone=dlv.utld.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -81,8 +81,8 @@ zonefile=grand.child7.utld.db
 outfile=grand.child7.signed
 dlvzone=dlv.utld.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -96,8 +96,8 @@ zonefile=grand.child8.utld.db
 outfile=grand.child8.signed
 dlvzone=dlv.utld.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -111,8 +111,8 @@ zonefile=grand.child9.utld.db
 outfile=grand.child9.signed
 dlvzone=dlv.utld.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -125,8 +125,8 @@ zonefile=grand.child10.utld.db
 outfile=grand.child10.signed
 dlvzone=dlv.utld.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -138,8 +138,8 @@ infile=child.db.in
 zonefile=grand.child1.druz.db
 outfile=grand.child1.druz.signed
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -153,8 +153,8 @@ zonefile=grand.child3.druz.db
 outfile=grand.child3.druz.signed
 dlvzone=dlv.druz.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -168,8 +168,8 @@ zonefile=grand.child4.druz.db
 outfile=grand.child4.druz.signed
 dlvzone=dlv.druz.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -183,8 +183,8 @@ zonefile=grand.child5.druz.db
 outfile=grand.child5.druz.signed
 dlvzone=dlv.druz.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -198,8 +198,8 @@ zonefile=grand.child7.druz.db
 outfile=grand.child7.druz.signed
 dlvzone=dlv.druz.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -213,8 +213,8 @@ zonefile=grand.child8.druz.db
 outfile=grand.child8.druz.signed
 dlvzone=dlv.druz.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -228,8 +228,8 @@ zonefile=grand.child9.druz.db
 outfile=grand.child9.druz.signed
 dlvzone=dlv.druz.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -242,8 +242,8 @@ zonefile=grand.child10.druz.db
 outfile=grand.child10.druz.signed
 dlvzone=dlv.druz.
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
