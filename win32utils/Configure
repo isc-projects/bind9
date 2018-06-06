@@ -203,7 +203,6 @@ my @substdefh = ("AES_CC",
                  "HAVE_LIBXML2",
 		 "HAVE_OPENSSL",
                  "HAVE_OPENSSL_AES",
-                 "HAVE_OPENSSL_DSA",
                  "HAVE_OPENSSL_ECDSA",
                  "HAVE_OPENSSL_ED25519",
                  "HAVE_OPENSSL_ED448",
@@ -1503,11 +1502,6 @@ if ($use_openssl eq "yes") {
     $configlib{"OPENSSL_LIB"} = "$openssl_lib";
     $configdll{"OPENSSL_DLL"} = "$openssl_dll";
     $configdefh{"HAVE_OPENSSL"} = 1;
-    if (-f File::Spec->catfile($openssl_inc, "openssl", "dsa.h")) {
-        $configdefh{"HAVE_OPENSSL_DSA"} = 1;
-    } elsif ($verbose) {
-        print "OpenSSL DSA support is disabled\n";
-    }
 }
 
 # check OpenSSL
