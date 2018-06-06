@@ -315,9 +315,6 @@ typedef __int64 off_t;
 /* Define if OpenSSL provides FIPS_mode() */
 @HAVE_FIPS_MODE@
 
-/* Define if OpenSSL includes DSA support */
-@HAVE_OPENSSL_DSA@
-
 /* Define if OpenSSL includes ECDSA support */
 @HAVE_OPENSSL_ECDSA@
 
