@@ -2,6 +2,9 @@
 			if available, to configure the test interfaces on
 			linux.  [GL #302]
 
+4962.	[cleanup]	Move 'named -T' processing to its own function.
+			[GL #316]
+
 4958.	[bug]		Remove redundant space from NSEC3 record. [GL #281]
 
 4955.	[cleanup]	Silence cppcheck warnings in lib/dns/master.c.
