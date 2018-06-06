@@ -332,7 +332,8 @@ my @substdefd = ("CRYPTO",
                  "USE_GSSAPI",
                  "USE_PKCS11",
                  "USE_PYTHON",
-                 "USE_ISC_SPNEGO");
+                 "USE_ISC_SPNEGO",
+                 "VALIDATION_DEFAULT");
 
 # conditions
 
@@ -486,6 +487,7 @@ my $use_ed448 = "auto";
 my $use_aes = "auto";
 my $cookie_algorithm = "aes";
 my $use_gssapi = "no";
+my $validation_default = "auto";
 my $gssapi_path = "C:\\Program\ Files\\MIT\\Kerberos\\";
 my $use_geoip = "no";
 my $geoip_path = "";
@@ -702,6 +704,10 @@ sub myenable {
         if ($val =~ /^no$/i) {
             $enable_rpz_nsdname = "no";
         }
+    } elsif ($key =~ /^auto-validation$/i) {
+	if ($val =~ /^no$/i) {
+	    $validation_default = "yes";
+	}
     } else {
         $want_unknown = "yes";
         if ($val eq "no") {
@@ -2032,6 +2038,9 @@ if ($use_gssapi ne "yes") {
     $configdefd{"USE_ISC_SPNEGO"} = "USE_ISC_SPNEGO";
 }
 
+# disable-auto-validation
+$configdefd("VALIDATION_DEFAULT"} = $validation_default;
+
 # with-geoip
 if ($use_geoip eq "no") {
     if ($verbose) {
@@ -3249,6 +3258,7 @@ exit 0;
 #  --enable-full-report supported by verbose
 #  --enable-dnstap not supported (requires libfstrm support on WIN32)
 #  --enable-afl not supported (not yet available on Visual Studio C++)
+#  --disable-auto-validation supported
 #  --with-python supported
 #  --with-openssl supported
 #  --with-pkcs11 supported
