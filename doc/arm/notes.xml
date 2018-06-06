@@ -269,6 +269,11 @@
 	  BIND 8 when processing an IXFR stream.  'no-change' deltas
 	  will now trigger a fallback to AXFR as the recovery mechanism.
 	</para>
+	<para>
+	  Support for DSA and DSA-NSEC3-SHA1 algorithms has been
+	  removed from BIND as the DSA key length is limited to 1024
+	  bits and this is considered not secure enough.
+	</para>
       </listitem>
     </itemizedlist>
   </section>
