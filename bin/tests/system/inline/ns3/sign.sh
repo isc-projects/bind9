@@ -133,7 +133,7 @@ zone=externalkey
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private
 
-for alg in ECDSAP256SHA256 NSEC3RSASHA1 DSA
+for alg in ECDSAP256SHA256 NSEC3RSASHA1
 do
     k1=`$KEYGEN -q -a $alg -b 1024 -n zone -f KSK $zone`
     k2=`$KEYGEN -q -a $alg -b 1024 -n zone $zone`
