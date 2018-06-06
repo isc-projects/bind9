@@ -4708,14 +4708,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	INSIST(result == ISC_R_SUCCESS);
 	view->root_key_sentinel = cfg_obj_asboolean(obj);
 
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
-				 "allow-query-cache-on", NULL, actx,
-				 named_g_mctx, &view->cacheonacl));
 	/*
 	 * Set the "allow-query", "allow-query-cache", "allow-recursion",
-	 * and "allow-recursion-on" ACLs if configured in named.conf, but
-	 * NOT from the global defaults. This is done by leaving the third
-	 * argument to configure_view_acl() NULL.
+	 * "allow-recursion-on" and "allow-query-cache-on" ACLs if
+	 * configured in named.conf, but NOT from the global defaults.
+	 * This is done by leaving the third argument to configure_view_acl()
+	 * NULL.
 	 *
 	 * We ignore the global defaults here because these ACLs
 	 * can inherit from each other.  If any are still unset after
@@ -4732,6 +4730,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	CHECK(configure_view_acl(vconfig, config, NULL,
 				 "allow-query-cache", NULL, actx,
 				 named_g_mctx, &view->cacheacl));
+	/* named.conf only */
+	CHECK(configure_view_acl(vconfig, config, NULL,
+				 "allow-query-cache-on", NULL, actx,
+				 named_g_mctx, &view->cacheonacl));
 
 	if (strcmp(view->name, "_bind") != 0 &&
 	    view->rdclass != dns_rdataclass_chaos)
@@ -4750,8 +4752,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		/*
 		 * "allow-query-cache" inherits from "allow-recursion" if set,
 		 * otherwise from "allow-query" if set.
-		 * "allow-recursion" inherits from "allow-query-cache" if set,
-		 * otherwise from "allow-query" if set.
 		 */
 		if (view->cacheacl == NULL) {
 			if (view->recursionacl != NULL) {
@@ -4762,6 +4762,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 					       &view->cacheacl);
 			}
 		}
+
+		/*
+		 * "allow-recursion" inherits from "allow-query-cache" if set,
+		 * otherwise from "allow-query" if set.
+		 */
 		if (view->recursionacl == NULL) {
 			if (view->cacheacl != NULL) {
 				dns_acl_attach(view->cacheacl,
@@ -4773,10 +4778,32 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		}
 
 		/*
-		 * If any are still unset, we now get default "allow-recursion",
-		 * "allow-recursion-on" and "allow-query-cache" ACLs from
-		 * the global config.
+		 * "allow-query-cache-on" inherits from * "allow-recursion-on"
+		 * if set.
 		 */
+		if (view->cacheonacl == NULL) {
+			if (view->recursiononacl != NULL) {
+				dns_acl_attach(view->recursiononacl,
+					       &view->cacheonacl);
+			}
+		}
+
+		/*
+		 * "allow-recursion-on" inherits from * "allow-query-cache-on"
+		 * if set.
+		 */
+		if (view->recursiononacl == NULL) {
+			if (view->cacheonacl != NULL) {
+				dns_acl_attach(view->cacheonacl,
+					       &view->recursiononacl);
+			}
+		}
+
+		/*
+		 * If any are still unset at this point, we now get default
+		 * values for from the global config.
+		 */
+
 		if (view->recursionacl == NULL) {
 			/* global default only */
 			CHECK(configure_view_acl(NULL, NULL, named_g_config,
@@ -4798,14 +4825,30 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 						 actx, named_g_mctx,
 						 &view->cacheacl));
 		}
-	} else if (view->cacheacl == NULL) {
+		if (view->cacheonacl == NULL) {
+			/* global default only */
+			CHECK(configure_view_acl(NULL, NULL, named_g_config,
+						 "allow-query-cache-on", NULL,
+						 actx, named_g_mctx,
+						 &view->cacheonacl));
+		}
+	} else {
 		/*
-		 * We're not recursive; if "allow-query-cache" hasn't been
-		 * set at the options/view level, set it to none.
+		 * We're not recursive; if the query-cache ACLs haven't
+		 * been set at the options/view level, set them to none.
 		 */
-		CHECK(dns_acl_none(mctx, &view->cacheacl));
+		if (view->cacheacl == NULL) {
+			CHECK(dns_acl_none(mctx, &view->cacheacl));
+		}
+		if (view->cacheonacl == NULL) {
+			CHECK(dns_acl_none(mctx, &view->cacheonacl));
+		}
 	}
 
+	/*
+	 * Finished setting recursion and query-cache ACLs, so now we
+	 * can get the allow-query default if it wasn't set in named.conf
+	 */
 	if (view->queryacl == NULL) {
 		/* global default only */
 		CHECK(configure_view_acl(NULL, NULL, named_g_config,
