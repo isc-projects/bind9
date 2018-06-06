@@ -66,11 +66,7 @@
 static dns_sdlzimplementation_t *dlz_bdbhpt = NULL;
 
 /* should the bdb driver use threads. */
-#ifdef ISC_PLATFORM_USETHREADS
 #define bdbhpt_threads DB_THREAD
-#else
-#define bdbhpt_threads 0
-#endif
 
 /* bdbhpt database names */
 #define dlz_data "dns_data"
