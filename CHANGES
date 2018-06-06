@@ -1,3 +1,6 @@
+4964.	[bug]		If glue records are signed, attempt to validate them.
+			[GL #209]
+
 4963.	[test]		ifconfig.sh now uses "ip" instead of "ifconfig",
 			if available, to configure the test interfaces on
 			linux.  [GL #302]
