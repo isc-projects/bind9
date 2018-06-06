@@ -129,6 +129,7 @@ static unsigned int delay = 0;
 static isc_boolean_t nonearest = ISC_FALSE;
 static isc_boolean_t notcp = ISC_FALSE;
 static isc_boolean_t fixedlocal = ISC_FALSE;
+static isc_boolean_t sigvalinsecs = ISC_FALSE;
 
 /*
  * -4 and -6
@@ -541,6 +542,8 @@ parse_T_opt(char *option) {
 		if (dns_zone_mkey_month < dns_zone_mkey_day) {
 			named_main_earlyfatal("bad mkeytimer");
 		}
+	} else if (!strcmp(option, "sigvalinsecs")) {
+		sigvalinsecs = ISC_TRUE;
 	} else if (!strncmp(option, "tat=", 4)) {
 		named_g_tat_interval = atoi(option + 4);
 	} else {
@@ -1111,6 +1114,8 @@ setup(void) {
 		ns_server_setoption(sctx, NS_SERVER_DISABLE4, ISC_TRUE);
 	if (disable6)
 		ns_server_setoption(sctx, NS_SERVER_DISABLE6, ISC_TRUE);
+	if (sigvalinsecs)
+		ns_server_setoption(sctx, NS_SERVER_SIGVALINSECS, ISC_TRUE);
 
 	named_g_server->sctx->delay = delay;
 }
