@@ -55,9 +55,9 @@ echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
 zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
-$SETTIME -K $dir -I +9mo -D +1y $zsk1 > /dev/null 2>&1
+$SETTIME -K $dir -I +9mo -D +1y $zsk1
 zsk2=`$KEYGEN -K $dir -S $zsk1`
-$SETTIME -K $dir -D +6mo $zsk1 > /dev/null 2>&1
+$SETTIME -K $dir -D +6mo $zsk1
 ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
 
 # Test 5: KSK deleted and successor published before KSK is deactivated

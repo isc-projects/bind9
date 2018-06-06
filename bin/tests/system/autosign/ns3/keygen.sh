@@ -123,7 +123,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 setup rsasha256.example
 cp $infile $zonefile
 ksk=`$KEYGEN -q -a RSASHA256 -b 2048 -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -q -a RSASHA256 -b 1024 $zone > kg.out 2>&1 || dumpit kg.out
+$KEYGEN -q -a $ALGO -b $BITS $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #

@@ -260,7 +260,7 @@ zone=rsasha256.example.
 infile=rsasha256.example.db.in
 zonefile=rsasha256.example.db
 
-keyname=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+keyname=`$KEYGEN -q -a $ALGO -b $BITS -n zone $zone`
 
 cat $infile $keyname.key >$zonefile
 

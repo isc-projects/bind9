@@ -20,6 +20,10 @@ TOP=${SYSTEMTESTTOP:=.}/../../..
 # Make it absolute so that it continues to work after we cd.
 TOP=`cd $TOP && pwd`
 
+ALGO=ECDSAP256SHA256
+ALGON=13
+BITS=256
+
 ARPANAME=$TOP/bin/tools/arpaname
 CDS=$TOP/bin/dnssec/dnssec-cds
 CHECKCONF=$TOP/bin/check/named-checkconf
