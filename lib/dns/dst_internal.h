@@ -51,9 +51,6 @@
 #ifndef PK11_DH_DISABLE
 #include <openssl/dh.h>
 #endif
-#ifndef PK11_DSA_DISABLE
-#include <openssl/dsa.h>
-#endif
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>
@@ -113,9 +110,6 @@ struct dst_key {
 		void *generic;
 		gss_ctx_id_t gssctx;
 #if HAVE_OPENSSL
-#ifndef PK11_DSA_DISABLE
-		DSA *dsa;
-#endif
 #ifndef PK11_DH_DISABLE
 		DH *dh;
 #endif
@@ -243,10 +237,6 @@ isc_result_t dst__hmacsha512_init(struct dst_func **funcp);
 isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
 				  unsigned char algorithm);
 isc_result_t dst__pkcs11rsa_init(struct dst_func **funcp);
-#ifndef PK11_DSA_DISABLE
-isc_result_t dst__openssldsa_init(struct dst_func **funcp);
-isc_result_t dst__pkcs11dsa_init(struct dst_func **funcp);
-#endif
 #ifndef PK11_DH_DISABLE
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
 isc_result_t dst__pkcs11dh_init(struct dst_func **funcp);

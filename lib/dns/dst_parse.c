@@ -95,14 +95,6 @@ static struct parse_map map[] = {
 	{TAG_DH_PUBLIC, "Public_value(y):"},
 #endif
 
-#ifndef PK11_DSA_DISABLE
-	{TAG_DSA_PRIME, "Prime(p):"},
-	{TAG_DSA_SUBPRIME, "Subprime(q):"},
-	{TAG_DSA_BASE, "Base(g):"},
-	{TAG_DSA_PRIVATE, "Private_value(x):"},
-	{TAG_DSA_PUBLIC, "Public_value(y):"},
-#endif
-
 	{TAG_ECDSA_PRIVATEKEY, "PrivateKey:"},
 	{TAG_ECDSA_ENGINE, "Engine:" },
 	{TAG_ECDSA_LABEL, "Label:" },
@@ -237,28 +229,6 @@ check_dh(const dst_private_t *priv) {
 }
 #endif
 
-#ifndef PK11_DSA_DISABLE
-static int
-check_dsa(const dst_private_t *priv, isc_boolean_t external) {
-	int i, j;
-
-	if (external)
-		return ((priv->nelements == 0)? 0 : -1);
-
-	if (priv->nelements != DSA_NTAGS)
-		return (-1);
-
-	for (i = 0; i < DSA_NTAGS; i++) {
-		for (j = 0; j < priv->nelements; j++)
-			if (priv->elements[j].tag == TAG(DST_ALG_DSA, i))
-				break;
-		if (j == priv->nelements)
-			return (-1);
-	}
-	return (0);
-}
-#endif
-
 static int
 check_ecdsa(const dst_private_t *priv, isc_boolean_t external) {
 	int i, j;
@@ -385,11 +355,6 @@ check_data(const dst_private_t *priv, const unsigned int alg,
 #ifndef PK11_DH_DISABLE
 	case DST_ALG_DH:
 		return (check_dh(priv));
-#endif
-#ifndef PK11_DSA_DISABLE
-	case DST_ALG_DSA:
-	case DST_ALG_NSEC3DSA:
-		return (check_dsa(priv, external));
 #endif
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
@@ -721,17 +686,11 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	case DST_ALG_DH:
 		fprintf(fp, "(DH)\n");
 		break;
-	case DST_ALG_DSA:
-		fprintf(fp, "(DSA)\n");
-		break;
 	case DST_ALG_RSASHA1:
 		fprintf(fp, "(RSASHA1)\n");
 		break;
 	case DST_ALG_NSEC3RSASHA1:
 		fprintf(fp, "(NSEC3RSASHA1)\n");
-		break;
-	case DST_ALG_NSEC3DSA:
-		fprintf(fp, "(NSEC3DSA)\n");
 		break;
 	case DST_ALG_RSASHA256:
 		fprintf(fp, "(RSASHA256)\n");
