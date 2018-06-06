@@ -16,5 +16,5 @@ $SHELL clean.sh
 
 copy_setports ns1/named.conf.in ns1/named.conf
 
-key=`$KEYGEN -Cq -K ns1 -a DSA -b 512 -n HOST -T KEY key.example.nil.`
+key=`$KEYGEN -Cq -K ns1 -a $ALGO -b $BITS -n HOST -T KEY key.example.nil.`
 cat ns1/example.nil.db.in ns1/${key}.key > ns1/example.nil.db
