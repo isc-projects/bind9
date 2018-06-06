@@ -677,7 +677,6 @@ BIND9_ISCCFG_BUILDINCLUDE
 BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
-VALIDATION_DEFAULT
 UNITTESTS
 ATFLIBS
 ATFBIN
@@ -22558,27 +22557,21 @@ esac
 #
 # Was --disable-auto-validation specified?
 #
+validation_default=auto
 # Check whether --enable-auto-validation was given.
 if test "${enable_auto_validation+set}" = set; then :
-  enableval=$enable_auto_validation; want_autoval="$enableval"
+  enableval=$enable_auto_validation; :
 else
-  want_autoval="yes"
+  enable_auto_validation=yes
 fi
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable DNSSEC validation by default" >&5
-$as_echo_n "checking whether to enable DNSSEC validation by default... " >&6; }
-case "$want_autoval" in
-no)
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	VALIDATION_DEFAULT=yes
-	;;
-*)
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	VALIDATION_DEFAULT=auto
-	;;
-esac
+if test "$enable_auto_validation" = "no"; then :
+  validation_default=yes
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define VALIDATION_DEFAULT "$validation_default"
+_ACEOF
 
 
 #

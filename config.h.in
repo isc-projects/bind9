@@ -617,6 +617,9 @@ int sigwait(const unsigned int *set, int *sig);
    non-blocking. */
 #undef USE_FIONBIO_IOCTL
 
+/* the default value of dnssec-validation option */
+#undef VALIDATION_DEFAULT
+
 /* Define to enable very verbose query trace logging. */
 #undef WANT_QUERYTRACE
 
