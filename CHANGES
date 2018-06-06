@@ -1,3 +1,5 @@
+4965.	[cleanup]	Remove support for DSA and DSA-NSEC3-SHA1 [GL #33]
+
 4964.	[bug]		Reduce the probabilty of double signature when deleting
 			a DNSKEY by checking if the node is otherwise signed
 			by the algorithm of the key to be deleted. [GL #240]
