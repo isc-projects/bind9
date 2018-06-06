@@ -1,3 +1,5 @@
+5026.	[cleanup]	Remove support for DSA and DSA-NSEC3-SHA1 [GL #22]
+
 5025.	[cleanup]	Remove isc_keyboard family of functions. [GL #178]
 
 5024.	[func]		Replace custom assembly for atomic operations with
