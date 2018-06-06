@@ -1349,31 +1349,33 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	}
 
 	if (ztype == dns_zone_master || raw != NULL) {
+		const cfg_obj_t *validity, *resign;
 		isc_boolean_t allow = ISC_FALSE, maint = ISC_FALSE;
 
 		obj = NULL;
 		result = ns_config_get(maps, "sig-validity-interval", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
-		{
-			const cfg_obj_t *validity, *resign;
 
-			validity = cfg_tuple_get(obj, "validity");
-			seconds = cfg_obj_asuint32(validity) * 86400;
-			dns_zone_setsigvalidityinterval(zone, seconds);
-
-			resign = cfg_tuple_get(obj, "re-sign");
-			if (cfg_obj_isvoid(resign)) {
-				seconds /= 4;
-			} else {
-				if (seconds > 7 * 86400)
-					seconds = cfg_obj_asuint32(resign) *
-							86400;
-				else
-					seconds = cfg_obj_asuint32(resign) *
-							3600;
-			}
-			dns_zone_setsigresigninginterval(zone, seconds);
+		validity = cfg_tuple_get(obj, "validity");
+		seconds = cfg_obj_asuint32(validity);
+		if (!ns_g_sigvalinsecs) {
+			seconds *= 86400;
 		}
+		dns_zone_setsigvalidityinterval(zone, seconds);
+
+		resign = cfg_tuple_get(obj, "re-sign");
+		if (cfg_obj_isvoid(resign)) {
+			seconds /= 4;
+		} else if (!ns_g_sigvalinsecs) {
+			if (seconds > 7 * 86400) {
+				seconds = cfg_obj_asuint32(resign) * 86400;
+			} else {
+				seconds = cfg_obj_asuint32(resign) * 3600;
+			}
+		} else {
+			seconds = cfg_obj_asuint32(resign);
+		}
+		dns_zone_setsigresigninginterval(zone, seconds);
 
 		obj = NULL;
 		result = ns_config_get(maps, "key-directory", &obj);

@@ -75,8 +75,8 @@ KRB5_CONFIG=/dev/null
 
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
-# The "dialup" and "delzone" tests are also not run by default because
-# they take a very long time to complete.
+# The "dialup", "delzone", and "dupsigs" tests are also not run by
+# default because they take a very long time to complete.
 #
 # List of tests hard-coded to use ports 5300 and 9953. For this
 # reason, these must be run sequentially.
