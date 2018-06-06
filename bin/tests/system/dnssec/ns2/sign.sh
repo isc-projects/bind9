@@ -29,8 +29,8 @@ do
 	cp ../ns3/dsset-$subdomain.example$TP .
 done
 
-keyname1=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone`
+keyname2=`$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -89,8 +89,8 @@ zone=in-addr.arpa.
 infile=in-addr.arpa.db.in
 zonefile=in-addr.arpa.db
 
-keyname1=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone`
+keyname2=`$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 $SIGNER -P -g -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
@@ -127,8 +127,8 @@ zone=badparam.
 infile=badparam.db.in
 zonefile=badparam.db
 
-keyname1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone -f KSK $zone`
-keyname2=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
+keyname1=`$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone -f KSK $zone`
+keyname2=`$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 

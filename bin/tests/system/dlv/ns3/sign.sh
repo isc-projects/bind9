@@ -26,8 +26,8 @@ zonefile=child1.utld.db
 outfile=child1.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
@@ -42,8 +42,8 @@ zonefile=child3.utld.db
 outfile=child3.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
@@ -58,8 +58,8 @@ zonefile=child4.utld.db
 outfile=child4.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -73,8 +73,8 @@ zonefile=child5.utld.db
 outfile=child5.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
@@ -88,8 +88,8 @@ infile=child.db.in
 zonefile=child7.utld.db
 outfile=child7.signed
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
@@ -103,8 +103,8 @@ infile=child.db.in
 zonefile=child8.utld.db
 outfile=child8.signed
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -118,8 +118,8 @@ zonefile=child9.utld.db
 outfile=child9.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -132,8 +132,8 @@ zonefile=child10.utld.db
 outfile=child10.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -147,8 +147,8 @@ outfile=child1.druz.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 dssets="$dssets dsset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
@@ -164,8 +164,8 @@ outfile=child3.druz.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 dssets="$dssets dsset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
@@ -181,8 +181,8 @@ outfile=child4.druz.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 dssets="$dssets dsset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -197,8 +197,8 @@ outfile=child5.druz.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 dssets="$dssets dsset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
@@ -213,8 +213,8 @@ zonefile=child7.druz.db
 outfile=child7.druz.signed
 dssets="$dssets dsset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 dsfilename=../ns6/dsset-grand.`echo $zone |sed -e "s/\.$//g"`$TP
 cat $infile $keyname1.key $keyname2.key $dsfilename >$zonefile
@@ -228,8 +228,8 @@ infile=child.db.in
 zonefile=child8.druz.db
 outfile=child8.druz.signed
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -243,8 +243,8 @@ zonefile=child9.druz.db
 outfile=child9.druz.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -258,8 +258,8 @@ outfile=child10.druz.signed
 dlvsets="$dlvsets dlvset-`echo $zone |sed -e "s/.$//g"`$TP"
 dssets="$dssets dsset-`echo $zone |sed -e "s/.$//g"`$TP"
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 
@@ -272,8 +272,8 @@ infile=dlv.db.in
 zonefile=dlv.utld.db
 outfile=dlv.signed
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $dlvsets $keyname1.key $keyname2.key >$zonefile
 

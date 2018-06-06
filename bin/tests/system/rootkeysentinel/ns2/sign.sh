@@ -22,8 +22,8 @@ zone=example.
 infile=example.db.in
 zonefile=example.db
 
-keyname1=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
-keyname2=`$KEYGEN -q -a DSA -b 768 -n zone $zone`
+keyname1=`$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone`
+keyname2=`$KEYGEN -q -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 echo root-key-sentinel-is-ta-$oldid A 10.53.0.1 >> $zonefile
