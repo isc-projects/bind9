@@ -133,19 +133,14 @@ zone=externalkey
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private
 
-for alg in ECDSAP256SHA256 NSEC3RSASHA1 DSA
+for alg in ECDSAP256SHA256 NSEC3RSASHA1
 do
     case $alg in
-        DSA)
-            $SHELL ../checkdsa.sh 2> /dev/null || continue
-            checkfile=../checkdsa
-            touch $checkfile ;;
         ECDSAP256SHA256)
             fail=0
             $KEYGEN -q -a ecdsap256sha256 test > /dev/null 2>&1 || fail=1
             rm -f Ktest*
             [ $fail != 0 ] && continue
-            $SHELL ../checkdsa.sh 2> /dev/null || continue
             checkfile=../checkecdsa
             touch $checkfile ;;
         *) ;;
