@@ -200,6 +200,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <cmocka.h> header file. */
 #undef HAVE_CMOCKA_H
 
+/* Define to 1 if you have the <compat/endian.h> header file. */
+#undef HAVE_COMPAT_ENDIAN_H
+
 /* Define to 1 if you have the <devpoll.h> header file. */
 #undef HAVE_DEVPOLL_H
 
@@ -241,6 +244,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <edit/readline/readline.h> header file. */
 #undef HAVE_EDIT_READLINE_READLINE_H
+
+/* Define to 1 if you have the <endian.h> header file. */
+#undef HAVE_ENDIAN_H
 
 /* Define to 1 if you have the `EVP_aes_128_ecb' function. */
 #undef HAVE_EVP_AES_128_ECB
@@ -371,6 +377,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <locale.h> header file. */
 #undef HAVE_LOCALE_H
 
+/* Define to 1 if you have the <machine/endian.h> header file. */
+#undef HAVE_MACHINE_ENDIAN_H
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
 
@@ -463,6 +472,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <sys/dyntune.h> header file. */
 #undef HAVE_SYS_DYNTUNE_H
+
+/* Define to 1 if you have the <sys/endian.h> header file. */
+#undef HAVE_SYS_ENDIAN_H
 
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
