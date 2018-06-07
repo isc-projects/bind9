@@ -13,9 +13,18 @@
 
 #include <config.h>
 
-#include <endian.h>
 #include <stdlib.h>
 #include <string.h>
+
+#if defined(HAVE_ENDIAN_H)
+#include <endian.h>
+#elif defined(HAVE_SYS_ENDIAN_H)
+#include <sys/endian.h>
+#elif defined(HAVE_MACHINE_ENDIAN_H)
+#include <machine/endian.h>
+#elif defined(HAVE_COMPAT_ENDIAN_H)
+#include <compat/endian.h>
+#endif
 
 #include <isc/buffer.h>
 #include <isc/hex.h>
