@@ -3193,7 +3193,7 @@ main(int argc, char *argv[]) {
 	isc_time_t timer_start, timer_finish;
 	isc_time_t sign_start, sign_finish;
 	dns_dnsseckey_t *key;
-	isc_result_t result;
+	isc_result_t result, vresult = ISC_R_SUCCESS;
 	isc_log_t *log = NULL;
 #ifdef USE_PKCS11
 	const char *engine = PKCS11_ENGINE;
@@ -3879,11 +3879,13 @@ main(int argc, char *argv[]) {
 	TIME_NOW(&sign_finish);
 
 	if (!disable_zone_check) {
-		result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin,
-					       mctx, ignore_kskflag,
-					       keyset_kskonly);
-		if (result != ISC_R_SUCCESS) {
-			exit(1);
+		vresult = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin,
+						mctx, ignore_kskflag,
+						keyset_kskonly);
+		if (vresult != ISC_R_SUCCESS) {
+                             fprintf(output_stdout ? stderr : stdout,
+				     "Zone verification failed (%s)\n",
+				     isc_result_totext(vresult));
 		}
 	}
 
@@ -3956,5 +3958,5 @@ main(int argc, char *argv[]) {
 #ifdef _WIN32
 	DestroySockets();
 #endif
-	return (0);
+	return (vresult == ISC_R_SUCCESS ? 0 : 1);
 }
