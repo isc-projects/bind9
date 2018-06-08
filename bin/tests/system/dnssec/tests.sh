@@ -18,6 +18,7 @@ n=1
 rm -f dig.out.*
 
 DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p ${PORT}"
+ADDITIONALOPTS="+noall +additional +dnssec -p ${PORT}"
 ANSWEROPTS="+noall +answer +dnssec -p ${PORT}"
 DELVOPTS="-a ns1/trusted.conf -p ${PORT}"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
@@ -2780,12 +2781,30 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section ($n)"
+echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section (NS) ($n)"
 ret=0
 $RNDCCMD 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
 sleep 1
-$DIG $ANSWEROPTS +cd expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
-$DIG $ANSWEROPTS expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
+$DIG $ADDITIONALOPTS +cd expiring.example ns @10.53.0.4 > dig.out.ns4.1.$n
+$DIG $ADDITIONALOPTS expiring.example ns @10.53.0.4 > dig.out.ns4.2.$n
+ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
+ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
+for ttl in ${ttls:-300}; do
+    [ ${ttl:-0} -eq 300 ] || ret=1
+done
+for ttl in ${ttls2:-0}; do
+    [ ${ttl:-0} -le 60 ] || ret=1
+done
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section (MX) ($n)"
+ret=0
+$RNDCCMD 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
+sleep 1
+$DIG $ADDITIONALOPTS +cd expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
+$DIG $ADDITIONALOPTS expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
 for ttl in ${ttls:-300}; do
@@ -2842,8 +2861,8 @@ sleep 3
 echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section with dnssec-accept-expired yes; ($n)"
 ret=0
 $RNDCCMD 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
-$DIG $ANSWEROPTS +cd expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
-$DIG $ANSWEROPTS expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
+$DIG $ADDITIONALOPTS +cd expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
+$DIG $ADDITIONALOPTS  expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
 for ttl in ${ttls:-300}; do
@@ -2858,9 +2877,9 @@ status=`expr $status + $ret`
 
 echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section with acache off; ($n)"
 ret=0
-$RNDCCMD 10.53.0.4 flush
-$DIG $DIGOPTS +noall +additional +dnssec +cd expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
-$DIG $DIGOPTS +noall +additional +dnssec expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
+$RNDCCMD 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
+$DIG $ADDITIONALOPTS +cd expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
+$DIG $ADDITIONALOPTS expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
 for ttl in ${ttls:-300}; do
