@@ -524,13 +524,25 @@ See also
 \fBrndc managed\-keys\fR\&.
 .RE
 .PP
-\fBserve\-stale ( on | off | status | reset ) \fR\fB[\fIclass\fR [\fIview\fR]]\fR
+\fBserve\-stale ( on | off | reset | status ) \fR\fB[\fIclass\fR [\fIview\fR]]\fR
 .RS 4
-Enable, disable, or reset the serving of stale answers as configured in named\&.conf\&. Serving of stale answers will remain disabled across
-named\&.conf
-reloads if disabled via rndc until it is reset via rndc\&.
+Enable, disable, reset, or report the current status of the serving of stale answers as configured in
+named\&.conf\&.
 .sp
-Status will report whether serving of stale answers is currently enabled, disabled or not configured for a view\&. If serving of stale records is configured then the values of stale\-answer\-ttl and max\-stale\-ttl are reported\&.
+If serving of stale answers is disabled by
+\fBrndc\-serve\-stale off\fR, then it will remain disabled even if
+\fBnamed\fR
+is reloaded or reconfigured\&.
+\fBrndc serve\-stale reset\fR
+restores the setting as configured in
+named\&.conf\&.
+.sp
+\fBrndc serve\-stale status\fR
+will report whether serving of stale answers is currently enabled, disabled by the configuration, or disabled by
+\fBrndc\fR\&. It will also report the values of
+\fBstale\-answer\-ttl\fR
+and
+\fBmax\-stale\-ttl\fR\&.
 .RE
 .PP
 \fBshowzone \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR\fB \fR
