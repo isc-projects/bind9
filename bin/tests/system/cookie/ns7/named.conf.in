@@ -18,7 +18,7 @@ options {
 	listen-on { 10.53.0.7; };
 	listen-on-v6 { none; };
 	recursion no;
-	return-cookie no;
+	answer-cookie no;
 	send-cookie yes;
 	nocookie-udp-size 512;
 };
