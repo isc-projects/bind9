@@ -1632,18 +1632,18 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			if (additionaltype ==
 			    dns_rdatasetadditional_fromcache &&
 			    (DNS_TRUST_PENDING(rdataset->trust) ||
-			     DNS_TRUST_GLUE(rdataset->trust)) &&
-			    !validate(client, db, fname, rdataset, sigrdataset))
+			     DNS_TRUST_GLUE(rdataset->trust)))
 			{
-				invalid = ISC_TRUE;
+				/* validate() may change rdataset->trust */
+				invalid = ISC_TF(!validate(client, db, fname,
+							   rdataset,
+							   sigrdataset));
 			}
-
 			if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 				dns_rdataset_disassociate(rdataset);
 				if (sigrdataset != NULL &&
 				    dns_rdataset_isassociated(sigrdataset))
 					dns_rdataset_disassociate(sigrdataset);
-				/* treat as if not found */
 			} else if (!query_isduplicate(client, fname,
 					       dns_rdatatype_a, &mname))
 			{
@@ -1709,18 +1709,18 @@ query_addadditional(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 			if (additionaltype ==
 			    dns_rdatasetadditional_fromcache &&
 			    (DNS_TRUST_PENDING(rdataset->trust) ||
-			     DNS_TRUST_GLUE(rdataset->trust)) &&
-			    !validate(client, db, fname, rdataset, sigrdataset))
+			     DNS_TRUST_GLUE(rdataset->trust)))
 			{
-				invalid = ISC_TRUE;
+				/* validate() may change rdataset->trust */
+				invalid = ISC_TF(!validate(client, db, fname,
+							   rdataset,
+							   sigrdataset));
 			}
-
 			if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 				dns_rdataset_disassociate(rdataset);
 				if (sigrdataset != NULL &&
 				    dns_rdataset_isassociated(sigrdataset))
 					dns_rdataset_disassociate(sigrdataset);
-				/* treat as if not found */
 			} else if (!query_isduplicate(client, fname,
 					       dns_rdatatype_aaaa, &mname))
 			{
@@ -2185,10 +2185,10 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	if (result == ISC_R_SUCCESS &&
 	    additionaltype == dns_rdatasetadditional_fromcache &&
 	    (DNS_TRUST_PENDING(rdataset->trust) ||
-	     DNS_TRUST_GLUE(rdataset->trust)) &&
-	    !validate(client, db, fname, rdataset, sigrdataset))
+	     DNS_TRUST_GLUE(rdataset->trust)))
 	{
-		invalid = ISC_TRUE;
+		invalid = ISC_TF(!validate(client, db, fname,
+					   rdataset, sigrdataset));
 	}
 	if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 		dns_rdataset_disassociate(rdataset);
@@ -2233,10 +2233,10 @@ query_addadditional2(void *arg, dns_name_t *name, dns_rdatatype_t qtype) {
 	if (result == ISC_R_SUCCESS &&
 	    additionaltype == dns_rdatasetadditional_fromcache &&
 	    (DNS_TRUST_PENDING(rdataset->trust) ||
-	     DNS_TRUST_GLUE(rdataset->trust)) &&
-	    !validate(client, db, fname, rdataset, sigrdataset))
+	     DNS_TRUST_GLUE(rdataset->trust)))
 	{
-		invalid = ISC_TRUE;
+		invalid = ISC_TF(!validate(client, db, fname,
+					   rdataset, sigrdataset));
 	}
 	if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 		dns_rdataset_disassociate(rdataset);
