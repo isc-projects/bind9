@@ -52,6 +52,8 @@
 /*% A configuration option that is ineffective due to
  * compile time options, but is harmless. */
 #define CFG_CLAUSEFLAG_NOOP		0x00000200
+/*% Clause is obsolete in a future release */
+#define CFG_CLAUSEFLAG_DEPRECATED	0x00000400
 
 /*%
  * Zone types for which a clause is valid:
@@ -252,6 +254,7 @@ struct cfg_parser {
 
 /* Parser context flags */
 #define CFG_PCTX_SKIP		0x1
+#define CFG_PCTX_NODEPRECATED	0x2
 
 /*@{*/
 /*%
