@@ -201,6 +201,25 @@
 	  signatures and digest, nor it will validate them.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Add the ability to not return a DNS COOKIE option when one
+	  is present in the request.  To prevent a cookie being returned
+	  add 'answer-cookie no;' to named.conf. [GL #173]
+	</para>
+	<para>
+	  <command>answer-cookie</command> is only available as a
+	  temporary measure, for use when <command>named</command>
+	  shares an IP address with other servers that do not yet
+	  support DNS COOKIE.  A mismatch between servers on the
+	  same address is not expected to cause operational problems,
+	  but the option to disable COOKIE responses so that all
+	  servers have the same behavior is provided out of an
+	  abundance of caution. DNS COOKIE is an important security
+	  mechanism and should not be disabled unless absolutely
+	  necessary.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
