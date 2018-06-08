@@ -298,6 +298,11 @@ and CVE-2017-3143.
 BIND 9.10.7 is a maintenance release, and addresses the security
 flaw disclosed in CVE-2017-3145.
 
+#### BIND 9.10.8
+
+BIND 9.10.8 is a maintenance release, and addresses the security flaw
+disclosed in CVE-2018-5738.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
