@@ -1030,7 +1030,6 @@ with_libfstrm
 with_docbook_xsl
 with_libidn2
 with_cmocka
-enable_assert_testing
 with_atf
 with_tuning
 enable_querytrace
@@ -1712,7 +1711,6 @@ Optional Features:
                           [default=$librpz_dl]
   --enable-dnsrps         enable DNS Response Policy Service API
   --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
-  --enable-assert-testing enable assertion testing using cmocka (default=no)
   --enable-querytrace     enable very verbose query trace logging [default=no]
   --enable-auto-validation
                           turn on DNSSEC validation by default, using the IANA
@@ -22715,29 +22713,6 @@ fi
 esac
 
 
-
-# Check whether --enable-assert-testing was given.
-if test "${enable_assert_testing+set}" = set; then :
-  enableval=$enable_assert_testing;
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable assertion testing" >&5
-$as_echo_n "checking whether to enable assertion testing... " >&6; }
-case $enable_assert_testing in #(
-  yes) :
-
-	    CFLAGS="$CFLAGS $CMOCKA_CFLAGS"
-	    LIBS="$LIBS $CMOCKA_LIBS"
-
-$as_echo "#define ISC_ASSERT_TESTING 1" >>confdefs.h
-
-	* ;; #(
-  *) :
-    enable_assert_testing=no ;;
-esac
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_assert_testing" >&5
-$as_echo "$enable_assert_testing" >&6; }
 
 #
 # Check for -Wl,--wrap= support

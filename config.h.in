@@ -560,9 +560,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to the sockaddr length type used by getnameinfo(3). */
 #undef IRS_GETNAMEINFO_SOCKLEN_T
 
-/* define to enable assertion testing */
-#undef ISC_ASSERT_TESTING
-
 /* Define if you want to use inline buffers */
 #undef ISC_BUFFER_USEINLINE
 

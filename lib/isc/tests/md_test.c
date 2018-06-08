@@ -11,18 +11,23 @@
 
 #include <config.h>
 
+
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
-#include <cmocka.h>
 
 #include <string.h>
 
 /* For FIPS_mode() */
 #include <openssl/crypto.h>
 
+#define UNIT_TESTING
+#include <cmocka.h>
+
 #include <isc/result.h>
 #include <isc/md.h>
+
+#include "../md.c"
 
 #define TEST_INPUT(x) (x), sizeof(x)-1
 
@@ -118,9 +123,8 @@ isc_md_init_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
-#if ISC_ASSERT_TESTING
 	expect_assert_failure(isc_md_init(NULL, ISC_MD_MD5));
-#endif
+
 	assert_int_equal(isc_md_init(md, 0), ISC_R_NOTIMPLEMENTED);
        
 	assert_int_equal(isc_md_init(md, ISC_MD_MD5), ISC_R_SUCCESS);
@@ -145,9 +149,7 @@ isc_md_update_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
-#if ISC_ASSERT_TESTING
 	expect_assert_failure(isc_md_update(NULL, NULL, 0));
-#endif
 
 	assert_int_equal(isc_md_update(md, NULL, 100), ISC_R_SUCCESS);
 	assert_int_equal(isc_md_update(md, (const unsigned char *)"", 0), ISC_R_SUCCESS);
@@ -182,10 +184,8 @@ isc_md_final_test(void **state) {
 
 	assert_non_null(md);
 
-#if ISC_ASSERT_TESTING
 	expect_assert_failure(isc_md_final(NULL, digest, &digestlen));
 	expect_assert_failure(isc_md_final(md, NULL, &digestlen));
-#endif
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA512), ISC_R_SUCCESS);
 	assert_int_equal(isc_md_final(md, digest, NULL), ISC_R_SUCCESS);

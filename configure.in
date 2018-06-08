@@ -4567,19 +4567,6 @@ AS_CASE([$with_cmocka],
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
 
-AC_ARG_ENABLE([assert-testing],
-	      AS_HELP_STRING([--enable-assert-testing],
-		             [enable assertion testing using cmocka (default=no)]))
-
-AC_MSG_CHECKING([whether to enable assertion testing])
-AS_CASE([$enable_assert_testing],
-	[yes],[
-	    CFLAGS="$CFLAGS $CMOCKA_CFLAGS"
-	    LIBS="$LIBS $CMOCKA_LIBS"
-	    AC_DEFINE([ISC_ASSERT_TESTING], [1], [define to enable assertion testing])]
-	[*],[enable_assert_testing=no])
-AC_MSG_RESULT([$enable_assert_testing])
-
 #
 # Check for -Wl,--wrap= support
 #
