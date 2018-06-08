@@ -6091,19 +6091,27 @@ options {
 	      <term><command>answer-cookie</command></term>
 	      <listitem>
 		<para>
-		  If <userinput>yes</userinput>, then a COOKIE EDNS
-		  option is returned, if applicable, in replies to
-		  client queries. If <userinput>no</userinput>, COOKIE
-		  EDNS option is not returned in replies to client
-		  queries. This is a server-level option. The default is
-		  <userinput>yes</userinput>.
+		  When set to the default value of <userinput>yes</userinput>,
+		  COOKIE EDNS options will be sent when applicable in
+		  replies to client queries. If set to
+		  <userinput>no</userinput>, COOKIE EDNS options will not
+		  be sent in replies.  This can only be set at the global
+		  options level, not per-view.
 		</para>
 		<para>
-		  <command>answer-cookie</command> is only present
-		  to support running named along side other servers
-		  on the same IP address that do not yet support
-		  DNS COOKIE yet.  This option is treated as obsolete
-		  in BIND 9.13 and later.
+		  <command>answer-cookie</command> is only available
+		  as a temporary measure, for use when
+		  <command>named</command> shares an IP address
+		  with other servers that do not yet support DNS
+		  COOKIE.  A mismatch between servers on the same
+		  address is not expected to cause operational
+		  problems, but the option to disable COOKIE responses
+		  so that all servers have the same behavior is
+		  provided out of an abundance of caution. DNS COOKIE
+		  is an important security mechanism and should not be
+		  disabled unless absolutely necessary.  The
+		  <command>answer-cookie</command> option is obsolete
+		  as of BIND 9.13.
 		</para>
 	      </listitem>
 	    </varlistentry>
