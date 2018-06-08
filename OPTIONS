@@ -30,4 +30,3 @@ Setting                   Description
                           Disable the use of inline functions to implement
 -DISC_BUFFER_USEINLINE=0  the isc_buffer API: this reduces performance but
                           may be useful when debugging
-

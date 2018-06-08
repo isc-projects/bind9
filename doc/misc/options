@@ -87,6 +87,7 @@ options {
             ] [ dscp <integer> ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ] [ dscp <integer> ];
+        answer-cookie <boolean>;
         attach-cache <string>;
         auth-nxdomain <boolean>; // default changed
         auto-dnssec ( allow | maintain | off );
@@ -114,7 +115,7 @@ options {
         cleaning-interval <integer>;
         clients-per-query <integer>;
         cookie-algorithm ( aes | sha1 | sha256 );
-        cookie-secret <string>;
+        cookie-secret <string>; // may occur multiple times
         coresize ( default | unlimited | <sizeval> );
         datasize ( default | unlimited | <sizeval> );
         deallocate-on-exit <boolean>; // obsolete
@@ -608,8 +609,8 @@ view <string> [ <class> ] {
             min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
             qname-wait-recurse <boolean> ] [ recursive-only <boolean> ];
         rfc2308-type1 <boolean>; // not yet implemented
-        root-key-sentinel <boolean>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        root-key-sentinel <boolean>;
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
         send-cookie <boolean>;
