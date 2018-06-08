@@ -6098,6 +6098,13 @@ options {
 		  queries. This is a server-level option. The default is
 		  <userinput>yes</userinput>.
 		</para>
+		<para>
+		  This option is only present to support running
+		  named along side other servers on the same IP
+		  address that do not yet support DNS COOKIE yet.
+		  This option is treated as obsolete in BIND 9.13
+		  and later.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
