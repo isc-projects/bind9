@@ -230,9 +230,9 @@
 <dt><span class="term">-i</span></dt>
 <dd>
 	  <p>
-	    Do reverse IPv6 lookups using the obsolete RFC1886 IP6.INT
+	    Do reverse IPv6 lookups using the obsolete RFC 1886 IP6.INT
 	    domain, which is no longer in use. Obsolete bit string
-	    label queries (RFC2874) are not attempted.
+	    label queries (RFC 2874) are not attempted.
 	  </p>
 	</dd>
 <dt><span class="term">-k <em class="replaceable"><code>keyfile</code></em></span></dt>
@@ -277,17 +277,24 @@
 <dt><span class="term">-t <em class="replaceable"><code>type</code></em></span></dt>
 <dd>
 	  <p>
-	    The resource record type to query. It can be any valid query type
-	    which is
-	    supported in BIND 9.  The default query type is "A", unless the
-	    <code class="option">-x</code> option is supplied to indicate a reverse lookup.
-	    A zone transfer can be requested by specifying a type of AXFR.  When
+	    The resource record type to query. It can be any valid query
+	    type.  If it is a resource record type supported in BIND 9, it
+	    can be given by the type mnemonic (such as "NS" or "AAAA").
+	    The default query type is "A", unless the <code class="option">-x</code>
+	    option is supplied to indicate a reverse lookup.  A zone
+	    transfer can be requested by specifying a type of AXFR.  When
 	    an incremental zone transfer (IXFR) is required, set the
 	    <em class="parameter"><code>type</code></em> to <code class="literal">ixfr=N</code>.
 	    The incremental zone transfer will contain the changes
 	    made to the zone since the serial number in the zone's SOA
 	    record was
 	    <em class="parameter"><code>N</code></em>.
+	  </p>
+	  <p>
+	    All resource record types can be expressed as "TYPEnn", where
+	    "nn" is the number of the type. If the resource record type is
+	    not supported in BIND 9, the result will be displayed as
+	    described in RFC 3597.
 	  </p>
 	</dd>
 <dt><span class="term">-u</span></dt>
@@ -617,6 +624,14 @@
 	      short form answers are requested, the default is not
 	      to show the source address and port number of the
 	      server that provided the answer.
+	    </p>
+	  </dd>
+<dt><span class="term"><code class="option">+[no]idnin</code></span></dt>
+<dd>
+	    <p>
+	      Process [do not process] IDN domain names on input.
+	      This requires IDN SUPPORT to have been enabled at
+	      compile time.  The default is to process IDN input.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]idnout</code></span></dt>
@@ -1014,10 +1029,9 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
       <span class="command"><strong>dig</strong></span> appropriately converts character encoding of
       domain name before sending a request to DNS server or displaying a
       reply from the server.
-      If you'd like to turn off the IDN support for some reason, defines
-      the <code class="envar">IDN_DISABLE</code> environment variable.
-      The IDN support is disabled if the variable is set when
-      <span class="command"><strong>dig</strong></span> runs.
+      If you'd like to turn off the IDN support for some reason, use
+      parameters <em class="parameter"><code>+noidnin</code></em> and
+      <em class="parameter"><code>+noidnout</code></em>.
     </p>
   </div>
 
@@ -1045,7 +1059,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
       <span class="citerefentry">
 	<span class="refentrytitle">dnssec-keygen</span>(8)
       </span>,
-      <em class="citetitle">RFC1035</em>.
+      <em class="citetitle">RFC 1035</em>.
     </p>
   </div>
 

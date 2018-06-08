@@ -261,6 +261,11 @@ store data related to zones added via `rndc addzone` or catalog zones.
 BIND 9.11.3 is a maintenance release, and addresses the security flaw
 disclosed in CVE-2017-3145.
 
+#### BIND 9.11.4
+
+BIND 9.11.3 is a maintenance release, and addresses the security flaw
+disclosed in CVE-2018-5738.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
