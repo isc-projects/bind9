@@ -325,9 +325,6 @@ main(int argc, char *argv[]) {
 
 	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, mctx,
 				       ignore_kskflag, keyset_kskonly);
-	if (result != ISC_R_SUCCESS) {
-		exit(1);
-	}
 
 	dns_db_closeversion(gdb, &gversion, ISC_FALSE);
 	dns_db_detach(&gdb);
@@ -341,5 +338,5 @@ main(int argc, char *argv[]) {
 
 	(void) isc_app_finish();
 
-	return (0);
+	return (result == ISC_R_SUCCESS ? 0 : 1);
 }
