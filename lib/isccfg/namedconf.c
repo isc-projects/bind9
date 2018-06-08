@@ -1027,6 +1027,7 @@ static cfg_type_t cfg_type_fstrm_model = {
  */
 static cfg_clausedef_t
 options_clauses[] = {
+	{ "answer-cookie", &cfg_type_boolean, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "automatic-interface-scan", &cfg_type_boolean, 0 },
 	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },

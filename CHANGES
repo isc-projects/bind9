@@ -1,3 +1,7 @@
+4966.	[func]		Add the ability to not return a DNS COOKIE option
+			when one is present in the request (answer-cookie no;).
+			[GL #173]
+
 4965.	[func]		Add support for marking options as deprecated.
 			[GL #322]
 
