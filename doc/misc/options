@@ -79,6 +79,7 @@ options {
             ] [ dscp <integer> ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ] [ dscp <integer> ];
+        answer-cookie <boolean>; // obsolete
         attach-cache <string>;
         auth-nxdomain <boolean>; // default changed
         auto-dnssec ( allow | maintain | off );
