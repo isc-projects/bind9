@@ -1708,12 +1708,14 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 		}
 	done:
 		if (clause == NULL || clause->name == NULL) {
-			cfg_parser_error(pctx, CFG_LOG_NOPREP, "unknown option");
+			cfg_parser_error(pctx, CFG_LOG_NOPREP,
+					 "unknown option");
 			/*
 			 * Try to recover by parsing this option as an unknown
 			 * option and discarding it.
 			 */
-			CHECK(cfg_parse_obj(pctx, &cfg_type_unsupported, &eltobj));
+			CHECK(cfg_parse_obj(pctx, &cfg_type_unsupported,
+					    &eltobj));
 			cfg_obj_destroy(pctx, &eltobj);
 			CHECK(parse_semicolon(pctx));
 			continue;
@@ -1723,7 +1725,8 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 
 		/* Issue warnings if appropriate */
 		if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0 &&
-		    (clause->flags & CFG_CLAUSEFLAG_DEPRECATED) != 0) {
+		    (clause->flags & CFG_CLAUSEFLAG_DEPRECATED) != 0)
+		{
 			cfg_parser_warning(pctx, 0, "option '%s' is deprecated",
 				           clause->name);
 		}
