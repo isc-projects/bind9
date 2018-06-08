@@ -1711,16 +1711,22 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 		/* Clause is known. */
 
 		/* Issue warnings if appropriate */
-		if ((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0)
+		if ((clause->flags & CFG_CLAUSEFLAG_DEPRECATED) != 0) {
+			cfg_parser_warning(pctx, 0, "option '%s' is deprecated",
+				           clause->name);
+		}
+		if ((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' is obsolete",
-				       clause->name);
-		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0)
+				           clause->name);
+		}
+		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' is "
-				       "not implemented", clause->name);
-		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0)
+				           "not implemented", clause->name);
+		}
+		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' is "
-				       "not implemented", clause->name);
-
+				           "not implemented", clause->name);
+		}
 		if ((clause->flags & CFG_CLAUSEFLAG_NOOP) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' was not "
 					   "enabled at compile time "
