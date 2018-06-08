@@ -5776,7 +5776,7 @@ options {
 	      <term><command>fetch-glue</command></term>
 	      <listitem>
 		<para>
-		  This option is obsolete.
+		  <emphasis>This option is obsolete</emphasis>.
 		  In BIND 8, <userinput>fetch-glue yes</userinput>
 		  caused the server to attempt to fetch glue resource records
 		  it
@@ -6076,6 +6076,18 @@ options {
 		  response to a UDP request from a cookie aware client.
 		  BADCOOKIE is sent if there is a bad or no existent
 		  server cookie.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>answer-cookie</command></term>
+	      <listitem>
+		<para>
+		  <emphasis>This option is obsolete</emphasis>.
+		  This option was used to prevent the sending of
+		  a DNS COOKIE option in response to a request with
+		  one present in BIND 9.11 and BIND 9.12.
 		</para>
 	      </listitem>
 	    </varlistentry>
