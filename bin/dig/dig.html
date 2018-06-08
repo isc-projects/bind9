@@ -1,7 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2004-2011, 2013-2017 Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2000-2003 Internet Software Consortium.
+ - Copyright (C) 2000-2011, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
  - 
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -239,9 +238,9 @@
 <dt><span class="term">-i</span></dt>
 <dd>
 	  <p>
-	    Do reverse IPv6 lookups using the obsolete RFC1886 IP6.INT
+	    Do reverse IPv6 lookups using the obsolete RFC 1886 IP6.INT
 	    domain, which is no longer in use. Obsolete bit string
-	    label queries (RFC2874) are not attempted.
+	    label queries (RFC 2874) are not attempted.
 	  </p>
         </dd>
 <dt><span class="term">-k <em class="replaceable"><code>keyfile</code></em></span></dt>
@@ -286,19 +285,25 @@
 <dt><span class="term">-t <em class="replaceable"><code>type</code></em></span></dt>
 <dd>
 	  <p>
-	    The resource record type to query. It can be any valid query type
-	    which is
-	    supported in BIND 9.  The default query type is "A", unless the
-	    <code class="option">-x</code> option is supplied to indicate a reverse lookup.
-	    A zone transfer can be requested by specifying a type of AXFR.  When
+	    The resource record type to query. It can be any valid query
+	    type.  If it is a resource record type supported in BIND 9, it
+	    can be given by the type mnemonic (such as "NS" or "AAAA").
+	    The default query type is "A", unless the <code class="option">-x</code>
+	    option is supplied to indicate a reverse lookup.  A zone
+	    transfer can be requested by specifying a type of AXFR.  When
 	    an incremental zone transfer (IXFR) is required, set the
 	    <em class="parameter"><code>type</code></em> to <code class="literal">ixfr=N</code>.
 	    The incremental zone transfer will contain the changes
 	    made to the zone since the serial number in the zone's SOA
-	    record was
-	    <em class="parameter"><code>N</code></em>.
+	    record was <em class="parameter"><code>N</code></em>.
 	  </p>
-        </dd>
+	  <p>
+	    All resource record types can be expressed as "TYPEnn", where
+	    "nn" is the number of the type. If the resource record type is
+	    not supported in BIND 9, the result will be displayed as
+	    described in RFC 3597.
+	  </p>
+	</dd>
 <dt><span class="term">-v</span></dt>
 <dd>
 	  <p>
@@ -904,7 +909,7 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
       <span class="citerefentry">
 	<span class="refentrytitle">dnssec-keygen</span>(8)
       </span>,
-      <em class="citetitle">RFC1035</em>.
+      <em class="citetitle">RFC 1035</em>.
     </p>
   </div>
 
