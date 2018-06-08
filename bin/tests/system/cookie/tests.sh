@@ -55,10 +55,19 @@ do
 done
 
 n=`expr $n + 1`
-echo_i "checking COOKIE token returned to empty COOKIE option ($n)"
+echo_i "checking COOKIE token is returned to empty COOKIE option ($n)"
 ret=0
-$DIG $DIGOPTS +qr +cookie version.bind txt ch @10.53.0.1 > dig.out.test$n
+$DIG $DIGOPTS +cookie version.bind txt ch @10.53.0.1 > dig.out.test$n
 grep COOKIE: dig.out.test$n > /dev/null || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking COOKIE is not returned when answer-cookie is false ($n)"
+ret=0
+$DIG $DIGOPTS +cookie version.bind txt ch @10.53.0.7 > dig.out.test$n
+grep COOKIE: dig.out.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
