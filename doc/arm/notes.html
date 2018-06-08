@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.13.0</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.13.1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -70,7 +70,11 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  None.
+	  When recursion is enabled but the <span class="command"><strong>allow-recursion</strong></span>
+	  and <span class="command"><strong>allow-query-cache</strong></span> ACLs are not specified, they
+	  should be limited to local networks, but they were inadvertently set
+	  to match the default <span class="command"><strong>allow-query</strong></span>, thus allowing
+	  remote queries. This flaw is disclosed in CVE-2018-5738. [GL #309]
 	</p>
       </li></ul></div>
   </div>
@@ -90,12 +94,12 @@
 <li class="listitem">
 	<p>
 	  <span class="command"><strong>named</strong></span> now supports the "root key sentinel"
-	  mechanism. This enables validating resolvers to indicate to
+	  mechanism. This enables validating resolvers to indicate
 	  which trust anchors are configured for the root, so that
 	  information about root key rollover status can be gathered.
 	  To disable this feature, add
 	  <span class="command"><strong>root-key-sentinel no;</strong></span> to
-	  <code class="filename">named.conf</code>.
+	  <code class="filename">named.conf</code>. [GL #37]
 	</p>
       </li>
 <li class="listitem">
@@ -112,6 +116,28 @@
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_removed"></a>Removed Features</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> can no longer use the EDNS CLIENT-SUBNET
+	  option for view selection.  In its existing form, the authoritative
+	  ECS feature was not fully RFC-compliant, and could not realistically
+	  have been deployed in production for an authoritative server; its
+	  only practical use was for testing and experimentation. In the
+	  interest of code simplification, this feature has now been removed.
+	</p>
+	<p>
+	  The ECS option is still supported in <span class="command"><strong>dig</strong></span> and
+	  <span class="command"><strong>mdig</strong></span> via the +subnet argument, and can be parsed
+	  and logged when received by <span class="command"><strong>named</strong></span>, but
+	  it is no longer used for ACL processing. The
+	  <span class="command"><strong>geoip-use-ecs</strong></span> option is now obsolete;
+	  a warning will be logged if it is used in
+	  <code class="filename">named.conf</code>.
+	  <span class="command"><strong>ecs</strong></span> tags in an ACL definition are
+	  also obsolete, and will cause the configuration to fail to
+	  load if they are used. [GL #32]
+	</p>
+      </li>
 <li class="listitem">
 	<p>
 	  <span class="command"><strong>dnssec-keygen</strong></span> can no longer generate HMAC
@@ -165,6 +191,15 @@
 	  command.
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  Support for ECC-GOST (GOST R 34.11-94) algorithm has been
+	  removed from BIND as the algorithm has been superseded by
+	  GOST R 34.11-2012 in RFC6986 and it must not be used in new
+	  deployments.  BIND will neither create new DNSSEC keys,
+	  signatures and digest, nor it will validate them.
+	</p>
+      </li>
 </ul></div>
   </div>
 
@@ -182,6 +217,17 @@
 	  <span class="command"><strong>CryptGenRandom</strong></span> on Windows, and the selected
 	  cryptography provider library (OpenSSL or PKCS#11) as the last
 	  resort. [GL #221]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The default setting for <span class="command"><strong>dnssec-validation</strong></span> is
+	  now <strong class="userinput"><code>auto</code></strong>, which activates DNSSEC
+	  validation using the IANA root key. (The default can be changed
+	  back to <strong class="userinput"><code>yes</code></strong>, which activates DNSSEC
+	  validation only when keys are explicitly configured in
+	  <code class="filename">named.conf</code>, by building BIND with
+	  <span class="command"><strong>configure --disable-auto-validation</strong></span>.) [GL #30]
 	</p>
       </li>
 <li class="listitem">
@@ -238,6 +284,13 @@
 	  <span class="command"><strong>max-policy-ttl</strong></span>, and
 	  <span class="command"><strong>min-update-interval</strong></span>.
 	  [GL #203]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  NSID logging (enabled by the <span class="command"><strong>request-nsid</strong></span>
+	  option) now has its own <span class="command"><strong>nsid</strong></span> category,
+	  instead of using the <span class="command"><strong>resolver</strong></span> category.
 	</p>
       </li>
 </ul></div>

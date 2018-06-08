@@ -79,6 +79,7 @@ options {
             ] [ dscp <integer> ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ] [ dscp <integer> ];
+        answer-cookie <boolean>; // obsolete
         attach-cache <string>;
         auth-nxdomain <boolean>; // default changed
         auto-dnssec ( allow | maintain | off );
@@ -185,7 +186,7 @@ options {
         fstrm-set-output-queue-size <integer>; // not configured
         fstrm-set-reopen-interval <ttlval>; // not configured
         geoip-directory ( <quoted_string> | none ); // not configured
-        geoip-use-ecs <boolean>; // not configured
+        geoip-use-ecs <boolean>; // obsolete
         glue-cache <boolean>;
         has-old-clients <boolean>; // obsolete
         heartbeat-interval <integer>;
