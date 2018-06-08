@@ -77,6 +77,12 @@
 	  'root-key-sentinel no;' to named.conf. [GL #37]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Add the ability to not return a DNS COOKIE option when one
+	  is present in the request (answer-cookie no;). [GL #173]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
