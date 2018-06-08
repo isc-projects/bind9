@@ -231,18 +231,47 @@ linux_setcaps(cap_t caps) {
 		cap_free(curcaps); \
 	} while (0)
 #else
-#define SET_CAP(flag) do { caps |= (1 << (flag)); } while (0)
+#define SET_CAP(flag) \
+	do { \
+		if (curcaps & (1 << (flag))) { \
+			caps |= (1 << (flag)); \
+		} \
+	} while (0)
 #define INIT_CAP do { caps = 0; } while (0)
+#endif /* HAVE_LIBCAP */
+
+#ifndef HAVE_LIBCAP
+/*%
+ * Store the bitmask representing the permitted capability set in 'capsp'.  To
+ * match libcap-enabled behavior, capget() syscall errors are not reported,
+ * they just cause 'capsp' to be set to 0, which effectively prevents any
+ * capability from being subsequently requested.
+ */
+static void
+linux_getpermittedcaps(cap_t *capsp) {
+	struct __user_cap_header_struct caphead;
+	struct __user_cap_data_struct curcaps;
+
+	memset(&caphead, 0, sizeof(caphead));
+	caphead.version = _LINUX_CAPABILITY_VERSION;
+	caphead.pid = 0;
+	memset(&curcaps, 0, sizeof(curcaps));
+	syscall(SYS_capget, &caphead, &curcaps);
+
+	*capsp = curcaps.permitted;
+}
 #endif /* HAVE_LIBCAP */
 
 static void
 linux_initialprivs(void) {
+	cap_t curcaps;
 	cap_t caps;
 #ifdef HAVE_LIBCAP
-	cap_t curcaps;
 	cap_value_t capval;
 	char strbuf[ISC_STRERRORSIZE];
 	int err;
+#else
+	linux_getpermittedcaps(&curcaps);
 #endif
 
 	/*%
@@ -307,12 +336,14 @@ linux_initialprivs(void) {
 
 static void
 linux_minprivs(void) {
+	cap_t curcaps;
 	cap_t caps;
 #ifdef HAVE_LIBCAP
-	cap_t curcaps;
 	cap_value_t capval;
 	char strbuf[ISC_STRERRORSIZE];
 	int err;
+#else
+	linux_getpermittedcaps(&curcaps);
 #endif
 
 	INIT_CAP;
