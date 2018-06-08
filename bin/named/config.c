@@ -30,6 +30,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
 #include <dns/fixedname.h>
@@ -276,7 +277,9 @@ ns_config_parsedefaults(cfg_parser_t *parser, cfg_obj_t **conf) {
 
 	isc_buffer_init(&b, defaultconf, sizeof(defaultconf) - 1);
 	isc_buffer_add(&b, sizeof(defaultconf) - 1);
-	return (cfg_parse_buffer(parser, &b, &cfg_type_namedconf, conf));
+	return (cfg_parse_buffer4(parser, &b, __FILE__, 0,
+				  &cfg_type_namedconf,
+				  CFG_PCTX_NODEPRECATED, conf));
 }
 
 isc_result_t

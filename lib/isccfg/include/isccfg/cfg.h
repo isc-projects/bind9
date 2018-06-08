@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: cfg.h,v 1.46 2010/08/13 23:47:04 tbox Exp $ */
-
 #ifndef ISCCFG_CFG_H
 #define ISCCFG_CFG_H 1
 
@@ -120,6 +118,11 @@ cfg_parse_file(cfg_parser_t *pctx, const char *filename,
 isc_result_t
 cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
 		 const cfg_type_t *type, cfg_obj_t **ret);
+isc_result_t
+cfg_parse_buffer4(cfg_parser_t *pctx, isc_buffer_t *buffer,
+		  const char *file, unsigned int line,
+		  const cfg_type_t *type, unsigned int flags,
+		  cfg_obj_t **ret);
 /*%<
  * Read a configuration containing data of type 'type'
  * and make '*ret' point to its parse tree.
@@ -135,6 +138,7 @@ cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
  *\li 	"mem" is valid.
  *\li	"type" is valid.
  *\li 	"cfg" is non-NULL and "*cfg" is NULL.
+ *\li   "flags" be one or more of CFG_PCTX_NODEPRECATED or zero.
  *
  * Returns:
  *     \li #ISC_R_SUCCESS                 - success
