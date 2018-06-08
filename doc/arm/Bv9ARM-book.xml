@@ -6088,7 +6088,7 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>return-cookie</command></term>
+	      <term><command>answer-cookie</command></term>
 	      <listitem>
 		<para>
 		  If <userinput>yes</userinput>, then a COOKIE EDNS
@@ -6099,11 +6099,11 @@ options {
 		  <userinput>yes</userinput>.
 		</para>
 		<para>
-		  This option is only present to support running
-		  named along side other servers on the same IP
-		  address that do not yet support DNS COOKIE yet.
-		  This option is treated as obsolete in BIND 9.13
-		  and later.
+		  <command>answer-cookie</command> is only present
+		  to support running named along side other servers
+		  on the same IP address that do not yet support
+		  DNS COOKIE yet.  This option is treated as obsolete
+		  in BIND 9.13 and later.
 		</para>
 	      </listitem>
 	    </varlistentry>

@@ -1027,6 +1027,7 @@ static cfg_type_t cfg_type_fstrm_model = {
  */
 static cfg_clausedef_t
 options_clauses[] = {
+	{ "answer-cookie", &cfg_type_boolean, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "automatic-interface-scan", &cfg_type_boolean, 0 },
 	{ "avoid-v4-udp-ports", &cfg_type_bracketed_portlist, 0 },
 	{ "avoid-v6-udp-ports", &cfg_type_bracketed_portlist, 0 },
@@ -1953,7 +1954,6 @@ view_clauses[] = {
 	{ "resolver-retry-interval", &cfg_type_uint32, 0 },
 	{ "response-padding", &cfg_type_resppadding, 0 },
 	{ "response-policy", &cfg_type_rpz, 0 },
-	{ "return-cookie", &cfg_type_boolean, CFG_CLAUSEFLAG_DEPRECATED },
 	{ "rfc2308-type1", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "root-delegation-only",  &cfg_type_optional_exclude, 0 },
 	{ "root-key-sentinel", &cfg_type_boolean, 0 },
