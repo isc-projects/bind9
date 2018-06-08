@@ -1,7 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2004-2018 Internet Systems Consortium, Inc. ("ISC")
- - Copyright (C) 2000-2003 Internet Software Consortium.
+ - Copyright (C) 2000-2018 Internet Systems Consortium, Inc. ("ISC")
  - 
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -1576,6 +1575,7 @@ notrace</strong></span>. All debugging messages in the server have a debug
     syslog daemon;
     // only send priority info and higher
     severity info;
+};
 
 channel default_debug {
     // write to named.run in the working directory
@@ -3724,6 +3724,14 @@ options {
                   statistics for every host that the name server interacts
                   with.
                   Not implemented in BIND 9.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>root-key-sentinel</strong></span></span></dt>
+<dd>
+                <p>
+                  Respond to root key sentinel probes as described in
+                  draft-ietf-dnsop-kskroll-sentinel-08. The default is
+                  <strong class="userinput"><code>yes</code></strong>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>maintain-ixfr-base</strong></span></span></dt>
@@ -6707,6 +6715,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <li class="listitem">9.E.F.IP6.ARPA</li>
 <li class="listitem">A.E.F.IP6.ARPA</li>
 <li class="listitem">B.E.F.IP6.ARPA</li>
+<li class="listitem">EMPTY.AS112.ARPA</li>
+<li class="listitem">HOME.ARPA</li>
 </ul></div>
 <p>
           </p>
@@ -9572,69 +9582,68 @@ example.com. NS ns2.example.net.
               <span class="command"><strong>update-policy</strong></span> option, respectively.
             </p>
             <p>
-              The <span class="command"><strong>allow-update</strong></span> clause works the
-              same way as in previous versions of <acronym class="acronym">BIND</acronym>.
-              It grants given clients the permission to update any
-              record of any name in the zone.
+              The <span class="command"><strong>allow-update</strong></span> clause is a simple
+              access control list.  Any client that matches
+              the ACL is granted permission to update any record
+              in the zone.
             </p>
             <p>
               The <span class="command"><strong>update-policy</strong></span> clause
               allows more fine-grained control over what updates are
-              allowed.  A set of rules is specified, where each rule
-              either grants or denies permissions for one or more
-              names to be updated by one or more identities.  If
-              the dynamic update request message is signed (that is,
-              it includes either a TSIG or SIG(0) record), the
-              identity of the signer can be determined.
+              allowed.  It specifies a set of rules, in which each rule
+              either grants or denies permission for one or more
+              names in the zone to be updated by one or more
+              identities. Identity is determined by the key that
+              signed the update request using either TSIG or SIG(0).
+              In most cases, <span class="command"><strong>update-policy</strong></span> rules
+              only apply to key-based identities.  There is no way
+              to specify update permissions based on client source
+              address.
             </p>
             <p>
-              Rules are specified in the <span class="command"><strong>update-policy</strong></span>
-              zone option, and are only meaningful for master zones.
-              When the <span class="command"><strong>update-policy</strong></span> statement
-              is present, it is a configuration error for the
-              <span class="command"><strong>allow-update</strong></span> statement to be
-              present.  The <span class="command"><strong>update-policy</strong></span> statement
-              (except when set to <code class="literal">local</code>) only
-              examines the signer of a message; the source
-              address is not relevant.
+              <span class="command"><strong>update-policy</strong></span> rules are only meaningful
+              for zones of type <span class="command"><strong>master</strong></span>, and are
+              not allowed in any other zone type.
+              It is a configuration error to specify both
+              <span class="command"><strong>allow-update</strong></span> and
+              <span class="command"><strong>update-policy</strong></span> at the same time.
             </p>
             <p>
               A pre-defined <span class="command"><strong>update-policy</strong></span> rule can be
               switched on with the command
               <span class="command"><strong>update-policy local;</strong></span>.
-              Switching on this rule in a zone causes
-              <span class="command"><strong>named</strong></span> to generate a TSIG session key and
-              place it in a file. That key will then be allowed to update
-              the zone, if the update request is sent from localhost.
+              Using this in a zone causes
+              <span class="command"><strong>named</strong></span> to generate a TSIG session key
+              when starting up and store it in a file; this key can then
+              be used by local clients to update the zone while
+              <span class="command"><strong>named</strong></span> is running.
               By default, the session key is stored in the file
-              <code class="filename">/var/run/named/session.key</code>; the key name
-              is "local-ddns" and the key algorithm is HMAC-SHA256.
+              <code class="filename">/var/run/named/session.key</code>, the key name
+              is "local-ddns", and the key algorithm is HMAC-SHA256.
               These values are configurable with the
               <span class="command"><strong>session-keyfile</strong></span>,
               <span class="command"><strong>session-keyname</strong></span> and
-              <span class="command"><strong>session-keyalg</strong></span> options, respectively).
-            </p>
-            <p>
-              A client on the local system, if it is run with appropriate
+              <span class="command"><strong>session-keyalg</strong></span> options, respectively.
+              A client running on the local system, if run with appropriate
               permissions, may read the session key from the key file and
-              use the key to sign update requests.  The zone's update
+              use it to sign update requests.  The zone's update
               policy will be set to allow that key to change any record
               within the zone.  Assuming the key name is "local-ddns",
-              this policy is:
+              this policy is equivalent to:
             </p>
 
             <pre class="programlisting">update-policy { grant local-ddns zonesub any; };
             </pre>
 
             <p>
-              ...with an additional restriction that only clients
+              ...with the additional restriction that only clients
               connecting from the local system will be permitted to send
               updates.
             </p>
             <p>
-              Note that only one session key is generated; all zones
-              configured to use <span class="command"><strong>update-policy local</strong></span>
-              will accept the same key.
+              Note that only one session key is generated by
+              <span class="command"><strong>named</strong></span>; all zones configured to use
+              <span class="command"><strong>update-policy local</strong></span> will accept the same key.
             </p>
             <p>
               The command <span class="command"><strong>nsupdate -l</strong></span> implements this
@@ -9647,50 +9656,60 @@ example.com. NS ns2.example.net.
             </p>
 
 <pre class="programlisting">
-( <span class="command"><strong>grant</strong></span> | <span class="command"><strong>deny</strong></span> ) <em class="replaceable"><code>identity</code></em> <em class="replaceable"><code>nametype</code></em> [<span class="optional"> <em class="replaceable"><code>name</code></em> </span>] [<span class="optional"> <em class="replaceable"><code>types</code></em> </span>]
+( <span class="command"><strong>grant</strong></span> | <span class="command"><strong>deny</strong></span> ) <em class="replaceable"><code>identity</code></em> <em class="replaceable"><code>ruletype</code></em> [<span class="optional"> <em class="replaceable"><code>name</code></em> </span>] [<span class="optional"> <em class="replaceable"><code>types</code></em> </span>]
 </pre>
 
             <p>
-              Each rule grants or denies privileges.  Once a message has
-              successfully matched a rule, the operation is immediately
-              granted or denied and no further rules are examined.  A rule
-              is matched when the signer matches the identity field, the
-              name matches the name field in accordance with the nametype
-              field, and the type matches the types specified in the type
-              field.
+              Each rule grants or denies privileges.  Rules are checked
+              in the order in which they are specified in the
+              <span class="command"><strong>update-policy</strong></span> statement. Once a message
+              has successfully matched a rule, the operation is immediately
+              granted or denied, and no further rules are examined.  There
+              are 13 types of rules; the rule type is specified by the
+              <span class="command"><strong>ruletype</strong></span> field, and the interpretation
+              of other fields varies depending on the rule type.
             </p>
             <p>
-              No signer is required for <em class="replaceable"><code>tcp-self</code></em>
-              or <em class="replaceable"><code>6to4-self</code></em> however the standard
-              reverse mapping / prefix conversion must match the identity
-              field.
+              In general, a rule is matched when the
+              key that signed an update request matches the
+              <span class="command"><strong>identity</strong></span> field, the name of the record
+              to be updated matches the <span class="command"><strong>name</strong></span> field
+              (in the manner specified by the <span class="command"><strong>ruletype</strong></span>
+              field), and the type of the record to be updated matches the
+              <span class="command"><strong>types</strong></span> field. Details for each rule type
+              are described below.
             </p>
             <p>
-              The identity field specifies a name or a wildcard
-              name.  Normally, this is the name of the TSIG or
-              SIG(0) key used to sign the update request.  When a
-              TKEY exchange has been used to create a shared secret,
-              the identity of the shared secret is the same as the
-              identity of the key used to authenticate the TKEY
-              exchange.  TKEY is also the negotiation method used
-              by GSS-TSIG, which establishes an identity that is
-              the Kerberos principal of the client, such as
-              <strong class="userinput"><code>"user@host.domain"</code></strong>.  When the
-              <em class="replaceable"><code>identity</code></em> field specifies
-              a wildcard name, it is subject to DNS wildcard
-              expansion, so the rule will apply to multiple identities.
-              The <em class="replaceable"><code>identity</code></em> field must
-              contain a fully-qualified domain name.
+              The <span class="command"><strong>identity</strong></span> field must be set to
+              a fully-qualified domain name.  In most cases, this
+              represensts the name of the TSIG or SIG(0) key that must be
+              used to sign the update request.  If the specified name is a
+              wildcard, it is subject to DNS wildcard expansion, and the
+              rule may apply to multiple identities.  When a TKEY exchange
+              has been used to create a shared secret, the identity of
+              the key used to authenticate the TKEY exchange will be
+              used as the identity of the shared secret.  Some rule types
+              use indentities matching the client's Kerberos principal
+              (e.g, <strong class="userinput"><code>"host/machine@REALM"</code></strong>) or
+              Windows realm (<strong class="userinput"><code>machine$@REALM</code></strong>).
             </p>
             <p>
-              For nametypes <code class="varname">krb5-self</code>,
-              <code class="varname">ms-self</code>, <code class="varname">krb5-subdomain</code>,
-              and <code class="varname">ms-subdomain</code> the
-              <em class="replaceable"><code>identity</code></em> field specifies
-              the Windows or Kerberos realm of the machine belongs to.
+              The <em class="replaceable"><code>name</code></em> field also specifies
+              a fully-qualified domain name. This often
+              represents the name of the record to be updated.
+              Interpretation of this field is dependent on rule type.
             </p>
             <p>
-              The <em class="replaceable"><code>nametype</code></em> field has 13
+              If no <span class="command"><strong>types</strong></span> are explicitly specified,
+              then a rule matches all types except RRSIG, NS, SOA, NSEC
+              and NSEC3. Types may be specified by name, including
+              "ANY" (ANY matches all types except NSEC and NSEC3,
+              which can never be updated).  Note that when an attempt
+              is made to delete all records associated with a name,
+              the rules are checked for each existing record type.
+            </p>
+            <p>
+              The <em class="replaceable"><code>ruletype</code></em> field has 13
               values:
               <code class="varname">name</code>, <code class="varname">subdomain</code>,
               <code class="varname">wildcard</code>, <code class="varname">self</code>,
@@ -9784,20 +9803,23 @@ example.com. NS ns2.example.net.
                     </td>
 <td>
                       <p>
-                        This rule matches when the name being updated
-                        matches the contents of the
+                        This rule matches when the name of the record
+                        being updated matches the contents of the
                         <em class="replaceable"><code>identity</code></em> field.
                         The <em class="replaceable"><code>name</code></em> field
-                        is ignored, but should be the same as the
-                        <em class="replaceable"><code>identity</code></em> field or
+                        is ignored. To avoid confusion, it is recommended
+                        that this field be set to the same value as the
+                        <em class="replaceable"><code>identity</code></em> field or to
                         "."
-                        The <code class="varname">self</code> nametype is
-                        most useful when allowing using one key per
+                      </p>
+                      <p>
+                        The <code class="varname">self</code> rule type is
+                        most useful when allowing one key per
                         name to update, where the key has the same
-                        name as the name to be updated.  The
-                        <em class="replaceable"><code>identity</code></em> would
-                        be specified as <code class="constant">*</code> (an asterisk) in
-                        this case.
+                        name as the record to be updated.  In this case,
+                        the <em class="replaceable"><code>identity</code></em> field
+                        can be specified as <code class="constant">*</code>
+                        (an asterisk).
                       </p>
                     </td>
 </tr>
@@ -9906,11 +9928,18 @@ example.com. NS ns2.example.net.
                     </td>
 <td>
                       <p>
-                        Allow updates that have been sent via TCP and
-                        for which the standard mapping from the initiating
-                        IP address into the IN-ADDR.ARPA and IP6.ARPA
-                        namespaces match the name to be updated.  The
-                        name field should be set to "."
+                        This rule allows updates that have been sent via
+                        TCP and for which the standard mapping from the
+                        client's IP address into the
+                        <code class="literal">in-addr.arpa</code> and
+                        <code class="literal">ip6.arpa</code>
+                        namespaces match the name to be updated.
+                        The <span class="command"><strong>identity</strong></span> field must match
+                        that name.  The <span class="command"><strong>name</strong></span> field
+                        should be set to ".".
+                        Note that, since identity is based on the client's
+                        IP address, it is not necessary for update request
+                        messages to be signed.
                       </p>
                       <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
@@ -9927,11 +9956,30 @@ example.com. NS ns2.example.net.
                     </td>
 <td>
                       <p>
-                        Allow the 6to4 prefix to be update by any TCP
-                        connection from the 6to4 network or from the
-                        corresponding IPv4 address.  This is intended
-                        to allow NS or DNAME RRsets to be added to the
-                        reverse tree.
+                        This allows the name matching a 6to4 IPv6 prefix,
+                        as specified in RFC 3056, to be updated by any
+                        TCP connection from either the 6to4 network or
+                        from the corresponding IPv4 address.  This is
+                        intended to allow NS or DNAME RRsets to be added
+                        to the <code class="literal">ip6.arpa</code> reverse tree.
+                      </p>
+                      <p>
+                        The <span class="command"><strong>identity</strong></span> field must match
+                        the 6to4 prefix in <code class="literal">ip6.arpa</code>.
+                        The <span class="command"><strong>name</strong></span> field should
+                        be set to ".".
+                        Note that, since identity is based on the client's
+                        IP address, it is not necessary for update request
+                        messages to be signed.
+                      </p>
+                      <p>
+                        In addition, if specified for an
+                        <code class="literal">ip6.arpa</code> name outside of the
+                        <code class="literal">2.0.0.2.ip6.arpa</code> namespace,
+                        the corresponding /48 reverse name can be updated.
+                        For example, TCP/IPv6 connections
+                        from 2001:DB8:ED0C::/48 can update records at
+                        <code class="literal">C.0.D.E.8.B.D.0.1.0.0.2.ip6.arpa</code>.
                       </p>
                       <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
@@ -9987,21 +10035,6 @@ example.com. NS ns2.example.net.
 </tbody>
 </table>
             </div>
-
-            <p>
-              In all cases, the <em class="replaceable"><code>name</code></em>
-              field must specify a fully-qualified domain name.
-            </p>
-
-            <p>
-              If no types are explicitly specified, this rule matches
-              all types except RRSIG, NS, SOA, NSEC and NSEC3. Types
-              may be specified by name, including "ANY" (ANY matches
-              all types except NSEC and NSEC3, which can never be
-              updated).  Note that when an attempt is made to delete
-              all records associated with a name, the rules are
-              checked for each existing record type.
-            </p>
           </div>
 
           <div class="section">
@@ -13805,6 +13838,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.7</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.8rc1</p>
 </body>
 </html>
