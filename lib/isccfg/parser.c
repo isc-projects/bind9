@@ -615,7 +615,7 @@ isc_result_t
 cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
 	const cfg_type_t *type, cfg_obj_t **ret)
 {
-	return (cfg_parse_buffer3(pctx, buffer, NULL, 0, type, ret));
+	return (cfg_parse_buffer4(pctx, buffer, NULL, 0, type, 0, ret));
 }
 
 isc_result_t
@@ -623,7 +623,7 @@ cfg_parse_buffer2(cfg_parser_t *pctx, isc_buffer_t *buffer,
 		  const char *file, const cfg_type_t *type,
 		  cfg_obj_t **ret)
 {
-	return (cfg_parse_buffer3(pctx, buffer, file, 0, type, ret));
+	return (cfg_parse_buffer4(pctx, buffer, file, 0, type, 0, ret));
 }
 
 isc_result_t
@@ -631,16 +631,27 @@ cfg_parse_buffer3(cfg_parser_t *pctx, isc_buffer_t *buffer,
 		  const char *file, unsigned int line,
 		  const cfg_type_t *type, cfg_obj_t **ret)
 {
+	return (cfg_parse_buffer4(pctx, buffer, file, line, type, 0, ret));
+}
+
+isc_result_t
+cfg_parse_buffer4(cfg_parser_t *pctx, isc_buffer_t *buffer,
+                  const char *file, unsigned int line,
+                  const cfg_type_t *type, unsigned int flags,
+		  cfg_obj_t **ret)
+{
 	isc_result_t result;
 
 	REQUIRE(pctx != NULL);
 	REQUIRE(type != NULL);
 	REQUIRE(buffer != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
+	REQUIRE((flags & ~(CFG_PCTX_NODEPRECATED)) == 0);
 
 	CHECK(isc_lex_openbuffer(pctx->lexer, buffer));
 
 	pctx->buf_name = file;
+	pctx->flags = flags;
 
 	if (line != 0U)
 		CHECK(isc_lex_setsourceline(pctx->lexer, line));
@@ -1711,7 +1722,8 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 		/* Clause is known. */
 
 		/* Issue warnings if appropriate */
-		if ((clause->flags & CFG_CLAUSEFLAG_DEPRECATED) != 0) {
+		if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0 &&
+		    (clause->flags & CFG_CLAUSEFLAG_DEPRECATED) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' is deprecated",
 				           clause->name);
 		}
