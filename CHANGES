@@ -1,3 +1,6 @@
+4965.	[func]		Add support for marking options as deprecated.
+			[GL #322]
+
 4964.	[bug]		Reduce the probabilty of double signature when deleting
 			a DNSKEY by checking if the node is otherwise signed
 			by the algorithm of the key to be deleted. [GL #240]
