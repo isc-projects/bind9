@@ -470,7 +470,6 @@ parse_fuzz_arg(void) {
 static void
 parse_T_opt(char *option) {
 	const char *p;
-	char *last = NULL;
 	/*
 	 * force the server to behave (or misbehave) in
 	 * specified ways for testing purposes.
@@ -513,7 +512,7 @@ parse_T_opt(char *option) {
 	} else if (!strncmp(option, "maxudp=", 7)) {
 		maxudp = atoi(option + 7);
 	} else if (!strncmp(option, "mkeytimers=", 11)) {
-		p = strtok(option + 11, "/", &last);
+		p = strtok(option + 11, "/");
 		if (p == NULL) {
 			named_main_earlyfatal("bad mkeytimer");
 		}
@@ -523,7 +522,7 @@ parse_T_opt(char *option) {
 			named_main_earlyfatal("bad mkeytimer");
 		}
 
-		p = strtok(NULL, "/", &last);
+		p = strtok(NULL, "/");
 		if (p == NULL) {
 			dns_zone_mkey_day = (24 * dns_zone_mkey_hour);
 			dns_zone_mkey_month = (30 * dns_zone_mkey_day);
@@ -534,7 +533,7 @@ parse_T_opt(char *option) {
 		if (dns_zone_mkey_day < dns_zone_mkey_hour)
 			named_main_earlyfatal("bad mkeytimer");
 
-		p = strtok(NULL, "/", &last);
+		p = strtok(NULL, "/");
 		if (p == NULL) {
 			dns_zone_mkey_month = (30 * dns_zone_mkey_day);
 			return;
