@@ -1999,6 +1999,15 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup);
  */
 
 void
+dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
+	      const char *prefix, const char *msg, va_list ap);
+/*%<
+ * Log the message 'msg...' at 'level' using log category 'category', including
+ * text that identifies the message as applying to 'zone'.  If the (optional)
+ * 'prefix' is not NULL, it will be placed at the start of the entire log line.
+ */
+
+void
 dns_zone_log(dns_zone_t *zone, int level, const char *msg, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 /*%<
