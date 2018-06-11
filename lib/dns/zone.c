@@ -13727,71 +13727,18 @@ dns_zone_nameonly(dns_zone_t *zone, char *buf, size_t length) {
 	zone_name_tostr(zone, buf, length);
 }
 
-static void
-notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
-	va_list ap;
-	char message[4096];
-
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
-		return;
-
-	va_start(ap, fmt);
-	vsnprintf(message, sizeof(message), fmt, ap);
-	va_end(ap);
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_NOTIFY, DNS_LOGMODULE_ZONE,
-		      level, "zone %s: %s", zone->strnamerd, message);
-}
-
 void
-dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category,
-	      int level, const char *fmt, ...) {
-	va_list ap;
-	char message[4096];
-
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
-		return;
-
-	va_start(ap, fmt);
-	vsnprintf(message, sizeof(message), fmt, ap);
-	va_end(ap);
-	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE,
-		      level, "%s%s: %s", (zone->type == dns_zone_key) ?
-		      "managed-keys-zone" : (zone->type == dns_zone_redirect) ?
-		      "redirect-zone" : "zone ", zone->strnamerd, message);
-}
-
-void
-dns_zone_log(dns_zone_t *zone, int level, const char *fmt, ...) {
-	va_list ap;
-	char message[4096];
-
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
-		return;
-
-	va_start(ap, fmt);
-	vsnprintf(message, sizeof(message), fmt, ap);
-	va_end(ap);
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "%s%s: %s", (zone->type == dns_zone_key) ?
-		      "managed-keys-zone" : (zone->type == dns_zone_redirect) ?
-		      "redirect-zone" : "zone ", zone->strnamerd, message);
-}
-
-static void
-zone_debuglog(dns_zone_t *zone, const char *me, int debuglevel,
-	      const char *fmt, ...)
+dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
+	      const char *prefix, const char *fmt, va_list ap)
 {
-	va_list ap;
 	char message[4096];
-	int level = ISC_LOG_DEBUG(debuglevel);
 	const char *zstr;
 
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+	if (!isc_log_wouldlog(dns_lctx, level)) {
 		return;
+	}
 
-	va_start(ap, fmt);
 	vsnprintf(message, sizeof(message), fmt, ap);
-	va_end(ap);
 
 	switch (zone->type) {
 	case dns_zone_key:
@@ -13801,12 +13748,54 @@ zone_debuglog(dns_zone_t *zone, const char *me, int debuglevel,
 		zstr = "redirect-zone";
 		break;
 	default:
-		zstr = "zone";
+		zstr = "zone ";
 	}
 
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		      level, "%s: %s %s: %s", me, zstr, zone->strnamerd,
-		      message);
+	isc_log_write(dns_lctx, category, DNS_LOGMODULE_ZONE, level,
+		      "%s%s%s%s: %s",
+		      (prefix != NULL ? prefix : ""),
+		      (prefix != NULL ? ": " : ""),
+		      zstr, zone->strnamerd, message);
+}
+
+static void
+notify_log(dns_zone_t *zone, int level, const char *fmt, ...) {
+	va_list ap;
+
+	va_start(ap, fmt);
+	dns_zone_logv(zone, DNS_LOGCATEGORY_NOTIFY, level, NULL, fmt, ap);
+	va_end(ap);
+}
+
+void
+dns_zone_logc(dns_zone_t *zone, isc_logcategory_t *category,
+	      int level, const char *fmt, ...) {
+	va_list ap;
+
+	va_start(ap, fmt);
+	dns_zone_logv(zone, category, level, NULL, fmt, ap);
+	va_end(ap);
+}
+
+void
+dns_zone_log(dns_zone_t *zone, int level, const char *fmt, ...) {
+	va_list ap;
+
+	va_start(ap, fmt);
+	dns_zone_logv(zone, DNS_LOGCATEGORY_GENERAL, level, NULL, fmt, ap);
+	va_end(ap);
+}
+
+static void
+zone_debuglog(dns_zone_t *zone, const char *me, int debuglevel,
+	      const char *fmt, ...)
+{
+	int level = ISC_LOG_DEBUG(debuglevel);
+	va_list ap;
+
+	va_start(ap, fmt);
+	dns_zone_logv(zone, DNS_LOGCATEGORY_GENERAL, level, me, fmt, ap);
+	va_end(ap);
 }
 
 static int
