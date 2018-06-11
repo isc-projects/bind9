@@ -1,3 +1,5 @@
+4969.	[cleanup]	Refactor zone logging functions. [GL #269]
+
 4968.	[bug]		If glue records are signed, attempt to validate them.
 			[GL #209]
 
