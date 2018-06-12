@@ -201,13 +201,8 @@ my @substdefh = ("AES_CC",
                  "HAVE_GEOIP_CITY_V6",
                  "HAVE_GEOIP_V6",
                  "HAVE_LIBXML2",
-		 "HAVE_OPENSSL",
-                 "HAVE_OPENSSL_AES",
-                 "HAVE_OPENSSL_DSA",
-                 "HAVE_OPENSSL_ECDSA",
                  "HAVE_OPENSSL_ED25519",
                  "HAVE_OPENSSL_ED448",
-                 "HAVE_OPENSSL_EVP_AES",
 		 "HAVE_DH_GET0_KEY",
 		 "HAVE_DSA_GET0_PQG",
 		 "HAVE_ECDSA_SIG_GET0",
@@ -237,8 +232,7 @@ my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
                  "ISC_PLATFORM_HAVEXADD",
                  "ISC_PLATFORM_HAVEXADDQ",
                  "ISC_PLATFORM_NEEDSTRCASESTR",
-                 "ISC_PLATFORM_USEBACKTRACE",
-                 "ISC_PLATFORM_WANTAES");
+                 "ISC_PLATFORM_USEBACKTRACE");
 
 # for conf.sh
 
@@ -1502,12 +1496,6 @@ if ($use_openssl eq "yes") {
     $configinc{"OPENSSL_INC"} = "$openssl_inc";
     $configlib{"OPENSSL_LIB"} = "$openssl_lib";
     $configdll{"OPENSSL_DLL"} = "$openssl_dll";
-    $configdefh{"HAVE_OPENSSL"} = 1;
-    if (-f File::Spec->catfile($openssl_inc, "openssl", "dsa.h")) {
-        $configdefh{"HAVE_OPENSSL_DSA"} = 1;
-    } elsif ($verbose) {
-        print "OpenSSL DSA support is disabled\n";
-    }
 }
 
 # check OpenSSL
@@ -1685,11 +1673,6 @@ EOF
         }
     $use_ecdsa = "no";
     }
-}
-
-if ($use_ecdsa ne "no") {
-    $use_ecdsa = "yes";
-    $configdefh{"HAVE_OPENSSL_ECDSA"} = 1;
 }
 
 # with-eddsa
@@ -1880,30 +1863,9 @@ EOF
     }
 }
 
-if ($use_aes eq "yes") {
-    $configdefh{"HAVE_OPENSSL_EVP_AES"} = 1;
-} elsif ($use_aes eq "evp") {
-    $configdefh{"HAVE_OPENSSL_EVP_AES"} = 1;
-    $use_aes = "yes";
-} elsif ($use_aes eq "native") {
-    $configdefh{"HAVE_OPENSSL_AES"} = 1;
-    $use_aes = "yes";
-} elsif ($use_aes eq "pkcs11") {
-    $use_aes = "yes";
-}
-
-if ($use_aes eq "yes") {
-    $configdefp{"ISC_PLATFORM_WANTAES"} = 1;
-    $configcond{"AES"} = 1;
-}
-
 # with-cc-alg
 if ($cookie_algorithm eq "aes") {
-    if ($use_aes ne "yes") {
-        $cookie_algorithm = "sha256";
-    } else {
-        $configdefh{"AES_CC"} = 1;
-    }
+    $configdefh{"AES_CC"} = 1;
 }
 if ($cookie_algorithm eq "sha1") {
     $configdefh{"HMAC_SHA1_CC"} = 1;

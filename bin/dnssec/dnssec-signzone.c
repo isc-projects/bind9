@@ -3183,11 +3183,7 @@ main(int argc, char *argv[]) {
 	dns_dnsseckey_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
-#ifdef USE_PKCS11
-	const char *engine = PKCS11_ENGINE;
-#else
 	const char *engine = NULL;
-#endif
 	isc_boolean_t free_output = ISC_FALSE;
 	int tempfilelen = 0;
 	dns_rdataclass_t rdclass;

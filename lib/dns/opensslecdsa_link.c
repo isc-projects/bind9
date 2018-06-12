@@ -9,9 +9,11 @@
  * information regarding copyright ownership.
  */
 
+/*! \file */
+
 #include <config.h>
 
-#if HAVE_OPENSSL && HAVE_OPENSSL_ECDSA
+#if !USE_PKCS11
 
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -40,7 +42,7 @@
 
 #define DST_RET(a) {ret = a; goto err;}
 
-#if !defined(HAVE_ECDSA_SIG_GET0)
+#if !HAVE_ECDSA_SIG_GET0
 /* From OpenSSL 1.1 */
 static void
 ECDSA_SIG_get0(const ECDSA_SIG *sig, const BIGNUM **pr, const BIGNUM **ps) {
@@ -65,7 +67,7 @@ ECDSA_SIG_set0(ECDSA_SIG *sig, BIGNUM *r, BIGNUM *s) {
 
 	return 1;
 }
-#endif
+#endif /* !HAVE_ECDSA_SIG_GET0 */
 
 static isc_result_t opensslecdsa_todns(const dst_key_t *key,
 				       isc_buffer_t *data);
@@ -639,11 +641,4 @@ dst__opensslecdsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* HAVE_OPENSSL && HAVE_OPENSSL_ECDSA */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* HAVE_OPENSSL && HAVE_OPENSSL_ECDSA */
-/*! \file */
+#endif /* !USE_PKCS11 */

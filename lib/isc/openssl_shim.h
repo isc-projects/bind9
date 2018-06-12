@@ -31,6 +31,6 @@ HMAC_CTX *HMAC_CTX_new(void);
 void HMAC_CTX_free(HMAC_CTX *ctx);
 int HMAC_CTX_reset(HMAC_CTX *ctx);
 
-#endif /* ISC_OPENSSL_P_H */
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER) */
 
 #endif /* ISC_OPENSSL_P_H */

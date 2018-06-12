@@ -16,7 +16,6 @@
 
 #include "entropy_private.h"
 
-#if HAVE_OPENSSL
 #include <openssl/rand.h>
 #include <openssl/err.h>
 
@@ -29,13 +28,3 @@ isc_entropy_get(void *buf, size_t buflen) {
 			    ERR_error_string(ERR_get_error(), NULL));
 	}
 }
-
-#elif HAVE_PKCS11
-#include <pk11/pk11.h>
-
-void
-isc_entropy_get(void *buf, size_t buflen) {
-	RUNTIME_CHECK(pk11_rand_bytes(buf, buflen) == ISC_R_SUCCESS);
-}
-
-#endif /* if HAVE_PKCS11 */

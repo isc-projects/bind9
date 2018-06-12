@@ -951,11 +951,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	dns_name_t *name;
 	isc_buffer_t b;
 	isc_uint32_t lifetime = 3600;
-#if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 	const char *ccalg = "aes";
-#else
-	const char *ccalg = "sha256";
-#endif
 
 	static intervaltable intervals[] = {
 	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
@@ -1401,16 +1397,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 
 	obj = NULL;
 	(void) cfg_map_get(options, "cookie-algorithm", &obj);
-	if (obj != NULL)
+	if (obj != NULL) {
 		ccalg = cfg_obj_asstring(obj);
-#if !defined(HAVE_OPENSSL_AES) && !defined(HAVE_OPENSSL_EVP_AES)
-	if (strcasecmp(ccalg, "aes") == 0) {
-		cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-			    "cookie-algorithm: '%s' not supported", ccalg);
-		if (result == ISC_R_SUCCESS)
-			result = ISC_R_NOTIMPLEMENTED;
 	}
-#endif
 
 	obj = NULL;
 	(void) cfg_map_get(options, "cookie-secret", &obj);

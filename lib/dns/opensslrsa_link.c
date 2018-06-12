@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#if HAVE_OPENSSL
+#if !USE_PKCS11
 
 #include <isc/md5.h>
 #include <isc/mem.h>
@@ -54,7 +54,7 @@
 
 #define DST_RET(a) {ret = a; goto err;}
 
-#if !defined(HAVE_RSA_SET0_KEY)
+#if !HAVE_RSA_SET0_KEY
 /* From OpenSSL 1.1.0 */
 static int
 RSA_set0_key(RSA *r, BIGNUM *n, BIGNUM *e, BIGNUM *d) {
@@ -181,7 +181,7 @@ RSA_test_flags(const RSA *r, int flags) {
 	return (r->flags & flags);
 }
 
-#endif
+#endif /* !HAVE_RSA_SET0_KEY */
 
 static isc_result_t opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
@@ -1189,11 +1189,6 @@ dst__opensslrsa_init(dst_func_t **funcp, unsigned char algorithm) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* HAVE_OPENSSL */
+#endif /* !USE_PKCS11 */
 
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* HAVE_OPENSSL */
 /*! \file */

@@ -124,11 +124,7 @@ main(int argc, char **argv) {
 	const char	*directory = NULL;
 	const char	*predecessor = NULL;
 	dst_key_t	*prevkey = NULL;
-#ifdef USE_PKCS11
-	const char	*engine = PKCS11_ENGINE;
-#else
 	const char	*engine = NULL;
-#endif
 	char		*classname = NULL;
 	char		*endp;
 	dst_key_t	*key = NULL;

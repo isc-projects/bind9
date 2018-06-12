@@ -51,11 +51,7 @@ options {\n\
 	automatic-interface-scan yes;\n\
 	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"
-#if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 "	cookie-algorithm aes;\n"
-#else
-"	cookie-algorithm sha256;\n"
-#endif
 #ifndef WIN32
 "	coresize default;\n\
 	datasize default;\n"

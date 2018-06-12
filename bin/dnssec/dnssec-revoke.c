@@ -75,11 +75,7 @@ usage(void) {
 int
 main(int argc, char **argv) {
 	isc_result_t result;
-#ifdef USE_PKCS11
-	const char *engine = PKCS11_ENGINE;
-#else
 	const char *engine = NULL;
-#endif
 	char const *filename = NULL;
 	char *dir = NULL;
 	char newname[1024], oldname[1024];

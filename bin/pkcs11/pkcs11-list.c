@@ -55,10 +55,6 @@
 #include <pk11/pk11.h>
 #include <pk11/result.h>
 
-#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
-#define getpassphrase(x)		getpass(x)
-#endif
-
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
@@ -143,8 +139,9 @@ main(int argc, char *argv[]) {
 	if (lib_name != NULL)
 		pk11_set_lib_name(lib_name);
 
-	if (logon && pin == NULL)
-		pin = getpassphrase("Enter Pin: ");
+	if (logon && pin == NULL) {
+		pin = getpass("Enter Pin: ");
+	}
 
 	result = pk11_get_session(&pctx, OP_ANY, ISC_FALSE, ISC_FALSE,
 				  logon, pin, slot);

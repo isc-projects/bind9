@@ -24,18 +24,12 @@ static isc_once_t		msgcat_once = ISC_ONCE_INIT;
 
 static const char *text[PK11_R_NRESULTS] = {
 	"PKCS#11 initialization failed",		/*%< 0 */
-	"no PKCS#11 provider",				/*%< 1 */
-	"PKCS#11 provider has no random service",	/*%< 2 */
-	"PKCS#11 provider has no digest service",	/*%< 3 */
-	"PKCS#11 provider has no AES service",		/*%< 4 */
+	"no PKCS#11 provider"
 };
 
 static const char *ids[PK11_R_NRESULTS] = {
 	"PK11_R_INITFAILED",
-	"PK11_R_NOPROVIDER",
-	"PK11_R_NORANDOMSERVICE",
-	"PK11_R_NODIGESTSERVICE",
-	"PK11_R_NOAESSERVICE",
+	"PK11_R_NOPROVIDER"
 };
 
 #define PK11_RESULT_RESULTSET			2
@@ -64,16 +58,18 @@ initialize_action(void) {
 
 	result = isc_result_register(ISC_RESULTCLASS_PK11, PK11_R_NRESULTS,
 				     text, pk11_msgcat, PK11_RESULT_RESULTSET);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
+	}
 
 	result = isc_result_registerids(ISC_RESULTCLASS_PK11, PK11_R_NRESULTS,
 					ids, pk11_msgcat,
 					PK11_RESULT_RESULTSET);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_registerids() failed: %u", result);
+	}
 }
 
 static void
