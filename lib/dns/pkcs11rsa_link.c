@@ -9,9 +9,11 @@
  * information regarding copyright ownership.
  */
 
+/*! \file */
+
 #include <config.h>
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 
 #include <isc/md5.h>
 #include <isc/sha1.h>
@@ -79,18 +81,11 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 	isc_result_t ret;
 	unsigned int i;
 
-#ifndef PK11_MD5_DISABLE
 	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
 		key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
-#else
-	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
-		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		key->key_alg == DST_ALG_RSASHA256 ||
-		key->key_alg == DST_ALG_RSASHA512);
-#endif
 
 	/*
 	 * Reject incorrect RSA key lengths.
@@ -237,11 +232,9 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
     token_key:
 
 	switch (dctx->key->key_alg) {
-#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
 		mech.mechanism = CKM_MD5_RSA_PKCS;
 		break;
-#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		mech.mechanism = CKM_SHA1_RSA_PKCS;
@@ -315,18 +308,11 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 	isc_result_t ret;
 	unsigned int i;
 
-#ifndef PK11_MD5_DISABLE
 	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
 		key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
-#else
-	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
-		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		key->key_alg == DST_ALG_RSASHA256 ||
-		key->key_alg == DST_ALG_RSASHA512);
-#endif
 
 	/*
 	 * Reject incorrect RSA key lengths.
@@ -405,11 +391,9 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 		 ISC_R_FAILURE);
 
 	switch (dctx->key->key_alg) {
-#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
 		mech.mechanism = CKM_MD5_RSA_PKCS;
 		break;
-#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		mech.mechanism = CKM_SHA1_RSA_PKCS;
@@ -589,18 +573,11 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 
-#ifndef PK11_MD5_DISABLE
 	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
 		key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
-#else
-	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
-		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		key->key_alg == DST_ALG_RSASHA256 ||
-		key->key_alg == DST_ALG_RSASHA512);
-#endif
 	REQUIRE(rsa != NULL);
 
 	/*
@@ -631,11 +608,9 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	}
 
 	switch (key->key_alg) {
-#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
 		mech.mechanism = CKM_MD5;
 		break;
-#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		mech.mechanism = CKM_SHA_1;
@@ -745,18 +720,11 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_result_t ret = ISC_R_SUCCESS;
 	unsigned int i;
 
-#ifndef PK11_MD5_DISABLE
 	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
 		key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
-#else
-	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
-		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		key->key_alg == DST_ALG_RSASHA256 ||
-		key->key_alg == DST_ALG_RSASHA512);
-#endif
 	REQUIRE(rsa != NULL);
 
 	/*
@@ -787,13 +755,11 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	}
 
 	switch (key->key_alg) {
-#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
 		der = md5_der;
 		derlen = sizeof(md5_der);
 		hashlen = ISC_MD5_DIGESTLENGTH;
 		break;
-#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		der = sha1_der;
@@ -996,28 +962,19 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	isc_result_t ret = ISC_R_SUCCESS;
 	unsigned int i;
 
-#ifndef PK11_MD5_DISABLE
 	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
 		key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
-#else
-	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
-		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
-		key->key_alg == DST_ALG_RSASHA256 ||
-		key->key_alg == DST_ALG_RSASHA512);
-#endif
 	REQUIRE(rsa != NULL);
 
 	switch (key->key_alg) {
-#ifndef PK11_MD5_DISABLE
 	case DST_ALG_RSAMD5:
 		der = md5_der;
 		derlen = sizeof(md5_der);
 		hashlen = ISC_MD5_DIGESTLENGTH;
 		break;
-#endif
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		der = sha1_der;
@@ -2224,11 +2181,4 @@ dst__pkcs11rsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* HAVE_PKCS11 */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* HAVE_PKCS11 */
-/*! \file */
+#endif /* USE_PKCS11 */
