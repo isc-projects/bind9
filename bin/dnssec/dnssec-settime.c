@@ -127,11 +127,7 @@ printtime(dst_key_t *key, int type, const char *tag, isc_boolean_t epoch,
 int
 main(int argc, char **argv) {
 	isc_result_t	result;
-#ifdef USE_PKCS11
-	const char	*engine = PKCS11_ENGINE;
-#else
 	const char	*engine = NULL;
-#endif
 	const char 	*filename = NULL;
 	char		*directory = NULL;
 	char		newname[1024];

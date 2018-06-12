@@ -227,8 +227,14 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `DSA_get0_pqg' function. */
 #undef HAVE_DSA_GET0_PQG
 
+/* Define to 1 if you have the `ECDSA_sign' function. */
+#undef HAVE_ECDSA_SIGN
+
 /* Define to 1 if you have the `ECDSA_SIG_get0' function. */
 #undef HAVE_ECDSA_SIG_GET0
+
+/* Define to 1 if you have the `ECDSA_verify' function. */
+#undef HAVE_ECDSA_VERIFY
 
 /* Define to 1 if you have the <editline/readline.h> header file. */
 #undef HAVE_EDITLINE_READLINE_H
@@ -238,6 +244,15 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <edit/readline/readline.h> header file. */
 #undef HAVE_EDIT_READLINE_READLINE_H
+
+/* Define to 1 if you have the `EVP_aes_128_ecb' function. */
+#undef HAVE_EVP_AES_128_ECB
+
+/* Define to 1 if you have the `EVP_aes_192_ecb' function. */
+#undef HAVE_EVP_AES_192_ECB
+
+/* Define to 1 if you have the `EVP_aes_256_ecb' function. */
+#undef HAVE_EVP_AES_256_ECB
 
 /* Define to 1 if you have the `EVP_sha1' function. */
 #undef HAVE_EVP_SHA1
@@ -260,9 +275,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
-/* Define if OpenSSL provides FIPS_mode() */
-#undef HAVE_FIPS_MODE
-
 /* Build with GeoIP support */
 #undef HAVE_GEOIP
 
@@ -271,6 +283,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Build with GeoIP Country IPv6 support */
 #undef HAVE_GEOIP_V6
+
+/* Define to 1 if you have the `getpassphrase' function. */
+#undef HAVE_GETPASSPHRASE
 
 /* Define to 1 if you have the `getrandom' function. */
 #undef HAVE_GETRANDOM
@@ -380,32 +395,8 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if OpenSSL is used as cryptographic library provider. */
 #undef HAVE_OPENSSL
 
-/* Define if your OpenSSL version supports AES */
-#undef HAVE_OPENSSL_AES
-
-/* Define if your OpenSSL version supports ECDSA. */
-#undef HAVE_OPENSSL_ECDSA
-
-/* Define if your OpenSSL version supports Ed25519. */
+/* define if OpenSSL supports Ed25519 */
 #undef HAVE_OPENSSL_ED25519
-
-/* Define if your OpenSSL version supports Ed448. */
-#undef HAVE_OPENSSL_ED448
-
-/* Define if your OpenSSL version supports EVP AES */
-#undef HAVE_OPENSSL_EVP_AES
-
-/* Define if native PKCS#11 is used as cryptographic library provider */
-#undef HAVE_PKCS11
-
-/* Define if your PKCS11 provider supports ECDSA. */
-#undef HAVE_PKCS11_ECDSA
-
-/* Define if your PKCS11 provider supports Ed25519. */
-#undef HAVE_PKCS11_ED25519
-
-/* Define if your PKCS11 provider supports Ed448. */
-#undef HAVE_PKCS11_ED448
 
 /* Support for PTHREAD_MUTEX_ADAPTIVE_NP */
 #undef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
@@ -616,6 +607,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make
    non-blocking. */
 #undef USE_FIONBIO_IOCTL
+
+/* define if PKCS11 is used for Public-Key Cryptography */
+#undef USE_PKCS11
 
 /* the default value of dnssec-validation option */
 #undef VALIDATION_DEFAULT

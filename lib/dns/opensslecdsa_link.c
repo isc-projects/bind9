@@ -11,8 +11,6 @@
 
 #include <config.h>
 
-#if HAVE_OPENSSL && HAVE_OPENSSL_ECDSA
-
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/sha2.h>
@@ -639,11 +637,4 @@ dst__opensslecdsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* HAVE_OPENSSL && HAVE_OPENSSL_ECDSA */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* HAVE_OPENSSL && HAVE_OPENSSL_ECDSA */
 /*! \file */

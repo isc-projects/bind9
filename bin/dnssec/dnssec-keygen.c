@@ -216,11 +216,7 @@ main(int argc, char **argv) {
 	dst_key_t	*prevkey = NULL;
 	isc_buffer_t	buf;
 	isc_log_t	*log = NULL;
-#ifdef USE_PKCS11
-	const char	*engine = PKCS11_ENGINE;
-#else
 	const char	*engine = NULL;
-#endif
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	int		dbits = 0;

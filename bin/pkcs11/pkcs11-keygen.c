@@ -75,10 +75,6 @@
 #include <pk11/constants.h>
 #include <pkcs11/eddsa.h>
 
-#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
-#define getpassphrase(x)	getpass(x)
-#endif
-
 /* Define static key template values */
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
@@ -403,7 +399,7 @@ main(int argc, char *argv[]) {
 		public_template[RSA_PUBLIC_EXPONENT].ulValueLen = expsize;
 		break;
 	case key_ecc:
-		op_type = OP_EC;
+		op_type = OP_ECDSA;
 		if (bits == 0)
 			bits = 256;
 		else if (bits != 256 && bits != 384) {
@@ -435,8 +431,8 @@ main(int argc, char *argv[]) {
 #ifndef CKM_EDDSA_KEY_PAIR_GEN
 		fprintf(stderr, "CKM_EDDSA_KEY_PAIR_GEN is not defined\n");
 		usage();
-#endif
-		op_type = OP_EC;
+#else
+		op_type = OP_EDDSA;
 		if (bits == 0)
 			bits = 256;
 		else if (bits != 256 && bits != 456) {
@@ -463,6 +459,7 @@ main(int argc, char *argv[]) {
 				sizeof(pk11_ecc_ed448);
 		}
 
+#endif
 		break;
 	case key_dsa:
 		op_type = OP_DSA;
@@ -562,8 +559,9 @@ main(int argc, char *argv[]) {
 	if (lib_name != NULL)
 		pk11_set_lib_name(lib_name);
 
-	if (pin == NULL)
-		pin = getpassphrase("Enter Pin: ");
+	if (pin == NULL) {
+		pin = getpass("Enter Pin: ");
+	}
 
 	result = pk11_get_session(&pctx, op_type, ISC_FALSE, ISC_TRUE,
 				  ISC_TRUE, (const char *) pin, slot);

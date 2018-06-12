@@ -14,15 +14,15 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		@DST_OPENSSL_INC@
+		@OPENSSL_INCLUDES@
 
 CDEFINES =
 CWARNINGS =
 BACKTRACECFLAGS = @BACKTRACECFLAGS@
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
-ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @ISC_OPENSSL_LIBS@
+ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
@@ -32,7 +32,7 @@ ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
 LIBS =		@LIBS@
 
-SUBDIRS =	system @PKCS11_TOOLS@
+SUBDIRS =	system pkcs11
 TESTDIRS =	system
 
 # Test programs that are built by default:

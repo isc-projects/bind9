@@ -170,11 +170,7 @@ main(int argc, char *argv[]) {
 	char *inputformatstr = NULL;
 	isc_result_t result;
 	isc_log_t *log = NULL;
-#ifdef USE_PKCS11
-	const char *engine = PKCS11_ENGINE;
-#else
 	const char *engine = NULL;
-#endif
 	char *classname = NULL;
 	dns_rdataclass_t rdclass;
 	char *endp;

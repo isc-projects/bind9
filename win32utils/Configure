@@ -237,8 +237,7 @@ my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
                  "ISC_PLATFORM_HAVEXADD",
                  "ISC_PLATFORM_HAVEXADDQ",
                  "ISC_PLATFORM_NEEDSTRCASESTR",
-                 "ISC_PLATFORM_USEBACKTRACE",
-                 "ISC_PLATFORM_WANTAES");
+                 "ISC_PLATFORM_USEBACKTRACE");
 
 # for conf.sh
 
@@ -1893,7 +1892,6 @@ if ($use_aes eq "yes") {
 }
 
 if ($use_aes eq "yes") {
-    $configdefp{"ISC_PLATFORM_WANTAES"} = 1;
     $configcond{"AES"} = 1;
 }
 
