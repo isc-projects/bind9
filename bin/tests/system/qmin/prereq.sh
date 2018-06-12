@@ -9,17 +9,21 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# Run system tests that must be run sequentially
-#
-# Note: Use "make check" (or runall.sh) to run all the system tests.  This
-# script will just run those tests that require that each of their nameservers
-# is the only one running on an IP address.
-#
-
-SYSTEMTESTTOP=.
+SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-for d in $SEQUENTIALDIRS
-do
-    $SHELL run.sh "${@}" $d 2>&1 | tee $d/test.output
-done
+$SHELL ../testcrypto.sh || exit 255
+
+if test -n "$PYTHON"
+then
+    if $PYTHON -c "import dns" 2> /dev/null
+    then
+        :
+    else
+        echo_i "This test requires the dnspython module." >&2
+        exit 1
+    fi
+else
+    echo_i "This test requires Python and the dnspython module." >&2
+    exit 1
+fi

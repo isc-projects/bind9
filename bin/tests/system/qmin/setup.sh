@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -9,17 +9,12 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# Run system tests that must be run sequentially
-#
-# Note: Use "make check" (or runall.sh) to run all the system tests.  This
-# script will just run those tests that require that each of their nameservers
-# is the only one running on an IP address.
-#
-
-SYSTEMTESTTOP=.
+SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-for d in $SEQUENTIALDIRS
-do
-    $SHELL run.sh "${@}" $d 2>&1 | tee $d/test.output
-done
+$SHELL clean.sh
+
+copy_setports ns1/named.conf.in ns1/named.conf
+copy_setports ns5/named.conf.in ns5/named.conf
+copy_setports ns6/named.conf.in ns6/named.conf
+copy_setports ns7/named.conf.in ns7/named.conf

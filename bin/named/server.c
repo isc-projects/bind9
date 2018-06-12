@@ -3690,6 +3690,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
 	unsigned int resolver_param;
+	const char *qminmode = NULL;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -4638,6 +4639,22 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = named_config_get(maps, "recursion", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->recursion = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	result = named_config_get(maps, "qname-minimization", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	qminmode = cfg_obj_asstring(obj);
+	INSIST(qminmode != NULL);
+	if (!strcmp(qminmode, "strict")) {
+		view->qminimization = ISC_TRUE;
+		view->qmin_strict = ISC_TRUE;
+	} else if (!strcmp(qminmode, "relaxed")) {
+		view->qminimization = ISC_TRUE;
+		view->qmin_strict = ISC_FALSE;
+	} else { /* "disabled" or "off" */
+		view->qminimization = ISC_FALSE;
+		view->qmin_strict = ISC_FALSE;
+	}
 
 	obj = NULL;
 	result = named_config_get(maps, "auth-nxdomain", &obj);

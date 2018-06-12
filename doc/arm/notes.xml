@@ -99,6 +99,15 @@
 	  signatures covering DNSKEY RRsets. [GL #145]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Support for QNAME minimization was added and enabled by default
+	  in <command>relaxed</command> mode, in which BIND will fall back
+	  to normal resolution if the remote server returns something
+	  unexpected during the query minimization process. This default
+	  setting might change to <command>strict</command> in the future.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

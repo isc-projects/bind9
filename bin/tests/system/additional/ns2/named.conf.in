@@ -10,28 +10,19 @@
  */
 
 options {
-	directory ".";
-	query-source address 10.53.0.3;
-	notify-source 10.53.0.3;
-	transfer-source 10.53.0.3;
+	query-source address 10.53.0.2;
+	notify-source 10.53.0.2;
+	transfer-source 10.53.0.2;
+	recursion no;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.3; };
+	listen-on { 10.53.0.2; };
 	listen-on-v6 { none; };
-	servfail-ttl 0;
-	qname-minimization disabled;
-	max-recursion-depth 5;
-	recursion yes;
-	dnssec-validation yes;
+	notify no;
+	minimal-responses yes;
 };
 
-key rndc_key {
-	secret "1234abcd8765";
-	algorithm hmac-sha256;
+zone "." {
+	type master;
+	file "root.db";
 };
-
-controls {
-	inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
-};
-
-zone "." { type hint; file "hints.db"; };

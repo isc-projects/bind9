@@ -9,17 +9,10 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# Run system tests that must be run sequentially
-#
-# Note: Use "make check" (or runall.sh) to run all the system tests.  This
-# script will just run those tests that require that each of their nameservers
-# is the only one running on an IP address.
-#
-
-SYSTEMTESTTOP=.
-. $SYSTEMTESTTOP/conf.sh
-
-for d in $SEQUENTIALDIRS
-do
-    $SHELL run.sh "${@}" $d 2>&1 | tee $d/test.output
-done
+rm -f ns*/named.conf
+rm -f */named.memstats
+rm -f */named.run
+rm -f dig.out.*
+rm -f ns*/named.lock
+rm -f ans*/query.log
+rm -f query*.log

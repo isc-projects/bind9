@@ -183,6 +183,7 @@ options {\n\
 	notify-source-v6 *;\n\
 	nsec3-test-zone no;\n\
 	provide-ixfr true;\n\
+	qname-minimization relaxed;\n\
 	query-source address *;\n\
 	query-source-v6 address *;\n\
 	recursion true;\n\
