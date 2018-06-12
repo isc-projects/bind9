@@ -15,8 +15,7 @@
  * HMAC-SHA334 and HMAC-SHA512 hash algorithm described in RFC 2104.
  */
 
-#ifndef ISC_HMACSHA_H
-#define ISC_HMACSHA_H 1
+#pragma once
 
 #include <isc/lang.h>
 #include <isc/platform.h>
@@ -30,7 +29,6 @@
 #define ISC_HMACSHA384_KEYLENGTH ISC_SHA384_BLOCK_LENGTH
 #define ISC_HMACSHA512_KEYLENGTH ISC_SHA512_BLOCK_LENGTH
 
-#ifdef ISC_PLATFORM_OPENSSLHASH
 #include <openssl/opensslv.h>
 #include <openssl/hmac.h>
 
@@ -46,43 +44,6 @@ typedef isc_hmacsha_t isc_hmacsha224_t;
 typedef isc_hmacsha_t isc_hmacsha256_t;
 typedef isc_hmacsha_t isc_hmacsha384_t;
 typedef isc_hmacsha_t isc_hmacsha512_t;
-
-#elif HAVE_PKCS11
-#include <pk11/pk11.h>
-
-typedef pk11_context_t isc_hmacsha1_t;
-typedef pk11_context_t isc_hmacsha224_t;
-typedef pk11_context_t isc_hmacsha256_t;
-typedef pk11_context_t isc_hmacsha384_t;
-typedef pk11_context_t isc_hmacsha512_t;
-
-#else
-
-typedef struct {
-	isc_sha1_t sha1ctx;
-	unsigned char key[ISC_HMACSHA1_KEYLENGTH];
-} isc_hmacsha1_t;
-
-typedef struct {
-	isc_sha224_t sha224ctx;
-	unsigned char key[ISC_HMACSHA224_KEYLENGTH];
-} isc_hmacsha224_t;
-
-typedef struct {
-	isc_sha256_t sha256ctx;
-	unsigned char key[ISC_HMACSHA256_KEYLENGTH];
-} isc_hmacsha256_t;
-
-typedef struct {
-	isc_sha384_t sha384ctx;
-	unsigned char key[ISC_HMACSHA384_KEYLENGTH];
-} isc_hmacsha384_t;
-
-typedef struct {
-	isc_sha512_t sha512ctx;
-	unsigned char key[ISC_HMACSHA512_KEYLENGTH];
-} isc_hmacsha512_t;
-#endif
 
 ISC_LANG_BEGINDECLS
 
@@ -179,5 +140,3 @@ isc_boolean_t
 isc_hmacsha512_verify(isc_hmacsha512_t *ctx, unsigned char *digest, size_t len);
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_HMACSHA_H */

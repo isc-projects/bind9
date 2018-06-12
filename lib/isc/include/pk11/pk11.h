@@ -49,26 +49,18 @@ struct pk11_context {
 	CK_SESSION_HANDLE	session;
 	CK_BBOOL		ontoken;
 	CK_OBJECT_HANDLE	object;
-#if defined(PK11_MD5_HMAC_REPLACE) ||  defined(PK11_SHA_1_HMAC_REPLACE) || \
-    defined(PK11_SHA224_HMAC_REPLACE) || defined(PK11_SHA256_HMAC_REPLACE) || \
-    defined(PK11_SHA384_HMAC_REPLACE) || defined(PK11_SHA512_HMAC_REPLACE)
-	unsigned char		*key;
-#endif
 };
 
 typedef struct pk11_object pk11_object_t;
 
 typedef enum {
 	OP_ANY = 0,
-	OP_RAND = 1,
-	OP_RSA = 2,
-	OP_DSA = 3,
-	OP_DH = 4,
-	OP_DIGEST = 5,
-	OP_EC = 6,
-	OP_GOST = 7,
-	OP_AES = 8,
-	OP_MAX = 9
+	OP_RSA = 1,
+	OP_DSA = 2,
+	OP_DH = 3,
+	OP_ECDSA = 4,
+	OP_EDDSA = 5,
+	OP_MAX = 6
 } pk11_optype_t;
 
 /*%
@@ -135,10 +127,6 @@ isc_result_t pk11_finalize(void);
 /*%<
  * Shut down PKCS#11 device and free all sessions.
  */
-
-isc_result_t pk11_rand_bytes(unsigned char *buf, int num);
-
-void pk11_rand_seed_fromfile(const char *randomfile);
 
 isc_result_t pk11_parse_uri(pk11_object_t *obj, const char *label,
 			    isc_mem_t *mctx, pk11_optype_t optype);

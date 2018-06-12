@@ -13,7 +13,7 @@
 
 #include <openssl/opensslv.h>
 
-#if HAVE_OPENSSL && (OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER))
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 
 #include <stdlib.h>
 #include <string.h>

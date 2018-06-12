@@ -51,14 +51,12 @@
 
 #define BADTIMELEN 6
 
-#ifndef PK11_MD5_DISABLE
 static unsigned char hmacmd5_ndata[] = "\010hmac-md5\007sig-alg\003reg\003int";
 static unsigned char hmacmd5_offsets[] = { 0, 9, 17, 21, 25 };
 
 static dns_name_t const hmacmd5 =
 	DNS_NAME_INITABSOLUTE(hmacmd5_ndata, hmacmd5_offsets);
 LIBDNS_EXTERNAL_DATA const dns_name_t *dns_tsig_hmacmd5_name = &hmacmd5;
-#endif
 
 static unsigned char gsstsig_ndata[] = "\010gss-tsig";
 static unsigned char gsstsig_offsets[] = { 0, 9 };
@@ -110,9 +108,7 @@ static const struct {
 	const dns_name_t *name;
 	unsigned int dstalg;
 } known_algs[] = {
-#ifndef PK11_MD5_DISABLE
 	{ &hmacmd5,	DST_ALG_HMACMD5		},
-#endif
 	{ &gsstsig,	DST_ALG_GSSAPI	 	},
 	{ &gsstsigms,	DST_ALG_GSSAPI		},
 	{ &hmacsha1,	DST_ALG_HMACSHA1	},
@@ -136,12 +132,8 @@ tsigkey_free(dns_tsigkey_t *key);
 
 isc_boolean_t
 dns__tsig_algvalid(unsigned int alg) {
-#ifndef PK11_MD5_DISABLE
-	if (alg == DST_ALG_HMACMD5) {
-		return (ISC_TRUE);
-	}
-#endif
-	return (ISC_TF(alg == DST_ALG_HMACSHA1 ||
+	return (ISC_TF(alg == DST_ALG_HMACMD5 ||
+		       alg == DST_ALG_HMACSHA1 ||
 		       alg == DST_ALG_HMACSHA224 ||
 		       alg == DST_ALG_HMACSHA256 ||
 		       alg == DST_ALG_HMACSHA384 ||

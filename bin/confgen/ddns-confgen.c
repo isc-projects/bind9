@@ -36,7 +36,7 @@
 #include <isc/time.h>
 #include <isc/util.h>
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -102,7 +102,7 @@ main(int argc, char **argv) {
 	int len = 0;
 	int ch;
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();
