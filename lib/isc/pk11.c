@@ -78,13 +78,11 @@ struct pk11_token {
 };
 static ISC_LIST(pk11_token_t) tokens;
 
-static pk11_token_t *rand_token;
 static pk11_token_t *best_rsa_token;
 static pk11_token_t *best_dsa_token;
 static pk11_token_t *best_dh_token;
-static pk11_token_t *digest_token;
-static pk11_token_t *best_ec_token;
-static pk11_token_t *aes_token;
+static pk11_token_t *best_ecdsa_token;
+static pk11_token_t *best_eddsa_token;
 
 static isc_result_t free_all_sessions(void);
 static isc_result_t free_session_list(pk11_sessionlist_t *slist);
@@ -220,22 +218,6 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 	}
 
 	scan_slots();
-#if HAVE_PKCS11
-	if (rand_token == NULL) {
-		result = PK11_R_NORANDOMSERVICE;
-		goto unlock;
-	}
-	if (digest_token == NULL) {
-		result = PK11_R_NODIGESTSERVICE;
-		goto unlock;
-	}
-#if defined(AES_CC)
-	if (aes_token == NULL) {
-		result = PK11_R_NOAESSERVICE;
-		goto unlock;
-	}
-#endif
-#endif /* HAVE_PKCS11 */
 	result = ISC_R_SUCCESS;
  unlock:
 	UNLOCK(&sessionlock);
@@ -253,20 +235,21 @@ pk11_finalize(void) {
 	while (token != NULL) {
 		next = ISC_LIST_NEXT(token, link);
 		ISC_LIST_UNLINK(tokens, token, link);
-		if (token == rand_token)
-			rand_token = NULL;
-		if (token == best_rsa_token)
+		if (token == best_rsa_token) {
 			best_rsa_token = NULL;
-		if (token == best_dsa_token)
+		}
+		if (token == best_dsa_token) {
 			best_dsa_token = NULL;
-		if (token == best_dh_token)
+		}
+		if (token == best_dh_token) {
 			best_dh_token = NULL;
-		if (token == digest_token)
-			digest_token = NULL;
-		if (token == best_ec_token)
-			best_ec_token = NULL;
-		if (token == aes_token)
-			aes_token = NULL;
+		}
+		if (token == best_ecdsa_token) {
+			best_ecdsa_token = NULL;
+		}
+		if (token == best_eddsa_token) {
+			best_eddsa_token = NULL;
+		}
 		pk11_mem_put(token, sizeof(*token));
 		token = next;
 	}
@@ -274,66 +257,6 @@ pk11_finalize(void) {
 		isc_mem_detach(&pk11_mctx);
 	initialized = ISC_FALSE;
 	return (ret);
-}
-
-isc_result_t
-pk11_rand_bytes(unsigned char *buf, int num) {
-	isc_result_t ret;
-	CK_RV rv;
-	pk11_context_t ctx;
-
-	ret = pk11_get_session(&ctx, OP_RAND, ISC_FALSE, ISC_FALSE,
-			       ISC_FALSE, NULL, 0);
-	if ((ret != ISC_R_SUCCESS) &&
-	    (ret != PK11_R_NODIGESTSERVICE) &&
-	    (ret != PK11_R_NOAESSERVICE))
-		return (ret);
-	RUNTIME_CHECK(ctx.session != CK_INVALID_HANDLE);
-	rv = pkcs_C_GenerateRandom(ctx.session,
-				   (CK_BYTE_PTR) buf, (CK_ULONG) num);
-	pk11_return_session(&ctx);
-	if (rv == CKR_OK)
-		return (ISC_R_SUCCESS);
-	else
-		return (DST_R_CRYPTOFAILURE);
-}
-
-#define SEEDSIZE	1024
-
-static CK_BYTE seed[SEEDSIZE];
-
-void
-pk11_rand_seed_fromfile(const char *randomfile) {
-	pk11_context_t ctx;
-	FILE *stream = NULL;
-	size_t cc = 0;
-	isc_result_t ret;
-
-	ret = pk11_get_session(&ctx, OP_RAND, ISC_FALSE, ISC_FALSE,
-			       ISC_FALSE, NULL, 0);
-	if ((ret != ISC_R_SUCCESS) &&
-	    (ret != PK11_R_NODIGESTSERVICE) &&
-	    (ret != PK11_R_NOAESSERVICE))
-		return;
-	RUNTIME_CHECK(ctx.session != CK_INVALID_HANDLE);
-	ret = isc_stdio_open(randomfile, "r", &stream);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup;
-	while (ret == ISC_R_SUCCESS) {
-		ret = isc_stdio_read(seed, 1, SEEDSIZE, stream, &cc);
-		if ((ret != ISC_R_SUCCESS) && (ret != ISC_R_EOF))
-			goto cleanup;
-		(void) pkcs_C_SeedRandom(ctx.session, seed, (CK_ULONG) cc);
-	}
-	ret = isc_stdio_close(stream);
-	stream = NULL;
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup;
-
-    cleanup:
-	if (stream != NULL)
-		(void) isc_stdio_close(stream);
-	pk11_return_session(&ctx);
 }
 
 isc_result_t
@@ -345,27 +268,13 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	pk11_sessionlist_t *freelist;
 	pk11_session_t *sp;
 	isc_result_t ret;
-#if HAVE_PKCS11
-	isc_result_t service_ret = ISC_R_SUCCESS;
-#else
 	UNUSED(need_services);
-#endif
 
 	memset(ctx, 0, sizeof(pk11_context_t));
 	ctx->handle = NULL;
 	ctx->session = CK_INVALID_HANDLE;
 
 	ret = pk11_initialize(NULL, NULL);
-#if HAVE_PKCS11
-	if (ret == PK11_R_NORANDOMSERVICE ||
-	    ret == PK11_R_NODIGESTSERVICE ||
-	    ret == PK11_R_NOAESSERVICE) {
-		if (need_services)
-			return (ret);
-		service_ret = ret;
-	}
-	else
-#endif /* HAVE_PKCS11 */
 	if (ret != ISC_R_SUCCESS)
 		return (ret);
 
@@ -374,16 +283,6 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	UNLOCK(&sessionlock);
 
 	switch(optype) {
-#if HAVE_PKCS11
-	case OP_RAND:
-		token = rand_token;
-		break;
-	case OP_DIGEST:
-		token = digest_token;
-		break;
-	case OP_AES:
-		token = aes_token;
-		break;
 	case OP_ANY:
 		for (token = ISC_LIST_HEAD(tokens);
 		     token != NULL;
@@ -391,18 +290,12 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 			if (token->slotid == slot)
 				break;
 		break;
-#endif
 	default:
 		for (token = ISC_LIST_HEAD(tokens);
 		     token != NULL;
 		     token = ISC_LIST_NEXT(token, link))
 			if (token->slotid == slot)
 				break;
-#if HAVE_PKCS11
-		if ((token == NULL) ||
-		    ((token->operations & (1 << optype)) == 0))
-			return (ISC_R_NOTFOUND);
-#endif
 		break;
 	}
 	if (token == NULL)
@@ -451,10 +344,6 @@ pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
 	UNLOCK(&sessionlock);
 	ctx->handle = sp;
 	ctx->session = sp->session;
-#if HAVE_PKCS11
-	if (ret == ISC_R_SUCCESS)
-		ret = service_ret;
-#endif
 	return (ret);
 }
 
@@ -617,15 +506,8 @@ scan_slots(void) {
 		memmove(token->model, tokenInfo.model, 16);
 		memmove(token->serial, tokenInfo.serialNumber, 16);
 		ISC_LIST_APPEND(tokens, token, link);
-		if ((tokenInfo.flags & CKF_RNG) == 0) {
-			PK11_TRACE("no CKF_RNG\n");
-			goto try_rsa;
-		}
-		token->operations |= 1 << OP_RAND;
-		if (rand_token == NULL)
-			rand_token = token;
 
-	try_rsa:
+		/* Check for RSA support */
 		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_RSA_PKCS_KEY_PAIR_GEN,
 					     &mechInfo);
@@ -639,9 +521,7 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-#if !defined(PK11_MD5_DISABLE) && !defined(PK11_RSA_PKCS_REPLACE)
 			bad = ISC_TRUE;
-#endif
 			PK11_TRACEM(CKM_MD5_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA1_RSA_PKCS,
@@ -649,9 +529,7 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-#ifndef PK11_RSA_PKCS_REPLACE
 			bad = ISC_TRUE;
-#endif
 			PK11_TRACEM(CKM_SHA1_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256_RSA_PKCS,
@@ -659,9 +537,7 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-#ifndef PK11_RSA_PKCS_REPLACE
 			bad = ISC_TRUE;
-#endif
 			PK11_TRACEM(CKM_SHA256_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512_RSA_PKCS,
@@ -669,34 +545,29 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-#ifndef PK11_RSA_PKCS_REPLACE
 			bad = ISC_TRUE;
-#endif
 			PK11_TRACEM(CKM_SHA512_RSA_PKCS);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_RSA_PKCS, &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-#ifdef PK11_RSA_PKCS_REPLACE
 			bad = ISC_TRUE;
-#endif
 			PK11_TRACEM(CKM_RSA_PKCS);
 		}
-		if (bad)
-			goto try_dsa;
-		token->operations |= 1 << OP_RSA;
-		if (best_rsa_token == NULL)
-			best_rsa_token = token;
+		if (!bad) {
+			token->operations |= 1 << OP_RSA;
+			if (best_rsa_token == NULL) {
+				best_rsa_token = token;
+			}
+		}
 
-	try_dsa:
+		/* Check for DSA support */
 		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_PARAMETER_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0)) {
-#ifndef PK11_DSA_PARAMETER_GEN_SKIP
 			bad = ISC_TRUE;
-#endif
 			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_KEY_PAIR_GEN,
@@ -713,15 +584,14 @@ scan_slots(void) {
 			bad = ISC_TRUE;
 			PK11_TRACEM(CKM_DSA_SHA1);
 		}
-		if (bad)
-			goto try_dh;
-#ifndef PK11_DSA_DISABLE
-		token->operations |= 1 << OP_DSA;
-		if (best_dsa_token == NULL)
-			best_dsa_token = token;
-#endif
+		if (!bad) {
+			token->operations |= 1 << OP_DSA;
+			if (best_dsa_token == NULL) {
+				best_dsa_token = token;
+			}
+		}
 
-	try_dh:
+		/* Check for DH support */
 		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_PARAMETER_GEN,
 					     &mechInfo);
@@ -743,97 +613,15 @@ scan_slots(void) {
 			bad = ISC_TRUE;
 			PK11_TRACEM(CKM_DH_PKCS_DERIVE);
 		}
-		if (bad)
-			goto try_digest;
-#ifndef PK11_DH_DISABLE
-		token->operations |= 1 << OP_DH;
-		if (best_dh_token == NULL)
-			best_dh_token = token;
-#endif
-
-	try_digest:
-		bad = ISC_FALSE;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-#ifndef PK11_MD5_DISABLE
-			bad = ISC_TRUE;
-#endif
-			PK11_TRACEM(CKM_MD5);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_SHA_1);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_SHA224);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_SHA256);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA384, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_SHA384);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_SHA512);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
-#if !defined(PK11_MD5_DISABLE) && !defined(PK11_MD5_HMAC_REPLACE)
-			bad = ISC_TRUE;
-#endif
-			PK11_TRACEM(CKM_MD5_HMAC);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
-#ifndef PK11_SHA_1_HMAC_REPLACE
-			bad = ISC_TRUE;
-#endif
-			PK11_TRACEM(CKM_SHA_1_HMAC);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
-#ifndef PK11_SHA224_HMAC_REPLACE
-			bad = ISC_TRUE;
-#endif
-			PK11_TRACEM(CKM_SHA224_HMAC);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
-#ifndef PK11_SHA256_HMAC_REPLACE
-			bad = ISC_TRUE;
-#endif
-			PK11_TRACEM(CKM_SHA256_HMAC);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA384_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
-#ifndef PK11_SHA384_HMAC_REPLACE
-			bad = ISC_TRUE;
-#endif
-			PK11_TRACEM(CKM_SHA384_HMAC);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512_HMAC, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
-#ifndef PK11_SHA512_HMAC_REPLACE
-			bad = ISC_TRUE;
-#endif
-			PK11_TRACEM(CKM_SHA512_HMAC);
-		}
 		if (!bad) {
-			token->operations |= 1 << OP_DIGEST;
-			if (digest_token == NULL)
-				digest_token = token;
+			token->operations |= 1 << OP_DH;
+			if (best_dh_token == NULL) {
+				best_dh_token = token;
+			}
 		}
 
-		/* ECDSA requires digest */
+		/* Check for ECDSA support */
+		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EC_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
@@ -848,14 +636,16 @@ scan_slots(void) {
 			bad = ISC_TRUE;
 			PK11_TRACEM(CKM_ECDSA);
 		}
-		if (bad)
-			goto try_eddsa;
-		token->operations |= 1 << OP_EC;
-		if (best_ec_token == NULL)
-			best_ec_token = token;
+		if (!bad) {
+			token->operations |= 1 << OP_ECDSA;
+			if (best_ecdsa_token == NULL) {
+				best_ecdsa_token = token;
+			}
+		}
 
-	try_eddsa:
 #if defined(CKM_EDDSA_KEY_PAIR_GEN) && defined(CKM_EDDSA) && defined(CKK_EDDSA)
+		/* Check for EDDSA support */
+		/* XXXOND: This was already broken */
 		bad = ISC_FALSE;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA_KEY_PAIR_GEN,
 					     &mechInfo);
@@ -871,26 +661,18 @@ scan_slots(void) {
 			bad = ISC_TRUE;
 			PK11_TRACEM(CKM_EDDSA);
 		}
-		if (bad)
-			goto try_aes;
-
-	try_aes:
-#endif
-		bad = ISC_FALSE;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_AES_ECB, &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_ENCRYPT) == 0)) {
-			bad = ISC_TRUE;
-			PK11_TRACEM(CKM_AES_ECB);
+		if (!bad) {
+			token->operations |= 1 << OP_EDDSA;
+			if (best_eddsa_token == NULL) {
+				best_eddsa_token = token;
+			}
 		}
-		if (bad)
-			continue;
-		token->operations |= 1 << OP_AES;
-		if (aes_token == NULL)
-			aes_token = token;
+#endif
 	}
 
-	if (slotList != NULL)
+	if (slotList != NULL) {
 		pk11_mem_put(slotList, sizeof(CK_SLOT_ID_PTR) * slotCount);
+	}
 }
 
 CK_SLOT_ID
@@ -898,9 +680,6 @@ pk11_get_best_token(pk11_optype_t optype) {
 	pk11_token_t *token = NULL;
 
 	switch (optype) {
-	case OP_RAND:
-		token = rand_token;
-		break;
 	case OP_RSA:
 		token = best_rsa_token;
 		break;
@@ -910,20 +689,15 @@ pk11_get_best_token(pk11_optype_t optype) {
 	case OP_DH:
 		token = best_dh_token;
 		break;
-	case OP_DIGEST:
-		token = digest_token;
+	case OP_ECDSA:
+		token = best_ecdsa_token;
 		break;
-	case OP_EC:
-		token = best_ec_token;
-		break;
-	case OP_AES:
-		token = aes_token;
+	case OP_EDDSA:
+		token = best_eddsa_token;
 		break;
 	default:
-		break;
-	}
-	if (token == NULL)
 		return (0);
+	}
 	return (token->slotid);
 }
 
@@ -1259,14 +1033,17 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 		DST_RET(ISC_R_NOTFOUND);
 
 	if (token == NULL) {
-		if (optype == OP_RSA)
+		if (optype == OP_RSA) {
 			token = best_rsa_token;
-		else if (optype == OP_DSA)
+		} else if (optype == OP_DSA) {
 			token = best_dsa_token;
-		else if (optype == OP_DH)
+		} else if (optype == OP_DH) {
 			token = best_dh_token;
-		else if (optype == OP_EC)
-			token = best_ec_token;
+		} else if (optype == OP_ECDSA) {
+			token = best_ecdsa_token;
+		} else if (optype == OP_EDDSA) {
+			token = best_eddsa_token;
+		}
 	}
 	if (token == NULL)
 		DST_RET(ISC_R_NOTFOUND);
@@ -1298,13 +1075,11 @@ pk11_dump_tokens(void) {
 	isc_boolean_t first;
 
 	printf("DEFAULTS\n");
-	printf("\trand_token=%p\n", rand_token);
 	printf("\tbest_rsa_token=%p\n", best_rsa_token);
 	printf("\tbest_dsa_token=%p\n", best_dsa_token);
 	printf("\tbest_dh_token=%p\n", best_dh_token);
-	printf("\tdigest_token=%p\n", digest_token);
-	printf("\tbest_ec_token=%p\n", best_ec_token);
-	printf("\taes_token=%p\n", aes_token);
+	printf("\tbest_ecdsa_token=%p\n", best_ecdsa_token);
+	printf("\tbest_eddsa_token=%p\n", best_eddsa_token);
 
 	for (token = ISC_LIST_HEAD(tokens);
 	     token != NULL;
@@ -1318,12 +1093,6 @@ pk11_dump_tokens(void) {
 		printf("\tserialNumber=%.16s\n", token->serial);
 		printf("\tsupported operations=0x%x (", token->operations);
 		first = ISC_TRUE;
-		if (token->operations & (1 << OP_RAND)) {
-			if (!first)
-				printf(",");
-			first = ISC_FALSE;
-			printf("RAND");
-		}
 		if (token->operations & (1 << OP_RSA)) {
 			if (!first)
 				printf(",");
@@ -1342,23 +1111,11 @@ pk11_dump_tokens(void) {
 			first = ISC_FALSE;
 			printf("DH");
 		}
-		if (token->operations & (1 << OP_DIGEST)) {
-			if (!first)
-				printf(",");
-			first = ISC_FALSE;
-			printf("DIGEST");
-		}
-		if (token->operations & (1 << OP_EC)) {
+		if (token->operations & (1 << OP_ECDSA)) {
 			if (!first)
 				printf(",");
 			first = ISC_FALSE;
 			printf("EC");
-		}
-		if (token->operations & (1 << OP_AES)) {
-			if (!first)
-				printf(",");
-			first = ISC_FALSE;
-			printf("AES");
 		}
 		printf(")\n");
 	}

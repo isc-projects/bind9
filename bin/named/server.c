@@ -8795,11 +8795,7 @@ load_configuration(const char *filename, named_server_t *server,
 	result = named_config_get(maps, "cookie-algorithm", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {
-#if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 		server->sctx->cookiealg = ns_cookiealg_aes;
-#else
-		INSIST(0);
-#endif
 	} else if (strcasecmp(cfg_obj_asstring(obj), "sha1") == 0) {
 		server->sctx->cookiealg = ns_cookiealg_sha1;
 	} else if (strcasecmp(cfg_obj_asstring(obj), "sha256") == 0) {
