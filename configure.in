@@ -3987,7 +3987,7 @@ AC_SUBST_FILE(LIBLWRES_API)
 LIBLWRES_API="$srcdir/lib/lwres/api"
 
 AC_SUBST_FILE(LIBIRS_API)
-LIBIRS_API="$srcdir/lib/irs/api"
+LIBIRS_API="$srcdir/lib/export/irs/api"
 
 #
 # Configure any DLZ drivers.
@@ -4344,6 +4344,9 @@ AC_CONFIG_FILES([
 	lib/export/irs/Makefile
 	lib/export/irs/include/Makefile
 	lib/export/irs/include/irs/Makefile
+	lib/export/irs/include/irs/netdb.h
+	lib/export/irs/include/irs/platform.h
+	lib/export/irs/tests/Makefile
 	lib/export/isc/$thread_dir/Makefile
 	lib/export/isc/$thread_dir/include/Makefile
 	lib/export/isc/$thread_dir/include/isc/Makefile
@@ -4359,12 +4362,6 @@ AC_CONFIG_FILES([
 	lib/export/isccfg/include/isccfg/Makefile
 	lib/export/samples/Makefile
 	lib/export/samples/Makefile-postinstall
-	lib/irs/Makefile
-	lib/irs/include/Makefile
-	lib/irs/include/irs/Makefile
-	lib/irs/include/irs/netdb.h
-	lib/irs/include/irs/platform.h
-	lib/irs/tests/Makefile
 	lib/isc/$arch/Makefile
 	lib/isc/$arch/include/Makefile
 	lib/isc/$arch/include/isc/Makefile

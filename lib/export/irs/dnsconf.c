@@ -14,8 +14,6 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: dnsconf.c,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
-
 /*! \file */
 
 #include <config.h>

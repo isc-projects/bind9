@@ -13,7 +13,8 @@
 # PERFORMANCE OF THIS SOFTWARE.
 
 top_srcdir =	@top_srcdir@
-srcdir =	@top_srcdir@/lib/irs
+srcdir =	@srcdir@
+VPATH =         @srcdir@
 export_srcdir =	@top_srcdir@/lib/export
 
 VERSION=@BIND9_VERSION@
@@ -49,6 +50,7 @@ LIBS =		@LIBS@
 
 SUBDIRS =	include
 TARGETS =	timestamp
+TESTDIRS =	@UNITTESTS@
 
 @BIND9_MAKE_RULES@
 

@@ -14,18 +14,12 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-/* $Id: types.h,v 1.3 2009/09/02 23:48:02 tbox Exp $ */
+/*! \file */
 
-#ifndef IRS_TYPES_H
-#define IRS_TYPES_H 1
+#include <irs/platform.h>
 
-/* Core Types.  Alphabetized by defined type. */
+LIBIRS_EXTERNAL_DATA extern const char irs_version[];
 
-/*%< per-thread IRS context */
-typedef struct irs_context		irs_context_t;
-/*%< resolv.conf configuration information */
-typedef struct irs_resconf		irs_resconf_t;
-/*%< advanced DNS-related configuration information */
-typedef struct irs_dnsconf		irs_dnsconf_t;
-
-#endif /* IRS_TYPES_H */
+LIBIRS_EXTERNAL_DATA extern const unsigned int irs_libinterface;
+LIBIRS_EXTERNAL_DATA extern const unsigned int irs_librevision;
+LIBIRS_EXTERNAL_DATA extern const unsigned int irs_libage;
