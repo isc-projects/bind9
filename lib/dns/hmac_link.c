@@ -47,13 +47,11 @@
 #endif
 #include "dst_parse.h"
 
-#ifndef PK11_MD5_DISABLE
 static isc_result_t hmacmd5_fromdns(dst_key_t *key, isc_buffer_t *data);
 
 struct dst_hmacmd5_key {
 	unsigned char key[ISC_MD5_BLOCK_LENGTH];
 };
-#endif
 
 static isc_result_t
 getkeybits(dst_key_t *key, struct dst_private_element *element) {
@@ -66,7 +64,6 @@ getkeybits(dst_key_t *key, struct dst_private_element *element) {
 	return (ISC_R_SUCCESS);
 }
 
-#ifndef PK11_MD5_DISABLE
 static isc_result_t
 hmacmd5_createctx(dst_key_t *key, dst_context_t *dctx) {
 	isc_hmacmd5_t *hmacmd5ctx;
@@ -366,7 +363,6 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 		*funcp = &hmacmd5_functions;
 	return (ISC_R_SUCCESS);
 }
-#endif
 
 static isc_result_t hmacsha1_fromdns(dst_key_t *key, isc_buffer_t *data);
 

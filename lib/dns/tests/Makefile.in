@@ -20,10 +20,10 @@ VERSION=@BIND9_VERSION@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} \
-		@DST_OPENSSL_INC@
+		@OPENSSL_INCLUDES@
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
-ISCLIBS =	../../isc/libisc.@A@ @ISC_OPENSSL_LIBS@
+ISCLIBS =	../../isc/libisc.@A@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
 ISCDEPLIBS =	../../isc/libisc.@A@
 DNSLIBS =	../libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../libdns.@A@

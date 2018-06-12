@@ -41,7 +41,7 @@
 
 #include <dst/dst.h>
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -310,7 +310,7 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		fatal("out of memory");
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();

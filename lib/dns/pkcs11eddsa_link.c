@@ -9,10 +9,12 @@
  * information regarding copyright ownership.
  */
 
+/*! \file */
+
 #include <config.h>
 
-#if HAVE_PKCS11 && \
-    defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448)
+#if USE_PKCS11 && \
+	(HAVE_PKCS11_ED25519 || HAVE_PKCS11_ED448)
 
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -1172,11 +1174,4 @@ dst__pkcs11eddsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* HAVE_PKCS11 && HAVE_PKCS11_EDxxx */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* HAVE_PKCS11 && HAVE_PKCS11_EDxxx */
-/*! \file */
+#endif /* USE_PKCS11 */

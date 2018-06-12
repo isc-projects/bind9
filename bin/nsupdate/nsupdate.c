@@ -399,7 +399,6 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 	/* Copy len bytes and NUL terminate. */
 	strlcpy(buf, hmacstr, ISC_MIN(len + 1, sizeof(buf)));
 
-#ifndef PK11_MD5_DISABLE
 	if (strcasecmp(buf, "hmac-md5") == 0) {
 		*hmac = DNS_TSIG_HMACMD5_NAME;
 	} else if (strncasecmp(buf, "hmac-md5-", 9) == 0) {
@@ -410,9 +409,7 @@ parse_hmac(const dns_name_t **hmac, const char *hmacstr, size_t len,
 			return (ISC_FALSE);
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
-	} else
-#endif
-	if (strcasecmp(buf, "hmac-sha1") == 0) {
+	} else if (strcasecmp(buf, "hmac-sha1") == 0) {
 		*hmac = DNS_TSIG_HMACSHA1_NAME;
 	} else if (strncasecmp(buf, "hmac-sha1-", 10) == 0) {
 		*hmac = DNS_TSIG_HMACSHA1_NAME;
@@ -515,11 +512,7 @@ setup_keystr(void) {
 			exit(1);
 		}
 	} else {
-#ifndef PK11_MD5_DISABLE
 		hmacname = DNS_TSIG_HMACMD5_NAME;
-#else
-		hmacname = DNS_TSIG_HMACSHA256_NAME;
-#endif
 		name = keystr;
 		n = s;
 	}
@@ -653,11 +646,9 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	}
 
 	switch (dst_key_alg(dstkey)) {
-#ifndef PK11_MD5_DISABLE
 	case DST_ALG_HMACMD5:
 		hmacname = DNS_TSIG_HMACMD5_NAME;
 		break;
-#endif
 	case DST_ALG_HMACSHA1:
 		hmacname = DNS_TSIG_HMACSHA1_NAME;
 		break;
@@ -1581,12 +1572,9 @@ evaluate_key(char *cmdline) {
 			return (STATUS_SYNTAX);
 		}
 		namestr = n + 1;
-	} else
-#ifndef PK11_MD5_DISABLE
+	} else {
 		hmacname = DNS_TSIG_HMACMD5_NAME;
-#else
-		hmacname = DNS_TSIG_HMACSHA256_NAME;
-#endif
+	}
 
 	isc_buffer_init(&b, namestr, strlen(namestr));
 	isc_buffer_add(&b, strlen(namestr));

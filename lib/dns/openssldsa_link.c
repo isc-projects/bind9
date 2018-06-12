@@ -23,13 +23,13 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+/*! \file */
+
 #include <config.h>
 
-#if HAVE_OPENSSL
+#if !USE_PKCS11
 
 #include <pk11/site.h>
-
-#ifndef PK11_DSA_DISABLE
 
 #include <string.h>
 
@@ -50,7 +50,7 @@
 
 static isc_result_t openssldsa_todns(const dst_key_t *key, isc_buffer_t *data);
 
-#if !defined(HAVE_DSA_GET0_PQG)
+#if !HAVE_DSA_GET0_PQG
 static void
 DSA_get0_pqg(const DSA *d, const BIGNUM **p, const BIGNUM **q,
 	     const BIGNUM **g)
@@ -121,7 +121,7 @@ DSA_SIG_set0(DSA_SIG *sig, BIGNUM *r, BIGNUM *s) {
 
 #define DSA_clear_flags(d, x) (d)->flags &= ~(x)
 
-#endif
+#endif /* !HAVE_DSA_GET0_PQG */
 
 static isc_result_t
 openssldsa_createctx(dst_key_t *key, dst_context_t *dctx) {
@@ -688,13 +688,5 @@ dst__openssldsa_init(dst_func_t **funcp) {
 		*funcp = &openssldsa_functions;
 	return (ISC_R_SUCCESS);
 }
-#endif /* !PK11_DSA_DISABLE */
 
-#else /* HAVE_OPENSSL */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* HAVE_OPENSSL */
-/*! \file */
+#endif /* !USE_PKCS11 */

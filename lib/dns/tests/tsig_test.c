@@ -503,11 +503,7 @@ ATF_TC_HEAD(algvalid, tc) {
 ATF_TC_BODY(algvalid, tc) {
 	UNUSED(tc);
 
-#ifndef PK11_MD5_DISABLE
 	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5), ISC_TRUE);
-#else
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5), ISC_FALSE);
-#endif
 
 	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA1), ISC_TRUE);
 	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA224), ISC_TRUE);
@@ -525,10 +521,7 @@ ATF_TC_HEAD(algfromname, tc) {
 ATF_TC_BODY(algfromname, tc) {
 	UNUSED(tc);
 
-#ifndef PK11_MD5_DISABLE
 	ATF_REQUIRE_EQ(dns__tsig_algfromname(DNS_TSIG_HMACMD5_NAME), DST_ALG_HMACMD5);
-#endif
-
 	ATF_REQUIRE_EQ(dns__tsig_algfromname(DNS_TSIG_HMACSHA1_NAME), DST_ALG_HMACSHA1);
 	ATF_REQUIRE_EQ(dns__tsig_algfromname(DNS_TSIG_HMACSHA224_NAME), DST_ALG_HMACSHA224);
 	ATF_REQUIRE_EQ(dns__tsig_algfromname(DNS_TSIG_HMACSHA256_NAME), DST_ALG_HMACSHA256);
@@ -568,9 +561,7 @@ ATF_TC_BODY(algnamefromname, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* test the standard algorithms */
-#ifndef PK11_MD5_DISABLE
 	test_name("hmac-md5.sig-alg.reg.int", DNS_TSIG_HMACMD5_NAME);
-#endif
 	test_name("hmac-sha1", DNS_TSIG_HMACSHA1_NAME);
 	test_name("hmac-sha224", DNS_TSIG_HMACSHA224_NAME);
 	test_name("hmac-sha256", DNS_TSIG_HMACSHA256_NAME);
@@ -594,10 +585,7 @@ ATF_TC_HEAD(algallocated, tc) {
 ATF_TC_BODY(algallocated, tc) {
 
 	/* test the standard algorithms */
-#ifndef PK11_MD5_DISABLE
 	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACMD5_NAME), ISC_FALSE);
-#endif
-
 	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA1_NAME), ISC_FALSE);
 	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA224_NAME), ISC_FALSE);
 	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA256_NAME), ISC_FALSE);
