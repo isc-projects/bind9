@@ -4651,7 +4651,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	} else if (!strcmp(qminmode, "relaxed")) {
 		view->qminimization = ISC_TRUE;
 		view->qmin_strict = ISC_FALSE;
-	} else {
+	} else { /* "disabled" or "off" */
 		view->qminimization = ISC_FALSE;
 		view->qmin_strict = ISC_FALSE;
 	}

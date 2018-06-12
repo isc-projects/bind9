@@ -1740,6 +1740,7 @@
 ./bin/tests/system/qmin/ns5/named.conf.in	CONF-C	2018
 ./bin/tests/system/qmin/ns6/named.conf.in	CONF-C	2018
 ./bin/tests/system/qmin/ns7/named.conf.in	CONF-C	2018
+./bin/tests/system/qmin/prereq.sh		SH	2018
 ./bin/tests/system/qmin/setup.sh		SH	2018
 ./bin/tests/system/qmin/tests.sh		SH	2018
 ./bin/tests/system/reclimit/README		TXT.BRIEF	2014,2016,2017,2018

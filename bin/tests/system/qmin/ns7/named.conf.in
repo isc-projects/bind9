@@ -23,6 +23,7 @@ options {
 	qname-minimization relaxed;
 	querylog yes;
 	resolver-query-timeout 30;
+	dnssec-validation no;
 };
 
 key rndc_key {
