@@ -67,10 +67,6 @@
 #define sleep(x)	Sleep(x)
 #endif
 
-#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
-#define getpassphrase(x)	getpass(x)
-#endif
-
 int
 main(int argc, char *argv[]) {
 	isc_result_t result;
@@ -149,8 +145,9 @@ main(int argc, char *argv[]) {
 	if (lib_name != NULL)
 		pk11_set_lib_name(lib_name);
 
-	if (pin == NULL)
-		pin = getpassphrase("Enter Pin: ");
+	if (pin == NULL) {
+		pin = getpass("Enter Pin: ");
+	}
 
 	result = pk11_get_session(&pctx, OP_ANY, ISC_FALSE, ISC_TRUE,
 				  ISC_TRUE, (const char *) pin, slot);

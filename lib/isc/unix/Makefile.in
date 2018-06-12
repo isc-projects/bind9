@@ -15,13 +15,13 @@ CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../@ISC_THREAD_DIR@/include \
 		-I../include \
 		-I${srcdir}/../include \
-		-I${srcdir}/.. @ISC_OPENSSL_INC@
+		-I${srcdir}/.. @OPENSSL_INCLUDES@
 
 CDEFINES =
 CWARNINGS =
 
 # Alphabetically
-OBJS =		@ISC_IPV6_O@ @ISC_PK11_API_O@ \
+OBJS =		@ISC_IPV6_O@ pk11_api.@O@ \
 		app.@O@ dir.@O@ errno.@O@ errno2result.@O@ \
 		file.@O@ fsaccess.@O@ interfaceiter.@O@ \
 		keyboard.@O@ meminfo.@O@ \
@@ -29,7 +29,7 @@ OBJS =		@ISC_IPV6_O@ @ISC_PK11_API_O@ \
 		strerror.@O@ syslog.@O@ time.@O@
 
 # Alphabetically
-SRCS =		@ISC_IPV6_C@ @ISC_PK11_API_C@ \
+SRCS =		@ISC_IPV6_C@ pk11_api.c \
 		app.c dir.c errno.c errno2result.c \
 		file.c fsaccess.c interfaceiter.c keyboard.c meminfo.c \
 		net.c os.c resource.c socket.c stdio.c stdtime.c \

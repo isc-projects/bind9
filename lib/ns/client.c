@@ -1781,7 +1781,6 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 	       const unsigned char *secret, isc_buffer_t *buf)
 {
 	switch (client->sctx->cookiealg) {
-#if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 	case ns_cookiealg_aes: {
 		unsigned char digest[ISC_AES_BLOCK_LENGTH];
 		unsigned char input[4 + 4 + 16];
@@ -1821,7 +1820,6 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 		isc_buffer_putmem(buf, digest, 8);
 		break;
 	}
-#endif
 
 	case ns_cookiealg_sha1: {
 		unsigned char digest[ISC_SHA1_DIGESTLENGTH];
