@@ -26,6 +26,7 @@ $RNDCCMD 10.53.0.5 flush
 $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.good. @10.53.0.5 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.good. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
+sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 A icky.icky.icky.ptang.zoop.boing.good.
 A ns3.good.
@@ -47,6 +48,7 @@ $RNDCCMD 10.53.0.5 flush
 $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.bad. @10.53.0.5 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.bad. 1 IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
+sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 A icky.icky.icky.ptang.zoop.boing.bad.
 A ns3.bad.
@@ -69,6 +71,7 @@ $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.slow. @10.53.0.5 > dig.out.test$n
 sleep 5
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.slow. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
+sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 A icky.icky.icky.ptang.zoop.boing.slow.
 A ns3.slow.
@@ -90,6 +93,7 @@ $RNDCCMD 10.53.0.6 flush
 $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.good. @10.53.0.6 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.good. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
+sleep 1
 # Duplicated NS queries are there because we're not creating
 # a separate fetch when doing qname minimization - so two
 # queries running for the same name but different RRTYPE
@@ -129,6 +133,7 @@ $CLEANQL
 $RNDCCMD 10.53.0.6 flush
 $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.bad. @10.53.0.6 > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
+sleep 1
 echo "NS boing.bad." | diff ans2/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -142,6 +147,7 @@ $RNDCCMD 10.53.0.7 flush
 $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.bad. @10.53.0.7 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.bad. 1 IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
+sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS boing.bad.
 A icky.icky.icky.ptang.zoop.boing.bad.
@@ -201,6 +207,7 @@ $RNDCCMD 10.53.0.6 flush
 $DIG $DIGOPTS -x 2001:4f8::1 @10.53.0.6 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa. 1 IN PTR nee.com." dig.out.test$n > /dev/null || ret=1
+sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS 1.0.0.2.ip6.arpa.
 NS 8.f.4.0.1.0.0.2.ip6.arpa.
@@ -221,6 +228,7 @@ $RNDCCMD 10.53.0.6 flush
 $DIG $DIGOPTS many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.good. @10.53.0.6 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.good. 1	IN A 192.0.2.2" dig.out.test$n > /dev/null || ret=1
+sleep 1
 # We skipped after third no-delegation.
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS z.good.
@@ -239,6 +247,7 @@ $RNDCCMD 10.53.0.6 flush
 $DIG $DIGOPTS more.icky.icky.icky.ptang.zoop.boing.good. @10.53.0.6 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "more.icky.icky.icky.ptang.zoop.boing.good. 1 IN	A 192.0.2.2" dig.out.test$n > /dev/null || ret=1
+sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS boing.good.
 NS zoop.boing.good.

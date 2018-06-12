@@ -2952,7 +2952,7 @@ static cfg_type_t cfg_type_optional_keyref = {
 };
 
 static const char *qminmethod_enums[] = {
-	"strict", "relaxed", "disabled", NULL
+	"strict", "relaxed", "disabled", "off", NULL
 };
 
 static cfg_type_t cfg_type_qminmethod = {
