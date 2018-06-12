@@ -9,13 +9,13 @@
  * information regarding copyright ownership.
  */
 
+/*! \file */
+
 #include <config.h>
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 
 #include <pk11/site.h>
-
-#ifndef PK11_DSA_DISABLE
 
 #include <string.h>
 
@@ -1112,13 +1112,5 @@ dst__pkcs11dsa_init(dst_func_t **funcp) {
 		*funcp = &pkcs11dsa_functions;
 	return (ISC_R_SUCCESS);
 }
-#endif /* !PK11_DSA_DISABLE */
 
-#else /* HAVE_PKCS11 */
-
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* HAVE_PKCS11 */
-/*! \file */
+#endif /* USE_PKCS11 */

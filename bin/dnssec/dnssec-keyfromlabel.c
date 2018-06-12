@@ -37,7 +37,7 @@
 
 #include <dst/dst.h>
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -69,12 +69,9 @@ usage(void) {
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
 	fprintf(stderr, "    -c class (default: IN)\n");
 	fprintf(stderr, "    -E <engine>:\n");
-#if HAVE_PKCS11
+#if USE_PKCS11
 	fprintf(stderr, "        path to PKCS#11 provider library "
 				"(default is %s)\n", PK11_LIB_LOCATION);
-#elif defined(USE_PKCS11)
-	fprintf(stderr, "        name of an OpenSSL engine to use "
-				"(default is \"pkcs11\")\n");
 #else
 	fprintf(stderr, "        name of an OpenSSL engine to use\n");
 #endif
@@ -124,11 +121,7 @@ main(int argc, char **argv) {
 	const char	*directory = NULL;
 	const char	*predecessor = NULL;
 	dst_key_t	*prevkey = NULL;
-#ifdef USE_PKCS11
-	const char	*engine = PKCS11_ENGINE;
-#else
 	const char	*engine = NULL;
-#endif
 	char		*classname = NULL;
 	char		*endp;
 	dst_key_t	*key = NULL;
@@ -173,7 +166,7 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();
@@ -388,20 +381,10 @@ main(int argc, char **argv) {
 		}
 
 		if (strcasecmp(algname, "RSA") == 0) {
-#ifndef PK11_MD5_DISABLE
 			fprintf(stderr, "The use of RSA (RSAMD5) is not "
 					"recommended.\nIf you still wish to "
 					"use RSA (RSAMD5) please specify "
 					"\"-a RSAMD5\"\n");
-#else
-			fprintf(stderr,
-				"The use of RSA (RSAMD5) was disabled\n");
-			if (freeit != NULL)
-				free(freeit);
-			return (1);
-		} else if (strcasecmp(algname, "RSAMD5") == 0) {
-			fprintf(stderr, "The use of RSAMD5 was disabled\n");
-#endif
 			if (freeit != NULL)
 				free(freeit);
 			return (1);
@@ -512,11 +495,6 @@ main(int argc, char **argv) {
 		alg = dst_key_alg(prevkey);
 		flags = dst_key_flags(prevkey);
 
-#ifdef PK11_MD5_DISABLE
-		if (alg == DST_ALG_RSAMD5)
-			fatal("Key %s uses disabled RSAMD5", predecessor);
-#endif
-
 		dst_key_format(prevkey, keystr, sizeof(keystr));
 		dst_key_getprivateformat(prevkey, &major, &minor);
 		if (major != DST_MAJOR_VERSION || minor < DST_MINOR_VERSION)
@@ -606,7 +584,7 @@ main(int argc, char **argv) {
 
 	/* associate the key */
 	ret = dst_key_fromlabel(name, alg, flags, protocol, rdclass,
-#if HAVE_PKCS11
+#if USE_PKCS11
 				"pkcs11",
 #else
 				engine,

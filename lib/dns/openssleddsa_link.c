@@ -11,11 +11,12 @@
 
 #include <config.h>
 
-#if HAVE_OPENSSL && (HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448)
+#if !USE_PKCS11
 
 #include <isc/mem.h>
 #include <isc/safe.h>
 #include <isc/sha2.h>
+#include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -31,14 +32,15 @@
 #include <openssl/evp.h>
 #include <openssl/x509.h>
 
+#include "openssl_shim.h"
+
+#define DST_RET(a) {ret = a; goto err;}
+
+#if HAVE_OPENSSL_ED25519
+
 #ifndef NID_ED25519
 #error "Ed25519 group is not known (NID_ED25519)"
 #endif
-#ifndef NID_ED448
-#error "Ed448 group is not known (NID_ED448)"
-#endif
-
-#define DST_RET(a) {ret = a; goto err;}
 
 /* OpenSSL doesn't provide direct access to key values */
 
@@ -77,42 +79,6 @@ static isc_result_t pub_ed25519_from_ossl(EVP_PKEY *pkey,
 	    (len > PUBPREFIXLEN + DNS_KEY_ED25519SIZE))
 		return (DST_R_OPENSSLFAILURE);
 	memmove(key, buf + len - DNS_KEY_ED25519SIZE, DNS_KEY_ED25519SIZE);
-	return (ISC_R_SUCCESS);
-}
-
-static const unsigned char ed448_pub_prefix[] = {
-	0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65,
-	0x71, 0x03, 0x21, 0x00
-};
-
-static EVP_PKEY *pub_ed448_to_ossl(const unsigned char *key)
-{
-	unsigned char buf[PUBPREFIXLEN + DNS_KEY_ED448SIZE];
-	const unsigned char *p;
-
-	memmove(buf, ed448_pub_prefix, PUBPREFIXLEN);
-	memmove(buf + PUBPREFIXLEN, key, DNS_KEY_ED448SIZE);
-	p = buf;
-	return (d2i_PUBKEY(NULL, &p, PUBPREFIXLEN + DNS_KEY_ED448SIZE));
-}
-
-static isc_result_t pub_ed448_from_ossl(EVP_PKEY *pkey,
-					unsigned char *key)
-{
-	unsigned char buf[PUBPREFIXLEN + DNS_KEY_ED448SIZE];
-	unsigned char *p;
-	int len;
-
-	len = i2d_PUBKEY(pkey, NULL);
-	if ((len <= DNS_KEY_ED448SIZE) ||
-	    (len > PUBPREFIXLEN + DNS_KEY_ED448SIZE))
-		return (DST_R_OPENSSLFAILURE);
-	p = buf;
-	len = i2d_PUBKEY(pkey, &p);
-	if ((len <= DNS_KEY_ED448SIZE) ||
-	    (len > PUBPREFIXLEN + DNS_KEY_ED448SIZE))
-		return (DST_R_OPENSSLFAILURE);
-	memmove(key, buf + len - DNS_KEY_ED448SIZE, DNS_KEY_ED448SIZE);
 	return (ISC_R_SUCCESS);
 }
 
@@ -155,6 +121,81 @@ static isc_result_t priv_ed25519_from_ossl(EVP_PKEY *pkey,
 	return (ISC_R_SUCCESS);
 }
 
+#else /* HAVE_OPENSSL_ED25519 */
+
+static EVP_PKEY *
+pub_ed25519_to_ossl(const unsigned char *key)
+{
+	UNUSED(key);
+	return (NULL);
+}
+
+static isc_result_t
+pub_ed25519_from_ossl(EVP_PKEY *pkey, unsigned char *key)
+{
+	UNUSED(pkey);
+	UNUSED(key);
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+static EVP_PKEY *
+priv_ed25519_to_ossl(const unsigned char *key)
+{
+	UNUSED(key);
+	return (NULL);
+}
+
+static isc_result_t
+priv_ed25519_from_ossl(EVP_PKEY *pkey, unsigned char *key) {
+	UNUSED(pkey);
+	UNUSED(key);
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+#endif /* HAVE_OPENSSL_ED25519 */
+
+#if HAVE_OPENSSL_ED448
+
+#ifndef NID_ED448
+#error "Ed448 group is not known (NID_ED448)"
+#endif
+
+static const unsigned char ed448_pub_prefix[] = {
+	0x30, 0x2a, 0x30, 0x05, 0x06, 0x03, 0x2b, 0x65,
+	0x71, 0x03, 0x21, 0x00
+};
+
+static EVP_PKEY *pub_ed448_to_ossl(const unsigned char *key)
+{
+	unsigned char buf[PUBPREFIXLEN + DNS_KEY_ED448SIZE];
+	const unsigned char *p;
+
+	memmove(buf, ed448_pub_prefix, PUBPREFIXLEN);
+	memmove(buf + PUBPREFIXLEN, key, DNS_KEY_ED448SIZE);
+	p = buf;
+	return (d2i_PUBKEY(NULL, &p, PUBPREFIXLEN + DNS_KEY_ED448SIZE));
+}
+
+static isc_result_t pub_ed448_from_ossl(EVP_PKEY *pkey,
+					unsigned char *key)
+{
+	unsigned char buf[PUBPREFIXLEN + DNS_KEY_ED448SIZE];
+	unsigned char *p;
+	int len;
+
+	len = i2d_PUBKEY(pkey, NULL);
+	if ((len <= DNS_KEY_ED448SIZE) ||
+	    (len > PUBPREFIXLEN + DNS_KEY_ED448SIZE))
+		return (DST_R_OPENSSLFAILURE);
+	p = buf;
+	len = i2d_PUBKEY(pkey, &p);
+	if ((len <= DNS_KEY_ED448SIZE) ||
+	    (len > PUBPREFIXLEN + DNS_KEY_ED448SIZE))
+		return (DST_R_OPENSSLFAILURE);
+	memmove(key, buf + len - DNS_KEY_ED448SIZE, DNS_KEY_ED448SIZE);
+	return (ISC_R_SUCCESS);
+}
+
 static const unsigned char ed448_priv_prefix[] = {
 	0x30, 0x2e, 0x02, 0x01, 0x00, 0x30, 0x05, 0x06,
 	0x03, 0x2b, 0x65, 0x71, 0x04, 0x22, 0x04, 0x20
@@ -191,6 +232,39 @@ static isc_result_t priv_ed448_from_ossl(EVP_PKEY *pkey,
 	memmove(key, buf + len - DNS_KEY_ED448SIZE, DNS_KEY_ED448SIZE);
 	return (ISC_R_SUCCESS);
 }
+
+#else /* HAVE_OPENSSL_ED448 */
+
+static EVP_PKEY *
+pub_ed448_to_ossl(const unsigned char *key)
+{
+	UNUSED(key);
+	return (NULL);
+}
+
+static isc_result_t
+pub_ed448_from_ossl(EVP_PKEY *pkey, unsigned char *key)
+{
+	UNUSED(pkey);
+	UNUSED(key);
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+static EVP_PKEY *
+priv_ed448_to_ossl(const unsigned char *key)
+{
+	UNUSED(key);
+	return (NULL);
+}
+
+static isc_result_t
+priv_ed448_from_ossl(EVP_PKEY *pkey, unsigned char *key) {
+	UNUSED(pkey);
+	UNUSED(key);
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+#endif /* HAVE_OPENSSL_ED448 */
 
 static isc_result_t openssleddsa_todns(const dst_key_t *key,
 				       isc_buffer_t *data);
@@ -277,15 +351,20 @@ openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	isc_buffer_usedregion(buf, &tbsreg);
 
-	if (!EVP_DigestSignInit(ctx, NULL, NULL, NULL, pkey))
+	if (EVP_DigestSignInit(ctx, NULL, NULL, NULL, pkey))
 		DST_RET(dst__openssl_toresult3(dctx->category,
 					       "EVP_DigestSignInit",
 					       ISC_R_FAILURE));
-	if (!EVP_DigestSign(ctx, sigreg.base, &siglen,
-			    tbsreg.base, tbsreg.length))
+	if (EVP_DigestSignUpdate(ctx, tbsreg.base, tbsreg.length) != 1) {
+		DST_RET(dst__openssl_toresult3(dctx->category,
+					       "EVP_DigestSignUpdate",
+					       DST_R_SIGNFAILURE));
+	}
+	if (EVP_DigestSignFinal(ctx, sigreg.base, &siglen) != 1) {
 		DST_RET(dst__openssl_toresult3(dctx->category,
 					       "EVP_DigestSign",
 					       DST_R_SIGNFAILURE));
+	}
 	isc_buffer_add(sig, (unsigned int) siglen);
 	ret = ISC_R_SUCCESS;
 
@@ -307,7 +386,7 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	EVP_PKEY *pkey = key->keydata.pkey;
 	EVP_MD_CTX* ctx = EVP_MD_CTX_new();
 	isc_buffer_t *buf = (isc_buffer_t *) dctx->ctxdata.generic;
-	unsigned int siglen;
+	unsigned int siglen = 0;
 
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
@@ -315,23 +394,38 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	if (ctx == NULL)
 		return (ISC_R_NOMEMORY);
 
-	if (key->key_alg == DST_ALG_ED25519)
+#if HAVE_OPENSSL_ED25519
+	if (key->key_alg == DST_ALG_ED25519) {
 		siglen = DNS_SIG_ED25519SIZE;
-	else
+	}
+#endif
+#if HAVE_OPENSSL_ED448
+	if (key->key_alg == DST_ALG_ED448) {
 		siglen = DNS_SIG_ED448SIZE;
+	}
+#endif
+	if (siglen == 0) {
+		return (ISC_R_NOTIMPLEMENTED);
+	}
 
 	if (sig->length != siglen)
 		return (DST_R_VERIFYFAILURE);
 
 	isc_buffer_usedregion(buf, &tbsreg);
 
-	if (!EVP_DigestVerifyInit(ctx, NULL, NULL, NULL, pkey))
+	if (EVP_DigestVerifyInit(ctx, NULL, NULL, NULL, pkey) != 1) {
 		DST_RET(dst__openssl_toresult3(dctx->category,
 					       "EVP_DigestVerifyInit",
 					       ISC_R_FAILURE));
+	}
 
-	status = EVP_DigestVerify(ctx, sig->base, siglen,
-				  tbsreg.base, tbsreg.length);
+	if (EVP_DigestVerifyUpdate(ctx, tbsreg.base, tbsreg.length) != 1) {
+		DST_RET(dst__openssl_toresult3(dctx->category,
+					       "EVP_DigestVerifyUpdate",
+					       ISC_R_FAILURE));
+	}
+
+	status = EVP_DigestVerifyFinal(ctx, sig->base, siglen);
 
 	switch (status) {
 	case 1:
@@ -378,19 +472,27 @@ openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	isc_result_t ret;
 	EVP_PKEY *pkey = NULL;
 	EVP_PKEY_CTX *ctx = NULL;
-	int nid, status;
+	int nid = 0, status;
 
 	REQUIRE(key->key_alg == DST_ALG_ED25519 ||
 		key->key_alg == DST_ALG_ED448);
 	UNUSED(unused);
 	UNUSED(callback);
 
+#if HAVE_OPENSSL_ED25519
 	if (key->key_alg == DST_ALG_ED25519) {
 		nid = NID_ED25519;
 		key->key_size = DNS_KEY_ED25519SIZE;
-	} else {
+	}
+#endif
+#if HAVE_OPENSSL_ED448
+	if (key->key_alg == DST_ALG_ED448) {
 		nid = NID_ED448;
 		key->key_size = DNS_KEY_ED448SIZE;
+	}
+#endif
+	if (nid == 0) {
+		return (ISC_R_NOTIMPLEMENTED);
 	}
 
 	ctx = EVP_PKEY_CTX_new_id(nid, NULL);
@@ -662,11 +764,6 @@ dst__openssleddsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#else /* HAVE_OPENSSL && (HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448) */
+#endif /* !USE_PKCS11 */
 
-#include <isc/util.h>
-
-EMPTY_TRANSLATION_UNIT
-
-#endif /* HAVE_OPENSSL && (HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448) */
 /*! \file */

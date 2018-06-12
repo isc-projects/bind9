@@ -142,11 +142,7 @@ EXTERN const char *		named_g_defaultdnstap	INIT(NULL);
 
 EXTERN const char *		named_g_username	INIT(NULL);
 
-#if defined(USE_PKCS11)
-EXTERN const char *		named_g_engine		INIT(PKCS11_ENGINE);
-#else
 EXTERN const char *		named_g_engine		INIT(NULL);
-#endif
 
 EXTERN isc_time_t		named_g_boottime;
 EXTERN isc_time_t		named_g_configtime;

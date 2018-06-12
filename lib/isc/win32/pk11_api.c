@@ -30,10 +30,8 @@
 #include <pk11/pk11.h>
 #include <pk11/internal.h>
 
-#define HAVE_GETPASSPHRASE
-
 char *
-getpassphrase(const char *prompt) {
+getpass(const char *prompt) {
 	static char buf[128];
 	HANDLE h;
 	DWORD cc, mode;

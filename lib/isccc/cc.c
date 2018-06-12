@@ -54,7 +54,6 @@
 
 typedef isccc_sexpr_t *sexpr_ptr;
 
-#ifndef PK11_MD5_DISABLE
 static unsigned char auth_hmd5[] = {
 	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68,		/*%< len + _auth */
 	ISCCC_CCMSGTYPE_TABLE,				/*%< message type */
@@ -73,7 +72,6 @@ static unsigned char auth_hmd5[] = {
 
 #define HMD5_OFFSET	21		/*%< 21 = 6 + 1 + 4 + 5 + 1 + 4 */
 #define HMD5_LENGTH	22
-#endif
 
 static unsigned char auth_hsha[] = {
 	0x05, 0x5f, 0x61, 0x75, 0x74, 0x68,		/*%< len + _auth */
@@ -251,9 +249,7 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
      isc_uint32_t algorithm, isccc_region_t *secret)
 {
 	union {
-#ifndef PK11_MD5_DISABLE
 		isc_hmacmd5_t hmd5;
-#endif
 		isc_hmacsha1_t hsha;
 		isc_hmacsha224_t h224;
 		isc_hmacsha256_t h256;
@@ -268,7 +264,6 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 	source.rstart = digest;
 
 	switch (algorithm) {
-#ifndef PK11_MD5_DISABLE
 	case ISCCC_ALG_HMACMD5:
 		isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
 				 REGION_SIZE(*secret));
@@ -276,7 +271,6 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 		isc_hmacmd5_sign(&ctx.hmd5, digest);
 		source.rend = digest + ISC_MD5_DIGESTLENGTH;
 		break;
-#endif
 
 	case ISCCC_ALG_HMACSHA1:
 		isc_hmacsha1_init(&ctx.hsha, secret->rstart,
@@ -333,11 +327,9 @@ sign(unsigned char *data, unsigned int length, unsigned char *hmac,
 	result = isccc_base64_encode(&source, 64, "", &target);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-#ifndef PK11_MD5_DISABLE
 	if (algorithm == ISCCC_ALG_HMACMD5)
 		PUT_MEM(digestb64, HMD5_LENGTH, hmac);
 	else
-#endif
 		PUT_MEM(digestb64, HSHA_LENGTH, hmac);
 	return (ISC_R_SUCCESS);
 }
@@ -349,16 +341,10 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 	unsigned int hmac_base, signed_base;
 	isc_result_t result;
 
-#ifndef PK11_MD5_DISABLE
 	result = isc_buffer_reserve(buffer,
 				    4 + ((algorithm == ISCCC_ALG_HMACMD5) ?
 					 sizeof(auth_hmd5) :
 					 sizeof(auth_hsha)));
-#else
-	if (algorithm == ISCCC_ALG_HMACMD5)
-		return (ISC_R_NOTIMPLEMENTED);
-	result = isc_buffer_reserve(buffer, 4 + sizeof(auth_hsha));
-#endif
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_NOSPACE);
 
@@ -373,13 +359,11 @@ isccc_cc_towire(isccc_sexpr_t *alist, isc_buffer_t **buffer,
 		 * We'll replace the zeros with the real signature once
 		 * we know what it is.
 		 */
-#ifndef PK11_MD5_DISABLE
 		if (algorithm == ISCCC_ALG_HMACMD5) {
 			hmac_base = (*buffer)->used + HMD5_OFFSET;
 			isc_buffer_putmem(*buffer,
 					  auth_hmd5, sizeof(auth_hmd5));
 		} else
-#endif
 		{
 			unsigned char *hmac_alg;
 
@@ -417,9 +401,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
        isc_uint32_t algorithm, isccc_region_t *secret)
 {
 	union {
-#ifndef PK11_MD5_DISABLE
 		isc_hmacmd5_t hmd5;
-#endif
 		isc_hmacsha1_t hsha;
 		isc_hmacsha224_t h224;
 		isc_hmacsha256_t h256;
@@ -439,11 +421,9 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	_auth = isccc_alist_lookup(alist, "_auth");
 	if (!isccc_alist_alistp(_auth))
 		return (ISC_R_FAILURE);
-#ifndef PK11_MD5_DISABLE
 	if (algorithm == ISCCC_ALG_HMACMD5)
 		hmac = isccc_alist_lookup(_auth, "hmd5");
 	else
-#endif
 		hmac = isccc_alist_lookup(_auth, "hsha");
 	if (!isccc_sexpr_binaryp(hmac))
 		return (ISC_R_FAILURE);
@@ -453,7 +433,6 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	source.rstart = digest;
 	target.rstart = digestb64;
 	switch (algorithm) {
-#ifndef PK11_MD5_DISABLE
 	case ISCCC_ALG_HMACMD5:
 		isc_hmacmd5_init(&ctx.hmd5, secret->rstart,
 				 REGION_SIZE(*secret));
@@ -461,7 +440,6 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		isc_hmacmd5_sign(&ctx.hmd5, digest);
 		source.rend = digest + ISC_MD5_DIGESTLENGTH;
 		break;
-#endif
 
 	case ISCCC_ALG_HMACSHA1:
 		isc_hmacsha1_init(&ctx.hsha, secret->rstart,
@@ -521,7 +499,6 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 	/*
 	 * Verify.
 	 */
-#ifndef PK11_MD5_DISABLE
 	if (algorithm == ISCCC_ALG_HMACMD5) {
 		isccc_region_t *region;
 		unsigned char *value;
@@ -532,9 +509,7 @@ verify(isccc_sexpr_t *alist, unsigned char *data, unsigned int length,
 		value = region->rstart;
 		if (!isc_safe_memequal(value, digestb64, HMD5_LENGTH))
 			return (ISCCC_R_BADAUTH);
-	} else
-#endif
-	{
+	} else {
 		isccc_region_t *region;
 		unsigned char *value;
 		isc_uint32_t valalg;
