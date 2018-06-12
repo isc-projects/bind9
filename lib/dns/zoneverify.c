@@ -206,8 +206,6 @@ verifynsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	dns_rdata_nsec_t nsec;
 	isc_result_t result;
 
-	*vresult = ISC_R_SUCCESS;
-
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(vctx->db, node, vctx->ver,
 				     dns_rdatatype_nsec, 0, 0, &rdataset,
@@ -267,7 +265,10 @@ verifynsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 		zoneverify_log_error(vctx, "Multiple NSEC records for %s",
 				     namebuf);
 		*vresult = ISC_R_FAILURE;
+		goto done;
 	}
+
+	*vresult = ISC_R_SUCCESS;
 	result = ISC_R_SUCCESS;
 
  done:
@@ -413,8 +414,6 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 	isc_result_t result;
 	unsigned int len;
 
-	*vresult = ISC_R_SUCCESS;
-
 	/*
 	 * Find matching NSEC3 record.
 	 */
@@ -492,6 +491,8 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 	}
 	if (result != ISC_R_NOMORE)
 		return (result);
+
+	*vresult = ISC_R_SUCCESS;
 
 	return (ISC_R_SUCCESS);
 }
