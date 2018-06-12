@@ -3921,6 +3921,8 @@ main(int argc, char *argv[]) {
 				fatal("failed to rename temp file to %s: %s",
 				      output, isc_result_totext(result));
 			printf("%s\n", output);
+		} else {
+			isc_file_remove(tempfile);
 		}
 	}
 
