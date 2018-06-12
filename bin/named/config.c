@@ -51,11 +51,7 @@ options {\n\
 	automatic-interface-scan yes;\n\
 	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"
-#if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 "	cookie-algorithm aes;\n"
-#else
-"	cookie-algorithm sha256;\n"
-#endif
 #ifndef WIN32
 "	coresize default;\n\
 	datasize default;\n"
@@ -956,11 +952,9 @@ struct keyalgorithms {
 	unsigned int type;
 	isc_uint16_t size;
 } algorithms[] = {
-#ifndef PK11_MD5_DISABLE
 	{ "hmac-md5", hmacmd5, DST_ALG_HMACMD5, 128 },
 	{ "hmac-md5.sig-alg.reg.int", hmacmd5, DST_ALG_HMACMD5, 0 },
 	{ "hmac-md5.sig-alg.reg.int.", hmacmd5, DST_ALG_HMACMD5, 0 },
-#endif
 	{ "hmac-sha1", hmacsha1, DST_ALG_HMACSHA1, 160 },
 	{ "hmac-sha224", hmacsha224, DST_ALG_HMACSHA224, 224 },
 	{ "hmac-sha256", hmacsha256, DST_ALG_HMACSHA256, 256 },
@@ -1007,9 +1001,7 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 
 	if (name != NULL) {
 		switch (algorithms[i].hmac) {
-#ifndef PK11_MD5_DISABLE
 		case hmacmd5: *name = dns_tsig_hmacmd5_name; break;
-#endif
 		case hmacsha1: *name = dns_tsig_hmacsha1_name; break;
 		case hmacsha224: *name = dns_tsig_hmacsha224_name; break;
 		case hmacsha256: *name = dns_tsig_hmacsha256_name; break;

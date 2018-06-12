@@ -52,7 +52,7 @@
 
 #include <dst/dst.h>
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -106,12 +106,9 @@ usage(void) {
 	fprintf(stderr, "    -c <class>: (default: IN)\n");
 	fprintf(stderr, "    -d <digest bits> (0 => max, default)\n");
 	fprintf(stderr, "    -E <engine>:\n");
-#if HAVE_PKCS11
+#if USE_PKCS11
 	fprintf(stderr, "        path to PKCS#11 provider library "
 				"(default is %s)\n", PK11_LIB_LOCATION);
-#elif defined(USE_PKCS11)
-	fprintf(stderr, "        name of an OpenSSL engine to use "
-				"(default is \"pkcs11\")\n");
 #else
 	fprintf(stderr, "        name of an OpenSSL engine to use\n");
 #endif
@@ -216,11 +213,7 @@ main(int argc, char **argv) {
 	dst_key_t	*prevkey = NULL;
 	isc_buffer_t	buf;
 	isc_log_t	*log = NULL;
-#ifdef USE_PKCS11
-	const char	*engine = PKCS11_ENGINE;
-#else
 	const char	*engine = NULL;
-#endif
 	dns_rdataclass_t rdclass;
 	int		options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC;
 	int		dbits = 0;
@@ -247,7 +240,7 @@ main(int argc, char **argv) {
 	if (argc == 1)
 		usage();
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();
@@ -523,23 +516,12 @@ main(int argc, char **argv) {
 		}
 
 		if (strcasecmp(algname, "RSA") == 0) {
-#ifndef PK11_MD5_DISABLE
 			fprintf(stderr, "The use of RSA (RSAMD5) is not "
 					"recommended.\nIf you still wish to "
 					"use RSA (RSAMD5) please specify "
 					"\"-a RSAMD5\"\n");
 			INSIST(freeit == NULL);
 			return (1);
-#else
-			fprintf(stderr,
-				"The use of RSA (RSAMD5) was disabled\n");
-			INSIST(freeit == NULL);
-			return (1);
-		} else if (strcasecmp(algname, "RSAMD5") == 0) {
-			fprintf(stderr, "The use of RSAMD5 was disabled\n");
-			INSIST(freeit == NULL);
-			return (1);
-#endif
 		} else {
 			r.base = algname;
 			r.length = strlen(algname);
@@ -551,10 +533,6 @@ main(int argc, char **argv) {
 				options |= DST_TYPE_KEY;
 			}
 		}
-
-#ifdef PK11_MD5_DISABLE
-		INSIST((alg != DNS_KEYALG_RSAMD5));
-#endif
 
 		if (!dst_algorithm_supported(alg)) {
 			fatal("unsupported algorithm: %d", alg);

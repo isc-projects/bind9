@@ -79,7 +79,7 @@
 
 #include <dst/dst.h>
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -3085,12 +3085,9 @@ usage(void) {
 	fprintf(stderr, "verify generated signatures\n");
 	fprintf(stderr, "\t-c class (IN)\n");
 	fprintf(stderr, "\t-E engine:\n");
-#if HAVE_PKCS11
+#if USE_PKCS11
 	fprintf(stderr, "\t\tpath to PKCS#11 provider library "
 		"(default is %s)\n", PK11_LIB_LOCATION);
-#elif defined(USE_PKCS11)
-	fprintf(stderr, "\t\tname of an OpenSSL engine to use "
-				"(default is \"pkcs11\")\n");
 #else
 	fprintf(stderr, "\t\tname of an OpenSSL engine to use\n");
 #endif
@@ -3183,11 +3180,7 @@ main(int argc, char *argv[]) {
 	dns_dnsseckey_t *key;
 	isc_result_t result;
 	isc_log_t *log = NULL;
-#ifdef USE_PKCS11
-	const char *engine = PKCS11_ENGINE;
-#else
 	const char *engine = NULL;
-#endif
 	isc_boolean_t free_output = ISC_FALSE;
 	int tempfilelen = 0;
 	dns_rdataclass_t rdclass;
@@ -3240,7 +3233,7 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		fatal("out of memory");
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 	pk11_result_register();
 #endif
 	dns_result_register();

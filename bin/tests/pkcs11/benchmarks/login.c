@@ -55,10 +55,6 @@
 #include <pk11/pk11.h>
 #include <pk11/internal.h>
 
-#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
-#define getpassphrase(x)	getpass(x)
-#endif
-
 #ifndef HAVE_CLOCK_GETTIME
 
 #include <sys/time.h>
@@ -149,8 +145,9 @@ main(int argc, char *argv[]) {
 	if (lib_name != NULL)
 		pk11_set_lib_name(lib_name);
 
-	if (pin == NULL)
-		pin = (CK_UTF8CHAR *)getpassphrase("Enter Pin: ");
+	if (pin == NULL) {
+		pin = (CK_UTF8CHAR *)getpass("Enter Pin: ");
+	}
 
 	rv = pkcs_C_Initialize(NULL_PTR);
 	if (rv != CKR_OK) {

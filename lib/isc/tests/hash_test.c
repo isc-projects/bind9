@@ -769,7 +769,6 @@ ATF_TC_BODY(isc_sha512, tc) {
 	}
 }
 
-#ifndef PK11_MD5_DISABLE
 ATF_TC(isc_md5);
 ATF_TC_HEAD(isc_md5, tc) {
 	atf_tc_set_md_var(tc, "descr", "md5 example from RFC1321");
@@ -842,7 +841,6 @@ ATF_TC_BODY(isc_md5, tc) {
 		testcase++;
 	}
 }
-#endif
 
 /* HMAC-SHA1 test */
 ATF_TC(isc_hmacsha1);
@@ -1639,7 +1637,6 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 }
 
 
-#ifndef PK11_MD5_DISABLE
 /* HMAC-MD5 Test */
 ATF_TC(isc_hmacmd5);
 ATF_TC_HEAD(isc_hmacmd5, tc) {
@@ -1781,7 +1778,6 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 		test_key++;
 	}
 }
-#endif
 
 /* CRC64 Test */
 ATF_TC(isc_crc64);
@@ -1963,7 +1959,6 @@ ATF_TC_BODY(isc_hash_initializer, tc) {
 	ATF_CHECK_EQ(h1, h2);
 }
 
-#ifndef PK11_MD5_DISABLE
 ATF_TC(md5_check);
 ATF_TC_HEAD(md5_check, tc) {
 	atf_tc_set_md_var(tc, "descr", "Startup MD5 check test");
@@ -1980,7 +1975,6 @@ ATF_TC_BODY(md5_check, tc) {
 	ATF_CHECK(!isc_hmacmd5_check(3));
 	ATF_CHECK(!isc_hmacmd5_check(4));
 }
-#endif
 
 ATF_TC(sha1_check);
 ATF_TC_HEAD(sha1_check, tc) {
@@ -2007,25 +2001,19 @@ ATF_TP_ADD_TCS(tp) {
 	 * Tests of hash functions, including isc_hash and the
 	 * various cryptographic hashes.
 	 */
-#ifndef PK11_MD5_DISABLE
 	ATF_TP_ADD_TC(tp, md5_check);
-#endif
 	ATF_TP_ADD_TC(tp, sha1_check);
 
 	ATF_TP_ADD_TC(tp, isc_hash_function);
 	ATF_TP_ADD_TC(tp, isc_hash_function_reverse);
 	ATF_TP_ADD_TC(tp, isc_hash_initializer);
-#ifndef PK11_MD5_DISABLE
 	ATF_TP_ADD_TC(tp, isc_hmacmd5);
-#endif
 	ATF_TP_ADD_TC(tp, isc_hmacsha1);
 	ATF_TP_ADD_TC(tp, isc_hmacsha224);
 	ATF_TP_ADD_TC(tp, isc_hmacsha256);
 	ATF_TP_ADD_TC(tp, isc_hmacsha384);
 	ATF_TP_ADD_TC(tp, isc_hmacsha512);
-#ifndef PK11_MD5_DISABLE
 	ATF_TP_ADD_TC(tp, isc_md5);
-#endif
 	ATF_TP_ADD_TC(tp, isc_sha1);
 	ATF_TP_ADD_TC(tp, isc_sha224);
 	ATF_TP_ADD_TC(tp, isc_sha256);

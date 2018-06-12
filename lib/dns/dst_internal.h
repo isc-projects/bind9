@@ -23,9 +23,9 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#pragma once
 
-#ifndef DST_DST_INTERNAL_H
-#define DST_DST_INTERNAL_H 1
+#include <config.h>
 
 #include <isc/lang.h>
 #include <isc/buffer.h>
@@ -41,24 +41,21 @@
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
 
+#if USE_PKCS11
+#include <pk11/pk11.h>
 #include <pk11/site.h>
+#endif /* USE_PKCS11 */
 
 #include <dns/time.h>
 
 #include <dst/dst.h>
 
-#if HAVE_OPENSSL
-#ifndef PK11_DH_DISABLE
 #include <openssl/dh.h>
-#endif
-#ifndef PK11_DSA_DISABLE
 #include <openssl/dsa.h>
-#endif
 #include <openssl/err.h>
 #include <openssl/evp.h>
 #include <openssl/objects.h>
 #include <openssl/rsa.h>
-#endif
 
 ISC_LANG_BEGINDECLS
 
@@ -76,9 +73,7 @@ LIBDNS_EXTERNAL_DATA extern isc_mem_t *dst__memory_pool;
 
 typedef struct dst_func dst_func_t;
 
-#ifndef PK11_MD5_DISABLE
 typedef struct dst_hmacmd5_key	  dst_hmacmd5_key_t;
-#endif
 typedef struct dst_hmacsha1_key   dst_hmacsha1_key_t;
 typedef struct dst_hmacsha224_key dst_hmacsha224_key_t;
 typedef struct dst_hmacsha256_key dst_hmacsha256_key_t;
@@ -112,20 +107,15 @@ struct dst_key {
 	union {
 		void *generic;
 		gss_ctx_id_t gssctx;
-#if HAVE_OPENSSL
-#ifndef PK11_DSA_DISABLE
 		DSA *dsa;
-#endif
-#ifndef PK11_DH_DISABLE
 		DH *dh;
-#endif
+#if USE_OPENSSL
 		EVP_PKEY *pkey;
-#elif HAVE_PKCS11
+#endif
+#if USE_PKCS11
 		pk11_object_t *pkey;
 #endif
-#ifndef PK11_MD5_DISABLE
 		dst_hmacmd5_key_t *hmacmd5;
-#endif
 		dst_hmacsha1_key_t *hmacsha1;
 		dst_hmacsha224_key_t *hmacsha224;
 		dst_hmacsha256_key_t *hmacsha256;
@@ -158,23 +148,18 @@ struct dst_context {
 	union {
 		void *generic;
 		dst_gssapi_signverifyctx_t *gssctx;
-#ifndef PK11_MD5_DISABLE
 		isc_md5_t *md5ctx;
-#endif
 		isc_sha1_t *sha1ctx;
 		isc_sha256_t *sha256ctx;
 		isc_sha512_t *sha512ctx;
-#ifndef PK11_MD5_DISABLE
 		isc_hmacmd5_t *hmacmd5ctx;
-#endif
 		isc_hmacsha1_t *hmacsha1ctx;
 		isc_hmacsha224_t *hmacsha224ctx;
 		isc_hmacsha256_t *hmacsha256ctx;
 		isc_hmacsha384_t *hmacsha384ctx;
 		isc_hmacsha512_t *hmacsha512ctx;
-#if HAVE_OPENSSL
 		EVP_MD_CTX *evp_md_ctx;
-#elif HAVE_PKCS11
+#if USE_PKCS11
 		pk11_context_t *pk11_ctx;
 #endif
 	} ctxdata;
@@ -232,38 +217,34 @@ struct dst_func {
 isc_result_t dst__openssl_init(const char *engine);
 #define dst__pkcs11_init pk11_initialize
 
-#ifndef PK11_MD5_DISABLE
 isc_result_t dst__hmacmd5_init(struct dst_func **funcp);
-#endif
 isc_result_t dst__hmacsha1_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha224_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha256_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha384_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha512_init(struct dst_func **funcp);
+#if USE_OPENSSL
 isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
 				  unsigned char algorithm);
-isc_result_t dst__pkcs11rsa_init(struct dst_func **funcp);
-#ifndef PK11_DSA_DISABLE
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
-isc_result_t dst__pkcs11dsa_init(struct dst_func **funcp);
-#endif
-#ifndef PK11_DH_DISABLE
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
-isc_result_t dst__pkcs11dh_init(struct dst_func **funcp);
-#endif
-isc_result_t dst__gssapi_init(struct dst_func **funcp);
-#ifdef HAVE_OPENSSL_ECDSA
 isc_result_t dst__opensslecdsa_init(struct dst_func **funcp);
-#endif
-#if defined(HAVE_OPENSSL_ED25519) || defined(HAVE_OPENSSL_ED448)
 isc_result_t dst__openssleddsa_init(struct dst_func **funcp);
-#endif
+#endif /* USE_OPENSSL */
+#if USE_PKCS11
+isc_result_t dst__pkcs11rsa_init(struct dst_func **funcp);
+isc_result_t dst__pkcs11dsa_init(struct dst_func **funcp);
+isc_result_t dst__pkcs11dh_init(struct dst_func **funcp);
 #ifdef HAVE_PKCS11_ECDSA
 isc_result_t dst__pkcs11ecdsa_init(struct dst_func **funcp);
 #endif
 #if defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448)
 isc_result_t dst__pkcs11eddsa_init(struct dst_func **funcp);
 #endif
+#endif /* USE_PKCS11 */
+#ifdef GSSAPI
+isc_result_t dst__gssapi_init(struct dst_func **funcp);
+#endif /* GSSAPI */
 
 /*%
  * Destructors
@@ -280,5 +261,4 @@ void * dst__mem_realloc(void *ptr, size_t size);
 
 ISC_LANG_ENDDECLS
 
-#endif /* DST_DST_INTERNAL_H */
 /*! \file */
