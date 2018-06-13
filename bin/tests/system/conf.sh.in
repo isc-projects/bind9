@@ -254,6 +254,41 @@ digcomp() {
 # Useful functions in test scripts
 #
 
+# keyfile_to_keys_section: helper function for keyfile_to_*_keys() which
+# converts keyfile data into a configuration section using the supplied
+# parameters
+keyfile_to_keys_section() {
+    section_name=$1
+    key_prefix=$2
+    shift
+    shift
+    echo "$section_name {"
+    for keyname in $*; do
+        awk '!/^; /{
+            printf "\t\""$1"\" "
+            printf "'"$key_prefix"'"
+            printf $4 " " $5 " " $6 " \""
+            for (i=7; i<=NF; i++) printf $i
+            printf "\";\n"
+        }' $keyname.key
+    done
+    echo "};"
+}
+
+# keyfile_to_trusted_keys: convert key data contained in the keyfile(s)
+# provided to a "trusted-keys" section suitable for including in a
+# resolver's configuration file
+keyfile_to_trusted_keys() {
+    keyfile_to_keys_section "trusted-keys" "" $*
+}
+
+# keyfile_to_managed_keys: convert key data contained in the keyfile(s)
+# provided to a "managed-keys" section suitable for including in a
+# resolver's configuration file
+keyfile_to_managed_keys() {
+    keyfile_to_keys_section "managed-keys" "initial-key " $*
+}
+
 # nextpart: read everything that's been appended to a file since the
 # last time 'nextpart' was called.
 nextpart () {
