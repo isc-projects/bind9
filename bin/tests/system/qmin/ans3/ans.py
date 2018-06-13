@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 import time
 import functools
 
-import dns, dns.message, dns.query
+import dns, dns.message, dns.query, dns.flags
 from dns.rdatatype import *
 from dns.rdataclass import *
 from dns.rcode import *
@@ -41,6 +41,8 @@ def logquery(type, qname):
 # For slow. it works the same as for good., but each response is delayed by 400 miliseconds
 #
 # For bad. it works the same as for good., but returns NXDOMAIN to non-empty terminals
+#
+# For ugly. it works the same as for good., but returns garbage to non-empty terminals
 ############################################################################
 def create_response(msg):
     m = dns.message.from_wire(msg)
@@ -54,6 +56,7 @@ def create_response(msg):
     if typename == "A" or typename == "AAAA":
         typename = "ADDR"
     bad = False
+    ugly = False
     slow = False
 
     # log this query
@@ -68,6 +71,10 @@ def create_response(msg):
         bad = True
         suffix = "bad."
         lqname = lqname[:-4]
+    elif lqname.endswith("ugly."):
+        ugly = True
+        suffix = "ugly."
+        lqname = lqname[:-5]
     elif lqname.endswith("good."):
         suffix = "good."
         lqname = lqname[:-5]
@@ -82,12 +89,15 @@ def create_response(msg):
     # Good/bad differs only in how we treat non-empty terminals
     if lqname == "zoop.boing." and rrtype == NS:
         r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, NS, "ns3."+suffix))
+        r.flags |= dns.flags.AA
     elif lqname.endswith("icky.ptang.zoop.boing."):
         r.authority.append(dns.rrset.from_text("icky.ptang.zoop.boing." + suffix, 1, IN, NS, "a.bit.longer.ns.name." + suffix))
     elif "icky.ptang.zoop.boing.".endswith(lqname):
         r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, SOA, "ns3." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
         if bad:
             r.set_rcode(NXDOMAIN)
+        if ugly:
+            r.set_rcode(FORMERR)
     elif "zoop.boing.".endswith(lqname):
         r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, SOA, "ns3." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
         r.set_rcode(NXDOMAIN)

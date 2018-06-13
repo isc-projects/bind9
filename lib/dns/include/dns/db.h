@@ -103,6 +103,7 @@ typedef struct dns_dbmethods {
 				       unsigned int options, isc_stdtime_t now,
 				       dns_dbnode_t **nodep,
 				       dns_name_t *foundname,
+				       dns_name_t *dcname,
 				       dns_rdataset_t *rdataset,
 				       dns_rdataset_t *sigrdataset);
 	void		(*attachnode)(dns_db_t *db,
@@ -936,7 +937,8 @@ isc_result_t
 dns_db_findzonecut(dns_db_t *db, const dns_name_t *name,
 		   unsigned int options, isc_stdtime_t now,
 		   dns_dbnode_t **nodep, dns_name_t *foundname,
-		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+		   dns_name_t *dcname, dns_rdataset_t *rdataset,
+		   dns_rdataset_t *sigrdataset);
 /*%<
  * Find the deepest known zonecut which encloses 'name' in 'db'.
  *
@@ -955,6 +957,8 @@ dns_db_findzonecut(dns_db_t *db, const dns_name_t *name,
  *
  * \li	'foundname' is a valid name with a dedicated buffer.
  *
+ * \li	'dcname' is a valid name with a dedicated buffer.
+ *
  * \li	'rdataset' is NULL, or is a valid unassociated rdataset.
  *
  * Ensures, on a non-error completion:
@@ -963,6 +967,9 @@ dns_db_findzonecut(dns_db_t *db, const dns_name_t *name,
  *
  * \li	If foundname != NULL, then it contains the full name of the
  *	found node.
+ *
+ * \li	If dcname != NULL, then it contains the deepest cached name
+ *      that exists in the database.
  *
  * \li	If rdataset != NULL and type != dns_rdatatype_any, then
  *	rdataset is bound to the found rdataset.
