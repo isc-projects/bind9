@@ -704,7 +704,7 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
-		     dns_name_t *fname, isc_stdtime_t now,
+		     dns_name_t *fname, dns_name_t *dcname, isc_stdtime_t now,
 		     unsigned int options,
 		     bool use_hints, bool use_cache,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
@@ -729,6 +729,8 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
  *
  *\li	If the DNS_DBFIND_NOEXACT option is set, then the zonecut returned
  *	(if any) will be the deepest known ancestor of 'name'.
+ *
+ *\li	If dcname is not NULL the deepest cached name is copied to it.
  *
  * Requires:
  *
