@@ -14,12 +14,16 @@
 #include <config.h>
 
 #include <stdarg.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
 #include <dns/keyvalues.h>
+#include <dns/log.h>
+#include <dns/name.h>
 #include <dns/nsec.h>
 #include <dns/nsec3.h>
 #include <dns/rdata.h>
@@ -28,13 +32,20 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 #include <dns/result.h>
+#include <dns/secalg.h>
 #include <dns/types.h>
 #include <dns/zone.h>
 #include <dns/zoneverify.h>
 
+#include <dst/dst.h>
+
 #include <isc/base32.h>
+#include <isc/buffer.h>
 #include <isc/heap.h>
+#include <isc/iterated_hash.h>
+#include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/region.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>
