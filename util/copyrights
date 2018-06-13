@@ -2495,8 +2495,8 @@
 ./isc-config.sh.html				HTML	DOCBOOK
 ./isc-config.sh.in				SH	2000,2001,2003,2004,2007,2012,2013,2015,2018
 ./lib/.gitignore				X	2012,2018
-./lib/Atffile					X	2011,2014,2016,2017,2018
-./lib/Kyuafile					X	2017,2018
+./lib/Atffile.in				X	2011,2014,2016,2017,2018
+./lib/Kyuafile.in				X	2017,2018
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007,2012,2013,2018
 ./lib/bind9/Makefile.in				MAKE	2001,2004,2007,2009,2012,2014,2015,2016,2018
 ./lib/bind9/api					X	2001,2006,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
@@ -2967,6 +2967,8 @@
 ./lib/dns/zone_p.h				C	2018
 ./lib/dns/zonekey.c				C	2001,2003,2004,2005,2007,2018
 ./lib/dns/zt.c					C	1999,2000,2001,2002,2004,2005,2006,2007,2011,2012,2014,2016,2017,2018
+./lib/export/Atffile				X	2018
+./lib/export/Kyuafile				X	2018
 ./lib/export/Makefile.in			MAKE	2009,2012,2018
 ./lib/export/dns/.gitignore			X	2012,2013,2018
 ./lib/export/dns/Makefile.in			MAKE	2009,2010,2011,2012,2013,2015,2016,2017,2018
