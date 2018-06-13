@@ -415,7 +415,8 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="include\isc\thread.h" />
     <ClInclude Include="include\isc\time.h" />
     <ClInclude Include="include\isc\win32os.h" />
-    <ClInclude Include="../entropy_private.h" />    
+    <ClInclude Include="../entropy_private.h" />
+    <ClInclude Include="../openssl_shim.h" />    
     <ClInclude Include="syslog.h" />
     <ClInclude Include="unistd.h" />
 @IF PKCS11
@@ -462,6 +463,8 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\netscope.c" />
     <ClCompile Include="..\nonce.c" />
     <ClCompile Include="..\nls\msgcat.c" />
+    <ClCompile Include="..\openssl_shim.c" />
+    <ClCompile Include="..\parseint.c" />
     <ClCompile Include="..\parseint.c" />
     <ClCompile Include="..\pool.c" />
     <ClCompile Include="..\portset.c" />
