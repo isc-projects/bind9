@@ -251,6 +251,7 @@ struct dns_dbonupdatelistener {
 #define DNS_DBFIND_ADDITIONALOK		0x0100
 #define DNS_DBFIND_NOZONECUT		0x0200
 #define DNS_DBFIND_STALEOK		0x0400
+#define DNS_DBFIND_FORCEBOTTOM		0x0800
 /*@}*/
 
 /*@{*/
