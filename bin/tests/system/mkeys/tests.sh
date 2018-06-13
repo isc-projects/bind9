@@ -84,6 +84,9 @@ mkeys_secroots_on() {
 	$RNDCCMD 10.53.0.${nsidx} secroots | sed "s/^/ns${nsidx} /" | cat_i
 }
 
+original=`cat ns1/managed.key`
+originalid=`cat ns1/managed.key.id`
+
 status=0
 n=1
 
@@ -191,7 +194,7 @@ ret=0
 echo_i "restore untrusted standby key, revoke original key ($n)"
 t1=$t2
 $SETTIME -D none -K ns1 $standby1 > /dev/null
-$SETTIME -R now -K ns1 `cat ns1/managed.key` > /dev/null
+$SETTIME -R now -K ns1 $original > /dev/null
 mkeys_loadkeys_on 1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
@@ -261,9 +264,9 @@ n=`expr $n + 1`
 ret=0
 echo_i "restore revoked key, ensure same result ($n)"
 t1=$t2
-$SETTIME -R none -D now -K ns1 `cat ns1/managed.key` > /dev/null
+$SETTIME -R none -D now -K ns1 $original > /dev/null
 mkeys_loadkeys_on 1
-$SETTIME -D none -K ns1 `cat ns1/managed.key` > /dev/null
+$SETTIME -D none -K ns1 $original > /dev/null
 mkeys_loadkeys_on 1
 # Less than a second may have passed since the last time ns2 received a
 # ./DNSKEY response from ns1.  Ensure keys are refreshed at a different
@@ -298,17 +301,7 @@ status=`expr $status + $ret`
 echo_i "reinitialize trust anchors, add second key to bind.keys"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns2
 rm -f ns2/managed-keys.bind*
-cat ns1/$standby1.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-local $originalkey = `grep initial-key ns2/managed1.conf`;
-print <<EOF
-managed-keys {
-    $originalkey
-    "$dn" initial-key $flags $proto $alg "$key";
-};
-EOF
-' > ns2/managed.conf
+keyfile_to_managed_keys ns1/$original ns1/$standby1 > ns2/managed.conf
 nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
 
@@ -349,7 +342,7 @@ n=`expr $n + 1`
 echo_i "revoke original key, add new standby ($n)"
 ret=0
 standby2=`$KEYGEN -a rsasha256 -qfk -r $RANDFILE -K ns1 .`
-$SETTIME -R now -K ns1 `cat ns1/managed.key` > /dev/null
+$SETTIME -R now -K ns1 $original > /dev/null
 mkeys_loadkeys_on 1
 mkeys_refresh_on 2
 mkeys_status_on 2 > rndc.out.$n 2>&1
@@ -435,7 +428,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "revoke all keys, confirm roll to insecure ($n)"
 ret=0
-$SETTIME -D now -K ns1 `cat ns1/managed.key` > /dev/null
+$SETTIME -D now -K ns1 $original > /dev/null
 $SETTIME -R now -K ns1 $standby1 > /dev/null
 $SETTIME -R now -K ns1 $standby2 > /dev/null
 mkeys_loadkeys_on 1
@@ -471,7 +464,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "reset the root server"
-$SETTIME -D none -R none -K ns1 `cat ns1/managed.key` > /dev/null
+$SETTIME -D none -R none -K ns1 $original > /dev/null
 $SETTIME -D now -K ns1 $standby1 > /dev/null
 $SETTIME -D now -K ns1 $standby2 > /dev/null
 $SIGNER -Sg -K ns1 -N unixtime -r $RANDFILE -o . ns1/root.db > /dev/null 2>/dev/null
@@ -498,9 +491,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "revoke key with bad signature, check revocation is ignored ($n)"
 ret=0
-orig=`cat ns1/managed.key`
-keyid=`cat ns1/managed.key.id`
-revoked=`$REVOKE -K ns1 $orig`
+revoked=`$REVOKE -K ns1 $original`
 rkeyid=`expr $revoked : 'ns1/K\.+00.+0*\([1-9]*[0-9]*[0-9]\)'`
 rm -f ns1/root.db.signed.jnl
 # We need to activate at least one valid DNSKEY to prevent dnssec-signzone from
@@ -525,8 +516,8 @@ mkeys_status_on 2 > rndc.out.$n 2>&1
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 1 ] || { echo "'keyid:' count ($count) != 1"; ret=1; }
 # it's the original key id
-count=`grep -c "keyid: $keyid" rndc.out.$n` 
-[ "$count" -eq 1 ] || { echo "'keyid: $keyid' count ($count) != 1"; ret=1; }
+count=`grep -c "keyid: $originalid" rndc.out.$n` 
+[ "$count" -eq 1 ] || { echo "'keyid: $originalid' count ($count) != 1"; ret=1; }
 # not revoked
 count=`grep -c "REVOKE" rndc.out.$n` 
 [ "$count" -eq 0 ] || { echo "'REVOKE' count ($count) != 0"; ret=1; }
@@ -552,7 +543,7 @@ echo_i "restore DNSKEY rrset, check validation succeeds again ($n)"
 ret=0
 rm -f ${revoked}.key ${revoked}.private
 rm -f ns1/root.db.signed.jnl
-$SETTIME -D none -R none -K ns1 `cat ns1/managed.key` > /dev/null
+$SETTIME -D none -R none -K ns1 $original > /dev/null
 $SETTIME -D now -K ns1 $standby1 > /dev/null
 # Less than a second may have passed since ns1 was started.  If we call
 # dnssec-signzone immediately, ns1/root.db.signed will not be reloaded by the
@@ -593,7 +584,7 @@ mkeys_status_on 2 > rndc.out.$n 2>&1
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 1 ] || ret=1
 # it's the original key id
-count=`grep -c "keyid: $keyid" rndc.out.$n` 
+count=`grep -c "keyid: $originalid" rndc.out.$n` 
 [ "$count" -eq 1 ] || ret=1
 # not revoked
 count=`grep -c "REVOKE" rndc.out.$n` 
@@ -631,7 +622,7 @@ mkeys_status_on 2 > rndc.out.$n 2>&1
 count=`grep -c "keyid: " rndc.out.$n` 
 [ "$count" -eq 1 ] || ret=1
 # it's the original key id
-count=`grep -c "keyid: $keyid" rndc.out.$n` 
+count=`grep -c "keyid: $originalid" rndc.out.$n` 
 [ "$count" -eq 1 ] || ret=1
 # not revoked
 count=`grep -c "REVOKE" rndc.out.$n` 
