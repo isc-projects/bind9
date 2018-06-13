@@ -91,5 +91,5 @@ int HMAC_CTX_reset(HMAC_CTX *ctx) {
 	HMAC_CTX_cleanup(ctx);
 	return 1;
 }
-		
+
 #endif
