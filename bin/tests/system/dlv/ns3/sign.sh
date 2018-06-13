@@ -280,16 +280,7 @@ cat $infile $dlvsets $keyname1.key $keyname2.key >$zonefile
 $SIGNER -r $RANDFILE -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo_i "signed $zone"
 
-
-grep -v '^;' $keyname2.key | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' > trusted-dlv.conf
+keyfile_to_trusted_keys $keyname2 > trusted-dlv.conf
 cp trusted-dlv.conf ../ns5
 
 cp $dssets ../ns2

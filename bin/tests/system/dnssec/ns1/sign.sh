@@ -34,32 +34,17 @@ cat $infile $keyname.key > $zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a trusted key.
-cat $keyname.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' > trusted.conf
-
-# ...or with a managed key.
-cat $keyname.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-managed-keys {
-    "$dn" initial-key $flags $proto $alg "$key";
-};
-EOF
-' > managed.conf
+keyfile_to_trusted_keys $keyname > trusted.conf
 cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
 cp trusted.conf ../ns6/trusted.conf
 cp trusted.conf ../ns7/trusted.conf
+
+# ...or with a managed key.
+keyfile_to_managed_keys $keyname > managed.conf
 cp managed.conf ../ns4/managed.conf
+
 #
 #  Save keyid for managed key id test.
 #

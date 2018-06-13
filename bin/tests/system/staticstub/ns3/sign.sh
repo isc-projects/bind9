@@ -27,16 +27,7 @@ cat $infile $keyname1.key $keyname2.key > $zonefile
 $SIGNER -g -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
 # Configure the resolving server with a trusted key.
-
-cat $keyname2.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' > trusted.conf
+keyfile_to_trusted_keys $keyname2 > trusted.conf
 
 zone=undelegated
 infile=undelegated.db.in
@@ -47,14 +38,5 @@ cat $infile $keyname1.key $keyname2.key > $zonefile
 
 $SIGNER -g -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 
-cat $keyname2.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' >> trusted.conf
-
+keyfile_to_trusted_keys $keyname2 >> trusted.conf
 cp trusted.conf ../ns2/trusted.conf

@@ -26,16 +26,7 @@ cat $infile $key1.key $key2.key > $zonefile
 $SIGNER -P -g -r $RANDFILE -o $zone $zonefile > /dev/null 2> signer.err || cat signer.err
 
 # Configure the resolving server with a trusted key.
-
-cat $key1.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' > trusted.conf
+keyfile_to_trusted_keys $key1 > trusted.conf
 cp trusted.conf ../ns2/trusted.conf
 
 cd ../ns2 && $SHELL sign.sh
