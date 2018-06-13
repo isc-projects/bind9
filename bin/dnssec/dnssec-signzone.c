@@ -191,6 +191,20 @@ static isc_boolean_t output_stdout = ISC_FALSE;
 static void
 sign(isc_task_t *task, isc_event_t *event);
 
+/*%
+ * Store a copy of 'name' in 'fzonecut' and return a pointer to that copy.
+ */
+static dns_name_t *
+savezonecut(dns_fixedname_t *fzonecut, dns_name_t *name) {
+	dns_name_t *result;
+
+	dns_fixedname_init(fzonecut);
+	result = dns_fixedname_name(fzonecut);
+	dns_name_copy(name, result, NULL);
+
+	return (result);
+}
+
 static void
 dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 	dns_rdataset_t rds;
@@ -1485,15 +1499,19 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 			if (dns_name_issubdomain(name, gorigin) &&
 			    (zonecut == NULL ||
 			     !dns_name_issubdomain(name, zonecut))) {
-				if (is_delegation(gdb, gversion, gorigin, name, node, NULL)) {
-					dns_fixedname_init(&fzonecut);
-					zonecut = dns_fixedname_name(&fzonecut);
-					dns_name_copy(name, zonecut, NULL);
+				if (is_delegation(gdb, gversion, gorigin,
+						  name, node, NULL))
+				{
+					zonecut = savezonecut(&fzonecut, name);
 					if (!OPTOUT(nsec3flags) ||
 					    secure(name, node))
 						found = ISC_TRUE;
-				} else
+				} else if (has_dname(gdb, gversion, node)) {
+					zonecut = savezonecut(&fzonecut, name);
 					found = ISC_TRUE;
+				} else {
+					found = ISC_TRUE;
+				}
 			}
 		}
 
@@ -1734,7 +1752,6 @@ nsecify(void) {
 	name = dns_fixedname_name(&fname);
 	dns_fixedname_init(&fnextname);
 	nextname = dns_fixedname_name(&fnextname);
-	dns_fixedname_init(&fzonecut);
 	zonecut = NULL;
 
 	/*
@@ -1796,11 +1813,12 @@ nsecify(void) {
 		}
 
 		if (is_delegation(gdb, gversion, gorigin, name, node, &nsttl)) {
-			zonecut = dns_fixedname_name(&fzonecut);
-			dns_name_copy(name, zonecut, NULL);
+			zonecut = savezonecut(&fzonecut, name);
 			remove_sigs(node, ISC_TRUE, 0);
 			if (generateds)
 				add_ds(name, node, nsttl);
+		} else if (has_dname(gdb, gversion, node)) {
+			zonecut = savezonecut(&fzonecut, name);
 		}
 
 		result = dns_dbiterator_next(dbiter);
@@ -2181,7 +2199,6 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 	name = dns_fixedname_name(&fname);
 	dns_fixedname_init(&fnextname);
 	nextname = dns_fixedname_name(&fnextname);
-	dns_fixedname_init(&fzonecut);
 	zonecut = NULL;
 
 	/*
@@ -2215,6 +2232,10 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			(void)active_node(node);
 		}
 
+		if (has_dname(gdb, gversion, node)) {
+			zonecut = savezonecut(&fzonecut, name);
+		}
+
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
 		while (result == ISC_R_SUCCESS) {
@@ -2238,8 +2259,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			if (is_delegation(gdb, gversion, gorigin,
 					  nextname, nextnode, &nsttl))
 			{
-				zonecut = dns_fixedname_name(&fzonecut);
-				dns_name_copy(nextname, zonecut, NULL);
+				zonecut = savezonecut(&fzonecut, nextname);
 				remove_sigs(nextnode, ISC_TRUE, 0);
 				if (generateds)
 					add_ds(nextname, nextnode, nsttl);
@@ -2249,6 +2269,8 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 					result = dns_dbiterator_next(dbiter);
 					continue;
 				}
+			} else if (has_dname(gdb, gversion, nextnode)) {
+				zonecut = savezonecut(&fzonecut, nextname);
 			}
 			dns_db_detachnode(gdb, &nextnode);
 			break;
@@ -2347,6 +2369,11 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			dns_db_detachnode(gdb, &node);
 			continue;
 		}
+
+		if (has_dname(gdb, gversion, node)) {
+			zonecut = savezonecut(&fzonecut, name);
+		}
+
 		result = dns_dbiterator_next(dbiter);
 		nextnode = NULL;
 		while (result == ISC_R_SUCCESS) {
@@ -2369,14 +2396,15 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			if (is_delegation(gdb, gversion, gorigin,
 					  nextname, nextnode, NULL))
 			{
-				zonecut = dns_fixedname_name(&fzonecut);
-				dns_name_copy(nextname, zonecut, NULL);
+				zonecut = savezonecut(&fzonecut, nextname);
 				if (OPTOUT(nsec3flags) &&
 				    !secure(nextname, nextnode)) {
 					dns_db_detachnode(gdb, &nextnode);
 					result = dns_dbiterator_next(dbiter);
 					continue;
 				}
+			} else if (has_dname(gdb, gversion, nextnode)) {
+				zonecut = savezonecut(&fzonecut, nextname);
 			}
 			dns_db_detachnode(gdb, &nextnode);
 			break;
