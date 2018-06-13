@@ -771,7 +771,7 @@ main(int argc, char *argv[]) {
 			if (noexact_zonecut)
 				zcoptions |= DNS_DBFIND_NOEXACT;
 			result = dns_db_findzonecut(db, &name, zcoptions,
-						    0, &node, fname,
+						    0, &node, fname, NULL,
 						    &rdataset, &sigrdataset);
 		} else {
 			result = dns_db_find(db, &name, version, type,
