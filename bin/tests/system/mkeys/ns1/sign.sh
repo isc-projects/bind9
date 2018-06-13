@@ -21,28 +21,12 @@ zskkeyname=`$KEYGEN -q -r $RANDFILE $zone`
 $SIGNER -Sg -r $RANDFILE -o $zone $zonefile > /dev/null 2>/dev/null
 
 # Configure the resolving server with a managed trusted key.
-cat $keyname.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-managed-keys {
-    "$dn" initial-key $flags $proto $alg "$key";
-};
-EOF
-' > managed.conf
+keyfile_to_managed_keys $keyname > managed.conf
 cp managed.conf ../ns2/managed.conf
 cp managed.conf ../ns5/managed.conf
 
-# Configure a trusted key statement (used by delve)
-cat $keyname.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' > trusted.conf
+# Configure a trusted key statement (used by delv)
+keyfile_to_trusted_keys $keyname > trusted.conf
 
 #
 #  Save keyname and keyid for managed key id test.

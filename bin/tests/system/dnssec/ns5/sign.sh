@@ -19,15 +19,7 @@ zonefile=root.db.signed
 keyname=`$KEYGEN -r $RANDFILE -qfk $zone`
 
 # copy the KSK out first, then revoke it
-cat $keyname.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-managed-keys {
-    "$dn" initial-key $flags $proto $alg "$key";
-};
-EOF
-' > revoked.conf
+keyfile_to_managed_keys $keyname > revoked.conf
 
 $SETTIME -R now ${keyname}.key > /dev/null
 
