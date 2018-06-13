@@ -21,7 +21,6 @@ options {
 	notify no;
 	minimal-responses no;
 	recursion yes;
-	qname-minimization disabled;
 	dnssec-validation yes;
 };
 
