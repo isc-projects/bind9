@@ -220,14 +220,15 @@ find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 static isc_result_t
 findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	    isc_stdtime_t now, dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	    dns_name_t *dcname, dns_rdataset_t *rdataset,
+	    dns_rdataset_t *sigrdataset)
 {
 	sampledb_t *sampledb = (sampledb_t *) db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
 	return (dns_db_findzonecut(sampledb->rbtdb, name, options,
-				   now, nodep, foundname, rdataset,
+				   now, nodep, foundname, dcname, rdataset,
 				   sigrdataset));
 }
 
