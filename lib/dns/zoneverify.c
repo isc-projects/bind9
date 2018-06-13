@@ -145,7 +145,7 @@ type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
 }
 
 static isc_boolean_t
-is_delegation(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
+is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	      isc_uint32_t *ttlp)
 {
 	dns_rdataset_t nsset;
@@ -187,7 +187,7 @@ has_dname(const vctx_t *vctx, dns_dbnode_t *node) {
 }
 
 static isc_boolean_t
-goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
+goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 	dns_rdataset_t *keyrdataset, dns_rdataset_t *rdataset)
 {
 	dns_rdata_dnskey_t key;
@@ -226,8 +226,8 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
 }
 
 static isc_result_t
-verifynsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
-	   dns_name_t *nextname, isc_result_t *vresult)
+verifynsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
+	   const dns_name_t *nextname, isc_result_t *vresult)
 {
 	unsigned char buffer[DNS_NSEC_BUFFERSIZE];
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -313,8 +313,8 @@ verifynsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 }
 
 static isc_result_t
-check_no_rrsig(const vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
-	       dns_dbnode_t *node)
+check_no_rrsig(const vctx_t *vctx, const dns_rdataset_t *rdataset,
+	       const dns_name_t *name, dns_dbnode_t *node)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
@@ -384,7 +384,9 @@ chain_compare(void *arg1, void *arg2) {
 }
 
 static isc_boolean_t
-chain_equal(struct nsec3_chain_fixed *e1, struct nsec3_chain_fixed *e2) {
+chain_equal(const struct nsec3_chain_fixed *e1,
+	    const struct nsec3_chain_fixed *e2)
+{
 	size_t len;
 
 	if (e1->hash != e2->hash)
@@ -436,10 +438,10 @@ record_nsec3(const vctx_t *vctx, const unsigned char *rawhash,
 }
 
 static isc_result_t
-match_nsec3(const vctx_t *vctx, dns_name_t *name,
-	    dns_rdata_nsec3param_t *nsec3param, dns_rdataset_t *rdataset,
-	    unsigned char types[8192], unsigned int maxtype,
-	    unsigned char *rawhash, size_t rhsize, isc_result_t *vresult)
+match_nsec3(const vctx_t *vctx, const dns_name_t *name,
+	    const dns_rdata_nsec3param_t *nsec3param, dns_rdataset_t *rdataset,
+	    const unsigned char types[8192], unsigned int maxtype,
+	    const unsigned char *rawhash, size_t rhsize, isc_result_t *vresult)
 {
 	unsigned char cbm[8244];
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -531,7 +533,7 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 }
 
 static isc_boolean_t
-innsec3params(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
+innsec3params(const dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 	dns_rdata_nsec3param_t nsec3param;
 	isc_result_t result;
 
@@ -555,7 +557,7 @@ innsec3params(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 }
 
 static isc_result_t
-record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
+record_found(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	     dns_rdataset_t *nsec3paramset)
 {
 	unsigned char owner[NSEC3_MAX_HASH_LENGTH];
@@ -680,9 +682,9 @@ isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata, isc_boolean_t *optout) {
 }
 
 static isc_result_t
-verifynsec3(const vctx_t *vctx, dns_name_t *name, dns_rdata_t *rdata,
+verifynsec3(const vctx_t *vctx, const dns_name_t *name, dns_rdata_t *rdata,
 	    isc_boolean_t delegation, isc_boolean_t empty,
-	    unsigned char types[8192], unsigned int maxtype,
+	    const unsigned char types[8192], unsigned int maxtype,
 	    isc_result_t *vresult)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -769,9 +771,9 @@ verifynsec3(const vctx_t *vctx, dns_name_t *name, dns_rdata_t *rdata,
 }
 
 static isc_result_t
-verifynsec3s(const vctx_t *vctx, dns_name_t *name,
+verifynsec3s(const vctx_t *vctx, const dns_name_t *name,
 	     dns_rdataset_t *nsec3paramset, isc_boolean_t delegation,
-	     isc_boolean_t empty, unsigned char types[8192],
+	     isc_boolean_t empty, const unsigned char types[8192],
 	     unsigned int maxtype, isc_result_t *vresult)
 {
 	isc_result_t result;
@@ -797,7 +799,7 @@ verifynsec3s(const vctx_t *vctx, dns_name_t *name,
 }
 
 static isc_result_t
-verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
+verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	  dns_dbnode_t *node, dns_rdataset_t *keyrdataset)
 {
 	unsigned char set_algorithms[256];
@@ -890,10 +892,10 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 }
 
 static isc_result_t
-verifynode(vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
+verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	   isc_boolean_t delegation, dns_rdataset_t *keyrdataset,
 	   dns_rdataset_t *nsecset, dns_rdataset_t *nsec3paramset,
-	   dns_name_t *nextname, isc_result_t *vresult)
+	   const dns_name_t *nextname, isc_result_t *vresult)
 {
 	unsigned char types[8192];
 	unsigned int maxtype = 0;
@@ -1004,7 +1006,7 @@ is_empty(const vctx_t *vctx, dns_dbnode_t *node, isc_boolean_t *empty) {
 }
 
 static isc_result_t
-check_no_nsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node) {
+check_no_nsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node) {
 	isc_boolean_t nsec_exists = ISC_FALSE;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
@@ -1189,9 +1191,9 @@ verify_nsec3_chains(const vctx_t *vctx, isc_mem_t *mctx) {
 }
 
 static isc_result_t
-verifyemptynodes(const vctx_t *vctx, dns_name_t *name, dns_name_t *prevname,
-		 isc_boolean_t isdelegation, dns_rdataset_t *nsec3paramset,
-		 isc_result_t *vresult)
+verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
+		 const dns_name_t *prevname, isc_boolean_t isdelegation,
+		 dns_rdataset_t *nsec3paramset, isc_result_t *vresult)
 {
 	dns_namereln_t reln;
 	int order;
@@ -1417,8 +1419,8 @@ check_apex_rrsets(vctx_t *vctx) {
  * 'dnskey' is a KSK and false otherwise.
  */
 static void
-check_dnskey_sigs(vctx_t *vctx, dns_rdata_dnskey_t *dnskey, dns_rdata_t *rdata,
-		  isc_boolean_t is_ksk)
+check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
+		  dns_rdata_t *rdata, isc_boolean_t is_ksk)
 {
 	unsigned char *active_keys, *standby_keys;
 	isc_boolean_t *goodkey;
