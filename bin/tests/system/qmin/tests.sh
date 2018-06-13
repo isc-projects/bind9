@@ -28,14 +28,14 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.good. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
 sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
-A icky.icky.icky.ptang.zoop.boing.good.
-A ns3.good.
-AAAA ns3.good.
-A a.bit.longer.ns.name.good.
-AAAA a.bit.longer.ns.name.good.
+ADDR icky.icky.icky.ptang.zoop.boing.good.
+ADDR ns3.good.
+ADDR ns3.good.
+ADDR a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
 __EOF
-echo "A icky.icky.icky.ptang.zoop.boing.good." | diff ans3/query.log - > /dev/null || ret=1
-echo "A icky.icky.icky.ptang.zoop.boing.good." | diff ans4/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.good." | diff ans3/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.good." | diff ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -50,14 +50,14 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.bad. 1 IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
 sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
-A icky.icky.icky.ptang.zoop.boing.bad.
-A ns3.bad.
-AAAA ns3.bad.
-A a.bit.longer.ns.name.bad.
-AAAA a.bit.longer.ns.name.bad.
+ADDR icky.icky.icky.ptang.zoop.boing.bad.
+ADDR ns3.bad.
+ADDR ns3.bad.
+ADDR a.bit.longer.ns.name.bad.
+ADDR a.bit.longer.ns.name.bad.
 __EOF
-echo "A icky.icky.icky.ptang.zoop.boing.bad." | diff ans3/query.log - > /dev/null || ret=1
-echo "A icky.icky.icky.ptang.zoop.boing.bad." | diff ans4/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | diff ans3/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | diff ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -73,14 +73,14 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.slow. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
 sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
-A icky.icky.icky.ptang.zoop.boing.slow.
-A ns3.slow.
-AAAA ns3.slow.
-A a.bit.longer.ns.name.slow.
-AAAA a.bit.longer.ns.name.slow.
+ADDR icky.icky.icky.ptang.zoop.boing.slow.
+ADDR ns3.slow.
+ADDR ns3.slow.
+ADDR a.bit.longer.ns.name.slow.
+ADDR a.bit.longer.ns.name.slow.
 __EOF
-echo "A icky.icky.icky.ptang.zoop.boing.slow." | diff ans3/query.log - > /dev/null || ret=1
-echo "A icky.icky.icky.ptang.zoop.boing.slow." | diff ans4/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.slow." | diff ans3/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.slow." | diff ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -103,16 +103,16 @@ sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS boing.good.
 NS zoop.boing.good.
-A ns3.good.
-AAAA ns3.good.
+ADDR ns3.good.
+ADDR ns3.good.
 NS name.good.
 NS name.good.
 NS ns.name.good.
 NS ns.name.good.
 NS longer.ns.name.good.
 NS longer.ns.name.good.
-A a.bit.longer.ns.name.good.
-AAAA a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
 NS ptang.zoop.boing.good.
@@ -120,7 +120,7 @@ NS icky.ptang.zoop.boing.good.
 __EOF
 cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
 NS icky.icky.ptang.zoop.boing.good.
-A icky.icky.icky.ptang.zoop.boing.good.
+ADDR icky.icky.icky.ptang.zoop.boing.good.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -150,16 +150,16 @@ grep "icky.icky.icky.ptang.zoop.boing.bad. 1 IN A	192.0.2.1" dig.out.test$n > /d
 sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS boing.bad.
-A icky.icky.icky.ptang.zoop.boing.bad.
-A ns3.bad.
-AAAA ns3.bad.
+ADDR icky.icky.icky.ptang.zoop.boing.bad.
+ADDR ns3.bad.
+ADDR ns3.bad.
 NS name.bad.
 NS name.bad.
-A a.bit.longer.ns.name.bad.
-AAAA a.bit.longer.ns.name.bad.
+ADDR a.bit.longer.ns.name.bad.
+ADDR a.bit.longer.ns.name.bad.
 __EOF
-echo "A icky.icky.icky.ptang.zoop.boing.bad." | diff ans3/query.log - > /dev/null || ret=1
-echo "A icky.icky.icky.ptang.zoop.boing.bad." | diff ans4/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | diff ans3/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | diff ans4/query.log - > /dev/null || ret=1
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -176,16 +176,16 @@ grep "icky.icky.icky.ptang.zoop.boing.slow. 1	IN A	192.0.2.1" dig.out.test$n > /
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS boing.slow.
 NS zoop.boing.slow.
-A ns3.slow.
-AAAA ns3.slow.
+ADDR ns3.slow.
+ADDR ns3.slow.
 NS name.slow.
 NS name.slow.
 NS ns.name.slow.
 NS ns.name.slow.
 NS longer.ns.name.slow.
 NS longer.ns.name.slow.
-A a.bit.longer.ns.name.slow.
-AAAA a.bit.longer.ns.name.slow.
+ADDR a.bit.longer.ns.name.slow.
+ADDR a.bit.longer.ns.name.slow.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
 NS ptang.zoop.boing.slow.
@@ -193,7 +193,7 @@ NS icky.ptang.zoop.boing.slow.
 __EOF
 cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
 NS icky.icky.ptang.zoop.boing.slow.
-A icky.icky.icky.ptang.zoop.boing.slow.
+ADDR icky.icky.icky.ptang.zoop.boing.slow.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -234,7 +234,7 @@ cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS z.good.
 NS y.z.good.
 NS x.y.z.good.
-A many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.good.
+ADDR many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.good.
 __EOF
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -251,16 +251,16 @@ sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS boing.good.
 NS zoop.boing.good.
-A ns3.good.
-AAAA ns3.good.
+ADDR ns3.good.
+ADDR ns3.good.
 NS name.good.
 NS name.good.
 NS ns.name.good.
 NS ns.name.good.
 NS longer.ns.name.good.
 NS longer.ns.name.good.
-A a.bit.longer.ns.name.good.
-AAAA a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
 NS ptang.zoop.boing.good.
@@ -269,7 +269,7 @@ __EOF
 # There's no NS icky.icky.ptang.zoop.boing.good. query - we skipped it.
 cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
 NS icky.icky.ptang.zoop.boing.good.
-A more.icky.icky.icky.ptang.zoop.boing.good.
+ADDR more.icky.icky.icky.ptang.zoop.boing.good.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi

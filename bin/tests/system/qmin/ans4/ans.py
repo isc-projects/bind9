@@ -52,6 +52,8 @@ def create_response(msg):
     # get qtype
     rrtype = m.question[0].rdtype
     typename = dns.rdatatype.to_text(rrtype)
+    if typename == "A" or typename == "AAAA":
+        typename = "ADDR"
     bad = False
     slow = False
 
