@@ -1421,27 +1421,27 @@ dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 		"cache records deleted due to TTL expiration");
 	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db),
 		"cache database nodes");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
 		(isc_uint64_t) dns_db_hashsize(cache->db),
 		"cache database hash buckets");
 
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
 		(isc_uint64_t) isc_mem_total(cache->mctx),
 		"cache tree memory total");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
 		(isc_uint64_t) isc_mem_inuse(cache->mctx),
 		"cache tree memory in use");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
 		(isc_uint64_t) isc_mem_maxinuse(cache->mctx),
 		"cache tree highest memory in use");
 
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
 		(isc_uint64_t) isc_mem_total(cache->hmctx),
 		"cache heap memory total");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
 		(isc_uint64_t) isc_mem_inuse(cache->hmctx),
 		"cache heap memory in use");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
 		(isc_uint64_t) isc_mem_maxinuse(cache->hmctx),
 		"cache heap highest memory in use");
 }

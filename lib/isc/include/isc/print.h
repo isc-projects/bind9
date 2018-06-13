@@ -52,7 +52,7 @@
 /***
  *** Macros
  ***/
-#define ISC_PRINT_QUADFORMAT ISC_PLATFORM_QUADFORMAT
+#define ISC_PRINT_QUADFORMAT "ll"
 
 /***
  *** Functions
