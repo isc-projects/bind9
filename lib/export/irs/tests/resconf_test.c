@@ -23,6 +23,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/util.h>
 
@@ -34,6 +35,10 @@ static isc_mem_t *mctx = NULL;
 static void
 setup_test() {
 	isc_result_t result;
+
+#ifndef BIND9
+	isc_lib_register();
+#endif
 
 	result = isc_mem_create(0, 0, &mctx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
