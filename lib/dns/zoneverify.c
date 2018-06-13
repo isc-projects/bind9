@@ -596,8 +596,7 @@ record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 }
 
 static isc_result_t
-isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata, isc_boolean_t *optout)
-{
+isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata, isc_boolean_t *optout) {
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_nsec3_t nsec3;
@@ -1571,16 +1570,14 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 
 	result = dns_db_createiterator(vctx->db, DNS_DB_NONSEC3, &dbiter);
 	if (result != ISC_R_SUCCESS) {
-		zoneverify_log_error(vctx,
-				     "dns_db_createiterator(): %s",
+		zoneverify_log_error(vctx, "dns_db_createiterator(): %s",
 				     isc_result_totext(result));
 		return (result);
 	}
 
 	result = dns_dbiterator_first(dbiter);
 	if (result != ISC_R_SUCCESS) {
-		zoneverify_log_error(vctx,
-				     "dns_dbiterator_first(): %s",
+		zoneverify_log_error(vctx, "dns_dbiterator_first(): %s",
 				     isc_result_totext(result));
 		goto done;
 	}
@@ -1668,7 +1665,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			zoneverify_log_error(vctx,
 					     "iterating through the database "
 					     "failed: %s",
-				             isc_result_totext(result));
+					     isc_result_totext(result));
 			dns_db_detachnode(vctx->db, &node);
 			goto done;
 		}
@@ -1706,8 +1703,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 
 	result = dns_db_createiterator(vctx->db, DNS_DB_NSEC3ONLY, &dbiter);
 	if (result != ISC_R_SUCCESS) {
-		zoneverify_log_error(vctx,
-				     "dns_db_createiterator(): %s",
+		zoneverify_log_error(vctx, "dns_db_createiterator(): %s",
 				     isc_result_totext(result));
 		return (result);
 	}
@@ -1716,8 +1712,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_dbiterator_next(dbiter) ) {
 		result = dns_dbiterator_current(dbiter, &node, name);
-		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
-		{
+		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 			zoneverify_log_error(vctx,
 					     "dns_dbiterator_current(): %s",
 					     isc_result_totext(result));
@@ -1726,8 +1721,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		result = verifynode(vctx, name, node, ISC_FALSE, &vctx->keyset,
 				    NULL, NULL, NULL, NULL);
 		if (result != ISC_R_SUCCESS) {
-			zoneverify_log_error(vctx,
-					     "verifynode: %s",
+			zoneverify_log_error(vctx, "verifynode: %s",
 					     isc_result_totext(result));
 			dns_db_detachnode(vctx->db, &node);
 			goto done;
