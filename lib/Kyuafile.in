@@ -4,3 +4,4 @@ test_suite('bind9')
 include('dns/Kyuafile')
 include('isc/Kyuafile')
 include('lwres/Kyuafile')
+@KYUAEXPORT@
