@@ -298,17 +298,7 @@ status=`expr $status + $ret`
 echo_i "reinitialize trust anchors, add second key to bind.keys"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns2
 rm -f ns2/managed-keys.bind*
-cat ns1/$standby1.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-local $originalkey = `grep initial-key ns2/managed1.conf`;
-print <<EOF
-managed-keys {
-    $originalkey
-    "$dn" initial-key $flags $proto $alg "$key";
-};
-EOF
-' > ns2/managed.conf
+keyfile_to_managed_keys ns1/`cat ns1/managed.key` ns1/$standby1 > ns2/managed.conf
 nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
 
