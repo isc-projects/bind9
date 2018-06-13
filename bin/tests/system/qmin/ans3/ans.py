@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 import time
 import functools
 
-import dns, dns.message, dns.query
+import dns, dns.message, dns.query, dns.flags
 from dns.rdatatype import *
 from dns.rdataclass import *
 from dns.rcode import *
@@ -82,6 +82,7 @@ def create_response(msg):
     # Good/bad differs only in how we treat non-empty terminals
     if lqname == "zoop.boing." and rrtype == NS:
         r.answer.append(dns.rrset.from_text(lqname + suffix, 1, IN, NS, "ns3."+suffix))
+        r.flags |= dns.flags.AA
     elif lqname.endswith("icky.ptang.zoop.boing."):
         r.authority.append(dns.rrset.from_text("icky.ptang.zoop.boing." + suffix, 1, IN, NS, "a.bit.longer.ns.name." + suffix))
     elif "icky.ptang.zoop.boing.".endswith(lqname):

@@ -429,7 +429,7 @@ dns_badcache_print(dns_badcache_t *bc, const char *cachename, FILE *fp) {
 			t = isc_time_microdiff(&bad->expire, &now);
 			t /= 1000;
 			fprintf(fp, "; %s/%s [ttl "
-				"%" ISC_PLATFORM_QUADFORMAT "u]\n",
+				"%" ISC_PRINT_QUADFORMAT "u]\n",
 				namebuf, typebuf, t);
 		}
 	}
