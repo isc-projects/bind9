@@ -9869,7 +9869,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 		 */
 
 #ifdef ENABLE_AFL
-                if (dns_fuzzing_resolver == ISC_FALSE) {
+		if (dns_fuzzing_resolver == ISC_FALSE) {
 #endif
 		result = dns_resolver_createfetch(zone->view->resolver,
 						  kname, dns_rdatatype_dnskey,
@@ -9883,9 +9883,9 @@ zone_refreshkeys(dns_zone_t *zone) {
 						  &kfetch->dnskeysigset,
 						  &kfetch->fetch);
 #ifdef ENABLE_AFL
-                } else {
-                        result = ISC_R_FAILURE;
-                }
+		} else {
+			result = ISC_R_FAILURE;
+		}
 #endif
 		if (result == ISC_R_SUCCESS)
 			fetching = ISC_TRUE;
