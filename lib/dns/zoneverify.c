@@ -161,7 +161,7 @@ type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
 
 	isc_buffer_init(&b, cp, size - 1);
 	result = dns_rdatatype_totext(type, &b);
-	check_result(result, "dns_rdatatype_totext()");
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
 }
@@ -218,7 +218,7 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
 	isc_result_t result;
 
 	result = dns_rdata_tostruct(sigrdata, &sig, NULL);
-	check_result(result, "dns_rdata_tostruct()");
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	for (result = dns_rdataset_first(keyrdataset);
 	     result == ISC_R_SUCCESS;
@@ -226,7 +226,7 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(keyrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &key, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		result = dns_dnssec_keyfromrdata(vctx->origin, &rdata,
 						 vctx->mctx, &dstkey);
 		if (result != ISC_R_SUCCESS)
@@ -276,7 +276,7 @@ verifynsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 
 	dns_rdataset_current(&rdataset, &rdata);
 	result = dns_rdata_tostruct(&rdata, &nsec, NULL);
-	check_result(result, "dns_rdata_tostruct()");
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	/* Check bit next name is consistent */
 	if (!dns_name_equal(&nsec.next, nextname)) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
@@ -448,7 +448,7 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (nsec3.hash == nsec3param->hash &&
 		    nsec3.next_length == rhsize &&
 		    nsec3.iterations == nsec3param->iterations &&
@@ -491,7 +491,7 @@ match_nsec3(const vctx_t *vctx, dns_name_t *name,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (nsec3.hash == nsec3param->hash &&
 		    nsec3.iterations == nsec3param->iterations &&
 		    nsec3.salt_length == nsec3param->salt_length &&
@@ -523,7 +523,7 @@ innsec3params(dns_rdata_nsec3_t *nsec3, dns_rdataset_t *nsec3paramset) {
 
 		dns_rdataset_current(nsec3paramset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3param, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (nsec3param.flags == 0 &&
 		    nsec3param.hash == nsec3->hash &&
 		    nsec3param.iterations == nsec3->iterations &&
@@ -569,7 +569,7 @@ record_found(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (nsec3.next_length != isc_buffer_usedlength(&b))
 			continue;
 		/*
@@ -607,7 +607,7 @@ isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata) {
 	isc_boolean_t ret;
 
 	result = dns_rdata_tostruct(nsec3rdata, &nsec3param, NULL);
-	check_result(result, "dns_rdata_tostruct()");
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	dns_fixedname_init(&fixed);
 	result = dns_nsec3_hashname(&fixed, rawhash, &rhsize, vctx->origin,
@@ -632,10 +632,8 @@ isoptout(const vctx_t *vctx, dns_rdata_t *nsec3rdata) {
 	dns_rdataset_current(&rdataset, &rdata);
 
 	result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
-	if (result != ISC_R_SUCCESS)
-		ret = ISC_FALSE;
-	else
-		ret = ISC_TF((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	ret = ISC_TF((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
 
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
@@ -663,7 +661,7 @@ verifynsec3(const vctx_t *vctx, dns_name_t *name, dns_rdata_t *rdata,
 	isc_boolean_t optout;
 
 	result = dns_rdata_tostruct(rdata, &nsec3param, NULL);
-	check_result(result, "dns_rdata_tostruct()");
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	if (nsec3param.flags != 0)
 		return (ISC_R_SUCCESS);
@@ -787,7 +785,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 
 		dns_rdataset_current(&sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &sig, NULL);
-		check_result(result, "dns_rdata_tostruct()");
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (rdataset->ttl != sig.originalttl) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
 			type_format(rdataset->type, typebuf, sizeof(typebuf));
@@ -1282,7 +1280,7 @@ check_dnskey(vctx_t *vctx) {
 	     result = dns_rdataset_next(&vctx->keyset)) {
 		dns_rdataset_current(&vctx->keyset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
-		check_result(result, "dns_rdata_tostruct");
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		is_ksk = ISC_TF((dnskey.flags & DNS_KEYFLAG_KSK) != 0);
 
 		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0)
