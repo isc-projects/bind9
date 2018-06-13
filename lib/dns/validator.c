@@ -3400,7 +3400,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 			 */
 			if (result == DNS_R_NXRRSET &&
 			    !dns_rdataset_isassociated(&val->frdataset) &&
-			dns_view_findzonecut(val->view, tname, found,
+			dns_view_findzonecut(val->view, tname, found, NULL,
 					     0, 0, false, false,
 					     NULL, NULL) == ISC_R_SUCCESS &&
 			    dns_name_equal(tname, found)) {

@@ -311,7 +311,8 @@ static isc_result_t
 findzonecut(dns_db_t *db, const dns_name_t *name,
 	    unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	    dns_name_t *dcname, dns_rdataset_t *rdataset,
+	    dns_rdataset_t *sigrdataset)
 {
 	dns_ecdb_t *ecdb = (dns_ecdb_t *)db;
 
@@ -322,6 +323,7 @@ findzonecut(dns_db_t *db, const dns_name_t *name,
 	UNUSED(now);
 	UNUSED(nodep);
 	UNUSED(foundname);
+	UNUSED(dcname);
 	UNUSED(rdataset);
 	UNUSED(sigrdataset);
 
