@@ -1,3 +1,9 @@
+4972.	[func]		verifyzone() and the functions it uses were moved to
+			libdns and refactored to prevent exit() from being
+			called upon failure.  A side effect of that is that
+			dnssec-signzone and dnssec-verify now check for memory
+			leaks upon shutdown. [GL #266]
+
 4971.	[bug]		dnssec-signzone and dnssec-verify did not treat records
 			below a DNAME as out-of-zone data. [GL #298]
 
