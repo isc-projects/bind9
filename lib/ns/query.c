@@ -10059,7 +10059,7 @@ query_addbestns(query_ctx_t *qctx) {
 	} else {
 		result = dns_db_findzonecut(db, client->query.qname,
 					    client->query.dboptions,
-					    client->now, &node, fname,
+					    client->now, &node, fname, NULL,
 					    rdataset, sigrdataset);
 		if (result == ISC_R_SUCCESS) {
 			if (zfname != NULL &&
