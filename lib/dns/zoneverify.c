@@ -1311,7 +1311,7 @@ check_dnskey_sigs(vctx_t *vctx, dns_rdata_dnskey_t *dnskey, dns_rdata_t *rdata,
  * Check that the DNSKEY RR has at least one self signing KSK and one ZSK per
  * algorithm in it (or, if -x was used, one self-signing KSK).
  */
-static void
+static isc_result_t
 check_dnskey(vctx_t *vctx) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_dnskey_t dnskey;
@@ -1342,10 +1342,20 @@ check_dnskey(vctx_t *vctx) {
 						sizeof(namebuf));
 				isc_buffer_init(&buf, buffer, sizeof(buffer));
 				result = dns_rdata_totext(&rdata, NULL, &buf);
-				check_result(result, "dns_rdata_totext");
-				fatal("revoked KSK is not self signed:\n"
-				      "%s DNSKEY %.*s", namebuf,
-				      (int)isc_buffer_usedlength(&buf), buffer);
+				if (result != ISC_R_SUCCESS) {
+					zoneverify_log_error(
+						vctx,
+						"dns_rdata_totext: %s",
+						isc_result_totext(result));
+					return (ISC_R_FAILURE);
+				}
+				zoneverify_log_error(
+					vctx,
+					"revoked KSK is not self signed:\n"
+					"%s DNSKEY %.*s", namebuf,
+					(int)isc_buffer_usedlength(&buf),
+					buffer);
+				return (ISC_R_FAILURE);
 			}
 			if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0 &&
 			     vctx->revoked_ksk[dnskey.algorithm] != 255)
@@ -1359,6 +1369,8 @@ check_dnskey(vctx_t *vctx) {
 		dns_rdata_freestruct(&dnskey);
 		dns_rdata_reset(&rdata);
 	}
+
+	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -1597,7 +1609,10 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		goto done;
 	}
 
-	check_dnskey(&vctx);
+	result = check_dnskey(&vctx);
+	if (result != ISC_R_SUCCESS) {
+		goto done;
+	}
 
 	if (ignore_kskflag ) {
 		if (!vctx.goodksk && !vctx.goodzsk)
