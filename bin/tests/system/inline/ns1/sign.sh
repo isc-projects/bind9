@@ -20,14 +20,5 @@ keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
 $SIGNER -S -x -T 1200 -o ${zone} root.db > signer.out 2>&1
 [ $? = 0 ] || cat signer.out
 
-cat ${keyname}.key | grep -v '^; ' | $PERL -n -e '
-local ($dn, $class, $type, $flags, $proto, $alg, @rest) = split;
-local $key = join("", @rest);
-print <<EOF
-trusted-keys {
-    "$dn" $flags $proto $alg "$key";
-};
-EOF
-' > trusted.conf
-
+keyfile_to_trusted_keys $keyname > trusted.conf
 cp trusted.conf ../ns6/trusted.conf
