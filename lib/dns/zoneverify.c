@@ -1820,7 +1820,7 @@ print_summary(const vctx_t *vctx, isc_boolean_t keyset_kskonly) {
 	}
 }
 
-void
+isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, isc_mem_t *mctx,
 		      isc_boolean_t ignore_kskflag,
@@ -1831,7 +1831,7 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	result = vctx_init(&vctx, mctx, zone, db, ver, origin);
 	if (result != ISC_R_SUCCESS) {
-		return;
+		return (result);
 	}
 
 	result = check_apex_rrsets(&vctx);
@@ -1890,4 +1890,6 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
  done:
 	vctx_destroy(&vctx);
+
+	return (result);
 }
