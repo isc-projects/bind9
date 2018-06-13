@@ -1,3 +1,6 @@
+4971.	[bug]		dnssec-signzone and dnssec-verify did not treat records
+			below a DNAME as out-of-zone data. [GL #298]
+
 4969.	[cleanup]	Refactor zone logging functions. [GL #269]
 
 4968.	[bug]		If glue records are signed, attempt to validate them.

@@ -58,7 +58,7 @@ do
 		expect1="signature has expired"
 		expect2="No self-signed .*DNSKEY found"
 		;;
-	*.out-of-zone-nsec|*.below-bottom-of-zone-nsec)
+	*.out-of-zone-nsec|*.below-bottom-of-zone-nsec|*.below-dname-nsec)
 		expect1="unexpected NSEC RRset at"
 		;;
 	*.nsec.broken-chain)
