@@ -1249,7 +1249,7 @@ dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
-		     dns_name_t *fname, isc_stdtime_t now,
+		     dns_name_t *fname, dns_name_t *dcname, isc_stdtime_t now,
 		     unsigned int options, isc_boolean_t use_hints,
 		     isc_boolean_t use_cache, dns_rdataset_t *rdataset,
 		     dns_rdataset_t *sigrdataset)
@@ -1352,7 +1352,8 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 		}
 	} else {
 		result = dns_db_findzonecut(db, name, options, now, NULL,
-					    fname, rdataset, sigrdataset);
+					    fname, dcname, rdataset,
+					    sigrdataset);
 		if (result == ISC_R_SUCCESS) {
 			if (zfname != NULL &&
 			    (!dns_name_issubdomain(fname, zfname) ||
@@ -1396,6 +1397,11 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 		result = dns_name_copy(zfname, fname, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
+		if (dcname != NULL) {
+			result = dns_name_copy(zfname, dcname, NULL);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
+		}
 		dns_rdataset_clone(&zrdataset, rdataset);
 		if (sigrdataset != NULL &&
 		    dns_rdataset_isassociated(&zrdataset))
@@ -1415,6 +1421,8 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 			if (dns_rdataset_isassociated(rdataset))
 				dns_rdataset_disassociate(rdataset);
 			result = ISC_R_NOTFOUND;
+		} else if (dcname != NULL) {
+			dns_name_copy(fname, dcname, NULL);
 		}
 	}
 
