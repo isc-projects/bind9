@@ -4024,20 +4024,12 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone,
 		   adbname);
 		name = dns_fixedname_initname(&fixed);
 		result = dns_view_findzonecut(adb->view, &adbname->name, name,
-					      0, 0, true, false,
+					      NULL, 0, 0, true, false,
 					      &rdataset, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
 			goto cleanup;
 		nameservers = &rdataset;
 		options |= DNS_FETCHOPT_UNSHARED;
-	}
-
-	if (adb->view->qminimization) {
-		options |= DNS_FETCHOPT_QMINIMIZE;
-		options |= DNS_FETCHOPT_QMIN_SKIP_IP6A;
-		if (adb->view->qmin_strict) {
-			options |= DNS_FETCHOPT_QMIN_STRICT;
-		}
 	}
 
 	fetch = new_adbfetch(adb);
@@ -4046,6 +4038,14 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone,
 		goto cleanup;
 	}
 	fetch->depth = depth;
+
+	/*
+	 * We're not minimizing this query, as nothing user-related should
+	 * be leaked here.
+	 * However, if we'd ever want to change it we'd have to modify
+	 * createfetch to find deepest cached name when we're providing
+	 * domain and nameservers.
+	 */
 
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  type, name, nameservers, NULL,
