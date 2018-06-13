@@ -572,6 +572,21 @@ is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	return (ISC_TF(result == ISC_R_SUCCESS));
 }
 
+isc_boolean_t
+has_dname(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node) {
+	dns_rdataset_t dnameset;
+	isc_result_t result;
+
+	dns_rdataset_init(&dnameset);
+	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_dname, 0, 0,
+				     &dnameset, NULL);
+	if (dns_rdataset_isassociated(&dnameset)) {
+		dns_rdataset_disassociate(&dnameset);
+	}
+
+	return (ISC_TF(result == ISC_R_SUCCESS));
+}
+
 static isc_boolean_t
 goodsig(dns_name_t *origin, dns_rdata_t *sigrdata, dns_name_t *name,
 	dns_rdataset_t *keyrdataset, dns_rdataset_t *rdataset, isc_mem_t *mctx)
@@ -1724,6 +1739,9 @@ verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 			zonecut = dns_fixedname_name(&fzonecut);
 			dns_name_copy(name, zonecut, NULL);
 			isdelegation = ISC_TRUE;
+		} else if (has_dname(db, ver, node)) {
+			zonecut = dns_fixedname_name(&fzonecut);
+			dns_name_copy(name, zonecut, NULL);
 		}
 		nextnode = NULL;
 		result = dns_dbiterator_next(dbiter);

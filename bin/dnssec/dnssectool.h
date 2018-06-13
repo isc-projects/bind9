@@ -87,6 +87,13 @@ isc_boolean_t
 is_delegation(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 		      dns_name_t *name, dns_dbnode_t *node, isc_uint32_t *ttlp);
 
+/*%
+ * Return ISC_TRUE if version 'ver' of database 'db' contains a DNAME RRset at
+ * 'node'; return ISC_FALSE otherwise.
+ */
+isc_boolean_t
+has_dname(dns_db_t *db, dns_dbversion_t *ver, dns_dbnode_t *node);
+
 void
 verifyzone(dns_db_t *db, dns_dbversion_t *ver,
 		   dns_name_t *origin, isc_mem_t *mctx,
