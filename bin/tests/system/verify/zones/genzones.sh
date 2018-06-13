@@ -42,6 +42,13 @@ $KEYGEN -r $RANDFILE ${zone} > kg1.out$n 2>&1 || dumpit kg1.out$n
 $KEYGEN -r $RANDFILE -fK ${zone} > kg2.out$n 2>&1 || dumpit kg2.out$n
 $SIGNER -SPx -o ${zone} -f ${file} unsigned.db > s.out$n 2>&1 || dumpit s.out$n
 
+setup ksk+zsk.nsec.apex-dname good
+zsk=`$KEYGEN -r $RANDFILE ${zone} 2> kg1.out$n` || dumpit kg1.out$n
+ksk=`$KEYGEN -r $RANDFILE -fK ${zone} 2> kg2.out$n` || dumpit kg2.out$n
+cp unsigned.db ${file}.tmp
+echo "@ DNAME data" >> ${file}.tmp
+$SIGNER -SP -o ${zone} -f ${file} ${file}.tmp > s.out$n 2>&1 || dumpit s.out$n
+
 # A set of nsec3 zones.
 setup zsk-only.nsec3 good
 $KEYGEN -3 -r $RANDFILE ${zone}> kg.out$n 2>&1 || dumpit kg.out$n
@@ -56,10 +63,17 @@ $KEYGEN -3 -r $RANDFILE ${zone} > kg1.out$n 2>&1 || dumpit kg1.out$n
 $KEYGEN -3 -r $RANDFILE -fK ${zone} > kg2.out$n 2>&1 || dumpit kg2.out$n
 $SIGNER -3 - -SPx -o ${zone} -f ${file} unsigned.db > s.out$n 2>&1 || dumpit s.out$n
 
-setup ksk+zsk.outout good
+setup ksk+zsk.optout good
 $KEYGEN -3 -r $RANDFILE ${zone} > kg1.out$n 2>&1 || dumpit kg1.out$n
 $KEYGEN -3 -r $RANDFILE -fK ${zone} > kg2.out$n 2>&1 || dumpit kg2.out$n
 $SIGNER -3 - -A -SPx -o ${zone} -f ${file} unsigned.db > s.out$n 2>&1 || dumpit s.out$n
+
+setup ksk+zsk.nsec3.apex-dname good
+zsk=`$KEYGEN -3 -r $RANDFILE ${zone} 2> kg1.out$n` || dumpit kg1.out$n
+ksk=`$KEYGEN -3 -r $RANDFILE -fK ${zone} 2> kg2.out$n` || dumpit kg2.out$n
+cp unsigned.db ${file}.tmp
+echo "@ DNAME data" >> ${file}.tmp
+$SIGNER -3 - -SP -o ${zone} -f ${file} ${file}.tmp > s.out$n 2>&1 || dumpit s.out$n
 
 # A set of zones with only DNSKEY records.
 setup zsk-only.dnskeyonly bad
@@ -151,7 +165,7 @@ $SIGNER -P -O full -o ${zone} -f ${file} ${file} $ksk > s.out$n 2>&1 || dumpit s
 echo "out-of-zone. 3600 IN NSEC ${zone}. A" >> ${file}
 $SIGNER -Px -Z nonsecify -O full -o ${zone} -f ${file} ${file} $zsk > s.out$n 2>&1 || dumpit s.out$n
 
-# extra NSEC record below bottom of one
+# extra NSEC record below bottom of zone
 setup ksk+zsk.nsec.below-bottom-of-zone-nsec bad
 zsk=`$KEYGEN -r $RANDFILE ${zone} 2> kg1.out$n` || dumpit kg1.out$n
 ksk=`$KEYGEN -r $RANDFILE -fK ${zone} 2> kg2.out$n` || dumpit kg2.out$n
@@ -161,6 +175,15 @@ echo "ns.sub.${zone}. 3600 IN NSEC ${zone}. A AAAA" >> ${file}
 $SIGNER -Px -Z nonsecify -O full -o ${zone} -f ${file}.tmp ${file} $zsk > s.out$n 2>&1 || dumpit s.out$n
 # dnssec-signzone signs any node with a NSEC record.
 awk '$1 ~ /^ns.sub/ && $4 == "RRSIG" && $5 != "NSEC" { next; } { print; }' ${file}.tmp > ${file}
+
+# extra NSEC record below DNAME
+setup ksk+zsk.nsec.below-dname-nsec bad
+zsk=`$KEYGEN -r $RANDFILE ${zone} 2> kg1.out$n` || dumpit kg1.out$n
+ksk=`$KEYGEN -r $RANDFILE -fK ${zone} 2> kg2.out$n` || dumpit kg2.out$n
+cat unsigned.db $ksk.key $zsk.key > $file
+$SIGNER -P -O full -o ${zone} -f ${file} ${file} $ksk > s.out$n 2>&1 || dumpit s.out$n
+echo "sub.dname.${zone}. 3600 IN NSEC ${zone}. TXT" >> ${file}
+$SIGNER -Px -Z nonsecify -O full -o ${zone} -f ${file} ${file} $zsk > s.out$n 2>&1 || dumpit s.out$n
 
 # missing NSEC3 record at empty node
 # extract the hash fields from the empty node's NSEC 3 record then fix up
