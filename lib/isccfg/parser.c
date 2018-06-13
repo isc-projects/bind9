@@ -636,8 +636,8 @@ cfg_parse_buffer3(cfg_parser_t *pctx, isc_buffer_t *buffer,
 
 isc_result_t
 cfg_parse_buffer4(cfg_parser_t *pctx, isc_buffer_t *buffer,
-                  const char *file, unsigned int line,
-                  const cfg_type_t *type, unsigned int flags,
+		  const char *file, unsigned int line,
+		  const cfg_type_t *type, unsigned int flags,
 		  cfg_obj_t **ret)
 {
 	isc_result_t result;
@@ -1728,19 +1728,19 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 		    (clause->flags & CFG_CLAUSEFLAG_DEPRECATED) != 0)
 		{
 			cfg_parser_warning(pctx, 0, "option '%s' is deprecated",
-				           clause->name);
+					   clause->name);
 		}
 		if ((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' is obsolete",
-				           clause->name);
+					   clause->name);
 		}
 		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' is "
-				           "not implemented", clause->name);
+					   "not implemented", clause->name);
 		}
 		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' is "
-				           "not implemented", clause->name);
+					   "not implemented", clause->name);
 		}
 		if ((clause->flags & CFG_CLAUSEFLAG_NOOP) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' was not "
