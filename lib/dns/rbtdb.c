@@ -5191,6 +5191,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	nodelock_t *lock;
 	isc_result_t result;
 	rbtdb_search_t search;
+	dns_name_t *founddname;
 	rdatasetheader_t *header, *header_prev, *header_next;
 	rdatasetheader_t *found, *foundsig;
 	unsigned int rbtoptions = DNS_RBTFIND_EMPTYDATA;
@@ -5213,10 +5214,15 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	dns_fixedname_init(&search.zonecut_name);
 	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
 	search.now = now;
-
+	
 	if ((options & DNS_DBFIND_NOEXACT) != 0)
 		rbtoptions |= DNS_RBTFIND_NOEXACT;
-
+		
+	if ((options & DNS_DBFIND_FORCEBOTTOM) != 0) {
+		founddname = NULL;
+	} else {
+		founddname = foundname;
+	}
 	RWLOCK(&search.rbtdb->tree_lock, isc_rwlocktype_read);
 
 	/*
@@ -5226,8 +5232,8 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 				  &search.chain, rbtoptions, NULL, &search);
 
 	if (result == DNS_R_PARTIALMATCH) {
-	find_ns:
-		result = find_deepest_zonecut(&search, node, nodep, foundname,
+		printf("PARTIALMATCH\n");
+		result = find_deepest_zonecut(&search, node, nodep, founddname,
 					      rdataset, sigrdataset);
 		goto tree_exit;
 	} else if (result != ISC_R_SUCCESS)
@@ -5279,7 +5285,9 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		 * No NS records here.
 		 */
 		NODE_UNLOCK(lock, locktype);
-		goto find_ns;
+		result = find_deepest_zonecut(&search, node, nodep, founddname,
+					      rdataset, sigrdataset);
+		goto tree_exit;
 	}
 
 	if (nodep != NULL) {

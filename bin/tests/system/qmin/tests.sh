@@ -101,24 +101,24 @@ sleep 1
 # for NSes on the way. Those will be cached though, so it
 # should not be a problem
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
+NS good.
 NS boing.good.
 NS zoop.boing.good.
 ADDR ns3.good.
 ADDR ns3.good.
 NS name.good.
-NS name.good.
-NS ns.name.good.
 NS ns.name.good.
 NS longer.ns.name.good.
-NS longer.ns.name.good.
-ADDR a.bit.longer.ns.name.good.
-ADDR a.bit.longer.ns.name.good.
+A a.bit.longer.ns.name.good.
+AAAA a.bit.longer.ns.name.good.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
+NS zoop.boing.good.
 NS ptang.zoop.boing.good.
 NS icky.ptang.zoop.boing.good.
 __EOF
 cat << __EOF | diff ans4/query.log - > /dev/null || ret=1
+NS icky.ptang.zoop.boing.good.
 NS icky.icky.ptang.zoop.boing.good.
 ADDR icky.icky.icky.ptang.zoop.boing.good.
 __EOF
