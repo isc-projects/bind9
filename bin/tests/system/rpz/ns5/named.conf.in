@@ -29,7 +29,6 @@ options {
 	notify yes;
 	minimal-responses no;
 	recursion yes;
-	qname-minimization disabled;
 	dnssec-validation yes;
 
 	# turn rpz on or off
