@@ -147,7 +147,7 @@ static struct tt {
 	int type;
 	char classname[TYPECLASSBUF];
 	char typename[TYPECLASSBUF];
-	char dirname[DIRNAMESIZE];	/* XXX Should be max path length */
+	char dirname[DIRNAMESIZE-30];	/* XXX Should be max path length */
 } *types;
 
 static struct ttnam {
