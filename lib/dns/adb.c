@@ -4022,7 +4022,7 @@ fetch_name(dns_adbname_t *adbname, isc_boolean_t start_at_zone,
 		   adbname);
 		name = dns_fixedname_initname(&fixed);
 		result = dns_view_findzonecut(adb->view, &adbname->name, name,
-					      0, 0, ISC_TRUE, ISC_FALSE,
+					      NULL, 0, 0, ISC_TRUE, ISC_FALSE,
 					      &rdataset, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
 			goto cleanup;
