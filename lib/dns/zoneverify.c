@@ -821,8 +821,8 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&sigrdataset)) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
+		isc_boolean_t good = ISC_FALSE;
 		dns_rdata_rrsig_t sig;
-		isc_boolean_t good;
 
 		dns_rdataset_current(&sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &sig, NULL);
@@ -1622,7 +1622,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		nextnode = NULL;
 		result = dns_dbiterator_next(dbiter);
 		while (result == ISC_R_SUCCESS) {
-			isc_boolean_t empty;
+			isc_boolean_t empty = ISC_FALSE;
 			result = dns_dbiterator_current(dbiter, &nextnode,
 							nextname);
 			if (result != ISC_R_SUCCESS &&
