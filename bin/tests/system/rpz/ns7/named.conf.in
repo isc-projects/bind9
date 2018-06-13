@@ -21,7 +21,6 @@ options {
 	listen-on-v6 { none; };
 	minimal-responses no;
 	recursion yes;
-	qname-minimization disabled;
 	dnssec-validation yes;
 
 	response-policy {
