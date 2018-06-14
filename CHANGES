@@ -24,6 +24,13 @@
 4962.	[cleanup]	Move 'named -T' processing to its own function.
 			[GL #316]
 
+4960.	[security]	When recursion is enabled, but the "allow-recursion"
+			and "allow-query-cache" ACLs are not specified,
+			they should be limited to local networks,
+			but were inadvertently set to match the default
+			"allow-query", thus allowing remote queries.
+			(CVE-2018-5738) [GL #309]
+
 4958.	[bug]		Remove redundant space from NSEC3 record. [GL #281]
 
 4955.	[cleanup]	Silence cppcheck warnings in lib/dns/master.c.
