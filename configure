@@ -681,6 +681,7 @@ UNITTESTS
 ATFLIBS
 ATFBIN
 ATFBUILD
+LD_WRAP_TESTS
 CMOCKA_LIBS
 CMOCKA_CFLAGS
 LIBIDN2_LIBS
@@ -23357,6 +23358,47 @@ fi
 esac
 
 
+
+#
+# Check for -Wl,--wrap= support
+#
+
+save_LDFLAGS=$LDFLAGS
+LDFLAGS="--wrap=printf"
+
+LD_WRAP_TESTS=false
+enable_ld_wrap=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker support for --wrap option" >&5
+$as_echo_n "checking for linker support for --wrap option... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdio.h>
+int
+main ()
+{
+__wrap_printf("success"); return (0);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
+  enable_ld_wrap=yes
+     LD_WRAP_TESTS=true
+
+$as_echo "#define LD_WRAP 1" >>confdefs.h
+
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+# AM_CONDITIONAL([LD_WRAP], [test $enable_ld_wrap = yes])
+
+
+LDFLAGS=$save_LDFLAGS
 
 #
 # Check whether to build Automated Test Framework unit tests
