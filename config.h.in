@@ -561,6 +561,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to allow building of objects for dlopen(). */
 #undef ISC_DLZ_DLOPEN
 
+/* define if the linker supports --wrap option */
+#undef LD_WRAP
+
 /* Define to the sub-directory where libtool stores uninstalled libraries. */
 #undef LT_OBJDIR
 
