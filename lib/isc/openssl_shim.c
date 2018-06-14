@@ -11,9 +11,11 @@
 
 #include <config.h>
 
+#if HAVE_OPENSSL
+
 #include <openssl/opensslv.h>
 
-#if HAVE_OPENSSL && (OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER))
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 
 #include <stdlib.h>
 #include <string.h>
@@ -92,4 +94,6 @@ int HMAC_CTX_reset(HMAC_CTX *ctx) {
 	return 1;
 }
 
-#endif
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER) */
+
+#endif /* HAVE_OPENSSL */
