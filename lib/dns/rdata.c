@@ -95,7 +95,7 @@
 #define ARGS_FROMSTRUCT	int rdclass, dns_rdatatype_t type, \
 			void *source, isc_buffer_t *target
 
-#define ARGS_TOSTRUCT	dns_rdata_t *rdata, void *target, isc_mem_t *mctx
+#define ARGS_TOSTRUCT	const dns_rdata_t *rdata, void *target, isc_mem_t *mctx
 
 #define ARGS_FREESTRUCT void *source
 
@@ -1185,7 +1185,7 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 }
 
 isc_result_t
-dns_rdata_tostruct(dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
+dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 	isc_result_t result = ISC_R_NOTIMPLEMENTED;
 	isc_boolean_t use_default = ISC_FALSE;
 
