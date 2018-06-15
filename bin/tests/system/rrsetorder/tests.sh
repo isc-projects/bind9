@@ -136,7 +136,7 @@ do
 	eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Random selection return $match of 24 possible orders in 36 samples"
-if [ $match -lt 8 ]; then echo ret=1; fi
+if [ $match -lt 8 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -230,7 +230,7 @@ do
 eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Random selection return $match of 24 possible orders in 36 samples"
-if [ $match -lt 8 ]; then echo ret=1; fi
+if [ $match -lt 8 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -340,7 +340,7 @@ do
 eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Random selection return $match of 24 possible orders in 36 samples"
-if [ $match -lt 8 ]; then echo ret=1; fi
+if [ $match -lt 8 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -415,7 +415,7 @@ if [ $matches -ne 16 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "Checking order random (cache)"
+echo_i "Checking default order (cache)"
 ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 do
@@ -423,7 +423,7 @@ do
 done
 for i in a b c d e f g h i j k l m n o p q r s t u v w x y z 0 1 2 3 4 5 6 7 9
 do
-	$DIGCMD @10.53.0.3 random.example > dig.out.random || ret=1
+	$DIGCMD @10.53.0.5 random.example > dig.out.random || ret=1
 	match=0
 	for j in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 	do
@@ -437,8 +437,8 @@ for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24
 do
 eval "match=\`expr \$match + \$match$i\`"
 done
-echo_i "Random selection return $match of 24 possible orders in 36 samples"
-if [ $match -lt 8 ]; then echo ret=1; fi
+echo_i "Default selection return $match of 24 possible orders in 36 samples"
+if [ $match -lt 8 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
 echo_i "Checking default order no match in rrset-order (no shuffling)"
@@ -464,7 +464,7 @@ do
 eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Consistent selection return $match of 24 possible orders in 36 samples"
-if [ $match -ne 1 ]; then echo ret=1; fi
+if [ $match -ne 1 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
 status=`expr $status + $ret`
