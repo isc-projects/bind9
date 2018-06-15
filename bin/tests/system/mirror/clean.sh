@@ -16,6 +16,7 @@ rm -f */*.signed
 rm -f */K*
 rm -f */db-*
 rm -f */dsset-*
+rm -f */jn-*
 rm -f */named.memstats
 rm -f */named.run
 rm -f dig.out.*
