@@ -58,6 +58,7 @@
 #include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/time.h>
+#include <dns/zoneverify.h>
 
 #include <dst/dst.h>
 
@@ -322,8 +323,8 @@ main(int argc, char *argv[]) {
 	result = dns_db_newversion(gdb, &gversion);
 	check_result(result, "dns_db_newversion()");
 
-	verifyzone(gdb, gversion, gorigin, mctx,
-		   ignore_kskflag, keyset_kskonly);
+	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, mctx,
+				       ignore_kskflag, keyset_kskonly);
 
 	dns_db_closeversion(gdb, &gversion, ISC_FALSE);
 	dns_db_detach(&gdb);
@@ -337,5 +338,5 @@ main(int argc, char *argv[]) {
 
 	(void) isc_app_finish();
 
-	return (0);
+	return (result == ISC_R_SUCCESS ? 0 : 1);
 }
