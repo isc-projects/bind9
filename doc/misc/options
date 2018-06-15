@@ -783,6 +783,7 @@ view <string> [ <class> ] {
                 max-zone-ttl ( unlimited | <ttlval> );
                 min-refresh-time <integer>;
                 min-retry-time <integer>;
+                mirror <boolean>;
                 multi-master <boolean>;
                 notify ( explicit | master-only | <boolean> );
                 notify-delay <integer>;
@@ -889,6 +890,7 @@ zone <string> [ <class> ] {
         max-zone-ttl ( unlimited | <ttlval> );
         min-refresh-time <integer>;
         min-retry-time <integer>;
+        mirror <boolean>;
         multi-master <boolean>;
         notify ( explicit | master-only | <boolean> );
         notify-delay <integer>;

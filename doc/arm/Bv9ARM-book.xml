@@ -12443,6 +12443,44 @@ example.com. NS ns2.example.net.
 	      </varlistentry>
 
 	      <varlistentry>
+		<term><command>mirror</command></term>
+		<listitem>
+		  <para>
+		    This is only applicable to <command>slave</command>
+		    zones.  If set to <userinput>yes</userinput>, every
+		    version of the zone will be subject to DNSSEC
+		    validation before being used and answers coming from
+		    the zone will not have the AA bit set.  In order for
+		    zone validation to succeed, its KSK must be
+		    configured as a trust anchor.  The default is
+		    <userinput>no</userinput>.  This option is meant to
+		    be used for deploying an RFC 7706-style local copy
+		    of the root zone, e.g. using a configuration like
+		    this:
+		  </para>
+<programlisting>zone "." {
+	type slave;
+	mirror yes;
+	file "root.mirror";
+	masters {
+		192.228.79.201;       # b.root-servers.net
+		192.33.4.12;          # c.root-servers.net
+		192.5.5.241;          # f.root-servers.net
+		192.112.36.4;         # g.root-servers.net
+		193.0.14.129;         # k.root-servers.net
+		192.0.47.132;         # xfr.cjr.dns.icann.org
+		192.0.32.132;         # xfr.lax.dns.icann.org
+		2001:500:84::b;       # b.root-servers.net
+		2001:500:2f::f;       # f.root-servers.net
+		2001:7fd::1;          # k.root-servers.net
+		2620:0:2830:202::132; # xfr.cjr.dns.icann.org
+		2620:0:2d0:202::132;  # xfr.lax.dns.icann.org
+	};
+};</programlisting>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
 		<term><command>multi-master</command></term>
 		<listitem>
 		  <para>
