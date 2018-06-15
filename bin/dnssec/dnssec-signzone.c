@@ -3916,7 +3916,7 @@ main(int argc, char *argv[]) {
 		vresult = ISC_R_SUCCESS;
 	} else {
 		vresult = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin,
-						mctx, ignore_kskflag,
+						NULL, mctx, ignore_kskflag,
 						keyset_kskonly);
 		if (vresult != ISC_R_SUCCESS) {
 			fprintf(output_stdout ? stderr : stdout,
