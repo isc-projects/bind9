@@ -7765,7 +7765,10 @@ query_zone_delegation(query_ctx_t *qctx) {
 		}
 	}
 
-	if (USECACHE(qctx->client) && RECURSIONOK(qctx->client)) {
+	if (USECACHE(qctx->client) &&
+	    (RECURSIONOK(qctx->client) ||
+	     (qctx->zone != NULL && dns_zone_ismirror(qctx->zone))))
+	{
 		/*
 		 * We might have a better answer or delegation in the
 		 * cache.  We'll remember the current values of fname,
@@ -7983,7 +7986,9 @@ query_delegation(query_ctx_t *qctx) {
 	qctx->client->query.attributes |= NS_QUERYATTR_CACHEGLUEOK;
 	qctx->client->query.isreferral = ISC_TRUE;
 
-	if (qctx->zdb != NULL && qctx->client->query.gluedb == NULL) {
+	if (qctx->zdb != NULL && qctx->client->query.gluedb == NULL &&
+	    !(qctx->zone != NULL && dns_zone_ismirror(qctx->zone)))
+	{
 		dns_db_attach(qctx->zdb, &qctx->client->query.gluedb);
 		detach = ISC_TRUE;
 	}
