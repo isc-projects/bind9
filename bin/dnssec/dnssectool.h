@@ -42,10 +42,6 @@ ISC_PLATFORM_NORETURN_PRE void
 version(const char *program) ISC_PLATFORM_NORETURN_POST;
 
 void
-type_format(const dns_rdatatype_t type, char *cp, unsigned int size);
-#define TYPE_FORMATSIZE 20
-
-void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size);
 #define SIG_FORMATSIZE (DNS_NAME_FORMATSIZE + DNS_SECALG_FORMATSIZE + sizeof("65535"))
 

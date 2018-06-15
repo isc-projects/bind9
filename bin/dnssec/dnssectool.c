@@ -117,19 +117,6 @@ version(const char *name) {
 }
 
 void
-type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-
-	isc_buffer_init(&b, cp, size - 1);
-	result = dns_rdatatype_totext(type, &b);
-	check_result(result, "dns_rdatatype_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-}
-
-void
 sig_format(dns_rdata_rrsig_t *sig, char *cp, unsigned int size) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char algstr[DNS_NAME_FORMATSIZE];
@@ -667,7 +654,7 @@ check_no_rrsig(dns_db_t *db, dns_dbversion_t *ver, dns_rdataset_t *rdataset,
 	}
 	if (result == ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		type_format(rdataset->type, typebuf, sizeof(typebuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		fprintf(stderr, "Warning: Found unexpected signatures for "
 			"%s/%s\n", namebuf, typebuf);
 	}
@@ -1099,7 +1086,7 @@ verifyset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	}
 	if (result != ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		type_format(rdataset->type, typebuf, sizeof(typebuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		fprintf(stderr, "No signatures for %s/%s\n", namebuf, typebuf);
 		for (i = 0; i < 256; i++)
 			if (act_algorithms[i] != 0)
@@ -1120,7 +1107,8 @@ verifyset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 		check_result(result, "dns_rdata_tostruct()");
 		if (rdataset->ttl != sig.originalttl) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
-			type_format(rdataset->type, typebuf, sizeof(typebuf));
+			dns_rdatatype_format(rdataset->type, typebuf,
+					     sizeof(typebuf));
 			fprintf(stderr, "TTL mismatch for %s %s keytag %u\n",
 				namebuf, typebuf, sig.keyid);
 			continue;
@@ -1134,7 +1122,7 @@ verifyset(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *origin,
 	dns_rdatasetiter_destroy(&rdsiter);
 	if (memcmp(set_algorithms, act_algorithms, sizeof(set_algorithms))) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		type_format(rdataset->type, typebuf, sizeof(typebuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		for (i = 0; i < 256; i++)
 			if ((act_algorithms[i] != 0) &&
 			    (set_algorithms[i] == 0)) {

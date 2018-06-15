@@ -498,11 +498,11 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	dns_ttl_t ttl;
 	int i;
 	char namestr[DNS_NAME_FORMATSIZE];
-	char typestr[TYPE_FORMATSIZE];
+	char typestr[DNS_RDATATYPE_FORMATSIZE];
 	char sigstr[SIG_FORMATSIZE];
 
 	dns_name_format(name, namestr, sizeof(namestr));
-	type_format(set->type, typestr, sizeof(typestr));
+	dns_rdatatype_format(set->type, typestr, sizeof(typestr));
 
 	ttl = ISC_MIN(set->ttl, endtime - starttime);
 
@@ -2090,10 +2090,10 @@ rrset_cleanup(dns_name_t *name, dns_rdataset_t *rdataset,
 	unsigned int count1 = 0;
 	dns_rdataset_t tmprdataset;
 	char namestr[DNS_NAME_FORMATSIZE];
-	char typestr[TYPE_FORMATSIZE];
+	char typestr[DNS_RDATATYPE_FORMATSIZE];
 
 	dns_name_format(name, namestr, sizeof(namestr));
-	type_format(rdataset->type, typestr, sizeof(typestr));
+	dns_rdatatype_format(rdataset->type, typestr, sizeof(typestr));
 
 	dns_rdataset_init(&tmprdataset);
 	for (result = dns_rdataset_first(rdataset);
