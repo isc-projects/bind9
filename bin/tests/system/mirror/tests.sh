@@ -200,5 +200,17 @@ grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that resolution involving a mirror zone works as expected ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 foo.example A > dig.out.ns3.test$n 2>&1 || ret=1
+# Check response code and flags in the answer.
+grep "NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
+# Ensure the root server was not queried.
+grep "query 'foo.example/A/IN'" ns1/named.run > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

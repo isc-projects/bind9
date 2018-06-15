@@ -29,6 +29,11 @@ options {
 	recursion no;
 };
 
+zone "example" {
+	type master;
+	file "example.db.signed";
+};
+
 zone "verify-axfr" {
 	type master;
 	file "verify-axfr.db.signed";
