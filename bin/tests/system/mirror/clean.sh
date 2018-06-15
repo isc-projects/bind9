@@ -8,5 +8,13 @@
 # information regarding copyright ownership.
 
 rm -f */*.conf
+rm -f */*.db
+rm -f */*.mirror
+rm -f */*.prev
+rm -f */*.signed
+rm -f */K*
+rm -f */db-*
+rm -f */dsset-*
 rm -f */named.memstats
 rm -f */named.run
+rm -f dig.out.*
