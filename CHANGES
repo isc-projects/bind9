@@ -1,3 +1,10 @@
+4974.	[func]		Add a new slave zone option, "mirror", to enable
+			serving a non-authoritative copy of a zone that
+			is subject to DNSSEC validation before being
+			used.  For now, this option is only meant to
+			facilitate deployment of an RFC 7706-style local
+			copy of the root zone. [GL #33]
+
 4973.	[func]		verifyzone() and the functions it uses were moved to
 			libdns and refactored to prevent exit() from being
 			called upon failure.  A side effect of that is that
