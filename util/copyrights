@@ -1992,6 +1992,7 @@
 ./bin/tests/system/rrsetorder/ns2/named.conf.in	CONF-C	2006,2007,2016,2018
 ./bin/tests/system/rrsetorder/ns3/named.conf.in	CONF-C	2006,2007,2016,2017,2018
 ./bin/tests/system/rrsetorder/ns4/named.conf.in	CONF-C	2015,2016,2017,2018
+./bin/tests/system/rrsetorder/ns5/named.conf.in	CONF-C	2018
 ./bin/tests/system/rrsetorder/setup.sh		SH	2018
 ./bin/tests/system/rrsetorder/tests.sh		SH	2006,2007,2008,2011,2012,2014,2015,2016,2017,2018
 ./bin/tests/system/rsabigexponent/.gitignore	X	2013,2018
