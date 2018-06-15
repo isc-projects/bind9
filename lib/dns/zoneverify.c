@@ -295,19 +295,23 @@ verifynsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	return (ISC_R_FAILURE);
 }
 
-static void
+static isc_result_t
 check_no_rrsig(const vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 	       dns_dbnode_t *node)
 {
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char typebuf[80];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	dns_rdataset_t sigrdataset;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 
 	dns_rdataset_init(&sigrdataset);
 	result = dns_db_allrdatasets(vctx->db, node, vctx->ver, 0, &rdsiter);
-	check_result(result, "dns_db_allrdatasets()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_db_allrdatasets(): %s",
+				     isc_result_totext(result));
+		return (result);
+	}
 	for (result = dns_rdatasetiter_first(rdsiter);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter)) {
@@ -320,12 +324,16 @@ check_no_rrsig(const vctx_t *vctx, dns_rdataset_t *rdataset, dns_name_t *name,
 	if (result == ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
-		fprintf(stderr, "Warning: Found unexpected signatures for "
-			"%s/%s\n", namebuf, typebuf);
+		zoneverify_log_error(vctx,
+				     "Warning: Found unexpected signatures "
+				     "for %s/%s",
+				     namebuf, typebuf);
 	}
 	if (dns_rdataset_isassociated(&sigrdataset))
 		dns_rdataset_disassociate(&sigrdataset);
 	dns_rdatasetiter_destroy(&rdsiter);
+
+	return (ISC_R_SUCCESS);
 }
 
 static isc_boolean_t
@@ -866,7 +874,12 @@ verifynode(vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 			   rdataset.type != dns_rdatatype_dnskey) {
 			if (rdataset.type == dns_rdatatype_ns)
 				dns_nsec_setbit(types, rdataset.type, 1);
-			check_no_rrsig(vctx, &rdataset, name, node);
+			result = check_no_rrsig(vctx, &rdataset, name, node);
+			if (result != ISC_R_SUCCESS) {
+				dns_rdataset_disassociate(&rdataset);
+				dns_rdatasetiter_destroy(&rdsiter);
+				return (result);
+			}
 		} else
 			dns_nsec_setbit(types, rdataset.type, 1);
 		dns_rdataset_disassociate(&rdataset);
