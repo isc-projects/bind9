@@ -1744,8 +1744,11 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 			dns_db_detachnode(vctx->db, &node);
 			goto done;
 		}
-		record_found(vctx, name, node, &vctx->nsec3paramset);
+		result = record_found(vctx, name, node, &vctx->nsec3paramset);
 		dns_db_detachnode(vctx->db, &node);
+		if (result != ISC_R_SUCCESS) {
+			goto done;
+		}
 	}
 
 	result = ISC_R_SUCCESS;
