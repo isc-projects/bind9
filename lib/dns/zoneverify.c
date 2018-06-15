@@ -232,7 +232,7 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, dns_name_t *name,
 
 static isc_result_t
 verifynsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
-	   dns_name_t *nextname)
+	   dns_name_t *nextname, isc_result_t *vresult)
 {
 	unsigned char buffer[DNS_NSEC_BUFFERSIZE];
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -250,49 +250,71 @@ verifynsec(const vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 				     NULL);
 	if (result != ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		fprintf(stderr, "Missing NSEC record for %s\n", namebuf);
-		goto failure;
+		zoneverify_log_error(vctx, "Missing NSEC record for %s",
+				     namebuf);
+		*vresult = ISC_R_FAILURE;
+		result = ISC_R_SUCCESS;
+		goto done;
 	}
 
 	result = dns_rdataset_first(&rdataset);
-	check_result(result, "dns_rdataset_first()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_rdataset_first(): %s",
+				     isc_result_totext(result));
+		goto done;
+	}
 
 	dns_rdataset_current(&rdataset, &rdata);
 	result = dns_rdata_tostruct(&rdata, &nsec, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	/* Check bit next name is consistent */
+	/* Check next name is consistent */
 	if (!dns_name_equal(&nsec.next, nextname)) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		dns_name_format(nextname, nextbuf, sizeof(nextbuf));
 		dns_name_format(&nsec.next, found, sizeof(found));
-		fprintf(stderr, "Bad NSEC record for %s, next name "
-				"mismatch (expected:%s, found:%s)\n", namebuf,
-				nextbuf, found);
-		goto failure;
+		zoneverify_log_error(vctx,
+				     "Bad NSEC record for %s, next name "
+				     "mismatch (expected:%s, found:%s)",
+				     namebuf, nextbuf, found);
+		*vresult = ISC_R_FAILURE;
+		goto done;
 	}
 	/* Check bit map is consistent */
 	result = dns_nsec_buildrdata(vctx->db, vctx->ver, node, nextname,
 				     buffer, &tmprdata);
-	check_result(result, "dns_nsec_buildrdata()");
+	if (result != ISC_R_SUCCESS) {
+		zoneverify_log_error(vctx, "dns_nsec_buildrdata(): %s",
+				     isc_result_totext(result));
+		goto done;
+	}
 	if (dns_rdata_compare(&rdata, &tmprdata) != 0) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		fprintf(stderr, "Bad NSEC record for %s, bit map "
-				"mismatch\n", namebuf);
-		goto failure;
+		zoneverify_log_error(vctx,
+				     "Bad NSEC record for %s, bit map "
+				     "mismatch",
+				     namebuf);
+		*vresult = ISC_R_FAILURE;
+		goto done;
 	}
+
 	result = dns_rdataset_next(&rdataset);
 	if (result != ISC_R_NOMORE) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		fprintf(stderr, "Multipe NSEC records for %s\n", namebuf);
-		goto failure;
-
+		zoneverify_log_error(vctx, "Multiple NSEC records for %s",
+				     namebuf);
+		*vresult = ISC_R_FAILURE;
+		goto done;
 	}
-	dns_rdataset_disassociate(&rdataset);
-	return (ISC_R_SUCCESS);
- failure:
-	if (dns_rdataset_isassociated(&rdataset))
+
+	*vresult = ISC_R_SUCCESS;
+	result = ISC_R_SUCCESS;
+
+ done:
+	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
-	return (ISC_R_FAILURE);
+	}
+
+	return (result);
 }
 
 static isc_result_t
@@ -834,7 +856,7 @@ verifynode(vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	unsigned char types[8192];
 	unsigned int maxtype = 0;
 	dns_rdataset_t rdataset; dns_rdatasetiter_t *rdsiter = NULL;
-	isc_result_t result, tresult;
+	isc_result_t result, tvresult;
 
 	REQUIRE(vresult != NULL || (nsecset == NULL && nsec3paramset == NULL));
 
@@ -899,14 +921,18 @@ verifynode(vctx_t *vctx, dns_name_t *name, dns_dbnode_t *node,
 	*vresult = ISC_R_SUCCESS;
 
 	if (nsecset != NULL && dns_rdataset_isassociated(nsecset)) {
-		*vresult = verifynsec(vctx, name, node, nextname);
+		result = verifynsec(vctx, name, node, nextname, &tvresult);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		*vresult = tvresult;
 	}
 
 	if (nsec3paramset != NULL && dns_rdataset_isassociated(nsec3paramset)) {
-		tresult = verifynsec3s(vctx, name, nsec3paramset, delegation,
+		tvresult = verifynsec3s(vctx, name, nsec3paramset, delegation,
 				       ISC_FALSE, types, maxtype);
 		if (*vresult == ISC_R_SUCCESS) {
-			*vresult = tresult;
+			*vresult = tvresult;
 		}
 	}
 
