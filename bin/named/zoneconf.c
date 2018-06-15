@@ -1746,6 +1746,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 					dns_zone_setxfracl(zone, none);
 					dns_acl_detach(&none);
 				}
+				/*
+				 * Only allow "also-notify".
+				 */
+				notifytype = dns_notifytype_explicit;
+				dns_zone_setnotifytype(zone, notifytype);
 			}
 		}
 
