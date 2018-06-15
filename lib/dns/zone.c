@@ -19316,3 +19316,10 @@ dns_zone_getgluecachestats(dns_zone_t *zone) {
 
 	return (zone->gluecachestats);
 }
+
+isc_boolean_t
+dns_zone_ismirror(const dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MIRROR));
+}
