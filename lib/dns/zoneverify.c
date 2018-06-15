@@ -1214,6 +1214,47 @@ check_apex_rrsets(vctx_t *vctx) {
 }
 
 /*%
+ * Update 'vctx' tables tracking active and standby key algorithms used in the
+ * verified zone based on the signatures made using 'dnskey' (prepared from
+ * 'rdata') found at zone apex.  Set 'vctx->goodksk' or 'vctx->goodzsk' to true
+ * if 'dnskey' correctly signs the DNSKEY RRset at zone apex.
+ *
+ * The variables to update are chosen based on 'is_ksk', which is true when
+ * 'dnskey' is a KSK and false otherwise.
+ */
+static void
+check_dnskey_sigs(vctx_t *vctx, dns_rdata_dnskey_t *dnskey, dns_rdata_t *rdata,
+		  isc_boolean_t is_ksk)
+{
+	unsigned char *active_keys, *standby_keys;
+	isc_boolean_t *goodkey;
+
+	active_keys = (is_ksk ? vctx->ksk_algorithms : vctx->zsk_algorithms);
+	standby_keys = (is_ksk ? vctx->standby_ksk : vctx->standby_zsk);
+	goodkey = (is_ksk ? &vctx->goodksk : &vctx->goodzsk);
+
+	if (dns_dnssec_selfsigns(rdata, vctx->origin, &vctx->keyset,
+				 &vctx->keysigs, ISC_FALSE, vctx->mctx))
+	{
+		if (active_keys[dnskey->algorithm] != 255) {
+			active_keys[dnskey->algorithm]++;
+		}
+		*goodkey = ISC_TRUE;
+	} else if (!is_ksk &&
+		   dns_dnssec_signs(rdata, vctx->origin, &vctx->soaset,
+				    &vctx->soasigs, ISC_FALSE, vctx->mctx))
+	{
+		if (active_keys[dnskey->algorithm] != 255) {
+			active_keys[dnskey->algorithm]++;
+		}
+	} else {
+		if (standby_keys[dnskey->algorithm] != 255) {
+			standby_keys[dnskey->algorithm]++;
+		}
+	}
+}
+
+/*%
  * Check that the DNSKEY RR has at least one self signing KSK and one ZSK per
  * algorithm in it (or, if -x was used, one self-signing KSK).
  */
@@ -1222,6 +1263,7 @@ check_dnskey(vctx_t *vctx) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_dnskey_t dnskey;
 	isc_result_t result;
+	isc_boolean_t is_ksk;
 
 	for (result = dns_rdataset_first(&vctx->keyset);
 	     result == ISC_R_SUCCESS;
@@ -1229,6 +1271,7 @@ check_dnskey(vctx_t *vctx) {
 		dns_rdataset_current(&vctx->keyset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
 		check_result(result, "dns_rdata_tostruct");
+		is_ksk = ISC_TF((dnskey.flags & DNS_KEYFLAG_KSK) != 0);
 
 		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0)
 			;
@@ -1257,31 +1300,8 @@ check_dnskey(vctx_t *vctx) {
 			else if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0 &&
 				 vctx->revoked_zsk[dnskey.algorithm] != 255)
 				vctx->revoked_zsk[dnskey.algorithm]++;
-		} else if ((dnskey.flags & DNS_KEYFLAG_KSK) != 0) {
-			if (dns_dnssec_selfsigns(&rdata, vctx->origin,
-						 &vctx->keyset, &vctx->keysigs,
-						 ISC_FALSE, vctx->mctx)) {
-				if (vctx->ksk_algorithms[dnskey.algorithm] != 255)
-					vctx->ksk_algorithms[dnskey.algorithm]++;
-				vctx->goodksk = ISC_TRUE;
-			} else {
-				if (vctx->standby_ksk[dnskey.algorithm] != 255)
-					vctx->standby_ksk[dnskey.algorithm]++;
-			}
-		} else if (dns_dnssec_selfsigns(&rdata, vctx->origin,
-						&vctx->keyset, &vctx->keysigs,
-						ISC_FALSE, vctx->mctx)) {
-			if (vctx->zsk_algorithms[dnskey.algorithm] != 255)
-				vctx->zsk_algorithms[dnskey.algorithm]++;
-			vctx->goodzsk = ISC_TRUE;
-		} else if (dns_dnssec_signs(&rdata, vctx->origin,
-					    &vctx->soaset, &vctx->soasigs,
-					    ISC_FALSE, vctx->mctx)) {
-			if (vctx->zsk_algorithms[dnskey.algorithm] != 255)
-				vctx->zsk_algorithms[dnskey.algorithm]++;
 		} else {
-			if (vctx->standby_zsk[dnskey.algorithm] != 255)
-				vctx->standby_zsk[dnskey.algorithm]++;
+			check_dnskey_sigs(vctx, &dnskey, &rdata, is_ksk);
 		}
 		dns_rdata_freestruct(&dnskey);
 		dns_rdata_reset(&rdata);
