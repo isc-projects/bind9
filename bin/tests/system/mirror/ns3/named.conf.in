@@ -41,6 +41,13 @@ zone "verify-axfr" {
 	file "verify-axfr.db.mirror";
 };
 
+zone "verify-ixfr" {
+	type slave;
+	masters { 10.53.0.2; };
+	mirror yes;
+	file "verify-ixfr.db.mirror";
+};
+
 zone "verify-unsigned" {
 	type slave;
 	masters { 10.53.0.2; };
