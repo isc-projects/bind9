@@ -20,6 +20,7 @@
 #include <dns/types.h>
 
 #define DNS_ZTFIND_NOEXACT		0x01
+#define DNS_ZTFIND_MIRROR		0x02
 
 ISC_LANG_BEGINDECLS
 
