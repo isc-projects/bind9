@@ -1,3 +1,5 @@
+4974.	[bug]		Restore default rrset-order to random. [GL #336]
+
 4973.	[func]		verifyzone() and the functions it uses were moved to
 			libdns and refactored to prevent exit() from being
 			called upon failure.  A side effect of that is that
