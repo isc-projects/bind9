@@ -482,19 +482,6 @@ setverifies(dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	}
 }
 
-static void
-type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-
-	isc_buffer_init(&b, cp, size - 1);
-	result = dns_rdatatype_totext(type, &b);
-	check_result(result, "dns_rdatatype_totext()");
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-}
-
 /*%
  * Signs a set.  Goes through contortions to decide if each RRSIG should
  * be dropped or retained, and then determines if any new SIGs need to
@@ -516,11 +503,11 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 	dns_ttl_t ttl;
 	int i;
 	char namestr[DNS_NAME_FORMATSIZE];
-	char typestr[TYPE_FORMATSIZE];
+	char typestr[DNS_RDATATYPE_FORMATSIZE];
 	char sigstr[SIG_FORMATSIZE];
 
 	dns_name_format(name, namestr, sizeof(namestr));
-	type_format(set->type, typestr, sizeof(typestr));
+	dns_rdatatype_format(set->type, typestr, sizeof(typestr));
 
 	ttl = ISC_MIN(set->ttl, endtime - starttime);
 
@@ -2149,10 +2136,10 @@ rrset_cleanup(dns_name_t *name, dns_rdataset_t *rdataset,
 	unsigned int count1 = 0;
 	dns_rdataset_t tmprdataset;
 	char namestr[DNS_NAME_FORMATSIZE];
-	char typestr[TYPE_FORMATSIZE];
+	char typestr[DNS_RDATATYPE_FORMATSIZE];
 
 	dns_name_format(name, namestr, sizeof(namestr));
-	type_format(rdataset->type, typestr, sizeof(typestr));
+	dns_rdatatype_format(rdataset->type, typestr, sizeof(typestr));
 
 	dns_rdataset_init(&tmprdataset);
 	for (result = dns_rdataset_first(rdataset);

@@ -131,19 +131,6 @@ zoneverify_print(const vctx_t *vctx, const char *fmt, ...) {
 	va_end(ap);
 }
 
-static void
-type_format(const dns_rdatatype_t type, char *cp, unsigned int size) {
-	isc_buffer_t b;
-	isc_region_t r;
-	isc_result_t result;
-
-	isc_buffer_init(&b, cp, size - 1);
-	result = dns_rdatatype_totext(type, &b);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	isc_buffer_usedregion(&b, &r);
-	r.base[r.length] = 0;
-}
-
 static isc_boolean_t
 is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	      isc_uint32_t *ttlp)
@@ -348,7 +335,7 @@ check_no_rrsig(const vctx_t *vctx, const dns_rdataset_t *rdataset,
 	}
 	if (result == ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		type_format(rdataset->type, typebuf, sizeof(typebuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		zoneverify_log_error(vctx,
 				     "Warning: Found unexpected signatures "
 				     "for %s/%s",
@@ -882,7 +869,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 	}
 	if (result != ISC_R_SUCCESS) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		type_format(rdataset->type, typebuf, sizeof(typebuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		zoneverify_log_error(vctx, "No signatures for %s/%s",
 				     namebuf, typebuf);
 		for (i = 0; i < 256; i++) {
@@ -907,7 +894,8 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (rdataset->ttl != sig.originalttl) {
 			dns_name_format(name, namebuf, sizeof(namebuf));
-			type_format(rdataset->type, typebuf, sizeof(typebuf));
+			dns_rdatatype_format(rdataset->type, typebuf,
+					     sizeof(typebuf));
 			zoneverify_log_error(vctx,
 					     "TTL mismatch for "
 					     "%s %s keytag %u",
@@ -929,7 +917,7 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 		   sizeof(set_algorithms)))
 	{
 		dns_name_format(name, namebuf, sizeof(namebuf));
-		type_format(rdataset->type, typebuf, sizeof(typebuf));
+		dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 		for (i = 0; i < 256; i++) {
 			if ((vctx->act_algorithms[i] != 0) &&
 			    (set_algorithms[i] == 0))
