@@ -1,3 +1,6 @@
+4972.	[func]		Declare the 'rdata' argument for dns_rdata_tostruct()
+			to be const. [GL #341]
+
 4971.	[bug]		dnssec-signzone and dnssec-verify did not treat records
 			below a DNAME as out-of-zone data. [GL #298]
 
