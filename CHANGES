@@ -1,3 +1,7 @@
+4974.	[port]		Include <atomic> instead of <stdatomic.h> when
+			compiling C++ code which calls libraries from BIND.
+			[GL #344]
+
 4973.	[func]		verifyzone() and the functions it uses were moved to
 			libdns and refactored to prevent exit() from being
 			called upon failure.  A side effect of that is that
