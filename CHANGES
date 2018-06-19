@@ -1,3 +1,7 @@
+4997.	[port]		Include <atomic> instead of <stdatomic.h> when
+			compiling C++ code which calls libraries from BIND.
+			[GL #344]
+
 4996.	[bug]		dig: Handle malformed ednsopt options. [GL #403]
 
 4995.	[test]		Add tests for "tcp-self" update policy. [GL !282]

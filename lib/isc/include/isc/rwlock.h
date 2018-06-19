@@ -22,7 +22,12 @@
 
 #if defined(ISC_PLATFORM_HAVESTDATOMIC)
 #include <stdint.h>
+#ifdef __cplusplus
+#include <atomic>
+using namespace std;
+#else
 #include <stdatomic.h>
+#endif
 #endif
 
 ISC_LANG_BEGINDECLS
