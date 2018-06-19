@@ -22,7 +22,12 @@
 #include <isc/types.h>
 
 #if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#ifdef __cplusplus
+#include <atomic>
+using namespace std;
+#else
 #include <stdatomic.h>
+#endif
 #endif
 
 /*! \file isc/refcount.h
