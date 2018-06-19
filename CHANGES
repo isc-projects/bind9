@@ -1,3 +1,5 @@
+4974.	[bug]		Restore default rrset-order to random. [GL #336]
+
 4972.	[func]		Declare the 'rdata' argument for dns_rdata_tostruct()
 			to be const. [GL #341]
 
