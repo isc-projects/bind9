@@ -31,6 +31,13 @@ die_with_usage() {
 	    "	${SELF} --abort"
 }
 
+verify_gitlab_cli() {
+	which gitlab >/dev/null 2>&1 || \
+		die "You need to have gitlab cli installed and configured: "\
+		    "" \
+		    "$ gem install --user-install gitlab"
+}
+
 die_with_continue_instructions() {
 	die ""								\
 	    "Replay interrupted.  Conflicts need to be fixed manually."	\
@@ -176,6 +183,7 @@ case "$1" in
 		cleanup
 		;;
 	"--continue")
+		verify_gitlab_cli
 		die_if_not_in_progress
 		source "${STATE_FILE}"
 		resume
@@ -184,6 +192,7 @@ case "$1" in
 		if [[ $# -ne 3 ]]; then
 			die_with_usage
 		fi
+		verify_gitlab_cli
 		die_if_in_progress
 		go "$@"
 		;;
