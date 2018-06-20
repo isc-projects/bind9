@@ -317,6 +317,15 @@ dns_dns64_create
 dns_dns64_destroy
 dns_dns64_next
 dns_dns64_unlink
+@IF NOTYET
+dns_dnsrps_2policy
+dns_dnsrps_connect
+dns_dnsrps_rewrite_init
+dns_dnsrps_server_create
+dns_dnsrps_trig2type
+dns_dnsrps_type2trig
+dns_dnsrps_view_init
+@END NOTYET
 dns_dnssec_findmatchingkeys
 dns_dnssec_findzonekeys
 dns_dnssec_keyactive
