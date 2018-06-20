@@ -31,6 +31,8 @@
 struct fstrm_iothr_options;
 #endif /* HAVE_DNSTAP */
 
+#include <isc/attribute.h>
+#include <isc/lang.h>
 #include <isc/log.h>
 #include <isc/refcount.h>
 #include <isc/region.h>
@@ -115,6 +117,8 @@ struct dns_dtdata {
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 };
 #endif /* HAVE_DNSTAP */
+
+ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
@@ -400,5 +404,7 @@ dns_dt_close(dns_dthandle_t **handlep);
  *
  *\li	'*handlep' is not NULL
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* _DNSTAP_H */

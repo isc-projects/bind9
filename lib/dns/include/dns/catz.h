@@ -13,6 +13,7 @@
 #ifndef DNS_CATZ_H
 #define DNS_CATZ_H 1
 
+#include <isc/attribute.h>
 #include <isc/ht.h>
 #include <isc/lang.h>
 #include <isc/refcount.h>
@@ -90,7 +91,8 @@ dns_catz_options_free(dns_catz_options_t *options, isc_mem_t *mctx);
 
 isc_result_t
 dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *opts,
-		      dns_catz_options_t *nopts);
+		      dns_catz_options_t *nopts)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Duplicate 'opts' into 'nopts', allocating space from 'mctx'
  *
@@ -102,7 +104,8 @@ dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *opts,
 
 isc_result_t
 dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
-			    dns_catz_options_t *opts);
+			    dns_catz_options_t *opts)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Replace empty values in 'opts' with values from 'defaults'
  *
@@ -113,7 +116,8 @@ dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
  */
 
 dns_name_t *
-dns_catz_entry_getname(dns_catz_entry_t *entry);
+dns_catz_entry_getname(dns_catz_entry_t *entry)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get domain name for 'entry'
  *
@@ -126,7 +130,8 @@ dns_catz_entry_getname(dns_catz_entry_t *entry);
 
 isc_result_t
 dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
-		   dns_catz_entry_t **nentryp);
+		   dns_catz_entry_t **nentryp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Allocate a new catz_entry on 'mctx', with the name 'domain'
  *
@@ -142,7 +147,8 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 
 isc_result_t
 dns_catz_entry_copy(dns_catz_zone_t *zone, const dns_catz_entry_t *entry,
-		    dns_catz_entry_t **nentryp);
+		    dns_catz_entry_t **nentryp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Allocate a new catz_entry and deep copy 'entry' into 'nentryp'.
  *
@@ -177,14 +183,16 @@ dns_catz_entry_detach(dns_catz_zone_t *zone, dns_catz_entry_t **entryp);
  */
 
 isc_boolean_t
-dns_catz_entry_validate(const dns_catz_entry_t *entry);
+dns_catz_entry_validate(const dns_catz_entry_t *entry)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Validate whether entry is correct.
  * (NOT YET IMPLEMENTED: always returns true)
  */
 
 isc_boolean_t
-dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb);
+dns_catz_entry_cmp(const dns_catz_entry_t *ea, const dns_catz_entry_t *eb)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Deep compare two entries
  *
@@ -218,7 +226,8 @@ dns_catz_zone_detach(dns_catz_zone_t** zonep);
 
 isc_result_t
 dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
-		  const dns_name_t *name);
+		  const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Allocate a new catz zone on catzs mctx
  *
@@ -230,7 +239,8 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
  */
 
 dns_name_t *
-dns_catz_zone_getname(dns_catz_zone_t *zone);
+dns_catz_zone_getname(dns_catz_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get catalog zone name
  *
@@ -239,7 +249,8 @@ dns_catz_zone_getname(dns_catz_zone_t *zone);
  */
 
 dns_catz_options_t *
-dns_catz_zone_getdefoptions(dns_catz_zone_t *zone);
+dns_catz_zone_getdefoptions(dns_catz_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get default member zone options for catalog zone 'zone'
  *
@@ -258,7 +269,8 @@ dns_catz_zone_resetdefoptions(dns_catz_zone_t *zone);
  */
 
 isc_result_t
-dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone);
+dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Merge 'newzone' into 'target', calling addzone/delzone/modzone
  * (from zone->catzs->zmm) for appropriate member zones.
@@ -271,7 +283,8 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone);
 
 isc_result_t
 dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
-			const dns_name_t *src_name, dns_rdataset_t *rdataset);
+			const dns_name_t *src_name, dns_rdataset_t *rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Process a single rdataset from a catalog zone 'zone' update, src_name is the
  * record name.
@@ -285,7 +298,8 @@ dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
 
 isc_result_t
 dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
-				 isc_buffer_t **buffer);
+				 isc_buffer_t **buffer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Generate master file name and put it into *buffer (might be reallocated).
  * The general format of the file name is:
@@ -301,7 +315,8 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 isc_result_t
 dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
-			  isc_buffer_t **buf);
+			  isc_buffer_t **buf)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Generate a zone config entry (in text form) from dns_catz_entry and puts
  * it into *buf. buf might be reallocated.
@@ -331,7 +346,8 @@ struct dns_catz_zonemodmethods {
 isc_result_t
 dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 		   isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
-		   isc_timermgr_t *timermgr);
+		   isc_timermgr_t *timermgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Allocate a new catz_zones object, a collection storing all catalog zones
  * for a view.
@@ -344,7 +360,8 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 
 isc_result_t
 dns_catz_add_zone(dns_catz_zones_t *catzs, const dns_name_t *name,
-		  dns_catz_zone_t **catzp);
+		  dns_catz_zone_t **catzp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Allocate a new catz named 'name' and put it in 'catzs' collection.
  *
@@ -356,7 +373,8 @@ dns_catz_add_zone(dns_catz_zones_t *catzs, const dns_name_t *name,
  */
 
 dns_catz_zone_t *
-dns_catz_get_zone(dns_catz_zones_t *catzs, const dns_name_t *name);
+dns_catz_get_zone(dns_catz_zones_t *catzs, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns a zone named 'name' from collection 'catzs'
  *
@@ -396,7 +414,8 @@ dns_catz_catzs_set_view(dns_catz_zones_t *catzs, dns_view_t *view);
 
 
 isc_result_t
-dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg);
+dns_catz_dbupdate_callback(dns_db_t *db, void *fn_arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Callback for update of catalog zone database.
  * If there was no catalog zone update recently it launches an
@@ -453,7 +472,8 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs);
  */
 
 isc_result_t
-dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp);
+dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the hashtable iterator on catalog zone members, point '*itp' to it.
  *

@@ -66,6 +66,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -250,7 +251,8 @@ struct dns_adbaddrinfo {
 
 isc_result_t
 dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
-	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb);
+	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a new ADB.
  *
@@ -334,7 +336,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
 		   unsigned int depth, isc_counter_t *qc,
-		   dns_adbfind_t **find);
+		   dns_adbfind_t **find)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Main interface for clients. The adb will look up the name given in
  * "name" and will build up a list of found addresses, and perhaps start
@@ -491,7 +494,8 @@ dns_adb_dumpfind(dns_adbfind_t *find, FILE *f);
 isc_result_t
 dns_adb_marklame(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 		 const dns_name_t *qname, dns_rdatatype_t type,
-		 isc_stdtime_t expire_time);
+		 isc_stdtime_t expire_time)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Mark the given address as lame for the <qname,qtype>.  expire_time should
  * be set to the time when the entry should expire.  That is, if it is to
@@ -592,7 +596,8 @@ dns_adb_setudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int size);
  */
 
 unsigned int
-dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
+dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return the largest seen UDP response size.
  *
@@ -604,7 +609,8 @@ dns_adb_getudpsize(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
  */
 
 unsigned int
-dns_adb_probesize (dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups);
+dns_adb_probesize (dns_adb_t *adb, dns_adbaddrinfo_t *addr, int lookups)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return suggested EDNS UDP size based on observed responses / failures.
  * 'lookups' is the number of times the current lookup has been attempted.
@@ -654,7 +660,8 @@ dns_adb_ednsto(dns_adb_t *adb, dns_adbaddrinfo_t *addr, unsigned int size);
  */
 
 isc_boolean_t
-dns_adb_noedns(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
+dns_adb_noedns(dns_adb_t *adb, dns_adbaddrinfo_t *addr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return whether EDNS should be disabled for this server.
  *
@@ -668,7 +675,8 @@ dns_adb_noedns(dns_adb_t *adb, dns_adbaddrinfo_t *addr);
 
 isc_result_t
 dns_adb_findaddrinfo(dns_adb_t *adb, const isc_sockaddr_t *sa,
-		     dns_adbaddrinfo_t **addrp, isc_stdtime_t now);
+		     dns_adbaddrinfo_t **addrp, isc_stdtime_t now)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return a dns_adbaddrinfo_t that is associated with address 'sa'.
  *
@@ -754,7 +762,8 @@ dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 size_t
 dns_adb_getcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
-		  unsigned char *cookie, size_t len);
+		  unsigned char *cookie, size_t len)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Retieve the saved COOKIE value and store it in 'cookie' which has
  * size 'len'.
@@ -801,7 +810,8 @@ dns_adb_setquota(dns_adb_t *adb, isc_uint32_t quota, isc_uint32_t freq,
  */
 
 isc_boolean_t
-dns_adbentry_overquota(dns_adbentry_t *entry);
+dns_adbentry_overquota(dns_adbentry_t *entry)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns true if the specified ADB has too many active fetches.
  *

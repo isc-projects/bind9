@@ -17,6 +17,9 @@
 
 #include <dns/sdlz.h>
 
+#include <isc/attribute.h>
+#include <isc/lang.h>
+
 ISC_LANG_BEGINDECLS
 
 /*
@@ -40,7 +43,8 @@ typedef isc_result_t dlz_dlopen_create_t(const char *dlzname,
 					 unsigned int argc,
 					 char *argv[],
 					 void **dbdata,
-					 ...);
+					 ...)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_destroy() is optional, and will be called when the
@@ -54,7 +58,8 @@ typedef void dlz_dlopen_destroy_t(void *dbdata);
 typedef isc_result_t dlz_dlopen_findzonedb_t(void *dbdata,
 					     const char *name,
 					     dns_clientinfomethods_t *methods,
-					     dns_clientinfo_t *clientinfo);
+					     dns_clientinfo_t *clientinfo)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_lookup() is required for all DLZ external drivers
@@ -64,7 +69,8 @@ typedef isc_result_t dlz_dlopen_lookup_t(const char *zone,
 					 void *dbdata,
 					 dns_sdlzlookup_t *lookup,
 					 dns_clientinfomethods_t *methods,
-					 dns_clientinfo_t *clientinfo);
+					 dns_clientinfo_t *clientinfo)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_authority is optional() if dlz_dlopen_lookup()
@@ -72,7 +78,8 @@ typedef isc_result_t dlz_dlopen_lookup_t(const char *zone,
  */
 typedef isc_result_t dlz_dlopen_authority_t(const char *zone,
 					    void *dbdata,
-					    dns_sdlzlookup_t *lookup);
+					    dns_sdlzlookup_t *lookup)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_allowzonexfr() is optional, and should be supplied if
@@ -80,7 +87,8 @@ typedef isc_result_t dlz_dlopen_authority_t(const char *zone,
  */
 typedef isc_result_t dlz_dlopen_allowzonexfr_t(void *dbdata,
 					       const char *name,
-					       const char *client);
+					       const char *client)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_allnodes() is optional, but must be supplied if supply a
@@ -88,7 +96,8 @@ typedef isc_result_t dlz_dlopen_allowzonexfr_t(void *dbdata,
  */
 typedef isc_result_t dlz_dlopen_allnodes_t(const char *zone,
 					   void *dbdata,
-					   dns_sdlzallnodes_t *allnodes);
+					   dns_sdlzallnodes_t *allnodes)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_newversion() is optional. It should be supplied if you
@@ -96,7 +105,8 @@ typedef isc_result_t dlz_dlopen_allnodes_t(const char *zone,
  */
 typedef isc_result_t dlz_dlopen_newversion_t(const char *zone,
 					     void *dbdata,
-					     void **versionp);
+					     void **versionp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_closeversion() is optional, but must be supplied if you supply
@@ -113,7 +123,8 @@ typedef void dlz_dlopen_closeversion_t(const char *zone,
  */
 typedef isc_result_t dlz_dlopen_configure_t(dns_view_t *view,
 					    dns_dlzdb_t *dlzdb,
-					    void *dbdata);
+					    void *dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_setclientcallback() is optional, but must be supplied if you
@@ -121,7 +132,8 @@ typedef isc_result_t dlz_dlopen_configure_t(dns_view_t *view,
  * before sending a replay.
  */
 typedef isc_result_t dlz_dlopen_setclientcallback_t(dns_view_t *view,
-						    void *dbdata);
+						    void *dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 
 /*
@@ -135,7 +147,8 @@ typedef isc_boolean_t dlz_dlopen_ssumatch_t(const char *signer,
 					    const char *key,
 					    isc_uint32_t keydatalen,
 					    unsigned char *keydata,
-					    void *dbdata);
+					    void *dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_addrdataset() is optional, but must be supplied if you
@@ -144,7 +157,8 @@ typedef isc_boolean_t dlz_dlopen_ssumatch_t(const char *signer,
 typedef isc_result_t dlz_dlopen_addrdataset_t(const char *name,
 					      const char *rdatastr,
 					      void *dbdata,
-					      void *version);
+					      void *version)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_subrdataset() is optional, but must be supplied if you
@@ -153,7 +167,8 @@ typedef isc_result_t dlz_dlopen_addrdataset_t(const char *name,
 typedef isc_result_t dlz_dlopen_subrdataset_t(const char *name,
 					      const char *rdatastr,
 					      void *dbdata,
-					      void *version);
+					      void *version)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * dlz_dlopen_delrdataset() is optional, but must be supplied if you
@@ -162,7 +177,8 @@ typedef isc_result_t dlz_dlopen_subrdataset_t(const char *name,
 typedef isc_result_t dlz_dlopen_delrdataset_t(const char *name,
 					      const char *type,
 					      void *dbdata,
-					      void *version);
+					      void *version)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

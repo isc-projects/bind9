@@ -12,6 +12,8 @@
 #ifndef DNS_BADCACHE_H
 #define DNS_BADCACHE_H 1
 
+#include <isc/attribute.h>
+
 /*****
  ***** Module Info
  *****/
@@ -50,7 +52,8 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp);
+dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Allocate and initialize a badcache and store it in '*bcp'.
  *
@@ -88,7 +91,8 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 isc_boolean_t
 dns_badcache_find(dns_badcache_t *bc, const dns_name_t *name,
 		  dns_rdatatype_t type, isc_uint32_t *flagp,
-		  isc_time_t *now);
+		  isc_time_t *now)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Returns ISC_TRUE if a record is found in the badcache 'bc' matching
  * 'name' and 'type', with an expiration date later than 'now'.

@@ -15,6 +15,7 @@
 
 /*! \file dns/dsdigest.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -22,7 +23,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_dsdigest_fromtext(dns_dsdigest_t *dsdigestp, isc_textregion_t *source);
+dns_dsdigest_fromtext(dns_dsdigest_t *dsdigestp, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a DS/DLV digest type value.
  * The text may contain either a mnemonic digest name or a decimal
@@ -40,7 +42,8 @@ dns_dsdigest_fromtext(dns_dsdigest_t *dsdigestp, isc_textregion_t *source);
  */
 
 isc_result_t
-dns_dsdigest_totext(dns_dsdigest_t dsdigest, isc_buffer_t *target);
+dns_dsdigest_totext(dns_dsdigest_t dsdigest, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of the DS/DLV digest type 'dsdigest'
  * into 'target'.

@@ -49,7 +49,9 @@
  ***** Imports
  *****/
 
+#include <isc/attribute.h>
 #include <isc/buffer.h>
+#include <isc/lang.h>
 
 #include <dns/name.h>
 
@@ -64,16 +66,21 @@ struct dns_fixedname {
 	unsigned char			data[DNS_NAME_MAXWIRE];
 };
 
-void
-dns_fixedname_init(dns_fixedname_t *fixed);
+#define dns_fixedname_init(fn) \
+	do { \
+		dns_name_init(&((fn)->name), (fn)->offsets); \
+		isc_buffer_init(&((fn)->buffer), (fn)->data, \
+				DNS_NAME_MAXWIRE); \
+		dns_name_setbuffer(&((fn)->name), &((fn)->buffer)); \
+	} while (0)
 
-void
-dns_fixedname_invalidate(dns_fixedname_t *fixed);
+#define dns_fixedname_invalidate(fn) \
+	dns_name_invalidate(&((fn)->name))
 
-dns_name_t *
-dns_fixedname_name(dns_fixedname_t *fixed);
+#define dns_fixedname_name(fn) \
+	(&((fn)->name))
 
-dns_name_t *
-dns_fixedname_initname(dns_fixedname_t *fixed);
+#define dns_fixedname_initname(fn) \
+	({ dns_fixedname_init(fn); dns_fixedname_name(fn); })
 
 #endif /* DNS_FIXEDNAME_H */

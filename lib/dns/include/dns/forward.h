@@ -14,6 +14,7 @@
 
 /*! \file dns/forward.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/result.h>
 #include <isc/sockaddr.h>
@@ -36,7 +37,8 @@ struct dns_forwarders {
 };
 
 isc_result_t
-dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep);
+dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Creates a new forwarding table.
  *
@@ -51,10 +53,12 @@ dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep);
 
 isc_result_t
 dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
-		    dns_forwarderlist_t *fwdrs, dns_fwdpolicy_t policy);
+		    dns_forwarderlist_t *fwdrs, dns_fwdpolicy_t policy)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
-		 isc_sockaddrlist_t *addrs, dns_fwdpolicy_t policy);
+		 isc_sockaddrlist_t *addrs, dns_fwdpolicy_t policy)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Adds an entry to the forwarding table.  The entry associates
  * a domain with a list of forwarders and a forwarding policy.  The
@@ -73,7 +77,8 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
  */
 
 isc_result_t
-dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name);
+dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Removes an entry for 'name' from the forwarding table.  If an entry
  * that exactly matches 'name' does not exist, ISC_R_NOTFOUND will be returned.
@@ -89,7 +94,8 @@ dns_fwdtable_delete(dns_fwdtable_t *fwdtable, const dns_name_t *name);
 
 isc_result_t
 dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
-		  dns_name_t *foundname, dns_forwarders_t **forwardersp);
+		  dns_name_t *foundname, dns_forwarders_t **forwardersp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Finds a domain in the forwarding table.  The closest matching parent
  * domain is returned.

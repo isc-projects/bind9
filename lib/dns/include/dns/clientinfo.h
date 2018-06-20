@@ -37,6 +37,7 @@
  ***** Imports
  *****/
 
+#include <isc/lang.h>
 #include <isc/sockaddr.h>
 #include <isc/types.h>
 

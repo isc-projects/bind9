@@ -13,6 +13,7 @@
 #ifndef DNS_DNS64_H
 #define DNS_DNS64_H 1
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -42,7 +43,8 @@ isc_result_t
 dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 		 unsigned int prefixlen, const isc_netaddr_t *suffix,
 		 dns_acl_t *client, dns_acl_t *mapped, dns_acl_t *excluded,
-		 unsigned int flags, dns_dns64_t **dns64);
+		 unsigned int flags, dns_dns64_t **dns64)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Create a dns64 record which is used to identify the set of clients
  * it applies to and how to perform the DNS64 synthesis.
@@ -96,7 +98,8 @@ dns_dns64_destroy(dns_dns64_t **dns64p);
 isc_result_t
 dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		    const dns_name_t *reqsigner, const dns_aclenv_t *env,
-		    unsigned int flags, unsigned char *a, unsigned char *aaaa);
+		    unsigned int flags, unsigned char *a, unsigned char *aaaa)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * dns_dns64_aaaafroma() determines whether to perform a DNS64 address
  * synthesis from 'a' based on 'dns64', 'reqaddr', 'reqsigner', 'env',
@@ -124,7 +127,8 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
  */
 
 dns_dns64_t *
-dns_dns64_next(dns_dns64_t *dns64);
+dns_dns64_next(dns_dns64_t *dns64)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Return the next dns64 record in the list.
  */
@@ -145,7 +149,8 @@ isc_boolean_t
 dns_dns64_aaaaok(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		 const dns_name_t *reqsigner, const dns_aclenv_t *env,
 		 unsigned int flags, dns_rdataset_t *rdataset,
-		 isc_boolean_t *aaaaok, size_t aaaaoklen);
+		 isc_boolean_t *aaaaok, size_t aaaaoklen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Determine if there are any non-excluded AAAA records in from the
  * matching dns64 records in the list starting at 'dns64'.  If there

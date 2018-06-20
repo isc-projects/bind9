@@ -12,8 +12,10 @@
 #ifndef DNS_ECS_H
 #define DNS_ECS_H 1
 
+#include <isc/lang.h>
 #include <isc/netaddr.h>
 #include <isc/types.h>
+
 #include <dns/types.h>
 
 struct dns_ecs {

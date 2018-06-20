@@ -54,6 +54,7 @@
  ***** Imports
  *****/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 
@@ -67,17 +68,25 @@ ISC_LANG_BEGINDECLS
 
 typedef struct dns_dbiteratormethods {
 	void		(*destroy)(dns_dbiterator_t **iteratorp);
-	isc_result_t	(*first)(dns_dbiterator_t *iterator);
-	isc_result_t	(*last)(dns_dbiterator_t *iterator);
+	isc_result_t	(*first)(dns_dbiterator_t *iterator)
+				 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_result_t	(*last)(dns_dbiterator_t *iterator)
+				 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*seek)(dns_dbiterator_t *iterator,
-				const dns_name_t *name);
-	isc_result_t	(*prev)(dns_dbiterator_t *iterator);
-	isc_result_t	(*next)(dns_dbiterator_t *iterator);
+				const dns_name_t *name)
+				 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_result_t	(*prev)(dns_dbiterator_t *iterator)
+				 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_result_t	(*next)(dns_dbiterator_t *iterator)
+				 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*current)(dns_dbiterator_t *iterator,
-				   dns_dbnode_t **nodep, dns_name_t *name);
-	isc_result_t	(*pause)(dns_dbiterator_t *iterator);
+				   dns_dbnode_t **nodep, dns_name_t *name)
+				 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_result_t	(*pause)(dns_dbiterator_t *iterator)
+				 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*origin)(dns_dbiterator_t *iterator,
-				  dns_name_t *name);
+				  dns_name_t *name)
+				 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 } dns_dbiteratormethods_t;
 
 #define DNS_DBITERATOR_MAGIC	     ISC_MAGIC('D','N','S','I')
@@ -118,7 +127,8 @@ dns_dbiterator_destroy(dns_dbiterator_t **iteratorp);
  */
 
 isc_result_t
-dns_dbiterator_first(dns_dbiterator_t *iterator);
+dns_dbiterator_first(dns_dbiterator_t *iterator)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the node cursor to the first node in the database (if any).
  *
@@ -133,7 +143,8 @@ dns_dbiterator_first(dns_dbiterator_t *iterator);
  */
 
 isc_result_t
-dns_dbiterator_last(dns_dbiterator_t *iterator);
+dns_dbiterator_last(dns_dbiterator_t *iterator)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the node cursor to the last node in the database (if any).
  *
@@ -148,7 +159,8 @@ dns_dbiterator_last(dns_dbiterator_t *iterator);
  */
 
 isc_result_t
-dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name);
+dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the node cursor to the node with name 'name'.
  *
@@ -167,7 +179,8 @@ dns_dbiterator_seek(dns_dbiterator_t *iterator, const dns_name_t *name);
  */
 
 isc_result_t
-dns_dbiterator_prev(dns_dbiterator_t *iterator);
+dns_dbiterator_prev(dns_dbiterator_t *iterator)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the node cursor to the previous node in the database (if any).
  *
@@ -183,7 +196,8 @@ dns_dbiterator_prev(dns_dbiterator_t *iterator);
  */
 
 isc_result_t
-dns_dbiterator_next(dns_dbiterator_t *iterator);
+dns_dbiterator_next(dns_dbiterator_t *iterator)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the node cursor to the next node in the database (if any).
  *
@@ -200,7 +214,8 @@ dns_dbiterator_next(dns_dbiterator_t *iterator);
 
 isc_result_t
 dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
-		       dns_name_t *name);
+		       dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the current node.
  *
@@ -233,7 +248,8 @@ dns_dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
  */
 
 isc_result_t
-dns_dbiterator_pause(dns_dbiterator_t *iterator);
+dns_dbiterator_pause(dns_dbiterator_t *iterator)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Pause iteration.
  *
@@ -258,7 +274,8 @@ dns_dbiterator_pause(dns_dbiterator_t *iterator);
  */
 
 isc_result_t
-dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name);
+dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the origin to which returned node names are relative.
  *

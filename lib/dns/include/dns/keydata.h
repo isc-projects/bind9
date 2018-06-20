@@ -26,6 +26,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -36,13 +37,15 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_keydata_todnskey(dns_rdata_keydata_t *keydata,
-		     dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx);
+		     dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata,
 		       dns_rdata_dnskey_t *dnskey,
 		       isc_uint32_t refresh, isc_uint32_t addhd,
-		       isc_uint32_t removehd, isc_mem_t *mctx);
+		       isc_uint32_t removehd, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

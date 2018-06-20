@@ -13,6 +13,7 @@
 #ifndef DNS_DS_H
 #define DNS_DS_H 1
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -32,7 +33,8 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		  unsigned int digest_type, unsigned char *buffer,
-		  dns_rdata_t *rdata);
+		  dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Build the rdata of a DS record.
  *

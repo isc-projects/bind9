@@ -25,6 +25,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
@@ -108,7 +109,8 @@ struct dns_aclenv {
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
+dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a new ACL, including an IP table and an array with room
  * for 'n' ACL elements.  The elements are uninitialized and the
@@ -116,31 +118,36 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
  */
 
 isc_result_t
-dns_acl_any(isc_mem_t *mctx, dns_acl_t **target);
+dns_acl_any(isc_mem_t *mctx, dns_acl_t **target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a new ACL that matches everything.
  */
 
 isc_result_t
-dns_acl_none(isc_mem_t *mctx, dns_acl_t **target);
+dns_acl_none(isc_mem_t *mctx, dns_acl_t **target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a new ACL that matches nothing.
  */
 
 isc_boolean_t
-dns_acl_isany(dns_acl_t *acl);
+dns_acl_isany(dns_acl_t *acl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Test whether ACL is set to "{ any; }"
  */
 
 isc_boolean_t
-dns_acl_isnone(dns_acl_t *acl);
+dns_acl_isnone(dns_acl_t *acl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Test whether ACL is set to "{ none; }"
  */
 
 isc_result_t
-dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos);
+dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Merge the contents of one ACL into another.  Call dns_iptable_merge()
  * for the IP tables, then concatenate the element arrays.
@@ -175,7 +182,8 @@ dns_acl_detach(dns_acl_t **aclp);
  */
 
 isc_boolean_t
-dns_acl_isinsecure(const dns_acl_t *a);
+dns_acl_isinsecure(const dns_acl_t *a)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return #ISC_TRUE iff the acl 'a' is considered insecure, that is,
  * if it contains IP addresses other than those of the local host.
@@ -187,14 +195,16 @@ dns_acl_isinsecure(const dns_acl_t *a);
 
 isc_boolean_t
 dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
-		dns_acl_t *acl, dns_aclenv_t *aclenv);
+		dns_acl_t *acl, dns_aclenv_t *aclenv)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return #ISC_TRUE iff the 'addr', 'signer', or ECS values are
  * permitted by 'acl' in environment 'aclenv'.
  */
 
 isc_result_t
-dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env);
+dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Initialize ACL environment, setting up localhost and localnets ACLs
  */
@@ -211,7 +221,8 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
 	      const dns_acl_t *acl,
 	      const dns_aclenv_t *env,
 	      int *match,
-	      const dns_aclelement_t **matchelt);
+	      const dns_aclelement_t **matchelt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * General, low-level ACL matching.  This is expected to
  * be useful even for weird stuff like the topology and sortlist statements.
@@ -243,7 +254,8 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
 		     const dns_aclelement_t *e,
 		     const dns_aclenv_t *env,
-		     const dns_aclelement_t **matchelt);
+		     const dns_aclelement_t **matchelt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Like dns_acl_match, but matches against the single ACL element 'e'
  * rather than a complete ACL, and returns ISC_TRUE iff it matched.

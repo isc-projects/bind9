@@ -34,6 +34,7 @@
  *\li	No anticipated impact.
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
@@ -47,7 +48,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep);
+dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a keytable.
  *
@@ -104,7 +106,8 @@ dns_keytable_detach(dns_keytable_t **keytablep);
 
 isc_result_t
 dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
-		 isc_boolean_t initial, dst_key_t **keyp);
+		 isc_boolean_t initial, dst_key_t **keyp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add '*keyp' to 'keytable' (using the name in '*keyp').
  * The value of keynode->managed is set to 'managed', and the
@@ -141,7 +144,8 @@ dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
  */
 
 isc_result_t
-dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name);
+dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add a null key to 'keytable' for name 'name'.  This marks the
  * name as a secure domain, but doesn't supply any key data to allow the
@@ -170,7 +174,8 @@ dns_keytable_marksecure(dns_keytable_t *keytable, const dns_name_t *name);
  */
 
 isc_result_t
-dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname);
+dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Delete node(s) from 'keytable' matching name 'keyname'
  *
@@ -188,7 +193,8 @@ dns_keytable_delete(dns_keytable_t *keytable, const dns_name_t *keyname);
  */
 
 isc_result_t
-dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey);
+dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Delete node(s) from 'keytable' containing copies of the key pointed
  * to by 'dstkey'
@@ -207,7 +213,8 @@ dns_keytable_deletekeynode(dns_keytable_t *keytable, dst_key_t *dstkey);
 
 isc_result_t
 dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
-		  dns_keynode_t **keynodep);
+		  dns_keynode_t **keynodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search for the first instance of a key named 'name' in 'keytable',
  * without regard to keyid and algorithm.  Use dns_keytable_nextkeynode()
@@ -231,7 +238,8 @@ dns_keytable_find(dns_keytable_t *keytable, const dns_name_t *keyname,
 
 isc_result_t
 dns_keytable_nextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
-			 dns_keynode_t **nextnodep);
+			 dns_keynode_t **nextnodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return for the next key after 'keynode' in 'keytable', without regard to
  * keyid and algorithm.
@@ -255,7 +263,8 @@ dns_keytable_nextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
 isc_result_t
 dns_keytable_findkeynode(dns_keytable_t *keytable, const dns_name_t *name,
 			 dns_secalg_t algorithm, dns_keytag_t tag,
-			 dns_keynode_t **keynodep);
+			 dns_keynode_t **keynodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search for a key named 'name', matching 'algorithm' and 'tag' in
  * 'keytable'.  This finds the first instance which matches.  Use
@@ -280,7 +289,8 @@ dns_keytable_findkeynode(dns_keytable_t *keytable, const dns_name_t *name,
 
 isc_result_t
 dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
-					     dns_keynode_t **nextnodep);
+					     dns_keynode_t **nextnodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search for the next key with the same properties as 'keynode' in
  * 'keytable' as found by dns_keytable_findkeynode().
@@ -303,7 +313,8 @@ dns_keytable_findnextkeynode(dns_keytable_t *keytable, dns_keynode_t *keynode,
 
 isc_result_t
 dns_keytable_finddeepestmatch(dns_keytable_t *keytable, const dns_name_t *name,
-			      dns_name_t *foundname);
+			      dns_name_t *foundname)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search for the deepest match of 'name' in 'keytable'.
  *
@@ -359,7 +370,8 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable,
 
 isc_result_t
 dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
-			    dns_name_t *foundname, isc_boolean_t *wantdnssecp);
+			    dns_name_t *foundname, isc_boolean_t *wantdnssecp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is 'name' at or beneath a trusted key?
  *
@@ -388,31 +400,36 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, const dns_name_t *name,
  */
 
 isc_result_t
-dns_keytable_dump(dns_keytable_t *keytable, FILE *fp);
+dns_keytable_dump(dns_keytable_t *keytable, FILE *fp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Dump the keytable on fp.
  */
 
 isc_result_t
-dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **buf);
+dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **buf)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Dump the keytable to buffer at 'buf'
  */
 
 dst_key_t *
-dns_keynode_key(dns_keynode_t *keynode);
+dns_keynode_key(dns_keynode_t *keynode)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the DST key associated with keynode.
  */
 
 isc_boolean_t
-dns_keynode_managed(dns_keynode_t *keynode);
+dns_keynode_managed(dns_keynode_t *keynode)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is this flagged as a managed key?
  */
 
 isc_boolean_t
-dns_keynode_initial(dns_keynode_t *keynode);
+dns_keynode_initial(dns_keynode_t *keynode)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is this flagged as an initializing key?
  */
@@ -425,7 +442,8 @@ dns_keynode_trust(dns_keynode_t *keynode);
  */
 
 isc_result_t
-dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target);
+dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Allocate space for a keynode
  */
@@ -452,7 +470,9 @@ dns_keynode_detachall(isc_mem_t *mctx, dns_keynode_t **target);
 isc_result_t
 dns_keytable_forall(dns_keytable_t *keytable,
 		    void (*func)(dns_keytable_t *, dns_keynode_t *, void *),
-		    void *arg);
+		    void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_KEYTABLE_H */

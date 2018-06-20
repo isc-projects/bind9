@@ -25,6 +25,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
@@ -105,7 +106,8 @@ ISC_LANG_BEGINDECLS
 isc_boolean_t
 dns_geoip_match(const isc_netaddr_t *reqaddr,
 		const dns_geoip_databases_t *geoip,
-		const dns_geoip_elem_t *elt);
+		const dns_geoip_elem_t *elt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_geoip_shutdown(void);

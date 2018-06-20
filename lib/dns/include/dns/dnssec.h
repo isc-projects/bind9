@@ -15,6 +15,7 @@
 
 /*! \file dns/dnssec.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 #include <isc/stats.h>
@@ -68,7 +69,8 @@ struct dns_dnsseckey {
 
 isc_result_t
 dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
-			isc_mem_t *mctx, dst_key_t **key);
+			isc_mem_t *mctx, dst_key_t **key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Creates a DST key from a DNS record.  Basically a wrapper around
  *	dst_key_fromdns().
@@ -90,7 +92,8 @@ dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
 isc_result_t
 dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		isc_stdtime_t *inception, isc_stdtime_t *expire,
-		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata);
+		isc_mem_t *mctx, isc_buffer_t *buffer, dns_rdata_t *sigrdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Generates a RRSIG record covering this rdataset.  This has no effect
  *	on existing RRSIG records.
@@ -119,7 +122,8 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 isc_result_t
 dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 		  isc_boolean_t ignoretime, unsigned int maxbits,
-		  isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild);
+		  isc_mem_t *mctx, dns_rdata_t *sigrdata, dns_name_t *wild)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Verifies the RRSIG record covering this rdataset signed by a specific
  *	key.  This does not determine if the key's owner is authorized to sign
@@ -157,7 +161,8 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 			dns_dbnode_t *node, const dns_name_t *name,
 			const char *directory, isc_stdtime_t now,
 			isc_mem_t *mctx, unsigned int maxkeys,
-			dst_key_t **keys, unsigned int *nkeys);
+			dst_key_t **keys, unsigned int *nkeys)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * 	Finds a set of zone keys.
@@ -166,7 +171,8 @@ dns_dnssec_findzonekeys(dns_db_t *db, dns_dbversion_t *ver,
 /*@}*/
 
 isc_boolean_t
-dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now);
+dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *
  * 	Returns ISC_TRUE if 'key' is active as of the time specified
@@ -180,7 +186,8 @@ dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now);
  */
 
 isc_result_t
-dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key);
+dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Signs a message with a SIG(0) record.  This is implicitly called by
  *	dns_message_renderend() if msg->sig0key is not NULL.
@@ -197,7 +204,8 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key);
 
 isc_result_t
 dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
-			 dst_key_t *key);
+			 dst_key_t *key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Verifies a message signed by a SIG(0) record.  This is not
  *	called implicitly by dns_message_parse().  If dns_message_signer()
@@ -223,13 +231,14 @@ dns_dnssec_verifymessage(isc_buffer_t *source, dns_message_t *msg,
 isc_boolean_t
 dns_dnssec_selfsigns(dns_rdata_t *rdata, const dns_name_t *name,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-		     isc_boolean_t ignoretime, isc_mem_t *mctx);
-
+		     isc_boolean_t ignoretime, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_boolean_t
 dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
-		 isc_boolean_t ignoretime, isc_mem_t *mctx);
+		 isc_boolean_t ignoretime, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Verify that 'rdataset' is validly signed in 'sigrdataset' by
  * the key in 'rdata'.
@@ -238,10 +247,10 @@ dns_dnssec_signs(dns_rdata_t *rdata, const dns_name_t *name,
  * rrset.  dns_dnssec_signs() works on any rrset.
  */
 
-
 isc_result_t
 dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
-		     dns_dnsseckey_t **dkp);
+		     dns_dnsseckey_t **dkp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create and initialize a dns_dnsseckey_t structure.
  *
@@ -268,7 +277,8 @@ dns_dnsseckey_destroy(isc_mem_t *mctx, dns_dnsseckey_t **dkp);
 isc_result_t
 dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 			    isc_stdtime_t now, isc_mem_t *mctx,
-			    dns_dnsseckeylist_t *keylist);
+			    dns_dnsseckeylist_t *keylist)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search 'directory' for K* key files matching the name in 'origin'.
  * Append all such keys, along with use hints gleaned from their
@@ -294,7 +304,8 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin,
 			       dns_rdataset_t *keyset, dns_rdataset_t *keysigs,
 			       dns_rdataset_t *soasigs, isc_boolean_t savekeys,
 			       isc_boolean_t publickey,
-			       dns_dnsseckeylist_t *keylist);
+			       dns_dnsseckeylist_t *keylist)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Append the contents of a DNSKEY rdataset 'keyset' to 'keylist'.
  * Omit duplicates.  If 'publickey' is ISC_FALSE, search 'directory' for
@@ -310,8 +321,10 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin,
 isc_result_t
 dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		      dns_dnsseckeylist_t *removed, const dns_name_t *origin,
-		      dns_ttl_t hint_ttl, dns_diff_t *diff, isc_boolean_t allzsk,
-		      isc_mem_t *mctx, void (*report)(const char *, ...));
+		      dns_ttl_t hint_ttl, dns_diff_t *diff,
+		      isc_boolean_t allzsk, isc_mem_t *mctx,
+		      void (*report)(const char *, ...))
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Update the list of keys in 'keys' with new key information in 'newkeys'.
  *
@@ -344,7 +357,8 @@ isc_result_t
 dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
 		      dns_rdataset_t *cds, dns_rdataset_t *cdnskey,
 		      isc_stdtime_t now, dns_ttl_t hint_ttl, dns_diff_t *diff,
-		      isc_mem_t *mctx);
+		      isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Update the CDS and CDNSKEY RRsets, adding and removing keys as needed.
  */

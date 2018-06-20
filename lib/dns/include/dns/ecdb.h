@@ -23,6 +23,8 @@
  *** Imports
  ***/
 
+#include <dns/attribute.h>
+#include <dns/lang.h>
 #include <dns/types.h>
 
 /***
@@ -38,7 +40,8 @@ ISC_LANG_BEGINDECLS
 /* TBD: describe those */
 
 isc_result_t
-dns_ecdb_register(isc_mem_t *mctx, dns_dbimplementation_t **dbimp);
+dns_ecdb_register(isc_mem_t *mctx, dns_dbimplementation_t **dbimp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_ecdb_unregister(dns_dbimplementation_t **dbimp);

@@ -12,10 +12,12 @@
 #ifndef DNS_DNSRPS_H
 #define DNS_DNSRPS_H
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
+
 #include <dns/types.h>
 
-#include <config.h>
+#include <config.h>	/* XXXMPA this needs to be removed. */
 
 #ifdef USE_DNSRPS
 
@@ -26,7 +28,6 @@
  * Error message if dlopen(librpz) failed.
  */
 extern librpz_emsg_t librpz_lib_open_emsg;
-
 
 /*
  * These shim BIND9 database, node, and rdataset are handles on RRs from librpz.
@@ -43,6 +44,7 @@ extern librpz_emsg_t librpz_lib_open_emsg;
 typedef struct {
 	uint8_t			unused;
 } rpsnode_t;
+
 typedef struct rpsdb {
 	dns_db_t		common;
 	int			ref_cnt;
@@ -55,26 +57,33 @@ typedef struct rpsdb {
 	rpsnode_t		data_node;
 } rpsdb_t;
 
-
 /*
  * Convert a dnsrps policy to a classic BIND9 RPZ policy.
  */
-dns_rpz_policy_t dns_dnsrps_2policy(librpz_policy_t rps_policy);
+dns_rpz_policy_t
+dns_dnsrps_2policy(librpz_policy_t rps_policy)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * Convert a dnsrps trigger to a classic BIND9 RPZ rewrite or trigger type.
  */
-dns_rpz_type_t dns_dnsrps_trig2type(librpz_trig_t trig);
+dns_rpz_type_t
+dns_dnsrps_trig2type(librpz_trig_t trig)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * Convert a classic BIND9 RPZ rewrite or trigger type to a librpz trigger type.
  */
-librpz_trig_t dns_dnsrps_type2trig(dns_rpz_type_t type);
+librpz_trig_t
+dns_dnsrps_type2trig(dns_rpz_type_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * Start dnsrps for the entire server.
  */
-isc_result_t dns_dnsrps_server_create(void);
+isc_result_t
+dns_dnsrps_server_create(void)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * Stop dnsrps for the entire server.
@@ -84,20 +93,24 @@ void dns_dnsrps_server_destroy(void);
 /*
  * Ready dnsrps for a view.
  */
-isc_result_t dns_dnsrps_view_init(dns_rpz_zones_t *new, char *rps_cstr);
+isc_result_t
+dns_dnsrps_view_init(dns_rpz_zones_t *new, char *rps_cstr);
 
 /*
  * Connect to and start the dnsrps daemon, dnsrpzd.
  */
-isc_result_t dns_dnsrps_connect(dns_rpz_zones_t *rpzs);
+isc_result_t
+dns_dnsrps_connect(dns_rpz_zones_t *rpzs)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * Get ready to try dnsrps rewriting.
  */
-isc_result_t dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
-				      dns_rpz_zones_t *rpzs,
-				      const dns_name_t *qname, isc_mem_t *mctx,
-				      isc_boolean_t have_rd);
+isc_result_t
+dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
+			dns_rpz_zones_t *rpzs, const dns_name_t *qname,
+			isc_mem_t *mctx, isc_boolean_t have_rd)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 #endif /* USE_DNSRPS */
 

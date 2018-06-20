@@ -40,6 +40,7 @@
  *\li	None.
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -50,7 +51,8 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
-		   dns_dbtable_t **dbtablep);
+		   dns_dbtable_t **dbtablep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Make a new dbtable of class 'rdclass'
  *
@@ -99,7 +101,8 @@ dns_dbtable_detach(dns_dbtable_t **dbtablep);
  */
 
 isc_result_t
-dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db);
+dns_dbtable_add(dns_dbtable_t *dbtable, dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add 'db' to 'dbtable'.
  *
@@ -140,7 +143,8 @@ dns_dbtable_removedefault(dns_dbtable_t *dbtable);
 
 isc_result_t
 dns_dbtable_find(dns_dbtable_t *dbtable, const dns_name_t *name,
-		 unsigned int options, dns_db_t **dbp);
+		 unsigned int options, dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the deepest match to 'name' in the dbtable, and return it
  *

@@ -40,6 +40,7 @@
  *\li	Drafts:	TBS
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/event.h>
 
@@ -70,7 +71,8 @@ typedef struct dns_byaddrevent {
 isc_result_t
 dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 		  dns_view_t *view, unsigned int options, isc_task_t *task,
-		  isc_taskaction_t action, void *arg, dns_byaddr_t **byaddrp);
+		  isc_taskaction_t action, void *arg, dns_byaddr_t **byaddrp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the domain name of 'address'.
  *
@@ -141,7 +143,8 @@ dns_byaddr_destroy(dns_byaddr_t **byaddrp);
 
 isc_result_t
 dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
-			 dns_name_t *name);
+			 dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Creates a name that would be used in a PTR query for this address.  The
  * nibble flag indicates that the 'nibble' format is to be used if an IPv6

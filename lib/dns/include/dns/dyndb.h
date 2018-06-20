@@ -12,6 +12,8 @@
 #ifndef DNS_DYNDB_H
 #define DNS_DYNDB_H
 
+#include <isc/attribute.h>
+#include <isc/lang.h>
 #include <isc/types.h>
 
 #include <dns/types.h>
@@ -63,7 +65,8 @@ typedef isc_result_t dns_dyndb_register_t(isc_mem_t *mctx,
 					  const char *file,
 					  unsigned long line,
 					  const dns_dyndbctx_t *dctx,
-					  void **instp);
+					  void **instp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Called when registering a new driver instance. 'name' must be unique.
  * 'parameters' contains the driver configuration text. 'dctx' is the
@@ -86,7 +89,8 @@ typedef void dns_dyndb_destroy_t(void **instp);
  * \c *instp must be set to \c NULL by the function before it returns.
  */
 
-typedef int dns_dyndb_version_t(unsigned int *flags);
+typedef int dns_dyndb_version_t(unsigned int *flags)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return the API version number a dyndb module was compiled with.
  *
@@ -101,7 +105,8 @@ typedef int dns_dyndb_version_t(unsigned int *flags);
 isc_result_t
 dns_dyndb_load(const char *libname, const char *name, const char *parameters,
 	       const char *file, unsigned long line, isc_mem_t *mctx,
-	       const dns_dyndbctx_t *dctx);
+	       const dns_dyndbctx_t *dctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Load a dyndb module.
  *
@@ -132,7 +137,8 @@ dns_dyndb_cleanup(isc_boolean_t exiting);
 isc_result_t
 dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 		    dns_view_t *view, dns_zonemgr_t *zmgr, isc_task_t *task,
-		    isc_timermgr_t *tmgr, dns_dyndbctx_t **dctxp);
+		    isc_timermgr_t *tmgr, dns_dyndbctx_t **dctxp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Create a dyndb initialization context structure, with
  * pointers to structures in the server that the dyndb module will

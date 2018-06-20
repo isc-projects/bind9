@@ -27,6 +27,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 
@@ -115,7 +116,8 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_difftuple_create(isc_mem_t *mctx,
 		     dns_diffop_t op, const dns_name_t *name, dns_ttl_t ttl,
-		     dns_rdata_t *rdata, dns_difftuple_t **tp);
+		     dns_rdata_t *rdata, dns_difftuple_t **tp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a tuple.  Deep copies are made of the name and rdata, so
  * they need not remain valid after the call.
@@ -142,7 +144,8 @@ dns_difftuple_free(dns_difftuple_t **tp);
  */
 
 isc_result_t
-dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp);
+dns_difftuple_copy(dns_difftuple_t *orig, dns_difftuple_t **copyp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Copy a tuple.
  *
@@ -214,15 +217,18 @@ dns_diff_appendminimal(dns_diff_t *diff, dns_difftuple_t **tuple);
  */
 
 isc_result_t
-dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare);
+dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Sort 'diff' in-place according to the comparison function 'compare'.
  */
 
 isc_result_t
-dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
+dns_diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
-dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
+dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Apply 'diff' to the database 'db'.
  *
@@ -242,7 +248,8 @@ dns_diff_applysilently(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver);
 
 isc_result_t
 dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
-	      void *add_private);
+	      void *add_private)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Like dns_diff_apply, but for use when loading a new database
  * instead of modifying an existing one.  This bypasses the
@@ -257,7 +264,8 @@ dns_diff_load(dns_diff_t *diff, dns_addrdatasetfunc_t addfunc,
  */
 
 isc_result_t
-dns_diff_print(dns_diff_t *diff, FILE *file);
+dns_diff_print(dns_diff_t *diff, FILE *file)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Print the differences to 'file' or if 'file' is NULL via the

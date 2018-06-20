@@ -44,6 +44,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
@@ -144,7 +145,8 @@ struct dns_dispatchset {
 #define DNS_DISPATCHOPT_FIXEDID		0x00000001U
 
 isc_result_t
-dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
+dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Creates a new dispatchmgr object.
  *
@@ -184,7 +186,8 @@ dns_dispatchmgr_setblackhole(dns_dispatchmgr_t *mgr, dns_acl_t *blackhole);
 
 
 dns_acl_t *
-dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr);
+dns_dispatchmgr_getblackhole(dns_dispatchmgr_t *mgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Gets a pointer to the dispatcher's current blackhole list,
  * without incrementing its reference count.
@@ -206,7 +209,8 @@ dns_dispatchmgr_setblackportlist(dns_dispatchmgr_t *mgr,
  */
 
 dns_portlist_t *
-dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr);
+dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * This function is deprecated and always returns NULL.
  *
@@ -216,7 +220,8 @@ dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr);
 
 isc_result_t
 dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
-			      isc_portset_t *v6portset);
+			      isc_portset_t *v6portset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Sets a list of UDP ports that can be used for outgoing UDP messages.
  *
@@ -248,7 +253,8 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    unsigned int maxbuffers, unsigned int maxrequests,
 		    unsigned int buckets, unsigned int increment,
 		    unsigned int attributes, unsigned int mask,
-		    dns_dispatch_t **dispp);
+		    dns_dispatch_t **dispp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
@@ -257,7 +263,8 @@ dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		    unsigned int maxbuffers, unsigned int maxrequests,
 		    unsigned int buckets, unsigned int increment,
 		    unsigned int attributes, unsigned int mask,
-		    dns_dispatch_t **dispp, dns_dispatch_t *dup);
+		    dns_dispatch_t **dispp, dns_dispatch_t *dup)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Attach to existing dns_dispatch_t if one is found with dns_dispatchmgr_find,
  * otherwise create a new UDP dispatch.
@@ -289,7 +296,8 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 		       const isc_sockaddr_t *destaddr, unsigned int buffersize,
 		       unsigned int maxbuffers, unsigned int maxrequests,
 		       unsigned int buckets, unsigned int increment,
-		       unsigned int attributes, dns_dispatch_t **dispp);
+		       unsigned int attributes, dns_dispatch_t **dispp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a new dns_dispatch and attach it to the provided isc_socket_t.
  *
@@ -364,7 +372,8 @@ dns_dispatch_starttcp(dns_dispatch_t *disp);
 isc_result_t
 dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, const isc_sockaddr_t *destaddr,
 		     const isc_sockaddr_t *localaddr, isc_boolean_t *connected,
-		     dns_dispatch_t **dispp);
+		     dns_dispatch_t **dispp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Attempt to connect to a existing TCP connection (connection completed
  * if connected == NULL).
@@ -376,7 +385,8 @@ dns_dispatch_addresponse(dns_dispatch_t *disp, unsigned int options,
 			 const isc_sockaddr_t *dest, isc_task_t *task,
 			 isc_taskaction_t action, void *arg,
 			 isc_uint16_t *idp, dns_dispentry_t **resp,
-			 isc_socketmgr_t *sockmgr);
+			 isc_socketmgr_t *sockmgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add a response entry for this dispatch.
  *
@@ -431,10 +441,12 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
  */
 
 isc_socket_t *
-dns_dispatch_getentrysocket(dns_dispentry_t *resp);
+dns_dispatch_getentrysocket(dns_dispentry_t *resp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_socket_t *
-dns_dispatch_getsocket(dns_dispatch_t *disp);
+dns_dispatch_getsocket(dns_dispatch_t *disp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the socket associated with this dispatcher.
  *
@@ -446,7 +458,8 @@ dns_dispatch_getsocket(dns_dispatch_t *disp);
  */
 
 isc_result_t
-dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp);
+dns_dispatch_getlocaladdress(dns_dispatch_t *disp, isc_sockaddr_t *addrp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the local address for this dispatch.
  * This currently only works for dispatches using UDP sockets.
@@ -470,7 +483,8 @@ dns_dispatch_cancel(dns_dispatch_t *disp);
  */
 
 unsigned int
-dns_dispatch_getattributes(dns_dispatch_t *disp);
+dns_dispatch_getattributes(dns_dispatch_t *disp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the attributes (DNS_DISPATCHATTR_xxx) of this dispatch.  Only the
  * non-changeable attributes are expected to be referenced by the caller.
@@ -520,7 +534,8 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event);
  */
 
 dns_dispatch_t *
-dns_dispatchset_get(dns_dispatchset_t *dset);
+dns_dispatchset_get(dns_dispatchset_t *dset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Retrieve the next dispatch from dispatch set 'dset', and increment
  * the round-robin counter.
@@ -532,7 +547,8 @@ dns_dispatchset_get(dns_dispatchset_t *dset);
 isc_result_t
 dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
 		       isc_taskmgr_t *taskmgr, dns_dispatch_t *source,
-		       dns_dispatchset_t **dsetp, int n);
+		       dns_dispatchset_t **dsetp, int n)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Given a valid dispatch 'source', create a dispatch set containing
  * 'n' UDP dispatches, with the remainder filled out by clones of the
@@ -562,7 +578,8 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp);
 void
 dns_dispatch_setdscp(dns_dispatch_t *disp, isc_dscp_t dscp);
 isc_dscp_t
-dns_dispatch_getdscp(dns_dispatch_t *disp);
+dns_dispatch_getdscp(dns_dispatch_t *disp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set/get the DSCP value to be used when sending responses to clients,
  * as defined in the "listen-on" or "listen-on-v6" statements.
@@ -572,7 +589,8 @@ dns_dispatch_getdscp(dns_dispatch_t *disp);
  */
 
 isc_result_t
-dns_dispatch_getnext(dns_dispentry_t *resp, dns_dispatchevent_t **sockevent);
+dns_dispatch_getnext(dns_dispentry_t *resp, dns_dispatchevent_t **sockevent)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Free the sockevent and trigger the sending of the next item off the
  * dispatch queue if present.

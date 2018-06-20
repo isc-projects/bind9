@@ -12,6 +12,7 @@
 #ifndef DNS_IPTABLE_H
 #define DNS_IPTABLE_H 1
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/radix.h>
@@ -36,20 +37,23 @@ struct dns_iptable {
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target);
+dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Create a new IP table and the underlying radix structure
  */
 
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
-		      isc_uint16_t bitlen, isc_boolean_t pos);
+		      isc_uint16_t bitlen, isc_boolean_t pos)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Add an IP prefix to an existing IP table
  */
 
 isc_result_t
-dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos);
+dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Merge one IP table into another one.
  */

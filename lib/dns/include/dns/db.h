@@ -46,6 +46,7 @@
  ***** Imports
  *****/
 
+#include <isc/attribute.h>
 #include <isc/deprecated.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -69,18 +70,23 @@ typedef struct dns_dbmethods {
 	void		(*attach)(dns_db_t *source, dns_db_t **targetp);
 	void		(*detach)(dns_db_t **dbp);
 	isc_result_t	(*beginload)(dns_db_t *db,
-				     dns_rdatacallbacks_t *callbacks);
+				     dns_rdatacallbacks_t *callbacks)
+				     ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*endload)(dns_db_t *db,
-				     dns_rdatacallbacks_t *callbacks);
+				   dns_rdatacallbacks_t *callbacks)
+				   ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*serialize)(dns_db_t *db,
-				     dns_dbversion_t *version, FILE *file);
+				     dns_dbversion_t *version, FILE *file)
+				     ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*dump)(dns_db_t *db, dns_dbversion_t *version,
 				const char *filename,
-				dns_masterformat_t masterformat);
+				dns_masterformat_t masterformat)
+				ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	void		(*currentversion)(dns_db_t *db,
 					  dns_dbversion_t **versionp);
 	isc_result_t	(*newversion)(dns_db_t *db,
-				      dns_dbversion_t **versionp);
+				      dns_dbversion_t **versionp)
+				      ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	void		(*attachversion)(dns_db_t *db, dns_dbversion_t *source,
 					 dns_dbversion_t **targetp);
 	void		(*closeversion)(dns_db_t *db,
@@ -88,63 +94,76 @@ typedef struct dns_dbmethods {
 					isc_boolean_t commit);
 	isc_result_t	(*findnode)(dns_db_t *db, const dns_name_t *name,
 				    isc_boolean_t create,
-				    dns_dbnode_t **nodep);
+				    dns_dbnode_t **nodep)
+				    ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*find)(dns_db_t *db, const dns_name_t *name,
 				dns_dbversion_t *version,
 				dns_rdatatype_t type, unsigned int options,
 				isc_stdtime_t now,
 				dns_dbnode_t **nodep, dns_name_t *foundname,
 				dns_rdataset_t *rdataset,
-				dns_rdataset_t *sigrdataset);
+				dns_rdataset_t *sigrdataset)
+				ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*findzonecut)(dns_db_t *db, const dns_name_t *name,
 				       unsigned int options, isc_stdtime_t now,
 				       dns_dbnode_t **nodep,
 				       dns_name_t *foundname,
 				       dns_rdataset_t *rdataset,
-				       dns_rdataset_t *sigrdataset);
+				       dns_rdataset_t *sigrdataset)
+				       ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	void		(*attachnode)(dns_db_t *db,
 				      dns_dbnode_t *source,
 				      dns_dbnode_t **targetp);
 	void		(*detachnode)(dns_db_t *db,
 				      dns_dbnode_t **targetp);
 	isc_result_t	(*expirenode)(dns_db_t *db, dns_dbnode_t *node,
-				      isc_stdtime_t now);
+				      isc_stdtime_t now)
+				      ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	void		(*printnode)(dns_db_t *db, dns_dbnode_t *node,
 				     FILE *out);
 	isc_result_t 	(*createiterator)(dns_db_t *db, unsigned int options,
-					  dns_dbiterator_t **iteratorp);
+					  dns_dbiterator_t **iteratorp)
+					  ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*findrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					dns_rdatatype_t type,
 					dns_rdatatype_t covers,
 					isc_stdtime_t now,
 					dns_rdataset_t *rdataset,
-					dns_rdataset_t *sigrdataset);
+					dns_rdataset_t *sigrdataset)
+					ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*allrdatasets)(dns_db_t *db, dns_dbnode_t *node,
 					dns_dbversion_t *version,
 					isc_stdtime_t now,
-					dns_rdatasetiter_t **iteratorp);
+					dns_rdatasetiter_t **iteratorp)
+					ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*addrdataset)(dns_db_t *db, dns_dbnode_t *node,
 				       dns_dbversion_t *version,
 				       isc_stdtime_t now,
 				       dns_rdataset_t *rdataset,
 				       unsigned int options,
-				       dns_rdataset_t *addedrdataset);
+				       dns_rdataset_t *addedrdataset)
+				       ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*subtractrdataset)(dns_db_t *db, dns_dbnode_t *node,
 					    dns_dbversion_t *version,
 					    dns_rdataset_t *rdataset,
 					    unsigned int options,
-					    dns_rdataset_t *newrdataset);
+					    dns_rdataset_t *newrdataset)						    ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*deleterdataset)(dns_db_t *db, dns_dbnode_t *node,
 					  dns_dbversion_t *version,
 					  dns_rdatatype_t type,
-					  dns_rdatatype_t covers);
-	isc_boolean_t	(*issecure)(dns_db_t *db);
-	unsigned int	(*nodecount)(dns_db_t *db);
-	isc_boolean_t	(*ispersistent)(dns_db_t *db);
+					  dns_rdatatype_t covers)
+					  ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_boolean_t	(*issecure)(dns_db_t *db)
+				    ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	unsigned int	(*nodecount)(dns_db_t *db)
+				     ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_boolean_t	(*ispersistent)(dns_db_t *db)
+					ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
 	void		(*settask)(dns_db_t *db, isc_task_t *);
-	isc_result_t	(*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
+	isc_result_t	(*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep)
+					 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	void		(*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
 					dns_dbnode_t **targetp);
 	isc_result_t    (*getnsec3parameters)(dns_db_t *db,
@@ -153,28 +172,36 @@ typedef struct dns_dbmethods {
 					      isc_uint8_t *flags,
 					      isc_uint16_t *iterations,
 					      unsigned char *salt,
-					      size_t *salt_len);
+					      size_t *salt_len)
+					      ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t    (*findnsec3node)(dns_db_t *db, const dns_name_t *name,
 					 isc_boolean_t create,
-					 dns_dbnode_t **nodep);
+					 dns_dbnode_t **nodep)
+					 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*setsigningtime)(dns_db_t *db,
 					  dns_rdataset_t *rdataset,
-					  isc_stdtime_t resign);
+					  isc_stdtime_t resign)
+					  ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*getsigningtime)(dns_db_t *db,
 					  dns_rdataset_t *rdataset,
-					  dns_name_t *name);
+					  dns_name_t *name)
+					  ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	void		(*resigned)(dns_db_t *db, dns_rdataset_t *rdataset,
 					   dns_dbversion_t *version);
-	isc_boolean_t	(*isdnssec)(dns_db_t *db);
-	dns_stats_t	*(*getrrsetstats)(dns_db_t *db);
+	isc_boolean_t	(*isdnssec)(dns_db_t *db)
+				    ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	dns_stats_t	*(*getrrsetstats)(dns_db_t *db)
+					  ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	void		(*rpz_attach)(dns_db_t *db, void *rpzs,
 				      isc_uint8_t rpz_num);
-	isc_result_t	(*rpz_ready)(dns_db_t *db);
+	isc_result_t	(*rpz_ready)(dns_db_t *db)
+				     ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*findnodeext)(dns_db_t *db, const dns_name_t *name,
 				     isc_boolean_t create,
 				     dns_clientinfomethods_t *methods,
 				     dns_clientinfo_t *clientinfo,
-				     dns_dbnode_t **nodep);
+				     dns_dbnode_t **nodep)
+				     ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*findext)(dns_db_t *db, const dns_name_t *name,
 				   dns_dbversion_t *version,
 				   dns_rdatatype_t type, unsigned int options,
@@ -183,26 +210,36 @@ typedef struct dns_dbmethods {
 				   dns_clientinfomethods_t *methods,
 				   dns_clientinfo_t *clientinfo,
 				   dns_rdataset_t *rdataset,
-				   dns_rdataset_t *sigrdataset);
-	isc_result_t	(*setcachestats)(dns_db_t *db, isc_stats_t *stats);
-	size_t		(*hashsize)(dns_db_t *db);
+				   dns_rdataset_t *sigrdataset)
+				   ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_result_t	(*setcachestats)(dns_db_t *db, isc_stats_t *stats)
+					 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	size_t		(*hashsize)(dns_db_t *db)
+				    ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
-					dns_name_t *name);
+					dns_name_t *name)
+					ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 	isc_result_t	(*getsize)(dns_db_t *db, dns_dbversion_t *version,
-				   isc_uint64_t *records, isc_uint64_t *bytes);
-	isc_result_t	(*setservestalettl)(dns_db_t *db, dns_ttl_t ttl);
-	isc_result_t	(*getservestalettl)(dns_db_t *db, dns_ttl_t *ttl);
-	isc_result_t	(*setgluecachestats)(dns_db_t *db, isc_stats_t *stats);
+				   isc_uint64_t *records, isc_uint64_t *bytes)
+				   ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_result_t	(*setservestalettl)(dns_db_t *db, dns_ttl_t ttl)
+					    ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_result_t	(*getservestalettl)(dns_db_t *db, dns_ttl_t *ttl)
+					    ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+	isc_result_t	(*setgluecachestats)(dns_db_t *db, isc_stats_t *stats)
+					     ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 } dns_dbmethods_t;
 
 typedef isc_result_t
 (*dns_dbcreatefunc_t)(isc_mem_t *mctx, const dns_name_t *name,
 		      dns_dbtype_t type, dns_rdataclass_t rdclass,
 		      unsigned int argc, char *argv[], void *driverarg,
-		      dns_db_t **dbp);
+		      dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t
-(*dns_dbupdate_callback_t)(dns_db_t *db, void *fn_arg);
+(*dns_dbupdate_callback_t)(dns_db_t *db, void *fn_arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 #define DNS_DB_MAGIC		ISC_MAGIC('D','N','S','D')
 #define DNS_DB_VALID(db)	ISC_MAGIC_VALID(db, DNS_DB_MAGIC)
@@ -290,7 +327,8 @@ struct dns_dbonupdatelistener {
 isc_result_t
 dns_db_create(isc_mem_t *mctx, const char *db_type, const dns_name_t *origin,
 	      dns_dbtype_t type, dns_rdataclass_t rdclass,
-	      unsigned int argc, char *argv[], dns_db_t **dbp);
+	      unsigned int argc, char *argv[], dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a new database using implementation 'db_type'.
  *
@@ -360,7 +398,8 @@ dns_db_detach(dns_db_t **dbp);
  */
 
 isc_boolean_t
-dns_db_iscache(dns_db_t *db);
+dns_db_iscache(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Does 'db' have cache semantics?
  *
@@ -374,7 +413,8 @@ dns_db_iscache(dns_db_t *db);
  */
 
 isc_boolean_t
-dns_db_iszone(dns_db_t *db);
+dns_db_iszone(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Does 'db' have zone semantics?
  *
@@ -388,7 +428,8 @@ dns_db_iszone(dns_db_t *db);
  */
 
 isc_boolean_t
-dns_db_isstub(dns_db_t *db);
+dns_db_isstub(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Does 'db' have stub semantics?
  *
@@ -402,7 +443,8 @@ dns_db_isstub(dns_db_t *db);
  */
 
 isc_boolean_t
-dns_db_issecure(dns_db_t *db);
+dns_db_issecure(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is 'db' secure?
  *
@@ -416,7 +458,8 @@ dns_db_issecure(dns_db_t *db);
  */
 
 isc_boolean_t
-dns_db_isdnssec(dns_db_t *db);
+dns_db_isdnssec(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is 'db' secure or partially secure?
  *
@@ -430,7 +473,8 @@ dns_db_isdnssec(dns_db_t *db);
  */
 
 dns_name_t *
-dns_db_origin(dns_db_t *db);
+dns_db_origin(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * The origin of the database.
  *
@@ -446,7 +490,8 @@ dns_db_origin(dns_db_t *db);
  */
 
 dns_rdataclass_t
-dns_db_class(dns_db_t *db);
+dns_db_class(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * The class of the database.
  *
@@ -460,7 +505,8 @@ dns_db_class(dns_db_t *db);
  */
 
 isc_result_t
-dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
+dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Begin loading 'db'.
  *
@@ -492,7 +538,8 @@ dns_db_beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
  */
 
 isc_result_t
-dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
+dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Finish loading 'db'.
  *
@@ -519,7 +566,8 @@ dns_db_endload(dns_db_t *db, dns_rdatacallbacks_t *callbacks);
 
 isc_result_t
 dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
-	    unsigned int options);
+	    unsigned int options)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Load master file 'filename' into 'db'.
  *
@@ -548,7 +596,8 @@ dns_db_load(dns_db_t *db, const char *filename, dns_masterformat_t format,
  */
 
 isc_result_t
-dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *rbtfile);
+dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *rbtfile)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Dump version 'version' of 'db' to map-format file 'filename'.
  *
@@ -568,7 +617,8 @@ dns_db_serialize(dns_db_t *db, dns_dbversion_t *version, FILE *rbtfile);
  */
 
 isc_result_t
-dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename);
+dns_db_dump(dns_db_t *db, dns_dbversion_t *version, const char *filename)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Dump version 'version' of 'db' to master file 'filename'.
  *
@@ -609,7 +659,8 @@ dns_db_currentversion(dns_db_t *db, dns_dbversion_t **versionp);
  */
 
 isc_result_t
-dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp);
+dns_db_newversion(dns_db_t *db, dns_dbversion_t **versionp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Open a new version for reading and writing.
  *
@@ -688,12 +739,14 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 
 isc_result_t
 dns_db_findnode(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
-		dns_dbnode_t **nodep);
+		dns_dbnode_t **nodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
 		   dns_clientinfomethods_t *methods,
-		   dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep);
+		   dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the node with name 'name'.
  *
@@ -737,14 +790,16 @@ isc_result_t
 dns_db_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	    dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	    dns_dbnode_t **nodep, dns_name_t *foundname,
-	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+	    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_db_findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	       dns_rdatatype_t type, unsigned int options, isc_stdtime_t now,
 	       dns_dbnode_t **nodep, dns_name_t *foundname,
 	       dns_clientinfomethods_t *methods, dns_clientinfo_t *clientinfo,
-	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+	       dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the best match for 'name' and 'type' in version 'version' of 'db'.
  *
@@ -933,7 +988,8 @@ isc_result_t
 dns_db_findzonecut(dns_db_t *db, const dns_name_t *name,
 		   unsigned int options, isc_stdtime_t now,
 		   dns_dbnode_t **nodep, dns_name_t *foundname,
-		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the deepest known zonecut which encloses 'name' in 'db'.
  *
@@ -1030,7 +1086,8 @@ dns_db_transfernode(dns_db_t *db, dns_dbnode_t **sourcep,
  */
 
 isc_result_t
-dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now);
+dns_db_expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Mark as stale all records at 'node' which expire at or before 'now'.
  *
@@ -1064,7 +1121,8 @@ dns_db_printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out);
 
 isc_result_t
 dns_db_createiterator(dns_db_t *db, unsigned int options,
-		      dns_dbiterator_t **iteratorp);
+		      dns_dbiterator_t **iteratorp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create an iterator for version 'version' of 'db'.
  *
@@ -1103,7 +1161,8 @@ isc_result_t
 dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		    dns_rdatatype_t type, dns_rdatatype_t covers,
 		    isc_stdtime_t now, dns_rdataset_t *rdataset,
-		    dns_rdataset_t *sigrdataset);
+		    dns_rdataset_t *sigrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Search for an rdataset of type 'type' at 'node' that are in version
@@ -1151,7 +1210,8 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 isc_result_t
 dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp);
+		    isc_stdtime_t now, dns_rdatasetiter_t **iteratorp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Make '*iteratorp' an rdataset iterator for all rdatasets at 'node' in
  * version 'version' of 'db'.
@@ -1190,7 +1250,8 @@ dns_db_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 isc_result_t
 dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		   isc_stdtime_t now, dns_rdataset_t *rdataset,
-		   unsigned int options, dns_rdataset_t *addedrdataset);
+		   unsigned int options, dns_rdataset_t *addedrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add 'rdataset' to 'node' in version 'version' of 'db'.
  *
@@ -1249,7 +1310,8 @@ dns_db_addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 isc_result_t
 dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 			dns_dbversion_t *version, dns_rdataset_t *rdataset,
-			unsigned int options, dns_rdataset_t *newrdataset);
+			unsigned int options, dns_rdataset_t *newrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Remove any rdata in 'rdataset' from 'node' in version 'version' of
  * 'db'.
@@ -1294,7 +1356,8 @@ dns_db_subtractrdataset(dns_db_t *db, dns_dbnode_t *node,
 isc_result_t
 dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 		      dns_dbversion_t *version, dns_rdatatype_t type,
-		      dns_rdatatype_t covers);
+		      dns_rdatatype_t covers)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Make it so that no rdataset of type 'type' exists at 'node' in version
  * version 'version' of 'db'.
@@ -1331,7 +1394,8 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  */
 
 isc_result_t
-dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
+dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the current SOA serial number from a zone database.
  *
@@ -1347,7 +1411,8 @@ dns_db_overmem(dns_db_t *db, isc_boolean_t overmem);
  */
 
 unsigned int
-dns_db_nodecount(dns_db_t *db);
+dns_db_nodecount(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Count the number of nodes in 'db'.
  *
@@ -1360,7 +1425,8 @@ dns_db_nodecount(dns_db_t *db);
  */
 
 size_t
-dns_db_hashsize(dns_db_t *db);
+dns_db_hashsize(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * For database implementations using a hash table, report the
  * current number of buckets.
@@ -1385,7 +1451,8 @@ dns_db_settask(dns_db_t *db, isc_task_t *task);
  */
 
 isc_boolean_t
-dns_db_ispersistent(dns_db_t *db);
+dns_db_ispersistent(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is 'db' persistent?  A persistent database does not need to be loaded
  * from disk or written to disk.
@@ -1401,7 +1468,8 @@ dns_db_ispersistent(dns_db_t *db);
 
 isc_result_t
 dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
-		isc_mem_t *mctx, dns_dbimplementation_t **dbimp);
+		isc_mem_t *mctx, dns_dbimplementation_t **dbimp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Register a new database implementation and add it to the list of
@@ -1441,7 +1509,8 @@ dns_db_unregister(dns_dbimplementation_t **dbimp);
  */
 
 isc_result_t
-dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
+dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the origin DB node corresponding to the DB's zone.  This function
  * should typically succeed unless the underlying DB implementation doesn't
@@ -1464,7 +1533,8 @@ isc_result_t
 dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 			  dns_hash_t *hash, isc_uint8_t *flags,
 			  isc_uint16_t *interations,
-			  unsigned char *salt, size_t *salt_length);
+			  unsigned char *salt, size_t *salt_length)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the NSEC3 parameters that are associated with this zone.
  *
@@ -1479,7 +1549,8 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
-	       isc_uint64_t *bytes);
+	       isc_uint64_t *bytes)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the number of records in the given version of the database as well
  * as the number bytes used to store those records.
@@ -1497,7 +1568,8 @@ dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
 
 isc_result_t
 dns_db_findnsec3node(dns_db_t *db, const dns_name_t *name,
-		     isc_boolean_t create, dns_dbnode_t **nodep);
+		     isc_boolean_t create, dns_dbnode_t **nodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the NSEC3 node with name 'name'.
  *
@@ -1529,7 +1601,8 @@ dns_db_findnsec3node(dns_db_t *db, const dns_name_t *name,
 
 isc_result_t
 dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
-		      isc_stdtime_t resign);
+		      isc_stdtime_t resign)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Sets the re-signing time associated with 'rdataset' to 'resign'.
  *
@@ -1546,7 +1619,8 @@ dns_db_setsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
  */
 
 isc_result_t
-dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name);
+dns_db_getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset, dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the rdataset with the earliest signing time in the zone.
  * Note: the rdataset is version agnostic.
@@ -1579,7 +1653,8 @@ dns_db_resigned(dns_db_t *db, dns_rdataset_t *rdataset,
  */
 
 dns_stats_t *
-dns_db_getrrsetstats(dns_db_t *db);
+dns_db_getrrsetstats(dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get statistics information counting RRsets stored in the DB, when available.
  * The statistics may not be available depending on the DB implementation.
@@ -1594,7 +1669,8 @@ dns_db_getrrsetstats(dns_db_t *db);
  */
 
 isc_result_t
-dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats);
+dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the location in which to collect cache statistics.
  * This option may not exist depending on the DB implementation.
@@ -1609,8 +1685,7 @@ dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats);
  */
 
 void
-dns_db_rpz_attach(dns_db_t *db, void *rpzs, isc_uint8_t rpz_num)
-	ISC_DEPRECATED;
+dns_db_rpz_attach(dns_db_t *db, void *rpzs, isc_uint8_t rpz_num);
 /*%<
  * Attach the response policy information for a view to a database for a
  * zone for the view.
@@ -1618,7 +1693,7 @@ dns_db_rpz_attach(dns_db_t *db, void *rpzs, isc_uint8_t rpz_num)
 
 isc_result_t
 dns_db_rpz_ready(dns_db_t *db)
-	ISC_DEPRECATED;
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT ISC_DEPRECATED;
 /*%<
  * Finish loading a response policy zone.
  */
@@ -1626,7 +1701,8 @@ dns_db_rpz_ready(dns_db_t *db)
 isc_result_t
 dns_db_updatenotify_register(dns_db_t *db,
 			     dns_dbupdate_callback_t fn,
-			     void *fn_arg);
+			     void *fn_arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Register a notify-on-update callback function to a database.
  *
@@ -1641,7 +1717,8 @@ dns_db_updatenotify_register(dns_db_t *db,
 isc_result_t
 dns_db_updatenotify_unregister(dns_db_t *db,
 			       dns_dbupdate_callback_t fn,
-			       void *fn_arg);
+			       void *fn_arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Unregister a notify-on-update callback.
  *
@@ -1653,7 +1730,8 @@ dns_db_updatenotify_unregister(dns_db_t *db,
  */
 
 isc_result_t
-dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
+dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the name associated with a database node.
  *
@@ -1664,7 +1742,8 @@ dns_db_nodefullname(dns_db_t *db, dns_dbnode_t *node, dns_name_t *name);
  */
 
 isc_result_t
-dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl);
+dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Sets the maximum length of time that cached answers may be retained
  * past their normal TTL. Default value for the library is 0, disabling
@@ -1680,7 +1759,8 @@ dns_db_setservestalettl(dns_db_t *db, dns_ttl_t ttl);
  */
 
 isc_result_t
-dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl);
+dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Gets maximum length of time that cached answers may be kept past
  * normal TTL expiration.
@@ -1695,7 +1775,8 @@ dns_db_getservestalettl(dns_db_t *db, dns_ttl_t *ttl);
  */
 
 isc_result_t
-dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats);
+dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the location in which to collect glue cache statistics.
  * This option may not exist depending on the DB implementation.

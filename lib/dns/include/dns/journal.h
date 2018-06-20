@@ -26,6 +26,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 
@@ -72,7 +73,8 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
-		      dns_diffop_t op, dns_difftuple_t **tp);
+		      dns_diffop_t op, dns_difftuple_t **tp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*!< brief
  * Create a diff tuple for the current database SOA.
  * XXX this probably belongs somewhere else.
@@ -96,7 +98,8 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 
 isc_result_t
 dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
-		 dns_journal_t **journalp);
+		 dns_journal_t **journalp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Open the journal file 'filename' and create a dns_journal_t object for it.
  *
@@ -118,7 +121,8 @@ dns_journal_destroy(dns_journal_t **journalp);
  */
 
 isc_result_t
-dns_journal_begin_transaction(dns_journal_t *j);
+dns_journal_begin_transaction(dns_journal_t *j)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Prepare to write a new transaction to the open journal file 'j'.
  *
@@ -127,7 +131,8 @@ dns_journal_begin_transaction(dns_journal_t *j);
  */
 
 isc_result_t
-dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff);
+dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Write 'diff' to the current transaction of journal file 'j'.
  *
@@ -140,7 +145,8 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff);
  */
 
 isc_result_t
-dns_journal_commit(dns_journal_t *j);
+dns_journal_commit(dns_journal_t *j)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Commit the current transaction of journal file 'j'.
  *
@@ -154,7 +160,8 @@ dns_journal_commit(dns_journal_t *j);
  */
 
 isc_result_t
-dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff);
+dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Write a complete transaction at once to a journal file,
  * sorting it if necessary, and commit it.  Equivalent to calling
@@ -175,22 +182,26 @@ dns_journal_write_transaction(dns_journal_t *j, dns_diff_t *diff);
  */
 
 isc_boolean_t
-dns_journal_empty(dns_journal_t *j);
+dns_journal_empty(dns_journal_t *j)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*<
  * Find out if a journal is empty.
  */
 
 isc_uint32_t
-dns_journal_first_serial(dns_journal_t *j);
+dns_journal_first_serial(dns_journal_t *j)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_uint32_t
-dns_journal_last_serial(dns_journal_t *j);
+dns_journal_last_serial(dns_journal_t *j)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the first and last addressable serial number in the journal.
  */
 
 isc_result_t
 dns_journal_iter_init(dns_journal_t *j,
-		      isc_uint32_t begin_serial, isc_uint32_t end_serial);
+		      isc_uint32_t begin_serial, isc_uint32_t end_serial)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Prepare to iterate over the transactions that will bring the database
  * from SOA serial number 'begin_serial' to 'end_serial'.
@@ -205,9 +216,11 @@ dns_journal_iter_init(dns_journal_t *j,
 
 /*@{*/
 isc_result_t
-dns_journal_first_rr(dns_journal_t *j);
+dns_journal_first_rr(dns_journal_t *j)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
-dns_journal_next_rr(dns_journal_t *j);
+dns_journal_next_rr(dns_journal_t *j)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Position the iterator at the first/next RR in a journal
  * transaction sequence established using dns_journal_iter_init().
@@ -236,7 +249,8 @@ dns_journal_current_rr(dns_journal_t *j, dns_name_t **name, isc_uint32_t *ttl,
 
 isc_result_t
 dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
-			const char *filename);
+			const char *filename)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Roll forward (play back) the journal file "filename" into the
  * database "db".  This should be called when the server starts
@@ -257,19 +271,22 @@ dns_journal_rollforward(isc_mem_t *mctx, dns_db_t *db, unsigned int options,
  */
 
 isc_result_t
-dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file);
+dns_journal_print(isc_mem_t *mctx, const char *filename, FILE *file)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /* For debugging not general use */
 
 isc_result_t
 dns_db_diff(isc_mem_t *mctx,
 	    dns_db_t *dba, dns_dbversion_t *dbvera,
 	    dns_db_t *dbb, dns_dbversion_t *dbverb,
-	    const char *journal_filename);
+	    const char *journal_filename)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_db_diffx(dns_diff_t *diff, dns_db_t *dba, dns_dbversion_t *dbvera,
 	     dns_db_t *dbb, dns_dbversion_t *dbverb,
-	     const char *journal_filename);
+	     const char *journal_filename)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Compare the databases 'dba' and 'dbb' and generate a diff/journal
  * entry containing the changes to make 'dba' from 'dbb' (note
@@ -281,7 +298,8 @@ dns_db_diffx(dns_diff_t *diff, dns_db_t *dba, dns_dbversion_t *dbvera,
 
 isc_result_t
 dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
-		    isc_uint32_t target_size);
+		    isc_uint32_t target_size)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Attempt to compact the journal if it is greater that 'target_size'.
  * Changes from 'serial' onwards will be preserved.  If the journal
@@ -289,7 +307,8 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, isc_uint32_t serial,
  */
 
 isc_boolean_t
-dns_journal_get_sourceserial(dns_journal_t *j, isc_uint32_t *sourceserial);
+dns_journal_get_sourceserial(dns_journal_t *j, isc_uint32_t *sourceserial)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 void
 dns_journal_set_sourceserial(dns_journal_t *j, isc_uint32_t sourceserial);
 /*%<

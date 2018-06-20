@@ -12,6 +12,8 @@
 #ifndef DNS_IPKEYLIST_H
 #define DNS_IPKEYLIST_H 1
 
+#include <isc/attribute.h>
+#include <isc/lang.h>
 #include <isc/types.h>
 #include <dns/types.h>
 
@@ -27,6 +29,8 @@ struct dns_ipkeylist {
 	isc_uint32_t		count;
 	isc_uint32_t		allocated;
 };
+
+ISC_LANG_BEGINDECLS
 
 void
 dns_ipkeylist_init(dns_ipkeylist_t *ipkl);
@@ -52,7 +56,8 @@ dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl);
 
 isc_result_t
 dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
-		   dns_ipkeylist_t *dst);
+		   dns_ipkeylist_t *dst)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Deep copy `src` into empty `dst`, allocating `dst`'s contents.
  *
@@ -67,7 +72,8 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
  *\li	any other value -- failure
  */
 isc_result_t
-dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
+dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Resize ipkl to contain n elements. Size (count) is not changed, and the
  * added space is zeroed.
@@ -82,4 +88,5 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n);
  * \li	#ISC_R_NOMEMORY if there's no memory, ipkeylist is left untoched
  */
 
+ISC_LANG_ENDDECLS
 #endif

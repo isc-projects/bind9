@@ -15,6 +15,7 @@
 
 /*! \file dns/cert.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -22,7 +23,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
+dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a certificate type.
  * The text may contain either a mnemonic type name or a decimal type number.
@@ -39,7 +41,8 @@ dns_cert_fromtext(dns_cert_t *certp, isc_textregion_t *source);
  */
 
 isc_result_t
-dns_cert_totext(dns_cert_t cert, isc_buffer_t *target);
+dns_cert_totext(dns_cert_t cert, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of certificate type 'cert' into 'target'.
  *

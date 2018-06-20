@@ -20,6 +20,7 @@
  ***/
 
 #include <isc/lang.h>
+#include <isc/lang.h>
 #include <isc/magic.h>
 
 #include <dns/types.h>

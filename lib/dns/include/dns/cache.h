@@ -42,6 +42,7 @@
  ***	Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/json.h>
 #include <isc/lang.h>
 #include <isc/stats.h>
@@ -58,7 +59,8 @@ isc_result_t
 dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		 isc_timermgr_t *timermgr, dns_rdataclass_t rdclass,
 		 const char *cachename, const char *db_type,
-		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep);
+		 unsigned int db_argc, char **db_argv, dns_cache_t **cachep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a new DNS cache.
  *
@@ -155,7 +157,8 @@ dns_cache_attachdb(dns_cache_t *cache, dns_db_t **dbp);
 
 
 isc_result_t
-dns_cache_setfilename(dns_cache_t *cache, const char *filename);
+dns_cache_setfilename(dns_cache_t *cache, const char *filename)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * If 'filename' is non-NULL, make the cache persistent.
  * The cache's data will be stored in the given file.
@@ -169,7 +172,8 @@ dns_cache_setfilename(dns_cache_t *cache, const char *filename);
  */
 
 isc_result_t
-dns_cache_load(dns_cache_t *cache);
+dns_cache_load(dns_cache_t *cache)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * If the cache has a file name, load the cache contents from the file.
  * Previous cache contents are not discarded.
@@ -190,7 +194,8 @@ dns_cache_load(dns_cache_t *cache);
  */
 
 isc_result_t
-dns_cache_dump(dns_cache_t *cache);
+dns_cache_dump(dns_cache_t *cache)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * If the cache has a file name, write the cache contents to disk,
  * overwriting any preexisting file.  If no file name has been set,
@@ -210,7 +215,8 @@ dns_cache_dump(dns_cache_t *cache);
  */
 
 isc_result_t
-dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now);
+dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Force immediate cleaning of the cache, freeing all rdatasets
  * whose TTL has expired as of 'now' and that have no pending
@@ -224,13 +230,15 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int interval);
  */
 
 unsigned int
-dns_cache_getcleaninginterval(dns_cache_t *cache);
+dns_cache_getcleaninginterval(dns_cache_t *cache)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the periodic cache cleaning interval to 'interval' seconds.
  */
 
 const char *
-dns_cache_getname(dns_cache_t *cache);
+dns_cache_getname(dns_cache_t *cache)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the cache name.
  */
@@ -242,7 +250,8 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size);
  */
 
 size_t
-dns_cache_getcachesize(dns_cache_t *cache);
+dns_cache_getcachesize(dns_cache_t *cache)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the maximum cache size.
  */
@@ -259,7 +268,8 @@ dns_cache_setservestalettl(dns_cache_t *cache, dns_ttl_t ttl);
  */
 
 dns_ttl_t
-dns_cache_getservestalettl(dns_cache_t *cache);
+dns_cache_getservestalettl(dns_cache_t *cache)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Gets the maximum length of time that cached answers may be kept past
  * normal expiry.
@@ -269,7 +279,8 @@ dns_cache_getservestalettl(dns_cache_t *cache);
  */
 
 isc_result_t
-dns_cache_flush(dns_cache_t *cache);
+dns_cache_flush(dns_cache_t *cache)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Flushes all data from the cache.
  *
@@ -280,7 +291,8 @@ dns_cache_flush(dns_cache_t *cache);
 
 isc_result_t
 dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name,
-		    isc_boolean_t tree);
+		    isc_boolean_t tree)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Flush a given name from the cache.  If 'tree' is true, then
  * also flush all names under 'name'.
@@ -296,7 +308,8 @@ dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name,
  */
 
 isc_result_t
-dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name);
+dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Flush a given name from the cache.  Equivalent to
  * dns_cache_flushpartial(cache, name, ISC_FALSE).
@@ -312,7 +325,8 @@ dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name);
  */
 
 isc_stats_t *
-dns_cache_getstats(dns_cache_t *cache);
+dns_cache_getstats(dns_cache_t *cache)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Return a pointer to the stats collection object for 'cache'
  */
@@ -331,7 +345,8 @@ dns_cache_updatestats(dns_cache_t *cache, isc_result_t result);
 
 #ifdef HAVE_LIBXML2
 int
-dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);
+dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Render cache statistics and status in XML for 'writer'.
  */
@@ -339,7 +354,8 @@ dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);
 
 #ifdef HAVE_JSON
 isc_result_t
-dns_cache_renderjson(dns_cache_t *cache, json_object *cstats);
+dns_cache_renderjson(dns_cache_t *cache, json_object *cstats)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Render cache statistics and status in JSON
  */

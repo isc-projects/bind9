@@ -83,6 +83,7 @@
 #include <dns/view.h>
 #include <dst/dst.h>
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
@@ -97,7 +98,8 @@ ISC_LANG_BEGINDECLS
 typedef isc_result_t
 (*dns_dlzallowzonexfr_t)(void *driverarg, void *dbdata, isc_mem_t *mctx,
 			 dns_rdataclass_t rdclass, const dns_name_t *name,
-			 const isc_sockaddr_t *clientaddr, dns_db_t **dbp);
+			 const isc_sockaddr_t *clientaddr, dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Method prototype.  Drivers implementing the DLZ interface MUST
@@ -113,7 +115,8 @@ typedef isc_result_t
 
 typedef isc_result_t
 (*dns_dlzcreate_t)(isc_mem_t *mctx, const char *dlzname, unsigned int argc,
-		   char *argv[], void *driverarg, void **dbdata);
+		   char *argv[], void *driverarg, void **dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Method prototype.  Drivers implementing the DLZ interface MUST
@@ -135,7 +138,8 @@ typedef isc_result_t
 		     dns_rdataclass_t rdclass, const dns_name_t *name,
 		     dns_clientinfomethods_t *methods,
 		     dns_clientinfo_t *clientinfo,
-		     dns_db_t **dbp);
+		     dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Method prototype.  Drivers implementing the DLZ interface MUST
@@ -164,7 +168,8 @@ typedef isc_result_t
 
 typedef isc_result_t
 (*dns_dlzconfigure_t)(void *driverarg, void *dbdata,
-		      dns_view_t *view, dns_dlzdb_t *dlzdb);
+		      dns_view_t *view, dns_dlzdb_t *dlzdb)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype.  Drivers implementing the DLZ interface may
  * optionally supply a configure method. If supplied, this will be
@@ -178,7 +183,8 @@ typedef isc_boolean_t (*dns_dlzssumatch_t)(const dns_name_t *signer,
 					   const isc_netaddr_t *tcpaddr,
 					   dns_rdatatype_t type,
 					   const dst_key_t *key,
-					   void *driverarg, void *dbdata);
+					   void *driverarg, void *dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype.  Drivers implementing the DLZ interface may
  * optionally supply a ssumatch method. If supplied, this will be
@@ -205,7 +211,8 @@ struct dns_dlzimplementation {
 };
 
 typedef isc_result_t (*dlzconfigure_callback_t)(dns_view_t *, dns_dlzdb_t *,
-						dns_zone_t *);
+						dns_zone_t *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*% An instance of a DLZ driver */
 struct dns_dlzdb {
@@ -227,7 +234,8 @@ struct dns_dlzdb {
 
 isc_result_t
 dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
-		    const isc_sockaddr_t *clientaddr, dns_db_t **dbp);
+		    const isc_sockaddr_t *clientaddr, dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * This method is called when the DNS server is performing a zone
@@ -238,7 +246,8 @@ dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
 isc_result_t
 dns_dlzcreate(isc_mem_t *mctx, const char *dlzname,
 	      const char *drivername, unsigned int argc,
-	      char *argv[], dns_dlzdb_t **dbp);
+	      char *argv[], dns_dlzdb_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * This method is called when the DNS server is starting up and
@@ -260,7 +269,8 @@ dns_dlzdestroy(dns_dlzdb_t **dbp);
 isc_result_t
 dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 		 void *driverarg, isc_mem_t *mctx,
-		dns_dlzimplementation_t **dlzimp);
+		dns_dlzimplementation_t **dlzimp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Register a dynamically loadable zones (DLZ) driver for the database
@@ -272,7 +282,8 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
  */
 
 isc_result_t
-dns_dlzstrtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp);
+dns_dlzstrtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp, char ***argvp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * This method is called when the name server is starting up to parse
@@ -318,7 +329,8 @@ dns_dlz_writeablezone_t dns_dlz_writeablezone;
 
 isc_result_t
 dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
-		 dlzconfigure_callback_t callback);
+		 dlzconfigure_callback_t callback)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * call a DLZ drivers configure method, if supplied
  */
@@ -326,7 +338,8 @@ dns_dlzconfigure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 isc_boolean_t
 dns_dlz_ssumatch(dns_dlzdb_t *dlzdatabase, const dns_name_t *signer,
 		 const dns_name_t *name, const isc_netaddr_t *tcpaddr,
-		 dns_rdatatype_t type, const dst_key_t *key);
+		 dns_rdatatype_t type, const dst_key_t *key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * call a DLZ drivers ssumatch method, if supplied. Otherwise return ISC_FALSE
  */
