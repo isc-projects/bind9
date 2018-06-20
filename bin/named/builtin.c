@@ -361,6 +361,7 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Bob Halley",
 		"Evan Hunt",
 		"JINMEI Tatuya",
+		"Michal Kepien",
 		"Witold Krecicki",
 		"David Lawrence",
 		"Scott Mann",
@@ -369,6 +370,8 @@ do_authors_lookup(dns_sdblookup_t *lookup) {
 		"Matt Nelson",
 		"Jeremy C. Reed",
 		"Michael Sawyer",
+		"Mukund Sivaraman",
+		"Ondrej Sury"'
 		"Brian Wellington",
 		NULL
 	};
