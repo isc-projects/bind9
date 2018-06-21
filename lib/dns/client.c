@@ -2614,7 +2614,6 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 						     r.length);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
-			dns_message_takebuffer(msg, &rdatabuf);
 			isc_buffer_putmem(rdatabuf, r.base, r.length);
 			isc_buffer_usedregion(rdatabuf, &r);
 			dns_rdata_init(newrdata);
@@ -2623,6 +2622,7 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 			newrdata->flags = rdata.flags;
 
 			ISC_LIST_APPEND(rdatalist->rdata, newrdata, link);
+			dns_message_takebuffer(msg, &rdatabuf);
 			newrdata = NULL;
 
 			result = dns_rdataset_next(rdataset);
