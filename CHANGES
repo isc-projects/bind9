@@ -4,6 +4,8 @@
 4971.	[bug]		dnssec-signzone and dnssec-verify did not treat records
 			below a DNAME as out-of-zone data. [GL #298]
 
+	--- 9.10.8rc1 released ---
+
 4968.	[bug]		If glue records are signed, attempt to validate them.
 			[GL #209]
 
