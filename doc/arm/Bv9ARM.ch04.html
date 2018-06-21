@@ -1034,28 +1034,36 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
           To enable <span class="command"><strong>named</strong></span> to respond appropriately
           to DNS requests from DNSSEC aware clients,
           <span class="command"><strong>dnssec-enable</strong></span> must be set to yes.
-          (This is the default setting.)
+          This is the default setting.
         </p>
 
         <p>
           To enable <span class="command"><strong>named</strong></span> to validate answers from
           other servers, the <span class="command"><strong>dnssec-enable</strong></span> option
           must be set to <strong class="userinput"><code>yes</code></strong>, and the
-          <span class="command"><strong>dnssec-validation</strong></span> options must be set to
-          <strong class="userinput"><code>yes</code></strong> or <strong class="userinput"><code>auto</code></strong>.
+          <span class="command"><strong>dnssec-validation</strong></span> option must be set to
+          either <strong class="userinput"><code>yes</code></strong> or <strong class="userinput"><code>auto</code></strong>.
         </p>
 
         <p>
+          When <span class="command"><strong>dnssec-validation</strong></span> is set to
+          <strong class="userinput"><code>auto</code></strong>, a trust anchor for the DNS
+          root zone will automatically be used. This trust anchor is
+          provided as part of BIND and is kept up to date using RFC 5011
+          key management.
           If <span class="command"><strong>dnssec-validation</strong></span> is set to
-          <strong class="userinput"><code>auto</code></strong>, then a default
-          trust anchor for the DNS root zone will be used.
-          If it is set to <strong class="userinput"><code>yes</code></strong>, however,
-          then at least one trust anchor must be configured
-          with a <span class="command"><strong>trusted-keys</strong></span> or
-          <span class="command"><strong>managed-keys</strong></span> statement in
-          <code class="filename">named.conf</code>, or DNSSEC validation
-          will not occur.  The default setting is
-          <strong class="userinput"><code>yes</code></strong>.
+          <strong class="userinput"><code>yes</code></strong>, then
+          DNSSEC validation only occurs if
+          at least one trust anchor has been explicitly configured
+          in <code class="filename">named.conf</code>,
+          using a <span class="command"><strong>trusted-keys</strong></span> or
+          <span class="command"><strong>managed-keys</strong></span> statement.
+          If <span class="command"><strong>dnssec-validation</strong></span> is set to
+          <strong class="userinput"><code>no</code></strong>, then DNSSEC validation will
+          not occur.
+          The default is <strong class="userinput"><code>auto</code></strong> unless BIND is
+          built with <span class="command"><strong>configure --disable-auto-validation</strong></span>,
+          in which case the default is <strong class="userinput"><code>yes</code></strong>.
         </p>
 
         <p>
@@ -1702,7 +1710,7 @@ $ <strong class="userinput"><code>./configure --enable-native-pkcs11 \
       </p>
       <pre class="screen">
 $ <strong class="userinput"><code> cd SoftHSMv2 </code></strong>
-$ <strong class="userinput"><code> configure --with-crypto-backend=openssl --prefix=/opt/pkcs11/usr --enable-gost </code></strong>
+$ <strong class="userinput"><code> configure --with-crypto-backend=openssl --prefix=/opt/pkcs11/usr </code></strong>
 $ <strong class="userinput"><code> make </code></strong>
 $ <strong class="userinput"><code> make install </code></strong>
 $ <strong class="userinput"><code> /opt/pkcs11/usr/bin/softhsm-util --init-token 0 --slot 0 --label softhsmv2 </code></strong>
@@ -2867,6 +2875,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.0 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.1 (Development Release)</p>
 </body>
 </html>
