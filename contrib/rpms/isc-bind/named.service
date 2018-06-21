@@ -1,0 +1,14 @@
+[Unit]
+After=network.target
+
+[Service]
+Type=forking
+EnvironmentFile=-/etc/sysconfig/named
+PIDFile=/var/run/named/named.pid
+ExecStart=/usr/sbin/named -u named $OPTIONS
+ExecReload=/bin/kill -HUP $MAINPID
+ExecStop=/bin/kill -TERM $MAINPID
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target
