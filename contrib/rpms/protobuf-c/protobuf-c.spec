@@ -38,7 +38,7 @@ This package contains protobuf-c headers and libraries.
 %setup -q
 
 %build
-autoreconf -ifv
+# autoreconf -ifv
 %configure --disable-static
 %make_build
 
