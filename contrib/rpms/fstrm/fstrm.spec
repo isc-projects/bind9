@@ -26,17 +26,6 @@ Requires: %{name}%{?_isa} = %{version}-%{release}
 The fstrm-devel package contains header files required to build an application
 using fstrm library.
 
-%package doc
-Summary: API documentation for fstrm library
-BuildArch: noarch
-BuildRequires: doxygen
-BuildRequires: libevent-devel
-Requires: %{name} = %{version}-%{release}
-
-%description doc
-The fstrm-doc package contains Doxygen generated API documentation for
-fstrm library.
-
 %prep
 %setup -q
 # regenerated build scripts to:
@@ -80,9 +69,6 @@ make check
 %{_includedir}/fstrm/
 %{_libdir}/pkgconfig/libfstrm.pc
 %{_libdir}/libfstrm.so
-
-%files doc
-%doc %{_pkgdocdir}/html
 
 %changelog
 * Thu May 17 2018 Tomas Krizek <tomas.krizek@nic.cz> - 0.4.0-1
