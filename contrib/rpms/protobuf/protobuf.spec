@@ -18,6 +18,9 @@ URL:            https://github.com/google/protobuf
 Source:         https://github.com/google/protobuf/archive/v%{version}%{?rcver}/%{name}-%{version}%{?rcver}.tar.gz
 Source1:        ftdetect-proto.vim
 Source2:        protobuf-init.el
+# For tests
+Source3:        https://github.com/google/googlemock/archive/release-1.7.0.tar.gz#/googlemock-1.7.0.tar.gz
+Source4:        https://github.com/google/googletest/archive/release-1.7.0.tar.gz#/googletest-1.7.0.tar.gz
 # Might be upstreamable, but for now temporary workaround
 Patch0:         0001-fix-build-on-s390x.patch
 
@@ -221,9 +224,11 @@ Protocol Buffer Parent POM.
 %endif
 
 %prep
-%setup -q -n %{name}-%{version}%{?rcver}
-%autopatch -p1
-find -name \*.cc -o -name \*.h | xargs chmod -x
+%setup -q -n %{name}-%{version}%{?rcver} -a 3 -a 4
+%patch0 -p1
+mv googlemock-release-1.7.0 gmock
+mv googletest-release-1.7.0 gmock/gtest
+find -name \*.cc -o -name \*.h -execdir chmod -x {} \;
 chmod 644 examples/*
 %if %{with java}
 %pom_remove_parent java/pom.xml
