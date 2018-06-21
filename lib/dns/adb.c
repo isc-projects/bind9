@@ -3241,9 +3241,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	find->partial_result |= (adbname->partial_result & wanted_addresses);
 	if (alias) {
 		if (target != NULL) {
-			result = dns_name_copy(&adbname->target, target, NULL);
-			if (result != ISC_R_SUCCESS)
-				goto out;
+			DNS_NAME_COPY(&adbname->target, target, NULL);
 		}
 		result = DNS_R_ALIAS;
 	} else

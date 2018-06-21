@@ -905,7 +905,7 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 				e->log_qname = qbuf->index;
 				qbuf->e = e;
 				dns_fixedname_init(&qbuf->qname);
-				dns_name_copy(qname,
+				DNS_NAME_COPY(qname,
 					      dns_fixedname_name(&qbuf->qname),
 					      NULL);
 			}

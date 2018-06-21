@@ -87,6 +87,7 @@ delete_name(void *data, void *arg) {
 static void
 print_name(dns_name_t *name) {
 	isc_buffer_t target;
+	isc_result_t result;
 	char buffer[1024];
 
 	isc_buffer_init(&target, buffer, sizeof(buffer));
@@ -94,7 +95,8 @@ print_name(dns_name_t *name) {
 	/*
 	 * ISC_FALSE means absolute names have the final dot added.
 	 */
-	dns_name_totext(name, ISC_FALSE, &target);
+	result = dns_name_totext(name, ISC_FALSE, &target);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	printf("%.*s", (int)target.used, (char *)target.base);
 }

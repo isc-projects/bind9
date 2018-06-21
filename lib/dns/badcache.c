@@ -207,7 +207,8 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 		bad->flags = flags;
 		isc_buffer_init(&buffer, bad + 1, name->length);
 		dns_name_init(&bad->name, NULL);
-		dns_name_copy(name, &bad->name, &buffer);
+		result = dns_name_copy(name, &bad->name, &buffer);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		bad->next = bc->table[i];
 		bc->table[i] = bad;
 		bc->count++;

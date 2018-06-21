@@ -136,7 +136,7 @@ dns_db_createsoatuple(dns_db_t *db, dns_dbversion_t *ver, isc_mem_t *mctx,
 	dns_name_t *zonename;
 
 	zonename = dns_fixedname_initname(&fixed);
-	dns_name_copy(dns_db_origin(db), zonename, NULL);
+	DNS_NAME_COPY(dns_db_origin(db), zonename, NULL);
 
 	node = NULL;
 	result = dns_db_findnode(db, zonename, ISC_FALSE, &node);

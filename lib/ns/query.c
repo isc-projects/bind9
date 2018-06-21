@@ -2339,9 +2339,7 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(sigrdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
-		if (result != ISC_R_SUCCESS)
-			return (ISC_FALSE);
+		DNS_RDATA_TOSTRUCT(&rdata, &rrsig, NULL);
 		if (!dns_resolver_algorithm_supported(client->view->resolver,
 						      name, rrsig.algorithm))
 			continue;
@@ -2791,7 +2789,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 			query_rpzfetch(client, name, type);
 			result = DNS_R_NXRRSET;
 		} else {
-			dns_name_copy(name, st->r_name, NULL);
+			DNS_NAME_COPY(name, st->r_name, NULL);
 			result = query_recurse(client, type, st->r_name,
 					       NULL, NULL, resuming);
 			if (result == ISC_R_SUCCESS) {
@@ -3035,7 +3033,7 @@ rpz_save_p(dns_rpz_st_t *st, dns_rpz_zone_t *rpz, dns_rpz_type_t rpz_type,
 	st->m.rpz = rpz;
 	st->m.type = rpz_type;
 	st->m.policy = policy;
-	dns_name_copy(p_name, st->p_name, NULL);
+	DNS_NAME_COPY(p_name, st->p_name, NULL);
 	st->m.prefix = prefix;
 	st->m.result = result;
 	SAVE(st->m.zone, *zonep);
@@ -4187,15 +4185,8 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 			dns_rdata_t nsrdata = DNS_RDATA_INIT;
 
 			dns_rdataset_current(st->r.ns_rdataset, &nsrdata);
-			result = dns_rdata_tostruct(&nsrdata, &ns, NULL);
+			DNS_RDATA_TOSTRUCT(&nsrdata, &ns, NULL);
 			dns_rdata_reset(&nsrdata);
-			if (result != ISC_R_SUCCESS) {
-				rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL,
-					     nsname, DNS_RPZ_TYPE_NSIP,
-					     " rdata_tostruct()", result);
-				st->m.policy = DNS_RPZ_POLICY_ERROR;
-				goto cleanup;
-			}
 			/*
 			 * Do nothing about "NS ."
 			 */
@@ -4460,8 +4451,7 @@ warn_rfc1918(ns_client_t *client, dns_name_t *fname, dns_rdataset_t *rdataset) {
 			result = dns_rdataset_first(&found);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_rdataset_current(&found, &rdata);
-			result = dns_rdata_tostruct(&rdata, &soa, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			DNS_RDATA_TOSTRUCT(&rdata, &soa, NULL);
 			if (dns_name_equal(&soa.origin, &prisoner) &&
 			    dns_name_equal(&soa.contact, &hostmaster)) {
 				char buf[DNS_NAME_FORMATSIZE];
@@ -4538,7 +4528,7 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		result = dns_rdataset_first(rdataset);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &nsec3, NULL);
+		DNS_RDATA_TOSTRUCT(&rdata, &nsec3, NULL);
 		dns_rdata_reset(&rdata);
 		optout = ISC_TF((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
 		if (found != NULL && optout &&
@@ -4571,8 +4561,9 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		if (skip != 0U)
 			dns_name_getlabelsequence(qname, skip, labels - skip,
 						  found);
-	} else if (found != NULL)
-		dns_name_copy(&name, found, NULL);
+	} else if (found != NULL) {
+		DNS_NAME_COPY(&name, found, NULL);
+	}
 	return;
 }
 
@@ -4618,8 +4609,7 @@ dns64_ttl(dns_db_t *db, dns_dbversion_t *version) {
 		goto cleanup;
 
 	dns_rdataset_current(&rdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &soa, NULL);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	DNS_RDATA_TOSTRUCT(&rdata, &soa, NULL);
 	ttl = ISC_MIN(rdataset.ttl, soa.minimum);
 
 cleanup:
@@ -4779,7 +4769,7 @@ redirect(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	}
 
 	CTRACE(ISC_LOG_DEBUG(3), "redirect: found data: done");
-	dns_name_copy(found, name, NULL);
+	DNS_NAME_COPY(found, name, NULL);
 	if (dns_rdataset_isassociated(rdataset))
 		dns_rdataset_disassociate(rdataset);
 	if (dns_rdataset_isassociated(&trdataset)) {
@@ -4873,8 +4863,9 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 					      redirectname, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOTFOUND);
-	} else
-		dns_name_copy(redirectname, client->view->redirectzone, NULL);
+	} else {
+		DNS_NAME_COPY(redirectname, client->view->redirectzone, NULL);
+	}
 
 	options = 0;
 	result = query_getdb(client, redirectname, qtype, options, &zone,
@@ -4941,7 +4932,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	result = dns_name_concatenate(found, dns_rootname, found, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	dns_name_copy(found, name, NULL);
+	DNS_NAME_COPY(found, name, NULL);
 	if (dns_rdataset_isassociated(rdataset))
 		dns_rdataset_disassociate(rdataset);
 	if (dns_rdataset_isassociated(&trdataset)) {
@@ -5476,11 +5467,7 @@ query_lookup(query_ctx_t *qctx) {
 	 * Fixup fname and sigrdataset.
 	 */
 	if (qctx->dns64 && qctx->rpz) {
-		isc_result_t rresult;
-
-		rresult = dns_name_copy(qctx->client->query.qname,
-					qctx->fname, NULL);
-		RUNTIME_CHECK(rresult == ISC_R_SUCCESS);
+		DNS_NAME_COPY(qctx->client->query.qname, qctx->fname, NULL);
 		if (qctx->sigrdataset != NULL &&
 		    dns_rdataset_isassociated(qctx->sigrdataset))
 		{
@@ -5640,8 +5627,6 @@ static void
 recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 		const dns_name_t *qname, const dns_name_t *qdomain)
 {
-	isc_result_t result;
-
 	REQUIRE(param != NULL);
 
 	param->qtype = qtype;
@@ -5650,16 +5635,14 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 		param->qname = NULL;
 	} else {
 		param->qname = dns_fixedname_initname(&param->fqname);
-		result = dns_name_copy(qname, param->qname, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_NAME_COPY(qname, param->qname, NULL);
 	}
 
 	if (qdomain == NULL) {
 		param->qdomain = NULL;
 	} else {
 		param->qdomain = dns_fixedname_initname(&param->fqdomain);
-		result = dns_name_copy(qdomain, param->qdomain, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_NAME_COPY(qdomain, param->qdomain, NULL);
 	}
 }
 
@@ -5999,13 +5982,7 @@ query_resume(query_ctx_t *qctx) {
 		tname = dns_fixedname_name(&qctx->event->foundname);
 	}
 
-	result = dns_name_copy(tname, qctx->fname, NULL);
-	if (result != ISC_R_SUCCESS) {
-		CCTRACE(ISC_LOG_ERROR,
-		       "query_resume: dns_name_copy failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-		return (query_done(qctx));
-	}
+	DNS_NAME_COPY(tname, qctx->fname, NULL);
 
 	if (qctx->rpz_st != NULL &&
 	    (qctx->rpz_st->state & DNS_RPZ_RECURSING) != 0) {
@@ -6282,7 +6259,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		SAVE(qctx->rpz_st->q.node, qctx->node);
 		SAVE(qctx->rpz_st->q.rdataset, qctx->rdataset);
 		SAVE(qctx->rpz_st->q.sigrdataset, qctx->sigrdataset);
-		dns_name_copy(qctx->fname, qctx->rpz_st->fname, NULL);
+		DNS_NAME_COPY(qctx->fname, qctx->rpz_st->fname, NULL);
 		qctx->rpz_st->q.result = result;
 		qctx->client->query.attributes |= NS_QUERYATTR_RECURSING;
 		return (ISC_R_COMPLETE);
@@ -6307,8 +6284,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		 * we looked up even if we were stopped short
 		 * in recursion or for a deferral.
 		 */
-		rresult = dns_name_copy(qctx->client->query.qname,
-					qctx->fname, NULL);
+		DNS_NAME_COPY(qctx->client->query.qname, qctx->fname, NULL);
 		RUNTIME_CHECK(rresult == ISC_R_SUCCESS);
 		rpz_clean(&qctx->zone, &qctx->db, &qctx->node, NULL);
 		if (qctx->rpz_st->m.rdataset != NULL) {
@@ -6393,9 +6369,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			result = dns_rdataset_first(qctx->rdataset);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_rdataset_current(qctx->rdataset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &cname,
-						    NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			DNS_RDATA_TOSTRUCT(&rdata, &cname, NULL);
 			dns_rdata_reset(&rdata);
 			result = query_rpzcname(qctx, &cname.cname);
 			if (result != ISC_R_SUCCESS)
@@ -6472,8 +6446,7 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 			return (result);
 		}
 	} else {
-		result = dns_name_copy(cname, qctx->fname, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_NAME_COPY(cname, qctx->fname, NULL);
 	}
 
 	query_keepname(client, qctx->fname, qctx->dbuf);
@@ -7021,9 +6994,12 @@ query_getexpire(query_ctx_t *qctx) {
 	mayberaw = (raw != NULL) ? raw : qctx->zone;
 
 	if (dns_zone_gettype(mayberaw) == dns_zone_slave) {
+		isc_result_t result;
 		isc_time_t expiretime;
 		isc_uint32_t secs;
-		dns_zone_getexpiretime(qctx->zone, &expiretime);
+
+		result = dns_zone_getexpiretime(qctx->zone, &expiretime);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		secs = isc_time_seconds(&expiretime);
 		if (secs >= qctx->client->now &&
 		    qctx->result == ISC_R_SUCCESS)
@@ -7041,8 +7017,7 @@ query_getexpire(query_ctx_t *qctx) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		dns_rdataset_current(qctx->rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &soa, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&rdata, &soa, NULL);
 
 		qctx->client->expire = soa.expire;
 		qctx->client->attributes |= NS_CLIENTATTR_HAVEEXPIRE;
@@ -7794,7 +7769,7 @@ query_zone_delegation(query_ctx_t *qctx) {
 	 * here in case we need it
 	 */
 	dns_fixedname_init(&qctx->dsname);
-	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
+	DNS_NAME_COPY(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
 
 	/*
 	 * If we don't have a cache, this is the best
@@ -7975,7 +7950,7 @@ query_delegation(query_ctx_t *qctx) {
 	 * here in case we need it
 	 */
 	dns_fixedname_init(&qctx->dsname);
-	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
+	DNS_NAME_COPY(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
 
 	/*
 	 * This is the best answer.
@@ -8185,7 +8160,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 				return (query_done(qctx));;
 			}
 		}
-		dns_name_copy(qctx->client->query.qname, qctx->fname, NULL);
+		DNS_NAME_COPY(qctx->client->query.qname, qctx->fname, NULL);
 		qctx->dns64 = ISC_FALSE;
 #ifdef dns64_bis_return_excluded_addresses
 		/*
@@ -8419,9 +8394,7 @@ query_addnxrrsetnsec(query_ctx_t *qctx) {
 
 	dns_rdata_init(&sigrdata);
 	dns_rdataset_current(qctx->sigrdataset, &sigrdata);
-	if (dns_rdata_tostruct(&sigrdata, &sig, NULL) != ISC_R_SUCCESS) {
-		return;
-	}
+	DNS_RDATA_TOSTRUCT(&sigrdata, &sig, NULL);
 
 	labels = dns_name_countlabels(qctx->fname);
 	if ((unsigned int)sig.labels + 1 >= labels) {
@@ -8584,7 +8557,7 @@ query_redirect(query_ctx_t *qctx)  {
 		SAVE(qctx->client->query.redirect.sigrdataset,
 		     qctx->sigrdataset);
 		qctx->client->query.redirect.result = DNS_R_NCACHENXDOMAIN;
-		dns_name_copy(qctx->fname, qctx->client->query.redirect.fname,
+		DNS_NAME_COPY(qctx->fname, qctx->client->query.redirect.fname,
 			      NULL);
 		qctx->client->query.redirect.authoritative =
 			qctx->authoritative;
@@ -8637,7 +8610,7 @@ query_synthttl(dns_rdataset_t *soardataset, dns_rdataset_t *sigsoardataset,
 	result = dns_rdataset_first(soardataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_current(soardataset, &rdata);
-	dns_rdata_tostruct(&rdata, &soa, NULL);
+	DNS_RDATA_TOSTRUCT(&rdata, &soa, NULL);
 
 	ttl = ISC_MIN(soa.minimum, soardataset->ttl);
 	ttl = ISC_MIN(ttl, sigsoardataset->ttl);
@@ -8694,7 +8667,7 @@ query_synthnodata(query_ctx_t *qctx, const dns_name_t *signer,
 		goto cleanup;
 	}
 
-	dns_name_copy(signer, name, NULL);
+	DNS_NAME_COPY(signer, name, NULL);
 
 	/*
 	 * Add SOA record. Omit the RRSIG if DNSSEC was not requested.
@@ -8759,7 +8732,7 @@ query_synthwildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 		result = ISC_R_NOMEMORY;
 		goto cleanup;
 	}
-	dns_name_copy(qctx->client->query.qname, name, NULL);
+	DNS_NAME_COPY(qctx->client->query.qname, name, NULL);
 
 	clone = query_newrdataset(qctx->client);
 	if (clone == NULL) {
@@ -8848,12 +8821,8 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	}
 
 	dns_rdataset_current(rdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &cname, NULL);
+	DNS_RDATA_TOSTRUCT(&rdata, &cname, NULL);
 	dns_rdata_reset(&rdata);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		return (result);
-	}
 
 	dns_name_init(tname, NULL);
 	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
@@ -8924,7 +8893,7 @@ query_synthnxdomain(query_ctx_t *qctx,
 		goto cleanup;
 	}
 
-	dns_name_copy(signer, name, NULL);
+	DNS_NAME_COPY(signer, name, NULL);
 
 	/*
 	 * Add SOA record. Omit the RRSIG if DNSSEC was not requested.
@@ -8955,7 +8924,7 @@ query_synthnxdomain(query_ctx_t *qctx,
 			goto cleanup;
 		}
 
-		dns_name_copy(nowild, name, NULL);
+		DNS_NAME_COPY(nowild, name, NULL);
 
 		clone = query_newrdataset(qctx->client);
 		sigclone = query_newrdataset(qctx->client);
@@ -9005,10 +8974,9 @@ checksignames(dns_name_t *signer, dns_rdataset_t *sigrdataset) {
 		dns_rdata_rrsig_t rrsig;
 
 		dns_rdataset_current(sigrdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&rdata, &rrsig, NULL);
 		if (dns_name_countlabels(signer) == 0) {
-			dns_name_copy(&rrsig.signer, signer, NULL);
+			DNS_NAME_COPY(&rrsig.signer, signer, NULL);
 		} else if (!dns_name_equal(signer, &rrsig.signer)) {
 			return (ISC_R_FAILURE);
 		}
@@ -9411,7 +9379,7 @@ query_cname(query_ctx_t *qctx) {
 	    (qctx->fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
 	{
 		dns_fixedname_init(&qctx->wildcardname);
-		dns_name_copy(qctx->fname,
+		DNS_NAME_COPY(qctx->fname,
 			      dns_fixedname_name(&qctx->wildcardname), NULL);
 		qctx->need_wildcardproof = ISC_TRUE;
 	}
@@ -9453,12 +9421,8 @@ query_cname(query_ctx_t *qctx) {
 	}
 
 	dns_rdataset_current(trdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &cname, NULL);
+	DNS_RDATA_TOSTRUCT(&rdata, &cname, NULL);
 	dns_rdata_reset(&rdata);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		return (query_done(qctx));
-	}
 
 	dns_name_init(tname, NULL);
 	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
@@ -9522,7 +9486,7 @@ query_dname(query_ctx_t *qctx) {
 	    (qctx->fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
 	{
 		dns_fixedname_init(&qctx->wildcardname);
-		dns_name_copy(qctx->fname,
+		DNS_NAME_COPY(qctx->fname,
 			      dns_fixedname_name(&qctx->wildcardname), NULL);
 		qctx->need_wildcardproof = ISC_TRUE;
 	}
@@ -9554,12 +9518,8 @@ query_dname(query_ctx_t *qctx) {
 	}
 
 	dns_rdataset_current(trdataset, &rdata);
-	result = dns_rdata_tostruct(&rdata, &dname, NULL);
+	DNS_RDATA_TOSTRUCT(&rdata, &dname, NULL);
 	dns_rdata_reset(&rdata);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		return (query_done(qctx));
-	}
 
 	dns_name_clone(&dname.dname, tname);
 	dns_rdata_freestruct(&dname);
@@ -9711,7 +9671,7 @@ query_prepresponse(query_ctx_t *qctx) {
 	    (qctx->fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
 	{
 		dns_fixedname_init(&qctx->wildcardname);
-		dns_name_copy(qctx->fname,
+		DNS_NAME_COPY(qctx->fname,
 			      dns_fixedname_name(&qctx->wildcardname), NULL);
 		qctx->need_wildcardproof = ISC_TRUE;
 	}
@@ -9846,9 +9806,7 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 		result = dns_rdataset_first(rdataset);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &soa, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		DNS_RDATA_TOSTRUCT(&rdata, &soa, NULL);
 
 		if (override_ttl != ISC_UINT32_MAX &&
 		    override_ttl < rdataset->ttl)
@@ -10309,7 +10267,7 @@ query_addwildcardproof(query_ctx_t *qctx, isc_boolean_t ispositive,
 		/*
 		 * Find the closest encloser.
 		 */
-		dns_name_copy(name, cname, NULL);
+		DNS_NAME_COPY(name, cname, NULL);
 		while (result == DNS_R_NXDOMAIN) {
 			labels = dns_name_countlabels(cname) - 1;
 			/*
@@ -10362,7 +10320,7 @@ query_addwildcardproof(query_ctx_t *qctx, isc_boolean_t ispositive,
 		 */
 		labels = dns_name_countlabels(cname) + 1;
 		if (dns_name_countlabels(name) == labels)
-			dns_name_copy(name, wname, NULL);
+			DNS_NAME_COPY(name, wname, NULL);
 		else
 			dns_name_split(name, labels, NULL, wname);
 
@@ -10421,9 +10379,7 @@ query_addwildcardproof(query_ctx_t *qctx, isc_boolean_t ispositive,
 			result = dns_rdataset_first(rdataset);
 		if (result == ISC_R_SUCCESS) {
 			dns_rdataset_current(rdataset, &rdata);
-			result = dns_rdata_tostruct(&rdata, &nsec, NULL);
-		}
-		if (result == ISC_R_SUCCESS) {
+			DNS_RDATA_TOSTRUCT(&rdata, &nsec, NULL);
 			(void)dns_name_fullcompare(name, fname, &order,
 						   &olabels);
 			(void)dns_name_fullcompare(name, &nsec.next, &order,

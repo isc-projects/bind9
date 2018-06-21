@@ -778,8 +778,10 @@ nested_acl:
 			} else {
 				INSIST(dacl->length + inneracl->length
 				       <= dacl->alloc);
-				dns_acl_merge(dacl, inneracl,
-					      ISC_TF(!neg));
+				result = dns_acl_merge(dacl, inneracl,
+						       ISC_TF(!neg));
+				if (result != ISC_R_SUCCESS)
+					goto cleanup;
 				de += inneracl->length;  /* elements added */
 				dns_acl_detach(&inneracl);
 				INSIST(dacl->length <= dacl->alloc);

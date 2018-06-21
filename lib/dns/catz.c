@@ -125,14 +125,19 @@ isc_result_t
 dns_catz_options_copy(isc_mem_t *mctx, const dns_catz_options_t *src,
 		      dns_catz_options_t *dst)
 {
+	isc_result_t result;
+
 	REQUIRE(src != NULL);
 	REQUIRE(dst != NULL);
 	REQUIRE(dst->masters.count == 0);
 	REQUIRE(dst->allow_query == NULL);
 	REQUIRE(dst->allow_transfer == NULL);
 
-	if (src->masters.count != 0)
-		dns_ipkeylist_copy(mctx, &src->masters, &dst->masters);
+	if (src->masters.count != 0) {
+		result = dns_ipkeylist_copy(mctx, &src->masters, &dst->masters);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 
 	if (dst->zonedir != NULL) {
 		isc_mem_free(mctx, dst->zonedir);
@@ -155,8 +160,14 @@ isc_result_t
 dns_catz_options_setdefault(isc_mem_t *mctx, const dns_catz_options_t *defaults,
 			    dns_catz_options_t *opts)
 {
-	if (opts->masters.count == 0 && defaults->masters.count != 0)
-		dns_ipkeylist_copy(mctx, &defaults->masters, &opts->masters);
+	isc_result_t result;
+
+	if (opts->masters.count == 0 && defaults->masters.count != 0) {
+		result = dns_ipkeylist_copy(mctx, &defaults->masters,
+					    &opts->masters);
+		if (result != ISC_R_SUCCESS)
+			return (result);
+	}
 
 	if (defaults->zonedir != NULL)
 		opts->zonedir = isc_mem_strdup(mctx, defaults->zonedir);
@@ -351,10 +362,16 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 	/* Copy zoneoptions from newzone into target. */
 
 	dns_catz_options_free(&target->zoneoptions, target->catzs->mctx);
-	dns_catz_options_copy(target->catzs->mctx, &newzone->zoneoptions,
-			      &target->zoneoptions);
-	dns_catz_options_setdefault(target->catzs->mctx, &target->defoptions,
-				    &target->zoneoptions);
+	result = dns_catz_options_copy(target->catzs->mctx,
+				       &newzone->zoneoptions,
+				       &target->zoneoptions);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
+	result = dns_catz_options_setdefault(target->catzs->mctx,
+					     &target->defoptions,
+					     &target->zoneoptions);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup;
 
 	dns_name_format(&target->name, czname, DNS_NAME_FORMATSIZE);
 
@@ -421,9 +438,18 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 			      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
 			      "catz: iterating over '%s' from catalog '%s'",
 			      zname, czname);
-		dns_catz_options_setdefault(target->catzs->mctx,
+		result = dns_catz_options_setdefault(target->catzs->mctx,
 					    &target->zoneoptions,
 					    &nentry->opts);
+		if (result != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+				      "catz: error adding zone '%s' "
+				      "from catalog '%s' - %s",
+				      zname, czname,
+				      isc_result_totext(result));
+			continue;
+		}
 
 		result = isc_ht_find(target->entries, key,
 				     (isc_uint32_t)keysize, (void **) &oentry);
@@ -1539,7 +1565,8 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 	isc_buffer_setautorealloc(buffer, ISC_TRUE);
 	isc_buffer_putstr(buffer, "zone ");
-	dns_name_totext(&entry->name, ISC_TRUE, buffer);
+	result = dns_name_totext(&entry->name, ISC_TRUE, buffer);
+	RUNTIME_CHECK(result = ISC_R_SUCCESS);
 	isc_buffer_putstr(buffer, " { type slave; masters");
 
 	/*
@@ -1967,7 +1994,8 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs) {
 			result = dns_catz_new_zone(catzs, &newzone,
 						   &zone->name);
 			INSIST(result == ISC_R_SUCCESS);
-			dns_catz_zones_merge(zone, newzone);
+			result = dns_catz_zones_merge(zone, newzone);
+			INSIST(result == ISC_R_SUCCESS);
 			dns_catz_zone_detach(&newzone);
 
 			/* Make sure that we have an empty catalog zone. */

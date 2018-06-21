@@ -169,8 +169,10 @@ cache_create_db(dns_cache_t *cache, dns_db_t **db) {
 	result = dns_db_create(cache->mctx, cache->db_type, dns_rootname,
 			       dns_dbtype_cache, cache->rdclass,
 			       cache->db_argc, cache->db_argv, db);
-	if (result == ISC_R_SUCCESS)
-		dns_db_setservestalettl(*db, cache->serve_stale_ttl);
+	if (result == ISC_R_SUCCESS) {
+		result = dns_db_setservestalettl(*db, cache->serve_stale_ttl);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
 	return (result);
 }
 
@@ -1174,7 +1176,8 @@ dns_cache_flush(dns_cache_t *cache) {
 	}
 	olddb = cache->db;
 	cache->db = db;
-	dns_db_setcachestats(cache->db, cache->stats);
+	result = dns_db_setcachestats(cache->db, cache->stats);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	UNLOCK(&cache->cleaner.lock);
 	UNLOCK(&cache->lock);
 

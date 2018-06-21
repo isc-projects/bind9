@@ -1782,13 +1782,15 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 		 * node is deleted.
 		 */
 		name = dns_fixedname_initname(&fname);
-		dns_rbt_fullnamefromnode(node, name);
+		result = dns_rbt_fullnamefromnode(node, name);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		result = dns_rbt_deletenode(rbtdb->tree, node, ISC_FALSE);
 		break;
 	case DNS_RBT_NSEC_HAS_NSEC:
 		name = dns_fixedname_initname(&fname);
-		dns_rbt_fullnamefromnode(node, name);
+		result = dns_rbt_fullnamefromnode(node, name);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		/*
 		 * Delete the corresponding node from the auxiliary NSEC
 		 * tree before deleting from the main tree.
@@ -3061,8 +3063,7 @@ zone_zonecut_callback(dns_rbtnode_t *node, dns_name_t *name, void *arg) {
 			 * is, we need to remember the node name.
 			 */
 			zcname = dns_fixedname_name(&search->zonecut_name);
-			RUNTIME_CHECK(dns_name_copy(name, zcname, NULL) ==
-				      ISC_R_SUCCESS);
+			DNS_NAME_COPY(name, zcname, NULL);
 			search->copy_name = ISC_TRUE;
 		}
 	} else {
@@ -6632,7 +6633,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	name = dns_fixedname_initname(&fixed);
 	RWLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
-	dns_rbt_fullnamefromnode(node, name);
+	result = dns_rbt_fullnamefromnode(node, name);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	RWUNLOCK(&rbtdb->tree_lock, isc_rwlocktype_read);
 	dns_rdataset_getownercase(rdataset, name);
 
@@ -6761,7 +6763,8 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	if (newnsec) {
 		dns_rbtnode_t *nsecnode;
 
-		dns_rbt_fullnamefromnode(rbtnode, name);
+		result = dns_rbt_fullnamefromnode(rbtnode, name);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		nsecnode = NULL;
 		result = dns_rbt_addnode(rbtdb->nsec, name, &nsecnode);
 		if (result == ISC_R_SUCCESS) {
@@ -8005,8 +8008,10 @@ getsigningtime(dns_db_t *db, dns_rdataset_t *rdataset,
 
 	bind_rdataset(rbtdb, header->node, header, 0, rdataset);
 
-	if (foundname != NULL)
-		dns_rbt_fullnamefromnode(header->node, foundname);
+	if (foundname != NULL) {
+		result = dns_rbt_fullnamefromnode(header->node, foundname);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	}
 
 	NODE_UNLOCK(&rbtdb->node_locks[header->node->locknum].lock,
 		    isc_rwlocktype_read);
@@ -9902,7 +9907,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 		}
 
 		gluename = dns_fixedname_initname(&glue->fixedname);
-		dns_name_copy(name_a, gluename, NULL);
+		DNS_NAME_COPY(name_a, gluename, NULL);
 
 		dns_rdataset_init(&glue->rdataset_a);
 		dns_rdataset_init(&glue->sigrdataset_a);
@@ -9930,7 +9935,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			}
 
 			gluename = dns_fixedname_initname(&glue->fixedname);
-			dns_name_copy(name_aaaa, gluename, NULL);
+			DNS_NAME_COPY(name_aaaa, gluename, NULL);
 
 			dns_rdataset_init(&glue->rdataset_a);
 			dns_rdataset_init(&glue->sigrdataset_a);
@@ -10060,7 +10065,8 @@ restart:
 		dns_rdataset_t *sigrdataset_aaaa = NULL;
 		dns_name_t *gluename = dns_fixedname_name(&ge->fixedname);
 
-		result = isc_buffer_allocate(msg->mctx, &buffer, 512);
+		result = isc_buffer_allocate(msg->mctx, &buffer,
+					     gluename->length);
 		if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
 			goto no_glue;
 		}
@@ -10071,7 +10077,8 @@ restart:
 			goto no_glue;
 		}
 
-		dns_name_copy(gluename, name, buffer);
+		result = dns_name_copy(gluename, name, buffer);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_message_takebuffer(msg, &buffer);
 
 		if (dns_rdataset_isassociated(&ge->rdataset_a)) {

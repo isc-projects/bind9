@@ -352,7 +352,7 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 
 					dns_rdata_init(&rdata);
 					dns_rdataset_current(rdataset, &rdata);
-					dns_rdata_tostruct(&rdata, &rdata_ptr,
+					DNS_RDATA_TOSTRUCT(&rdata, &rdata_ptr,
 							   NULL);
 
 					isc_buffer_init(&b, hoststr,

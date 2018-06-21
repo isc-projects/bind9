@@ -1600,9 +1600,9 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		if (zone->dbversion != NULL)
 			dns_db_closeversion(zone->db, &zone->dbversion,
 					    ISC_FALSE);
-		dns_db_updatenotify_unregister(zone->db,
-					       dns_rpz_dbupdate_callback,
-					       zone);
+		(void)dns_db_updatenotify_unregister(zone->db,
+						     dns_rpz_dbupdate_callback,
+						     zone);
 		dns_db_detach(&zone->db);
 	}
 
@@ -1941,7 +1941,7 @@ update_quantum(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Pause the iterator so that the DB is not locked
 		 */
-		dns_dbiterator_pause(rpz->updbit);
+		(void)dns_dbiterator_pause(rpz->updbit);
 		/*
 		 * We finished a quantum; trigger the next one and return
 		 */
@@ -2081,8 +2081,9 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 	if (dns_name_dynamic(&rpz->cname))
 		dns_name_free(&rpz->cname, rpzs->mctx);
 	if (rpz->db_registered)
-		dns_db_updatenotify_unregister(rpz->db,
-					       dns_rpz_dbupdate_callback, rpz);
+		(void)dns_db_updatenotify_unregister(rpz->db,
+						     dns_rpz_dbupdate_callback,
+						     rpz);
 	if (rpz->dbversion != NULL)
 		dns_db_closeversion(rpz->db, &rpz->dbversion,
 				    ISC_FALSE);

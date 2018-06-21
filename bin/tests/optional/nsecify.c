@@ -106,7 +106,7 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_dbiterator_t *dbiter,
 
 static void
 nsecify(char *filename) {
-	isc_result_t result;
+	isc_result_t result, tresult;
 	dns_db_t *db;
 	dns_dbversion_t *wversion;
 	dns_dbnode_t *node, *nextnode;
@@ -164,7 +164,8 @@ nsecify(char *filename) {
 			target = NULL;	/* Make compiler happy. */
 			fatal("db iteration failed");
 		}
-		dns_nsec_build(db, wversion, node, target, 3600); /* XXX BEW */
+		tresult = dns_nsec_build(db, wversion, node, target, 3600);
+		check_result(tresult, "dns_nsec_build()");
 		dns_db_detachnode(db, &node);
 		node = nextnode;
 	}

@@ -225,7 +225,7 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 	unsigned char hash[NSEC3_MAX_HASH_LENGTH];
 	unsigned char nametext[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t fixed;
-	dns_name_t *downcased;
+	dns_name_t *dcased;
 	isc_buffer_t namebuffer;
 	isc_region_t region;
 	size_t len;
@@ -235,13 +235,13 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 
 	memset(rethash, 0, NSEC3_MAX_HASH_LENGTH);
 
-	downcased = dns_fixedname_initname(&fixed);
-	dns_name_downcase(name, downcased, NULL);
+	dcased = dns_fixedname_initname(&fixed);
+	RUNTIME_CHECK(dns_name_downcase(name, dcased, NULL) == ISC_R_SUCCESS);
 
 	/* hash the node name */
 	len = isc_iterated_hash(rethash, hashalg, iterations,
 				salt, (int)saltlength,
-				downcased->ndata, downcased->length);
+				dcased->ndata, dcased->length);
 	if (len == 0U)
 		return (DNS_R_BADALG);
 
@@ -1913,8 +1913,9 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	 * Is this zone the same or deeper than the current zone?
 	 */
 	if (dns_name_countlabels(zonename) == 0 ||
-	    dns_name_issubdomain(zone, zonename))
-		dns_name_copy(zone, zonename, NULL);
+	    dns_name_issubdomain(zone, zonename)) {
+		DNS_NAME_COPY(zone, zonename, NULL);
+	}
 
 	if (!dns_name_equal(zone, zonename))
 		return (ISC_R_IGNORE);
@@ -1961,7 +1962,8 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	 * Prepare to compute all the hashes.
 	 */
 	qname = dns_fixedname_initname(&qfixed);
-	dns_name_downcase(name, qname, NULL);
+	result = dns_name_downcase(name, qname, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	qlabels = dns_name_countlabels(qname);
 	first = ISC_TRUE;
 
@@ -2057,7 +2059,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 				(*logit)(arg, ISC_LOG_DEBUG(3),
 					 "NSEC3 indicates potential closest "
 					 "encloser: '%s'", namebuf);
-				dns_name_copy(qname, closest, NULL);
+				DNS_NAME_COPY(qname, closest, NULL);
 				*setclosest = ISC_TRUE;
 			}
 			dns_name_format(qname, namebuf, sizeof(namebuf));
@@ -2088,7 +2090,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			if (nearest != NULL &&
 			    (dns_name_countlabels(nearest) == 0 ||
 			     dns_name_issubdomain(nearest, qname))) {
-				dns_name_copy(qname, nearest, NULL);
+				DNS_NAME_COPY(qname, nearest, NULL);
 				*setnearest = ISC_TRUE;
 			}
 

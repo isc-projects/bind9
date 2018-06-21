@@ -266,7 +266,8 @@ perf_dns_parsetsigkey(const char *arg, isc_mem_t *mctx)
 		perf_opt_usage();
 		exit(1);
 	}
-	(void)dns_name_downcase(tsigkey->name, tsigkey->name, NULL);
+	result = dns_name_downcase(tsigkey->name, tsigkey->name, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	/* Secret */
 

@@ -574,7 +574,7 @@ static void resquery_response(isc_task_t *task, isc_event_t *event);
 static void resquery_connected(isc_task_t *task, isc_event_t *event);
 static void fctx_try(fetchctx_t *fctx, isc_boolean_t retrying,
 		     isc_boolean_t badcache);
-void fctx_minimize_qname(fetchctx_t *fctx);
+isc_result_t fctx_minimize_qname(fetchctx_t *fctx);
 static void fctx_destroy(fetchctx_t *fctx);
 static isc_boolean_t fctx_unlink(fetchctx_t *fctx);
 static isc_result_t ncache_adderesult(dns_message_t *message,
@@ -1497,7 +1497,7 @@ fcount_incr(fetchctx_t *fctx, isc_boolean_t force) {
 			counter->dropped = 0;
 			counter->domain =
 				dns_fixedname_initname(&counter->fdname);
-			dns_name_copy(&fctx->domain, counter->domain, NULL);
+			DNS_NAME_COPY(&fctx->domain, counter->domain, NULL);
 			ISC_LIST_APPEND(dbucket->list, counter, link);
 		}
 	} else {
@@ -3196,6 +3196,7 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 	char typebuf[64];
 	char code[64];
 	isc_buffer_t b;
+	isc_result_t result;
 	isc_sockaddr_t *sa;
 	const char *spc = "";
 	isc_sockaddr_t *address = &addrinfo->sockaddr;
@@ -3245,12 +3246,15 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 
 	if (reason == DNS_R_UNEXPECTEDRCODE) {
 		isc_buffer_init(&b, code, sizeof(code) - 1);
-		dns_rcode_totext(fctx->rmessage->rcode, &b);
+		result = dns_rcode_totext(fctx->rmessage->rcode, &b);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		code[isc_buffer_usedlength(&b)] = '\0';
 		spc = " ";
 	} else if (reason == DNS_R_UNEXPECTEDOPCODE) {
 		isc_buffer_init(&b, code, sizeof(code) - 1);
-		dns_opcode_totext((dns_opcode_t)fctx->rmessage->opcode, &b);
+		result = dns_opcode_totext((dns_opcode_t)fctx->rmessage->opcode,
+					   &b);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		code[isc_buffer_usedlength(&b)] = '\0';
 		spc = " ";
 	} else {
@@ -4769,7 +4773,9 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		fctx->ip6arpaskip =
 			ISC_TF((options & DNS_FETCHOPT_QMIN_SKIP_IP6A) != 0 &&
 			       dns_name_issubdomain(&fctx->name, &ip6_arpa));
-		fctx_minimize_qname(fctx);
+		result = fctx_minimize_qname(fctx);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup_timer;
 	}
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
@@ -4782,6 +4788,13 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	*fctxp = fctx;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_timer:
+	fctx->magic = 0;
+	isc_mem_detach(&fctx->mctx);
+	dns_adb_detach(&fctx->adb);
+	dns_db_detach(&fctx->cache);
+	isc_timer_detach(&fctx->timer);
 
  cleanup_rmessage:
 	dns_message_destroy(&fctx->rmessage);
@@ -4983,7 +4996,6 @@ same_question(fetchctx_t *fctx) {
 static void
 clone_results(fetchctx_t *fctx) {
 	dns_fetchevent_t *event, *hevent;
-	isc_result_t result;
 	dns_name_t *name, *hname;
 
 	FCTXTRACE("clone_results");
@@ -5004,11 +5016,8 @@ clone_results(fetchctx_t *fctx) {
 	     event != NULL;
 	     event = ISC_LIST_NEXT(event, ev_link)) {
 		name = dns_fixedname_name(&event->foundname);
-		result = dns_name_copy(hname, name, NULL);
-		if (result != ISC_R_SUCCESS)
-			event->result = result;
-		else
-			event->result = hevent->result;
+		DNS_NAME_COPY(hname, name, NULL);
+		event->result = hevent->result;
 		dns_db_attach(hevent->db, &event->db);
 		dns_db_attachnode(hevent->db, hevent->node, &event->node);
 		INSIST(hevent->rdataset != NULL);
@@ -5134,7 +5143,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		wild = dns_fixedname_initname(&fwild);
-		dns_name_copy(dns_fixedname_name(&vevent->validator->wild),
+		DNS_NAME_COPY(dns_fixedname_name(&vevent->validator->wild),
 			      wild, NULL);
 	}
 	dns_validator_destroy(&vevent->validator);
@@ -5502,9 +5511,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 			       eresult == DNS_R_NCACHENXRRSET);
 		}
 		hevent->result = eresult;
-		RUNTIME_CHECK(dns_name_copy(vevent->name,
-			      dns_fixedname_name(&hevent->foundname), NULL)
-			      == ISC_R_SUCCESS);
+		DNS_NAME_COPY(vevent->name,
+			      dns_fixedname_name(&hevent->foundname), NULL);
 		dns_db_attach(fctx->cache, &hevent->db);
 		dns_db_transfernode(fctx->cache, &node, &hevent->node);
 		clone_results(fctx);
@@ -6863,7 +6871,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		 * Retrieve state from fctx->nsfetch before we destroy it.
 		 */
 		domain = dns_fixedname_initname(&fixed);
-		dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL);
+		DNS_NAME_COPY(&fctx->nsfetch->private->domain, domain, NULL);
 		if (dns_name_equal(&fctx->nsname, domain)) {
 			if (dns_rdataset_isassociated(fevent->rdataset)) {
 				dns_rdataset_disassociate(fevent->rdataset);
@@ -8977,7 +8985,9 @@ rctx_referral(respctx_t *rctx) {
 		 * Reset the value
 		 */
 		fctx->qmin_labels = 1;
-		fctx_minimize_qname(rctx->fctx);
+		result = fctx_minimize_qname(rctx->fctx);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 	}
 	return (ISC_R_COMPLETE);
 }
@@ -9553,7 +9563,8 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 	}
 
 	isc_buffer_init(&b, code, sizeof(code) - 1);
-	dns_rcode_totext(fctx->rmessage->rcode, &b);
+	result = dns_rcode_totext(fctx->rmessage->rcode, &b);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	code[isc_buffer_usedlength(&b)] = '\0';
 	FCTXTRACE2("remote server broken: returned ", code);
 	rctx_done(rctx, result);
@@ -9805,8 +9816,11 @@ dns_resolver_create(dns_view_t *view,
 	res->algorithms = NULL;
 	res->digests = NULL;
 	res->badcache = NULL;
-	dns_badcache_init(res->mctx, DNS_RESOLVER_BADCACHESIZE,
-			  &res->badcache);
+	result = dns_badcache_init(res->mctx, DNS_RESOLVER_BADCACHESIZE,
+				   &res->badcache);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_res;
+	}
 	res->mustbesecure = NULL;
 	res->spillatmin = res->spillat = 10;
 	res->spillatmax = 100;
@@ -9829,7 +9843,7 @@ dns_resolver_create(dns_view_t *view,
 				   ntasks * sizeof(fctxbucket_t));
 	if (res->buckets == NULL) {
 		result = ISC_R_NOMEMORY;
-		goto cleanup_res;
+		goto cleanup_badcache;
 	}
 	for (i = 0; i < ntasks; i++) {
 		result = isc_mutex_init(&res->buckets[i].lock);
@@ -9884,18 +9898,27 @@ dns_resolver_create(dns_view_t *view,
 	}
 
 	res->dispatches4 = NULL;
+	res->dispatches6 = NULL;
+
 	if (dispatchv4 != NULL) {
-		dns_dispatchset_create(view->mctx, socketmgr, taskmgr,
-				       dispatchv4, &res->dispatches4, ndisp);
+		result = dns_dispatchset_create(view->mctx, socketmgr, taskmgr,
+						dispatchv4, &res->dispatches4,
+						ndisp);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_dbuckets;
+		}
 		dispattr = dns_dispatch_getattributes(dispatchv4);
 		res->exclusivev4 =
 			ISC_TF((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0);
 	}
 
-	res->dispatches6 = NULL;
 	if (dispatchv6 != NULL) {
-		dns_dispatchset_create(view->mctx, socketmgr, taskmgr,
-				       dispatchv6, &res->dispatches6, ndisp);
+		result = dns_dispatchset_create(view->mctx, socketmgr, taskmgr,
+						dispatchv6, &res->dispatches6,
+						ndisp);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_dispatches;
+		}
 		dispattr = dns_dispatch_getattributes(dispatchv6);
 		res->exclusivev6 =
 			ISC_TF((dispattr & DNS_DISPATCHATTR_EXCLUSIVE) != 0);
@@ -9999,6 +10022,9 @@ dns_resolver_create(dns_view_t *view,
 	}
 	isc_mem_put(view->mctx, res->buckets,
 		    res->nbuckets * sizeof(fctxbucket_t));
+
+ cleanup_badcache:
+	dns_badcache_destroy(&res->badcache);
 
  cleanup_res:
 	isc_mem_put(view->mctx, res, sizeof(*res));
@@ -10291,8 +10317,9 @@ log_fetch(const dns_name_t *name, dns_rdatatype_t type) {
 		      "fetch: %s/%s", namebuf, typebuf);
 }
 
-void
+isc_result_t
 fctx_minimize_qname(fetchctx_t *fctx) {
+	isc_result_t result;
 	/*
 	 * XXXWPK TODO we should update info to show that this query
 	 * is minimized
@@ -10339,17 +10366,22 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		dns_name_split(&fctx->fullname,
 			       dlabels + fctx->qmin_labels,
 			       NULL, dns_fixedname_name(&fname));
-		dns_name_dup(dns_fixedname_name(&fname), fctx->mctx,
-			     &fctx->name);
+		result = dns_name_dup(dns_fixedname_name(&fname), fctx->mctx,
+				      &fctx->name);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 		fctx->type = dns_rdatatype_ns;
 		fctx->minimized = isc_boolean_true;
 		fctx->qmin_steps++;
 	} else {
 		/* Minimization is done, we'll ask for whole qname */
 		fctx->type = fctx->fulltype;
-		dns_name_dup(&fctx->fullname, fctx->mctx, &fctx->name);
+		result = dns_name_dup(&fctx->fullname, fctx->mctx, &fctx->name);
+		if (result != ISC_R_SUCCESS)
+			return (result);
 		fctx->minimized = isc_boolean_false;
 	}
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

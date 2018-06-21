@@ -205,9 +205,7 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 	rdclass = dst_key_class(key);
 
 	name = dns_fixedname_initname(&fixed);
-	result = dns_name_copy(dst_key_name(key), name, NULL);
-	if (result != ISC_R_SUCCESS)
-		fatal("can't copy name");
+	DNS_NAME_COPY(dst_key_name(key), name, NULL);
 
 	dst_key_free(&key);
 }

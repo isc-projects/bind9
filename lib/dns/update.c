@@ -1221,8 +1221,7 @@ del_keysigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdataset_current(&rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&rdata, &rrsig, NULL);
 		found = ISC_FALSE;
 		for (i = 0; i < nkeys; i++) {
 			if (rrsig.keyid == dst_key_id(keys[i])) {
@@ -1451,7 +1450,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 					  NULL));
 		CHECK(dns_rdataset_first(&rdataset));
 		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_rdata_tostruct(&rdata, &soa, NULL));
+		DNS_RDATA_TOSTRUCT(&rdata, &soa, NULL);
 		state->nsecttl = soa.minimum;
 		dns_rdataset_disassociate(&rdataset);
 		dns_db_detachnode(db, &node);

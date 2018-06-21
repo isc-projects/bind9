@@ -695,7 +695,7 @@ foreach_rr(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		add_rr_prepare_ctx_t *ctx = rr_action_data;
 
 		ctx->oldname = dns_fixedname_initname(&fixed);
-		dns_name_copy(name, ctx->oldname, NULL);
+		DNS_NAME_COPY(name, ctx->oldname, NULL);
 		dns_rdataset_getownercase(&rdataset, ctx->oldname);
 	}
 
@@ -1027,7 +1027,7 @@ temp_check(isc_mem_t *mctx, dns_diff_t *temp, dns_db_t *db,
 	t = ISC_LIST_HEAD(temp->tuples);
 	while (t != NULL) {
 		name = &t->name;
-		(void)dns_name_copy(name, tmpname, NULL);
+		DNS_NAME_COPY(name, tmpname, NULL);
 		*typep = t->rdata.type;
 
 		/* A new unique name begins here. */
@@ -1231,7 +1231,6 @@ rr_equal_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 static isc_boolean_t
 replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 	dns_rdata_rrsig_t updatesig, dbsig;
-	isc_result_t result;
 
 	if (db_rr->type != update_rr->type)
 		return (ISC_FALSE);
@@ -1248,10 +1247,8 @@ replaces_p(dns_rdata_t *update_rr, dns_rdata_t *db_rr) {
 		 * Replace existing RRSIG with the same keyid,
 		 * covered and algorithm.
 		 */
-		result = dns_rdata_tostruct(db_rr, &dbsig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		result = dns_rdata_tostruct(update_rr, &updatesig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(db_rr, &dbsig, NULL);
+		DNS_RDATA_TOSTRUCT(update_rr, &updatesig, NULL);
 		if (dbsig.keyid == updatesig.keyid &&
 		    dbsig.covered == updatesig.covered &&
 		    dbsig.algorithm == updatesig.algorithm)
@@ -1726,8 +1723,7 @@ check_mx(ns_client_t *client, dns_zone_t *zone,
 		    t->rdata.type != dns_rdatatype_mx)
 			continue;
 
-		result = dns_rdata_tostruct(&t->rdata, &mx, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&t->rdata, &mx, NULL);
 		/*
 		 * Check if we will error out if we attempt to reload the
 		 * zone.
@@ -1867,7 +1863,7 @@ get_iterations(dns_db_t *db, dns_dbversion_t *ver, dns_rdatatype_t privatetype,
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		DNS_RDATA_TOSTRUCT(&rdata, &nsec3param, NULL);
 		if ((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0)
 			continue;
 		if (nsec3param.iterations > iterations)
@@ -1900,7 +1896,7 @@ get_iterations(dns_db_t *db, dns_dbversion_t *ver, dns_rdatatype_t privatetype,
 		if (!dns_nsec3param_fromprivate(&private, &rdata,
 						buf, sizeof(buf)))
 			continue;
-		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
+		DNS_RDATA_TOSTRUCT(&rdata, &nsec3param, NULL);
 		if ((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0)
 			continue;
 		if (nsec3param.iterations > iterations)
@@ -2420,8 +2416,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 		ISC_LIST_UNLINK(temp_diff.tuples, tuple, link);
 		ISC_LIST_APPEND(diff->tuples, tuple, link);
 
-		result = dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&tuple->rdata, &dnskey, NULL);
 		if ((dnskey.flags &
 		     (DNS_KEYFLAG_OWNERMASK|DNS_KEYTYPE_NOAUTH))
 			 != DNS_KEYOWNER_ZONE)
@@ -3261,7 +3256,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			if (tuple->rdata.type != dns_rdatatype_dnskey)
 				continue;
 
-			dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
+			DNS_RDATA_TOSTRUCT(&tuple->rdata, &dnskey, NULL);
 			if ((dnskey.flags &
 			     (DNS_KEYFLAG_OWNERMASK|DNS_KEYTYPE_NOAUTH))
 				 != DNS_KEYOWNER_ZONE)
@@ -3300,7 +3295,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			if (!dns_nsec3param_fromprivate(&tuple->rdata, &rdata,
 						   buf, sizeof(buf)))
 				continue;
-			dns_rdata_tostruct(&rdata, &nsec3param, NULL);
+			DNS_RDATA_TOSTRUCT(&rdata, &nsec3param, NULL);
 			if (nsec3param.flags == 0)
 				continue;
 

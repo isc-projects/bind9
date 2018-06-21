@@ -1523,8 +1523,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (result == ISC_R_SUCCESS) {
 			if (dns_rdatatype_issingleton(rdtype)) {
 				dns_rdata_t *first;
-				dns_rdatalist_fromrdataset(rdataset,
-							   &rdatalist);
+				result = dns_rdatalist_fromrdataset(rdataset,
+								    &rdatalist);
+				RUNTIME_CHECK(result == ISC_R_SUCCESS);
 				first = ISC_LIST_HEAD(rdatalist->rdata);
 				INSIST(first != NULL);
 				if (dns_rdata_compare(rdata, first) != 0)
@@ -1581,7 +1582,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		}
 
 		/* Append this rdata to the rdataset. */
-		dns_rdatalist_fromrdataset(rdataset, &rdatalist);
+		result = dns_rdatalist_fromrdataset(rdataset, &rdatalist);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 
 		/*

@@ -828,7 +828,7 @@ clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers) {
 		memmove(looknew->ecs_addr, lookold->ecs_addr, len);
 	}
 
-	dns_name_copy(dns_fixedname_name(&lookold->fdomain),
+	DNS_NAME_COPY(dns_fixedname_name(&lookold->fdomain),
 		      dns_fixedname_name(&looknew->fdomain), NULL);
 
 	if (servers)
@@ -1829,7 +1829,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				if (lookup->ns_search_only)
 					lookup->recurse = ISC_FALSE;
 				domain = dns_fixedname_name(&lookup->fdomain);
-				dns_name_copy(name, domain, NULL);
+				DNS_NAME_COPY(name, domain, NULL);
 			}
 			debug("adding server %s", namestr);
 			num = getaddresses(lookup, namestr, &lresult);
@@ -1996,7 +1996,8 @@ insert_soa(dig_lookup_t *lookup) {
 	rdatalist->rdclass = lookup->rdclass;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	result = dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	result = dns_message_gettempname(lookup->sendmsg, &soaname);
 	check_result(result, "dns_message_gettempname");

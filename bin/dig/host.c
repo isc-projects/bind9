@@ -394,7 +394,7 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &cname, NULL);
 		check_result(result, "dns_rdata_tostruct");
-		dns_name_copy(&cname.cname, qname, NULL);
+		DNS_NAME_COPY(&cname.cname, qname, NULL);
 		dns_rdata_freestruct(&cname);
 	}
 }
@@ -453,7 +453,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers) {
 
 		/* Add AAAA and MX lookups. */
 		name = dns_fixedname_initname(&fixed);
-		dns_name_copy(query->lookup->name, name, NULL);
+		DNS_NAME_COPY(query->lookup->name, name, NULL);
 		chase_cnamechain(msg, name);
 		dns_name_format(name, namestr, sizeof(namestr));
 		lookup = clone_lookup(query->lookup, ISC_FALSE);

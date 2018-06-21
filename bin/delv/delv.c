@@ -760,8 +760,11 @@ setup_dnsseckeys(dns_client_t *client) {
 	if (trusted_keys == 0)
 		fatal("No trusted keys were loaded");
 
-	if (dlv_validation)
-		dns_client_setdlv(client, dns_rdataclass_in, dlv_anchor);
+	if (dlv_validation) {
+		result = dns_client_setdlv(client, dns_rdataclass_in,
+					   dlv_anchor);
+		fatal("unable to configure dlv validation");
+	}
 
  cleanup:
 	if (result != ISC_R_SUCCESS)

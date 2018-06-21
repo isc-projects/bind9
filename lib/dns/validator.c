@@ -315,7 +315,8 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 	found = ISC_FALSE;
 	dns_name_init(&nsec3name, NULL);
 	dns_fixedname_init(&fixed);
-	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
+	result = dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	name = dns_fixedname_name(&fixed);
 	for (result = dns_rdataset_first(rdataset);
 	     result == ISC_R_SUCCESS;
@@ -1539,7 +1540,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 			 * for the NSEC3 NOQNAME proof.
 			 */
 			closest = dns_fixedname_name(&val->closest);
-			dns_name_copy(wild, closest, NULL);
+			DNS_NAME_COPY(wild, closest, NULL);
 			labels = dns_name_countlabels(closest) - 1;
 			dns_name_getlabelsequence(closest, 1, labels, closest);
 			val->attributes |= VALATTR_NEEDNOQNAME;
@@ -2540,7 +2541,7 @@ findnsec3proofs(dns_validator_t *val) {
 				 namebuf, sizeof(namebuf));
 		validator_log(val, ISC_LOG_DEBUG(3), "closest encloser from "
 			      "wildcard signature '%s'", namebuf);
-		dns_name_copy(dns_fixedname_name(&val->closest), closest, NULL);
+		DNS_NAME_COPY(dns_fixedname_name(&val->closest), closest, NULL);
 		closestp = NULL;
 		setclosestp = NULL;
 	} else {
@@ -3143,7 +3144,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 		}
 
 		dlvsep = dns_fixedname_initname(&val->dlvsep);
-		dns_name_copy(val->event->name, dlvsep, NULL);
+		DNS_NAME_COPY(val->event->name, dlvsep, NULL);
 		/*
 		 * If this is a response to a DS query, we need to look in
 		 * the parent zone for the trust anchor.
@@ -3194,7 +3195,7 @@ finddlvsep(dns_validator_t *val, isc_boolean_t resume) {
 			    dns_rdataset_isassociated(&val->fsigrdataset))
 			{
 				dns_fixedname_init(&val->fname);
-				dns_name_copy(dlvname,
+				DNS_NAME_COPY(dlvname,
 					      dns_fixedname_name(&val->fname),
 					      NULL);
 				result = create_validator(val,
@@ -3277,10 +3278,10 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 	secroot = dns_fixedname_initname(&fixedsecroot);
 	found = dns_fixedname_initname(&fixedfound);
 	if (val->havedlvsep)
-		dns_name_copy(dns_fixedname_name(&val->dlvsep), secroot, NULL);
+		DNS_NAME_COPY(dns_fixedname_name(&val->dlvsep), secroot, NULL);
 	else {
 		unsigned int labels;
-		dns_name_copy(val->event->name, secroot, NULL);
+		DNS_NAME_COPY(val->event->name, secroot, NULL);
 		/*
 		 * If this is a response to a DS query, we need to look in
 		 * the parent zone for the trust anchor.
@@ -3359,7 +3360,7 @@ proveunsecure(dns_validator_t *val, isc_boolean_t have_ds, isc_boolean_t resume)
 
 		tname = dns_fixedname_initname(&val->fname);
 		if (val->labels == dns_name_countlabels(val->event->name))
-			dns_name_copy(val->event->name, tname, NULL);
+			DNS_NAME_COPY(val->event->name, tname, NULL);
 		else
 			dns_name_split(val->event->name, val->labels,
 				       NULL, tname);

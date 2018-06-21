@@ -939,12 +939,9 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			dns_rdata_reset(&rdata);
 			if (tresult != ISC_R_SUCCESS)
 				goto done;
-			tresult = dns_name_copy(&cname.cname, name, NULL);
+			DNS_NAME_COPY(&cname.cname, name, NULL);
 			dns_rdata_freestruct(&cname);
-			if (tresult == ISC_R_SUCCESS)
-				want_restart = ISC_TRUE;
-			else
-				result = tresult;
+			want_restart = ISC_TRUE;
 			goto done;
 		case DNS_R_DNAME:
 			/*
@@ -1376,9 +1373,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	rctx->sigrdataset = sigrdataset;
 
 	dns_fixedname_init(&rctx->name);
-	result = dns_name_copy(name, dns_fixedname_name(&rctx->name), NULL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	DNS_NAME_COPY(name, dns_fixedname_name(&rctx->name), NULL);
 
 	rctx->client = client;
 	ISC_LINK_INIT(rctx, link);
@@ -1984,7 +1979,8 @@ update_done(isc_task_t *task, isc_event_t *event) {
 	    !uctx->canceled && uctx->currentserver != NULL)
 	{
 		dns_message_renderreset(uctx->updatemsg);
-		dns_message_settsigkey(uctx->updatemsg, NULL);
+		result = dns_message_settsigkey(uctx->updatemsg, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		timeout = client->update_timeout / uctx->nservers;
 		if (timeout < MIN_UPDATE_TIMEOUT)
@@ -2212,9 +2208,7 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset,
 
 	if (uctx->zonename == NULL) {
 		uctx->zonename = dns_fixedname_name(&uctx->zonefname);
-		result = dns_name_copy(soaname, uctx->zonename, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto out;
+		DNS_NAME_COPY(soaname, uctx->zonename, NULL);
 	}
 
 	if (uctx->currentserver != NULL)
@@ -2251,7 +2245,6 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset,
 		UNLOCK(&uctx->lock);
 	}
 
- out:
 	dns_rdata_freestruct(&soa);
 
 	return (result);
@@ -2411,7 +2404,8 @@ receive_soa(isc_task_t *task, isc_event_t *event) {
 			uctx->soareq = NULL;
 			UNLOCK(&uctx->lock);
 			dns_message_renderreset(soaquery);
-			dns_message_settsigkey(soaquery, NULL);
+			result = dns_message_settsigkey(soaquery, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			reqoptions = 0;
 			if (uctx->want_tcp)
 				reqoptions |= DNS_REQUESTOPT_TCP;
@@ -2578,9 +2572,9 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 	dns_name_t *newname = NULL;
 	isc_region_t r;
 	isc_buffer_t *namebuf = NULL, *rdatabuf = NULL;
-	dns_rdatalist_t *rdatalist;
-	dns_rdataset_t *rdataset, *newrdataset;
-	dns_rdata_t rdata = DNS_RDATA_INIT, *newrdata;
+	dns_rdatalist_t *rdatalist = NULL;
+	dns_rdataset_t *rdataset, *newrdataset = NULL;
+	dns_rdata_t rdata = DNS_RDATA_INIT, *newrdata = NULL;
 
 	result = dns_message_gettempname(msg, &newname);
 	if (result != ISC_R_SUCCESS)
@@ -2597,7 +2591,6 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 
 	for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {
-		rdatalist = NULL;
 		result = dns_message_gettemprdatalist(msg, &rdatalist);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
@@ -2612,7 +2605,6 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(rdataset, &rdata);
 
-			newrdata = NULL;
 			result = dns_message_gettemprdata(msg, &newrdata);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
@@ -2622,6 +2614,7 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 						     r.length);
 			if (result != ISC_R_SUCCESS)
 				goto fail;
+			dns_message_takebuffer(msg, &rdatabuf);
 			isc_buffer_putmem(rdatabuf, r.base, r.length);
 			isc_buffer_usedregion(rdatabuf, &r);
 			dns_rdata_init(newrdata);
@@ -2630,7 +2623,7 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 			newrdata->flags = rdata.flags;
 
 			ISC_LIST_APPEND(rdatalist->rdata, newrdata, link);
-			dns_message_takebuffer(msg, &rdatabuf);
+			newrdata = NULL;
 
 			result = dns_rdataset_next(rdataset);
 		}
@@ -2639,7 +2632,9 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 		result = dns_message_gettemprdataset(msg, &newrdataset);
 		if (result != ISC_R_SUCCESS)
 			goto fail;
-		dns_rdatalist_tordataset(rdatalist, newrdataset);
+		result = dns_rdatalist_tordataset(rdatalist, newrdataset);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		rdatalist = NULL;
 
 		ISC_LIST_APPEND(newname->list, newrdataset, link);
 	}
@@ -2649,10 +2644,13 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 	return (ISC_R_SUCCESS);
 
  fail:
-	dns_message_puttempname(msg, &newname);
-
+	if (newrdata != NULL)
+		dns_message_puttemprdata(msg, &newrdata);
+	if (rdatalist != NULL)
+		dns_message_puttemprdatalist(msg, &rdatalist);
+	if (newname != NULL)
+		dns_message_puttempname(msg, &newname);
 	return (result);
-
 }
 
 static void
@@ -3109,6 +3107,7 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 {
 	dns_client_updaterec_t *updaterec = NULL;
 	size_t size = offsetof(dns_client_updaterec_t, data);
+	isc_result_t result;
 
 	REQUIRE(op < updateop_max);
 	REQUIRE(owner != NULL);
@@ -3141,7 +3140,8 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 				(unsigned int)
 				(size -
 				 offsetof(dns_client_updaterec_t, data)));
-		dns_name_copy(owner, target, &updaterec->buffer);
+		result = dns_name_copy(owner, target, &updaterec->buffer);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (source != NULL) {
 			isc_region_t r;
 			dns_rdata_clone(source, rdata);
@@ -3185,7 +3185,8 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 		rdatalist->ttl = ttl;
 	}
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	result = dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	ISC_LIST_APPEND(target->list, rdataset, link);
 	if (updaterec != NULL) {
 		target->attributes |= DNS_NAMEATTR_HASUPDATEREC;
@@ -3205,6 +3206,7 @@ dns_client_freeupdate(dns_name_t **namep) {
 	dns_rdataset_t *rdataset;
 	dns_rdata_t *rdata;
 	dns_name_t *name;
+	isc_result_t result;
 
 	REQUIRE(namep != NULL && *namep != NULL);
 
@@ -3214,7 +3216,8 @@ dns_client_freeupdate(dns_name_t **namep) {
 	     rdataset = ISC_LIST_HEAD(name->list)) {
 		ISC_LIST_UNLINK(name->list, rdataset, link);
 		rdatalist = NULL;
-		dns_rdatalist_fromrdataset(rdataset, &rdatalist);
+		result = dns_rdatalist_fromrdataset(rdataset, &rdatalist);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (rdatalist == NULL) {
 			dns_rdataset_disassociate(rdataset);
 			continue;

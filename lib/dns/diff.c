@@ -384,8 +384,9 @@ diff_apply(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *ver,
 				     op == DNS_DIFFOP_ADDRESIGN)) {
 					isc_stdtime_t resign;
 					resign = setresign(&ardataset);
-					dns_db_setsigningtime(db, &ardataset,
-							      resign);
+					CHECK(dns_db_setsigningtime(db,
+								    &ardataset,
+								    resign));
 				}
 				if (op == DNS_DIFFOP_ADD ||
 				    op == DNS_DIFFOP_ADDRESIGN)

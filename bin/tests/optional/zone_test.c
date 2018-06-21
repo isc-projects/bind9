@@ -119,8 +119,10 @@ setup(const char *zonename, const char *filename, const char *classname) {
 
 	dns_zone_setclass(zone, rdclass);
 
-	if (zonetype == dns_zone_slave)
-		dns_zone_setmasters(zone, &addr, 1);
+	if (zonetype == dns_zone_slave) {
+		result = dns_zone_setmasters(zone, &addr, 1);
+		ERRRET(result, "dns_zone_setmasters");
+	}
 
 	result = dns_zone_load(zone);
 	ERRRET(result, "dns_zone_load");
@@ -191,9 +193,10 @@ query(void) {
 		if (s != NULL)
 			*s = '\0';
 		if (strcmp(buf, "dump") == 0) {
-			dns_zone_dumptostream(zone, stdout,
-					      dns_masterformat_text,
-					      &dns_master_style_default, 0);
+			(void)dns_zone_dumptostream(zone, stdout,
+						    dns_masterformat_text,
+						    &dns_master_style_default,
+						    0);
 			continue;
 		}
 		if (strlen(buf) == 0U)

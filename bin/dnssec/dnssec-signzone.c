@@ -202,7 +202,7 @@ savezonecut(dns_fixedname_t *fzonecut, dns_name_t *name) {
 	dns_name_t *result;
 
 	result = dns_fixedname_initname(fzonecut);
-	dns_name_copy(name, result, NULL);
+	DNS_NAME_COPY(name, result, NULL);
 
 	return (result);
 }
@@ -1897,7 +1897,7 @@ nsecify(void) {
 		} else if (result != ISC_R_SUCCESS)
 			fatal("iterating through the database failed: %s",
 			      isc_result_totext(result));
-		dns_dbiterator_pause(dbiter);
+		(void)dns_dbiterator_pause(dbiter);
 		result = dns_nsec_build(gdb, gversion, node, nextname,
 					zone_soa_min_ttl);
 		check_result(result, "dns_nsec_build()");
@@ -1987,7 +1987,8 @@ addnsec3(dns_name_t *name, dns_dbnode_t *node,
 	dns_fixedname_init(&hashname);
 	dns_rdataset_init(&rdataset);
 
-	dns_name_downcase(name, name, NULL);
+	result = dns_name_downcase(name, name, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	result = dns_nsec3_hashname(&hashname, hash, &hash_len,
 				    name, gorigin, dns_hash_sha1, iterations,
 				    salt, salt_len);
@@ -2345,12 +2346,13 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			break;
 		}
 		if (result == ISC_R_NOMORE) {
-			dns_name_copy(gorigin, nextname, NULL);
+			DNS_NAME_COPY(gorigin, nextname, NULL);
 			done = ISC_TRUE;
 		} else if (result != ISC_R_SUCCESS)
 			fatal("iterating through the database failed: %s",
 			      isc_result_totext(result));
-		dns_name_downcase(name, name, NULL);
+		result = dns_name_downcase(name, name, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		hashlist_add_dns_name(hashlist, name, hashalg, iterations,
 				      salt, salt_len, ISC_FALSE);
 		dns_db_detachnode(gdb, &node);
@@ -2360,8 +2362,9 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 		 * node for another <name,nextname> span so we don't add
 		 * it here.  Empty labels on nextname are within the span.
 		 */
-		dns_name_downcase(nextname, nextname, NULL);
-		dns_name_fullcompare(name, nextname, &order, &nlabels);
+		result = dns_name_downcase(nextname, nextname, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		(void)dns_name_fullcompare(name, nextname, &order, &nlabels);
 		addnowildcardhash(hashlist, name, hashalg, iterations,
 				  salt, salt_len);
 		count = dns_name_countlabels(nextname);
@@ -2479,7 +2482,7 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 			break;
 		}
 		if (result == ISC_R_NOMORE) {
-			dns_name_copy(gorigin, nextname, NULL);
+			DNS_NAME_COPY(gorigin, nextname, NULL);
 			done = ISC_TRUE;
 		} else if (result != ISC_R_SUCCESS)
 			fatal("iterating through the database failed: %s",
@@ -2487,14 +2490,14 @@ nsec3ify(unsigned int hashalg, dns_iterations_t iterations,
 		/*
 		 * We need to pause here to release the lock on the database.
 		 */
-		dns_dbiterator_pause(dbiter);
+		(void)dns_dbiterator_pause(dbiter);
 		addnsec3(name, node, salt, salt_len, iterations,
 			 hashlist, zone_soa_min_ttl);
 		dns_db_detachnode(gdb, &node);
 		/*
 		 * Add NSEC3's for empty nodes.  Use closest encloser logic.
 		 */
-		dns_name_fullcompare(name, nextname, &order, &nlabels);
+		(void)dns_name_fullcompare(name, nextname, &order, &nlabels);
 		count = dns_name_countlabels(nextname);
 		while (count > nlabels + 1) {
 			count--;
@@ -2641,7 +2644,10 @@ loadexplicitkeys(char *keyfiles[], int n, isc_boolean_t setksk) {
 
 		if (key == NULL) {
 			/* We haven't seen this key before */
-			dns_dnsseckey_create(mctx, &newkey, &key);
+			result = dns_dnsseckey_create(mctx, &newkey, &key);
+			if (result != ISC_R_SUCCESS)
+				fatal("unable to create dnssec key: %s",
+				      isc_result_totext(result));
 			ISC_LIST_APPEND(keylist, key, link);
 			key->source = dns_keysource_user;
 		} else {
@@ -2732,14 +2738,23 @@ build_final_keylist(void) {
 	/*
 	 * Update keylist with information from from the key repository.
 	 */
-	dns_dnssec_updatekeys(&keylist, &matchkeys, NULL, gorigin, keyttl,
-			      &diff, ignore_kskflag, mctx, report);
+	result = dns_dnssec_updatekeys(&keylist, &matchkeys, NULL, gorigin,
+				       keyttl, &diff, ignore_kskflag, mctx,
+				       report);
+	if (result != ISC_R_SUCCESS) {
+		fatal("failed to update keylist from repository: %s",
+		      isc_result_totext(result));
+	}
 
 	/*
 	 * Update keylist with sync records.
 	 */
-	dns_dnssec_syncupdate(&keylist, &rmkeys, &cdsset, &cdnskeyset,
-			      now, keyttl, &diff, mctx);
+	result = dns_dnssec_syncupdate(&keylist, &rmkeys, &cdsset, &cdnskeyset,
+				       now, keyttl, &diff, mctx);
+	if (result != ISC_R_SUCCESS) {
+		fatal("failed to update keylist with sync records: %s",
+		      isc_result_totext(result));
+	}
 
 	dns_name_format(gorigin, name, sizeof(name));
 

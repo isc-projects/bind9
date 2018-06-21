@@ -321,7 +321,8 @@ process_message(isc_buffer_t *source) {
 		CHECKRESULT(result,
 			    "dns_message_rendersection(ADDITIONAL) failed");
 
-		dns_message_renderend(message);
+		result = dns_message_renderend(message);
+		CHECKRESULT(result, "dns_message_renderend failed");
 
 		dns_compress_invalidate(&cctx);
 

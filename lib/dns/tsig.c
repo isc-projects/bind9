@@ -277,7 +277,8 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	ret = dns_name_dup(name, mctx, &tkey->name);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_key;
-	(void)dns_name_downcase(&tkey->name, &tkey->name, NULL);
+	ret = dns_name_downcase(&tkey->name, &tkey->name, NULL);
+	RUNTIME_CHECK(ret == ISC_R_SUCCESS);
 
 	/* Check against known algorithm names */
 	dstalg = dns__tsig_algfromname(algorithm);
@@ -308,7 +309,8 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			isc_mem_put(mctx, tmpname, sizeof(dns_name_t));
 			goto cleanup_name;
 		}
-		(void)dns_name_downcase(tmpname, tmpname, NULL);
+		ret = dns_name_downcase(tmpname, tmpname, NULL);
+		RUNTIME_CHECK(ret == ISC_R_SUCCESS);
 		tkey->algorithm = tmpname;
 	}
 
@@ -434,7 +436,9 @@ cleanup_ring(dns_tsig_keyring_t *ring)
 
 	for (;;) {
 		node = NULL;
-		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
+		result = dns_rbtnodechain_current(&chain, &foundname, origin,
+						  &node);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		tkey = node->data;
 		if (tkey != NULL) {
 			if (tkey->generated
@@ -646,7 +650,9 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 
 	for (;;) {
 		node = NULL;
-		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
+		result = dns_rbtnodechain_current(&chain, &foundname, origin,
+						  &node);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		tkey = node->data;
 		if (tkey != NULL && tkey->generated && tkey->expire >= now)
 			dump_key(tkey, fp);

@@ -269,12 +269,10 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			dns_rdata_reset(&rdata);
 			if (result != ISC_R_SUCCESS)
 				break;
-			result = dns_name_copy(&cname.cname, name, NULL);
+			DNS_NAME_COPY(&cname.cname, name, NULL);
 			dns_rdata_freestruct(&cname);
-			if (result == ISC_R_SUCCESS) {
-				want_restart = ISC_TRUE;
-				send_event = ISC_FALSE;
-			}
+			want_restart = ISC_TRUE;
+			send_event = ISC_FALSE;
 			break;
 		case DNS_R_DNAME:
 			namereln = dns_name_fullcompare(name, fname, &order,
@@ -414,9 +412,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 
 	dns_fixedname_init(&lookup->name);
 
-	result = dns_name_copy(name, dns_fixedname_name(&lookup->name), NULL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
+	DNS_NAME_COPY(name, dns_fixedname_name(&lookup->name), NULL);
 
 	lookup->type = type;
 	lookup->view = NULL;
@@ -433,9 +429,6 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 	lookup_find(lookup, NULL);
 
 	return (ISC_R_SUCCESS);
-
- cleanup_lock:
-	DESTROYLOCK(&lookup->lock);
 
  cleanup_event:
 	ievent = (isc_event_t *)lookup->event;

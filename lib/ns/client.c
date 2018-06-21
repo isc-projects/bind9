@@ -2802,7 +2802,7 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		(void) dns_peerlist_peerbyaddr(client->view->peers,
 					       &netaddr, &peer);
 		if (peer != NULL)
-			dns_peer_getmaxudp(peer, &udpsize);
+			(void)dns_peer_getmaxudp(peer, &udpsize);
 		if (client->udpsize > udpsize)
 			client->udpsize = udpsize;
 	}

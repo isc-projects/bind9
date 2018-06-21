@@ -501,7 +501,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 	if (owner_name != NULL) {
 		name = dns_fixedname_initname(&fixed);
-		dns_name_copy(owner_name, name, NULL);
+		DNS_NAME_COPY(owner_name, name, NULL);
 		dns_rdataset_getownercase(rdataset, name);
 	}
 
@@ -1049,10 +1049,13 @@ dump_rdatasets_text(isc_mem_t *mctx, const dns_name_t *name,
 		if (ctx->style.flags & DNS_STYLEFLAG_RESIGN &&
 		    rds->attributes & DNS_RDATASETATTR_RESIGN) {
 			isc_buffer_t b;
-			char buf[sizeof("YYYYMMDDHHMMSS")];
-			memset(buf, 0, sizeof(buf));
+			isc_result_t result;
+			char buf[sizeof("YYYYMMDDHHMMSS")] = { 0 };
+
 			isc_buffer_init(&b, buf, sizeof(buf) - 1);
-			dns_time64_totext((isc_uint64_t)rds->resign, &b);
+			result = dns_time64_totext((isc_uint64_t)rds->resign,
+						   &b);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
 			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
 			{

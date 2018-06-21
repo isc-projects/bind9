@@ -628,7 +628,8 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, isc_boolean_t isdelete,
 		exit(1);
 	}
 	dns_rdataset_init(rdataset);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	result = dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_setownercase(rdataset, name);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
@@ -728,7 +729,8 @@ make_prereq(isc_mem_t *mctx, char *cmdline, isc_boolean_t ispositive,
 		exit(1);
 	}
 	dns_rdataset_init(rdataset);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	result = dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_setownercase(rdataset, name);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);

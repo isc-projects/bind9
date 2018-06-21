@@ -1332,6 +1332,7 @@ static void
 opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 	FILE *fp;
 	isc_buffer_t b;
+	isc_result_t result;
 	char codebuf[64];
 	stats_dumparg_t *dumparg = arg;
 #ifdef HAVE_LIBXML2
@@ -1343,7 +1344,8 @@ opcodestat_dump(dns_opcode_t code, isc_uint64_t val, void *arg) {
 #endif
 
 	isc_buffer_init(&b, codebuf, sizeof(codebuf) - 1);
-	dns_opcode_totext(code, &b);
+	result = dns_opcode_totext(code, &b);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	codebuf[isc_buffer_usedlength(&b)] = '\0';
 
 	switch (dumparg->type) {
@@ -1389,6 +1391,7 @@ static void
 rcodestat_dump(dns_rcode_t code, isc_uint64_t val, void *arg) {
 	FILE *fp;
 	isc_buffer_t b;
+	isc_result_t result;
 	char codebuf[64];
 	stats_dumparg_t *dumparg = arg;
 #ifdef HAVE_LIBXML2
@@ -1400,7 +1403,8 @@ rcodestat_dump(dns_rcode_t code, isc_uint64_t val, void *arg) {
 #endif
 
 	isc_buffer_init(&b, codebuf, sizeof(codebuf) - 1);
-	dns_rcode_totext(code, &b);
+	result = dns_rcode_totext(code, &b);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	codebuf[isc_buffer_usedlength(&b)] = '\0';
 
 	switch (dumparg->type) {

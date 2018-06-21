@@ -469,7 +469,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	added = 0;
 
 	name = dns_fixedname_initname(&fixed);
-	dns_name_copy(owner_name, name, NULL);
+	DNS_NAME_COPY(owner_name, name, NULL);
 	dns_rdataset_getownercase(rdataset, name);
 	offset = 0xffff;
 

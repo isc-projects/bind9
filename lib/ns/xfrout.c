@@ -1087,7 +1087,8 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		    dns_zone_gettype(mayberaw) == dns_zone_slave) {
 			isc_time_t expiretime;
 			isc_uint32_t secs;
-			dns_zone_getexpiretime(zone, &expiretime);
+			result = dns_zone_getexpiretime(zone, &expiretime);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			secs = isc_time_seconds(&expiretime);
 			if (secs >= client->now && result == ISC_R_SUCCESS) {
 				client->attributes |= NS_CLIENTATTR_HAVEEXPIRE;

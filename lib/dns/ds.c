@@ -38,13 +38,14 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 {
 	dns_fixedname_t fname;
 	dns_name_t *name;
-	unsigned char digest[ISC_SHA384_DIGESTLENGTH];
-	isc_region_t r;
-	isc_buffer_t b;
 	dns_rdata_ds_t ds;
+	isc_buffer_t b;
+	isc_region_t r;
+	isc_result_t result;
 	isc_sha1_t sha1;
 	isc_sha256_t sha256;
 	isc_sha384_t sha384;
+	unsigned char digest[ISC_SHA384_DIGESTLENGTH];
 
 	REQUIRE(key != NULL);
 	REQUIRE(key->type == dns_rdatatype_dnskey);
@@ -53,7 +54,8 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		return (ISC_R_NOTIMPLEMENTED);
 
 	name = dns_fixedname_initname(&fname);
-	(void)dns_name_downcase(owner, name, NULL);
+	result = dns_name_downcase(owner, name, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	memset(buffer, 0, DNS_DS_BUFFERSIZE);
 	isc_buffer_init(&b, buffer, DNS_DS_BUFFERSIZE);

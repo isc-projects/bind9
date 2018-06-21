@@ -1403,7 +1403,8 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 	rdata->rdclass = rdatalist->rdclass;
 	rdata->type = rdatatype;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	result = dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_PREREQUISITE);
@@ -1934,7 +1935,8 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 	rdatalist->covers = rdatatype;
 	rdatalist->ttl = (dns_ttl_t)ttl;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
-	dns_rdatalist_tordataset(rdatalist, rdataset);
+	result = dns_rdatalist_tordataset(rdatalist, rdataset);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	ISC_LIST_INIT(name->list);
 	ISC_LIST_APPEND(name->list, rdataset, link);
 	dns_message_addname(updatemsg, name, DNS_SECTION_UPDATE);
@@ -2316,7 +2318,8 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
 		dns_message_renderreset(updatemsg);
-		dns_message_settsigkey(updatemsg, NULL);
+		result = dns_message_settsigkey(updatemsg, NULL);
+		check_result(result, "dns_message_settsigkey");
 		send_update(zname, &master_servers[master_inuse]);
 		isc_event_free(&event);
 		return;
@@ -2490,7 +2493,8 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
 		dns_message_renderreset(soaquery);
-		dns_message_settsigkey(soaquery, NULL);
+		result = dns_message_settsigkey(soaquery, NULL);
+		check_result(result, "dns_message_settsigkey");
 		sendrequest(&servers[ns_inuse], soaquery, &request);
 		isc_mem_put(gmctx, reqinfo, sizeof(nsu_requestinfo_t));
 		isc_event_free(&event);
@@ -2627,7 +2631,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		 * address.
 		 */
 		zname = dns_fixedname_initname(&fzname);
-		dns_name_copy(name, zname, NULL);
+		DNS_NAME_COPY(name, zname, NULL);
 	}
 
 	if (debugging) {
@@ -2669,9 +2673,11 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 #ifdef GSSAPI
 	if (usegsstsig) {
 		dns_name_init(&tmpzonename, NULL);
-		dns_name_dup(zname, gmctx, &tmpzonename);
+		result = dns_name_dup(zname, gmctx, &tmpzonename);
+		check_result(result, "dns_name_dup");
 		dns_name_init(&restart_master, NULL);
-		dns_name_dup(&master, gmctx, &restart_master);
+		result = dns_name_dup(&master, gmctx, &restart_master);
+		check_result(result, "dns_name_dup");
 		start_gssrequest(&master);
 	} else {
 		send_update(zname, &master_servers[master_inuse]);
@@ -2703,7 +2709,8 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_name_clone(&tname, name);
 	dns_request_destroy(&request);
 	dns_message_renderreset(soaquery);
-	dns_message_settsigkey(soaquery, NULL);
+	result = dns_message_settsigkey(soaquery, NULL);
+	check_result(result, "dns_message_settsigkey");
 	sendrequest(&servers[ns_inuse], soaquery, &request);
 	goto out;
 }

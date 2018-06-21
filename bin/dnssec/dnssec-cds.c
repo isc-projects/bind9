@@ -210,12 +210,14 @@ static void
 freelist(dns_rdataset_t *rdataset) {
 	dns_rdatalist_t *rdlist;
 	dns_rdata_t *rdata;
+	isc_result_t result;
 
 	if (!dns_rdataset_isassociated(rdataset)) {
 		return;
 	}
 
-	dns_rdatalist_fromrdataset(rdataset, &rdlist);
+	result = dns_rdatalist_fromrdataset(rdataset, &rdlist);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	for (rdata = ISC_LIST_HEAD(rdlist->rdata);
 	     rdata != NULL;

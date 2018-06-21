@@ -2491,8 +2491,10 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		goto cleanup;
 	}
 
-	isc_buffer_init(&namebuf, nameb, DNS_NAME_FORMATSIZE);
-	dns_name_totext(dns_catz_entry_getname(ev->entry), ISC_TRUE, &namebuf);
+	isc_buffer_init(&namebuf, nameb, sizeof(nameb));
+	result = dns_name_totext(dns_catz_entry_getname(ev->entry), ISC_TRUE,
+				 &namebuf);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(&namebuf, 0);
 
 	/* Zone shouldn't already exist */
@@ -2622,7 +2624,8 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(ev->view->zonetable, zone);
+		result = dns_zt_unmount(ev->view->zonetable, zone);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		goto cleanup;
 	}
 
@@ -2857,7 +2860,7 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 
 			dns_zone_setview(dnszone, view);
-			dns_view_addzone(view, dnszone);
+			CHECK(dns_view_addzone(view, dnszone));
 
 			/*
 			 * The dns_view_findzone() call above increments the
@@ -6110,8 +6113,10 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 
 		tresult = dns_zone_getdb(zone, &db);
 		if (tresult == ISC_R_SUCCESS) {
-			dns_catz_dbupdate_callback(db, view->catzs);
+			result = dns_catz_dbupdate_callback(db, view->catzs);
 			dns_db_detach(&db);
+			if (result != ISC_R_SUCCESS)
+				goto cleanup;
 		}
 
 	}
@@ -6160,7 +6165,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 					&view->managed_keys);
 			dns_zone_setview(pview->managed_keys, view);
 			dns_view_detach(&pview);
-			dns_zone_synckeyzone(view->managed_keys);
+			(void)dns_zone_synckeyzone(view->managed_keys);
 			return (ISC_R_SUCCESS);
 		}
 
@@ -7203,7 +7208,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	}
 
 	if (!allow) {
-		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
+		(void)dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
 		if (num_zones != NULL)
 			*num_zones = 0;
 		return (ISC_R_SUCCESS);
@@ -7211,7 +7216,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 
 	nzcfg = isc_mem_get(view->mctx, sizeof(*nzcfg));
 	if (nzcfg == NULL) {
-		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
+		(void)dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
 		return (ISC_R_NOMEMORY);
 	}
 
@@ -7229,7 +7234,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	result = dns_view_setnewzones(view, ISC_TRUE, nzcfg,
 				      newzone_cfgctx_destroy, mapsize);
 	if (result != ISC_R_SUCCESS) {
-		dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
+		(void)dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
 		return (result);
 	}
 
@@ -8131,8 +8136,9 @@ load_configuration(const char *filename, named_server_t *server,
 		portset_fromconf(v6portset, avoidv6ports, ISC_FALSE);
 	}
 
-	dns_dispatchmgr_setavailports(named_g_dispatchmgr, v4portset,
-				      v6portset);
+	CHECKM(dns_dispatchmgr_setavailports(named_g_dispatchmgr, v4portset,
+					     v6portset),
+	       "setting available ports failed");
 
 	/*
 	 * Set the EDNS UDP size when we don't match a view.
@@ -11255,7 +11261,9 @@ delete_keynames(dns_tsig_keyring_t *ring, char *target,
 
 	for (;;) {
 		node = NULL;
-		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
+		result = dns_rbtnodechain_current(&chain, &foundname,
+						  origin, &node);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		tkey = node->data;
 
 		if (tkey != NULL) {
@@ -11371,7 +11379,9 @@ list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t **text,
 
 	for (;;) {
 		node = NULL;
-		dns_rbtnodechain_current(&chain, &foundname, origin, &node);
+		result = dns_rbtnodechain_current(&chain, &foundname,
+						  origin, &node);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		tkey = node->data;
 
 		if (tkey != NULL) {
@@ -11870,9 +11880,11 @@ nzf_writeconf(const cfg_obj_t *config, dns_view_t *view) {
 static void
 nzd_setkey(MDB_val *key, dns_name_t *name, char *namebuf, size_t buflen) {
 	dns_fixedname_t fixed;
+	isc_result_t result;
 
 	dns_fixedname_init(&fixed);
-	dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
+	result = dns_name_downcase(name, dns_fixedname_name(&fixed), NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_name_format(dns_fixedname_name(&fixed), namebuf, buflen);
 
 	key->mv_data = namebuf;
@@ -12682,8 +12694,11 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 			dns_zone_unload(zone);
 		}
 
-		/* Remove the zone from the zone table */
-		dns_zt_unmount(view->zonetable, zone);
+		if (!redirect) {
+			/* Remove the zone from the zone table */
+			result = dns_zt_unmount(view->zonetable, zone);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		}
 		goto cleanup;
 	}
 
@@ -12885,7 +12900,10 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 		}
 
 		/* Remove the zone from the zone table */
-		dns_zt_unmount(view->zonetable, zone);
+		if (!redirect) {
+			result = dns_zt_unmount(view->zonetable, zone);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		}
 		goto cleanup;
 	}
 
@@ -13901,7 +13919,7 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	nfiles = dns_zone_getincludes(mayberaw, &incfiles);
 
 	/* Load time */
-	dns_zone_getloadtime(zone, &loadtime);
+	(void)dns_zone_getloadtime(zone, &loadtime);
 	isc_time_formathttptimestamp(&loadtime, lbuf, sizeof(lbuf));
 
 	/* Refresh/expire times */
@@ -13909,9 +13927,9 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	    zonetype == dns_zone_stub ||
 	    zonetype == dns_zone_redirect)
 	{
-		dns_zone_getexpiretime(mayberaw, &expiretime);
+		(void)dns_zone_getexpiretime(mayberaw, &expiretime);
 		isc_time_formathttptimestamp(&expiretime, xbuf, sizeof(xbuf));
-		dns_zone_getrefreshtime(mayberaw, &refreshtime);
+		(void)dns_zone_getrefreshtime(mayberaw, &refreshtime);
 		isc_time_formathttptimestamp(&refreshtime, rbuf, sizeof(rbuf));
 	}
 
@@ -13919,7 +13937,7 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 	if (zonetype == dns_zone_master ||
 	    (zonetype == dns_zone_slave && hasraw))
 	{
-		dns_zone_getrefreshkeytime(zone, &refreshkeytime);
+		(void)dns_zone_getrefreshkeytime(zone, &refreshkeytime);
 		isc_time_formathttptimestamp(&refreshkeytime, kbuf,
 					     sizeof(kbuf));
 	}
@@ -14461,7 +14479,15 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 
 	CHECK(dns_zone_getdb(view->managed_keys, &db));
 	dns_db_currentversion(db, &ver);
-	dns_rriterator_init(&rrit, db, ver, 0);
+	result = dns_rriterator_init(&rrit, db, ver, 0);
+	if (result != ISC_R_SUCCESS) {
+		/*
+		 * Close the db version so that dns_rriterator_destroy
+		 * is not called.
+		 */
+		dns_db_closeversion(db, &ver, ISC_FALSE);
+		goto cleanup;
+	}
 	for (result = dns_rriterator_first(&rrit);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rriterator_nextrrset(&rrit))
@@ -14578,7 +14604,7 @@ mkey_status(dns_view_t *view, isc_buffer_t **text) {
 
 	CHECK(putstr(text, "\nnext scheduled event: "));
 
-	dns_zone_getrefreshkeytime(view->managed_keys, &t);
+	(void)dns_zone_getrefreshkeytime(view->managed_keys, &t);
 	if (isc_time_isepoch(&t)) {
 		CHECK(putstr(text, "never"));
 	} else {

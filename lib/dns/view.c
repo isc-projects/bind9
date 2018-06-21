@@ -254,15 +254,19 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->cfg_destroy = NULL;
 	view->fail_ttl = 0;
 	view->failcache = NULL;
-	(void)dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
+	result = dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
 				   &view->failcache);
+	if (result != ISC_R_SUCCESS)
+		goto cleanup_dynkeys;
+
 	view->v6bias = 0;
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
 	result = isc_mutex_init(&view->new_zone_lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_dynkeys;
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_failcache;
+	}
 
 	if (isc_bind9) {
 		result = dns_order_create(view->mctx, &view->order);
@@ -306,11 +310,15 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  cleanup_new_zone_lock:
 	DESTROYLOCK(&view->new_zone_lock);
 
+ cleanup_failcache:
+	dns_badcache_destroy(&view->failcache);
+
  cleanup_dynkeys:
 	if (view->dynamickeys != NULL)
 		dns_tsigkeyring_detach(&view->dynamickeys);
 
  cleanup_references:
+	isc_refcount_decrement(&view->references, NULL);
 	isc_refcount_destroy(&view->references);
 
  cleanup_fwdtable:
@@ -517,7 +525,7 @@ destroy(dns_view_t *view) {
 	if (view->dtenv != NULL)
 		dns_dt_detach(&view->dtenv);
 #endif /* HAVE_DNSTAP */
-	dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
+	(void)dns_view_setnewzones(view, ISC_FALSE, NULL, NULL, 0ULL);
 	if (view->new_zone_file != NULL) {
 		isc_mem_free(view->mctx, view->new_zone_file);
 		view->new_zone_file = NULL;
@@ -579,6 +587,7 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 	dns_view_t *view;
 	unsigned int refs;
 	isc_boolean_t done = ISC_FALSE;
+	isc_result_t result;
 
 	REQUIRE(viewp != NULL);
 	view = *viewp;
@@ -606,14 +615,38 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 		if (view->managed_keys != NULL) {
 			mkzone = view->managed_keys;
 			view->managed_keys = NULL;
-			if (view->flush)
-				dns_zone_flush(mkzone);
+			if (view->flush) {
+				result = dns_zone_flush(mkzone);
+				if (result != ISC_R_SUCCESS) {
+					isc_log_write(dns_lctx,
+						      DNS_LOGCATEGORY_GENERAL,
+						      ISC_LOGMODULE_OTHER,
+						      ISC_LOG_ERROR,
+						    "attempt to managed keys "
+						    "zone for view '%s' "
+						    "failed: %s",
+						    view->name,
+						    isc_result_totext(result));
+				}
+			}
 		}
 		if (view->redirect != NULL) {
 			rdzone = view->redirect;
 			view->redirect = NULL;
-			if (view->flush)
-				dns_zone_flush(rdzone);
+			if (view->flush) {
+				result = dns_zone_flush(rdzone);
+				if (result != ISC_R_SUCCESS) {
+					isc_log_write(dns_lctx,
+						      DNS_LOGCATEGORY_GENERAL,
+						      ISC_LOGMODULE_OTHER,
+						      ISC_LOG_ERROR,
+						    "attempt to flush "
+						    "redirect zone for view "
+						    "'%s' failed: %s",
+						    view->name,
+						    isc_result_totext(result));
+				}
+			}
 		}
 		if (view->catzs != NULL) {
 			dns_catz_catzs_detach(&view->catzs);
@@ -1335,9 +1368,7 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 			 * We found an answer, but the cache may be better.
 			 */
 			zfname = dns_fixedname_name(&zfixedname);
-			result = dns_name_copy(fname, zfname, NULL);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
+			DNS_NAME_COPY(fname, zfname, NULL);
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
@@ -1393,9 +1424,7 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 			    dns_rdataset_isassociated(sigrdataset))
 				dns_rdataset_disassociate(sigrdataset);
 		}
-		result = dns_name_copy(zfname, fname, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		DNS_NAME_COPY(zfname, fname, NULL);
 		dns_rdataset_clone(&zrdataset, rdataset);
 		if (sigrdataset != NULL &&
 		    dns_rdataset_isassociated(&zrdataset))
@@ -1937,8 +1966,10 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 
 	/* Convert dnskey to DST key. */
 	isc_buffer_init(&buffer, data, sizeof(data));
-	dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
-			     dns_rdatatype_dnskey, dnskey, &buffer);
+	result = dns_rdata_fromstruct(&rdata, dnskey->common.rdclass,
+				      dns_rdatatype_dnskey, dnskey, &buffer);
+	if (result != ISC_R_SUCCESS)
+		return;
 
 	result = dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &key);
 	if (result != ISC_R_SUCCESS)
@@ -1957,7 +1988,7 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 		 */
 
 		if (result == ISC_R_SUCCESS)
-			dns_keytable_marksecure(sr, keyname);
+			(void)dns_keytable_marksecure(sr, keyname);
 
 		dns_keytable_detach(&sr);
 	}
@@ -2209,9 +2240,7 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 		 */
 		for (i = namelabels; i > minlabels && i > 1; i--) {
 			if (i == namelabels) {
-				result = dns_name_copy(name, zonename, NULL);
-				if (result != ISC_R_SUCCESS)
-					return (result);
+				DNS_NAME_COPY(name, zonename, NULL);
 			} else
 				dns_name_split(name, i, NULL, zonename);
 

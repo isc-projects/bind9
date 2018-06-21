@@ -700,7 +700,8 @@ dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **text) {
 	for (;;) {
 		char pbuf[DST_KEY_FORMATSIZE];
 
-		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		result = dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		for (knode = node->data; knode != NULL; knode = knode->next) {
 			char obuf[DNS_NAME_FORMATSIZE + 200];
 			if (knode->key == NULL)
@@ -748,7 +749,8 @@ dns_keytable_forall(dns_keytable_t *keytable,
 	}
 	isc_refcount_increment0(&keytable->active_nodes, NULL);
 	for (;;) {
-		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		result = dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (node->data != NULL)
 			(*func)(keytable, node->data, arg);
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
