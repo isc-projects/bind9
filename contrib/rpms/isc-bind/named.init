@@ -1,0 +1,64 @@
+#!/bin/bash
+#
+# chkconfig: - 13 87
+# description: Versatile, Classic, Complete Name Server Software
+# processname: named
+# config: /etc/named.conf
+# pidfile: /var/run/named/named.pid
+
+. /etc/rc.d/init.d/functions
+
+[ -r /etc/sysconfig/named ] && . /etc/sysconfig/named
+
+PIDFILE="/var/run/named/named.pid"
+RETVAL=0
+
+start() {
+	echo -n "Starting named: "
+	if pidofproc -p ${PIDFILE} named > /dev/null; then
+		echo "already running"
+		return 0
+	fi
+	/usr/sbin/named -u named ${OPTIONS} && success || failure
+	RETVAL=$?
+	echo
+	return ${RETVAL}
+}
+
+stop() {
+	echo -n "Stopping named: "
+	killproc -p ${PIDFILE} -d 30 named
+	RETVAL=$?
+	echo
+	return ${RETVAL}
+}
+
+reload() {
+	echo -n "Reloading named: "
+	killproc -p ${PIDFILE} named -HUP
+	RETVAL=$?
+	echo
+	return ${RETVAL}
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart)
+		stop
+		start
+		;;
+	reload)
+		reload
+		;;
+	status)
+		status -p ${PIDFILE} named
+		;;
+	*)
+		echo "Usage: named {start|stop|restart|reload|status}"
+		;;
+esac
