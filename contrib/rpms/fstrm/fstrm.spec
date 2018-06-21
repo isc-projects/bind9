@@ -9,6 +9,7 @@ License: ASL 2.0
 URL: https://github.com/farsightsec/fstrm
 Source0: https://dl.farsightsecurity.com/dist/fstrm/fstrm-%{version}.tar.gz
 BuildRequires: autoconf automake libtool
+BuildRequires: libevent-devel >= 2
 
 %description
 Frame Streams is a light weight, binary clean protocol that allows for the
