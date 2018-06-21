@@ -221,7 +221,7 @@ Protocol Buffer Parent POM.
 %endif
 
 %prep
-%setup -q -n %{name}-%{version}%{?rcver} -a 3 -a 4
+%setup -q -n %{name}-%{version}%{?rcver}
 %autopatch -p1
 find -name \*.cc -o -name \*.h | xargs chmod -x
 chmod 644 examples/*
