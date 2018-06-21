@@ -15,6 +15,8 @@
 
 #include <dns/types.h>
 
+#include <isc/attribute.h>
+#include <isc/lang.h>
 #include <isc/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -35,6 +37,7 @@ isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, isc_mem_t *mctx,
 		      isc_boolean_t ignore_kskflag,
-		      isc_boolean_t keyset_kskonly);
+		      isc_boolean_t keyset_kskonly)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS

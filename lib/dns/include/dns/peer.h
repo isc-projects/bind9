@@ -26,6 +26,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
@@ -95,7 +96,8 @@ struct dns_peer {
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list);
+dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_peerlist_attach(dns_peerlist_t *source, dns_peerlist_t **target);
@@ -113,20 +115,24 @@ dns_peerlist_addpeer(dns_peerlist_t *peers, dns_peer_t *peer);
  * Ditto. */
 isc_result_t
 dns_peerlist_peerbyaddr(dns_peerlist_t *peers, const isc_netaddr_t *addr,
-			dns_peer_t **retval);
+			dns_peer_t **retval)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  * What he said.
  */
 isc_result_t
-dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval);
+dns_peerlist_currpeer(dns_peerlist_t *peers, dns_peer_t **retval)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_new(isc_mem_t *mem, const isc_netaddr_t *ipaddr, dns_peer_t **peer);
+dns_peer_new(isc_mem_t *mem, const isc_netaddr_t *ipaddr, dns_peer_t **peer)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_peer_newprefix(isc_mem_t *mem, const isc_netaddr_t *ipaddr,
-		   unsigned int prefixlen, dns_peer_t **peer);
+		   unsigned int prefixlen, dns_peer_t **peer)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_peer_attach(dns_peer_t *source, dns_peer_t **target);
@@ -135,140 +141,186 @@ void
 dns_peer_detach(dns_peer_t **list);
 
 isc_result_t
-dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setbogus(dns_peer_t *peer, isc_boolean_t newval)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getbogus(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getbogus(dns_peer_t *peer, isc_boolean_t *retval)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setrequestixfr(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setrequestixfr(dns_peer_t *peer, isc_boolean_t newval)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getrequestixfr(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getrequestixfr(dns_peer_t *peer, isc_boolean_t *retval)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setprovideixfr(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setprovideixfr(dns_peer_t *peer, isc_boolean_t newval)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getprovideixfr(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getprovideixfr(dns_peer_t *peer, isc_boolean_t *retval)
+	 ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setrequestnsid(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setrequestnsid(dns_peer_t *peer, isc_boolean_t newval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getrequestnsid(dns_peer_t *peer, isc_boolean_t *retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setsendcookie(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setsendcookie(dns_peer_t *peer, isc_boolean_t newval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getsendcookie(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getsendcookie(dns_peer_t *peer, isc_boolean_t *retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setrequestexpire(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setrequestexpire(dns_peer_t *peer, isc_boolean_t newval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getrequestexpire(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getrequestexpire(dns_peer_t *peer, isc_boolean_t *retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setsupportedns(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setsupportedns(dns_peer_t *peer, isc_boolean_t newval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getforcetcp(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getforcetcp(dns_peer_t *peer, isc_boolean_t *retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setforcetcp(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_setforcetcp(dns_peer_t *peer, isc_boolean_t newval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_gettcpkeepalive(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_gettcpkeepalive(dns_peer_t *peer, isc_boolean_t *retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_settcpkeepalive(dns_peer_t *peer, isc_boolean_t newval);
+dns_peer_settcpkeepalive(dns_peer_t *peer, isc_boolean_t newval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval);
+dns_peer_getsupportedns(dns_peer_t *peer, isc_boolean_t *retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_settransfers(dns_peer_t *peer, isc_uint32_t newval);
+dns_peer_settransfers(dns_peer_t *peer, isc_uint32_t newval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_gettransfers(dns_peer_t *peer, isc_uint32_t *retval);
+dns_peer_gettransfers(dns_peer_t *peer, isc_uint32_t *retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_settransferformat(dns_peer_t *peer, dns_transfer_format_t newval);
+dns_peer_settransferformat(dns_peer_t *peer, dns_transfer_format_t newval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_gettransferformat(dns_peer_t *peer, dns_transfer_format_t *retval);
+dns_peer_gettransferformat(dns_peer_t *peer, dns_transfer_format_t *retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval);
+dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval);
+dns_peer_getkey(dns_peer_t *peer, dns_name_t **retval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval);
+dns_peer_setkey(dns_peer_t *peer, dns_name_t **keyval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_peer_settransfersource(dns_peer_t *peer,
-			   const isc_sockaddr_t *transfer_source);
+			   const isc_sockaddr_t *transfer_source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source);
+dns_peer_gettransfersource(dns_peer_t *peer, isc_sockaddr_t *transfer_source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setudpsize(dns_peer_t *peer, isc_uint16_t udpsize);
+dns_peer_setudpsize(dns_peer_t *peer, isc_uint16_t udpsize)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getudpsize(dns_peer_t *peer, isc_uint16_t *udpsize);
+dns_peer_getudpsize(dns_peer_t *peer, isc_uint16_t *udpsize)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setmaxudp(dns_peer_t *peer, isc_uint16_t maxudp);
+dns_peer_setmaxudp(dns_peer_t *peer, isc_uint16_t maxudp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp);
+dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setpadding(dns_peer_t *peer, isc_uint16_t padding);
+dns_peer_setpadding(dns_peer_t *peer, isc_uint16_t padding)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getpadding(dns_peer_t *peer, isc_uint16_t *padding);
+dns_peer_getpadding(dns_peer_t *peer, isc_uint16_t *padding)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setnotifysource(dns_peer_t *peer, const isc_sockaddr_t *notify_source);
+dns_peer_setnotifysource(dns_peer_t *peer, const isc_sockaddr_t *notify_source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source);
+dns_peer_getnotifysource(dns_peer_t *peer, isc_sockaddr_t *notify_source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setquerysource(dns_peer_t *peer, const isc_sockaddr_t *query_source);
+dns_peer_setquerysource(dns_peer_t *peer, const isc_sockaddr_t *query_source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source);
+dns_peer_getquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setnotifydscp(dns_peer_t *peer, isc_dscp_t dscp);
+dns_peer_setnotifydscp(dns_peer_t *peer, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getnotifydscp(dns_peer_t *peer, isc_dscp_t *dscpp);
+dns_peer_getnotifydscp(dns_peer_t *peer, isc_dscp_t *dscpp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_settransferdscp(dns_peer_t *peer, isc_dscp_t dscp);
+dns_peer_settransferdscp(dns_peer_t *peer, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_gettransferdscp(dns_peer_t *peer, isc_dscp_t *dscpp);
+dns_peer_gettransferdscp(dns_peer_t *peer, isc_dscp_t *dscpp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setquerydscp(dns_peer_t *peer, isc_dscp_t dscp);
+dns_peer_setquerydscp(dns_peer_t *peer, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getquerydscp(dns_peer_t *peer, isc_dscp_t *dscpp);
+dns_peer_getquerydscp(dns_peer_t *peer, isc_dscp_t *dscpp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_setednsversion(dns_peer_t *peer, isc_uint8_t ednsversion);
+dns_peer_setednsversion(dns_peer_t *peer, isc_uint8_t ednsversion)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_peer_getednsversion(dns_peer_t *peer, isc_uint8_t *ednsversion);
+dns_peer_getednsversion(dns_peer_t *peer, isc_uint8_t *ednsversion)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
+
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_PEER_H */

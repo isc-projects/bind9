@@ -84,6 +84,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -215,7 +216,8 @@ dns_rdata_clone(const dns_rdata_t *src, dns_rdata_t *target);
  ***/
 
 int
-dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2);
+dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Determine the relative ordering under the DNSSEC order relation of
  * 'rdata1' and 'rdata2'.
@@ -233,7 +235,8 @@ dns_rdata_compare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2);
  */
 
 int
-dns_rdata_casecompare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2);
+dns_rdata_casecompare(const dns_rdata_t *rdata1, const dns_rdata_t *rdata2)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * dns_rdata_casecompare() is similar to dns_rdata_compare() but also
  * compares domain names case insensitively in known rdata types that
@@ -276,7 +279,8 @@ isc_result_t
 dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_buffer_t *source,
 		   dns_decompress_t *dctx, unsigned int options,
-		   isc_buffer_t *target);
+		   isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Copy the possibly-compressed rdata at source into the target region.
  *
@@ -316,7 +320,8 @@ dns_rdata_fromwire(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 isc_result_t
 dns_rdata_towire(dns_rdata_t *rdata, dns_compress_t *cctx,
-		 isc_buffer_t *target);
+		 isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'rdata' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
@@ -348,7 +353,8 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		   dns_rdatatype_t type, isc_lex_t *lexer,
 		   const dns_name_t *origin, unsigned int options,
 		   isc_mem_t *mctx,
-		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks);
+		   isc_buffer_t *target, dns_rdatacallbacks_t *callbacks)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the textual representation of a DNS rdata into uncompressed wire
  * form stored in the target region.  Tokens constituting the text of the rdata
@@ -403,7 +409,8 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 
 isc_result_t
 dns_rdata_totext(dns_rdata_t *rdata, const dns_name_t *origin,
-		 isc_buffer_t *target);
+		 isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'rdata' into text format, storing the result in 'target'.
  * The text will consist of a single line, with fields separated by
@@ -439,7 +446,8 @@ isc_result_t
 dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
 		    dns_masterstyle_flags_t flags, unsigned int width,
 		    unsigned int split_width, const char *linebreak,
-		    isc_buffer_t *target);
+		    isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Like dns_rdata_totext, but do formatted output suitable for
  * database dumps.  This is intended for use by dns_db_dump();
@@ -470,7 +478,8 @@ dns_rdata_tofmttext(dns_rdata_t *rdata, const dns_name_t *origin,
 
 isc_result_t
 dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, void *source, isc_buffer_t *target);
+		     dns_rdatatype_t type, void *source, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the C structure representation of an rdata into uncompressed wire
  * format in 'target'.
@@ -500,8 +509,21 @@ dns_rdata_fromstruct(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
  *\li	Resource Limit: Not enough space
  */
 
+/*
+ * dns_rdata_tostruct should not fail with a NULL mctx.
+ * DNS_RDATA_TOSTRUCT check this allowing simpler code to be written.
+ */
+#define DNS_RDATA_TOSTRUCT(a, b, c) \
+	do { \
+		isc_result_t _r; \
+		INSIST(c == NULL); \
+		_r = dns_rdata_tostruct(a, b, c); \
+		RUNTIME_CHECK(_r == ISC_R_SUCCESS); \
+	} while (0)
+
 isc_result_t
-dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx);
+dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert an rdata into its C structure representation.
  *
@@ -532,14 +554,16 @@ dns_rdata_freestruct(void *source);
  */
 
 isc_boolean_t
-dns_rdatatype_ismeta(dns_rdatatype_t type);
+dns_rdatatype_ismeta(dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff the rdata type 'type' is a meta-type
  * like ANY or AXFR.
  */
 
 isc_boolean_t
-dns_rdatatype_issingleton(dns_rdatatype_t type);
+dns_rdatatype_issingleton(dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff the rdata type 'type' is a singleton type,
  * like CNAME or SOA.
@@ -550,14 +574,16 @@ dns_rdatatype_issingleton(dns_rdatatype_t type);
  */
 
 isc_boolean_t
-dns_rdataclass_ismeta(dns_rdataclass_t rdclass);
+dns_rdataclass_ismeta(dns_rdataclass_t rdclass)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff the rdata class 'rdclass' is a meta-class
  * like ANY or NONE.
  */
 
 isc_boolean_t
-dns_rdatatype_isdnssec(dns_rdatatype_t type);
+dns_rdatatype_isdnssec(dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff 'type' is one of the DNSSEC
  * rdata types that may exist alongside a CNAME record.
@@ -567,7 +593,8 @@ dns_rdatatype_isdnssec(dns_rdatatype_t type);
  */
 
 isc_boolean_t
-dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
+dns_rdatatype_iszonecutauth(dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff rdata of type 'type' is considered authoritative
  * data (not glue) in the NSEC chain when it occurs in the parent zone
@@ -579,7 +606,8 @@ dns_rdatatype_iszonecutauth(dns_rdatatype_t type);
  */
 
 isc_boolean_t
-dns_rdatatype_isknown(dns_rdatatype_t type);
+dns_rdatatype_isknown(dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff the rdata type 'type' is known.
  *
@@ -591,7 +619,8 @@ dns_rdatatype_isknown(dns_rdatatype_t type);
 
 isc_result_t
 dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-			 void *arg);
+			 void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Call 'add' for each name and type from 'rdata' which is subject to
  * additional section processing.
@@ -618,7 +647,8 @@ dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
  */
 
 isc_result_t
-dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg);
+dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Send 'rdata' in DNSSEC canonical form to 'digest'.
  *
@@ -649,7 +679,8 @@ dns_rdata_digest(dns_rdata_t *rdata, dns_digestfunc_t digest, void *arg);
  */
 
 isc_boolean_t
-dns_rdatatype_questiononly(dns_rdatatype_t type);
+dns_rdatatype_questiononly(dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff rdata of type 'type' can only appear in the question
  * section of a properly formatted message.
@@ -660,7 +691,8 @@ dns_rdatatype_questiononly(dns_rdatatype_t type);
  */
 
 isc_boolean_t
-dns_rdatatype_notquestion(dns_rdatatype_t type);
+dns_rdatatype_notquestion(dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff rdata of type 'type' can not appear in the question
  * section of a properly formatted message.
@@ -671,7 +703,8 @@ dns_rdatatype_notquestion(dns_rdatatype_t type);
  */
 
 isc_boolean_t
-dns_rdatatype_atparent(dns_rdatatype_t type);
+dns_rdatatype_atparent(dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return true iff rdata of type 'type' should appear at the parent of
  * a zone cut.
@@ -682,7 +715,8 @@ dns_rdatatype_atparent(dns_rdatatype_t type);
  */
 
 unsigned int
-dns_rdatatype_attributes(dns_rdatatype_t rdtype);
+dns_rdatatype_attributes(dns_rdatatype_t rdtype)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return attributes for the given type.
  *
@@ -715,7 +749,8 @@ dns_rdatatype_attributes(dns_rdatatype_t rdtype);
 #define DNS_RDATATYPEATTR_ATPARENT		0x00000200U
 
 dns_rdatatype_t
-dns_rdata_covers(dns_rdata_t *rdata);
+dns_rdata_covers(dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the rdatatype that this type covers.
  *
@@ -730,7 +765,8 @@ dns_rdata_covers(dns_rdata_t *rdata);
 
 isc_boolean_t
 dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type, isc_boolean_t wildcard);
+		     dns_rdatatype_t type, isc_boolean_t wildcard)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Returns whether this is a valid ownername for this <type,class>.
  * If wildcard is true allow the first label to be a wildcard if
@@ -742,7 +778,8 @@ dns_rdata_checkowner(const dns_name_t *name, dns_rdataclass_t rdclass,
 
 isc_boolean_t
 dns_rdata_checknames(dns_rdata_t *rdata, const dns_name_t *owner,
-		     dns_name_t *bad);
+		     dns_name_t *bad)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Returns whether 'rdata' contains valid domain names.  The checks are
  * sensitive to the owner name.
@@ -770,7 +807,8 @@ void
 dns_rdata_makedelete(dns_rdata_t *rdata);
 
 const char *
-dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section);
+dns_rdata_updateop(dns_rdata_t *rdata, dns_section_t section)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

@@ -26,6 +26,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/clientinfo.h>
@@ -54,23 +55,28 @@ typedef isc_result_t
 (*dns_sdblookupfunc_t)(const char *zone, const char *name, void *dbdata,
 		       dns_sdblookup_t *lookup,
 		       dns_clientinfomethods_t *methods,
-		       dns_clientinfo_t *clientinfo);
+		       dns_clientinfo_t *clientinfo)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 typedef isc_result_t
 (*dns_sdblookup2func_t)(const dns_name_t *zone, const dns_name_t *name,
 			void *dbdata, dns_sdblookup_t *lookup,
 			dns_clientinfomethods_t *methods,
-			dns_clientinfo_t *clientinfo);
+			dns_clientinfo_t *clientinfo)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t
-(*dns_sdbauthorityfunc_t)(const char *zone, void *dbdata, dns_sdblookup_t *);
+(*dns_sdbauthorityfunc_t)(const char *zone, void *dbdata, dns_sdblookup_t *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t
 (*dns_sdballnodesfunc_t)(const char *zone, void *dbdata,
-			 dns_sdballnodes_t *allnodes);
+			 dns_sdballnodes_t *allnodes)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t
 (*dns_sdbcreatefunc_t)(const char *zone, int argc, char **argv,
-		       void *driverdata, void **dbdata);
+		       void *driverdata, void **dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef void
 (*dns_sdbdestroyfunc_t)(const char *zone, void *driverdata, void **dbdata);
@@ -99,7 +105,8 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 		 void *driverdata, unsigned int flags, isc_mem_t *mctx,
-		 dns_sdbimplementation_t **sdbimp);
+		 dns_sdbimplementation_t **sdbimp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Register a simple database driver for the database type 'drivername',
  * implemented by the functions in '*methods'.
@@ -169,10 +176,12 @@ dns_sdb_unregister(dns_sdbimplementation_t **sdbimp);
 /*% See dns_sdb_putradata() */
 isc_result_t
 dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
-	      const char *data);
+	      const char *data)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t type, dns_ttl_t ttl,
-		 const unsigned char *rdata, unsigned int rdlen);
+		 const unsigned char *rdata, unsigned int rdlen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add a single resource record to the lookup structure to be
  * returned in the query response.  dns_sdb_putrr() takes the
@@ -184,11 +193,13 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t type, dns_ttl_t ttl,
 /*% See dns_sdb_putnamerdata() */
 isc_result_t
 dns_sdb_putnamedrr(dns_sdballnodes_t *allnodes, const char *name,
-		   const char *type, dns_ttl_t ttl, const char *data);
+		   const char *type, dns_ttl_t ttl, const char *data)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_sdb_putnamedrdata(dns_sdballnodes_t *allnodes, const char *name,
 		      dns_rdatatype_t type, dns_ttl_t ttl,
-		      const void *rdata, unsigned int rdlen);
+		      const void *rdata, unsigned int rdlen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add a single resource record to the allnodes structure to be
  * included in a zone transfer response, in text or wire
@@ -197,7 +208,8 @@ dns_sdb_putnamedrdata(dns_sdballnodes_t *allnodes, const char *name,
 
 isc_result_t
 dns_sdb_putsoa(dns_sdblookup_t *lookup, const char *mname, const char *rname,
-	       isc_uint32_t serial);
+	       isc_uint32_t serial)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * This function may optionally be called from the 'authority' callback
  * to simplify construction of the SOA record for 'zone'.  It will

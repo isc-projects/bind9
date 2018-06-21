@@ -39,6 +39,9 @@
  *	security issue specific to this module is anticipated.
  */
 
+#include <isc/attribute.h>
+#include <isc/lang.h>
+
 #include <dns/types.h>
 
 #include <dst/dst.h>
@@ -60,7 +63,8 @@ typedef enum {
 
 isc_result_t
 dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
-		dns_tsec_t **tsecp);
+		dns_tsec_t **tsecp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a TSEC structure and stores a type-dependent key structure in it.
  * For a TSIG key (type is dns_tsectype_tsig), dns_tsec_create() creates a
@@ -102,7 +106,8 @@ dns_tsec_destroy(dns_tsec_t **tsecp);
  */
 
 dns_tsectype_t
-dns_tsec_gettype(dns_tsec_t *tsec);
+dns_tsec_gettype(dns_tsec_t *tsec)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the TSEC type of '*tsec'.
  *

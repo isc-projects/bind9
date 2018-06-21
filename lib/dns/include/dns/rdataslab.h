@@ -41,6 +41,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -63,7 +64,8 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
-			   isc_region_t *region, unsigned int reservelen);
+			   isc_region_t *region, unsigned int reservelen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Slabify a rdataset.  The slab area will be allocated and returned
  * in 'region'.
@@ -99,7 +101,8 @@ dns_rdataslab_tordataset(unsigned char *slab, unsigned int reservelen,
  */
 
 unsigned int
-dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
+dns_rdataslab_size(unsigned char *slab, unsigned int reservelen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the total size of an rdataslab.
  *
@@ -111,7 +114,8 @@ dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
  */
 
 unsigned int
-dns_rdataslab_count(unsigned char *slab, unsigned int reservelen);
+dns_rdataslab_count(unsigned char *slab, unsigned int reservelen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the number of records in the rdataslab
  *
@@ -126,7 +130,8 @@ isc_result_t
 dns_rdataslab_merge(unsigned char *oslab, unsigned char *nslab,
 		    unsigned int reservelen, isc_mem_t *mctx,
 		    dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		    unsigned int flags, unsigned char **tslabp);
+		    unsigned int flags, unsigned char **tslabp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Merge 'oslab' and 'nslab'.
  */
@@ -135,7 +140,8 @@ isc_result_t
 dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 		       unsigned int reservelen, isc_mem_t *mctx,
 		       dns_rdataclass_t rdclass, dns_rdatatype_t type,
-		       unsigned int flags, unsigned char **tslabp);
+		       unsigned int flags, unsigned char **tslabp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Subtract 'sslab' from 'mslab'.  If 'exact' is true then all elements
  * of 'sslab' must exist in 'mslab'.
@@ -146,7 +152,8 @@ dns_rdataslab_subtract(unsigned char *mslab, unsigned char *sslab,
 
 isc_boolean_t
 dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
-		    unsigned int reservelen);
+		    unsigned int reservelen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Compare two rdataslabs for equality.  This does _not_ do a full
  * DNSSEC comparison.
@@ -160,7 +167,8 @@ dns_rdataslab_equal(unsigned char *slab1, unsigned char *slab2,
 isc_boolean_t
 dns_rdataslab_equalx(unsigned char *slab1, unsigned char *slab2,
 		     unsigned int reservelen, dns_rdataclass_t rdclass,
-		     dns_rdatatype_t type);
+		     dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Compare two rdataslabs for DNSSEC equality.
  *

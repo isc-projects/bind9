@@ -54,6 +54,7 @@
  ***** Imports
  *****/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/stdtime.h>
@@ -113,7 +114,8 @@ dns_rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp);
  */
 
 isc_result_t
-dns_rdatasetiter_first(dns_rdatasetiter_t *iterator);
+dns_rdatasetiter_first(dns_rdatasetiter_t *iterator)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the rdataset cursor to the first rdataset at the node (if any).
  *
@@ -128,7 +130,8 @@ dns_rdatasetiter_first(dns_rdatasetiter_t *iterator);
  */
 
 isc_result_t
-dns_rdatasetiter_next(dns_rdatasetiter_t *iterator);
+dns_rdatasetiter_next(dns_rdatasetiter_t *iterator)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the rdataset cursor to the next rdataset at the node (if any).
  *

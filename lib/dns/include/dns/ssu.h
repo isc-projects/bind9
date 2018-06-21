@@ -14,6 +14,7 @@
 
 /*! \file dns/ssu.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/acl.h>
@@ -43,7 +44,8 @@ typedef enum {
 } dns_ssumatchtype_t;
 
 isc_result_t
-dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
+dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Creates a table that will be used to store simple-secure-update rules.
  *	Note: all locking must be provided by the client.
@@ -59,7 +61,8 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
 
 isc_result_t
 dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
-		       dns_dlzdb_t *dlzdatabase);
+		       dns_dlzdb_t *dlzdatabase)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create an SSU table that contains a dlzdatabase pointer, and a
  * single rule with matchtype dns_ssumatchtype_dlz. This type of SSU
@@ -98,7 +101,8 @@ isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, isc_boolean_t grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
-		     dns_rdatatype_t *types);
+		     dns_rdatatype_t *types)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Adds a new rule to a simple-secure-update rule table.  The rule
  *	either grants or denies update privileges of an identity (or set of
@@ -131,7 +135,8 @@ isc_boolean_t
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
 			isc_boolean_t tcp, const dns_aclenv_t *env,
-			dns_rdatatype_t type, const dst_key_t *key);
+			dns_rdatatype_t type, const dst_key_t *key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Checks that the attempted update of (name, type) is allowed according
  *	to the rules specified in the simple-secure-update rule table.  If
@@ -174,19 +179,31 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 
 
 /*% Accessor functions to extract rule components */
-isc_boolean_t	dns_ssurule_isgrant(const dns_ssurule_t *rule);
+isc_boolean_t
+dns_ssurule_isgrant(const dns_ssurule_t *rule)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*% Accessor functions to extract rule components */
-dns_name_t *	dns_ssurule_identity(const dns_ssurule_t *rule);
+dns_name_t *
+dns_ssurule_identity(const dns_ssurule_t *rule)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*% Accessor functions to extract rule components */
-unsigned int	dns_ssurule_matchtype(const dns_ssurule_t *rule);
+unsigned int
+dns_ssurule_matchtype(const dns_ssurule_t *rule)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*% Accessor functions to extract rule components */
-dns_name_t *	dns_ssurule_name(const dns_ssurule_t *rule);
+dns_name_t *
+dns_ssurule_name(const dns_ssurule_t *rule)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*% Accessor functions to extract rule components */
-unsigned int	dns_ssurule_types(const dns_ssurule_t *rule,
-				  dns_rdatatype_t **types);
+unsigned int
+dns_ssurule_types(const dns_ssurule_t *rule,
+		  dns_rdatatype_t **types)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
-isc_result_t	dns_ssutable_firstrule(const dns_ssutable_t *table,
-				       dns_ssurule_t **rule);
+isc_result_t
+dns_ssutable_firstrule(const dns_ssutable_t *table,
+		       dns_ssurule_t **rule)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Initiates a rule iterator.  There is no need to maintain any state.
  *
@@ -195,8 +212,10 @@ isc_result_t	dns_ssutable_firstrule(const dns_ssutable_t *table,
  *\li	#ISC_R_NOMORE
  */
 
-isc_result_t	dns_ssutable_nextrule(dns_ssurule_t *rule,
-				      dns_ssurule_t **nextrule);
+isc_result_t
+dns_ssutable_nextrule(dns_ssurule_t *rule,
+		      dns_ssurule_t **nextrule)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns the next rule in the table.
  *
@@ -209,13 +228,15 @@ isc_boolean_t
 dns_ssu_external_match(const dns_name_t *identity, const dns_name_t *signer,
 		       const dns_name_t *name, const isc_netaddr_t *tcpaddr,
 		       dns_rdatatype_t type, const dst_key_t *key,
-		       isc_mem_t *mctx);
+		       isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check a policy rule via an external application
  */
 
 isc_result_t
-dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype);
+dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set 'mtype' from 'str'
  *

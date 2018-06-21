@@ -15,13 +15,16 @@
 
 /*! \file dns/rcode.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
+isc_result_t
+dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a DNS error value.
  *
@@ -35,7 +38,9 @@ isc_result_t dns_rcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source);
  *\li	#DNS_R_UNKNOWN			type is unknown
  */
 
-isc_result_t dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
+isc_result_t
+dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of error 'rcode' into 'target'.
  *
@@ -53,8 +58,9 @@ isc_result_t dns_rcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
  *\li	#ISC_R_NOSPACE			target buffer is too small
  */
 
-isc_result_t dns_tsigrcode_fromtext(dns_rcode_t *rcodep,
-				    isc_textregion_t *source);
+isc_result_t
+dns_tsigrcode_fromtext(dns_rcode_t *rcodep, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a TSIG/TKEY error value.
  *
@@ -68,7 +74,9 @@ isc_result_t dns_tsigrcode_fromtext(dns_rcode_t *rcodep,
  *\li	#DNS_R_UNKNOWN			type is unknown
  */
 
-isc_result_t dns_tsigrcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
+isc_result_t
+dns_tsigrcode_totext(dns_rcode_t rcode, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of TSIG/TKEY error 'rcode' into 'target'.
  *
@@ -87,7 +95,8 @@ isc_result_t dns_tsigrcode_totext(dns_rcode_t rcode, isc_buffer_t *target);
  */
 
 isc_result_t
-dns_hashalg_fromtext(unsigned char *hashalg, isc_textregion_t *source);
+dns_hashalg_fromtext(unsigned char *hashalg, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a has algorithm value.
  *

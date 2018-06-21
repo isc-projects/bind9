@@ -26,6 +26,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -52,7 +53,8 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		 isc_dscp_t dscp, dns_tsigkey_t *tsigkey, isc_mem_t *mctx,
 		 isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
 		 isc_task_t *task, dns_xfrindone_t done,
-		 dns_xfrin_ctx_t **xfrp);
+		 dns_xfrin_ctx_t **xfrp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Attempt to start an incoming zone transfer of 'zone'
  * from 'masteraddr', creating a dns_xfrin_ctx_t object to

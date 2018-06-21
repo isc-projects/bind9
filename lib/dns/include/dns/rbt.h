@@ -14,6 +14,7 @@
 
 /*! \file dns/rbt.h */
 
+#include <isc/attribute.h>
 #include <isc/assertions.h>
 #include <isc/crc64.h>
 #include <isc/lang.h>
@@ -173,16 +174,19 @@ struct dns_rbtnode {
 
 typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 					      dns_name_t *name,
-					      void *callback_arg);
+					      void *callback_arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
 					    unsigned char *data,
 					    void *arg,
-					    isc_uint64_t *crc);
+					    isc_uint64_t *crc)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode,
 					   void *base, size_t offset,
-					   void *arg, isc_uint64_t *crc);
+					   void *arg, isc_uint64_t *crc)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef void (*dns_rbtdeleter_t)(void *, void *);
 
@@ -290,7 +294,8 @@ typedef struct dns_rbtnodechain {
  *****/
 isc_result_t
 dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
-	       void *deleter_arg, dns_rbt_t **rbtp);
+	       void *deleter_arg, dns_rbt_t **rbtp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Initialize a red-black tree of trees.
  *
@@ -319,7 +324,8 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
  */
 
 isc_result_t
-dns_rbt_addname(dns_rbt_t *rbt, const dns_name_t *name, void *data);
+dns_rbt_addname(dns_rbt_t *rbt, const dns_name_t *name, void *data)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add 'name' to the tree of trees, associated with 'data'.
  *
@@ -359,7 +365,8 @@ dns_rbt_addname(dns_rbt_t *rbt, const dns_name_t *name, void *data);
  */
 
 isc_result_t
-dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep);
+dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Just like dns_rbt_addname, but returns the address of the node.
@@ -394,7 +401,8 @@ dns_rbt_addnode(dns_rbt_t *rbt, const dns_name_t *name, dns_rbtnode_t **nodep);
 
 isc_result_t
 dns_rbt_findname(dns_rbt_t *rbt, const dns_name_t *name, unsigned int options,
-		 dns_name_t *foundname, void **data);
+		 dns_name_t *foundname, void **data)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the data pointer associated with 'name'.
  *
@@ -435,7 +443,8 @@ isc_result_t
 dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 		 dns_rbtnode_t **node, dns_rbtnodechain_t *chain,
 		 unsigned int options, dns_rbtfindcallback_t callback,
-		 void *callback_arg);
+		 void *callback_arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the node for 'name'.
  *
@@ -538,7 +547,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 
 isc_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name,
-		   isc_boolean_t recurse);
+		   isc_boolean_t recurse)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Delete 'name' from the tree of trees.
  *
@@ -581,7 +591,8 @@ dns_rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name,
  */
 
 isc_result_t
-dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse);
+dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Delete 'node' from the tree of trees.
  *
@@ -641,7 +652,8 @@ dns_rbt_namefromnode(dns_rbtnode_t *node, dns_name_t *name);
  */
 
 isc_result_t
-dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name);
+dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Like dns_rbt_namefromnode, but returns the full name from the root.
  *
@@ -662,7 +674,8 @@ dns_rbt_fullnamefromnode(dns_rbtnode_t *node, dns_name_t *name);
 
 char *
 dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname,
-		       unsigned int size);
+		       unsigned int size)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Format the full name of a node for printing, using dns_name_format().
  *
@@ -678,7 +691,8 @@ dns_rbt_formatnodename(dns_rbtnode_t *node, char *printname,
  */
 
 unsigned int
-dns_rbt_nodecount(dns_rbt_t *rbt);
+dns_rbt_nodecount(dns_rbt_t *rbt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Obtain the number of nodes in the tree of trees.
  *
@@ -687,7 +701,8 @@ dns_rbt_nodecount(dns_rbt_t *rbt);
  */
 
 size_t
-dns_rbt_hashsize(dns_rbt_t *rbt);
+dns_rbt_hashsize(dns_rbt_t *rbt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Obtain the current number of buckets in the 'rbt' hash table.
  *
@@ -698,7 +713,8 @@ dns_rbt_hashsize(dns_rbt_t *rbt);
 void
 dns_rbt_destroy(dns_rbt_t **rbtp);
 isc_result_t
-dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
+dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Stop working with a red-black tree of trees.
  * If 'quantum' is zero then the entire tree will be destroyed.
@@ -722,7 +738,8 @@ dns_rbt_destroy2(dns_rbt_t **rbtp, unsigned int quantum);
  */
 
 off_t
-dns_rbt_serialize_align(off_t target);
+dns_rbt_serialize_align(off_t target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Align the provided integer to a pointer-size boundary.
  * This should be used if, during serialization of data to a will-be
@@ -732,7 +749,8 @@ dns_rbt_serialize_align(off_t target);
 isc_result_t
 dns_rbt_serialize_tree(FILE *file, dns_rbt_t *rbt,
 		       dns_rbtdatawriter_t datawriter,
-		       void *writer_arg, off_t *offset);
+		       void *writer_arg, off_t *offset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Write out the RBT structure and its data to a file.
  *
@@ -746,7 +764,8 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 			 off_t header_offset, isc_mem_t *mctx,
 			 dns_rbtdeleter_t deleter, void *deleter_arg,
 			 dns_rbtdatafixer_t datafixer, void *fixer_arg,
-			 dns_rbtnode_t **originp, dns_rbt_t **rbtp);
+			 dns_rbtnode_t **originp, dns_rbt_t **rbtp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Read a RBT structure and its data from a file.
  *
@@ -803,7 +822,8 @@ dns_rbt_printnodeinfo(dns_rbtnode_t *n, FILE *f);
 
 
 size_t
-dns__rbt_getheight(dns_rbt_t *rbt);
+dns__rbt_getheight(dns_rbt_t *rbt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the maximum height of sub-root nodes found in the red-black
  * forest.
@@ -821,7 +841,8 @@ dns__rbt_getheight(dns_rbt_t *rbt);
  */
 
 isc_boolean_t
-dns__rbt_checkproperties(dns_rbt_t *rbt);
+dns__rbt_checkproperties(dns_rbt_t *rbt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check red-black properties of the forest.
  *
@@ -833,7 +854,8 @@ dns__rbt_checkproperties(dns_rbt_t *rbt);
  */
 
 size_t
-dns__rbtnode_getdistance(dns_rbtnode_t *node);
+dns__rbtnode_getdistance(dns_rbtnode_t *node)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the distance (in nodes) from the node to its upper node of its
  * subtree. The root node has a distance of 1. A child of the root node
@@ -890,7 +912,8 @@ dns_rbtnodechain_invalidate(dns_rbtnodechain_t *chain);
 
 isc_result_t
 dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
-			 dns_name_t *origin, dns_rbtnode_t **node);
+			 dns_name_t *origin, dns_rbtnode_t **node)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Provide the name, origin and node to which the chain is currently pointed.
  *
@@ -930,7 +953,8 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 isc_result_t
 dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
-		       dns_name_t *name, dns_name_t *origin);
+		       dns_name_t *name, dns_name_t *origin)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the chain to the lexically first node in the tree of trees.
  *
@@ -956,7 +980,8 @@ dns_rbtnodechain_first(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 
 isc_result_t
 dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
-		       dns_name_t *name, dns_name_t *origin);
+		      dns_name_t *name, dns_name_t *origin)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the chain to the lexically last node in the tree of trees.
  *
@@ -978,7 +1003,8 @@ dns_rbtnodechain_last(dns_rbtnodechain_t *chain, dns_rbt_t *rbt,
 
 isc_result_t
 dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
-		      dns_name_t *origin);
+		      dns_name_t *origin)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Adjusts chain to point the DNSSEC predecessor of the name to which it
  * is currently pointed.
@@ -1008,7 +1034,8 @@ dns_rbtnodechain_prev(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 isc_result_t
 dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
-		      dns_name_t *origin);
+		      dns_name_t *origin)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Adjusts chain to point the DNSSEC successor of the name to which it
  * is currently pointed.
@@ -1038,13 +1065,15 @@ dns_rbtnodechain_next(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 isc_result_t
 dns_rbtnodechain_down(dns_rbtnodechain_t *chain, dns_name_t *name,
-		      dns_name_t *origin);
+		      dns_name_t *origin)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Descend down if possible.
  */
 
 isc_result_t
-dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name);
+dns_rbtnodechain_nextflat(dns_rbtnodechain_t *chain, dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the next node at the current depth in DNSSEC order.
  */
@@ -1136,7 +1165,8 @@ void
 dns_rbtnode_nodename(dns_rbtnode_t *node, dns_name_t *name);
 
 dns_rbtnode_t *
-dns_rbt_root(dns_rbt_t *rbt);
+dns_rbt_root(dns_rbt_t *rbt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

@@ -41,6 +41,7 @@
  *\li	Drafts:	TBS
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/event.h>
 
@@ -68,7 +69,8 @@ typedef struct dns_lookupevent {
 isc_result_t
 dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 		  dns_view_t *view, unsigned int options, isc_task_t *task,
-		  isc_taskaction_t action, void *arg, dns_lookup_t **lookupp);
+		  isc_taskaction_t action, void *arg, dns_lookup_t **lookupp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Finds the rrsets matching 'name' and 'type'.
  *

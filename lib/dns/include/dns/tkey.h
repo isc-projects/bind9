@@ -15,6 +15,7 @@
 
 /*! \file dns/tkey.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -40,7 +41,8 @@ struct dns_tkeyctx {
 };
 
 isc_result_t
-dns_tkeyctx_create(isc_mem_t *mctx, dns_tkeyctx_t **tctxp);
+dns_tkeyctx_create(isc_mem_t *mctx, dns_tkeyctx_t **tctxp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Create an empty TKEY context.
  *
@@ -67,7 +69,8 @@ dns_tkeyctx_destroy(dns_tkeyctx_t **tctxp);
 
 isc_result_t
 dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
-		      dns_tsig_keyring_t *ring);
+		      dns_tsig_keyring_t *ring)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Processes a query containing a TKEY record, adding or deleting TSIG
  *	keys if necessary, and modifies the message to contain the response.
@@ -88,7 +91,8 @@ dns_tkey_processquery(dns_message_t *msg, dns_tkeyctx_t *tctx,
 isc_result_t
 dns_tkey_builddhquery(dns_message_t *msg, dst_key_t *key,
 		      const dns_name_t *name, const dns_name_t *algorithm,
-		      isc_buffer_t *nonce, isc_uint32_t lifetime);
+		      isc_buffer_t *nonce, isc_uint32_t lifetime)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Builds a query containing a TKEY that will generate a shared
  *	secret using a Diffie-Hellman key exchange.  The shared key
@@ -117,7 +121,8 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 		       const dns_name_t *gname, isc_buffer_t *intoken,
 		       isc_uint32_t lifetime, gss_ctx_id_t *context,
 		       isc_boolean_t win2k, isc_mem_t *mctx,
-		       char **err_message);
+		       char **err_message)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Builds a query containing a TKEY that will generate a GSSAPI context.
  *	The key is requested to have the specified lifetime (in seconds).
@@ -138,9 +143,9 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
  *\li		*err_message	optional error message
  */
 
-
 isc_result_t
-dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
+dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Builds a query containing a TKEY record that will delete the
  *	specified shared secret from the server.
@@ -158,7 +163,8 @@ dns_tkey_builddeletequery(dns_message_t *msg, dns_tsigkey_t *key);
 isc_result_t
 dns_tkey_processdhresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			   dst_key_t *key, isc_buffer_t *nonce,
-			   dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring);
+			   dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Processes a response to a query containing a TKEY that was
  *	designed to generate a shared secret using a Diffie-Hellman key
@@ -182,14 +188,16 @@ isc_result_t
 dns_tkey_processgssresponse(dns_message_t *qmsg, dns_message_t *rmsg,
 			    const dns_name_t *gname, gss_ctx_id_t *context,
 			    isc_buffer_t *outtoken, dns_tsigkey_t **outkey,
-			    dns_tsig_keyring_t *ring, char **err_message);
+			    dns_tsig_keyring_t *ring, char **err_message)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * XXX
  */
 
 isc_result_t
 dns_tkey_processdeleteresponse(dns_message_t *qmsg, dns_message_t *rmsg,
-			       dns_tsig_keyring_t *ring);
+			       dns_tsig_keyring_t *ring)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Processes a response to a query containing a TKEY that was
  *	designed to delete a shared secret.  If the query was successful,
@@ -210,7 +218,8 @@ isc_result_t
 dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		      const dns_name_t *server, gss_ctx_id_t *context,
 		      dns_tsigkey_t **outkey, dns_tsig_keyring_t *ring,
-		      isc_boolean_t win2k, char **err_message);
+		      isc_boolean_t win2k, char **err_message)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*
  *	Client side negotiation of GSS-TSIG.  Process the response

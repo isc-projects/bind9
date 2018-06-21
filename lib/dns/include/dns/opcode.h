@@ -15,13 +15,16 @@
 
 /*! \file dns/opcode.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target);
+isc_result_t
+dns_opcode_totext(dns_opcode_t opcode, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of error 'opcode' into 'target'.
  *

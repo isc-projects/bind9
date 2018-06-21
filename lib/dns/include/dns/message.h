@@ -16,6 +16,7 @@
  ***	Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 
@@ -278,7 +279,8 @@ struct dns_ednsopt {
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
+dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Create msg structure.
@@ -340,14 +342,16 @@ isc_result_t
 dns_message_sectiontotext(dns_message_t *msg, dns_section_t section,
 			  const dns_master_style_t *style,
 			  dns_messagetextflag_t flags,
-			  isc_buffer_t *target);
+			  isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_message_pseudosectiontotext(dns_message_t *msg,
 				dns_pseudosection_t section,
 				const dns_master_style_t *style,
 				dns_messagetextflag_t flags,
-				isc_buffer_t *target);
+				isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert section 'section' or 'pseudosection' of message 'msg' to
  * a cleartext representation
@@ -381,7 +385,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 
 isc_result_t
 dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
-		   dns_messagetextflag_t flags, isc_buffer_t *target);
+		   dns_messagetextflag_t flags, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert all sections of message 'msg' to a cleartext representation
  *
@@ -424,7 +429,8 @@ dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 
 isc_result_t
 dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
-		  unsigned int options);
+		  unsigned int options)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Parse raw wire data in 'source' as a DNS message.
  *
@@ -471,7 +477,8 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 
 isc_result_t
 dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
-			isc_buffer_t *buffer);
+			isc_buffer_t *buffer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Begin rendering on a message.  Only one call can be made to this function
  * per message.
@@ -500,7 +507,8 @@ dns_message_renderbegin(dns_message_t *msg, dns_compress_t *cctx,
  */
 
 isc_result_t
-dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
+dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Reset the buffer.  This can be used after growing the old buffer
  * on a ISC_R_NOSPACE return from most of the render functions.
@@ -523,7 +531,8 @@ dns_message_renderchangebuffer(dns_message_t *msg, isc_buffer_t *buffer);
  */
 
 isc_result_t
-dns_message_renderreserve(dns_message_t *msg, unsigned int space);
+dns_message_renderreserve(dns_message_t *msg, unsigned int space)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * XXXMLG should use size_t rather than unsigned int once the buffer
  * API is cleaned up
@@ -561,7 +570,8 @@ dns_message_renderrelease(dns_message_t *msg, unsigned int space);
 
 isc_result_t
 dns_message_rendersection(dns_message_t *msg, dns_section_t section,
-			  unsigned int options);
+			  unsigned int options)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Render all names, rdatalists, etc from the given section at the
  * specified priority or higher.
@@ -598,7 +608,8 @@ dns_message_renderheader(dns_message_t *msg, isc_buffer_t *target);
  */
 
 isc_result_t
-dns_message_renderend(dns_message_t *msg);
+dns_message_renderend(dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Finish rendering to the buffer.  Note that more data can be in the
  * 'msg' structure.  Destroying the structure will free this, or in a multi-
@@ -630,7 +641,8 @@ dns_message_renderreset(dns_message_t *msg);
  */
 
 isc_result_t
-dns_message_firstname(dns_message_t *msg, dns_section_t section);
+dns_message_firstname(dns_message_t *msg, dns_section_t section)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set internal per-section name pointer to the beginning of the section.
  *
@@ -649,7 +661,8 @@ dns_message_firstname(dns_message_t *msg, dns_section_t section);
  */
 
 isc_result_t
-dns_message_nextname(dns_message_t *msg, dns_section_t section);
+dns_message_nextname(dns_message_t *msg, dns_section_t section)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Sets the internal per-section name pointer to point to the next name
  * in that section.
@@ -695,7 +708,8 @@ isc_result_t
 dns_message_findname(dns_message_t *msg, dns_section_t section,
 		     const dns_name_t *target, dns_rdatatype_t type,
 		     dns_rdatatype_t covers, dns_name_t **foundname,
-		     dns_rdataset_t **rdataset);
+		     dns_rdataset_t **rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search for a name in the specified section.  If it is found, *name is
  * set to point to the name, and *rdataset is set to point to the found
@@ -729,7 +743,8 @@ dns_message_findname(dns_message_t *msg, dns_section_t section,
 
 isc_result_t
 dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
-		     dns_rdatatype_t covers, dns_rdataset_t **rdataset);
+		     dns_rdatatype_t covers, dns_rdataset_t **rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search the name for the specified type.  If it is found, *rdataset is
  * filled in with a pointer to that rdataset.
@@ -750,7 +765,8 @@ dns_message_findtype(const dns_name_t *name, dns_rdatatype_t type,
 isc_result_t
 dns_message_find(const dns_name_t *name, dns_rdataclass_t rdclass,
 		 dns_rdatatype_t type, dns_rdatatype_t covers,
-		 dns_rdataset_t **rdataset);
+		 dns_rdataset_t **rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search the name for the specified rdclass and type.  If it is found,
  * *rdataset is filled in with a pointer to that rdataset.
@@ -832,7 +848,8 @@ dns_message_removename(dns_message_t *msg, dns_name_t *name,
  */
 
 isc_result_t
-dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
+dns_message_gettempname(dns_message_t *msg, dns_name_t **item)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return a name that can be used for any temporary purpose, including
  * inserting into the message's linked lists.  The name must be returned
@@ -852,7 +869,8 @@ dns_message_gettempname(dns_message_t *msg, dns_name_t **item);
  */
 
 isc_result_t
-dns_message_gettempoffsets(dns_message_t *msg, dns_offsets_t **item);
+dns_message_gettempoffsets(dns_message_t *msg, dns_offsets_t **item)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return an offsets array that can be used for any temporary purpose,
  * such as attaching to a temporary name.  The offsets will be freed
@@ -869,7 +887,8 @@ dns_message_gettempoffsets(dns_message_t *msg, dns_offsets_t **item);
  */
 
 isc_result_t
-dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
+dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return a rdata that can be used for any temporary purpose, including
  * inserting into the message's linked lists.  The rdata will be freed
@@ -886,7 +905,8 @@ dns_message_gettemprdata(dns_message_t *msg, dns_rdata_t **item);
  */
 
 isc_result_t
-dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
+dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return a rdataset that can be used for any temporary purpose, including
  * inserting into the message's linked lists. The name must be returned
@@ -904,7 +924,8 @@ dns_message_gettemprdataset(dns_message_t *msg, dns_rdataset_t **item);
  */
 
 isc_result_t
-dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
+dns_message_gettemprdatalist(dns_message_t *msg, dns_rdatalist_t **item)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return a rdatalist that can be used for any temporary purpose, including
  * inserting into the message's linked lists.  The rdatalist will be
@@ -982,7 +1003,8 @@ dns_message_puttemprdatalist(dns_message_t *msg, dns_rdatalist_t **item);
 
 isc_result_t
 dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
-		       unsigned int *flagsp);
+		       unsigned int *flagsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Assume the remaining region of "source" is a DNS message.  Peek into
  * it and fill in "*idp" with the message id, and "*flagsp" with the flags.
@@ -1005,7 +1027,8 @@ dns_message_peekheader(isc_buffer_t *source, dns_messageid_t *idp,
  */
 
 isc_result_t
-dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
+dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Start formatting a reply to the query in 'msg'.
  *
@@ -1036,7 +1059,8 @@ dns_message_reply(dns_message_t *msg, isc_boolean_t want_question_section);
  */
 
 dns_rdataset_t *
-dns_message_getopt(dns_message_t *msg);
+dns_message_getopt(dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the OPT record for 'msg'.
  *
@@ -1050,7 +1074,8 @@ dns_message_getopt(dns_message_t *msg);
  */
 
 isc_result_t
-dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
+dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the OPT record for 'msg'.
  *
@@ -1077,7 +1102,8 @@ dns_message_setopt(dns_message_t *msg, dns_rdataset_t *opt);
  */
 
 dns_rdataset_t *
-dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner);
+dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the TSIG record and owner for 'msg'.
  *
@@ -1096,7 +1122,8 @@ dns_message_gettsig(dns_message_t *msg, const dns_name_t **owner);
  */
 
 isc_result_t
-dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key);
+dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the tsig key for 'msg'.  This is only necessary for when rendering a
  * query or parsing a response.  The key (if non-NULL) is attached to, and
@@ -1117,7 +1144,8 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key);
  */
 
 dns_tsigkey_t *
-dns_message_gettsigkey(dns_message_t *msg);
+dns_message_gettsigkey(dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Gets the tsig key for 'msg'.
  *
@@ -1127,7 +1155,8 @@ dns_message_gettsigkey(dns_message_t *msg);
  */
 
 isc_result_t
-dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig);
+dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Indicates that 'querytsig' is the TSIG from the signed query for which
  * 'msg' is the response.  This is also used for chained TSIGs in TCP
@@ -1148,7 +1177,8 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig);
 
 isc_result_t
 dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
-			 isc_buffer_t **querytsig);
+			 isc_buffer_t **querytsig)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Gets the tsig from the TSIG from the signed query 'msg'.  This is also used
  * for chained TSIGs in TCP responses.  Unlike dns_message_gettsig, this makes
@@ -1171,7 +1201,8 @@ dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
  */
 
 dns_rdataset_t *
-dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner);
+dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the SIG(0) record and owner for 'msg'.
  *
@@ -1190,7 +1221,8 @@ dns_message_getsig0(dns_message_t *msg, const dns_name_t **owner);
  */
 
 isc_result_t
-dns_message_setsig0key(dns_message_t *msg, dst_key_t *key);
+dns_message_setsig0key(dns_message_t *msg, dst_key_t *key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the SIG(0) key for 'msg'.
  *
@@ -1209,7 +1241,8 @@ dns_message_setsig0key(dns_message_t *msg, dst_key_t *key);
  */
 
 dst_key_t *
-dns_message_getsig0key(dns_message_t *msg);
+dns_message_getsig0key(dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Gets the SIG(0) key for 'msg'.
  *
@@ -1234,7 +1267,8 @@ dns_message_takebuffer(dns_message_t *msg, isc_buffer_t **buffer);
  */
 
 isc_result_t
-dns_message_signer(dns_message_t *msg, dns_name_t *signer);
+dns_message_signer(dns_message_t *msg, dns_name_t *signer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * If this message was signed, return the identity of the signer.
  * Unless ISC_R_NOTFOUND is returned, signer will reflect the name of the
@@ -1272,7 +1306,8 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer);
  */
 
 isc_result_t
-dns_message_checksig(dns_message_t *msg, dns_view_t *view);
+dns_message_checksig(dns_message_t *msg, dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * If this message was signed, verify the signature.
  *
@@ -1292,7 +1327,8 @@ dns_message_checksig(dns_message_t *msg, dns_view_t *view);
  */
 
 isc_result_t
-dns_message_rechecksig(dns_message_t *msg, dns_view_t *view);
+dns_message_rechecksig(dns_message_t *msg, dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Reset the signature state and then if the message was signed,
  * verify the message.
@@ -1322,7 +1358,8 @@ dns_message_resetsig(dns_message_t *msg);
  */
 
 isc_region_t *
-dns_message_getrawmessage(dns_message_t *msg);
+dns_message_getrawmessage(dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Retrieve the raw message in compressed wire format.  The message must
  * have been successfully parsed for it to have been saved.
@@ -1366,7 +1403,8 @@ dns_message_settimeadjust(dns_message_t *msg, int timeadjust);
  */
 
 int
-dns_message_gettimeadjust(dns_message_t *msg);
+dns_message_gettimeadjust(dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the current time adjustment.
  *
@@ -1409,7 +1447,8 @@ dns_message_logfmtpacket(dns_message_t *message, const char *description,
 isc_result_t
 dns_message_buildopt(dns_message_t *msg, dns_rdataset_t **opt,
 		     unsigned int version, isc_uint16_t udpsize,
-		     unsigned int flags, dns_ednsopt_t *ednsopts, size_t count);
+		     unsigned int flags, dns_ednsopt_t *ednsopts, size_t count)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Built a opt record.
  *

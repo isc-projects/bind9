@@ -15,6 +15,7 @@
 
 /*! \file dns/rootns.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -23,7 +24,8 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_rootns_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
-		  const char *filename, dns_db_t **target);
+		  const char *filename, dns_db_t **target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_root_checkhints(dns_view_t *view, dns_db_t *hints, dns_db_t *db);

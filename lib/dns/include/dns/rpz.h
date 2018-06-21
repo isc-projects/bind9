@@ -13,6 +13,7 @@
 #ifndef DNS_RPZ_H
 #define DNS_RPZ_H 1
 
+#include <isc/attribute.h>
 #include <isc/deprecated.h>
 #include <isc/event.h>
 #include <isc/ht.h>
@@ -362,28 +363,35 @@ typedef struct {
 #define DNS_RPZ_DEBUG_QUIET	(DNS_RPZ_DEBUG_LEVEL3+1)
 
 const char *
-dns_rpz_type2str(dns_rpz_type_t type);
+dns_rpz_type2str(dns_rpz_type_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 dns_rpz_policy_t
-dns_rpz_str2policy(const char *str);
+dns_rpz_str2policy(const char *str)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 const char *
-dns_rpz_policy2str(dns_rpz_policy_t policy);
+dns_rpz_policy2str(dns_rpz_policy_t policy)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 dns_rpz_policy_t
 dns_rpz_decode_cname(dns_rpz_zone_t *rpz, dns_rdataset_t *rdataset,
-		     dns_name_t *selfname);
+		     dns_name_t *selfname)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr,
 		  size_t rps_cstr_size, isc_mem_t *mctx,
-		  isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr);
+		  isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp);
+dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg);
+dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_rpz_attach_rpzs(dns_rpz_zones_t *source, dns_rpz_zones_t **target);
@@ -394,16 +402,17 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp);
 isc_result_t
 dns_rpz_beginload(dns_rpz_zones_t **load_rpzsp,
 		  dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num)
-	ISC_DEPRECATED;
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT ISC_DEPRECATED;
 
 isc_result_t
 dns_rpz_ready(dns_rpz_zones_t *rpzs,
 	      dns_rpz_zones_t **load_rpzsp, dns_rpz_num_t rpz_num)
-	ISC_DEPRECATED;
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT ISC_DEPRECATED;
 
 isc_result_t
 dns_rpz_add(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
-	    const dns_name_t *name);
+	    const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_rpz_delete(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
@@ -412,11 +421,13 @@ dns_rpz_delete(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 dns_rpz_num_t
 dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		dns_rpz_zbits_t zbits, const isc_netaddr_t *netaddr,
-		dns_name_t *ip_name, dns_rpz_prefix_t *prefixp);
+		dns_name_t *ip_name, dns_rpz_prefix_t *prefixp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 dns_rpz_zbits_t
 dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
-		  dns_rpz_zbits_t zbits, dns_name_t *trig_name);
+		  dns_rpz_zbits_t zbits, dns_name_t *trig_name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

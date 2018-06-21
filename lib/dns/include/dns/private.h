@@ -9,7 +9,7 @@
  * information regarding copyright ownership.
  */
 
-
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -24,7 +24,8 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
 		   dns_rdatatype_t privatetype,
-		   isc_boolean_t *build_nsec, isc_boolean_t *build_nsec3);
+		   isc_boolean_t *build_nsec, isc_boolean_t *build_nsec3)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Examine the NSEC, NSEC3PARAM and privatetype RRsets at the apex of the
  * database to determine which of NSEC or NSEC3 chains we are currently
@@ -45,7 +46,8 @@ dns_private_chains(dns_db_t *db, dns_dbversion_t *ver,
  */
 
 isc_result_t
-dns_private_totext(dns_rdata_t *privaterdata, isc_buffer_t *buffer);
+dns_private_totext(dns_rdata_t *privaterdata, isc_buffer_t *buffer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert a private-type RR 'privaterdata' to human-readable form,
  * and place the result in 'buffer'.  The text should indicate

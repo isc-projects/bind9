@@ -34,6 +34,7 @@
  *\li	No anticipated impact.
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/event.h>
 
@@ -57,7 +58,8 @@ dns_requestmgr_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 		      isc_socketmgr_t *socketmgr, isc_taskmgr_t *taskmgr,
 		      dns_dispatchmgr_t *dispatchmgr,
 		      dns_dispatch_t *dispatchv4, dns_dispatch_t *dispatchv6,
-		      dns_requestmgr_t **requestmgrp);
+		      dns_requestmgr_t **requestmgrp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a request manager.
  *
@@ -161,7 +163,8 @@ dns_request_create(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		   dns_tsigkey_t *key,
 		   unsigned int timeout, isc_task_t *task,
 		   isc_taskaction_t action, void *arg,
-		   dns_request_t **requestp);
+		   dns_request_t **requestp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create and send a request.
  *
@@ -200,7 +203,8 @@ dns_request_createvia(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		      dns_tsigkey_t *key, unsigned int timeout,
 		      unsigned int udptimeout, unsigned int udpretries,
 		      isc_task_t *task, isc_taskaction_t action, void *arg,
-		      dns_request_t **requestp);
+		      dns_request_t **requestp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create and send a request.
  *
@@ -244,7 +248,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 		      unsigned int timeout, unsigned int udptimeout,
 		      unsigned int udpretries, isc_task_t *task,
 		      isc_taskaction_t action, void *arg,
-		      dns_request_t **requestp);
+		      dns_request_t **requestp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*!<
  * \brief Create and send a request.
  *
@@ -294,7 +299,8 @@ dns_request_cancel(dns_request_t *request);
 
 isc_result_t
 dns_request_getresponse(dns_request_t *request, dns_message_t *message,
-			unsigned int options);
+			unsigned int options)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the response to 'request' by filling in 'message'.
  *
@@ -316,7 +322,8 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
  */
 
 isc_boolean_t
-dns_request_usedtcp(dns_request_t *request);
+dns_request_usedtcp(dns_request_t *request)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return whether this query used TCP or not.  Setting #DNS_REQUESTOPT_TCP
  * in the call to dns_request_create() will cause the function to return

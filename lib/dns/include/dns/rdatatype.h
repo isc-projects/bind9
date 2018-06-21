@@ -15,6 +15,7 @@
 
 /*! \file dns/rdatatype.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -22,7 +23,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source);
+dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a DNS rdata type.
  *
@@ -37,7 +39,8 @@ dns_rdatatype_fromtext(dns_rdatatype_t *typep, isc_textregion_t *source);
  */
 
 isc_result_t
-dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target);
+dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of type 'type' into 'target'.
  *
@@ -56,7 +59,8 @@ dns_rdatatype_totext(dns_rdatatype_t type, isc_buffer_t *target);
  */
 
 isc_result_t
-dns_rdatatype_tounknowntext(dns_rdatatype_t type, isc_buffer_t *target);
+dns_rdatatype_tounknowntext(dns_rdatatype_t type, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put textual RFC3597 TYPEXXXX representation of type 'type' into
  * 'target'.

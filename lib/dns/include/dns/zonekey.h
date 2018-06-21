@@ -15,6 +15,7 @@
 
 /*! \file dns/zonekey.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -22,7 +23,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_boolean_t
-dns_zonekey_iszonekey(dns_rdata_t *keyrdata);
+dns_zonekey_iszonekey(dns_rdata_t *keyrdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Determines if the key record contained in the rdata is a zone key.
  *

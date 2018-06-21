@@ -15,6 +15,7 @@
 
 /*! \file dns/secalg.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -22,7 +23,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source);
+dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a DNSSEC security algorithm value.
  * The text may contain either a mnemonic algorithm name or a decimal algorithm
@@ -40,7 +42,8 @@ dns_secalg_fromtext(dns_secalg_t *secalgp, isc_textregion_t *source);
  */
 
 isc_result_t
-dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target);
+dns_secalg_totext(dns_secalg_t secalg, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of the DNSSEC security algorithm 'secalg'
  * into 'target'.

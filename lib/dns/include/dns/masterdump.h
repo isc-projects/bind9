@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -237,7 +238,8 @@ dns_dumpctx_cancel(dns_dumpctx_t *dctx);
  */
 
 dns_dbversion_t *
-dns_dumpctx_version(dns_dumpctx_t *dctx);
+dns_dumpctx_version(dns_dumpctx_t *dctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the version handle (if any) of the database being dumped.
  *
@@ -246,7 +248,8 @@ dns_dumpctx_version(dns_dumpctx_t *dctx);
  */
 
 dns_db_t *
-dns_dumpctx_db(dns_dumpctx_t *dctx);
+dns_dumpctx_db(dns_dumpctx_t *dctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the database being dumped.
  *
@@ -261,14 +264,16 @@ dns_master_dumptostreaminc(isc_mem_t *mctx, dns_db_t *db,
 			   dns_dbversion_t *version,
 			   const dns_master_style_t *style, FILE *f,
 			   isc_task_t *task, dns_dumpdonefunc_t done,
-			   void *done_arg, dns_dumpctx_t **dctxp);
+			   void *done_arg, dns_dumpctx_t **dctxp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_dumptostream(isc_mem_t *mctx, dns_db_t *db,
 			dns_dbversion_t *version,
 			const dns_master_style_t *style,
 			dns_masterformat_t format,
-			dns_masterrawheader_t *header, FILE *f);
+			dns_masterrawheader_t *header, FILE *f)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Dump the database 'db' to the steam 'f' in the specified format by
  * 'format'.  If the format is dns_masterformat_text (the RFC1035 format),
@@ -305,13 +310,15 @@ dns_master_dumpinc(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		   const dns_master_style_t *style, const char *filename,
 		   isc_task_t *task, dns_dumpdonefunc_t done, void
 		   *done_arg, dns_dumpctx_t **dctxp,
-		   dns_masterformat_t format, dns_masterrawheader_t *header);
+		   dns_masterformat_t format, dns_masterrawheader_t *header)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_dump(isc_mem_t *mctx, dns_db_t *db,
 		dns_dbversion_t *version,
 		const dns_master_style_t *style, const char *filename,
-		dns_masterformat_t format, dns_masterrawheader_t *header);
+		dns_masterformat_t format, dns_masterrawheader_t *header)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Dump the database 'db' to the file 'filename' in the specified format by
@@ -341,7 +348,8 @@ isc_result_t
 dns_master_rdatasettotext(const dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
 			  const dns_master_style_t *style,
-			  isc_buffer_t *target);
+			  isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'rdataset' to text format, storing the result in 'target'.
  *
@@ -358,22 +366,26 @@ isc_result_t
 dns_master_questiontotext(const dns_name_t *owner_name,
 			  dns_rdataset_t *rdataset,
 			  const dns_master_style_t *style,
-			  isc_buffer_t *target);
+			  isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 			    dns_dbversion_t *version,
 			    dns_dbnode_t *node, const dns_name_t *name,
 			    const dns_master_style_t *style,
-			    FILE *f);
+			    FILE *f)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_dumpnode(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		    dns_dbnode_t *node, const dns_name_t *name,
-		    const dns_master_style_t *style, const char *filename);
+		    const dns_master_style_t *style, const char *filename)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 dns_masterstyle_flags_t
-dns_master_styleflags(const dns_master_style_t *style);
+dns_master_styleflags(const dns_master_style_t *style)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_stylecreate(dns_master_style_t **style,
@@ -381,7 +393,8 @@ dns_master_stylecreate(dns_master_style_t **style,
 		       unsigned int ttl_column, unsigned int class_column,
 		       unsigned int type_column, unsigned int rdata_column,
 		       unsigned int line_length, unsigned int tab_width,
-		       unsigned int split_width, isc_mem_t *mctx);
+		       unsigned int split_width, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_master_styledestroy(dns_master_style_t **style, isc_mem_t *mctx);

@@ -37,6 +37,7 @@
  *\li	None.
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -73,7 +74,8 @@ dns_rdatalist_init(dns_rdatalist_t *rdatalist);
 
 isc_result_t
 dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
-			 dns_rdataset_t *rdataset);
+			 dns_rdataset_t *rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Make 'rdataset' refer to the rdata in 'rdatalist'.
  *
@@ -99,7 +101,8 @@ dns_rdatalist_tordataset(dns_rdatalist_t *rdatalist,
 
 isc_result_t
 dns_rdatalist_fromrdataset(dns_rdataset_t *rdataset,
-			   dns_rdatalist_t **rdatalist);
+			   dns_rdatalist_t **rdatalist)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Point 'rdatalist' to the rdatalist in 'rdataset'.
  *

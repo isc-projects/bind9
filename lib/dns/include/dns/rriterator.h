@@ -25,6 +25,7 @@
  ***** Imports
  *****/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/stdtime.h>
@@ -68,7 +69,8 @@ typedef struct dns_rriterator {
 
 isc_result_t
 dns_rriterator_init(dns_rriterator_t *it, dns_db_t *db,
-		       dns_dbversion_t *ver, isc_stdtime_t now);
+		       dns_dbversion_t *ver, isc_stdtime_t now)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Initialize an rriterator; sets the cursor to the origin node
  * of the database.
@@ -84,7 +86,8 @@ dns_rriterator_init(dns_rriterator_t *it, dns_db_t *db,
  */
 
 isc_result_t
-dns_rriterator_first(dns_rriterator_t *it);
+dns_rriterator_first(dns_rriterator_t *it)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the rriterator cursor to the first rdata in the database.
  *
@@ -97,7 +100,8 @@ dns_rriterator_first(dns_rriterator_t *it);
  */
 
 isc_result_t
-dns_rriterator_nextrrset(dns_rriterator_t *it);
+dns_rriterator_nextrrset(dns_rriterator_t *it)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the rriterator cursor to the next rrset in the database,
  * skipping over any remaining records that have the same rdatatype
@@ -112,7 +116,8 @@ dns_rriterator_nextrrset(dns_rriterator_t *it);
  */
 
 isc_result_t
-dns_rriterator_next(dns_rriterator_t *it);
+dns_rriterator_next(dns_rriterator_t *it)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the rriterator cursor to the next rrset in the database,
  * skipping over any remaining records that have the same rdatatype

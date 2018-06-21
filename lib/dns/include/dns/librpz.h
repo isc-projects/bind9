@@ -42,6 +42,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 
+#include <isc/attribute.h>
 
 /*
  * Allow either ordinary or dlopen() linking.
@@ -235,7 +236,8 @@ typedef struct {
 #define LIBRPZ_UNLIKELY(c) (c)
 #endif
 
-typedef bool (librpz_parse_log_opt_t)(librpz_emsg_t *emsg, const char *arg);
+typedef bool (librpz_parse_log_opt_t)(librpz_emsg_t *emsg, const char *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(parse_log_opt)
 
 typedef void (librpz_vpemsg_t)(librpz_emsg_t *emsg,
@@ -383,7 +385,8 @@ typedef librpz_clist_t *(librpz_clist_create_t)(librpz_emsg_t *emsg,
 						librpz_mutex_t *lock,
 						librpz_mutex_t *unlock,
 						librpz_mutex_t *mutex_destroy,
-						void *mutex, void *log_ctx);
+						void *mutex, void *log_ctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(clist_create)
 
 
@@ -404,7 +407,8 @@ LIBDEF_F(clist_detach)
 typedef librpz_client_t *(librpz_client_create_t)(librpz_emsg_t *emsg,
 						  librpz_clist_t *clist,
 						  const char *cstr,
-						  bool use_expired);
+						  bool use_expired)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(client_create)
 
 /**
@@ -414,7 +418,8 @@ LIBDEF_F(client_create)
  * @param optional: true if it is ok if starting the daemon is not allowed
  */
 typedef bool (librpz_connect_t)(librpz_emsg_t *emsg, librpz_client_t *client,
-				bool optional);
+				bool optional)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(connect)
 
 /**
@@ -445,7 +450,8 @@ typedef struct librpz_rsp librpz_rsp_t;
  */
 typedef bool (librpz_rsp_create_t)(librpz_emsg_t *emsg, librpz_rsp_t **rspp,
 				   int *min_ns_dotsp, librpz_client_t *client,
-				   bool have_rd, bool have_do);
+				   bool have_rd, bool have_do)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_create)
 
 /**
@@ -472,7 +478,8 @@ LIBDEF_F(rsp_detach)
  * @return false on error
  */
 typedef bool (librpz_rsp_result_t)(librpz_emsg_t *emsg, librpz_result_t *result,
-				   bool recursed, const librpz_rsp_t *rsp);
+				   bool recursed, const librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_result)
 
 /**
@@ -483,7 +490,8 @@ LIBDEF_F(rsp_result)
  * @return: true if looking could be worthwhile
  */
 typedef bool (librpz_have_trig_t)(librpz_trig_t trig, bool ipv6,
-				  const librpz_rsp_t *rsp);
+				  const librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(have_trig)
 
 /**
@@ -502,7 +510,8 @@ LIBDEF_F(have_ns_trig)
  */
 typedef bool (librpz_rsp_clientip_prefix_t)(librpz_emsg_t *emsg,
 					    librpz_prefix_t *prefix,
-					    librpz_rsp_t *rsp);
+					    librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_clientip_prefix)
 
 /**
@@ -517,7 +526,8 @@ LIBDEF_F(rsp_clientip_prefix)
  */
 typedef bool (librpz_rsp_domain_t)(librpz_emsg_t *emsg,
 				   librpz_domain_buf_t *owner,
-				   librpz_rsp_t *rsp);
+				   librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_domain)
 
 /**
@@ -541,7 +551,8 @@ typedef bool (librpz_rsp_rr_t)(librpz_emsg_t *emsg, uint16_t *typep,
 			       uint16_t *classp, uint32_t *ttlp,
 			       librpz_rr_t **rrp, librpz_result_t *result,
 			       const uint8_t *qname, size_t qname_size,
-			       librpz_rsp_t *rsp);
+			       librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_rr)
 
 /**
@@ -557,7 +568,8 @@ LIBDEF_F(rsp_rr)
  */
 typedef bool (librpz_rsp_soa_t)(librpz_emsg_t *emsg, uint32_t *ttlp,
 				librpz_rr_t **rrp, librpz_domain_buf_t *origin,
-				librpz_result_t *result, librpz_rsp_t *rsp);
+				librpz_result_t *result, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_soa)
 
 /**
@@ -565,7 +577,8 @@ LIBDEF_F(rsp_soa)
  * to check whether a zone transfer is complete.
  */
 typedef bool (librpz_soa_serial_t)(librpz_emsg_t *emsg, uint32_t *serialp,
-				   const char *domain_nm, librpz_rsp_t *rsp);
+				   const char *domain_nm, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(soa_serial)
 
 /**
@@ -574,7 +587,8 @@ LIBDEF_F(soa_serial)
  * @param[in,out] rsp state from librpz_itr_start()
  * @return false on error
  */
-typedef bool (librpz_rsp_push_t)(librpz_emsg_t *emsg, librpz_rsp_t *rsp);
+typedef bool (librpz_rsp_push_t)(librpz_emsg_t *emsg, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_push)
 #define LIBRPZ_RSP_STACK_DEPTH	3
 
@@ -586,7 +600,8 @@ LIBDEF_F(rsp_push)
  * @return false on error
  */
 typedef bool (librpz_rsp_pop_t)(librpz_emsg_t *emsg, librpz_result_t *result,
-				librpz_rsp_t *rsp);
+				librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_pop)
 
 /**
@@ -595,7 +610,8 @@ LIBDEF_F(rsp_pop)
  * @param[out] result: NULL or restored policy rewrite values
  * @return false on error
  */
-typedef bool (librpz_rsp_pop_discard_t)(librpz_emsg_t *emsg, librpz_rsp_t *rsp);
+typedef bool (librpz_rsp_pop_discard_t)(librpz_emsg_t *emsg, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_pop_discard)
 
 /**
@@ -606,7 +622,8 @@ LIBDEF_F(rsp_pop_discard)
  * @return false on error
  */
 typedef bool (librpz_rsp_forget_zone_t)(librpz_emsg_t *emsg,
-					librpz_cznum_t znum, librpz_rsp_t *rsp);
+					librpz_cznum_t znum, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(rsp_forget_zone)
 
 /**
@@ -623,7 +640,8 @@ LIBDEF_F(rsp_forget_zone)
 typedef bool (librpz_ck_ip_t)(librpz_emsg_t *emsg,
 			      const void *addr, uint family,
 			      librpz_trig_t trig, librpz_result_id_t hit_id,
-			      bool recursed, librpz_rsp_t *rsp);
+			      bool recursed, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(ck_ip)
 
 /**
@@ -640,7 +658,8 @@ LIBDEF_F(ck_ip)
 typedef bool (librpz_ck_domain_t)(librpz_emsg_t *emsg,
 				  const uint8_t *domain, size_t domain_size,
 				  librpz_trig_t trig, librpz_result_id_t hit_id,
-				  bool recursed, librpz_rsp_t *rsp);
+				  bool recursed, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(ck_domain)
 
 /**
@@ -651,7 +670,8 @@ LIBDEF_F(ck_domain)
  * @return false after error
  */
 typedef bool (librpz_zone_refresh_t)(librpz_emsg_t *emsg, const char *domain,
-				       librpz_rsp_t *rsp);
+				       librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(zone_refresh)
 
 /**
@@ -665,7 +685,8 @@ LIBDEF_F(zone_refresh)
  */
 typedef char *(librpz_db_info_t)(librpz_emsg_t *emsg,
 				 bool license, bool cfiles, bool listens,
-				 librpz_rsp_t *rsp);
+				 librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(db_info)
 
 /**
@@ -676,7 +697,8 @@ LIBDEF_F(db_info)
  * @return false after error
  */
 typedef bool (librpz_itr_start_t)(librpz_emsg_t *emsg, librpz_rsp_t **rspp,
-				  librpz_client_t *client);
+				  librpz_client_t *client)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(itr_start)
 
 /**
@@ -685,7 +707,8 @@ LIBDEF_F(itr_start)
  * @param rsp state from librpz_itr_start()
  * @return malloc'ed string or NULL after error
  */
-typedef char *(librpz_mf_stats_t)(librpz_emsg_t *emsg, librpz_rsp_t *rsp);
+typedef char *(librpz_mf_stats_t)(librpz_emsg_t *emsg, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(mf_stats)
 
 /**
@@ -694,7 +717,8 @@ LIBDEF_F(mf_stats)
  * @param[in,out] rsp: state from librpz_itr_start()
  * @return malloc'ed string or NULL after error
  */
-typedef char *(librpz_vers_stats_t)(librpz_emsg_t *emsg, librpz_rsp_t *rsp);
+typedef char *(librpz_vers_stats_t)(librpz_emsg_t *emsg, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(vers_stats)
 
 /**
@@ -705,7 +729,8 @@ LIBDEF_F(vers_stats)
  * @return malloc'ed string or NULL after error
  */
 typedef char *(librpz_itr_zone_t)(librpz_emsg_t *emsg, bool all_zones,
-				  librpz_rsp_t *rsp);
+				  librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(itr_zone)
 
 /**
@@ -718,28 +743,32 @@ LIBDEF_F(itr_zone)
  * @return: false on error
  */
 typedef bool (librpz_itr_node_t)(librpz_emsg_t *emsg, librpz_result_t *result,
-				 bool all_zones, librpz_rsp_t *rsp);
+				 bool all_zones, librpz_rsp_t *rsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(itr_node)
 
 /**
  * RPZ policy to string with a backup buffer of POLICY2STR_SIZE size
  */
 typedef const char *(librpz_policy2str_t)(librpz_policy_t policy,
-					  char *buf, size_t buf_size);
+					  char *buf, size_t buf_size)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 #define POLICY2STR_SIZE sizeof("policy xxxxxx")
 LIBDEF_F(policy2str)
 
 /**
  * Trigger type to string.
  */
-typedef const char *(librpz_trig2str_t)(librpz_trig_t trig);
+typedef const char *(librpz_trig2str_t)(librpz_trig_t trig)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(trig2str)
 
 /**
  * Convert a number of seconds to a zone file duration string
  */
 typedef const char *(librpz_secs2str_t)(time_t secs,
-					char *buf, size_t buf_size);
+					char *buf, size_t buf_size)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 #define SECS2STR_SIZE sizeof("1234567w7d24h59m59s")
 LIBDEF_F(secs2str)
 
@@ -747,43 +776,51 @@ LIBDEF_F(secs2str)
  * Parse a duration with 's', 'm', 'h', 'd', and 'w' units.
  */
 typedef bool (librpz_str2secs_t)(librpz_emsg_t *emsg, time_t *val,
-				 const char *str0);
+				 const char *str0)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(str2secs)
 
 /**
  * Translate selected rtypes to strings
  */
-typedef const char *(librpz_rtype2str_t)(uint type, char *buf, size_t buf_size);
+typedef const char *(librpz_rtype2str_t)(uint type, char *buf, size_t buf_size)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 #define RTYPE2STR_SIZE sizeof("type xxxxx")
 LIBDEF_F(rtype2str)
 
 /**
  * Local version of ns_name_ntop() for portability.
  */
-typedef int (librpz_domain_ntop_t)(const u_char *src, char *dst, size_t dstsiz);
+typedef int (librpz_domain_ntop_t)(const u_char *src, char *dst, size_t dstsiz)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(domain_ntop)
 
 /**
  * Local version of ns_name_pton().
  */
 typedef int (librpz_domain_pton2_t)(const char *src, u_char *dst, size_t dstsiz,
-				    size_t *dstlen, bool lower);
+				    size_t *dstlen, bool lower)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(domain_pton2)
 
 typedef union socku socku_t;
 typedef socku_t *(librpz_mk_inet_su_t)(socku_t *su, const struct in_addr *addrp,
-				     in_port_t port);
+				     in_port_t port)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(mk_inet_su)
 
 typedef socku_t *(librpz_mk_inet6_su_t)(socku_t *su, const
 					struct in6_addr *addrp,
-					uint32_t scope_id, in_port_t port);
+					uint32_t scope_id, in_port_t port)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(mk_inet6_su)
 
-typedef bool (librpz_str2su_t)(socku_t *sup, const char *str);
+typedef bool (librpz_str2su_t)(socku_t *sup, const char *str)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(str2su)
 
-typedef char *(librpz_su2str_t)(char *str, size_t str_len, const socku_t *su);
+typedef char *(librpz_su2str_t)(char *str, size_t str_len, const socku_t *su)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 LIBDEF_F(su2str)
 #define SU2STR_SIZE (INET6_ADDRSTRLEN+1+6+1)
 
@@ -877,6 +914,7 @@ extern librpz_t *librpz;
  */
 static inline librpz_t *
 librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT
 {
 	void *handle;
 	librpz_t *new_librpz;
@@ -946,6 +984,7 @@ librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
  */
 static inline librpz_t *
 librpz_lib_open(librpz_emsg_t *emsg, void **dl_handle, const char *path)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT
 {
 	(void)(path);
 

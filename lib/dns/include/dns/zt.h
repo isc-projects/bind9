@@ -15,6 +15,7 @@
 
 /*! \file dns/zt.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -24,7 +25,8 @@
 ISC_LANG_BEGINDECLS
 
 typedef isc_result_t
-(*dns_zt_allloaded_t)(void *arg);
+(*dns_zt_allloaded_t)(void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype: when all pending zone loads are complete,
  * the zone table can inform the caller via a callback function with
@@ -32,14 +34,16 @@ typedef isc_result_t
  */
 
 typedef isc_result_t
-(*dns_zt_zoneloaded_t)(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task);
+(*dns_zt_zoneloaded_t)(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype: when a zone finishes loading, the zt object
  * can be informed via a callback function with this signature.
  */
 
 isc_result_t
-dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt);
+dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Creates a new zone table.
  *
@@ -52,7 +56,8 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt);
  */
 
 isc_result_t
-dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
+dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Mounts the zone on the zone table.
  *
@@ -68,7 +73,8 @@ dns_zt_mount(dns_zt_t *zt, dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
+dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Unmount the given zone from the table.
  *
@@ -84,7 +90,8 @@ dns_zt_unmount(dns_zt_t *zt, dns_zone_t *zone);
 
 isc_result_t
 dns_zt_find(dns_zt_t *zt, const dns_name_t *name, unsigned int options,
-	    dns_name_t *foundname, dns_zone_t **zone);
+	    dns_name_t *foundname, dns_zone_t **zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the best match for 'name' in 'zt'.  If foundname is non NULL
  * then the name of the zone found is returned.
@@ -138,13 +145,16 @@ dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
  */
 
 isc_result_t
-dns_zt_load(dns_zt_t *zt, isc_boolean_t stop);
+dns_zt_load(dns_zt_t *zt, isc_boolean_t stop)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop);
+dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg);
+dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Load all zones in the table.  If 'stop' is ISC_TRUE,
  * stop on the first error and return it.  If 'stop'
@@ -163,7 +173,8 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg);
  */
 
 isc_result_t
-dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze);
+dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Freeze/thaw updates to master zones.
  * Any pending updates will be flushed.
@@ -172,7 +183,8 @@ dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze);
 
 isc_result_t
 dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
-	     isc_result_t (*action)(dns_zone_t *, void *), void *uap);
+	     isc_result_t (*action)(dns_zone_t *, void *), void *uap)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Apply a given 'action' to all zone zones in the table.
  * If 'stop' is 'ISC_TRUE' then walking the zone tree will stop if
@@ -190,7 +202,8 @@ dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
  */
 
 isc_boolean_t
-dns_zt_loadspending(dns_zt_t *zt);
+dns_zt_loadspending(dns_zt_t *zt)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns ISC_TRUE if and only if there are zones still waiting to
  * be loaded in zone table 'zt'.

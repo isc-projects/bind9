@@ -17,6 +17,7 @@
  * Rate limit DNS responses.
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/fixedname.h>
@@ -261,13 +262,15 @@ dns_rrl(dns_view_t *view,
 	const isc_sockaddr_t *client_addr, isc_boolean_t is_tcp,
 	dns_rdataclass_t rdclass, dns_rdatatype_t qtype,
 	const dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
-	isc_boolean_t wouldlog, char *log_buf, unsigned int log_buf_len);
+	isc_boolean_t wouldlog, char *log_buf, unsigned int log_buf_len)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_rrl_view_destroy(dns_view_t *view);
 
 isc_result_t
-dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries);
+dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

@@ -23,6 +23,7 @@
 
 #include <stdio.h>
 
+#include <isc/attribute.h>
 #include <isc/types.h>
 
 typedef struct dns_acl 				dns_acl_t;
@@ -400,13 +401,16 @@ typedef void
 (*dns_rawdatafunc_t)(dns_zone_t *, dns_masterrawheader_t *);
 
 typedef isc_result_t
-(*dns_addrdatasetfunc_t)(void *, const dns_name_t *, dns_rdataset_t *);
+(*dns_addrdatasetfunc_t)(void *, const dns_name_t *, dns_rdataset_t *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t
-(*dns_additionaldatafunc_t)(void *, const dns_name_t *, dns_rdatatype_t);
+(*dns_additionaldatafunc_t)(void *, const dns_name_t *, dns_rdatatype_t)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t
-(*dns_digestfunc_t)(void *, isc_region_t *);
+(*dns_digestfunc_t)(void *, isc_region_t *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef void
 (*dns_xfrindone_t)(dns_zone_t *, isc_result_t);
@@ -415,24 +419,30 @@ typedef void
 (*dns_updatecallback_t)(void *, isc_result_t, dns_message_t *);
 
 typedef int
-(*dns_rdatasetorderfunc_t)(const dns_rdata_t *, const void *);
+(*dns_rdatasetorderfunc_t)(const dns_rdata_t *, const void *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_boolean_t
-(*dns_checkmxfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *);
+(*dns_checkmxfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_boolean_t
-(*dns_checksrvfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *);
+(*dns_checksrvfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_boolean_t
 (*dns_checknsfunc_t)(dns_zone_t *, const dns_name_t *, const dns_name_t *,
-		     dns_rdataset_t *, dns_rdataset_t *);
+		     dns_rdataset_t *, dns_rdataset_t *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_boolean_t
 (*dns_isselffunc_t)(dns_view_t *, dns_tsigkey_t *, const isc_sockaddr_t *,
-		    const isc_sockaddr_t *, dns_rdataclass_t, void *);
+		    const isc_sockaddr_t *, dns_rdataclass_t, void *)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef isc_result_t
-(*dns_deserializefunc_t)(void *, FILE *, off_t);
+(*dns_deserializefunc_t)(void *, FILE *, off_t)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 typedef void
 (*dns_nseclog_t)(void *val, int , const char *, ...);

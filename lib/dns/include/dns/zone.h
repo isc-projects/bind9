@@ -20,6 +20,7 @@
 
 #include <stdio.h>
 
+#include <isc/attribute.h>
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/rwlock.h>
@@ -123,7 +124,8 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_result_t
-dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx);
+dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Creates a new empty zone and attach '*zonep' to it.
  *
@@ -154,7 +156,8 @@ dns_zone_setclass(dns_zone_t *zone, dns_rdataclass_t rdclass);
  */
 
 dns_rdataclass_t
-dns_zone_getclass(dns_zone_t *zone);
+dns_zone_getclass(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the current zone class.
  *
@@ -163,7 +166,8 @@ dns_zone_getclass(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_getserial(dns_zone_t *zone, isc_uint32_t *serialp);
+dns_zone_getserial(dns_zone_t *zone, isc_uint32_t *serialp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the current serial number of the zone.  On success, the SOA
  *	serial of the zone will be copied into '*serialp'.
@@ -200,7 +204,8 @@ dns_zone_setview(dns_zone_t *zone, dns_view_t *view);
  */
 
 dns_view_t *
-dns_zone_getview(dns_zone_t *zone);
+dns_zone_getview(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the zone's associated view.
  *
@@ -229,7 +234,8 @@ dns_zone_setviewrevert(dns_zone_t *zone);
 
 
 isc_result_t
-dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin);
+dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Sets the zones origin to 'origin'.
  *
@@ -243,7 +249,8 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin);
  */
 
 dns_name_t *
-dns_zone_getorigin(dns_zone_t *zone);
+dns_zone_getorigin(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the value of the origin.
  *
@@ -253,7 +260,8 @@ dns_zone_getorigin(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_setfile(dns_zone_t *zone, const char *file,
-		 dns_masterformat_t format, const dns_master_style_t *style);
+		 dns_masterformat_t format, const dns_master_style_t *style)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *    Sets the name of the master file in the format of 'format' from which
  *    the zone loads its database to 'file'.
@@ -272,7 +280,8 @@ dns_zone_setfile(dns_zone_t *zone, const char *file,
  */
 
 const char *
-dns_zone_getfile(dns_zone_t *zone);
+dns_zone_getfile(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Gets the name of the zone's master file, if any.
  *
@@ -297,7 +306,8 @@ dns_zone_setmaxrecords(dns_zone_t *zone, isc_uint32_t records);
  */
 
 isc_uint32_t
-dns_zone_getmaxrecords(dns_zone_t *zone);
+dns_zone_getmaxrecords(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Gets the maximim number of records permitted in a zone.
  *	0 implies unlimited.
@@ -322,7 +332,8 @@ dns_zone_setmaxttl(dns_zone_t *zone, isc_uint32_t maxttl);
  */
 
 dns_ttl_t
-dns_zone_getmaxttl(dns_zone_t *zone);
+dns_zone_getmaxttl(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Gets the max ttl of the zone.
  *
@@ -334,13 +345,16 @@ dns_zone_getmaxttl(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_load(dns_zone_t *zone);
+dns_zone_load(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_zone_loadnew(dns_zone_t *zone);
+dns_zone_loadnew(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_zone_loadandthaw(dns_zone_t *zone);
+dns_zone_loadandthaw(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  *	Cause the database to be loaded from its backing store.
@@ -367,7 +381,8 @@ dns_zone_loadandthaw(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg);
+dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Cause the database to be loaded from its backing store asynchronously.
  * Other zone maintenance functions are suspended until this is complete.
@@ -387,7 +402,8 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg);
  */
 
 isc_boolean_t
-dns__zone_loadpending(dns_zone_t *zone);
+dns__zone_loadpending(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Indicates whether the zone is waiting to be loaded asynchronously.
  * (Not currently intended for use outside of this module and associated
@@ -453,7 +469,8 @@ dns_zone_setflag(dns_zone_t *zone, unsigned int flags, isc_boolean_t value);
  */
 
 isc_result_t
-dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp);
+dns_zone_getdb(dns_zone_t *zone, dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Attach '*dbp' to the database to if it exists otherwise
  *	return DNS_R_NOTLOADED.
@@ -485,7 +502,8 @@ dns_zone_setdb(dns_zone_t *zone, dns_db_t *db);
 
 isc_result_t
 dns_zone_setdbtype(dns_zone_t *zone,
-		   unsigned int dbargc, const char * const *dbargv);
+		   unsigned int dbargc, const char * const *dbargv)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Sets the database type to dbargv[0] and database arguments
  *	to subsequent dbargv elements.
@@ -503,7 +521,8 @@ dns_zone_setdbtype(dns_zone_t *zone,
  */
 
 isc_result_t
-dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx);
+dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the current dbtype.  isc_mem_free() should be used
  * 	to free 'argv' after use.
@@ -549,7 +568,8 @@ dns_zone_refresh(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_flush(dns_zone_t *zone);
+dns_zone_flush(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Write the zone to database if there are uncommitted changes.
  *
@@ -558,7 +578,8 @@ dns_zone_flush(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_dump(dns_zone_t *zone);
+dns_zone_dump(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Write the zone to database.
  *
@@ -569,7 +590,8 @@ dns_zone_dump(dns_zone_t *zone);
 isc_result_t
 dns_zone_dumptostream(dns_zone_t *zone, FILE *fd, dns_masterformat_t format,
 		      const dns_master_style_t *style,
-		      const isc_uint32_t rawversion);
+		      const isc_uint32_t rawversion)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *    Write the zone to stream 'fd' in the specified 'format'.
  *    If the 'format' is dns_masterformat_text (RFC1035), 'style' also
@@ -603,12 +625,14 @@ dns_zone_maintenance(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_setmasters(dns_zone_t *zone, const isc_sockaddr_t *masters,
-		    isc_uint32_t count);
+		    isc_uint32_t count)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_zone_setmasterswithkeys(dns_zone_t *zone,
 			    const isc_sockaddr_t *masters,
 			    dns_name_t **keynames,
-			    isc_uint32_t count);
+			    isc_uint32_t count)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Set the list of master servers for the zone.
  *
@@ -631,14 +655,17 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 
 isc_result_t
 dns_zone_setalsonotify(dns_zone_t *zone, const isc_sockaddr_t *notify,
-		       isc_uint32_t count);
+		       isc_uint32_t count)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_zone_setalsonotifywithkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
-			       dns_name_t **keynames, isc_uint32_t count);
+			       dns_name_t **keynames, isc_uint32_t count)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
 			       const isc_dscp_t *dscps, dns_name_t **keynames,
-			       isc_uint32_t count);
+			       isc_uint32_t count)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Set the list of additional servers to be notified when
  *	a zone changes.	 To clear the list use 'count = 0'.
@@ -677,7 +704,8 @@ dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option,
  */
 
 dns_zoneopt_t
-dns_zone_getoptions(dns_zone_t *zone);
+dns_zone_getoptions(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the current zone options.
  *
@@ -696,7 +724,8 @@ dns_zone_setkeyopt(dns_zone_t *zone, unsigned int option, isc_boolean_t value);
  */
 
 unsigned int
-dns_zone_getkeyopts(dns_zone_t *zone);
+dns_zone_getkeyopts(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the current zone key options.
  *
@@ -745,10 +774,12 @@ dns_zone_setmaxretrytime(dns_zone_t *zone, isc_uint32_t val);
  */
 
 isc_result_t
-dns_zone_setxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
+dns_zone_setxfrsource4(dns_zone_t *zone, const isc_sockaddr_t *xfrsource)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_zone_setaltxfrsource4(dns_zone_t *zone,
-			  const isc_sockaddr_t *xfrsource);
+			  const isc_sockaddr_t *xfrsource)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Set the source address to be used in IPv4 zone transfers.
  *
@@ -761,9 +792,11 @@ dns_zone_setaltxfrsource4(dns_zone_t *zone,
  */
 
 isc_sockaddr_t *
-dns_zone_getxfrsource4(dns_zone_t *zone);
+dns_zone_getxfrsource4(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_sockaddr_t *
-dns_zone_getaltxfrsource4(dns_zone_t *zone);
+dns_zone_getaltxfrsource4(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the source address set by a previous dns_zone_setxfrsource4
  *	call, or the default of inaddr_any, port 0.
@@ -773,9 +806,11 @@ dns_zone_getaltxfrsource4(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp);
+dns_zone_setxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
-dns_zone_setaltxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp);
+dns_zone_setaltxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the DSCP value associated with the transfer/alt-transfer source.
  *
@@ -787,9 +822,11 @@ dns_zone_setaltxfrsource4dscp(dns_zone_t *zone, isc_dscp_t dscp);
  */
 
 isc_dscp_t
-dns_zone_getxfrsource4dscp(dns_zone_t *zone);
+dns_zone_getxfrsource4dscp(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_dscp_t
-dns_zone_getaltxfrsource4dscp(dns_zone_t *zone);
+dns_zone_getaltxfrsource4dscp(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%/
  * Get the DSCP value associated with the transfer/alt-transfer source.
  *
@@ -799,10 +836,12 @@ dns_zone_getaltxfrsource4dscp(dns_zone_t *zone);
 
 
 isc_result_t
-dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource);
+dns_zone_setxfrsource6(dns_zone_t *zone, const isc_sockaddr_t *xfrsource)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_zone_setaltxfrsource6(dns_zone_t *zone,
-			  const isc_sockaddr_t *xfrsource);
+			  const isc_sockaddr_t *xfrsource)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Set the source address to be used in IPv6 zone transfers.
  *
@@ -815,9 +854,11 @@ dns_zone_setaltxfrsource6(dns_zone_t *zone,
  */
 
 isc_sockaddr_t *
-dns_zone_getxfrsource6(dns_zone_t *zone);
+dns_zone_getxfrsource6(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_sockaddr_t *
-dns_zone_getaltxfrsource6(dns_zone_t *zone);
+dns_zone_getaltxfrsource6(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the source address set by a previous dns_zone_setxfrsource6
  *	call, or the default of in6addr_any, port 0.
@@ -827,9 +868,11 @@ dns_zone_getaltxfrsource6(dns_zone_t *zone);
  */
 
 isc_dscp_t
-dns_zone_getxfrsource6dscp(dns_zone_t *zone);
+dns_zone_getxfrsource6dscp(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_dscp_t
-dns_zone_getaltxfrsource6dscp(dns_zone_t *zone);
+dns_zone_getaltxfrsource6dscp(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%/
  * Get the DSCP value associated with the transfer/alt-transfer source.
  *
@@ -838,9 +881,11 @@ dns_zone_getaltxfrsource6dscp(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp);
+dns_zone_setxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
-dns_zone_setaltxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp);
+dns_zone_setaltxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the DSCP value associated with the transfer/alt-transfer source.
  *
@@ -852,7 +897,8 @@ dns_zone_setaltxfrsource6dscp(dns_zone_t *zone, isc_dscp_t dscp);
  */
 
 isc_result_t
-dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
+dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Set the source address to be used with IPv4 NOTIFY messages.
  *
@@ -865,7 +911,8 @@ dns_zone_setnotifysrc4(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
  */
 
 isc_sockaddr_t *
-dns_zone_getnotifysrc4(dns_zone_t *zone);
+dns_zone_getnotifysrc4(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the source address set by a previous dns_zone_setnotifysrc4
  *	call, or the default of inaddr_any, port 0.
@@ -875,7 +922,8 @@ dns_zone_getnotifysrc4(dns_zone_t *zone);
  */
 
 isc_dscp_t
-dns_zone_getnotifysrc4dscp(dns_zone_t *zone);
+dns_zone_getnotifysrc4dscp(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%/
  * Get the DSCP value associated with the IPv4 notify source.
  *
@@ -884,7 +932,8 @@ dns_zone_getnotifysrc4dscp(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setnotifysrc4dscp(dns_zone_t *zone, isc_dscp_t dscp);
+dns_zone_setnotifysrc4dscp(dns_zone_t *zone, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the DSCP value associated with the IPv4 notify source.
  *
@@ -896,7 +945,8 @@ dns_zone_setnotifysrc4dscp(dns_zone_t *zone, isc_dscp_t dscp);
  */
 
 isc_result_t
-dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
+dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Set the source address to be used with IPv6 NOTIFY messages.
  *
@@ -909,7 +959,8 @@ dns_zone_setnotifysrc6(dns_zone_t *zone, const isc_sockaddr_t *notifysrc);
  */
 
 isc_sockaddr_t *
-dns_zone_getnotifysrc6(dns_zone_t *zone);
+dns_zone_getnotifysrc6(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the source address set by a previous dns_zone_setnotifysrc6
  *	call, or the default of in6addr_any, port 0.
@@ -919,7 +970,8 @@ dns_zone_getnotifysrc6(dns_zone_t *zone);
  */
 
 isc_dscp_t
-dns_zone_getnotifysrc6dscp(dns_zone_t *zone);
+dns_zone_getnotifysrc6dscp(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%/
  * Get the DSCP value associated with the IPv6 notify source.
  *
@@ -928,7 +980,8 @@ dns_zone_getnotifysrc6dscp(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setnotifysrc6dscp(dns_zone_t *zone, isc_dscp_t dscp);
+dns_zone_setnotifysrc6dscp(dns_zone_t *zone, isc_dscp_t dscp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set the DSCP value associated with the IPv6 notify source.
  *
@@ -1000,7 +1053,8 @@ dns_zone_setxfracl(dns_zone_t *zone, dns_acl_t *acl);
  */
 
 dns_acl_t *
-dns_zone_getnotifyacl(dns_zone_t *zone);
+dns_zone_getnotifyacl(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Returns the current notify acl or NULL.
  *
@@ -1013,7 +1067,8 @@ dns_zone_getnotifyacl(dns_zone_t *zone);
  */
 
 dns_acl_t *
-dns_zone_getqueryacl(dns_zone_t *zone);
+dns_zone_getqueryacl(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Returns the current query acl or NULL.
  *
@@ -1026,7 +1081,8 @@ dns_zone_getqueryacl(dns_zone_t *zone);
  */
 
 dns_acl_t *
-dns_zone_getqueryonacl(dns_zone_t *zone);
+dns_zone_getqueryonacl(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Returns the current query-on acl or NULL.
  *
@@ -1039,7 +1095,8 @@ dns_zone_getqueryonacl(dns_zone_t *zone);
  */
 
 dns_acl_t *
-dns_zone_getupdateacl(dns_zone_t *zone);
+dns_zone_getupdateacl(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Returns the current update acl or NULL.
  *
@@ -1052,7 +1109,8 @@ dns_zone_getupdateacl(dns_zone_t *zone);
  */
 
 dns_acl_t *
-dns_zone_getforwardacl(dns_zone_t *zone);
+dns_zone_getforwardacl(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Returns the current forward unsigned updates acl or NULL.
  *
@@ -1065,7 +1123,8 @@ dns_zone_getforwardacl(dns_zone_t *zone);
  */
 
 dns_acl_t *
-dns_zone_getxfracl(dns_zone_t *zone);
+dns_zone_getxfracl(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Returns the current transfer acl or NULL.
  *
@@ -1132,7 +1191,8 @@ dns_zone_clearxfracl(dns_zone_t *zone);
  */
 
 isc_boolean_t
-dns_zone_getupdatedisabled(dns_zone_t *zone);
+dns_zone_getupdatedisabled(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return update disabled.
  * Transient unless called when running in isc_task_exclusive() mode.
@@ -1148,7 +1208,8 @@ dns_zone_setupdatedisabled(dns_zone_t *zone, isc_boolean_t state);
  */
 
 isc_boolean_t
-dns_zone_getzeronosoattl(dns_zone_t *zone);
+dns_zone_getzeronosoattl(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return zero-no-soa-ttl status.
  */
@@ -1169,7 +1230,8 @@ dns_zone_setchecknames(dns_zone_t *zone, dns_severity_t severity);
  */
 
 dns_severity_t
-dns_zone_getchecknames(dns_zone_t *zone);
+dns_zone_getchecknames(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Return the current severity of name checking.
  *
@@ -1187,7 +1249,8 @@ dns_zone_setjournalsize(dns_zone_t *zone, isc_int32_t size);
  */
 
 isc_int32_t
-dns_zone_getjournalsize(dns_zone_t *zone);
+dns_zone_getjournalsize(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Return the journal size as set with a previous call to
  *	dns_zone_setjournalsize().
@@ -1198,7 +1261,8 @@ dns_zone_getjournalsize(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_notifyreceive(dns_zone_t *zone, isc_sockaddr_t *from,
-		       isc_sockaddr_t *to, dns_message_t *msg);
+		       isc_sockaddr_t *to, dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Tell the zone that it has received a NOTIFY message from another
  *	server.  This may cause some zone maintenance activity to occur.
@@ -1227,7 +1291,8 @@ dns_zone_setmaxxfrin(dns_zone_t *zone, isc_uint32_t maxxfrin);
  */
 
 isc_uint32_t
-dns_zone_getmaxxfrin(dns_zone_t *zone);
+dns_zone_getmaxxfrin(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns the maximum transfer time for this zone.  This will be
  * either the value set by the last call to dns_zone_setmaxxfrin() or
@@ -1248,7 +1313,8 @@ dns_zone_setmaxxfrout(dns_zone_t *zone, isc_uint32_t maxxfrout);
  */
 
 isc_uint32_t
-dns_zone_getmaxxfrout(dns_zone_t *zone);
+dns_zone_getmaxxfrout(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns the maximum transfer time for this zone.  This will be
  * either the value set by the last call to dns_zone_setmaxxfrout() or
@@ -1259,7 +1325,8 @@ dns_zone_getmaxxfrout(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setjournal(dns_zone_t *zone, const char *myjournal);
+dns_zone_setjournal(dns_zone_t *zone, const char *myjournal)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Sets the filename used for journaling updates / IXFR transfers.
  * The default journal name is set by dns_zone_setfile() to be
@@ -1275,7 +1342,8 @@ dns_zone_setjournal(dns_zone_t *zone, const char *myjournal);
  */
 
 char *
-dns_zone_getjournal(dns_zone_t *zone);
+dns_zone_getjournal(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns the journal name associated with this zone.
  * If no journal has been set this will be NULL.
@@ -1285,7 +1353,8 @@ dns_zone_getjournal(dns_zone_t *zone);
  */
 
 dns_zonetype_t
-dns_zone_gettype(dns_zone_t *zone);
+dns_zone_gettype(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns the type of the zone (master/slave/etc.)
  *
@@ -1294,7 +1363,8 @@ dns_zone_gettype(dns_zone_t *zone);
  */
 
 dns_zonetype_t
-dns_zone_getredirecttype(dns_zone_t *zone);
+dns_zone_getredirecttype(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns whether the redirect zone is configured as a master or a
  * slave zone.
@@ -1339,7 +1409,8 @@ dns_zone_notify(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump);
+dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Replace the database of "zone" with a new database "db".
  *
@@ -1365,7 +1436,8 @@ dns_zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump);
  */
 
 isc_uint32_t
-dns_zone_getidlein(dns_zone_t *zone);
+dns_zone_getidlein(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Requires:
  * \li	'zone' to be a valid zone.
@@ -1385,7 +1457,8 @@ dns_zone_setidlein(dns_zone_t *zone, isc_uint32_t idlein);
  */
 
 isc_uint32_t
-dns_zone_getidleout(dns_zone_t *zone);
+dns_zone_getidleout(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *
  * Requires:
@@ -1424,7 +1497,8 @@ dns_zone_setssutable(dns_zone_t *zone, dns_ssutable_t *table);
  */
 
 isc_mem_t *
-dns_zone_getmctx(dns_zone_t *zone);
+dns_zone_getmctx(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the memory context of a zone.
  *
@@ -1433,7 +1507,8 @@ dns_zone_getmctx(dns_zone_t *zone);
  */
 
 dns_zonemgr_t *
-dns_zone_getmgr(dns_zone_t *zone);
+dns_zone_getmgr(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	If 'zone' is managed return the zone manager otherwise NULL.
  *
@@ -1453,7 +1528,8 @@ dns_zone_setsigvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
  */
 
 isc_uint32_t
-dns_zone_getsigvalidityinterval(dns_zone_t *zone);
+dns_zone_getsigvalidityinterval(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the zone's general signature validity interval.
  *
@@ -1479,7 +1555,8 @@ dns_zone_setkeyvalidityinterval(dns_zone_t *zone, isc_uint32_t interval);
  */
 
 isc_uint32_t
-dns_zone_getkeyvalidityinterval(dns_zone_t *zone);
+dns_zone_getkeyvalidityinterval(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the zone's DNSKEY signature validity interval.
  *
@@ -1498,7 +1575,8 @@ dns_zone_setsigresigninginterval(dns_zone_t *zone, isc_uint32_t interval);
  */
 
 isc_uint32_t
-dns_zone_getsigresigninginterval(dns_zone_t *zone);
+dns_zone_getsigresigninginterval(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the zone's RRSIG re-signing interval.
  *
@@ -1514,7 +1592,8 @@ dns_zone_setnotifytype(dns_zone_t *zone, dns_notifytype_t notifytype);
 
 isc_result_t
 dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
-		       dns_updatecallback_t callback, void *callback_arg);
+		       dns_updatecallback_t callback, void *callback_arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Forward 'msg' to each master in turn until we get an answer or we
  * have exhausted the list of masters. 'callback' will be called with
@@ -1535,7 +1614,8 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
  */
 
 isc_result_t
-dns_zone_next(dns_zone_t *zone, dns_zone_t **next);
+dns_zone_next(dns_zone_t *zone, dns_zone_t **next)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the next zone in the list of managed zones.
  *
@@ -1553,7 +1633,8 @@ dns_zone_next(dns_zone_t *zone, dns_zone_t **next);
 
 
 isc_result_t
-dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first);
+dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the first zone in the list of managed zones.
  *
@@ -1569,7 +1650,8 @@ dns_zone_first(dns_zonemgr_t *zmgr, dns_zone_t **first);
  */
 
 isc_result_t
-dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory);
+dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Sets the name of the directory where private keys used for
  *	online signing of dynamic zones are found.
@@ -1583,7 +1665,8 @@ dns_zone_setkeydirectory(dns_zone_t *zone, const char *directory);
  */
 
 const char *
-dns_zone_getkeydirectory(dns_zone_t *zone);
+dns_zone_getkeydirectory(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * 	Gets the name of the directory where private keys used for
  *	online signing of dynamic zones are found.
@@ -1599,7 +1682,8 @@ dns_zone_getkeydirectory(dns_zone_t *zone);
 isc_result_t
 dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, isc_socketmgr_t *socketmgr,
-		   dns_zonemgr_t **zmgrp);
+		   dns_zonemgr_t **zmgrp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a zone manager.  Note: the zone manager will not be able to
  * manage any zones until dns_zonemgr_setsize() has been run.
@@ -1612,7 +1696,8 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
  */
 
 isc_result_t
-dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones);
+dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Set the size of the zone manager task pool.  This must be run
  *	before zmgr can be used for managing zones.  Currently, it can only
@@ -1624,7 +1709,8 @@ dns_zonemgr_setsize(dns_zonemgr_t *zmgr, int num_zones);
  */
 
 isc_result_t
-dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep);
+dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Allocate a new zone using a memory context from the
  *	zone manager's memory context pool.
@@ -1636,7 +1722,8 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep);
 
 
 isc_result_t
-dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
+dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Bring the zone under control of a zone manager.
  *
@@ -1646,7 +1733,8 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr);
+dns_zonemgr_forcemaint(dns_zonemgr_t *zmgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Force zone maintenance of all loaded zones managed by 'zmgr'
  * to take place at the system's earliest convenience.
@@ -1724,7 +1812,8 @@ dns_zonemgr_settransfersin(dns_zonemgr_t *zmgr, isc_uint32_t value);
  */
 
 isc_uint32_t
-dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr);
+dns_zonemgr_getttransfersin(dns_zonemgr_t *zmgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Return the maximum number of simultaneous transfers in allowed.
  *
@@ -1742,7 +1831,8 @@ dns_zonemgr_settransfersperns(dns_zonemgr_t *zmgr, isc_uint32_t value);
  */
 
 isc_uint32_t
-dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr);
+dns_zonemgr_getttransfersperns(dns_zonemgr_t *zmgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Return the number of transfers allowed per nameserver.
  *
@@ -1762,7 +1852,8 @@ dns_zonemgr_setiolimit(dns_zonemgr_t *zmgr, isc_uint32_t iolimit);
  */
 
 isc_uint32_t
-dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr);
+dns_zonemgr_getiolimit(dns_zonemgr_t *zmgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Get the number of simultaneous file descriptors available for
  *	reading and writing masterfiles.
@@ -1799,7 +1890,8 @@ dns_zonemgr_setserialqueryrate(dns_zonemgr_t *zmgr, unsigned int value);
  */
 
 unsigned int
-dns_zonemgr_getnotifyrate(dns_zonemgr_t *zmgr);
+dns_zonemgr_getnotifyrate(dns_zonemgr_t *zmgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Return the number of NOTIFY requests sent per second.
  *
@@ -1808,7 +1900,8 @@ dns_zonemgr_getnotifyrate(dns_zonemgr_t *zmgr);
  */
 
 unsigned int
-dns_zonemgr_getstartupnotifyrate(dns_zonemgr_t *zmgr);
+dns_zonemgr_getstartupnotifyrate(dns_zonemgr_t *zmgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Return the number of startup NOTIFY requests sent per second.
  *
@@ -1817,7 +1910,8 @@ dns_zonemgr_getstartupnotifyrate(dns_zonemgr_t *zmgr);
  */
 
 unsigned int
-dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr);
+dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Return the number of SOA queries sent per second.
  *
@@ -1826,7 +1920,8 @@ dns_zonemgr_getserialqueryrate(dns_zonemgr_t *zmgr);
  */
 
 unsigned int
-dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state);
+dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the number of zones in the specified state.
  *
@@ -1849,7 +1944,8 @@ dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 
 isc_boolean_t
 dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
-			isc_sockaddr_t *local, isc_time_t *now);
+			isc_sockaddr_t *local, isc_time_t *now)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns ISC_TRUE if the given local/remote address pair
  *	is found in the zone maanger's unreachable cache.
@@ -1883,7 +1979,8 @@ dns_zone_forcereload(dns_zone_t *zone);
  */
 
 isc_boolean_t
-dns_zone_isforced(dns_zone_t *zone);
+dns_zone_isforced(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *      Check if the zone is waiting a forced reload.
  *
@@ -1892,13 +1989,15 @@ dns_zone_isforced(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on);
+dns_zone_setstatistics(dns_zone_t *zone, isc_boolean_t on)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * This function is obsoleted by dns_zone_setrequeststats().
  */
 
 isc_uint64_t *
-dns_zone_getstatscounters(dns_zone_t *zone);
+dns_zone_getstatscounters(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * This function is obsoleted by dns_zone_getrequeststats().
  */
@@ -1937,10 +2036,12 @@ dns_zone_setrcvquerystats(dns_zone_t *zone, dns_stats_t *stats);
  */
 
 isc_stats_t *
-dns_zone_getrequeststats(dns_zone_t *zone);
+dns_zone_getrequeststats(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 dns_stats_t *
-dns_zone_getrcvquerystats(dns_zone_t *zone);
+dns_zone_getrcvquerystats(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the additional statistics for zone, if one is installed.
  *
@@ -2015,7 +2116,8 @@ dns_zone_nameonly(dns_zone_t *zone, char *buf, size_t len);
 
 isc_result_t
 dns_zone_checknames(dns_zone_t *zone, const dns_name_t *name,
-		    dns_rdata_t *rdata);
+		    dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check if this record meets the check-names policy.
  *
@@ -2070,7 +2172,8 @@ dns_zone_setnotifydelay(dns_zone_t *zone, isc_uint32_t delay);
  */
 
 isc_uint32_t
-dns_zone_getnotifydelay(dns_zone_t *zone);
+dns_zone_getnotifydelay(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the minimum delay between sets of notify messages.
  *
@@ -2106,21 +2209,24 @@ dns_zone_setsignatures(dns_zone_t *zone, isc_uint32_t signatures);
  */
 
 isc_uint32_t
-dns_zone_getsignatures(dns_zone_t *zone);
+dns_zone_getsignatures(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the number of signatures that will be generated per quantum.
  */
 
 isc_result_t
 dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
-		     isc_uint16_t keyid, isc_boolean_t deleteit);
+		     isc_uint16_t keyid, isc_boolean_t deleteit)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Initiate/resume signing of the entire zone with the zone DNSKEY(s)
  * that match the given algorithm and keyid.
  */
 
 isc_result_t
-dns_zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param);
+dns_zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Incrementally add a NSEC3 chain that corresponds to 'nsec3param'.
  */
@@ -2128,7 +2234,8 @@ dns_zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param);
 void
 dns_zone_setprivatetype(dns_zone_t *zone, dns_rdatatype_t type);
 dns_rdatatype_t
-dns_zone_getprivatetype(dns_zone_t *zone);
+dns_zone_getprivatetype(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Get/Set the private record type.  It is expected that these interfaces
  * will not be permanent.
@@ -2147,7 +2254,8 @@ dns_zone_rekey(dns_zone_t *zone, isc_boolean_t fullsign);
 
 isc_result_t
 dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
-		 unsigned int *errors);
+		 unsigned int *errors)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Check if the name servers for the zone are sane (have address, don't
  * refer to CNAMEs/DNAMEs.  The number of constiancy errors detected in
@@ -2164,7 +2272,8 @@ dns_zone_nscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
  */
 
 isc_result_t
-dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version);
+dns_zone_cdscheck(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Check if CSD, CDNSKEY and DNSKEY are consistent.
  *
@@ -2191,7 +2300,8 @@ dns_zone_setadded(dns_zone_t *zone, isc_boolean_t added);
  */
 
 isc_boolean_t
-dns_zone_getadded(dns_zone_t *zone);
+dns_zone_getadded(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Returns ISC_TRUE if the zone was originally added at runtime
  * using "rndc addzone".
@@ -2211,7 +2321,8 @@ dns_zone_setautomatic(dns_zone_t *zone, isc_boolean_t automatic);
  */
 
 isc_boolean_t
-dns_zone_getautomatic(dns_zone_t *zone);
+dns_zone_getautomatic(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Returns ISC_TRUE if the zone was added automatically by named.
  *
@@ -2220,13 +2331,15 @@ dns_zone_getautomatic(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db);
+dns_zone_dlzpostload(dns_zone_t *zone, dns_db_t *db)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Load the origin names for a writeable DLZ database.
  */
 
 isc_boolean_t
-dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze);
+dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return true iff the zone is "dynamic", in the sense that the zone's
  * master file (if any) is written by the server, rather than being
@@ -2244,7 +2357,8 @@ dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze);
  */
 
 isc_result_t
-dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval);
+dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Sets the frequency, in minutes, with which the key repository will be
  * checked to see if the keys for this zone have been updated.  Any value
@@ -2256,7 +2370,8 @@ dns_zone_setrefreshkeyinterval(dns_zone_t *zone, isc_uint32_t interval);
  */
 
 isc_boolean_t
-dns_zone_getrequestexpire(dns_zone_t *zone);
+dns_zone_getrequestexpire(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Returns the true/false value of the request-expire option in the zone.
  *
@@ -2276,7 +2391,8 @@ dns_zone_setrequestexpire(dns_zone_t *zone, isc_boolean_t flag);
 
 
 isc_boolean_t
-dns_zone_getrequestixfr(dns_zone_t *zone);
+dns_zone_getrequestixfr(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Returns the true/false value of the request-ixfr option in the zone.
  *
@@ -2306,7 +2422,8 @@ dns_zone_setserialupdatemethod(dns_zone_t *zone, dns_updatemethod_t method);
  */
 
 dns_updatemethod_t
-dns_zone_getserialupdatemethod(dns_zone_t *zone);
+dns_zone_getserialupdatemethod(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Returns the update method to be used when incrementing the zone serial
  * number due to a DDNS update.
@@ -2316,18 +2433,21 @@ dns_zone_getserialupdatemethod(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_link(dns_zone_t *zone, dns_zone_t *raw);
+dns_zone_link(dns_zone_t *zone, dns_zone_t *raw)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_zone_getraw(dns_zone_t *zone, dns_zone_t **raw);
 
 isc_result_t
-dns_zone_keydone(dns_zone_t *zone, const char *data);
+dns_zone_keydone(dns_zone_t *zone, const char *data)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_zone_setnsec3param(dns_zone_t *zone, isc_uint8_t hash, isc_uint8_t flags,
 		       isc_uint16_t iter, isc_uint8_t saltlen,
-		       unsigned char *salt, isc_boolean_t replace);
+		       unsigned char *salt, isc_boolean_t replace)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Set the NSEC3 parameters for the zone.
  *
@@ -2347,38 +2467,44 @@ dns_zone_setrawdata(dns_zone_t *zone, dns_masterrawheader_t *header);
  */
 
 isc_result_t
-dns_zone_synckeyzone(dns_zone_t *zone);
+dns_zone_synckeyzone(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Force the managed key zone to synchronize, and start the key
  * maintenance timer.
  */
 
 isc_result_t
-dns_zone_getloadtime(dns_zone_t *zone, isc_time_t *loadtime);
+dns_zone_getloadtime(dns_zone_t *zone, isc_time_t *loadtime)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return the time when the zone was last loaded.
  */
 
 isc_result_t
-dns_zone_getrefreshtime(dns_zone_t *zone, isc_time_t *refreshtime);
+dns_zone_getrefreshtime(dns_zone_t *zone, isc_time_t *refreshtime)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return the time when the (slave) zone will need to be refreshed.
  */
 
 isc_result_t
-dns_zone_getexpiretime(dns_zone_t *zone, isc_time_t *expiretime);
+dns_zone_getexpiretime(dns_zone_t *zone, isc_time_t *expiretime)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return the time when the (slave) zone will expire.
  */
 
 isc_result_t
-dns_zone_getrefreshkeytime(dns_zone_t *zone, isc_time_t *refreshkeytime);
+dns_zone_getrefreshkeytime(dns_zone_t *zone, isc_time_t *refreshkeytime)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return the time of the next scheduled DNSSEC key event.
  */
 
 unsigned int
-dns_zone_getincludes(dns_zone_t *zone, char ***includesp);
+dns_zone_getincludes(dns_zone_t *zone, char ***includesp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return the number include files that were encountered
  * during load.  If the number is greater than zero, 'includesp'
@@ -2389,7 +2515,8 @@ dns_zone_getincludes(dns_zone_t *zone, char ***includesp);
 
 isc_result_t
 dns_zone_rpz_enable(dns_zone_t *zone, dns_rpz_zones_t *rpzs,
-		    dns_rpz_num_t rpz_num);
+		    dns_rpz_num_t rpz_num)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Set the response policy associated with a zone.
  */
@@ -2401,7 +2528,8 @@ dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db);
  */
 
 dns_rpz_num_t
-dns_zone_get_rpz_num(dns_zone_t *zone);
+dns_zone_get_rpz_num(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs);
@@ -2438,7 +2566,8 @@ dns_zone_set_parentcatz(dns_zone_t *zone, dns_catz_zone_t *catz);
  */
 
 dns_catz_zone_t *
-dns_zone_get_parentcatz(const dns_zone_t *zone);
+dns_zone_get_parentcatz(const dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get parent catalog zone for this zone
  *
@@ -2452,21 +2581,23 @@ void
 dns_zone_setstatlevel(dns_zone_t *zone, dns_zonestat_level_t level);
 
 dns_zonestat_level_t
-dns_zone_getstatlevel(dns_zone_t *zone);
+dns_zone_getstatlevel(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Set and get the statistics reporting level for the zone;
  * full, terse, or none.
  */
 
 isc_result_t
-dns_zone_setserial(dns_zone_t *zone, isc_uint32_t serial);
+dns_zone_setserial(dns_zone_t *zone, isc_uint32_t serial)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Set the zone's serial to 'serial'.
  */
-ISC_LANG_ENDDECLS
 
 isc_stats_t *
-dns_zone_getgluecachestats(dns_zone_t *zone);
+dns_zone_getgluecachestats(dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the glue cache statistics for zone.
  *
@@ -2477,5 +2608,7 @@ dns_zone_getgluecachestats(dns_zone_t *zone);
  * \li	if present, a pointer to the statistics set installed in zone;
  *	otherwise NULL.
  */
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_ZONE_H */

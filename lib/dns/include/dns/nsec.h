@@ -15,6 +15,7 @@
 
 /*! \file dns/nsec.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -27,7 +28,8 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 		    dns_dbnode_t *node, const dns_name_t *target,
-		    unsigned char *buffer, dns_rdata_t *rdata);
+		    unsigned char *buffer, dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Build the rdata of a NSEC record.
  *
@@ -43,13 +45,15 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_nsec_build(dns_db_t *db, dns_dbversion_t *version, dns_dbnode_t *node,
-	       const dns_name_t *target, dns_ttl_t ttl);
+	       const dns_name_t *target, dns_ttl_t ttl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Build a NSEC record and add it to a database.
  */
 
 isc_boolean_t
-dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
+dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Determine if a type is marked as present in an NSEC record.
  *
@@ -59,7 +63,8 @@ dns_nsec_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
 
 isc_result_t
 dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
-		  isc_boolean_t *answer);
+		  isc_boolean_t *answer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Report whether the DNSKEY RRset has a NSEC only algorithm.  Unknown
  * algorithms are assumed to support NSEC3.  If DNSKEY is not found,
@@ -71,7 +76,8 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
 
 unsigned int
 dns_nsec_compressbitmap(unsigned char *map, const unsigned char *raw,
-			unsigned int max_type);
+			unsigned int max_type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert a raw bitmap into a compressed windowed bit map.  'map' and 'raw'
  * may overlap.
@@ -86,7 +92,8 @@ dns_nsec_setbit(unsigned char *array, unsigned int type, unsigned int bit);
  */
 
 isc_boolean_t
-dns_nsec_isset(const unsigned char *array, unsigned int type);
+dns_nsec_isset(const unsigned char *array, unsigned int type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Test if the corresponding 'type' bit is set in 'array'.
  */
@@ -95,7 +102,8 @@ isc_result_t
 dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 		       const dns_name_t *nsecname, dns_rdataset_t *nsecset,
 		       isc_boolean_t *exists, isc_boolean_t *data,
-		       dns_name_t *wild, dns_nseclog_t log, void *arg);
+		       dns_name_t *wild, dns_nseclog_t log, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Return ISC_R_SUCCESS if we can determine that the name doesn't exist
  * or we can determine whether there is data or not at the name.

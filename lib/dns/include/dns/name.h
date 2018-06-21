@@ -66,6 +66,7 @@
 
 #include <stdio.h>
 
+#include <isc/attribute.h>
 #include <isc/boolean.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -296,7 +297,8 @@ dns_name_setbuffer(dns_name_t *name, isc_buffer_t *buffer);
  */
 
 isc_boolean_t
-dns_name_hasbuffer(const dns_name_t *name);
+dns_name_hasbuffer(const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Does 'name' have a dedicated buffer?
  *
@@ -313,7 +315,8 @@ dns_name_hasbuffer(const dns_name_t *name);
  ***/
 
 isc_boolean_t
-dns_name_isabsolute(const dns_name_t *name);
+dns_name_isabsolute(const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Does 'name' end in the root label?
  *
@@ -326,7 +329,8 @@ dns_name_isabsolute(const dns_name_t *name);
  */
 
 isc_boolean_t
-dns_name_iswildcard(const dns_name_t *name);
+dns_name_iswildcard(const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is 'name' a wildcard name?
  *
@@ -341,7 +345,8 @@ dns_name_iswildcard(const dns_name_t *name);
  */
 
 unsigned int
-dns_name_hash(const dns_name_t *name, isc_boolean_t case_sensitive);
+dns_name_hash(const dns_name_t *name, isc_boolean_t case_sensitive)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Provide a hash value for 'name'.
  *
@@ -356,7 +361,8 @@ dns_name_hash(const dns_name_t *name, isc_boolean_t case_sensitive);
  */
 
 unsigned int
-dns_name_fullhash(const dns_name_t *name, isc_boolean_t case_sensitive);
+dns_name_fullhash(const dns_name_t *name, isc_boolean_t case_sensitive)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Provide a hash value for 'name'.  Unlike dns_name_hash(), this function
  * always takes into account of the entire name to calculate the hash value.
@@ -377,7 +383,8 @@ dns_name_fullhash(const dns_name_t *name, isc_boolean_t case_sensitive);
 
 dns_namereln_t
 dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
-		     int *orderp, unsigned int *nlabelsp);
+		     int *orderp, unsigned int *nlabelsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Determine the relative ordering under the DNSSEC order relation of
  * 'name1' and 'name2', and also determine the hierarchical
@@ -420,7 +427,8 @@ dns_name_fullcompare(const dns_name_t *name1, const dns_name_t *name2,
  */
 
 int
-dns_name_compare(const dns_name_t *name1, const dns_name_t *name2);
+dns_name_compare(const dns_name_t *name1, const dns_name_t *name2)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Determine the relative ordering under the DNSSEC order relation of
  * 'name1' and 'name2'.
@@ -444,7 +452,8 @@ dns_name_compare(const dns_name_t *name1, const dns_name_t *name2);
  */
 
 isc_boolean_t
-dns_name_equal(const dns_name_t *name1, const dns_name_t *name2);
+dns_name_equal(const dns_name_t *name1, const dns_name_t *name2)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Are 'name1' and 'name2' equal?
  *
@@ -472,13 +481,15 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2);
  */
 
 isc_boolean_t
-dns_name_caseequal(const dns_name_t *name1, const dns_name_t *name2);
+dns_name_caseequal(const dns_name_t *name1, const dns_name_t *name2)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Case sensitive version of dns_name_equal().
  */
 
 int
-dns_name_rdatacompare(const dns_name_t *name1, const dns_name_t *name2);
+dns_name_rdatacompare(const dns_name_t *name1, const dns_name_t *name2)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Compare two names as if they are part of rdata in DNSSEC canonical
  * form.
@@ -499,7 +510,8 @@ dns_name_rdatacompare(const dns_name_t *name1, const dns_name_t *name2);
  */
 
 isc_boolean_t
-dns_name_issubdomain(const dns_name_t *name1, const dns_name_t *name2);
+dns_name_issubdomain(const dns_name_t *name1, const dns_name_t *name2)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is 'name1' a subdomain of 'name2'?
  *
@@ -525,7 +537,8 @@ dns_name_issubdomain(const dns_name_t *name1, const dns_name_t *name2);
  */
 
 isc_boolean_t
-dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname);
+dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Does 'name' match the wildcard specified in 'wname'?
  *
@@ -562,7 +575,8 @@ dns_name_matcheswildcard(const dns_name_t *name, const dns_name_t *wname);
  ***/
 
 unsigned int
-dns_name_countlabels(const dns_name_t *name);
+dns_name_countlabels(const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * How many labels does 'name' have?
  *
@@ -684,7 +698,8 @@ dns_name_toregion(const dns_name_t *name, isc_region_t *r);
 isc_result_t
 dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 		  dns_decompress_t *dctx, unsigned int options,
-		  isc_buffer_t *target);
+		  isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Copy the possibly-compressed name at source (active region) into target,
  * decompressing it.
@@ -740,10 +755,12 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 
 isc_result_t
 dns_name_towire(const dns_name_t *name, dns_compress_t *cctx,
-		isc_buffer_t *target);
+		isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
-		 isc_buffer_t *target, isc_uint16_t *comp_offsetp);
+		 isc_buffer_t *target, isc_uint16_t *comp_offsetp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'name' into wire format, compressing it as specified by the
  * compression context 'cctx', and storing the result in 'target'.
@@ -778,7 +795,8 @@ dns_name_towire2(const dns_name_t *name, dns_compress_t *cctx,
 isc_result_t
 dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 		  const dns_name_t *origin, unsigned int options,
-		  isc_buffer_t *target);
+		  isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the textual representation of a DNS name at source
  * into uncompressed wire form stored in target.
@@ -825,15 +843,18 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 #define DNS_NAME_MASTERFILE	0x02U	/* escape $ and @ */
 
 isc_result_t
-dns_name_toprincipal(const dns_name_t *name, isc_buffer_t *target);
+dns_name_toprincipal(const dns_name_t *name, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_name_totext(const dns_name_t *name, isc_boolean_t omit_final_dot,
-		isc_buffer_t *target);
+		isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_name_totext2(const dns_name_t *name, unsigned int options,
-		 isc_buffer_t *target);
+		 isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'name' into text format, storing the result in 'target'.
  *
@@ -895,7 +916,8 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 
 isc_result_t
 dns_name_tofilenametext(const dns_name_t *name, isc_boolean_t omit_final_dot,
-			isc_buffer_t *target);
+			isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'name' into an alternate text format appropriate for filenames,
  * storing the result in 'target'.  The name data is downcased, guaranteeing
@@ -925,7 +947,8 @@ dns_name_tofilenametext(const dns_name_t *name, isc_boolean_t omit_final_dot,
 
 isc_result_t
 dns_name_downcase(const dns_name_t *source, dns_name_t *name,
-		  isc_buffer_t *target);
+		  isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Downcase 'source'.
  *
@@ -949,7 +972,8 @@ dns_name_downcase(const dns_name_t *source, dns_name_t *name,
 
 isc_result_t
 dns_name_concatenate(const dns_name_t *prefix, const dns_name_t *suffix,
-		     dns_name_t *name, isc_buffer_t *target);
+		     dns_name_t *name, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Concatenate 'prefix' and 'suffix'.
  *
@@ -1028,7 +1052,8 @@ dns_name_split(const dns_name_t *name, unsigned int suffixlabels,
 
 isc_result_t
 dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
-	     dns_name_t *target);
+	     dns_name_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Make 'target' a dynamically allocated copy of 'source'.
  *
@@ -1043,7 +1068,8 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
 
 isc_result_t
 dns_name_dupwithoffsets(const dns_name_t *source, isc_mem_t *mctx,
-			dns_name_t *target);
+			dns_name_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Make 'target' a read-only dynamically allocated copy of 'source'.
  * 'target' will also have a dynamically allocated offsets table.
@@ -1077,7 +1103,8 @@ dns_name_free(dns_name_t *name, isc_mem_t *mctx);
  */
 
 isc_result_t
-dns_name_digest(const dns_name_t *name, dns_digestfunc_t digest, void *arg);
+dns_name_digest(const dns_name_t *name, dns_digestfunc_t digest, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Send 'name' in DNSSEC canonical form to 'digest'.
  *
@@ -1104,7 +1131,8 @@ dns_name_digest(const dns_name_t *name, dns_digestfunc_t digest, void *arg);
  */
 
 isc_boolean_t
-dns_name_dynamic(const dns_name_t *name);
+dns_name_dynamic(const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Returns whether there is dynamic memory associated with this name.
  *
@@ -1118,7 +1146,8 @@ dns_name_dynamic(const dns_name_t *name);
  */
 
 isc_result_t
-dns_name_print(const dns_name_t *name, FILE *stream);
+dns_name_print(const dns_name_t *name, FILE *stream)
+	/* ISC_ATTRIBUTE_WARN_UNUSED_RESULT */;
 /*%<
  * Print 'name' on 'stream'.
  *
@@ -1161,7 +1190,8 @@ dns_name_format(const dns_name_t *name, char *cp, unsigned int size);
  */
 
 isc_result_t
-dns_name_tostring(const dns_name_t *source, char **target, isc_mem_t *mctx);
+dns_name_tostring(const dns_name_t *source, char **target, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'name' to string format, allocating sufficient memory to
  * hold it (free with isc_mem_free()).
@@ -1184,11 +1214,13 @@ dns_name_tostring(const dns_name_t *source, char **target, isc_mem_t *mctx);
 
 isc_result_t
 dns_name_fromstring(dns_name_t *target, const char *src, unsigned int options,
-		    isc_mem_t *mctx);
+		    isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_name_fromstring2(dns_name_t *target, const char *src,
 		     const dns_name_t *origin, unsigned int options,
-		     isc_mem_t *mctx);
+		     isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert a string to a name and place it in target, allocating memory
  * as necessary.  'options' has the same semantics as that of
@@ -1212,7 +1244,8 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
  */
 
 isc_result_t
-dns_name_settotextfilter(dns_name_totextfilter_t proc);
+dns_name_settotextfilter(dns_name_totextfilter_t proc)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set / clear a thread specific function 'proc' to be called at the
  * end of dns_name_totext().
@@ -1233,8 +1266,23 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc);
  * Includes space for the terminating NULL.
  */
 
+/*%<
+ * dns_name_copy is often used with a dns_fixedname_t and no buffer.
+ * When used in the way the copy cannot fail but we still need to check
+ * the result for the other cases.  DNS_NAME_COPY avoids having to
+ * explicitly code for this check in this case.
+ */
+#define DNS_NAME_COPY(a, b, c) \
+        do { \
+                isc_result_t _r; \
+                INSIST(c == NULL); \
+                _r = dns_name_copy(a, b, NULL);  \
+                RUNTIME_CHECK(_r == ISC_R_SUCCESS); \
+        } while (0)
+
 isc_result_t
-dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target);
+dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Makes 'dest' refer to a copy of the name in 'source'.  The data are
  * either copied to 'target' or the dedicated buffer in 'dest'.
@@ -1258,7 +1306,8 @@ dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target);
  */
 
 isc_boolean_t
-dns_name_ishostname(const dns_name_t *name, isc_boolean_t wildcard);
+dns_name_ishostname(const dns_name_t *name, isc_boolean_t wildcard)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return if 'name' is a valid hostname.  RFC 952 / RFC 1123.
  * If 'wildcard' is ISC_TRUE then allow the first label of name to
@@ -1271,7 +1320,8 @@ dns_name_ishostname(const dns_name_t *name, isc_boolean_t wildcard);
 
 
 isc_boolean_t
-dns_name_ismailbox(const dns_name_t *name);
+dns_name_ismailbox(const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return if 'name' is a valid mailbox.  RFC 821.
  *
@@ -1280,7 +1330,8 @@ dns_name_ismailbox(const dns_name_t *name);
  */
 
 isc_boolean_t
-dns_name_internalwildcard(const dns_name_t *name);
+dns_name_internalwildcard(const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return if 'name' contains a internal wildcard name.
  *
@@ -1301,25 +1352,29 @@ dns_name_destroy(void);
  */
 
 isc_boolean_t
-dns_name_isdnssd(const dns_name_t *owner);
+dns_name_isdnssd(const dns_name_t *owner)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Determine if the 'owner' is a DNS-SD prefix.
  */
 
 isc_boolean_t
-dns_name_isrfc1918(const dns_name_t *owner);
+dns_name_isrfc1918(const dns_name_t *owner)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Determine if the 'name' is in the RFC 1918 reverse namespace.
  */
 
 isc_boolean_t
-dns_name_isula(const dns_name_t *owner);
+dns_name_isula(const dns_name_t *owner)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Determine if the 'name' is in the ULA reverse namespace.
  */
 
 isc_boolean_t
-dns_name_istat(const dns_name_t *name);
+dns_name_istat(const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Determine if 'name' is a potential 'trust-anchor-telementry' name.
  */

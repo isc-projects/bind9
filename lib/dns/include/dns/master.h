@@ -21,6 +21,7 @@
 
 #include <stdio.h>
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -122,7 +123,8 @@ dns_master_loadfile(const char *master_file,
 		    dns_masterincludecb_t include_cb,
 		    void *include_arg, isc_mem_t *mctx,
 		    dns_masterformat_t format,
-		    dns_ttl_t maxttl);
+		    dns_ttl_t maxttl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_loadstream(FILE *stream,
@@ -131,7 +133,8 @@ dns_master_loadstream(FILE *stream,
 		      dns_rdataclass_t zclass,
 		      unsigned int options,
 		      dns_rdatacallbacks_t *callbacks,
-		      isc_mem_t *mctx);
+		      isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_loadbuffer(isc_buffer_t *buffer,
@@ -140,7 +143,8 @@ dns_master_loadbuffer(isc_buffer_t *buffer,
 		      dns_rdataclass_t zclass,
 		      unsigned int options,
 		      dns_rdatacallbacks_t *callbacks,
-		      isc_mem_t *mctx);
+		      isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_loadlexer(isc_lex_t *lex,
@@ -149,7 +153,8 @@ dns_master_loadlexer(isc_lex_t *lex,
 		     dns_rdataclass_t zclass,
 		     unsigned int options,
 		     dns_rdatacallbacks_t *callbacks,
-		     isc_mem_t *mctx);
+		     isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_loadfileinc(const char *master_file,
@@ -164,7 +169,8 @@ dns_master_loadfileinc(const char *master_file,
 		       dns_loadctx_t **ctxp,
 		       dns_masterincludecb_t include_cb, void *include_arg,
 		       isc_mem_t *mctx, dns_masterformat_t format,
-		       isc_uint32_t maxttl);
+		       isc_uint32_t maxttl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_loadstreaminc(FILE *stream,
@@ -175,7 +181,8 @@ dns_master_loadstreaminc(FILE *stream,
 			 dns_rdatacallbacks_t *callbacks,
 			 isc_task_t *task,
 			 dns_loaddonefunc_t done, void *done_arg,
-			 dns_loadctx_t **ctxp, isc_mem_t *mctx);
+			 dns_loadctx_t **ctxp, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_loadbufferinc(isc_buffer_t *buffer,
@@ -186,7 +193,8 @@ dns_master_loadbufferinc(isc_buffer_t *buffer,
 			 dns_rdatacallbacks_t *callbacks,
 			 isc_task_t *task,
 			 dns_loaddonefunc_t done, void *done_arg,
-			 dns_loadctx_t **ctxp, isc_mem_t *mctx);
+			 dns_loadctx_t **ctxp, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_master_loadlexerinc(isc_lex_t *lex,
@@ -197,7 +205,8 @@ dns_master_loadlexerinc(isc_lex_t *lex,
 			dns_rdatacallbacks_t *callbacks,
 			isc_task_t *task,
 			dns_loaddonefunc_t done, void *done_arg,
-			dns_loadctx_t **ctxp, isc_mem_t *mctx);
+			dns_loadctx_t **ctxp, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Loads a RFC1305 master file from a file, stream, buffer, or existing

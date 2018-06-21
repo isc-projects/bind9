@@ -15,6 +15,7 @@
 
 /*! \file dns/secproto.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -22,7 +23,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source);
+dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a DNSSEC security protocol value.
  * The text may contain either a mnemonic protocol name or a decimal protocol
@@ -40,7 +42,8 @@ dns_secproto_fromtext(dns_secproto_t *secprotop, isc_textregion_t *source);
  */
 
 isc_result_t
-dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target);
+dns_secproto_totext(dns_secproto_t secproto, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of the DNSSEC security protocol 'secproto'
  * into 'target'.

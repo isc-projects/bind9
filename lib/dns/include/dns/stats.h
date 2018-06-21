@@ -14,6 +14,9 @@
 
 /*! \file dns/stats.h */
 
+#include <isc/attribute.h>
+#include <isc/lang.h>
+
 #include <dns/types.h>
 
 /*%
@@ -504,7 +507,8 @@ typedef void (*dns_rcodestats_dumper_t)(dns_rcode_t, isc_uint64_t, void *);
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters);
+dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a statistics counter structure of general type.  It counts a general
  * set of counters indexed by an ID between 0 and ncounters -1.
@@ -523,7 +527,8 @@ dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters);
  */
 
 isc_result_t
-dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
+dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a statistics counter structure per rdatatype.
  *
@@ -539,7 +544,8 @@ dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
  */
 
 isc_result_t
-dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp);
+dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a statistics counter structure per RRset.
  *
@@ -555,7 +561,8 @@ dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp);
  */
 
 isc_result_t
-dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
+dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a statistics counter structure per opcode.
  *
@@ -571,7 +578,8 @@ dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
  */
 
 isc_result_t
-dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp);
+dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a statistics counter structure per assigned rcode.
  *
@@ -740,7 +748,8 @@ dns_rcodestats_dump(dns_stats_t *stats, dns_rcodestats_dumper_t dump_fn,
  */
 
 isc_result_t
-dns_stats_alloccounters(isc_mem_t *mctx, isc_uint64_t **ctrp);
+dns_stats_alloccounters(isc_mem_t *mctx, isc_uint64_t **ctrp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Allocate an array of query statistics counters from the memory
  * context 'mctx'.

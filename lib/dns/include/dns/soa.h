@@ -26,6 +26,7 @@
  *** Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -41,7 +42,8 @@ dns_soa_buildrdata(const dns_name_t *origin, const dns_name_t *contact,
 		   isc_uint32_t serial, isc_uint32_t refresh,
 		   isc_uint32_t retry, isc_uint32_t expire,
 		   isc_uint32_t minimum, unsigned char *buffer,
-		   dns_rdata_t *rdata);
+		   dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Build the rdata of an SOA record.
  *
@@ -56,15 +58,20 @@ dns_soa_buildrdata(const dns_name_t *origin, const dns_name_t *contact,
  */
 
 isc_uint32_t
-dns_soa_getserial(dns_rdata_t *rdata);
+dns_soa_getserial(dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_uint32_t
-dns_soa_getrefresh(dns_rdata_t *rdata);
+dns_soa_getrefresh(dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_uint32_t
-dns_soa_getretry(dns_rdata_t *rdata);
+dns_soa_getretry(dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_uint32_t
-dns_soa_getexpire(dns_rdata_t *rdata);
+dns_soa_getexpire(dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_uint32_t
-dns_soa_getminimum(dns_rdata_t *rdata);
+dns_soa_getminimum(dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*
  * Extract an integer field from the rdata of a SOA record.
  *

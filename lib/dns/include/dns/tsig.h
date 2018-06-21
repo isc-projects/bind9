@@ -15,6 +15,7 @@
 
 /*! \file dns/tsig.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/refcount.h>
 #include <isc/rwlock.h>
@@ -98,14 +99,16 @@ dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 		   unsigned char *secret, int length, isc_boolean_t generated,
 		   const dns_name_t *creator, isc_stdtime_t inception,
 		   isc_stdtime_t expire, isc_mem_t *mctx,
-		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
+		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			  dst_key_t *dstkey, isc_boolean_t generated,
 			  const dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
-			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key);
+			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Creates a tsig key structure and saves it in the keyring.  If key is
  *	not NULL, *key will contain a copy of the key.  The keys validity
@@ -172,7 +175,8 @@ dns_tsigkey_setdeleted(dns_tsigkey_t *key);
  */
 
 isc_result_t
-dns_tsig_sign(dns_message_t *msg);
+dns_tsig_sign(dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Generates a TSIG record for this message
  *
@@ -191,7 +195,8 @@ dns_tsig_sign(dns_message_t *msg);
 
 isc_result_t
 dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
-		dns_tsig_keyring_t *ring1, dns_tsig_keyring_t *ring2);
+		dns_tsig_keyring_t *ring1, dns_tsig_keyring_t *ring2)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Verifies the TSIG record in this message
  *
@@ -220,7 +225,8 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 
 isc_result_t
 dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
-		 const dns_name_t *algorithm, dns_tsig_keyring_t *ring);
+		 const dns_name_t *algorithm, dns_tsig_keyring_t *ring)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Returns the TSIG key corresponding to this name and (possibly)
  *	algorithm.  Also increments the key's reference counter.
@@ -239,7 +245,8 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 
 
 isc_result_t
-dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
+dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *	Create an empty TSIG key ring.
  *
@@ -254,7 +261,8 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 
 isc_result_t
 dns_tsigkeyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
-		    dns_tsigkey_t *tkey);
+		    dns_tsigkey_t *tkey)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  *      Place a TSIG key onto a key ring.
  *
@@ -274,7 +282,8 @@ void
 dns_tsigkeyring_detach(dns_tsig_keyring_t **ringp);
 
 isc_result_t
-dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp);
+dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  *	Destroy a TSIG key ring.

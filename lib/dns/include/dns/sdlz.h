@@ -50,6 +50,9 @@
 #ifndef SDLZ_H
 #define SDLZ_H 1
 
+#include <isc/attribute.h>
+#include <isc/lang.h>
+
 #include <dns/clientinfo.h>
 #include <dns/dlz.h>
 
@@ -71,7 +74,8 @@ typedef struct dns_sdlzallnodes dns_sdlzallnodes_t;
 typedef isc_result_t (*dns_sdlzallnodesfunc_t)(const char *zone,
 					       void *driverarg,
 					       void *dbdata,
-					       dns_sdlzallnodes_t *allnodes);
+					       dns_sdlzallnodes_t *allnodes)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
  * supply an all nodes method.  This method is called when the DNS
@@ -87,7 +91,8 @@ typedef isc_result_t (*dns_sdlzallnodesfunc_t)(const char *zone,
 
 typedef isc_result_t (*dns_sdlzallowzonexfr_t)(void *driverarg,
 					       void *dbdata, const char *name,
-					       const char *client);
+					       const char *client)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
@@ -112,7 +117,8 @@ typedef isc_result_t (*dns_sdlzallowzonexfr_t)(void *driverarg,
 
 typedef isc_result_t (*dns_sdlzauthorityfunc_t)(const char *zone,
 						void *driverarg, void *dbdata,
-						dns_sdlzlookup_t *lookup);
+						dns_sdlzlookup_t *lookup)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
@@ -126,7 +132,8 @@ typedef isc_result_t (*dns_sdlzauthorityfunc_t)(const char *zone,
 
 typedef isc_result_t (*dns_sdlzcreate_t)(const char *dlzname,
 					 unsigned int argc, char *argv[],
-					 void *driverarg, void **dbdata);
+					 void *driverarg, void **dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
@@ -147,7 +154,8 @@ typedef void (*dns_sdlzdestroy_t)(void *driverarg, void *dbdata);
 typedef isc_result_t
 (*dns_sdlzfindzone_t)(void *driverarg, void *dbdata, const char *name,
 		      dns_clientinfomethods_t *methods,
-		      dns_clientinfo_t *clientinfo);
+		      dns_clientinfo_t *clientinfo)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface MUST
  * supply a find zone method.  This method is called when the DNS
@@ -179,7 +187,8 @@ typedef isc_result_t
 (*dns_sdlzlookupfunc_t)(const char *zone, const char *name, void *driverarg,
 			void *dbdata, dns_sdlzlookup_t *lookup,
 			dns_clientinfomethods_t *methods,
-			dns_clientinfo_t *clientinfo);
+			dns_clientinfo_t *clientinfo)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface MUST
@@ -198,7 +207,8 @@ typedef isc_result_t
 
 typedef isc_result_t (*dns_sdlznewversion_t)(const char *zone,
 					     void *driverarg, void *dbdata,
-					     void **versionp);
+					     void **versionp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
  * supply a newversion method.  This method is called to start a
@@ -223,7 +233,8 @@ typedef void (*dns_sdlzcloseversion_t)(const char *zone, isc_boolean_t commit,
 
 typedef isc_result_t (*dns_sdlzconfigure_t)(dns_view_t *view,
 					    dns_dlzdb_t *dlzdb,
-					    void *driverarg, void *dbdata);
+					    void *driverarg, void *dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
  * supply a configure method. When supplied, it will be called
@@ -240,7 +251,8 @@ typedef isc_boolean_t (*dns_sdlzssumatch_t)(const char *signer,
 					    isc_uint32_t keydatalen,
 					    unsigned char *keydata,
 					    void *driverarg,
-					    void *dbdata);
+					    void *dbdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
@@ -254,7 +266,8 @@ typedef isc_boolean_t (*dns_sdlzssumatch_t)(const char *signer,
 typedef isc_result_t (*dns_sdlzmodrdataset_t)(const char *name,
 					      const char *rdatastr,
 					      void *driverarg, void *dbdata,
-					      void *version);
+					      void *version)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
  * supply addrdataset and subtractrdataset methods. If supplied, then these
@@ -269,7 +282,8 @@ typedef isc_result_t (*dns_sdlzmodrdataset_t)(const char *name,
 typedef isc_result_t (*dns_sdlzdelrdataset_t)(const char *name,
 					      const char *type,
 					      void *driverarg, void *dbdata,
-					      void *version);
+					      void *version)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Method prototype.  Drivers implementing the SDLZ interface may
  * supply a delrdataset method. If supplied, then this
@@ -298,7 +312,8 @@ typedef struct dns_sdlzmethods {
 isc_result_t
 dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 		 void *driverarg, unsigned int flags, isc_mem_t *mctx,
-		 dns_sdlzimplementation_t **sdlzimp);
+		 dns_sdlzimplementation_t **sdlzimp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Register a dynamically loadable zones (dlz) driver for the database
  * type 'drivername', implemented by the functions in '*methods'.
@@ -322,7 +337,8 @@ typedef isc_result_t dns_sdlz_putnamedrr_t(dns_sdlzallnodes_t *allnodes,
 					   const char *name,
 					   const char *type,
 					   dns_ttl_t ttl,
-					   const char *data);
+					   const char *data)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 dns_sdlz_putnamedrr_t dns_sdlz_putnamedrr;
 
 /*%<
@@ -333,7 +349,8 @@ dns_sdlz_putnamedrr_t dns_sdlz_putnamedrr;
 typedef isc_result_t dns_sdlz_putrr_t(dns_sdlzlookup_t *lookup,
 				      const char *type,
 				      dns_ttl_t ttl,
-				      const char *data);
+				      const char *data)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 dns_sdlz_putrr_t dns_sdlz_putrr;
 /*%<
  * Add a single resource record to the lookup structure to be later
@@ -343,7 +360,8 @@ dns_sdlz_putrr_t dns_sdlz_putrr;
 typedef isc_result_t dns_sdlz_putsoa_t(dns_sdlzlookup_t *lookup,
 				       const char *mname,
 				       const char *rname,
-				       isc_uint32_t serial);
+				       isc_uint32_t serial)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 dns_sdlz_putsoa_t dns_sdlz_putsoa;
 /*%<
  * This function may optionally be called from the 'authority'
@@ -359,12 +377,12 @@ dns_sdlz_putsoa_t dns_sdlz_putsoa;
 typedef isc_result_t dns_sdlz_setdb_t(dns_dlzdb_t *dlzdatabase,
 				      dns_rdataclass_t rdclass,
 				      const dns_name_t *name,
-				      dns_db_t **dbp);
+				      dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 dns_sdlz_setdb_t dns_sdlz_setdb;
 /*%<
  * Create the database pointers for a writeable SDLZ zone
  */
-
 
 ISC_LANG_ENDDECLS
 

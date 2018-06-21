@@ -19,6 +19,7 @@
  ***	Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/buffer.h>
 #include <isc/lang.h>
 
@@ -30,7 +31,8 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_timer_setidle(isc_timer_t *timer, unsigned int maxtime,
-		  unsigned int idletime, isc_boolean_t purge);
+		  unsigned int idletime, isc_boolean_t purge)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convenience function for setting up simple, one-second-granularity
  * idle timers as used by zone transfers.

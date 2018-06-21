@@ -23,8 +23,9 @@
  *** Imports
  ***/
 
-#include <dns/attribute.h>
-#include <dns/lang.h>
+#include <isc/attribute.h>
+#include <isc/lang.h>
+
 #include <dns/types.h>
 
 /***

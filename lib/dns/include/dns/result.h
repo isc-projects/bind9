@@ -14,6 +14,7 @@
 
 /*! \file dns/result.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/resultclass.h>
 
@@ -188,13 +189,15 @@
 ISC_LANG_BEGINDECLS
 
 const char *
-dns_result_totext(isc_result_t);
+dns_result_totext(isc_result_t)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_result_register(void);
 
 dns_rcode_t
-dns_result_torcode(isc_result_t result);
+dns_result_torcode(isc_result_t result)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

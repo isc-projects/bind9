@@ -39,6 +39,7 @@
  *\li	RFC2308
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 
@@ -55,12 +56,14 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	       dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
-	       dns_rdataset_t *addedrdataset);
+	       dns_rdataset_t *addedrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 isc_result_t
 dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 		     dns_dbnode_t *node, dns_rdatatype_t covers,
 		     isc_stdtime_t now, dns_ttl_t maxttl,
-		     isc_boolean_t optout, dns_rdataset_t *addedrdataset);
+		     isc_boolean_t optout, dns_rdataset_t *addedrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the authority data from 'message' into a negative cache
  * rdataset, and store it in 'cache' at 'node' with a TTL limited to
@@ -98,7 +101,8 @@ dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 isc_result_t
 dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 		  isc_buffer_t *target, unsigned int options,
-		  unsigned int *countp);
+		  unsigned int *countp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the negative caching rdataset 'rdataset' to wire format,
  * compressing names as specified in 'cctx', and storing the result in
@@ -133,7 +137,8 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 
 isc_result_t
 dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
-		       dns_rdatatype_t type, dns_rdataset_t *rdataset);
+		       dns_rdatatype_t type, dns_rdataset_t *rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search the negative caching rdataset for an rdataset with the
  * specified name and type.
@@ -161,7 +166,8 @@ dns_ncache_getrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 
 isc_result_t
 dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
-			  dns_rdatatype_t covers, dns_rdataset_t *rdataset);
+			  dns_rdatatype_t covers, dns_rdataset_t *rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Similar to dns_ncache_getrdataset() but get the rrsig that matches.
  */

@@ -48,6 +48,7 @@
  *\li	RFCs:	1034, 1035, 2181, 4033, 4034, 4035.
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/event.h>
 #include <isc/mutex.h>
@@ -176,7 +177,8 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_message_t *message, unsigned int options,
 		     isc_task_t *task, isc_taskaction_t action, void *arg,
-		     dns_validator_t **validatorp);
+		     dns_validator_t **validatorp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Start a DNSSEC validation.
  *

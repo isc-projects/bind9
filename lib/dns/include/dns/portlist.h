@@ -11,6 +11,7 @@
 
 /*! \file dns/portlist.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/net.h>
 #include <isc/types.h>
@@ -23,7 +24,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp);
+dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a port list.
  *
@@ -38,7 +40,8 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp);
  */
 
 isc_result_t
-dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port);
+dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add the given <port,af> tuple to the portlist.
  *
@@ -62,7 +65,8 @@ dns_portlist_remove(dns_portlist_t *portlist, int af, in_port_t port);
  */
 
 isc_boolean_t
-dns_portlist_match(dns_portlist_t *portlist, int af, in_port_t port);
+dns_portlist_match(dns_portlist_t *portlist, int af, in_port_t port)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the given <port,af> tuple to the portlist.
  *

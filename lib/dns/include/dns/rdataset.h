@@ -43,6 +43,7 @@
  *\li	None.
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/stdtime.h>
@@ -287,7 +288,8 @@ dns_rdataset_clone(dns_rdataset_t *source, dns_rdataset_t *target);
  */
 
 unsigned int
-dns_rdataset_count(dns_rdataset_t *rdataset);
+dns_rdataset_count(dns_rdataset_t *rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the number of records in 'rdataset'.
  *
@@ -299,7 +301,8 @@ dns_rdataset_count(dns_rdataset_t *rdataset);
  */
 
 isc_result_t
-dns_rdataset_first(dns_rdataset_t *rdataset);
+dns_rdataset_first(dns_rdataset_t *rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the rdata cursor to the first rdata in the rdataset (if any).
  *
@@ -312,7 +315,8 @@ dns_rdataset_first(dns_rdataset_t *rdataset);
  */
 
 isc_result_t
-dns_rdataset_next(dns_rdataset_t *rdataset);
+dns_rdataset_next(dns_rdataset_t *rdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Move the rdata cursor to the next rdata in the rdataset (if any).
  *
@@ -351,7 +355,8 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    const dns_name_t *owner_name,
 		    isc_boolean_t omit_final_dot,
 		    isc_boolean_t question,
-		    isc_buffer_t *target);
+		    isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'rdataset' to text format, storing the result in 'target'.
  *
@@ -377,7 +382,8 @@ dns_rdataset_towire(dns_rdataset_t *rdataset,
 		    dns_compress_t *cctx,
 		    isc_buffer_t *target,
 		    unsigned int options,
-		    unsigned int *countp);
+		    unsigned int *countp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert 'rdataset' to wire format, compressing names as specified
  * in 'cctx', and storing the result in 'target'.
@@ -418,7 +424,8 @@ dns_rdataset_towiresorted(dns_rdataset_t *rdataset,
 			  dns_rdatasetorderfunc_t order,
 			  const void *order_arg,
 			  unsigned int options,
-			  unsigned int *countp);
+			  unsigned int *countp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Like dns_rdataset_towire(), but sorting the rdatasets according to
  * the integer value returned by 'order' when called with the rdataset
@@ -438,7 +445,8 @@ dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
 			   const void *order_arg,
 			   unsigned int options,
 			   unsigned int *countp,
-			   void **state);
+			   void **state)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Like dns_rdataset_towiresorted() except that a partial rdataset
  * may be written.
@@ -459,7 +467,8 @@ dns_rdataset_towirepartial(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
-			    dns_additionaldatafunc_t add, void *arg);
+			    dns_additionaldatafunc_t add, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * For each rdata in rdataset, call 'add' for each name and type in the
  * rdata which is subject to additional section processing.
@@ -487,7 +496,8 @@ dns_rdataset_additionaldata(dns_rdataset_t *rdataset,
 
 isc_result_t
 dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
-			dns_rdataset_t *neg, dns_rdataset_t *negsig);
+			dns_rdataset_t *neg, dns_rdataset_t *negsig)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the noqname proof for this record.
  *
@@ -498,7 +508,8 @@ dns_rdataset_getnoqname(dns_rdataset_t *rdataset, dns_name_t *name,
  */
 
 isc_result_t
-dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
+dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Associate a noqname proof with this record.
  * Sets #DNS_RDATASETATTR_NOQNAME if successful.
@@ -513,7 +524,8 @@ dns_rdataset_addnoqname(dns_rdataset_t *rdataset, dns_name_t *name);
 
 isc_result_t
 dns_rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
-			dns_rdataset_t *nsec, dns_rdataset_t *nsecsig);
+			dns_rdataset_t *nsec, dns_rdataset_t *nsecsig)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the closest encloser for this record.
  *
@@ -524,7 +536,8 @@ dns_rdataset_getclosest(dns_rdataset_t *rdataset, dns_name_t *name,
  */
 
 isc_result_t
-dns_rdataset_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name);
+dns_rdataset_addclosest(dns_rdataset_t *rdataset, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Associate a closest encloset proof with this record.
  * Sets #DNS_RDATASETATTR_CLOSEST if successful.
@@ -580,7 +593,8 @@ isc_result_t
 dns_rdataset_addglue(dns_rdataset_t *rdataset,
 		     dns_dbversion_t *version,
 		     unsigned int options,
-		     dns_message_t *msg);
+		     dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add glue records for rdataset to the additional section of message in
  * 'msg'. 'rdataset' must be of type NS. If DNS_RDATASETADDGLUE_FILTERAAAA
@@ -622,7 +636,8 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
  */
 
 const char *
-dns_trust_totext(dns_trust_t trust);
+dns_trust_totext(dns_trust_t trust)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Display trust in textual form.
  */

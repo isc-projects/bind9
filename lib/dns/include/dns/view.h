@@ -54,6 +54,7 @@
 
 #include <stdio.h>
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/event.h>
@@ -264,7 +265,8 @@ struct dns_view {
 
 isc_result_t
 dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
-		const char *name, dns_view_t **viewp);
+		const char *name, dns_view_t **viewp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a view.
  *
@@ -371,7 +373,8 @@ dns_view_weakdetach(dns_view_t **targetp);
  */
 
 isc_result_t
-dns_view_createzonetable(dns_view_t *view);
+dns_view_createzonetable(dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a zonetable for the view.
  *
@@ -397,7 +400,8 @@ dns_view_createresolver(dns_view_t *view,
 			unsigned int options,
 			dns_dispatchmgr_t *dispatchmgr,
 			dns_dispatch_t *dispatchv4,
-			dns_dispatch_t *dispatchv6);
+			dns_dispatch_t *dispatchv6)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create a resolver and address database for the view.
  *
@@ -507,7 +511,8 @@ dns_view_setdstport(dns_view_t *view, in_port_t dstport);
 
 
 isc_result_t
-dns_view_addzone(dns_view_t *view, dns_zone_t *zone);
+dns_view_addzone(dns_view_t *view, dns_zone_t *zone)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add zone 'zone' to 'view'.
  *
@@ -553,7 +558,8 @@ dns_view_find(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	      isc_stdtime_t now, unsigned int options,
 	      isc_boolean_t use_hints, isc_boolean_t use_static_stub,
 	      dns_db_t **dbp, dns_dbnode_t **nodep, dns_name_t *foundname,
-	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+	      dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find an rdataset whose owner name is 'name', and whose type is
  * 'type'.
@@ -643,7 +649,8 @@ isc_result_t
 dns_view_simplefind(dns_view_t *view, const dns_name_t *name,
 		    dns_rdatatype_t type, isc_stdtime_t now,
 		    unsigned int options, isc_boolean_t use_hints,
-		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+		    dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find an rdataset whose owner name is 'name', and whose type is
  * 'type'.
@@ -705,7 +712,8 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 		     dns_name_t *fname, isc_stdtime_t now,
 		     unsigned int options,
 		     isc_boolean_t use_hints, isc_boolean_t use_cache,
-		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset);
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the best known zonecut containing 'name'.
  *
@@ -747,7 +755,8 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 
 isc_result_t
 dns_viewlist_find(dns_viewlist_t *list, const char *name,
-		  dns_rdataclass_t rdclass, dns_view_t **viewp);
+		  dns_rdataclass_t rdclass, dns_view_t **viewp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search for a view with name 'name' and class 'rdclass' in 'list'.
  * If found, '*viewp' is (strongly) attached to it.
@@ -765,7 +774,8 @@ dns_viewlist_find(dns_viewlist_t *list, const char *name,
 isc_result_t
 dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 		      isc_boolean_t allclasses, dns_rdataclass_t rdclass,
-		      dns_zone_t **zonep);
+		      dns_zone_t **zonep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Search zone with 'name' in view with 'rdclass' in viewlist 'list'
@@ -779,7 +789,8 @@ dns_viewlist_findzone(dns_viewlist_t *list, const dns_name_t *name,
 
 isc_result_t
 dns_view_findzone(dns_view_t *view, const dns_name_t *name,
-		  dns_zone_t **zonep);
+		  dns_zone_t **zonep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Search for the zone 'name' in the zone table of 'view'.
  * If found, 'zonep' is (strongly) attached to it.  There
@@ -796,13 +807,16 @@ dns_view_findzone(dns_view_t *view, const dns_name_t *name,
  */
 
 isc_result_t
-dns_view_load(dns_view_t *view, isc_boolean_t stop);
+dns_view_load(dns_view_t *view, isc_boolean_t stop)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_view_loadnew(dns_view_t *view, isc_boolean_t stop);
+dns_view_loadnew(dns_view_t *view, isc_boolean_t stop)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
-dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg);
+dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Load zones attached to this view.  dns_view_load() loads
  * all zones whose master file has changed since the last
@@ -823,7 +837,8 @@ dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg);
 
 isc_result_t
 dns_view_gettsig(dns_view_t *view, const dns_name_t *keyname,
-		 dns_tsigkey_t **keyp);
+		 dns_tsigkey_t **keyp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the TSIG key configured in 'view' with name 'keyname',
  * if any.
@@ -839,7 +854,8 @@ dns_view_gettsig(dns_view_t *view, const dns_name_t *keyname,
 
 isc_result_t
 dns_view_getpeertsig(dns_view_t *view, const isc_netaddr_t *peeraddr,
-		     dns_tsigkey_t **keyp);
+		     dns_tsigkey_t **keyp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the TSIG key configured in 'view' for the server whose
  * address is 'peeraddr', if any.
@@ -854,7 +870,8 @@ dns_view_getpeertsig(dns_view_t *view, const isc_netaddr_t *peeraddr,
  */
 
 isc_result_t
-dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg);
+dns_view_checksig(dns_view_t *view, isc_buffer_t *source, dns_message_t *msg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Verifies the signature of a message.
  *
@@ -875,7 +892,8 @@ dns_view_dialup(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
+dns_view_dumpdbtostream(dns_view_t *view, FILE *fp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Dump the current state of the view 'view' to the stream 'fp'
  * for purposes of analysis or debugging.
@@ -897,7 +915,8 @@ dns_view_dumpdbtostream(dns_view_t *view, FILE *fp);
  */
 
 isc_result_t
-dns_view_flushcache(dns_view_t *view, isc_boolean_t fixuponly);
+dns_view_flushcache(dns_view_t *view, isc_boolean_t fixuponly)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Flush the view's cache (and ADB).  If 'fixuponly' is true, it only updates
  * the internal reference to the cache DB with omitting actual flush operation.
@@ -917,7 +936,8 @@ dns_view_flushcache(dns_view_t *view, isc_boolean_t fixuponly);
 
 isc_result_t
 dns_view_flushnode(dns_view_t *view, const dns_name_t *name,
-		   isc_boolean_t tree);
+		   isc_boolean_t tree)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Flush the given name from the view's cache (and optionally ADB/badcache).
  *
@@ -934,7 +954,8 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name,
  */
 
 isc_result_t
-dns_view_flushname(dns_view_t *view, const dns_name_t *name);
+dns_view_flushname(dns_view_t *view, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Flush the given name from the view's cache, ADB and badcache.
  * Equivalent to dns_view_flushnode(view, name, ISC_FALSE).
@@ -950,7 +971,8 @@ dns_view_flushname(dns_view_t *view, const dns_name_t *name);
  */
 
 isc_result_t
-dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name);
+dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add the given name to the delegation only table.
  *
@@ -964,7 +986,8 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name);
  */
 
 isc_result_t
-dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name);
+dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add the given name to be excluded from the root-delegation-only.
  *
@@ -979,7 +1002,8 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name);
  */
 
 isc_boolean_t
-dns_view_isdelegationonly(dns_view_t *view, const dns_name_t *name);
+dns_view_isdelegationonly(dns_view_t *view, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check if 'name' is in the delegation only table or if
  * rootdelonly is set that name is not being excluded.
@@ -1003,7 +1027,8 @@ dns_view_setrootdelonly(dns_view_t *view, isc_boolean_t value);
  */
 
 isc_boolean_t
-dns_view_getrootdelonly(dns_view_t *view);
+dns_view_getrootdelonly(dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the root delegation only flag.
  *
@@ -1012,7 +1037,8 @@ dns_view_getrootdelonly(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze);
+dns_view_freezezones(dns_view_t *view, isc_boolean_t freeze)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Freeze/thaw updates to master zones.
  *
@@ -1097,7 +1123,8 @@ dns_view_getresquerystats(dns_view_t *view, dns_stats_t **statsp);
  */
 
 isc_boolean_t
-dns_view_iscacheshared(dns_view_t *view);
+dns_view_iscacheshared(dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check if the view shares the cache created by another view.
  *
@@ -1111,7 +1138,8 @@ dns_view_iscacheshared(dns_view_t *view);
 
 isc_result_t
 dns_view_initntatable(dns_view_t *view,
-		      isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr);
+		      isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Initialize the negative trust anchor table for the view.
  *
@@ -1124,7 +1152,8 @@ dns_view_initntatable(dns_view_t *view,
  */
 
 isc_result_t
-dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp);
+dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the negative trust anchor table for this view.  Returns
  * ISC_R_NOTFOUND if the table not been initialized for the view.
@@ -1142,7 +1171,8 @@ dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp);
  */
 
 isc_result_t
-dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx);
+dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Initialize security roots for the view, detaching any previously
  * existing security roots first.  (Note that secroots_priv is
@@ -1160,7 +1190,8 @@ dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx);
  */
 
 isc_result_t
-dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp);
+dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the security roots for this view.  Returns ISC_R_NOTFOUND if
  * the security roots keytable has not been initialized for the view.
@@ -1180,7 +1211,8 @@ dns_view_getsecroots(dns_view_t *view, dns_keytable_t **ktp);
 isc_result_t
 dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 			isc_stdtime_t now, isc_boolean_t checknta,
-			isc_boolean_t *secure_domain);
+			isc_boolean_t *secure_domain)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is 'name' at or beneath a trusted key, and not covered by a valid
  * negative trust anchor?  Put answer in '*secure_domain'.
@@ -1198,7 +1230,8 @@ dns_view_issecuredomain(dns_view_t *view, const dns_name_t *name,
 
 isc_boolean_t
 dns_view_ntacovers(dns_view_t *view, isc_stdtime_t now,
-		   const dns_name_t *name, const dns_name_t *anchor);
+		   const dns_name_t *name, const dns_name_t *anchor)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Is there a current negative trust anchor above 'name' and below 'anchor'?
  *
@@ -1232,7 +1265,8 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
 
 isc_result_t
 dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
-		     void (*cfg_destroy)(void **), isc_uint64_t mapsize);
+		     void (*cfg_destroy)(void **), isc_uint64_t mapsize)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set whether or not to allow zones to be created or deleted at runtime.
  *
@@ -1258,7 +1292,8 @@ dns_view_setnewzones(dns_view_t *view, isc_boolean_t allow, void *cfgctx,
 void
 dns_view_setnewzonedir(dns_view_t *view, const char *dir);
 const char *
-dns_view_getnewzonedir(dns_view_t *view);
+dns_view_getnewzonedir(dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Set/get the path to the directory in which NZF or NZD files should
  * be stored. If the path was previously set to a non-NULL value,
@@ -1276,7 +1311,8 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 		   unsigned int minlabels,
 		   dns_clientinfomethods_t *methods,
 		   dns_clientinfo_t *clientinfo,
-		   dns_db_t **dbp);
+		   dns_db_t **dbp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Search through the DLZ database(s) in view->dlz_searched to find
@@ -1295,7 +1331,8 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
  */
 
 isc_uint32_t
-dns_view_getfailttl(dns_view_t *view);
+dns_view_getfailttl(dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the view's servfail-ttl.  zero => no servfail caching.
  *
@@ -1313,7 +1350,8 @@ dns_view_setfailttl(dns_view_t *view, isc_uint32_t failttl);
  */
 
 isc_result_t
-dns_view_saventa(dns_view_t *view);
+dns_view_saventa(dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Save NTA for names in this view to a file.
  *
@@ -1322,7 +1360,8 @@ dns_view_saventa(dns_view_t *view);
  */
 
 isc_result_t
-dns_view_loadnta(dns_view_t *view);
+dns_view_loadnta(dns_view_t *view)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Loads NTA for names in this view from a file.
  *
@@ -1349,7 +1388,6 @@ dns_view_setviewrevert(dns_view_t *view);
  * Requires:
  *\li	'view' to be valid.
  */
-
 
 ISC_LANG_ENDDECLS
 

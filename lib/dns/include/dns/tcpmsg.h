@@ -15,6 +15,7 @@
 
 /*! \file dns/tcpmsg.h */
 
+#include <isc/attribute.h>
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/socket.h>
@@ -71,7 +72,8 @@ dns_tcpmsg_setmaxsize(dns_tcpmsg_t *tcpmsg, unsigned int maxsize);
 
 isc_result_t
 dns_tcpmsg_readmessage(dns_tcpmsg_t *tcpmsg,
-		       isc_task_t *task, isc_taskaction_t action, void *arg);
+		       isc_task_t *task, isc_taskaction_t action, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Schedule an event to be delivered when a DNS message is readable, or
  * when an error occurs on the socket.

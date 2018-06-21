@@ -13,6 +13,7 @@
 #ifndef DNS_NSEC3_H
 #define DNS_NSEC3_H 1
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/iterated_hash.h>
 
@@ -47,7 +48,8 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 		     unsigned int optin, unsigned int iterations,
 		     const unsigned char *salt, size_t salt_length,
 		     const unsigned char *nexthash, size_t hash_length,
-		     unsigned char *buffer, dns_rdata_t *rdata);
+		     unsigned char *buffer, dns_rdata_t *rdata)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Build the rdata of a NSEC3 record for the data at 'node'.
  * Note: 'node' is not the node where the NSEC3 record will be stored.
@@ -63,7 +65,8 @@ dns_nsec3_buildrdata(dns_db_t *db, dns_dbversion_t *version,
  */
 
 isc_boolean_t
-dns_nsec3_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type);
+dns_nsec3_typepresent(dns_rdata_t *nsec, dns_rdatatype_t type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Determine if a type is marked as present in an NSEC3 record.
  *
@@ -77,21 +80,24 @@ dns_nsec3_hashname(dns_fixedname_t *result,
 		   size_t *hash_length,
 		   const dns_name_t *name, const dns_name_t *origin,
 		   dns_hash_t hashalg, unsigned int iterations,
-		   const unsigned char *salt, size_t saltlength);
+		   const unsigned char *salt, size_t saltlength)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Make a hashed domain name from an unhashed one. If rethash is not NULL
  * the raw hash is stored there.
  */
 
 unsigned int
-dns_nsec3_hashlength(dns_hash_t hash);
+dns_nsec3_hashlength(dns_hash_t hash)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the length of the hash produced by the specified algorithm
  * or zero when unknown.
  */
 
 isc_boolean_t
-dns_nsec3_supportedhash(dns_hash_t hash);
+dns_nsec3_supportedhash(dns_hash_t hash)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return whether we support this hash algorithm or not.
  */
@@ -100,18 +106,21 @@ isc_result_t
 dns_nsec3_addnsec3(dns_db_t *db, dns_dbversion_t *version,
 		   const dns_name_t *name,
 		   const dns_rdata_nsec3param_t *nsec3param,
-		   dns_ttl_t nsecttl, isc_boolean_t unsecure, dns_diff_t *diff);
+		   dns_ttl_t nsecttl, isc_boolean_t unsecure, dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_nsec3_addnsec3s(dns_db_t *db, dns_dbversion_t *version,
 		    const dns_name_t *name, dns_ttl_t nsecttl,
-		    isc_boolean_t unsecure, dns_diff_t *diff);
+		    isc_boolean_t unsecure, dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_nsec3_addnsec3sx(dns_db_t *db, dns_dbversion_t *version,
 		     const dns_name_t *name, dns_ttl_t nsecttl,
 		     isc_boolean_t unsecure, dns_rdatatype_t private,
-		     dns_diff_t *diff);
+		     dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add NSEC3 records for 'name', recording the change in 'diff'.
  * Adjust previous NSEC3 records, if any, to reflect the addition.
@@ -147,16 +156,19 @@ dns_nsec3_addnsec3sx(dns_db_t *db, dns_dbversion_t *version,
 isc_result_t
 dns_nsec3_delnsec3(dns_db_t *db, dns_dbversion_t *version,
 		   const dns_name_t *name,
-		   const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff);
+		   const dns_rdata_nsec3param_t *nsec3param, dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_nsec3_delnsec3s(dns_db_t *db, dns_dbversion_t *version,
-		    const dns_name_t *name, dns_diff_t *diff);
+		    const dns_name_t *name, dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_nsec3_delnsec3sx(dns_db_t *db, dns_dbversion_t *version,
 		     const dns_name_t *name, dns_rdatatype_t private,
-		     dns_diff_t *diff);
+		     dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Remove NSEC3 records for 'name', recording the change in 'diff'.
  * Adjust previous NSEC3 records, if any, to reflect the removal.
@@ -182,12 +194,14 @@ dns_nsec3_delnsec3sx(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_nsec3_active(dns_db_t *db, dns_dbversion_t *version,
-		 isc_boolean_t complete, isc_boolean_t *answer);
+		 isc_boolean_t complete, isc_boolean_t *answer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_nsec3_activex(dns_db_t *db, dns_dbversion_t *version,
 		  isc_boolean_t complete, dns_rdatatype_t private,
-		  isc_boolean_t *answer);
+		  isc_boolean_t *answer)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check if there are any complete/to be built NSEC3 chains.
  * If 'complete' is ISC_TRUE only complete chains will be recognized.
@@ -204,7 +218,8 @@ dns_nsec3_activex(dns_db_t *db, dns_dbversion_t *version,
 
 isc_result_t
 dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
-			isc_mem_t *mctx, unsigned int *iterationsp);
+			isc_mem_t *mctx, unsigned int *iterationsp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Find the maximum permissible number of iterations allowed based on
  * the key strength.
@@ -218,7 +233,8 @@ dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
 
 isc_boolean_t
 dns_nsec3param_fromprivate(dns_rdata_t *src, dns_rdata_t *target,
-			   unsigned char *buf, size_t buflen);
+			   unsigned char *buf, size_t buflen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert a private rdata to a nsec3param rdata.
  *
@@ -239,7 +255,8 @@ dns_nsec3param_toprivate(dns_rdata_t *src, dns_rdata_t *target,
 
 isc_result_t
 dns_nsec3param_salttotext(dns_rdata_nsec3param_t *nsec3param, char *dst,
-			  size_t dstlen);
+			  size_t dstlen)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the salt of given NSEC3PARAM RDATA into hex-encoded, NULL-terminated
  * text stored at "dst".
@@ -253,7 +270,8 @@ dns_nsec3param_salttotext(dns_rdata_nsec3param_t *nsec3param, char *dst,
 isc_result_t
 dns_nsec3param_deletechains(dns_db_t *db, dns_dbversion_t *ver,
 			    dns_zone_t *zone, isc_boolean_t nonsec,
-			    dns_diff_t *diff);
+			    dns_diff_t *diff)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Mark NSEC3PARAM for deletion.
@@ -266,7 +284,8 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			isc_boolean_t *data, isc_boolean_t *optout,
 			isc_boolean_t *unknown, isc_boolean_t *setclosest,
 			isc_boolean_t *setnearest, dns_name_t *closest,
-			dns_name_t *nearest, dns_nseclog_t logit, void *arg);
+			dns_name_t *nearest, dns_nseclog_t logit, void *arg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

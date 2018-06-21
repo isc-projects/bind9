@@ -19,6 +19,7 @@
  ***	Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -37,7 +38,8 @@ ISC_LANG_BEGINDECLS
  ***/
 
 isc_uint32_t
-dns_update_soaserial(isc_uint32_t serial, dns_updatemethod_t method);
+dns_update_soaserial(isc_uint32_t serial, dns_updatemethod_t method)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the next serial number after 'serial', depending on the
  * update method 'method':
@@ -51,13 +53,15 @@ dns_update_soaserial(isc_uint32_t serial, dns_updatemethod_t method);
 isc_result_t
 dns_update_signatures(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		      dns_dbversion_t *oldver, dns_dbversion_t *newver,
-		      dns_diff_t *diff, isc_uint32_t sigvalidityinterval);
+		      dns_diff_t *diff, isc_uint32_t sigvalidityinterval)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_result_t
 dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 dns_dbversion_t *oldver, dns_dbversion_t *newver,
 			 dns_diff_t *diff, isc_uint32_t sigvalidityinterval,
-			 dns_update_state_t **state);
+			 dns_update_state_t **state)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 ISC_LANG_ENDDECLS
 

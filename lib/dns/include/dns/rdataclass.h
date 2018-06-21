@@ -15,6 +15,7 @@
 
 /*! \file dns/rdataclass.h */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -22,7 +23,8 @@
 ISC_LANG_BEGINDECLS
 
 isc_result_t
-dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source);
+dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Convert the text 'source' refers to into a DNS class.
  *
@@ -37,7 +39,8 @@ dns_rdataclass_fromtext(dns_rdataclass_t *classp, isc_textregion_t *source);
  */
 
 isc_result_t
-dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target);
+dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put a textual representation of class 'rdclass' into 'target'.
  *
@@ -56,7 +59,8 @@ dns_rdataclass_totext(dns_rdataclass_t rdclass, isc_buffer_t *target);
  */
 
 isc_result_t
-dns_rdataclass_tounknowntext(dns_rdataclass_t rdclass, isc_buffer_t *target);
+dns_rdataclass_tounknowntext(dns_rdataclass_t rdclass, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Put textual RFC3597 CLASSXXXX representation of class 'rdclass' into
  * 'target'.

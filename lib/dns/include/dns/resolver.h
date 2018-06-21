@@ -44,6 +44,7 @@
  *\li	Drafts:	TBS
  */
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/socket.h>
 #include <isc/stats.h>
@@ -158,7 +159,8 @@ dns_resolver_create(dns_view_t *view,
 		    dns_dispatchmgr_t *dispatchmgr,
 		    dns_dispatch_t *dispatchv4,
 		    dns_dispatch_t *dispatchv6,
-		    dns_resolver_t **resp);
+		    dns_resolver_t **resp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 /*%<
  * Create a resolver.
@@ -287,7 +289,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 			 isc_taskaction_t action, void *arg,
 			 dns_rdataset_t *rdataset,
 			 dns_rdataset_t *sigrdataset,
-			 dns_fetch_t **fetchp);
+			 dns_fetch_t **fetchp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Recurse to answer a question.
  *
@@ -398,22 +401,28 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
  */
 
 dns_dispatchmgr_t *
-dns_resolver_dispatchmgr(dns_resolver_t *resolver);
+dns_resolver_dispatchmgr(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 dns_dispatch_t *
-dns_resolver_dispatchv4(dns_resolver_t *resolver);
+dns_resolver_dispatchv4(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 dns_dispatch_t *
-dns_resolver_dispatchv6(dns_resolver_t *resolver);
+dns_resolver_dispatchv6(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_socketmgr_t *
-dns_resolver_socketmgr(dns_resolver_t *resolver);
+dns_resolver_socketmgr(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_taskmgr_t *
-dns_resolver_taskmgr(dns_resolver_t *resolver);
+dns_resolver_taskmgr(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_uint32_t
-dns_resolver_getlamettl(dns_resolver_t *resolver);
+dns_resolver_getlamettl(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the resolver's lame-ttl.  zero => no lame processing.
  *
@@ -431,7 +440,8 @@ dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl);
  */
 
 unsigned int
-dns_resolver_nrunning(dns_resolver_t *resolver);
+dns_resolver_nrunning(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return the number of currently running resolutions in this
  * resolver.  This is may be less than the number of outstanding
@@ -442,7 +452,8 @@ dns_resolver_nrunning(dns_resolver_t *resolver);
 
 isc_result_t
 dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
-			  const dns_name_t *name, in_port_t port);
+			  const dns_name_t *name, in_port_t port)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add alternate addresses to be tried in the event that the nameservers
  * for a zone are not available in the address families supported by the
@@ -459,7 +470,8 @@ dns_resolver_setudpsize(dns_resolver_t *resolver, isc_uint16_t udpsize);
  */
 
 isc_uint16_t
-dns_resolver_getudpsize(dns_resolver_t *resolver);
+dns_resolver_getudpsize(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the current EDNS UDP buffer size.
  */
@@ -478,7 +490,8 @@ dns_resolver_reset_ds_digests(dns_resolver_t *resolver);
 
 isc_result_t
 dns_resolver_disable_algorithm(dns_resolver_t *resolver,
-			       const dns_name_t *name, unsigned int alg);
+			       const dns_name_t *name, unsigned int alg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Mark the given DNSSEC algorithm as disabled and below 'name'.
  * Valid algorithms are less than 256.
@@ -491,7 +504,8 @@ dns_resolver_disable_algorithm(dns_resolver_t *resolver,
 
 isc_result_t
 dns_resolver_disable_ds_digest(dns_resolver_t *resolver,
-			       const dns_name_t *name, unsigned int digest_type);
+			       const dns_name_t *name, unsigned int digest_type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Mark the given DS/DLV digest type as disabled and below 'name'.
  * Valid types are less than 256.
@@ -504,7 +518,8 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver,
 
 isc_boolean_t
 dns_resolver_algorithm_supported(dns_resolver_t *resolver,
-				 const dns_name_t *name, unsigned int alg);
+				 const dns_name_t *name, unsigned int alg)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check if the given algorithm is supported by this resolver.
  * This checks whether the algorithm has been disabled via
@@ -515,7 +530,8 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver,
 isc_boolean_t
 dns_resolver_ds_digest_supported(dns_resolver_t *resolver,
 				 const dns_name_t *name,
-				 unsigned int digest_type);
+				 unsigned int digest_type)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check if the given digest type is supported by this resolver.
  * This checks whether the digest type has been disabled via
@@ -528,10 +544,12 @@ dns_resolver_resetmustbesecure(dns_resolver_t *resolver);
 
 isc_result_t
 dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
-			     isc_boolean_t value);
+			     isc_boolean_t value)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 isc_boolean_t
-dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name);
+dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 
 void
@@ -549,7 +567,8 @@ dns_resolver_settimeout(dns_resolver_t *resolver, unsigned int timeout);
  */
 
 unsigned int
-dns_resolver_gettimeout(dns_resolver_t *resolver);
+dns_resolver_gettimeout(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the current length of time the resolver will work on a query,
  * in milliseconds.
@@ -569,13 +588,15 @@ dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
 				isc_uint32_t *min, isc_uint32_t *max);
 
 isc_boolean_t
-dns_resolver_getzeronosoattl(dns_resolver_t *resolver);
+dns_resolver_getzeronosoattl(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state);
 
 unsigned int
-dns_resolver_getretryinterval(dns_resolver_t *resolver);
+dns_resolver_getretryinterval(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_resolver_setretryinterval(dns_resolver_t *resolver, unsigned int interval);
@@ -608,7 +629,8 @@ dns_resolver_setnonbackofftries(dns_resolver_t *resolver, unsigned int tries);
  */
 
 unsigned int
-dns_resolver_getoptions(dns_resolver_t *resolver);
+dns_resolver_getoptions(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Get the resolver options.
  *
@@ -629,7 +651,8 @@ dns_resolver_addbadcache(dns_resolver_t *resolver, const dns_name_t *name,
 
 isc_boolean_t
 dns_resolver_getbadcache(dns_resolver_t *resolver, const dns_name_t *name,
-			 dns_rdatatype_t type, isc_time_t *now);
+			 dns_rdatatype_t type, isc_time_t *now)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Check to see if there is a unexpired entry in the bad cache for
  * <name,type>.
@@ -671,12 +694,14 @@ dns_resolver_printbadcache(dns_resolver_t *resolver, FILE *fp);
 void
 dns_resolver_setquerydscp4(dns_resolver_t *resolver, isc_dscp_t dscp);
 isc_dscp_t
-dns_resolver_getquerydscp4(dns_resolver_t *resolver);
+dns_resolver_getquerydscp4(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 
 void
 dns_resolver_setquerydscp6(dns_resolver_t *resolver, isc_dscp_t dscp);
 isc_dscp_t
-dns_resolver_getquerydscp6(dns_resolver_t *resolver);
+dns_resolver_getquerydscp6(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Get and set the DSCP values for the resolver's IPv4 and IPV6 query
  * sources.
@@ -688,7 +713,8 @@ dns_resolver_getquerydscp6(dns_resolver_t *resolver);
 void
 dns_resolver_setmaxdepth(dns_resolver_t *resolver, unsigned int maxdepth);
 unsigned int
-dns_resolver_getmaxdepth(dns_resolver_t *resolver);
+dns_resolver_getmaxdepth(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Get and set how many NS indirections will be followed when looking for
  * nameserver addresses.
@@ -700,7 +726,8 @@ dns_resolver_getmaxdepth(dns_resolver_t *resolver);
 void
 dns_resolver_setmaxqueries(dns_resolver_t *resolver, unsigned int queries);
 unsigned int
-dns_resolver_getmaxqueries(dns_resolver_t *resolver);
+dns_resolver_getmaxqueries(dns_resolver_t *resolver)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Get and set how many iterative queries will be allowed before
  * terminating a recursive query.
@@ -713,7 +740,8 @@ void
 dns_resolver_setquotaresponse(dns_resolver_t *resolver,
 			     dns_quotatype_t which, isc_result_t resp);
 isc_result_t
-dns_resolver_getquotaresponse(dns_resolver_t *resolver, dns_quotatype_t which);
+dns_resolver_getquotaresponse(dns_resolver_t *resolver, dns_quotatype_t which)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%
  * Get and set the result code that will be used when quotas
  * are exceeded. If 'which' is set to quotatype "zone", then the

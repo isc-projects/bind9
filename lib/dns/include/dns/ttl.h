@@ -19,6 +19,7 @@
  ***	Imports
  ***/
 
+#include <isc/attribute.h>
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -30,7 +31,8 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
-	       isc_boolean_t upcase, isc_buffer_t *target);
+	       isc_boolean_t upcase, isc_buffer_t *target)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Output a TTL or other time interval in a human-readable form.
  * The time interval is given as a count of seconds in 'src'.
@@ -53,7 +55,8 @@ dns_ttl_totext(isc_uint32_t src, isc_boolean_t verbose,
  */
 
 isc_result_t
-dns_counter_fromtext(isc_textregion_t *source, isc_uint32_t *ttl);
+dns_counter_fromtext(isc_textregion_t *source, isc_uint32_t *ttl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Converts a counter from either a plain number or a BIND 8 style value.
  *
@@ -63,7 +66,8 @@ dns_counter_fromtext(isc_textregion_t *source, isc_uint32_t *ttl);
  */
 
 isc_result_t
-dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl);
+dns_ttl_fromtext(isc_textregion_t *source, isc_uint32_t *ttl)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Converts a ttl from either a plain number or a BIND 8 style value.
  *

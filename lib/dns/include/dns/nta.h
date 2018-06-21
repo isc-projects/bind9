@@ -23,6 +23,7 @@
  * DNSSEC validation.
  */
 
+#include <isc/attribute.h>
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -58,7 +59,8 @@ struct dns_ntatable {
 isc_result_t
 dns_ntatable_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
-		    dns_ntatable_t **ntatablep);
+		    dns_ntatable_t **ntatablep)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Create an NTA table in view 'view'.
  *
@@ -116,7 +118,8 @@ dns_ntatable_detach(dns_ntatable_t **ntatablep);
 isc_result_t
 dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name,
 		 isc_boolean_t force, isc_stdtime_t now,
-		 isc_uint32_t lifetime);
+		 isc_uint32_t lifetime)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Add a negative trust anchor to 'ntatable' for name 'name',
  * which will expire at time 'now' + 'lifetime'.  If 'force' is ISC_FALSE,
@@ -142,7 +145,8 @@ dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name,
  */
 
 isc_result_t
-dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *keyname);
+dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *keyname)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Delete node(s) from 'ntatable' matching name 'keyname'
  *
@@ -161,7 +165,8 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *keyname);
 
 isc_boolean_t
 dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
-		     const dns_name_t *name, const dns_name_t *anchor);
+		     const dns_name_t *name, const dns_name_t *anchor)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Return ISC_TRUE if 'name' is below a non-expired negative trust
  * anchor which in turn is at or below 'anchor'.
@@ -176,7 +181,8 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
  */
 
 isc_result_t
-dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf);
+dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Dump the NTA table to buffer at 'buf'
  *
@@ -187,13 +193,15 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf);
  */
 
 isc_result_t
-dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp);
+dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Dump the NTA table to the file opened as 'fp'.
  */
 
 isc_result_t
-dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp);
+dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp)
+	ISC_ATTRIBUTE_WARN_UNUSED_RESULT;
 /*%<
  * Save the NTA table to the file opened as 'fp', for later loading.
  */
