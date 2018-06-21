@@ -7,7 +7,7 @@ Version: 0.4.0
 Release: 1%{?dist}
 License: ASL 2.0
 URL: https://github.com/farsightsec/fstrm
-Source0: https://github.com/farsightsec/fstrm/releases/download/v%{version}/fstrm-%{version}.tar.gz
+Source0: https://dl.farsightsecurity.com/dist/fstrm/fstrm-%{version}.tar.gz
 BuildRequires: autoconf automake libtool
 
 %description
