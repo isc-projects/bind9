@@ -42,7 +42,7 @@ fstrm library.
 # regenerated build scripts to:
 # - remove RPATHs
 # - allow dynamic linking and execution of 'make check'
-autoreconf -fi
+# autoreconf -fi
 
 %build
 %configure --disable-static
