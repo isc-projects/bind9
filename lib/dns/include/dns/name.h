@@ -1273,12 +1273,12 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc)
  * explicitly code for this check in this case.
  */
 #define DNS_NAME_COPY(a, b, c) \
-        do { \
-                isc_result_t _r; \
-                INSIST(c == NULL); \
-                _r = dns_name_copy(a, b, NULL);  \
-                RUNTIME_CHECK(_r == ISC_R_SUCCESS); \
-        } while (0)
+	do { \
+		isc_result_t _r; \
+		INSIST(c == NULL); \
+		_r = dns_name_copy(a, b, NULL);  \
+		RUNTIME_CHECK(_r == ISC_R_SUCCESS); \
+	} while (0)
 
 isc_result_t
 dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target)
