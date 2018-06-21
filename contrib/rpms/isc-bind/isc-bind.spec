@@ -219,6 +219,9 @@ echo "d /run/named 0755 named named -" > ${RPM_BUILD_ROOT}%{_tmpfilesdir}/named.
 %{_bindir}/host
 %{_bindir}/nslookup
 %{_bindir}/nsupdate
+%if %{with dnstap}
+%{_bindir}/dnstap-read
+%endif
 %{_mandir}/man1/arpaname.1.*
 %{_mandir}/man1/dig.1.*
 %{_mandir}/man1/host.1.*
@@ -230,6 +233,9 @@ echo "d /run/named 0755 named named -" > ${RPM_BUILD_ROOT}%{_tmpfilesdir}/named.
 %{_mandir}/man1/named-rrchecker.1.*
 %{_bindir}/mdig
 %{_mandir}/man1/mdig.1.*
+%if %{with dnstap}
+%{_mandir}/man1/dnstap-read.1.*
+%endif
 
 ##### Installation/upgrade/removal scriptlets
 
