@@ -15,6 +15,20 @@
 
 #include <dns/fixedname.h>
 
+#undef dns_fixedname_init
+#undef dns_fixedname_invalidate
+#undef dns_fixedname_name
+#undef dns_fixedname_initname
+
+void
+dns_fixedname_init(dns_fixedname_t *fixed);
+void
+dns_fixedname_invalidate(dns_fixedname_t *fixed);
+dns_name_t *
+dns_fixedname_name(dns_fixedname_t *fixed);
+dns_name_t *
+dns_fixedname_initname(dns_fixedname_t *fixed);
+
 void
 dns_fixedname_init(dns_fixedname_t *fixed) {
 	dns_name_init(&fixed->name, fixed->offsets);
