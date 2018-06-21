@@ -79,6 +79,7 @@ options {
             ] [ dscp <integer> ];
         alt-transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> |
             * ) ] [ dscp <integer> ];
+        answer-cookie <boolean>;
         attach-cache <string>;
         auth-nxdomain <boolean>; // default changed
         auto-dnssec ( allow | maintain | off );
@@ -640,8 +641,8 @@ view <string> [ <class> ] {
             dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text>
             } ];
         rfc2308-type1 <boolean>; // not yet implemented
-        root-key-sentinel <boolean>;
         root-delegation-only [ exclude { <quoted_string>; ... } ];
+        root-key-sentinel <boolean>;
         rrset-order { [ class <string> ] [ type <string> ] [ name
             <quoted_string> ] <string> <string>; ... };
         send-cookie <boolean>;
