@@ -1,5 +1,7 @@
 ##### Conditionally enabled features
 
+%bcond_without dnstap
+
 %if 0%{?rhel} >= 7 || 0%{?fedora} >= 14
 %bcond_without python
 %else
@@ -25,6 +27,10 @@ URL:		https://www.isc.org/downloads/BIND/
 BuildRequires:	docbook-style-xsl, json-c-devel, krb5-devel, libxml2-devel, libxslt, openssl-devel
 Requires:	isc-bind-libs = 9.13.1
 Conflicts:	bind
+
+%if %{with dnstap}
+BuildRequires: fstrm-devel protobuf-c-compiler protobuf-c-devel protobuf-compiler protobuf-devel
+%endif
 
 %if %{with systemd}
 BuildRequires:	systemd
@@ -108,12 +114,16 @@ servers.
 	--with-libtool \
 	--with-libxml2 \
 	--without-lmdb \
-	--enable-dnstap \
 	--with-docbook-xsl=%{_datadir}/sgml/docbook/xsl-stylesheets \
 %if %{with python}
 	--with-python \
 %else
 	--without-python \
+%endif
+%if %{with dnstap}
+      --enable-dnstap \
+%else
+      --disable-dnstap \
 %endif
 ;
 make %{?_smp_mflags}
