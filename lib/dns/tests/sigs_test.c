@@ -226,7 +226,8 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	 * this is what dns__zone_updatesigs() expects to happen before it is
 	 * called.
 	 */
-	dns_diff_apply(&raw_diff, db, version);
+	result = dns_diff_apply(&raw_diff, db, version);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*
 	 * Initialize the structure dns__zone_updatesigs() will modify.

@@ -373,7 +373,7 @@ ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	dns_zone_setview(zone, view);
 	dns_zone_settype(zone, dns_zone_master);
 	dns_zone_setclass(zone, view->rdclass);
-	dns_view_addzone(view, zone);
+	CHECK(dns_view_addzone(view, zone));
 
 	if (!keepview)
 		dns_view_detach(&view);
@@ -382,7 +382,7 @@ ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 
 	return (ISC_R_SUCCESS);
 
-  cleanup:
+ cleanup:
 	if (zone != NULL)
 		dns_zone_detach(&zone);
 	if (view != NULL)
@@ -463,8 +463,11 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	/*
 	 * Set path to the master file for the zone and then load it.
 	 */
-	dns_zone_setfile(served_zone, filename, dns_masterformat_text,
-			 &dns_master_style_default);
+	result = dns_zone_setfile(served_zone, filename, dns_masterformat_text,
+				  &dns_master_style_default);
+	if (result != ISC_R_SUCCESS) {
+		goto release_zone;
+	}
 	result = dns_zone_load(served_zone);
 	if (result != ISC_R_SUCCESS) {
 		goto release_zone;
@@ -584,7 +587,8 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	/*
 	 * Render the query.
 	 */
-	dns_compress_init(&cctx, -1, mctx);
+	result = dns_compress_init(&cctx, -1, mctx);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_init(&querybuf, query, sizeof(query));
 	result = dns_message_renderbegin(message, &cctx, &querybuf);
 	if (result != ISC_R_SUCCESS) {

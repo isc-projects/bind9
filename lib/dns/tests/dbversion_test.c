@@ -56,12 +56,14 @@ setup_db(void) {
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db1);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	dns_db_newversion(db1, &v1);
+	result = dns_db_newversion(db1, &v1);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db2);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	dns_db_newversion(db2, &v2);
+	result = dns_db_newversion(db2, &v2);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 }
 
 static void

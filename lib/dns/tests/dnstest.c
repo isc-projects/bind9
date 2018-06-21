@@ -246,7 +246,10 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	if (view != NULL) {
 		dns_zone_setview(zone, view);
 		dns_zone_setclass(zone, view->rdclass);
-		dns_view_addzone(view, zone);
+		result = dns_view_addzone(view, zone);
+		if (result != ISC_R_SUCCESS) {
+			goto detach_zone;
+		}
 	} else {
 		dns_zone_setclass(zone, dns_rdataclass_in);
 	}

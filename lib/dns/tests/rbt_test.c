@@ -304,7 +304,8 @@ ATF_TC_BODY(rbtnode_get_distance, tc) {
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 		if (result == ISC_R_NOMORE)
 		      break;
-		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		result = dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	}
 
 	ATF_CHECK_EQ(result, ISC_R_NOMORE);
@@ -836,10 +837,13 @@ ATF_TC_BODY(rbt_remove, tc) {
 					if (result == ISC_R_NOMORE) {
 						node = NULL;
 					} else {
+						result =
 						dns_rbtnodechain_current(&chain,
 									 NULL,
 									 NULL,
 									 &node);
+						ATF_CHECK_EQ(result,
+							     ISC_R_SUCCESS);
 					}
 				}
 				continue;
@@ -857,8 +861,9 @@ ATF_TC_BODY(rbt_remove, tc) {
 			if (result == ISC_R_NOMORE) {
 				node = NULL;
 			} else {
-				dns_rbtnodechain_current(&chain, NULL, NULL,
-							 &node);
+				result = dns_rbtnodechain_current(&chain, NULL,
+								  NULL, &node);
+				ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 			}
 		}
 

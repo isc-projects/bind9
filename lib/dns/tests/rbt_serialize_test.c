@@ -196,7 +196,8 @@ add_test_data(isc_mem_t *mymctx, dns_rbt_t *rbt) {
 	dns_compress_t cctx;
 	rbt_testdata_t *testdatap = testdata;
 
-	dns_compress_init(&cctx, -1, mymctx);
+	result = dns_compress_init(&cctx, -1, mymctx);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	while (testdatap->name != NULL && testdatap->data.data != NULL) {
 		memmove(buffer, testdatap->name, testdatap->name_len);

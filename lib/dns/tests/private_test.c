@@ -76,6 +76,7 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 	dns_rdata_t nsec3param = DNS_RDATA_INIT;
 	unsigned char bufdata[BUFSIZ];
 	isc_buffer_t buf;
+	isc_result_t result;
 	isc_uint32_t salt;
 	unsigned char *sp;
 	int slen = 4;
@@ -107,8 +108,9 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 	}
 
 	isc_buffer_init(&buf, bufdata, sizeof(bufdata));
-	dns_rdata_fromstruct(&nsec3param, dns_rdataclass_in,
-			     dns_rdatatype_nsec3param, &params, &buf);
+	result = dns_rdata_fromstruct(&nsec3param, dns_rdataclass_in,
+				      dns_rdatatype_nsec3param, &params, &buf);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	dns_rdata_init(private);
 
@@ -156,7 +158,8 @@ ATF_TC_BODY(private_signing_totext, tc) {
 		isc_buffer_init(&buf, output, sizeof(output));
 
 		make_signing(&testcases[i], &private, data, sizeof(data));
-		dns_private_totext(&private, &buf);
+		result = dns_private_totext(&private, &buf);
+		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 		ATF_CHECK_STREQ(output, results[i]);
 	}
 
@@ -201,7 +204,8 @@ ATF_TC_BODY(private_nsec3_totext, tc) {
 		isc_buffer_init(&buf, output, sizeof(output));
 
 		make_nsec3(&testcases[i], &private, data);
-		dns_private_totext(&private, &buf);
+		result = dns_private_totext(&private, &buf);
+		ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 		ATF_CHECK_STREQ(output, results[i]);
 	}
 
