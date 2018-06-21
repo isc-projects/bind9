@@ -37,7 +37,6 @@ using fstrm library.
 %build
 %configure --disable-static
 make %{?_smp_mflags}
-make html
 
 %install
 # install the library
@@ -46,7 +45,6 @@ rm %{buildroot}%{_libdir}/libfstrm.la
 
 # install documentation
 mkdir -p %{buildroot}%{_pkgdocdir}/
-cp -ar html %{buildroot}%{_pkgdocdir}/html
 
 %check
 make check
