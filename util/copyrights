@@ -2532,6 +2532,11 @@
 ./contrib/kasp/policy.good			X	2016,2018
 ./contrib/rpms/LICENSE				X	2018
 ./contrib/rpms/fstrm/fstrm.spec			X	2018
+./contrib/rpms/isc-bind/isc-bind.spec		X	2018
+./contrib/rpms/isc-bind/named.conf		X	2018
+./contrib/rpms/isc-bind/named.init		X	2018
+./contrib/rpms/isc-bind/named.service		X	2018
+./contrib/rpms/isc-bind/named.sysconfig		X	2018
 ./contrib/rpms/libevent/libevent-nonettests.patch	X	2018
 ./contrib/rpms/libevent/libevent.spec		X	2018
 ./contrib/rpms/protobuf-c/protobuf-c.spec	X	2018
