@@ -23168,7 +23168,9 @@ fi
 
 # Check whether --with-cmocka was given.
 if test "${with_cmocka+set}" = set; then :
-  withval=$with_cmocka;
+  withval=$with_cmocka; :
+else
+  with_cmocka=no
 fi
 
 
