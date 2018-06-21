@@ -2530,6 +2530,16 @@
 ./contrib/kasp/kasp.xml				X	2016,2018
 ./contrib/kasp/kasp2policy.py			X	2016,2018
 ./contrib/kasp/policy.good			X	2016,2018
+./contrib/rpms/LICENSE				X	2018
+./contrib/rpms/fstrm/fstrm.spec			X	2018
+./contrib/rpms/libevent/libevent-nonettests.patch	X	2018
+./contrib/rpms/libevent/libevent.spec		X	2018
+./contrib/rpms/protobuf-c/protobuf-c.spec	X	2018
+./contrib/rpms/protobuf/0001-fix-build-on-s390x.patch	X	2018
+./contrib/rpms/protobuf/ftdetect-proto.vim	X	2018
+./contrib/rpms/protobuf/protobuf-init.el	X	2018
+./contrib/rpms/protobuf/protobuf.spec		X	2018
+./contrib/scripts/.gitignore			X	2012,2014,2018
 ./contrib/scripts/check-secure-delegation.pl.in	PERL	2010,2012,2014,2016,2018
 ./contrib/scripts/check5011.pl			X	2013,2014,2017,2018
 ./contrib/scripts/dnssec-keyset.sh		X	2015,2018
