@@ -1,0 +1,26 @@
+From 3db1323d1d6132f08d0bafbd8602da7d71456745 Mon Sep 17 00:00:00 2001
+From: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+Date: Tue, 28 Nov 2017 20:58:00 +0100
+Subject: [PATCH] fix build on s390x
+
+Signed-off-by: Igor Gnatenko <i.gnatenko.brain@gmail.com>
+---
+ src/google/protobuf/stubs/atomicops.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/google/protobuf/stubs/atomicops.h b/src/google/protobuf/stubs/atomicops.h
+index cb4553b1..34278f3a 100644
+--- a/src/google/protobuf/stubs/atomicops.h
++++ b/src/google/protobuf/stubs/atomicops.h
+@@ -214,7 +214,7 @@ Atomic64 Release_Load(volatile const Atomic64* ptr);
+ #elif defined(GOOGLE_PROTOBUF_ARCH_PPC)
+ #include <google/protobuf/stubs/atomicops_internals_ppc_gcc.h>
+ #elif (((__GNUC__ == 4) && (__GNUC_MINOR__ >= 7)) || (__GNUC__ > 4))
+-#include <google/protobuf/stubs/atomicops_internals_generic_gcc.h>
++#include <google/protobuf/stubs/atomicops_internals_generic_c11_atomic.h>
+ #elif defined(__clang__)
+ #if __has_extension(c_atomic)
+ #include <google/protobuf/stubs/atomicops_internals_generic_gcc.h>
+-- 
+2.15.0
+
