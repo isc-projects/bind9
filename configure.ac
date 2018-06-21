@@ -4856,7 +4856,7 @@ AS_CASE([$with_cmocka],
 			      #include <stddef.h>
 			      #include <setjmp.h>
 			     ])
-	    AC_SEARCH_LIBS([cmocka_run_group_tests],
+	    AC_SEARCH_LIBS([cmocka_set_message_output],
 			   [cmocka],
 			   [
 			       CMOCKA_CFLAGS="-Iwith_cmocka/include"
