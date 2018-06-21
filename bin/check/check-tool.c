@@ -171,6 +171,34 @@ logged(char *key, int value) {
 	return (ISC_FALSE);
 }
 
+#ifdef USE_GETADDRINFO
+static isc_result_t
+getcanonname(struct addrinfo *cur, char *namebuf, size_t len) {
+	isc_result_t result = ISC_R_NOTFOUND;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+
+	/*
+	 * Work around broken getaddrinfo() implementations that
+	 * fail to set ai_canonname on first entry.
+	 */
+	while (cur != NULL && cur->ai_canonname == NULL &&
+	       cur->ai_next != NULL)
+		cur = cur->ai_next;
+	/*
+	 * Work around getaddrinfo() which add / don't remove
+	 * the trailing period to ai_canonname.
+	 */
+	if (cur != NULL && cur->ai_canonname != NULL) {
+		name = dns_fixedname_initname(&fixed);
+		result = dns_name_fromstring(name, cur->ai_canonname, 0, NULL);
+		if (result == ISC_R_SUCCESS)
+			dns_name_format(name, namebuf, len);
+	}
+	return (result);
+}
+#endif
+
 static isc_boolean_t
 checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	dns_rdataset_t *a, dns_rdataset_t *aaaa)
@@ -181,6 +209,7 @@ checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	struct addrinfo hints, *ai, *cur;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
+	char canonname[DNS_NAME_FORMATSIZE];
 	char addrbuf[sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:123.123.123.123")];
 	isc_boolean_t answer = ISC_TRUE;
 	isc_boolean_t match;
@@ -215,22 +244,14 @@ checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
 	case 0:
-		/*
-		 * Work around broken getaddrinfo() implementations that
-		 * fail to set ai_canonname on first entry.
-		 */
-		cur = ai;
-		while (cur != NULL && cur->ai_canonname == NULL &&
-		       cur->ai_next != NULL)
-			cur = cur->ai_next;
-		if (cur != NULL && cur->ai_canonname != NULL &&
-		    strcasecmp(cur->ai_canonname, namebuf) != 0 &&
+		result = getcanonname(ai, canonname, sizeof(canonname));
+		if (result == ISC_R_SUCCESS &&
+		    strcasecmp(canonname, namebuf) != 0 &&
 		    !logged(namebuf, ERR_IS_CNAME)) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "%s/NS '%s' (out of zone) "
 				     "is a CNAME '%s' (illegal)",
-				     ownerbuf, namebuf,
-				     cur->ai_canonname);
+				     ownerbuf, namebuf, canonname);
 			/* XXX950 make fatal for 9.5.0 */
 			/* answer = ISC_FALSE; */
 			add(namebuf, ERR_IS_CNAME);
@@ -379,9 +400,10 @@ checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 static isc_boolean_t
 checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 #ifdef USE_GETADDRINFO
-	struct addrinfo hints, *ai, *cur;
+	struct addrinfo hints, *ai;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
+	char canonname[DNS_NAME_FORMATSIZE];
 	int result;
 	int level = ISC_LOG_ERROR;
 	isc_boolean_t answer = ISC_TRUE;
@@ -405,16 +427,9 @@ checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
 	case 0:
-		/*
-		 * Work around broken getaddrinfo() implementations that
-		 * fail to set ai_canonname on first entry.
-		 */
-		cur = ai;
-		while (cur != NULL && cur->ai_canonname == NULL &&
-		       cur->ai_next != NULL)
-			cur = cur->ai_next;
-		if (cur != NULL && cur->ai_canonname != NULL &&
-		    strcasecmp(cur->ai_canonname, namebuf) != 0) {
+		result = getcanonname(ai, canonname, sizeof(canonname));
+		if (result == ISC_R_SUCCESS &&
+		    strcasecmp(canonname, namebuf) != 0) {
 			if ((zone_options & DNS_ZONEOPT_WARNMXCNAME) != 0)
 				level = ISC_LOG_WARNING;
 			if ((zone_options & DNS_ZONEOPT_IGNOREMXCNAME) == 0) {
@@ -424,7 +439,7 @@ checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 						     " is a CNAME '%s' "
 						     "(illegal)",
 						     ownerbuf, namebuf,
-						     cur->ai_canonname);
+						     canonname);
 					add(namebuf, ERR_IS_MXCNAME);
 				}
 				if (level == ISC_LOG_ERROR)
@@ -465,9 +480,10 @@ checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 static isc_boolean_t
 checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 #ifdef USE_GETADDRINFO
-	struct addrinfo hints, *ai, *cur;
+	struct addrinfo hints, *ai;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
+	char canonname[DNS_NAME_FORMATSIZE];
 	int result;
 	int level = ISC_LOG_ERROR;
 	isc_boolean_t answer = ISC_TRUE;
@@ -491,16 +507,9 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 	dns_name_format(name, namebuf, sizeof(namebuf) - 1);
 	switch (result) {
 	case 0:
-		/*
-		 * Work around broken getaddrinfo() implementations that
-		 * fail to set ai_canonname on first entry.
-		 */
-		cur = ai;
-		while (cur != NULL && cur->ai_canonname == NULL &&
-		       cur->ai_next != NULL)
-			cur = cur->ai_next;
-		if (cur != NULL && cur->ai_canonname != NULL &&
-		    strcasecmp(cur->ai_canonname, namebuf) != 0) {
+		result = getcanonname(ai, canonname, sizeof(canonname));
+		if (result == ISC_R_SUCCESS &&
+		    strcasecmp(canonname, namebuf) != 0) {
 			if ((zone_options & DNS_ZONEOPT_WARNSRVCNAME) != 0)
 				level = ISC_LOG_WARNING;
 			if ((zone_options & DNS_ZONEOPT_IGNORESRVCNAME) == 0) {
@@ -509,7 +518,7 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 						     " (out of zone) is a "
 						     "CNAME '%s' (illegal)",
 						     ownerbuf, namebuf,
-						     cur->ai_canonname);
+						     canonname);
 					add(namebuf, ERR_IS_SRVCNAME);
 				}
 				if (level == ISC_LOG_ERROR)
