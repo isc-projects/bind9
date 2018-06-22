@@ -215,6 +215,7 @@
     <ClCompile Include="..\xfrin.c" />
     <ClCompile Include="..\zone.c" />
     <ClCompile Include="..\zonekey.c" />
+    <ClCompile Include="..\zoneverify.c" />
     <ClCompile Include="..\zt.c" />
     <ClCompile Include="DLLMain.c" />
     <ClCompile Include="version.c" />
@@ -326,6 +327,7 @@
     <ClInclude Include="..\include\dns\xfrin.h" />
     <ClInclude Include="..\include\dns\zone.h" />
     <ClInclude Include="..\include\dns\zonekey.h" />
+    <ClInclude Include="..\include\dns\zoneverify.h" />
     <ClInclude Include="..\include\dns\zt.h" />
     <ClInclude Include="..\include\dst\dst.h" />
     <ClInclude Include="..\include\dst\gssapi.h" />
