@@ -12696,8 +12696,8 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 		if (!redirect) {
 			/* Remove the zone from the zone table */
-			result = dns_zt_unmount(view->zonetable, zone);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			tresult = dns_zt_unmount(view->zonetable, zone);
+			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 		}
 		goto cleanup;
 	}
@@ -12901,8 +12901,8 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 
 		/* Remove the zone from the zone table */
 		if (!redirect) {
-			result = dns_zt_unmount(view->zonetable, zone);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			tresult = dns_zt_unmount(view->zonetable, zone);
+			RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
 		}
 		goto cleanup;
 	}
