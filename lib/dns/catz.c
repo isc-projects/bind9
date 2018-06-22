@@ -1566,7 +1566,7 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	isc_buffer_setautorealloc(buffer, ISC_TRUE);
 	isc_buffer_putstr(buffer, "zone ");
 	result = dns_name_totext(&entry->name, ISC_TRUE, buffer);
-	RUNTIME_CHECK(result = ISC_R_SUCCESS);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putstr(buffer, " { type slave; masters");
 
 	/*
