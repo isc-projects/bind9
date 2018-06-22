@@ -807,7 +807,6 @@ PKCS11_TOOLS
 OPENSSL_LDFLAGS
 OPENSSL_LIBS
 OPENSSL_INCLUDES
-PKG_CONFIG
 INSTALL_LIBRARY
 ISC_THREAD_DIR
 THREADOPTSRCS
@@ -16283,7 +16282,6 @@ esac
 PKCS11_TOOLS=
 #
 # was --enable-native-pkcs11 specified?
-#  (note it implies both --without-openssl and --with-pkcs11)
 #
 # Check whether --enable-native-pkcs11 was given.
 if test "${enable_native_pkcs11+set}" = set; then :
@@ -22043,6 +22041,7 @@ esac
 
 
 
+
 #
 # Check whether to build with cmocka unit testing framework
 #
@@ -26184,8 +26183,6 @@ report() {
     if test "yes" = "$enable_full_report"; then
 	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
 	    echo "    IPv6 support (--enable-ipv6)"
-	test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
-		echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -26194,13 +26191,6 @@ report() {
 	test "no" = "$with_libidn2" || echo "    IDN support (--with-libidn2)"
     fi
 
-    if test "no" != "$use_pkcs11"; then
-	echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
-    fi
-    test "yes" = "$OPENSSL_ECDSA" -o "$PKCS11_ECDSA" && \
-	echo "    ECDSA algorithm support (--with-ecdsa)"
-    test "yes" = "$OPENSSL_ED25519" -o "$PKCS11_ED25519" && \
-	echo "    EDDSA algorithm support (--with-eddsa)"
     test "yes" = "$enable_dnsrps" && \
 	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
     test "yes" = "$enable_fixed" && \
@@ -26217,7 +26207,11 @@ report() {
     test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
 
     test "no" = "$want_autoval" || echo "    DNSSEC validation active by default (--enable-auto-validation)"
-    echo "    Cryptographic library for DNSSEC: $CRYPTOLIB"
+
+    test "$CRYPTO" = "pkcs11" && (
+	echo "    Using PKCS#11 for Public-Key Cryptography (--with-native-pkcs11)"
+	echo "    PKCS#11 module (--with-pkcs11): $with_pkcs11"
+    )
 
     echo "    Dynamically loadable zone (DLZ) drivers:"
     test "no" = "$use_dlz_bdb" || \
@@ -26257,18 +26251,9 @@ report() {
 
     test "no" = "$want_autoval" && echo "    DNSSEC validation requires configuration (--disable-auto-validation)"
 
-    if test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11"
-    then
-	echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
-    elif test "no" = "$use_pkcs11"; then
-	echo "    PKCS#11/Cryptoki support (--with-pkcs11)"
-    fi
-    test "yes" = "$want_native_pkcs11" ||
-	echo "    Native PKCS#11/Cryptoki support (--enable-native-pkcs11)"
-    test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ECDSA" -o "yes" = "$PKCS11_ECDSA" || \
-	echo "    ECDSA algorithm support (--with-ecdsa)"
-    test "X$CRYPTO" = "X" -o "yes" = "$OPENSSL_ED25519" -o "yes" = "$PKCS11_ED25519" || \
-	echo "    EDDSA algorithm support (--with-eddsa)"
+    test "$CRYPTO" = "pkcs11" || (
+	echo "    Using PKCS#11 for Public-Key Cryptography (--without-native-pkcs11)"
+    )
 
     test "yes" = "$want_backtrace" || \
 	echo "    Print backtrace on crash (--enable-backtrace)"
