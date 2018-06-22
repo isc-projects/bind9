@@ -25,6 +25,7 @@ Summary:	The Berkeley Internet Name Domain (BIND) DNS (Domain Name System) serve
 License:	MPL 2.0
 URL:		https://www.isc.org/downloads/BIND/
 BuildRequires:	docbook-style-xsl, json-c-devel, krb5-devel, libxml2-devel, libxslt, openssl-devel
+BuildRequires:	perl
 Requires:	isc-bind-libs = 9.13.1
 Conflicts:	bind
 
