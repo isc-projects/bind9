@@ -1,3 +1,6 @@
+4975.	[port]		Handle broken getaddrinfo implementations that do
+			not correctly set ai_canonname. [GL #354]
+
 4974.	[bug]		Restore default rrset-order to random. [GL #336]
 
 4973.	[func]		verifyzone() and the functions it uses were moved to
