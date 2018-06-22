@@ -125,7 +125,7 @@ static isc_boolean_t
 	cdflag = ISC_FALSE,
 	no_sigs = ISC_FALSE,
 	root_validation = ISC_TRUE,
-	dlv_validation = ISC_TRUE;
+	dlv_validation = ISC_FALSE;
 
 static isc_boolean_t use_tcp = ISC_FALSE;
 
