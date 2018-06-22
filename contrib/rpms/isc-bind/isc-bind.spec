@@ -38,8 +38,10 @@ BuildRequires:	systemd
 %endif
 
 %if %{with python}
+%if 0%{?fedora} < 26 && 0%{?rhel} < 7
 BuildRequires:	python-argparse
 Requires:	python-argparse
+%endif
 BuildRequires:	python-ply
 Requires:	python-ply
 %endif
