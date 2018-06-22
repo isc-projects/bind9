@@ -1851,8 +1851,6 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 			INSIST(0);
 		}
 		isc_hmacsha1_update(&hmacsha1, cp, length);
-		isc_hmacsha1_update(&hmacsha1, client->cookie,
-				    sizeof(client->cookie));
 		isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
 		isc_buffer_putmem(buf, digest, 8);
 		isc_hmacsha1_invalidate(&hmacsha1);
@@ -1888,8 +1886,6 @@ compute_cookie(ns_client_t *client, isc_uint32_t when, isc_uint32_t nonce,
 			INSIST(0);
 		}
 		isc_hmacsha256_update(&hmacsha256, cp, length);
-		isc_hmacsha256_update(&hmacsha256, client->cookie,
-				      sizeof(client->cookie));
 		isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
 		isc_buffer_putmem(buf, digest, 8);
 		isc_hmacsha256_invalidate(&hmacsha256);
