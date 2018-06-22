@@ -269,6 +269,9 @@
     <ClCompile Include="..\zonekey.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\zoneverify.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\zt.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -635,6 +638,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\zonekey.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dns\zoneverify.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\zt.h">
