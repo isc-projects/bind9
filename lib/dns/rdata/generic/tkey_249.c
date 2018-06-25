@@ -549,7 +549,7 @@ checknames_tkey(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
-static inline isc_result_t
+static inline int
 casecompare_tkey(ARGS_COMPARE) {
 	return (compare_tkey(rdata1, rdata2));
 }

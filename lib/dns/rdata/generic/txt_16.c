@@ -273,7 +273,7 @@ checknames_txt(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
-static inline isc_result_t
+static inline int
 casecompare_txt(ARGS_COMPARE) {
 	return (compare_txt(rdata1, rdata2));
 }
