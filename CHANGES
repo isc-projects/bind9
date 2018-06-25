@@ -1,3 +1,6 @@
+4977.	[func]		When starting up, log the same details that
+			would be reported by 'named -V'. [GL #247]
+
 4975.	[bug]		The server cookie computation for sha1 and sha256 did
 			not match the method described in RFC 7873. [GL #356]
 
