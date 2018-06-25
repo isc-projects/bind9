@@ -945,6 +945,73 @@ setup(void) {
 		      ISC_LOG_NOTICE, "built with %s", ns_g_configargs);
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
+		      ISC_LOG_NOTICE, "running as: %s%s",
+		      program_name, saved_command_line);
+#ifdef __clang__
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled by CLANG %s", __VERSION__);
+#else
+#if defined(__ICC) || defined(__INTEL_COMPILER)
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled by ICC %s", __VERSION__);
+#else
+#ifdef __GNUC__
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled by GCC %s", __VERSION__);
+#endif
+#endif
+#endif
+#ifdef _MSC_VER
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled by MSVC %d", _MSC_VER);
+#endif
+#ifdef __SUNPRO_C
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled by Solaris Studio %x", __SUNPRO_C);
+#endif
+#ifdef OPENSSL
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled with OpenSSL version: %s",
+	              OPENSSL_VERSION_TEXT);
+#if !defined(LIBRESSL_VERSION_NUMBER) && \
+    OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "linked to OpenSSL version: %s",
+		      OpenSSL_version(OPENSSL_VERSION));
+#else
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "linked to OpenSSL version: %s",
+		      SSLeay_version(SSLEAY_VERSION));
+#endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
+#endif
+#ifdef HAVE_LIBXML2
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "compiled with libxml2 version: %s",
+		      LIBXML_DOTTED_VERSION);
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "linked to libxml2 version: %s", xmlParserVersion);
+#endif
+#ifdef ISC_PLATFORM_USETHREADS
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "threads support is enabled");
+#else
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
+		      "threads support is disabled");
+#endif
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
 		      ISC_LOG_NOTICE,
 		      "----------------------------------------------------");
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_MAIN,
