@@ -2074,9 +2074,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			tresult = isc_symtab_lookup(inview, namebuf, 0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(inviewobj, logctx, ISC_LOG_ERROR,
-					    "zone '%s': 'in-view' target zone "
-					    "in view '%s' does not exist",
-					    znamestr, target);
+					    "'in-view' zone '%s' "
+					    "does not exist in view '%s', "
+					    "or view '%s' is not yet defined",
+					    znamestr, target, target);
 				if (result == ISC_R_SUCCESS) {
 					result = tresult;
 				}
