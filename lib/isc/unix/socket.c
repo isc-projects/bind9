@@ -1865,16 +1865,16 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	isc_buffer_t *buffer;
 	int recv_errno;
 	char strbuf[ISC_STRERRORSIZE];
-	char *cmsgbuf = NULL;
+	char cmsgbuf[sock->recvcmsgbuflen];
 	int result;
 
-	if (sock->recvcmsgbuflen > 0U) {
+/*	if (sock->recvcmsgbuflen > 0U) {
 		cmsgbuf = isc_mem_get(sock->manager->mctx, sock->recvcmsgbuflen);
 		if (cmsgbuf == NULL) {
 			dev->result = ISC_R_NOMEMORY;
 			return (DOIO_HARD);
 		}
-	}
+	} */
 
 	build_msghdr_recv(sock, cmsgbuf, dev, &msghdr, iov, &read_count);
 
@@ -2060,10 +2060,6 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	result = DOIO_SUCCESS;
 
 finish:
-	if (cmsgbuf != NULL) {
-		isc_mem_put(sock->manager->mctx, cmsgbuf,
-			    sock->recvcmsgbuflen);
-	}
 	return (result);
 }
 
@@ -2090,17 +2086,9 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 	int attempts = 0;
 	int send_errno;
 	char strbuf[ISC_STRERRORSIZE];
-	char *cmsgbuf = NULL;
+	char cmsgbuf[sock->sendcmsgbuflen];
 	int result;
 
-	if (sock->sendcmsgbuflen > 0) {
-		cmsgbuf = isc_mem_get(sock->manager->mctx, sock->sendcmsgbuflen);
-		if (cmsgbuf == NULL) {
-			dev->result = ISC_R_NOMEMORY;
-			return (DOIO_HARD);
-		}
-		memset(cmsgbuf, 0, sock->sendcmsgbuflen);
-	}
 	build_msghdr_send(sock, cmsgbuf, dev, &msghdr, iov, &write_count);
 
  resend:
@@ -2210,10 +2198,6 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 	result = DOIO_SUCCESS;
 
 finish:
-	if (cmsgbuf != NULL) {
-		isc_mem_put(sock->manager->mctx, cmsgbuf,
-			    sock->sendcmsgbuflen);
-	}
 	return (result);
 }
 
