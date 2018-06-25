@@ -376,9 +376,7 @@ struct isc__socket {
 	unsigned char		overflow; /* used for MSG_TRUNC fake */
 #endif
 
-	char			*recvcmsgbuf;
 	ISC_SOCKADDR_LEN_T	recvcmsgbuflen;
-	char			*sendcmsgbuf;
 	ISC_SOCKADDR_LEN_T	sendcmsgbuflen;
 
 	void			*fdwatcharg;
@@ -488,9 +486,9 @@ static void internal_send(isc_task_t *, isc_event_t *);
 static void internal_fdwatch_write(isc_task_t *, isc_event_t *);
 static void internal_fdwatch_read(isc_task_t *, isc_event_t *);
 static void process_cmsg(isc__socket_t *, struct msghdr *, isc_socketevent_t *);
-static void build_msghdr_send(isc__socket_t *, isc_socketevent_t *,
+static void build_msghdr_send(isc__socket_t *, char *, isc_socketevent_t *,
 			      struct msghdr *, struct iovec *, size_t *);
-static void build_msghdr_recv(isc__socket_t *, isc_socketevent_t *,
+static void build_msghdr_recv(isc__socket_t *, char *, isc_socketevent_t *,
 			      struct msghdr *, struct iovec *, size_t *);
 #ifdef USE_WATCHER_THREAD
 static isc_boolean_t process_ctlfd(isc__socketmgr_t *manager);
@@ -1444,7 +1442,7 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
  * this transaction can send.
  */
 static void
-build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
+build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 		  struct msghdr *msg, struct iovec *iov, size_t *write_countp)
 {
 	unsigned int iovcount;
@@ -1455,11 +1453,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 #ifdef ISC_NET_BSD44MSGHDR
 	struct cmsghdr *cmsgp;
 #endif
-
 	memset(msg, 0, sizeof(*msg));
-	if (sock->sendcmsgbuflen != 0U) {
-		memset(sock->sendcmsgbuf, 0, sock->sendcmsgbuflen);
-	}
 
 	if (!sock->connected) {
 		msg->msg_name = (void *)&dev->address.type.sa;
@@ -1539,9 +1533,9 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 
 		msg->msg_controllen = cmsg_space(sizeof(struct in6_pktinfo));
 		INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
-		msg->msg_control = (void *)sock->sendcmsgbuf;
+		msg->msg_control = (void *)cmsgbuf;
 
-		cmsgp = (struct cmsghdr *)sock->sendcmsgbuf;
+		cmsgp = (struct cmsghdr *)cmsgbuf;
 		cmsgp->cmsg_level = IPPROTO_IPV6;
 		cmsgp->cmsg_type = IPV6_PKTINFO;
 		cmsgp->cmsg_len = cmsg_len(sizeof(struct in6_pktinfo));
@@ -1556,7 +1550,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 	{
 		int use_min_mtu = 1;	/* -1, 0, 1 */
 
-		cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
+		cmsgp = (struct cmsghdr *)(cmsgbuf +
 					   msg->msg_controllen);
 		msg->msg_controllen += cmsg_space(sizeof(use_min_mtu));
 		INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
@@ -1585,9 +1579,9 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 
 #ifdef IP_TOS
 		if (sock->pf == AF_INET && sock->pktdscp) {
-			cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
+			cmsgp = (struct cmsghdr *)(cmsgbuf +
 						   msg->msg_controllen);
-			msg->msg_control = (void *)sock->sendcmsgbuf;
+			msg->msg_control = (void *)cmsgbuf;
 			msg->msg_controllen += cmsg_space(sizeof(dscp));
 			INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
 
@@ -1616,9 +1610,9 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
 #endif
 #if defined(IPPROTO_IPV6) && defined(IPV6_TCLASS)
 		if (sock->pf == AF_INET6 && sock->pktdscp) {
-			cmsgp = (struct cmsghdr *)(sock->sendcmsgbuf +
+			cmsgp = (struct cmsghdr *)(cmsgbuf +
 						   msg->msg_controllen);
-			msg->msg_control = (void *)sock->sendcmsgbuf;
+			msg->msg_control = (void *)cmsgbuf;
 			msg->msg_controllen += cmsg_space(sizeof(dscp));
 			INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
 
@@ -1669,7 +1663,7 @@ build_msghdr_send(isc__socket_t *sock, isc_socketevent_t *dev,
  * this transaction can receive.
  */
 static void
-build_msghdr_recv(isc__socket_t *sock, isc_socketevent_t *dev,
+build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 		  struct msghdr *msg, struct iovec *iov, size_t *read_countp)
 {
 	unsigned int iovcount;
@@ -1767,7 +1761,7 @@ build_msghdr_recv(isc__socket_t *sock, isc_socketevent_t *dev,
 
 #ifdef ISC_NET_BSD44MSGHDR
 #if defined(USE_CMSG)
-	msg->msg_control = sock->recvcmsgbuf;
+	msg->msg_control = cmsgbuf;
 	msg->msg_controllen = sock->recvcmsgbuflen;
 #else
 	msg->msg_control = NULL;
@@ -1871,8 +1865,10 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	isc_buffer_t *buffer;
 	int recv_errno;
 	char strbuf[ISC_STRERRORSIZE];
+	char cmsgbuf[sock->recvcmsgbuflen];
+	int result;
 
-	build_msghdr_recv(sock, dev, &msghdr, iov, &read_count);
+	build_msghdr_recv(sock, cmsgbuf, dev, &msghdr, iov, &read_count);
 
 #if defined(ISC_SOCKET_DEBUG)
 	dump_msg(&msghdr);
@@ -1886,8 +1882,10 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 #endif
 
 	if (cc < 0) {
-		if (SOFT_ERROR(recv_errno))
-			return (DOIO_SOFT);
+		if (SOFT_ERROR(recv_errno)) {
+			result = DOIO_SOFT;
+			goto finish;
+		}
 
 		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
 			isc__strerror(recv_errno, strbuf, sizeof(strbuf));
@@ -1904,16 +1902,19 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 			dev->result = _isc; \
 			inc_stats(sock->manager->stats, \
 				  sock->statsindex[STATID_RECVFAIL]); \
-			return (DOIO_HARD); \
+			result = DOIO_HARD; \
+			goto finish; \
 		} \
-		return (DOIO_SOFT); \
+		result = DOIO_SOFT; \
+		goto finish; \
 	}
 #define ALWAYS_HARD(_system, _isc) \
 	if (recv_errno == _system) { \
 		dev->result = _isc; \
 		inc_stats(sock->manager->stats, \
 			  sock->statsindex[STATID_RECVFAIL]); \
-		return (DOIO_HARD); \
+		result = DOIO_HARD; \
+		goto finish; \
 	}
 
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
@@ -1942,7 +1943,8 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 		dev->result = isc__errno2result(recv_errno);
 		inc_stats(sock->manager->stats,
 			  sock->statsindex[STATID_RECVFAIL]);
-		return (DOIO_HARD);
+		result = DOIO_HARD;
+		goto finish;
 	}
 
 	/*
@@ -1953,8 +1955,10 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	switch (sock->type) {
 	case isc_sockettype_tcp:
 	case isc_sockettype_unix:
-		if (cc == 0)
-			return (DOIO_EOF);
+		if (cc == 0) {
+			result = DOIO_EOF;
+			goto finish;
+		}
 		break;
 	case isc_sockettype_udp:
 	case isc_sockettype_raw:
@@ -1973,14 +1977,17 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 					   ISC_MSG_ZEROPORT,
 					   "dropping source port zero packet");
 			}
-			return (DOIO_SOFT);
+			result = DOIO_SOFT;
+			goto finish;
 		}
 		/*
 		 * Simulate a firewall blocking UDP responses bigger than
 		 * 'maxudp' bytes.
 		 */
-		if (sock->manager->maxudp != 0 && cc > sock->manager->maxudp)
-			return (DOIO_SOFT);
+		if (sock->manager->maxudp != 0 && cc > sock->manager->maxudp) {
+			result = DOIO_SOFT;
+			goto finish;
+		}
 	}
 
 	socket_log(sock, &dev->address, IOEVENT,
@@ -2033,14 +2040,19 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	 * If we read less than we expected, update counters,
 	 * and let the upper layer poke the descriptor.
 	 */
-	if (((size_t)cc != read_count) && (dev->n < dev->minimum))
-		return (DOIO_SOFT);
+	if (((size_t)cc != read_count) && (dev->n < dev->minimum)) {
+		result = DOIO_SOFT;
+		goto finish;
+	}
 
 	/*
 	 * Full reads are posted, or partials if partials are ok.
 	 */
 	dev->result = ISC_R_SUCCESS;
-	return (DOIO_SUCCESS);
+	result = DOIO_SUCCESS;
+
+finish:
+	return (result);
 }
 
 /*
@@ -2066,8 +2078,10 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 	int attempts = 0;
 	int send_errno;
 	char strbuf[ISC_STRERRORSIZE];
+	char cmsgbuf[sock->sendcmsgbuflen];
+	int result;
 
-	build_msghdr_send(sock, dev, &msghdr, iov, &write_count);
+	build_msghdr_send(sock, cmsgbuf, dev, &msghdr, iov, &write_count);
 
  resend:
 	if (sock->type == isc_sockettype_udp &&
@@ -2088,7 +2102,8 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 		if (SOFT_ERROR(send_errno)) {
 			if (errno == EWOULDBLOCK || errno == EAGAIN)
 				dev->result = ISC_R_WOULDBLOCK;
-			return (DOIO_SOFT);
+			result = DOIO_SOFT;
+			goto finish;
 		}
 
 #define SOFT_OR_HARD(_system, _isc) \
@@ -2097,16 +2112,19 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 			dev->result = _isc; \
 			inc_stats(sock->manager->stats, \
 				  sock->statsindex[STATID_SENDFAIL]); \
-			return (DOIO_HARD); \
+			result = DOIO_HARD; \
+			goto finish; \
 		} \
-		return (DOIO_SOFT); \
+		result = DOIO_SOFT; \
+		goto finish; \
 	}
 #define ALWAYS_HARD(_system, _isc) \
 	if (send_errno == _system) { \
 		dev->result = _isc; \
 		inc_stats(sock->manager->stats, \
 			  sock->statsindex[STATID_SENDFAIL]); \
-		return (DOIO_HARD); \
+		result = DOIO_HARD; \
+		goto finish; \
 	}
 
 		SOFT_OR_HARD(ECONNREFUSED, ISC_R_CONNREFUSED);
@@ -2137,12 +2155,13 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 		 */
 		isc_sockaddr_format(&dev->address, addrbuf, sizeof(addrbuf));
 		isc__strerror(send_errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "internal_send: %s: %s",
-				 addrbuf, strbuf);
+		UNEXPECTED_ERROR(__FILE__, __LINE__, "internal_send: %s: %s %d %d",
+				 addrbuf, strbuf, sock->fd, send_errno);
 		dev->result = isc__errno2result(send_errno);
 		inc_stats(sock->manager->stats,
 			  sock->statsindex[STATID_SENDFAIL]);
-		return (DOIO_HARD);
+		result = DOIO_HARD;
+		goto finish;
 	}
 
 	if (cc == 0) {
@@ -2158,15 +2177,20 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 	 * If we write less than we expected, update counters, poke.
 	 */
 	dev->n += cc;
-	if ((size_t)cc != write_count)
-		return (DOIO_SOFT);
+	if ((size_t)cc != write_count) {
+		result = DOIO_SOFT;
+		goto finish;
+	}
 
 	/*
 	 * Exactly what we wanted to write.  We're done with this
 	 * entry.  Post its completion event.
 	 */
 	dev->result = ISC_R_SUCCESS;
-	return (DOIO_SUCCESS);
+	result = DOIO_SUCCESS;
+
+finish:
+	return (result);
 }
 
 /*
@@ -2306,11 +2330,8 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 
 	ISC_LINK_INIT(sock, link);
 
-	sock->recvcmsgbuf = NULL;
-	sock->sendcmsgbuf = NULL;
-
 	/*
-	 * Set up cmsg buffers.
+	 * Set up cmsg buffer lengths.
 	 */
 	cmsgbuflen = 0;
 #if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
@@ -2323,13 +2344,6 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	cmsgbuflen += cmsg_space(sizeof(int));
 #endif
 	sock->recvcmsgbuflen = cmsgbuflen;
-	if (sock->recvcmsgbuflen != 0U) {
-		sock->recvcmsgbuf = isc_mem_get(manager->mctx, cmsgbuflen);
-		if (sock->recvcmsgbuf == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto error;
-		}
-	}
 
 	cmsgbuflen = 0;
 #if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
@@ -2346,13 +2360,6 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	cmsgbuflen += cmsg_space(sizeof(int));
 #endif
 	sock->sendcmsgbuflen = cmsgbuflen;
-	if (sock->sendcmsgbuflen != 0U) {
-		sock->sendcmsgbuf = isc_mem_get(manager->mctx, cmsgbuflen);
-		if (sock->sendcmsgbuf == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto error;
-		}
-	}
 
 	memset(sock->name, 0, sizeof(sock->name));
 	sock->tag = NULL;
@@ -2400,12 +2407,6 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	return (ISC_R_SUCCESS);
 
  error:
-	if (sock->recvcmsgbuf != NULL)
-		isc_mem_put(manager->mctx, sock->recvcmsgbuf,
-			    sock->recvcmsgbuflen);
-	if (sock->sendcmsgbuf != NULL)
-		isc_mem_put(manager->mctx, sock->sendcmsgbuf,
-			    sock->sendcmsgbuflen);
 	isc_mem_put(manager->mctx, sock, sizeof(*sock));
 
 	return (result);
@@ -2433,13 +2434,6 @@ free_socket(isc__socket_t **socketp) {
 	INSIST(ISC_LIST_EMPTY(sock->accept_list));
 	INSIST(ISC_LIST_EMPTY(sock->connect_list));
 	INSIST(!ISC_LINK_LINKED(sock, link));
-
-	if (sock->recvcmsgbuf != NULL)
-		isc_mem_put(sock->manager->mctx, sock->recvcmsgbuf,
-			    sock->recvcmsgbuflen);
-	if (sock->sendcmsgbuf != NULL)
-		isc_mem_put(sock->manager->mctx, sock->sendcmsgbuf,
-			    sock->sendcmsgbuflen);
 
 	sock->common.magic = 0;
 	sock->common.impmagic = 0;
@@ -3867,9 +3861,9 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
-	socket_log(sock, NULL, IOEVENT,
+	socket_log(sock, NULL, ISC_LOGCATEGORY_GENERAL, ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
-		   "internal_send: task %p got event %p", me, ev);
+		   "internal_send: task %p got event %p socket %p", me, ev, sock);
 
 	INSIST(sock->pending_send == 1);
 	sock->pending_send = 0;
