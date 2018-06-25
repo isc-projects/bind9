@@ -38,6 +38,7 @@ SRCS =		feature-test.c
 TARGETS =	feature-test@EXEEXT@
 
 CPIO =		@CPIO@
+GIT =		@GIT@
 
 @BIND9_MAKE_RULES@
 
@@ -109,11 +110,25 @@ parallel.mk:
 
 # Targets to run the tests.
 
-oot_setup:
+# update the ootfiles.txt file if we're running in a git repo.
+# this should be done and the result committed whenever new files
+# are added under bin/tests/system. the precheck step in the gitlab
+# CI process will fail if this hasn't been done.
+${srcdir}/ootfiles.txt: FORCE
+	@if test -n "${GIT}"; then \
+		cwd=`pwd`; \
+		cd ${srcdir}; \
+		if ${GIT} status -s > /dev/null; then \
+			${GIT} ls-files --exclude-standard > ootfiles.txt; \
+		fi; \
+		cd ${cwd}; \
+	fi
+
+oot_setup: ${srcdir}/ootfiles.txt
 	@if test "${srcdir}" != "." -a -n "${CPIO}"; \
 	then \
 		cwd=`pwd`; \
-		(cd ${srcdir} && find . -type f -a ! \( -name Makefile -o -name conf.sh \) -print0 | ${CPIO} -pdlum0 $${cwd} ) \
+		(cd ${srcdir} && ${CPIO} -pdlum $${cwd} < ootfiles.txt) \
 	fi
 
 oot_clean:
