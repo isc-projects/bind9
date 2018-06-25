@@ -144,9 +144,13 @@ precheck:debian:sid:amd64:
     - perl -w util/merge_copyrights
     - diff -urNap util/copyrights util/newcopyrights
     - rm util/newcopyrights
+    - ( cd bin/tests/system; git ls-files --exclude-standard > ootfiles.new)
+    - diff -urNap bin/tests/system/ootfiles.txt bin/tests/system/ootfiles.new
+    - rm bin/tests/system/ootfiles.new
   artifacts:
     paths:
     - util/newcopyrights
+    - bin/tests/system/ootfiles.new
     expire_in: '1 week'
     when: on_failure
 
