@@ -476,6 +476,16 @@ do
     status=1
   }
 
+  # Check for invalid prefix length error
+  t=`expr $t + 1`
+  echo_i "testing for invalid prefix length error (${t})"
+  add_test_marker 10.53.0.2
+  run_server invalidprefixlength
+  grep "invalid rpz IP address \"1000.4.0.53.10.rpz-client-ip.invalidprefixlength\"; invalid prefix length of 1000$" ns2/named.run > /dev/null || {
+    echo_i " failed: expected that invalid prefix length error would be logged"
+    status=1
+  }
+
   t=`expr $t + 1`
   echo_i "checking 'nsip-wait-recurse no' is faster than 'nsip-wait-recurse yes' ($t)"
   add_test_marker 10.53.0.2

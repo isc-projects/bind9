@@ -849,6 +849,11 @@ name2ipkey(int log_level,
 			"; invalid leading prefix length", "");
 		return (ISC_R_FAILURE);
 	}
+	/*
+	 * Patch in trailing nul character to print just the length
+	 * label (for various cases below).
+	 */
+	*cp2 = '\0';
 	if (prefix_num < 1U || prefix_num > 128U) {
 		badname(log_level, src_name,
 			"; invalid prefix length of ", prefix_str);
