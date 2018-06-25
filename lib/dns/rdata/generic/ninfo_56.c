@@ -155,7 +155,7 @@ checknames_ninfo(ARGS_CHECKNAMES) {
 	return (ISC_TRUE);
 }
 
-static inline isc_result_t
+static inline int
 casecompare_ninfo(ARGS_COMPARE) {
 	return (compare_ninfo(rdata1, rdata2));
 }
