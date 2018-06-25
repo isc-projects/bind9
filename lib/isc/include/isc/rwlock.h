@@ -24,7 +24,7 @@
 #include <stdint.h>
 #ifdef __cplusplus
 #include <atomic>
-using namespace std;
+using std::atomic_int_fast32_t;
 #else
 #include <stdatomic.h>
 #endif
