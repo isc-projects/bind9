@@ -70,7 +70,7 @@ isc_md_new_test(void **state) {
 
 	isc_md_t *md = isc_md_new();
 	assert_non_null(md);
-	isc_md_free(md);
+	isc_md_free(md); /* Cleanup */
 }
 
 static void
@@ -79,8 +79,8 @@ isc_md_free_test(void **state) {
 
 	isc_md_t *md = isc_md_new();
 	assert_non_null(md);
-	isc_md_free(md);
-	isc_md_free(NULL);
+	isc_md_free(md); /* Test freeing valid message digest context */
+	isc_md_free(NULL); /* Test freeing NULL argument */
 }
 
 static void
@@ -122,22 +122,27 @@ isc_md_init_test(void **state) {
 	expect_assert_failure(isc_md_init(NULL, ISC_MD_MD5));
 
 	assert_int_equal(isc_md_init(md, 0), ISC_R_NOTIMPLEMENTED);
-       
+
+	assert_int_equal(isc_md_init(md, (isc_md_type_t)-1),
+			 ISC_R_NOTIMPLEMENTED);
+	
 	assert_int_equal(isc_md_init(md, ISC_MD_MD5), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS); /* Release resources */
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA1), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS); /* Release resources */
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA224), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS); /* Release resources */
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA256), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS); /* Release resources */
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA384), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS); /* Release resources */
+
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA512), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS); /* Release resources */
 }
 
 static void
@@ -145,31 +150,35 @@ isc_md_update_test(void **state) {
 	isc_md_t *md = *state;
 	assert_non_null(md);
 
+	/* Uses message digest context initialized in isc_md_init_test() */
 	expect_assert_failure(isc_md_update(NULL, NULL, 0));
 
 	assert_int_equal(isc_md_update(md, NULL, 100), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_update(md, (const unsigned char *)"", 0), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_update(md, (const unsigned char *)"", 0),
+			 ISC_R_SUCCESS);
 }
 
 static void
 isc_md_reset_test(void **state) {
 	isc_md_t *md = *state;
-	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned int digestlen;
+	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
+	unsigned int digestlen __attribute((unused));
 
 	assert_non_null(md);
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA512), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_update(md, (const unsigned char *)"a", 1), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_update(md, (const unsigned char *)"b", 1), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_final(md, digest, &digestlen), ISC_R_SUCCESS);
+	assert_int_equal(isc_md_update(md, (const unsigned char *)"a", 1),
+			 ISC_R_SUCCESS);
+	assert_int_equal(isc_md_update(md, (const unsigned char *)"b", 1),
+			 ISC_R_SUCCESS);
 
 	assert_int_equal(isc_md_reset(md), ISC_R_SUCCESS);
 
-	assert_int_equal(isc_md_init(md, ISC_MD_SHA512), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_update(md, (const unsigned char *)"c", 1), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_update(md, (const unsigned char *)"d", 1), ISC_R_SUCCESS);
-	assert_int_equal(isc_md_final(md, digest, &digestlen), ISC_R_SUCCESS);
+/*	expect_assert_failure(isc_md_final(md, digest, &digestlen)); */
+	/* This test would require OpenSSL compiled with mock_assert(),
+	 * so this could be only manually checked that the test will
+	 * segfault when called by hand
+	 */
 }
 
 static void
@@ -180,7 +189,9 @@ isc_md_final_test(void **state) {
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	unsigned int digestlen;
 
+	/* Fail when message digest context is empty */
 	expect_assert_failure(isc_md_final(NULL, digest, &digestlen));
+	/* Fail when output buffer is empty */
 	expect_assert_failure(isc_md_final(md, NULL, &digestlen));
 
 	assert_int_equal(isc_md_init(md, ISC_MD_SHA512), ISC_R_SUCCESS);
@@ -214,6 +225,9 @@ isc_md_md5_test(void **state) {
 static void
 isc_md_sha1_test(void **state) {
 	isc_md_t *md = *state;
+	isc_md_test(md, ISC_MD_SHA1, NULL, 0, NULL, 0);
+	isc_md_test(md, ISC_MD_SHA1, TEST_INPUT(""),
+		    "DA39A3EE5E6B4B0D3255BFEF95601890AFD80709", 1);
 	isc_md_test(md, ISC_MD_SHA1, TEST_INPUT("abc"),
 		    "A9993E364706816ABA3E25717850C26C9CD0D89D", 1);
 	isc_md_test(md, ISC_MD_SHA1,
@@ -260,6 +274,10 @@ static void
 isc_md_sha224_test(void **state) {
 	isc_md_t *md = *state;
 
+	isc_md_test(md, ISC_MD_SHA224, NULL, 0, NULL, 0);
+	isc_md_test(md, ISC_MD_SHA224, TEST_INPUT(""),
+		    "D14A028C2A3A2BC9476102BB288234C415A2B01F828EA62AC5B3E42F",
+		    1);
 	isc_md_test(md, ISC_MD_SHA224, TEST_INPUT("abc"),
 		    "23097D223405D8228642A477BDA255B32AADBCE4BDA0B3F7"
 		    "E36C9DA7",
@@ -315,6 +333,13 @@ isc_md_sha224_test(void **state) {
 static void
 isc_md_sha256_test(void **state) {
 	isc_md_t *md = *state;
+
+	isc_md_test(md, ISC_MD_SHA256, NULL, 0, NULL, 0);
+	isc_md_test(md, ISC_MD_SHA256, TEST_INPUT(""),
+		    "E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B93"
+		    "4CA495991B7852B855",
+		    1);
+
 	isc_md_test(md, ISC_MD_SHA256, TEST_INPUT("abc"),
 		    "BA7816BF8F01CFEA414140DE5DAE2223B00361A396177A"
 		    "9CB410FF61F20015AD",
@@ -369,6 +394,14 @@ isc_md_sha256_test(void **state) {
 static void
 isc_md_sha384_test(void **state) {
 	isc_md_t *md = *state;
+
+	isc_md_test(md, ISC_MD_SHA384, NULL, 0, NULL, 0);
+	isc_md_test(md, ISC_MD_SHA384, TEST_INPUT(""),
+		    "38B060A751AC96384CD9327EB1B1E36A21FDB71114BE07"
+		    "434C0CC7BF63F6E1DA274EDEBFE76F65FBD51AD2F14898"
+		    "B95B"
+		    "",
+		    1);
 	isc_md_test(md, ISC_MD_SHA384, TEST_INPUT("abc"),
 		    "CB00753F45A35E8BB5A03D699AC65007272C32AB0EDED1"
 		    "631A8B605A43FF5BED8086072BA1E7CC2358BAEC"
@@ -438,6 +471,13 @@ isc_md_sha384_test(void **state) {
 static void
 isc_md_sha512_test(void **state) {
 	isc_md_t *md = *state;
+
+	isc_md_test(md, ISC_MD_SHA512, NULL, 0, NULL, 0);
+	isc_md_test(md, ISC_MD_SHA512, TEST_INPUT(""),
+		    "CF83E1357EEFB8BDF1542850D66D8007D620E4050B5715"
+		    "DC83F4A921D36CE9CE47D0D13C5D85F2B0FF8318D2877E"
+		    "EC2F63B931BD47417A81A538327AF927DA3E",
+		    1);
 	isc_md_test(md, ISC_MD_SHA512, TEST_INPUT("abc"),
 		    "DDAF35A193617ABACC417349AE20413112E6FA4E89A97E"
 		    "A20A9EEEE64B55D39A2192992A274FC1A836BA3C"
