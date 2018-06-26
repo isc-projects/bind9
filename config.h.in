@@ -317,9 +317,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `c' library (-lc). */
 #undef HAVE_LIBC
 
-/* Define to 1 if you have the `cap' library (-lcap). */
-#undef HAVE_LIBCAP
-
 /* if system have backtrace function */
 #undef HAVE_LIBCTRACE
 
@@ -355,9 +352,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <linux/rtnetlink.h> header file. */
 #undef HAVE_LINUX_RTNETLINK_H
-
-/* Define to 1 if you have the <linux/types.h> header file. */
-#undef HAVE_LINUX_TYPES_H
 
 /* Define if lmdb was found */
 #undef HAVE_LMDB
@@ -625,6 +619,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* the default value of dnssec-validation option */
 #undef VALIDATION_DEFAULT
+
+/* define if you want to have Linux capabilities support */
+#undef WANT_LINUX_CAPABILITY
 
 /* Define to enable very verbose query trace logging. */
 #undef WANT_QUERYTRACE
