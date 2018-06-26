@@ -12,7 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-DIGOPTS="-p ${PORT} +dnssec +time=1 +tries=1 +multi"
+DIGOPTS="-p ${PORT} -b 10.53.0.1 +dnssec +time=1 +tries=1 +multi"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 # Wait until the transfer of the given zone to ns3 either completes successfully
@@ -322,6 +322,16 @@ grep "NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
 # Sanity check: the authoritative server should have been queried.
 nextpart ns2/named.run | grep "query 'foo.initially-unavailable/A/IN'" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that clients without cache access cannot retrieve mirror zone data ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 -b 10.53.0.3 . SOA +norec > dig.out.ns3.test$n 2>&1 || ret=1
+# Check response code and flags in the answer.
+grep "REFUSED" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
