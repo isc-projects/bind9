@@ -14,6 +14,19 @@ SYSTEMTESTTOP=../..
 
 keys_to_trust=""
 
+for zonename in example; do
+	zone=$zonename
+	infile=$zonename.db.in
+	zonefile=$zonename.db
+
+	keyname1=`$KEYGEN -f KSK -a RSASHA256 -b 2048 -n zone $zone 2> /dev/null`
+	keyname2=`$KEYGEN -a RSASHA256 -b 2048 -n zone $zone 2> /dev/null`
+
+	cat $infile $keyname1.key $keyname2.key > $zonefile
+
+	$SIGNER -P -o $zone $zonefile > /dev/null
+done
+
 ORIGINAL_SERIAL=`awk '$2 == "SOA" {print $5}' verify.db.in`
 UPDATED_SERIAL_BAD=`expr ${ORIGINAL_SERIAL} + 1`
 UPDATED_SERIAL_GOOD=`expr ${ORIGINAL_SERIAL} + 2`
