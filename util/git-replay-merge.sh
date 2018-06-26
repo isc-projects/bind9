@@ -155,7 +155,7 @@ resume() {
 		fi
 	fi
 
-	git push ${TARGET_REMOTE} -u ${REPLAY_BRANCH}
+	git push ${TARGET_REMOTE} -u ${REPLAY_BRANCH}:${REPLAY_BRANCH}
 
 	REPLAY_COMMIT_TITLE="$(git show --format="%b" "${SOURCE_COMMIT}" 2>&1 | head -1)"
 
