@@ -164,8 +164,22 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, unsigned int options,
 
 	result = dns_rbt_findname(zt->table, name, rbtoptions, foundname,
 				  (void **) (void*)&dummy);
-	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH)
-		dns_zone_attach(dummy, zonep);
+	if (result == ISC_R_SUCCESS || result == DNS_R_PARTIALMATCH) {
+		/*
+		 * If DNS_ZTFIND_MIRROR is set and the zone which was
+		 * determined to be the deepest match for the supplied name is
+		 * a mirror zone which is expired or not yet loaded, treat it
+		 * as non-existent.  This will trigger a fallback to recursion
+		 * instead of returning a SERVFAIL.
+		 */
+		if ((options & DNS_ZTFIND_MIRROR) != 0 &&
+		    dns_zone_ismirror(dummy) && !dns_zone_isloaded(dummy))
+		{
+			result = ISC_R_NOTFOUND;
+		} else {
+			dns_zone_attach(dummy, zonep);
+		}
+	}
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 
