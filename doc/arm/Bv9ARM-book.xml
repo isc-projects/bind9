@@ -6099,19 +6099,16 @@ options {
 		  options level, not per-view.
 		</para>
 		<para>
-		  <command>answer-cookie</command> is only available
-		  as a temporary measure, for use when
-		  <command>named</command> shares an IP address
-		  with other servers that do not yet support DNS
-		  COOKIE.  A mismatch between servers on the same
-		  address is not expected to cause operational
-		  problems, but the option to disable COOKIE responses
-		  so that all servers have the same behavior is
-		  provided out of an abundance of caution. DNS COOKIE
-		  is an important security mechanism and should not be
-		  disabled unless absolutely necessary.  The
-		  <command>answer-cookie</command> option is obsolete
-		  as of BIND 9.13.
+		  <command>answer-cookie no</command> is only intended as a
+		  temporary measure, for use when <command>named</command>
+		  shares an IP address with other servers that do not yet
+		  support DNS COOKIE.  A mismatch between servers on the
+		  same address is not expected to cause operational
+		  problems, but the option to disable COOKIE responses so
+		  that all servers have the same behavior is provided out
+		  of an abundance of caution. DNS COOKIE is an important
+		  security mechanism, and should not be disabled unless
+		  absolutely necessary.
 		</para>
 	      </listitem>
 	    </varlistentry>
