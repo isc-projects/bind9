@@ -722,6 +722,7 @@ ISC_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_RLIMITTYPE
 ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
+LIBCAP_LIBS
 ISC_PLATFORM_QUADFORMAT
 DST_EXTRA_SRCS
 DST_EXTRA_OBJS
@@ -903,6 +904,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1057,6 +1059,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1309,6 +1312,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1446,7 +1458,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1599,6 +1611,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1659,7 +1672,7 @@ Optional Features:
   --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
-  --disable-linux-caps    disable linux capabilities
+  --disable-linux-caps    disable Linux capabilities
   --enable-atomic         enable machine specific atomic operations
                           [default=autodetect]
   --enable-fixed-rrset    enable fixed rrset ordering [default=no]
@@ -4948,7 +4961,7 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
-netbsd*)
+netbsd* | netbsdelf*-gnu)
   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
     lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
   else
@@ -8683,6 +8696,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
   openbsd* | bitrig*)
     with_gnu_ld=no
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs=no
+    ;;
   esac
 
   ld_shlibs=yes
@@ -8937,7 +8953,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -9607,6 +9623,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
 	if test yes = "$lt_cv_irix_exported_symbol"; then
           archive_expsym_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations $wl-exports_file $wl$export_symbols -o $lib'
 	fi
+	link_all_deplibs=no
       else
 	archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -o $lib'
 	archive_expsym_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -exports_file $export_symbols -o $lib'
@@ -9628,7 +9645,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       esac
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -10741,6 +10758,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -19070,60 +19099,57 @@ done
 	no)
 		;;
 esac
+
+LIBCAP_LIBS=""
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable Linux capabilities" >&5
+$as_echo_n "checking whether to enable Linux capabilities... " >&6; }
 # Check whether --enable-linux-caps was given.
 if test "${enable_linux_caps+set}" = set; then :
-  enableval=$enable_linux_caps;
+  enableval=$enable_linux_caps; :
+else
+  case $host in #(
+  *-linux*) :
+    enable_linux_caps=yes ;; #(
+  *) :
+    enable_linux_caps=no ;;
+esac
 fi
 
-case "$enable_linux_caps" in
-	yes|'')
-		for ac_header in linux/types.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "linux/types.h" "ac_cv_header_linux_types_h" "$ac_includes_default"
-if test "x$ac_cv_header_linux_types_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LINUX_TYPES_H 1
-_ACEOF
 
+case $enable_linux_caps in #(
+  no) :
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; } ;; #(
+  *) :
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define WANT_LINUX_CAPABILITY 1" >>confdefs.h
+
+	 for ac_header in sys/capability.h linux/capability.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ :
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "sys/capability.h or linux/capability.h header not found (required for Linux capabilities)
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 
 done
 
-		for ac_header in sys/capability.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/capability.h" "ac_cv_header_sys_capability_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_capability_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_CAPABILITY_H 1
-_ACEOF
-
-fi
-
-done
-
-		for ac_header in linux/capability.h
-do :
-  ac_fn_c_check_header_compile "$LINENO" "linux/capability.h" "ac_cv_header_linux_capability_h" "#ifdef HAVE_LINUX_TYPES_H
-				  #include <linux/types.h>
-				  #endif
-
-"
-if test "x$ac_cv_header_linux_capability_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LINUX_CAPABILITY_H 1
-_ACEOF
-
-fi
-
-done
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cap_set_proc in -lcap" >&5
-$as_echo_n "checking for cap_set_proc in -lcap... " >&6; }
-if ${ac_cv_lib_cap_cap_set_proc+:} false; then :
+	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cap_set_proc" >&5
+$as_echo_n "checking for library containing cap_set_proc... " >&6; }
+if ${ac_cv_search_cap_set_proc+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcap  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -19142,30 +19168,47 @@ return cap_set_proc ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_cap_cap_set_proc=yes
-else
-  ac_cv_lib_cap_cap_set_proc=no
+for ac_lib in '' cap; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_cap_set_proc=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_cap_set_proc+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cap_cap_set_proc" >&5
-$as_echo "$ac_cv_lib_cap_cap_set_proc" >&6; }
-if test "x$ac_cv_lib_cap_cap_set_proc" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBCAP 1
-_ACEOF
+done
+if ${ac_cv_search_cap_set_proc+:} false; then :
 
-  LIBS="-lcap $LIBS"
-
+else
+  ac_cv_search_cap_set_proc=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_cap_set_proc" >&5
+$as_echo "$ac_cv_search_cap_set_proc" >&6; }
+ac_res=$ac_cv_search_cap_set_proc
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  LIBCAP_LIBS="$ac_cv_search_cap_set_proc"
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "libcap not found (required for Linux capabilities)
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 
-		;;
-	no)
-		;;
+	 ;;
 esac
+
+
 for ac_header in sys/prctl.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "sys/prctl.h" "ac_cv_header_sys_prctl_h" "$ac_includes_default"
@@ -25074,7 +25117,6 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
     cat <<_LT_EOF >> "$cfgfile"
 #! $SHELL
 # Generated automatically by $as_me ($PACKAGE) $VERSION
-# Libtool was configured on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.
