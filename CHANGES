@@ -1,3 +1,7 @@
+4980.	[func]		Linux capabilities now require libcap library [GL #321]
+
+4979.	[placeholder]
+
 4978.	[test]		Fix error handling and resolver configuration in the
 			"rpz" system test. [GL #312]
 
