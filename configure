@@ -722,6 +722,7 @@ ISC_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_RLIMITTYPE
 ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
+LIBCAP_LIBS
 ISC_PLATFORM_QUADFORMAT
 DST_EXTRA_SRCS
 DST_EXTRA_OBJS
@@ -1659,7 +1660,7 @@ Optional Features:
   --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
-  --disable-linux-caps    disable linux capabilities
+  --disable-linux-caps    disable Linux capabilities
   --enable-atomic         enable machine specific atomic operations
                           [default=autodetect]
   --enable-fixed-rrset    enable fixed rrset ordering [default=no]
@@ -19070,60 +19071,45 @@ done
 	no)
 		;;
 esac
+
+LIBCAP_LIBS=""
 # Check whether --enable-linux-caps was given.
 if test "${enable_linux_caps+set}" = set; then :
-  enableval=$enable_linux_caps;
+  enableval=$enable_linux_caps; :
+else
+  enable_linux_caps=yes
 fi
 
-case "$enable_linux_caps" in
-	yes|'')
-		for ac_header in linux/types.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "linux/types.h" "ac_cv_header_linux_types_h" "$ac_includes_default"
-if test "x$ac_cv_header_linux_types_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LINUX_TYPES_H 1
-_ACEOF
+case $enable_linux_caps in #(
+  no) :
+    :
 
+$as_echo "#define WANT_LINUX_CAPABILITY 1" >>confdefs.h
+
+	 for ac_header in sys/capability.h linux/capability.h
+do :
+  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
+ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
+if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+_ACEOF
+ :
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "sys/capability.h or linux/capability.h header not found (required for Linux capabilities)
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 
 done
 
-		for ac_header in sys/capability.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/capability.h" "ac_cv_header_sys_capability_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_capability_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_CAPABILITY_H 1
-_ACEOF
-
-fi
-
-done
-
-		for ac_header in linux/capability.h
-do :
-  ac_fn_c_check_header_compile "$LINENO" "linux/capability.h" "ac_cv_header_linux_capability_h" "#ifdef HAVE_LINUX_TYPES_H
-				  #include <linux/types.h>
-				  #endif
-
-"
-if test "x$ac_cv_header_linux_capability_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LINUX_CAPABILITY_H 1
-_ACEOF
-
-fi
-
-done
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cap_set_proc in -lcap" >&5
-$as_echo_n "checking for cap_set_proc in -lcap... " >&6; }
-if ${ac_cv_lib_cap_cap_set_proc+:} false; then :
+	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cap_set_proc" >&5
+$as_echo_n "checking for library containing cap_set_proc... " >&6; }
+if ${ac_cv_search_cap_set_proc+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lcap  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -19142,30 +19128,49 @@ return cap_set_proc ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_cap_cap_set_proc=yes
-else
-  ac_cv_lib_cap_cap_set_proc=no
+for ac_lib in '' cap; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_cap_set_proc=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_cap_set_proc+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_cap_cap_set_proc" >&5
-$as_echo "$ac_cv_lib_cap_cap_set_proc" >&6; }
-if test "x$ac_cv_lib_cap_cap_set_proc" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBCAP 1
-_ACEOF
+done
+if ${ac_cv_search_cap_set_proc+:} false; then :
 
-  LIBS="-lcap $LIBS"
-
+else
+  ac_cv_search_cap_set_proc=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_cap_set_proc" >&5
+$as_echo "$ac_cv_search_cap_set_proc" >&6; }
+ac_res=$ac_cv_search_cap_set_proc
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  LIBCAP_LIBS="$ac_cv_search_cap_set_proc"
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "libcap not found (required for Linux capabilities)
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 
-		;;
-	no)
-		;;
+	  ;; #(
+  *) :
+     ;;
 esac
+
+
 for ac_header in sys/prctl.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "sys/prctl.h" "ac_cv_header_sys_prctl_h" "$ac_includes_default"

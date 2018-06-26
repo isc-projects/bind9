@@ -2897,23 +2897,24 @@ case "$enable_chroot" in
 	no)
 		;;
 esac
-AC_ARG_ENABLE(linux-caps,
-	      AS_HELP_STRING([--disable-linux-caps],
-			     [disable linux capabilities]))
-case "$enable_linux_caps" in
-	yes|'')
-		AC_CHECK_HEADERS(linux/types.h)
-		AC_CHECK_HEADERS([sys/capability.h])
-		AC_CHECK_HEADERS([linux/capability.h], [], [],
-				 [#ifdef HAVE_LINUX_TYPES_H
-				  #include <linux/types.h>
-				  #endif
-				 ])
-		AC_CHECK_LIB(cap, cap_set_proc)
-		;;
-	no)
-		;;
-esac
+
+LIBCAP_LIBS=""
+AC_ARG_ENABLE([linux-caps],
+	      [AS_HELP_STRING([--disable-linux-caps],
+			      [disable Linux capabilities])],
+	      [:],
+	      [enable_linux_caps=yes])
+AS_CASE([$enable_linux_caps],
+	[no],[:]
+	[AC_DEFINE([WANT_LINUX_CAPABILITY], [1], [define if you want to have Linux capabilities support])
+	 AC_CHECK_HEADERS([sys/capability.h linux/capability.h], [:],
+			  [AC_MSG_FAILURE([sys/capability.h or linux/capability.h header not found (required for Linux capabilities)])])
+	 AC_SEARCH_LIBS([cap_set_proc], [cap],
+			[LIBCAP_LIBS="$ac_cv_search_cap_set_proc"],
+			[AC_MSG_FAILURE([libcap not found (required for Linux capabilities)])])
+	 ])
+AC_SUBST([LIBCAP_LIBS])
+
 AC_CHECK_HEADERS(sys/prctl.h)
 
 AC_CHECK_HEADERS(sys/un.h,
