@@ -1,8 +1,10 @@
-4980.	[bug]		Fix race in cmsg buffer usage in socket code.
+4981.	[bug]		Fix race in cmsg buffer usage in socket code.
 			[GL #180]
 
-4979.	[bug]		Named-checkconf failed to detect bad in-view targets.
+4980.	[bug]		Named-checkconf failed to detect bad in-view targets.
 			[GL #288]
+
+4979.	[placeholder]
 
 4978.	[test]		Fix error handling and resolver configuration in the
 			"rpz" system test. [GL #312]
