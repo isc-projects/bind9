@@ -578,11 +578,11 @@ EOF
   addr 127.0.0.1 a3-1.sub3.tld2		# 10 prefer policy for largest NSDNAME
   addr 127.0.0.2 a3-1.subsub.sub3.tld2
   nxdomain xxx.crash1.tld2		# 12 dns_db_detachnode() crash
-  if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
+  if [ "$mode" = dnsrps ]; then
     addr 12.12.12.12 as-ns.tld5.	# 13 qname-as-ns
   fi
   end_group
-  if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
+  if [ "$mode" = dnsrps ]; then
     ckstats $ns3 test3 ns3 8
   else
     ckstats $ns3 test3 ns3 7
@@ -594,7 +594,7 @@ EOF
   nochange a3-2.tld2.			# 2 exempt rewrite by name
   nochange a0-1.tld2.			# 3 exempt rewrite by address block
   nochange a3-1.tld4			# 4 different NS IP address
-  if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
+  if [ "$mode" = dnsrps ]; then
       addr 12.12.12.12 as-ns.tld5.	# 5 ip-as-ns
   fi
   end_group
@@ -607,7 +607,7 @@ EOF
     a3-1.tld2.	    x	IN	TXT   "NSIP walled garden"
 EOF
   end_group
-  if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
+  if [ "$mode" = dnsrps ]; then
     ckstats $ns3 test4 ns3 5
   else
     ckstats $ns3 test4 ns3 4
@@ -712,7 +712,7 @@ EOF
     echo_i "performance not checked; queryperf not available"
   fi
 
-  if [ "$DNSRPS_TEST_MODE" = dnsrps ]; then
+  if [ "$mode" = dnsrps ]; then
     echo_i "checking that dnsrpzd is automatically restarted"
     OLD_PID=`cat dnsrpzd.pid`
     $KILL "$OLD_PID"
@@ -784,7 +784,7 @@ EOF
 
   # dnsrps does not allow NS RRs in policy zones, so this check
   # with dnsrps results in no rewriting.
-  if [ "$DNSRPS_TEST_MODE" = native ]; then
+  if [ "$mode" = native ]; then
     t=`expr $t + 1`
     echo_i "checking rpz with delegation fails correctly (${t})"
     $DIG -p ${PORT} @$ns3 ns example.com > dig.out.$t
@@ -792,7 +792,7 @@ EOF
   fi
 
   [ $status -ne 0 ] && pf=fail || pf=pass
-  case $DNSRPS_TEST_MODE in
+  case $mode in
   native)
     native=$status
     echo_i "status (native RPZ sub-test): $status ($pf)";;
