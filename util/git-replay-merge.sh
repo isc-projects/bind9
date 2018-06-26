@@ -31,6 +31,13 @@ die_with_usage() {
 	    "	${SELF} --abort"
 }
 
+verify_gitlab_cli() {
+	which gitlab >/dev/null 2>&1 || \
+		die "You need to have gitlab cli installed and configured: "\
+		    "" \
+		    "$ gem install --user-install gitlab"
+}
+
 die_with_continue_instructions() {
 	die ""								\
 	    "Replay interrupted.  Conflicts need to be fixed manually."	\
@@ -147,34 +154,15 @@ resume() {
 			die_with_continue_instructions
 		fi
 	fi
-	# Announce the plan.
-	echo "Attempting to merge ${REPLAY_BRANCH} into ${TARGET_BRANCH}..."
-	# Check if a local branch with the same name as the target branch
-	# exists.  If it does not, switch to a new local branch with the same
-	# name as the target branch.  Otherwise, ensure the local branch is not
-	# behind the target branch at the target remote, then switch to it.
-	if ! branch_exists "${TARGET_BRANCH}"; then
-		git checkout -t -b "${TARGET_BRANCH}" "${TARGET_REF}" >/dev/null
-	else
-		die_if_local_behind_target
-		git checkout "${TARGET_BRANCH}" &>/dev/null
-	fi
-	# Use the original commit message with a modified subject line.
-	COMMIT_MSG="$(
-		git log --max-count=1 --format="%B" "${SOURCE_COMMIT}" |
-		sed "1s/.*/Merge branch '${REPLAY_BRANCH}' into '${TARGET_BRANCH}'/;"
-	)"
-	# Merge the replay branch into the local target branch.
-	git merge --no-ff -m "${COMMIT_MSG}" "${REPLAY_BRANCH}"
-	cat <<-EOF
 
-	Replayed ${SOURCE_BRANCH} onto ${TARGET_BRANCH}.
-	To push the replay, use:
+	git push ${TARGET_REMOTE} -u ${REPLAY_BRANCH}:${REPLAY_BRANCH}
 
-	        git push ${TARGET_REMOTE} ${TARGET_BRANCH}:${TARGET_BRANCH}
+	REPLAY_COMMIT_TITLE="$(git show --format="%b" "${SOURCE_COMMIT}" 2>&1 | head -1)"
 
-	EOF
+	gitlab create_merge_request 1 "${REPLAY_COMMIT_TITLE}" "{source_branch: '${REPLAY_BRANCH}', target_branch: '${TARGET_BRANCH}'}"
+	
 	cleanup
+	exit 0
 }
 
 cleanup() {
@@ -184,7 +172,6 @@ cleanup() {
 		git merge --abort
 		git cherry-pick --abort
 		git checkout "${CHECKED_OUT_BRANCH}"
-		git branch -D "${REPLAY_BRANCH}"
 	} &>/dev/null || true
 	rm -f "${STATE_FILE}"
 }
@@ -196,6 +183,7 @@ case "$1" in
 		cleanup
 		;;
 	"--continue")
+		verify_gitlab_cli
 		die_if_not_in_progress
 		source "${STATE_FILE}"
 		resume
@@ -204,6 +192,7 @@ case "$1" in
 		if [[ $# -ne 3 ]]; then
 			die_with_usage
 		fi
+		verify_gitlab_cli
 		die_if_in_progress
 		go "$@"
 		;;
