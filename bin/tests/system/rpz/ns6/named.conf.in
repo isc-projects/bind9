@@ -22,6 +22,8 @@ options {
 	forward only;
 	forwarders { 10.53.0.3; };
 	minimal-responses no;
+	recursion yes;
+	dnssec-validation yes;
 
 	response-policy {
 	    zone "policy1" min-update-interval 0;
