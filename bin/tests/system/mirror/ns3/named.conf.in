@@ -46,6 +46,7 @@ zone "verify-ixfr" {
 	masters { 10.53.0.2; };
 	mirror yes;
 	file "verify-ixfr.db.mirror";
+	masterfile-format text;
 };
 
 zone "verify-load" {
