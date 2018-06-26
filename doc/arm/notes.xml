@@ -96,10 +96,11 @@
 	<para>
 	  Add the ability to not return a DNS COOKIE option when one
 	  is present in the request.  To prevent a cookie being returned
-	  add 'answer-cookie no;' to named.conf. [GL #173]
+	  add <command>answer-cookie no;</command> to
+	  <filename>named.conf</filename>. [GL #173]
 	</para>
 	<para>
-	  <command>answer-cookie</command> is only available as a
+	  <command>answer-cookie no</command> is only intended as a
 	  temporary measure, for use when <command>named</command>
 	  shares an IP address with other servers that do not yet
 	  support DNS COOKIE.  A mismatch between servers on the
@@ -107,9 +108,8 @@
 	  but the option to disable COOKIE responses so that all
 	  servers have the same behavior is provided out of an
 	  abundance of caution. DNS COOKIE is an important security
-	  mechanism and should not be disabled unless absolutely
-	  necessary.  The <command>answer-cookie</command> option
-	  is obsolete as of BIND 9.13.
+	  mechanism, and should not be disabled unless absolutely
+	  necessary.
 	</para>
       </listitem>
     </itemizedlist>
