@@ -22,7 +22,7 @@
 #include <isc/types.h>
 
 #if defined(ISC_PLATFORM_HAVESTDATOMIC)
-#include <stdatomic.h>
+#include <isc/stdatomic.h>
 #endif
 
 /*! \file isc/refcount.h
