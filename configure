@@ -19841,6 +19841,7 @@ fi
 
 done
 
+	 save_LIBS="$LIBS"
 	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cap_set_proc" >&5
 $as_echo_n "checking for library containing cap_set_proc... " >&6; }
 if ${ac_cv_search_cap_set_proc+:} false; then :
@@ -19902,6 +19903,7 @@ as_fn_error $? "libcap not found (required for Linux capabilities)
 See \`config.log' for more details" "$LINENO" 5; }
 fi
 
+	 LIBS="$save_LIBS"
 	 ;;
 esac
 
