@@ -335,5 +335,13 @@ grep "flags:.* ad" dig.out.ns3.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that outgoing transfers of mirror zones are disabled by default ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 . AXFR > dig.out.ns3.test$n 2>&1 || ret=1
+grep "; Transfer failed" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
