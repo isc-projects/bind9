@@ -1,3 +1,6 @@
+4981.	[bug]		Fix race in cmsg buffer usage in socket code.
+			[GL #180]
+
 4980.	[bug]		Named-checkconf failed to detect bad in-view targets.
 			[GL #288]
 
