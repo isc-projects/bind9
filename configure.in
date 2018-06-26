@@ -3587,9 +3587,11 @@ AS_CASE([$enable_linux_caps],
 	 AC_DEFINE([WANT_LINUX_CAPABILITY], [1], [define if you want to have Linux capabilities support])
 	 AC_CHECK_HEADERS([sys/capability.h linux/capability.h], [:],
 			  [AC_MSG_FAILURE([sys/capability.h or linux/capability.h header not found (required for Linux capabilities)])])
+	 save_LIBS="$LIBS"
 	 AC_SEARCH_LIBS([cap_set_proc], [cap],
 			[LIBCAP_LIBS="$ac_cv_search_cap_set_proc"],
 			[AC_MSG_FAILURE([libcap not found (required for Linux capabilities)])])
+	 LIBS="$save_LIBS"
 	])
 AC_SUBST([LIBCAP_LIBS])
 
