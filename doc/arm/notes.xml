@@ -118,8 +118,7 @@
 	  servers have the same behavior is provided out of an
 	  abundance of caution. DNS COOKIE is an important security
 	  mechanism and should not be disabled unless absolutely
-	  necessary.  The <command>answer-cookie</command> option
-	  is obsolete as of BIND 9.13.
+	  necessary.
 	</para>
       </listitem>
     </itemizedlist>
