@@ -343,5 +343,12 @@ grep "; Transfer failed" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that notifies are disabled by default for mirror zones ($n)"
+ret=0
+grep "initially-unavailable.*sending notifies" ns3/named.run > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
