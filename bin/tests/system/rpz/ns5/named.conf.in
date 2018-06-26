@@ -28,6 +28,8 @@ options {
 	notify-delay 0;
 	notify yes;
 	minimal-responses no;
+	recursion yes;
+	dnssec-validation yes;
 
 	# turn rpz on or off
 	include "rpz-switch";
