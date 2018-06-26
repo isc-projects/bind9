@@ -12446,17 +12446,19 @@ example.com. NS ns2.example.net.
 		<term><command>mirror</command></term>
 		<listitem>
 		  <para>
-		    This is only applicable to <command>slave</command>
-		    zones.  If set to <userinput>yes</userinput>, every
-		    version of the zone will be subject to DNSSEC
-		    validation before being used and answers coming from
-		    the zone will not have the AA bit set.  In order for
-		    zone validation to succeed, its KSK must be
-		    configured as a trust anchor.  The default is
-		    <userinput>no</userinput>.  This option is meant to
-		    be used for deploying an RFC 7706-style local copy
-		    of the root zone, e.g. using a configuration like
-		    this:
+		    If set to <userinput>yes</userinput>, causes the
+		    zone to become a mirror zone.  A mirror zone is a
+		    <userinput>slave</userinput> zone whose every
+		    version is subject to DNSSEC validation before being
+		    used.  In order for zone validation to succeed, its
+		    KSK must be configured as a trust anchor.  Answers
+		    coming from a mirror zone look almost exactly like
+		    answers from a regular <userinput>slave</userinput>
+		    zone, with the notable exception of the AA bit not
+		    being set.  The default is <userinput>no</userinput>.
+		    This option is meant to be used for deploying an RFC
+		    7706-style local copy of the root zone, e.g. using a
+		    configuration like this:
 		  </para>
 <programlisting>zone "." {
 	type slave;
