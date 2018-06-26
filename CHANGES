@@ -1,3 +1,6 @@
+4978.	[func]		Add a permanent option to disable returing a DNS COOKIE
+			option when one is present in the request [GL #275].
+
 4977.	[func]		When starting up, log the same details that
 			would be reported by 'named -V'. [GL #247]
 
