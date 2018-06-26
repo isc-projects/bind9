@@ -1,3 +1,7 @@
+4979.	[bug]		Non-libcap builds were not checking whether all
+			requested capabilities are present in the permitted
+			capability set. [GL #321]
+
 4977.	[func]		When starting up, log the same details that
 			would be reported by 'named -V'. [GL #247]
 
