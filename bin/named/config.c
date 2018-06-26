@@ -47,7 +47,7 @@
 /*% default configuration */
 static char defaultconf[] = "\
 options {\n\
-#	answer-cookie <obsolete>;\n\
+	answer-cookie true;\n\
 	automatic-interface-scan yes;\n\
 	bindkeys-file \"" NAMED_SYSCONFDIR "/bind.keys\";\n\
 #	blackhole {none;};\n"

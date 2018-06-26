@@ -103,6 +103,7 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	sctx->gethostname = NULL;
 
 	sctx->matchingview = matchingview;
+	sctx->answercookie = ISC_TRUE;
 
 	ISC_LIST_INIT(sctx->altsecrets);
 

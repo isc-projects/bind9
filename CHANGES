@@ -1,3 +1,7 @@
+4983.	[func]		Add the ability to not return a DNS COOKIE option
+			when one is present in the request (answer-cookie no;).
+			[GL #173]
+
 4982.	[cleanup]	Return FORMERR if the question section is empty
 			and no COOKIE option is present; this restores
 			older behavior except in the newly specified
