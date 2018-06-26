@@ -1,3 +1,8 @@
+4982.	[cleanup]	Return FORMERR if the question section is empty
+			and no COOKIE option is present; this restores
+			older behavior except in the newly specified
+			COOKIE case. [GL #260]
+
 4981.	[bug]		Fix race in cmsg buffer usage in socket code.
 			[GL #180]
 
