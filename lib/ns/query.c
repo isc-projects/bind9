@@ -5362,7 +5362,14 @@ ns__query_start(query_ctx_t *qctx) {
 	 */
 	qctx->is_staticstub_zone = ISC_FALSE;
 	if (qctx->is_zone) {
-		qctx->authoritative = ISC_TRUE;
+		/*
+		 * Zone data is authoritative, except for mirror zones.
+		 */
+		if (qctx->zone != NULL && dns_zone_ismirror(qctx->zone)) {
+			qctx->authoritative = ISC_FALSE;
+		} else {
+			qctx->authoritative = ISC_TRUE;
+		}
 		if (qctx->zone != NULL &&
 		    dns_zone_gettype(qctx->zone) == dns_zone_staticstub)
 		{
