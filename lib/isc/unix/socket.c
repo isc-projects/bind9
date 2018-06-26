@@ -320,6 +320,35 @@ typedef isc_event_t intev_t;
 #endif /* TUNE_LARGE */
 
 /*%
+ * Instead of calculating the cmsgbuf lengths every time we take
+ * a rule of thumb approach - sizes are taken from x86_64 linux,
+ * multiplied by 2, everything should fit. Those sizes are not
+ * large enough to cause any concern.
+ */
+#if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
+#define CMSG_SP_IN6PKT 40
+#else
+#define CMSG_SP_IN6PKT 0
+#endif
+
+#if defined(USE_CMSG) && defined(SO_TIMESTAMP)
+#define CMSG_SP_TIMESTAMP 32
+#else
+#define CMSG_SP_TIMESTAMP 0
+#endif
+
+#if defined(USE_CMSG) && (defined(IPV6_TCLASS) || defined(IP_TOS))
+#define CMSG_SP_TCTOS 24
+#else
+#define CMSG_SP_TCTOS 0
+#endif
+
+#define CMSG_SP_INT 24
+
+#define RECVCMSGBUFLEN (2*(CMSG_SP_IN6PKT + CMSG_SP_TIMESTAMP + CMSG_SP_TCTOS)+1)
+#define SENDCMSGBUFLEN (2*(CMSG_SP_IN6PKT + CMSG_SP_INT + CMSG_SP_TCTOS)+1)
+
+/*%
  * The number of times a send operation is repeated if the result is EINTR.
  */
 #define NRETRIES 10
@@ -374,9 +403,6 @@ struct isc__socket {
 #ifdef ISC_PLATFORM_RECVOVERFLOW
 	unsigned char		overflow; /* used for MSG_TRUNC fake */
 #endif
-
-	ISC_SOCKADDR_LEN_T	recvcmsgbuflen;
-	ISC_SOCKADDR_LEN_T	sendcmsgbuflen;
 
 	void			*fdwatcharg;
 	isc_sockfdwatch_t	fdwatchcb;
@@ -1455,10 +1481,6 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 
 	memset(msg, 0, sizeof(*msg));
 
-	if (sock->sendcmsgbuflen != 0U) {
-		memset(cmsgbuf, 0, sock->sendcmsgbuflen);
-	}
-
 	if (!sock->connected) {
 		msg->msg_name = (void *)&dev->address.type.sa;
 		msg->msg_namelen = dev->address.length;
@@ -1537,7 +1559,7 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 
 		msg->msg_control = (void *)cmsgbuf;
 		msg->msg_controllen = cmsg_space(sizeof(struct in6_pktinfo));
-		INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
+		INSIST(msg->msg_controllen <= SENDCMSGBUFLEN);
 
 		cmsgp = (struct cmsghdr *)cmsgbuf;
 		cmsgp->cmsg_level = IPPROTO_IPV6;
@@ -1556,9 +1578,9 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 
 		cmsgp = (struct cmsghdr *)(cmsgbuf +
 					   msg->msg_controllen);
-		msg->msg_control = (void *)sock->sendcmsgbuf;
+		msg->msg_control = (void *)cmsgbuf;
 		msg->msg_controllen += cmsg_space(sizeof(use_min_mtu));
-		INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
+		INSIST(msg->msg_controllen <= SENDCMSGBUFLEN);
 
 		cmsgp->cmsg_level = IPPROTO_IPV6;
 		cmsgp->cmsg_type = IPV6_USE_MIN_MTU;
@@ -1588,7 +1610,7 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 						   msg->msg_controllen);
 			msg->msg_control = (void *)cmsgbuf;
 			msg->msg_controllen += cmsg_space(sizeof(dscp));
-			INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
+			INSIST(msg->msg_controllen <= SENDCMSGBUFLEN);
 
 			cmsgp->cmsg_level = IPPROTO_IP;
 			cmsgp->cmsg_type = IP_TOS;
@@ -1619,7 +1641,7 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 						   msg->msg_controllen);
 			msg->msg_control = (void *)cmsgbuf;
 			msg->msg_controllen += cmsg_space(sizeof(dscp));
-			INSIST(msg->msg_controllen <= sock->sendcmsgbuflen);
+			INSIST(msg->msg_controllen <= SENDCMSGBUFLEN);
 
 			cmsgp->cmsg_level = IPPROTO_IPV6;
 			cmsgp->cmsg_type = IPV6_TCLASS;
@@ -1644,10 +1666,10 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 		}
 #endif
 		if (msg->msg_controllen != 0 &&
-		    msg->msg_controllen < sock->sendcmsgbuflen)
+		    msg->msg_controllen < SENDCMSGBUFLEN)
 		{
 			memset(cmsgbuf + msg->msg_controllen, 0,
-			       sock->sendcmsgbuflen - msg->msg_controllen);
+			       SENDCMSGBUFLEN - msg->msg_controllen);
 		}
 	}
 #endif
@@ -1773,7 +1795,7 @@ build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 #ifdef ISC_NET_BSD44MSGHDR
 #if defined(USE_CMSG)
 	msg->msg_control = cmsgbuf;
-	msg->msg_controllen = sock->recvcmsgbuflen;
+	msg->msg_controllen = RECVCMSGBUFLEN;
 #else
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
@@ -1876,7 +1898,7 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	isc_buffer_t *buffer;
 	int recv_errno;
 	char strbuf[ISC_STRERRORSIZE];
-	char cmsgbuf[sock->recvcmsgbuflen];
+	char cmsgbuf[RECVCMSGBUFLEN];
 
 	build_msghdr_recv(sock, cmsgbuf, dev, &msghdr, iov, &read_count);
 
@@ -2072,8 +2094,9 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 	int attempts = 0;
 	int send_errno;
 	char strbuf[ISC_STRERRORSIZE];
-	char cmsgbuf[sock->sendcmsgbuflen];
+	char cmsgbuf[SENDCMSGBUFLEN];
 
+	memset(cmsgbuf, 0, SENDCMSGBUFLEN);
 	build_msghdr_send(sock, cmsgbuf, dev, &msghdr, iov, &write_count);
 
  resend:
@@ -2292,7 +2315,6 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 {
 	isc__socket_t *sock;
 	isc_result_t result;
-	ISC_SOCKADDR_LEN_T cmsgbuflen;
 
 	sock = isc_mem_get(manager->mctx, sizeof(*sock));
 
@@ -2313,36 +2335,6 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 
 	ISC_LINK_INIT(sock, link);
 
-	/*
-	 * Set up cmsg buffer lengths.
-	 */
-	cmsgbuflen = 0;
-#if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
-	cmsgbuflen += cmsg_space(sizeof(struct in6_pktinfo));
-#endif
-#if defined(USE_CMSG) && defined(SO_TIMESTAMP)
-	cmsgbuflen += cmsg_space(sizeof(struct timeval));
-#endif
-#if defined(USE_CMSG) && (defined(IPV6_TCLASS) || defined(IP_TOS))
-	cmsgbuflen += cmsg_space(sizeof(int));
-#endif
-	sock->recvcmsgbuflen = cmsgbuflen;
-
-	cmsgbuflen = 0;
-#if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
-	cmsgbuflen += cmsg_space(sizeof(struct in6_pktinfo));
-#if defined(IPV6_USE_MIN_MTU)
-	/*
-	 * Provide space for working around FreeBSD's broken IPV6_USE_MIN_MTU
-	 * support.
-	 */
-	cmsgbuflen += cmsg_space(sizeof(int));
-#endif
-#endif
-#if defined(USE_CMSG) && (defined(IP_TOS) || defined(IPV6_TCLASS))
-	cmsgbuflen += cmsg_space(sizeof(int));
-#endif
-	sock->sendcmsgbuflen = cmsgbuflen;
 
 	memset(sock->name, 0, sizeof(sock->name));
 	sock->tag = NULL;
@@ -2788,15 +2780,6 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 #endif /* SO_TIMESTAMP */
 
 #if defined(ISC_PLATFORM_HAVEIPV6)
-		if (sock->pf == AF_INET6 && sock->recvcmsgbuflen == 0U) {
-			/*
-			 * Warn explicitly because this anomaly can be hidden
-			 * in usual operation (and unexpectedly appear later).
-			 */
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "No buffer available to receive "
-					 "IPv6 destination");
-		}
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 #ifdef IPV6_RECVPKTINFO
 		/* RFC 3542 */
