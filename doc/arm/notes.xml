@@ -208,13 +208,13 @@
 	  add 'answer-cookie no;' to named.conf. [GL #173]
 	</para>
 	<para>
-	  <command>answer-cookie</command> is only intended as an available
+	  <command>answer-cookie</command> is only intended as a temporary
 	  measure, for use when <command>named</command> shares an IP address
 	  with other servers that do not yet support DNS COOKIE.  A mismatch
 	  between servers on the same address is not expected to cause
 	  operational problems, but the option to disable COOKIE responses so
 	  that all servers have the same behavior is provided out of an
-	  abundance of caution. DNS COOKIE is an important security mechanism
+	  abundance of caution. DNS COOKIE is an important security mechanism,
 	  and should not be disabled unless absolutely necessary.
 	</para>
       </listitem>
