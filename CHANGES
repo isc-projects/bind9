@@ -1,3 +1,6 @@
+4982.	[func]		Linux capabilities now require libcap library.
+			[GL #321]
+
 4981.	[bug]		Fix race in cmsg buffer usage in socket code.
 			[GL #180]
 
