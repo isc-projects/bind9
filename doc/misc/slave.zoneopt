@@ -37,6 +37,7 @@ zone <string> [ <class> ] {
 	max-transfer-time-out <integer>;
 	min-refresh-time <integer>;
 	min-retry-time <integer>;
+	mirror <boolean>;
 	multi-master <boolean>;
 	notify ( explicit | master-only | <boolean> );
 	notify-delay <integer>;
