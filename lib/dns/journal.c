@@ -1013,7 +1013,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	dns_difftuple_t *t;
 	isc_buffer_t buffer;
 	void *mem = NULL;
-	unsigned int size;
+	size_t size;
 	isc_result_t result;
 	isc_region_t used;
 
@@ -1041,6 +1041,10 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 		size += t->name.length; /* XXX should have access macro? */
 		size += 10;
 		size += t->rdata.length;
+	}
+
+	if (size >= DNS_JOURNAL_SIZE_MAX) {
+		return (ISC_R_RANGE);
 	}
 
 	mem = isc_mem_get(j->mctx, size);
@@ -1143,6 +1147,18 @@ dns_journal_commit(dns_journal_t *j) {
 					 j->x.pos[0].serial);
 			return (ISC_R_UNEXPECTED);
 		}
+	}
+
+	/*
+	 * We currently don't support huge journal entries.
+	 */
+	unsigned long long total = j->x.pos[1].offset - j->x.pos[0].offset;
+	if (total >= DNS_JOURNAL_SIZE_MAX) {
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			     "transaction too big to be stored in journal :"
+			     "%llub (max is %llub)", total,
+			     (unsigned long long)DNS_JOURNAL_SIZE_MAX);
+		return (ISC_R_UNEXPECTED);
 	}
 
 	/*
@@ -1670,7 +1686,12 @@ read_one_rr(dns_journal_t *j) {
 	journal_xhdr_t xhdr;
 	journal_rrhdr_t rrhdr;
 
-	INSIST(j->offset <= j->it.epos.offset);
+	if (j->offset > j->it.epos.offset) {
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "%s: journal corrupt: possible integer overflow",
+			      j->filename);
+		return (ISC_R_UNEXPECTED);
+	}
 	if (j->offset == j->it.epos.offset)
 		return (ISC_R_NOMORE);
 	if (j->it.xpos == j->it.xsize) {
