@@ -15084,6 +15084,13 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 
 		result = dns_db_diff(zone->mctx, db, ver, zone->db, NULL,
 				     zone->journal);
+		if (result == ISC_R_RANGE) {
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				     "ixfr-from-differences: failed: "
+				     "difference too big to be stored "
+				     "in journal");
+			goto fail;
+		}
 		if (result != ISC_R_SUCCESS)
 			goto fail;
 		if (dump)
