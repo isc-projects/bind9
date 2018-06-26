@@ -1,3 +1,6 @@
+4978.	[func]		Add a permanent option to disable returing a DNS COOKIE
+			option when one is present in the request [GL #275].
+
 4977.	[func]		When starting up, log the same details that
 			would be reported by 'named -V'. [GL #247]
 
@@ -32,9 +35,7 @@
 
 4967.	[cleanup]	Add "answer-cookie" to the parser, marked obsolete.
 
-4966.	[func]		Add the ability to not return a DNS COOKIE option
-			when one is present in the request (answer-cookie no;).
-			[GL #173]
+4966.	[placeholder]
 
 4965.	[func]		Add support for marking options as deprecated.
 			[GL #322]
