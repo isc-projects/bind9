@@ -14784,15 +14784,14 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 
 		result = dns_db_diff(zone->mctx, db, ver, zone->db, NULL,
 				     zone->journal);
-		if (result == ISC_R_RANGE) {
+		if (result != ISC_R_SUCCESS) {
+			char strbuf[ISC_STRERRORSIZE];
+			isc__strerror(errno, strbuf, sizeof(strbuf));
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "ixfr-from-differences: failed: "
-				     "difference too big to be stored "
-				     "in journal");
-			goto fail;
+				     "%s", strbuf);
+			goto fallback;
 		}
-		if (result != ISC_R_SUCCESS)
-			goto fail;
 		if (dump)
 			zone_needdump(zone, DNS_DUMP_DELAY);
 		else if (zone->journalsize != -1) {
@@ -14816,6 +14815,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, isc_boolean_t dump) {
 		if (zone->type == dns_zone_master && inline_raw(zone))
 			zone_send_secureserial(zone, serial);
 	} else {
+ fallback:
 		if (dump && zone->masterfile != NULL) {
 			/*
 			 * If DNS_ZONEFLG_FORCEXFER was set we don't want
