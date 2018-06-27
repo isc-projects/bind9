@@ -5458,7 +5458,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 				isc_log_write(dns_lctx, category, module,
 					      level, "overmem cache: stale %s",
 					      printname);
-					      }
+			}
 		} else if (force_expire) {
 			if (! RETAIN(header)) {
 				set_ttl(rbtdb, header, 0);
