@@ -19802,7 +19802,7 @@ LIBCAP_LIBS=""
 $as_echo_n "checking whether to enable Linux capabilities... " >&6; }
 # Check whether --enable-linux-caps was given.
 if test "${enable_linux_caps+set}" = set; then :
-  enableval=$enable_linux_caps; :
+  enableval=$enable_linux_caps;
 else
   case $host in #(
   *-linux*) :
@@ -19813,36 +19813,26 @@ esac
 fi
 
 
-case $enable_linux_caps in #(
-  no) :
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; } ;; #(
-  *) :
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+if test "$enable_linux_caps" = "yes"; then :
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-
-$as_echo "#define WANT_LINUX_CAPABILITY 1" >>confdefs.h
-
-	 for ac_header in sys/capability.h linux/capability.h
+	for ac_header in sys/capability.h
 do :
-  as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
-ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
-if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
+  ac_fn_c_check_header_mongrel "$LINENO" "sys/capability.h" "ac_cv_header_sys_capability_h" "$ac_includes_default"
+if test "x$ac_cv_header_sys_capability_h" = xyes; then :
   cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
+#define HAVE_SYS_CAPABILITY_H 1
 _ACEOF
- :
+
 else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "sys/capability.h or linux/capability.h header not found (required for Linux capabilities)
-See \`config.log' for more details" "$LINENO" 5; }
+  as_fn_error $? "sys/capability.h header is required for Linux capabilities support" "$LINENO" 5
 fi
 
 done
 
-	 save_LIBS="$LIBS"
-	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cap_set_proc" >&5
+	saved_libs="$LIBS"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cap_set_proc" >&5
 $as_echo_n "checking for library containing cap_set_proc... " >&6; }
 if ${ac_cv_search_cap_set_proc+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -19897,15 +19887,18 @@ if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
   LIBCAP_LIBS="$ac_cv_search_cap_set_proc"
 else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "libcap not found (required for Linux capabilities)
-See \`config.log' for more details" "$LINENO" 5; }
+  as_fn_error $? "libcap is required for Linux capabilities support" "$LINENO" 5
 fi
 
-	 LIBS="$save_LIBS"
-	 ;;
-esac
+	LIBS="$saved_libs"
+
+else
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+
+fi
 
 
 for ac_header in sys/prctl.h
