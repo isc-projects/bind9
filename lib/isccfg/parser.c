@@ -1304,7 +1304,7 @@ cfg_parse_boolean(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 	cfg_obj_t *obj = NULL;
 
 	REQUIRE(pctx != NULL);
-	REQUIRE(ret != NULL && ret != NULL);
+	REQUIRE(ret != NULL && *ret == NULL);
 
 	UNUSED(type);
 
