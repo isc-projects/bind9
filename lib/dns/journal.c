@@ -1011,7 +1011,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	dns_difftuple_t *t;
 	isc_buffer_t buffer;
 	void *mem = NULL;
-	size_t size;
+	unsigned long long size;
 	isc_result_t result;
 	isc_region_t used;
 
@@ -1042,7 +1042,10 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	}
 
 	if (size >= DNS_JOURNAL_SIZE_MAX) {
-		return (ISC_R_RANGE);
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "dns_journal_writediff: %s: journal entry "
+			      "too big to be stored: %llu bytes", size);
+		return (ISC_R_NOSPACE);
 	}
 
 	mem = isc_mem_get(j->mctx, size);
@@ -1153,7 +1156,7 @@ dns_journal_commit(dns_journal_t *j) {
 	unsigned long long total = j->x.pos[1].offset - j->x.pos[0].offset;
 	if (total >= DNS_JOURNAL_SIZE_MAX) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
-			     "transaction too big to be stored in journal :"
+			     "transaction too big to be stored in journal: "
 			     "%llub (max is %llub)", total,
 			     (unsigned long long)DNS_JOURNAL_SIZE_MAX);
 		return (ISC_R_UNEXPECTED);
