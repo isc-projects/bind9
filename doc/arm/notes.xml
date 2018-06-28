@@ -92,6 +92,14 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>named</command> now rejects excessively large
+	  incremental (IXFR) zone transfers in order to prevent
+	  possible corruption of journal files which could cause
+	  <command>named</command> to abort when loading zones. [GL #339]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>rndc reload</command> could cause <command>named</command>
 	  to leak memory if it was invoked before the zone loading actions
 	  from a previous <command>rndc reload</command> command were
