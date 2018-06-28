@@ -316,7 +316,10 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  <command>named</command> now rejects excessively large
+	  incremental (IXFR) zone transfers in order to prevent
+	  possible corruption of journal files which could cause
+	  <command>named</command> to abort when loading zones. [GL #339]
 	</para>
       </listitem>
     </itemizedlist>
