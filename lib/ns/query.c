@@ -1439,6 +1439,10 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
 	return (result);
 }
 
+/*%
+ * Find a cache database to answer the query.  This may fail with DNS_R_REFUSED
+ * if the client is not allowed to use the cache.
+ */
 static inline isc_result_t
 query_getcachedb(ns_client_t *client, const dns_name_t *name,
 		 dns_rdatatype_t qtype, dns_db_t **dbp, unsigned int options)
@@ -1448,31 +1452,22 @@ query_getcachedb(ns_client_t *client, const dns_name_t *name,
 
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
-	/*%
-	 * Find a cache database to answer the query.
-	 * This may fail with DNS_R_REFUSED if the client
-	 * is not allowed to use the cache.
-	 */
-
-	if (!USECACHE(client))
+	if (!USECACHE(client)) {
 		return (DNS_R_REFUSED);
+	}
+
 	dns_db_attach(client->view->cachedb, &db);
 
 	result = query_checkcacheaccess(client, name, qtype, options);
 	if (result != ISC_R_SUCCESS) {
-		goto refuse;
+		dns_db_detach(&db);
 	}
 
-	/* Transfer ownership. */
+	/*
+	 * If query_checkcacheaccess() succeeded, transfer ownership of 'db'.
+	 * Otherwise, 'db' will be NULL due to the dns_db_detach() call above.
+	 */
 	*dbp = db;
-
-	return (ISC_R_SUCCESS);
-
- refuse:
-	result = DNS_R_REFUSED;
-
-	if (db != NULL)
-		dns_db_detach(&db);
 
 	return (result);
 }
