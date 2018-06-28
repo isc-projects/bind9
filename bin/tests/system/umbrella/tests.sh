@@ -16,6 +16,24 @@ DIGOPTS="-p ${PORT}"
 status=0
 n=1
 
+for bad in bad-*.conf
+do
+	ret=0
+	echo_i "checking that named-checkconf detects error in $bad"
+	$CHECKCONF $bad > /dev/null 2>&1
+	if [ $? != 1 ]; then echo_i "failed"; ret=1; fi
+	status=`expr $status + $ret`
+done
+
+for good in good-*.conf
+do
+	ret=0
+	echo_i "checking that named-checkconf detects no error in $good"
+	$CHECKCONF $good > /dev/null 2>&1
+	if [ $? != 0 ]; then echo_i "failed"; ret=1; fi
+	status=`expr $status + $ret`
+done
+
 echo_i "check PROTOSS option is logged correctly ($n)"
 ret=0
 nextpart ns2/named.run > /dev/null

@@ -699,6 +699,7 @@ W3M
 DBLATEX
 PDFLATEX
 LATEX
+UMBRELLA
 DNSTAP_PB_C_H
 DNSTAPTARGETS
 DNSTAPOBJS
@@ -998,6 +999,7 @@ enable_dnsrps
 enable_dnstap
 with_protobuf_c
 with_libfstrm
+enable_umbrella
 with_docbook_xsl
 with_libidn2
 with_cmocka
@@ -1696,6 +1698,7 @@ Optional Features:
                           [default=$librpz_dl]
   --enable-dnsrps         enable DNS Response Policy Service API
   --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
+  --enable-umbrella       enable Cisco Umbrella support [default=no]
   --enable-querytrace     enable very verbose query trace logging [default=no]
   --enable-auto-validation
                           turn on DNSSEC validation by default, using the IANA
@@ -20974,6 +20977,31 @@ fi
 
 
 #
+# Enable Cisco Umbrella support
+#
+# Check whether --enable-umbrella was given.
+if test "${enable_umbrella+set}" = set; then :
+  enableval=$enable_umbrella; enable_umbrella="$enableval"
+else
+  enable_umbrella="no"
+fi
+
+UMBRELLA=
+case "$enable_umbrella" in
+	yes)
+
+$as_echo "#define ENABLE_UMBRELLA 1" >>confdefs.h
+
+                UMBRELLA=umbrella
+		;;
+	no)
+		;;
+	*)
+		;;
+esac
+
+
+#
 #  The following sets up how non-blocking i/o is established.
 #  Sunos, cygwin and solaris 2.x (x<5) require special handling.
 #
@@ -26093,6 +26121,8 @@ report() {
     test "no" = "$use_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test "no" = "$use_geoip" || echo "    GeoIP access control (--with-geoip)"
+    test "yes" = "$enable_umbrella" && \
+        echo "    Cisco Umbrella support (--enable-umbrella)"
     test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
     if test "yes" = "$enable_full_report" -o "aes" != "$with_cc_alg"; then
 	echo "        Algorithm: $with_cc_alg"
@@ -26160,6 +26190,8 @@ report() {
     test "no" = "$use_dnstap" && \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test "no" = "$use_geoip" && echo "    GeoIP access control (--with-geoip)"
+    test "no" = "$enable_umbrella" && \
+            echo "    Cisco Umbrella support (--enable-umbrella)"
     test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
 
     test "no" = "$enable_dnsrps" && \
