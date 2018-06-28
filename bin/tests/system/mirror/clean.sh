@@ -9,6 +9,7 @@
 
 rm -f */*.conf
 rm -f */*.db
+rm -f */*.jnl
 rm -f */*.mirror
 rm -f */*.prev
 rm -f */*.signed
