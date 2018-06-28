@@ -34,6 +34,13 @@ zone "." {
 	file "../../common/root.hint";
 };
 
+zone "." {
+	type slave;
+	masters { 10.53.0.1; };
+	mirror yes;
+	file "root.db.mirror";
+};
+
 zone "verify-axfr" {
 	type slave;
 	masters { 10.53.0.2; };
@@ -71,4 +78,5 @@ zone "verify-untrusted" {
 	file "verify-untrusted.db.mirror";
 };
 
+include "../ns1/trusted.conf";
 include "../ns2/trusted-mirror.conf";
