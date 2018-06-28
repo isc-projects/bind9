@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2017-08-15</date>
+    <date>2018-06-21</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -210,6 +210,7 @@ options {
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
 	    * ) ] [ dscp <replaceable>integer</replaceable> ];
+	answer-cookie <replaceable>boolean</replaceable>;
 	attach-cache <replaceable>string</replaceable>;
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
 	auto-dnssec ( allow | maintain | off );
@@ -413,6 +414,7 @@ options {
 	    min-ns-dots <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
 	    qname-wait-recurse <replaceable>boolean</replaceable> ] [ recursive-only <replaceable>boolean</replaceable> ];
 	root-delegation-only [ exclude { <replaceable>quoted_string</replaceable>; ... } ];
+	root-key-sentinel <replaceable>boolean</replaceable>;
 	rrset-order { [ class <replaceable>string</replaceable> ] [ type <replaceable>string</replaceable> ] [ name
 	    <replaceable>quoted_string</replaceable> ] <replaceable>string</replaceable> <replaceable>string</replaceable>; ... };
 	secroots-file <replaceable>quoted_string</replaceable>;
@@ -712,6 +714,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	    min-ns-dots <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
 	    qname-wait-recurse <replaceable>boolean</replaceable> ] [ recursive-only <replaceable>boolean</replaceable> ];
 	root-delegation-only [ exclude { <replaceable>quoted_string</replaceable>; ... } ];
+	root-key-sentinel <replaceable>boolean</replaceable>;
 	rrset-order { [ class <replaceable>string</replaceable> ] [ type <replaceable>string</replaceable> ] [ name
 	    <replaceable>quoted_string</replaceable> ] <replaceable>string</replaceable> <replaceable>string</replaceable>; ... };
 	send-cookie <replaceable>boolean</replaceable>;
