@@ -620,9 +620,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* the default value of dnssec-validation option */
 #undef VALIDATION_DEFAULT
 
-/* define if you want to have Linux capabilities support */
-#undef WANT_LINUX_CAPABILITY
-
 /* Define to enable very verbose query trace logging. */
 #undef WANT_QUERYTRACE
 
