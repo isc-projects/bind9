@@ -12,6 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+DIGOPTS="-p ${PORT} +dnssec +time=1 +tries=1 +multi"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 # Wait until the transfer of the given zone to ns3 either completes successfully
@@ -50,6 +51,55 @@ reload_zone() {
 
 status=0
 n=0
+
+ORIGINAL_SERIAL=`awk '$2 == "SOA" {print $5}' ns2/verify.db.in`
+UPDATED_SERIAL_BAD=`expr ${ORIGINAL_SERIAL} + 1`
+UPDATED_SERIAL_GOOD=`expr ${ORIGINAL_SERIAL} + 2`
+
+n=`expr $n + 1`
+echo_i "checking that an unsigned mirror zone is rejected ($n)"
+ret=0
+wait_for_transfer verify-unsigned
+$DIG $DIGOPTS @10.53.0.3 +norec verify-unsigned SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+nextpart ns3/named.run | grep "verify-unsigned.*Zone contains no DNSSEC keys" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that a mirror zone signed using an untrusted key is rejected ($n)"
+ret=0
+nextpartreset ns3/named.run
+wait_for_transfer verify-untrusted
+$DIG $DIGOPTS @10.53.0.3 +norec verify-untrusted SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+nextpart ns3/named.run | grep "verify-untrusted.*No trusted KSK DNSKEY found" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that an AXFR of an incorrectly signed mirror zone is rejected ($n)"
+ret=0
+nextpartreset ns3/named.run
+wait_for_transfer verify-axfr
+$DIG $DIGOPTS @10.53.0.3 +norec verify-axfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+nextpart ns3/named.run | grep "No correct RSASHA256 signature for verify-axfr SOA" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that an AXFR of an updated, correctly signed mirror zone is accepted ($n)"
+ret=0
+nextpart ns3/named.run > /dev/null
+cat ns2/verify-axfr.db.good.signed > ns2/verify-axfr.db.signed
+reload_zone verify-axfr ${UPDATED_SERIAL_GOOD}
+$RNDCCMD 10.53.0.3 retransfer verify-axfr > /dev/null 2>&1
+wait_for_transfer verify-axfr
+$DIG $DIGOPTS @10.53.0.3 +norec verify-axfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
