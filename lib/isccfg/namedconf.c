@@ -1969,6 +1969,8 @@ view_clauses[] = {
 	{ "send-cookie", &cfg_type_boolean, 0 },
 	{ "servfail-ttl", &cfg_type_ttlval, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
+	{ "srv-full-additional", &cfg_type_boolean,
+	   CFG_CLAUSEFLAG_EXPERIMENTAL },
 	{ "stale-answer-enable", &cfg_type_boolean, 0 },
 	{ "stale-answer-ttl", &cfg_type_ttlval, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },

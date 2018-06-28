@@ -259,6 +259,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->v6bias = 0;
 	view->dtenv = NULL;
 	view->dttypes = 0;
+	view->srv_full_additional = false;
 
 	result = isc_mutex_init(&view->new_zone_lock);
 	if (result != ISC_R_SUCCESS)
