@@ -71,12 +71,6 @@
  *     the "end" position in the header.  The latter will
  *     be overwritten when new transactions are added.
  */
-/*%
- * When true, accept IXFR difference sequences where the
- * SOA serial number does not change (BIND 8 sends such
- * sequences).
- */
-static isc_boolean_t bind8_compat = ISC_TRUE; /* XXX config */
 
 /**************************************************************************/
 /*
@@ -1130,13 +1124,10 @@ dns_journal_commit(dns_journal_t *j) {
 			      j->filename, j->x.n_soa);
 		return (ISC_R_UNEXPECTED);
 	}
-	if (! (DNS_SERIAL_GT(j->x.pos[1].serial, j->x.pos[0].serial) ||
-	       (bind8_compat &&
-		j->x.pos[1].serial == j->x.pos[0].serial)))
-	{
+	if (! DNS_SERIAL_GT(j->x.pos[1].serial, j->x.pos[0].serial)) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "%s: malformed transaction: serial number "
-			      "would decrease", j->filename);
+			      "did not increase", j->filename);
 		return (ISC_R_UNEXPECTED);
 	}
 	if (! JOURNAL_EMPTY(&j->header)) {

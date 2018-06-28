@@ -1,3 +1,8 @@
+4985.	[cleanup]	Remove support to silently ignore 'no-change' deltas
+			from BIND 8 when processing a IXFR stream.  'no-change'
+			deltas will now trigger fallback to AXFR as the recover
+			mechanism. [GL #369]
+
 4984.	[bug]		Improve handling of very large incremental
 			zone transfers to prevent journal corruption. [GL #339]
 
