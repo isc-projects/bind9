@@ -61,14 +61,14 @@ static int singletonfd = -1;
 /*
  * If there's no <linux/capability.h>, we don't care about <sys/prctl.h>
  */
-#ifndef WANT_LINUX_CAPABILITY
+#ifndef HAVE_LINUX_CAPABILITY_H
 #undef HAVE_SYS_PRCTL_H
 #endif
 
 /*
  * Linux defines:
  *	(T) HAVE_LINUXTHREADS
- *	(C) WANT_LINUX_CAPABILITY
+ *	(C) HAVE_SYS_CAPABILITY_H (or HAVE_LINUX_CAPABILITY_H)
  *	(P) HAVE_SYS_PRCTL_H
  * The possible cases are:
  *	none:	setuid() normally
@@ -110,18 +110,35 @@ static struct passwd *runas_pw = NULL;
 static isc_boolean_t done_setuid = ISC_FALSE;
 static int dfd[2] = { -1, -1 };
 
-#if WANT_LINUX_CAPABILITY
+#ifdef HAVE_LINUX_CAPABILITY_H
 
 static isc_boolean_t non_root = ISC_FALSE;
 static isc_boolean_t non_root_caps = ISC_FALSE;
 
-#if HAVE_SYS_CAPABILITY_H
+#ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
 #else
+#ifdef HAVE_LINUX_TYPES_H
+#include <linux/types.h>
+#endif
+/*%
+ * We define _LINUX_FS_H to prevent it from being included.  We don't need
+ * anything from it, and the files it includes cause warnings with 2.2
+ * kernels, and compilation failures (due to conflicts between <linux/string.h>
+ * and <string.h>) on 2.3 kernels.
+ */
+#define _LINUX_FS_H
 #include <linux/capability.h>
+#include <syscall.h>
+#ifndef SYS_capset
+#ifndef __NR_capset
+#include <asm/unistd.h> /* Slackware 4.0 needs this. */
+#endif /* __NR_capset */
+#define SYS_capset __NR_capset
+#endif /* SYS_capset */
 #endif /* HAVE_SYS_CAPABILITY_H */
 
-#if WANT_LINUX_CAPABILITY && HAVE_SYS_PRCTL_H
+#ifdef HAVE_SYS_PRCTL_H
 #include <sys/prctl.h>		/* Required for prctl(). */
 
 /*
@@ -289,7 +306,7 @@ linux_minprivs(void) {
 	FREE_CAP;
 }
 
-#if WANT_LINUX_CAPABILITY && HAVE_SYS_PRCTL_H
+#ifdef HAVE_SYS_PRCTL_H
 static void
 linux_keepcaps(void) {
 	char strbuf[ISC_STRERRORSIZE];
@@ -311,7 +328,7 @@ linux_keepcaps(void) {
 }
 #endif
 
-#endif	/* WANT_LINUX_CAPABILITY */
+#endif	/* HAVE_LINUX_CAPABILITY_H */
 
 
 static void
@@ -328,7 +345,7 @@ setup_syslog(const char *progname) {
 void
 named_os_init(const char *progname) {
 	setup_syslog(progname);
-#if WANT_LINUX_CAPABILITY
+#ifdef HAVE_LINUX_CAPABILITY_H
 	linux_initialprivs();
 #endif
 #ifdef HAVE_LINUXTHREADS
@@ -514,7 +531,7 @@ named_os_changeuser(void) {
 	done_setuid = ISC_TRUE;
 
 #ifdef HAVE_LINUXTHREADS
-#if WANT_LINUX_CAPABILITY
+#ifdef HAVE_LINUX_CAPABILITY_H
 	if (!non_root_caps) {
 		named_main_earlyfatal("-u with Linux threads not supported: "
 				      "requires kernel support for "
@@ -548,7 +565,7 @@ named_os_changeuser(void) {
 					strbuf);
 	}
 #endif
-#if defined(WANT_LINUX_CAPABILITY) && !defined(HAVE_LINUXTHREADS)
+#if defined(HAVE_LINUX_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
 	linux_minprivs();
 #endif
 }
@@ -580,7 +597,7 @@ named_os_adjustnofile(void) {
 
 void
 named_os_minprivs(void) {
-#if WANT_LINUX_CAPABILITY && HAVE_SYS_PRCTL_H
+#ifdef HAVE_SYS_PRCTL_H
 	linux_keepcaps();
 #endif
 
@@ -588,7 +605,7 @@ named_os_minprivs(void) {
 	named_os_changeuser(); /* Call setuid() before threads are started */
 #endif
 
-#if WANT_LINUX_CAPABILITY && defined(HAVE_LINUXTHREADS)
+#if defined(HAVE_LINUX_CAPABILITY_H) && defined(HAVE_LINUXTHREADS)
 	linux_minprivs();
 #endif
 }
