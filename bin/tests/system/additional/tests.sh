@@ -326,16 +326,26 @@ if [ $ret -eq 1 ] ; then
     echo_i " failed"; status=1
 fi
 
-$DIG $DIGOPTS -t SRV @10.53.0.1 _http._tcp.direct.srv.example +noauth
-$DIG $DIGOPTS -t SRV @10.53.0.1 _http._tcp.cname.srv.example +noauth
-$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.direct.srv.example +noauth
-$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.cname.srv.example +noauth
-$DIG $DIGOPTS -t A @10.53.0.3 cname.example.tld
-$DIG $DIGOPTS -t A @10.53.0.3 direct.example.tld
-$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.direct.srv.example +noauth
-$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.cname.srv.example +noauth
+n=`expr $n + 1`
+echo_i "test that additional data is filled in fetched direct target ($n)"
+ret=0
+$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.direct.srv.example > dig.out.$n || ret=1
+cat dig.out.$n
+grep '^direct\.example\.tld\..*1\.2\.3\.4$' dig.out.$n || ret=1
+if [ $ret -eq 1 ] ; then
+    echo_i " failed"; status=1
+fi
 
-grep "\(dns_db_findext\|query_additional:\)" ns3/named.run
+n=`expr $n + 1`
+echo_i "test that additional data is filled in fetched indirect direct target ($n)"
+ret=0
+$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.cname.srv.example > dig.out.$n || ret=1
+cat dig.out.$n
+grep '^cname\.example\.tld\..*target\.example\.tld\.$' dig.out.$n || ret=1
+grep '^target\.example\.tld\..*1\.2\.3\.4$' dig.out.$n || ret=1
+if [ $ret -eq 1 ] ; then
+    echo_i " failed"; status=1
+fi
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
