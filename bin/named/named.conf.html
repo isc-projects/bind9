@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2004-2011, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2004-2018 Internet Systems Consortium, Inc. ("ISC")
  - 
  - Permission to use, copy, modify, and/or distribute this software for any
  - purpose with or without fee is hereby granted, provided that the above
@@ -329,6 +329,7 @@ options {<br>
 	    ... } [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ];<br>
 	root-delegation-only [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];<br>
+	root-key-sentinel <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name<br>
 	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };<br>
 	secroots-file <em class="replaceable"><code>quoted_string</code></em>;<br>
@@ -568,6 +569,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    ... } [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ];<br>
 	root-delegation-only [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];<br>
+	root-key-sentinel <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name<br>
 	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };<br>
 	serial-update-method ( increment | unixtime );<br>

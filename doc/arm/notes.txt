@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.9.13rc1
+Release Notes for BIND Version 9.9.13rc2
 
 Introduction
 
@@ -40,6 +40,10 @@ Feature Changes
   * None.
 
 Bug Fixes
+
+  * named now rejects excessively large incremental (IXFR) zone transfers
+    in order to prevent possible corruption of journal files which could
+    cause named to abort when loading zones. [GL #339]
 
   * rndc reload could cause named to leak memory if it was invoked before
     the zone loading actions from a previous rndc reload command were
