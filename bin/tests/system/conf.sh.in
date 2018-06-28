@@ -101,7 +101,7 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	serve-stale sfcache smartsign sortlist \
 	spf staticstub statistics statschannel stub synthfromdnssec \
 	tcp tools tsig tsiggss \
-	umbrella unknown upforwd verify views wildcard \
+	@UMBRELLA@ unknown upforwd verify views wildcard \
 	xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
