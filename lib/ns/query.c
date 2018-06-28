@@ -1006,6 +1006,80 @@ query_findversion(ns_client_t *client, dns_db_t *db) {
 	return (dbversion);
 }
 
+/*%
+ * Check if 'client' is allowed to query the cache of its associated view.
+ * Unless 'options' has DNS_GETDB_NOLOG set, log the result of cache ACL
+ * evaluation using the appropriate level, along with 'name' and 'qtype'.
+ *
+ * The cache ACL is only evaluated once for each client and then the result is
+ * cached: if NS_QUERYATTR_CACHEACLOKVALID is set in client->query.attributes,
+ * cache ACL evaluation has already been performed.  The evaluation result is
+ * also stored in client->query.attributes: if NS_QUERYATTR_CACHEACLOK is set,
+ * the client is allowed cache access.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS	'client' is allowed to access cache
+ *\li	#DNS_R_REFUSED	'client' is not allowed to access cache
+ */
+static isc_result_t
+query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
+		       dns_rdatatype_t qtype, unsigned int options)
+{
+	isc_result_t result;
+
+	if ((client->query.attributes & NS_QUERYATTR_CACHEACLOKVALID) == 0) {
+		/*
+		 * The view's cache ACL has not yet been evaluated.  Do it now.
+		 */
+		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
+		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
+
+		result = ns_client_checkaclsilent(client, NULL,
+						  client->view->cacheacl,
+						  ISC_TRUE);
+		if (result == ISC_R_SUCCESS) {
+			/*
+			 * We were allowed by the "allow-query-cache" ACL.
+			 */
+			client->query.attributes |= NS_QUERYATTR_CACHEACLOK;
+			if (log && isc_log_wouldlog(ns_lctx,
+						    ISC_LOG_DEBUG(3)))
+			{
+				ns_client_aclmsg("query (cache)", name, qtype,
+						 client->view->rdclass, msg,
+						 sizeof(msg));
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+					      NS_LOGMODULE_QUERY,
+					      ISC_LOG_DEBUG(3), "%s approved",
+					      msg);
+			}
+		} else if (log) {
+			/*
+			 * We were denied by the "allow-query-cache" ACL.
+			 * There is no need to clear NS_QUERYATTR_CACHEACLOK
+			 * since it is cleared by query_reset(), before query
+			 * processing starts.
+			 */
+			ns_client_aclmsg("query (cache)", name, qtype,
+					 client->view->rdclass, msg,
+					 sizeof(msg));
+			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
+				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
+				      "%s denied", msg);
+		}
+
+		/*
+		 * Evaluation has been finished; make sure we will just consult
+		 * NS_QUERYATTR_CACHEACLOK for this client from now on.
+		 */
+		client->query.attributes |= NS_QUERYATTR_CACHEACLOKVALID;
+	}
+
+	return ((client->query.attributes & NS_QUERYATTR_CACHEACLOK) != 0 ?
+		ISC_R_SUCCESS : DNS_R_REFUSED);
+}
+
 static inline isc_result_t
 query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 		     dns_rdatatype_t qtype, unsigned int options,
@@ -1018,6 +1092,13 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 
 	REQUIRE(zone != NULL);
 	REQUIRE(db != NULL);
+
+	/*
+	 * Mirror zone data is treated as cache data.
+	 */
+	if (dns_zone_ismirror(zone)) {
+		return (query_checkcacheaccess(client, name, qtype, options));
+	}
 
 	/*
 	 * This limits our searching to the zone where the first name
@@ -1176,8 +1257,10 @@ query_getzonedb(ns_client_t *client, const dns_name_t *name,
 	/*%
 	 * Find a zone database to answer the query.
 	 */
-	ztoptions = ((options & DNS_GETDB_NOEXACT) != 0) ?
-		DNS_ZTFIND_NOEXACT : 0;
+	ztoptions = DNS_ZTFIND_MIRROR;
+	if ((options & DNS_GETDB_NOEXACT) != 0) {
+		ztoptions |= DNS_ZTFIND_NOEXACT;
+	}
 
 	result = dns_zt_find(client->view->zonetable, name, ztoptions, NULL,
 			     &zone);
@@ -1365,99 +1448,35 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
 	return (result);
 }
 
+/*%
+ * Find a cache database to answer the query.  This may fail with DNS_R_REFUSED
+ * if the client is not allowed to use the cache.
+ */
 static inline isc_result_t
 query_getcachedb(ns_client_t *client, const dns_name_t *name,
 		 dns_rdatatype_t qtype, dns_db_t **dbp, unsigned int options)
 {
 	isc_result_t result;
-	isc_boolean_t check_acl;
 	dns_db_t *db = NULL;
 
 	REQUIRE(dbp != NULL && *dbp == NULL);
 
-	/*%
-	 * Find a cache database to answer the query.
-	 * This may fail with DNS_R_REFUSED if the client
-	 * is not allowed to use the cache.
-	 */
-
-	if (!USECACHE(client))
+	if (!USECACHE(client)) {
 		return (DNS_R_REFUSED);
+	}
+
 	dns_db_attach(client->view->cachedb, &db);
 
-	if ((client->query.attributes & NS_QUERYATTR_CACHEACLOKVALID) != 0) {
-		/*
-		 * We've evaluated the view's cacheacl already.  If
-		 * NS_QUERYATTR_CACHEACLOK is set, then the client is
-		 * allowed to make queries, otherwise the query should
-		 * be refused.
-		 */
-		check_acl = ISC_FALSE;
-		if ((client->query.attributes & NS_QUERYATTR_CACHEACLOK) == 0)
-			goto refuse;
-	} else {
-		/*
-		 * We haven't evaluated the view's queryacl yet.
-		 */
-		check_acl = ISC_TRUE;
-	}
-
-	if (check_acl) {
-		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
-		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
-
-		result = ns_client_checkaclsilent(client, NULL,
-						  client->view->cacheacl,
-						  ISC_TRUE);
-		if (result == ISC_R_SUCCESS) {
-			/*
-			 * We were allowed by the "allow-query-cache" ACL.
-			 * Remember this so we don't have to check again.
-			 */
-			client->query.attributes |=
-				NS_QUERYATTR_CACHEACLOK;
-			if (log && isc_log_wouldlog(ns_lctx,
-						     ISC_LOG_DEBUG(3)))
-			{
-				ns_client_aclmsg("query (cache)", name, qtype,
-						 client->view->rdclass,
-						 msg, sizeof(msg));
-				ns_client_log(client,
-					      DNS_LOGCATEGORY_SECURITY,
-					      NS_LOGMODULE_QUERY,
-					      ISC_LOG_DEBUG(3),
-					      "%s approved", msg);
-			}
-		} else if (log) {
-			ns_client_aclmsg("query (cache)", name, qtype,
-					 client->view->rdclass, msg,
-					 sizeof(msg));
-			ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
-				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
-				      "%s denied", msg);
-		}
-		/*
-		 * We've now evaluated the view's query ACL, and
-		 * the NS_QUERYATTR_CACHEACLOKVALID attribute is now valid.
-		 */
-		client->query.attributes |= NS_QUERYATTR_CACHEACLOKVALID;
-
-		if (result != ISC_R_SUCCESS)
-			goto refuse;
-	}
-
-	/* Approved. */
-
-	/* Transfer ownership. */
-	*dbp = db;
-
-	return (ISC_R_SUCCESS);
-
- refuse:
-	result = DNS_R_REFUSED;
-
-	if (db != NULL)
+	result = query_checkcacheaccess(client, name, qtype, options);
+	if (result != ISC_R_SUCCESS) {
 		dns_db_detach(&db);
+	}
+
+	/*
+	 * If query_checkcacheaccess() succeeded, transfer ownership of 'db'.
+	 * Otherwise, 'db' will be NULL due to the dns_db_detach() call above.
+	 */
+	*dbp = db;
 
 	return (result);
 }
@@ -5363,10 +5382,15 @@ ns__query_start(query_ctx_t *qctx) {
 	qctx->is_staticstub_zone = ISC_FALSE;
 	if (qctx->is_zone) {
 		qctx->authoritative = ISC_TRUE;
-		if (qctx->zone != NULL &&
-		    dns_zone_gettype(qctx->zone) == dns_zone_staticstub)
-		{
-			qctx->is_staticstub_zone = ISC_TRUE;
+		if (qctx->zone != NULL) {
+			if (dns_zone_ismirror(qctx->zone)) {
+				qctx->authoritative = ISC_FALSE;
+			}
+			if (dns_zone_gettype(qctx->zone) ==
+			    dns_zone_staticstub)
+			{
+				qctx->is_staticstub_zone = ISC_TRUE;
+			}
 		}
 	}
 
@@ -7765,7 +7789,10 @@ query_zone_delegation(query_ctx_t *qctx) {
 		}
 	}
 
-	if (USECACHE(qctx->client) && RECURSIONOK(qctx->client)) {
+	if (USECACHE(qctx->client) &&
+	    (RECURSIONOK(qctx->client) ||
+	     (qctx->zone != NULL && dns_zone_ismirror(qctx->zone))))
+	{
 		/*
 		 * We might have a better answer or delegation in the
 		 * cache.  We'll remember the current values of fname,
@@ -7983,7 +8010,9 @@ query_delegation(query_ctx_t *qctx) {
 	qctx->client->query.attributes |= NS_QUERYATTR_CACHEGLUEOK;
 	qctx->client->query.isreferral = ISC_TRUE;
 
-	if (qctx->zdb != NULL && qctx->client->query.gluedb == NULL) {
+	if (qctx->zdb != NULL && qctx->client->query.gluedb == NULL &&
+	    !(qctx->zone != NULL && dns_zone_ismirror(qctx->zone)))
+	{
 		dns_db_attach(qctx->zdb, &qctx->client->query.gluedb);
 		detach = ISC_TRUE;
 	}

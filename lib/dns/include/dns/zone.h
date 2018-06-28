@@ -79,8 +79,10 @@ typedef enum {
 	DNS_ZONEOPT_CHECKDUPRRFAIL   = 1<<26, /*%< fatal check-dup-records failures */
 	DNS_ZONEOPT_CHECKSPF         = 1<<27, /*%< check SPF records */
 	DNS_ZONEOPT_CHECKTTL         = 1<<28, /*%< check max-zone-ttl */
-	DNS_ZONEOPT_AUTOEMPTY        = 1<<29  /*%< automatic empty zone */
+	DNS_ZONEOPT_AUTOEMPTY        = 1<<29, /*%< automatic empty zone */
+	DNS_ZONEOPT_MIRROR           = 1<<30, /*%< mirror zone */
 } dns_zoneopt_t;
+
 /*
  * Zone key maintenance options
  */
@@ -2476,6 +2478,39 @@ dns_zone_getgluecachestats(dns_zone_t *zone);
  * Returns:
  * \li	if present, a pointer to the statistics set installed in zone;
  *	otherwise NULL.
+ */
+
+isc_boolean_t
+dns_zone_isloaded(const dns_zone_t *zone);
+/*%<
+ * Return ISC_TRUE if 'zone' was loaded and has not expired yet, return
+ * ISC_FALSE otherwise.
+ */
+
+isc_boolean_t
+dns_zone_ismirror(const dns_zone_t *zone);
+/*%<
+ * Return ISC_TRUE if 'zone' is a mirror zone, return ISC_FALSE otherwise.
+ */
+
+isc_result_t
+dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver);
+/*%<
+ * If 'zone' is a mirror zone, perform DNSSEC validation of version 'ver' of
+ * its database, 'db'.  Ensure that the DNSKEY RRset at zone apex is signed by
+ * at least one trust anchor specified for the view that 'zone' is assigned to.
+ * If 'ver' is NULL, use the current version of 'db'.
+ *
+ * If 'zone' is not a mirror zone, return ISC_R_SUCCESS immediately.
+ *
+ * Returns:
+ *
+ * \li	#ISC_R_SUCCESS		either 'zone' is not a mirror zone or 'zone' is
+ *				a mirror zone and all DNSSEC checks succeeded
+ *				and the DNSKEY RRset at zone apex is signed by
+ *				a trusted key
+ *
+ * \li	#DNS_R_VERIFYFAILURE	any other case
  */
 
 #endif /* DNS_ZONE_H */

@@ -1725,6 +1725,35 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_MULTIMASTER, multi);
 
 		obj = NULL;
+		(void)cfg_map_get(zoptions, "mirror", &obj);
+		if (obj != NULL) {
+			isc_boolean_t mirror = cfg_obj_asboolean(obj);
+			dns_zone_setoption(mayberaw, DNS_ZONEOPT_MIRROR,
+					   mirror);
+			if (mirror) {
+				/*
+				 * Disable outgoing zone transfers unless they
+				 * are explicitly enabled by zone
+				 * configuration.
+				 */
+				obj = NULL;
+				(void)cfg_map_get(zoptions, "allow-transfer",
+						  &obj);
+				if (obj == NULL) {
+					dns_acl_t *none;
+					RETERR(dns_acl_none(mctx, &none));
+					dns_zone_setxfracl(zone, none);
+					dns_acl_detach(&none);
+				}
+				/*
+				 * Only allow "also-notify".
+				 */
+				notifytype = dns_notifytype_explicit;
+				dns_zone_setnotifytype(zone, notifytype);
+			}
+		}
+
+		obj = NULL;
 		result = named_config_get(maps, "max-transfer-time-in", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		dns_zone_setmaxxfrin(mayberaw, cfg_obj_asuint32(obj) * 60);

@@ -21,6 +21,7 @@
 #include <dns/dbiterator.h>
 #include <dns/dnssec.h>
 #include <dns/fixedname.h>
+#include <dns/keytable.h>
 #include <dns/keyvalues.h>
 #include <dns/log.h>
 #include <dns/name.h>
@@ -56,6 +57,7 @@ typedef struct vctx {
 	dns_db_t *		db;
 	dns_dbversion_t *	ver;
 	dns_name_t *		origin;
+	dns_keytable_t *	secroots;
 	isc_boolean_t		goodksk;
 	isc_boolean_t		goodzsk;
 	dns_rdataset_t		keyset;
@@ -910,6 +912,8 @@ verifyset(vctx_t *vctx, dns_rdataset_t *rdataset, const dns_name_t *name,
 			continue;
 		}
 		if (goodsig(vctx, &rdata, name, keyrdataset, rdataset)) {
+			dns_rdataset_settrust(rdataset, dns_trust_secure);
+			dns_rdataset_settrust(&sigrdataset, dns_trust_secure);
 			set_algorithms[sig.algorithm] = 1;
 		}
 	}
@@ -1315,7 +1319,7 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 
 static isc_result_t
 vctx_init(vctx_t *vctx, isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
-	  dns_dbversion_t *ver, dns_name_t *origin)
+	  dns_dbversion_t *ver, dns_name_t *origin, dns_keytable_t *secroots)
 {
 	isc_result_t result;
 
@@ -1326,6 +1330,7 @@ vctx_init(vctx_t *vctx, isc_mem_t *mctx, dns_zone_t *zone, dns_db_t *db,
 	vctx->db = db;
 	vctx->ver = ver;
 	vctx->origin = origin;
+	vctx->secroots = secroots;
 	vctx->goodksk = ISC_FALSE;
 	vctx->goodzsk = ISC_FALSE;
 
@@ -1491,17 +1496,21 @@ check_apex_rrsets(vctx_t *vctx) {
  * Update 'vctx' tables tracking active and standby key algorithms used in the
  * verified zone based on the signatures made using 'dnskey' (prepared from
  * 'rdata') found at zone apex.  Set 'vctx->goodksk' or 'vctx->goodzsk' to true
- * if 'dnskey' correctly signs the DNSKEY RRset at zone apex.
+ * if 'dnskey' correctly signs the DNSKEY RRset at zone apex and either
+ * 'vctx->secroots' is NULL or 'dnskey' is present in 'vctx->secroots'.
  *
  * The variables to update are chosen based on 'is_ksk', which is true when
  * 'dnskey' is a KSK and false otherwise.
  */
-static void
+static isc_result_t
 check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 		  dns_rdata_t *rdata, isc_boolean_t is_ksk)
 {
 	unsigned char *active_keys, *standby_keys;
+	dns_keynode_t *keynode = NULL;
 	isc_boolean_t *goodkey;
+	dst_key_t *key = NULL;
+	isc_result_t result;
 
 	active_keys = (is_ksk ? vctx->ksk_algorithms : vctx->zsk_algorithms);
 	standby_keys = (is_ksk ? vctx->standby_ksk : vctx->standby_zsk);
@@ -1513,7 +1522,6 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 		if (active_keys[dnskey->algorithm] != 255) {
 			active_keys[dnskey->algorithm]++;
 		}
-		*goodkey = ISC_TRUE;
 	} else if (!is_ksk &&
 		   dns_dnssec_signs(rdata, vctx->origin, &vctx->soaset,
 				    &vctx->soasigs, ISC_FALSE, vctx->mctx))
@@ -1521,11 +1529,67 @@ check_dnskey_sigs(vctx_t *vctx, const dns_rdata_dnskey_t *dnskey,
 		if (active_keys[dnskey->algorithm] != 255) {
 			active_keys[dnskey->algorithm]++;
 		}
+		return (ISC_R_SUCCESS);
 	} else {
 		if (standby_keys[dnskey->algorithm] != 255) {
 			standby_keys[dnskey->algorithm]++;
 		}
+		return (ISC_R_SUCCESS);
 	}
+
+	/*
+	 * If a trust anchor table was not supplied, a correctly self-signed
+	 * DNSKEY RRset is good enough.
+	 */
+	if (vctx->secroots == NULL) {
+		*goodkey = ISC_TRUE;
+		return (ISC_R_SUCCESS);
+	}
+
+	/*
+	 * Look up the supplied key in the trust anchor table.
+	 */
+	result = dns_dnssec_keyfromrdata(vctx->origin, rdata, vctx->mctx,
+					 &key);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	result = dns_keytable_findkeynode(vctx->secroots, vctx->origin,
+					  dst_key_alg(key), dst_key_id(key),
+					  &keynode);
+	switch (result) {
+	case ISC_R_SUCCESS:
+		/*
+		 * The supplied key is a trust anchor.
+		 */
+		dns_keytable_detachkeynode(vctx->secroots, &keynode);
+		dns_rdataset_settrust(&vctx->keyset, dns_trust_secure);
+		dns_rdataset_settrust(&vctx->keysigs, dns_trust_secure);
+		*goodkey = ISC_TRUE;
+		break;
+	case DNS_R_PARTIALMATCH:
+	case ISC_R_NOTFOUND:
+		/*
+		 * The supplied key is not present in the trust anchor table,
+		 * but other keys signing the DNSKEY RRset may be, so this is
+		 * not an error, we just do not set 'vctx->good[kz]sk'.
+		 */
+		result = ISC_R_SUCCESS;
+		break;
+	default:
+		/*
+		 * An error occurred while searching the trust anchor table,
+		 * return it to the caller.
+		 */
+		break;
+	}
+
+	/*
+	 * Clean up.
+	 */
+	dst_key_free(&key);
+
+	return (result);
 }
 
 /*%
@@ -1914,14 +1978,15 @@ print_summary(const vctx_t *vctx, isc_boolean_t keyset_kskonly) {
 
 isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-		      dns_name_t *origin, isc_mem_t *mctx,
-		      isc_boolean_t ignore_kskflag,
+		      dns_name_t *origin, dns_keytable_t *secroots,
+		      isc_mem_t *mctx, isc_boolean_t ignore_kskflag,
 		      isc_boolean_t keyset_kskonly)
 {
+	const char *keydesc = (secroots == NULL ? "self-signed" : "trusted");
 	isc_result_t result, vresult = ISC_R_UNSET;
 	vctx_t vctx;
 
-	result = vctx_init(&vctx, mctx, zone, db, ver, origin);
+	result = vctx_init(&vctx, mctx, zone, db, ver, origin, secroots);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -1938,13 +2003,13 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	if (ignore_kskflag) {
 		if (!vctx.goodksk && !vctx.goodzsk) {
-			zoneverify_log_error(&vctx,
-					     "No self-signed DNSKEY found");
+			zoneverify_log_error(&vctx, "No %s DNSKEY found",
+					     keydesc);
 			result = ISC_R_FAILURE;
 			goto done;
 		}
 	} else if (!vctx.goodksk) {
-		zoneverify_log_error(&vctx, "No self-signed KSK DNSKEY found");
+		zoneverify_log_error(&vctx, "No %s KSK DNSKEY found", keydesc);
 		result = ISC_R_FAILURE;
 		goto done;
 	}
