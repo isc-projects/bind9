@@ -13,6 +13,7 @@ atf_test_program{name='master_test'}
 atf_test_program{name='name_test'}
 atf_test_program{name='nsec3_test'}
 atf_test_program{name='private_test'}
+atf_test_program{name='rbt_test'}
 atf_test_program{name='rdata_test'}
 atf_test_program{name='rdataset_test'}
 atf_test_program{name='resolver_test'}
