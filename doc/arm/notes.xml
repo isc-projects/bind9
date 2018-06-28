@@ -145,6 +145,14 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>named</command> now rejects excessively large
+	  incremental (IXFR) zone transfers in order to prevent
+	  possible corruption of journal files which could cause
+	  <command>named</command> to abort when loading zones. [GL #339]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  When answering authoritative queries, <command>named</command>
 	  does not return the target of a cross-zone CNAME between two
 	  locally served zones; this prevents accidental cache poisoning.
