@@ -20,3 +20,4 @@ rm -f */jn-*
 rm -f */named.memstats
 rm -f */named.run
 rm -f dig.out.*
+rm -f rndc.out.*

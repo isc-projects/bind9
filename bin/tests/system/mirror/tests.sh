@@ -354,5 +354,13 @@ grep "initially-unavailable.*sending notifies" ns3/named.run > /dev/null && ret=
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking output of \"rndc zonestatus\" for a mirror zone ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 zonestatus . > rndc.out.ns3.test$n 2>&1
+grep "type: mirror" rndc.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
