@@ -1,3 +1,6 @@
+4984.	[bug]		Improve handling of very large incremental
+			zone transfers to prevent journal corruption. [GL #339]
+
 4983.	[func]		Add the ability to not return a DNS COOKIE option
 			when one is present in the request (answer-cookie no;).
 			[GL #173]
