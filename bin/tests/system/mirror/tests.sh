@@ -145,5 +145,29 @@ grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that loading an incorrectly signed mirror zone from disk fails ($n)"
+ret=0
+nextpartreset ns3/named.run
+wait_for_load verify-load ${UPDATED_SERIAL_BAD} ns3/named.run
+$DIG $DIGOPTS @10.53.0.3 +norec verify-load SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+nextpart ns3/named.run | grep "No correct RSASHA256 signature for verify-load SOA" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that loading a correctly signed mirror zone from disk succeeds ($n)"
+ret=0
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns3
+cat ns2/verify-load.db.good.signed > ns3/verify-load.db.mirror
+nextpart ns3/named.run > /dev/null
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+wait_for_load verify-load ${UPDATED_SERIAL_GOOD} ns3/named.run
+$DIG $DIGOPTS @10.53.0.3 +norec verify-load SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
