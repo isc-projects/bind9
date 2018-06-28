@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.10.8rc1
+Release Notes for BIND Version 9.10.8rc2
 
 Introduction
 
@@ -29,15 +29,21 @@ Security Fixes
 
 New Features
 
-  * Add root key sentinel support which enables resolvers to test which
-    trust anchors are configured for the root. To disable, add
-    'root-key-sentinel no;' to named.conf. [GL #37]
+  * named now supports the "root key sentinel" mechanism. This enables
+    validating resolvers to indicate which trust anchors are configured
+    for the root, so that information about root key rollover status can
+    be gathered. To disable this feature, add root-key-sentinel no; to
+    named.conf. [GL #37]
 
 Feature Changes
 
   * None.
 
 Bug Fixes
+
+  * named now rejects excessively large incremental (IXFR) zone transfers
+    in order to prevent possible corruption of journal files which could
+    cause named to abort when loading zones. [GL #339]
 
   * rndc reload could cause named to leak memory if it was invoked before
     the zone loading actions from a previous rndc reload command were
