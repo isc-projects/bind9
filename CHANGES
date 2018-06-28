@@ -1,3 +1,6 @@
+4984.	[bug]		Improve handling of very large incremental
+			zone transfers to prevent journal corruption. [GL #339]
+
 4981.	[bug]		Fix race in cmsg buffer usage in socket code.
 			[GL #180]
 
