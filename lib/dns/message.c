@@ -1884,7 +1884,9 @@ wrong_priority(dns_rdataset_t *rds, int pass, dns_rdatatype_t preferred_glue) {
 	switch (rds->type) {
 	case dns_rdatatype_a:
 	case dns_rdatatype_aaaa:
-		if (preferred_glue == rds->type)
+	case dns_rdatatype_cname:
+		if (preferred_glue == rds->type ||
+		    rds->type == dns_rdatatype_cname)
 			pass_needed = 4;
 		else
 			pass_needed = 3;
