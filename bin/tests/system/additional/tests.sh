@@ -326,5 +326,16 @@ if [ $ret -eq 1 ] ; then
     echo_i " failed"; status=1
 fi
 
+$DIG $DIGOPTS -t SRV @10.53.0.1 _http._tcp.direct.srv.example +noauth
+$DIG $DIGOPTS -t SRV @10.53.0.1 _http._tcp.cname.srv.example +noauth
+$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.direct.srv.example +noauth
+$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.cname.srv.example +noauth
+$DIG $DIGOPTS -t A @10.53.0.3 cname.example.tld
+$DIG $DIGOPTS -t A @10.53.0.3 direct.example.tld
+$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.direct.srv.example +noauth
+$DIG $DIGOPTS -t SRV @10.53.0.3 _http._tcp.cname.srv.example +noauth
+
+grep "\(dns_db_findext\|query_additional:\)" ns3/named.run
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
