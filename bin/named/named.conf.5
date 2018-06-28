@@ -18,12 +18,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2016-12-02
+.\"      Date: 2018-06-21
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2016\-12\-02" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2018\-06\-21" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -384,6 +384,7 @@ options {
 	    [ break\-dnssec \fIboolean\fR ] [ max\-policy\-ttl \fIinteger\fR ] [
 	    min\-ns\-dots \fIinteger\fR ] [ qname\-wait\-recurse \fIboolean\fR ];
 	root\-delegation\-only [ exclude { \fIquoted_string\fR; \&.\&.\&. } ];
+	root\-key\-sentinel \fIboolean\fR;
 	rrset\-order { [ class \fIstring\fR ] [ type \fIstring\fR ] [ name
 	    \fIquoted_string\fR ] \fIstring\fR \fIstring\fR; \&.\&.\&. };
 	secroots\-file \fIquoted_string\fR;
@@ -676,6 +677,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 	    [ break\-dnssec \fIboolean\fR ] [ max\-policy\-ttl \fIinteger\fR ] [
 	    min\-ns\-dots \fIinteger\fR ] [ qname\-wait\-recurse \fIboolean\fR ];
 	root\-delegation\-only [ exclude { \fIquoted_string\fR; \&.\&.\&. } ];
+	root\-key\-sentinel \fIboolean\fR;
 	rrset\-order { [ class \fIstring\fR ] [ type \fIstring\fR ] [ name
 	    \fIquoted_string\fR ] \fIstring\fR \fIstring\fR; \&.\&.\&. };
 	serial\-update\-method ( increment | unixtime );

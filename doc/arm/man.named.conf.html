@@ -382,6 +382,7 @@ options {<br>
 	    [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [<br>
 	    min-ns-dots <em class="replaceable"><code>integer</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ];<br>
 	root-delegation-only [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];<br>
+	root-key-sentinel <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name<br>
 	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };<br>
 	secroots-file <em class="replaceable"><code>quoted_string</code></em>;<br>
@@ -662,6 +663,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [<br>
 	    min-ns-dots <em class="replaceable"><code>integer</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ];<br>
 	root-delegation-only [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];<br>
+	root-key-sentinel <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name<br>
 	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };<br>
 	serial-update-method ( increment | unixtime );<br>
@@ -962,6 +964,6 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.8rc1</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.10.8rc2</p>
 </body>
 </html>

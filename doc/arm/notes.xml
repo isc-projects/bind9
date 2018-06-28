@@ -64,9 +64,13 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Add root key sentinel support which enables resolvers to test
-	  which trust anchors are configured for the root.  To disable, add
-	  'root-key-sentinel no;' to named.conf. [GL #37]
+	  <command>named</command> now supports the "root key sentinel"
+	  mechanism. This enables validating resolvers to indicate
+	  which trust anchors are configured for the root, so that
+	  information about root key rollover status can be gathered.
+	  To disable this feature, add
+	  <command>root-key-sentinel no;</command> to
+	  <filename>named.conf</filename>. [GL #37]
 	</para>
       </listitem>
     </itemizedlist>
