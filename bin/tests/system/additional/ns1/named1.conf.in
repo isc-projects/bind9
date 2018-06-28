@@ -29,6 +29,16 @@ controls {
 	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
+zone "mx.example" {
+	type master;
+	file "mx.db";
+};
+
+zone "srv.example" {
+	type master;
+	file "srv.db";
+};
+
 zone "rt.example" {
 	type master;
 	file "rt.db";
