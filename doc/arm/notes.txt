@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.4rc1
+Release Notes for BIND Version 9.11.4rc2
 
 Introduction
 
@@ -59,14 +59,14 @@ New Features
     present in the request. To prevent a cookie being returned, add
     answer-cookie no; to named.conf. [GL #173]
 
-    answer-cookie is only available as a temporary measure, for use when
+    answer-cookie no is only intended as a temporary measure, for use when
     named shares an IP address with other servers that do not yet support
     DNS COOKIE. A mismatch between servers on the same address is not
     expected to cause operational problems, but the option to disable
     COOKIE responses so that all servers have the same behavior is
     provided out of an abundance of caution. DNS COOKIE is an important
-    security mechanism and should not be disabled unless absolutely
-    necessary. The answer-cookie option is obsolete as of BIND 9.13.
+    security mechanism, and should not be disabled unless absolutely
+    necessary.
 
 Removed Features
 
@@ -85,6 +85,10 @@ Feature Changes
     other servers using the matching cookie-secret.
 
 Bug Fixes
+
+  * named now rejects excessively large incremental (IXFR) zone transfers
+    in order to prevent possible corruption of journal files which could
+    cause named to abort when loading zones. [GL #339]
 
   * rndc reload could cause named to leak memory if it was invoked before
     the zone loading actions from a previous rndc reload command were

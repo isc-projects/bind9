@@ -199,6 +199,7 @@ options {<br>
 	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 	alt-transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> |<br>
 	    * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
+	answer-cookie <em class="replaceable"><code>boolean</code></em>;<br>
 	attach-cache <em class="replaceable"><code>string</code></em>;<br>
 	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
 	auto-dnssec ( allow | maintain | off );<br>
@@ -402,6 +403,7 @@ options {<br>
 	    min-ns-dots <em class="replaceable"><code>integer</code></em> ] [ nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ];<br>
 	root-delegation-only [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];<br>
+	root-key-sentinel <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name<br>
 	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };<br>
 	secroots-file <em class="replaceable"><code>quoted_string</code></em>;<br>
@@ -705,6 +707,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    min-ns-dots <em class="replaceable"><code>integer</code></em> ] [ nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [<br>
 	    qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ];<br>
 	root-delegation-only [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];<br>
+	root-key-sentinel <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name<br>
 	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };<br>
 	send-cookie <em class="replaceable"><code>boolean</code></em>;<br>

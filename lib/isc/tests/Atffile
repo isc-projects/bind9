@@ -29,5 +29,5 @@ tp: socket_test
 tp: symtab_test
 tp: task_test
 tp: taskpool_test
-tp: timer_test
 tp: time_test
+tp: timer_test
