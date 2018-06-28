@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: journal.c,v 1.120 2011/12/22 07:32:41 each Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -1042,7 +1040,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 		size += t->rdata.length;
 	}
 
-	if (size >= DNS_JOURNAL_SIZE_MAX) {
+	if (size >= ISC_INT32_MAX) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "dns_journal_writediff: %s: journal entry "
 			      "too big to be stored: %llu bytes", j->filename,
@@ -1157,11 +1155,11 @@ dns_journal_commit(dns_journal_t *j) {
 	 * We currently don't support huge journal entries.
 	 */
 	total = j->x.pos[1].offset - j->x.pos[0].offset;
-	if (total >= DNS_JOURNAL_SIZE_MAX) {
+	if (total >= ISC_INT32_MAX) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			     "transaction too big to be stored in journal: "
 			     "%llub (max is %llub)", total,
-			     (isc_uint64_t)DNS_JOURNAL_SIZE_MAX);
+			     (isc_uint64_t)ISC_INT32_MAX);
 		return (ISC_R_UNEXPECTED);
 	}
 
