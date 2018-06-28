@@ -861,6 +861,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		max-zone-ttl ( unlimited | <replaceable>ttlval</replaceable> );
 		min-refresh-time <replaceable>integer</replaceable>;
 		min-retry-time <replaceable>integer</replaceable>;
+		mirror <replaceable>boolean</replaceable>;
 		multi-master <replaceable>boolean</replaceable>;
 		notify ( explicit | master-only | <replaceable>boolean</replaceable> );
 		notify-delay <replaceable>integer</replaceable>;
@@ -966,6 +967,7 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	max-zone-ttl ( unlimited | <replaceable>ttlval</replaceable> );
 	min-refresh-time <replaceable>integer</replaceable>;
 	min-retry-time <replaceable>integer</replaceable>;
+	mirror <replaceable>boolean</replaceable>;
 	multi-master <replaceable>boolean</replaceable>;
 	notify ( explicit | master-only | <replaceable>boolean</replaceable> );
 	notify-delay <replaceable>integer</replaceable>;
