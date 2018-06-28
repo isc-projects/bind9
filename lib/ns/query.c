@@ -450,6 +450,9 @@ query_addauth(query_ctx_t *qctx);
 static isc_result_t
 query_done(query_ctx_t *qctx);
 
+static void
+prefetch_done(isc_task_t *task, isc_event_t *event);
+
 /*%
  * Increment query statistics counters.
  */
@@ -1626,6 +1629,75 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 	return (false);
 }
 
+/*
+ * Fetch missing additional RRsets.
+ */
+static void
+query_fetch_additional(ns_client_t *client, const dns_name_t *name,
+                       dns_rdatatype_t qtype)
+{
+	ns_client_t *dummy = NULL;
+	dns_rdataset_t *rdataset = NULL;
+	dns_rdataset_t *sigrdataset = NULL;
+	isc_sockaddr_t *peeraddr;
+	isc_result_t result;
+
+	if (!RECURSIONOK(client) || !client->view->srv_full_additional)
+		return;
+
+char namebuf[DNS_NAME_FORMATSIZE];
+dns_name_format(name, namebuf, sizeof(namebuf));
+fprintf(stderr, "query_fetch_additional: %s/%u\n", namebuf, qtype);
+
+	/*
+	 * XXXMPA Use prefetch mechanism to start.
+	 */
+	if (client->query.prefetch != NULL)
+		return;
+
+	if (client->recursionquota == NULL) {
+		result = isc_quota_attach(&client->sctx->recursionquota,
+					  &client->recursionquota);
+		if (result == ISC_R_SUCCESS &&
+		    !client->mortal && !TCP(client))
+			result = ns_client_replace(client);
+		if (result == ISC_R_SUCCESS)
+			ns_stats_increment(client->sctx->nsstats,
+					   ns_statscounter_recursclients);
+	}
+
+	if (client->recursionquota != NULL) {
+		rdataset = query_newrdataset(client);
+		sigrdataset = query_newrdataset(client);
+	}
+	if (rdataset != NULL && sigrdataset != NULL) {
+		if (!TCP(client))
+			peeraddr = &client->peeraddr;
+		else
+			peeraddr = NULL;
+		ns_client_attach(client, &dummy);
+		result = dns_resolver_createfetch(client->view->resolver,
+						  name, qtype, NULL, NULL,
+						  NULL, peeraddr,
+						  client->message->id,
+						  client->query.fetchoptions,
+						  0, NULL, client->task,
+						  prefetch_done, client,
+						  rdataset, sigrdataset,
+						  &client->query.prefetch);
+		if (result != ISC_R_SUCCESS) {
+			query_putrdataset(client, &rdataset);
+			query_putrdataset(client, &sigrdataset);
+			ns_client_detach(&dummy);
+		}
+	} else {
+		if (rdataset != NULL)
+			query_putrdataset(client, &rdataset);
+		if (sigrdataset != NULL)
+			query_putrdataset(client, &sigrdataset);
+	}
+}
+
 static isc_result_t
 query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	ns_client_t *client = arg;
@@ -1729,7 +1801,6 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 				client->query.dboptions,
 				client->now, &node, fname, &cm, &ci,
 				rdataset, sigrdataset);
-fprintf(stderr, "dns_db_findext(zone) -> %s\n", dns_result_totext(result));
 	if (result == ISC_R_SUCCESS || result == DNS_R_CNAME) {
 		if (sigrdataset != NULL && !dns_db_issecure(db) &&
 		    dns_rdataset_isassociated(sigrdataset))
@@ -1777,7 +1848,6 @@ fprintf(stderr, "dns_db_findext(zone) -> %s\n", dns_result_totext(result));
 				DNS_DBFIND_GLUEOK | DNS_DBFIND_ADDITIONALOK,
 				client->now, &node, fname, &cm, &ci,
 				rdataset, sigrdataset);
-fprintf(stderr, "dns_db_findext(cache) -> %s\n", dns_result_totext(result));
 
 	dns_cache_updatestats(client->view->cache, result);
 	if (!WANTDNSSEC(client))
@@ -1793,6 +1863,14 @@ fprintf(stderr, "dns_db_findext(cache) -> %s\n", dns_result_totext(result));
 	if (node != NULL)
 		dns_db_detachnode(db, &node);
 	dns_db_detach(&db);
+
+	if (result == DNS_R_DELEGATION || result == ISC_R_NOTFOUND) {
+		query_fetch_additional(client, name, qtype);
+		if (qtype == dns_rdatatype_a) {
+			query_fetch_additional(client, name,
+					       dns_rdatatype_aaaa);
+		}
+	}
 
  try_glue:
 	/*
@@ -1830,19 +1908,12 @@ fprintf(stderr, "dns_db_findext(cache) -> %s\n", dns_result_totext(result));
 				client->query.dboptions | DNS_DBFIND_GLUEOK,
 				client->now, &node, fname, &cm, &ci,
 				rdataset, sigrdataset);
-fprintf(stderr, "dns_db_findext(glue) -> %s\n", dns_result_totext(result));
 	if (!(result == ISC_R_SUCCESS ||
 	      result == DNS_R_ZONECUT ||
 	      result == DNS_R_GLUE))
 		goto cleanup;
 
  found:
-
-{
-char namebuf[DNS_NAME_FORMATSIZE];
-dns_name_format(name, namebuf, sizeof(namebuf));
-fprintf(stderr, "query_additional: found: %s %s\n", namebuf, dns_result_totext(result));
-}
 	/*
 	 * We have found a potential additional data rdataset, or
 	 * at least a node to iterate over.
@@ -1881,6 +1952,9 @@ fprintf(stderr, "query_additional: found: %s %s\n", namebuf, dns_result_totext(r
 
 	if (qtype == dns_rdatatype_a) {
 		bool have_a = false;
+		bool have_aaaa = false;
+		bool not_a = false;
+		bool not_aaaa = false;
 
 		/*
 		 * We now go looking for A and AAAA records, along with
@@ -1915,8 +1989,10 @@ fprintf(stderr, "query_additional: found: %s %s\n", namebuf, dns_result_totext(r
 		} else if (result == DNS_R_NCACHENXRRSET) {
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
-			    dns_rdataset_isassociated(sigrdataset))
+			    dns_rdataset_isassociated(sigrdataset)) {
 				dns_rdataset_disassociate(sigrdataset);
+			}
+			not_a = true;
 		} else if (result == ISC_R_SUCCESS) {
 			bool invalid = false;
 			mname = NULL;
@@ -1980,11 +2056,14 @@ fprintf(stderr, "query_additional: found: %s %s\n", namebuf, dns_result_totext(r
 		} else if (result == DNS_R_NCACHENXRRSET) {
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
-			    dns_rdataset_isassociated(sigrdataset))
+			    dns_rdataset_isassociated(sigrdataset)) {
 				dns_rdataset_disassociate(sigrdataset);
+			}
+			not_aaaa = true;
 		} else if (result == ISC_R_SUCCESS) {
 			bool invalid = false;
 			mname = NULL;
+			have_aaaa = true;
 			/*
 			 * There's an A; check whether we're filtering AAAA
 			 */
@@ -2033,8 +2112,15 @@ fprintf(stderr, "query_additional: found: %s %s\n", namebuf, dns_result_totext(r
 			goto addname;
 		}
 
-		if (query_isduplicate(client, fname, dns_rdatatype_cname, NULL))
+		/*
+		 * If we have a A then there is no point in looking for a
+		 * CNAME.
+		 */
+		if (have_a ||
+		    query_isduplicate(client, fname, dns_rdatatype_cname, NULL))
+		{
 			goto addname;
+		}
 		result = dns_db_findrdataset(db, node, version,
 					     dns_rdatatype_cname, 0,
 					     client->now,
@@ -2094,6 +2180,15 @@ fprintf(stderr, "query_additional: found: %s %s\n", namebuf, dns_result_totext(r
 				}
 				trdataset = rdataset;
 				rdataset = NULL;
+			}
+		} else if (result == ISC_R_NOTFOUND) {
+			if (!have_a && !not_a) {
+				query_fetch_additional(client, name,
+						       dns_rdatatype_a);
+			}
+			if (!have_aaaa && !not_aaaa) {
+				query_fetch_additional(client, name,
+						       dns_rdatatype_aaaa);
 			}
 		}
 	}
