@@ -14,7 +14,7 @@ SYSTEMTESTTOP=../..
 
 keys_to_trust=""
 
-for zonename in example; do
+for zonename in example initially-unavailable; do
 	zone=$zonename
 	infile=$zonename.db.in
 	zonefile=$zonename.db
@@ -26,6 +26,11 @@ for zonename in example; do
 
 	$SIGNER -P -o $zone $zonefile > /dev/null
 done
+
+# Only add the key for "initially-unavailable" to the list of keys trusted by
+# ns3.  "example" is expected to be validated using a chain of trust starting in
+# the "root" zone on ns1.
+keys_to_trust="$keys_to_trust $keyname1"
 
 ORIGINAL_SERIAL=`awk '$2 == "SOA" {print $5}' verify.db.in`
 UPDATED_SERIAL_BAD=`expr ${ORIGINAL_SERIAL} + 1`

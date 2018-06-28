@@ -2481,6 +2481,13 @@ dns_zone_getgluecachestats(dns_zone_t *zone);
  */
 
 isc_boolean_t
+dns_zone_isloaded(const dns_zone_t *zone);
+/*%<
+ * Return ISC_TRUE if 'zone' was loaded and has not expired yet, return
+ * ISC_FALSE otherwise.
+ */
+
+isc_boolean_t
 dns_zone_ismirror(const dns_zone_t *zone);
 /*%<
  * Return ISC_TRUE if 'zone' is a mirror zone, return ISC_FALSE otherwise.

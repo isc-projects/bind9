@@ -41,6 +41,13 @@ zone "." {
 	file "root.db.mirror";
 };
 
+zone "initially-unavailable" {
+	type slave;
+	masters { 10.53.0.2; };
+	mirror yes;
+	file "initially-unavailable.db.mirror";
+};
+
 zone "verify-axfr" {
 	type slave;
 	masters { 10.53.0.2; };
