@@ -170,6 +170,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to enable rpz nsip rules. */
 #undef ENABLE_RPZ_NSIP
 
+/* Define to enable Cisco Umbrella support. */
+#undef ENABLE_UMBRELLA
+
 /* Solaris hack to get select_large_fdset. */
 #undef FD_SETSIZE
 

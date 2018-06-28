@@ -9387,7 +9387,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>umbrella-virtual-appliance</command></term>
 	      <listitem>
 		<para>
-		  Sets the Virtual Appliance ID to be sent by
+		  If Umbrella is enabled at compile time, this option
+		  sets the Virtual Appliance ID to be sent by
 		  <command>named</command> when forwarding a query to
 		  a Cisco Umbrella server. This can cause leakage of private
 		  information, and therefore should only be set by
@@ -9402,7 +9403,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>umbrella-organization</command></term>
 	      <listitem>
 		<para>
-		  Sets the Organization ID to be sent by
+		  If Umbrella is enabled at compile time, this option
+		  sets the Organization ID to be sent by
 		  <command>named</command> when forwarding a query to
 		  a Cisco Umbrella server. This can cause leakage of private
 		  information, and therefore should only be set by
@@ -9417,7 +9419,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      <term><command>umbrella-device</command></term>
 	      <listitem>
 		<para>
-		  Sets the Device ID to be sent by
+		  If Umbrella is enabled at compile time, this option
+		  sets the Device ID to be sent by
 		  <command>named</command> when forwarding a query to
 		  a Cisco Umbrella server. This can cause leakage of private
 		  information, and therefore should only be set by
@@ -10683,7 +10686,8 @@ example.com                 CNAME   rpz-tcp-only.
 	<section xml:id="protoss"><info><title>Cisco Umbrella support</title></info>
 	  <para>
 	    In this release of BIND, <command>named</command> supports
-	    forwarding of queries to Cisco Umbrella servers. Cisco
+	    forwarding of queries to Cisco Umbrella servers, if compiled
+	    with <command>configure --enable-umbrella</command>. Cisco
 	    Umbrella identifies customer queries via a custom
 	    "Protoss" EDNS option that is included with each query.
 	  </para>
@@ -10993,7 +10997,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    The <command>send-umbrella</command> option determines
 	    whether to treat the server as a Cisco Umbrella server.
 	    If set to <literal>yes</literal>, and if Cisco Umbrella
-	    has been configured via the
+	    has been enabled and compile time and configured via the
 	    <command>umbrella-virtual-appliance</command>,
 	    <command>umbrella-organization</command>, or
 	    <command>umbrella-device</command> options,
