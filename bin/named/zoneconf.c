@@ -1727,8 +1727,25 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "mirror", &obj);
 		if (obj != NULL) {
+			isc_boolean_t mirror = cfg_obj_asboolean(obj);
 			dns_zone_setoption(mayberaw, DNS_ZONEOPT_MIRROR,
-					   cfg_obj_asboolean(obj));
+					   mirror);
+			if (mirror) {
+				/*
+				 * Disable outgoing zone transfers unless they
+				 * are explicitly enabled by zone
+				 * configuration.
+				 */
+				obj = NULL;
+				(void)cfg_map_get(zoptions, "allow-transfer",
+						  &obj);
+				if (obj == NULL) {
+					dns_acl_t *none;
+					RETERR(dns_acl_none(mctx, &none));
+					dns_zone_setxfracl(zone, none);
+					dns_acl_detach(&none);
+				}
+			}
 		}
 
 		obj = NULL;
