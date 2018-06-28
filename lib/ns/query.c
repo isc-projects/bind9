@@ -1006,31 +1006,32 @@ query_findversion(ns_client_t *client, dns_db_t *db) {
 	return (dbversion);
 }
 
+/*%
+ * Check if 'client' is allowed to query the cache of its associated view.
+ * Unless 'options' has DNS_GETDB_NOLOG set, log the result of cache ACL
+ * evaluation using the appropriate level, along with 'name' and 'qtype'.
+ *
+ * The cache ACL is only evaluated once for each client and then the result is
+ * cached: if NS_QUERYATTR_CACHEACLOKVALID is set in client->query.attributes,
+ * cache ACL evaluation has already been performed.  The evaluation result is
+ * also stored in client->query.attributes: if NS_QUERYATTR_CACHEACLOK is set,
+ * the client is allowed cache access.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS	'client' is allowed to access cache
+ *\li	#DNS_R_REFUSED	'client' is not allowed to access cache
+ */
 static isc_result_t
 query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 		       dns_rdatatype_t qtype, unsigned int options)
 {
-	isc_boolean_t check_acl;
 	isc_result_t result;
 
-	if ((client->query.attributes & NS_QUERYATTR_CACHEACLOKVALID) != 0) {
+	if ((client->query.attributes & NS_QUERYATTR_CACHEACLOKVALID) == 0) {
 		/*
-		 * We've evaluated the view's cacheacl already.  If
-		 * NS_QUERYATTR_CACHEACLOK is set, then the client is
-		 * allowed to make queries, otherwise the query should
-		 * be refused.
+		 * The view's cache ACL has not yet been evaluated.  Do it now.
 		 */
-		check_acl = ISC_FALSE;
-		if ((client->query.attributes & NS_QUERYATTR_CACHEACLOK) == 0)
-			return (DNS_R_REFUSED);
-	} else {
-		/*
-		 * We haven't evaluated the view's queryacl yet.
-		 */
-		check_acl = ISC_TRUE;
-	}
-
-	if (check_acl) {
 		isc_boolean_t log = ISC_TF((options & DNS_GETDB_NOLOG) == 0);
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
 
@@ -1040,23 +1041,26 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * We were allowed by the "allow-query-cache" ACL.
-			 * Remember this so we don't have to check again.
 			 */
-			client->query.attributes |=
-				NS_QUERYATTR_CACHEACLOK;
+			client->query.attributes |= NS_QUERYATTR_CACHEACLOK;
 			if (log && isc_log_wouldlog(ns_lctx,
-						     ISC_LOG_DEBUG(3)))
+						    ISC_LOG_DEBUG(3)))
 			{
 				ns_client_aclmsg("query (cache)", name, qtype,
-						 client->view->rdclass,
-						 msg, sizeof(msg));
-				ns_client_log(client,
-					      DNS_LOGCATEGORY_SECURITY,
+						 client->view->rdclass, msg,
+						 sizeof(msg));
+				ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 					      NS_LOGMODULE_QUERY,
-					      ISC_LOG_DEBUG(3),
-					      "%s approved", msg);
+					      ISC_LOG_DEBUG(3), "%s approved",
+					      msg);
 			}
 		} else if (log) {
+			/*
+			 * We were denied by the "allow-query-cache" ACL.
+			 * There is no need to clear NS_QUERYATTR_CACHEACLOK
+			 * since it is cleared by query_reset(), before query
+			 * processing starts.
+			 */
 			ns_client_aclmsg("query (cache)", name, qtype,
 					 client->view->rdclass, msg,
 					 sizeof(msg));
@@ -1064,18 +1068,16 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 				      NS_LOGMODULE_QUERY, ISC_LOG_INFO,
 				      "%s denied", msg);
 		}
+
 		/*
-		 * We've now evaluated the view's query ACL, and
-		 * the NS_QUERYATTR_CACHEACLOKVALID attribute is now valid.
+		 * Evaluation has been finished; make sure we will just consult
+		 * NS_QUERYATTR_CACHEACLOK for this client from now on.
 		 */
 		client->query.attributes |= NS_QUERYATTR_CACHEACLOKVALID;
-
-		if (result != ISC_R_SUCCESS) {
-			return (DNS_R_REFUSED);
-		}
 	}
 
-	return (ISC_R_SUCCESS);
+	return ((client->query.attributes & NS_QUERYATTR_CACHEACLOK) != 0 ?
+		ISC_R_SUCCESS : DNS_R_REFUSED);
 }
 
 static inline isc_result_t
