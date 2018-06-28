@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: journal.c,v 1.120 2011/12/22 07:32:41 each Exp $ */
-
 #include <config.h>
 
 #include <stdlib.h>
@@ -1012,7 +1010,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	dns_difftuple_t *t;
 	isc_buffer_t buffer;
 	void *mem = NULL;
-	unsigned int size;
+	isc_uint64_t size;
 	isc_result_t result;
 	isc_region_t used;
 
@@ -1040,6 +1038,14 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 		size += t->name.length; /* XXX should have access macro? */
 		size += 10;
 		size += t->rdata.length;
+	}
+
+	if (size >= ISC_INT32_MAX) {
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "dns_journal_writediff: %s: journal entry "
+			      "too big to be stored: %llu bytes", j->filename,
+			      size);
+		return (ISC_R_NOSPACE);
 	}
 
 	mem = isc_mem_get(j->mctx, size);
@@ -1095,6 +1101,7 @@ isc_result_t
 dns_journal_commit(dns_journal_t *j) {
 	isc_result_t result;
 	journal_rawheader_t rawheader;
+	isc_uint64_t total;
 
 	REQUIRE(DNS_JOURNAL_VALID(j));
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION ||
@@ -1142,6 +1149,18 @@ dns_journal_commit(dns_journal_t *j) {
 					 j->x.pos[0].serial);
 			return (ISC_R_UNEXPECTED);
 		}
+	}
+
+	/*
+	 * We currently don't support huge journal entries.
+	 */
+	total = j->x.pos[1].offset - j->x.pos[0].offset;
+	if (total >= ISC_INT32_MAX) {
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			     "transaction too big to be stored in journal: "
+			     "%llub (max is %llub)", total,
+			     (isc_uint64_t)ISC_INT32_MAX);
+		return (ISC_R_UNEXPECTED);
 	}
 
 	/*
@@ -1659,7 +1678,12 @@ read_one_rr(dns_journal_t *j) {
 	journal_xhdr_t xhdr;
 	journal_rrhdr_t rrhdr;
 
-	INSIST(j->offset <= j->it.epos.offset);
+	if (j->offset > j->it.epos.offset) {
+		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
+			      "%s: journal corrupt: possible integer overflow",
+			      j->filename);
+		return (ISC_R_UNEXPECTED);
+	}
 	if (j->offset == j->it.epos.offset)
 		return (ISC_R_NOMORE);
 	if (j->it.xpos == j->it.xsize) {

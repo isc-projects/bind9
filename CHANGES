@@ -1,3 +1,6 @@
+4984.	[bug]		Improve handling of very large incremental
+			zone transfers to prevent journal corruption. [GL #339]
+
 4983.	[cleanup]	Remove the deprecated flag from "answer-cookie";
 			it will be allowed to persist into 9.13. [GL #275].
 
