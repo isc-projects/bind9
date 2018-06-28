@@ -216,5 +216,38 @@ grep "query 'foo.example/A/IN'" ns1/named.run > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that non-recursive queries for names below mirror zone get responded from cache ($n)"
+ret=0
+# Issue a non-recursive query for an RRset which is expected to be in cache.
+$DIG $DIGOPTS @10.53.0.3 +norec foo.example. A > dig.out.ns3.test$n 2>&1 || ret=1
+# Check response code and flags in the answer.
+grep "NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
+# Ensure the response is not a delegation.
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
+grep "foo.example.*IN.*A.*127.0.0.1" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that delegations from cache which improve mirror zone delegations are properly handled ($n)"
+ret=0
+# First, issue a recursive query in order to cache an RRset which is not within
+# the mirror zone's bailiwick.
+$DIG $DIGOPTS @10.53.0.3 sub.example. NS > dig.out.ns3.test$n.1 2>&1 || ret=1
+# Ensure the child-side NS RRset is returned.
+grep "NOERROR" dig.out.ns3.test$n.1 > /dev/null || ret=1
+grep "ANSWER: 1" dig.out.ns3.test$n.1 > /dev/null || ret=1
+grep "sub.example.*IN.*NS" dig.out.ns3.test$n.1 > /dev/null || ret=1
+# Issue a non-recursive query for something below the cached zone cut.
+$DIG $DIGOPTS @10.53.0.3 +norec foo.sub.example. A > dig.out.ns3.test$n.2 2>&1 || ret=1
+# Ensure the cached NS RRset is returned in a delegation.
+grep "NOERROR" dig.out.ns3.test$n.2 > /dev/null || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n.2 > /dev/null || ret=1
+grep "sub.example.*IN.*NS" dig.out.ns3.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

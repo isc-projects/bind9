@@ -8,8 +8,6 @@
 ; information regarding copyright ownership.
 
 $TTL 3600
-@		SOA	ns2 hostmaster 1 3600 1200 604800 3600
-@		NS	ns2
-ns2		A	10.53.0.2
+@		SOA	ns2.example. hostmaster 1 3600 1200 604800 3600
+@		NS	ns2.example.
 foo		A	127.0.0.1
-sub		NS	ns2
