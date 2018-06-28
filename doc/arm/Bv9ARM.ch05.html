@@ -2373,6 +2373,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];
 	<span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> |
 	    * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>answer-cookie</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>attach-cache</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>auth-nxdomain</strong></span> <em class="replaceable"><code>boolean</code></em>; // default changed
 	<span class="command"><strong>auto-dnssec</strong></span> ( allow | maintain | off );
@@ -2592,6 +2593,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    <span class="command"><strong>dnsrps-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ dnsrps-options { <em class="replaceable"><code>unspecified-text</code></em>
 	    } ];
 	<span class="command"><strong>root-delegation-only</strong></span> [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];
+	<span class="command"><strong>root-key-sentinel</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>rrset-order</strong></span> { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name
 	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };
 	<span class="command"><strong>secroots-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
@@ -4344,19 +4346,16 @@ options {
                   options level, not per-view.
                 </p>
                 <p>
-                  <span class="command"><strong>answer-cookie</strong></span> is only available
-                  as a temporary measure, for use when
-                  <span class="command"><strong>named</strong></span> shares an IP address
-                  with other servers that do not yet support DNS
-                  COOKIE.  A mismatch between servers on the same
-                  address is not expected to cause operational
-                  problems, but the option to disable COOKIE responses
-                  so that all servers have the same behavior is
-                  provided out of an abundance of caution. DNS COOKIE
-                  is an important security mechanism and should not be
-                  disabled unless absolutely necessary.  The
-                  <span class="command"><strong>answer-cookie</strong></span> option is obsolete
-                  as of BIND 9.13.
+                  <span class="command"><strong>answer-cookie no</strong></span> is only intended as a
+                  temporary measure, for use when <span class="command"><strong>named</strong></span>
+                  shares an IP address with other servers that do not yet
+                  support DNS COOKIE.  A mismatch between servers on the
+                  same address is not expected to cause operational
+                  problems, but the option to disable COOKIE responses so
+                  that all servers have the same behavior is provided out
+                  of an abundance of caution. DNS COOKIE is an important
+                  security mechanism, and should not be disabled unless
+                  absolutely necessary.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>send-cookie</strong></span></span></dt>
@@ -14701,6 +14700,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.12.2rc1</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.12.2rc2</p>
 </body>
 </html>

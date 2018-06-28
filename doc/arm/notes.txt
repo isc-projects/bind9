@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.12.2rc1
+Release Notes for BIND Version 9.12.2rc2
 
 Introduction
 
@@ -46,22 +46,19 @@ New Features
     named.conf. [GL #37]
 
   * Add the ability to not return a DNS COOKIE option when one is present
-    in the request. To prevent a cookie being returned add 'answer-cookie
-    no;' to named.conf. [GL #173]
+    in the request. To prevent a cookie being returned add answer-cookie
+    no; to named.conf. [GL #173]
 
-    answer-cookie is only available as a temporary measure, for use when
+    answer-cookie no is only intended as a temporary measure, for use when
     named shares an IP address with other servers that do not yet support
     DNS COOKIE. A mismatch between servers on the same address is not
     expected to cause operational problems, but the option to disable
     COOKIE responses so that all servers have the same behavior is
     provided out of an abundance of caution. DNS COOKIE is an important
-    security mechanism and should not be disabled unless absolutely
-    necessary. The answer-cookie option is obsolete as of BIND 9.13.
+    security mechanism, and should not be disabled unless absolutely
+    necessary.
 
 Feature Changes
-
-  * named will now log a warning if the old root DNSSEC key is explicitly
-    configured and has not been updated. [RT #43670]
 
   * BIND now can be compiled against libidn2 library to add IDNA2008
     support. Previously BIND only supported IDNA2003 using (now obsolete)
@@ -72,22 +69,9 @@ Feature Changes
 
 Bug Fixes
 
-  * When answering authoritative queries, named does not return the target
-    of a cross-zone CNAME between two locally served zones; this prevents
-    accidental cache poisoning. This same restriction was incorrectly
-    applied to recursive queries as well; this has been fixed. [RT #47078]
-
-  * named could crash when acting as a slave for a catalog zone if zone
-    contained a master definition without an IP address. [RT #45999]
-
-  * named could crash due to a race condition when rolling dnstap log
-    files. [RT #46942]
-
-  * rndc reload could cause named to leak memory if it was invoked before
-    the zone loading actions from a previous rndc reload command were
-    completed. [RT #47076]
-
-  * named could crash when rolling a dnstap log file. [RT #46942]
+  * named now rejects excessively large incremental (IXFR) zone transfers
+    in order to prevent possible corruption of journal files which could
+    cause named to abort when loading zones. [GL #339]
 
 License
 
