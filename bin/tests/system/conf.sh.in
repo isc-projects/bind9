@@ -101,7 +101,7 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	serve-stale sfcache smartsign sortlist \
 	spf staticstub statistics statschannel stub synthfromdnssec \
 	tcp tools tsig tsiggss \
-	umbrella unknown upforwd verify views wildcard \
+	@UMBRELLA@ unknown upforwd verify views wildcard \
 	xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
@@ -264,13 +264,13 @@ keyfile_to_keys_section() {
     shift
     echo "$section_name {"
     for keyname in $*; do
-        awk '!/^; /{
-            printf "\t\""$1"\" "
-            printf "'"$key_prefix"'"
-            printf $4 " " $5 " " $6 " \""
-            for (i=7; i<=NF; i++) printf $i
-            printf "\";\n"
-        }' $keyname.key
+	awk '!/^; /{
+	    printf "\t\""$1"\" "
+	    printf "'"$key_prefix"'"
+	    printf $4 " " $5 " " $6 " \""
+	    for (i=7; i<=NF; i++) printf $i
+	    printf "\";\n"
+	}' $keyname.key
     done
     echo "};"
 }
@@ -375,15 +375,15 @@ nextpartpeek() {
 
 copy_setports() {
     sed -e "s/@PORT@/${PORT}/g" \
-        -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
-        -e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
-        -e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
-        -e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
-        -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
-        -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
-        -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
-        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
+	-e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
+	-e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
+	-e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
+	-e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
+	-e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
+	-e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
+	-e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
+	-e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
+	-e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
 }
 
 #

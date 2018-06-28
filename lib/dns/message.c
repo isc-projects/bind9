@@ -3485,6 +3485,7 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 	return (result);
 }
 
+#ifdef ENABLE_UMBRELLA
 static isc_result_t
 render_protoss(isc_buffer_t *pbuf, isc_buffer_t *target) {
 	isc_result_t result;
@@ -3619,6 +3620,7 @@ render_protoss(isc_buffer_t *pbuf, isc_buffer_t *target) {
  cleanup:
 	return (result);
 }
+#endif /* ENABLE_UMBRELLA */
 
 static isc_result_t
 dns_message_pseudosectiontoyaml(dns_message_t *msg,
@@ -3768,6 +3770,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 					ADD_STRING(target, "\n");
 					continue;
 				}
+#ifdef ENABLE_UMBRELLA
 			} else if (optcode == DNS_OPT_PROTOSS) {
 				isc_buffer_t pbuf;
 				INDENT(style);
@@ -3785,6 +3788,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 					continue;
 				}
 				ADD_STRING(target, "\n");
+#endif /* ENABLE_UMBRELLA */
 			} else {
 				INDENT(style);
 				ADD_STRING(target, "OPT: ");
@@ -4054,6 +4058,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					ADD_STRING(target, "\n");
 					continue;
 				}
+#ifdef ENABLE_UMBRELLA
 			} else if (optcode == DNS_OPT_PROTOSS) {
 				isc_buffer_t pbuf;
 				INDENT(style);
@@ -4070,6 +4075,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					ADD_STRING(target, "\n");
 					continue;
 				}
+#endif /* ENABLE_UMBRELLA */
 			} else {
 				ADD_STRING(target, "; OPT=");
 				snprintf(buf, sizeof(buf), "%u", optcode);

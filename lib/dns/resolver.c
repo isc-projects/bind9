@@ -2387,6 +2387,10 @@ resquery_send(resquery_t *query) {
 	isc_buffer_t zb;
 #endif /* HAVE_DNSTAP */
 
+#ifndef ENABLE_UMBRELLA
+	UNUSED(rd);
+#endif /* !ENABLE_UMBRELLA */
+
 	fctx = query->fctx;
 	QTRACE("send");
 
@@ -2568,9 +2572,12 @@ resquery_send(resquery_t *query) {
 			isc_boolean_t reqnsid = res->view->requestnsid;
 			isc_boolean_t sendcookie = res->view->sendcookie;
 			isc_boolean_t tcpkeepalive = ISC_FALSE;
-			isc_boolean_t sendprotoss = ISC_FALSE;
-			unsigned char cookie[64], posbuf[64];
+			unsigned char cookie[64];
 			isc_uint16_t padding = 0;
+#ifdef ENABLE_UMBRELLA
+			unsigned char posbuf[64];
+			isc_boolean_t sendprotoss = ISC_FALSE;
+#endif /* ENABLE_UMBRELLA */
 
 			if ((flags & FCTX_ADDRINFO_EDNSOK) != 0 &&
 			    (query->options & DNS_FETCHOPT_EDNS512) == 0) {
@@ -2664,6 +2671,7 @@ resquery_send(resquery_t *query) {
 			}
 
 
+#ifdef ENABLE_UMBRELLA
 			/*
 			 * Conditions are right to send a PROTOSS option,
 			 * but only if it's explicitly allowed in a server
@@ -2742,6 +2750,7 @@ resquery_send(resquery_t *query) {
 					(isc_uint8_t *) posbuf;
 				ednsopt++;
 			}
+#endif /* ENABLE_UMBRELLA */
 
 			/* Add TCP keepalive option if appropriate */
 			if ((peer != NULL) && tcp)

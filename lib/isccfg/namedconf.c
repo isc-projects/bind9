@@ -1950,9 +1950,18 @@ view_clauses[] = {
 	{ "nxdomain-redirect", &cfg_type_astring, 0 },
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "prefetch", &cfg_type_prefetch, 0 },
+#ifdef ENABLE_UMBRELLA
 	{ "umbrella-virtual-appliance", &cfg_type_uint32, 0 },
 	{ "umbrella-organization", &cfg_type_uint32, 0 },
 	{ "umbrella-device", &cfg_type_hexuint64, 0 },
+#else
+	{ "umbrella-virtual-appliance", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "umbrella-organization", &cfg_type_uint32,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+	{ "umbrella-device", &cfg_type_hexuint64,
+	  CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif /* ENABLE_UMBRELLA */
 	{ "provide-ixfr", &cfg_type_boolean, 0 },
 	{ "qname-minimization", &cfg_type_qminmethod, 0 },
 	/*
@@ -2447,7 +2456,11 @@ server_clauses[] = {
 	{ "request-nsid", &cfg_type_boolean, 0 },
 	{ "request-sit", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "send-cookie", &cfg_type_boolean, 0 },
+#ifdef ENABLE_UMBRELLA
 	{ "send-umbrella", &cfg_type_boolean, 0 },
+#else
+	{ "send-umbrella", &cfg_type_boolean, CFG_CLAUSEFLAG_NOTCONFIGURED },
+#endif /* ENABLE_UMBRELLA */
 	{ "support-ixfr", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "tcp-keepalive", &cfg_type_boolean, 0 },
 	{ "tcp-only", &cfg_type_boolean, 0 },

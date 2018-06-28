@@ -136,6 +136,13 @@
 	  loss of security.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Add support for forwarding queries to Cisco
+	  Umbrella servers, when built with
+	  <command>configure --enable-umbrella</command>. [GL #229]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
