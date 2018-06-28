@@ -1,3 +1,5 @@
+	--- 9.12.2rc2 released ---
+
 4984.	[bug]		Improve handling of very large incremental
 			zone transfers to prevent journal corruption. [GL #339]
 

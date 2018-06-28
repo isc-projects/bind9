@@ -31,6 +31,7 @@
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	<command>alt-transfer-source-v6</command> ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
 	    * ) ] [ dscp <replaceable>integer</replaceable> ];
+	<command>answer-cookie</command> <replaceable>boolean</replaceable>;
 	<command>attach-cache</command> <replaceable>string</replaceable>;
 	<command>auth-nxdomain</command> <replaceable>boolean</replaceable>; // default changed
 	<command>auto-dnssec</command> ( allow | maintain | off );
@@ -250,6 +251,7 @@
 	    <command>dnsrps-enable</command> <replaceable>boolean</replaceable> ] [ dnsrps-options { <replaceable>unspecified-text</replaceable>
 	    } ];
 	<command>root-delegation-only</command> [ exclude { <replaceable>quoted_string</replaceable>; ... } ];
+	<command>root-key-sentinel</command> <replaceable>boolean</replaceable>;
 	<command>rrset-order</command> { [ class <replaceable>string</replaceable> ] [ type <replaceable>string</replaceable> ] [ name
 	    <replaceable>quoted_string</replaceable> ] <replaceable>string</replaceable> <replaceable>string</replaceable>; ... };
 	<command>secroots-file</command> <replaceable>quoted_string</replaceable>;

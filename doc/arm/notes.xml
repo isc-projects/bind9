@@ -119,13 +119,6 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  <command>named</command> will now log a warning if the old
-	  root DNSSEC key is explicitly configured and has not been updated.
-	  [RT #43670]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
 	  BIND now can be compiled against libidn2 library to add
 	  IDNA2008 support.  Previously BIND only supported IDNA2003
 	  using (now obsolete) idnkit-1 library.
@@ -149,42 +142,6 @@
 	  incremental (IXFR) zone transfers in order to prevent
 	  possible corruption of journal files which could cause
 	  <command>named</command> to abort when loading zones. [GL #339]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When answering authoritative queries, <command>named</command>
-	  does not return the target of a cross-zone CNAME between two
-	  locally served zones; this prevents accidental cache poisoning.
-	  This same restriction was incorrectly applied to recursive
-	  queries as well; this has been fixed. [RT #47078]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could crash when acting as a slave for a
-	  catalog zone if zone contained a master definition without an IP
-	  address. [RT #45999]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could crash due to a race condition when
-	  rolling <command>dnstap</command> log files. [RT #46942]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>rndc reload</command> could cause <command>named</command>
-	  to leak memory if it was invoked before the zone loading actions
-	  from a previous <command>rndc reload</command> command were
-	  completed. [RT #47076]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could crash when rolling a
-	  <command>dnstap</command> log file. [RT #46942]
 	</para>
       </listitem>
     </itemizedlist>
