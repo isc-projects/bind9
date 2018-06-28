@@ -107,11 +107,15 @@ nextpartreset ns3/named.run
 ret=0
 wait_for_transfer verify-ixfr
 nextpart ns3/named.run > /dev/null
+# Make a copy of the original zone file for reuse in journal tests below.
+cp ns2/verify-ixfr.db.signed ns3/verify-journal.db.mirror
 # Wait 1 second so that the zone file timestamp changes and the subsequent
 # invocation of "rndc reload" triggers a zone reload.
 sleep 1
 cat ns2/verify-ixfr.db.bad.signed > ns2/verify-ixfr.db.signed
 reload_zone verify-ixfr ${UPDATED_SERIAL_BAD}
+# Make a copy of the bad zone journal for reuse in journal tests below.
+cp ns2/verify-ixfr.db.signed.jnl ns3/verify-journal.db.bad.mirror.jnl
 # Trigger IXFR.
 $RNDCCMD 10.53.0.3 refresh verify-ixfr > /dev/null 2>&1
 wait_for_transfer verify-ixfr
@@ -136,6 +140,8 @@ nextpart ns3/named.run > /dev/null
 sleep 1
 cat ns2/verify-ixfr.db.good.signed > ns2/verify-ixfr.db.signed
 reload_zone verify-ixfr ${UPDATED_SERIAL_GOOD}
+# Make a copy of the good zone journal for reuse in journal tests below.
+cp ns2/verify-ixfr.db.signed.jnl ns3/verify-journal.db.good.mirror.jnl
 # Trigger IXFR.
 $RNDCCMD 10.53.0.3 refresh verify-ixfr > /dev/null 2>&1
 wait_for_transfer verify-ixfr
@@ -165,6 +171,35 @@ nextpart ns3/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
 wait_for_load verify-load ${UPDATED_SERIAL_GOOD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-load SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that loading a journal for an incorrectly signed mirror zone fails ($n)"
+ret=0
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns3
+cp ns3/verify-journal.db.mirror ns3/verify-ixfr.db.mirror
+cp ns3/verify-journal.db.bad.mirror.jnl ns3/verify-ixfr.db.mirror.jnl
+nextpart ns3/named.run > /dev/null
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+wait_for_load verify-ixfr ${UPDATED_SERIAL_BAD} ns3/named.run
+$DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+nextpart ns3/named.run | grep "No correct RSASHA256 signature for verify-ixfr SOA" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that loading a journal for a correctly signed mirror zone succeeds ($n)"
+ret=0
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns3
+cp ns3/verify-journal.db.mirror ns3/verify-ixfr.db.mirror
+cp ns3/verify-journal.db.good.mirror.jnl ns3/verify-ixfr.db.mirror.jnl
+nextpart ns3/named.run > /dev/null
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+wait_for_load verify-ixfr ${UPDATED_SERIAL_GOOD} ns3/named.run
+$DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
