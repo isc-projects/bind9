@@ -5223,6 +5223,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	} else
 		dns_view_setrootdelonly(view, false);
 
+	obj = NULL;
+	result = named_config_get(maps, "srv-full-additional", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->srv_full_additional = cfg_obj_asboolean(obj);
+
 	/*
 	 * Load DynDB modules.
 	 */
