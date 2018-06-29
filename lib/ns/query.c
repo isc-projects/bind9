@@ -595,6 +595,12 @@ ns_query_cancel(ns_client_t *client) {
 
 		client->query.fetch = NULL;
 	}
+	for (size_t i = 0; i < ARRAYSIZE(client->query.addfetchs); i++) {
+		if (client->query.addfetchs[i] != NULL) {
+			dns_resolver_cancelfetch(client->query.addfetchs[i]);
+			client->query.addfetchs[i] = NULL;
+		}
+	}
 	UNLOCK(&client->query.fetchlock);
 }
 
