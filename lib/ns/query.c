@@ -161,6 +161,7 @@ do { \
 /*% Does the rdataset 'r' contains a stale answer? */
 #define STALE(r)		(((r)->attributes & \
 				  DNS_RDATASETATTR_STALE) != 0)
+#define ARRAYSIZE(x)	(sizeof(x) / sizeof((x)[0]))
 
 #ifdef WANT_QUERYTRACE
 static inline void
@@ -452,6 +453,10 @@ query_done(query_ctx_t *qctx);
 
 static void
 prefetch_done(isc_task_t *task, isc_event_t *event);
+
+static void
+free_devent(ns_client_t *client, isc_event_t **eventp,
+	    dns_fetchevent_t **deventp);
 
 /*%
  * Increment query statistics counters.
@@ -939,6 +944,9 @@ ns_query_init(ns_client_t *client) {
 		return (result);
 	client->query.fetch = NULL;
 	client->query.prefetch = NULL;
+	for (size_t i = 0; i < ARRAYSIZE(client->query.addfetchs); i++) {
+		client->query.addfetchs[i] = NULL;
+	}
 	client->query.authdb = NULL;
 	client->query.authzone = NULL;
 	client->query.authdbset = false;
@@ -1629,31 +1637,79 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 	return (false);
 }
 
+static void
+additional_done(isc_task_t *task, isc_event_t *event) {
+	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
+	ns_client_t *client;
+	bool match = false;
+
+	UNUSED(task);
+
+	REQUIRE(event->ev_type == DNS_EVENT_FETCHDONE);
+	client = devent->ev_arg;
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(task == client->task);
+
+	LOCK(&client->query.fetchlock);
+	for (size_t i = 0; i < ARRAYSIZE(client->query.addfetchs); i++) {
+		if (devent->fetch == client->query.addfetchs[i]) {
+			client->query.addfetchs[i] = NULL;
+			match = true;
+		}
+	}
+	UNLOCK(&client->query.fetchlock);
+	INSIST(match);
+
+	free_devent(client, &event, &devent);
+	ns_client_detach(&client);
+}
+
 /*
  * Fetch missing additional RRsets.
  */
 static void
 query_fetch_additional(ns_client_t *client, const dns_name_t *name,
-                       dns_rdatatype_t qtype)
+		       dns_rdatatype_t qtype)
 {
 	ns_client_t *dummy = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdataset_t *sigrdataset = NULL;
 	isc_sockaddr_t *peeraddr;
 	isc_result_t result;
+	isc_boolean_t prefetch = ISC_FALSE;
+	dns_fetch_t **fetchp = NULL;
+	isc_taskaction_t action = NULL;
+	size_t i;
 
-	if (!RECURSIONOK(client) || !client->view->srv_full_additional)
+	if (!RECURSIONOK(client))
 		return;
+
+	/*
+	 * If we are not doing full additional the prefetch one of
+	 * the missing additional records.
+	 */
+	if (client->view->srv_full_additional) {
+		for (i = 0; i < ARRAYSIZE(client->query.addfetchs); i++) {
+			if (client->query.addfetchs[i] == NULL) {
+				fetchp = &client->query.addfetchs[i];
+				break;
+			}
+		}
+		if (fetchp == NULL)
+			return;
+		action = additional_done;
+	} else {
+		if (client->query.prefetch != NULL) {
+			return;
+		}
+		prefetch = ISC_TRUE;
+		fetchp = &client->query.prefetch;
+		action = prefetch_done;
+	}
 
 char namebuf[DNS_NAME_FORMATSIZE];
 dns_name_format(name, namebuf, sizeof(namebuf));
 fprintf(stderr, "query_fetch_additional: %s/%u\n", namebuf, qtype);
-
-	/*
-	 * XXXMPA Use prefetch mechanism to start.
-	 */
-	if (client->query.prefetch != NULL)
-		return;
 
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
@@ -1682,9 +1738,8 @@ fprintf(stderr, "query_fetch_additional: %s/%u\n", namebuf, qtype);
 						  client->message->id,
 						  client->query.fetchoptions,
 						  0, NULL, client->task,
-						  prefetch_done, client,
-						  rdataset, sigrdataset,
-						  &client->query.prefetch);
+						  action, client, rdataset,
+						  sigrdataset, fetchp);
 		if (result != ISC_R_SUCCESS) {
 			query_putrdataset(client, &rdataset);
 			query_putrdataset(client, &sigrdataset);
@@ -2013,7 +2068,7 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 				    dns_rdataset_isassociated(sigrdataset))
 					dns_rdataset_disassociate(sigrdataset);
 			} else if (!query_isduplicate(client, fname,
-					            dns_rdatatype_a, &mname)) {
+						    dns_rdatatype_a, &mname)) {
 				if (mname != fname) {
 					if (mname != NULL) {
 						query_releasename(client,

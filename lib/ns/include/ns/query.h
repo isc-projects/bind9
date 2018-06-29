@@ -66,6 +66,7 @@ struct ns_query {
 	isc_mutex_t			fetchlock;
 	dns_fetch_t *			fetch;
 	dns_fetch_t *			prefetch;
+	dns_fetch_t *			addfetchs[16];
 	dns_rpz_st_t *			rpz_st;
 	isc_bufferlist_t		namebufs;
 	ISC_LIST(ns_dbversion_t)	activeversions;
