@@ -459,6 +459,9 @@ static void
 free_devent(ns_client_t *client, isc_event_t **eventp,
 	    dns_fetchevent_t **deventp);
 
+static isc_result_t
+query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype);
+
 /*%
  * Increment query statistics counters.
  */
@@ -501,6 +504,15 @@ inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 static void
 query_send(ns_client_t *client) {
 	isc_statscounter_t counter;
+
+	/*
+	 * If we have a outstanding additional data fetch just return.
+	 */
+	for (size_t i = 0; i < ARRAYSIZE(client->query.addfetchs); i++) {
+		if (client->query.addfetchs[i]) {
+			return;
+		}
+	}
 
 	if ((client->message->flags & DNS_MESSAGEFLAG_AA) == 0)
 		inc_stats(client, ns_statscounter_nonauthans);
@@ -1621,7 +1633,7 @@ static void
 additional_done(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent = (dns_fetchevent_t *)event;
 	ns_client_t *client;
-	isc_boolean_t match = ISC_FALSE;
+	isc_boolean_t match = ISC_FALSE, done = ISC_TRUE;
 
 	UNUSED(task);
 
@@ -1630,15 +1642,29 @@ additional_done(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(task == client->task);
 
+	/*
+	 * Add new fetches before remove this fetch.
+	 */
+	if (devent->result == ISC_R_SUCCESS || devent->result == DNS_R_CNAME) {
+		query_addadditional(client,
+				    dns_fixedname_name(&devent->foundname),
+				    devent->qtype);
+	}
+
 	LOCK(&client->query.fetchlock);
 	for (size_t i = 0; i < ARRAYSIZE(client->query.addfetchs); i++) {
 		if (devent->fetch == client->query.addfetchs[i]) {
 			client->query.addfetchs[i] = NULL;
 			match = ISC_TRUE;
+		} else if (client->query.addfetchs[i] != NULL) {
+			done = ISC_FALSE;
 		}
 	}
 	UNLOCK(&client->query.fetchlock);
 	INSIST(match);
+
+	if (done)
+		query_send(client);
 
 	free_devent(client, &event, &devent);
 	ns_client_detach(&client);
@@ -1961,7 +1987,7 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	 */
 	mname = NULL;
 	if (dns_rdataset_isassociated(rdataset) &&
-	    !query_isduplicate(client, fname, type, &mname)) {
+	    !query_isduplicate(client, fname, rdataset->type, &mname)) {
 		if (mname != NULL) {
 			INSIST(mname != fname);
 			query_releasename(client, &fname);
