@@ -1711,7 +1711,6 @@ query_fetch_additional(ns_client_t *client, const dns_name_t *name,
 	dns_rdataset_t *sigrdataset = NULL;
 	isc_sockaddr_t *peeraddr;
 	isc_result_t result;
-	isc_boolean_t prefetch = ISC_FALSE;
 	dns_fetch_t **fetchp = NULL;
 	isc_taskaction_t action = NULL;
 	size_t i;
@@ -1737,7 +1736,6 @@ query_fetch_additional(ns_client_t *client, const dns_name_t *name,
 		if (client->query.prefetch != NULL) {
 			return;
 		}
-		prefetch = ISC_TRUE;
 		fetchp = &client->query.prefetch;
 		action = prefetch_done;
 	}
