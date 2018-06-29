@@ -217,6 +217,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->nta_recheck = 0;
 	view->prefetch_eligible = 0;
 	view->prefetch_trigger = 0;
+	view->prefetch_additional = false;
 	view->dstport = 53;
 	view->preferred_glue = 0;
 	view->flush = false;

@@ -1732,12 +1732,14 @@ query_fetch_additional(ns_client_t *client, const dns_name_t *name,
 		if (fetchp == NULL)
 			return;
 		action = additional_done;
-	} else {
+	} else if (client->view->prefetch_additional) {
 		if (client->query.prefetch != NULL) {
 			return;
 		}
 		fetchp = &client->query.prefetch;
 		action = prefetch_done;
+	} else {
+		return;
 	}
 
 	if (client->recursionquota == NULL) {

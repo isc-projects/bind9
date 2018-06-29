@@ -5115,6 +5115,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	obj = NULL;
+	result = named_config_get(maps, "prefetch-additional", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->prefetch_additional = cfg_obj_asboolean(obj);
+
+	obj = NULL;
 	result = named_config_get(optionmaps, "dnssec-lookaside", &obj);
 	if (result == ISC_R_SUCCESS) {
 		/* "auto" is deprecated, log a warning if seen */
