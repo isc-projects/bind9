@@ -1690,9 +1690,8 @@ additional_done(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 	UNLOCK(&client->query.fetchlock);
-	INSIST(match);
 
-	if (done)
+	if (match && done)
 		query_send(client);
 
 	free_devent(client, &event, &devent);
