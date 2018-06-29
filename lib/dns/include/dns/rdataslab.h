@@ -82,22 +82,6 @@ dns_rdataslab_fromrdataset(dns_rdataset_t *rdataset, isc_mem_t *mctx,
  *\li	XXX others
  */
 
-void
-dns_rdataslab_tordataset(unsigned char *slab, unsigned int reservelen,
-			 dns_rdataclass_t rdclass, dns_rdatatype_t rdtype,
-			 dns_rdatatype_t covers, dns_ttl_t ttl,
-			 dns_rdataset_t *rdataset);
-/*%<
- * Construct an rdataset from a slab.
- *
- * Requires:
- *\li	'slab' points to a slab.
- *\li	'rdataset' is disassociated.
- *
- * Ensures:
- *\li	'rdataset' is associated and points to a valid rdataest.
- */
-
 unsigned int
 dns_rdataslab_size(unsigned char *slab, unsigned int reservelen);
 /*%<
