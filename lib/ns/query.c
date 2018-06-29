@@ -154,6 +154,9 @@ do { \
 #define REDIRECT(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_REDIRECT) != 0)
 
+#define FULLADDITIONAL(c)	(((c)->query.attributes & \
+				  NS_QUERYATTR_FULLADDITIONAL) != 0)
+
 /*% Does the rdataset 'r' have an attached 'No QNAME Proof'? */
 #define NOQNAME(r)		(((r)->attributes & \
 				  DNS_RDATASETATTR_NOQNAME) != 0)
@@ -1720,7 +1723,7 @@ query_fetch_additional(ns_client_t *client, const dns_name_t *name,
 	 * If we are not doing full additional the prefetch one of
 	 * the missing additional records.
 	 */
-	if (client->view->srv_full_additional) {
+	if (FULLADDITIONAL(client)) {
 		for (i = 0; i < ARRAYSIZE(client->query.addfetchs); i++) {
 			if (client->query.addfetchs[i] == NULL) {
 				fetchp = &client->query.addfetchs[i];
@@ -1738,10 +1741,6 @@ query_fetch_additional(ns_client_t *client, const dns_name_t *name,
 		fetchp = &client->query.prefetch;
 		action = prefetch_done;
 	}
-
-char namebuf[DNS_NAME_FORMATSIZE];
-dns_name_format(name, namebuf, sizeof(namebuf));
-fprintf(stderr, "query_fetch_additional: %s/%u\n", namebuf, qtype);
 
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
@@ -11364,6 +11363,10 @@ ns_query_start(ns_client_t *client) {
 	if (client->ednsversion >= 0 && client->udpsize <= 512U && !TCP(client))
 		client->query.attributes |= (NS_QUERYATTR_NOAUTHORITY |
 					     NS_QUERYATTR_NOADDITIONAL);
+
+	if (qtype == dns_rdatatype_srv && client->view->srv_full_additional) {
+		client->query.attributes |= NS_QUERYATTR_FULLADDITIONAL;
+	}
 
 	/*
 	 * If the client has requested that DNSSEC checking be disabled,
