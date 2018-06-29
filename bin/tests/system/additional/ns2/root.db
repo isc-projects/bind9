@@ -19,4 +19,5 @@ nid.example. NS ns1.
 srv.example. NS ns1.
 direct.example.tld. A 1.2.3.4
 target.example.tld. A 1.2.3.4
+target.example.tld. AAAA ::1.2.3.4
 cname.example.tld. CNAME target.example.tld.
