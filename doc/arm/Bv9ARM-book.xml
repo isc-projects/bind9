@@ -6053,6 +6053,20 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>prefetch-additional</command></term>
+	      <listitem>
+		<para>
+		  Prefetch additional data if it was not available
+		  for adding to a response when constucting the response.
+		  The default is <userinput>yes</userinput>.
+		</para>
+		<para>
+		  Currently only one prefetch is made per query.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>recursion</command></term>
 	      <listitem>
 		<para>
@@ -6156,6 +6170,17 @@ options {
 		  do not send a correct COOKIE option may be limited
 		  to receiving smaller responses via the
 		  <command>nocookie-udp-size</command> option.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>srv-full-additional</command></term>
+	      <listitem>
+		<para>
+		  Lookup missing additional data before returning if
+		  the query type is SRV.
+		  The default is <userinput>yes</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
