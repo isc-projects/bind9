@@ -116,6 +116,7 @@ struct ns_query {
 #define NS_QUERYATTR_DNS64EXCLUDE	0x8000
 #define NS_QUERYATTR_RRL_CHECKED	0x10000
 #define NS_QUERYATTR_REDIRECT		0x20000
+#define NS_QUERYATTR_FULLADDITIONAL	0x40000
 
 /* query context structure */
 
