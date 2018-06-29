@@ -5091,6 +5091,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	obj = NULL;
+	result = named_config_get(maps, "prefetch-additional", &obj);
+	INSIST(result == ISC_R_SUCCESS);
+	view->prefetch_additional = cfg_obj_asboolean(obj);
+
+	obj = NULL;
 	result = named_config_get(maps, "dnssec-enable", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->enablednssec = cfg_obj_asboolean(obj);

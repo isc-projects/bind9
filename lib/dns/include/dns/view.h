@@ -160,6 +160,7 @@ struct dns_view {
 	char				*nta_file;
 	dns_ttl_t			prefetch_trigger;
 	dns_ttl_t			prefetch_eligible;
+	bool				prefetch_additional;
 	in_port_t			dstport;
 	dns_aclenv_t			aclenv;
 	dns_rdatatype_t			preferred_glue;
