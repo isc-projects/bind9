@@ -1,3 +1,6 @@
+4986.	[func]		Linux capabilities now require libcap library.
+			[GL #321]
+
 4985.	[func]		Add a new slave zone option, "mirror", to enable
 			serving a non-authoritative copy of a zone that
 			is subject to DNSSEC validation before being

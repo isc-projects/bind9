@@ -59,16 +59,16 @@ static int singletonfd = -1;
 #endif
 
 /*
- * If there's no <linux/capability.h>, we don't care about <sys/prctl.h>
+ * If there's no <sys/capability.h>, we don't care about <sys/prctl.h>
  */
-#ifndef HAVE_LINUX_CAPABILITY_H
+#ifndef HAVE_SYS_CAPABILITY_H
 #undef HAVE_SYS_PRCTL_H
 #endif
 
 /*
  * Linux defines:
  *	(T) HAVE_LINUXTHREADS
- *	(C) HAVE_SYS_CAPABILITY_H (or HAVE_LINUX_CAPABILITY_H)
+ *	(C) HAVE_SYS_CAPABILITY_H
  *	(P) HAVE_SYS_PRCTL_H
  * The possible cases are:
  *	none:	setuid() normally
@@ -110,89 +110,33 @@ static struct passwd *runas_pw = NULL;
 static isc_boolean_t done_setuid = ISC_FALSE;
 static int dfd[2] = { -1, -1 };
 
-#ifdef HAVE_LINUX_CAPABILITY_H
+#ifdef HAVE_SYS_CAPABILITY_H
 
 static isc_boolean_t non_root = ISC_FALSE;
 static isc_boolean_t non_root_caps = ISC_FALSE;
 
-#ifdef HAVE_SYS_CAPABILITY_H
 #include <sys/capability.h>
-#else
-#ifdef HAVE_LINUX_TYPES_H
-#include <linux/types.h>
-#endif
-/*%
- * We define _LINUX_FS_H to prevent it from being included.  We don't need
- * anything from it, and the files it includes cause warnings with 2.2
- * kernels, and compilation failures (due to conflicts between <linux/string.h>
- * and <string.h>) on 2.3 kernels.
- */
-#define _LINUX_FS_H
-#include <linux/capability.h>
-#include <syscall.h>
-#ifndef SYS_capset
-#ifndef __NR_capset
-#include <asm/unistd.h> /* Slackware 4.0 needs this. */
-#endif /* __NR_capset */
-#define SYS_capset __NR_capset
-#endif /* SYS_capset */
-#endif /* HAVE_SYS_CAPABILITY_H */
 
 #ifdef HAVE_SYS_PRCTL_H
 #include <sys/prctl.h>		/* Required for prctl(). */
-
-/*
- * If the value of PR_SET_KEEPCAPS is not in <sys/prctl.h>, define it
- * here.  This allows setuid() to work on systems running a new enough
- * kernel but with /usr/include/linux pointing to "standard" kernel
- * headers.
- */
-#ifndef PR_SET_KEEPCAPS
-#define PR_SET_KEEPCAPS 8
-#endif
-
 #endif /* HAVE_SYS_PRCTL_H */
-
-#ifdef HAVE_LIBCAP
-#define SETCAPS_FUNC "cap_set_proc "
-#else
-typedef unsigned int cap_t;
-#define SETCAPS_FUNC "syscall(capset) "
-#endif /* HAVE_LIBCAP */
 
 static void
 linux_setcaps(cap_t caps) {
-#ifndef HAVE_LIBCAP
-	struct __user_cap_header_struct caphead;
-	struct __user_cap_data_struct cap;
-#endif
 	char strbuf[ISC_STRERRORSIZE];
 
-	if ((getuid() != 0 && !non_root_caps) || non_root)
+	if ((getuid() != 0 && !non_root_caps) || non_root) {
 		return;
-#ifndef HAVE_LIBCAP
-	memset(&caphead, 0, sizeof(caphead));
-	caphead.version = _LINUX_CAPABILITY_VERSION;
-	caphead.pid = 0;
-	memset(&cap, 0, sizeof(cap));
-	cap.effective = caps;
-	cap.permitted = caps;
-	cap.inheritable = 0;
-#endif
-#ifdef HAVE_LIBCAP
+	}
 	if (cap_set_proc(caps) < 0) {
-#else
-	if (syscall(SYS_capset, &caphead, &cap) < 0) {
-#endif
 		isc__strerror(errno, strbuf, sizeof(strbuf));
-		named_main_earlyfatal(SETCAPS_FUNC "failed: %s:"
+		named_main_earlyfatal("cap_set_proc() failed: %s:"
 				      " please ensure that the capset kernel"
 				      " module is loaded.  see insmod(8)",
 				      strbuf);
 	}
 }
 
-#ifdef HAVE_LIBCAP
 #define SET_CAP(flag) \
 	do { \
 		cap_flag_value_t curval; \
@@ -230,20 +174,14 @@ linux_setcaps(cap_t caps) {
 		cap_free(caps); \
 		cap_free(curcaps); \
 	} while (0)
-#else
-#define SET_CAP(flag) do { caps |= (1 << (flag)); } while (0)
-#define INIT_CAP do { caps = 0; } while (0)
-#endif /* HAVE_LIBCAP */
 
 static void
 linux_initialprivs(void) {
 	cap_t caps;
-#ifdef HAVE_LIBCAP
 	cap_t curcaps;
 	cap_value_t capval;
 	char strbuf[ISC_STRERRORSIZE];
 	int err;
-#endif
 
 	/*%
 	 * We don't need most privileges, so we drop them right away.
@@ -300,20 +238,16 @@ linux_initialprivs(void) {
 
 	linux_setcaps(caps);
 
-#ifdef HAVE_LIBCAP
 	FREE_CAP;
-#endif
 }
 
 static void
 linux_minprivs(void) {
 	cap_t caps;
-#ifdef HAVE_LIBCAP
 	cap_t curcaps;
 	cap_value_t capval;
 	char strbuf[ISC_STRERRORSIZE];
 	int err;
-#endif
 
 	INIT_CAP;
 	/*%
@@ -337,9 +271,7 @@ linux_minprivs(void) {
 
 	linux_setcaps(caps);
 
-#ifdef HAVE_LIBCAP
 	FREE_CAP;
-#endif
 }
 
 #ifdef HAVE_SYS_PRCTL_H
@@ -364,7 +296,7 @@ linux_keepcaps(void) {
 }
 #endif
 
-#endif	/* HAVE_LINUX_CAPABILITY_H */
+#endif	/* HAVE_SYS_CAPABILITY_H */
 
 
 static void
@@ -381,7 +313,7 @@ setup_syslog(const char *progname) {
 void
 named_os_init(const char *progname) {
 	setup_syslog(progname);
-#ifdef HAVE_LINUX_CAPABILITY_H
+#ifdef HAVE_SYS_CAPABILITY_H
 	linux_initialprivs();
 #endif
 #ifdef HAVE_LINUXTHREADS
@@ -567,11 +499,12 @@ named_os_changeuser(void) {
 	done_setuid = ISC_TRUE;
 
 #ifdef HAVE_LINUXTHREADS
-#ifdef HAVE_LINUX_CAPABILITY_H
-	if (!non_root_caps)
+#ifdef HAVE_SYS_CAPABILITY_H
+	if (!non_root_caps) {
 		named_main_earlyfatal("-u with Linux threads not supported: "
 				      "requires kernel support for "
 				      "prctl(PR_SET_KEEPCAPS)");
+	}
 #else
 	named_main_earlyfatal("-u with Linux threads not supported: "
 			      "no capabilities support or capabilities "
@@ -600,7 +533,7 @@ named_os_changeuser(void) {
 					strbuf);
 	}
 #endif
-#if defined(HAVE_LINUX_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
+#if defined(HAVE_SYS_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
 	linux_minprivs();
 #endif
 }
@@ -640,7 +573,7 @@ named_os_minprivs(void) {
 	named_os_changeuser(); /* Call setuid() before threads are started */
 #endif
 
-#if defined(HAVE_LINUX_CAPABILITY_H) && defined(HAVE_LINUXTHREADS)
+#if defined(HAVE_SYS_CAPABILITY_H) && defined(HAVE_LINUXTHREADS)
 	linux_minprivs();
 #endif
 }
