@@ -257,24 +257,24 @@ fromstruct_tlsa(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_tlsa(ARGS_TOSTRUCT) {
-	dns_rdata_txt_t *txt = target;
+	dns_rdata_tlsa_t *tlsa = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_tlsa);
 	REQUIRE(target != NULL);
 
-	txt->common.rdclass = rdata->rdclass;
-	txt->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&txt->common, link);
+	tlsa->common.rdclass = rdata->rdclass;
+	tlsa->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&tlsa->common, link);
 
 	return (generic_tostruct_tlsa(rdata, target, mctx));
 }
 
 static inline void
 freestruct_tlsa(ARGS_FREESTRUCT) {
-	dns_rdata_txt_t *txt = source;
+	dns_rdata_tlsa_t *tlsa = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(txt->common.rdtype == dns_rdatatype_tlsa);
+	REQUIRE(tlsa->common.rdtype == dns_rdatatype_tlsa);
 
 	generic_freestruct_tlsa(source);
 }
