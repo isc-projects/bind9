@@ -79,24 +79,24 @@ fromstruct_smimea(ARGS_FROMSTRUCT) {
 
 static inline isc_result_t
 tostruct_smimea(ARGS_TOSTRUCT) {
-	dns_rdata_txt_t *txt = target;
+	dns_rdata_smimea_t *smimea = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_smimea);
 	REQUIRE(target != NULL);
 
-	txt->common.rdclass = rdata->rdclass;
-	txt->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&txt->common, link);
+	smimea->common.rdclass = rdata->rdclass;
+	smimea->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&smimea->common, link);
 
 	return (generic_tostruct_tlsa(rdata, target, mctx));
 }
 
 static inline void
 freestruct_smimea(ARGS_FREESTRUCT) {
-	dns_rdata_txt_t *txt = source;
+	dns_rdata_smimea_t *smimea = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(txt->common.rdtype == dns_rdatatype_smimea);
+	REQUIRE(smimea->common.rdtype == dns_rdatatype_smimea);
 
 	generic_freestruct_tlsa(source);
 }
