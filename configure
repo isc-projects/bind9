@@ -935,6 +935,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1099,6 +1100,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1351,6 +1353,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1488,7 +1499,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1641,6 +1652,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -19798,8 +19810,6 @@ done
 esac
 
 LIBCAP_LIBS=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable Linux capabilities" >&5
-$as_echo_n "checking whether to enable Linux capabilities... " >&6; }
 # Check whether --enable-linux-caps was given.
 if test "${enable_linux_caps+set}" = set; then :
   enableval=$enable_linux_caps;
@@ -19813,10 +19823,9 @@ esac
 fi
 
 
-if test "$enable_linux_caps" = "yes"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-       for ac_header in sys/capability.h
+case "$enable_linux_caps" in
+    yes|auto)
+	for ac_header in sys/capability.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "sys/capability.h" "ac_cv_header_sys_capability_h" "$ac_includes_default"
 if test "x$ac_cv_header_sys_capability_h" = xyes; then :
@@ -19825,13 +19834,13 @@ if test "x$ac_cv_header_sys_capability_h" = xyes; then :
 _ACEOF
 
 else
-  as_fn_error $? "sys/capability.h header is required for Linux capabilities support" "$LINENO" 5
+  enable_linux_caps=no
 fi
 
 done
 
-       save_LIBS="$LIBS"
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cap_set_proc" >&5
+	save_LIBS="$LIBS"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cap_set_proc" >&5
 $as_echo_n "checking for library containing cap_set_proc... " >&6; }
 if ${ac_cv_search_cap_set_proc+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -19886,14 +19895,16 @@ if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
   LIBCAP_LIBS="$ac_cv_search_cap_set_proc"
 else
-  as_fn_error $? "libcap is required for Linux capabilities support" "$LINENO" 5
+  enable_linux_caps=no
 fi
 
-       LIBS="$save_LIBS"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
+	LIBS="$save_LIBS"
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable Linux capabilities" >&5
+$as_echo_n "checking whether to enable Linux capabilities... " >&6; }
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $enable_linux_caps" >&5
+$as_echo "$enable_linux_caps" >&6; }
+	;;
+esac
 
 
 for ac_header in sys/prctl.h
@@ -26652,6 +26663,12 @@ if test "${enable_full_report+set}" = set; then :
   enableval=$enable_full_report;
 fi
 
+case $host in #(
+  *-linux*) :
+    islinux=yes ;; #(
+  *) :
+    islinux=no ;;
+esac
 
 report() {
     echo "==============================================================================="
@@ -26677,6 +26694,8 @@ report() {
     if test "yes" = "$enable_full_report"; then
 	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
 	    echo "    IPv6 support (--enable-ipv6)"
+        test "no" = "$enable_linux_caps" || \
+	    echo "    Linux capability support (--enable-linux-caps)"
 	test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11" || \
 		echo "    OpenSSL cryptography/DNSSEC (--with-openssl)"
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
@@ -26754,6 +26773,9 @@ report() {
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
 
     test "no" = "$want_autoval" && echo "    DNSSEC validation requires configuration (--disable-auto-validation)"
+
+    test "yes" = "$islinux" -a "no" = "$enable_linux_caps" && \
+	echo "    Linux capability support (--enable-linux-caps)"
 
     if test "X$CRYPTO" = "X" -o "yes" = "$want_native_pkcs11"
     then
