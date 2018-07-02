@@ -210,10 +210,6 @@ generic_tostruct_tlsa(ARGS_TOSTRUCT) {
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length != 0);
 
-	tlsa->common.rdclass = rdata->rdclass;
-	tlsa->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&tlsa->common, link);
-
 	dns_rdata_toregion(rdata, &region);
 
 	tlsa->usage = uint8_fromregion(&region);
