@@ -19825,8 +19825,7 @@ if test "x$ac_cv_header_sys_capability_h" = xyes; then :
 _ACEOF
 
 else
-  as_fn_error $? "sys/capability.h header is required for Linux capabilities support.
-Either install libcap or use --disable-linux-caps." "$LINENO" 5
+  as_fn_error $? "sys/capability.h header is required for Linux capabilities support. Either install libcap or use --disable-linux-caps." "$LINENO" 5
 fi
 
 done
@@ -19887,8 +19886,7 @@ if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
   LIBCAP_LIBS="$ac_cv_search_cap_set_proc"
 else
-  as_fn_error $? "libcap is required for Linux capabilities support.
-Either install libcap or use --disable-linux-caps." "$LINENO" 5
+  as_fn_error $? "libcap is required for Linux capabilities support. Either install libcap or use --disable-linux-caps." "$LINENO" 5
 fi
 
        LIBS="$save_LIBS"
