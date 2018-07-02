@@ -119,6 +119,17 @@
 	  setting might change to <command>strict</command> in the future.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  When built on Linux, BIND now requires the <command>libcap</command>
+	  library to set process privileges.  The adds a new compile-time
+	  dependency, which can be met on most Linux platforms by installing the
+	  <command>libcap-dev</command> or <command>libcap-devel</command>
+	  package. BIND can also be built without capability support by using
+	  <command>configure --disable-linux-caps</command>, at the cost of some
+	  loss of security.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
