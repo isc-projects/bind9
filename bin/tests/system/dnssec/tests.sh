@@ -3069,8 +3069,8 @@ if [ -x "$PYTHON" ]; then
     # convert expiry date to a comma-separated list of integers python can
     # use as input to date(). strip leading 0s in months and days so
     # python3 will recognize them as integers.
-    soaexpire=`$DIG +dnssec +short -p ${PORT} @10.53.0.3 soa siginterval.example | awk '$1 ~ /SOA/ { print $5 }' | sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/' | sed 's/ 0/ /'`
-    dnskeyexpire=`$DIG +dnssec +short -p ${PORT} @10.53.0.3 dnskey siginterval.example | awk '$1 ~ /DNSKEY/ { print $5; exit 0 }' | sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/' | sed 's/ 0/ /'`
+    soaexpire=`$DIG +dnssec +short -p ${PORT} @10.53.0.3 soa siginterval.example | awk '$1 ~ /SOA/ { print $5 }' | sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/' | sed 's/ 0/ /g'`
+    dnskeyexpire=`$DIG +dnssec +short -p ${PORT} @10.53.0.3 dnskey siginterval.example | awk '$1 ~ /DNSKEY/ { print $5; exit 0 }' | sed 's/\(....\)\(..\)\(..\).*/\1, \2, \3/' | sed 's/ 0/ /g'`
     $PYTHON > python.out.$n <<EOF
 from datetime import date;
 ke=date($dnskeyexpire)
