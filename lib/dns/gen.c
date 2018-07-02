@@ -889,15 +889,16 @@ main(int argc, char **argv) {
 		fprintf(stdout, "#endif /* DNS_ENUMCLASS_H */\n");
 	} else if (structs) {
 		if (prefix != NULL) {
-			if ((fd = fopen(prefix,"r")) != NULL) {
+			if ((fd = fopen(prefix, "r")) != NULL) {
 				while (fgets(buf, sizeof(buf), fd) != NULL)
 					fputs(buf, stdout);
 				fclose(fd);
 			}
 		}
 		for (tt = types; tt != NULL; tt = tt->next) {
-			snprintf(buf, sizeof(buf), "%s/%s_%d.h",
+			n = snprintf(buf, sizeof(buf), "%s/%s_%d.h",
 				tt->dirname, tt->typename, tt->type);
+			INSIST(n > 0 && (unsigned)n < sizeof(buf));
 			if ((fd = fopen(buf,"r")) != NULL) {
 				while (fgets(buf, sizeof(buf), fd) != NULL)
 					fputs(buf, stdout);
