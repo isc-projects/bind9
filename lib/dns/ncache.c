@@ -634,7 +634,7 @@ dns_ncache_getsigrdataset(dns_rdataset_t *ncacherdataset, dns_name_t *name,
 		dns_rdata_reset(&rdata);
 		dns_rdata_fromregion(&rdata, rdataset->rdclass,
 				     dns_rdatatype_rrsig, &sigregion);
-		(void)dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		DNS_RDATA_TOSTRUCT(&rdata, &rrsig, NULL);
 		if (rrsig.covered == covers) {
 			isc_buffer_remainingregion(&source, &remaining);
 			break;
@@ -725,7 +725,7 @@ dns_ncache_current(dns_rdataset_t *ncacherdataset, dns_name_t *found,
 		dns_rdata_reset(&rdata);
 		dns_rdata_fromregion(&rdata, rdataset->rdclass,
 				     rdataset->type, &sigregion);
-		(void)dns_rdata_tostruct(&rdata, &rrsig, NULL);
+		DNS_RDATA_TOSTRUCT(&rdata, &rrsig, NULL);
 		rdataset->covers = rrsig.covered;
 	} else
 		rdataset->covers = 0;

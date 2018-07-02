@@ -207,7 +207,7 @@ setresign(dns_rdataset_t *modified) {
 	result = dns_rdataset_first(modified);
 	INSIST(result == ISC_R_SUCCESS);
 	dns_rdataset_current(modified, &rdata);
-	(void)dns_rdata_tostruct(&rdata, &sig, NULL);
+	DNS_RDATA_TOSTRUCT(&rdata, &sig, NULL);
 	if ((rdata.flags & DNS_RDATA_OFFLINE) != 0)
 		when = 0;
 	else
@@ -217,7 +217,7 @@ setresign(dns_rdataset_t *modified) {
 	result = dns_rdataset_next(modified);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdataset_current(modified, &rdata);
-		(void)dns_rdata_tostruct(&rdata, &sig, NULL);
+		DNS_RDATA_TOSTRUCT(&rdata, &sig, NULL);
 		if ((rdata.flags & DNS_RDATA_OFFLINE) != 0) {
 			goto next_rr;
 		}

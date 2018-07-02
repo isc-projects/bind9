@@ -241,8 +241,7 @@ dlv_algorithm_supported(dns_validator_t *val) {
 	     result = dns_rdataset_next(&val->dlv)) {
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(&val->dlv, &rdata);
-		result = dns_rdata_tostruct(&rdata, &dlv, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&rdata, &dlv, NULL);
 
 		if (!dns_resolver_algorithm_supported(val->view->resolver,
 						      val->event->name,
@@ -341,7 +340,7 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 		{
 			dns_rdata_reset(&rdata);
 			dns_rdataset_current(&set, &rdata);
-			(void)dns_rdata_tostruct(&rdata, &nsec3, NULL);
+			DNS_RDATA_TOSTRUCT(&rdata, &nsec3, NULL);
 			if (nsec3.hash != 1)
 				continue;
 			length = isc_iterated_hash(hash, nsec3.hash,
@@ -1030,9 +1029,7 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 				goto notfound;
 			}
 		}
-		result = dns_rdata_tostruct(&rdata, &nsec, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto notfound;
+		DNS_RDATA_TOSTRUCT(&rdata, &nsec, NULL);
 		if (dns_name_compare(foundname, &nsec.next) >= 0) {
 			/* End of zone chain. */
 			if (!dns_name_issubdomain(name, &nsec.next)) {
@@ -1447,8 +1444,7 @@ isselfsigned(dns_validator_t *val) {
 	{
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(rdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &key, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&rdata, &key, NULL);
 		keytag = compute_keytag(&rdata, &key);
 		for (result = dns_rdataset_first(sigrdataset);
 		     result == ISC_R_SUCCESS;
@@ -1456,8 +1452,7 @@ isselfsigned(dns_validator_t *val) {
 		{
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(sigrdataset, &sigrdata);
-			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			DNS_RDATA_TOSTRUCT(&sigrdata, &sig, NULL);
 
 			if (sig.algorithm != key.algorithm ||
 			    sig.keyid != keytag ||
@@ -1593,9 +1588,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
 			if (val->siginfo == NULL)
 				return (ISC_R_NOMEMORY);
 		}
-		result = dns_rdata_tostruct(&rdata, val->siginfo, NULL);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		DNS_RDATA_TOSTRUCT(&rdata, val->siginfo, NULL);
 
 		/*
 		 * At this point we could check that the signature algorithm
@@ -1726,8 +1719,7 @@ checkkey(dns_validator_t *val, dns_rdata_t *keyrdata, isc_uint16_t keyid,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 
 		dns_rdataset_current(val->event->sigrdataset, &rdata);
-		result = dns_rdata_tostruct(&rdata, &sig, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&rdata, &sig, NULL);
 		if (keyid != sig.keyid || algorithm != sig.algorithm)
 			continue;
 		if (dstkey == NULL) {
@@ -1771,8 +1763,7 @@ keyfromds(dns_validator_t *val, dns_rdataset_t *rdataset, dns_rdata_t *dsrdata,
 
 		dns_rdata_reset(keyrdata);
 		dns_rdataset_current(rdataset, keyrdata);
-		result = dns_rdata_tostruct(keyrdata, &key, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(keyrdata, &key, NULL);
 		keytag = compute_keytag(keyrdata, &key);
 		if (keyid != keytag || algorithm != key.algorithm)
 			continue;
@@ -1826,8 +1817,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 	     result = dns_rdataset_next(&val->dlv)) {
 		dns_rdata_reset(&dlvrdata);
 		dns_rdataset_current(&val->dlv, &dlvrdata);
-		result = dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&dlvrdata, &dlv, NULL);
 
 		if (!dns_resolver_ds_digest_supported(val->view->resolver,
 						      val->event->name,
@@ -1855,8 +1845,7 @@ dlv_validatezonekey(dns_validator_t *val) {
 	{
 		dns_rdata_reset(&dlvrdata);
 		dns_rdataset_current(&val->dlv, &dlvrdata);
-		result = dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&dlvrdata, &dlv, NULL);
 
 		if (digest_types[dlv.digest_type] == 0)
 			continue;
@@ -1985,8 +1974,7 @@ validatezonekey(dns_validator_t *val) {
 			dns_rdata_reset(&sigrdata);
 			dns_rdataset_current(val->event->sigrdataset,
 					     &sigrdata);
-			result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
-			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			DNS_RDATA_TOSTRUCT(&sigrdata, &sig, NULL);
 
 			if (!dns_name_equal(val->event->name, &sig.signer))
 				continue;
@@ -2185,8 +2173,7 @@ validatezonekey(dns_validator_t *val) {
 	     result = dns_rdataset_next(val->dsset)) {
 		dns_rdata_reset(&dsrdata);
 		dns_rdataset_current(val->dsset, &dsrdata);
-		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&dsrdata, &ds, NULL);
 
 		if (!dns_resolver_ds_digest_supported(val->view->resolver,
 						      val->event->name,
@@ -2214,8 +2201,7 @@ validatezonekey(dns_validator_t *val) {
 	{
 		dns_rdata_reset(&dsrdata);
 		dns_rdataset_current(val->dsset, &dsrdata);
-		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&dsrdata, &ds, NULL);
 
 		if (digest_types[ds.digest_type] == 0)
 			continue;
@@ -2890,8 +2876,7 @@ check_ds(dns_validator_t *val, dns_name_t *name, dns_rdataset_t *rdataset) {
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(rdataset)) {
 		dns_rdataset_current(rdataset, &dsrdata);
-		result = dns_rdata_tostruct(&dsrdata, &ds, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		DNS_RDATA_TOSTRUCT(&dsrdata, &ds, NULL);
 
 		if (dns_resolver_ds_digest_supported(val->view->resolver,
 						     name, ds.digest_type) &&
