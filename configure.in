@@ -3585,11 +3585,13 @@ AS_IF([test "$enable_linux_caps" = "yes"],
       [AC_MSG_RESULT([yes])
        AC_CHECK_HEADERS([sys/capability.h],
 			[],
-			[AC_MSG_ERROR([sys/capability.h header is required for Linux capabilities support])])
+			[AC_MSG_ERROR([sys/capability.h header is required for Linux capabilities support.
+Either install libcap or use --disable-linux-caps.])])
        save_LIBS="$LIBS"
        AC_SEARCH_LIBS([cap_set_proc], [cap],
 		      [LIBCAP_LIBS="$ac_cv_search_cap_set_proc"],
-		      [AC_MSG_ERROR([libcap is required for Linux capabilities support])])
+		      [AC_MSG_ERROR([libcap is required for Linux capabilities support.
+Either install libcap or use --disable-linux-caps.])])
        LIBS="$save_LIBS"],
       [AC_MSG_RESULT([no])])
 AC_SUBST([LIBCAP_LIBS])

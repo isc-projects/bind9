@@ -1,4 +1,6 @@
-4986.	[func]		Linux capabilities now require libcap library.
+4986.	[func]		When built on Linux, BIND now requires the libcap library
+			to set process privileges, unless capability support is
+			explicitly overridden with "configure --disable-linux-caps".
 			[GL #321]
 
 4985.	[func]		Add a new slave zone option, "mirror", to enable
