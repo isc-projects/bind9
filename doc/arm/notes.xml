@@ -79,7 +79,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  A new slave zone option, <command>mirror<command>, enables
+	  A new slave zone option, <command>mirror</command>, enables
 	  serving a non-authoritative copy of a zone that is subject to
 	  DNSSEC validation before being used.  For now, this option is
 	  only meant to facilitate deployment of an RFC 7706-style local
