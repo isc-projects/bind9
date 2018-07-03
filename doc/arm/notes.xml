@@ -82,11 +82,12 @@
 	  A new secondary zone option, <command>mirror</command>,
 	  enables <command>named</command> to serve a transferred copy
 	  of a zone's contents without acting as an authority for the
-	  zone. DNS responses from mirror zones do not set the AA
-	  ("authoritative answer") bit, and are subject to DNSSEC
-	  validation. This is meant to facilitate deployment
-	  of a local copy of the root zone as described in RFC 7706.
-	  [GL #33]
+	  zone. A zone must be fully validated against an active trust
+	  anchor before it can be used as a mirror zone. DNS responses
+	  from mirror zones do not set the AA bit ("authoritative answer"),
+	  but do set the AD bit ("authenticated data").  This feature is
+	  meant to facilitate deployment of a local copy of the root zone,
+	  as described in RFC 7706. [GL #33]
 	</para>
       </listitem>
       <listitem>

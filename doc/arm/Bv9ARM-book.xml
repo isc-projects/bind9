@@ -12459,19 +12459,40 @@ example.com. NS ns2.example.net.
 		<term><command>mirror</command></term>
 		<listitem>
 		  <para>
-		    If set to <userinput>yes</userinput>, causes the
+		    If set to <userinput>yes</userinput>, this causes the
 		    zone to become a mirror zone.  A mirror zone is a
-		    <userinput>slave</userinput> zone whose every
-		    version is subject to DNSSEC validation before being
-		    used.  In order for zone validation to succeed, its
-		    KSK must be configured as a trust anchor.  Answers
-		    coming from a mirror zone look almost exactly like
-		    answers from a regular <userinput>slave</userinput>
-		    zone, with the notable exception of the AA bit not
-		    being set.  The default is <userinput>no</userinput>.
-		    This option is meant to be used for deploying an RFC
-		    7706-style local copy of the root zone, e.g. using a
-		    configuration like this:
+		    <userinput>secondary</userinput> zone whose data
+		    is subject to DNSSEC validation before being
+		    used in answers.  The default is
+		    <userinput>no</userinput>.
+		  </para>
+		  <para>
+		    A mirror zone's contents are validated during the
+		    transfer process.  If validation fails, a retransfer of
+		    the zone is scheduled; if the mirror zone had not
+		    previously been loaded or if the previous version has
+		    expired, traditional DNS recursion will be used to look
+		    up the answers instead.
+		  </para>
+		  <para>
+		    For validation to succeed, a key-signing key (KSK) for
+		    the zone must be configured as a trust anchor ij
+		    <filename>named.conf</filename>:
+		    that is, a key for the zone must either be specified in
+		    <command>managed-keys</command> or
+		    <command>trusted-keys</command>, or in the case of
+		    the root zone, <command>dnssec-validation</command>
+		    must be set to <userinput>auto</userinput>.
+		    Answers coming from a mirror zone look almost exactly like
+		    answers from a normal slave zone, with the notable
+		    exceptions that the AA bit ("authoritative answer") is
+		    not set, and the AD bit ("authenticated data") is.
+		  </para>
+		  <para>
+		    Though this option can be used for other zones, it
+		    is intended to be used to set up a fast local copy of
+		    the root zone, as described in RFC 7706.
+		    This can be done by using the following configuration:
 		  </para>
 <programlisting>zone "." {
 	type slave;
