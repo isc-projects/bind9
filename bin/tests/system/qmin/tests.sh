@@ -109,8 +109,8 @@ ADDR ns3.good.
 NS name.good.
 NS ns.name.good.
 NS longer.ns.name.good.
-A a.bit.longer.ns.name.good.
-AAAA a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
 NS zoop.boing.good.
