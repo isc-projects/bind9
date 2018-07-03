@@ -263,7 +263,7 @@ disclosed in CVE-2017-3145.
 
 #### BIND 9.11.4
 
-BIND 9.11.3 is a maintenance release, and addresses the security flaw
+BIND 9.11.4 is a maintenance release, and addresses the security flaw
 disclosed in CVE-2018-5738.
 
 ### <a name="build"/> Building BIND
