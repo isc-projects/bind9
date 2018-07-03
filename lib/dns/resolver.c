@@ -3049,6 +3049,10 @@ fctx_finddone(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	FCTXTRACE("finddone");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_CNAME,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+			      "%p FINDDONE", fctx);
+	
 
 	bucketnum = fctx->bucketnum;
 	LOCK(&res->buckets[bucketnum].lock);
@@ -3358,6 +3362,12 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	isc_boolean_t unshared;
 	isc_result_t result;
 
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_name_format(name, namebuf, sizeof(namebuf));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_CNAME,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+			      "%p FINDNAME %s", fctx, namebuf);
+
 	res = fctx->res;
 	unshared = ISC_TF((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
 	/*
@@ -3383,6 +3393,10 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 				    options, now, NULL,
 				    res->view->dstport,
 				    fctx->depth + 1, fctx->qc, &find);
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_CNAME,
+			      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+			      "%p FINDNAME %s res %s listempty %d wantevent %d", fctx, namebuf, isc_result_totext(result), ISC_LIST_EMPTY(find->list), (find->options & DNS_ADBFIND_WANTEVENT));
+
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
 			char namebuf[DNS_NAME_FORMATSIZE];
@@ -4006,7 +4020,7 @@ fctx_try(fetchctx_t *fctx, isc_boolean_t retrying, isc_boolean_t badcache) {
 		options &= ~DNS_FETCHOPT_QMINIMIZE;
 		fctx_increference(fctx);
 		task = res->buckets[bucketnum].task;
-		FCTXTRACE("CREATEFETCH for QMIN");
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER, DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR, "%p CREATEFETCH for QMIN", fctx);
 		result = dns_resolver_createfetch(fctx->res, &fctx->qminname,
 //						  fctx->qmintype, &fctx->domain,
 //						  &fctx->nameservers, NULL, NULL, 0,
@@ -4105,6 +4119,9 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 	FCTXTRACE("resume_qmin");
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+				      "%p QMIN resume", fctx);
 
 	if (fevent->node != NULL)
 		dns_db_detachnode(fevent->db, &fevent->node);
@@ -4155,6 +4172,16 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 					      dcname, 0, findoptions,
 					      ISC_TRUE, ISC_TRUE,
 					      &fctx->nameservers, NULL);
+	        char dbuf[DNS_NAME_FORMATSIZE];
+	        char dbuf2[DNS_NAME_FORMATSIZE];
+	        char nbuf[DNS_NAME_FORMATSIZE];
+	        dns_name_format(&fctx->name, nbuf, sizeof(dbuf));
+	        dns_name_format(fname, dbuf, sizeof(dbuf));
+	        dns_name_format(dcname, dbuf2, sizeof(dbuf));
+	        isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+                      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+                                      "%p QMIN resume findzonecut name %s fname %s dcname %s", fctx, nbuf, dbuf, dbuf2);
+
 		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, result, __LINE__);
 			return;
@@ -4797,6 +4824,15 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup_nameservers;
 			}
+		        char dbuf[DNS_NAME_FORMATSIZE];
+		        char dbuf2[DNS_NAME_FORMATSIZE];
+		        char nbuf[DNS_NAME_FORMATSIZE];
+		        dns_name_format(&fctx->name, nbuf, sizeof(dbuf));
+		        dns_name_format(fname, dbuf, sizeof(dbuf));
+		        dns_name_format(dcname, dbuf2, sizeof(dbuf));
+		        isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+	                      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+                                      "%p CREATE findzonecut name %s fname %s dcname %s", fctx, nbuf, dbuf, dbuf2);
 
 			result = dns_name_dup(fname, mctx, &fctx->domain);
 			if (result != ISC_R_SUCCESS) {
@@ -9213,7 +9249,15 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 			return;
 		}
-		char dbuf[DNS_NAME_FORMATSIZE];
+		        char dbuf[DNS_NAME_FORMATSIZE];
+		        char dbuf2[DNS_NAME_FORMATSIZE];
+		        char nbuf[DNS_NAME_FORMATSIZE];
+		        dns_name_format(&fctx->name, nbuf, sizeof(dbuf));
+		        dns_name_format(fname, dbuf, sizeof(dbuf));
+		        dns_name_format(dcname, dbuf2, sizeof(dbuf));
+		        isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+	                      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+                                      "%p NEXTSERVER findzonecut name %s fname %s dcname %s", fctx, nbuf, dbuf, dbuf2);
 		dns_name_format(fname, dbuf, sizeof(dbuf));
 		if (!dns_name_issubdomain(fname, &fctx->domain)) {
 			/*
@@ -10488,6 +10532,12 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	unsigned int spillat;
 	unsigned int spillatmin;
 	isc_boolean_t dodestroy = ISC_FALSE;
+        char buf[DNS_NAME_FORMATSIZE];
+
+	dns_name_format(name, buf, sizeof(buf));
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+		      "CREATEFETCH start %s", buf);
 
 	UNUSED(forwarders);
 
@@ -10572,6 +10622,10 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 		new_fctx = ISC_TRUE;
 	} else if (fctx->depth > depth)
 		fctx->depth = depth;
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+		      "%p CREATEFETCH %s new %d", fctx, buf, new_fctx);
 
 	result = fctx_join(fctx, task, client, id, action, arg,
 			   rdataset, sigrdataset, fetch);

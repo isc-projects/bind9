@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -451,15 +451,25 @@ do
   start_group "QNAME rewrites" test1
   nochange .				# 1 do not crash or rewrite root
   nxdomain a0-1.tld2			# 2
+  read
   nodata a3-1.tld2			# 3
+  read
   nodata a3-2.tld2			# 4 nodata at DNAME itself
+  read
   nochange sub.a3-2.tld2		# 5 miss where DNAME might work
+  read
   nxdomain a4-2.tld2			# 6 rewrite based on CNAME target
+  read
   nxdomain a4-2-cname.tld2		# 7
+  read
   nodata a4-3-cname.tld2		# 8
+  read
   addr 12.12.12.12  a4-1.sub1.tld2	# 9 A replacement
+  read
   addr 12.12.12.12  a4-1.sub2.tld2	# 10 A replacement with wildcard
+  read
   addr 12.12.12.12  nxc1.sub1.tld2	# 11 replace NXDOMAIN with CNAME
+  read
   addr 12.12.12.12  nxc2.sub1.tld2	# 12 replace NXDOMAIN with CNAME chain
   addr 127.4.4.1	  a4-4.tld2	# 13 prefer 1st conflicting QNAME zone
   nochange a6-1.tld2			# 14

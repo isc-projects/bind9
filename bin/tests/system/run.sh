@@ -168,7 +168,7 @@ if [ $? -ne 0 ]; then
 fi
 
 # Run the tests
-( cd $systest ; $SHELL tests.sh "$@" )
+( cd $systest ; $SHELL -x tests.sh "$@" )
 status=$?
 
 if $stopservers
