@@ -308,7 +308,6 @@ struct fetchctx {
 	isc_counter_t *			qc;
 	isc_boolean_t			minimized;
 	unsigned int			qmin_labels;
-	unsigned int			qmin_steps;
 	isc_boolean_t			ip6arpaskip;
 	dns_name_t			qminname;
 	dns_rdatatype_t			qmintype;
@@ -4144,12 +4143,6 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 			dns_rdataset_disassociate(&fctx->nameservers);
 		}
 		
-//		if (NXRRSET_RESULT(result)) {
-//			fctx->qmin_labels++;
-//		} else {
-//			fctx->qmin_labels = 1;
-//		}
-		
 		if (NXDOMAIN_RESULT(result)) {
 			// TODO relaxed
 			fctx_done(fctx, result, __LINE__);
@@ -4702,7 +4695,6 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->minimized = isc_boolean_false;
 	fctx->ip6arpaskip = isc_boolean_false;
 	fctx->qmin_labels = 1;
-	fctx->qmin_steps = 0;
 	fctx->qminfetch = NULL;
 	dns_rdataset_init(&fctx->qminrrset);
 	dns_name_init(&fctx->qmindcname, NULL);
@@ -4828,6 +4820,10 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 			if (result != ISC_R_SUCCESS) {
 				goto cleanup_domain;
 			}
+			/*
+			 * Disable query minimization
+			 */
+			options &= ~DNS_FETCHOPT_QMINIMIZE;
 		}
 	} else {
 		result = dns_name_dup(domain, mctx, &fctx->domain);
@@ -9264,19 +9260,6 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 }
 
 /*
- * rctx_followqminimization():
- *
- * We need to go one step deeper in minimization
- */
-
-static void
-rctx_followqminimization(respctx_t *rctx) {
-	rctx->fctx->qmin_labels++;
-	fctx_minimize_qname(rctx->fctx);
-	fctx_try(rctx->fctx, ISC_FALSE, ISC_FALSE);
-}
-
-/*
  * rctx_resend():
  *
  * Resend the query, probably with the options changed. Calls fctx_query(),
@@ -9414,8 +9397,6 @@ rctx_done(respctx_t *rctx, isc_result_t result) {
 		rctx_next(rctx);
 	} else if (result == DNS_R_CHASEDSSERVERS) {
 		rctx_chaseds(rctx, addrinfo, result);
-	} else if (result == DNS_R_MINIMIZING) {
-		rctx_followqminimization(rctx);
 	} else if (result == ISC_R_SUCCESS && !HAVE_ANSWER(fctx)) {
 		/*
 		 * All has gone well so far, but we are waiting for the
@@ -10415,12 +10396,21 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 	 * XXXWPK TODO we should update info to show that this query
 	 * is minimized
 	 */
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char qminnamebuf[DNS_NAME_FORMATSIZE];
+	char qmindcnamebuf[DNS_NAME_FORMATSIZE];
+
 	unsigned int dlabels, nlabels;
 
 	dlabels = dns_name_countlabels(&fctx->qmindcname);
 	nlabels = dns_name_countlabels(&fctx->name);
 	dns_name_free(&fctx->qminname, fctx->mctx);
 	dns_name_init(&fctx->qminname, NULL);
+	if (dlabels > fctx->qmin_labels) {
+		fctx->qmin_labels = dlabels;
+	} else {
+		fctx->qmin_labels++;
+	}
 	if (fctx->ip6arpaskip) {
 		/*
 		 * For ip6.arpa we want to skip some of the labels, with
@@ -10429,25 +10419,23 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		 *    7    11   15   17   19      35
 		 * We fix fctx->qmin_labels to point to the nearest boundary
 		 */
-		if (dlabels + fctx->qmin_labels < 7) {
-			fctx->qmin_labels = 7 - dlabels;
-		} else if (dlabels + fctx->qmin_labels < 11) {
-			fctx->qmin_labels = 11 - dlabels;
-		} else if (dlabels + fctx->qmin_labels < 15) {
-			fctx->qmin_labels = 15 - dlabels;
-		} else if (dlabels + fctx->qmin_labels < 17) {
-			fctx->qmin_labels = 17 - dlabels;
-		} else if (dlabels + fctx->qmin_labels < 19) {
-			fctx->qmin_labels = 19 - dlabels;
-		} else if (dlabels + fctx->qmin_labels > 19) {
-			fctx->qmin_labels = 35 - dlabels;
+		if (fctx->qmin_labels < 7) {
+			fctx->qmin_labels = 7;
+		} else if (fctx->qmin_labels < 11) {
+			fctx->qmin_labels = 11;
+		} else if (fctx->qmin_labels < 15) {
+			fctx->qmin_labels = 15;
+		} else if (fctx->qmin_labels < 17) {
+			fctx->qmin_labels = 17;
+		} else if (fctx->qmin_labels < 19) {
+			fctx->qmin_labels = 19;
+		} else if (fctx->qmin_labels > 19) {
+			fctx->qmin_labels = 35;
 		}
-	} else if (dlabels + fctx->qmin_labels > DNS_QMIN_MAXLABELS) {
-			fctx->qmin_labels = DNS_MAX_LABELS + 1;
-	} else if (fctx->qmin_labels > DNS_QMIN_MAX_NO_DELEGATION) {
+	} else if (fctx->qmin_labels > DNS_QMIN_MAXLABELS) {
 			fctx->qmin_labels = DNS_MAX_LABELS + 1;
 	}
-	if (dlabels + fctx->qmin_labels < nlabels) {
+	if (fctx->qmin_labels < nlabels) {
 		/*
 		 * We want to query for
 		 * [qmin_labels from fctx->name] + fctx->qmindcname
@@ -10455,19 +10443,26 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		dns_fixedname_t fname;
 		dns_fixedname_init(&fname);
 		dns_name_split(&fctx->name,
-			       dlabels + fctx->qmin_labels,
+			       fctx->qmin_labels,
 			       NULL, dns_fixedname_name(&fname));
 		dns_name_dup(dns_fixedname_name(&fname), fctx->mctx,
 			     &fctx->qminname);
 		fctx->qmintype = dns_rdatatype_ns;
 		fctx->minimized = isc_boolean_true;
-		fctx->qmin_steps++;
 	} else {
 		/* Minimization is done, we'll ask for whole qname */
 		fctx->qmintype = fctx->type;
 		dns_name_dup(&fctx->name, fctx->mctx, &fctx->qminname);
 		fctx->minimized = isc_boolean_false;
 	}
+
+	dns_name_format(&fctx->qminname, qminnamebuf, sizeof(qminnamebuf));
+	dns_name_format(&fctx->name, namebuf, sizeof(namebuf));
+	dns_name_format(&fctx->qmindcname, qmindcnamebuf, sizeof(qmindcnamebuf));
+
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+		      "%p MINIMIZE name %s qcname %s qdcname %s labels %d type %d", fctx, namebuf, qminnamebuf, qmindcnamebuf, fctx->qmin_labels, fctx->qmintype);
 }
 
 isc_result_t
@@ -10734,8 +10729,7 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
 			      "%06" ISC_PRINT_QUADFORMAT "u: %s/%s "
 			      "[domain:%s,referral:%u,restart:%u,qrysent:%u,"
 			      "timeout:%u,lame:%u,quota:%u,neterr:%u,"
-			      "badresp:%u,adberr:%u,findfail:%u,valfail:%u,"
-			      "qminsteps:%u]",
+			      "badresp:%u,adberr:%u,findfail:%u,valfail:%u]",
 			      __FILE__, fctx->exitline, fctx->info,
 			      fctx->duration / US_PER_SEC,
 			      fctx->duration % US_PER_SEC,
@@ -10745,8 +10739,7 @@ dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
 			      fctx->querysent, fctx->timeouts,
 			      fctx->lamecount, fctx->quotacount,
 			      fctx->neterr, fctx->badresp, fctx->adberr,
-			      fctx->findfail, fctx->valfail,
-			      fctx->qmin_steps);
+			      fctx->findfail, fctx->valfail);
 		fctx->logged = ISC_TRUE;
 	}
 
