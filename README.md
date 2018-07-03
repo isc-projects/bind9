@@ -126,6 +126,11 @@ include:
 * Support for IDNA2008 when linking with `libidn2`.
 * "Root key sentinel" support, enabling validating resolvers to indicate
   via a special query which trust anchors are configured for the root zone.
+* Secondary zones can now be configured as "mirror" zones; their contents
+  are transferred in as with traditional slave zones, but are subject to
+  DNSSEC validation and are not treated as authoritative data when
+  answering. This makes it easier to configure a local copy of the root
+  zone as described in RFC 7706.
 
 In addition, cryptographic support has been modernized. BIND now uses the
 best available pseudo-random number generator for the platform on which
@@ -135,11 +140,18 @@ longer supported.
 
 ### <a name="build"/> Building BIND
 
-BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
-support, and a 64-bit integer type. Successful builds have been observed on
-many versions of Linux and UNIX, including RedHat, Fedora, Debian, Ubuntu,
-SuSE, Slackware, FreeBSD, NetBSD, OpenBSD, Mac OS X, Solaris, HP-UX, AIX,
-SCO OpenServer, and OpenWRT. 
+Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
+basic POSIX support, and a 64-bit integer type. Successful builds have been
+observed on many versions of Linux and UNIX, including RedHat, Fedora,
+Debian, Ubuntu, SuSE, Slackware, FreeBSD, NetBSD, OpenBSD, Mac OS X,
+Solaris, HP-UX, AIX, SCO OpenServer, and OpenWRT.
+
+BIND requires a cryptography provider library such as OpenSSL or a
+hardware service module supporting PKCS#11. On Linux, BIND requires
+the `libcap` library to set process privileges, though this requirement
+can be overridden by disabling capability support at compile time.
+See [Compile-time options](#opts) below for details on other libraries
+that may be required to support optional features.
 
 BIND is also available for Windows 2008 and higher.  See
 `win32utils/readme1st.txt` for details on building for Windows
@@ -205,10 +217,10 @@ performance on smaller systems.
 For the server to support DNSSEC, you need to build it with crypto support.
 To use OpenSSL, you should have OpenSSL 1.0.2e or newer installed.  If the
 OpenSSL library is installed in a nonstandard location, specify the prefix
-using "--with-openssl=&lt;PREFIX&gt;" on the configure command line. To use a
+using `--with-openssl=<PREFIX>` on the configure command line. To use a
 PKCS#11 hardware service module for cryptographic operations, specify the
-path to the PKCS#11 provider library using "--with-pkcs11=&lt;PREFIX&gt;", and
-configure BIND with "--enable-native-pkcs11".
+path to the PKCS#11 provider library using `--with-pkcs11=<PREFIX>`, and
+configure BIND with `--enable-native-pkcs11`.
 
 To support the HTTP statistics channel, the server must be linked with at
 least one of the following: libxml2
@@ -223,18 +235,23 @@ specify the prefix using `--with-zlib=/prefix`.
 
 To support storing configuration data for runtime-added zones in an LMDB
 database, the server must be linked with liblmdb. If this is installed in a
-nonstandard location, specify the prefix using "with-lmdb=/prefix".
+nonstandard location, specify the prefix using `with-lmdb=/prefix`.
 
 To support GeoIP location-based ACLs, the server must be linked with
 libGeoIP. This is not turned on by default; BIND must be configured with
-"--with-geoip". If the library is installed in a nonstandard location, use
-specify the prefix using "--with-geoip=/prefix".
+`--with-geoip`. If the library is installed in a nonstandard location,
+specify the prefix using `--with-geoip=/prefix`.
 
 For DNSTAP packet logging, you must have installed libfstrm
 [https://github.com/farsightsec/fstrm](https://github.com/farsightsec/fstrm)
 and libprotobuf-c
 [https://developers.google.com/protocol-buffers](https://developers.google.com/protocol-buffers),
-and BIND must be configured with "--enable-dnstap".
+and BIND must be configured with `--enable-dnstap`.
+
+On Linux, process capabilities are managed in user space using
+the `libcap` library, which can be installed on most Linux systems via
+the `libcap-dev` or `libcap-devel` module. Process capability support can
+also be disabled by configuring with `--disable-linux-caps`.
 
 Portions of BIND that are written in Python, including
 `dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
