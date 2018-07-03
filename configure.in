@@ -98,18 +98,37 @@ yes)
 esac
 AC_SUBST(XTARGETS)
 
-# American Fuzzy Lop
-AC_ARG_ENABLE(afl,
-	      AS_HELP_STRING([--enable-afl],
-			     [enable American Fuzzy Lop test harness
-				[default=no]]),
-	      [AC_DEFINE([ENABLE_AFL], [1],
-			 [Define to enable American Fuzzy Lop test harness])])
-case "$enable_afl" in
-yes)
-	LIBS="$LIBS -lpthread"
-	;;
-esac
+AC_ARG_ENABLE([fuzzing],
+	      [AS_HELP_STRING([--enable-fuzzing=<afl|libfuzzer>],
+			      [Enable fuzzing using American Fuzzy Lop or libFuzzer (default=no)])],
+	      [],
+	      [enable_fuzzing=no])
+
+AC_MSG_CHECKING([whether to enable fuzzing mode])
+AS_CASE([$enable_fuzzing],
+	[no],[AC_MSG_RESULT([no])],
+	[afl],[
+	  AC_MSG_RESULT([using AFL])
+	  AC_DEFINE([ENABLE_AFL], [1],
+		    [Define to enable American Fuzzy Lop test harness])
+	  CFLAGS="$CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1"
+	  LIBS="$LIBS -lpthread"],
+	[libfuzzer],[
+	  AC_MSG_RESULT([using libFuzzer])
+	  CFLAGS="$CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1 -fsanitize=fuzzer,address,undefined"
+	  LDFLAGS="$LDFLAGS -fsanitize=fuzzer,address,undefined"],
+	[*],[AC_MSG_ERROR([You need to explicitly select the fuzzer])])
+
+AS_IF([test "$enable_fuzzing" = "afl"],
+      [AC_MSG_CHECKING("for AFL enabled compiler")
+       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],
+					  [#ifndef __AFL_COMPILER
+					   #error AFL compiler required
+					   #endif
+					  ])],
+			 [AC_MSG_RESULT([yes])],
+			 [AC_MSG_ERROR([set CC=afl-<gcc|clang> when --enable-fuzzing=afl is used])])
+      ])
 
 #
 # Make very sure that these are the first files processed by
@@ -4442,6 +4461,7 @@ AC_CONFIG_FILES([
 	lib/samples/Makefile-postinstall
 	unit/Makefile
 	unit/unittest.sh
+	fuzz/Makefile
 ])
 
 #
