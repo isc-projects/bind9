@@ -190,7 +190,7 @@ typedef struct dns_include dns_include_t;
 extern isc_boolean_t dns_fuzzing_resolver;
 #endif
 
-#define DNS_DBITERATOR_PAUSE(x) (void)dns_dbiterator_pause(x)
+#define DNS_DBITERATOR_PAUSE(x) (void)!dns_dbiterator_pause(x)
 
 struct dns_zone {
 	/* Unlocked */
@@ -11581,7 +11581,8 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_t rb;
 
 		isc_buffer_init(&rb, rcode, sizeof(rcode));
-		(void)dns_rcode_totext(msg->rcode, &rb);
+		result = dns_rcode_totext(msg->rcode, &rb);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
 		    (msg->rcode == dns_rcode_servfail ||
@@ -11958,7 +11959,8 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_t rb;
 
 		isc_buffer_init(&rb, rcode, sizeof(rcode));
-		(void)dns_rcode_totext(msg->rcode, &rb);
+		result = dns_rcode_totext(msg->rcode, &rb);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (!DNS_ZONE_FLAG(zone, DNS_ZONEFLG_NOEDNS) &&
 		    (msg->rcode == dns_rcode_servfail ||
@@ -14006,13 +14008,13 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_SUCCESS)
 		result = dns_request_getresponse(revent->request, message,
 					DNS_MESSAGEPARSE_PRESERVEORDER);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		result = dns_rcode_totext(message->rcode, &buf);
-	if (result == ISC_R_SUCCESS)
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		notify_log(notify->zone, ISC_LOG_DEBUG(3),
 			   "notify response from %s: %.*s",
 			   addrbuf, (int)buf.used, rcode);
-	else
+	} else
 		notify_log(notify->zone, ISC_LOG_DEBUG(2),
 			   "notify to %s failed: %s", addrbuf,
 			   dns_result_totext(result));
@@ -15878,7 +15880,8 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_t rb;
 
 		isc_buffer_init(&rb, rcode, sizeof(rcode));
-		(void)dns_rcode_totext(msg->rcode, &rb);
+		result = dns_rcode_totext(msg->rcode, &rb);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_zone_log(zone, ISC_LOG_INFO,
 			     "forwarded dynamic update: "
 			     "master %s returned: %.*s",
@@ -15893,7 +15896,8 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		isc_buffer_t rb;
 
 		isc_buffer_init(&rb, rcode, sizeof(rcode));
-		(void)dns_rcode_totext(msg->rcode, &rb);
+		result = dns_rcode_totext(msg->rcode, &rb);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_zone_log(zone, ISC_LOG_WARNING,
 			     "forwarding dynamic update: "
 			     "unexpected response: master %s returned: %.*s",
