@@ -234,7 +234,6 @@ isc_result_t dst__openssleddsa_init(struct dst_func **funcp);
 #if USE_PKCS11
 isc_result_t dst__pkcs11rsa_init(struct dst_func **funcp);
 isc_result_t dst__pkcs11dsa_init(struct dst_func **funcp);
-isc_result_t dst__pkcs11dh_init(struct dst_func **funcp);
 #ifdef HAVE_PKCS11_ECDSA
 isc_result_t dst__pkcs11ecdsa_init(struct dst_func **funcp);
 #endif
