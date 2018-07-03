@@ -2396,7 +2396,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [
 	    <span class="command"><strong>port</strong></span> <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key
 	    <em class="replaceable"><code>string</code></em> ]; ... } ] [ zone-directory <em class="replaceable"><code>quoted_string</code></em> ] [
-	    <span class="command"><strong>in-memory</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ]; ... };
+	    <span class="command"><strong>in-memory</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>ttlval</code></em> ]; ... };
 	<span class="command"><strong>check-dup-records</strong></span> ( fail | warn | ignore );
 	<span class="command"><strong>check-integrity</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>check-mx</strong></span> ( fail | warn | ignore );
@@ -2435,6 +2435,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	};
 	<span class="command"><strong>dns64-contact</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>dns64-server</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dnskey-sig-validity</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnsrps-enable</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnsrps-options</strong></span> { <em class="replaceable"><code>unspecified-text</code></em> };
 	<span class="command"><strong>dnssec-accept-expired</strong></span> <em class="replaceable"><code>boolean</code></em>;
@@ -2483,14 +2484,13 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>fstrm-set-output-notify-threshold</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>fstrm-set-output-queue-model</strong></span> ( mpsc | spsc );
 	<span class="command"><strong>fstrm-set-output-queue-size</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>fstrm-set-reopen-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>fstrm-set-reopen-interval</strong></span> <em class="replaceable"><code>ttlval</code></em>;
 	<span class="command"><strong>geoip-directory</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
-	<span class="command"><strong>geoip-use-ecs</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>glue-cache</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>heartbeat-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>hostname</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none );
 	<span class="command"><strong>inline-signing</strong></span> <em class="replaceable"><code>boolean</code></em>;
-	<span class="command"><strong>interface-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>interface-interval</strong></span> <em class="replaceable"><code>ttlval</code></em>;
 	<span class="command"><strong>ixfr-from-differences</strong></span> ( primary | master | secondary | slave |
 	    <em class="replaceable"><code>boolean</code></em> );
 	<span class="command"><strong>keep-response-order</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
@@ -2509,10 +2509,10 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
 	<span class="command"><strong>match-mapped-addresses</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>max-cache-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> | <em class="replaceable"><code>percentage</code></em> );
-	<span class="command"><strong>max-cache-ttl</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-cache-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
 	<span class="command"><strong>max-clients-per-query</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-journal-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
-	<span class="command"><strong>max-ncache-ttl</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-ncache-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em>;
 	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-recursion-depth</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>max-recursion-queries</strong></span> <em class="replaceable"><code>integer</code></em>;
@@ -2533,6 +2533,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>minimal-any</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>minimal-responses</strong></span> ( no-auth | no-auth-recursive | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>mirror</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>new-zones-directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
 	<span class="command"><strong>no-case-compress</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
@@ -2553,6 +2554,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>preferred-glue</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>prefetch</strong></span> <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ];
 	<span class="command"><strong>provide-ixfr</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>qname-minimization</strong></span> ( strict | relaxed | disabled );
 	<span class="command"><strong>query-source</strong></span> ( ( [ address ] ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port (
 	    <em class="replaceable"><code>integer</code></em> | * ) ] ) | ( [ [ address ] ( <em class="replaceable"><code>ipv4_address</code></em> | * ) ]
 	    <span class="command"><strong>port</strong></span> ( <em class="replaceable"><code>integer</code></em> | * ) ) ) [ dscp <em class="replaceable"><code>integer</code></em> ];
@@ -2592,18 +2594,19 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>response-padding</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... } block-size
 	    <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>quoted_string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [
-	    <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>integer</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ] [
+	    <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval <em class="replaceable"><code>ttlval</code></em> ] [
 	    <span class="command"><strong>policy</strong></span> ( cname | disabled | drop | given | no-op | nodata |
 	    <span class="command"><strong>nxdomain</strong></span> | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [
 	    <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [
 	    <span class="command"><strong>nsdname-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ]; ... } [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [
-	    <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>integer</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ] [
+	    <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval <em class="replaceable"><code>ttlval</code></em> ] [
 	    <span class="command"><strong>min-ns-dots</strong></span> <em class="replaceable"><code>integer</code></em> ] [ nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [
 	    <span class="command"><strong>qname-wait-recurse</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [
 	    <span class="command"><strong>nsip-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsdname-enable <em class="replaceable"><code>boolean</code></em> ] [
 	    <span class="command"><strong>dnsrps-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ dnsrps-options { <em class="replaceable"><code>unspecified-text</code></em>
 	    } ];
 	<span class="command"><strong>root-delegation-only</strong></span> [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];
+	<span class="command"><strong>root-key-sentinel</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>rrset-order</strong></span> { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name
 	    <em class="replaceable"><code>quoted_string</code></em> ] <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em>; ... };
 	<span class="command"><strong>secroots-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
@@ -3083,6 +3086,23 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 program.  In <acronym class="acronym">BIND</acronym> 9, no separate
                 <span class="command"><strong>named-xfer</strong></span> program is needed;
                 its functionality is built into the name server.
+              </p>
+            </dd>
+<dt><span class="term"><span class="command"><strong>qname-minimization</strong></span></span></dt>
+<dd>
+              <p>
+                This option controls QNAME minimization behaviour
+                in the BIND resolver. When set to <span class="command"><strong>strict</strong></span>,
+                BIND will follow the QNAME minimization algorithm to
+                the letter, as specified in RFC 7816. Setting this
+                option to <span class="command"><strong>relaxed</strong></span> will cause BIND
+                to fall back to normal (non-minimized) query mode
+                when it receives either NXDOMAIN or other unexpected
+                responses (e.g. SERVFAIL, improper zone cut, REFUSED)
+                to a minimized query. <span class="command"><strong>disabled</strong></span> disables
+                QNAME minimization completely. The current default is
+                <span class="command"><strong>relaxed</strong></span>, but it might be changed to
+                <span class="command"><strong>strict</strong></span> in a future release.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>tkey-gssapi-keytab</strong></span></span></dt>
@@ -4333,10 +4353,23 @@ options {
 <dt><span class="term"><span class="command"><strong>answer-cookie</strong></span></span></dt>
 <dd>
                 <p>
-                  <span class="emphasis"><em>This option is obsolete</em></span>.
-                  This option was used to prevent the sending of
-                  a DNS COOKIE option in response to a request with
-                  one present in BIND 9.11 and BIND 9.12.
+                  When set to the default value of <strong class="userinput"><code>yes</code></strong>,
+                  COOKIE EDNS options will be sent when applicable in
+                  replies to client queries. If set to
+                  <strong class="userinput"><code>no</code></strong>, COOKIE EDNS options will not
+                  be sent in replies.  This can only be set at the global
+                  options level, not per-view.
+                </p>
+                <p>
+                  <span class="command"><strong>answer-cookie no</strong></span> is intended as a
+                  temporary measure, for use when <span class="command"><strong>named</strong></span>
+                  shares an IP address with other servers that do not yet
+                  support DNS COOKIE.  A mismatch between servers on the same
+                  address is not expected to cause operational problems, but
+                  the option to disable COOKIE responses so that all servers
+                  have the same behavior is provided out of an abundance of
+                  caution. DNS COOKIE is an important security mechanism,
+                  and should not be disabled unless absolutely necessary.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>send-cookie</strong></span></span></dt>
@@ -9271,6 +9304,7 @@ view "external" {
 	<span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>dialup</strong></span> ( notify | notify-passive | passive | refresh | <em class="replaceable"><code>boolean</code></em> );
 	<span class="command"><strong>dlz</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dnskey-sig-validity</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>boolean</code></em>;
@@ -9321,6 +9355,7 @@ view "external" {
 	<span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>dialup</strong></span> ( notify | notify-passive | passive | refresh | <em class="replaceable"><code>boolean</code></em> );
 	<span class="command"><strong>dlz</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>dnskey-sig-validity</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
@@ -9344,6 +9379,7 @@ view "external" {
 	<span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>mirror</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>notify</strong></span> ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );
 	<span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>integer</code></em>;
@@ -10388,6 +10424,65 @@ example.com. NS ns2.example.net.
                     with possibly, a different serial number.  This
                     behavior is disabled by default.
                   </p>
+                </dd>
+<dt><span class="term"><span class="command"><strong>mirror</strong></span></span></dt>
+<dd>
+                  <p>
+                    If set to <strong class="userinput"><code>yes</code></strong>, this causes the
+                    zone to become a mirror zone.  A mirror zone is a
+                    <strong class="userinput"><code>secondary</code></strong> zone whose data
+                    is subject to DNSSEC validation before being
+                    used in answers.  The default is
+                    <strong class="userinput"><code>no</code></strong>.
+                  </p>
+                  <p>
+                    A mirror zone's contents are validated during the transfer
+                    process, and again when the zone file is loaded from disk
+                    when <span class="command"><strong>named</strong></span> is restarted.  If validation
+                    fails, a retransfer of the zone is scheduled; if the mirror
+                    zone had not previously been loaded or if the previous
+                    version has expired, traditional DNS recursion will be used
+                    to look up the answers instead.
+                  </p>
+                  <p>
+                    For validation to succeed, a key-signing key (KSK) for
+                    the zone must be configured as a trust anchor in
+                    <code class="filename">named.conf</code>:
+                    that is, a key for the zone must either be specified in
+                    <span class="command"><strong>managed-keys</strong></span> or
+                    <span class="command"><strong>trusted-keys</strong></span>, or in the case of
+                    the root zone, <span class="command"><strong>dnssec-validation</strong></span>
+                    must be set to <strong class="userinput"><code>auto</code></strong>.
+                    Answers coming from a mirror zone look almost exactly like
+                    answers from a normal slave zone, with the notable
+                    exceptions that the AA bit ("authoritative answer") is
+                    not set, and the AD bit ("authenticated data") is.
+                  </p>
+                  <p>
+                    Though this option can be used for other zones, it
+                    is intended to be used to set up a fast local copy of
+                    the root zone, as described in RFC 7706.
+                    This can be done by using the following configuration:
+                  </p>
+<pre class="programlisting">zone "." {
+        type slave;
+        mirror yes;
+        file "root.mirror";
+        masters {
+                192.228.79.201;       # b.root-servers.net
+                192.33.4.12;          # c.root-servers.net
+                192.5.5.241;          # f.root-servers.net
+                192.112.36.4;         # g.root-servers.net
+                193.0.14.129;         # k.root-servers.net
+                192.0.47.132;         # xfr.cjr.dns.icann.org
+                192.0.32.132;         # xfr.lax.dns.icann.org
+                2001:500:84::b;       # b.root-servers.net
+                2001:500:2f::f;       # f.root-servers.net
+                2001:7fd::1;          # k.root-servers.net
+                2620:0:2830:202::132; # xfr.cjr.dns.icann.org
+                2620:0:2d0:202::132;  # xfr.lax.dns.icann.org
+        };
+};</pre>
                 </dd>
 <dt><span class="term"><span class="command"><strong>multi-master</strong></span></span></dt>
 <dd>
@@ -14715,6 +14810,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.1 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.2 (Development Release)</p>
 </body>
 </html>

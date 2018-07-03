@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.13.1</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.13.2</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -85,6 +85,19 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  A new secondary zone option, <span class="command"><strong>mirror</strong></span>,
+	  enables <span class="command"><strong>named</strong></span> to serve a transferred copy
+	  of a zone's contents without acting as an authority for the
+	  zone. A zone must be fully validated against an active trust
+	  anchor before it can be used as a mirror zone. DNS responses
+	  from mirror zones do not set the AA bit ("authoritative answer"),
+	  but do set the AD bit ("authenticated data"). This feature is
+	  meant to facilitate deployment of a local copy of the root zone,
+	  as described in RFC 7706. [GL #33]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  BIND now can be compiled against the <span class="command"><strong>libidn2</strong></span>
 	  library to add IDNA2008 support.  Previously, BIND supported
 	  IDNA2003 using the (now obsolete and unsupported)
@@ -107,6 +120,26 @@
 	  The <span class="command"><strong>dnskey-sig-validity</strong></span> option allows the
 	  <span class="command"><strong>sig-validity-interval</strong></span> to be overriden for
 	  signatures covering DNSKEY RRsets. [GL #145]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Support for QNAME minimization was added and enabled by default
+	  in <span class="command"><strong>relaxed</strong></span> mode, in which BIND will fall back
+	  to normal resolution if the remote server returns something
+	  unexpected during the query minimization process. This default
+	  setting might change to <span class="command"><strong>strict</strong></span> in the future.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  When built on Linux, BIND now requires the <span class="command"><strong>libcap</strong></span>
+	  library to set process privileges.  The adds a new compile-time
+	  dependency, which can be met on most Linux platforms by installing the
+	  <span class="command"><strong>libcap-dev</strong></span> or <span class="command"><strong>libcap-devel</strong></span>
+	  package. BIND can also be built without capability support by using
+	  <span class="command"><strong>configure --disable-linux-caps</strong></span>, at the cost of some
+	  loss of security.
 	</p>
       </li>
 </ul></div>
@@ -198,6 +231,23 @@
 	  GOST R 34.11-2012 in RFC6986 and it must not be used in new
 	  deployments.  BIND will neither create new DNSSEC keys,
 	  signatures and digest, nor it will validate them.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Add the ability to not return a DNS COOKIE option when one
+	  is present in the request.  To prevent a cookie being returned
+	  add 'answer-cookie no;' to named.conf. [GL #173]
+	</p>
+	<p>
+	  <span class="command"><strong>answer-cookie</strong></span> is only intended as a temporary
+	  measure, for use when <span class="command"><strong>named</strong></span> shares an IP address
+	  with other servers that do not yet support DNS COOKIE.  A mismatch
+	  between servers on the same address is not expected to cause
+	  operational problems, but the option to disable COOKIE responses so
+	  that all servers have the same behavior is provided out of an
+	  abundance of caution. DNS COOKIE is an important security mechanism,
+	  and should not be disabled unless absolutely necessary.
 	</p>
       </li>
 </ul></div>
@@ -301,7 +351,10 @@
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  None.
+	  <span class="command"><strong>named</strong></span> now rejects excessively large
+	  incremental (IXFR) zone transfers in order to prevent
+	  possible corruption of journal files which could cause
+	  <span class="command"><strong>named</strong></span> to abort when loading zones. [GL #339]
 	</p>
       </li></ul></div>
   </div>
