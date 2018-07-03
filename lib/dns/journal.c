@@ -1019,7 +1019,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	REQUIRE(j->state == JOURNAL_STATE_TRANSACTION);
 
 	isc_log_write(JOURNAL_DEBUG_LOGARGS(3), "writing to journal");
-	(void)dns_diff_print(diff, NULL);
+	(void)!dns_diff_print(diff, NULL);
 
 	/*
 	 * Pass 1: determine the buffer size needed, and
@@ -1360,7 +1360,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 			isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 				      "%s: applying diff to database (%u)",
 				      j->filename, db_serial);
-			(void)dns_diff_print(&diff, NULL);
+			(void)!dns_diff_print(&diff, NULL);
 			CHECK(dns_diff_apply(&diff, db, ver));
 			dns_diff_clear(&diff);
 			n_put = 0;
@@ -1374,7 +1374,7 @@ roll_forward(dns_journal_t *j, dns_db_t *db, unsigned int options) {
 		isc_log_write(JOURNAL_DEBUG_LOGARGS(3),
 			      "%s: applying final diff to database (%u)",
 			      j->filename, db_serial);
-		(void)dns_diff_print(&diff, NULL);
+		(void)!dns_diff_print(&diff, NULL);
 		CHECK(dns_diff_apply(&diff, db, ver));
 		dns_diff_clear(&diff);
 	}
