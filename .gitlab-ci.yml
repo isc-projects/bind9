@@ -4,6 +4,7 @@ variables:
   DOCKER_DRIVER: overlay2
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
   CCACHE_DIR: "/ccache"
+  SOFTHSM_CONF: "/tmp/softhsm.conf"
 
 stages:
   - precheck
@@ -125,6 +126,8 @@ stages:
   before_script:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
+    - echo "0:/tmp/softhsm.db" > $SOFTHSM_CONF
+    - if command -v softhsm2-util >/dev/null; then softhsm2-util --init-token --free --pin 0000 --so-pin 0000 --label "softhsm"; fi
   script:
     - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
@@ -137,6 +140,8 @@ stages:
   stage: test
   before_script:
     - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
+    - echo "0:/tmp/softhsm.db" > $SOFTHSM_CONF
+    - if command -v softhsm2-util >/dev/null; then softhsm2-util --init-token --free --pin 0000 --so-pin 0000 --label "softhsm"; fi
   script:
     - make unit
   after_script:
@@ -331,3 +336,23 @@ systemtest:debian:sid:i386:
   <<: *system_test_job
   dependencies:
     - build:debian:sid:i386
+
+pkcs11:build:debian:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm.so"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+pkcs11:unittest:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - pkcs11:build:debian:sid:amd64
+
+pkcs11:systemtest:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - pkcs11:build:debian:sid:amd64
