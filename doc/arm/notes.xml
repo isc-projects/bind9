@@ -79,12 +79,17 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  A new slave zone option, <command>mirror<command>, enables
-	  serving a non-authoritative copy of a zone that is subject to
-	  DNSSEC validation before being used.  For now, this option is
-	  only meant to facilitate deployment of an RFC 7706-style local
-	  copy of the root zone.
+	  A new secondary zone option, <command>mirror</command>,
+	  enables <command>named</command> to serve a transferred copy
+	  of a zone's contents without acting as an authority for the
+	  zone. DNS responses from mirror zones do not set the AA
+	  ("authoritative answer") bit, and are subject to DNSSEC
+	  validation. This is meant to facilitate deployment
+	  of a local copy of the root zone as described in RFC 7706.
+	  [GL #33]
 	</para>
+      </listitem>
+      <listitem>
 	<para>
 	  BIND now can be compiled against the <command>libidn2</command>
 	  library to add IDNA2008 support.  Previously, BIND supported
