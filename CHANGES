@@ -1,3 +1,7 @@
+4987.	[cleanup]	dns_rdataslab_tordataset() and its related
+			dns_rdatasetmethods_t callbacks were removed as they
+			were not being used by anything in BIND. [GL #371]
+
 4986.	[func]		When built on Linux, BIND now requires the libcap library
 			to set process privileges, unless capability support is
 			explicitly overridden with "configure --disable-linux-caps".
