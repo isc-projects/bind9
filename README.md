@@ -148,15 +148,15 @@ include:
   by default without a configure option.
 * The obsolete `isc-hmac-fixup` command has been removed.
 
+#### BIND 9.12.1
+
+BIND 9.12.1 is a maintenance release.
+
 #### BIND 9.12.2
 
 BIND 9.12.2 is a maintenance release, and addresses security
 vulnerabilities disclosed in CVE-2018-5736, CVE-2018-5737 and
 CVE-2018-5738.
-
-#### BIND 9.12.1
-
-BIND 9.12.1 is a maintenance release.
 
 ### <a name="build"/> Building BIND
 
