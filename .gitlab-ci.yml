@@ -123,6 +123,7 @@ stages:
   before_script:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
+    - softhsm2-util --init-token --free --pin 1234 --so-pin 1234 --label "unittests"
   script:
     - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
@@ -135,6 +136,7 @@ stages:
   stage: test
   before_script:
     - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
+    - softhsm2-util --init-token --free --pin 1234 --so-pin 1234 --label "unittests"
   script:
     - make unit
   after_script:
