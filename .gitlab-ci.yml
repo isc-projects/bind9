@@ -125,6 +125,9 @@ stages:
   before_script:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
+    - export SOFTHSM_CONF=/tmp/softhsm.conf
+    - echo "0:/tmp/softhsm.db" > $SOFTHSM_CONF
+    - softhsm2-util --init-token --free --pin 0000 --so-pin 0000 --label "softhsm"
   script:
     - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
@@ -137,6 +140,9 @@ stages:
   stage: test
   before_script:
     - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
+    - export SOFTHSM_CONF=/tmp/softhsm.conf
+    - echo "0:/tmp/softhsm.db" > $SOFTHSM_CONF
+    - softhsm2-util --init-token --free --pin 0000 --so-pin 0000 --label "softhsm"
   script:
     - make unit
   after_script:
