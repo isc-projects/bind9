@@ -639,7 +639,7 @@ dns_name_compare(const dns_name_t *name1, const dns_name_t *name2) {
 	 * same domain.
 	 */
 
-	(void)dns_name_fullcompare(name1, name2, &order, &nlabels);
+	(void)!dns_name_fullcompare(name1, name2, &order, &nlabels);
 
 	return (order);
 }
