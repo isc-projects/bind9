@@ -17,7 +17,7 @@ RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 CLEANQL="rm -f ans*/query.log"
 status=0
 n=0
-
+read
 n=`expr $n + 1`
 echo_i "query for .good is not minimized when qname-minimization is off ($n)"
 ret=0
