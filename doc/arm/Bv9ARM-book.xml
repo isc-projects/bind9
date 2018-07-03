@@ -12476,6 +12476,15 @@ example.com. NS ns2.example.net.
 		    to look up the answers instead.
 		  </para>
 		  <para>
+		    Access to a mirror zone is controlled by the
+		    <command>allow-query-cache</command> ACL (see
+		    <xref linkend="address_match_lists"/>). This means that
+		    if recursion is disabled, clients will not be able to
+		    query the mirror zone. Outgoing zone transfers of
+		    mirror zones are not allowed, even if you set the
+		    <command>allow-transfer</command> ACL.
+		  </para>
+		  <para>
 		    For validation to succeed, a key-signing key (KSK) for
 		    the zone must be configured as a trust anchor in
 		    <filename>named.conf</filename>:
