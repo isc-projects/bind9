@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.10.8rc2
+Release Notes for BIND Version 9.10.8
 
 Introduction
 
