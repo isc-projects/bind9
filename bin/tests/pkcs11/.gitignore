@@ -11,3 +11,4 @@ sign
 verify
 pkcs11-hmacmd5
 pkcs11-md5sum
+benchmarks/*.dSYM/
