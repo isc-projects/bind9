@@ -33,10 +33,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#ifndef __AFL_LOOP
-#error To use American Fuzzy Lop you have to set CC to afl-clang-fast!!!
-#endif
-
 /*
  * We are using pthreads directly because we might be using it with
  * unthreaded version of BIND, where all thread functions are
@@ -58,7 +54,6 @@ fuzz_thread_client(void *arg) {
 	char *port;
 	struct sockaddr_in servaddr;
 	int sockfd;
-	int loop;
 	void *buf;
 
 	UNUSED(arg);
@@ -100,14 +95,18 @@ fuzz_thread_client(void *arg) {
 	 * Processing fuzzed packets 100,000 times before shutting down
 	 * the app.
 	 */
-	for (loop = 0; loop < 100000; loop++) {
+#ifdef __AFL_LOOP
+	for (int loop = 0; loop < 100000; loop++) {
+#else
+	{
+#endif
 		ssize_t length;
 		ssize_t sent;
 
 		length = read(0, buf, 65536);
 		if (length <= 0) {
 			usleep(1000000);
-			continue;
+			goto next;
 		}
 
 		/*
@@ -127,7 +126,7 @@ fuzz_thread_client(void *arg) {
 				return (NULL);
 			}
 			raise(SIGSTOP);
-			continue;
+			goto next;
 		}
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
@@ -148,6 +147,7 @@ fuzz_thread_client(void *arg) {
 			pthread_cond_wait(&cond, &mutex);
 
 		RUNTIME_CHECK(pthread_mutex_unlock(&mutex) == 0);
+	next: ;
 	}
 
 	free(buf);
@@ -583,6 +583,7 @@ fuzz_thread_resolver(void *arg) {
 	named_server_flushonshutdown(named_g_server, ISC_FALSE);
 	isc_app_shutdown();
 
+#ifdef __AFL_LOOP
 	/*
 	 * This is here just for the signature, that's how AFL detects
 	 * if it's a 'persistent mode' binary. It has to occur somewhere
@@ -591,6 +592,7 @@ fuzz_thread_resolver(void *arg) {
 	 * in persistent mode if it's present.
 	 */
 	__AFL_LOOP(0);
+#endif
 
 	return (NULL);
 }
