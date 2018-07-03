@@ -106,6 +106,18 @@ stages:
     expire_in: '1 hour'
     untracked: true
 
+.build-pkcs11: &build_pkcs11_job
+  stage: build
+  before_script:
+    - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
+    - ./autogen.sh
+  script:
+    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local --with-libidn2 --enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm.so
+    - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
+  artifacts:
+    expire_in: '1 hour'
+    untracked: true
+
 .system_test: &system_test_job
   stage: test
   before_script:
@@ -174,13 +186,6 @@ precheck:debian:sid:amd64:
 #  <<: *ubuntu_xenial_i386_image
 #  <<: *build_job
 
-build:clang:debian:sid:amd64:
-  variables:
-    CC: clang-6.0
-    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
 build:debian:sid:amd64:
   variables:
     CC: gcc
@@ -188,11 +193,18 @@ build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-build:clang:debian:sid:i386:
+build:pkcs11:debian:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *debian_sid_amd64_image
+  <<: *build_pkcs11_job
+
+build:clang:debian:sid:amd64:
   variables:
     CC: clang-6.0
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
-  <<: *debian_sid_i386_image
+  <<: *debian_sid_amd64_image
   <<: *build_job
 
 build:debian:sid:i386:
@@ -202,11 +214,24 @@ build:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *build_job
 
+build:clang:debian:sid:i386:
+  variables:
+    CC: clang-6.0
+    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+  <<: *debian_sid_i386_image
+  <<: *build_job
+
 unittest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
     - build:debian:sid:amd64
+
+unittest:pkcs11:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:pkcs11:debian:sid:amd64
 
 unittest:clang:debian:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -219,6 +244,12 @@ unittest:debian:sid:i386:
   <<: *unit_test_job
   dependencies:
     - build:debian:sid:i386
+
+systemtest:pkcs11:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:pkcs11:debian:sid:amd64
 
 systemtest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
