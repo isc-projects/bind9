@@ -172,7 +172,6 @@
     <ClCompile Include="..\peer.c" />
 @IF PKCS11
     <ClCompile Include="..\pkcs11.c" />
-    <ClCompile Include="..\pkcs11dh_link.c" />
     <ClCompile Include="..\pkcs11dsa_link.c" />
     <ClCompile Include="..\pkcs11ecdsa_link.c" />
     <ClCompile Include="..\pkcs11eddsa_link.c" />
