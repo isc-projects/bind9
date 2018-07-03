@@ -241,7 +241,6 @@
 ./bin/nsupdate/win32/nsupdate.vcxproj.user	X	2013,2018
 ./bin/pkcs11/.gitignore				X	2014,2018
 ./bin/pkcs11/Makefile.in			MAKE	2009,2012,2014,2015,2016,2017,2018
-./bin/pkcs11/OLD-PKCS11-NOTES			X	2009,2018
 ./bin/pkcs11/pkcs11-destroy.8			MAN	DOCBOOK
 ./bin/pkcs11/pkcs11-destroy.c			X	2009,2010,2014,2015,2018
 ./bin/pkcs11/pkcs11-destroy.docbook		SGML	2009,2014,2015,2016,2018
@@ -387,13 +386,10 @@
 ./bin/tests/pkcs11/benchmarks/login.c		C	2014,2015,2016,2018
 ./bin/tests/pkcs11/benchmarks/privrsa.c		C	2014,2016,2018
 ./bin/tests/pkcs11/benchmarks/pubrsa.c		C	2014,2016,2018
-./bin/tests/pkcs11/benchmarks/random.c		C	2014,2015,2016,2018
 ./bin/tests/pkcs11/benchmarks/session.c		C	2014,2015,2016,2018
 ./bin/tests/pkcs11/benchmarks/sha1.c		C	2014,2015,2016,2018
 ./bin/tests/pkcs11/benchmarks/sign.c		C	2014,2015,2016,2018
 ./bin/tests/pkcs11/benchmarks/verify.c		C	2014,2015,2016,2018
-./bin/tests/pkcs11/pkcs11-hmacmd5.c		C	2014,2015,2016,2018
-./bin/tests/pkcs11/pkcs11-md5sum.c		C	2014,2015,2016,2018
 ./bin/tests/startperf/README			X	2011,2018
 ./bin/tests/startperf/clean.sh			SH	2011,2012,2016,2018
 ./bin/tests/startperf/makenames.pl		PERL	2011,2012,2016,2018
@@ -561,7 +557,6 @@
 ./bin/tests/system/autosign/ns3/ttl4.example.db.in	ZONE	2011,2016,2018
 ./bin/tests/system/autosign/ns4/named.conf.in	CONF-C	2009,2016,2017,2018
 ./bin/tests/system/autosign/ns5/named.conf.in	CONF-C	2009,2016,2017,2018
-./bin/tests/system/autosign/prereq.sh		SH	2009,2010,2012,2014,2016,2018
 ./bin/tests/system/autosign/setup.sh		SH	2009,2010,2012,2014,2016,2017,2018
 ./bin/tests/system/autosign/tests.sh		SH	2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/builtin/clean.sh		SH	2014,2016,2018
@@ -605,7 +600,6 @@
 ./bin/tests/system/cds/checktime.pl		PERL	2017,2018
 ./bin/tests/system/cds/clean.sh			SH	2017,2018
 ./bin/tests/system/cds/mangle.pl		PERL	2017,2018
-./bin/tests/system/cds/prereq.sh		SH	2017,2018
 ./bin/tests/system/cds/setup.sh			SH	2017,2018
 ./bin/tests/system/cds/tests.sh			SH	2017,2018
 ./bin/tests/system/chain/README			TXT.BRIEF	2017,2018
@@ -894,7 +888,6 @@
 ./bin/tests/system/coverage/11-cutoff/README	X	2014,2018
 ./bin/tests/system/coverage/11-cutoff/expect	X	2014,2018
 ./bin/tests/system/coverage/clean.sh		SH	2013,2014,2016,2018
-./bin/tests/system/coverage/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/coverage/setup.sh		SH	2013,2014,2016,2017,2018
 ./bin/tests/system/coverage/tests.sh		SH	2013,2014,2016,2018
 ./bin/tests/system/database/clean.sh		SH	2011,2012,2014,2016,2018
@@ -957,7 +950,6 @@
 ./bin/tests/system/dlv/ns6/hints		ZONE	2010,2016,2018
 ./bin/tests/system/dlv/ns6/named.conf.in	CONF-C	2010,2011,2016,2018
 ./bin/tests/system/dlv/ns6/sign.sh		SH	2010,2011,2012,2014,2016,2018
-./bin/tests/system/dlv/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/dlv/setup.sh			SH	2004,2007,2009,2011,2012,2014,2016,2017,2018
 ./bin/tests/system/dlv/tests.sh			SH	2004,2007,2010,2011,2012,2016,2018
 ./bin/tests/system/dlz/.gitignore		X	2012,2018
@@ -1005,7 +997,6 @@
 ./bin/tests/system/dns64/ns1/sign.sh		SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/dns64/ns2/named.conf.in	CONF-C	2010,2011,2013,2016,2018
 ./bin/tests/system/dns64/ns2/rpz.db		ZONE	2013,2016,2018
-./bin/tests/system/dns64/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/dns64/setup.sh		SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/dns64/tests.sh		SH	2010,2011,2012,2013,2014,2016,2018
 ./bin/tests/system/dnssec/README		TXT.BRIEF	2000,2001,2002,2004,2011,2016,2018
@@ -1186,7 +1177,6 @@
 ./bin/tests/system/dsdigest/ns2/sign.sh		SH	2012,2014,2016,2018
 ./bin/tests/system/dsdigest/ns3/named.conf.in	CONF-C	2012,2016,2018
 ./bin/tests/system/dsdigest/ns4/named.conf.in	CONF-C	2012,2016,2018
-./bin/tests/system/dsdigest/prereq.sh		SH	2012,2014,2016,2018
 ./bin/tests/system/dsdigest/setup.sh		SH	2012,2014,2016,2017,2018
 ./bin/tests/system/dsdigest/tests.sh		SH	2012,2016,2018
 ./bin/tests/system/dupsigs/check_journal.pl	PERL	2018
@@ -1195,7 +1185,6 @@
 ./bin/tests/system/dupsigs/ns1/named.conf.in	CONF-C	2018
 ./bin/tests/system/dupsigs/ns1/reset_keys.sh	SH	2018
 ./bin/tests/system/dupsigs/ns1/signing.test.db.in	ZONE	2018
-./bin/tests/system/dupsigs/prereq.sh		SH	2018
 ./bin/tests/system/dupsigs/setup.sh		SH	2018
 ./bin/tests/system/dupsigs/tests.sh		SH	2018
 ./bin/tests/system/dyndb/Makefile.in		MAKE	2015,2016,2018
@@ -1228,7 +1217,6 @@
 ./bin/tests/system/ecdsa/ns1/root.db.in		ZONE	2012,2016,2018
 ./bin/tests/system/ecdsa/ns1/sign.sh		SH	2012,2014,2016,2018
 ./bin/tests/system/ecdsa/ns2/named.conf		CONF-C	2012,2016,2018
-./bin/tests/system/ecdsa/prereq.sh		SH	2012,2014,2016,2018
 ./bin/tests/system/ecdsa/setup.sh		SH	2012,2014,2016,2017,2018
 ./bin/tests/system/ecdsa/tests.sh		SH	2012,2013,2015,2016,2018
 ./bin/tests/system/eddsa/clean.sh		SH	2017,2018
@@ -1294,7 +1282,6 @@
 ./bin/tests/system/filter-aaaa/ns1/root.db	ZONE	2010,2012,2016,2017,2018
 ./bin/tests/system/filter-aaaa/ns1/sign.sh	SH	2010,2012,2014,2016,2018
 ./bin/tests/system/filter-aaaa/ns1/signed.db.in	ZONE	2010,2012,2016,2017,2018
-./bin/tests/system/filter-aaaa/ns1/signed.db.presigned	X	2014,2017,2018
 ./bin/tests/system/filter-aaaa/ns1/unsigned.db	ZONE	2010,2012,2016,2017,2018
 ./bin/tests/system/filter-aaaa/ns2/hints	ZONE	2010,2016,2018
 ./bin/tests/system/filter-aaaa/ns2/named1.conf.in	CONF-C	2012,2013,2016,2017,2018
@@ -1307,7 +1294,6 @@
 ./bin/tests/system/filter-aaaa/ns4/root.db	ZONE	2010,2012,2016,2017,2018
 ./bin/tests/system/filter-aaaa/ns4/sign.sh	SH	2010,2012,2014,2016,2018
 ./bin/tests/system/filter-aaaa/ns4/signed.db.in	ZONE	2010,2012,2016,2017,2018
-./bin/tests/system/filter-aaaa/ns4/signed.db.presigned	X	2014,2018
 ./bin/tests/system/filter-aaaa/ns4/unsigned.db	ZONE	2010,2012,2016,2017,2018
 ./bin/tests/system/filter-aaaa/setup.sh		SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/filter-aaaa/tests.sh		SH	2010,2012,2015,2016,2018
@@ -1426,7 +1412,6 @@
 ./bin/tests/system/inline/ns6/named.conf.in	CONF-C	2011,2016,2018
 ./bin/tests/system/inline/ns7/named.conf.in	CONF-C	2017,2018
 ./bin/tests/system/inline/ns7/sign.sh		SH	2017,2018
-./bin/tests/system/inline/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/inline/setup.sh		SH	2011,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/inline/tests.sh		SH	2011,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/integrity/clean.sh		SH	2017,2018
@@ -1499,7 +1484,6 @@
 ./bin/tests/system/keymgr/policy.conf		CONF-C	2016,2018
 ./bin/tests/system/keymgr/policy.good		X	2016,2018
 ./bin/tests/system/keymgr/policy.sample		CONF-C	2016,2017,2018
-./bin/tests/system/keymgr/prereq.sh		SH	2016,2018
 ./bin/tests/system/keymgr/setup.sh		SH	2016,2017,2018
 ./bin/tests/system/keymgr/testpolicy.py		PYTHON	2016,2018
 ./bin/tests/system/keymgr/tests.sh		SH	2016,2018
@@ -1586,13 +1570,11 @@
 ./bin/tests/system/masterformat/ns2/formerly-text.db.in	ZONE	2011,2016,2018
 ./bin/tests/system/masterformat/ns2/named.conf.in	CONF-C	2005,2007,2011,2012,2014,2016,2018
 ./bin/tests/system/masterformat/ns3/named.conf.in	CONF-C	2012,2013,2016,2018
-./bin/tests/system/masterformat/prereq.sh	SH	2014,2016,2018
 ./bin/tests/system/masterformat/setup.sh	SH	2005,2006,2007,2011,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/masterformat/tests.sh	SH	2005,2007,2011,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/metadata/child.db		ZONE	2009,2016,2018
 ./bin/tests/system/metadata/clean.sh		SH	2009,2011,2012,2014,2016,2017,2018
 ./bin/tests/system/metadata/parent.db		ZONE	2009,2016,2018
-./bin/tests/system/metadata/prereq.sh		SH	2009,2012,2014,2016,2018
 ./bin/tests/system/metadata/setup.sh		SH	2009,2011,2012,2014,2016,2017,2018
 ./bin/tests/system/metadata/tests.sh		SH	2009,2011,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/mirror/clean.sh		SH	2018
@@ -1623,7 +1605,6 @@
 ./bin/tests/system/mkeys/ns5/named.conf.in	CONF-C	2017,2018
 ./bin/tests/system/mkeys/ns5/named1.args	X	2017,2018
 ./bin/tests/system/mkeys/ns5/named2.args	X	2017,2018
-./bin/tests/system/mkeys/prereq.sh		SH	2015,2016,2018
 ./bin/tests/system/mkeys/setup.sh		SH	2015,2016,2017,2018
 ./bin/tests/system/mkeys/tests.sh		SH	2015,2016,2017,2018
 ./bin/tests/system/names/clean.sh		SH	2015,2016,2018
@@ -1712,7 +1693,6 @@
 ./bin/tests/system/pending/ns3/mail.example.db	ZONE	2009,2016,2018
 ./bin/tests/system/pending/ns3/named.conf.in	CONF-C	2009,2016,2018
 ./bin/tests/system/pending/ns4/named.conf.in	CONF-C	2009,2016,2018
-./bin/tests/system/pending/prereq.sh		SH	2009,2012,2014,2016,2018
 ./bin/tests/system/pending/setup.sh		SH	2009,2012,2014,2016,2017,2018
 ./bin/tests/system/pending/tests.sh		SH	2009,2010,2012,2015,2016,2018
 ./bin/tests/system/pipelined/.gitignore		X	2015,2018
@@ -1740,13 +1720,6 @@
 ./bin/tests/system/pkcs11/setup.sh		SH	2010,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/pkcs11/tests.sh		SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/pkcs11/usepkcs11		X	2010,2018
-./bin/tests/system/pkcs11ssl/clean.sh		SH	2014,2016,2018
-./bin/tests/system/pkcs11ssl/ns1/example.db.in	ZONE	2014,2016,2018
-./bin/tests/system/pkcs11ssl/ns1/named.conf	CONF-C	2014,2016,2018
-./bin/tests/system/pkcs11ssl/prereq.sh		SH	2014,2016,2018
-./bin/tests/system/pkcs11ssl/setup.sh		SH	2014,2016,2018
-./bin/tests/system/pkcs11ssl/tests.sh		SH	2014,2016,2018
-./bin/tests/system/pkcs11ssl/usepkcs11		X	2014,2018
 ./bin/tests/system/qmin/ans2/ans.py		PYTHON	2018
 ./bin/tests/system/qmin/ans3/ans.py		PYTHON	2018
 ./bin/tests/system/qmin/ans4/ans.py		PYTHON	2018
@@ -1798,7 +1771,6 @@
 ./bin/tests/system/redirect/ns4/example.db.in	ZONE	2015,2016,2018
 ./bin/tests/system/redirect/ns4/named.conf.in	CONF-C	2015,2016,2018
 ./bin/tests/system/redirect/ns4/root.hint	ZONE	2015,2016,2018
-./bin/tests/system/redirect/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/redirect/setup.sh		SH	2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/redirect/tests.sh		SH	2011,2012,2013,2014,2015,2016,2018
 ./bin/tests/system/resolver/ans2/ans.pl		PERL	2000,2001,2004,2007,2009,2010,2012,2016,2018
@@ -1866,7 +1838,6 @@
 ./bin/tests/system/rootkeysentinel/ns3/named.conf.in	CONF-C	2018
 ./bin/tests/system/rootkeysentinel/ns4/hint.db	ZONE	2018
 ./bin/tests/system/rootkeysentinel/ns4/named.conf.in	CONF-C	2018
-./bin/tests/system/rootkeysentinel/prereq.sh	SH	2018
 ./bin/tests/system/rootkeysentinel/setup.sh	SH	2018
 ./bin/tests/system/rootkeysentinel/tests.sh	SH	2018
 ./bin/tests/system/rpz/.gitignore		X	2017,2018
@@ -1902,7 +1873,6 @@
 ./bin/tests/system/rpz/ns6/named.conf.in	CONF-C	2014,2016,2017,2018
 ./bin/tests/system/rpz/ns7/hints		ZONE	2014,2016,2018
 ./bin/tests/system/rpz/ns7/named.conf.in	CONF-C	2014,2016,2017,2018
-./bin/tests/system/rpz/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/rpz/qperf.sh			SH	2012,2013,2016,2018
 ./bin/tests/system/rpz/setup.sh			SH	2011,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/rpz/test1			ZONE	2011,2012,2013,2016,2018
@@ -2081,7 +2051,6 @@
 ./bin/tests/system/smartsign/child.db		ZONE	2010,2016,2018
 ./bin/tests/system/smartsign/clean.sh		SH	2010,2012,2014,2016,2018
 ./bin/tests/system/smartsign/parent.db		ZONE	2010,2016,2018
-./bin/tests/system/smartsign/prereq.sh		SH	2010,2012,2014,2016,2018
 ./bin/tests/system/smartsign/setup.sh		SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/smartsign/tests.sh		SH	2010,2011,2012,2014,2016,2017,2018
 ./bin/tests/system/sortlist/clean.sh		SH	2000,2001,2004,2007,2009,2012,2014,2015,2016,2018
@@ -2129,7 +2098,6 @@
 ./bin/tests/system/staticstub/ns4/named.conf.in	CONF-C	2010,2016,2018
 ./bin/tests/system/staticstub/ns4/sign.sh	SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/staticstub/ns4/sub.example.db.in	ZONE	2010,2016,2018
-./bin/tests/system/staticstub/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/staticstub/setup.sh		SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/staticstub/tests.sh		SH	2010,2011,2012,2013,2015,2016,2018
 ./bin/tests/system/statistics/ans4/ans.pl	PERL	2012,2016,2018
@@ -2201,7 +2169,6 @@
 ./bin/tests/system/synthfromdnssec/ns4/root.hints	ZONE	2017,2018
 ./bin/tests/system/synthfromdnssec/ns5/named.conf.in	CONF-C	2017,2018
 ./bin/tests/system/synthfromdnssec/ns5/root.hints	ZONE	2017,2018
-./bin/tests/system/synthfromdnssec/prereq.sh	SH	2017,2018
 ./bin/tests/system/synthfromdnssec/setup.sh	SH	2017,2018
 ./bin/tests/system/synthfromdnssec/tests.sh	SH	2017,2018
 ./bin/tests/system/tcp/clean.sh			SH	2014,2016,2018
@@ -2224,7 +2191,6 @@
 ./bin/tests/system/tkey/ns1/example.db		ZONE	2013,2016,2018
 ./bin/tests/system/tkey/ns1/named.conf.in	CONF-C	2001,2004,2007,2009,2011,2013,2014,2016,2017,2018
 ./bin/tests/system/tkey/ns1/setup.sh		SH	2001,2004,2007,2009,2012,2014,2016,2018
-./bin/tests/system/tkey/prereq.sh		SH	2001,2004,2006,2007,2009,2012,2014,2016,2018
 ./bin/tests/system/tkey/setup.sh		SH	2001,2004,2007,2009,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/tkey/tests.sh		SH	2001,2004,2007,2009,2011,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/tools/clean.sh		SH	2017,2018
@@ -2259,7 +2225,6 @@
 ./bin/tests/system/unknown/ns2/named.conf.in	CONF-C	2012,2016,2018
 ./bin/tests/system/unknown/ns3/named.conf.in	CONF-C	2012,2016,2018
 ./bin/tests/system/unknown/ns3/sign.sh		SH	2012,2014,2016,2017,2018
-./bin/tests/system/unknown/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/unknown/setup.sh		SH	2012,2014,2016,2017,2018
 ./bin/tests/system/unknown/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2016,2018
 ./bin/tests/system/unknown/zones/nan.bad	ZONE	2013,2016,2018
@@ -2279,7 +2244,6 @@
 ./bin/tests/system/upforwd/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014,2016,2018
 ./bin/tests/system/verify/.gitignore		X	2012,2016,2018
 ./bin/tests/system/verify/clean.sh		SH	2012,2014,2016,2018
-./bin/tests/system/verify/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/verify/setup.sh		SH	2012,2014,2016,2017,2018
 ./bin/tests/system/verify/tests.sh		SH	2012,2013,2016,2017,2018
 ./bin/tests/system/verify/zones/genzones.sh	SH	2012,2013,2014,2016,2017,2018
@@ -2322,7 +2286,6 @@
 ./bin/tests/system/wildcard/ns4/named.conf.in	CONF-C	2012,2016,2018
 ./bin/tests/system/wildcard/ns5/hints		ZONE	2013,2016,2018
 ./bin/tests/system/wildcard/ns5/named.conf.in	CONF-C	2013,2016,2018
-./bin/tests/system/wildcard/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/wildcard/setup.sh		SH	2012,2014,2016,2017,2018
 ./bin/tests/system/wildcard/tests.sh		SH	2012,2013,2016,2018
 ./bin/tests/system/win32/bigkey.vcxproj.filters.in	X	2016,2018
@@ -2404,7 +2367,6 @@
 ./bin/tests/system/zonechecks/ns1/named.conf.in	CONF-C	2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/zonechecks/ns2/named.conf.in	CONF-C	2012,2013,2016,2017,2018
 ./bin/tests/system/zonechecks/nxdomain.db	ZONE	2004,2007,2016,2018
-./bin/tests/system/zonechecks/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/zonechecks/setup.sh		SH	2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/zonechecks/tests.sh		SH	2004,2007,2009,2012,2013,2014,2015,2016,2018
 ./bin/tests/testdata/wire/wire_test.data	X	1999,2000,2001,2018
@@ -3622,7 +3584,6 @@
 ./lib/isc/include/isc/version.h			C	2001,2004,2005,2006,2007,2016,2018
 ./lib/isc/include/isc/xml.h			C	2006,2007,2016,2018
 ./lib/isc/include/pk11/Makefile.in		MAKE	2014,2015,2016,2018
-./lib/isc/include/pk11/README.site		TXT.BRIEF	2016,2017,2018
 ./lib/isc/include/pk11/constants.h		C	2014,2016,2017,2018
 ./lib/isc/include/pk11/internal.h		C	2014,2016,2018
 ./lib/isc/include/pk11/pk11.h			C	2014,2016,2018
