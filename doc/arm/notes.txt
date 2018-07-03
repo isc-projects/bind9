@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.13.1
+Release Notes for BIND Version 9.13.2
 
 Introduction
 
@@ -41,6 +41,15 @@ Security Fixes
 
 New Features
 
+  * A new secondary zone option, mirror, enables named to serve a
+    transferred copy of a zone's contents without acting as an authority
+    for the zone. A zone must be fully validated against an active trust
+    anchor before it can be used as a mirror zone. DNS responses from
+    mirror zones do not set the AA bit ("authoritative answer"), but do
+    set the AD bit ("authenticated data"). This feature is meant to
+    facilitate deployment of a local copy of the root zone, as described
+    in RFC 7706. [GL #33]
+
   * BIND now can be compiled against the libidn2 library to add IDNA2008
     support. Previously, BIND supported IDNA2003 using the (now obsolete
     and unsupported) idnkit-1 library.
@@ -53,6 +62,19 @@ New Features
 
   * The dnskey-sig-validity option allows the sig-validity-interval to be
     overriden for signatures covering DNSKEY RRsets. [GL #145]
+
+  * Support for QNAME minimization was added and enabled by default in
+    relaxed mode, in which BIND will fall back to normal resolution if the
+    remote server returns something unexpected during the query
+    minimization process. This default setting might change to strict in
+    the future.
+
+  * When built on Linux, BIND now requires the libcap library to set
+    process privileges. The adds a new compile-time dependency, which can
+    be met on most Linux platforms by installing the libcap-dev or
+    libcap-devel package. BIND can also be built without capability
+    support by using configure --disable-linux-caps, at the cost of some
+    loss of security.
 
 Removed Features
 
@@ -100,6 +122,19 @@ Removed Features
     create new DNSSEC keys, signatures and digest, nor it will validate
     them.
 
+  * Add the ability to not return a DNS COOKIE option when one is present
+    in the request. To prevent a cookie being returned add 'answer-cookie
+    no;' to named.conf. [GL #173]
+
+    answer-cookie is only intended as a temporary measure, for use when
+    named shares an IP address with other servers that do not yet support
+    DNS COOKIE. A mismatch between servers on the same address is not
+    expected to cause operational problems, but the option to disable
+    COOKIE responses so that all servers have the same behavior is
+    provided out of an abundance of caution. DNS COOKIE is an important
+    security mechanism, and should not be disabled unless absolutely
+    necessary.
+
 Feature Changes
 
   * BIND will now always use the best CSPRNG (cryptographically-secure
@@ -145,7 +180,9 @@ Feature Changes
 
 Bug Fixes
 
-  * None.
+  * named now rejects excessively large incremental (IXFR) zone transfers
+    in order to prevent possible corruption of journal files which could
+    cause named to abort when loading zones. [GL #339]
 
 License
 
