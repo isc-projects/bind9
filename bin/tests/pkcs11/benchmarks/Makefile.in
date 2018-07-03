@@ -14,7 +14,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${ISC_INCLUDES}
-CDEFINES =	
+CDEFINES =
 
 ISCLIBS =	../../../../lib/isc/libisc.@A@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
 

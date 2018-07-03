@@ -22,7 +22,7 @@ CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/@ISC_ARCH_DIR@/include \
 		-I./include \
 		-I${srcdir}/include ${DNS_INCLUDES} @OPENSSL_INCLUDES@
-CDEFINES =	
+CDEFINES =
 CWARNINGS =
 
 # Alphabetically

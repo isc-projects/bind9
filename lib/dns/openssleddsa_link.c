@@ -423,8 +423,8 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		DST_RET(dst__openssl_toresult3(dctx->category,
 					       "EVP_DigestVerifyUpdate",
 					       ISC_R_FAILURE));
-	}		
-	
+	}
+
 	status = EVP_DigestVerifyFinal(ctx, sig->base, siglen);
 
 	switch (status) {
