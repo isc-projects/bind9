@@ -66,7 +66,11 @@ static isc_once_t isc_random_once = ISC_ONCE_INIT;
 
 static void
 isc_random_initialize(void) {
+#if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	memset(seed, 0, sizeof(seed));
+#else
 	isc_entropy_get(seed, sizeof(seed));
+#endif
 }
 
 uint8_t

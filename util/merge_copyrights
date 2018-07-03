@@ -35,8 +35,12 @@ while (<CHANGES>) {
 	       /CVS/ |		# CVS directory
 	       /\.git/ |		# git directory
 	       /\.gitignore |   # .gitignore files
+	       /Makefile.in |   # build system doesn't need to have copyright
+	       /configure   |   # build system doesn't need to have copyright
+	       /fuzz/.*\.in/ |  # ignore fuzz corpus
 	       util/newcopyrights | # our output
 	       \.bak$ |		# created by update_copyrights
+	       \.md$ |          # READMEs and such
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
 	       doc/(draft|expired|rfc)/		# imported
 	     %x);
