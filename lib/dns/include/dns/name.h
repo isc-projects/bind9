@@ -1338,7 +1338,7 @@ dns_name_isula(const dns_name_t *owner);
 isc_boolean_t
 dns_name_istat(const dns_name_t *name);
 /*
- * Determine if 'name' is a potential 'trust-anchor-telementry' name.
+ * Determine if 'name' is a potential 'trust-anchor-telemetry' name.
  */
 
 ISC_LANG_ENDDECLS

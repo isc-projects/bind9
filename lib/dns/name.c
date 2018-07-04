@@ -2706,7 +2706,7 @@ dns_name_istat(const dns_name_t *name) {
 
 	/*
 	 * Is there at least one trust anchor reported and is the
-	 * label length consistent with a trust-anchor-telementry label.
+	 * label length consistent with a trust-anchor-telemetry label.
 	 */
 	if ((len < 8) || (len - 3) % 5 != 0) {
 		return (ISC_FALSE);
