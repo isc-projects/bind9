@@ -1517,7 +1517,7 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 		totext_filter_proc = *mem;
 #endif
 	if (totext_filter_proc != NULL)
-		return ((*totext_filter_proc)(target, oused, saw_root));
+		return ((*totext_filter_proc)(target, oused));
 
 	return (ISC_R_SUCCESS);
 }
