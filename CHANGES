@@ -1,3 +1,6 @@
+4988.	[cleanup]	IDN support in dig has been reworked.  IDNA2003
+			fallbacks were removed in the process. [GL #384]
+
 	--- 9.13.2 released ---
 
 4987.	[cleanup]	dns_rdataslab_tordataset() and its related
