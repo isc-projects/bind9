@@ -133,7 +133,6 @@ int lookup_counter = 0;
 static char servercookie[256];
 
 #ifdef HAVE_IDN2_H
-static void idn_initialize(void);
 static isc_result_t idn_locale_to_ace(const char *from,
 		char *to,
 		size_t tolen);
@@ -1292,8 +1291,6 @@ setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 #endif
 
 #ifdef HAVE_IDN2_H
-	idn_initialize();
-
 	/* Set domain name -> text post-conversion filter. */
 	result = dns_name_settotextfilter(output_filter);
 	check_result(result, "dns_name_settotextfilter");
@@ -4259,10 +4256,6 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	isc_buffer_add(buffer, (unsigned int)tolen);
 
 	return (ISC_R_SUCCESS);
-}
-
-static void
-idn_initialize(void) {
 }
 
 static isc_result_t
