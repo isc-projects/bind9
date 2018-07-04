@@ -145,6 +145,7 @@ precheck:debian:sid:amd64:
     - diff -urNap util/copyrights util/newcopyrights
     - rm util/newcopyrights
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
+    - xmllint --noout --nonet --html `git ls-files '*.html'`
   artifacts:
     paths:
     - util/newcopyrights
