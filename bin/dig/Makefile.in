@@ -64,6 +64,8 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
+LDFLAGS =	@LIBIDN2_LDFLAGS@
+
 dig@EXEEXT@: dig.@O@ dighost.@O@ ${UOBJS} ${DEPLIBS}
 	export BASEOBJS="dig.@O@ dighost.@O@ ${UOBJS}"; \
 	export LIBS0="${DNSLIBS} ${IRSLIBS}"; \

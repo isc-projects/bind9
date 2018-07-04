@@ -677,6 +677,7 @@ LD_WRAP_TESTS
 CMOCKA_LIBS
 CMOCKA_CFLAGS
 LIBIDN2_LIBS
+LIBIDN2_LDFLAGS
 LIBIDN2_CFLAGS
 XSLT_DBLATEX_FASTBOOK
 XSLT_DBLATEX_STYLE
@@ -1762,7 +1763,8 @@ Optional Packages:
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
   --with-libfstrm=path    Path where libfstrm is installed, for dnstap
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
-  --with-libidn2=PATH     enable IDN support using GNU libidn2 [yes|no|path]
+  --with-libidn2=PATH     enable IDN support using GNU libidn2
+                          [yes|no(default)|path]
   --with-cmocka=no        enable cmocka based tests (default is no)
   --with-atf              support Automated Test Framework
   --with-tuning=ARG       Specify server tuning (large or default)
@@ -22416,34 +22418,43 @@ LIBIDN2_LIBS=
 
 # Check whether --with-libidn2 was given.
 if test "${with_libidn2+set}" = set; then :
-  withval=$with_libidn2; use_libidn2="$withval"
+  withval=$with_libidn2; with_libidn2="$withval"
 else
-  use_libidn2="no"
+  with_libidn2="no"
 fi
 
-case $use_libidn2 in #(
-  no) :
-    : ;; #(
-  yes) :
-    : ;; #(
-  *) :
+if test "$with_libidn2" != "no"; then :
 
-	    LIBIDN2_CFLAGS="-I$use_libidn2/include"
-	    LIBIDN2_LDFLAGS="-L$use_libidn2/lib"
-	 ;; #(
-  *) :
-     ;;
-esac
+	save_CFLAGS="$CFLAGS"
+	save_CPPFLAGS="$CPPFLAGS"
+	save_LDFLAGS="$LDFLAGS"
+	save_LIBS="$LIBS"
+	if test "$with_libidn2" != "yes"; then :
 
-if test "$use_libidn2" != "no"; then :
-  save_CFLAGS="$CFLAGS"
-       save_LIBS="$LIBS"
-       save_LDFLAGS="$LDFLAGS"
-       CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
-       LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_8z" >&5
-$as_echo_n "checking for library containing idn2_to_ascii_8z... " >&6; }
-if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+		LIBIDN2_CFLAGS="-I$with_libidn2/include"
+		LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
+		CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
+		CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
+		LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
+
+fi
+	for ac_header in idn2.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "idn2.h" "ac_cv_header_idn2_h" "$ac_includes_default"
+if test "x$ac_cv_header_idn2_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IDN2_H 1
+_ACEOF
+
+else
+  as_fn_error $? "idn2.h not found" "$LINENO" 5
+fi
+
+done
+
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_lz" >&5
+$as_echo_n "checking for library containing idn2_to_ascii_lz... " >&6; }
+if ${ac_cv_search_idn2_to_ascii_lz+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_func_search_save_LIBS=$LIBS
@@ -22456,11 +22467,11 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char idn2_to_ascii_8z ();
+char idn2_to_ascii_lz ();
 int
 main ()
 {
-return idn2_to_ascii_8z ();
+return idn2_to_ascii_lz ();
   ;
   return 0;
 }
@@ -22473,66 +22484,39 @@ for ac_lib in '' idn2; do
     LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_idn2_to_ascii_8z=$ac_res
+  ac_cv_search_idn2_to_ascii_lz=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext
-  if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+  if ${ac_cv_search_idn2_to_ascii_lz+:} false; then :
   break
 fi
 done
-if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+if ${ac_cv_search_idn2_to_ascii_lz+:} false; then :
 
 else
-  ac_cv_search_idn2_to_ascii_8z=no
+  ac_cv_search_idn2_to_ascii_lz=no
 fi
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_idn2_to_ascii_8z" >&5
-$as_echo "$ac_cv_search_idn2_to_ascii_8z" >&6; }
-ac_res=$ac_cv_search_idn2_to_ascii_8z
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_idn2_to_ascii_lz" >&5
+$as_echo "$ac_cv_search_idn2_to_ascii_lz" >&6; }
+ac_res=$ac_cv_search_idn2_to_ascii_lz
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-$as_echo "#define WITH_IDN_SUPPORT 1" >>confdefs.h
-
-
-$as_echo "#define WITH_LIBIDN2 1" >>confdefs.h
-
-                       LIBIDN2_LIBS="$LIBIDN2_LDFLAGS -lidn2"
+  LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"
 else
   as_fn_error $? "libidn2 requested, but not found" "$LINENO" 5
 fi
 
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <idn2.h>
-int
-main ()
-{
-idn2_to_unicode_8zlz(".", NULL, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-$as_echo "#define WITH_IDN_OUT_SUPPORT 1" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-       CFLAGS="$save_CFLAGS"
-       LIBS="$save_LIBS"
-       LDFLAGS="$save_LDFLAGS"
+	CFLAGS="$save_CFLAGS"
+	CPPFLAGS="$save_CPPFLAGS"
+	LDFLAGS="$save_LDFLAGS"
+	LIBS="$save_LIBS"
 
 fi
+
 
 
 
@@ -26684,7 +26668,7 @@ report() {
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
 	test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
-	test "no" = "$use_libidn2" || echo "    IDN support (--with-libidn2)"
+	test "no" = "$with_libidn2" || echo "    IDN support (--with-libidn2)"
     fi
 
     if test "no" != "$use_pkcs11"; then
@@ -26781,7 +26765,7 @@ report() {
     test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
     test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
     test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
-    test "no" = "$use_libidn2" && echo "    IDN support (--with-libidn2)"
+    test "no" = "$with_libidn2" && echo "    IDN support (--with-libidn2)"
 
     echo "-------------------------------------------------------------------------------"
     echo "Configured paths:"
