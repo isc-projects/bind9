@@ -1290,12 +1290,6 @@ setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 	(void)setlocale(LC_ALL, "");
 #endif
 
-#ifdef HAVE_IDN2_H
-	/* Set domain name -> text post-conversion filter. */
-	result = dns_name_settotextfilter(output_filter);
-	check_result(result, "dns_name_settotextfilter");
-#endif /* HAVE_IDN2_H */
-
 	if (keyfile[0] != 0)
 		setup_file_key();
 	else if (keysecret[0] != 0)
