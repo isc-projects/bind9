@@ -1,3 +1,6 @@
+4988.	[bug]		The wrong address was being logged for trust anchor
+			telemetry queries. [GL #379]
+
 	--- 9.13.2 released ---
 
 4987.	[cleanup]	dns_rdataslab_tordataset() and its related
