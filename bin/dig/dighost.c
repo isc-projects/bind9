@@ -4254,8 +4254,7 @@ idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
 	 * We trust libidn2 to return an error if 'src' is too large to be a
 	 * valid domain name.
 	 */
-	res = idn2_to_ascii_lz(src, &ascii_src,
-			       IDN2_NFC_INPUT | IDN2_NONTRANSITIONAL);
+	res = idn2_to_ascii_lz(src, &ascii_src, IDN2_NONTRANSITIONAL);
 	if (res != IDN2_OK) {
 		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnin",
 		      src, idn2_strerror(res));
