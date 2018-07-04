@@ -278,7 +278,7 @@ ATF_TC_BODY(compression, tc) {
 
 ATF_TC(istat);
 ATF_TC_HEAD(istat, tc) {
-	atf_tc_set_md_var(tc, "descr", "is trust-anchor-telementry test");
+	atf_tc_set_md_var(tc, "descr", "is trust-anchor-telemetry test");
 }
 ATF_TC_BODY(istat, tc) {
 	dns_fixedname_t fixed;
