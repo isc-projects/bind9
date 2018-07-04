@@ -10815,7 +10815,7 @@ log_tat(ns_client_t *client) {
 
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
-	isc_netaddr_format(&client->destaddr, clientbuf, sizeof(clientbuf));
+	isc_netaddr_format(&netaddr, clientbuf, sizeof(clientbuf));
 	dns_rdataclass_format(client->view->rdclass, classname,
 			      sizeof(classname));
 
