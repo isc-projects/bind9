@@ -339,7 +339,8 @@ idna_enabled_test() {
 
     # Tests of a valid unicode string but an invalid U-label
     #
-    # Symbols are not valid IDNA names.
+    # Symbols are not valid IDNA2008 names.  Check whether dig rejects them to
+    # ensure no IDNA2003 fallbacks are in place.
     #
     # +noidnin: "dig" should send unicode octets to the server and display the
     #           returned qname in the same form.
@@ -348,11 +349,11 @@ idna_enabled_test() {
     # The +[no]idnout options should not have any effect on the test.
 
     text="Checking invalid U-label"
-    idna_fail "$text" ""                   "🧦.com"
-    idna_test "$text" "+noidnin +noidnout" "🧦.com" "\240\159\167\166.com."
-    idna_test "$text" "+noidnin +idnout"   "🧦.com" "\240\159\167\166.com."
-    idna_fail "$text" "+idnin   +noidnout" "🧦.com"
-    idna_fail "$text" "+idnin   +idnout"   "🧦.com"
+    idna_fail "$text" ""                   "√.com"
+    idna_test "$text" "+noidnin +noidnout" "√.com" "\226\136\154.com."
+    idna_test "$text" "+noidnin +idnout"   "√.com" "\226\136\154.com."
+    idna_fail "$text" "+idnin   +noidnout" "√.com"
+    idna_fail "$text" "+idnin   +idnout"   "√.com"
 }
 
 
