@@ -98,8 +98,8 @@ echo_i "reset and check that records are correctly cached initially ($n)"
 ret=0
 load_cache
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | egrep '(TXT|ANY)'|  wc -l`
-[ $nrecords -eq 17 ] || { ret=1; echo_i "found $nrecords records expected 17"; }
+nrecords=`grep -v '^;' ns2/named_dump.db.$n | perl -nle 'if (/flushtest\.example/ || (/^\t/ && $out)) {$out=1;} else {$out=0;} print if ($out);' | egrep '(TXT|ANY)'|  wc -l`
+[ $nrecords -eq 18 ] || { ret=1; echo_i "found $nrecords records expected 18"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -108,7 +108,7 @@ echo_i "check flushing of the full cache ($n)"
 ret=0
 clear_cache
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | wc -l`
+nrecords=`grep -v '^;' ns2/named_dump.db.$n | perl -nle 'if (/flushtest\.example/ || (/^\t/ && $out)) {$out=1;} else {$out=0;} print if ($out);' | wc -l`
 [ $nrecords -eq 0 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -192,7 +192,7 @@ n=`expr $n + 1`
 echo_i "check the number of cached records remaining ($n)"
 ret=0
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | egrep '(TXT|ANY)' |  wc -l`
+nrecords=`grep -v '^;' ns2/named_dump.db.$n | perl -nle 'if (/flushtest\.example/ || (/^\t/ && $out)) {$out=1;} else {$out=0;} print if ($out);' | egrep '(TXT|ANY)' |  wc -l`
 [ $nrecords -eq 17 ] || { ret=1; echo_i "found $nrecords records expected 17"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -210,7 +210,7 @@ n=`expr $n + 1`
 echo_i "check the number of cached records remaining ($n)"
 ret=0
 dump_cache
-nrecords=`grep flushtest.example ns2/named_dump.db.$n | grep -v '^;' | egrep '(TXT|ANY)' |  wc -l`
+nrecords=`grep -v '^;' ns2/named_dump.db.$n | perl -nle 'if (/flushtest\.example/ || (/^\t/ && $out)) {$out=1;} else {$out=0;} print if ($out);' | egrep '(TXT|ANY)' |  wc -l`
 [ $nrecords -eq 1 ] || { ret=1; echo_i "found $nrecords records expected 1"; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
