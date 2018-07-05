@@ -1,3 +1,6 @@
+4988.	[bug]		Don't synthesize NXDOMAIN from NSEC for records under
+			a DNAME. [GL #386]
+
 	--- 9.12.2 released ---
 
 	--- 9.12.2rc2 released ---
