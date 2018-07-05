@@ -4133,9 +4133,9 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	 * pointer.
 	 */
 	if (result == ISC_R_CANCELED) {
-		fctx_done(fctx, ISC_R_CANCELED, __LINE__);
+		fctx_done(fctx, result, __LINE__);
 		goto cleanup;
-	} else if (NXDOMAIN_RESULT(result)) {
+	} else if (NXDOMAIN_RESULT(result) || result == DNS_R_FORMERR || result == DNS_R_REMOTEFORMERR) {
 			if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
 				isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 					      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,

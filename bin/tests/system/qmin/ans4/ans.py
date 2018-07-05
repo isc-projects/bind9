@@ -42,6 +42,8 @@ def logquery(type, qname):
 # For slow. it works the same as for good., but each response is delayed by 400 miliseconds
 #
 # For bad. it works the same as for good., but returns NXDOMAIN to non-empty terminals
+#
+# For ugly. it works the same as for good., but returns garbage to non-empty terminals
 ############################################################################
 def create_response(msg):
     m = dns.message.from_wire(msg)
@@ -56,6 +58,7 @@ def create_response(msg):
         typename = "ADDR"
     bad = False
     slow = False
+    ugly = False
 
     # log this query
     with open("query.log", "a") as f:
@@ -69,6 +72,10 @@ def create_response(msg):
         bad = True
         suffix = "bad."
         lqname = lqname[:-4]
+    elif lqname.endswith("ugly."):
+        ugly = True
+        suffix = "ugly."
+        lqname = lqname[:-5]
     elif lqname.endswith("good."):
         suffix = "good."
         lqname = lqname[:-5]
@@ -94,6 +101,8 @@ def create_response(msg):
         r.authority.append(dns.rrset.from_text("icky.ptang.zoop.boing." + suffix, 1, IN, SOA, "ns2." + suffix + " hostmaster.arpa. 2018050100 1 1 1 1"))
         if bad or not "more.icky.icky.icky.ptang.zoop.boing.".endswith(lqname):
             r.set_rcode(NXDOMAIN)
+        if ugly:
+            r.set_rcode(FORMERR)
     else:
         r.set_rcode(REFUSED)
 

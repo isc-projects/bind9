@@ -86,6 +86,29 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "query for .ugly is not minimized when qname-minimization is off ($n)"
+ret=0
+$CLEANQL
+$RNDCCMD 10.53.0.5 flush
+$DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.ugly. @10.53.0.5 > dig.out.test$n
+sleep 5
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "icky.icky.icky.ptang.zoop.boing.ugly. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
+sleep 1
+cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
+ADDR icky.icky.icky.ptang.zoop.boing.ugly.
+ADDR ns3.ugly.
+ADDR ns3.ugly.
+ADDR a.bit.longer.ns.name.ugly.
+ADDR a.bit.longer.ns.name.ugly.
+__EOF
+echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans3/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans4/query.log - > /dev/null || ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "query for .good is properly minimized when qname-minimization is on ($n)"
 ret=0
 $CLEANQL
@@ -156,6 +179,52 @@ echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | diff ans4/query.log - > /dev/
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "query for .ugly fails when qname-minimization is in strict mode ($n)"
+ret=0
+$CLEANQL
+$RNDCCMD 10.53.0.6 flush
+$DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.ugly. @10.53.0.6 > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+sleep 1
+cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
+NS ugly.
+NS boing.ugly.
+NS boing.ugly.
+NS boing.ugly.
+__EOF
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+$RNDCCMD 10.53.0.6 flush
+
+n=`expr $n + 1`
+echo_i "query for .ugly succeds when qname-minimization is in relaxed mode ($n)"
+ret=0
+$CLEANQL
+$RNDCCMD 10.53.0.7 flush
+$DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.ugly. @10.53.0.7 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || (ret=1; echo "A")
+grep "icky.icky.icky.ptang.zoop.boing.ugly. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || (ret=1; echo "X")
+sleep 1
+cat << __EOF | diff ans2/query.log - > /dev/null || (ret=1; echo "Y")
+NS ugly.
+NS boing.ugly.
+NS boing.ugly.
+NS boing.ugly.
+ADDR icky.icky.icky.ptang.zoop.boing.ugly.
+ADDR ns3.ugly.
+ADDR ns3.ugly.
+ADDR a.bit.longer.ns.name.ugly.
+ADDR a.bit.longer.ns.name.ugly.
+__EOF
+echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans3/query.log - > /dev/null || ret=1
+echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans4/query.log - > /dev/null || ret=1
+for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+$RNDCCMD 10.53.0.7 flush
 
 n=`expr $n + 1`
 echo_i "query for .slow is properly minimized when qname-minimization is on ($n)"

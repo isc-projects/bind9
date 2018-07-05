@@ -44,6 +44,8 @@ def logquery(type, qname):
 #
 # For bad. it works the same as for good., but returns NXDOMAIN to non-empty terminals
 #
+# For ugly. it works the same as for good., but returns garbage to non-empty terminals
+#
 # For 1.0.0.2.ip6.arpa it serves
 # 1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa. IN PTR nee.com.
 # 1.0.0.2.ip6.arpa. IN NS ns2.good
@@ -61,6 +63,7 @@ def create_response(msg):
     if typename == "A" or typename == "AAAA":
         typename = "ADDR"
     bad = False
+    ugly = False
     slow = False
 
     # log this query
@@ -106,6 +109,10 @@ def create_response(msg):
         bad = True
         suffix = "bad."
         lqname = lqname[:-4]
+    elif lqname.endswith("ugly."):
+        ugly = True
+        suffix = "ugly."
+        lqname = lqname[:-5]
     elif lqname.endswith("good."):
         suffix = "good."
         lqname = lqname[:-5]
@@ -117,7 +124,7 @@ def create_response(msg):
         r.set_rcode(REFUSED)
         return r
 
-    # Good/bad differs only in how we treat non-empty terminals
+    # Good/bad/ugly differs only in how we treat non-empty terminals
     if lqname.endswith("zoop.boing."):
         r.authority.append(dns.rrset.from_text("zoop.boing." + suffix, 1, IN, NS, "ns3." + suffix))
     elif lqname == "many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z." and rrtype == A:
@@ -151,6 +158,8 @@ def create_response(msg):
              "many.labels.a.b.c.d.e.f.g.h.i.j.k.l.m.n.o.p.q.r.s.t.u.v.w.x.y.z.".endswith(lqname) or \
              "a.bit.longer.ns.name.".endswith(lqname)):
             r.set_rcode(NXDOMAIN)
+        if ugly:
+            r.set_rcode(FORMERR)
     if slow:
         time.sleep(0.2)
     return r
