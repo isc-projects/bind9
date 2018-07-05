@@ -150,6 +150,10 @@
 #define SIZE_AS_PERCENT ((size_t)-2)
 #endif /* ifndef SIZE_AS_PERCENT */
 
+#ifndef ARRAYSIZE
+#define ARRAYSIZE(x) (sizeof(x) / sizeof(x[0]))
+#endif
+
 #ifdef TUNE_LARGE
 #define RESOLVER_NTASKS_PERCPU 32
 #define UDPBUFFERS	       32768
@@ -3386,7 +3390,7 @@ cleanup:
 }
 
 static isc_result_t
-create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
+create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 		  const cfg_obj_t *zonelist, const char **empty_dbtype,
 		  int empty_dbtypec, dns_zonestat_level_t statlevel) {
 	char namebuf[DNS_NAME_FORMATSIZE];
@@ -3406,7 +3410,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	dns_name_t *contact;
 	dns_name_t *ns;
 	dns_name_t *zname;
-	dns_zone_t *myzone = NULL;
+	dns_zone_t *zone = NULL;
 	int rbt_dbtypec = 1;
 	isc_result_t result;
 	dns_namereln_t namereln;
@@ -3469,7 +3473,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	/*
 	 * Is the existing zone the ok to use?
 	 */
-	if (zone != NULL) {
+	if (pzone != NULL) {
 		unsigned int typec;
 		const char **dbargv;
 
@@ -3481,29 +3485,29 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 			dbargv = empty_dbtype;
 		}
 
-		result = check_dbtype(zone, typec, dbargv, view->mctx);
+		result = check_dbtype(pzone, typec, dbargv, view->mctx);
 		if (result != ISC_R_SUCCESS) {
-			zone = NULL;
+			pzone = NULL;
 		}
 
-		if (zone != NULL && dns_zone_gettype(zone) != dns_zone_master) {
-			zone = NULL;
+		if (pzone != NULL && dns_zone_gettype(pzone) != dns_zone_master)
+		{
+			pzone = NULL;
 		}
-		if (zone != NULL && dns_zone_getfile(zone) != NULL) {
-			zone = NULL;
+		if (pzone != NULL && dns_zone_getfile(pzone) != NULL) {
+			pzone = NULL;
 		}
-		if (zone != NULL) {
-			dns_zone_getraw(zone, &myzone);
-			if (myzone != NULL) {
-				dns_zone_detach(&myzone);
-				zone = NULL;
+		if (pzone != NULL) {
+			dns_zone_getraw(pzone, &zone);
+			if (zone != NULL) {
+				dns_zone_detach(&zone);
+				pzone = NULL;
 			}
 		}
 	}
 
-	if (zone == NULL) {
-		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &myzone));
-		zone = myzone;
+	if (pzone == NULL) {
+		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
 		CHECK(dns_zone_setorigin(zone, name));
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		if (db == NULL) {
@@ -3512,6 +3516,8 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		dns_zone_setclass(zone, view->rdclass);
 		dns_zone_settype(zone, dns_zone_master);
 		dns_zone_setstats(zone, named_g_server->zonestats);
+	} else {
+		dns_zone_attach(pzone, &zone);
 	}
 
 	dns_zone_setoption(zone, ~DNS_ZONEOPT_NOCHECKNS, false);
@@ -3555,8 +3561,8 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		      "automatic empty zone%s%s: %s", sep, viewname, namebuf);
 
 cleanup:
-	if (myzone != NULL) {
-		dns_zone_detach(&myzone);
+	if (zone != NULL) {
+		dns_zone_detach(&zone);
 	}
 	if (version != NULL) {
 		dns_db_closeversion(db, &version, false);
@@ -3567,6 +3573,84 @@ cleanup:
 
 	INSIST(version == NULL);
 
+	return (result);
+}
+
+static isc_result_t
+create_ipv4only_zone(dns_zone_t *pzone, dns_view_t *view,
+		     const dns_name_t *name, const char *type, isc_mem_t *mctx,
+		     const char *server, const char *contact) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	const char *dbtype[4] = { "_builtin", NULL, "@", "." };
+	const char *sep = ": view ";
+	const char *viewname = view->name;
+	dns_zone_t *zone = NULL;
+	int dbtypec = 4;
+	isc_result_t result;
+
+	REQUIRE(type != NULL);
+
+	if (!strcmp(viewname, "_default")) {
+		sep = "";
+		viewname = "";
+	}
+
+	dbtype[1] = type;
+	if (server != NULL) {
+		dbtype[2] = server;
+	}
+	if (contact != NULL) {
+		dbtype[3] = contact;
+	}
+
+	if (pzone != NULL) {
+		result = check_dbtype(pzone, dbtypec, dbtype, view->mctx);
+		if (result != ISC_R_SUCCESS) {
+			pzone = NULL;
+		}
+	}
+
+	if (pzone == NULL) {
+		/*
+		 * Create the actual zone.
+		 */
+		CHECK(dns_zone_create(&zone, mctx));
+		CHECK(dns_zone_setorigin(zone, name));
+		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
+		dns_zone_setclass(zone, view->rdclass);
+		dns_zone_settype(zone, dns_zone_master);
+		dns_zone_setstats(zone, named_g_server->zonestats);
+		dns_zone_setdbtype(zone, dbtypec, dbtype);
+		dns_zone_setdialup(zone, dns_dialuptype_no);
+		dns_zone_setnotifytype(zone, dns_notifytype_no);
+		dns_zone_setautomatic(zone, true);
+		dns_zone_setoption(zone, DNS_ZONEOPT_NOCHECKNS, true);
+	} else {
+		dns_zone_attach(pzone, &zone);
+	}
+	if (view->queryacl != NULL) {
+		dns_zone_setqueryacl(zone, view->queryacl);
+	} else {
+		dns_zone_clearqueryacl(zone);
+	}
+	if (view->queryonacl != NULL) {
+		dns_zone_setqueryonacl(zone, view->queryonacl);
+	} else {
+		dns_zone_clearqueryonacl(zone);
+	}
+	dns_zone_setview(zone, view);
+	CHECK(dns_view_addzone(view, zone));
+
+	dns_name_format(name, namebuf, sizeof(namebuf));
+	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "automatic ipv4only zone%s%s: %s", sep, viewname,
+		      namebuf);
+
+cleanup:
+	if (zone != NULL) {
+		dns_zone_detach(&zone);
+	}
 	return (result);
 }
 
@@ -5623,6 +5707,92 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 			CHECK(create_empty_zone(zone, name, view, zonelist,
 						empty_dbtype, empty_dbtypec,
 						statlevel));
+			if (zone != NULL) {
+				dns_zone_detach(&zone);
+			}
+		}
+	}
+
+	obj = NULL;
+	if (view->rdclass == dns_rdataclass_in) {
+		(void)named_config_get(maps, "ipv4only-enable", &obj);
+	}
+	if (view->rdclass == dns_rdataclass_in && (obj != NULL)
+		    ? cfg_obj_asboolean(obj)
+		    : !ISC_LIST_EMPTY(view->dns64))
+	{
+		const char *server, *contact;
+		dns_fixedname_t fixed;
+		dns_name_t *name;
+		struct {
+			const char *name;
+			const char *type;
+		} zones[] = {
+			{ "ipv4only.arpa", "ipv4only" },
+			{ "170.0.0.192.in-addr.arpa", "ipv4reverse" },
+			{ "171.0.0.192.in-addr.arpa", "ipv4reverse" },
+		};
+		size_t ipv4only_zone;
+
+		obj = NULL;
+		result = named_config_get(maps, "ipv4only-server", &obj);
+		if (result == ISC_R_SUCCESS) {
+			server = cfg_obj_asstring(obj);
+		} else {
+			server = NULL;
+		}
+
+		obj = NULL;
+		result = named_config_get(maps, "ipv4only-contact", &obj);
+		if (result == ISC_R_SUCCESS) {
+			contact = cfg_obj_asstring(obj);
+		} else {
+			contact = NULL;
+		}
+
+		name = dns_fixedname_initname(&fixed);
+		for (ipv4only_zone = 0; ipv4only_zone < ARRAYSIZE(zones);
+		     ipv4only_zone++) {
+			dns_forwarders_t *dnsforwarders = NULL;
+
+			CHECK(dns_name_fromstring(
+				name, zones[ipv4only_zone].name, 0, NULL));
+
+			(void)dns_view_findzone(view, name, &zone);
+			if (zone != NULL) {
+				dns_zone_detach(&zone);
+				continue;
+			}
+
+			/*
+			 * If we would forward this name don't add it.
+			 */
+			result = dns_fwdtable_find(view->fwdtable, name, NULL,
+						   &dnsforwarders);
+			if (result == ISC_R_SUCCESS &&
+			    dnsforwarders->fwdpolicy == dns_fwdpolicy_only) {
+				continue;
+			}
+
+			/*
+			 * See if we can re-use a existing zone.
+			 */
+			result = dns_viewlist_find(&named_g_server->viewlist,
+						   view->name, view->rdclass,
+						   &pview);
+			if (result != ISC_R_NOTFOUND && result != ISC_R_SUCCESS)
+			{
+				goto cleanup;
+			}
+
+			if (pview != NULL) {
+				(void)dns_view_findzone(pview, name, &zone);
+				dns_view_detach(&pview);
+			}
+
+			CHECK(create_ipv4only_zone(zone, view, name,
+						   zones[ipv4only_zone].type,
+						   mctx, server, contact));
 			if (zone != NULL) {
 				dns_zone_detach(&zone);
 			}
