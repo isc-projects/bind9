@@ -1,3 +1,6 @@
+4988.	[bug]		"rndc reconfig" was incorrectly handling zones whose
+			"mirror" setting was changed. [GL #381]
+
 	--- 9.13.2 released ---
 
 4987.	[cleanup]	dns_rdataslab_tordataset() and its related
