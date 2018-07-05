@@ -72,6 +72,14 @@ zone "verify-load" {
 	masterfile-format text;
 };
 
+zone "verify-reconfig" {
+	type slave;
+	masters { 10.53.0.2; };
+	mirror yes;
+	file "verify-reconfig.db.mirror";
+	masterfile-format text;
+};
+
 zone "verify-unsigned" {
 	type slave;
 	masters { 10.53.0.2; };

@@ -56,6 +56,11 @@ zone "verify-ixfr" {
 	ixfr-from-differences yes;
 };
 
+zone "verify-reconfig" {
+	type master;
+	file "verify-reconfig.db.signed";
+};
+
 zone "verify-unsigned" {
 	type master;
 	file "verify.db.in";

@@ -362,5 +362,47 @@ grep "type: mirror" rndc.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that \"rndc reconfig\" properly handles a yes -> no \"mirror\" setting change ($n)"
+ret=0
+# Sanity check before we start.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-reconfig SOA > dig.out.ns3.test$n.1 2>&1 || ret=1
+grep "NOERROR" dig.out.ns3.test$n.1 > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n.1 > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n.1 > /dev/null || ret=1
+# Reconfigure the zone so that it is no longer a mirror zone.
+nextpart ns3/named.run > /dev/null
+sed '/^zone "verify-reconfig" {$/,/^};$/{s/mirror yes;/mirror no;/}' ns3/named.conf > ns3/named.conf.modified
+mv ns3/named.conf.modified ns3/named.conf
+$RNDCCMD 10.53.0.3 reconfig > /dev/null 2>&1
+# Zones whose "mirror" setting was changed should not be reusable, which means
+# the tested zone should have been reloaded from disk.
+wait_for_load verify-reconfig ${ORIGINAL_SERIAL} ns3/named.run
+# Ensure responses sourced from the reconfigured zone have AA=1 and AD=0.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-reconfig SOA > dig.out.ns3.test$n.2 2>&1 || ret=1
+grep "NOERROR" dig.out.ns3.test$n.2 > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n.2 > /dev/null || ret=1
+grep "flags:.* ad" dig.out.ns3.test$n.2 > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that \"rndc reconfig\" properly handles a no -> yes \"mirror\" setting change ($n)"
+ret=0
+# Put an incorrectly signed version of the zone in the zone file used by ns3.
+nextpart ns3/named.run > /dev/null
+cat ns2/verify-reconfig.db.bad.signed > ns3/verify-reconfig.db.mirror
+# Reconfigure the zone so that it is a mirror zone again.
+sed '/^zone "verify-reconfig" {$/,/^};$/{s/mirror no;/mirror yes;/}' ns3/named.conf > ns3/named.conf.modified
+mv ns3/named.conf.modified ns3/named.conf
+$RNDCCMD 10.53.0.3 reconfig > /dev/null 2>&1
+# The reconfigured zone should fail verification.
+wait_for_load verify-reconfig ${UPDATED_SERIAL_BAD} ns3/named.run
+$DIG $DIGOPTS @10.53.0.3 +norec verify-reconfig SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+nextpart ns3/named.run | grep "No correct RSASHA256 signature for verify-reconfig SOA" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
