@@ -6634,11 +6634,15 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		tname = dns_fixedname_initname(&fixed);
 		nlabels = dns_name_countlabels(qname) -
 			  dns_name_countlabels(rname);
+		if (nlabels == 0) {
+			return (ISC_FALSE);
+		}
 		dns_name_split(qname, nlabels, &prefix, NULL);
 		result = dns_name_concatenate(&prefix, &dname.dname, tname,
 					      NULL);
-		if (result == DNS_R_NAMETOOLONG)
+		if (result == DNS_R_NAMETOOLONG) {
 			return (ISC_TRUE);
+		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		break;
 	default:
@@ -8170,6 +8174,7 @@ rctx_answer_match(respctx_t *rctx) {
 	}
 	if ((rctx->ardataset->type == dns_rdatatype_cname ||
 	     rctx->ardataset->type == dns_rdatatype_dname) &&
+	    rctx->ardataset->type != rctx->type &&
 	    !is_answertarget_allowed(fctx, &fctx->name, rctx->aname,
 				     rctx->ardataset, NULL))
 	{
