@@ -93,6 +93,11 @@ for (;;) {
 		$packet->push("answer",
 			      new Net::DNS::RR($qname .
 				       " 300 CNAME goodcname.example.org"));
+	} elsif ($qname =~ /^nodata\.example\.net$/i) {
+		$packet->header->aa(1);
+	} elsif ($qname =~ /^nxdomain\.example\.net$/i) {
+		$packet->header->aa(1);
+		$packet->header->rcode(NXDOMAIN);
 	} elsif ($qname eq "cname.sub.example.org") {
 		$packet->push("answer",
 			      new Net::DNS::RR($qname .
@@ -109,6 +114,10 @@ for (;;) {
 			      new Net::DNS::RR($qname . " 300 A 192.0.2.1"));
 	} elsif ($qname eq "foo.glue-in-answer.example.org") {
 		$packet->push("answer", new Net::DNS::RR($qname . " 300 A 192.0.2.1"));
+	} elsif ($qname eq "ns.example.net") {
+		$packet->push("answer",
+			      new Net::DNS::RR($qname .
+				       " 300 A 10.53.0.3"));
 	} else {
 		$packet->push("answer", new Net::DNS::RR("www.example.com 300 A 1.2.3.4"));
 	}
