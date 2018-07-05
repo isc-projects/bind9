@@ -99,20 +99,10 @@ for (;;) {
 	} elsif ($qname eq "net" && $qtype eq "NS") {
 		$packet->header->aa(1);
 		$packet->push("answer", new Net::DNS::RR("net 300 NS a.root-servers.nil."));
-	} elsif ($qname eq "example.net" && $qtype eq "NS") {
+	} elsif ($qname =~ /\.example\.net/ || $qname =~ /^example\.net/) {
 		$packet->header->aa(1);
-		$packet->push("answer", new Net::DNS::RR("example.net 300 NS a.root-servers.nil."));
-	} elsif ($qname eq "badcname.example.net" ||
-		 $qname eq "goodcname.example.net") {
-		# Data for CNAME/DNAME filtering.  We need to make one-level
-		# delegation to avoid automatic acceptance for subdomain aliases
-		$packet->push("authority", new Net::DNS::RR("example.net 300 NS ns.example.net"));
+		$packet->push("authority", new Net::DNS::RR("example.net 300 NS ns.example.net."));
 		$packet->push("additional", new Net::DNS::RR("ns.example.net 300 A 10.53.0.3"));
-	} elsif ($qname =~ /^nodata\.example\.net$/i) {
-		$packet->header->aa(1);
-	} elsif ($qname =~ /^nxdomain\.example\.net$/i) {
-		$packet->header->aa(1);
-		$packet->header->rcode(NXDOMAIN);
 	} elsif ($qname =~ /sub\.example\.org/) {
 		# Data for CNAME/DNAME filtering.  The final answers are
 		# expected to be accepted regardless of the filter setting.
