@@ -3204,7 +3204,7 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, const dns_name_t *name,
 }
 
 static isc_result_t
-create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
+create_empty_zone(dns_zone_t *pzone, dns_name_t *name, dns_view_t *view,
 		  const cfg_obj_t *zonelist, const char **empty_dbtype,
 		  int empty_dbtypec, dns_zonestat_level_t statlevel)
 {
@@ -3225,7 +3225,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	dns_name_t *contact;
 	dns_name_t *ns;
 	dns_name_t *zname;
-	dns_zone_t *myzone = NULL;
+	dns_zone_t *zone = NULL;
 	int rbt_dbtypec = 1;
 	isc_result_t result;
 	dns_namereln_t namereln;
@@ -3285,7 +3285,7 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 	/*
 	 * Is the existing zone the ok to use?
 	 */
-	if (zone != NULL) {
+	if (pzone != NULL) {
 		unsigned int typec;
 		const char **dbargv;
 
@@ -3297,26 +3297,25 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 			dbargv = empty_dbtype;
 		}
 
-		result = check_dbtype(zone, typec, dbargv, view->mctx);
+		result = check_dbtype(pzone, typec, dbargv, view->mctx);
 		if (result != ISC_R_SUCCESS)
-			zone = NULL;
+			pzone = NULL;
 
-		if (zone != NULL && dns_zone_gettype(zone) != dns_zone_master)
-			zone = NULL;
-		if (zone != NULL && dns_zone_getfile(zone) != NULL)
-			zone = NULL;
-		if (zone != NULL) {
-			dns_zone_getraw(zone, &myzone);
-			if (myzone != NULL) {
-				dns_zone_detach(&myzone);
-				zone = NULL;
+		if (pzone != NULL && dns_zone_gettype(pzone) != dns_zone_master)
+			pzone = NULL;
+		if (pzone != NULL && dns_zone_getfile(pzone) != NULL)
+			pzone = NULL;
+		if (pzone != NULL) {
+			dns_zone_getraw(pzone, &zone);
+			if (zone != NULL) {
+				dns_zone_detach(&zone);
+				pzone = NULL;
 			}
 		}
 	}
 
-	if (zone == NULL) {
-		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &myzone));
-		zone = myzone;
+	if (pzone == NULL) {
+		CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
 		CHECK(dns_zone_setorigin(zone, name));
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 		if (db == NULL)
@@ -3325,6 +3324,8 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		dns_zone_setclass(zone, view->rdclass);
 		dns_zone_settype(zone, dns_zone_master);
 		dns_zone_setstats(zone, named_g_server->zonestats);
+	} else {
+		dns_zone_attach(pzone, &zone);
 	}
 
 	dns_zone_setoption(zone, ~DNS_ZONEOPT_NOCHECKNS, false);
@@ -3366,8 +3367,8 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		      sep, viewname, namebuf);
 
  cleanup:
-	if (myzone != NULL)
-		dns_zone_detach(&myzone);
+	if (zone != NULL)
+		dns_zone_detach(&zone);
 	if (version != NULL)
 		dns_db_closeversion(db, &version, false);
 	if (db != NULL)
