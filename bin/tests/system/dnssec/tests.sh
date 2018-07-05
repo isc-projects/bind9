@@ -74,6 +74,7 @@ stripns () {
     awk '($4 == "NS") || ($4 == "RRSIG" && $5 == "NS") { next} { print }' $1
 }
 
+if false; then
 # Check that for a query against a validating resolver where the
 # authoritative zone is unsigned (insecure delegation), glue is returned
 # in the additional section
@@ -2897,6 +2898,8 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+fi
+
 echo_i "testing DNSKEY lookup via DNAME ($n)"
 ret=0
 $DIG $DIGOPTS a.dnameandkey.secure.example. \
@@ -2923,6 +2926,49 @@ grep "DNAME" dig.out.ns4.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+echo_i "doing cache magic"
+$DIG $DIGOPTS @10.53.0.3 -f - << _EOF > /dev/null 2>&1
+example. ns
+secure.example. ns
+dnameandkey.secure.example. ns
+_EOF
+$DIG $DIGOPTS @10.53.0.4 -f - << _EOF > /dev/null 2>&1
+example. ns
+secure.example. ns
+dnameandkey.secure.example. ns
+_EOF
+
+echo_i "same test again"
+
+echo_i "testing DNSKEY lookup via DNAME ($n)"
+ret=0
+$DIG $DIGOPTS a.dnameandkey.secure.example. \
+	@10.53.0.3 dnskey > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS a.dnameandkey.secure.example. \
+	@10.53.0.4 dnskey > dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "CNAME" dig.out.ns4.test$n > /dev/null || ret=1
+grep "DNAME" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "testing KEY lookup via DNAME ($n)"
+ret=0
+$DIG $DIGOPTS b.dnameandkey.secure.example. \
+	@10.53.0.3 key > dig.out.ns3.test$n || ret=1
+$DIG $DIGOPTS b.dnameandkey.secure.example. \
+	@10.53.0.4 key > dig.out.ns4.test$n || ret=1
+digcomp dig.out.ns3.test$n dig.out.ns4.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null || ret=1
+grep "DNAME" dig.out.ns4.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+if false; then 
 
 echo_i "check that named doesn't loop when all private keys are not available ($n)"
 ret=0
@@ -3559,6 +3605,8 @@ grep "view rec: *validat" ns4/named.run > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+fi
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
