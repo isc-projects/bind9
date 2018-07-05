@@ -6608,6 +6608,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 	unsigned int nlabels;
 	dns_fixedname_t fixed;
 	dns_name_t prefix;
+	int order;
 
 	REQUIRE(rdataset != NULL);
 	REQUIRE(rdataset->type == dns_rdatatype_cname ||
@@ -6630,17 +6631,24 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		tname = &cname.cname;
 		break;
 	case dns_rdatatype_dname:
+		if (dns_name_fullcompare(qname, rname, &order, &nlabels) !=
+		    dns_namereln_subdomain)
+		{
+			return (true);
+		}
 		result = dns_rdata_tostruct(&rdata, &dname, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_name_init(&prefix, NULL);
 		tname = dns_fixedname_initname(&fixed);
 		nlabels = dns_name_countlabels(qname) -
 			  dns_name_countlabels(rname);
+		INSIST(nlabels > 0);
 		dns_name_split(qname, nlabels, &prefix, NULL);
 		result = dns_name_concatenate(&prefix, &dname.dname, tname,
 					      NULL);
-		if (result == DNS_R_NAMETOOLONG)
+		if (result == DNS_R_NAMETOOLONG) {
 			return (true);
+		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		break;
 	default:
@@ -8172,6 +8180,8 @@ rctx_answer_match(respctx_t *rctx) {
 	}
 	if ((rctx->ardataset->type == dns_rdatatype_cname ||
 	     rctx->ardataset->type == dns_rdatatype_dname) &&
+	    rctx->type != rctx->ardataset->type &&
+	    rctx->type != dns_rdatatype_any &&
 	    !is_answertarget_allowed(fctx, &fctx->name, rctx->aname,
 				     rctx->ardataset, NULL))
 	{
