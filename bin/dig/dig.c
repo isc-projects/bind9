@@ -1004,7 +1004,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 						code = NULL;
 						if (value != NULL) {
 							code = strtok_r(value,
-								        ":",
+									":",
 									&last);
 						}
 						if (code == NULL) {

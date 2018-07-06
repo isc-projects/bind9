@@ -1,3 +1,6 @@
+5006.	[cleanup]	If "dnssec-enable" is no, then "dnssec-validation"
+			now also defaults to no.  [GL #388]
+
 5005.	[bug]		dnssec-verify, and dnssec-signzone at the verification
 			step, failed on some validly signed zones. [GL #442]
 
