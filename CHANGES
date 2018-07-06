@@ -1,3 +1,6 @@
+5044.	[cleanup]	If "dnssec-enable" is no, then "dnssec-validation"
+			now also defaults to no.  [GL #388]
+
 5043.	[bug]		Fix creating and validating EdDSA signatures. [GL #579]
 
 5042.	[test]		Make the chained delegations in reclimit behave
