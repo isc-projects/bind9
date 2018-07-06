@@ -845,18 +845,18 @@ parse_xint(uint32_t *uip, const char *value, uint32_t max,
 
 static void
 newopts(struct query *query) {
-        size_t len = sizeof(query->ednsopts[0]) * EDNSOPTS;
-        size_t i;
+	size_t len = sizeof(query->ednsopts[0]) * EDNSOPTS;
+	size_t i;
 
-        query->ednsopts = isc_mem_allocate(mctx, len);
-        if (query->ednsopts == NULL)
-                fatal("out of memory");
+	query->ednsopts = isc_mem_allocate(mctx, len);
+	if (query->ednsopts == NULL)
+		fatal("out of memory");
 
-        for (i = 0; i < EDNSOPTS; i++) {
-                query->ednsopts[i].code = 0;
-                query->ednsopts[i].length = 0;
-                query->ednsopts[i].value = NULL;
-        }
+	for (i = 0; i < EDNSOPTS; i++) {
+		query->ednsopts[i].code = 0;
+		query->ednsopts[i].length = 0;
+		query->ednsopts[i].value = NULL;
+	}
 }
 
 static void
@@ -1296,7 +1296,7 @@ plus_option(char *option, struct query *query, bool global)
 							      "specified");
 						}
 						value = strtok_r(NULL, "\0",
-							         &last);
+								 &last);
 						save_opt(query, code, value);
 						break;
 					default:
