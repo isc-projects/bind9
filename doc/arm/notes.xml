@@ -72,6 +72,13 @@
 	  remote queries. This flaw is disclosed in CVE-2018-5738. [GL #309]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> could crash during recursive processing
+	  of DNAME records when <command>deny-answer-aliases</command> was
+	  in use. This flaw is disclosed in CVE-2018-5740. [GL #387]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
