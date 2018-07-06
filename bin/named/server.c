@@ -4064,14 +4064,38 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	view->acceptexpired = cfg_obj_asboolean(obj);
 
 	obj = NULL;
-	result = named_config_get(maps, "dnssec-validation", &obj);
+	result = named_config_get(maps, "dnssec-enable", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_isboolean(obj)) {
-		view->enablevalidation = cfg_obj_asboolean(obj);
-	} else {
-		/* If dnssec-validation is not boolean, it must be "auto" */
-		view->enablevalidation = true;
-		auto_root = true;
+	view->enablednssec = cfg_obj_asboolean(obj);
+
+	obj = NULL;
+	/* 'optionmaps' not 'maps' */
+	result = named_config_get(optionmaps, "dnssec-validation", &obj);
+	if (obj == NULL) {
+		/*
+		 * If dnssec-enable is yes, then we default to
+		 * VALIDATION_DEFAULT as set in config.c. Otherwise
+		 * we default to "no".
+		 */
+		if (!view->enablednssec) {
+			view->enablevalidation = false;
+		} else {
+			(void)cfg_map_get(named_g_defaults,
+					  "dnssec-validation", &obj);
+			INSIST(obj != NULL);
+		}
+	}
+	if (obj != NULL) {
+		if (cfg_obj_isboolean(obj)) {
+			view->enablevalidation = cfg_obj_asboolean(obj);
+		} else {
+			/*
+			 * If dnssec-validation is set but not boolean,
+			 * then it must be "auto"
+			 */
+			view->enablevalidation = true;
+			auto_root = true;
+		}
 	}
 
 	obj = NULL;
@@ -5043,11 +5067,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		if (view->prefetch_eligible < view->prefetch_trigger + 6)
 			view->prefetch_eligible = view->prefetch_trigger + 6;
 	}
-
-	obj = NULL;
-	result = named_config_get(maps, "dnssec-enable", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	view->enablednssec = cfg_obj_asboolean(obj);
 
 	obj = NULL;
 	result = named_config_get(optionmaps, "dnssec-lookaside", &obj);
