@@ -38,6 +38,10 @@
 4988.	[bug]		Don't synthesize NXDOMAIN from NSEC for records under
 			a DNAME. [GL #386]
 
+4997.	[security]	named could crash during recursive processing
+			of DNAME records when "deny-answer-aliases" was
+			in use. (CVE-2018-5740) [GL #387]
+
 	--- 9.12.2 released ---
 
 	--- 9.12.2rc2 released ---
