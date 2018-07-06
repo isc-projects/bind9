@@ -1,3 +1,6 @@
+5008.	[cleanup]	If "dnssec-enable" is no, then "dnssec-validation"
+			now also defaults to no.  [GL #388]
+
 5007.	[cleanup]	Replace custom ISC boolean and integer data types
 			with C99 stdint.h and stdbool.h types. [GL #9]
 
