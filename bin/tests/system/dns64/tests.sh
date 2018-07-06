@@ -1409,5 +1409,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+grep "automatic ipv4only" ns?/named.run
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
