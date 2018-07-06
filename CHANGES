@@ -1,3 +1,6 @@
+5034.	[cleanup]	If "dnssec-enable" is no, then "dnssec-validation"
+			now also defaults to no.  [GL #388]
+
 5033.	[bug]		When adding NTAs to multiple views using "rndc nta",
 			the text returned via rndc was incorrectly terminated
 			after the first line, making it look as if only one
