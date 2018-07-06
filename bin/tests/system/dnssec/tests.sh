@@ -3573,5 +3573,20 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# Note: after this check, ns4 will not be validating any more; do not add any
+# further validation tests employing ns4 below this check.
+echo_i "check that validation defaults to off when dnssec-enable is off ($n)"
+ret=0
+# Sanity check - validation should be enabled.
+$RNDCCMD 10.53.0.4 validation status | grep "enabled" > /dev/null || ret=1
+# Set "dnssec-enable" to "no" and reconfigure.
+copy_setports ns4/named5.conf.in ns4/named.conf
+$RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
+# Check validation status again.
+$RNDCCMD 10.53.0.4 validation status | grep "disabled" > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
