@@ -4265,7 +4265,7 @@ idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
 	 * generally don't want to lowercase all input strings; make sure to
 	 * return the original case if the two strings differ only in case.
 	 */
-	final_src = (!strcasecmp(src, ascii_src) ? src : ascii_src);
+	final_src = (strcasecmp(src, ascii_src) == 0 ? src : ascii_src);
 
 	(void)strlcpy(dst, final_src, dstlen);
 
