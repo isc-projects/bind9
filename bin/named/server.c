@@ -5444,7 +5444,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	(void)named_config_get(maps, "ipv4only-enable", &obj);
 	if (view->rdclass == dns_rdataclass_in &&
-	    (obj != NULL) ? cfg_obj_asboolean(obj) : view->recursion)
+	    (obj != NULL) ? cfg_obj_asboolean(obj) :
+			    !ISC_LIST_EMPTY(view->dns64))
 	{
 		const char *server, *contact;
 		dns_fixedname_t fixed;
