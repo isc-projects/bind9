@@ -676,8 +676,8 @@ ATFBUILD
 LD_WRAP_TESTS
 CMOCKA_LIBS
 CMOCKA_CFLAGS
-LIBIDN2_LIBS
 LIBIDN2_LDFLAGS
+LIBIDN2_LIBS
 LIBIDN2_CFLAGS
 XSLT_DBLATEX_FASTBOOK
 XSLT_DBLATEX_STYLE
@@ -1060,6 +1060,8 @@ CPP
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+LIBIDN2_CFLAGS
+LIBIDN2_LIBS
 CMOCKA_CFLAGS
 CMOCKA_LIBS'
 
@@ -1803,6 +1805,10 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  LIBIDN2_CFLAGS
+              C compiler flags for LIBIDN2, overriding pkg-config
+  LIBIDN2_LIBS
+              linker flags for LIBIDN2, overriding pkg-config
   CMOCKA_CFLAGS
               C compiler flags for CMOCKA, overriding pkg-config
   CMOCKA_LIBS linker flags for CMOCKA, overriding pkg-config
@@ -22423,22 +22429,113 @@ else
   with_libidn2="no"
 fi
 
-if test "$with_libidn2" != "no"; then :
+case $with_libidn2 in #(
+  yes) :
 
-	save_CFLAGS="$CFLAGS"
-	save_CPPFLAGS="$CPPFLAGS"
-	save_LDFLAGS="$LDFLAGS"
-	save_LIBS="$LIBS"
-	if test "$with_libidn2" != "yes"; then :
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBIDN2" >&5
+$as_echo_n "checking for LIBIDN2... " >&6; }
 
-		LIBIDN2_CFLAGS="-I$with_libidn2/include"
-		LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
-		CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
-		CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
-		LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
-
+if test -n "$LIBIDN2_CFLAGS"; then
+    pkg_cv_LIBIDN2_CFLAGS="$LIBIDN2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libidn2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libidn2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBIDN2_CFLAGS=`$PKG_CONFIG --cflags "libidn2" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
 fi
-	for ac_header in idn2.h
+ else
+    pkg_failed=untried
+fi
+if test -n "$LIBIDN2_LIBS"; then
+    pkg_cv_LIBIDN2_LIBS="$LIBIDN2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libidn2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libidn2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBIDN2_LIBS=`$PKG_CONFIG --libs "libidn2" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBIDN2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libidn2" 2>&1`
+        else
+	        LIBIDN2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libidn2" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBIDN2_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (libidn2) were not met:
+
+$LIBIDN2_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables LIBIDN2_CFLAGS
+and LIBIDN2_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables LIBIDN2_CFLAGS
+and LIBIDN2_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	LIBIDN2_CFLAGS=$pkg_cv_LIBIDN2_CFLAGS
+	LIBIDN2_LIBS=$pkg_cv_LIBIDN2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	$as_echo "#define HAVE_IDN2_H 1" >>confdefs.h
+
+fi ;; #(
+  no) :
+     ;; #(
+  *) :
+    save_CFLAGS="$CFLAGS"
+		 save_CPPFLAGS="$CPPFLAGS"
+		 save_LDFLAGS="$LDFLAGS"
+		 save_LIBS="$LIBS"
+		 LIBIDN2_CFLAGS="-I$with_libidn2/include"
+		 LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
+		 CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
+		 CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
+		 LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
+		 for ac_header in idn2.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "idn2.h" "ac_cv_header_idn2_h" "$ac_includes_default"
 if test "x$ac_cv_header_idn2_h" = xyes; then :
@@ -22452,7 +22549,7 @@ fi
 
 done
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_lz" >&5
+		 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_lz" >&5
 $as_echo_n "checking for library containing idn2_to_ascii_lz... " >&6; }
 if ${ac_cv_search_idn2_to_ascii_lz+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -22510,13 +22607,13 @@ else
   as_fn_error $? "libidn2 requested, but not found" "$LINENO" 5
 fi
 
-	CFLAGS="$save_CFLAGS"
-	CPPFLAGS="$save_CPPFLAGS"
-	LDFLAGS="$save_LDFLAGS"
-	LIBS="$save_LIBS"
-
-fi
-
+		 CFLAGS="$save_CFLAGS"
+		 CPPFLAGS="$save_CPPFLAGS"
+		 LDFLAGS="$save_LDFLAGS"
+		 LIBS="$save_LIBS" ;; #(
+  *) :
+     ;;
+esac
 
 
 

@@ -4521,38 +4521,35 @@ NOM_PATH_FILE(XSLT_DBLATEX_FASTBOOK, xsl/latex_book_fast.xsl, $dblatex_xsl_trees
 LIBIDN2_CFLAGS=
 LIBIDN2_LDFLAGS=
 LIBIDN2_LIBS=
-AC_ARG_WITH(libidn2,
-	AS_HELP_STRING([--with-libidn2[=PATH]], [enable IDN support using GNU libidn2 [yes|no(default)|path]]),
-	with_libidn2="$withval", with_libidn2="no")
-AS_IF([test "$with_libidn2" != "no"],
-      [
-	save_CFLAGS="$CFLAGS"
-	save_CPPFLAGS="$CPPFLAGS"
-	save_LDFLAGS="$LDFLAGS"
-	save_LIBS="$LIBS"
-	AS_IF([test "$with_libidn2" != "yes"],
-	      [
-		LIBIDN2_CFLAGS="-I$with_libidn2/include"
-		LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
-		CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
-		CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
-		LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
-	      ])
-	AC_CHECK_HEADERS([idn2.h],
-			 [],
-			 [AC_MSG_ERROR([idn2.h not found])])
-	AC_SEARCH_LIBS([idn2_to_ascii_lz], [idn2],
-		       [LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"],
-		       [AC_MSG_ERROR([libidn2 requested, but not found])])
-	CFLAGS="$save_CFLAGS"
-	CPPFLAGS="$save_CPPFLAGS"
-	LDFLAGS="$save_LDFLAGS"
-	LIBS="$save_LIBS"
-      ])
+AC_ARG_WITH([libidn2],
+	    [AS_HELP_STRING([--with-libidn2[=PATH]], [enable IDN support using GNU libidn2 [yes|no(default)|path]])],
+	    [with_libidn2="$withval"], [with_libidn2="no"])
+AS_CASE([$with_libidn2],
+	[yes],	[PKG_CHECK_MODULES([LIBIDN2], [libidn2],
+				   [AC_DEFINE([HAVE_IDN2_H])])],
+	[no],	[],
+	[*],	[save_CFLAGS="$CFLAGS"
+		 save_CPPFLAGS="$CPPFLAGS"
+		 save_LDFLAGS="$LDFLAGS"
+		 save_LIBS="$LIBS"
+		 LIBIDN2_CFLAGS="-I$with_libidn2/include"
+		 LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
+		 CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
+		 CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
+		 LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
+		 AC_CHECK_HEADERS([idn2.h],
+				  [],
+				  [AC_MSG_ERROR([idn2.h not found])])
+		 AC_SEARCH_LIBS([idn2_to_ascii_lz], [idn2],
+				[LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"],
+				[AC_MSG_ERROR([libidn2 requested, but not found])])
+		 CFLAGS="$save_CFLAGS"
+		 CPPFLAGS="$save_CPPFLAGS"
+		 LDFLAGS="$save_LDFLAGS"
+		 LIBS="$save_LIBS"])
 AC_SUBST([LIBIDN2_CFLAGS])
 AC_SUBST([LIBIDN2_LDFLAGS])
 AC_SUBST([LIBIDN2_LIBS])
-
 #
 # Check whether to build with cmocka unit testing framework
 #
