@@ -3573,5 +3573,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "check that validation defaults off when dnssec-enable is off ($n)"
+ret=0
+copy_setports ns4/named5.conf.in ns4/named.conf
+$RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
+sleep 3
+$RNDCCMD 10.53.0.4 validation status | grep 'disabled' > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
