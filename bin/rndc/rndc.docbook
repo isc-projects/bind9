@@ -1070,11 +1070,13 @@
 	<listitem>
 	  <para>
 	    Enable, disable, or check the current status of
-	    DNSSEC validation.
-	    Note <command>dnssec-enable</command> also needs to be
-	    set to <userinput>yes</userinput> or
-	    <userinput>auto</userinput> to be effective.
-	    It defaults to enabled.
+	    DNSSEC validation.  By default, validation is enabled.
+	    (Note that <command>dnssec-enable</command> must also be
+	    set to <userinput>yes</userinput> for signatures to be
+	    returned along with validated data. If DNSSEC is disabed
+	    but validation is enabled, the server will validate
+	    internally but will not supply clients with the necesary
+	    records to allow validity to be confirmed.)
 	  </para>
 	</listitem>
       </varlistentry>

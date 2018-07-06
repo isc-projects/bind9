@@ -2202,22 +2202,18 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
       </section>
 
       <section xml:id="dnssec_config"><info><title>Configuring Servers</title></info>
-
 	<para>
 	  To enable <command>named</command> to respond appropriately
 	  to DNS requests from DNSSEC aware clients,
 	  <command>dnssec-enable</command> must be set to yes.
 	  This is the default setting.
 	</para>
-
 	<para>
 	  To enable <command>named</command> to validate answers from
-	  other servers, the <command>dnssec-enable</command> option
-	  must be set to <userinput>yes</userinput>, and the
+	  other servers, the
 	  <command>dnssec-validation</command> option must be set to
 	  either <userinput>yes</userinput> or <userinput>auto</userinput>.
 	</para>
-
 	<para>
 	  When <command>dnssec-validation</command> is set to
 	  <userinput>auto</userinput>, a trust anchor for the DNS
@@ -2226,7 +2222,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  key management.
 	  If <command>dnssec-validation</command> is set to
 	  <userinput>yes</userinput>, then
-	  DNSSEC validation only occurs if
+	  DNSSEC validation will only occur if
 	  at least one trust anchor has been explicitly configured
 	  in <filename>named.conf</filename>,
 	  using a <command>trusted-keys</command> or
@@ -2234,9 +2230,20 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  If <command>dnssec-validation</command> is set to
 	  <userinput>no</userinput>, then DNSSEC validation will
 	  not occur.
+	</para>
+	<para>
 	  The default is <userinput>auto</userinput> unless BIND is
 	  built with <command>configure --disable-auto-validation</command>,
 	  in which case the default is <userinput>yes</userinput>.
+	</para>
+	<para>
+	  If <command>dnssec-enable</command> is set to
+	  <userinput>no</userinput>, then the default for
+	  <command>dnssec-validation</command> is also changed to
+	  <userinput>no</userinput>. Validation can still be turned on
+	  if desired - this results in a server that performs DNSSEC
+	  validation but does not return signatures when queried -
+	  but it will not be turned on automatically.
 	</para>
 
 	<para>
@@ -6599,20 +6606,38 @@ options {
 	      <term><command>dnssec-validation</command></term>
 	      <listitem>
 		<para>
-		  Enable DNSSEC validation in <command>named</command>.
-		  Note <command>dnssec-enable</command> also needs to be
-		  set to <userinput>yes</userinput> to be effective.
-		  If set to <userinput>no</userinput>, DNSSEC validation
-		  is disabled.
+		  This enables DNSSEC validation in <command>named</command>.
+		  Note that <command>dnssec-enable</command> also needs to
+		  be set to <userinput>yes</userinput> for signatures to be
+		  returned to the client along with validated answers.
 		</para>
 	        <para>
-		  If set to <userinput>auto</userinput>, DNSSEC validation
-		  is enabled, and a default trust anchor for the DNS root
-		  zone is used.  If set to <userinput>yes</userinput>,
-		  DNSSEC validation is enabled, but a trust anchor must be
-		  manually configured using a <command>trusted-keys</command>
-		  or <command>managed-keys</command> statement.  The default
-		  is <userinput>yes</userinput>.
+		  If set to <userinput>auto</userinput>,
+		  DNSSEC validation is enabled, and a default trust anchor
+		  for the DNS root zone is used.
+		  If set to <userinput>yes</userinput>, DNSSEC validation is
+		  enabled, but a trust anchor must be manually configured
+		  using a <command>trusted-keys</command>
+		  or <command>managed-keys</command> statement; if there
+		  is no configured trust anchor, validation will not take
+		  place.
+		</para>
+		<para>
+		  If set to <userinput>no</userinput>, DNSSEC validation
+		  is disabled.
+		  The default is <userinput>auto</userinput>, unless
+		  BIND is built with
+		  <command>configure --disable-auto-validation</command>,
+		  in which case the default is <userinput>yes</userinput>.
+		</para>
+		<para>
+		  If <command>dnssec-enable</command> is set to
+		  <userinput>no</userinput>, then the default for
+		  <command>dnssec-validation</command> is also
+		  <userinput>no</userinput>. Validation can still be turned on
+		  if desired - this results in a server that performs DNSSEC
+		  validation but does not return signatures when queried -
+		  but it will not be turned on automatically.
 		</para>
 		<para>
 		  The default root trust anchor is stored in the file
@@ -6634,8 +6659,8 @@ options {
 		</para>
 		<note>
 		  <para>
-		    <command>named</command> <emphasis>only</emphasis>
-		    loads the root key from <filename>bind.keys</filename>.
+		    <command>named</command> loads <emphasis>only</emphasis>
+		    the root key from <filename>bind.keys</filename>.
 		    The file cannot be used to store keys for other zones.
 		    The root key in <filename>bind.keys</filename> is ignored
 		    if <command>dnssec-validation auto</command> is not in
