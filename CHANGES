@@ -1,3 +1,6 @@
+5036.	[cleanup]	If "dnssec-enable" is no, then "dnssec-validation"
+			now also defaults to no.  [GL #388]
+
 5035.	[test]		Fixed errors that prevented the DNSRPS subtests
 			from running in the rpz and rpzrecurse system
 			tests. [GL #503]
