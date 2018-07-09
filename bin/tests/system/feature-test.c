@@ -153,7 +153,7 @@ main(int argc, char **argv) {
 	}
 
 	if (strcmp(argv[1], "--with-idn") == 0) {
-#ifdef HAVE_IDN2_H
+#ifdef HAVE_LIBIDN2
 		return (0);
 #else
 		return (1);

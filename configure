@@ -22433,8 +22433,8 @@ case $with_libidn2 in #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBIDN2" >&5
-$as_echo_n "checking for LIBIDN2... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libidn2" >&5
+$as_echo_n "checking for libidn2... " >&6; }
 
 if test -n "$LIBIDN2_CFLAGS"; then
     pkg_cv_LIBIDN2_CFLAGS="$LIBIDN2_CFLAGS"
@@ -22474,7 +22474,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -22501,7 +22501,7 @@ Alternatively, you may set the environment variables LIBIDN2_CFLAGS
 and LIBIDN2_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -22520,7 +22520,8 @@ else
 	LIBIDN2_LIBS=$pkg_cv_LIBIDN2_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	$as_echo "#define HAVE_IDN2_H 1" >>confdefs.h
+
+$as_echo "#define HAVE_LIBIDN2 1" >>confdefs.h
 
 fi ;; #(
   no) :
@@ -22603,6 +22604,9 @@ ac_res=$ac_cv_search_idn2_to_ascii_lz
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
   LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"
+
+$as_echo "#define HAVE_LIBIDN2 1" >>confdefs.h
+
 else
   as_fn_error $? "libidn2 requested, but not found" "$LINENO" 5
 fi

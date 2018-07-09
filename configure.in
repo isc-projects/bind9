@@ -4526,7 +4526,7 @@ AC_ARG_WITH([libidn2],
 	    [with_libidn2="$withval"], [with_libidn2="no"])
 AS_CASE([$with_libidn2],
 	[yes],	[PKG_CHECK_MODULES([LIBIDN2], [libidn2],
-				   [AC_DEFINE([HAVE_IDN2_H])])],
+				   [AC_DEFINE([HAVE_LIBIDN2], [1], [Define to 1 if you have the `idn2' library (-lidn2).])])],
 	[no],	[],
 	[*],	[save_CFLAGS="$CFLAGS"
 		 save_CPPFLAGS="$CPPFLAGS"
@@ -4541,7 +4541,8 @@ AS_CASE([$with_libidn2],
 				  [],
 				  [AC_MSG_ERROR([idn2.h not found])])
 		 AC_SEARCH_LIBS([idn2_to_ascii_lz], [idn2],
-				[LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"],
+				[LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"
+				 AC_DEFINE([HAVE_LIBIDN2], [1], [Define to 1 if you have the `idn2' library (-lidn2).])],
 				[AC_MSG_ERROR([libidn2 requested, but not found])])
 		 CFLAGS="$save_CFLAGS"
 		 CPPFLAGS="$save_CPPFLAGS"

@@ -326,6 +326,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `c_r' library (-lc_r). */
 #undef HAVE_LIBC_R
 
+/* Define to 1 if you have the `idn2' library (-lidn2). */
+#undef HAVE_LIBIDN2
+
 /* Define to 1 if you have the `nsl' library (-lnsl). */
 #undef HAVE_LIBNSL
 
