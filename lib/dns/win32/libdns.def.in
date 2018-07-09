@@ -1092,6 +1092,7 @@ dns_validator_send
 dns_view_adddelegationonly
 dns_view_addzone
 dns_view_asyncload
+dns_view_asyncload2
 dns_view_attach
 dns_view_checksig
 dns_view_create
@@ -1166,6 +1167,7 @@ dns_xfrin_detach
 dns_xfrin_shutdown
 dns_zone_addnsec3chain
 dns_zone_asyncload
+dns_zone_asyncload2
 dns_zone_attach
 dns_zone_catz_enable
 dns_zone_catz_enable_db
@@ -1403,6 +1405,7 @@ dns_zonemgr_unreachabledel
 dns_zt_apply
 dns_zt_apply2
 dns_zt_asyncload
+dns_zt_asyncload2
 dns_zt_attach
 dns_zt_create
 dns_zt_detach
