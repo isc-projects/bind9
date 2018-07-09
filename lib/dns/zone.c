@@ -708,6 +708,7 @@ struct dns_asyncload {
 	dns_zone_t *zone;
 	dns_zt_zoneloaded_t loaded;
 	void *loaded_arg;
+	isc_boolean_t newonly;
 };
 
 /*%
@@ -2180,7 +2181,9 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	LOCK_ZONE(zone);
-	result = zone_load(zone, 0, ISC_TRUE);
+	result = zone_load(zone,
+			   (asl->newonly == ISC_TRUE) ? DNS_ZONELOADFLAG_NOSTAT : 0,
+			   ISC_TRUE);
 	if (result != DNS_R_CONTINUE) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	}
@@ -2196,6 +2199,13 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 
 isc_result_t
 dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
+	return (dns_zone_asyncload2(zone, done, arg, ISC_FALSE));
+}
+
+isc_result_t
+dns_zone_asyncload2(dns_zone_t *zone, dns_zt_zoneloaded_t done, void * arg,
+		    isc_boolean_t newonly)
+{
 	isc_event_t *e;
 	dns_asyncload_t *asl = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -2219,6 +2229,7 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 	asl->zone = NULL;
 	asl->loaded = done;
 	asl->loaded_arg = arg;
+	asl->newonly = newonly;
 
 	e = isc_event_allocate(zone->zmgr->mctx, zone->zmgr,
 			       DNS_EVENT_ZONELOAD,
