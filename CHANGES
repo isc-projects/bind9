@@ -1,3 +1,6 @@
+4988.	[bug]		Trust anchor telemetry queries were not being sent
+			upstream for locally served zones. [GL #392]
+
 	--- 9.13.2 released ---
 
 4987.	[cleanup]	dns_rdataslab_tordataset() and its related
