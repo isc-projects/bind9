@@ -6502,7 +6502,8 @@ struct dotat_arg {
 
 /*%
  * Prepare the QNAME for the TAT query to be sent by processing the trust
- * anchors present at 'keynode' of 'keytable'.  Store the result in 'dst'.
+ * anchors present at 'keynode' of 'keytable'.  Store the result in 'dst' and
+ * the domain name which 'keynode' is associated with in 'origin'.
  *
  * A maximum of 12 key IDs can be reported in a single TAT query due to the
  * 63-octet length limit for any label in a domain name.  If there are more
@@ -6510,14 +6511,13 @@ struct dotat_arg {
  * reported in the TAT query.
  */
 static isc_result_t
-get_tat_qname(dns_name_t *dst, dns_keytable_t *keytable,
+get_tat_qname(dns_name_t *dst, dns_name_t **origin, dns_keytable_t *keytable,
 	      dns_keynode_t *keynode)
 {
 	dns_keynode_t *firstnode = keynode;
 	dns_keynode_t *nextnode;
 	unsigned int i, n = 0;
 	isc_uint16_t ids[12];
-	dns_name_t *origin;
 	isc_textregion_t r;
 	char label[64];
 	int m;
@@ -6525,7 +6525,7 @@ get_tat_qname(dns_name_t *dst, dns_keytable_t *keytable,
 	do {
 		dst_key_t *key = dns_keynode_key(keynode);
 		if (key != NULL) {
-			origin = dst_key_name(key);
+			*origin = dst_key_name(key);
 			if (n < (sizeof(ids)/sizeof(ids[0]))) {
 				ids[n] = dst_key_id(key);
 				n++;
@@ -6567,15 +6567,16 @@ get_tat_qname(dns_name_t *dst, dns_keytable_t *keytable,
 		isc_textregion_consume(&r, m);
 	}
 
-	return (dns_name_fromstring2(dst, label, origin, 0, NULL));
+	return (dns_name_fromstring2(dst, label, *origin, 0, NULL));
 }
 
 static void
 dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
+	dns_name_t *tatname, *origin, *domain;
 	struct dotat_arg *dotat_arg = arg;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_fixedname_t fixed;
-	dns_name_t *tatname;
+	dns_fixedname_t fixed, fdomain;
+	dns_rdataset_t nameservers;
 	isc_result_t result;
 	dns_view_t *view;
 	isc_task_t *task;
@@ -6589,7 +6590,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	task = dotat_arg->task;
 
 	tatname = dns_fixedname_initname(&fixed);
-	result = get_tat_qname(tatname, keytable, keynode);
+	result = get_tat_qname(tatname, &origin, keytable, keynode);
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
@@ -6613,12 +6614,54 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	isc_mem_attach(dotat_arg->view->mctx, &tat->mctx);
 	isc_task_attach(task, &tat->task);
 
-	result = dns_resolver_createfetch(view->resolver, tatname,
-					  dns_rdatatype_null, NULL, NULL,
-					  NULL, NULL, 0, 0, 0, NULL, tat->task,
-					  tat_done, tat, &tat->rdataset,
-					  &tat->sigrdataset, &tat->fetch);
+	/*
+	 * TAT queries should be sent to the authoritative servers for a given
+	 * zone.  If this function is called for a keytable node corresponding
+	 * to a locally served zone, calling dns_resolver_createfetch() with
+	 * NULL 'domain' and 'nameservers' arguments will cause 'tatname' to be
+	 * resolved locally, without sending any TAT queries upstream.
+	 *
+	 * Work around this issue by calling dns_view_findzonecut() first.  If
+	 * the zone is served locally, the NS RRset for the given domain name
+	 * will be retrieved from local data; if it is not, the deepest zone
+	 * cut we have for it will be retrieved from cache.  In either case,
+	 * passing the results to dns_resolver_createfetch() will prevent it
+	 * from returning NXDOMAIN for 'tatname' while still allowing it to
+	 * chase down any potential delegations returned by upstream servers in
+	 * order to eventually find the destination host to send the TAT query
+	 * to.
+	 *
+	 * 'origin' holds the domain name at 'keynode', i.e. the domain name
+	 * for which the trust anchors to be reported by this TAT query are
+	 * defined.
+	 *
+	 * After the dns_view_findzonecut() call, 'domain' will hold the
+	 * deepest zone cut we can find for 'origin' while 'nameservers' will
+	 * hold the NS RRset at that zone cut.
+	 */
+	domain = dns_fixedname_initname(&fdomain);
+	dns_rdataset_init(&nameservers);
+	result = dns_view_findzonecut(view, origin, domain, 0, 0, ISC_TRUE,
+				      ISC_TRUE, &nameservers, NULL);
+	if (result != ISC_R_SUCCESS) {
+		goto done;
+	}
 
+	result = dns_resolver_createfetch(view->resolver, tatname,
+					  dns_rdatatype_null, domain,
+					  &nameservers, NULL, NULL, 0, 0, 0,
+					  NULL, tat->task, tat_done, tat,
+					  &tat->rdataset, &tat->sigrdataset,
+					  &tat->fetch);
+
+	/*
+	 * dns_resolver_createfetch() creates its own copies of 'domain' and
+	 * 'nameservers'; clean up the latter (the former points into a
+	 * dst_key_t structure and thus must not be freed).
+	 */
+	dns_rdataset_disassociate(&nameservers);
+
+ done:
 	if (result != ISC_R_SUCCESS) {
 		isc_task_detach(&tat->task);
 		isc_mem_putanddetach(&tat->mctx, tat, sizeof(*tat));

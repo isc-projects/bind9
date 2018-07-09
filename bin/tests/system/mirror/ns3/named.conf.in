@@ -28,6 +28,8 @@ options {
 	listen-on-v6 { none; };
 	recursion yes;
 	allow-query-cache { 10.53.0.1; };
+	trust-anchor-telemetry yes;
+	dnssec-validation yes;
 };
 
 zone "." {
