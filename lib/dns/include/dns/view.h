@@ -808,6 +808,10 @@ dns_view_loadnew(dns_view_t *view, bool stop);
 
 isc_result_t
 dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg);
+
+isc_result_t
+dns_view_asyncload2(dns_view_t *view, dns_zt_allloaded_t callback, void *arg,
+		    bool newonly);
 /*%<
  * Load zones attached to this view.  dns_view_load() loads
  * all zones whose master file has changed since the last
