@@ -8652,7 +8652,7 @@ load_zones(ns_server_t *server, isc_boolean_t init, isc_boolean_t reconfig) {
 		 * zones.
 		 */
 		isc_refcount_increment(&zl->refs, NULL);
-		CHECK(dns_view_asyncload(view, view_loaded, zl));
+		CHECK(dns_view_asyncload2(view, view_loaded, zl, reconfig));
 	}
 
  cleanup:

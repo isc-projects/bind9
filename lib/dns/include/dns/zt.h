@@ -145,6 +145,10 @@ dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop);
 
 isc_result_t
 dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg);
+
+isc_result_t
+dns_zt_asyncload2(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg,
+                  isc_boolean_t newonly);
 /*%<
  * Load all zones in the table.  If 'stop' is ISC_TRUE,
  * stop on the first error and return it.  If 'stop'
