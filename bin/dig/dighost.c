@@ -4258,10 +4258,6 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 	char *tmp_str = NULL;
 
 	res = idn2_to_ascii_lz(from, &tmp_str, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
-	if (res == IDN2_DISALLOWED) {
-		res = idn2_to_ascii_lz(from, &tmp_str, IDN2_TRANSITIONAL|IDN2_NFC_INPUT);
-	}
-
 	if (res == IDN2_OK) {
 		/*
 		 * idn2_to_ascii_lz() normalizes all strings to lowerl case,
@@ -4291,7 +4287,7 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 		return ISC_R_SUCCESS;
 	}
 
-	fatal("'%s' is not a legal IDN name (%s), use +noidnin", from, idn2_strerror(res));
+	fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnin", from, idn2_strerror(res));
 	return ISC_R_FAILURE;
 }
 
@@ -4316,7 +4312,7 @@ idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 		return ISC_R_SUCCESS;
 	}
 
-	fatal("'%s' is not a legal IDN name (%s), use +noidnout", from, idn2_strerror(res));
+	fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnout", from, idn2_strerror(res));
 	return ISC_R_FAILURE;
 }
 #endif /* HAVE_LIBIDN2 */
