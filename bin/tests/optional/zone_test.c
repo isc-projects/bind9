@@ -122,7 +122,7 @@ setup(const char *zonename, const char *filename, const char *classname) {
 	if (zonetype == dns_zone_slave)
 		dns_zone_setmasters(zone, &addr, 1);
 
-	result = dns_zone_load(zone);
+	result = dns_zone_load(zone, false);
 	ERRRET(result, "dns_zone_load");
 
 	result = dns_zonemgr_managezone(zonemgr, zone);

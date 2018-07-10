@@ -691,7 +691,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	if (dochecksrv)
 		dns_zone_setchecksrv(zone, checksrv);
 
-	CHECK(dns_zone_load(zone));
+	CHECK(dns_zone_load(zone, false));
 
 	/*
 	 * When loading map files we can't catch oversize TTLs during
