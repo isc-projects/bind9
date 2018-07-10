@@ -577,6 +577,7 @@ fuzz_thread_resolver(void *arg) {
 	}
 
 	free(buf);
+	free(rbuf);
 	close(sockfd);
 	close(listenfd);
 	named_server_flushonshutdown(named_g_server, ISC_FALSE);
