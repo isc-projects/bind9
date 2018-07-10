@@ -135,10 +135,9 @@ static char servercookie[256];
 #ifdef HAVE_LIBIDN2
 static void idn_locale_to_ace(const char *src, char *dst, size_t dstlen);
 static void idn_ace_to_locale(const char *src, char **dst);
-static isc_result_t output_filter(isc_buffer_t *buffer,
-		unsigned int used_org,
-		isc_boolean_t absolute);
-#define MAXDLEN 256
+static isc_result_t idn_output_filter(isc_buffer_t *buffer,
+				      unsigned int used_org,
+				      isc_boolean_t absolute);
 #endif /* HAVE_LIBIDN2 */
 
 isc_socket_t *keep = NULL;
@@ -2012,7 +2011,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	char idn_origin[MXNAME], idn_textname[MXNAME];
 
 	result = dns_name_settotextfilter(lookup->idnout ?
-					  output_filter : NULL);
+					  idn_output_filter : NULL);
 	check_result(result, "dns_name_settotextfilter");
 #endif /* HAVE_LIBIDN2 */
 
@@ -4195,54 +4194,50 @@ destroy_libs(void) {
 
 #ifdef HAVE_LIBIDN2
 static isc_result_t
-output_filter(isc_buffer_t *buffer, unsigned int used_org,
-	      isc_boolean_t absolute)
+idn_output_filter(isc_buffer_t *buffer, unsigned int used_org,
+		  isc_boolean_t absolute)
 {
-	char tmp1[MAXDLEN], *tmp2;
-	size_t fromlen, tolen;
-	isc_boolean_t end_with_dot;
+	char src[MXNAME], *dst;
+	size_t srclen, dstlen;
+
+	UNUSED(absolute);
 
 	/*
-	 * Copy contents of 'buffer' to 'tmp1', supply trailing dot
-	 * if 'absolute' is true, and terminate with NUL.
+	 * Copy name from 'buffer' to 'src' and terminate it with NULL.
 	 */
-	fromlen = isc_buffer_usedlength(buffer) - used_org;
-	if (fromlen >= MAXDLEN)
+	srclen = isc_buffer_usedlength(buffer) - used_org;
+	if (srclen > sizeof(src)) {
+		warn("Input name too long to perform IDN conversion");
 		return (ISC_R_SUCCESS);
-
-	memmove(tmp1, (char *)isc_buffer_base(buffer) + used_org, fromlen);
-	end_with_dot = (tmp1[fromlen - 1] == '.') ? ISC_TRUE : ISC_FALSE;
-	if (absolute && !end_with_dot) {
-		fromlen++;
-		if (fromlen >= MAXDLEN)
-			return (ISC_R_SUCCESS);
-		tmp1[fromlen - 1] = '.';
 	}
-
-	tmp1[fromlen] = '\0';
-
-	/*
-	 * Convert contents of 'tmp1' to local encoding.
-	 */
-	idn_ace_to_locale(tmp1, &tmp2);
+	memmove(src, (char *)isc_buffer_base(buffer) + used_org, srclen);
+	src[srclen] = '\0';
 
 	/*
-	 * Copy the converted contents in 'tmp1' back to 'buffer'.
-	 * If we have appended trailing dot, remove it.
+	 * Convert 'src' to the current locale's character encoding.
 	 */
-	tolen = strlen(tmp2);
-	if (absolute && !end_with_dot && tmp2[tolen - 1] == '.')
-		tolen--;
+	idn_ace_to_locale(src, &dst);
 
-	if (isc_buffer_length(buffer) < used_org + tolen) {
-		idn2_free(tmp2);
+	/*
+	 * Check whether the converted name will fit back into 'buffer'.
+	 */
+	dstlen = strlen(dst);
+	if (isc_buffer_length(buffer) < used_org + dstlen) {
+		idn2_free(dst);
 		return (ISC_R_NOSPACE);
 	}
 
-	isc_buffer_subtract(buffer, isc_buffer_usedlength(buffer) - used_org);
-	memmove(isc_buffer_used(buffer), tmp2, tolen);
-	isc_buffer_add(buffer, (unsigned int)tolen);
-	idn2_free(tmp2);
+	/*
+	 * Put the converted name back into 'buffer'.
+	 */
+	isc_buffer_subtract(buffer, srclen);
+	memmove(isc_buffer_used(buffer), dst, dstlen);
+	isc_buffer_add(buffer, dstlen);
+
+	/*
+	 * Clean up.
+	 */
+	idn2_free(dst);
 
 	return (ISC_R_SUCCESS);
 }
