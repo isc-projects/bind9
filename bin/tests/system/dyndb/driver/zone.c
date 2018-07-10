@@ -151,7 +151,7 @@ load_zone(dns_zone_t *zone) {
 	bool zone_dynamic;
 	uint32_t serial;
 
-	result = dns_zone_load(zone);
+	result = dns_zone_load(zone, ISC_FALSE);
 	if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE
 	    && result != DNS_R_DYNAMIC && result != DNS_R_CONTINUE)
 		goto cleanup;
