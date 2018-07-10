@@ -657,8 +657,18 @@ main(int argc, char *argv[]) {
 	}
 
 	/* Allocate space for parameter attributes */
-	for (i = 0; i < param_attrcnt; i++)
+	for (i = 0; i < param_attrcnt; i++) {
+		param_template[i].pValue = NULL;
+	}
+
+	for (i = 0; i < param_attrcnt; i++) {
 		param_template[i].pValue = malloc(param_template[i].ulValueLen);
+		if (param_template[i].pValue == NULL) {
+			fprintf(stderr, "malloc failed\n");
+			error = 1;
+			goto exit_params;
+		}
+	}
 
 	rv = pkcs_C_GetAttributeValue(hSession, domainparams,
 				 dsa_param_template, DSA_PARAM_ATTRS);
@@ -713,9 +723,13 @@ main(int argc, char *argv[]) {
 	
  exit_params:
 	/* Free parameter attributes */
-	if (keyclass == key_dsa || keyclass == key_dh)
-		for (i = 0; i < param_attrcnt; i++)
-			free(param_template[i].pValue);
+	if (keyclass == key_dsa || keyclass == key_dh) {
+		for (i = 0; i < param_attrcnt; i++) {
+			if (param_template[i].pValue != NULL) {
+				free(param_template[i].pValue);
+			}
+		}
+	}
 
  exit_domain:
 	/* Destroy domain parameters */
