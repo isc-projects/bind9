@@ -101,6 +101,9 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
  * or we can determine whether there is data or not at the name.
  * If the name does not exist return the wildcard name.
  *
+ * Return DNS_R_DNAME when the NSEC indicates that name is covered by
+ * a DNAME.  'wild' is not set in this case.
+ *
  * Return ISC_R_IGNORE when the NSEC is not the appropriate one.
  */
 

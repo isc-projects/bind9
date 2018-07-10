@@ -379,11 +379,21 @@ dns_nsec_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	{
 		/*
 		 * This NSEC record is from somewhere higher in
-		 * the DNS, and at the parent of a delegation.
+		 * the DNS, and at the parent of a delegation or
+		 * at a DNAME.
 		 * It can not be legitimately used here.
 		 */
 		(*logit)(arg, ISC_LOG_DEBUG(3), "ignoring parent nsec");
 		return (ISC_R_IGNORE);
+	}
+
+	if (relation == dns_namereln_subdomain &&
+	    dns_nsec_typepresent(&rdata, dns_rdatatype_dname))
+	{
+		(*logit)(arg, ISC_LOG_DEBUG(3),
+			 "nsec proves covered by dname");
+		*exists = ISC_FALSE;
+		return (DNS_R_DNAME);
 	}
 
 	result = dns_rdata_tostruct(&rdata, &nsec, NULL);
