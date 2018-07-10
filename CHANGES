@@ -1,3 +1,6 @@
+4989.	[cleanup]	IDN support in dig has been reworked.  IDNA2003
+			fallbacks were removed in the process. [GL #384]
+
 4988.	[bug]		Don't synthesize NXDOMAIN from NSEC for records under
 			a DNAME.
 
