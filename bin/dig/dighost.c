@@ -133,9 +133,7 @@ int lookup_counter = 0;
 static char servercookie[256];
 
 #ifdef HAVE_LIBIDN2
-static isc_result_t idn_locale_to_ace(const char *from,
-		char *to,
-		size_t tolen);
+static void idn_locale_to_ace(const char *src, char *dst, size_t dstlen);
 static isc_result_t idn_ace_to_locale(const char *from,
 		char *to,
 		size_t tolen);
@@ -2055,8 +2053,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	textname = lookup->textname;
 #ifdef HAVE_LIBIDN2
 	if (lookup->idnin) {
-		result = idn_locale_to_ace(textname, idn_textname, sizeof(idn_textname));
-		check_result(result, "convert textname to IDN encoding");
+		idn_locale_to_ace(textname, idn_textname, sizeof(idn_textname));
 		debug("idn_textname: %s", idn_textname);
 		textname = idn_textname;
 	}
@@ -2091,8 +2088,8 @@ setup_lookup(dig_lookup_t *lookup) {
 		origin = lookup->origin->origin;
 #ifdef HAVE_LIBIDN2
 		if (lookup->idnin) {
-			result = idn_locale_to_ace(origin, idn_origin, sizeof(idn_origin));
-			check_result(result, "convert origin to IDN encoding");
+			idn_locale_to_ace(origin, idn_origin,
+					  sizeof(idn_origin));
 			debug("trying idn origin %s", idn_origin);
 			origin = idn_origin;
 		}
@@ -4252,43 +4249,40 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
-idn_locale_to_ace(const char *from, char *to, size_t tolen) {
+/*%
+ * Convert 'src', which is a string using the current locale's character
+ * encoding, into an ACE string suitable for use in the DNS, storing the
+ * conversion result in 'dst', which is 'dstlen' bytes large.
+ *
+ * 'dst' MUST be large enough to hold any valid domain name.
+ */
+static void
+idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
+	const char *final_src;
+	char *ascii_src;
 	int res;
-	char *tmp_str = NULL;
 
-	res = idn2_to_ascii_lz(from, &tmp_str, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
-	if (res == IDN2_OK) {
-		/*
-		 * idn2_to_ascii_lz() normalizes all strings to lowerl case,
-		 * but we generally don't want to lowercase all input strings;
-		 * make sure to return the original case if the two strings
-		 * differ only in case
-		 */
-		if (!strcasecmp(from, tmp_str)) {
-			if (strlen(from) >= tolen) {
-				debug("from string is too long");
-				idn2_free(tmp_str);
-				return ISC_R_NOSPACE;
-			}
-			idn2_free(tmp_str);
-			(void) strlcpy(to, from, tolen);
-			return ISC_R_SUCCESS;
-		}
-		/* check the length */
-		if (strlen(tmp_str) >= tolen) {
-			debug("ACE string is too long");
-			idn2_free(tmp_str);
-			return ISC_R_NOSPACE;
-		}
-
-		(void) strlcpy(to, tmp_str, tolen);
-		idn2_free(tmp_str);
-		return ISC_R_SUCCESS;
+	/*
+	 * We trust libidn2 to return an error if 'src' is too large to be a
+	 * valid domain name.
+	 */
+	res = idn2_to_ascii_lz(src, &ascii_src,
+			       IDN2_NFC_INPUT | IDN2_NONTRANSITIONAL);
+	if (res != IDN2_OK) {
+		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnin",
+		      src, idn2_strerror(res));
 	}
 
-	fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnin", from, idn2_strerror(res));
-	return ISC_R_FAILURE;
+	/*
+	 * idn2_to_ascii_lz() normalizes all strings to lower case, but we
+	 * generally don't want to lowercase all input strings; make sure to
+	 * return the original case if the two strings differ only in case.
+	 */
+	final_src = (strcasecmp(src, ascii_src) == 0 ? src : ascii_src);
+
+	(void)strlcpy(dst, final_src, dstlen);
+
+	idn2_free(ascii_src);
 }
 
 static isc_result_t
