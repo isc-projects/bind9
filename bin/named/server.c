@@ -6511,16 +6511,18 @@ struct dotat_arg {
  * reported in the TAT query.
  */
 static isc_result_t
-get_tat_qname(dns_name_t *dst, dns_name_t **origin, dns_keytable_t *keytable,
-	      dns_keynode_t *keynode)
+get_tat_qname(dns_name_t *dst, const dns_name_t **origin,
+	      dns_keytable_t *keytable, dns_keynode_t *keynode)
 {
 	dns_keynode_t *firstnode = keynode;
 	dns_keynode_t *nextnode;
 	unsigned int i, n = 0;
-	isc_uint16_t ids[12];
+	isc_uint16_t ids[12];	/* Only 12 id's will fit in a label. */
 	isc_textregion_t r;
 	char label[64];
 	int m;
+
+	REQUIRE(origin != NULL && *origin == NULL);
 
 	do {
 		dst_key_t *key = dns_keynode_key(keynode);
@@ -6572,7 +6574,8 @@ get_tat_qname(dns_name_t *dst, dns_name_t **origin, dns_keytable_t *keytable,
 
 static void
 dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
-	dns_name_t *tatname, *origin, *domain;
+	dns_name_t *tatname, *domain;
+	const dns_name_t *origin = NULL;
 	struct dotat_arg *dotat_arg = arg;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t fixed, fdomain;
