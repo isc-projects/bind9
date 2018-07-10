@@ -305,6 +305,7 @@ fuzz_main_resolver(void *arg) {
 	}
 
 	free(buf);
+	free(rbuf);
 	close(sockfd);
 	ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
 	isc_app_shutdown();
