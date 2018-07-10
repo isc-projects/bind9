@@ -1,4 +1,4 @@
-/*
+	/*
  * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -30,6 +30,11 @@
 #include <dns/zone.h>
 #include <dns/zt.h>
 
+struct zt_load_params {
+	dns_zt_zoneloaded_t dl;
+	isc_boolean_t newonly;
+};
+
 struct dns_zt {
 	/* Unlocked. */
 	unsigned int		magic;
@@ -38,6 +43,7 @@ struct dns_zt {
 	isc_rwlock_t		rwlock;
 	dns_zt_allloaded_t	loaddone;
 	void *			loaddone_arg;
+	struct zt_load_params 	*loadparams;	
 	/* Locked by lock. */
 	isc_boolean_t		flush;
 	isc_uint32_t		references;
@@ -48,6 +54,7 @@ struct dns_zt {
 #define ZTMAGIC			ISC_MAGIC('Z', 'T', 'b', 'l')
 #define VALID_ZT(zt) 		ISC_MAGIC_VALID(zt, ZTMAGIC)
 
+
 static void
 auto_detach(void *, void *);
 
@@ -56,9 +63,6 @@ load(dns_zone_t *zone, void *uap);
 
 static isc_result_t
 asyncload(dns_zone_t *zone, void *callback);
-
-static isc_result_t
-loadnew(dns_zone_t *zone, void *uap);
 
 static isc_result_t
 freezezones(dns_zone_t *zone, void *uap);
@@ -94,6 +98,7 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 	zt->magic = ZTMAGIC;
 	zt->loaddone = NULL;
 	zt->loaddone_arg = NULL;
+	zt->loadparams = NULL;
 	zt->loads_pending = 0;
 	*ztp = zt;
 
@@ -256,41 +261,45 @@ dns_zt_detach(dns_zt_t **ztp) {
 }
 
 isc_result_t
-dns_zt_load(dns_zt_t *zt, isc_boolean_t stop) {
+dns_zt_load(dns_zt_t *zt, isc_boolean_t stop, isc_boolean_t newonly) {
 	isc_result_t result;
-
+	struct zt_load_params params;
 	REQUIRE(VALID_ZT(zt));
-
+	params.newonly = newonly;
 	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-	result = dns_zt_apply(zt, stop, NULL, load, NULL);
+	result = dns_zt_apply(zt, stop, NULL, load, &params);
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
 	return (result);
 }
 
 static isc_result_t
-load(dns_zone_t *zone, void *uap) {
+load(dns_zone_t *zone, void *paramsv) {
 	isc_result_t result;
-	UNUSED(uap);
-
-	result = dns_zone_load(zone);
-	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE)
+	struct zt_load_params *params = (struct zt_load_params*) paramsv;
+	result = dns_zone_load(zone, params->newonly);
+	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE ||
+	    result == DNS_R_DYNAMIC) {
 		result = ISC_R_SUCCESS;
-
+	}
 	return (result);
 }
 
 isc_result_t
-dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
+dns_zt_asyncload(dns_zt_t *zt, isc_boolean_t newonly,
+		 dns_zt_allloaded_t alldone, void *arg) {
 	isc_result_t result;
-	static dns_zt_zoneloaded_t dl = doneloading;
 	int pending;
 
 	REQUIRE(VALID_ZT(zt));
-
+	zt->loadparams = isc_mem_get(zt->mctx, sizeof(struct zt_load_params));
+	if (zt->loadparams == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+	zt->loadparams->dl = doneloading;
+	zt->loadparams->newonly = newonly;
 	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
-
 	INSIST(zt->loads_pending == 0);
-	result = dns_zt_apply(zt, ISC_FALSE, NULL, asyncload, &dl);
+	result = dns_zt_apply(zt, ISC_FALSE, NULL, asyncload, zt);
 
 	pending = zt->loads_pending;
 	if (pending != 0) {
@@ -300,8 +309,11 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
 
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
 
-	if (pending == 0)
+	if (pending == 0) {
+		isc_mem_put(zt->mctx, zt->loadparams, sizeof(struct zt_load_params));
+		zt->loadparams = NULL;
 		alldone(arg);
+	}
 
 	return (result);
 }
@@ -312,50 +324,21 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg) {
  * the zone loading is complete.
  */
 static isc_result_t
-asyncload(dns_zone_t *zone, void *callback) {
+asyncload(dns_zone_t *zone, void *zt_) {
 	isc_result_t result;
-	dns_zt_zoneloaded_t *loaded = callback;
-	dns_zt_t *zt;
-
+	struct dns_zt *zt = (dns_zt_t*) zt_;
 	REQUIRE(zone != NULL);
-	zt = dns_zone_getview(zone)->zonetable;
-	INSIST(VALID_ZT(zt));
-
 	INSIST(zt->references > 0);
 	zt->references++;
 	zt->loads_pending++;
 
-	result = dns_zone_asyncload(zone, *loaded, zt);
+	result = dns_zone_asyncload(zone, zt->loadparams->newonly, *zt->loadparams->dl, zt);
 	if (result != ISC_R_SUCCESS) {
 		zt->references--;
 		zt->loads_pending--;
 		INSIST(zt->references > 0);
 	}
 	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop) {
-	isc_result_t result;
-
-	REQUIRE(VALID_ZT(zt));
-
-	RWLOCK(&zt->rwlock, isc_rwlocktype_read);
-	result = dns_zt_apply(zt, stop, NULL, loadnew, NULL);
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_read);
-	return (result);
-}
-
-static isc_result_t
-loadnew(dns_zone_t *zone, void *uap) {
-	isc_result_t result;
-	UNUSED(uap);
-
-	result = dns_zone_loadnew(zone);
-	if (result == DNS_R_CONTINUE || result == DNS_R_UPTODATE ||
-	    result == DNS_R_DYNAMIC)
-		result = ISC_R_SUCCESS;
-	return (result);
 }
 
 isc_result_t
@@ -563,6 +546,8 @@ doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 		arg = zt->loaddone_arg;
 		zt->loaddone = NULL;
 		zt->loaddone_arg = NULL;
+		isc_mem_put(zt->mctx, zt->loadparams, sizeof(struct zt_load_params));
+		zt->loadparams = NULL;
 	}
 	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
 
