@@ -4282,15 +4282,60 @@ idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
  */
 static void
 idn_ace_to_locale(const char *src, char **dst) {
-	char *local_src;
+	char *local_src, *utf8_src;
 	int res;
 
-	res = idn2_to_unicode_8zlz(src, &local_src,
-				   IDN2_NFC_INPUT | IDN2_NONTRANSITIONAL);
+	/*
+	 * We need to:
+	 *
+	 *  1) check whether 'src' is a valid IDNA2008 name,
+	 *  2) if it is, output it in the current locale's character encoding.
+	 *
+	 * Unlike idn2_to_ascii_*(), idn2_to_unicode_*() functions are unable
+	 * to perform IDNA2008 validity checks.  Thus, we need to decode any
+	 * Punycode in 'src', check if the resulting name is a valid IDNA2008
+	 * name, and only once we ensure it is, output that name in the current
+	 * locale's character encoding.
+	 *
+	 * We could just use idn2_to_unicode_8zlz() + idn2_to_ascii_lz(), but
+	 * then we would not be able to universally tell invalid names and
+	 * character encoding errors apart (if the current locale uses ASCII
+	 * for character encoding, the former function would fail even for a
+	 * valid IDNA2008 name, as long as it contained any non-ASCII
+	 * character).  Thus, we need to take a longer route.
+	 *
+	 * First, convert 'src' to UTF-8, ignoring the current locale.
+	 */
+	res = idn2_to_unicode_8z8z(src, &utf8_src, 0);
+	if (res != IDN2_OK) {
+		fatal("Bad ACE string '%s' (%s), use +noidnout",
+		      src, idn2_strerror(res));
+	}
+
+	/*
+	 * Then, check whether decoded 'src' is a valid IDNA2008 name.
+	 */
+	res = idn2_to_ascii_8z(utf8_src, NULL, IDN2_NONTRANSITIONAL);
 	if (res != IDN2_OK) {
 		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnout",
 		      src, idn2_strerror(res));
 	}
+
+	/*
+	 * Finally, try converting the decoded 'src' into the current locale's
+	 * character encoding.
+	 */
+	res = idn2_to_unicode_8zlz(utf8_src, &local_src, 0);
+	if (res != IDN2_OK) {
+		fatal("Cannot represent '%s' in the current locale (%s), "
+		      "use +noidnout or a different locale",
+		      src, idn2_strerror(res));
+	}
+
+	/*
+	 * Free the interim conversion result.
+	 */
+	idn2_free(utf8_src);
 
 	*dst = local_src;
 }
