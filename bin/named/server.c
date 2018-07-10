@@ -2608,12 +2608,12 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	 * Load the zone from the master file.	If this fails, we'll
 	 * need to undo the configuration we've done already.
 	 */
-	result = dns_zone_loadnew(zone);
+	result = dns_zone_load(zone, true);
 	if (result != ISC_R_SUCCESS) {
 		dns_db_t *dbp = NULL;
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "catz: dns_zone_loadnew() failed "
+			      "catz: dns_zone_load() failed "
 			      "with %s; reverting.",
 			      isc_result_totext(result));
 
@@ -9209,14 +9209,14 @@ load_zones(named_server_t *server, bool init, bool reconfig) {
 	     view = ISC_LIST_NEXT(view, link))
 	{
 		if (view->managed_keys != NULL) {
-			result = dns_zone_load(view->managed_keys);
+			result = dns_zone_load(view->managed_keys, false);
 			if (result != ISC_R_SUCCESS &&
 			    result != DNS_R_UPTODATE &&
 			    result != DNS_R_CONTINUE)
 				goto cleanup;
 		}
 		if (view->redirect != NULL) {
-			result = dns_zone_load(view->redirect);
+			result = dns_zone_load(view->redirect, false);
 			if (result != ISC_R_SUCCESS &&
 			    result != DNS_R_UPTODATE &&
 			    result != DNS_R_CONTINUE)
@@ -9228,7 +9228,7 @@ load_zones(named_server_t *server, bool init, bool reconfig) {
 		 * zones.
 		 */
 		isc_refcount_increment(&zl->refs);
-		CHECK(dns_view_asyncload(view, view_loaded, zl));
+		CHECK(dns_view_asyncload(view, reconfig, view_loaded, zl));
 	}
 
  cleanup:
@@ -10124,7 +10124,7 @@ named_server_reloadcommand(named_server_t *server, isc_lex_t *lex,
 			dns_zone_detach(&zone);
 			msg = "zone refresh queued";
 		} else {
-			result = dns_zone_load(zone);
+			result = dns_zone_load(zone, false);
 			dns_zone_detach(&zone);
 			switch (result) {
 			case ISC_R_SUCCESS:
@@ -12778,7 +12778,7 @@ do_addzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	 * Load the zone from the master file.  If this fails, we'll
 	 * need to undo the configuration we've done already.
 	 */
-	result = dns_zone_loadnew(zone);
+	result = dns_zone_load(zone, true);
 	if (result != ISC_R_SUCCESS) {
 		dns_db_t *dbp = NULL;
 
@@ -12968,7 +12968,7 @@ do_modzone(named_server_t *server, ns_cfgctx_t *cfg, dns_view_t *view,
 	}
 
 	/* Load the zone from the master file if it needs reloading. */
-	result = dns_zone_loadnew(zone);
+	result = dns_zone_load(zone, true);
 
 	/*
 	 * Dynamic zones need no reloading, so we can pass this result.
