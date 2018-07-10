@@ -4795,26 +4795,70 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 static isc_result_t
 idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 	int res;
-	char *tmp_str = NULL;
+	char *utf8_src, *tmp_str = NULL;
 
-	res = idn2_to_unicode_8zlz(from, &tmp_str,
-				   IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
-
-	if (res == IDN2_OK) {
-		/* check the length */
-		if (strlen(tmp_str) >= tolen) {
-			debug("encoded ASC string is too long");
-			idn2_free(tmp_str);
-			return ISC_R_FAILURE;
-		}
-
-		(void) strlcpy(to, tmp_str, tolen);
-		idn2_free(tmp_str);
-		return ISC_R_SUCCESS;
+	/*
+	 * We need to:
+	 *
+	 *  1) check whether 'from' is a valid IDNA2008 name,
+	 *  2) if it is, output it in the current locale's character encoding.
+	 *
+	 * Unlike idn2_to_ascii_*(), idn2_to_unicode_*() functions are unable
+	 * to perform IDNA2008 validity checks.  Thus, we need to decode any
+	 * Punycode in 'from', check if the resulting name is a valid IDNA2008
+	 * name, and only once we ensure it is, output that name in the current
+	 * locale's character encoding.
+	 *
+	 * We could just use idn2_to_unicode_8zlz() + idn2_to_ascii_lz(), but
+	 * then we would not be able to universally tell invalid names and
+	 * character encoding errors apart (if the current locale uses ASCII
+	 * for character encoding, the former function would fail even for a
+	 * valid IDNA2008 name, as long as it contained any non-ASCII
+	 * character).  Thus, we need to take a longer route.
+	 *
+	 * First, convert 'from' to UTF-8, ignoring the current locale.
+	 */
+	res = idn2_to_unicode_8z8z(from, &utf8_src, 0);
+	if (res != IDN2_OK) {
+		fatal("Bad ACE string '%s' (%s), use +noidnout",
+		      from, idn2_strerror(res));
 	}
 
-	fatal("'%s' is not a legal IDN name (%s), use +noidnout", from, idn2_strerror(res));
-	return ISC_R_FAILURE;
+	/*
+	 * Then, check whether decoded 'from' is a valid IDNA2008 name.
+	 */
+	res = idn2_to_ascii_8z(utf8_src, NULL, IDN2_NONTRANSITIONAL);
+	if (res != IDN2_OK) {
+		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnout",
+		      from, idn2_strerror(res));
+	}
+
+	/*
+	 * Finally, try converting the decoded 'from' into the current locale's
+	 * character encoding.
+	 */
+	res = idn2_to_unicode_8zlz(utf8_src, &tmp_str, 0);
+	if (res != IDN2_OK) {
+		fatal("Cannot represent '%s' in the current locale (%s), "
+		      "use +noidnout or a different locale",
+		      from, idn2_strerror(res));
+	}
+
+	/*
+	 * Free the interim conversion result.
+	 */
+	idn2_free(utf8_src);
+
+	/* check the length */
+	if (strlen(tmp_str) >= tolen) {
+		debug("encoded ASC string is too long");
+		idn2_free(tmp_str);
+		return (ISC_R_FAILURE);
+	}
+
+	(void) strlcpy(to, tmp_str, tolen);
+	idn2_free(tmp_str);
+	return (ISC_R_SUCCESS);
 }
 #endif /* WITH_IDN_OUT_SUPPORT */
 #endif /* WITH_LIBIDN2 */
