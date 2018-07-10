@@ -134,9 +134,7 @@ static char servercookie[256];
 
 #ifdef HAVE_LIBIDN2
 static void idn_locale_to_ace(const char *src, char *dst, size_t dstlen);
-static isc_result_t idn_ace_to_locale(const char *from,
-		char *to,
-		size_t tolen);
+static void idn_ace_to_locale(const char *src, char **dst);
 static isc_result_t output_filter(isc_buffer_t *buffer,
 		unsigned int used_org,
 		isc_boolean_t absolute);
@@ -4200,10 +4198,9 @@ static isc_result_t
 output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	      isc_boolean_t absolute)
 {
-	char tmp1[MAXDLEN], tmp2[MAXDLEN];
+	char tmp1[MAXDLEN], *tmp2;
 	size_t fromlen, tolen;
 	isc_boolean_t end_with_dot;
-	isc_result_t result;
 
 	/*
 	 * Copy contents of 'buffer' to 'tmp1', supply trailing dot
@@ -4227,10 +4224,8 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	/*
 	 * Convert contents of 'tmp1' to local encoding.
 	 */
-	result = idn_ace_to_locale(tmp1, tmp2, sizeof(tmp2));
-	if (result != ISC_R_SUCCESS) {
-		return (ISC_R_SUCCESS);
-	}
+	idn_ace_to_locale(tmp1, &tmp2);
+
 	/*
 	 * Copy the converted contents in 'tmp1' back to 'buffer'.
 	 * If we have appended trailing dot, remove it.
@@ -4239,12 +4234,15 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	if (absolute && !end_with_dot && tmp2[tolen - 1] == '.')
 		tolen--;
 
-	if (isc_buffer_length(buffer) < used_org + tolen)
+	if (isc_buffer_length(buffer) < used_org + tolen) {
+		idn2_free(tmp2);
 		return (ISC_R_NOSPACE);
+	}
 
 	isc_buffer_subtract(buffer, isc_buffer_usedlength(buffer) - used_org);
 	memmove(isc_buffer_used(buffer), tmp2, tolen);
 	isc_buffer_add(buffer, (unsigned int)tolen);
+	idn2_free(tmp2);
 
 	return (ISC_R_SUCCESS);
 }
@@ -4285,28 +4283,25 @@ idn_locale_to_ace(const char *src, char *dst, size_t dstlen) {
 	idn2_free(ascii_src);
 }
 
-static isc_result_t
-idn_ace_to_locale(const char *from, char *to, size_t tolen) {
+/*%
+ * Convert 'src', which is an ACE string suitable for use in the DNS, into a
+ * string using the current locale's character encoding, storing the conversion
+ * result in 'dst'.
+ *
+ * The caller MUST subsequently release 'dst' using idn2_free().
+ */
+static void
+idn_ace_to_locale(const char *src, char **dst) {
+	char *local_src;
 	int res;
-	char *tmp_str = NULL;
 
-	res = idn2_to_unicode_8zlz(from, &tmp_str,
-				   IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
-
-	if (res == IDN2_OK) {
-		/* check the length */
-		if (strlen(tmp_str) >= tolen) {
-			debug("encoded ASC string is too long");
-			idn2_free(tmp_str);
-			return ISC_R_FAILURE;
-		}
-
-		(void) strlcpy(to, tmp_str, tolen);
-		idn2_free(tmp_str);
-		return ISC_R_SUCCESS;
+	res = idn2_to_unicode_8zlz(src, &local_src,
+				   IDN2_NFC_INPUT | IDN2_NONTRANSITIONAL);
+	if (res != IDN2_OK) {
+		fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnout",
+		      src, idn2_strerror(res));
 	}
 
-	fatal("'%s' is not a legal IDNA2008 name (%s), use +noidnout", from, idn2_strerror(res));
-	return ISC_R_FAILURE;
+	*dst = local_src;
 }
 #endif /* HAVE_LIBIDN2 */
