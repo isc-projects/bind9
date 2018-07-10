@@ -136,8 +136,7 @@ static char servercookie[256];
 static void idn_locale_to_ace(const char *src, char *dst, size_t dstlen);
 static void idn_ace_to_locale(const char *src, char **dst);
 static isc_result_t idn_output_filter(isc_buffer_t *buffer,
-				      unsigned int used_org,
-				      isc_boolean_t absolute);
+				      unsigned int used_org);
 #endif /* HAVE_LIBIDN2 */
 
 isc_socket_t *keep = NULL;
@@ -4194,13 +4193,9 @@ destroy_libs(void) {
 
 #ifdef HAVE_LIBIDN2
 static isc_result_t
-idn_output_filter(isc_buffer_t *buffer, unsigned int used_org,
-		  isc_boolean_t absolute)
-{
+idn_output_filter(isc_buffer_t *buffer, unsigned int used_org) {
 	char src[MXNAME], *dst;
 	size_t srclen, dstlen;
-
-	UNUSED(absolute);
 
 	/*
 	 * Copy name from 'buffer' to 'src' and terminate it with NULL.

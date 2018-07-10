@@ -192,8 +192,7 @@ LIBDNS_EXTERNAL_DATA extern const dns_name_t *dns_wildcardname;
  * is from 'buffer'->base + 'used_org' to the end of the used region.
  */
 typedef isc_result_t (*dns_name_totextfilter_t)(isc_buffer_t *target,
-						unsigned int used_org,
-						isc_boolean_t absolute);
+						unsigned int used_org);
 
 /***
  *** Initialization
