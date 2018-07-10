@@ -1,3 +1,6 @@
+4990.	[bug]		Prevent a possible NULL reference in pkcs11-keygen.
+			[GL #401]
+
 4989.	[cleanup]	IDN support in dig has been reworked.  IDNA2003
 			fallbacks were removed in the process. [GL #384]
 
