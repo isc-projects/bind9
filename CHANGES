@@ -1,3 +1,6 @@
+4990.	[bug]		Trust anchor telemetry queries were not being sent
+			upstream for locally served zones. [GL #392]
+
 4989.	[cleanup]	IDN support in dig has been reworked.  IDNA2003
 			fallbacks were removed in the process. [GL #384]
 
