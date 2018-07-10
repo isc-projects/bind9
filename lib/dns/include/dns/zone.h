@@ -336,10 +336,7 @@ dns_zone_getmaxttl(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_load(dns_zone_t *zone);
-
-isc_result_t
-dns_zone_loadnew(dns_zone_t *zone);
+dns_zone_load(dns_zone_t *zone, isc_boolean_t newonly);
 
 isc_result_t
 dns_zone_loadandthaw(dns_zone_t *zone);
@@ -349,9 +346,7 @@ dns_zone_loadandthaw(dns_zone_t *zone);
  *	Confirm that the minimum requirements for the zone type are
  *	met, otherwise DNS_R_BADZONE is returned.
  *
- *	dns_zone_loadnew() only loads zones that are not yet loaded.
- *	dns_zone_load() also loads zones that are already loaded and
- *	and whose master file has changed since the last load.
+ *	If newonly is set dns_zone_load() only loads new zones.
  *	dns_zone_loadandthaw() is similar to dns_zone_load() but will
  *	also re-enable DNS UPDATEs when the load completes.
  *
@@ -369,7 +364,8 @@ dns_zone_loadandthaw(dns_zone_t *zone);
  */
 
 isc_result_t
-dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg);
+dns_zone_asyncload(dns_zone_t *zone, isc_boolean_t newonly,
+		   dns_zt_zoneloaded_t done, void *arg);
 /*%<
  * Cause the database to be loaded from its backing store asynchronously.
  * Other zone maintenance functions are suspended until this is complete.
