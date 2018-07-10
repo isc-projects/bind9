@@ -30,12 +30,9 @@
 #include <locale.h>
 #endif
 
-#ifdef WITH_IDN_SUPPORT
-
-#ifdef WITH_LIBIDN2
+#ifdef HAVE_LIBIDN2
 #include <idn2.h>
-#endif
-#endif /* WITH_IDN_SUPPORT */
+#endif /* HAVE_LIBIDN2 */
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>
@@ -135,14 +132,11 @@ int lookup_counter = 0;
 
 static char servercookie[256];
 
-#ifdef WITH_IDN_SUPPORT
+#ifdef HAVE_LIBIDN2
 static void idn_initialize(void);
 static isc_result_t idn_locale_to_ace(const char *from,
 		char *to,
 		size_t tolen);
-#endif /* WITH_IDN_SUPPORT */
-
-#ifdef WITH_IDN_OUT_SUPPORT
 static isc_result_t idn_ace_to_locale(const char *from,
 		char *to,
 		size_t tolen);
@@ -150,8 +144,7 @@ static isc_result_t output_filter(isc_buffer_t *buffer,
 		unsigned int used_org,
 		isc_boolean_t absolute);
 #define MAXDLEN 256
-
-#endif /* WITH_IDN_OUT_SUPPORT */
+#endif /* HAVE_LIBIDN2 */
 
 isc_socket_t *keep = NULL;
 isc_sockaddr_t keepaddr;
@@ -638,16 +631,13 @@ make_empty_lookup(void) {
 	looknew->ttlunits = ISC_FALSE;
 	looknew->ttlunits = ISC_FALSE;
 	looknew->qr = ISC_FALSE;
-#ifdef WITH_IDN_SUPPORT
+#ifdef HAVE_LIBIDN2
 	looknew->idnin = ISC_TRUE;
-#else
-	looknew->idnin = ISC_FALSE;
-#endif
-#ifdef WITH_IDN_OUT_SUPPORT
 	looknew->idnout = ISC_TRUE;
 #else
+	looknew->idnin = ISC_FALSE;
 	looknew->idnout = ISC_FALSE;
-#endif
+#endif /* HAVE_LIBIDN2 */
 	looknew->udpsize = 0;
 	looknew->edns = -1;
 	looknew->recurse = ISC_TRUE;
@@ -1301,15 +1291,13 @@ setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only) {
 	(void)setlocale(LC_ALL, "");
 #endif
 
-#ifdef WITH_IDN_SUPPORT
+#ifdef HAVE_LIBIDN2
 	idn_initialize();
-#endif
 
-#ifdef WITH_IDN_OUT_SUPPORT
 	/* Set domain name -> text post-conversion filter. */
 	result = dns_name_settotextfilter(output_filter);
 	check_result(result, "dns_name_settotextfilter");
-#endif
+#endif /* HAVE_LIBIDN2 */
 
 	if (keyfile[0] != 0)
 		setup_file_key();
@@ -2033,15 +2021,13 @@ setup_lookup(dig_lookup_t *lookup) {
 	char cookiebuf[256];
 	char *origin = NULL;
 	char *textname = NULL;
-#ifdef WITH_IDN_SUPPORT
+#ifdef HAVE_LIBIDN2
 	char idn_origin[MXNAME], idn_textname[MXNAME];
-#endif
 
-#ifdef WITH_IDN_OUT_SUPPORT
 	result = dns_name_settotextfilter(lookup->idnout ?
 					  output_filter : NULL);
 	check_result(result, "dns_name_settotextfilter");
-#endif
+#endif /* HAVE_LIBIDN2 */
 
 	REQUIRE(lookup != NULL);
 	INSIST(!free_now);
@@ -2076,14 +2062,14 @@ setup_lookup(dig_lookup_t *lookup) {
 	 * TLD.
 	 */
 	textname = lookup->textname;
-#ifdef WITH_IDN_SUPPORT
+#ifdef HAVE_LIBIDN2
 	if (lookup->idnin) {
 		result = idn_locale_to_ace(textname, idn_textname, sizeof(idn_textname));
 		check_result(result, "convert textname to IDN encoding");
 		debug("idn_textname: %s", idn_textname);
 		textname = idn_textname;
 	}
-#endif
+#endif /* HAVE_LIBIDN2 */
 
 	/*
 	 * If the name has too many dots, force the origin to be NULL
@@ -2112,14 +2098,14 @@ setup_lookup(dig_lookup_t *lookup) {
 		dns_name_init(lookup->oname, NULL);
 		/* XXX Helper funct to conv char* to name? */
 		origin = lookup->origin->origin;
-#ifdef WITH_IDN_SUPPORT
+#ifdef HAVE_LIBIDN2
 		if (lookup->idnin) {
 			result = idn_locale_to_ace(origin, idn_origin, sizeof(idn_origin));
 			check_result(result, "convert origin to IDN encoding");
 			debug("trying idn origin %s", idn_origin);
 			origin = idn_origin;
 		}
-#endif
+#endif /* HAVE_LIBIDN2 */
 		len = (unsigned int) strlen(origin);
 		isc_buffer_init(&b, origin, len);
 		isc_buffer_add(&b, len);
@@ -4144,9 +4130,9 @@ cancel_all(void) {
  */
 void
 destroy_libs(void) {
-#ifdef WITH_IDN_SUPPORT
+#ifdef HAVE_LIBIDN2
 	isc_result_t result;
-#endif
+#endif /* HAVE_LIBIDN2 */
 
 	if (keep != NULL)
 		isc_socket_detach(&keep);
@@ -4178,10 +4164,10 @@ destroy_libs(void) {
 
 	clear_searchlist();
 
-#ifdef WITH_IDN_SUPPORT
+#ifdef HAVE_LIBIDN2
 	result = dns_name_settotextfilter(NULL);
 	check_result(result, "dns_name_settotextfilter");
-#endif
+#endif /* HAVE_LIBIDN2 */
 	dns_name_destroy();
 
 	if (commctx != NULL) {
@@ -4221,7 +4207,7 @@ destroy_libs(void) {
 		isc_mem_destroy(&mctx);
 }
 
-#ifdef WITH_IDN_OUT_SUPPORT
+#ifdef HAVE_LIBIDN2
 static isc_result_t
 output_filter(isc_buffer_t *buffer, unsigned int used_org,
 	      isc_boolean_t absolute)
@@ -4274,10 +4260,7 @@ output_filter(isc_buffer_t *buffer, unsigned int used_org,
 
 	return (ISC_R_SUCCESS);
 }
-#endif
 
-#ifdef WITH_IDN_SUPPORT
-#ifdef WITH_LIBIDN2
 static void
 idn_initialize(void) {
 }
@@ -4325,7 +4308,6 @@ idn_locale_to_ace(const char *from, char *to, size_t tolen) {
 	return ISC_R_FAILURE;
 }
 
-#ifdef WITH_IDN_OUT_SUPPORT
 static isc_result_t
 idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 	int res;
@@ -4350,6 +4332,4 @@ idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 	fatal("'%s' is not a legal IDN name (%s), use +noidnout", from, idn2_strerror(res));
 	return ISC_R_FAILURE;
 }
-#endif /* WITH_IDN_OUT_SUPPORT */
-#endif /* WITH_LIBIDN2 */
-#endif /* WITH_IDN_SUPPORT */
+#endif /* HAVE_LIBIDN2 */

@@ -676,6 +676,7 @@ ATFBUILD
 LD_WRAP_TESTS
 CMOCKA_LIBS
 CMOCKA_CFLAGS
+LIBIDN2_LDFLAGS
 LIBIDN2_LIBS
 LIBIDN2_CFLAGS
 XSLT_DBLATEX_FASTBOOK
@@ -1059,6 +1060,8 @@ CPP
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+LIBIDN2_CFLAGS
+LIBIDN2_LIBS
 CMOCKA_CFLAGS
 CMOCKA_LIBS'
 
@@ -1762,7 +1765,8 @@ Optional Packages:
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
   --with-libfstrm=path    Path where libfstrm is installed, for dnstap
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
-  --with-libidn2=PATH     enable IDN support using GNU libidn2 [yes|no|path]
+  --with-libidn2=PATH     enable IDN support using GNU libidn2
+                          [yes|no(default)|path]
   --with-cmocka=no        enable cmocka based tests (default is no)
   --with-atf              support Automated Test Framework
   --with-tuning=ARG       Specify server tuning (large or default)
@@ -1801,6 +1805,10 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  LIBIDN2_CFLAGS
+              C compiler flags for LIBIDN2, overriding pkg-config
+  LIBIDN2_LIBS
+              linker flags for LIBIDN2, overriding pkg-config
   CMOCKA_CFLAGS
               C compiler flags for CMOCKA, overriding pkg-config
   CMOCKA_LIBS linker flags for CMOCKA, overriding pkg-config
@@ -22416,34 +22424,135 @@ LIBIDN2_LIBS=
 
 # Check whether --with-libidn2 was given.
 if test "${with_libidn2+set}" = set; then :
-  withval=$with_libidn2; use_libidn2="$withval"
+  withval=$with_libidn2; with_libidn2="$withval"
 else
-  use_libidn2="no"
+  with_libidn2="no"
 fi
 
-case $use_libidn2 in #(
-  no) :
-    : ;; #(
+case $with_libidn2 in #(
   yes) :
-    : ;; #(
-  *) :
 
-	    LIBIDN2_CFLAGS="-I$use_libidn2/include"
-	    LIBIDN2_LDFLAGS="-L$use_libidn2/lib"
-	 ;; #(
-  *) :
-     ;;
-esac
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libidn2" >&5
+$as_echo_n "checking for libidn2... " >&6; }
 
-if test "$use_libidn2" != "no"; then :
-  save_CFLAGS="$CFLAGS"
-       save_LIBS="$LIBS"
-       save_LDFLAGS="$LDFLAGS"
-       CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
-       LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
-       { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_8z" >&5
-$as_echo_n "checking for library containing idn2_to_ascii_8z... " >&6; }
-if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+if test -n "$LIBIDN2_CFLAGS"; then
+    pkg_cv_LIBIDN2_CFLAGS="$LIBIDN2_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libidn2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libidn2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBIDN2_CFLAGS=`$PKG_CONFIG --cflags "libidn2" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$LIBIDN2_LIBS"; then
+    pkg_cv_LIBIDN2_LIBS="$LIBIDN2_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libidn2\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libidn2") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_LIBIDN2_LIBS=`$PKG_CONFIG --libs "libidn2" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        LIBIDN2_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libidn2" 2>&1`
+        else
+	        LIBIDN2_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libidn2" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$LIBIDN2_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (libidn2) were not met:
+
+$LIBIDN2_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables LIBIDN2_CFLAGS
+and LIBIDN2_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables LIBIDN2_CFLAGS
+and LIBIDN2_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	LIBIDN2_CFLAGS=$pkg_cv_LIBIDN2_CFLAGS
+	LIBIDN2_LIBS=$pkg_cv_LIBIDN2_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_LIBIDN2 1" >>confdefs.h
+
+fi ;; #(
+  no) :
+     ;; #(
+  *) :
+    save_CFLAGS="$CFLAGS"
+		 save_CPPFLAGS="$CPPFLAGS"
+		 save_LDFLAGS="$LDFLAGS"
+		 save_LIBS="$LIBS"
+		 LIBIDN2_CFLAGS="-I$with_libidn2/include"
+		 LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
+		 CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
+		 CPPFLAGS="$LIBIDN2_CFLAGS $CPPFLAGS"
+		 LDFLAGS="$LIBIDN2_LDFLAGS $LDFLAGS"
+		 for ac_header in idn2.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "idn2.h" "ac_cv_header_idn2_h" "$ac_includes_default"
+if test "x$ac_cv_header_idn2_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IDN2_H 1
+_ACEOF
+
+else
+  as_fn_error $? "idn2.h not found" "$LINENO" 5
+fi
+
+done
+
+		 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing idn2_to_ascii_lz" >&5
+$as_echo_n "checking for library containing idn2_to_ascii_lz... " >&6; }
+if ${ac_cv_search_idn2_to_ascii_lz+:} false; then :
   $as_echo_n "(cached) " >&6
 else
   ac_func_search_save_LIBS=$LIBS
@@ -22456,11 +22565,11 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #ifdef __cplusplus
 extern "C"
 #endif
-char idn2_to_ascii_8z ();
+char idn2_to_ascii_lz ();
 int
 main ()
 {
-return idn2_to_ascii_8z ();
+return idn2_to_ascii_lz ();
   ;
   return 0;
 }
@@ -22473,66 +22582,42 @@ for ac_lib in '' idn2; do
     LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
   fi
   if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_idn2_to_ascii_8z=$ac_res
+  ac_cv_search_idn2_to_ascii_lz=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext
-  if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+  if ${ac_cv_search_idn2_to_ascii_lz+:} false; then :
   break
 fi
 done
-if ${ac_cv_search_idn2_to_ascii_8z+:} false; then :
+if ${ac_cv_search_idn2_to_ascii_lz+:} false; then :
 
 else
-  ac_cv_search_idn2_to_ascii_8z=no
+  ac_cv_search_idn2_to_ascii_lz=no
 fi
 rm conftest.$ac_ext
 LIBS=$ac_func_search_save_LIBS
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_idn2_to_ascii_8z" >&5
-$as_echo "$ac_cv_search_idn2_to_ascii_8z" >&6; }
-ac_res=$ac_cv_search_idn2_to_ascii_8z
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_idn2_to_ascii_lz" >&5
+$as_echo "$ac_cv_search_idn2_to_ascii_lz" >&6; }
+ac_res=$ac_cv_search_idn2_to_ascii_lz
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+  LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"
 
-$as_echo "#define WITH_IDN_SUPPORT 1" >>confdefs.h
+$as_echo "#define HAVE_LIBIDN2 1" >>confdefs.h
 
-
-$as_echo "#define WITH_LIBIDN2 1" >>confdefs.h
-
-                       LIBIDN2_LIBS="$LIBIDN2_LDFLAGS -lidn2"
 else
   as_fn_error $? "libidn2 requested, but not found" "$LINENO" 5
 fi
 
-       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <idn2.h>
-int
-main ()
-{
-idn2_to_unicode_8zlz(".", NULL, IDN2_NONTRANSITIONAL|IDN2_NFC_INPUT);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-$as_echo "#define WITH_IDN_OUT_SUPPORT 1" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-       CFLAGS="$save_CFLAGS"
-       LIBS="$save_LIBS"
-       LDFLAGS="$save_LDFLAGS"
-
-fi
+		 CFLAGS="$save_CFLAGS"
+		 CPPFLAGS="$save_CPPFLAGS"
+		 LDFLAGS="$save_LDFLAGS"
+		 LIBS="$save_LIBS" ;; #(
+  *) :
+     ;;
+esac
 
 
 
@@ -26684,7 +26769,7 @@ report() {
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
 	test "X$ZLIB" = "X" || echo "    HTTP zlib compression (--with-zlib)"
 	test "X$NZD_TOOLS" = "X" || echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
-	test "no" = "$use_libidn2" || echo "    IDN support (--with-libidn2)"
+	test "no" = "$with_libidn2" || echo "    IDN support (--with-libidn2)"
     fi
 
     if test "no" != "$use_pkcs11"; then
@@ -26781,7 +26866,7 @@ report() {
     test "X$JSONSTATS" = "X" && echo "    JSON statistics (--with-libjson)"
     test "X$ZLIB" = "X" && echo "    HTTP zlib compression (--with-zlib)"
     test "X$NZD_TOOLS" = "X" && echo "    LMDB database to store configuration for 'addzone' zones (--with-lmdb)"
-    test "no" = "$use_libidn2" && echo "    IDN support (--with-libidn2)"
+    test "no" = "$with_libidn2" && echo "    IDN support (--with-libidn2)"
 
     echo "-------------------------------------------------------------------------------"
     echo "Configured paths:"

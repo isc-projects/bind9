@@ -1051,7 +1051,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				switch (cmd[3]) {
 				case 'i':
 					FULLCHECK("idnin");
-#ifndef WITH_IDN_SUPPORT
+#ifndef HAVE_LIBIDN2
 					fprintf(stderr, ";; IDN input support"
 						" not enabled\n");
 #else
@@ -1060,7 +1060,7 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 				break;
 				case 'o':
 					FULLCHECK("idnout");
-#ifndef WITH_IDN_OUT_SUPPORT
+#ifndef HAVE_LIBIDN2
 					fprintf(stderr, ";; IDN output support"
 						" not enabled\n");
 #else
