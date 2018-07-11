@@ -1365,6 +1365,9 @@ default is used.
    contact for the zones. These can be set at the view/options
    level but not on a per-prefix basis.
 
+   ``dns64`` will also cause IPV4ONLY.ARPA to be created if not
+   explicitly disabled using ``ipv4only-enable``.
+
    Each ``dns64`` supports an optional ``clients`` ACL that determines
    which clients are affected by this directive. If not defined, it
    defaults to ``any;``.
@@ -1658,6 +1661,12 @@ Boolean Options
 ``geoip-use-ecs``
    This option was part of an experimental implementation of the EDNS
    CLIENT-SUBNET for authoritative servers, but is now obsolete.
+
+``ipv4only-enable``
+   Create the IPV4ONLY.ARPA zone as described in RFC 8880.  By
+   default the zone is only created if a DNS64 prefix is configured.
+   Control the SOA contact and server values with ``ipv4only-contact``
+   and  ``ipv4only-server`` respectively.
 
 ``root-key-sentinel``
    If ``yes``, respond to root key sentinel probes as described in
