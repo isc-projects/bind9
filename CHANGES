@@ -1,3 +1,6 @@
+4992.	[bug]		The wrong address was being logged for trust anchor
+			telemetry queries. [GL #379]
+
 4990.	[bug]		Prevent a possible NULL reference in pkcs11-keygen.
 			[GL #401]
 
@@ -507,8 +510,8 @@
 
 4761.	[protocol]	Add support for DOA. [RT #45612]
 
-4759.	[func]		Add logging channel "trust-anchor-telementry" to
-			record trust-anchor-telementry in incoming requests.
+4759.	[func]		Add logging channel "trust-anchor-telemetry" to
+			record trust-anchor-telemetry in incoming requests.
 			Both _ta-XXXX.<anchor>/NULL and EDNS KEY-TAG options
 			are logged.  [RT #46124]
 
@@ -553,7 +556,7 @@
 			tests when running on terminals that support them.
 			[RT #45977]
 
-4744.	[bug]		Suppress trust-anchor-telementry queries if
+4744.	[bug]		Suppress trust-anchor-telemetry queries if
 			validation is disabled. [RT #46131]
 
 4741.	[bug]		Make isc_refcount_current() atomically read the
