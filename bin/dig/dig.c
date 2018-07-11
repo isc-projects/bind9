@@ -1001,14 +1001,20 @@ plus_option(char *option, isc_boolean_t is_batchfile,
 							lookup->ednsoptscnt = 0;
 							break;
 						}
-						if (value == NULL) {
+						code = NULL;
+						if (value != NULL) {
+							code = strtok_r(value,
+								        ":",
+									&last);
+						}
+						if (code == NULL) {
 							warn("ednsopt no "
 							     "code point "
 							     "specified");
 							goto exit_or_usage;
 						}
-						code = strtok_r(value, ":", &last);
-						extra = strtok_r(NULL, "\0", &last);
+						extra = strtok_r(NULL, "\0",
+								 &last);
 						save_opt(lookup, code, extra);
 						break;
 					default:
