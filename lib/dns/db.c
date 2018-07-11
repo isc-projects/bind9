@@ -538,7 +538,7 @@ dns_db_find(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(type != dns_rdatatype_rrsig);
-	REQUIRE(nodep == NULL || (nodep != NULL && *nodep == NULL));
+	REQUIRE(nodep == NULL || *nodep == NULL);
 	REQUIRE(dns_name_hasbuffer(foundname));
 	REQUIRE(rdataset == NULL ||
 		(DNS_RDATASET_VALID(rdataset) &&
@@ -573,7 +573,7 @@ dns_db_findext(dns_db_t *db, dns_name_t *name, dns_dbversion_t *version,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(type != dns_rdatatype_rrsig);
-	REQUIRE(nodep == NULL || (nodep != NULL && *nodep == NULL));
+	REQUIRE(nodep == NULL || *nodep == NULL);
 	REQUIRE(dns_name_hasbuffer(foundname));
 	REQUIRE(rdataset == NULL ||
 		(DNS_RDATASET_VALID(rdataset) &&
@@ -605,7 +605,7 @@ dns_db_findzonecut(dns_db_t *db, dns_name_t *name,
 
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE((db->attributes & DNS_DBATTR_CACHE) != 0);
-	REQUIRE(nodep == NULL || (nodep != NULL && *nodep == NULL));
+	REQUIRE(nodep == NULL || *nodep == NULL);
 	REQUIRE(dns_name_hasbuffer(foundname));
 	REQUIRE(sigrdataset == NULL ||
 		(DNS_RDATASET_VALID(sigrdataset) &&
