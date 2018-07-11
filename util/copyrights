@@ -1,5 +1,4 @@
 ./.gitattributes				X	2015,2017,2018
-./.gitignore					X	2012,2013,2014,2015,2016,2018
 ./.gitlab-ci.yml				X	2018
 ./Atffile					X	2011,2018
 ./CHANGES					X	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
@@ -20,7 +19,6 @@
 ./aclocal.m4					X	1999,2000,2001,2012,2014,2018
 ./autogen.sh					SH	2015,2016,2018
 ./bin/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2009,2012,2013,2014,2016,2018
-./bin/check/.gitignore				X	2012,2018
 ./bin/check/Makefile.in				MAKE	2000,2001,2002,2003,2004,2005,2006,2007,2009,2012,2014,2015,2016,2018
 ./bin/check/check-tool.c			C	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/check/check-tool.h			C	2000,2001,2002,2004,2005,2007,2010,2011,2013,2014,2016,2018
@@ -49,7 +47,6 @@
 ./bin/check/win32/checkzone.vcxproj.filters.in	X	2013,2015,2018
 ./bin/check/win32/checkzone.vcxproj.in		X	2013,2014,2015,2016,2017,2018
 ./bin/check/win32/checkzone.vcxproj.user	X	2013,2018
-./bin/confgen/.gitignore			X	2012,2014,2018
 ./bin/confgen/Makefile.in			MAKE	2009,2012,2014,2015,2016,2017,2018
 ./bin/confgen/ddns-confgen.8			MAN	DOCBOOK
 ./bin/confgen/ddns-confgen.c			C	2009,2011,2014,2016,2018
@@ -84,7 +81,6 @@
 ./bin/confgen/win32/rndcconfgen.vcxproj.filters.in	X	2013,2015,2018
 ./bin/confgen/win32/rndcconfgen.vcxproj.in	X	2013,2015,2016,2017,2018
 ./bin/confgen/win32/rndcconfgen.vcxproj.user	X	2013,2018
-./bin/delv/.gitignore				X	2014,2018
 ./bin/delv/Makefile.in				MAKE	2014,2015,2016,2017,2018
 ./bin/delv/delv.1				MAN	DOCBOOK
 ./bin/delv/delv.c				C	2014,2015,2016,2017,2018
@@ -96,7 +92,6 @@
 ./bin/delv/win32/delv.vcxproj.filters.in	X	2014,2015,2018
 ./bin/delv/win32/delv.vcxproj.in		X	2014,2015,2016,2017,2018
 ./bin/delv/win32/delv.vcxproj.user		X	2014,2018
-./bin/dig/.gitignore				X	2012,2014,2018
 ./bin/dig/Makefile.in				MAKE	2000,2001,2002,2004,2005,2007,2009,2012,2013,2014,2015,2016,2017,2018
 ./bin/dig/dig.1					MAN	DOCBOOK
 ./bin/dig/dig.c					C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
@@ -135,7 +130,6 @@
 ./bin/dig/win32/nslookup.vcxproj.filters.in	X	2013,2015,2018
 ./bin/dig/win32/nslookup.vcxproj.in		X	2013,2014,2015,2016,2017,2018
 ./bin/dig/win32/nslookup.vcxproj.user		X	2013,2018
-./bin/dnssec/.gitignore				X	2012,2013,2018
 ./bin/dnssec/Makefile.in			MAKE	2000,2001,2002,2004,2005,2007,2008,2009,2012,2013,2014,2015,2016,2018
 ./bin/dnssec/dnssec-dsfromkey.8			MAN	DOCBOOK
 ./bin/dnssec/dnssec-dsfromkey.c			C	2008,2009,2010,2011,2012,2014,2015,2016,2017,2018
@@ -224,7 +218,6 @@
 ./bin/dnssec/win32/verify.vcxproj.filters.in	X	2013,2015,2018
 ./bin/dnssec/win32/verify.vcxproj.in		X	2013,2014,2015,2016,2017,2018
 ./bin/dnssec/win32/verify.vcxproj.user		X	2013,2018
-./bin/named/.gitignore				X	2012,2014,2018
 ./bin/named/Makefile.in				MAKE	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/named/bind9.xsl				SGML	2006,2007,2008,2009,2012,2013,2014,2015,2016,2018
 ./bin/named/bind9.xsl.h				X	2007,2008,2009,2011,2012,2013,2014,2015,2016,2018
@@ -236,7 +229,6 @@
 ./bin/named/convertxsl.pl			PERL	2006,2007,2008,2012,2014,2016,2018
 ./bin/named/fuzz.c				C	2016,2018
 ./bin/named/geoip.c				C	2013,2014,2016,2018
-./bin/named/include/.gitignore			X	2012,2014,2018
 ./bin/named/include/dlz/dlz_dlopen_driver.h	C	2011,2016,2018
 ./bin/named/include/named/builtin.h		C	2001,2004,2005,2007,2016,2018
 ./bin/named/include/named/client.h		C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017,2018
@@ -315,7 +307,6 @@
 ./bin/named/win32/os.c				C	1999,2000,2001,2002,2004,2005,2007,2008,2009,2012,2013,2014,2015,2016,2017,2018
 ./bin/named/xfrout.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/named/zoneconf.c				C	1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
-./bin/nsupdate/.gitignore			X	2012,2018
 ./bin/nsupdate/Makefile.in			MAKE	2000,2001,2002,2004,2006,2007,2008,2009,2012,2013,2014,2015,2016,2017,2018
 ./bin/nsupdate/nsupdate.1			MAN	DOCBOOK
 ./bin/nsupdate/nsupdate.c			C	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
@@ -327,7 +318,6 @@
 ./bin/nsupdate/win32/nsupdate.vcxproj.filters.in	X	2013,2015,2018
 ./bin/nsupdate/win32/nsupdate.vcxproj.in	X	2013,2014,2015,2016,2017,2018
 ./bin/nsupdate/win32/nsupdate.vcxproj.user	X	2013,2018
-./bin/pkcs11/.gitignore				X	2014,2018
 ./bin/pkcs11/Makefile.in			MAKE	2009,2012,2014,2015,2016,2018
 ./bin/pkcs11/OLD-PKCS11-NOTES			X	2009,2018
 ./bin/pkcs11/openssl-0.9.8zh-patch		X	2015,2018
@@ -374,7 +364,6 @@
 ./bin/pkcs11/win32/pk11tokens.vcxproj.filters.in	X	2014,2015,2018
 ./bin/pkcs11/win32/pk11tokens.vcxproj.in	X	2014,2015,2016,2017,2018
 ./bin/pkcs11/win32/pk11tokens.vcxproj.user	X	2014,2018
-./bin/python/.gitignore				X	2012,2013,2016,2018
 ./bin/python/Makefile.in			MAKE	2012,2013,2014,2016,2017,2018
 ./bin/python/dnssec-checkds.8			MAN	DOCBOOK
 ./bin/python/dnssec-checkds.docbook		SGML	2012,2013,2014,2015,2016,2017,2018
@@ -388,7 +377,6 @@
 ./bin/python/dnssec-keymgr.docbook		SGML	2016,2017,2018
 ./bin/python/dnssec-keymgr.html			HTML	DOCBOOK
 ./bin/python/dnssec-keymgr.py.in		PYTHON-BIN	2016,2017,2018
-./bin/python/isc/.gitignore			X	2016,2018
 ./bin/python/isc/Makefile.in			MAKE	2016,2018
 ./bin/python/isc/__init__.py.in			PYTHON	2016,2018
 ./bin/python/isc/checkds.py.in			PYTHON	2012,2013,2014,2015,2016,2018
@@ -402,7 +390,6 @@
 ./bin/python/isc/keyzone.py.in			PYTHON	2013,2014,2015,2016,2018
 ./bin/python/isc/policy.py.in			PYTHON	2016,2017,2018
 ./bin/python/isc/rndc.py.in			PYTHON	2016,2018
-./bin/python/isc/tests/.gitignore		X	2016,2018
 ./bin/python/isc/tests/Makefile.in		MAKE	2016,2018
 ./bin/python/isc/tests/dnskey_test.py.in	PYTHON	2016,2018
 ./bin/python/isc/tests/policy_test.py.in	PYTHON	2016,2017,2018
@@ -415,7 +402,6 @@
 ./bin/python/isc/tests/testdata/Kexample.com.+007+35529.private	X	2016,2018
 ./bin/python/isc/utils.py.in			PYTHON	2016,2018
 ./bin/python/setup.py				PYTHON	2016,2018
-./bin/rndc/.gitignore				X	2012,2014,2018
 ./bin/rndc/Makefile.in				MAKE	2000,2001,2002,2004,2007,2009,2012,2014,2015,2016,2018
 ./bin/rndc/include/rndc/os.h			C	2001,2004,2005,2007,2009,2016,2018
 ./bin/rndc/rndc.8				MAN	DOCBOOK
@@ -439,7 +425,6 @@
 ./bin/rndc/win32/rndcutil.vcxproj.filters.in	X	2013,2015,2018
 ./bin/rndc/win32/rndcutil.vcxproj.in		X	2013,2015,2016,2017,2018
 ./bin/rndc/win32/rndcutil.vcxproj.user		X	2013,2018
-./bin/tests/.gitignore				X	2012,2013,2018
 ./bin/tests/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/bigtest/README			TXT.BRIEF	2013,2016,2018
 ./bin/tests/bigtest/buildzones.sh		SH	2013,2016,2018
@@ -491,7 +476,6 @@
 ./bin/tests/optional/task_test.c		C	1998,1999,2000,2001,2004,2007,2013,2014,2015,2016,2018
 ./bin/tests/optional/timer_test.c		C	1998,1999,2000,2001,2004,2007,2013,2014,2015,2016,2018
 ./bin/tests/optional/zone_test.c		C	1999,2000,2001,2002,2004,2005,2007,2009,2012,2014,2015,2016,2018
-./bin/tests/pkcs11/.gitignore			X	2014,2018
 ./bin/tests/pkcs11/Makefile.in			MAKE	2014,2016,2018
 ./bin/tests/pkcs11/README			X	2014,2016,2018
 ./bin/tests/pkcs11/benchmarks/Makefile.in	MAKE	2014,2016,2017,2018
@@ -514,7 +498,6 @@
 ./bin/tests/startperf/mkzonefile.pl		PERL	2011,2012,2016,2018
 ./bin/tests/startperf/setup.sh			SH	2011,2012,2016,2018
 ./bin/tests/startperf/smallzone.db		ZONE	2011,2016,2018
-./bin/tests/system/.gitignore			X	2012,2016,2018
 ./bin/tests/system/Makefile.in			MAKE	2000,2001,2004,2007,2008,2010,2011,2012,2013,2014,2015,2016,2018
 ./bin/tests/system/README			TXT.BRIEF	2000,2001,2004,2010,2011,2013,2015,2016,2018
 ./bin/tests/system/acl/clean.sh			SH	2008,2012,2014,2015,2016,2017,2018
@@ -566,7 +549,6 @@
 ./bin/tests/system/addzone/ns3/named2.conf.in	CONF-C	2018
 ./bin/tests/system/addzone/setup.sh		SH	2010,2012,2013,2014,2016,2017,2018
 ./bin/tests/system/addzone/tests.sh		SH	2010,2011,2012,2013,2014,2015,2016,2017,2018
-./bin/tests/system/allow-query/.gitignore	X	2018
 ./bin/tests/system/allow-query/clean.sh		SH	2018
 ./bin/tests/system/allow-query/ns1/named.conf.in	CONF-C	2018
 ./bin/tests/system/allow-query/ns1/root.db	ZONE	2018
@@ -625,7 +607,6 @@
 ./bin/tests/system/autosign/ns2/keygen.sh	SH	2009,2010,2011,2012,2014,2015,2016,2018
 ./bin/tests/system/autosign/ns2/named.conf.in	CONF-C	2018
 ./bin/tests/system/autosign/ns2/private.secure.example.db.in	ZONE	2009,2016,2018
-./bin/tests/system/autosign/ns3/.gitignore	X	2012,2018
 ./bin/tests/system/autosign/ns3/autonsec3.example.db.in	ZONE	2011,2016,2018
 ./bin/tests/system/autosign/ns3/delay.example.db	ZONE	2011,2016,2018
 ./bin/tests/system/autosign/ns3/inacksk2.example.db.in	ZONE	2017,2018
@@ -689,7 +670,6 @@
 ./bin/tests/system/case/postupdate.good		X	2015,2018
 ./bin/tests/system/case/setup.sh		SH	2015,2016,2018
 ./bin/tests/system/case/tests.sh		SH	2013,2014,2015,2016,2018
-./bin/tests/system/catz/.gitignore		X	2018
 ./bin/tests/system/catz/clean.sh		SH	2016,2018
 ./bin/tests/system/catz/ns1/catalog.example.db.in	ZONE	2016,2018
 ./bin/tests/system/catz/ns1/named.conf.in	CONF-C	2016,2017,2018
@@ -701,7 +681,6 @@
 ./bin/tests/system/catz/tests.sh		SH	2016,2017,2018
 ./bin/tests/system/chain/README			TXT.BRIEF	2017,2018
 ./bin/tests/system/chain/ans3/ans.pl		PERL	2017,2018
-./bin/tests/system/chain/ans4/.gitignore	X	2017,2018
 ./bin/tests/system/chain/ans4/README.anspy	TXT.BRIEF	2017,2018
 ./bin/tests/system/chain/ans4/ans.py		PYTHON	2017,2018
 ./bin/tests/system/chain/clean.sh		SH	2011,2012,2014,2015,2016,2017,2018
@@ -914,7 +893,6 @@
 ./bin/tests/system/common/root.hint		ZONE	2000,2001,2004,2007,2016,2018
 ./bin/tests/system/conf.sh.in			SH	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/conf.sh.win32		SH	2016,2017,2018
-./bin/tests/system/cookie/.gitignore		X	2014,2015,2018
 ./bin/tests/system/cookie/bad-cookie-badhex.conf	CONF-C	2014,2015,2016,2018
 ./bin/tests/system/cookie/bad-cookie-badsha1.conf	CONF-C	2017,2018
 ./bin/tests/system/cookie/bad-cookie-badsha256.conf	CONF-C	2017,2018
@@ -1028,7 +1006,6 @@
 ./bin/tests/system/dlv/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/dlv/setup.sh			SH	2004,2007,2009,2011,2012,2014,2016,2018
 ./bin/tests/system/dlv/tests.sh			SH	2004,2007,2010,2011,2012,2016,2018
-./bin/tests/system/dlz/.gitignore		X	2012,2018
 ./bin/tests/system/dlz/clean.sh			SH	2010,2012,2014,2016,2018
 ./bin/tests/system/dlz/ns1/dns-root/com/broken/dns.d/@/DNAME=10=example.net.=	TXT.BRIEF	2015,2016,2018
 ./bin/tests/system/dlz/ns1/dns-root/com/broken/dns.d/@/NS=10=example.com.=	TXT.BRIEF	2015,2016,2018
@@ -1045,7 +1022,6 @@
 ./bin/tests/system/dlzexternal/clean.sh		SH	2010,2012,2014,2015,2016,2018
 ./bin/tests/system/dlzexternal/driver.c		C	2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/dlzexternal/driver.h		C	2011,2016,2018
-./bin/tests/system/dlzexternal/ns1/.gitignore	X	2012,2018
 ./bin/tests/system/dlzexternal/ns1/dlzs.conf.in	CONF-C	2018
 ./bin/tests/system/dlzexternal/ns1/named.conf.in	CONF-C	2011,2012,2013,2014,2016,2018
 ./bin/tests/system/dlzexternal/ns1/root.db	ZONE	2014,2016,2018
@@ -1152,7 +1128,6 @@
 ./bin/tests/system/dnssec/ns4/named3.conf.in	CONF-C	2018
 ./bin/tests/system/dnssec/ns4/named4.conf.in	CONF-C	2018
 ./bin/tests/system/dnssec/ns4/named5.conf.in	CONF-C	2018
-./bin/tests/system/dnssec/ns5/.gitignore	X	2015,2018
 ./bin/tests/system/dnssec/ns5/named1.conf.in	CONF-C	2018
 ./bin/tests/system/dnssec/ns5/named2.conf.in	CONF-C	2018
 ./bin/tests/system/dnssec/ns5/sign.sh		SH	2015,2016,2018
@@ -1262,7 +1237,6 @@
 ./bin/tests/system/dupsigs/tests.sh		SH	2018
 ./bin/tests/system/dyndb/Makefile.in		MAKE	2015,2016,2018
 ./bin/tests/system/dyndb/clean.sh		SH	2015,2016,2018
-./bin/tests/system/dyndb/driver/.gitignore	X	2015,2018
 ./bin/tests/system/dyndb/driver/AUTHORS		X	2015,2018
 ./bin/tests/system/dyndb/driver/COPYING		X	2015,2016,2018
 ./bin/tests/system/dyndb/driver/Makefile.in	MAKE	2015,2016,2018
@@ -1335,7 +1309,6 @@
 ./bin/tests/system/fetchlimit/prereq.sh		SH	2018
 ./bin/tests/system/fetchlimit/setup.sh		SH	2015,2016,2018
 ./bin/tests/system/fetchlimit/tests.sh		SH	2015,2016,2018
-./bin/tests/system/filter-aaaa/.gitignore	X	2012,2014,2016,2018
 ./bin/tests/system/filter-aaaa/clean.sh		SH	2010,2012,2014,2016,2018
 ./bin/tests/system/filter-aaaa/conf/bad1.conf	CONF-C	2010,2016,2018
 ./bin/tests/system/filter-aaaa/conf/bad2.conf	CONF-C	2010,2016,2018
@@ -1475,7 +1448,6 @@
 ./bin/tests/system/idna/tests.sh		SH	2018
 ./bin/tests/system/ifconfig.bat			BAT	2016,2018
 ./bin/tests/system/ifconfig.sh			SH	2000,2001,2002,2003,2004,2007,2008,2009,2010,2012,2013,2016,2018
-./bin/tests/system/inline/.gitignore		X	2014,2018
 ./bin/tests/system/inline/checkdsa.sh.in	SH	2013,2014,2016,2018
 ./bin/tests/system/inline/clean.sh		SH	2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/inline/ns1/named.conf.in	CONF-C	2018
@@ -1508,7 +1480,6 @@
 ./bin/tests/system/integrity/tests.sh		SH	2017,2018
 ./bin/tests/system/ixfr/ans2/startme		X	2011,2018
 ./bin/tests/system/ixfr/clean.sh		SH	2001,2004,2007,2011,2012,2014,2015,2016,2018
-./bin/tests/system/ixfr/ns1/.gitignore		X	2012,2018
 ./bin/tests/system/ixfr/ns1/startme		X	2012,2013,2018
 ./bin/tests/system/ixfr/ns3/mytest0.db		ZONE	2011,2016,2018
 ./bin/tests/system/ixfr/ns3/mytest1.db		ZONE	2011,2016,2018
@@ -1766,7 +1737,6 @@
 ./bin/tests/system/pending/prereq.sh		SH	2009,2012,2014,2016,2018
 ./bin/tests/system/pending/setup.sh		SH	2009,2012,2014,2016,2018
 ./bin/tests/system/pending/tests.sh		SH	2009,2010,2012,2015,2016,2018
-./bin/tests/system/pipelined/.gitignore		X	2015,2018
 ./bin/tests/system/pipelined/Makefile.in	MAKE	2014,2015,2016,2018
 ./bin/tests/system/pipelined/clean.sh		SH	2014,2015,2016,2018
 ./bin/tests/system/pipelined/input		X	2014,2015,2018
@@ -1804,7 +1774,6 @@
 ./bin/tests/system/reclimit/clean.sh		SH	2014,2016,2018
 ./bin/tests/system/reclimit/ns1/named.conf.in	CONF-C	2018
 ./bin/tests/system/reclimit/ns1/root.db		ZONE	2014,2016,2017,2018
-./bin/tests/system/reclimit/ns3/.gitignore	X	2014,2018
 ./bin/tests/system/reclimit/ns3/hints.db	ZONE	2014,2016,2018
 ./bin/tests/system/reclimit/ns3/named1.conf.in	CONF-C	2018
 ./bin/tests/system/reclimit/ns3/named2.conf.in	CONF-C	2018
@@ -1878,7 +1847,6 @@
 ./bin/tests/system/resolver/prereq.sh		SH	2000,2001,2004,2007,2012,2014,2016,2018
 ./bin/tests/system/resolver/setup.sh		SH	2010,2011,2012,2013,2014,2016,2018
 ./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
-./bin/tests/system/rndc/.gitignore		X	2014,2018
 ./bin/tests/system/rndc/Makefile.in		MAKE	2014,2015,2016,2018
 ./bin/tests/system/rndc/clean.sh		SH	2011,2012,2013,2014,2015,2016,2017,2018
 ./bin/tests/system/rndc/gencheck.c		C	2014,2015,2016,2018
@@ -1886,7 +1854,6 @@
 ./bin/tests/system/rndc/ns2/named.conf.in	CONF-C	2018
 ./bin/tests/system/rndc/ns2/secondkey.conf	CONF-C	2012,2013,2016,2018
 ./bin/tests/system/rndc/ns3/named.conf.in	CONF-C	2018
-./bin/tests/system/rndc/ns4/.gitignore		X	2016,2018
 ./bin/tests/system/rndc/ns4/named.conf.in	CONF-C	2013,2014,2015,2016,2018
 ./bin/tests/system/rndc/ns5/named.conf.in	CONF-C	2018
 ./bin/tests/system/rndc/ns6/named.args		X	2016,2018
@@ -1945,7 +1912,6 @@
 ./bin/tests/system/rpz/test5			ZONE	2011,2012,2013,2016,2018
 ./bin/tests/system/rpz/test6			ZONE	2013,2016,2018
 ./bin/tests/system/rpz/tests.sh			SH	2011,2012,2013,2014,2015,2016,2017,2018
-./bin/tests/system/rpzrecurse/.gitignore	X	2015,2018
 ./bin/tests/system/rpzrecurse/README		TXT.BRIEF	2015,2016,2018
 ./bin/tests/system/rpzrecurse/ans5/ans.pl	PERL	2016,2018
 ./bin/tests/system/rpzrecurse/clean.sh		SH	2015,2016,2018
@@ -1956,7 +1922,6 @@
 ./bin/tests/system/rpzrecurse/ns1/root.db	ZONE	2015,2016,2018
 ./bin/tests/system/rpzrecurse/ns1/test1.example.net.db	ZONE	2015,2016,2018
 ./bin/tests/system/rpzrecurse/ns1/test2.example.net.db	ZONE	2015,2016,2018
-./bin/tests/system/rpzrecurse/ns2/.gitignore	X	2015,2018
 ./bin/tests/system/rpzrecurse/ns2/db.clientip1	ZONE	2015,2016,2018
 ./bin/tests/system/rpzrecurse/ns2/db.clientip2	ZONE	2015,2016,2018
 ./bin/tests/system/rpzrecurse/ns2/db.clientip21	ZONE	2016,2018
@@ -1992,7 +1957,6 @@
 ./bin/tests/system/rrchecker/privatelist.good	X	2013,2018
 ./bin/tests/system/rrchecker/tests.sh		SH	2013,2014,2015,2016,2017,2018
 ./bin/tests/system/rrchecker/typelist.good	X	2013,2014,2015,2016,2017,2018
-./bin/tests/system/rrl/.gitignore		X	2013,2014,2018
 ./bin/tests/system/rrl/broken.conf		CONF-C	2016,2018
 ./bin/tests/system/rrl/clean.sh			SH	2012,2013,2014,2016,2018
 ./bin/tests/system/rrl/ns1/named.conf.in	CONF-C	2018
@@ -2041,7 +2005,6 @@
 ./bin/tests/system/rrsetorder/ns4/named.conf.in	CONF-C	2018
 ./bin/tests/system/rrsetorder/setup.sh		SH	2018
 ./bin/tests/system/rrsetorder/tests.sh		SH	2006,2007,2008,2011,2012,2014,2015,2016,2018
-./bin/tests/system/rsabigexponent/.gitignore	X	2013,2018
 ./bin/tests/system/rsabigexponent/Makefile.in	MAKE	2012,2014,2015,2016,2018
 ./bin/tests/system/rsabigexponent/bigkey.c	C	2012,2014,2015,2016,2018
 ./bin/tests/system/rsabigexponent/clean.sh	SH	2012,2014,2016,2018
@@ -2275,7 +2238,6 @@
 ./bin/tests/system/upforwd/prereq.sh		SH	2012,2014,2016,2018
 ./bin/tests/system/upforwd/setup.sh		SH	2000,2001,2004,2007,2011,2012,2014,2016,2018
 ./bin/tests/system/upforwd/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2014,2016,2018
-./bin/tests/system/verify/.gitignore		X	2012,2016,2018
 ./bin/tests/system/verify/clean.sh		SH	2012,2014,2016,2018
 ./bin/tests/system/verify/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/verify/setup.sh		SH	2012,2014,2016,2018
@@ -2285,7 +2247,6 @@
 ./bin/tests/system/views/clean.sh		SH	2000,2001,2004,2005,2007,2012,2013,2014,2015,2016,2018
 ./bin/tests/system/views/ns1/named.conf.in	CONF-C	2018
 ./bin/tests/system/views/ns1/root.db		ZONE	2000,2001,2004,2007,2016,2018
-./bin/tests/system/views/ns2/.gitignore		X	2012,2018
 ./bin/tests/system/views/ns2/1.10.in-addr.arpa.db	ZONE	2015,2016,2018
 ./bin/tests/system/views/ns2/clone.db		ZONE	2013,2016,2018
 ./bin/tests/system/views/ns2/example1.db	ZONE	2000,2001,2004,2007,2016,2018
@@ -2295,7 +2256,6 @@
 ./bin/tests/system/views/ns2/internal/inline.db	ZONE	2014,2016,2018
 ./bin/tests/system/views/ns2/named1.conf.in	CONF-C	2018
 ./bin/tests/system/views/ns2/named2.conf.in	CONF-C	2018
-./bin/tests/system/views/ns3/.gitignore		X	2012,2018
 ./bin/tests/system/views/ns3/child.clone.db	ZONE	2013,2016,2018
 ./bin/tests/system/views/ns3/internal.db	ZONE	2000,2001,2004,2007,2016,2018
 ./bin/tests/system/views/ns3/named1.conf.in	CONF-C	2018
@@ -2387,7 +2347,6 @@
 ./bin/tests/system/xfer/ns4/root.db.in		ZONE	2011,2016,2018
 ./bin/tests/system/xfer/ns6/named.conf.in	CONF-C	2018
 ./bin/tests/system/xfer/ns7/named.conf.in	CONF-C	2018
-./bin/tests/system/xfer/ns8/.gitignore		X	2015,2018
 ./bin/tests/system/xfer/ns8/example.db		ZONE	2015,2016,2018
 ./bin/tests/system/xfer/ns8/named.conf.in	CONF-C	2018
 ./bin/tests/system/xfer/prereq.sh		SH	2011,2012,2014,2016,2018
@@ -2521,7 +2480,6 @@
 ./bin/tests/win32/timer_test.vcxproj.in		X	2013,2015,2016,2017,2018
 ./bin/tests/win32/timer_test.vcxproj.user	X	2013,2018
 ./bin/tests/wire_test.c				C	1999,2000,2001,2004,2005,2007,2015,2016,2018
-./bin/tools/.gitignore				X	2012,2014,2015,2016,2018
 ./bin/tools/Makefile.in				MAKE	2009,2010,2012,2013,2014,2015,2016,2017,2018
 ./bin/tools/arpaname.1				MAN	DOCBOOK
 ./bin/tools/arpaname.c				C	2009,2015,2016,2018
@@ -2640,12 +2598,9 @@
 ./contrib/README				X	2014,2015,2016,2017,2018
 ./contrib/dane/mkdane.sh			X	2012,2018
 ./contrib/dane/tlsa6698.pem			X	2012,2018
-./contrib/dlz/.gitignore			X	2014,2018
-./contrib/dlz/bin/.gitignore			X	2014,2018
 ./contrib/dlz/bin/dlzbdb/Makefile.in		X	2005,2007,2009,2011,2012,2015,2016,2018
 ./contrib/dlz/bin/dlzbdb/dlzbdb.c		X	2005,2016,2018
 ./contrib/dlz/config.dlz.in			X	2005,2006,2008,2010,2011,2014,2016,2017,2018
-./contrib/dlz/drivers/.gitignore		X	2012,2018
 ./contrib/dlz/drivers/dlz_bdb_driver.c		X	2005,2008,2010,2011,2012,2016,2018
 ./contrib/dlz/drivers/dlz_bdbhpt_driver.c	X	2005,2010,2011,2012,2016,2018
 ./contrib/dlz/drivers/dlz_dlopen_driver.c	X	2010,2011,2018
@@ -2701,14 +2656,12 @@
 ./contrib/dlz/modules/ldap/testing/example.ldif	X	2013,2018
 ./contrib/dlz/modules/ldap/testing/named.conf	X	2013,2018
 ./contrib/dlz/modules/ldap/testing/slapd.conf	X	2013,2018
-./contrib/dlz/modules/mysql/.gitignore		X	2017,2018
 ./contrib/dlz/modules/mysql/Makefile.in		X	2013,2017,2018
 ./contrib/dlz/modules/mysql/dlz_mysql_dynamic.c	X	2013,2016,2018
 ./contrib/dlz/modules/mysql/testing/README	X	2013,2018
 ./contrib/dlz/modules/mysql/testing/dlz.data	X	2013,2017,2018
 ./contrib/dlz/modules/mysql/testing/dlz.schema	X	2013,2018
 ./contrib/dlz/modules/mysql/testing/named.conf	X	2013,2018
-./contrib/dlz/modules/mysqldyn/.gitignore	X	2017,2018
 ./contrib/dlz/modules/mysqldyn/Makefile.in	X	2014,2015,2017,2018
 ./contrib/dlz/modules/mysqldyn/README		X	2014,2018
 ./contrib/dlz/modules/mysqldyn/dlz_mysqldyn_mod.c	X	2014,2015,2018
@@ -2774,7 +2727,6 @@
 ./contrib/dnspriv/named.conf			CONF-C	2017,2018
 ./contrib/dnspriv/nginx.conf			SH	2017,2018
 ./contrib/idn/README.idnkit			X	2005,2009,2018
-./contrib/idn/idnkit-1.0-src/.gitignore		X	2014,2018
 ./contrib/idn/idnkit-1.0-src/ChangeLog		X	2003,2018
 ./contrib/idn/idnkit-1.0-src/DISTFILES		X	2003,2018
 ./contrib/idn/idnkit-1.0-src/INSTALL		X	2003,2018
@@ -2932,7 +2884,6 @@
 ./contrib/idn/idnkit-1.0-src/tools/runidn/runidn.in	X	2003,2018
 ./contrib/idn/idnkit-1.0-src/tools/runidn/stub.c	X	2003,2018
 ./contrib/idn/idnkit-1.0-src/tools/runidn/stub.h	X	2003,2018
-./contrib/idn/idnkit-1.0-src/util/.gitignore	X	2014,2018
 ./contrib/idn/idnkit-1.0-src/util/Makefile	X	2003,2018
 ./contrib/idn/idnkit-1.0-src/util/SparseMap.pm	X	2003,2018
 ./contrib/idn/idnkit-1.0-src/util/UCD.pm	X	2003,2018
@@ -2970,12 +2921,10 @@
 ./contrib/kasp/kasp.xml				X	2016,2018
 ./contrib/kasp/kasp2policy.py			X	2016,2018
 ./contrib/kasp/policy.good			X	2016,2018
-./contrib/perftcpdns/.gitignore			X	2014,2018
 ./contrib/perftcpdns/Makefile.in		MAKE	2014,2016,2018
 ./contrib/perftcpdns/configure			X	2014,2018
 ./contrib/perftcpdns/configure.in		SH	2014,2016,2018
 ./contrib/perftcpdns/perftcpdns.c		C	2013,2014,2016,2018
-./contrib/queryperf/.gitignore			X	2014,2018
 ./contrib/queryperf/Makefile.in			X	2001,2004,2018
 ./contrib/queryperf/README			X	2001,2018
 ./contrib/queryperf/config.h.in			X	2007,2018
@@ -2988,7 +2937,6 @@
 ./contrib/queryperf/missing/getnameinfo.c	X	2004,2018
 ./contrib/queryperf/queryperf.c			X	2001,2002,2003,2004,2005,2007,2012,2013,2014,2018
 ./contrib/queryperf/utils/gen-data-queryperf.py	X	2003,2008,2016,2018
-./contrib/scripts/.gitignore			X	2012,2014,2018
 ./contrib/scripts/check-secure-delegation.pl.in	PERL	2010,2012,2014,2016,2018
 ./contrib/scripts/check5011.pl			X	2013,2014,2017,2018
 ./contrib/scripts/dnssec-keyset.sh		X	2015,2018
@@ -3021,7 +2969,6 @@
 ./contrib/sdb/time/timedb.c			C	2000,2001,2004,2007,2011,2014,2016,2018
 ./contrib/sdb/time/timedb.h			C	2000,2001,2004,2007,2016,2018
 ./doc/Makefile.in				MAKE	2000,2001,2004,2005,2006,2007,2012,2015,2016,2018
-./doc/arm/.gitignore				X	2015,2018
 ./doc/arm/Bv9ARM-book.xml			SGML	2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./doc/arm/Bv9ARM.ch01.html			X	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
 ./doc/arm/Bv9ARM.ch02.html			X	2000,2001,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
@@ -3150,7 +3097,6 @@
 ./doc/dev/style.md				MKD	2017,2018
 ./doc/dev/tests					TXT.BRIEF	2000,2001,2004,2016,2018
 ./doc/dev/unexpected				TXT.BRIEF	1999,2000,2001,2004,2016,2018
-./doc/doxygen/.gitignore			X	2012,2018
 ./doc/doxygen/Doxyfile.in			X	2006,2017,2018
 ./doc/doxygen/Makefile.in			MAKE	2006,2007,2012,2015,2016,2018
 ./doc/doxygen/doxygen-input-filter.in		PERL	2006,2007,2012,2016,2018
@@ -3181,11 +3127,9 @@
 ./doc/misc/static-stub.zoneopt			X	2018
 ./doc/misc/stub.zoneopt				X	2018
 ./doc/misc/tcp-fast-open			TXT.BRIEF	2016,2017,2018
-./doc/tex/.gitignore				X	2015,2018
 ./doc/tex/Makefile.in				MAKE	2015,2016,2018
 ./doc/tex/armstyle.sty.in			X	2015,2018
 ./doc/tex/notestyle.sty				X	2015,2018
-./doc/xsl/.gitignore				X	2012,2014,2015,2018
 ./doc/xsl/Makefile.in				MAKE	2005,2007,2012,2014,2015,2016,2018
 ./doc/xsl/arm-param.xsl				SGML	2015,2016,2018
 ./doc/xsl/copyright.xsl				SGML	2005,2007,2009,2015,2016,2018
@@ -3216,7 +3160,6 @@
 ./isc-config.sh.docbook				SGML	2009,2014,2015,2016,2018
 ./isc-config.sh.html				HTML	DOCBOOK
 ./isc-config.sh.in				SH	2000,2001,2003,2004,2007,2012,2013,2015,2016,2017,2018
-./lib/.gitignore				X	2012,2018
 ./lib/Atffile					X	2011,2014,2016,2018
 ./lib/Kyuafile					X	2017,2018
 ./lib/Makefile.in				MAKE	1998,1999,2000,2001,2003,2004,2007,2012,2013,2014,2016,2018
@@ -3239,7 +3182,6 @@
 ./lib/bind9/win32/libbind9.vcxproj.in		X	2013,2014,2015,2016,2017,2018
 ./lib/bind9/win32/libbind9.vcxproj.user		X	2013,2018
 ./lib/bind9/win32/version.c			C	1998,1999,2000,2001,2004,2007,2016,2018
-./lib/dns/.gitignore				X	2012,2013,2016,2018
 ./lib/dns/Atffile				X	2011,2018
 ./lib/dns/Kyuafile				X	2017,2018
 ./lib/dns/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
@@ -3667,7 +3609,6 @@
 ./lib/dns/tests/testdata/dst/test1.dsasig	X	2018
 ./lib/dns/tests/testdata/dst/test1.rsasig	X	2018
 ./lib/dns/tests/testdata/dst/test2.data		X	2018
-./lib/dns/tests/testdata/master/.gitignore	X	2012,2018
 ./lib/dns/tests/testdata/master/master1.data	X	2011,2018
 ./lib/dns/tests/testdata/master/master10.data	X	2011,2018
 ./lib/dns/tests/testdata/master/master11.data	X	2011,2018
@@ -3774,7 +3715,6 @@
 ./lib/irs/win32/DLLMain.c			C	2014,2016,2018
 ./lib/irs/win32/Makefile.in			MAKE	2014,2016,2018
 ./lib/irs/win32/include/Makefile.in		MAKE	2014,2016,2018
-./lib/irs/win32/include/irs/.gitignore		X	2014,2018
 ./lib/irs/win32/include/irs/Makefile.in		MAKE	2014,2016,2018
 ./lib/irs/win32/include/irs/netdb.h		C	2014,2016,2018
 ./lib/irs/win32/include/irs/platform.h		C	2014,2016,2018
@@ -3786,7 +3726,6 @@
 ./lib/irs/win32/libirs.vcxproj.in		X	2014,2015,2016,2017,2018
 ./lib/irs/win32/libirs.vcxproj.user		X	2014,2018
 ./lib/irs/win32/version.c			C	2014,2016,2018
-./lib/isc/.gitignore				X	2014,2018
 ./lib/isc/Atffile				X	2011,2018
 ./lib/isc/Kyuafile				X	2017,2018
 ./lib/isc/Makefile.in				MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018
@@ -4341,7 +4280,6 @@
 ./lib/lwres/win32/DLLMain.c			C	2001,2004,2007,2016,2018
 ./lib/lwres/win32/Makefile.in			MAKE	2001,2004,2007,2012,2016,2018
 ./lib/lwres/win32/include/Makefile.in		MAKE	2001,2004,2007,2012,2016,2018
-./lib/lwres/win32/include/lwres/.gitignore	X	2014,2018
 ./lib/lwres/win32/include/lwres/Makefile.in	MAKE	2001,2004,2007,2012,2016,2018
 ./lib/lwres/win32/include/lwres/int.h		C	2000,2001,2004,2007,2016,2018
 ./lib/lwres/win32/include/lwres/net.h		C	2000,2001,2004,2007,2013,2016,2018
@@ -4357,7 +4295,6 @@
 ./lib/lwres/win32/lwconfig.c			C	2002,2004,2006,2007,2013,2016,2018
 ./lib/lwres/win32/socket.c			C	2007,2015,2016,2018
 ./lib/lwres/win32/version.c			C	1998,1999,2000,2001,2004,2007,2016,2018
-./lib/samples/.gitignore			X	2013,2014,2018
 ./lib/samples/Makefile-postinstall.in		MAKE	2009,2012,2013,2014,2016,2018
 ./lib/samples/Makefile.in			MAKE	2009,2012,2013,2014,2015,2016,2017,2018
 ./lib/samples/nsprobe.c				C	2009,2010,2011,2012,2013,2014,2015,2016,2018
@@ -4417,13 +4354,11 @@
 ./libtool.m4/ltversion.m4			X	2012,2018
 ./libtool.m4/lt~obsolete.m4			X	2012,2018
 ./ltmain.sh					X	1999,2000,2001,2003,2004,2006,2009,2012,2018
-./make/.gitignore				X	2012,2018
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2012,2016,2018
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007,2012,2014,2016,2018
 ./make/mkdep.in					X	1999,2000,2001,2006,2011,2014,2018
 ./make/rules.in					MAKE	1998,1999,2000,2001,2002,2003,2004,2005,2006,2007,2008,2009,2011,2012,2013,2014,2015,2016,2017,2018
 ./mkinstalldirs					X	1996,2018
-./unit/.gitignore				X	2012,2014,2018
 ./unit/Makefile.in				MAKE	2011,2012,2017,2018
 ./unit/README					X	2011,2013,2018
 ./unit/atf-src/.travis.yml			X	2018
@@ -4577,7 +4512,6 @@
 ./unit/atf-src/atf-c/utils.c			X	2011,2013,2018
 ./unit/atf-src/atf-c/utils.h			X	2011,2013,2018
 ./unit/atf-src/atf-c/utils_test.c		X	2011,2013,2018
-./unit/atf-src/atf-sh/.gitignore		X	2014,2018
 ./unit/atf-src/atf-sh/Atffile			X	2011,2018
 ./unit/atf-src/atf-sh/Kyuafile			X	2013,2018
 ./unit/atf-src/atf-sh/Makefile.am.inc		X	2011,2013,2018
@@ -4652,7 +4586,6 @@
 ./unit/atf-src/test-programs/result_test.sh	X	2011,2013,2018
 ./unit/atf-src/test-programs/sh_helpers.sh	X	2011,2013,2018
 ./unit/atf-src/test-programs/srcdir_test.sh	X	2011,2013,2018
-./unit/atf-src/tools/.gitignore			X	2018
 ./unit/atf-src/tools/Atffile			X	2018
 ./unit/atf-src/tools/Kyuafile			X	2018
 ./unit/atf-src/tools/Makefile.am.inc		X	2018
