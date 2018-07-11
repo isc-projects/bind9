@@ -15,6 +15,7 @@ SELF="$(basename $0)"
 SELF="${SELF/-/ }"
 
 STATE_FILE=".git/REPLAY_MERGE"
+DONT_PUSH=${DONT_PUSH:=false}
 
 die() {
 	for MESSAGE in "$@"; do
@@ -27,6 +28,7 @@ die_with_usage() {
 	die "Usage:"								\
 	    ""									\
 	    "	${SELF} <merge_commit_id> <target_remote> <target_branch>"	\
+	    "	${SELF} --no-push"						\
 	    "	${SELF} --continue"						\
 	    "	${SELF} --abort"
 }
@@ -42,6 +44,13 @@ die_with_continue_instructions() {
 	die ""								\
 	    "Replay interrupted.  Conflicts need to be fixed manually."	\
 	    "When done, run \"${SELF} --continue\"."			\
+	    "Use \"${SELF} --abort\" to abort the replay."
+}
+
+die_before_push() {
+	die ""										\
+	    "Replay finished locally.  Now check the result in ${REPLAY_BRANCH}."	\
+	    "When done, run \"${SELF} --continue\" to push and create MR in gitlab."	\
 	    "Use \"${SELF} --abort\" to abort the replay."
 }
 
@@ -155,12 +164,16 @@ resume() {
 		fi
 	fi
 
+	if [[ "$DONT_PUSH" = "true" ]]; then
+		die_before_push
+	fi
+
 	git push ${TARGET_REMOTE} -u ${REPLAY_BRANCH}:${REPLAY_BRANCH}
 
 	REPLAY_COMMIT_TITLE="$(git show --format="%b" "${SOURCE_COMMIT}" 2>&1 | head -1)"
 
 	gitlab create_merge_request 1 "${REPLAY_COMMIT_TITLE}" "{source_branch: '${REPLAY_BRANCH}', target_branch: '${TARGET_BRANCH}'}"
-	
+
 	cleanup
 	exit 0
 }
@@ -176,24 +189,38 @@ cleanup() {
 	rm -f "${STATE_FILE}"
 }
 
-case "$1" in
-	"--abort")
-		die_if_not_in_progress
-		source "${STATE_FILE}"
-		cleanup
-		;;
-	"--continue")
-		verify_gitlab_cli
-		die_if_not_in_progress
-		source "${STATE_FILE}"
-		resume
-		;;
-	*)
-		if [[ $# -ne 3 ]]; then
-			die_with_usage
-		fi
-		verify_gitlab_cli
-		die_if_in_progress
-		go "$@"
-		;;
-esac
+next_action="go"
+while [[ $# -ge 1 ]]; do
+	case "$1" in
+		"--no-push")
+			DONT_PUSH=true
+			;;
+		"--push")
+			DONT_PUSH=false
+			;;
+		"--abort")
+			die_if_not_in_progress
+			source "${STATE_FILE}"
+			next_action="cleanup"
+			;;
+		"--continue")
+			verify_gitlab_cli
+			die_if_not_in_progress
+			source "${STATE_FILE}"
+			next_action="resume"
+			;;
+		*)
+			if [[ $# -ne 3 ]]; then
+				die_with_usage
+			fi
+			break
+			;;
+	esac
+	shift
+done
+
+if [[ "DONT_PUSH" = "false" ]]; then
+	verify_gitlab_cli
+fi
+
+$next_action "$@"
