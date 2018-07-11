@@ -1,3 +1,5 @@
+4995.	[test]		Add tests for "tcp-self" update policy. [GL !282]
+
 4994.	[bug]		Trust anchor telemetry queries were not being sent
 			upstream for locally served zones. [GL #392]
 
