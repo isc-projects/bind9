@@ -5159,6 +5159,11 @@ options {
 		not settable on a per-prefix basis.
 	      </para>
 	      <para>
+		<command>dns64</command> will also cause IPV4ONLY.ARPA to
+		be created if not exlicitly disabled using
+		<command>ipv4only-enable</command>.
+	      </para>
+	      <para>
 		Each <command>dns64</command> supports an optional
 		<command>clients</command> ACL that determines which
 		clients are affected by this directive.  If not defined,
@@ -5836,13 +5841,15 @@ options {
 	      <term><command>has-old-clients</command></term>
 	      <listitem>
 		<para>
-		  This option was incorrectly implemented
-		  in <acronym>BIND</acronym> 8, and is ignored by <acronym>BIND</acronym> 9.
-		  To achieve the intended effect
-		  of
-		  <command>has-old-clients</command> <userinput>yes</userinput>, specify
-		  the two separate options <command>auth-nxdomain</command> <userinput>yes</userinput>
-		  and <command>rfc2308-type1</command> <userinput>no</userinput> instead.
+		  This option was incorrectly implemented in
+		  <acronym>BIND</acronym> 8, and is ignored by
+		  <acronym>BIND</acronym> 9.  To achieve the intended
+		  effect of <command>has-old-clients</command>
+		  <userinput>yes</userinput>, specify the two
+		  separate options <command>auth-nxdomain</command>
+		  <userinput>yes</userinput> and
+		  <command>rfc2308-type1</command>
+		  <userinput>no</userinput> instead.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -5855,6 +5862,21 @@ options {
 		  statistics for every host that the name server interacts
 		  with.
 		  Not implemented in BIND 9.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <listitem>
+	        <term><command>ipv4only-enable</command></term>
+	        <para>
+		  Create the IPV4ONLY.ARPA zone as described in RFC
+		  7050.  The default is <userinput>no</userinput>
+		  unless a DNS64 prefix is configured in which case
+		  the default becomes <userinput>yes</userinput>.
+		  <command>ipv4only-contact</command> and
+		  <command>ipv4only-server</command> control the
+		  SOA contact and server valuses respectively.
 		</para>
 	      </listitem>
 	    </varlistentry>
