@@ -1,3 +1,6 @@
+4994.	[bug]		Trust anchor telemetry queries were not being sent
+			upstream for locally served zones. [GL #392]
+
 4992.	[bug]		The wrong address was being logged for trust anchor
 			telemetry queries. [GL #379]
 
