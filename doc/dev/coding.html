@@ -92,10 +92,10 @@ The following lint and lint-like comments should be used where appropriate:
 files should prevent multiple inclusion.  The OS is assumed to prevent
 multiple inclusion of its .h files.<P>
 .h files that define modules should have a structure like the
-following.  Note that <isc/lang.h> should be included by any public
+following.  Note that &lt;isc/lang.h&gt; should be included by any public
 header file to get the ISC_LANG_BEGINDECLS and ISC_LANG_ENDDECLS
 macros used so the correct name-mangling happens for function
-declarations when C++ programs include the file. <isc/lang.h> should
+declarations when C++ programs include the file. &lt;isc/lang.h&gt; should
 be included for private header files or for public files that do not
 declare any functions.<P>
 <PRE><CODE>
@@ -238,7 +238,7 @@ Bad:<P>
 <PRE><CODE>
 void f(int i)
   {
-    if(i<0){i=0;printf("was negative\n");}
+    if(i&lt;0){i=0;printf("was negative\n");}
     if (i > 0)
       {
         printf("yes\n");
@@ -296,7 +296,7 @@ Good:
 	os_descriptor_t		s;
 	os_result_t		result;
 
-	result = os_socket_create(AF_INET, SOCK_STREAM, 0, &s);
+	result = os_socket_create(AF_INET, SOCK_STREAM, 0, &amp;s);
 	if (result != OS_R_SUCCESS) {
 		/* Do something about the error. */
 		return;
@@ -312,7 +312,7 @@ Not so good:
 	 * point is not to write more interfaces like them.
 	 */
 	s = socket(AF_INET, SOCK_STREAM, 0);
-	if (s < 0) {
+	if (s &lt; 0) {
 		/* Do something about the error using errno. */
 		return;
 	}
@@ -350,26 +350,26 @@ Bit testing should be as follows:<P>
 Good:
 <PRE><CODE>
 	/* Test if flag set. */
-	if ((flags & FOO) != 0) {
+	if ((flags &amp; FOO) != 0) {
 
 	}
 	/* Test if flag clear. */
-	if ((flags & BAR) == 0) {
+	if ((flags &amp; BAR) == 0) {
 
 	}
 	/* Test if both flags set. */
-	if ((flags & (FOO|BAR)) == (FOO|BAR)) {
+	if ((flags &amp; (FOO|BAR)) == (FOO|BAR)) {
 
 	}
 </CODE></PRE>
 Bad:
 <PRE><CODE>
 	/* Test if flag set. */
-	if (flags & FOO) {
+	if (flags &amp; FOO) {
 
 	}
 	/* Test if flag clear. */
-	if (! (flags & BAR)) {
+	if (! (flags &amp; BAR)) {
 
 	}
 </CODE></PRE>
@@ -438,8 +438,8 @@ verboten.<P>
 Good:
 <PRE><CODE>
 	printf("%c is%s a number.\n", c, isdigit(c) ? "" " NOT");
-        l = (l1 < l2) ? l1 : l2;
-        if (gp.length + (go < 16384 ? 2 : 3) >= name->length) {
+        l = (l1 &lt; l2) ? l1 : l2;
+        if (gp.length + (go &lt; 16384 ? 2 : 3) >= name->length) {
            ...
         }
 </CODE></PRE>
@@ -497,7 +497,7 @@ in a file named redblack.c (in lieu of any other dns_redblack_*
 interfaces in the file).<P>
 
 The one notable exception to this naming rule is the interfaces
-provided by <isc/util.h>.  There's a large caveat associated with the
+provided by &lt;isc/util.h&gt;.  There's a large caveat associated with the
 public description of this file that it is hazardous to use because it
 pollutes the general namespace.<P>
 
