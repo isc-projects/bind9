@@ -371,9 +371,12 @@ grep "NOERROR" dig.out.ns3.test$n.1 > /dev/null || ret=1
 grep "flags:.* aa" dig.out.ns3.test$n.1 > /dev/null && ret=1
 grep "flags:.* ad" dig.out.ns3.test$n.1 > /dev/null || ret=1
 # Reconfigure the zone so that it is no longer a mirror zone.
-nextpart ns3/named.run > /dev/null
-sed '/^zone "verify-reconfig" {$/,/^};$/{s/mirror yes;/mirror no;/}' ns3/named.conf > ns3/named.conf.modified
+# (NOTE: Keep the embedded newline in the sed function list below.)
+sed '/^zone "verify-reconfig" {$/,/^};$/ {
+	s/mirror yes;/mirror no;/
+}' ns3/named.conf > ns3/named.conf.modified
 mv ns3/named.conf.modified ns3/named.conf
+nextpart ns3/named.run > /dev/null
 $RNDCCMD 10.53.0.3 reconfig > /dev/null 2>&1
 # Zones whose "mirror" setting was changed should not be reusable, which means
 # the tested zone should have been reloaded from disk.
@@ -393,7 +396,10 @@ ret=0
 nextpart ns3/named.run > /dev/null
 cat ns2/verify-reconfig.db.bad.signed > ns3/verify-reconfig.db.mirror
 # Reconfigure the zone so that it is a mirror zone again.
-sed '/^zone "verify-reconfig" {$/,/^};$/{s/mirror no;/mirror yes;/}' ns3/named.conf > ns3/named.conf.modified
+# (NOTE: Keep the embedded newline in the sed function list below.)
+sed '/^zone "verify-reconfig" {$/,/^};$/ {
+	s/mirror no;/mirror yes;/
+}' ns3/named.conf > ns3/named.conf.modified
 mv ns3/named.conf.modified ns3/named.conf
 $RNDCCMD 10.53.0.3 reconfig > /dev/null 2>&1
 # The reconfigured zone should fail verification.
