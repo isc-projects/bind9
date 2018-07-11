@@ -21,25 +21,11 @@ a.root-servers.nil.	A	10.53.0.1
 example.		NS	ns2.example.
 ns2.example.		A	10.53.0.2
 
-example.broken.		NS	ns3.example.broken.
-ns3.example.broken.	A	10.53.0.3
+broken.			NS	ns3.broken.
+ns3.broken.		A	10.53.0.3
 
-domain0.nil.		NS	ns2.domain0.nil
-domain1.nil.		NS	ns2.domain0.nil
-domain2.nil.		NS	ns2.domain0.nil
-domain3.nil.		NS	ns2.domain0.nil
-domain4.nil.		NS	ns2.domain0.nil
-domain5.nil.		NS	ns2.domain0.nil
-domain6.nil.		NS	ns2.domain0.nil
-domain7.nil.		NS	ns2.domain0.nil
-domain8.nil.		NS	ns2.domain0.nil
-domain9.nil.		NS	ns2.domain0.nil
-ns2.domain0.nil.		A	10.53.0.2
-ns2.domain0.nil.		AAAA	fd92:7065:b8e:ffff::2
+nil.			NS      ns1.nil.
+ns1.nil.		NS      10.53.0.1
 
-domain.nil.		NS	ns4.domain.nil
-ns4.domain.nil.		A	10.53.0.4
-ns4.domain.nil.		AAAA	fd92:7065:b8e:ffff::4
-
-domain.		NS	ns4.domain.
+domain.			NS	ns4.domain.
 ns4.domain.		A	10.53.0.4

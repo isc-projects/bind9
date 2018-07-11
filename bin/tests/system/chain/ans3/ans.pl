@@ -31,7 +31,7 @@ if (!$localport) { $localport = 5300; }
 
 my $verbose = 0;
 my $ttl = 60;
-my $zone = "example.broken";
+my $zone = "broken";
 my $nsname = "ns3.$zone";
 my $synth = "synth-then-dname.$zone";
 my $synth2 = "synth2-then-dname.$zone";
@@ -43,7 +43,7 @@ sub reply_handler {
     print ("request: $qname/$qtype\n");
     STDOUT->flush();
 
-    if ($qname eq "example.broken") {
+    if ($qname eq "broken") {
         if ($qtype eq "SOA") {
 	    my $rr = new Net::DNS::RR("$qname $ttl $qclass SOA . . 0 0 0 0 0");
 	    push @ans, $rr;

@@ -97,21 +97,21 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking DNAME is returned with synthesized CNAME before DNAME ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.7 name.synth-then-dname.example.broken A > dig.out.test$n
+$DIG $DIGOPTS @10.53.0.7 name.synth-then-dname.broken A > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
-grep '^name.synth-then-dname\.example\.broken\..*CNAME.*name.$' dig.out.test$n > /dev/null || ret=1
-grep '^synth-then-dname\.example\.broken\..*DNAME.*\.$' dig.out.test$n > /dev/null || ret=1
+grep '^name.synth-then-dname\.broken\..*CNAME.*name.$' dig.out.test$n > /dev/null || ret=1
+grep '^synth-then-dname\.broken\..*DNAME.*\.$' dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "checking DNAME is returned with CNAME to synthesized CNAME before DNAME ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.7 cname-to-synth2-then-dname.example.broken A > dig.out.test$n
+$DIG $DIGOPTS @10.53.0.7 cname-to-synth2-then-dname.broken A > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
-grep '^cname-to-synth2-then-dname\.example\.broken\..*CNAME.*name\.synth2-then-dname\.example\.broken.$' dig.out.test$n > /dev/null || ret=1
-grep '^name\.synth2-then-dname\.example\.broken\..*CNAME.*name.$' dig.out.test$n > /dev/null || ret=1
-grep '^synth2-then-dname\.example\.broken\..*DNAME.*\.$' dig.out.test$n > /dev/null || ret=1
+grep '^cname-to-synth2-then-dname\.broken\..*CNAME.*name\.synth2-then-dname\.broken.$' dig.out.test$n > /dev/null || ret=1
+grep '^name\.synth2-then-dname\.broken\..*CNAME.*name.$' dig.out.test$n > /dev/null || ret=1
+grep '^synth2-then-dname\.broken\..*DNAME.*\.$' dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -202,7 +202,7 @@ $DIG $DIGOPTS @10.53.0.7 test.domain.nil > dig.out.1.$n 2>&1
 sleep 1
 $DIG $DIGOPTS +noall +answer @10.53.0.7 cname1.domain.nil > dig.out.2.$n 2>&1
 ttl=`awk '{print $2}' dig.out.2.$n`
-[ "$ttl" -eq 86400 ] || ret=1
+[ ${ttl:-0} -eq 86400 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
