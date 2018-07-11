@@ -1573,6 +1573,7 @@
 ./bin/tests/system/mirror/ns2/sign.sh		SH	2018
 ./bin/tests/system/mirror/ns2/sub.example.db.in	ZONE	2018
 ./bin/tests/system/mirror/ns2/verify.db.in	ZONE	2018
+./bin/tests/system/mirror/ns3/named.args	X	2018
 ./bin/tests/system/mirror/ns3/named.conf.in	CONF-C	2018
 ./bin/tests/system/mirror/setup.sh		SH	2018
 ./bin/tests/system/mirror/tests.sh		SH	2018
