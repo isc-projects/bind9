@@ -241,6 +241,11 @@
 	  abundance of caution. DNS COOKIE is an important security mechanism,
 	  and should not be disabled unless absolutely necessary.
 	</para>
+	<para>
+	  Remove support for silently ignoring 'no-change' deltas from
+	  BIND 8 when processing an IXFR stream.  'no-change' deltas
+	  will now trigger a fallback to AXFR as the recovery mechanism.
+	</para>
       </listitem>
     </itemizedlist>
   </section>
