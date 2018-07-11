@@ -1051,11 +1051,17 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 							lookup->ednsoptscnt = 0;
 							break;
 						}
-						if (value == NULL)
+						code = NULL;
+						if (value != NULL) {
+							code = strtok(value,
+								      ":");
+						}
+						if (code == NULL) {
 							fatal("ednsopt no "
 							      "code point "
 							      "specified");
-						code = next_token(&value, ":");
+						}
+						value = strtok(NULL, "\0");
 						save_opt(lookup, code, value);
 						break;
 					default:
