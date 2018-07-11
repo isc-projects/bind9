@@ -6487,35 +6487,32 @@ struct dotat_arg {
 	isc_task_t *task;
 };
 
-static void
-dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
-	isc_result_t result;
+/*%
+ * Prepare the QNAME for the TAT query to be sent by processing the trust
+ * anchors present at 'keynode' of 'keytable'.  Store the result in 'dst'.
+ *
+ * A maximum of 12 key IDs can be reported in a single TAT query due to the
+ * 63-octet length limit for any single label in a domain name.  If there are
+ * more than 12 keys configured at 'keynode', only the first 12 will be
+ * reported in the TAT query.
+ */
+static isc_result_t
+get_tat_qname(dns_name_t *dst, dns_keytable_t *keytable,
+	      dns_keynode_t *keynode)
+{
 	dns_keynode_t *firstnode = keynode;
+	const dns_name_t *origin;
 	dns_keynode_t *nextnode;
 	unsigned int i, n = 0;
-	char label[64], namebuf[DNS_NAME_FORMATSIZE];
-	dns_fixedname_t fixed;
-	dns_name_t *tatname;
-	isc_uint16_t ids[12]; /* Only 12 id's will fit in a label. */
-	int m;
-	ns_tat_t *tat;
-	dns_name_t *name = NULL;
-	struct dotat_arg *dotat_arg = arg;
-	dns_view_t *view;
-	isc_task_t *task;
+	isc_uint16_t ids[12];
 	isc_textregion_t r;
-
-	REQUIRE(keytable != NULL);
-	REQUIRE(keynode != NULL);
-	REQUIRE(arg != NULL);
-
-	view = dotat_arg->view;
-	task = dotat_arg->task;
+	char label[64];
+	int m;
 
 	do {
 		dst_key_t *key = dns_keynode_key(keynode);
 		if (key != NULL) {
-			name = dst_key_name(key);
+			origin = dst_key_name(key);
 			if (n < (sizeof(ids)/sizeof(ids[0]))) {
 				ids[n] = dst_key_id(key);
 				n++;
@@ -6530,7 +6527,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	} while (keynode != NULL);
 
 	if (n == 0) {
-		return;
+		return (DNS_R_EMPTYNAME);
 	}
 
 	if (n > 1) {
@@ -6546,18 +6543,40 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	r.length = sizeof(label);
 	m = snprintf(r.base, r.length, "_ta");
 	if (m < 0 || (unsigned)m > r.length) {
-		return;
+		return (ISC_R_FAILURE);
 	}
 	isc_textregion_consume(&r, m);
 	for (i = 0; i < n; i++) {
 		m = snprintf(r.base, r.length, "-%04x", ids[i]);
 		if (m < 0 || (unsigned)m > r.length) {
-			return;
+			return (ISC_R_FAILURE);
 		}
 		isc_textregion_consume(&r, m);
 	}
+
+	return (dns_name_fromstring2(dst, label, origin, 0, NULL));
+}
+
+static void
+dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
+	struct dotat_arg *dotat_arg = arg;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_fixedname_t fixed;
+	dns_name_t *tatname;
+	isc_result_t result;
+	dns_view_t *view;
+	isc_task_t *task;
+	ns_tat_t *tat;
+
+	REQUIRE(keytable != NULL);
+	REQUIRE(keynode != NULL);
+	REQUIRE(arg != NULL);
+
+	view = dotat_arg->view;
+	task = dotat_arg->task;
+
 	tatname = dns_fixedname_initname(&fixed);
-	result = dns_name_fromstring2(tatname, label, name, 0, NULL);
+	result = get_tat_qname(tatname, keytable, keynode);
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
