@@ -94,10 +94,6 @@ branch_exists() {
 }
 
 go() {
-	if [[ $# -ne 3 ]]; then
-		die_with_usage
-	fi
-	die_if_in_progress
 	# Process parameters.
 	SOURCE_COMMIT="$1"
 	TARGET_REMOTE="$2"
@@ -194,8 +190,14 @@ cleanup() {
 }
 
 next_action="go"
-while [[ $# -gt 3 ]]; do
+while [[ $# -ge 1 ]]; do
 	case "$1" in
+		"--no-push")
+			DONT_PUSH=true
+			;;
+		"--push")
+			DONT_PUSH=false
+			;;
 		"--abort")
 			die_if_not_in_progress
 			source "${STATE_FILE}"
@@ -207,11 +209,11 @@ while [[ $# -gt 3 ]]; do
 			source "${STATE_FILE}"
 			next_action="resume"
 			;;
-		"--no-push")
-			DONT_PUSH=true
-			;;
-		"--push")
-			DONT_PUSH=false
+		*)
+			if [[ $# -ne 3 ]]; then
+				die_with_usage
+			fi
+			break
 			;;
 	esac
 	shift
