@@ -1,3 +1,6 @@
+4992.	[bug]		The wrong address was being logged for trust anchor
+			telemetry queries. [GL #379]
+
 4991.	[bug]		"rndc reconfig" was incorrectly handling zones whose
 			"mirror" setting was changed. [GL #381]
 
@@ -818,8 +821,8 @@
 
 4760.	[func]		Add glue cache statistics counters. [RT #46028]
 
-4759.	[func]		Add logging channel "trust-anchor-telementry" to
-			record trust-anchor-telementry in incoming requests.
+4759.	[func]		Add logging channel "trust-anchor-telemetry" to
+			record trust-anchor-telemetry in incoming requests.
 			Both _ta-XXXX.<anchor>/NULL and EDNS KEY-TAG options
 			are logged.  [RT #46124]
 
@@ -888,10 +891,10 @@
 			tests when running on terminals that support them.
 			[RT #45977]
 
-4744.	[bug]		Suppress trust-anchor-telementry queries if
+4744.	[bug]		Suppress trust-anchor-telemetry queries if
 			validation is disabled. [RT #46131]
 
-4743.	[func]		Exclude trust-anchor-telementry queries from
+4743.	[func]		Exclude trust-anchor-telemetry queries from
 			synth-from-dnssec processing. [RT #46123]
 
 4742.	[func]		Synthesis of responses from DNSSEC-verified records.
