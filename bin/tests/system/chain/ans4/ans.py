@@ -220,7 +220,10 @@ def create_response(msg):
             continue
 
     # now add the final answer
-    owner = curname + '.' + curdom
+    if rrtype == NS:
+        owner = curdom
+    else:
+        owner = curname + '.' + curdom
     answers.append(dns.rrset.from_text(owner, ttl, IN, rrtype, final))
     rrsig = '%s 5 3 %d %s %s 12345 %s %s' % \
                (typename, ttl, expiry, inception, domain, sigdata)
