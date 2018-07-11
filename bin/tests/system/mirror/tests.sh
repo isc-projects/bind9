@@ -404,5 +404,13 @@ nextpart ns3/named.run | grep "No correct RSASHA256 signature for verify-reconfi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "ensuring trust anchor telemetry queries are sent upstream for a mirror zone ($n)"
+ret=0
+# ns3 is started with "-T tat=1", so TAT queries should have already been sent.
+grep "_ta-[-0-9a-f]*/NULL" ns1/named.run > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
