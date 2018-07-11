@@ -140,6 +140,7 @@ precheck:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   stage: precheck
   script:
+    - sh util/checklibs.sh > checklibs.out
     - perl util/check-changes CHANGES
     - perl -w util/merge_copyrights
     - diff -urNap util/copyrights util/newcopyrights
@@ -149,6 +150,7 @@ precheck:debian:sid:amd64:
   artifacts:
     paths:
     - util/newcopyrights
+    - checklibs.out
     expire_in: '1 week'
     when: on_failure
 
