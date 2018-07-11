@@ -1892,7 +1892,7 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	const char *cfilename;
 	const char *zfilename;
 	dns_zone_t *raw = NULL;
-	isc_boolean_t has_raw;
+	isc_boolean_t has_raw, mirror;
 	dns_zonetype_t ztype;
 
 	zoptions = cfg_tuple_get(zconfig, "options");
@@ -1929,6 +1929,21 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	} else if ((obj != NULL && cfg_obj_asboolean(obj)) && !has_raw) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: old zone was not inline-signing");
+		return (ISC_FALSE);
+	}
+
+	/*
+	 * Do not reuse a zone whose "mirror" setting was changed.
+	 */
+	obj = NULL;
+	mirror = ISC_FALSE;
+	(void)cfg_map_get(zoptions, "mirror", &obj);
+	if (obj != NULL) {
+		mirror = cfg_obj_asboolean(obj);
+	}
+	if (dns_zone_ismirror(zone) != mirror) {
+		dns_zone_log(zone, ISC_LOG_DEBUG(1),
+			     "not reusable: mirror setting changed");
 		return (ISC_FALSE);
 	}
 

@@ -1,3 +1,6 @@
+4991.	[bug]		"rndc reconfig" was incorrectly handling zones whose
+			"mirror" setting was changed. [GL #381]
+
 4990.	[bug]		Prevent a possible NULL reference in pkcs11-keygen.
 			[GL #401]
 
