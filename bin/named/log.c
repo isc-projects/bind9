@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: log.c,v 1.49 2009/01/07 01:46:40 jinmei Exp $ */
-
 /*! \file */
 
 #include <config.h>
@@ -39,7 +37,7 @@ static isc_logcategory_t categories[] = {
 	{ "unmatched",	 		0 },
 	{ "update-security",		0 },
 	{ "query-errors",		0 },
-	{ "trust-anchor-telementry",	0 },
+	{ "trust-anchor-telemetry",	0 },
 	{ NULL, 			0 }
 };
 
