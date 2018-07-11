@@ -82,6 +82,8 @@ my $NAMED = $ENV{'NAMED'};
 my $DIG = $ENV{'DIG'};
 my $PERL = $ENV{'PERL'};
 my $PYTHON = $ENV{'PYTHON'};
+my $name = $testdir;
+$name =~ s:.*[/\\]::;
 
 # Start the server(s)
 
@@ -141,12 +143,12 @@ sub check_ports {
 		last if ($return == 0);
 		if (++$tries > 4) {
 			print "$0: could not bind to server addresses, still running?\n";
-			print "I:server sockets not available\n";
-			print "I:failed\n";
+			print "I:$name:server sockets not available\n";
+			print "I:$name:failed\n";
 			system("$PERL $topdir/stop.pl $testdir"); # Is this the correct behavior?
 			exit 1;
 		}
-		print "I:Couldn't bind to socket (yet)\n";
+		print "I:$name:Couldn't bind to socket (yet)\n";
 		sleep 2;
 	}
 }
@@ -238,13 +240,13 @@ sub start_server {
 		}
 		$pid_file = "ans.pid";
 	} else {
-		print "I:Unknown server type $server\n";
-		print "I:failed\n";
+		print "I:$name:Unknown server type $server\n";
+		print "I:$name:failed\n";
 		system "$PERL $topdir/stop.pl $testdir";
 		exit 1;
 	}
 
-	# print "I:starting server %s\n",$server;
+	# print "I:$name:starting server %s\n",$server;
 
 	chdir "$testdir/$server";
 
@@ -265,8 +267,8 @@ sub start_server {
 	my $tries = 0;
 	while (!-s $pid_file) {
 		if (++$tries > 140) {
-			print "I:Couldn't start server $server (pid=$child)\n";
-			print "I:failed\n";
+			print "I:$name:Couldn't start server $server (pid=$child)\n";
+			print "I:$name:failed\n";
 			system "kill -9 $child" if ("$child" ne "");
 			system "$PERL $topdir/stop.pl $testdir";
 			exit 1;
@@ -304,8 +306,8 @@ sub verify_server {
 		my $return = system("$DIG $tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > dig.out");
 		last if ($return == 0);
 		if (++$tries >= 30) {
-			print "I:no response from $server\n";
-			print "I:failed\n";
+			print "I:$name:no response from $server\n";
+			print "I:$name:failed\n";
 			system("$PERL $topdir/stop.pl $testdir");
 			exit 1;
 		}
