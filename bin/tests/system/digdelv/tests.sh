@@ -354,7 +354,7 @@ if [ -x ${DIG} ] ; then
 
   n=`expr $n + 1`
   echo_i "checking dig +subnet with prefix lengths between byte boundaries ($n)"
-  ret=0
+ret=0
   for p in 9 10 11 12 13 14 15; do
     $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=10.53/$p A a.example > dig.out.test.$p.$n 2>&1 || ret=1
     grep "FORMERR" < dig.out.test.$p.$n > /dev/null && ret=1
@@ -453,6 +453,14 @@ if [ -x ${DIG} ] ; then
   $DIG $DIGOPTS @10.53.0.3 +ednsopt=key-tag:0001000201 a.example +qr > dig.out.test$n 2>&1 || ret=1
   grep "; KEY-TAG: 00 01 00 02 01" dig.out.test$n > /dev/null || ret=1
   grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "check that dig handles malformed option '+ednsopt=:' gracefully ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +ednsopt=: a.example > dig.out.test$n 2>&1 && ret=1
+  grep "ednsopt no code point specified" dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 else
