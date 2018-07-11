@@ -494,6 +494,14 @@ if [ -x ${DIG} ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
+  echo_i "check that dig processes +ednsopt=: is handled gracefully ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 +ednsopt=: a.example > dig.out.test$n 2>&1 && ret=1
+  grep "ednsopt no code point specified" dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
   echo_i "check that dig gracefully handles bad escape in domain name ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 '\0.' > dig.out.test$n 2>&1
