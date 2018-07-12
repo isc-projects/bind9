@@ -1,3 +1,6 @@
+4997.	[bug]		dns_acl_isinsecure did not handle geoip elements.
+			[GL #406]
+
 4996.	[bug]		dig: Handle malformed ednsopt options. [GL #403]
 
 4995.	[test]		Add tests for "tcp-self" update policy. [GL !282]
