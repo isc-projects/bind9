@@ -193,7 +193,7 @@ _set_thread_id(CRYPTO_THREADID *id)
 isc_result_t
 dst__openssl_init(const char *engine) {
 	isc_result_t result;
-#if defined(USE_ENGINE) && !defined(ISC_PLATFORM_CRYPTORANDOM)
+#if !defined(OPENSSL_NO_ENGINE) && !defined(ISC_PLATFORM_CRYPTORANDOM)
 	ENGINE *re;
 #else
 
