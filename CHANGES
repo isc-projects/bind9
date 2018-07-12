@@ -1,3 +1,8 @@
+5002.	[bug]		mdig: Handle malformed +ednsopt option, support 100
+			+ednsopt options per query rather than 100 total and
+			address memory leaks if +ednsopt was specified.
+			[GL #410]
+
 5001.	[bug]		Fix refcount errors on error paths. [GL !563]
 
 5000.	[bug]		named_server_servestale() could leave the server in
@@ -10,7 +15,7 @@
 
 4997.	[placeholder]
 
-4996.	[bug]		dig: Handle malformed ednsopt options. [GL #403]
+4996.	[bug]		dig: Handle malformed +ednsopt option. [GL #403]
 
 4995.	[test]		Add tests for "tcp-self" update policy. [GL !282]
 
