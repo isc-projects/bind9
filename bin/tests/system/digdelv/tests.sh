@@ -12,8 +12,7 @@ SYSTEMTESTTOP=..
 
 status=0
 n=0
-# using dig insecure mode as not testing dnssec here
-DIGOPTS="-i -p ${PORT}"
+DIGOPTS="-p ${PORT}"
 SENDCMD="$PERL $SYSTEMTESTTOP/send.pl 10.53.0.4 ${EXTRAPORT1}"
 
 if [ -x ${DIG} ] ; then
@@ -515,6 +514,19 @@ if [ -x ${DIG} ] ; then
 
 else
   echo_i "$DIG is needed, so skipping these dig tests"
+fi
+
+MDIGOPTS="-p ${PORT}"
+if [ -x ${MDIG} ] ; then
+  n=`expr $n + 1`
+  echo_i "check that mdig handles malformed option '+ednsopt=:' gracefully ($n)"
+  ret=0
+  $MDIG $MDIGOPTS @10.53.0.3 +ednsopt=: a.example > dig.out.test$n 2>&1 && ret=1
+  grep "ednsopt no code point specified" dig.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+else
+  echo_i "$MDIG is needed, so skipping these mdig tests"
 fi
 
 # using delv insecure mode as not testing dnssec here
