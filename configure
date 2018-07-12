@@ -12146,6 +12146,32 @@ $as_echo "#define ENABLE_AFL 1" >>confdefs.h
      ;;
 esac
 
+if test "$enable_fuzzing" = "afl"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking \"for AFL enabled compiler\"" >&5
+$as_echo_n "checking \"for AFL enabled compiler\"... " >&6; }
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+#ifndef __AFL_COMPILER
+					   #error AFL compiler required
+					   #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+elif { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }; then :
+  as_fn_error $? "set CC=afl-<gcc|clang> when --enable-fuzzing=afl is used" "$LINENO" 5
+fi
+
 #
 # Make very sure that these are the first files processed by
 # config.status, since we use the processed output as the input for

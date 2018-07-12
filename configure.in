@@ -116,6 +116,16 @@ AS_CASE([$enable_fuzzing],
 	  LDFLAGS="$LDFLAGS -fsanitize=fuzzer,address,undefined"],
 	[*],[AC_MSG_ERROR([You need to explicitly select the fuzzer])])
 
+AS_IF([test "$enable_fuzzing" = "afl"],
+      [AC_MSG_CHECKING("for AFL enabled compiler")
+       AC_COMPILE_IFELSE([AC_LANG_PROGRAM([],
+					  [#ifndef __AFL_COMPILER
+					   #error AFL compiler required
+					   #endif
+					  ])])],
+      [AC_MSG_RESULT([yes])],
+      [AC_MSG_ERROR([set CC=afl-<gcc|clang> when --enable-fuzzing=afl is used])])
+
 #
 # Make very sure that these are the first files processed by
 # config.status, since we use the processed output as the input for
