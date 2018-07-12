@@ -33,7 +33,8 @@ while (<CHANGES>) {
 
     next if (m%/\.\# |		# CVS old conflict file
 	       /CVS/ |		# CVS directory
-	       /.git/ |		# git directory
+	       /\.git/ |		# git directory
+	       /\.gitignore |   # .gitignore files
 	       util/newcopyrights | # our output
 	       \.bak$ |		# created by update_copyrights
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
