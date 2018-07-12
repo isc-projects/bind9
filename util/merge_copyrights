@@ -37,6 +37,7 @@ while (<CHANGES>) {
 	       /\.gitignore |   # .gitignore files
 	       /Makefile.in |   # build system doesn't need to have copyright
                /configure   |   # build system doesn't need to have copyright
+	       /fuzz/.*\.in/ |  # ignore fuzz corpus
 	       util/newcopyrights | # our output
 	       \.bak$ |		# created by update_copyrights
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported

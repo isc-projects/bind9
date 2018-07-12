@@ -1012,7 +1012,7 @@ setup(void) {
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "compiled with OpenSSL version: %s",
-	              OPENSSL_VERSION_TEXT);
+		      OPENSSL_VERSION_TEXT);
 #if !defined(LIBRESSL_VERSION_NUMBER) && \
     OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,

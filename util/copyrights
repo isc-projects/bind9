@@ -2832,6 +2832,9 @@
 ./docutil/patch-db2latex-duplicate-template-bug	X	2007,2018
 ./docutil/patch-db2latex-nested-param-bug	X	2007,2018
 ./docutil/patch-db2latex-xsltproc-title-bug	X	2007,2018
+./fuzz/dns_name_fromtext_target.c		C	2018
+./fuzz/fuzz.h					C	2018
+./fuzz/main.c					C	2018
 ./install-sh					X	1998,1999,2000,2001,2018
 ./isc-config.sh.1				MAN	DOCBOOK
 ./isc-config.sh.docbook				SGML	2009,2014,2015,2016,2017,2018

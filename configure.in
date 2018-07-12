@@ -5246,6 +5246,7 @@ AC_CONFIG_FILES([
 	lib/samples/Makefile-postinstall
 	unit/Makefile
 	unit/unittest.sh
+	fuzz/Makefile
 ])
 
 #
