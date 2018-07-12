@@ -841,8 +841,21 @@ parse_xint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
 	return (parse_uint_helper(uip, value, max, desc, 0));
 }
 
-static dns_ednsopt_t ednsopts[EDNSOPTS];
-static unsigned char ednsoptscnt = 0;
+static void
+newopts(struct query *query) {
+        size_t len = sizeof(query->ednsopts[0]) * EDNSOPTS;
+        size_t i;
+
+        query->ednsopts = isc_mem_allocate(mctx, len);
+        if (query->ednsopts == NULL)
+                fatal("out of memory");
+
+        for (i = 0; i < EDNSOPTS; i++) {
+                query->ednsopts[i].code = 0;
+                query->ednsopts[i].length = 0;
+                query->ednsopts[i].value = NULL;
+        }
+}
 
 static void
 save_opt(struct query *query, char *code, char *value) {
@@ -850,33 +863,39 @@ save_opt(struct query *query, char *code, char *value) {
 	isc_buffer_t b;
 	isc_result_t result;
 
-	if (ednsoptscnt == EDNSOPTS)
+	if (query->ednsopts == NULL) {
+		newopts(query);
+	}
+
+	if (query->ednsoptscnt == EDNSOPTS) {
 		fatal("too many ednsopts");
+	}
 
 	result = parse_uint(&num, code, 65535, "ednsopt");
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("bad edns code point: %s", code);
+	}
 
-	ednsopts[ednsoptscnt].code = num;
-	ednsopts[ednsoptscnt].length = 0;
-	ednsopts[ednsoptscnt].value = NULL;
+	query->ednsopts[query->ednsoptscnt].code = num;
+	query->ednsopts[query->ednsoptscnt].length = 0;
+	query->ednsopts[query->ednsoptscnt].value = NULL;
 
 	if (value != NULL) {
 		char *buf;
 		buf = isc_mem_allocate(mctx, strlen(value)/2 + 1);
-		if (buf == NULL)
+		if (buf == NULL) {
 			fatal("out of memory");
+		}
 		isc_buffer_init(&b, buf, strlen(value)/2 + 1);
 		result = isc_hex_decodestring(value, &b);
 		CHECK("isc_hex_decodestring", result);
-		ednsopts[ednsoptscnt].value = isc_buffer_base(&b);
-		ednsopts[ednsoptscnt].length = isc_buffer_usedlength(&b);
+		query->ednsopts[query->ednsoptscnt].value =
+						isc_buffer_base(&b);
+		query->ednsopts[query->ednsoptscnt].length =
+						isc_buffer_usedlength(&b);
 	}
 
-	if (query->ednsoptscnt == 0)
-		query->ednsopts = &ednsopts[ednsoptscnt];
 	query->ednsoptscnt++;
-	ednsoptscnt++;
 }
 
 static isc_result_t
@@ -1263,11 +1282,19 @@ plus_option(char *option, struct query *query, isc_boolean_t global)
 							query->ednsoptscnt = 0;
 							break;
 						}
-						if (value == NULL)
+						code = NULL;
+						if (value != NULL) {
+							code = strtok_r(value,
+									":",
+									&last);
+						}
+						if (code == NULL) {
 							fatal("ednsopt no "
 							      "code point "
 							      "specified");
-						code = strtok_r(value, ":", &last);
+						}
+						value = strtok_r(NULL, "\0",
+							         &last);
 						save_opt(query, code, value);
 						break;
 					default:
@@ -1896,6 +1923,7 @@ main(int argc, char *argv[]) {
 	dns_dispatch_t *dispatchvx;
 	dns_view_t *view;
 	int ns;
+	unsigned int i;
 
 	RUNCHECK(isc_app_start());
 
@@ -1991,6 +2019,15 @@ main(int argc, char *argv[]) {
 	while (query != NULL) {
 		struct query *next = ISC_LIST_NEXT(query, link);
 
+		if (query->ednsopts != NULL) {
+			for (i = 0; i < EDNSOPTS; i++) {
+				if (query->ednsopts[i].value != NULL) {
+					isc_mem_free(mctx,
+						     query->ednsopts[i].value);
+				}
+			}
+			isc_mem_free(mctx, query->ednsopts);
+		}
 		if (query->ecs_addr != NULL) {
 			isc_mem_free(mctx, query->ecs_addr);
 			query->ecs_addr = NULL;
