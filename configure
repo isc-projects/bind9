@@ -12126,11 +12126,16 @@ else
 fi
 
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether to enable fuzzing mode" >&5
+$as_echo_n "checking whether to enable fuzzing mode... " >&6; }
 case $enable_fuzzing in #(
   no) :
-     ;; #(
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; } ;; #(
   afl) :
 
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using AFL" >&5
+$as_echo "using AFL" >&6; }
 
 $as_echo "#define ENABLE_AFL 1" >>confdefs.h
 
@@ -12138,6 +12143,8 @@ $as_echo "#define ENABLE_AFL 1" >>confdefs.h
 	  LIBS="$LIBS -lpthread" ;; #(
   libfuzzer) :
 
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: result: using libFuzzer" >&5
+$as_echo "using libFuzzer" >&6; }
 	  CFLAGS="$CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1 -fsanitize=fuzzer,address,undefined"
 	  LDFLAGS="$LDFLAGS -fsanitize=fuzzer,address,undefined" ;; #(
   *) :
@@ -12145,6 +12152,33 @@ $as_echo "#define ENABLE_AFL 1" >>confdefs.h
   *) :
      ;;
 esac
+
+if test "$enable_fuzzing" = "afl"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking \"for AFL enabled compiler\"" >&5
+$as_echo_n "checking \"for AFL enabled compiler\"... " >&6; }
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+#ifndef __AFL_COMPILER
+					   #error AFL compiler required
+					   #endif
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  as_fn_error $? "set CC=afl-<gcc|clang> when --enable-fuzzing=afl is used" "$LINENO" 5
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+fi
 
 #
 # Make very sure that these are the first files processed by
