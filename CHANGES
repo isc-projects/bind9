@@ -1,4 +1,9 @@
-4996.	[bug]		dig: Handle malformed ednsopt options. [GL #403]
+4997.	[bug]		mdig: Handle malformed +ednsopt option, support 100
+			+ednsopt options per query rather than 100 total and
+			address memory leaks if +ednsopt was specified.
+			[GL #410]
+
+4996.	[bug]		dig: Handle malformed +ednsopt option. [GL #403]
 
 4995.	[test]		Add tests for "tcp-self" update policy. [GL !282]
 
