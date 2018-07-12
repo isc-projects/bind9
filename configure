@@ -981,7 +981,7 @@ enable_buffer_useinline
 enable_warn_shadow
 enable_warn_error
 enable_developer
-enable_afl
+enable_fuzzing
 with_python
 with_python_install_dir
 enable_kqueue
@@ -1689,7 +1689,9 @@ Optional Features:
   --enable-warn-shadow    turn on -Wshadow when compiling
   --enable-warn-error     turn on -Werror when compiling
   --enable-developer      enable developer build settings
-  --enable-afl            enable American Fuzzy Lop test harness [default=no]
+  --enable-fuzzing=<afl|libfuzzer>
+                          Enable fuzzing using American Fuzzy Lop or libFuzzer
+                          (default=no)
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
   --enable-devpoll        use /dev/poll when available [default=yes]
@@ -12116,18 +12118,32 @@ yes)
 esac
 
 
-# American Fuzzy Lop
-# Check whether --enable-afl was given.
-if test "${enable_afl+set}" = set; then :
-  enableval=$enable_afl;
-$as_echo "#define ENABLE_AFL 1" >>confdefs.h
-
+# Check whether --enable-fuzzing was given.
+if test "${enable_fuzzing+set}" = set; then :
+  enableval=$enable_fuzzing;
+else
+  enable_fuzzing=no
 fi
 
-case "$enable_afl" in
-yes)
-	LIBS="$LIBS -lpthread"
-	;;
+
+case $enable_fuzzing in #(
+  no) :
+     ;; #(
+  afl) :
+
+
+$as_echo "#define ENABLE_AFL 1" >>confdefs.h
+
+	  CFLAGS="$CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1"
+	  LIBS="$LIBS -lpthread" ;; #(
+  libfuzzer) :
+
+	  CFLAGS="$CFLAGS -DFUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION=1 -fsanitize=fuzzer,address,undefined"
+	  LDFLAGS="$LDFLAGS -fsanitize=fuzzer,address,undefined" ;; #(
+  *) :
+    as_fn_error $? "You need to explicitly select the fuzzer" "$LINENO" 5 ;; #(
+  *) :
+     ;;
 esac
 
 #
