@@ -5,7 +5,7 @@ abs_srcdir =	@abs_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} \
+CINCLUDES =	-I. -I.. ${DNS_INCLUDES} ${ISC_INCLUDES} \
 		@DST_OPENSSL_INC@
 CDEFINES =	-DFUZZDIR=\"$(abs_srcdir)\" -DFUZZ_TESTING
 
@@ -20,11 +20,11 @@ OBJS =		main.@O@
 SRCS =		main.c dns_name_fromtext_target.c
 
 SUBDIRS =
-TARGETS =	dns_name_fromtext@EXEEXT@
+TARGETS =	dns_name_fromtext_target@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
-dns_name_fromtext@EXEEXT@: dns_name_fromtext_target.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+dns_name_fromtext_target@EXEEXT@: dns_name_fromtext_target.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 		dns_name_fromtext_target.@O@ main.@O@ ${ISCLIBS} ${DNSLIBS} ${LIBS}
 
@@ -33,17 +33,7 @@ check: ${TARGETS}
 		./$${fuzzer} \
 	done
 
-oss-fuzz:
-	if test "$$OUT" != ""; then \
-	  for cfile in *_target.c; do \
-	    fuzzer=$$(basename $$cfile .c); \
-	    ${CC} ${CFLAGS} ${CDEFINES} ${LDFLAGS} "$${fuzzer}.c" -o "$${fuzzer}" \
-	      ${ISCLIBS} ${DNSLIBS} \
-	      -Wl,-Bstatic ${LIBS} -Wl,-Bdynamic; \
-	  done; \
-	fi
-
-.PHONY: oss-fuzz
+oss-fuzz: ${TARGETS}
 
 clean distclean::
 	rm -f ${TARGETS}

@@ -22,7 +22,7 @@
 
 #include "fuzz.h"
 
-#ifdef FUZZ_TESTING
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 
 #include <dirent.h>
 
@@ -111,7 +111,7 @@ int main(int argc, char **argv)
 	return 0;
 }
 
-#else /* FUZZ_TESTING */
+#elif __AFL_COMPILER
 
 int main(int argc, char **argv)
 {
