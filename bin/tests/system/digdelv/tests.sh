@@ -407,23 +407,6 @@ ret=0
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  if $FEATURETEST --with-idn
-  then
-    echo_i "checking dig +idnout ($n)"
-    ret=0
-    $DIG $DIGOPTS @10.53.0.3 +noidnout xn--caf-dma.example. > dig.out.1.test$n 2>&1 || ret=1
-    $DIG $DIGOPTS @10.53.0.3 +idnout xn--caf-dma.example. > dig.out.2.test$n 2>&1 || ret=1
-    grep "^xn--caf-dma.example" dig.out.1.test$n > /dev/null || ret=1
-    grep "^xn--caf-dma.example" dig.out.2.test$n > /dev/null && ret=1
-    grep 10.1.2.3 dig.out.1.test$n > /dev/null || ret=1
-    grep 10.1.2.3 dig.out.2.test$n > /dev/null || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=`expr $status + $ret`
-  else
-    echo_i "skipping 'dig +idnout' as IDN support is not enabled ($n)"
-  fi
-
-  n=`expr $n + 1`
   echo_i "checking that dig warns about .local queries ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 local soa > dig.out.test$n 2>&1 || ret=1

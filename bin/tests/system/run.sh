@@ -194,7 +194,7 @@ else
 	$SHELL clean.sh $runall $systest "$@"
 	if test -d ../../../.git
 	then
-	    git status -su --ignored $systest | \
+	    git status -su --ignored $systest 2>/dev/null | \
 	    sed -n -e 's|^?? \(.*\)|I:file \1 not removed|p' \
 	    -e 's|^!! \(.*/named.run\)$|I:file \1 not removed|p' \
 	    -e 's|^!! \(.*/named.memstats\)$|I:file \1 not removed|p'
