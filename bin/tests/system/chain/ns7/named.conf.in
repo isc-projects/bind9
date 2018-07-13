@@ -20,6 +20,12 @@ options {
 	listen-on-v6 { fd92:7065:b8e:ffff::7; };
 	recursion yes;
 	allow-recursion { any; };
+	dnssec-validation yes;
+	deny-answer-aliases {
+		"example";
+	} except-from {
+		"example";
+	};
 };
 
 key rndc_key {
