@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.12.2
+Release Notes for BIND Version 9.12.2-P1
 
 Introduction
 
@@ -14,6 +14,10 @@ each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
 
 Security Fixes
+
+  * named could crash during recursive processing of DNAME records when
+    deny-answer-aliases was in use. This flaw is disclosed in
+    CVE-2018-5740. [GL #387]
 
   * When recursion is enabled but the allow-recursion and
     allow-query-cache ACLs are not specified, they should be limited to

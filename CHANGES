@@ -1,3 +1,5 @@
+	--- 9.12.2-P1 released ---
+
 4997.	[security]	named could crash during recursive processing
 			of DNAME records when "deny-answer-aliases" was
 			in use. (CVE-2018-5740) [GL #387]
