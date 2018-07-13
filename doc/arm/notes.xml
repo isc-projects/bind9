@@ -42,6 +42,13 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  <command>named</command> could crash during recursive processing
+	  of DNAME records when <command>deny-answer-aliases</command> was
+	  in use. This flaw is disclosed in CVE-2018-5740. [GL #387]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  When recursion is enabled but the <command>allow-recursion</command>
 	  and <command>allow-query-cache</command> ACLs are not specified, they
 	  should be limited to local networks, but they were inadvertently set
