@@ -245,7 +245,6 @@ my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
 my %configtest;
 
 my @substtest = ("CHECK_DSA",
-                 "CHECKDS",
                  "COVERAGE",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
@@ -2412,7 +2411,6 @@ if ($use_python ne "no") {
         $configcond{"PYTHON"} = 1;
         $configdefd{"USE_PYTHON"} = "USE_PYTHON";
         $configvar{"PYTHON"} = "$python_command";
-        $configtest{"CHECKDS"} = "checkds";
         $configtest{"COVERAGE"} = "coverage";
         $configtest{"KEYMGR"} = "keymgr";
         # Doesn't matter

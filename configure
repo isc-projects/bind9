@@ -857,7 +857,6 @@ PYTHON_INSTALL_DIR
 PYTHON_TOOLS
 KEYMGR
 COVERAGE
-CHECKDS
 PYTHON
 PERL
 ETAGS
@@ -12556,12 +12555,10 @@ $as_echo "found, using $PYTHON" >&6; }
 esac
 
 PYTHON_TOOLS=''
-CHECKDS=''
 COVERAGE=''
 KEYMGR=''
 if test "X$PYTHON" != "X"; then
 	PYTHON_TOOLS=python
-	CHECKDS=checkds
 	COVERAGE=coverage
 	KEYMGR=keymgr
 fi
