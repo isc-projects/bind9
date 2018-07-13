@@ -49,6 +49,8 @@ usage() {
 	fprintf(stderr, "	--rpz-nsip\n");
 	fprintf(stderr, "	--with-idn\n");
 	fprintf(stderr, "	--with-lmdb\n");
+	fprintf(stderr, "	--with-native-pkcs11\n");
+	fprintf(stderr, "	--with-openssl-pkcs11\n");
 }
 
 int
@@ -163,6 +165,27 @@ main(int argc, char **argv) {
 	if (strcmp(argv[1], "--with-lmdb") == 0) {
 #ifdef HAVE_LMDB
 		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--with-native-pkcs11") == 0) {
+#ifdef HAVE_PKCS11
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--with-openssl-pkcs11") == 0) {
+#if !defined(HAVE_PKCS11) && defined(PKCS11_ENGINE)
+		const char *engine = PKCS11_ENGINE;
+		if (engine && strcmp(engine, "pkcs11") == 0) {
+			return (0);
+		} else {
+			return (1);
+		}
 #else
 		return (1);
 #endif
