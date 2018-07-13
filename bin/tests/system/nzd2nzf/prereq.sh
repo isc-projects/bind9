@@ -12,7 +12,5 @@ SYSTEMTESTTOP=..
 
 if [ -z "$NZD" ]; then
         echo_i "This test requires LMDB support (--with-lmdb)"
-        exit 255
+        exit 1
 fi
-
-exit 0

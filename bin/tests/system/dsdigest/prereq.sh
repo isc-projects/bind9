@@ -17,7 +17,7 @@ $SHELL ../testcrypto.sh -q ecdsa || ecdsafail=1
 
 if [ $ecdsafail = 1 ]; then
 	echo_i "This test requires support for ECDSA cryptography." >&2
-	exit 255
+	exit 1
 else
         echo ecdsa > supported
 fi

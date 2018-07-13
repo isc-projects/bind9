@@ -225,11 +225,8 @@ This indicates the type of message.  This is one of:
 
             PASS        The test passed
             FAIL        The test failed
-            SKIPPED     The test was not run, usually because some
-                        prerequisites required to run the test are missing.
-            UNTESTED    The test was not run for some other reason, e.g. a
-                        prerequisite is available but is not compatible with
-                        the platform on which the test is run.
+            SKIPPED     The test was not run because some prerequisites
+                        required to run it are missing.
 
 <test-name>
 This is the name of the test from which the message emanated, which is also the
