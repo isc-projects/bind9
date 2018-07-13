@@ -27,6 +27,8 @@
 4990.	[bug]		Prevent a possible NULL reference in pkcs11-keygen.
 			[GL #401]
 
+	--- 9.11.4-P1 released ---
+
 4997.	[security]	named could crash during recursive processing
 			of DNAME records when "deny-answer-aliases" was
 			in use. (CVE-2018-5740) [GL #387]
