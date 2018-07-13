@@ -10,6 +10,20 @@ stages:
   - build
   - test
 
+.centos-centos6-amd64: &centos_centos6_amd64_image
+  image: "$CI_REGISTRY_IMAGE:centos-centos6-amd64"
+  tags:
+    - linux
+    - docker
+    - amd64
+
+.centos-centos7-amd64: &centos_centos7_amd64_image
+  image: "$CI_REGISTRY_IMAGE:centos-centos7-amd64"
+  tags:
+    - linux
+    - docker
+    - amd64
+
 .debian-jessie-amd64: &debian_jessie_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
   tags:
@@ -100,7 +114,7 @@ stages:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - autoreconf -fi
   script:
-    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr/local --with-libidn2
+    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr --with-libidn2 "${EXTRA_CONFIGURE}"
     - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
     expire_in: '1 hour'
@@ -178,6 +192,21 @@ precheck:debian:sid:amd64:
 #  <<: *ubuntu_xenial_i386_image
 #  <<: *build_job
 
+build:centos:centos6:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--disable-warn-error"
+  <<: *centos_centos6_amd64_image
+  <<: *build_job
+
+build:centos:centos7:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *centos_centos7_amd64_image
+  <<: *build_job
+
 build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -185,6 +214,18 @@ build:debian:sid:amd64:
 build:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *build_job
+
+unittest:centos:centos6:amd64:
+  <<: *centos_centos6_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:centos:centos6:amd64
+
+unittest:centos:centos7:amd64:
+  <<: *centos_centos7_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:centos:centos7:amd64
 
 unittest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -197,6 +238,18 @@ unittest:debian:sid:i386:
   <<: *unit_test_job
   dependencies:
     - build:debian:sid:i386
+
+systemtest:centos:centos6:amd64:
+  <<: *centos_centos6_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:centos:centos6:amd64
+
+systemtest:centos:centos7:amd64:
+  <<: *centos_centos7_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:centos:centos7:amd64
 
 systemtest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
