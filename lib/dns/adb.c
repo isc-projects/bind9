@@ -195,6 +195,8 @@ struct dns_adbname {
 	isc_stdtime_t                   last_used;
 
 	ISC_LINK(dns_adbname_t)         plink;
+	const isc_sockaddr_t		*client;
+	dns_messageid_t			id;
 };
 
 /*% The adbfetch structure */
@@ -337,7 +339,8 @@ static isc_result_t dbfind_name(dns_adbname_t *, isc_stdtime_t,
 				dns_rdatatype_t);
 static isc_result_t fetch_name(dns_adbname_t *, bool,
 			       unsigned int, isc_counter_t *qc,
-			       dns_rdatatype_t);
+			       dns_rdatatype_t, const isc_sockaddr_t *client,
+			       dns_messageid_t id);
 static inline void check_exit(dns_adb_t *);
 static void destroy(dns_adb_t *);
 static bool shutdown_names(dns_adb_t *);
@@ -1539,6 +1542,8 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 
 			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
 			find->flags |= FIND_EVENT_SENT;
+			name->client = NULL;
+			name->id = 0;
 		} else {
 			DP(DEF_LEVEL, "cfan: skipping find %p", find);
 		}
@@ -1546,7 +1551,6 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 		UNLOCK(&find->lock);
 		find = next_find;
 	}
-
 	DP(ENTER_LEVEL, "EXIT clean_finds_at_name, name %p", name);
 }
 
@@ -1696,6 +1700,8 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname) {
 	name->fetch_aaaa = NULL;
 	name->fetch_err = FIND_ERR_UNEXPECTED;
 	name->fetch6_err = FIND_ERR_UNEXPECTED;
+	name->client = NULL;
+	name->id = 0;
 	ISC_LIST_INIT(name->finds);
 	ISC_LINK_INIT(name, plink);
 
@@ -2936,6 +2942,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target,
 		   in_port_t port, unsigned int depth, isc_counter_t *qc,
+		   const isc_sockaddr_t *client, dns_messageid_t id,
 		   dns_adbfind_t **findp)
 {
 	dns_adbfind_t *find;
@@ -3023,6 +3030,18 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   "dns_adb_createfind: returning ISC_R_SHUTTINGDOWN");
 		RUNTIME_CHECK(free_adbfind(adb, &find) == false);
 		result = ISC_R_SHUTTINGDOWN;
+		goto out;
+	}
+	if (adbname != NULL && client != NULL && adbname->client != NULL &&
+	    isc_sockaddr_equal(client, adbname->client) && id == adbname->id) {
+		char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE];
+		char typebuf[DNS_RDATATYPE_FORMATSIZE];
+		dns_name_format(qname, buf, sizeof(buf));
+		dns_rdatatype_format(qtype, typebuf, sizeof(typebuf));
+		result = DNS_R_DUPLICATE;
+		DP(DEF_LEVEL,
+		   "dns_adb_createfind: duplicate query (possible loop) for %s/%s", buf, typebuf);
+		RUNTIME_CHECK(!free_adbfind(adb, &find));
 		goto out;
 	}
 
@@ -3175,7 +3194,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		if (WANT_INET(wanted_fetches) &&
 		    fetch_name(adbname, start_at_zone, depth, qc,
-			       dns_rdatatype_a) == ISC_R_SUCCESS) {
+			       dns_rdatatype_a, client, id) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL, "dns_adb_createfind: "
 			   "started A fetch for name %s (%p)",
 			   namebuf, adbname);
@@ -3186,7 +3205,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		 */
 		if (WANT_INET6(wanted_fetches) &&
 		    fetch_name(adbname, start_at_zone, depth, qc,
-			       dns_rdatatype_aaaa) == ISC_R_SUCCESS) {
+			       dns_rdatatype_aaaa, client, id) == ISC_R_SUCCESS) {
 			DP(DEF_LEVEL, "dns_adb_createfind: "
 			   "started AAAA fetch for name %s (%p)",
 			   namebuf, adbname);
@@ -3221,12 +3240,18 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (want_event) {
 		find->adbname = adbname;
 		find->name_bucket = bucket;
+		bool empty = ISC_LIST_EMPTY(adbname->finds);
+		/* If there are no finds pending take ownership of adbname */
+		if (adbname->client == NULL) {
+			adbname->client = client;
+			adbname->id = id;
+		}
 		ISC_LIST_APPEND(adbname->finds, find, plink);
 		find->query_pending = (query_pending & wanted_addresses);
 		find->flags &= ~DNS_ADBFIND_ADDRESSMASK;
 		find->flags |= (find->query_pending & DNS_ADBFIND_ADDRESSMASK);
-		DP(DEF_LEVEL, "createfind: attaching find %p to adbname %p",
-		   find, adbname);
+		DP(DEF_LEVEL, "createfind: attaching find %p to adbname %p (%p/%d) %d",
+		   find, adbname, adbname->client, adbname->id, empty);
 	} else {
 		/*
 		 * Remove the flag so the caller knows there will never
@@ -3993,7 +4018,8 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 
 static isc_result_t
 fetch_name(dns_adbname_t *adbname, bool start_at_zone,
-	   unsigned int depth, isc_counter_t *qc, dns_rdatatype_t type)
+	   unsigned int depth, isc_counter_t *qc, dns_rdatatype_t type,
+	   const isc_sockaddr_t *client, dns_messageid_t id)
 {
 	isc_result_t result;
 	dns_adbfetch_t *fetch = NULL;
@@ -4046,15 +4072,19 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone,
 	 * createfetch to find deepest cached name when we're providing
 	 * domain and nameservers.
 	 */
-
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  type, name, nameservers, NULL,
-					  NULL, 0, options, depth, qc,
+					  client, id, options, depth, qc,
 					  adb->task, fetch_callback, adbname,
 					  &fetch->rdataset, NULL,
 					  &fetch->fetch);
 	if (result != ISC_R_SUCCESS)
+	{
+		DP(ENTER_LEVEL,
+		   "fetch_name: createfetch failed with %s",
+		   isc_result_totext(result));
 		goto cleanup;
+	}
 
 	if (type == dns_rdatatype_a) {
 		adbname->fetch_a = fetch;
