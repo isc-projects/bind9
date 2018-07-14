@@ -68,7 +68,6 @@
 #include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/validator.h>
-
 #ifdef WANT_QUERYTRACE
 #define RTRACE(m)       isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
@@ -385,6 +384,7 @@ struct fetchctx {
 	bool			timeout;
 	dns_adbaddrinfo_t 		*addrinfo;
 	const isc_sockaddr_t		*client;
+	dns_messageid_t			id;
 	unsigned int			depth;
 };
 
@@ -3317,6 +3317,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 	bool unshared;
 	isc_result_t result;
 
+	FCTXTRACE("FINDNAME");
 	res = fctx->res;
 	unshared = (fctx->options & DNS_FETCHOPT_UNSHARED);
 	/*
@@ -3341,8 +3342,11 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 				    &fctx->name, fctx->type,
 				    options, now, NULL,
 				    res->view->dstport,
-				    fctx->depth + 1, fctx->qc, &find);
-
+				    fctx->depth + 1, fctx->qc, fctx->client,
+				    fctx->id, &find);
+	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
+		      "fctx %p(%s): createfind for %p/%d - %s", fctx, fctx->info, fctx->client, fctx->id, isc_result_totext(result));
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
 			char namebuf[DNS_NAME_FORMATSIZE];
@@ -3967,12 +3971,15 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		fctx_increference(fctx);
 		task = res->buckets[bucketnum].task;
 		result = dns_resolver_createfetch(fctx->res, &fctx->qminname,
-						  fctx->qmintype, NULL,
-						  NULL, NULL, NULL, 0,
-						  options, 0, fctx->qc,
-						  task, resume_qmin, fctx,
-						  &fctx->qminrrset, NULL,
-						  &fctx->qminfetch);
+						  fctx->qmintype, &fctx->domain,
+						  &fctx->nameservers, NULL, fctx->client,
+						  fctx->id, options, 0,
+						  fctx->qc, task, resume_qmin,
+						  fctx, &fctx->qminrrset,
+						  NULL, &fctx->qminfetch);
+		if (result != ISC_R_SUCCESS) {
+			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		}
 		return;
 	}
 
@@ -4558,7 +4565,6 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, const isc_sockaddr_t *client,
 	else
 		ISC_LIST_APPEND(fctx->events, event, ev_link);
 	fctx->references++;
-	fctx->client = client;
 
 	fetch->magic = DNS_FETCH_MAGIC;
 	fetch->private = fctx;
@@ -4584,7 +4590,8 @@ static isc_result_t
 fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	    const dns_name_t *domain, dns_rdataset_t *nameservers,
 	    unsigned int options, unsigned int bucketnum, unsigned int depth,
-	    isc_counter_t *qc, fetchctx_t **fctxp)
+	    isc_counter_t *qc, const isc_sockaddr_t *client, dns_messageid_t id,
+	    fetchctx_t **fctxp)
 {
 	fetchctx_t *fctx;
 	isc_result_t result;
@@ -4704,7 +4711,8 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->rand_bits = 0;
 	fctx->timeout = false;
 	fctx->addrinfo = NULL;
-	fctx->client = NULL;
+	fctx->client = client;
+	fctx->id = id;
 	fctx->ns_ttl = 0;
 	fctx->ns_ttl_ok = false;
 
@@ -7031,7 +7039,8 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 
 		result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 						  dns_rdatatype_ns, domain,
-						  nsrdataset, NULL, NULL, 0,
+						  nsrdataset, NULL,
+						  fctx->client, fctx->id,
 						  fctx->options, 0, NULL, task,
 						  resume_dslookup, fctx,
 						  &fctx->nsrrset, NULL,
@@ -7042,6 +7051,9 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		 * another thread concurrently processing the fetch.
 		 */
 		if (result != ISC_R_SUCCESS) {
+			if (result == DNS_R_DUPLICATE) {
+				result = DNS_R_SERVFAIL;
+			}
 			fctx_done(fctx, result, __LINE__);
 		} else {
 			LOCK(&res->buckets[bucketnum].lock);
@@ -9304,14 +9316,18 @@ rctx_chaseds(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo, isc_result_t result)
 
 	result = dns_resolver_createfetch(fctx->res, &fctx->nsname,
 					  dns_rdatatype_ns,
-					  NULL, NULL, NULL, NULL, 0,
+					  NULL, NULL, NULL,
+					  fctx->client, fctx->id,
 					  fctx->options, 0, NULL, rctx->task,
 					  resume_dslookup, fctx,
 					  &fctx->nsrrset, NULL,
 					  &fctx->nsfetch);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		if (result == DNS_R_DUPLICATE) {
+			result = DNS_R_SERVFAIL;
+		}
 		fctx_done(fctx, result, __LINE__);
-	else {
+	} else {
 		fctx_increference(fctx);
 		result = fctx_stopidletimer(fctx);
 		if (result != ISC_R_SUCCESS)
@@ -10470,7 +10486,8 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 
 	if (fctx == NULL) {
 		result = fctx_create(res, name, type, domain, nameservers,
-				     options, bucketnum, depth, qc, &fctx);
+				     options, bucketnum, depth, qc, client,
+				     id, &fctx);
 		if (result != ISC_R_SUCCESS)
 			goto unlock;
 		new_fctx = true;

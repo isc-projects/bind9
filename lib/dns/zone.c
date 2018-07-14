@@ -10991,7 +10991,7 @@ notify_find_address(dns_notify_t *notify) {
 				    &notify->ns, dns_rootname, 0,
 				    options, 0, NULL,
 				    notify->zone->view->dstport,
-				    0, NULL, &notify->find);
+				    0, NULL, NULL, 0, &notify->find);
 
 	/* Something failed? */
 	if (result != ISC_R_SUCCESS)
