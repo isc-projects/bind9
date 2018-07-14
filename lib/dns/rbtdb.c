@@ -4101,8 +4101,13 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	 * We don't check for RRSIG, because we don't store RRSIG records
 	 * directly.
 	 */
-	if (type == dns_rdatatype_key || type == dns_rdatatype_nsec)
+	if (type == dns_rdatatype_key ||
+	    type == dns_rdatatype_nsec ||
+	    type == dns_rdatatype_soa ||
+	    type == dns_rdatatype_ns)
+	{
 		cname_ok = ISC_FALSE;
+	}
 
 	/*
 	 * We now go looking for rdata...
@@ -5858,7 +5863,11 @@ cname_and_other_data(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 			if (rdtype != dns_rdatatype_key &&
 			    rdtype != dns_rdatatype_sig &&
 			    rdtype != dns_rdatatype_nsec &&
-			    rdtype != dns_rdatatype_rrsig) {
+			    rdtype != dns_rdatatype_rrsig &&
+			    rdtype != dns_rdatatype_dname &&
+			    rdtype != dns_rdatatype_soa &&
+			    rdtype != dns_rdatatype_ns)
+			{
 				/*
 				 * Is it active and extant?
 				 */
@@ -5869,22 +5878,23 @@ cname_and_other_data(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 						 * Is this a "this rdataset
 						 * doesn't exist" record?
 						 */
-						if (NONEXISTENT(header))
+						if (NONEXISTENT(header)) {
 							header = NULL;
+						} else {
+							header = header->down;
+						}
 						break;
-					} else
-						header = header->down;
+					}
+					header = header->down;
 				} while (header != NULL);
-				if (header != NULL)
+				if (header != NULL) {
 					other_data = ISC_TRUE;
+				}
 			}
 		}
 	}
 
-	if (cname && other_data)
-		return (ISC_TRUE);
-
-	return (ISC_FALSE);
+	return (ISC_TF(cname && other_data));
 }
 
 static isc_result_t
@@ -6460,8 +6470,9 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 	 * Check if the node now contains CNAME and other data.
 	 */
 	if (rbtversion != NULL &&
-	    cname_and_other_data(rbtnode, rbtversion->serial))
+	    cname_and_other_data(rbtnode, rbtversion->serial)) {
 		return (DNS_R_CNAMEANDOTHER);
+	}
 
 	if (addedrdataset != NULL)
 		bind_rdataset(rbtdb, rbtnode, newheader, now, addedrdataset);
