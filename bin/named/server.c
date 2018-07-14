@@ -6698,8 +6698,8 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	 */
 	domain = dns_fixedname_initname(&fdomain);
 	dns_rdataset_init(&nameservers);
-	result = dns_view_findzonecut(view, origin, domain, 0, 0, true,
-				      true, &nameservers, NULL);
+	result = dns_view_findzonecut(view, origin, domain, NULL, 0, 0,
+				      true, true, &nameservers, NULL);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_resolver_createfetch(view->resolver, tatname,
 						  dns_rdatatype_null, domain,
