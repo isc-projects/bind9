@@ -21,6 +21,7 @@ options {
 	recursion yes;
 	allow-recursion { any; };
 	dnssec-validation yes;
+	qname-minimization off;
 };
 
 key rndc_key {
