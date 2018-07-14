@@ -337,6 +337,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		   dns_rdatatype_t qtype, unsigned int options,
 		   isc_stdtime_t now, dns_name_t *target, in_port_t port,
 		   unsigned int depth, isc_counter_t *qc,
+		   const isc_sockaddr_t *client, dns_messageid_t id,
 		   dns_adbfind_t **find);
 /*%<
  * Main interface for clients. The adb will look up the name given in
