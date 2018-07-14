@@ -239,7 +239,6 @@ NS boing.slow.
 NS zoop.boing.slow.
 ADDR ns3.slow.
 ADDR ns3.slow.
-NS icky.ptang.zoop.boing.slow.
 ADDR a.bit.longer.ns.name.slow.
 ADDR a.bit.longer.ns.name.slow.
 __EOF
