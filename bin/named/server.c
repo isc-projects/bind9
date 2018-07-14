@@ -6644,8 +6644,8 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	 */
 	domain = dns_fixedname_initname(&fdomain);
 	dns_rdataset_init(&nameservers);
-	result = dns_view_findzonecut(view, origin, domain, 0, 0, ISC_TRUE,
-				      ISC_TRUE, &nameservers, NULL);
+	result = dns_view_findzonecut(view, origin, domain, NULL, 0, 0,
+				      ISC_TRUE, ISC_TRUE, &nameservers, NULL);
 	if (result != ISC_R_SUCCESS) {
 		goto done;
 	}
