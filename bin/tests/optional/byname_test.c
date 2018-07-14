@@ -116,7 +116,7 @@ do_find(isc_boolean_t want_event) {
 				    dns_fixedname_name(&fixed),
 				    dns_rootname, 0, options, 0,
 				    dns_fixedname_name(&target), 0,
-				    0, NULL, &find);
+				    0, NULL, NULL, 0, &find);
 	if (result == ISC_R_SUCCESS) {
 		if (!ISC_LIST_EMPTY(find->list)) {
 			/*

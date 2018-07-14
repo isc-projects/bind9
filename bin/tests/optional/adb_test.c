@@ -258,7 +258,7 @@ lookup(const char *target) {
 	result = dns_adb_createfind(adb, t2, lookup_callback, client,
 				    &client->name, dns_rootname, 0, options,
 				    now, NULL, view->dstport, 0, NULL,
-				    &client->find);
+				    NULL, 0, &client->find);
 	if (result != ISC_R_SUCCESS)
 		printf("DNS_ADB_CREATEFIND -> %s\n", dns_result_totext(result));
 	dns_adb_dumpfind(client->find, stderr);
