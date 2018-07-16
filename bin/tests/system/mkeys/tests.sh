@@ -297,7 +297,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "reinitialize trust anchors"
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc . ns2
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns2
 rm -f ns2/managed-keys.bind*
 nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
