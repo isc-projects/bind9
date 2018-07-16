@@ -21,7 +21,7 @@ $SHELL ../testcrypto.sh -q eddsa || ecxfail=1
 
 if [ $rsafail = 1 -a $eccfail = 1 ]; then
 	echo "I:This test requires PKCS#11 support for either RSA or ECDSA cryptography." >&2
-	exit 255
+	exit 1
 fi
 rm -f supported
 touch supported

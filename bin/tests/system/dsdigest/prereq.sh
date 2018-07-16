@@ -20,7 +20,7 @@ if [ $gostfail = 0 -a $ecdsafail = 0 ]; then
 	echo both > supported
 elif [ $gostfail = 1 -a $ecdsafail = 1 ]; then
 	echo_i "This test requires support for ECDSA or GOST cryptography." >&2
-	exit 255
+	exit 1
 elif [ $gostfail = 0 ]; then
 	echo gost > supported
 else
