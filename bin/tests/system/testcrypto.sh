@@ -64,5 +64,5 @@ else
         echo "I:This test requires support for $msg1" >&2
         echo "I:configure with $msg2" >&2
     fi
-    exit 255
+    exit 1
 fi

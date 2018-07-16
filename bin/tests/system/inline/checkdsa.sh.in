@@ -13,5 +13,3 @@ fi
 if [ ! -r /dev/random -o ! -r /dev/urandom ]; then
 	exit 1
 fi
-
-exit 0
