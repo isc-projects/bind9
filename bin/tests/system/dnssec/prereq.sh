@@ -22,5 +22,3 @@ then
         exit 1
     fi
 fi
-
-exec $SHELL ../testcrypto.sh

@@ -25,5 +25,3 @@ else
     echo_i "This test requires the Net::DNS library." >&2
     exit 1
 fi
-
-exec $SHELL ../testcrypto.sh

@@ -17,6 +17,3 @@ $FEATURETEST --gssapi ||  {
         echo_i "gssapi and krb5 not supported - skipping tsiggss test"
         exit 1
 }
-
-# ... and crypto
-exec $SHELL ../testcrypto.sh
