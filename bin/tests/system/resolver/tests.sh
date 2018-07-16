@@ -11,7 +11,6 @@
 
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
-echo .
 
 DIGOPTS="-p ${PORT}"
 RESOLVOPTS="-p ${PORT}"
