@@ -86,7 +86,7 @@ SEQUENTIALDIRS="acl additional addzone autosign builtin \
 	 cacheclean case \
 	 checkconf checkds checknames checkzone cookie coverage \
 	 database digdelv dlv dlvauto dlz dlzexternal dname \
-	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
+	 dns64 dnssec dnstap dscp dsdigest dyndb ecdsa eddsa \
 	 ednscompliance emptyzones \
 	 fetchlimit filter-aaaa formerr forward geoip glue idna inline ixfr \
 	 keepalive keymgr legacy limits logfileconfig masterfile \
