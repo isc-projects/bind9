@@ -1968,8 +1968,8 @@ echo_i " testing NTA persistence across restarts ($n)"
 $RNDCCMD 10.53.0.4 nta -d > rndc.out.ns4.test$n.1
 lines=`wc -l < rndc.out.ns4.test$n.1`
 [ "$lines" -eq 0 ] || ret=1
-$RNDCCMD 10.53.0.4 nta -f -l 30s bogus.example 2>&1 | sed 's/^/I:ns4 /'
-$RNDCCMD 10.53.0.4 nta -f -l 10s badds.example 2>&1 | sed 's/^/I:ns4 /'
+$RNDCCMD 10.53.0.4 nta -f -l 30s bogus.example 2>&1 | sed 's/^/ns4 /' | cat_i
+$RNDCCMD 10.53.0.4 nta -f -l 10s badds.example 2>&1 | sed 's/^/ns4 /' | cat_i
 $RNDCCMD 10.53.0.4 nta -d > rndc.out.ns4.test$n.2
 lines=`wc -l < rndc.out.ns4.test$n.2`
 [ "$lines" -eq 2 ] || ret=1
@@ -2855,7 +2855,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 copy_setports ns4/named4.conf.in ns4/named.conf
-$RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/I:ns4 /'
+$RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
 sleep 3
 
 echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section with dnssec-accept-expired yes; ($n)"
@@ -3063,7 +3063,7 @@ if test "$before" = "$after" ; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 copy_setports ns4/named4.conf.in ns4/named.conf
-$RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/I:ns4 /'
+$RNDCCMD 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
 sleep 3
 
 echo_i "check insecure delegation between static-stub zones ($n)"

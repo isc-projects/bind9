@@ -140,7 +140,7 @@ ret=0
 echo_i "checking consistency between named.stats and xml/json ($n)"
 rm -f ns2/named.stats
 $DIGCMD +tcp example ns > dig.out.$n || ret=1
-$RNDCCMD 10.53.0.2 stats 2>&1 | sed 's/^/I:ns1 /'
+$RNDCCMD 10.53.0.2 stats 2>&1 | sed 's/^/ns1 /' | cat_i
 query_count=`awk '/QUERY/ {print $1}' ns2/named.stats`
 txt_count=`awk '/TXT/ {print $1}' ns2/named.stats`
 noerror_count=`awk '/NOERROR/ {print $1}' ns2/named.stats`

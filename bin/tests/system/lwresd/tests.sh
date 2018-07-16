@@ -15,7 +15,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 status=0
-echo "I:waiting for nameserver to load"
+echo_i "waiting for nameserver to load"
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	ret=0
@@ -29,19 +29,21 @@ do
 	test $ret = 0 && break
 	sleep 1
 done
-if [ $ret != 0 ]; then echo "I:failed"; fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo "I:using resolv.conf"
+echo_i "using resolv.conf"
 ret=0
 for i in 0 1 2 3 4 5 6 7 8 9 
 do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
 done
-$LWTEST || ret=1
+{
+	$LWTEST || ret=1
+} | cat_i
 if [ $ret != 0 ]; then
-	echo "I:failed"
+	echo_i "failed"
 fi
 status=`expr $status + $ret`
 
@@ -51,16 +53,18 @@ mv lwresd1/lwresd.run lwresd1/lwresd.run.resolv
 
 $PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-X lwresd.lock -m record,size,mctx -c lwresd.conf -d 99 -g"
 
-echo "I:using lwresd.conf"
+echo_i "using lwresd.conf"
 ret=0
 for i in 0 1 2 3 4 5 6 7 8 9 
 do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
 done
-$LWTEST || ret=1
+{
+	$LWTEST || ret=1
+} | cat_i
 if [ $ret != 0 ]; then
-	echo "I:failed"
+	echo_i "failed"
 fi
 status=`expr $status + $ret`
 
@@ -70,18 +74,20 @@ mv lwresd1/lwresd.run lwresd1/lwresd.run.lwresd
 
 $PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-X lwresd.lock -m record,size,mctx -c nosearch.conf -d 99 -g"
 
-echo "I:using nosearch.conf"
+echo_i "using nosearch.conf"
 ret=0
 for i in 0 1 2 3 4 5 6 7 8 9 
 do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
 done
-$LWTEST -nosearch || ret=1
+{
+	$LWTEST -nosearch || ret=1
+} | cat_i
 if [ $ret != 0 ]; then
-	echo "I:failed"
+	echo_i "failed"
 fi
 status=`expr $status + $ret`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

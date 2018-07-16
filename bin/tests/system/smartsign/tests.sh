@@ -302,8 +302,8 @@ sub=0
 grep -w "$czsuccessor" other.sigs > /dev/null && sub=1
 if [ $sub != 0 ]; then echo_i "found czsuccessor $czsuccessor (other)"; ret=1; fi
 if [ $ret != 0 ]; then
-    sed 's/^/I:dnskey sigs: /' < dnskey.sigs
-    sed 's/^/I:other sigs: /' < other.sigs
+    sed 's/^/dnskey sigs: /' < dnskey.sigs | cat_i
+    sed 's/^/other sigs: /' < other.sigs | cat_i
     echo_i "failed";
 fi
 status=`expr $status + $ret`

@@ -41,7 +41,7 @@ static int fails = 0;
 static void
 CHECK(lwres_result_t val, const char *msg) {
 	if (val != 0) {
-		printf("I:%s returned %d\n", msg, val);
+		printf("%s returned %d\n", msg, val);
 		exit(1);
 	}
 }
@@ -138,7 +138,7 @@ test_gabn(const char *target, lwres_result_t expected, const char *address,
 				   LWRES_ADDRTYPE_V4 | LWRES_ADDRTYPE_V6,
 				   &res);
 	if (ret != expected) {
-		printf("I:gabn(%s) failed: %d\n", target, ret);
+		printf("gabn(%s) failed: %d\n", target, ret);
 		if (res != NULL)
 			lwres_gabnresponse_free(ctx, &res);
 		fails++;
@@ -156,7 +156,7 @@ test_gabn(const char *target, lwres_result_t expected, const char *address,
 		}
 		addr = LWRES_LIST_HEAD(res->addrs);
 		if (addr == NULL) {
-			printf("I:gabn(%s) returned empty list\n", target);
+			printf("gabn(%s) returned empty list\n", target);
 			fails++;
 			return;
 		}
@@ -174,7 +174,7 @@ test_gabn(const char *target, lwres_result_t expected, const char *address,
 			else
 				(void)inet_ntop(AF_INET6, addr->address,
 						outbuf, sizeof(outbuf));
-			printf("I:gabn(%s) returned %s, expected %s\n",
+			printf("gabn(%s) returned %s, expected %s\n",
 				target, outbuf, address);
 			fails++;
 			return;
@@ -206,14 +206,14 @@ test_gnba(const char *target, lwres_uint32_t af, lwres_result_t expected,
 	res = NULL;
 	ret = lwres_getnamebyaddr(ctx, af, len, addrbuf, &res);
 	if (ret != expected) {
-		printf("I:gnba(%s) failed: %d\n", target, ret);
+		printf("gnba(%s) failed: %d\n", target, ret);
 		if (res != NULL)
 			lwres_gnbaresponse_free(ctx, &res);
 		fails++;
 		return;
 	}
 	if (ret == LWRES_R_SUCCESS && strcasecmp(res->realname, name) != 0) {
-		 printf("I:gnba(%s) returned %s, expected %s\n",
+		 printf("gnba(%s) returned %s, expected %s\n",
 			target, res->realname, name);
 		 fails++;
 		 return;
@@ -233,12 +233,12 @@ test_gethostbyname(const char *name, const char *address) {
 		if (address == NULL && h_errno == HOST_NOT_FOUND)
 			return;
 		else if (h_errno != HOST_NOT_FOUND) {
-			printf("I:gethostbyname(%s) failed: %s\n",
+			printf("gethostbyname(%s) failed: %s\n",
 			       name, hstrerror(h_errno));
 			fails++;
 			return;
 		} else {
-			printf("I:gethostbyname(%s) returned not found\n",
+			printf("gethostbyname(%s) returned not found\n",
 			       name);
 			fails++;
 			return;
@@ -250,7 +250,7 @@ test_gethostbyname(const char *name, const char *address) {
 			char outbuf[16];
 			(void)inet_ntop(AF_INET, hp->h_addr_list[0],
 					outbuf, sizeof(outbuf));
-			printf("I:gethostbyname(%s) returned %s, "
+			printf("gethostbyname(%s) returned %s, "
 			       "expected %s\n", name, outbuf, address);
 			fails++;
 			return;
@@ -269,12 +269,12 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 		if (address == NULL && h_errno == HOST_NOT_FOUND)
 			return;
 		else if (h_errno != HOST_NOT_FOUND) {
-			printf("I:gethostbyname(%s) failed: %s\n",
+			printf("gethostbyname(%s) failed: %s\n",
 			       name, hstrerror(h_errno));
 			fails++;
 			return;
 		} else {
-			printf("I:gethostbyname(%s) returned not found\n",
+			printf("gethostbyname(%s) returned not found\n",
 			       name);
 			fails++;
 			return;
@@ -287,7 +287,7 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 		ret = inet_pton(af, address, addrbuf);
 		assert(ret == 1);
 		if (hp->h_addrtype != af) {
-			printf("I:gethostbyname(%s) returned wrong family\n",
+			printf("gethostbyname(%s) returned wrong family\n",
 			       name);
 			fails++;
 			return;
@@ -298,7 +298,7 @@ test_gethostbyname2(const char *name, const char *address, int af) {
 			char outbuf[16];
 			(void)inet_ntop(af, hp->h_addr_list[0],
 					outbuf, sizeof(outbuf));
-			printf("I:gethostbyname(%s) returned %s, "
+			printf("gethostbyname(%s) returned %s, "
 			       "expected %s\n", name, outbuf, address);
 			fails++;
 			return;
@@ -326,12 +326,12 @@ test_getipnodebyname(const char *name, const char *address, int af,
 		if (address == NULL && error_num == HOST_NOT_FOUND)
 			return;
 		else if (error_num != HOST_NOT_FOUND) {
-			printf("I:getipnodebyname(%s) failed: %d\n",
+			printf("getipnodebyname(%s) failed: %d\n",
 			       name, error_num);
 			fails++;
 			return;
 		} else {
-			printf("I:getipnodebyname(%s) returned not found\n",
+			printf("getipnodebyname(%s) returned not found\n",
 			       name);
 			fails++;
 			return;
@@ -344,7 +344,7 @@ test_getipnodebyname(const char *name, const char *address, int af,
 		ret = inet_pton(af, address, addrbuf);
 		assert(ret == 1);
 		if (hp->h_addrtype != af) {
-			printf("I:getipnodebyname(%s) returned wrong family\n",
+			printf("getipnodebyname(%s) returned wrong family\n",
 			       name);
 			freehostent(hp);
 			fails++;
@@ -356,7 +356,7 @@ test_getipnodebyname(const char *name, const char *address, int af,
 			char outbuf[16];
 			(void)inet_ntop(af, hp->h_addr_list[0],
 					outbuf, sizeof(outbuf));
-			printf("I:getipnodebyname(%s) returned %s, "
+			printf("getipnodebyname(%s) returned %s, "
 			       "expected %s\n", name, outbuf, address);
 			freehostent(hp);
 			fails++;
@@ -385,19 +385,19 @@ test_gethostbyaddr(const char *address, int af, const char *name) {
 		if (name == NULL && h_errno == HOST_NOT_FOUND)
 			return;
 		else if (h_errno != HOST_NOT_FOUND) {
-			printf("I:gethostbyaddr(%s) failed: %s\n",
+			printf("gethostbyaddr(%s) failed: %s\n",
 			       address, hstrerror(h_errno));
 			fails++;
 			return;
 		} else {
-			printf("I:gethostbyaddr(%s) returned not found\n",
+			printf("gethostbyaddr(%s) returned not found\n",
 			       address);
 			fails++;
 			return;
 		}
 	} else {
 		if (name != NULL && strcmp(hp->h_name, name) != 0) {
-			printf("I:gethostbyname(%s) returned %s, "
+			printf("gethostbyname(%s) returned %s, "
 			       "expected %s\n", address, hp->h_name, name);
 			fails++;
 			return;
@@ -425,19 +425,19 @@ test_getipnodebyaddr(const char *address, int af, const char *name) {
 		if (name == NULL && error_num == HOST_NOT_FOUND)
 			return;
 		else if (error_num != HOST_NOT_FOUND) {
-			printf("I:getipnodebyaddr(%s) failed: %d\n",
+			printf("getipnodebyaddr(%s) failed: %d\n",
 			       address, error_num);
 			fails++;
 			return;
 		} else {
-			printf("I:getipnodebyaddr(%s) returned not found\n",
+			printf("getipnodebyaddr(%s) returned not found\n",
 			       address);
 			fails++;
 			return;
 		}
 	} else {
 		if (name != NULL && strcmp(hp->h_name, name) != 0) {
-			printf("I:getipnodebyaddr(%s) returned %s, "
+			printf("getipnodebyaddr(%s) returned %s, "
 			       "expected %s\n", address, hp->h_name, name);
 			freehostent(hp);
 			fails++;
@@ -471,12 +471,12 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 		if (address == NULL && ret == EAI_NODATA)
 			return;
 		else if (ret != EAI_NODATA) {
-			printf("I:getaddrinfo(%s,%d,%d) failed: %s\n",
+			printf("getaddrinfo(%s,%d,%d) failed: %s\n",
 			       name, v4ok, v6ok, gai_strerror(ret));
 			fails++;
 			return;
 		} else {
-			printf("I:getaddrinfo(%s,%d,%d) returned not found\n",
+			printf("getaddrinfo(%s,%d,%d) returned not found\n",
 			       name, v4ok, v6ok);
 			fails++;
 			return;
@@ -489,7 +489,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 		ret = inet_pton(af, address, addrbuf);
 		assert(ret == 1);
 		if (ai->ai_family != af) {
-			printf("I:getaddrinfo(%s) returned wrong family\n",
+			printf("getaddrinfo(%s) returned wrong family\n",
 			       name);
 			fails++;
 			freeaddrinfo(ai);
@@ -499,7 +499,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 			char outbuf[16];
 			(void)inet_ntop(af, ai->ai_addr,
 					outbuf, sizeof(outbuf));
-			printf("I:getaddrinfo(%s) returned %lub, "
+			printf("getaddrinfo(%s) returned %lub, "
 			       "expected %ub\n", name,
 				(unsigned long)ai->ai_addrlen, len);
 			fails++;
@@ -512,7 +512,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 				char outbuf[16];
 				(void)inet_ntop(af, &sin->sin_addr.s_addr,
 						outbuf, sizeof(outbuf));
-				printf("I:getaddrinfo(%s) returned %s, "
+				printf("getaddrinfo(%s) returned %s, "
 				       "expected %s\n", name, outbuf, address);
 				fails++;
 				freeaddrinfo(ai);
@@ -526,7 +526,7 @@ test_getaddrinfo(const char *name, int af, int v4ok, int v6ok,
 				char outbuf[16];
 				(void)inet_ntop(af, &sin6->sin6_addr.s6_addr,
 						outbuf, sizeof(outbuf));
-				printf("I:getaddrinfo(%s) returned %s, "
+				printf("getaddrinfo(%s) returned %s, "
 				       "expected %s\n", name, outbuf, address);
 				fails++;
 				freeaddrinfo(ai);
@@ -575,24 +575,24 @@ test_getnameinfo(const char *address, int af, const char *name) {
 		if (name == NULL && ret == ENI_NOHOSTNAME)
 			return;
 		else if (ret != ENI_NOHOSTNAME) {
-			printf("I:getnameinfo(%s) failed: %d\n",
+			printf("getnameinfo(%s) failed: %d\n",
 			       address, ret);
 			fails++;
 			return;
 		} else {
-			printf("I:getnameinfo(%s) returned not found\n",
+			printf("getnameinfo(%s) returned not found\n",
 			       address);
 			fails++;
 			return;
 		}
 	} else {
 		if (name == NULL) {
-			printf("I:getnameinfo(%s) returned %s, "
+			printf("getnameinfo(%s) returned %s, "
 			       "expected NULL\n", address, host);
 			fails++;
 			return;
 		} else if (strcmp(host, name) != 0) {
-			printf("I:getnameinfo(%s) returned %s, expected %s\n",
+			printf("getnameinfo(%s) returned %s, expected %s\n",
 			       address, host, name);
 			fails++;
 			return;
@@ -609,11 +609,11 @@ test_getrrsetbyname(const char *name, int rdclass, int rdtype,
 	struct rrsetinfo *rrinfo = NULL;
 	ret = getrrsetbyname(name, rdclass, rdtype, 0, &rrinfo);
 	if (ret != 0 && should_pass == 1) {
-		printf("I:getrrsetbyname(%s, %d) failed\n", name, rdtype);
+		printf("getrrsetbyname(%s, %d) failed\n", name, rdtype);
 		fails++;
 		return;
 	} else if (ret == 0 && should_pass == 0) {
-		printf("I:getrrsetbyname(%s, %d) unexpectedly succeeded\n",
+		printf("getrrsetbyname(%s, %d) unexpectedly succeeded\n",
 			name, rdtype);
 		fails++;
 		freerrset(rrinfo);
@@ -621,12 +621,12 @@ test_getrrsetbyname(const char *name, int rdclass, int rdtype,
 	} else if (ret != 0)
 		return;
 	if (rrinfo->rri_nrdatas != nrdatas) {
-		printf("I:getrrsetbyname(%s, %d): got %d rr, expected %d\n",
+		printf("getrrsetbyname(%s, %d): got %d rr, expected %d\n",
 			name, rdtype, rrinfo->rri_nrdatas, nrdatas);
 		fails++;
 	}
 	if (rrinfo->rri_nsigs != nsigs) {
-		printf("I:getrrsetbyname(%s, %d): got %d sig, expected %d\n",
+		printf("getrrsetbyname(%s, %d): got %d sig, expected %d\n",
 			name, rdtype, rrinfo->rri_nsigs, nsigs);
 		fails++;
 	}
@@ -791,6 +791,6 @@ main(int argc, char **argv) {
 			    "123456789", 1, 1, 0, 0, 0);
 
 	if (fails == 0)
-		printf("I:ok\n");
+		printf("ok\n");
 	return (fails);
 }

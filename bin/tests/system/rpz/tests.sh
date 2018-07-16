@@ -404,7 +404,7 @@ nxdomain c2.crash2.tld3			# 16 assert in rbtdb.c
 addr 127.0.0.17 "a4-4.tld2 -b $ns1"	# 17 client-IP address trigger
 nxdomain a7-1.tld2			# 18 slave policy zone (RT34450)
 cp ns2/blv2.tld2.db.in ns2/bl.tld2.db
-$RNDCCMD 10.53.0.2 reload bl.tld2
+$RNDCCMD 10.53.0.2 reload bl.tld2 | cat_i
 goodsoa="rpz.tld2. hostmaster.ns.tld2. 2 3600 1200 604800 60"
 for i in 0 1 2 3 4 5 6 7 8 9 10
 do
@@ -416,7 +416,7 @@ nochange a7-1.tld2			# 19 PASSTHRU
 sleep 1	# ensure that a clock tick has occured so that the reload takes effect
 cp ns2/blv3.tld2.db.in ns2/bl.tld2.db
 goodsoa="rpz.tld2. hostmaster.ns.tld2. 3 3600 1200 604800 60"
-$RNDCCMD 10.53.0.2 reload bl.tld2
+$RNDCCMD 10.53.0.2 reload bl.tld2 | cat_i
 for i in 0 1 2 3 4 5 6 7 8 9 10
 do
 	soa=`$DIG -p ${PORT} +short soa bl.tld2 @10.53.0.3 -b10.53.0.3`
@@ -634,13 +634,13 @@ done
 echo_i "checking that going from a empty policy zone works"
 nsd $ns5 add '*.x.servfail.policy2.' x.servfail.policy2.
 sleep 1
-$RNDCCMD $ns7 reload policy2
+$RNDCCMD $ns7 reload policy2 | cat_i
 $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.ns7
-grep NXDOMAIN dig.out.ns7 > /dev/null || setret I:failed;
+grep NXDOMAIN dig.out.ns7 > /dev/null || setret failed;
 
 echo_i "checking rpz with delegation fails correctly"
 $DIG -p ${PORT} @$ns3 ns example.com > dig.out.delegation
-grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
+grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "failed"
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -91,7 +91,7 @@ EOF
 
 sleep 1
 
-$RNDCCMD 10.53.0.1 refresh nil
+$RNDCCMD 10.53.0.1 refresh nil | cat_i
 
 sleep 2
 
@@ -125,7 +125,7 @@ EOF
 
 sleep 1
 
-$RNDCCMD 10.53.0.1 refresh nil
+$RNDCCMD 10.53.0.1 refresh nil | cat_i
 
 sleep 2
 
