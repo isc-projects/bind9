@@ -2166,7 +2166,6 @@ case "$use_pkcs11" in
 	no)
 		AC_MSG_RESULT(no)
 		USE_PKCS11=""
-		PKCS11_TEST=""
 		PKCS11_TOOLS=""
 		ISC_PK11_C=""
 		ISC_PK11_O=""
@@ -2207,19 +2206,15 @@ int main() {
 }
 ],
 			[AC_MSG_RESULT(yes)
-			PKCS11_TEST=pkcs11ssl
 			PKCS11_ENGINE='-DPKCS11_ENGINE="\"pkcs11\""'],
 			[AC_MSG_RESULT(no)
-			PKCS11_TEST=''
 			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'],
 			[AC_MSG_RESULT(cross compile, defaulting to no)
-			PKCS11_TEST=''
 			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'])
 			CC="$saved_cc"
 			CFLAGS="$saved_cflags"
 			LIBS="$saved_libs"
 		else
-			PKCS11_TEST=''
 			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'
 
 		fi
@@ -2277,7 +2272,6 @@ case "$want_native_pkcs11" in
 		AC_MSG_RESULT(using native PKCS11 crypto)
 		PKCS11LINKOBJS='${PKCS11LINKOBJS}'
 		PKCS11LINKSRCS='${PKCS11LINKSRCS}'
-		PKCS11_TEST=pkcs11
 		AC_MSG_CHECKING(for PKCS11 ECDSA)
 		case "$with_ecdsa" in
 		no)
@@ -2375,7 +2369,6 @@ AC_SUBST(CRYPTO)
 AC_SUBST(PKCS11_ECDSA)
 AC_SUBST(PKCS11_GOST)
 AC_SUBST(PKCS11_ED25519)
-AC_SUBST(PKCS11_TEST)
 
 # for PKCS11 benchmarks
 

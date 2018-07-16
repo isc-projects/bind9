@@ -12,5 +12,9 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-echo "I:(PKCS#11 via OpenSSL)" >&2
+if ! $FEATURETEST --with-openssl-pkcs11; then
+	echo_i "This test requires OpenSSL PKCS#11 support." >&2
+	exit 1
+fi
+
 exec $SHELL ../testcrypto.sh rsa

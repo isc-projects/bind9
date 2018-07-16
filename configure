@@ -825,7 +825,6 @@ XMLSTATS
 NZDTARGETS
 NZDSRCS
 NZD_TOOLS
-PKCS11_TEST
 PKCS11_ED25519
 PKCS11_GOST
 PKCS11_ECDSA
@@ -17249,7 +17248,6 @@ case "$use_pkcs11" in
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 		USE_PKCS11=""
-		PKCS11_TEST=""
 		PKCS11_TOOLS=""
 		ISC_PK11_C=""
 		ISC_PK11_O=""
@@ -17279,7 +17277,6 @@ $as_echo_n "checking for OpenSSL with PKCS11 support... " >&6; }
 			if test "$cross_compiling" = yes; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: cross compile" >&5
 $as_echo "cross compile" >&6; }
-			PKCS11_TEST=''
 			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -17303,12 +17300,10 @@ _ACEOF
 if ac_fn_c_try_run "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-			PKCS11_TEST=pkcs11ssl
 			PKCS11_ENGINE='-DPKCS11_ENGINE="\"pkcs11\""'
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-			PKCS11_TEST=''
 			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'
 fi
 rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
@@ -17319,7 +17314,6 @@ fi
 			CFLAGS="$saved_cflags"
 			LIBS="$saved_libs"
 		else
-			PKCS11_TEST=''
 			PKCS11_ENGINE='-DPKCS11_ENGINE=NULL'
 
 		fi
@@ -17388,7 +17382,6 @@ case "$want_native_pkcs11" in
 $as_echo "using native PKCS11 crypto" >&6; }
 		PKCS11LINKOBJS='${PKCS11LINKOBJS}'
 		PKCS11LINKSRCS='${PKCS11LINKSRCS}'
-		PKCS11_TEST=pkcs11
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for PKCS11 ECDSA" >&5
 $as_echo_n "checking for PKCS11 ECDSA... " >&6; }
 		case "$with_ecdsa" in
