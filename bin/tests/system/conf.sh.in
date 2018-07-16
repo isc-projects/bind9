@@ -90,7 +90,7 @@ SEQUENTIALDIRS="ecdsa eddsa gost lwresd @PKCS11_TEST@ tkey"
 PARALLELDIRS="acl additional addzone allow-query autosign \
 	builtin cacheclean case catz chain \
 	checkconf checknames checkzone \
-	checkds @COVERAGE@ @KEYMGR@ \
+	checkds coverage @KEYMGR@ \
 	cookie database digdelv dlv dlz dlzexternal \
 	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
 	ednscompliance emptyzones \
