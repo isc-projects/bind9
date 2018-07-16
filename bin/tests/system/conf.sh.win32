@@ -88,7 +88,7 @@ KRB5_CONFIG=NUL
 # be run sequentially.
 SEQUENTIALDIRS="acl additional addzone autosign builtin \
 	 cacheclean case \
-	 checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@ \
+	 checkconf checkds checknames checkzone cookie @COVERAGE@ \
 	 database digdelv dlv dlvauto dlz dlzexternal dname \
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
 	 ednscompliance emptyzones \

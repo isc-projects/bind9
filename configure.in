@@ -355,16 +355,13 @@ case "$use_python" in
 esac
 
 PYTHON_TOOLS=''
-CHECKDS=''
 COVERAGE=''
 KEYMGR=''
 if test "X$PYTHON" != "X"; then
 	PYTHON_TOOLS=python
-	CHECKDS=checkds
 	COVERAGE=coverage
 	KEYMGR=keymgr
 fi
-AC_SUBST(CHECKDS)
 AC_SUBST(COVERAGE)
 AC_SUBST(KEYMGR)
 AC_SUBST(PYTHON_TOOLS)
