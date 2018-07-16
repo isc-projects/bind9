@@ -42,6 +42,7 @@ usage() {
 	fprintf(stderr, "	--gethostname\n");
 	fprintf(stderr, "	--gssapi\n");
 	fprintf(stderr, "	--have-dlopen\n");
+	fprintf(stderr, "	--have-dnstap\n");
 	fprintf(stderr, "	--have-geoip\n");
 	fprintf(stderr, "	--have-libxml2\n");
 	fprintf(stderr, "	--ipv6only=no\n");
@@ -116,6 +117,14 @@ main(int argc, char **argv) {
 
 	if (strcmp(argv[1], "--have-dlopen") == 0) {
 #if defined(HAVE_DLOPEN) && defined(ISC_DLZ_DLOPEN)
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--have-dnstap") == 0) {
+#ifdef HAVE_DNSTAP
 		return (0);
 #else
 		return (1);

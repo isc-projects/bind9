@@ -91,7 +91,7 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	checkconf checknames checkzone \
 	checkds coverage keymgr \
 	cookie database digdelv dlv dlz dlzexternal \
-	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
+	dns64 dnssec dnstap dscp dsdigest dyndb \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue idna inline integrity ixfr keepalive \
