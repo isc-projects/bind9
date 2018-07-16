@@ -17,21 +17,21 @@ status=0
 (
 $SHELL -c "while true
            do $RNDC -c ../common/rndc.conf -s 10.53.0.3 -p 9953 reload 2>&1 |
-	       sed 's/^/I:ns3 /';
+	       sed 's/^/ns3 /';
 	   sleep 1
        done" & echo $! >reload.pid
-) &
+) | cat_i &
 
 for i in 0 1 2 3 4
 do
-       $PERL update.pl -s 10.53.0.2 -p 5300 zone00000$i.example. &
+       $PERL update.pl -s 10.53.0.2 -p 5300 zone00000$i.example. | cat_i &
 done
 
-echo "I:waiting for background processes to finish"
+echo_i "waiting for background processes to finish"
 wait
 
-echo "I:killing reload loop"
+echo_i "killing reload loop"
 kill `cat reload.pid`
 
-echo "I:exit status: $status"
+echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

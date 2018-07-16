@@ -746,7 +746,7 @@ EOF
   if test -n "$EMSGS"; then
     setret "error messages in $EMSGS starting with:"
     egrep 'invalid rpz|rpz.*failed' ns*/named.run | \
-            sed -e '10,$d' -e 's/^//' | cat_i
+            sed -e '10,$d' | cat_i
   fi
 
   t=`expr $t + 1`
