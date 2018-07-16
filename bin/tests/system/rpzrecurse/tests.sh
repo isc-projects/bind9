@@ -143,7 +143,7 @@ do
   esac
 
   # show whether and why DNSRPS is enabled or disabled
-  sed -n 's/^## /I:/p' dnsrps.conf
+  sed -n 's/^## //p' dnsrps.conf | cat_i
 
   t=`expr $t + 1`
   echo_i "testing that l1.l0 exists without RPZ (${t})"
@@ -261,7 +261,7 @@ do
     echo_i "adding an NSDNAME policy"
     cp ns2/db.6a.00.policy.local ns2/saved.policy.local
     cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     t=`expr $t + 1`
@@ -271,7 +271,7 @@ do
     sleep 1
     echo_i "removing the NSDNAME policy"
     cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     echo_i "resuming authority server"
@@ -313,7 +313,7 @@ do
     fi
     echo_i "adding an NSDNAME policy"
     cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     t=`expr $t + 1`
@@ -323,7 +323,7 @@ do
     sleep 1
     echo_i "removing the policy zone"
     cp ns2/named.default.conf ns2/named.conf
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reconfig 2>&1 | sed 's/^/I:ns2 /'
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reconfig 2>&1 | sed 's/^/ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     echo_i "resuming authority server"

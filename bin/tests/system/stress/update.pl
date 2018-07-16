@@ -57,7 +57,7 @@ my $failures = 0;
 sub assert {
     my ($cond, $explanation) = @_;
     if (!$cond) {
-	print "I:Test Failed: $explanation ***\n";
+	print "Test Failed: $explanation ***\n";
 	$failures++
     }
 }
@@ -78,13 +78,13 @@ sub test {
 	my $rcode = $reply->header->rcode;
         assert($rcode eq $expected, "expected $expected, got $rcode");
     } else {
-	print "I:Update failed: ", $res->errorstring, "\n";
+	print "Update failed: ", $res->errorstring, "\n";
     }
 }
 
 sub section {
     my ($msg) = @_;
-    print "I:$msg\n";
+    print "$msg\n";
 }
 
 for ($i = 0; $i < 1000; $i++) {
@@ -92,8 +92,8 @@ for ($i = 0; $i < 1000; $i++) {
 }
 
 if ($failures) {
-    print "I:$failures tests failed.\n";
+    print "$failures tests failed.\n";
 } else {
-    print "I:Update of $opt_s zone $zone successful.\n";
+    print "Update of $opt_s zone $zone successful.\n";
 }
 exit $failures;

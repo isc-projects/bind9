@@ -23,7 +23,7 @@ RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 echo_i "checking DNSSEC SERVFAIL is cached ($n)"
 ret=0
 $DIG $DIGOPTS +dnssec foo.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
-$RNDCCMD 10.53.0.5 dumpdb -all 2>&1 | sed 's/^/I:ns5 /'
+$RNDCCMD 10.53.0.5 dumpdb -all 2>&1 | sed 's/^/ns5 /' | cat_i
 for i in 1 2 3 4 5 6 7 8 9 10; do
     awk '/Zone/{out=0} { if (out) print } /SERVFAIL/{out=1}' ns5/named_dump.db > sfcache.$n
     [ -s "sfcache.$n" ] && break
@@ -56,7 +56,7 @@ awk '/SERVFAIL/ { next; out=1 } /Zone/ { out=0 } { if (out) print }' ns5/named_d
 echo_i "checking SERVFAIL is cached ($n)"
 ret=0
 $DIG $DIGOPTS bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
-$RNDCCMD 10.53.0.5 dumpdb -all 2>&1 | sed 's/^/I:ns5 /'
+$RNDCCMD 10.53.0.5 dumpdb -all 2>&1 | sed 's/^/ns5 /' | cat_i
 for i in 1 2 3 4 5 6 7 8 9 10; do
     awk '/Zone/{out=0} { if (out) print } /SERVFAIL/{out=1}' ns5/named_dump.db > sfcache.$n
     [ -s "sfcache.$n" ] && break
