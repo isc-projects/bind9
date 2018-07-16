@@ -12,6 +12,8 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+SYSTESTDIR=dlv
+
 (cd ../ns6 && $SHELL -e ./sign.sh)
 
 echo_i "dlv/ns3/sign.sh"
