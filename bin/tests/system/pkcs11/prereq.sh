@@ -12,7 +12,11 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-echo "I:(Native PKCS#11)" >&2
+if ! $FEATURETEST --with-native-pkcs11; then
+	echo_i "This test requires native PKCS#11 support." >&2
+	exit 1
+fi
+
 rsafail=0 eccfail=0 ecxfail=0
 
 $SHELL ../testcrypto.sh -q rsa || rsafail=1
@@ -20,7 +24,7 @@ $SHELL ../testcrypto.sh -q ecdsa || eccfail=1
 $SHELL ../testcrypto.sh -q eddsa || ecxfail=1
 
 if [ $rsafail = 1 -a $eccfail = 1 ]; then
-	echo "I:This test requires PKCS#11 support for either RSA or ECDSA cryptography." >&2
+	echo_i "This test requires PKCS#11 support for either RSA or ECDSA cryptography." >&2
 	exit 1
 fi
 rm -f supported

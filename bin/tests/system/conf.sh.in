@@ -76,7 +76,7 @@ KRB5_CONFIG=/dev/null
 #
 # List of tests hard-coded to use ports 5300 and 9953. For this
 # reason, these must be run sequentially.
-SEQUENTIALDIRS="ecdsa eddsa @PKCS11_TEST@ tkey"
+SEQUENTIALDIRS="ecdsa eddsa pkcs11 pkcs11ssl tkey"
 
 # List of tests that use ports assigned by caller (other than 5300
 # and 9953). Because separate blocks of ports can be used for teach

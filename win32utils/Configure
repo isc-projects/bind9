@@ -249,7 +249,6 @@ my @substtest = ("CHECK_DSA",
                  "FSTRM_CAPTURE",
                  "JSONSTATS",
                  "NZD_TOOLS",
-                 "PKCS11_TEST",
                  "XMLSTATS",
                  "ZLIB"),
 
@@ -3117,8 +3116,6 @@ $configtest{"CHECK_DSA"} = 0;
 
 # lmdb not supported
 #$configtest{"NZD_TOOLS"} = "nzd";
-
-# TODO check for pkcs11ssl and set PKCS11_TEST
 
 # Status
 
