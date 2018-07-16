@@ -1459,7 +1459,7 @@ load_text(dns_loadctx_t *lctx) {
 			 * state.  Linked lists are undone by commit().
 			 */
 			if (ictx->glue != NULL &&
-			    dns_name_compare(ictx->glue, new_name) != 0) {
+			    !dns_name_caseequal(ictx->glue, new_name)) {
 				result = commit(callbacks, lctx, &glue_list,
 						ictx->glue, source,
 						ictx->glue_line);
@@ -1485,7 +1485,7 @@ load_text(dns_loadctx_t *lctx) {
 			 * have.
 			 */
 			if ((ictx->glue == NULL) && (ictx->current == NULL ||
-			    dns_name_compare(ictx->current, new_name) != 0)) {
+			    !dns_name_caseequal(ictx->current, new_name))) {
 				if (current_has_delegation &&
 					is_glue(&current_list, new_name)) {
 					rdcount_save = rdcount;
@@ -1856,7 +1856,7 @@ load_text(dns_loadctx_t *lctx) {
 
 		if (type == dns_rdatatype_soa &&
 		    (lctx->options & DNS_MASTER_ZONE) != 0 &&
-		    dns_name_compare(ictx->current, lctx->top) != 0) {
+		    !dns_name_equal(ictx->current, lctx->top)) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(ictx->current, namebuf,
 					sizeof(namebuf));
@@ -3083,8 +3083,9 @@ is_glue(rdatalist_head_t *head, dns_name_t *owner) {
 		dns_name_init(&name, NULL);
 		dns_rdata_toregion(rdata, &region);
 		dns_name_fromregion(&name, &region);
-		if (dns_name_compare(&name, owner) == 0)
+		if (dns_name_equal(&name, owner)) {
 			return (true);
+		}
 		rdata = ISC_LIST_NEXT(rdata, link);
 	}
 	return (false);
