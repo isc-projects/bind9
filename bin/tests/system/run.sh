@@ -141,18 +141,6 @@ else
     exit 0
 fi
 
-# Check for PKCS#11 support
-if
-    test ! -f $systest/usepkcs11 || $SHELL cleanpkcs11.sh
-then
-    : pkcs11 ok
-else
-    echowarn "I:$systest:Need PKCS#11, skipping test."
-    echowarn "R:$systest:PKCS11ONLY"
-    echoend  "E:$systest:`date $dateargs`"
-    exit 0
-fi
-
 # Set up any dynamically generated test data
 if test -f $systest/setup.sh
 then
