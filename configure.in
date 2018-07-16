@@ -354,12 +354,9 @@ case "$use_python" in
 esac
 
 PYTHON_TOOLS=''
-KEYMGR=''
 if test "X$PYTHON" != "X"; then
 	PYTHON_TOOLS=python
-	KEYMGR=keymgr
 fi
-AC_SUBST(KEYMGR)
 AC_SUBST(PYTHON_TOOLS)
 AC_SUBST(PYTHON_INSTALL_DIR)
 AC_SUBST(PYTHON_INSTALL_LIB)
