@@ -248,7 +248,6 @@ my @substtest = ("CHECK_DSA",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
                  "JSONSTATS",
-                 "KEYMGR",
                  "NZD_TOOLS",
                  "PKCS11_TEST",
                  "XMLSTATS",
@@ -2410,7 +2409,6 @@ if ($use_python ne "no") {
         $configcond{"PYTHON"} = 1;
         $configdefd{"USE_PYTHON"} = "USE_PYTHON";
         $configvar{"PYTHON"} = "$python_command";
-        $configtest{"KEYMGR"} = "keymgr";
         # Doesn't matter
         $configvar{"prefix"} = "__prefix__";
         $configvar{"expanded_sysconfdir"} = "__prefix__\\etc";
