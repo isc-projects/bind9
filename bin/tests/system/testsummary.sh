@@ -47,7 +47,7 @@ fi
 
 status=0
 echoinfo "I:System test result summary:"
-echoinfo "`grep 'R:[a-z0-9_-][a-z0-9_-]*:[A-Z][A-Z]*' systests.output | cut -d':' -f3 | sort | uniq -c | sed -e 's/^/I:/'`"
+echoinfo "`sed -n 's/.*R:[a-z0-9_-][a-z0-9_-]*:\([A-Z][A-Z]*\).*/\1/p' systests.output | sort | uniq -c | sed -e 's/^/I:/'`"
 
 FAILED_TESTS=`grep 'R:[a-z0-9_-][a-z0-9_-]*:FAIL' systests.output | cut -d':' -f2 | sort | sed -e 's/^/I:      /'`
 if [ -n "${FAILED_TESTS}" ]; then
