@@ -93,7 +93,7 @@ SEQUENTIALDIRS="acl additional addzone autosign builtin \
 	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
 	 ednscompliance emptyzones \
 	 fetchlimit filter-aaaa formerr forward geoip glue gost idna inline ixfr \
-	 keepalive @KEYMGR@ legacy limits logfileconfig masterfile \
+	 keepalive keymgr legacy limits logfileconfig masterfile \
 	 masterformat metadata mkeys names notify nslookup nsupdate \
 	 nzd2nzf padding pending pipelined @PKCS11_TEST@ reclimit \
 	 redirect resolver rndc rpz rrchecker rrl \

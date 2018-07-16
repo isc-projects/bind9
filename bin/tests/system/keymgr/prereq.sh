@@ -12,4 +12,9 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+if test -z "$PYTHON"; then
+	echo_i "This test requires Python support." >&2
+	exit 1
+fi
+
 exec $SHELL ../testcrypto.sh
