@@ -14,6 +14,5 @@ SYSTEMTESTTOP=..
 
 $FEATURETEST --have-dlopen ||  {
         echo_i "dlopen() not supported - skipping dlzexternal test"
-        exit 255
+        exit 1
 }
-exit 0

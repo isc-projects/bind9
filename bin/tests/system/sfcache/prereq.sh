@@ -17,5 +17,5 @@ then
     rm -f Kfoo*
 else
     echo "I:This test requires that --with-openssl was used." >&2
-    exit 255
+    exit 1
 fi

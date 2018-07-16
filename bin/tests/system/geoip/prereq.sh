@@ -14,6 +14,5 @@ SYSTEMTESTTOP=..
 
 $FEATURETEST --have-geoip || {
 	echo_i "This test requires GeoIP support." >&2
-	exit 255
+	exit 1
 }
-exit 0

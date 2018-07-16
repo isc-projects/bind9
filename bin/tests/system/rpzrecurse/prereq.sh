@@ -12,7 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-$SHELL ../testcrypto.sh || exit 255
+$SHELL ../testcrypto.sh || exit 1
 
 if $PERL -e 'use Net::DNS;' 2>/dev/null
 then
