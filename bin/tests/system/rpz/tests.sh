@@ -756,23 +756,21 @@ EOF
   if test ${ttl:=0} -eq 0; then setret "failed"; fi
 
   t=`expr $t + 1`
-  echo_i "checking rpz updates/transfers with parent nodes added after children" \
-    | tr -d '\n'
+  echo_i "checking rpz updates/transfers with parent nodes added after children (${t})"
   # regression test for RT #36272: the success condition
   # is the slave server not crashing.
   for i in 1 2 3 4 5; do
     nsd $ns5 add example.com.policy1. '*.example.com.policy1.'
-    echo . | tr -d '\n'
+    echo_i "  i=$i, add    example.com.policy1. *.example.com.policy1."
     nsd $ns5 delete example.com.policy1. '*.example.com.policy1.'
-    echo . | tr -d '\n'
+    echo_i "  i=$i, delete example.com.policy1. *.example.com.policy1."
   done
   for i in 1 2 3 4 5; do
     nsd $ns5 add '*.example.com.policy1.' example.com.policy1.
-    echo . | tr -d '\n'
+    echo_i "  i=$i, add    *.example.com.policy1. example.com.policy1."
     nsd $ns5 delete '*.example.com.policy1.' example.com.policy1.
-    echo . | tr -d '\n'
+    echo_i "  i=$i, delete *.example.com.policy1. example.com.policy1."
   done
-  echo " (${t})"
 
   t=`expr $t + 1`
   echo_i "checking that going from an empty policy zone works (${t})"
