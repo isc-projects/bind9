@@ -76,7 +76,7 @@ case "$1" in
 		for ns in 1 2 3 4 5 6 7 8
 		do
 			[ $i -gt 0 -a $ns -gt 2 ] && break
-			int=`expr $i \* 10 + $ns - 1`
+			int=`expr $i \* 10 + $ns`
 			case "$sys" in
 			    *-pc-solaris2.5.1)
 				ifconfig lo0:$int 10.53.$i.$ns \
