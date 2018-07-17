@@ -1,3 +1,5 @@
+4998.	[test]		Make resolver and cacheclean tests more civilized.
+
 4997.	[placeholder]
 
 4996.	[bug]		dig: Handle malformed ednsopt options. [GL #403]
