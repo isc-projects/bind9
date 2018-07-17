@@ -44,33 +44,43 @@ $SIG{TERM} = \&rmpid;
 
 sub handleUDP {
 	my ($buf) = @_;
-	my $request;
+	my $packet;
 
 	if ($Net::DNS::VERSION > 0.68) {
-		$request = new Net::DNS::Packet(\$buf, 0);
+		$packet = new Net::DNS::Packet(\$buf, 0);
 		$@ and die $@;
 	} else {
 		my $err;
-		($request, $err) = new Net::DNS::Packet(\$buf, 0);
+		($packet, $err) = new Net::DNS::Packet(\$buf, 0);
 		$err and die $err;
 	}
 
-	my @questions = $request->question;
+	my @questions = $packet->question;
 	my $qname = $questions[0]->qname;
 	my $qtype = $questions[0]->qtype;
 	my $qclass = $questions[0]->qclass;
-	my $id = $request->header->id;
-
-	my $packet = new Net::DNS::Packet();
+	my $id = $packet->header->id;
 
 	$packet->header->qr(1);
-	$packet->header->aa(0);
-	$packet->header->id($id);
+	$packet->header->aa(1);
+	$packet->header->tc(0);
+
+	# Responses to queries for no-questions/NS and ns.no-questions/A are
+	# _not_ malformed or truncated.
+	if ($qname eq "no-questions" && $qtype eq "NS") {
+		$packet->push("answer", new Net::DNS::RR($qname . " 300 NS ns.no-questions"));
+		$packet->push("additional", new Net::DNS::RR("ns.no-questions. 300 A 10.53.0.8"));
+		return $packet->data;
+	} elsif ($qname eq "ns.no-questions") {
+		$packet->push("answer", new Net::DNS::RR($qname . " 300 A 10.53.0.8"));
+		return $packet->data;
+	}
+
+	# Ensure the QUESTION section is empty in the response.
+	$packet->pop("question");
 
 	if ($qname eq "truncated.no-questions") {
 		$packet->header->tc(1);
-	} else {
-		$packet->header->tc(0);
 	}
 
 	# Net::DNS versions < 0.68 insert an ./ANY RR into the QUESTION section
