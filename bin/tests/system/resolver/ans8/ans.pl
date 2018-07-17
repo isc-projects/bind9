@@ -62,20 +62,25 @@ sub handleUDP {
 	my $id = $packet->header->id;
 
 	$packet->header->qr(1);
-	$packet->header->aa(0);
+	$packet->header->aa(1);
 	$packet->header->tc(0);
 
+	# Responses to queries for no-questions/NS and ns.no-questions/A are
+	# _not_ malformed or truncated.
+	if ($qname eq "no-questions" && $qtype eq "NS") {
+		$packet->push("answer", new Net::DNS::RR($qname . " 300 NS ns.no-questions"));
+		$packet->push("additional", new Net::DNS::RR("ns.no-questions. 300 A 10.53.0.8"));
+		return $packet->data;
+	} elsif ($qname eq "ns.no-questions") {
+		$packet->push("answer", new Net::DNS::RR($qname . " 300 A 10.53.0.8"));
+		return $packet->data;
+	}
+
+	# Ensure the QUESTION section is empty in the response.
+	$packet->pop("question");
+
 	if ($qname eq "truncated.no-questions") {
-		$packet->pop("question");
 		$packet->header->tc(1);
-	} elsif ($qname eq "not-truncated.no-questions") {
-		$packet->pop("question");
-	} elsif ($qname eq "no-questions" && $qtype eq "NS") {
-		$packet->header->aa(1);
-		$packet->push("answer", new Net::DNS::RR("no-questions. 300 NS ns.no-questions"));
-	} elsif ($qname eq "ns.no-questions" && $qtype eq "A") {
-		$packet->header->aa(1);
-		$packet->push("answer", new Net::DNS::RR("ns.no-questions. 300 A 10.53.0.8"));
 	}
 
 	# Net::DNS versions < 0.68 insert an ./ANY RR into the QUESTION section
