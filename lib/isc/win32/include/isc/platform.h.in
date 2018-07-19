@@ -85,11 +85,6 @@
 #define ISC_PLATFORM_NORETURN_POST
 
 /*
- * Define if the hash functions must be provided by OpenSSL.
- */
-@ISC_PLATFORM_OPENSSLHASH@
-
-/*
  * If the "xadd" operation is available on this architecture,
  * ISC_PLATFORM_HAVEXADD will be defined.
  */
