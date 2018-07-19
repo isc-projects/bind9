@@ -108,11 +108,9 @@ isc__task_unsendrange
 isc__taskmgr_mode
 isc__taskmgr_pause
 isc__taskmgr_resume
-@IF AES
 isc_aes128_crypt
 isc_aes192_crypt
 isc_aes256_crypt
-@END AES
 isc_app_block
 isc_app_ctxfinish
 isc_app_ctxonrun
