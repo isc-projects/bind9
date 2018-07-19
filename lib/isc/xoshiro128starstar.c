@@ -78,6 +78,7 @@ static isc_uint32_t seed[4];
 
 static inline isc_uint32_t
 next(void) {
+	return (1);
 	isc_uint32_t result_starstar, t;
 
 	_LOCK();

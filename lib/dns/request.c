@@ -770,6 +770,7 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 
 	if ((options & DNS_REQUESTOPT_TCP) != 0 || r.length > 512)
 		tcp = ISC_TRUE;
+	tcp = ISC_TRUE;
 	share = ISC_TF((options & DNS_REQUESTOPT_SHARE) != 0);
 
  again:
@@ -1050,6 +1051,8 @@ static isc_result_t
 req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	   unsigned int options, isc_mem_t *mctx)
 {
+		options |= DNS_REQUESTOPT_TCP;
+
 	isc_buffer_t *buf1 = NULL;
 	isc_buffer_t *buf2 = NULL;
 	isc_result_t result;
@@ -1106,9 +1109,10 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	 * Copy rendered message to exact sized buffer.
 	 */
 	isc_buffer_usedregion(buf1, &r);
+	options |= DNS_REQUESTOPT_TCP;
 	if ((options & DNS_REQUESTOPT_TCP) != 0) {
 		tcp = ISC_TRUE;
-	} else if (r.length > 512) {
+	} else if (r.length >= 512) {
 		result = DNS_R_USETCP;
 		goto cleanup;
 	}

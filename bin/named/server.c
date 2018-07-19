@@ -9267,7 +9267,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 		   "loading configuration");
 
 	CHECKFATAL(load_zones(server, ISC_TRUE, ISC_FALSE), "loading zones");
-#ifdef ENABLE_AFL
+#if 1
 	named_g_run_done = ISC_TRUE;
 #endif
 }
