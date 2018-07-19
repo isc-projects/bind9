@@ -112,7 +112,7 @@ stages:
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
-    - ./autogen.sh
+#    - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr --with-libidn2 "${EXTRA_CONFIGURE}"
     - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
