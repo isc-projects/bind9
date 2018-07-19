@@ -27,4 +27,10 @@ cat $infile $keyname1.key $keyname2.key > $zonefile
 
 $SIGNER -P -g -o $zone $zonefile > /dev/null
 
-keyfile_to_trusted_keys $keyname1 > trusted.conf
+# Add a trust anchor for a name whose non-existence can be securely proved
+# without recursing when the root zone is mirrored.  This will exercise code
+# attempting to send TAT queries for such names (in ns3).  Key data is
+# irrelevant here, so just reuse the root zone key generated above.
+sed "s/^\./nonexistent./;" $keyname1.key > $keyname1.modified.key
+
+keyfile_to_trusted_keys $keyname1 $keyname1.modified > trusted.conf
