@@ -1243,6 +1243,7 @@ AS_CASE([$with_cc_alg],
 
 
 PKCS11_TOOLS=
+PKCS11_TEST=
 #
 # was --enable-native-pkcs11 specified?
 #
@@ -1255,13 +1256,15 @@ AC_MSG_CHECKING([for PKCS11 for Public-Key Cryptography])
 AS_CASE([$enable_native_pkcs11],
 	[no],[AC_MSG_RESULT([no])],
 	[yes],[PKCS11_TOOLS=pkcs11
+	       PKCS11_TEST=pkcs11
 	       CRYPTO=pkcs11
 	       AS_IF([$use_threads],
 		     [:],
 		     [AC_MSG_ERROR([PKCS11 requires threading support])])
 	       AC_MSG_RESULT([yes])
 	       AC_CHECK_FUNCS([getpassphrase])
-	       ])
+	      ])
+AC_SUBST([PKCS11_TEST])
 AC_SUBST([PKCS11_TOOLS])
 
 AS_CASE([$CRYPTO],

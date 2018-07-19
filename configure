@@ -804,6 +804,7 @@ ISC_PLATFORM_GSSAPIHEADER
 ISC_PLATFORM_HAVEGSSAPI
 KRB5_CONFIG
 PKCS11_TOOLS
+PKCS11_TEST
 OPENSSL_LDFLAGS
 OPENSSL_LIBS
 OPENSSL_INCLUDES
@@ -16280,6 +16281,7 @@ esac
 
 
 PKCS11_TOOLS=
+PKCS11_TEST=
 #
 # was --enable-native-pkcs11 specified?
 #
@@ -16299,6 +16301,7 @@ case $enable_native_pkcs11 in #(
 $as_echo "no" >&6; } ;; #(
   yes) :
     PKCS11_TOOLS=pkcs11
+	       PKCS11_TEST=pkcs11
 	       CRYPTO=pkcs11
 	       if $use_threads; then :
   :
@@ -16318,10 +16321,11 @@ _ACEOF
 fi
 done
 
-	        ;; #(
+	       ;; #(
   *) :
      ;;
 esac
+
 
 
 case $CRYPTO in #(

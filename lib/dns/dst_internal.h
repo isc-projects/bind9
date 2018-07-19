@@ -223,11 +223,11 @@ isc_result_t dst__hmacsha224_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha256_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha384_init(struct dst_func **funcp);
 isc_result_t dst__hmacsha512_init(struct dst_func **funcp);
+isc_result_t dst__openssldh_init(struct dst_func **funcp);
 #if USE_OPENSSL
 isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
 				  unsigned char algorithm);
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
-isc_result_t dst__openssldh_init(struct dst_func **funcp);
 isc_result_t dst__opensslecdsa_init(struct dst_func **funcp);
 #if HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448
 isc_result_t dst__openssleddsa_init(struct dst_func **funcp);
@@ -236,9 +236,7 @@ isc_result_t dst__openssleddsa_init(struct dst_func **funcp);
 #if USE_PKCS11
 isc_result_t dst__pkcs11rsa_init(struct dst_func **funcp);
 isc_result_t dst__pkcs11dsa_init(struct dst_func **funcp);
-#ifdef HAVE_PKCS11_ECDSA
 isc_result_t dst__pkcs11ecdsa_init(struct dst_func **funcp);
-#endif
 #if defined(HAVE_PKCS11_ED25519) || defined(HAVE_PKCS11_ED448)
 isc_result_t dst__pkcs11eddsa_init(struct dst_func **funcp);
 #endif

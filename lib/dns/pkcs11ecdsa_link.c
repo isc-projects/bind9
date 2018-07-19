@@ -13,7 +13,7 @@
 
 #include <config.h>
 
-#if USE_PKCS11 && HAVE_PKCS11_ECDSA
+#if USE_PKCS11
 
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -1187,4 +1187,4 @@ dst__pkcs11ecdsa_init(dst_func_t **funcp) {
 	return (ISC_R_SUCCESS);
 }
 
-#endif /* USE_PKCS11 && HAVE_PKCS11_ECDSA */
+#endif /* USE_PKCS11 */
