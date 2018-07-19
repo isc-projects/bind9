@@ -43,7 +43,7 @@
  * Create a key in the keystore of an HSM
  *
  * The calculation of key tag is left to the script
- * that converts the key into a DNSKEY RR and inserts 
+ * that converts the key into a DNSKEY RR and inserts
  * it into a zone file.
  *
  * usage:
@@ -432,10 +432,10 @@ main(int argc, char *argv[]) {
 
 		break;
 	case key_ecx:
-#ifndef CKM_EDDSA_KEY_PAIR_GEN
+#if !defined(CKM_EDDSA_KEY_PAIR_GEN)
 		fprintf(stderr, "CKM_EDDSA_KEY_PAIR_GEN is not defined\n");
 		usage();
-#endif
+#else
 		op_type = OP_EC;
 		if (bits == 0)
 			bits = 256;
@@ -454,16 +454,27 @@ main(int argc, char *argv[]) {
 		id_offset = ECC_ID;
 
 		if (bits == 256) {
+#if HAVE_PKCS11_ED25519
 			public_template[4].pValue = pk11_ecc_ed25519;
 			public_template[4].ulValueLen =
 				sizeof(pk11_ecc_ed25519);
+#else
+			fprintf(stderr, "Ed25519 is not supported\n");
+			usage();
+#endif
 		} else {
+#if HAVE_PKCS11_ED448
 			public_template[4].pValue = pk11_ecc_ed448;
 			public_template[4].ulValueLen =
 				sizeof(pk11_ecc_ed448);
+#else
+			fprintf(stderr, "Ed449 is not supported\n");
+			usage();
+#endif
 		}
 
 		break;
+#endif /* !defined(CKM_EDDSA_KEY_PAIR_GEN) */
 	case key_dsa:
 		op_type = OP_DSA;
 		if (bits == 0)
@@ -527,7 +538,7 @@ main(int argc, char *argv[]) {
 	case key_unknown:
 		usage();
 	}
-	
+
 	search_template[0].pValue = label;
 	search_template[0].ulValueLen = strlen((char *)label);
 	public_template[0].pValue = label;
@@ -584,7 +595,7 @@ main(int argc, char *argv[]) {
 	hSession = pctx.session;
 
 	/* check if a key with the same id already exists */
-	rv = pkcs_C_FindObjectsInit(hSession, search_template, 1); 
+	rv = pkcs_C_FindObjectsInit(hSession, search_template, 1);
 	if (rv != CKR_OK) {
 		fprintf(stderr, "C_FindObjectsInit: Error = 0x%.8lX\n", rv);
 		error = 1;
@@ -714,13 +725,13 @@ main(int argc, char *argv[]) {
 			       public_template, public_attrcnt,
 			       private_template, private_attrcnt,
 			       &publickey, &privatekey);
-	
+
 	if (rv != CKR_OK) {
 		fprintf(stderr, "C_GenerateKeyPair: Error = 0x%.8lX\n", rv);
 		error = 1;
 	 } else if (!quiet)
 		printf("Key pair generation complete.\n");
-	
+
  exit_params:
 	/* Free parameter attributes */
 	if (keyclass == key_dsa || keyclass == key_dh) {

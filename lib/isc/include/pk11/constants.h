@@ -19,19 +19,25 @@
  * Static arrays of data used for key template initalization
  */
 #ifdef WANT_ECC_CURVES
+#if HAVE_PKCS11_ECDSA
 static CK_BYTE pk11_ecc_prime256v1[] = {
 	0x06, 0x08, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x03, 0x01, 0x07
 };
 static CK_BYTE pk11_ecc_secp384r1[] = {
 	0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x22
 };
+#endif /* HAVE_PKCS11_ECDSA */
+#if HAVE_PKCS11_ED25519
 static CK_BYTE pk11_ecc_ed25519[] = {
 	0x06, 0x03, 0x2b, 0x65, 0x70
 };
+#endif /* HAVE_PKCS11_ED25519 */
+#if HAVE_PKCS11_ED448
 static CK_BYTE pk11_ecc_ed448[] = {
 	0x06, 0x03, 0x2b, 0x65, 0x71
 };
-#endif
+#endif /* HAVE_PKCS11_ED448 */
+#endif /* WANT_ECC_CURVES */
 
 #ifdef WANT_DH_PRIMES
 static CK_BYTE pk11_dh_bn2[] = { 2 };
