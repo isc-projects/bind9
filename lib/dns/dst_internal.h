@@ -229,7 +229,9 @@ isc_result_t dst__opensslrsa_init(struct dst_func **funcp,
 isc_result_t dst__openssldsa_init(struct dst_func **funcp);
 isc_result_t dst__openssldh_init(struct dst_func **funcp);
 isc_result_t dst__opensslecdsa_init(struct dst_func **funcp);
+#if HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448
 isc_result_t dst__openssleddsa_init(struct dst_func **funcp);
+#endif /* HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448 */
 #endif /* USE_OPENSSL */
 #if USE_PKCS11
 isc_result_t dst__pkcs11rsa_init(struct dst_func **funcp);
