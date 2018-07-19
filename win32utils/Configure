@@ -207,6 +207,7 @@ my @substdefh = ("AES_CC",
 		 "HAVE_DSA_GET0_PQG",
 		 "HAVE_ECDSA_SIG_GET0",
 		 "HAVE_RSA_SET0_KEY",
+		 "USE_OPENSSL",
 		 "USE_PKCS11",
                  "HAVE_PKCS11_ED25519",
                  "HAVE_PKCS11_ED448",
@@ -321,10 +322,8 @@ my @substvar = ("BIND9_VERSION",
 
 my %configdefd;
 
-my @substdefd = ("CRYPTO",
-                 "PK11_LIB_LOCATION",
+my @substdefd = ("PK11_LIB_LOCATION",
                  "USE_GSSAPI",
-                 "USE_PKCS11",
                  "USE_PYTHON",
                  "USE_ISC_SPNEGO");
 
@@ -1265,8 +1264,7 @@ if ($enable_native_pkcs11 eq "yes") {
             print "native PKCS#11 support: no PKCS#11 provider defined?\n";
         }
     }
-    $configdefd{"CRYPTO"} = "PKCS11CRYPTO";
-    $configdefh{"USE_PKCS11"} = 1;
+    $crypto = "PKCS11";
     if ($use_eddsa eq "no") {
         if ($verbose) {
             print "no EDDSA support in native PKCS#11\n";
@@ -1436,6 +1434,12 @@ if ($use_openssl eq "yes") {
     $configinc{"OPENSSL_INC"} = "$openssl_inc";
     $configlib{"OPENSSL_LIB"} = "$openssl_lib";
     $configdll{"OPENSSL_DLL"} = "$openssl_dll";
+}
+
+if ($crypto eq "openssl") {
+    $configdefh{"USE_PKCS11"} = 1;
+} else {
+    $configdefh{"USE_OPENSSL"} = 1;
 }
 
 # check OpenSSL
