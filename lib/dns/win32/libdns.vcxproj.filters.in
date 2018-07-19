@@ -299,7 +299,6 @@
     <ClCompile Include="..\key.c">
       <Filter>Dst Source Files</Filter>
     </ClCompile>
-@IF OPENSSL
     <ClCompile Include="..\openssl_link.c">
       <Filter>Dst Source Files</Filter>
     </ClCompile>
@@ -318,7 +317,6 @@
     <ClCompile Include="..\opensslrsa_link.c">
       <Filter>Dst Source Files</Filter>
     </ClCompile>
-@END OPENSSL
 @IF PKCS11
     <ClCompile Include="..\pkcs11.c">
       <Filter>Dst Source Files</Filter>
@@ -658,11 +656,9 @@
     <ClInclude Include="..\dst_internal.h">
       <Filter>Dst Header Files</Filter>
     </ClInclude>
-@IF OPENSSL
     <ClInclude Include="..\dst_openssl.h">
       <Filter>Dst Header Files</Filter>
     </ClInclude>
-@END OPENSSL
     <ClInclude Include="..\dst_parse.h">
       <Filter>Dst Header Files</Filter>
     </ClInclude>
