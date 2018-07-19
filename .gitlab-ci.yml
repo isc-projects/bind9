@@ -112,9 +112,9 @@ stages:
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
-    - ./autogen.sh
+#    - ./autogen.sh
   script:
-    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr --with-libidn2 "${EXTRA_CONFIGURE}"
+    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr $EXTRA_CONFIGURE
     - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
     expire_in: '1 hour'
@@ -196,7 +196,7 @@ build:centos:centos6:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--disable-warn-error"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
   <<: *centos_centos6_amd64_image
   <<: *build_job
 
@@ -204,6 +204,7 @@ build:centos:centos7:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
@@ -211,13 +212,29 @@ build:clang:debian:sid:amd64:
   variables:
     CC: clang-6.0
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_amd64_image
+  <<: *build_job
+
+build:debian:jessie:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *debian_jessie_amd64_image
+  <<: *build_job
+
+build:debian:stretch:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *debian_stretch_amd64_image
   <<: *build_job
 
 build:debian:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_amd64_image
   <<: *build_job
 
@@ -225,6 +242,7 @@ build:clang:debian:sid:i386:
   variables:
     CC: clang-6.0
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_i386_image
   <<: *build_job
 
@@ -232,6 +250,7 @@ build:debian:sid:i386:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_i386_image
   <<: *build_job
 
@@ -246,6 +265,18 @@ unittest:centos:centos7:amd64:
   <<: *unit_test_job
   dependencies:
     - build:centos:centos7:amd64
+
+unittest:debian:jessie:amd64:
+  <<: *debian_jessie_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:debian:jessie:amd64
+
+unittest:debian:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:debian:stretch:amd64
 
 unittest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -276,6 +307,18 @@ systemtest:centos:centos7:amd64:
   <<: *system_test_job
   dependencies:
     - build:centos:centos7:amd64
+
+systemtest:debian:jessie:amd64:
+  <<: *debian_jessie_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:debian:jessie:amd64
+
+systemtest:debian:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:debian:stretch:amd64
 
 systemtest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
