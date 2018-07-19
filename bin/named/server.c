@@ -6646,25 +6646,32 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	dns_rdataset_init(&nameservers);
 	result = dns_view_findzonecut(view, origin, domain, 0, 0, ISC_TRUE,
 				      ISC_TRUE, &nameservers, NULL);
-	if (result != ISC_R_SUCCESS) {
-		goto done;
+	if (result == ISC_R_SUCCESS) {
+		result = dns_resolver_createfetch(view->resolver, tatname,
+						  dns_rdatatype_null, domain,
+						  &nameservers, NULL, NULL, 0,
+						  0, 0, NULL, tat->task,
+						  tat_done, tat,
+						  &tat->rdataset,
+						  &tat->sigrdataset,
+						  &tat->fetch);
 	}
 
-	result = dns_resolver_createfetch(view->resolver, tatname,
-					  dns_rdatatype_null, domain,
-					  &nameservers, NULL, NULL, 0, 0, 0,
-					  NULL, tat->task, tat_done, tat,
-					  &tat->rdataset, &tat->sigrdataset,
-					  &tat->fetch);
-
 	/*
-	 * dns_resolver_createfetch() creates its own copies of 'domain' and
-	 * 'nameservers'; clean up the latter (the former points into a
-	 * dst_key_t structure and thus must not be freed).
+	 * 'domain' holds the dns_name_t pointer inside a dst_key_t structure.
+	 * dns_resolver_createfetch() creates its own copy of 'domain' if it
+	 * succeeds.  Thus, 'domain' is not freed here.
+	 *
+	 * Even if dns_view_findzonecut() returned something else than
+	 * ISC_R_SUCCESS, it still could have associated 'nameservers'.
+	 * dns_resolver_createfetch() creates its own copy of 'nameservers' if
+	 * it succeeds.  Thus, we need to check whether 'nameservers' is
+	 * associated and release it if it is.
 	 */
-	dns_rdataset_disassociate(&nameservers);
+	if (dns_rdataset_isassociated(&nameservers)) {
+		dns_rdataset_disassociate(&nameservers);
+	}
 
- done:
 	if (result != ISC_R_SUCCESS) {
 		isc_task_detach(&tat->task);
 		isc_mem_putanddetach(&tat->mctx, tat, sizeof(*tat));
