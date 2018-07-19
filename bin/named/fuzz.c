@@ -33,10 +33,6 @@
 #include <unistd.h>
 #include <pthread.h>
 
-#ifndef __AFL_LOOP
-#error To use American Fuzzy Lop you have to set CC to afl-clang-fast!!!
-#endif
-
 /*
  * We are using pthreads directly because we might be using it with unthreaded
  * version of BIND, where all thread functions are mocks. Since AFL for now only
@@ -314,7 +310,6 @@ fuzz_main_resolver(void *arg) {
 	 * It's here just for the signature, that's how AFL detects if it's
 	 * a 'persistent mode' binary.
 	 */
-	__AFL_LOOP(0);
 
 	return (NULL);
 }
@@ -437,7 +432,9 @@ named_fuzz_notify(void) {
 		return;
 	}
 
+#if 0
 	raise(SIGSTOP);
+#endif
 
 	RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
@@ -450,8 +447,7 @@ named_fuzz_notify(void) {
 
 void
 named_fuzz_setup(void) {
-#ifdef ENABLE_AFL
-	if (getenv("__AFL_PERSISTENT") || getenv("AFL_CMIN")) {
+#if 0
 		pthread_t thread;
 		void *(fn) = NULL;
 
@@ -475,6 +471,5 @@ named_fuzz_setup(void) {
 		RUNTIME_CHECK(pthread_mutex_init(&mutex, NULL) == 0);
 		RUNTIME_CHECK(pthread_cond_init(&cond, NULL) == 0);
 		RUNTIME_CHECK(pthread_create(&thread, NULL, fn, NULL) == 0);
-	}
 #endif /* ENABLE_AFL */
 }

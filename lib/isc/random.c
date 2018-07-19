@@ -123,11 +123,16 @@ isc_random_seed(isc_uint32_t seed) {
 #endif
 }
 
+static isc_uint32_t RND = 1;
+
 void
 isc_random_get(isc_uint32_t *val) {
 	REQUIRE(val != NULL);
 
 	initialize();
+
+	*val = RND;
+	return;
 
 #ifndef HAVE_ARC4RANDOM
 	/*
@@ -367,6 +372,8 @@ isc_rng_random(isc_rng_t *rng) {
 
 	REQUIRE(VALID_RNG(rng));
 
+	return (1);
+
 	LOCK(&rng->lock);
 
 	rng->count -= sizeof(isc_uint16_t);
@@ -387,6 +394,8 @@ isc_rng_uniformrandom(isc_rng_t *rng, isc_uint16_t upper_bound) {
 
 	if (upper_bound < 2)
 		return (0);
+
+	return RND % upper_bound;
 
 	/*
 	 * Ensure the range of random numbers [min, 0xffff] be a multiple of

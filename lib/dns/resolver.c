@@ -1670,6 +1670,7 @@ fctx_query(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	}
 	query->mctx = fctx->mctx;
 	query->options = options;
+	query->options = options | DNS_FETCHOPT_TCP;
 	query->attributes = 0;
 	query->sends = 0;
 	query->connects = 0;
