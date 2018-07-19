@@ -219,6 +219,20 @@ build:clang:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
+build:debian:jessie:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *debian_jessie_amd64_image
+  <<: *build_job
+
+build:debian:stretch:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *debian_stretch_amd64_image
+  <<: *build_job
+
 build:debian:sid:amd64:
   variables:
     CC: gcc
@@ -252,6 +266,18 @@ unittest:centos:centos7:amd64:
   dependencies:
     - build:centos:centos7:amd64
 
+unittest:debian:jessie:amd64:
+  <<: *debian_jessie_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:debian:jessie:amd64
+
+unittest:debian:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:debian:stretch:amd64
+
 unittest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
@@ -281,6 +307,18 @@ systemtest:centos:centos7:amd64:
   <<: *system_test_job
   dependencies:
     - build:centos:centos7:amd64
+
+systemtest:debian:jessie:amd64:
+  <<: *debian_jessie_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:debian:jessie:amd64
+
+systemtest:debian:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:debian:stretch:amd64
 
 systemtest:debian:sid:amd64:
   <<: *debian_sid_amd64_image
