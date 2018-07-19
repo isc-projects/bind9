@@ -333,6 +333,9 @@ typedef __int64 off_t;
 /* Define if your OpenSSL version supports RSA functions. */
 @HAVE_RSA_SET0_KEY@
 
+/* define if OpenSSL is used for Public-Key Cryptography */
+@USE_OPENSSL@
+
 /* Define if native PKCS#11 is used as cryptographic library provider */
 @USE_PKCS11@
 
