@@ -27,8 +27,6 @@
 
 #include <config.h>
 
-#if !USE_PKCS11
-
 #include <pk11/site.h>
 
 #include <ctype.h>
@@ -763,5 +761,3 @@ dst__openssldh_init(dst_func_t **funcp) {
 	if (bn1536 != NULL) BN_free(bn1536);
 	return (ISC_R_NOMEMORY);
 }
-
-#endif /* !USE_PKCS11 */

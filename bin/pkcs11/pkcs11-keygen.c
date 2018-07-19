@@ -72,7 +72,6 @@
 #include <pk11/pk11.h>
 #include <pk11/result.h>
 #define WANT_DH_PRIMES
-#define WANT_ECC_CURVES
 #include <pk11/constants.h>
 #include <pkcs11/eddsa.h>
 
@@ -432,8 +431,6 @@ main(int argc, char *argv[]) {
 #ifndef CKM_EDDSA_KEY_PAIR_GEN
 		fprintf(stderr, "CKM_EDDSA_KEY_PAIR_GEN is not defined\n");
 		usage();
-		UNUSED(pk11_ecc_ed25519);
-		UNUSED(pk11_ecc_ed448);
 #else
 		op_type = OP_EDDSA;
 		if (bits == 0)

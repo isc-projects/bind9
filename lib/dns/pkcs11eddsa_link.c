@@ -31,7 +31,6 @@
 
 #include <pk11/pk11.h>
 #include <pk11/internal.h>
-#define WANT_ECC_CURVES
 #include <pk11/constants.h>
 
 #include <pkcs11/pkcs11.h>
