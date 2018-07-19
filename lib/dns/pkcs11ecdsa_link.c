@@ -95,8 +95,8 @@ pkcs11ecdsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	if (ec->ontoken && (dctx->use == DO_SIGN))
 		slotid = ec->slot;
 	else
-		slotid = pk11_get_best_token(OP_EC);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
+		slotid = pk11_get_best_token(OP_ECDSA);
+	ret = pk11_get_session(pk11_ctx, OP_ECDSA, ISC_TRUE, ISC_FALSE,
 			       ec->reqlogon, NULL, slotid);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -493,8 +493,8 @@ pkcs11ecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, pk11_get_best_token(OP_EC));
+	ret = pk11_get_session(pk11_ctx, OP_ECDSA, ISC_TRUE, ISC_FALSE,
+			       ISC_FALSE, NULL, pk11_get_best_token(OP_ECDSA));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -852,7 +852,7 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	memmove(attr->pValue, pubattr->pValue, pubattr->ulValueLen);
 	attr->ulValueLen = pubattr->ulValueLen;
 
-	ret = pk11_parse_uri(ec, label, key->mctx, OP_EC);
+	ret = pk11_parse_uri(ec, label, key->mctx, OP_ECDSA);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -860,7 +860,7 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_ECDSA, ISC_TRUE, ISC_FALSE,
 			       ec->reqlogon, NULL, ec->slot);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -1065,7 +1065,7 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 	attr[0].type = CKA_EC_PARAMS;
 	attr[1].type = CKA_EC_POINT;
 
-	ret = pk11_parse_uri(ec, label, key->mctx, OP_EC);
+	ret = pk11_parse_uri(ec, label, key->mctx, OP_ECDSA);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -1073,7 +1073,7 @@ pkcs11ecdsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_EC, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_ECDSA, ISC_TRUE, ISC_FALSE,
 			       ec->reqlogon, NULL, ec->slot);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
