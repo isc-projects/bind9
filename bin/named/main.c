@@ -44,7 +44,7 @@
 #include <dns/view.h>
 
 #include <dst/result.h>
-#if HAVE_PKCS11
+#if USE_PKCS11
 #include <pk11/result.h>
 #endif
 
@@ -75,10 +75,8 @@
 #include <named/smf_globals.h>
 #endif
 
-#if HAVE_OPENSSL
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
-#endif
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlversion.h>
 #endif
@@ -691,7 +689,6 @@ parse_command_line(int argc, char *argv[]) {
 #ifdef __SUNPRO_C
 			printf("compiled by Solaris Studio %x\n", __SUNPRO_C);
 #endif
-#if HAVE_OPENSSL
 			printf("compiled with OpenSSL version: %s\n",
 			       OPENSSL_VERSION_TEXT);
 #if !defined(LIBRESSL_VERSION_NUMBER) && \
@@ -703,7 +700,6 @@ parse_command_line(int argc, char *argv[]) {
 			printf("linked to OpenSSL version: %s\n",
 			       SSLeay_version(SSLEAY_VERSION));
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
-#endif
 #ifdef HAVE_LIBXML2
 			printf("compiled with libxml2 version: %s\n",
 			       LIBXML_DOTTED_VERSION);
@@ -1012,7 +1008,7 @@ setup(void) {
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "compiled with OpenSSL version: %s",
-	              OPENSSL_VERSION_TEXT);
+		      OPENSSL_VERSION_TEXT);
 #if !defined(LIBRESSL_VERSION_NUMBER) && \
     OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -1358,7 +1354,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 	dst_result_register();
 	isccc_result_register();
-#if HAVE_PKCS11
+#if USE_PKCS11
 	pk11_result_register();
 #endif
 

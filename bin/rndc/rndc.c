@@ -668,23 +668,21 @@ parse_config(isc_mem_t *mctx, isc_log_t *log, const char *keyname,
 	secretstr = cfg_obj_asstring(secretobj);
 	algorithmstr = cfg_obj_asstring(algorithmobj);
 
-#ifndef PK11_MD5_DISABLE
-	if (strcasecmp(algorithmstr, "hmac-md5") == 0)
+	if (strcasecmp(algorithmstr, "hmac-md5") == 0) {
 		algorithm = ISCCC_ALG_HMACMD5;
-	else
-#endif
-	if (strcasecmp(algorithmstr, "hmac-sha1") == 0)
+	} else if (strcasecmp(algorithmstr, "hmac-sha1") == 0) {
 		algorithm = ISCCC_ALG_HMACSHA1;
-	else if (strcasecmp(algorithmstr, "hmac-sha224") == 0)
+	} else if (strcasecmp(algorithmstr, "hmac-sha224") == 0) {
 		algorithm = ISCCC_ALG_HMACSHA224;
-	else if (strcasecmp(algorithmstr, "hmac-sha256") == 0)
+	} else if (strcasecmp(algorithmstr, "hmac-sha256") == 0) {
 		algorithm = ISCCC_ALG_HMACSHA256;
-	else if (strcasecmp(algorithmstr, "hmac-sha384") == 0)
+	} else if (strcasecmp(algorithmstr, "hmac-sha384") == 0) {
 		algorithm = ISCCC_ALG_HMACSHA384;
-	else if (strcasecmp(algorithmstr, "hmac-sha512") == 0)
+	} else if (strcasecmp(algorithmstr, "hmac-sha512") == 0) {
 		algorithm = ISCCC_ALG_HMACSHA512;
-	else
+	} else {
 		fatal("unsupported algorithm: %s", algorithmstr);
+	}
 
 	secret.rstart = (unsigned char *)secretarray;
 	secret.rend = (unsigned char *)secretarray + sizeof(secretarray);

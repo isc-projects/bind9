@@ -55,10 +55,6 @@
 #include <pk11/pk11.h>
 #include <pk11/result.h>
 
-#if !(defined(HAVE_GETPASSPHRASE) || (defined (__SVR4) && defined (__sun)))
-#define getpassphrase(x)	getpass(x)
-#endif
-
 #ifndef HAVE_CLOCK_GETTIME
 
 #include <sys/time.h>
@@ -175,7 +171,7 @@ main(int argc, char *argv[]) {
 		pk11_set_lib_name(lib_name);
 
 	if (pin == NULL)
-		pin = getpassphrase("Enter Pin: ");
+		pin = getpass("Enter Pin: ");
 
 	result = pk11_get_session(&pctx, OP_ANY, ISC_TRUE, ISC_TRUE,
 				  ISC_TRUE, (const char *) pin, slot);

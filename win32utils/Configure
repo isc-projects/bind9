@@ -201,19 +201,13 @@ my @substdefh = ("AES_CC",
                  "HAVE_GEOIP_CITY_V6",
                  "HAVE_GEOIP_V6",
                  "HAVE_LIBXML2",
-		 "HAVE_OPENSSL",
-                 "HAVE_OPENSSL_AES",
-                 "HAVE_OPENSSL_DSA",
-                 "HAVE_OPENSSL_ECDSA",
                  "HAVE_OPENSSL_ED25519",
                  "HAVE_OPENSSL_ED448",
-                 "HAVE_OPENSSL_EVP_AES",
 		 "HAVE_DH_GET0_KEY",
 		 "HAVE_DSA_GET0_PQG",
 		 "HAVE_ECDSA_SIG_GET0",
 		 "HAVE_RSA_SET0_KEY",
-		 "HAVE_PKCS11",
-                 "HAVE_PKCS11_ECDSA",
+		 "USE_PKCS11",
                  "HAVE_PKCS11_ED25519",
                  "HAVE_PKCS11_ED448",
                  "HAVE_READLINE",
@@ -237,8 +231,7 @@ my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
                  "ISC_PLATFORM_HAVEXADD",
                  "ISC_PLATFORM_HAVEXADDQ",
                  "ISC_PLATFORM_NEEDSTRCASESTR",
-                 "ISC_PLATFORM_USEBACKTRACE",
-                 "ISC_PLATFORM_WANTAES");
+                 "ISC_PLATFORM_USEBACKTRACE");
 
 # for conf.sh
 
@@ -466,7 +459,6 @@ my $enable_intrinsics = "yes";
 my $cryptolib = "";
 my $enable_native_pkcs11 = "no";
 my $enable_crypto_rand = "yes";
-my $enable_openssl_hash = "auto";
 my $enable_isc_spnego = "yes";
 my $enable_fixed_rrset = "no";
 my $enable_developer = "no";
@@ -481,7 +473,6 @@ my $use_openssl = "auto";
 my $openssl_path = "..\\..\\";
 my $use_pkcs11 = "no";
 my $pkcs11_path = "unknown";
-my $use_ecdsa = "auto";
 my $use_eddsa = "auto";
 my $use_ed448 = "auto";
 my $use_aes = "auto";
@@ -674,12 +665,6 @@ sub myenable {
         if ($val =~ /^yes$/i) {
             $enable_native_pkcs11 = "yes";
         }
-    } elsif ($key =~ /^openssl-hash$/i) {
-        if ($val =~ /^yes$/i) {
-            $enable_openssl_hash = "yes";
-        } elsif ($val =~ /^no$/i) {
-            $enable_openssl_hash = "no";
-        }
     } elsif ($key =~ /^isc-spnego$/i) {
         if ($val =~ /^no$/i) {
             $enable_isc_spnego = "no";
@@ -758,7 +743,7 @@ sub mywith {
         }
     } elsif ($key =~ /^openssl$/i) {
         if ($val =~ /^no$/i) {
-            $use_openssl = "no";
+	    die "OpenSSL support is now mandatory\n";
         } elsif ($val !~ /^yes$/i) {
             $use_openssl = "yes";
             $openssl_path = $val;
@@ -770,12 +755,6 @@ sub mywith {
             $use_pkcs11= "yes";
             $pkcs11_path = $val;
             $pkcs11_path =~ s/\.dll$//i;
-        }
-    } elsif ($key =~ /^ecdsa$/i) {
-        if ($val =~ /^no$/i) {
-            $use_ecdsa = "no";
-        } elsif ($val =~ /^yes$/i) {
-            $use_ecdsa = "yes";
         }
     } elsif ($key =~ /^eddsa$/i) {
         if ($val =~ /^no$/i) {
@@ -885,19 +864,6 @@ sub mywith {
     }
 }
 
-# resolve enable-openssl-hash
-if ($enable_openssl_hash eq "auto") {
-    if ($use_openssl ne "no") {
-        if ($enable_native_pkcs11 eq "yes") {
-            $enable_openssl_hash="no";
-        } else {
-            $enable_openssl_hash="yes";
-        }
-    } else {
-        $enable_openssl_hash="no";
-    }
-}
-
 if ($want_help ne "no") {
     foreach (@help) {
         print $_;
@@ -957,11 +923,7 @@ if ($verbose) {
     } else {
         print "native-pkcs11: disabled\n";
     }
-    if ($enable_openssl_hash eq "yes") {
-        print "openssl-hash: enabled\n";
-    } else {
-        print "openssl-hash: disabled\n";
-    }
+    print "openssl-hash: enabled\n";
     if ($enable_isc_spnego eq "yes") {
         print "isc-spnego: enabled\n";
     } else {
@@ -993,11 +955,7 @@ if ($verbose) {
         print "rpz-nsdname: disabled\n";
     }
     print "cookie algorithm: $cookie_algorithm\n";
-    if ($use_openssl eq "no") {
-        print "openssl: disabled\n";
-    } else {
-        print "openssl-path: $openssl_path\n";
-    }
+    print "openssl-path: $openssl_path\n";
     if ($use_tests eq "yes") {
         print "tests: enabled\n";
     }
@@ -1015,11 +973,7 @@ if ($verbose) {
     } else {
         print "pkcs11-provider-path: $pkcs11_path\n";
     }
-    if ($use_ecdsa eq "no") {
-        print "ecdsa: disabled\n";
-    } else {
-        print "ecdsa: enabled\n";
-    }
+    print "ecdsa: enabled\n";
     if ($use_eddsa eq "no") {
         print "eddsa: disabled\n";
     } else {
@@ -1300,12 +1254,6 @@ if ($enable_intrinsics eq "yes") {
 # enable-native-pkcs11
 if ($enable_native_pkcs11 eq "yes") {
     $cryptolib = "pkcs11";
-    if ($use_openssl eq "auto") {
-        $use_openssl = "no";
-    }
-    if ($use_openssl ne "no") {
-        die "can't have both OpenSSL and native PKCS#11\n";
-    }
     if ($use_pkcs11 ne "yes") {
         if ($verbose) {
             print "native PKCS#11 support: force with-pkcs11\n";
@@ -1318,17 +1266,7 @@ if ($enable_native_pkcs11 eq "yes") {
         }
     }
     $configdefd{"CRYPTO"} = "PKCS11CRYPTO";
-    $configdefh{"HAVE_PKCS11"} = 1;
-    if ($use_ecdsa eq "no") {
-        if ($verbose) {
-            print "no ECDSA support in native PKCS#11\n";
-        }
-    } else {
-        if ($verbose) {
-            print "enabled ECDSA support in native PKCS#11\n";
-        }
-        $configdefh{"HAVE_PKCS11_ECDSA"} = 1;
-    }
+    $configdefh{"USE_PKCS11"} = 1;
     if ($use_eddsa eq "no") {
         if ($verbose) {
             print "no EDDSA support in native PKCS#11\n";
@@ -1402,11 +1340,7 @@ if ($use_samples eq "yes") {
 }
 
 # with-openssl
-if ($use_openssl eq "no") {
-    if ($verbose) {
-        print "OpenSSL library is disabled\n";
-    }
-} elsif ($use_openssl eq "auto") {
+if ($use_openssl eq "auto") {
     if ($verbose) {
         print "checking for an OpenSSL built directory at sibling root\n";
     }
@@ -1502,12 +1436,6 @@ if ($use_openssl eq "yes") {
     $configinc{"OPENSSL_INC"} = "$openssl_inc";
     $configlib{"OPENSSL_LIB"} = "$openssl_lib";
     $configdll{"OPENSSL_DLL"} = "$openssl_dll";
-    $configdefh{"HAVE_OPENSSL"} = 1;
-    if (-f File::Spec->catfile($openssl_inc, "openssl", "dsa.h")) {
-        $configdefh{"HAVE_OPENSSL_DSA"} = 1;
-    } elsif ($verbose) {
-        print "OpenSSL DSA support is disabled\n";
-    }
 }
 
 # check OpenSSL
@@ -1639,57 +1567,6 @@ EOF
             print "disabling FIPS_mode\n";
         }
     }
-}
-
-# with-ecdsa
-if ($use_openssl eq "no") {
-    $use_ecdsa = "no";
-}
-if ($use_ecdsa eq "auto") {
-    if ($verbose) {
-        print "checking for OpenSSL ECDSA support\n";
-    }
-    open F, ">testecdsa.c" || die $!;
-    print F << 'EOF';
-#include <openssl/ecdsa.h>
-#include <openssl/objects.h>
-
-int
-main(void)
-{
-        EC_KEY *ec256, *ec384;
-
-        ec256 = EC_KEY_new_by_curve_name(NID_X9_62_prime256v1);
-        ec384 = EC_KEY_new_by_curve_name(NID_secp384r1);
-        if (ec256 == NULL || ec384 == NULL)
-                return (2);
-        return (0);
-}
-EOF
-    close F;
-    my $include = $configinc{"OPENSSL_INC"};
-    my $library = $configlib{"OPENSSL_LIB"};
-    $compret = `cl /nologo /MD /I "$include" testecdsa.c "$library"`;
-    if (grep { -f and -x } ".\\testecdsa.exe") {
-        `.\\testecdsa.exe`;
-        if ($? != 0) {
-            if ($verbose) {
-                print "ECDSA test failed: disabling ECDSA\n";
-            }
-            $use_ecdsa = "no";
-        }
-    } else {
-        if ($verbose) {
-            print "can't compile ECDSA test: $compret\n";
-            print "disabling ECDSA\n";
-        }
-    $use_ecdsa = "no";
-    }
-}
-
-if ($use_ecdsa ne "no") {
-    $use_ecdsa = "yes";
-    $configdefh{"HAVE_OPENSSL_ECDSA"} = 1;
 }
 
 # with-eddsa
@@ -1880,30 +1757,9 @@ EOF
     }
 }
 
-if ($use_aes eq "yes") {
-    $configdefh{"HAVE_OPENSSL_EVP_AES"} = 1;
-} elsif ($use_aes eq "evp") {
-    $configdefh{"HAVE_OPENSSL_EVP_AES"} = 1;
-    $use_aes = "yes";
-} elsif ($use_aes eq "native") {
-    $configdefh{"HAVE_OPENSSL_AES"} = 1;
-    $use_aes = "yes";
-} elsif ($use_aes eq "pkcs11") {
-    $use_aes = "yes";
-}
-
-if ($use_aes eq "yes") {
-    $configdefp{"ISC_PLATFORM_WANTAES"} = 1;
-    $configcond{"AES"} = 1;
-}
-
 # with-cc-alg
 if ($cookie_algorithm eq "aes") {
-    if ($use_aes ne "yes") {
-        $cookie_algorithm = "sha256";
-    } else {
-        $configdefh{"AES_CC"} = 1;
-    }
+    $configdefh{"AES_CC"} = 1;
 }
 if ($cookie_algorithm eq "sha1") {
     $configdefh{"HMAC_SHA1_CC"} = 1;
@@ -1917,14 +1773,6 @@ if ($cryptolib ne "") {
     print "Cryptographic library for DNSSEC: $cryptolib\n";
 } else {
     die "No cryptography library has been found or provided."
-}
-
-# enable-openssl-hash
-if ($enable_openssl_hash eq "yes") {
-    if ($use_openssl eq "no") {
-        die "No OpenSSL for hash functions\n";
-    }
-    $configdefp{"ISC_PLATFORM_OPENSSLHASH"} = 1;
 }
 
 # with-pkcs11

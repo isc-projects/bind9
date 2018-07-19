@@ -142,25 +142,20 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-if $SHELL ../testcrypto.sh > /dev/null 2>&1
-then
-    $PERL $SYSTEMTESTTOP/stop.pl . ns1
+$PERL $SYSTEMTESTTOP/stop.pl . ns1
 
-    copy_setports ns1/named2.conf.in ns1/named.conf
+copy_setports ns1/named2.conf.in ns1/named.conf
 
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns1
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns1
 
-    n=`expr $n + 1`
-    echo_i "checking recursive lookup to edns 512 + no tcp + trust anchor fails ($n)"
-    ret=0
-    $DIG $DIGOPTS +tcp @10.53.0.1 edns512-notcp soa > dig.out.test$n
-    grep "status: SERVFAIL" dig.out.test$n > /dev/null ||
-        grep "connection timed out;" dig.out.test$n > /dev/null || ret=1
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=`expr $status + $ret`
-else
-    echo_i "skipping checking recursive lookup to edns 512 + no tcp + trust anchor fails as crypto not enabled"
-fi 
+n=`expr $n + 1`
+echo_i "checking recursive lookup to edns 512 + no tcp + trust anchor fails ($n)"
+ret=0
+$DIG $DIGOPTS +tcp @10.53.0.1 edns512-notcp soa > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null ||
+    grep "connection timed out;" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

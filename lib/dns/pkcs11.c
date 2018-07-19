@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#if HAVE_PKCS11
+#if USE_PKCS11
 
 #include <isc/util.h>
 
@@ -37,5 +37,5 @@ dst__pkcs11_toresult(const char *funcname, const char *file, int line,
 	return (fallback);
 }
 
-#endif /* HAVE_PKCS11 */
+#endif /* USE_PKCS11 */
 /*! \file */

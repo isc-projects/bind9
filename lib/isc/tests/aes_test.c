@@ -27,8 +27,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#ifdef ISC_PLATFORM_WANTAES
-
 /*
  * Test data from NIST KAT
  */
@@ -267,28 +265,14 @@ ATF_TC_BODY(isc_aes256, tc) {
 		testcase++;
 	}
 }
-#else
-ATF_TC(untested);
-ATF_TC_HEAD(untested, tc) {
-	atf_tc_set_md_var(tc, "descr", "skipping aes test");
-}
-ATF_TC_BODY(untested, tc) {
-	UNUSED(tc);
-	atf_tc_skip("AES not available");
-}
-#endif
 
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-#ifdef ISC_PLATFORM_WANTAES
 	ATF_TP_ADD_TC(tp, isc_aes128);
 	ATF_TP_ADD_TC(tp, isc_aes192);
 	ATF_TP_ADD_TC(tp, isc_aes256);
-#else
-	ATF_TP_ADD_TC(tp, untested);
-#endif
 	return (atf_no_error());
 }
 

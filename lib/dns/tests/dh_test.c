@@ -30,8 +30,7 @@
 
 #include "dnstest.h"
 
-#if HAVE_OPENSSL && !defined(PK11_DH_DISABLE)
-
+#if USE_OPENSSL
 ATF_TC(isc_dh_computesecret);
 ATF_TC_HEAD(isc_dh_computesecret, tc) {
 	atf_tc_set_md_var(tc, "descr", "OpenSSL DH_compute_key() failure");
@@ -69,21 +68,21 @@ ATF_TC_BODY(isc_dh_computesecret, tc) {
 	dst_key_free(&key);
 	dns_test_end();
 }
-#else
+#else /* USE_OPENSSL */
 ATF_TC(untested);
 ATF_TC_HEAD(untested, tc) {
-	atf_tc_set_md_var(tc, "descr", "skipping OpenSSL DH test");
+	atf_tc_set_md_var(tc, "descr", "skipping dh test");
 }
 ATF_TC_BODY(untested, tc) {
 	UNUSED(tc);
-	atf_tc_skip("OpenSSL DH not compiled in");
+	atf_tc_skip("dh test is broken with PKCS#11");
 }
-#endif
+#endif /* USE_OPENSSL */
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-#if HAVE_OPENSSL && !defined(PK11_DH_DISABLE)
+#if USE_OPENSSL
 	ATF_TP_ADD_TC(tp, isc_dh_computesecret);
 #else
 	ATF_TP_ADD_TC(tp, untested);
