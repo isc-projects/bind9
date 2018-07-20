@@ -789,7 +789,7 @@ hashlist_add_dns_name(hashlist_t *l, /*const*/ dns_name_t *name,
 
 static int
 hashlist_comp(const void *a, const void *b) {
-	return (isc_safe_memcompare(a, b, hash_length + 1));
+	return (memcmp(a, b, hash_length + 1));
 }
 
 static void

@@ -368,7 +368,7 @@ gssapi_spnego_decapsulate(OM_uint32 *,
 
 /* mod_auth_kerb.c */
 
-static int
+static isc_boolean_t
 cmp_gss_type(gss_buffer_t token, gss_OID gssoid)
 {
 	unsigned char *p;
@@ -392,7 +392,7 @@ cmp_gss_type(gss_buffer_t token, gss_OID gssoid)
 	if (((OM_uint32) *p++) != gssoid->length)
 		return (GSS_S_DEFECTIVE_TOKEN);
 
-	return (isc_safe_memcompare(p, gssoid->elements, gssoid->length));
+	return (!isc_safe_memequal(p, gssoid->elements, gssoid->length));
 }
 
 /* accept_sec_context.c */

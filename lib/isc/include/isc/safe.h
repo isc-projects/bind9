@@ -29,11 +29,6 @@ ISC_LANG_BEGINDECLS
  *
  */
 
-#define isc_safe_memcompare(b1, b2, n) CRYPTO_memcmp(b1, b2, n)
-/*%<
- * Clone of libc memcmp() which is safe to differential timing attacks.
- */
-
 #define isc_safe_memwipe(ptr, len) OPENSSL_cleanse(ptr, len)
 /*%<
  * Clear the memory of length `len` pointed to by `ptr`.

@@ -1955,7 +1955,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	 * Work out what this NSEC3 covers.
 	 * Inside (<0) or outside (>=0).
 	 */
-	scope = isc_safe_memcompare(owner, nsec3.next, nsec3.next_length);
+	scope = memcmp(owner, nsec3.next, nsec3.next_length);
 
 	/*
 	 * Prepare to compute all the hashes.
@@ -1979,7 +1979,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			return (ISC_R_IGNORE);
 		}
 
-		order = isc_safe_memcompare(hash, owner, length);
+		order = memcmp(hash, owner, length);
 		if (first && order == 0) {
 			/*
 			 * The hashes are the same.
