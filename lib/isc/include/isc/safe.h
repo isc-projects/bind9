@@ -15,27 +15,25 @@
 
 /*! \file isc/safe.h */
 
-#include <isc/types.h>
-#include <stdlib.h>
+#include <isc/boolean.h>
+
+#include <openssl/crypto.h>
 
 ISC_LANG_BEGINDECLS
 
-isc_boolean_t
-isc_safe_memequal(const void *s1, const void *s2, size_t n);
+#define isc_safe_memequal(s1, s2, n) ISC_TF(!CRYPTO_memcmp(s1, s2, n))
 /*%<
  * Returns ISC_TRUE iff. two blocks of memory are equal, otherwise
  * ISC_FALSE.
  *
  */
 
-int
-isc_safe_memcompare(const void *b1, const void *b2, size_t len);
+#define isc_safe_memcompare(b1, b2, n) CRYPTO_memcmp(b1, b2, n)
 /*%<
  * Clone of libc memcmp() which is safe to differential timing attacks.
  */
 
-void
-isc_safe_memwipe(void *ptr, size_t len);
+#define isc_safe_memwipe(ptr, len) OPENSSL_cleanse(ptr, len)
 /*%<
  * Clear the memory of length `len` pointed to by `ptr`.
  *
