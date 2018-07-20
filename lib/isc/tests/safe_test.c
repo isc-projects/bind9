@@ -49,7 +49,6 @@ ATF_TC_BODY(isc_safe_memwipe, tc) {
 	/* These should pass. */
 	isc_safe_memwipe(NULL, 0);
 	isc_safe_memwipe((void *) -1, 0);
-	isc_safe_memwipe(NULL, 42);
 
 	/*
 	 * isc_safe_memwipe(ptr, size) should function same as
