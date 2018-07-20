@@ -731,12 +731,6 @@ ISC_PLATFORM_QUADFORMAT
 DST_EXTRA_SRCS
 DST_EXTRA_OBJS
 USE_ISC_SPNEGO
-ISC_EXTRA_SRCS
-ISC_EXTRA_OBJS
-ISC_PLATFORM_NEEDVSNPRINTF
-ISC_PLATFORM_NEEDSPRINTF
-ISC_PLATFORM_NEEDFPRINTF
-ISC_PLATFORM_NEEDPRINTF
 READLINE_LIB
 ISC_PLATFORM_NEEDSTRCASESTR
 ISC_PLATFORM_NEEDSTRLCAT
@@ -750,6 +744,8 @@ ISC_PLATFORM_HAVETFO
 ISC_PLATFORM_NEEDPORTT
 ISC_PLATFORM_MSGHDRFLAVOR
 ISC_PLATFORM_HAVESALEN
+ISC_EXTRA_SRCS
+ISC_EXTRA_OBJS
 ISC_PLATFORM_NEEDPTON
 ISC_PLATFORM_NEEDNTOP
 ISC_PLATFORM_HAVEIF_LADDRCONF
@@ -18431,6 +18427,8 @@ fi
 
 
 
+
+
 #
 # Look for a 4.4BSD-style sa_len member in struct sockaddr.
 #
@@ -19021,97 +19019,6 @@ fi
 done
 
 fi
-
-ISC_PRINT_OBJS=
-ISC_PRINT_SRCS=
-ISC_PLATFORM_NEEDPRINTF='#undef ISC_PLATFORM_NEEDPRINTF'
-ISC_PLATFORM_NEEDFPRINTF='#undef ISC_PLATFORM_NEEDFPRINTF'
-ISC_PLATFORM_NEEDSPRINTF='#undef ISC_PLATFORM_NEEDSPRINTF'
-ISC_PLATFORM_NEEDVSNPRINTF='#undef ISC_PLATFORM_NEEDVSNPRINTF'
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking sprintf return type" >&5
-$as_echo_n "checking sprintf return type... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdio.h>
-
-int
-main ()
-{
- char buf[2]; return(*sprintf(buf,"x"));
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: char *" >&5
-$as_echo "char *" >&6; }
-ISC_PRINT_OBJS="print.$O"
-ISC_PRINT_SRCS="print.c"
-ISC_PLATFORM_NEEDSPRINTF="#define ISC_PLATFORM_NEEDSPRINTF"
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: int" >&5
-$as_echo "int" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-ac_fn_c_check_func "$LINENO" "vsnprintf" "ac_cv_func_vsnprintf"
-if test "x$ac_cv_func_vsnprintf" = xyes; then :
-
-else
-  ISC_PRINT_OBJS="print.$O"
-	 ISC_PRINT_SRCS="print.c"
-	 ISC_PLATFORM_NEEDVSNPRINTF="#define ISC_PLATFORM_NEEDVSNPRINTF 1"
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking printf for %z support" >&5
-$as_echo_n "checking printf for %z support... " >&6; }
-if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming target platform supports %z" >&5
-$as_echo "assuming target platform supports %z" >&6; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdio.h>
-main() {
-	size_t j = 0;
-	char buf[100];
-	buf[0] = 0;
-	sprintf(buf, "%zu", j);
-	exit(strcmp(buf, "0") != 0);
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PRINT_OBJS="print.$O"
-	ISC_PRINT_SRCS="print.c"
-	ISC_PLATFORM_NEEDPRINTF='#define ISC_PLATFORM_NEEDPRINTF 1'
-	ISC_PLATFORM_NEEDFPRINTF='#define ISC_PLATFORM_NEEDFPRINTF 1'
-	ISC_PLATFORM_NEEDFSRINTF='#define ISC_PLATFORM_NEEDSPRINTF 1'
-	ISC_PLATFORM_NEEDVSNPRINTF="#define ISC_PLATFORM_NEEDVSNPRINTF 1"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-
-
-
-
-
-ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS $ISC_PRINT_OBJS"
-ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS $ISC_PRINT_SRCS"
-
 
 
 ac_fn_c_check_func "$LINENO" "strerror" "ac_cv_func_strerror"
