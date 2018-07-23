@@ -79,7 +79,7 @@ SRCS =		@ISC_EXTRA_SRCS@ pk11.c pk11_result.c \
 		strtoul.c symtab.c task.c taskpool.c timer.c \
 		tm.c version.c
 
-LIBS =		@OPENSSL_LDFLAGS@ @OPENSSL_LIBS@ @LIBS@
+LIBS =		@OPENSSL_LIBS@ @LIBS@
 
 # Note: the order of SUBDIRS is important.
 # Attempt to disable parallel processing.

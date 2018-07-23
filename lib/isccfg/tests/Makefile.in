@@ -24,7 +24,7 @@ CINCLUDES =	-I. -Iinclude \
 		@OPENSSL_INCLUDES@
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
-ISCLIBS =	../../isc/libisc.@A@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
+ISCLIBS =	../../isc/libisc.@A@ @OPENSSL_LIBS@
 ISCDEPLIBS =	../../isc/libisc.@A@
 DNSLIBS =	../../dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../../dns/libdns.@A@

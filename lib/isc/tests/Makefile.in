@@ -22,7 +22,7 @@ VERSION=@BIND9_VERSION@
 CINCLUDES =	-I. -Iinclude ${ISC_INCLUDES} @OPENSSL_INCLUDES@
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/isc/tests/\""
 
-ISCLIBS =	../libisc.@A@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
+ISCLIBS =	../libisc.@A@ @OPENSSL_LIBS@
 ISCDEPLIBS =	../libisc.@A@
 
 LIBS =		@LIBS@ @ATFLIBS@
