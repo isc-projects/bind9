@@ -1,3 +1,8 @@
+5000.	[cleanup]	Code preparing a delegation response was extracted from
+			query_delegation() and query_zone_delegation() into a
+			separate function in order to decrease code
+			duplication. [GL #431]
+
 4999.	[cleanup]	Remove custom printf implementaion in lib/isc/print.c.
 			[GL #261]
 
