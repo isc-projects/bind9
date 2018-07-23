@@ -5012,6 +5012,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->zsigrdataset = NULL;
 	qctx->zversion = NULL;
 	qctx->node = NULL;
+	qctx->znode = NULL;
 	qctx->db = NULL;
 	qctx->zdb = NULL;
 	qctx->version = NULL;
@@ -5077,11 +5078,10 @@ qctx_freedata(query_ctx_t *qctx) {
 	}
 
 	if (qctx->zdb != NULL) {
+		query_putrdataset(qctx->client, &qctx->zsigrdataset);
 		query_putrdataset(qctx->client, &qctx->zrdataset);
-		if (qctx->zsigrdataset != NULL)
-			query_putrdataset(qctx->client, &qctx->zsigrdataset);
-		if (qctx->zfname != NULL)
-			query_releasename(qctx->client, &qctx->zfname);
+		query_releasename(qctx->client, &qctx->zfname);
+		dns_db_detachnode(qctx->zdb, &qctx->znode);
 		dns_db_detach(&qctx->zdb);
 	}
 
@@ -7803,8 +7803,8 @@ query_zone_delegation(query_ctx_t *qctx) {
 		 * we'll restore these values there.
 		 */
 		query_keepname(qctx->client, qctx->fname, qctx->dbuf);
-		dns_db_detachnode(qctx->db, &qctx->node);
 		SAVE(qctx->zdb, qctx->db);
+		SAVE(qctx->znode, qctx->node);
 		SAVE(qctx->zfname, qctx->fname);
 		SAVE(qctx->zversion, qctx->version);
 		SAVE(qctx->zrdataset, qctx->rdataset);
@@ -7923,16 +7923,14 @@ query_delegation(query_ctx_t *qctx) {
 					  &qctx->sigrdataset);
 		qctx->version = NULL;
 
+		dns_db_detachnode(qctx->db, &qctx->node);
+		dns_db_detach(&qctx->db);
+		RESTORE(qctx->db, qctx->zdb);
+		RESTORE(qctx->node, qctx->znode);
 		RESTORE(qctx->fname, qctx->zfname);
 		RESTORE(qctx->version, qctx->zversion);
 		RESTORE(qctx->rdataset, qctx->zrdataset);
 		RESTORE(qctx->sigrdataset, qctx->zsigrdataset);
-
-		/*
-		 * We don't clean up zdb here because we
-		 * may still need it.  It will get cleaned
-		 * up by the main cleanup code in query_done().
-		 */
 	}
 
 	if (RECURSIONOK(qctx->client)) {
@@ -8010,10 +8008,8 @@ query_delegation(query_ctx_t *qctx) {
 	qctx->client->query.attributes |= NS_QUERYATTR_CACHEGLUEOK;
 	qctx->client->query.isreferral = ISC_TRUE;
 
-	if (qctx->zdb != NULL && qctx->client->query.gluedb == NULL &&
-	    !(qctx->zone != NULL && dns_zone_ismirror(qctx->zone)))
-	{
-		dns_db_attach(qctx->zdb, &qctx->client->query.gluedb);
+	if (!dns_db_iscache(qctx->db) && qctx->client->query.gluedb == NULL) {
+		dns_db_attach(qctx->db, &qctx->client->query.gluedb);
 		detach = ISC_TRUE;
 	}
 
