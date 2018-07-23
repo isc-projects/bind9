@@ -22,8 +22,8 @@ CWARNINGS =
 BACKTRACECFLAGS = @BACKTRACECFLAGS@
 
 DNSLIBS =	../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
-ISCLIBS =	../../../lib/isc/libisc.@A@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
-ISCNOSYMLIBS =	../../../lib/isc/libisc-nosymtbl.@A@ @OPENSSL_LDFLAGS@ @OPENSSL_LIBS@
+ISCLIBS =	../../../lib/isc/libisc.@A@ @OPENSSL_LIBS@
+ISCNOSYMLIBS =	../../../lib/isc/libisc-nosymtbl.@A@ @OPENSSL_LIBS@
 ISCCFGLIBS = 	../../../lib/isccfg/libisccfg.@A@
 
 DNSDEPLIBS =	../../../lib/dns/libdns.@A@
