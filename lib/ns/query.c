@@ -7726,6 +7726,54 @@ query_notfound(query_ctx_t *qctx) {
 }
 
 /*%
+ * We have a delegation but recursion is not allowed, so return the delegation
+ * to the client.
+ */
+static isc_result_t
+query_prepare_delegation_response(query_ctx_t *qctx) {
+	dns_rdataset_t **sigrdatasetp = NULL;
+	isc_boolean_t detach = ISC_FALSE;
+
+	/*
+	 * qctx->fname could be released in query_addrrset(), so save a copy of
+	 * it here in case we need it.
+	 */
+	dns_fixedname_init(&qctx->dsname);
+	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
+
+	/*
+	 * This is the best answer.
+	 */
+	qctx->client->query.isreferral = ISC_TRUE;
+
+	if (!dns_db_iscache(qctx->db) && qctx->client->query.gluedb == NULL) {
+		dns_db_attach(qctx->db, &qctx->client->query.gluedb);
+		detach = ISC_TRUE;
+	}
+
+	/*
+	 * We must ensure NOADDITIONAL is off, because the generation of
+	 * additional data is required in delegations.
+	 */
+	qctx->client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
+		sigrdatasetp = &qctx->sigrdataset;
+	}
+	query_addrrset(qctx->client, &qctx->fname, &qctx->rdataset,
+		       sigrdatasetp, qctx->dbuf, DNS_SECTION_AUTHORITY);
+	if (detach) {
+		dns_db_detach(&qctx->client->query.gluedb);
+	}
+
+	/*
+	 * Add a DS if needed.
+	 */
+	query_addds(qctx);
+
+	return (query_done(qctx));
+}
+
+/*%
  * Handle a delegation response from an authoritative lookup. This
  * may trigger additional lookups, e.g. from the cache database to
  * see if we have a better answer; if that is not allowed, return the
@@ -7734,8 +7782,6 @@ query_notfound(query_ctx_t *qctx) {
 static isc_result_t
 query_zone_delegation(query_ctx_t *qctx) {
 	isc_result_t result;
-	dns_rdataset_t **sigrdatasetp = NULL;
-	isc_boolean_t detach = ISC_FALSE;
 
 	/*
 	 * If the query type is DS, look to see if we are
@@ -7812,57 +7858,7 @@ query_zone_delegation(query_ctx_t *qctx) {
 		return (query_lookup(qctx));
 	}
 
-	/*
-	 * qctx->fname could be released in
-	 * query_addrrset(), so save a copy of it
-	 * here in case we need it
-	 */
-	dns_fixedname_init(&qctx->dsname);
-	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
-
-	/*
-	 * If we don't have a cache, this is the best
-	 * answer.
-	 *
-	 * If the client is making a nonrecursive
-	 * query we always give out the authoritative
-	 * delegation.  This way even if we get
-	 * junk in our cache, we won't fail in our
-	 * role as the delegating authority if another
-	 * nameserver asks us about a delegated
-	 * subzone.
-	 *
-	 * We enable the retrieval of glue for this
-	 * database by setting client->query.gluedb.
-	 */
-	if (qctx->db != NULL && qctx->client->query.gluedb == NULL) {
-		dns_db_attach(qctx->db, &qctx->client->query.gluedb);
-		detach = ISC_TRUE;
-	}
-	qctx->client->query.isreferral = ISC_TRUE;
-	/*
-	 * We must ensure NOADDITIONAL is off,
-	 * because the generation of
-	 * additional data is required in
-	 * delegations.
-	 */
-	qctx->client->query.attributes &=
-		~NS_QUERYATTR_NOADDITIONAL;
-	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL)
-		sigrdatasetp = &qctx->sigrdataset;
-	query_addrrset(qctx->client, &qctx->fname,
-		       &qctx->rdataset, sigrdatasetp,
-		       qctx->dbuf, DNS_SECTION_AUTHORITY);
-	if (detach) {
-		dns_db_detach(&qctx->client->query.gluedb);
-	}
-
-	/*
-	 * Add a DS if needed
-	 */
-	query_addds(qctx);
-
-	return (query_done(qctx));
+	return (query_prepare_delegation_response(qctx));
 }
 
 /*%
@@ -7876,8 +7872,6 @@ query_zone_delegation(query_ctx_t *qctx) {
 static isc_result_t
 query_delegation(query_ctx_t *qctx) {
 	isc_result_t result;
-	dns_rdataset_t **sigrdatasetp = NULL;
-	isc_boolean_t detach = ISC_FALSE;
 
 	qctx->authoritative = ISC_FALSE;
 
@@ -7988,50 +7982,7 @@ query_delegation(query_ctx_t *qctx) {
 		return (query_done(qctx));
 	}
 
-	/*
-	 * We have a delegation but recursion is not
-	 * allowed, so return the delegation to the client.
-	 *
-	 * qctx->fname could be released in
-	 * query_addrrset(), so save a copy of it
-	 * here in case we need it
-	 */
-	dns_fixedname_init(&qctx->dsname);
-	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
-
-	/*
-	 * This is the best answer.
-	 */
-	qctx->client->query.isreferral = ISC_TRUE;
-
-	if (!dns_db_iscache(qctx->db) && qctx->client->query.gluedb == NULL) {
-		dns_db_attach(qctx->db, &qctx->client->query.gluedb);
-		detach = ISC_TRUE;
-	}
-
-	/*
-	 * We must ensure NOADDITIONAL is off,
-	 * because the generation of
-	 * additional data is required in
-	 * delegations.
-	 */
-	qctx->client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
-	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
-		sigrdatasetp = &qctx->sigrdataset;
-	}
-	query_addrrset(qctx->client, &qctx->fname,
-		       &qctx->rdataset, sigrdatasetp,
-		       qctx->dbuf, DNS_SECTION_AUTHORITY);
-	if (detach) {
-		dns_db_detach(&qctx->client->query.gluedb);
-	}
-
-	/*
-	 * Add a DS if needed
-	 */
-	query_addds(qctx);
-
-	return (query_done(qctx));
+	return (query_prepare_delegation_response(qctx));
 }
 
 /*%
