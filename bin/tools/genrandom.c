@@ -72,7 +72,7 @@ main(int argc, char **argv) {
 	size_t len;
 	char *name;
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	while ((c = isc_commandline_parse(argc, argv, "hn:")) != EOF) {
 		switch (c) {

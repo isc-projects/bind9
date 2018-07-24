@@ -44,17 +44,17 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target);
 
 isc_result_t
 dns_iptable_addprefix(dns_iptable_t *tab, isc_netaddr_t *addr,
-		      uint16_t bitlen, isc_boolean_t pos);
+		      uint16_t bitlen, bool pos);
 isc_result_t
 dns_iptable_addprefix2(dns_iptable_t *tab, isc_netaddr_t *addr,
-		       uint16_t bitlen, isc_boolean_t pos,
-		       isc_boolean_t is_ecs);
+		       uint16_t bitlen, bool pos,
+		       bool is_ecs);
 /*
  * Add an IP prefix to an existing IP table
  */
 
 isc_result_t
-dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, isc_boolean_t pos);
+dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos);
 /*
  * Merge one IP table into another one.
  */

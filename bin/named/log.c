@@ -61,7 +61,7 @@ static isc_logmodule_t modules[] = {
 };
 
 isc_result_t
-ns_log_init(isc_boolean_t safe) {
+ns_log_init(bool safe) {
 	isc_result_t result;
 	isc_logconfig_t *lcfg = NULL;
 

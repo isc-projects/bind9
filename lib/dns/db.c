@@ -178,7 +178,7 @@ dns_db_ondestroy(dns_db_t *db, isc_task_t *task, isc_event_t **eventp)
 }
 
 
-isc_boolean_t
+bool
 dns_db_iscache(dns_db_t *db) {
 
 	/*
@@ -188,12 +188,12 @@ dns_db_iscache(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & DNS_DBATTR_CACHE) != 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
-isc_boolean_t
+bool
 dns_db_iszone(dns_db_t *db) {
 
 	/*
@@ -203,12 +203,12 @@ dns_db_iszone(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & (DNS_DBATTR_CACHE|DNS_DBATTR_STUB)) == 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
-isc_boolean_t
+bool
 dns_db_isstub(dns_db_t *db) {
 
 	/*
@@ -218,12 +218,12 @@ dns_db_isstub(dns_db_t *db) {
 	REQUIRE(DNS_DB_VALID(db));
 
 	if ((db->attributes & DNS_DBATTR_STUB) != 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
-isc_boolean_t
+bool
 dns_db_isdnssec(dns_db_t *db) {
 
 	/*
@@ -238,7 +238,7 @@ dns_db_isdnssec(dns_db_t *db) {
 	return ((db->methods->issecure)(db));
 }
 
-isc_boolean_t
+bool
 dns_db_issecure(dns_db_t *db) {
 
 	/*
@@ -251,7 +251,7 @@ dns_db_issecure(dns_db_t *db) {
 	return ((db->methods->issecure)(db));
 }
 
-isc_boolean_t
+bool
 dns_db_ispersistent(dns_db_t *db) {
 
 	/*
@@ -443,7 +443,7 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
 
 void
 dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
-		    isc_boolean_t commit)
+		    bool commit)
 {
 	dns_dbonupdatelistener_t *listener;
 
@@ -457,7 +457,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 
 	(db->methods->closeversion)(db, versionp, commit);
 
-	if (commit == ISC_TRUE) {
+	if (commit == true) {
 		for (listener = ISC_LIST_HEAD(db->update_listeners);
 		     listener != NULL;
 		     listener = ISC_LIST_NEXT(listener, link))
@@ -473,7 +473,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
 
 isc_result_t
 dns_db_findnode(dns_db_t *db, dns_name_t *name,
-		isc_boolean_t create, dns_dbnode_t **nodep)
+		bool create, dns_dbnode_t **nodep)
 {
 
 	/*
@@ -492,7 +492,7 @@ dns_db_findnode(dns_db_t *db, dns_name_t *name,
 
 isc_result_t
 dns_db_findnodeext(dns_db_t *db, dns_name_t *name,
-		   isc_boolean_t create, dns_clientinfomethods_t *methods,
+		   bool create, dns_clientinfomethods_t *methods,
 		   dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep)
 {
 	/*
@@ -512,7 +512,7 @@ dns_db_findnodeext(dns_db_t *db, dns_name_t *name,
 
 isc_result_t
 dns_db_findnsec3node(dns_db_t *db, dns_name_t *name,
-		     isc_boolean_t create, dns_dbnode_t **nodep)
+		     bool create, dns_dbnode_t **nodep)
 {
 
 	/*
@@ -825,7 +825,7 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
 }
 
 void
-dns_db_overmem(dns_db_t *db, isc_boolean_t overmem) {
+dns_db_overmem(dns_db_t *db, bool overmem) {
 
 	REQUIRE(DNS_DB_VALID(db));
 
@@ -843,7 +843,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, uint32_t *serialp)
 
 	REQUIRE(dns_db_iszone(db) || dns_db_isstub(db));
 
-	result = dns_db_findnode(db, dns_db_origin(db), ISC_FALSE, &node);
+	result = dns_db_findnode(db, dns_db_origin(db), false, &node);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -960,7 +960,7 @@ dns_db_unregister(dns_dbimplementation_t **dbimp) {
 isc_result_t
 dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+	REQUIRE(dns_db_iszone(db) == true);
 	REQUIRE(nodep != NULL && *nodep == NULL);
 
 	if (db->methods->getoriginnode != NULL)
@@ -996,7 +996,7 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 			  unsigned char *salt, size_t *salt_length)
 {
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+	REQUIRE(dns_db_iszone(db) == true);
 
 	if (db->methods->getnsec3parameters != NULL)
 		return ((db->methods->getnsec3parameters)(db, version, hash,
@@ -1011,7 +1011,7 @@ dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
 	       uint64_t *bytes)
 {
 	REQUIRE(DNS_DB_VALID(db));
-	REQUIRE(dns_db_iszone(db) == ISC_TRUE);
+	REQUIRE(dns_db_iszone(db) == true);
 
 	if (db->methods->getsize != NULL)
 		return ((db->methods->getsize)(db, version, records, bytes));

@@ -5511,7 +5511,7 @@ diff -c mdn/othersrc/bind9/bin/dig/dighost.c:1.1.1.12 mdn/othersrc/bind9/bin/dig
 + static void	      initialize_idn(void);
 + static isc_result_t   output_filter(isc_buffer_t *buffer,
 + 				    unsigned int used_org,
-+ 				    isc_boolean_t absolute);
++ 				    bool absolute);
 + static idn_result_t   append_textname(char *name, const char *origin,
 + 				      size_t namesize);
 + static void	      idn_check_result(idn_result_t r, const char *msg);
@@ -5628,7 +5628,7 @@ diff -c mdn/othersrc/bind9/bin/dig/dighost.c:1.1.1.12 mdn/othersrc/bind9/bin/dig
 + 			isc_buffer_add(&b, len);
 + 			result = dns_name_fromtext(lookup->name, &b,
 + 						   dns_rootname,
-+ 						   ISC_FALSE,
++ 						   false,
 + 						   &lookup->namebuf);
 + #else
   			len = strlen(lookup->textname);
@@ -5638,7 +5638,7 @@ diff -c mdn/othersrc/bind9/bin/dig/dighost.c:1.1.1.12 mdn/othersrc/bind9/bin/dig
 *** 1261,1266 ****
 --- 1345,1351 ----
   						   dns_rootname,
-  						   ISC_FALSE,
+  						   false,
   						   &lookup->namebuf);
 + #endif
   		}
@@ -5672,11 +5672,11 @@ diff -c mdn/othersrc/bind9/bin/dig/dighost.c:1.1.1.12 mdn/othersrc/bind9/bin/dig
 + 
 + static isc_result_t
 + output_filter(isc_buffer_t *buffer, unsigned int used_org,
-+ 	      isc_boolean_t absolute)
++ 	      bool absolute)
 + {
 + 	char tmp1[MAXDLEN], tmp2[MAXDLEN];
 + 	size_t fromlen, tolen;
-+ 	isc_boolean_t end_with_dot;
++ 	bool end_with_dot;
 + 
 + 	/*
 + 	 * Copy contents of 'buffer' to 'tmp1', supply trailing dot
@@ -5686,7 +5686,7 @@ diff -c mdn/othersrc/bind9/bin/dig/dighost.c:1.1.1.12 mdn/othersrc/bind9/bin/dig
 + 	if (fromlen >= MAXDLEN)
 + 		return (ISC_R_SUCCESS);
 + 	memcpy(tmp1, (char *)isc_buffer_base(buffer) + used_org, fromlen);
-+ 	end_with_dot = (tmp1[fromlen - 1] == '.') ? ISC_TRUE : ISC_FALSE;
++ 	end_with_dot = (tmp1[fromlen - 1] == '.') ? true : false;
 + 	if (absolute && !end_with_dot) {
 + 		fromlen++;
 + 		if (fromlen >= MAXDLEN)
@@ -5824,7 +5824,7 @@ diff -c mdn/othersrc/bind9/lib/dns/name.c:1.1.1.10 mdn/othersrc/bind9/lib/dns/na
 *** 1682,1687 ****
 --- 1689,1697 ----
   	unsigned int labels;
-  	isc_boolean_t saw_root = ISC_FALSE;
+  	bool saw_root = false;
   	char num[4];
 + #ifdef WITH_IDN
 + 	unsigned int oused = target->used;
@@ -5875,7 +5875,7 @@ diff -c mdn/othersrc/bind9/lib/dns/include/dns/name.h:1.1.1.7 mdn/othersrc/bind9
 +  */
 + typedef isc_result_t (*dns_name_totextfilter_t)(isc_buffer_t *target,
 + 						unsigned int used_org,
-+ 						isc_boolean_t absolute);
++ 						bool absolute);
 + #endif
 + 
   /***

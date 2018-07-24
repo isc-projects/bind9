@@ -51,7 +51,7 @@
 #define NS_LOGMODULE_LWRESD		(&ns_g_modules[10])
 
 isc_result_t
-ns_log_init(isc_boolean_t safe);
+ns_log_init(bool safe);
 /*%
  * Initialize the logging system and set up an initial default
  * logging default configuration that will be used until the

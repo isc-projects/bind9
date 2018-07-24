@@ -103,7 +103,7 @@ typedef isc_result_t dlz_dlopen_newversion_t(const char *zone,
  * a dlz_newversion() function
  */
 typedef void dlz_dlopen_closeversion_t(const char *zone,
-				       isc_boolean_t commit,
+				       bool commit,
 				       void *dbdata,
 				       void **versionp);
 
@@ -128,7 +128,7 @@ typedef isc_result_t dlz_dlopen_setclientcallback_t(dns_view_t *view,
  * dlz_dlopen_ssumatch() is optional, but must be supplied if you want
  * to support dynamic updates
  */
-typedef isc_boolean_t dlz_dlopen_ssumatch_t(const char *signer,
+typedef bool dlz_dlopen_ssumatch_t(const char *signer,
 					    const char *name,
 					    const char *tcpaddr,
 					    const char *type,

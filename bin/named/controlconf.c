@@ -72,8 +72,8 @@ struct controlkey {
 struct controlconnection {
 	isc_socket_t *			sock;
 	isccc_ccmsg_t			ccmsg;
-	isc_boolean_t			ccmsg_valid;
-	isc_boolean_t			sending;
+	bool			ccmsg_valid;
+	bool			sending;
 	isc_timer_t *			timer;
 	isc_buffer_t *			buffer;
 	controllistener_t *		listener;
@@ -88,22 +88,22 @@ struct controllistener {
 	isc_sockaddr_t			address;
 	isc_socket_t *			sock;
 	dns_acl_t *			acl;
-	isc_boolean_t			listening;
-	isc_boolean_t			exiting;
+	bool			listening;
+	bool			exiting;
 	controlkeylist_t		keys;
 	controlconnectionlist_t		connections;
 	isc_sockettype_t		type;
 	uint32_t			perm;
 	uint32_t			owner;
 	uint32_t			group;
-	isc_boolean_t			readonly;
+	bool			readonly;
 	ISC_LINK(controllistener_t)	link;
 };
 
 struct ns_controls {
 	ns_server_t			*server;
 	controllistenerlist_t 		listeners;
-	isc_boolean_t			shuttingdown;
+	bool			shuttingdown;
 	isccc_symtab_t			*symtab;
 };
 
@@ -201,8 +201,8 @@ shutdown_listener(controllistener_t *listener) {
 			      NS_LOGMODULE_CONTROL, ISC_LOG_NOTICE,
 			      "stopping command channel on %s", socktext);
 		if (listener->type == isc_sockettype_unix)
-			isc_socket_cleanunix(&listener->address, ISC_TRUE);
-		listener->exiting = ISC_TRUE;
+			isc_socket_cleanunix(&listener->address, true);
+		listener->exiting = true;
 	}
 
 	for (conn = ISC_LIST_HEAD(listener->connections);
@@ -220,7 +220,7 @@ shutdown_listener(controllistener_t *listener) {
 	maybe_free_listener(listener);
 }
 
-static isc_boolean_t
+static bool
 address_ok(isc_sockaddr_t *sockaddr, dns_acl_t *acl) {
 	isc_netaddr_t netaddr;
 	isc_result_t result;
@@ -232,9 +232,9 @@ address_ok(isc_sockaddr_t *sockaddr, dns_acl_t *acl) {
 			       &ns_g_server->aclenv, &match, NULL);
 
 	if (result != ISC_R_SUCCESS || match <= 0)
-		return (ISC_FALSE);
+		return (false);
 	else
-		return (ISC_TRUE);
+		return (true);
 }
 
 static isc_result_t
@@ -248,7 +248,7 @@ control_accept(controllistener_t *listener) {
 				 "isc_socket_accept() failed: %s",
 				 isc_result_totext(result));
 	else
-		listener->listening = ISC_TRUE;
+		listener->listening = true;
 	return (result);
 }
 
@@ -281,7 +281,7 @@ control_senddone(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	conn->sending = ISC_FALSE;
+	conn->sending = false;
 
 	if (sevent->result != ISC_R_SUCCESS &&
 	    sevent->result != ISC_R_CANCELED)
@@ -516,7 +516,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 	result = isc_socket_send(conn->sock, &r, task, control_senddone, conn);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_response;
-	conn->sending = ISC_TRUE;
+	conn->sending = true;
 
 	isc_mem_put(listener->mctx, secret.rstart, REGION_SIZE(secret));
 	isccc_sexpr_free(&request);
@@ -536,7 +536,7 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
  cleanup:
 	isc_socket_detach(&conn->sock);
 	isccc_ccmsg_invalidate(&conn->ccmsg);
-	conn->ccmsg_valid = ISC_FALSE;
+	conn->ccmsg_valid = false;
 	maybe_free_connection(conn);
 	maybe_free_listener(listener);
 }
@@ -569,8 +569,8 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 	/* Set a 32 KiB upper limit on incoming message. */
 	isccc_ccmsg_setmaxsize(&conn->ccmsg, 32768);
 
-	conn->ccmsg_valid = ISC_TRUE;
-	conn->sending = ISC_FALSE;
+	conn->ccmsg_valid = true;
+	conn->sending = false;
 	conn->buffer = NULL;
 	conn->timer = NULL;
 	isc_interval_set(&interval, 60, 0);
@@ -617,7 +617,7 @@ control_newconn(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	listener->listening = ISC_FALSE;
+	listener->listening = false;
 
 	if (nevent->result != ISC_R_SUCCESS) {
 		if (nevent->result == ISC_R_CANCELED) {
@@ -681,7 +681,7 @@ controls_shutdown(ns_controls_t *controls) {
 void
 ns_controls_shutdown(ns_controls_t *controls) {
 	controls_shutdown(controls);
-	controls->shuttingdown = ISC_TRUE;
+	controls->shuttingdown = true;
 }
 
 static isc_result_t
@@ -1132,14 +1132,14 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 		listener->task = cp->server->task;
 		listener->address = *addr;
 		listener->sock = NULL;
-		listener->listening = ISC_FALSE;
-		listener->exiting = ISC_FALSE;
+		listener->listening = false;
+		listener->exiting = false;
 		listener->acl = NULL;
 		listener->type = type;
 		listener->perm = 0;
 		listener->owner = 0;
 		listener->group = 0;
-		listener->readonly = ISC_FALSE;
+		listener->readonly = false;
 		ISC_LINK_INIT(listener, link);
 		ISC_LIST_INIT(listener->keys);
 		ISC_LIST_INIT(listener->connections);
@@ -1202,7 +1202,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 	}
 
 	if (result == ISC_R_SUCCESS && type == isc_sockettype_unix)
-		isc_socket_cleanunix(&listener->address, ISC_FALSE);
+		isc_socket_cleanunix(&listener->address, false);
 
 	if (result == ISC_R_SUCCESS)
 		result = isc_socket_create(ns_g_socketmgr,
@@ -1213,7 +1213,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 
 #ifndef ISC_ALLOW_MAPPED
 	if (result == ISC_R_SUCCESS)
-		isc_socket_ipv6only(listener->sock, ISC_TRUE);
+		isc_socket_ipv6only(listener->sock, true);
 #endif
 
 	if (result == ISC_R_SUCCESS)
@@ -1244,7 +1244,7 @@ add_listener(ns_controls_t *cp, controllistener_t **listenerp,
 
 	} else {
 		if (listener != NULL) {
-			listener->exiting = ISC_TRUE;
+			listener->exiting = true;
 			free_listener(listener);
 		}
 
@@ -1504,7 +1504,7 @@ ns_controls_create(ns_server_t *server, ns_controls_t **ctrlsp) {
 		return (ISC_R_NOMEMORY);
 	controls->server = server;
 	ISC_LIST_INIT(controls->listeners);
-	controls->shuttingdown = ISC_FALSE;
+	controls->shuttingdown = false;
 	controls->symtab = NULL;
 	result = isccc_cc_createsymtab(&controls->symtab);
 	if (result != ISC_R_SUCCESS) {

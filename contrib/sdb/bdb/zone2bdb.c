@@ -69,14 +69,14 @@ bdb_putrdata(DB *db, dns_name_t *name, dns_ttl_t ttl, dns_rdata_t *rdata)
 
 	isc_buffer_init(&keybuf, nametext, DNS_NAME_MAXTEXT);
 
-	dns_name_totext(name, ISC_TRUE, &keybuf);
+	dns_name_totext(name, true, &keybuf);
 
 	key.data = isc_buffer_base(&keybuf);
 	key.size = isc_buffer_usedlength(&keybuf);
 
 	isc_buffer_init(&databuf, rdatatext, MAX_RDATATEXT);
 
-	dns_ttl_totext(ttl, ISC_FALSE, &databuf);
+	dns_ttl_totext(ttl, false, &databuf);
 	*(char *)isc_buffer_used(&databuf) = ' ';
 	isc_buffer_add(&databuf, 1);
 

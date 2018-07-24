@@ -45,12 +45,12 @@
 #define PK11_NO_LOGERR 1
 #endif
 
-LIBISC_EXTERNAL_DATA isc_boolean_t pk11_verbose_init = ISC_FALSE;
+LIBISC_EXTERNAL_DATA bool pk11_verbose_init = false;
 
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_mem_t *pk11_mctx = NULL;
 static int32_t allocsize = 0;
-static isc_boolean_t initialized = ISC_FALSE;
+static bool initialized = false;
 
 typedef struct pk11_session pk11_session_t;
 typedef struct pk11_token pk11_token_t;
@@ -69,7 +69,7 @@ struct pk11_token {
 	ISC_LINK(pk11_token_t)	link;
 	CK_SLOT_ID		slotid;
 	pk11_sessionlist_t	sessions;
-	isc_boolean_t		logged;
+	bool		logged;
 	char			name[32];
 	char			manuf[32];
 	char			model[16];
@@ -91,11 +91,11 @@ static isc_result_t free_all_sessions(void);
 static isc_result_t free_session_list(pk11_sessionlist_t *slist);
 static isc_result_t setup_session(pk11_session_t *sp,
 				  pk11_token_t *token,
-				  isc_boolean_t rw);
+				  bool rw);
 static void scan_slots(void);
 static isc_result_t token_login(pk11_session_t *sp);
 static char *percent_decode(char *x, size_t *len);
-static isc_boolean_t pk11strcmp(const char *x, size_t lenx,
+static bool pk11strcmp(const char *x, size_t lenx,
 				const char *y, size_t leny);
 static CK_ATTRIBUTE *push_attribute(pk11_object_t *obj,
 				    isc_mem_t *mctx,
@@ -196,7 +196,7 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 		return (ISC_R_SUCCESS);
 	} else {
 		LOCK(&sessionlock);
-		initialized = ISC_TRUE;
+		initialized = true;
 		UNLOCK(&alloclock);
 	}
 
@@ -275,7 +275,7 @@ pk11_finalize(void) {
 	}
 	if (pk11_mctx != NULL)
 		isc_mem_detach(&pk11_mctx);
-	initialized = ISC_FALSE;
+	initialized = false;
 	return (ret);
 }
 
@@ -285,8 +285,8 @@ pk11_rand_bytes(unsigned char *buf, int num) {
 	CK_RV rv;
 	pk11_context_t ctx;
 
-	ret = pk11_get_session(&ctx, OP_RAND, ISC_FALSE, ISC_FALSE,
-			       ISC_FALSE, NULL, 0);
+	ret = pk11_get_session(&ctx, OP_RAND, false, false,
+			       false, NULL, 0);
 	if ((ret != ISC_R_SUCCESS) &&
 	    (ret != PK11_R_NODIGESTSERVICE) &&
 	    (ret != PK11_R_NOAESSERVICE))
@@ -312,8 +312,8 @@ pk11_rand_seed_fromfile(const char *randomfile) {
 	size_t cc = 0;
 	isc_result_t ret;
 
-	ret = pk11_get_session(&ctx, OP_RAND, ISC_FALSE, ISC_FALSE,
-			       ISC_FALSE, NULL, 0);
+	ret = pk11_get_session(&ctx, OP_RAND, false, false,
+			       false, NULL, 0);
 	if ((ret != ISC_R_SUCCESS) &&
 	    (ret != PK11_R_NODIGESTSERVICE) &&
 	    (ret != PK11_R_NOAESSERVICE))
@@ -339,8 +339,8 @@ pk11_rand_seed_fromfile(const char *randomfile) {
 
 isc_result_t
 pk11_get_session(pk11_context_t *ctx, pk11_optype_t optype,
-		 isc_boolean_t need_services, isc_boolean_t rw,
-		 isc_boolean_t logon, const char *pin, CK_SLOT_ID slot)
+		 bool need_services, bool rw,
+		 bool logon, const char *pin, CK_SLOT_ID slot)
 {
 	pk11_token_t *token = NULL;
 	pk11_sessionlist_t *freelist;
@@ -530,7 +530,7 @@ free_session_list(pk11_sessionlist_t *slist) {
 
 static isc_result_t
 setup_session(pk11_session_t *sp, pk11_token_t *token,
-	      isc_boolean_t rw)
+	      bool rw)
 {
 	CK_RV rv;
 	CK_FLAGS flags = CKF_SERIAL_SESSION;
@@ -563,7 +563,7 @@ token_login(pk11_session_t *sp) {
 					      "pkcs_C_Login", rv);
 #endif
 		} else
-			token->logged = ISC_TRUE;
+			token->logged = true;
 	}
 	UNLOCK(&sessionlock);
 	return (ret);
@@ -588,7 +588,7 @@ scan_slots(void) {
 	CK_ULONG slotCount;
 	pk11_token_t *token;
 	unsigned int i;
-	isc_boolean_t bad;
+	bool bad;
 
 	slotCount = 0;
 	PK11_FATALCHECK(pkcs_C_GetSlotList, (CK_FALSE, NULL_PTR, &slotCount));
@@ -627,12 +627,12 @@ scan_slots(void) {
 			rand_token = token;
 
 	try_rsa:
-		bad = ISC_FALSE;
+		bad = false;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_RSA_PKCS_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_RSA_PKCS_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5_RSA_PKCS,
@@ -641,7 +641,7 @@ scan_slots(void) {
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 #if !defined(PK11_MD5_DISABLE) && !defined(PK11_RSA_PKCS_REPLACE)
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_MD5_RSA_PKCS);
 		}
@@ -651,7 +651,7 @@ scan_slots(void) {
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 #ifndef PK11_RSA_PKCS_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_SHA1_RSA_PKCS);
 		}
@@ -661,7 +661,7 @@ scan_slots(void) {
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 #ifndef PK11_RSA_PKCS_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_SHA256_RSA_PKCS);
 		}
@@ -671,7 +671,7 @@ scan_slots(void) {
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 #ifndef PK11_RSA_PKCS_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_SHA512_RSA_PKCS);
 		}
@@ -680,7 +680,7 @@ scan_slots(void) {
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
 #ifdef PK11_RSA_PKCS_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_RSA_PKCS);
 		}
@@ -691,12 +691,12 @@ scan_slots(void) {
 			best_rsa_token = token;
 
 	try_dsa:
-		bad = ISC_FALSE;
+		bad = false;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_PARAMETER_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0)) {
 #ifndef PK11_DSA_PARAMETER_GEN_SKIP
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
 		}
@@ -704,14 +704,14 @@ scan_slots(void) {
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_DSA_PARAMETER_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DSA_SHA1, &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_DSA_SHA1);
 		}
 		if (bad)
@@ -723,7 +723,7 @@ scan_slots(void) {
 #endif
 
 	try_dh:
-		bad = ISC_FALSE;
+		bad = false;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_PARAMETER_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0)) {
@@ -734,14 +734,14 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
 #ifndef PK11_DH_PKCS_PARAMETER_GEN_SKIP
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_DH_PKCS_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_DERIVE,
 					     &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DERIVE) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_DH_PKCS_DERIVE);
 		}
 		if (bad)
@@ -753,78 +753,78 @@ scan_slots(void) {
 #endif
 
 	try_digest:
-		bad = ISC_FALSE;
+		bad = false;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
 #ifndef PK11_MD5_DISABLE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_MD5);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_SHA_1);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_SHA224);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_SHA256);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA384, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_SHA384);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_SHA512);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_MD5_HMAC, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
 #if !defined(PK11_MD5_DISABLE) && !defined(PK11_MD5_HMAC_REPLACE)
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_MD5_HMAC);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA_1_HMAC, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
 #ifndef PK11_SHA_1_HMAC_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_SHA_1_HMAC);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA224_HMAC, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
 #ifndef PK11_SHA224_HMAC_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_SHA224_HMAC);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA256_HMAC, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
 #ifndef PK11_SHA256_HMAC_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_SHA256_HMAC);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA384_HMAC, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
 #ifndef PK11_SHA384_HMAC_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_SHA384_HMAC);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_SHA512_HMAC, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_SIGN) == 0)) {
 #ifndef PK11_SHA512_HMAC_REPLACE
-			bad = ISC_TRUE;
+			bad = true;
 #endif
 			PK11_TRACEM(CKM_SHA512_HMAC);
 		}
@@ -839,14 +839,14 @@ scan_slots(void) {
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_EC_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_ECDSA, &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_ECDSA);
 		}
 		if (bad)
@@ -856,18 +856,18 @@ scan_slots(void) {
 			best_ec_token = token;
 
 	try_gost:
-		bad = ISC_FALSE;
+		bad = false;
 		/* does GOST require digest too? */
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_GOSTR3411, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DIGEST) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_GOSTR3411);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_GOSTR3410_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_GOSTR3410_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot,
@@ -876,7 +876,7 @@ scan_slots(void) {
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_GOSTR3410_WITH_GOSTR3411);
 		}
 		if (bad)
@@ -887,19 +887,19 @@ scan_slots(void) {
 
 	try_eddsa:
 #if defined(CKM_EDDSA_KEY_PAIR_GEN) && defined(CKM_EDDSA) && defined(CKK_EDDSA)
-		bad = ISC_FALSE;
+		bad = false;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA_KEY_PAIR_GEN,
 					     &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_EDDSA_KEY_PAIR_GEN);
 		}
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EDDSA, &mechInfo);
 		if ((rv != CKR_OK) ||
 		    ((mechInfo.flags & CKF_SIGN) == 0) ||
 		    ((mechInfo.flags & CKF_VERIFY) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_EDDSA);
 		}
 		if (bad)
@@ -907,10 +907,10 @@ scan_slots(void) {
 
 	try_aes:
 #endif
-		bad = ISC_FALSE;
+		bad = false;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_AES_ECB, &mechInfo);
 		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_ENCRYPT) == 0)) {
-			bad = ISC_TRUE;
+			bad = true;
 			PK11_TRACEM(CKM_AES_ECB);
 		}
 		if (bad)
@@ -1110,7 +1110,7 @@ percent_decode(char *x, size_t *len) {
 	return (x);
 }
 
-static isc_boolean_t
+static bool
 pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny) {
 	char buf[32];
 
@@ -1120,7 +1120,7 @@ pk11strcmp(const char *x, size_t lenx, const char *y, size_t leny) {
 	if (lenx > leny)
 		lenx = leny;
 	memmove(buf, x, lenx);
-	return (ISC_TF(memcmp(buf, y, leny) == 0));
+	return (!!(memcmp(buf, y, leny) == 0));
 }
 
 static CK_ATTRIBUTE *
@@ -1166,7 +1166,7 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 	size_t len, l;
 	FILE *stream = NULL;
 	char pin[PINLEN + 1];
-	isc_boolean_t gotpin = ISC_FALSE;
+	bool gotpin = false;
 	isc_result_t ret;
 
 	/* get values to work on */
@@ -1283,7 +1283,7 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 			stream = NULL;
 			if (ret != ISC_R_SUCCESS)
 				goto err;
-			gotpin = ISC_TRUE;
+			gotpin = true;
 		} else
 			DST_RET(PK11_R_NOPROVIDER);
 	}
@@ -1307,7 +1307,7 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 	obj->slot = token->slotid;
 	if (gotpin) {
 		memmove(token->pin, pin, PINLEN + 1);
-		obj->reqlogon = ISC_TRUE;
+		obj->reqlogon = true;
 	}
 
 	ret = ISC_R_SUCCESS;
@@ -1329,7 +1329,7 @@ pk11_error_fatalcheck(const char *file, int line,
 void
 pk11_dump_tokens(void) {
 	pk11_token_t *token;
-	isc_boolean_t first;
+	bool first;
 
 	printf("DEFAULTS\n");
 	printf("\trand_token=%p\n", rand_token);
@@ -1352,47 +1352,47 @@ pk11_dump_tokens(void) {
 		printf("\tmodel=%.16s\n", token->model);
 		printf("\tserialNumber=%.16s\n", token->serial);
 		printf("\tsupported operations=0x%x (", token->operations);
-		first = ISC_TRUE;
+		first = true;
 		if (token->operations & (1 << OP_RAND)) {
 			if (!first)
 				printf(",");
-			first = ISC_FALSE;
+			first = false;
 			printf("RAND");
 		}
 		if (token->operations & (1 << OP_RSA)) {
 			if (!first)
 				printf(",");
-			first = ISC_FALSE;
+			first = false;
 			printf("RSA");
 		}
 		if (token->operations & (1 << OP_DSA)) {
 			if (!first)
 				printf(",");
-			first = ISC_FALSE;
+			first = false;
 			printf("DSA");
 		}
 		if (token->operations & (1 << OP_DH)) {
 			if (!first)
 				printf(",");
-			first = ISC_FALSE;
+			first = false;
 			printf("DH");
 		}
 		if (token->operations & (1 << OP_DIGEST)) {
 			if (!first)
 				printf(",");
-			first = ISC_FALSE;
+			first = false;
 			printf("DIGEST");
 		}
 		if (token->operations & (1 << OP_EC)) {
 			if (!first)
 				printf(",");
-			first = ISC_FALSE;
+			first = false;
 			printf("EC");
 		}
 		if (token->operations & (1 << OP_AES)) {
 			if (!first)
 				printf(",");
-			first = ISC_FALSE;
+			first = false;
 			printf("AES");
 		}
 		printf(")\n");

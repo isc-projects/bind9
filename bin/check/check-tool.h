@@ -44,10 +44,10 @@ void DestroySockets(void);
 
 extern int debug;
 extern const char *journal;
-extern isc_boolean_t nomerge;
-extern isc_boolean_t docheckmx;
-extern isc_boolean_t docheckns;
-extern isc_boolean_t dochecksrv;
+extern bool nomerge;
+extern bool docheckmx;
+extern bool docheckns;
+extern bool dochecksrv;
 extern unsigned int zone_options;
 extern unsigned int zone_options2;
 

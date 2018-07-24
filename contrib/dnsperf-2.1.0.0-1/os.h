@@ -19,7 +19,7 @@
 #define PERF_OS_H 1
 
 void
-perf_os_blocksignal(int sig, isc_boolean_t block);
+perf_os_blocksignal(int sig, bool block);
 
 void
 perf_os_handlesignal(int sig, void (*handler)(int));

@@ -29,7 +29,7 @@
  */
 static void
 set_typestats(dns_stats_t *stats, dns_rdatatype_t type,
-	      isc_boolean_t stale)
+	      bool stale)
 {
 	dns_rdatastatstype_t which;
 	unsigned int attributes;
@@ -46,7 +46,7 @@ set_typestats(dns_stats_t *stats, dns_rdatatype_t type,
 }
 
 static void
-set_nxdomainstats(dns_stats_t *stats, isc_boolean_t stale) {
+set_nxdomainstats(dns_stats_t *stats, bool stale) {
 	dns_rdatastatstype_t which;
 	unsigned int attributes;
 
@@ -125,7 +125,7 @@ ATF_TC_BODY(rdatasetstats, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_rdatasetstats_create(mctx, &stats);
@@ -133,11 +133,11 @@ ATF_TC_BODY(rdatasetstats, tc) {
 
 	/* First 256 types. */
 	for (i = 0; i <= 255; i++)
-		set_typestats(stats, (dns_rdatatype_t)i, ISC_FALSE);
+		set_typestats(stats, (dns_rdatatype_t)i, false);
 	/* Specials */
-	set_typestats(stats, dns_rdatatype_dlv, ISC_FALSE);
-	set_typestats(stats, (dns_rdatatype_t)1000, ISC_FALSE);
-	set_nxdomainstats(stats, ISC_FALSE);
+	set_typestats(stats, dns_rdatatype_dlv, false);
+	set_typestats(stats, (dns_rdatatype_t)1000, false);
+	set_nxdomainstats(stats, false);
 
 	/*
 	 * Check that all counters are set to appropriately.
@@ -146,11 +146,11 @@ ATF_TC_BODY(rdatasetstats, tc) {
 
 	/* First 256 types. */
 	for (i = 0; i <= 255; i++)
-		set_typestats(stats, (dns_rdatatype_t)i, ISC_TRUE);
+		set_typestats(stats, (dns_rdatatype_t)i, true);
 	/* Specials */
-	set_typestats(stats, dns_rdatatype_dlv, ISC_TRUE);
-	set_typestats(stats, (dns_rdatatype_t)1000, ISC_TRUE);
-	set_nxdomainstats(stats, ISC_TRUE);
+	set_typestats(stats, dns_rdatatype_dlv, true);
+	set_typestats(stats, (dns_rdatatype_t)1000, true);
+	set_nxdomainstats(stats, true);
 
 	/*
 	 * Check that all counters are set to appropriately.

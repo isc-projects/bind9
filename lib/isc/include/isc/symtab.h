@@ -107,7 +107,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 		  isc_symtabaction_t undefine_action, void *undefine_arg,
-		  isc_boolean_t case_sensitive, isc_symtab_t **symtabp);
+		  bool case_sensitive, isc_symtab_t **symtabp);
 
 /*% Destroy a symbol table. */
 void

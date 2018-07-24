@@ -28,7 +28,7 @@ static void
 hex_dump(const char *msg, void *data, unsigned int length) {
 	unsigned int len;
 	unsigned char *base;
-	isc_boolean_t first = ISC_TRUE;
+	bool first = true;
 
 	base = data;
 
@@ -37,7 +37,7 @@ hex_dump(const char *msg, void *data, unsigned int length) {
 		if (len % 16 == 0 && !first)
 			printf("\n\t");
 		printf("%02x ", base[len]);
-		first = ISC_FALSE;
+		first = false;
 	}
 	printf("\n");
 }
@@ -51,7 +51,7 @@ CHECK(const char *msg, isc_result_t result) {
 }
 
 static isc_result_t
-start(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
+start(isc_entropysource_t *source, void *arg, bool blocking) {
 	isc_keyboard_t *kbd = (isc_keyboard_t *)arg;
 
 	UNUSED(source);
@@ -77,7 +77,7 @@ stop(isc_entropysource_t *source, void *arg) {
 }
 
 static isc_result_t
-get(isc_entropysource_t *source, void *arg, isc_boolean_t blocking) {
+get(isc_entropysource_t *source, void *arg, bool blocking) {
 	isc_keyboard_t *kbd = (isc_keyboard_t *)arg;
 	isc_result_t result;
 	isc_time_t t;

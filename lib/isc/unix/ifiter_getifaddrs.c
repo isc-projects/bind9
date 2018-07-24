@@ -23,7 +23,7 @@
 #define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
 
 #ifdef __linux
-static isc_boolean_t seenv6 = ISC_FALSE;
+static bool seenv6 = false;
 #endif
 
 /*% Iterator structure */
@@ -142,7 +142,7 @@ internal_current(isc_interfaceiter_t *iter) {
 
 #ifdef __linux
 	if (family == AF_INET6)
-		seenv6 = ISC_TRUE;
+		seenv6 = true;
 #endif
 
 	memset(&iter->current, 0, sizeof(iter->current));

@@ -117,7 +117,7 @@ struct dns_dtenv {
 	} while (0)
 
 static isc_mutex_t dt_mutex;
-static isc_boolean_t dt_initialized = ISC_FALSE;
+static bool dt_initialized = false;
 static isc_thread_key_t dt_key;
 static isc_once_t mutex_once = ISC_ONCE_INIT;
 static isc_mem_t *dt_mctx = NULL;
@@ -158,11 +158,11 @@ dt_init(void) {
 		if (result != ISC_R_SUCCESS)
 			goto unlock;
 		isc_mem_setname(dt_mctx, "dt", NULL);
-		isc_mem_setdestroycheck(dt_mctx, ISC_FALSE);
+		isc_mem_setdestroycheck(dt_mctx, false);
 
 		ret = isc_thread_key_create(&dt_key, dtfree);
 		if (ret == 0)
-			dt_initialized = ISC_TRUE;
+			dt_initialized = true;
 		else
 			result = ISC_R_FAILURE;
 	}
@@ -345,7 +345,7 @@ dns_dt_reopen(dns_dtenv_t *env, int roll) {
 		file.stream = NULL;
 		file.versions = roll != 0 ? roll : ISC_LOG_ROLLINFINITE;
 		file.maximum_size = 0;
-		file.maximum_reached = ISC_FALSE;
+		file.maximum_reached = false;
 		result = isc_logfile_roll(&file);
 		isc_mem_free(env->mctx, filename);
 		CHECK(result);
@@ -593,13 +593,13 @@ init_msg(dns_dtenv_t *env, dns_dtmsg_t *dm, Dnstap__Message__Type mtype) {
 	if (env->identity.length != 0) {
 		dm->d.identity.data = env->identity.base;
 		dm->d.identity.len = env->identity.length;
-		dm->d.has_identity = ISC_TRUE;
+		dm->d.has_identity = true;
 	}
 
 	if (env->version.length != 0) {
 		dm->d.version.data = env->version.base;
 		dm->d.version.len = env->version.length;
-		dm->d.has_version = ISC_TRUE;
+		dm->d.has_version = true;
 	}
 }
 
@@ -643,7 +643,7 @@ cpbuf(isc_buffer_t *buf, ProtobufCBinaryData *p, protobuf_c_boolean *has) {
 }
 
 static void
-setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, isc_boolean_t tcp,
+setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, bool tcp,
 	ProtobufCBinaryData *addr, protobuf_c_boolean *has_addr,
 	uint32_t *port, protobuf_c_boolean *has_port)
 {
@@ -678,7 +678,7 @@ setaddr(dns_dtmsg_t *dm, isc_sockaddr_t *sa, isc_boolean_t tcp,
 void
 dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	    isc_sockaddr_t *qaddr, isc_sockaddr_t *raddr,
-	    isc_boolean_t tcp, isc_region_t *zone, isc_time_t *qtime,
+	    bool tcp, isc_region_t *zone, isc_time_t *qtime,
 	    isc_time_t *rtime, isc_buffer_t *buf)
 {
 	isc_time_t now, *t;
@@ -811,7 +811,7 @@ putaddr(isc_buffer_t **b, isc_region_t *ip) {
 	return (putstr(b, buf));
 }
 
-static isc_boolean_t
+static bool
 dnstap_file(struct fstrm_reader *r) {
 	fstrm_res res;
 	const struct fstrm_control *control = NULL;
@@ -821,25 +821,25 @@ dnstap_file(struct fstrm_reader *r) {
 
 	res = fstrm_reader_get_control(r, FSTRM_CONTROL_START, &control);
 	if (res != fstrm_res_success)
-		return (ISC_FALSE);
+		return (false);
 
 	res = fstrm_control_get_num_field_content_type(control, &n);
 	if (res != fstrm_res_success)
-		return (ISC_FALSE);
+		return (false);
 	if (n > 0) {
 		res = fstrm_control_get_field_content_type(control, 0,
 							   &rtype, &rlen);
 		if (res != fstrm_res_success)
-			return (ISC_FALSE);
+			return (false);
 
 		if (rlen != dlen)
-			return (ISC_FALSE);
+			return (false);
 
 		if (memcmp(DNSTAP_CONTENT_TYPE, rtype, dlen) == 0)
-			return (ISC_TRUE);
+			return (true);
 	}
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 isc_result_t
@@ -1013,9 +1013,9 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 
 	/* Query? */
 	if ((d->type & DNS_DTTYPE_QUERY) != 0)
-		d->query = ISC_TRUE;
+		d->query = true;
 	else
-		d->query = ISC_FALSE;
+		d->query = false;
 
 	/* Parse DNS message */
 	if (d->query && m->has_query_message) {
@@ -1072,9 +1072,9 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 				m->socket_protocol);
 		if (type != NULL &&
 		    type->value == DNSTAP__SOCKET_PROTOCOL__TCP)
-			d->tcp = ISC_TRUE;
+			d->tcp = true;
 		else
-			d->tcp = ISC_FALSE;
+			d->tcp = false;
 	}
 
 	/* Query tuple */

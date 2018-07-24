@@ -60,7 +60,7 @@ isc_fsaccess_remove(int trustee, int permission, isc_fsaccess_t *access) {
 }
 
 static isc_result_t
-check_bad_bits(isc_fsaccess_t access, isc_boolean_t is_dir) {
+check_bad_bits(isc_fsaccess_t access, bool is_dir) {
 	isc_fsaccess_t bits;
 
 	/*
