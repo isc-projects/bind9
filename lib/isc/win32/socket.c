@@ -3924,8 +3924,8 @@ isc__socket_cleanunix(isc_sockaddr_t *addr, isc_boolean_t active) {
 }
 
 isc_result_t
-isc__socket_permunix(isc_sockaddr_t *addr, isc_uint32_t perm,
-		     isc_uint32_t owner,	isc_uint32_t group)
+isc__socket_permunix(isc_sockaddr_t *addr, uint32_t perm,
+		     uint32_t owner,	uint32_t group)
 {
 	UNUSED(addr);
 	UNUSED(perm);
@@ -3965,7 +3965,7 @@ isc__socket_getfd(isc_socket_t *socket) {
 }
 
 void
-isc__socketmgr_setreserved(isc_socketmgr_t *manager, isc_uint32_t reserved) {
+isc__socketmgr_setreserved(isc_socketmgr_t *manager, uint32_t reserved) {
 	UNUSED(manager);
 	UNUSED(reserved);
 }

@@ -74,7 +74,7 @@ struct isc_httpd {
 	 * Received data state.
 	 */
 	char			recvbuf[HTTP_RECVLEN]; /*%< receive buffer */
-	isc_uint32_t		recvlen;	/*%< length recv'd */
+	uint32_t		recvlen;	/*%< length recv'd */
 	char		       *headers;	/*%< set in process_request() */
 	unsigned int		method;
 	char		       *url;

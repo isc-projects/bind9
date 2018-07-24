@@ -375,7 +375,7 @@ between signed and unsigned integers should be avoided; suppressing the
 warnings with casts is not desireable.
 
 Typedefs are provided to specify particular sizes of integral variables,
-e.g., `isc_uint32_t` (unsigned 32-bit integer), `isc_int16_t` (signed
+e.g., `uint32_t` (unsigned 32-bit integer), `int16_t` (signed
 16-bit integer).  These may be used when `unsigned long` or `short` could
 be ambiguous.
 

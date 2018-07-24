@@ -187,7 +187,7 @@ test_gabn(const char *target) {
 }
 
 static void
-test_gnba(const char *target, lwres_uint32_t af) {
+test_gnba(const char *target, uint32_t af) {
 	lwres_gnbaresponse_t *res;
 	int ret;
 	unsigned int i;

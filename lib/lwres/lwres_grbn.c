@@ -38,7 +38,7 @@ lwres_grbnrequest_render(lwres_context_t *ctx, lwres_grbnrequest_t *req,
 	size_t buflen;
 	int ret;
 	size_t payload_length;
-	lwres_uint16_t datalen;
+	uint16_t datalen;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(req != NULL);
@@ -46,7 +46,7 @@ lwres_grbnrequest_render(lwres_context_t *ctx, lwres_grbnrequest_t *req,
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
-	datalen = (lwres_uint16_t) strlen(req->name);
+	datalen = (uint16_t) strlen(req->name);
 
 	payload_length = 4 + 2 + 2 + 2 + req->namelen + 1;
 
@@ -57,7 +57,7 @@ lwres_grbnrequest_render(lwres_context_t *ctx, lwres_grbnrequest_t *req,
 
 	lwres_buffer_init(b, buf, (unsigned int)buflen);
 
-	pkt->length = (lwres_uint32_t)buflen;
+	pkt->length = (uint32_t)buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
 	pkt->pktflags &= ~LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_GETRDATABYNAME;
@@ -111,7 +111,7 @@ lwres_grbnresponse_render(lwres_context_t *ctx, lwres_grbnresponse_t *req,
 	size_t buflen;
 	int ret;
 	size_t payload_length;
-	lwres_uint16_t datalen;
+	uint16_t datalen;
 	int x;
 
 	REQUIRE(ctx != NULL);
@@ -135,7 +135,7 @@ lwres_grbnresponse_render(lwres_context_t *ctx, lwres_grbnresponse_t *req,
 		return (LWRES_R_NOMEMORY);
 	lwres_buffer_init(b, buf, (unsigned int)buflen);
 
-	pkt->length = (lwres_uint32_t)buflen;
+	pkt->length = (uint32_t)buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
 	pkt->pktflags |= LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_GETRDATABYNAME;
@@ -198,9 +198,9 @@ lwres_grbnrequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	int ret;
 	char *name;
 	lwres_grbnrequest_t *grbn;
-	lwres_uint32_t flags;
-	lwres_uint16_t rdclass, rdtype;
-	lwres_uint16_t namelen;
+	uint32_t flags;
+	uint16_t rdclass, rdtype;
+	uint16_t namelen;
 
 	REQUIRE(ctx != NULL);
 	REQUIRE(pkt != NULL);
@@ -251,10 +251,10 @@ lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 {
 	lwres_result_t ret;
 	unsigned int x;
-	lwres_uint32_t flags;
-	lwres_uint16_t rdclass, rdtype;
-	lwres_uint32_t ttl;
-	lwres_uint16_t nrdatas, nsigs;
+	uint32_t flags;
+	uint16_t rdclass, rdtype;
+	uint32_t ttl;
+	uint16_t nrdatas, nsigs;
 	lwres_grbnresponse_t *grbn;
 
 	REQUIRE(ctx != NULL);
@@ -306,7 +306,7 @@ lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			goto out;
 		}
 
-		grbn->rdatalen = CTXMALLOC(sizeof(lwres_uint16_t) * nrdatas);
+		grbn->rdatalen = CTXMALLOC(sizeof(uint16_t) * nrdatas);
 		if (grbn->rdatalen == NULL) {
 			ret = LWRES_R_NOMEMORY;
 			goto out;
@@ -320,7 +320,7 @@ lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			goto out;
 		}
 
-		grbn->siglen = CTXMALLOC(sizeof(lwres_uint16_t) * nsigs);
+		grbn->siglen = CTXMALLOC(sizeof(uint16_t) * nsigs);
 		if (grbn->siglen == NULL) {
 			ret = LWRES_R_NOMEMORY;
 			goto out;
@@ -367,11 +367,11 @@ lwres_grbnresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 			CTXFREE(grbn->rdatas, sizeof(char *) * nrdatas);
 		if (grbn->rdatalen != NULL)
 			CTXFREE(grbn->rdatalen,
-				sizeof(lwres_uint16_t) * nrdatas);
+				sizeof(uint16_t) * nrdatas);
 		if (grbn->sigs != NULL)
 			CTXFREE(grbn->sigs, sizeof(char *) * nsigs);
 		if (grbn->siglen != NULL)
-			CTXFREE(grbn->siglen, sizeof(lwres_uint16_t) * nsigs);
+			CTXFREE(grbn->siglen, sizeof(uint16_t) * nsigs);
 		CTXFREE(grbn, sizeof(lwres_grbnresponse_t));
 	}
 
@@ -408,11 +408,11 @@ lwres_grbnresponse_free(lwres_context_t *ctx, lwres_grbnresponse_t **structp)
 	if (grbn->nrdatas > 0) {
 		CTXFREE(grbn->rdatas, sizeof(char *) * grbn->nrdatas);
 		CTXFREE(grbn->rdatalen,
-			sizeof(lwres_uint16_t) * grbn->nrdatas);
+			sizeof(uint16_t) * grbn->nrdatas);
 	}
 	if (grbn->nsigs > 0) {
 		CTXFREE(grbn->sigs, sizeof(char *) * grbn->nsigs);
-		CTXFREE(grbn->siglen, sizeof(lwres_uint16_t) * grbn->nsigs);
+		CTXFREE(grbn->siglen, sizeof(uint16_t) * grbn->nsigs);
 	}
 	if (grbn->base != NULL)
 		CTXFREE(grbn->base, grbn->baselen);

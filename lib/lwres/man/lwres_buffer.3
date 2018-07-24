@@ -60,18 +60,18 @@ lwres_buffer_init, lwres_buffer_invalidate, lwres_buffer_add, lwres_buffer_subtr
 .BI "void lwres_buffer_forward(lwres_buffer_t\ *" "b" ", unsigned\ int\ " "n" ");"
 .HP \w'void\ lwres_buffer_back('u
 .BI "void lwres_buffer_back(lwres_buffer_t\ *" "b" ", unsigned\ int\ " "n" ");"
-.HP \w'lwres_uint8_t\ lwres_buffer_getuint8('u
-.BI "lwres_uint8_t lwres_buffer_getuint8(lwres_buffer_t\ *" "b" ");"
+.HP \w'uint8_t\ lwres_buffer_getuint8('u
+.BI "uint8_t lwres_buffer_getuint8(lwres_buffer_t\ *" "b" ");"
 .HP \w'void\ lwres_buffer_putuint8('u
-.BI "void lwres_buffer_putuint8(lwres_buffer_t\ *" "b" ", lwres_uint8_t\ " "val" ");"
-.HP \w'lwres_uint16_t\ lwres_buffer_getuint16('u
-.BI "lwres_uint16_t lwres_buffer_getuint16(lwres_buffer_t\ *" "b" ");"
+.BI "void lwres_buffer_putuint8(lwres_buffer_t\ *" "b" ", uint8_t\ " "val" ");"
+.HP \w'uint16_t\ lwres_buffer_getuint16('u
+.BI "uint16_t lwres_buffer_getuint16(lwres_buffer_t\ *" "b" ");"
 .HP \w'void\ lwres_buffer_putuint16('u
-.BI "void lwres_buffer_putuint16(lwres_buffer_t\ *" "b" ", lwres_uint16_t\ " "val" ");"
-.HP \w'lwres_uint32_t\ lwres_buffer_getuint32('u
-.BI "lwres_uint32_t lwres_buffer_getuint32(lwres_buffer_t\ *" "b" ");"
+.BI "void lwres_buffer_putuint16(lwres_buffer_t\ *" "b" ", uint16_t\ " "val" ");"
+.HP \w'uint32_t\ lwres_buffer_getuint32('u
+.BI "uint32_t lwres_buffer_getuint32(lwres_buffer_t\ *" "b" ");"
 .HP \w'void\ lwres_buffer_putuint32('u
-.BI "void lwres_buffer_putuint32(lwres_buffer_t\ *" "b" ", lwres_uint32_t\ " "val" ");"
+.BI "void lwres_buffer_putuint32(lwres_buffer_t\ *" "b" ", uint32_t\ " "val" ");"
 .HP \w'void\ lwres_buffer_putmem('u
 .BI "void lwres_buffer_putmem(lwres_buffer_t\ *" "b" ", const\ unsigned\ char\ *" "base" ", unsigned\ int\ " "length" ");"
 .HP \w'void\ lwres_buffer_getmem('u

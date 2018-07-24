@@ -116,9 +116,9 @@ struct ns_client {
 	isc_socketevent_t *	recvevent;
 	unsigned char *		recvbuf;
 	dns_rdataset_t *	opt;
-	isc_uint16_t		udpsize;
-	isc_uint16_t		extflags;
-	isc_int16_t		ednsversion;	/* -1 noedns */
+	uint16_t		udpsize;
+	uint16_t		extflags;
+	int16_t		ednsversion;	/* -1 noedns */
 	void			(*next)(ns_client_t *);
 	void			(*shutdown)(void *arg, isc_result_t result);
 	void 			*shutdown_arg;
@@ -140,8 +140,8 @@ struct ns_client {
 	isc_sockaddr_t		destsockaddr;
 
 	isc_netaddr_t		ecs_addr;	/*%< EDNS client subnet */
-	isc_uint8_t		ecs_addrlen;
-	isc_uint8_t		ecs_scope;
+	uint8_t		ecs_addrlen;
+	uint8_t		ecs_scope;
 
 	struct in6_pktinfo	pktinfo;
 	isc_dscp_t		dscp;
@@ -165,9 +165,9 @@ struct ns_client {
 	ISC_LINK(ns_client_t)	rlink;
 	ISC_QLINK(ns_client_t)	ilink;
 	unsigned char		cookie[8];
-	isc_uint32_t		expire;
+	uint32_t		expire;
 	unsigned char		*keytag;
-	isc_uint16_t		keytag_len;
+	uint16_t		keytag_len;
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;

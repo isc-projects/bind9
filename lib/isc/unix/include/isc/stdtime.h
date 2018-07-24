@@ -23,7 +23,7 @@
  * Applications that want maximum portability should not assume anything
  * about its size.
  */
-typedef isc_uint32_t isc_stdtime_t;
+typedef uint32_t isc_stdtime_t;
 
 /* but this flag helps... */
 #define STDTIME_ON_32BITS	1
@@ -33,7 +33,7 @@ typedef isc_uint32_t isc_stdtime_t;
  * type should only be used as an opaque integer (e.g.,) to compare two
  * time values.
  */
-typedef isc_uint32_t isc_stdtime32_t;
+typedef uint32_t isc_stdtime32_t;
 
 ISC_LANG_BEGINDECLS
 /* */

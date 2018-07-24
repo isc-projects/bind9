@@ -240,7 +240,7 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source,
 	      unsigned int max, isc_boolean_t hex_allowed)
 {
 	isc_result_t result;
-	isc_uint32_t n;
+	uint32_t n;
 	char buffer[NUMBERSIZE];
 
 	if (! isdigit(source->base[0] & 0xff) ||

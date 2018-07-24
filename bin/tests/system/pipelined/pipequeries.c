@@ -216,7 +216,7 @@ main(int argc, char *argv[]) {
 	unsigned int attrs, attrmask;
 	dns_dispatch_t *dispatchv4;
 	dns_view_t *view;
-	isc_uint16_t port = PORT;
+	uint16_t port = PORT;
 	int c;
 
 	UNUSED(argv);

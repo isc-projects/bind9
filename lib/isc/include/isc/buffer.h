@@ -512,7 +512,7 @@ isc_buffer_compact(isc_buffer_t *b);
  *	are those of the remaining region (as it was before the call).
  */
 
-isc_uint8_t
+uint8_t
 isc_buffer_getuint8(isc_buffer_t *b);
 /*!<
  * \brief Read an unsigned 8-bit integer from 'b' and return it.
@@ -533,7 +533,7 @@ isc_buffer_getuint8(isc_buffer_t *b);
  */
 
 void
-isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val);
+isc__buffer_putuint8(isc_buffer_t *b, uint8_t val);
 /*!<
  * \brief Store an unsigned 8-bit integer from 'val' into 'b'.
  *
@@ -547,7 +547,7 @@ isc__buffer_putuint8(isc_buffer_t *b, isc_uint8_t val);
  *\li	The used pointer in 'b' is advanced by 1.
  */
 
-isc_uint16_t
+uint16_t
 isc_buffer_getuint16(isc_buffer_t *b);
 /*!<
  * \brief Read an unsigned 16-bit integer in network byte order from 'b', convert
@@ -570,7 +570,7 @@ isc_buffer_getuint16(isc_buffer_t *b);
  */
 
 void
-isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val);
+isc__buffer_putuint16(isc_buffer_t *b, uint16_t val);
 /*!<
  * \brief Store an unsigned 16-bit integer in host byte order from 'val'
  * into 'b' in network byte order.
@@ -585,7 +585,7 @@ isc__buffer_putuint16(isc_buffer_t *b, isc_uint16_t val);
  *\li	The used pointer in 'b' is advanced by 2.
  */
 
-isc_uint32_t
+uint32_t
 isc_buffer_getuint32(isc_buffer_t *b);
 /*!<
  * \brief Read an unsigned 32-bit integer in network byte order from 'b', convert
@@ -607,7 +607,7 @@ isc_buffer_getuint32(isc_buffer_t *b);
  */
 
 void
-isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
+isc__buffer_putuint32(isc_buffer_t *b, uint32_t val);
 /*!<
  * \brief Store an unsigned 32-bit integer in host byte order from 'val'
  * into 'b' in network byte order.
@@ -622,7 +622,7 @@ isc__buffer_putuint32(isc_buffer_t *b, isc_uint32_t val);
  *\li	The used pointer in 'b' is advanced by 4.
  */
 
-isc_uint64_t
+uint64_t
 isc_buffer_getuint48(isc_buffer_t *b);
 /*!<
  * \brief Read an unsigned 48-bit integer in network byte order from 'b',
@@ -644,7 +644,7 @@ isc_buffer_getuint48(isc_buffer_t *b);
  */
 
 void
-isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val);
+isc__buffer_putuint48(isc_buffer_t *b, uint64_t val);
 /*!<
  * \brief Store an unsigned 48-bit integer in host byte order from 'val'
  * into 'b' in network byte order.
@@ -660,7 +660,7 @@ isc__buffer_putuint48(isc_buffer_t *b, isc_uint64_t val);
  */
 
 void
-isc__buffer_putuint24(isc_buffer_t *b, isc_uint32_t val);
+isc__buffer_putuint24(isc_buffer_t *b, uint32_t val);
 /*!<
  * Store an unsigned 24-bit integer in host byte order from 'val'
  * into 'b' in network byte order.
@@ -703,7 +703,7 @@ isc__buffer_putstr(isc_buffer_t *b, const char *source);
  */
 
 void
-isc_buffer_putdecint(isc_buffer_t *b, isc_int64_t v);
+isc_buffer_putdecint(isc_buffer_t *b, int64_t v);
 /*!<
  * \brief Put decimal representation of 'v' in b
  *
@@ -915,7 +915,7 @@ ISC_LANG_ENDDECLS
 	do { \
 		unsigned char *_cp; \
 		/* evaluate (_val) only once */ \
-		isc_uint8_t _val2 = (_val); \
+		uint8_t _val2 = (_val); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
 			isc_buffer_t *_tmp = _b; \
 			ISC_REQUIRE(isc_buffer_reserve(&_tmp, 1) \
@@ -931,7 +931,7 @@ ISC_LANG_ENDDECLS
 	do { \
 		unsigned char *_cp; \
 		/* evaluate (_val) only once */ \
-		isc_uint16_t _val2 = (_val); \
+		uint16_t _val2 = (_val); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
 			isc_buffer_t *_tmp = _b; \
 			ISC_REQUIRE(isc_buffer_reserve(&_tmp, 2) \
@@ -948,7 +948,7 @@ ISC_LANG_ENDDECLS
 	do { \
 		unsigned char *_cp; \
 		/* evaluate (_val) only once */ \
-		isc_uint32_t _val2 = (_val); \
+		uint32_t _val2 = (_val); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
 			isc_buffer_t *_tmp = _b; \
 			ISC_REQUIRE(isc_buffer_reserve(&_tmp, 3) \
@@ -966,7 +966,7 @@ ISC_LANG_ENDDECLS
 	do { \
 		unsigned char *_cp; \
 		/* evaluate (_val) only once */ \
-		isc_uint32_t _val2 = (_val); \
+		uint32_t _val2 = (_val); \
 		if (ISC_UNLIKELY((_b)->autore)) { \
 			isc_buffer_t *_tmp = _b; \
 			ISC_REQUIRE(isc_buffer_reserve(&_tmp, 4) \

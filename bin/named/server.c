@@ -431,11 +431,11 @@ ns_server_reload(isc_task_t *task, isc_event_t *event);
 static isc_result_t
 ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			isc_uint16_t family, ns_listenelt_t **target);
+			uint16_t family, ns_listenelt_t **target);
 static isc_result_t
 ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			 isc_uint16_t family, ns_listenlist_t **target);
+			 uint16_t family, ns_listenlist_t **target);
 
 static isc_result_t
 configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
@@ -472,7 +472,7 @@ static isc_result_t
 putmem(isc_buffer_t **b, const char *str, size_t len);
 
 static isc_result_t
-putuint8(isc_buffer_t **b, isc_uint8_t val);
+putuint8(isc_buffer_t **b, uint8_t val);
 
 static inline isc_result_t
 putnull(isc_buffer_t **b);
@@ -694,7 +694,7 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 {
 	dns_rdataclass_t viewclass;
 	dns_rdata_dnskey_t keystruct;
-	isc_uint32_t flags, proto, alg;
+	uint32_t flags, proto, alg;
 	const char *keystr, *keynamestr;
 	unsigned char keydata[4096];
 	isc_buffer_t keydatabuf;
@@ -751,9 +751,9 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 		CHECKM(ISC_R_RANGE, "key protocol");
 	if (alg > 0xff)
 		CHECKM(ISC_R_RANGE, "key algorithm");
-	keystruct.flags = (isc_uint16_t)flags;
-	keystruct.protocol = (isc_uint8_t)proto;
-	keystruct.algorithm = (isc_uint8_t)alg;
+	keystruct.flags = (uint16_t)flags;
+	keystruct.protocol = (uint8_t)proto;
+	keystruct.algorithm = (uint8_t)alg;
 
 	isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
 	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
@@ -1356,32 +1356,32 @@ configure_peer(const cfg_obj_t *cpeer, isc_mem_t *mctx, dns_peer_t **peerp) {
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "edns-udp-size", &obj);
 	if (obj != NULL) {
-		isc_uint32_t udpsize = cfg_obj_asuint32(obj);
+		uint32_t udpsize = cfg_obj_asuint32(obj);
 		if (udpsize < 512)
 			udpsize = 512;
 		if (udpsize > 4096)
 			udpsize = 4096;
-		CHECK(dns_peer_setudpsize(peer, (isc_uint16_t)udpsize));
+		CHECK(dns_peer_setudpsize(peer, (uint16_t)udpsize));
 	}
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "edns-version", &obj);
 	if (obj != NULL) {
-		isc_uint32_t ednsversion = cfg_obj_asuint32(obj);
+		uint32_t ednsversion = cfg_obj_asuint32(obj);
 		if (ednsversion > 255)
 			ednsversion = 255;
-		CHECK(dns_peer_setednsversion(peer, (isc_uint8_t)ednsversion));
+		CHECK(dns_peer_setednsversion(peer, (uint8_t)ednsversion));
 	}
 
 	obj = NULL;
 	(void)cfg_map_get(cpeer, "max-udp-size", &obj);
 	if (obj != NULL) {
-		isc_uint32_t udpsize = cfg_obj_asuint32(obj);
+		uint32_t udpsize = cfg_obj_asuint32(obj);
 		if (udpsize < 512)
 			udpsize = 512;
 		if (udpsize > 4096)
 			udpsize = 4096;
-		CHECK(dns_peer_setmaxudp(peer, (isc_uint16_t)udpsize));
+		CHECK(dns_peer_setmaxudp(peer, (uint16_t)udpsize));
 	}
 
 	obj = NULL;
@@ -1530,7 +1530,7 @@ disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
 
 		result = dns_secalg_fromtext(&alg, &r);
 		if (result != ISC_R_SUCCESS) {
-			isc_uint8_t ui;
+			uint8_t ui;
 			result = isc_parse_uint8(&ui, r.base, 10);
 			alg = ui;
 		}
@@ -1704,7 +1704,7 @@ static isc_boolean_t
 cache_sharable(dns_view_t *originview, dns_view_t *view,
 	       isc_boolean_t new_zero_no_soattl,
 	       unsigned int new_cleaning_interval,
-	       isc_uint64_t new_max_cache_size)
+	       uint64_t new_max_cache_size)
 {
 	/*
 	 * If the cache cannot even reused for the same view, it cannot be
@@ -3259,10 +3259,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	isc_result_t result;
 	unsigned int cleaning_interval;
 	size_t max_cache_size;
-	isc_uint32_t max_cache_size_percent = 0;
+	uint32_t max_cache_size_percent = 0;
 	size_t max_acache_size;
 	size_t max_adb_size;
-	isc_uint32_t lame_ttl, fail_ttl;
+	uint32_t lame_ttl, fail_ttl;
 	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL;	/* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;
@@ -3274,11 +3274,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	const char *str;
 	const char *cachename = NULL;
 	dns_order_t *order = NULL;
-	isc_uint32_t udpsize;
-	isc_uint32_t maxbits;
+	uint32_t udpsize;
+	uint32_t maxbits;
 	unsigned int resopts = 0;
 	dns_zone_t *zone = NULL;
-	isc_uint32_t max_clients_per_query;
+	uint32_t max_clients_per_query;
 	isc_boolean_t empty_zones_enable;
 	const cfg_obj_t *disablelist = NULL;
 	isc_stats_t *resstats = NULL;
@@ -3362,7 +3362,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				cfg_obj_log(obj, ns_g_lctx,
 					    ISC_LOG_WARNING,
 					    "'max-acache-size "
-					    "%" ISC_PRINT_QUADFORMAT "u' "
+					    "%" PRIu64 "' "
 					    "is too large for this "
 					    "system; reducing to %lu",
 					    value, (unsigned long)SIZE_MAX);
@@ -3511,7 +3511,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			cfg_obj_log(obj, ns_g_lctx,
 				    ISC_LOG_WARNING,
 				    "'max-cache-size "
-				    "%" ISC_PRINT_QUADFORMAT "u' "
+				    "%" PRIu64 "' "
 				    "is too large for this "
 				    "system; reducing to %lu",
 				    value, (unsigned long)SIZE_MAX);
@@ -3521,7 +3521,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	if (max_cache_size == SIZE_AS_PERCENT) {
-		isc_uint64_t totalphys = isc_meminfo_totalphys();
+		uint64_t totalphys = isc_meminfo_totalphys();
 
 		max_cache_size =
 			(size_t) (totalphys * max_cache_size_percent/100);
@@ -3535,10 +3535,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			cfg_obj_log(obj, ns_g_lctx,
 				ISC_LOG_INFO,
 				"'max-cache-size %d%%' "
-				"- setting to %" ISC_PRINT_QUADFORMAT "uMB "
-				"(out of %" ISC_PRINT_QUADFORMAT "uMB)",
+				"- setting to %" PRIu64 "MB "
+				"(out of %" PRIu64 "MB)",
 				max_cache_size_percent,
-				(isc_uint64_t)(max_cache_size / (1024*1024)),
+				(uint64_t)(max_cache_size / (1024*1024)),
 				totalphys / (1024*1024));
 		}
 	}
@@ -3906,7 +3906,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * Set up ADB quotas
 	 */
 	{
-		isc_uint32_t fps, freq;
+		uint32_t fps, freq;
 		double low, high, discount;
 
 		obj = NULL;
@@ -3983,7 +3983,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		udpsize = 512;
 	if (udpsize > 4096)
 		udpsize = 4096;
-	dns_resolver_setudpsize(view->resolver, (isc_uint16_t)udpsize);
+	dns_resolver_setudpsize(view->resolver, (uint16_t)udpsize);
 
 	/*
 	 * Set the maximum UDP response size.
@@ -4988,8 +4988,8 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 	if (alternates != NULL) {
 		portobj = cfg_tuple_get(alternates, "port");
 		if (cfg_obj_isuint32(portobj)) {
-			isc_uint32_t val = cfg_obj_asuint32(portobj);
-			if (val > ISC_UINT16_MAX) {
+			uint32_t val = cfg_obj_asuint32(portobj);
+			if (val > UINT16_MAX) {
 				cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
 					    "port '%u' out of range", val);
 				return (ISC_R_RANGE);
@@ -5025,8 +5025,8 @@ configure_alternates(const cfg_obj_t *config, dns_view_t *view,
 
 			portobj = cfg_tuple_get(alternate, "port");
 			if (cfg_obj_isuint32(portobj)) {
-				isc_uint32_t val = cfg_obj_asuint32(portobj);
-				if (val > ISC_UINT16_MAX) {
+				uint32_t val = cfg_obj_asuint32(portobj);
+				if (val > UINT16_MAX) {
 					cfg_obj_log(portobj, ns_g_lctx,
 						    ISC_LOG_ERROR,
 						    "port '%u' out of range",
@@ -5078,8 +5078,8 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view, dns_name_t *origin,
 	if (forwarders != NULL) {
 		portobj = cfg_tuple_get(forwarders, "port");
 		if (cfg_obj_isuint32(portobj)) {
-			isc_uint32_t val = cfg_obj_asuint32(portobj);
-			if (val > ISC_UINT16_MAX) {
+			uint32_t val = cfg_obj_asuint32(portobj);
+			if (val > UINT16_MAX) {
 				cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
 					    "port '%u' out of range", val);
 				return (ISC_R_RANGE);
@@ -6047,8 +6047,8 @@ typedef struct {
 
 static int
 cid(const void *a, const void *b) {
-	const isc_uint16_t ida = *(const isc_uint16_t *)a;
-	const isc_uint16_t idb = *(const isc_uint16_t *)b;
+	const uint16_t ida = *(const uint16_t *)a;
+	const uint16_t idb = *(const uint16_t *)b;
 	if (ida < idb)
 		return (-1);
 	else if (ida > idb)
@@ -6106,7 +6106,7 @@ get_tat_qname(dns_name_t *dst, dns_name_t **origin, dns_keytable_t *keytable,
 	dns_keynode_t *firstnode = keynode;
 	dns_keynode_t *nextnode;
 	unsigned int i, n = 0;
-	isc_uint16_t ids[12];
+	uint16_t ids[12];
 	isc_textregion_t r;
 	char label[64];
 	int m;
@@ -6375,7 +6375,7 @@ set_limit(const cfg_obj_t **maps, const char *configname,
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL, NS_LOGMODULE_SERVER,
 		      result == ISC_R_SUCCESS ?
 			ISC_LOG_DEBUG(3) : ISC_LOG_WARNING,
-		      "set maximum %s to %" ISC_PRINT_QUADFORMAT "u: %s",
+		      "set maximum %s to %" PRIu64 ": %s",
 		      description, value, isc_result_totext(result));
 }
 
@@ -6485,7 +6485,7 @@ static isc_result_t
 generate_session_key(const char *filename, const char *keynamestr,
 		     dns_name_t *keyname, const char *algstr,
 		     dns_name_t *algname, unsigned int algtype,
-		     isc_uint16_t bits, isc_mem_t *mctx,
+		     uint16_t bits, isc_mem_t *mctx,
 		     dns_tsigkey_t **tsigkeyp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -6581,7 +6581,7 @@ configure_session_key(const cfg_obj_t **maps, ns_server_t *server,
 	dns_fixedname_t fname;
 	dns_name_t *keyname, *algname;
 	isc_buffer_t buffer;
-	isc_uint16_t bits;
+	uint16_t bits;
 	const cfg_obj_t *obj;
 	isc_boolean_t need_deleteold = ISC_FALSE;
 	isc_boolean_t need_createnew = ISC_FALSE;
@@ -6773,7 +6773,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	const cfg_obj_t *nz = NULL;
 	const cfg_obj_t *obj = NULL;
 	int i = 0;
-	isc_uint64_t mapsize = 0ULL;
+	uint64_t mapsize = 0ULL;
 
 	REQUIRE(config != NULL);
 
@@ -6799,7 +6799,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			cfg_obj_log(obj, ns_g_lctx,
 				    ISC_LOG_ERROR,
 				    "'lmdb-mapsize "
-				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "%" PRId64 "' "
 				    "is too small",
 				    mapsize);
 			return (ISC_R_FAILURE);
@@ -6807,7 +6807,7 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 			cfg_obj_log(obj, ns_g_lctx,
 				    ISC_LOG_ERROR,
 				    "'lmdb-mapsize "
-				    "%" ISC_PRINT_QUADFORMAT "d' "
+				    "%" PRId64 "' "
 				    "is too large",
 				    mapsize);
 			return (ISC_R_FAILURE);
@@ -7388,17 +7388,17 @@ load_configuration(const char *filename, ns_server_t *server,
 	isc_portset_t *v6portset = NULL;
 	isc_resourcevalue_t nfiles;
 	isc_result_t result, tresult;
-	isc_uint32_t heartbeat_interval;
-	isc_uint32_t interface_interval;
-	isc_uint32_t reserved;
-	isc_uint32_t udpsize;
-	isc_uint32_t transfer_message_size;
+	uint32_t heartbeat_interval;
+	uint32_t interface_interval;
+	uint32_t reserved;
+	uint32_t udpsize;
+	uint32_t transfer_message_size;
 	ns_cache_t *nsc;
 	ns_cachelist_t cachelist, tmpcachelist;
 	ns_altsecret_t *altsecret;
 	ns_altsecretlist_t altsecrets, tmpaltsecrets;
 	unsigned int maxsocks;
-	isc_uint32_t softquota = 0;
+	uint32_t softquota = 0;
 
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
@@ -7548,7 +7548,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (result == ISC_R_SUCCESS && (isc_resourcevalue_t)maxsocks > nfiles) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_WARNING,
-			      "max open files (%" ISC_PRINT_QUADFORMAT "u)"
+			      "max open files (%" PRIu64 ")"
 			      " is smaller than max sockets (%u)",
 			      nfiles, maxsocks);
 	}
@@ -7735,7 +7735,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	if (udpsize > 4096) {
 		udpsize = 4096;
 	}
-	ns_g_udpsize = (isc_uint16_t)udpsize;
+	ns_g_udpsize = (uint16_t)udpsize;
 
 	/* Set the transfer message size for TCP */
 	obj = NULL;
@@ -7747,7 +7747,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	} else if (transfer_message_size > 65535) {
 		transfer_message_size = 65535;
 	}
-	server->transfer_tcp_message_size = (isc_uint16_t) transfer_message_size;
+	server->transfer_tcp_message_size = (uint16_t) transfer_message_size;
 
 	/*
 	 * Configure the zone manager.
@@ -9782,7 +9782,7 @@ ns_server_togglequerylog(ns_server_t *server, isc_lex_t *lex) {
 static isc_result_t
 ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 			 cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			 isc_uint16_t family, ns_listenlist_t **target)
+			 uint16_t family, ns_listenlist_t **target)
 {
 	isc_result_t result;
 	const cfg_listelt_t *element;
@@ -9821,7 +9821,7 @@ ns_listenlist_fromconfig(const cfg_obj_t *listenlist, const cfg_obj_t *config,
 static isc_result_t
 ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 			cfg_aclconfctx_t *actx, isc_mem_t *mctx,
-			isc_uint16_t family, ns_listenelt_t **target)
+			uint16_t family, ns_listenelt_t **target)
 {
 	isc_result_t result;
 	const cfg_obj_t *portobj, *dscpobj;
@@ -9840,7 +9840,7 @@ ns_listenelt_fromconfig(const cfg_obj_t *listener, const cfg_obj_t *config,
 				return (result);
 		}
 	} else {
-		if (cfg_obj_asuint32(portobj) >= ISC_UINT16_MAX) {
+		if (cfg_obj_asuint32(portobj) >= UINT16_MAX) {
 			cfg_obj_log(portobj, ns_g_lctx, ISC_LOG_ERROR,
 				    "port value '%u' is out of range",
 				    cfg_obj_asuint32(portobj));
@@ -11071,7 +11071,7 @@ ns_server_rekey(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
 	dns_zonetype_t type;
-	isc_uint16_t keyopts;
+	uint16_t keyopts;
 	isc_boolean_t fullsign = ISC_FALSE;
 	char *ptr;
 
@@ -13090,7 +13090,7 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	int i, n;
 	union {
 		unsigned char rnd[256];
-		isc_uint32_t rnd32[64];
+		uint32_t rnd32[64];
 	} rnd;
 	unsigned char text[512 + 1];
 	isc_region_t r;
@@ -13100,7 +13100,7 @@ generate_salt(unsigned char *salt, size_t saltlen) {
 	if (saltlen > 256U)
 		return (ISC_R_RANGE);
 
-	n = (int) (saltlen + sizeof(isc_uint32_t) - 1) / sizeof(isc_uint32_t);
+	n = (int) (saltlen + sizeof(uint32_t) - 1) / sizeof(uint32_t);
 	for (i = 0; i < n; i++)
 		isc_random_get(&rnd.rnd32[i]);
 
@@ -13135,7 +13135,7 @@ ns_server_signing(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	isc_boolean_t list = ISC_FALSE, clear = ISC_FALSE;
 	isc_boolean_t chain = ISC_FALSE;
 	isc_boolean_t setserial = ISC_FALSE;
-	isc_uint32_t serial = 0;
+	uint32_t serial = 0;
 	char keystr[DNS_SECALG_FORMATSIZE + 7]; /* <5-digit keyid>/<alg> */
 	unsigned short hash = 0, flags = 0, iter = 0, saltlen = 0;
 	unsigned char salt[255];
@@ -13238,9 +13238,9 @@ ns_server_signing(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		(void) putstr(text, "request queued");
 		(void) putnull(text);
 	} else if (chain) {
-		CHECK(dns_zone_setnsec3param(zone, (isc_uint8_t)hash,
-					     (isc_uint8_t)flags, iter,
-					     (isc_uint8_t)saltlen, salt,
+		CHECK(dns_zone_setnsec3param(zone, (uint8_t)hash,
+					     (uint8_t)flags, iter,
+					     (uint8_t)saltlen, salt,
 					     ISC_TRUE));
 		(void) putstr(text, "nsec3param request queued");
 		(void) putnull(text);
@@ -13322,7 +13322,7 @@ putstr(isc_buffer_t **b, const char *str) {
 }
 
 static isc_result_t
-putuint8(isc_buffer_t **b, isc_uint8_t val) {
+putuint8(isc_buffer_t **b, uint8_t val) {
 	isc_result_t result;
 
 	result = isc_buffer_reserve(b, 1);
@@ -13346,7 +13346,7 @@ ns_server_zonestatus(ns_server_t *server, isc_lex_t *lex,
 	dns_zone_t *zone = NULL, *raw = NULL, *mayberaw = NULL;
 	const char *type, *file;
 	char zonename[DNS_NAME_FORMATSIZE];
-	isc_uint32_t serial, signed_serial, nodes;
+	uint32_t serial, signed_serial, nodes;
 	char serbuf[16], sserbuf[16], nodebuf[16];
 	char resignbuf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE + 2];
 	char lbuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
@@ -13936,7 +13936,7 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 		dns_rdataset_t *kdset = NULL;
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdata_keydata_t kd;
-		isc_uint32_t ttl;
+		uint32_t ttl;
 
 		dns_rriterator_current(&rrit, &name, &ttl, &kdset, NULL);
 		if (kdset == NULL || kdset->type != dns_rdatatype_keydata ||

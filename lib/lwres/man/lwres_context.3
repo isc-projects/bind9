@@ -49,9 +49,9 @@ lwres_context_create, lwres_context_destroy, lwres_context_nextserial, lwres_con
 .HP \w'lwres_result_t\ lwres_context_destroy('u
 .BI "lwres_result_t lwres_context_destroy(lwres_context_t\ **" "contextp" ");"
 .HP \w'void\ lwres_context_initserial('u
-.BI "void lwres_context_initserial(lwres_context_t\ *" "ctx" ", lwres_uint32_t\ " "serial" ");"
-.HP \w'lwres_uint32_t\ lwres_context_nextserial('u
-.BI "lwres_uint32_t lwres_context_nextserial(lwres_context_t\ *" "ctx" ");"
+.BI "void lwres_context_initserial(lwres_context_t\ *" "ctx" ", uint32_t\ " "serial" ");"
+.HP \w'uint32_t\ lwres_context_nextserial('u
+.BI "uint32_t lwres_context_nextserial(lwres_context_t\ *" "ctx" ");"
 .HP \w'void\ lwres_context_freemem('u
 .BI "void lwres_context_freemem(lwres_context_t\ *" "ctx" ", void\ *" "mem" ", size_t\ " "len" ");"
 .HP \w'void\ lwres_context_allocmem('u

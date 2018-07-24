@@ -613,15 +613,15 @@ testclass(char *typetext) {
 
 static void
 set_port(const char *value) {
-	isc_uint32_t n;
+	uint32_t n;
 	isc_result_t result = parse_uint(&n, value, 65535, "port");
 	if (result == ISC_R_SUCCESS)
-		port = (isc_uint16_t) n;
+		port = (uint16_t) n;
 }
 
 static void
 set_timeout(const char *value) {
-	isc_uint32_t n;
+	uint32_t n;
 	isc_result_t result = parse_uint(&n, value, UINT_MAX, "timeout");
 	if (result == ISC_R_SUCCESS)
 		timeout = n;
@@ -629,7 +629,7 @@ set_timeout(const char *value) {
 
 static void
 set_tries(const char *value) {
-	isc_uint32_t n;
+	uint32_t n;
 	isc_result_t result = parse_uint(&n, value, INT_MAX, "tries");
 	if (result == ISC_R_SUCCESS)
 		tries = n;
@@ -637,7 +637,7 @@ set_tries(const char *value) {
 
 static void
 set_ndots(const char *value) {
-	isc_uint32_t n;
+	uint32_t n;
 	isc_result_t result = parse_uint(&n, value, 128, "ndots");
 	if (result == ISC_R_SUCCESS)
 		ndots = n;

@@ -314,7 +314,7 @@ dns_test_closezonemgr(void) {
  * Sleep for 'usec' microseconds.
  */
 void
-dns_test_nap(isc_uint32_t usec) {
+dns_test_nap(uint32_t usec) {
 #ifdef HAVE_NANOSLEEP
 	struct timespec ts;
 

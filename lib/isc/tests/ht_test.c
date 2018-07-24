@@ -196,7 +196,7 @@ static void test_ht_iterator() {
 	uintptr_t i;
 	void *v;
 	uintptr_t count = 10000;
-	isc_uint32_t walked;
+	uint32_t walked;
 	unsigned char key[16];
 	unsigned char *tkey;
 	size_t tksize;
