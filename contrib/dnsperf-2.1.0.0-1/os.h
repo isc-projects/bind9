@@ -25,10 +25,10 @@ void
 perf_os_handlesignal(int sig, void (*handler)(int));
 
 isc_result_t
-perf_os_waituntilreadable(int fd, int pipe_fd, isc_int64_t timeout);
+perf_os_waituntilreadable(int fd, int pipe_fd, int64_t timeout);
 
 isc_result_t
 perf_os_waituntilanyreadable(int *fds, unsigned int nfds, int pipe_fd,
-			     isc_int64_t timeout);
+			     int64_t timeout);
 
 #endif

@@ -34,7 +34,7 @@
  * size we use, set the reply bit, and recompute any security information.
  */
 void
-ns_lwdclient_errorpktsend(ns_lwdclient_t *client, isc_uint32_t _result) {
+ns_lwdclient_errorpktsend(ns_lwdclient_t *client, uint32_t _result) {
 	isc_result_t result;
 	int lwres;
 	isc_region_t r;

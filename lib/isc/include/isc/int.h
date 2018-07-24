@@ -9,12 +9,10 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: int.h,v 1.14 2007/06/19 23:47:23 tbox Exp $ */
+#ifndef ISC_INT_H
+#define ISC_INT_H 1
 
-#ifndef LWRES_INT_H
-#define LWRES_INT_H 1
-
-/*! \file lwres/int.h */
+/*! \file */
 
 #if defined(_WIN32)
 
@@ -107,9 +105,18 @@ typedef unsigned long long	uint64_t;
 #define PRIu64			"llu"
 #define PRIx64			"llx"
 #define PRIX64			"llX"
-#define PRIo64			"llo"
 #endif
 
 #endif /* defined(_WIN32) */
 
-#endif /* LWRES_INT_H */
+typedef int8_t  isc_int8_t;
+typedef int16_t isc_int16_t;
+typedef int32_t isc_int32_t;
+typedef int64_t isc_int64_t;
+
+typedef uint8_t  isc_uint8_t;
+typedef uint16_t isc_uint16_t;
+typedef uint32_t isc_uint32_t;
+typedef uint64_t isc_uint64_t;
+
+#endif /* ISC_INT_H */

@@ -1496,7 +1496,7 @@ isselfsigned(dns_validator_t *val) {
  */
 static isc_result_t
 verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
-       isc_uint16_t keyid)
+       uint16_t keyid)
 {
 	isc_result_t result;
 	dns_fixedname_t fixed;
@@ -1710,7 +1710,7 @@ validate(dns_validator_t *val, isc_boolean_t resume) {
  * (val->event->rdataset).
  */
 static isc_result_t
-checkkey(dns_validator_t *val, dns_rdata_t *keyrdata, isc_uint16_t keyid,
+checkkey(dns_validator_t *val, dns_rdata_t *keyrdata, uint16_t keyid,
 	 dns_secalg_t algorithm)
 {
 	dns_rdata_rrsig_t sig;
@@ -1753,7 +1753,7 @@ checkkey(dns_validator_t *val, dns_rdata_t *keyrdata, isc_uint16_t keyid,
  */
 static isc_result_t
 keyfromds(dns_validator_t *val, dns_rdataset_t *rdataset, dns_rdata_t *dsrdata,
-	  isc_uint8_t digest, isc_uint16_t keyid, dns_secalg_t algorithm,
+	  uint8_t digest, uint16_t keyid, dns_secalg_t algorithm,
 	  dns_rdata_t *keyrdata)
 {
 	dns_keytag_t keytag;

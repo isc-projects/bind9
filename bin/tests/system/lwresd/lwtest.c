@@ -124,7 +124,7 @@ test_noop(void) {
 
 static void
 test_gabn(const char *target, lwres_result_t expected, const char *address,
-	  lwres_uint32_t af)
+	  uint32_t af)
 {
 	lwres_gabnresponse_t *res;
 	unsigned char addrbuf[16];
@@ -185,7 +185,7 @@ test_gabn(const char *target, lwres_result_t expected, const char *address,
 }
 
 static void
-test_gnba(const char *target, lwres_uint32_t af, lwres_result_t expected,
+test_gnba(const char *target, uint32_t af, lwres_result_t expected,
 	  const char *name)
 {
 	lwres_gnbaresponse_t *res;

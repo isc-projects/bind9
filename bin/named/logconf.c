@@ -137,9 +137,9 @@ channel_fromconf(const cfg_obj_t *channel, isc_logconfig_t *logconfig)
 		const cfg_obj_t *sizeobj = cfg_tuple_get(fileobj, "size");
 		const cfg_obj_t *versionsobj =
 				 cfg_tuple_get(fileobj, "versions");
-		isc_int32_t versions = ISC_LOG_ROLLNEVER;
+		int32_t versions = ISC_LOG_ROLLNEVER;
 		isc_offset_t size = 0;
-		isc_uint64_t maxoffset;
+		uint64_t maxoffset;
 
 		/*
 		 * isc_offset_t is a signed integer type, so the maximum

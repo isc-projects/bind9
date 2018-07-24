@@ -76,11 +76,11 @@ lwres_result_t
 void
 <function>lwres_context_initserial</function></funcdef>
         <paramdef>lwres_context_t *<parameter>ctx</parameter></paramdef>
-        <paramdef>lwres_uint32_t <parameter>serial</parameter></paramdef>
+        <paramdef>uint32_t <parameter>serial</parameter></paramdef>
         </funcprototype>
 <funcprototype>
         <funcdef>
-lwres_uint32_t
+uint32_t
 <function>lwres_context_nextserial</function></funcdef>
         <paramdef>lwres_context_t *<parameter>ctx</parameter></paramdef>
         </funcprototype>

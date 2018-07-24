@@ -58,7 +58,7 @@ set_nxdomainstats(dns_stats_t *stats, isc_boolean_t stale) {
 
 #define ATTRIBUTE_SET(y) ((attributes & (y)) != 0)
 static void
-checkit1(dns_rdatastatstype_t which, isc_uint64_t value, void *arg) {
+checkit1(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 	unsigned int attributes;
 #if debug
 	unsigned int type;
@@ -85,7 +85,7 @@ checkit1(dns_rdatastatstype_t which, isc_uint64_t value, void *arg) {
 }
 
 static void
-checkit2(dns_rdatastatstype_t which, isc_uint64_t value, void *arg) {
+checkit2(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 	unsigned int attributes;
 #if debug
 	unsigned int type;

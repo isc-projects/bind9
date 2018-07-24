@@ -59,7 +59,7 @@ perf_dns_destroyctx(perf_dnsctx_t **ctxp);
 
 isc_result_t
 perf_dns_buildrequest(perf_dnsctx_t *ctx, const isc_textregion_t *record,
-		      isc_uint16_t qid,
+		      uint16_t qid,
 		      isc_boolean_t edns, isc_boolean_t dnssec,
 		      perf_dnstsigkey_t *tsigkey, isc_buffer_t *msg);
 

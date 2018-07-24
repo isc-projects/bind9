@@ -732,8 +732,6 @@ ISC_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_RLIMITTYPE
 ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
-LWRES_PLATFORM_QUADFORMAT
-ISC_PLATFORM_QUADFORMAT
 DST_EXTRA_SRCS
 DST_EXTRA_OBJS
 USE_ISC_SPNEGO
@@ -2235,6 +2233,136 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_type
+
+# ac_fn_c_find_intX_t LINENO BITS VAR
+# -----------------------------------
+# Finds a signed integer type with width BITS, setting cache variable VAR
+# accordingly.
+ac_fn_c_find_intX_t ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for int$2_t" >&5
+$as_echo_n "checking for int$2_t... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  eval "$3=no"
+     # Order is important - never check a type that is potentially smaller
+     # than half of the expected target width.
+     for ac_type in int$2_t 'int' 'long int' \
+	 'long long int' 'short int' 'signed char'; do
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+	     enum { N = $2 / 2 - 1 };
+int
+main ()
+{
+static int test_array [1 - 2 * !(0 < ($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1))];
+test_array [0] = 0;
+return test_array [0];
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+	        enum { N = $2 / 2 - 1 };
+int
+main ()
+{
+static int test_array [1 - 2 * !(($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 1)
+		 < ($ac_type) ((((($ac_type) 1 << N) << N) - 1) * 2 + 2))];
+test_array [0] = 0;
+return test_array [0];
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+else
+  case $ac_type in #(
+  int$2_t) :
+    eval "$3=yes" ;; #(
+  *) :
+    eval "$3=\$ac_type" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+       if eval test \"x\$"$3"\" = x"no"; then :
+
+else
+  break
+fi
+     done
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_find_intX_t
+
+# ac_fn_c_find_uintX_t LINENO BITS VAR
+# ------------------------------------
+# Finds an unsigned integer type with width BITS, setting cache variable VAR
+# accordingly.
+ac_fn_c_find_uintX_t ()
+{
+  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for uint$2_t" >&5
+$as_echo_n "checking for uint$2_t... " >&6; }
+if eval \${$3+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  eval "$3=no"
+     # Order is important - never check a type that is potentially smaller
+     # than half of the expected target width.
+     for ac_type in uint$2_t 'unsigned int' 'unsigned long int' \
+	 'unsigned long long int' 'unsigned short int' 'unsigned char'; do
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+static int test_array [1 - 2 * !((($ac_type) -1 >> ($2 / 2 - 1)) >> ($2 / 2 - 1) == 3)];
+test_array [0] = 0;
+return test_array [0];
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  case $ac_type in #(
+  uint$2_t) :
+    eval "$3=yes" ;; #(
+  *) :
+    eval "$3=\$ac_type" ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+       if eval test \"x\$"$3"\" = x"no"; then :
+
+else
+  break
+fi
+     done
+fi
+eval ac_res=\$$3
+	       { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_res" >&5
+$as_echo "$ac_res" >&6; }
+  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
+
+} # ac_fn_c_find_uintX_t
 
 # ac_fn_c_check_header_mongrel LINENO HEADER VAR INCLUDES
 # -------------------------------------------------------
@@ -13787,16 +13915,143 @@ _ACEOF
 
 fi
 
-ac_fn_c_check_type "$LINENO" "uintptr_t" "ac_cv_type_uintptr_t" "$ac_includes_default"
+
+  ac_fn_c_check_type "$LINENO" "uintptr_t" "ac_cv_type_uintptr_t" "$ac_includes_default"
 if test "x$ac_cv_type_uintptr_t" = xyes; then :
 
+$as_echo "#define HAVE_UINTPTR_T 1" >>confdefs.h
+
 else
+  for ac_type in 'unsigned int' 'unsigned long int' \
+	'unsigned long long int'; do
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+$ac_includes_default
+int
+main ()
+{
+static int test_array [1 - 2 * !(sizeof (void *) <= sizeof ($ac_type))];
+test_array [0] = 0;
+return test_array [0];
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
 
 cat >>confdefs.h <<_ACEOF
-#define uintptr_t unsigned long
+#define uintptr_t $ac_type
 _ACEOF
 
+	  ac_type=
 fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+       test -z "$ac_type" && break
+     done
+fi
+
+
+
+# Check for
+ac_fn_c_find_intX_t "$LINENO" "8" "ac_cv_c_int8_t"
+case $ac_cv_c_int8_t in #(
+  no|yes) ;; #(
+  *)
+
+cat >>confdefs.h <<_ACEOF
+#define int8_t $ac_cv_c_int8_t
+_ACEOF
+;;
+esac
+
+ac_fn_c_find_intX_t "$LINENO" "16" "ac_cv_c_int16_t"
+case $ac_cv_c_int16_t in #(
+  no|yes) ;; #(
+  *)
+
+cat >>confdefs.h <<_ACEOF
+#define int16_t $ac_cv_c_int16_t
+_ACEOF
+;;
+esac
+
+ac_fn_c_find_intX_t "$LINENO" "32" "ac_cv_c_int32_t"
+case $ac_cv_c_int32_t in #(
+  no|yes) ;; #(
+  *)
+
+cat >>confdefs.h <<_ACEOF
+#define int32_t $ac_cv_c_int32_t
+_ACEOF
+;;
+esac
+
+ac_fn_c_find_intX_t "$LINENO" "64" "ac_cv_c_int64_t"
+case $ac_cv_c_int64_t in #(
+  no|yes) ;; #(
+  *)
+
+cat >>confdefs.h <<_ACEOF
+#define int64_t $ac_cv_c_int64_t
+_ACEOF
+;;
+esac
+
+ac_fn_c_find_uintX_t "$LINENO" "8" "ac_cv_c_uint8_t"
+case $ac_cv_c_uint8_t in #(
+  no|yes) ;; #(
+  *)
+
+$as_echo "#define _UINT8_T 1" >>confdefs.h
+
+
+cat >>confdefs.h <<_ACEOF
+#define uint8_t $ac_cv_c_uint8_t
+_ACEOF
+;;
+  esac
+
+ac_fn_c_find_uintX_t "$LINENO" "16" "ac_cv_c_uint16_t"
+case $ac_cv_c_uint16_t in #(
+  no|yes) ;; #(
+  *)
+
+
+cat >>confdefs.h <<_ACEOF
+#define uint16_t $ac_cv_c_uint16_t
+_ACEOF
+;;
+  esac
+
+ac_fn_c_find_uintX_t "$LINENO" "32" "ac_cv_c_uint32_t"
+case $ac_cv_c_uint32_t in #(
+  no|yes) ;; #(
+  *)
+
+$as_echo "#define _UINT32_T 1" >>confdefs.h
+
+
+cat >>confdefs.h <<_ACEOF
+#define uint32_t $ac_cv_c_uint32_t
+_ACEOF
+;;
+  esac
+
+ac_fn_c_find_uintX_t "$LINENO" "64" "ac_cv_c_uint64_t"
+case $ac_cv_c_uint64_t in #(
+  no|yes) ;; #(
+  *)
+
+$as_echo "#define _UINT64_T 1" >>confdefs.h
+
+
+cat >>confdefs.h <<_ACEOF
+#define uint64_t $ac_cv_c_uint64_t
+_ACEOF
+;;
+  esac
+
 
 ac_fn_c_check_type "$LINENO" "socklen_t" "ac_cv_type_socklen_t" "
 #include <sys/types.h>
@@ -20186,60 +20441,6 @@ $as_echo "using SPNEGO from GSSAPI library" >&6; }
 	esac
 fi
 
-
-
-
-
-
-# Determine the printf format characters to use when printing
-# values of type isc_int64_t. This will normally be "ll", but where
-# the compiler treats "long long" as a alias for "long" and printf
-# doesn't know about "long long" use "l".  Hopefully the sprintf
-# will produce a inconsistent result in the later case.  If the compiler
-# fails due to seeing "%lld" we fall back to "l".
-#
-# Digital Unix 4.0 (gcc?) (long long) is 64 bits as is its long. It uses
-# %ld even for (long long)/
-#
-# Win32 uses "%I64d", but that's defined elsewhere since we don't use
-# configure on Win32.
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking printf format modifier for 64-bit integers" >&5
-$as_echo_n "checking printf format modifier for 64-bit integers... " >&6; }
-if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming target platform uses ll" >&5
-$as_echo "assuming target platform uses ll" >&6; }
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'
-	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "ll"'
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <stdio.h>
-main() {
-	long long int j = 0;
-	char buf[100];
-	buf[0] = 0;
-	sprintf(buf, "%lld", j);
-	exit((sizeof(long long int) != sizeof(long int))? 0 :
-	     (strcmp(buf, "0") != 0));
-}
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: ll" >&5
-$as_echo "ll" >&6; }
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'
-	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "ll"'
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: l" >&5
-$as_echo "l" >&6; }
-	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "l"'
-	LWRES_PLATFORM_QUADFORMAT='#define LWRES_PLATFORM_QUADFORMAT "l"'
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
 
 
 

@@ -40,7 +40,7 @@ struct dns_zt {
 	void *			loaddone_arg;
 	/* Locked by lock. */
 	isc_boolean_t		flush;
-	isc_uint32_t		references;
+	uint32_t		references;
 	unsigned int		loads_pending;
 	dns_rbt_t		*table;
 };

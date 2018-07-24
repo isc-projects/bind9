@@ -274,7 +274,7 @@ cfg_obj_isuint32(const cfg_obj_t *obj);
  * Return true iff 'obj' is of integer type.
  */
 
-isc_uint32_t
+uint32_t
 cfg_obj_asuint32(const cfg_obj_t *obj);
 /*%<
  * Returns the value of a configuration object of 32-bit integer type.
@@ -292,7 +292,7 @@ cfg_obj_isuint64(const cfg_obj_t *obj);
  * Return true iff 'obj' is of integer type.
  */
 
-isc_uint64_t
+uint64_t
 cfg_obj_asuint64(const cfg_obj_t *obj);
 /*%<
  * Returns the value of a configuration object of 64-bit integer type.
@@ -304,7 +304,7 @@ cfg_obj_asuint64(const cfg_obj_t *obj);
  * \li     A 64-bit unsigned integer.
  */
 
-isc_uint32_t
+uint32_t
 cfg_obj_asfixedpoint(const cfg_obj_t *obj);
 /*%<
  * Returns the value of a configuration object of fixed point number.
@@ -316,7 +316,7 @@ cfg_obj_asfixedpoint(const cfg_obj_t *obj);
  * \li     A 32-bit unsigned integer.
  */
 
-isc_uint32_t
+uint32_t
 cfg_obj_aspercentage(const cfg_obj_t *obj);
 /*%<
  * Returns the value of a configuration object of percentage

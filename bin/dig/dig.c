@@ -67,7 +67,7 @@ static isc_boolean_t short_form = ISC_FALSE, printcmd = ISC_TRUE,
 	onesoa = ISC_FALSE, use_usec = ISC_FALSE,
 	nocrypto = ISC_FALSE, ttlunits = ISC_FALSE,
 	ipv4only = ISC_FALSE, ipv6only = ISC_FALSE;
-static isc_uint32_t splitwidth = 0xffffffff;
+static uint32_t splitwidth = 0xffffffff;
 
 /*% rrcomments are neither explicitly enabled nor disabled by default */
 static int rrcomments = 0;
@@ -245,7 +245,7 @@ help(void) {
  */
 static void
 received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
-	isc_uint64_t diff;
+	uint64_t diff;
 	time_t tnow;
 	struct tm tmnow;
 #ifdef WIN32
@@ -286,7 +286,7 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 #endif
 		if (query->lookup->doing_xfr) {
 			printf(";; XFR size: %u records (messages %u, "
-			       "bytes %" ISC_PRINT_QUADFORMAT "u)\n",
+			       "bytes %" PRIu64 ")\n",
 			       query->rr_count, query->msg_count,
 			       query->byte_count);
 		} else {
@@ -304,18 +304,18 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 	} else if (query->lookup->identify && !short_form) {
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		if (use_usec)
-			printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
+			printf(";; Received %" PRIu64 " bytes "
 			       "from %s(%s) in %ld us\n\n",
 			       query->lookup->doing_xfr
 				 ? query->byte_count
-				 : (isc_uint64_t)bytes,
+				 : (uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff);
 		else
-			printf(";; Received %" ISC_PRINT_QUADFORMAT "u bytes "
+			printf(";; Received %" PRIu64 " bytes "
 			       "from %s(%s) in %ld ms\n\n",
 			       query->lookup->doing_xfr
 				 ?  query->byte_count
-				 : (isc_uint64_t)bytes,
+				 : (uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff / 1000);
 	}
 }
@@ -337,7 +337,7 @@ trying(char *frm, dig_lookup_t *lookup) {
 static isc_result_t
 say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 	isc_result_t result;
-	isc_uint64_t diff;
+	uint64_t diff;
 	char store[sizeof(" in 18446744073709551616 us.")];
 	unsigned int styleflags = 0;
 
@@ -366,9 +366,9 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		ADD_STRING(buf, " from server ");
 		ADD_STRING(buf, query->servname);
 		if (use_usec)
-			snprintf(store, sizeof(store), " in %" ISC_PLATFORM_QUADFORMAT "u us.", diff);
+			snprintf(store, sizeof(store), " in %" PRIu64 " us.", diff);
 		else
-			snprintf(store, sizeof(store), " in %" ISC_PLATFORM_QUADFORMAT "u ms.", diff / 1000);
+			snprintf(store, sizeof(store), " in %" PRIu64 " ms.", diff / 1000);
 		ADD_STRING(buf, store);
 	}
 	ADD_STRING(buf, "\n");
@@ -799,7 +799,7 @@ plus_option(const char *option, isc_boolean_t is_batchfile,
 	isc_result_t result;
 	char option_store[256];
 	char *cmd, *value, *ptr, *code;
-	isc_uint32_t num;
+	uint32_t num;
 	isc_boolean_t state = ISC_TRUE;
 	size_t n;
 
@@ -1541,7 +1541,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 	struct in6_addr in6;
 	in_port_t srcport;
 	char *hash, *cmd;
-	isc_uint32_t num;
+	uint32_t num;
 
 	while (strpbrk(option, single_dash_opts) == &option[0]) {
 		/*
@@ -1713,7 +1713,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 						"extra type option\n");
 			}
 			if (rdtype == dns_rdatatype_ixfr) {
-				isc_uint32_t serial;
+				uint32_t serial;
 				(*lookup)->rdtype = dns_rdatatype_ixfr;
 				(*lookup)->rdtypeset = ISC_TRUE;
 				result = parse_uint(&serial, &value[5],
@@ -2015,7 +2015,7 @@ parse_args(isc_boolean_t is_batchfile, isc_boolean_t config_only,
 							"extra type option\n");
 					}
 					if (rdtype == dns_rdatatype_ixfr) {
-						isc_uint32_t serial;
+						uint32_t serial;
 						lookup->rdtype =
 							dns_rdatatype_ixfr;
 						lookup->rdtypeset = ISC_TRUE;

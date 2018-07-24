@@ -14,13 +14,13 @@
 #ifndef LWRES_INT_H
 #define LWRES_INT_H 1
 
-typedef char				lwres_int8_t;
-typedef unsigned char			lwres_uint8_t;
-typedef short				lwres_int16_t;
-typedef unsigned short			lwres_uint16_t;
-typedef int				lwres_int32_t;
-typedef unsigned int			lwres_uint32_t;
-typedef __int64				lwres_int64_t;
-typedef unsigned __int64		lwres_uint64_t;
+typedef char				int8_t;
+typedef unsigned char			uint8_t;
+typedef short				int16_t;
+typedef unsigned short			uint16_t;
+typedef int				int32_t;
+typedef unsigned int			uint32_t;
+typedef __int64				int64_t;
+typedef unsigned __int64		uint64_t;
 
 #endif /* LWRES_INT_H */

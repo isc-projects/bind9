@@ -98,7 +98,7 @@ void
 dns_test_closezonemgr(void);
 
 void
-dns_test_nap(isc_uint32_t usec);
+dns_test_nap(uint32_t usec);
 
 isc_result_t
 dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,

@@ -18,7 +18,7 @@
 #include <isc/int.h>
 #include <isc/boolean.h>
 
-typedef isc_uint64_t dns_bitset_t;
+typedef uint64_t dns_bitset_t;
 
 #define DNS_BIT_SET(bit, bitset) \
      (*(bitset) |= ((dns_bitset_t)1 << (bit)))

@@ -32,7 +32,7 @@ dns_ipkeylist_init(dns_ipkeylist_t *ipkl) {
 
 void
 dns_ipkeylist_clear(isc_mem_t *mctx, dns_ipkeylist_t *ipkl) {
-	isc_uint32_t i;
+	uint32_t i;
 
 	REQUIRE(ipkl != NULL);
 
@@ -79,7 +79,7 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 		   dns_ipkeylist_t *dst)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_uint32_t i;
+	uint32_t i;
 
 	REQUIRE(dst != NULL);
 	/* dst might be preallocated, we don't care, but it must be empty */

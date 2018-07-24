@@ -18,7 +18,7 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_uint64_t
+uint64_t
 isc_meminfo_totalphys(void);
 /*%<
  * Return total available physical memory in bytes, or 0 if this cannot

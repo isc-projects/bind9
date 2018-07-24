@@ -89,7 +89,7 @@ main(int argc, char **argv) {
 	int ch;
 	isc_entropy_t *ectx = NULL;
 	dst_key_t *key = NULL;
-	isc_uint32_t flags;
+	uint32_t flags;
 	isc_buffer_t buf;
 	isc_boolean_t force = ISC_FALSE;
 	isc_boolean_t removefile = ISC_FALSE;

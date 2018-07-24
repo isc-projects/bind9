@@ -85,12 +85,12 @@ static char rcsid[] = "$Id: lwinetaton.c,v 1.16 2007/06/19 23:47:22 tbox Exp $";
  */
 int
 lwres_net_aton(const char *cp, struct in_addr *addr) {
-	lwres_uint32_t val;
+	uint32_t val;
 	int base;
 	ptrdiff_t n;
 	unsigned char c;
-	lwres_uint8_t parts[4];
-	lwres_uint8_t *pp = parts;
+	uint8_t parts[4];
+	uint8_t *pp = parts;
 	int digit;
 
 	REQUIRE(cp != NULL);
@@ -147,7 +147,7 @@ lwres_net_aton(const char *cp, struct in_addr *addr) {
 			 */
 			if (pp >= parts + 3 || val > 0xffU)
 				return (0);
-			*pp++ = (lwres_uint8_t)val;
+			*pp++ = (uint8_t)val;
 			c = *++cp;
 		} else
 			break;

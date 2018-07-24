@@ -15,11 +15,11 @@
 
 #include <isc/meminfo.h>
 
-isc_uint64_t
+uint64_t
 isc_meminfo_totalphys(void) {
 	MEMORYSTATUSEX statex;
 
 	statex.dwLength = sizeof(statex);
 	GlobalMemoryStatusEx(&statex);
-	return ((isc_uint64_t)statex.ullTotalPhys);
+	return ((uint64_t)statex.ullTotalPhys);
 }

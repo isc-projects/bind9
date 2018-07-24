@@ -188,9 +188,9 @@ typedef LWRES_LIST(lwres_addr_t) lwres_addrlist_t;
     </p>
     <pre class="programlisting">
 typedef struct {
-        lwres_uint32_t  flags;
-        lwres_uint32_t  addrtypes;
-        lwres_uint16_t  namelen;
+        uint32_t  flags;
+        uint32_t  addrtypes;
+        uint16_t  namelen;
         char           *name;
 } lwres_gabnrequest_t;
 </pre>
@@ -198,13 +198,13 @@ typedef struct {
     </p>
     <pre class="programlisting">
 typedef struct {
-        lwres_uint32_t          flags;
-        lwres_uint16_t          naliases;
-        lwres_uint16_t          naddrs;
+        uint32_t          flags;
+        uint16_t          naliases;
+        uint16_t          naddrs;
         char                   *realname;
         char                  **aliases;
-        lwres_uint16_t          realnamelen;
-        lwres_uint16_t         *aliaslen;
+        uint16_t          realnamelen;
+        uint16_t         *aliaslen;
         lwres_addrlist_t        addrs;
         void                   *base;
         size_t                  baselen;

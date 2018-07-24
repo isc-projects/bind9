@@ -195,7 +195,7 @@ void
     </p>
     <pre class="programlisting">
 typedef struct {
-        lwres_uint32_t  flags;
+        uint32_t  flags;
         lwres_addr_t    addr;
 } lwres_gnbarequest_t;
 </pre>
@@ -203,12 +203,12 @@ typedef struct {
     </p>
     <pre class="programlisting">
 typedef struct {
-        lwres_uint32_t  flags;
-        lwres_uint16_t  naliases;
+        uint32_t  flags;
+        uint16_t  naliases;
         char           *realname;
         char          **aliases;
-        lwres_uint16_t  realnamelen;
-        lwres_uint16_t *aliaslen;
+        uint16_t  realnamelen;
+        uint16_t *aliaslen;
         void           *base;
         size_t          baselen;
 } lwres_gnbaresponse_t;

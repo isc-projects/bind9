@@ -91,14 +91,14 @@ lwres_context_destroy(lwres_context_t **contextp);
  *\pre	contextp != NULL && contextp == NULL.
  */
 
-lwres_uint32_t
+uint32_t
 lwres_context_nextserial(lwres_context_t *ctx);
 /**<
  * XXXMLG Document
  */
 
 void
-lwres_context_initserial(lwres_context_t *ctx, lwres_uint32_t serial);
+lwres_context_initserial(lwres_context_t *ctx, uint32_t serial);
 
 void
 lwres_context_freemem(lwres_context_t *ctx, void *mem, size_t len);

@@ -527,7 +527,7 @@ dns_peer_getforcetcp(dns_peer_t *peer, isc_boolean_t *retval) {
 }
 
 isc_result_t
-dns_peer_settransfers(dns_peer_t *peer, isc_uint32_t newval) {
+dns_peer_settransfers(dns_peer_t *peer, uint32_t newval) {
 	isc_boolean_t existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
@@ -541,7 +541,7 @@ dns_peer_settransfers(dns_peer_t *peer, isc_uint32_t newval) {
 }
 
 isc_result_t
-dns_peer_gettransfers(dns_peer_t *peer, isc_uint32_t *retval) {
+dns_peer_gettransfers(dns_peer_t *peer, uint32_t *retval) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(retval != NULL);
 
@@ -740,7 +740,7 @@ dns_peer_getquerysource(dns_peer_t *peer, isc_sockaddr_t *query_source) {
 }
 
 isc_result_t
-dns_peer_setudpsize(dns_peer_t *peer, isc_uint16_t udpsize) {
+dns_peer_setudpsize(dns_peer_t *peer, uint16_t udpsize) {
 	isc_boolean_t existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
@@ -754,7 +754,7 @@ dns_peer_setudpsize(dns_peer_t *peer, isc_uint16_t udpsize) {
 }
 
 isc_result_t
-dns_peer_getudpsize(dns_peer_t *peer, isc_uint16_t *udpsize) {
+dns_peer_getudpsize(dns_peer_t *peer, uint16_t *udpsize) {
 
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(udpsize != NULL);
@@ -768,7 +768,7 @@ dns_peer_getudpsize(dns_peer_t *peer, isc_uint16_t *udpsize) {
 }
 
 isc_result_t
-dns_peer_setmaxudp(dns_peer_t *peer, isc_uint16_t maxudp) {
+dns_peer_setmaxudp(dns_peer_t *peer, uint16_t maxudp) {
 	isc_boolean_t existed;
 
 	REQUIRE(DNS_PEER_VALID(peer));
@@ -782,7 +782,7 @@ dns_peer_setmaxudp(dns_peer_t *peer, isc_uint16_t maxudp) {
 }
 
 isc_result_t
-dns_peer_getmaxudp(dns_peer_t *peer, isc_uint16_t *maxudp) {
+dns_peer_getmaxudp(dns_peer_t *peer, uint16_t *maxudp) {
 
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(maxudp != NULL);
@@ -862,7 +862,7 @@ dns_peer_getquerydscp(dns_peer_t *peer, isc_dscp_t *dscpp) {
 }
 
 isc_result_t
-dns_peer_setednsversion(dns_peer_t *peer, isc_uint8_t ednsversion) {
+dns_peer_setednsversion(dns_peer_t *peer, uint8_t ednsversion) {
 	REQUIRE(DNS_PEER_VALID(peer));
 
 	peer->ednsversion = ednsversion;
@@ -872,7 +872,7 @@ dns_peer_setednsversion(dns_peer_t *peer, isc_uint8_t ednsversion) {
 }
 
 isc_result_t
-dns_peer_getednsversion(dns_peer_t *peer, isc_uint8_t *ednsversion) {
+dns_peer_getednsversion(dns_peer_t *peer, uint8_t *ednsversion) {
 	REQUIRE(DNS_PEER_VALID(peer));
 	REQUIRE(ednsversion != NULL);
 

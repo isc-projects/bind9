@@ -909,7 +909,7 @@ main(int argc, char *argv[]) {
 	}
 
 	if (time_lookups) {
-		isc_uint64_t usec;
+		uint64_t usec;
 
 		TIME_NOW(&finish);
 
