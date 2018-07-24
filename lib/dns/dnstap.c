@@ -50,7 +50,7 @@
 #endif /* HAVE_DNSTAP */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>

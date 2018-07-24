@@ -13,15 +13,14 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <limits.h>
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <inttypes.h>
 
 #include <isc/aes.h>
 #include <isc/app.h>

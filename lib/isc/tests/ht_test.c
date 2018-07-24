@@ -15,8 +15,8 @@
 
 #include <atf-c.h>
 
+#include <inttypes.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -26,8 +26,6 @@
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
-
-#include <inttypes.h>
 
 static void *
 default_memalloc(void *arg, size_t size) {

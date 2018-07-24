@@ -13,11 +13,9 @@
 
 #include <config.h>
 
-#include <stdbool.h>
-
-#include <stdint.h>
-#include <sys/stat.h>
 #include <inttypes.h> /* uintptr_t */
+#include <stdbool.h>
+#include <sys/stat.h>
 
 #include <isc/crc64.h>
 #include <isc/file.h>

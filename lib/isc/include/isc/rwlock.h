@@ -13,7 +13,7 @@
 #ifndef ISC_RWLOCK_H
 #define ISC_RWLOCK_H 1
 
-#include <stdint.h>
+#include <inttypes.h>
 
 /*! \file isc/rwlock.h */
 
@@ -23,7 +23,7 @@
 #include <isc/types.h>
 
 #if defined(ISC_PLATFORM_HAVESTDATOMIC)
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdatomic.h>
 #endif
 

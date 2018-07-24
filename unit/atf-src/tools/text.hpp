@@ -31,7 +31,7 @@
 #define TOOLS_TEXT_HPP
 
 extern "C" {
-#include <stdint.h>
+#include <inttypes.h>
 }
 
 #include <sstream>

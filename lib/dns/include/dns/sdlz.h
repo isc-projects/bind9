@@ -51,7 +51,7 @@
 #define SDLZ_H 1
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <dns/clientinfo.h>
 #include <dns/dlz.h>

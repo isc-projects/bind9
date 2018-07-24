@@ -50,7 +50,7 @@
  ***/
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/event.h>
 #include <isc/eventclass.h>

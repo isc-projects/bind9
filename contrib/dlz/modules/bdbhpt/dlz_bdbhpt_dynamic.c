@@ -62,7 +62,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <db.h>
 

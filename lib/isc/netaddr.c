@@ -15,7 +15,7 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/buffer.h>
 #include <isc/msgs.h>

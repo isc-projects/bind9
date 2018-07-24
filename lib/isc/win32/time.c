@@ -15,7 +15,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <stddef.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>

@@ -5536,7 +5536,7 @@ EOF
 # include <io.h>
 #else
 # include <unistd.h>
-# include <stdint.h>
+# include <inttypes.h>
 # ifdef __CYGWIN__
 #  include <io.h>
 # endif

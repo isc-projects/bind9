@@ -37,14 +37,12 @@
  ***/
 
 #include <inttypes.h>
-
 #include <errno.h>
 #include <math.h>
 #include <pthread.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>

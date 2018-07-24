@@ -13,7 +13,7 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/app.h>
 #include <isc/magic.h>

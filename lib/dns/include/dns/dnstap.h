@@ -24,7 +24,7 @@
  */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #ifdef HAVE_DNSTAP
 #include <fstrm.h>

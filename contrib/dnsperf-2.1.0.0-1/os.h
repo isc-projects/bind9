@@ -19,7 +19,7 @@
 #define PERF_OS_H 1
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 void
 perf_os_blocksignal(int sig, bool block);

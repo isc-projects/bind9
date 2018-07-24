@@ -29,7 +29,7 @@
 
 /*! \file isccc/ccmsg.h */
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/buffer.h>
 #include <isc/lang.h>

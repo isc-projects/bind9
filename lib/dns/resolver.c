@@ -16,7 +16,6 @@
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>
-#include <stdint.h>
 
 #include <isc/counter.h>
 #include <isc/log.h>

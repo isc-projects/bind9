@@ -15,7 +15,7 @@
 
 #include <errno.h>
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/file.h>
 #include <isc/hex.h>

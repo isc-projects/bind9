@@ -13,7 +13,7 @@
 #ifndef ISC_REFCOUNT_H
 #define ISC_REFCOUNT_H 1
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/assertions.h>
 #include <isc/atomic.h>

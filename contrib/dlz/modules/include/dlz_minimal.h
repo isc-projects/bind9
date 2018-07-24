@@ -27,7 +27,7 @@
 #define DLZ_MINIMAL_H 1
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef ISC_PLATFORM_HAVESYSUNH

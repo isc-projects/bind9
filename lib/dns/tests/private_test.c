@@ -17,7 +17,7 @@
 #include <atf-c.h>
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 
 #include <isc/buffer.h>

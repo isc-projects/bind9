@@ -15,7 +15,7 @@
 #include <config.h>
 
 #include <stdio.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
 #include <time.h>
 #include <ctype.h>

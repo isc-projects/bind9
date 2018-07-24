@@ -19,7 +19,7 @@
 #include <config.h>
 
 #include <errno.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 
 #ifdef ISC_PLATFORM_HAVESYSUNH

@@ -15,7 +15,7 @@
 /*! \file dst/dst.h */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/lang.h>
 #include <isc/stdtime.h>

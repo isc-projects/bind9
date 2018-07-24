@@ -15,7 +15,7 @@
 
 #include <limits.h>
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #ifdef HAVE_LMDB
  #include <lmdb.h>

@@ -16,7 +16,7 @@
 #define DLZ_DLOPEN_H
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <dns/sdlz.h>
 

@@ -15,7 +15,7 @@
 
 /*! \file dns/bit.h */
 
-#include <stdint.h>
+#include <inttypes.h>
 
 typedef uint64_t dns_bitset_t;
 

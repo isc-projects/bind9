@@ -15,7 +15,7 @@
 /*! \file dns/rbt.h */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/assertions.h>
 #include <isc/crc64.h>

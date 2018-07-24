@@ -15,10 +15,9 @@
 
 #include <atf-c.h>
 
-#include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 #include <inttypes.h>
+#include <stdio.h>
+#include <string.h>
 
 #include <isc/hash.h>
 

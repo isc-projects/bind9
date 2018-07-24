@@ -12,7 +12,7 @@
 #ifndef DNS_IPKEYLIST_H
 #define DNS_IPKEYLIST_H 1
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/types.h>
 #include <dns/types.h>

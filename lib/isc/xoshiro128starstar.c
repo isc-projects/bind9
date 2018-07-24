@@ -22,7 +22,7 @@
 
 #include <config.h>
 
-#include <stdint.h>
+#include <inttypes.h>
 
 /*
  * This is xoshiro128** 1.0, our 32-bit all-purpose, rock-solid generator.

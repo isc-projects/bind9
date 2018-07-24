@@ -14,7 +14,7 @@
 #ifndef ISC_HT_H
 #define ISC_HT_H 1
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <string.h>
 
 #include <isc/types.h>
