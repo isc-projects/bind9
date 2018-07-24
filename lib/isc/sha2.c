@@ -18,7 +18,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L
+#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 #define EVP_MD_CTX_new() &(context->_ctx)
 #define EVP_MD_CTX_free(ptr) EVP_MD_CTX_cleanup(ptr)
 #define EVP_MD_CTX_reset(c) EVP_MD_CTX_cleanup(c)
