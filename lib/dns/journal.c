@@ -1040,7 +1040,7 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	if (size >= DNS_JOURNAL_SIZE_MAX) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			      "dns_journal_writediff: %s: journal entry "
-			      "too big to be stored: %llu bytes", j->filename,
+			      "too big to be stored: %" PRIu64 " bytes", j->filename,
 			      size);
 		return (ISC_R_NOSPACE);
 	}
@@ -1152,7 +1152,7 @@ dns_journal_commit(dns_journal_t *j) {
 	if (total >= DNS_JOURNAL_SIZE_MAX) {
 		isc_log_write(JOURNAL_COMMON_LOGARGS, ISC_LOG_ERROR,
 			     "transaction too big to be stored in journal: "
-			     "%llub (max is %llub)", total,
+			     "%" PRIu64 "b (max is %" PRIu64 "b)", total,
 			     (uint64_t)DNS_JOURNAL_SIZE_MAX);
 		return (ISC_R_UNEXPECTED);
 	}
