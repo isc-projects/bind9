@@ -37,7 +37,6 @@
 #define NS_PER_S 	1000000000
 #define NS_INTERVAL	100
 #define INTERVALS_PER_S (NS_PER_S / NS_INTERVAL)
-#define UINT64_MAX	_UI64_MAX
 
 /***
  *** Absolute Times
