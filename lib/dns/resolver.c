@@ -6640,13 +6640,14 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_name_init(&prefix, NULL);
 		tname = dns_fixedname_initname(&fixed);
-		nlabels = dns_name_countlabels(qname) -
-			  dns_name_countlabels(rname);
-		INSIST(nlabels > 0);
+		nlabels = dns_name_countlabels(rname);
 		dns_name_split(qname, nlabels, &prefix, NULL);
 		result = dns_name_concatenate(&prefix, &dname.dname, tname,
 					      NULL);
 		if (result == DNS_R_NAMETOOLONG) {
+			if (chainingp != NULL) {
+				*chainingp = true;
+			}
 			return (true);
 		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
