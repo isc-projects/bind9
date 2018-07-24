@@ -15,7 +15,7 @@
 /*! \file */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/log.h>
 #include <isc/magic.h>

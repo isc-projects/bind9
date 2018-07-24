@@ -47,7 +47,7 @@
  *****/
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/deprecated.h>
 #include <isc/lang.h>

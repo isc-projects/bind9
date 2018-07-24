@@ -30,7 +30,7 @@
 /*! \file isccc/cc.h */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/lang.h>
 #include <isc/buffer.h>

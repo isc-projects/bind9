@@ -14,7 +14,7 @@
 #define DNSSECTOOL_H 1
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/log.h>
 #include <isc/stdtime.h>

@@ -100,7 +100,7 @@
  ***/
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/assertions.h>
 #include <isc/formatcheck.h>

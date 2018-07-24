@@ -11,9 +11,8 @@
 
 #include <config.h>
 
-#include <stdint.h>
-#include <stdlib.h>
 #include <inttypes.h>
+#include <stdlib.h>
 
 #include <atf-c.h>
 

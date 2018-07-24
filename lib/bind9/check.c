@@ -13,10 +13,9 @@
 
 #include <config.h>
 
-#include <stdbool.h>
-#include <stdint.h>
-#include <stdlib.h>
 #include <inttypes.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
 #include <isc/aes.h>
 #include <isc/base64.h>

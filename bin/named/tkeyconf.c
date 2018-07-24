@@ -14,7 +14,7 @@
 
 #include <config.h>
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/buffer.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */

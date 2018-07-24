@@ -16,7 +16,7 @@
 
 #include <stdbool.h>
 #include <stdlib.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/app.h>
 #include <isc/commandline.h>

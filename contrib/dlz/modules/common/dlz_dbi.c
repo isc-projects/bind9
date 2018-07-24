@@ -45,7 +45,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <ctype.h>
 

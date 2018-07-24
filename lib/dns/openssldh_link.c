@@ -30,7 +30,7 @@
 #include <pk11/site.h>
 
 #include <ctype.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/mem.h>
 #include <isc/safe.h>

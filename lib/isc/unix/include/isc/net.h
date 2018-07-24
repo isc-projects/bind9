@@ -67,7 +67,7 @@
  ***/
 #include <isc/platform.h>
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>		/* Contractual promise. */

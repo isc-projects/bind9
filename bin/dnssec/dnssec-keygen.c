@@ -29,7 +29,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <unistd.h>
 

@@ -12,7 +12,7 @@
 #ifndef ISC_MEMINFO_H
 #define ISC_MEMINFO_H 1
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/types.h>
 

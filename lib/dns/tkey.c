@@ -13,7 +13,7 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/buffer.h>
 #include <isc/md5.h>

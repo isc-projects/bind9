@@ -16,7 +16,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/atomic.h>
 #include <isc/magic.h>

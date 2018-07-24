@@ -62,7 +62,7 @@
 /***
  *** Imports.
  ***/
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/platform.h>
 

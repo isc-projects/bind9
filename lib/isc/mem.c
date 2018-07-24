@@ -13,12 +13,11 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <stddef.h>
-#include <inttypes.h>
 #include <limits.h>
 
 #include <isc/bind9.h>

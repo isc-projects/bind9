@@ -10,7 +10,7 @@
  */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/magic.h>
 #include <isc/types.h>

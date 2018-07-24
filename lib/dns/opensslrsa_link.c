@@ -13,7 +13,7 @@
 
 #if !USE_PKCS11
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/md5.h>
 #include <isc/mem.h>

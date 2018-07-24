@@ -14,7 +14,7 @@
 #define DNS_CATZ_H 1
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/ht.h>
 #include <isc/lang.h>

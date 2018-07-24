@@ -12,7 +12,7 @@
 #include <config.h>
 
 #include <isc/meminfo.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <unistd.h>
 #ifdef HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>

@@ -15,7 +15,7 @@
 
 /*! \file isc/netscope.h */
 
-#include <stdint.h>
+#include <inttypes.h>
 
 ISC_LANG_BEGINDECLS
 

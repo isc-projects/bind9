@@ -13,8 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdbool.h>
-#include <stdint.h>
 
 #include <sys/param.h>
 #include <sys/types.h>
@@ -37,7 +37,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <inttypes.h>
 
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>

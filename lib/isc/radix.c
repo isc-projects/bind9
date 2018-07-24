@@ -17,7 +17,7 @@
 
 #include <config.h>
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/mem.h>
 #include <isc/types.h>

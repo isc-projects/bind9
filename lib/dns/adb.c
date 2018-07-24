@@ -22,7 +22,7 @@
 
 #include <limits.h>
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/mutexblock.h>
 #include <isc/netaddr.h>
