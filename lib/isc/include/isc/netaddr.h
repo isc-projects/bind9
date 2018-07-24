@@ -15,7 +15,7 @@
 
 /*! \file isc/netaddr.h */
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/lang.h>
 #include <isc/net.h>

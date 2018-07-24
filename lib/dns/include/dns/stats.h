@@ -14,7 +14,7 @@
 
 /*! \file dns/stats.h */
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <dns/types.h>
 

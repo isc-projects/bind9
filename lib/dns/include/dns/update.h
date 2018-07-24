@@ -19,7 +19,7 @@
  ***	Imports
  ***/
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/lang.h>
 

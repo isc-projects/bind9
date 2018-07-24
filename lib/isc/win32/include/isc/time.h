@@ -13,7 +13,7 @@
 #ifndef ISC_TIME_H
 #define ISC_TIME_H 1
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <windows.h>
 
 #include <isc/lang.h>

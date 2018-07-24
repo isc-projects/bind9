@@ -14,10 +14,10 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
-#include <inttypes.h>
 
 #include <isc/app.h>
 #include <isc/backtrace.h>

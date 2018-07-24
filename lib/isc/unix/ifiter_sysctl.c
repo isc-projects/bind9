@@ -20,7 +20,7 @@
 
 #include <config.h>
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <sys/param.h>
 #include <sys/sysctl.h>

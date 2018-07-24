@@ -17,7 +17,6 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
-#include <stdint.h>
 
 #include <isc/crc64.h>
 #include <isc/event.h>

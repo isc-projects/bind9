@@ -14,7 +14,7 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/mem.h>
 #include <isc/string.h>

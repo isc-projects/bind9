@@ -12,7 +12,7 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/base32.h>
 #include <isc/mem.h>

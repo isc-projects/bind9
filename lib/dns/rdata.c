@@ -16,7 +16,7 @@
 
 #include <ctype.h>
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/base64.h>
 #include <isc/hex.h>

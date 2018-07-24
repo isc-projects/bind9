@@ -12,7 +12,7 @@
 #ifndef DNS_ECS_H
 #define DNS_ECS_H 1
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/netaddr.h>
 #include <isc/types.h>

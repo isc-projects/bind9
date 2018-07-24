@@ -17,7 +17,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include "isc/hash.h" // IWYU pragma: keep
 #include "isc/likely.h"

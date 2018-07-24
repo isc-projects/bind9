@@ -35,7 +35,7 @@
 #include <ctype.h>
 #include <time.h>
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>

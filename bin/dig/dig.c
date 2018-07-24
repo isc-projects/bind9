@@ -13,12 +13,11 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdbool.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <time.h>
 #include <ctype.h>
-#include <inttypes.h>
 
 #include <isc/app.h>
 #include <isc/netaddr.h>

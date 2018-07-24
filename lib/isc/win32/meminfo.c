@@ -11,7 +11,7 @@
 
 #include <config.h>
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <windows.h>
 
 #include <isc/meminfo.h>

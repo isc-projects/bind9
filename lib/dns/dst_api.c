@@ -28,7 +28,7 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <time.h>
 

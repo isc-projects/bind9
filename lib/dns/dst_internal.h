@@ -28,11 +28,11 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/lang.h>
 #include <isc/buffer.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <isc/magic.h>
 #include <isc/region.h>
 #include <isc/types.h>

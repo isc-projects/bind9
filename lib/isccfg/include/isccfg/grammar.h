@@ -15,7 +15,7 @@
 /*! \file isccfg/grammar.h */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/lex.h>
 #include <isc/netaddr.h>

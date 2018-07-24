@@ -15,7 +15,7 @@
 #include <config.h>
 
 #include <stddef.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/assertions.h>

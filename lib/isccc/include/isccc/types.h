@@ -29,7 +29,7 @@
 
 /*! \file isccc/types.h */
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/result.h>
 

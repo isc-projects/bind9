@@ -18,7 +18,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>

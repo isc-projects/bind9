@@ -16,7 +16,7 @@
 /*! \file dst/gssapi.h */
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/formatcheck.h>
 #include <isc/lang.h>

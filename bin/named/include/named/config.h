@@ -15,7 +15,7 @@
 
 /*! \file */
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isccfg/cfg.h>
 

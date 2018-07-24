@@ -14,7 +14,7 @@
 #define DNS_RPZ_H 1
 
 #include <stdbool.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/deprecated.h>
 #include <isc/event.h>

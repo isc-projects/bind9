@@ -14,9 +14,8 @@
 
 #include <config.h>
 
-#include <stdbool.h>
 #include <inttypes.h>
-#include <stdint.h>
+#include <stdbool.h>
 
 #include <isc/json.h>
 #include <isc/mem.h>

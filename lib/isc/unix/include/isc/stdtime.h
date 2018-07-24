@@ -16,7 +16,7 @@
 /*! \file */
 
 #include <isc/lang.h>
-#include <stdint.h>
+#include <inttypes.h>
 
 /*%
  * It's public information that 'isc_stdtime_t' is an unsigned integral type.

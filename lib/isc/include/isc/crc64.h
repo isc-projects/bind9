@@ -16,7 +16,7 @@
  * \brief CRC64 in C
  */
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>

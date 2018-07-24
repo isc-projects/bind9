@@ -11,10 +11,10 @@
 
 #pragma once
 
-#include <stdint.h>
+#include <inttypes.h>
 #include <stdlib.h>
 
-#include <stdint.h>
+#include <inttypes.h>
 
 #include <isc/lang.h>
 #include <isc/types.h>
