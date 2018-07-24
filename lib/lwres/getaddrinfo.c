@@ -358,7 +358,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 #ifdef LWRES_HAVE_SIN6_SCOPE_ID
 		char *p, *ep;
 		char ntmp[NI_MAXHOST];
-		lwres_uint32_t scopeid;
+		uint32_t scopeid;
 #endif
 
 #ifdef LWRES_HAVE_SIN6_SCOPE_ID
@@ -378,7 +378,7 @@ lwres_getaddrinfo(const char *hostname, const char *servname,
 			 */
 
 			if (p != NULL)
-				scopeid = (lwres_uint32_t)strtoul(p + 1,
+				scopeid = (uint32_t)strtoul(p + 1,
 								  &ep, 10);
 			if (p != NULL && ep != NULL && ep[0] == '\0')
 				*p = '\0';

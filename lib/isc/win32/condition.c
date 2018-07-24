@@ -234,7 +234,7 @@ isc_result_t
 isc_condition_waituntil(isc_condition_t *cond, isc_mutex_t *mutex,
 			isc_time_t *t) {
 	DWORD milliseconds;
-	isc_uint64_t microseconds;
+	uint64_t microseconds;
 	isc_time_t now;
 
 	if (isc_time_now(&now) != ISC_R_SUCCESS) {

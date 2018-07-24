@@ -48,7 +48,7 @@ lwres_result_t
 </tr>
 <tr>
 <td> </td>
-<td>lwres_uint16_t *<var class="pdparam">len</var><code>)</code>;</td>
+<td>uint16_t *<var class="pdparam">len</var><code>)</code>;</td>
 </tr>
 </table>
 <div class="funcprototype-spacer"> </div>
@@ -78,7 +78,7 @@ lwres_result_t
 </tr>
 <tr>
 <td> </td>
-<td>lwres_uint32_t <var class="pdparam">addrtypes</var>, </td>
+<td>uint32_t <var class="pdparam">addrtypes</var>, </td>
 </tr>
 <tr>
 <td> </td>
@@ -95,11 +95,11 @@ lwres_result_t
 </tr>
 <tr>
 <td> </td>
-<td>lwres_uint32_t <var class="pdparam">addrtype</var>, </td>
+<td>uint32_t <var class="pdparam">addrtype</var>, </td>
 </tr>
 <tr>
 <td> </td>
-<td>lwres_uint16_t <var class="pdparam">addrlen</var>, </td>
+<td>uint16_t <var class="pdparam">addrlen</var>, </td>
 </tr>
 <tr>
 <td> </td>
@@ -151,13 +151,13 @@ lwres_result_t
 
 <pre class="programlisting">
 typedef struct {
-        lwres_uint32_t          flags;
-        lwres_uint16_t          naliases;
-        lwres_uint16_t          naddrs;
+        uint32_t          flags;
+        uint16_t          naliases;
+        uint16_t          naddrs;
         char                   *realname;
         char                  **aliases;
-        lwres_uint16_t          realnamelen;
-        lwres_uint16_t         *aliaslen;
+        uint16_t          realnamelen;
+        uint16_t         *aliaslen;
         lwres_addrlist_t        addrs;
         void                   *base;
         size_t                  baselen;

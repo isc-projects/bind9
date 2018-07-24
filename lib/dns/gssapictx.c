@@ -537,7 +537,7 @@ dst_gssapi_releasecred(gss_cred_id_t *cred) {
  * call chain for reporting to the user.
  */
 static void
-gss_err_message(isc_mem_t *mctx, isc_uint32_t major, isc_uint32_t minor,
+gss_err_message(isc_mem_t *mctx, uint32_t major, uint32_t minor,
 		char **err_message)
 {
 	char buf[1024];
@@ -838,7 +838,7 @@ dst_gssapi_deletectx(isc_mem_t *mctx, gss_ctx_id_t *gssctx)
 }
 
 char *
-gss_error_tostring(isc_uint32_t major, isc_uint32_t minor,
+gss_error_tostring(uint32_t major, uint32_t minor,
 		   char *buf, size_t buflen) {
 #ifdef GSSAPI
 	gss_buffer_desc msg_minor = GSS_C_EMPTY_BUFFER,

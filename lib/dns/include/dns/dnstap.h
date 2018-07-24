@@ -103,8 +103,8 @@ struct dns_dtdata {
 	isc_region_t qaddr;
 	isc_region_t raddr;
 
-	isc_uint32_t qport;
-	isc_uint32_t rport;
+	uint32_t qport;
+	uint32_t rport;
 
 	isc_region_t msgdata;
 	dns_message_t *msg;
@@ -341,7 +341,7 @@ dns_dt_open(const char *filename, dns_dtmode_t mode,
  */
 
 isc_result_t
-dns_dt_getframe(dns_dthandle_t *handle, isc_uint8_t **bufp, size_t *sizep);
+dns_dt_getframe(dns_dthandle_t *handle, uint8_t **bufp, size_t *sizep);
 /*%<
  * Read a dnstap frame from the framstream reader in 'handle', storing
  * a pointer to it in '*bufp' and its size in '*sizep'.

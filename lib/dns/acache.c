@@ -100,7 +100,7 @@
 			      memory_order_relaxed);
 #else
 #define acache_storetime(entry, t) \
-	(isc_atomic_store((isc_int32_t *)&(entry)->lastused, (t)))
+	(isc_atomic_store((int32_t *)&(entry)->lastused, (t)))
 #endif
 
 #else
@@ -794,7 +794,7 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	 */
 	if (cleaner->overmem) {
 		unsigned int passed;
-		isc_uint32_t val;
+		uint32_t val;
 
 		if (isc_serial_ge(now32, entry->lastused))
 			passed = now32 - entry->lastused; /* <= interval */
@@ -1391,7 +1391,7 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 {
 	dns_acacheentry_t *newentry;
 	isc_result_t result;
-	isc_uint32_t r;
+	uint32_t r;
 	isc_stdtime_t tmptime;
 
 	REQUIRE(DNS_ACACHE_VALID(acache));

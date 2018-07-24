@@ -1350,12 +1350,12 @@ cache_dumparg {
 	void			*arg;		/* type dependent argument */
 	int			ncounters;	/* for general statistics */
 	int			*counterindices; /* for general statistics */
-	isc_uint64_t		*countervalues;	 /* for general statistics */
+	uint64_t		*countervalues;	 /* for general statistics */
 	isc_result_t		result;
 } cache_dumparg_t;
 
 static void
-getcounter(isc_statscounter_t counter, isc_uint64_t val, void *arg) {
+getcounter(isc_statscounter_t counter, uint64_t val, void *arg) {
 	cache_dumparg_t *dumparg = arg;
 
 	REQUIRE(counter < dumparg->ncounters);
@@ -1364,7 +1364,7 @@ getcounter(isc_statscounter_t counter, isc_uint64_t val, void *arg) {
 
 static void
 getcounters(isc_stats_t *stats, isc_statsformat_t type, int ncounters,
-	    int *indices, isc_uint64_t *values)
+	    int *indices, uint64_t *values)
 {
 	cache_dumparg_t dumparg;
 
@@ -1381,69 +1381,69 @@ getcounters(isc_stats_t *stats, isc_statsformat_t type, int ncounters,
 void
 dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 	int indices[dns_cachestatscounter_max];
-	isc_uint64_t values[dns_cachestatscounter_max];
+	uint64_t values[dns_cachestatscounter_max];
 
 	REQUIRE(VALID_CACHE(cache));
 
 	getcounters(cache->stats, isc_statsformat_file,
 		    dns_cachestatscounter_max, indices, values);
 
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_hits],
 		"cache hits");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_misses],
 		"cache misses");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_queryhits],
 		"cache hits (from query)");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_querymisses],
 		"cache misses (from query)");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_deletelru],
 		"cache records deleted due to memory exhaustion");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_deletettl],
 		"cache records deleted due to TTL expiration");
 	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db),
 		"cache database nodes");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) dns_db_hashsize(cache->db),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) dns_db_hashsize(cache->db),
 		"cache database hash buckets");
 
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_total(cache->mctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_total(cache->mctx),
 		"cache tree memory total");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_inuse(cache->mctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_inuse(cache->mctx),
 		"cache tree memory in use");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_maxinuse(cache->mctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_maxinuse(cache->mctx),
 		"cache tree highest memory in use");
 
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_total(cache->hmctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_total(cache->hmctx),
 		"cache heap memory total");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_inuse(cache->hmctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_inuse(cache->hmctx),
 		"cache heap memory in use");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_maxinuse(cache->hmctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_maxinuse(cache->hmctx),
 		"cache heap highest memory in use");
 }
 
 #ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 static int
-renderstat(const char *name, isc_uint64_t value, xmlTextWriterPtr writer) {
+renderstat(const char *name, uint64_t value, xmlTextWriterPtr writer) {
 	int xmlrc;
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counter"));
 	TRY0(xmlTextWriterWriteAttribute(writer,
 					 ISC_XMLCHAR "name", ISC_XMLCHAR name));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64 "",
 					    value));
 	TRY0(xmlTextWriterEndElement(writer)); /* counter */
 
@@ -1454,7 +1454,7 @@ error:
 int
 dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer) {
 	int indices[dns_cachestatscounter_max];
-	isc_uint64_t values[dns_cachestatscounter_max];
+	uint64_t values[dns_cachestatscounter_max];
 	int xmlrc;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -1501,7 +1501,7 @@ isc_result_t
 dns_cache_renderjson(dns_cache_t *cache, json_object *cstats) {
 	isc_result_t result = ISC_R_SUCCESS;
 	int indices[dns_cachestatscounter_max];
-	isc_uint64_t values[dns_cachestatscounter_max];
+	uint64_t values[dns_cachestatscounter_max];
 	json_object *obj;
 
 	REQUIRE(VALID_CACHE(cache));

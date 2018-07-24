@@ -45,13 +45,13 @@ lwres_string_parse, lwres_addr_parse, lwres_getaddrsbyname, lwres_getnamebyaddr 
 .fi
 .ft
 .HP \w'lwres_result_t\ lwres_string_parse('u
-.BI "lwres_result_t lwres_string_parse(lwres_buffer_t\ *" "b" ", char\ **" "c" ", lwres_uint16_t\ *" "len" ");"
+.BI "lwres_result_t lwres_string_parse(lwres_buffer_t\ *" "b" ", char\ **" "c" ", uint16_t\ *" "len" ");"
 .HP \w'lwres_result_t\ lwres_addr_parse('u
 .BI "lwres_result_t lwres_addr_parse(lwres_buffer_t\ *" "b" ", lwres_addr_t\ *" "addr" ");"
 .HP \w'lwres_result_t\ lwres_getaddrsbyname('u
-.BI "lwres_result_t lwres_getaddrsbyname(lwres_context_t\ *" "ctx" ", const\ char\ *" "name" ", lwres_uint32_t\ " "addrtypes" ", lwres_gabnresponse_t\ **" "structp" ");"
+.BI "lwres_result_t lwres_getaddrsbyname(lwres_context_t\ *" "ctx" ", const\ char\ *" "name" ", uint32_t\ " "addrtypes" ", lwres_gabnresponse_t\ **" "structp" ");"
 .HP \w'lwres_result_t\ lwres_getnamebyaddr('u
-.BI "lwres_result_t lwres_getnamebyaddr(lwres_context_t\ *" "ctx" ", lwres_uint32_t\ " "addrtype" ", lwres_uint16_t\ " "addrlen" ", const\ unsigned\ char\ *" "addr" ", lwres_gnbaresponse_t\ **" "structp" ");"
+.BI "lwres_result_t lwres_getnamebyaddr(lwres_context_t\ *" "ctx" ", uint32_t\ " "addrtype" ", uint16_t\ " "addrlen" ", const\ unsigned\ char\ *" "addr" ", lwres_gnbaresponse_t\ **" "structp" ");"
 .SH "DESCRIPTION"
 .PP
 \fBlwres_string_parse()\fR
@@ -88,13 +88,13 @@ structure defined below:
 .\}
 .nf
 typedef struct {
-        lwres_uint32_t          flags;
-        lwres_uint16_t          naliases;
-        lwres_uint16_t          naddrs;
+        uint32_t          flags;
+        uint16_t          naliases;
+        uint16_t          naddrs;
         char                   *realname;
         char                  **aliases;
-        lwres_uint16_t          realnamelen;
-        lwres_uint16_t         *aliaslen;
+        uint16_t          realnamelen;
+        uint16_t         *aliaslen;
         lwres_addrlist_t        addrs;
         void                   *base;
         size_t                  baselen;

@@ -142,7 +142,7 @@ do { \
  */
 isc_boolean_t
 dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
-			dns_name_t *prefix, isc_uint16_t *offset)
+			dns_name_t *prefix, uint16_t *offset)
 {
 	dns_name_t tname, nname;
 	dns_compressnode_t *node = NULL;
@@ -209,7 +209,7 @@ name_length(const dns_name_t *name) {
 
 void
 dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
-		 const dns_name_t *prefix, isc_uint16_t offset)
+		 const dns_name_t *prefix, uint16_t offset)
 {
 	dns_name_t tname, xname;
 	unsigned int start;
@@ -219,7 +219,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	dns_compressnode_t *node;
 	unsigned int length;
 	unsigned int tlength;
-	isc_uint16_t toffset;
+	uint16_t toffset;
 	unsigned char *tmp;
 	isc_region_t r;
 
@@ -260,7 +260,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		hash = dns_name_hash(&tname, ISC_FALSE) %
 		       DNS_COMPRESS_TABLESIZE;
 		tlength = name_length(&tname);
-		toffset = (isc_uint16_t)(offset + (length - tlength));
+		toffset = (uint16_t)(offset + (length - tlength));
 		if (toffset >= 0x4000)
 			break;
 		/*
@@ -283,7 +283,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 			toffset |= 0x8000;
 		node->offset = toffset;
 		dns_name_toregion(&tname, &node->r);
-		node->labels = (isc_uint8_t)dns_name_countlabels(&tname);
+		node->labels = (uint8_t)dns_name_countlabels(&tname);
 		node->next = cctx->table[hash];
 		cctx->table[hash] = node;
 		start++;
@@ -296,7 +296,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 }
 
 void
-dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
+dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
 	unsigned int i;
 	dns_compressnode_t *node;
 

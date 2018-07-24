@@ -54,7 +54,7 @@ contained in the actual receive buffer, eliminating copying.
 NOOP (aka ping) packet format (request, response):
 
 	lwres_lwpacket_t header;
-	isc_uint16_t datalength;
+	uint16_t datalength;
 	< datalength bytes >
 
 The server simply returns the entire data region in the reply.  This
@@ -65,23 +65,23 @@ GETADDRSBYNAME (response):
 
 	lwres_lwpacket_t header;
 
-	isc_uint16_t naliases;
+	uint16_t naliases;
 
-	isc_uint16_t naddrs;
+	uint16_t naddrs;
 
-	isc_uint16_t real_name_len;
+	uint16_t real_name_len;
 	< real_name_len bytes of name >
-	isc_uint8_t \0
+	uint8_t \0
 
 	< naliases of
-		isc_uint16_t len;
+		uint16_t len;
 		< len bytes of name >
-		isc_uint8_t \0
+		uint8_t \0
 	>
 
 	< naddrs of
-		isc_uint32_t family;
-		isc_uint16_t len;
+		uint32_t family;
+		uint16_t len;
 		< len bytes of address >
 	>
 
@@ -90,16 +90,16 @@ GETNAMEBYADDR (response):
 
 	lwres_lwpacket_t header;
 
-	isc_uint16_t naliases;
+	uint16_t naliases;
 
-	isc_uint16_t real_name_len;
+	uint16_t real_name_len;
 	< real_name_len bytes of name >
-	isc_uint8_t \0
+	uint8_t \0
 
 	< naliases of
-		isc_uint16_t len;
+		uint16_t len;
 		< len bytes of name >
-		isc_uint8_t \0
+		uint8_t \0
 	>
 
 

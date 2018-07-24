@@ -19,7 +19,7 @@
 
 int
 main() {
-	isc_uint32_t a, b;
+	uint32_t a, b;
 	char buf[1024];
 	char *s, *e;
 

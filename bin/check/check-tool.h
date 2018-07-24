@@ -35,7 +35,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 isc_result_t
 dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 	  dns_masterformat_t fileformat, const dns_master_style_t *style,
-	  const isc_uint32_t rawversion);
+	  const uint32_t rawversion);
 
 #ifdef _WIN32
 void InitSockets(void);

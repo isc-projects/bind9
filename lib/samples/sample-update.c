@@ -481,7 +481,7 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, isc_boolean_t isdelete,
 		   dns_name_t *name)
 {
 	isc_result_t result;
-	isc_uint32_t ttl;
+	uint32_t ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;

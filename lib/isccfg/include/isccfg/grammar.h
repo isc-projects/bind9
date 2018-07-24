@@ -164,8 +164,8 @@ struct cfg_rep {
 struct cfg_obj {
 	const cfg_type_t *type;
 	union {
-		isc_uint32_t  	uint32;
-		isc_uint64_t  	uint64;
+		uint32_t  	uint32;
+		uint64_t  	uint64;
 		isc_textregion_t string; /*%< null terminated, too */
 		isc_boolean_t 	boolean;
 		cfg_map_t	map;

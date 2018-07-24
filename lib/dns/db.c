@@ -833,7 +833,7 @@ dns_db_overmem(dns_db_t *db, isc_boolean_t overmem) {
 }
 
 isc_result_t
-dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp)
+dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, uint32_t *serialp)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -991,8 +991,8 @@ dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats) {
 
 isc_result_t
 dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
-			  dns_hash_t *hash, isc_uint8_t *flags,
-			  isc_uint16_t *iterations,
+			  dns_hash_t *hash, uint8_t *flags,
+			  uint16_t *iterations,
 			  unsigned char *salt, size_t *salt_length)
 {
 	REQUIRE(DNS_DB_VALID(db));
@@ -1007,8 +1007,8 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 }
 
 isc_result_t
-dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
-	       isc_uint64_t *bytes)
+dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
+	       uint64_t *bytes)
 {
 	REQUIRE(DNS_DB_VALID(db));
 	REQUIRE(dns_db_iszone(db) == ISC_TRUE);

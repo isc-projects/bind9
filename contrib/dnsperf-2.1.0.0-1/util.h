@@ -27,7 +27,7 @@
 #ifndef PERF_UTIL_H
 #define PERF_UTIL_H 1
 
-#define MILLION ((isc_uint64_t) 1000000)
+#define MILLION ((uint64_t) 1000000)
 
 #define THREAD(thread, start, arg) do {					\
 	int __n = pthread_create((thread), NULL, (start), (arg));	\
@@ -109,7 +109,7 @@
 		*res = ISC_TF(__n != 0);				\
 	} while (0)
 
-static __inline__ isc_uint64_t
+static __inline__ uint64_t
 get_time(void)
 {
 	struct timeval tv;

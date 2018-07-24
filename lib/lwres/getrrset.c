@@ -173,8 +173,8 @@ lwres_getrrsetbyname(const char *hostname, unsigned int rdclass,
 	lwflags = 0;
 
 	lwresult = lwres_getrdatabyname(lwrctx, hostname,
-					(lwres_uint16_t)rdclass,
-					(lwres_uint16_t)rdtype,
+					(uint16_t)rdclass,
+					(uint16_t)rdtype,
 					lwflags, &response);
 	if (lwresult != LWRES_R_SUCCESS) {
 		result = lwresult_to_result(lwresult);

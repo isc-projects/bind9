@@ -50,7 +50,7 @@ struct isc_ht_iter {
 };
 
 isc_result_t
-isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits) {
+isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits) {
 	isc_ht_t *ht = NULL;
 	size_t i;
 
@@ -120,10 +120,10 @@ isc_ht_destroy(isc_ht_t **htp) {
 
 isc_result_t
 isc_ht_add(isc_ht_t *ht, const unsigned char *key,
-	   isc_uint32_t keysize, void *value)
+	   uint32_t keysize, void *value)
 {
 	isc_ht_node_t *node;
-	isc_uint32_t hash;
+	uint32_t hash;
 
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(key != NULL && keysize > 0);
@@ -154,10 +154,10 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key,
 
 isc_result_t
 isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
-	    isc_uint32_t keysize, void **valuep)
+	    uint32_t keysize, void **valuep)
 {
 	isc_ht_node_t *node;
-	isc_uint32_t hash;
+	uint32_t hash;
 
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(key != NULL && keysize > 0);
@@ -178,9 +178,9 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 }
 
 isc_result_t
-isc_ht_delete(isc_ht_t *ht, const unsigned char *key, isc_uint32_t keysize) {
+isc_ht_delete(isc_ht_t *ht, const unsigned char *key, uint32_t keysize) {
 	isc_ht_node_t *node, *prev;
-	isc_uint32_t hash;
+	uint32_t hash;
 
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(key != NULL && keysize > 0);
@@ -283,7 +283,7 @@ isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
 	isc_ht_node_t *to_delete = NULL;
 	isc_ht_node_t *prev = NULL;
 	isc_ht_node_t *node = NULL;
-	isc_uint32_t hash;
+	uint32_t hash;
 	isc_ht_t *ht;
 	REQUIRE(it != NULL);
 	REQUIRE(it->cur != NULL);
