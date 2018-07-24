@@ -204,6 +204,7 @@ n=`expr $n + 1`
 echo_i "checking DNAME target filtering (deny) ($n)"
 ret=0
 $DIG $DIGOPTS +tcp foo.baddname.example.net @10.53.0.1 a > dig.out.ns1.test${n} || ret=1
+grep "DNAME target foo.baddname.example.org denied for foo.baddname.example.net/IN" ns1/named.run >/dev/null || ret=1
 grep "status: SERVFAIL" dig.out.ns1.test${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
