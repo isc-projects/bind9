@@ -587,7 +587,7 @@ pkcs11ecdsa_isprivate(const dst_key_t *key) {
 	if (ec == NULL)
 		return (false);
 	attr = pk11_attribute_bytype(ec, CKA_VALUE);
-	return (attr != NULL || ec->ontoken));
+	return (attr != NULL || ec->ontoken);
 }
 
 static void

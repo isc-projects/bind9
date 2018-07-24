@@ -1298,7 +1298,7 @@ pkcs11rsa_isprivate(const dst_key_t *key) {
 	if (rsa == NULL)
 		return (false);
 	attr = pk11_attribute_bytype(rsa, CKA_PRIVATE_EXPONENT);
-	return (attr != NULL || rsa->ontoken));
+	return (attr != NULL || rsa->ontoken);
 }
 
 static void
