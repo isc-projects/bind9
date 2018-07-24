@@ -105,7 +105,7 @@ for (<>) {
 
   if (/$nocomment.*ISC_(TRUE|FALSE|TF)\W/m &&
       ! m%^#include <isc/(types|boolean).h>%m) {
-    print "$file has ISC_TRUE/FALSE/TF without <isc/(boolean|types).h>\n"
+    print "$file has true/FALSE/TF without <isc/(boolean|types).h>\n"
       unless $file =~ m%isc/boolean.h%;
   }
 

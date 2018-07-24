@@ -178,7 +178,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 	int zeropad;
 	int dot;
 	double dbl;
-	isc_boolean_t precision_set;
+	bool precision_set;
 #ifdef HAVE_LONG_DOUBLE
 	long double ldbl;
 #endif
@@ -203,7 +203,7 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 		width = precision = 0;
 		head = "";
 		pad = zeropad = 0;
-		precision_set = ISC_FALSE;
+		precision_set = false;
 
 		do {
 			if (*format == '#') {
@@ -249,12 +249,12 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			dot = 1;
 			if (*format == '*') {
 				precision = va_arg(ap, int);
-				precision_set = ISC_TRUE;
+				precision_set = true;
 				format++;
 			} else if (isdigit((unsigned char)*format)) {
 				char *e;
 				precision = strtoul(format, &e, 10);
-				precision_set = ISC_TRUE;
+				precision_set = true;
 				format = e;
 			}
 		}

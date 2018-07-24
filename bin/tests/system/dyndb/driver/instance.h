@@ -20,7 +20,7 @@ struct sample_instance {
 	dns_view_t		*view;
 	dns_zonemgr_t		*zmgr;
 	isc_task_t		*task;
-	isc_boolean_t		exiting;
+	bool		exiting;
 
 	dns_zone_t		*zone1;
 	dns_fixedname_t		zone1_fn;

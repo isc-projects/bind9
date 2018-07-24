@@ -32,7 +32,7 @@ typedef struct {
 	unsigned int	magic;
 	char		dirname[ISC_DIR_PATHMAX];
 	isc_direntry_t	entry;
-	isc_boolean_t	entry_filled;
+	bool	entry_filled;
 	HANDLE        	search_handle;
 } isc_dir_t;
 

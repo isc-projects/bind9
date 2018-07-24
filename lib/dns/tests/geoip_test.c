@@ -131,7 +131,7 @@ load_geoip(const char *dir) {
 		      method, "NetSpeed");
 }
 
-static isc_boolean_t
+static bool
 do_lookup_string(const char *addr, uint8_t *scope,
 		 dns_geoip_subtype_t subtype, const char *string)
 {
@@ -148,7 +148,7 @@ do_lookup_string(const char *addr, uint8_t *scope,
 	return (dns_geoip_match(&na, scope, &geoip, &elt));
 }
 
-static isc_boolean_t
+static bool
 do_lookup_string_v6(const char *addr, uint8_t *scope,
 		    dns_geoip_subtype_t subtype, const char *string)
 {
@@ -165,7 +165,7 @@ do_lookup_string_v6(const char *addr, uint8_t *scope,
 	return (dns_geoip_match(&na, scope, &geoip, &elt));
 }
 
-static isc_boolean_t
+static bool
 do_lookup_int(const char *addr, uint8_t *scope,
 	      dns_geoip_subtype_t subtype, int id)
 {
@@ -193,12 +193,12 @@ ATF_TC_HEAD(country, tc) {
 }
 ATF_TC_BODY(country, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 	uint8_t scope;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -244,12 +244,12 @@ ATF_TC_HEAD(country_v6, tc) {
 }
 ATF_TC_BODY(country_v6, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 	uint8_t scope;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -285,11 +285,11 @@ ATF_TC_HEAD(city, tc) {
 }
 ATF_TC_BODY(city, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -348,11 +348,11 @@ ATF_TC_HEAD(city_v6, tc) {
 }
 ATF_TC_BODY(city_v6, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -407,11 +407,11 @@ ATF_TC_HEAD(region, tc) {
 }
 ATF_TC_BODY(region, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -449,11 +449,11 @@ ATF_TC_HEAD(best, tc) {
 }
 ATF_TC_BODY(best, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -529,11 +529,11 @@ ATF_TC_HEAD(asnum, tc) {
 }
 ATF_TC_BODY(asnum, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -559,11 +559,11 @@ ATF_TC_HEAD(isp, tc) {
 }
 ATF_TC_BODY(isp, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -588,11 +588,11 @@ ATF_TC_HEAD(org, tc) {
 }
 ATF_TC_BODY(org, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -617,11 +617,11 @@ ATF_TC_HEAD(domain, tc) {
 }
 ATF_TC_BODY(domain, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */
@@ -646,11 +646,11 @@ ATF_TC_HEAD(netspeed, tc) {
 }
 ATF_TC_BODY(netspeed, tc) {
 	isc_result_t result;
-	isc_boolean_t match;
+	bool match;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* Use databases from the geoip system test */

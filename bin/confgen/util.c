@@ -23,7 +23,7 @@
 
 #include "util.h"
 
-extern isc_boolean_t verbose;
+extern bool verbose;
 extern const char *progname;
 
 void

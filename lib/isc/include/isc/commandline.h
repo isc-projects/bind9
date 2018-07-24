@@ -29,9 +29,9 @@ LIBISC_EXTERNAL_DATA extern char *isc_commandline_argument;
 /*% For printing error messages. */
 LIBISC_EXTERNAL_DATA extern char *isc_commandline_progname;
 /*% Print error message. */
-LIBISC_EXTERNAL_DATA extern isc_boolean_t isc_commandline_errprint;
+LIBISC_EXTERNAL_DATA extern bool isc_commandline_errprint;
 /*% Reset getopt. */
-LIBISC_EXTERNAL_DATA extern isc_boolean_t isc_commandline_reset;
+LIBISC_EXTERNAL_DATA extern bool isc_commandline_reset;
 
 ISC_LANG_BEGINDECLS
 

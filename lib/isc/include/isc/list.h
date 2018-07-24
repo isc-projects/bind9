@@ -37,7 +37,7 @@
 
 #define ISC_LIST_HEAD(list) ((list).head)
 #define ISC_LIST_TAIL(list) ((list).tail)
-#define ISC_LIST_EMPTY(list) ISC_TF((list).head == NULL)
+#define ISC_LIST_EMPTY(list) !!((list).head == NULL)
 
 #define __ISC_LIST_PREPENDUNSAFE(list, elt, link) \
 	do { \

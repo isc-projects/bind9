@@ -51,9 +51,9 @@ respond(ns_client_t *client, isc_result_t result) {
 	message = client->message;
 	rcode = dns_result_torcode(result);
 
-	msg_result = dns_message_reply(message, ISC_TRUE);
+	msg_result = dns_message_reply(message, true);
 	if (msg_result != ISC_R_SUCCESS)
-		msg_result = dns_message_reply(message, ISC_FALSE);
+		msg_result = dns_message_reply(message, false);
 	if (msg_result != ISC_R_SUCCESS) {
 		ns_client_next(client, msg_result);
 		return;

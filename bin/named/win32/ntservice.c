@@ -80,7 +80,7 @@ ServiceControl(DWORD dwCtrlCode) {
 
 	case SERVICE_CONTROL_SHUTDOWN:
 	case SERVICE_CONTROL_STOP:
-		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
+		ns_server_flushonshutdown(ns_g_server, true);
 		isc_app_shutdown();
 		UpdateSCM(SERVICE_STOPPED);
 		break;
@@ -131,7 +131,7 @@ int main(int argc, char *argv[])
 	int rc, ch;
 
 	/* Command line users should put -f in the options. */
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 	while ((ch = isc_commandline_parse(argc, argv, NS_MAIN_ARGS)) != -1) {
 		switch (ch) {
 		case 'f':
@@ -144,7 +144,7 @@ int main(int argc, char *argv[])
 			break;
 		}
 	}
-	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_reset = true;
 
 	if (foreground) {
 		/* run in console window */

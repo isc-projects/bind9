@@ -182,7 +182,7 @@ attachversion(dns_db_t *db, dns_dbversion_t *source,
 }
 
 static void
-closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
+closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 	sampledb_t *sampledb = (sampledb_t *)db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
@@ -191,7 +191,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, isc_boolean_t commit) {
 }
 
 static isc_result_t
-findnode(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+findnode(dns_db_t *db, dns_name_t *name, bool create,
 	 dns_dbnode_t **nodep)
 {
 	sampledb_t *sampledb = (sampledb_t *) db;
@@ -372,7 +372,7 @@ deleterdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 				      type, covers));
 }
 
-static isc_boolean_t
+static bool
 issecure(dns_db_t *db) {
 	sampledb_t *sampledb = (sampledb_t *) db;
 
@@ -392,17 +392,17 @@ nodecount(dns_db_t *db) {
 
 /*
  * The database does not need to be loaded from disk or written to disk.
- * Always return ISC_TRUE.
+ * Always return true.
  */
-static isc_boolean_t
+static bool
 ispersistent(dns_db_t *db) {
 	UNUSED(db);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
-overmem(dns_db_t *db, isc_boolean_t over) {
+overmem(dns_db_t *db, bool over) {
 	sampledb_t *sampledb = (sampledb_t *) db;
 
 	REQUIRE(VALID_SAMPLEDB(sampledb));
@@ -455,7 +455,7 @@ getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
 }
 
 static isc_result_t
-findnsec3node(dns_db_t *db, dns_name_t *name, isc_boolean_t create,
+findnsec3node(dns_db_t *db, dns_name_t *name, bool create,
 	      dns_dbnode_t **nodep)
 {
 	sampledb_t *sampledb = (sampledb_t *) db;
@@ -492,7 +492,7 @@ resigned(dns_db_t *db, dns_rdataset_t *rdataset, dns_dbversion_t *version) {
 	dns_db_resigned(sampledb->rbtdb, rdataset, version);
 }
 
-static isc_boolean_t
+static bool
 isdnssec(dns_db_t *db) {
 	sampledb_t *sampledb = (sampledb_t *) db;
 
@@ -531,7 +531,7 @@ rpz_ready(dns_db_t *db) {
 
 static isc_result_t
 findnodeext(dns_db_t *db, dns_name_t *name,
-	    isc_boolean_t create, dns_clientinfomethods_t *methods,
+	    bool create, dns_clientinfomethods_t *methods,
 	    dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep)
 {
 	sampledb_t *sampledb = (sampledb_t *) db;
@@ -660,7 +660,7 @@ add_soa(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	rdatalist.ttl = 86400;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	CHECK(dns_rdatalist_tordataset(&rdatalist, &rdataset));
-	CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
+	CHECK(dns_db_findnode(db, name, true, &node));
 	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
  cleanup:
 	if (node != NULL)
@@ -699,7 +699,7 @@ add_ns(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	rdatalist.ttl = 86400;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	CHECK(dns_rdatalist_tordataset(&rdatalist, &rdataset));
-	CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
+	CHECK(dns_db_findnode(db, name, true, &node));
 	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
  cleanup:
 	if (node != NULL)
@@ -735,7 +735,7 @@ add_a(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 	rdatalist.ttl = 86400;
 	ISC_LIST_APPEND(rdatalist.rdata, &rdata, link);
 	CHECK(dns_rdatalist_tordataset(&rdatalist, &rdataset));
-	CHECK(dns_db_findnode(db, name, ISC_TRUE, &node));
+	CHECK(dns_db_findnode(db, name, true, &node));
 	CHECK(dns_db_addrdataset(db, node, version, 0, &rdataset, 0, NULL));
  cleanup:
 	if (node != NULL)
@@ -800,7 +800,7 @@ create_db(isc_mem_t *mctx, dns_name_t *origin, dns_dbtype_t type,
 	CHECK(add_soa(sampledb->rbtdb, version, origin, origin, origin));
 	CHECK(add_ns(sampledb->rbtdb, version, origin, origin));
 	CHECK(add_a(sampledb->rbtdb, version, origin, a_addr));
-	dns_db_closeversion(sampledb->rbtdb, &version, ISC_TRUE);
+	dns_db_closeversion(sampledb->rbtdb, &version, true);
 
 	*dbp = (dns_db_t *)sampledb;
 

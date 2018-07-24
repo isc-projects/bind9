@@ -173,7 +173,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 				    DNS_TSIG_HMACMD5_NAME,
 				    isc_buffer_base(&keybuf),
 				    isc_buffer_usedlength(&keybuf),
-				    ISC_FALSE, NULL, 0, 0, mctx, ring,
+				    false, NULL, 0, 0, mctx, ring,
 				    &initialkey);
 	CHECK("dns_tsigkey_create", result);
 

@@ -267,7 +267,7 @@ will look like the following:
         ATF_TC_BODY(serialize_align, tc) {
                 UNUSED(tc);
 
-                result = isc_test_begin(NULL, ISC_TRUE);
+                result = isc_test_begin(NULL, true);
                 ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
                 ATF_CHECK_EQ(value1, value2);
@@ -453,7 +453,7 @@ or the end of file was reached, but BIND's version uses result codes:
 
 Only functions which cannot fail (assuming the caller has provided valid
 arguments) should return data directly instead of a result code.  For
-example, `dns_name_issubdomain()` returns an `isc_boolean_t`, because it
+example, `dns_name_issubdomain()` returns an `bool`, because it
 has no failure mode.
 
 A result code can be converted to a human-readable error message by
@@ -1387,24 +1387,24 @@ this simply involves adding the entire record to a region and passing that
 to `digest`, because new record types are treated as opaque blobs of data
 by DNSSEC.
 
-        static isc_boolean_t
+        static bool
         checkowner[_<class>]_<type>(dns_name_t *name,
                                     dns_rdataclass_t rdclass,
                                     dns_rdatatype_t type,
-                                    isc_boolean_t wildcard);
+                                    bool wildcard);
 
 "checkowner" takes the owner name of the record and checks
 that it meets appropriate rules that are defined external to the DNS.
-In most cases this can just be a function that returns `ISC_TRUE`.
+In most cases this can just be a function that returns `true`.
 
-        static isc_boolean_t
+        static bool
         checknames[_<class>]_<type>(dns_rdata_t *rdata,
                                     dns_name_t *owner,
                                     dns_name_t *bad);
 
 "checknames" checks the contents of the rdata with the given
 owner name to ensure that it meets externally defined syntax rules.
-If `ISC_FALSE` is returned, then `bad` will point to the name that
+If `false` is returned, then `bad` will point to the name that
 caused the probelm.
 
         static int

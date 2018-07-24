@@ -62,7 +62,7 @@ entropy_get(unsigned char *buf, int num) {
 	isc_result_t result;
 	if (num < 0)
 		return (-1);
-	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_FALSE);
+	result = dst__entropy_getdata(buf, (unsigned int) num, false);
 	return (result == ISC_R_SUCCESS ? 1 : -1);
 }
 
@@ -76,7 +76,7 @@ entropy_getpseudo(unsigned char *buf, int num) {
 	isc_result_t result;
 	if (num < 0)
 		return (-1);
-	result = dst__entropy_getdata(buf, (unsigned int) num, ISC_TRUE);
+	result = dst__entropy_getdata(buf, (unsigned int) num, true);
 	return (result == ISC_R_SUCCESS ? 1 : -1);
 }
 

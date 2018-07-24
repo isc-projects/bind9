@@ -43,7 +43,7 @@ ATF_TC_BODY(epoch_minus_one, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -71,7 +71,7 @@ ATF_TC_BODY(epoch, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -99,7 +99,7 @@ ATF_TC_BODY(half_maxint, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -127,7 +127,7 @@ ATF_TC_BODY(half_plus_one, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -155,7 +155,7 @@ ATF_TC_BODY(fifty_before, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -183,7 +183,7 @@ ATF_TC_BODY(some_ago, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));

@@ -26,7 +26,7 @@ static void
 hex_dump(const char *msg, void *data, unsigned int length) {
 	unsigned int len;
 	unsigned char *base;
-	isc_boolean_t first = ISC_TRUE;
+	bool first = true;
 
 	base = data;
 
@@ -35,7 +35,7 @@ hex_dump(const char *msg, void *data, unsigned int length) {
 		if (len % 16 == 0 && !first)
 			printf("\n\t");
 		printf("%02x ", base[len]);
-		first = ISC_FALSE;
+		first = false;
 	}
 	printf("\n");
 }

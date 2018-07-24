@@ -129,7 +129,7 @@ dns_dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 }
 
 void
-dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, isc_boolean_t mode) {
+dns_dbiterator_setcleanmode(dns_dbiterator_t *iterator, bool mode) {
 	REQUIRE(DNS_DBITERATOR_VALID(iterator));
 
 	iterator->cleaning = mode;

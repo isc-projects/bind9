@@ -130,16 +130,16 @@ static uint16_t dnsport = DNSDEFAULTPORT;
 #define RESOLV_CONF "/etc/resolv.conf"
 #endif
 
-static isc_boolean_t debugging = ISC_FALSE, ddebugging = ISC_FALSE;
-static isc_boolean_t memdebugging = ISC_FALSE;
-static isc_boolean_t have_ipv4 = ISC_FALSE;
-static isc_boolean_t have_ipv6 = ISC_FALSE;
-static isc_boolean_t is_dst_up = ISC_FALSE;
-static isc_boolean_t usevc = ISC_FALSE;
-static isc_boolean_t usegsstsig = ISC_FALSE;
-static isc_boolean_t use_win2k_gsstsig = ISC_FALSE;
-static isc_boolean_t tried_other_gsstsig = ISC_FALSE;
-static isc_boolean_t local_only = ISC_FALSE;
+static bool debugging = false, ddebugging = false;
+static bool memdebugging = false;
+static bool have_ipv4 = false;
+static bool have_ipv6 = false;
+static bool is_dst_up = false;
+static bool usevc = false;
+static bool usegsstsig = false;
+static bool use_win2k_gsstsig = false;
+static bool tried_other_gsstsig = false;
+static bool local_only = false;
 static isc_taskmgr_t *taskmgr = NULL;
 static isc_task_t *global_task = NULL;
 static isc_event_t *global_event = NULL;
@@ -165,7 +165,7 @@ static lwres_context_t *lwctx = NULL;
 static lwres_conf_t *lwconf;
 static isc_sockaddr_t *servers = NULL;
 static isc_sockaddr_t *master_servers = NULL;
-static isc_boolean_t default_servers = ISC_TRUE;
+static bool default_servers = true;
 static int ns_inuse = 0;
 static int master_inuse = 0;
 static int ns_total = 0;
@@ -177,10 +177,10 @@ static isc_sockaddr_t *localaddr6 = NULL;
 static const char *keyfile = NULL;
 static char *keystr = NULL;
 static isc_entropy_t *entropy = NULL;
-static isc_boolean_t shuttingdown = ISC_FALSE;
+static bool shuttingdown = false;
 static FILE *input;
-static isc_boolean_t interactive = ISC_TRUE;
-static isc_boolean_t seenerror = ISC_FALSE;
+static bool interactive = true;
+static bool seenerror = false;
 static const dns_master_style_t *style;
 static int requests = 0;
 static unsigned int logdebuglevel = 0;
@@ -191,8 +191,8 @@ static dns_rdataclass_t defaultclass = dns_rdataclass_in;
 static dns_rdataclass_t zoneclass = dns_rdataclass_none;
 static dns_message_t *answer = NULL;
 static uint32_t default_ttl = 0;
-static isc_boolean_t default_ttl_set = ISC_FALSE;
-static isc_boolean_t checknames = ISC_TRUE;
+static bool default_ttl_set = false;
+static bool checknames = true;
 
 typedef struct nsu_requestinfo {
 	dns_message_t *msg;
@@ -326,14 +326,14 @@ getzoneclass(void) {
 	return (zoneclass);
 }
 
-static isc_boolean_t
+static bool
 setzoneclass(dns_rdataclass_t rdclass) {
 	if (zoneclass == dns_rdataclass_none ||
 	    rdclass == dns_rdataclass_none)
 		zoneclass = rdclass;
 	if (zoneclass != rdclass)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
+		return (false);
+	return (true);
 }
 
 static void
@@ -450,11 +450,11 @@ reset_system(void) {
 			dns_tsigkey_detach(&tsigkey);
 		if (gssring != NULL)
 			dns_tsigkeyring_detach(&gssring);
-		tried_other_gsstsig = ISC_FALSE;
+		tried_other_gsstsig = false;
 	}
 }
 
-static isc_boolean_t
+static bool
 parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
 	   uint16_t *digestbitsp)
 {
@@ -467,7 +467,7 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
 
 	if (len >= sizeof(buf)) {
 		error("unknown key type '%.*s'", (int)(len), hmacstr);
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	/* Copy len bytes and NUL terminate. */
@@ -481,7 +481,7 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
 		result = isc_parse_uint16(&digestbits, &buf[9], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 128) {
 			error("digest-bits out of range [0..128]");
-			return (ISC_FALSE);
+			return (false);
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else
@@ -493,7 +493,7 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
 		result = isc_parse_uint16(&digestbits, &buf[10], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 160) {
 			error("digest-bits out of range [0..160]");
-			return (ISC_FALSE);
+			return (false);
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha224") == 0) {
@@ -503,7 +503,7 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 224) {
 			error("digest-bits out of range [0..224]");
-			return (ISC_FALSE);
+			return (false);
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha256") == 0) {
@@ -513,7 +513,7 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 256) {
 			error("digest-bits out of range [0..256]");
-			return (ISC_FALSE);
+			return (false);
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha384") == 0) {
@@ -523,7 +523,7 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 384) {
 			error("digest-bits out of range [0..384]");
-			return (ISC_FALSE);
+			return (false);
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else if (strcasecmp(buf, "hmac-sha512") == 0) {
@@ -533,14 +533,14 @@ parse_hmac(dns_name_t **hmac, const char *hmacstr, size_t len,
 		result = isc_parse_uint16(&digestbits, &buf[12], 10);
 		if (result != ISC_R_SUCCESS || digestbits > 512) {
 			error("digest-bits out of range [0..512]");
-			return (ISC_FALSE);
+			return (false);
 		}
 		*digestbitsp = (digestbits + 7) & ~0x7U;
 	} else {
 		error("unknown key type '%s'", buf);
-		return (ISC_FALSE);
+		return (false);
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
 static int
@@ -623,7 +623,7 @@ setup_keystr(void) {
 
 	debug("keycreate");
 	result = dns_tsigkey_create(mykeyname, hmacname, secret, secretlen,
-				    ISC_FALSE, NULL, 0, 0, gmctx, NULL,
+				    false, NULL, 0, 0, gmctx, NULL,
 				    &tsigkey);
 	if (result != ISC_R_SUCCESS)
 		fprintf(stderr, "could not create key from %s: %s\n",
@@ -750,7 +750,7 @@ setup_keyfile(isc_mem_t *mctx, isc_log_t *lctx) {
 	}
 	if (hmacname != NULL) {
 		result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
-						   hmacname, dstkey, ISC_FALSE,
+						   hmacname, dstkey, false,
 						   NULL, 0, 0, mctx, NULL,
 						   &tsigkey);
 		dst_key_free(&dstkey);
@@ -803,7 +803,7 @@ doshutdown(void) {
 	if (is_dst_up) {
 		ddebug("Destroy DST lib");
 		dst_lib_destroy();
-		is_dst_up = ISC_FALSE;
+		is_dst_up = false;
 	}
 
 	cleanup_entropy(&entropy);
@@ -844,7 +844,7 @@ shutdown_program(isc_task_t *task, isc_event_t *event) {
 	ddebug("shutdown_program()");
 	isc_event_free(&event);
 
-	shuttingdown = ISC_TRUE;
+	shuttingdown = true;
 	maybeshutdown();
 }
 
@@ -863,11 +863,11 @@ setup_system(void) {
 
 	result = isc_net_probeipv4();
 	if (result == ISC_R_SUCCESS)
-		have_ipv4 = ISC_TRUE;
+		have_ipv4 = true;
 
 	result = isc_net_probeipv6();
 	if (result == ISC_R_SUCCESS)
-		have_ipv6 = ISC_TRUE;
+		have_ipv6 = true;
 
 	if (!have_ipv4 && !have_ipv6)
 		fatal("could not find either IPv4 or IPv6");
@@ -971,7 +971,7 @@ setup_system(void) {
 
 	result = dst_lib_init(gmctx, entropy, 0);
 	check_result(result, "dst_lib_init");
-	is_dst_up = ISC_TRUE;
+	is_dst_up = true;
 
 	attrmask = DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
 	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
@@ -1044,14 +1044,14 @@ pre_parse_args(int argc, char **argv) {
 	dns_rdatatype_t t;
 	int ch;
 	char buf[100];
-	isc_boolean_t doexit = ISC_FALSE;
+	bool doexit = false;
 
 	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
 		switch (ch) {
 		case 'M': /* was -dm */
-			debugging = ISC_TRUE;
-			ddebugging = ISC_TRUE;
-			memdebugging = ISC_TRUE;
+			debugging = true;
+			ddebugging = true;
+			memdebugging = true;
 			isc_mem_debugging = ISC_MEM_DEBUGTRACE |
 					    ISC_MEM_DEBUGRECORD;
 			break;
@@ -1074,7 +1074,7 @@ pre_parse_args(int argc, char **argv) {
 				if (strncmp(buf, "TYPE", 4) != 0)
 					fprintf(stdout, "%s\n", buf);
 			}
-			doexit = ISC_TRUE;
+			doexit = true;
 			break;
 
 		case 'T':
@@ -1085,12 +1085,12 @@ pre_parse_args(int argc, char **argv) {
 				if (strncmp(buf, "TYPE", 4) != 0)
 					fprintf(stdout, "%s\n", buf);
 			}
-			doexit = ISC_TRUE;
+			doexit = true;
 			break;
 
 		case 'V':
 			version();
-			doexit = ISC_TRUE;
+			doexit = true;
 			break;
 
 		default:
@@ -1099,7 +1099,7 @@ pre_parse_args(int argc, char **argv) {
 	}
 	if (doexit)
 		exit(0);
-	isc_commandline_reset = ISC_TRUE;
+	isc_commandline_reset = true;
 	isc_commandline_index = 1;
 }
 
@@ -1108,26 +1108,26 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 	int ch;
 	uint32_t i;
 	isc_result_t result;
-	isc_boolean_t force_interactive = ISC_FALSE;
+	bool force_interactive = false;
 
 	debug("parse_args");
 	while ((ch = isc_commandline_parse(argc, argv, PARSE_ARGS_FMT)) != -1) {
 		switch (ch) {
 		case 'd':
-			debugging = ISC_TRUE;
+			debugging = true;
 			break;
 		case 'D': /* was -dd */
-			debugging = ISC_TRUE;
-			ddebugging = ISC_TRUE;
+			debugging = true;
+			ddebugging = true;
 			break;
 		case 'M':
 			break;
 		case 'i':
-			force_interactive = ISC_TRUE;
-			interactive = ISC_TRUE;
+			force_interactive = true;
+			interactive = true;
 			break;
 		case 'l':
-			local_only = ISC_TRUE;
+			local_only = true;
 			break;
 		case 'L':
 			result = isc_parse_uint32(&i, isc_commandline_argument,
@@ -1143,18 +1143,18 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 			keystr = isc_commandline_argument;
 			break;
 		case 'v':
-			usevc = ISC_TRUE;
+			usevc = true;
 			break;
 		case 'k':
 			keyfile = isc_commandline_argument;
 			break;
 		case 'g':
-			usegsstsig = ISC_TRUE;
-			use_win2k_gsstsig = ISC_FALSE;
+			usegsstsig = true;
+			use_win2k_gsstsig = false;
 			break;
 		case 'o':
-			usegsstsig = ISC_TRUE;
-			use_win2k_gsstsig = ISC_TRUE;
+			usegsstsig = true;
+			use_win2k_gsstsig = true;
 			break;
 		case 'p':
 			result = isc_parse_uint16(&dnsport,
@@ -1239,7 +1239,7 @@ parse_args(int argc, char **argv, isc_mem_t *mctx, isc_entropy_t **ectx) {
 			}
 		}
 		if (!force_interactive) {
-			interactive = ISC_FALSE;
+			interactive = false;
 		}
 	}
 }
@@ -1334,7 +1334,7 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 }
 
 static uint16_t
-make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
+make_prereq(char *cmdline, bool ispositive, bool isrrset) {
 	isc_result_t result;
 	char *word;
 	dns_name_t *name = NULL;
@@ -1441,7 +1441,7 @@ make_prereq(char *cmdline, isc_boolean_t ispositive, isc_boolean_t isrrset) {
 static uint16_t
 evaluate_prereq(char *cmdline) {
 	char *word;
-	isc_boolean_t ispositive, isrrset;
+	bool ispositive, isrrset;
 
 	ddebug("evaluate_prereq()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -1450,17 +1450,17 @@ evaluate_prereq(char *cmdline) {
 		return (STATUS_SYNTAX);
 	}
 	if (strcasecmp(word, "nxdomain") == 0) {
-		ispositive = ISC_FALSE;
-		isrrset = ISC_FALSE;
+		ispositive = false;
+		isrrset = false;
 	} else if (strcasecmp(word, "yxdomain") == 0) {
-		ispositive = ISC_TRUE;
-		isrrset = ISC_FALSE;
+		ispositive = true;
+		isrrset = false;
 	} else if (strcasecmp(word, "nxrrset") == 0) {
-		ispositive = ISC_FALSE;
-		isrrset = ISC_TRUE;
+		ispositive = false;
+		isrrset = true;
 	} else if (strcasecmp(word, "yxrrset") == 0) {
-		ispositive = ISC_TRUE;
-		isrrset = ISC_TRUE;
+		ispositive = true;
+		isrrset = true;
 	} else {
 		fprintf(stderr, "incorrect operation code: %s\n", word);
 		return (STATUS_SYNTAX);
@@ -1507,7 +1507,7 @@ evaluate_server(char *cmdline) {
 		isc_mem_put(gmctx, servers, ns_alloc * sizeof(isc_sockaddr_t));
 	}
 
-	default_servers = ISC_FALSE;
+	default_servers = false;
 
 	ns_alloc = MAX_SERVERADDRS;
 	ns_inuse = 0;
@@ -1642,7 +1642,7 @@ evaluate_key(char *cmdline) {
 	if (tsigkey != NULL)
 		dns_tsigkey_detach(&tsigkey);
 	result = dns_tsigkey_create(mykeyname, hmacname, secret, secretlen,
-				    ISC_FALSE, NULL, 0, 0, gmctx, NULL,
+				    false, NULL, 0, 0, gmctx, NULL,
 				    &tsigkey);
 	isc_mem_free(gmctx, secret);
 	if (result != ISC_R_SUCCESS) {
@@ -1724,7 +1724,7 @@ evaluate_ttl(char *cmdline) {
 
 	if (!strcasecmp(word, "none")) {
 		default_ttl = 0;
-		default_ttl_set = ISC_FALSE;
+		default_ttl_set = false;
 		return (STATUS_MORE);
 	}
 
@@ -1738,7 +1738,7 @@ evaluate_ttl(char *cmdline) {
 		return (STATUS_SYNTAX);
 	}
 	default_ttl = ttl;
-	default_ttl_set = ISC_TRUE;
+	default_ttl_set = true;
 
 	return (STATUS_MORE);
 }
@@ -1777,7 +1777,7 @@ evaluate_class(char *cmdline) {
 }
 
 static uint16_t
-update_addordelete(char *cmdline, isc_boolean_t isdelete) {
+update_addordelete(char *cmdline, bool isdelete) {
 	isc_result_t result;
 	dns_name_t *name = NULL;
 	uint32_t ttl;
@@ -1925,7 +1925,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 		dns_name_t *bad;
 
 		if (!dns_rdata_checkowner(name, rdata->rdclass, rdata->type,
-					  ISC_TRUE))
+					  true))
 		{
 			char namebuf[DNS_NAME_FORMATSIZE];
 
@@ -1973,7 +1973,7 @@ update_addordelete(char *cmdline, isc_boolean_t isdelete) {
 static uint16_t
 evaluate_update(char *cmdline) {
 	char *word;
-	isc_boolean_t isdelete;
+	bool isdelete;
 
 	ddebug("evaluate_update()");
 	word = nsu_strsep(&cmdline, " \t\r\n");
@@ -1982,11 +1982,11 @@ evaluate_update(char *cmdline) {
 		return (STATUS_SYNTAX);
 	}
 	if (strcasecmp(word, "delete") == 0)
-		isdelete = ISC_TRUE;
+		isdelete = true;
 	else if (strcasecmp(word, "del") == 0)
-		isdelete = ISC_TRUE;
+		isdelete = true;
 	else if (strcasecmp(word, "add") == 0)
-		isdelete = ISC_FALSE;
+		isdelete = false;
 	else {
 		fprintf(stderr, "incorrect operation code: %s\n", word);
 		return (STATUS_SYNTAX);
@@ -2007,11 +2007,11 @@ evaluate_checknames(char *cmdline) {
 	if (strcasecmp(word, "yes") == 0 ||
 	    strcasecmp(word, "true") == 0 ||
 	    strcasecmp(word, "on") == 0) {
-		checknames = ISC_TRUE;
+		checknames = true;
 	} else if (strcasecmp(word, "no") == 0 ||
 		 strcasecmp(word, "false") == 0 ||
 		 strcasecmp(word, "off") == 0) {
-		checknames = ISC_FALSE;
+		checknames = false;
 	} else {
 		fprintf(stderr, "incorrect check-names directive: %s\n", word);
 		return (STATUS_SYNTAX);
@@ -2105,21 +2105,21 @@ do_next_command(char *cmdline) {
 	if (strcasecmp(word, "prereq") == 0)
 		return (evaluate_prereq(cmdline));
 	if (strcasecmp(word, "nxdomain") == 0)
-		return (make_prereq(cmdline, ISC_FALSE, ISC_FALSE));
+		return (make_prereq(cmdline, false, false));
 	if (strcasecmp(word, "yxdomain") == 0)
-		return (make_prereq(cmdline, ISC_TRUE, ISC_FALSE));
+		return (make_prereq(cmdline, true, false));
 	if (strcasecmp(word, "nxrrset") == 0)
-		return (make_prereq(cmdline, ISC_FALSE, ISC_TRUE));
+		return (make_prereq(cmdline, false, true));
 	if (strcasecmp(word, "yxrrset") == 0)
-		return (make_prereq(cmdline, ISC_TRUE, ISC_TRUE));
+		return (make_prereq(cmdline, true, true));
 	if (strcasecmp(word, "update") == 0)
 		return (evaluate_update(cmdline));
 	if (strcasecmp(word, "delete") == 0)
-		return (update_addordelete(cmdline, ISC_TRUE));
+		return (update_addordelete(cmdline, true));
 	if (strcasecmp(word, "del") == 0)
-		return (update_addordelete(cmdline, ISC_TRUE));
+		return (update_addordelete(cmdline, true));
 	if (strcasecmp(word, "add") == 0)
-		return (update_addordelete(cmdline, ISC_FALSE));
+		return (update_addordelete(cmdline, false));
 	if (strcasecmp(word, "server") == 0)
 		return (evaluate_server(cmdline));
 	if (strcasecmp(word, "local") == 0)
@@ -2132,9 +2132,9 @@ do_next_command(char *cmdline) {
 		return (STATUS_SEND);
 	if (strcasecmp(word, "debug") == 0) {
 		if (debugging)
-			ddebugging = ISC_TRUE;
+			ddebugging = true;
 		else
-			debugging = ISC_TRUE;
+			debugging = true;
 		return (STATUS_MORE);
 	}
 	if (strcasecmp(word, "ttl") == 0)
@@ -2149,7 +2149,7 @@ do_next_command(char *cmdline) {
 		return (STATUS_MORE);
 	}
 	if (strcasecmp(word, "key") == 0) {
-		usegsstsig = ISC_FALSE;
+		usegsstsig = false;
 		return (evaluate_key(cmdline));
 	}
 	if (strcasecmp(word, "realm") == 0)
@@ -2159,8 +2159,8 @@ do_next_command(char *cmdline) {
 		return (evaluate_checknames(cmdline));
 	if (strcasecmp(word, "gsstsig") == 0) {
 #ifdef GSSAPI
-		usegsstsig = ISC_TRUE;
-		use_win2k_gsstsig = ISC_FALSE;
+		usegsstsig = true;
+		use_win2k_gsstsig = false;
 #else
 		fprintf(stderr, "gsstsig not supported\n");
 #endif
@@ -2168,8 +2168,8 @@ do_next_command(char *cmdline) {
 	}
 	if (strcasecmp(word, "oldgsstsig") == 0) {
 #ifdef GSSAPI
-		usegsstsig = ISC_TRUE;
-		use_win2k_gsstsig = ISC_TRUE;
+		usegsstsig = true;
+		use_win2k_gsstsig = true;
 #else
 		fprintf(stderr, "gsstsig not supported\n");
 #endif
@@ -2245,7 +2245,7 @@ get_next_command(void) {
 	return (result);
 }
 
-static isc_boolean_t
+static bool
 user_interaction(void) {
 	uint16_t result = STATUS_MORE;
 
@@ -2256,8 +2256,8 @@ user_interaction(void) {
 			fatal("syntax error");
 	}
 	if (result == STATUS_SEND)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 
 }
 
@@ -2291,7 +2291,7 @@ check_tsig_error(dns_rdataset_t *rdataset, isc_buffer_t *b) {
 	}
 }
 
-static isc_boolean_t
+static bool
 next_master(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
 	char addrbuf[ISC_SOCKADDR_FORMATSIZE];
 
@@ -2299,9 +2299,9 @@ next_master(const char *caller, isc_sockaddr_t *addr, isc_result_t eresult) {
 	fprintf(stderr, "; Communication with %s failed: %s\n",
 		addrbuf, isc_result_totext(eresult));
 	if (++master_inuse >= master_total)
-		return (ISC_FALSE);
+		return (false);
 	ddebug("%s: trying next server", caller);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
@@ -2332,7 +2332,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 				 &master_servers[master_inuse],
 				 reqev->result))
 		{
-			seenerror = ISC_TRUE;
+			seenerror = true;
 			goto done;
 		}
 
@@ -2370,14 +2370,14 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 #endif
 		fprintf(stderr, "; TSIG error with server: %s\n",
 			isc_result_totext(result));
-		seenerror = ISC_TRUE;
+		seenerror = true;
 		break;
 	default:
 		check_result(result, "dns_request_getresponse");
 	}
 
 	if (answer->rcode != dns_rcode_noerror) {
-		seenerror = ISC_TRUE;
+		seenerror = true;
 		if (!debugging) {
 			char buf[64];
 			isc_buffer_t b;
@@ -2481,7 +2481,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	dns_message_t *soaquery = NULL;
 	isc_sockaddr_t *addr;
 	isc_sockaddr_t *srcaddr;
-	isc_boolean_t seencname = ISC_FALSE;
+	bool seencname = false;
 	dns_name_t tname;
 	unsigned int nlabels;
 
@@ -2578,7 +2578,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		dns_message_destroy(&soaquery);
 		ddebug("Out of recvsoa");
 		done_update();
-		seenerror = ISC_TRUE;
+		seenerror = true;
 		return;
 	}
 
@@ -2609,7 +2609,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 						 &tset) == ISC_R_SUCCESS ||
 			    dns_message_findtype(name, dns_rdatatype_dname, 0,
 						 &tset) == ISC_R_SUCCESS ) {
-				seencname = ISC_TRUE;
+				seencname = true;
 				break;
 			}
 		}
@@ -2665,7 +2665,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		size_t size;
 
 		isc_buffer_init(&buf, serverstr, sizeof(serverstr));
-		result = dns_name_totext(&master, ISC_TRUE, &buf);
+		result = dns_name_totext(&master, true, &buf);
 		check_result(result, "dns_name_totext");
 		serverstr[isc_buffer_usedlength(&buf)] = 0;
 
@@ -2812,7 +2812,7 @@ get_ticket_realm(isc_mem_t *mctx) {
 
 static void
 failed_gssrequest() {
-	seenerror = ISC_TRUE;
+	seenerror = true;
 
 	dns_name_free(&tmpzonename, gmctx);
 	dns_name_free(&restart_master, gmctx);
@@ -2835,7 +2835,7 @@ start_gssrequest(dns_name_t *master) {
 	char *err_message = NULL;
 
 	debug("start_gssrequest");
-	usevc = ISC_TRUE;
+	usevc = true;
 
 	if (gssring != NULL)
 		dns_tsigkeyring_detach(&gssring);
@@ -3032,10 +3032,10 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 		ddebug("recvgss trying %s GSS-TSIG",
 		       use_win2k_gsstsig ? "Standard" : "Win2k");
 		if (use_win2k_gsstsig)
-			use_win2k_gsstsig = ISC_FALSE;
+			use_win2k_gsstsig = false;
 		else
-			use_win2k_gsstsig = ISC_TRUE;
-		tried_other_gsstsig = ISC_TRUE;
+			use_win2k_gsstsig = true;
+		tried_other_gsstsig = true;
 		start_gssrequest(&restart_master);
 		goto done;
 	}
@@ -3258,7 +3258,7 @@ cleanup(void) {
 
 static void
 getinput(isc_task_t *task, isc_event_t *event) {
-	isc_boolean_t more;
+	bool more;
 
 	UNUSED(task);
 
@@ -3287,7 +3287,7 @@ main(int argc, char **argv) {
 
 	input = stdin;
 
-	interactive = ISC_TF(isatty(0));
+	interactive = !!(isatty(0));
 
 	isc_app_start();
 

@@ -44,7 +44,7 @@
  */
 static pthread_cond_t cond;
 static pthread_mutex_t mutex;
-static isc_boolean_t ready;
+static bool ready;
 
 
 static void *
@@ -101,7 +101,7 @@ fuzz_main_client(void *arg) {
 		if (length > 4096) {
 			if (getenv("AFL_CMIN")) {
 				ns_server_flushonshutdown(ns_g_server,
-							  ISC_FALSE);
+							  false);
 				isc_app_shutdown();
 				return (NULL);
 			}
@@ -111,7 +111,7 @@ fuzz_main_client(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == ISC_R_SUCCESS);
 
-		ready = ISC_FALSE;
+		ready = false;
 
 		ssize_t sent;
 
@@ -131,7 +131,7 @@ fuzz_main_client(void *arg) {
 	free(buf);
 	close(sockfd);
 
-	ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+	ns_server_flushonshutdown(ns_g_server, false);
 	isc_app_shutdown();
 
 	return (NULL);
@@ -214,7 +214,7 @@ fuzz_main_resolver(void *arg) {
 		if (length > 4096) {
 			if (getenv("AFL_CMIN")) {
 				ns_server_flushonshutdown(ns_g_server,
-					ISC_FALSE);
+					false);
 				isc_app_shutdown();
 				return (NULL);
 			}
@@ -228,7 +228,7 @@ fuzz_main_resolver(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == ISC_R_SUCCESS);
 
-		ready = ISC_FALSE;
+		ready = false;
 
 		ssize_t sent;
 		/* Randomize query ID. */
@@ -307,7 +307,7 @@ fuzz_main_resolver(void *arg) {
 	free(buf);
 	free(rbuf);
 	close(sockfd);
-	ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+	ns_server_flushonshutdown(ns_g_server, false);
 	isc_app_shutdown();
 
 	/*
@@ -389,7 +389,7 @@ fuzz_main_tcp(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == ISC_R_SUCCESS);
 
-		ready = ISC_FALSE;
+		ready = false;
 
 		ssize_t sent;
 		int yes = 1;
@@ -420,7 +420,7 @@ fuzz_main_tcp(void *arg) {
 
 	free(buf);
 	close(sockfd);
-	ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+	ns_server_flushonshutdown(ns_g_server, false);
 	isc_app_shutdown();
 
 	return (NULL);
@@ -432,7 +432,7 @@ void
 named_fuzz_notify(void) {
 #ifdef ENABLE_AFL
 	if (getenv("AFL_CMIN")) {
-		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+		ns_server_flushonshutdown(ns_g_server, false);
 		isc_app_shutdown();
 		return;
 	}
@@ -441,7 +441,7 @@ named_fuzz_notify(void) {
 
 	RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-	ready = ISC_TRUE;
+	ready = true;
 
 	RUNTIME_CHECK(pthread_cond_signal(&cond) == 0);
 	RUNTIME_CHECK(pthread_mutex_unlock(&mutex) == 0);

@@ -16,10 +16,25 @@
 
 /*! \file isc/boolean.h */
 
-typedef enum { isc_boolean_false = 0, isc_boolean_true = 1 } isc_boolean_t;
+#if _WIN32 && _MSC_VER >= 1600
+#include <stdbool.h>
+#endif
 
-#define ISC_FALSE isc_boolean_false
-#define ISC_TRUE isc_boolean_true
-#define ISC_TF(x) ((x) ? ISC_TRUE : ISC_FALSE)
+#if HAVE_STDBOOL_H
+#include <stdbool.h>
+#endif
+
+#if __bool_true_false_are_defined
+# define isc_boolean_t bool
+#else /* __bool_true_false_are_defined */
+typedef enum { isc_boolean_false = 0, isc_boolean_true = 1 } isc_boolean_t;
+# define bool isc_boolean_t
+# define true isc_boolean_true
+# define false isc_boolean_false
+#endif /* __bool_true_false_are_defined */
+
+#define ISC_FALSE false
+#define ISC_TRUE true
+#define ISC_TF(x) (!!(x))
 
 #endif /* ISC_BOOLEAN_H */

@@ -37,7 +37,7 @@
 struct ns_lwdclient {
 	isc_sockaddr_t		address;	/*%< where to reply */
 	struct in6_pktinfo	pktinfo;
-	isc_boolean_t		pktinfo_valid;
+	bool		pktinfo_valid;
 	ns_lwdclientmgr_t	*clientmgr;	/*%< our parent */
 	ISC_LINK(ns_lwdclient_t) link;
 	unsigned int		state;

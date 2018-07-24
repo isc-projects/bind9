@@ -545,7 +545,7 @@ static void
 adj_trigger_cnt(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 		dns_rpz_type_t rpz_type,
 		const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
-		isc_boolean_t inc)
+		bool inc)
 {
 	dns_rpz_trigger_counter_t *cnt;
 	dns_rpz_zbits_t *have;
@@ -1084,12 +1084,12 @@ trim_zbits(dns_rpz_zbits_t zbits, dns_rpz_zbits_t found) {
  *
  * Return ISC_R_SUCCESS, DNS_R_PARTIALMATCH, ISC_R_NOTFOUND,
  *	    and *found=longest match node
- *	or with create==ISC_TRUE, ISC_R_EXISTS or ISC_R_NOMEMORY
+ *	or with create==true, ISC_R_EXISTS or ISC_R_NOMEMORY
  */
 static isc_result_t
 search(dns_rpz_zones_t *rpzs,
        const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
-       const dns_rpz_addr_zbits_t *tgt_set, isc_boolean_t create,
+       const dns_rpz_addr_zbits_t *tgt_set, bool create,
        dns_rpz_cidr_node_t **found)
 {
 	dns_rpz_cidr_node_t *cur, *parent, *child, *new_parent, *sibling;
@@ -1287,7 +1287,7 @@ add_cidr(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	if (result != ISC_R_SUCCESS)
 		return (ISC_R_SUCCESS);
 
-	result = search(rpzs, &tgt_ip, tgt_prefix, &set, ISC_TRUE, &found);
+	result = search(rpzs, &tgt_ip, tgt_prefix, &set, true, &found);
 	if (result != ISC_R_SUCCESS) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 
@@ -1309,7 +1309,7 @@ add_cidr(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 		return (result);
 	}
 
-	adj_trigger_cnt(rpzs, rpz_num, rpz_type, &tgt_ip, tgt_prefix, ISC_TRUE);
+	adj_trigger_cnt(rpzs, rpz_num, rpz_type, &tgt_ip, tgt_prefix, true);
 	return (result);
 }
 
@@ -1382,7 +1382,7 @@ add_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	if (result == ISC_R_EXISTS)
 		return (ISC_R_SUCCESS);
 	if (result == ISC_R_SUCCESS)
-		adj_trigger_cnt(rpzs, rpz_num, rpz_type, NULL, 0, ISC_TRUE);
+		adj_trigger_cnt(rpzs, rpz_num, rpz_type, NULL, 0, true);
 	return (result);
 }
 
@@ -1797,7 +1797,7 @@ dns_rpz_ready(dns_rpz_zones_t *rpzs,
 			    new_ip.nsip != 0) {
 				result = search(load_rpzs,
 						&cnode->ip, cnode->prefix,
-						&new_ip, ISC_TRUE, &found);
+						&new_ip, true, &found);
 				if (result == ISC_R_NOMEMORY)
 					goto unlock_and_detach;
 				INSIST(result == ISC_R_SUCCESS);
@@ -1961,7 +1961,7 @@ del_cidr(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	if (result != ISC_R_SUCCESS)
 		return;
 
-	result = search(rpzs, &tgt_ip, tgt_prefix, &tgt_set, ISC_FALSE, &tgt);
+	result = search(rpzs, &tgt_ip, tgt_prefix, &tgt_set, false, &tgt);
 	if (result != ISC_R_SUCCESS) {
 		INSIST(result == ISC_R_NOTFOUND ||
 		       result == DNS_R_PARTIALMATCH);
@@ -1986,7 +1986,7 @@ del_cidr(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	tgt->set.nsip &= ~tgt_set.nsip;
 	set_sum_pair(tgt);
 
-	adj_trigger_cnt(rpzs, rpz_num, rpz_type, &tgt_ip, tgt_prefix, ISC_FALSE);
+	adj_trigger_cnt(rpzs, rpz_num, rpz_type, &tgt_ip, tgt_prefix, false);
 
 	/*
 	 * We might need to delete 2 nodes.
@@ -2038,7 +2038,7 @@ del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	dns_rbtnode_t *nmnode;
 	dns_rpz_nm_data_t *nm_data, del_data;
 	isc_result_t result;
-	isc_boolean_t exists;
+	bool exists;
 
 	/*
 	 * We need a summary database of names even with 1 policy zone,
@@ -2081,7 +2081,7 @@ del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	del_data.wild.qname &= nm_data->wild.qname;
 	del_data.wild.ns &= nm_data->wild.ns;
 
-	exists = ISC_TF(del_data.set.qname != 0 || del_data.set.ns != 0 ||
+	exists = !!(del_data.set.qname != 0 || del_data.set.ns != 0 ||
 			del_data.wild.qname != 0 || del_data.wild.ns != 0);
 
 	nm_data->set.qname &= ~del_data.set.qname;
@@ -2091,7 +2091,7 @@ del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 
 	if (nm_data->set.qname == 0 && nm_data->set.ns == 0 &&
 	    nm_data->wild.qname == 0 && nm_data->wild.ns == 0) {
-		result = dns_rbt_deletenode(rpzs->rbt, nmnode, ISC_FALSE);
+		result = dns_rbt_deletenode(rpzs->rbt, nmnode, false);
 		if (result != ISC_R_SUCCESS) {
 			/*
 			 * bin/tests/system/rpz/tests.sh looks for "rpz.*failed".
@@ -2105,7 +2105,7 @@ del_name(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 	}
 
 	if (exists)
-		adj_trigger_cnt(rpzs, rpz_num, rpz_type, NULL, 0, ISC_FALSE);
+		adj_trigger_cnt(rpzs, rpz_num, rpz_type, NULL, 0, false);
 }
 
 /*
@@ -2226,7 +2226,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 	make_addr_set(&tgt_set, zbits, rpz_type);
 
 	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
-	result = search(rpzs, &tgt_ip, 128, &tgt_set, ISC_FALSE, &found);
+	result = search(rpzs, &tgt_ip, 128, &tgt_set, false, &found);
 	if (result == ISC_R_NOTFOUND) {
 		/*
 		 * There are no eligible zones for this IP address.

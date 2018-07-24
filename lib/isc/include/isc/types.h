@@ -24,8 +24,8 @@
 #include <isc/offset.h>
 
 /*
- * XXXDCL should isc_boolean_t be moved here, requiring an explicit include
- * of <isc/boolean.h> when ISC_TRUE/ISC_FALSE/ISC_TF() are desired?
+ * XXXDCL should bool be moved here, requiring an explicit include
+ * of <isc/boolean.h> when true/false/!!() are desired?
  */
 #include <isc/boolean.h>
 /*
@@ -108,7 +108,7 @@ typedef isc_result_t (isc_httpdaction_t)(const char *url,
 					 isc_buffer_t *body,
 					 isc_httpdfree_t **freecb,
 					 void **freecb_args);
-typedef isc_boolean_t (isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
+typedef bool (isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
 
 /*% Resource */
 typedef enum {

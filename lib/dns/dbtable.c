@@ -137,7 +137,7 @@ dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp) {
 void
 dns_dbtable_detach(dns_dbtable_t **dbtablep) {
 	dns_dbtable_t *dbtable;
-	isc_boolean_t free_dbtable = ISC_FALSE;
+	bool free_dbtable = false;
 
 	REQUIRE(dbtablep != NULL);
 	dbtable = *dbtablep;
@@ -148,7 +148,7 @@ dns_dbtable_detach(dns_dbtable_t **dbtablep) {
 	INSIST(dbtable->references > 0);
 	dbtable->references--;
 	if (dbtable->references == 0)
-		free_dbtable = ISC_TRUE;
+		free_dbtable = true;
 
 	UNLOCK(&dbtable->lock);
 
@@ -202,7 +202,7 @@ dns_dbtable_remove(dns_dbtable_t *dbtable, dns_db_t *db) {
 	if (result == ISC_R_SUCCESS) {
 		INSIST(stored_data == db);
 
-		(void)dns_rbt_deletename(dbtable->rbt, name, ISC_FALSE);
+		(void)dns_rbt_deletename(dbtable->rbt, name, false);
 	}
 
 	RWUNLOCK(&dbtable->tree_lock, isc_rwlocktype_write);

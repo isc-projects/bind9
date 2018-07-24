@@ -100,7 +100,7 @@ dns_order_add(dns_order_t *order, dns_name_t *name,
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_boolean_t
+static inline bool
 match(dns_name_t *name1, dns_name_t *name2) {
 
 	if (dns_name_iswildcard(name2))

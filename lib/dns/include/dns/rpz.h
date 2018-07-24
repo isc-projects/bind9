@@ -172,9 +172,9 @@ typedef struct dns_rpz_popt dns_rpz_popt_t;
 struct dns_rpz_popt {
 	dns_rpz_zbits_t	    no_rd_ok;
 	dns_rpz_zbits_t	    no_log;
-	isc_boolean_t	    break_dnssec;
-	isc_boolean_t	    qname_wait_recurse;
-	isc_boolean_t	    nsip_wait_recurse;
+	bool	    break_dnssec;
+	bool	    qname_wait_recurse;
+	bool	    nsip_wait_recurse;
 	unsigned int	    min_ns_labels;
 	dns_rpz_num_t	    num_zones;
 };
@@ -282,8 +282,8 @@ typedef struct {
 	 */
 	struct {
 		isc_result_t		result;
-		isc_boolean_t		is_zone;
-		isc_boolean_t		authoritative;
+		bool		is_zone;
+		bool		authoritative;
 		dns_zone_t		*zone;
 		dns_db_t		*db;
 		dns_dbnode_t		*node;

@@ -30,7 +30,7 @@
 #include "util.h"
 
 void
-perf_os_blocksignal(int sig, isc_boolean_t block)
+perf_os_blocksignal(int sig, bool block)
 {
 	sigset_t sset;
 	int op;

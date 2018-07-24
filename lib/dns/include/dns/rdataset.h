@@ -251,7 +251,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset);
  *\li	'rdataset' is a valid, disassociated rdataset.
  */
 
-isc_boolean_t
+bool
 dns_rdataset_isassociated(dns_rdataset_t *rdataset);
 /*%<
  * Is 'rdataset' associated?
@@ -260,8 +260,8 @@ dns_rdataset_isassociated(dns_rdataset_t *rdataset);
  *\li	'rdataset' is a valid rdataset.
  *
  * Returns:
- *\li	#ISC_TRUE			'rdataset' is associated.
- *\li	#ISC_FALSE			'rdataset' is not associated.
+ *\li	#true			'rdataset' is associated.
+ *\li	#false			'rdataset' is not associated.
  */
 
 void
@@ -358,8 +358,8 @@ dns_rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata);
 isc_result_t
 dns_rdataset_totext(dns_rdataset_t *rdataset,
 		    dns_name_t *owner_name,
-		    isc_boolean_t omit_final_dot,
-		    isc_boolean_t question,
+		    bool omit_final_dot,
+		    bool question,
 		    isc_buffer_t *target);
 /*%<
  * Convert 'rdataset' to text format, storing the result in 'target'.
@@ -367,8 +367,8 @@ dns_rdataset_totext(dns_rdataset_t *rdataset,
  * Notes:
  *\li	The rdata cursor position will be changed.
  *
- *\li	The 'question' flag should normally be #ISC_FALSE.  If it is
- *	#ISC_TRUE, the TTL and rdata fields are not printed.  This is
+ *\li	The 'question' flag should normally be #false.  If it is
+ *	#true, the TTL and rdata fields are not printed.  This is
  *	for use when printing an rdata representing a question section.
  *
  *\li	This interface is deprecated; use dns_master_rdatasettottext()
@@ -680,7 +680,7 @@ dns_rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
 void
 dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 		     dns_rdata_rrsig_t *rrsig, isc_stdtime_t now,
-		     isc_boolean_t acceptexpired);
+		     bool acceptexpired);
 /*%<
  * Trim the ttl of 'rdataset' and 'sigrdataset' so that they will expire
  * at or before 'rrsig->expiretime'.  If 'acceptexpired' is true and the

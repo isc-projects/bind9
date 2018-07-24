@@ -287,8 +287,8 @@ ns_log_configure(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 	const cfg_obj_t *channels = NULL;
 	const cfg_obj_t *categories = NULL;
 	const cfg_listelt_t *element;
-	isc_boolean_t default_set = ISC_FALSE;
-	isc_boolean_t unmatched_set = ISC_FALSE;
+	bool default_set = false;
+	bool unmatched_set = false;
 	const cfg_obj_t *catname;
 
 	if (logconfig != NULL)
@@ -313,12 +313,12 @@ ns_log_configure(isc_logconfig_t *logconfig, const cfg_obj_t *logstmt) {
 		if (!default_set) {
 			catname = cfg_tuple_get(category, "name");
 			if (strcmp(cfg_obj_asstring(catname), "default") == 0)
-				default_set = ISC_TRUE;
+				default_set = true;
 		}
 		if (!unmatched_set) {
 			catname = cfg_tuple_get(category, "name");
 			if (strcmp(cfg_obj_asstring(catname), "unmatched") == 0)
-				unmatched_set = ISC_TRUE;
+				unmatched_set = true;
 		}
 	}
 

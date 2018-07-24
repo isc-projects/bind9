@@ -53,12 +53,12 @@ struct ns_server {
 	char *			secrootsfile;	/*%< Secroots file name */
 	char *			bindkeysfile;	/*%< bind.keys file name */
 	char *			recfile;	/*%< Recursive file name */
-	isc_boolean_t		version_set;	/*%< User has set version */
+	bool		version_set;	/*%< User has set version */
 	char *			version;	/*%< User-specified version */
-	isc_boolean_t		hostname_set;	/*%< User has set hostname */
+	bool		hostname_set;	/*%< User has set hostname */
 	char *			hostname;	/*%< User-specified hostname */
 	/*% Use hostname for server id */
-	isc_boolean_t		server_usehostname;
+	bool		server_usehostname;
 	char *			server_id;	/*%< User-specified server id */
 
 	/*%
@@ -87,8 +87,8 @@ struct ns_server {
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;
 
-	isc_boolean_t		flushonshutdown;
-	isc_boolean_t		log_queries;	/*%< For BIND 8 compatibility */
+	bool		flushonshutdown;
+	bool		log_queries;	/*%< For BIND 8 compatibility */
 
 	ns_cachelist_t		cachelist;	/*%< Possibly shared caches */
 	isc_stats_t *		nsstats;	/*%< Server stats */
@@ -120,11 +120,11 @@ struct ns_server {
 	dns_name_t		*session_keyname;
 	unsigned int		session_keyalg;
 	uint16_t		session_keybits;
-	isc_boolean_t		interface_auto;
+	bool		interface_auto;
 	unsigned char		secret[32];	/*%< Server Cookie Secret */
 	ns_altsecretlist_t	altsecrets;
 	ns_cookiealg_t		cookiealg;
-	isc_boolean_t		answercookie;
+	bool		answercookie;
 
 	dns_dtenv_t		*dtenv;		/*%< Dnstap environment */
 
@@ -540,7 +540,7 @@ ns_server_scan_interfaces(ns_server_t *server);
  */
 
 void
-ns_server_flushonshutdown(ns_server_t *server, isc_boolean_t flush);
+ns_server_flushonshutdown(ns_server_t *server, bool flush);
 /*%<
  * Inform the server that the zones should be flushed to disk on shutdown.
  */
@@ -636,7 +636,7 @@ ns_server_flushcache(ns_server_t *server, isc_lex_t *lex);
  */
 isc_result_t
 ns_server_flushnode(ns_server_t *server, isc_lex_t *lex,
-		    isc_boolean_t tree);
+		    bool tree);
 
 /*%
  * Report the server's status.
@@ -661,7 +661,7 @@ ns_server_tsigdelete(ns_server_t *server, isc_lex_t *lex,
  * Enable or disable updates for a zone.
  */
 isc_result_t
-ns_server_freeze(ns_server_t *server, isc_boolean_t freeze,
+ns_server_freeze(ns_server_t *server, bool freeze,
 		 isc_lex_t *lex, isc_buffer_t **text);
 
 /*%
@@ -734,7 +734,7 @@ ns_server_zonestatus(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text);
  * duration, in a particular view if specified, or in all views.
  */
 isc_result_t
-ns_server_nta(ns_server_t *server, isc_lex_t *lex, isc_boolean_t readonly,
+ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 	      isc_buffer_t **text);
 
 /*%

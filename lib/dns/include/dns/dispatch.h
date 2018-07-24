@@ -377,7 +377,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
 		    isc_sockaddr_t *localaddr, dns_dispatch_t **dispp);
 isc_result_t
 dns_dispatch_gettcp2(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
-		     isc_sockaddr_t *localaddr, isc_boolean_t *connected,
+		     isc_sockaddr_t *localaddr, bool *connected,
 		     dns_dispatch_t **dispp);
 /*
  * Attempt to connect to a existing TCP connection (connection completed
