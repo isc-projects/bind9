@@ -434,64 +434,8 @@ case "$INSTALL" in
 		;;
 esac
 
-#
-# On these hosts, we really want to use cc, not gcc, even if it is
-# found.  The gcc that these systems have will not correctly handle
-# pthreads.
-#
-# However, if the user sets $CC to be something, let that override
-# our change.
-#
-if test "X$CC" = "X" ; then
-	case "$host" in
-		*-dec-osf*)
-			CC="cc"
-			;;
-		*-solaris*)
-			# Use Sun's cc if it is available, but watch
-			# out for /usr/ucb/cc; it will never be the right
-			# compiler to use.
-			#
-			# If setting CC here fails, the AC_PROG_CC done
-			# below might still find gcc.
-			IFS="${IFS=	}"; ac_save_ifs="$IFS"; IFS=":"
-			for ac_dir in $PATH; do
-				test -z "$ac_dir" && ac_dir=.
-				case "$ac_dir" in
-				/usr/ucb)
-					# exclude
-					;;
-				*)
-					if test -f "$ac_dir/cc"; then
-						CC="$ac_dir/cc"
-						break
-					fi
-					;;
-				esac
-			done
-			IFS="$ac_save_ifs"
-			;;
-		*-hp-hpux*)
-			CC="cc"
-			;;
-		mips-sgi-irix*)
-			CC="cc"
-			;;
-	esac
-fi
-
 AC_PROG_CC
-
-#
-# gcc's optimiser is broken at -02 for ultrasparc
-#
-if test "$ac_env_CFLAGS_set" != set -a "X$GCC" = "Xyes"; then
-	case "$host" in
-	sparc-*)
-		CCFLAGS="-g -O1"
-		;;
-	esac
-fi
+AC_PROG_CC_C99
 
 #
 # OS dependent CC flags
@@ -591,8 +535,9 @@ AC_TRY_COMPILE([
 	 AC_DEFINE(inline, ,[Define to empty if your compiler does not support "static inline".])])
 
 AC_TYPE_SIZE_T
-AC_CHECK_TYPE(ssize_t, int)
-AC_CHECK_TYPE(uintptr_t,unsigned long)
+AC_TYPE_SSIZE_T
+AC_TYPE_UINTPTR_T
+
 AC_CHECK_TYPE(socklen_t,
 [AC_DEFINE(ISC_SOCKADDR_LEN_T, socklen_t)],
 [
