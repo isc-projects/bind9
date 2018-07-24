@@ -15,7 +15,6 @@
 
 /*! \file isc/safe.h */
 
-#include <isc/boolean.h>
 #include <isc/lang.h>
 
 #include <openssl/crypto.h>
