@@ -91,16 +91,16 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
-install:: dig@EXEEXT@ host@EXEEXT@ nslookup@EXEEXT@ installdirs
+install-man1: ${MANPAGES}
+	${INSTALL_DATA} $^ ${DESTDIR}${mandir}/man1
+
+install:: dig@EXEEXT@ host@EXEEXT@ nslookup@EXEEXT@ installdirs install-man1
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
 		dig@EXEEXT@ ${DESTDIR}${bindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
 		host@EXEEXT@ ${DESTDIR}${bindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
 		nslookup@EXEEXT@ ${DESTDIR}${bindir}
-	for m in ${MANPAGES}; do \
-		${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man1; \
-		done
 
 uninstall::
 	for m in ${MANPAGES}; do \
