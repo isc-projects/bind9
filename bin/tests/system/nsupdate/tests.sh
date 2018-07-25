@@ -268,6 +268,7 @@ ret=0
 echo_i "check that unixtime serial number is correctly generated ($n)"
 $DIG $DIGOPTS +short unixtime.nil. soa @10.53.0.1 > dig.out.old.test$n || ret=1
 oldserial=`awk '{print $3}' dig.out.old.test$n` || ret=1
+start=`$PERL -e 'print time()."\n";'`
 $NSUPDATE <<END > /dev/null 2>&1 || ret=1
     server 10.53.0.1 ${PORT}
     ttl 600
@@ -278,10 +279,13 @@ now=`$PERL -e 'print time()."\n";'`
 sleep 1
 $DIG $DIGOPTS +short unixtime.nil. soa @10.53.0.1 > dig.out.new.test$n || ret=1
 serial=`awk '{print $3}' dig.out.new.test$n` || ret=1
-[ "$oldserial" -ne "$serial" ] || ret=1
-# allow up to 2 seconds difference between the serial
-# number and the unix epoch date but no more
-$PERL -e 'exit 1 if abs($ARGV[1] - $ARGV[0]) > 2;' $now $serial || ret=1
+[ "$oldserial" = "$serial" ] && { echo_i "oldserial == serial"; ret=1; }
+$PERL -e 'exit 1 if ($ARGV[0] > $ARGV[1]);' $start $serial || {
+	echo_i "start=$start serial=$serial"; ret=1;
+}
+$PERL -e 'exit 1 if ($ARGV[0] < $ARGV[1]);' $now $serial || {
+	echo_i "start=$now serial=$serial"; ret=1;
+}
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 ret=0
