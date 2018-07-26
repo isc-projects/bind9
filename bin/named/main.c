@@ -119,14 +119,17 @@ static int		maxudp = 0;
  * -T options:
  */
 static isc_boolean_t clienttest = ISC_FALSE;
-static isc_boolean_t dropedns = ISC_FALSE;
-static isc_boolean_t noedns = ISC_FALSE;
-static isc_boolean_t nosoa = ISC_FALSE;
-static isc_boolean_t noaa = ISC_FALSE;
 static unsigned int delay = 0;
-static isc_boolean_t nonearest = ISC_FALSE;
-static isc_boolean_t notcp = ISC_FALSE;
+static isc_boolean_t dropedns = ISC_FALSE;
+static isc_boolean_t ednsformerr = ISC_FALSE;
+static isc_boolean_t ednsnotimp = ISC_FALSE;
+static isc_boolean_t ednsrefused = ISC_FALSE;
 static isc_boolean_t fixedlocal = ISC_FALSE;
+static isc_boolean_t noaa = ISC_FALSE;
+static isc_boolean_t noedns = ISC_FALSE;
+static isc_boolean_t nonearest = ISC_FALSE;
+static isc_boolean_t nosoa = ISC_FALSE;
+static isc_boolean_t notcp = ISC_FALSE;
 static isc_boolean_t sigvalinsecs = ISC_FALSE;
 
 /*
@@ -486,6 +489,12 @@ parse_T_opt(char *option) {
 		dropedns = ISC_TRUE;
 	} else if (!strncmp(option, "dscp=", 5)) {
 		isc_dscp_check_value = atoi(option + 5);
+	} else if (!strcmp(option, "ednsformerr")) {
+		ednsformerr = ISC_TRUE;
+	} else if (!strcmp(option, "ednsnotimp")) {
+		ednsnotimp = ISC_TRUE;
+	} else if (!strcmp(option, "ednsrefused")) {
+		ednsrefused = ISC_TRUE;
 	} else if (!strcmp(option, "fixedlocal")) {
 		fixedlocal = ISC_TRUE;
 	} else if (!strcmp(option, "keepstderr")) {
@@ -545,7 +554,7 @@ parse_T_opt(char *option) {
 	} else if (!strncmp(option, "tat=", 4)) {
 		named_g_tat_interval = atoi(option + 4);
 	} else {
-		fprintf(stderr, "unknown -T flag '%s\n", option);
+		fprintf(stderr, "unknown -T flag '%s'\n", option);
 	}
 }
 
@@ -1171,24 +1180,30 @@ setup(void) {
 	 */
 	if (clienttest)
 		ns_server_setoption(sctx, NS_SERVER_CLIENTTEST, ISC_TRUE);
-	if (dropedns)
-		ns_server_setoption(sctx, NS_SERVER_DROPEDNS, ISC_TRUE);
-	if (noedns)
-		ns_server_setoption(sctx, NS_SERVER_NOEDNS, ISC_TRUE);
-	if (nosoa)
-		ns_server_setoption(sctx, NS_SERVER_NOSOA, ISC_TRUE);
-	if (noaa)
-		ns_server_setoption(sctx, NS_SERVER_NOAA, ISC_TRUE);
-	if (nonearest)
-		ns_server_setoption(sctx, NS_SERVER_NONEAREST, ISC_TRUE);
-	if (notcp)
-		ns_server_setoption(sctx, NS_SERVER_NOTCP, ISC_TRUE);
-	if (fixedlocal)
-		ns_server_setoption(sctx, NS_SERVER_FIXEDLOCAL, ISC_TRUE);
 	if (disable4)
 		ns_server_setoption(sctx, NS_SERVER_DISABLE4, ISC_TRUE);
 	if (disable6)
 		ns_server_setoption(sctx, NS_SERVER_DISABLE6, ISC_TRUE);
+	if (dropedns)
+		ns_server_setoption(sctx, NS_SERVER_DROPEDNS, ISC_TRUE);
+	if (ednsformerr)	/* STD13 server */
+		ns_server_setoption(sctx, NS_SERVER_EDNSFORMERR, ISC_TRUE);
+	if (ednsnotimp)
+		ns_server_setoption(sctx, NS_SERVER_EDNSNOTIMP, ISC_TRUE);
+	if (ednsrefused)
+		ns_server_setoption(sctx, NS_SERVER_EDNSREFUSED, ISC_TRUE);
+	if (fixedlocal)
+		ns_server_setoption(sctx, NS_SERVER_FIXEDLOCAL, ISC_TRUE);
+	if (noaa)
+		ns_server_setoption(sctx, NS_SERVER_NOAA, ISC_TRUE);
+	if (noedns)
+		ns_server_setoption(sctx, NS_SERVER_NOEDNS, ISC_TRUE);
+	if (nonearest)
+		ns_server_setoption(sctx, NS_SERVER_NONEAREST, ISC_TRUE);
+	if (nosoa)
+		ns_server_setoption(sctx, NS_SERVER_NOSOA, ISC_TRUE);
+	if (notcp)
+		ns_server_setoption(sctx, NS_SERVER_NOTCP, ISC_TRUE);
 	if (sigvalinsecs)
 		ns_server_setoption(sctx, NS_SERVER_SIGVALINSECS, ISC_TRUE);
 
