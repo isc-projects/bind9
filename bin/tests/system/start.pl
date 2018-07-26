@@ -195,14 +195,20 @@ sub start_server {
 			$command .= "-X named.lock ";
 			$command .= "-m record,size,mctx ";
 			$command .= "-T clienttest ";
-			$command .= "-T nosoa "
-				if (-e "$testdir/$server/named.nosoa");
+			$command .= "-T dropedns "
+				if (-e "$testdir/$server/named.dropedns");
+			$command .= "-T ednsformerr "
+				if (-e "$testdir/$server/named.ednsformerr");
+			$command .= "-T ednsnotimp "
+				if (-e "$testdir/$server/named.ednsnotimp");
+			$command .= "-T ednsrefused "
+				if (-e "$testdir/$server/named.ednsrefused");
 			$command .= "-T noaa "
 				if (-e "$testdir/$server/named.noaa");
 			$command .= "-T noedns "
 				if (-e "$testdir/$server/named.noedns");
-			$command .= "-T dropedns "
-				if (-e "$testdir/$server/named.dropedns");
+			$command .= "-T nosoa "
+				if (-e "$testdir/$server/named.nosoa");
 			$command .= "-T maxudp512 "
 				if (-e "$testdir/$server/named.maxudp512");
 			$command .= "-T maxudp1460 "
