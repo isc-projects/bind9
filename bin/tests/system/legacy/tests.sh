@@ -18,6 +18,60 @@ status=0
 n=0
 
 n=`expr $n + 1`
+echo_i "checking formerr edns server setup ($n)"
+ret=0
+$DIG $DIGOPTS +edns @10.53.0.8 ednsformerr soa > dig.out.1.test$n || ret=1
+grep "status: FORMERR" dig.out.1.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +noedns @10.53.0.8 ednsformerr soa > dig.out.2.test$n || ret=1
+grep "status: NOERROR" dig.out.2.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking recursive lookup to formerr edns server succeeds ($n)"
+ret=0
+$DIG $DIGOPTS +tcp @10.53.0.1 ednsformerr soa > dig.out.test$n || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking notimp edns server setup ($n)"
+ret=0
+$DIG $DIGOPTS +edns @10.53.0.9 ednsnotimp soa > dig.out.1.test$n || ret=1
+grep "status: NOTIMP" dig.out.1.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +noedns @10.53.0.9 ednsnotimp soa > dig.out.2.test$n || ret=1
+grep "status: NOERROR" dig.out.2.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking recursive lookup to notimp edns server fails ($n)"
+ret=0
+$DIG $DIGOPTS +tcp @10.53.0.1 ednsnotimp soa > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking refused edns server setup ($n)"
+ret=0
+$DIG $DIGOPTS +edns @10.53.0.10 ednsrefused soa > dig.out.1.test$n || ret=1
+grep "status: REFUSED" dig.out.1.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +noedns @10.53.0.10 ednsrefused soa > dig.out.2.test$n || ret=1
+grep "status: NOERROR" dig.out.2.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking recursive lookup to refused edns server fails ($n)"
+ret=0
+$DIG $DIGOPTS +tcp @10.53.0.1 ednsrefused soa > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking drop edns server setup ($n)"
 ret=0
 $DIG $DIGOPTS +edns @10.53.0.2 dropedns soa > dig.out.1.test$n
@@ -34,10 +88,10 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking recursive lookup to drop edns server succeeds ($n)"
+echo_i "checking recursive lookup to drop edns server fails ($n)"
 ret=0
-$DIG $DIGOPTS +tcp @10.53.0.1 dropedns soa > dig.out.test$n || ret=1
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +tcp @10.53.0.1 dropedns soa > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -55,10 +109,10 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking recursive lookup to drop edns + no tcp server succeeds ($n)"
+echo_i "checking recursive lookup to drop edns + no tcp server fails ($n)"
 ret=0
-$DIG $DIGOPTS +tcp @10.53.0.1 dropedns-notcp soa > dig.out.test$n || ret=1
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+$DIG $DIGOPTS +tcp @10.53.0.1 dropedns-notcp soa > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -135,10 +189,10 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking recursive lookup to edns 512 + no tcp server succeeds ($n)"
+echo_i "checking recursive lookup to edns 512 + no tcp server fails ($n)"
 ret=0
 $DIG $DIGOPTS +tcp @10.53.0.1 edns512-notcp soa > dig.out.test$n || ret=1
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "status: NOERROR" dig.out.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
