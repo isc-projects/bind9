@@ -64,7 +64,6 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 	dns_badcache_t *bc = NULL;
 
 	REQUIRE(bcp != NULL && *bcp == NULL);
-	REQUIRE(mctx != NULL);
 
 	bc = isc_mem_get(mctx, sizeof(dns_badcache_t));
 	if (bc == NULL)
