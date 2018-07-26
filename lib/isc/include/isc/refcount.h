@@ -14,7 +14,6 @@
 #define ISC_REFCOUNT_H 1
 
 #include <isc/assertions.h>
-#include <isc/atomic.h>
 #include <isc/error.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
@@ -23,6 +22,8 @@
 
 #if defined(ISC_PLATFORM_HAVESTDATOMIC)
 #include <stdatomic.h>
+#else
+#include <isc/atomic.h>
 #endif
 
 /*! \file isc/refcount.h

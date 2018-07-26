@@ -142,7 +142,6 @@ dns_dnssec_keyfromrdata(const dns_name_t *name, const dns_rdata_t *rdata,
 
 	INSIST(name != NULL);
 	INSIST(rdata != NULL);
-	INSIST(mctx != NULL);
 	INSIST(key != NULL);
 	INSIST(*key == NULL);
 	REQUIRE(rdata->type == dns_rdatatype_key ||
@@ -208,7 +207,6 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	REQUIRE(key != NULL);
 	REQUIRE(inception != NULL);
 	REQUIRE(expire != NULL);
-	REQUIRE(mctx != NULL);
 	REQUIRE(sigrdata != NULL);
 
 	if (*inception >= *expire)
@@ -384,7 +382,6 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	REQUIRE(name != NULL);
 	REQUIRE(set != NULL);
 	REQUIRE(key != NULL);
-	REQUIRE(mctx != NULL);
 	REQUIRE(sigrdata != NULL && sigrdata->type == dns_rdatatype_rrsig);
 
 	ret = dns_rdata_tostruct(sigrdata, &sig, NULL);

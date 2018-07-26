@@ -491,7 +491,7 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 	unsigned int i;
 	int stopchar;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(filename != NULL);
 	REQUIRE(strlen(filename) > 0U);
 	REQUIRE(confp != NULL && *confp == NULL);

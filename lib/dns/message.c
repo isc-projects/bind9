@@ -705,7 +705,7 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	isc_buffer_t *dynbuf;
 	unsigned int i;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(msgp != NULL);
 	REQUIRE(*msgp == NULL);
 	REQUIRE(intent == DNS_MESSAGE_INTENTPARSE
@@ -2956,7 +2956,7 @@ dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
 	isc_region_t r;
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(querytsig != NULL && *querytsig == NULL);
 
 	if (msg->tsig == NULL)

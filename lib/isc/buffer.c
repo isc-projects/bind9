@@ -87,7 +87,6 @@ isc__buffer_invalidate(isc_buffer_t *b) {
 void
 isc_buffer_setautorealloc(isc_buffer_t *b, isc_boolean_t enable) {
 	REQUIRE(ISC_BUFFER_VALID(b));
-	REQUIRE(b->mctx != NULL);
 	b->autore = enable;
 }
 
@@ -561,7 +560,7 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 		isc_mem_put(mctx, dbuf, sizeof(isc_buffer_t));
 		return (ISC_R_NOMEMORY);
 	}
-
+	
 	isc_buffer_init(dbuf, bdata, length);
 	dbuf->mctx = mctx;
 
@@ -575,26 +574,11 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 static inline
 isc_result_t
 isc__buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length) {
-	unsigned char *bdata;
-
 	REQUIRE(dynbuffer != NULL);
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
-	REQUIRE((*dynbuffer)->mctx != NULL);
 
-	/*
-	 * XXXMUKS: This is far more expensive than plain realloc() as
-	 * it doesn't remap pages, but does ordinary copy. So is
-	 * isc_mem_reallocate(), which has additional issues.
-	 */
-	bdata = isc_mem_get((*dynbuffer)->mctx, length);
-	if (bdata == NULL)
-		return (ISC_R_NOMEMORY);
-
-	memmove(bdata, (*dynbuffer)->base, (*dynbuffer)->length);
-	isc_mem_put((*dynbuffer)->mctx, (*dynbuffer)->base,
-		    (*dynbuffer)->length);
-
-	(*dynbuffer)->base = bdata;
+	(*dynbuffer)->base =
+		isc_mem_reallocate((*dynbuffer)->mctx, (*dynbuffer)->base, length);
 	(*dynbuffer)->length = length;
 
 	return (ISC_R_SUCCESS);
@@ -608,11 +592,9 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
 
 	len = (*dynbuffer)->length;
-	if ((len - (*dynbuffer)->used) >= size)
+	if ((len - (*dynbuffer)->used) >= size) {
 		return (ISC_R_SUCCESS);
-
-	if ((*dynbuffer)->mctx == NULL)
-		return (ISC_R_NOSPACE);
+	}
 
 	/* Round to nearest buffer size increment */
 	len = size + (*dynbuffer)->used;
@@ -623,8 +605,9 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 		len = UINT_MAX;
 	}
 
-	if ((len - (*dynbuffer)->used) < size)
+	if ((len - (*dynbuffer)->used) < size) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	return (isc__buffer_reallocate(dynbuffer, (unsigned int) len));
 }
@@ -636,7 +619,6 @@ isc_buffer_free(isc_buffer_t **dynbuffer) {
 
 	REQUIRE(dynbuffer != NULL);
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
-	REQUIRE((*dynbuffer)->mctx != NULL);
 
 	dbuf = *dynbuffer;
 	*dynbuffer = NULL;	/* destroy external reference */
@@ -674,7 +656,7 @@ isc_buffer_printf(isc_buffer_t *b, const char *format, ...) {
 	if (isc_buffer_availablelength(b) < (unsigned int)n + 1) {
 		return (ISC_R_NOSPACE);
 	}
-
+	
 	va_start(ap, format);
 	n = vsnprintf(isc_buffer_used(b), n + 1, format, ap);
 	va_end(ap);
