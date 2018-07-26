@@ -7175,11 +7175,16 @@ options {
 	      <term><command>allow-query-cache-on</command></term>
 	      <listitem>
 		<para>
-		  Specifies which local addresses can give answers
-		  from the cache.  If not specified, the default is
-		  to allow cache queries on any address,
-		  <command>localnets</command> and
-		  <command>localhost</command>.
+		  Specifies which local addresses can send answers
+		  from the cache.  If <command>allow-query-cache-on</command>
+		  is not set, then <command>allow-recursion-on</command> is
+		  used if set.  Otherwise, the default is
+		  to allow cache responses to be sent from any address.
+		  Note: Both <command>allow-query-cache</command> and
+		  <command>allow-query-cache-on</command> must be
+		  satisfied before a cache response can be sent;
+		  a client that is blocked by one cannot be allowed
+		  by the other.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7205,8 +7210,17 @@ options {
 	      <listitem>
 		<para>
 		  Specifies which local addresses can accept recursive
-		  queries.  If not specified, the default is to allow
-		  recursive queries on all addresses.
+		  queries.  If <command>allow-recursion-on</command>
+		  is not set, then <command>allow-query-cache-on</command>
+		  is used if set; otherwise, the default is to allow
+		  recursive queries on all addresses: Any client permitted
+		  to send recursive queries can send them to any address
+		  on which <command>named</command> is listening.
+		  Note: Both <command>allow-recursion</command> and
+		  <command>allow-recursion-on</command> must be
+		  satisfied before recursion is allowed;
+		  a client that is blocked by one cannot be allowed
+		  by the other.
 		</para>
 	      </listitem>
 	    </varlistentry>
