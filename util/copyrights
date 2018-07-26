@@ -443,7 +443,10 @@
 ./bin/tests/system/allow-query/ns2/named56.conf.in	CONF-C	2010,2016,2018
 ./bin/tests/system/allow-query/ns2/named57.conf.in	CONF-C	2013,2016,2018
 ./bin/tests/system/allow-query/ns3/named.args	X	2018
-./bin/tests/system/allow-query/ns3/named.conf.in	CONF-C	2018
+./bin/tests/system/allow-query/ns3/named1.conf.in	CONF-C	2018
+./bin/tests/system/allow-query/ns3/named2.conf.in	CONF-C	2018
+./bin/tests/system/allow-query/ns3/named3.conf.in	CONF-C	2018
+./bin/tests/system/allow-query/ns3/named4.conf.in	CONF-C	2018
 ./bin/tests/system/allow-query/setup.sh		SH	2010,2012,2016,2018
 ./bin/tests/system/allow-query/tests.sh		SH	2010,2012,2013,2016,2018
 ./bin/tests/system/ans.pl			PERL	2011,2012,2014,2016,2017,2018
