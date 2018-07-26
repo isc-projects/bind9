@@ -185,7 +185,6 @@ ns_interfacemgr_create(isc_mem_t *mctx,
 	UNUSED(task);
 #endif
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(mgrp != NULL);
 	REQUIRE(*mgrp == NULL);
 

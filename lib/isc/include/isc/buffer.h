@@ -782,6 +782,7 @@ ISC_LANG_ENDDECLS
  * true/false, they could at least assert a contractual requirement for
  * non-const buffers when needed.
  */
+#include <stdio.h>
 #define ISC__BUFFER_INIT(_b, _base, _length) \
 	do { \
 		(_b)->base = _base; \

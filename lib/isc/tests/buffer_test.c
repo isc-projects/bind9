@@ -259,6 +259,7 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
 	used = isc_buffer_usedlength(&sb);
 	ATF_CHECK_EQ(used, 6);
 
+
 	result = isc_buffer_printf(&sb, "78");
 	ATF_CHECK_EQ(result, ISC_R_NOSPACE);
 	used = isc_buffer_usedlength(&sb);
