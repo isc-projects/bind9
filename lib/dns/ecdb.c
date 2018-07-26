@@ -132,7 +132,7 @@ static dns_rdatasetitermethods_t rdatasetiter_methods = {
 
 isc_result_t
 dns_ecdb_register(isc_mem_t *mctx, dns_dbimplementation_t **dbimp) {
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(dbimp != NULL && *dbimp == NULL);
 
 	return (dns_db_register("ecdb", dns_ecdb_create, NULL, mctx, dbimp));
@@ -598,7 +598,7 @@ dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	dns_ecdb_t *ecdb;
 	isc_result_t result;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(origin == dns_rootname);
 	REQUIRE(type == dns_dbtype_cache);
 	REQUIRE(dbp != NULL && *dbp == NULL);

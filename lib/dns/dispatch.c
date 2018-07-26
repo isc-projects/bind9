@@ -1739,7 +1739,6 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
 	isc_portset_t *v4portset = NULL;
 	isc_portset_t *v6portset = NULL;
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(mgrp != NULL && *mgrp == NULL);
 
 	mgr = isc_mem_get(mctx, sizeof(dns_dispatchmgr_t));
@@ -2045,31 +2044,38 @@ dns_dispatchmgr_setudp(dns_dispatchmgr_t *mgr,
 		}
 		UNLOCK(&mgr->buffer_lock);
 		return (ISC_R_SUCCESS);
-	}
-	result = isc_mempool_create(mgr->mctx, sizeof(dispsocket_t),
+	} else {
+		result = isc_mempool_create(mgr->mctx, sizeof(dispsocket_t),
 				    &mgr->spool);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;
 
-	isc_mempool_setname(mgr->spool, "dispmgr_spool");
-	isc_mempool_setmaxalloc(mgr->spool, maxrequests);
-	isc_mempool_setfreemax(mgr->spool, maxrequests);
-	isc_mempool_associatelock(mgr->spool, &mgr->spool_lock);
-	isc_mempool_setfillcount(mgr->spool, 32);
+		isc_mempool_setname(mgr->spool, "dispmgr_spool");
+		isc_mempool_setmaxalloc(mgr->spool, maxrequests);
+		isc_mempool_setfreemax(mgr->spool, maxrequests);
+		isc_mempool_associatelock(mgr->spool, &mgr->spool_lock);
+		isc_mempool_setfillcount(mgr->spool, 32);
+	}
 
-	result = qid_allocate(mgr, buckets, increment, &mgr->qid, ISC_TRUE);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
+	if (mgr->qid == NULL) {
+		result = qid_allocate(mgr, buckets, increment, &mgr->qid, ISC_TRUE);
+		if (result != ISC_R_SUCCESS)
+			goto cleanup;	
+	}
+	
 	mgr->buffersize = buffersize;
 	mgr->maxbuffers = maxbuffers;
+
 	UNLOCK(&mgr->buffer_lock);
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	isc_mempool_destroy(&mgr->bpool);
-	if (mgr->spool != NULL)
+	if (mgr->bpool != NULL) {
+		isc_mempool_destroy(&mgr->bpool);
+	}
+	if (mgr->spool != NULL) {
 		isc_mempool_destroy(&mgr->spool);
+	}
 	UNLOCK(&mgr->buffer_lock);
 	return (result);
 }

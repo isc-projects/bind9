@@ -340,7 +340,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	REQUIRE(rdataset->methods != NULL);
 	REQUIRE(countp != NULL);
-	REQUIRE(cctx != NULL && cctx->mctx != NULL);
+	REQUIRE(cctx != NULL);
 
 	want_random = WANT_RANDOM(rdataset);
 	want_cyclic = WANT_CYCLIC(rdataset);
