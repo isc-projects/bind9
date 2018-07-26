@@ -69,6 +69,9 @@
 #include <dns/tsig.h>
 #include <dns/validator.h>
 
+//#undef DNS_EDNS_VERSION
+//#define DNS_EDNS_VERSION 255
+
 #ifdef WANT_QUERYTRACE
 #define RTRACE(m)       isc_log_write(dns_lctx, \
 				      DNS_LOGCATEGORY_RESOLVER, \
@@ -2327,6 +2330,7 @@ issecuredomain(dns_view_t *view, const dns_name_t *name, dns_rdatatype_t type,
 	return (dns_view_issecuredomain(view, name, now, checknta, issecure));
 }
 
+#if 0
 static bool
 wouldvalidate(fetchctx_t *fctx) {
 	bool secure_domain;
@@ -2346,6 +2350,7 @@ wouldvalidate(fetchctx_t *fctx) {
 		return (false);
 	return (secure_domain);
 }
+#endif
 
 static isc_result_t
 resquery_send(resquery_t *query) {
@@ -2514,25 +2519,18 @@ resquery_send(resquery_t *query) {
 	if ((query->addrinfo->flags & DNS_FETCHOPT_NOEDNS0) != 0)
 		query->options |= DNS_FETCHOPT_NOEDNS0;
 
+#if 0
 	/* See if response history indicates that EDNS is not supported. */
 	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0 &&
 	    dns_adb_noedns(fctx->adb, query->addrinfo))
 		query->options |= DNS_FETCHOPT_NOEDNS0;
+#endif
 
 	if (fctx->timeout && (query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
 		isc_sockaddr_t *sockaddr = &query->addrinfo->sockaddr;
 		struct tried *tried;
 
-		if (fctx->timeouts > (MAX_EDNS0_TIMEOUTS * 2) &&
-		    (!EDNSOK(query->addrinfo) || !wouldvalidate(fctx))) {
-			query->options |= DNS_FETCHOPT_NOEDNS0;
-			fctx->reason = "disabling EDNS";
-		} else if ((tried = triededns512(fctx, sockaddr)) != NULL &&
-		    tried->count >= 2U &&
-		    (!EDNSOK(query->addrinfo) || !wouldvalidate(fctx))) {
-			query->options |= DNS_FETCHOPT_NOEDNS0;
-			fctx->reason = "disabling EDNS";
-		} else if ((tried = triededns(fctx, sockaddr)) != NULL) {
+		if ((tried = triededns(fctx, sockaddr)) != NULL) {
 			if (tried->count == 1U) {
 				hint = dns_adb_getudpsize(fctx->adb,
 							  query->addrinfo);
@@ -2619,15 +2617,6 @@ resquery_send(resquery_t *query) {
 				ednsopts[ednsopt].value = NULL;
 				ednsopt++;
 			}
-#if DNS_EDNS_VERSION > 0
-			/*
-			 * Some EDNS(0) servers don't ignore unknown options
-			 * as it was not a explict requirement of RFC 2671.
-			 * Only send COOKIE to EDNS(1) servers.
-			 */
-			if (version < 1)
-				sendcookie = false;
-#endif
 			if (sendcookie) {
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
 				ednsopts[ednsopt].code = DNS_OPT_COOKIE;
@@ -9402,7 +9391,9 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 	resquery_t *query = rctx->query;
 	isc_buffer_t b;
 	char code[64];
+#if 0
 	unsigned char cookie[64];
+#endif
 
 	if (fctx->rmessage->rcode == dns_rcode_noerror ||
 	    fctx->rmessage->rcode == dns_rcode_yxdomain ||
@@ -9423,6 +9414,7 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 			      " due to bad server", fctx->info);
 		fctx->qmin_labels = DNS_MAX_LABELS + 1;
 		result = rctx_answer_minimized(rctx);
+#if 0
 	} else if (!NOCOOKIE(query->addrinfo) &&
 	    (fctx->rmessage->rcode == dns_rcode_formerr ||
 	     fctx->rmessage->rcode == dns_rcode_notimp ||
@@ -9441,7 +9433,10 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		    fctx->rmessage->rcode == dns_rcode_notimp ||
 		    (fctx->rmessage->rcode == dns_rcode_servfail &&
 		     dns_message_getopt(fctx->rmessage) == NULL)) &&
+#else
+	} else if ((fctx->rmessage->rcode == dns_rcode_formerr) &&
 		   (rctx->retryopts & DNS_FETCHOPT_NOEDNS0) == 0)
+#endif
 	{
 		/*
 		 * It's very likely they don't like EDNS0.
@@ -9485,27 +9480,7 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 		unsigned int version;
 #if DNS_EDNS_VERSION > 0
 		unsigned int flags, mask;
-#else
-		bool setnocookie = false;
 #endif
-
-		/*
-		 * Some servers return BADVERS to unknown
-		 * EDNS options.  This cannot be long term
-		 * strategy.  Do not disable COOKIE if we have
-		 * already have received a COOKIE from this
-		 * server.
-		 */
-		if (dns_adb_getcookie(fctx->adb, query->addrinfo,
-				      cookie, sizeof(cookie)) == 0U) {
-#if DNS_EDNS_VERSION <= 0
-			if (!NOCOOKIE(query->addrinfo))
-				setnocookie = true;
-#endif
-			dns_adb_changeflags(fctx->adb, query->addrinfo,
-					    FCTX_ADDRINFO_NOCOOKIE,
-					    FCTX_ADDRINFO_NOCOOKIE);
-		}
 
 		INSIST(rctx->opt != NULL);
 		version = (rctx->opt->ttl >> 16) & 0xff;
@@ -9544,12 +9519,8 @@ rctx_badserver(respctx_t *rctx, isc_result_t result) {
 			rctx->next_server = true;
 		}
 #else
-		if (version == 0U && setnocookie) {
-			rctx->resend = true;
-		} else {
-			rctx->broken_server = DNS_R_BADVERS;
-			rctx->next_server = true;
-		}
+		rctx->broken_server = DNS_R_BADVERS;
+		rctx->next_server = true;
 #endif
 	} else if (fctx->rmessage->rcode == dns_rcode_badcookie &&
 		   fctx->rmessage->cc_ok)
