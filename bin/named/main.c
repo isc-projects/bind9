@@ -122,14 +122,17 @@ static int		maxudp = 0;
  */
 static bool clienttest = false;
 static bool dropedns = false;
-static bool noedns = false;
-static bool nosoa = false;
-static bool noaa = false;
-static unsigned int delay = 0;
-static bool nonearest = false;
-static bool notcp = false;
+static bool ednsformerr = false;
+static bool ednsnotimp = false;
+static bool ednsrefused = false;
 static bool fixedlocal = false;
+static bool noaa = false;
+static bool noedns = false;
+static bool nonearest = false;
+static bool nosoa = false;
+static bool notcp = false;
 static bool sigvalinsecs = false;
+static unsigned int delay = 0;
 
 /*
  * -4 and -6
@@ -488,6 +491,12 @@ parse_T_opt(char *option) {
 		dropedns = true;
 	} else if (!strncmp(option, "dscp=", 5)) {
 		isc_dscp_check_value = atoi(option + 5);
+	} else if (!strcmp(option, "ednsformerr")) {
+		ednsformerr = true;
+	} else if (!strcmp(option, "ednsnotimp")) {
+		ednsnotimp = true;
+	} else if (!strcmp(option, "ednsrefused")) {
+		ednsrefused = true;
 	} else if (!strcmp(option, "fixedlocal")) {
 		fixedlocal = true;
 	} else if (!strcmp(option, "keepstderr")) {
@@ -547,7 +556,7 @@ parse_T_opt(char *option) {
 	} else if (!strncmp(option, "tat=", 4)) {
 		named_g_tat_interval = atoi(option + 4);
 	} else {
-		fprintf(stderr, "unknown -T flag '%s\n", option);
+		fprintf(stderr, "unknown -T flag '%s'\n", option);
 	}
 }
 
@@ -1159,24 +1168,30 @@ setup(void) {
 	 */
 	if (clienttest)
 		ns_server_setoption(sctx, NS_SERVER_CLIENTTEST, true);
-	if (dropedns)
-		ns_server_setoption(sctx, NS_SERVER_DROPEDNS, true);
-	if (noedns)
-		ns_server_setoption(sctx, NS_SERVER_NOEDNS, true);
-	if (nosoa)
-		ns_server_setoption(sctx, NS_SERVER_NOSOA, true);
-	if (noaa)
-		ns_server_setoption(sctx, NS_SERVER_NOAA, true);
-	if (nonearest)
-		ns_server_setoption(sctx, NS_SERVER_NONEAREST, true);
-	if (notcp)
-		ns_server_setoption(sctx, NS_SERVER_NOTCP, true);
-	if (fixedlocal)
-		ns_server_setoption(sctx, NS_SERVER_FIXEDLOCAL, true);
 	if (disable4)
 		ns_server_setoption(sctx, NS_SERVER_DISABLE4, true);
 	if (disable6)
 		ns_server_setoption(sctx, NS_SERVER_DISABLE6, true);
+	if (dropedns)
+		ns_server_setoption(sctx, NS_SERVER_DROPEDNS, true);
+	if (ednsformerr)	/* STD13 server */
+		ns_server_setoption(sctx, NS_SERVER_EDNSFORMERR, true);
+	if (ednsnotimp)
+		ns_server_setoption(sctx, NS_SERVER_EDNSNOTIMP, true);
+	if (ednsrefused)
+		ns_server_setoption(sctx, NS_SERVER_EDNSREFUSED, true);
+	if (fixedlocal)
+		ns_server_setoption(sctx, NS_SERVER_FIXEDLOCAL, true);
+	if (noaa)
+		ns_server_setoption(sctx, NS_SERVER_NOAA, true);
+	if (noedns)
+		ns_server_setoption(sctx, NS_SERVER_NOEDNS, true);
+	if (nonearest)
+		ns_server_setoption(sctx, NS_SERVER_NONEAREST, true);
+	if (nosoa)
+		ns_server_setoption(sctx, NS_SERVER_NOSOA, true);
+	if (notcp)
+		ns_server_setoption(sctx, NS_SERVER_NOTCP, true);
 	if (sigvalinsecs)
 		ns_server_setoption(sctx, NS_SERVER_SIGVALINSECS, true);
 
