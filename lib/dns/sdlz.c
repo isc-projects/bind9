@@ -2055,7 +2055,7 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	REQUIRE(methods != NULL);
 	REQUIRE(methods->findzone != NULL);
 	REQUIRE(methods->lookup != NULL);
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(sdlzimp != NULL && *sdlzimp == NULL);
 	REQUIRE((flags & ~(DNS_SDLZFLAG_RELATIVEOWNER |
 			   DNS_SDLZFLAG_RELATIVERDATA |

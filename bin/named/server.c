@@ -4577,7 +4577,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		dns_peerlist_detach(&view->peers);
 		view->peers = newpeers; /* Transfer ownership. */
 	}
-
+	
 	/*
 	 *	Configure the views rrset-order.
 	 */
@@ -4705,7 +4705,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = named_config_get(maps, "root-key-sentinel", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	view->root_key_sentinel = cfg_obj_asboolean(obj);
-
+	
 	CHECK(configure_view_acl(vconfig, config, named_g_config,
 				 "allow-query-cache-on", NULL, actx,
 				 named_g_mctx, &view->cacheonacl));
@@ -5103,7 +5103,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * "security roots".
 	 */
 	CHECK(configure_view_dnsseckeys(view, vconfig, config, bindkeys,
-					auto_root, mctx));
+					auto_root, mctx));	
 	dns_resolver_resetmustbesecure(view->resolver);
 	obj = NULL;
 	result = named_config_get(maps, "dnssec-must-be-secure", &obj);
@@ -6170,7 +6170,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 	/* No existing keydata zone was found; create one */
 	CHECK(dns_zonemgr_createzone(named_g_server->zonemgr, &zone));
 	CHECK(dns_zone_setorigin(zone, dns_rootname));
-
+	
 	defaultview = ISC_TF(strcmp(view->name, "_default") == 0);
 	CHECK(isc_file_sanitize(directory,
 				defaultview ? "managed-keys" : view->name,
@@ -7845,7 +7845,7 @@ load_configuration(const char *filename, named_server_t *server,
 	unsigned int initial, idle, keepalive, advertised;
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
-
+	
 	ISC_LIST_INIT(viewlist);
 	ISC_LIST_INIT(builtin_viewlist);
 	ISC_LIST_INIT(cachelist);
@@ -8674,6 +8674,7 @@ load_configuration(const char *filename, named_server_t *server,
 		}
 	}
 #endif /* HAVE_LMDB */
+
 
 	/*
 	 * Configure the logging system.

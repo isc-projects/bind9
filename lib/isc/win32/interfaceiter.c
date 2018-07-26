@@ -108,7 +108,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	int error;
 	unsigned long bytesReturned = 0;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(iterp != NULL);
 	REQUIRE(*iterp == NULL);
 

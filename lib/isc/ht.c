@@ -55,7 +55,7 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, isc_uint8_t bits) {
 	size_t i;
 
 	REQUIRE(htp != NULL && *htp == NULL);
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(bits >= 1 && bits <= (sizeof(size_t)*8 - 1));
 
 	ht = isc_mem_get(mctx, sizeof(struct isc_ht));

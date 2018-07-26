@@ -438,7 +438,6 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
 	dns_dispatch_t *dispatchv6 = NULL;
 	dns_view_t *view = NULL;
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(taskmgr != NULL);
 	REQUIRE(timermgr != NULL);
 	REQUIRE(socketmgr != NULL);
@@ -709,7 +708,6 @@ static isc_result_t
 getrdataset(isc_mem_t *mctx, dns_rdataset_t **rdatasetp) {
 	dns_rdataset_t *rdataset;
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(rdatasetp != NULL && *rdatasetp == NULL);
 
 	rdataset = isc_mem_get(mctx, sizeof(*rdataset));

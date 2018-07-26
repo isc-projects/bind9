@@ -258,7 +258,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	REQUIRE(key == NULL || *key == NULL);
 	REQUIRE(name != NULL);
 	REQUIRE(algorithm != NULL);
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(key != NULL || ring != NULL);
 
 	tkey = (dns_tsigkey_t *) isc_mem_get(mctx, sizeof(dns_tsigkey_t));
@@ -1810,7 +1810,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	isc_result_t result;
 	dns_tsig_keyring_t *ring;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(ringp != NULL);
 	REQUIRE(*ringp == NULL);
 

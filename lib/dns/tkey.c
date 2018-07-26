@@ -108,7 +108,7 @@ dns_tkeyctx_create(isc_mem_t *mctx, dns_tkeyctx_t **tctxp)
 {
 	dns_tkeyctx_t *tctx;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(tctxp != NULL && *tctxp == NULL);
 
 	tctx = isc_mem_get(mctx, sizeof(dns_tkeyctx_t));
@@ -1032,7 +1032,7 @@ dns_tkey_buildgssquery(dns_message_t *msg, const dns_name_t *name,
 	REQUIRE(name != NULL);
 	REQUIRE(gname != NULL);
 	REQUIRE(context != NULL);
-	REQUIRE(mctx != NULL);
+	
 
 	isc_buffer_init(&token, array, sizeof(array));
 	result = dst_gssapi_initctx(gname, NULL, &token, context,

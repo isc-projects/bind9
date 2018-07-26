@@ -954,7 +954,7 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	isc_result_t result;
 	dns_rbt_t *rbt;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(rbtp != NULL && *rbtp == NULL);
 	REQUIRE(deleter == NULL ? deleter_arg == NULL : 1);
 
