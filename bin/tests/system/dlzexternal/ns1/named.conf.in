@@ -34,25 +34,25 @@ controls {
 };
 
 dlz "example one" {
-	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ example.nil";
+	database "dlopen @SYSTEMTESTTOP@/dlzexternal/driver.@SOEXT@ example.nil";
 };
 
 dlz "example two" {
-	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ alternate.nil";
+	database "dlopen @SYSTEMTESTTOP@/dlzexternal/driver.@SOEXT@ alternate.nil";
 };
 
 dlz "unsearched1" {
-	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ other.nil";
+	database "dlopen @SYSTEMTESTTOP@/dlzexternal/driver.@SOEXT@ other.nil";
 	search no;
 };
 
 dlz "unsearched2" {
-	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ zone.nil";
+	database "dlopen @SYSTEMTESTTOP@/dlzexternal/driver.@SOEXT@ zone.nil";
 	search no;
 };
 
 dlz redzone {
-	database "dlopen @TOP@/bin/tests/system/dlzexternal/driver.@SOEXT@ .";
+	database "dlopen @SYSTEMTESTTOP@/dlzexternal/driver.@SOEXT@ .";
 	search no;
 };
 

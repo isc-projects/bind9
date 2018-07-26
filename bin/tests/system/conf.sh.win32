@@ -134,7 +134,7 @@ if test -n "$PERL"
 then
 	if $PERL -e "use IO::Socket::INET6;" 2> /dev/null
 	then
-		TESTSOCK6="$PERL $TOP/bin/tests/system/testsock6.pl"
+		TESTSOCK6="$PERL $SYSTEMTESTTOP/testsock6.pl"
 	else
 		TESTSOCK6=false
 	fi
