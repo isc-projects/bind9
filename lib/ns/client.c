@@ -548,9 +548,10 @@ exit_check(ns_client_t *client) {
 		client->mortal = ISC_FALSE;
 		client->sendcb = NULL;
 
-		if (client->keytag != NULL) {
+		if (client->keytag != NULL && client->keytag_len != 0) {
 			isc_mem_put(client->mctx, client->keytag,
 				    client->keytag_len);
+			client->keytag = NULL;
 			client->keytag_len = 0;
 		}
 
@@ -622,9 +623,10 @@ exit_check(ns_client_t *client) {
 			dns_message_puttemprdataset(client->message,
 						    &client->opt);
 		}
-		if (client->keytag != NULL) {
+		if (client->keytag != NULL && client->keytag_len != 0) {
 			isc_mem_put(client->mctx, client->keytag,
 				    client->keytag_len);
+			client->keytag = NULL;
 			client->keytag_len = 0;
 		}
 

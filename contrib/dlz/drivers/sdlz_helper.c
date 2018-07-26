@@ -68,8 +68,6 @@ destroy_querylist(isc_mem_t *mctx, query_list_t **querylist)
 	query_segment_t *tseg = NULL;
 	query_segment_t *nseg = NULL;
 
-	REQUIRE(mctx != NULL);
-
 	/* if query list is null, nothing to do */
 	if (*querylist == NULL)
 		return;
@@ -111,7 +109,6 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 	char *last;
 
 	REQUIRE(querylist != NULL && *querylist == NULL);
-	REQUIRE(mctx != NULL);
 
 	/* if query string is null, or zero length */
 	if (query_str == NULL || strlen(query_str) < 1) {
@@ -280,7 +277,6 @@ sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 	unsigned int length = 0;
 	char *qs = NULL;
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(querylist != NULL);
 
 	/* start at the top of the list */
@@ -333,7 +329,6 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	dbinstance_t *db = NULL;
 
 	REQUIRE(dbi != NULL && *dbi == NULL);
-	REQUIRE(mctx != NULL);
 
 	/* allocate and zero memory for driver structure */
 	db = isc_mem_get(mctx, sizeof(dbinstance_t));
@@ -500,8 +495,6 @@ sdlzh_get_parameter_value(isc_mem_t *mctx, const char *input, const char* key)
 
 	if (keystart == NULL)
 		return NULL;
-
-	REQUIRE(mctx != NULL);
 
 	for (i = 0; i < 255; i++) {
 		value[i] = keystart[keylen + i];

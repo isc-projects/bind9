@@ -884,6 +884,8 @@ isccc_cc_definestring(isccc_sexpr_t *alist, const char *key, const char *str) {
 	size_t len;
 	isccc_region_t r;
 
+	REQUIRE(str != NULL);
+	
 	len = strlen(str);
 	DE_CONST(str, r.rstart);
 	r.rend = r.rstart + len;
