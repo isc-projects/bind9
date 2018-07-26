@@ -57,7 +57,7 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 	isc_symtab_t *symtab;
 	unsigned int i;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(symtabp != NULL && *symtabp == NULL);
 	REQUIRE(size > 0);	/* Should be prime. */
 

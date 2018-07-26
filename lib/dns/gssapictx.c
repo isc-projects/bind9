@@ -573,7 +573,7 @@ dst_gssapi_initctx(const dns_name_t *name, isc_buffer_t *intoken,
 
 	/* Client must pass us a valid gss_ctx_id_t here */
 	REQUIRE(gssctx != NULL);
-	REQUIRE(mctx != NULL);
+	
 
 	isc_buffer_init(&namebuf, array, sizeof(array));
 	name_to_gbuffer(name, &namebuf, &gnamebuf);

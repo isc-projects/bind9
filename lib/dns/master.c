@@ -522,7 +522,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	REQUIRE(callbacks->add != NULL);
 	REQUIRE(callbacks->error != NULL);
 	REQUIRE(callbacks->warn != NULL);
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(dns_name_isabsolute(top));
 	REQUIRE(dns_name_isabsolute(origin));
 	REQUIRE((task == NULL && done == NULL) ||
