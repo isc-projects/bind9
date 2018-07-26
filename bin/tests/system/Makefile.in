@@ -37,9 +37,6 @@ SRCS =		feature-test.c
 
 TARGETS =	feature-test@EXEEXT@
 
-CPIO =		@CPIO@
-GIT =		@GIT@
-
 @BIND9_MAKE_RULES@
 
 subdirs: ${TARGETS}
@@ -110,34 +107,22 @@ parallel.mk:
 
 # Targets to run the tests.
 
-# update the ootfiles.txt file if we're running in a git repo.
-# this should be done and the result committed whenever new files
-# are added under bin/tests/system. the precheck step in the gitlab
-# CI process will fail if this hasn't been done.
-${srcdir}/ootfiles.txt: FORCE
-	@if test -n "${GIT}"; then \
-		cwd=`pwd`; \
-		cd ${srcdir}; \
-		if ${GIT} status -s > /dev/null; then \
-			${GIT} ls-files --exclude-standard > ootfiles.txt; \
-		fi; \
-		cd ${cwd}; \
-	fi
-
-oot_setup: ${srcdir}/ootfiles.txt
-	@if test "${srcdir}" != "." -a -n "${CPIO}"; \
+oot_setup:
+	@if test "${srcdir}" != "."; \
 	then \
-		cwd=`pwd`; \
-		(cd ${srcdir} && ${CPIO} -pdlum $${cwd} < ootfiles.txt) \
+		find . -type f > oot_before.txt ; \
+		cp -pR ${srcdir} ../ ; \
+		find . -type f > oot_after.txt ; \
+		cat oot_before.txt oot_after.txt | sort | uniq -c | sed -n "s|^ *1 *\(.*\)|\1|p;" | tr "\n" "\0" > oot_copied.txt ; \
+		rm -f oot_before.txt oot_after.txt ; \
 	fi
 
 oot_clean:
-	@if test "${srcdir}" != "." -a -n "${CPIO}"; \
+	@if test "${srcdir}" != "." -a -s oot_copied.txt; \
 	then \
-		cwd=`pwd`; \
-		(cd ${srcdir} && find . -type f -a ! \( -name Makefile -o -name conf.sh \) -print0 ) | xargs -0 rm -f ; \
-		(cd ${srcdir} && find . -depth -type d -a ! \( -name "." -or -name ".." \) -print0 ) | \
-		 xargs -0 rmdir 2> /dev/null || true ; \
+		xargs -0 rm -f < oot_copied.txt ; \
+		find . -depth -type d -a ! \( -name "." -or -name ".." \) -print0 | xargs -0 rmdir 2> /dev/null || true ; \
+		rm -f oot_copied.txt ; \
 	fi
 
 test: oot_setup parallel.mk

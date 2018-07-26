@@ -1684,7 +1684,6 @@
 ./bin/tests/system/nzd2nzf/prereq.sh		SH	2016,2018
 ./bin/tests/system/nzd2nzf/setup.sh		SH	2016,2018
 ./bin/tests/system/nzd2nzf/tests.sh		SH	2016,2018
-./bin/tests/system/ootfiles.txt			X	2018
 ./bin/tests/system/org.isc.bind.system		SH	2010,2012,2013,2016,2018
 ./bin/tests/system/org.isc.bind.system.plist	X	2010,2018
 ./bin/tests/system/packet.pl			PERL	2011,2012,2016,2018

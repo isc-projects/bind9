@@ -144,16 +144,6 @@ esac
 AC_PATH_PROGS(ETAGS, etags emacs-etags)
 
 #
-# cpio and git (for out-of-tree system tests)
-#
-AC_PATH_PROGS(CPIO, cpio)
-AC_SUBST(CPIO)
-
-AC_PATH_PROGS(GIT, git)
-AC_SUBST(GIT)
-
-
-#
 # Some systems, e.g. RH7, have the Exuberant Ctags etags instead of
 # GNU emacs etags, and it requires the -L flag.
 #
