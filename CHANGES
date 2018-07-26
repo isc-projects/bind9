@@ -1,3 +1,10 @@
+5034.	[func]		"allow-recursion-on" and "allow-query-cache-on"
+			now each default to the other if only one of them
+			is set, in order to be more consistent with the way
+			"allow-recursion" and "allow-query-cache" work.
+			Also ensure that both query-cache ACLs are checked
+			when determining cache access. [GL #319]
+
 5033.	[bug]		When adding NTAs to multiple views using "rndc nta",
 			the text returned via rndc was incorrectly terminated
 			after the first line, making it look as if only one
