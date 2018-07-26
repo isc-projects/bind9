@@ -2526,7 +2526,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	isc_result_t result;
 	unsigned int i;
 
-	REQUIRE(mem != NULL);
 	REQUIRE(view != NULL);
 	REQUIRE(timermgr != NULL); /* this is actually unused */
 	REQUIRE(taskmgr != NULL);

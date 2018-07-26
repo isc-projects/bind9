@@ -36,7 +36,7 @@ cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
 	isc_result_t result;
 	cfg_aclconfctx_t *actx;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(ret != NULL && *ret == NULL);
 
 	actx = isc_mem_get(mctx, sizeof(*actx));
