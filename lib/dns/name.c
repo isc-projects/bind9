@@ -687,24 +687,6 @@ dns_name_equal(const dns_name_t *name1, const dns_name_t *name2) {
 
 		INSIST(count <= 63); /* no bitstring support */
 
-		/* Loop unrolled for performance */
-		while (ISC_LIKELY(count > 3)) {
-			c = maptolower[label1[0]];
-			if (c != maptolower[label2[0]])
-				return (ISC_FALSE);
-			c = maptolower[label1[1]];
-			if (c != maptolower[label2[1]])
-				return (ISC_FALSE);
-			c = maptolower[label1[2]];
-			if (c != maptolower[label2[2]])
-				return (ISC_FALSE);
-			c = maptolower[label1[3]];
-			if (c != maptolower[label2[3]])
-				return (ISC_FALSE);
-			count -= 4;
-			label1 += 4;
-			label2 += 4;
-		}
 		while (ISC_LIKELY(count-- > 0)) {
 			c = maptolower[*label1++];
 			if (c != maptolower[*label2++])

@@ -892,7 +892,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_time_t now;
 
 	REQUIRE(zonep != NULL && *zonep == NULL);
-	REQUIRE(mctx != NULL);
+	
 
 	TIME_NOW(&now);
 	zone = isc_mem_get(mctx, sizeof(*zone));
@@ -16140,8 +16140,8 @@ dns_zonemgr_createzone(dns_zonemgr_t *zmgr, dns_zone_t **zonep) {
 		return (ISC_R_FAILURE);
 
 	item = isc_pool_get(zmgr->mctxpool);
-	if (item == NULL)
-		return (ISC_R_FAILURE);
+	/* if (item == NULL) */
+	/* 	return (ISC_R_FAILURE); */
 
 	isc_mem_attach((isc_mem_t *) item, &mctx);
 	result = dns_zone_create(&zone, mctx);

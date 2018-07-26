@@ -166,7 +166,6 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 	REQUIRE(dbp != NULL && *dbp == NULL);
 	REQUIRE(dlzname != NULL);
 	REQUIRE(drivername != NULL);
-	REQUIRE(mctx != NULL);
 
 	/* write log message */
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -287,7 +286,6 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 	REQUIRE(methods->create != NULL);
 	REQUIRE(methods->destroy != NULL);
 	REQUIRE(methods->findzone != NULL);
-	REQUIRE(mctx != NULL);
 	REQUIRE(dlzimp != NULL && *dlzimp == NULL);
 
 	/*

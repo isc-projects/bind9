@@ -965,7 +965,7 @@ isc_result_t
 isc__appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 	isc__appctx_t *ctx;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
 	ctx = isc_mem_get(mctx, sizeof(*ctx));
