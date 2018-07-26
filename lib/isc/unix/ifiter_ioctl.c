@@ -287,7 +287,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	isc_result_t result;
 	char strbuf[ISC_STRERRORSIZE];
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(iterp != NULL);
 	REQUIRE(*iterp == NULL);
 

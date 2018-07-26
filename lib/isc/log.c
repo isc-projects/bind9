@@ -42,7 +42,7 @@
 /*
  * XXXDCL make dynamic?
  */
-#define LOG_BUFFER_SIZE	(8 * 1024)
+#define LOG_BUFFER_SIZE	(16 * 1024)
 
 #ifndef PATH_MAX
 #define PATH_MAX 1024	/* AIX and others don't define this. */
@@ -259,7 +259,6 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 	isc_logconfig_t *lcfg = NULL;
 	isc_result_t result;
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(lctxp != NULL && *lctxp == NULL);
 	REQUIRE(lcfgp == NULL || *lcfgp == NULL);
 
