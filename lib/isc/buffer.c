@@ -83,7 +83,6 @@ isc__buffer_invalidate(isc_buffer_t *b) {
 void
 isc_buffer_setautorealloc(isc_buffer_t *b, isc_boolean_t enable) {
 	REQUIRE(ISC_BUFFER_VALID(b));
-	REQUIRE(b->mctx != NULL);
 	b->autore = enable;
 }
 
@@ -581,10 +580,6 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if ((*dynbuffer)->mctx == NULL) {
-		return (ISC_R_NOSPACE);
-	}
-
 	/* Round to nearest buffer size increment */
 	len = size + (*dynbuffer)->used;
 	len = (len + ISC_BUFFER_INCR - 1 - ((len - 1) % ISC_BUFFER_INCR));
@@ -625,7 +620,6 @@ isc_buffer_free(isc_buffer_t **dynbuffer) {
 
 	REQUIRE(dynbuffer != NULL);
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
-	REQUIRE((*dynbuffer)->mctx != NULL);
 
 	dbuf = *dynbuffer;
 	*dynbuffer = NULL;	/* destroy external reference */

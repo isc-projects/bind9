@@ -256,7 +256,7 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	isc_result_t result;
 	isc_httpdmgr_t *httpdmgr;
 
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(sock != NULL);
 	REQUIRE(task != NULL);
 	REQUIRE(tmgr != NULL);

@@ -449,7 +449,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 		goto cleanup_request;
 	}
 
-	result = isc_buffer_allocate(listener->mctx, &text, 2 * 2048);
+	result = isc_buffer_allocate(listener->mctx, &text, 4 * 2048); /* TODO!!!: Kill magic constants */
+	memset(isc_buffer_base(text), 0, isc_buffer_length(text));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_request;
 

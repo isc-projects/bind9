@@ -209,7 +209,7 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 	REQUIRE(drivername != NULL);
 	REQUIRE(methods != NULL);
 	REQUIRE(methods->lookup != NULL || methods->lookup2 != NULL);
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(sdbimp != NULL && *sdbimp == NULL);
 	REQUIRE((flags & ~(DNS_SDBFLAG_RELATIVEOWNER |
 			   DNS_SDBFLAG_RELATIVERDATA |

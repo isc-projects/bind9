@@ -53,7 +53,6 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	dns_dbtable_t *dbtable;
 	isc_result_t result;
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(dbtablep != NULL && *dbtablep == NULL);
 
 	dbtable = (dns_dbtable_t *)isc_mem_get(mctx, sizeof(*dbtable));

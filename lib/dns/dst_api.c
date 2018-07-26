@@ -141,7 +141,6 @@ isc_result_t
 dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	isc_result_t result;
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(dst_initialized == ISC_FALSE);
 
 	UNUSED(engine);
@@ -275,7 +274,6 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx,
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(VALID_KEY(key));
-	REQUIRE(mctx != NULL);
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 
 	if (key->func->createctx == NULL &&
@@ -457,10 +455,11 @@ dst_key_getfilename(dns_name_t *name, dns_keytag_t id,
 {
 	isc_result_t result;
 
+	UNUSED(mctx);
+	
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) != 0);
-	REQUIRE(mctx != NULL);
 	REQUIRE(buf != NULL);
 
 	CHECKALG(alg);
@@ -489,7 +488,6 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) != 0);
-	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	CHECKALG(alg);
@@ -538,7 +536,6 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(filename != NULL);
 	REQUIRE((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) != 0);
-	REQUIRE(mctx != NULL);
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	/* If an absolute path is specified, don't use the key directory */
@@ -818,7 +815,7 @@ dst_key_buildinternal(const dns_name_t *name, unsigned int alg,
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(dns_name_isabsolute(name));
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(keyp != NULL && *keyp == NULL);
 	REQUIRE(data != NULL);
 
@@ -852,7 +849,7 @@ dst_key_fromlabel(const dns_name_t *name, int alg, unsigned int flags,
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(dns_name_isabsolute(name));
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(keyp != NULL && *keyp == NULL);
 	REQUIRE(label != NULL);
 
@@ -896,7 +893,7 @@ dst_key_generate(const dns_name_t *name, unsigned int alg,
 
 	REQUIRE(dst_initialized == ISC_TRUE);
 	REQUIRE(dns_name_isabsolute(name));
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	CHECKALG(alg);
@@ -1771,7 +1768,7 @@ frombuffer(const dns_name_t *name, unsigned int alg, unsigned int flags,
 
 	REQUIRE(dns_name_isabsolute(name));
 	REQUIRE(source != NULL);
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(keyp != NULL && *keyp == NULL);
 
 	key = get_key_struct(name, alg, flags, protocol, 0, rdclass, 0, mctx);
