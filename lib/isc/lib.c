@@ -83,7 +83,6 @@ static void
 do_register(void) {
 	isc_bind9 = ISC_FALSE;
 
-	RUNTIME_CHECK(isc__mem_register() == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc__app_register() == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc__task_register() == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc__socket_register() == ISC_R_SUCCESS);

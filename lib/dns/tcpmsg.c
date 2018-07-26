@@ -125,7 +125,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in) {
 
 void
 dns_tcpmsg_init(isc_mem_t *mctx, isc_socket_t *sock, dns_tcpmsg_t *tcpmsg) {
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(sock != NULL);
 	REQUIRE(tcpmsg != NULL);
 

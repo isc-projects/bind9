@@ -584,7 +584,6 @@ memory context is freed before all references have been cleaned up.
         isc_foo_create(isc_mem_t *mctx, isc_foo_t **foop) {
                 isc_foo_t *foo;
 
-                REQUIRE(mctx != NULL);
                 REQUIRE(foop != NULL && *foop == NULL);
 
                 foo = isc_mem_get(mctx, sizeof(isc_foo_t))

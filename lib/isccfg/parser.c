@@ -439,7 +439,6 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	cfg_parser_t *pctx;
 	isc_lexspecials_t specials;
 
-	REQUIRE(mctx != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
 
 	pctx = isc_mem_get(mctx, sizeof(*pctx));
