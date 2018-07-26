@@ -63,7 +63,7 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	dns_ssutable_t *table;
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
-	REQUIRE(mctx != NULL);
+	
 
 	table = isc_mem_get(mctx, sizeof(dns_ssutable_t));
 	if (table == NULL)

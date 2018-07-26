@@ -142,7 +142,6 @@ static unsigned char tableindex[256] = {
 isc_result_t
 dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	REQUIRE(cctx != NULL);
-	REQUIRE(mctx != NULL);	/* See: rdataset.c:towiresorted(). */
 
 	cctx->edns = edns;
 	cctx->mctx = mctx;
