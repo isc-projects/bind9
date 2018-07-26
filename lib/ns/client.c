@@ -2540,12 +2540,38 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 
 	if (opt != NULL) {
 		/*
+		 * Are returning FORMERR to all EDNS queries?
+		 * Simulate a STD13 compliant server.
+		 */
+		if ((client->sctx->options & NS_SERVER_EDNSFORMERR) != 0) {
+			ns_client_error(client, DNS_R_FORMERR);
+			return;
+		}
+
+		/*
+		 * Are returning NOTIMP to all EDNS queries?
+		 */
+		if ((client->sctx->options & NS_SERVER_EDNSNOTIMP) != 0) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			return;
+		}
+
+		/*
+		 * Are returning REFUSED to all EDNS queries?
+		 */
+		if ((client->sctx->options & NS_SERVER_EDNSREFUSED) != 0) {
+			ns_client_error(client, DNS_R_REFUSED);
+			return;
+		}
+
+		/*
 		 * Are we dropping all EDNS queries?
 		 */
 		if ((client->sctx->options & NS_SERVER_DROPEDNS) != 0) {
 			ns_client_next(client, ISC_R_SUCCESS);
 			return;
 		}
+
 		result = process_opt(client, opt);
 		if (result != ISC_R_SUCCESS)
 			return;
