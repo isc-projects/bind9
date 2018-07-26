@@ -127,7 +127,7 @@ recv_message(isc_task_t *task, isc_event_t *ev_in) {
 
 void
 isccc_ccmsg_init(isc_mem_t *mctx, isc_socket_t *sock, isccc_ccmsg_t *ccmsg) {
-	REQUIRE(mctx != NULL);
+	
 	REQUIRE(sock != NULL);
 	REQUIRE(ccmsg != NULL);
 
