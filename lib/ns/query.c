@@ -1029,7 +1029,9 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 
 	if ((client->query.attributes & NS_QUERYATTR_CACHEACLOKVALID) == 0) {
 		/*
-		 * The view's cache ACL has not yet been evaluated.  Do it now.
+		 * The view's cache ACLs have not yet been evaluated.
+		 * Do it now. Both allow-query-cache and
+		 * allow-query-cache-on must be satsified.
 		 */
 		bool log = ((options & DNS_GETDB_NOLOG) == 0);
 		char msg[NS_CLIENT_ACLMSGSIZE("query (cache)")];
@@ -1037,6 +1039,12 @@ query_checkcacheaccess(ns_client_t *client, const dns_name_t *name,
 		result = ns_client_checkaclsilent(client, NULL,
 						  client->view->cacheacl,
 						  true);
+		if (result == ISC_R_SUCCESS) {
+			result = ns_client_checkaclsilent(client,
+						  &client->destaddr,
+						  client->view->cacheonacl,
+						  true);
+		};
 		if (result == ISC_R_SUCCESS) {
 			/*
 			 * We were allowed by the "allow-query-cache" ACL.
