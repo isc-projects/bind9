@@ -576,9 +576,6 @@ isc_buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length) {
 	REQUIRE(ISC_BUFFER_VALID(*dynbuffer));
 	REQUIRE((*dynbuffer)->mctx != NULL);
 
-	if ((*dynbuffer)->length > length)
-		return (ISC_R_NOSPACE);
-
 	/*
 	 * XXXMUKS: This is far more expensive than plain realloc() as
 	 * it doesn't remap pages, but does ordinary copy. So is
