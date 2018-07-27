@@ -726,7 +726,6 @@ tsigkey_free(dns_tsigkey_t *key) {
 		dns_name_free(key->creator, key->mctx);
 		isc_mem_put(key->mctx, key->creator, sizeof(dns_name_t));
 	}
-	isc_refcount_destroy(&key->refs);
 	isc_mem_putanddetach(&key->mctx, key, sizeof(dns_tsigkey_t));
 }
 
@@ -741,8 +740,10 @@ dns_tsigkey_detach(dns_tsigkey_t **keyp) {
 	key = *keyp;
 	isc_refcount_decrement(&key->refs, &refs);
 
-	if (refs == 0)
+	if (refs == 0) {
+		isc_refcount_destroy(&key->refs);
 		tsigkey_free(key);
+	}
 
 	*keyp = NULL;
 }

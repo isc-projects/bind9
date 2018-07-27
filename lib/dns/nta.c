@@ -71,6 +71,7 @@ nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
 	*ntap = NULL;
 	isc_refcount_decrement(&nta->refcount, &refs);
 	if (refs == 0) {
+		isc_refcount_destroy(&nta->refcount);
 		nta->magic = 0;
 		if (nta->timer != NULL) {
 			(void) isc_timer_reset(nta->timer,
@@ -78,7 +79,6 @@ nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
 					       NULL, NULL, ISC_TRUE);
 			isc_timer_detach(&nta->timer);
 		}
-		isc_refcount_destroy(&nta->refcount);
 		if (dns_rdataset_isassociated(&nta->rdataset))
 			dns_rdataset_disassociate(&nta->rdataset);
 		if (dns_rdataset_isassociated(&nta->sigrdataset))
