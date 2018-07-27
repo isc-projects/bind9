@@ -662,9 +662,15 @@ isc_buffer_printf(isc_buffer_t *b, const char *format, ...) {
 		return (ISC_R_FAILURE);
 	}
 
-	result = isc_buffer_reserve(&b, n + 1);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
+	if (ISC_UNLIKELY(b->autore)) {
+		result = isc_buffer_reserve(&b, n + 1);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+	}
+
+	if (isc_buffer_availablelength(b) < (unsigned int)n + 1) {
+		return (ISC_R_NOSPACE);
 	}
 
 	va_start(ap, format);
