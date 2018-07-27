@@ -149,8 +149,10 @@ dns_iptable_detach(dns_iptable_t **tabp) {
 	unsigned int refs;
 	REQUIRE(DNS_IPTABLE_VALID(tab));
 	isc_refcount_decrement(&tab->refcount, &refs);
-	if (refs == 0)
+	if (refs == 0) {
+		isc_refcount_destroy(&tab->refcount);
 		destroy_iptable(tab);
+	}
 	*tabp = NULL;
 }
 
@@ -164,7 +166,6 @@ destroy_iptable(dns_iptable_t *dtab) {
 		dtab->radix = NULL;
 	}
 
-	isc_refcount_destroy(&dtab->refcount);
 	dtab->magic = 0;
 	isc_mem_putanddetach(&dtab->mctx, dtab, sizeof(*dtab));
 }

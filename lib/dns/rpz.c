@@ -2114,6 +2114,7 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 	if (refs != 0) {
 		return;
 	}
+	isc_refcount_destroy(&rpzs->refs);
 
 	/*
 	 * Forget the last of view's rpz machinery after the last reference.
@@ -2140,7 +2141,6 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 	}
 	DESTROYLOCK(&rpzs->maint_lock);
 	isc_rwlock_destroy(&rpzs->search_lock);
-	isc_refcount_destroy(&rpzs->refs);
 	isc_task_destroy(&rpzs->updater);
 	isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));
 }

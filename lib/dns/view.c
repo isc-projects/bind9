@@ -540,7 +540,6 @@ destroy(dns_view_t *view) {
 		dns_badcache_destroy(&view->failcache);
 	DESTROYLOCK(&view->new_zone_lock);
 	DESTROYLOCK(&view->lock);
-	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->nta_file);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
@@ -587,6 +586,8 @@ view_flushanddetach(dns_view_t **viewp, isc_boolean_t flush) {
 	isc_refcount_decrement(&view->references, &refs);
 	if (refs == 0) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
+
+		isc_refcount_destroy(&view->references);
 
 		LOCK(&view->lock);
 		if (!RESSHUTDOWN(view))

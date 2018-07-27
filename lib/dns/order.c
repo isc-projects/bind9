@@ -140,15 +140,14 @@ dns_order_detach(dns_order_t **orderp) {
 	order = *orderp;
 	REQUIRE(DNS_ORDER_VALID(order));
 	isc_refcount_decrement(&order->references, &references);
-	*orderp = NULL;
-	if (references != 0)
-		return;
-
-	order->magic = 0;
-	while ((ent = ISC_LIST_HEAD(order->ents)) != NULL) {
-		ISC_LIST_UNLINK(order->ents, ent, link);
-		isc_mem_put(order->mctx, ent, sizeof(*ent));
+	if (references == 0) {
+		isc_refcount_destroy(&order->references);
+		order->magic = 0;
+		while ((ent = ISC_LIST_HEAD(order->ents)) != NULL) {
+			ISC_LIST_UNLINK(order->ents, ent, link);
+			isc_mem_put(order->mctx, ent, sizeof(*ent));
+		}
+		isc_mem_putanddetach(&order->mctx, order, sizeof(*order));
 	}
-	isc_refcount_destroy(&order->references);
-	isc_mem_putanddetach(&order->mctx, order, sizeof(*order));
+	*orderp = NULL;
 }

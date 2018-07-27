@@ -241,8 +241,8 @@ dns_portlist_detach(dns_portlist_t **portlistp) {
 	*portlistp = NULL;
 	isc_refcount_decrement(&portlist->refcount, &count);
 	if (count == 0) {
-		portlist->magic = 0;
 		isc_refcount_destroy(&portlist->refcount);
+		portlist->magic = 0;
 		if (portlist->list != NULL)
 			isc_mem_put(portlist->mctx, portlist->list,
 				    portlist->allocated *

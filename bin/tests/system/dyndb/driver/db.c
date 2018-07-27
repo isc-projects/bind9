@@ -90,8 +90,10 @@ detach(dns_db_t **dbp) {
 	REQUIRE(VALID_SAMPLEDB(sampledb));
 
 	isc_refcount_decrement(&sampledb->refs, &refs);
-	if (refs == 0)
+	if (refs == 0) {
+		isc_refcount_destroy(&sampledb->refs);
 		free_sampledb(sampledb);
+	}
 	*dbp = NULL;
 }
 
