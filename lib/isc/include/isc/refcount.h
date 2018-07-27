@@ -53,7 +53,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  */
 
 #define isc_refcount_current(target)				\
-	(uint_fast32_t)atomic_load_explicit(target, memory_order_relaxed)
+	(uint_fast32_t)atomic_load_explicit(target, memory_order_acquire)
 
 /** \def isc_refcount_destroy(ref)
  *  \brief a destructor that makes sure that all references were cleared.
@@ -85,6 +85,6 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  *  \returns previous value of reference counter.
  */
 #define isc_refcount_decrement(target)				\
-	atomic_fetch_sub_explicit(target, 1, memory_order_relaxed)
+	atomic_fetch_sub_explicit(target, 1, memory_order_release)
 
 ISC_LANG_ENDDECLS
