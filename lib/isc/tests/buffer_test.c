@@ -114,12 +114,6 @@ ATF_TC_BODY(isc_buffer_reallocate, tc) {
 	ATF_REQUIRE(b != NULL);
 	ATF_CHECK_EQ(b->length, 1024);
 
-	result = isc_buffer_reallocate(&b, 512);
-	ATF_CHECK_EQ(result, ISC_R_NOSPACE);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 1024);
-
 	result = isc_buffer_reallocate(&b, 1536);
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 	ATF_CHECK(ISC_BUFFER_VALID(b));
