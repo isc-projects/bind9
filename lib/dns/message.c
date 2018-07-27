@@ -3780,8 +3780,9 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 						optlen);
 				isc_buffer_add(&pbuf, optlen);
 				result = render_protoss(&pbuf, target);
-				if (result == ISC_R_NOSPACE)
+				if (result == ISC_R_NOSPACE) {
 					goto cleanup;
+				}
 				if (result == ISC_R_SUCCESS) {
 					isc_buffer_forward(&optbuf, optlen);
 					ADD_STRING(target, "\n");
@@ -4068,8 +4069,9 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 						optlen);
 				isc_buffer_add(&pbuf, optlen);
 				result = render_protoss(&pbuf, target);
-				if (result == ISC_R_NOSPACE)
+				if (result == ISC_R_NOSPACE) {
 					goto cleanup;
+				}
 				if (result == ISC_R_SUCCESS) {
 					isc_buffer_forward(&optbuf, optlen);
 					ADD_STRING(target, "\n");
