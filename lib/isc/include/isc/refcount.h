@@ -111,8 +111,13 @@ typedef struct isc_refcount {
 
 #define isc_refcount_current(rp)					\
 	((unsigned int)(atomic_load_explicit(&(rp)->refs,		\
-					     memory_order_relaxed)))
-#define isc_refcount_destroy(rp) ISC_REQUIRE(isc_refcount_current(rp) == 0)
+					     memory_order_acquire)))
+
+#define isc_refcount_destroy(rp)				\
+	do {							\
+		atomic_thread_fence(memory_order_acquire);	\
+		ISC_REQUIRE(isc_refcount_current(rp) == 0);	\
+	} while (0)
 
 #define isc_refcount_increment0(rp, tp)				\
 	do {							\
@@ -140,7 +145,7 @@ typedef struct isc_refcount {
 		unsigned int *_tmp = (unsigned int *)(tp);	\
 		isc_int32_t prev;				\
 		prev = atomic_fetch_sub_explicit		\
-			(&(rp)->refs, 1, memory_order_relaxed); \
+			(&(rp)->refs, 1, memory_order_release); \
 		ISC_REQUIRE(prev > 0);				\
 		if (_tmp != NULL)				\
 			*_tmp = prev - 1;			\
