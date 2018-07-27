@@ -472,7 +472,6 @@ destroy(dns_acl_t *dacl) {
 		isc_mem_free(dacl->mctx, dacl->name);
 	if (dacl->iptable != NULL)
 		dns_iptable_detach(&dacl->iptable);
-	isc_refcount_destroy(&dacl->refcount);
 	dacl->magic = 0;
 	isc_mem_putanddetach(&dacl->mctx, dacl, sizeof(*dacl));
 }
@@ -485,8 +484,10 @@ dns_acl_detach(dns_acl_t **aclp) {
 	REQUIRE(DNS_ACL_VALID(acl));
 
 	isc_refcount_decrement(&acl->refcount, &refs);
-	if (refs == 0)
+	if (refs == 0) {
+		isc_refcount_destroy(&acl->refcount);
 		destroy(acl);
+	}
 	*aclp = NULL;
 }
 

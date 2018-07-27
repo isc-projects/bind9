@@ -1253,7 +1253,6 @@ zone_free(dns_zone_t *zone) {
 	/* last stuff */
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 	DESTROYLOCK(&zone->lock);
-	isc_refcount_destroy(&zone->erefs);
 	zone->magic = 0;
 	mctx = zone->mctx;
 	isc_mem_put(mctx, zone, sizeof(*zone));
@@ -5223,6 +5222,8 @@ dns_zone_detach(dns_zone_t **zonep) {
 	isc_refcount_decrement(&zone->erefs, &refs);
 
 	if (refs == 0) {
+		isc_refcount_destroy(&zone->erefs);
+
 		LOCK_ZONE(zone);
 		INSIST(zone != zone->raw);
 		/*

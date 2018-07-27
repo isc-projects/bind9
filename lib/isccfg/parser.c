@@ -680,6 +680,7 @@ cfg_parser_destroy(cfg_parser_t **pctxp) {
 
 	isc_refcount_decrement(&pctx->references, &refs);
 	if (refs == 0) {
+		isc_refcount_destroy(&pctx->references);
 		isc_lex_destroy(&pctx->lexer);
 		/*
 		 * Cleaning up open_files does not
@@ -3147,8 +3148,8 @@ cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **objp) {
 
 	isc_refcount_decrement(&obj->references, &refs);
 	if (refs == 0) {
-		obj->type->rep->free(pctx, obj);
 		isc_refcount_destroy(&obj->references);
+		obj->type->rep->free(pctx, obj);
 		isc_mem_put(pctx->mctx, obj, sizeof(cfg_obj_t));
 	}
 	*objp = NULL;

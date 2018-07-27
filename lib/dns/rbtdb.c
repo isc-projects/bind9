@@ -1018,10 +1018,9 @@ free_rbtdb(dns_rbtdb_t *rbtdb, isc_boolean_t log, isc_event_t *event) {
 
 		isc_refcount_decrement(&rbtdb->current_version->references,
 				       &refs);
-		INSIST(refs == 0);
+		isc_refcount_destroy(&rbtdb->current_version->references);
 		UNLINK(rbtdb->open_versions, rbtdb->current_version, link);
 		isc_rwlock_destroy(&rbtdb->current_version->glue_rwlock);
-		isc_refcount_destroy(&rbtdb->current_version->references);
 		isc_rwlock_destroy(&rbtdb->current_version->rwlock);
 		isc_mem_put(rbtdb->common.mctx, rbtdb->current_version,
 			    sizeof(rbtdb_version_t));
@@ -1235,8 +1234,9 @@ detach(dns_db_t **dbp) {
 
 	isc_refcount_decrement(&rbtdb->references, &refs);
 
-	if (refs == 0)
+	if (refs == 0) {
 		maybe_free_rbtdb(rbtdb);
+	}
 
 	*dbp = NULL;
 }

@@ -137,9 +137,8 @@ dns_keytable_detach(dns_keytable_t **keytablep) {
 
 	isc_refcount_decrement(&keytable->references, &refs);
 	if (refs == 0) {
-		INSIST(isc_refcount_current(&keytable->active_nodes) == 0);
-		isc_refcount_destroy(&keytable->active_nodes);
 		isc_refcount_destroy(&keytable->references);
+		isc_refcount_destroy(&keytable->active_nodes);
 		dns_rbt_destroy(&keytable->table);
 		isc_rwlock_destroy(&keytable->rwlock);
 		keytable->magic = 0;
@@ -817,9 +816,10 @@ dns_keynode_detach(isc_mem_t *mctx, dns_keynode_t **keynode) {
 	REQUIRE(VALID_KEYNODE(node));
 	isc_refcount_decrement(&node->refcount, &refs);
 	if (refs == 0) {
-		if (node->key != NULL)
-			dst_key_free(&node->key);
 		isc_refcount_destroy(&node->refcount);
+		if (node->key != NULL) {
+			dst_key_free(&node->key);
+		}
 		isc_mem_put(mctx, node, sizeof(dns_keynode_t));
 	}
 	*keynode = NULL;

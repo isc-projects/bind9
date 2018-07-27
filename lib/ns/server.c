@@ -134,6 +134,8 @@ ns_server_detach(ns_server_t **sctxp) {
 	if (refs == 0) {
 		ns_altsecret_t *altsecret;
 
+		isc_refcount_destroy(&sctx->references);
+		
 		sctx->magic = 0;
 
 		while ((altsecret = ISC_LIST_HEAD(sctx->altsecrets)) != NULL) {

@@ -77,6 +77,7 @@ cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
 
 	isc_refcount_decrement(&actx->references, &refs);
 	if (refs == 0) {
+		isc_refcount_destroy(&actx->references);
 		for (dacl = ISC_LIST_HEAD(actx->named_acl_cache);
 		     dacl != NULL;
 		     dacl = next)
