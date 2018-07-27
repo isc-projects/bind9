@@ -24,6 +24,14 @@
 #include <machine/endian.h>
 #elif defined(HAVE_COMPAT_ENDIAN_H)
 #include <compat/endian.h>
+#elif defined(HAVE_SYS_BYTEORDER_H)
+#include <sys/byteorder.h>
+#ifndef htobe64
+ #define htobe64(x) BE_64(x)
+#endif
+#ifndef be64toh
+ #define be64toh(x) BE_64(x)
+#endif
 #endif
 
 #include <isc/buffer.h>
