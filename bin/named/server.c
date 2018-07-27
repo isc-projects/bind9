@@ -14931,6 +14931,7 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 	dns_stale_answer_t staleanswersok = dns_stale_answer_conf;
 	isc_boolean_t wantstatus = ISC_FALSE;
 	isc_result_t result = ISC_R_SUCCESS;
+	isc_boolean_t exclusive = ISC_FALSE;
 
 	/* Skip the command name. */
 	ptr = next_token(lex, text);
@@ -14982,6 +14983,7 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	exclusive = ISC_TRUE;
 
 	for (view = ISC_LIST_HEAD(server->viewlist);
 	     view != NULL;
@@ -15037,12 +15039,14 @@ named_server_servestale(named_server_t *server, isc_lex_t *lex,
 		}
 		found = ISC_TRUE;
 	}
-	isc_task_endexclusive(named_g_server->task);
 
 	if (!found)
 		result = ISC_R_NOTFOUND;
 
 cleanup:
+	if (exclusive)
+		isc_task_endexclusive(named_g_server->task);
+
 	if (isc_buffer_usedlength(*text) > 0)
 		(void) putnull(text);
 
