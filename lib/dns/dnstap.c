@@ -586,8 +586,10 @@ dns_dt_detach(dns_dtenv_t **envp) {
 	*envp = NULL;
 
 	isc_refcount_decrement(&env->refcount, &refs);
-	if (refs == 0)
+	if (refs == 0) {
+		isc_refcount_destroy(&env->refcount);
 		destroy(env);
+	}
 }
 
 static isc_result_t
