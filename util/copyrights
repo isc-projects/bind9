@@ -1462,7 +1462,6 @@
 ./bin/tests/system/legacy/ns1/root.db		ZONE	2014,2016,2018
 ./bin/tests/system/legacy/ns1/trusted.conf	X	2014,2018
 ./bin/tests/system/legacy/ns10/ednsrefused.db	ZONE	2018
-./bin/tests/system/legacy/ns10/named.conf	CONF-C	2018
 ./bin/tests/system/legacy/ns10/named.conf.in	CONF-C	2018
 ./bin/tests/system/legacy/ns10/named.ednsrefused	X	2018
 ./bin/tests/system/legacy/ns2/dropedns.db	ZONE	2014,2016,2018
