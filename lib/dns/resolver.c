@@ -2344,6 +2344,53 @@ wouldvalidate(fetchctx_t *fctx) {
 	return (secure_domain);
 }
 
+#ifdef ENABLE_UMBRELLA
+/*
+ * Build a PROTOSS option and add to buffer 'b'
+ */
+static void
+build_protoss(resquery_t *query, isc_buffer_t *b) {
+	const dns_view_t *view = query->fctx->res->view;
+	const isc_sockaddr_t *client = query->fctx->client;
+
+	isc_buffer_putuint32(b, PROTOSS_MAGIC);
+	isc_buffer_putuint8(b, 1);	/* version */
+	isc_buffer_putuint8(b, 0);	/* flags */
+
+	if ((view->protoss_opts & PROTOSS_VA) != 0) {
+		isc_buffer_putuint16(b, PROTOSS_VA);
+		isc_buffer_putuint32(b, view->protoss_va);
+	}
+
+	if ((view->protoss_opts & PROTOSS_ORG) != 0) {
+		isc_buffer_putuint16(b, PROTOSS_ORG);
+		isc_buffer_putuint32(b, view->protoss_org);
+	}
+
+	switch (client->type.sa.sa_family) {
+	case AF_INET:
+		isc_buffer_putuint16(b, PROTOSS_V4);
+		isc_buffer_putmem(b, &client->type.sin.sin_addr, 4);
+		break;
+	case AF_INET6:
+		isc_buffer_putuint16(b, PROTOSS_V6);
+		isc_buffer_putmem(b, &client->type.sin6.sin6_addr, 16);
+		break;
+	default:
+		/* skip */
+		;
+	}
+
+	if ((view->protoss_opts & PROTOSS_DEV) != 0) {
+		isc_uint64_t dev;
+		dev = view->protoss_dev;
+		isc_buffer_putuint16(b, PROTOSS_DEV);
+		isc_buffer_putuint32(b, dev >> 32);
+		isc_buffer_putuint32(b, dev & 0xffffffff);
+	}
+}
+#endif /* ENABLE_UMBRELLA */
+
 static isc_result_t
 resquery_send(resquery_t *query) {
 	fetchctx_t *fctx;
@@ -2674,7 +2721,6 @@ resquery_send(resquery_t *query) {
 							       &sendprotoss);
 			}
 			if (sendprotoss) {
-				const isc_sockaddr_t *client;
 				isc_buffer_t b;
 
 				INSIST(ednsopt < DNS_EDNSOPTIONS);
@@ -2683,55 +2729,8 @@ resquery_send(resquery_t *query) {
 
 				isc_buffer_init(&b, posbuf, sizeof(posbuf));
 
-				isc_buffer_putuint32(&b, PROTOSS_MAGIC);
-				isc_buffer_putuint8(&b, 1);	/* version */
-				isc_buffer_putuint8(&b, 0);	/* flags */
+				build_protoss(query, &b);
 
-				if ((res->view->protoss_opts &
-				     PROTOSS_VA) != 0)
-				{
-					isc_buffer_putuint16(&b, PROTOSS_VA);
-					isc_buffer_putuint32(&b,
-						     res->view->protoss_va);
-				}
-
-				if ((res->view->protoss_opts &
-				     PROTOSS_ORG) != 0)
-				{
-					isc_buffer_putuint16(&b, PROTOSS_ORG);
-					isc_buffer_putuint32(&b,
-						     res->view->protoss_org);
-				}
-
-				client = query->fctx->client;
-				switch (client->type.sa.sa_family) {
-				case AF_INET:
-					isc_buffer_putuint16(&b, PROTOSS_V4);
-					isc_buffer_putmem(&b,
-						  &client->type.sin.sin_addr,
-						  4);
-					break;
-				case AF_INET6:
-					isc_buffer_putuint16(&b, PROTOSS_V6);
-					isc_buffer_putmem(&b,
-						  &client->type.sin6.sin6_addr,
-						  16);
-					break;
-				default:
-					/* skip */
-					;
-				}
-
-				if ((res->view->protoss_opts &
-				     PROTOSS_DEV) != 0)
-				{
-					isc_uint64_t dev;
-					dev = res->view->protoss_dev;
-					isc_buffer_putuint16(&b, PROTOSS_DEV);
-					isc_buffer_putuint32(&b, dev >> 32);
-					isc_buffer_putuint32(&b,
-							     dev & 0xffffffff);
-				}
 
 				ednsopts[ednsopt].code = DNS_OPT_PROTOSS;
 				ednsopts[ednsopt].length =
@@ -2790,8 +2789,9 @@ resquery_send(resquery_t *query) {
 			query->options |= DNS_FETCHOPT_NOEDNS0;
 			query->ednsversion = -1;
 		}
-	} else
+	} else {
 		query->ednsversion = -1;
+	}
 
 	/*
 	 * Record the UDP EDNS size choosen.
