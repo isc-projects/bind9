@@ -167,7 +167,6 @@ isc_buffer_getuint48
 isc_buffer_getuint8
 isc_buffer_printf
 isc_buffer_putdecint
-isc_buffer_reallocate
 isc_buffer_reinit
 isc_buffer_reserve
 isc_buffer_setautorealloc
