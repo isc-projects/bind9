@@ -22,6 +22,10 @@
 
 #include <stdarg.h>
 
+static inline
+isc_result_t
+isc__buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length);
+
 void
 isc__buffer_init(isc_buffer_t *b, void *base, unsigned int length) {
 	/*
@@ -568,8 +572,9 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	return (ISC_R_SUCCESS);
 }
 
+static inline
 isc_result_t
-isc_buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length) {
+isc__buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length) {
 	unsigned char *bdata;
 
 	REQUIRE(dynbuffer != NULL);
@@ -621,7 +626,7 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 	if ((len - (*dynbuffer)->used) < size)
 		return (ISC_R_NOMEMORY);
 
-	return (isc_buffer_reallocate(dynbuffer, (unsigned int) len));
+	return (isc__buffer_reallocate(dynbuffer, (unsigned int) len));
 }
 
 void
