@@ -6650,14 +6650,16 @@ options {
 	      <term><command>validate-except</command></term>
 	      <listitem>
 		<para>
-		  A list of domain names at and beneath which DNSSEC
+		  Specifies a list of domain names at and beneath which DNSSEC
 		  validation should <emphasis>not</emphasis> be performed,
-		  regardless of the presence of a trust anchor above them.
-		  It may be used, for example, when configuring
-		  a domain intended only for local use, so that the lack
-		  of a secure delegation for that domain will not cause
-		  validation failures.  This is similar to configuring
-		  a negative trust anchor, but it does not expire.
+		  regardless of the presence of a trust anchor at or above
+		  those names.  This may be used, for example, when configuring
+		  a top-level domain intended only for local use, so that the
+		  lack of a secure delegation for that domain in the root zone
+		  will not cause validation failures.  (This is similar in
+		  to setting a negative trust anchor, except that it is a
+		  permanent configuration, whereas negative trust anchors
+		  expire and are removed after a set period of time.)
 		</para>
 	      </listitem>
 	    </varlistentry>

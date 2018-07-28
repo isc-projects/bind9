@@ -544,7 +544,9 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 			dns_name_t *name;
 			isc_time_t t;
 
-			/* skip validate-except entries */
+			/*
+			 * Skip "validate-except" entries
+			 */
 			if (n->expiry != 0xffffffffU) {
 				name = dns_fixedname_initname(&fn);
 				dns_rbt_fullnamefromnode(node, name);
@@ -628,6 +630,10 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
 		if (node->data != NULL) {
 			dns_nta_t *n = (dns_nta_t *) node->data;
+			/*
+			 * Skip this node if the expiry is in the future, or
+			 * if this is a "validate-except" entry.
+			 */
 			if (n->expiry > now && n->expiry != 0xffffffffU) {
 				isc_buffer_t b;
 				char nbuf[DNS_NAME_FORMATSIZE + 1], tbuf[80];
