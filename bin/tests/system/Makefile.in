@@ -37,6 +37,8 @@ SRCS =		feature-test.c
 
 TARGETS =	feature-test@EXEEXT@
 
+CPIO =		@CPIO@
+
 @BIND9_MAKE_RULES@
 
 subdirs: ${TARGETS}
@@ -108,21 +110,19 @@ parallel.mk:
 # Targets to run the tests.
 
 oot_setup:
-	@if test "${srcdir}" != "."; \
+	@if test "${srcdir}" != "." -a -n "${CPIO}"; \
 	then \
-		find . -type f > oot_before.txt ; \
-		cp -pR ${srcdir} ../ ; \
-		find . -type f > oot_after.txt ; \
-		cat oot_before.txt oot_after.txt | sort | uniq -c | sed -n "s|^ *1 *\(.*\)|\1|p;" | tr "\n" "\0" > oot_copied.txt ; \
-		rm -f oot_before.txt oot_after.txt ; \
+		cwd=`pwd`; \
+		(cd ${srcdir} && find . -type f -a ! \( -name Makefile -o -name conf.sh \) -print0 | ${CPIO} -pdlum0 $${cwd} ) \
 	fi
 
 oot_clean:
-	@if test "${srcdir}" != "." -a -s oot_copied.txt; \
+	@if test "${srcdir}" != "." -a -n "${CPIO}"; \
 	then \
-		xargs -0 rm -f < oot_copied.txt ; \
-		find . -depth -type d -a ! \( -name "." -or -name ".." \) -print0 | xargs -0 rmdir 2> /dev/null || true ; \
-		rm -f oot_copied.txt ; \
+		cwd=`pwd`; \
+		(cd ${srcdir} && find . -type f -a ! \( -name Makefile -o -name conf.sh \) -print0 ) | xargs -0 rm -f ; \
+		(cd ${srcdir} && find . -depth -type d -a ! \( -name "." -or -name ".." \) -print0 ) | \
+		 xargs -0 rmdir 2> /dev/null || true ; \
 	fi
 
 test: oot_setup parallel.mk

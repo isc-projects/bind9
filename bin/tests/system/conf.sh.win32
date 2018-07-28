@@ -143,9 +143,9 @@ else
 fi
 
 if grep "^#define WANT_IPV6 1" $TOP/config.h > /dev/null 2>&1 ; then
-        TESTSOCK6="$TESTSOCK6"
+	TESTSOCK6="$TESTSOCK6"
 else
-        TESTSOCK6=false
+	TESTSOCK6=false
 fi
 
 #
@@ -261,22 +261,22 @@ else
 fi
 
 echofail () {
-        printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
 }
 echowarn () {
-        printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
 }
 echopass () {
-        printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
 }
 echoinfo () {
-        printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
 }
 echostart () {
-        printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
 }
 echoend () {
-        printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
 }
 
 SYSTESTDIR="`basename $PWD`"
@@ -320,13 +320,13 @@ keyfile_to_keys_section() {
     shift
     echo "$section_name {"
     for keyname in $*; do
-        awk '!/^; /{
-            printf "\t\""$1"\" "
-            printf "'"$key_prefix"'"
-            printf $4 " " $5 " " $6 " \""
-            for (i=7; i<=NF; i++) printf $i
-            printf "\";\n"
-        }' $keyname.key
+	awk '!/^; /{
+	    printf "\t\""$1"\" "
+	    printf "'"$key_prefix"'"
+	    printf $4 " " $5 " " $6 " \""
+	    for (i=7; i<=NF; i++) printf $i
+	    printf "\";\n"
+	}' $keyname.key
     done
     echo "};"
 }
@@ -403,7 +403,7 @@ nextpartread() {
     [ -f $1.prev ] || nextpartreset $1
     prev=`cat $1.prev`
     awk "NR > $prev "'{ print }
-         END          { print NR > "/dev/stderr" }' $1
+	 END          { print NR > "/dev/stderr" }' $1
 }
 
 # nextpart: read everything that's been appended to a file since the
@@ -449,5 +449,5 @@ copy_setports() {
 	-e "s#${atsign}TOP${atsign}#${TOP}#g" \
 	-e "s#${atsign}SRCTOP${atsign}#${SRCTOP}#g" \
 	-e "s#${atsign}SYSTEMTESTTOP${atsign}#${SYSTEMTESTTOP}#g" \
-	-e "s#${atsign}SOEXT${atsign}#${SOEXT}#g" $1 > $2
+	-e "s/${atsign}SOEXT${atsign}/${SOEXT}/g" $1 > $2
 }

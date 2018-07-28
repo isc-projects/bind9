@@ -468,5 +468,5 @@ copy_setports() {
         -e "s#@TOP@#${TOP}#g" \
         -e "s#@SRCTOP@#${SRCTOP}#g" \
         -e "s#@SYSTEMTESTTOP@#${SYSTEMTESTTOP}#g" \
-        -e "s#@SOEXT@#${SOEXT}#g" $1 > $2
+        -e "s/@SOEXT@/${SOEXT}/g" $1 > $2
 }
