@@ -96,35 +96,6 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	isc_test_end();
 }
 
-ATF_TC(isc_buffer_reallocate);
-ATF_TC_HEAD(isc_buffer_reallocate, tc) {
-	atf_tc_set_md_var(tc, "descr", "reallocate dynamic buffers");
-}
-
-ATF_TC_BODY(isc_buffer_reallocate, tc) {
-	isc_result_t result;
-	isc_buffer_t *b;
-
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	b = NULL;
-	result = isc_buffer_allocate(mctx, &b, 1024);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 1024);
-
-	result = isc_buffer_reallocate(&b, 1536);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 1536);
-
-	isc_buffer_free(&b);
-
-	isc_test_end();
-}
-
 ATF_TC(isc_buffer_dynamic);
 ATF_TC_HEAD(isc_buffer_dynamic, tc) {
 	atf_tc_set_md_var(tc, "descr", "dynamic buffer automatic reallocation");
@@ -306,7 +277,6 @@ ATF_TC_BODY(isc_buffer_printf, tc) {
  */
 ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_buffer_reserve);
-	ATF_TP_ADD_TC(tp, isc_buffer_reallocate);
 	ATF_TP_ADD_TC(tp, isc_buffer_dynamic);
 	ATF_TP_ADD_TC(tp, isc_buffer_printf);
 	return (atf_no_error());
