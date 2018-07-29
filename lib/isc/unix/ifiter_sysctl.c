@@ -17,8 +17,6 @@
  * and 19.16.
  */
 
-#include <config.h>
-
 #include <inttypes.h>
 
 #include <sys/param.h>
