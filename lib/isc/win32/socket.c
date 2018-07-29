@@ -25,7 +25,6 @@
  */
 
 #define MAKE_EXTERNAL 1
-#include <config.h>
 
 #include <sys/types.h>
 
