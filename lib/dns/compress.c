@@ -15,8 +15,6 @@
 
 #define DNS_NAME_USEINLINE 1
 
-#include <config.h>
-
 #include <inttypes.h>
 #include <stdbool.h>
 
