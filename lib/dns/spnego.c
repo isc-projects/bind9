@@ -129,8 +129,6 @@
  * harmless in any case.
  */
 
-#include <config.h>
-
 #include <inttypes.h>
 #include <stdlib.h>
 #include <errno.h>
