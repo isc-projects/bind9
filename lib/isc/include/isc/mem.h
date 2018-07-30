@@ -184,6 +184,7 @@ struct isc_mempool {
 	unsigned int		magic;
 	size_t			size;		/*%< size of each item on this pool */
 	isc_refcount_t		allocated;	/*%< # of items currently given out */
+	void			*slab;
 };
 
 #define ISCAPI_MPOOL_MAGIC	ISC_MAGIC('A','m','p','l')

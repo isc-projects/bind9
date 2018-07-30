@@ -18,6 +18,8 @@
 #include <stddef.h>
 
 #include <limits.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include <isc/bind9.h>
 #include <isc/json.h>
@@ -32,6 +34,8 @@
 #include <isc/print.h>
 #include <isc/util.h>
 #include <isc/xml.h>
+
+#include "slab.h"
 
 #ifndef ISC_MEM_DEBUGGING
 #define ISC_MEM_DEBUGGING 0
@@ -260,6 +264,8 @@ isc_mem_gettag(isc_mem_t *ctx0) {
  * Memory pool stuff
  */
 
+extern size_t slab_pagesize;
+
 isc_result_t
 isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	UNUSED(mctx0);
@@ -272,6 +278,13 @@ isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 
 	mpctx->size = size;
 	REQUIRE((isc_refcount_init(&mpctx->allocated, 0)) == ISC_R_SUCCESS);
+
+	mpctx->slab = isc_mem_get(NULL, sizeof(struct slab_chain));
+	memset(mpctx->slab, 0, sizeof(struct slab_chain));
+
+	slab_pagesize = (size_t) sysconf(_SC_PAGESIZE);
+
+	slab_init((struct slab_chain *)mpctx->slab, mpctx->size);
 	
 	return (ISC_R_SUCCESS);
 }
@@ -286,6 +299,7 @@ void
 isc_mempool_destroy(isc_mempool_t **mpctxp) {
 	isc_mempool_t *mpctx = (isc_mempool_t *)*mpctxp;
 
+	slab_destroy((struct slab_chain *)mpctx->slab);
 	isc_refcount_destroy(&mpctx->allocated);
 	isc_mem_free(NULL, mpctx);
 	*mpctxp = NULL;
@@ -300,8 +314,10 @@ isc_mempool_associatelock(isc_mempool_t *mpctx0, isc_mutex_t *lock) {
 void *
 isc_mempool_get(isc_mempool_t *mpctx0) {
 	unsigned int refs;
-	void *ret = isc_mem_allocate(NULL, mpctx0->size);
+
+	void *ret = slab_alloc((struct slab_chain *)mpctx0->slab);
 	REQUIRE(ret != NULL);
+
 	isc_refcount_increment0(&mpctx0->allocated, &refs);
 	return (ret);
 }
@@ -310,7 +326,9 @@ isc_mempool_get(isc_mempool_t *mpctx0) {
 void
 isc_mempool_put(isc_mempool_t *mpctx0, void *mem) {
 	unsigned int refs;
-	isc_mem_free(NULL, mem);
+
+	slab_free((struct slab_chain *)mpctx0->slab, mem);
+
 	isc_refcount_decrement(&mpctx0->allocated, &refs);
 	REQUIRE(refs >= 0);
 }
