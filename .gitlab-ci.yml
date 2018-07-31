@@ -112,6 +112,7 @@ stages:
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
+    - scl enable devtoolset-7 bash || true # enable devtoolset-7 on CentOS/RH
 #    - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr $EXTRA_CONFIGURE
