@@ -20,10 +20,8 @@
 #include <isc/platform.h>
 #include <isc/types.h>
 
-#if defined(ISC_PLATFORM_HAVESTDATOMIC)
 #include <stdint.h>
 #include <stdatomic.h>
-#endif
 
 ISC_LANG_BEGINDECLS
 
@@ -34,12 +32,8 @@ typedef enum {
 } isc_rwlocktype_t;
 
 #ifdef ISC_PLATFORM_USETHREADS
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || (defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG))
 #define ISC_RWLOCK_USEATOMIC 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
 #define ISC_RWLOCK_USESTDATOMIC 1
-#endif
-#endif
 
 struct isc_rwlock {
 	/* Unlocked. */
