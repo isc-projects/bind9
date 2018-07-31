@@ -7208,12 +7208,15 @@ query_respond(query_ctx_t *qctx) {
 		return (query_done(qctx));
 	}
 
-	result = query_filter_aaaa(qctx);
-	if (result != ISC_R_COMPLETE)
-		return (result);
 	/*
 	 * Check to see if the AAAA RRset has non-excluded addresses
 	 * in it.  If not look for a A RRset.
+	 *
+	 * Note: the order of dns64_aaaaok() and query_filter_aaaa() is
+	 * important.  query_filter_aaaa() calls query_recurse() but
+	 * continues so that the AAAA records are added.  If the
+	 * order is reversed client->query.fetch will be non-NULL
+	 * when query_lookup() is called leading to a assertion.
 	 */
 	INSIST(qctx->client->query.dns64_aaaaok == NULL);
 
@@ -7235,6 +7238,10 @@ query_respond(query_ctx_t *qctx) {
 
 		return (query_lookup(qctx));
 	}
+
+	result = query_filter_aaaa(qctx);
+	if (result != ISC_R_COMPLETE)
+		return (result);
 
 	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
 		sigrdatasetp = &qctx->sigrdataset;
