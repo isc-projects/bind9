@@ -625,6 +625,21 @@ goodsig(dns_name_t *origin, dns_rdata_t *sigrdata, dns_name_t *name,
 	return (ISC_FALSE);
 }
 
+static isc_boolean_t
+nsec_bitmap_equal(dns_rdata_nsec_t *nsec, dns_rdata_t *rdata) {
+	isc_result_t result;
+	dns_rdata_nsec_t tmpnsec;
+
+	result = dns_rdata_tostruct(rdata, &tmpnsec, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	if (nsec->len != tmpnsec.len ||
+	    memcmp(nsec->typebits, tmpnsec.typebits, nsec->len) != 0) {
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
+}
+
 static isc_result_t
 verifynsec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	   dns_dbnode_t *node, dns_name_t *nextname)
@@ -668,7 +683,7 @@ verifynsec(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	result = dns_nsec_buildrdata(db, ver, node, nextname, buffer,
 				     &tmprdata);
 	check_result(result, "dns_nsec_buildrdata()");
-	if (dns_rdata_compare(&rdata, &tmprdata) != 0) {
+	if (!nsec_bitmap_equal(&nsec, &tmprdata)) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		fprintf(stderr, "Bad NSEC record for %s, bit map "
 				"mismatch\n", namebuf);

@@ -75,6 +75,28 @@ cp unsigned.db ${file}.tmp
 echo "@ DNAME data" >> ${file}.tmp
 $SIGNER -3 - -SP -o ${zone} -f ${file} ${file}.tmp > s.out$n 2>&1 || dumpit s.out$n
 
+#
+# generate an NSEC record like
+#	aba NSEC FOO ...
+# then downcase all the FOO records so the next name in the database
+# becomes foo when the zone is loaded.
+#
+setup nsec-next-name-case-mismatch good
+ksk=`$KEYGEN -a rsasha256 -fK ${zone} 2> kg2.out$n` || dumpit kg2.out$n
+zsk=`$KEYGEN -a rsasha256 ${zone} 2> kg2.out$n` || dumpit kg2.out$n
+cat << EOF > ${zone}.tmp
+\$TTL 0
+@ IN SOA  foo . ( 1 28800 7200 604800 1800 )
+@ NS foo
+\$include $ksk.key
+\$include $zsk.key
+FOO AAAA ::1
+FOO A 127.0.0.2
+aba CNAME FOO
+EOF
+$SIGNER -zP -o ${zone} -f ${file}.tmp ${zone}.tmp > s.out$n 2>&1 || dumpit s.out$n
+sed 's/^FOO\./foo\./' < ${file}.tmp > ${file}
+
 # A set of zones with only DNSKEY records.
 setup zsk-only.dnskeyonly bad
 key1=`$KEYGEN -r $RANDFILE ${zone} 2>kg.out` || dumpit kg.out$n
