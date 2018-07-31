@@ -88,7 +88,7 @@ ATF_TC_BODY(isc_mem, tc) {
 	 * Try to allocate one more.  This should fail.
 	 */
 	tmp = isc_mempool_get(mp1);
-	/* ATF_CHECK_EQ(tmp, NULL); */
+	ATF_CHECK_EQ(tmp, NULL);
 	isc_mempool_put(mp1, tmp);
 
 	/*
@@ -101,7 +101,7 @@ ATF_TC_BODY(isc_mem, tc) {
 	}
 
 	rval = isc_mempool_getfreecount(mp1);
-	ATF_CHECK_EQ(rval, 1);
+	ATF_CHECK_EQ(rval, 10);
 
 	rval = isc_mempool_getallocated(mp1);
 	ATF_CHECK_EQ(rval, 19);
