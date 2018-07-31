@@ -311,6 +311,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		dns_tsigkeyring_detach(&view->dynamickeys);
 
  cleanup_references:
+	isc_refcount_decrement(&view->references, NULL);
 	isc_refcount_destroy(&view->references);
 
  cleanup_fwdtable:
