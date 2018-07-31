@@ -5,6 +5,7 @@ variables:
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
   CCACHE_DIR: "/ccache"
   SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
+  CMDPREFIX: "bash -c"
 
 stages:
   - precheck
@@ -115,8 +116,8 @@ stages:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
 #    - ./autogen.sh
   script:
-    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr $EXTRA_CONFIGURE || cat config.log
-    - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
+    - $CMDPREFIX "./configure --enable-developer --with-libtool --disable-static --with-atf=/usr $EXTRA_CONFIGURE" || cat config.log
+    - $CMDPREFIX "make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1"
   artifacts:
     expire_in: '1 hour'
     untracked: true
@@ -128,8 +129,8 @@ stages:
     - bash -x bin/tests/system/ifconfig.sh up
     - bash -x util/prepare-softhsm2.sh
   script:
-    - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
-    - test -s bin/tests/system/systests.output
+    - $CMDPREFIX bash -x "cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1"
+    - $CMDPREFIX bash -x "test -s bin/tests/system/systests.output"
   artifacts:
     untracked: true
     expire_in: '1 week'
@@ -141,7 +142,7 @@ stages:
     - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
     - bash -x util/prepare-softhsm2.sh
   script:
-    - make unit
+    - $CMDPREFIX "make unit"
   after_script:
     - kyua report-html --force --results-file kyua.results --results-filter "" --output kyua_html
   artifacts:
@@ -200,6 +201,7 @@ build:centos:centos6:amd64:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
+    CMDPREFIX: "scl enable devtoolset-7"
   <<: *centos_centos6_amd64_image
   <<: *build_job
 
@@ -208,6 +210,7 @@ build:centos:centos7:amd64:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
+    CMDPREFIX: "scl enable devtoolset-7"
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
@@ -256,12 +259,16 @@ build:debian:sid:i386:
   <<: *build_job
 
 unittest:centos:centos6:amd64:
+  variables:
+      CMDPREFIX: "scl enable devtoolset-7"
   <<: *centos_centos6_amd64_image
   <<: *unit_test_job
   dependencies:
     - build:centos:centos6:amd64
 
 unittest:centos:centos7:amd64:
+  variables:
+      CMDPREFIX: "scl enable devtoolset-7"
   <<: *centos_centos7_amd64_image
   <<: *unit_test_job
   dependencies:
@@ -298,12 +305,16 @@ unittest:debian:sid:i386:
     - build:debian:sid:i386
 
 systemtest:centos:centos6:amd64:
+  variables:
+      CMDPREFIX: "scl enable devtoolset-7"
   <<: *centos_centos6_amd64_image
   <<: *system_test_job
   dependencies:
     - build:centos:centos6:amd64
 
 systemtest:centos:centos7:amd64:
+  variables:
+      CMDPREFIX: "scl enable devtoolset-7"
   <<: *centos_centos7_amd64_image
   <<: *system_test_job
   dependencies:
