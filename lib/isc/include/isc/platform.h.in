@@ -292,7 +292,7 @@
  * If <stdatomic.h> is available on this architecture,
  * ISC_PLATFORM_HAVESTDATOMIC will be defined.
  */
-@ISC_PLATFORM_HAVESTDATOMIC@
+#define ISC_PLATFORM_HAVESTDATOMIC 1
 
 /*
  * Define if gcc ASM extension is available
