@@ -1,3 +1,5 @@
+5001.	[bug]		Fix refcount errors on error paths. [GL !563]
+
 5000.	[bug]		named_server_servestale() could leave the server in
 			exclusive mode if an error occured. [GL #441]
 
