@@ -280,12 +280,11 @@ sleep 1
 $DIG $DIGOPTS +short unixtime.nil. soa @10.53.0.1 > dig.out.new.test$n || ret=1
 serial=`awk '{print $3}' dig.out.new.test$n` || ret=1
 [ "$oldserial" = "$serial" ] && { echo_i "oldserial == serial"; ret=1; }
-$PERL -e 'exit 1 if ($ARGV[0] > $ARGV[1]);' $start $serial || {
-	echo_i "start=$start serial=$serial"; ret=1;
-}
-$PERL -e 'exit 1 if ($ARGV[0] < $ARGV[1]);' $now $serial || {
-	echo_i "start=$now serial=$serial"; ret=1;
-}
+if [ "$serial" -lt "$start" ]; then
+    echo_i "out-of-range serial=$serial < start=$start"; ret=1;
+elif [ "$serial" -gt "$now" ]; then
+    echo_i "out-of-range serial=$serial > now=$now"; ret=1;
+fi
 [ $ret = 0 ] || { echo_i "failed"; status=1; }
 
 ret=0
