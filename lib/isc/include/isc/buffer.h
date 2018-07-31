@@ -210,29 +210,6 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
  */
 
 isc_result_t
-isc_buffer_reallocate(isc_buffer_t **dynbuffer, unsigned int length);
-/*!<
- * \brief Reallocate the buffer to be "length" bytes long. The buffer
- * pointer may move when you call this function.
- *
- * Requires:
- *\li	"dynbuffer" is not NULL.
- *
- *\li	"*dynbuffer" is a valid dynamic buffer.
- *
- *\li	'length' > current length of buffer.
- *
- * Returns:
- *\li	ISC_R_SUCCESS		- success
- *\li	ISC_R_NOMEMORY		- no memory available
- *
- * Ensures:
- *\li	"*dynbuffer" will be valid on return and will contain all the
- *	original data. However, the buffer pointer may be moved during
- *	reallocation.
- */
-
-isc_result_t
 isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size);
 /*!<
  * \brief Make "size" bytes of space available in the buffer. The buffer
