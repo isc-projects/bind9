@@ -8550,7 +8550,6 @@ dns_rbtdb_create
 		if (result != ISC_R_SUCCESS) {
 			while (i-- > 0) {
 				NODE_DESTROYLOCK(&rbtdb->node_locks[i].lock);
-				isc_refcount_decrement(&rbtdb->node_locks[i].references, NULL);
 				isc_refcount_destroy(&rbtdb->node_locks[i].references);
 			}
 			goto cleanup_deadnodes;
@@ -8692,7 +8691,6 @@ dns_rbtdb_create
 	rbtdb->current_version = allocate_version(mctx, 1, 1, ISC_FALSE);
 	if (rbtdb->current_version == NULL) {
 		isc_refcount_decrement(&rbtdb->references, NULL);
-		isc_refcount_destroy(&rbtdb->references);
 		free_rbtdb(rbtdb, ISC_FALSE, NULL);
 		return (ISC_R_NOMEMORY);
 	}
@@ -8712,7 +8710,6 @@ dns_rbtdb_create
 			    sizeof(*rbtdb->current_version));
 		rbtdb->current_version = NULL;
 		isc_refcount_decrement(&rbtdb->references, NULL);
-		isc_refcount_destroy(&rbtdb->references);
 		free_rbtdb(rbtdb, ISC_FALSE, NULL);
 		return (result);
 	}
