@@ -48,9 +48,7 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	isc_mem_attach(mctx, &sctx->mctx);
 
-	result = isc_refcount_init(&sctx->references, 1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_refcount_init(&sctx->references, 1);
 
 	CHECKFATAL(isc_quota_init(&sctx->xfroutquota, 10));
 	CHECKFATAL(isc_quota_init(&sctx->tcpquota, 10));
@@ -111,11 +109,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	*sctxp = sctx;
 
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	isc_mem_putanddetach(&sctx->mctx, sctx, sizeof(*sctx));
-
-	return (result);
 }
 
 void

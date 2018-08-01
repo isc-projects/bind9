@@ -1269,11 +1269,9 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 	if (version == NULL)
 		return (NULL);
 	version->serial = serial;
-	result = isc_refcount_init(&version->references, references);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, version, sizeof(*version));
-		return (NULL);
-	}
+
+	isc_refcount_init(&version->references, references);
+
 	result = isc_rwlock_init(&version->glue_rwlock, 0, 0);
 	if (result != ISC_R_SUCCESS) {
 		isc_refcount_destroy(&version->references);
@@ -8361,9 +8359,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	for (i = 0; i < (int)(rbtdb->node_lock_count); i++) {
 		result = NODE_INITLOCK(&rbtdb->node_locks[i].lock);
 		if (result == ISC_R_SUCCESS) {
-			result = isc_refcount_init(&rbtdb->node_locks[i].references, 0);
-			if (result != ISC_R_SUCCESS)
-				NODE_DESTROYLOCK(&rbtdb->node_locks[i].lock);
+			isc_refcount_init(&rbtdb->node_locks[i].references, 0);
 		}
 		if (result != ISC_R_SUCCESS) {
 			while (i-- > 0) {
@@ -8472,11 +8468,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Misc. Initialization.
 	 */
-	result = isc_refcount_init(&rbtdb->references, 1);
-	if (result != ISC_R_SUCCESS) {
-		free_rbtdb(rbtdb, ISC_FALSE, NULL);
-		return (result);
-	}
+	isc_refcount_init(&rbtdb->references, 1);
 	rbtdb->attributes = 0;
 	rbtdb->task = NULL;
 	rbtdb->serve_stale_ttl = 0;
