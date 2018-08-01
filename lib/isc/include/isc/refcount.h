@@ -43,7 +43,7 @@ ISC_LANG_BEGINDECLS
  */
 
 /*
- * isc_result_t
+ * void
  * isc_refcount_init(isc_refcount_t *ref, unsigned int n);
  *
  * Initialize the reference counter.  There will be 'n' initial references.
@@ -111,6 +111,8 @@ typedef struct isc_refcount {
 
 #if defined(ISC_REFCOUNT_HAVESTDATOMIC)
 
+#define isc_refcount_init(rp, n) atomic_init(&(rp)->refs, n)
+
 #define isc_refcount_current(rp)					\
 	((unsigned int)(atomic_load_explicit(&(rp)->refs,		\
 					     memory_order_relaxed)))
@@ -149,6 +151,8 @@ typedef struct isc_refcount {
 	} while (0)
 
 #else /* ISC_REFCOUNT_HAVESTDATOMIC */
+
+#define isc_refcount_init(rp, n) isc_atomic_store(&(rp)->refs, n)
 
 #define isc_refcount_current(rp)				\
 	((unsigned int)(isc_atomic_xadd(&(rp)->refs, 0)))
@@ -191,6 +195,12 @@ typedef struct isc_refcount {
 	int refs;
 	isc_mutex_t lock;
 } isc_refcount_t;
+
+#define isc_refcount_init(rp, n)					\
+	do {								\
+		REQUIRE(isc_mutex_init(&(rp)->lock) == ISC_R_SUCCESS);	\
+		(rp)->refs = n;						\
+	} while(0);
 
 /*% Destroys a reference counter. */
 #define isc_refcount_destroy(rp)					\
@@ -259,6 +269,7 @@ typedef struct isc_refcount {
 	int refs;
 } isc_refcount_t;
 
+#define isc_refcount_init(rp, n) ((rp)->refs = n)
 #define isc_refcount_destroy(rp) ISC_REQUIRE((rp)->refs == 0)
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
@@ -291,9 +302,6 @@ typedef struct isc_refcount {
 	} while (0)
 
 #endif /* ISC_PLATFORM_USETHREADS */
-
-isc_result_t
-isc_refcount_init(isc_refcount_t *ref, unsigned int n);
 
 ISC_LANG_ENDDECLS
 
