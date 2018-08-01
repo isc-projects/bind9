@@ -316,7 +316,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_region_t r;
 	isc_result_t result;
-	unsigned int i, count = 0, added, choice;
+	unsigned int i, count = 0, added;
 	isc_buffer_t savedbuffer, rdlen, rrbuffer;
 	unsigned int headlen;
 	isc_boolean_t question = ISC_FALSE;
@@ -380,14 +380,17 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		}
 	}
 
-	if ((shuffle || sort) && count > MAX_SHUFFLE) {
-		in = isc_mem_get(cctx->mctx, count * sizeof(*in));
-		out = isc_mem_get(cctx->mctx, count * sizeof(*out));
-		if (in == NULL || out == NULL)
-			shuffle = sort = ISC_FALSE;
+	if ((shuffle || sort)) {
+		if (count > MAX_SHUFFLE) {
+			in = isc_mem_get(cctx->mctx, count * sizeof(*in));
+			out = isc_mem_get(cctx->mctx, count * sizeof(*out));
+			if (in == NULL || out == NULL) {
+				shuffle = sort = ISC_FALSE;
+			}
+		}
 	}
-
-	if (shuffle || sort) {
+		
+	if ((shuffle || sort)) {
 		/*
 		 * First we get handles to all of the rdata.
 		 */
@@ -402,66 +405,34 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		if (result != ISC_R_NOMORE)
 			goto cleanup;
 		INSIST(i == count);
-	}
 
-	if (shuffle) {
-		if (want_random) {
-			/*
-			 * 'Random' order.
-			 */
-			for (i = 0; i < count; i++) {
-				isc_uint32_t val = isc_random32();
-
-				choice = i + val % (count - i);
-				rdata = in[i];
-				in[i] = in[choice];
-				in[choice] = rdata;
-				if (order != NULL)
-					out[i].key = (*order)(&in[i],
-								 order_arg);
-				else
-					out[i].key = 0; /* Unused */
-				out[i].rdata = &in[i];
+		unsigned int j;
+		if (ISC_LIKELY(want_random)) {
+			j = isc_random_uniform(count);
+		} else if (ISC_UNLIKELY(want_cyclic)) {
+			j = rdataset->count;
+			if (j == ISC_UINT32_MAX) {
+				j = isc_random_uniform(count);
 			}
-		} else if (want_cyclic) {
-			/*
-			 * 'Cyclic' order.
-			 */
-			isc_uint32_t val;
-			unsigned int j;
-
-			val = rdataset->count;
-			if (val == ISC_UINT32_MAX) {
-				val = isc_random32();
-			}
-			j = val % count;
-			for (i = 0; i < count; i++) {
-				if (order != NULL)
-					out[i].key = (*order)(&in[j],
-								 order_arg);
-				else
-					out[i].key = 0; /* Unused */
-				out[i].rdata = &in[j];
-				j++;
-				if (j == count)
-					j = 0; /* Wrap around. */
-			}
+		} else {
+			j = 0;
 		}
-	} else if (sort) {
+
 		for (i = 0; i < count; i++) {
-			if (order != NULL)
-				out[i].key = (*order)(&in[i], order_arg);
-			else
-				out[i].key = 0; /* Unused */
-			out[i].rdata = &in[i];
+			out[i].key = (sort) ?
+				(*order)(&in[j], order_arg) :
+				0;
+			out[i].rdata = &in[j];
+			if (++j == count) {
+				j = 0;
+			}
 		}
-	}
-
-	/*
-	 * Sortlist order.
-	 */
-	if (sort) {
-		qsort(out, count, sizeof(out[0]), towire_compare);
+		/*
+		 * Sortlist order.
+		 */
+		if (sort) {
+			qsort(out, count, sizeof(out[0]), towire_compare);
+		}
 	}
 
 	savedbuffer = *target;
