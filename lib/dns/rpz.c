@@ -1451,9 +1451,7 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_mutex;
 
-	result = isc_refcount_init(&zones->refs, 1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_refcount;
+	isc_refcount_init(&zones->refs, 1);
 
 	zones->rps_cstr = rps_cstr;
 	zones->rps_cstr_size = rps_cstr_size;
@@ -1490,7 +1488,6 @@ cleanup_rbt:
 	isc_refcount_decrement(&zones->refs, NULL);
 	isc_refcount_destroy(&zones->refs);
 
-cleanup_refcount:
 	DESTROYLOCK(&zones->maint_lock);
 
 cleanup_mutex:
@@ -1519,9 +1516,7 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	}
 
 	memset(zone, 0, sizeof(*zone));
-	result = isc_refcount_init(&zone->refs, 1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_refcount;
+	isc_refcount_init(&zone->refs, 1);
 
 	result = isc_timer_create(rpzs->timermgr, isc_timertype_inactive,
 				  NULL, NULL, rpzs->updater,
@@ -1576,7 +1571,6 @@ cleanup_timer:
 	isc_refcount_decrement(&zone->refs, NULL);
 	isc_refcount_destroy(&zone->refs);
 
-cleanup_refcount:
 	isc_mem_put(zone->rpzs->mctx, zone, sizeof(*zone));
 
 	return (result);
