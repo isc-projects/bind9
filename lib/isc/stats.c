@@ -39,8 +39,7 @@ struct isc_stats {
 	isc_mem_t	*mctx;
 	int		ncounters;
 
-	isc_mutex_t	lock;
-	unsigned int	references; /* locked by lock */
+	isc_refcount_t	references; /* locked by lock */
 
 	/*%
 	 * Locked by counterlock or unlocked if efficient rwlock is not
@@ -70,26 +69,24 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
+	if (stats == NULL) {
 		return (ISC_R_NOMEMORY);
-
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
+	}
 
 	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
 	if (stats->counters == NULL) {
 		result = ISC_R_NOMEMORY;
-		goto clean_mutex;
+		goto cleanup;
 	}
 	stats->copiedcounters = isc_mem_get(mctx,
 					    sizeof(isc_uint64_t) * ncounters);
 	if (stats->copiedcounters == NULL) {
 		result = ISC_R_NOMEMORY;
-		goto clean_counters;
+		goto cleanup;
 	}
 
-	stats->references = 1;
+	isc_refcount_init(&stats->references, 1);
+
 	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
@@ -100,13 +97,11 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 
 	return (result);
 
-clean_counters:
-	isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
+cleanup:
+	if (stats->counters != NULL) {
+		isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
+	}
 
-clean_mutex:
-	DESTROYLOCK(&stats->lock);
-
-clean_stats:
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
 	return (result);
@@ -117,9 +112,8 @@ isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	LOCK(&stats->lock);
-	stats->references++;
-	UNLOCK(&stats->lock);
+	unsigned int refs;	
+	isc_refcount_increment(&stats->references, &refs);
 
 	*statsp = stats;
 }
@@ -133,21 +127,19 @@ isc_stats_detach(isc_stats_t **statsp) {
 	stats = *statsp;
 	*statsp = NULL;
 
-	LOCK(&stats->lock);
-	stats->references--;
+	unsigned int refs;
+	isc_refcount_decrement(&stats->references, &refs);
 
-	if (stats->references == 0) {
+	if (refs == 0) {
+		isc_refcount_destroy(&stats->references);
+		
 		isc_mem_put(stats->mctx, stats->copiedcounters,
 			    sizeof(isc_stat_t) * stats->ncounters);
 		isc_mem_put(stats->mctx, stats->counters,
 			    sizeof(isc_stat_t) * stats->ncounters);
-		UNLOCK(&stats->lock);
-		DESTROYLOCK(&stats->lock);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
-		return;
 	}
-
-	UNLOCK(&stats->lock);
+	return;
 }
 
 int
