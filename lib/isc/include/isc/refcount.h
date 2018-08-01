@@ -90,14 +90,12 @@ ISC_LANG_BEGINDECLS
  * Sample implementations
  */
 
-typedef struct isc_refcount {
-	atomic_int_fast32_t refs;
-} isc_refcount_t;
+typedef atomic_int_fast32_t isc_refcount_t;
 
-#define isc_refcount_init(rp, n) atomic_init(&(rp)->refs, n)
+#define isc_refcount_init(rp, n) atomic_init(rp, n)
 
 #define isc_refcount_current(rp)					\
-	((unsigned int)(atomic_load_explicit(&(rp)->refs,		\
+	((unsigned int)(atomic_load_explicit(rp,			\
 					     memory_order_acquire)))
 
 #define isc_refcount_destroy(rp)				\
@@ -111,7 +109,7 @@ typedef struct isc_refcount {
 		unsigned int *_tmp = (unsigned int *)(tp);	\
 		isc_int32_t prev;				\
 		prev = atomic_fetch_add_explicit		\
-			(&(rp)->refs, 1, memory_order_relaxed); \
+			(rp, 1, memory_order_relaxed); \
 		if (_tmp != NULL)				\
 			*_tmp = prev + 1;			\
 	} while (0)
@@ -121,7 +119,7 @@ typedef struct isc_refcount {
 		unsigned int *_tmp = (unsigned int *)(tp);	\
 		isc_int32_t prev;				\
 		prev = atomic_fetch_add_explicit		\
-			(&(rp)->refs, 1, memory_order_relaxed); \
+			(rp, 1, memory_order_relaxed); \
 		ISC_REQUIRE(prev > 0);				\
 		if (_tmp != NULL)				\
 			*_tmp = prev + 1;			\
@@ -132,7 +130,7 @@ typedef struct isc_refcount {
 		unsigned int *_tmp = (unsigned int *)(tp);	\
 		isc_int32_t prev;				\
 		prev = atomic_fetch_sub_explicit		\
-			(&(rp)->refs, 1, memory_order_release); \
+			(rp, 1, memory_order_release); \
 		ISC_REQUIRE(prev > 0);				\
 		if (_tmp != NULL)				\
 			*_tmp = prev - 1;			\
