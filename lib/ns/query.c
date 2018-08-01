@@ -3977,6 +3977,7 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	case DNS_R_EMPTYWILD:
 	case DNS_R_NCACHENXDOMAIN:
 	case DNS_R_NCACHENXRRSET:
+	case DNS_R_COVERINGNSEC:
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
 		qresult_type = qresult_type_restart;
