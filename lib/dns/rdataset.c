@@ -409,18 +409,18 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			/*
 			 * 'Random' order.
 			 */
+			isc_uint32_t val = isc_random32();
 			for (i = 0; i < count; i++) {
-				isc_uint32_t val = isc_random32();
-
 				choice = i + val % (count - i);
 				rdata = in[i];
 				in[i] = in[choice];
 				in[choice] = rdata;
-				if (order != NULL)
+				if (order != NULL) {
 					out[i].key = (*order)(&in[i],
 								 order_arg);
-				else
+				} else {
 					out[i].key = 0; /* Unused */
+				}
 				out[i].rdata = &in[i];
 			}
 		} else if (want_cyclic) {
