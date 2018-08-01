@@ -305,7 +305,6 @@ static isc_result_t
 nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 	   dns_nta_t **target)
 {
-	isc_result_t result;
 	dns_nta_t *nta = NULL;
 	dns_view_t *view;
 
@@ -325,11 +324,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 	dns_rdataset_init(&nta->rdataset);
 	dns_rdataset_init(&nta->sigrdataset);
 
-	result = isc_refcount_init(&nta->refcount, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(view->mctx, nta, sizeof(dns_nta_t));
-		return (result);
-	}
+	isc_refcount_init(&nta->refcount, 1);
 
 	nta->name = dns_fixedname_initname(&nta->fn);
 	dns_name_copy(name, nta->name, NULL);

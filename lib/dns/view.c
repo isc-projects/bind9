@@ -152,9 +152,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->rdclass = rdclass;
 	view->frozen = ISC_FALSE;
 	view->task = NULL;
-	result = isc_refcount_init(&view->references, 1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_fwdtable;
+	isc_refcount_init(&view->references, 1);
 	view->weakrefs = 0;
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN|
 			    DNS_VIEWATTR_REQSHUTDOWN);
@@ -314,7 +312,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	isc_refcount_decrement(&view->references, NULL);
 	isc_refcount_destroy(&view->references);
 
- cleanup_fwdtable:
 	if (view->fwdtable != NULL)
 		dns_fwdtable_destroy(&view->fwdtable);
 

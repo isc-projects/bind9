@@ -87,15 +87,8 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 		goto cleanup_rbt;
 	}
 
-	result = isc_refcount_init(&keytable->active_nodes, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_rwlock;
-	}
-
-	result = isc_refcount_init(&keytable->references, 1);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_active_nodes;
-	}
+	isc_refcount_init(&keytable->active_nodes, 0);
+	isc_refcount_init(&keytable->references, 1);
 
 	keytable->mctx = NULL;
 	isc_mem_attach(mctx, &keytable->mctx);
@@ -103,12 +96,6 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	*keytablep = keytable;
 
 	return (ISC_R_SUCCESS);
-
- cleanup_active_nodes:
-	isc_refcount_destroy(&keytable->active_nodes);
-
- cleanup_rwlock:
-	isc_rwlock_destroy(&keytable->rwlock);
 
  cleanup_rbt:
 	dns_rbt_destroy(&keytable->table);
@@ -796,7 +783,6 @@ dns_keynode_trust(dns_keynode_t *keynode) {
 
 isc_result_t
 dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
-	isc_result_t result;
 	dns_keynode_t *knode;
 
 	REQUIRE(target != NULL && *target == NULL);
@@ -811,9 +797,7 @@ dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
 	knode->key = NULL;
 	knode->next = NULL;
 
-	result = isc_refcount_init(&knode->refcount, 1);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_refcount_init(&knode->refcount, 1);
 
 	*target = knode;
 	return (ISC_R_SUCCESS);
