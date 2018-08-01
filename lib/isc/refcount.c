@@ -19,10 +19,4 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-isc_result_t
-isc_refcount_init(isc_refcount_t *ref, unsigned int n) {
-	REQUIRE(ref != NULL);
-
-	ref->refs = n;
-	return (ISC_R_SUCCESS);
-}
+EMPTY_TRANSLATION_UNIT
