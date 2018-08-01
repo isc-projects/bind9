@@ -47,7 +47,6 @@ struct dns_order {
 isc_result_t
 dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 	dns_order_t *order;
-	isc_result_t result;
 
 	REQUIRE(orderp != NULL && *orderp == NULL);
 
@@ -58,11 +57,7 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 	ISC_LIST_INIT(order->ents);
 
 	/* Implicit attach. */
-	result = isc_refcount_init(&order->references, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, order, sizeof(*order));
-		return (result);
-	}
+	isc_refcount_init(&order->references, 1);
 
 	order->mctx = NULL;
 	isc_mem_attach(mctx, &order->mctx);

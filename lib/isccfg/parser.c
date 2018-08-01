@@ -449,11 +449,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	pctx->mctx = NULL;
 	isc_mem_attach(mctx, &pctx->mctx);
 
-	result = isc_refcount_init(&pctx->references, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_putanddetach(&pctx->mctx, pctx, sizeof(*pctx));
-		return (result);
-	}
+	isc_refcount_init(&pctx->references, 1);
 
 	pctx->lctx = lctx;
 	pctx->lexer = NULL;
@@ -3063,7 +3059,6 @@ cfg_obj_line(const cfg_obj_t *obj) {
 
 isc_result_t
 cfg_create_obj(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	isc_result_t result;
 	cfg_obj_t *obj;
 
 	REQUIRE(pctx != NULL);
@@ -3079,11 +3074,8 @@ cfg_create_obj(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	obj->line = pctx->line;
 	obj->pctx = pctx;
 
-	result = isc_refcount_init(&obj->references, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(pctx->mctx, obj, sizeof(cfg_obj_t));
-		return (result);
-	}
+	isc_refcount_init(&obj->references, 1);
+
 	*ret = obj;
 
 	return (ISC_R_SUCCESS);
