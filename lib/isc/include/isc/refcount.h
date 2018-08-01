@@ -37,7 +37,7 @@ ISC_LANG_BEGINDECLS
  */
 
 /*
- * isc_result_t
+ * void
  * isc_refcount_init(isc_refcount_t *ref, unsigned int n);
  *
  * Initialize the reference counter.  There will be 'n' initial references.
