@@ -11283,7 +11283,7 @@ named_server_testgen(isc_lex_t *lex, isc_buffer_t **text) {
 	else
 		count = strtoul(ptr, NULL, 10);
 
-	CHECK(isc_buffer_reserve(text, count));
+	CHECK(isc_buffer_reserve(text, count + 1));
 	for (i = 0; i < count; i++)
 		CHECK(putuint8(text, chars[i % (sizeof(chars) - 1)]));
 
