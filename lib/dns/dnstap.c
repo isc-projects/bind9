@@ -212,7 +212,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	memset(env, 0, sizeof(dns_dtenv_t));
 
-	CHECK(isc_refcount_init(&env->refcount, 1));
+	isc_refcount_init(&env->refcount, 1);
 	CHECK(isc_stats_create(mctx, &env->stats, dns_dnstapcounter_max));
 	env->path = isc_mem_strdup(mctx, path);
 	if (env->path == NULL)

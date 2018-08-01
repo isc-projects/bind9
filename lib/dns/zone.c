@@ -920,10 +920,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->db = NULL;
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
-	result = isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
-	if (result != ISC_R_SUCCESS) {
-		goto free_dblock;
-	}
+	isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
 	zone->strnamerd = NULL;
@@ -1093,7 +1090,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	isc_refcount_decrement(&zone->erefs, NULL);
 	isc_refcount_destroy(&zone->erefs);
 
- free_dblock:
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 
  free_mutex:

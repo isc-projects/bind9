@@ -328,9 +328,8 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		refs = 1;
 	if (ring != NULL)
 		refs++;
-	ret = isc_refcount_init(&tkey->refs, refs);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_creator;
+
+	isc_refcount_init(&tkey->refs, refs);
 
 	tkey->generated = generated;
 	tkey->inception = inception;
@@ -370,7 +369,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	while (refs-- > 0)
 		isc_refcount_decrement(&tkey->refs, NULL);
 	isc_refcount_destroy(&tkey->refs);
- cleanup_creator:
+
 	if (tkey->key != NULL)
 		dst_key_free(&tkey->key);
 	if (tkey->creator != NULL) {

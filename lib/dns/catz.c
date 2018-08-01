@@ -565,9 +565,7 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_newzones;
 
-	result = isc_refcount_init(&new_zones->refs, 1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mutex;
+	isc_refcount_init(&new_zones->refs, 1);
 
 	result = isc_ht_init(&new_zones->zones, mctx, 4);
 	if (result != ISC_R_SUCCESS)
@@ -589,7 +587,6 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 	isc_ht_destroy(&new_zones->zones);
   cleanup_refcount:
 	isc_refcount_destroy(&new_zones->refs);
-  cleanup_mutex:
 	isc_mutex_destroy(&new_zones->lock);
   cleanup_newzones:
 	isc_mem_put(mctx, new_zones, sizeof(*new_zones));

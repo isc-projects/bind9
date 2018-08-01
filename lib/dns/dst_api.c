@@ -1352,13 +1352,7 @@ get_key_struct(const dns_name_t *name, unsigned int alg,
 		return (NULL);
 	}
 
-	result = isc_refcount_init(&key->refs, 1);
-	if (result != ISC_R_SUCCESS) {
-		dns_name_free(key->key_name, mctx);
-		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
-		isc_mem_put(mctx, key, sizeof(dst_key_t));
-		return (NULL);
-	}
+	isc_refcount_init(&key->refs, 1);
 	isc_mem_attach(mctx, &key->mctx);
 	key->key_alg = alg;
 	key->key_flags = flags;

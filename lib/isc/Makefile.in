@@ -56,7 +56,7 @@ OBJS =		@ISC_EXTRA_OBJS@ pk11.@O@ pk11_result.@O@ \
 		md5.@O@ mem.@O@ mutexblock.@O@ \
 		netaddr.@O@ netscope.@O@ nonce.@O@ openssl_shim.@O@ pool.@O@ \
 		parseint.@O@ portset.@O@ quota.@O@ radix.@O@ random.@O@ \
-		ratelimiter.@O@ refcount.@O@ region.@O@ regex.@O@ result.@O@ \
+		ratelimiter.@O@ region.@O@ regex.@O@ result.@O@ \
 		rwlock.@O@ \
 		serial.@O@ sha1.@O@ sha2.@O@ sockaddr.@O@ stats.@O@ \
 		string.@O@ strtoul.@O@ symtab.@O@ task.@O@ taskpool.@O@ \
@@ -74,7 +74,7 @@ SRCS =		@ISC_EXTRA_SRCS@ pk11.c pk11_result.c \
 		md5.c mem.c mutexblock.c \
 		netaddr.c netscope.c nonce.c openssl_shim.c pool.c \
 		parseint.c portset.c quota.c radix.c random.c \
-		ratelimiter.c refcount.c region.c regex.c result.c rwlock.c \
+		ratelimiter.c region.c regex.c result.c rwlock.c \
 		serial.c sha1.c sha2.c sockaddr.c stats.c string.c \
 		strtoul.c symtab.c task.c taskpool.c timer.c \
 		tm.c version.c

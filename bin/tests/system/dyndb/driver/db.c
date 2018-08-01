@@ -770,7 +770,7 @@ create_db(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	CHECK(dns_name_dupwithoffsets(origin, mctx, &sampledb->common.origin));
 
-	CHECK(isc_refcount_init(&sampledb->refs, 1));
+	isc_refcount_init(&sampledb->refs, 1);
 
 	/* Translate instance name to instance pointer. */
 	sampledb->inst = driverarg;

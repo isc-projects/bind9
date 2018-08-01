@@ -78,12 +78,7 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
 		isc_mem_put(mctx, portlist, sizeof(*portlist));
 		return (result);
 	}
-	result = isc_refcount_init(&portlist->refcount, 1);
-	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&portlist->lock);
-		isc_mem_put(mctx, portlist, sizeof(*portlist));
-		return (result);
-	}
+	isc_refcount_init(&portlist->refcount, 1);
 	portlist->list = NULL;
 	portlist->allocated = 0;
 	portlist->active = 0;
