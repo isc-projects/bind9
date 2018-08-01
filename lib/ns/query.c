@@ -1391,7 +1391,7 @@ rpz_log_fail_helper(ns_client_t *client, int level, dns_name_t *p_name,
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERY_ERRORS,
 		      NS_LOGMODULE_QUERY, level,
-		      "rpz %s%s%s rewrite %s%s%s%s%s%s : %s",
+		      "rpz %s%s%s rewrite %s%s%s%s%s %s%s",
 		      rpztypestr1, slash, rpztypestr2,
 		      qnamebuf, via, p_namebuf, str_blank,
 		      str, failed, isc_result_totext(result));
