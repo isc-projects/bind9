@@ -588,6 +588,9 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 				return (ISC_TRUE);
 			continue;
 
+#ifdef HAVE_GEOIP
+		case dns_aclelementtype_geoip:
+#endif
 		case dns_aclelementtype_localnets:
 			return (ISC_TRUE);
 
