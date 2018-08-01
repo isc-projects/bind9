@@ -36,7 +36,6 @@
 
 isc_result_t
 cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
-	isc_result_t result;
 	cfg_aclconfctx_t *actx;
 
 	REQUIRE(mctx != NULL);
@@ -46,9 +45,7 @@ cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
 	if (actx == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_refcount_init(&actx->references, 1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_refcount_init(&actx->references, 1);
 
 	actx->mctx = NULL;
 	isc_mem_attach(mctx, &actx->mctx);
@@ -60,10 +57,6 @@ cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
 
 	*ret = actx;
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	isc_mem_put(mctx, actx, sizeof(*actx));
-	return (result);
 }
 
 void
