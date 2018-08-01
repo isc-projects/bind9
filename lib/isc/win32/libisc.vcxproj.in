@@ -458,7 +458,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\radix.c" />
     <ClCompile Include="..\random.c" />
     <ClCompile Include="..\ratelimiter.c" />
-    <ClCompile Include="..\refcount.c" />
     <ClCompile Include="..\regex.c" />
     <ClCompile Include="..\region.c" />
     <ClCompile Include="..\result.c" />
