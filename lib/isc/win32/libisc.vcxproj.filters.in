@@ -607,9 +607,6 @@
     <ClCompile Include="..\ratelimiter.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\refcount.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\regex.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
