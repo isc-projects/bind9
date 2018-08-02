@@ -1722,6 +1722,10 @@ dns_zone_isdynamic(dns_zone_t *zone, isc_boolean_t ignore_freeze) {
 	    (zone->type == dns_zone_redirect && zone->masters != NULL))
 		return (ISC_TRUE);
 
+	/* Inline zones are always dynamic. */
+	if (zone->type == dns_zone_master && zone->raw != NULL)
+		return (ISC_TRUE);
+
 	/* If !ignore_freeze, we need check whether updates are disabled.  */
 	if (zone->type == dns_zone_master &&
 	    (!zone->update_disabled || ignore_freeze) &&
@@ -1918,7 +1922,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 		 * zone being reloaded.  Do nothing - the database
 		 * we already have is guaranteed to be up-to-date.
 		 */
-		if (zone->type == dns_zone_master)
+		if (zone->type == dns_zone_master && !hasraw)
 			result = DNS_R_DYNAMIC;
 		else
 			result = ISC_R_SUCCESS;
@@ -1961,7 +1965,6 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 			result = DNS_R_UPTODATE;
 			goto cleanup;
 		}
-
 
 		/*
 		 * If the file modification time is in the past
@@ -4632,6 +4635,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				isc_uint32_t serialmin, serialmax;
 
 				INSIST(zone->type == dns_zone_master);
+				INSIST(zone->raw == NULL);
 
 				if (serial == oldserial &&
 				    zone_unchanged(zone->db, db, zone->mctx)) {
