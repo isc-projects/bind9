@@ -1,3 +1,6 @@
+5003.	[bug]		dns_acl_isinsecure did not handle geoip elements.
+			[GL #406]
+
 5002.	[bug]		mdig: Handle malformed +ednsopt option, support 100
 			+ednsopt options per query rather than 100 total and
 			address memory leaks if +ednsopt was specified.
