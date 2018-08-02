@@ -185,21 +185,20 @@ pk11_mem_put(void *ptr, size_t size) {
 
 isc_result_t
 pk11_initialize(isc_mem_t *mctx, const char *engine) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	CK_RV rv;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
+	LOCK(&sessionlock);
 	LOCK(&alloclock);
 	if ((mctx != NULL) && (pk11_mctx == NULL) && (allocsize == 0))
 		isc_mem_attach(mctx, &pk11_mctx);
+	UNLOCK(&alloclock);
 	if (initialized) {
-		UNLOCK(&alloclock);
-		return (ISC_R_SUCCESS);
+		goto unlock;
 	} else {
-		LOCK(&sessionlock);
 		initialized = true;
-		UNLOCK(&alloclock);
 	}
 
 	ISC_LIST_INIT(tokens);
@@ -239,7 +238,6 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 	}
 #endif
 #endif /* PKCS11CRYPTO */
-	result = ISC_R_SUCCESS;
  unlock:
 	UNLOCK(&sessionlock);
 	return (result);
