@@ -1362,8 +1362,6 @@ pk11_dump_tokens(void) {
 			printf("RAND");
 		}
 		if (token->operations & (1 << OP_RSA)) {
-			if (!first)
-				printf(",");
 			first = ISC_FALSE;
 			printf("RSA");
 		}
