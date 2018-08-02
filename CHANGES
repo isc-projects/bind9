@@ -1,3 +1,6 @@
+5005.	[bug]		dnssec-verify, and dnssec-signzone at the verification
+			step, failed on some validly signed zones. [GL #442]
+
 5004.	[bug]		'rndc reconfig' could cause inline zones to stop
 			re-signing. [GL #439]
 
