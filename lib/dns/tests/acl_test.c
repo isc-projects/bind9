@@ -20,6 +20,7 @@
 #include <unistd.h>
 
 #include <isc/print.h>
+#include <isc/string.h>
 
 #include <dns/acl.h>
 #include "dnstest.h"
@@ -53,6 +54,11 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	dns_acl_t *none = NULL;
 	dns_acl_t *notnone = NULL;
 	dns_acl_t *notany = NULL;
+#ifdef HAVE_GEOIP
+	dns_acl_t *geoip = NULL;
+	dns_acl_t *notgeoip = NULL;
+	dns_aclelement_t *de;
+#endif
 
 	dns_acl_t *pos4pos6 = NULL;
 	dns_acl_t *notpos4pos6 = NULL;
@@ -100,15 +106,46 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	result = dns_acl_merge(notany, any, ISC_FALSE);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
+#ifdef HAVE_GEOIP
+	result = dns_acl_create(mctx, 1, &geoip);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	de = geoip->elements;
+	ATF_REQUIRE(de != NULL);
+	strlcpy(de->geoip_elem.as_string, "AU",
+		sizeof(de->geoip_elem.as_string));
+	de->geoip_elem.subtype = dns_geoip_country_code;
+	de->type = dns_aclelementtype_geoip;
+	de->negative = ISC_FALSE;
+	ATF_REQUIRE(geoip->length < geoip->alloc);
+	geoip->node_count++;
+	de->node_num = geoip->node_count;
+	geoip->length++;
+
+	result = dns_acl_create(mctx, 1, &notgeoip);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = dns_acl_merge(notgeoip, geoip, ISC_FALSE);
+#endif
+
 	ATF_CHECK(dns_acl_isinsecure(any));		/* any; */
 	ATF_CHECK(!dns_acl_isinsecure(none));		/* none; */
 	ATF_CHECK(!dns_acl_isinsecure(notany));		/* !any; */
 	ATF_CHECK(!dns_acl_isinsecure(notnone));	/* !none; */
 
+#ifdef HAVE_GEOIP
+	ATF_CHECK(dns_acl_isinsecure(geoip));		/* geoip; */
+	ATF_CHECK(!dns_acl_isinsecure(notgeoip));	/* !geoip; */
+#endif
+
 	dns_acl_detach(&any);
 	dns_acl_detach(&none);
 	dns_acl_detach(&notany);
 	dns_acl_detach(&notnone);
+#ifdef HAVE_GEOIP
+	dns_acl_detach(&geoip);
+	dns_acl_detach(&notgeoip);
+#endif
 
 	for (pass = 0; pass < sizeof(ecs)/sizeof(ecs[0]); pass++) {
 		result = dns_acl_create(mctx, 1, &pos4pos6);
