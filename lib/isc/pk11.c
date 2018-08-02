@@ -1094,8 +1094,6 @@ pk11_dump_tokens(void) {
 		printf("\tsupported operations=0x%x (", token->operations);
 		first = ISC_TRUE;
 		if (token->operations & (1 << OP_RSA)) {
-			if (!first)
-				printf(",");
 			first = ISC_FALSE;
 			printf("RSA");
 		}
