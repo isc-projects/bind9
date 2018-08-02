@@ -1,3 +1,6 @@
+5004.	[bug]		'rndc reconfig' could cause inline zones to stop
+			re-signing. [GL #439]
+
 5003.	[bug]		dns_acl_isinsecure did not handle geoip elements.
 			[GL #406]
 
