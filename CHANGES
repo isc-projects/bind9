@@ -1,3 +1,6 @@
+5004.	[bug]		dnssec-verify, and dnssec-signzone at the verification
+			step, failed on some validly signed zones. [GL #442]
+
 5003.	[bug]		dns_acl_isinsecure did not handle geoip elements.
 			[GL #406]
 
