@@ -219,6 +219,21 @@ goodsig(const vctx_t *vctx, dns_rdata_t *sigrdata, const dns_name_t *name,
 	return (ISC_FALSE);
 }
 
+static isc_boolean_t
+nsec_bitmap_equal(dns_rdata_nsec_t *nsec, dns_rdata_t *rdata) {
+	isc_result_t result;
+	dns_rdata_nsec_t tmpnsec;
+
+	result = dns_rdata_tostruct(rdata, &tmpnsec, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	if (nsec->len != tmpnsec.len ||
+	    memcmp(nsec->typebits, tmpnsec.typebits, nsec->len) != 0) {
+		return (ISC_FALSE);
+	}
+	return (ISC_TRUE);
+}
+
 static isc_result_t
 verifynsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	   const dns_name_t *nextname, isc_result_t *vresult)
@@ -231,7 +246,6 @@ verifynsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_t tmprdata = DNS_RDATA_INIT;
 	dns_rdata_nsec_t nsec;
-	dns_rdata_nsec_t tmpnsec;
 	isc_result_t result;
 
 	dns_rdataset_init(&rdataset);
@@ -279,11 +293,7 @@ verifynsec(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 				     isc_result_totext(result));
 		goto done;
 	}
-	result = dns_rdata_tostruct(&tmprdata, &tmpnsec, NULL);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	if (nsec.len != tmpnsec.len ||
-	    memcmp(nsec.typebits, tmpnsec.typebits, nsec.len) != 0)
-	{
+	if (nsec_bitmap_equal(&nsec, &tmprdata)) {
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		zoneverify_log_error(vctx,
 				     "Bad NSEC record for %s, bit map "
