@@ -185,16 +185,16 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
 
+	LOCK(&sessionlock);
 	LOCK(&alloclock);
 	if ((mctx != NULL) && (pk11_mctx == NULL) && (allocsize == 0))
 		isc_mem_attach(mctx, &pk11_mctx);
+	UNLOCK(&alloclock);
 	if (initialized) {
-		UNLOCK(&alloclock);
+		UNLOCK(&sessionlock);
 		return (ISC_R_SUCCESS);
 	} else {
-		LOCK(&sessionlock);
 		initialized = ISC_TRUE;
-		UNLOCK(&alloclock);
 	}
 
 	ISC_LIST_INIT(tokens);
