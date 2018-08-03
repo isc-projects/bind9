@@ -251,8 +251,6 @@ LIBNS_EXTERNAL_DATA ns_hook_t *ns__hook_table = NULL;
 
 #define PROCESS_HOOK(...) \
 	NS_PROCESS_HOOK(ns__hook_table, __VA_ARGS__)
-#define PROCESS_HOOK_VOID(...) \
-	NS_PROCESS_HOOK_VOID(ns__hook_table, __VA_ARGS__)
 
 /*
  * The functions defined below implement the query logic that previously lived
@@ -1966,6 +1964,7 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			     (!WANTDNSSEC(client) || sigrdataset == NULL ||
 			      !dns_rdataset_isassociated(sigrdataset)))))
 				goto addname;
+
 			if (additionaltype ==
 			    dns_rdatasetadditional_fromcache &&
 			    (DNS_TRUST_PENDING(rdataset->trust) ||
@@ -5232,6 +5231,8 @@ ns__query_start(query_ctx_t *qctx) {
 	qctx->need_wildcardproof = false;
 	qctx->rpz = false;
 
+	PROCESS_HOOK(NS_QUERY_START_BEGIN, qctx);
+
 	if (qctx->client->view->checknames &&
 	    !dns_rdata_checkowner(qctx->client->query.qname,
 				  qctx->client->message->rdclass,
@@ -6792,6 +6793,8 @@ query_respond_any(query_ctx_t *qctx) {
 	have_a = !qctx->authoritative;
 	have_sig = false;
 
+	PROCESS_HOOK(NS_QUERY_RESPOND_ANY_BEGIN, qctx);
+
 	result = dns_db_allrdatasets(qctx->db, qctx->node,
 				     qctx->version, 0, &rdsiter);
 	if (result != ISC_R_SUCCESS) {
@@ -6942,6 +6945,8 @@ query_respond_any(query_ctx_t *qctx) {
 
 		result = dns_rdatasetiter_next(rdsiter);
 	}
+
+	PROCESS_HOOK(NS_QUERY_RESPOND_ANY_POST_LOOKUP, qctx);
 
 	/*
 	 * Filter AAAAs if there is an A and there is no signature
@@ -7169,6 +7174,8 @@ static isc_result_t
 query_respond(query_ctx_t *qctx) {
 	dns_rdataset_t **sigrdatasetp = NULL;
 	isc_result_t result;
+
+	PROCESS_HOOK(NS_QUERY_RESPOND_BEGIN, qctx);
 
 	/*
 	 * If we have a zero ttl from the cache, refetch.
@@ -9677,6 +9684,8 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
  */
 static isc_result_t
 query_prepresponse(query_ctx_t *qctx) {
+	PROCESS_HOOK(NS_QUERY_PREP_RESPONSE_BEGIN, qctx);
+
 	if (WANTDNSSEC(qctx->client) &&
 	    (qctx->fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
 	{
@@ -9702,11 +9711,14 @@ query_prepresponse(query_ctx_t *qctx) {
 		if (result == ISC_R_SUCCESS &&
 		    qctx->client->view->v4_aaaa != dns_aaaa_ok &&
 		    is_v4_client(qctx->client))
+		{
 			qctx->client->filter_aaaa = qctx->client->view->v4_aaaa;
-		else if (result == ISC_R_SUCCESS &&
-			 qctx->client->view->v6_aaaa != dns_aaaa_ok &&
-			 is_v6_client(qctx->client))
+		} else if (result == ISC_R_SUCCESS &&
+			   qctx->client->view->v6_aaaa != dns_aaaa_ok &&
+			   is_v6_client(qctx->client))
+		{
 			qctx->client->filter_aaaa = qctx->client->view->v6_aaaa;
+		}
 	}
 
 
@@ -10726,6 +10738,8 @@ query_done(query_ctx_t *qctx) {
 	{
 		qctx->result = ISC_R_FAILURE;
 	}
+
+	PROCESS_HOOK(NS_QUERY_DONE_SEND, qctx);
 
 	query_send(qctx->client);
 
