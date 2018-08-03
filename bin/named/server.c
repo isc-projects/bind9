@@ -7916,6 +7916,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Shut down all dyndb instances.
 	 */
 	dns_dyndb_cleanup(false);
+	ns_hookmodule_cleanup();
 
 	/*
 	 * Parse the global default pseudo-config file.
@@ -9378,6 +9379,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	}
 
 	dns_dyndb_cleanup(true);
+	ns_hookmodule_cleanup();
 
 	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);
