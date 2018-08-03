@@ -2480,8 +2480,9 @@
 ./lib/ns/Kyuafile				X	2017,2018
 ./lib/ns/api					X	2017,2018
 ./lib/ns/client.c				C	2017,2018
-./lib/ns/hooks.h				C	2017,2018
+./lib/ns/hooks.c				C	2018
 ./lib/ns/include/ns/client.h			C	2017,2018
+./lib/ns/include/ns/hooks.h			C	2017,2018
 ./lib/ns/include/ns/interfacemgr.h		C	2017,2018
 ./lib/ns/include/ns/lib.h			C	2017,2018
 ./lib/ns/include/ns/listenlist.h		C	2017,2018

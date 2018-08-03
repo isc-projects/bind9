@@ -19,8 +19,6 @@
 
 #include <isc/util.h>
 
-#ifdef NS_HOOKS_ENABLE
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -31,11 +29,11 @@
 
 #include <dns/badcache.h>
 #include <dns/view.h>
+
 #include <ns/client.h>
+#include <ns/hooks.h>
 #include <ns/query.h>
 #include <isc/util.h>
-
-#include "../hooks.h"
 
 #include "nstest.h"
 
@@ -95,13 +93,14 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	/*
 	 * Interrupt execution if query_done() is called.
 	 */
-	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
-		[NS_QUERY_DONE_BEGIN] = {
-			.callback = ns_test_hook_catch_call,
-			.callback_data = NULL,
-		},
+	ns_hook_t hook = {
+		.callback = ns_test_hook_catch_call,
 	};
-	ns__hook_table = query_hooks;
+	ns_hooktable_t query_hooks;
+
+	ns_hooktable_init(&query_hooks);
+	ns_hook_add(&query_hooks, NS_QUERY_DONE_BEGIN, &hook);
+	ns_hooktable_reset(&query_hooks);
 
 	/*
 	 * Construct a query context for a ./NS query with given flags.
@@ -295,17 +294,16 @@ run_start_test(const ns__query_start_test_params_t *test) {
 	/*
 	 * Interrupt execution if query_lookup() or query_done() is called.
 	 */
-	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
-		[NS_QUERY_LOOKUP_BEGIN] = {
-			.callback = ns_test_hook_catch_call,
-			.callback_data = NULL,
-		},
-		[NS_QUERY_DONE_BEGIN] = {
-			.callback = ns_test_hook_catch_call,
-			.callback_data = NULL,
-		},
+	ns_hook_t hook = {
+		.callback = ns_test_hook_catch_call,
 	};
-	ns__hook_table = query_hooks;
+	ns_hooktable_t query_hooks;
+
+	ns_hooktable_init(&query_hooks);
+	ns_hook_add(&query_hooks, NS_QUERY_LOOKUP_BEGIN, &hook);
+	ns_hook_add(&query_hooks, NS_QUERY_DONE_BEGIN, &hook);
+
+	ns_hooktable_reset(&query_hooks);
 
 	/*
 	 * Construct a query context using the supplied parameters.
@@ -604,18 +602,6 @@ main(void) {
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
-#else
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: libns hooks not enabled\n");
-	return (0);
-}
-
-#endif /* NS_HOOKS_ENABLE */
-
 #else /* HAVE_CMOCKA */
 
 #include <stdio.h>

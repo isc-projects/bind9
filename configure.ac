@@ -76,7 +76,7 @@ AC_ARG_ENABLE(developer,
 XTARGETS=
 case "$enable_developer" in
 yes)
-	STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1 -DNS_HOOKS_ENABLE=1"
+	STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
 	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
 	test "${enable_querytrace+set}" = set || enable_querytrace=yes
 	test "${with_cmocka+set}" = set || with_cmocka=yes
