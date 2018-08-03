@@ -12,8 +12,6 @@
 #ifndef NS_HOOKS_H
 #define NS_HOOKS_H 1
 
-#ifdef NS_HOOKS_ENABLE
-
 /*! \file */
 
 #include <stdbool.h>
@@ -193,5 +191,4 @@ typedef struct ns_hook {
 
 LIBNS_EXTERNAL_DATA extern ns_hook_t *ns__hook_table;
 
-#endif /* NS_HOOKS_ENABLE */
 #endif /* NS_HOOKS_H */
