@@ -43,12 +43,12 @@ DNSDEPLIBS =	../../lib/dns/libdns.@A@
 LIBS =		@LIBS@
 
 # Alphabetically
-OBJS =		client.@O@ interfacemgr.@O@ lib.@O@ \
+OBJS =		client.@O@ hooks.@O@ interfacemgr.@O@ lib.@O@ \
 		listenlist.@O@ log.@O@ notify.@O@ query.@O@ \
 		server.@O@ sortlist.@O@ stats.@O@ update.@O@ \
 		version.@O@ xfrout.@O@
 
-SRCS =		client.c interfacemgr.c lib.c listenlist.c \
+SRCS =		client.c hooks.c interfacemgr.c lib.c listenlist.c \
 		log.c notify.c query.c server.c sortlist.c stats.c \
 		update.c version.c xfrout.c
 
