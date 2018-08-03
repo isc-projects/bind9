@@ -45,10 +45,9 @@
 #include <dns/zone.h>
 
 #include <ns/client.h>
+#include <ns/hooks.h>
 #include <ns/interfacemgr.h>
 #include <ns/server.h>
-
-#include "../hooks.h"
 
 #include "nstest.h"
 
