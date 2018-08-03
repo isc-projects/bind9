@@ -158,8 +158,15 @@
 
 enum {
 	NS_QUERY_SETUP_QCTX_INITIALIZED,
+	NS_QUERY_START_BEGIN,
 	NS_QUERY_LOOKUP_BEGIN,
+	NS_QUERY_RECURSION_BEGIN,
+	NS_QUERY_PREP_RESPONSE_BEGIN,
+	NS_QUERY_RESPOND_BEGIN,
+	NS_QUERY_RESPOND_ANY_BEGIN,
+	NS_QUERY_RESPOND_ANY_POST_LOOKUP,
 	NS_QUERY_DONE_BEGIN,
+	NS_QUERY_DONE_SEND,
 	NS_QUERY_HOOKS_COUNT	/* MUST BE LAST */
 };
 
@@ -178,16 +185,14 @@ typedef struct ns_hook {
 		isc_result_t _result;					\
 									\
 		if (_callback != NULL &&				\
-		    _callback(data, _callback_data, &_result)) {	\
-			return __VA_ARGS__;				\
+		    _callback(data, _callback_data, &_result))		\
+		{							\
+			return (__VA_ARGS__);				\
 		}							\
 	}
 
 #define NS_PROCESS_HOOK(table, id, data) \
 	_NS_PROCESS_HOOK(table, id, data, _result)
-
-#define NS_PROCESS_HOOK_VOID(table, id, data) \
-	_NS_PROCESS_HOOK(table, id, data)
 
 LIBNS_EXTERNAL_DATA extern ns_hook_t *ns__hook_table;
 
