@@ -21,10 +21,10 @@
 #include <dns/badcache.h>
 #include <dns/view.h>
 #include <isc/util.h>
-#include <ns/client.h>
-#include <ns/query.h>
 
-#include "../hooks.h"
+#include <ns/client.h>
+#include <ns/hooks.h>
+#include <ns/query.h>
 
 #include "nstest.h"
 

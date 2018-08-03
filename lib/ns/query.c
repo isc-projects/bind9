@@ -62,13 +62,12 @@
 
 #include <ns/client.h>
 #include <ns/interfacemgr.h>
+#include <ns/hooks.h>
 #include <ns/log.h>
 #include <ns/server.h>
 #include <ns/sortlist.h>
 #include <ns/stats.h>
 #include <ns/xfrout.h>
-
-#include "hooks.h"
 
 #if 0
 /*
@@ -248,21 +247,12 @@ static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
-#ifdef NS_HOOKS_ENABLE
-
 LIBNS_EXTERNAL_DATA ns_hook_t *ns__hook_table = NULL;
 
 #define PROCESS_HOOK(...) \
 	NS_PROCESS_HOOK(ns__hook_table, __VA_ARGS__)
 #define PROCESS_HOOK_VOID(...) \
 	NS_PROCESS_HOOK_VOID(ns__hook_table, __VA_ARGS__)
-
-#else
-
-#define PROCESS_HOOK(...)	do {} while (0)
-#define PROCESS_HOOK_VOID(...)	do {} while (0)
-
-#endif
 
 /*
  * The functions defined below implement the query logic that previously lived
