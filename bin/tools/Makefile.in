@@ -119,27 +119,17 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
-nzd-man: named-nzd2nzf.8
-	${INSTALL_DATA} $^ ${DESTDIR}${mandir}/man8
-
-nzd: nzd-man
+nzd:
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-nzd2nzf@EXEEXT@ \
 		${DESTDIR}${sbindir}
+	${INSTALL_DATA} ${srcdir}/named-nzd2nzf.8 ${DESTDIR}${mandir}/man8
 
-dnstap-man: dnstap-read.1
-	${INSTALL_DATA} $^ ${DESTDIR}${mandir}/man1
-
-dnstap: dnstap-man
+dnstap:
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} dnstap-read@EXEEXT@ \
 		${DESTDIR}${bindir}
+	${INSTALL_DATA} ${srcdir}/dnstap-read.1 ${DESTDIR}${mandir}/man1
 
-install-man1: arpaname.1 named-rrchecker.1 mdig.1
-	${INSTALL_DATA} $^ ${DESTDIR}${mandir}/man1
-
-install-man8: genrandom.8 isc-hmac-fixup.8 named-journalprint.8 nsec3hash.8
-	${INSTALL_DATA} $^ ${DESTDIR}${mandir}/man8
-
-install:: ${TARGETS} installdirs @DNSTAP@ @NZD_TOOLS@ install-man1 install-man8
+install:: ${TARGETS} installdirs @DNSTAP@ @NZD_TOOLS@
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} arpaname@EXEEXT@ \
 		${DESTDIR}${bindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named-journalprint@EXEEXT@ \
@@ -154,6 +144,13 @@ install:: ${TARGETS} installdirs @DNSTAP@ @NZD_TOOLS@ install-man1 install-man8
 		${DESTDIR}${sbindir}
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} mdig@EXEEXT@ \
 		${DESTDIR}${bindir}
+	${INSTALL_DATA} ${srcdir}/arpaname.1 ${DESTDIR}${mandir}/man1
+	${INSTALL_DATA} ${srcdir}/isc-hmac-fixup.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/named-journalprint.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/named-rrchecker.1 ${DESTDIR}${mandir}/man1
+	${INSTALL_DATA} ${srcdir}/nsec3hash.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/genrandom.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/mdig.1 ${DESTDIR}${mandir}/man1
 
 uninstall::
 	rm -f ${DESTDIR}${mandir}/man1/mdig.1

@@ -172,17 +172,12 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
-install-man5: named.conf.5
-	${INSTALL_DATA} $^ ${DESTDIR}${mandir}/man5
-
-install-man8: lwresd.8 named.8
-	${INSTALL_DATA} $^ ${DESTDIR}${mandir}/man8
-
-install-man: install-man5 install-man8
-
-install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs install-man
+install:: named@EXEEXT@ lwresd@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} named@EXEEXT@ ${DESTDIR}${sbindir}
 	(cd ${DESTDIR}${sbindir}; rm -f lwresd@EXEEXT@; @LN@ named@EXEEXT@ lwresd@EXEEXT@)
+	${INSTALL_DATA} ${srcdir}/named.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/lwresd.8 ${DESTDIR}${mandir}/man8
+	${INSTALL_DATA} ${srcdir}/named.conf.5 ${DESTDIR}${mandir}/man5
 
 uninstall::
 	rm -f ${DESTDIR}${mandir}/man5/named.conf.5
