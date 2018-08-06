@@ -662,30 +662,6 @@ ISCMEMPOOLFUNC(get)(isc_mempool_t * _ISC_MEM_FLARG);
 void
 ISCMEMPOOLFUNC(put)(isc_mempool_t *, void * _ISC_MEM_FLARG);
 
-/*%<
- * See isc_mem_create2() above.
- */
-typedef isc_result_t
-(*isc_memcreatefunc_t)(size_t init_max_size, size_t target_size,
-		       isc_mem_t **ctxp, unsigned int flags);
-
-isc_result_t
-isc_mem_register(isc_memcreatefunc_t createfunc);
-/*%<
- * Register a new memory management implementation and add it to the list of
- * supported implementations.  This function must be called when a different
- * memory management library is used than the one contained in the ISC library.
- */
-
-isc_result_t
-isc__mem_register(void);
-/*%<
- * A short cut function that specifies the memory management module in the ISC
- * library for isc_mem_register().  An application that uses the ISC library
- * usually do not have to care about this function: it would call
- * isc_lib_register(), which internally calls this function.
- */
-
 void
 isc__mem_printactive(isc_mem_t *mctx, FILE *file);
 /*%<
