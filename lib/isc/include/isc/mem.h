@@ -181,44 +181,6 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
  * \endcode
  */
 
-/*% memory and memory pool methods */
-typedef struct isc_memmethods {
-	void (*attach)(isc_mem_t *source, isc_mem_t **targetp);
-	void (*detach)(isc_mem_t **mctxp);
-	void (*destroy)(isc_mem_t **mctxp);
-	void *(*memget)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
-	void (*memput)(isc_mem_t *mctx, void *ptr, size_t size _ISC_MEM_FLARG);
-	void (*memputanddetach)(isc_mem_t **mctxp, void *ptr,
-				size_t size _ISC_MEM_FLARG);
-	void *(*memallocate)(isc_mem_t *mctx, size_t size _ISC_MEM_FLARG);
-	void *(*memreallocate)(isc_mem_t *mctx, void *ptr,
-			       size_t size _ISC_MEM_FLARG);
-	char *(*memstrdup)(isc_mem_t *mctx, const char *s _ISC_MEM_FLARG);
-	void (*memfree)(isc_mem_t *mctx, void *ptr _ISC_MEM_FLARG);
-	void (*setdestroycheck)(isc_mem_t *mctx, bool flag);
-	void (*setwater)(isc_mem_t *ctx, isc_mem_water_t water,
-			 void *water_arg, size_t hiwater, size_t lowater);
-	void (*waterack)(isc_mem_t *ctx, int flag);
-	size_t (*inuse)(isc_mem_t *mctx);
-	size_t (*maxinuse)(isc_mem_t *mctx);
-	size_t (*total)(isc_mem_t *mctx);
-	bool (*isovermem)(isc_mem_t *mctx);
-	isc_result_t (*mpcreate)(isc_mem_t *mctx, size_t size,
-				 isc_mempool_t **mpctxp);
-} isc_memmethods_t;
-
-typedef struct isc_mempoolmethods {
-	void (*destroy)(isc_mempool_t **mpctxp);
-	void *(*get)(isc_mempool_t *mpctx _ISC_MEM_FLARG);
-	void (*put)(isc_mempool_t *mpctx, void *mem _ISC_MEM_FLARG);
-	unsigned int (*getallocated)(isc_mempool_t *mpctx);
-	void (*setmaxalloc)(isc_mempool_t *mpctx, unsigned int limit);
-	void (*setfreemax)(isc_mempool_t *mpctx, unsigned int limit);
-	void (*setname)(isc_mempool_t *mpctx, const char *name);
-	void (*associatelock)(isc_mempool_t *mpctx, isc_mutex_t *lock);
-	void (*setfillcount)(isc_mempool_t *mpctx, unsigned int limit);
-} isc_mempoolmethods_t;
-
 /*%
  * This structure is actually just the common prefix of a memory context
  * implementation's version of an isc_mem_t.
@@ -231,7 +193,6 @@ typedef struct isc_mempoolmethods {
 struct isc_mem {
 	unsigned int		impmagic;
 	unsigned int		magic;
-	isc_memmethods_t	*methods;
 };
 
 #define ISCAPI_MCTX_MAGIC	ISC_MAGIC('A','m','c','x')
@@ -245,7 +206,6 @@ struct isc_mem {
 struct isc_mempool {
 	unsigned int		impmagic;
 	unsigned int		magic;
-	isc_mempoolmethods_t	*methods;
 };
 
 #define ISCAPI_MPOOL_MAGIC	ISC_MAGIC('A','m','p','l')
