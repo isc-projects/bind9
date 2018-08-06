@@ -333,60 +333,6 @@ typedef enum {
 #define ISC_SOCKFDWATCH_WRITE	0x00000002	/*%< watch for writable */
 /*@}*/
 
-/*% Socket and socket manager methods */
-typedef struct isc_socketmgrmethods {
-	void		(*destroy)(isc_socketmgr_t **managerp);
-	isc_result_t	(*socketcreate)(isc_socketmgr_t *manager, int pf,
-					isc_sockettype_t type,
-					isc_socket_t **socketp);
-	isc_result_t    (*fdwatchcreate)(isc_socketmgr_t *manager, int fd,
-					 int flags,
-					 isc_sockfdwatch_t callback,
-					 void *cbarg, isc_task_t *task,
-					 isc_socket_t **socketp);
-} isc_socketmgrmethods_t;
-
-typedef struct isc_socketmethods {
-	void		(*attach)(isc_socket_t *socket,
-				  isc_socket_t **socketp);
-	void		(*detach)(isc_socket_t **socketp);
-	isc_result_t	(*bind)(isc_socket_t *sock,
-				const isc_sockaddr_t *sockaddr,
-				isc_socket_options_t options);
-	isc_result_t	(*sendto)(isc_socket_t *sock, isc_region_t *region,
-				  isc_task_t *task, isc_taskaction_t action,
-				  void *arg,
-				  const isc_sockaddr_t *address,
-				  struct in6_pktinfo *pktinfo);
-	isc_result_t	(*sendto2)(isc_socket_t *sock, isc_region_t *region,
-				   isc_task_t *task,
-				   const isc_sockaddr_t *address,
-				   struct in6_pktinfo *pktinfo,
-				   isc_socketevent_t *event,
-				   unsigned int flags);
-	isc_result_t	(*connect)(isc_socket_t *sock,
-				   const isc_sockaddr_t *addr,
-				   isc_task_t *task, isc_taskaction_t action,
-				   void *arg);
-	isc_result_t	(*recv)(isc_socket_t *sock, isc_region_t *region,
-				unsigned int minimum, isc_task_t *task,
-				isc_taskaction_t action, void *arg);
-	isc_result_t	(*recv2)(isc_socket_t *sock, isc_region_t *region,
-				 unsigned int minimum, isc_task_t *task,
-				 isc_socketevent_t *event, unsigned int flags);
-	void		(*cancel)(isc_socket_t *sock, isc_task_t *task,
-				  unsigned int how);
-	isc_result_t	(*getsockname)(isc_socket_t *sock,
-				       isc_sockaddr_t *addressp);
-	isc_sockettype_t (*gettype)(isc_socket_t *sock);
-	void		(*ipv6only)(isc_socket_t *sock, bool yes);
-	isc_result_t    (*fdwatchpoke)(isc_socket_t *sock, int flags);
-	isc_result_t		(*dup)(isc_socket_t *socket,
-				  isc_socket_t **socketp);
-	int 		(*getfd)(isc_socket_t *socket);
-	void 		(*dscp)(isc_socket_t *socket, isc_dscp_t dscp);
-} isc_socketmethods_t;
-
 /*%
  * This structure is actually just the common prefix of a socket manager
  * object implementation's version of an isc_socketmgr_t.
@@ -404,7 +350,6 @@ typedef struct isc_socketmethods {
 struct isc_socketmgr {
 	unsigned int		impmagic;
 	unsigned int		magic;
-	isc_socketmgrmethods_t	*methods;
 };
 #endif
 
@@ -420,7 +365,6 @@ struct isc_socketmgr {
 struct isc_socket {
 	unsigned int		impmagic;
 	unsigned int		magic;
-	isc_socketmethods_t	*methods;
 };
 #endif
 
