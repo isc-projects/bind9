@@ -95,29 +95,6 @@ typedef isc_event_t isc_appevent_t;
 #define ISC_APPEVENT_LASTEVENT		(ISC_EVENTCLASS_APP + 65535)
 
 /*%
- * app module methods.  Only app driver implementations use this structure.
- * Other clients should use the top-level interfaces (i.e., isc_app_xxx
- * functions).  magic must be ISCAPI_APPMETHODS_MAGIC.
- */
-typedef struct isc_appmethods {
-	void		(*ctxdestroy)(isc_appctx_t **ctxp);
-	isc_result_t	(*ctxstart)(isc_appctx_t *ctx);
-	isc_result_t	(*ctxrun)(isc_appctx_t *ctx);
-	isc_result_t	(*ctxsuspend)(isc_appctx_t *ctx);
-	isc_result_t	(*ctxshutdown)(isc_appctx_t *ctx);
-	void		(*ctxfinish)(isc_appctx_t *ctx);
-	void		(*settaskmgr)(isc_appctx_t *ctx,
-				      isc_taskmgr_t *timermgr);
-	void		(*setsocketmgr)(isc_appctx_t *ctx,
-					isc_socketmgr_t *timermgr);
-	void		(*settimermgr)(isc_appctx_t *ctx,
-				       isc_timermgr_t *timermgr);
-	isc_result_t 	(*ctxonrun)(isc_appctx_t *ctx, isc_mem_t *mctx,
-				    isc_task_t *task, isc_taskaction_t action,
-				    void *arg);
-} isc_appmethods_t;
-
-/*%
  * This structure is actually just the common prefix of an application context
  * implementation's version of an isc_appctx_t.
  * \brief
@@ -129,7 +106,6 @@ typedef struct isc_appmethods {
 struct isc_appctx {
 	unsigned int		impmagic;
 	unsigned int		magic;
-	isc_appmethods_t	*methods;
 };
 
 #define ISCAPI_APPCTX_MAGIC		ISC_MAGIC('A','a','p','c')
