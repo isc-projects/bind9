@@ -606,47 +606,6 @@ isc_result_t
 isc__socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats);
 #endif
 
-static struct {
-	isc_socketmethods_t methods;
-
-	/*%
-	 * The following are defined just for avoiding unused static functions.
-	 */
-	void *recvv, *send, *sendv, *sendto2, *cleanunix, *permunix, *filter,
-	     *listen, *accept, *getpeername, *isbound;
-} socketmethods = {
-	{
-		isc__socket_attach,
-		isc__socket_detach,
-		isc__socket_bind,
-		isc__socket_sendto,
-		isc__socket_sendto2,
-		isc__socket_connect,
-		isc__socket_recv,
-		isc__socket_recv2,
-		isc__socket_cancel,
-		isc__socket_getsockname,
-		isc__socket_gettype,
-		isc__socket_ipv6only,
-		isc__socket_fdwatchpoke,
-		isc__socket_dup,
-		isc__socket_getfd,
-		isc__socket_dscp
-	},
-	(void *)isc__socket_recvv, (void *)isc__socket_send,
-	(void *)isc__socket_sendv, (void *)isc__socket_sendto2,
-	(void *)isc__socket_cleanunix, (void *)isc__socket_permunix,
-	(void *)isc__socket_filter, (void *)isc__socket_listen,
-	(void *)isc__socket_accept, (void *)isc__socket_getpeername,
-	(void *)isc__socket_isbound
-};
-
-static isc_socketmgrmethods_t socketmgrmethods = {
-	isc__socketmgr_destroy,
-	isc__socket_create,
-	isc__socket_fdwatchcreate
-};
-
 #define SELECT_POKE_SHUTDOWN		(-1)
 #define SELECT_POKE_NOTHING		(-2)
 #define SELECT_POKE_READ		(-3)
@@ -2892,7 +2851,6 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		return (result);
 	}
 
-	sock->common.methods = (isc_socketmethods_t *)&socketmethods;
 	sock->references = 1;
 	*socketp = (isc_socket_t *)sock;
 
@@ -3037,7 +2995,6 @@ isc__socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 	sock->fdwatchtask = task;
 	sock->statsindex = fdwatchstatsindex;
 
-	sock->common.methods = (isc_socketmethods_t *)&socketmethods;
 	sock->references = 1;
 	*socketp = (isc_socket_t *)sock;
 
@@ -4537,7 +4494,6 @@ isc__socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 #endif
 	manager->stats = NULL;
 
-	manager->common.methods = &socketmgrmethods;
 	manager->common.magic = ISCAPI_SOCKETMGR_MAGIC;
 	manager->common.impmagic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
