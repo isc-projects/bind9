@@ -48,6 +48,8 @@ dns_trust_totext(dns_trust_t trust) {
 	return (trustnames[trust]);
 }
 
+#define DNS_RDATASET_COUNT_UNDEFINED ISC_UINT32_MAX
+
 void
 dns_rdataset_init(dns_rdataset_t *rdataset) {
 
@@ -66,7 +68,7 @@ dns_rdataset_init(dns_rdataset_t *rdataset) {
 	rdataset->trust = 0;
 	rdataset->covers = 0;
 	rdataset->attributes = 0;
-	rdataset->count = ISC_UINT32_MAX;
+	rdataset->count = DNS_RDATASET_COUNT_UNDEFINED;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
@@ -95,7 +97,7 @@ dns_rdataset_invalidate(dns_rdataset_t *rdataset) {
 	rdataset->trust = 0;
 	rdataset->covers = 0;
 	rdataset->attributes = 0;
-	rdataset->count = ISC_UINT32_MAX;
+	rdataset->count = DNS_RDATASET_COUNT_UNDEFINED;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
@@ -122,7 +124,7 @@ dns_rdataset_disassociate(dns_rdataset_t *rdataset) {
 	rdataset->trust = 0;
 	rdataset->covers = 0;
 	rdataset->attributes = 0;
-	rdataset->count = ISC_UINT32_MAX;
+	rdataset->count = DNS_RDATASET_COUNT_UNDEFINED;
 	rdataset->private1 = NULL;
 	rdataset->private2 = NULL;
 	rdataset->private3 = NULL;
@@ -420,7 +422,9 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 			j = 0;
 		}
 
-		if (ISC_UNLIKELY(want_cyclic) && (rdataset->count < ISC_UINT32_MAX)) {
+		if (ISC_UNLIKELY(want_cyclic) &&
+		    (rdataset->count != DNS_RDATASET_COUNT_UNDEFINED))
+		{
 			j = rdataset->count % count;
 		} else { /* Otherwise, just start from beginning */
 			j = 0;
