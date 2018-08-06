@@ -150,6 +150,12 @@ struct isc__taskmgr {
 	isc__task_t			*excl;
 };
 
+void
+isc__taskmgr_pause(isc_taskmgr_t *manager0);
+void
+isc__taskmgr_resume(isc_taskmgr_t *manager0);
+
+
 #define DEFAULT_TASKMGR_QUANTUM		10
 #define DEFAULT_DEFAULT_QUANTUM		5
 #define FINISHED(m)			((m)->exiting && EMPTY((m)->tasks))
@@ -877,10 +883,6 @@ push_readyq(isc__taskmgr_t *manager, isc__task_t *task) {
 static void
 dispatch(isc__taskmgr_t *manager) {
 	isc__task_t *task;
-	unsigned int total_dispatch_count = 0;
-	isc__tasklist_t new_ready_tasks;
-	isc__tasklist_t new_priority_tasks;
-
 
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -934,8 +936,6 @@ dispatch(isc__taskmgr_t *manager) {
 	 * unlocks.  The while expression is always protected by the lock.
 	 */
 
-	ISC_LIST_INIT(new_ready_tasks);
-	ISC_LIST_INIT(new_priority_tasks);
 	LOCK(&manager->lock);
 
 	while (!FINISHED(manager)) {
@@ -1402,7 +1402,7 @@ isc_taskmgr_mode(isc_taskmgr_t *manager0) {
 }
 
 void
-isc_taskmgr_pause(isc_taskmgr_t *manager0) {
+isc__taskmgr_pause(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 	manager->pause_requested = ISC_TRUE;
 	LOCK(&manager->lock);
@@ -1413,7 +1413,7 @@ isc_taskmgr_pause(isc_taskmgr_t *manager0) {
 }
 
 void
-isc_taskmgr_resume(isc_taskmgr_t *manager0) {
+isc__taskmgr_resume(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 
 	LOCK(&manager->lock);
