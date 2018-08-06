@@ -295,294 +295,18 @@ delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
 }
 #endif /* ISC_MEM_TRACKLINES */
 
-static inline size_t
-rmsize(size_t size) {
-	/*
-	 * round down to ALIGNMENT_SIZE
-	 */
-	return (size & (~(ALIGNMENT_SIZE - 1)));
-}
-
-static inline size_t
-quantize(size_t size) {
-	/*!
-	 * Round up the result in order to get a size big
-	 * enough to satisfy the request and be aligned on ALIGNMENT_SIZE
-	 * byte boundaries.
-	 */
-
-	if (size == 0U)
-		return (ALIGNMENT_SIZE);
-	return ((size + ALIGNMENT_SIZE - 1) & (~(ALIGNMENT_SIZE - 1)));
-}
-
-static inline bool
-more_basic_blocks(isc__mem_t *ctx) {
-	void *tmp;
-	unsigned char *curr, *next;
-	unsigned char *first, *last;
-	unsigned char **table;
-	unsigned int table_size;
-	size_t increment;
-	int i;
-
-	/* Require: we hold the context lock. */
-
-	/*
-	 * Did we hit the quota for this context?
-	 */
-	increment = NUM_BASIC_BLOCKS * ctx->mem_target;
-	if (ctx->quota != 0U && ctx->total + increment > ctx->quota)
-		return (false);
-
-	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
-	if (ctx->basic_table_count == ctx->basic_table_size) {
-		table_size = ctx->basic_table_size + TABLE_INCREMENT;
-		table = (ctx->memalloc)(ctx->arg,
-					table_size * sizeof(unsigned char *));
-		if (table == NULL) {
-			ctx->memalloc_failures++;
-			return (false);
-		}
-		ctx->malloced += table_size * sizeof(unsigned char *);
-		if (ctx->malloced > ctx->maxmalloced)
-			ctx->maxmalloced = ctx->malloced;
-		if (ctx->basic_table_size != 0) {
-			memmove(table, ctx->basic_table,
-				ctx->basic_table_size *
-				  sizeof(unsigned char *));
-			(ctx->memfree)(ctx->arg, ctx->basic_table);
-			ctx->malloced -= ctx->basic_table_size *
-					 sizeof(unsigned char *);
-		}
-		ctx->basic_table = table;
-		ctx->basic_table_size = table_size;
-	}
-
-	tmp = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
-	if (tmp == NULL) {
-		ctx->memalloc_failures++;
-		return (false);
-	}
-	ctx->total += increment;
-	ctx->basic_table[ctx->basic_table_count] = tmp;
-	ctx->basic_table_count++;
-	ctx->malloced += NUM_BASIC_BLOCKS * ctx->mem_target;
-	if (ctx->malloced > ctx->maxmalloced)
-			ctx->maxmalloced = ctx->malloced;
-
-	curr = tmp;
-	next = curr + ctx->mem_target;
-	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
-		((element *)curr)->next = (element *)next;
-		curr = next;
-		next += ctx->mem_target;
-	}
-	/*
-	 * curr is now pointing at the last block in the
-	 * array.
-	 */
-	((element *)curr)->next = NULL;
-	first = tmp;
-	last = first + NUM_BASIC_BLOCKS * ctx->mem_target - 1;
-	if (first < ctx->lowest || ctx->lowest == NULL)
-		ctx->lowest = first;
-	if (last > ctx->highest)
-		ctx->highest = last;
-	ctx->basic_blocks = tmp;
-
-	return (true);
-}
-
-static inline bool
-more_frags(isc__mem_t *ctx, size_t new_size) {
-	int i, frags;
-	size_t total_size;
-	void *tmp;
-	unsigned char *curr, *next;
-
-	/*!
-	 * Try to get more fragments by chopping up a basic block.
-	 */
-
-	if (ctx->basic_blocks == NULL) {
-		if (!more_basic_blocks(ctx)) {
-			/*
-			 * We can't get more memory from the OS, or we've
-			 * hit the quota for this context.
-			 */
-			/*
-			 * XXXRTH  "At quota" notification here.
-			 */
-			return (false);
-		}
-	}
-
-	total_size = ctx->mem_target;
-	tmp = ctx->basic_blocks;
-	ctx->basic_blocks = ctx->basic_blocks->next;
-	frags = (int)(total_size / new_size);
-	ctx->stats[new_size].blocks++;
-	ctx->stats[new_size].freefrags += frags;
-	/*
-	 * Set up a linked-list of blocks of size
-	 * "new_size".
-	 */
-	curr = tmp;
-	next = curr + new_size;
-	total_size -= new_size;
-	for (i = 0; i < (frags - 1); i++) {
-		((element *)curr)->next = (element *)next;
-		curr = next;
-		next += new_size;
-		total_size -= new_size;
-	}
-	/*
-	 * Add the remaining fragment of the basic block to a free list.
-	 */
-	total_size = rmsize(total_size);
-	if (total_size > 0U) {
-		((element *)next)->next = ctx->freelists[total_size];
-		ctx->freelists[total_size] = (element *)next;
-		ctx->stats[total_size].freefrags++;
-	}
-	/*
-	 * curr is now pointing at the last block in the
-	 * array.
-	 */
-	((element *)curr)->next = NULL;
-	ctx->freelists[new_size] = tmp;
-
-	return (true);
-}
-
 static inline void *
 mem_getunlocked(isc__mem_t *ctx, size_t size) {
-	size_t new_size = quantize(size);
-	void *ret;
-
-	if (new_size >= ctx->max_size) {
-		/*
-		 * memget() was called on something beyond our upper limit.
-		 */
-		if (ctx->quota != 0U && ctx->total + size > ctx->quota) {
-			ret = NULL;
-			goto done;
-		}
-		ret = (ctx->memalloc)(ctx->arg, size);
-		if (ret == NULL) {
-			ctx->memalloc_failures++;
-			goto done;
-		}
-		ctx->total += size;
-		ctx->inuse += size;
-		ctx->stats[ctx->max_size].gets++;
-		ctx->stats[ctx->max_size].totalgets++;
-		ctx->malloced += size;
-		if (ctx->malloced > ctx->maxmalloced)
-			ctx->maxmalloced = ctx->malloced;
-		/*
-		 * If we don't set new_size to size, then the
-		 * ISC_MEMFLAG_FILL code might write over bytes we don't
-		 * own.
-		 */
-		new_size = size;
-		goto done;
-	}
-	/*
-	 * If there are no blocks in the free list for this size, get a chunk
-	 * of memory and then break it up into "new_size"-sized blocks, adding
-	 * them to the free list.
-	 */
-	if (ctx->freelists[new_size] == NULL && !more_frags(ctx, new_size))
-		return (NULL);
-
-	/*
-	 * The free list uses the "rounded-up" size "new_size".
-	 */
-
-	ret = ctx->freelists[new_size];
-	ctx->freelists[new_size] = ctx->freelists[new_size]->next;
-
-
-	/*
-	 * The stats[] uses the _actual_ "size" requested by the
-	 * caller, with the caveat (in the code above) that "size" >= the
-	 * max. size (max_size) ends up getting recorded as a call to
-	 * max_size.
-	 */
-	ctx->stats[size].gets++;
-	ctx->stats[size].totalgets++;
-	ctx->stats[new_size].freefrags--;
-	ctx->inuse += new_size;
-
- done:
-	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0) &&
-	    ISC_LIKELY(ret != NULL))
-		memset(ret, 0xbe, new_size); /* Mnemonic for "beef". */
-
-	return (ret);
+	UNUSED(ctx);
+	return (malloc(size));
 }
-
-#if ISC_MEM_CHECKOVERRUN
-static inline void
-check_overrun(void *mem, size_t size, size_t new_size) {
-	unsigned char *cp;
-
-	cp = (unsigned char *)mem;
-	cp += size;
-	while (size < new_size) {
-		INSIST(*cp == 0xbe);
-		cp++;
-		size++;
-	}
-}
-#endif
 
 /* coverity[+free : arg-1] */
 static inline void
 mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
-	size_t new_size = quantize(size);
-
-	if (new_size >= ctx->max_size) {
-		/*
-		 * memput() called on something beyond our upper limit.
-		 */
-		if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0))
-			memset(mem, 0xde, size); /* Mnemonic for "dead". */
-
-		(ctx->memfree)(ctx->arg, mem);
-		INSIST(ctx->stats[ctx->max_size].gets != 0U);
-		ctx->stats[ctx->max_size].gets--;
-		INSIST(size <= ctx->inuse);
-		ctx->inuse -= size;
-		ctx->malloced -= size;
-		return;
-	}
-
-	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
-#if ISC_MEM_CHECKOVERRUN
-		check_overrun(mem, size, new_size);
-#endif
-		memset(mem, 0xde, new_size); /* Mnemonic for "dead". */
-	}
-
-	/*
-	 * The free list uses the "rounded-up" size "new_size".
-	 */
-	((element *)mem)->next = ctx->freelists[new_size];
-	ctx->freelists[new_size] = (element *)mem;
-
-	/*
-	 * The stats[] uses the _actual_ "size" requested by the
-	 * caller, with the caveat (in the code above) that "size" >= the
-	 * max. size (max_size) ends up getting recorded as a call to
-	 * max_size.
-	 */
-	INSIST(ctx->stats[size].gets != 0U);
-	ctx->stats[size].gets--;
-	ctx->stats[new_size].freefrags++;
-	ctx->inuse -= new_size;
+	UNUSED(ctx);
+	UNUSED(size);
+	free(mem);
 }
 
 /*!
@@ -967,39 +691,12 @@ isc_mem_detach(isc_mem_t **ctxp) {
 
 void
 isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
-	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
-	REQUIRE(ptr != NULL);
-	isc__mem_t *ctx = (isc__mem_t *)*ctxp;
-	*ctxp = NULL;
+	UNUSED(file);
+	UNUSED(line);
+	isc__mem_t *ctx = (isc__mem_t*) *ctxp;
+	*ctxp  = NULL;
+	mem_putunlocked(ctx, ptr, size);
 
-	if (ISC_UNLIKELY((isc_mem_debugging &
-			  (ISC_MEM_DEBUGSIZE|ISC_MEM_DEBUGCTX)) != 0))
-	{
-		if ((isc_mem_debugging & ISC_MEM_DEBUGSIZE) != 0) {
-			size_info *si = &(((size_info *)ptr)[-1]);
-			size_t oldsize = si->u.size - ALIGNMENT_SIZE;
-			if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)
-				oldsize -= ALIGNMENT_SIZE;
-			INSIST(oldsize == size);
-		}
-		isc__mem_free((isc_mem_t *)ctx, ptr FLARG_PASS);
-
-		goto destroy;
-	}
-
-	MCTXLOCK(ctx, &ctx->lock);
-
-	DELETE_TRACE(ctx, ptr, size, file, line);
-
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		mem_putunlocked(ctx, ptr, size);
-	} else {
-		mem_putstats(ctx, ptr, size);
-		mem_put(ctx, ptr, size);
-	}
-	MCTXUNLOCK(ctx, &ctx->lock);
-
-destroy:
 	if (isc_refcount_decrement(&ctx->references) == 1) {
 		isc_refcount_destroy(&ctx->references);
 		destroy(ctx);
@@ -1034,98 +731,19 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 
 void *
 isc__mem_get(isc_mem_t *ctx0, size_t size FLARG) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	void *ptr;
-	bool call_water = false;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	if (ISC_UNLIKELY((isc_mem_debugging &
-			  (ISC_MEM_DEBUGSIZE|ISC_MEM_DEBUGCTX)) != 0))
-		return (isc__mem_allocate(ctx0, size FLARG_PASS));
-
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		MCTXLOCK(ctx, &ctx->lock);
-		ptr = mem_getunlocked(ctx, size);
-	} else {
-		ptr = mem_get(ctx, size);
-		MCTXLOCK(ctx, &ctx->lock);
-		if (ptr != NULL)
-			mem_getstats(ctx, size);
-	}
-
-	ADD_TRACE(ctx, ptr, size, file, line);
-
-	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water) {
-		ctx->is_overmem = true;
-		if (!ctx->hi_called)
-			call_water = true;
-	}
-	if (ctx->inuse > ctx->maxinuse) {
-		ctx->maxinuse = ctx->inuse;
-		if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
-		    (isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0)
-			fprintf(stderr, "maxinuse = %lu\n",
-				(unsigned long)ctx->inuse);
-	}
-	MCTXUNLOCK(ctx, &ctx->lock);
-
-	if (call_water && (ctx->water != NULL))
-		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
-
-	return (ptr);
+	UNUSED(ctx0);
+	UNUSED(file);
+	UNUSED(line);
+	return (malloc(size));
 }
 
 void
 isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	bool call_water = false;
-	size_info *si;
-	size_t oldsize;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(ptr != NULL);
-
-	if (ISC_UNLIKELY((isc_mem_debugging &
-			  (ISC_MEM_DEBUGSIZE|ISC_MEM_DEBUGCTX)) != 0))
-	{
-		if ((isc_mem_debugging & ISC_MEM_DEBUGSIZE) != 0) {
-			si = &(((size_info *)ptr)[-1]);
-			oldsize = si->u.size - ALIGNMENT_SIZE;
-			if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)
-				oldsize -= ALIGNMENT_SIZE;
-			INSIST(oldsize == size);
-		}
-		isc__mem_free((isc_mem_t *)ctx, ptr FLARG_PASS);
-		return;
-	}
-
-	MCTXLOCK(ctx, &ctx->lock);
-
-	DELETE_TRACE(ctx, ptr, size, file, line);
-
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		mem_putunlocked(ctx, ptr, size);
-	} else {
-		mem_putstats(ctx, ptr, size);
-		mem_put(ctx, ptr, size);
-	}
-
-	/*
-	 * The check against ctx->lo_water == 0 is for the condition
-	 * when the context was pushed over hi_water but then had
-	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
-	 */
-	if ((ctx->inuse < ctx->lo_water) || (ctx->lo_water == 0U)) {
-		ctx->is_overmem = false;
-		if (ctx->hi_called)
-			call_water = true;
-	}
-
-	MCTXUNLOCK(ctx, &ctx->lock);
-
-	if (call_water && (ctx->water != NULL))
-		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
+	UNUSED(ctx0);
+	UNUSED(size);
+	UNUSED(file);
+	UNUSED(line);
+	free(ptr);
 }
 
 void
@@ -1261,167 +879,28 @@ isc_mem_stats(isc_mem_t *ctx0, FILE *out) {
 	MCTXUNLOCK(ctx, &ctx->lock);
 }
 
-/*
- * Replacements for malloc() and free() -- they implicitly remember the
- * size of the object allocated (with some additional overhead).
- */
-
-static void *
-mem_allocateunlocked(isc_mem_t *ctx0, size_t size) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	size_info *si;
-
-	size += ALIGNMENT_SIZE;
-	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0))
-		size += ALIGNMENT_SIZE;
-
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0)
-		si = mem_getunlocked(ctx, size);
-	else
-		si = mem_get(ctx, size);
-
-	if (si == NULL)
-		return (NULL);
-	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)) {
-		si->u.ctx = ctx;
-		si++;
-	}
-	si->u.size = size;
-	return (&si[1]);
-}
-
 void *
 isc__mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	size_info *si;
-	bool call_water = false;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	MCTXLOCK(ctx, &ctx->lock);
-	si = mem_allocateunlocked((isc_mem_t *)ctx, size);
-	if (((ctx->flags & ISC_MEMFLAG_INTERNAL) == 0) && (si != NULL))
-		mem_getstats(ctx, si[-1].u.size);
-
-	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
-	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
-	    !ctx->is_overmem) {
-		ctx->is_overmem = true;
-	}
-
-	if (ctx->hi_water != 0U && !ctx->hi_called &&
-	    ctx->inuse > ctx->hi_water) {
-		ctx->hi_called = true;
-		call_water = true;
-	}
-	if (ctx->inuse > ctx->maxinuse) {
-		ctx->maxinuse = ctx->inuse;
-		if (ISC_UNLIKELY(ctx->hi_water != 0U &&
-				 ctx->inuse > ctx->hi_water &&
-				 (isc_mem_debugging & ISC_MEM_DEBUGUSAGE) != 0))
-			fprintf(stderr, "maxinuse = %lu\n",
-				(unsigned long)ctx->inuse);
-	}
-	MCTXUNLOCK(ctx, &ctx->lock);
-
-	if (call_water)
-		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
-
-	return (si);
+	UNUSED(ctx0);
+	UNUSED(file);
+	UNUSED(line);
+	return (malloc(size));
 }
 
 void *
 isc__mem_reallocate(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	void *new_ptr = NULL;
-	size_t oldsize, copysize;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-
-	/*
-	 * This function emulates the realloc(3) standard library function:
-	 * - if size > 0, allocate new memory; and if ptr is non NULL, copy
-	 *   as much of the old contents to the new buffer and free the old one.
-	 *   Note that when allocation fails the original pointer is intact;
-	 *   the caller must free it.
-	 * - if size is 0 and ptr is non NULL, simply free the given ptr.
-	 * - this function returns:
-	 *     pointer to the newly allocated memory, or
-	 *     NULL if allocation fails or doesn't happen.
-	 */
-	if (size > 0U) {
-		new_ptr = isc__mem_allocate(ctx0, size FLARG_PASS);
-		if (new_ptr != NULL && ptr != NULL) {
-			oldsize = (((size_info *)ptr)[-1]).u.size;
-			INSIST(oldsize >= ALIGNMENT_SIZE);
-			oldsize -= ALIGNMENT_SIZE;
-			if (ISC_UNLIKELY((isc_mem_debugging &
-					  ISC_MEM_DEBUGCTX) != 0))
-			{
-				INSIST(oldsize >= ALIGNMENT_SIZE);
-				oldsize -= ALIGNMENT_SIZE;
-			}
-			copysize = (oldsize > size) ? size : oldsize;
-			memmove(new_ptr, ptr, copysize);
-			isc__mem_free(ctx0, ptr FLARG_PASS);
-		}
-	} else if (ptr != NULL)
-		isc__mem_free(ctx0, ptr FLARG_PASS);
-
-	return (new_ptr);
+	UNUSED(ctx0);
+	UNUSED(file);
+	UNUSED(line);
+	return (realloc(ptr, size));
 }
 
 void
 isc__mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	size_info *si;
-	size_t size;
-	bool call_water= false;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(ptr != NULL);
-
-	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)) {
-		si = &(((size_info *)ptr)[-2]);
-		REQUIRE(si->u.ctx == ctx);
-		size = si[1].u.size;
-	} else {
-		si = &(((size_info *)ptr)[-1]);
-		size = si->u.size;
-	}
-
-	MCTXLOCK(ctx, &ctx->lock);
-
-	DELETE_TRACE(ctx, ptr, size, file, line);
-
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		mem_putunlocked(ctx, si, size);
-	} else {
-		mem_putstats(ctx, si, size);
-		mem_put(ctx, si, size);
-	}
-
-	/*
-	 * The check against ctx->lo_water == 0 is for the condition
-	 * when the context was pushed over hi_water but then had
-	 * isc_mem_setwater() called with 0 for hi_water and lo_water.
-	 */
-	if (ctx->is_overmem &&
-	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
-		ctx->is_overmem = false;
-	}
-
-	if (ctx->hi_called &&
-	    (ctx->inuse < ctx->lo_water || ctx->lo_water == 0U)) {
-		ctx->hi_called = false;
-
-		if (ctx->water != NULL)
-			call_water = true;
-	}
-	MCTXUNLOCK(ctx, &ctx->lock);
-
-	if (call_water)
-		(ctx->water)(ctx->water_arg, ISC_MEM_LOWATER);
+	UNUSED(ctx0);
+	UNUSED(file);
+	UNUSED(line);
+	free(ptr);
 }
 
 
@@ -1431,21 +910,10 @@ isc__mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
 
 char *
 isc__mem_strdup(isc_mem_t *mctx0, const char *s FLARG) {
-	isc__mem_t *mctx = (isc__mem_t *)mctx0;
-	size_t len;
-	char *ns;
-
-	REQUIRE(VALID_CONTEXT(mctx));
-	REQUIRE(s != NULL);
-
-	len = strlen(s) + 1;
-
-	ns = isc__mem_allocate((isc_mem_t *)mctx, len FLARG_PASS);
-
-	if (ns != NULL)
-		strlcpy(ns, s, len);
-
-	return (ns);
+	UNUSED(mctx0);
+	UNUSED(file);
+	UNUSED(line);
+	return (strdup(s));
 }
 
 void
