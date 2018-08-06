@@ -63,12 +63,10 @@ installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${bindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
-install-man1: delv.1
-	${INSTALL_DATA} $^ ${DESTDIR}${mandir}/man1
-
-install:: delv@EXEEXT@ installdirs install-man1
+install:: delv@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
 		delv@EXEEXT@ ${DESTDIR}${bindir}
+	${INSTALL_DATA} ${srcdir}/delv.1 ${DESTDIR}${mandir}/man1
 
 uninstall::
 	rm -f ${DESTDIR}${mandir}/man1/delv.1
