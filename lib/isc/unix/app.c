@@ -50,7 +50,7 @@
  * as an event loop dispatching various events.
  */
 static pthread_t		blockedthread;
-static isc_boolean_t		is_running;
+static bool			is_running;
 
 /*
  * The application context of this module.  This implementation actually
@@ -493,13 +493,13 @@ isc_app_ctxrun(isc_appctx_t *ctx0) {
 isc_result_t
 isc_app_run(void) {
 	isc_result_t result;
-	is_running = ISC_TRUE;
+	is_running = true;
 	result = isc_app_ctxrun((isc_appctx_t *)&isc_g_appctx);
-	is_running = ISC_FALSE;
+	is_running = false;
 	return result;
 }
 
-isc_boolean_t
+bool
 isc_app_isrunning() {
         return (is_running);
 }
@@ -601,6 +601,7 @@ isc_app_ctxsuspend(isc_appctx_t *ctx0) {
 			ctx->want_reload = true;
 		else {
 			ctx->want_reload = true;
+#ifdef HAVE_LINUXTHREADS
 			if (isc_bind9) {
 				/* BIND9 internal, single context */
 				int result;
