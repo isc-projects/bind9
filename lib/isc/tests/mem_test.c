@@ -288,7 +288,7 @@ ATF_TC_BODY(isc_mem_noflags, tc) {
 	isc_mem_debugging = 0;
 	ptr = isc_mem_get(mctx2, 2048);
 	ATF_CHECK(ptr != NULL);
-	isc__mem_printactive(mctx2, f);
+	isc_mem_printactive(mctx2, f);
 	isc_mem_put(mctx2, ptr, 2048);
 	isc_mem_destroy(&mctx2);
 	isc_stdio_close(f);
@@ -339,7 +339,7 @@ ATF_TC_BODY(isc_mem_recordflag, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ptr = isc_mem_get(mctx2, 2048);
 	ATF_CHECK(ptr != NULL);
-	isc__mem_printactive(mctx2, f);
+	isc_mem_printactive(mctx2, f);
 	isc_mem_put(mctx2, ptr, 2048);
 	isc_mem_destroy(&mctx2);
 	isc_stdio_close(f);
@@ -390,7 +390,7 @@ ATF_TC_BODY(isc_mem_traceflag, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ptr = isc_mem_get(mctx2, 2048);
 	ATF_CHECK(ptr != NULL);
-	isc__mem_printactive(mctx2, f);
+	isc_mem_printactive(mctx2, f);
 	isc_mem_put(mctx2, ptr, 2048);
 	isc_mem_destroy(&mctx2);
 	isc_stdio_close(f);
