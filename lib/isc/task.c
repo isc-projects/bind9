@@ -236,49 +236,6 @@ pop_readyq(isc__taskmgr_t *manager);
 static inline void
 push_readyq(isc__taskmgr_t *manager, isc__task_t *task);
 
-static struct isc__taskmethods {
-	isc_taskmethods_t methods;
-
-	/*%
-	 * The following are defined just for avoiding unused static functions.
-	 */
-	void *purgeevent, *unsendrange, *getname, *gettag,
-	     *getcurrenttime, *getcurrenttimex;
-} taskmethods = {
-	{
-		isc__task_attach,
-		isc__task_detach,
-		isc__task_destroy,
-		isc__task_send,
-		isc__task_sendanddetach,
-		isc__task_unsend,
-		isc__task_onshutdown,
-		isc__task_shutdown,
-		isc__task_setname,
-		isc__task_purge,
-		isc__task_purgerange,
-		isc__task_beginexclusive,
-		isc__task_endexclusive,
-		isc__task_setprivilege,
-		isc__task_privilege
-	},
-	(void *)isc_task_purgeevent,
-	(void *)isc__task_unsendrange,
-	(void *)isc__task_getname,
-	(void *)isc__task_gettag,
-	(void *)isc__task_getcurrenttime,
-	(void *)isc__task_getcurrenttimex
-};
-
-static isc_taskmgrmethods_t taskmgrmethods = {
-	isc__taskmgr_destroy,
-	isc__taskmgr_setmode,
-	isc__taskmgr_mode,
-	isc__task_create,
-	isc_taskmgr_setexcltask,
-	isc_taskmgr_excltask
-};
-
 /***
  *** Tasks.
  ***/
@@ -367,7 +324,6 @@ isc__task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 		return (ISC_R_SHUTTINGDOWN);
 	}
 
-	task->common.methods = (isc_taskmethods_t *)&taskmethods;
 	task->common.magic = ISCAPI_TASK_MAGIC;
 	task->common.impmagic = TASK_MAGIC;
 	*taskp = (isc_task_t *)task;
@@ -1299,7 +1255,6 @@ isc__taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	manager = isc_mem_get(mctx, sizeof(*manager));
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
-	manager->common.methods = &taskmgrmethods;
 	manager->common.impmagic = TASK_MANAGER_MAGIC;
 	manager->common.magic = ISCAPI_TASKMGR_MAGIC;
 	manager->mode = isc_taskmgrmode_normal;
@@ -1633,11 +1588,6 @@ isc__task_privilege(isc_task_t *task0) {
 	return (priv);
 }
 
-isc_result_t
-isc__task_register(void) {
-	return (isc_task_register(isc__taskmgr_create));
-}
-
 bool
 isc_task_exiting(isc_task_t *t) {
 	isc__task_t *task = (isc__task_t *)t;
@@ -1843,31 +1793,6 @@ isc_taskmgr_renderjson(isc_taskmgr_t *mgr0, json_object *tasks) {
 #endif
 
 
-static isc_mutex_t createlock;
-static isc_once_t once = ISC_ONCE_INIT;
-static isc_taskmgrcreatefunc_t taskmgr_createfunc = NULL;
-
-static void
-initialize(void) {
-	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
-}
-
-isc_result_t
-isc_task_register(isc_taskmgrcreatefunc_t createfunc) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
-
-	LOCK(&createlock);
-	if (taskmgr_createfunc == NULL)
-		taskmgr_createfunc = createfunc;
-	else
-		result = ISC_R_EXISTS;
-	UNLOCK(&createlock);
-
-	return (result);
-}
-
 isc_result_t
 isc_taskmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 			unsigned int workers, unsigned int default_quantum,
@@ -1875,13 +1800,8 @@ isc_taskmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 {
 	isc_result_t result;
 
-	LOCK(&createlock);
-
-	REQUIRE(taskmgr_createfunc != NULL);
-	result = (*taskmgr_createfunc)(mctx, workers, default_quantum,
+	result = isc__taskmgr_create(mctx, workers, default_quantum,
 				       managerp);
-
-	UNLOCK(&createlock);
 
 	if (result == ISC_R_SUCCESS)
 		isc_appctx_settaskmgr(actx, *managerp);

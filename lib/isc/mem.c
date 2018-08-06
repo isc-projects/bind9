@@ -110,7 +110,6 @@ static ISC_LIST(isc__mem_t)	contexts;
 
 static isc_once_t		once = ISC_ONCE_INIT;
 static isc_mutex_t		contextslock;
-static isc_mutex_t 		createlock;
 
 /*%
  * Total size of lost memory due to a bug of external library.
@@ -787,7 +786,6 @@ default_memfree(void *arg, void *ptr) {
 
 static void
 initialize_action(void) {
-	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_mutex_init(&contextslock) == ISC_R_SUCCESS);
 	ISC_LIST_INIT(contexts);
 	totallost = 0;
@@ -2165,11 +2163,6 @@ isc_mempool_getfillcount(isc_mempool_t *mpctx0) {
 	return (fillcount);
 }
 
-isc_result_t
-isc__mem_register(void) {
-	return (isc_mem_register(isc_mem_create2));
-}
-
 void
 isc__mem_printactive(isc_mem_t *ctx0, FILE *file) {
 #if ISC_MEM_TRACKLINES
@@ -2616,39 +2609,11 @@ isc_mem_renderjson(json_object *memobj) {
 }
 #endif /* HAVE_JSON */
 
-static isc_memcreatefunc_t mem_createfunc = NULL;
-
-isc_result_t
-isc_mem_register(isc_memcreatefunc_t createfunc) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
-
-	LOCK(&createlock);
-	if (mem_createfunc == NULL)
-		mem_createfunc = createfunc;
-	else
-		result = ISC_R_EXISTS;
-	UNLOCK(&createlock);
-
-	return (result);
-}
-
-
 isc_result_t
 isc__mem_create2(size_t init_max_size, size_t target_size, isc_mem_t **mctxp,
 		 unsigned int flags)
 {
-	isc_result_t result;
-
-	LOCK(&createlock);
-
-	REQUIRE(mem_createfunc != NULL);
-	result = (*mem_createfunc)(init_max_size, target_size, mctxp, flags);
-
-	UNLOCK(&createlock);
-
-	return (result);
+	return (isc_mem_create2(init_max_size, target_size, mctxp, flags));
 }
 
 isc_result_t
