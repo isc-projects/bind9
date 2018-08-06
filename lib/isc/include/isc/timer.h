@@ -99,29 +99,6 @@ typedef struct isc_timerevent {
 #define ISC_TIMEREVENT_LIFE		(ISC_EVENTCLASS_TIMER + 3)
 #define ISC_TIMEREVENT_LASTEVENT	(ISC_EVENTCLASS_TIMER + 65535)
 
-/*% Timer and timer manager methods */
-typedef struct {
-	void		(*destroy)(isc_timermgr_t **managerp);
-	isc_result_t	(*timercreate)(isc_timermgr_t *manager,
-				       isc_timertype_t type,
-				       const isc_time_t *expires,
-				       const isc_interval_t *interval,
-				       isc_task_t *task,
-				       isc_taskaction_t action,
-				       void *arg,
-				       isc_timer_t **timerp);
-} isc_timermgrmethods_t;
-
-typedef struct {
-	void		(*attach)(isc_timer_t *timer, isc_timer_t **timerp);
-	void		(*detach)(isc_timer_t **timerp);
-	isc_result_t	(*reset)(isc_timer_t *timer, isc_timertype_t type,
-				 const isc_time_t *expires,
-				 const isc_interval_t *interval,
-				 bool purge);
-	isc_result_t	(*touch)(isc_timer_t *timer);
-} isc_timermethods_t;
-
 /*%
  * This structure is actually just the common prefix of a timer manager
  * object implementation's version of an isc_timermgr_t.
@@ -134,7 +111,6 @@ typedef struct {
 struct isc_timermgr {
 	unsigned int		impmagic;
 	unsigned int		magic;
-	isc_timermgrmethods_t	*methods;
 };
 
 #define ISCAPI_TIMERMGR_MAGIC		ISC_MAGIC('A','t','m','g')
@@ -148,7 +124,6 @@ struct isc_timermgr {
 struct isc_timer {
 	unsigned int		impmagic;
 	unsigned int		magic;
-	isc_timermethods_t	*methods;
 };
 
 #define ISCAPI_TIMER_MAGIC	ISC_MAGIC('A','t','m','r')
