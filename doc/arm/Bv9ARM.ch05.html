@@ -6764,7 +6764,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   </td>
 <td>
                     <p>
-                      Records are returned in some random order.
+                      Records are returned in some random order. When no
+                      ordering is specified, this is the default.
                     </p>
                   </td>
 </tr>
@@ -6795,8 +6796,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                       Records are returned in whatever order they were
                       retrieved from the database.  This order is
                       indeterminate, but will be consistent as long as the
-                      database is not modified. When no ordering is
-                      specified, this is the default.
+                      database is not modified.
                     </p>
                   </td>
 </tr>
