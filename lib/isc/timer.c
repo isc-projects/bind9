@@ -900,47 +900,12 @@ isc__timermgr_destroy(isc_timermgr_t **managerp) {
 }
 
 isc_result_t
-isc__timer_register(void) {
-	return (isc_timer_register(isc__timermgr_create));
-}
-
-static isc_mutex_t createlock;
-static isc_once_t once = ISC_ONCE_INIT;
-static isc_timermgrcreatefunc_t timermgr_createfunc = NULL;
-
-static void
-initialize(void) {
-	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
-}
-
-isc_result_t
-isc_timer_register(isc_timermgrcreatefunc_t createfunc) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
-
-	LOCK(&createlock);
-	if (timermgr_createfunc == NULL)
-		timermgr_createfunc = createfunc;
-	else
-		result = ISC_R_EXISTS;
-	UNLOCK(&createlock);
-
-	return (result);
-}
-
-isc_result_t
 isc_timermgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 			 isc_timermgr_t **managerp)
 {
 	isc_result_t result;
 
-	LOCK(&createlock);
-
-	REQUIRE(timermgr_createfunc != NULL);
-	result = (*timermgr_createfunc)(mctx, managerp);
-
-	UNLOCK(&createlock);
+	result = isc__timermgr_create(mctx, managerp);
 
 	if (result == ISC_R_SUCCESS)
 		isc_appctx_settimermgr(actx, *managerp);
