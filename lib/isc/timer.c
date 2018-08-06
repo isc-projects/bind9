@@ -127,34 +127,6 @@ isc_timermgr_poke(isc_timermgr_t *manager0);
 void
 isc__timermgr_destroy(isc_timermgr_t **managerp);
 
-static struct isc__timermethods {
-	isc_timermethods_t methods;
-
-	/*%
-	 * The following are defined just for avoiding unused static functions.
-	 */
-	void *gettype;
-} timermethods = {
-	{
-		isc__timer_attach,
-		isc__timer_detach,
-		isc__timer_reset,
-		isc__timer_touch
-	},
-	(void *)isc_timer_gettype
-};
-
-static struct isc__timermgrmethods {
-	isc_timermgrmethods_t methods;
-	void *poke;		/* see above */
-} timermgrmethods = {
-	{
-		isc__timermgr_destroy,
-		isc__timer_create
-	},
-	(void *)isc_timermgr_poke
-};
-
 static inline isc_result_t
 schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok) {
 	isc_result_t result;
@@ -385,7 +357,6 @@ isc__timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 	ISC_LINK_INIT(timer, link);
 	timer->common.impmagic = TIMER_MAGIC;
 	timer->common.magic = ISCAPI_TIMER_MAGIC;
-	timer->common.methods = (isc_timermethods_t *)&timermethods;
 
 	LOCK(&manager->lock);
 
@@ -787,7 +758,6 @@ isc__timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 
 	manager->common.impmagic = TIMER_MANAGER_MAGIC;
 	manager->common.magic = ISCAPI_TIMERMGR_MAGIC;
-	manager->common.methods = (isc_timermgrmethods_t *)&timermgrmethods;
 	manager->mctx = NULL;
 	manager->done = false;
 	INIT_LIST(manager->timers);
@@ -947,29 +917,14 @@ isc_timermgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 
 isc_result_t
 isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
-	isc_result_t result;
-
-	if (isc_bind9)
-		return (isc__timermgr_create(mctx, managerp));
-
-	LOCK(&createlock);
-
-	REQUIRE(timermgr_createfunc != NULL);
-	result = (*timermgr_createfunc)(mctx, managerp);
-
-	UNLOCK(&createlock);
-
-	return (result);
+	return (isc__timermgr_create(mctx, managerp));
 }
 
 void
 isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	REQUIRE(*managerp != NULL && ISCAPI_TIMERMGR_VALID(*managerp));
 
-	if (isc_bind9)
-		isc__timermgr_destroy(managerp);
-	else
-		(*managerp)->methods->destroy(managerp);
+	isc__timermgr_destroy(managerp);
 
 	ENSURE(*managerp == NULL);
 }
@@ -982,13 +937,8 @@ isc_timer_create(isc_timermgr_t *manager, isc_timertype_t type,
 {
 	REQUIRE(ISCAPI_TIMERMGR_VALID(manager));
 
-	if (isc_bind9)
-		return (isc__timer_create(manager, type, expires, interval,
-					  task, action, arg, timerp));
-
-	return (manager->methods->timercreate(manager, type, expires,
-					      interval, task, action, arg,
-					      timerp));
+	return (isc__timer_create(manager, type, expires, interval,
+				  task, action, arg, timerp));
 }
 
 void
@@ -996,10 +946,7 @@ isc_timer_attach(isc_timer_t *timer, isc_timer_t **timerp) {
 	REQUIRE(ISCAPI_TIMER_VALID(timer));
 	REQUIRE(timerp != NULL && *timerp == NULL);
 
-	if (isc_bind9)
-		isc__timer_attach(timer, timerp);
-	else
-		timer->methods->attach(timer, timerp);
+	isc__timer_attach(timer, timerp);
 
 	ENSURE(*timerp == timer);
 }
@@ -1008,10 +955,7 @@ void
 isc_timer_detach(isc_timer_t **timerp) {
 	REQUIRE(timerp != NULL && ISCAPI_TIMER_VALID(*timerp));
 
-	if (isc_bind9)
-		isc__timer_detach(timerp);
-	else
-		(*timerp)->methods->detach(timerp);
+	isc__timer_detach(timerp);
 
 	ENSURE(*timerp == NULL);
 }
@@ -1023,19 +967,13 @@ isc_timer_reset(isc_timer_t *timer, isc_timertype_t type,
 {
 	REQUIRE(ISCAPI_TIMER_VALID(timer));
 
-	if (isc_bind9)
-		return (isc__timer_reset(timer, type, expires,
-					 interval, purge));
-
-	return (timer->methods->reset(timer, type, expires, interval, purge));
+	return (isc__timer_reset(timer, type, expires,
+				 interval, purge));
 }
 
 isc_result_t
 isc_timer_touch(isc_timer_t *timer) {
 	REQUIRE(ISCAPI_TIMER_VALID(timer));
 
-	if (isc_bind9)
-		return (isc__timer_touch(timer));
-
-	return (timer->methods->touch(timer));
+	return (isc__timer_touch(timer));
 }
