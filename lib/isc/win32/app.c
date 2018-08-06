@@ -40,7 +40,7 @@
  */
 
 static isc_thread_t	blockedthread;
-static isc_boolean_t	is_running;
+static bool	is_running;
 
 #define APPCTX_MAGIC		ISC_MAGIC('A', 'p', 'c', 'x')
 #define VALID_APPCTX(c)		ISC_MAGIC_VALID(c, APPCTX_MAGIC)
@@ -259,7 +259,7 @@ isc_app_run(void) {
 	return result;
 }
 
-isc_boolean_t
+bool
 isc_app_isrunning() {
         return (is_running);
 }
