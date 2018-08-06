@@ -79,5 +79,5 @@ isc_lib_initmsgcat(void) {
 
 void
 isc_lib_register(void) {
-	printf("ISC_LIB_REGISTER\n");
+	isc_bind9 = false;
 }

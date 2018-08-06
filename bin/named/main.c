@@ -831,7 +831,7 @@ create_managers(void) {
 				 isc_result_totext(result));
 		return (ISC_R_UNEXPECTED);
 	}
-	isc__socketmgr_maxudp(named_g_socketmgr, maxudp);
+	isc_socketmgr_maxudp(named_g_socketmgr, maxudp);
 	result = isc_socketmgr_getmaxsockets(named_g_socketmgr, &socks);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
