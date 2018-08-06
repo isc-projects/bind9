@@ -115,35 +115,6 @@ typedef struct isc__appctx {
 
 static isc__appctx_t isc_g_appctx;
 
-static struct {
-	isc_appmethods_t methods;
-
-	/*%
-	 * The following are defined just for avoiding unused static functions.
-	 */
-	void *run, *shutdown, *start, *reload, *finish, *block, *unblock;
-} appmethods = {
-	{
-		isc__appctx_destroy,
-		isc__app_ctxstart,
-		isc__app_ctxrun,
-		isc__app_ctxsuspend,
-		isc__app_ctxshutdown,
-		isc__app_ctxfinish,
-		isc__appctx_settaskmgr,
-		isc__appctx_setsocketmgr,
-		isc__appctx_settimermgr,
-		isc__app_ctxonrun
-	},
-	(void *)isc__app_run,
-	(void *)isc__app_shutdown,
-	(void *)isc__app_start,
-	(void *)isc__app_reload,
-	(void *)isc__app_finish,
-	(void *)isc__app_block,
-	(void *)isc__app_unblock
-};
-
 #ifndef HAVE_SIGWAIT
 static void
 exit_action(int arg) {
@@ -302,7 +273,6 @@ isc_result_t
 isc__app_start(void) {
 	isc_g_appctx.common.impmagic = APPCTX_MAGIC;
 	isc_g_appctx.common.magic = ISCAPI_APPCTX_MAGIC;
-	isc_g_appctx.common.methods = &appmethods.methods;
 	isc_g_appctx.mctx = NULL;
 	/* The remaining members will be initialized in ctxstart() */
 
@@ -674,7 +644,6 @@ isc__appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 
 	ctx->common.impmagic = APPCTX_MAGIC;
 	ctx->common.magic = ISCAPI_APPCTX_MAGIC;
-	ctx->common.methods = &appmethods.methods;
 
 	ctx->mctx = NULL;
 	isc_mem_attach(mctx, &ctx->mctx);
