@@ -15,7 +15,7 @@ variables:
   BUILD_PARALLEL_JOBS: 6
   TEST_PARALLEL_JOBS: 6
 
-  MAKE: make
+  MAKE_COMMAND: make
   CONFIGURE: ./configure
   CLANG: clang-9
   SCAN_BUILD: scan-build-9
@@ -207,7 +207,7 @@ stages:
     - test -n "${OOT_BUILD_WORKSPACE}" && mkdir "${OOT_BUILD_WORKSPACE}" && cd "${OOT_BUILD_WORKSPACE}"
   script:
     - *configure
-    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
+    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
     - test -z "${RUN_MAKE_INSTALL}" || sh util/check-make-install
   needs:
@@ -657,7 +657,7 @@ gcc:sid:amd64:
     CFLAGS: "${CFLAGS_COMMON} -O3"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
     RUN_MAKE_INSTALL: 1
-    MAKE: bear make
+    MAKE_COMMAND: bear --use-cc=${CC} --verbose make
   <<: *debian_sid_amd64_image
   <<: *build_job
 
@@ -1308,13 +1308,13 @@ respdiff:sid:amd64:
     BIND_BASELINE_VERSION: v9_11_3
   script:
     - ./configure --without-make-clean
-    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} V=1
     - *setup_interfaces
     - git clone --depth 1 https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.isc.org/isc-private/bind-qa.git
     - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
     - cd refbind/
     - ./configure --without-make-clean
-    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd ../bind-qa/bind9/respdiff
     - bash respdiff.sh -q "${PWD}/100k_mixed.txt" -c 3 -w "${PWD}/rspworkdir" "${CI_PROJECT_DIR}/refbind" "${CI_PROJECT_DIR}"
   needs:
@@ -1343,11 +1343,11 @@ abi-check:sid:amd64:
     BIND_BASELINE_VERSION: v9_16_1
   script:
     - *configure
-    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} V=1
     - git clone --branch "${BIND_BASELINE_VERSION}" --depth 1 https://gitlab.isc.org/isc-projects/bind9.git refbind
     - cd refbind/
     - *configure
-    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} V=1
+    - ${MAKE_COMMAND} -j${BUILD_PARALLEL_JOBS:-1} V=1
     - cd ..
     - util/api-checker.sh . refbind
   artifacts:
