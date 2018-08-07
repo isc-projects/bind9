@@ -13,7 +13,6 @@
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
 
-#include <config.h>
 #include <isc/platform.h>
 #include <isc/types.h>
 

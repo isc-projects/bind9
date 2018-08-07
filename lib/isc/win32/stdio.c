@@ -10,7 +10,6 @@
  */
 
 
-#include <config.h>
 
 #include <io.h>
 #include <errno.h>

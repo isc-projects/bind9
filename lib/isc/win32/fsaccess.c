@@ -20,7 +20,6 @@
  * NTFS file systems.  Nothing can be done for FAT file systems.
  */
 
-#include <config.h>
 
 #include <aclapi.h>
 

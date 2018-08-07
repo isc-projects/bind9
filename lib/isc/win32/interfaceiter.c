@@ -15,7 +15,6 @@
  * For now we just iterate through IPv4 interfaces.
  */
 
-#include <config.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <sys/types.h>

@@ -10,7 +10,6 @@
  */
 
 
-#include <config.h>
 
 #undef rename
 #include <errno.h>

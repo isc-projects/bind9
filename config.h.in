@@ -1,134 +1,4 @@
-/* config.h.in.  Generated from configure.in by autoheader.  */
-/*
- * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
- *
- * This Source Code Form is subject to the terms of the Mozilla Public
- * License, v. 2.0. If a copy of the MPL was not distributed with this
- * file, You can obtain one at http://mozilla.org/MPL/2.0/.
- *
- * See the COPYRIGHT file distributed with this work for additional
- * information regarding copyright ownership.
- */
-
-/*! \file */
-
-/***
- *** This file is not to be included by any public header files, because
- *** it does not get installed.
- ***/
-
-/** define on DEC OSF to enable 4.4BSD style sa_len support */
-#undef _SOCKADDR_LEN
-
-/** define if your system needs pthread_init() before using pthreads */
-#undef NEED_PTHREAD_INIT
-
-/** define if your system has sigwait() */
-#undef HAVE_SIGWAIT
-
-/** define if sigwait() is the UnixWare flavor */
-#undef HAVE_UNIXWARE_SIGWAIT
-
-/** define on Solaris to get sigwait() to work using pthreads semantics */
-#undef _POSIX_PTHREAD_SEMANTICS
-
-/** define if LinuxThreads is in use */
-#undef HAVE_LINUXTHREADS
-
-/** define if sysconf() is available */
-#undef HAVE_SYSCONF
-
-/** define if sysctlbyname() is available */
-#undef HAVE_SYSCTLBYNAME
-
-/** define if catgets() is available */
-#undef HAVE_CATGETS
-
-/** define if getifaddrs() exists */
-#undef HAVE_GETIFADDRS
-
-/** define if you have the NET_RT_IFLIST sysctl variable and sys/sysctl.h */
-#undef HAVE_IFLIST_SYSCTL
-
-/** define if tzset() is available */
-#undef HAVE_TZSET
-
-/** define if struct addrinfo exists */
-#undef HAVE_ADDRINFO
-
-/** define if getaddrinfo() exists */
-#undef HAVE_GETADDRINFO
-
-/** define if gai_strerror() exists */
-#undef HAVE_GAISTRERROR
-
-/**
- * define if pthread_setconcurrency() should be called to tell the
- * OS how many threads we might want to run.
- */
-#undef CALL_PTHREAD_SETCONCURRENCY
-
-/** define if IPv6 is not disabled */
-#undef WANT_IPV6
-
-/** define if flockfile() is available */
-#undef HAVE_FLOCKFILE
-
-/** define if getc_unlocked() is available */
-#undef HAVE_GETCUNLOCKED
-
-/** Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
-#undef SHUTUP_SPUTAUX
-#ifdef SHUTUP_SPUTAUX
-struct __sFILE;
-extern __inline int __sputaux(int _c, struct __sFILE *_p);
-#endif
-
-/** Shut up warnings about missing sigwait prototype on BSD/OS 4.0* */
-#undef SHUTUP_SIGWAIT
-#ifdef SHUTUP_SIGWAIT
-int sigwait(const unsigned int *set, int *sig);
-#endif
-
-/** Shut up warnings from gcc -Wcast-qual on BSD/OS 4.1. */
-#undef SHUTUP_STDARG_CAST
-#if defined(SHUTUP_STDARG_CAST) && defined(__GNUC__)
-#include <stdarg.h>		/** Grr.  Must be included *every time*. */
-/**
- * The silly continuation line is to keep configure from
- * commenting out the #undef.
- */
-
-#undef \
-	va_start
-#define	va_start(ap, last) \
-	do { \
-		union { const void *konst; long *var; } _u; \
-		_u.konst = &(last); \
-		ap = (va_list)(_u.var + __va_words(__typeof(last))); \
-	} while (0)
-#endif /** SHUTUP_STDARG_CAST && __GNUC__ */
-
-/** define if the system has a random number generating device */
-#undef PATH_RANDOMDEV
-
-/** define if pthread_attr_getstacksize() is available */
-#undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
-
-/** define if pthread_attr_setstacksize() is available */
-#undef HAVE_PTHREAD_ATTR_SETSTACKSIZE
-
-/** define if you have strerror in the C library. */
-#undef HAVE_STRERROR
-
-/* Define to the length type used by the socket API (socklen_t, size_t, int). */
-#undef ISC_SOCKADDR_LEN_T
-
-/* Define if threads need PTHREAD_SCOPE_SYSTEM */
-#undef NEED_PTHREAD_SCOPE_SYSTEM
-
-/* Define to 1 if you have the uname library function. */
-#undef HAVE_UNAME
+/* config.h.in.  Generated from configure.ac by autoheader.  */
 
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
@@ -176,6 +46,9 @@ int sigwait(const unsigned int *set, int *sig);
    MSVC and with C++ compilers. */
 #undef FLEXIBLE_ARRAY_MEMBER
 
+/* "define if we have struct addrinfo" */
+#undef HAVE_ADDRINFO
+
 /* Define to 1 if you have the `arc4random' function. */
 #undef HAVE_ARC4RANDOM
 
@@ -190,6 +63,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if the compiler supports __builtin_expect. */
 #undef HAVE_BUILTIN_EXPECT
+
+/* Define to 1 if you have the `catgets' function. */
+#undef HAVE_CATGETS
 
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
@@ -272,6 +148,12 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <fcntl.h> header file. */
 #undef HAVE_FCNTL_H
 
+/* Define to 1 if you have the `flockfile' function. */
+#undef HAVE_FLOCKFILE
+
+/* Define to 1 if you have the `gai_strerror' function. */
+#undef HAVE_GAI_STRERROR
+
 /* Build with GeoIP support */
 #undef HAVE_GEOIP
 
@@ -280,6 +162,15 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Build with GeoIP Country IPv6 support */
 #undef HAVE_GEOIP_V6
+
+/* Define to 1 if you have the `getaddrinfo' function. */
+#undef HAVE_GETADDRINFO
+
+/* Define to 1 if you have the `getc_unlocked' function. */
+#undef HAVE_GETC_UNLOCKED
+
+/* Define to 1 if you have the `getifaddrs' function. */
+#undef HAVE_GETIFADDRS
 
 /* Define to 1 if you have the `getpassphrase' function. */
 #undef HAVE_GETPASSPHRASE
@@ -304,6 +195,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the <idn2.h> header file. */
 #undef HAVE_IDN2_H
+
+/* "define if interface list sysctl is available" */
+#undef HAVE_IFLIST_SYSCTL
 
 /* Define to 1 if you have the if_nametoindex function. */
 #undef HAVE_IF_NAMETOINDEX
@@ -359,6 +253,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if libxml2 was found */
 #undef HAVE_LIBXML2
 
+/* "define if we are using LinuxThreads" */
+#undef HAVE_LINUXTHREADS
+
 /* Define to 1 if you have the <linux/netlink.h> header file. */
 #undef HAVE_LINUX_NETLINK_H
 
@@ -389,11 +286,20 @@ int sigwait(const unsigned int *set, int *sig);
 /* define if OpenSSL supports Ed25519 */
 #undef HAVE_OPENSSL_ED25519
 
+/* Define to 1 if you have the `pthread_attr_getstacksize' function. */
+#undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
+
+/* Define to 1 if you have the `pthread_attr_setstacksize' function. */
+#undef HAVE_PTHREAD_ATTR_SETSTACKSIZE
+
 /* Support for PTHREAD_MUTEX_ADAPTIVE_NP */
 #undef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 
 /* Define to 1 if you have the <pthread_np.h> header file. */
 #undef HAVE_PTHREAD_NP_H
+
+/* Define to 1 if you have the `pthread_setconcurrency' function. */
+#undef HAVE_PTHREAD_SETCONCURRENCY
 
 /* Define to 1 if you have the `pthread_setname_np' function. */
 #undef HAVE_PTHREAD_SETNAME_NP
@@ -443,17 +349,29 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `setresuid' function. */
 #undef HAVE_SETRESUID
 
+/* "define if sigwait() is available." */
+#undef HAVE_SIGWAIT
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #undef HAVE_STDLIB_H
 
+/* Define to 1 if you have the `strerror' function. */
+#undef HAVE_STRERROR
+
 /* Define to 1 if you have the <strings.h> header file. */
 #undef HAVE_STRINGS_H
 
 /* Define to 1 if you have the <string.h> header file. */
 #undef HAVE_STRING_H
+
+/* Define to 1 if you have the `sysconf' function. */
+#undef HAVE_SYSCONF
+
+/* Define to 1 if you have the `sysctlbyname' function. */
+#undef HAVE_SYSCTLBYNAME
 
 /* Define to 1 if you have the <sys/capability.h> header file. */
 #undef HAVE_SYS_CAPABILITY_H
@@ -509,8 +427,17 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if running under Compaq TruCluster */
 #undef HAVE_TRUCLUSTER
 
+/* Define to 1 if you have the `tzset' function. */
+#undef HAVE_TZSET
+
+/* "define if uname() is available." */
+#undef HAVE_UNAME
+
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
+
+/* "define if sigwait() has UnixWare semantics." */
+#undef HAVE_UNIXWARE_SIGWAIT
 
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
@@ -545,6 +472,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to allow building of objects for dlopen(). */
 #undef ISC_DLZ_DLOPEN
 
+/* "define sockaddr_len_t type" */
+#undef ISC_SOCKADDR_LEN_T
+
 /* define if the linker supports --wrap option */
 #undef LD_WRAP
 
@@ -557,9 +487,18 @@ int sigwait(const unsigned int *set, int *sig);
 /* Defined if extern char *optarg is not declared. */
 #undef NEED_OPTARG
 
+/* "define if we need to call pthread_init() first" */
+#undef NEED_PTHREAD_INIT
+
+/* "define if we need pthread scope system" */
+#undef NEED_PTHREAD_SCOPE_SYSTEM
+
 /* Define if connect does not honour the permission on the UNIX domain socket.
    */
 #undef NEED_SECURE_DIRECTORY
+
+/* Name of package */
+#undef PACKAGE
 
 /* Define to the address where bug reports for this package should be sent. */
 #undef PACKAGE_BUGREPORT
@@ -611,8 +550,36 @@ int sigwait(const unsigned int *set, int *sig);
 /* define if PKCS11 is used for Public-Key Cryptography */
 #undef USE_PKCS11
 
+/* Enable extensions on AIX 3, Interix.  */
+#ifndef _ALL_SOURCE
+# undef _ALL_SOURCE
+#endif
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+/* Enable threading extensions on Solaris.  */
+#ifndef _POSIX_PTHREAD_SEMANTICS
+# undef _POSIX_PTHREAD_SEMANTICS
+#endif
+/* Enable extensions on HP NonStop.  */
+#ifndef _TANDEM_SOURCE
+# undef _TANDEM_SOURCE
+#endif
+/* Enable general extensions on Solaris.  */
+#ifndef __EXTENSIONS__
+# undef __EXTENSIONS__
+#endif
+
+
 /* the default value of dnssec-validation option */
 #undef VALIDATION_DEFAULT
+
+/* Version number of package */
+#undef VERSION
+
+/* "define if we want to enable IPv6 networking." */
+#undef WANT_IPV6
 
 /* Define to enable very verbose query trace logging. */
 #undef WANT_QUERYTRACE
@@ -628,6 +595,19 @@ int sigwait(const unsigned int *set, int *sig);
 #  undef WORDS_BIGENDIAN
 # endif
 #endif
+
+/* Define to 1 if on MINIX. */
+#undef _MINIX
+
+/* Define to 2 if the system does not provide POSIX.1 features except with
+   this defined. */
+#undef _POSIX_1_SOURCE
+
+/* Define to 1 if you need to in order for `stat' and other things to work. */
+#undef _POSIX_SOURCE
+
+/* "define if we need 4.4BSD style sa_len support" */
+#undef _SOCKADDR_LEN
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const

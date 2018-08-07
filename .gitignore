@@ -1,4 +1,5 @@
 Makefile
+Makefile.in
 config.log
 config.h
 config.cache
@@ -62,3 +63,13 @@ unit/atf-src/test-programs/sh_helpers
 .project
 .cproject
 .settings
+/ar-lib
+/compile
+/depcomp
+/missing
+/bind.keys.h
+/config.guess
+/config.sub
+/configure
+/install-sh
+/stamp-h1

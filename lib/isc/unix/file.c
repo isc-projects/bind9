@@ -41,7 +41,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <errno.h>
 #include <fcntl.h>

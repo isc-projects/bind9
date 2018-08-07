@@ -13,7 +13,6 @@
  * 32 bit Fowler/Noll/Vo FNV-1a hash code with modification for BIND
  */
 
-#include <config.h>       // IWYU pragma: keep
 #include <stddef.h>
 #include "isc/once.h"
 #include "isc/random.h"

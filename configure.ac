@@ -7,12 +7,17 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-AC_INIT(BIND, [9.13], [info@isc.org], [], [https://www.isc.org/downloads/BIND/])
+AC_INIT([BIND], [9.13], [info@isc.org], [], [https://www.isc.org/downloads/BIND/])
+AC_CONFIG_SRCDIR([bin/named/main.c])
+AM_INIT_AUTOMAKE([gnu subdir-objects dist-xz -Wall -Werror])
+AM_SILENT_RULES([yes])
+
 AC_PREREQ(2.59)
 
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADER([config.h])
 AC_CONFIG_MACRO_DIR([m4])
 
+AC_USE_SYSTEM_EXTENSIONS
 AC_CANONICAL_HOST
 
 AC_PROG_MAKE_SET
@@ -24,14 +29,19 @@ case $build_os in
 sunos*)
     # Just set the maximum command line length for sunos as it otherwise
     # takes a exceptionally long time to work it out. Required for libtool.
-     
+
     lt_cv_sys_max_cmd_len=4096;
     ;;
 esac
 
-AC_PROG_LIBTOOL
+# Checks for programs.
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR]) # call AM_PROG_AR only if available
+
 AC_PROG_INSTALL
 AC_PROG_LN_S
+
+# Initialize libtool
+LT_INIT
 
 AC_SUBST(STD_CINCLUDES)
 AC_SUBST(STD_CDEFINES)
@@ -45,18 +55,6 @@ AC_SUBST(BACKTRACECFLAGS)
 #
 
 PKG_PROG_PKG_CONFIG
-
-# Warn if the user specified libbind, which is now deprecated
-AC_ARG_ENABLE(libbind, AS_HELP_STRING([--enable-libbind], [deprecated]))
-
-case "$enable_libbind" in
-	yes)
-		AC_MSG_ERROR(['libbind' is no longer part of the BIND 9 distribution.
-It is available from http://www.isc.org as a separate download.])
-		;;
-	no|'')
-		;;
-esac
 
 AC_ARG_ENABLE(buffer_useinline,
 	      AS_HELP_STRING([--enable-buffer-useinline],
@@ -111,13 +109,6 @@ yes)
 	;;
 esac
 
-#
-# Make very sure that these are the first files processed by
-# config.status, since we use the processed output as the input for
-# AC_SUBST_FILE() substitutions in other files.
-#
-AC_CONFIG_FILES([make/rules make/includes])
-
 AC_PATH_PROG(AR, ar)
 ARFLAGS="cruv"
 AC_SUBST(AR)
@@ -137,26 +128,6 @@ which ar resides, or set AR in the environment with the full path to ar.
 
 		;;
 esac
-
-#
-# Etags.
-#
-AC_PATH_PROGS(ETAGS, etags emacs-etags)
-
-#
-# Some systems, e.g. RH7, have the Exuberant Ctags etags instead of
-# GNU emacs etags, and it requires the -L flag.
-#
-if test "X$ETAGS" != "X"; then
-	AC_MSG_CHECKING(for Exuberant Ctags etags)
-	if $ETAGS --version 2>&1 | grep 'Exuberant Ctags' >/dev/null 2>&1; then
-		AC_MSG_RESULT(yes)
-		ETAGS="$ETAGS -L"
-	else
-		AC_MSG_RESULT(no)
-	fi
-fi
-AC_SUBST(ETAGS)
 
 #
 # Perl is optional; it is used only by some of the system test scripts.
@@ -543,7 +514,7 @@ AC_CHECK_HEADERS([threads.h],
 AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
-AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
+AC_CHECK_FUNCS([sysctlbyname])
 AC_C_FLEXIBLE_ARRAY_MEMBER
 
 #
@@ -579,7 +550,7 @@ AC_TYPE_SIZE_T
 AC_CHECK_TYPE(ssize_t, int)
 AC_CHECK_TYPE(uintptr_t,unsigned long)
 AC_CHECK_TYPE(socklen_t,
-[AC_DEFINE(ISC_SOCKADDR_LEN_T, socklen_t)],
+[AC_DEFINE([ISC_SOCKADDR_LEN_T], [socklen_t], "define sockaddr_len_t type")],
 [
 AC_TRY_COMPILE(
 [
@@ -587,14 +558,14 @@ AC_TRY_COMPILE(
 #include <sys/socket.h>
 int getsockname(int, struct sockaddr *, size_t *);
 ],[],
-[AC_DEFINE(ISC_SOCKADDR_LEN_T, size_t)],
-[AC_DEFINE(ISC_SOCKADDR_LEN_T, int)])
+[AC_DEFINE([ISC_SOCKADDR_LEN_T], [size_t], "define sockaddr_len_t type")],
+[AC_DEFINE([ISC_SOCKADDR_LEN_T], [int], "define sockaddr_len_t type")])
 ],
 [
 #include <sys/types.h>
 #include <sys/socket.h>
 ])
-AC_SUBST(ISC_SOCKADDR_LEN_T)
+AC_SUBST([ISC_SOCKADDR_LEN_T])
 AC_HEADER_TIME
 AC_MSG_CHECKING(for long long)
 AC_TRY_COMPILE([],[long long i = 0; return (0);],
@@ -619,7 +590,7 @@ printf("running on %s %s %s for %s\n",
        uts.sysname, uts.release, uts.version, uts.machine);
 ],
 	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_UNAME)],
+	 AC_DEFINE([HAVE_UNAME], [1], "define if uname() is available.")],
 	[AC_MSG_RESULT(no)
 	 AC_MSG_WARN([uname is not correctly supported])])
 
@@ -875,6 +846,7 @@ case "$use_geoip" in
 esac
 AC_SUBST(GEOIPLINKSRCS)
 AC_SUBST(GEOIPLINKOBJS)
+AM_CONDITIONAL([HAVE_GEOIP], [test "$use_geoip" != "no"])
 
 # XXXOND: Change this to deterministic DSA generation
 #
@@ -956,20 +928,12 @@ then
 	#
 	# We'd like to use sigwait() too
 	#
-	AC_CHECK_FUNC(sigwait,
-		      AC_DEFINE(HAVE_SIGWAIT),
-		      AC_CHECK_LIB(c, sigwait,
-		      AC_DEFINE(HAVE_SIGWAIT),
-		      AC_CHECK_LIB(pthread, sigwait,
-				   AC_DEFINE(HAVE_SIGWAIT),
-				   AC_CHECK_LIB(pthread, _Psigwait,
-						AC_DEFINE(HAVE_SIGWAIT),))))
+	AC_SEARCH_LIBS([sigwait], [pthread],
+		       [AC_DEFINE([HAVE_SIGWAIT], [1], "define if sigwait() is available.")],
+		       [AC_SEARCH_LIBS([_Psigwait], [pthread],
+				       [AC_DEFINE([HAVE_SIGWAIT], [1], "define if sigwait() is available.")])])
 
-	AC_CHECK_FUNC(pthread_attr_getstacksize,
-		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
-
-	AC_CHECK_FUNC(pthread_attr_setstacksize,
-		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
+	AC_CHECK_FUNCS([pthread_attr_getstacksize pthread_attr_setstacksize])
 
 	AC_ARG_WITH(locktype,
 		    AS_HELP_STRING([--with-locktype=ARG],
@@ -1020,14 +984,16 @@ then
 		# One more place to look for sigwait.
 		#
 		*-freebsd*)
-			AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
+		  AC_SEARCH_LIBS([sigwait], [c_r],
+				 [AC_DEFINE([HAVE_SIGWAIT], [1], "define if sigwait() is available.")])
+
 			case $host in
 			*-freebsd5.[[012]]|*-freebsd5.[[012]].*);;
 			*-freebsd5.[[3456789]]|*-freebsd5.[[3456789]].*)
-				AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
+				AC_DEFINE([NEED_PTHREAD_SCOPE_SYSTEM], [1], "define if we need pthread scope system")
 				;;
 			*-freebsd6.*)
-				AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
+				AC_DEFINE([NEED_PTHREAD_SCOPE_SYSTEM], [1], "define if we need pthread scope system")
 				;;
 			esac
 			;;
@@ -1037,14 +1003,14 @@ then
 		# in BSD/OS 4.1.
 		#
 		*-bsdi3.*|*-bsdi4.0*)
-			AC_DEFINE(NEED_PTHREAD_INIT)
+			AC_DEFINE([NEED_PTHREAD_INIT], [1], "define if we need to call pthread_init() first")
 			;;
 		#
 		# LinuxThreads requires some changes to the way we
 		# deal with signals.
 		#
 		*-linux*)
-			AC_DEFINE(HAVE_LINUXTHREADS)
+			AC_DEFINE([HAVE_LINUXTHREADS], [1], "define if we are using LinuxThreads")
 			;;
 		#
 		# Ensure the right sigwait() semantics on Solaris and make
@@ -1052,25 +1018,24 @@ then
 		#
 		*-solaris*)
 			AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
-			AC_CHECK_FUNC(pthread_setconcurrency,
-				      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
+			AC_CHECK_FUNCS([pthread_setconcurrency])
 			;;
 		#
 		# UnixWare does things its own way.
 		#
 		*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-			AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
+			AC_DEFINE([HAVE_UNIXWARE_SIGWAIT], [1], "define if sigwait() has UnixWare semantics.")
 			;;
 	esac
 
 	# Look for functions relating to thread naming
-	AC_CHECK_FUNCS(pthread_setname_np pthread_set_name_np)
+	AC_CHECK_FUNCS([pthread_setname_np pthread_set_name_np])
 	AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 
 	#
 	# Look for sysconf to allow detection of the number of processors.
 	#
-	AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
+	AC_CHECK_FUNCS([sysconf])
 
 else
 	ISC_PLATFORM_USETHREADS="#undef ISC_PLATFORM_USETHREADS"
@@ -1086,48 +1051,7 @@ AC_SUBST(THREADOPTOBJS)
 AC_SUBST(THREADOPTSRCS)
 ISC_THREAD_DIR=$thread_dir
 AC_SUBST(ISC_THREAD_DIR)
-
-AC_MSG_CHECKING(for libtool)
-AC_ARG_WITH(libtool, AS_HELP_STRING([--with-libtool], [use GNU libtool]),
-	    use_libtool="$withval", use_libtool="no")
-
-case $use_libtool in
-	yes)
-		AC_MSG_RESULT(yes)
-		AM_PROG_LIBTOOL
-		O=lo
-		A=la
-		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
-		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
-		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall --tag=CC'
-		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-		case "$host" in
-		*) LIBTOOL_ALLOW_UNDEFINED= ;;
-		esac
-		case "$host" in
-		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
-		*) LIBTOOL_IN_MAIN= ;;
-		esac;
-		;;
-	*)
-		AC_MSG_RESULT(no)
-		O=o
-		A=a
-		LIBTOOL=
-		AC_SUBST(LIBTOOL)
-		LIBTOOL_MKDEP_SED=
-		LIBTOOL_MODE_COMPILE=
-		LIBTOOL_MODE_INSTALL=
-		LIBTOOL_MODE_LINK=
-		LIBTOOL_MODE_UNINSTALL=
-		LIBTOOL_ALLOW_UNDEFINED=
-		LIBTOOL_IN_MAIN=
-		INSTALL_LIBRARY='${INSTALL_DATA}'
-		;;
-esac
-AC_SUBST(INSTALL_LIBRARY)
+AM_CONDITIONAL([HAVE_PTHREADS], [test "$thread_dir" = "pthreads"])
 
 CRYPTO=OpenSSL
 
@@ -1424,7 +1348,7 @@ case "$use_gssapi" in
 		DNS_GSSAPI_LIBS="-framework Kerberos"
 		AC_MSG_RESULT(framework)
 		;;
-		
+
 	*)
 		AC_MSG_RESULT(looking in $use_gssapi/lib)
 		USE_GSSAPI='-DGSSAPI'
@@ -1859,10 +1783,9 @@ AC_CHECK_LIB(scf, smf_enable_instance)
 # even if compiled with --disable-threads.  getc_unlocked might also not
 # be defined.
 #
-AC_CHECK_FUNC(flockfile, AC_DEFINE(HAVE_FLOCKFILE),)
-AC_CHECK_FUNC(getc_unlocked, AC_DEFINE(HAVE_GETCUNLOCKED),)
+AC_CHECK_FUNCS([flockfile getc_unlocked])
 
-# 
+#
 # Indicate what the final decision was regarding threads.
 #
 AC_MSG_CHECKING(whether to build with threads)
@@ -1872,7 +1795,7 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-# 
+#
 # End of pthreads stuff.
 #
 
@@ -1995,7 +1918,7 @@ AC_SUBST(IRIX_DNSSEC_WARNINGS_HACK)
 #
 # NLS
 #
-AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
+AC_CHECK_FUNCS([catgets])
 
 #
 # -lxnet buys us one big porting headache...  standards, gotta love 'em.
@@ -2179,12 +2102,12 @@ AC_SUBST(BIND9_CO_RULE)
 #
 # IPv6
 #
-AC_ARG_ENABLE(ipv6,
+AC_ARG_ENABLE([ipv6],
 	      AS_HELP_STRING([--enable-ipv6], [use IPv6 [default=autodetect]]))
 
 case "$enable_ipv6" in
 	yes|''|autodetect)
-		AC_DEFINE(WANT_IPV6)
+		AC_DEFINE([WANT_IPV6], [1], "define if we want to enable IPv6 networking.")
 		;;
 	no)
 		;;
@@ -2463,7 +2386,7 @@ AC_TRY_RUN([
 #include <netinet/in.h>
 #include <arpa/inet.h>
 main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
-			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 : 
+			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 :
 			     (inet_pton(AF_INET6, "::1.2.3.4", a) != 1)); }],
 	[AC_MSG_RESULT(yes)
 	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
@@ -2487,7 +2410,7 @@ AC_SUBST(ISC_EXTRA_SRCS)
 case "$host" in
 	*-dec-osf*)
 		# Turn on 4.4BSD style sa_len support.
-		AC_DEFINE(_SOCKADDR_LEN)
+		AC_DEFINE([_SOCKADDR_LEN], [1], "define if we need 4.4BSD style sa_len support")
 		;;
 esac
 
@@ -2573,7 +2496,7 @@ AC_TRY_COMPILE([
 [struct addrinfo a; return (0);],
 	[AC_MSG_RESULT(yes)
 	ISC_IRS_NEEDADDRINFO="#undef ISC_IRS_NEEDADDRINFO"
-	AC_DEFINE(HAVE_ADDRINFO)],
+	AC_DEFINE([HAVE_ADDRINFO], [1], "define if we have struct addrinfo")],
 	[AC_MSG_RESULT(no)
 	ISC_IRS_NEEDADDRINFO="#define ISC_IRS_NEEDADDRINFO 1"])
 AC_SUBST(ISC_IRS_NEEDADDRINFO)
@@ -2640,8 +2563,7 @@ char *gai_strerror(int ecode);],
 [AC_MSG_RESULT(not match any subspecies; assume standard definition)
 AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [const char *])])
 
-AC_CHECK_FUNC(getaddrinfo, AC_DEFINE(HAVE_GETADDRINFO))
-AC_CHECK_FUNC(gai_strerror, AC_DEFINE(HAVE_GAISTRERROR))
+AC_CHECK_FUNCS([getaddrinfo gai_strerror])
 AC_SUBST(ISC_IRS_GETNAMEINFOSOCKLEN)
 
 AC_ARG_ENABLE(getifaddrs,
@@ -2653,14 +2575,10 @@ AC_ARG_ENABLE(getifaddrs,
 # This interface iteration code for getifaddrs() will fall back to using
 # /proc/net/if_inet6 if getifaddrs() in glibc doesn't return any IPv6
 # addresses.
-# 
+#
 case $want_getifaddrs in
-glibc)
-AC_MSG_WARN("--enable-getifaddrs=glibc is no longer required")
-AC_CHECK_FUNC(getifaddrs, AC_DEFINE(HAVE_GETIFADDRS))
-;;
 yes)
-AC_CHECK_FUNC(getifaddrs, AC_DEFINE(HAVE_GETIFADDRS))
+AC_CHECK_FUNCS([getifaddrs])
 ;;
 no)
 ;;
@@ -2681,7 +2599,7 @@ found_rt_iflist
 #endif
 ],
 	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_IFLIST_SYSCTL)],
+	 AC_DEFINE([HAVE_IFLIST_SYSCTL], [1], "define if interface list sysctl is available")],
 	[AC_MSG_RESULT(no)])
 ;;
 esac
@@ -2780,7 +2698,7 @@ then
 fi
 
 
-AC_CHECK_FUNC(strerror, AC_DEFINE(HAVE_STRERROR))
+AC_CHECK_FUNCS([strerror])
 #
 # Use our own SPNEGO implementation?
 #
@@ -2831,7 +2749,7 @@ main() {
 	sprintf(buf, "%lld", j);
 	exit((sizeof(long long int) != sizeof(long int))? 0 :
 	     (strcmp(buf, "0") != 0));
-} 
+}
 ],
 	[AC_MSG_RESULT(ll)
 	ISC_PLATFORM_QUADFORMAT='#define ISC_PLATFORM_QUADFORMAT "ll"'],
@@ -2904,7 +2822,7 @@ esac
 #
 # Time Zone Stuff
 #
-AC_CHECK_FUNC(tzset, AC_DEFINE(HAVE_TZSET))
+AC_CHECK_FUNCS([tzset])
 
 AC_MSG_CHECKING(for optarg declaration)
 AC_TRY_COMPILE([
@@ -3026,64 +2944,6 @@ IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
 #
 AC_SUBST(ISC_PLATFORM_BRACEPTHREADONCEINIT)
 ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
-
-case "$host" in
-	*-aix5.[[123]].*)
-		hack_shutup_pthreadonceinit=yes
-		;;
-	*-bsdi3.1*)
-		hack_shutup_sputaux=yes
-		;;
-	*-bsdi4.0*)
-		hack_shutup_sigwait=yes
-		hack_shutup_sputaux=yes
-		;;
-	[*-bsdi4.[12]*])
-		hack_shutup_stdargcast=yes
-		;;
-	[*-solaris2.[89]])
-		hack_shutup_pthreadonceinit=yes
-		;;
-	*-solaris2.1[[0-9]])
-		AC_TRY_COMPILE([ #include <pthread.h> ], [ static pthread_once_t once_test = { PTHREAD_ONCE_INIT }; ], [hack_shutup_pthreadonceinit=yes], )
-		;;
-esac
-
-case "$hack_shutup_pthreadonceinit" in
-	yes)
-		#
-		# Shut up PTHREAD_ONCE_INIT unbraced initializer warnings.
-		#
-		ISC_PLATFORM_BRACEPTHREADONCEINIT="#define ISC_PLATFORM_BRACEPTHREADONCEINIT 1"
-		;;
-esac
-
-case "$hack_shutup_sigwait" in
-	yes)
-		#
-		# Shut up a -Wmissing-prototypes warning for sigwait().
-		#
-		AC_DEFINE(SHUTUP_SIGWAIT)
-		;;
-esac
-
-case "$hack_shutup_sputaux" in
-	yes)
-		#
-		# Shut up a -Wmissing-prototypes warning from <stdio.h>.
-		#
-		AC_DEFINE(SHUTUP_SPUTAUX)
-		;;
-esac
-
-case "$hack_shutup_stdargcast" in
-	yes)
-		#
-		# Shut up a -Wcast-qual warning from va_start().
-		#
-		AC_DEFINE(SHUTUP_STDARG_CAST)
-		;;
-esac
 
 AC_CHECK_HEADERS(strings.h,
   ISC_PLATFORM_HAVESTRINGSH="#define ISC_PLATFORM_HAVESTRINGSH 1"
@@ -3281,7 +3141,7 @@ if test "yes" = "$have_atomic"; then
 	else
 		case "$host" in
 		alpha*-dec-osf*)
-			# Tru64 compiler has its own syntax for inline 
+			# Tru64 compiler has its own syntax for inline
 			# assembly.
 			AC_TRY_COMPILE(, [
 #ifndef __DECC
@@ -3634,6 +3494,7 @@ AC_SUBST(DNSTAPSRCS)
 AC_SUBST(DNSTAPOBJS)
 AC_SUBST(DNSTAPTARGETS)
 AC_SUBST(DNSTAP_PB_C_H)
+AM_CONDITIONAL([HAVE_DNSTAP], [test "$DNSTAP" = "dnstap"])
 
 #
 #  The following sets up how non-blocking i/o is established.
@@ -3729,11 +3590,11 @@ AC_SUBST(CURL)
 #   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
 #
 # If the file FILENAME is found in one of the DIRECTORIES, the shell
-# variable VARIABLE is defined to its absolute pathname.  Otherwise, 
+# variable VARIABLE is defined to its absolute pathname.  Otherwise,
 # it is set to FILENAME, with no directory prefix (that's not terribly
 # useful, but looks less confusing in substitutions than leaving it
 # empty).  The variable VARIABLE will be substituted into output files.
-# 
+#
 
 AC_DEFUN([NOM_PATH_FILE], [
 $1=""
@@ -4112,7 +3973,7 @@ DLZ_SYSTEM_TEST=""
 DLZ_DRIVER_MYSQL_INCLUDES=""
 DLZ_DRIVER_MYSQL_LIBS=""
 
-# 
+#
 # Configure support for building a shared library object
 #
 # Even when libtool is available it can't always be relied upon
@@ -4261,8 +4122,8 @@ if test "yes" = "$cross_compiling"; then
 	BUILD_LDFLAGS="$BUILD_LDFLAGS"
 	BUILD_LIBS="$BUILD_LIBS"
 else
-	BUILD_CC="$CC" 
-	BUILD_CFLAGS="$CFLAGS" 
+	BUILD_CC="$CC"
+	BUILD_CFLAGS="$CFLAGS"
 	BUILD_CPPFLAGS="$CPPFLAGS $GEN_NEED_OPTARG"
 	BUILD_LDFLAGS="$LDFLAGS"
 	BUILD_LIBS="$LIBS"
@@ -4406,159 +4267,15 @@ AC_CONFIG_COMMANDS(
 # elsewhere if there's a good reason for doing so.
 #
 
-AC_CONFIG_FILES([
-  make/Makefile
-  make/mkdep
-	Makefile
-	bin/Makefile
-	bin/check/Makefile
-	bin/confgen/Makefile
-	bin/confgen/unix/Makefile
-	bin/delv/Makefile
-	bin/dig/Makefile
-	bin/dnssec/Makefile
-	bin/named/Makefile
-	bin/named/unix/Makefile
-	bin/nsupdate/Makefile
-	bin/pkcs11/Makefile
-	bin/python/Makefile
-	bin/python/isc/Makefile
-	bin/python/isc/utils.py
-	bin/python/isc/tests/Makefile
-	bin/python/dnssec-checkds.py
-	bin/python/dnssec-coverage.py
-	bin/python/dnssec-keymgr.py
-	bin/python/isc/__init__.py
-	bin/python/isc/checkds.py
-	bin/python/isc/coverage.py
-	bin/python/isc/dnskey.py
-	bin/python/isc/eventlist.py
-	bin/python/isc/keydict.py
-	bin/python/isc/keyevent.py
-	bin/python/isc/keymgr.py
-	bin/python/isc/keyseries.py
-	bin/python/isc/keyzone.py
-	bin/python/isc/policy.py
-	bin/python/isc/rndc.py
-	bin/python/isc/tests/dnskey_test.py
-	bin/python/isc/tests/policy_test.py
-	bin/rndc/Makefile
-	bin/tests/Makefile
-	bin/tests/headerdep_test.sh
-	bin/tests/optional/Makefile
-	bin/tests/pkcs11/Makefile
-	bin/tests/pkcs11/benchmarks/Makefile
-	bin/tests/system/Makefile
-	bin/tests/system/conf.sh
-	bin/tests/system/dlz/prereq.sh
-	bin/tests/system/dlzexternal/Makefile
-	bin/tests/system/dlzexternal/ns1/dlzs.conf
-	bin/tests/system/dyndb/Makefile
-	bin/tests/system/dyndb/driver/Makefile
-	bin/tests/system/inline/checkdsa.sh
-	bin/tests/system/pipelined/Makefile
-	bin/tests/system/rndc/Makefile
-	bin/tests/system/rpz/Makefile
-	bin/tests/system/rsabigexponent/Makefile
-	bin/tests/system/tkey/Makefile
-	bin/tests/virtual-time/Makefile
-	bin/tests/virtual-time/conf.sh
-	bin/tools/Makefile
-	contrib/scripts/check-secure-delegation.pl
-	contrib/scripts/zone-edit.sh
-	doc/Makefile
-	doc/arm/Makefile
-	doc/arm/noteversion.xml
-	doc/arm/pkgversion.xml
-	doc/arm/releaseinfo.xml
-	doc/doxygen/Doxyfile
-	doc/doxygen/Makefile
-	doc/doxygen/doxygen-input-filter
-	doc/misc/Makefile
-	doc/tex/Makefile
-	doc/tex/armstyle.sty
-	doc/xsl/Makefile
-	doc/xsl/isc-docbook-chunk.xsl
-	doc/xsl/isc-docbook-html.xsl
-	doc/xsl/isc-manpage.xsl
-	doc/xsl/isc-notes-html.xsl
-	isc-config.sh
-	lib/Makefile
-	lib/bind9/Makefile
-	lib/bind9/include/Makefile
-	lib/bind9/include/bind9/Makefile
-	lib/dns/Makefile
-	lib/dns/include/Makefile
-	lib/dns/include/dns/Makefile
-	lib/dns/include/dst/Makefile
-	lib/dns/tests/Makefile
-	lib/irs/Makefile
-	lib/irs/include/Makefile
-	lib/irs/include/irs/Makefile
-	lib/irs/include/irs/netdb.h
-	lib/irs/include/irs/platform.h
-	lib/irs/tests/Makefile
-	lib/isc/$arch/Makefile
-	lib/isc/$arch/include/Makefile
-	lib/isc/$arch/include/isc/Makefile
-	lib/isc/$thread_dir/Makefile
-	lib/isc/$thread_dir/include/Makefile
-	lib/isc/$thread_dir/include/isc/Makefile
-	lib/isc/Makefile
-	lib/isc/include/Makefile
-	lib/isc/include/isc/Makefile
-	lib/isc/include/isc/platform.h
-	lib/isc/include/pk11/Makefile
-	lib/isc/include/pkcs11/Makefile
-	lib/isc/tests/Makefile
-	lib/isc/nls/Makefile
-	lib/isc/unix/Makefile
-	lib/isc/unix/include/Makefile
-	lib/isc/unix/include/isc/Makefile
-	lib/isc/unix/include/pkcs11/Makefile
-	lib/isccc/Makefile
-	lib/isccc/include/Makefile
-	lib/isccc/include/isccc/Makefile
-	lib/isccfg/Makefile
-	lib/isccfg/include/Makefile
-	lib/isccfg/include/isccfg/Makefile
-	lib/isccfg/tests/Makefile
-	lib/ns/Makefile
-	lib/ns/include/Makefile
-	lib/ns/include/ns/Makefile
-	lib/ns/tests/Makefile
-	lib/samples/Makefile
-	lib/samples/Makefile-postinstall
-	unit/Makefile
-	unit/unittest.sh
-])
+AC_CONFIG_FILES([Makefile
+		 lib/Makefile
+		 lib/isc/include/isc/platform.h])
 
 #
 # Do it
 #
 
 AC_OUTPUT
-
-#
-# Now that the Makefiles exist we can ensure that everything is rebuilt.
-#
-AC_ARG_WITH(make-clean,
-	    AS_HELP_STRING([--with-make-clean],
-			   [run "make clean" at end of configure [yes|no]]),
-    make_clean="$withval", make_clean="yes")
-case "$make_clean" in
-yes)
-	if test "yes" != "$no_create"
-	then
-		if test "yes" = "$silent"
-		then
-			make clean > /dev/null
-		else
-			make clean
-		fi
-	fi
-	;;
-esac
 
 AC_ARG_ENABLE(full-report,
 	      AS_HELP_STRING([--enable-full-report],
@@ -4584,7 +4301,7 @@ report() {
 	echo "        Algorithm: $with_cc_alg"
     fi
 
-    # these lines are only printed if run with --enable-full-report 
+    # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
 	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
 	    echo "    IPv6 support (--enable-ipv6)"

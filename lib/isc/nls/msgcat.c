@@ -12,7 +12,6 @@
 
 /*! \file msgcat.c */
 
-#include <config.h>
 
 #include <stddef.h>
 #include <stdlib.h>

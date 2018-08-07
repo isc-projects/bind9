@@ -10,7 +10,6 @@
  */
 
 
-#include <config.h>
 
 #include <isc/thread.h>
 #include <isc/util.h>

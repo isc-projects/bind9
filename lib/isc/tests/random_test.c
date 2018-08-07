@@ -16,7 +16,6 @@
  * random. The test is expected to fail on occasion by random happenstance.
  */
 
-#include <config.h>
 
 #include <isc/random.h>
 #include <isc/result.h>
