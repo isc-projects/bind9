@@ -170,6 +170,12 @@ struct ns_client {
 	uint32_t		expire;
 	unsigned char		*keytag;
 	uint16_t		keytag_len;
+
+	/*%
+	 * Allows a hook module to set flags
+	 * that persist across recursion.
+	 */
+	uint32_t		hookflags;
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;
@@ -184,8 +190,8 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_MULTICAST		0x00008 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC	0x00010 /*%< include dnssec records */
 #define NS_CLIENTATTR_WANTNSID		0x00020 /*%< include nameserver ID */
-#define NS_CLIENTATTR_FILTER_AAAA	0x00040 /*%< suppress AAAAs */
-#define NS_CLIENTATTR_FILTER_AAAA_RC	0x00080 /*%< recursing for A against AAAA */
+/* Obsolete: NS_CLIENTATTR_FILTER_AAAA	0x00040 */
+/* Obsolete: define NS_CLIENTATTR_FILTER_AAAA_RC 0x00080 */
 #define NS_CLIENTATTR_WANTAD		0x00100 /*%< want AD in response if possible */
 #define NS_CLIENTATTR_WANTCOOKIE	0x00200 /*%< return a COOKIE */
 #define NS_CLIENTATTR_HAVECOOKIE	0x00400 /*%< has a valid COOKIE */

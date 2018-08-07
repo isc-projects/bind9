@@ -751,9 +751,7 @@ dns_rdataset_trimttl(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset,
 }
 
 isc_result_t
-dns_rdataset_addglue(dns_rdataset_t *rdataset,
-		     dns_dbversion_t *version,
-		     unsigned int options,
+dns_rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 		     dns_message_t *msg)
 {
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
@@ -763,6 +761,5 @@ dns_rdataset_addglue(dns_rdataset_t *rdataset,
 	if (rdataset->methods->addglue == NULL)
 		return (ISC_R_NOTIMPLEMENTED);
 
-	return ((rdataset->methods->addglue)(rdataset, version,
-					     options, msg));
+	return ((rdataset->methods->addglue)(rdataset, version, msg));
 }
