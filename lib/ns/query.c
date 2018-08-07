@@ -1864,8 +1864,6 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	}
 
 	if (qtype == dns_rdatatype_a) {
-		bool have_a = false;
-
 		/*
 		 * We now go looking for A and AAAA records, along with
 		 * their signatures.
@@ -1911,8 +1909,6 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 		} else if (result == ISC_R_SUCCESS) {
 			bool invalid = false;
 			mname = NULL;
-
-			have_a = true;
 			if (additionaltype ==
 			    dns_rdatasetadditional_fromcache &&
 			    (DNS_TRUST_PENDING(rdataset->trust) ||
@@ -1987,17 +1983,6 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 		} else if (result == ISC_R_SUCCESS) {
 			bool invalid = false;
 			mname = NULL;
-			/*
-			 * There's an A; check whether we're filtering AAAA
-			 */
-			if (have_a &&
-			    (qctx->filter_aaaa == dns_aaaa_break_dnssec ||
-			    (qctx->filter_aaaa == dns_aaaa_filter &&
-			     (!WANTDNSSEC(client) || sigrdataset == NULL ||
-			      !dns_rdataset_isassociated(sigrdataset)))))
-			{
-				goto addname;
-			}
 
 			if (additionaltype ==
 			    dns_rdatasetadditional_fromcache &&
@@ -2153,21 +2138,14 @@ query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 	{
 		isc_result_t result;
 		ns_dbversion_t *dbversion;
-		unsigned int options = 0;
 
 		dbversion = query_findversion(client, client->query.gluedb);
 		if (dbversion == NULL) {
 			goto regular;
 		}
 
-		if (qctx->filter_aaaa == dns_aaaa_filter ||
-		    qctx->filter_aaaa == dns_aaaa_break_dnssec)
-		{
-			options |= DNS_RDATASETADDGLUE_FILTERAAAA;
-		}
-
 		result = dns_rdataset_addglue(rdataset, dbversion->version,
-					      options, client->message);
+					      0, client->message);
 		if (result == ISC_R_SUCCESS) {
 			return;
 		}
@@ -6847,26 +6825,69 @@ query_addnoqnameproof(query_ctx_t *qctx) {
 	}
 }
 
+/*
+ * Optionally hide AAAA rrsets if there is a matching A.
+ * (This version is for processing answers to ANY queries;
+ * explicit AAAA queries are handled in query_filter_aaaa().)
+ */
+static isc_result_t
+query_filter_aaaa_any(query_ctx_t *qctx) {
+	dns_name_t *name = NULL;
+	dns_rdataset_t *aaaa = NULL, *aaaa_sig = NULL;
+	dns_rdataset_t *a = NULL;
+	bool have_a = true;
+
+	if (qctx->filter_aaaa == dns_aaaa_ok) {
+		return (ISC_R_COMPLETE);
+	}
+
+	dns_message_findname(qctx->client->message, DNS_SECTION_ANSWER,
+			     (qctx->fname != NULL)
+			      ? qctx->fname
+			      : qctx->tname,
+			     dns_rdatatype_any, 0, &name, NULL);
+
+	/*
+	 * If we're not authoritative, just assume there's an
+	 * A even if it wasn't in the cache and therefore isn't
+	 * in the message.  But if we're authoritative, then
+	 * if there was an A, it should be here.
+	 */
+	if (qctx->authoritative && name != NULL) {
+		dns_message_findtype(name, dns_rdatatype_a, 0, &a);
+		if (a == NULL) {
+			have_a = false;
+		}
+	}
+
+	if (name != NULL) {
+		dns_message_findtype(name, dns_rdatatype_aaaa, 0, &aaaa);
+		dns_message_findtype(name, dns_rdatatype_rrsig,
+				     dns_rdatatype_aaaa, &aaaa_sig);
+	}
+
+	if (have_a && aaaa != NULL &&
+	    (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
+	     qctx->filter_aaaa == dns_aaaa_break_dnssec))
+	{
+		aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
+		if (aaaa_sig != NULL) {
+			aaaa_sig->attributes |= DNS_RDATASETATTR_RENDERED;
+		}
+	}
+
+	return (ISC_R_COMPLETE);
+}
+
 /*%
  * Build the response for a query for type ANY.
  */
 static isc_result_t
 query_respond_any(query_ctx_t *qctx) {
-	dns_name_t *tname;
-	int rdatasets_found = 0;
+	bool found = false;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 	dns_rdatatype_t onetype = 0; 	/* type to use for minimal-any */
-	bool have_aaaa, have_a, have_sig;
-
-	/*
-	 * If we are not authoritative, assume there is an A record
-	 * even in if it is not in our cache.  This assumption could
-	 * be wrong but it is a good bet.
-	 */
-	have_aaaa = false;
-	have_a = !qctx->authoritative;
-	have_sig = false;
 
 	PROCESS_HOOK(NS_QUERY_RESPOND_ANY_BEGIN, qctx);
 
@@ -6891,21 +6912,11 @@ query_respond_any(query_ctx_t *qctx) {
 	 * cleanup qctx->fname even though we're using it!
 	 */
 	query_keepname(qctx->client, qctx->fname, qctx->dbuf);
-	tname = qctx->fname;
+	qctx->tname = qctx->fname;
 
 	result = dns_rdatasetiter_first(rdsiter);
 	while (result == ISC_R_SUCCESS) {
 		dns_rdatasetiter_current(rdsiter, qctx->rdataset);
-		/*
-		 * Notice the presence of A and AAAAs so
-		 * that AAAAs can be hidden from IPv4 clients.
-		 */
-		if (qctx->filter_aaaa != dns_aaaa_ok) {
-			if (qctx->rdataset->type == dns_rdatatype_aaaa)
-				have_aaaa = true;
-			else if (qctx->rdataset->type == dns_rdatatype_a)
-				have_a = true;
-		}
 
 		/*
 		 * We found an NS RRset; no need to add one later.
@@ -6953,9 +6964,6 @@ query_respond_any(query_ctx_t *qctx) {
 			    qctx->rdataset->type == qctx->qtype) &&
 			   qctx->rdataset->type != 0)
 		{
-			if (dns_rdatatype_isdnssec(qctx->rdataset->type))
-				have_sig = true;
-
 			if (NOQNAME(qctx->rdataset) && WANTDNSSEC(qctx->client))
 			{
 				qctx->noqname = qctx->rdataset;
@@ -6973,7 +6981,7 @@ query_respond_any(query_ctx_t *qctx) {
 				dns_name_t *name;
 				name = (qctx->fname != NULL)
 					? qctx->fname
-					: tname;
+					: qctx->tname;
 				query_prefetch(qctx->client, name,
 					       qctx->rdataset);
 			}
@@ -6984,29 +6992,32 @@ query_respond_any(query_ctx_t *qctx) {
 			 */
 			if (qctx->rdataset->type == dns_rdatatype_sig ||
 			    qctx->rdataset->type == dns_rdatatype_rrsig)
+			{
 				onetype = qctx->rdataset->covers;
-			else
+			} else {
 				onetype = qctx->rdataset->type;
+			}
 
 			query_addrrset(qctx,
 				       (qctx->fname != NULL)
 					? &qctx->fname
-					: &tname,
+					: &qctx->tname,
 				       &qctx->rdataset, NULL,
 				       NULL, DNS_SECTION_ANSWER);
 
 			query_addnoqnameproof(qctx);
 
-			rdatasets_found++;
-			INSIST(tname != NULL);
+			found = true;
+			INSIST(qctx->tname != NULL);
 
 			/*
 			 * rdataset is non-NULL only in certain
 			 * pathological cases involving DNAMEs.
 			 */
-			if (qctx->rdataset != NULL)
+			if (qctx->rdataset != NULL) {
 				query_putrdataset(qctx->client,
 						  &qctx->rdataset);
+			}
 
 			qctx->rdataset = query_newrdataset(qctx->client);
 			if (qctx->rdataset == NULL)
@@ -7021,23 +7032,38 @@ query_respond_any(query_ctx_t *qctx) {
 		result = dns_rdatasetiter_next(rdsiter);
 	}
 
-	PROCESS_HOOK(NS_QUERY_RESPOND_ANY_POST_LOOKUP, qctx);
+	dns_rdatasetiter_destroy(&rdsiter);
 
-	/*
-	 * Filter AAAAs if there is an A and there is no signature
-	 * or we are supposed to break DNSSEC.
-	 */
-	if (qctx->filter_aaaa == dns_aaaa_break_dnssec)
-		qctx->client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
-	else if (qctx->filter_aaaa != dns_aaaa_ok &&
-		 have_aaaa && have_a &&
-		 (!have_sig || !WANTDNSSEC(qctx->client)))
-		  qctx->client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
+	if (result != ISC_R_NOMORE) {
+		CCTRACE(ISC_LOG_ERROR,
+		       "query_respond_any: rdataset iterator failed");
+		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+	}
 
-	if (qctx->fname != NULL)
-		dns_message_puttempname(qctx->client->message, &qctx->fname);
+	if (found) {
+		PROCESS_HOOK(NS_QUERY_RESPOND_ANY_FOUND, qctx);
 
-	if (rdatasets_found == 0) {
+		/*
+		 * This will be turned into a hook callout later.
+		 */
+		result = query_filter_aaaa_any(qctx);
+		if (result != ISC_R_COMPLETE) {
+			return (result);
+		}
+
+
+		if (qctx->fname != NULL) {
+			dns_message_puttempname(qctx->client->message,
+						&qctx->fname);
+		}
+	} else {
+		PROCESS_HOOK(NS_QUERY_RESPOND_ANY_NOT_FOUND, qctx);
+
+		if (qctx->fname != NULL) {
+			dns_message_puttempname(qctx->client->message,
+						&qctx->fname);
+		}
+
 		/*
 		 * No matching rdatasets found in cache. If we were
 		 * searching for RRSIG/SIG, that's probably okay;
@@ -7050,7 +7076,6 @@ query_respond_any(query_ctx_t *qctx) {
 			isc_buffer_t b;
 			if (!qctx->is_zone) {
 				qctx->authoritative = false;
-				dns_rdatasetiter_destroy(&rdsiter);
 				qctx->client->attributes &= ~NS_CLIENTATTR_RA;
 				query_addauth(qctx);
 				return (query_done(qctx));
@@ -7070,7 +7095,6 @@ query_respond_any(query_ctx_t *qctx) {
 					      namebuf);
 			}
 
-			dns_rdatasetiter_destroy(&rdsiter);
 			qctx->fname = query_newname(qctx->client,
 						    qctx->dbuf, &b);
 			return (query_sign_nodata(qctx));
@@ -7082,14 +7106,7 @@ query_respond_any(query_ctx_t *qctx) {
 		}
 	}
 
-	dns_rdatasetiter_destroy(&rdsiter);
-	if (result != ISC_R_NOMORE) {
-		CCTRACE(ISC_LOG_ERROR,
-		       "query_respond_any: dns_rdatasetiter_destroy failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-	} else {
-		query_addauth(qctx);
-	}
+	query_addauth(qctx);
 
 	return (query_done(qctx));
 }
@@ -7147,14 +7164,9 @@ query_getexpire(query_ctx_t *qctx) {
 }
 
 /*
- * Optionally hide AAAAs from IPv4 clients if there is an A.
- *
- * We add the AAAAs now, but might refuse to render them later
- * after DNSSEC is figured out.
- *
- * This could be more efficient, but the whole idea is
- * so fundamentally wrong, unavoidably inaccurate, and
- * unneeded that it is best to keep it as short as possible.
+ * Optionally hide AAAA rrsets if there is a matching A.
+ * (This version is for processing answers to explicit AAAA
+ * queries; ANY queries are handled in query_filter_aaaa_any().)
  */
 static isc_result_t
 query_filter_aaaa(query_ctx_t *qctx) {
@@ -7196,16 +7208,25 @@ query_filter_aaaa(query_ctx_t *qctx) {
 		 * the A if it existed.
 		 */
 		if (result == ISC_R_SUCCESS) {
-			qctx->client->attributes |=
-				    NS_CLIENTATTR_FILTER_AAAA;
-
+			qctx->rdataset->attributes |=
+				DNS_RDATASETATTR_RENDERED;
+			if (qctx->sigrdataset != NULL &&
+			    dns_rdataset_isassociated(qctx->sigrdataset)) {
+				qctx->sigrdataset->attributes |=
+					DNS_RDATASETATTR_RENDERED;
+			}
 		} else if (qctx->authoritative ||
 			   !RECURSIONOK(qctx->client) ||
 			   (result != DNS_R_DELEGATION &&
 			    result != ISC_R_NOTFOUND))
 		{
-			qctx->client->attributes &=
-				~NS_CLIENTATTR_FILTER_AAAA;
+			qctx->rdataset->attributes &=
+				~DNS_RDATASETATTR_RENDERED;
+			if (qctx->sigrdataset != NULL &&
+			    dns_rdataset_isassociated(qctx->sigrdataset)) {
+				qctx->sigrdataset->attributes &=
+					~DNS_RDATASETATTR_RENDERED;
+			}
 		} else {
 			/*
 			 * This is an ugly kludge to recurse
@@ -7231,8 +7252,27 @@ query_filter_aaaa(query_ctx_t *qctx) {
 		   (qctx->client->attributes &
 		    NS_CLIENTATTR_FILTER_AAAA_RC) != 0)
 	{
+		dns_rdataset_t *mrdataset = NULL;
+		dns_rdataset_t *sigrdataset = NULL;
+
+		result = dns_message_findname(qctx->client->message,
+					      DNS_SECTION_ANSWER, qctx->fname,
+					      dns_rdatatype_aaaa, 0,
+					      NULL, &mrdataset);
+		if (result == ISC_R_SUCCESS) {
+			mrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+		}
+
+		result = dns_message_findname(qctx->client->message,
+					      DNS_SECTION_ANSWER, qctx->fname,
+					      dns_rdatatype_rrsig,
+					      dns_rdatatype_aaaa,
+					      NULL, &sigrdataset);
+		if (result == ISC_R_SUCCESS) {
+			sigrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+		}
+
 		qctx->client->attributes &= ~NS_CLIENTATTR_FILTER_AAAA_RC;
-		qctx->client->attributes |= NS_CLIENTATTR_FILTER_AAAA;
 		qctx_clean(qctx);
 
 		return (query_done(qctx));
@@ -7251,6 +7291,14 @@ query_respond(query_ctx_t *qctx) {
 	isc_result_t result;
 
 	PROCESS_HOOK(NS_QUERY_RESPOND_BEGIN, qctx);
+
+	/*
+	 * This will be turned into a hook callout later.
+	 */
+	result = query_filter_aaaa(qctx);
+	if (result != ISC_R_COMPLETE) {
+		return (result);
+	}
 
 	/*
 	 * If we have a zero ttl from the cache, refetch.
@@ -7283,12 +7331,6 @@ query_respond(query_ctx_t *qctx) {
 	/*
 	 * Check to see if the AAAA RRset has non-excluded addresses
 	 * in it.  If not look for a A RRset.
-	 *
-	 * Note: the order of dns64_aaaaok() and query_filter_aaaa() is
-	 * important.  query_filter_aaaa() calls query_recurse() but
-	 * continues so that the AAAA records are added.  If the
-	 * order is reversed client->query.fetch will be non-NULL
-	 * when query_lookup() is called leading to a assertion.
 	 */
 	INSIST(qctx->client->query.dns64_aaaaok == NULL);
 
@@ -7310,10 +7352,6 @@ query_respond(query_ctx_t *qctx) {
 
 		return (query_lookup(qctx));
 	}
-
-	result = query_filter_aaaa(qctx);
-	if (result != ISC_R_COMPLETE)
-		return (result);
 
 	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
 		sigrdatasetp = &qctx->sigrdataset;
@@ -9161,12 +9199,6 @@ query_coveringnsec(query_ctx_t *qctx) {
 		if (qctx->type == dns_rdatatype_any) {	/* XXX not yet */
 			goto cleanup;
 		}
-		if (qctx->filter_aaaa != dns_aaaa_ok &&
-		    (qctx->type == dns_rdatatype_a ||
-		     qctx->type == dns_rdatatype_aaaa)) /* XXX not yet */
-		{
-			goto cleanup;
-		}
 		if (!ISC_LIST_EMPTY(qctx->client->view->dns64) &&
 		    (qctx->type == dns_rdatatype_a ||
 		     qctx->type == dns_rdatatype_aaaa)) /* XXX not yet */
@@ -9229,12 +9261,6 @@ query_coveringnsec(query_ctx_t *qctx) {
 	switch (result) {
 	case ISC_R_SUCCESS:
 		if (qctx->type == dns_rdatatype_any) {	/* XXX not yet */
-			goto cleanup;
-		}
-		if (qctx->filter_aaaa != dns_aaaa_ok &&
-		    (qctx->type == dns_rdatatype_a ||
-		     qctx->type == dns_rdatatype_aaaa)) /* XXX not yet */
-		{
 			goto cleanup;
 		}
 		if (!ISC_LIST_EMPTY(qctx->client->view->dns64) &&
@@ -9758,29 +9784,13 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	return (ISC_R_SUCCESS);
 }
 
-/*%
- * Prepare to respond: determine whether a wildcard proof is needed,
- * check whether to filter AAAA answers, then hand off to query_respond()
- * or (for type ANY queries) query_respond_any().
+/*
+ * The filter-aaaa-on-v4 option suppresses AAAAs for IPv4
+ * clients if there is an A; filter-aaaa-on-v6 option does
+ * the same for IPv6 clients.
  */
 static isc_result_t
-query_prepresponse(query_ctx_t *qctx) {
-	PROCESS_HOOK(NS_QUERY_PREP_RESPONSE_BEGIN, qctx);
-
-	if (WANTDNSSEC(qctx->client) &&
-	    (qctx->fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
-	{
-		dns_fixedname_init(&qctx->wildcardname);
-		dns_name_copy(qctx->fname,
-			      dns_fixedname_name(&qctx->wildcardname), NULL);
-		qctx->need_wildcardproof = true;
-	}
-
-	/*
-	 * The filter-aaaa-on-v4 option should suppress AAAAs for IPv4
-	 * clients if there is an A; filter-aaaa-on-v6 option does the same
-	 * for IPv6 clients.
-	 */
+query_filter_aaaa_check(query_ctx_t *qctx) {
 	qctx->filter_aaaa = dns_aaaa_ok;
 	if (qctx->client->view->v4_aaaa != dns_aaaa_ok ||
 	    qctx->client->view->v6_aaaa != dns_aaaa_ok)
@@ -9802,6 +9812,36 @@ query_prepresponse(query_ctx_t *qctx) {
 		}
 	}
 
+	return (ISC_R_COMPLETE);
+}
+
+/*%
+ * Prepare to respond: determine whether a wildcard proof is needed,
+ * then hand off to query_respond() or (for type ANY queries)
+ * query_respond_any().
+ */
+static isc_result_t
+query_prepresponse(query_ctx_t *qctx) {
+	isc_result_t result;
+
+	PROCESS_HOOK(NS_QUERY_PREP_RESPONSE_BEGIN, qctx);
+
+	/*
+	 * This will be turned into a hook callout later.
+	 */
+	result = query_filter_aaaa_check(qctx);
+	if (result != ISC_R_COMPLETE) {
+		return (result);
+	}
+
+	if (WANTDNSSEC(qctx->client) &&
+	    (qctx->fname->attributes & DNS_NAMEATTR_WILDCARD) != 0)
+	{
+		dns_fixedname_init(&qctx->wildcardname);
+		dns_name_copy(qctx->fname,
+			      dns_fixedname_name(&qctx->wildcardname), NULL);
+		qctx->need_wildcardproof = true;
+	}
 
 	if (qctx->type == dns_rdatatype_any) {
 		return (query_respond_any(qctx));
@@ -10668,6 +10708,60 @@ query_glueanswer(query_ctx_t *qctx) {
 	}
 }
 
+/*
+ * Optionally hide AAAA rrsets in the additional section if there
+ * is a matching A.
+ */
+static isc_result_t
+query_filter_aaaa_additional(query_ctx_t *qctx) {
+	isc_result_t result;
+
+	if (qctx->filter_aaaa == dns_aaaa_ok) {
+		return (ISC_R_COMPLETE);
+	}
+
+	result = dns_message_firstname(qctx->client->message,
+				       DNS_SECTION_ADDITIONAL);
+	while (result == ISC_R_SUCCESS) {
+		dns_name_t *name = NULL;
+		dns_rdataset_t *aaaa = NULL, *aaaa_sig = NULL;
+		dns_rdataset_t *a = NULL;
+
+		dns_message_currentname(qctx->client->message,
+					DNS_SECTION_ADDITIONAL,
+					&name);
+
+		result = dns_message_nextname(qctx->client->message,
+					      DNS_SECTION_ADDITIONAL);
+
+		dns_message_findtype(name, dns_rdatatype_a, 0, &a);
+		if (a == NULL) {
+			continue;
+		}
+
+		dns_message_findtype(name, dns_rdatatype_aaaa, 0,
+				     &aaaa);
+		if (aaaa == NULL) {
+			continue;
+		}
+
+		dns_message_findtype(name, dns_rdatatype_rrsig,
+				     dns_rdatatype_aaaa, &aaaa_sig);
+
+		if (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
+		     qctx->filter_aaaa == dns_aaaa_break_dnssec)
+		{
+			aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
+			if (aaaa_sig != NULL) {
+				aaaa_sig->attributes |=
+					DNS_RDATASETATTR_RENDERED;
+			}
+		}
+	}
+
+	return (ISC_R_COMPLETE);
+}
+
 /*%
  * Finalize this phase of the query process:
  *
@@ -10679,7 +10773,9 @@ query_glueanswer(query_ctx_t *qctx) {
  */
 static isc_result_t
 query_done(query_ctx_t *qctx) {
+	isc_result_t result;
 	const dns_namelist_t *secs = qctx->client->message->sections;
+
 	CCTRACE(ISC_LOG_DEBUG(3), "query_done");
 
 	PROCESS_HOOK(NS_QUERY_DONE_BEGIN, qctx);
@@ -10715,7 +10811,6 @@ query_done(query_ctx_t *qctx) {
 
 	if (qctx->want_stale) {
 		dns_ttl_t stale_ttl = 0;
-		isc_result_t result;
 		bool staleanswersok = false;
 
 		/*
@@ -10821,6 +10916,14 @@ query_done(query_ctx_t *qctx) {
 	}
 
 	PROCESS_HOOK(NS_QUERY_DONE_SEND, qctx);
+
+	/*
+	 * This will be turned into a hook callout later.
+	 */
+	result = query_filter_aaaa_additional(qctx);
+	if (result != ISC_R_COMPLETE) {
+		return (result);
+	}
 
 	query_send(qctx->client);
 
