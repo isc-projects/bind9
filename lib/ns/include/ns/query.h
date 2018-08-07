@@ -163,6 +163,8 @@ typedef struct query_ctx {
 	dns_rpz_st_t *rpz_st;			/* RPZ state */
 	dns_zone_t *zone;			/* zone to search */
 
+	dns_aaaa_t filter_aaaa;			/* AAAA filtering */
+
 	isc_result_t result;			/* query result */
 	int line;				/* line to report error */
 } query_ctx_t;
