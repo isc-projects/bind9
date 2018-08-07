@@ -197,13 +197,6 @@ struct dns_rdataset {
  */
 #define DNS_RDATASETTOWIRE_OMITDNSSEC	0x0001
 
-/*%
- * _FILTERAAAA
- * 	If A records are present, omit AAAA records when adding
- * 	glue
- */
-#define DNS_RDATASETADDGLUE_FILTERAAAA 0x0001
-
 void
 dns_rdataset_init(dns_rdataset_t *rdataset);
 /*%<
@@ -586,8 +579,7 @@ dns_rdataset_addglue(dns_rdataset_t *rdataset,
 		     dns_message_t *msg);
 /*%<
  * Add glue records for rdataset to the additional section of message in
- * 'msg'. 'rdataset' must be of type NS. If DNS_RDATASETADDGLUE_FILTERAAAA
- * is set in 'options' there is type A glue, type AAAA glue is not added.
+ * 'msg'. 'rdataset' must be of type NS.
  *
  * In case a successful result is not returned, the caller should try to
  * add glue directly to the message by iterating for additional data.
@@ -595,7 +587,7 @@ dns_rdataset_addglue(dns_rdataset_t *rdataset,
  * Requires:
  * \li	'rdataset' is a valid NS rdataset.
  * \li	'version' is the DB version.
- * \li  'options' is options; currently only _FILTERAAAA is defined.
+ * \li  'options' is options; currently none are defined
  * \li	'msg' is the DNS message to which the glue should be added.
  *
  * Returns:

@@ -184,7 +184,7 @@ typedef ISC_LIST(ns_client_t) client_list_t;
 #define NS_CLIENTATTR_MULTICAST		0x00008 /*%< recv'd from multicast */
 #define NS_CLIENTATTR_WANTDNSSEC	0x00010 /*%< include dnssec records */
 #define NS_CLIENTATTR_WANTNSID		0x00020 /*%< include nameserver ID */
-#define NS_CLIENTATTR_FILTER_AAAA	0x00040 /*%< suppress AAAAs */
+/* Obsolete: NS_CLIENTATTR_FILTER_AAAA	0x00040 */
 #define NS_CLIENTATTR_FILTER_AAAA_RC	0x00080 /*%< recursing for A against AAAA */
 #define NS_CLIENTATTR_WANTAD		0x00100 /*%< want AD in response if possible */
 #define NS_CLIENTATTR_WANTCOOKIE	0x00200 /*%< return a COOKIE */
