@@ -416,7 +416,8 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		}
 		INSIST(i == count);
 
-		unsigned int j, seed;
+		unsigned int j;
+		isc_uint32_t seed;
 		if (ISC_LIKELY(want_random)) {
 			seed = isc_random32();
 			j = 0;
