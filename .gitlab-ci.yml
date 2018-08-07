@@ -742,10 +742,8 @@ unit:tarball:sid:amd64:
 gcc:sid:arm64:
   variables:
     CC: gcc
-    CFLAGS: "${CFLAGS_COMMON} -O3"
+    CFLAGS: "${CFLAGS_COMMON} -O2"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
-    RUN_MAKE_INSTALL: 1
-    MAKE: bear make
   <<: *debian_sid_arm64_image
   <<: *build_job
 
@@ -759,13 +757,6 @@ system:gcc:sid:arm64:
 unit:gcc:sid:arm64:
   <<: *debian_sid_arm64_image
   <<: *unit_test_job
-  needs:
-    - job: gcc:sid:arm64
-      artifacts: true
-
-cppcheck:gcc:sid:arm64:
-  <<: *debian_sid_arm64_image
-  <<: *cppcheck_job
   needs:
     - job: gcc:sid:arm64
       artifacts: true
