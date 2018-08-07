@@ -11,7 +11,6 @@
 
 #pragma once
 
-#include <config.h>
 
 #if HAVE_OPENSSL
 

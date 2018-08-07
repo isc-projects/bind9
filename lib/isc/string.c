@@ -40,7 +40,6 @@
 
 /*! \file */
 
-#include <config.h>      // IWYU pragma: keep
 
 #include <string.h>
 

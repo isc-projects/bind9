@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
 
 #include <fcntl.h>
 #include <stdlib.h>

@@ -12,7 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <isc/mutexblock.h>
 #include <isc/util.h>

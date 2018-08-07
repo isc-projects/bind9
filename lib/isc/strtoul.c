@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
 
 /*
  * Copyright (c) 1990, 1993
@@ -46,7 +45,6 @@ static char sccsid[] = "@(#)strtoul.c	8.1 (Berkeley) 6/4/93";
 #endif /* LIBC_SCCS and not lint */
 
 
-#include <config.h>
 
 #include <limits.h>
 #include <ctype.h>

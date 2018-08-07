@@ -47,7 +47,6 @@
  * and format in the ISC coding style.
  */
 
-#include <config.h>
 
 #include <stdio.h>
 

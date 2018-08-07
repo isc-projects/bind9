@@ -10,7 +10,6 @@
  */
 
 
-#include <config.h>
 
 #include <isc/condition.h>
 #include <isc/assertions.h>

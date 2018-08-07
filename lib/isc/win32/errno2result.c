@@ -10,7 +10,6 @@
  */
 
 
-#include <config.h>
 
 #include <winsock2.h>
 #include "errno2result.h"
