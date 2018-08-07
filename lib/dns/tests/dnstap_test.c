@@ -67,7 +67,7 @@ _teardown(void **state) {
 }
 
 static void
-cleanup() {
+cleanup(void) {
 	(void)isc_file_remove(TAPFILE);
 	(void)isc_file_remove(TAPSOCK);
 }

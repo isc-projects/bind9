@@ -16,6 +16,7 @@
 #include <stdlib.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
 #include <isc/file.h>
@@ -63,8 +64,8 @@ static enum { progmode_check, progmode_compile } progmode;
 		}                                                             \
 	} while (0)
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {
@@ -354,7 +355,7 @@ main(int argc, char **argv) {
 			break;
 
 		case 'v':
-			printf(VERSION "\n");
+			printf("%s\n", PACKAGE_VERSION);
 			exit(0);
 
 		case 'w':

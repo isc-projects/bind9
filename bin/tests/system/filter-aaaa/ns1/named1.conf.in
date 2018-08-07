@@ -25,7 +25,7 @@ options {
 
 acl filterees { 10.53.0.1; };
 
-plugin query "../../../../plugins/lib/filter-aaaa.so" {
+plugin query "../../../../plugins/filter-aaaa.la" {
 	filter-aaaa-on-v4 yes;
 	filter-aaaa { filterees; };
 };

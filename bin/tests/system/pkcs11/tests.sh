@@ -11,7 +11,6 @@
 
 set -e
 
-SYSTEMTESTTOP=..
 # shellcheck source=conf.sh
 . $SYSTEMTESTTOP/conf.sh
 

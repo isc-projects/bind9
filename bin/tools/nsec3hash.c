@@ -13,6 +13,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/attributes.h>
 #include <isc/base32.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -32,8 +33,8 @@
 
 const char *program = "nsec3hash";
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+fatal(const char *format, ...);
 
 static void
 fatal(const char *format, ...) {
@@ -55,7 +56,7 @@ check_result(isc_result_t result, const char *message) {
 }
 
 static void
-usage() {
+usage(void) {
 	fprintf(stderr, "Usage: %s salt algorithm iterations domain\n",
 		program);
 	fprintf(stderr, "       %s -r algorithm flags iterations salt domain\n",

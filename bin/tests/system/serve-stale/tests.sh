@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
@@ -1056,7 +1055,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
 echo_i "start ns4"
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} serve-stale ns4
+start --noclean --restart --port ${PORT} serve-stale ns4
 
 n=$((n+1))
 echo_i "verify ancient cache statistics (serve-stale disabled) ($n)"

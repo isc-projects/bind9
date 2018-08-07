@@ -10,13 +10,11 @@
  */
 
 #include <inttypes.h>
+#include <ltdl.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#if HAVE_DLFCN_H
-#include <dlfcn.h>
-#endif /* if HAVE_DLFCN_H */
 
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -30,7 +28,6 @@
 #include <dlz/dlz_dlopen_driver.h>
 #include <named/globals.h>
 
-#ifdef ISC_DLZ_DLOPEN
 static dns_sdlzimplementation_t *dlz_dlopen = NULL;
 
 typedef struct dlopen_data {
@@ -183,13 +180,21 @@ dlopen_dlz_lookup(const char *zone, const char *name, void *driverarg,
  */
 static void *
 dl_load_symbol(dlopen_data_t *cd, const char *symbol, bool mandatory) {
-	void *ptr = dlsym(cd->dl_handle, symbol);
-	if (ptr == NULL && mandatory) {
-		dlopen_log(ISC_LOG_ERROR,
-			   "dlz_dlopen: library '%s' is missing "
-			   "required symbol '%s'",
-			   cd->dl_path, symbol);
+	void *ptr = lt_dlsym((lt_dlhandle)cd->dl_handle, symbol);
+	if (ptr == NULL) {
+		const char *errmsg = lt_dlerror();
+		if (errmsg == NULL) {
+			errmsg = "returned function pointer is NULL";
+		}
+		if (mandatory) {
+			dlopen_log(ISC_LOG_ERROR,
+				   "dlz_dlopen: library '%s' is missing "
+				   "required symbol '%s': %s",
+				   cd->dl_path, symbol, errmsg);
+		}
 	}
+	/* Cleanup any errors */
+	(void)lt_dlerror();
 	return (ptr);
 }
 
@@ -202,7 +207,6 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	dlopen_data_t *cd;
 	isc_mem_t *mctx = NULL;
 	isc_result_t result = ISC_R_FAILURE;
-	int dlopen_flags = 0;
 
 	UNUSED(driverarg);
 
@@ -214,44 +218,32 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (ISC_R_FAILURE);
 	}
 
-	isc_mem_create(&mctx);
+	if (lt_dlinit() != 0) {
+		return (ISC_R_FAILURE);
+	}
 
+	isc_mem_create(&mctx);
 	cd = isc_mem_get(mctx, sizeof(*cd));
 	memset(cd, 0, sizeof(*cd));
 
 	cd->mctx = mctx;
 
 	cd->dl_path = isc_mem_strdup(cd->mctx, argv[1]);
-
 	cd->dlzname = isc_mem_strdup(cd->mctx, dlzname);
 
 	/* Initialize the lock */
 	isc_mutex_init(&cd->lock);
 
-	/* Open the library */
-	dlopen_flags = RTLD_NOW | RTLD_GLOBAL;
-
-#if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__
-	/*
-	 * If RTLD_DEEPBIND is available then use it. This can avoid
-	 * issues with a module using a different version of a system
-	 * library than one that bind9 uses. For example, bind9 may link
-	 * to MIT kerberos, but the module may use Heimdal. If we don't
-	 * use RTLD_DEEPBIND then we could end up with Heimdal functions
-	 * calling MIT functions, which leads to bizarre results (usually
-	 * a segfault).
-	 */
-	dlopen_flags |= RTLD_DEEPBIND;
-#endif /* if defined(RTLD_DEEPBIND) && !__SANITIZE_ADDRESS__ */
-
-	cd->dl_handle = dlopen(cd->dl_path, dlopen_flags);
+	cd->dl_handle = lt_dlopenext(cd->dl_path);
 	if (cd->dl_handle == NULL) {
 		dlopen_log(ISC_LOG_ERROR,
-			   "dlz_dlopen failed to open library '%s' - %s",
-			   cd->dl_path, dlerror());
+			   "dlz_dlopen failed to open library '%s': %s",
+			   cd->dl_path, lt_dlerror());
 		result = ISC_R_FAILURE;
 		goto failed;
 	}
+
+	(void)lt_dlerror();
 
 	/* Find the symbols */
 	cd->dlz_version =
@@ -330,20 +322,14 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 failed:
 	dlopen_log(ISC_LOG_ERROR, "dlz_dlopen of '%s' failed", dlzname);
-	if (cd->dl_path != NULL) {
-		isc_mem_free(mctx, cd->dl_path);
-	}
-	if (cd->dlzname != NULL) {
-		isc_mem_free(mctx, cd->dlzname);
-	}
-	if (dlopen_flags != 0) {
-		isc_mutex_destroy(&cd->lock);
-	}
-#ifdef HAVE_DLCLOSE
+
+	isc_mem_free(mctx, cd->dl_path);
+	isc_mem_free(mctx, cd->dlzname);
+
+	isc_mutex_destroy(&cd->lock);
 	if (cd->dl_handle) {
-		dlclose(cd->dl_handle);
+		(void)lt_dlclose(cd->dl_handle);
 	}
-#endif /* ifdef HAVE_DLCLOSE */
 	isc_mem_put(mctx, cd, sizeof(*cd));
 	isc_mem_destroy(&mctx);
 	return (result);
@@ -372,11 +358,9 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 		isc_mem_free(cd->mctx, cd->dlzname);
 	}
 
-#ifdef HAVE_DLCLOSE
 	if (cd->dl_handle) {
-		dlclose(cd->dl_handle);
+		lt_dlclose(cd->dl_handle);
 	}
-#endif /* ifdef HAVE_DLCLOSE */
 
 	isc_mutex_destroy(&cd->lock);
 
@@ -547,17 +531,12 @@ static dns_sdlzmethods_t dlz_dlopen_methods = {
 	dlopen_dlz_configure,	 dlopen_dlz_ssumatch,	dlopen_dlz_addrdataset,
 	dlopen_dlz_subrdataset,	 dlopen_dlz_delrdataset
 };
-#endif /* ifdef ISC_DLZ_DLOPEN */
 
 /*
  * Register driver with BIND
  */
 isc_result_t
 dlz_dlopen_init(isc_mem_t *mctx) {
-#ifndef ISC_DLZ_DLOPEN
-	UNUSED(mctx);
-	return (ISC_R_NOTIMPLEMENTED);
-#else  /* ifndef ISC_DLZ_DLOPEN */
 	isc_result_t result;
 
 	dlopen_log(2, "Registering DLZ_dlopen driver");
@@ -576,7 +555,6 @@ dlz_dlopen_init(isc_mem_t *mctx) {
 	}
 
 	return (result);
-#endif /* ifndef ISC_DLZ_DLOPEN */
 }
 
 /*
@@ -584,10 +562,8 @@ dlz_dlopen_init(isc_mem_t *mctx) {
  */
 void
 dlz_dlopen_clear(void) {
-#ifdef ISC_DLZ_DLOPEN
 	dlopen_log(2, "Unregistering DLZ_dlopen driver");
 	if (dlz_dlopen != NULL) {
 		dns_sdlzunregister(&dlz_dlopen);
 	}
-#endif /* ifdef ISC_DLZ_DLOPEN */
 }

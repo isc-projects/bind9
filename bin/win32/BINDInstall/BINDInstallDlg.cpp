@@ -151,9 +151,6 @@ const FileData installFiles[] =
 	{"krb5_64.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 #endif
 #endif
-#ifdef HAVE_GEOIP
-	{"libgeoip.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
-#endif
 #ifdef WITH_IDN
 	{"idnkit.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},
 	{"iconv.dll", FileData::BinDir, FileData::Critical, FALSE, TRUE},

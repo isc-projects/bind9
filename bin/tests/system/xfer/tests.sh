@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
@@ -249,13 +248,16 @@ fi
 
 # now we test transfers with assorted TSIG glitches
 DIGCMD="$DIG $DIGOPTS @10.53.0.4"
-SENDCMD="$PERL ../send.pl 10.53.0.5 $EXTRAPORT1"
+
+sendcmd() {
+    send 10.53.0.5 "$EXTRAPORT1"
+}
 
 echo_i "testing that incorrectly signed transfers will fail..."
 n=$((n+1))
 echo_i "initial correctly-signed transfer should succeed ($n)"
 
-$SENDCMD < ans5/goodaxfr
+sendcmd < ans5/goodaxfr
 
 # Initially, ns4 is not authoritative for anything.
 # Now that ans is up and running with the right data, we make ns4
@@ -292,7 +294,8 @@ $DIGCMD nil. TXT | grep 'initial AXFR' >/dev/null || {
 n=$((n+1))
 echo_i "unsigned transfer ($n)"
 
-$SENDCMD < ans5/unsigned
+sendcmd < ans5/unsigned
+sleep 1
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
@@ -311,7 +314,7 @@ $DIGCMD nil. TXT | grep 'unsigned AXFR' >/dev/null && {
 n=$((n+1))
 echo_i "bad keydata ($n)"
 
-$SENDCMD < ans5/badkeydata
+sendcmd < ans5/badkeydata
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
@@ -330,7 +333,7 @@ $DIGCMD nil. TXT | grep 'bad keydata AXFR' >/dev/null && {
 n=$((n+1))
 echo_i "partially-signed transfer ($n)"
 
-$SENDCMD < ans5/partial
+sendcmd < ans5/partial
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
@@ -349,7 +352,7 @@ $DIGCMD nil. TXT | grep 'partially signed AXFR' >/dev/null && {
 n=$((n+1))
 echo_i "unknown key ($n)"
 
-$SENDCMD < ans5/unknownkey
+sendcmd < ans5/unknownkey
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
@@ -368,7 +371,7 @@ $DIGCMD nil. TXT | grep 'unknown key AXFR' >/dev/null && {
 n=$((n+1))
 echo_i "incorrect key ($n)"
 
-$SENDCMD < ans5/wrongkey
+sendcmd < ans5/wrongkey
 
 $RNDCCMD 10.53.0.4 retransfer nil | sed 's/^/ns4 /' | cat_i
 
@@ -387,7 +390,7 @@ $DIGCMD nil. TXT | grep 'incorrect key AXFR' >/dev/null && {
 n=$((n+1))
 echo_i "bad message id ($n)"
 
-$SENDCMD < ans5/badmessageid
+sendcmd < ans5/badmessageid
 
 # Uncomment to see AXFR stream with mismatching IDs.
 # $DIG $DIGOPTS @10.53.0.5 -y tsig_key:LSAnCU+Z nil. AXFR +all
@@ -444,7 +447,7 @@ tmp=0
 $DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.1.test$n
 grep "status: NOERROR," dig.out.1.test$n > /dev/null || tmp=1
 $PERL $SYSTEMTESTTOP/stop.pl xfer ns3
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} xfer ns3
+start --noclean --restart --port ${PORT} xfer ns3
 check_mapped () {
 	$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2.test$n
 	grep "status: NOERROR," dig.out.2.test$n > /dev/null || return 1

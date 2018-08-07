@@ -14,7 +14,6 @@
 # touch dnsrps-off to not test with DNSRPS
 # touch dnsrps-only to not test with classic RPZ
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 ns=10.53.0
@@ -216,7 +215,7 @@ restart () {
             done
         fi
     fi
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz ns$1
+    start --noclean --restart --port ${PORT} rpz ns$1
     load_db
     dnsrps_loaded
     sleep 1
@@ -483,7 +482,7 @@ for mode in native dnsrps; do
       continue
     else
       echo_i "running DNSRPS sub-test"
-      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz
+      start --noclean --restart --port ${PORT} rpz
       sleep 3
     fi
     ;;

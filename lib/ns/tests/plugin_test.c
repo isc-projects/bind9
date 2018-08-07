@@ -23,14 +23,15 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/attributes.h>
 #include <isc/mem.h>
 #include <isc/platform.h>
 #include <isc/result.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
-ISC_PLATFORM_NORETURN_PRE void
-_fail(const char *const file, const int line) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN void
+_fail(const char *const file, const int line);
 
 #include <ns/hooks.h>
 

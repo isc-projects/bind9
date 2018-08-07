@@ -372,7 +372,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\tm.h" />
     <ClInclude Include="..\include\isc\types.h" />
     <ClInclude Include="..\include\isc\util.h" />
-    <ClInclude Include="..\include\isc\version.h" />
 @IF PKCS11
     <ClInclude Include="..\include\pk11\constants.h" />
     <ClInclude Include="..\include\pk11\internal.h" />
@@ -499,7 +498,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="syslog.c" />
     <ClCompile Include="thread.c" />
     <ClCompile Include="time.c" />
-    <ClCompile Include="version.c" />
     <ClCompile Include="win32os.c" />
 @IF PKCS11
     <ClCompile Include="pk11_api.c" />

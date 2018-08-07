@@ -87,11 +87,7 @@ isc_thread_setaffinity(int cpu);
 
 #define isc_thread_yield() Sleep(0)
 
-#if HAVE___DECLSPEC_THREAD
-#define ISC_THREAD_LOCAL static __declspec(thread)
-#else /* if HAVE___DECLSPEC_THREAD */
-#error "Thread-local storage support is required!"
-#endif /* if HAVE___DECLSPEC_THREAD */
+#define thread_local __declspec(thread)
 
 ISC_LANG_ENDDECLS
 

@@ -13,7 +13,6 @@
 # Set up test data for zone transfer quota tests.
 #
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 $PERL setup.pl

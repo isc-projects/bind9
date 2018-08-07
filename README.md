@@ -171,14 +171,7 @@ affect compilation.  Significant ones are:
 |--------------------|-----------------------------------------------|
 |`CC`|The C compiler to use.  `configure` tries to figure out the right one for supported systems.|
 |`CFLAGS`|C compiler flags.  Defaults to include -g and/or -O2 as supported by the compiler.  Please include '-g' if you need to set `CFLAGS`. |
-|`STD_CINCLUDES`|System header file directories.  Can be used to specify where add-on thread or IPv6 support is, for example.  Defaults to empty string.|
-|`STD_CDEFINES`|Any additional preprocessor symbols you want defined.  Defaults to empty string. For a list of possible settings, see the file [OPTIONS](OPTIONS.md).|
 |`LDFLAGS`|Linker flags. Defaults to empty string.|
-|`BUILD_CC`|Needed when cross-compiling: the native C compiler to use when building for the target system.|
-|`BUILD_CFLAGS`|`CFLAGS` for the target system during cross-compiling.|
-|`BUILD_CPPFLAGS`|`CPPFLAGS` for the target system during cross-compiling.|
-|`BUILD_LDFLAGS`|`LDFLAGS` for the target system during cross-compiling.|
-|`BUILD_LIBS`|`LIBS` for the target system during cross-compiling.|
 
 Additional environment variables affecting the build are listed at the
 end of the `configure` help text, which can be obtained by running the
@@ -273,7 +266,7 @@ defaults to `$prefix/etc` and `--localstatedir` defaults to `$prefix/var`.
 
 ### <a name="testing"/> Automated testing
 
-A system test suite can be run with `make test`.  The system tests require
+A system test suite can be run with `make check`.  The system tests require
 you to configure a set of virtual IP addresses on your system (this allows
 multiple servers to run locally and communicate with one another).  These
 IP addresses can be configured by running the command
@@ -284,11 +277,9 @@ and will be skipped if these are not available. Some tests require Python
 and the `dnspython` module and will be skipped if these are not available.
 See bin/tests/system/README for further details.
 
-Unit tests are implemented using the [CMocka unit testing framework](https://cmocka.org/).
-To build them, use `configure --with-cmocka`. Execution of tests is done
-by the [Kyua test execution engine](https://github.com/jmmv/kyua); if the
-`kyua` command is available, then unit tests can be run via `make test`
-or `make unit`.
+Unit tests are implemented using the CMocka unit testing framework.  To build
+them, use `configure --with-cmocka`. Execution of tests is done by the automake
+parallel test driver; unit tests are also run by `make check`.
 
 ### <a name="doc"/> Documentation
 

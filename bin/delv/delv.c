@@ -28,6 +28,7 @@
 #include <unistd.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/hex.h>
@@ -205,9 +206,8 @@ usage(void) {
 	exit(1);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...)
-	ISC_FORMAT_PRINTF(1, 2) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+fatal(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 
 static void
 fatal(const char *format, ...) {
@@ -1327,7 +1327,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			/* handled in preparse_args() */
 			break;
 		case 'v':
-			fputs("delv " VERSION "\n", stderr);
+			fprintf(stderr, "delv %s\n", PACKAGE_VERSION);
 			exit(0);
 		/* NOTREACHED */
 		default:

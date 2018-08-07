@@ -112,8 +112,8 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
                    "..\\bin\\tests\\win32\\backtrace_test.vcxproj.filters",
                    "..\\bin\\tests\\win32\\inter_test.vcxproj",
                    "..\\bin\\tests\\win32\\inter_test.vcxproj.filters",
-                   "..\\bin\\tests\\win32\\makejournal.vcxproj",
-                   "..\\bin\\tests\\win32\\makejournal.vcxproj.filters",
+                   "..\\bin\\tests\\system\\win32\\makejournal.vcxproj",
+                   "..\\bin\\tests\\system\\win32\\makejournal.vcxproj.filters",
                    "..\\bin\\tests\\win32\\rwlock_test.vcxproj",
                    "..\\bin\\tests\\win32\\rwlock_test.vcxproj.filters",
                    "..\\bin\\tests\\win32\\shutdown_test.vcxproj",
@@ -173,7 +173,7 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
 
 my %configdefh;
 
-my @substdefh = ("CONFIGARGS",
+my @substdefh = ("PACKAGE_CONFIGARGS",
                  "DNS_RDATASET_FIXED",
                  "HAVE_GEOIP2",
                  "HAVE_LIBXML2",
@@ -290,7 +290,6 @@ my @substvar = ("BIND9_VERSION",
                 "MACHINE",
                 "OPENSSL_PATH",
                 "PLATFORM",
-                "PKCS11_TOOLS",
                 "PLATFORM_TOOLSET",
                 "prefix",
                 "PSSUSPEND",
@@ -614,19 +613,19 @@ sub appargs {
     # escape backslashes and double quotes
     $arg =~ s/([\\"])/\\$1/g;
     $arg =~ s/([\s])/\\\\$1/g;
-    if (defined($configdefh{"CONFIGARGS"})) {
-        $configdefh{"CONFIGARGS"} .= " " . $arg;
+    if (defined($configdefh{"PACKAGE_CONFIGARGS"})) {
+        $configdefh{"PACKAGE_CONFIGARGS"} .= " " . $arg;
     } else {
-        $configdefh{"CONFIGARGS"} = $arg;
+        $configdefh{"PACKAGE_CONFIGARGS"} = $arg;
     }
 }
 
-if (!$configdefh{"CONFIGARGS"}) {
+if (!$configdefh{"PACKAGE_CONFIGARGS"}) {
     # CONFIGARGS default is "default"
-    $configdefh{"CONFIGARGS"} = "\"default\"";
+    $configdefh{"PACKAGE_CONFIGARGS"} = "\"default\"";
 } else {
-    my $val = $configdefh{"CONFIGARGS"};
-    $configdefh{"CONFIGARGS"} = "\"'$val'\"";
+    my $val = $configdefh{"PACKAGE_CONFIGARGS"};
+    $configdefh{"PACKAGE_CONFIGARGS"} = "\"'$val'\"";
 }
 
 # parse enable/disable
@@ -1618,7 +1617,6 @@ if ($cryptolib ne "") {
 # with-pkcs11
 if ($use_pkcs11 ne "no") {
     $configcond{"PKCS11"} = 1;
-    $configvar{"PKCS11_TOOLS"} = "pkcs11";
     $configdefd{"PK11_LIB_LOCATION"} = "PK11_LIB_LOCATION=\"$pkcs11_path\"";
 }
 

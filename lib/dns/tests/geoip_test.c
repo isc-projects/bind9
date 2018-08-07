@@ -22,6 +22,7 @@
 
 #define UNIT_TESTING
 #include <cmocka.h>
+#include <maxminddb.h>
 
 #include <isc/print.h>
 #include <isc/string.h>
@@ -30,12 +31,8 @@
 
 #include <dns/geoip.h>
 
-#include "dnstest.h"
-
-#if defined(HAVE_GEOIP2)
-#include <maxminddb.h>
-
 #include "../geoip2.c"
+#include "dnstest.h"
 
 /* Use GeoIP2 databases from the 'geoip2' system test */
 #define TEST_GEOIP_DATA "../../../bin/tests/system/geoip2/data"
@@ -396,11 +393,9 @@ domain(void **state) {
 	match = do_lookup_string("10.53.0.5", dns_geoip_domain_name, "five.es");
 	assert_true(match);
 }
-#endif /* HAVE_GEOIP2 */
 
 int
 main(void) {
-#if defined(HAVE_GEOIP2)
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(baseline),   cmocka_unit_test(country),
 		cmocka_unit_test(country_v6), cmocka_unit_test(city),
@@ -410,9 +405,6 @@ main(void) {
 	};
 
 	return (cmocka_run_group_tests(tests, _setup, _teardown));
-#else  /* if defined(HAVE_GEOIP2) */
-	print_message("1..0 # Skip GeoIP not enabled\n");
-#endif /* if defined(HAVE_GEOIP2) */
 }
 
 #else /* HAVE_CMOCKA */

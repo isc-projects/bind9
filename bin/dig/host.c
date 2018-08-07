@@ -21,6 +21,7 @@
 #endif /* ifdef HAVE_LOCALE_H */
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/commandline.h>
 #include <isc/netaddr.h>
 #include <isc/print.h>
@@ -38,7 +39,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 
-#include <dig/dig.h>
+#include "dighost.h"
 
 static bool short_form = true, listed_server = false;
 static bool default_lookups = true;
@@ -101,8 +102,8 @@ rcode_totext(dns_rcode_t rcode) {
 	return (totext.deconsttext);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-show_usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+show_usage(void);
 
 static void
 show_usage(void) {
@@ -581,7 +582,7 @@ static const char *optstring = "46aAc:dilnm:p:rst:vVwCDN:R:TUW:";
 /*% version */
 static void
 version(void) {
-	fputs("host " VERSION "\n", stderr);
+	fprintf(stderr, "host %s\n", PACKAGE_VERSION);
 }
 
 static void

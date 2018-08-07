@@ -17,6 +17,7 @@
 
 #include <isc/app.h>
 #include <isc/atomic.h>
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/file.h>
@@ -59,7 +60,7 @@ bool verbose;
 
 static const char *admin_conffile;
 static const char *admin_keyfile;
-static const char *version = VERSION;
+static const char *version = PACKAGE_VERSION;
 static const char *servername = NULL;
 static isc_sockaddr_t serveraddrs[SERVERADDRS];
 static isc_sockaddr_t local4, local6;
@@ -89,8 +90,8 @@ static bool showresult = false;
 static void
 rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task);
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(int status) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(int status);
 
 static void
 usage(int status) {

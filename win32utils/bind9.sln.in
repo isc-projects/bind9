@@ -519,7 +519,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "timer_test", "..\bin\tests\
 EndProject
 @END XTESTS
 @IF STESTS
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "makejournal", "..\bin\tests\win32\makejournal.vcxproj", "{31715139-2C27-47D2-8394-71B71A8AC3D5}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "makejournal", "..\bin\tests\system\win32\makejournal.vcxproj", "{31715139-2C27-47D2-8394-71B71A8AC3D5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{A3F71D12-F38A-4C77-8D87-8E8854CA74A1} = {A3F71D12-F38A-4C77-8D87-8E8854CA74A1}
 		{3840E563-D180-4761-AA9C-E6155F02EAFF} = {3840E563-D180-4761-AA9C-E6155F02EAFF}

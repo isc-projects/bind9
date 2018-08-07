@@ -77,10 +77,6 @@ $ <userinput>make install</userinput>
       Normal installation of BIND will also install library object
       and header files.  Root privilege is normally required.
     </para>
-    <para>
-      To see how to build your own application after the installation, see
-      <filename>lib/samples/Makefile-postinstall.in</filename>.
-    </para>
   </section>
   <section>
     <info>

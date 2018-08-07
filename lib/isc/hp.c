@@ -66,7 +66,7 @@ static int isc__hp_max_retired = HP_MAX_THREADS * HP_MAX_HPS;
 
 static atomic_int_fast32_t tid_v_base = ATOMIC_VAR_INIT(0);
 
-ISC_THREAD_LOCAL int tid_v = TID_UNKNOWN;
+static thread_local int tid_v = TID_UNKNOWN;
 
 typedef struct retirelist {
 	int size;
@@ -82,7 +82,7 @@ struct isc_hp {
 };
 
 static inline int
-tid() {
+tid(void) {
 	if (tid_v == TID_UNKNOWN) {
 		tid_v = atomic_fetch_add(&tid_v_base, 1);
 		REQUIRE(tid_v < isc__hp_max_threads);

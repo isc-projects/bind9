@@ -131,7 +131,6 @@
     <ClCompile Include="..\update.c" />
     <ClCompile Include="..\xfrout.c" />
     <ClCompile Include="DLLMain.c" />
-    <ClCompile Include="version.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\include\ns\client.h" />
@@ -147,7 +146,6 @@
     <ClInclude Include="..\include\ns\stats.h" />
     <ClInclude Include="..\include\ns\types.h" />
     <ClInclude Include="..\include\ns\update.h" />
-    <ClInclude Include="..\include\ns\version.h" />
     <ClInclude Include="..\include\ns\xfrout.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

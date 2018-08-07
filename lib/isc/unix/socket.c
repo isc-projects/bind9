@@ -33,6 +33,7 @@
 #include <fcntl.h>
 #include <stddef.h>
 #include <stdlib.h>
+#include <sys/un.h>
 #include <unistd.h>
 
 #include <isc/app.h>
@@ -58,9 +59,6 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
-#ifdef ISC_PLATFORM_HAVESYSUNH
-#include <sys/un.h>
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
 #ifdef HAVE_KQUEUE
 #include <sys/event.h>
 #endif /* ifdef HAVE_KQUEUE */
@@ -1002,7 +1000,7 @@ make_nonblock(int fd) {
 	ret = ioctl(fd, FIONBIO, (char *)&on);
 #else  /* ifdef USE_FIONBIO_IOCTL */
 	flags = fcntl(fd, F_GETFL, 0);
-	flags |= PORT_NONBLOCK;
+	flags |= O_NONBLOCK;
 	ret = fcntl(fd, F_SETFL, flags);
 #endif /* ifdef USE_FIONBIO_IOCTL */
 
@@ -4199,7 +4197,7 @@ isc_socket_sendto2(isc_socket_t *sock0, isc_region_t *region, isc_task_t *task,
 
 void
 isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 	int s;
 	struct stat sb;
 	char strbuf[ISC_STRERRORSIZE];
@@ -4324,16 +4322,16 @@ isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 	}
 cleanup:
 	close(s);
-#else  /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#else  /* ifndef _WIN32 */
 	UNUSED(sockaddr);
 	UNUSED(active);
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 }
 
 isc_result_t
 isc_socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 		    uint32_t owner, uint32_t group) {
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 	isc_result_t result = ISC_R_SUCCESS;
 	char strbuf[ISC_STRERRORSIZE];
 	char path[sizeof(sockaddr->type.sunix.sun_path)];
@@ -4375,13 +4373,13 @@ isc_socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 		result = ISC_R_FAILURE;
 	}
 	return (result);
-#else  /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#else  /* ifndef _WIN32 */
 	UNUSED(sockaddr);
 	UNUSED(perm);
 	UNUSED(owner);
 	UNUSED(group);
 	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 }
 
 isc_result_t
@@ -5280,7 +5278,7 @@ static isc_once_t hasreuseport_once = ISC_ONCE_INIT;
 static bool hasreuseport = false;
 
 static void
-init_hasreuseport() {
+init_hasreuseport(void) {
 /*
  * SO_REUSEPORT works very differently on *BSD and on Linux (because why not).
  * We only want to use it on Linux, if it's available. On BSD we want to dup()
@@ -5318,7 +5316,7 @@ init_hasreuseport() {
 }
 
 bool
-isc_socket_hasreuseport() {
+isc_socket_hasreuseport(void) {
 	RUNTIME_CHECK(isc_once_do(&hasreuseport_once, init_hasreuseport) ==
 		      ISC_R_SUCCESS);
 	return (hasreuseport);

@@ -22,6 +22,7 @@
 
 #include <isc/aes.h>
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
@@ -381,9 +382,8 @@ const char *empty_zones[] = {
 	NULL
 };
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(named_server_t *server, const char *msg,
-      isc_result_t result) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+fatal(named_server_t *server, const char *msg, isc_result_t result);
 
 static void
 named_server_reload(isc_task_t *task, isc_event_t *event);
@@ -1633,7 +1633,6 @@ cleanup:
 	return (result);
 }
 
-#ifdef HAVE_DLOPEN
 static isc_result_t
 configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 		const dns_dyndbctx_t *dctx) {
@@ -1660,7 +1659,6 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 	}
 	return (result);
 }
-#endif /* ifdef HAVE_DLOPEN */
 
 static isc_result_t
 disable_algorithms(const cfg_obj_t *disabled, dns_resolver_t *resolver) {
@@ -3760,7 +3758,7 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 	result = named_config_get(maps, "dnstap-version", &obj);
 	if (result != ISC_R_SUCCESS) {
 		/* not specified; use the product and version */
-		dns_dt_setversion(named_g_server->dtenv, PRODUCT " " VERSION);
+		dns_dt_setversion(named_g_server->dtenv, PACKAGE_STRING);
 	} else if (result == ISC_R_SUCCESS && !cfg_obj_isvoid(obj)) {
 		/* Quoted string */
 		dns_dt_setversion(named_g_server->dtenv, cfg_obj_asstring(obj));
@@ -3817,7 +3815,6 @@ create_mapped_acl(void) {
 	return (result);
 }
 
-#ifdef HAVE_DLOPEN
 /*%
  * A callback for the cfg_pluginlist_foreach() call in configure_view() below.
  * If registering any plugin fails, registering subsequent ones is not
@@ -3855,11 +3852,10 @@ register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 
 	return (result);
 }
-#endif /* ifdef HAVE_DLOPEN */
 
 /*
- * Configure 'view' according to 'vconfig', taking defaults from 'config'
- * where values are missing in 'vconfig'.
+ * Configure 'view' according to 'vconfig', taking defaults from
+ * 'config' where values are missing in 'vconfig'.
  *
  * When configuring the default view, 'vconfig' will be NULL and the
  * global defaults in 'config' used exclusively.
@@ -5412,7 +5408,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		(void)cfg_map_get(config, "dyndb", &dyndb_list);
 	}
 
-#ifdef HAVE_DLOPEN
 	for (element = cfg_list_first(dyndb_list); element != NULL;
 	     element = cfg_list_next(element))
 	{
@@ -5428,7 +5423,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
 	}
-#endif /* ifdef HAVE_DLOPEN */
 
 	/*
 	 * Load plugins.
@@ -5440,7 +5434,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		(void)cfg_map_get(config, "plugin", &plugin_list);
 	}
 
-#ifdef HAVE_DLOPEN
 	if (plugin_list != NULL) {
 		INSIST(view->hooktable == NULL);
 		CHECK(ns_hooktable_create(view->mctx,
@@ -5453,7 +5446,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist, cfg_obj_t *config,
 		CHECK(cfg_pluginlist_foreach(config, plugin_list, named_g_lctx,
 					     register_one_plugin, view));
 	}
-#endif /* ifdef HAVE_DLOPEN */
 
 	/*
 	 * Setup automatic empty zones.  If recursion is off then
@@ -11744,10 +11736,9 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	isc_time_formathttptimestamp(&named_g_configtime, configtime,
 				     sizeof(configtime));
 
-	snprintf(line, sizeof(line), "version: %s %s%s%s <id:%s>%s%s%s\n",
-		 named_g_product, named_g_version,
-		 (*named_g_description != '\0') ? " " : "", named_g_description,
-		 named_g_srcid, ob, alt, cb);
+	snprintf(line, sizeof(line), "version: %s%s <id:%s>%s%s%s\n",
+		 PACKAGE_STRING, PACKAGE_DESCRIPTION, PACKAGE_SRCID, ob, alt,
+		 cb);
 	CHECK(putstr(text, line));
 
 	result = named_os_gethostname(hostname, sizeof(hostname));

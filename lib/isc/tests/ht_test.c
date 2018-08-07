@@ -195,7 +195,7 @@ test_ht_full(int bits, uintptr_t count) {
 }
 
 static void
-test_ht_iterator() {
+test_ht_iterator(void) {
 	isc_ht_t *ht = NULL;
 	isc_result_t result;
 	isc_ht_iter_t *iter = NULL;

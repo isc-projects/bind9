@@ -6,6 +6,16 @@ named.pid
 named.run
 /feature-test
 /test.output.*
+/makejournal
 /systests.output
 /random.data
 parallel.mk
+/*.log
+/*.trs
+/get_base_port.state
+/get_base_port.lock
+/run.sh
+/start.sh
+/stop.sh
+/system-test-driver.sh
+/ifconfig.sh

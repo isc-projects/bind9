@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="-p ${PORT}"
@@ -338,7 +337,7 @@ rm named.pid
 cd ..
 sleep 10
 if
-	$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} nsupdate ns1
+	start --noclean --restart --port ${PORT} nsupdate ns1
 then
 	echo_i "restarted server ns1"
 else
@@ -520,7 +519,7 @@ sleep 3
 # that the data served by the new server process are exactly
 # those dumped to the master file by "rndc stop".
 rm -f ns1/*jnl
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} nsupdate ns1
+start --noclean --restart --port ${PORT} nsupdate ns1
 for try in 0 1 2 3 4 5 6 7 8 9; do
     iret=0
     $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd \

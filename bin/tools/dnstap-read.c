@@ -33,6 +33,7 @@
 
 #include <protobuf-c/protobuf-c.h>
 
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/hex.h>
@@ -48,7 +49,7 @@
 #include <dns/name.h>
 #include <dns/result.h>
 
-#include "lib/dns/dnstap.pb-c.h"
+#include "dnstap.pb-c.h"
 
 isc_mem_t *mctx = NULL;
 bool memrecord = false;
@@ -68,8 +69,8 @@ const char *program = "dnstap-read";
 		}                                                     \
 	} while (0)
 
-ISC_PLATFORM_NORETURN_PRE static void
-fatal(const char *format, ...) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+fatal(const char *format, ...);
 
 static void
 fatal(const char *format, ...) {

@@ -583,7 +583,7 @@ struct dns_resolver {
 #ifdef ENABLE_AFL
 bool dns_fuzzing_resolver = false;
 void
-dns_resolver_setfuzzing() {
+dns_resolver_setfuzzing(void) {
 	dns_fuzzing_resolver = true;
 }
 #endif /* ifdef ENABLE_AFL */

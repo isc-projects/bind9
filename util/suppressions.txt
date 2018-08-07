@@ -1,3 +1,5 @@
 unmatchedSuppression:*
 preprocessorErrorDirective:*
 unknownMacro:*
+uselessAssignmentPtrArg:libltdl/loaders/preopen.c:201
+deallocret:libltdl/lt__alloc.c:78

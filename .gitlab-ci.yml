@@ -32,6 +32,7 @@ variables:
   TARBALL_EXTENSION: xz
 
 stages:
+  - autoconf
   - precheck
   - build
   - unit
@@ -168,7 +169,7 @@ stages:
 .autoconf: &autoconf_job
   <<: *release_branch_triggering_rules
   <<: *base_image
-  stage: precheck
+  stage: autoconf
   script:
     - autoreconf -fi
   artifacts:
@@ -186,6 +187,7 @@ stages:
     --with-json-c \
     --prefix=$HOME/.local \
     --without-make-clean \
+    --with-python=python3 \
     $EXTRA_CONFIGURE \
     || cat config.log
 
@@ -253,8 +255,8 @@ stages:
     - *setup_interfaces
     - *setup_softhsm
   script:
-    - ( cd bin/tests/system && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
-    - test -s bin/tests/system/systests.output
+    - ( cd bin/tests/system && make -j${TEST_PARALLEL_JOBS:-1} -k check V=1 ) || cat bin/tests/system/test-suite.log
+    - test -s bin/tests/system/test-suite.log
 
 .system_test: &system_test_job
   <<: *system_test_common
@@ -313,9 +315,7 @@ stages:
   before_script:
     - *setup_softhsm
   script:
-    - make unit
-  after_script:
-    - *kyua_report_html
+    - cd lib && make -j${TEST_PARALLEL_JOBS:-1} -k check V=1
 
 .unit_test: &unit_test_job
   <<: *unit_test_common
@@ -328,16 +328,12 @@ stages:
   <<: *unit_test_common
   allow_failure: true
   after_script:
-    - *kyua_report_html
     - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
   artifacts:
     expire_in: "1 day"
     paths:
       - lib/*/tests/tsan.*
       - tsan/
-      - kyua.log
-      - kyua.results
-      - kyua_html/
     when: on_failure
 
 .cppcheck_args: &run_cppcheck |
@@ -377,7 +373,6 @@ autoreconf:
 misc:
   <<: *precheck_job
   script:
-    - sh util/check-ans-prereq.sh
     - sh util/checklibs.sh > checklibs.out
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
@@ -451,16 +446,14 @@ tarball-create:
   stage: precheck
   <<: *base_image
   script:
-    - source version
-    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
-    - git archive --prefix="${BIND_DIRECTORY}/" --output="${BIND_DIRECTORY}.tar" HEAD
-    - mkdir "${BIND_DIRECTORY}"
-    - echo "SRCID=$(git rev-list --max-count=1 HEAD | cut -b1-7)" > "${BIND_DIRECTORY}/srcid"
-    - tar --append --file="${BIND_DIRECTORY}.tar" "${BIND_DIRECTORY}/srcid"
-    - ${TARBALL_COMPRESSOR} "${BIND_DIRECTORY}.tar"
+    - *configure
+    - make -j${BUILD_PARALLEL_JOBS:-1} dist V=1
   artifacts:
     paths:
-      - bind-*.tar.${TARBALL_EXTENSION}
+      - bind-*.tar.*
+  needs:
+    - job: autoreconf
+      artifacts: true
   only:
     - tags
 
@@ -477,6 +470,7 @@ docs:
   needs:
     - job: autoreconf
       artifacts: true
+  allow_failure: true
   artifacts:
     paths:
       - doc/arm/
@@ -524,7 +518,7 @@ gcc:centos6:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error --without-python"
   <<: *centos_centos6_amd64_image
   <<: *build_job
 
@@ -805,7 +799,7 @@ gcc:tumbleweed:amd64:
   variables:
     CC: gcc
     CFLAGS: "${CFLAGS_COMMON}"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn2 --with-python"
   <<: *tumbleweed_latest_amd64_image
   <<: *build_job
 
@@ -1152,76 +1146,16 @@ system:clang:openbsd6.6:amd64:
     - schedules
     - web
 
-# Jobs for Visual Studio 2017 builds on Windows (amd64)
-
-msvc:windows:amd64:
-  <<: *windows_build_job
-  <<: *default_triggering_rules
-  variables:
-    VSCONF: Release
-
-system:msvc:windows:amd64:
-  <<: *windows_system_test_job
-  variables:
-    VSCONF: Release
-  needs:
-    - job: msvc:windows:amd64
-      artifacts: true
-
-msvc-debug:windows:amd64:
-  <<: *windows_build_job
-  variables:
-    VSCONF: Debug
-  only:
-    - schedules
-    - tags
-    - web
-
-system:msvc-debug:windows:amd64:
-  <<: *windows_system_test_job
-  variables:
-    VSCONF: Debug
-  needs:
-    - job: msvc-debug:windows:amd64
-      artifacts: true
-
 # Job producing a release tarball
 
 release:
   <<: *base_image
   stage: release
   script:
-    # Determine BIND version
-    - source version
-    - export BIND_DIRECTORY="bind-${MAJORVER}.${MINORVER}.${PATCHVER}${RELEASETYPE}${RELEASEVER}"
-    # Remove redundant files and system test utilities from Windows build artifacts
-    - find Build/Release/ -name "*.pdb" -print -delete
-    - find Build/Debug/ \( -name "*.bsc" -o -name "*.idb" \) -print -delete
-    - find Build/ -regextype posix-extended -regex "Build/.*/($(find bin/tests/ -type f | sed -nE "s|^bin/tests(/system)?/win32/(.*)\.vcxproj$|\2|p" | paste -d"|" -s))\..*" -print -delete
-    # Create Windows zips
-    - openssl dgst -sha256 "${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" | tee Build/Release/SHA256 Build/Debug/SHA256
-    - ( cd Build/Release; zip "../../BIND${BIND_DIRECTORY#bind-}.x64.zip" * )
-    - ( cd Build/Debug; zip "../../BIND${BIND_DIRECTORY#bind-}.debug.x64.zip" * )
-    # Prepare release tarball contents (tarballs + zips + documentation)
-    - mkdir -p release/doc/arm
-    - pushd release
-    - mv "../${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}" ../BIND*.zip .
-    - tar --extract --file="${BIND_DIRECTORY}.tar.${TARBALL_EXTENSION}"
-    - mv "${BIND_DIRECTORY}"/{CHANGES*,COPYRIGHT,LICENSE,README,srcid} .
-    - mv "${BIND_DIRECTORY}"/doc/arm/{Bv9ARM{*.html,.pdf},man.*,notes.{html,pdf,txt}} doc/arm/
-    - rm -rf "${BIND_DIRECTORY}"
-    - cp doc/arm/notes.html "RELEASE-NOTES-${BIND_DIRECTORY}.html"
-    - cp doc/arm/notes.pdf "RELEASE-NOTES-${BIND_DIRECTORY}.pdf"
-    - cp doc/arm/notes.txt "RELEASE-NOTES-${BIND_DIRECTORY}.txt"
-    - popd
     # Create release tarball
     - tar --create --file="${CI_COMMIT_TAG}.tar.gz" --gzip release/
   needs:
     - job: tarball-create
-      artifacts: true
-    - job: msvc:windows:amd64
-      artifacts: true
-    - job: msvc-debug:windows:amd64
       artifacts: true
   only:
     - tags

@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/lex.h>
@@ -68,8 +69,8 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
 static void
 evaluate_prereq(isc_mem_t *mctx, char *cmdline, dns_name_t *name);
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {

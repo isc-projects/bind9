@@ -16,6 +16,7 @@
 #include <time.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/base32.h>
 #include <isc/commandline.h>
 #include <isc/event.h>
@@ -137,8 +138,8 @@ loadzone(char *file, char *origin, dns_rdataclass_t rdclass, dns_db_t **db) {
 	}
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {
@@ -147,7 +148,7 @@ usage(void) {
 
 	fprintf(stderr, "\n");
 
-	fprintf(stderr, "Version: %s\n", VERSION);
+	fprintf(stderr, "Version: %s\n", PACKAGE_VERSION);
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-v debuglevel (0)\n");

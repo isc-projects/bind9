@@ -40,7 +40,6 @@
 #include <dns/log.h>
 #include <dns/rbt.h>
 #include <dns/result.h>
-#include <dns/version.h>
 
 #define CHECK(x)                             \
 	do {                                 \
@@ -447,7 +446,7 @@ init_file_version(void) {
 
 	memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
 	n = snprintf(FILE_VERSION, sizeof(FILE_VERSION), "RBT Image %s %s",
-		     dns_major, dns_mapapi);
+		     PACKAGE_VERSION_MAJOR, MAPAPI);
 	INSIST(n > 0 && (unsigned int)n < sizeof(FILE_VERSION));
 }
 

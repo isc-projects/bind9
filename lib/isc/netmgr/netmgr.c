@@ -116,7 +116,7 @@ static const isc_statscounter_t unixstatsindex[] = {
  * request using async_cb.
  */
 
-ISC_THREAD_LOCAL int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
+static thread_local int isc__nm_tid_v = ISC_NETMGR_TID_UNKNOWN;
 
 static void
 nmsocket_maybe_destroy(isc_nmsocket_t *sock);
@@ -130,12 +130,12 @@ static void
 process_queue(isc__networker_t *worker, isc_queue_t *queue);
 
 int
-isc_nm_tid() {
+isc_nm_tid(void) {
 	return (isc__nm_tid_v);
 }
 
 bool
-isc__nm_in_netthread() {
+isc__nm_in_netthread(void) {
 	return (isc__nm_tid_v >= 0);
 }
 

@@ -237,10 +237,10 @@ dst__pkcs11ecdsa_init(struct dst_func **funcp);
 isc_result_t
 dst__pkcs11eddsa_init(struct dst_func **funcp);
 #endif /* USE_PKCS11 */
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 isc_result_t
 dst__gssapi_init(struct dst_func **funcp);
-#endif /* GSSAPI */
+#endif /* HAVE_GSSAPI*/
 
 /*%
  * Destructors

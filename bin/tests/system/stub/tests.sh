@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp -p ${PORT}"
@@ -56,7 +55,7 @@ digcomp knowngood.dig.out.rec dig.out.ns3 || ret=1
 	$PERL $SYSTEMTESTTOP/stop.pl stub ns3
 
 	echo_i "re-starting stub server"
-	$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} stub ns3
+	start --noclean --restart --port ${PORT} stub ns3
 }
 done
 

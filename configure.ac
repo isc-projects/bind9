@@ -7,23 +7,93 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-AC_INIT(BIND, [9.17], [info@isc.org], [], [https://www.isc.org/downloads/])
-AC_PREREQ([2.60])
+#
+# Defining the version in m4 requires a bit of dancing around,
+# so the strings are properly concatenated, as you can't use
+# a shell variable in AC_INIT()
+#
+m4_define([bind_VERSION_MAJOR], 9)dnl
+m4_define([bind_VERSION_MINOR], 17)dnl
+m4_define([bind_VERSION_PATCH], 1)dnl
+m4_define([bind_VERSION_EXTRA], -dev)dnl
+m4_define([bind_DESCRIPTION], [(Development Release)])dnl
+m4_define([bind_SRCID], [m4_esyscmd_s([if test -f srcid; then cat srcid; else git rev-parse --short HEAD 2>/dev/null; fi])])dnl
+m4_define([bind_PKG_VERSION], [[bind_VERSION_MAJOR.bind_VERSION_MINOR.bind_VERSION_PATCH]bind_VERSION_EXTRA])dnl
+
+#
+# Autoconf initialization
+#
+AC_INIT([BIND], bind_PKG_VERSION, [info@isc.org], [], [https://www.isc.org/downloads/])
+AC_PREREQ(2.60)
+
+AC_DEFINE([PACKAGE_VERSION_MAJOR], ["][bind_VERSION_MAJOR]["], [BIND 9 Major part of the version])
+AC_DEFINE([PACKAGE_VERSION_MINOR], ["][bind_VERSION_MINOR]["], [BIND 9 Minor part of the version])
+AC_DEFINE([PACKAGE_VERSION_PATCH], ["][bind_VERSION_PATCH]["], [BIND 9 Patch part of the version])
+AC_DEFINE([PACKAGE_VERSION_EXTRA], ["][bind_VERSION_EXTRA]["], [BIND 9 Extra part of the version])
+AC_DEFINE([PACKAGE_DESCRIPTION], [m4_ifnblank(bind_DESCRIPTION, [" ]bind_DESCRIPTION["], [])], [An extra string to print after PACKAGE_STRING])
+AC_DEFINE([PACKAGE_SRCID], ["][bind_SRCID]["], [A short hash from git])
+
+# This value should be increased whenever changing the structure of
+# any object that will appear in a type 'map' master file (which
+# contains a working memory image of an RBT database), as loading 
+# an incorrect memory image produces an inconsistent and probably
+# nonfunctional database.  These structures include but are not
+# necessarily limited to dns_masterrawheader, rbtdb_file_header,
+# rbt_file_header, dns_rbtdb, dns_rbt, dns_rbtnode, rdatasetheader.
+#
+# Err on the side of caution: if anything in the RBTDB is changed,
+# bump the value.  Making map files unreadable protects the system
+# from instability; it's a feature not a bug.
+#
+# Whenever releasing a new major release of BIND9, set this value
+# back to 1.0 when releasing the first alpha.  Map files are *never*
+# compatible across major releases.
+AC_DEFINE([MAPAPI], ["2.0"], [BIND 9 MAPAPI Version])
+
+bind_CONFIGARGS="${ac_configure_args:-default}"
+AC_DEFINE_UNQUOTED([PACKAGE_CONFIGARGS], ["$bind_CONFIGARGS"], [Either 'defaults' or used ./configure options])
+
+AC_DEFINE([PACKAGE_BUILDER], ["make"], [make or Visual Studio])
+
+AC_CONFIG_SRCDIR([bin/named/main.c])
+AM_INIT_AUTOMAKE([foreign subdir-objects dist-xz -Wall -Werror])
+AM_SILENT_RULES([yes])
+
+AC_CONFIG_HEADERS([config.h])
+AC_CONFIG_MACRO_DIR([m4])
 
 #
 # Enable maintainer mode by default, but allow to disable it in the CI
 #
 AM_MAINTAINER_MODE([enable])
 
-AC_CONFIG_HEADER(config.h)
-AC_CONFIG_MACRO_DIR([m4])
+# Set the library versions
+# https://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 
-AC_CANONICAL_HOST
+AX_BIND9_LIB_VERSION([bind9])
+AX_BIND9_LIB_VERSION([dns])
+AX_BIND9_LIB_VERSION([irs])
+AX_BIND9_LIB_VERSION([isc])
+AX_BIND9_LIB_VERSION([isccc])
+AX_BIND9_LIB_VERSION([isccfg])
+AX_BIND9_LIB_VERSION([ns])
 
 #
 # Enable system extensions to C and POSIX
 #
 AC_USE_SYSTEM_EXTENSIONS
+AC_CANONICAL_HOST
+
+#
+# Compiler compatibility flags
+#
+AC_PROG_CC_C99
+AC_PROG_CPP_WERROR
+
+#
+# Find the machine's endian flavor.
+#
+AC_C_BIGENDIAN
 
 #
 # Enable large file support
@@ -31,18 +101,13 @@ AC_USE_SYSTEM_EXTENSIONS
 AC_SYS_LARGEFILE
 AC_FUNC_FSEEKO
 
-LFS_CFLAGS=`getconf LFS_CFLAGS 2>/dev/null`
-LFS_LDFLAGS=`getconf LFS_LDFLAGS 2>/dev/null`
-LFS_LIBS=`getconf LFS_LIBS 2>/dev/null`
-
-AC_SUBST([LFS_CFLAGS])
-AC_SUBST([LFS_LDFLAGS])
-AC_SUBST([LFS_LIBS])
-
 # Enable RFC 3542 APIs on macOS
 AC_DEFINE([__APPLE_USE_RFC_3542], [1], [Select RFC3542 IPv6 API on macOS])
 
 AC_PROG_MAKE_SET
+
+# Checks for programs.
+m4_ifdef([AM_PROG_AR], [AM_PROG_AR]) # call AM_PROG_AR only if available
 
 AC_PROG_LIBTOOL
 AS_IF([test -z "$LIBTOOL"],
@@ -51,11 +116,57 @@ AC_PROG_INSTALL
 AC_PROG_LN_S
 AX_POSIX_SHELL
 
-AC_SUBST(STD_CINCLUDES)
-AC_SUBST(STD_CDEFINES)
-AC_SUBST(STD_CWARNINGS)
-AC_SUBST(CCOPT)
-AC_SUBST(CCNOOPT)
+# Initialize libtool
+LT_INIT([dlopen])
+
+LT_CONFIG_LTDL_DIR([libltdl])
+LTDL_INIT([recursive])
+AC_CONFIG_FILES([libltdl/Makefile])
+
+#
+# Set the default CFLAGS and CPPFLAGS
+#
+STD_CFLAGS="-Wall -Wextra -Wwrite-strings -Wcast-qual -Wpointer-arith -Wno-missing-field-initializers -Wformat -Wshadow"
+
+# These should be always errors
+STD_CFLAGS="$STD_CFLAGS -Werror=implicit-function-declaration -Werror=missing-prototypes -Werror=format-security -Werror=parentheses -Werror=implicit -Werror=strict-prototypes"
+
+# Fortify the sources by default
+STD_CPPFLAGS="-D_FORTIFY_SOURCE=2"
+
+#
+# Additional compiler settings.
+#
+AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
+		      [STD_CFLAGS="$STD_CFLAGS -fno-strict-aliasing"])
+AX_CHECK_COMPILE_FLAG([-fno-delete-null-pointer-checks],
+		      [STD_CFLAGS="$STD_CFLAGS -fno-delete-null-pointer-checks"])
+AX_CHECK_COMPILE_FLAG([-fdiagnostics-show-option],
+		      [STD_CFLAGS="$STD_CFLAGS -fdiagnostics-show-option"])
+
+AC_ARG_ENABLE([warn_error],
+	      [AS_HELP_STRING([--enable-warn-error],
+			      [turn on -Werror when compiling])],
+	      [],[enable_warn_error=no])
+AS_IF([test "$enable_warn_error" = "yes"],
+      [STD_CFLAGS="$STD_CFLAGS -Werror"])
+
+AC_ARG_ENABLE([developer],
+	      [AS_HELP_STRING([--enable-developer],
+			      [enable developer build settings])])
+
+AS_IF([test "$enable_developer" = "yes"],
+      [STD_CPPFLAGS="$STD_CPPFLAGS -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
+       test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
+       test "${enable_querytrace+set}" = set || enable_querytrace=yes
+       test "${with_cmocka+set}" = set || with_cmocka=yes
+       test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
+       test "${with_zlib+set}" = set || with_zlib=yes
+       test "${enable_warn_error+set}" = set || enable_warn_error=yes
+       ])
+
+AC_SUBST([STD_CFLAGS])
+AC_SUBST([STD_CPPFLAGS])
 
 #
 # Use pkg-config
@@ -75,32 +186,6 @@ AC_ARG_ENABLE(buffer_useinline,
 			        [Define if you want to use inline buffers])
 	      fi,
 	      AC_DEFINE([ISC_BUFFER_USEINLINE], [1]))
-
-AC_ARG_ENABLE([warn_shadow],
-	      [AS_HELP_STRING([--enable-warn-shadow],
-			      [turn on -Wshadow when compiling])])
-
-AC_ARG_ENABLE([warn_error],
-	      [AS_HELP_STRING([--enable-warn-error],
-			      [turn on -Werror when compiling])])
-
-AC_ARG_ENABLE([developer],
-	      [AS_HELP_STRING([--enable-developer],
-			      [enable developer build settings])])
-
-XTARGETS=
-AS_IF([test "$enable_developer" = "yes"],
-      [STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
-       test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
-       test "${enable_querytrace+set}" = set || enable_querytrace=yes
-       test "${with_cmocka+set}" = set || with_cmocka=yes
-       test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
-       test "${enable_warn_error+set}" = set || enable_warn_error=yes
-       test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
-       test "${with_zlib+set}" = set || with_zlib=yes
-       XTARGETS='${XTARGETS}'
-       ])
-AC_SUBST([XTARGETS])
 
 AC_ARG_ENABLE([fuzzing],
 	      [AS_HELP_STRING([--enable-fuzzing=<afl|libfuzzer>],
@@ -156,118 +241,47 @@ no)
 esac
 
 #
-# Make very sure that these are the first files processed by
-# config.status, since we use the processed output as the input for
-# AC_SUBST_FILE() substitutions in other files.
-#
-AC_CONFIG_FILES([make/rules make/includes])
-
-AC_PATH_PROG(AR, ar)
-ARFLAGS="cruv"
-AC_SUBST(AR)
-AC_SUBST(ARFLAGS)
-
-# The POSIX ln(1) program.  Non-POSIX systems may substitute
-# "copy" or something.
-LN=ln
-AC_SUBST(LN)
-
-case "$AR" in
-	"")
-		AC_MSG_ERROR([
-ar program not found.  Please fix your PATH to include the directory in
-which ar resides, or set AR in the environment with the full path to ar.
-])
-
-		;;
-esac
-
-#
 # Perl is optional; it is used only by some of the system test scripts.
 # Note: the backtrace feature (see below) uses perl to build the symbol table,
 # but it still compiles without perl, in which case an empty table will be used.
 #
-AC_PATH_PROGS(PERL, perl5 perl)
-AC_SUBST(PERL)
+AC_PATH_PROGS([PERL], [perl5 perl])
+AC_SUBST([PERL])
+AM_CONDITIONAL([HAVE_PERL], [test -n "$PERL"])
+
+AX_PERL_MODULE([Digest::HMAC])
+AM_CONDITIONAL([HAVE_PERLMOD_DIGEST_HMAC],
+	       [test "$HAVE_PERLMOD_DIGEST__HMAC" = "yes"])
+
+AX_PERL_MODULE([File::Fetch])
+AM_CONDITIONAL([HAVE_PERLMOD_FILE_FETCH],
+	       [test "$HAVE_PERLMOD_FILE__FETCH" = "yes"])
+
+AX_PERL_MODULE([Net::DNS])
+AM_CONDITIONAL([HAVE_PERLMOD_NET_DNS],
+	       [test "$HAVE_PERLMOD_NET__DNS" = "yes"])
+
+AX_PERL_MODULE([Net::DNS::Nameserver])
+AM_CONDITIONAL([HAVE_PERLMOD_NET_DNS_NAMESERVER],
+	       [test "$HAVE_PERLMOD_NET__DNS__NAMESERVER" = "yes"])
+
+AX_PERL_MODULE([Time::HiRes])
+AM_CONDITIONAL([HAVE_PERLMOD_TIME_HIRES],
+	       [test "$HAVE_PERLMOD_TIME__HIRES" = "yes"])
 
 #
-# Python 3 is optional; it is used by the system test scripts.
+# Python is optional, it is used only by some of the system test scripts.
 #
-testminvers='import sys
-if (sys.version_info < (3,5)):
-   exit(1)'
+AM_PATH_PYTHON([3.4], [], [:])
+AM_CONDITIONAL([HAVE_PYTHON], [test "$PYTHON" != ":"])
 
-default_with_python="python python3 python3.8 python3.7 python3.6 python3.5"
-
-AC_ARG_VAR([PYTHON], [path to python executable])
-
-AC_ARG_WITH([python],
-	    AS_HELP_STRING([--with-python=PATH],
-			   [specify path to Python 3 interpreter]),
-	    [], [with_python=$default_with_python])
-
-AS_IF([test "$with_python" = "yes"],
-      [with_python=$default_with_python])
-
-AS_IF([test "$with_python" = "no"],
-      [AC_MSG_CHECKING([for Python support])
-       unset PYTHON
-       AC_MSG_RESULT([disabled])],
-      [for p in $with_python
-       do
-	 AS_CASE([$p],
-		 [/*],[PYTHON="$p"])
-
-	 AC_PATH_PROG([PYTHON], [$p])
-	 # Do not cache the result of the check from the previous line.  If the
-	 # first found Python interpreter has missing module dependencies and
-	 # the result of the above check is cached, subsequent module checks
-	 # will erroneously keep on using the cached path to the first found
-	 # Python interpreter instead of different ones.
-	 unset ac_cv_path_PYTHON
-
-	 AS_IF([test -z "$PYTHON"], [continue])
-
-	 AC_MSG_CHECKING([if $PYTHON is Python version >= 3.5])
-	 AS_IF(["$PYTHON" -c "$testminvers" 2>/dev/null],
-	       [AC_MSG_RESULT([yes])],
-	       [AC_MSG_RESULT([no])
-		unset PYTHON
-		continue])
-
-	 # Stop looking any further once we find a Python 3 interpreter
-	 # satisfying all requirements.
-	 break
-       done])
+AX_PYTHON_MODULE([dns])
+AM_CONDITIONAL([HAVE_PYMOD_DNS], [test "$HAVE_PYMOD_DNS" = "yes"])
 
 #
-# Make sure INSTALL uses an absolute path, else it will be wrong in all
-# Makefiles, since they use make/rules.in and INSTALL will be adjusted by
-# configure based on the location of the file where it is substituted.
-# Since in BIND9 INSTALL is only substituted into make/rules.in, an immediate
-# subdirectory of install-sh, This relative path will be wrong for all
-# directories more than one level down from install-sh.
+# xsltproc is optional, it is used only by system test scripts.
 #
-case "$INSTALL" in
-	/*)
-		;;
-	*)
-		#
-		# Not all systems have dirname.
-		#
-		changequote({, })
-		ac_dir="`echo $INSTALL | sed 's%/[^/]*$%%'`"
-		changequote([, ])
-
-		ac_prog="`echo $INSTALL | sed 's%.*/%%'`"
-		test "X$ac_dir" = "X$ac_prog" && ac_dir=.
-		test -d "$ac_dir" && ac_dir="`(cd \"$ac_dir\" && pwd)`"
-		INSTALL="$ac_dir/$ac_prog"
-		;;
-esac
-
-AC_PROG_CC
-AC_PROG_CC_C99
+AC_PATH_PROG([XSLTPROC], [xsltproc])
 
 #
 # Using Solaris linker with gcc on Solaris breaks Thread Local Storage
@@ -280,63 +294,25 @@ AS_CASE([$host],
 		  ])
 	])
 
-#
-# CCNOOPT defaults to -O0 on gcc and disables optimization when is last
-#
-if test "X$CCNOOPT" = "X" -a "X$GCC" = "Xyes"; then
-	CCNOOPT="-O0"
-fi
-
 AC_HEADER_STDC
 
-AC_CHECK_HEADERS(fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/param.h sys/sysctl.h net/if6.h sys/socket.h net/route.h linux/netlink.h linux/rtnetlink.h,,,
-[$ac_includes_default
-#ifdef HAVE_SYS_PARAM_H
-# include <sys/param.h>
-#endif
-#ifdef HAVE_SYS_SOCKET_H
-# include <sys/socket.h>
-#endif
-])
+AC_CHECK_HEADERS([fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/param.h sys/sysctl.h net/if6.h sys/socket.h net/route.h linux/netlink.h linux/rtnetlink.h], [], [],
+		 [$ac_includes_default
+		  #ifdef HAVE_SYS_PARAM_H
+		  # include <sys/param.h>
+		  #endif
+		  #ifdef HAVE_SYS_SOCKET_H
+		  # include <sys/socket.h>
+		  #endif
+		 ])
 
 #
 # Check for thread local storage
 #
-AC_CHECK_HEADERS([threads.h],
-		 [
-		     AC_MSG_CHECKING([for C11 Thread-Local Storage using thread_local])
-		     AC_COMPILE_IFELSE(
-			 [AC_LANG_PROGRAM(
-			      [
-				  #include <threads.h>
-			      ],[
-				  static thread_local int tls = 0;
-				  return (tls);
-			      ])
-			 ],[
-			     AC_MSG_RESULT([yes])
-			     AC_DEFINE([HAVE_THREAD_LOCAL],[1],[Define if thread_local keyword is available])
-			     AC_DEFINE([HAVE_TLS],[1],[Define if Thread-Local Storage is available])
-			 ],[
-			     AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])
-			 ])
-		 ],[
-		     AC_MSG_CHECKING([for Thread-Local Storage using __thread])
-		     AC_COMPILE_IFELSE(
-			 [AC_LANG_PROGRAM(
-			      [
-			      ],[
-				  static __thread int tls = 0;
-				  return (tls);
-			      ])
-			 ],[
-			     AC_MSG_RESULT([yes])
-			     AC_DEFINE([HAVE___THREAD],[1],[Define if __thread keyword is available])
-			     AC_DEFINE([HAVE_TLS],[1],[Define if Thread-Local Storage is available])
-			 ],[
-			     AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])
-			 ])
-		 ])
+AC_CHECK_HEADERS([threads.h])
+AX_TLS([AS_IF([test "$ac_cv_tls" != "thread_local"],
+	      [AC_DEFINE_UNQUOTED([thread_local], [$ac_cv_tls], [Define if the compiler uses a different keyword than thread_local for TLS variables])])],
+       [AC_MSG_ERROR([Thread Local Storage support required, update your toolchain to build BIND 9])])
 
 AC_C_CONST
 AC_C_INLINE
@@ -381,8 +357,8 @@ AC_CHECK_FUNCS(mmap)
 #
 # Older versions of HP/UX don't define seteuid() and setegid()
 #
-AC_CHECK_FUNCS(seteuid setresuid)
-AC_CHECK_FUNCS(setegid setresgid)
+AC_CHECK_FUNCS([seteuid setresuid])
+AC_CHECK_FUNCS([setegid setresgid])
 
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
@@ -415,16 +391,7 @@ AC_COMPILE_IFELSE(
 #
 # check for GCC noreturn attribute
 #
-AC_MSG_CHECKING(for GCC noreturn attribute)
-AC_TRY_COMPILE([],[void foo() __attribute__((noreturn));],
-	[AC_MSG_RESULT(yes)
-		ISC_PLATFORM_NORETURN_PRE="#define ISC_PLATFORM_NORETURN_PRE"
-		ISC_PLATFORM_NORETURN_POST="#define ISC_PLATFORM_NORETURN_POST __attribute__((noreturn))"],
-	[AC_MSG_RESULT(no)
-		ISC_PLATFORM_NORETURN_PRE="#define ISC_PLATFORM_NORETURN_PRE"
-		ISC_PLATFORM_NORETURN_POST="#define ISC_PLATFORM_NORETURN_POST"])
-AC_SUBST(ISC_PLATFORM_NORETURN_PRE)
-AC_SUBST(ISC_PLATFORM_NORETURN_POST)
+AX_GCC_FUNC_ATTRIBUTE([noreturn])
 
 #
 # check if we have kqueue
@@ -460,21 +427,10 @@ AS_IF([test "$enable_devpoll" = "yes"],
       [AC_CHECK_HEADERS([sys/devpoll.h devpoll.h])])
 
 #
-# Find the machine's endian flavor.
-#
-AC_C_BIGENDIAN
-
-#
 # GeoIP support?
 #
 # Should be on by default if libmaxminddb exists.
 #
-AC_ARG_WITH([geoip2],
-	    [AS_HELP_STRING([--with-geoip2],
-			    [deprecated, use --with-maxminddb])],
-	    [AC_MSG_WARN([--with-geoip2 is DEPRECATED and will be removed in a future release, use --with-maxminddb instead])],
-	    [with_geoip2="auto"])
-
 AC_ARG_ENABLE([geoip],
 	      [AS_HELP_STRING([--disable-geoip],
 			      [support GeoIP2 geolocation ACLs if available [default=yes]])],
@@ -483,35 +439,27 @@ AC_ARG_ENABLE([geoip],
 AC_ARG_WITH([maxminddb],
 	    [AS_HELP_STRING([--with-maxminddb=PATH],
 			    [Build with MaxMind GeoIP2 support (auto|yes|no|path) [default=auto]])],
-	    [], [with_maxminddb="$with_geoip2"])
+	    [], [with_maxminddb="auto"])
 
-GEOIP2LINKSRCS=
-GEOIP2LINKOBJS=
 AS_IF([test "$enable_geoip" = "yes"],
       [AS_CASE([$with_maxminddb],
 	       [no],[AC_MSG_ERROR([Use '--disable-geoip' to disable the GeoIP])],
 	       [auto],[PKG_CHECK_MODULES([MAXMINDDB], [libmaxminddb],
 					 [AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
 					  PKG_CHECK_VAR([MAXMINDDB_PREFIX], [libmaxminddb], [prefix], [], [AC_MSG_ERROR([libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment])])
-					  GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-					  GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
 					 ],[:])],
 	       [yes],[PKG_CHECK_MODULES([MAXMINDDB], [libmaxminddb],
 					[AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
 					 PKG_CHECK_VAR([MAXMINDDB_PREFIX], [libmaxminddb], [prefix], [], [AC_MSG_ERROR([libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment])])
-					 GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-					 GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
 					])],
 	       [ # default
 		   AX_SAVE_FLAGS([maxminddb])
 		   MAXMINDDB_CFLAGS="-I$with_maxminddb/include"
 		   MAXMINDDB_LIBS="-L$with_maxminddb/lib"
 		   CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
-		   LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
+		   LIBS="$LIBS $MAXMINDDB_LIBS"
 		   AC_SEARCH_LIBS([MMDB_open], [maxminddb],
 				  [AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
-				   GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-				   GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
 				   MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_mmdb_open"
 				   AC_MSG_NOTICE([GeoIP2 default database path set to $with_maxminddb/share/GeoIP])
 				   AS_VAR_COPY([MAXMINDDB_PREFIX], [$with_maxminddb])
@@ -522,15 +470,10 @@ AS_IF([test "$enable_geoip" = "yes"],
        AC_ARG_VAR([MAXMINDDB_PREFIX], [value of prefix for MAXMINDDB, overriding pkg-config])
 ])
 
+AM_CONDITIONAL([HAVE_GEOIP2], [test -n "$MAXMINDDB_LIBS"])
+
 AC_SUBST([MAXMINDDB_CFLAGS])
 AC_SUBST([MAXMINDDB_LIBS])
-AC_SUBST([GEOIP2LINKSRCS])
-AC_SUBST([GEOIP2LINKOBJS])
-
-#
-# Do we have arc4random(), etc ?
-#
-AC_CHECK_FUNCS(arc4random arc4random_buf arc4random_uniform getrandom)
 
 AX_PTHREAD
 
@@ -584,7 +527,7 @@ AC_CHECK_FUNCS([pthread_setname_np pthread_set_name_np])
 AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 
 # libuv
-AC_MSG_CHECKING(for libuv)
+AC_MSG_CHECKING([for libuv])
 PKG_CHECK_MODULES([LIBUV], [libuv >= 1.0.0], [],
 		  [AC_MSG_ERROR([libuv not found])])
 AX_SAVE_FLAGS([libuv])
@@ -595,6 +538,7 @@ LIBS="$LIBS $LIBUV_LIBS"
 # Those functions are only provided in newer versions of libuv, we'll be emulating them
 # for now
 AC_CHECK_FUNCS([uv_handle_get_data uv_handle_set_data uv_import])
+AX_RESTORE_FLAGS([libuv])
 
 #
 # flockfile is usually provided by pthreads
@@ -605,8 +549,6 @@ AC_CHECK_FUNCS([flockfile getc_unlocked])
 # Look for sysconf to allow detection of the number of processors.
 #
 AC_CHECK_FUNCS([sysconf])
-
-AC_SUBST(ALWAYS_DEFINES)
 
 #
 # Do we want to use pthread rwlock?
@@ -751,12 +693,10 @@ AX_RESTORE_FLAGS([openssl])
 AC_SUBST([OPENSSL_CFLAGS])
 AC_SUBST([OPENSSL_LIBS])
 
-PKCS11_TOOLS=
-PKCS11_TEST=
 #
 # was --enable-native-pkcs11 specified?
 #
-AC_ARG_ENABLE(native-pkcs11,
+AC_ARG_ENABLE([native-pkcs11],
 	      AS_HELP_STRING([--enable-native-pkcs11],
 			     [use native PKCS11 for public-key crypto [default=no]]),
 	      [:], [enable_native_pkcs11="no"])
@@ -764,25 +704,16 @@ AC_ARG_ENABLE(native-pkcs11,
 AC_MSG_CHECKING([for PKCS11 for Public-Key Cryptography])
 AS_CASE([$enable_native_pkcs11],
 	[no],[AC_MSG_RESULT([no])],
-	[yes],[PKCS11_TOOLS=pkcs11
-	       PKCS11_TEST=pkcs11
-	       CRYPTO=pkcs11
-	       AS_IF([$use_threads],
-		     [:],
-		     [AC_MSG_ERROR([PKCS11 requires threading support])])
+	[yes],[CRYPTO=pkcs11
 	       AC_MSG_RESULT([yes])
 	       AC_CHECK_FUNCS([getpassphrase])
 	      ])
-AC_SUBST([PKCS11_TEST])
-AC_SUBST([PKCS11_TOOLS])
+AM_CONDITIONAL([HAVE_PKCS11], [test "$CRYPTO" = "pkcs11"])
 
 AC_SUBST([CRYPTO])
 AS_CASE([$CRYPTO],
 	[pkcs11],[AC_DEFINE([USE_PKCS11], [1], [define if PKCS11 is used for Public-Key Cryptography])],
 	[AC_DEFINE([USE_OPENSSL], [1], [define if OpenSSL is used for Public-Key Cryptography])])
-
-# preparation for automake
-# AM_CONDITIONAL([PKCS11_TOOLS], [test "$with_native_pkcs11" = "yes"])
 
 #
 # was --with-pkcs11 specified?
@@ -797,301 +728,69 @@ AS_CASE([$with_pkcs11],
 	[no|undefined],[with_pkcs11="undefined"])
 AC_DEFINE_UNQUOTED([PK11_LIB_LOCATION], ["$with_pkcs11"], [define the default PKCS11 library path])
 
-# for PKCS11 benchmarks
+AC_CHECK_FUNCS([clock_gettime])
 
-have_clock_gt=no
-AC_CHECK_FUNC(clock_gettime,have_clock_gt=yes,)
-if test "no" = "$have_clock_gt"; then
-	AC_CHECK_LIB(rt,clock_gettime,have_clock_gt=rt,)
-fi
-
-if test "no" != "$have_clock_gt"; then
-	AC_DEFINE(HAVE_CLOCK_GETTIME, 1, [Define if clock_gettime is available.])
-fi
-
-if test "rt" = "$have_clock_gt"; then
-	LIBS="-lrt $LIBS"
-fi
-
-AC_MSG_CHECKING(for GSSAPI library)
-AC_ARG_WITH(gssapi,
-	    AS_HELP_STRING([--with-gssapi=[PATH|[/path/]krb5-config]],
+AC_ARG_WITH([gssapi],
+	    [AS_HELP_STRING([--with-gssapi=[PATH|[/path/]krb5-config]],
 			   [Specify path for system-supplied GSSAPI
-				[default=auto]]),
-	    use_gssapi="$withval", use_gssapi="auto")
+				[default=auto]])],
+	    [], [with_gssapi="auto"])
 
-# first try using krb5-config, if that does not work then fall back to "yes" method.
+KRB5_CONFIG=
+AS_CASE([$with_gssapi],
+	[no],[AC_MSG_CHECKING([for GSSAPI support])
+	      AC_MSG_RESULT([no])],
+	[yes],[AC_PATH_PROG([KRB5_CONFIG], [krb5-config])
+	       AS_IF([test -z "$KRB5_CONFIG"],
+		     [AC_MSG_ERROR([krb5-config required but not found])])],
+	[auto],[AC_PATH_PROG([KRB5_CONFIG], [krb5-config])],
+	[*krb5-config*],[KRB5_CONFIG="$with_gssapi"],
+	[AC_MSG_ERROR([--with-gssapi requires yes|no|auto|/path/to/krb5-config])])
 
-case "$use_gssapi" in
-*/krb5-config|krb5-config)
-    AC_MSG_RESULT(trying $use_gssapi)
-    if test krb5-config = "$use_gssapi"
-    then
-	AC_PATH_PROG(KRB5_CONFIG, $use_gssapi)
-    else
-	KRB5_CONFIG="$use_gssapi"
-    fi
-    gssapi_cflags=`$KRB5_CONFIG --cflags gssapi`
-    gssapi_libs=`$KRB5_CONFIG --libs gssapi`
-    saved_cppflags="$CPPFLAGS"
-    CPPFLAGS="$gssapi_cflags $CPPFLAGS"
-    AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
-	[ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"])
-    if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
-	AC_MSG_RESULT([krb5-config: gssapi.h not found])
-	CPPFLAGS="$saved_cppflags"
-	use_gssapi="yes"
-    else
-	AC_CHECK_HEADERS(krb5/krb5.h krb5.h,
-	    [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"])
-	if test "" = "$ISC_PLATFORM_KRB5HEADER"; then
-	    AC_MSG_RESULT([krb5-config: krb5.h not found])
-	    CPPFLAGS="$saved_cppflags"
-	    use_gssapi="yes"
-	else
-	    CPPFLAGS="$saved_cppflags"
-	    saved_libs="$LIBS"
-	    LIBS=$gssapi_libs
-	    AC_MSG_CHECKING([krb5-config linking as $LIBS])
-	    AC_TRY_LINK( , [gss_acquire_cred();krb5_init_context()],
-		gssapi_linked=yes, gssapi_linked=no)
-	    case $gssapi_linked in
-		yes) AC_MSG_RESULT([krb5-config: linked]);;
-		no)  AC_MSG_RESULT([krb5-config: could not determine proper GSSAPI linkage])
-		    use_gssapi="yes"
-		    ;;
-	    esac
-	    LIBS=$saved_libs
-	fi
-    fi
-    if test "yes" = "$use_gssapi"; then
-	AC_MSG_CHECKING([for GSSAPI library, non krb5-config method])
-    fi
-    ;;
-esac
+GSSAPI_CFLAGS=
+GSSAPI_LIBS=
+KRB5_CFLAGS=
+KRB5_LIBS=
+AS_IF([test -n "$KRB5_CONFIG"],
+      [AC_MSG_CHECKING([for gssapi libraries])
+       AX_SAVE_FLAGS([gssapi])
+       GSSAPI_CFLAGS=`"$KRB5_CONFIG" --cflags gssapi`
+       GSSAPI_LIBS=`"$KRB5_CONFIG" --libs gssapi`
+       CFLAGS="$CFLAGS $GSSAPI_CFLAGS"
+       LIBS="$LIBS $GSSAPI_LIBS"
+       AC_MSG_RESULT([$GSSAPI_CFLAGS $GSSAPI_LIBS])
+       AC_CHECK_HEADERS([gssapi/gssapi.h], [],
+			[AC_CHECK_HEADERS([gssapi.h], [],
+					  [AC_MSG_ERROR([neither gssapi/gssapi.h nor gssapi.h found])])])
+       AC_CHECK_HEADERS([gssapi/gssapi_krb5.h],
+			[AC_CHECK_HEADERS([gssapi_krb5.h], []
+					  [AC_MSG_ERROR([neither gssapi/gssapi_krb5.h nor gssapi_krb5.h found])])])
+       AC_CHECK_FUNCS([gss_acquire_cred],[],
+		      [AC_MSG_ERROR([linking with $GSSAPI_LIBS does not work])])
+       AX_RESTORE_FLAGS([gssapi])
 
-case "$host" in
-*darwin*)
-	if test "yes" = "$use_gssapi" -o "auto" = "$use_gssapi"
-	then
-		use_gssapi=framework
-	fi
-	;;
-esac
+       AC_MSG_CHECKING([for krb5 libraries])
+       AX_SAVE_FLAGS([krb5])
+       KRB5_CFLAGS=`"$KRB5_CONFIG" --cflags krb5`
+       KRB5_LIBS=`$KRB5_CONFIG --libs krb5`
+       CFLAGS="$CFLAGS $KRB5_CFLAGS"
+       LIBS="$CFLAGS $KRB5_LIBS"
+       AC_MSG_RESULT([$KRB5_CFLAGS $KRB5_LIBS])
+       AC_CHECK_HEADERS([krb5/krb5.h], [],
+			[AC_CHECK_HEADERS([krb5.h], [],
+					  [AC_MSG_ERROR([neither krb5/krb5.h nor krb5 found])])])
+       AC_CHECK_FUNCS([krb5_init_context], [],
+		      [AC_MSG_ERROR([linking with $KRB5_LIBS failed])])
+       AX_RESTORE_FLAGS([krb5])
 
-# gssapi is just the framework, we really require kerberos v5, so
-# look for those headers (the gssapi headers must be there, too)
-# The problem with this implementation is that it doesn't allow
-# for the specification of gssapi and krb5 headers in different locations,
-# which probably ought to be fixed although fixing might raise the issue of
-# trying to build with incompatible versions of gssapi and krb5.
-if test "yes" = "$use_gssapi" -o "auto" = "$use_gssapi"
-then
-	# first, deal with the obvious
-	if test \( -f /usr/include/kerberosv5/krb5.h -o \
-		   -f /usr/include/krb5/krb5.h -o \
-		   -f /usr/include/krb5.h \)   -a \
-		\( -f /usr/include/gssapi.h -o \
-		   -f /usr/include/gssapi/gssapi.h \)
-	then
-		use_gssapi=/usr
-	else
-	    krb5dirs="/usr/local /usr/local/krb5 /usr/local/kerberosv5 /usr/local/kerberos /usr/pkg /usr/krb5 /usr/kerberosv5 /usr/kerberos /usr"
-	    for d in $krb5dirs
-	    do
-		if test -f $d/include/gssapi/gssapi_krb5.h -o \
-			-f $d/include/krb5.h
-		then
-			if test -f $d/include/gssapi/gssapi.h -o \
-				-f $d/include/gssapi.h
-			then
-				use_gssapi=$d
-				break
-			fi
-		fi
-	    done
-	    if test "auto" = "$use_gssapi"
-	    then
-		use_gssapi="no"
-	    fi
-	fi
-fi
-
-case "$use_gssapi" in
-	no)
-		AC_MSG_RESULT(disabled)
-		USE_GSSAPI=''
-		;;
-	yes)
-		AC_MSG_ERROR([--with-gssapi must specify a path])
-		;;
-	*/krb5-config|krb5-config)
-		USE_GSSAPI='-DGSSAPI'
-		DST_GSSAPI_INC="$gssapi_cflags"
-		DNS_GSSAPI_LIBS="$gssapi_libs"
-		;;
-	framework)
-		USE_GSSAPI='-DGSSAPI'
-		ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <Kerberos/Kerberos.h>"
-		ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <Kerberos/Kerberos.h>"
-		DNS_GSSAPI_LIBS="-framework Kerberos"
-		AC_MSG_RESULT(framework)
-		;;
-
-	*)
-		AC_MSG_RESULT(looking in $use_gssapi/lib)
-		USE_GSSAPI='-DGSSAPI'
-		saved_cppflags="$CPPFLAGS"
-		CPPFLAGS="-I$use_gssapi/include $CPPFLAGS"
-		AC_CHECK_HEADERS(gssapi.h gssapi/gssapi.h,
-		    [ISC_PLATFORM_GSSAPIHEADER="#define ISC_PLATFORM_GSSAPIHEADER <$ac_header>"
-		     gssapi_hack="#include <$ac_header>"])
-
-		if test "" = "$ISC_PLATFORM_GSSAPIHEADER"; then
-		    AC_MSG_ERROR([gssapi.h not found])
-		fi
-
-		AC_CHECK_HEADERS(gssapi_krb5.h gssapi/gssapi_krb5.h,
-		    [ISC_PLATFORM_GSSAPI_KRB5_HEADER="#define ISC_PLATFORM_GSSAPI_KRB5_HEADER <$ac_header>"
-		     gssapi_krb5_hack="#include <$ac_header>"])
-
-		AC_CHECK_HEADERS(krb5.h krb5/krb5.h kerberosv5/krb5.h,
-		    [ISC_PLATFORM_KRB5HEADER="#define ISC_PLATFORM_KRB5HEADER <$ac_header>"
-		    krb5_hack="#include <$ac_header>"])
-
-		if test "" = "$ISC_PLATFORM_KRB5HEADER"; then
-		    AC_MSG_ERROR([krb5.h not found])
-		fi
-
-		#
-		# XXXDCL This probably doesn't work right on all systems.
-		# It will need to be worked on as problems become evident.
-		#
-		# Essentially the problems here relate to two different
-		# areas.  The first area is building with either KTH
-		# or MIT Kerberos, particularly when both are present on
-		# the machine.  The other is static versus dynamic linking.
-		#
-		# On the KTH vs MIT issue, Both have libkrb5 that can mess
-		# up the works if one implementation ends up trying to
-		# use the other's krb.  This is unfortunately a situation
-		# that very easily arises.
-		#
-		# Dynamic linking when the dependency information is built
-		# into MIT's libgssapi_krb5 or KTH's libgssapi magically makes
-		# all such problems go away, but when that setup is not
-		# present, because either the dynamic libraries lack
-		# dependencies or static linking is being done, then the
-		# problems start to show up.
-		saved_libs="$LIBS"
-		for TRY_LIBS in \
-		    "-lgssapi_krb5" \
-		    "-lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err" \
-		    "-lgssapi_krb5 -lkrb5 -lk5crypto -lcom_err -lresolv" \
-		    "-lgssapi" \
-		    "-lgssapi -lkrb5 -ldes -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lgssapi_krb5 -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgssapi -lkrb5 -lhx509 -lcrypt -lasn1 -lroken -lcom_err" \
-		    "-lgss -lkrb5"
-		do
-		    # Note that this does not include $saved_libs, because
-		    # on FreeBSD machines this configure script has added
-		    # -L/usr/local/lib to LIBS, which can make the
-		    # -lgssapi_krb5 test succeed with shared libraries even
-		    # when you are trying to build with KTH in /usr/lib.
-		    if test "/usr" = "$use_gssapi"
-		    then
-			    LIBS="$TRY_LIBS $ISC_OPENSSL_LIBS"
-		    else
-			    LIBS="-L$use_gssapi/lib $TRY_LIBS $ISC_OPENSSL_LIBS"
-		    fi
-		    AC_MSG_CHECKING(linking as $TRY_LIBS)
-		    AC_TRY_LINK([
-#include <sys/types.h>
-$gssapi_hack
-$gssapi_krb5_hack
-$krb5_hack
-				] , [gss_acquire_cred(NULL, NULL, 0, NULL, 0, NULL, NULL, NULL);krb5_init_context(NULL);
-#if defined(HAVE_GSSAPI_KRB5_H) || defined(HAVE_GSSAPI_GSSAPI_KRB5_H)
-gsskrb5_register_acceptor_identity(NULL);
-#endif],
-				gssapi_linked=yes, gssapi_linked=no)
-		    case $gssapi_linked in
-		    yes) AC_MSG_RESULT(yes); break ;;
-		    no)  AC_MSG_RESULT(no) ;;
-		    esac
-		done
-
-		CPPFLAGS="$saved_cppflags"
-
-		case $gssapi_linked in
-		no) AC_MSG_ERROR(could not determine proper GSSAPI linkage) ;;
-		esac
-
-		#
-		# XXXDCL Major kludge.  Tries to cope with KTH in /usr/lib
-		# but MIT in /usr/local/lib and trying to build with KTH.
-		# /usr/local/lib can end up earlier on the link lines.
-		# Like most kludges, this one is not only inelegant it
-		# is also likely to be the wrong thing to do at least as
-		# many times as it is the right thing.  Something better
-		# needs to be done.
-		#
-		if test "/usr" = "$use_gssapi" -a \
-			-f /usr/local/lib/libkrb5.a; then
-		    FIX_KTH_VS_MIT=yes
-		fi
-
-		case "$FIX_KTH_VS_MIT" in
-		yes)
-		    case "$enable_static_linking" in
-		    yes) gssapi_lib_suffix=".a"  ;;
-		    *)   gssapi_lib_suffix=".so" ;;
-		    esac
-
-		    for lib in $LIBS; do
-			case $lib in
-			-L*)
-			    ;;
-			-l*)
-			    new_lib=`echo $lib |
-				     sed -e s%^-l%$use_gssapi/lib/lib% \
-					 -e s%$%$gssapi_lib_suffix%`
-			    NEW_LIBS="$NEW_LIBS $new_lib"
-			    ;;
-			*)
-			   AC_MSG_ERROR([KTH vs MIT Kerberos confusion!])
-			    ;;
-			esac
-		    done
-		    LIBS="$NEW_LIBS"
-		    ;;
-		esac
-
-		DST_GSSAPI_INC="-I$use_gssapi/include"
-		DNS_GSSAPI_LIBS="$LIBS"
-
-		AC_MSG_RESULT(using GSSAPI from $use_gssapi/lib and $use_gssapi/include)
-		LIBS="$saved_libs"
-		;;
-esac
-
-AC_SUBST(ISC_PLATFORM_HAVEGSSAPI)
-AC_SUBST(ISC_PLATFORM_GSSAPIHEADER)
-AC_SUBST(ISC_PLATFORM_GSSAPI_KRB5_HEADER)
-AC_SUBST(ISC_PLATFORM_KRB5HEADER)
-
-AC_SUBST(USE_GSSAPI)
-AC_SUBST(DST_GSSAPI_INC)
-AC_SUBST(DNS_GSSAPI_LIBS)
-DNS_CRYPTO_LIBS="$DNS_GSSAPI_LIBS"
-
-#
-# Applications linking with libdns also need to link with these libraries.
-#
-
-AC_SUBST(DNS_CRYPTO_LIBS)
+       AC_DEFINE([HAVE_GSSAPI], [1], [Define to 1 if you have the Kerberos Framework available])
+       # kludge to silence compiler warnings which recommend use of GSS.framework on macOS
+       AS_CASE([$host],[*-darwin*],[CFLAGS="$CFLAGS -Wno-deprecated-declarations"])])
+AM_CONDITIONAL([HAVE_GSSAPI], [test -n "$GSSAPI_LIBS"])
+AC_SUBST([GSSAPI_CFLAGS])
+AC_SUBST([GSSAPI_LIBS])
+AC_SUBST([KRB5_CFLAGS])
+AC_SUBST([KRB5_LIBS])
 
 #
 # was --with-lmdb specified?
@@ -1129,18 +828,7 @@ AS_IF([test "$ac_lib_lmdb_found" = "yes"],
 
 AC_SUBST([LMDB_CFLAGS])
 AC_SUBST([LMDB_LIBS])
-#AM_CONDITIONAL([HAVE_LMDB], [test "$ac_lib_lmdb_found" = "yes"])
-
-NZD_TOOLS=
-NZDSRCS=
-NZDTARGETS=
-AS_IF([test -n "$LMDB_LIBS"],
-      [NZD_TOOLS="nzd"
-       NZDSRCS='${NZDSRCS}'
-       NZDTARGETS='${NZDTARGETS}'])
-AC_SUBST([NZD_TOOLS])
-AC_SUBST([NZDSRCS])
-AC_SUBST([NZDTARGETS])
+AM_CONDITIONAL([HAVE_LMDB], [test -n "$LMDB_LIBS"])
 
 #
 # was --with-libxml2 specified?
@@ -1159,14 +847,7 @@ AS_CASE([$with_libxml2],
 				 [AC_DEFINE([HAVE_LIBXML2], [1], [Use libxml2 library])])],
 	[AC_MSG_ERROR([Specifying libxml2 installation path is not supported, adjust PKG_CONFIG_PATH instead])])
 
-#
-# DEPRECATED
-#
-AC_ARG_WITH([libjson],
-	    [AS_HELP_STRING([--with-libjson],
-			    [deprecated, use --with-json-c])],
-	    [AC_MSG_WARN([--with-libjson is DEPRECATED and will be removed in a future release, use --with-json-c instead])],
-	    [with_libjson="detect"])
+AM_CONDITIONAL([HAVE_LIBXML2], [test -n "$LIBXML2_LIBS"])
 
 #
 # was --with-json-c specified?
@@ -1174,7 +855,7 @@ AC_ARG_WITH([libjson],
 AC_ARG_WITH([json-c],
 	    [AS_HELP_STRING([--with-json-c],
 			    [build with json-c library [yes|no|detect] (default is detect)])],
-	    [], [with_json_c="$with_libjson"])
+	    [], [with_json_c="detect"])
 
 AS_CASE([$with_json_c],
 	[no],[],
@@ -1186,14 +867,19 @@ AS_CASE([$with_json_c],
 	[AC_MSG_ERROR([Specifying json-c installation path is not supported, adjust PKG_CONFIG_PATH instead])]
        )
 
+AM_CONDITIONAL([HAVE_JSON_C], [test -n "$JSON_C_LIBS"])
+
 AC_SUBST([JSON_C_CFLAGS])
 AC_SUBST([JSON_C_LIBS])
 
+#
+# was --with-zlib specified?
+#
 AC_ARG_WITH([zlib],
-           [AS_HELP_STRING([--with-zlib],
-                           [build with zlib for HTTP compression
-                            [default=yes]])],
-	   [], with_zlib="auto")
+	    [AS_HELP_STRING([--with-zlib],
+			    [build with zlib for HTTP compression
+			     [default=yes]])],
+	    [], with_zlib="auto")
 
 AS_CASE([$with_zlib],
        [no],[],
@@ -1205,111 +891,6 @@ AS_CASE([$with_zlib],
        [AC_MSG_ERROR([Specifying zlib installation path is not supported, adjust PKG_CONFIG_PATH instead])])
 AC_SUBST([ZLIB_CFLAGS])
 AC_SUBST([ZLIB_LIBS])
-
-#
-# In solaris 10, SMF can manage named service
-#
-AC_CHECK_LIB(scf, smf_enable_instance)
-
-#
-# Additional compiler settings.
-#
-MKDEPCC="$CC"
-
-MKDEPCFLAGS="-M"
-AS_CASE([$host],
-	[*-solaris*],[
-	    AS_IF([test "$GCC" != "yes"],
-		  [MKDEPCFLAGS="-xM"])])
-
-AS_IF([test "$GCC" = "yes"],
-      [STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith -Wno-missing-field-initializers"]
-      )
-
-AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
-		      [STD_CWARNINGS="$STD_CWARNINGS -fno-strict-aliasing"])
-AX_CHECK_COMPILE_FLAG([-fno-delete-null-pointer-checks],
-		      [STC_CWARNINGS="$STD_CWARNINGS -fno-delete-null-pointer-checks"])
-AS_IF([test "$enable_warn_shadow" = "yes"],
-      [AX_CHECK_COMPILE_FLAG([-Wshadow],
-			     [STD_CWARNINGS="$STD_CWARNINGS -Wshadow"])])
-AS_IF([test "$enable_warn_error" = "yes"],
-      [AX_CHECK_COMPILE_FLAG([-Werror],
-			     [STD_CWARNINGS="$STD_CWARNINGS -Werror"])])
-
-AC_SUBST([MKDEPCC])
-AC_SUBST([MKDEPCFLAGS])
-AC_SUBST([MKDEPPROG])
-
-#
-# -lxnet buys us one big porting headache...  standards, gotta love 'em.
-#
-# AC_CHECK_LIB(xnet, socket, ,
-#    AC_CHECK_LIB(socket, socket)
-# )
-#
-# Use this for now, instead:
-#
-case "$host" in
-	*-linux*)
-		;;
-	*)
-		AC_CHECK_LIB(socket, socket)
-		AC_CHECK_LIB(nsl, inet_addr)
-		;;
-esac
-
-#
-# Work around Solaris's select() limitations.
-#
-case "$host" in
-	*-solaris2.[[89]]|*-solaris2.1?)
-	AC_DEFINE(FD_SETSIZE, 65536,
-		  [Solaris hack to get select_large_fdset.])
-	;;
-esac
-
-#
-# Purify support
-#
-AC_MSG_CHECKING(whether to use purify)
-AC_ARG_WITH(purify,
-	    AS_HELP_STRING([--with-purify[=PATH]],[use Rational purify]),
-	    use_purify="$withval", use_purify="no")
-
-case "$use_purify" in
-	no)
-		;;
-	yes)
-		AC_PATH_PROG(purify_path, purify, purify)
-		;;
-	*)
-		purify_path="$use_purify"
-		;;
-esac
-
-case "$use_purify" in
-	no)
-		AC_MSG_RESULT(no)
-		PURIFY=""
-		;;
-	*)
-		if test -f "$purify_path" || test purify = "$purify_path"; then
-			AC_MSG_RESULT($purify_path)
-			PURIFYFLAGS="`echo $PURIFYOPTIONS`"
-			PURIFY="$purify_path $PURIFYFLAGS"
-		else
-			AC_MSG_ERROR([$purify_path not found.
-
-Please choose the proper path with the following command:
-
-    configure --with-purify=PATH
-])
-		fi
-		;;
-esac
-
-AC_SUBST(PURIFY)
 
 #
 # Google/Great Performance Tools CPU Profiler
@@ -1339,39 +920,7 @@ AC_CHECK_HEADERS([execinfo.h],
 		 [AC_SEARCH_LIBS([backtrace], [execinfo],
 				 [AC_CHECK_FUNCS([backtrace backtrace_symbols])])])
 
-# AM_CONDITIONAL([HAVE_BACKTRACE], [test "$ac_cv_func_backtrace" = "yes"])
-
-#
-# File name extension for static archive files, for those few places
-# where they are treated differently from dynamic ones.
-#
-O=lo
-A=la
-SA=a
-LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-LIBTOOL_MODE_COMPILE='--mode=compile'
-LIBTOOL_MODE_INSTALL='--mode=install'
-LIBTOOL_MODE_LINK='--mode=link'
-LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
-INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-
-AC_SUBST(O)
-AC_SUBST(A)
-AC_SUBST(SA)
-AC_SUBST(LIBTOOL_MKDEP_SED)
-AC_SUBST(LIBTOOL_MODE_COMPILE)
-AC_SUBST(LIBTOOL_MODE_INSTALL)
-AC_SUBST(LIBTOOL_MODE_LINK)
-AC_SUBST(LIBTOOL_MODE_UNINSTALL)
-AC_SUBST(INSTALL_LIBRARY)
-
-BIND9_CO_RULE=".c.$O:"
-AC_SUBST(BIND9_CO_RULE)
-
-#
-# Here begins a very long section to determine the system's networking
-# capabilities.  The order of the tests is significant.
-#
+AM_CONDITIONAL([HAVE_BACKTRACE], [test "$ac_cv_func_backtrace" = "yes"])
 
 #
 # We do the IPv6 compilation checking after libtool so that we can put
@@ -1407,7 +956,7 @@ AC_COMPILE_IFELSE(
 AC_ARG_ENABLE([tcp_fastopen],
 	      [AS_HELP_STRING([--disable-tcp-fastopen],
 			      [disable TCP Fast Open support [default=yes]])],
-	     [], [enable_tcp_fastopen="yes"])
+	      [], [enable_tcp_fastopen="yes"])
 
 AS_IF([test "$enable_tcp_fastopen" = "yes"],
       [AC_DEFINE([ENABLE_TCP_FASTOPEN], [1], [define if you want TCP_FASTOPEN enabled if available])])
@@ -1479,33 +1028,6 @@ then
 fi
 
 #
-# Use our own SPNEGO implementation?
-#
-AC_ARG_ENABLE(isc-spnego,
-	      AS_HELP_STRING([--disable-isc-spnego],
-			     [use SPNEGO from GSSAPI library]))
-
-if test -n "$USE_GSSAPI"
-then
-	case "$enable_isc_spnego" in
-		yes|'')
-			USE_ISC_SPNEGO='-DUSE_ISC_SPNEGO'
-			DST_EXTRA_OBJS="$DST_EXTRA_OBJS spnego.$O"
-			DST_EXTRA_SRCS="$DST_EXTRA_SRCS spnego.c"
-			AC_MSG_RESULT(using SPNEGO from lib/dns)
-			;;
-		no)
-			AC_MSG_RESULT(using SPNEGO from GSSAPI library)
-			;;
-	esac
-fi
-
-AC_SUBST(USE_ISC_SPNEGO)
-
-AC_SUBST(DST_EXTRA_OBJS)
-AC_SUBST(DST_EXTRA_SRCS)
-
-#
 # Security Stuff
 #
 # Note it is very recommended to *not* disable chroot(),
@@ -1543,13 +1065,6 @@ AS_IF([test "$enable_linux_caps" = "yes"],
        AX_RESTORE_FLAGS([cap])],
       [AC_MSG_RESULT([no])])
 AC_SUBST([LIBCAP_LIBS])
-
-AC_CHECK_HEADERS(sys/un.h,
-ISC_PLATFORM_HAVESYSUNH="#define ISC_PLATFORM_HAVESYSUNH 1"
-,
-ISC_PLATFORM_HAVESYSUNH="#undef ISC_PLATFORM_HAVESYSUNH"
-)
-AC_SUBST(ISC_PLATFORM_HAVESYSUNH)
 
 case "$host" in
 *-solaris*)
@@ -1713,170 +1228,35 @@ fi
 #
 # Activate "rrset-order fixed" or not?
 #
-AC_ARG_ENABLE(fixed-rrset,
-	      AS_HELP_STRING([--enable-fixed-rrset],
-			     [enable fixed rrset ordering [default=no]]),
-	      enable_fixed="$enableval", enable_fixed="no")
-case "$enable_fixed" in
-	yes)
-		AC_DEFINE(DNS_RDATASET_FIXED, 1,
-			  [Define to enable "rrset-order fixed" syntax.])
-		;;
-	no)
-		;;
-	*)
-		;;
-esac
+AC_ARG_ENABLE([fixed-rrset],
+	      [AS_HELP_STRING([--enable-fixed-rrset],
+			      [enable fixed rrset ordering [default=no]])],
+	      [], [enable_fixed_rrset="no"])
+AS_IF([test "$enable_fixed_rrset" = "yes"],
+      [AC_DEFINE([DNS_RDATASET_FIXED], [1],
+		 [Define to enable "rrset-order fixed" syntax.])])
 
 #
 # Activate dnstap?
 #
-AC_ARG_ENABLE(dnstap,
-	      AS_HELP_STRING([--enable-dnstap],
-			     [enable dnstap support
-				(requires fstrm, protobuf-c)]),
-	      use_dnstap=$enableval, use_dnstap=no)
+AC_ARG_ENABLE([dnstap],
+	      [AS_HELP_STRING([--enable-dnstap],
+			      [enable dnstap support
+			       (requires fstrm, protobuf-c)])],
+	      [], [enable_dnstap=no])
 
-DNSTAP=
-DNSTAPSRCS=
-DNSTAPOBJS=
-DNSTAPTARGETS=
-if test "x$use_dnstap" != "xno"; then
-	AC_ARG_WITH([protobuf-c],
-		    AS_HELP_STRING([--with-protobuf-c=path],
-				   [Path where protobuf-c is installed, for dnstap]), [
-	    # workaround for protobuf-c includes at old dir
-	    # before protobuf-c-1.0.0
-	    if test -f $withval/include/google/protobuf-c/protobuf-c.h
-	    then
-		CFLAGS="$CFLAGS -I$withval/include/google"
-	    else
-		CFLAGS="$CFLAGS -I$withval/include"
-	    fi
-	    LDFLAGS="$LDFLAGS -L$withval/lib"
-	    AC_PATH_PROG([PROTOC_C], [protoc-c], [],
-			 [$PATH$PATH_SEPARATOR$withval/bin])
-	], [
-	    # workaround for protobuf-c includes at old dir
-	    # before protobuf-c-1.0.0
-	    if test -f /usr/include/google/protobuf-c/protobuf-c.h
-	    then
-		CFLAGS="$CFLAGS -I/usr/include/google"
-	    else
-		if test -f /usr/local/include/google/protobuf-c/protobuf-c.h
-		then
-		    CFLAGS="$CFLAGS -I/usr/local/include/google"
-		    LDFLAGS="$LDFLAGS -L/usr/local/lib"
-		fi
-	    fi
-	    AC_PATH_PROG([PROTOC_C],[protoc-c])
-	])
-	if test -z "$PROTOC_C"; then
-		AC_MSG_ERROR([The protoc-c program was not found.])
-	fi
-	AC_ARG_WITH([libfstrm], AS_HELP_STRING([--with-libfstrm=path],
-		    [Path where libfstrm is installed, for dnstap]), [
-	    CFLAGS="$CFLAGS -I$withval/include"
-	    LDFLAGS="$LDFLAGS -L$withval/lib"
-	    AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture], [], [$PATH$PATH_SEPARATOR$withval/bin])
-	],[
-	    AC_PATH_PROG([FSTRM_CAPTURE], [fstrm_capture])
-	])
+AS_IF([test "$enable_dnstap" != "no"],
+      [PKG_CHECK_MODULES([DNSTAP], [libfstrm libprotobuf-c], [],
+			 [AC_MSG_FAILURE([Required libraries (fstrm, protobuf-c) were not found, please install them.])])
+       AC_PATH_PROG([PROTOC_C], [protoc-c], [])
+       AS_IF([test -z "$PROTOC_C"],
+	     [AC_MSG_ERROR([protoc-c compiler not found])])
+       AC_DEFINE([HAVE_DNSTAP], 1, [Define to 1 to enable dnstap support])
+      ])
 
-	AC_SEARCH_LIBS([fstrm_iothr_init], [fstrm], [],
-		       AC_MSG_ERROR([The fstrm library was not found. Please install fstrm!]))
-	AC_SEARCH_LIBS([protobuf_c_message_pack], [protobuf-c], [],
-		       AC_MSG_ERROR([The protobuf-c library was not found. Please install protobuf-c!]))
-
-	AC_DEFINE(HAVE_DNSTAP, 1, [Define to 1 to enable dnstap support])
-	DNSTAP=dnstap
-	DNSTAPSRCS='${DNSTAPSRCS}'
-	DNSTAPOBJS='${DNSTAPOBJS}'
-	DNSTAPTARGETS='${DNSTAPTARGETS}'
-fi
-AC_SUBST(DNSTAP)
-AC_SUBST(DNSTAPSRCS)
-AC_SUBST(DNSTAPOBJS)
-AC_SUBST(DNSTAPTARGETS)
-
-#
-#  The following sets up how non-blocking i/o is established.
-#  cygwin and solaris 2.x (x<5) require special handling.
-#
-case "$host" in
-*-cygwin*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
-*-solaris2.[[01234]])
-	AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK)
-	AC_DEFINE(USE_FIONBIO_IOCTL, 1,
-		  [Defined if you need to use ioctl(FIONBIO) instead a fcntl call to make non-blocking.])
-	;;
-*) AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK,
-	     [Sets which flag to pass to open/fcntl to make non-blocking (O_NDELAY/O_NONBLOCK).])
-	;;
-esac
-#
-# Solaris 2.5.1 and earlier cannot bind() then connect() a TCP socket.
-# This prevents the source address being set.
-#
-case "$host" in
-*-solaris2.[[012345]]|*-solaris2.5.1)
-	AC_DEFINE(BROKEN_TCP_BIND_BEFORE_CONNECT, 1,
-		  [Define if you cannot bind() before connect() for TCP sockets.])
-	;;
-esac
-#
-# The following sections deal with tools used for formatting
-# the documentation.  They are all optional, unless you are
-# a developer editing the documentation source.
-#
-
-#
-# Look for TeX.
-#
-
-AC_PATH_PROGS(LATEX, latex, latex)
-AC_SUBST(LATEX)
-
-AC_PATH_PROGS(PDFLATEX, pdflatex, pdflatex)
-AC_SUBST(PDFLATEX)
-
-AC_PATH_PROGS(DBLATEX, dblatex, dblatex)
-AC_SUBST(DBLATEX)
-
-#
-# Look for w3m
-#
-
-AC_PATH_PROGS(W3M, w3m, w3m)
-AC_SUBST(W3M)
-
-#
-# Look for pandoc
-#
-AC_PATH_PROG(PANDOC, pandoc, pandoc)
-AC_SUBST(PANDOC)
-
-
-#
-# Look for xsltproc (libxslt)
-#
-
-AC_PATH_PROG(XSLTPROC, xsltproc, xsltproc)
-AC_SUBST(XSLTPROC)
-
-#
-# Look for xmllint (libxml2)
-#
-
-AC_PATH_PROG(XMLLINT, xmllint, xmllint)
-AC_SUBST(XMLLINT)
-
-#
-# Look for Doxygen
-#
-
-AC_PATH_PROG(DOXYGEN, doxygen, doxygen)
-AC_SUBST(DOXYGEN)
+AC_SUBST([DNSTAP_CFLAGS])
+AC_SUBST([DNSTAP_LIBS])
+AM_CONDITIONAL([HAVE_DNSTAP], [test "$enable_dnstap" != "no"])
 
 #
 # Look for curl
@@ -1884,76 +1264,6 @@ AC_SUBST(DOXYGEN)
 
 AC_PATH_PROG(CURL, curl, curl)
 AC_SUBST(CURL)
-
-#
-# Subroutine for searching for an ordinary file (e.g., a stylesheet)
-# in a number of directories:
-#
-#   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
-#
-# If the file FILENAME is found in one of the DIRECTORIES, the shell
-# variable VARIABLE is defined to its absolute pathname.  Otherwise,
-# it is set to FILENAME, with no directory prefix (that's not terribly
-# useful, but looks less confusing in substitutions than leaving it
-# empty).  The variable VARIABLE will be substituted into output files.
-#
-
-AC_DEFUN([NOM_PATH_FILE], [
-$1=""
-AC_MSG_CHECKING(for $2)
-for d in $3
-do
-	f=$d/$2
-	if test -f $f
-	then
-		$1=$f
-		AC_MSG_RESULT($f)
-		break
-	fi
-done
-if test "X[$]$1" = "X"
-then
-	AC_MSG_RESULT("not found");
-	$1=$2
-fi
-AC_SUBST($1)
-])
-
-#
-# Look for Docbook-XSL stylesheets.  Location probably varies by system.
-# If it's not explicitly specified, guess where it might be found, based on
-# where SGML stuff lives on some systems (FreeBSD is the only one we're sure
-# of at the moment).
-#
-AC_MSG_CHECKING(for Docbook-XSL path)
-AC_ARG_WITH(docbook-xsl,
-	    AS_HELP_STRING([--with-docbook-xsl[=PATH]],
-			   [specify path for Docbook-XSL stylesheets]),
-   docbook_path="$withval", docbook_path="auto")
-case "$docbook_path" in
-auto)
-	AC_MSG_RESULT(auto)
-	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook-ns /usr/local/share/xsl/docbook /usr/share/xsl/docbook /usr/share/sgml/docbook/xsl-stylesheets /opt/local/share/xsl/docbook-xsl /opt/local/share/xsl/docbook-xsl-nons /usr/share/xml/docbook/stylesheet/docbook-xsl"
-	;;
-*)
-	docbook_xsl_trees="$withval"
-	AC_MSG_RESULT($docbook_xsl_trees)
-	;;
-esac
-
-#
-# Look for stylesheets we need.
-#
-
-NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_HTML, html/docbook.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_XHTML, xhtml/docbook.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_STYLE_MAN, manpages/docbook.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_HTML, html/chunk.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_CHUNK_XHTML, xhtml/chunk.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_HTML, html/chunktoc.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_XHTML, xhtml/chunktoc.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_HTML, html/maketoc.xsl, $docbook_xsl_trees)
-NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_XHTML, xhtml/maketoc.xsl, $docbook_xsl_trees)
 
 #
 # IDN support using libidn2
@@ -1999,27 +1309,15 @@ AS_CASE([$with_cmocka],
 	[no],[],
 	[detect],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
 				    [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])
-				     UNITTESTS=tests],[with_cmocka=no])],
+				     with_cmocka=yes],[with_cmocka=no])],
 	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
-				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])])
-	                          UNITTESTS=tests],
+				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])])],
 	[AC_MSG_ERROR([Use PKG_CONFIG_PATH to specify path to CMocka library])]
        )
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
-AC_SUBST(UNITTESTS)
 
-#
-# Check for kyua execution engine if CMocka was requested
-# and bail out if execution engine was not found
-#
-AC_ARG_VAR([KYUA], [path to kyua execution engine])
-AS_IF([test "$with_cmocka" != "no"],
-      [AC_PATH_PROGS([KYUA], [kyua], [])
-       AS_IF([test -z "$KYUA"],
-            [AC_MSG_WARN([kyua test execution engine not found])])])
-
-AC_SUBST([KYUA])
+AM_CONDITIONAL([HAVE_CMOCKA], [test "$with_cmocka" = "yes"])
 
 #
 # Check for -Wl,--wrap= support
@@ -2029,19 +1327,18 @@ LD_WRAP_TESTS=false
 AC_MSG_CHECKING([for linker support for --wrap option])
 AX_SAVE_FLAGS([wrap])
 LDFLAGS="-Wl,-wrap,exit"
-AC_LINK_IFELSE(
+AC_RUN_IFELSE(
     [AC_LANG_PROGRAM([[#include <stdlib.h>
 		       void __real_exit (int status);
 		       void __wrap_exit (int status) { __real_exit (status); }
 		      ]],
 		     [[exit (1);]])],
     [LD_WRAP_TESTS=true
-     AC_DEFINE([LD_WRAP], [1], [define if the linker supports --wrap option])
      AC_MSG_RESULT([yes])],
     [AC_MSG_RESULT([no])])
 AX_RESTORE_FLAGS([wrap])
 
-AC_SUBST([LD_WRAP_TESTS])
+AM_CONDITIONAL([HAVE_LD_WRAP], [test "$LD_WRAP_TESTS" = "true"])
 
 WRAP_INTERPOSE=
 AC_MSG_CHECKING([for linker support for '-z interpose' option])
@@ -2114,103 +1411,6 @@ AS_IF([test "$enable_auto_validation" = "no"],[validation_default=yes])
 AC_DEFINE_UNQUOTED([VALIDATION_DEFAULT], ["$validation_default"], [the default value of dnssec-validation option])
 
 #
-# Substitutions
-#
-AC_SUBST(BIND9_TOP_BUILDDIR)
-BIND9_TOP_BUILDDIR=`pwd`
-
-AC_SUBST(BIND9_ISC_BUILDINCLUDE)
-AC_SUBST(BIND9_ISCCC_BUILDINCLUDE)
-AC_SUBST(BIND9_ISCCFG_BUILDINCLUDE)
-AC_SUBST(BIND9_DNS_BUILDINCLUDE)
-AC_SUBST(BIND9_NS_BUILDINCLUDE)
-AC_SUBST(BIND9_BIND9_BUILDINCLUDE)
-AC_SUBST(BIND9_IRS_BUILDINCLUDE)
-if test "X$srcdir" != "X"; then
-	BIND9_ISC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isc/include"
-	BIND9_ISCCC_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccc/include"
-	BIND9_ISCCFG_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/isccfg/include"
-	BIND9_DNS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/dns/include"
-	BIND9_NS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/ns/include"
-	BIND9_BIND9_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/bind9/include"
-	BIND9_IRS_BUILDINCLUDE="-I${BIND9_TOP_BUILDDIR}/lib/irs/include"
-else
-	BIND9_ISC_BUILDINCLUDE=""
-	BIND9_ISCCC_BUILDINCLUDE=""
-	BIND9_ISCCFG_BUILDINCLUDE=""
-	BIND9_DNS_BUILDINCLUDE=""
-	BIND9_NS_BUILDINCLUDE=""
-	BIND9_BIND9_BUILDINCLUDE=""
-	BIND9_IRS_BUILDINCLUDE=""
-fi
-
-AC_SUBST_FILE(BIND9_MAKE_INCLUDES)
-BIND9_MAKE_INCLUDES=$BIND9_TOP_BUILDDIR/make/includes
-
-AC_SUBST_FILE(BIND9_MAKE_RULES)
-BIND9_MAKE_RULES=$BIND9_TOP_BUILDDIR/make/rules
-
-. "$srcdir/version"
-BIND9_PRODUCT="PRODUCT=\"${PRODUCT}\""
-AC_SUBST(BIND9_PRODUCT)
-BIND9_DESCRIPTION="DESCRIPTION=\"${DESCRIPTION}\""
-AC_SUBST(BIND9_DESCRIPTION)
-BIND9_VERSION="${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
-AC_SUBST(BIND9_VERSION)
-BIND9_MAJOR="MAJOR=${MAJORVER}.${MINORVER}"
-AC_SUBST(BIND9_MAJOR)
-BIND9_VERSIONSTRING="${PRODUCT} ${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}${DESCRIPTION:+ }${DESCRIPTION}"
-AC_SUBST(BIND9_VERSIONSTRING)
-BIND9_VERSIONSHORT="${PRODUCT} ${MAJORVER}.${MINORVER}${PATCHVER:+.}${PATCHVER}${RELEASETYPE}${RELEASEVER}${EXTENSIONS}"
-AC_SUBST(BIND9_VERSIONSHORT)
-
-BIND9_SRCID="SRCID=unset_id"
-if test -f "${srcdir}/srcid"; then
-	. "${srcdir}/srcid"
-	BIND9_SRCID="SRCID=$SRCID"
-elif test -d "${srcdir}/.git"; then
-	BIND9_SRCID="SRCID="`(cd "${srcdir}";git rev-parse --short HEAD)`
-fi
-
-AC_SUBST(BIND9_SRCID)
-
-if test -z "$ac_configure_args"; then
-	BIND9_CONFIGARGS="defaults"
-else
-	for a in $ac_configure_args
-	do
-		BIND9_CONFIGARGS="$BIND9_CONFIGARGS $a"
-	done
-fi
-BIND9_CONFIGARGS="`echo $BIND9_CONFIGARGS | sed 's/^ //'`"
-BIND9_CONFIGARGS="CONFIGARGS=${BIND9_CONFIGARGS}"
-AC_SUBST(BIND9_CONFIGARGS)
-
-AC_SUBST_FILE(LIBISC_API)
-LIBISC_API="$srcdir/lib/isc/api"
-
-AC_SUBST_FILE(LIBISCCC_API)
-LIBISCCC_API="$srcdir/lib/isccc/api"
-
-AC_SUBST_FILE(LIBISCCFG_API)
-LIBISCCFG_API="$srcdir/lib/isccfg/api"
-
-AC_SUBST_FILE(LIBDNS_API)
-LIBDNS_API="$srcdir/lib/dns/api"
-
-AC_SUBST_FILE(LIBDNS_MAPAPI)
-LIBDNS_MAPAPI="$srcdir/lib/dns/mapapi"
-
-AC_SUBST_FILE(LIBBIND9_API)
-LIBBIND9_API="$srcdir/lib/bind9/api"
-
-AC_SUBST_FILE(LIBIRS_API)
-LIBIRS_API="$srcdir/lib/irs/api"
-
-AC_SUBST_FILE(LIBNS_API)
-LIBNS_API="$srcdir/lib/ns/api"
-
-#
 # Configure any DLZ drivers.
 #
 # If config.dlz.in selects one or more DLZ drivers, it will set
@@ -2231,99 +1431,6 @@ DLZ_DRIVER_MYSQL_INCLUDES=""
 DLZ_DRIVER_MYSQL_LIBS=""
 
 #
-# Configure support for building a shared library object
-#
-# Even when libtool is available it can't always be relied upon
-# to build an object that can be dlopen()'ed, but this is necessary
-# for building the dlzexternal system test, so we'll try it the
-# old-fashioned way.
-#
-SO="so"
-SO_CFLAGS=""
-SO_LDFLAGS=""
-SO_LD=""
-SO_TARGETS=""
-SO_STRIP="cat"
-
-AC_ARG_WITH([dlopen],
-	    AS_HELP_STRING([--with-dlopen=ARG],
-			   [support dynamically loadable DLZ and DYNDB drivers]),
-	    [], [with_dlopen="auto"])
-
-
-#
-# If PIC is disabled, dlopen must also be
-#
-AS_IF([test "$pic_mode" = "no"],
-      [AS_CASE([$with_dlopen],
-	       [auto],[with_dlopen="no"],
-	       [yes],[AC_MSG_ERROR([--with-dlopen requires PIC])])])
-
-AS_CASE([$with_dlopen],
-	[auto|yes],[
-	  AC_SEARCH_LIBS([dlopen],[dl])
-	  AC_CHECK_FUNCS([dlopen dlclose dlsym],
-			 [with_dlopen="yes"],
-			 [with_dlopen="no"])
-	])
-
-AS_IF([test "$with_dlopen" = "yes"],
-      [AS_CASE([$host],
-	       [*-linux*|*-gnu*],[
-		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
-		 SO_CFLAGS="-fPIC"
-		 SO_LDFLAGS=""
-		 SO_LDFLAGS="-Xcompiler -shared"
-		 SO_LD="${CC}"
-	       ],
-	       [*-freebsd*|*-openbsd*|*-netbsd*],[
-		 LDFLAGS="${LDFLAGS} -Wl,-E"
-		 SO_CFLAGS="-fpic"
-		 SO_LDFLAGS="-Xcompiler -shared"
-		 SO_LD="${CC}"
-	       ],
-	       [*-darwin*],[
-		 SO_CFLAGS="-fPIC"
-                 SO_LD="${CC}"
-		 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
-	       ],
-	       [*-solaris*],[
-		 SO_CFLAGS="-KPIC"
-		 SO_LDFLAGS="-G -z text"
-		 SO_LD="ld"
-	       ],
-	       [ia64-hp-hpux*],[
-		 SO_CFLAGS="+z"
-	         SO_LDFLAGS="-b"
-		 SO_LD="${CC}"
-	       ],
-	       [
-		 SO_CFLAGS="-fPIC"
-	       ])
-       AS_IF([test "$GCC" = "yes"],
-	     [SO_CFLAGS="-fPIC"
-	      AS_IF([test -z "$SO_LD"],
-		    [SO_LDFLAGS="-Xcompiler -shared"
-		     SO_LD="${CC}"
-		    ])
-	     ])
-       # If we still don't know how to make shared objects, don't make any.
-       AS_IF([test -n "$SO_LD"],
-	     [SO_TARGETS="\${SO_TARGETS}"
-	      AC_DEFINE([ISC_DLZ_DLOPEN], [1],
-			[Define to allow building of objects for dlopen().])
-	     ])
-      ])
-
-CFLAGS="$CFLAGS $SO_CFLAGS"
-
-AC_SUBST(SO)
-AC_SUBST(SO_CFLAGS)
-AC_SUBST(SO_LDFLAGS)
-AC_SUBST(SO_LD)
-AC_SUBST(SO_STRIP)
-AC_SUBST(SO_TARGETS)
-
 #
 # Response policy rewriting using DNS Response Policy Service (DNSRPS)
 # interface.
@@ -2394,313 +1501,111 @@ AS_IF([test "$enable_dnsrps" != "no"],[
 	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
       ])
 
-sinclude(contrib/dlz/config.dlz.in)
-AC_MSG_CHECKING(contributed DLZ drivers)
-
-if test -n "$CONTRIB_DLZ"
-then
-	AC_MSG_RESULT(yes)
-	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
-	AC_CONFIG_FILES([$DLZ_DRIVER_RULES
-		contrib/dlz/modules/mysql/Makefile
-		contrib/dlz/modules/mysqldyn/Makefile])
-else
-	AC_MSG_RESULT(no)
-	DLZ_DRIVER_RULES=/dev/null
-fi
-
-AC_SUBST(CONTRIB_DLZ)
-AC_SUBST(DLZ_DRIVER_INCLUDES)
-AC_SUBST(DLZ_DRIVER_LIBS)
-AC_SUBST(DLZ_DRIVER_SRCS)
-AC_SUBST(DLZ_DRIVER_OBJS)
-AC_SUBST(DLZ_SYSTEM_TEST)
-AC_SUBST(DLZ_DRIVER_MYSQL_INCLUDES)
-AC_SUBST(DLZ_DRIVER_MYSQL_LIBS)
-AC_SUBST_FILE(DLZ_DRIVER_RULES)
+# FIXME
+#sinclude(contrib/dlz/config.dlz.in)
+# AC_MSG_CHECKING(contributed DLZ drivers)
+#
+# if test -n "$CONTRIB_DLZ"
+# then
+# 	AC_MSG_RESULT(yes)
+# 	DLZ_DRIVER_RULES=contrib/dlz/drivers/rules
+# 	AC_CONFIG_FILES([$DLZ_DRIVER_RULES
+# 		contrib/dlz/modules/mysql/Makefile
+# 		contrib/dlz/modules/mysqldyn/Makefile])
+# else
+# 	AC_MSG_RESULT(no)
+# 	DLZ_DRIVER_RULES=/dev/null
+# fi
+#
+# AC_SUBST(CONTRIB_DLZ)
+# AC_SUBST(DLZ_DRIVER_INCLUDES)
+# AC_SUBST(DLZ_DRIVER_LIBS)
+# AC_SUBST(DLZ_DRIVER_SRCS)
+# AC_SUBST(DLZ_DRIVER_OBJS)
+# AC_SUBST(DLZ_SYSTEM_TEST)
+# AC_SUBST(DLZ_DRIVER_MYSQL_INCLUDES)
+# AC_SUBST(DLZ_DRIVER_MYSQL_LIBS)
+# AC_SUBST_FILE(DLZ_DRIVER_RULES)
 
 AC_CHECK_HEADERS([glob.h])
 
-if test "yes" = "$cross_compiling"; then
-	if test -z "$BUILD_CC"; then
-		AC_MSG_ERROR([BUILD_CC not set])
-	fi
-	BUILD_CFLAGS="$BUILD_CFLAGS"
-	BUILD_CPPFLAGS="$BUILD_CPPFLAGS"
-	BUILD_LDFLAGS="$BUILD_LDFLAGS"
-	BUILD_LIBS="$BUILD_LIBS"
-else
-	BUILD_CC="$CC"
-	BUILD_CFLAGS="$CFLAGS"
-	BUILD_CPPFLAGS="$CPPFLAGS $GEN_NEED_OPTARG"
-	BUILD_LDFLAGS="$LDFLAGS"
-	BUILD_LIBS="$LIBS"
-fi
-
-NEWFLAGS=""
-for e in $BUILD_LDFLAGS ; do
-    case $e in
-	-L*)
-	    case $host_os in
-		netbsd*)
-		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		freebsd*)
-		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		solaris*)
-		    ee=`echo $e | sed -e 's%^-L%-R%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		*)
-		    NEWFLAGS="$NEWFLAGS $e"
-		    ;;
-		esac
-	    ;;
-	*)
-	    NEWFLAGS="$NEWFLAGS $e"
-	    ;;
-    esac
-done
-BUILD_LDFLAGS="$NEWFLAGS"
-
-NEWFLAGS=""
-for e in $DNS_GSSAPI_LIBS ; do
-    case $e in
-	-L*)
-	    case $host_os in
-		netbsd*)
-		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		freebsd*)
-		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		solaris*)
-		    ee=`echo $e | sed -e 's%^-L%-R%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		*)
-		    NEWFLAGS="$NEWFLAGS $e"
-		    ;;
-		esac
-	    ;;
-	*)
-	    NEWFLAGS="$NEWFLAGS $e"
-	    ;;
-    esac
-done
-DNS_GSSAPI_LIBS="$NEWFLAGS"
-
-NEWFLAGS=""
-for e in $ISC_OPENSSL_LIBS ; do
-    case $e in
-	-L*)
-	    case $host_os in
-		netbsd*)
-		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		freebsd*)
-		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		solaris*)
-		    ee=`echo $e | sed -e 's%^-L%-R%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		*)
-		    NEWFLAGS="$NEWFLAGS $e"
-		    ;;
-		esac
-	    ;;
-	*)
-	    NEWFLAGS="$NEWFLAGS $e"
-	    ;;
-    esac
-done
-ISC_OPENSSL_LIBS="$NEWFLAGS"
-
-NEWFLAGS=""
-for e in $DNS_CRYPTO_LIBS ; do
-    case $e in
-	-L*)
-	    case $host_os in
-		netbsd*)
-		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		freebsd*)
-		    ee=`echo $e | sed -e 's%^-L%-Wl,-rpath,%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		solaris*)
-		    ee=`echo $e | sed -e 's%^-L%-R%'`
-		    NEWFLAGS="$NEWFLAGS $e $ee"
-		    ;;
-		*)
-		    NEWFLAGS="$NEWFLAGS $e"
-		    ;;
-		esac
-	    ;;
-	*)
-	    NEWFLAGS="$NEWFLAGS $e"
-	    ;;
-    esac
-done
-DNS_CRYPTO_LIBS="$NEWFLAGS"
-
-AC_SUBST(BUILD_CC)
-AC_SUBST(BUILD_CFLAGS)
-AC_SUBST(BUILD_CPPFLAGS)
-AC_SUBST(BUILD_LDFLAGS)
-AC_SUBST(BUILD_LIBS)
-
-#
-# Commands to run at the end of config.status.
-# Don't just put these into configure, it won't work right if somebody
-# runs config.status directly (which autoconf allows).
-#
-
-AC_CONFIG_COMMANDS(
-	[chmod],
-	[chmod a+x doc/doxygen/doxygen-input-filter])
-
 #
 # Files to configure.  These are listed here because we used to
-# specify them as arguments to AC_OUTPUT.  It's (now) ok to move these
-# elsewhere if there's a good reason for doing so.
+# specify them as arguments to AC_OUTPUT.
 #
 
-AC_CONFIG_FILES([
-	Makefile
-	bin/Makefile
-	bin/check/Makefile
-	bin/confgen/Makefile
-	bin/confgen/unix/Makefile
-	bin/delv/Makefile
-	bin/dig/Makefile
-	bin/dnssec/Makefile
-	bin/named/Makefile
-	bin/named/unix/Makefile
-	bin/nsupdate/Makefile
-	bin/pkcs11/Makefile
-	bin/plugins/Makefile
-	bin/rndc/Makefile
-	bin/tests/Makefile
-	bin/tests/headerdep_test.sh
-	bin/tests/optional/Makefile
-	bin/tests/pkcs11/Makefile
-	bin/tests/pkcs11/benchmarks/Makefile
-	bin/tests/system/Makefile
-	bin/tests/system/conf.sh
-	bin/tests/system/dlzexternal/Makefile
-	bin/tests/system/dlzexternal/ns1/dlzs.conf
-	bin/tests/system/dyndb/Makefile
-	bin/tests/system/dyndb/driver/Makefile
-	bin/tests/system/pipelined/Makefile
-	bin/tests/system/rndc/Makefile
-	bin/tests/system/rpz/Makefile
-	bin/tests/system/rsabigexponent/Makefile
-	bin/tests/system/tkey/Makefile
-	bin/tools/Makefile
-	contrib/scripts/check-secure-delegation.pl
-	contrib/scripts/zone-edit.sh
-	doc/Makefile
-	doc/arm/Makefile
-	doc/arm/noteversion.xml
-	doc/arm/pkgversion.xml
-	doc/arm/releaseinfo.xml
-	doc/doxygen/Doxyfile
-	doc/doxygen/Makefile
-	doc/doxygen/doxygen-input-filter
-	doc/misc/Makefile
-	doc/tex/Makefile
-	doc/tex/armstyle.sty
-	doc/xsl/Makefile
-	doc/xsl/isc-docbook-chunk.xsl
-	doc/xsl/isc-docbook-html.xsl
-	doc/xsl/isc-manpage.xsl
-	doc/xsl/isc-notes-html.xsl
-	fuzz/Makefile
-	lib/Makefile
-	lib/bind9/Makefile
-	lib/bind9/include/Makefile
-	lib/bind9/include/bind9/Makefile
-	lib/dns/Makefile
-	lib/dns/include/Makefile
-	lib/dns/include/dns/Makefile
-	lib/dns/include/dst/Makefile
-	lib/dns/tests/Makefile
-	lib/irs/Makefile
-	lib/irs/include/Makefile
-	lib/irs/include/irs/Makefile
-	lib/irs/include/irs/netdb.h
-	lib/irs/include/irs/platform.h
-	lib/irs/tests/Makefile
-	lib/isc/Makefile
-	lib/isc/include/Makefile
-	lib/isc/include/isc/Makefile
-	lib/isc/include/isc/platform.h
-	lib/isc/include/pk11/Makefile
-	lib/isc/include/pkcs11/Makefile
-	lib/isc/netmgr/Makefile
-	lib/isc/pthreads/Makefile
-	lib/isc/pthreads/include/Makefile
-	lib/isc/pthreads/include/isc/Makefile
-	lib/isc/tests/Makefile
-	lib/isc/unix/Makefile
-	lib/isc/unix/include/Makefile
-	lib/isc/unix/include/isc/Makefile
-	lib/isccc/Makefile
-	lib/isccc/include/Makefile
-	lib/isccc/include/isccc/Makefile
-	lib/isccc/tests/Makefile
-	lib/isccfg/Makefile
-	lib/isccfg/include/Makefile
-	lib/isccfg/include/isccfg/Makefile
-	lib/isccfg/tests/Makefile
-	lib/ns/Makefile
-	lib/ns/include/Makefile
-	lib/ns/include/ns/Makefile
-	lib/ns/tests/Makefile
-	lib/samples/Makefile
-	lib/samples/Makefile-postinstall
-	make/Makefile
-	make/mkdep
-	unit/unittest.sh
-	util/check-make-install
-])
+# Top
+
+AC_CONFIG_FILES([Makefile])
+
+# Binaries
+
+AC_CONFIG_FILES([bin/Makefile
+		 bin/named/Makefile
+		 bin/rndc/Makefile
+		 bin/dig/Makefile
+		 bin/delv/Makefile
+		 bin/dnssec/Makefile
+		 bin/tools/Makefile
+		 bin/nsupdate/Makefile
+		 bin/check/Makefile
+		 bin/confgen/Makefile
+		 bin/pkcs11/Makefile
+		 bin/plugins/Makefile])
+
+# Libraries
+
+AC_CONFIG_FILES([lib/Makefile
+		 lib/isc/Makefile
+		 lib/dns/Makefile
+		 lib/ns/Makefile
+		 lib/irs/Makefile
+		 lib/isccfg/Makefile
+		 lib/isccc/Makefile
+		 lib/bind9/Makefile
+		 lib/samples/Makefile])
+
+# Generated headers
+
+AC_CONFIG_FILES([lib/isc/include/isc/platform.h])
+
+# Unit Tests
+
+AC_CONFIG_FILES([lib/isc/tests/Makefile
+		 lib/dns/tests/Makefile
+		 lib/ns/tests/Makefile
+		 lib/irs/tests/Makefile
+		 lib/isccc/tests/Makefile
+		 lib/isccfg/tests/Makefile])
+
+# System Tests
+
+AC_CONFIG_FILES([bin/tests/Makefile
+		 bin/tests/system/Makefile
+		 bin/tests/system/conf.sh
+		 bin/tests/system/dyndb/driver/Makefile
+		 bin/tests/system/dlzexternal/driver/Makefile])
+
+AC_CONFIG_FILES([bin/tests/system/ifconfig.sh],
+		[chmod +x bin/tests/system/ifconfig.sh])
+AC_CONFIG_FILES([bin/tests/system/run.sh],
+		[chmod +x bin/tests/system/run.sh])
+AC_CONFIG_FILES([bin/tests/system/start.sh],
+		[chmod +x bin/tests/system/start.sh])
+AC_CONFIG_FILES([bin/tests/system/stop.sh],
+		[chmod +x bin/tests/system/stop.sh])
+AC_CONFIG_FILES([bin/tests/system/system-test-driver.sh],
+		[chmod +x bin/tests/system/system-test-driver.sh])
+
+# Misc
+
+AC_CONFIG_FILES([util/check-make-install])
 
 #
 # Do it
 #
 
 AC_OUTPUT
-
-#
-# Now that the Makefiles exist we can ensure that everything is rebuilt.
-#
-AC_ARG_WITH(make-clean,
-	    AS_HELP_STRING([--with-make-clean],
-			   [run "make clean" at end of configure [yes|no]]),
-    make_clean="$withval", make_clean="yes")
-case "$make_clean" in
-yes)
-	if test "yes" != "$no_create"
-	then
-		if test "yes" = "$silent"
-		then
-			make clean > /dev/null
-		else
-			make clean
-		fi
-	fi
-	;;
-esac
 
 AC_ARG_ENABLE(full-report,
 	      AS_HELP_STRING([--enable-full-report],
@@ -2810,6 +1715,9 @@ report() {
     echo "-------------------------------------------------------------------------------"
     echo "Compiler: $CC"
     $CC --version 2>&1 | sed 's/^/    /'
+    echo "CFLAGS: $STD_CFLAGS $CFLAGS"
+    echo "CPPFLAGS: $STD_CPPFLAGS $CPPFLAGS"
+    echo "LDFLAGS: $LDFLAGS"
 
     if test "X$ac_unrecognized_opts" != "X"; then
 	echo "Unrecognized options:"

@@ -60,7 +60,7 @@
  */
 #include "xoshiro128starstar.c"
 
-ISC_THREAD_LOCAL isc_once_t isc_random_once = ISC_ONCE_INIT;
+static thread_local isc_once_t isc_random_once = ISC_ONCE_INIT;
 
 static void
 isc_random_initialize(void) {

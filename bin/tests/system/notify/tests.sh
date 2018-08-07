@@ -9,7 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
@@ -141,12 +140,12 @@ digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 status=`expr $ret + $status`
 
 echo_i "stopping master and restarting with example4 then waiting up to 45 seconds"
-$PERL $SYSTEMTESTTOP/stop.pl notify ns2
+stop notify ns2
 
 rm -f ns2/example.db
 cp -f ns2/example4.db ns2/example.db
 
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} notify ns2
+start --noclean --restart --port ${PORT} notify ns2
 
 try=0
 while test $try -lt 45

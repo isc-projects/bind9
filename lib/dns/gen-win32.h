@@ -65,7 +65,13 @@
 #include <time.h>
 #include <windows.h>
 
-#include <isc/lang.h>
+#ifdef __cplusplus
+#define ISC_LANG_BEGINDECLS extern "C" {
+#define ISC_LANG_ENDDECLS   }
+#else /* ifdef __cplusplus */
+#define ISC_LANG_BEGINDECLS
+#define ISC_LANG_ENDDECLS
+#endif /* ifdef __cplusplus */
 
 int isc_commandline_index = 1; /* Index into parent argv vector. */
 int isc_commandline_option;    /* Character checked for validity. */

@@ -369,7 +369,7 @@ isc_app_run(void) {
 }
 
 bool
-isc_app_isrunning() {
+isc_app_isrunning(void) {
 	return (atomic_load_acquire(&is_running));
 }
 

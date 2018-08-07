@@ -18,12 +18,12 @@
 #define BIND_SERVICE_NAME "named"
 
 void
-     ntservice_init();
+     ntservice_init(void);
 void UpdateSCM(DWORD);
 void
 ServiceControl(DWORD dwCtrlCode);
 void
-ntservice_shutdown();
+ntservice_shutdown(void);
 BOOL
-ntservice_isservice();
+ntservice_isservice(void);
 #endif /* ifndef NTSERVICE_H */

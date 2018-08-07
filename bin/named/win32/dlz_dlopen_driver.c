@@ -28,7 +28,6 @@
 #include <dlz/dlz_dlopen_driver.h>
 #include <named/globals.h>
 
-#ifdef ISC_DLZ_DLOPEN
 static dns_sdlzimplementation_t *dlz_dlopen = NULL;
 
 typedef struct dlopen_data {
@@ -530,17 +529,12 @@ static dns_sdlzmethods_t dlz_dlopen_methods = {
 	dlopen_dlz_configure,	 dlopen_dlz_ssumatch,	dlopen_dlz_addrdataset,
 	dlopen_dlz_subrdataset,	 dlopen_dlz_delrdataset
 };
-#endif /* ifdef ISC_DLZ_DLOPEN */
 
 /*
  * Register driver with BIND
  */
 isc_result_t
 dlz_dlopen_init(isc_mem_t *mctx) {
-#ifndef ISC_DLZ_DLOPEN
-	UNUSED(mctx);
-	return (ISC_R_NOTIMPLEMENTED);
-#else  /* ifndef ISC_DLZ_DLOPEN */
 	isc_result_t result;
 
 	dlopen_log(2, "Registering DLZ_dlopen driver");
@@ -559,7 +553,6 @@ dlz_dlopen_init(isc_mem_t *mctx) {
 	}
 
 	return (result);
-#endif /* ifndef ISC_DLZ_DLOPEN */
 }
 
 /*
@@ -567,10 +560,8 @@ dlz_dlopen_init(isc_mem_t *mctx) {
  */
 void
 dlz_dlopen_clear(void) {
-#ifdef ISC_DLZ_DLOPEN
 	dlopen_log(2, "Unregistering DLZ_dlopen driver");
 	if (dlz_dlopen != NULL) {
 		dns_sdlzunregister(&dlz_dlopen);
 	}
-#endif /* ifdef ISC_DLZ_DLOPEN */
 }

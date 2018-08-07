@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#if USE_PKCS11
-
 #include <isc/util.h>
 
 #include <pk11/internal.h>
@@ -33,6 +31,3 @@ dst__pkcs11_toresult(const char *funcname, const char *file, int line,
 	}
 	return (fallback);
 }
-
-#endif /* USE_PKCS11 */
-/*! \file */

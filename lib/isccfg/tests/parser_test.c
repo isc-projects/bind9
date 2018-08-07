@@ -54,7 +54,7 @@ static isc_logcategory_t categories[] = { { "", 0 },
 					  { NULL, 0 } };
 
 static void
-cleanup() {
+cleanup(void) {
 	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
 	}
@@ -64,7 +64,7 @@ cleanup() {
 }
 
 static isc_result_t
-setup() {
+setup(void) {
 	isc_result_t result;
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;

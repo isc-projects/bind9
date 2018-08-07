@@ -57,6 +57,9 @@
 #if NTDDI_VERSION < 0x06020000
 #error Minimum Target environment is Windows 8 and Windows Server 2012
 #endif
+#if _MSC_VER <= 1910
+#error Minimum Visual Studio version is 2017 or higher
+#endif
 
 /* Define if you have the ANSI C header files.  */
 #define STDC_HEADERS 1
@@ -112,13 +115,6 @@
 #define HAVE_GETPASSPHRASE
 
 char *getpassphrase(const char *);
-
-/*
- * Define to 1 if you want to use the DLZ "dlopen" driver
- * (which has the same name on windows even though it uses
- * LoadLibrary() instead of dlopen()).
- */
-#define ISC_DLZ_DLOPEN 1
 
 #define S_IFMT   _S_IFMT         /* file type mask */
 #define S_IFDIR  _S_IFDIR        /* directory */
@@ -258,7 +254,7 @@ typedef __int64 off_t;
 /*
  * Configure sensible arguments
  */
-@CONFIGARGS@
+@PACKAGE_CONFIGARGS@
 
 /*
  * Define if libxml2 is present

@@ -58,7 +58,6 @@
 #include <dns/result.h>
 #include <dns/stats.h>
 #include <dns/time.h>
-#include <dns/version.h>
 #include <dns/view.h>
 #include <dns/zone.h>
 #include <dns/zonekey.h>
@@ -7711,7 +7710,7 @@ init_file_version(void) {
 
 	memset(FILE_VERSION, 0, sizeof(FILE_VERSION));
 	n = snprintf(FILE_VERSION, sizeof(FILE_VERSION), "RBTDB Image %s %s",
-		     dns_major, dns_mapapi);
+		     PACKAGE_VERSION_MAJOR, MAPAPI);
 	INSIST(n > 0 && (unsigned int)n < sizeof(FILE_VERSION));
 }
 

@@ -14,6 +14,14 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#if HAVE_GSSAPI
+#if HAVE_GSSAPI_GSSAPI_H
+#include <gssapi/gssapi.h>
+#elif HAVE_GSSAPI_H
+#include <gssapi.h>
+#endif
+#endif /* HAVE_GSSAPI */
+
 #include <isc/buffer.h>
 #include <isc/md.h>
 #include <isc/mem.h>
@@ -574,9 +582,9 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 			dns_tsigkey_detach(&tsigkey);
 		}
 	} else if (tsigkey == NULL) {
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 		OM_uint32 gret, minor, lifetime;
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 		uint32_t expire;
 
 		RETERR(dst_key_fromgssapi(name, gss_ctx, ring->mctx, &dstkey,
@@ -586,12 +594,12 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 		 * is smaller.
 		 */
 		expire = now + 3600;
-#ifdef GSSAPI
+#if HAVE_GSSAPI
 		gret = gss_context_time(&minor, gss_ctx, &lifetime);
 		if (gret == GSS_S_COMPLETE && now + lifetime < expire) {
 			expire = now + lifetime;
 		}
-#endif /* ifdef GSSAPI */
+#endif /* HAVE_GSSAPI */
 		RETERR(dns_tsigkey_createfromkey(
 			name, &tkeyin->algorithm, dstkey, true, principal, now,
 			expire, ring->mctx, ring, &tsigkey));

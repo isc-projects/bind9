@@ -4,11 +4,13 @@
 *.gcno
 *.la
 *.lo
+*.log
 *.o
 *.orig
 *.plist/ # ccc-analyzer store its results in .plist directories
 *.rej
 *.so
+*.trs
 *_test
 *.ipch # vscode/intellisense precompiled header
 *~
@@ -63,3 +65,4 @@ timestamp
 /cppcheck.results
 /tsan
 /util/check-make-install
+/INSTALL

@@ -49,13 +49,13 @@ isc_netaddr_equal(const isc_netaddr_t *a, const isc_netaddr_t *b) {
 			return (false);
 		}
 		break;
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 	case AF_UNIX:
 		if (strcmp(a->type.un, b->type.un) != 0) {
 			return (false);
 		}
 		break;
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 	default:
 		return (false);
 	}
@@ -142,7 +142,7 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 	case AF_INET6:
 		type = &netaddr->type.in6;
 		break;
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 	case AF_UNIX:
 		alen = strlen(netaddr->type.un);
 		if (alen > isc_buffer_availablelength(target)) {
@@ -152,7 +152,7 @@ isc_netaddr_totext(const isc_netaddr_t *netaddr, isc_buffer_t *target) {
 				  (const unsigned char *)(netaddr->type.un),
 				  alen);
 		return (ISC_R_SUCCESS);
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 	default:
 		return (ISC_R_FAILURE);
 	}
@@ -312,7 +312,7 @@ isc_netaddr_fromin6(isc_netaddr_t *netaddr, const struct in6_addr *ina6) {
 
 isc_result_t
 isc_netaddr_frompath(isc_netaddr_t *netaddr, const char *path) {
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 	if (strlen(path) > sizeof(netaddr->type.un) - 1) {
 		return (ISC_R_NOSPACE);
 	}
@@ -322,11 +322,11 @@ isc_netaddr_frompath(isc_netaddr_t *netaddr, const char *path) {
 	strlcpy(netaddr->type.un, path, sizeof(netaddr->type.un));
 	netaddr->zone = 0;
 	return (ISC_R_SUCCESS);
-#else  /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#else  /* ifndef _WIN32 */
 	UNUSED(netaddr);
 	UNUSED(path);
 	return (ISC_R_NOTIMPLEMENTED);
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 }
 
 void
@@ -355,12 +355,12 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
 		memmove(&t->type.in6, &s->type.sin6.sin6_addr, 16);
 		t->zone = s->type.sin6.sin6_scope_id;
 		break;
-#ifdef ISC_PLATFORM_HAVESYSUNH
+#ifndef _WIN32
 	case AF_UNIX:
 		memmove(t->type.un, s->type.sunix.sun_path, sizeof(t->type.un));
 		t->zone = 0;
 		break;
-#endif /* ifdef ISC_PLATFORM_HAVESYSUNH */
+#endif /* ifndef _WIN32 */
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();

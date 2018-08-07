@@ -25,6 +25,7 @@
 #include <stdlib.h>
 
 #include <isc/assertions.h>
+#include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -60,8 +61,8 @@ bool verbose = false;
 
 const char *keyfile, *keydef;
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(int status) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(int status);
 
 static void
 usage(int status) {

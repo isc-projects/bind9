@@ -12,9 +12,9 @@
 /*! \file isc/assertions.h
  */
 
-#ifndef ISC_ASSERTIONS_H
-#define ISC_ASSERTIONS_H 1
+#pragma once
 
+#include <isc/attributes.h>
 #include <isc/lang.h>
 #include <isc/likely.h>
 #include <isc/platform.h>
@@ -33,10 +33,9 @@ typedef void (*isc_assertioncallback_t)(const char *, int, isc_assertiontype_t,
 					const char *);
 
 /* coverity[+kill] */
-ISC_PLATFORM_NORETURN_PRE
+ISC_NORETURN
 void
-isc_assertion_failed(const char *, int, isc_assertiontype_t,
-		     const char *) ISC_PLATFORM_NORETURN_POST;
+isc_assertion_failed(const char *, int, isc_assertiontype_t, const char *);
 
 void isc_assertion_setcallback(isc_assertioncallback_t);
 
@@ -68,5 +67,3 @@ isc_assertion_typetotext(isc_assertiontype_t type);
 		 0)))
 
 ISC_LANG_ENDDECLS
-
-#endif /* ISC_ASSERTIONS_H */

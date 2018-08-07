@@ -13,7 +13,6 @@
 
 set -e
 
-SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 QPERF=`$SHELL qperf.sh`

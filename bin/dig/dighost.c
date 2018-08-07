@@ -84,7 +84,7 @@
 
 #include <bind9/getaddresses.h>
 
-#include <dig/dig.h>
+#include "dighost.h"
 
 #if USE_PKCS11
 #include <pk11/result.h>

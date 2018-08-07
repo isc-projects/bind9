@@ -15,6 +15,7 @@
 #include <unistd.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/event.h>
@@ -35,7 +36,7 @@
 #include <dns/rdatastruct.h>
 #include <dns/rdatatype.h>
 
-#include <dig/dig.h>
+#include "dighost.h"
 
 #if defined(HAVE_READLINE)
 #if defined(HAVE_EDIT_READLINE_READLINE_H)
@@ -629,7 +630,7 @@ set_ndots(const char *value) {
 
 static void
 version(void) {
-	fputs("nslookup " VERSION "\n", stderr);
+	fprintf(stderr, "nslookup %s\n", PACKAGE_VERSION);
 }
 
 static void
@@ -879,8 +880,8 @@ get_next_command(void) {
 	isc_mem_free(mctx, buf);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {

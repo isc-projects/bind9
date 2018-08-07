@@ -172,7 +172,7 @@ create_dsstruct(dns_name_t *name, uint16_t flags, uint8_t proto, uint8_t alg,
 
 /* Common setup: create a keytable and ntatable to test with a few keys */
 static void
-create_tables() {
+create_tables(void) {
 	isc_result_t result;
 	unsigned char digest[ISC_MAX_MD_SIZE];
 	dns_rdata_ds_t ds;
@@ -215,7 +215,7 @@ create_tables() {
 }
 
 static void
-destroy_tables() {
+destroy_tables(void) {
 	if (ntatable != NULL) {
 		dns_ntatable_detach(&ntatable);
 	}

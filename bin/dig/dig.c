@@ -18,6 +18,7 @@
 #include <time.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/netaddr.h>
 #include <isc/parseint.h>
 #include <isc/platform.h>
@@ -41,7 +42,7 @@
 #include <dns/result.h>
 #include <dns/tsig.h>
 
-#include <dig/dig.h>
+#include "dighost.h"
 
 #define ADD_STRING(b, s)                                          \
 	{                                                         \
@@ -109,8 +110,8 @@ usage(void) {
 	fprintf(stderr, "Press <Help> for complete list of options\n");
 }
 #else  /* if TARGET_OS_IPHONE */
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {
@@ -125,7 +126,7 @@ usage(void) {
 /*% version */
 static void
 version(void) {
-	fputs("DiG " VERSION "\n", stderr);
+	fprintf(stderr, "DiG %s\n", PACKAGE_VERSION);
 }
 
 /*% help */
@@ -912,7 +913,8 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
 
 	if (printcmd) {
 		snprintf(lookup->cmdline, sizeof(lookup->cmdline),
-			 "%s; <<>> DiG " VERSION " <<>>", first ? "\n" : "");
+			 "%s; <<>> DiG %s <<>>", first ? "\n" : "",
+			 PACKAGE_VERSION);
 		i = 1;
 		while (i < argc) {
 			snprintf(append, sizeof(append), " %s", argv[i++]);
@@ -2658,7 +2660,7 @@ dig_query_setup(bool is_batchfile, bool config_only, int argc, char **argv) {
 }
 
 void
-dig_startup() {
+dig_startup(void) {
 	isc_result_t result;
 
 	debug("dig_startup()");
@@ -2669,12 +2671,12 @@ dig_startup() {
 }
 
 void
-dig_query_start() {
+dig_query_start(void) {
 	start_lookup();
 }
 
 void
-dig_shutdown() {
+dig_shutdown(void) {
 	destroy_lookup(default_lookup);
 	if (atomic_load(&batchname) != 0) {
 		if (batchfp != stdin) {

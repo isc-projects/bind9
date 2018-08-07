@@ -105,7 +105,7 @@ typedef uintptr_t volatile atomic_uintptr_t;
 #endif /* ifdef _WIN64 */
 
 static inline void
-atomic_store_abort() {
+atomic_store_abort(void) {
 	INSIST(0);
 	ISC_UNREACHABLE();
 }
@@ -159,7 +159,7 @@ atomic_store_abort() {
 #endif /* ifdef _WIN64 */
 
 static inline int8_t
-atomic_load_abort() {
+atomic_load_abort(void) {
 	INSIST(0);
 	ISC_UNREACHABLE();
 }
@@ -220,7 +220,7 @@ atomic_load_abort() {
 #endif /* ifdef _WIN64 */
 
 static inline int8_t
-atomic_add_abort() {
+atomic_add_abort(void) {
 	INSIST(0);
 	ISC_UNREACHABLE();
 }
@@ -281,7 +281,7 @@ atomic_add_abort() {
 #endif /* ifdef _WIN64 */
 
 static inline int8_t
-atomic_and_abort() {
+atomic_and_abort(void) {
 	INSIST(0);
 	ISC_UNREACHABLE();
 }
@@ -336,7 +336,7 @@ atomic_and_abort() {
 #endif /* ifdef _WIN64 */
 
 static inline int8_t
-atomic_or_abort() {
+atomic_or_abort(void) {
 	INSIST(0);
 	ISC_UNREACHABLE();
 }
@@ -451,7 +451,7 @@ atomic_compare_exchange_strong_explicit64(atomic_int_fast64_t *obj,
 }
 
 static inline bool
-atomic_compare_exchange_abort() {
+atomic_compare_exchange_abort(void) {
 	INSIST(0);
 	ISC_UNREACHABLE();
 }
@@ -486,7 +486,7 @@ atomic_compare_exchange_abort() {
 					      memory_order_seq_cst)
 
 static inline bool
-atomic_exchange_abort() {
+atomic_exchange_abort(void) {
 	INSIST(0);
 	ISC_UNREACHABLE();
 }

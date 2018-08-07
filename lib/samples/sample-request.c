@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <isc/attributes.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -50,8 +51,8 @@
 static isc_mem_t *mctx;
 static dns_fixedname_t fixedqname;
 
-ISC_PLATFORM_NORETURN_PRE static void
-usage(void) ISC_PLATFORM_NORETURN_POST;
+ISC_NORETURN static void
+usage(void);
 
 static void
 usage(void) {

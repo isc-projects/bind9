@@ -18,6 +18,7 @@
 #include <string.h>
 
 #include <isc/app.h>
+#include <isc/attributes.h>
 #include <isc/backtrace.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
@@ -189,9 +190,9 @@ named_main_earlyfatal(const char *format, ...) {
 	exit(1);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
+ISC_NORETURN static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
-		 const char *cond) ISC_PLATFORM_NORETURN_POST;
+		 const char *cond);
 
 static void
 assertion_failed(const char *file, int line, isc_assertiontype_t type,
@@ -254,10 +255,9 @@ assertion_failed(const char *file, int line, isc_assertiontype_t type,
 	exit(1);
 }
 
-ISC_PLATFORM_NORETURN_PRE static void
+ISC_NORETURN static void
 library_fatal_error(const char *file, int line, const char *format,
-		    va_list args)
-	ISC_FORMAT_PRINTF(3, 0) ISC_PLATFORM_NORETURN_POST;
+		    va_list args) ISC_FORMAT_PRINTF(3, 0);
 
 static void
 library_fatal_error(const char *file, int line, const char *format,
@@ -487,16 +487,15 @@ printversion(bool verbose) {
 	const cfg_obj_t *defaults = NULL, *obj = NULL;
 #endif /* if defined(HAVE_GEOIP2) */
 
-	printf("%s %s%s%s <id:%s>\n", named_g_product, named_g_version,
-	       (*named_g_description != '\0') ? " " : "", named_g_description,
-	       named_g_srcid);
+	printf("%s%s <id:%s>\n", PACKAGE_STRING, PACKAGE_DESCRIPTION,
+	       PACKAGE_SRCID);
 
 	if (!verbose) {
 		return;
 	}
 
 	printf("running on %s\n", named_os_uname());
-	printf("built by %s with %s\n", named_g_builder, named_g_configargs);
+	printf("built by %s with %s\n", PACKAGE_BUILDER, PACKAGE_CONFIGARGS);
 #ifdef __clang__
 	printf("compiled by CLANG %s\n", __VERSION__);
 #else /* ifdef __clang__ */
@@ -1049,9 +1048,8 @@ setup(void) {
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "starting %s %s%s%s <id:%s>", named_g_product,
-		      named_g_version, *named_g_description ? " " : "",
-		      named_g_description, named_g_srcid);
+		      "starting %s%s <id:%s>", PACKAGE_STRING,
+		      PACKAGE_DESCRIPTION, PACKAGE_SRCID);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "running on %s",
@@ -1059,7 +1057,7 @@ setup(void) {
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "built with %s",
-		      named_g_configargs);
+		      PACKAGE_CONFIGARGS);
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
@@ -1228,7 +1226,6 @@ setup(void) {
 	 */
 	/* xxdb_init(); */
 
-#ifdef ISC_DLZ_DLOPEN
 	/*
 	 * Register the DLZ "dlopen" driver.
 	 */
@@ -1237,7 +1234,6 @@ setup(void) {
 		named_main_earlyfatal("dlz_dlopen_init() failed: %s",
 				      isc_result_totext(result));
 	}
-#endif /* ifdef ISC_DLZ_DLOPEN */
 
 #if CONTRIB_DLZ
 	/*
@@ -1321,12 +1317,10 @@ cleanup(void) {
 	 */
 	dlz_drivers_clear();
 #endif /* ifdef CONTRIB_DLZ */
-#ifdef ISC_DLZ_DLOPEN
 	/*
 	 * Unregister "dlopen" DLZ driver.
 	 */
 	dlz_dlopen_clear();
-#endif /* ifdef ISC_DLZ_DLOPEN */
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE, "exiting");
@@ -1454,10 +1448,11 @@ main(int argc, char *argv[]) {
 	 */
 	strlcat(version,
 #if defined(NO_VERSION_DATE) || !defined(__DATE__)
-		"named version: BIND " VERSION " <" SRCID ">",
-#else  /* if defined(NO_VERSION_DATE) || !defined(__DATE__) */
-		"named version: BIND " VERSION " <" SRCID "> (" __DATE__ ")",
-#endif /* if defined(NO_VERSION_DATE) || !defined(__DATE__) */
+		"named version: BIND " PACKAGE_VERSION " <" PACKAGE_SRCID ">",
+#else
+		"named version: BIND " PACKAGE_VERSION " <" PACKAGE_SRCID
+		"> (" __DATE__ ")",
+#endif
 		sizeof(version));
 	result = isc_file_progname(*argv, program_name, sizeof(program_name));
 	if (result != ISC_R_SUCCESS) {

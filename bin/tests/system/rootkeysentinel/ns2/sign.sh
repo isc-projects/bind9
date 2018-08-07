@@ -15,7 +15,6 @@ newid=`expr "0000${newid}" : '.*\(.....\)$'`
 badid=`expr \( ${oldid} + 7777 \) % 65536`
 badid=`expr "0000${badid}" : '.*\(.....\)$'`
 
-SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
 zone=example.

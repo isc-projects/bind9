@@ -23,7 +23,7 @@ options {
 	minimal-responses no;
 };
 
-plugin query "../../../../plugins/lib/filter-aaaa.so" {
+plugin query "../../../../plugins/filter-aaaa.la" {
 	filter-aaaa-on-v4 break-dnssec;
 	filter-aaaa { 10.53.0.4; };
 };

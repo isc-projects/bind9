@@ -12,7 +12,7 @@
 testsock6() {
 	if test -n "$PERL" && $PERL -e "use IO::Socket::INET6;" 2> /dev/null
 	then
-		$PERL "$TOP/bin/tests/system/testsock6.pl" "$@"
+		$PERL "$TOP_SRCDIR/bin/tests/system/testsock6.pl" "$@"
 	else
 		false
 	fi
@@ -20,7 +20,6 @@ testsock6() {
 
 export LANG=C
 
-. ${TOP}/version
 
 #
 # Common lists of system tests to run.
@@ -187,10 +186,22 @@ cat_d() {
 }
 
 digcomp() {
-    output=`$PERL $SYSTEMTESTTOP/digcomp.pl "$@"`
+    output=`$PERL $TOP_SRCDIR/bin/tests/system/digcomp.pl "$@"`
     result=$?
     [ -n "$output" ] &&  { echo "digcomp failed:"; echo "$output"; } | cat_i
     return $result
+}
+
+start() {
+    $PERL "$TOP_SRCDIR/bin/tests/system/start.pl" "$@"
+}
+
+stop() {
+    $PERL "$TOP_SRCDIR/bin/tests/system/stop.pl" "$@"
+}
+
+send() {
+    $PERL "$TOP_SRCDIR/bin/tests/system/send.pl" "$@"
 }
 
 #

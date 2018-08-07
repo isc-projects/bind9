@@ -34,7 +34,32 @@ controls {
 	inet 10.53.0.1 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-include "dlzs.conf";
+dlz "example one" {
+	database "dlopen ../driver/dlzexternal.la example.nil";
+};
+
+dlz "example two" {
+	database "dlopen ../driver/dlzexternal.la alternate.nil";
+};
+
+dlz "example three" {
+	database "dlopen ../driver/dlzexternal.la example.org";
+};
+
+dlz "unsearched1" {
+	database "dlopen ../driver/dlzexternal.la other.nil";
+	search no;
+};
+
+dlz "unsearched2" {
+	database "dlopen ../driver/dlzexternal.la zone.nil";
+	search no;
+};
+
+dlz redzone {
+	database "dlopen ../driver/dlzexternal.la .";
+	search no;
+};
 
 zone zone.nil {
 	type master;
