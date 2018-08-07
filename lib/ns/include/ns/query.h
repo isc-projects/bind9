@@ -121,6 +121,9 @@ struct ns_query {
 typedef struct query_ctx {
 	isc_buffer_t *dbuf;			/* name buffer */
 	dns_name_t *fname;			/* found name from DB lookup */
+	dns_name_t *tname;			/* temporary name, used
+						 * when processing ANY
+						 * queries */
 	dns_rdataset_t *rdataset;		/* found rdataset */
 	dns_rdataset_t *sigrdataset;		/* found sigrdataset */
 	dns_rdataset_t *noqname;		/* rdataset needing
@@ -192,5 +195,13 @@ ns__query_sfcache(query_ctx_t *qctx);
  */
 isc_result_t
 ns__query_start(query_ctx_t *qctx);
+
+/*
+ * XXX:
+ * Temporary function used to initialize the filter-aaaa hooks,
+ * which are currently hard-coded rather than loaded as a module.
+ */
+void
+ns__query_inithooks(void);
 
 #endif /* NS_QUERY_H */

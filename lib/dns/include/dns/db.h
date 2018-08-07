@@ -1135,7 +1135,7 @@ dns_db_findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
  *
  * \li	'sigrdataset' is a valid, disassociated rdataset, or it is NULL.
  *
- * \li	If 'covers' != 0, 'type' must be SIG.
+ * \li	If 'covers' != 0, 'type' must be RRSIG.
  *
  * \li	'type' is not a meta-RR type such as 'ANY' or 'OPT'.
  *
