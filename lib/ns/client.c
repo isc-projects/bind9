@@ -1098,23 +1098,6 @@ client_send(ns_client_t *client) {
 	}
 
 	/*
-	 * filter-aaaa-on-v4 yes or break-dnssec option to suppress
-	 * AAAA records.
-	 *
-	 * We already know that request came via IPv4,
-	 * that we have both AAAA and A records,
-	 * and that we either have no signatures that the client wants
-	 * or we are supposed to break DNSSEC.
-	 *
-	 * Override preferred glue if necessary.
-	 */
-	if ((client->attributes & NS_CLIENTATTR_FILTER_AAAA) != 0) {
-		render_opts |= DNS_MESSAGERENDER_FILTER_AAAA;
-		if (preferred_glue == DNS_MESSAGERENDER_PREFER_AAAA)
-			preferred_glue = DNS_MESSAGERENDER_PREFER_A;
-	}
-
-	/*
 	 * Create an OPT for our reply.
 	 */
 	if ((client->attributes & NS_CLIENTATTR_WANTOPT) != 0) {
@@ -3064,6 +3047,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	ISC_QLINK_INIT(client, ilink);
 	client->keytag = NULL;
 	client->keytag_len = 0;
+	client->hookflags = 0;
 
 	/*
 	 * We call the init routines for the various kinds of client here,

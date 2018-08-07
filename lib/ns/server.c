@@ -22,6 +22,7 @@
 #include <dns/tkey.h>
 #include <dns/stats.h>
 
+#include <ns/query.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 
@@ -106,6 +107,11 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	sctx->answercookie = true;
 
 	ISC_LIST_INIT(sctx->altsecrets);
+
+	/*
+	 * XXX: temporary.
+	 */
+	ns__query_inithooks();
 
 	sctx->magic = SCTX_MAGIC;
 	*sctxp = sctx;
