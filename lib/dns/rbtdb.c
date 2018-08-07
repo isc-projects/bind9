@@ -9798,10 +9798,8 @@ out:
 }
 
 static isc_result_t
-rdataset_addglue(dns_rdataset_t *rdataset,
-		 dns_dbversion_t *version,
-		 unsigned int options,
-		 dns_message_t *msg)
+rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
+		 unsigned int options, dns_message_t *msg)
 {
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *node = rdataset->private2;
@@ -9817,6 +9815,8 @@ rdataset_addglue(dns_rdataset_t *rdataset,
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 	REQUIRE(rbtdb == rbtversion->rbtdb);
 	REQUIRE(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
+
+	UNUSED(options);
 
 	/*
 	 * The glue table cache that forms a part of the DB version
@@ -9917,42 +9917,39 @@ restart:
 			}
 		}
 
-		if (ISC_LIKELY((options & DNS_RDATASETADDGLUE_FILTERAAAA) == 0))
-		{
-			if (dns_rdataset_isassociated(&ge->rdataset_aaaa)) {
-				result = dns_message_gettemprdataset(msg,
-							    &rdataset_aaaa);
-				if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
-					dns_message_puttempname(msg, &name);
-					if (rdataset_a != NULL) {
-						dns_message_puttemprdataset(msg,
-							    &rdataset_a);
-					}
-					if (sigrdataset_a != NULL) {
-						dns_message_puttemprdataset(msg,
-							    &sigrdataset_a);
-					}
-					goto no_glue;
+		if (dns_rdataset_isassociated(&ge->rdataset_aaaa)) {
+			result = dns_message_gettemprdataset(msg,
+						    &rdataset_aaaa);
+			if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
+				dns_message_puttempname(msg, &name);
+				if (rdataset_a != NULL) {
+					dns_message_puttemprdataset(msg,
+						    &rdataset_a);
 				}
+				if (sigrdataset_a != NULL) {
+					dns_message_puttemprdataset(msg,
+						    &sigrdataset_a);
+				}
+				goto no_glue;
 			}
+		}
 
-			if (dns_rdataset_isassociated(&ge->sigrdataset_aaaa)) {
-				result = dns_message_gettemprdataset(msg,
-							    &sigrdataset_aaaa);
-				if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
-					dns_message_puttempname(msg, &name);
-					if (rdataset_a != NULL) {
-						dns_message_puttemprdataset(msg,
-							    &rdataset_a);
-					}
-					if (sigrdataset_a != NULL)
-						dns_message_puttemprdataset(msg,
-							    &sigrdataset_a);
-					if (rdataset_aaaa != NULL)
-						dns_message_puttemprdataset(msg,
-							    &rdataset_aaaa);
-					goto no_glue;
+		if (dns_rdataset_isassociated(&ge->sigrdataset_aaaa)) {
+			result = dns_message_gettemprdataset(msg,
+						    &sigrdataset_aaaa);
+			if (ISC_UNLIKELY(result != ISC_R_SUCCESS)) {
+				dns_message_puttempname(msg, &name);
+				if (rdataset_a != NULL) {
+					dns_message_puttemprdataset(msg,
+						    &rdataset_a);
 				}
+				if (sigrdataset_a != NULL)
+					dns_message_puttemprdataset(msg,
+						    &sigrdataset_a);
+				if (rdataset_aaaa != NULL)
+					dns_message_puttemprdataset(msg,
+						    &rdataset_aaaa);
+				goto no_glue;
 			}
 		}
 
@@ -9966,20 +9963,17 @@ restart:
 			ISC_LIST_APPEND(name->list, sigrdataset_a, link);
 		}
 
-		if (ISC_LIKELY((options & DNS_RDATASETADDGLUE_FILTERAAAA) == 0))
-		{
-			if (rdataset_aaaa != NULL) {
-				dns_rdataset_clone(&ge->rdataset_aaaa,
-						   rdataset_aaaa);
-				ISC_LIST_APPEND(name->list, rdataset_aaaa,
-						link);
-			}
-			if (sigrdataset_aaaa != NULL) {
-				dns_rdataset_clone(&ge->sigrdataset_aaaa,
-						   sigrdataset_aaaa);
-				ISC_LIST_APPEND(name->list, sigrdataset_aaaa,
-						link);
-			}
+		if (rdataset_aaaa != NULL) {
+			dns_rdataset_clone(&ge->rdataset_aaaa,
+					   rdataset_aaaa);
+			ISC_LIST_APPEND(name->list, rdataset_aaaa,
+					link);
+		}
+		if (sigrdataset_aaaa != NULL) {
+			dns_rdataset_clone(&ge->sigrdataset_aaaa,
+					   sigrdataset_aaaa);
+			ISC_LIST_APPEND(name->list, sigrdataset_aaaa,
+					link);
 		}
 
 		dns_message_addname(msg, name, DNS_SECTION_ADDITIONAL);
