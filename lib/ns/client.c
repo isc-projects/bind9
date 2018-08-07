@@ -3046,8 +3046,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->interface = NULL;
 	client->peeraddr_valid = false;
 	dns_ecs_init(&client->ecs);
-	client->filter_aaaa = dns_aaaa_ok;
-	client->needshutdown = (client->sctx->options & NS_SERVER_CLIENTTEST);
+	client->needshutdown = ((client->sctx->options &
+				 NS_SERVER_CLIENTTEST) != 0);
 
 	ISC_EVENT_INIT(&client->ctlevent, sizeof(client->ctlevent), 0, NULL,
 		       NS_EVENT_CLIENTCONTROL, client_start, client, client,
