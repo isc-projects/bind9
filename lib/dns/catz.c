@@ -11,7 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <isc/hex.h>
 #include <isc/mem.h>

@@ -11,7 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <isc/interfaceiter.h>
 #include <isc/os.h>

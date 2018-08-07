@@ -25,7 +25,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #if !USE_PKCS11
 

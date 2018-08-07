@@ -11,7 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
 #include <ctype.h>
 
 #include <isc/counter.h>

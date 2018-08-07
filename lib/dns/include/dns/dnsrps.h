@@ -15,7 +15,6 @@
 #include <isc/lang.h>
 #include <dns/types.h>
 
-#include <config.h>
 
 #ifdef USE_DNSRPS
 

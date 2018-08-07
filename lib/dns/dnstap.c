@@ -43,7 +43,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #ifndef HAVE_DNSTAP
 #error DNSTAP not configured.

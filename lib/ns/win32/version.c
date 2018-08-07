@@ -10,7 +10,6 @@
  */
 
 /*! \file */
-#include <config.h>
 
 #include <versions.h>
 

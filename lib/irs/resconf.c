@@ -33,7 +33,6 @@
  *    /etc/resolv.conf
  */
 
-#include <config.h>
 
 #ifndef WIN32
 #include <sys/types.h>

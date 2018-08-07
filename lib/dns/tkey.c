@@ -10,7 +10,6 @@
  */
 
 /*! \file */
-#include <config.h>
 
 #include <isc/buffer.h>
 #include <isc/md5.h>

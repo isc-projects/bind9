@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
 
 #include <isc/aes.h>
 #include <isc/formatcheck.h>

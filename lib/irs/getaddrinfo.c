@@ -118,7 +118,6 @@
  *    sendto(2), sendmsg(2), socket(2).
  */
 
-#include <config.h>
 
 #include <stdlib.h>
 #include <string.h>

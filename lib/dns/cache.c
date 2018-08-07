@@ -12,7 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <isc/json.h>
 #include <isc/mem.h>

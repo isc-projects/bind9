@@ -12,7 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <stdio.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */

@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
 
 #include <isc/netaddr.h>
 #include <isc/print.h>

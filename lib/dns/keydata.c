@@ -12,7 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 
 #include <isc/buffer.h>

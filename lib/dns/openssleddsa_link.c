@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
 
 #if !USE_PKCS11
 

@@ -15,7 +15,6 @@
  *** Imports
  ***/
 
-#include <config.h>
 #include <ctype.h>
 
 #include <isc/buffer.h>

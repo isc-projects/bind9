@@ -11,7 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <sys/stat.h>
 #ifdef HAVE_INTTYPES_H

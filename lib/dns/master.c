@@ -11,7 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <isc/event.h>
 #include <isc/lex.h>

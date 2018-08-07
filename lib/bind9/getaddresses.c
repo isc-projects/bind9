@@ -11,7 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
 #include <string.h>
 
 #include <isc/net.h>

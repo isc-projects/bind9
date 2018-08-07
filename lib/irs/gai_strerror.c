@@ -43,7 +43,6 @@
  *
  * strerror(), getaddrinfo(), getnameinfo(), RFC3493.
  */
-#include <config.h>
 
 #include <isc/net.h>
 

@@ -16,7 +16,6 @@
  *** Imports
  ***/
 
-#include <config.h>
 
 #include <isc/string.h>
 #include <isc/util.h>

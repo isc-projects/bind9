@@ -10,7 +10,6 @@
  */
 
 
-#include <config.h>
 
 #include <isc/app.h>
 #include <isc/lib.h>

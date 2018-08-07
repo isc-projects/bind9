@@ -88,7 +88,6 @@
  *    getnamebyaddr(). inet_ntop().
  */
 
-#include <config.h>
 
 #include <stdio.h>
 #include <string.h>

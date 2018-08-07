@@ -17,7 +17,6 @@
 
 /* #define ISC_LIST_CHECKINIT */
 
-#include <config.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/netaddr.h>

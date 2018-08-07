@@ -26,7 +26,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <isc/base64.h>
 #include <isc/buffer.h>

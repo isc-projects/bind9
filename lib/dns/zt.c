@@ -12,7 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <isc/file.h>
 #include <isc/magic.h>

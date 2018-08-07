@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
 
 #include <isc/base32.h>
 #include <isc/mem.h>

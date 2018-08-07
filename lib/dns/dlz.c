@@ -51,7 +51,6 @@
  *** Imports
  ***/
 
-#include <config.h>
 
 #include <dns/db.h>
 #include <dns/dlz.h>

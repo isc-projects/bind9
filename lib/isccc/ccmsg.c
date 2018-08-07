@@ -26,7 +26,6 @@
 
 /*! \file */
 
-#include <config.h>
 
 #include <isc/mem.h>
 #include <isc/result.h>
