@@ -148,7 +148,6 @@ struct ns_client {
 	struct in6_pktinfo	pktinfo;
 	isc_dscp_t		dscp;
 	isc_event_t		ctlevent;
-	dns_aaaa_t		filter_aaaa;
 	/*%
 	 * Information about recent FORMERR response(s), for
 	 * FORMERR loop avoidance.  This is separate for each
