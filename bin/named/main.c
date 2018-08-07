@@ -771,7 +771,7 @@ create_managers(void) {
 	INSIST(named_g_cpus_detected > 0);
 
 	if (named_g_cpus == 0)
-		named_g_cpus = named_g_cpus_detected;
+		named_g_cpus = named_g_cpus_detected * 1.5;
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 		      "found %u CPU%s, using %u worker thread%s",
@@ -785,7 +785,7 @@ create_managers(void) {
 		if (named_g_cpus_detected == 1)
 			named_g_udpdisp = 1;
 		else
-			named_g_udpdisp = named_g_cpus_detected - 1;
+			named_g_udpdisp = named_g_cpus_detected;
 	}
 	if (named_g_udpdisp > named_g_cpus)
 		named_g_udpdisp = named_g_cpus;
