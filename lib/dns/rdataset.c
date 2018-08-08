@@ -400,6 +400,9 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 
 	if ((shuffle || sort)) {
+		isc_uint32_t seed = 0;
+		unsigned int j;
+
 		/*
 		 * First we get handles to all of the rdata.
 		 */
@@ -416,8 +419,6 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		}
 		INSIST(i == count);
 
-		unsigned int j;
-		isc_uint32_t seed;
 		if (ISC_LIKELY(want_random)) {
 			seed = isc_random32();
 			j = 0;
