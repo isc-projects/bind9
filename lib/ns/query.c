@@ -246,8 +246,6 @@ static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
-LIBNS_EXTERNAL_DATA ns_hook_t *ns__hook_table = NULL;
-
 #define PROCESS_HOOK(...) \
 	NS_PROCESS_HOOK(ns__hook_table, __VA_ARGS__)
 
@@ -428,8 +426,7 @@ static void
 query_addbestns(query_ctx_t *qctx);
 
 static void
-query_addwildcardproof(query_ctx_t *qctx, bool ispositive,
-		       bool nodata);
+query_addwildcardproof(query_ctx_t *qctx, bool ispositive, bool nodata);
 
 static void
 query_addauth(query_ctx_t *qctx);
@@ -443,7 +440,7 @@ query_done(query_ctx_t *qctx);
  * implementing filter-aaaa. Later, this will be redesigned to be set up at
  * initialization time when the filter-aaaa module is loaded.
  *
- * To activate this hooks table at runtime, call ns__query_inithooks().
+ * To activate this hooks table at runtime, pass it to ns_hooks_init().
  */
 static bool
 filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp);
@@ -457,23 +454,25 @@ filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp);
 static bool
 filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp);
 
-ns_hook_t filter_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
-	[NS_QUERY_RESPOND_BEGIN] = {
-		.callback = filter_respond_begin,
-		.callback_data = NULL,
-	},
-	[NS_QUERY_RESPOND_ANY_FOUND] = {
-		.callback = filter_respond_any_found,
-		.callback_data = NULL,
-	},
-	[NS_QUERY_PREP_RESPONSE_BEGIN] = {
-		.callback = filter_prep_response_begin,
-		.callback_data = NULL,
-	},
-	[NS_QUERY_DONE_SEND] = {
-		.callback = filter_query_done_send,
-		.callback_data = NULL,
-	},
+ns_hook_t filter_respbegin = {
+	.callback = filter_respond_begin,
+	.callback_data = NULL,
+	.link = { (void *) -1, (void *) -1 },
+};
+ns_hook_t filter_respanyfound = {
+	.callback = filter_respond_any_found,
+	.callback_data = NULL,
+	.link = { (void *) -1, (void *) -1 },
+};
+ns_hook_t filter_prepresp = {
+	.callback = filter_prep_response_begin,
+	.callback_data = NULL,
+	.link = { (void *) -1, (void *) -1 },
+};
+ns_hook_t filter_donesend = {
+	.callback = filter_query_done_send,
+	.callback_data = NULL,
+	.link = { (void *) -1, (void *) -1 },
 };
 
 /*%
@@ -11356,12 +11355,17 @@ filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
 void
 ns__query_inithooks() {
 	/*
-	 * XXX:
-	 * This is temporary.  Later, ns__hook_table will be
-	 * set up when initializing hook modules after configuring
-	 * the server.  For now, however, we just call this once when
-	 * initializing named and it sets up all the filter-aaaa
-	 * hooks.
+	 * XXX: This function is temporary.  Later, the hook table
+	 * will be set up when initializing hook modules after
+	 * configuring the server.
+	 *
+	 * For now, however, we just call this once when initializing named
+	 * and it will set up all the filter-aaaa hooks.
 	 */
-	ns__hook_table = filter_hooks;
+
+	ns_hooktable_init(NULL);
+	ns_hook_add(NULL, NS_QUERY_RESPOND_BEGIN, &filter_respbegin);
+	ns_hook_add(NULL, NS_QUERY_RESPOND_ANY_FOUND, &filter_respanyfound);
+	ns_hook_add(NULL, NS_QUERY_PREP_RESPONSE_BEGIN, &filter_prepresp);
+	ns_hook_add(NULL, NS_QUERY_DONE_SEND, &filter_donesend);
 }
