@@ -180,7 +180,7 @@ pk11_mem_put(void *ptr, size_t size) {
 
 isc_result_t
 pk11_initialize(isc_mem_t *mctx, const char *engine) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	CK_RV rv;
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
@@ -191,8 +191,7 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 		isc_mem_attach(mctx, &pk11_mctx);
 	UNLOCK(&alloclock);
 	if (initialized) {
-		UNLOCK(&sessionlock);
-		return (ISC_R_SUCCESS);
+		goto unlock;
 	} else {
 		initialized = ISC_TRUE;
 	}
@@ -218,7 +217,6 @@ pk11_initialize(isc_mem_t *mctx, const char *engine) {
 	}
 
 	scan_slots();
-	result = ISC_R_SUCCESS;
  unlock:
 	UNLOCK(&sessionlock);
 	return (result);
