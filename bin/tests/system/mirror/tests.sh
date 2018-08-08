@@ -205,6 +205,21 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking delegations sourced from a mirror zone ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 foo.example A +norec > dig.out.ns3.test$n 2>&1 || ret=1
+# Check response code and flags in the answer.
+grep "NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null && ret=1
+# Check that a delegation containing a DS RRset and glue is present.
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "example.*IN.*NS" dig.out.ns3.test$n > /dev/null || ret=1
+grep "example.*IN.*DS" dig.out.ns3.test$n > /dev/null || ret=1
+grep "ns2.example.*A.*10.53.0.2" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking that resolution involving a mirror zone works as expected ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 foo.example A > dig.out.ns3.test$n 2>&1 || ret=1
@@ -238,14 +253,16 @@ ret=0
 $DIG $DIGOPTS @10.53.0.3 sub.example. NS > dig.out.ns3.test$n.1 2>&1 || ret=1
 # Ensure the child-side NS RRset is returned.
 grep "NOERROR" dig.out.ns3.test$n.1 > /dev/null || ret=1
-grep "ANSWER: 1" dig.out.ns3.test$n.1 > /dev/null || ret=1
+grep "ANSWER: 2" dig.out.ns3.test$n.1 > /dev/null || ret=1
 grep "sub.example.*IN.*NS" dig.out.ns3.test$n.1 > /dev/null || ret=1
 # Issue a non-recursive query for something below the cached zone cut.
 $DIG $DIGOPTS @10.53.0.3 +norec foo.sub.example. A > dig.out.ns3.test$n.2 2>&1 || ret=1
-# Ensure the cached NS RRset is returned in a delegation.
+# Ensure the cached NS RRset is returned in a delegation, along with the
+# parent-side DS RRset.
 grep "NOERROR" dig.out.ns3.test$n.2 > /dev/null || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n.2 > /dev/null || ret=1
 grep "sub.example.*IN.*NS" dig.out.ns3.test$n.2 > /dev/null || ret=1
+grep "sub.example.*IN.*DS" dig.out.ns3.test$n.2 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

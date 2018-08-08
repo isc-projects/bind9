@@ -101,7 +101,6 @@ struct ns_query {
 #define NS_QUERYATTR_PARTIALANSWER	0x0004
 #define NS_QUERYATTR_NAMEBUFUSED	0x0008
 #define NS_QUERYATTR_RECURSING		0x0010
-#define NS_QUERYATTR_CACHEGLUEOK	0x0020
 #define NS_QUERYATTR_QUERYOKVALID	0x0040
 #define NS_QUERYATTR_QUERYOK		0x0080
 #define NS_QUERYATTR_WANTRECURSION	0x0100
@@ -153,8 +152,9 @@ typedef struct query_ctx {
 	dns_dbnode_t *node;			/* DB node */
 
 	dns_db_t *zdb;				/* zone DB values, saved */
-	dns_name_t *zfname;			/* while searching cache */
-	dns_dbversion_t *zversion;		/* for a better answer */
+	dns_dbnode_t *znode;			/* while searching cache */
+	dns_name_t *zfname;			/* for a better answer */
+	dns_dbversion_t *zversion;
 	dns_rdataset_t *zrdataset;
 	dns_rdataset_t *zsigrdataset;
 
