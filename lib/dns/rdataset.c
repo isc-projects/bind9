@@ -400,6 +400,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 	}
 
 	if ((shuffle || sort)) {
+		div_t q = { 0, 0 };
 		/*
 		 * First we get handles to all of the rdata.
 		 */
@@ -417,9 +418,8 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		INSIST(i == count);
 
 		unsigned int j;
-		isc_uint32_t seed;
 		if (ISC_LIKELY(want_random)) {
-			seed = isc_random32() & 0x7fffffff;
+			q.quot = isc_random32() & 0x7fffffff;
 			j = 0;
 		}
 
@@ -433,11 +433,10 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 		for (i = 0; i < count; i++) {
 			if (ISC_LIKELY(want_random)) {
-				div_t q = div(seed, count - j);
+				q = div(q.quot, count - j);
 				swap_rdata(in, j, j + q.rem);
-				seed = q.quot;
-				if (ISC_UNLIKELY(seed == 0)) {
-					seed = isc_random32() & 0x7fffffff;
+				if (ISC_UNLIKELY(q.quot == 0)) {
+					q.quot = isc_random32() & 0x7fffffff;
 				}
 			}
 
