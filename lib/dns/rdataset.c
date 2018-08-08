@@ -419,7 +419,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 		unsigned int j;
 		isc_uint32_t seed;
 		if (ISC_LIKELY(want_random)) {
-			seed = isc_random32();
+			seed = isc_random32() & 0x7fffffff;
 			j = 0;
 		}
 
@@ -433,7 +433,12 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 		for (i = 0; i < count; i++) {
 			if (ISC_LIKELY(want_random)) {
-				swap_rdata(in, j, j + seed % (count - j));
+				div_t q = div(seed, count - j);
+				swap_rdata(in, j, j + q.rem);
+				seed = q.quot;
+				if (ISC_UNLIKELY(seed == 0)) {
+					seed = isc_random32() & 0x7fffffff;
+				}
 			}
 
 			out[i].key = (sort) ?
