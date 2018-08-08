@@ -16,6 +16,7 @@
 
 #include <stdbool.h>
 
+#include <isc/list.h>
 #include <isc/result.h>
 
 /*
@@ -156,7 +157,7 @@
  * called this time and foo_bar() will return ISC_R_SUCCESS.
  */
 
-enum {
+typedef enum {
 	NS_QUERY_SETUP_QCTX_INITIALIZED,
 	NS_QUERY_START_BEGIN,
 	NS_QUERY_LOOKUP_BEGIN,
@@ -169,7 +170,7 @@ enum {
 	NS_QUERY_DONE_BEGIN,
 	NS_QUERY_DONE_SEND,
 	NS_QUERY_HOOKS_COUNT	/* MUST BE LAST */
-};
+} ns_hookpoint_t;
 
 typedef bool
 (*ns_hook_cb_t)(void *hook_data, void *callback_data, isc_result_t *resultp);
@@ -177,24 +178,70 @@ typedef bool
 typedef struct ns_hook {
 	ns_hook_cb_t callback;
 	void *callback_data;
+	ISC_LINK(struct ns_hook) link;
 } ns_hook_t;
 
+typedef ISC_LIST(ns_hook_t) ns_hooklist_t;
+typedef ns_hooklist_t ns_hooktable_t[NS_QUERY_HOOKS_COUNT];
+
+LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
+
 #define _NS_PROCESS_HOOK(table, id, data, ...)				\
-	if (table != NULL) {						\
-		ns_hook_cb_t _callback = table[id].callback;		\
-		void *_callback_data = table[id].callback_data;		\
+	if (table != NULL) {			\
+		ns_hook_t *_hook = ISC_LIST_HEAD((*table)[id]);		\
 		isc_result_t _result;					\
 									\
-		if (_callback != NULL &&				\
-		    _callback(data, _callback_data, &_result))		\
-		{							\
-			return (__VA_ARGS__);				\
+		while (_hook != NULL) {					\
+			ns_hook_cb_t _callback = _hook->callback;	\
+			void *_callback_data = _hook->callback_data;	\
+			if (_callback != NULL &&			\
+			    _callback(data, _callback_data, &_result))	\
+			{						\
+				return (__VA_ARGS__);			\
+			} else {					\
+				_hook = ISC_LIST_NEXT(_hook, link);	\
+			}						\
 		}							\
 	}
 
 #define NS_PROCESS_HOOK(table, id, data) \
 	_NS_PROCESS_HOOK(table, id, data, _result)
 
-LIBNS_EXTERNAL_DATA extern ns_hook_t *ns__hook_table;
+void
+ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
+	    ns_hook_t *hook);
+/*%
+ * Append hook function 'hook' to the list of hooks at 'hookpoint' in
+ * 'hooktable'.  If 'hooktable' is NULL, the global hook table
+ * ns__hook_table is used.
+ *
+ * Requires:
+ *\li 'hook' is not NULL
+ *
+ *\li 'hookpoint' is less than NS_QUERY_HOOKS_COUNT
+ *
+ */
+
+ns_hooktable_t *
+ns_hooktable_save(void);
+/*%
+ * Returns a pointer to the current global hook table so it can
+ * be restored after replacing it.
+ */
+
+void
+ns_hooktable_reset(ns_hooktable_t *hooktable);
+/*%
+ * Set the global hooks table pointer to 'hooktable'.
+ *
+ * If 'hooktable' is NULL, restores the default global hook table.
+ */
+
+void
+ns_hooktable_init(ns_hooktable_t *hooktable);
+/*%
+ * Initialize a hook table. If 'hooktable' is NULL, initialize
+ * the global hooktable ns__hook_table.
+ */
 
 #endif /* NS_HOOKS_H */
