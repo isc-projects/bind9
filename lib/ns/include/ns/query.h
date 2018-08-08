@@ -153,8 +153,9 @@ typedef struct query_ctx {
 	dns_dbnode_t *node;			/* DB node */
 
 	dns_db_t *zdb;				/* zone DB values, saved */
-	dns_name_t *zfname;			/* while searching cache */
-	dns_dbversion_t *zversion;		/* for a better answer */
+	dns_dbnode_t *znode;			/* while searching cache */
+	dns_name_t *zfname;			/* for a better answer */
+	dns_dbversion_t *zversion;
 	dns_rdataset_t *zrdataset;
 	dns_rdataset_t *zsigrdataset;
 
