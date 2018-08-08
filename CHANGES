@@ -30,7 +30,9 @@
 
 4998.	[test]		Make resolver and cacheclean tests more civilized.
 
-4997.	[placeholder]
+4997.	[security]	named could crash during recursive processing
+			of DNAME records when "deny-answer-aliases" was
+			in use. (CVE-2018-5740) [GL #387]
 
 4996.	[bug]		dig: Handle malformed +ednsopt option. [GL #403]
 

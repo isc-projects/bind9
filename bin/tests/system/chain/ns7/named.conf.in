@@ -21,6 +21,11 @@ options {
 	recursion yes;
 	allow-recursion { any; };
 	dnssec-validation yes;
+	deny-answer-aliases {
+		"example";
+	} except-from {
+		"example";
+	};
 };
 
 key rndc_key {
