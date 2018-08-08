@@ -438,28 +438,11 @@ query_done(query_ctx_t *qctx);
 
 /*
  * XXX:
- * Functions implementing filter-aaaa. Later, these will be moved
- * out to a loadable module.
- */
-static isc_result_t
-query_filter_aaaa_check(query_ctx_t *qctx);
-
-static isc_result_t
-query_filter_aaaa(query_ctx_t *qctx);
-
-static isc_result_t
-query_filter_aaaa_any(query_ctx_t *qctx);
-
-static isc_result_t
-query_filter_aaaa_additional(query_ctx_t *qctx);
-
-/*
- * XXX:
- * This is a temporary hooks table, pre-populated with pointers to
- * the functions implementing filter-aaaa. Later, this will be
- * redesigned to be set up at initialization time when the
- * filter-aaaa module is loaded. To activate this hooks table
- * at runtime, call ns__query_inithooks().
+ * This is a temporary hooks table, pre-populated with functions
+ * implementing filter-aaaa. Later, this will be redesigned to be set up at
+ * initialization time when the filter-aaaa module is loaded.
+ *
+ * To activate this hooks table at runtime, call ns__query_inithooks().
  */
 static bool
 filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp);
@@ -11120,13 +11103,17 @@ ns_query_start(ns_client_t *client) {
  * clients if there is an A; filter-aaaa-on-v6 option does
  * the same for IPv6 clients.
  */
-static isc_result_t
-query_filter_aaaa_check(query_ctx_t *qctx) {
+static bool
+filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *) hookdata;
+	isc_result_t result;
+
+	UNUSED(cbdata);
+
 	qctx->filter_aaaa = dns_aaaa_ok;
 	if (qctx->client->view->v4_aaaa != dns_aaaa_ok ||
 	    qctx->client->view->v6_aaaa != dns_aaaa_ok)
 	{
-		isc_result_t result;
 		result = ns_client_checkaclsilent(qctx->client, NULL,
 						  qctx->client->view->aaaa_acl,
 						  true);
@@ -11143,7 +11130,8 @@ query_filter_aaaa_check(query_ctx_t *qctx) {
 		}
 	}
 
-	return (ISC_R_COMPLETE);
+	*resp = ISC_R_UNSET;
+	return (false);
 }
 
 /*
@@ -11151,16 +11139,20 @@ query_filter_aaaa_check(query_ctx_t *qctx) {
  * (This version is for processing answers to explicit AAAA
  * queries; ANY queries are handled in query_filter_aaaa_any().)
  */
-static isc_result_t
-query_filter_aaaa(query_ctx_t *qctx) {
-	isc_result_t result;
+static bool
+filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *) hookdata;
+	isc_result_t result = ISC_R_UNSET;
+
+	UNUSED(cbdata);
 
 	if (qctx->filter_aaaa != dns_aaaa_break_dnssec &&
 	    (qctx->filter_aaaa != dns_aaaa_filter ||
 	     (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
 	      dns_rdataset_isassociated(qctx->sigrdataset))))
 	{
-		return (ISC_R_COMPLETE);
+		*resp = result;
+		return (false);
 	}
 
 	if (qctx->qtype == dns_rdatatype_aaaa) {
@@ -11251,26 +11243,30 @@ query_filter_aaaa(query_ctx_t *qctx) {
 
 		qctx->client->hookflags &= ~FILTER_AAAA_RECURSING;
 
-		return (query_done(qctx));
+		result = query_done(qctx);
+
+		*resp = result;
+		return (true);
+
 	}
 
-	return (ISC_R_COMPLETE);
+	*resp = result;
+	return (false);
 }
 
-/*
- * Optionally hide AAAA rrsets if there is a matching A.
- * (This version is for processing answers to ANY queries;
- * explicit AAAA queries are handled in query_filter_aaaa().)
- */
-static isc_result_t
-query_filter_aaaa_any(query_ctx_t *qctx) {
+static bool
+filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *) hookdata;
 	dns_name_t *name = NULL;
 	dns_rdataset_t *aaaa = NULL, *aaaa_sig = NULL;
 	dns_rdataset_t *a = NULL;
 	bool have_a = true;
 
+	UNUSED(cbdata);
+
 	if (qctx->filter_aaaa == dns_aaaa_ok) {
-		return (ISC_R_COMPLETE);
+		*resp = ISC_R_UNSET;
+		return (false);
 	}
 
 	dns_message_findname(qctx->client->message, DNS_SECTION_ANSWER,
@@ -11308,7 +11304,8 @@ query_filter_aaaa_any(query_ctx_t *qctx) {
 		}
 	}
 
-	return (ISC_R_COMPLETE);
+	*resp = ISC_R_UNSET;
+	return (false);
 }
 
 /*
@@ -11316,12 +11313,16 @@ query_filter_aaaa_any(query_ctx_t *qctx) {
  * and hide NS in the additional section if AAAA was filtered in the answer
  * section.
  */
-static isc_result_t
-query_filter_aaaa_additional(query_ctx_t *qctx) {
+static bool
+filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *) hookdata;
 	isc_result_t result;
 
+	UNUSED(cbdata);
+
 	if (qctx->filter_aaaa == dns_aaaa_ok) {
-		return (ISC_R_COMPLETE);
+		*resp = ISC_R_UNSET;
+		return (false);
 	}
 
 	result = dns_message_firstname(qctx->client->message,
@@ -11392,70 +11393,7 @@ query_filter_aaaa_additional(query_ctx_t *qctx) {
 		}
 	}
 
-	return (ISC_R_COMPLETE);
-}
-
-static bool
-filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
-	isc_result_t result;
-
-	UNUSED(cbdata);
-
-	result = query_filter_aaaa((query_ctx_t *) hookdata);
-	if (result != ISC_R_COMPLETE) {
-		*resp = result;
-		return (true);
-	}
-
-	*resp = ISC_R_SUCCESS;
-	return (false);
-}
-
-static bool
-filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
-	isc_result_t result;
-
-	UNUSED(cbdata);
-
-	result = query_filter_aaaa_any((query_ctx_t *) hookdata);
-	if (result != ISC_R_COMPLETE) {
-		*resp = result;
-		return (true);
-	}
-
-	*resp = ISC_R_SUCCESS;
-	return (false);
-}
-
-static bool
-filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
-	isc_result_t result;
-
-	UNUSED(cbdata);
-
-	result = query_filter_aaaa_check((query_ctx_t *) hookdata);
-	if (result != ISC_R_COMPLETE) {
-		*resp = result;
-		return (true);
-	}
-
-	*resp = ISC_R_SUCCESS;
-	return (false);
-}
-
-static bool
-filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
-	isc_result_t result;
-
-	UNUSED(cbdata);
-
-	result = query_filter_aaaa_additional((query_ctx_t *) hookdata);
-	if (result != ISC_R_COMPLETE) {
-		*resp = result;
-		return (true);
-	}
-
-	*resp = ISC_R_SUCCESS;
+	*resp = ISC_R_UNSET;
 	return (false);
 }
 
