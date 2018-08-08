@@ -15,6 +15,9 @@
 
 /*! \file */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/stdio.h>
 #include <isc/types.h>
@@ -36,7 +39,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 isc_result_t
 dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 	  dns_masterformat_t fileformat, const dns_master_style_t *style,
-	  const isc_uint32_t rawversion);
+	  const uint32_t rawversion);
 
 #ifdef _WIN32
 void InitSockets(void);
@@ -45,10 +48,10 @@ void DestroySockets(void);
 
 extern int debug;
 extern const char *journal;
-extern isc_boolean_t nomerge;
-extern isc_boolean_t docheckmx;
-extern isc_boolean_t docheckns;
-extern isc_boolean_t dochecksrv;
+extern bool nomerge;
+extern bool docheckmx;
+extern bool docheckns;
+extern bool dochecksrv;
 extern dns_zoneopt_t zone_options;
 
 ISC_LANG_ENDDECLS

@@ -13,18 +13,18 @@
 /* ! \file */
 
 #include <config.h>
+
 #include <atf-c.h>
-#include <isc/mem.h>
-#include <isc/print.h>
-#include <isc/random.h>
-#include <isc/string.h>
+
+#include <inttypes.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/mman.h>
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h> /* uintptr_t */
-#endif
+#include <isc/mem.h>
+#include <isc/print.h>
+#include <isc/random.h>
+#include <isc/string.h>
 
 #include <dns/rbt.h>
 #include <dns/fixedname.h>
@@ -101,7 +101,7 @@ delete_data(void *data, void *arg) {
 }
 
 static isc_result_t
-write_data(FILE *file, unsigned char *datap, void *arg, isc_uint64_t *crc) {
+write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 	isc_result_t result;
 	size_t ret = 0;
 	data_holder_t *data = (data_holder_t *)datap;
@@ -141,7 +141,7 @@ write_data(FILE *file, unsigned char *datap, void *arg, isc_uint64_t *crc) {
 
 static isc_result_t
 fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg,
-	 isc_uint64_t *crc)
+	 uint64_t *crc)
 {
 	data_holder_t *data = p->data;
 	size_t size;
@@ -286,7 +286,7 @@ ATF_TC_BODY(serialize, tc) {
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_CHECK_STREQ(dns_result_totext(result), "success");
 	result = dns_rbt_create(mctx, delete_data, NULL, &rbt);
 	ATF_CHECK_STREQ(dns_result_totext(result), "success");
@@ -359,7 +359,7 @@ ATF_TC_BODY(deserialize_corrupt, tc) {
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* Set up map file */

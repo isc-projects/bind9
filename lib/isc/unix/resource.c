@@ -12,6 +12,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <sys/types.h>
 #include <sys/time.h>	/* Required on some systems for <sys/resource.h>. */
 #include <sys/resource.h>
@@ -118,8 +121,8 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		 * ISC_PLATFORM_RLIMITTYPE is not overflowed.
 		 */
 		isc_resourcevalue_t rlim_max;
-		isc_boolean_t rlim_t_is_signed =
-			ISC_TF(((double)(ISC_PLATFORM_RLIMITTYPE)-1) < 0);
+		bool rlim_t_is_signed =
+			(((double)(ISC_PLATFORM_RLIMITTYPE)-1) < 0);
 
 		if (rlim_t_is_signed)
 			rlim_max = ~((ISC_PLATFORM_RLIMITTYPE)1 <<

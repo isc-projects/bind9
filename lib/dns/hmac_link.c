@@ -25,6 +25,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
@@ -123,7 +125,7 @@ hmacmd5_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return (DST_R_VERIFYFAILURE);
 }
 
-static isc_boolean_t
+static bool
 hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dst_hmacmd5_key_t *hkey1, *hkey2;
 
@@ -131,14 +133,14 @@ hmacmd5_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	hkey2 = key2->keydata.hmacmd5;
 
 	if (hkey1 == NULL && hkey2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (hkey1 == NULL || hkey2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (isc_safe_memequal(hkey1->key, hkey2->key, ISC_MD5_BLOCK_LENGTH))
-		return (ISC_TRUE);
+		return (true);
 	else
-		return (ISC_FALSE);
+		return (false);
 }
 
 static isc_result_t
@@ -169,10 +171,10 @@ hmacmd5_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 hmacmd5_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
@@ -355,7 +357,7 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 	 * Prevent use of incorrect crypto
 	 */
 
-	RUNTIME_CHECK(isc_md5_check(ISC_FALSE));
+	RUNTIME_CHECK(isc_md5_check(false));
 	RUNTIME_CHECK(isc_hmacmd5_check(0));
 
 	REQUIRE(funcp != NULL);
@@ -429,7 +431,7 @@ hmacsha1_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return (DST_R_VERIFYFAILURE);
 }
 
-static isc_boolean_t
+static bool
 hmacsha1_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dst_hmacsha1_key_t *hkey1, *hkey2;
 
@@ -437,14 +439,14 @@ hmacsha1_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	hkey2 = key2->keydata.hmacsha1;
 
 	if (hkey1 == NULL && hkey2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (hkey1 == NULL || hkey2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (isc_safe_memequal(hkey1->key, hkey2->key, ISC_SHA1_BLOCK_LENGTH))
-		return (ISC_TRUE);
+		return (true);
 	else
-		return (ISC_FALSE);
+		return (false);
 }
 
 static isc_result_t
@@ -475,10 +477,10 @@ hmacsha1_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 hmacsha1_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
@@ -645,7 +647,7 @@ dst__hmacsha1_init(dst_func_t **funcp) {
 	/*
 	 * Prevent use of incorrect crypto
 	 */
-	RUNTIME_CHECK(isc_sha1_check(ISC_FALSE));
+	RUNTIME_CHECK(isc_sha1_check(false));
 	RUNTIME_CHECK(isc_hmacsha1_check(0));
 
 	REQUIRE(funcp != NULL);
@@ -719,7 +721,7 @@ hmacsha224_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return (DST_R_VERIFYFAILURE);
 }
 
-static isc_boolean_t
+static bool
 hmacsha224_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dst_hmacsha224_key_t *hkey1, *hkey2;
 
@@ -727,14 +729,14 @@ hmacsha224_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	hkey2 = key2->keydata.hmacsha224;
 
 	if (hkey1 == NULL && hkey2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (hkey1 == NULL || hkey2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (isc_safe_memequal(hkey1->key, hkey2->key, ISC_SHA224_BLOCK_LENGTH))
-		return (ISC_TRUE);
+		return (true);
 	else
-		return (ISC_FALSE);
+		return (false);
 }
 
 static isc_result_t
@@ -765,10 +767,10 @@ hmacsha224_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 hmacsha224_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
@@ -1003,7 +1005,7 @@ hmacsha256_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return (DST_R_VERIFYFAILURE);
 }
 
-static isc_boolean_t
+static bool
 hmacsha256_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dst_hmacsha256_key_t *hkey1, *hkey2;
 
@@ -1011,14 +1013,14 @@ hmacsha256_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	hkey2 = key2->keydata.hmacsha256;
 
 	if (hkey1 == NULL && hkey2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (hkey1 == NULL || hkey2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (isc_safe_memequal(hkey1->key, hkey2->key, ISC_SHA256_BLOCK_LENGTH))
-		return (ISC_TRUE);
+		return (true);
 	else
-		return (ISC_FALSE);
+		return (false);
 }
 
 static isc_result_t
@@ -1049,10 +1051,10 @@ hmacsha256_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 hmacsha256_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
@@ -1287,7 +1289,7 @@ hmacsha384_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return (DST_R_VERIFYFAILURE);
 }
 
-static isc_boolean_t
+static bool
 hmacsha384_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dst_hmacsha384_key_t *hkey1, *hkey2;
 
@@ -1295,14 +1297,14 @@ hmacsha384_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	hkey2 = key2->keydata.hmacsha384;
 
 	if (hkey1 == NULL && hkey2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (hkey1 == NULL || hkey2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (isc_safe_memequal(hkey1->key, hkey2->key, ISC_SHA384_BLOCK_LENGTH))
-		return (ISC_TRUE);
+		return (true);
 	else
-		return (ISC_FALSE);
+		return (false);
 }
 
 static isc_result_t
@@ -1333,10 +1335,10 @@ hmacsha384_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 hmacsha384_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
@@ -1571,7 +1573,7 @@ hmacsha512_verify(dst_context_t *dctx, const isc_region_t *sig) {
 		return (DST_R_VERIFYFAILURE);
 }
 
-static isc_boolean_t
+static bool
 hmacsha512_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dst_hmacsha512_key_t *hkey1, *hkey2;
 
@@ -1579,14 +1581,14 @@ hmacsha512_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	hkey2 = key2->keydata.hmacsha512;
 
 	if (hkey1 == NULL && hkey2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (hkey1 == NULL || hkey2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (isc_safe_memequal(hkey1->key, hkey2->key, ISC_SHA512_BLOCK_LENGTH))
-		return (ISC_TRUE);
+		return (true);
 	else
-		return (ISC_FALSE);
+		return (false);
 }
 
 static isc_result_t
@@ -1617,10 +1619,10 @@ hmacsha512_generate(dst_key_t *key, int pseudorandom_ok, void (*callback)(int))
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 hmacsha512_isprivate(const dst_key_t *key) {
 	UNUSED(key);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void

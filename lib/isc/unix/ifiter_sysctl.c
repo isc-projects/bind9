@@ -18,6 +18,8 @@
  * and 19.16.
  */
 
+#include <inttypes.h>
+
 #include <sys/param.h>
 #include <sys/sysctl.h>
 

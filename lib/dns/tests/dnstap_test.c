@@ -16,6 +16,7 @@
 #include <atf-c.h>
 
 #include <unistd.h>
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -65,7 +66,7 @@ ATF_TC_BODY(create, tc) {
 
 	cleanup();
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	fopt = fstrm_iothr_options_init();
@@ -121,7 +122,7 @@ ATF_TC_BODY(send, tc) {
 	isc_result_t result;
 	dns_dtenv_t *dtenv = NULL;
 	dns_dthandle_t *handle = NULL;
-	isc_uint8_t *data;
+	uint8_t *data;
 	size_t dsize;
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	unsigned char qambuffer[4096], rambuffer[4096];
@@ -145,7 +146,7 @@ ATF_TC_BODY(send, tc) {
 
 	cleanup();
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	result = dns_test_makeview("test", &view);
@@ -229,14 +230,14 @@ ATF_TC_BODY(send, tc) {
 			break;
 		}
 
-		dns_dt_send(view, dt, q, r, ISC_FALSE, &zr, &p, &f, m);
-		dns_dt_send(view, dt, q, r, ISC_FALSE, &zr, NULL, &f, m);
-		dns_dt_send(view, dt, q, r, ISC_FALSE, &zr, &p, NULL, m);
-		dns_dt_send(view, dt, q, r, ISC_FALSE, &zr, NULL, NULL, m);
-		dns_dt_send(view, dt, q, r, ISC_TRUE, &zr, &p, &f, m);
-		dns_dt_send(view, dt, q, r, ISC_TRUE, &zr, NULL, &f, m);
-		dns_dt_send(view, dt, q, r, ISC_TRUE, &zr, &p, NULL, m);
-		dns_dt_send(view, dt, q, r, ISC_TRUE, &zr, NULL, NULL, m);
+		dns_dt_send(view, dt, q, r, false, &zr, &p, &f, m);
+		dns_dt_send(view, dt, q, r, false, &zr, NULL, &f, m);
+		dns_dt_send(view, dt, q, r, false, &zr, &p, NULL, m);
+		dns_dt_send(view, dt, q, r, false, &zr, NULL, NULL, m);
+		dns_dt_send(view, dt, q, r, true, &zr, &p, &f, m);
+		dns_dt_send(view, dt, q, r, true, &zr, NULL, &f, m);
+		dns_dt_send(view, dt, q, r, true, &zr, &p, NULL, m);
+		dns_dt_send(view, dt, q, r, true, &zr, NULL, NULL, m);
 	}
 
 	dns_dt_detach(&view->dtenv);
@@ -290,13 +291,13 @@ ATF_TC_HEAD(totext, tc) {
 ATF_TC_BODY(totext, tc) {
 	isc_result_t result;
 	dns_dthandle_t *handle = NULL;
-	isc_uint8_t *data;
+	uint8_t *data;
 	size_t dsize;
 	FILE *fp = NULL;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	result = dns_dt_open(TAPSAVED, dns_dtmode_file, mctx, &handle);

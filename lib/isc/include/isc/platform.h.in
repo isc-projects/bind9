@@ -165,11 +165,6 @@
  *** Printing.
  ***/
 
-/*! \brief
- * The printf format string modifier to use with isc_uint64_t values.
- */
-@ISC_PLATFORM_QUADFORMAT@
-
 /*
  * If the system needs strlcpy(), ISC_PLATFORM_NEEDSTRLCPY will be defined.
  */

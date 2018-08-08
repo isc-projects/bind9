@@ -13,9 +13,11 @@
 
 #include <config.h>
 
-#include <atf-c.h>
-
+#include <inttypes.h>
+#include <stdbool.h>
 #include <unistd.h>
+
+#include <atf-c.h>
 
 #include <isc/app.h>
 #include <isc/buffer.h>
@@ -78,7 +80,7 @@ ATF_TC_BODY(dispatchset_create, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = make_dispatchset(1);
@@ -102,7 +104,7 @@ ATF_TC_BODY(dispatchset_get, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = make_dispatchset(1);
@@ -196,7 +198,7 @@ nameserver(isc_task_t *task, isc_event_t *event) {
 
 static dns_dispatch_t *dispatch = NULL;
 static dns_dispentry_t *dispentry = NULL;
-static isc_boolean_t first = ISC_TRUE;
+static bool first = true;
 static isc_mutex_t lock;
 static isc_sockaddr_t local;
 static unsigned int responses = 0;
@@ -205,13 +207,13 @@ static void
 response(isc_task_t *task, isc_event_t *event) {
 	dns_dispatchevent_t *devent = (dns_dispatchevent_t *)event;
 	isc_result_t result;
-	isc_boolean_t wasfirst;
+	bool wasfirst;
 
 	UNUSED(task);
 
 	LOCK(&lock);
 	wasfirst = first;
-	first = ISC_FALSE;
+	first = false;
 	responses++;
 	UNLOCK(&lock);
 
@@ -245,7 +247,7 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	isc_result_t result;
 	isc_socket_t *sock = NULL;
 	isc_task_t *task = NULL;
-	isc_uint16_t id;
+	uint16_t id;
 	struct in_addr ina;
 	unsigned char message[12];
 	unsigned int attrs;
@@ -256,7 +258,7 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	result = isc_mutex_init(&lock);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_task_create(taskmgr, 0, &task);
@@ -288,7 +290,7 @@ ATF_TC_BODY(dispatch_getnext, tc) {
 	result = isc_socket_getsockname(sock, &local);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	first = ISC_TRUE;
+	first = true;
 	region.base = rbuf;
 	region.length = sizeof(rbuf);
 	result = isc_socket_recv(sock, &region, 1, task, nameserver, sock);

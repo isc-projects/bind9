@@ -50,7 +50,7 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_acl_any(mctx, &any);
@@ -65,10 +65,10 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	result = dns_acl_create(mctx, 1, &notany);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_acl_merge(notnone, none, ISC_FALSE);
+	result = dns_acl_merge(notnone, none, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_acl_merge(notany, any, ISC_FALSE);
+	result = dns_acl_merge(notany, any, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 #ifdef HAVE_GEOIP
@@ -81,7 +81,7 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 		sizeof(de->geoip_elem.as_string));
 	de->geoip_elem.subtype = dns_geoip_country_code;
 	de->type = dns_aclelementtype_geoip;
-	de->negative = ISC_FALSE;
+	de->negative = false;
 	ATF_REQUIRE(geoip->length < geoip->alloc);
 	geoip->node_count++;
 	de->node_num = geoip->node_count;
@@ -90,7 +90,7 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	result = dns_acl_create(mctx, 1, &notgeoip);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_acl_merge(notgeoip, geoip, ISC_FALSE);
+	result = dns_acl_merge(notgeoip, geoip, false);
 #endif
 
 	ATF_CHECK(dns_acl_isinsecure(any));		/* any; */

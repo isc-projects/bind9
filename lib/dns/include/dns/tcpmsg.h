@@ -15,6 +15,8 @@
 
 /*! \file dns/tcpmsg.h */
 
+#include <inttypes.h>
+
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/socket.h>
@@ -22,7 +24,7 @@
 typedef struct dns_tcpmsg {
 	/* private (don't touch!) */
 	unsigned int		magic;
-	isc_uint16_t		size;
+	uint16_t		size;
 	isc_buffer_t		buffer;
 	unsigned int		maxsize;
 	isc_mem_t	       *mctx;

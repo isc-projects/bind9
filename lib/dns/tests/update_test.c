@@ -16,6 +16,7 @@
 
 #include <atf-c.h>
 
+#include <inttypes.h>
 #include <unistd.h>
 #include <time.h>
 
@@ -26,7 +27,7 @@
 
 #include "dnstest.h"
 
-static isc_uint32_t mystdtime;
+static uint32_t mystdtime;
 
 static void set_mystdtime(int year, int month, int day) {
 	struct tm tm;
@@ -51,16 +52,16 @@ ATF_TC_HEAD(increment, tc) {
   atf_tc_set_md_var(tc, "descr", "simple increment by 1");
 }
 ATF_TC_BODY(increment, tc) {
-	isc_uint32_t old = 50;
-	isc_uint32_t serial;
+	uint32_t old = 50;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_increment);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK_MSG(serial != 0, "serial (%d) should not equal 0", serial);
 	ATF_REQUIRE_EQ(serial, 51);
 	dns_test_end();
@@ -72,16 +73,16 @@ ATF_TC_HEAD(increment_past_zero, tc) {
   atf_tc_set_md_var(tc, "descr", "increment past zero, ffffffff -> 1");
 }
 ATF_TC_BODY(increment_past_zero, tc) {
-	isc_uint32_t old = 0xffffffffu;
-	isc_uint32_t serial;
+	uint32_t old = 0xffffffffu;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_increment);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, 1u);
 	dns_test_end();
@@ -92,8 +93,8 @@ ATF_TC_HEAD(past_to_unix, tc) {
   atf_tc_set_md_var(tc, "descr", "past to unixtime");
 }
 ATF_TC_BODY(past_to_unix, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -101,10 +102,10 @@ ATF_TC_BODY(past_to_unix, tc) {
 	set_mystdtime(2011, 6, 22);
 	old = mystdtime - 1;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_unixtime);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, mystdtime);
 	dns_test_end();
@@ -115,8 +116,8 @@ ATF_TC_HEAD(now_to_unix, tc) {
   atf_tc_set_md_var(tc, "descr", "now to unixtime");
 }
 ATF_TC_BODY(now_to_unix, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -124,10 +125,10 @@ ATF_TC_BODY(now_to_unix, tc) {
 	set_mystdtime(2011, 6, 22);
 	old = mystdtime;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_unixtime);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, old + 1);
 	dns_test_end();
@@ -138,8 +139,8 @@ ATF_TC_HEAD(future_to_unix, tc) {
   atf_tc_set_md_var(tc, "descr", "future to unixtime");
 }
 ATF_TC_BODY(future_to_unix, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -147,10 +148,10 @@ ATF_TC_BODY(future_to_unix, tc) {
 	set_mystdtime(2011, 6, 22);
 	old = mystdtime + 1;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_unixtime);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, old + 1);
 	dns_test_end();
@@ -161,8 +162,8 @@ ATF_TC_HEAD(undefined_plus1_to_unix, tc) {
   atf_tc_set_md_var(tc, "descr", "undefined plus 1 to unixtime");
 }
 ATF_TC_BODY(undefined_plus1_to_unix, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -171,10 +172,10 @@ ATF_TC_BODY(undefined_plus1_to_unix, tc) {
 	old = mystdtime ^ 0x80000000u;
 	old += 1;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_unixtime);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, mystdtime);
 	dns_test_end();
@@ -185,8 +186,8 @@ ATF_TC_HEAD(undefined_minus1_to_unix, tc) {
   atf_tc_set_md_var(tc, "descr", "undefined minus 1 to unixtime");
 }
 ATF_TC_BODY(undefined_minus1_to_unix, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -195,10 +196,10 @@ ATF_TC_BODY(undefined_minus1_to_unix, tc) {
 	old = mystdtime ^ 0x80000000u;
 	old -= 1;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_unixtime);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, old + 1);
 	dns_test_end();
@@ -209,8 +210,8 @@ ATF_TC_HEAD(undefined_to_unix, tc) {
   atf_tc_set_md_var(tc, "descr", "undefined to unixtime");
 }
 ATF_TC_BODY(undefined_to_unix, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -218,10 +219,10 @@ ATF_TC_BODY(undefined_to_unix, tc) {
 	set_mystdtime(2011, 6, 22);
 	old = mystdtime ^ 0x80000000u;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_unixtime);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, old + 1);
 	dns_test_end();
@@ -232,8 +233,8 @@ ATF_TC_HEAD(unixtime_zero, tc) {
   atf_tc_set_md_var(tc, "descr", "handle unixtime being zero");
 }
 ATF_TC_BODY(unixtime_zero, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -241,10 +242,10 @@ ATF_TC_BODY(unixtime_zero, tc) {
 	mystdtime = 0;
 	old = 0xfffffff0;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_unixtime);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, old + 1);
 	dns_test_end();
@@ -255,7 +256,7 @@ ATF_TC_HEAD(past_to_date, tc) {
   atf_tc_set_md_var(tc, "descr", "past to date");
 }
 ATF_TC_BODY(past_to_date, tc) {
-	isc_uint32_t old, serial;
+	uint32_t old, serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -264,10 +265,10 @@ ATF_TC_BODY(past_to_date, tc) {
 	old = dns_update_soaserial(0, dns_updatemethod_date);
 	set_mystdtime(2014, 4, 1);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_date);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, 2014040100);
 	dns_test_end();
@@ -278,8 +279,8 @@ ATF_TC_HEAD(now_to_date, tc) {
   atf_tc_set_md_var(tc, "descr", "now to date");
 }
 ATF_TC_BODY(now_to_date, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -287,10 +288,10 @@ ATF_TC_BODY(now_to_date, tc) {
 	set_mystdtime(2014, 4, 1);
 	old = dns_update_soaserial(0, dns_updatemethod_date);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_date);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, 2014040101);
 	dns_test_end();
@@ -301,8 +302,8 @@ ATF_TC_HEAD(future_to_date, tc) {
   atf_tc_set_md_var(tc, "descr", "future to date");
 }
 ATF_TC_BODY(future_to_date, tc) {
-	isc_uint32_t old;
-	isc_uint32_t serial;
+	uint32_t old;
+	uint32_t serial;
 	isc_result_t result;
 
 	UNUSED(tc);
@@ -311,10 +312,10 @@ ATF_TC_BODY(future_to_date, tc) {
 	old = dns_update_soaserial(0, dns_updatemethod_date);
 	set_mystdtime(2014, 3, 31);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	serial = dns_update_soaserial(old, dns_updatemethod_date);
-	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), ISC_TRUE);
+	ATF_REQUIRE_EQ(isc_serial_lt(old, serial), true);
 	ATF_CHECK(serial != 0);
 	ATF_REQUIRE_EQ(serial, 2014040101);
 	dns_test_end();

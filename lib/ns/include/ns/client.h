@@ -54,6 +54,9 @@
  *** Imports
  ***/
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/magic.h>
 #include <isc/stdtime.h>
@@ -92,7 +95,7 @@ struct ns_client {
 	int			nupdates;
 	int			nctls;
 	int			references;
-	isc_boolean_t		needshutdown; 	/*
+	bool		needshutdown; 	/*
 						 * Used by clienttest to get
 						 * the client to go from
 						 * inactive to free state
@@ -108,18 +111,18 @@ struct ns_client {
 	isc_socket_t *		tcpsocket;
 	unsigned char *		tcpbuf;
 	dns_tcpmsg_t		tcpmsg;
-	isc_boolean_t		tcpmsg_valid;
+	bool		tcpmsg_valid;
 	isc_timer_t *		timer;
 	isc_timer_t *		delaytimer;
-	isc_boolean_t 		timerset;
+	bool 		timerset;
 	dns_message_t *		message;
 	isc_socketevent_t *	sendevent;
 	isc_socketevent_t *	recvevent;
 	unsigned char *		recvbuf;
 	dns_rdataset_t *	opt;
-	isc_uint16_t		udpsize;
-	isc_uint16_t		extflags;
-	isc_int16_t		ednsversion;	/* -1 noedns */
+	uint16_t		udpsize;
+	uint16_t		extflags;
+	int16_t		ednsversion;	/* -1 noedns */
 	void			(*next)(ns_client_t *);
 	void			(*shutdown)(void *arg, isc_result_t result);
 	void 			*shutdown_arg;
@@ -129,14 +132,14 @@ struct ns_client {
 	isc_time_t		tnow;
 	dns_name_t		signername;   /*%< [T]SIG key name */
 	dns_name_t *		signer;	      /*%< NULL if not valid sig */
-	isc_boolean_t		mortal;	      /*%< Die after handling request */
-	isc_boolean_t		pipelined;   /*%< TCP queries not in sequence */
+	bool		mortal;	      /*%< Die after handling request */
+	bool		pipelined;   /*%< TCP queries not in sequence */
 	isc_quota_t		*tcpquota;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;
 
 	isc_sockaddr_t		peeraddr;
-	isc_boolean_t		peeraddr_valid;
+	bool		peeraddr_valid;
 	isc_netaddr_t		destaddr;
 	isc_sockaddr_t		destsockaddr;
 
@@ -165,9 +168,9 @@ struct ns_client {
 	ISC_LINK(ns_client_t)	rlink;
 	ISC_QLINK(ns_client_t)	ilink;
 	unsigned char		cookie[8];
-	isc_uint32_t		expire;
+	uint32_t		expire;
 	unsigned char		*keytag;
-	isc_uint16_t		keytag_len;
+	uint16_t		keytag_len;
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;
@@ -245,10 +248,10 @@ ns_client_next(ns_client_t *client, isc_result_t result);
  * return no response to the client.
  */
 
-isc_boolean_t
+bool
 ns_client_shuttingdown(ns_client_t *client);
 /*%<
- * Return ISC_TRUE iff the client is currently shutting down.
+ * Return true iff the client is currently shutting down.
  */
 
 void
@@ -293,10 +296,10 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp);
 
 isc_result_t
 ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
-			   ns_interface_t *ifp, isc_boolean_t tcp);
+			   ns_interface_t *ifp, bool tcp);
 /*%<
  * Create up to 'n' clients listening on interface 'ifp'.
- * If 'tcp' is ISC_TRUE, the clients will listen for TCP connections,
+ * If 'tcp' is true, the clients will listen for TCP connections,
  * otherwise for UDP requests.
  */
 
@@ -316,13 +319,13 @@ ns_client_getdestaddr(ns_client_t *client);
 
 isc_result_t
 ns_client_checkaclsilent(ns_client_t *client, isc_netaddr_t *netaddr,
-			 dns_acl_t *acl, isc_boolean_t default_allow);
+			 dns_acl_t *acl, bool default_allow);
 
 /*%<
  * Convenience function for client request ACL checking.
  *
  * Check the current client request against 'acl'.  If 'acl'
- * is NULL, allow the request iff 'default_allow' is ISC_TRUE.
+ * is NULL, allow the request iff 'default_allow' is true.
  * If netaddr is NULL, check the ACL against client->peeraddr;
  * otherwise check it against netaddr.
  *
@@ -348,7 +351,7 @@ isc_result_t
 ns_client_checkacl(ns_client_t  *client,
 		   isc_sockaddr_t *sockaddr,
 		   const char *opname, dns_acl_t *acl,
-		   isc_boolean_t default_allow,
+		   bool default_allow,
 		   int log_level);
 /*%<
  * Like ns_client_checkaclsilent, except the outcome of the check is
@@ -412,7 +415,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 
 isc_result_t
 ns__clientmgr_getclient(ns_clientmgr_t *manager, ns_interface_t *ifp,
-			isc_boolean_t tcp, ns_client_t **clientp);
+			bool tcp, ns_client_t **clientp);
 /*
  * Get a client object from the inactive queue, or create one, as needed.
  * (Not intended for use outside this module and associated tests.)

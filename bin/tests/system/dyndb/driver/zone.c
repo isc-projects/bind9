@@ -6,6 +6,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/util.h>
 
 #include <dns/dyndb.h>
@@ -79,7 +82,7 @@ cleanup:
 static isc_result_t
 publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 	isc_result_t result;
-	isc_boolean_t freeze = ISC_FALSE;
+	bool freeze = false;
 	dns_zone_t *zone_in_view = NULL;
 	dns_view_t *view_in_zone = NULL;
 	isc_result_t lock_state = ISC_R_IGNORE;
@@ -121,7 +124,7 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 
 	run_exclusive_enter(inst, &lock_state);
 	if (inst->view->frozen) {
-		freeze = ISC_TRUE;
+		freeze = true;
 		dns_view_thaw(inst->view);
 	}
 
@@ -145,8 +148,8 @@ cleanup:
 static isc_result_t
 load_zone(dns_zone_t *zone) {
 	isc_result_t result;
-	isc_boolean_t zone_dynamic;
-	isc_uint32_t serial;
+	bool zone_dynamic;
+	uint32_t serial;
 
 	result = dns_zone_load(zone);
 	if (result != ISC_R_SUCCESS && result != DNS_R_UPTODATE

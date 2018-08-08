@@ -46,6 +46,8 @@
 #ifndef ISC_ATOMIC_H
 #define ISC_ATOMIC_H 1
 
+#include <inttypes.h>
+
 #include <isc/platform.h>
 #include <isc/types.h>
 
@@ -60,8 +62,8 @@
  * can be critical, so we add explicit memory block instructions at the
  * beginning and the end of it (same for other functions).
  */
-static inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
+static inline int32_t
+isc_atomic_xadd(int32_t *p, int32_t val) {
 	return (asm("mb;"
 		    "1:"
 		    "ldl_l %t0, 0(%a0);"	/* load old value */
@@ -77,7 +79,7 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
  * This routine atomically stores the value 'val' in 'p'.
  */
 static inline void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
+isc_atomic_store(int32_t *p, int32_t val) {
 	(void)asm("mb;"
 		  "1:"
 		  "ldl_l %t0, 0(%a0);"		/* load old value */
@@ -93,8 +95,8 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
  * original value is equal to 'cmpval'.  The original value is returned in any
  * case.
  */
-static inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
+static inline int32_t
+isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val) {
 
 	return(asm("mb;"
 		   "1:"
@@ -110,9 +112,9 @@ isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
 		   p, cmpval, val));
 }
 #elif defined (ISC_PLATFORM_USEGCCASM)
-static inline isc_int32_t
-isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
-	isc_int32_t temp, prev;
+static inline int32_t
+isc_atomic_xadd(int32_t *p, int32_t val) {
+	int32_t temp, prev;
 
 	__asm__ volatile(
 		"mb;"
@@ -131,8 +133,8 @@ isc_atomic_xadd(isc_int32_t *p, isc_int32_t val) {
 }
 
 static inline void
-isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
-	isc_int32_t temp;
+isc_atomic_store(int32_t *p, int32_t val) {
+	int32_t temp;
 
 	__asm__ volatile(
 		"mb;"
@@ -147,9 +149,9 @@ isc_atomic_store(isc_int32_t *p, isc_int32_t val) {
 		: "memory");
 }
 
-static inline isc_int32_t
-isc_atomic_cmpxchg(isc_int32_t *p, isc_int32_t cmpval, isc_int32_t val) {
-	isc_int32_t temp, prev;
+static inline int32_t
+isc_atomic_cmpxchg(int32_t *p, int32_t cmpval, int32_t val) {
+	int32_t temp, prev;
 
 	__asm__ volatile(
 		"mb;"

@@ -3444,7 +3444,6 @@
 ./lib/isc/include/isc/base32.h			C	2008,2014,2016,2018
 ./lib/isc/include/isc/base64.h			C	1999,2000,2001,2004,2005,2006,2007,2016,2018
 ./lib/isc/include/isc/bind9.h			C	2009,2013,2016,2018
-./lib/isc/include/isc/boolean.h			C	1998,1999,2000,2001,2004,2005,2006,2007,2016,2018
 ./lib/isc/include/isc/buffer.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2008,2010,2012,2014,2016,2017,2018
 ./lib/isc/include/isc/bufferlist.h		C	1999,2000,2001,2004,2005,2006,2007,2016,2018
 ./lib/isc/include/isc/commandline.h		C	1999,2000,2001,2004,2005,2006,2007,2015,2016,2018
@@ -3667,7 +3666,6 @@
 ./lib/isc/unix/include/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012,2014,2016,2018
 ./lib/isc/unix/include/isc/Makefile.in		MAKE	1998,1999,2000,2001,2004,2007,2012,2013,2014,2015,2016,2018
 ./lib/isc/unix/include/isc/dir.h		C	1999,2000,2001,2004,2005,2007,2016,2018
-./lib/isc/unix/include/isc/int.h		C	1999,2000,2001,2004,2005,2007,2016,2018
 ./lib/isc/unix/include/isc/keyboard.h		C	2000,2001,2004,2005,2007,2016,2018
 ./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2014,2016,2017,2018
 ./lib/isc/unix/include/isc/netdb.h		C	1999,2000,2001,2004,2005,2007,2016,2018
@@ -3712,7 +3710,6 @@
 ./lib/isc/win32/include/isc/bindevt.h		C	2001,2004,2007,2016,2018
 ./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004,2007,2016,2018
 ./lib/isc/win32/include/isc/dir.h		C	1999,2000,2001,2004,2007,2016,2018
-./lib/isc/win32/include/isc/int.h		C	1999,2000,2001,2004,2007,2016,2018
 ./lib/isc/win32/include/isc/ipv6.h		C	1999,2000,2001,2002,2004,2005,2007,2011,2012,2016,2018
 ./lib/isc/win32/include/isc/keyboard.h		C	2000,2001,2004,2007,2016,2018
 ./lib/isc/win32/include/isc/mutex.h		C	1998,1999,2000,2001,2004,2007,2008,2009,2016,2018

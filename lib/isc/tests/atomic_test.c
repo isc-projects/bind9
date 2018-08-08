@@ -10,6 +10,8 @@
  */
 
 #include <config.h>
+
+#include <inttypes.h>
 #include <stdlib.h>
 
 #include <atf-c.h>
@@ -23,18 +25,18 @@
 #define TASKS 32
 #define ITERATIONS 1000
 #define COUNTS_PER_ITERATION 1000
-#define INCREMENT_64 (isc_int64_t)0x0000000010000000
+#define INCREMENT_64 (int64_t)0x0000000010000000
 #define EXPECTED_COUNT_32 (TASKS * ITERATIONS * COUNTS_PER_ITERATION)
 #define EXPECTED_COUNT_64 (TASKS * ITERATIONS * COUNTS_PER_ITERATION * INCREMENT_64)
 
 typedef struct {
-	isc_uint32_t iteration;
+	uint32_t iteration;
 } counter_t;
 
 counter_t counters[TASKS];
 
 #if defined(ISC_PLATFORM_HAVEXADD)
-static isc_int32_t counter_32;
+static int32_t counter_32;
 
 static void
 do_xadd(isc_task_t *task, isc_event_t *ev) {
@@ -65,7 +67,7 @@ ATF_TC_BODY(atomic_xadd, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(counters, 0, sizeof(counters));
@@ -96,7 +98,7 @@ ATF_TC_BODY(atomic_xadd, tc) {
 #endif
 
 #if defined(ISC_PLATFORM_HAVEXADDQ)
-static isc_int64_t counter_64;
+static int64_t counter_64;
 
 static void
 do_xaddq(isc_task_t *task, isc_event_t *ev) {
@@ -127,7 +129,7 @@ ATF_TC_BODY(atomic_xaddq, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(counters, 0, sizeof(counters));
@@ -149,8 +151,8 @@ ATF_TC_BODY(atomic_xaddq, tc) {
 
 	isc_test_end();
 
-	printf("64-bit counter %"ISC_PRINT_QUADFORMAT"d, "
-	       "expected %"ISC_PRINT_QUADFORMAT"d\n",
+	printf("64-bit counter %" PRId64 ", "
+	       "expected %" PRId64 "\n",
 	       counter_64, EXPECTED_COUNT_64);
 
 	ATF_CHECK_EQ(counter_64, EXPECTED_COUNT_64);
@@ -159,14 +161,14 @@ ATF_TC_BODY(atomic_xaddq, tc) {
 #endif
 
 #if defined(ISC_PLATFORM_HAVEATOMICSTORE)
-static isc_int32_t store_32;
+static int32_t store_32;
 
 static void
 do_store(isc_task_t *task, isc_event_t *ev) {
 	counter_t *state = (counter_t *)ev->ev_arg;
 	int i;
-	isc_uint32_t r;
-	isc_uint32_t val;
+	uint32_t r;
+	uint32_t val;
 
 	r = random() % 256;
 	val = (r << 24) | (r << 16) | (r << 8) | r;
@@ -191,13 +193,13 @@ ATF_TC_BODY(atomic_store, tc) {
 	isc_result_t result;
 	isc_task_t *tasks[TASKS];
 	isc_event_t *event = NULL;
-	isc_uint32_t val;
-	isc_uint32_t r;
+	uint32_t val;
+	uint32_t r;
 	int i;
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(counters, 0, sizeof(counters));
@@ -224,29 +226,29 @@ ATF_TC_BODY(atomic_store, tc) {
 	val = (r << 24) | (r << 16) | (r << 8) | r;
 
 	printf("32-bit store 0x%x, expected 0x%x\n",
-	       (isc_uint32_t) store_32, val);
+	       (uint32_t) store_32, val);
 
-	ATF_CHECK_EQ((isc_uint32_t) store_32, val);
+	ATF_CHECK_EQ((uint32_t) store_32, val);
 	store_32 = 0;
 }
 #endif
 
 #if defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
-static isc_int64_t store_64;
+static int64_t store_64;
 
 static void
 do_storeq(isc_task_t *task, isc_event_t *ev) {
 	counter_t *state = (counter_t *)ev->ev_arg;
 	int i;
-	isc_uint8_t r;
-	isc_uint64_t val;
+	uint8_t r;
+	uint64_t val;
 
 	r = random() % 256;
-	val = (((isc_uint64_t) r << 24) |
-	       ((isc_uint64_t) r << 16) |
-	       ((isc_uint64_t) r << 8) |
-	       (isc_uint64_t) r);
-	val |= ((isc_uint64_t) val << 32);
+	val = (((uint64_t) r << 24) |
+	       ((uint64_t) r << 16) |
+	       ((uint64_t) r << 8) |
+	       (uint64_t) r);
+	val |= ((uint64_t) val << 32);
 
 	for (i = 0 ; i < COUNTS_PER_ITERATION ; i++) {
 		isc_atomic_storeq(&store_64, val);
@@ -268,13 +270,13 @@ ATF_TC_BODY(atomic_storeq, tc) {
 	isc_result_t result;
 	isc_task_t *tasks[TASKS];
 	isc_event_t *event = NULL;
-	isc_uint64_t val;
-	isc_uint32_t r;
+	uint64_t val;
+	uint32_t r;
 	int i;
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(counters, 0, sizeof(counters));
@@ -298,17 +300,17 @@ ATF_TC_BODY(atomic_storeq, tc) {
 	isc_test_end();
 
 	r = store_64 & 0xff;
-	val = (((isc_uint64_t) r << 24) |
-	       ((isc_uint64_t) r << 16) |
-	       ((isc_uint64_t) r << 8) |
-	       (isc_uint64_t) r);
-	val |= ((isc_uint64_t) val << 32);
+	val = (((uint64_t) r << 24) |
+	       ((uint64_t) r << 16) |
+	       ((uint64_t) r << 8) |
+	       (uint64_t) r);
+	val |= ((uint64_t) val << 32);
 
-	printf("64-bit store 0x%"ISC_PRINT_QUADFORMAT"x, "
-	       "expected 0x%"ISC_PRINT_QUADFORMAT"x\n",
-	       (isc_uint64_t) store_64, val);
+	printf("64-bit store 0x%" PRIx64 ", "
+	       "expected 0x%" PRIx64 "\n",
+	       (uint64_t) store_64, val);
 
-	ATF_CHECK_EQ((isc_uint64_t) store_64, val);
+	ATF_CHECK_EQ((uint64_t) store_64, val);
 	store_64 = 0;
 }
 #endif

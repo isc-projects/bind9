@@ -13,6 +13,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
@@ -39,7 +42,7 @@ extern isc_socketmgr_t *socketmgr;
 extern int ncpus;
 
 isc_result_t
-isc_test_begin(FILE *logfile, isc_boolean_t start_managers,
+isc_test_begin(FILE *logfile, bool start_managers,
 	       unsigned int workers);
 /*%<
  * Begin test, logging to 'logfile' or default if not specified.
@@ -56,4 +59,4 @@ void
 isc_test_end(void);
 
 void
-isc_test_nap(isc_uint32_t usec);
+isc_test_nap(uint32_t usec);

@@ -16,6 +16,7 @@
  */
 
 #include <fcntl.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -38,14 +39,14 @@ struct perf_datafile {
 	pthread_mutex_t lock;
 	int pipe_fd;
 	int fd;
-	isc_boolean_t is_file;
+	bool is_file;
 	size_t size;
-	isc_boolean_t cached;
+	bool cached;
 	char databuf[BUFFER_SIZE + 1];
 	isc_buffer_t data;
 	unsigned int maxruns;
 	unsigned int nruns;
-	isc_boolean_t read_any;
+	bool read_any;
 };
 
 static inline void
@@ -70,12 +71,12 @@ perf_datafile_open(isc_mem_t *mctx, const char *filename)
 	dfile->mctx = mctx;
 	MUTEX_INIT(&dfile->lock);
 	dfile->pipe_fd = -1;
-	dfile->is_file = ISC_FALSE;
+	dfile->is_file = false;
 	dfile->size = 0;
-	dfile->cached = ISC_FALSE;
+	dfile->cached = false;
 	dfile->maxruns = 1;
 	dfile->nruns = 0;
-	dfile->read_any = ISC_FALSE;
+	dfile->read_any = false;
 	isc_buffer_init(&dfile->data, dfile->databuf, BUFFER_SIZE);
 	if (filename == NULL) {
 		dfile->fd = STDIN_FILENO;
@@ -84,7 +85,7 @@ perf_datafile_open(isc_mem_t *mctx, const char *filename)
 		if (dfile->fd < 0)
 			perf_log_fatal("unable to open file: %s", filename);
 		if (fstat(dfile->fd, &buf) == 0 && S_ISREG(buf.st_mode)) {
-			dfile->is_file = ISC_TRUE;
+			dfile->is_file = true;
 			dfile->size = buf.st_size;
 		}
 	}
@@ -162,7 +163,7 @@ read_more(perf_datafile_t *dfile)
 
 	if (dfile->is_file &&
 	    isc_buffer_usedlength(&dfile->data) == dfile->size)
-		dfile->cached = ISC_TRUE;
+		dfile->cached = true;
 
 	return (ISC_R_SUCCESS);
 }
@@ -174,7 +175,7 @@ read_one_line(perf_datafile_t *dfile, isc_buffer_t *lines)
 	unsigned int length, curlen, nrem;
 	isc_result_t result;
 
-	while (ISC_TRUE) {
+	while (true) {
 		/* Get the current line */
 		cur = isc_buffer_current(&dfile->data);
 		curlen = strcspn(cur, "\n");
@@ -219,7 +220,7 @@ read_one_line(perf_datafile_t *dfile, isc_buffer_t *lines)
 
 isc_result_t
 perf_datafile_next(perf_datafile_t *dfile, isc_buffer_t *lines,
-		   isc_boolean_t is_update)
+		   bool is_update)
 {
 	const char *current;
 	isc_result_t result;
@@ -246,10 +247,10 @@ perf_datafile_next(perf_datafile_t *dfile, isc_buffer_t *lines,
 	if (result != ISC_R_SUCCESS) {
 		goto done;
 	}
-	dfile->read_any = ISC_TRUE;
+	dfile->read_any = true;
 
 	if (is_update) {
-		while (ISC_TRUE) {
+		while (true) {
 			current = isc_buffer_used(lines);
 			result = read_one_line(dfile, lines);
 			if (result == ISC_R_EOF &&

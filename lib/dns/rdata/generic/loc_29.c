@@ -25,8 +25,8 @@ fromtext_loc(ARGS_FROMTEXT) {
 	unsigned char hp;
 	unsigned char vp;
 	unsigned char version;
-	isc_boolean_t east = ISC_FALSE;
-	isc_boolean_t north = ISC_FALSE;
+	bool east = false;
+	bool north = false;
 	long tmp;
 	long m;
 	long cm;
@@ -61,7 +61,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Degrees.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 90U)
 		RETTOK(ISC_R_RANGE);
 	d1 = (int)token.value.as_ulong;
@@ -69,9 +69,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Minutes.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (strcasecmp(DNS_AS_STR(token), "N") == 0)
-		north = ISC_TRUE;
+		north = true;
 	if (north || strcasecmp(DNS_AS_STR(token), "S") == 0)
 		goto getlong;
 	m1 = strtol(DNS_AS_STR(token), &e, 10);
@@ -86,9 +86,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Seconds.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (strcasecmp(DNS_AS_STR(token), "N") == 0)
-		north = ISC_TRUE;
+		north = true;
 	if (north || strcasecmp(DNS_AS_STR(token), "S") == 0)
 		goto getlong;
 	s1 = strtol(DNS_AS_STR(token), &e, 10);
@@ -134,9 +134,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Direction.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (strcasecmp(DNS_AS_STR(token), "N") == 0)
-		north = ISC_TRUE;
+		north = true;
 	if (!north && strcasecmp(DNS_AS_STR(token), "S") != 0)
 		RETTOK(DNS_R_SYNTAX);
 
@@ -145,7 +145,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Degrees.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 180U)
 		RETTOK(ISC_R_RANGE);
 	d2 = (int)token.value.as_ulong;
@@ -154,9 +154,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Minutes.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (strcasecmp(DNS_AS_STR(token), "E") == 0)
-		east = ISC_TRUE;
+		east = true;
 	if (east || strcasecmp(DNS_AS_STR(token), "W") == 0)
 		goto getalt;
 	m2 = strtol(DNS_AS_STR(token), &e, 10);
@@ -171,9 +171,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Seconds.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (strcasecmp(DNS_AS_STR(token), "E") == 0)
-		east = ISC_TRUE;
+		east = true;
 	if (east || strcasecmp(DNS_AS_STR(token), "W") == 0)
 		goto getalt;
 	s2 = strtol(DNS_AS_STR(token), &e, 10);
@@ -219,9 +219,9 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Direction.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (strcasecmp(DNS_AS_STR(token), "E") == 0)
-		east = ISC_TRUE;
+		east = true;
 	if (!east && strcasecmp(DNS_AS_STR(token), "W") != 0)
 		RETTOK(DNS_R_SYNTAX);
 
@@ -230,7 +230,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Altitude.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	m = strtol(DNS_AS_STR(token), &e, 10);
 	if (*e != 0 && *e != '.' && *e != 'm')
 		RETTOK(DNS_R_SYNTAX);
@@ -272,7 +272,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Size: optional.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_TRUE));
+				      true));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
 		isc_lex_ungettoken(lexer, &token);
@@ -325,7 +325,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Horizontal precision: optional.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_TRUE));
+				      true));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
 		isc_lex_ungettoken(lexer, &token);
@@ -376,7 +376,7 @@ fromtext_loc(ARGS_FROMTEXT) {
 	 * Vertical precision: optional.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_TRUE));
+				      true));
 	if (token.type == isc_tokentype_eol ||
 	    token.type == isc_tokentype_eof) {
 		isc_lex_ungettoken(lexer, &token);
@@ -450,9 +450,9 @@ totext_loc(ARGS_TOTEXT) {
 	unsigned long latitude;
 	unsigned long longitude;
 	unsigned long altitude;
-	isc_boolean_t north;
-	isc_boolean_t east;
-	isc_boolean_t below;
+	bool north;
+	bool east;
+	bool below;
 	isc_region_t sr;
 	char buf[sizeof("89 59 59.999 N 179 59 59.999 E "
 			"-42849672.95m 90000000m 90000000m 90000000m")];
@@ -507,10 +507,10 @@ totext_loc(ARGS_TOTEXT) {
 	latitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 	if (latitude >= 0x80000000) {
-		north = ISC_TRUE;
+		north = true;
 		latitude -= 0x80000000;
 	} else {
-		north = ISC_FALSE;
+		north = false;
 		latitude = 0x80000000 - latitude;
 	}
 	fs1 = (int)(latitude % 1000);
@@ -525,10 +525,10 @@ totext_loc(ARGS_TOTEXT) {
 	longitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 	if (longitude >= 0x80000000) {
-		east = ISC_TRUE;
+		east = true;
 		longitude -= 0x80000000;
 	} else {
-		east = ISC_FALSE;
+		east = false;
 		longitude = 0x80000000 - longitude;
 	}
 	fs2 = (int)(longitude % 1000);
@@ -543,10 +543,10 @@ totext_loc(ARGS_TOTEXT) {
 	altitude = uint32_fromregion(&sr);
 	isc_region_consume(&sr, 4);
 	if (altitude < 10000000U) {
-		below = ISC_TRUE;
+		below = true;
 		altitude = 10000000 - altitude;
 	} else {
-		below =ISC_FALSE;
+		below =false;
 		altitude -= 10000000;
 	}
 
@@ -666,7 +666,7 @@ compare_loc(ARGS_COMPARE) {
 static inline isc_result_t
 fromstruct_loc(ARGS_FROMSTRUCT) {
 	dns_rdata_loc_t *loc = source;
-	isc_uint8_t c;
+	uint8_t c;
 
 	REQUIRE(type == dns_rdatatype_loc);
 	REQUIRE(source != NULL);
@@ -711,7 +711,7 @@ static inline isc_result_t
 tostruct_loc(ARGS_TOSTRUCT) {
 	dns_rdata_loc_t *loc = target;
 	isc_region_t r;
-	isc_uint8_t version;
+	uint8_t version;
 
 	REQUIRE(rdata->type == dns_rdatatype_loc);
 	REQUIRE(target != NULL);
@@ -778,7 +778,7 @@ digest_loc(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_loc(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_loc);
@@ -788,10 +788,10 @@ checkowner_loc(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_loc(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_loc);
@@ -800,7 +800,7 @@ checknames_loc(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

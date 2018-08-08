@@ -13,6 +13,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
@@ -50,12 +53,12 @@ extern isc_task_t *maintask;
 extern isc_timermgr_t *timermgr;
 extern isc_socketmgr_t *socketmgr;
 extern dns_zonemgr_t *zonemgr;
-extern isc_boolean_t app_running;
+extern bool app_running;
 extern int ncpus;
-extern isc_boolean_t debug_mem_record;
+extern bool debug_mem_record;
 
 isc_result_t
-dns_test_begin(FILE *logfile, isc_boolean_t create_managers);
+dns_test_begin(FILE *logfile, bool create_managers);
 
 void
 dns_test_end(void);
@@ -81,7 +84,7 @@ dns_test_makeview(const char *name, dns_view_t **viewp);
  */
 isc_result_t
 dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
-		  isc_boolean_t createview);
+		  bool createview);
 
 isc_result_t
 dns_test_setupzonemgr(void);
@@ -96,7 +99,7 @@ void
 dns_test_closezonemgr(void);
 
 void
-dns_test_nap(isc_uint32_t usec);
+dns_test_nap(uint32_t usec);
 
 isc_result_t
 dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,

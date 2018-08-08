@@ -37,6 +37,7 @@
  ***/
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -82,7 +83,7 @@ struct query_info;
 typedef ISC_LIST(struct query_info) query_list;
 
 typedef struct query_info {
-	isc_uint64_t sent_timestamp;
+	uint64_t sent_timestamp;
 	/*
 	 * This link links the query into the list of outstanding
 	 * queries or the list of available query IDs.
@@ -106,9 +107,9 @@ static isc_sockaddr_t local_addr;
 static unsigned int nsocks;
 static int *socks;
 
-static isc_uint64_t query_timeout;
-static isc_boolean_t edns;
-static isc_boolean_t dnssec;
+static uint64_t query_timeout;
+static bool edns;
+static bool dnssec;
 
 static perf_datafile_t *input;
 
@@ -117,24 +118,24 @@ double max_qps = 100000.0;
 
 /* The time period over which we ramp up traffic */
 #define DEFAULT_RAMP_TIME 60
-static isc_uint64_t ramp_time;
+static uint64_t ramp_time;
 
 /* How long to send constant traffic after the initial ramp-up */
 #define DEFAULT_SUSTAIN_TIME 0
-static isc_uint64_t sustain_time;
+static uint64_t sustain_time;
 
 /* How long to wait for responses after sending traffic */
-static isc_uint64_t wait_time = 40 * MILLION;
+static uint64_t wait_time = 40 * MILLION;
 
 /* Total duration of the traffic-sending part of the test */
-static isc_uint64_t traffic_time;
+static uint64_t traffic_time;
 
 /* Total duration of the test */
-static isc_uint64_t end_time;
+static uint64_t end_time;
 
 /* Interval between plot data points, in microseconds */
 #define DEFAULT_BUCKET_INTERVAL 0.5
-static isc_uint64_t bucket_interval;
+static uint64_t bucket_interval;
 
 /* The number of plot data points */
 static int n_buckets;
@@ -148,15 +149,15 @@ static double max_loss_percent = 100.0;
 /* The maximum number of outstanding queries */
 static unsigned int max_outstanding;
 
-static isc_uint64_t num_queries_sent;
-static isc_uint64_t num_queries_outstanding;
-static isc_uint64_t num_responses_received;
-static isc_uint64_t num_queries_timed_out;
-static isc_uint64_t rcodecounts[16];
+static uint64_t num_queries_sent;
+static uint64_t num_queries_outstanding;
+static uint64_t num_responses_received;
+static uint64_t num_queries_timed_out;
+static uint64_t rcodecounts[16];
 
-static isc_uint64_t time_now;
-static isc_uint64_t time_of_program_start;
-static isc_uint64_t time_of_end_of_run;
+static uint64_t time_now;
+static uint64_t time_of_program_start;
+static uint64_t time_of_end_of_run;
 
 /*
  * The last plot data point containing actual data; this can
@@ -198,7 +199,7 @@ enum phase {
 static enum phase phase = PHASE_RAMP;
 
 /* The time when the sustain/wait phase began */
-static isc_uint64_t sustain_phase_began, wait_phase_began;
+static uint64_t sustain_phase_began, wait_phase_began;
 
 static perf_dnstsigkey_t *tsigkey;
 
@@ -329,7 +330,7 @@ setup(int argc, char **argv)
 	input = perf_datafile_open(mctx, filename);
 
 	if (dnssec)
-		edns = ISC_TRUE;
+		edns = true;
 
 	if (tsigkey_str != NULL)
 		tsigkey = perf_dns_parsetsigkey(tsigkey_str, mctx);
@@ -359,8 +360,8 @@ cleanup(void)
 /* Find the ramp_bucket for queries sent at time "when" */
 
 static ramp_bucket *
-find_bucket(isc_uint64_t when) {
-	isc_uint64_t sent_at = when - time_of_program_start;
+find_bucket(uint64_t when) {
+	uint64_t sent_at = when - time_of_program_start;
 	int i = (int) ((n_buckets * sent_at) / traffic_time);
 	/*
 	 * Guard against array bounds violations due to roundoff
@@ -382,27 +383,27 @@ print_statistics(void) {
 	int i;
 	double max_throughput;
 	double loss_at_max_throughput;
-	isc_boolean_t first_rcode;
-	isc_uint64_t run_time = time_of_end_of_run - time_of_program_start;
+	bool first_rcode;
+	uint64_t run_time = time_of_end_of_run - time_of_program_start;
 
 	printf("\nStatistics:\n\n");
 
-	printf("  Queries sent:         %" ISC_PRINT_QUADFORMAT "u\n",
+	printf("  Queries sent:         %" PRIu64 "\n",
                num_queries_sent);
-	printf("  Queries completed:    %" ISC_PRINT_QUADFORMAT "u\n",
+	printf("  Queries completed:    %" PRIu64 "\n",
                num_responses_received);
-	printf("  Queries lost:         %" ISC_PRINT_QUADFORMAT "u\n",
+	printf("  Queries lost:         %" PRIu64 "\n",
 	       num_queries_sent - num_responses_received);
 	printf("  Response codes:       ");
-	first_rcode = ISC_TRUE;
+	first_rcode = true;
 	for (i = 0; i < 16; i++) {
 		if (rcodecounts[i] == 0)
 			continue;
 		if (first_rcode)
-			first_rcode = ISC_FALSE;
+			first_rcode = false;
 		else
 			printf(", ");
-		printf("%s %" ISC_PRINT_QUADFORMAT "u (%.2lf%%)",
+		printf("%s %" PRIu64 " (%.2lf%%)",
 		       perf_dns_rcode_strings[i], rcodecounts[i],
 		       (rcodecounts[i] * 100.0) / num_responses_received);
 	}
@@ -462,7 +463,7 @@ do_one_line(isc_buffer_t *lines, isc_buffer_t *msg) {
 	isc_result_t result;
 
 	isc_buffer_clear(lines);
-	result = perf_datafile_next(input, lines, ISC_FALSE);
+	result = perf_datafile_next(input, lines, false);
 	if (result != ISC_R_SUCCESS)
 		perf_log_fatal("ran out of query data");
 	isc_buffer_usedregion(lines, &used);
@@ -527,14 +528,14 @@ enter_wait_phase(void) {
 static void
 try_process_response(unsigned int sockindex) {
 	unsigned char packet_buffer[MAX_EDNS_PACKET];
-	isc_uint16_t *packet_header;
-	isc_uint16_t qid, rcode;
+	uint16_t *packet_header;
+	uint16_t qid, rcode;
 	query_info *q;
 	double latency;
 	ramp_bucket *b;
 	int n;
 
-	packet_header = (isc_uint16_t *) packet_buffer;
+	packet_header = (uint16_t *) packet_buffer;
 	n = recvfrom(socks[sockindex], packet_buffer, sizeof(packet_buffer),
 		     0, NULL, NULL);
 	if (n < 0) {
@@ -580,7 +581,7 @@ retire_old_queries(void)
 {
 	query_info *q;
 
-	while (ISC_TRUE) {
+	while (true) {
 		q = ISC_LIST_TAIL(outstanding_list);
 		if (q == NULL ||
 		    (time_now - q->sent_timestamp) < query_timeout)
@@ -595,7 +596,7 @@ retire_old_queries(void)
 }
 
 static inline int
-num_scheduled(isc_uint64_t time_since_start)
+num_scheduled(uint64_t time_since_start)
 {
 	if (phase == PHASE_RAMP) {
 		return 0.5 * max_qps *
@@ -649,7 +650,7 @@ main(int argc, char **argv) {
 	current_sock = 0;
 	for (;;) {
 		int should_send;
-		isc_uint64_t time_since_start = time_now -
+		uint64_t time_since_start = time_now -
 						time_of_program_start;
 		switch (phase) {
 		case PHASE_RAMP:

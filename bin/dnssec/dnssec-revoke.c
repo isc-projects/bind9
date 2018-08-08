@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
 
@@ -80,11 +82,11 @@ main(int argc, char **argv) {
 	char *endp;
 	int ch;
 	dst_key_t *key = NULL;
-	isc_uint32_t flags;
+	uint32_t flags;
 	isc_buffer_t buf;
-	isc_boolean_t force = ISC_FALSE;
-	isc_boolean_t removefile = ISC_FALSE;
-	isc_boolean_t id = ISC_FALSE;
+	bool force = false;
+	bool removefile = false;
+	bool id = false;
 
 	if (argc == 1)
 		usage();
@@ -98,7 +100,7 @@ main(int argc, char **argv) {
 #endif
 	dns_result_register();
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	while ((ch = isc_commandline_parse(argc, argv, "E:fK:rRhv:V")) != -1) {
 		switch (ch) {
@@ -106,7 +108,7 @@ main(int argc, char **argv) {
 			engine = isc_commandline_argument;
 			break;
 		    case 'f':
-			force = ISC_TRUE;
+			force = true;
 			break;
 		    case 'K':
 			/*
@@ -120,10 +122,10 @@ main(int argc, char **argv) {
 			}
 			break;
 		    case 'r':
-			removefile = ISC_TRUE;
+			removefile = true;
 			break;
 		    case 'R':
-			id = ISC_TRUE;
+			id = true;
 			break;
 		    case 'v':
 			verbose = strtol(isc_commandline_argument, &endp, 0);

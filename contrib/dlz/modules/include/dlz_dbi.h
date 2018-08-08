@@ -33,6 +33,8 @@
  * USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <stdbool.h>
+
 #include <dlz_minimal.h>
 #include <dlz_list.h>
 #include <dlz_pthread.h>
@@ -61,7 +63,7 @@ typedef struct driverinstance driverinstance_t;
 struct query_segment {
 	void				*cmd;
 	unsigned int			strlen;
-	isc_boolean_t			direct;
+	bool			direct;
 	DLZ_LINK(query_segment_t)	link;
 };
 

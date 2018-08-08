@@ -17,6 +17,8 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -30,7 +32,7 @@
 #include "util.h"
 
 void
-perf_os_blocksignal(int sig, isc_boolean_t block)
+perf_os_blocksignal(int sig, bool block)
 {
 	sigset_t sset;
 	int op;
@@ -57,7 +59,7 @@ perf_os_handlesignal(int sig, void (*handler)(int))
 }
 
 isc_result_t
-perf_os_waituntilreadable(int fd, int pipe_fd, isc_int64_t timeout)
+perf_os_waituntilreadable(int fd, int pipe_fd, int64_t timeout)
 {
 	fd_set read_fds;
 	int maxfd;
@@ -91,7 +93,7 @@ perf_os_waituntilreadable(int fd, int pipe_fd, isc_int64_t timeout)
 
 isc_result_t
 perf_os_waituntilanyreadable(int *fds, unsigned int nfds, int pipe_fd,
-			     isc_int64_t timeout)
+			     int64_t timeout)
 {
 	fd_set read_fds;
 	unsigned int i;

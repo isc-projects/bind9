@@ -13,6 +13,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <atf-c.h>
 
 #include <dns/badcache.h>
@@ -35,12 +38,12 @@
 typedef struct {
 	const ns_test_id_t id;		   /* libns test identifier */
 	unsigned int qflags;		   /* query flags */
-	isc_boolean_t cache_entry_present; /* whether a SERVFAIL cache entry
+	bool cache_entry_present; /* whether a SERVFAIL cache entry
 					      matching the query should be
 					      present */
-	isc_uint32_t cache_entry_flags;	   /* NS_FAILCACHE_* flags to set for
+	uint32_t cache_entry_flags;	   /* NS_FAILCACHE_* flags to set for
 					      the SERVFAIL cache entry */
-	isc_boolean_t servfail_expected;   /* whether a cached SERVFAIL is
+	bool servfail_expected;   /* whether a cached SERVFAIL is
 					      expected to be returned */
 } ns__query_sfcache_test_params_t;
 
@@ -54,7 +57,7 @@ ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 
 	REQUIRE(test != NULL);
 	REQUIRE(test->id.description != NULL);
-	REQUIRE(test->cache_entry_present == ISC_TRUE ||
+	REQUIRE(test->cache_entry_present == true ||
 		test->cache_entry_flags == 0);
 
 	/*
@@ -76,7 +79,7 @@ ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 			.qname = ".",
 			.qtype = dns_rdatatype_ns,
 			.qflags = test->qflags,
-			.with_cache = ISC_TRUE,
+			.with_cache = true,
 		};
 
 		result = ns_test_qctx_create(&qctx_params, &qctx);
@@ -96,7 +99,7 @@ ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		dns_badcache_add(qctx->client->view->failcache, dns_rootname,
-				 dns_rdatatype_ns, ISC_TRUE,
+				 dns_rdatatype_ns, true,
 				 test->cache_entry_flags, &expire);
 	}
 
@@ -141,8 +144,8 @@ ATF_TC_BODY(ns__query_sfcache, tc) {
 		{
 			NS_TEST_ID("query: RD=1, CD=0; cache: empty"),
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.cache_entry_present = ISC_FALSE,
-			.servfail_expected = ISC_FALSE,
+			.cache_entry_present = false,
+			.servfail_expected = false,
 		},
 		/*
 		 * Query: RD=1, CD=0.  Cache entry: CD=0.  Should SERVFAIL.
@@ -150,9 +153,9 @@ ATF_TC_BODY(ns__query_sfcache, tc) {
 		{
 			NS_TEST_ID("query: RD=1, CD=0; cache: CD=0"),
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.cache_entry_present = ISC_TRUE,
+			.cache_entry_present = true,
 			.cache_entry_flags = 0,
-			.servfail_expected = ISC_TRUE,
+			.servfail_expected = true,
 		},
 		/*
 		 * Query: RD=1, CD=1.  Cache entry: CD=0.  Should not SERVFAIL:
@@ -161,9 +164,9 @@ ATF_TC_BODY(ns__query_sfcache, tc) {
 		{
 			NS_TEST_ID("query: RD=1, CD=1; cache: CD=0"),
 			.qflags = DNS_MESSAGEFLAG_RD | DNS_MESSAGEFLAG_CD,
-			.cache_entry_present = ISC_TRUE,
+			.cache_entry_present = true,
 			.cache_entry_flags = 0,
-			.servfail_expected = ISC_FALSE,
+			.servfail_expected = false,
 		},
 		/*
 		 * Query: RD=1, CD=1.  Cache entry: CD=1.  Should SERVFAIL:
@@ -174,9 +177,9 @@ ATF_TC_BODY(ns__query_sfcache, tc) {
 		{
 			NS_TEST_ID("query: RD=1, CD=1; cache: CD=1"),
 			.qflags = DNS_MESSAGEFLAG_RD | DNS_MESSAGEFLAG_CD,
-			.cache_entry_present = ISC_TRUE,
+			.cache_entry_present = true,
 			.cache_entry_flags = NS_FAILCACHE_CD,
-			.servfail_expected = ISC_TRUE,
+			.servfail_expected = true,
 		},
 		/*
 		 * Query: RD=1, CD=0.  Cache entry: CD=1.  Should SERVFAIL: if
@@ -186,9 +189,9 @@ ATF_TC_BODY(ns__query_sfcache, tc) {
 		{
 			NS_TEST_ID("query: RD=1, CD=0; cache: CD=1"),
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.cache_entry_present = ISC_TRUE,
+			.cache_entry_present = true,
 			.cache_entry_flags = NS_FAILCACHE_CD,
-			.servfail_expected = ISC_TRUE,
+			.servfail_expected = true,
 		},
 		/*
 		 * Query: RD=0, CD=0.  Cache entry: CD=0.  Should not SERVFAIL
@@ -198,15 +201,15 @@ ATF_TC_BODY(ns__query_sfcache, tc) {
 		{
 			NS_TEST_ID("query: RD=0, CD=0; cache: CD=0"),
 			.qflags = 0,
-			.cache_entry_present = ISC_TRUE,
+			.cache_entry_present = true,
 			.cache_entry_flags = 0,
-			.servfail_expected = ISC_FALSE,
+			.servfail_expected = false,
 		},
 	};
 
 	UNUSED(tc);
 
-	result = ns_test_begin(NULL, ISC_TRUE);
+	result = ns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
@@ -228,10 +231,10 @@ typedef struct {
 	const char *qname;		   /* QNAME */
 	dns_rdatatype_t qtype;		   /* QTYPE */
 	unsigned int qflags;		   /* query flags */
-	isc_boolean_t disable_name_checks; /* if set to ISC_TRUE, owner name
+	bool disable_name_checks; /* if set to true, owner name
 					      checks will be disabled for the
 					      view created */
-	isc_boolean_t recursive_service;   /* if set to ISC_TRUE, the view
+	bool recursive_service;   /* if set to true, the view
 					      created will have a cache
 					      database attached */
 	const char *auth_zone_origin;	   /* origin name of the zone the
@@ -369,7 +372,7 @@ ns__query_start_test(const ns__query_start_test_params_t *test) {
 			      test->id.description, test->id.lineno);
 		break;
 	case NS__QUERY_START_R_INVALID:
-		ATF_REQUIRE_MSG(ISC_FALSE,
+		ATF_REQUIRE_MSG(false,
 				"test \"%s\" on line %d has no expected "
 				"result set",
 				test->id.description, test->id.lineno);
@@ -406,7 +409,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "foo",
 			.qtype = dns_rdatatype_a,
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.recursive_service = ISC_FALSE,
+			.recursive_service = false,
 			.expected_result = NS__QUERY_START_R_REFUSE,
 		},
 		/*
@@ -417,7 +420,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			NS_TEST_ID("foo/A, cache, no auth"),
 			.qname = "foo",
 			.qtype = dns_rdatatype_a,
-			.recursive_service = ISC_TRUE,
+			.recursive_service = true,
 			.expected_result = NS__QUERY_START_R_CACHE,
 		},
 		/*
@@ -430,7 +433,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "foo",
 			.qtype = dns_rdatatype_a,
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.recursive_service = ISC_TRUE,
+			.recursive_service = true,
 			.auth_zone_origin = "foo",
 			.auth_zone_path = "testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_AUTH,
@@ -444,7 +447,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "bar",
 			.qtype = dns_rdatatype_a,
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.recursive_service = ISC_FALSE,
+			.recursive_service = false,
 			.auth_zone_origin = "foo",
 			.auth_zone_path = "testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_REFUSE,
@@ -459,7 +462,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "bar",
 			.qtype = dns_rdatatype_a,
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.recursive_service = ISC_TRUE,
+			.recursive_service = true,
 			.auth_zone_origin = "foo",
 			.auth_zone_path = "testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_CACHE,
@@ -474,7 +477,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "bar.foo",
 			.qtype = dns_rdatatype_ds,
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.recursive_service = ISC_TRUE,
+			.recursive_service = true,
 			.auth_zone_origin = "foo",
 			.auth_zone_path = "testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_AUTH,
@@ -489,7 +492,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "bar.foo",
 			.qtype = dns_rdatatype_ds,
 			.qflags = 0,
-			.recursive_service = ISC_TRUE,
+			.recursive_service = true,
 			.auth_zone_origin = "foo",
 			.auth_zone_path = "testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_AUTH,
@@ -504,7 +507,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "foo",
 			.qtype = dns_rdatatype_ds,
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.recursive_service = ISC_TRUE,
+			.recursive_service = true,
 			.auth_zone_origin = "foo",
 			.auth_zone_path = "testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_CACHE,
@@ -519,7 +522,7 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "foo",
 			.qtype = dns_rdatatype_ds,
 			.qflags = 0,
-			.recursive_service = ISC_TRUE,
+			.recursive_service = true,
 			.auth_zone_origin = "foo",
 			.auth_zone_path = "testdata/query/foo.db",
 			.expected_result = NS__QUERY_START_R_AUTH,
@@ -534,8 +537,8 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "_foo",
 			.qtype = dns_rdatatype_a,
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.disable_name_checks = ISC_TRUE,
-			.recursive_service = ISC_TRUE,
+			.disable_name_checks = true,
+			.recursive_service = true,
 			.expected_result = NS__QUERY_START_R_CACHE,
 		},
 		/*
@@ -548,15 +551,15 @@ ATF_TC_BODY(ns__query_start, tc) {
 			.qname = "_foo",
 			.qtype = dns_rdatatype_a,
 			.qflags = DNS_MESSAGEFLAG_RD,
-			.disable_name_checks = ISC_FALSE,
-			.recursive_service = ISC_TRUE,
+			.disable_name_checks = false,
+			.recursive_service = true,
 			.expected_result = NS__QUERY_START_R_REFUSE,
 		},
 	};
 
 	UNUSED(tc);
 
-	result = ns_test_begin(NULL, ISC_TRUE);
+	result = ns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {

@@ -12,6 +12,9 @@
 /*! \file */
 
 #include <config.h>
+
+#include <inttypes.h>
+#include <stdbool.h>
 #include <string.h>
 
 #include <isc/net.h>
@@ -45,7 +48,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 {
 	struct in_addr in4;
 	struct in6_addr in6;
-	isc_boolean_t have_ipv4, have_ipv6;
+	bool have_ipv4, have_ipv6;
 	int i;
 
 #ifdef USE_GETADDRINFO
@@ -60,8 +63,8 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	REQUIRE(addrcount != NULL);
 	REQUIRE(addrsize > 0);
 
-	have_ipv4 = ISC_TF((isc_net_probeipv4() == ISC_R_SUCCESS));
-	have_ipv6 = ISC_TF((isc_net_probeipv6() == ISC_R_SUCCESS));
+	have_ipv4 = (isc_net_probeipv4() == ISC_R_SUCCESS);
+	have_ipv6 = (isc_net_probeipv6() == ISC_R_SUCCESS);
 
 	/*
 	 * Try IPv4, then IPv6.  In order to handle the extended format
@@ -81,7 +84,7 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 		return (ISC_R_SUCCESS);
 	} else if (strlen(hostname) <= 127U) {
 		char tmpbuf[128], *d;
-		isc_uint32_t zone = 0;
+		uint32_t zone = 0;
 
 		strlcpy(tmpbuf, hostname, sizeof(tmpbuf));
 		d = strchr(tmpbuf, '%');

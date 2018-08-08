@@ -23,6 +23,9 @@
  * DNSSEC validation.
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -48,7 +51,7 @@ struct dns_ntatable {
 	isc_timermgr_t		*timermgr;
 	isc_task_t		*task;
 	/* Locked by rwlock. */
-	isc_uint32_t		references;
+	uint32_t		references;
 	dns_rbt_t		*table;
 };
 
@@ -115,11 +118,11 @@ dns_ntatable_detach(dns_ntatable_t **ntatablep);
 
 isc_result_t
 dns_ntatable_add(dns_ntatable_t *ntatable, const dns_name_t *name,
-		 isc_boolean_t force, isc_stdtime_t now,
-		 isc_uint32_t lifetime);
+		 bool force, isc_stdtime_t now,
+		 uint32_t lifetime);
 /*%<
  * Add a negative trust anchor to 'ntatable' for name 'name',
- * which will expire at time 'now' + 'lifetime'.  If 'force' is ISC_FALSE,
+ * which will expire at time 'now' + 'lifetime'.  If 'force' is false,
  * then the name will be checked periodically to see if it's bogus;
  * if not, then the NTA will be allowed to expire early.
  *
@@ -159,14 +162,14 @@ dns_ntatable_delete(dns_ntatable_t *ntatable, const dns_name_t *keyname);
  *\li	Any other result indicates failure.
  */
 
-isc_boolean_t
+bool
 dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
 		     const dns_name_t *name, const dns_name_t *anchor);
 /*%<
- * Return ISC_TRUE if 'name' is below a non-expired negative trust
+ * Return true if 'name' is below a non-expired negative trust
  * anchor which in turn is at or below 'anchor'.
  *
- * If 'ntatable' has not been initialized, return ISC_FALSE.
+ * If 'ntatable' has not been initialized, return false.
  *
  * Requires:
  *

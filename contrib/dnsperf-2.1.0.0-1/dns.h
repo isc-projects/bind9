@@ -32,6 +32,9 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/types.h>
 
 #ifndef PERF_DNS_H
@@ -52,15 +55,15 @@ void
 perf_dns_destroytsigkey(perf_dnstsigkey_t **tsigkeyp);
 
 perf_dnsctx_t *
-perf_dns_createctx(isc_boolean_t updates);
+perf_dns_createctx(bool updates);
 
 void
 perf_dns_destroyctx(perf_dnsctx_t **ctxp);
 
 isc_result_t
 perf_dns_buildrequest(perf_dnsctx_t *ctx, const isc_textregion_t *record,
-		      isc_uint16_t qid,
-		      isc_boolean_t edns, isc_boolean_t dnssec,
+		      uint16_t qid,
+		      bool edns, bool dnssec,
 		      perf_dnstsigkey_t *tsigkey, isc_buffer_t *msg);
 
 #endif

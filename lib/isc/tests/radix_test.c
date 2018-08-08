@@ -20,7 +20,6 @@
 #include <atf-c.h>
 
 #include <stdlib.h>
-#include <stdint.h>
 
 #include "isctest.h"
 
@@ -38,7 +37,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_radix_create(mctx, &radix, 32);

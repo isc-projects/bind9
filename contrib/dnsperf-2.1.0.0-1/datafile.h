@@ -18,6 +18,8 @@
 #ifndef PERF_DATAFILE_H
 #define PERF_DATAFILE_H 1
 
+#include <stdbool.h>
+
 #include <isc/types.h>
 
 typedef struct perf_datafile perf_datafile_t;
@@ -36,7 +38,7 @@ perf_datafile_setpipefd(perf_datafile_t *dfile, int pipe_fd);
 
 isc_result_t
 perf_datafile_next(perf_datafile_t *dfile, isc_buffer_t *lines,
-		   isc_boolean_t is_update);
+		   bool is_update);
 
 unsigned int
 perf_datafile_nruns(const perf_datafile_t *dfile);
