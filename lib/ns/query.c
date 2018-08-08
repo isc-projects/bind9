@@ -112,9 +112,6 @@ do { \
 /*% Recursing? */
 #define RECURSING(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_RECURSING) != 0)
-/*% Cache glue ok? */
-#define CACHEGLUEOK(c)		(((c)->query.attributes & \
-				  NS_QUERYATTR_CACHEGLUEOK) != 0)
 /*% Want Recursion? */
 #define WANTRECURSION(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_WANTRECURSION) != 0)
@@ -7978,7 +7975,6 @@ query_delegation(query_ctx_t *qctx) {
 	/*
 	 * This is the best answer.
 	 */
-	qctx->client->query.attributes |= NS_QUERYATTR_CACHEGLUEOK;
 	qctx->client->query.isreferral = ISC_TRUE;
 
 	if (!dns_db_iscache(qctx->db) && qctx->client->query.gluedb == NULL) {
@@ -7999,7 +7995,6 @@ query_delegation(query_ctx_t *qctx) {
 	query_addrrset(qctx->client, &qctx->fname,
 		       &qctx->rdataset, sigrdatasetp,
 		       qctx->dbuf, DNS_SECTION_AUTHORITY);
-	qctx->client->query.attributes &= ~NS_QUERYATTR_CACHEGLUEOK;
 	if (detach) {
 		dns_db_detach(&qctx->client->query.gluedb);
 	}
