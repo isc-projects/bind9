@@ -196,4 +196,12 @@ ns__query_sfcache(query_ctx_t *qctx);
 isc_result_t
 ns__query_start(query_ctx_t *qctx);
 
+/*
+ * XXX:
+ * Temporary function used to initialize the filter-aaaa hooks,
+ * which are currently hard-coded rather than loaded as a module.
+ */
+void
+ns__query_inithooks(void);
+
 #endif /* NS_QUERY_H */
