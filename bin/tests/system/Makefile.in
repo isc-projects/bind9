@@ -37,8 +37,6 @@ SRCS =		feature-test.c
 
 TARGETS =	feature-test@EXEEXT@
 
-CPIO =		@CPIO@
-
 @BIND9_MAKE_RULES@
 
 subdirs: ${TARGETS}
@@ -110,18 +108,21 @@ parallel.mk:
 # Targets to run the tests.
 
 oot_setup:
-	@if test "${srcdir}" != "." -a -n "${CPIO}"; \
+	@if test "${srcdir}" != "."; \
 	then \
-		cwd=`pwd`; \
-		(cd ${srcdir} && find . -type f -a ! \( -name Makefile -o -name conf.sh \) -print0 | ${CPIO} -pdlum0 $${cwd} ) \
+		if test -e ${srcdir}/conf.sh -o -e ${srcdir}/Makefile ; \
+		then \
+			echo "Source directory ${srcdir} is not clean" ; \
+			exit 1 ; \
+		fi ; \
+		cp -pR ${srcdir} ../ ; \
 	fi
 
 oot_clean:
-	@if test "${srcdir}" != "." -a -n "${CPIO}"; \
+	@if test "${srcdir}" != "."; \
 	then \
-		cwd=`pwd`; \
-		(cd ${srcdir} && find . -type f -a ! \( -name Makefile -o -name conf.sh \) -print0 ) | xargs -0 rm -f ; \
-		(cd ${srcdir} && find . -depth -type d -a ! \( -name "." -or -name ".." \) -print0 ) | \
+		( cd ${srcdir} && find . -type f -print0 ) | xargs -0 rm -f ; \
+		( cd ${srcdir} && find . -depth -type d -a ! \( -name "." -or -name ".." \) -print0 ) | \
 		 xargs -0 rmdir 2> /dev/null || true ; \
 	fi
 
