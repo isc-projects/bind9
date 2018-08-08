@@ -265,8 +265,6 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 	if (chdir(TESTS) == -1)
 		CHECK(ISC_R_FAILURE);
 
-	ns__hook_table = NULL;
-
 	return (ISC_R_SUCCESS);
 
   cleanup:
@@ -653,12 +651,10 @@ extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
  */
 static isc_result_t
 create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
-	ns_hook_t *saved_hook_table;
-	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
-		[NS_QUERY_SETUP_QCTX_INITIALIZED] = {
-			.callback = extract_qctx,
-			.callback_data = qctxp,
-		},
+	ns_hooktable_t *saved_hook_table, query_hooks;
+	ns_hook_t hook = {
+		.callback = extract_qctx,
+		.callback_data = qctxp,
 	};
 
 	REQUIRE(client != NULL);
@@ -672,10 +668,15 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	 * further processing.  Make sure we do not overwrite any previously
 	 * set hooks.
 	 */
-	saved_hook_table = ns__hook_table;
-	ns__hook_table = query_hooks;
+
+	ns_hooktable_init(&query_hooks);
+	ns_hook_add(&query_hooks, NS_QUERY_SETUP_QCTX_INITIALIZED, &hook);
+
+	saved_hook_table = ns_hooktable_save();
+
+	ns_hooktable_reset(&query_hooks);
 	ns_query_start(client);
-	ns__hook_table = saved_hook_table;
+	ns_hooktable_reset(saved_hook_table);
 
 	if (*qctxp == NULL) {
 		return (ISC_R_NOMEMORY);
