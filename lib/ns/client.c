@@ -3052,6 +3052,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	ISC_QLINK_INIT(client, ilink);
 	client->keytag = NULL;
 	client->keytag_len = 0;
+	client->hook_magic = 0;
 
 	/*
 	 * We call the init routines for the various kinds of client here,
