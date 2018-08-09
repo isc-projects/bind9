@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.4
+Release Notes for BIND Version 9.11.4-P1
 
 Introduction
 
@@ -40,6 +40,10 @@ platforms for BIND; "XP" binaries are no longer available for download
 from ISC.
 
 Security Fixes
+
+  * named could crash during recursive processing of DNAME records when
+    deny-answer-aliases was in use. This flaw is disclosed in
+    CVE-2018-5740. [GL #387]
 
   * When recursion is enabled but the allow-recursion and
     allow-query-cache ACLs are not specified, they should be limited to

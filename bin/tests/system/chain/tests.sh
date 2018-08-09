@@ -248,5 +248,22 @@ $RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking explicit DNAME query ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.7 dname short-dname.example > dig.out.7.$n 2>&1
+grep 'status: NOERROR' dig.out.7.$n > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking DNAME via ANY query ($n)"
+ret=0
+$RNDCCMD 10.53.0.7 flush 2>&1 | sed 's/^/ns7 /' | cat_i
+$DIG $DIGOPTS @10.53.0.7 any short-dname.example > dig.out.7.$n 2>&1
+grep 'status: NOERROR' dig.out.7.$n > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
