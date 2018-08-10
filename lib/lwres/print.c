@@ -248,7 +248,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 						head = "";
 					tmpui = tmpi;
 				}
-				sprintf(buf, "%" PRIu64,
+				sprintf(buf, "%llu",
 					tmpui);
 				goto printint;
 			case 'o':
@@ -262,8 +262,8 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 				else
 					tmpui = va_arg(ap, int);
 				sprintf(buf,
-					alt ? "%#" PRIo64
-					    : "%" PRIo64,
+					alt ? "%#llo"
+					    : "%llo",
 					tmpui);
 				goto printint;
 			case 'u':
@@ -276,7 +276,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					tmpui = va_arg(ap, size_t);
 				else
 					tmpui = va_arg(ap, unsigned int);
-				sprintf(buf, "%" PRIu64,
+				sprintf(buf, "%llu",
 					tmpui);
 				goto printint;
 			case 'x':
@@ -294,7 +294,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2U)
 						precision -= 2;
 				}
-				sprintf(buf, "%" PRIx64,
+				sprintf(buf, "%llx",
 					tmpui);
 				goto printint;
 			case 'X':
@@ -312,7 +312,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 					if (precision > 2U)
 						precision -= 2;
 				}
-				sprintf(buf, "%" PRIX64,
+				sprintf(buf, "%llX",
 					tmpui);
 				goto printint;
 			printint:
