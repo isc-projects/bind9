@@ -16,6 +16,8 @@
 
 #include <atf-c.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 #include <isc/print.h>
@@ -29,7 +31,7 @@
  */
 static void
 set_typestats(dns_stats_t *stats, dns_rdatatype_t type,
-	      isc_boolean_t stale)
+	      bool stale)
 {
 	dns_rdatastatstype_t which;
 	unsigned int attributes;
@@ -46,7 +48,7 @@ set_typestats(dns_stats_t *stats, dns_rdatatype_t type,
 }
 
 static void
-set_nxdomainstats(dns_stats_t *stats, isc_boolean_t stale) {
+set_nxdomainstats(dns_stats_t *stats, bool stale) {
 	dns_rdatastatstype_t which;
 	unsigned int attributes;
 
@@ -58,7 +60,7 @@ set_nxdomainstats(dns_stats_t *stats, isc_boolean_t stale) {
 
 #define ATTRIBUTE_SET(y) ((attributes & (y)) != 0)
 static void
-checkit1(dns_rdatastatstype_t which, isc_uint64_t value, void *arg) {
+checkit1(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 	unsigned int attributes;
 #if debug
 	unsigned int type;
@@ -85,7 +87,7 @@ checkit1(dns_rdatastatstype_t which, isc_uint64_t value, void *arg) {
 }
 
 static void
-checkit2(dns_rdatastatstype_t which, isc_uint64_t value, void *arg) {
+checkit2(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 	unsigned int attributes;
 #if debug
 	unsigned int type;
@@ -125,7 +127,7 @@ ATF_TC_BODY(rdatasetstats, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_rdatasetstats_create(mctx, &stats);
@@ -133,11 +135,11 @@ ATF_TC_BODY(rdatasetstats, tc) {
 
 	/* First 256 types. */
 	for (i = 0; i <= 255; i++)
-		set_typestats(stats, (dns_rdatatype_t)i, ISC_FALSE);
+		set_typestats(stats, (dns_rdatatype_t)i, false);
 	/* Specials */
-	set_typestats(stats, dns_rdatatype_dlv, ISC_FALSE);
-	set_typestats(stats, (dns_rdatatype_t)1000, ISC_FALSE);
-	set_nxdomainstats(stats, ISC_FALSE);
+	set_typestats(stats, dns_rdatatype_dlv, false);
+	set_typestats(stats, (dns_rdatatype_t)1000, false);
+	set_nxdomainstats(stats, false);
 
 	/*
 	 * Check that all counters are set to appropriately.
@@ -146,11 +148,11 @@ ATF_TC_BODY(rdatasetstats, tc) {
 
 	/* First 256 types. */
 	for (i = 0; i <= 255; i++)
-		set_typestats(stats, (dns_rdatatype_t)i, ISC_TRUE);
+		set_typestats(stats, (dns_rdatatype_t)i, true);
 	/* Specials */
-	set_typestats(stats, dns_rdatatype_dlv, ISC_TRUE);
-	set_typestats(stats, (dns_rdatatype_t)1000, ISC_TRUE);
-	set_nxdomainstats(stats, ISC_TRUE);
+	set_typestats(stats, dns_rdatatype_dlv, true);
+	set_typestats(stats, (dns_rdatatype_t)1000, true);
+	set_nxdomainstats(stats, true);
 
 	/*
 	 * Check that all counters are set to appropriately.
@@ -168,4 +170,3 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, rdatasetstats);
 	return (atf_no_error());
 }
-

@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -143,13 +145,13 @@ compress_test(dns_name_t *name1, dns_name_t *name2, dns_name_t *name3,
 	isc_buffer_setactive(&source, source.used);
 
 	dns_name_init(&name, NULL);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, ISC_FALSE,
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, false,
 					&target) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, ISC_FALSE,
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, false,
 					&target) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, ISC_FALSE,
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, false,
 					&target) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, ISC_FALSE,
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, false,
 					&target) == ISC_R_SUCCESS);
 	dns_decompress_invalidate(dctx);
 
@@ -175,7 +177,7 @@ ATF_TC_BODY(compression, tc) {
 	unsigned char plain[] = "\003yyy\003foo\0\003bar\003yyy\003foo\0\003"
 				"bar\003yyy\003foo\0\003xxx\003bar\003foo";
 
-	ATF_REQUIRE_EQ(dns_test_begin(NULL, ISC_FALSE), ISC_R_SUCCESS);;
+	ATF_REQUIRE_EQ(dns_test_begin(NULL, false), ISC_R_SUCCESS);;
 
 	dns_name_init(&name1, NULL);
 	r.base = plain1;
@@ -287,30 +289,30 @@ ATF_TC_BODY(istat, tc) {
 	size_t i;
 	struct {
 		const char *name;
-		isc_boolean_t istat;
+		bool istat;
 	} data[] = {
-		{ ".", ISC_FALSE },
-		{ "_ta-", ISC_FALSE },
-		{ "_ta-1234", ISC_TRUE },
-		{ "_TA-1234", ISC_TRUE },
-		{ "+TA-1234", ISC_FALSE },
-		{ "_fa-1234", ISC_FALSE },
-		{ "_td-1234", ISC_FALSE },
-		{ "_ta_1234", ISC_FALSE },
-		{ "_ta-g234", ISC_FALSE },
-		{ "_ta-1h34", ISC_FALSE },
-		{ "_ta-12i4", ISC_FALSE },
-		{ "_ta-123j", ISC_FALSE },
-		{ "_ta-1234-abcf", ISC_TRUE },
-		{ "_ta-1234-abcf-ED89", ISC_TRUE },
-		{ "_ta-12345-abcf-ED89", ISC_FALSE },
-		{ "_ta-.example", ISC_FALSE },
-		{ "_ta-1234.example", ISC_TRUE },
-		{ "_ta-1234-abcf.example", ISC_TRUE },
-		{ "_ta-1234-abcf-ED89.example", ISC_TRUE },
-		{ "_ta-12345-abcf-ED89.example", ISC_FALSE },
-		{ "_ta-1234-abcfe-ED89.example", ISC_FALSE },
-		{ "_ta-1234-abcf-EcD89.example", ISC_FALSE }
+		{ ".", false },
+		{ "_ta-", false },
+		{ "_ta-1234", true },
+		{ "_TA-1234", true },
+		{ "+TA-1234", false },
+		{ "_fa-1234", false },
+		{ "_td-1234", false },
+		{ "_ta_1234", false },
+		{ "_ta-g234", false },
+		{ "_ta-1h34", false },
+		{ "_ta-12i4", false },
+		{ "_ta-123j", false },
+		{ "_ta-1234-abcf", true },
+		{ "_ta-1234-abcf-ED89", true },
+		{ "_ta-12345-abcf-ED89", false },
+		{ "_ta-.example", false },
+		{ "_ta-1234.example", true },
+		{ "_ta-1234-abcf.example", true },
+		{ "_ta-1234-abcf-ED89.example", true },
+		{ "_ta-12345-abcf-ED89.example", false },
+		{ "_ta-1234-abcfe-ED89.example", false },
+		{ "_ta-1234-abcf-EcD89.example", false }
 	};
 
 	name = dns_fixedname_initname(&fixed);
@@ -383,11 +385,11 @@ ATF_TC_HEAD(isabsolute, tc) {
 ATF_TC_BODY(isabsolute, tc) {
 	struct {
 		const char *namestr;
-		isc_boolean_t expect;
+		bool expect;
 	} testcases[] = {
-		{ "x", ISC_FALSE },
-		{ "a.b.c.d.", ISC_TRUE },
-		{ "x.z", ISC_FALSE}
+		{ "x", false },
+		{ "a.b.c.d.", true },
+		{ "x.z", false}
 	};
 	unsigned int i;
 
@@ -420,15 +422,15 @@ ATF_TC_BODY(hash, tc) {
 	struct {
 		const char *name1;
 		const char *name2;
-		isc_boolean_t expect;
-		isc_boolean_t expecti;
+		bool expect;
+		bool expecti;
 	} testcases[] = {
-		{ "a.b.c.d", "A.B.C.D", ISC_TRUE, ISC_FALSE },
-		{ "a.b.c.d.", "A.B.C.D.", ISC_TRUE, ISC_FALSE },
-		{ "a.b.c.d", "a.b.c.d", ISC_TRUE, ISC_TRUE },
-		{ "A.B.C.D.", "A.B.C.D.", ISC_TRUE, ISC_FALSE },
-		{ "x.y.z.w", "a.b.c.d", ISC_FALSE, ISC_FALSE },
-		{ "x.y.z.w.", "a.b.c.d.", ISC_FALSE, ISC_FALSE },
+		{ "a.b.c.d", "A.B.C.D", true, false },
+		{ "a.b.c.d.", "A.B.C.D.", true, false },
+		{ "a.b.c.d", "a.b.c.d", true, true },
+		{ "A.B.C.D.", "A.B.C.D.", true, false },
+		{ "x.y.z.w", "a.b.c.d", false, false },
+		{ "x.y.z.w.", "a.b.c.d.", false, false },
 	};
 	unsigned int i;
 
@@ -449,22 +451,22 @@ ATF_TC_BODY(hash, tc) {
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		/* Check case-insensitive hashing first */
-		h1 = dns_name_hash(n1, ISC_FALSE);
-		h2 = dns_name_hash(n2, ISC_FALSE);
+		h1 = dns_name_hash(n1, false);
+		h2 = dns_name_hash(n2, false);
 
 		printf("%s hashes to %u, %s to %u, case insensitive\n",
 		       testcases[i].name1, h1, testcases[i].name2, h2);
 
-		ATF_REQUIRE_EQ(ISC_TF(h1 == h2), testcases[i].expect);
+		ATF_REQUIRE_EQ((h1 == h2), testcases[i].expect);
 
 		/* Now case-sensitive */
-		h1 = dns_name_hash(n1, ISC_FALSE);
-		h2 = dns_name_hash(n2, ISC_FALSE);
+		h1 = dns_name_hash(n1, false);
+		h2 = dns_name_hash(n2, false);
 
 		printf("%s hashes to %u, %s to %u, case sensitive\n",
 		       testcases[i].name1, h1, testcases[i].name2, h2);
 
-		ATF_REQUIRE_EQ(ISC_TF(h1 == h2), testcases[i].expect);
+		ATF_REQUIRE_EQ((h1 == h2), testcases[i].expect);
 	}
 }
 
@@ -476,15 +478,15 @@ ATF_TC_BODY(issubdomain, tc) {
 	struct {
 		const char *name1;
 		const char *name2;
-		isc_boolean_t expect;
+		bool expect;
 	} testcases[] = {
-		{ "c.d", "a.b.c.d", ISC_FALSE },
-		{ "c.d.", "a.b.c.d.", ISC_FALSE },
-		{ "b.c.d", "c.d", ISC_TRUE },
-		{ "a.b.c.d.", "c.d.", ISC_TRUE },
-		{ "a.b.c", "a.b.c", ISC_TRUE },
-		{ "a.b.c.", "a.b.c.", ISC_TRUE },
-		{ "x.y.z", "a.b.c", ISC_FALSE}
+		{ "c.d", "a.b.c.d", false },
+		{ "c.d.", "a.b.c.d.", false },
+		{ "b.c.d", "c.d", true },
+		{ "a.b.c.d.", "c.d.", true },
+		{ "a.b.c", "a.b.c", true },
+		{ "a.b.c.", "a.b.c.", true },
+		{ "x.y.z", "a.b.c", false}
 	};
 	unsigned int i;
 
@@ -663,7 +665,7 @@ ATF_TC_HEAD(benchmark, tc) {
 static void *
 fromwire_thread(void *arg) {
 	unsigned int maxval = 32000000;
-	isc_uint8_t data[] = {
+	uint8_t data[] = {
 		3, 'w', 'w', 'w',
 		7, 'e', 'x', 'a', 'm', 'p', 'l', 'e',
 		7, 'i', 'n', 'v', 'a', 'l', 'i', 'd',
@@ -709,9 +711,9 @@ ATF_TC_BODY(benchmark, tc) {
 
 	UNUSED(tc);
 
-	debug_mem_record = ISC_FALSE;
+	debug_mem_record = false;
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_time_now(&ts1);

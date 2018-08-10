@@ -386,7 +386,7 @@ generate_ldap (dns_name_t * dnsname, dns_rdata_t * rdata, unsigned int ttl)
   isc_result_t result;
 
   isc_buffer_init (&buff, name, sizeof (name));
-  result = dns_name_totext (dnsname, ISC_TRUE, &buff);
+  result = dns_name_totext (dnsname, true, &buff);
   isc_result_check (result, "dns_name_totext");
   name[isc_buffer_usedlength (&buff)] = 0;
 

@@ -15,10 +15,10 @@
 
 
 typedef struct dns_rdata_apl_ent {
-	isc_boolean_t	negative;
-	isc_uint16_t	family;
-	isc_uint8_t	prefix;
-	isc_uint8_t	length;
+	bool	negative;
+	uint16_t	family;
+	uint8_t	prefix;
+	uint8_t	length;
 	unsigned char	*data;
 } dns_rdata_apl_ent_t;
 
@@ -27,9 +27,9 @@ typedef struct dns_rdata_in_apl {
 	isc_mem_t		*mctx;
 	/* type & class specific elements */
 	unsigned char           *apl;
-	isc_uint16_t            apl_len;
+	uint16_t            apl_len;
 	/* private */
-	isc_uint16_t            offset;
+	uint16_t            offset;
 } dns_rdata_in_apl_t;
 
 /*

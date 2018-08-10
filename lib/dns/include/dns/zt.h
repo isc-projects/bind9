@@ -15,6 +15,8 @@
 
 /*! \file dns/zt.h */
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 
 #include <dns/types.h>
@@ -138,17 +140,17 @@ dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp);
  */
 
 isc_result_t
-dns_zt_load(dns_zt_t *zt, isc_boolean_t stop);
+dns_zt_load(dns_zt_t *zt, bool stop);
 
 isc_result_t
-dns_zt_loadnew(dns_zt_t *zt, isc_boolean_t stop);
+dns_zt_loadnew(dns_zt_t *zt, bool stop);
 
 isc_result_t
 dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg);
 /*%<
- * Load all zones in the table.  If 'stop' is ISC_TRUE,
+ * Load all zones in the table.  If 'stop' is true,
  * stop on the first error and return it.  If 'stop'
- * is ISC_FALSE, ignore errors.
+ * is false, ignore errors.
  *
  * dns_zt_loadnew() only loads zones that are not yet loaded.
  * dns_zt_load() also loads zones that are already loaded and
@@ -163,7 +165,7 @@ dns_zt_asyncload(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg);
  */
 
 isc_result_t
-dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze);
+dns_zt_freezezones(dns_zt_t *zt, bool freeze);
 /*%<
  * Freeze/thaw updates to master zones.
  * Any pending updates will be flushed.
@@ -171,15 +173,15 @@ dns_zt_freezezones(dns_zt_t *zt, isc_boolean_t freeze);
  */
 
 isc_result_t
-dns_zt_apply(dns_zt_t *zt, isc_boolean_t stop,
+dns_zt_apply(dns_zt_t *zt, bool stop,
 	     isc_result_t (*action)(dns_zone_t *, void *), void *uap);
 
 isc_result_t
-dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
+dns_zt_apply2(dns_zt_t *zt, bool stop, isc_result_t *sub,
 	      isc_result_t (*action)(dns_zone_t *, void *), void *uap);
 /*%<
  * Apply a given 'action' to all zone zones in the table.
- * If 'stop' is 'ISC_TRUE' then walking the zone tree will stop if
+ * If 'stop' is 'true' then walking the zone tree will stop if
  * 'action' does not return ISC_R_SUCCESS.
  *
  * Requires:
@@ -188,15 +190,15 @@ dns_zt_apply2(dns_zt_t *zt, isc_boolean_t stop, isc_result_t *sub,
  *
  * Returns:
  * \li	ISC_R_SUCCESS if action was applied to all nodes.  If 'stop' is
- *	ISC_FALSE and 'sub' is non NULL then the first error (if any)
+ *	false and 'sub' is non NULL then the first error (if any)
  *	reported by 'action' is returned in '*sub';
  *	any error code from 'action'.
  */
 
-isc_boolean_t
+bool
 dns_zt_loadspending(dns_zt_t *zt);
 /*%<
- * Returns ISC_TRUE if and only if there are zones still waiting to
+ * Returns true if and only if there are zones still waiting to
  * be loaded in zone table 'zt'.
  *
  * Requires:

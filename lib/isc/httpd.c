@@ -14,6 +14,10 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+#include <string.h>
+
 #include <isc/buffer.h>
 #include <isc/httpd.h>
 #include <isc/mem.h>
@@ -23,8 +27,6 @@
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/util.h>
-
-#include <string.h>
 
 #ifdef HAVE_ZLIB
 #include <zlib.h>
@@ -74,7 +76,7 @@ struct isc_httpd {
 	 * Received data state.
 	 */
 	char			recvbuf[HTTP_RECVLEN]; /*%< receive buffer */
-	isc_uint32_t		recvlen;	/*%< length recv'd */
+	uint32_t		recvlen;	/*%< length recv'd */
 	char		       *headers;	/*%< set in process_request() */
 	unsigned int		method;
 	char		       *url;
@@ -377,7 +379,7 @@ httpdmgr_destroy(isc_httpdmgr_t *httpdmgr) {
  * Look for the given header in headers.
  * If value is specified look for it terminated with a character in eov.
  */
-static isc_boolean_t
+static bool
 have_header(isc_httpd_t *httpd, const char *header, const char *value,
 	    const char *eov)
 {
@@ -406,13 +408,13 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 			if (h == NULL || (nl != NULL && nl < h))
 				h = nl;
 			if (h == NULL)
-				return (ISC_FALSE);
+				return (false);
 			h++;
 			continue;
 		}
 
 		if (value == NULL)
-			return (ISC_TRUE);
+			return (true);
 
 		/*
 		 * Skip optional leading white space.
@@ -426,7 +428,7 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 		while (*h != 0 && *h != '\r' && *h != '\n') {
 			if (strncasecmp(h, value, vlen) == 0)
 				if (strchr(eov, h[vlen]) != NULL)
-					return (ISC_TRUE);
+					return (true);
 			/*
 			 * Skip to next token.
 			 */
@@ -436,7 +438,7 @@ have_header(isc_httpd_t *httpd, const char *header, const char *value,
 			if (h[0] != 0)
 				h++;
 		}
-		return (ISC_FALSE);
+		return (false);
 	}
 }
 
@@ -844,7 +846,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	isc_socketevent_t *sev = (isc_socketevent_t *)ev;
 	isc_httpdurl_t *url;
 	isc_time_t now;
-	isc_boolean_t is_compressed = ISC_FALSE;
+	bool is_compressed = false;
 	char datebuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 
 	ENTER("recv");
@@ -924,7 +926,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	if (httpd->flags & HTTPD_ACCEPT_DEFLATE) {
 			result = isc_httpd_compress(httpd);
 			if (result == ISC_R_SUCCESS) {
-				is_compressed = ISC_TRUE;
+				is_compressed = true;
 			}
 	}
 #endif
@@ -950,7 +952,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 
 	isc_httpd_addheader(httpd, "Server: libisc", NULL);
 
-	if (is_compressed == ISC_TRUE) {
+	if (is_compressed == true) {
 		isc_httpd_addheader(httpd, "Content-Encoding", "deflate");
 		isc_httpd_addheaderuint(httpd, "Content-Length",
 					isc_buffer_usedlength(&httpd->compbuffer));
@@ -967,7 +969,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	 * rendered into it.  If no data is present, we won't do anything
 	 * with the buffer.
 	 */
-	if (is_compressed == ISC_TRUE) {
+	if (is_compressed == true) {
 		ISC_LIST_APPEND(httpd->bufflist, &httpd->compbuffer, link);
 	} else {
 		if (isc_buffer_length(&httpd->bodybuffer) > 0) {
@@ -1210,12 +1212,12 @@ isc_result_t
 isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url,
 		    isc_httpdaction_t *func, void *arg)
 {
-	return (isc_httpdmgr_addurl2(httpdmgr, url, ISC_FALSE, func, arg));
+	return (isc_httpdmgr_addurl2(httpdmgr, url, false, func, arg));
 }
 
 isc_result_t
 isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
-		     isc_boolean_t isstatic,
+		     bool isstatic,
 		     isc_httpdaction_t *func, void *arg)
 {
 	isc_httpdurl_t *item;

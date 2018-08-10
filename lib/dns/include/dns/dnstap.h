@@ -23,6 +23,9 @@
  * file dnstap.proto, which is compiled to dnstap.pb-c.c and dnstap.pb-c.h.
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #ifdef HAVE_DNSTAP
 #include <fstrm.h>
 #include <protobuf-c/protobuf-c.h>
@@ -94,8 +97,8 @@ struct dns_dtdata {
 
 	Dnstap__Dnstap *frame;
 
-	isc_boolean_t query;
-	isc_boolean_t tcp;
+	bool query;
+	bool tcp;
 	dns_dtmsgtype_t type;
 
 	isc_time_t qtime;
@@ -104,8 +107,8 @@ struct dns_dtdata {
 	isc_region_t qaddr;
 	isc_region_t raddr;
 
-	isc_uint32_t qport;
-	isc_uint32_t rport;
+	uint32_t qport;
+	uint32_t rport;
 
 	isc_region_t msgdata;
 	dns_message_t *msg;
@@ -167,7 +170,7 @@ dns_dt_create2(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
  */
 
 isc_result_t
-dns_dt_setupfile(dns_dtenv_t *env, isc_uint64_t max_size, int rolls,
+dns_dt_setupfile(dns_dtenv_t *env, uint64_t max_size, int rolls,
 		 isc_log_rollsuffix_t suffix);
 /*%<
  * Sets up the dnstap logfile limits.
@@ -275,7 +278,7 @@ dns_dt_shutdown(void);
 void
 dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	    isc_sockaddr_t *qaddr, isc_sockaddr_t *dstaddr,
-	    isc_boolean_t tcp, isc_region_t *zone, isc_time_t *qtime,
+	    bool tcp, isc_region_t *zone, isc_time_t *qtime,
 	    isc_time_t *rtime, isc_buffer_t *buf);
 /*%<
  * Sends a dnstap message to the log, if 'msgtype' is one of the message
@@ -374,7 +377,7 @@ dns_dt_open(const char *filename, dns_dtmode_t mode,
  */
 
 isc_result_t
-dns_dt_getframe(dns_dthandle_t *handle, isc_uint8_t **bufp, size_t *sizep);
+dns_dt_getframe(dns_dthandle_t *handle, uint8_t **bufp, size_t *sizep);
 /*%<
  * Read a dnstap frame from the framstream reader in 'handle', storing
  * a pointer to it in '*bufp' and its size in '*sizep'.

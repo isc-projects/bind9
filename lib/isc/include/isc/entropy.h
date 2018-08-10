@@ -47,6 +47,7 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
 #include <stdio.h>
 
 #include <isc/lang.h>
@@ -55,9 +56,9 @@
 /*@{*/
 /*% Entropy callback function. */
 typedef isc_result_t (*isc_entropystart_t)(isc_entropysource_t *source,
-					   void *arg, isc_boolean_t blocking);
+					   void *arg, bool blocking);
 typedef isc_result_t (*isc_entropyget_t)(isc_entropysource_t *source,
-					 void *arg, isc_boolean_t blocking);
+					 void *arg, bool blocking);
 typedef void (*isc_entropystop_t)(isc_entropysource_t *source, void *arg);
 /*@}*/
 
@@ -205,11 +206,11 @@ isc_entropy_stopcallbacksources(isc_entropy_t *ent);
 
 /*@{*/
 isc_result_t
-isc_entropy_addcallbacksample(isc_entropysource_t *source, isc_uint32_t sample,
-			      isc_uint32_t extra);
+isc_entropy_addcallbacksample(isc_entropysource_t *source, uint32_t sample,
+			      uint32_t extra);
 isc_result_t
-isc_entropy_addsample(isc_entropysource_t *source, isc_uint32_t sample,
-		      isc_uint32_t extra);
+isc_entropy_addsample(isc_entropysource_t *source, uint32_t sample,
+		      uint32_t extra);
 /*!<
  * \brief Add a sample to the sample source.
  *
@@ -260,7 +261,7 @@ isc_entropy_getdata(isc_entropy_t *ent, void *data, unsigned int length,
 
 void
 isc_entropy_putdata(isc_entropy_t *ent, void *data, unsigned int length,
-		    isc_uint32_t entropy);
+		    uint32_t entropy);
 /*!<
  * \brief Add "length" bytes in "data" to the entropy pool, incrementing the
  * pool's entropy count by "entropy."
@@ -318,7 +319,7 @@ isc_entropy_usebestsource(isc_entropy_t *ectx, isc_entropysource_t **source,
  */
 
 void
-isc_entropy_usehook(isc_entropy_t *ectx, isc_boolean_t onoff);
+isc_entropy_usehook(isc_entropy_t *ectx, bool onoff);
 /*!<
  * \brief Configure entropy context 'ectx' to use the hook function
  *

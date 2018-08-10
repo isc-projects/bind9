@@ -35,6 +35,8 @@
 #ifndef LIBRPZ_H
 #define LIBRPZ_H
 
+#include <inttypes.h>
+
 #include <arpa/nameser.h>
 #include <netinet/in.h>
 #include <stdarg.h>
@@ -228,8 +230,8 @@ typedef struct {
 #endif
 
 #ifdef HAVE_BUILTIN_EXPECT
-#define LIBRPZ_LIKELY(c) __builtin_expect(!!(c), 1)
-#define LIBRPZ_UNLIKELY(c) __builtin_expect(!!(c), 0)
+#define LIBRPZ_LIKELY(c) __builtin_expect((c), 1)
+#define LIBRPZ_UNLIKELY(c) __builtin_expect((c), 0)
 #else
 #define LIBRPZ_LIKELY(c) (c)
 #define LIBRPZ_UNLIKELY(c) (c)

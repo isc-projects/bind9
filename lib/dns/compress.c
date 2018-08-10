@@ -15,6 +15,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/mem.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -202,7 +205,7 @@ dns_compress_disable(dns_compress_t *cctx) {
 }
 
 void
-dns_compress_setsensitive(dns_compress_t *cctx, isc_boolean_t sensitive) {
+dns_compress_setsensitive(dns_compress_t *cctx, bool sensitive) {
 	REQUIRE(VALID_CCTX(cctx));
 
 	if (sensitive)
@@ -211,11 +214,11 @@ dns_compress_setsensitive(dns_compress_t *cctx, isc_boolean_t sensitive) {
 		cctx->allowed &= ~DNS_COMPRESS_CASESENSITIVE;
 }
 
-isc_boolean_t
+bool
 dns_compress_getsensitive(dns_compress_t *cctx) {
 	REQUIRE(VALID_CCTX(cctx));
 
-	return (ISC_TF((cctx->allowed & DNS_COMPRESS_CASESENSITIVE) != 0));
+	return (cctx->allowed & DNS_COMPRESS_CASESENSITIVE);
 }
 
 int
@@ -226,12 +229,12 @@ dns_compress_getedns(dns_compress_t *cctx) {
 
 /*
  * Find the longest match of name in the table.
- * If match is found return ISC_TRUE. prefix, suffix and offset are updated.
- * If no match is found return ISC_FALSE.
+ * If match is found return true. prefix, suffix and offset are updated.
+ * If no match is found return false.
  */
-isc_boolean_t
+bool
 dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
-			dns_name_t *prefix, isc_uint16_t *offset)
+			dns_name_t *prefix, uint16_t *offset)
 {
 	dns_name_t tname;
 	dns_compressnode_t *node = NULL;
@@ -240,14 +243,14 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 	unsigned char *p;
 
 	REQUIRE(VALID_CCTX(cctx));
-	REQUIRE(dns_name_isabsolute(name) == ISC_TRUE);
+	REQUIRE(dns_name_isabsolute(name) == true);
 	REQUIRE(offset != NULL);
 
 	if (ISC_UNLIKELY((cctx->allowed & DNS_COMPRESS_ENABLED) == 0))
-		return (ISC_FALSE);
+		return (false);
 
 	if (cctx->count == 0)
-		return (ISC_FALSE);
+		return (false);
 
 	labels = dns_name_countlabels(name);
 	INSIST(labels > 0);
@@ -352,7 +355,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 	 * If node == NULL, we found no match at all.
 	 */
 	if (node == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (n == 0)
 		dns_name_reset(prefix);
@@ -360,7 +363,7 @@ dns_compress_findglobal(dns_compress_t *cctx, const dns_name_t *name,
 		dns_name_getlabelsequence(name, 0, n, prefix);
 
 	*offset = (node->offset & 0x7fff);
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline unsigned int
@@ -372,7 +375,7 @@ name_length(const dns_name_t *name) {
 
 void
 dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
-		 const dns_name_t *prefix, isc_uint16_t offset)
+		 const dns_name_t *prefix, uint16_t offset)
 {
 	dns_name_t tname, xname;
 	unsigned int start;
@@ -382,7 +385,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	dns_compressnode_t *node;
 	unsigned int length;
 	unsigned int tlength;
-	isc_uint16_t toffset;
+	uint16_t toffset;
 	unsigned char *tmp;
 	isc_region_t r;
 
@@ -430,7 +433,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		ch = tname.ndata[1];
 		i = tableindex[ch];
 		tlength = name_length(&tname);
-		toffset = (isc_uint16_t)(offset + (length - tlength));
+		toffset = (uint16_t)(offset + (length - tlength));
 		if (toffset >= 0x4000)
 			break;
 		/*
@@ -470,7 +473,7 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 }
 
 void
-dns_compress_rollback(dns_compress_t *cctx, isc_uint16_t offset) {
+dns_compress_rollback(dns_compress_t *cctx, uint16_t offset) {
 	unsigned int i;
 	dns_compressnode_t *node;
 

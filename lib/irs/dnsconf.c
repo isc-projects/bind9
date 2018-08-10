@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <string.h>
 
 #include <isc/base64.h>
@@ -55,7 +56,7 @@ configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
 	dns_name_t *keyname_base, *keyname;
 	const cfg_listelt_t *element, *element2;
 	isc_result_t result;
-	isc_uint32_t flags, proto, alg;
+	uint32_t flags, proto, alg;
 	const char *keystr, *keynamestr;
 	unsigned char keydata[4096];
 	isc_buffer_t keydatabuf_base, *keydatabuf;
@@ -102,9 +103,9 @@ configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
 				return (ISC_R_RANGE);
 			if (alg > 0xff)
 				return (ISC_R_RANGE);
-			keystruct.flags = (isc_uint16_t)flags;
-			keystruct.protocol = (isc_uint8_t)proto;
-			keystruct.algorithm = (isc_uint8_t)alg;
+			keystruct.flags = (uint16_t)flags;
+			keystruct.protocol = (uint8_t)proto;
+			keystruct.algorithm = (uint8_t)alg;
 
 			isc_buffer_init(&keydatabuf_base, keydata,
 					sizeof(keydata));

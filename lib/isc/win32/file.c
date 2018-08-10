@@ -15,6 +15,7 @@
 #undef rename
 #include <errno.h>
 #include <limits.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <io.h>
 #include <process.h>
@@ -44,7 +45,7 @@ static const char alphnum[] =
  *
  */
 static int
-gettemp(char *path, isc_boolean_t binary, int *doopen) {
+gettemp(char *path, bool binary, int *doopen) {
 	char *start, *trv;
 	struct stat sbuf;
 	int flags = O_CREAT|O_EXCL|O_RDWR;
@@ -56,7 +57,7 @@ gettemp(char *path, isc_boolean_t binary, int *doopen) {
 	trv++;
 	/* extra X's get set to 0's */
 	while (*--trv == 'X') {
-		isc_uint32_t which;
+		uint32_t which;
 
 		isc_random_get(&which);
 		*trv = alphnum[which % (sizeof(alphnum) - 1)];
@@ -110,7 +111,7 @@ gettemp(char *path, isc_boolean_t binary, int *doopen) {
 }
 
 static int
-mkstemp(char *path, isc_boolean_t binary) {
+mkstemp(char *path, bool binary) {
 	int fd;
 
 	return (gettemp(path, binary, &fd) ? fd : -1);
@@ -206,7 +207,7 @@ isc_file_safemovefile(const char *oldname, const char *newname) {
 		exists = TRUE;
 		strlcpy(buf, newname, sizeof(buf));
 		strlcat(buf, ".XXXXX", sizeof(buf));
-		tmpfd = mkstemp(buf, ISC_TRUE);
+		tmpfd = mkstemp(buf, true);
 		if (tmpfd > 0)
 			_close(tmpfd);
 		(void)DeleteFile(buf);
@@ -361,7 +362,7 @@ isc_file_renameunique(const char *file, char *templet) {
 	REQUIRE(file != NULL);
 	REQUIRE(templet != NULL);
 
-	fd = mkstemp(templet, ISC_TRUE);
+	fd = mkstemp(templet, true);
 	if (fd == -1)
 		result = isc__errno2result(errno);
 	else
@@ -378,7 +379,7 @@ isc_file_renameunique(const char *file, char *templet) {
 }
 
 static isc_result_t
-openuniquemode(char *templet, int mode, isc_boolean_t binary, FILE **fp) {
+openuniquemode(char *templet, int mode, bool binary, FILE **fp) {
 	int fd;
 	FILE *f;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -414,35 +415,35 @@ openuniquemode(char *templet, int mode, isc_boolean_t binary, FILE **fp) {
 isc_result_t
 isc_file_openuniqueprivate(char *templet, FILE **fp) {
 	int mode = _S_IREAD | _S_IWRITE;
-	return (openuniquemode(templet, mode, ISC_FALSE, fp));
+	return (openuniquemode(templet, mode, false, fp));
 }
 
 isc_result_t
 isc_file_openunique(char *templet, FILE **fp) {
 	int mode = _S_IREAD | _S_IWRITE;
-	return (openuniquemode(templet, mode, ISC_FALSE, fp));
+	return (openuniquemode(templet, mode, false, fp));
 }
 
 isc_result_t
 isc_file_openuniquemode(char *templet, int mode, FILE **fp) {
-	return (openuniquemode(templet, mode, ISC_FALSE, fp));
+	return (openuniquemode(templet, mode, false, fp));
 }
 
 isc_result_t
 isc_file_bopenuniqueprivate(char *templet, FILE **fp) {
 	int mode = _S_IREAD | _S_IWRITE;
-	return (openuniquemode(templet, mode, ISC_TRUE, fp));
+	return (openuniquemode(templet, mode, true, fp));
 }
 
 isc_result_t
 isc_file_bopenunique(char *templet, FILE **fp) {
 	int mode = _S_IREAD | _S_IWRITE;
-	return (openuniquemode(templet, mode, ISC_TRUE, fp));
+	return (openuniquemode(templet, mode, true, fp));
 }
 
 isc_result_t
 isc_file_bopenuniquemode(char *templet, int mode, FILE **fp) {
-	return (openuniquemode(templet, mode, ISC_TRUE, fp));
+	return (openuniquemode(templet, mode, true, fp));
 }
 
 isc_result_t
@@ -472,13 +473,13 @@ isc_file_rename(const char *oldname, const char *newname) {
 		return (isc__errno2result(errno));
 }
 
-isc_boolean_t
+bool
 isc_file_exists(const char *pathname) {
 	struct stat stats;
 
 	REQUIRE(pathname != NULL);
 
-	return (ISC_TF(file_stats(pathname, &stats) == ISC_R_SUCCESS));
+	return (file_stats(pathname, &stats) == ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -533,7 +534,7 @@ isc_file_isdirectory(const char *filename) {
 }
 
 
-isc_boolean_t
+bool
 isc_file_isabsolute(const char *filename) {
 	REQUIRE(filename != NULL);
 	/*
@@ -541,33 +542,33 @@ isc_file_isabsolute(const char *filename) {
 	 * the UNC style file specs
 	 */
 	if ((filename[0] == '\\') && (filename[1] == '\\'))
-		return (ISC_TRUE);
+		return (true);
 	if (isalpha(filename[0]) && filename[1] == ':' && filename[2] == '\\')
-		return (ISC_TRUE);
+		return (true);
 	if (isalpha(filename[0]) && filename[1] == ':' && filename[2] == '/')
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
-isc_boolean_t
+bool
 isc_file_iscurrentdir(const char *filename) {
 	REQUIRE(filename != NULL);
-	return (ISC_TF(filename[0] == '.' && filename[1] == '\0'));
+	return (filename[0] == '.' && filename[1] == '\0');
 }
 
-isc_boolean_t
+bool
 isc_file_ischdiridempotent(const char *filename) {
 	REQUIRE(filename != NULL);
 
 	if (isc_file_isabsolute(filename))
-		return (ISC_TRUE);
+		return (true);
 	if (filename[0] == '\\')
-		return (ISC_TRUE);
+		return (true);
 	if (filename[0] == '/')
-		return (ISC_TRUE);
+		return (true);
 	if (isc_file_iscurrentdir(filename))
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
 const char *
@@ -847,12 +848,12 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 /*
  * Based on http://blog.aaronballman.com/2011/08/how-to-check-access-rights/
  */
-isc_boolean_t
+bool
 isc_file_isdirwritable(const char *path) {
 	DWORD length = 0;
 	HANDLE hToken = NULL;
 	PSECURITY_DESCRIPTOR security = NULL;
-	isc_boolean_t answer = ISC_FALSE;
+	bool answer = false;
 
 	if (isc_file_isdirectory(path) != ISC_R_SUCCESS) {
 		return (answer);
@@ -916,7 +917,7 @@ isc_file_isdirwritable(const char *path) {
 					&privileges, &privilegesLength,
 					&grantedAccess, &result))
 			{
-				answer = ISC_TF(result);
+				answer = result;
 			}
 			CloseHandle(hImpersonatedToken);
 		}

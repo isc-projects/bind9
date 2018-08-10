@@ -14,20 +14,20 @@
 #ifndef ISC_TYPES_H
 #define ISC_TYPES_H 1
 
+#include <stdbool.h>
+
 #include <isc/bind9.h>
 
 /*! \file isc/types.h
  * \brief
  * OS-specific types, from the OS-specific include directories.
  */
-#include <isc/int.h>
+#include <inttypes.h>
 #include <isc/offset.h>
 
 /*
- * XXXDCL should isc_boolean_t be moved here, requiring an explicit include
- * of <isc/boolean.h> when ISC_TRUE/ISC_FALSE/ISC_TF() are desired?
+ * XXXDCL should bool be moved here, requiring an explicit include
  */
-#include <isc/boolean.h>
 /*
  * XXXDCL This is just for ISC_LIST and ISC_LINK, but gets all of the other
  * list macros too.
@@ -43,13 +43,13 @@ typedef ISC_LIST(isc_buffer_t)		isc_bufferlist_t;	/*%< Buffer List */
 typedef struct isc_constregion		isc_constregion_t;	/*%< Const region */
 typedef struct isc_consttextregion	isc_consttextregion_t;	/*%< Const Text Region */
 typedef struct isc_counter		isc_counter_t;		/*%< Counter */
-typedef isc_int16_t			isc_dscp_t;		/*%< Diffserv code point */
+typedef int16_t			isc_dscp_t;		/*%< Diffserv code point */
 typedef struct isc_entropy		isc_entropy_t;		/*%< Entropy */
 typedef struct isc_entropysource	isc_entropysource_t;	/*%< Entropy Source */
 typedef struct isc_event		isc_event_t;		/*%< Event */
 typedef ISC_LIST(isc_event_t)		isc_eventlist_t;	/*%< Event List */
 typedef unsigned int			isc_eventtype_t;	/*%< Event Type */
-typedef isc_uint32_t			isc_fsaccess_t;		/*%< FS Access */
+typedef uint32_t			isc_fsaccess_t;		/*%< FS Access */
 typedef struct isc_hash			isc_hash_t;		/*%< Hash */
 typedef struct isc_httpd		isc_httpd_t;		/*%< HTTP client */
 typedef void (isc_httpdfree_t)(isc_buffer_t *, void *);		/*%< HTTP free function */
@@ -74,7 +74,7 @@ typedef struct isc_quota		isc_quota_t;		/*%< Quota */
 typedef struct isc_random		isc_random_t;		/*%< Random */
 typedef struct isc_ratelimiter		isc_ratelimiter_t;	/*%< Rate Limiter */
 typedef struct isc_region		isc_region_t;		/*%< Region */
-typedef isc_uint64_t			isc_resourcevalue_t;	/*%< Resource Value */
+typedef uint64_t			isc_resourcevalue_t;	/*%< Resource Value */
 typedef unsigned int			isc_result_t;		/*%< Result */
 typedef struct isc_rwlock		isc_rwlock_t;		/*%< Read Write Lock */
 typedef struct isc_sockaddr		isc_sockaddr_t;		/*%< Socket Address */
@@ -110,7 +110,7 @@ typedef isc_result_t (isc_httpdaction_t)(const char *url,
 					 isc_buffer_t *body,
 					 isc_httpdfree_t **freecb,
 					 void **freecb_args);
-typedef isc_boolean_t (isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
+typedef bool (isc_httpdclientok_t)(const isc_sockaddr_t *, void *);
 
 /*% Resource */
 typedef enum {

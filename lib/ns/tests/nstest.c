@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
@@ -63,12 +65,12 @@ dns_dispatchmgr_t *dispatchmgr = NULL;
 ns_clientmgr_t *clientmgr = NULL;
 ns_interfacemgr_t *interfacemgr = NULL;
 ns_server_t *sctx = NULL;
-isc_boolean_t app_running = ISC_FALSE;
+bool app_running = false;
 int ncpus;
-isc_boolean_t debug_mem_record = ISC_TRUE;
-isc_boolean_t run_managers = ISC_FALSE;
+bool debug_mem_record = true;
+bool run_managers = false;
 
-static isc_boolean_t hash_active = ISC_FALSE, dst_active = ISC_FALSE;
+static bool hash_active = false, dst_active = false;
 
 static dns_zone_t *served_zone = NULL;
 
@@ -106,7 +108,7 @@ matchview(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 /*
  * These need to be shut down from a running task.
  */
-isc_boolean_t shutdown_done = ISC_FALSE;
+bool shutdown_done = false;
 static void
 shutdown_managers(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
@@ -124,8 +126,8 @@ shutdown_managers(isc_task_t *task, isc_event_t *event) {
 		dns_dispatchmgr_destroy(&dispatchmgr);
 	}
 
-	shutdown_done = ISC_TRUE;
-	run_managers = ISC_FALSE;
+	shutdown_done = true;
+	run_managers = false;
 
 	isc_event_free(&event);
 }
@@ -135,7 +137,7 @@ cleanup_managers(void) {
 	if (app_running)
 		isc_app_finish();
 
-	shutdown_done = ISC_FALSE;
+	shutdown_done = false;
 
 	if (maintask != NULL) {
 		isc_task_shutdown(maintask);
@@ -170,7 +172,7 @@ static void
 scan_interfaces(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
-	ns_interfacemgr_scan(interfacemgr, ISC_TRUE);
+	ns_interfacemgr_scan(interfacemgr, true);
 	isc_event_free(&event);
 }
 
@@ -205,7 +207,7 @@ create_managers(void) {
 	CHECK(ns_clientmgr_create(mctx, sctx, taskmgr, timermgr,
 				  &clientmgr));
 
-	CHECK(ns_listenlist_default(mctx, 5300, -1, ISC_TRUE, &listenon));
+	CHECK(ns_listenlist_default(mctx, 5300, -1, true, &listenon));
 	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
 	ns_listenlist_detach(&listenon);
 
@@ -225,7 +227,7 @@ create_managers(void) {
 	ns_test_nap(500000);
 #endif
 
-	run_managers = ISC_TRUE;
+	run_managers = true;
 
 	return (ISC_R_SUCCESS);
 
@@ -235,7 +237,7 @@ create_managers(void) {
 }
 
 isc_result_t
-ns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
+ns_test_begin(FILE *logfile, bool start_managers) {
 	isc_result_t result;
 
 	if (start_managers)
@@ -246,10 +248,10 @@ ns_test_begin(FILE *logfile, isc_boolean_t start_managers) {
 	CHECK(isc_entropy_create(mctx, &ectx));
 
 	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
-	dst_active = ISC_TRUE;
+	dst_active = true;
 
 	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = ISC_TRUE;
+	hash_active = true;
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
@@ -298,14 +300,14 @@ void
 ns_test_end(void) {
 	if (dst_active) {
 		dst_lib_destroy();
-		dst_active = ISC_FALSE;
+		dst_active = false;
 	}
 
 	cleanup_managers();
 
 	if (hash_active) {
 		isc_hash_destroy();
-		hash_active = ISC_FALSE;
+		hash_active = false;
 	}
 
 	if (ectx != NULL)
@@ -319,7 +321,7 @@ ns_test_end(void) {
 }
 
 isc_result_t
-ns_test_makeview(const char *name, isc_boolean_t with_cache,
+ns_test_makeview(const char *name, bool with_cache,
 		 dns_view_t **viewp)
 {
 	dns_cache_t *cache = NULL;
@@ -363,7 +365,7 @@ ns_test_makeview(const char *name, isc_boolean_t with_cache,
  */
 isc_result_t
 ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
-		 isc_boolean_t keepview)
+		 bool keepview)
 {
 	isc_result_t result;
 	dns_zone_t *zone = NULL;
@@ -374,7 +376,7 @@ ns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	if (view == NULL)
 		CHECK(dns_view_create(mctx, dns_rdataclass_in, "view", &view));
 	else if (!keepview)
-		keepview = ISC_TRUE;
+		keepview = true;
 
 	zone = *zonep;
 	if (zone == NULL)
@@ -452,7 +454,7 @@ ns_test_serve_zone(const char *zonename, const char *filename,
 	/*
 	 * Prepare zone structure for further processing.
 	 */
-	result = ns_test_makezone(zonename, &served_zone, view, ISC_TRUE);
+	result = ns_test_makezone(zonename, &served_zone, view, true);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -516,7 +518,7 @@ ns_test_cleanup_zone(void) {
 }
 
 isc_result_t
-ns_test_getclient(ns_interface_t *ifp0, isc_boolean_t tcp,
+ns_test_getclient(ns_interface_t *ifp0, bool tcp,
 		  ns_client_t **clientp)
 {
 	isc_result_t result;
@@ -548,7 +550,7 @@ attach_query_msg_to_client(ns_client_t *client, const char *qnamestr,
 	isc_buffer_t querybuf;
 	dns_compress_t cctx;
 	isc_result_t result;
-	isc_uint32_t qid;
+	uint32_t qid;
 
 	REQUIRE(client != NULL);
 	REQUIRE(qnamestr != NULL);
@@ -643,7 +645,7 @@ destroy_message:
  * "callback_data".  Causes execution to be interrupted at hook insertion
  * point.
  */
-static isc_boolean_t
+static bool
 extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
 	query_ctx_t **qctxp;
 	query_ctx_t *qctx;
@@ -670,7 +672,7 @@ extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
 	*qctxp = qctx;
 	*resultp = ISC_R_UNSET;
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 /*%
@@ -728,7 +730,7 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	/*
 	 * Allocate and initialize a client structure.
 	 */
-	result = ns_test_getclient(NULL, ISC_FALSE, &client);
+	result = ns_test_getclient(NULL, false, &client);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -806,7 +808,7 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 	*qctxp = NULL;
 }
 
-isc_boolean_t
+bool
 ns_test_hook_catch_call(void *hook_data, void *callback_data,
 			isc_result_t *resultp)
 {
@@ -815,14 +817,14 @@ ns_test_hook_catch_call(void *hook_data, void *callback_data,
 
 	*resultp = ISC_R_UNSET;
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 /*
  * Sleep for 'usec' microseconds.
  */
 void
-ns_test_nap(isc_uint32_t usec) {
+ns_test_nap(uint32_t usec) {
 #ifdef HAVE_NANOSLEEP
 	struct timespec ts;
 

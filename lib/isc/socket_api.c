@@ -12,6 +12,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/app.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
@@ -202,7 +205,7 @@ isc_socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 }
 
 void
-isc_socket_ipv6only(isc_socket_t *sock, isc_boolean_t yes) {
+isc_socket_ipv6only(isc_socket_t *sock, bool yes) {
 	REQUIRE(ISCAPI_SOCKET_VALID(sock));
 
 	if (isc_bind9)
@@ -363,13 +366,13 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 }
 
 void
-isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, isc_boolean_t active) {
+isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 	isc__socket_cleanunix(sockaddr, active);
 }
 
 isc_result_t
-isc_socket_permunix(const isc_sockaddr_t *sockaddr, isc_uint32_t perm,
-		     isc_uint32_t owner, isc_uint32_t group)
+isc_socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
+		     uint32_t owner, uint32_t group)
 {
 	return (isc__socket_permunix(sockaddr, perm, owner, group));
 }

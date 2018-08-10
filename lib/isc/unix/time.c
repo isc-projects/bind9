@@ -16,6 +16,8 @@
 
 #include <errno.h>
 #include <limits.h>
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <syslog.h>
 #include <time.h>
@@ -57,16 +59,16 @@ const isc_interval_t * const isc_interval_zero = &zero_interval;
 #if ISC_FIX_TV_USEC
 static inline void
 fix_tv_usec(struct timeval *tv) {
-	isc_boolean_t fixed = ISC_FALSE;
+	bool fixed = false;
 
 	if (tv->tv_usec < 0) {
-		fixed = ISC_TRUE;
+		fixed = true;
 		do {
 			tv->tv_sec -= 1;
 			tv->tv_usec += US_PER_S;
 		} while (tv->tv_usec < 0);
 	} else if (tv->tv_usec >= US_PER_S) {
-		fixed = ISC_TRUE;
+		fixed = true;
 		do {
 			tv->tv_sec += 1;
 			tv->tv_usec -= US_PER_S;
@@ -91,15 +93,15 @@ isc_interval_set(isc_interval_t *i,
 	i->nanoseconds = nanoseconds;
 }
 
-isc_boolean_t
+bool
 isc_interval_iszero(const isc_interval_t *i) {
 	REQUIRE(i != NULL);
 	INSIST(i->nanoseconds < NS_PER_S);
 
 	if (i->seconds == 0 && i->nanoseconds == 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 
@@ -127,15 +129,15 @@ isc_time_settoepoch(isc_time_t *t) {
 	t->nanoseconds = 0;
 }
 
-isc_boolean_t
+bool
 isc_time_isepoch(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
 
 	if (t->seconds == 0 && t->nanoseconds == 0)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 
@@ -298,15 +300,15 @@ isc_time_subtract(const isc_time_t *t, const isc_interval_t *i,
 	return (ISC_R_SUCCESS);
 }
 
-isc_uint64_t
+uint64_t
 isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
-	isc_uint64_t i1, i2, i3;
+	uint64_t i1, i2, i3;
 
 	REQUIRE(t1 != NULL && t2 != NULL);
 	INSIST(t1->nanoseconds < NS_PER_S && t2->nanoseconds < NS_PER_S);
 
-	i1 = (isc_uint64_t)t1->seconds * NS_PER_S + t1->nanoseconds;
-	i2 = (isc_uint64_t)t2->seconds * NS_PER_S + t2->nanoseconds;
+	i1 = (uint64_t)t1->seconds * NS_PER_S + t1->nanoseconds;
+	i2 = (uint64_t)t2->seconds * NS_PER_S + t2->nanoseconds;
 
 	if (i1 <= i2)
 		return (0);
@@ -321,12 +323,12 @@ isc_time_microdiff(const isc_time_t *t1, const isc_time_t *t2) {
 	return (i3);
 }
 
-isc_uint32_t
+uint32_t
 isc_time_seconds(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 	INSIST(t->nanoseconds < NS_PER_S);
 
-	return ((isc_uint32_t)t->seconds);
+	return ((uint32_t)t->seconds);
 }
 
 isc_result_t
@@ -355,8 +357,8 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 	 */
 	seconds = (time_t)t->seconds;
 
-	INSIST(sizeof(unsigned int) == sizeof(isc_uint32_t));
-	INSIST(sizeof(time_t) >= sizeof(isc_uint32_t));
+	INSIST(sizeof(unsigned int) == sizeof(uint32_t));
+	INSIST(sizeof(time_t) >= sizeof(uint32_t));
 
 	if (t->seconds > (~0U>>1) && seconds <= (time_t)(~0U>>1))
 		return (ISC_R_RANGE);
@@ -366,13 +368,13 @@ isc_time_secondsastimet(const isc_time_t *t, time_t *secondsp) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_uint32_t
+uint32_t
 isc_time_nanoseconds(const isc_time_t *t) {
 	REQUIRE(t != NULL);
 
 	ENSURE(t->nanoseconds < NS_PER_S);
 
-	return ((isc_uint32_t)t->nanoseconds);
+	return ((uint32_t)t->nanoseconds);
 }
 
 void

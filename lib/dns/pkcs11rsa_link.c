@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/entropy.h>
 #include <isc/md5.h>
 #include <isc/sha1.h>
@@ -132,7 +134,7 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 		slotid = rsa->slot;
 	else
 		slotid = pk11_get_best_token(OP_RSA);
-	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_RSA, true, false,
 			       rsa->reqlogon, NULL, slotid);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -229,7 +231,7 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 14,
@@ -363,7 +365,7 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_RSA, true, false,
 			       rsa->reqlogon, NULL,
 			       pk11_get_best_token(OP_RSA));
 	if (ret != ISC_R_SUCCESS)
@@ -399,7 +401,7 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 7,
@@ -661,7 +663,7 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		slotid = rsa->slot;
 	else
 		slotid = pk11_get_best_token(OP_RSA);
-	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_RSA, true, false,
 			       rsa->reqlogon, NULL, slotid);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -919,7 +921,7 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 14,
@@ -1077,7 +1079,7 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 			break;
 		}
 	pk11_ctx->object = CK_INVALID_HANDLE;
-	pk11_ctx->ontoken = ISC_FALSE;
+	pk11_ctx->ontoken = false;
 	PK11_RET(pkcs_C_CreateObject,
 		 (pk11_ctx->session,
 		  keyTemplate, (CK_ULONG) 7,
@@ -1114,7 +1116,7 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 }
 #endif
 
-static isc_boolean_t
+static bool
 pkcs11rsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	pk11_object_t *rsa1, *rsa2;
 	CK_ATTRIBUTE *attr1, *attr2;
@@ -1123,29 +1125,29 @@ pkcs11rsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	rsa2 = key2->keydata.pkey;
 
 	if ((rsa1 == NULL) && (rsa2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((rsa1 == NULL) || (rsa2 == NULL))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(rsa1, CKA_MODULUS);
 	attr2 = pk11_attribute_bytype(rsa2, CKA_MODULUS);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(rsa1, CKA_PUBLIC_EXPONENT);
 	attr2 = pk11_attribute_bytype(rsa2, CKA_PUBLIC_EXPONENT);
 	if ((attr1 == NULL) && (attr2 == NULL))
-		return (ISC_TRUE);
+		return (true);
 	else if ((attr1 == NULL) || (attr2 == NULL) ||
 		 (attr1->ulValueLen != attr2->ulValueLen) ||
 		 !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				    attr1->ulValueLen))
-		return (ISC_FALSE);
+		return (false);
 
 	attr1 = pk11_attribute_bytype(rsa1, CKA_PRIVATE_EXPONENT);
 	attr2 = pk11_attribute_bytype(rsa2, CKA_PRIVATE_EXPONENT);
@@ -1154,15 +1156,15 @@ pkcs11rsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	     (attr1->ulValueLen != attr2->ulValueLen) ||
 	     !isc_safe_memequal(attr1->pValue, attr2->pValue,
 				attr1->ulValueLen)))
-		return (ISC_FALSE);
+		return (false);
 
 	if (!rsa1->ontoken && !rsa2->ontoken)
-		return (ISC_TRUE);
+		return (true);
 	else if (rsa1->ontoken || rsa2->ontoken ||
 		 (rsa1->object != rsa2->object))
-		return (ISC_FALSE);
+		return (false);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static isc_result_t
@@ -1235,8 +1237,8 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		return (ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_TRUE, ISC_FALSE,
-			       ISC_FALSE, NULL, pk11_get_best_token(OP_RSA));
+	ret = pk11_get_session(pk11_ctx, OP_RSA, true, false,
+			       false, NULL, pk11_get_best_token(OP_RSA));
 	if (ret != ISC_R_SUCCESS)
 		goto err;
 
@@ -1333,15 +1335,15 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 pkcs11rsa_isprivate(const dst_key_t *key) {
 	pk11_object_t *rsa = key->keydata.pkey;
 	CK_ATTRIBUTE *attr;
 
 	if (rsa == NULL)
-		return (ISC_FALSE);
+		return (false);
 	attr = pk11_attribute_bytype(rsa, CKA_PRIVATE_EXPONENT);
-	return (ISC_TF((attr != NULL) || rsa->ontoken));
+	return (attr != NULL || rsa->ontoken);
 }
 
 static void
@@ -1420,13 +1422,13 @@ pkcs11rsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	if (e_bytes < 256) {	/*%< key exponent is <= 2040 bits */
 		if (r.length < 1)
 			return (ISC_R_NOSPACE);
-		isc_buffer_putuint8(data, (isc_uint8_t) e_bytes);
+		isc_buffer_putuint8(data, (uint8_t) e_bytes);
 		isc_region_consume(&r, 1);
 	} else {
 		if (r.length < 3)
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint8(data, 0);
-		isc_buffer_putuint16(data, (isc_uint16_t) e_bytes);
+		isc_buffer_putuint16(data, (uint16_t) e_bytes);
 		isc_region_consume(&r, 3);
 	}
 
@@ -1726,8 +1728,8 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 	pubrsa = pub->keydata.pkey;
 
 	rsa->object = CK_INVALID_HANDLE;
-	rsa->ontoken = ISC_TRUE;
-	rsa->reqlogon = ISC_TRUE;
+	rsa->ontoken = true;
+	rsa->reqlogon = true;
 	rsa->repr = (CK_ATTRIBUTE *) isc_mem_get(key->mctx, sizeof(*attr) * 2);
 	if (rsa->repr == NULL)
 		return (ISC_R_NOMEMORY);
@@ -1760,7 +1762,7 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_RSA, true, false,
 			       rsa->reqlogon, NULL, rsa->slot);
 	if (ret != ISC_R_SUCCESS)
 		goto err;
@@ -2079,8 +2081,8 @@ pkcs11rsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		return (ISC_R_NOMEMORY);
 	memset(rsa, 0, sizeof(*rsa));
 	rsa->object = CK_INVALID_HANDLE;
-	rsa->ontoken = ISC_TRUE;
-	rsa->reqlogon = ISC_TRUE;
+	rsa->ontoken = true;
+	rsa->reqlogon = true;
 	key->keydata.pkey = rsa;
 
 	rsa->repr = (CK_ATTRIBUTE *) isc_mem_get(key->mctx, sizeof(*attr) * 2);
@@ -2100,7 +2102,7 @@ pkcs11rsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 						  sizeof(*pk11_ctx));
 	if (pk11_ctx == NULL)
 		DST_RET(ISC_R_NOMEMORY);
-	ret = pk11_get_session(pk11_ctx, OP_RSA, ISC_TRUE, ISC_FALSE,
+	ret = pk11_get_session(pk11_ctx, OP_RSA, true, false,
 			       rsa->reqlogon, NULL, rsa->slot);
 	if (ret != ISC_R_SUCCESS)
 		goto err;

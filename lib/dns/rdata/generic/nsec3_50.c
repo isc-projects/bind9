@@ -54,13 +54,13 @@ fromtext_nsec3(ARGS_FROMTEXT) {
 
 	/* Hash. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_hashalg_fromtext(&hashalg, &token.value.as_textregion));
 	RETERR(uint8_tobuffer(hashalg, target));
 
 	/* Flags. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	flags = token.value.as_ulong;
 	if (flags > 255U)
 		RETTOK(ISC_R_RANGE);
@@ -68,14 +68,14 @@ fromtext_nsec3(ARGS_FROMTEXT) {
 
 	/* Iterations. */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_number,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	RETERR(uint16_tobuffer(token.value.as_ulong, target));
 
 	/* salt */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	if (token.value.as_textregion.length > (255*2))
 		RETTOK(DNS_R_TEXTTOOLONG);
 	if (strcmp(DNS_AS_STR(token), "-") == 0) {
@@ -89,7 +89,7 @@ fromtext_nsec3(ARGS_FROMTEXT) {
 	 * Next hash a single base32hex word.
 	 */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	isc_buffer_init(&b, buf, sizeof(buf));
 	RETTOK(isc_base32hexnp_decodestring(DNS_AS_STR(token), &b));
 	if (isc_buffer_usedlength(&b) > 0xffU)
@@ -97,7 +97,7 @@ fromtext_nsec3(ARGS_FROMTEXT) {
 	RETERR(uint8_tobuffer(isc_buffer_usedlength(&b), target));
 	RETERR(mem_tobuffer(target, &buf, isc_buffer_usedlength(&b)));
 
-	return (typemap_fromtext(lexer, target, ISC_TRUE));
+	return (typemap_fromtext(lexer, target, true));
 }
 
 static inline isc_result_t
@@ -107,7 +107,7 @@ totext_nsec3(ARGS_TOTEXT) {
 	unsigned char hash;
 	unsigned char flags;
 	char buf[sizeof("TYPE65535")];
-	isc_uint32_t iterations;
+	uint32_t iterations;
 
 	REQUIRE(rdata->type == dns_rdatatype_nsec3);
 	REQUIRE(rdata->length != 0);
@@ -207,7 +207,7 @@ fromwire_nsec3(ARGS_FROMWIRE) {
 		RETERR(DNS_R_FORMERR);
 	isc_region_consume(&sr, hashlen);
 
-	RETERR(typemap_test(&sr, ISC_TRUE));
+	RETERR(typemap_test(&sr, true));
 
 	RETERR(mem_tobuffer(target, rr.base, rr.length));
 	isc_buffer_forward(source, rr.length);
@@ -268,7 +268,7 @@ fromstruct_nsec3(ARGS_FROMSTRUCT) {
 
 	region.base = nsec3->typebits;
 	region.length = nsec3->len;
-	RETERR(typemap_test(&region, ISC_TRUE));
+	RETERR(typemap_test(&region, true));
 	return (mem_tobuffer(target, nsec3->typebits, nsec3->len));
 }
 
@@ -358,7 +358,7 @@ digest_nsec3(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_nsec3(ARGS_CHECKOWNER) {
 	unsigned char owner[NSEC3_MAX_HASH_LENGTH];
 	isc_buffer_t buffer;
@@ -377,12 +377,12 @@ checkowner_nsec3(ARGS_CHECKOWNER) {
 	isc_region_consume(&label, 1);
 	isc_buffer_init(&buffer, owner, sizeof(owner));
 	if (isc_base32hexnp_decoderegion(&label, &buffer) == ISC_R_SUCCESS)
-		return (ISC_TRUE);
+		return (true);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_nsec3(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_nsec3);
@@ -391,7 +391,7 @@ checknames_nsec3(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

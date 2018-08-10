@@ -44,6 +44,9 @@
  *\li	Drafts:	TBS
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/socket.h>
 #include <isc/stats.h>
@@ -278,7 +281,7 @@ dns_resolver_createfetch2(dns_resolver_t *res, const dns_name_t *name,
 			  dns_rdatatype_t type,
 			  const dns_name_t *domain, dns_rdataset_t *nameservers,
 			  dns_forwarders_t *forwarders,
-			  const isc_sockaddr_t *client, isc_uint16_t id,
+			  const isc_sockaddr_t *client, uint16_t id,
 			  unsigned int options, isc_task_t *task,
 			  isc_taskaction_t action, void *arg,
 			  dns_rdataset_t *rdataset,
@@ -289,7 +292,7 @@ dns_resolver_createfetch3(dns_resolver_t *res, const dns_name_t *name,
 			  dns_rdatatype_t type,
 			  const dns_name_t *domain, dns_rdataset_t *nameservers,
 			  dns_forwarders_t *forwarders,
-			  const isc_sockaddr_t *client, isc_uint16_t id,
+			  const isc_sockaddr_t *client, uint16_t id,
 			  unsigned int options, unsigned int depth,
 			  isc_counter_t *qc, isc_task_t *task,
 			  isc_taskaction_t action, void *arg,
@@ -391,7 +394,7 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp);
 void
 dns_resolver_logfetch(dns_fetch_t *fetch, isc_log_t *lctx,
 		      isc_logcategory_t *category, isc_logmodule_t *module,
-		      int level, isc_boolean_t duplicateok);
+		      int level, bool duplicateok);
 /*%<
  * Dump a log message on internal state at the completion of given 'fetch'.
  * 'lctx', 'category', 'module', and 'level' are used to write the log message.
@@ -420,7 +423,7 @@ dns_resolver_socketmgr(dns_resolver_t *resolver);
 isc_taskmgr_t *
 dns_resolver_taskmgr(dns_resolver_t *resolver);
 
-isc_uint32_t
+uint32_t
 dns_resolver_getlamettl(dns_resolver_t *resolver);
 /*%<
  * Get the resolver's lame-ttl.  zero => no lame processing.
@@ -430,7 +433,7 @@ dns_resolver_getlamettl(dns_resolver_t *resolver);
  */
 
 void
-dns_resolver_setlamettl(dns_resolver_t *resolver, isc_uint32_t lame_ttl);
+dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl);
 /*%<
  * Set the resolver's lame-ttl.  zero => no lame processing.
  *
@@ -461,12 +464,12 @@ dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
  */
 
 void
-dns_resolver_setudpsize(dns_resolver_t *resolver, isc_uint16_t udpsize);
+dns_resolver_setudpsize(dns_resolver_t *resolver, uint16_t udpsize);
 /*%<
  * Set the EDNS UDP buffer size advertised by the server.
  */
 
-isc_uint16_t
+uint16_t
 dns_resolver_getudpsize(dns_resolver_t *resolver);
 /*%<
  * Get the current EDNS UDP buffer size.
@@ -510,7 +513,7 @@ dns_resolver_disable_ds_digest(dns_resolver_t *resolver,
  *\li	#ISC_R_NOMEMORY
  */
 
-isc_boolean_t
+bool
 dns_resolver_algorithm_supported(dns_resolver_t *resolver,
 				 const dns_name_t *name, unsigned int alg);
 /*%<
@@ -520,7 +523,7 @@ dns_resolver_algorithm_supported(dns_resolver_t *resolver,
  * crypto libraries if it was not specifically disabled.
  */
 
-isc_boolean_t
+bool
 dns_resolver_ds_digest_supported(dns_resolver_t *resolver,
 				 const dns_name_t *name,
 				 unsigned int digest_type);
@@ -536,9 +539,9 @@ dns_resolver_resetmustbesecure(dns_resolver_t *resolver);
 
 isc_result_t
 dns_resolver_setmustbesecure(dns_resolver_t *resolver, const dns_name_t *name,
-			     isc_boolean_t value);
+			     bool value);
 
-isc_boolean_t
+bool
 dns_resolver_getmustbesecure(dns_resolver_t *resolver, const dns_name_t *name);
 
 
@@ -568,19 +571,19 @@ dns_resolver_gettimeout(dns_resolver_t *resolver);
 
 void
 dns_resolver_setclientsperquery(dns_resolver_t *resolver,
-				isc_uint32_t min, isc_uint32_t max);
+				uint32_t min, uint32_t max);
 void
-dns_resolver_setfetchesperzone(dns_resolver_t *resolver, isc_uint32_t clients);
+dns_resolver_setfetchesperzone(dns_resolver_t *resolver, uint32_t clients);
 
 void
-dns_resolver_getclientsperquery(dns_resolver_t *resolver, isc_uint32_t *cur,
-				isc_uint32_t *min, isc_uint32_t *max);
+dns_resolver_getclientsperquery(dns_resolver_t *resolver, uint32_t *cur,
+				uint32_t *min, uint32_t *max);
 
-isc_boolean_t
+bool
 dns_resolver_getzeronosoattl(dns_resolver_t *resolver);
 
 void
-dns_resolver_setzeronosoattl(dns_resolver_t *resolver, isc_boolean_t state);
+dns_resolver_setzeronosoattl(dns_resolver_t *resolver, bool state);
 
 unsigned int
 dns_resolver_getretryinterval(dns_resolver_t *resolver);
@@ -635,7 +638,7 @@ dns_resolver_addbadcache(dns_resolver_t *resolver, const dns_name_t *name,
  * \li	name to be valid.
  */
 
-isc_boolean_t
+bool
 dns_resolver_getbadcache(dns_resolver_t *resolver, const dns_name_t *name,
 			 dns_rdatatype_t type, isc_time_t *now);
 /*%<

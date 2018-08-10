@@ -40,6 +40,8 @@
 
 #ifndef PK11_MD5_DISABLE
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
@@ -66,9 +68,9 @@ typedef pk11_context_t isc_md5_t;
 #else
 
 typedef struct {
-	isc_uint32_t buf[4];
-	isc_uint32_t bytes[2];
-	isc_uint32_t in[16];
+	uint32_t buf[4];
+	uint32_t bytes[2];
+	uint32_t in[16];
 } isc_md5_t;
 #endif
 
@@ -86,8 +88,8 @@ isc_md5_update(isc_md5_t *ctx, const unsigned char *buf, unsigned int len);
 void
 isc_md5_final(isc_md5_t *ctx, unsigned char *digest);
 
-isc_boolean_t
-isc_md5_check(isc_boolean_t testing);
+bool
+isc_md5_check(bool testing);
 
 ISC_LANG_ENDDECLS
 

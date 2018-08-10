@@ -11,6 +11,9 @@
 
 #include "config.h"
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <named/fuzz.h>
 
 #ifdef ENABLE_AFL
@@ -44,7 +47,7 @@
  */
 static pthread_cond_t cond;
 static pthread_mutex_t mutex;
-static isc_boolean_t ready;
+static bool ready;
 
 /*
  * In "client:" mode, this thread reads fuzzed query messages from AFL
@@ -122,7 +125,7 @@ fuzz_thread_client(void *arg) {
 				free(buf);
 				close(sockfd);
 				named_server_flushonshutdown(named_g_server,
-							     ISC_FALSE);
+							     false);
 				isc_app_shutdown();
 				return (NULL);
 			}
@@ -132,7 +135,7 @@ fuzz_thread_client(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-		ready = ISC_FALSE;
+		ready = false;
 
 		sent = sendto(sockfd, buf, length, 0,
 			      (struct sockaddr *) &servaddr, sizeof(servaddr));
@@ -153,7 +156,7 @@ fuzz_thread_client(void *arg) {
 	free(buf);
 	close(sockfd);
 
-	named_server_flushonshutdown(named_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, false);
 	isc_app_shutdown();
 
 	return (NULL);
@@ -200,7 +203,7 @@ fuzz_thread_resolver(void *arg) {
 	 * have to be updated. 0x8d, 0xf6 at the start is the ID field
 	 * which will be made to match the query.
 	 */
-	const isc_uint8_t dnskey_wf[] = {
+	const uint8_t dnskey_wf[] = {
 		0x8d, 0xf6, 0x84, 0x00, 0x00, 0x01, 0x00, 0x02,
 		0x00, 0x00, 0x00, 0x01, 0x07, 0x65, 0x78, 0x61,
 		0x6d, 0x70, 0x6c, 0x65, 0x00, 0x00, 0x30, 0x00,
@@ -282,12 +285,12 @@ fuzz_thread_resolver(void *arg) {
 	int sockfd;
 	int listenfd;
 	int loop;
-	isc_uint16_t qtype;
+	uint16_t qtype;
 	char *buf, *rbuf;
 	char *nameptr;
 	unsigned int i;
-	isc_uint8_t llen;
-	isc_uint64_t seed;
+	uint8_t llen;
+	uint64_t seed;
 
 	UNUSED(arg);
 
@@ -385,7 +388,7 @@ fuzz_thread_resolver(void *arg) {
 				close(sockfd);
 				close(listenfd);
 				named_server_flushonshutdown(named_g_server,
-							     ISC_FALSE);
+							     false);
 				isc_app_shutdown();
 				return (NULL);
 			}
@@ -399,7 +402,7 @@ fuzz_thread_resolver(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-		ready = ISC_FALSE;
+		ready = false;
 
 		/* Use a unique query ID. */
 		seed = 1664525 * seed + 1013904223;
@@ -549,7 +552,7 @@ fuzz_thread_resolver(void *arg) {
 				 * "example."
 				 */
 				if ((nameptr - buf) < (length - 2)) {
-					isc_uint8_t hb, lb;
+					uint8_t hb, lb;
 					hb = *nameptr++;
 					lb = *nameptr++;
 					qtype = (hb << 8) | lb;
@@ -580,7 +583,7 @@ fuzz_thread_resolver(void *arg) {
 	free(rbuf);
 	close(sockfd);
 	close(listenfd);
-	named_server_flushonshutdown(named_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, false);
 	isc_app_shutdown();
 
 	/*
@@ -687,7 +690,7 @@ fuzz_thread_tcp(void *arg) {
 
 		RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-		ready = ISC_FALSE;
+		ready = false;
 		yes = 1;
 		sockfd = socket(AF_INET, SOCK_STREAM, 0);
 
@@ -718,7 +721,7 @@ fuzz_thread_tcp(void *arg) {
 
 	free(buf);
 	close(sockfd);
-	named_server_flushonshutdown(named_g_server, ISC_FALSE);
+	named_server_flushonshutdown(named_g_server, false);
 	isc_app_shutdown();
 
 	return (NULL);
@@ -735,7 +738,7 @@ void
 named_fuzz_notify(void) {
 #ifdef ENABLE_AFL
 	if (getenv("AFL_CMIN")) {
-		named_server_flushonshutdown(named_g_server, ISC_FALSE);
+		named_server_flushonshutdown(named_g_server, false);
 		isc_app_shutdown();
 		return;
 	}
@@ -744,7 +747,7 @@ named_fuzz_notify(void) {
 
 	RUNTIME_CHECK(pthread_mutex_lock(&mutex) == 0);
 
-	ready = ISC_TRUE;
+	ready = true;
 
 	RUNTIME_CHECK(pthread_cond_signal(&cond) == 0);
 	RUNTIME_CHECK(pthread_mutex_unlock(&mutex) == 0);

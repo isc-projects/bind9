@@ -14,6 +14,8 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -135,9 +137,9 @@ main(int argc, char **argv) {
 	dst_key_t	*key = NULL;
 	dns_fixedname_t	fname;
 	dns_name_t	*name;
-	isc_uint16_t	flags = 0, kskflag = 0, revflag = 0;
+	uint16_t	flags = 0, kskflag = 0, revflag = 0;
 	dns_secalg_t	alg;
-	isc_boolean_t	oldstyle = ISC_FALSE;
+	bool	oldstyle = false;
 	isc_mem_t	*mctx = NULL;
 	int		ch;
 	int		protocol = -1, signatory = 0;
@@ -155,20 +157,20 @@ main(int argc, char **argv) {
 	isc_stdtime_t	inactive = 0, deltime = 0;
 	isc_stdtime_t	now;
 	int		prepub = -1;
-	isc_boolean_t	setpub = ISC_FALSE, setact = ISC_FALSE;
-	isc_boolean_t	setrev = ISC_FALSE, setinact = ISC_FALSE;
-	isc_boolean_t	setdel = ISC_FALSE, setttl = ISC_FALSE;
-	isc_boolean_t	unsetpub = ISC_FALSE, unsetact = ISC_FALSE;
-	isc_boolean_t	unsetrev = ISC_FALSE, unsetinact = ISC_FALSE;
-	isc_boolean_t	unsetdel = ISC_FALSE;
-	isc_boolean_t	genonly = ISC_FALSE;
-	isc_boolean_t	use_nsec3 = ISC_FALSE;
-	isc_boolean_t   avoid_collisions = ISC_TRUE;
-	isc_boolean_t	exact;
+	bool	setpub = false, setact = false;
+	bool	setrev = false, setinact = false;
+	bool	setdel = false, setttl = false;
+	bool	unsetpub = false, unsetact = false;
+	bool	unsetrev = false, unsetinact = false;
+	bool	unsetdel = false;
+	bool	genonly = false;
+	bool	use_nsec3 = false;
+	bool   avoid_collisions = true;
+	bool	exact;
 	unsigned char	c;
 	isc_stdtime_t	syncadd = 0, syncdel = 0;
-	isc_boolean_t	unsetsyncadd = ISC_FALSE, setsyncadd = ISC_FALSE;
-	isc_boolean_t	unsetsyncdel = ISC_FALSE, setsyncdel = ISC_FALSE;
+	bool	unsetsyncadd = false, setsyncadd = false;
+	bool	unsetsyncdel = false, setsyncdel = false;
 
 	if (argc == 1)
 		usage();
@@ -180,7 +182,7 @@ main(int argc, char **argv) {
 #endif
 	dns_result_register();
 
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 
 	isc_stdtime_get(&now);
 
@@ -188,13 +190,13 @@ main(int argc, char **argv) {
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 	    switch (ch) {
 		case '3':
-			use_nsec3 = ISC_TRUE;
+			use_nsec3 = true;
 			break;
 		case 'a':
 			algname = isc_commandline_argument;
 			break;
 		case 'C':
-			oldstyle = ISC_TRUE;
+			oldstyle = true;
 			break;
 		case 'c':
 			classname = isc_commandline_argument;
@@ -224,7 +226,7 @@ main(int argc, char **argv) {
 			break;
 		case 'L':
 			ttl = strtottl(isc_commandline_argument);
-			setttl = ISC_TRUE;
+			setttl = true;
 			break;
 		case 'l':
 			label = isc_mem_strdup(mctx, isc_commandline_argument);
@@ -247,10 +249,10 @@ main(int argc, char **argv) {
 				fatal("-v must be followed by a number");
 			break;
 		case 'y':
-			avoid_collisions = ISC_FALSE;
+			avoid_collisions = false;
 			break;
 		case 'G':
-			genonly = ISC_TRUE;
+			genonly = true;
 			break;
 		case 'P':
 			/* -Psync ? */
@@ -465,14 +467,14 @@ main(int argc, char **argv) {
 				      "prepublication interval.");
 
 			if (!setpub && !setact) {
-				setpub = setact = ISC_TRUE;
+				setpub = setact = true;
 				publish = now;
 				activate = now + prepub;
 			} else if (setpub && !setact) {
-				setact = ISC_TRUE;
+				setact = true;
 				activate = publish + prepub;
 			} else if (setact && !setpub) {
-				setpub = ISC_TRUE;
+				setpub = true;
 				publish = activate - prepub;
 			}
 
@@ -560,7 +562,7 @@ main(int argc, char **argv) {
 					"You can use dnssec-settime -D to "
 					"change this.\n", program, keystr);
 
-		setpub = setact = ISC_TRUE;
+		setpub = setact = true;
 	}
 
 	if (nametype == NULL) {

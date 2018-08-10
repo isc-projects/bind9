@@ -110,7 +110,7 @@ Functions:
 	struct dns_compress {
 		unsigned int allowed;	/* Allowed methods. */
 		unsigned int rdata;	/* Start of local rdata */
-		isc_boolean_t global16;	/* 16 bit offsets allowed */
+		bool global16;	/* 16 bit offsets allowed */
 		dns_rbt_t *local;	/* Local RBT */
 		dns_rbt_t *global;	/* Global RBT */
 		isc_mem_t *mctx;	/* Required by RBT */
@@ -118,15 +118,15 @@ Functions:
 
 	sets allowed based on the value of edns.
 
-	isc_boolean_t
+	bool
 	dns_compress_findglobal(dns_compress_t *cctx, dns_name_t *name,
 				dns_name_t *prefix, dns_name_t *suffix,
-				isc_uint16_t *offset, isc_buffer_t *workspace);
+				uint16_t *offset, isc_buffer_t *workspace);
 
-	isc_boolean_t
+	bool
 	dns_compress_findlocal(dns_compress_t *cctx, dns_name_t *name,
 			       dns_name_t *prefix, dns_name_t *suffix,
-			       isc_uint16_t *offset, isc_buffer_t *workspace);
+			       uint16_t *offset, isc_buffer_t *workspace);
 
 	Find the best best match in the global / local RBT.  Returns prefix,
 	suffix and offset of the bestmatch.  Findglobal(), findlocal()
@@ -138,7 +138,7 @@ Functions:
 
 	void
 	dns_compress_add(dns_compress_t *cctx, dns_name_t *prefix,
-			 dns_name_t *suffix, isc_uint16_t offset);
+			 dns_name_t *suffix, uint16_t offset);
 
 	Add compression pointers pointing to lebels (if any) in prefix.
 	The offset to the first label is passed in offset.

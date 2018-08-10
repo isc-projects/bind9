@@ -48,6 +48,9 @@
  ***** Imports
  *****/
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/deprecated.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -88,9 +91,9 @@ typedef struct dns_dbmethods {
 					 dns_dbversion_t **targetp);
 	void		(*closeversion)(dns_db_t *db,
 					dns_dbversion_t **versionp,
-					isc_boolean_t commit);
+					bool commit);
 	isc_result_t	(*findnode)(dns_db_t *db, const dns_name_t *name,
-				    isc_boolean_t create,
+				    bool create,
 				    dns_dbnode_t **nodep);
 	isc_result_t	(*find)(dns_db_t *db, const dns_name_t *name,
 				dns_dbversion_t *version,
@@ -142,10 +145,10 @@ typedef struct dns_dbmethods {
 					  dns_dbversion_t *version,
 					  dns_rdatatype_t type,
 					  dns_rdatatype_t covers);
-	isc_boolean_t	(*issecure)(dns_db_t *db);
+	bool	(*issecure)(dns_db_t *db);
 	unsigned int	(*nodecount)(dns_db_t *db);
-	isc_boolean_t	(*ispersistent)(dns_db_t *db);
-	void		(*overmem)(dns_db_t *db, isc_boolean_t overmem);
+	bool	(*ispersistent)(dns_db_t *db);
+	void		(*overmem)(dns_db_t *db, bool overmem);
 	void		(*settask)(dns_db_t *db, isc_task_t *);
 	isc_result_t	(*getoriginnode)(dns_db_t *db, dns_dbnode_t **nodep);
 	void		(*transfernode)(dns_db_t *db, dns_dbnode_t **sourcep,
@@ -153,12 +156,12 @@ typedef struct dns_dbmethods {
 	isc_result_t    (*getnsec3parameters)(dns_db_t *db,
 					      dns_dbversion_t *version,
 					      dns_hash_t *hash,
-					      isc_uint8_t *flags,
-					      isc_uint16_t *iterations,
+					      uint8_t *flags,
+					      uint16_t *iterations,
 					      unsigned char *salt,
 					      size_t *salt_len);
 	isc_result_t    (*findnsec3node)(dns_db_t *db, const dns_name_t *name,
-					 isc_boolean_t create,
+					 bool create,
 					 dns_dbnode_t **nodep);
 	isc_result_t	(*setsigningtime)(dns_db_t *db,
 					  dns_rdataset_t *rdataset,
@@ -168,13 +171,13 @@ typedef struct dns_dbmethods {
 					  dns_name_t *name);
 	void		(*resigned)(dns_db_t *db, dns_rdataset_t *rdataset,
 					   dns_dbversion_t *version);
-	isc_boolean_t	(*isdnssec)(dns_db_t *db);
+	bool	(*isdnssec)(dns_db_t *db);
 	dns_stats_t	*(*getrrsetstats)(dns_db_t *db);
 	void		(*rpz_attach)(dns_db_t *db, void *rpzs,
-				      isc_uint8_t rpz_num);
+				      uint8_t rpz_num);
 	isc_result_t	(*rpz_ready)(dns_db_t *db);
 	isc_result_t	(*findnodeext)(dns_db_t *db, const dns_name_t *name,
-				     isc_boolean_t create,
+				     bool create,
 				     dns_clientinfomethods_t *methods,
 				     dns_clientinfo_t *clientinfo,
 				     dns_dbnode_t **nodep);
@@ -192,7 +195,7 @@ typedef struct dns_dbmethods {
 	isc_result_t	(*nodefullname)(dns_db_t *db, dns_dbnode_t *node,
 					dns_name_t *name);
 	isc_result_t	(*getsize)(dns_db_t *db, dns_dbversion_t *version,
-				   isc_uint64_t *records, isc_uint64_t *bytes);
+				   uint64_t *records, uint64_t *bytes);
 	isc_result_t	(*setservestalettl)(dns_db_t *db, dns_ttl_t ttl);
 	isc_result_t	(*getservestalettl)(dns_db_t *db, dns_ttl_t *ttl);
 	isc_result_t	(*setgluecachestats)(dns_db_t *db, isc_stats_t *stats);
@@ -223,7 +226,7 @@ struct dns_db {
 	unsigned int				magic;
 	unsigned int				impmagic;
 	dns_dbmethods_t *			methods;
-	isc_uint16_t				attributes;
+	uint16_t				attributes;
 	dns_rdataclass_t			rdclass;
 	dns_name_t				origin;
 	isc_ondestroy_t				ondest;
@@ -374,7 +377,7 @@ dns_db_ondestroy(dns_db_t *db, isc_task_t *task, isc_event_t **eventp);
  * sent to the task.
  */
 
-isc_boolean_t
+bool
 dns_db_iscache(dns_db_t *db);
 /*%<
  * Does 'db' have cache semantics?
@@ -384,11 +387,11 @@ dns_db_iscache(dns_db_t *db);
  * \li	'db' is a valid database.
  *
  * Returns:
- * \li	#ISC_TRUE	'db' has cache semantics
- * \li	#ISC_FALSE	otherwise
+ * \li	#true	'db' has cache semantics
+ * \li	#false	otherwise
  */
 
-isc_boolean_t
+bool
 dns_db_iszone(dns_db_t *db);
 /*%<
  * Does 'db' have zone semantics?
@@ -398,11 +401,11 @@ dns_db_iszone(dns_db_t *db);
  * \li	'db' is a valid database.
  *
  * Returns:
- * \li	#ISC_TRUE	'db' has zone semantics
- * \li	#ISC_FALSE	otherwise
+ * \li	#true	'db' has zone semantics
+ * \li	#false	otherwise
  */
 
-isc_boolean_t
+bool
 dns_db_isstub(dns_db_t *db);
 /*%<
  * Does 'db' have stub semantics?
@@ -412,11 +415,11 @@ dns_db_isstub(dns_db_t *db);
  * \li	'db' is a valid database.
  *
  * Returns:
- * \li	#ISC_TRUE	'db' has zone semantics
- * \li	#ISC_FALSE	otherwise
+ * \li	#true	'db' has zone semantics
+ * \li	#false	otherwise
  */
 
-isc_boolean_t
+bool
 dns_db_issecure(dns_db_t *db);
 /*%<
  * Is 'db' secure?
@@ -426,11 +429,11 @@ dns_db_issecure(dns_db_t *db);
  * \li	'db' is a valid database with zone semantics.
  *
  * Returns:
- * \li	#ISC_TRUE	'db' is secure.
- * \li	#ISC_FALSE	'db' is not secure.
+ * \li	#true	'db' is secure.
+ * \li	#false	'db' is not secure.
  */
 
-isc_boolean_t
+bool
 dns_db_isdnssec(dns_db_t *db);
 /*%<
  * Is 'db' secure or partially secure?
@@ -440,8 +443,8 @@ dns_db_isdnssec(dns_db_t *db);
  * \li	'db' is a valid database with zone semantics.
  *
  * Returns:
- * \li	#ISC_TRUE	'db' is secure or is partially.
- * \li	#ISC_FALSE	'db' is not secure.
+ * \li	#true	'db' is secure or is partially.
+ * \li	#false	'db' is not secure.
  */
 
 dns_name_t *
@@ -678,11 +681,11 @@ dns_db_attachversion(dns_db_t *db, dns_dbversion_t *source,
 
 void
 dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
-		    isc_boolean_t commit);
+		    bool commit);
 /*%<
  * Close version '*versionp'.
  *
- * Note: if '*versionp' is a read-write version and 'commit' is ISC_TRUE,
+ * Note: if '*versionp' is a read-write version and 'commit' is true,
  * then all changes made in the version will take effect, otherwise they
  * will be rolled back.  The value of 'commit' is ignored for read-only
  * versions.
@@ -701,7 +704,7 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  *
  * \li	*versionp == NULL
  *
- * \li	If *versionp is a read-write version, and commit is ISC_TRUE, then
+ * \li	If *versionp is a read-write version, and commit is true, then
  *	the version will become the current version.  If !commit, then all
  *	changes made in the version will be undone, and the version will
  *	not become the current version.
@@ -712,11 +715,11 @@ dns_db_closeversion(dns_db_t *db, dns_dbversion_t **versionp,
  ***/
 
 isc_result_t
-dns_db_findnode(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
+dns_db_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 		dns_dbnode_t **nodep);
 
 isc_result_t
-dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
+dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
 		   dns_clientinfomethods_t *methods,
 		   dns_clientinfo_t *clientinfo, dns_dbnode_t **nodep);
 /*%<
@@ -728,7 +731,7 @@ dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
  * response on the basis of that information.
  *
  * Notes:
- * \li	If 'create' is ISC_TRUE and no node with name 'name' exists, then
+ * \li	If 'create' is true and no node with name 'name' exists, then
  *	such a node will be created.
  *
  * \li	This routine is for finding or creating a node with the specified
@@ -752,7 +755,7 @@ dns_db_findnodeext(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
  *
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND			If !create and name not found.
- * \li	#ISC_R_NOMEMORY			Can only happen if create is ISC_TRUE.
+ * \li	#ISC_R_NOMEMORY			Can only happen if create is true.
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -1356,7 +1359,7 @@ dns_db_deleterdataset(dns_db_t *db, dns_dbnode_t *node,
  */
 
 isc_result_t
-dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
+dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, uint32_t *serialp);
 /*%<
  * Get the current SOA serial number from a zone database.
  *
@@ -1366,7 +1369,7 @@ dns_db_getsoaserial(dns_db_t *db, dns_dbversion_t *ver, isc_uint32_t *serialp);
  */
 
 void
-dns_db_overmem(dns_db_t *db, isc_boolean_t overmem);
+dns_db_overmem(dns_db_t *db, bool overmem);
 /*%<
  * Enable / disable aggressive cache cleaning.
  */
@@ -1409,7 +1412,7 @@ dns_db_settask(dns_db_t *db, isc_task_t *task);
  * \li	'task' to be valid or NULL.
  */
 
-isc_boolean_t
+bool
 dns_db_ispersistent(dns_db_t *db);
 /*%<
  * Is 'db' persistent?  A persistent database does not need to be loaded
@@ -1420,8 +1423,8 @@ dns_db_ispersistent(dns_db_t *db);
  * \li	'db' is a valid database.
  *
  * Returns:
- * \li	#ISC_TRUE	'db' is persistent.
- * \li	#ISC_FALSE	'db' is not persistent.
+ * \li	#true	'db' is persistent.
+ * \li	#false	'db' is not persistent.
  */
 
 isc_result_t
@@ -1487,8 +1490,8 @@ dns_db_getoriginnode(dns_db_t *db, dns_dbnode_t **nodep);
 
 isc_result_t
 dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
-			  dns_hash_t *hash, isc_uint8_t *flags,
-			  isc_uint16_t *interations,
+			  dns_hash_t *hash, uint8_t *flags,
+			  uint16_t *interations,
 			  unsigned char *salt, size_t *salt_length);
 /*%<
  * Get the NSEC3 parameters that are associated with this zone.
@@ -1503,8 +1506,8 @@ dns_db_getnsec3parameters(dns_db_t *db, dns_dbversion_t *version,
  */
 
 isc_result_t
-dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
-	       isc_uint64_t *bytes);
+dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, uint64_t *records,
+	       uint64_t *bytes);
 /*%<
  * Get the number of records in the given version of the database as well
  * as the number bytes used to store those records.
@@ -1522,12 +1525,12 @@ dns_db_getsize(dns_db_t *db, dns_dbversion_t *version, isc_uint64_t *records,
 
 isc_result_t
 dns_db_findnsec3node(dns_db_t *db, const dns_name_t *name,
-		     isc_boolean_t create, dns_dbnode_t **nodep);
+		     bool create, dns_dbnode_t **nodep);
 /*%<
  * Find the NSEC3 node with name 'name'.
  *
  * Notes:
- * \li	If 'create' is ISC_TRUE and no node with name 'name' exists, then
+ * \li	If 'create' is true and no node with name 'name' exists, then
  *	such a node will be created.
  *
  * Requires:
@@ -1546,7 +1549,7 @@ dns_db_findnsec3node(dns_db_t *db, const dns_name_t *name,
  *
  * \li	#ISC_R_SUCCESS
  * \li	#ISC_R_NOTFOUND			If !create and name not found.
- * \li	#ISC_R_NOMEMORY			Can only happen if create is ISC_TRUE.
+ * \li	#ISC_R_NOMEMORY			Can only happen if create is true.
  *
  * \li	Other results are possible, depending upon the database
  *	implementation used.
@@ -1634,7 +1637,7 @@ dns_db_setcachestats(dns_db_t *db, isc_stats_t *stats);
  */
 
 void
-dns_db_rpz_attach(dns_db_t *db, void *rpzs, isc_uint8_t rpz_num)
+dns_db_rpz_attach(dns_db_t *db, void *rpzs, uint8_t rpz_num)
 	ISC_DEPRECATED;
 /*%<
  * Attach the response policy information for a view to a database for a

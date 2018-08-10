@@ -13,6 +13,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #ifdef USE_DNSRPS
 
 #include <isc/mem.h>
@@ -194,16 +197,16 @@ dns_dnsrps_view_init(dns_rpz_zones_t *new, char *rps_cstr) {
 		      "dnsrps configuration \"%s\"", rps_cstr);
 
 	new->rps_client = librpz->client_create(&emsg, clist,
-						 rps_cstr, ISC_FALSE);
+						 rps_cstr, false);
 	if (new->rps_client == NULL) {
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RPZ,
 			      DNS_LOGMODULE_RBTDB, DNS_RPZ_ERROR_LEVEL,
 			      "librpz->client_create(): %s", emsg.c);
-		new->p.dnsrps_enabled = ISC_FALSE;
+		new->p.dnsrps_enabled = false;
 		return (ISC_R_FAILURE);
 	}
 
-	new->p.dnsrps_enabled = ISC_TRUE;
+	new->p.dnsrps_enabled = true;
 	return (ISC_R_SUCCESS);
 }
 
@@ -247,7 +250,7 @@ dns_dnsrps_connect(dns_rpz_zones_t *rpzs) {
 isc_result_t
 dns_dnsrps_rewrite_init(librpz_emsg_t *emsg, dns_rpz_st_t *st,
 			dns_rpz_zones_t *rpzs, const dns_name_t *qname,
-			isc_mem_t *mctx, isc_boolean_t have_rd)
+			isc_mem_t *mctx, bool have_rd)
 {
 	rpsdb_t *rpsdb;
 
@@ -418,7 +421,7 @@ rpsdb_detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 }
 
 static isc_result_t
-rpsdb_findnode(dns_db_t *db, const dns_name_t *name, isc_boolean_t create,
+rpsdb_findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	       dns_dbnode_t **nodep)
 {
 	rpsdb_t *rpsdb = (rpsdb_t *)db;
@@ -642,11 +645,11 @@ rpsdb_allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 rpsdb_issecure(dns_db_t *db) {
 	UNUSED(db);
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 static isc_result_t

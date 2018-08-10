@@ -20,7 +20,6 @@
 #include <atf-c.h>
 
 #include <stdlib.h>
-#include <stdint.h>
 
 #include "isctest.h"
 
@@ -38,7 +37,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	UNUSED(tc);
 
-	result = isc_test_begin(NULL, ISC_TRUE, 0);
+	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_radix_create(mctx, &radix, 32);
@@ -46,7 +45,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	in_addr.s_addr = inet_addr("3.3.3.0");
 	isc_netaddr_fromin(&netaddr, &in_addr);
-	NETADDR_TO_PREFIX_T(&netaddr, prefix, 24, ISC_FALSE);
+	NETADDR_TO_PREFIX_T(&netaddr, prefix, 24, false);
 
 	node = NULL;
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
@@ -56,7 +55,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	in_addr.s_addr = inet_addr("3.3.0.0");
 	isc_netaddr_fromin(&netaddr, &in_addr);
-	NETADDR_TO_PREFIX_T(&netaddr, prefix, 16, ISC_FALSE);
+	NETADDR_TO_PREFIX_T(&netaddr, prefix, 16, false);
 
 	node = NULL;
 	result = isc_radix_insert(radix, &node, NULL, &prefix);
@@ -66,7 +65,7 @@ ATF_TC_BODY(isc_radix_search, tc) {
 
 	in_addr.s_addr = inet_addr("3.3.3.3");
 	isc_netaddr_fromin(&netaddr, &in_addr);
-	NETADDR_TO_PREFIX_T(&netaddr, prefix, 22, ISC_FALSE);
+	NETADDR_TO_PREFIX_T(&netaddr, prefix, 22, false);
 
 	node = NULL;
 	result = isc_radix_search(radix, &node, &prefix);

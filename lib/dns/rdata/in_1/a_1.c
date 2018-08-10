@@ -33,7 +33,7 @@ fromtext_in_a(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 
 	if (getquad(DNS_AS_STR(token), &addr, lexer, callbacks) != 1)
 		RETTOK(DNS_R_BADDOTTEDQUAD);
@@ -123,7 +123,7 @@ compare_in_a(ARGS_COMPARE) {
 static inline isc_result_t
 fromstruct_in_a(ARGS_FROMSTRUCT) {
 	dns_rdata_in_a_t *a = source;
-	isc_uint32_t n;
+	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_a);
 	REQUIRE(rdclass == dns_rdataclass_in);
@@ -143,7 +143,7 @@ fromstruct_in_a(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_in_a(ARGS_TOSTRUCT) {
 	dns_rdata_in_a_t *a = target;
-	isc_uint32_t n;
+	uint32_t n;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_a);
@@ -198,7 +198,7 @@ digest_in_a(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_in_a(ARGS_CHECKOWNER) {
 	dns_name_t prefix, suffix;
 
@@ -217,14 +217,14 @@ checkowner_in_a(ARGS_CHECKOWNER) {
 		dns_name_split(name, dns_name_countlabels(name) - 2,
 			       &prefix, &suffix);
 		if (dns_name_equal(&gc_msdcs, &prefix) &&
-		    dns_name_ishostname(&suffix, ISC_FALSE))
-			return (ISC_TRUE);
+		    dns_name_ishostname(&suffix, false))
+			return (true);
 	}
 
 	return (dns_name_ishostname(name, wildcard));
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_in_a(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_a);
@@ -234,7 +234,7 @@ checknames_in_a(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

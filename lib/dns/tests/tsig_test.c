@@ -15,6 +15,7 @@
 
 #include <atf-c.h>
 
+#include <stdbool.h>
 #include <unistd.h>
 
 #include <isc/mem.h>
@@ -27,10 +28,6 @@
 #include "../tsig_p.h"
 
 #include "dnstest.h"
-
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h> /* uintptr_t */
-#endif
 
 #define TEST_ORIGIN	"test"
 
@@ -79,12 +76,12 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	unsigned char tsigbuf[1024];
 	unsigned int count;
 	unsigned int sigsize = 0;
-	isc_boolean_t invalidate_ctx = ISC_FALSE;
+	bool invalidate_ctx = false;
 
 	memset(&tsig, 0, sizeof(tsig));
 
 	CHECK(dns_compress_init(&cctx, -1, mctx));
-	invalidate_ctx = ISC_TRUE;
+	invalidate_ctx = true;
 
 	tsig.common.rdclass = dns_rdataclass_any;
 	tsig.common.rdtype = dns_rdatatype_tsig;
@@ -278,7 +275,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(stderr, ISC_TRUE);
+	result = dns_test_begin(stderr, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* isc_log_setdebuglevel(lctx, 99); */
@@ -291,7 +288,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacsha256_name,
-				    secret, sizeof(secret), ISC_FALSE,
+				    secret, sizeof(secret), false,
 				    NULL, 0, 0, mctx, ring, &key);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE(key != NULL);
@@ -357,7 +354,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 	dns_message_destroy(&msg);
 
 	result = dst_context_create3(key->key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				     ISC_FALSE, &outctx);
+				     false, &outctx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE(outctx != NULL);
 
@@ -504,18 +501,18 @@ ATF_TC_BODY(algvalid, tc) {
 	UNUSED(tc);
 
 #ifndef PK11_MD5_DISABLE
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5), ISC_TRUE);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5), true);
 #else
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACMD5), false);
 #endif
 
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA1), ISC_TRUE);
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA224), ISC_TRUE);
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA256), ISC_TRUE);
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA384), ISC_TRUE);
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA512), ISC_TRUE);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA1), true);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA224), true);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA256), true);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA384), true);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_HMACSHA512), true);
 
-	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_GSSAPI), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns__tsig_algvalid(DST_ALG_GSSAPI), false);
 }
 
 ATF_TC(algfromname);
@@ -564,7 +561,7 @@ ATF_TC_BODY(algnamefromname, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(stderr, ISC_TRUE);
+	result = dns_test_begin(stderr, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* test the standard algorithms */
@@ -595,20 +592,20 @@ ATF_TC_BODY(algallocated, tc) {
 
 	/* test the standard algorithms */
 #ifndef PK11_MD5_DISABLE
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACMD5_NAME), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACMD5_NAME), false);
 #endif
 
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA1_NAME), ISC_FALSE);
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA224_NAME), ISC_FALSE);
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA256_NAME), ISC_FALSE);
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA384_NAME), ISC_FALSE);
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA1_NAME), false);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA224_NAME), false);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA256_NAME), false);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA384_NAME), false);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME), false);
 
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME), ISC_FALSE);
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME), ISC_FALSE);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME), false);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(DNS_TSIG_HMACSHA512_NAME), false);
 
 	/* try another name that isn't a standard algorithm name */
-	ATF_REQUIRE_EQ(dns__tsig_algallocated(dns_rootname), ISC_TRUE);
+	ATF_REQUIRE_EQ(dns__tsig_algallocated(dns_rootname), true);
 }
 
 /*

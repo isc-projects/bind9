@@ -17,6 +17,8 @@
 #include <sys/types.h>
 
 #include <stddef.h>
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
@@ -27,7 +29,6 @@
 #endif
 
 #include <isc/app.h>
-#include <isc/boolean.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
@@ -99,19 +100,19 @@ typedef struct isc__appctx {
 	isc_mem_t		*mctx;
 	isc_mutex_t		lock;
 	isc_eventlist_t		on_run;
-	isc_boolean_t		shutdown_requested;
-	isc_boolean_t		running;
+	bool		shutdown_requested;
+	bool		running;
 
 	/*!
 	 * We assume that 'want_shutdown' can be read and written atomically.
 	 */
-	isc_boolean_t		want_shutdown;
+	bool		want_shutdown;
 	/*
 	 * We assume that 'want_reload' can be read and written atomically.
 	 */
-	isc_boolean_t		want_reload;
+	bool		want_reload;
 
-	isc_boolean_t		blocked;
+	bool		blocked;
 
 	isc_taskmgr_t		*taskmgr;
 	isc_socketmgr_t		*socketmgr;
@@ -171,13 +172,13 @@ static pthread_t		main_thread;
 static void
 exit_action(int arg) {
 	UNUSED(arg);
-	isc_g_appctx.want_shutdown = ISC_TRUE;
+	isc_g_appctx.want_shutdown = true;
 }
 
 static void
 reload_action(int arg) {
 	UNUSED(arg);
-	isc_g_appctx.want_reload = ISC_TRUE;
+	isc_g_appctx.want_reload = true;
 }
 #endif
 
@@ -254,11 +255,11 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
 
 	ISC_LIST_INIT(ctx->on_run);
 
-	ctx->shutdown_requested = ISC_FALSE;
-	ctx->running = ISC_FALSE;
-	ctx->want_shutdown = ISC_FALSE;
-	ctx->want_reload = ISC_FALSE;
-	ctx->blocked = ISC_FALSE;
+	ctx->shutdown_requested = false;
+	ctx->running = false;
+	ctx->want_shutdown = false;
+	ctx->want_reload = false;
+	ctx->blocked = false;
 
 #ifndef HAVE_SIGWAIT
 	/*
@@ -446,8 +447,8 @@ evloop(isc__appctx_t *ctx) {
 		isc_time_t when, now;
 		struct timeval tv, *tvp;
 		isc_socketwait_t *swait;
-		isc_boolean_t readytasks;
-		isc_boolean_t call_timer_dispatch = ISC_FALSE;
+		bool readytasks;
+		bool call_timer_dispatch = false;
 
 		/*
 		 * Check the reload (or suspend) case first for exiting the
@@ -458,7 +459,7 @@ evloop(isc__appctx_t *ctx) {
 		 *   - there is a timer event
 		 */
 		if (ctx->want_reload) {
-			ctx->want_reload = ISC_FALSE;
+			ctx->want_reload = false;
 			return (ISC_R_RELOAD);
 		}
 
@@ -467,18 +468,18 @@ evloop(isc__appctx_t *ctx) {
 			tv.tv_sec = 0;
 			tv.tv_usec = 0;
 			tvp = &tv;
-			call_timer_dispatch = ISC_TRUE;
+			call_timer_dispatch = true;
 		} else {
 			result = isc__timermgr_nextevent(ctx->timermgr, &when);
 			if (result != ISC_R_SUCCESS)
 				tvp = NULL;
 			else {
-				isc_uint64_t us;
+				uint64_t us;
 
 				TIME_NOW(&now);
 				us = isc_time_microdiff(&when, &now);
 				if (us == 0)
-					call_timer_dispatch = ISC_TRUE;
+					call_timer_dispatch = true;
 				tv.tv_sec = us / 1000000;
 				tv.tv_usec = us % 1000000;
 				tvp = &tv;
@@ -525,14 +526,14 @@ evloop(isc__appctx_t *ctx) {
  * \brief True if we are currently executing in the recursive
  * event loop.
  */
-static isc_boolean_t in_recursive_evloop = ISC_FALSE;
+static bool in_recursive_evloop = false;
 
 /*!
  * \brief True if we are exiting the event loop as the result of
  * a call to isc_condition_signal() rather than a shutdown
  * or reload.
  */
-static isc_boolean_t signalled = ISC_FALSE;
+static bool signalled = false;
 
 isc_result_t
 isc__nothread_wait_hack(isc_condition_t *cp, isc_mutex_t *mp) {
@@ -542,21 +543,21 @@ isc__nothread_wait_hack(isc_condition_t *cp, isc_mutex_t *mp) {
 	UNUSED(mp);
 
 	INSIST(!in_recursive_evloop);
-	in_recursive_evloop = ISC_TRUE;
+	in_recursive_evloop = true;
 
 	INSIST(*mp == 1); /* Mutex must be locked on entry. */
 	--*mp;
 
 	result = evloop(&isc_g_appctx);
 	if (result == ISC_R_RELOAD)
-		isc_g_appctx.want_reload = ISC_TRUE;
+		isc_g_appctx.want_reload = true;
 	if (signalled) {
-		isc_g_appctx.want_shutdown = ISC_FALSE;
-		signalled = ISC_FALSE;
+		isc_g_appctx.want_shutdown = false;
+		signalled = false;
 	}
 
 	++*mp;
-	in_recursive_evloop = ISC_FALSE;
+	in_recursive_evloop = false;
 	return (ISC_R_SUCCESS);
 }
 
@@ -567,8 +568,8 @@ isc__nothread_signal_hack(isc_condition_t *cp) {
 
 	INSIST(in_recursive_evloop);
 
-	isc_g_appctx.want_shutdown = ISC_TRUE;
-	signalled = ISC_TRUE;
+	isc_g_appctx.want_shutdown = true;
+	signalled = true;
 	return (ISC_R_SUCCESS);
 }
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -596,7 +597,7 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 	LOCK(&ctx->lock);
 
 	if (!ctx->running) {
-		ctx->running = ISC_TRUE;
+		ctx->running = true;
 
 		/*
 		 * Post any on-run events (in FIFO order).
@@ -661,18 +662,18 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			result = sigwait(&sset, &sig);
 			if (result == 0) {
 				if (sig == SIGINT || sig == SIGTERM)
-					ctx->want_shutdown = ISC_TRUE;
+					ctx->want_shutdown = true;
 				else if (sig == SIGHUP)
-					ctx->want_reload = ISC_TRUE;
+					ctx->want_reload = true;
 			}
 
 #else /* Using UnixWare sigwait semantics. */
 			sig = sigwait(&sset);
 			if (sig >= 0) {
 				if (sig == SIGINT || sig == SIGTERM)
-					ctx->want_shutdown = ISC_TRUE;
+					ctx->want_shutdown = true;
 				else if (sig == SIGHUP)
-					ctx->want_reload = ISC_TRUE;
+					ctx->want_reload = true;
 			}
 #endif /* HAVE_UNIXWARE_SIGWAIT */
 		} else {
@@ -736,7 +737,7 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 #endif /* HAVE_SIGWAIT */
 
 		if (ctx->want_reload) {
-			ctx->want_reload = ISC_FALSE;
+			ctx->want_reload = false;
 			return (ISC_R_RELOAD);
 		}
 
@@ -756,7 +757,7 @@ isc__app_run(void) {
 isc_result_t
 isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-	isc_boolean_t want_kill = ISC_TRUE;
+	bool want_kill = true;
 #ifdef ISC_PLATFORM_USETHREADS
 	char strbuf[ISC_STRERRORSIZE];
 #endif /* ISC_PLATFORM_USETHREADS */
@@ -768,19 +769,19 @@ isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 	REQUIRE(ctx->running);
 
 	if (ctx->shutdown_requested)
-		want_kill = ISC_FALSE;
+		want_kill = false;
 	else
-		ctx->shutdown_requested = ISC_TRUE;
+		ctx->shutdown_requested = true;
 
 	UNLOCK(&ctx->lock);
 
 	if (want_kill) {
 		if (isc_bind9 && ctx != &isc_g_appctx)
 			/* BIND9 internal, but using multiple contexts */
-			ctx->want_shutdown = ISC_TRUE;
+			ctx->want_shutdown = true;
 		else {
 #ifndef ISC_PLATFORM_USETHREADS
-			ctx->want_shutdown = ISC_TRUE;
+			ctx->want_shutdown = true;
 #else /* ISC_PLATFORM_USETHREADS */
 #ifdef HAVE_LINUXTHREADS
 			if (isc_bind9) {
@@ -814,7 +815,7 @@ isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 			else {
 				/* External, multiple contexts */
 				LOCK(&ctx->readylock);
-				ctx->want_shutdown = ISC_TRUE;
+				ctx->want_shutdown = true;
 				UNLOCK(&ctx->readylock);
 				SIGNAL(&ctx->ready);
 			}
@@ -833,7 +834,7 @@ isc__app_shutdown(void) {
 isc_result_t
 isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-	isc_boolean_t want_kill = ISC_TRUE;
+	bool want_kill = true;
 #ifdef ISC_PLATFORM_USETHREADS
 	char strbuf[ISC_STRERRORSIZE];
 #endif
@@ -848,17 +849,17 @@ isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 	 * Don't send the reload signal if we're shutting down.
 	 */
 	if (ctx->shutdown_requested)
-		want_kill = ISC_FALSE;
+		want_kill = false;
 
 	UNLOCK(&ctx->lock);
 
 	if (want_kill) {
 		if (isc_bind9 && ctx != &isc_g_appctx)
 			/* BIND9 internal, but using multiple contexts */
-			ctx->want_reload = ISC_TRUE;
+			ctx->want_reload = true;
 		else {
 #ifndef ISC_PLATFORM_USETHREADS
-			ctx->want_reload = ISC_TRUE;
+			ctx->want_reload = true;
 #else /* ISC_PLATFORM_USETHREADS */
 #ifdef HAVE_LINUXTHREADS
 			if (isc_bind9) {
@@ -892,7 +893,7 @@ isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 			else {
 				/* External, multiple contexts */
 				LOCK(&ctx->readylock);
-				ctx->want_reload = ISC_TRUE;
+				ctx->want_reload = true;
 				UNLOCK(&ctx->readylock);
 				SIGNAL(&ctx->ready);
 			}
@@ -930,7 +931,7 @@ isc__app_block(void) {
 	REQUIRE(isc_g_appctx.running);
 	REQUIRE(!isc_g_appctx.blocked);
 
-	isc_g_appctx.blocked = ISC_TRUE;
+	isc_g_appctx.blocked = true;
 #ifdef ISC_PLATFORM_USETHREADS
 	blockedthread = pthread_self();
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
@@ -949,7 +950,7 @@ isc__app_unblock(void) {
 	REQUIRE(isc_g_appctx.running);
 	REQUIRE(isc_g_appctx.blocked);
 
-	isc_g_appctx.blocked = ISC_FALSE;
+	isc_g_appctx.blocked = false;
 
 #ifdef ISC_PLATFORM_USETHREADS
 	REQUIRE(blockedthread == pthread_self());

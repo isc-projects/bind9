@@ -121,7 +121,7 @@ Types:
 
 	struct dns_ixfr {
 		unsigned int		magic;	/* IXFR */
-		isc_uint32_t		serial;
+		uint32_t		serial;
 		time_t			expire;
 		unsigned int		offset;
 		ISC_LINK(dns_ixfr_t)	link;
@@ -133,11 +133,11 @@ Types:
 		dns_rdataclass_t	class;
 		dns_zonetypes_t		type;
 		dns_bt_t		top;
-		isc_uint32_t		version;
-		isc_uint32_t		serial;
-		isc_uint32_t		refresh;
-		isc_uint32_t		retry;
-		isc_uint32_t		serial;
+		uint32_t		version;
+		uint32_t		serial;
+		uint32_t		refresh;
+		uint32_t		retry;
+		uint32_t		serial;
 		char			*masterfile;
 		dns_acl_t		*access;
 		dns_acl_t		*transfer;
@@ -238,7 +238,7 @@ Functions:
 
     dns_zone_setxfracl(dns_zone_t *, dns_acl_t *)
 
-    dns_zone_addnotify(dns_zone_t *, isc_sockaddr_t *addr, isc_boolean_t perm);
+    dns_zone_addnotify(dns_zone_t *, isc_sockaddr_t *addr, bool perm);
 
     dns_zone_clearnotify(dns_zone_t *)
 

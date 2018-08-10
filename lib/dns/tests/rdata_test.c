@@ -15,6 +15,7 @@
 
 #include <atf-c.h>
 
+#include <stdbool.h>
 #include <unistd.h>
 
 #include <isc/hex.h>
@@ -47,7 +48,7 @@ typedef struct text_ok text_ok_t;
 struct wire_ok {
 	unsigned char data[512];	/* RDATA in wire format */
 	size_t len;			/* octets of data to parse */
-	isc_boolean_t ok;		/* is this RDATA valid? */
+	bool ok;		/* is this RDATA valid? */
 	int lineno;			/* source line defining this RDATA */
 };
 typedef struct wire_ok wire_ok_t;
@@ -67,9 +68,9 @@ typedef struct wire_ok wire_ok_t;
 					{ __VA_ARGS__ }, VARGC(__VA_ARGS__),  \
 					ok, __LINE__			      \
 				}
-#define WIRE_VALID(...)		WIRE_TEST(ISC_TRUE, __VA_ARGS__)
-#define WIRE_INVALID(...)	WIRE_TEST(ISC_FALSE, __VA_ARGS__)
-#define WIRE_SENTINEL()		WIRE_TEST(ISC_FALSE)
+#define WIRE_VALID(...)		WIRE_TEST(true, __VA_ARGS__)
+#define WIRE_INVALID(...)	WIRE_TEST(false, __VA_ARGS__)
+#define WIRE_SENTINEL()		WIRE_TEST(false)
 
 /*****
  ***** Checking functions used by test cases
@@ -289,7 +290,7 @@ check_text_ok(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
  * for given RR class and type behaves as expected.
  */
 static void
-check_wire_ok(const wire_ok_t *wire_ok, isc_boolean_t empty_ok,
+check_wire_ok(const wire_ok_t *wire_ok, bool empty_ok,
 	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	      size_t structsize)
 {
@@ -323,12 +324,12 @@ check_wire_ok(const wire_ok_t *wire_ok, isc_boolean_t empty_ok,
  */
 static void
 check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
-	    isc_boolean_t empty_ok, dns_rdataclass_t rdclass,
+	    bool empty_ok, dns_rdataclass_t rdclass,
 	    dns_rdatatype_t type, size_t structsize)
 {
 	isc_result_t result;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	if (text_ok != NULL) {
@@ -472,7 +473,7 @@ ATF_TC_BODY(csync, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, ISC_FALSE, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
 		    dns_rdatatype_csync, sizeof(dns_rdata_csync_t));
 }
 
@@ -690,7 +691,7 @@ ATF_TC_BODY(doa, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, ISC_FALSE, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
 		    dns_rdatatype_doa, sizeof(dns_rdata_doa_t));
 }
 
@@ -856,7 +857,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(NULL, wire_ok, ISC_TRUE, dns_rdataclass_in,
+	check_rdata(NULL, wire_ok, true, dns_rdataclass_in,
 		    dns_rdatatype_opt, sizeof(dns_rdata_opt_t));
 }
 
@@ -881,7 +882,7 @@ ATF_TC_BODY(hip, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*
@@ -998,7 +999,7 @@ ATF_TC_BODY(isdn, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(NULL, wire_ok, ISC_FALSE, dns_rdataclass_in,
+	check_rdata(NULL, wire_ok, false, dns_rdataclass_in,
 		    dns_rdatatype_isdn, sizeof(dns_rdata_isdn_t));
 }
 
@@ -1089,7 +1090,7 @@ ATF_TC_BODY(nsec, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, ISC_FALSE, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
 		    dns_rdatatype_nsec, sizeof(dns_rdata_nsec_t));
 }
 
@@ -1118,7 +1119,7 @@ ATF_TC_BODY(nsec3, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, NULL, ISC_FALSE, dns_rdataclass_in,
+	check_rdata(text_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_nsec3, sizeof(dns_rdata_nsec3_t));
 }
 
@@ -1191,7 +1192,7 @@ ATF_TC_BODY(wks, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(NULL, wire_ok, ISC_FALSE, dns_rdataclass_in,
+	check_rdata(NULL, wire_ok, false, dns_rdataclass_in,
 		    dns_rdatatype_wks, sizeof(dns_rdata_in_wks_t));
 }
 

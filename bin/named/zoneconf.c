@@ -11,6 +11,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/file.h>
 #include <isc/mem.h>
@@ -188,7 +191,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	const cfg_listelt_t *element, *element2;
 	dns_ssutable_t *table = NULL;
 	isc_mem_t *mctx = dns_zone_getmctx(zone);
-	isc_boolean_t autoddns = ISC_FALSE;
+	bool autoddns = false;
 	isc_result_t result;
 
 	(void)cfg_map_get(zconfig, "update-policy", &updatepolicy);
@@ -200,7 +203,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 	if (cfg_obj_isstring(updatepolicy) &&
 	    strcmp("local", cfg_obj_asstring(updatepolicy)) == 0) {
-		autoddns = ISC_TRUE;
+		autoddns = true;
 		updatepolicy = NULL;
 	}
 
@@ -219,8 +222,8 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		const cfg_obj_t *dname = cfg_tuple_get(stmt, "name");
 		const cfg_obj_t *typelist = cfg_tuple_get(stmt, "types");
 		const char *str;
-		isc_boolean_t grant = ISC_FALSE;
-		isc_boolean_t usezone = ISC_FALSE;
+		bool grant = false;
+		bool usezone = false;
 		unsigned int mtype = dns_ssumatchtype_name;
 		dns_fixedname_t fname, fident;
 		isc_buffer_t b;
@@ -229,16 +232,16 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		str = cfg_obj_asstring(mode);
 		if (strcasecmp(str, "grant") == 0)
-			grant = ISC_TRUE;
+			grant = true;
 		else if (strcasecmp(str, "deny") == 0)
-			grant = ISC_FALSE;
+			grant = false;
 		else
 			INSIST(0);
 
 		str = cfg_obj_asstring(matchtype);
 		CHECK(dns_ssu_mtypefromstring(str, &mtype));
 		if (mtype == dns_ssumatchtype_subdomain) {
-			usezone = ISC_TRUE;
+			usezone = true;
 		}
 
 		dns_fixedname_init(&fident);
@@ -347,7 +350,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			goto cleanup;
 		}
 
-		result = dns_ssutable_addrule(table, ISC_TRUE,
+		result = dns_ssutable_addrule(table, true,
 					      named_g_server->session_keyname,
 					      dns_ssumatchtype_local,
 					      dns_zone_getorigin(zone),
@@ -625,7 +628,7 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		goto cleanup;
 	dns_name_init(&apexname, NULL);
 	dns_name_clone(dns_zone_getorigin(zone), &apexname);
-	result = dns_db_findnode(db, &apexname, ISC_FALSE, &apexnode);
+	result = dns_db_findnode(db, &apexname, false, &apexnode);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
@@ -668,7 +671,7 @@ configure_staticstub(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	if (apexnode != NULL)
 		dns_db_detachnode(db, &apexnode);
 	if (dbversion != NULL)
-		dns_db_closeversion(db, &dbversion, ISC_TRUE);
+		dns_db_closeversion(db, &dbversion, true);
 	if (db != NULL)
 		dns_db_detach(&db);
 	for (i = 0; rdatalists[i] != NULL; i++) {
@@ -769,7 +772,7 @@ checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
  * We run this unlocked as both the view list and the interface list
  * are updated when the appropriate task has exclusivity.
  */
-static isc_boolean_t
+static bool
 isself(dns_view_t *myview, dns_tsigkey_t *mykey,
        const isc_sockaddr_t *srcaddr, const isc_sockaddr_t *dstaddr,
        dns_rdataclass_t rdclass, void *arg)
@@ -783,10 +786,10 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 	isc_netaddr_t netdst;
 
 	if (interfacemgr == NULL)
-		return (ISC_TRUE);
+		return (true);
 
 	if (!ns_interfacemgr_listeningon(interfacemgr, dstaddr))
-		return (ISC_FALSE);
+		return (false);
 
 	isc_netaddr_fromsockaddr(&netsrc, srcaddr);
 	isc_netaddr_fromsockaddr(&netdst, dstaddr);
@@ -802,7 +805,7 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 			continue;
 
 		if (mykey != NULL) {
-			isc_boolean_t match;
+			bool match;
 			isc_result_t result;
 
 			result = dns_view_gettsig(view, &mykey->name, &key);
@@ -821,7 +824,7 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 				    view->matchdestinations, env))
 			break;
 	}
-	return (ISC_TF(view == myview));
+	return (view == myview);
 }
 
 
@@ -842,7 +845,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const char *filename = NULL;
 	const char *dupcheck;
 	dns_notifytype_t notifytype = dns_notifytype_yes;
-	isc_uint32_t count;
+	uint32_t count;
 	unsigned int dbargc;
 	char **dbargv;
 	static char default_dbtype[] = "rbt";
@@ -852,13 +855,13 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	dns_dialuptype_t dialup = dns_dialuptype_no;
 	dns_zonetype_t ztype;
 	int i;
-	isc_int32_t journal_size;
-	isc_boolean_t multi;
-	isc_boolean_t alt;
+	int32_t journal_size;
+	bool multi;
+	bool alt;
 	dns_view_t *view;
-	isc_boolean_t check = ISC_FALSE, fail = ISC_FALSE;
-	isc_boolean_t warn = ISC_FALSE, ignore = ISC_FALSE;
-	isc_boolean_t ixfrdiff;
+	bool check = false, fail = false;
+	bool warn = false, ignore = false;
+	bool ixfrdiff;
 	dns_masterformat_t masterformat;
 	const dns_master_style_t *masterstyle = &dns_master_style_default;
 	isc_stats_t *zoneqrystats;
@@ -1271,12 +1274,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				cfg_obj_log(obj, named_g_lctx,
 					    ISC_LOG_ERROR,
 					    "'max-journal-size "
-					    "%" ISC_PRINT_QUADFORMAT "d' "
+					    "%" PRId64 "' "
 					    "is too large",
 					    value);
 				RETERR(ISC_R_RANGE);
 			}
-			journal_size = (isc_uint32_t)value;
+			journal_size = (uint32_t)value;
 		}
 		if (raw != NULL)
 			dns_zone_setjournalsize(raw, journal_size);
@@ -1289,17 +1292,17 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			ixfrdiff = cfg_obj_asboolean(obj);
 		else if (!strcasecmp(cfg_obj_asstring(obj), "master") &&
 			 ztype == dns_zone_master)
-			ixfrdiff = ISC_TRUE;
+			ixfrdiff = true;
 		else if (!strcasecmp(cfg_obj_asstring(obj), "slave") &&
 			ztype == dns_zone_slave)
-			ixfrdiff = ISC_TRUE;
+			ixfrdiff = true;
 		else
-			ixfrdiff = ISC_FALSE;
+			ixfrdiff = false;
 		if (raw != NULL) {
 			dns_zone_setoption(raw, DNS_ZONEOPT_IXFRFROMDIFFS,
-					   ISC_TRUE);
+					   true);
 			dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
-					   ISC_FALSE);
+					   false);
 		} else
 			dns_zone_setoption(zone, DNS_ZONEOPT_IXFRFROMDIFFS,
 					   ixfrdiff);
@@ -1317,12 +1320,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		checknames(ztype, maps, &obj);
 		INSIST(obj != NULL);
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			fail = ISC_FALSE;
-			check = ISC_TRUE;
+			fail = false;
+			check = true;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			fail = check = ISC_TRUE;
+			fail = check = true;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			fail = check = ISC_FALSE;
+			fail = check = false;
 		} else
 			INSIST(0);
 		if (raw != NULL) {
@@ -1331,9 +1334,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setoption(raw, DNS_ZONEOPT_CHECKNAMESFAIL,
 					   fail);
 			dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMES,
-					   ISC_FALSE);
+					   false);
 			dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMESFAIL,
-					   ISC_FALSE);
+					   false);
 		} else {
 			dns_zone_setoption(zone, DNS_ZONEOPT_CHECKNAMES,
 					   check);
@@ -1356,9 +1359,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "check-spf", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			check = ISC_TRUE;
+			check = true;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			check = ISC_FALSE;
+			check = false;
 		} else
 			INSIST(0);
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSPF, check);
@@ -1395,12 +1398,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				cfg_obj_log(obj, named_g_lctx,
 					    ISC_LOG_ERROR,
 					    "'max-journal-size "
-					    "%" ISC_PRINT_QUADFORMAT "d' "
+					    "%" PRId64 "' "
 					    "is too large",
 					    value);
 				RETERR(ISC_R_RANGE);
 			}
-			journal_size = (isc_uint32_t)value;
+			journal_size = (uint32_t)value;
 		}
 		dns_zone_setjournalsize(zone, journal_size);
 	}
@@ -1430,8 +1433,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 	if (ztype == dns_zone_master || raw != NULL) {
 		const cfg_obj_t *validity, *resign;
-		isc_boolean_t allow = ISC_FALSE, maint = ISC_FALSE;
-		isc_boolean_t sigvalinsecs;
+		bool allow = false, maint = false;
+		bool sigvalinsecs;
 
 		obj = NULL;
 		result = named_config_get(maps, "sig-validity-interval", &obj);
@@ -1506,9 +1509,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (result == ISC_R_SUCCESS) {
 			const char *arg = cfg_obj_asstring(obj);
 			if (strcasecmp(arg, "allow") == 0)
-				allow = ISC_TRUE;
+				allow = true;
 			else if (strcasecmp(arg, "maintain") == 0)
-				allow = maint = ISC_TRUE;
+				allow = maint = true;
 			else if (strcasecmp(arg, "off") == 0)
 				;
 			else
@@ -1534,7 +1537,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		if (result == ISC_R_SUCCESS)
 			check = cfg_obj_asboolean(obj);
 		else
-			check = ISC_FALSE;
+			check = false;
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKWILDCARD, check);
 
 		/*
@@ -1559,12 +1562,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 		}
 		if (strcasecmp(dupcheck, "warn") == 0) {
-			fail = ISC_FALSE;
-			check = ISC_TRUE;
+			fail = false;
+			check = true;
 		} else if (strcasecmp(dupcheck, "fail") == 0) {
-			fail = check = ISC_TRUE;
+			fail = check = true;
 		} else if (strcasecmp(dupcheck, "ignore") == 0) {
-			fail = check = ISC_FALSE;
+			fail = check = false;
 		} else
 			INSIST(0);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKDUPRR, check);
@@ -1574,12 +1577,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "check-mx", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			fail = ISC_FALSE;
-			check = ISC_TRUE;
+			fail = false;
+			check = true;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			fail = check = ISC_TRUE;
+			fail = check = true;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			fail = check = ISC_FALSE;
+			fail = check = false;
 		} else
 			INSIST(0);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMX, check);
@@ -1598,7 +1601,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKINTEGRITY,
 					   cfg_obj_asboolean(obj));
 		} else {
-			check = ISC_FALSE;
+			check = false;
 			result = named_config_get(nodefault, "check-integrity",
 					       &obj);
 			if (result == ISC_R_SUCCESS)
@@ -1611,12 +1614,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "check-mx-cname", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			warn = ISC_TRUE;
-			ignore = ISC_FALSE;
+			warn = true;
+			ignore = false;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			warn = ignore = ISC_FALSE;
+			warn = ignore = false;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			warn = ignore = ISC_TRUE;
+			warn = ignore = true;
 		} else
 			INSIST(0);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNMXCNAME, warn);
@@ -1626,12 +1629,12 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "check-srv-cname", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		if (strcasecmp(cfg_obj_asstring(obj), "warn") == 0) {
-			warn = ISC_TRUE;
-			ignore = ISC_FALSE;
+			warn = true;
+			ignore = false;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "fail") == 0) {
-			warn = ignore = ISC_FALSE;
+			warn = ignore = false;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
-			warn = ignore = ISC_TRUE;
+			warn = ignore = true;
 		} else
 			INSIST(0);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNSRVCNAME, warn);
@@ -1651,7 +1654,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			const char *arg = cfg_obj_asstring(obj);
 			if (strcasecmp(arg, "no-resign") == 0)
 				dns_zone_setkeyopt(zone, DNS_ZONEKEY_NORESIGN,
-						   ISC_TRUE);
+						   true);
 			else if (strcasecmp(arg, "maintain") == 0)
 				;
 			else
@@ -1699,7 +1702,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			result = dns_zone_setmasters(mayberaw, NULL, 0);
 		RETERR(result);
 
-		multi = ISC_FALSE;
+		multi = false;
 		if (count > 1) {
 			obj = NULL;
 			result = named_config_get(maps, "multi-master", &obj);
@@ -1791,9 +1794,9 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			 */
 			view = dns_zone_getview(zone);
 			if (view != NULL && strcmp(view->name, "_default") == 0)
-				alt = ISC_TRUE;
+				alt = true;
 			else
-				alt = ISC_FALSE;
+				alt = false;
 		} else
 			alt = cfg_obj_asboolean(obj);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_USEALTXFRSRC, alt);
@@ -1840,14 +1843,14 @@ named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase,
 	return (result);
 }
 
-isc_boolean_t
+bool
 named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	const cfg_obj_t *zoptions = NULL;
 	const cfg_obj_t *obj = NULL;
 	const char *cfilename;
 	const char *zfilename;
 	dns_zone_t *raw = NULL;
-	isc_boolean_t has_raw;
+	bool has_raw;
 	dns_zonetype_t ztype;
 
 	zoptions = cfg_tuple_get(zconfig, "options");
@@ -1859,7 +1862,7 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	if (zonetype_fromconfig(zoptions) == dns_zone_staticstub) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: staticstub");
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	/* If there's a raw zone, use that for filename and type comparison */
@@ -1868,11 +1871,11 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 		zfilename = dns_zone_getfile(raw);
 		ztype = dns_zone_gettype(raw);
 		dns_zone_detach(&raw);
-		has_raw = ISC_TRUE;
+		has_raw = true;
 	} else {
 		zfilename = dns_zone_getfile(zone);
 		ztype = dns_zone_gettype(zone);
-		has_raw = ISC_FALSE;
+		has_raw = false;
 	}
 
 	obj = NULL;
@@ -1880,17 +1883,17 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	if ((obj == NULL || !cfg_obj_asboolean(obj)) && has_raw) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: old zone was inline-signing");
-		return (ISC_FALSE);
+		return (false);
 	} else if ((obj != NULL && cfg_obj_asboolean(obj)) && !has_raw) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: old zone was not inline-signing");
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	if (zonetype_fromconfig(zoptions) != ztype) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: type mismatch");
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	obj = NULL;
@@ -1905,8 +1908,8 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	{
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: filename mismatch");
-		return (ISC_FALSE);
+		return (false);
 	}
 
-	return (ISC_TRUE);
+	return (true);
 }

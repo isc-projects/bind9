@@ -14,13 +14,16 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/mem.h>
 #include <isc/portset.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
 
-#define ISC_PORTSET_BUFSIZE (65536 / (sizeof(isc_uint32_t) * 8))
+#define ISC_PORTSET_BUFSIZE (65536 / (sizeof(uint32_t) * 8))
 
 /*%
  * Internal representation of portset.  It's an array of 32-bit integers, each
@@ -29,19 +32,19 @@
  */
 struct isc_portset {
 	unsigned int nports;	/*%< number of ports in the set */
-	isc_uint32_t buf[ISC_PORTSET_BUFSIZE];
+	uint32_t buf[ISC_PORTSET_BUFSIZE];
 };
 
-static inline isc_boolean_t
+static inline bool
 portset_isset(isc_portset_t *portset, in_port_t port) {
-	return (ISC_TF((portset->buf[port >> 5] & ((isc_uint32_t)1 << (port & 31))) != 0));
+	return (portset->buf[port >> 5] & ((uint32_t)1 << (port & 31)));
 }
 
 static inline void
 portset_add(isc_portset_t *portset, in_port_t port) {
 	if (!portset_isset(portset, port)) {
 		portset->nports++;
-		portset->buf[port >> 5] |= ((isc_uint32_t)1 << (port & 31));
+		portset->buf[port >> 5] |= ((uint32_t)1 << (port & 31));
 	}
 }
 
@@ -49,7 +52,7 @@ static inline void
 portset_remove(isc_portset_t *portset, in_port_t port) {
 	if (portset_isset(portset, port)) {
 		portset->nports--;
-		portset->buf[port >> 5] &= ~((isc_uint32_t)1 << (port & 31));
+		portset->buf[port >> 5] &= ~((uint32_t)1 << (port & 31));
 	}
 }
 
@@ -80,7 +83,7 @@ isc_portset_destroy(isc_mem_t *mctx, isc_portset_t **portsetp) {
 	isc_mem_put(mctx, portset, sizeof(*portset));
 }
 
-isc_boolean_t
+bool
 isc_portset_isset(isc_portset_t *portset, in_port_t port) {
 	REQUIRE(portset != NULL);
 

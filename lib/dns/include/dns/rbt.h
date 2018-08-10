@@ -15,6 +15,9 @@
 
 /*! \file dns/rbt.h */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/assertions.h>
 #include <isc/crc64.h>
 #include <isc/lang.h>
@@ -56,7 +59,7 @@ ISC_LANG_BEGINDECLS
 #if DNS_RBT_USEMAGIC
 #define DNS_RBTNODE_VALID(n)            ISC_MAGIC_VALID(n, DNS_RBTNODE_MAGIC)
 #else
-#define DNS_RBTNODE_VALID(n)            ISC_TRUE
+#define DNS_RBTNODE_VALID(n)            true
 #endif
 
 /*%
@@ -177,11 +180,11 @@ typedef isc_result_t (*dns_rbtfindcallback_t)(dns_rbtnode_t *node,
 typedef isc_result_t (*dns_rbtdatawriter_t)(FILE *file,
 					    unsigned char *data,
 					    void *arg,
-					    isc_uint64_t *crc);
+					    uint64_t *crc);
 
 typedef isc_result_t (*dns_rbtdatafixer_t)(dns_rbtnode_t *rbtnode,
 					   void *base, size_t offset,
-					   void *arg, isc_uint64_t *crc);
+					   void *arg, uint64_t *crc);
 
 typedef void (*dns_rbtdeleter_t)(void *, void *);
 
@@ -537,12 +540,12 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 
 isc_result_t
 dns_rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name,
-		   isc_boolean_t recurse);
+		   bool recurse);
 /*%<
  * Delete 'name' from the tree of trees.
  *
  * Notes:
- *\li   When 'name' is removed, if recurse is ISC_TRUE then all of its
+ *\li   When 'name' is removed, if recurse is true then all of its
  *      subnames are removed too.
  *
  * Requires:
@@ -580,12 +583,12 @@ dns_rbt_deletename(dns_rbt_t *rbt, const dns_name_t *name,
  */
 
 isc_result_t
-dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, isc_boolean_t recurse);
+dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, bool recurse);
 /*%<
  * Delete 'node' from the tree of trees.
  *
  * Notes:
- *\li   When 'node' is removed, if recurse is ISC_TRUE then all nodes
+ *\li   When 'node' is removed, if recurse is true then all nodes
  *      in levels down from it are removed too.
  *
  * Requires:
@@ -774,7 +777,7 @@ dns_rbt_printtext(dns_rbt_t *rbt,
  */
 
 void
-dns_rbt_printdot(dns_rbt_t *rbt, isc_boolean_t show_pointers, FILE *f);
+dns_rbt_printdot(dns_rbt_t *rbt, bool show_pointers, FILE *f);
 /*%<
  * Print a GraphViz dot representation of the internal structure of the
  * red-black tree of trees to the passed stream.
@@ -819,7 +822,7 @@ dns__rbt_getheight(dns_rbt_t *rbt);
  * \li  rbt is a valid rbt manager.
  */
 
-isc_boolean_t
+bool
 dns__rbt_checkproperties(dns_rbt_t *rbt);
 /*%<
  * Check red-black properties of the forest.

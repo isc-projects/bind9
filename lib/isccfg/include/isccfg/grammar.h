@@ -14,6 +14,9 @@
 
 /*! \file isccfg/grammar.h */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/lex.h>
 #include <isc/netaddr.h>
 #include <isc/sockaddr.h>
@@ -164,10 +167,10 @@ struct cfg_rep {
 struct cfg_obj {
 	const cfg_type_t *type;
 	union {
-		isc_uint32_t  	uint32;
-		isc_uint64_t  	uint64;
+		uint32_t  	uint32;
+		uint64_t  	uint64;
 		isc_textregion_t string; /*%< null terminated, too */
-		isc_boolean_t 	boolean;
+		bool 	boolean;
 		cfg_map_t	map;
 		cfg_list_t	list;
 		cfg_obj_t **	tuple;
@@ -201,10 +204,10 @@ struct cfg_parser {
 	isc_token_t     token;
 
 	/*% We are at the end of all input. */
-	isc_boolean_t	seen_eof;
+	bool	seen_eof;
 
 	/*% The current token has been pushed back. */
-	isc_boolean_t	ungotten;
+	bool	ungotten;
 
 	/*%
 	 * The stack of currently active files, represented
@@ -357,7 +360,7 @@ cfg_parse_rawaddr(cfg_parser_t *pctx, unsigned int flags, isc_netaddr_t *na);
 void
 cfg_print_rawaddr(cfg_printer_t *pctx, const isc_netaddr_t *na);
 
-isc_boolean_t
+bool
 cfg_lookingat_netaddr(cfg_parser_t *pctx, unsigned int flags);
 
 isc_result_t
@@ -522,11 +525,11 @@ void
 cfg_parser_warning(cfg_parser_t *pctx, unsigned int flags,
 		   const char *fmt, ...) ISC_FORMAT_PRINTF(3, 4);
 
-isc_boolean_t
+bool
 cfg_is_enum(const char *s, const char *const *enums);
 /*%< Return true iff the string 's' is one of the strings in 'enums' */
 
-isc_boolean_t
+bool
 cfg_clause_validforzone(const char *name, unsigned int ztype);
 /*%<
  * Check whether an option is legal for the specified zone type.

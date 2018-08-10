@@ -12,6 +12,8 @@
 
 #include <config.h>
 #include <ctype.h>
+#include <inttypes.h>
+#include <stdbool.h>
 
 #include <isc/buffer.h>
 #include <isc/parseint.h>
@@ -239,10 +241,10 @@ str_totext(const char *source, isc_buffer_t *target) {
 
 static isc_result_t
 maybe_numeric(unsigned int *valuep, isc_textregion_t *source,
-	      unsigned int max, isc_boolean_t hex_allowed)
+	      unsigned int max, bool hex_allowed)
 {
 	isc_result_t result;
-	isc_uint32_t n;
+	uint32_t n;
 	char buffer[NUMBERSIZE];
 
 	if (! isdigit(source->base[0] & 0xff) ||
@@ -277,7 +279,7 @@ dns_mnemonic_fromtext(unsigned int *valuep, isc_textregion_t *source,
 	isc_result_t result;
 	int i;
 
-	result = maybe_numeric(valuep, source, max, ISC_FALSE);
+	result = maybe_numeric(valuep, source, max, false);
 	if (result != ISC_R_BADNUMBER)
 		return (result);
 
@@ -405,7 +407,7 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 	char *text, *end;
 	unsigned int value, mask;
 
-	result = maybe_numeric(&value, source, 0xffff, ISC_TRUE);
+	result = maybe_numeric(&value, source, 0xffff, true);
 	if (result == ISC_R_SUCCESS) {
 		*flagsp = value;
 		return (ISC_R_SUCCESS);

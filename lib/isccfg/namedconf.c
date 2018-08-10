@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -809,7 +811,7 @@ parse_serverid(cfg_parser_t *pctx, const cfg_type_t *type,
 	    strcasecmp(TOKEN_STRING(pctx), "hostname") == 0) {
 		result = cfg_create_obj(pctx, &cfg_type_hostname, ret);
 		if (result == ISC_R_SUCCESS)
-			(*ret)->value.boolean = ISC_TRUE;
+			(*ret)->value.boolean = true;
 		return (result);
 	}
 	cfg_ungettoken(pctx);
@@ -2548,8 +2550,8 @@ static isc_result_t
 parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
 	char *endp;
 	unsigned int len;
-	isc_uint64_t value;
-	isc_uint64_t unit;
+	uint64_t value;
+	uint64_t unit;
 
 	value = isc_string_touint64(str, &endp, 10);
 	if (*endp == 0) {
@@ -2577,7 +2579,7 @@ parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
 	default:
 		return (ISC_R_FAILURE);
 	}
-	if (value > ISC_UINT64_MAX / unit)
+	if (value > UINT64_MAX / unit)
 		return (ISC_R_FAILURE);
 	*valuep = value * unit;
 	return (ISC_R_SUCCESS);
@@ -2587,7 +2589,7 @@ static isc_result_t
 parse_sizeval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
-	isc_uint64_t val;
+	uint64_t val;
 
 	UNUSED(type);
 
@@ -2616,8 +2618,8 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 	char *endp;
 	isc_result_t  result;
 	cfg_obj_t *obj = NULL;
-	isc_uint64_t val;
-	isc_uint64_t percent;
+	uint64_t val;
+	uint64_t percent;
 
 	UNUSED(type);
 
@@ -2631,7 +2633,7 @@ parse_sizeval_percent(cfg_parser_t *pctx, const cfg_type_t *type,
 
 	if (*endp == '%' && *(endp+1) == 0) {
 		CHECK(cfg_create_obj(pctx, &cfg_type_percentage, &obj));
-		obj->value.uint32 = (isc_uint32_t)percent;
+		obj->value.uint32 = (uint32_t)percent;
 		*ret = obj;
 		return (ISC_R_SUCCESS);
 	} else {
@@ -2733,7 +2735,7 @@ static cfg_type_t cfg_type_sizeorpercent = {
  */
 static isc_result_t
 parse_maybe_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
-			      isc_boolean_t optional, cfg_obj_t **ret)
+			      bool optional, cfg_obj_t **ret)
 {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
@@ -2781,7 +2783,7 @@ doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *enumtype,
 		  const cfg_type_t *othertype)
 {
 	const char * const *p;
-	isc_boolean_t first = ISC_TRUE;
+	bool first = true;
 
 	/*
 	 * If othertype is cfg_type_void, it means that enumtype is
@@ -2794,7 +2796,7 @@ doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *enumtype,
 	for (p = enumtype->of; *p != NULL; p++) {
 		if (!first)
 			cfg_print_cstr(pctx, " | ");
-		first = ISC_FALSE;
+		first = false;
 		cfg_print_cstr(pctx, *p);
 	}
 	if (othertype == &cfg_type_sizeval_percent) {
@@ -2815,14 +2817,14 @@ doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *enumtype,
 
 static isc_result_t
 parse_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	return (parse_maybe_optional_keyvalue(pctx, type, ISC_FALSE, ret));
+	return (parse_maybe_optional_keyvalue(pctx, type, false, ret));
 }
 
 static isc_result_t
 parse_optional_keyvalue(cfg_parser_t *pctx, const cfg_type_t *type,
 			cfg_obj_t **ret)
 {
-	return (parse_maybe_optional_keyvalue(pctx, type, ISC_TRUE, ret));
+	return (parse_maybe_optional_keyvalue(pctx, type, true, ret));
 }
 
 static void
@@ -3488,7 +3490,7 @@ parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type,
 			cfg_obj_t **ret)
 {
 	isc_result_t result;
-	isc_boolean_t braces = ISC_FALSE;
+	bool braces = false;
 	UNUSED(type);
 
 	/* Allow opening brace. */
@@ -3496,7 +3498,7 @@ parse_server_key_kludge(cfg_parser_t *pctx, const cfg_type_t *type,
 	if (pctx->token.type == isc_tokentype_special &&
 	    pctx->token.value.as_char == '{') {
 		CHECK(cfg_gettoken(pctx, 0));
-		braces = ISC_TRUE;
+		braces = true;
 	}
 
 	CHECK(cfg_parse_obj(pctx, &cfg_type_astring, ret));
@@ -3987,7 +3989,7 @@ static isc_result_t
 parse_ttlval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
-	isc_uint32_t ttl;
+	uint32_t ttl;
 
 	UNUSED(type);
 
@@ -4048,10 +4050,10 @@ static int cmp_clause(const void *ap, const void *bp) {
 	return (strcmp(a->name, b->name));
 }
 
-isc_boolean_t
+bool
 cfg_clause_validforzone(const char *name, unsigned int ztype) {
 	const cfg_clausedef_t *clause;
-	isc_boolean_t valid = ISC_FALSE;
+	bool valid = false;
 
 	for (clause = zone_clauses; clause->name != NULL; clause++) {
 		if ((clause->flags & ztype) == 0 ||
@@ -4059,7 +4061,7 @@ cfg_clause_validforzone(const char *name, unsigned int ztype) {
 		{
 			continue;
 		}
-		valid = ISC_TRUE;
+		valid = true;
 	}
 	for (clause = zone_only_clauses; clause->name != NULL; clause++) {
 		if ((clause->flags & ztype) == 0 ||
@@ -4067,7 +4069,7 @@ cfg_clause_validforzone(const char *name, unsigned int ztype) {
 		{
 			continue;
 		}
-		valid = ISC_TRUE;
+		valid = true;
 	}
 
 	return (valid);

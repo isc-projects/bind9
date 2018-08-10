@@ -29,12 +29,12 @@
 
 /*! \file isccc/types.h */
 
-#include <isc/boolean.h>
-#include <isc/int.h>
+#include <inttypes.h>
+
 #include <isc/result.h>
 
 /*% isccc_time_t typedef */
-typedef isc_uint32_t isccc_time_t;
+typedef uint32_t isccc_time_t;
 
 /*% isccc_sexpr_t typedef */
 typedef struct isccc_sexpr isccc_sexpr_t;

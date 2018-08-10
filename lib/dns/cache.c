@@ -14,6 +14,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/json.h>
 #include <isc/mem.h>
 #include <isc/print.h>
@@ -108,8 +111,8 @@ struct cache_cleaner {
 	unsigned int	increment;	/*% Number of names to
 					   clean in one increment */
 	cleaner_state_t	state;		/*% Idle/Busy. */
-	isc_boolean_t	overmem;	/*% The cache is in an overmem state. */
-	isc_boolean_t	 replaceiterator;
+	bool	overmem;	/*% The cache is in an overmem state. */
+	bool	 replaceiterator;
 };
 
 /*%
@@ -435,7 +438,7 @@ dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp) {
 void
 dns_cache_detach(dns_cache_t **cachep) {
 	dns_cache_t *cache;
-	isc_boolean_t free_cache = ISC_FALSE;
+	bool free_cache = false;
 
 	REQUIRE(cachep != NULL);
 	cache = *cachep;
@@ -445,8 +448,8 @@ dns_cache_detach(dns_cache_t **cachep) {
 	REQUIRE(cache->references > 0);
 	cache->references--;
 	if (cache->references == 0) {
-		cache->cleaner.overmem = ISC_FALSE;
-		free_cache = ISC_TRUE;
+		cache->cleaner.overmem = false;
+		free_cache = true;
 	}
 
 	*cachep = NULL;
@@ -468,7 +471,7 @@ dns_cache_detach(dns_cache_t **cachep) {
 		 */
 		if (cache->live_tasks > 0) {
 			isc_task_shutdown(cache->cleaner.task);
-			free_cache = ISC_FALSE;
+			free_cache = false;
 		}
 	}
 
@@ -562,13 +565,13 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	if (t == 0) {
 		result = isc_timer_reset(cache->cleaner.cleaning_timer,
 					 isc_timertype_inactive,
-					 NULL, NULL, ISC_TRUE);
+					 NULL, NULL, true);
 	} else {
 		isc_interval_set(&interval, cache->cleaner.cleaning_interval,
 				 0);
 		result = isc_timer_reset(cache->cleaner.cleaning_timer,
 					 isc_timertype_ticker,
-					 NULL, &interval, ISC_FALSE);
+					 NULL, &interval, false);
 	}
 	if (result != ISC_R_SUCCESS)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -619,8 +622,8 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->state = cleaner_s_idle;
 	cleaner->cache = cache;
 	cleaner->iterator = NULL;
-	cleaner->overmem = ISC_FALSE;
-	cleaner->replaceiterator = ISC_FALSE;
+	cleaner->overmem = false;
+	cleaner->replaceiterator = false;
 
 	cleaner->task = NULL;
 	cleaner->cleaning_timer = NULL;
@@ -628,7 +631,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->overmem_event = NULL;
 	cleaner->cleaning_interval = 0; /* Initially turned off. */
 
-	result = dns_db_createiterator(cleaner->cache->db, ISC_FALSE,
+	result = dns_db_createiterator(cleaner->cache->db, false,
 				       &cleaner->iterator);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -717,7 +720,7 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 	 * position it at the beginning of the cache.
 	 */
 	if (cleaner->iterator == NULL)
-		result = dns_db_createiterator(cleaner->cache->db, ISC_FALSE,
+		result = dns_db_createiterator(cleaner->cache->db, false,
 					       &cleaner->iterator);
 	if (result != ISC_R_SUCCESS)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -725,7 +728,7 @@ begin_cleaning(cache_cleaner_t *cleaner) {
 			      "cache cleaner could not create "
 			      "iterator: %s", isc_result_totext(result));
 	else {
-		dns_dbiterator_setcleanmode(cleaner->iterator, ISC_TRUE);
+		dns_dbiterator_setcleanmode(cleaner->iterator, true);
 		result = dns_dbiterator_first(cleaner->iterator);
 	}
 	if (result != ISC_R_SUCCESS) {
@@ -812,7 +815,7 @@ cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 static void
 overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	cache_cleaner_t *cleaner = event->ev_arg;
-	isc_boolean_t want_cleaning = ISC_FALSE;
+	bool want_cleaning = false;
 
 	UNUSED(task);
 
@@ -829,7 +832,7 @@ overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 	if (cleaner->overmem) {
 		if (cleaner->state == cleaner_s_idle)
-			want_cleaning = ISC_TRUE;
+			want_cleaning = true;
 	} else {
 		if (cleaner->state == cleaner_s_busy)
 			/*
@@ -874,9 +877,9 @@ incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 		if (cleaner->replaceiterator) {
 			dns_dbiterator_destroy(&cleaner->iterator);
 			(void) dns_db_createiterator(cleaner->cache->db,
-						     ISC_FALSE,
+						     false,
 						     &cleaner->iterator);
-			cleaner->replaceiterator = ISC_FALSE;
+			cleaner->replaceiterator = false;
 		}
 		UNLOCK(&cleaner->lock);
 		UNLOCK(&cleaner->cache->lock);
@@ -1023,7 +1026,7 @@ dns_cache_clean(dns_cache_t *cache, isc_stdtime_t now) {
 static void
 water(void *arg, int mark) {
 	dns_cache_t *cache = arg;
-	isc_boolean_t overmem = ISC_TF(mark == ISC_MEM_HIWATER);
+	bool overmem = (mark == ISC_MEM_HIWATER);
 
 	REQUIRE(VALID_CACHE(cache));
 
@@ -1127,7 +1130,7 @@ dns_cache_getservestalettl(dns_cache_t *cache) {
 static void
 cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	dns_cache_t *cache = event->ev_arg;
-	isc_boolean_t should_free = ISC_FALSE;
+	bool should_free = false;
 
 	UNUSED(task);
 
@@ -1145,7 +1148,7 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	INSIST(cache->live_tasks == 0);
 
 	if (cache->references == 0)
-		should_free = ISC_TRUE;
+		should_free = true;
 
 	/*
 	 * By detaching the timer in the context of its task,
@@ -1174,7 +1177,7 @@ dns_cache_flush(dns_cache_t *cache) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_db_createiterator(db, ISC_FALSE, &dbiterator);
+	result = dns_db_createiterator(db, false, &dbiterator);
 	if (result != ISC_R_SUCCESS) {
 		dns_db_detach(&db);
 		return (result);
@@ -1189,7 +1192,7 @@ dns_cache_flush(dns_cache_t *cache) {
 	} else {
 		if (cache->cleaner.state == cleaner_s_busy)
 			cache->cleaner.state = cleaner_s_done;
-		cache->cleaner.replaceiterator = ISC_TRUE;
+		cache->cleaner.replaceiterator = true;
 	}
 	olddb = cache->db;
 	cache->db = db;
@@ -1249,7 +1252,7 @@ cleartree(dns_db_t *db, const dns_name_t *name) {
 	 * Create the node if it doesn't exist so dns_dbiterator_seek()
 	 * can find it.  We will continue even if this fails.
 	 */
-	(void)dns_db_findnode(db, name, ISC_TRUE, &top);
+	(void)dns_db_findnode(db, name, true, &top);
 
 	nodename = dns_fixedname_initname(&fnodename);
 
@@ -1302,12 +1305,12 @@ cleartree(dns_db_t *db, const dns_name_t *name) {
 
 isc_result_t
 dns_cache_flushname(dns_cache_t *cache, const dns_name_t *name) {
-	return (dns_cache_flushnode(cache, name, ISC_FALSE));
+	return (dns_cache_flushnode(cache, name, false));
 }
 
 isc_result_t
 dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name,
-		    isc_boolean_t tree)
+		    bool tree)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
@@ -1326,7 +1329,7 @@ dns_cache_flushnode(dns_cache_t *cache, const dns_name_t *name,
 	if (tree) {
 		result = cleartree(cache->db, name);
 	} else {
-		result = dns_db_findnode(cache->db, name, ISC_FALSE, &node);
+		result = dns_db_findnode(cache->db, name, false, &node);
 		if (result == ISC_R_NOTFOUND) {
 			result = ISC_R_SUCCESS;
 			goto cleanup_db;
@@ -1382,12 +1385,12 @@ cache_dumparg {
 	void			*arg;		/* type dependent argument */
 	int			ncounters;	/* for general statistics */
 	int			*counterindices; /* for general statistics */
-	isc_uint64_t		*countervalues;	 /* for general statistics */
+	uint64_t		*countervalues;	 /* for general statistics */
 	isc_result_t		result;
 } cache_dumparg_t;
 
 static void
-getcounter(isc_statscounter_t counter, isc_uint64_t val, void *arg) {
+getcounter(isc_statscounter_t counter, uint64_t val, void *arg) {
 	cache_dumparg_t *dumparg = arg;
 
 	REQUIRE(counter < dumparg->ncounters);
@@ -1396,7 +1399,7 @@ getcounter(isc_statscounter_t counter, isc_uint64_t val, void *arg) {
 
 static void
 getcounters(isc_stats_t *stats, isc_statsformat_t type, int ncounters,
-	    int *indices, isc_uint64_t *values)
+	    int *indices, uint64_t *values)
 {
 	cache_dumparg_t dumparg;
 
@@ -1413,69 +1416,69 @@ getcounters(isc_stats_t *stats, isc_statsformat_t type, int ncounters,
 void
 dns_cache_dumpstats(dns_cache_t *cache, FILE *fp) {
 	int indices[dns_cachestatscounter_max];
-	isc_uint64_t values[dns_cachestatscounter_max];
+	uint64_t values[dns_cachestatscounter_max];
 
 	REQUIRE(VALID_CACHE(cache));
 
 	getcounters(cache->stats, isc_statsformat_file,
 		    dns_cachestatscounter_max, indices, values);
 
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_hits],
 		"cache hits");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_misses],
 		"cache misses");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_queryhits],
 		"cache hits (from query)");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_querymisses],
 		"cache misses (from query)");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_deletelru],
 		"cache records deleted due to memory exhaustion");
-	fprintf(fp, "%20" ISC_PRINT_QUADFORMAT "u %s\n",
+	fprintf(fp, "%20" PRIu64 " %s\n",
 		values[dns_cachestatscounter_deletettl],
 		"cache records deleted due to TTL expiration");
 	fprintf(fp, "%20u %s\n", dns_db_nodecount(cache->db),
 		"cache database nodes");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) dns_db_hashsize(cache->db),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) dns_db_hashsize(cache->db),
 		"cache database hash buckets");
 
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_total(cache->mctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_total(cache->mctx),
 		"cache tree memory total");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_inuse(cache->mctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_inuse(cache->mctx),
 		"cache tree memory in use");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_maxinuse(cache->mctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_maxinuse(cache->mctx),
 		"cache tree highest memory in use");
 
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_total(cache->hmctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_total(cache->hmctx),
 		"cache heap memory total");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_inuse(cache->hmctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_inuse(cache->hmctx),
 		"cache heap memory in use");
-	fprintf(fp, "%20" ISC_PLATFORM_QUADFORMAT "u %s\n",
-		(isc_uint64_t) isc_mem_maxinuse(cache->hmctx),
+	fprintf(fp, "%20" PRIu64 " %s\n",
+		(uint64_t) isc_mem_maxinuse(cache->hmctx),
 		"cache heap highest memory in use");
 }
 
 #ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 static int
-renderstat(const char *name, isc_uint64_t value, xmlTextWriterPtr writer) {
+renderstat(const char *name, uint64_t value, xmlTextWriterPtr writer) {
 	int xmlrc;
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "counter"));
 	TRY0(xmlTextWriterWriteAttribute(writer,
 					 ISC_XMLCHAR "name", ISC_XMLCHAR name));
 	TRY0(xmlTextWriterWriteFormatString(writer,
-					    "%" ISC_PRINT_QUADFORMAT "u",
+					    "%" PRIu64,
 					    value));
 	TRY0(xmlTextWriterEndElement(writer)); /* counter */
 
@@ -1486,7 +1489,7 @@ error:
 int
 dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer) {
 	int indices[dns_cachestatscounter_max];
-	isc_uint64_t values[dns_cachestatscounter_max];
+	uint64_t values[dns_cachestatscounter_max];
 	int xmlrc;
 
 	REQUIRE(VALID_CACHE(cache));
@@ -1533,7 +1536,7 @@ isc_result_t
 dns_cache_renderjson(dns_cache_t *cache, json_object *cstats) {
 	isc_result_t result = ISC_R_SUCCESS;
 	int indices[dns_cachestatscounter_max];
-	isc_uint64_t values[dns_cachestatscounter_max];
+	uint64_t values[dns_cachestatscounter_max];
 	json_object *obj;
 
 	REQUIRE(VALID_CACHE(cache));

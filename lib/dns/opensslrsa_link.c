@@ -20,6 +20,7 @@
 #endif
 #endif
 
+#include <stdbool.h>
 
 #include <isc/entropy.h>
 #include <isc/md5.h>
@@ -890,7 +891,7 @@ opensslrsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	return (opensslrsa_verify2(dctx, 0, sig));
 }
 
-static isc_boolean_t
+static bool
 opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	int status;
 	RSA *rsa1 = NULL, *rsa2 = NULL;
@@ -924,41 +925,41 @@ opensslrsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 #endif
 
 	if (rsa1 == NULL && rsa2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (rsa1 == NULL || rsa2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	RSA_get0_key(rsa1, &n1, &e1, &d1);
 	RSA_get0_key(rsa2, &n2, &e2, &d2);
 	status = BN_cmp(n1, n2) || BN_cmp(e1, e2);
 
 	if (status != 0)
-		return (ISC_FALSE);
+		return (false);
 
 #if USE_EVP
 	if (RSA_test_flags(rsa1, RSA_FLAG_EXT_PKEY) != 0 ||
 	    RSA_test_flags(rsa2, RSA_FLAG_EXT_PKEY) != 0) {
 		if (RSA_test_flags(rsa1, RSA_FLAG_EXT_PKEY) == 0 ||
 		    RSA_test_flags(rsa2, RSA_FLAG_EXT_PKEY) == 0)
-			return (ISC_FALSE);
+			return (false);
 		/*
 		 * Can't compare private parameters, BTW does it make sense?
 		 */
-		return (ISC_TRUE);
+		return (true);
 	}
 #endif
 
 	if (d1 != NULL || d2 != NULL) {
 		if (d1 == NULL || d2 == NULL)
-			return (ISC_FALSE);
+			return (false);
 		RSA_get0_factors(rsa1, &p1, &q1);
 		RSA_get0_factors(rsa2, &p2, &q2);
 		status = BN_cmp(d1, d2) || BN_cmp(p1, p1) || BN_cmp(q1, q2);
 
 		if (status != 0)
-			return (ISC_FALSE);
+			return (false);
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
@@ -1129,7 +1130,7 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 #endif
 }
 
-static isc_boolean_t
+static bool
 opensslrsa_isprivate(const dst_key_t *key) {
 	const BIGNUM *d = NULL;
 #if USE_EVP
@@ -1141,9 +1142,9 @@ opensslrsa_isprivate(const dst_key_t *key) {
 	RSA *rsa = key->keydata.rsa;
 #endif
 	if (rsa != NULL && RSA_test_flags(rsa, RSA_FLAG_EXT_PKEY) != 0)
-		return (ISC_TRUE);
+		return (true);
 	RSA_get0_key(rsa, NULL, NULL, &d);
-	return (ISC_TF(rsa != NULL && d != NULL));
+	return (rsa != NULL && d != NULL);
 }
 
 static void
@@ -1195,13 +1196,13 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	if (e_bytes < 256) {	/*%< key exponent is <= 2040 bits */
 		if (r.length < 1)
 			DST_RET(ISC_R_NOSPACE);
-		isc_buffer_putuint8(data, (isc_uint8_t) e_bytes);
+		isc_buffer_putuint8(data, (uint8_t) e_bytes);
 		isc_region_consume(&r, 1);
 	} else {
 		if (r.length < 3)
 			DST_RET(ISC_R_NOSPACE);
 		isc_buffer_putuint8(data, 0);
-		isc_buffer_putuint16(data, (isc_uint16_t) e_bytes);
+		isc_buffer_putuint16(data, (uint16_t) e_bytes);
 		isc_region_consume(&r, 3);
 	}
 

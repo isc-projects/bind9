@@ -47,9 +47,9 @@ ATF_TC_HEAD(snprintf, tc) {
 }
 ATF_TC_BODY(snprintf, tc) {
 	char buf[10000];
-	isc_uint64_t ll = 8589934592ULL;
-	isc_uint64_t nn = 20000000000000ULL;
-	isc_uint64_t zz = 10000000000000000000ULL;
+	uint64_t ll = 8589934592ULL;
+	uint64_t nn = 20000000000000ULL;
+	uint64_t zz = 10000000000000000000ULL;
 	float pi = 3.141;
 	int n;
 	size_t size;
@@ -62,37 +62,37 @@ ATF_TC_BODY(snprintf, tc) {
 	 */
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%qu", ll);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, ll);
 	ATF_CHECK_EQ(n, 10);
 	ATF_CHECK_STREQ(buf, "8589934592");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%llu", ll);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, ll);
 	ATF_CHECK_EQ(n, 10);
 	ATF_CHECK_STREQ(buf, "8589934592");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%qu", nn);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, nn);
 	ATF_CHECK_EQ(n, 14);
 	ATF_CHECK_STREQ(buf, "20000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%llu", nn);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, nn);
 	ATF_CHECK_EQ(n, 14);
 	ATF_CHECK_STREQ(buf, "20000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%qu", zz);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, zz);
 	ATF_CHECK_EQ(n, 20);
 	ATF_CHECK_STREQ(buf, "10000000000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%llu", zz);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, zz);
 	ATF_CHECK_EQ(n, 20);
 	ATF_CHECK_STREQ(buf, "10000000000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "%lld", nn);
+	n = isc_print_snprintf(buf, sizeof(buf), "%" PRId64, nn);
 	ATF_CHECK_EQ(n, 14);
 	ATF_CHECK_STREQ(buf, "20000000000000");
 
@@ -116,7 +116,7 @@ ATF_TC_BODY(snprintf, tc) {
 
 	zz = 0xf5f5f5f5f5f5f5f5ULL;
 	memset(buf, 0xff, sizeof(buf));
-	n = isc_print_snprintf(buf, sizeof(buf), "0x%"ISC_PRINT_QUADFORMAT"x", zz);
+	n = isc_print_snprintf(buf, sizeof(buf), "0x%" PRIx64, zz);
 	ATF_CHECK_EQ(n, 18);
 	ATF_CHECK_STREQ(buf, "0xf5f5f5f5f5f5f5f5");
 

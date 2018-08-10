@@ -129,6 +129,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <errno.h>
 
@@ -315,11 +317,11 @@ fix_dce(size_t reallen, size_t * len);
 #include "spnego_asn1.c"
 
 /*
- * Force the oid arrays to be isc_uint64_t aligned to silence warnings
+ * Force the oid arrays to be uint64_t aligned to silence warnings
  * about the arrays not being properly aligned for (void *).
  */
-typedef union { unsigned char b[8]; isc_uint64_t _align; } aligned8;
-typedef union { unsigned char b[16]; isc_uint64_t _align[2]; } aligned16;
+typedef union { unsigned char b[8]; uint64_t _align; } aligned8;
+typedef union { unsigned char b[16]; uint64_t _align[2]; } aligned16;
 
 static aligned16 gss_krb5_mech_oid_bytes = {
 	{ 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x12, 0x01, 0x02, 0x02 }

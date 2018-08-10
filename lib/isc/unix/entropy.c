@@ -16,6 +16,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/types.h>
 #include <sys/time.h>
@@ -64,7 +66,7 @@ typedef struct {
 #include "../entropy.c"
 
 static unsigned int
-get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
+get_from_filesource(isc_entropysource_t *source, uint32_t desired) {
 	isc_entropy_t *ent = source->ent;
 	unsigned char buf[128];
 	int fd = source->sources.file.handle;
@@ -97,14 +99,14 @@ get_from_filesource(isc_entropysource_t *source, isc_uint32_t desired) {
  err:
 	(void)close(fd);
 	source->sources.file.handle = -1;
-	source->bad = ISC_TRUE;
+	source->bad = true;
 
  out:
 	return (added);
 }
 
 static unsigned int
-get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
+get_from_usocketsource(isc_entropysource_t *source, uint32_t desired) {
 	isc_entropy_t *ent = source->ent;
 	unsigned char buf[128];
 	int fd = source->sources.usocket.handle;
@@ -228,7 +230,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
 
  err:
 	close(fd);
-	source->bad = ISC_TRUE;
+	source->bad = true;
 	source->sources.usocket.status = isc_usocketsource_disconnected;
 	source->sources.usocket.handle = -1;
 
@@ -241,7 +243,7 @@ get_from_usocketsource(isc_entropysource_t *source, isc_uint32_t desired) {
  * pool.
  */
 static void
-fillpool(isc_entropy_t *ent, unsigned int desired, isc_boolean_t blocking) {
+fillpool(isc_entropy_t *ent, unsigned int desired, bool blocking) {
 	unsigned int added;
 	unsigned int remaining;
 	unsigned int needed;
@@ -485,8 +487,8 @@ isc_result_t
 isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	int fd;
 	struct stat _stat;
-	isc_boolean_t is_usocket = ISC_FALSE;
-	isc_boolean_t is_connected = ISC_FALSE;
+	bool is_usocket = false;
+	bool is_connected = false;
 	isc_result_t ret;
 	isc_entropysource_t *source;
 
@@ -508,11 +510,11 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	 */
 #if defined(S_ISSOCK)
 	if (S_ISSOCK(_stat.st_mode))
-		is_usocket = ISC_TRUE;
+		is_usocket = true;
 #endif
 #if defined(S_ISFIFO) && defined(sun)
 	if (S_ISFIFO(_stat.st_mode))
-		is_usocket = ISC_TRUE;
+		is_usocket = true;
 #endif
 	if (is_usocket)
 		fd = socket(PF_UNIX, SOCK_STREAM, 0);
@@ -549,7 +551,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 				goto closefd;
 			}
 		} else
-			is_connected = ISC_TRUE;
+			is_connected = true;
 	}
 
 	source = isc_mem_get(ent->mctx, sizeof(isc_entropysource_t));
@@ -564,7 +566,7 @@ isc_entropy_createfilesource(isc_entropy_t *ent, const char *fname) {
 	source->magic = SOURCE_MAGIC;
 	source->ent = ent;
 	source->total = 0;
-	source->bad = ISC_FALSE;
+	source->bad = false;
 	memset(source->name, 0, sizeof(source->name));
 	ISC_LINK_INIT(source, link);
 	if (is_usocket) {
