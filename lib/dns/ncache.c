@@ -14,6 +14,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/util.h>
 
@@ -43,7 +46,7 @@
 static isc_result_t
 addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
-	  isc_boolean_t optout, isc_boolean_t secure,
+	  bool optout, bool secure,
 	  dns_rdataset_t *addedrdataset);
 
 static inline isc_result_t
@@ -61,7 +64,7 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 		return (ISC_R_NOSPACE);
 	count = dns_rdataset_count(rdataset);
 	INSIST(count <= 65535);
-	isc_buffer_putuint16(buffer, (isc_uint16_t)count);
+	isc_buffer_putuint16(buffer, (uint16_t)count);
 
 	result = dns_rdataset_first(rdataset);
 	while (result == ISC_R_SUCCESS) {
@@ -74,7 +77,7 @@ copy_rdataset(dns_rdataset_t *rdataset, isc_buffer_t *buffer) {
 		/*
 		 * Copy the rdata length to the buffer.
 		 */
-		isc_buffer_putuint16(buffer, (isc_uint16_t)r.length);
+		isc_buffer_putuint16(buffer, (uint16_t)r.length);
 		/*
 		 * Copy the rdata to the buffer.
 		 */
@@ -96,23 +99,23 @@ dns_ncache_add(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	       dns_rdataset_t *addedrdataset)
 {
 	return (addoptout(message, cache, node, covers, now, maxttl,
-			  ISC_FALSE, ISC_FALSE, addedrdataset));
+			  false, false, addedrdataset));
 }
 
 isc_result_t
 dns_ncache_addoptout(dns_message_t *message, dns_db_t *cache,
 		     dns_dbnode_t *node, dns_rdatatype_t covers,
 		     isc_stdtime_t now, dns_ttl_t maxttl,
-		     isc_boolean_t optout, dns_rdataset_t *addedrdataset)
+		     bool optout, dns_rdataset_t *addedrdataset)
 {
 	return (addoptout(message, cache, node, covers, now, maxttl,
-			  optout, ISC_TRUE, addedrdataset));
+			  optout, true, addedrdataset));
 }
 
 static isc_result_t
 addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
-	  isc_boolean_t optout, isc_boolean_t secure,
+	  bool optout, bool secure,
 	  dns_rdataset_t *addedrdataset)
 {
 	isc_result_t result;
@@ -366,7 +369,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 			INSIST((target->used >= rdlen.used + 2) &&
 			       (target->used - rdlen.used - 2 < 65536));
 			isc_buffer_putuint16(&rdlen,
-					     (isc_uint16_t)(target->used -
+					     (uint16_t)(target->used -
 							    rdlen.used - 2));
 
 			count++;
@@ -384,7 +387,7 @@ dns_ncache_towire(dns_rdataset_t *rdataset, dns_compress_t *cctx,
 
  rollback:
 	INSIST(savedbuffer.used < 65536);
-	dns_compress_rollback(cctx, (isc_uint16_t)savedbuffer.used);
+	dns_compress_rollback(cctx, (uint16_t)savedbuffer.used);
 	*countp = 0;
 	*target = savedbuffer;
 

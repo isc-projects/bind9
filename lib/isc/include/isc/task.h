@@ -73,6 +73,8 @@
  *** Imports.
  ***/
 
+#include <stdbool.h>
+
 #include <isc/eventclass.h>
 #include <isc/json.h>
 #include <isc/lang.h>
@@ -132,8 +134,8 @@ typedef struct isc_taskmethods {
 				   void *tag);
 	isc_result_t (*beginexclusive)(isc_task_t *task);
 	void (*endexclusive)(isc_task_t *task);
-    void (*setprivilege)(isc_task_t *task, isc_boolean_t priv);
-    isc_boolean_t (*privilege)(isc_task_t *task);
+    void (*setprivilege)(isc_task_t *task, bool priv);
+    bool (*privilege)(isc_task_t *task);
 } isc_taskmethods_t;
 
 /*%
@@ -342,7 +344,7 @@ isc_task_purge(isc_task_t *task, void *sender, isc_eventtype_t type,
  *\li	The number of events purged.
  */
 
-isc_boolean_t
+bool
 isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
 /*%<
  * Purge 'event' from a task's event queue.
@@ -369,8 +371,8 @@ isc_task_purgeevent(isc_task_t *task, isc_event_t *event);
  *
  * Returns:
  *
- *\li	#ISC_TRUE			The event was purged.
- *\li	#ISC_FALSE			The event was not in the event queue,
+ *\li	#true			The event was purged.
+ *\li	#false			The event was not in the event queue,
  *					or was marked unpurgeable.
  */
 
@@ -613,18 +615,18 @@ isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t);
  *\li	'*t' has the "current time".
  */
 
-isc_boolean_t
+bool
 isc_task_exiting(isc_task_t *t);
 /*%<
- * Returns ISC_TRUE if the task is in the process of shutting down,
- * ISC_FALSE otherwise.
+ * Returns true if the task is in the process of shutting down,
+ * false otherwise.
  *
  * Requires:
  *\li	'task' is a valid task.
  */
 
 void
-isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv);
+isc_task_setprivilege(isc_task_t *task, bool priv);
 /*%<
  * Set or unset the task's "privileged" flag depending on the value of
  * 'priv'.
@@ -640,7 +642,7 @@ isc_task_setprivilege(isc_task_t *task, isc_boolean_t priv);
  *\li	'task' is a valid task.
  */
 
-isc_boolean_t
+bool
 isc_task_privilege(isc_task_t *task);
 /*%<
  * Returns the current value of the task's privilege flag.

@@ -17,7 +17,10 @@
  */
 
 #include <config.h>
+
 #include <errno.h>
+#include <inttypes.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 #ifdef ISC_PLATFORM_HAVESYSUNH
@@ -111,7 +114,7 @@ ux_socket_connect(const char *path) {
  * time we avoid the need for locking and allow for parallel access to
  * the authorization server.
  */
-isc_boolean_t
+bool
 dns_ssu_external_match(dns_name_t *identity,
 		       dns_name_t *signer, dns_name_t *name,
 		       isc_netaddr_t *tcpaddr, dns_rdatatype_t type,
@@ -130,8 +133,8 @@ dns_ssu_external_match(dns_name_t *identity,
 	isc_region_t token_region = {NULL, 0};
 	unsigned char *data;
 	isc_buffer_t buf;
-	isc_uint32_t token_len = 0;
-	isc_uint32_t reply;
+	uint32_t token_len = 0;
+	uint32_t reply;
 	ssize_t ret;
 
 	/* The identity contains local:/path/to/socket */
@@ -141,13 +144,13 @@ dns_ssu_external_match(dns_name_t *identity,
 	if (strncmp(b_identity, "local:", 6) != 0) {
 		ssu_e_log(3, "ssu_external: invalid socket path '%s'",
 			  b_identity);
-		return (ISC_FALSE);
+		return (false);
 	}
 	sock_path = &b_identity[6];
 
 	fd = ux_socket_connect(sock_path);
 	if (fd == -1)
-		return (ISC_FALSE);
+		return (false);
 
 	if (key != NULL) {
 		dst_key_format(key, b_key, sizeof(b_key));
@@ -176,14 +179,14 @@ dns_ssu_external_match(dns_name_t *identity,
 	dns_rdatatype_format(type, b_type, sizeof(b_type));
 
 	/* Work out how big the request will be */
-	req_len = sizeof(isc_uint32_t)     + /* Format version */
-		  sizeof(isc_uint32_t)     + /* Length */
+	req_len = sizeof(uint32_t)     + /* Format version */
+		  sizeof(uint32_t)     + /* Length */
 		  strlen(b_signer) + 1 + /* Signer */
 		  strlen(b_name) + 1   + /* Name */
 		  strlen(b_addr) + 1   + /* Address */
 		  strlen(b_type) + 1   + /* Type */
 		  strlen(b_key) + 1    + /* Key */
-		  sizeof(isc_uint32_t)     + /* tkey_token length */
+		  sizeof(uint32_t)     + /* tkey_token length */
 		  token_len;             /* tkey_token */
 
 
@@ -191,7 +194,7 @@ dns_ssu_external_match(dns_name_t *identity,
 	data = isc_mem_allocate(mctx, req_len);
 	if (data == NULL) {
 		close(fd);
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	isc_buffer_init(&buf, data, req_len);
@@ -225,18 +228,18 @@ dns_ssu_external_match(dns_name_t *identity,
 		ssu_e_log(3, "ssu_external: unable to send request - %s",
 			  strbuf);
 		close(fd);
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	/* Receive the reply */
-	ret = read(fd, &reply, sizeof(isc_uint32_t));
-	if (ret != (ssize_t) sizeof(isc_uint32_t)) {
+	ret = read(fd, &reply, sizeof(uint32_t));
+	if (ret != (ssize_t) sizeof(uint32_t)) {
 		char strbuf[ISC_STRERRORSIZE];
 		isc__strerror(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to receive reply - %s",
 			  strbuf);
 		close(fd);
-		return (ISC_FALSE);
+		return (false);
 	}
 
 	close(fd);
@@ -246,14 +249,14 @@ dns_ssu_external_match(dns_name_t *identity,
 	if (reply == 0) {
 		ssu_e_log(3, "ssu_external: denied external auth for '%s'",
 			  b_name);
-		return (ISC_FALSE);
+		return (false);
 	} else if (reply == 1) {
 		ssu_e_log(3, "ssu_external: allowed external auth for '%s'",
 			  b_name);
-		return (ISC_TRUE);
+		return (true);
 	}
 
 	ssu_e_log(3, "ssu_external: invalid reply 0x%08x", reply);
 
-	return (ISC_FALSE);
+	return (false);
 }

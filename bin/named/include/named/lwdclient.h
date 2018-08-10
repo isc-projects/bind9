@@ -37,7 +37,7 @@
 struct ns_lwdclient {
 	isc_sockaddr_t		address;	/*%< where to reply */
 	struct in6_pktinfo	pktinfo;
-	isc_boolean_t		pktinfo_valid;
+	bool		pktinfo_valid;
 	ns_lwdclientmgr_t	*clientmgr;	/*%< our parent */
 	ISC_LINK(ns_lwdclient_t) link;
 	unsigned int		state;
@@ -47,7 +47,7 @@ struct ns_lwdclient {
 	 * Received data info.
 	 */
 	unsigned char		buffer[LWRES_RECVLENGTH]; /*%< receive buffer */
-	isc_uint32_t		recvlength;	/*%< length recv'd */
+	uint32_t		recvlength;	/*%< length recv'd */
 	lwres_lwpacket_t	pkt;
 
 	/*%
@@ -55,7 +55,7 @@ struct ns_lwdclient {
 	 * isn't our receive buffer) it will be freed to the lwres_context_t.
 	 */
 	unsigned char	       *sendbuf;
-	isc_uint32_t		sendlength;
+	uint32_t		sendlength;
 	isc_buffer_t		recv_buffer;
 
 	/*%
@@ -96,7 +96,7 @@ struct ns_lwdclient {
 	 * we'd need to use "arg" above and allocate/destroy things.
 	 */
 	char		       *aliases[LWRES_MAX_ALIASES];
-	isc_uint16_t		aliaslen[LWRES_MAX_ALIASES];
+	uint16_t		aliaslen[LWRES_MAX_ALIASES];
 	lwres_addr_t		addrs[LWRES_MAX_ADDRS];
 };
 
@@ -221,7 +221,7 @@ void ns_lwdclient_processgnba(ns_lwdclient_t *, lwres_buffer_t *);
 void ns_lwdclient_processgrbn(ns_lwdclient_t *, lwres_buffer_t *);
 void ns_lwdclient_processnoop(ns_lwdclient_t *, lwres_buffer_t *);
 
-void ns_lwdclient_errorpktsend(ns_lwdclient_t *, isc_uint32_t);
+void ns_lwdclient_errorpktsend(ns_lwdclient_t *, uint32_t);
 
 void ns_lwdclient_log(int level, const char *format, ...)
      ISC_FORMAT_PRINTF(2, 3);

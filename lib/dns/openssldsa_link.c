@@ -34,6 +34,7 @@
 
 #ifndef PK11_DSA_DISABLE
 
+#include <stdbool.h>
 #include <string.h>
 
 #include <isc/entropy.h>
@@ -382,7 +383,7 @@ openssldsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	}
 }
 
-static isc_boolean_t
+static bool
 openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	DSA *dsa1, *dsa2;
 	const BIGNUM *pub_key1 = NULL, *priv_key1 = NULL;
@@ -394,9 +395,9 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	dsa2 = key2->keydata.dsa;
 
 	if (dsa1 == NULL && dsa2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (dsa1 == NULL || dsa2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	DSA_get0_key(dsa1, &pub_key1, &priv_key1);
 	DSA_get0_key(dsa2, &pub_key2, &priv_key2);
@@ -405,15 +406,15 @@ openssldsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 
 	if (BN_cmp(p1, p2) != 0 || BN_cmp(q1, q2) != 0 ||
 	    BN_cmp(g1, g2) != 0 || BN_cmp(pub_key1, pub_key2) != 0)
-		return (ISC_FALSE);
+		return (false);
 
 	if (priv_key1 != NULL || priv_key2 != NULL) {
 		if (priv_key1 == NULL || priv_key2 == NULL)
-			return (ISC_FALSE);
+			return (false);
 		if (BN_cmp(priv_key1, priv_key2))
-			return (ISC_FALSE);
+			return (false);
 	}
-	return (ISC_TRUE);
+	return (true);
 }
 
 #if OPENSSL_VERSION_NUMBER > 0x00908000L
@@ -455,7 +456,7 @@ openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	UNUSED(unused);
 
 	result = dst__entropy_getdata(rand_array, sizeof(rand_array),
-				      ISC_FALSE);
+				      false);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -510,13 +511,13 @@ openssldsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	return (ISC_R_SUCCESS);
 }
 
-static isc_boolean_t
+static bool
 openssldsa_isprivate(const dst_key_t *key) {
 	DSA *dsa = key->keydata.dsa;
 	const BIGNUM *priv_key = NULL;
 
 	DSA_get0_key(dsa, NULL, &priv_key);
-	return (ISC_TF(dsa != NULL && priv_key != NULL));
+	return (dsa != NULL && priv_key != NULL);
 }
 
 static void

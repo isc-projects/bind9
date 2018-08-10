@@ -22,6 +22,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/heap.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -125,7 +127,7 @@ isc_heap_destroy(isc_heap_t **heapp) {
 	*heapp = NULL;
 }
 
-static isc_boolean_t
+static bool
 resize(isc_heap_t *heap) {
 	void **new_array;
 	unsigned int new_size;
@@ -135,7 +137,7 @@ resize(isc_heap_t *heap) {
 	new_size = heap->size + heap->size_increment;
 	new_array = isc_mem_get(heap->mctx, new_size * sizeof(void *));
 	if (new_array == NULL)
-		return (ISC_FALSE);
+		return (false);
 	if (heap->array != NULL) {
 		memmove(new_array, heap->array, heap->size * sizeof(void *));
 		isc_mem_put(heap->mctx, heap->array,
@@ -144,7 +146,7 @@ resize(isc_heap_t *heap) {
 	heap->size = new_size;
 	heap->array = new_array;
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static void
@@ -213,7 +215,7 @@ isc_heap_insert(isc_heap_t *heap, void *elt) {
 void
 isc_heap_delete(isc_heap_t *heap, unsigned int idx) {
 	void *elt;
-	isc_boolean_t less;
+	bool less;
 
 	REQUIRE(VALID_HEAP(heap));
 	REQUIRE(idx >= 1 && idx <= heap->last);

@@ -12,6 +12,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/condition.h>
 #include <isc/assertions.h>
 #include <isc/util.h>
@@ -136,7 +139,7 @@ isc_result_t
 isc_condition_broadcast(isc_condition_t *cond) {
 
 	isc_condition_thread_t *threadcond;
-	isc_boolean_t failed = ISC_FALSE;
+	bool failed = false;
 
 	/*
 	 * Unlike pthreads, the caller MUST hold the lock associated with
@@ -152,7 +155,7 @@ isc_condition_broadcast(isc_condition_t *cond) {
 	     threadcond = ISC_LIST_NEXT(threadcond, link)) {
 
 		if (!SetEvent(threadcond->handle[LBROADCAST]))
-			failed = ISC_TRUE;
+			failed = true;
 	}
 
 	if (failed)
@@ -234,7 +237,7 @@ isc_result_t
 isc_condition_waituntil(isc_condition_t *cond, isc_mutex_t *mutex,
 			isc_time_t *t) {
 	DWORD milliseconds;
-	isc_uint64_t microseconds;
+	uint64_t microseconds;
 	isc_time_t now;
 
 	if (isc_time_now(&now) != ISC_R_SUCCESS) {

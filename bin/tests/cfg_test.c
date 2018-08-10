@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <errno.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/mem.h>
@@ -63,8 +64,8 @@ main(int argc, char **argv) {
 	cfg_parser_t *pctx = NULL;
 	cfg_obj_t *cfg = NULL;
 	cfg_type_t *type = NULL;
-	isc_boolean_t grammar = ISC_FALSE;
-	isc_boolean_t memstats = ISC_FALSE;
+	bool grammar = false;
+	bool memstats = false;
 	char *filename = NULL;
 	unsigned int zonetype = 0;
 
@@ -99,7 +100,7 @@ main(int argc, char **argv) {
 
 	while (argc > 1) {
 		if (strcmp(argv[1], "--grammar") == 0) {
-			grammar = ISC_TRUE;
+			grammar = true;
 		} else if (strcmp(argv[1], "--zonegrammar") == 0) {
 			argv++, argc--;
 			if (argc <= 1)  {
@@ -131,7 +132,7 @@ main(int argc, char **argv) {
 				usage();
 			}
 		} else if (strcmp(argv[1], "--memstats") == 0) {
-			memstats = ISC_TRUE;
+			memstats = true;
 		} else if (strcmp(argv[1], "--named") == 0) {
 			type = &cfg_type_namedconf;
 		} else if (strcmp(argv[1], "--rndc") == 0) {

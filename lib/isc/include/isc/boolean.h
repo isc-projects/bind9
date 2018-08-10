@@ -9,17 +9,14 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: boolean.h,v 1.19 2007/06/19 23:47:18 tbox Exp $ */
-
-#ifndef ISC_BOOLEAN_H
-#define ISC_BOOLEAN_H 1
+#pragma once
 
 /*! \file isc/boolean.h */
 
-typedef enum { isc_boolean_false = 0, isc_boolean_true = 1 } isc_boolean_t;
+#define isc_boolean_t bool
+#define isc_boolean_false false
+#define isc_boolean_true true
 
-#define ISC_FALSE isc_boolean_false
-#define ISC_TRUE isc_boolean_true
-#define ISC_TF(x) ((x) ? ISC_TRUE : ISC_FALSE)
-
-#endif /* ISC_BOOLEAN_H */
+#define ISC_FALSE false
+#define ISC_TRUE true
+#define ISC_TF(x) (!!(x))

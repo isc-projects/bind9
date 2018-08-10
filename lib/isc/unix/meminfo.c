@@ -12,12 +12,13 @@
 #include <config.h>
 
 #include <isc/meminfo.h>
+#include <inttypes.h>
 #include <unistd.h>
 #ifdef HAVE_SYS_SYSCTL_H
 #include <sys/sysctl.h>
 #endif
 
-isc_uint64_t
+uint64_t
 isc_meminfo_totalphys(void) {
 #if defined(CTL_HW) && (defined(HW_PHYSMEM64) || defined(HW_MEMSIZE))
 	int mib[2];
@@ -27,7 +28,7 @@ isc_meminfo_totalphys(void) {
 #elif defined(HW_PHYSMEM64)
 	mib[1] = HW_PHYSMEM64;
 #endif
-	isc_uint64_t size = 0;
+	uint64_t size = 0;
 	size_t len = sizeof(size);
 	if (sysctl(mib, 2, &size, &len, NULL, 0) == 0)
 		return (size);

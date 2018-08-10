@@ -26,6 +26,7 @@
 #ifndef DLZ_MINIMAL_H
 #define DLZ_MINIMAL_H 1
 
+#include <inttypes.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #ifdef ISC_PLATFORM_HAVESYSUNH
@@ -36,7 +37,7 @@
 #include <arpa/inet.h>
 
 typedef unsigned int isc_result_t;
-typedef int isc_boolean_t;
+typedef int bool;
 typedef uint32_t dns_ttl_t;
 
 /*
@@ -67,8 +68,8 @@ typedef uint32_t dns_ttl_t;
 #define ISC_R_FILENOTFOUND		38
 
 /* boolean values */
-#define ISC_TRUE 1
-#define ISC_FALSE 0
+#define true 1
+#define false 0
 
 /* log levels */
 #define ISC_LOG_INFO		(-1)
@@ -248,7 +249,7 @@ dlz_newversion(const char *zone, void *dbdata, void **versionp);
  * dlz_newversion() function
  */
 void
-dlz_closeversion(const char *zone, isc_boolean_t commit, void *dbdata,
+dlz_closeversion(const char *zone, bool commit, void *dbdata,
 		 void **versionp);
 
 /*
@@ -267,7 +268,7 @@ dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb, void *dbdata);
  * dlz_ssumatch() is optional, but must be supplied if you want to support
  * dynamic updates
  */
-isc_boolean_t
+bool
 dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
 	     const char *type, const char *key, uint32_t keydatalen,
 	     uint8_t *keydata, void *dbdata);

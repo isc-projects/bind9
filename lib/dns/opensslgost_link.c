@@ -13,6 +13,8 @@
 
 #if defined(OPENSSL) && defined(HAVE_OPENSSL_GOST)
 
+#include <stdbool.h>
+
 #include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -194,7 +196,7 @@ opensslgost_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	}
 }
 
-static isc_boolean_t
+static bool
 opensslgost_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	EVP_PKEY *pkey1, *pkey2;
 
@@ -202,13 +204,13 @@ opensslgost_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	pkey2 = key2->keydata.pkey;
 
 	if (pkey1 == NULL && pkey2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (pkey1 == NULL || pkey2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	if (EVP_PKEY_cmp(pkey1, pkey2) != 1)
-		return (ISC_FALSE);
-	return (ISC_TRUE);
+		return (false);
+	return (true);
 }
 
 static int
@@ -269,7 +271,7 @@ err:
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 opensslgost_isprivate(const dst_key_t *key) {
 	EVP_PKEY *pkey = key->keydata.pkey;
 	EC_KEY *ec;
@@ -277,7 +279,7 @@ opensslgost_isprivate(const dst_key_t *key) {
 	INSIST(pkey != NULL);
 
 	ec = EVP_PKEY_get0(pkey);
-	return (ISC_TF(ec != NULL && EC_KEY_get0_private_key(ec) != NULL));
+	return (ec != NULL && EC_KEY_get0_private_key(ec) != NULL);
 }
 
 static void

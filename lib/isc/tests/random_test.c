@@ -18,6 +18,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/random.h>
 #include <isc/result.h>
 #include <isc/mem.h>
@@ -33,7 +35,7 @@
 #define REPS 25000
 
 typedef double (pvalue_func_t)(isc_mem_t *mctx,
-			       isc_uint16_t *values, size_t length);
+			       uint16_t *values, size_t length);
 
 /* igamc(), igam(), etc. were adapted (and cleaned up) from the Cephes
  * math library:
@@ -143,17 +145,17 @@ igam(double a, double x) {
 	return (ans * ax / a);
 }
 
-static isc_int8_t scounts_table[65536];
-static isc_uint8_t bitcounts_table[65536];
+static int8_t scounts_table[65536];
+static uint8_t bitcounts_table[65536];
 
-static isc_int8_t
-scount_calculate(isc_uint16_t n) {
+static int8_t
+scount_calculate(uint16_t n) {
 	int i;
-	isc_int8_t sc;
+	int8_t sc;
 
 	sc = 0;
 	for (i = 0; i < 16; i++) {
-		isc_uint16_t lsb;
+		uint16_t lsb;
 
 		lsb = n & 1;
 		if (lsb != 0)
@@ -167,14 +169,14 @@ scount_calculate(isc_uint16_t n) {
 	return (sc);
 }
 
-static isc_uint8_t
-bitcount_calculate(isc_uint16_t n) {
+static uint8_t
+bitcount_calculate(uint16_t n) {
 	int i;
-	isc_uint8_t bc;
+	uint8_t bc;
 
 	bc = 0;
 	for (i = 0; i < 16; i++) {
-		isc_uint16_t lsb;
+		uint16_t lsb;
 
 		lsb = n & 1;
 		if (lsb != 0)
@@ -188,7 +190,7 @@ bitcount_calculate(isc_uint16_t n) {
 
 static void
 tables_init(void) {
-	isc_uint32_t i;
+	uint32_t i;
 
 	for (i = 0; i < 65536; i++) {
 		scounts_table[i] = scount_calculate(i);
@@ -203,12 +205,12 @@ tables_init(void) {
  *
  * This function destroys (modifies) the data passed in bits.
  */
-static isc_uint32_t
-matrix_binaryrank(isc_uint32_t *bits, size_t rows, size_t cols) {
+static uint32_t
+matrix_binaryrank(uint32_t *bits, size_t rows, size_t cols) {
 	size_t i, j, k;
 	unsigned int rt = 0;
-	isc_uint32_t rank = 0;
-	isc_uint32_t tmp;
+	uint32_t rank = 0;
+	uint32_t tmp;
 
 	for (k = 0; k < rows; k++) {
 		i = k;
@@ -254,10 +256,10 @@ random_test(pvalue_func_t *func) {
 	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	isc_rng_t *rng;
-	isc_uint32_t m;
-	isc_uint32_t j;
-	isc_uint32_t histogram[11] = { 0 };
-	isc_uint32_t passed;
+	uint32_t m;
+	uint32_t j;
+	uint32_t histogram[11] = { 0 };
+	uint32_t passed;
 	double proportion;
 	double p_hat;
 	double lower_confidence, higher_confidence;
@@ -278,8 +280,8 @@ random_test(pvalue_func_t *func) {
 	passed = 0;
 
 	for (j = 0; j < m; j++) {
-		isc_uint32_t i;
-		isc_uint16_t values[REPS];
+		uint32_t i;
+		uint16_t values[REPS];
 		double p_value;
 
 		for (i = 0; i < REPS; i++)
@@ -357,10 +359,10 @@ random_test(pvalue_func_t *func) {
  * RNG test suite.
  */
 static double
-monobit(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
+monobit(isc_mem_t *mctx, uint16_t *values, size_t length) {
 	size_t i;
-	isc_int32_t scount;
-	isc_uint32_t numbits;
+	int32_t scount;
+	uint32_t numbits;
 	double s_obs;
 	double p_value;
 
@@ -388,17 +390,17 @@ monobit(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
  * This is the runs test taken from the NIST SP 800-22 RNG test suite.
  */
 static double
-runs(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
+runs(isc_mem_t *mctx, uint16_t *values, size_t length) {
 	size_t i;
-	isc_uint32_t bcount;
-	isc_uint32_t numbits;
+	uint32_t bcount;
+	uint32_t numbits;
 	double pi;
 	double tau;
-	isc_uint32_t j;
-	isc_uint32_t b;
-	isc_uint8_t bit_this;
-	isc_uint8_t bit_prev;
-	isc_uint32_t v_obs;
+	uint32_t j;
+	uint32_t b;
+	uint8_t bit_this;
+	uint8_t bit_prev;
+	uint32_t v_obs;
 	double numer;
 	double denom;
 	double p_value;
@@ -464,12 +466,12 @@ runs(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
  * test suite.
  */
 static double
-blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
-	isc_uint32_t i;
-	isc_uint32_t numbits;
-	isc_uint32_t mbits;
-	isc_uint32_t mwords;
-	isc_uint32_t numblocks;
+blockfrequency(isc_mem_t *mctx, uint16_t *values, size_t length) {
+	uint32_t i;
+	uint32_t numbits;
+	uint32_t mbits;
+	uint32_t mwords;
+	uint32_t numblocks;
 	double *pi;
 	double chi_square;
 	double p_value;
@@ -493,10 +495,10 @@ blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	ATF_REQUIRE(pi != NULL);
 
 	for (i = 0; i < numblocks; i++) {
-		isc_uint32_t j;
+		uint32_t j;
 		pi[i] = 0.0;
 		for (j = 0; j < mwords; j++) {
-			isc_uint32_t idx;
+			uint32_t idx;
 
 			idx = i * mwords + j;
 			pi[i] += bitcounts_table[values[idx]];
@@ -526,15 +528,15 @@ blockfrequency(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
  * test suite.
  */
 static double
-binarymatrixrank(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
-	isc_uint32_t i;
+binarymatrixrank(isc_mem_t *mctx, uint16_t *values, size_t length) {
+	uint32_t i;
 	size_t matrix_m;
 	size_t matrix_q;
-	isc_uint32_t num_matrices;
+	uint32_t num_matrices;
 	size_t numbits;
-	isc_uint32_t fm_0;
-	isc_uint32_t fm_1;
-	isc_uint32_t fm_rest;
+	uint32_t fm_0;
+	uint32_t fm_1;
+	uint32_t fm_rest;
 	double term1;
 	double term2;
 	double term3;
@@ -558,17 +560,17 @@ binarymatrixrank(isc_mem_t *mctx, isc_uint16_t *values, size_t length) {
 	fm_rest = 0;
 	for (i = 0; i < num_matrices; i++) {
 		/*
-		 * Each isc_uint32_t supplies 32 bits, so a 32x32 bit matrix
-		 * takes up isc_uint32_t array of size 32.
+		 * Each uint32_t supplies 32 bits, so a 32x32 bit matrix
+		 * takes up uint32_t array of size 32.
 		 */
-		isc_uint32_t bits[32];
+		uint32_t bits[32];
 		int j;
-		isc_uint32_t rank;
+		uint32_t rank;
 
 		for (j = 0; j < 32; j++) {
 			size_t idx;
-			isc_uint32_t r1;
-			isc_uint32_t r2;
+			uint32_t r1;
+			uint32_t r2;
 
 			idx = i * ((matrix_m * matrix_q) / 16);
 			idx += j * 2;

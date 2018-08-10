@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/commandline.h>
@@ -47,7 +49,7 @@ typedef struct dbinfo {
 	dns_dbiterator_t *	dbiterator;
 	dns_dbversion_t *	iversion;
 	int			pause_every;
-	isc_boolean_t		ascending;
+	bool		ascending;
 	ISC_LINK(struct dbinfo)	link;
 } dbinfo;
 
@@ -57,7 +59,7 @@ static dns_dbtable_t *		dbtable;
 static ISC_LIST(dbinfo)		dbs;
 static dbinfo *			cache_dbi = NULL;
 static int			pause_every = 0;
-static isc_boolean_t		ascending = ISC_TRUE;
+static bool		ascending = true;
 
 static void
 print_result(const char *message, isc_result_t result) {
@@ -76,7 +78,7 @@ print_rdataset(dns_name_t *name, dns_rdataset_t *rdataset) {
 	isc_region_t r;
 
 	isc_buffer_init(&text, t, sizeof(t));
-	result = dns_rdataset_totext(rdataset, name, ISC_FALSE, ISC_FALSE,
+	result = dns_rdataset_totext(rdataset, name, false, false,
 				     &text);
 	isc_buffer_usedregion(&text, &r);
 	if (result == ISC_R_SUCCESS)
@@ -217,11 +219,11 @@ list(dbinfo *dbi, char *seektext) {
 
 	dns_dbiterator_destroy(&dbi->dbiterator);
 	if (dbi->iversion != NULL)
-		dns_db_closeversion(dbi->db, &dbi->iversion, ISC_FALSE);
+		dns_db_closeversion(dbi->db, &dbi->iversion, false);
 }
 
 static isc_result_t
-load(const char *filename, const char *origintext, isc_boolean_t cache) {
+load(const char *filename, const char *origintext, bool cache) {
 	dns_fixedname_t forigin;
 	dns_name_t *origin;
 	isc_result_t result;
@@ -332,17 +334,17 @@ main(int argc, char *argv[]) {
 	dns_rdataset_t rdataset, sigrdataset;
 	int ch;
 	dns_rdatatype_t type = 1;
-	isc_boolean_t printnode = ISC_FALSE;
-	isc_boolean_t addmode = ISC_FALSE;
-	isc_boolean_t delmode = ISC_FALSE;
-	isc_boolean_t holdmode = ISC_FALSE;
-	isc_boolean_t verbose = ISC_FALSE;
-	isc_boolean_t done = ISC_FALSE;
-	isc_boolean_t quiet = ISC_FALSE;
-	isc_boolean_t time_lookups = ISC_FALSE;
-	isc_boolean_t found_as;
-	isc_boolean_t find_zonecut = ISC_FALSE;
-	isc_boolean_t noexact_zonecut = ISC_FALSE;
+	bool printnode = false;
+	bool addmode = false;
+	bool delmode = false;
+	bool holdmode = false;
+	bool verbose = false;
+	bool done = false;
+	bool quiet = false;
+	bool time_lookups = false;
+	bool found_as;
+	bool find_zonecut = false;
+	bool noexact_zonecut = false;
 	int i, v;
 	dns_rdatasetiter_t *rdsiter;
 	char t1[256];
@@ -374,7 +376,7 @@ main(int argc, char *argv[]) {
 	       != -1) {
 		switch (ch) {
 		case 'c':
-			result = load(isc_commandline_argument, ".", ISC_TRUE);
+			result = load(isc_commandline_argument, ".", true);
 			if (result != ISC_R_SUCCESS)
 				printf("cache load(%s) %08x: %s\n",
 				       isc_commandline_argument, result,
@@ -400,11 +402,11 @@ main(int argc, char *argv[]) {
 			dns_log_setcontext(lctx);
 			break;
 		case 'q':
-			quiet = ISC_TRUE;
-			verbose = ISC_FALSE;
+			quiet = true;
+			verbose = false;
 			break;
 		case 'p':
-			printnode = ISC_TRUE;
+			printnode = true;
 			break;
 		case 'P':
 			pause_every = atoi(isc_commandline_argument);
@@ -417,10 +419,10 @@ main(int argc, char *argv[]) {
 			type = atoi(isc_commandline_argument);
 			break;
 		case 'T':
-			time_lookups = ISC_TRUE;
+			time_lookups = true;
 			break;
 		case 'v':
-			verbose = ISC_TRUE;
+			verbose = true;
 			break;
 		case 'z':
 			origintext = strrchr(isc_commandline_argument, '/');
@@ -429,7 +431,7 @@ main(int argc, char *argv[]) {
 			else
 				origintext++;	/* Skip '/'. */
 			result = load(isc_commandline_argument, origintext,
-				      ISC_FALSE);
+				      false);
 			if (result != ISC_R_SUCCESS)
 				printf("zone load(%s) %08x: %s\n",
 				       isc_commandline_argument, result,
@@ -461,7 +463,7 @@ main(int argc, char *argv[]) {
 		if (!quiet)
 			printf("\n");
 		if (fgets(s, sizeof(s), stdin) == NULL) {
-			done = ISC_TRUE;
+			done = true;
 			continue;
 		}
 		len = strlen(s);
@@ -509,8 +511,8 @@ main(int argc, char *argv[]) {
 			continue;
 		} else if (strcmp(s, "!C") == 0) {
 			DBI_CHECK(dbi);
-			addmode = ISC_FALSE;
-			delmode = ISC_FALSE;
+			addmode = false;
+			delmode = false;
 			if (dbi->version == NULL)
 				continue;
 			if (dbi->version == dbi->wversion) {
@@ -527,13 +529,13 @@ main(int argc, char *argv[]) {
 					}
 				}
 			}
-			dns_db_closeversion(dbi->db, &dbi->version, ISC_TRUE);
+			dns_db_closeversion(dbi->db, &dbi->version, true);
 			version = NULL;
 			continue;
 		} else if (strcmp(s, "!X") == 0) {
 			DBI_CHECK(dbi);
-			addmode = ISC_FALSE;
-			delmode = ISC_FALSE;
+			addmode = false;
+			delmode = false;
 			if (dbi->version == NULL)
 				continue;
 			if (dbi->version == dbi->wversion) {
@@ -550,33 +552,33 @@ main(int argc, char *argv[]) {
 					}
 				}
 			}
-			dns_db_closeversion(dbi->db, &dbi->version, ISC_FALSE);
+			dns_db_closeversion(dbi->db, &dbi->version, false);
 			version = NULL;
 			continue;
 		} else if (strcmp(s, "!A") == 0) {
 			DBI_CHECK(dbi);
-			delmode = ISC_FALSE;
+			delmode = false;
 			if (addmode)
-				addmode = ISC_FALSE;
+				addmode = false;
 			else
-				addmode = ISC_TRUE;
+				addmode = true;
 			printf("addmode = %s\n", addmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!D") == 0) {
 			DBI_CHECK(dbi);
-			addmode = ISC_FALSE;
+			addmode = false;
 			if (delmode)
-				delmode = ISC_FALSE;
+				delmode = false;
 			else
-				delmode = ISC_TRUE;
+				delmode = true;
 			printf("delmode = %s\n", delmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!H") == 0) {
 			DBI_CHECK(dbi);
 			if (holdmode)
-				holdmode = ISC_FALSE;
+				holdmode = false;
 			else
-				holdmode = ISC_TRUE;
+				holdmode = true;
 			printf("holdmode = %s\n", holdmode ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!HR") == 0) {
@@ -585,7 +587,7 @@ main(int argc, char *argv[]) {
 				dns_db_detachnode(dbi->db,
 						  &dbi->hold_nodes[i]);
 			dbi->hold_count = 0;
-			holdmode = ISC_FALSE;
+			holdmode = false;
 			printf("held nodes have been detached\n");
 			continue;
 		} else if (strcmp(s, "!VC") == 0) {
@@ -662,9 +664,9 @@ main(int argc, char *argv[]) {
 			continue;
 		} else if (strcmp(s, "!PN") == 0) {
 			if (printnode)
-				printnode = ISC_FALSE;
+				printnode = false;
 			else
-				printnode = ISC_TRUE;
+				printnode = true;
 			printf("printnode = %s\n",
 			       printnode ? "TRUE" : "FALSE");
 			continue;
@@ -675,11 +677,11 @@ main(int argc, char *argv[]) {
 			continue;
 		} else if (strcmp(s, "!+") == 0) {
 			DBI_CHECK(dbi);
-			dbi->ascending = ISC_TRUE;
+			dbi->ascending = true;
 			continue;
 		} else if (strcmp(s, "!-") == 0) {
 			DBI_CHECK(dbi);
-			dbi->ascending = ISC_FALSE;
+			dbi->ascending = false;
 			continue;
 		} else if (strcmp(s, "!DB") == 0) {
 			dbi = NULL;
@@ -693,9 +695,9 @@ main(int argc, char *argv[]) {
 				db = dbi->db;
 				origin = dns_db_origin(dbi->db);
 				version = dbi->version;
-				addmode = ISC_FALSE;
-				delmode = ISC_FALSE;
-				holdmode = ISC_FALSE;
+				addmode = false;
+				delmode = false;
+				holdmode = false;
 			} else {
 				db = NULL;
 				version = NULL;
@@ -706,17 +708,17 @@ main(int argc, char *argv[]) {
 			continue;
 		} else if (strcmp(s, "!ZC") == 0) {
 			if (find_zonecut)
-				find_zonecut = ISC_FALSE;
+				find_zonecut = false;
 			else
-				find_zonecut = ISC_TRUE;
+				find_zonecut = true;
 			printf("find_zonecut = %s\n",
 			       find_zonecut ? "TRUE" : "FALSE");
 			continue;
 		} else if (strcmp(s, "!NZ") == 0) {
 			if (noexact_zonecut)
-				noexact_zonecut = ISC_FALSE;
+				noexact_zonecut = false;
 			else
-				noexact_zonecut = ISC_TRUE;
+				noexact_zonecut = true;
 			printf("noexact_zonecut = %s\n",
 			       noexact_zonecut ? "TRUE" : "FALSE");
 			continue;
@@ -747,7 +749,7 @@ main(int argc, char *argv[]) {
 				continue;
 			}
 			isc_buffer_init(&tb1, t1, sizeof(t1));
-			result = dns_name_totext(dns_db_origin(db), ISC_FALSE,
+			result = dns_name_totext(dns_db_origin(db), false,
 						 &tb1);
 			if (result != ISC_R_SUCCESS) {
 				printf("\n");
@@ -783,7 +785,7 @@ main(int argc, char *argv[]) {
 			print_result("", result);
 		}
 
-		found_as = ISC_FALSE;
+		found_as = false;
 		switch (result) {
 		case ISC_R_SUCCESS:
 		case DNS_R_GLUE:
@@ -792,7 +794,7 @@ main(int argc, char *argv[]) {
 			break;
 		case DNS_R_DNAME:
 		case DNS_R_DELEGATION:
-			found_as = ISC_TRUE;
+			found_as = true;
 			break;
 		case DNS_R_NXRRSET:
 			if (dns_rdataset_isassociated(&rdataset))
@@ -825,7 +827,7 @@ main(int argc, char *argv[]) {
 		if (found_as && !quiet) {
 			isc_buffer_init(&tb1, t1, sizeof(t1));
 			isc_buffer_init(&tb2, t2, sizeof(t2));
-			result = dns_name_totext(&name, ISC_FALSE, &tb1);
+			result = dns_name_totext(&name, false, &tb1);
 			if (result != ISC_R_SUCCESS) {
 				print_result("", result);
 				dns_db_detachnode(db, &node);
@@ -833,7 +835,7 @@ main(int argc, char *argv[]) {
 					dns_db_detach(&db);
 				continue;
 			}
-			result = dns_name_totext(fname, ISC_FALSE, &tb2);
+			result = dns_name_totext(fname, false, &tb2);
 			if (result != ISC_R_SUCCESS) {
 				print_result("", result);
 				dns_db_detachnode(db, &node);
@@ -909,7 +911,7 @@ main(int argc, char *argv[]) {
 	}
 
 	if (time_lookups) {
-		isc_uint64_t usec;
+		uint64_t usec;
 
 		TIME_NOW(&finish);
 

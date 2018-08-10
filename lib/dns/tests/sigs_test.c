@@ -200,7 +200,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 
 	dns__zonediff_t zonediff = {
 		.diff = &zone_diff,
-		.offline = ISC_FALSE,
+		.offline = false,
 	};
 
 	REQUIRE(test != NULL);
@@ -239,7 +239,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	 */
 	result = dns__zone_updatesigs(&raw_diff, db, version, zone_keys, nkeys,
 				      zone, now - 3600, now + 3600, now,
-				      ISC_TRUE, ISC_FALSE, &zonediff);
+				      true, false, &zonediff);
 	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
 			 "test \"%s\": expected success, got %s",
 			 test->description, isc_result_totext(result));
@@ -293,7 +293,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	/*
 	 * Apply changes to zone database contents and clean up.
 	 */
-	dns_db_closeversion(db, &version, ISC_TRUE);
+	dns_db_closeversion(db, &version, true);
 	dns_diff_clear(&zone_diff);
 	dns_diff_clear(&raw_diff);
 }
@@ -311,14 +311,14 @@ ATF_TC_BODY(updatesigs, tc) {
 	isc_stdtime_t now;
 	size_t i;
 
-	result = dns_test_begin(NULL, ISC_TRUE);
+	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*
 	 * Prepare a zone along with its signing keys.
 	 */
 
-	result = dns_test_makezone("example", &zone, NULL, ISC_FALSE);
+	result = dns_test_makezone("example", &zone, NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_zone, "example",

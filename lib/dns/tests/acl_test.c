@@ -17,6 +17,7 @@
 #include <atf-c.h>
 
 #include <stdio.h>
+#include <stdbool.h>
 #include <unistd.h>
 
 #include <isc/print.h>
@@ -41,13 +42,13 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	isc_result_t result;
 	unsigned int pass;
 	struct {
-		isc_boolean_t first;
-		isc_boolean_t second;
+		bool first;
+		bool second;
 	} ecs[] = {
-		{ ISC_FALSE, ISC_FALSE },
-		{ ISC_TRUE, ISC_TRUE },
-		{ ISC_TRUE, ISC_FALSE },
-		{ ISC_FALSE, ISC_TRUE }
+		{ false, false },
+		{ true, true },
+		{ true, false },
+		{ false, true }
 	};
 
 	dns_acl_t *any = NULL;
@@ -85,7 +86,7 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_acl_any(mctx, &any);
@@ -100,10 +101,10 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	result = dns_acl_create(mctx, 1, &notany);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_acl_merge(notnone, none, ISC_FALSE);
+	result = dns_acl_merge(notnone, none, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_acl_merge(notany, any, ISC_FALSE);
+	result = dns_acl_merge(notany, any, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 #ifdef HAVE_GEOIP
@@ -116,7 +117,7 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 		sizeof(de->geoip_elem.as_string));
 	de->geoip_elem.subtype = dns_geoip_country_code;
 	de->type = dns_aclelementtype_geoip;
-	de->negative = ISC_FALSE;
+	de->negative = false;
 	ATF_REQUIRE(geoip->length < geoip->alloc);
 	geoip->node_count++;
 	de->node_num = geoip->node_count;
@@ -125,7 +126,7 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	result = dns_acl_create(mctx, 1, &notgeoip);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = dns_acl_merge(notgeoip, geoip, ISC_FALSE);
+	result = dns_acl_merge(notgeoip, geoip, false);
 #endif
 
 	ATF_CHECK(dns_acl_isinsecure(any));		/* any; */
@@ -175,57 +176,57 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 		inaddr.s_addr = htonl(0x0a000000);	/* 10.0.0.0 */
 		isc_netaddr_fromin(&addr, &inaddr);
 		result = dns_iptable_addprefix2(pos4pos6->iptable, &addr, 8,
-						ISC_TRUE, ecs[pass].first);
+						true, ecs[pass].first);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		addr.family = AF_INET6;			/* 0a00:: */
 		result = dns_iptable_addprefix2(pos4pos6->iptable, &addr, 8,
-						ISC_TRUE, ecs[pass].second);
+						true, ecs[pass].second);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_acl_merge(notpos4pos6, pos4pos6, ISC_FALSE);
+		result = dns_acl_merge(notpos4pos6, pos4pos6, false);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		inaddr.s_addr = htonl(0x0a000000);	/* !10.0.0.0/8 */
 		isc_netaddr_fromin(&addr, &inaddr);
 		result = dns_iptable_addprefix2(neg4pos6->iptable, &addr, 8,
-						ISC_FALSE, ecs[pass].first);
+						false, ecs[pass].first);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		addr.family = AF_INET6;			/* 0a00::/8 */
 		result = dns_iptable_addprefix2(neg4pos6->iptable, &addr, 8,
-						ISC_TRUE, ecs[pass].second);
+						true, ecs[pass].second);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_acl_merge(notneg4pos6, neg4pos6, ISC_FALSE);
+		result = dns_acl_merge(notneg4pos6, neg4pos6, false);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		inaddr.s_addr = htonl(0x0a000000);	/* 10.0.0.0/8 */
 		isc_netaddr_fromin(&addr, &inaddr);
 		result = dns_iptable_addprefix2(pos4neg6->iptable, &addr, 8,
-						ISC_TRUE, ecs[pass].first);
+						true, ecs[pass].first);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		addr.family = AF_INET6;			/* !0a00::/8 */
 		result = dns_iptable_addprefix2(pos4neg6->iptable, &addr, 8,
-						ISC_FALSE, ecs[pass].second);
+						false, ecs[pass].second);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_acl_merge(notpos4neg6, pos4neg6, ISC_FALSE);
+		result = dns_acl_merge(notpos4neg6, pos4neg6, false);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		inaddr.s_addr = htonl(0x0a000000);	/* !10.0.0.0/8 */
 		isc_netaddr_fromin(&addr, &inaddr);
 		result = dns_iptable_addprefix2(neg4neg6->iptable, &addr, 8,
-						ISC_FALSE, ecs[pass].first);
+						false, ecs[pass].first);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		addr.family = AF_INET6;			/* !0a00::/8 */
 		result = dns_iptable_addprefix2(neg4neg6->iptable, &addr, 8,
-						ISC_FALSE, ecs[pass].second);
+						false, ecs[pass].second);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_acl_merge(notneg4neg6, neg4neg6, ISC_FALSE);
+		result = dns_acl_merge(notneg4neg6, neg4neg6, false);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		ATF_CHECK(dns_acl_isinsecure(pos4pos6));
@@ -261,18 +262,18 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 		inaddr.s_addr = htonl(0x7f000001);	/* 127.0.0.1 */
 		isc_netaddr_fromin(&addr, &inaddr);
 		result = dns_iptable_addprefix2(loop4->iptable, &addr, 32,
-						ISC_TRUE, ecs[pass].first);
+						true, ecs[pass].first);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_acl_merge(notloop4, loop4, ISC_FALSE);
+		result = dns_acl_merge(notloop4, loop4, false);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		isc_netaddr_fromin6(&addr, &in6addr_loopback);	/* ::1 */
 		result = dns_iptable_addprefix2(loop6->iptable, &addr, 128,
-						ISC_TRUE, ecs[pass].first);
+						true, ecs[pass].first);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_acl_merge(notloop6, loop6, ISC_FALSE);
+		result = dns_acl_merge(notloop6, loop6, false);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		if (!ecs[pass].first) {
@@ -307,29 +308,29 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 		inaddr.s_addr = htonl(0x7f000001);	/* 127.0.0.1 */
 		isc_netaddr_fromin(&addr, &inaddr);
 		result = dns_iptable_addprefix2(loop4pos6->iptable, &addr, 32,
-						ISC_TRUE, ecs[pass].first);
+						true, ecs[pass].first);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		addr.family = AF_INET6;			/* f700:0001::/32 */
 		result = dns_iptable_addprefix2(loop4pos6->iptable, &addr, 32,
-						ISC_TRUE, ecs[pass].second);
+						true, ecs[pass].second);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_acl_merge(notloop4pos6, loop4pos6, ISC_FALSE);
+		result = dns_acl_merge(notloop4pos6, loop4pos6, false);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		inaddr.s_addr = htonl(0x7f000001);	/* 127.0.0.1 */
 		isc_netaddr_fromin(&addr, &inaddr);
 		result = dns_iptable_addprefix2(loop4neg6->iptable, &addr, 32,
-						ISC_TRUE, ecs[pass].first);
+						true, ecs[pass].first);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		addr.family = AF_INET6;			/* !f700:0001::/32 */
 		result = dns_iptable_addprefix2(loop4neg6->iptable, &addr, 32,
-						ISC_FALSE, ecs[pass].second);
+						false, ecs[pass].second);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-		result = dns_acl_merge(notloop4neg6, loop4neg6, ISC_FALSE);
+		result = dns_acl_merge(notloop4neg6, loop4neg6, false);
 		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 		if (!ecs[pass].first && !ecs[pass].second) {

@@ -100,7 +100,7 @@
 			      memory_order_relaxed);
 #else
 #define acache_storetime(entry, t) \
-	(isc_atomic_store((isc_int32_t *)&(entry)->lastused, (t)))
+	(isc_atomic_store((int32_t *)&(entry)->lastused, (t)))
 #endif
 
 #else
@@ -167,7 +167,7 @@ struct acache_cleaner {
 	unsigned long		ncleaned;	/* Number of entries cleaned
 						   up (for logging purposes) */
 	cleaner_state_t  	state;		/* Idle/Busy/Done. */
-	isc_boolean_t	 	overmem;	/* The acache is in an overmem
+	bool	 	overmem;	/* The acache is in an overmem
 						   state. */
 };
 
@@ -208,11 +208,11 @@ struct dns_acache {
 	unsigned int			dbentries;
 	dbentrylist_t			dbbucket[DBBUCKETS];
 
-	isc_boolean_t			shutting_down;
+	bool			shutting_down;
 
 	isc_task_t 			*task;
 	isc_event_t			cevent;
-	isc_boolean_t			cevent_sent;
+	bool			cevent_sent;
 
 	dns_acachestats_t		stats;
 };
@@ -258,7 +258,7 @@ struct dns_acacheentry {
 /*
  *	Internal functions (and prototypes).
  */
-static inline isc_boolean_t check_noentry(dns_acache_t *acache);
+static inline bool check_noentry(dns_acache_t *acache);
 static void destroy(dns_acache_t *acache);
 static void shutdown_entries(dns_acache_t *acache);
 static void shutdown_buckets(dns_acache_t *acache);
@@ -299,13 +299,13 @@ reset_stats(dns_acache_t *acache) {
 /*
  * The acache must be locked before calling.
  */
-static inline isc_boolean_t
+static inline bool
 check_noentry(dns_acache_t *acache) {
 	if (ISC_LIST_EMPTY(acache->entries) && acache->dbentries == 0) {
-		return (ISC_TRUE);
+		return (true);
 	}
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 /*
@@ -489,7 +489,7 @@ finddbent(dns_acache_t *acache, dns_db_t *db, dbentry_t **dbentryp) {
 	 * The caller must be holding the acache lock.
 	 */
 
-	bucket = isc_hash_function(&db, sizeof(db), ISC_TRUE, NULL) % DBBUCKETS;
+	bucket = isc_hash_function(&db, sizeof(db), true, NULL) % DBBUCKETS;
 
 	for (dbentry = ISC_LIST_HEAD(acache->dbbucket[bucket]);
 	     dbentry != NULL;
@@ -540,7 +540,7 @@ clear_entry(dns_acache_t *acache, dns_acacheentry_t *entry) {
 	}
 	if (entry->version != NULL) {
 		INSIST(entry->db != NULL);
-		dns_db_closeversion(entry->db, &entry->version, ISC_FALSE);
+		dns_db_closeversion(entry->db, &entry->version, false);
 	}
 	if (entry->db != NULL)
 		dns_db_detach(&entry->db);
@@ -566,7 +566,7 @@ acache_cleaner_init(dns_acache_t *acache, isc_timermgr_t *timermgr,
 	cleaner->increment = DNS_ACACHE_CLEANERINCREMENT;
 	cleaner->state = cleaner_s_idle;
 	cleaner->acache = acache;
-	cleaner->overmem = ISC_FALSE;
+	cleaner->overmem = false;
 
 	cleaner->cleaning_timer = NULL;
 	cleaner->resched_event = NULL;
@@ -770,7 +770,7 @@ acache_cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 }
 
 /* The caller must hold entry lock. */
-static inline isc_boolean_t
+static inline bool
 entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	    isc_stdtime32_t now32, unsigned int interval)
 {
@@ -779,13 +779,13 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	 * entry.
 	 */
 	if (entry->callback == NULL)
-		return (ISC_TRUE);
+		return (true);
 
 	if (interval > cleaner->cleaning_interval)
 		interval = cleaner->cleaning_interval;
 
 	if (entry->lastused + interval < now32)
-		return (ISC_TRUE);
+		return (true);
 
 	/*
 	 * If the acache is in the overmem state, probabilistically decide if
@@ -794,7 +794,7 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 	 */
 	if (cleaner->overmem) {
 		unsigned int passed;
-		isc_uint32_t val;
+		uint32_t val;
 
 		if (isc_serial_ge(now32, entry->lastused))
 			passed = now32 - entry->lastused; /* <= interval */
@@ -802,14 +802,14 @@ entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
 			passed = 0;
 
 		if (passed > interval / 2)
-			return (ISC_TRUE);
+			return (true);
 		isc_random_get(&val);
 		if (passed > interval / 4)
-			return (ISC_TF(val % 4 == 0));
-		return (ISC_TF(val % 8 == 0));
+			return (val % 4 == 0);
+		return (val % 8 == 0);
 	}
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 /*
@@ -852,7 +852,7 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 		interval = 0;
 
 	while (n_entries-- > 0) {
-		isc_boolean_t is_stale = ISC_FALSE;
+		bool is_stale = false;
 
 		INSIST(entry != NULL);
 
@@ -940,7 +940,7 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 static void
 acache_overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	acache_cleaner_t *cleaner = event->ev_arg;
-	isc_boolean_t want_cleaning = ISC_FALSE;
+	bool want_cleaning = false;
 
 	UNUSED(task);
 
@@ -956,7 +956,7 @@ acache_overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 
 	if (cleaner->overmem) {
 		if (cleaner->state == cleaner_s_idle)
-			want_cleaning = ISC_TRUE;
+			want_cleaning = true;
 	} else {
 		if (cleaner->state == cleaner_s_busy)
 			/*
@@ -981,7 +981,7 @@ acache_overmem_cleaning_action(isc_task_t *task, isc_event_t *event) {
 static void
 water(void *arg, int mark) {
 	dns_acache_t *acache = arg;
-	isc_boolean_t overmem = ISC_TF(mark == ISC_MEM_HIWATER);
+	bool overmem = (mark == ISC_MEM_HIWATER);
 
 	REQUIRE(DNS_ACACHE_VALID(acache));
 
@@ -1011,7 +1011,7 @@ water(void *arg, int mark) {
 static void
 acache_cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	dns_acache_t *acache = event->ev_arg;
-	isc_boolean_t should_free = ISC_FALSE;
+	bool should_free = false;
 
 	INSIST(task == acache->task);
 	INSIST(event->ev_type == ISC_TASKEVENT_SHUTDOWN);
@@ -1030,8 +1030,8 @@ acache_cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	INSIST(acache->live_cleaners == 0);
 
 	if (isc_refcount_current(&acache->refs) == 0) {
-		INSIST(check_noentry(acache) == ISC_TRUE);
-		should_free = ISC_TRUE;
+		INSIST(check_noentry(acache) == true);
+		should_free = true;
 	}
 
 	/*
@@ -1091,7 +1091,7 @@ dns_acache_create(dns_acache_t **acachep, isc_mem_t *mctx,
 	isc_mem_attach(mctx, &acache->mctx);
 	ISC_LIST_INIT(acache->entries);
 
-	acache->shutting_down = ISC_FALSE;
+	acache->shutting_down = false;
 
 	acache->task = NULL;
 	acache->entrylocks = NULL;
@@ -1108,7 +1108,7 @@ dns_acache_create(dns_acache_t **acachep, isc_mem_t *mctx,
 	ISC_EVENT_INIT(&acache->cevent, sizeof(acache->cevent), 0, NULL,
 		       DNS_EVENT_ACACHECONTROL, shutdown_task, NULL,
 		       NULL, NULL, NULL);
-	acache->cevent_sent = ISC_FALSE;
+	acache->cevent_sent = false;
 
 	acache->dbentries = 0;
 	for (i = 0; i < DBBUCKETS; i++)
@@ -1187,7 +1187,7 @@ void
 dns_acache_detach(dns_acache_t **acachep) {
 	dns_acache_t *acache;
 	unsigned int refs;
-	isc_boolean_t should_free = ISC_FALSE;
+	bool should_free = false;
 
 	REQUIRE(acachep != NULL && DNS_ACACHE_VALID(*acachep));
 	acache = *acachep;
@@ -1196,8 +1196,8 @@ dns_acache_detach(dns_acache_t **acachep) {
 
 	isc_refcount_decrement(&acache->refs, &refs);
 	if (refs == 0) {
-		INSIST(check_noentry(acache) == ISC_TRUE);
-		should_free = ISC_TRUE;
+		INSIST(check_noentry(acache) == true);
+		should_free = true;
 	}
 
 	*acachep = NULL;
@@ -1207,7 +1207,7 @@ dns_acache_detach(dns_acache_t **acachep) {
 	 */
 	if (should_free && acache->live_cleaners > 0) {
 		isc_task_shutdown(acache->task);
-		should_free = ISC_FALSE;
+		should_free = false;
 	}
 
 	if (should_free)
@@ -1228,7 +1228,7 @@ dns_acache_shutdown(dns_acache_t *acache) {
 
 		INSIST(!acache->cevent_sent);
 
-		acache->shutting_down = ISC_TRUE;
+		acache->shutting_down = true;
 
 		isc_mem_setwater(acache->mctx, NULL, NULL, 0, 0);
 
@@ -1240,7 +1240,7 @@ dns_acache_shutdown(dns_acache_t *acache) {
 		event = &acache->cevent;
 		event->ev_arg = acache_evarg;
 		isc_task_send(acache->task, &event);
-		acache->cevent_sent = ISC_TRUE;
+		acache->cevent_sent = true;
 	}
 
 	UNLOCK(&acache->lock);
@@ -1280,7 +1280,7 @@ dns_acache_setdb(dns_acache_t *acache, dns_db_t *db) {
 	dbentry->db = NULL;
 	dns_db_attach(db, &dbentry->db);
 
-	bucket = isc_hash_function(&db, sizeof(db), ISC_TRUE, NULL) % DBBUCKETS;
+	bucket = isc_hash_function(&db, sizeof(db), true, NULL) % DBBUCKETS;
 
 	ISC_LIST_APPEND(acache->dbbucket[bucket], dbentry, link);
 
@@ -1368,7 +1368,7 @@ dns_acache_putdb(dns_acache_t *acache, dns_db_t *db) {
 	INSIST(ISC_LIST_EMPTY(dbentry->originlist) &&
 	       ISC_LIST_EMPTY(dbentry->referlist));
 
-	bucket = isc_hash_function(&db, sizeof(db), ISC_TRUE, NULL) % DBBUCKETS;
+	bucket = isc_hash_function(&db, sizeof(db), true, NULL) % DBBUCKETS;
 
 	ISC_LIST_UNLINK(acache->dbbucket[bucket], dbentry, link);
 	dns_db_detach(&dbentry->db);
@@ -1391,7 +1391,7 @@ dns_acache_createentry(dns_acache_t *acache, dns_db_t *origdb,
 {
 	dns_acacheentry_t *newentry;
 	isc_result_t result;
-	isc_uint32_t r;
+	uint32_t r;
 	isc_stdtime_t tmptime;
 
 	REQUIRE(DNS_ACACHE_VALID(acache));
@@ -1543,7 +1543,7 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 	if (*nodep != NULL)
 		dns_db_detachnode(*dbp, nodep);
 	if (*versionp != NULL)
-		dns_db_closeversion(*dbp, versionp, ISC_FALSE);
+		dns_db_closeversion(*dbp, versionp, false);
 	if (*dbp != NULL)
 		dns_db_detach(dbp);
 	if (zonep != NULL && *zonep != NULL)
@@ -1560,7 +1560,7 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	isc_result_t result;
 	dbentry_t *odbent;
 	dbentry_t *rdbent = NULL;
-	isc_boolean_t close_version = ISC_FALSE;
+	bool close_version = false;
 	dns_acacheentry_t *dummy_entry = NULL;
 
 	REQUIRE(DNS_ACACHE_VALID(acache));
@@ -1582,7 +1582,7 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	if (version == NULL) {
 		if (db != NULL) {
 			dns_db_currentversion(db, &version);
-			close_version = ISC_TRUE;
+			close_version = true;
 		}
 	}
 	if (version != NULL) {
@@ -1590,7 +1590,7 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 		dns_db_attachversion(db, version, &entry->version);
 	}
 	if (close_version)
-		dns_db_closeversion(db, &version, ISC_FALSE);
+		dns_db_closeversion(db, &version, false);
 	/* Set DB node. */
 	if (node != NULL) {
 		INSIST(db != NULL);
@@ -1677,10 +1677,10 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 	return (result);
 }
 
-isc_boolean_t
+bool
 dns_acache_cancelentry(dns_acacheentry_t *entry) {
 	dns_acache_t *acache;
-	isc_boolean_t callback_active;
+	bool callback_active;
 
 	REQUIRE(DNS_ACACHEENTRY_VALID(entry));
 
@@ -1691,7 +1691,7 @@ dns_acache_cancelentry(dns_acacheentry_t *entry) {
 	LOCK(&acache->lock);
 	ACACHE_LOCK(&acache->entrylocks[entry->locknum], isc_rwlocktype_write);
 
-	callback_active = ISC_TF(entry->cbarg != NULL);
+	callback_active = (entry->cbarg != NULL);
 
 	/*
 	 * Release dependencies stored in this entry as much as possible.
@@ -1770,13 +1770,13 @@ dns_acache_setcleaninginterval(dns_acache_t *acache, unsigned int t) {
 	if (t == 0) {
 		result = isc_timer_reset(acache->cleaner.cleaning_timer,
 					 isc_timertype_inactive,
-					 NULL, NULL, ISC_TRUE);
+					 NULL, NULL, true);
 	} else {
 		isc_interval_set(&interval, acache->cleaner.cleaning_interval,
 				 0);
 		result = isc_timer_reset(acache->cleaner.cleaning_timer,
 					 isc_timertype_ticker,
-					 NULL, &interval, ISC_FALSE);
+					 NULL, &interval, false);
 	}
 	if (result != ISC_R_SUCCESS)
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,

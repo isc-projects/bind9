@@ -23,7 +23,7 @@ isc__taskmgr_pause(isc_taskmgr_t *taskmgr);
 void
 isc__taskmgr_resume(isc_taskmgr_t *taskmgr);
 #else
-isc_boolean_t
+bool
 isc__taskmgr_ready(isc_taskmgr_t *taskmgr);
 
 isc_result_t

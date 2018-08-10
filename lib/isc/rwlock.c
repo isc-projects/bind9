@@ -14,7 +14,9 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stddef.h>
+#include <inttypes.h>
 
 #include <isc/atomic.h>
 #include <isc/magic.h>
@@ -262,7 +264,7 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 
 static isc_result_t
 isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t cntflag;
+	int32_t cntflag;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -336,7 +338,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		 */
 		rwl->write_granted = 0;
 	} else {
-		isc_int32_t prev_writer;
+		int32_t prev_writer;
 
 		/* enter the waiting queue, and wait for our turn */
 #if defined(ISC_RWLOCK_USESTDATOMIC)
@@ -363,7 +365,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 				(&rwl->cnt_and_flag, &cntflag2, WRITER_ACTIVE,
 				 memory_order_relaxed, memory_order_relaxed);
 #else
-			isc_int32_t cntflag2;
+			int32_t cntflag2;
 			cntflag2 = isc_atomic_cmpxchg(&rwl->cnt_and_flag, 0,
 						      WRITER_ACTIVE);
 #endif
@@ -392,8 +394,8 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t cnt = 0;
-	isc_int32_t max_cnt = rwl->spins * 2 + 10;
+	int32_t cnt = 0;
+	int32_t max_cnt = rwl->spins * 2 + 10;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (max_cnt > RWLOCK_MAX_ADAPTIVE_COUNT)
@@ -416,7 +418,7 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t cntflag;
+	int32_t cntflag;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -533,7 +535,7 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 	}
 #else
 	{
-		isc_int32_t prevcnt;
+		int32_t prevcnt;
 
 		/* Try to acquire write access. */
 		prevcnt = isc_atomic_cmpxchg(&rwl->cnt_and_flag,
@@ -561,7 +563,7 @@ isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
 
 void
 isc_rwlock_downgrade(isc_rwlock_t *rwl) {
-	isc_int32_t prev_readers;
+	int32_t prev_readers;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -602,7 +604,7 @@ isc_rwlock_downgrade(isc_rwlock_t *rwl) {
 
 isc_result_t
 isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t prev_cnt;
+	int32_t prev_cnt;
 
 	REQUIRE(VALID_RWLOCK(rwl));
 
@@ -631,7 +633,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			UNLOCK(&rwl->lock);
 		}
 	} else {
-		isc_boolean_t wakeup_writers = ISC_TRUE;
+		bool wakeup_writers = true;
 
 		/*
 		 * Reset the flag, and (implicitly) tell other writers
@@ -660,7 +662,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			 */
 			LOCK(&rwl->lock);
 			if (rwl->readers_waiting > 0) {
-				wakeup_writers = ISC_FALSE;
+				wakeup_writers = false;
 				BROADCAST(&rwl->readable);
 			}
 			UNLOCK(&rwl->lock);
@@ -686,9 +688,9 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #else /* ISC_RWLOCK_USEATOMIC */
 
 static isc_result_t
-doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
-	isc_boolean_t skip = ISC_FALSE;
-	isc_boolean_t done = ISC_FALSE;
+doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, bool nonblock) {
+	bool skip = false;
+	bool done = false;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(VALID_RWLOCK(rwl));
@@ -702,7 +704,7 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 
 	if (type == isc_rwlocktype_read) {
 		if (rwl->readers_waiting != 0)
-			skip = ISC_TRUE;
+			skip = true;
 		while (!done) {
 			if (!skip &&
 			    ((rwl->active == 0 ||
@@ -713,12 +715,12 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 				rwl->type = isc_rwlocktype_read;
 				rwl->active++;
 				rwl->granted++;
-				done = ISC_TRUE;
+				done = true;
 			} else if (nonblock) {
 				result = ISC_R_LOCKBUSY;
-				done = ISC_TRUE;
+				done = true;
 			} else {
-				skip = ISC_FALSE;
+				skip = false;
 				rwl->readers_waiting++;
 				WAIT(&rwl->readable, &rwl->lock);
 				rwl->readers_waiting--;
@@ -726,18 +728,18 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 		}
 	} else {
 		if (rwl->writers_waiting != 0)
-			skip = ISC_TRUE;
+			skip = true;
 		while (!done) {
 			if (!skip && rwl->active == 0) {
 				rwl->type = isc_rwlocktype_write;
 				rwl->active = 1;
 				rwl->granted++;
-				done = ISC_TRUE;
+				done = true;
 			} else if (nonblock) {
 				result = ISC_R_LOCKBUSY;
-				done = ISC_TRUE;
+				done = true;
 			} else {
-				skip = ISC_FALSE;
+				skip = false;
 				rwl->writers_waiting++;
 				WAIT(&rwl->writeable, &rwl->lock);
 				rwl->writers_waiting--;
@@ -757,8 +759,8 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, isc_boolean_t nonblock) {
 
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	isc_int32_t cnt = 0;
-	isc_int32_t max_cnt = rwl->spins * 2 + 10;
+	int32_t cnt = 0;
+	int32_t max_cnt = rwl->spins * 2 + 10;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (max_cnt > RWLOCK_MAX_ADAPTIVE_COUNT)
@@ -766,13 +768,13 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 	do {
 		if (cnt++ >= max_cnt) {
-			result = doit(rwl, type, ISC_FALSE);
+			result = doit(rwl, type, false);
 			break;
 		}
 #ifdef ISC_PLATFORM_BUSYWAITNOP
 		ISC_PLATFORM_BUSYWAITNOP;
 #endif
-	} while (doit(rwl, type, ISC_TRUE) != ISC_R_SUCCESS);
+	} while (doit(rwl, type, true) != ISC_R_SUCCESS);
 
 	rwl->spins += (cnt - rwl->spins) / 8;
 
@@ -781,7 +783,7 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
-	return (doit(rwl, type, ISC_TRUE));
+	return (doit(rwl, type, true));
 }
 
 isc_result_t

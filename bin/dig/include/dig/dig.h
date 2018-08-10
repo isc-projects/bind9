@@ -14,11 +14,13 @@
 
 /*! \file */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <dns/rdatalist.h>
 
 #include <dst/dst.h>
 
-#include <isc/boolean.h>
 #include <isc/buffer.h>
 #include <isc/bufferlist.h>
 #include <isc/formatcheck.h>
@@ -93,7 +95,7 @@ typedef struct dig_searchlist dig_searchlist_t;
 
 /*% The dig_lookup structure */
 struct dig_lookup {
-	isc_boolean_t
+	bool
 		pending, /*%< Pending a successful answer */
 		waiting_connect,
 		doing_xfr,
@@ -136,9 +138,9 @@ struct dig_lookup {
 		idnin,
 		idnout;
 #ifdef DIG_SIGCHASE
-isc_boolean_t	sigchase;
+bool	sigchase;
 #if DIG_SIGCHASE_TD
-	isc_boolean_t do_topdown,
+	bool do_topdown,
 		trace_root_sigchase,
 		rdtype_sigchaseset,
 		rdclass_sigchaseset;
@@ -157,8 +159,8 @@ isc_boolean_t	sigchase;
 	dns_rdataclass_t rdclass_sigchase;
 #endif
 	dns_rdataclass_t rdclass;
-	isc_boolean_t rdtypeset;
-	isc_boolean_t rdclassset;
+	bool rdtypeset;
+	bool rdclassset;
 	char name_space[BUFSIZE];
 	char oname_space[BUFSIZE];
 	isc_buffer_t namebuf;
@@ -176,16 +178,16 @@ isc_boolean_t	sigchase;
 	dig_serverlist_t my_server_list;
 	dig_searchlist_t *origin;
 	dig_query_t *xfr_q;
-	isc_uint32_t retries;
+	uint32_t retries;
 	int nsfound;
-	isc_uint16_t udpsize;
-	isc_int16_t edns;
-	isc_uint32_t ixfr_serial;
+	uint16_t udpsize;
+	int16_t edns;
+	uint32_t ixfr_serial;
 	isc_buffer_t rdatabuf;
 	char rdatastore[MXNAME];
 	dst_context_t *tsigctx;
 	isc_buffer_t *querysig;
-	isc_uint32_t msgcounter;
+	uint32_t msgcounter;
 	dns_fixedname_t fdomain;
 	isc_sockaddr_t *ecs_addr;
 	char *cookie;
@@ -200,7 +202,7 @@ isc_boolean_t	sigchase;
 /*% The dig_query structure */
 struct dig_query {
 	dig_lookup_t *lookup;
-	isc_boolean_t waiting_connect,
+	bool waiting_connect,
 		pending_free,
 		waiting_senddone,
 		first_pass,
@@ -210,11 +212,11 @@ struct dig_query {
 		recv_made,
 		warn_id,
 		timedout;
-	isc_uint32_t first_rr_serial;
-	isc_uint32_t second_rr_serial;
-	isc_uint32_t msg_count;
-	isc_uint32_t rr_count;
-	isc_boolean_t ixfr_axfr;
+	uint32_t first_rr_serial;
+	uint32_t second_rr_serial;
+	uint32_t msg_count;
+	uint32_t rr_count;
+	bool ixfr_axfr;
 	char *servname;
 	char *userarg;
 	isc_bufferlist_t sendlist,
@@ -232,7 +234,7 @@ struct dig_query {
 	isc_sockaddr_t sockaddr;
 	isc_time_t time_sent;
 	isc_time_t time_recv;
-	isc_uint64_t byte_count;
+	uint64_t byte_count;
 	isc_buffer_t sendbuf;
 	isc_timer_t *timer;
 };
@@ -266,7 +268,7 @@ extern dig_serverlist_t server_list;
 extern dig_searchlistlist_t search_list;
 extern unsigned int extrabytes;
 
-extern isc_boolean_t check_ra, have_ipv4, have_ipv6, specified_source,
+extern bool check_ra, have_ipv4, have_ipv6, specified_source,
 	usesearch, showsearch, qr;
 extern in_port_t port;
 extern unsigned int timeout;
@@ -285,17 +287,17 @@ extern unsigned int digestbits;
 extern char trustedkey[MXNAME];
 #endif
 extern dns_tsigkey_t *tsigkey;
-extern isc_boolean_t validated;
+extern bool validated;
 extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *global_task;
-extern isc_boolean_t free_now;
-extern isc_boolean_t debugging, debugtiming, memdebugging;
-extern isc_boolean_t keep_open;
+extern bool free_now;
+extern bool debugging, debugtiming, memdebugging;
+extern bool keep_open;
 
 extern char *progname;
 extern int tries;
 extern int fatalexit;
-extern isc_boolean_t verbose;
+extern bool verbose;
 #ifdef WITH_IDNKIT
 extern int idnoptions;
 #endif
@@ -310,8 +312,8 @@ int
 getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp);
 
 isc_result_t
-get_reverse(char *reverse, size_t len, char *value, isc_boolean_t ip6_int,
-	    isc_boolean_t strict);
+get_reverse(char *reverse, size_t len, char *value, bool ip6_int,
+	    bool strict);
 
 ISC_PLATFORM_NORETURN_PRE void
 fatal(const char *format, ...)
@@ -323,7 +325,7 @@ debug(const char *format, ...) ISC_FORMAT_PRINTF(1, 2);
 void
 check_result(isc_result_t result, const char *msg);
 
-isc_boolean_t
+bool
 setup_lookup(dig_lookup_t *lookup);
 
 void
@@ -345,14 +347,14 @@ void
 setup_libs(void);
 
 void
-setup_system(isc_boolean_t ipv4only, isc_boolean_t ipv6only);
+setup_system(bool ipv4only, bool ipv6only);
 
 isc_result_t
-parse_uint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+parse_uint(uint32_t *uip, const char *value, uint32_t max,
 	   const char *desc);
 
 isc_result_t
-parse_xint(isc_uint32_t *uip, const char *value, isc_uint32_t max,
+parse_xint(uint32_t *uip, const char *value, uint32_t max,
 	   const char *desc);
 
 isc_result_t
@@ -362,13 +364,13 @@ void
 parse_hmac(const char *hmacstr);
 
 dig_lookup_t *
-requeue_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
+requeue_lookup(dig_lookup_t *lookold, bool servers);
 
 dig_lookup_t *
 make_empty_lookup(void);
 
 dig_lookup_t *
-clone_lookup(dig_lookup_t *lookold, isc_boolean_t servers);
+clone_lookup(dig_lookup_t *lookold, bool servers);
 
 dig_server_t *
 make_server(const char *servname, const char *userarg);
@@ -411,7 +413,7 @@ extern isc_result_t
 #endif
 
 extern isc_result_t
-(*dighost_printmessage)(dig_query_t *query, dns_message_t *msg, isc_boolean_t headers);
+(*dighost_printmessage)(dig_query_t *query, dns_message_t *msg, bool headers);
 /*%<
  * Print the final result of the lookup.
  */
@@ -458,7 +460,7 @@ dig_setup(int argc, char **argv);
  * Call to supply new parameters for the next lookup
  */
 void
-dig_query_setup(isc_boolean_t, isc_boolean_t, int argc, char **argv);
+dig_query_setup(bool, bool, int argc, char **argv);
 
 /*%<
  * set the main application event cycle running

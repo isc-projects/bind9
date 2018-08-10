@@ -41,6 +41,9 @@
  ***	Imports
  ***/
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <dns/types.h>
 
 ISC_LANG_BEGINDECLS
@@ -71,12 +74,12 @@ dns_badcache_destroy(dns_badcache_t **bcp);
 
 void
 dns_badcache_add(dns_badcache_t *bc, dns_name_t *name,
-		 dns_rdatatype_t type, isc_boolean_t update,
-		 isc_uint32_t flags, isc_time_t *expire);
+		 dns_rdatatype_t type, bool update,
+		 uint32_t flags, isc_time_t *expire);
 /*%
  * Adds a badcache entry to the badcache 'bc' for name 'name' and
  * type 'type'.  If an entry already exists, then it will be updated if
- * 'update' is ISC_TRUE.  The entry will be stored with flags 'flags'
+ * 'update' is true.  The entry will be stored with flags 'flags'
  * and expiration date 'expire'.
  *
  * Requires:
@@ -85,15 +88,15 @@ dns_badcache_add(dns_badcache_t *bc, dns_name_t *name,
  * \li	expire != NULL
  */
 
-isc_boolean_t
+bool
 dns_badcache_find(dns_badcache_t *bc, dns_name_t *name,
-		  dns_rdatatype_t type, isc_uint32_t *flagp,
+		  dns_rdatatype_t type, uint32_t *flagp,
 		  isc_time_t *now);
 /*%
- * Returns ISC_TRUE if a record is found in the badcache 'bc' matching
+ * Returns true if a record is found in the badcache 'bc' matching
  * 'name' and 'type', with an expiration date later than 'now'.
  * If 'flagp' is not NULL, then '*flagp' is updated to the flags
- * that were stored in the badcache entry.  Returns ISC_FALSE if
+ * that were stored in the badcache entry.  Returns false if
  * no matching record is found.
  *
  * Requires:

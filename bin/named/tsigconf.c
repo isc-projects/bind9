@@ -14,6 +14,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -43,7 +45,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 	int secretlen = 0;
 	isc_result_t ret;
 	isc_stdtime_t now;
-	isc_uint16_t bits;
+	uint16_t bits;
 
 	for (element = cfg_list_first(list);
 	     element != NULL;
@@ -108,7 +110,7 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 
 		isc_stdtime_get(&now);
 		ret = dns_tsigkey_create(&keyname, alg, secret, secretlen,
-					 ISC_FALSE, NULL, now, now,
+					 false, NULL, now, now,
 					 mctx, ring, &tsigkey);
 		isc_mem_put(mctx, secret, secretalloc);
 		secret = NULL;

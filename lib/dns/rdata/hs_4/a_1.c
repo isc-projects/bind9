@@ -31,7 +31,7 @@ fromtext_hs_a(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 
 	if (getquad(DNS_AS_STR(token), &addr, lexer, callbacks) != 1)
 		RETTOK(DNS_R_BADDOTTEDQUAD);
@@ -122,7 +122,7 @@ compare_hs_a(ARGS_COMPARE) {
 static inline isc_result_t
 fromstruct_hs_a(ARGS_FROMSTRUCT) {
 	dns_rdata_hs_a_t *a = source;
-	isc_uint32_t n;
+	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_a);
 	REQUIRE(rdclass == dns_rdataclass_hs);
@@ -141,7 +141,7 @@ fromstruct_hs_a(ARGS_FROMSTRUCT) {
 static inline isc_result_t
 tostruct_hs_a(ARGS_TOSTRUCT) {
 	dns_rdata_hs_a_t *a = target;
-	isc_uint32_t n;
+	uint32_t n;
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_a);
@@ -192,7 +192,7 @@ digest_hs_a(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_hs_a(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_a);
@@ -203,10 +203,10 @@ checkowner_hs_a(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_hs_a(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_a);
@@ -216,7 +216,7 @@ checknames_hs_a(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

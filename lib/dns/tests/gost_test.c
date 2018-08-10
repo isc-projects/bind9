@@ -190,7 +190,7 @@ ATF_TC_BODY(isc_gost_md, tc) {
 		{ NULL, 0, NULL, 1 }
 	};
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	hash_testcase_t *testcase = testcases;
@@ -200,7 +200,7 @@ ATF_TC_BODY(isc_gost_md, tc) {
 		ATF_REQUIRE(result == ISC_R_SUCCESS);
 		for(i = 0; i < testcase->repeats; i++) {
 			result = isc_gost_update(&gost,
-					(const isc_uint8_t *) testcase->input,
+					(const uint8_t *) testcase->input,
 					testcase->input_len);
 			ATF_REQUIRE(result == ISC_R_SUCCESS);
 		}
@@ -260,7 +260,7 @@ ATF_TC_BODY(isc_gost_private, tc) {
 	int len;
 	unsigned char *q;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* raw parse */
@@ -324,17 +324,17 @@ ATF_TC_BODY(isc_gost_private, tc) {
 	CK_ULONG siglen;
 	pk11_context_t pk11_ctx;
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
 	/* create the private key */
 	memset(&pk11_ctx, 0, sizeof(pk11_ctx));
-	ATF_REQUIRE(pk11_get_session(&pk11_ctx, OP_GOST, ISC_TRUE,
-				     ISC_FALSE, ISC_FALSE, NULL,
+	ATF_REQUIRE(pk11_get_session(&pk11_ctx, OP_GOST, true,
+				     false, false, NULL,
 				     pk11_get_best_token(OP_GOST)) ==
 		    ISC_R_SUCCESS);
 	pk11_ctx.object = CK_INVALID_HANDLE;
-	pk11_ctx.ontoken = ISC_FALSE;
+	pk11_ctx.ontoken = false;
 	ATF_REQUIRE(pkcs_C_CreateObject(pk11_ctx.session, keyTemplate,
 					(CK_ULONG) 9, &pk11_ctx.object) ==
 		    CKR_OK);

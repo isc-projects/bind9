@@ -14,6 +14,8 @@
 #if defined(OPENSSL) && \
     (defined(HAVE_OPENSSL_ED25519) || defined(HAVE_OPENSSL_ED448))
 
+#include <stdbool.h>
+
 #include <isc/entropy.h>
 #include <isc/mem.h>
 #include <isc/safe.h>
@@ -358,21 +360,21 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 openssleddsa_compare(const dst_key_t *key1, const dst_key_t *key2) {
 	int status;
 	EVP_PKEY *pkey1 = key1->keydata.pkey;
 	EVP_PKEY *pkey2 = key2->keydata.pkey;
 
 	if (pkey1 == NULL && pkey2 == NULL)
-		return (ISC_TRUE);
+		return (true);
 	else if (pkey1 == NULL || pkey2 == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	status = EVP_PKEY_cmp(pkey1, pkey2);
 	if (status == 1)
-		return (ISC_TRUE);
-	return (ISC_FALSE);
+		return (true);
+	return (false);
 }
 
 static isc_result_t
@@ -419,23 +421,23 @@ openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	return (ret);
 }
 
-static isc_boolean_t
+static bool
 openssleddsa_isprivate(const dst_key_t *key) {
 	EVP_PKEY *pkey = key->keydata.pkey;
 	int len;
 	unsigned long err;
 
 	if (pkey == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	len = i2d_PrivateKey(pkey, NULL);
 	if (len > 0)
-		return (ISC_TRUE);
+		return (true);
 	/* can check if first error is EC_R_INVALID_PRIVATE_KEY */
 	while ((err = ERR_get_error()) != 0)
 		/**/;
 
-	return (ISC_FALSE);
+	return (false);
 }
 
 static void

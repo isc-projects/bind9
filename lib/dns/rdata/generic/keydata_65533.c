@@ -26,7 +26,7 @@ fromtext_keydata(ARGS_FROMTEXT) {
 	dns_secalg_t alg;
 	dns_secproto_t proto;
 	dns_keyflags_t flags;
-	isc_uint32_t refresh, addhd, removehd;
+	uint32_t refresh, addhd, removehd;
 
 	REQUIRE(type == dns_rdatatype_keydata);
 
@@ -38,37 +38,37 @@ fromtext_keydata(ARGS_FROMTEXT) {
 
 	/* refresh timer */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &refresh));
 	RETERR(uint32_tobuffer(refresh, target));
 
 	/* add hold-down */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &addhd));
 	RETERR(uint32_tobuffer(addhd, target));
 
 	/* remove hold-down */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_time32_fromtext(DNS_AS_STR(token), &removehd));
 	RETERR(uint32_tobuffer(removehd, target));
 
 	/* flags */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_keyflags_fromtext(&flags, &token.value.as_textregion));
 	RETERR(uint16_tobuffer(flags, target));
 
 	/* protocol */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_secproto_fromtext(&proto, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &proto, 1));
 
 	/* algorithm */
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 	RETTOK(dns_secalg_fromtext(&alg, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &alg, 1));
 
@@ -408,7 +408,7 @@ digest_keydata(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_keydata(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_keydata);
@@ -418,10 +418,10 @@ checkowner_keydata(ARGS_CHECKOWNER) {
 	UNUSED(rdclass);
 	UNUSED(wildcard);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_keydata(ARGS_CHECKNAMES) {
 
 	REQUIRE(rdata->type == dns_rdatatype_keydata);
@@ -430,7 +430,7 @@ checknames_keydata(ARGS_CHECKNAMES) {
 	UNUSED(owner);
 	UNUSED(bad);
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

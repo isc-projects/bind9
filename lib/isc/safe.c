@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#include <stdbool.h>
+
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -25,18 +27,18 @@
 #pragma optimize("", off)
 #endif
 
-isc_boolean_t
+bool
 isc_safe_memequal(const void *s1, const void *s2, size_t n) {
-	isc_uint8_t acc = 0;
+	uint8_t acc = 0;
 
 	if (n != 0U) {
-		const isc_uint8_t *p1 = s1, *p2 = s2;
+		const uint8_t *p1 = s1, *p2 = s2;
 
 		do {
 			acc |= *p1++ ^ *p2++;
 		} while (--n != 0U);
 	}
-	return (ISC_TF(acc == 0));
+	return (acc == 0);
 }
 
 

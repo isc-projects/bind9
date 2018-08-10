@@ -14,6 +14,9 @@
  */
 /*! \file */
 #include <config.h>
+
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 
 #include <isc/buffer.h>
@@ -146,7 +149,7 @@ tsig_log(dns_tsigkey_t *key, int level, const char *fmt, ...) {
 	char namestr[DNS_NAME_FORMATSIZE];
 	char creatorstr[DNS_NAME_FORMATSIZE];
 
-	if (isc_log_wouldlog(dns_lctx, level) == ISC_FALSE)
+	if (isc_log_wouldlog(dns_lctx, level) == false)
 		return;
 	if (key != NULL) {
 		dns_name_format(&key->name, namestr, sizeof(namestr));
@@ -181,7 +184,7 @@ remove_fromring(dns_tsigkey_t *tkey) {
 		ISC_LIST_UNLINK(tkey->ring->lru, tkey, link);
 		tkey->ring->generated--;
 	}
-	(void)dns_rbt_deletename(tkey->ring->keys, &tkey->name, ISC_FALSE);
+	(void)dns_rbt_deletename(tkey->ring->keys, &tkey->name, false);
 }
 
 static void
@@ -244,7 +247,7 @@ keyring_add(dns_tsig_keyring_t *ring, dns_name_t *name,
 
 isc_result_t
 dns_tsigkey_createfromkey(dns_name_t *name, dns_name_t *algorithm,
-			  dst_key_t *dstkey, isc_boolean_t generated,
+			  dst_key_t *dstkey, bool generated,
 			  dns_name_t *creator, isc_stdtime_t inception,
 			  isc_stdtime_t expire, isc_mem_t *mctx,
 			  dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
@@ -575,7 +578,7 @@ restore_key(dns_tsig_keyring_t *ring, isc_stdtime_t now, FILE *fp) {
 		return (result);
 
 	result = dns_tsigkey_createfromkey(name, algorithm, dstkey,
-					   ISC_TRUE, creator, inception,
+					   true, creator, inception,
 					   expire, ring->mctx, ring, NULL);
 	if (dstkey != NULL)
 		dst_key_free(&dstkey);
@@ -667,7 +670,7 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
-		   unsigned char *secret, int length, isc_boolean_t generated,
+		   unsigned char *secret, int length, bool generated,
 		   dns_name_t *creator, isc_stdtime_t inception,
 		   isc_stdtime_t expire, isc_mem_t *mctx,
 		   dns_tsig_keyring_t *ring, dns_tsigkey_t **key)
@@ -851,7 +854,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	isc_result_t ret;
 	unsigned char badtimedata[BADTIMELEN];
 	unsigned int sigsize = 0;
-	isc_boolean_t response;
+	bool response;
 
 	REQUIRE(msg != NULL);
 	key = dns_message_gettsigkey(msg);
@@ -906,7 +909,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	{
 		unsigned char header[DNS_MESSAGE_HEADERLEN];
 		isc_buffer_t headerbuf;
-		isc_uint16_t digestbits;
+		uint16_t digestbits;
 
 		/*
 		 * If it is a response, we assume that the request MAC
@@ -915,7 +918,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		 */
 		ret = dst_context_create3(key->key, mctx,
 					  DNS_LOGCATEGORY_DNSSEC,
-					  ISC_TRUE, &ctx);
+					  true, &ctx);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 
@@ -1159,10 +1162,10 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
 	dst_context_t *ctx = NULL;
 	isc_mem_t *mctx;
-	isc_uint16_t addcount, id;
+	uint16_t addcount, id;
 	unsigned int siglen;
 	unsigned int alg;
-	isc_boolean_t response;
+	bool response;
 
 	REQUIRE(source != NULL);
 	REQUIRE(DNS_MESSAGE_VALID(msg));
@@ -1258,7 +1261,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		if (ret != ISC_R_SUCCESS) {
 			msg->tsigstatus = dns_tsigerror_badkey;
 			ret = dns_tsigkey_create(keyname, &tsig.algorithm,
-						 NULL, 0, ISC_FALSE, NULL,
+						 NULL, 0, false, NULL,
 						 now, now,
 						 mctx, NULL, &msg->tsigkey);
 			if (ret != ISC_R_SUCCESS)
@@ -1300,14 +1303,14 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	}
 
 	if (tsig.siglen > 0) {
-		isc_uint16_t addcount_n;
+		uint16_t addcount_n;
 
 		sig_r.base = tsig.signature;
 		sig_r.length = tsig.siglen;
 
 		ret = dst_context_create3(key, mctx,
 					  DNS_LOGCATEGORY_DNSSEC,
-					  ISC_FALSE, &ctx);
+					  false, &ctx);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 
@@ -1339,7 +1342,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 		 */
 		memmove(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
 		addcount_n = ntohs(addcount);
-		addcount = htons((isc_uint16_t)(addcount_n - 1));
+		addcount = htons((uint16_t)(addcount_n - 1));
 		memmove(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 
 		/*
@@ -1455,7 +1458,7 @@ dns_tsig_verify(isc_buffer_t *source, dns_message_t *msg,
 	    alg == DST_ALG_HMACSHA224 || alg == DST_ALG_HMACSHA256 ||
 	    alg == DST_ALG_HMACSHA384 || alg == DST_ALG_HMACSHA512)
 	{
-		isc_uint16_t digestbits = dst_key_getbits(key);
+		uint16_t digestbits = dst_key_getbits(key);
 
 		/*
 		 * XXXRAY: Is this correct? What is the expected
@@ -1518,8 +1521,8 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	dns_tsigkey_t *tsigkey;
 	dst_key_t *key = NULL;
 	unsigned char header[DNS_MESSAGE_HEADERLEN];
-	isc_uint16_t addcount, id;
-	isc_boolean_t has_tsig = ISC_FALSE;
+	uint16_t addcount, id;
+	bool has_tsig = false;
 	isc_mem_t *mctx;
 	unsigned int siglen;
 	unsigned int alg;
@@ -1557,7 +1560,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	 * If there is a TSIG in this message, do some checks.
 	 */
 	if (msg->tsig != NULL) {
-		has_tsig = ISC_TRUE;
+		has_tsig = true;
 
 		keyname = msg->tsigname;
 		ret = dns_rdataset_first(msg->tsig);
@@ -1619,7 +1622,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	if (msg->tsigctx == NULL) {
 		ret = dst_context_create3(key, mctx,
 					  DNS_LOGCATEGORY_DNSSEC,
-					  ISC_FALSE, &msg->tsigctx);
+					  false, &msg->tsigctx);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_querystruct;
 
@@ -1656,11 +1659,11 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 	 * Decrement the additional field counter if necessary.
 	 */
 	if (has_tsig) {
-		isc_uint16_t addcount_n;
+		uint16_t addcount_n;
 
 		memmove(&addcount, &header[DNS_MESSAGE_HEADERLEN - 2], 2);
 		addcount_n = ntohs(addcount);
-		addcount = htons((isc_uint16_t)(addcount_n - 1));
+		addcount = htons((uint16_t)(addcount_n - 1));
 		memmove(&header[DNS_MESSAGE_HEADERLEN - 2], &addcount, 2);
 
 		/*
@@ -1777,7 +1780,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 			alg == DST_ALG_HMACSHA384 ||
 			alg == DST_ALG_HMACSHA512)
 		{
-			isc_uint16_t digestbits = dst_key_getbits(key);
+			uint16_t digestbits = dst_key_getbits(key);
 
 			/*
 			 * XXXRAY: Is this correct? What is the

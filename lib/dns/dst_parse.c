@@ -25,6 +25,9 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/base64.h>
 #include <isc/dir.h>
 #include <isc/file.h>
@@ -184,17 +187,17 @@ find_numericdata(const char *s) {
 }
 
 static int
-check_rsa(const dst_private_t *priv, isc_boolean_t external) {
+check_rsa(const dst_private_t *priv, bool external) {
 	int i, j;
-	isc_boolean_t have[RSA_NTAGS];
-	isc_boolean_t ok;
+	bool have[RSA_NTAGS];
+	bool ok;
 	unsigned int mask;
 
 	if (external)
 		return ((priv->nelements == 0) ? 0 : -1);
 
 	for (i = 0; i < RSA_NTAGS; i++)
-		have[i] = ISC_FALSE;
+		have[i] = false;
 
 	for (j = 0; j < priv->nelements; j++) {
 		for (i = 0; i < RSA_NTAGS; i++)
@@ -202,7 +205,7 @@ check_rsa(const dst_private_t *priv, isc_boolean_t external) {
 				break;
 		if (i == RSA_NTAGS)
 			return (-1);
-		have[i] = ISC_TRUE;
+		have[i] = true;
 	}
 
 	mask = (1ULL << TAG_SHIFT) - 1;
@@ -242,7 +245,7 @@ check_dh(const dst_private_t *priv) {
 
 #ifndef PK11_DSA_DISABLE
 static int
-check_dsa(const dst_private_t *priv, isc_boolean_t external) {
+check_dsa(const dst_private_t *priv, bool external) {
 	int i, j;
 
 	if (external)
@@ -263,7 +266,7 @@ check_dsa(const dst_private_t *priv, isc_boolean_t external) {
 #endif
 
 static int
-check_gost(const dst_private_t *priv, isc_boolean_t external) {
+check_gost(const dst_private_t *priv, bool external) {
 
 	if (external)
 		return ((priv->nelements == 0)? 0 : -1);
@@ -277,24 +280,24 @@ check_gost(const dst_private_t *priv, isc_boolean_t external) {
 }
 
 static int
-check_ecdsa(const dst_private_t *priv, isc_boolean_t external) {
+check_ecdsa(const dst_private_t *priv, bool external) {
 	int i, j;
-	isc_boolean_t have[ECDSA_NTAGS];
-	isc_boolean_t ok;
+	bool have[ECDSA_NTAGS];
+	bool ok;
 	unsigned int mask;
 
 	if (external)
 		return ((priv->nelements == 0) ? 0 : -1);
 
 	for (i = 0; i < ECDSA_NTAGS; i++)
-		have[i] = ISC_FALSE;
+		have[i] = false;
 	for (j = 0; j < priv->nelements; j++) {
 		for (i = 0; i < ECDSA_NTAGS; i++)
 			if (priv->elements[j].tag == TAG(DST_ALG_ECDSA256, i))
 				break;
 		if (i == ECDSA_NTAGS)
 			return (-1);
-		have[i] = ISC_TRUE;
+		have[i] = true;
 	}
 
 	mask = (1ULL << TAG_SHIFT) - 1;
@@ -307,24 +310,24 @@ check_ecdsa(const dst_private_t *priv, isc_boolean_t external) {
 }
 
 static int
-check_eddsa(const dst_private_t *priv, isc_boolean_t external) {
+check_eddsa(const dst_private_t *priv, bool external) {
 	int i, j;
-	isc_boolean_t have[EDDSA_NTAGS];
-	isc_boolean_t ok;
+	bool have[EDDSA_NTAGS];
+	bool ok;
 	unsigned int mask;
 
 	if (external)
 		return ((priv->nelements == 0) ? 0 : -1);
 
 	for (i = 0; i < EDDSA_NTAGS; i++)
-		have[i] = ISC_FALSE;
+		have[i] = false;
 	for (j = 0; j < priv->nelements; j++) {
 		for (i = 0; i < EDDSA_NTAGS; i++)
 			if (priv->elements[j].tag == TAG(DST_ALG_ED25519, i))
 				break;
 		if (i == EDDSA_NTAGS)
 			return (-1);
-		have[i] = ISC_TRUE;
+		have[i] = true;
 	}
 
 	mask = (1ULL << TAG_SHIFT) - 1;
@@ -338,7 +341,7 @@ check_eddsa(const dst_private_t *priv, isc_boolean_t external) {
 
 #ifndef PK11_MD5_DISABLE
 static int
-check_hmac_md5(const dst_private_t *priv, isc_boolean_t old) {
+check_hmac_md5(const dst_private_t *priv, bool old) {
 	int i, j;
 
 	if (priv->nelements != HMACMD5_NTAGS) {
@@ -384,7 +387,7 @@ check_hmac_sha(const dst_private_t *priv, unsigned int ntags,
 
 static int
 check_data(const dst_private_t *priv, const unsigned int alg,
-	   isc_boolean_t old, isc_boolean_t external)
+	   bool old, bool external)
 {
 #ifdef PK11_MD5_DISABLE
 	UNUSED(old);
@@ -461,7 +464,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 	unsigned int opt = ISC_LEXOPT_EOL;
 	isc_stdtime_t when;
 	isc_result_t ret;
-	isc_boolean_t external = ISC_FALSE;
+	bool external = false;
 
 	REQUIRE(priv != NULL);
 
@@ -561,7 +564,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 		}
 
 		if (strcmp(DST_AS_STR(token), "External:") == 0) {
-			external = ISC_TRUE;
+			external = true;
 			goto next;
 		}
 
@@ -638,9 +641,9 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 
 #ifdef PK11_MD5_DISABLE
 	check = check_data(priv, alg == DST_ALG_RSA ? DST_ALG_RSASHA1 : alg,
-			   ISC_TRUE, external);
+			   true, external);
 #else
-	check = check_data(priv, alg, ISC_TRUE, external);
+	check = check_data(priv, alg, true, external);
 #endif
 	if (check < 0) {
 		ret = DST_R_INVALIDPRIVATEKEY;
@@ -672,7 +675,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 	char buffer[MAXFIELDSIZE * 2];
 	isc_fsaccess_t access;
 	isc_stdtime_t when;
-	isc_uint32_t value;
+	uint32_t value;
 	isc_buffer_t b;
 	isc_region_t r;
 	int major, minor;
@@ -681,7 +684,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 	REQUIRE(priv != NULL);
 
-	ret = check_data(priv, dst_key_alg(key), ISC_FALSE, key->external);
+	ret = check_data(priv, dst_key_alg(key), false, key->external);
 	if (ret < 0)
 		return (DST_R_INVALIDPRIVATEKEY);
 	else if (ret != ISC_R_SUCCESS)

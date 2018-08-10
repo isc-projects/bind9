@@ -25,6 +25,8 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
@@ -102,8 +104,8 @@ typedef struct dns_geoip_databases {
 
 ISC_LANG_BEGINDECLS
 
-isc_boolean_t
-dns_geoip_match(const isc_netaddr_t *reqaddr, isc_uint8_t *scope,
+bool
+dns_geoip_match(const isc_netaddr_t *reqaddr, uint8_t *scope,
 		const dns_geoip_databases_t *geoip,
 		const dns_geoip_elem_t *elt);
 

@@ -12,11 +12,13 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <windows.h>
 
 #include <stdio.h>
-#include <string.h>
+#include <inttypes.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include <dns/log.h>
 #include <dns/result.h>
@@ -44,7 +46,7 @@ typedef struct dlopen_data {
 	unsigned int flags;
 	isc_mutex_t lock;
 	int version;
-	isc_boolean_t in_configure;
+	bool in_configure;
 
 	dlz_dlopen_version_t *dlz_version;
 	dlz_dlopen_create_t *dlz_create;
@@ -67,14 +69,14 @@ typedef struct dlopen_data {
 #define MAYBE_LOCK(cd) \
 	do { \
 		if ((cd->flags & DNS_SDLZFLAG_THREADSAFE) == 0 && \
-		    cd->in_configure == ISC_FALSE) \
+		    cd->in_configure == false) \
 			LOCK(&cd->lock); \
 	} while (0)
 
 #define MAYBE_UNLOCK(cd) \
 	do { \
 		if ((cd->flags & DNS_SDLZFLAG_THREADSAFE) == 0 && \
-		    cd->in_configure == ISC_FALSE) \
+		    cd->in_configure == false) \
 			UNLOCK(&cd->lock); \
 	} while (0)
 
@@ -194,7 +196,7 @@ dlopen_dlz_lookup(const char *zone, const char *name, void *driverarg,
  * Load a symbol from the library
  */
 static void *
-dl_load_symbol(dlopen_data_t *cd, const char *symbol, isc_boolean_t mandatory) {
+dl_load_symbol(dlopen_data_t *cd, const char *symbol, bool mandatory) {
 	void *ptr = GetProcAddress(cd->dl_handle, symbol);
 	if (ptr == NULL && mandatory) {
 		dlopen_log(ISC_LOG_ERROR,
@@ -214,7 +216,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	dlopen_data_t *cd;
 	isc_mem_t *mctx = NULL;
 	isc_result_t result = ISC_R_FAILURE;
-	isc_boolean_t triedload = ISC_FALSE;
+	bool triedload = false;
 
 	UNUSED(driverarg);
 
@@ -248,7 +250,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		goto failed;
 	}
 
-	triedload = ISC_TRUE;
+	triedload = true;
 
 	/* Initialize the lock */
 	result = isc_mutex_init(&cd->lock);
@@ -269,13 +271,13 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* Find the symbols */
 	cd->dlz_version = (dlz_dlopen_version_t *)
-		dl_load_symbol(cd, "dlz_version", ISC_TRUE);
+		dl_load_symbol(cd, "dlz_version", true);
 	cd->dlz_create = (dlz_dlopen_create_t *)
-		dl_load_symbol(cd, "dlz_create", ISC_TRUE);
+		dl_load_symbol(cd, "dlz_create", true);
 	cd->dlz_lookup = (dlz_dlopen_lookup_t *)
-		dl_load_symbol(cd, "dlz_lookup", ISC_TRUE);
+		dl_load_symbol(cd, "dlz_lookup", true);
 	cd->dlz_findzonedb = (dlz_dlopen_findzonedb_t *)
-		dl_load_symbol(cd, "dlz_findzonedb", ISC_TRUE);
+		dl_load_symbol(cd, "dlz_findzonedb", true);
 
 	if (cd->dlz_create == NULL ||
 	    cd->dlz_version == NULL ||
@@ -288,27 +290,27 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	cd->dlz_allowzonexfr = (dlz_dlopen_allowzonexfr_t *)
-		dl_load_symbol(cd, "dlz_allowzonexfr", ISC_FALSE);
+		dl_load_symbol(cd, "dlz_allowzonexfr", false);
 	cd->dlz_allnodes = (dlz_dlopen_allnodes_t *)
 		dl_load_symbol(cd, "dlz_allnodes",
-			       ISC_TF(cd->dlz_allowzonexfr != NULL));
+			       (cd->dlz_allowzonexfr != NULL));
 	cd->dlz_authority = (dlz_dlopen_authority_t *)
-		dl_load_symbol(cd, "dlz_authority", ISC_FALSE);
+		dl_load_symbol(cd, "dlz_authority", false);
 	cd->dlz_newversion = (dlz_dlopen_newversion_t *)
-		dl_load_symbol(cd, "dlz_newversion", ISC_FALSE);
+		dl_load_symbol(cd, "dlz_newversion", false);
 	cd->dlz_closeversion = (dlz_dlopen_closeversion_t *)
 		dl_load_symbol(cd, "dlz_closeversion",
-			       ISC_TF(cd->dlz_newversion != NULL));
+			       (cd->dlz_newversion != NULL));
 	cd->dlz_configure = (dlz_dlopen_configure_t *)
-		dl_load_symbol(cd, "dlz_configure", ISC_FALSE);
+		dl_load_symbol(cd, "dlz_configure", false);
 	cd->dlz_ssumatch = (dlz_dlopen_ssumatch_t *)
-		dl_load_symbol(cd, "dlz_ssumatch", ISC_FALSE);
+		dl_load_symbol(cd, "dlz_ssumatch", false);
 	cd->dlz_addrdataset = (dlz_dlopen_addrdataset_t *)
-		dl_load_symbol(cd, "dlz_addrdataset", ISC_FALSE);
+		dl_load_symbol(cd, "dlz_addrdataset", false);
 	cd->dlz_subrdataset = (dlz_dlopen_subrdataset_t *)
-		dl_load_symbol(cd, "dlz_subrdataset", ISC_FALSE);
+		dl_load_symbol(cd, "dlz_subrdataset", false);
 	cd->dlz_delrdataset = (dlz_dlopen_delrdataset_t *)
-		dl_load_symbol(cd, "dlz_delrdataset", ISC_FALSE);
+		dl_load_symbol(cd, "dlz_delrdataset", false);
 
 	/* Check the version of the API is the same */
 	cd->version = cd->dlz_version(&cd->flags);
@@ -420,7 +422,7 @@ dlopen_dlz_newversion(const char *zone, void *driverarg, void *dbdata,
  * Called to end a transaction
  */
 static void
-dlopen_dlz_closeversion(const char *zone, isc_boolean_t commit,
+dlopen_dlz_closeversion(const char *zone, bool commit,
 			void *driverarg, void *dbdata, void **versionp)
 {
 	dlopen_data_t *cd = (dlopen_data_t *) dbdata;
@@ -453,9 +455,9 @@ dlopen_dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 		return (ISC_R_SUCCESS);
 
 	MAYBE_LOCK(cd);
-	cd->in_configure = ISC_TRUE;
+	cd->in_configure = true;
 	result = cd->dlz_configure(view, dlzdb, cd->dbdata);
-	cd->in_configure = ISC_FALSE;
+	cd->in_configure = false;
 	MAYBE_UNLOCK(cd);
 
 	return (result);
@@ -465,18 +467,18 @@ dlopen_dlz_configure(dns_view_t *view, dns_dlzdb_t *dlzdb,
 /*
  * Check for authority to change a name
  */
-static isc_boolean_t
+static bool
 dlopen_dlz_ssumatch(const char *signer, const char *name, const char *tcpaddr,
-		    const char *type, const char *key, isc_uint32_t keydatalen,
+		    const char *type, const char *key, uint32_t keydatalen,
 		    unsigned char *keydata, void *driverarg, void *dbdata)
 {
 	dlopen_data_t *cd = (dlopen_data_t *) dbdata;
-	isc_boolean_t ret;
+	bool ret;
 
 	UNUSED(driverarg);
 
 	if (cd->dlz_ssumatch == NULL)
-		return (ISC_FALSE);
+		return (false);
 
 	MAYBE_LOCK(cd);
 	ret = cd->dlz_ssumatch(signer, name, tcpaddr, type, key, keydatalen,

@@ -271,7 +271,7 @@ static isc_result_t
 add_alias(ns_lwdclient_t *client) {
 	isc_buffer_t b;
 	isc_result_t result;
-	isc_uint16_t naliases;
+	uint16_t naliases;
 
 	b = client->recv_buffer;
 
@@ -279,7 +279,7 @@ add_alias(ns_lwdclient_t *client) {
 	 * Render the new name to the buffer.
 	 */
 	result = dns_name_totext(dns_fixedname_name(&client->target_name),
-				 ISC_TRUE, &client->recv_buffer);
+				 true, &client->recv_buffer);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -318,7 +318,7 @@ store_realname(ns_lwdclient_t *client) {
 	/*
 	 * Render the new name to the buffer.
 	 */
-	result = dns_name_totext(tname, ISC_TRUE, &client->recv_buffer);
+	result = dns_name_totext(tname, true, &client->recv_buffer);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -335,7 +335,7 @@ static void
 process_gabn_finddone(isc_task_t *task, isc_event_t *ev) {
 	ns_lwdclient_t *client = ev->ev_arg;
 	isc_eventtype_t evtype;
-	isc_boolean_t claimed;
+	bool claimed;
 
 	ns_lwdclient_log(50, "find done for task %p, client %p", task, client);
 
@@ -346,15 +346,15 @@ process_gabn_finddone(isc_task_t *task, isc_event_t *ev) {
 	 * No more info to be had?  If so, we have all the good stuff
 	 * right now, so we can render things.
 	 */
-	claimed = ISC_FALSE;
+	claimed = false;
 	if (evtype == DNS_EVENT_ADBNOMOREADDRESSES) {
 		if (NEED_V4(client)) {
 			client->v4find = client->find;
-			claimed = ISC_TRUE;
+			claimed = true;
 		}
 		if (NEED_V6(client)) {
 			client->v6find = client->find;
-			claimed = ISC_TRUE;
+			claimed = true;
 		}
 		if (client->find != NULL) {
 			if (claimed)
@@ -399,7 +399,7 @@ static void
 restart_find(ns_lwdclient_t *client) {
 	unsigned int options;
 	isc_result_t result;
-	isc_boolean_t claimed;
+	bool claimed;
 
 	ns_lwdclient_log(50, "starting find for client %p", client);
 
@@ -464,7 +464,7 @@ restart_find(ns_lwdclient_t *client) {
 		return;
 	}
 
-	claimed = ISC_FALSE;
+	claimed = false;
 
 	/*
 	 * Did we get our answer to V4 addresses?
@@ -473,7 +473,7 @@ restart_find(ns_lwdclient_t *client) {
 	    && ((client->find->query_pending & DNS_ADBFIND_INET) == 0)) {
 		ns_lwdclient_log(50, "client %p ipv4 satisfied by find %p",
 				 client, client->find);
-		claimed = ISC_TRUE;
+		claimed = true;
 		client->v4find = client->find;
 	}
 
@@ -484,7 +484,7 @@ restart_find(ns_lwdclient_t *client) {
 	    && ((client->find->query_pending & DNS_ADBFIND_INET6) == 0)) {
 		ns_lwdclient_log(50, "client %p ipv6 satisfied by find %p",
 				 client, client->find);
-		claimed = ISC_TRUE;
+		claimed = true;
 		client->v6find = client->find;
 	}
 

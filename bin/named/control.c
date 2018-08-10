@@ -14,7 +14,7 @@
 
 #include <config.h>
 
-
+#include <stdbool.h>
 #include <isc/app.h>
 #include <isc/event.h>
 #include <isc/lex.h>
@@ -59,9 +59,9 @@ getcommand(isc_lex_t *lex, char **cmdp) {
 	return (ISC_R_SUCCESS);
 }
 
-static inline isc_boolean_t
+static inline bool
 command_compare(const char *str, const char *command) {
-	return ISC_TF(strcasecmp(str, command) == 0);
+	return (strcasecmp(str, command) == 0);
 }
 
 /*%
@@ -69,7 +69,7 @@ command_compare(const char *str, const char *command) {
  * when a control channel message is received.
  */
 isc_result_t
-ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
+ns_control_docommand(isccc_sexpr_t *message, bool readonly,
 		     isc_buffer_t **text)
 {
 	isccc_sexpr_t *data;
@@ -183,7 +183,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 		 */
 #endif
 		/* Do not flush master files */
-		ns_server_flushonshutdown(ns_g_server, ISC_FALSE);
+		ns_server_flushonshutdown(ns_g_server, false);
 		ns_os_shutdownmsg(cmdline, *text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
@@ -200,7 +200,7 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 		if (ns_smf_got_instance == 1 && ns_smf_chroot == 0)
 			ns_smf_want_disable = 1;
 #endif
-		ns_server_flushonshutdown(ns_g_server, ISC_TRUE);
+		ns_server_flushonshutdown(ns_g_server, true);
 		ns_os_shutdownmsg(cmdline, *text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
@@ -222,9 +222,9 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 	} else if (command_compare(command, NS_COMMAND_FLUSH)) {
 		result = ns_server_flushcache(ns_g_server, lex);
 	} else if (command_compare(command, NS_COMMAND_FLUSHNAME)) {
-		result = ns_server_flushnode(ns_g_server, lex, ISC_FALSE);
+		result = ns_server_flushnode(ns_g_server, lex, false);
 	} else if (command_compare(command, NS_COMMAND_FLUSHTREE)) {
-		result = ns_server_flushnode(ns_g_server, lex, ISC_TRUE);
+		result = ns_server_flushnode(ns_g_server, lex, true);
 	} else if (command_compare(command, NS_COMMAND_STATUS)) {
 		result = ns_server_status(ns_g_server, text);
 	} else if (command_compare(command, NS_COMMAND_TSIGLIST)) {
@@ -232,11 +232,11 @@ ns_control_docommand(isccc_sexpr_t *message, isc_boolean_t readonly,
 	} else if (command_compare(command, NS_COMMAND_TSIGDELETE)) {
 		result = ns_server_tsigdelete(ns_g_server, lex, text);
 	} else if (command_compare(command, NS_COMMAND_FREEZE)) {
-		result = ns_server_freeze(ns_g_server, ISC_TRUE, lex,
+		result = ns_server_freeze(ns_g_server, true, lex,
 					  text);
 	} else if (command_compare(command, NS_COMMAND_UNFREEZE) ||
 		   command_compare(command, NS_COMMAND_THAW)) {
-		result = ns_server_freeze(ns_g_server, ISC_FALSE, lex,
+		result = ns_server_freeze(ns_g_server, false, lex,
 					  text);
 	} else if (command_compare(command, NS_COMMAND_SCAN)) {
 		result = ISC_R_SUCCESS;

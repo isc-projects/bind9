@@ -44,6 +44,8 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
+
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
@@ -74,11 +76,11 @@ ISC_LANG_BEGINDECLS
 struct dns_dispatchevent {
 	ISC_EVENT_COMMON(dns_dispatchevent_t);	/*%< standard event common */
 	isc_result_t		result;		/*%< result code */
-	isc_int32_t		id;		/*%< message id */
+	int32_t		id;		/*%< message id */
 	isc_sockaddr_t		addr;		/*%< address recv'd from */
 	struct in6_pktinfo	pktinfo;	/*%< reply info for v6 */
 	isc_buffer_t	        buffer;		/*%< data buffer */
-	isc_uint32_t		attributes;	/*%< mirrored from socket.h */
+	uint32_t		attributes;	/*%< mirrored from socket.h */
 };
 
 /*%
@@ -377,7 +379,7 @@ dns_dispatch_gettcp(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
 		    isc_sockaddr_t *localaddr, dns_dispatch_t **dispp);
 isc_result_t
 dns_dispatch_gettcp2(dns_dispatchmgr_t *mgr, isc_sockaddr_t *destaddr,
-		     isc_sockaddr_t *localaddr, isc_boolean_t *connected,
+		     isc_sockaddr_t *localaddr, bool *connected,
 		     dns_dispatch_t **dispp);
 /*
  * Attempt to connect to a existing TCP connection (connection completed
@@ -389,19 +391,19 @@ isc_result_t
 dns_dispatch_addresponse3(dns_dispatch_t *disp, unsigned int options,
 			  isc_sockaddr_t *dest, isc_task_t *task,
 			  isc_taskaction_t action, void *arg,
-			  isc_uint16_t *idp, dns_dispentry_t **resp,
+			  uint16_t *idp, dns_dispentry_t **resp,
 			  isc_socketmgr_t *sockmgr);
 
 isc_result_t
 dns_dispatch_addresponse2(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			  isc_task_t *task, isc_taskaction_t action, void *arg,
-			  isc_uint16_t *idp, dns_dispentry_t **resp,
+			  uint16_t *idp, dns_dispentry_t **resp,
 			  isc_socketmgr_t *sockmgr);
 
 isc_result_t
 dns_dispatch_addresponse(dns_dispatch_t *disp, isc_sockaddr_t *dest,
 			 isc_task_t *task, isc_taskaction_t action, void *arg,
-			 isc_uint16_t *idp, dns_dispentry_t **resp);
+			 uint16_t *idp, dns_dispentry_t **resp);
 /*%<
  * Add a response entry for this dispatch.
  *

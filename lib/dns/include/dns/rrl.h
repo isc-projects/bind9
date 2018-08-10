@@ -17,6 +17,9 @@
  * Rate limit DNS responses.
  */
 
+#include <inttypes.h>
+#include <stdbool.h>
+
 #include <isc/lang.h>
 
 #include <dns/fixedname.h>
@@ -86,16 +89,16 @@ typedef enum {
 #define DNS_RRL_MAX_PREFIX  64
 typedef union dns_rrl_key dns_rrl_key_t;
 struct dns__rrl_key {
-	isc_uint32_t	    ip[DNS_RRL_MAX_PREFIX/32];
-	isc_uint32_t	    qname_hash;
+	uint32_t	    ip[DNS_RRL_MAX_PREFIX/32];
+	uint32_t	    qname_hash;
 	dns_rdatatype_t	    qtype;
-	isc_uint8_t         qclass;
+	uint8_t         qclass;
 	unsigned int	    rtype   :4; /* dns_rrl_rtype_t */
 	unsigned int	    ipv6    :1;
 };
 union dns_rrl_key {
 	struct dns__rrl_key s;
-	isc_uint16_t	w[sizeof(struct dns__rrl_key)/sizeof(isc_uint16_t)];
+	uint16_t	w[sizeof(struct dns__rrl_key)/sizeof(uint16_t)];
 };
 
 /*
@@ -202,7 +205,7 @@ struct dns_rrl {
 	isc_mutex_t	lock;
 	isc_mem_t	*mctx;
 
-	isc_boolean_t	log_only;
+	bool	log_only;
 	dns_rrl_rate_t	responses_per_second;
 	dns_rrl_rate_t	referrals_per_second;
 	dns_rrl_rate_t	nodata_per_second;
@@ -237,9 +240,9 @@ struct dns_rrl {
 	isc_stdtime_t	ts_bases[DNS_RRL_TS_BASES];
 
 	int		ipv4_prefixlen;
-	isc_uint32_t	ipv4_mask;
+	uint32_t	ipv4_mask;
 	int		ipv6_prefixlen;
-	isc_uint32_t	ipv6_mask[4];
+	uint32_t	ipv6_mask[4];
 
 	isc_stdtime_t	log_stops_time;
 	dns_rrl_entry_t	*last_logged;
@@ -258,10 +261,10 @@ typedef enum {
 
 dns_rrl_result_t
 dns_rrl(dns_view_t *view,
-	const isc_sockaddr_t *client_addr, isc_boolean_t is_tcp,
+	const isc_sockaddr_t *client_addr, bool is_tcp,
 	dns_rdataclass_t rdclass, dns_rdatatype_t qtype,
 	dns_name_t *qname, isc_result_t resp_result, isc_stdtime_t now,
-	isc_boolean_t wouldlog, char *log_buf, unsigned int log_buf_len);
+	bool wouldlog, char *log_buf, unsigned int log_buf_len);
 
 void
 dns_rrl_view_destroy(dns_view_t *view);

@@ -307,7 +307,7 @@ ns_lwdmanager_create(isc_mem_t *mctx, const cfg_obj_t *lwres,
 
 	RUNTIME_CHECK(isc_mutex_init(&lwresd->lock) == ISC_R_SUCCESS);
 
-	lwresd->shutting_down = ISC_FALSE;
+	lwresd->shutting_down = false;
 
 	viewobj = NULL;
 	(void)cfg_map_get(lwres, "view", &viewobj);
@@ -438,7 +438,7 @@ void
 ns_lwdmanager_detach(ns_lwresd_t **lwresdp) {
 	ns_lwresd_t *lwresd;
 	isc_mem_t *mctx;
-	isc_boolean_t done = ISC_FALSE;
+	bool done = false;
 
 	INSIST(lwresdp != NULL && *lwresdp != NULL);
 	INSIST(VALID_LWRESD(*lwresdp));
@@ -450,7 +450,7 @@ ns_lwdmanager_detach(ns_lwresd_t **lwresdp) {
 	INSIST(lwresd->refs > 0);
 	lwresd->refs--;
 	if (lwresd->refs == 0)
-		done = ISC_TRUE;
+		done = true;
 	UNLOCK(&lwresd->lock);
 
 	if (!done)
@@ -487,7 +487,7 @@ void
 ns_lwreslistener_detach(ns_lwreslistener_t **listenerp) {
 	ns_lwreslistener_t *listener;
 	isc_mem_t *mctx;
-	isc_boolean_t done = ISC_FALSE;
+	bool done = false;
 
 	INSIST(listenerp != NULL && *listenerp != NULL);
 	INSIST(VALID_LWRESLISTENER(*listenerp));
@@ -498,7 +498,7 @@ ns_lwreslistener_detach(ns_lwreslistener_t **listenerp) {
 	INSIST(listener->refs > 0);
 	listener->refs--;
 	if (listener->refs == 0)
-		done = ISC_TRUE;
+		done = true;
 	UNLOCK(&listener->lock);
 
 	if (!done)
@@ -785,7 +785,7 @@ ns_lwresd_configure(isc_mem_t *mctx, const cfg_obj_t *config) {
 	char socktext[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t *addrs = NULL;
 	ns_lwresd_t *lwresd = NULL;
-	isc_uint32_t count = 0;
+	uint32_t count = 0;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(config != NULL);
@@ -831,7 +831,7 @@ ns_lwresd_configure(isc_mem_t *mctx, const cfg_obj_t *config) {
 			CHECK(configure_listener(&address, lwresd, mctx,
 						 &newlisteners));
 		} else {
-			isc_uint32_t i;
+			uint32_t i;
 
 			CHECK(ns_config_getiplist(config, listenerslist,
 						  port, mctx, &addrs, NULL,

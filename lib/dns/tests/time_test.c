@@ -16,6 +16,7 @@
 
 #include <atf-c.h>
 
+#include <inttypes.h>
 #include <unistd.h>
 
 #include <dns/time.h>
@@ -35,15 +36,15 @@ ATF_TC_HEAD(epoch_minus_one, tc) {
 }
 ATF_TC_BODY(epoch_minus_one, tc) {
 	const char *test_text = "19691231235959";
-	const isc_uint32_t test_time = 0xffffffff;
+	const uint32_t test_time = 0xffffffff;
 	isc_result_t result;
 	isc_buffer_t target;
-	isc_uint32_t when;
+	uint32_t when;
 	char buf[128];
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -63,15 +64,15 @@ ATF_TC_HEAD(epoch, tc) {
 }
 ATF_TC_BODY(epoch, tc) {
 	const char *test_text = "19700101000000";
-	const isc_uint32_t test_time = 0x00000000;
+	const uint32_t test_time = 0x00000000;
 	isc_result_t result;
 	isc_buffer_t target;
-	isc_uint32_t when;
+	uint32_t when;
 	char buf[128];
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -91,15 +92,15 @@ ATF_TC_HEAD(half_maxint, tc) {
 }
 ATF_TC_BODY(half_maxint, tc) {
 	const char *test_text = "20380119031407";
-	const isc_uint32_t test_time = 0x7fffffff;
+	const uint32_t test_time = 0x7fffffff;
 	isc_result_t result;
 	isc_buffer_t target;
-	isc_uint32_t when;
+	uint32_t when;
 	char buf[128];
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -119,15 +120,15 @@ ATF_TC_HEAD(half_plus_one, tc) {
 }
 ATF_TC_BODY(half_plus_one, tc) {
 	const char *test_text = "20380119031408";
-	const isc_uint32_t test_time = 0x80000000;
+	const uint32_t test_time = 0x80000000;
 	isc_result_t result;
 	isc_buffer_t target;
-	isc_uint32_t when;
+	uint32_t when;
 	char buf[128];
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -148,14 +149,14 @@ ATF_TC_HEAD(fifty_before, tc) {
 ATF_TC_BODY(fifty_before, tc) {
 	isc_result_t result;
 	const char *test_text = "19610307130000";
-	const isc_uint32_t test_time = 0xef68f5d0;
+	const uint32_t test_time = 0xef68f5d0;
 	isc_buffer_t target;
-	isc_uint32_t when;
+	uint32_t when;
 	char buf[128];
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));
@@ -175,15 +176,15 @@ ATF_TC_HEAD(some_ago, tc) {
 }
 ATF_TC_BODY(some_ago, tc) {
 	const char *test_text = "20110307130000";
-	const isc_uint32_t test_time = 0x4d74d6d0;
+	const uint32_t test_time = 0x4d74d6d0;
 	isc_result_t result;
 	isc_buffer_t target;
-	isc_uint32_t when;
+	uint32_t when;
 	char buf[128];
 
 	UNUSED(tc);
 
-	result = dns_test_begin(NULL, ISC_FALSE);
+	result = dns_test_begin(NULL, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	memset(buf, 0, sizeof(buf));
 	isc_buffer_init(&target, buf, sizeof(buf));

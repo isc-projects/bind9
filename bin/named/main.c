@@ -14,6 +14,8 @@
 #include <config.h>
 
 #include <ctype.h>
+#include <inttypes.h>
+#include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -111,7 +113,7 @@ LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_hour;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_day;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_month;
 
-static isc_boolean_t	want_stats = ISC_FALSE;
+static bool	want_stats = false;
 static char		program_name[ISC_DIR_NAMEMAX] = "named";
 static char		absolute_conffile[ISC_DIR_PATHMAX];
 static char		saved_command_line[512];
@@ -337,7 +339,7 @@ save_command_line(int argc, char *argv[]) {
 	char *dst;
 	char *eob;
 	const char truncated[] = "...";
-	isc_boolean_t quoted = ISC_FALSE;
+	bool quoted = false;
 
 	dst = saved_command_line;
 	eob = saved_command_line + sizeof(saved_command_line);
@@ -357,10 +359,10 @@ save_command_line(int argc, char *argv[]) {
 			    *src == '-' || *src == '_' ||
 			    *src == '.' || *src == '/') {
 				*dst++ = *src++;
-				quoted = ISC_FALSE;
+				quoted = false;
 			} else {
 				*dst++ = '\\';
-				quoted = ISC_TRUE;
+				quoted = true;
 			}
 		}
 	}
@@ -403,7 +405,7 @@ static struct flag_def {
 
 static void
 set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
-	isc_boolean_t clear = ISC_FALSE;
+	bool clear = false;
 
 	for (;;) {
 		const struct flag_def *def;
@@ -416,7 +418,7 @@ set_flags(const char *arg, struct flag_def *defs, unsigned int *ret) {
 			if (arglen == (int)strlen(def->name) &&
 			    memcmp(arg, def->name, arglen) == 0) {
 				if (def->value == 0)
-					clear = ISC_TRUE;
+					clear = true;
 				*ret |= def->value;
 				goto found;
 			}
@@ -470,29 +472,29 @@ parse_T_opt(char *option) {
 	 * 	       expected and assert otherwise.
 	 */
 	if (!strcmp(option, "clienttest")) {
-		ns_g_clienttest = ISC_TRUE;
+		ns_g_clienttest = true;
 	} else if (!strncmp(option, "delay=", 6)) {
 		ns_g_delay = atoi(option + 6);
 	} else if (!strcmp(option, "dropedns")) {
-		ns_g_dropedns = ISC_TRUE;
+		ns_g_dropedns = true;
 	} else if (!strncmp(option, "dscp=", 5)) {
 		isc_dscp_check_value = atoi(option + 5);
 	} else if (!strcmp(option, "fixedlocal")) {
-		ns_g_fixedlocal = ISC_TRUE;
+		ns_g_fixedlocal = true;
 	} else if (!strcmp(option, "keepstderr")) {
-		ns_g_keepstderr = ISC_TRUE;
+		ns_g_keepstderr = true;
 	} else if (!strcmp(option, "noaa")) {
-		ns_g_noaa = ISC_TRUE;
+		ns_g_noaa = true;
 	} else if (!strcmp(option, "noedns")) {
-		ns_g_noedns = ISC_TRUE;
+		ns_g_noedns = true;
 	} else if (!strcmp(option, "nonearest")) {
-		ns_g_nonearest = ISC_TRUE;
+		ns_g_nonearest = true;
 	} else if (!strcmp(option, "nosoa")) {
-		ns_g_nosoa = ISC_TRUE;
+		ns_g_nosoa = true;
 	} else if (!strcmp(option, "nosyslog")) {
-		ns_g_nosyslog = ISC_TRUE;
+		ns_g_nosyslog = true;
 	} else if (!strcmp(option, "notcp")) {
-		ns_g_notcp = ISC_TRUE;
+		ns_g_notcp = true;
 	} else if (!strcmp(option, "maxudp512")) {
 		maxudp = 512;
 	} else if (!strcmp(option, "maxudp1460")) {
@@ -532,7 +534,7 @@ parse_T_opt(char *option) {
 			ns_main_earlyfatal("bad mkeytimer");
 		}
 	} else if (!strcmp(option, "sigvalinsecs")) {
-		ns_g_sigvalinsecs = ISC_TRUE;
+		ns_g_sigvalinsecs = true;
 	} else if (!strncmp(option, "tat=", 4)) {
 		ns_g_tat_interval = atoi(option + 4);
 	} else {
@@ -552,7 +554,7 @@ parse_command_line(int argc, char *argv[]) {
 	 * NS_MAIN_ARGS is defined in main.h, so that it can be used
 	 * both by named and by ntservice hooks.
 	 */
-	isc_commandline_errprint = ISC_FALSE;
+	isc_commandline_errprint = false;
 	while ((ch = isc_commandline_parse(argc, argv, NS_MAIN_ARGS)) != -1) {
 		switch (ch) {
 		case '4':
@@ -561,7 +563,7 @@ parse_command_line(int argc, char *argv[]) {
 			if (isc_net_probeipv4() != ISC_R_SUCCESS)
 				ns_main_earlyfatal("IPv4 not supported by OS");
 			isc_net_disableipv6();
-			ns_g_disable6 = ISC_TRUE;
+			ns_g_disable6 = true;
 			break;
 		case '6':
 			if (ns_g_disable6)
@@ -569,7 +571,7 @@ parse_command_line(int argc, char *argv[]) {
 			if (isc_net_probeipv6() != ISC_R_SUCCESS)
 				ns_main_earlyfatal("IPv6 not supported by OS");
 			isc_net_disableipv4();
-			ns_g_disable4 = ISC_TRUE;
+			ns_g_disable4 = true;
 			break;
 		case 'A':
 			parse_fuzz_arg();
@@ -579,13 +581,13 @@ parse_command_line(int argc, char *argv[]) {
 			lwresd_g_conffile = isc_commandline_argument;
 			if (lwresd_g_useresolvconf)
 				ns_main_earlyfatal("cannot specify -c and -C");
-			ns_g_conffileset = ISC_TRUE;
+			ns_g_conffileset = true;
 			break;
 		case 'C':
 			lwresd_g_resolvconffile = isc_commandline_argument;
 			if (ns_g_conffileset)
 				ns_main_earlyfatal("cannot specify -c and -C");
-			lwresd_g_useresolvconf = ISC_TRUE;
+			lwresd_g_useresolvconf = true;
 			break;
 		case 'd':
 			ns_g_debuglevel = parse_int(isc_commandline_argument,
@@ -598,18 +600,18 @@ parse_command_line(int argc, char *argv[]) {
 			ns_g_engine = isc_commandline_argument;
 			break;
 		case 'f':
-			ns_g_foreground = ISC_TRUE;
+			ns_g_foreground = true;
 			break;
 		case 'g':
-			ns_g_foreground = ISC_TRUE;
-			ns_g_logstderr = ISC_TRUE;
+			ns_g_foreground = true;
+			ns_g_logstderr = true;
 			break;
 		/* XXXBEW -i should be removed */
 		case 'i':
 			lwresd_g_defaultpidfile = isc_commandline_argument;
 			break;
 		case 'l':
-			ns_g_lwresdonly = ISC_TRUE;
+			ns_g_lwresdonly = true;
 			break;
 		case 'L':
 			ns_g_logfile = isc_commandline_argument;
@@ -646,7 +648,7 @@ parse_command_line(int argc, char *argv[]) {
 			break;
 		case 's':
 			/* XXXRTH temporary syntax */
-			want_stats = ISC_TRUE;
+			want_stats = true;
 			break;
 		case 'S':
 			maxsocks = parse_int(isc_commandline_argument,
@@ -738,7 +740,7 @@ parse_command_line(int argc, char *argv[]) {
 			/* Obsolete. No longer in use. Ignore. */
 			break;
 		case 'X':
-			ns_g_forcelock = ISC_TRUE;
+			ns_g_forcelock = true;
 			if (strcasecmp(isc_commandline_argument, "none") != 0)
 				ns_g_defaultlockfile = isc_commandline_argument;
 			else
@@ -1037,7 +1039,7 @@ setup(void) {
 	 */
 	ns_os_minprivs();
 
-	result = ns_log_init(ISC_TF(ns_g_username != NULL));
+	result = ns_log_init((ns_g_username != NULL));
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("ns_log_init() failed: %s",
 				   isc_result_totext(result));
@@ -1201,8 +1203,8 @@ setup(void) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 			      "adjusted limit on open files from "
-			      "%" ISC_PRINT_QUADFORMAT "u to "
-			      "%" ISC_PRINT_QUADFORMAT "u",
+			      "%" PRIu64 " to "
+			      "%" PRIu64,
 			      old_openfiles, ns_g_initopenfiles);
 	}
 
@@ -1419,7 +1421,7 @@ main(int argc, char *argv[]) {
 		ns_main_earlyfatal("program name too long");
 
 	if (strcmp(program_name, "lwresd") == 0)
-		ns_g_lwresdonly = ISC_TRUE;
+		ns_g_lwresdonly = true;
 
 	if (result != ISC_R_SUCCESS)
 		ns_main_earlyfatal("failed to build internal symbol table");

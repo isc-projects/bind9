@@ -33,7 +33,7 @@ fromtext_ch_a(ARGS_FROMTEXT) {
 	UNUSED(callbacks);
 
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
-				      ISC_FALSE));
+				      false));
 
 	/* get domain name */
 	dns_name_init(&name, NULL);
@@ -43,8 +43,8 @@ fromtext_ch_a(ARGS_FROMTEXT) {
 	RETTOK(dns_name_fromtext(&name, &buffer, origin, options, target));
 	if ((options & DNS_RDATA_CHECKNAMES) != 0 &&
 	    (options & DNS_RDATA_CHECKREVERSE) != 0) {
-		isc_boolean_t ok;
-		ok = dns_name_ishostname(&name, ISC_FALSE);
+		bool ok;
+		ok = dns_name_ishostname(&name, false);
 		if (!ok && (options & DNS_RDATA_CHECKNAMESFAIL) != 0)
 			RETTOK(DNS_R_BADNAME);
 		if (!ok && callbacks != NULL)
@@ -52,7 +52,7 @@ fromtext_ch_a(ARGS_FROMTEXT) {
 	}
 
 	/* 16-bit octal address */
-	RETERR(isc_lex_getoctaltoken(lexer, &token, ISC_FALSE));
+	RETERR(isc_lex_getoctaltoken(lexer, &token, false));
 	if (token.value.as_ulong > 0xffffU)
 		RETTOK(ISC_R_RANGE);
 	return (uint16_tobuffer(token.value.as_ulong, target));
@@ -63,9 +63,9 @@ totext_ch_a(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
 	dns_name_t prefix;
-	isc_boolean_t sub;
+	bool sub;
 	char buf[sizeof("0177777")];
-	isc_uint16_t addr;
+	uint16_t addr;
 
 	REQUIRE(rdata->type == dns_rdatatype_a);
 	REQUIRE(rdata->rdclass == dns_rdataclass_ch); /* 3 */
@@ -274,7 +274,7 @@ digest_ch_a(ARGS_DIGEST) {
 	return ((digest)(arg, &r));
 }
 
-static inline isc_boolean_t
+static inline bool
 checkowner_ch_a(ARGS_CHECKOWNER) {
 
 	REQUIRE(type == dns_rdatatype_a);
@@ -285,7 +285,7 @@ checkowner_ch_a(ARGS_CHECKOWNER) {
 	return (dns_name_ishostname(name, wildcard));
 }
 
-static inline isc_boolean_t
+static inline bool
 checknames_ch_a(ARGS_CHECKNAMES) {
 	isc_region_t region;
 	dns_name_t name;
@@ -298,13 +298,13 @@ checknames_ch_a(ARGS_CHECKNAMES) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
-	if (!dns_name_ishostname(&name, ISC_FALSE)) {
+	if (!dns_name_ishostname(&name, false)) {
 		if (bad != NULL)
 			dns_name_clone(&name, bad);
-		return (ISC_FALSE);
+		return (false);
 	}
 
-	return (ISC_TRUE);
+	return (true);
 }
 
 static inline int

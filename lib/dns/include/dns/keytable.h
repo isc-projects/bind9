@@ -34,6 +34,8 @@
  *\li	No anticipated impact.
  */
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/refcount.h>
@@ -103,7 +105,7 @@ dns_keytable_detach(dns_keytable_t **keytablep);
  */
 
 isc_result_t
-dns_keytable_add(dns_keytable_t *keytable, isc_boolean_t managed,
+dns_keytable_add(dns_keytable_t *keytable, bool managed,
 		 dst_key_t **keyp);
 /*%<
  * Add '*keyp' to 'keytable' (using the name in '*keyp').
@@ -352,7 +354,7 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable,
 
 isc_result_t
 dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
-			    dns_name_t *foundname, isc_boolean_t *wantdnssecp);
+			    dns_name_t *foundname, bool *wantdnssecp);
 /*%<
  * Is 'name' at or beneath a trusted key?
  *
@@ -364,11 +366,11 @@ dns_keytable_issecuredomain(dns_keytable_t *keytable, dns_name_t *name,
  *
  *\li	'foundanme' is NULL or is a pointer to an initialized dns_name_t
  *
- *\li	'*wantsdnssecp' is a valid isc_boolean_t.
+ *\li	'*wantsdnssecp' is a valid bool.
 
  * Ensures:
  *
- *\li	On success, *wantsdnssecp will be ISC_TRUE if and only if 'name'
+ *\li	On success, *wantsdnssecp will be true if and only if 'name'
  *	is at or beneath a trusted key.  If 'foundname' is not NULL, then
  *	it will be updated to contain the name of the closest enclosing
  *	trust anchor.
@@ -398,7 +400,7 @@ dns_keynode_key(dns_keynode_t *keynode);
  * Get the DST key associated with keynode.
  */
 
-isc_boolean_t
+bool
 dns_keynode_managed(dns_keynode_t *keynode);
 /*%<
  * Is this flagged as a managed key?

@@ -33,7 +33,7 @@ struct ns_lwresd {
 	unsigned int ntasks;
 	unsigned int nclients;
 	isc_mem_t *mctx;
-	isc_boolean_t shutting_down;
+	bool shutting_down;
 	unsigned int refs;
 };
 

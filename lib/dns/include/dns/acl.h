@@ -27,6 +27,8 @@
  *** Imports
  ***/
 
+#include <stdbool.h>
+
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
@@ -68,7 +70,7 @@ struct dns_aclipprefix {
 
 struct dns_aclelement {
 	dns_aclelementtype_t	type;
-	isc_boolean_t		negative;
+	bool		negative;
 	dns_name_t		keyname;
 #ifdef HAVE_GEOIP
 	dns_geoip_elem_t	geoip_elem;
@@ -84,7 +86,7 @@ struct dns_acl {
 	dns_iptable_t		*iptable;
 #define node_count		iptable->radix->num_added_node
 	dns_aclelement_t	*elements;
-	isc_boolean_t 		has_negatives;
+	bool 		has_negatives;
 	unsigned int 		alloc;		/*%< Elements allocated */
 	unsigned int 		length;		/*%< Elements initialized */
 	char 			*name;		/*%< Temporary use only */
@@ -94,10 +96,10 @@ struct dns_acl {
 struct dns_aclenv {
 	dns_acl_t *localhost;
 	dns_acl_t *localnets;
-	isc_boolean_t match_mapped;
+	bool match_mapped;
 #ifdef HAVE_GEOIP
 	dns_geoip_databases_t *geoip;
-	isc_boolean_t geoip_use_ecs;
+	bool geoip_use_ecs;
 #endif
 };
 
@@ -130,20 +132,20 @@ dns_acl_none(isc_mem_t *mctx, dns_acl_t **target);
  * Create a new ACL that matches nothing.
  */
 
-isc_boolean_t
+bool
 dns_acl_isany(dns_acl_t *acl);
 /*%<
  * Test whether ACL is set to "{ any; }"
  */
 
-isc_boolean_t
+bool
 dns_acl_isnone(dns_acl_t *acl);
 /*%<
  * Test whether ACL is set to "{ none; }"
  */
 
 isc_result_t
-dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, isc_boolean_t pos);
+dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos);
 /*%<
  * Merge the contents of one ACL into another.  Call dns_iptable_merge()
  * for the IP tables, then concatenate the element arrays.
@@ -177,15 +179,15 @@ dns_acl_detach(dns_acl_t **aclp);
  *\li	'*aclp' is not linked on final detach.
  */
 
-isc_boolean_t
+bool
 dns_acl_isinsecure(const dns_acl_t *a);
 /*%<
- * Return #ISC_TRUE iff the acl 'a' is considered insecure, that is,
+ * Return #true iff the acl 'a' is considered insecure, that is,
  * if it contains IP addresses other than those of the local host.
  * This is intended for applications such as printing warning
  * messages for suspect ACLs; it is not intended for making access
  * control decisions.  We make no guarantee that an ACL for which
- * this function returns #ISC_FALSE is safe.
+ * this function returns #false is safe.
  */
 
 isc_result_t
@@ -212,8 +214,8 @@ isc_result_t
 dns_acl_match2(const isc_netaddr_t *reqaddr,
 	       const dns_name_t *reqsigner,
 	       const isc_netaddr_t *ecs,
-	       isc_uint8_t ecslen,
-	       isc_uint8_t *scope,
+	       uint8_t ecslen,
+	       uint8_t *scope,
 	       const dns_acl_t *acl,
 	       const dns_aclenv_t *env,
 	       int *match,
@@ -249,25 +251,25 @@ dns_acl_match2(const isc_netaddr_t *reqaddr,
  *\li	#ISC_R_SUCCESS		Always succeeds.
  */
 
-isc_boolean_t
+bool
 dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		     const dns_name_t *reqsigner,
 		     const dns_aclelement_t *e,
 		     const dns_aclenv_t *env,
 		     const dns_aclelement_t **matchelt);
 
-isc_boolean_t
+bool
 dns_aclelement_match2(const isc_netaddr_t *reqaddr,
 		      const dns_name_t *reqsigner,
 		      const isc_netaddr_t *ecs,
-		      isc_uint8_t ecslen,
-		      isc_uint8_t *scope,
+		      uint8_t ecslen,
+		      uint8_t *scope,
 		      const dns_aclelement_t *e,
 		      const dns_aclenv_t *env,
 		      const dns_aclelement_t **matchelt);
 /*%<
  * Like dns_acl_match, but matches against the single ACL element 'e'
- * rather than a complete ACL, and returns ISC_TRUE iff it matched.
+ * rather than a complete ACL, and returns true iff it matched.
  *
  * To determine whether the match was positive or negative, the
  * caller should examine e->negative.  Since the element 'e' may be

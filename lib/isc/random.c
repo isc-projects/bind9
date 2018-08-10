@@ -34,6 +34,7 @@
 
 #include <config.h>
 
+#include <stdbool.h>
 #include <stdlib.h>
 #include <time.h>		/* Required for time(). */
 #ifdef HAVE_SYS_TYPES_H
@@ -69,7 +70,7 @@ struct isc_rng {
 	unsigned int	magic;
 	isc_mem_t	*mctx;
 	chacha_ctx	cpctx;
-	isc_uint8_t	buffer[CHACHA_BUFFERSIZE];
+	uint8_t	buffer[CHACHA_BUFFERSIZE];
 	size_t		have;
 	unsigned int	references;
 	int		count;
@@ -100,7 +101,7 @@ initialize(void) {
 }
 
 void
-isc_random_seed(isc_uint32_t seed) {
+isc_random_seed(uint32_t seed) {
 	initialize();
 
 #ifndef HAVE_ARC4RANDOM
@@ -110,7 +111,7 @@ isc_random_seed(isc_uint32_t seed) {
 	UNUSED(seed);
 	arc4random_stir();
 #elif defined(HAVE_ARC4RANDOM_ADDRANDOM)
-	arc4random_addrandom((u_char *) &seed, sizeof(isc_uint32_t));
+	arc4random_addrandom((u_char *) &seed, sizeof(uint32_t));
 #else
        /*
 	* If arc4random() is available and no corresponding seeding
@@ -124,7 +125,7 @@ isc_random_seed(isc_uint32_t seed) {
 }
 
 void
-isc_random_get(isc_uint32_t *val) {
+isc_random_get(uint32_t *val) {
 	REQUIRE(val != NULL);
 
 	initialize();
@@ -150,9 +151,9 @@ isc_random_get(isc_uint32_t *val) {
 #endif
 }
 
-isc_uint32_t
-isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter) {
-	isc_uint32_t rnd;
+uint32_t
+isc_random_jitter(uint32_t max, uint32_t jitter) {
+	uint32_t rnd;
 
 	REQUIRE(jitter < max || (jitter == 0 && max == 0));
 
@@ -164,7 +165,7 @@ isc_random_jitter(isc_uint32_t max, isc_uint32_t jitter) {
 }
 
 static void
-chacha_reinit(isc_rng_t *rng, isc_uint8_t *buffer, size_t n) {
+chacha_reinit(isc_rng_t *rng, uint8_t *buffer, size_t n) {
 	REQUIRE(rng != NULL);
 
 	if (n < CHACHA_KEYSIZE + CHACHA_IVSIZE)
@@ -178,7 +179,7 @@ isc_result_t
 isc_rng_create(isc_mem_t *mctx, isc_entropy_t *entropy, isc_rng_t **rngp) {
 	union {
 		unsigned char rnd[128];
-		isc_uint32_t rnd32[32];
+		uint32_t rnd32[32];
 	} rnd;
 	isc_result_t result;
 	isc_rng_t *rng;
@@ -256,7 +257,7 @@ destroy(isc_rng_t *rng) {
 void
 isc_rng_detach(isc_rng_t **rngp) {
 	isc_rng_t *rng;
-	isc_boolean_t dest = ISC_FALSE;
+	bool dest = false;
 
 	REQUIRE(rngp != NULL && VALID_RNG(*rngp));
 
@@ -268,7 +269,7 @@ isc_rng_detach(isc_rng_t **rngp) {
 	INSIST(rng->references > 0);
 	rng->references--;
 	if (rng->references == 0)
-		dest = ISC_TRUE;
+		dest = true;
 	UNLOCK(&rng->lock);
 
 	if (dest)
@@ -303,9 +304,9 @@ chacha_rekey(isc_rng_t *rng, u_char *dat, size_t datlen) {
 	rng->have = CHACHA_BUFFERSIZE - CHACHA_KEYSIZE - CHACHA_IVSIZE;
 }
 
-static inline isc_uint16_t
+static inline uint16_t
 chacha_getuint16(isc_rng_t *rng) {
-	isc_uint16_t val;
+	uint16_t val;
 
 	REQUIRE(VALID_RNG(rng));
 
@@ -326,7 +327,7 @@ static void
 chacha_stir(isc_rng_t *rng) {
 	union {
 		unsigned char rnd[128];
-		isc_uint32_t rnd32[32];
+		uint32_t rnd32[32];
 	} rnd;
 	isc_result_t result;
 
@@ -361,15 +362,15 @@ chacha_stir(isc_rng_t *rng) {
 	rng->count = 1600000;
 }
 
-isc_uint16_t
+uint16_t
 isc_rng_random(isc_rng_t *rng) {
-	isc_uint16_t result;
+	uint16_t result;
 
 	REQUIRE(VALID_RNG(rng));
 
 	LOCK(&rng->lock);
 
-	rng->count -= sizeof(isc_uint16_t);
+	rng->count -= sizeof(uint16_t);
 	if (rng->count <= 0)
 		chacha_stir(rng);
 	result = chacha_getuint16(rng);
@@ -379,9 +380,9 @@ isc_rng_random(isc_rng_t *rng) {
 	return (result);
 }
 
-isc_uint16_t
-isc_rng_uniformrandom(isc_rng_t *rng, isc_uint16_t upper_bound) {
-	isc_uint16_t min, r;
+uint16_t
+isc_rng_uniformrandom(isc_rng_t *rng, uint16_t upper_bound) {
+	uint16_t min, r;
 
 	REQUIRE(VALID_RNG(rng));
 
@@ -396,7 +397,7 @@ isc_rng_uniformrandom(isc_rng_t *rng, isc_uint16_t upper_bound) {
 	if (upper_bound > 0x8000)
 		min = 1 + ~upper_bound; /* 0x8000 - upper_bound */
 	else
-		min = (isc_uint16_t)(0x10000 % (isc_uint32_t)upper_bound);
+		min = (uint16_t)(0x10000 % (uint32_t)upper_bound);
 
 	/*
 	 * This could theoretically loop forever but each retry has

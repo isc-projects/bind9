@@ -23,9 +23,6 @@
 
 #include "dnstest.h"
 
-#ifdef HAVE_INTTYPES_H
-#include <inttypes.h> /* uintptr_t */
-#endif
 
 static int debug = 0;
 
@@ -68,12 +65,12 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	unsigned char tsigbuf[1024];
 	unsigned int count;
 	unsigned int sigsize = 0;
-	isc_boolean_t invalidate_ctx = ISC_FALSE;
+	bool invalidate_ctx = false;
 
 	memset(&tsig, 0, sizeof(tsig));
 
 	CHECK(dns_compress_init(&cctx, -1, mctx));
-	invalidate_ctx = ISC_TRUE;
+	invalidate_ctx = true;
 
 	tsig.common.rdclass = dns_rdataclass_any;
 	tsig.common.rdtype = dns_rdatatype_tsig;
@@ -267,7 +264,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 
 	UNUSED(tc);
 
-	result = dns_test_begin(stderr, ISC_TRUE);
+	result = dns_test_begin(stderr, true);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/* isc_log_setdebuglevel(lctx, 99); */
@@ -280,7 +277,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_tsigkey_create(keyname, dns_tsig_hmacsha256_name,
-				    secret, sizeof(secret), ISC_FALSE,
+				    secret, sizeof(secret), false,
 				    NULL, 0, 0, mctx, ring, &key);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE(key != NULL);
@@ -346,7 +343,7 @@ ATF_TC_BODY(tsig_tcp, tc) {
 	dns_message_destroy(&msg);
 
 	result = dst_context_create3(key->key, mctx, DNS_LOGCATEGORY_DNSSEC,
-				     ISC_FALSE, &outctx);
+				     false, &outctx);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ATF_REQUIRE(outctx != NULL);
 

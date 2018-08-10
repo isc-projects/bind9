@@ -227,7 +227,7 @@ main(int argc, char **argv) {
 #ifndef PK11_MD5_DISABLE
 	result = dns_tsigkey_createfromkey(dst_key_name(dstkey),
 					   DNS_TSIG_HMACMD5_NAME,
-					   dstkey, ISC_TRUE, NULL, 0, 0,
+					   dstkey, true, NULL, 0, 0,
 					   mctx, ring, &tsigkey);
 	dst_key_free(&dstkey);
 	CHECK("dns_tsigkey_createfromkey", result);

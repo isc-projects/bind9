@@ -128,7 +128,7 @@ is declared as follows for class-generic functions.
         static dns_result_t
         fromtext_typename(dns_rdataclass_t class, dns_rdatatype_t type,
                           isc_lex_t *lexer, dns_name_t *origin,
-                          isc_boolean_t downcase, isc_buffer_t *target);
+                          bool downcase, isc_buffer_t *target);
 
 Class specific functions contain the class name in addition to the
 type name.
@@ -138,7 +138,7 @@ type name.
                                     dns_rdatatype_t type,
                                     isc_lex_t *lexer,
                                     dns_name_t *origin,
-                                    isc_boolean_t downcase,
+                                    bool downcase,
                                     isc_buffer_t *target);
 
 |Parameter|Description |
@@ -188,7 +188,7 @@ security area and must be paranoid about its input.
                            dns_rdatatype_t type,
                            isc_buffer_t *source,
                            dns_decompress_t *dctx,
-                           isc_boolean_t downcase,
+                           bool downcase,
                            isc_buffer_t *target);
 
         static dns_result_t
@@ -196,7 +196,7 @@ security area and must be paranoid about its input.
                                     dns_rdatatype_t type,
                                     isc_buffer_t *source,
                                     dns_decompress_t *dctx,
-                                    isc_boolean_t downcase,
+                                    bool downcase,
                                     isc_buffer_t *target);
 
 `fromwire_classname_typename()` is required to set the valid
@@ -346,13 +346,13 @@ first octet after the octet-length-tagged text string.
 
 Returns `DNS_R_UNEXPECTEDEND`, `DNS_R_NOSPACE` or `DNS_R_SUCCESS`.
 
-        static isc_boolean_t
+        static bool
         name_prefix(dns_name_t *name, dns_name_t *origin, dns_name_t *target);
 
 If `origin` is NULL or the root label, set `target` to refer to `name` and
-return `ISC_FALSE`.  Otherwise, see if `name` is a subdomain of `origin` and
+return `false`.  Otherwise, see if `name` is a subdomain of `origin` and
 not equal to it.  If so, make `target` refer to the prefix of `name` and return
-`ISC_TRUE`.  Otherwise, make `target` refer to `name` and return `ISC_FALSE`.
+`true`.  Otherwise, make `target` refer to `name` and return `false`.
 
 Typical use:
 
@@ -362,7 +362,7 @@ Typical use:
         {
                 isc_region_t region;
                 dns_name_t name, prefix;
-                isc_boolean_t sub;
+                bool sub;
 
                 dns_name_init(&name, NULL);
                 dns_name_init(&prefix, NULL);
@@ -380,11 +380,11 @@ to `target`.
 
 Returns `DNS_R_NOSPACE` and `DNS_R_SUCCESS`.
 
-        static isc_boolean_t
+        static bool
         buffer_empty(isc_buffer_t *source);
 
-Returns `ISC_TRUE` if the active region of `source` is
-empty otherwise `ISC_FALSE`.
+Returns `true` if the active region of `source` is
+empty otherwise `false`.
 
         static void
         buffer_fromregion(isc_buffer_t *buffer, isc_region_t *region,
@@ -393,27 +393,27 @@ empty otherwise `ISC_FALSE`.
 Make `buffer` refer to the memory in `region` and make it active.
 
         static dns_result_t
-        uint32_tobuffer(isc_uint32_t value, isc_buffer_t *target);
+        uint32_tobuffer(uint32_t value, isc_buffer_t *target);
 
 Write the 32 bit `value` in network order to `target`.
 
 Returns `DNS_R_NOSPACE` and `DNS_R_SUCCESS`.
 
 static dns_result_t
-uint16_tobuffer(isc_uint32_t value, isc_buffer_t *target);
+uint16_tobuffer(uint32_t value, isc_buffer_t *target);
 
 Write them 16 bit `value` in network order to `target`.
 
 Returns `ISC_R_RANGE`, `DNS_R_NOSPACE` and `DNS_R_SUCCESS`.
 
-        static isc_uint32_t
+        static uint32_t
         uint32_fromregion(isc_region_t *region);
 
 Returns the 32 bit at the start of `region` in host byte order.
 
 Requires `(region->length >= 4)`.
 
-        static isc_uint16_t
+        static uint16_t
         uint16_fromregion(isc_region_t *region);
 
 Returns the 16 bit at the start of `region` in host byte order.
@@ -422,12 +422,12 @@ Requires `(region->length >= 2)`.
 
         static dns_result_t
         gettoken(isc_lex_t *lexer, isc_token_t *token,
-                 isc_tokentype_t expect, isc_boolean_t eol);
+                 isc_tokentype_t expect, bool eol);
 
 Gets the next token from the input stream `lexer`. Ensures that the returned
 token matches `expect` (isc_tokentype_qstring can also return
 isc_tokentype_string), or isc_tokentype_eol and isc_tokentype_eof if `eol` is
-`ISC_TRUE`.
+`true`.
 
 Returns `DNS_R_UNEXPECTED`, `DNS_R_UNEXPECTEDEND`, `DNS_R_UNEXPECTEDTOKEN` and
 `DNS_R_SUCCESS`.
