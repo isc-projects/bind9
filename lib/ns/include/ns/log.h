@@ -42,6 +42,7 @@ LIBNS_EXTERNAL_DATA extern isc_logmodule_t ns_modules[];
 #define NS_LOGMODULE_XFER_IN		(&ns_modules[4])
 #define NS_LOGMODULE_XFER_OUT		(&ns_modules[5])
 #define NS_LOGMODULE_NOTIFY		(&ns_modules[6])
+#define NS_LOGMODULE_HOOKS		(&ns_modules[7])
 
 void
 ns_log_init(isc_log_t *lctx);
