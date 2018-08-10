@@ -1889,8 +1889,8 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			     DNS_TRUST_GLUE(rdataset->trust)))
 			{
 				/* validate() may change rdataset->trust */
-				invalid = !!validate(client, db, fname,
-						     rdataset, sigrdataset);
+				invalid = !validate(client, db, fname,
+						    rdataset, sigrdataset);
 			}
 			if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
 				dns_rdataset_disassociate(rdataset);
@@ -1961,8 +1961,13 @@ query_addadditional(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			     DNS_TRUST_GLUE(rdataset->trust)))
 			{
 				/* validate() may change rdataset->trust */
+<<<<<<< HEAD
 				invalid = !!validate(client, db, fname,
 							rdataset, sigrdataset);
+=======
+				invalid = !validate(client, db, fname,
+						    rdataset, sigrdataset);
+>>>>>>> bdc9860262... Fix !!validate typo to -> !validate
 			}
 
 			if (invalid && DNS_TRUST_PENDING(rdataset->trust)) {
