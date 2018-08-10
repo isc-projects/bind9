@@ -432,4 +432,71 @@ ns__client_request(isc_task_t *task, isc_event_t *event);
  * Handle client requests.
  * (Not intended for use outside this module and associated tests.)
  */
+
+dns_rdataset_t *
+ns_client_newrdataset(ns_client_t *client);
+
+void
+ns_client_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp);
+/*%
+ * Get and release temporary rdatasets in the client message;
+ * used in query.c and in hook modules.
+ */
+
+isc_result_t
+ns_client_newnamebuf(ns_client_t *client);
+/*%
+ * Allocate a name buffer for the client message.
+ */
+
+dns_name_t *
+ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf);
+/*%
+ * Get a temporary name for the client message.
+ */
+
+isc_buffer_t *
+ns_client_getnamebuf(ns_client_t *client);
+/*%
+ * Get a name buffer from the pool, or allocate a new one if needed.
+ */
+
+void
+ns_client_keepname(ns_client_t *client, dns_name_t *name, isc_buffer_t *dbuf);
+/*%
+ * Adjust buffer 'dbuf' to reflect that 'name' is using space in it,
+ * and set client attributes appropriately.
+ */
+
+void
+ns_client_releasename(ns_client_t *client, dns_name_t **namep);
+/*%
+ * Release 'name' back to the pool of temporary names for the client
+ * message. If it is using a name buffer, relinquish its exclusive
+ * rights on the buffer.
+ */
+
+isc_result_t
+ns_client_newdbversion(ns_client_t *client, unsigned int n);
+/*%
+ * Allocate 'n' new database versions for use by client queries.
+ */
+
+ns_dbversion_t *
+ns_client_getdbversion(ns_client_t *client);
+/*%
+ * Get a free database version for use by a client query, allocating
+ * a new one if necessary.
+ */
+
+ns_dbversion_t *
+ns_client_findversion(ns_client_t *client, dns_db_t *db);
+/*%
+ * Find the correct database version to use with a client query.
+ * If we have already done a query related to the database 'db',
+ * make sure subsequent queries are from the same version;
+ * otherwise, take a database version from the list of dbversions
+ * allocated by ns_client_newdbversion().
+ */
+
 #endif /* NS_CLIENT_H */
