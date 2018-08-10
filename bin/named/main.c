@@ -1006,7 +1006,6 @@ setup(void) {
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "compiled by Solaris Studio %x", __SUNPRO_C);
 #endif
-#ifdef OPENSSL
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "compiled with OpenSSL version: %s",
@@ -1023,7 +1022,6 @@ setup(void) {
 		      "linked to OpenSSL version: %s",
 		      SSLeay_version(SSLEAY_VERSION));
 #endif /* OPENSSL_VERSION_NUMBER >= 0x10100000L */
-#endif
 #ifdef HAVE_LIBXML2
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
