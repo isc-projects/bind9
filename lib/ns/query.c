@@ -114,6 +114,9 @@ do { \
 /*% Recursing? */
 #define RECURSING(c)		(((c)->query.attributes & \
 				  NS_QUERYATTR_RECURSING) != 0)
+/*% Cache glue ok? */
+#define CACHEGLUEOK(c)		(((c)->query.attributes & \
+				  NS_QUERYATTR_CACHEGLUEOK) != 0)
 /*% Want Recursion? */
 #define WANTRECURSION(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_WANTRECURSION) != 0)
@@ -5011,7 +5014,6 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->zsigrdataset = NULL;
 	qctx->zversion = NULL;
 	qctx->node = NULL;
-	qctx->znode = NULL;
 	qctx->db = NULL;
 	qctx->zdb = NULL;
 	qctx->version = NULL;
@@ -5077,10 +5079,11 @@ qctx_freedata(query_ctx_t *qctx) {
 	}
 
 	if (qctx->zdb != NULL) {
-		query_putrdataset(qctx->client, &qctx->zsigrdataset);
 		query_putrdataset(qctx->client, &qctx->zrdataset);
-		query_releasename(qctx->client, &qctx->zfname);
-		dns_db_detachnode(qctx->zdb, &qctx->znode);
+		if (qctx->zsigrdataset != NULL)
+			query_putrdataset(qctx->client, &qctx->zsigrdataset);
+		if (qctx->zfname != NULL)
+			query_releasename(qctx->client, &qctx->zfname);
 		dns_db_detach(&qctx->zdb);
 	}
 
@@ -7728,54 +7731,6 @@ query_notfound(query_ctx_t *qctx) {
 }
 
 /*%
- * We have a delegation but recursion is not allowed, so return the delegation
- * to the client.
- */
-static isc_result_t
-query_prepare_delegation_response(query_ctx_t *qctx) {
-	dns_rdataset_t **sigrdatasetp = NULL;
-	bool detach = false;
-
-	/*
-	 * qctx->fname could be released in query_addrrset(), so save a copy of
-	 * it here in case we need it.
-	 */
-	dns_fixedname_init(&qctx->dsname);
-	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
-
-	/*
-	 * This is the best answer.
-	 */
-	qctx->client->query.isreferral = true;
-
-	if (!dns_db_iscache(qctx->db) && qctx->client->query.gluedb == NULL) {
-		dns_db_attach(qctx->db, &qctx->client->query.gluedb);
-		detach = true;
-	}
-
-	/*
-	 * We must ensure NOADDITIONAL is off, because the generation of
-	 * additional data is required in delegations.
-	 */
-	qctx->client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
-	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
-		sigrdatasetp = &qctx->sigrdataset;
-	}
-	query_addrrset(qctx->client, &qctx->fname, &qctx->rdataset,
-		       sigrdatasetp, qctx->dbuf, DNS_SECTION_AUTHORITY);
-	if (detach) {
-		dns_db_detach(&qctx->client->query.gluedb);
-	}
-
-	/*
-	 * Add a DS if needed.
-	 */
-	query_addds(qctx);
-
-	return (query_done(qctx));
-}
-
-/*%
  * Handle a delegation response from an authoritative lookup. This
  * may trigger additional lookups, e.g. from the cache database to
  * see if we have a better answer; if that is not allowed, return the
@@ -7784,6 +7739,8 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 static isc_result_t
 query_zone_delegation(query_ctx_t *qctx) {
 	isc_result_t result;
+	dns_rdataset_t **sigrdatasetp = NULL;
+	bool detach = false;
 
 	/*
 	 * If the query type is DS, look to see if we are
@@ -7848,8 +7805,8 @@ query_zone_delegation(query_ctx_t *qctx) {
 		 * we'll restore these values there.
 		 */
 		query_keepname(qctx->client, qctx->fname, qctx->dbuf);
+		dns_db_detachnode(qctx->db, &qctx->node);
 		SAVE(qctx->zdb, qctx->db);
-		SAVE(qctx->znode, qctx->node);
 		SAVE(qctx->zfname, qctx->fname);
 		SAVE(qctx->zversion, qctx->version);
 		SAVE(qctx->zrdataset, qctx->rdataset);
@@ -7860,7 +7817,57 @@ query_zone_delegation(query_ctx_t *qctx) {
 		return (query_lookup(qctx));
 	}
 
-	return (query_prepare_delegation_response(qctx));
+	/*
+	 * qctx->fname could be released in
+	 * query_addrrset(), so save a copy of it
+	 * here in case we need it
+	 */
+	dns_fixedname_init(&qctx->dsname);
+	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
+
+	/*
+	 * If we don't have a cache, this is the best
+	 * answer.
+	 *
+	 * If the client is making a nonrecursive
+	 * query we always give out the authoritative
+	 * delegation.  This way even if we get
+	 * junk in our cache, we won't fail in our
+	 * role as the delegating authority if another
+	 * nameserver asks us about a delegated
+	 * subzone.
+	 *
+	 * We enable the retrieval of glue for this
+	 * database by setting client->query.gluedb.
+	 */
+	if (qctx->db != NULL && qctx->client->query.gluedb == NULL) {
+		dns_db_attach(qctx->db, &qctx->client->query.gluedb);
+		detach = true;
+	}
+	qctx->client->query.isreferral = true;
+	/*
+	 * We must ensure NOADDITIONAL is off,
+	 * because the generation of
+	 * additional data is required in
+	 * delegations.
+	 */
+	qctx->client->query.attributes &=
+		~NS_QUERYATTR_NOADDITIONAL;
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL)
+		sigrdatasetp = &qctx->sigrdataset;
+	query_addrrset(qctx->client, &qctx->fname,
+		       &qctx->rdataset, sigrdatasetp,
+		       qctx->dbuf, DNS_SECTION_AUTHORITY);
+	if (detach) {
+		dns_db_detach(&qctx->client->query.gluedb);
+	}
+
+	/*
+	 * Add a DS if needed
+	 */
+	query_addds(qctx);
+
+	return (query_done(qctx));
 }
 
 /*%
@@ -7874,6 +7881,8 @@ query_zone_delegation(query_ctx_t *qctx) {
 static isc_result_t
 query_delegation(query_ctx_t *qctx) {
 	isc_result_t result;
+	dns_rdataset_t **sigrdatasetp = NULL;
+	bool detach = false;
 
 	qctx->authoritative = false;
 
@@ -7916,14 +7925,16 @@ query_delegation(query_ctx_t *qctx) {
 					  &qctx->sigrdataset);
 		qctx->version = NULL;
 
-		dns_db_detachnode(qctx->db, &qctx->node);
-		dns_db_detach(&qctx->db);
-		RESTORE(qctx->db, qctx->zdb);
-		RESTORE(qctx->node, qctx->znode);
 		RESTORE(qctx->fname, qctx->zfname);
 		RESTORE(qctx->version, qctx->zversion);
 		RESTORE(qctx->rdataset, qctx->zrdataset);
 		RESTORE(qctx->sigrdataset, qctx->zsigrdataset);
+
+		/*
+		 * We don't clean up zdb here because we
+		 * may still need it.  It will get cleaned
+		 * up by the main cleanup code in query_done().
+		 */
 	}
 
 	if (RECURSIONOK(qctx->client)) {
@@ -7984,7 +7995,54 @@ query_delegation(query_ctx_t *qctx) {
 		return (query_done(qctx));
 	}
 
-	return (query_prepare_delegation_response(qctx));
+	/*
+	 * We have a delegation but recursion is not
+	 * allowed, so return the delegation to the client.
+	 *
+	 * qctx->fname could be released in
+	 * query_addrrset(), so save a copy of it
+	 * here in case we need it
+	 */
+	dns_fixedname_init(&qctx->dsname);
+	dns_name_copy(qctx->fname, dns_fixedname_name(&qctx->dsname), NULL);
+
+	/*
+	 * This is the best answer.
+	 */
+	qctx->client->query.attributes |= NS_QUERYATTR_CACHEGLUEOK;
+	qctx->client->query.isreferral = true;
+
+	if (qctx->zdb != NULL && qctx->client->query.gluedb == NULL &&
+	    !(qctx->zone != NULL && dns_zone_ismirror(qctx->zone)))
+	{
+		dns_db_attach(qctx->zdb, &qctx->client->query.gluedb);
+		detach = true;
+	}
+
+	/*
+	 * We must ensure NOADDITIONAL is off,
+	 * because the generation of
+	 * additional data is required in
+	 * delegations.
+	 */
+	qctx->client->query.attributes &= ~NS_QUERYATTR_NOADDITIONAL;
+	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
+		sigrdatasetp = &qctx->sigrdataset;
+	}
+	query_addrrset(qctx->client, &qctx->fname,
+		       &qctx->rdataset, sigrdatasetp,
+		       qctx->dbuf, DNS_SECTION_AUTHORITY);
+	qctx->client->query.attributes &= ~NS_QUERYATTR_CACHEGLUEOK;
+	if (detach) {
+		dns_db_detach(&qctx->client->query.gluedb);
+	}
+
+	/*
+	 * Add a DS if needed
+	 */
+	query_addds(qctx);
+
+	return (query_done(qctx));
 }
 
 /*%
