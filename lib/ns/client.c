@@ -3981,3 +3981,239 @@ ns_client_sourceip(dns_clientinfo_t *ci, isc_sockaddr_t **addrp) {
 	*addrp = &client->peeraddr;
 	return (ISC_R_SUCCESS);
 }
+
+dns_rdataset_t *
+ns_client_newrdataset(ns_client_t *client) {
+	dns_rdataset_t *rdataset;
+	isc_result_t result;
+
+	REQUIRE(NS_CLIENT_VALID(client));
+
+	rdataset = NULL;
+	result = dns_message_gettemprdataset(client->message, &rdataset);
+	if (result != ISC_R_SUCCESS) {
+		return (NULL);
+	}
+
+	return (rdataset);
+}
+
+void
+ns_client_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp) {
+	dns_rdataset_t *rdataset;
+
+	REQUIRE(NS_CLIENT_VALID(client));
+	REQUIRE(rdatasetp != NULL);
+
+	rdataset = *rdatasetp;
+
+	if (rdataset != NULL) {
+		if (dns_rdataset_isassociated(rdataset)) {
+			dns_rdataset_disassociate(rdataset);
+		}
+		dns_message_puttemprdataset(client->message, rdatasetp);
+	}
+}
+
+isc_result_t
+ns_client_newnamebuf(ns_client_t *client) {
+	isc_buffer_t *dbuf;
+	isc_result_t result;
+
+	CTRACE("ns_client_newnamebuf");
+
+	dbuf = NULL;
+	result = isc_buffer_allocate(client->mctx, &dbuf, 1024);
+	if (result != ISC_R_SUCCESS) {
+		CTRACE("ns_client_newnamebuf: "
+		       "isc_buffer_allocate failed: done");
+		return (result);
+	}
+	ISC_LIST_APPEND(client->query.namebufs, dbuf, link);
+
+	CTRACE("ns_client_newnamebuf: done");
+	return (ISC_R_SUCCESS);
+}
+
+dns_name_t *
+ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf) {
+	dns_name_t *name;
+	isc_region_t r;
+	isc_result_t result;
+
+	REQUIRE((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED) == 0);
+
+	CTRACE("ns_client_newname");
+	name = NULL;
+	result = dns_message_gettempname(client->message, &name);
+	if (result != ISC_R_SUCCESS) {
+		CTRACE("ns_client_newname: "
+		       "dns_message_gettempname failed: done");
+		return (NULL);
+	}
+	isc_buffer_availableregion(dbuf, &r);
+	isc_buffer_init(nbuf, r.base, r.length);
+	dns_name_init(name, NULL);
+	dns_name_setbuffer(name, nbuf);
+	client->query.attributes |= NS_QUERYATTR_NAMEBUFUSED;
+
+	CTRACE("ns_client_newname: done");
+	return (name);
+}
+
+isc_buffer_t *
+ns_client_getnamebuf(ns_client_t *client) {
+	isc_buffer_t *dbuf;
+	isc_result_t result;
+	isc_region_t r;
+
+	CTRACE("ns_client_getnamebuf");
+
+	/*%
+	 * Return a name buffer with space for a maximal name, allocating
+	 * a new one if necessary.
+	 */
+	if (ISC_LIST_EMPTY(client->query.namebufs)) {
+		result = ns_client_newnamebuf(client);
+		if (result != ISC_R_SUCCESS) {
+		    CTRACE("ns_client_getnamebuf: "
+			   "ns_client_newnamebuf failed: done");
+			return (NULL);
+		}
+	}
+
+	dbuf = ISC_LIST_TAIL(client->query.namebufs);
+	INSIST(dbuf != NULL);
+	isc_buffer_availableregion(dbuf, &r);
+	if (r.length < DNS_NAME_MAXWIRE) {
+		result = ns_client_newnamebuf(client);
+		if (result != ISC_R_SUCCESS) {
+		    CTRACE("ns_client_getnamebuf: "
+			   "ns_client_newnamebuf failed: done");
+			return (NULL);
+
+		}
+		dbuf = ISC_LIST_TAIL(client->query.namebufs);
+		isc_buffer_availableregion(dbuf, &r);
+		INSIST(r.length >= 255);
+	}
+	CTRACE("ns_client_getnamebuf: done");
+	return (dbuf);
+}
+
+void
+ns_client_keepname(ns_client_t *client, dns_name_t *name, isc_buffer_t *dbuf) {
+	isc_region_t r;
+
+	CTRACE("ns_client_keepname");
+
+	/*%
+	 * 'name' is using space in 'dbuf', but 'dbuf' has not yet been
+	 * adjusted to take account of that.  We do the adjustment.
+	 */
+	REQUIRE((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED) != 0);
+
+	dns_name_toregion(name, &r);
+	isc_buffer_add(dbuf, r.length);
+	dns_name_setbuffer(name, NULL);
+	client->query.attributes &= ~NS_QUERYATTR_NAMEBUFUSED;
+}
+
+void
+ns_client_releasename(ns_client_t *client, dns_name_t **namep) {
+	dns_name_t *name = *namep;
+
+	/*%
+	 * 'name' is no longer needed.  Return it to our pool of temporary
+	 * names.  If it is using a name buffer, relinquish its exclusive
+	 * rights on the buffer.
+	 */
+
+	CTRACE("ns_client_releasename");
+	if (dns_name_hasbuffer(name)) {
+		INSIST((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED)
+		       != 0);
+		client->query.attributes &= ~NS_QUERYATTR_NAMEBUFUSED;
+	}
+	dns_message_puttempname(client->message, namep);
+	CTRACE("ns_client_releasename: done");
+}
+
+isc_result_t
+ns_client_newdbversion(ns_client_t *client, unsigned int n) {
+	unsigned int i;
+	ns_dbversion_t *dbversion;
+
+	for (i = 0; i < n; i++) {
+		dbversion = isc_mem_get(client->mctx, sizeof(*dbversion));
+		if (dbversion != NULL) {
+			dbversion->db = NULL;
+			dbversion->version = NULL;
+			ISC_LIST_INITANDAPPEND(client->query.freeversions,
+					      dbversion, link);
+		} else {
+			/*
+			 * We only return ISC_R_NOMEMORY if we couldn't
+			 * allocate anything.
+			 */
+			if (i == 0) {
+				return (ISC_R_NOMEMORY);
+			} else {
+				return (ISC_R_SUCCESS);
+			}
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static inline ns_dbversion_t *
+client_getdbversion(ns_client_t *client) {
+	isc_result_t result;
+	ns_dbversion_t *dbversion;
+
+	if (ISC_LIST_EMPTY(client->query.freeversions)) {
+		result = ns_client_newdbversion(client, 1);
+		if (result != ISC_R_SUCCESS) {
+			return (NULL);
+		}
+	}
+	dbversion = ISC_LIST_HEAD(client->query.freeversions);
+	INSIST(dbversion != NULL);
+	ISC_LIST_UNLINK(client->query.freeversions, dbversion, link);
+
+	return (dbversion);
+}
+
+ns_dbversion_t *
+ns_client_findversion(ns_client_t *client, dns_db_t *db) {
+	ns_dbversion_t *dbversion;
+
+	for (dbversion = ISC_LIST_HEAD(client->query.activeversions);
+	     dbversion != NULL;
+	     dbversion = ISC_LIST_NEXT(dbversion, link))
+	{
+		if (dbversion->db == db) {
+			break;
+		}
+	}
+
+	if (dbversion == NULL) {
+		/*
+		 * This is a new zone for this query.  Add it to
+		 * the active list.
+		 */
+		dbversion = client_getdbversion(client);
+		if (dbversion == NULL) {
+			return (NULL);
+		}
+		dns_db_attach(db, &dbversion->db);
+		dns_db_currentversion(db, &dbversion->version);
+		dbversion->acl_checked = false;
+		dbversion->queryok = false;
+		ISC_LIST_APPEND(client->query.activeversions,
+				dbversion, link);
+	}
+
+	return (dbversion);
+}

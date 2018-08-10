@@ -102,6 +102,7 @@
 #include <dst/result.h>
 
 #include <ns/client.h>
+#include <ns/hooks.h>
 #include <ns/listenlist.h>
 #include <ns/interfacemgr.h>
 

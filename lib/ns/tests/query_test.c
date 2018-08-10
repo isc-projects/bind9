@@ -91,7 +91,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 		test->cache_entry_flags == 0);
 
 	/*
-	 * Interrupt execution if query_done() is called.
+	 * Interrupt execution if ns_query_done() is called.
 	 */
 	ns_hook_t hook = {
 		.callback = ns_test_hook_catch_call,
@@ -292,7 +292,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 		 test->auth_zone_path != NULL));
 
 	/*
-	 * Interrupt execution if query_lookup() or query_done() is called.
+	 * Interrupt execution if query_lookup() or ns_query_done() is called.
 	 */
 	ns_hook_t hook = {
 		.callback = ns_test_hook_catch_call,
