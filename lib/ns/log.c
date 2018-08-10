@@ -43,16 +43,13 @@ LIBNS_EXTERNAL_DATA isc_logcategory_t ns_categories[] = {
  * \#define to <ns/log.h>.
  */
 LIBNS_EXTERNAL_DATA isc_logmodule_t ns_modules[] = {
-	{ "ns/main",	 		0 },
 	{ "ns/client",	 		0 },
-	{ "ns/server",		 	0 },
 	{ "ns/query",		 	0 },
 	{ "ns/interfacemgr",	 	0 },
 	{ "ns/update",	 		0 },
 	{ "ns/xfer-in",	 		0 },
 	{ "ns/xfer-out", 		0 },
 	{ "ns/notify",	 		0 },
-	{ "ns/control",	 		0 },
 	{ NULL, 			0 }
 };
 
