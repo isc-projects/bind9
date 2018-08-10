@@ -433,7 +433,27 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 		for (i = 0; i < count; i++) {
 			if (ISC_LIKELY(want_random)) {
-				q = div(q.quot, count - j);
+				/*
+				 * We need to divide q.quot when the divisor
+				 * is not a prime so that we don't use a
+				 * factor of the divisor when sampling in a
+				 * future iteration.
+				 *
+				 * To avoid reseeding more often than needed,
+				 * we can skip updating q.quot when the
+				 * divisor is prime.  We do this for small
+				 * primes.
+				 */
+				int d = count - j;
+				switch (d) {
+				case 1: case 2: case 3: case 5:
+				case 7: case 11: case 13: case 17:
+					q.rem = q.quot % d;
+					break;
+				default:
+					q = div(q.quot, d);
+					break;
+				}
 				swap_rdata(in, j, j + q.rem);
 				if (ISC_UNLIKELY(q.quot == 0)) {
 					q.quot = isc_random32() & 0x7fffffff;
