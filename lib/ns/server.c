@@ -109,11 +109,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	ISC_LIST_INIT(sctx->altsecrets);
 
-	/*
-	 * XXX: temporary.
-	 */
-	ns__query_inithooks();
-
 	sctx->magic = SCTX_MAGIC;
 	*sctxp = sctx;
 
