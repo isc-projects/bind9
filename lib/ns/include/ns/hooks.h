@@ -17,8 +17,13 @@
 #include <stdbool.h>
 
 #include <isc/list.h>
+#include <isc/magic.h>
 #include <isc/result.h>
 
+#include <dns/rdatatype.h>
+
+#include <ns/client.h>
+#include <ns/query.h>
 /*
  * Hooks provide a way of running a callback function once a certain place in
  * code is reached.  Current use is limited to libns unit tests and thus:
@@ -185,6 +190,40 @@ typedef enum {
 typedef bool
 (*ns_hook_cb_t)(void *hook_data, void *callback_data, isc_result_t *resultp);
 
+typedef struct ns_hook {
+	ns_hook_cb_t callback;
+	void *callback_data;
+	ISC_LINK(struct ns_hook) link;
+} ns_hook_t;
+
+/*
+ * ns__hook_table is a globally visible pointer to the active hook
+ * table. It's initialized to point to 'hooktab', which is the default
+ * global hook table.
+ */
+typedef ISC_LIST(ns_hook_t) ns_hooklist_t;
+typedef ns_hooklist_t ns_hooktable_t[NS_QUERY_HOOKS_COUNT];
+LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
+
+/*!
+ * Context for intializing a hook module.
+ *
+ * This structure passes data to which a hook module will need
+ * access -- server memory context, hash initializer, log context, etc.
+ * The structure doesn't persist beyond configuring the hook module.
+ * The module's register function should attach to all reference-counted
+ * variables and its destroy function should detach from them.
+ */
+typedef struct ns_hookctx {
+	unsigned int		magic;
+	const void		*hashinit;
+	isc_mem_t		*mctx;
+	isc_log_t		*lctx;
+	bool			*refvar;
+} ns_hookctx_t;
+
+#define NS_HOOKCTX_MAGIC	ISC_MAGIC('H', 'k', 'c', 'x')
+#define NS_HOOKCTX_VALID(d)	ISC_MAGIC_VALID(d, NS_HOOKCTX_MAGIC)
 /*
  * API version
  *
@@ -198,10 +237,11 @@ typedef bool
 #define NS_HOOK_AGE 0
 #endif
 
-typedef isc_result_t ns_hook_register_t(isc_mem_t *mctx,
-					const char *parameters,
+typedef isc_result_t ns_hook_register_t(const char *parameters,
 					const char *file,
 					unsigned long line,
+					ns_hookctx_t *hctx,
+					ns_hooktable_t *hooktable,
 					void **instp);
 /*%
  * Called when registering a new module.
@@ -236,21 +276,6 @@ typedef int ns_hook_version_t(unsigned int *flags);
  * the future to pass back driver capabilities or other information.
  */
 
-typedef struct ns_hook {
-	ns_hook_cb_t callback;
-	void *callback_data;
-	ISC_LINK(struct ns_hook) link;
-} ns_hook_t;
-
-/*
- * ns__hook_table is a globally visible pointer to the active hook
- * table. It's initialized to point to 'hooktab', which is the default
- * global hook table.
- */
-typedef ISC_LIST(ns_hook_t) ns_hooklist_t;
-typedef ns_hooklist_t ns_hooktable_t[NS_QUERY_HOOKS_COUNT];
-LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
-
 /*
  * Run a hook. Calls the function or functions registered at hookpoint 'id'.
  * If one of them returns true, we interrupt processing and return the
@@ -281,8 +306,15 @@ LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
 	_NS_PROCESS_HOOK(table, id, data)
 
 isc_result_t
+ns_hook_createctx(isc_mem_t *mctx, const void *hashinit, ns_hookctx_t **hctxp);
+
+void
+ns_hook_destroyctx(ns_hookctx_t **hctxp);
+
+isc_result_t
 ns_hookmodule_load(const char *libname, const char *parameters,
-		   const char *file, unsigned long line, isc_mem_t *mctx);
+		   const char *file, unsigned long line,
+		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable);
 void
 ns_hookmodule_cleanup(void);
 

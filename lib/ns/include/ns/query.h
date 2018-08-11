@@ -98,27 +98,47 @@ struct ns_query {
 	bool root_key_sentinel_not_ta;
 };
 
-#define NS_QUERYATTR_RECURSIONOK	0x0001
-#define NS_QUERYATTR_CACHEOK		0x0002
-#define NS_QUERYATTR_PARTIALANSWER	0x0004
-#define NS_QUERYATTR_NAMEBUFUSED	0x0008
-#define NS_QUERYATTR_RECURSING		0x0010
-#define NS_QUERYATTR_QUERYOKVALID	0x0040
-#define NS_QUERYATTR_QUERYOK		0x0080
-#define NS_QUERYATTR_WANTRECURSION	0x0100
-#define NS_QUERYATTR_SECURE		0x0200
-#define NS_QUERYATTR_NOAUTHORITY	0x0400
-#define NS_QUERYATTR_NOADDITIONAL	0x0800
-#define NS_QUERYATTR_CACHEACLOKVALID	0x1000
-#define NS_QUERYATTR_CACHEACLOK		0x2000
-#define NS_QUERYATTR_DNS64		0x4000
-#define NS_QUERYATTR_DNS64EXCLUDE	0x8000
+#define NS_QUERYATTR_RECURSIONOK	0x00001
+#define NS_QUERYATTR_CACHEOK		0x00002
+#define NS_QUERYATTR_PARTIALANSWER	0x00004
+#define NS_QUERYATTR_NAMEBUFUSED	0x00008
+#define NS_QUERYATTR_RECURSING		0x00010
+#define NS_QUERYATTR_QUERYOKVALID	0x00040
+#define NS_QUERYATTR_QUERYOK		0x00080
+#define NS_QUERYATTR_WANTRECURSION	0x00100
+#define NS_QUERYATTR_SECURE		0x00200
+#define NS_QUERYATTR_NOAUTHORITY	0x00400
+#define NS_QUERYATTR_NOADDITIONAL	0x00800
+#define NS_QUERYATTR_CACHEACLOKVALID	0x01000
+#define NS_QUERYATTR_CACHEACLOK		0x02000
+#define NS_QUERYATTR_DNS64		0x04000
+#define NS_QUERYATTR_DNS64EXCLUDE	0x08000
 #define NS_QUERYATTR_RRL_CHECKED	0x10000
 #define NS_QUERYATTR_REDIRECT		0x20000
 
-/* query context structure */
+typedef struct query_ctx query_ctx_t;
 
-typedef struct query_ctx {
+/*
+ * These define functions in the calling program that may need
+ * to be run from a hook module. Currently the set includes
+ * query_done() and query_recurse().
+ */
+typedef isc_result_t (*ns_hook_querydone_t)(query_ctx_t *qctx);
+
+typedef isc_result_t (*ns_hook_queryrecurse_t)(ns_client_t *client,
+					       dns_rdatatype_t qtype,
+					       dns_name_t *qname,
+					       dns_name_t *qdomain,
+					       dns_rdataset_t *nameservers,
+					       bool resuming);
+/* methods used in query hooks */
+typedef struct query_methods {
+	ns_hook_querydone_t query_done;
+	ns_hook_queryrecurse_t query_recurse;
+} query_methods_t;
+
+/* query context structure */
+struct query_ctx {
 	isc_buffer_t *dbuf;			/* name buffer */
 	dns_name_t *fname;			/* found name from DB lookup */
 	dns_name_t *tname;			/* temporary name, used
@@ -168,9 +188,11 @@ typedef struct query_ctx {
 
 	dns_aaaa_t filter_aaaa;			/* AAAA filtering */
 
+	query_methods_t methods;		/* query hook methods */
+
 	isc_result_t result;			/* query result */
 	int line;				/* line to report error */
-} query_ctx_t;
+};
 
 isc_result_t
 ns_query_init(ns_client_t *client);
@@ -184,24 +206,24 @@ ns_query_start(ns_client_t *client);
 void
 ns_query_cancel(ns_client_t *client);
 
-/*%
- * (Must not be used outside this module and its associated unit tests.)
- */
 isc_result_t
 ns__query_sfcache(query_ctx_t *qctx);
-
 /*%
  * (Must not be used outside this module and its associated unit tests.)
  */
+
 isc_result_t
 ns__query_start(query_ctx_t *qctx);
+/*%
+ * (Must not be used outside this module and its associated unit tests.)
+ */
 
+void
+ns__query_inithooks(void);
 /*
  * XXX:
  * Temporary function used to initialize the filter-aaaa hooks,
  * which are currently hard-coded rather than loaded as a module.
  */
-void
-ns__query_inithooks(void);
 
 #endif /* NS_QUERY_H */

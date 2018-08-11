@@ -103,6 +103,7 @@
 #include <dst/result.h>
 
 #include <ns/client.h>
+#include <ns/hooks.h>
 #include <ns/listenlist.h>
 #include <ns/interfacemgr.h>
 
@@ -3692,6 +3693,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	bool old_rpz_ok = false;
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
+	ns_hookctx_t *hctx = NULL;
 	unsigned int resolver_param;
 	dns_ntatable_t *ntatable = NULL;
 	const char *qminmode = NULL;
@@ -5185,6 +5187,22 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
 	}
+
+	/*
+	 * XXX:
+	 * temporary! this forces loading of filter-aaaa.so from the
+	 * current working directory, if present. later this will
+	 * happen via configuration as dyndb does above. we don't
+	 * bother checking whether it succeeded; if it doesn't,
+	 * filter-aaaa simply won't work.
+	 */
+	if (hctx == NULL) {
+		const void *hashinit = isc_hash_get_initializer();
+		CHECK(ns_hook_createctx(mctx, hashinit, &hctx));
+	}
+	ns_hooktable_init(NULL);
+	(void) ns_hookmodule_load("/tmp/filter-aaaa.so", "", "<none>", 0,
+				  hctx, NULL);
 #endif
 
 	/*
@@ -5435,6 +5453,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 	if (dctx != NULL) {
 		dns_dyndb_destroyctx(&dctx);
+	}
+	if (hctx != NULL) {
+		ns_hook_destroyctx(&hctx);
 	}
 
 	return (result);
@@ -7913,7 +7934,7 @@ load_configuration(const char *filename, named_server_t *server,
 	CHECK(cfg_aclconfctx_create(named_g_mctx, &named_g_aclconfctx));
 
 	/*
-	 * Shut down all dyndb instances.
+	 * Shut down all dyndb and hook module instances.
 	 */
 	dns_dyndb_cleanup(false);
 	ns_hookmodule_cleanup();
@@ -9378,6 +9399,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 			dns_view_detach(&view);
 	}
 
+	/*
+	 * Shut down all dyndb and hook module instances.
+	 */
 	dns_dyndb_cleanup(true);
 	ns_hookmodule_cleanup();
 
