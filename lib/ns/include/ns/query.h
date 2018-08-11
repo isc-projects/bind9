@@ -184,24 +184,47 @@ ns_query_start(ns_client_t *client);
 void
 ns_query_cancel(ns_client_t *client);
 
+isc_result_t
+ns_query_done(query_ctx_t *qctx);
 /*%
- * (Must not be used outside this module and its associated unit tests.)
+ * Finalize the active phase of the query process:
+ *
+ * - Clean up
+ * - If we have an answer ready (positive or negative), send it.
+ * - If we need to restart for a chaining query, call ns__query_start() again.
+ * - If we've started recursion, then just clean up; things will be
+ *   restarted via fetch_callback()/query_resume().
  */
+
+isc_result_t
+ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
+		 dns_name_t *qdomain, dns_rdataset_t *nameservers,
+		 bool resuming);
+/*%
+ * Prepare client for recursion, then create a resolver fetch, with
+ * the event callback set to fetch_callback(). Afterward we terminate
+ * this phase of the query, and resume with a new query context when
+ * recursion completes.
+ */
+
 isc_result_t
 ns__query_sfcache(query_ctx_t *qctx);
-
 /*%
  * (Must not be used outside this module and its associated unit tests.)
  */
+
 isc_result_t
 ns__query_start(query_ctx_t *qctx);
+/*%
+ * (Must not be used outside this module and its associated unit tests.)
+ */
 
+void
+ns__query_inithooks(void);
 /*
  * XXX:
  * Temporary function used to initialize the filter-aaaa hooks,
  * which are currently hard-coded rather than loaded as a module.
  */
-void
-ns__query_inithooks(void);
 
 #endif /* NS_QUERY_H */
