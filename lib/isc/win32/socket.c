@@ -24,6 +24,8 @@
  * XXXPDM 5 August, 2002
  */
 
+#include <config.h>
+
 #define MAKE_EXTERNAL 1
 
 #include <sys/types.h>
