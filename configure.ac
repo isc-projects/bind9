@@ -2638,8 +2638,8 @@ AS_CASE([$with_dlopen],
 AS_IF([test "$with_dlopen" = "yes"],
       [AS_CASE([$host],
 	       [*-linux*|*-gnu*],[
+		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_CFLAGS="-fPIC"
-                 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_LDFLAGS=""
 		 AS_IF([test "$use_libtool" = "yes"],[
 			 SO_LDFLAGS="-Xcompiler -shared"

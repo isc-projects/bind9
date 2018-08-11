@@ -98,27 +98,28 @@ struct ns_query {
 	bool root_key_sentinel_not_ta;
 };
 
-#define NS_QUERYATTR_RECURSIONOK	0x0001
-#define NS_QUERYATTR_CACHEOK		0x0002
-#define NS_QUERYATTR_PARTIALANSWER	0x0004
-#define NS_QUERYATTR_NAMEBUFUSED	0x0008
-#define NS_QUERYATTR_RECURSING		0x0010
-#define NS_QUERYATTR_QUERYOKVALID	0x0040
-#define NS_QUERYATTR_QUERYOK		0x0080
-#define NS_QUERYATTR_WANTRECURSION	0x0100
-#define NS_QUERYATTR_SECURE		0x0200
-#define NS_QUERYATTR_NOAUTHORITY	0x0400
-#define NS_QUERYATTR_NOADDITIONAL	0x0800
-#define NS_QUERYATTR_CACHEACLOKVALID	0x1000
-#define NS_QUERYATTR_CACHEACLOK		0x2000
-#define NS_QUERYATTR_DNS64		0x4000
-#define NS_QUERYATTR_DNS64EXCLUDE	0x8000
+#define NS_QUERYATTR_RECURSIONOK	0x00001
+#define NS_QUERYATTR_CACHEOK		0x00002
+#define NS_QUERYATTR_PARTIALANSWER	0x00004
+#define NS_QUERYATTR_NAMEBUFUSED	0x00008
+#define NS_QUERYATTR_RECURSING		0x00010
+#define NS_QUERYATTR_QUERYOKVALID	0x00040
+#define NS_QUERYATTR_QUERYOK		0x00080
+#define NS_QUERYATTR_WANTRECURSION	0x00100
+#define NS_QUERYATTR_SECURE		0x00200
+#define NS_QUERYATTR_NOAUTHORITY	0x00400
+#define NS_QUERYATTR_NOADDITIONAL	0x00800
+#define NS_QUERYATTR_CACHEACLOKVALID	0x01000
+#define NS_QUERYATTR_CACHEACLOK		0x02000
+#define NS_QUERYATTR_DNS64		0x04000
+#define NS_QUERYATTR_DNS64EXCLUDE	0x08000
 #define NS_QUERYATTR_RRL_CHECKED	0x10000
 #define NS_QUERYATTR_REDIRECT		0x20000
 
-/* query context structure */
+typedef struct query_ctx query_ctx_t;
 
-typedef struct query_ctx {
+/* query context structure */
+struct query_ctx {
 	isc_buffer_t *dbuf;			/* name buffer */
 	dns_name_t *fname;			/* found name from DB lookup */
 	dns_name_t *tname;			/* temporary name, used
@@ -169,7 +170,7 @@ typedef struct query_ctx {
 
 	isc_result_t result;			/* query result */
 	int line;				/* line to report error */
-} query_ctx_t;
+};
 
 /*
  * The following functions are expected to be used only within query.c
@@ -212,24 +213,53 @@ ns_query_start(ns_client_t *client);
 void
 ns_query_cancel(ns_client_t *client);
 
-/*%
- * (Must not be used outside this module and its associated unit tests.)
+/*
+ * The following functions are expected to be used only within query.c
+ * and query modules.
  */
+
+isc_result_t
+ns_query_done(query_ctx_t *qctx);
+/*%<
+ * Finalize this phase of the query process:
+ *
+ * - Clean up.
+ * - If we have an answer ready (positive or negative), send it.
+ * - If we need to restart for a chaining query, call ns__query_start() again.
+ * - If we've started recursion, then just clean up; things will be
+ *   restarted via fetch_callback()/query_resume().
+ */
+
+isc_result_t
+ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
+		 dns_name_t *qdomain, dns_rdataset_t *nameservers,
+		 bool resuming);
+/*%<
+ * Prepare client for recursion, then create a resolver fetch, with
+ * the event callback set to fetch_callback(). Afterward we terminate
+ * this phase of the query, and resume with a new query context when
+ * recursion completes.
+ */
+
+
 isc_result_t
 ns__query_sfcache(query_ctx_t *qctx);
-
 /*%
  * (Must not be used outside this module and its associated unit tests.)
  */
+
 isc_result_t
 ns__query_start(query_ctx_t *qctx);
+/*%
+ * (Must not be used outside this module and its associated unit tests.)
+ */
 
+void
+ns__query_inithooks(void);
 /*
  * XXX:
  * Temporary function used to initialize the filter-aaaa hooks,
  * which are currently hard-coded rather than loaded as a module.
  */
-void
-ns__query_inithooks(void);
 
 #endif /* NS_QUERY_H */

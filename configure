@@ -20240,8 +20240,8 @@ if test "$with_dlopen" = "yes"; then :
   case $host in #(
   *-linux*|*-gnu*) :
 
+		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_CFLAGS="-fPIC"
-                 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_LDFLAGS=""
 		 if test "$use_libtool" = "yes"; then :
 
