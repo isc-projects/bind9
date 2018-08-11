@@ -103,6 +103,7 @@
 #include <dst/result.h>
 
 #include <ns/client.h>
+#include <ns/hooks.h>
 #include <ns/listenlist.h>
 #include <ns/interfacemgr.h>
 
@@ -3691,6 +3692,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	bool old_rpz_ok = false;
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
+	ns_hookctx_t *hctx = NULL;
 	unsigned int resolver_param;
 	const char *qminmode = NULL;
 
@@ -5183,6 +5185,22 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
 	}
+
+	/*
+	 * XXX:
+	 * temporary! this forces loading of filter-aaaa.so from the
+	 * current working directory, if present. later this will
+	 * happen via configuration as dyndb does above. we don't
+	 * bother checking whether it succeeded; if it doesn't,
+	 * filter-aaaa simply won't work.
+	 */
+	if (hctx == NULL) {
+		const void *hashinit = isc_hash_get_initializer();
+		CHECK(ns_hook_createctx(mctx, hashinit, &hctx));
+	}
+	ns_hooktable_init(NULL);
+	(void) ns_hookmodule_load("/tmp/filter-aaaa.so", "", "<none>", 0,
+				  hctx, NULL);
 #endif
 
 	/*
@@ -5362,35 +5380,51 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	result = ISC_R_SUCCESS;
 
  cleanup:
-	if (clients != NULL)
+	if (clients != NULL) {
 		dns_acl_detach(&clients);
-	if (mapped != NULL)
+	}
+	if (mapped != NULL) {
 		dns_acl_detach(&mapped);
-	if (excluded != NULL)
+	}
+	if (excluded != NULL) {
 		dns_acl_detach(&excluded);
-	if (ring != NULL)
+	}
+	if (ring != NULL) {
 		dns_tsigkeyring_detach(&ring);
-	if (zone != NULL)
+	}
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
-	if (dispatch4 != NULL)
+	}
+	if (dispatch4 != NULL) {
 		dns_dispatch_detach(&dispatch4);
-	if (dispatch6 != NULL)
+	}
+	if (dispatch6 != NULL) {
 		dns_dispatch_detach(&dispatch6);
-	if (resstats != NULL)
+	}
+	if (resstats != NULL) {
 		isc_stats_detach(&resstats);
-	if (resquerystats != NULL)
+	}
+	if (resquerystats != NULL) {
 		dns_stats_detach(&resquerystats);
-	if (order != NULL)
+	}
+	if (order != NULL) {
 		dns_order_detach(&order);
-	if (cmctx != NULL)
+	}
+	if (cmctx != NULL) {
 		isc_mem_detach(&cmctx);
-	if (hmctx != NULL)
+	}
+	if (hmctx != NULL) {
 		isc_mem_detach(&hmctx);
-
-	if (cache != NULL)
+	}
+	if (cache != NULL) {
 		dns_cache_detach(&cache);
-	if (dctx != NULL)
+	}
+	if (dctx != NULL) {
 		dns_dyndb_destroyctx(&dctx);
+	}
+	if (hctx != NULL) {
+		ns_hook_destroyctx(&hctx);
+	}
 
 	return (result);
 }
@@ -7858,9 +7892,11 @@ load_configuration(const char *filename, named_server_t *server,
 	CHECK(cfg_aclconfctx_create(named_g_mctx, &named_g_aclconfctx));
 
 	/*
-	 * Shut down all dyndb instances.
+	 * Shut down all dyndb and hook module instances.
 	 */
 	dns_dyndb_cleanup(false);
+	ns_hookmodule_cleanup(false);
+
 
 	/*
 	 * Parse the global default pseudo-config file.
@@ -9326,7 +9362,11 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 			dns_view_detach(&view);
 	}
 
+	/*
+	 * Shut down all dyndb and hook module instances.
+	 */
 	dns_dyndb_cleanup(true);
+	ns_hookmodule_cleanup(true);
 
 	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);
