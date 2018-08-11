@@ -42,7 +42,6 @@ struct ns_hook_module {
 	char				*filename;
 	ns_hook_register_t		*register_func;
 	ns_hook_destroy_t		*destroy_func;
-	char				*name;
 	void				*inst;
 	LINK(ns_hook_module_t)		link;
 };
@@ -108,11 +107,6 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 
 	REQUIRE(hmodp != NULL && *hmodp == NULL);
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading module '%s'",
-		      filename);
-
 	flags = RTLD_NOW|RTLD_LOCAL;
 #ifdef RTLD_DEEPBIND
 	flags |= RTLD_DEEPBIND;
@@ -140,7 +134,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(handle, filename, "hook_init",
+	CHECK(load_symbol(handle, filename, "hook_register",
 			  (void **)&register_func));
 	CHECK(load_symbol(handle, filename, "hook_destroy",
 			  (void **)&destroy_func));
@@ -200,7 +194,7 @@ unload_library(ns_hook_module_t **hmodp) {
 		isc_mem_free(hmod->mctx, hmod->filename);
 	}
 
-	isc_mem_putanddetach(&hmod->mctx, hmod, sizeof(ns_hook_module_t));
+	isc_mem_putanddetach(&hmod->mctx, hmod, sizeof(*hmod));
 }
 #elif _WIN32
 static isc_result_t
@@ -240,10 +234,6 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 
 	REQUIRE(hmodp != NULL && *hmodp == NULL);
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading module '%s'", filename);
-
 	handle = LoadLibraryA(filename);
 	if (handle == NULL) {
 		CHECK(ISC_R_FAILURE);
@@ -263,7 +253,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(handle, filename, "hook_init",
+	CHECK(load_symbol(handle, filename, "hook_register",
 			  (void **)&register_func));
 	CHECK(load_symbol(handle, filename, "hook_destroy",
 			  (void **)&destroy_func));
@@ -347,21 +337,25 @@ unload_library(ns_hook_module_t **hmodp) {
 
 isc_result_t
 ns_hookmodule_load(const char *libname, const char *parameters,
-		   const char *file, unsigned long line, isc_mem_t *mctx)
+		   const char *file, unsigned long line,
+		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
 	isc_result_t result;
 	ns_hook_module_t *module = NULL;
 
-	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
+	if (hooktable == NULL) {
+		hooktable = ns__hook_table;
+	}
+
+	REQUIRE(NS_HOOKCTX_VALID(hctx));
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 		      "loading module '%s'", libname);
 
-	CHECK(load_library(mctx, libname, &module));
-	CHECK(module->register_func(mctx, parameters, file, line,
-				    &module->inst));
-
+	CHECK(load_library(hctx->mctx, libname, &module));
+	CHECK(module->register_func(parameters, file, line, hctx,
+				    hooktable, &module->inst));
 
 	APPEND(hook_modules, module, link);
 	result = ISC_R_SUCCESS;
@@ -386,12 +380,52 @@ ns_hookmodule_cleanup(void) {
 		UNLINK(hook_modules, hmod, link);
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-			      "unloading module '%s'", hmod->name);
+			      "unloading module '%s'", hmod->filename);
 		hmod->destroy_func(&hmod->inst);
 		ENSURE(hmod->inst == NULL);
 		unload_library(&hmod);
 		hmod = prev;
 	}
+}
+
+isc_result_t
+ns_hook_createctx(isc_mem_t *mctx, const void *hashinit, ns_hookctx_t **hctxp) {
+	ns_hookctx_t *hctx;
+
+	REQUIRE(hctxp != NULL && *hctxp == NULL);
+
+	hctx = isc_mem_get(mctx, sizeof(*hctx));
+	if (hctx == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
+	memset(hctx, 0, sizeof(*hctx));
+	hctx->hashinit = hashinit;
+	hctx->lctx = ns_lctx;
+	hctx->refvar = &isc_bind9;
+
+	isc_mem_attach(mctx, &hctx->mctx);
+	hctx->magic = NS_HOOKCTX_MAGIC;
+
+	*hctxp = hctx;
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+ns_hook_destroyctx(ns_hookctx_t **hctxp) {
+	ns_hookctx_t *hctx;
+
+	REQUIRE(hctxp != NULL && NS_HOOKCTX_VALID(*hctxp));
+
+	hctx = *hctxp;
+	*hctxp = NULL;
+
+	hctx->magic = 0;
+
+	hctx->lctx = NULL;
+
+	isc_mem_putanddetach(&hctx->mctx, hctx, sizeof(*hctx));
 }
 
 void
