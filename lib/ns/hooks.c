@@ -41,7 +41,6 @@ struct ns_hook_module {
 	void				*handle;
 	ns_hook_register_t		*register_func;
 	ns_hook_destroy_t		*destroy_func;
-	char				*name;
 	void				*inst;
 	LINK(ns_hook_module_t)		link;
 };
@@ -112,8 +111,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading hook module driver '%s'",
-		      filename);
+		      "loading hook module '%s'", filename);
 
 	flags = RTLD_NOW|RTLD_LOCAL;
 #ifdef RTLD_DEEPBIND
@@ -142,7 +140,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(handle, filename, "hook_init",
+	CHECK(load_symbol(handle, filename, "hook_register",
 			  (void **)&register_func));
 	CHECK(load_symbol(handle, filename, "hook_destroy",
 			  (void **)&destroy_func));
@@ -191,7 +189,6 @@ unload_library(ns_hook_module_t **impp) {
 
 	imp = *impp;
 
-	isc_mem_free(imp->mctx, imp->name);
 	isc_mem_putanddetach(&imp->mctx, imp, sizeof(ns_hook_module_t));
 
 	*impp = NULL;
@@ -258,7 +255,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(handle, filename, "hook_init",
+	CHECK(load_symbol(handle, filename, "hook_register",
 			  (void **)&register_func));
 	CHECK(load_symbol(handle, filename, "hook_destroy",
 			  (void **)&destroy_func));
@@ -307,7 +304,6 @@ unload_library(ns_hook_module_t **impp) {
 
 	imp = *impp;
 
-	isc_mem_free(imp->mctx, imp->name);
 	isc_mem_putanddetach(&imp->mctx, imp, sizeof(ns_hook_module_t));
 
 	*impp = NULL;
@@ -335,17 +331,23 @@ unload_library(ns_hook_module_t **impp)
 
 isc_result_t
 ns_hookmodule_load(const char *libname, const char *parameters,
-		   const char *file, unsigned long line, isc_mem_t *mctx)
+		   const char *file, unsigned long line,
+		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
 	isc_result_t result;
 	ns_hook_module_t *implementation = NULL;
 
-	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
+	if (hooktable == NULL) {
+		hooktable = ns__hook_table;
+	}
+
+	REQUIRE(NS_HOOKCTX_VALID(hctx));
 
 	LOCK(&hook_lock);
 
-	CHECK(load_library(mctx, libname, &implementation));
-	CHECK(implementation->register_func(mctx, parameters, file, line,
+	CHECK(load_library(hctx->mctx, libname, &implementation));
+	CHECK(implementation->register_func(parameters, file, line,
+					    hctx, hooktable,
 					    &implementation->inst));
 
 	APPEND(hook_modules, implementation, link);
@@ -361,7 +363,7 @@ cleanup:
 }
 
 void
-ns_hookmodule_unload(bool exiting) {
+ns_hookmodule_cleanup(bool exiting) {
 	ns_hook_module_t *elem, *prev;
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
@@ -373,7 +375,7 @@ ns_hookmodule_unload(bool exiting) {
 		UNLINK(hook_modules, elem, link);
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-			      "unloading hook module '%s'", elem->name);
+			      "unloading filter-aaaa module");
 		elem->destroy_func(&elem->inst);
 		ENSURE(elem->inst == NULL);
 		unload_library(&elem);
@@ -384,6 +386,49 @@ ns_hookmodule_unload(bool exiting) {
 	if (exiting) {
 		isc_mutex_destroy(&hook_lock);
 	}
+}
+
+isc_result_t
+ns_hook_createctx(isc_mem_t *mctx, const void *hashinit, ns_hookctx_t **hctxp) {
+	ns_hookctx_t *hctx;
+
+	REQUIRE(hctxp != NULL && *hctxp == NULL);
+
+	hctx = isc_mem_get(mctx, sizeof(*hctx));
+	if (hctx == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
+	memset(hctx, 0, sizeof(*hctx));
+	hctx->hashinit = hashinit;
+	hctx->lctx = ns_lctx;
+	hctx->refvar = &isc_bind9;
+
+	hctx->query_recurse = ns_query_recurse;
+	hctx->query_done = ns_query_done;
+
+	isc_mem_attach(mctx, &hctx->mctx);
+	hctx->magic = NS_HOOKCTX_MAGIC;
+
+	*hctxp = hctx;
+
+	return (ISC_R_SUCCESS);
+}
+
+void
+ns_hook_destroyctx(ns_hookctx_t **hctxp) {
+	ns_hookctx_t *hctx;
+
+	REQUIRE(hctxp != NULL && NS_HOOKCTX_VALID(*hctxp));
+
+	hctx = *hctxp;
+	*hctxp = NULL;
+
+	hctx->magic = 0;
+
+	hctx->lctx = NULL;
+
+	isc_mem_putanddetach(&hctx->mctx, hctx, sizeof(*hctx));
 }
 
 void

@@ -53,8 +53,12 @@ SRCS =		client.c hooks.c interfacemgr.c lib.c listenlist.c \
 		update.c version.c xfrout.c
 
 SUBDIRS =	include
-TARGETS =	timestamp
 TESTDIRS =	@UNITTESTS@
+SO_TARGETS =    filter-aaaa.@SO@
+TARGETS =	timestamp @SO_TARGETS@
+
+SO_CFLAGS =	@CFLAGS@ @SO_CFLAGS@
+SO_LDFLAGS =	@LDFLAGS@ @SO_LDFLAGS@
 
 @BIND9_MAKE_RULES@
 
@@ -80,6 +84,14 @@ libns.la: ${OBJS}
 timestamp: libns.@A@
 	touch timestamp
 
+filter-aaaa.@O@: filter-aaaa.c
+	${LIBTOOL_MODE_COMPILE} ${CC} ${ALL_CFLAGS} ${SO_CFLAGS} \
+		-c ${srcdir}/filter-aaaa.c
+
+filter-aaaa.@SO@: filter-aaaa.o libns.@A@
+	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ filter-aaaa.o \
+		${ISCLIBS} ${DNSLIBS} libns.@A@ ${ISCLIBS} @DNS_CRYPTO_LIBS@ ${DNSLIBS} ${LIBS}
+
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 
@@ -91,4 +103,4 @@ uninstall::
 	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/libns.@A@
 
 clean distclean::
-	rm -f libns.@A@ timestamp
+	rm -f libns.@A@ timestamp filter-aaaa.@O@ filter-aaaa.@SO@
