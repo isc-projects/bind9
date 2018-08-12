@@ -95,10 +95,19 @@ hook_register(const char *parameters, const char *file, unsigned long line,
 	query_done = hctx->query_done;
 	query_recurse = hctx->query_recurse;
 
-	isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading params for 'filter-aaaa' module from %s:%lu",
-		      file, line);
+	if (parameters != NULL) {
+		isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+			      "loading params for 'filter-aaaa' "
+			      "module from %s:%lu",
+			      file, line);
+	} else {
+		isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+			      "loading 'filter-aaaa' "
+			      "module from %s:%lu, no parameters",
+			      file, line);
+	}
 
 	/*
 	 * TODO:
