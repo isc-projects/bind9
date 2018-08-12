@@ -214,12 +214,12 @@ build:centos:centos7:amd64:
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
-build:clang:debian:sid:amd64:
+build:clang:debian:stretch:amd64:
   variables:
-    CC: clang-6.0
+    CC: clang
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *debian_sid_amd64_image
+  <<: *debian_stretch_amd64_image
   <<: *build_job
 
 build:debian:jessie:amd64:
@@ -244,12 +244,12 @@ build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-build:clang:debian:sid:i386:
+build:clang:debian:stretch:i386:
   variables:
-    CC: clang-6.0
+    CC: clang
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *debian_sid_i386_image
+  <<: *debian_stretch_i386_image
   <<: *build_job
 
 build:debian:sid:i386:
@@ -290,11 +290,11 @@ unittest:debian:sid:amd64:
   dependencies:
     - build:debian:sid:amd64
 
-unittest:clang:debian:sid:amd64:
-  <<: *debian_sid_amd64_image
+unittest:clang:debian:stretch:amd64:
+  <<: *debian_stretch_amd64_image
   <<: *unit_test_job
   dependencies:
-    - build:clang:debian:sid:amd64
+    - build:clang:debian:stretch:amd64
 
 unittest:debian:sid:i386:
   <<: *debian_sid_i386_image
