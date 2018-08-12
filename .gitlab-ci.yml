@@ -219,7 +219,7 @@ build:centos:centos7:amd64:
 
 build:clang:debian:sid:amd64:
   variables:
-    CC: clang-6.0
+    CC: clang-7
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_amd64_image
@@ -249,7 +249,7 @@ build:debian:sid:amd64:
 
 build:clang:debian:sid:i386:
   variables:
-    CC: clang-6.0
+    CC: clang-7
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_i386_image
