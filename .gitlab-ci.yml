@@ -222,6 +222,8 @@ build:clang:debian:sid:amd64:
     CC: clang-7
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
+  before_script:
+    - apt-get -yqqq purge gcc-8
   <<: *debian_sid_amd64_image
   <<: *build_job
 
@@ -252,6 +254,8 @@ build:clang:debian:sid:i386:
     CC: clang-7
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
+    before_script:
+      - apt-get -yqqq purge gcc-8
   <<: *debian_sid_i386_image
   <<: *build_job
 
