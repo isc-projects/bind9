@@ -259,6 +259,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
+	view->hooktable = NULL;
+	view->hooktable_free = NULL;
+
 	isc_mutex_init(&view->new_zone_lock);
 
 	result = dns_order_create(view->mctx, &view->order);
@@ -550,6 +553,9 @@ destroy(dns_view_t *view) {
 	isc_mutex_destroy(&view->lock);
 	isc_mem_free(view->mctx, view->nta_file);
 	isc_mem_free(view->mctx, view->name);
+	if (view->hooktable != NULL && view->hooktable_free != NULL) {
+		view->hooktable_free(view->mctx, &view->hooktable);
+	}
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 }
 

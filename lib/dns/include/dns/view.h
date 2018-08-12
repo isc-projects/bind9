@@ -238,6 +238,9 @@ struct dns_view {
 	dns_dtenv_t			*dtenv;		/* Dnstap environment */
 	dns_dtmsgtype_t			dttypes;	/* Dnstap message types
 							   to log */
+
+	void				*hooktable;	/* ns_hooktable */
+	void				(*hooktable_free)(isc_mem_t *, void **);
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')

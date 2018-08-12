@@ -238,10 +238,33 @@ static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
-#define PROCESS_HOOK(...) \
-	NS_PROCESS_HOOK(ns__hook_table, __VA_ARGS__)
-#define PROCESS_HOOK_VOID(...) \
-	NS_PROCESS_HOOK_VOID(ns__hook_table, __VA_ARGS__)
+#define PROCESS_HOOK(_id, _qctx, ...)					\
+	do {								\
+		ns_hooktable_t *_tab = ns__hook_table; 			\
+		query_ctx_t *_q = (_qctx);				\
+		if (_q != NULL &&					\
+		    _q->client != NULL &&				\
+		    _q->client->view != NULL &&				\
+		    _q->client->view->hooktable != NULL)		\
+		{							\
+			_tab = _q->client->view->hooktable;		\
+		}							\
+		NS_PROCESS_HOOK(_tab, _id, _q, __VA_ARGS__);		\
+	} while (false)
+
+#define PROCESS_HOOK_VOID(_id, _qctx, ...)				\
+	do {								\
+		ns_hooktable_t *_tab = ns__hook_table; 			\
+		query_ctx_t *_q = (_qctx);				\
+		if (_q != NULL &&					\
+		    _q->client != NULL &&				\
+		    _q->client->view != NULL &&				\
+		    _q->client->view->hooktable != NULL)		\
+		{							\
+			_tab = _q->client->view->hooktable;		\
+		}							\
+		NS_PROCESS_HOOK_VOID(_tab, _id, _q, __VA_ARGS__);	\
+	} while (false)
 
 /*
  * The functions defined below implement the query logic that previously lived

@@ -693,11 +693,12 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	ns_hooktable_init(&query_hooks);
 	ns_hook_add(&query_hooks, NS_QUERY_SETUP_QCTX_INITIALIZED, &hook);
 
-	saved_hook_table = ns_hooktable_save();
+	saved_hook_table = ns__hook_table;
+	ns__hook_table = &query_hooks;
 
-	ns_hooktable_reset(&query_hooks);
 	ns_query_start(client);
-	ns_hooktable_reset(saved_hook_table);
+
+	ns__hook_table = saved_hook_table;
 
 	if (*qctxp == NULL) {
 		return (ISC_R_NOMEMORY);

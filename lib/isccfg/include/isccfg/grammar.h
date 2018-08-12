@@ -302,6 +302,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_astring;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_ustring;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_sstring;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_bracketed_text;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_optional_bracketed_text;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_sockaddr;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_sockaddrdscp;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_netaddr;
