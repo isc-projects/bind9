@@ -98,7 +98,7 @@ ISC_LANG_BEGINDECLS
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD)
 #define ISC_REFCOUNT_HAVEATOMIC 1
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
-#define ISC_REFCOUNT_HAVESTDATOMIC 1
+#define ISC_REFCOUNT_HAVESTDATOMIC 0
 #endif
 
 typedef struct isc_refcount {
@@ -112,6 +112,7 @@ typedef struct isc_refcount {
 #if defined(ISC_REFCOUNT_HAVESTDATOMIC)
 
 #define isc_refcount_init(rp, n) atomic_init(&(rp)->refs, n)
+#error Using stdatomic
 
 #define isc_refcount_current(rp)					\
 	((unsigned int)(atomic_load_explicit(&(rp)->refs,		\
@@ -153,6 +154,7 @@ typedef struct isc_refcount {
 #else /* ISC_REFCOUNT_HAVESTDATOMIC */
 
 #define isc_refcount_init(rp, n) isc_atomic_store(&(rp)->refs, n)
+#error Using ISC atomics
 
 #define isc_refcount_current(rp)				\
 	((unsigned int)(isc_atomic_xadd(&(rp)->refs, 0)))
@@ -201,6 +203,7 @@ typedef struct isc_refcount {
 		REQUIRE(isc_mutex_init(&(rp)->lock) == ISC_R_SUCCESS);	\
 		(rp)->refs = n;						\
 	} while(0);
+#error Using mutex
 
 /*% Destroys a reference counter. */
 #define isc_refcount_destroy(rp)					\
@@ -270,6 +273,7 @@ typedef struct isc_refcount {
 } isc_refcount_t;
 
 #define isc_refcount_init(rp, n) ((rp)->refs = n)
+#error Not using threads at all
 #define isc_refcount_destroy(rp) ISC_REQUIRE((rp)->refs == 0)
 #define isc_refcount_current(rp) ((unsigned int)((rp)->refs))
 
