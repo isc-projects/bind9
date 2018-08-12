@@ -3062,6 +3062,7 @@ AC_CHECK_HEADERS(
 	[[int32_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);]]
       )],
      [AC_MSG_RESULT([__atomic builtins])
+      AC_DEFINE([HAVE___ATOMIC], [1], [define if __atomic builtins are available])
       AC_MSG_CHECKING([whether -latomic is needed for 64-bit __atomic builtins])
       AC_LINK_IFELSE(
 	[AC_LANG_PROGRAM(
@@ -3074,7 +3075,6 @@ AC_CHECK_HEADERS(
 	])
      ],
      [AC_MSG_RESULT([none])
-      AC_DEFINE([HAVE_NO__ATOMIC], [1], [define if __atomic builtins are not available])
      ])
   ])
 LIBS="$LIBS $ISC_ATOMIC_LIBS"
