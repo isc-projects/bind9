@@ -19831,15 +19831,13 @@ have_stdatomic=no
 $as_echo_n "checking for usable stdatomic.h... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-
-#include <stdio.h>
 #include <stdatomic.h>
-
 int
 main ()
 {
-
-atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
+atomic_int_fast32_t val;
+		     atomic_init(&val, 0);
+		     atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
 
   ;
   return 0;
@@ -19848,13 +19846,17 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	 have_stdatomic=yes
-	 ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"
+   have_stdatomic=yes
+   ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "stdatomic support is mandatory
+See \`config.log' for more details" "$LINENO" 5; }
+   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	 have_stdatomic=no
-	 ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
+   have_stdatomic=no
+   ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
