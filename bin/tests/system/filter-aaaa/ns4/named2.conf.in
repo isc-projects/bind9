@@ -25,6 +25,8 @@ options {
 	minimal-responses no;
 };
 
+hook query "../../../../hooks/filter-aaaa.so";
+
 key rndc_key {
 	secret "1234abcd8765";
 	algorithm hmac-sha256;

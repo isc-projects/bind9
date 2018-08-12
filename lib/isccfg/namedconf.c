@@ -109,6 +109,7 @@ static cfg_type_t cfg_type_dnstap;
 static cfg_type_t cfg_type_dnstapoutput;
 static cfg_type_t cfg_type_dyndb;
 static cfg_type_t cfg_type_filter_aaaa;
+static cfg_type_t cfg_type_hook;
 static cfg_type_t cfg_type_ixfrdifftype;
 static cfg_type_t cfg_type_key;
 static cfg_type_t cfg_type_logfile;
@@ -1007,6 +1008,7 @@ namedconf_or_view_clauses[] = {
 	{ "dyndb", &cfg_type_dyndb, CFG_CLAUSEFLAG_MULTI },
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
+	{ "hook", &cfg_type_hook, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
 	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
@@ -2390,6 +2392,29 @@ static cfg_tuplefielddef_t dyndb_fields[] = {
 static cfg_type_t cfg_type_dyndb = {
 	"dyndb", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
 	 &cfg_rep_tuple, dyndb_fields
+};
+
+/*%
+ * The "hook" statement syntax.
+ * Currently only one hook type is supported: query.
+ */
+
+static const char *hook_enums[] = {
+	"query", NULL
+};
+static cfg_type_t cfg_type_hooktype = {
+	"hooktype", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, hook_enums
+};
+static cfg_tuplefielddef_t hook_fields[] = {
+	{ "type", &cfg_type_hooktype, 0 },
+	{ "library", &cfg_type_astring, 0 },
+	{ "parameters", &cfg_type_optional_bracketed_text, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_hook = {
+	"hook", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	 &cfg_rep_tuple, hook_fields
 };
 
 /*%
