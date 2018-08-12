@@ -1523,6 +1523,50 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 			      name, isc_result_totext(result));
 	return (result);
 }
+
+static isc_result_t
+configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
+	       ns_hookctx_t *hctx)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_obj_t *obj;
+	const char *type, *library;
+
+	/* Get the path to the hook module. */
+	obj = cfg_tuple_get(hook, "type");
+	type = cfg_obj_asstring(obj);
+
+	/* Only query hooks are supported currently. */
+	if (strcasecmp(type, "query") != 0) {
+		cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
+			    "unsupported hook type");
+		return (ISC_R_FAILURE);
+	}
+
+	library = cfg_obj_asstring(cfg_tuple_get(hook, "library"));
+
+	obj = cfg_tuple_get(hook, "parameters");
+	if (obj != NULL && cfg_obj_isstring(obj)) {
+		result = ns_hookmodule_load(library,
+					    cfg_obj_asstring(obj),
+					    cfg_obj_file(obj),
+					    cfg_obj_line(obj),
+					    hctx, hooktable);
+	} else {
+		result = ns_hookmodule_load(library, NULL,
+					    cfg_obj_file(hook),
+					    cfg_obj_line(hook),
+					    hctx, hooktable);
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "%s: hook module configuration failed: %s",
+			      library, isc_result_totext(result));
+	}
+	return (result);
+}
 #endif
 
 
@@ -3652,7 +3696,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	const cfg_obj_t *dlvobj = NULL;
 	unsigned int dlzargc;
 	char **dlzargv;
-	const cfg_obj_t *dyndb_list;
+	const cfg_obj_t *dyndb_list, *hook_list;
 	const cfg_obj_t *disabled;
 	const cfg_obj_t *obj, *obj2;
 	const cfg_listelt_t *element;
@@ -5164,10 +5208,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * Load DynDB modules.
 	 */
 	dyndb_list = NULL;
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "dyndb", &dyndb_list);
-	else
+	} else {
 		(void)cfg_map_get(config, "dyndb", &dyndb_list);
+	}
 
 #ifdef HAVE_DLOPEN
 	for (element = cfg_list_first(dyndb_list);
@@ -5187,22 +5232,38 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
 	}
+#endif
 
 	/*
-	 * XXX:
-	 * temporary! this forces loading of filter-aaaa.so from the
-	 * current working directory, if present. later this will
-	 * happen via configuration as dyndb does above. we don't
-	 * bother checking whether it succeeded; if it doesn't,
-	 * filter-aaaa simply won't work.
+	 * Load hook modules.
 	 */
-	if (hctx == NULL) {
-		const void *hashinit = isc_hash_get_initializer();
-		CHECK(ns_hook_createctx(mctx, hashinit, &hctx));
+	hook_list = NULL;
+	if (voptions != NULL) {
+		(void)cfg_map_get(voptions, "hook", &hook_list);
+	} else {
+		(void)cfg_map_get(config, "hook", &hook_list);
 	}
-	ns_hooktable_init(NULL);
-	(void) ns_hookmodule_load("/tmp/filter-aaaa.so", "", "<none>", 0,
-				  hctx, NULL);
+
+#ifdef HAVE_DLOPEN
+	for (element = cfg_list_first(hook_list);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const cfg_obj_t *hook = cfg_listelt_value(element);
+
+		if (view->hooktable == NULL) {
+			ns_hooktable_create(view->mctx,
+				    (ns_hooktable_t **) &view->hooktable);
+			view->hooktable_free = ns_hooktable_free;
+		}
+
+		if (hctx == NULL) {
+			const void *hashinit = isc_hash_get_initializer();
+			CHECK(ns_hook_createctx(mctx, hashinit, &hctx));
+		}
+
+		CHECK(configure_hook(view->hooktable, hook, hctx));
+	}
 #endif
 
 	/*
