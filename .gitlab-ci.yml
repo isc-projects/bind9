@@ -117,6 +117,7 @@ stages:
   script:
     - $CMDPREFIX "./configure --enable-developer --with-libtool --disable-static --with-atf=/usr $EXTRA_CONFIGURE" || cat config.log
     - $CMDPREFIX "make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1"
+    - if [ "$CC" = "clang-6.0" ] || [ "$CC" = "clang-7" ]; then apt-get -yqq remove libgcc-8-dev; fi
   artifacts:
     expire_in: '1 hour'
     untracked: true
