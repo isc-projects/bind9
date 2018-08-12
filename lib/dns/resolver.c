@@ -7926,7 +7926,7 @@ resquery_response(isc_task_t *task, isc_event_t *event) {
 	}
 
 	dns_dt_send(res->view, dtmsgtype, la, &query->addrinfo->sockaddr,
-		    (query->options & DNS_FETCHOPT_TCP)),
+		    (query->options & DNS_FETCHOPT_TCP),
 		    &zr, &query->start, NULL, &devent->buffer);
 #endif /* HAVE_DNSTAP */
 
