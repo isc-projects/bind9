@@ -2957,6 +2957,7 @@ AC_CONFIG_FILES([
 	bin/delv/Makefile
 	bin/dig/Makefile
 	bin/dnssec/Makefile
+	bin/hooks/Makefile
 	bin/named/Makefile
 	bin/named/unix/Makefile
 	bin/nsupdate/Makefile

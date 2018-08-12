@@ -6433,69 +6433,6 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>filter-aaaa-on-v4</command></term>
-	      <listitem>
-		<para>
-		  This option is intended to help the
-		  transition from IPv4 to IPv6 by not giving IPv6 addresses
-		  to DNS clients unless they have connections to the IPv6
-		  Internet.  This is not recommended unless absolutely
-		  necessary.  The default is <userinput>no</userinput>.
-		  The <command>filter-aaaa-on-v4</command> option
-		  may also be specified in <command>view</command> statements
-		  to override the global <command>filter-aaaa-on-v4</command>
-		  option.
-		</para>
-		<para>
-		  If <userinput>yes</userinput>,
-		  the DNS client is at an IPv4 address, in <command>filter-aaaa</command>,
-		  and if the response does not include DNSSEC signatures,
-		  then all AAAA records are deleted from the response.
-		  This filtering applies to all responses and not only
-		  authoritative responses.
-		</para>
-		<para>
-		  If <userinput>break-dnssec</userinput>,
-		  then AAAA records are deleted even when DNSSEC is enabled.
-		  As suggested by the name, this makes the response not verify,
-		  because the DNSSEC protocol is designed detect deletions.
-		</para>
-		<para>
-		  This mechanism can erroneously cause other servers to
-		  not give AAAA records to their clients.
-		  A recursing server with both IPv6 and IPv4 network connections
-		  that queries an authoritative server using this mechanism
-		  via IPv4 will be denied AAAA records even if its client is
-		  using IPv6.
-		</para>
-		<para>
-		  This mechanism is applied to authoritative as well as
-		  non-authoritative records.
-		  A client using IPv4 that is not allowed recursion can
-		  erroneously be given AAAA records because the server is not
-		  allowed to check for A records.
-		</para>
-		<para>
-		  Some AAAA records are given to IPv4 clients in glue records.
-		  IPv4 clients that are servers can then erroneously
-		  answer requests for AAAA records received via IPv4.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>filter-aaaa-on-v6</command></term>
-	      <listitem>
-		<para>
-		  Identical to <command>filter-aaaa-on-v4</command>,
-		  except it filters AAAA responses to queries from IPv6
-		  clients instead of IPv4 clients.  To filter all
-		  responses, set both options to <userinput>yes</userinput>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
 	      <term><command>ixfr-from-differences</command></term>
 	      <listitem>
 		<para>
@@ -7343,18 +7280,6 @@ options {
 		  query. Queries
 		  from these addresses will not be responded to. The default
 		  is <userinput>none</userinput>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>filter-aaaa</command></term>
-	      <listitem>
-		<para>
-		  Specifies a list of addresses to which
-		  <command>filter-aaaa-on-v4</command>
-		  and <command>filter-aaaa-on-v6</command>
-		  apply.  The default is <userinput>any</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -18351,6 +18276,7 @@ allow-query { !{ !10/8; any; }; key example; };
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-signzone.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dnssec/dnssec-verify.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/dnstap-read.docbook"/>
+      <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/hooks/filter-aaaa.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/dig/host.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/tools/mdig.docbook"/>
       <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="../../bin/check/named-checkconf.docbook"/>
