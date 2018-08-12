@@ -343,10 +343,6 @@ ns_hookmodule_load(const char *libname, const char *parameters,
 	isc_result_t result;
 	ns_hook_module_t *module = NULL;
 
-	if (hooktable == NULL) {
-		hooktable = ns__hook_table;
-	}
-
 	REQUIRE(NS_HOOKCTX_VALID(hctx));
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
@@ -434,27 +430,35 @@ ns_hooktable_init(ns_hooktable_t *hooktable) {
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
 
-	if (hooktable == NULL) {
-		hooktable = ns__hook_table;
-	}
-
 	for (i = 0; i < NS_QUERY_HOOKS_COUNT; i++) {
 		ISC_LIST_INIT((*hooktable)[i]);
 	}
 }
 
-ns_hooktable_t *
-ns_hooktable_save() {
-	return (ns__hook_table);
+isc_result_t
+ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep) {
+	ns_hooktable_t *hooktable;
+
+	REQUIRE(tablep != NULL && *tablep == NULL);
+
+	hooktable = isc_mem_get(mctx, sizeof(ns_hooktable_t));
+	if (hooktable == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
+
+	ns_hooktable_init(hooktable);
+
+	*tablep = hooktable;
+
+	return (ISC_R_SUCCESS);
 }
 
 void
-ns_hooktable_reset(ns_hooktable_t *hooktable) {
-	if (hooktable != NULL) {
-		ns__hook_table = hooktable;
-	} else {
-		ns__hook_table = &hooktab;
-	}
+ns_hooktable_free(isc_mem_t *mctx, void **tablep) {
+	REQUIRE(tablep != NULL && *tablep != NULL);
+
+	isc_mem_put(mctx, *tablep, sizeof(ns_hooktable_t));
+	*tablep = NULL;
 }
 
 void

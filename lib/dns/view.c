@@ -260,6 +260,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
+	view->hooktable = NULL;
+	view->hooktable_free = NULL;
+
 	result = isc_mutex_init(&view->new_zone_lock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dynkeys;
@@ -544,6 +547,9 @@ destroy(dns_view_t *view) {
 	DESTROYLOCK(&view->lock);
 	isc_mem_free(view->mctx, view->nta_file);
 	isc_mem_free(view->mctx, view->name);
+	if (view->hooktable != NULL && view->hooktable_free != NULL) {
+		view->hooktable_free(view->mctx, &view->hooktable);
+	}
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 }
 
