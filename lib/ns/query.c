@@ -248,6 +248,8 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
 
 #define PROCESS_HOOK(...) \
 	NS_PROCESS_HOOK(ns__hook_table, __VA_ARGS__)
+#define PROCESS_HOOK_VOID(...) \
+	NS_PROCESS_HOOK_VOID(ns__hook_table, __VA_ARGS__)
 
 /*
  * The functions defined below implement the query logic that previously lived
@@ -2158,6 +2160,8 @@ query_setorder(query_ctx_t *qctx, dns_name_t *name, dns_rdataset_t *rdataset) {
 static void
 query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 	ns_client_t *client = qctx->client;
+
+	PROCESS_HOOK_VOID(NS_QUERY_ADDITIONAL_BEGIN, qctx);
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional");
 
@@ -5938,6 +5942,8 @@ query_resume(query_ctx_t *qctx) {
 	char tbuf[DNS_RDATATYPE_FORMATSIZE];
 #endif
 
+	PROCESS_HOOK(NS_QUERY_RESUME_BEGIN, qctx);
+
 	qctx->want_restart = false;
 
 	qctx->rpz_st = qctx->client->query.rpz_st;
@@ -6698,6 +6704,8 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	char errmsg[256];
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_gotanswer");
+
+	PROCESS_HOOK(NS_QUERY_GOT_ANSWER_BEGIN, qctx);
 
 	if (query_checkrrl(qctx, result) != ISC_R_SUCCESS) {
 		return (query_done(qctx));
@@ -7631,6 +7639,8 @@ static isc_result_t
 query_notfound(query_ctx_t *qctx) {
 	isc_result_t result;
 
+	PROCESS_HOOK(NS_QUERY_NOTFOUND_BEGIN, qctx);
+
 	INSIST(!qctx->is_zone);
 
 	if (qctx->db != NULL)
@@ -7706,6 +7716,8 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 	dns_rdataset_t **sigrdatasetp = NULL;
 	bool detach = false;
 
+	PROCESS_HOOK(NS_QUERY_PREP_DELEGATION_BEGIN, qctx);
+
 	/*
 	 * qctx->fname could be released in query_addrrset(), so save a copy of
 	 * it here in case we need it.
@@ -7754,6 +7766,8 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 static isc_result_t
 query_zone_delegation(query_ctx_t *qctx) {
 	isc_result_t result;
+
+	PROCESS_HOOK(NS_QUERY_ZONE_DELEGATION_BEGIN, qctx);
 
 	/*
 	 * If the query type is DS, look to see if we are
@@ -7844,6 +7858,8 @@ query_zone_delegation(query_ctx_t *qctx) {
 static isc_result_t
 query_delegation(query_ctx_t *qctx) {
 	isc_result_t result;
+
+	PROCESS_HOOK(NS_QUERY_DELEGATION_BEGIN, qctx);
 
 	qctx->authoritative = false;
 
@@ -8093,6 +8109,8 @@ query_addds(query_ctx_t *qctx) {
  */
 static isc_result_t
 query_nodata(query_ctx_t *qctx, isc_result_t result) {
+	PROCESS_HOOK(NS_QUERY_NODATA_BEGIN, qctx);
+
 #ifdef dns64_bis_return_excluded_addresses
 	if (qctx->dns64)
 #else
@@ -8402,6 +8420,8 @@ query_nxdomain(query_ctx_t *qctx, bool empty_wild) {
 	dns_section_t section;
 	uint32_t ttl;
 	isc_result_t result;
+
+	PROCESS_HOOK(NS_QUERY_NXDOMAIN_BEGIN, qctx);
 
 	INSIST(qctx->is_zone || REDIRECT(qctx->client));
 
@@ -9296,6 +9316,8 @@ query_cname(query_ctx_t *qctx) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_cname_t cname;
 
+	PROCESS_HOOK(NS_QUERY_CNAME_BEGIN, qctx);
+
 	/*
 	 * If we have a zero ttl from the cache refetch it.
 	 */
@@ -9426,6 +9448,8 @@ query_dname(query_ctx_t *qctx) {
 	int order;
 	isc_result_t result;
 	unsigned int nlabels;
+
+	PROCESS_HOOK(NS_QUERY_DNAME_BEGIN, qctx);
 
 	/*
 	 * Compare the current qname to the found name.  We need
