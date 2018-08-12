@@ -1134,7 +1134,6 @@ doc_btext(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "{ <unspecified-text> }");
 }
 
-
 bool
 cfg_is_enum(const char *s, const char *const *enums) {
 	const char * const *p;
@@ -1273,6 +1272,51 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_sstring = {
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bracketed_text = {
 	"bracketed_text", parse_btext, print_btext, doc_btext,
 	&cfg_rep_string, NULL
+};
+
+/*
+ * Optional bracketed text
+ */
+static isc_result_t
+parse_optional_btext(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret)
+{
+	isc_result_t result;
+
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_BTEXT));
+	if (pctx->token.type == isc_tokentype_btext) {
+		CHECK(cfg_parse_obj(pctx, &cfg_type_bracketed_text, ret));
+	} else {
+		CHECK(cfg_parse_obj(pctx, &cfg_type_void, ret));
+	}
+ cleanup:
+	return (result);
+}
+
+static void
+print_optional_btext(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	if (obj->type == &cfg_type_void) {
+		return;
+	}
+
+	pctx->indent++;
+	cfg_print_cstr(pctx, "{");
+	cfg_print_chars(pctx, obj->value.string.base, obj->value.string.length);
+	print_close(pctx);
+}
+
+static void
+doc_optional_btext(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+
+	cfg_print_cstr(pctx, "[ { <unspecified-text> } ]");
+}
+
+cfg_type_t cfg_type_optional_bracketed_text = {
+	"optional_btext", parse_optional_btext, print_optional_btext,
+	doc_optional_btext, NULL, NULL
 };
 
 /*
@@ -1485,7 +1529,7 @@ print_list(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 
 isc_result_t
 cfg_parse_bracketed_list(cfg_parser_t *pctx, const cfg_type_t *type,
-		     cfg_obj_t **ret)
+			 cfg_obj_t **ret)
 {
 	isc_result_t result;
 

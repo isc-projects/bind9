@@ -196,13 +196,13 @@ typedef struct ns_hook {
 	ISC_LINK(struct ns_hook) link;
 } ns_hook_t;
 
-/*
- * ns__hook_table is a globally visible pointer to the active hook
- * table. It's initialized to point to 'hooktab', which is the default
- * global hook table.
- */
 typedef ISC_LIST(ns_hook_t) ns_hooklist_t;
 typedef ns_hooklist_t ns_hooktable_t[NS_QUERY_HOOKS_COUNT];
+
+/*
+ * ns__hook_table is a global hook table, which is used if view->hooktable
+ * is NULL.  It's intended only for use by unit tests.
+ */
 LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
 
 /*!
@@ -283,7 +283,7 @@ typedef int ns_hook_version_t(unsigned int *flags);
  * true, we continue processing.
  */
 #define _NS_PROCESS_HOOK(table, id, data, ...)				\
-	if (table != NULL) {			\
+	if (table != NULL) {						\
 		ns_hook_t *_hook = ISC_LIST_HEAD((*table)[id]);		\
 		isc_result_t _result;					\
 									\
@@ -300,9 +300,9 @@ typedef int ns_hook_version_t(unsigned int *flags);
 		}							\
 	}
 
-#define NS_PROCESS_HOOK(table, id, data) \
+#define NS_PROCESS_HOOK(table, id, data, ...) \
 	_NS_PROCESS_HOOK(table, id, data, _result)
-#define NS_PROCESS_HOOK_VOID(table, id, data) \
+#define NS_PROCESS_HOOK_VOID(table, id, data, ...) \
 	_NS_PROCESS_HOOK(table, id, data)
 
 isc_result_t
@@ -323,8 +323,7 @@ ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
 	    ns_hook_t *hook);
 /*%
  * Append hook function 'hook' to the list of hooks at 'hookpoint' in
- * 'hooktable'.  If 'hooktable' is NULL, the global hook table
- * ns__hook_table is used.
+ * 'hooktable'.
  *
  * Requires:
  *\li 'hook' is not NULL
@@ -333,26 +332,23 @@ ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
  *
  */
 
-ns_hooktable_t *
-ns_hooktable_save(void);
-/*%
- * Returns a pointer to the current global hook table so it can
- * be restored after replacing it.
- */
-
-void
-ns_hooktable_reset(ns_hooktable_t *hooktable);
-/*%
- * Set the global hooks table pointer to 'hooktable'.
- *
- * If 'hooktable' is NULL, restores the default global hook table.
- */
-
 void
 ns_hooktable_init(ns_hooktable_t *hooktable);
 /*%
- * Initialize a hook table. If 'hooktable' is NULL, initialize
- * the global hooktable ns__hook_table.
+ * Initialize a hook table.
  */
+
+isc_result_t
+ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep);
+/*%
+ * Allocate and initialize a hook table.
+ */
+
+void
+ns_hooktable_free(isc_mem_t *mctx, void **tablep);
+/*%
+ * Free a hook table.
+ */
+
 
 #endif /* NS_HOOKS_H */
