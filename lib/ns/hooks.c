@@ -338,6 +338,7 @@ unload_library(ns_hook_module_t **hmodp) {
 isc_result_t
 ns_hookmodule_load(const char *libname, const char *parameters,
 		   const char *file, unsigned long line,
+		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
 	isc_result_t result;
@@ -350,8 +351,9 @@ ns_hookmodule_load(const char *libname, const char *parameters,
 		      "loading module '%s'", libname);
 
 	CHECK(load_library(hctx->mctx, libname, &module));
-	CHECK(module->register_func(parameters, file, line, hctx,
-				    hooktable, &module->inst));
+	CHECK(module->register_func(parameters, file, line,
+				    cfg, actx, hctx, hooktable,
+				    &module->inst));
 
 	APPEND(hook_modules, module, link);
 	result = ISC_R_SUCCESS;
