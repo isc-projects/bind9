@@ -472,7 +472,7 @@ check_viewacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	static const char *acls[] = { "allow-query", "allow-query-on",
 		"allow-query-cache", "allow-query-cache-on",
 		"blackhole", "keep-response-order", "match-clients",
-		"match-destinations", "sortlist", "filter-aaaa", NULL };
+		"match-destinations", "sortlist", NULL };
 
 	while (acls[i] != NULL) {
 		tresult = checkacl(acls[i++], actx, NULL, voptions, config,
@@ -786,102 +786,6 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		if (acl != NULL)
 			dns_acl_detach(&acl);
 	}
-
-	return (result);
-}
-
-static isc_result_t
-check_filteraaaa(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
-		 const char *viewname, const cfg_obj_t *config,
-		 isc_log_t *logctx, isc_mem_t *mctx)
-{
-	const cfg_obj_t *options, *aclobj, *obj;
-	dns_acl_t *acl = NULL;
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_aaaa_t filter4, filter6;
-	const char *forview = " for view ";
-
-	if (viewname == NULL) {
-		viewname = "";
-		forview = "";
-	}
-
-	aclobj = options = NULL;
-	acl = NULL;
-
-	if (voptions != NULL)
-		cfg_map_get(voptions, "filter-aaaa", &aclobj);
-	if (config != NULL && aclobj == NULL) {
-		options = NULL;
-		cfg_map_get(config, "options", &options);
-		if (options != NULL)
-			cfg_map_get(options, "filter-aaaa", &aclobj);
-	}
-	if (aclobj == NULL)
-		return (result);
-
-	result = cfg_acl_fromconfig(aclobj, config, logctx,
-				    actx, mctx, 0, &acl);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	obj = NULL;
-	if (voptions != NULL)
-		cfg_map_get(voptions, "filter-aaaa-on-v4", &obj);
-	if (obj == NULL && config != NULL) {
-		options = NULL;
-		cfg_map_get(config, "options", &options);
-		if (options != NULL)
-			cfg_map_get(options, "filter-aaaa-on-v4", &obj);
-	}
-
-	if (obj == NULL)
-		filter4 = dns_aaaa_ok;		/* default */
-	else if (cfg_obj_isboolean(obj))
-		filter4 = cfg_obj_asboolean(obj) ? dns_aaaa_filter :
-						  dns_aaaa_ok;
-	else
-		filter4 = dns_aaaa_break_dnssec; 	/* break-dnssec */
-
-	obj = NULL;
-	if (voptions != NULL)
-		cfg_map_get(voptions, "filter-aaaa-on-v6", &obj);
-	if (obj == NULL && config != NULL) {
-		options = NULL;
-		cfg_map_get(config, "options", &options);
-		if (options != NULL)
-			cfg_map_get(options, "filter-aaaa-on-v6", &obj);
-	}
-
-	if (obj == NULL)
-		filter6 = dns_aaaa_ok;		/* default */
-	else if (cfg_obj_isboolean(obj))
-		filter6 = cfg_obj_asboolean(obj) ? dns_aaaa_filter :
-						  dns_aaaa_ok;
-	else
-		filter6 = dns_aaaa_break_dnssec; 	/* break-dnssec */
-
-	if ((filter4 != dns_aaaa_ok || filter6 != dns_aaaa_ok) &&
-	    dns_acl_isnone(acl))
-	{
-		cfg_obj_log(aclobj, logctx, ISC_LOG_WARNING,
-			    "\"filter-aaaa\" is 'none;' but "
-			    "either filter-aaaa-on-v4 or filter-aaaa-on-v6 "
-			    "is enabled%s%s", forview, viewname);
-		result = ISC_R_FAILURE;
-	} else if (filter4 == dns_aaaa_ok && filter6 == dns_aaaa_ok &&
-		   !dns_acl_isnone(acl))
-	{
-		cfg_obj_log(aclobj, logctx, ISC_LOG_WARNING,
-			    "\"filter-aaaa\" is set but "
-			    "neither filter-aaaa-on-v4 or filter-aaaa-on-v6 "
-			    "is enabled%s%s", forview, viewname);
-		result = ISC_R_FAILURE;
-	}
-
- failure:
-	if (acl != NULL)
-		dns_acl_detach(&acl);
 
 	return (result);
 }
@@ -3599,11 +3503,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 
 	tresult = check_recursionacls(actx, voptions, viewname,
 				      config, logctx, mctx);
-	if (tresult != ISC_R_SUCCESS)
-		result = tresult;
-
-	tresult = check_filteraaaa(actx, voptions, viewname, config,
-				   logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
