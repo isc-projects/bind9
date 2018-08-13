@@ -154,10 +154,44 @@ struct cfg_netprefix {
 /*%
  * A configuration data representation.
  */
+typedef enum {
+	CFG_REP_UINT32,
+	CFG_REP_UINT64,
+	CFG_REP_STRING,
+	CFG_REP_BOOLEAN,
+	CFG_REP_MAP,
+	CFG_REP_LIST,
+	CFG_REP_TUPLE,
+	CFG_REP_SOCKADDR,
+	CFG_REP_NETPREFIX,
+	CFG_REP_VOID,
+	CFG_REP_FIXEDPOINT,
+	CFG_REP_PERCENTAGE,
+} cfg_repcode_t;
+
 struct cfg_rep {
 	const char *	name;	/*%< For debugging only */
+	cfg_repcode_t	code;
 	cfg_freefunc_t 	free;	/*%< How to free this kind of data. */
 };
+
+/*@{*/
+/*%
+ * Predefined data representation types.
+ */
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_uint32;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_uint64;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_string;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_boolean;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_map;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_list;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_tuple;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_sockaddr;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_netprefix;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_void;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_fixedpoint;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_percentage;
+/*@}*/
 
 /*%
  * A configuration object.  This is the main building block
@@ -271,23 +305,6 @@ struct cfg_parser {
 #define CFG_ADDR_MASK		(CFG_ADDR_V6OK|CFG_ADDR_V4OK)
 /*@}*/
 
-/*@{*/
-/*%
- * Predefined data representation types.
- */
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_uint32;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_uint64;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_string;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_boolean;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_map;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_list;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_tuple;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_sockaddr;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_netprefix;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_void;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_fixedpoint;
-LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_percentage;
-/*@}*/
 
 /*@{*/
 /*%
