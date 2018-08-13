@@ -80,7 +80,7 @@
 #include <devpoll.h>
 #endif
 #endif
-#define NUM_EPOLLS 12
+#define NUM_EPOLLS 8
 #include <netinet/tcp.h>
 
 #include "errno2result.h"
@@ -3118,7 +3118,7 @@ dispatch_recv(isc__socket_t *sock) {
 		iev->ev_action = internal_recv;
 	iev->ev_arg = sock;
 
-	isc_task_sendto(sender, (isc_event_t **)&iev, sock->fd % NUM_EPOLLS);
+	isc_task_send(sender, (isc_event_t **)&iev);
 }
 
 static void
@@ -3152,7 +3152,7 @@ dispatch_send(isc__socket_t *sock) {
 		iev->ev_action = internal_send;
 	iev->ev_arg = sock;
 
-	isc_task_sendto(sender, (isc_event_t **)&iev, sock->fd % NUM_EPOLLS);
+	isc_task_send(sender, (isc_event_t **)&iev);
 }
 
 /*
