@@ -97,26 +97,20 @@ ISC_LANG_BEGINDECLS
 #ifdef ISC_PLATFORM_USETHREADS
 
 #if ISC_PLATFORM_HAVESTDATOMIC
-#warning stdatomic.h availaible
+#pragma message("stdatomic.h available")
 #else
-#warning stdatmoic.h not available
-#endif
-
-#if ATOMIC_INT_LOCK_FREE
-#warning atomic_int is lock free
-#else
-#warning atomic_int is not lock free
+#pragma message("stdatmoic.h not available")
 #endif
 
 #if ISC_PLATFORM_HAVEXADD
-#warning xadd available
+#pragma message("xadd available")
 #else
-#warning xadd not available
+#pragma message("xadd not available")
 #endif
 
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD)
+#if defined(ISC_PLATFORM_HAVESTDATOMIC) || defined(ISC_PLATFORM_HAVEXADD)
 #define ISC_REFCOUNT_HAVEATOMIC 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
+#if defined(ISC_PLATFORM_HAVESTDATOMIC)
 #define ISC_REFCOUNT_HAVESTDATOMIC 1
 #endif
 
