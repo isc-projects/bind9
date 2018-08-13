@@ -172,6 +172,8 @@ typedef struct query_ctx {
 	dns_rpz_st_t *rpz_st;			/* RPZ state */
 	dns_zone_t *zone;			/* zone to search */
 
+	dns_view_t *view;			/* client view */
+
 	void *hookdata[NS_MAX_MODULES];		/* data used by query hooks */
 
 	isc_result_t result;			/* query result */
