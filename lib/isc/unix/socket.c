@@ -80,7 +80,7 @@
 #include <devpoll.h>
 #endif
 #endif
-#define NUM_EPOLLS 8
+#define NUM_EPOLLS 12
 #include <netinet/tcp.h>
 
 #include "errno2result.h"
@@ -735,7 +735,6 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	uint32_t oldevents;
 	int ret;
 	int op;
-	int i;
 	
 	oldevents = manager->epoll_events[fd];
 	if (msg == SELECT_POKE_READ)
@@ -749,6 +748,7 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 
 	op = (oldevents & (EPOLLIN | EPOLLOUT)) ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
 	if (fd == manager->pipe_fds[0]) {
+		manager->epoll_events[fd] &= ~EPOLLET;
 		for (int i=0; i<NUM_EPOLLS; i++) {
 			ret = epoll_ctl(manager->epoll_fds[i], op, fd, &event);
 		}
@@ -760,7 +760,7 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "epoll_ctl(ADD/MOD) returned "
 					 "EEXIST for fd %d", fd);
-		printf("CTL failed %d %d %d %d %d\n", ret, errno, fd, manager->epoll_fds[i], op);
+		printf("CTL failed %d %d %d %d %d\n", ret, errno, fd, manager->epoll_fds[fd % NUM_EPOLLS], op);
 		result = isc__errno2result(errno);
 	}
 	return (result);
@@ -2788,7 +2788,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	manager->fds[sock->fd] = sock;
 	manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
-	manager->epoll_events[sock->fd] = 0;
+	manager->epoll_events[sock->fd] = EPOLLET;
 #endif
 #ifdef USE_DEVPOLL
 	INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
@@ -2867,7 +2867,7 @@ isc_socket_open(isc_socket_t *sock0) {
 		sock->manager->fds[sock->fd] = sock;
 		sock->manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
-		sock->manager->epoll_events[sock->fd] = 0;
+		sock->manager->epoll_events[sock->fd] = EPOLLET;
 #endif
 #ifdef USE_DEVPOLL
 		INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
@@ -2932,7 +2932,7 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 	manager->fds[sock->fd] = sock;
 	manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
-	manager->epoll_events[sock->fd] = 0;
+	manager->epoll_events[sock->fd] = EPOLLET;
 #endif
 	UNLOCK(&manager->fdlock[lockid]);
 
@@ -3504,7 +3504,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		manager->fds[fd] = NEWCONNSOCK(dev);
 		manager->fdstate[fd] = MANAGED;
 #if defined(USE_EPOLL)
-		manager->epoll_events[fd] = 0;
+		manager->epoll_events[fd] = EPOLLET;
 #endif
 		UNLOCK(&manager->fdlock[lockid]);
 
@@ -3559,11 +3559,11 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 	sock = ev->ev_sender;
 	INSIST(VALID_SOCKET(sock));
 
-	LOCK(&sock->lock);
 	socket_log(sock, NULL, IOEVENT,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
 		   "internal_recv: task %p got event %p", me, ev);
 
+	LOCK(&sock->lock);
 	INSIST(sock->pending_recv == 1);
 	sock->pending_recv = 0;
 
@@ -3599,11 +3599,26 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 			goto poke;
 
 		case DOIO_SUCCESS:
-		case DOIO_HARD:
-			send_recvdone_event(sock, &dev);
+		case DOIO_HARD: {
+			isc_task_t *task;
+
+			task = dev->ev_sender;
+
+			dev->ev_sender = sock;
+
+			if (ISC_LINK_LINKED(dev, ev_link)) {
+				ISC_LIST_DEQUEUE(sock->recv_list, dev, ev_link);
+			}
+			UNLOCK(&sock->lock);
+			if ((dev->attributes & ISC_SOCKEVENTATTR_ATTACHED)
+			    == ISC_SOCKEVENTATTR_ATTACHED)
+				isc_task_sendanddetach(&task, (isc_event_t **)&dev);
+			else
+				isc_task_send(task, (isc_event_t **)&dev);
+			LOCK(&sock->lock);
 			break;
 		}
-
+		}
 		dev = ISC_LIST_HEAD(sock->recv_list);
 	}
 
@@ -4622,7 +4637,8 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * half of the pipe, which will send EOF to the read half.
 	 * This is currently a no-op in the non-threaded case.
 	 */
-	select_poke(manager, 0, SELECT_POKE_SHUTDOWN);
+	for (int i=0; i<2*NUM_EPOLLS; i++)
+		select_poke(manager, 0, SELECT_POKE_SHUTDOWN);
 
 	/*
 	 * Wait for thread to exit.
