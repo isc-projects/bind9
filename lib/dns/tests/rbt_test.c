@@ -910,6 +910,7 @@ insert_nodes(dns_rbt_t *mytree, char **names,
 				node->data = n;
 				names[*names_count] = isc_mem_strdup(mctx,
 								     namebuf);
+				ATF_REQUIRE(names[*names_count] != NULL);
 				*names_count += 1;
 				break;
 			}
