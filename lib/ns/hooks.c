@@ -156,7 +156,6 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	imp->register_func = register_func;
 	imp->destroy_func = destroy_func;
 
-	imp->inst = NULL;
 	INIT_LINK(imp, link);
 
 	*impp = imp;
@@ -271,7 +270,6 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	imp->register_func = register_func;
 	imp->destroy_func = destroy_func;
 
-	imp->inst = NULL;
 	INIT_LINK(imp, link);
 
 	*impp = imp;
@@ -346,8 +344,7 @@ ns_hookmodule_load(const char *libname, const unsigned int modid,
 
 	CHECK(load_library(hctx->mctx, libname, &implementation));
 	CHECK(implementation->register_func(modid, parameters, file, line,
-					    cfg, actx, hctx, hooktable,
-					    &implementation->inst));
+					    cfg, actx, hctx, hooktable));
 
 	APPEND(hook_modules, implementation, link);
 	result = ISC_R_SUCCESS;
@@ -375,8 +372,7 @@ ns_hookmodule_cleanup(bool exiting) {
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 			      "unloading module");
-		elem->destroy_func(&elem->inst);
-		ENSURE(elem->inst == NULL);
+		elem->destroy_func();
 		unload_library(&elem);
 		elem = prev;
 	}
