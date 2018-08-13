@@ -225,7 +225,6 @@ build:clang:debian:stretch:amd64:
   variables:
     CC: clang
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
-    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_stretch_amd64_image
   <<: *build_job
 
@@ -255,7 +254,6 @@ build:clang:debian:stretch:i386:
   variables:
     CC: clang
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
-    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_stretch_i386_image
   <<: *build_job
 
