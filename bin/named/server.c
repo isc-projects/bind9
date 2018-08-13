@@ -7963,7 +7963,6 @@ load_configuration(const char *filename, named_server_t *server,
 	dns_dyndb_cleanup(false);
 	ns_hookmodule_cleanup(false);
 
-
 	/*
 	 * Parse the global default pseudo-config file.
 	 */
