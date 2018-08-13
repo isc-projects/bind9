@@ -152,6 +152,8 @@ typedef struct isc_refcount {
 
 #else /* ISC_REFCOUNT_HAVESTDATOMIC */
 
+#error isc_atomic in use
+
 #define isc_refcount_init(rp, n) isc_atomic_store(&(rp)->refs, n)
 
 #define isc_refcount_current(rp)				\
@@ -190,6 +192,8 @@ typedef struct isc_refcount {
 #endif /* ISC_REFCOUNT_HAVESTDATOMIC */
 
 #else  /* ISC_PLATFORM_HAVEXADD */
+
+#error ISC Mutex in use
 
 typedef struct isc_refcount {
 	int refs;
@@ -264,6 +268,8 @@ typedef struct isc_refcount {
 
 #endif /* (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD) */
 #else  /* ISC_PLATFORM_USETHREADS */
+
+#error No Threads in use
 
 typedef struct isc_refcount {
 	int refs;
