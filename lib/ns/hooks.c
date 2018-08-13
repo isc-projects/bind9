@@ -329,7 +329,8 @@ unload_library(ns_hook_module_t **impp) {
 #endif	/* HAVE_DLFCN_H */
 
 isc_result_t
-ns_hookmodule_load(const char *libname, const char *parameters,
+ns_hookmodule_load(const char *libname, const unsigned int modid,
+		   const char *parameters,
 		   const char *file, unsigned long line,
 		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
@@ -344,7 +345,7 @@ ns_hookmodule_load(const char *libname, const char *parameters,
 	LOCK(&hook_lock);
 
 	CHECK(load_library(hctx->mctx, libname, &implementation));
-	CHECK(implementation->register_func(parameters, file, line,
+	CHECK(implementation->register_func(modid, parameters, file, line,
 					    cfg, actx, hctx, hooktable,
 					    &implementation->inst));
 

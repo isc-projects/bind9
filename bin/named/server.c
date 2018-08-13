@@ -1525,7 +1525,8 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 }
 
 static isc_result_t
-configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
+configure_hook(ns_hooktable_t *hooktable, const unsigned int modid,
+	       const cfg_obj_t *hook,
 	       const cfg_obj_t *config, ns_hookctx_t *hctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1547,7 +1548,7 @@ configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
 
 	obj = cfg_tuple_get(hook, "parameters");
 	if (obj != NULL && cfg_obj_isstring(obj)) {
-		result = ns_hookmodule_load(library,
+		result = ns_hookmodule_load(library, modid,
 					    cfg_obj_asstring(obj),
 					    cfg_obj_file(obj),
 					    cfg_obj_line(obj),
@@ -1555,7 +1556,7 @@ configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
 					    named_g_aclconfctx,
 					    hctx, hooktable);
 	} else {
-		result = ns_hookmodule_load(library, NULL,
+		result = ns_hookmodule_load(library, modid, NULL,
 					    cfg_obj_file(hook),
 					    cfg_obj_line(hook),
 					    config,
@@ -5218,6 +5219,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *hook = cfg_listelt_value(element);
+		static unsigned int module_counter = 0;
 
 		if (view->hooktable == NULL) {
 			ns_hooktable_create(view->mctx,
@@ -5231,7 +5233,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 						&hctx));
 		}
 
-		CHECK(configure_hook(view->hooktable, hook, config, hctx));
+		CHECK(configure_hook(view->hooktable, module_counter,
+				     hook, config, hctx));
+
+		module_counter++;
 	}
 #endif
 
