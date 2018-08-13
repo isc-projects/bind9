@@ -45,20 +45,33 @@ OBJS =
 CFLAGS =	@CFLAGS@ @SO_CFLAGS@
 SO_LDFLAGS =	@LDFLAGS@ @SO_LDFLAGS@
 
+MANPAGES =	filter-aaaa.8
+
+HTMLPAGES =	filter-aaaa.html
+
+MANOBJS =	${MANPAGES} ${HTMLPAGES}
+
 @BIND9_MAKE_RULES@
 
 filter-aaaa.@SO@: ${SO_OBJS}
 	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ \
 		filter-aaaa.@O@ ${LIBS}
 
+doc man:: ${MANOBJS}
+
 clean distclean maintainer-clean::
 	rm -f ${TARGETS} ${OBJS}
+	rm -f ${MANOBJS}
 
 installdirs:
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${sbindir}
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man5
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: filter-aaaa.@SO@ installdirs
+	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} filter-aaaa.@SO@ \
+		${DESTDIR}${libdir}
+	${INSTALL_DATA} ${srcdir}/filter-aaaa.8 ${DESTDIR}${mandir}/man8
 
 uninstall::
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/filter-aaaa.@SO@
+	rm -f ${DESTDIR}${mandir}/man8/filter-aaaa.8
