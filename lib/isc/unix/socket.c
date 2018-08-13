@@ -80,7 +80,7 @@
 #include <devpoll.h>
 #endif
 #endif
-
+#define NUM_EPOLLS 12
 #include <netinet/tcp.h>
 
 #include "errno2result.h"
@@ -397,9 +397,9 @@ struct isc__socketmgr {
 	struct kevent		*events;
 #endif	/* USE_KQUEUE */
 #ifdef USE_EPOLL
-	int			epoll_fds[4];
+	int			epoll_fds[NUM_EPOLLS];
 	int			nevents;
-	struct epoll_event	*events[4];
+	struct epoll_event	*events[NUM_EPOLLS];
 #endif	/* USE_EPOLL */
 #ifdef USE_DEVPOLL
 	int			devpoll_fd;
@@ -412,7 +412,7 @@ struct isc__socketmgr {
 	int			fd_bufsize;
 #endif	/* USE_SELECT */
 	unsigned int		maxsocks;
-	int			pipe_fds[8];
+	int			pipe_fds[2];
 
 	/* Locked by fdlock. */
 	isc__socket_t	       **fds;
@@ -434,7 +434,7 @@ struct isc__socketmgr {
 	int			maxfd;
 #endif	/* USE_SELECT */
 	int			reserved;	/* unlocked */
-	isc_thread_t		watcher[4];
+	isc_thread_t		watcher[NUM_EPOLLS];
 	isc_condition_t		shutdown_ok;
 	int			maxudp;
 };
@@ -749,12 +749,11 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 
 	op = (oldevents & (EPOLLIN | EPOLLOUT)) ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
 	if (fd == manager->pipe_fds[0]) {
-		ret = epoll_ctl(manager->epoll_fds[0], op, fd, &event);
-		ret = epoll_ctl(manager->epoll_fds[1], op, fd, &event);
-		ret = epoll_ctl(manager->epoll_fds[2], op, fd, &event);
-		ret = epoll_ctl(manager->epoll_fds[3], op, fd, &event);
+		for (int i=0; i<NUM_EPOLLS; i++) {
+			ret = epoll_ctl(manager->epoll_fds[i], op, fd, &event);
+		}
 	} else {
-		ret = epoll_ctl(manager->epoll_fds[fd % 4], op, fd, &event);
+		ret = epoll_ctl(manager->epoll_fds[fd % NUM_EPOLLS], op, fd, &event);
 	}
 	if (ret == -1) {
 		if (errno == EEXIST)
@@ -849,7 +848,7 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 
 	op = (event.events & (EPOLLIN | EPOLLOUT)) ? EPOLL_CTL_MOD : EPOLL_CTL_DEL;
 
-	ret = epoll_ctl(manager->epoll_fds[fd % 4], op, fd, &event);
+	ret = epoll_ctl(manager->epoll_fds[fd % NUM_EPOLLS], op, fd, &event);
 	if (ret == -1 && errno != ENOENT) {
 		char strbuf[ISC_STRERRORSIZE];
 		isc__strerror(errno, strbuf, sizeof(strbuf));
@@ -4217,7 +4216,7 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 	}
 #elif defined(USE_EPOLL)
 	manager->nevents = ISC_SOCKET_MAXEVENTS;
-	for (int i=0; i<4; i++) {
+	for (int i=0; i<NUM_EPOLLS; i++) {
 		manager->events[i] = isc_mem_get(mctx, sizeof(struct epoll_event) *
 				      manager->nevents);
 		if (manager->events == NULL)
@@ -4361,7 +4360,7 @@ cleanup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 	isc_mem_put(mctx, manager->events,
 		    sizeof(struct kevent) * manager->nevents);
 #elif defined(USE_EPOLL)
-	for (int i=0; i<4; i++) {
+	for (int i=0; i<NUM_EPOLLS; i++) {
 		close(manager->epoll_fds[i]);
 		isc_mem_put(mctx, manager->events[i],
 			    sizeof(struct epoll_event) * manager->nevents);
@@ -4498,10 +4497,11 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	 * Start up the select/poll thread.
 	 */
 	isc_mem_attach(mctx, &manager->mctx);
-	for (int i=0; i<4; i++) {
+	for (int i=0; i<NUM_EPOLLS; i++) {
 		isc__mgrplus_t *m = isc_mem_get(mctx, sizeof(isc__mgrplus_t));
 		m->manager = manager;
 		m->id = i;
+		cpu_set_t cpuset;
 		if (isc_thread_create(watcher, m, &manager->watcher[i]) !=
 		    ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -4515,6 +4515,11 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		char buf[64];
 		sprintf(buf, "isc-socket-%d", i);
 		isc_thread_setname(manager->watcher[i], buf);
+		CPU_ZERO(&cpuset);
+		CPU_SET(i, &cpuset);
+		if (pthread_setaffinity_np(manager->watcher[i], sizeof(cpu_set_t), &cpuset) != 0) {
+			printf("Error setting affinity %d", errno);
+		}
 	}
 
 	*managerp = (isc_socketmgr_t *)manager;
@@ -4618,14 +4623,11 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * This is currently a no-op in the non-threaded case.
 	 */
 	select_poke(manager, 0, SELECT_POKE_SHUTDOWN);
-	select_poke(manager, 1, SELECT_POKE_SHUTDOWN);
-	select_poke(manager, 2, SELECT_POKE_SHUTDOWN);
-	select_poke(manager, 3, SELECT_POKE_SHUTDOWN);
 
 	/*
 	 * Wait for thread to exit.
 	 */
-	for (int i=0; i<4; i++) {
+	for (int i=0; i<NUM_EPOLLS; i++) {
 		if (isc_thread_join(manager->watcher[i], NULL) != ISC_R_SUCCESS)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_thread_join() %s",
