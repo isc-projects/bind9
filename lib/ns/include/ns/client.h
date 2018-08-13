@@ -175,7 +175,7 @@ struct ns_client {
 	 * Allows a hook module to set flags
 	 * that persist across recursion.
 	 */
-	uint32_t		hookflags;
+	uint32_t		hookflags[NS_MAX_MODULES];
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;
