@@ -4,6 +4,7 @@ variables:
   DOCKER_DRIVER: overlay2
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
   CCACHE_DIR: "/ccache"
+  SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
 
 stages:
   - precheck
@@ -125,9 +126,7 @@ stages:
   before_script:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
-    - export SOFTHSM_CONF="/tmp/softhsm.conf"
-    - echo "0:/tmp/softhsm.db" > $SOFTHSM_CONF
-    - if command -v softhsm2-util >/dev/null; then softhsm2-util --init-token --free --pin 0000 --so-pin 0000 --label "softhsm"; fi
+    - bash -x util/prepare-softhsm2.sh
   script:
     - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
@@ -140,9 +139,7 @@ stages:
   stage: test
   before_script:
     - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
-    - export SOFTHSM_CONF="/tmp/softhsm.conf"
-    - echo "0:/tmp/softhsm.db" > $SOFTHSM_CONF
-    - if command -v softhsm2-util >/dev/null; then softhsm2-util --init-token --free --pin 0000 --so-pin 0000 --label "softhsm"; fi
+    - bash -x util/prepare-softhsm2.sh
   script:
     - make unit
   after_script:
@@ -214,12 +211,11 @@ build:centos:centos7:amd64:
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
-build:clang:debian:sid:amd64:
+build:clang:debian:stretch:amd64:
   variables:
-    CC: clang-6.0
+    CC: clang
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *debian_sid_amd64_image
+  <<: *debian_stretch_amd64_image
   <<: *build_job
 
 build:debian:jessie:amd64:
@@ -244,12 +240,11 @@ build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-build:clang:debian:sid:i386:
+build:clang:debian:stretch:i386:
   variables:
-    CC: clang-6.0
+    CC: clang
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *debian_sid_i386_image
+  <<: *debian_stretch_i386_image
   <<: *build_job
 
 build:debian:sid:i386:
@@ -290,11 +285,11 @@ unittest:debian:sid:amd64:
   dependencies:
     - build:debian:sid:amd64
 
-unittest:clang:debian:sid:amd64:
-  <<: *debian_sid_amd64_image
+unittest:clang:debian:stretch:amd64:
+  <<: *debian_stretch_amd64_image
   <<: *unit_test_job
   dependencies:
-    - build:clang:debian:sid:amd64
+    - build:clang:debian:stretch:amd64
 
 unittest:debian:sid:i386:
   <<: *debian_sid_i386_image
