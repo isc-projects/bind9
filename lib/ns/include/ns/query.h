@@ -27,12 +27,18 @@
 
 #include <ns/types.h>
 
+/*
+ * Maximum number of query hook modules that can be configured;
+ * more than this will overflow qctx->hookdata.
+ */
+#define NS_MAX_MODULES 16
+
 /*% nameserver database version structure */
 typedef struct ns_dbversion {
 	dns_db_t			*db;
 	dns_dbversion_t			*version;
-	bool			acl_checked;
-	bool			queryok;
+	bool				acl_checked;
+	bool				queryok;
 	ISC_LINK(struct ns_dbversion)	link;
 } ns_dbversion_t;
 
@@ -52,7 +58,7 @@ typedef struct ns_query_recparam {
 struct ns_query {
 	unsigned int			attributes;
 	unsigned int			restarts;
-	bool			timerset;
+	bool				timerset;
 	dns_name_t *			qname;
 	dns_name_t *			origqname;
 	dns_rdatatype_t			qtype;
@@ -61,8 +67,8 @@ struct ns_query {
 	dns_db_t *			gluedb;
 	dns_db_t *			authdb;
 	dns_zone_t *			authzone;
-	bool			authdbset;
-	bool			isreferral;
+	bool				authdbset;
+	bool				isreferral;
 	isc_mutex_t			fetchlock;
 	dns_fetch_t *			fetch;
 	dns_fetch_t *			prefetch;
@@ -72,7 +78,7 @@ struct ns_query {
 	ISC_LIST(ns_dbversion_t)	freeversions;
 	dns_rdataset_t *		dns64_aaaa;
 	dns_rdataset_t *		dns64_sigaaaa;
-	bool *			dns64_aaaaok;
+	bool *				dns64_aaaaok;
 	unsigned int			dns64_aaaaoklen;
 	unsigned int			dns64_options;
 	unsigned int			dns64_ttl;
@@ -87,8 +93,8 @@ struct ns_query {
 		isc_result_t		result;
 		dns_rdataset_t *	rdataset;
 		dns_rdataset_t *	sigrdataset;
-		bool		authoritative;
-		bool		is_zone;
+		bool			authoritative;
+		bool			is_zone;
 	} redirect;
 
 	ns_query_recparam_t		recparam;
@@ -166,7 +172,9 @@ struct query_ctx {
 	dns_rpz_st_t *rpz_st;			/* RPZ state */
 	dns_zone_t *zone;			/* zone to search */
 
-	dns_aaaa_t filter_aaaa;			/* AAAA filtering */
+	dns_view_t *view;			/* client view */
+
+	void *hookdata[NS_MAX_MODULES];		/* data used by query hooks */
 
 	isc_result_t result;			/* query result */
 	int line;				/* line to report error */
@@ -252,14 +260,6 @@ isc_result_t
 ns__query_start(query_ctx_t *qctx);
 /*%
  * (Must not be used outside this module and its associated unit tests.)
- */
-
-void
-ns__query_inithooks(void);
-/*
- * XXX:
- * Temporary function used to initialize the filter-aaaa hooks,
- * which are currently hard-coded rather than loaded as a module.
  */
 
 #endif /* NS_QUERY_H */

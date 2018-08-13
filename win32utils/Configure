@@ -360,7 +360,6 @@ my @enablelist = ("developer",
                   "isc-spnego",
                   "native-pkcs11",
                   "openssl-hash",
-                  "filter-aaaa",
                   "querytrace",
                   "rpz-nsdname",
                   "rpz-nsip");

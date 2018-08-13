@@ -163,7 +163,8 @@
  */
 
 typedef enum {
-	NS_QUERY_SETUP_QCTX_INITIALIZED,
+	NS_QUERY_QCTX_INITIALIZED,
+	NS_QUERY_QCTX_DESTROYED,
 	NS_QUERY_START_BEGIN,
 	NS_QUERY_LOOKUP_BEGIN,
 	NS_QUERY_RESUME_BEGIN,
@@ -235,7 +236,8 @@ typedef struct ns_hookctx {
 #define NS_HOOK_AGE 0
 #endif
 
-typedef isc_result_t ns_hook_register_t(const char *parameters,
+typedef isc_result_t ns_hook_register_t(const unsigned int modid,
+					const char *parameters,
 					const char *file,
 					unsigned long line,
 					const void *cfg,
@@ -312,7 +314,8 @@ void
 ns_hook_destroyctx(ns_hookctx_t **hctxp);
 
 isc_result_t
-ns_hookmodule_load(const char *libname, const char *parameters,
+ns_hookmodule_load(const char *libname, const unsigned int modid,
+		   const char *parameters,
 		   const char *file, unsigned long line,
 		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable);
