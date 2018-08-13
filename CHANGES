@@ -1,3 +1,6 @@
+5008.	[bug]		A referral response with a non-empty ANSWER section was
+			inadvertently being treated as an error. [GL #390]
+
 5007.	[cleanup]	Replace custom ISC boolean and integer data types
 			with C99 stdint.h and stdbool.h types. [GL #9]
 
