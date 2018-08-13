@@ -208,6 +208,8 @@ isc_task_detach(isc_task_t **taskp);
 
 void
 isc_task_send(isc_task_t *task, isc_event_t **eventp);
+void
+isc_task_sendto(isc_task_t *task, isc_event_t **eventp, int id);
 /*%<
  * Send '*event' to 'task'.
  *

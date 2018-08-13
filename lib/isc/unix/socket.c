@@ -3118,7 +3118,7 @@ dispatch_recv(isc__socket_t *sock) {
 		iev->ev_action = internal_recv;
 	iev->ev_arg = sock;
 
-	isc_task_send(sender, (isc_event_t **)&iev);
+	isc_task_sendto(sender, (isc_event_t **)&iev, sock->fd % NUM_EPOLLS);
 }
 
 static void
@@ -3152,7 +3152,7 @@ dispatch_send(isc__socket_t *sock) {
 		iev->ev_action = internal_send;
 	iev->ev_arg = sock;
 
-	isc_task_send(sender, (isc_event_t **)&iev);
+	isc_task_sendto(sender, (isc_event_t **)&iev, sock->fd % NUM_EPOLLS);
 }
 
 /*
