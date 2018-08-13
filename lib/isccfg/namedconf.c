@@ -756,7 +756,7 @@ parse_boolorauto(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 
 static void
 print_boolorauto(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	if (obj->type->rep == &cfg_rep_void)
+	if (obj->type->rep->code == CFG_REP_VOID)
 		cfg_print_cstr(pctx, "auto");
 	else if (obj->value.boolean)
 		cfg_print_cstr(pctx, "yes");
