@@ -260,15 +260,11 @@ typedef isc_result_t ns_hook_register_t(const unsigned int modid,
 					const void *cfg,
 					void *actx,
 					ns_hookctx_t *hctx,
-					ns_hooktable_t *hooktable,
-					void **instp);
+					ns_hooktable_t *hooktable);
 /*%
  * Called when registering a new module.
  *
  * 'parameters' contains the driver configuration text.
- *
- * '*instp' will be set to the driver instance handle if the function
- * is successful.
  *
  * Returns:
  *\li	#ISC_R_SUCCESS
@@ -276,11 +272,9 @@ typedef isc_result_t ns_hook_register_t(const unsigned int modid,
  *\li	Other errors are possible
  */
 
-typedef void ns_hook_destroy_t(void **instp);
+typedef void ns_hook_destroy_t(void);
 /*%
  * Destroy a module instance.
- *
- * \c *instp must be set to \c NULL by the function before it returns.
  */
 
 typedef int ns_hook_version_t(unsigned int *flags);
