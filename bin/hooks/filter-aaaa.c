@@ -54,11 +54,7 @@ ns_hook_version_t hook_version;
  */
 static ns_hook_querydone_t query_done;
 static ns_hook_queryrecurse_t query_recurse;
-
-/*
- * Hook ID of the filter-aaaa module
- */
-static int filter_aaaa;
+static int module_id;
 
 /*
  * Hook data pool.
@@ -78,28 +74,39 @@ static isc_mempool_t *datapool = NULL;
 				  NS_QUERYATTR_RECURSIONOK) != 0)
 
 static bool
+filter_qctx_initialize(void *hookdata, void *cbdata, isc_result_t *resp);
+ns_hook_t filter_init = {
+	.callback = filter_qctx_initialize,
+};
+
+static bool
 filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp);
-
-static bool
-filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp);
-
-static bool
-filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp);
-
-static bool
-filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp);
-
 ns_hook_t filter_respbegin = {
 	.callback = filter_respond_begin,
 };
+
+static bool
+filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp);
 ns_hook_t filter_respanyfound = {
 	.callback = filter_respond_any_found,
 };
+
+static bool
+filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp);
 ns_hook_t filter_prepresp = {
 	.callback = filter_prep_response_begin,
 };
+
+static bool
+filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp);
 ns_hook_t filter_donesend = {
 	.callback = filter_query_done_send,
+};
+
+static bool
+filter_qctx_destroy(void *hookdata, void *cbdata, isc_result_t *resp);
+ns_hook_t filter_destroy = {
+	.callback = filter_qctx_destroy,
 };
 
 /*
@@ -256,18 +263,21 @@ hook_register(const unsigned int modid, const char *parameters,
 			      file, line);
 	}
 
+	module_id = modid;
+
+	ns_hook_add(hooktable, NS_QUERY_QCTX_INITIALIZED, &filter_init);
 	ns_hook_add(hooktable, NS_QUERY_RESPOND_BEGIN, &filter_respbegin);
 	ns_hook_add(hooktable, NS_QUERY_RESPOND_ANY_FOUND,
 		    &filter_respanyfound);
 	ns_hook_add(hooktable, NS_QUERY_PREP_RESPONSE_BEGIN, &filter_prepresp);
 	ns_hook_add(hooktable, NS_QUERY_DONE_SEND, &filter_donesend);
-
-	filter_aaaa = modid;
+	ns_hook_add(hooktable, NS_QUERY_QCTX_DESTROYED, &filter_destroy);
 
 	CHECK(isc_mempool_create(hctx->mctx, sizeof(filter_aaaa_t),
 				 &datapool));
 
 	isc_mempool_setfillcount(datapool, 1024);
+	isc_mempool_setfreemax(datapool, 32768);
 
  cleanup:
 	if (result != ISC_R_SUCCESS) {
@@ -323,6 +333,24 @@ is_v6_client(ns_client_t *client) {
 	return (false);
 }
 
+#define QFA ((filter_aaaa_t **) &qctx->hookdata[module_id])
+
+static bool
+filter_qctx_initialize(void *hookdata, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *) hookdata;
+
+	UNUSED(cbdata);
+
+	*QFA = isc_mempool_get(datapool);
+	**QFA = OK;
+
+	*resp = ISC_R_UNSET;
+	return (false);
+}
+/*
+ * Get memory from the mempool and attach it to the qctx.
+ */
+
 /*
  * The filter-aaaa-on-v4 option suppresses AAAAs for IPv4
  * clients if there is an A; filter-aaaa-on-v6 option does
@@ -331,12 +359,10 @@ is_v6_client(ns_client_t *client) {
 static bool
 filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) hookdata;
-	filter_aaaa_t *qfa = (filter_aaaa_t *) &qctx->hookdata[filter_aaaa];
 	isc_result_t result;
 
 	UNUSED(cbdata);
 
-	*qfa = OK;
 	if (v4_aaaa != OK || v6_aaaa != OK) {
 		result = ns_client_checkaclsilent(qctx->client, NULL,
 						  aaaa_acl, true);
@@ -344,12 +370,12 @@ filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 		    v4_aaaa != OK &&
 		    is_v4_client(qctx->client))
 		{
-			*qfa = v4_aaaa;
+			**QFA = v4_aaaa;
 		} else if (result == ISC_R_SUCCESS &&
 			   v6_aaaa != OK &&
 			   is_v6_client(qctx->client))
 		{
-			*qfa = v6_aaaa;
+			**QFA = v6_aaaa;
 		}
 	}
 
@@ -365,13 +391,12 @@ filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 static bool
 filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) hookdata;
-	filter_aaaa_t *qfa = (filter_aaaa_t *) &qctx->hookdata[filter_aaaa];
 	isc_result_t result = ISC_R_UNSET;
 
 	UNUSED(cbdata);
 
-	if (*qfa != BREAK_DNSSEC &&
-	    (*qfa != FILTER ||
+	if (**QFA != BREAK_DNSSEC &&
+	    (**QFA != FILTER ||
 	     (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
 	      dns_rdataset_isassociated(qctx->sigrdataset))))
 	{
@@ -476,8 +501,8 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 		result = (*query_done)(qctx);
 
 		*resp = result;
-		return (true);
 
+		return (true);
 	}
 
 	*resp = result;
@@ -487,7 +512,6 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 static bool
 filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) hookdata;
-	filter_aaaa_t *qfa = (filter_aaaa_t *) &qctx->hookdata[filter_aaaa];
 	dns_name_t *name = NULL;
 	dns_rdataset_t *aaaa = NULL, *aaaa_sig = NULL;
 	dns_rdataset_t *a = NULL;
@@ -495,7 +519,7 @@ filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
 
 	UNUSED(cbdata);
 
-	if (*qfa == OK) {
+	if (**QFA == OK) {
 		*resp = ISC_R_UNSET;
 		return (false);
 	}
@@ -527,7 +551,7 @@ filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
 
 	if (have_a && aaaa != NULL &&
 	    (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
-	     *qfa == BREAK_DNSSEC))
+	     **QFA == BREAK_DNSSEC))
 	{
 		aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
 		if (aaaa_sig != NULL) {
@@ -546,12 +570,11 @@ filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
 static bool
 filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) hookdata;
-	filter_aaaa_t *qfa = (filter_aaaa_t *) &qctx->hookdata[filter_aaaa];
 	isc_result_t result;
 
 	UNUSED(cbdata);
 
-	if (*qfa == OK) {
+	if (**QFA == OK) {
 		*resp = ISC_R_UNSET;
 		return (false);
 	}
@@ -585,7 +608,7 @@ filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
 				     dns_rdatatype_aaaa, &aaaa_sig);
 
 		if (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
-		    *qfa == BREAK_DNSSEC)
+		    **QFA == BREAK_DNSSEC)
 		{
 			aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
 			if (aaaa_sig != NULL) {
@@ -593,6 +616,24 @@ filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
 					DNS_RDATASETATTR_RENDERED;
 			}
 		}
+	}
+
+	*resp = ISC_R_UNSET;
+	return (false);
+}
+
+/*
+ * Return hook data to the mempool.
+ */
+static bool
+filter_qctx_destroy(void *hookdata, void *cbdata, isc_result_t *resp) {
+	query_ctx_t *qctx = (query_ctx_t *) hookdata;
+
+	UNUSED(cbdata);
+
+	if (*QFA != NULL) {
+		isc_mempool_put(datapool, *QFA);
+		*QFA = NULL;
 	}
 
 	*resp = ISC_R_UNSET;
