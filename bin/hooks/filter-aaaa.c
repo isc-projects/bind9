@@ -224,11 +224,9 @@ isc_result_t
 hook_register(const unsigned int modid, const char *parameters,
 	      const char *file, unsigned long line,
 	      const void *cfg, void *actx,
-	      ns_hookctx_t *hctx, ns_hooktable_t *hooktable, void **instp)
+	      ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
 	isc_result_t result;
-
-	UNUSED(instp);
 
 	/*
 	 * Depending on how dlopen() was called, we may not have
@@ -289,9 +287,7 @@ hook_register(const unsigned int modid, const char *parameters,
 }
 
 void
-hook_destroy(void **instp) {
-	UNUSED(instp);
-
+hook_destroy(void) {
 	if (datapool != NULL) {
 		isc_mempool_destroy(&datapool);
 	}
