@@ -337,7 +337,8 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
  *     return it to the client.
  *
  * (XXX: This description omits several special cases including
- * DNS64, filter-aaaa, RPZ, RRL, and the SERVFAIL cache.)
+ * DNS64, RPZ, RRL, and the SERVFAIL cache. It also doesn't discuss
+ * query hook modules.)
  */
 
 static void
@@ -4801,7 +4802,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	/* Set this first so CCTRACE will work */
 	qctx->client = client;
 
-	CCTRACE(ISC_LOG_DEBUG(3), "qctx_create");
+	CCTRACE(ISC_LOG_DEBUG(3), "qctx_init");
 
 	qctx->event = event;
 	qctx->qtype = qctx->type = qtype;
@@ -4831,7 +4832,8 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->want_stale = false;
 	qctx->answer_has_ns = false;
 	qctx->authoritative = false;
-	qctx->filter_aaaa = dns_aaaa_ok;
+
+	memset(qctx->hookdata, 0, sizeof(qctx->hookdata));
 }
 
 /*%
