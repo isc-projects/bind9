@@ -80,7 +80,7 @@
 #include <devpoll.h>
 #endif
 #endif
-#define NUM_EPOLLS 8
+#define NUM_EPOLLS 12
 #include <netinet/tcp.h>
 
 #include "errno2result.h"
@@ -2788,7 +2788,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	manager->fds[sock->fd] = sock;
 	manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
-	manager->epoll_events[sock->fd] = 0;
+	manager->epoll_events[sock->fd] = EPOLLET;
 #endif
 #ifdef USE_DEVPOLL
 	INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
@@ -2867,7 +2867,7 @@ isc_socket_open(isc_socket_t *sock0) {
 		sock->manager->fds[sock->fd] = sock;
 		sock->manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
-		sock->manager->epoll_events[sock->fd] = 0;
+		sock->manager->epoll_events[sock->fd] = EPOLLET;
 #endif
 #ifdef USE_DEVPOLL
 		INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
@@ -2932,7 +2932,7 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 	manager->fds[sock->fd] = sock;
 	manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
-	manager->epoll_events[sock->fd] = 0;
+	manager->epoll_events[sock->fd] = EPOLLET;
 #endif
 	UNLOCK(&manager->fdlock[lockid]);
 
@@ -3504,7 +3504,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		manager->fds[fd] = NEWCONNSOCK(dev);
 		manager->fdstate[fd] = MANAGED;
 #if defined(USE_EPOLL)
-		manager->epoll_events[fd] = 0;
+		manager->epoll_events[fd] = EPOLLET;
 #endif
 		UNLOCK(&manager->fdlock[lockid]);
 
