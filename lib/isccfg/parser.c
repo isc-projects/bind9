@@ -108,21 +108,42 @@ parser_complain(cfg_parser_t *pctx, bool is_warning,
  * not need a union member).
  */
 
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_uint32 = { "uint32", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_uint64 = { "uint64", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_string = { "string", free_string };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_boolean = { "boolean", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_map = { "map", free_map };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_list = { "list", free_list };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_tuple = { "tuple", free_tuple };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_sockaddr = { "sockaddr", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_netprefix =
-	{ "netprefix", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_void = { "void", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_fixedpoint =
-	{ "fixedpoint", free_noop };
-LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_percentage =
-	{ "percentage", free_noop };
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_uint32 = {
+	"uint32", CFG_REP_UINT32, free_noop
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_uint64 = {
+	"uint64", CFG_REP_UINT64, free_noop
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_string = {
+	"string", CFG_REP_STRING, free_string
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_boolean = {
+	"boolean", CFG_REP_BOOLEAN, free_noop
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_map = {
+	"map", CFG_REP_MAP, free_map
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_list = {
+	"list", CFG_REP_LIST, free_list
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_tuple = {
+	"tuple", CFG_REP_TUPLE, free_tuple
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_sockaddr = {
+	"sockaddr", CFG_REP_SOCKADDR, free_noop
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_netprefix = {
+	"netprefix", CFG_REP_NETPREFIX, free_noop
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_void = {
+	"void", CFG_REP_VOID, free_noop
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_fixedpoint = {
+	"fixedpoint", CFG_REP_FIXEDPOINT, free_noop
+};
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_percentage = {
+	"percentage", CFG_REP_PERCENTAGE, free_noop
+};
 
 /*
  * Configuration type definitions.
@@ -302,8 +323,11 @@ cfg_print_tuple(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 
 	for (f = fields, i = 0; f->name != NULL; f++, i++) {
 		const cfg_obj_t *fieldobj = obj->value.tuple[i];
-		if (need_space && fieldobj->type->rep != &cfg_rep_void)
+		if (need_space &&
+		    fieldobj->type->rep->code != CFG_REP_VOID)
+		{
 			cfg_print_cstr(pctx, " ");
+		}
 		cfg_print_obj(pctx, fieldobj);
 		need_space = (need_space ||
 			      fieldobj->type->print != cfg_print_void);
@@ -350,7 +374,7 @@ free_tuple(cfg_parser_t *pctx, cfg_obj_t *obj) {
 bool
 cfg_obj_istuple(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_tuple);
+	return (obj->type->rep->code == CFG_REP_TUPLE);
 }
 
 const cfg_obj_t *
@@ -359,7 +383,7 @@ cfg_tuple_get(const cfg_obj_t *tupleobj, const char* name) {
 	const cfg_tuplefielddef_t *fields;
 	const cfg_tuplefielddef_t *f;
 
-	REQUIRE(tupleobj != NULL && tupleobj->type->rep == &cfg_rep_tuple);
+	REQUIRE(tupleobj != NULL && tupleobj->type->rep->code == CFG_REP_TUPLE);
 	REQUIRE(name != NULL);
 
 	fields = tupleobj->type->of;
@@ -727,7 +751,7 @@ cfg_doc_void(cfg_printer_t *pctx, const cfg_type_t *type) {
 bool
 cfg_obj_isvoid(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_void);
+	return (obj->type->rep->code == CFG_REP_VOID);
 }
 
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_void = {
@@ -788,7 +812,7 @@ cfg_print_percentage(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 
 uint32_t
 cfg_obj_aspercentage(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_percentage);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_PERCENTAGE);
 	return (obj->value.uint32);
 }
 
@@ -800,7 +824,7 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_percentage = {
 bool
 cfg_obj_ispercentage(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_percentage);
+	return (obj->type->rep->code == CFG_REP_PERCENTAGE);
 }
 
 /*
@@ -874,7 +898,7 @@ cfg_print_fixedpoint(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 
 uint32_t
 cfg_obj_asfixedpoint(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_fixedpoint);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_FIXEDPOINT);
 	return (obj->value.uint32);
 }
 
@@ -886,7 +910,7 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_fixedpoint = {
 bool
 cfg_obj_isfixedpoint(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_fixedpoint);
+	return (obj->type->rep->code == CFG_REP_FIXEDPOINT);
 }
 
 /*
@@ -937,12 +961,12 @@ cfg_print_uint32(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 bool
 cfg_obj_isuint32(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_uint32);
+	return (obj->type->rep->code == CFG_REP_UINT32);
 }
 
 uint32_t
 cfg_obj_asuint32(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_uint32);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_UINT32);
 	return (obj->value.uint32);
 }
 
@@ -958,12 +982,12 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_uint32 = {
 bool
 cfg_obj_isuint64(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_uint64);
+	return (obj->type->rep->code == CFG_REP_UINT64);
 }
 
 uint64_t
 cfg_obj_asuint64(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_uint64);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_UINT64);
 	return (obj->value.uint64);
 }
 
@@ -1280,12 +1304,12 @@ free_string(cfg_parser_t *pctx, cfg_obj_t *obj) {
 bool
 cfg_obj_isstring(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_string);
+	return (obj->type->rep->code == CFG_REP_STRING);
 }
 
 const char *
 cfg_obj_asstring(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_string);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_STRING);
 	return (obj->value.string.base);
 }
 
@@ -1473,12 +1497,12 @@ cfg_type_t cfg_type_optional_bracketed_text = {
 bool
 cfg_obj_isboolean(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_boolean);
+	return (obj->type->rep->code == CFG_REP_BOOLEAN);
 }
 
 bool
 cfg_obj_asboolean(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_boolean);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_BOOLEAN);
 	return (obj->value.boolean);
 }
 
@@ -1768,12 +1792,12 @@ cfg_print_spacelist(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 bool
 cfg_obj_islist(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_list);
+	return (obj->type->rep->code == CFG_REP_LIST);
 }
 
 const cfg_listelt_t *
 cfg_list_first(const cfg_obj_t *obj) {
-	REQUIRE(obj == NULL || obj->type->rep == &cfg_rep_list);
+	REQUIRE(obj == NULL || obj->type->rep->code == CFG_REP_LIST);
 	if (obj == NULL)
 		return (NULL);
 	return (ISC_LIST_HEAD(obj->value.list));
@@ -2283,7 +2307,7 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 bool
 cfg_obj_ismap(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_map);
+	return (obj->type->rep->code == CFG_REP_MAP);
 }
 
 isc_result_t
@@ -2292,7 +2316,7 @@ cfg_map_get(const cfg_obj_t *mapobj, const char* name, const cfg_obj_t **obj) {
 	isc_symvalue_t val;
 	const cfg_map_t *map;
 
-	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
+	REQUIRE(mapobj != NULL && mapobj->type->rep->code == CFG_REP_MAP);
 	REQUIRE(name != NULL);
 	REQUIRE(obj != NULL && *obj == NULL);
 
@@ -2307,7 +2331,7 @@ cfg_map_get(const cfg_obj_t *mapobj, const char* name, const cfg_obj_t **obj) {
 
 const cfg_obj_t *
 cfg_map_getname(const cfg_obj_t *mapobj) {
-	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
+	REQUIRE(mapobj != NULL && mapobj->type->rep->code == CFG_REP_MAP);
 	return (mapobj->value.map.id);
 }
 
@@ -2315,7 +2339,7 @@ unsigned int
 cfg_map_count(const cfg_obj_t *mapobj) {
 	const cfg_map_t *map;
 
-	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
+	REQUIRE(mapobj != NULL && mapobj->type->rep->code == CFG_REP_MAP);
 
 	map = &mapobj->value.map;
 	return (isc_symtab_count(map->symtab));
@@ -2803,14 +2827,14 @@ print_netprefix(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 bool
 cfg_obj_isnetprefix(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_netprefix);
+	return (obj->type->rep->code == CFG_REP_NETPREFIX);
 }
 
 void
 cfg_obj_asnetprefix(const cfg_obj_t *obj, isc_netaddr_t *netaddr,
 		    unsigned int *prefixlen)
 {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_netprefix);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_NETPREFIX);
 	REQUIRE(netaddr != NULL);
 	REQUIRE(prefixlen != NULL);
 
@@ -2964,18 +2988,18 @@ cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 bool
 cfg_obj_issockaddr(const cfg_obj_t *obj) {
 	REQUIRE(obj != NULL);
-	return (obj->type->rep == &cfg_rep_sockaddr);
+	return (obj->type->rep->code == CFG_REP_SOCKADDR);
 }
 
 const isc_sockaddr_t *
 cfg_obj_assockaddr(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_sockaddr);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_SOCKADDR);
 	return (&obj->value.sockaddr);
 }
 
 isc_dscp_t
 cfg_obj_getdscp(const cfg_obj_t *obj) {
-	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_sockaddr);
+	REQUIRE(obj != NULL && obj->type->rep->code == CFG_REP_SOCKADDR);
 	return (obj->value.sockaddrdscp.dscp);
 }
 
@@ -3396,7 +3420,7 @@ cfg_parser_mapadd(cfg_parser_t *pctx, cfg_obj_t *mapobj,
 	const cfg_clausedef_t *clause;
 
 	REQUIRE(pctx != NULL);
-	REQUIRE(mapobj != NULL && mapobj->type->rep == &cfg_rep_map);
+	REQUIRE(mapobj != NULL && mapobj->type->rep->code == CFG_REP_MAP);
 	REQUIRE(obj != NULL);
 	REQUIRE(clausename != NULL);
 

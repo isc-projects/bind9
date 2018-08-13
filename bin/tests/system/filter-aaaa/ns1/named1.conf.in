@@ -23,9 +23,11 @@ options {
 	minimal-responses no;
 };
 
+acl filterees { 10.53.0.1; };
+
 hook query "../../../../hooks/filter-aaaa.so" {
 	filter-aaaa-on-v4 yes;
-	filter-aaaa { 10.53.0.1; };
+	filter-aaaa { filterees; };
 };
 
 key rndc_key {
