@@ -2873,7 +2873,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	dns_dispatch_t *disp;
 	isc_socket_t *sock = NULL;
 	int i = 0;
-
+	dup_socket = NULL;
 	/*
 	 * dispatch_allocate() checks mgr for us.
 	 */

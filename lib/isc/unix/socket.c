@@ -397,9 +397,9 @@ struct isc__socketmgr {
 	struct kevent		*events;
 #endif	/* USE_KQUEUE */
 #ifdef USE_EPOLL
-	int			epoll_fd;
+	int			epoll_fds[4];
 	int			nevents;
-	struct epoll_event	*events;
+	struct epoll_event	*events[4];
 #endif	/* USE_EPOLL */
 #ifdef USE_DEVPOLL
 	int			devpoll_fd;
@@ -412,7 +412,7 @@ struct isc__socketmgr {
 	int			fd_bufsize;
 #endif	/* USE_SELECT */
 	unsigned int		maxsocks;
-	int			pipe_fds[2];
+	int			pipe_fds[8];
 
 	/* Locked by fdlock. */
 	isc__socket_t	       **fds;
@@ -434,7 +434,7 @@ struct isc__socketmgr {
 	int			maxfd;
 #endif	/* USE_SELECT */
 	int			reserved;	/* unlocked */
-	isc_thread_t		watcher;
+	isc_thread_t		watcher[4];
 	isc_condition_t		shutdown_ok;
 	int			maxudp;
 };
@@ -707,12 +707,11 @@ dec_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
 	if (stats != NULL)
 		isc_stats_decrement(stats, counterid);
 }
-
+#ifdef USE_KQUEUE
 static inline isc_result_t
 watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-#ifdef USE_KQUEUE
 	struct kevent evchange;
 
 	memset(&evchange, 0, sizeof(evchange));
@@ -726,12 +725,18 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 		result = isc__errno2result(errno);
 
 	return (result);
+}
 #elif defined(USE_EPOLL)
+static inline isc_result_t
+watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	struct epoll_event event;
 	uint32_t oldevents;
 	int ret;
 	int op;
-
+	int i;
+	
 	oldevents = manager->epoll_events[fd];
 	if (msg == SELECT_POKE_READ)
 		manager->epoll_events[fd] |= EPOLLIN;
@@ -742,18 +747,30 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
-	op = (oldevents == 0U) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
-	ret = epoll_ctl(manager->epoll_fd, op, fd, &event);
+	op = (oldevents & (EPOLLIN | EPOLLOUT)) ? EPOLL_CTL_MOD : EPOLL_CTL_ADD;
+	if (fd == manager->pipe_fds[0]) {
+		ret = epoll_ctl(manager->epoll_fds[0], op, fd, &event);
+		ret = epoll_ctl(manager->epoll_fds[1], op, fd, &event);
+		ret = epoll_ctl(manager->epoll_fds[2], op, fd, &event);
+		ret = epoll_ctl(manager->epoll_fds[3], op, fd, &event);
+	} else {
+		ret = epoll_ctl(manager->epoll_fds[fd % 4], op, fd, &event);
+	}
 	if (ret == -1) {
 		if (errno == EEXIST)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "epoll_ctl(ADD/MOD) returned "
 					 "EEXIST for fd %d", fd);
+		printf("CTL failed %d %d %d %d %d\n", ret, errno, fd, manager->epoll_fds[i], op);
 		result = isc__errno2result(errno);
 	}
-
 	return (result);
+}
 #elif defined(USE_DEVPOLL)
+static inline isc_result_t
+watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	struct pollfd pfd;
 	int lockid = FDLOCK_ID(fd);
 
@@ -776,7 +793,12 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	UNLOCK(&manager->fdlock[lockid]);
 
 	return (result);
+}
 #elif defined(USE_SELECT)
+static inline isc_result_t
+watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	LOCK(&manager->lock);
 	if (msg == SELECT_POKE_READ)
 		FD_SET(fd, manager->read_fds);
@@ -785,14 +807,14 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	UNLOCK(&manager->lock);
 
 	return (result);
-#endif
 }
+#endif
 
+#ifdef USE_KQUEUE
 static inline isc_result_t
 unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-#ifdef USE_KQUEUE
 	struct kevent evchange;
 
 	memset(&evchange, 0, sizeof(evchange));
@@ -806,7 +828,12 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 		result = isc__errno2result(errno);
 
 	return (result);
+}
 #elif defined(USE_EPOLL)
+static inline isc_result_t
+unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
+	isc_result_t result = ISC_R_SUCCESS;
+	int i;
 	struct epoll_event event;
 	int ret;
 	int op;
@@ -820,8 +847,9 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
-	op = (event.events == 0U) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
-	ret = epoll_ctl(manager->epoll_fd, op, fd, &event);
+	op = (event.events & (EPOLLIN | EPOLLOUT)) ? EPOLL_CTL_MOD : EPOLL_CTL_DEL;
+
+	ret = epoll_ctl(manager->epoll_fds[fd % 4], op, fd, &event);
 	if (ret == -1 && errno != ENOENT) {
 		char strbuf[ISC_STRERRORSIZE];
 		isc__strerror(errno, strbuf, sizeof(strbuf));
@@ -830,7 +858,12 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 		result = ISC_R_UNEXPECTED;
 	}
 	return (result);
+}
 #elif defined(USE_DEVPOLL)
+static inline isc_result_t
+unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	struct pollfd pfds[2];
 	size_t writelen = sizeof(pfds[0]);
 	int lockid = FDLOCK_ID(fd);
@@ -869,7 +902,12 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	UNLOCK(&manager->fdlock[lockid]);
 
 	return (result);
+}
 #elif defined(USE_SELECT)
+static inline isc_result_t
+unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	LOCK(&manager->lock);
 	if (msg == SELECT_POKE_READ)
 		FD_CLR(fd, manager->read_fds);
@@ -878,8 +916,8 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	UNLOCK(&manager->lock);
 
 	return (result);
-#endif
 }
+#endif
 
 static void
 wakeup_socket(isc__socketmgr_t *manager, int fd, int msg) {
@@ -2501,7 +2539,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		/* Press on... */
 	}
 #endif
-
+	setsockopt(sock->fd, SOL_SOCKET, SO_REUSEPORT, (void *)&on, sizeof(on));
 #ifdef SO_NOSIGPIPE
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_NOSIGPIPE,
 		       (void *)&on, sizeof(on)) < 0) {
@@ -3960,9 +3998,17 @@ process_ctlfd(isc__socketmgr_t *manager) {
  * When select returns something to do, track down what thread gets to do
  * this I/O and post the event to it.
  */
+
+typedef struct isc__mgrplus_s {
+	isc__socketmgr_t *manager;
+	int id;
+} isc__mgrplus_t;
+
 static isc_threadresult_t
 watcher(void *uap) {
-	isc__socketmgr_t *manager = uap;
+	isc__mgrplus_t *mgrplus = uap;
+	isc__socketmgr_t *manager = mgrplus->manager;
+	int id = mgrplus->id;
 	bool done;
 	int cc;
 #ifdef USE_KQUEUE
@@ -3984,6 +4030,9 @@ watcher(void *uap) {
 #endif
 	char strbuf[ISC_STRERRORSIZE];
 
+	isc_mem_put(manager->mctx, mgrplus, sizeof(isc__mgrplus_t));
+	
+
 #if defined (USE_SELECT)
 	/*
 	 * Get the control fd here.  This will never change.
@@ -3997,7 +4046,7 @@ watcher(void *uap) {
 			cc = kevent(manager->kqueue_fd, NULL, 0,
 				    manager->events, manager->nevents, NULL);
 #elif defined(USE_EPOLL)
-			cc = epoll_wait(manager->epoll_fd, manager->events,
+			cc = epoll_wait(manager->epoll_fds[id], manager->events[id],
 					manager->nevents, -1);
 #elif defined(USE_DEVPOLL)
 			/*
@@ -4090,7 +4139,7 @@ watcher(void *uap) {
 		} while (cc < 0);
 
 #if defined(USE_KQUEUE) || defined (USE_EPOLL) || defined (USE_DEVPOLL)
-		done = process_fds(manager, manager->events, cc);
+		done = process_fds(manager, manager->events[id], cc);
 #elif defined(USE_SELECT)
 		process_fds(manager, maxfd, manager->read_fds_copy,
 			    manager->write_fds_copy);
@@ -4168,27 +4217,29 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 	}
 #elif defined(USE_EPOLL)
 	manager->nevents = ISC_SOCKET_MAXEVENTS;
-	manager->events = isc_mem_get(mctx, sizeof(struct epoll_event) *
+	for (int i=0; i<4; i++) {
+		manager->events[i] = isc_mem_get(mctx, sizeof(struct epoll_event) *
 				      manager->nevents);
-	if (manager->events == NULL)
-		return (ISC_R_NOMEMORY);
-	manager->epoll_fd = epoll_create(manager->nevents);
-	if (manager->epoll_fd == -1) {
-		result = isc__errno2result(errno);
-		isc__strerror(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "epoll_create %s: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"),
-				 strbuf);
-		isc_mem_put(mctx, manager->events,
-			    sizeof(struct epoll_event) * manager->nevents);
-		return (result);
+		if (manager->events == NULL)
+			return (ISC_R_NOMEMORY);
+		manager->epoll_fds[i] = epoll_create(manager->nevents);
+		if (manager->epoll_fds[i] == -1) {
+			result = isc__errno2result(errno);
+			isc__strerror(errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "epoll_create %s: %s",
+					 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED, "failed"),
+					 strbuf);
+			isc_mem_put(mctx, manager->events[i],
+				    sizeof(struct epoll_event) * manager->nevents);
+			return (result);
+		}
 	}
 	result = watch_fd(manager, manager->pipe_fds[0], SELECT_POKE_READ);
 	if (result != ISC_R_SUCCESS) {
-		close(manager->epoll_fd);
-		isc_mem_put(mctx, manager->events,
+		close(manager->epoll_fds[0]);
+		isc_mem_put(mctx, manager->events[0],
 			    sizeof(struct epoll_event) * manager->nevents);
 		return (result);
 	}
@@ -4310,9 +4361,11 @@ cleanup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 	isc_mem_put(mctx, manager->events,
 		    sizeof(struct kevent) * manager->nevents);
 #elif defined(USE_EPOLL)
-	close(manager->epoll_fd);
-	isc_mem_put(mctx, manager->events,
-		    sizeof(struct epoll_event) * manager->nevents);
+	for (int i=0; i<4; i++) {
+		close(manager->epoll_fds[i]);
+		isc_mem_put(mctx, manager->events[i],
+			    sizeof(struct epoll_event) * manager->nevents);
+	}
 #elif defined(USE_DEVPOLL)
 	close(manager->devpoll_fd);
 	isc_mem_put(mctx, manager->events,
@@ -4444,18 +4497,25 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	/*
 	 * Start up the select/poll thread.
 	 */
-	if (isc_thread_create(watcher, manager, &manager->watcher) !=
-	    ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_thread_create() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		cleanup_watcher(mctx, manager);
-		result = ISC_R_UNEXPECTED;
-		goto cleanup;
-	}
-	isc_thread_setname(manager->watcher, "isc-socket");
 	isc_mem_attach(mctx, &manager->mctx);
+	for (int i=0; i<4; i++) {
+		isc__mgrplus_t *m = isc_mem_get(mctx, sizeof(isc__mgrplus_t));
+		m->manager = manager;
+		m->id = i;
+		if (isc_thread_create(watcher, m, &manager->watcher[i]) !=
+		    ISC_R_SUCCESS) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_thread_create() %s",
+					 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED, "failed"));
+			cleanup_watcher(mctx, manager);
+			result = ISC_R_UNEXPECTED;
+			goto cleanup;
+		}
+		char buf[64];
+		sprintf(buf, "isc-socket-%d", i);
+		isc_thread_setname(manager->watcher[i], buf);
+	}
 
 	*managerp = (isc_socketmgr_t *)manager;
 
@@ -4558,15 +4618,20 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * This is currently a no-op in the non-threaded case.
 	 */
 	select_poke(manager, 0, SELECT_POKE_SHUTDOWN);
+	select_poke(manager, 1, SELECT_POKE_SHUTDOWN);
+	select_poke(manager, 2, SELECT_POKE_SHUTDOWN);
+	select_poke(manager, 3, SELECT_POKE_SHUTDOWN);
 
 	/*
 	 * Wait for thread to exit.
 	 */
-	if (isc_thread_join(manager->watcher, NULL) != ISC_R_SUCCESS)
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_thread_join() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
+	for (int i=0; i<4; i++) {
+		if (isc_thread_join(manager->watcher[i], NULL) != ISC_R_SUCCESS)
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "isc_thread_join() %s",
+					 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED, "failed"));
+	}
 
 	/*
 	 * Clean up.
@@ -5952,6 +6017,7 @@ isc_socket_gettype(isc_socket_t *sock0) {
 	return (sock->type);
 }
 
+void
 isc_socket_ipv6only(isc_socket_t *sock0, bool yes) {
 	isc__socket_t *sock = (isc__socket_t *)sock0;
 #if defined(IPV6_V6ONLY)
