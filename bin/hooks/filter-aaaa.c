@@ -19,6 +19,10 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
+#include <isccfg/aclconf.h>
+#include <isccfg/grammar.h>
+#include <isccfg/namedconf.h>
+
 #include <dns/result.h>
 #include <dns/view.h>
 
@@ -26,6 +30,13 @@
 #include <ns/hooks.h>
 #include <ns/log.h>
 #include <ns/query.h>
+
+#define CHECK(r) \
+	do { \
+		result = (r); \
+		if (result != ISC_R_SUCCESS) \
+			goto cleanup; \
+	} while (0)
 
 ns_hook_destroy_t hook_destroy;
 ns_hook_register_t hook_register;
@@ -71,11 +82,122 @@ ns_hook_t filter_donesend = {
 	.callback = filter_query_done_send,
 };
 
+/*
+ * Configuration support.
+ */
+
+static dns_aaaa_t v4_aaaa;
+static dns_aaaa_t v6_aaaa;
+static dns_acl_t *aaaa_acl = NULL;
+
+static const char *filter_aaaa_enums[] = { "break-dnssec", NULL };
+static isc_result_t
+parse_filter_aaaa(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
+	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_boolean, ret));
+}
+static void
+doc_filter_aaaa(cfg_printer_t *pctx, const cfg_type_t *type) {
+	cfg_doc_enum_or_other(pctx, type, &cfg_type_boolean);
+}
+static cfg_type_t cfg_type_filter_aaaa = {
+	"filter_aaaa", parse_filter_aaaa, cfg_print_ustring,
+	doc_filter_aaaa, &cfg_rep_string, filter_aaaa_enums,
+};
+
+static cfg_clausedef_t param_clauses[] = {
+	{ "filter-aaaa", &cfg_type_bracketed_aml, 0 },
+	{ "filter-aaaa-on-v4", &cfg_type_filter_aaaa, 0 },
+	{ "filter-aaaa-on-v6", &cfg_type_filter_aaaa, 0 },
+};
+
+static cfg_clausedef_t *param_clausesets[] = {
+	param_clauses,
+	NULL
+};
+
+static cfg_type_t cfg_type_parameters = {
+	"filter-aaaa-params", cfg_parse_mapbody, cfg_print_mapbody,
+	cfg_doc_mapbody, &cfg_rep_map, param_clausesets
+};
+
+static isc_result_t
+parse_parameters(const char *parameters, const void *cfg,
+		 void *actx, ns_hookctx_t *hctx)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	cfg_parser_t *parser = NULL;
+	cfg_obj_t *param_obj = NULL;
+	const cfg_obj_t *obj = NULL;
+	isc_buffer_t b;
+
+	CHECK(cfg_parser_create(hctx->mctx, hctx->lctx, &parser));
+
+	isc_buffer_constinit(&b, parameters, strlen(parameters));
+	isc_buffer_add(&b, strlen(parameters));
+	CHECK(cfg_parse_buffer(parser, &b, &cfg_type_parameters,
+			       &param_obj));
+
+	obj = NULL;
+	result = cfg_map_get(param_obj, "filter-aaaa-on-v4", &obj);
+	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj)) {
+			v4_aaaa = dns_aaaa_filter;
+		} else {
+			v4_aaaa = dns_aaaa_ok;
+		}
+	} else if (result == ISC_R_SUCCESS) {
+		const char *aaaastr = cfg_obj_asstring(obj);
+		if (strcasecmp(aaaastr, "break-dnssec") == 0) {
+			v4_aaaa = dns_aaaa_break_dnssec;
+		} else {
+			return (ISC_R_UNEXPECTED);
+		}
+	}
+
+	obj = NULL;
+	result = cfg_map_get(param_obj, "filter-aaaa-on-v6", &obj);
+	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj)) {
+			v6_aaaa = dns_aaaa_filter;
+		} else {
+			v6_aaaa = dns_aaaa_ok;
+		}
+	} else if (result == ISC_R_SUCCESS) {
+		const char *aaaastr = cfg_obj_asstring(obj);
+		if (strcasecmp(aaaastr, "break-dnssec") == 0) {
+			v6_aaaa = dns_aaaa_break_dnssec;
+		} else {
+			return (ISC_R_UNEXPECTED);
+		}
+	}
+
+	obj = NULL;
+	result = cfg_map_get(param_obj, "filter-aaaa", &obj);
+	if (result != ISC_R_SUCCESS) {
+		CHECK(dns_acl_any(hctx->mctx, &aaaa_acl));
+	}
+	CHECK(cfg_acl_fromconfig(obj, (const cfg_obj_t *) cfg, hctx->lctx,
+				 (cfg_aclconfctx_t *) actx,
+				 hctx->mctx, 0, &aaaa_acl));
+
+ cleanup:
+	if (param_obj != NULL) {
+		cfg_obj_destroy(parser, &param_obj);
+	}
+	if (parser != NULL) {
+		cfg_parser_destroy(&parser);
+	}
+	return (result);
+}
+
+/*
+ * Mandatory hook API functions.
+ */
 isc_result_t
 hook_register(const char *parameters, const char *file, unsigned long line,
-	      ns_hookctx_t *hctx, ns_hooktable_t *hooktable, void **instp)
+	      const void *cfg, void *actx, ns_hookctx_t *hctx,
+	      ns_hooktable_t *hooktable, void **instp)
 {
-	UNUSED(parameters);
 	UNUSED(instp);
 
 	/*
@@ -101,6 +223,8 @@ hook_register(const char *parameters, const char *file, unsigned long line,
 			      "loading params for 'filter-aaaa' "
 			      "module from %s:%lu",
 			      file, line);
+
+		parse_parameters(parameters, cfg, actx, hctx);
 	} else {
 		isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
@@ -108,11 +232,6 @@ hook_register(const char *parameters, const char *file, unsigned long line,
 			      "module from %s:%lu, no parameters",
 			      file, line);
 	}
-
-	/*
-	 * TODO:
-	 * configure with parameters here
-	 */
 
 	ns_hook_add(hooktable, NS_QUERY_RESPOND_BEGIN,
 		    &filter_respbegin);
@@ -135,6 +254,10 @@ hook_register(const char *parameters, const char *file, unsigned long line,
 void
 hook_destroy(void **instp) {
 	UNUSED(instp);
+
+	if (aaaa_acl != NULL) {
+		dns_acl_detach(&aaaa_acl);
+	}
 
 	return;
 }
@@ -183,22 +306,19 @@ filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 	UNUSED(cbdata);
 
 	qctx->filter_aaaa = dns_aaaa_ok;
-	if (qctx->client->view->v4_aaaa != dns_aaaa_ok ||
-	    qctx->client->view->v6_aaaa != dns_aaaa_ok)
-	{
+	if (v4_aaaa != dns_aaaa_ok || v6_aaaa != dns_aaaa_ok) {
 		result = ns_client_checkaclsilent(qctx->client, NULL,
-						  qctx->client->view->aaaa_acl,
-						  true);
+						  aaaa_acl, true);
 		if (result == ISC_R_SUCCESS &&
-		    qctx->client->view->v4_aaaa != dns_aaaa_ok &&
+		    v4_aaaa != dns_aaaa_ok &&
 		    is_v4_client(qctx->client))
 		{
-			qctx->filter_aaaa = qctx->client->view->v4_aaaa;
+			qctx->filter_aaaa = v4_aaaa;
 		} else if (result == ISC_R_SUCCESS &&
-			   qctx->client->view->v6_aaaa != dns_aaaa_ok &&
+			   v6_aaaa != dns_aaaa_ok &&
 			   is_v6_client(qctx->client))
 		{
-			qctx->filter_aaaa = qctx->client->view->v6_aaaa;
+			qctx->filter_aaaa = v6_aaaa;
 		}
 	}
 

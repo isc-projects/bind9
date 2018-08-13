@@ -323,8 +323,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 }
 
 static void
-unload_library(ns_hook_module_t **impp)
-{
+unload_library(ns_hook_module_t **impp) {
 	UNUSED(impp);
 }
 #endif	/* HAVE_DLFCN_H */
@@ -332,6 +331,7 @@ unload_library(ns_hook_module_t **impp)
 isc_result_t
 ns_hookmodule_load(const char *libname, const char *parameters,
 		   const char *file, unsigned long line,
+		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
 	isc_result_t result;
@@ -339,11 +339,13 @@ ns_hookmodule_load(const char *libname, const char *parameters,
 
 	REQUIRE(NS_HOOKCTX_VALID(hctx));
 
+	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
+
 	LOCK(&hook_lock);
 
 	CHECK(load_library(hctx->mctx, libname, &implementation));
 	CHECK(implementation->register_func(parameters, file, line,
-					    hctx, hooktable,
+					    cfg, actx, hctx, hooktable,
 					    &implementation->inst));
 
 	APPEND(hook_modules, implementation, link);
@@ -371,7 +373,7 @@ ns_hookmodule_cleanup(bool exiting) {
 		UNLINK(hook_modules, elem, link);
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-			      "unloading filter-aaaa module");
+			      "unloading module");
 		elem->destroy_func(&elem->inst);
 		ENSURE(elem->inst == NULL);
 		unload_library(&elem);
