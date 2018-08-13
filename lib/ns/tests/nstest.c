@@ -670,7 +670,7 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	 */
 
 	ns_hooktable_init(&query_hooks);
-	ns_hook_add(&query_hooks, NS_QUERY_SETUP_QCTX_INITIALIZED, &hook);
+	ns_hook_add(&query_hooks, NS_QUERY_QCTX_INITIALIZED, &hook);
 
 	saved_hook_table = ns__hook_table;
 	ns__hook_table = &query_hooks;
