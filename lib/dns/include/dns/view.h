@@ -179,9 +179,6 @@ struct dns_view {
 	uint16_t			padding;
 	dns_acl_t *			pad_acl;
 	unsigned int			maxbits;
-	dns_aaaa_t			v4_aaaa;
-	dns_aaaa_t			v6_aaaa;
-	dns_acl_t *			aaaa_acl;
 	dns_dns64list_t 		dns64;
 	unsigned int 			dns64cnt;
 	dns_rpz_zones_t			*rpzs;

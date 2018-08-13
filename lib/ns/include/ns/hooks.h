@@ -238,6 +238,8 @@ typedef struct ns_hookctx {
 typedef isc_result_t ns_hook_register_t(const char *parameters,
 					const char *file,
 					unsigned long line,
+					const void *cfg,
+					void *actx,
 					ns_hookctx_t *hctx,
 					ns_hooktable_t *hooktable,
 					void **instp);
@@ -312,6 +314,7 @@ ns_hook_destroyctx(ns_hookctx_t **hctxp);
 isc_result_t
 ns_hookmodule_load(const char *libname, const char *parameters,
 		   const char *file, unsigned long line,
+		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable);
 void
 ns_hookmodule_cleanup(void);

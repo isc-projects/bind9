@@ -1538,7 +1538,7 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 
 static isc_result_t
 configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
-	       ns_hookctx_t *hctx)
+	       const cfg_obj_t *config, ns_hookctx_t *hctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *obj;
@@ -1563,11 +1563,15 @@ configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
 					    cfg_obj_asstring(obj),
 					    cfg_obj_file(obj),
 					    cfg_obj_line(obj),
+					    config,
+					    named_g_aclconfctx,
 					    hctx, hooktable);
 	} else {
 		result = ns_hookmodule_load(library, NULL,
 					    cfg_obj_file(hook),
 					    cfg_obj_line(hook),
+					    config,
+					    named_g_aclconfctx,
 					    hctx, hooktable);
 	}
 
@@ -5135,46 +5139,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	obj = NULL;
-	result = named_config_get(maps, "filter-aaaa-on-v4", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_isboolean(obj)) {
-		if (cfg_obj_asboolean(obj))
-			view->v4_aaaa = dns_aaaa_filter;
-		else
-			view->v4_aaaa = dns_aaaa_ok;
-	} else {
-		const char *v4_aaaastr = cfg_obj_asstring(obj);
-		if (strcasecmp(v4_aaaastr, "break-dnssec") == 0) {
-			view->v4_aaaa = dns_aaaa_break_dnssec;
-		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
-		}
-	}
-
-	obj = NULL;
-	result = named_config_get(maps, "filter-aaaa-on-v6", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_isboolean(obj)) {
-		if (cfg_obj_asboolean(obj))
-			view->v6_aaaa = dns_aaaa_filter;
-		else
-			view->v6_aaaa = dns_aaaa_ok;
-	} else {
-		const char *v6_aaaastr = cfg_obj_asstring(obj);
-		if (strcasecmp(v6_aaaastr, "break-dnssec") == 0) {
-			view->v6_aaaa = dns_aaaa_break_dnssec;
-		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
-		}
-	}
-
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
-				 "filter-aaaa", NULL, actx,
-				 named_g_mctx, &view->aaaa_acl));
-
-	obj = NULL;
 	result = named_config_get(maps, "prefetch", &obj);
 	if (result == ISC_R_SUCCESS) {
 		const cfg_obj_t *trigger, *eligible;
@@ -5368,7 +5332,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			CHECK(ns_hook_createctx(mctx, &hctx));
 		}
 
-		CHECK(configure_hook(view->hooktable, hook, hctx));
+		CHECK(configure_hook(view->hooktable, hook, config, hctx));
 	}
 #endif
 
