@@ -36,6 +36,7 @@
 #include <isc/time.h>
 #include <isc/util.h>
 #include <isc/xml.h>
+#include <sched.h>
 
 #ifdef OPENSSL_LEAKS
 #include <openssl/err.h>
@@ -494,7 +495,12 @@ isc_task_sendto(isc_task_t *task0, isc_event_t **eventp, int id) {
 		 * we add the task to the ready queue.
 		 */
 		if (id != -1 && id <= task->manager->maxcpu) {
+			//printf("SWITCH %d -> %d by id\n", task->cpuid, id);
 			task->cpuid = id;
+		} else {
+			int m = sched_getcpu();
+			//printf("SWITCH %d -> %d by cpu\n", task->cpuid, m);
+			task->cpuid = sched_getcpu();
 		}
 		task_ready(task);
 	}
@@ -875,15 +881,16 @@ pop_readyq(isc__taskmgr_t *manager, int id) {
 			task = HEAD(manager->ready_tasks_percpu[id]);
 		}
 	}
-	else
+	else {
 		task = HEAD(manager->ready_priority_tasks);
+		id = task->cpuid;
+	}
 
 	if (task != NULL) {
+		//printf("DEQ %d on %d %p\n", id, task->cpuid, task);
 		if (id == -1) {
-			//printf("DEQ -1 %p\n", task);
 			DEQUEUE(manager->ready_tasks, task, ready_link);
 		} else {
-			//printf("DEQ %d %p\n", id, task);
 			DEQUEUE(manager->ready_tasks_percpu[id], task, ready_link);
 		}
 		if (ISC_LINK_LINKED(task, ready_priority_link))
@@ -902,11 +909,10 @@ pop_readyq(isc__taskmgr_t *manager, int id) {
  */
 static inline void
 push_readyq(isc__taskmgr_t *manager, isc__task_t *task) {
+	//printf("ENQ for %d %p\n", task->cpuid, task);
 	if (task->cpuid == -1) {
-		//printf("ENQ for -1 %p\n", task);
 		ENQUEUE(manager->ready_tasks, task, ready_link);
 	} else {
-		//printf("ENQ for %d %p\n", task->cpuid, task);
 		ENQUEUE(manager->ready_tasks_percpu[task->cpuid], task, ready_link);
 	}
 	if ((task->flags & TASK_F_PRIVILEGED) != 0)
