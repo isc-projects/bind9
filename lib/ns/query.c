@@ -6869,8 +6869,6 @@ query_respond(query_ctx_t *qctx) {
 	dns_rdataset_t **sigrdatasetp = NULL;
 	isc_result_t result;
 
-	PROCESS_HOOK(NS_QUERY_RESPOND_BEGIN, qctx);
-
 	/*
 	 * If we have a zero ttl from the cache, refetch.
 	 */
@@ -6923,6 +6921,16 @@ query_respond(query_ctx_t *qctx) {
 
 		return (query_lookup(qctx));
 	}
+
+	/*
+	 * XXX: This hook is meant to be at the top of this function,
+	 * but is postponed until after DNS64 in order to avoid an
+	 * assertion if the hook causes recursion. (When DNS64 also
+	 * becomes a hook module, it will be necessary to find some
+	 * other way to prevent that assertion, since the order in
+	 * which hook modules are configured can't be enforced.)
+	 */
+	PROCESS_HOOK(NS_QUERY_RESPOND_BEGIN, qctx);
 
 	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
 		sigrdatasetp = &qctx->sigrdataset;

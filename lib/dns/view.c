@@ -229,9 +229,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->padding = 0;
 	view->pad_acl = NULL;
 	view->maxbits = 0;
-	view->v4_aaaa = dns_aaaa_ok;
-	view->v6_aaaa = dns_aaaa_ok;
-	view->aaaa_acl = NULL;
 	view->rpzs = NULL;
 	view->catzs = NULL;
 	dns_fixedname_init(&view->dlv_fixed);
@@ -451,8 +448,6 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->upfwdacl);
 	if (view->denyansweracl != NULL)
 		dns_acl_detach(&view->denyansweracl);
-	if (view->aaaa_acl != NULL)
-		dns_acl_detach(&view->aaaa_acl);
 	if (view->pad_acl != NULL)
 		dns_acl_detach(&view->pad_acl);
 	if (view->answeracl_exclude != NULL)
