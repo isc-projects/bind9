@@ -125,8 +125,11 @@ stages:
   before_script:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
-    - export SOFTHSM_CONF="/tmp/softhsm.conf"
-    - echo "0:/tmp/softhsm.db" > $SOFTHSM_CONF
+    - mkdir -p /var/tmp/softhsm2/tokens/
+    - export SOFTHSM2_CONF="/tmp/softhsm2/softhsm2.conf"
+    - echo "directories.tokendir = /tmp/softhsm2/tokens/" >> $SOFTHSM2_CONF
+    - echo "objectstore.backend = file" >> $SOFTHSM2_CONF
+    - echo "log.level = DEBUG\n" >> $SOFTHSM2_CONF
     - if command -v softhsm2-util >/dev/null; then softhsm2-util --init-token --free --pin 0000 --so-pin 0000 --label "softhsm"; fi
   script:
     - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
@@ -140,8 +143,12 @@ stages:
   stage: test
   before_script:
     - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
-    - export SOFTHSM_CONF="/tmp/softhsm.conf"
-    - echo "0:/tmp/softhsm.db" > $SOFTHSM_CONF
+    - export SOFTHSM2_CONF="/tmp/softhsm2.conf"
+    - mkdir -p /var/tmp/softhsm2/tokens/
+    - export SOFTHSM2_CONF="/tmp/softhsm2/softhsm2.conf"
+    - echo "directories.tokendir = /tmp/softhsm2/tokens/" >> $SOFTHSM2_CONF
+    - echo "objectstore.backend = file" >> $SOFTHSM2_CONF
+    - echo "log.level = DEBUG\n" >> $SOFTHSM2_CONF
     - if command -v softhsm2-util >/dev/null; then softhsm2-util --init-token --free --pin 0000 --so-pin 0000 --label "softhsm"; fi
   script:
     - make unit
