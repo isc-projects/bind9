@@ -24,6 +24,9 @@ dlz <string> {
 dyndb <string> <quoted_string> {
     <unspecified-text> }; // may occur multiple times
 
+hook ( query ) <string> [ { <unspecified-text> }
+    ]; // may occur multiple times
+
 key <string> {
         algorithm <string>;
         secret <string>;
@@ -171,9 +174,9 @@ options {
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
         files ( default | unlimited | <sizeval> );
-        filter-aaaa { <address_match_element>; ... };
-        filter-aaaa-on-v4 ( break-dnssec | <boolean> );
-        filter-aaaa-on-v6 ( break-dnssec | <boolean> );
+        filter-aaaa { <address_match_element>; ... }; // obsolete
+        filter-aaaa-on-v4 <boolean>; // obsolete
+        filter-aaaa-on-v6 <boolean>; // obsolete
         flush-zones-on-shutdown <boolean>;
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
@@ -206,7 +209,7 @@ options {
         listen-on-v6 [ port <integer> ] [ dscp
             <integer> ] {
             <address_match_element>; ... }; // may occur multiple times
-        lmdb-mapsize <sizeval>; // non-operational
+        lmdb-mapsize <sizeval>;
         lock-file ( <quoted_string> | none );
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys-directory <quoted_string>;
@@ -531,13 +534,15 @@ view <string> [ <class> ] {
         fetch-quota-params <integer> <fixedpoint> <fixedpoint> <fixedpoint>;
         fetches-per-server <integer> [ ( drop | fail ) ];
         fetches-per-zone <integer> [ ( drop | fail ) ];
-        filter-aaaa { <address_match_element>; ... };
-        filter-aaaa-on-v4 ( break-dnssec | <boolean> );
-        filter-aaaa-on-v6 ( break-dnssec | <boolean> );
+        filter-aaaa { <address_match_element>; ... }; // obsolete
+        filter-aaaa-on-v4 <boolean>; // obsolete
+        filter-aaaa-on-v6 <boolean>; // obsolete
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
         glue-cache <boolean>;
+        hook ( query ) <string> [ {
+            <unspecified-text> } ]; // may occur multiple times
         inline-signing <boolean>;
         ixfr-from-differences ( primary | master | secondary | slave |
             <boolean> );
@@ -547,7 +552,7 @@ view <string> [ <class> ] {
         }; // may occur multiple times
         key-directory <quoted_string>;
         lame-ttl <ttlval>;
-        lmdb-mapsize <sizeval>; // non-operational
+        lmdb-mapsize <sizeval>;
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys { <string> <string>
             <integer> <integer> <integer>
