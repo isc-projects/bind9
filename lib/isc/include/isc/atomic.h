@@ -171,7 +171,7 @@ enum memory_order {
 
 #define atomic_fetch_nand(obj, arg)			\
 	__sync_fetch_and_nand(obj, arg)
-/
+
 #define atomic_compare_exchange_strong(obj, expected, desired)			\
 	__sync_val_compare_and_swap(obj, *expected, desired)
 
