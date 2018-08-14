@@ -151,5 +151,4 @@ ns_test_qctx_destroy(query_ctx_t **qctxp);
  * A hook callback interrupting execution at given hook's insertion point.
  */
 bool
-ns_test_hook_catch_call(void *hook_data, void *callback_data,
-			isc_result_t *resultp);
+ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp);
