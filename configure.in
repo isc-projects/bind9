@@ -3071,6 +3071,7 @@ AC_CHECK_HEADERS(
 	 )],
 	[AC_MSG_RESULT([no])],
 	[AC_MSG_RESULT([yes])
+	 AC_MSG_FAILURE([just testing])
 	 ISC_ATOMIC_LIBS="-latomic"
 	])
      ],
