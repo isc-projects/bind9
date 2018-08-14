@@ -386,6 +386,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <net/route.h> header file. */
 #undef HAVE_NET_ROUTE_H
 
+/* define if __atomic builtins are not available */
+#undef HAVE_NO__ATOMIC
+
 /* define if OpenSSL supports Ed25519 */
 #undef HAVE_OPENSSL_ED25519
 
@@ -442,6 +445,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `setresuid' function. */
 #undef HAVE_SETRESUID
+
+/* Define to 1 if you have the <stdatomic.h> header file. */
+#undef HAVE_STDATOMIC_H
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -588,9 +594,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Sets which flag to pass to open/fcntl to make non-blocking
    (O_NDELAY/O_NONBLOCK). */
 #undef PORT_NONBLOCK
-
-/* The size of `void *', as computed by sizeof. */
-#undef SIZEOF_VOID_P
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
