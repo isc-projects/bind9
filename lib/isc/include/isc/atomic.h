@@ -1,0 +1,206 @@
+/*
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * See the COPYRIGHT file distributed with this work for additional
+ * information regarding copyright ownership.
+ */
+
+#pragma once
+
+#if !defined(_WIN32)
+
+#if HAVE_STDATOMIC
+
+#include <stdatomic.h>
+
+#elif !HAVE_NO__ATOMIC /* the default on GCC, and Clang */
+
+#include <stdbool.h>
+#include <stdint.h>
+#include <uchar.h>
+
+#define atomic_bool bool
+#define atomic_char char
+#define atomic_schar signed char
+#define atomic_uchar unsigned char
+#define atomic_short short
+#define atomic_uschor unsigned short
+#define atomic_int int
+#define atomic_uint unsigned int
+#define atomic_long long
+#define atomic_ulong unsigned long
+#define atomic_llong long long
+#define atomic_ullong unsigned long long
+#define atomic_char16_t char16_t
+#define atomic_char32_t char32_t
+#define atomic_wchar_t wchar_t
+#define atomic_int_least8_t int_least8_t
+#define atomic_uint_least8_t uint_least8_t
+#define atomic_int_least16_t int_least16_t
+#define atomic_uint_least16_t uint_least16_t
+#define atomic_int_least32_t int_least32_t
+#define atomic_uint_least32_t uint_least32_t
+#define atomic_int_least64_t int_least64_t
+#define atomic_uint_least64_t uint_least64_t
+#define atomic_int_fast8_t int_fast8_t
+#define atomic_uint_fast8_t uint_fast8_t
+#define atomic_int_fast16_t int_fast16_t
+#define atomic_uint_fast16_t uint_fast16_t
+#define atomic_int_fast32_t int_fast32_t
+#define atomic_uint_fast32_t uint_fast32_t
+#define atomic_int_fast64_t int_fast64_t
+#define atomic_uint_fast64_t uint_fast64_t
+#define atomic_intptr_t intptr_t
+#define atomic_uintptr_t uintptr_t
+#define atomic_size_t size_t
+#define atomic_ptrdiff_t ptrdiff_t
+#define atomic_intmax_t intmax_t
+#define atomic_uintmax_t uintmax_t
+
+enum memory_order {
+	memory_order_relaxed = __ATOMIC_RELAXED,
+	memory_order_consume = __ATOMIC_CONSUME,
+	memory_order_acquire = __ATOMIC_ACQUIRE,
+	memory_order_release = __ATOMIC_RELEASE,
+	memory_order_acq_rel = __ATOMIC_ACQ_REL,
+	memory_order_seq_cst = __ATOMIC_SEQ_CST
+};
+
+#define atomic_init(obj, desired)			\
+	__atomic_store_n(obj, desired, __ATOMIC_SEQ_CST)
+
+#define atomic_store(obj, desired)			\
+	__atomic_store_n(obj, desired, __ATOMIC_SEQ_CST)
+
+#define atomic_store_explicit(obj, desired, order)	\
+	__atomic_store_n(obj, desired, order)
+
+#define atomic_load(obj, desired)			\
+	__atomic_load_n(obj, __ATOMIC_SEQ_CST)
+
+#define atomic_load_explicit(obj, desired, order)	\
+	__atomic_load_n(obj, order)
+
+#define atomic_fetch_add(obj, arg)			\
+	__atomic_fetch_add(obj, arg, __ATOMIC_SEQ_CST)
+
+#define atomic_fetch_add_explicit(obj, arg, order)	\
+	__atomic_fetch_add(obj, arg, order)
+
+#define atomic_fetch_sub(obj, arg)			\
+	__atomic_fetch_sub(obj, arg, __ATOMIC_SEQ_CST)
+
+#define atomic_fetch_sub_explicit(obj, arg, order)	\
+	__atomic_fetch_sub(obj, arg, order)
+
+#define atomic_fetch_or(obj, arg)			\
+	__atomic_fetch_or(obj, arg, __ATOMIC_SEQ_CST)
+
+#define atomic_fetch_or_explicit(obj, arg, order)	\
+	__atomic_fetch_or(obj, arg, order)
+
+#define atomic_fetch_and(obj, arg)			\
+	__atomic_fetch_and(obj, arg, __ATOMIC_SEQ_CST)
+
+#define atomic_fetch_and_explicit(obj, arg, order)	\
+	__atomic_fetch_and(obj, arg, order)
+
+#define atomic_fetch_xor(obj, arg)			\
+	__atomic_fetch_xor(obj, arg, __ATOMIC_SEQ_CST)
+
+#define atomic_fetch_xor_explicit(obj, arg, order)	\
+	__atomic_fetch_xor(obj, arg, order)
+
+#define atomic_fetch_nand(obj, arg)			\
+	__atomic_fetch_nand(obj, arg, __ATOMIC_SEQ_CST)
+
+#define atomic_fetch_nand_explicit(obj, arg, order)	\
+	__atomic_fetch_nand(obj, arg, order)
+
+#define atomic_compare_exchange_strong(obj, expected, desired)			\
+	__atomic_compare_exchange_n(obj, expected, desired, __ATOMIC_SEQ_CST)
+
+#define atomic_compare_exchange_strong_explicit(obj, expected, desired, order)	\
+	__atomic_compare_exchange_n(obj, expected, desired, order)
+
+#define atomic_compare_exchange_weak(obj, expected, desired)			\
+	__atomic_compare_exchange_n(obj, expected, desired, __ATOMIC_SEQ_CST)
+
+#define atomic_compare_exchange_weak_explicit(obj, expected, desired, order)	\
+	__atomic_compare_exchange_n(obj, expected, desired, order)
+
+#else /* Try using __sync builtins */
+
+enum memory_order {
+	memory_order_relaxed = 0,
+	memory_order_consume = 0,
+	memory_order_acquire = 0,
+	memory_order_release = 0,
+	memory_order_acq_rel = 0,
+	memory_order_seq_cst = 0
+};
+
+#define atomic_init(obj, desired)			\
+	(*obj = desired)
+
+#define atomic_store(obj, desired)			\
+	(*obj = desired)
+#define atomic_store_explicit(obj, desired, order)	\
+	atomic_store(obj, desired)
+
+#define atomic_load(obj) \
+	(*obj)
+#define atomic_load_explicit(obj, order)		\
+	atomic_load(obj)
+
+#define atomic_fetch_add(obj, arg)			\
+	__sync_fetch_and_add(obj, arg)
+#define atomic_fetch_add(obj, arg, order)		\
+	atomic_fetch_add(obj, arg)
+
+#define atomic_fetch_sub(obj, arg)			\
+	__sync_fetch_and_sub(obj, arg)
+#define atomic_fetch_sub_explicit(obj, arg, order)	\
+	atomic_fetch_sub(obj, arg)
+
+#define atomic_fetch_or(obj, arg)			\
+	__sync_fetch_and_or(obj, arg)
+#define atomic_fetch_or_explicit(obj, arg, order)	\
+	atomic_fetch_or(obj, arg)
+
+#define atomic_fetch_and(obj, arg)			\
+	__sync_fetch_and_and(obj, arg)
+#define atomic_fetch_and_explicit(obj, arg, order)	\
+	atomic_fetch_and(obj, arg)
+
+#define atomic_fetch_xor(obj, arg)			\
+	__sync_fetch_and_xor(obj, arg)
+#define atomic_fetch_xor_explicit(obj, arg, order)	\
+	atomic_fetch_and_xor(obj, arg)
+
+#define atomic_fetch_nand(obj, arg)			\
+	__sync_fetch_and_nand(obj, arg)
+#define atomic_fetch_nand_explicit(obj, arg)		\
+	atomic_fetch_and_nand(obj, arg)
+
+#define atomic_compare_exchange_strong(obj, expected, desired)			\
+	__sync_val_compare_and_swap(obj, *expected, desired)
+#define atomic_compare_exchange_strong_explicit(obj, expected, desired, order)	\
+	atomic_compare_exchange_strong(obj, expected, desired)
+
+#define atomic_compare_exchange_weak(obj, expected, desired)			\
+	__sync_val_compare_and_swap(obj, *expected, desired)
+#define atomic_compare_exchange_weak_explicit(obj, expected, desired, order)	\
+	atomic_compare_exchange_weak(obj, expected, desired)
+
+#endif
+
+#else /* !defined(_WIN32) */
+
+/* Windows implementation */
+
+#endif /* !defined(_WIN32) */
