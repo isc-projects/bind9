@@ -30,7 +30,7 @@
 #define ISC_STATS_MAGIC			ISC_MAGIC('S', 't', 'a', 't')
 #define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
-typedef atomic_int_fast64_t isc_stat_t;
+typedef atomic_int_fast32_t isc_stat_t;
 
 struct isc_stats {
 	/*% Unlocked */
@@ -58,7 +58,7 @@ struct isc_stats {
 	 * simplicity here, however, under the assumption that this function
 	 * should be only rarely called.
 	 */
-	uint64_t	*copiedcounters;
+	isc_stat_t	*copiedcounters;
 };
 
 static isc_result_t
@@ -82,7 +82,7 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 		goto clean_mutex;
 	}
 	stats->copiedcounters = isc_mem_get(mctx,
-					    sizeof(uint64_t) * ncounters);
+					    sizeof(isc_stat_t) * ncounters);
 	if (stats->copiedcounters == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto clean_counters;
@@ -216,7 +216,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 }
 
 void
-isc_stats_set(isc_stats_t *stats, uint64_t val,
+isc_stats_set(isc_stats_t *stats, isc_stat_t val,
 	      isc_statscounter_t counter)
 {
 	REQUIRE(ISC_STATS_VALID(stats));
