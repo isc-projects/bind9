@@ -21,6 +21,8 @@
 
 ISC_LANG_BEGINDECLS
 
+typedef atomic_int_fast32_t isc_stat_t;
+
 /*%<
  * Flag(s) for isc_stats_dump().
  */
@@ -113,17 +115,7 @@ isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn, void *arg,
  */
 
 void
-isc_stats_set(isc_stats_t *stats, uint64_t val,
-	      isc_statscounter_t counter);
-/*%<
- * Set the given counter to the specfied value.
- *
- * Requires:
- *\li	'stats' is a valid isc_stats_t.
- */
-
-void
-isc_stats_set(isc_stats_t *stats, uint64_t val,
+isc_stats_set(isc_stats_t *stats, isc_stat_t val,
 	      isc_statscounter_t counter);
 /*%<
  * Set the given counter to the specfied value.
