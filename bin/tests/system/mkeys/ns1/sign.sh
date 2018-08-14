@@ -15,8 +15,8 @@ SYSTEMTESTTOP=../..
 zone=.
 zonefile=root.db
 
-keyname=`$KEYGEN -a rsasha256 -qfk $zone`
-zskkeyname=`$KEYGEN -a rsasha256 -q $zone`
+keyname=`$KEYGEN -a rsasha256 -v1 -qfk $zone`
+zskkeyname=`$KEYGEN -a rsasha256 -v1 -q $zone`
 
 $SIGNER -Sg -o $zone $zonefile > /dev/null 2>/dev/null
 

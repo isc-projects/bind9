@@ -132,7 +132,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check new trust anchor can be added ($n)"
 ret=0
-standby1=`$KEYGEN -a rsasha256 -qfk -K ns1 .`
+standby1=`$KEYGEN -a rsasha256 -v1 -qfk -K ns1 .`
 mkeys_loadkeys_on 1
 mkeys_refresh_on 2
 mkeys_status_on 2 > rndc.out.$n 2>&1
@@ -341,7 +341,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "revoke original key, add new standby ($n)"
 ret=0
-standby2=`$KEYGEN -a rsasha256 -qfk -K ns1 .`
+standby2=`$KEYGEN -a rsasha256 -v1 -qfk -K ns1 .`
 $SETTIME -R now -K ns1 $original > /dev/null
 mkeys_loadkeys_on 1
 mkeys_refresh_on 2
@@ -373,7 +373,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "revoke standby before it is trusted ($n)"
 ret=0
-standby3=`$KEYGEN -a rsasha256 -qfk -K ns1 .`
+standby3=`$KEYGEN -a rsasha256 -v1 -qfk -K ns1 .`
 mkeys_loadkeys_on 1
 mkeys_refresh_on 2
 mkeys_status_on 2 > rndc.out.a.$n 2>&1
