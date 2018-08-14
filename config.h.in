@@ -443,6 +443,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `sigwait' function. */
 #undef HAVE_SIGWAIT
 
+/* Define to 1 if you have the <stdatomic.h> header file. */
+#undef HAVE_STDATOMIC_H
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -521,6 +524,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if zlib was found */
 #undef HAVE_ZLIB
 
+/* define if __atomic builtins are not available */
+#undef HAVE___ATOMIC
+
 /* Define if __thread keyword is available */
 #undef HAVE___THREAD
 
@@ -592,9 +598,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to necessary symbol if this constant uses a non-standard name on
    your system. */
 #undef PTHREAD_CREATE_JOINABLE
-
-/* The size of `void *', as computed by sizeof. */
-#undef SIZEOF_VOID_P
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
