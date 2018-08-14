@@ -9,10 +9,10 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
 
-#ifndef ISC_ATOMIC_H
-#define ISC_ATOMIC_H 1
-
-/* This file is inherently empty. */
-
-#endif /* ISC_ATOMIC_H */
+#if HAVE_STDATOMIC_H
+#include <stdatomic.h>
+#else
+#include <isc/stdatomic.h>
+#endif
