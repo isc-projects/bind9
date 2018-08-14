@@ -359,7 +359,7 @@ dst__openssl_destroy(void) {
 static isc_result_t
 toresult(isc_result_t fallback) {
 	isc_result_t result = fallback;
-	unsigned long err = ERR_get_error();
+	unsigned long err = ERR_peek_error();
 #if defined(HAVE_OPENSSL_ECDSA) && \
     defined(ECDSA_R_RANDOM_NUMBER_GENERATION_FAILED)
 	int lib = ERR_GET_LIB(err);
