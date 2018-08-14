@@ -707,17 +707,6 @@ DNSTAP
 FSTRM_CAPTURE
 PROTOC_C
 ISC_PLATFORM_BUSYWAITNOP
-ISC_ARCH_DIR
-ISC_PLATFORM_USEMACASM
-ISC_PLATFORM_USESTDASM
-ISC_PLATFORM_USEOSFASM
-ISC_PLATFORM_USEGCCASM
-ISC_PLATFORM_HAVEATOMICSTOREQ
-ISC_PLATFORM_HAVEATOMICSTORE
-ISC_PLATFORM_HAVECMPXCHG
-ISC_PLATFORM_HAVEXADDQ
-ISC_PLATFORM_HAVEXADD
-ISC_PLATFORM_HAVESTDATOMIC
 ISC_PLATFORM_HAVEIFNAMETOINDEX
 ISC_PLATFORM_HAVESTRINGSH
 ISC_PLATFORM_BRACEPTHREADONCEINIT
@@ -985,7 +974,6 @@ enable_isc_spnego
 enable_chroot
 enable_linux_caps
 with_rlimtype
-enable_atomic
 enable_fixed_rrset
 enable_rpz_nsip
 enable_rpz_nsdname
@@ -1674,8 +1662,6 @@ Optional Features:
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
   --disable-linux-caps    disable Linux capabilities
-  --enable-atomic         enable machine specific atomic operations
-                          [default=autodetect]
   --enable-fixed-rrset    enable fixed rrset ordering [default=no]
   --disable-rpz-nsip      disable rpz nsip rules [default=enabled]
   --disable-rpz-nsdname   disable rpz nsdname rules [default=enabled]
@@ -2267,189 +2253,6 @@ $as_echo "$ac_res" >&6; }
   eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
 
 } # ac_fn_c_check_type
-
-# ac_fn_c_compute_int LINENO EXPR VAR INCLUDES
-# --------------------------------------------
-# Tries to find the compile-time value of EXPR in a program that includes
-# INCLUDES, setting VAR accordingly. Returns whether the value could be
-# computed
-ac_fn_c_compute_int ()
-{
-  as_lineno=${as_lineno-"$1"} as_lineno_stack=as_lineno_stack=$as_lineno_stack
-  if test "$cross_compiling" = yes; then
-    # Depending upon the size, compute the lo and hi bounds.
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-static int test_array [1 - 2 * !(($2) >= 0)];
-test_array [0] = 0;
-return test_array [0];
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_lo=0 ac_mid=0
-  while :; do
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-static int test_array [1 - 2 * !(($2) <= $ac_mid)];
-test_array [0] = 0;
-return test_array [0];
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_hi=$ac_mid; break
-else
-  as_fn_arith $ac_mid + 1 && ac_lo=$as_val
-			if test $ac_lo -le $ac_mid; then
-			  ac_lo= ac_hi=
-			  break
-			fi
-			as_fn_arith 2 '*' $ac_mid + 1 && ac_mid=$as_val
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  done
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-static int test_array [1 - 2 * !(($2) < 0)];
-test_array [0] = 0;
-return test_array [0];
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_hi=-1 ac_mid=-1
-  while :; do
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-static int test_array [1 - 2 * !(($2) >= $ac_mid)];
-test_array [0] = 0;
-return test_array [0];
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_lo=$ac_mid; break
-else
-  as_fn_arith '(' $ac_mid ')' - 1 && ac_hi=$as_val
-			if test $ac_mid -le $ac_hi; then
-			  ac_lo= ac_hi=
-			  break
-			fi
-			as_fn_arith 2 '*' $ac_mid && ac_mid=$as_val
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-  done
-else
-  ac_lo= ac_hi=
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-# Binary search between lo and hi bounds.
-while test "x$ac_lo" != "x$ac_hi"; do
-  as_fn_arith '(' $ac_hi - $ac_lo ')' / 2 + $ac_lo && ac_mid=$as_val
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-int
-main ()
-{
-static int test_array [1 - 2 * !(($2) <= $ac_mid)];
-test_array [0] = 0;
-return test_array [0];
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  ac_hi=$ac_mid
-else
-  as_fn_arith '(' $ac_mid ')' + 1 && ac_lo=$as_val
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-done
-case $ac_lo in #((
-?*) eval "$3=\$ac_lo"; ac_retval=0 ;;
-'') ac_retval=1 ;;
-esac
-  else
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-$4
-static long int longval () { return $2; }
-static unsigned long int ulongval () { return $2; }
-#include <stdio.h>
-#include <stdlib.h>
-int
-main ()
-{
-
-  FILE *f = fopen ("conftest.val", "w");
-  if (! f)
-    return 1;
-  if (($2) < 0)
-    {
-      long int i = longval ();
-      if (i != ($2))
-	return 1;
-      fprintf (f, "%ld", i);
-    }
-  else
-    {
-      unsigned long int i = ulongval ();
-      if (i != ($2))
-	return 1;
-      fprintf (f, "%lu", i);
-    }
-  /* Do not output a trailing newline, as this causes \r\n confusion
-     on some platforms.  */
-  return ferror (f) || fclose (f) != 0;
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  echo >>conftest.val; read $3 <conftest.val; ac_retval=0
-else
-  ac_retval=1
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-rm -f conftest.val
-
-  fi
-  eval $as_lineno_stack; ${as_lineno_stack:+:} unset as_lineno
-  as_fn_set_status $ac_retval
-
-} # ac_fn_c_compute_int
 cat >config.log <<_ACEOF
 This file contains any messages produced by compilers while
 running configure, to aid debugging if configure makes a mistake.
@@ -19823,22 +19626,22 @@ fi
 done
 
 
-#
-# Machine architecture dependent features
-#
-have_stdatomic=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for usable stdatomic.h" >&5
-$as_echo_n "checking for usable stdatomic.h... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+ISC_ATOMIC_LIBS=""
+for ac_header in stdatomic.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "stdatomic.h" "ac_cv_header_stdatomic_h" "$ac_includes_default"
+if test "x$ac_cv_header_stdatomic_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_STDATOMIC_H 1
+_ACEOF
+ { $as_echo "$as_me:${as_lineno-$LINENO}: checking for memory model aware atomic operations" >&5
+$as_echo_n "checking for memory model aware atomic operations... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-
-#include <stdio.h>
 #include <stdatomic.h>
-
 int
 main ()
 {
-
 atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
 
   ;
@@ -19846,110 +19649,21 @@ atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_rel
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 have_stdatomic=yes
-	 ISC_PLATFORM_HAVESTDATOMIC="#define ISC_PLATFORM_HAVESTDATOMIC 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	 have_stdatomic=no
-	 ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: stdatomic.h" >&5
+$as_echo "stdatomic.h" >&6; }
 
-# Check whether --enable-atomic was given.
-if test "${enable_atomic+set}" = set; then :
-  enableval=$enable_atomic; enable_atomic="$enableval"
-else
-  enable_atomic="autodetect"
-fi
+$as_echo "#define HAVE_STDATOMIC 1" >>confdefs.h
 
-case "$enable_atomic" in
-	yes|''|autodetect)
-		case "$host" in
-		powerpc-ibm-aix*)
-			if test "X$GCC" = "Xyes"; then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"ics\"); works" >&5
-$as_echo_n "checking if asm(\"ics\"); works... " >&6; }
-				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-				main() { asm("ics"); exit(0); }
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-				 use_atomic=yes
-else
-
-				saved_cflags="$CFLAGS"
-				CFLAGS="$CFLAGS -Wa,-many"
-				if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: cross compile, assume yes" >&5
-$as_echo "cross compile, assume yes" >&6; }
-				 CFLAGS="$saved_cflags"
-				 use_atomic=yes
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-				main() { asm("ics"); exit(0); }
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, required -Wa,-many" >&5
-$as_echo "yes, required -Wa,-many" >&6; }
-				 use_atomic=yes
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, use_atomic disabled" >&5
-$as_echo "no, use_atomic disabled" >&6; }
-				 CFLAGS="$saved_cflags"
-				 use_atomic=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-			else
-				use_atomic=yes
-			fi
-			;;
-		*)
-			use_atomic=yes
-			;;
-		esac
-		;;
-	no)
-		have_stdatomic=no
-		ISC_PLATFORM_HAVESTDATOMIC="#undef ISC_PLATFORM_HAVESTDATOMIC"
-		use_atomic=no
-		arch=noatomic
-		;;
-esac
-
-if test "X$have_stdatomic" = "Xyes"; then
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking if -latomic is needed to use 64-bit stdatomic.h primitives" >&5
-$as_echo_n "checking if -latomic is needed to use 64-bit stdatomic.h primitives... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -latomic is needed for 64-bit stdatomic.h functions" >&5
+$as_echo_n "checking whether -latomic is needed for 64-bit stdatomic.h functions... " >&6; }
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <stdatomic.h>
 int
 main ()
 {
 atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
+
   ;
   return 0;
 }
@@ -19957,7 +19671,6 @@ _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	 ISC_ATOMIC_LIBS=""
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
@@ -19966,245 +19679,74 @@ $as_echo "yes" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-    LIBS="$LIBS $ISC_ATOMIC_LIBS"
-fi
-
-
-
-ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
-ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
-ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
-ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
-if test "yes" = "$use_atomic"; then
-	# The cast to long int works around a bug in the HP C Compiler
-# version HP92453-01 B.11.11.23709.GP, which incorrectly rejects
-# declarations like `int a3[[(sizeof (unsigned char)) >= 0]];'.
-# This bug is HP SR number 8606223364.
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking size of void *" >&5
-$as_echo_n "checking size of void *... " >&6; }
-if ${ac_cv_sizeof_void_p+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  if ac_fn_c_compute_int "$LINENO" "(long int) (sizeof (void *))" "ac_cv_sizeof_void_p"        "$ac_includes_default"; then :
 
 else
-  if test "$ac_cv_type_void_p" = yes; then
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error 77 "cannot compute sizeof (void *)
+as_fn_error $? "stdatomic.h header found, but compilation failed, fix your toolchaing.
 See \`config.log' for more details" "$LINENO" 5; }
-   else
-     ac_cv_sizeof_void_p=0
-   fi
-fi
 
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_sizeof_void_p" >&5
-$as_echo "$ac_cv_sizeof_void_p" >&6; }
-
-
-
-cat >>confdefs.h <<_ACEOF
-#define SIZEOF_VOID_P $ac_cv_sizeof_void_p
-_ACEOF
-
-
-	have_atomic=yes		# set default
-	case "$host" in
-	i[3456]86-*)
-		# XXX: some old x86 architectures actually do not support
-		#      (some of) these operations.  Do we need stricter checks?
-		if test $ac_cv_sizeof_void_p = 8; then
-			arch=x86_64
-			have_xaddq=yes
-		else
-			arch=x86_32
-		fi
-	;;
-	x86_64-*|amd64-*)
-		if test $ac_cv_sizeof_void_p = 8; then
-			arch=x86_64
-			have_xaddq=yes
-		else
-			arch=x86_32
-		fi
-	;;
-	alpha*-*)
-		arch=alpha
-	;;
-	powerpc-*|powerpc64-*)
-		arch=powerpc
-	;;
-	mips-*|mipsel-*|mips64-*|mips64el-*)
-		arch=mips
-	;;
-	ia64-*)
-		arch=ia64
-	;;
-	*)
-		have_atomic=no
-		arch=noatomic
-	;;
-	esac
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking architecture type for atomic operations" >&5
-$as_echo_n "checking architecture type for atomic operations... " >&6; }
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $arch" >&5
-$as_echo "$arch" >&6; }
-fi
-
-if test "yes" = "$have_atomic"; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking compiler support for inline assembly code" >&5
-$as_echo_n "checking compiler support for inline assembly code... " >&6; }
-
-	compiler=generic
-	# Check whether the compiler supports the assembly syntax we provide.
-	if test "X$GCC" = "Xyes"; then
-		# GCC's ASM extension always works
-		compiler=gcc
-		if test $arch = "x86_64"; then
-			# We can share the same code for gcc with x86_32
-			arch=x86_32
-		fi
-		if test $arch = "powerpc"; then
-			#
-			# The MacOS (and maybe others) uses "r0" for register
-			# zero. Under linux/ibm it is "0" for register 0.
-			# Probe to see if we have a MacOS style assembler.
-			#
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking Checking for MacOS style assembler syntax" >&5
-$as_echo_n "checking Checking for MacOS style assembler syntax... " >&6; }
-			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-			__asm__ volatile ("li r0, 0x0\n"::);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-			compiler="mac"
-			ISC_PLATFORM_USEMACASM="#define ISC_PLATFORM_USEMACASM 1"
-
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		fi
-	else
-		case "$host" in
-		alpha*-dec-osf*)
-			# Tru64 compiler has its own syntax for inline
-			# assembly.
-			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for memory model aware atomic operations" >&5
+$as_echo_n "checking for memory model aware atomic operations... " >&6; }
+   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-
+#include <inttypes.h>
 int
 main ()
 {
+int32_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);
 
-#ifndef __DECC
-#error "unexpected compiler"
-#endif
-				return (0);
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  compiler=osf
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-		powerpc-ibm-aix*)
-			compiler=aix
-		;;
-		esac
-	fi
-	case "$compiler" in
-	gcc)
-		ISC_PLATFORM_USEGCCASM="#define ISC_PLATFORM_USEGCCASM 1"
-		;;
-	osf)
-		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
-		;;
-	aix)
-		;;
-	mac)
-		;;
-	*)
-		# See if the generic __asm function works.  If not,
-		# we need to disable the atomic operations.
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: __atomic builtins" >&5
+$as_echo "__atomic builtins" >&6; }
+      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -latomic is needed for 64-bit __atomic builtins" >&5
+$as_echo_n "checking whether -latomic is needed for 64-bit __atomic builtins... " >&6; }
+      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-
+#include <inttypes.h
 int
 main ()
 {
-
-					__asm("nop")
+int64_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);
 
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  compiler="standard"
-		ISC_PLATFORM_USESTDASM="#define ISC_PLATFORM_USESTDASM 1"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
 else
-  compiler="not supported (atomic operations disabled)"
-		have_atomic=no
-		arch=noatomic
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+	 ISC_ATOMIC_LIBS="-latomic"
+
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext;
-		;;
-	esac
+    conftest$ac_exeext conftest.$ac_ext
 
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $compiler" >&5
-$as_echo "$compiler" >&6; }
-fi
-
-if test "yes" = "$have_atomic"; then
-	ISC_PLATFORM_HAVEXADD="#define ISC_PLATFORM_HAVEXADD 1"
-	ISC_PLATFORM_HAVECMPXCHG="#define ISC_PLATFORM_HAVECMPXCHG 1"
-	ISC_PLATFORM_HAVEATOMICSTORE="#define ISC_PLATFORM_HAVEATOMICSTORE 1"
-	if test "yes" = "$have_xaddq"; then
-		ISC_PLATFORM_HAVEXADDQ="#define ISC_PLATFORM_HAVEXADDQ 1"
-		ISC_PLATFORM_HAVEATOMICSTOREQ="#define ISC_PLATFORM_HAVEATOMICSTOREQ 1"
-	else
-		ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
-		ISC_PLATFORM_HAVEATOMICSTOREQ="#undef ISC_PLATFORM_HAVEATOMICSTOREQ"
-	fi
 else
-	ISC_PLATFORM_HAVEXADD="#undef ISC_PLATFORM_HAVEXADD"
-	ISC_PLATFORM_HAVECMPXCHG="#undef ISC_PLATFORM_HAVECMPXCHG"
-	ISC_PLATFORM_HAVEATOMICSTORE="#undef ISC_PLATFORM_HAVEATOMICSTORE"
-	ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
-	ISC_PLATFORM_HAVEATOMICSTOREQ="#undef ISC_PLATFORM_HAVEATOMICSTOREQ"
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: none" >&5
+$as_echo "none" >&6; }
+
+$as_echo "#define HAVE_NO__ATOMIC 1" >>confdefs.h
+
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
 fi
 
+done
 
-
-
-
-
-
-
-
-
-
-
-ISC_ARCH_DIR=$arch
-
+LIBS="$LIBS $ISC_ATOMIC_LIBS"
 
 #
 # Check for __builtin_expect
