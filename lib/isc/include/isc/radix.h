@@ -12,6 +12,8 @@
 #ifndef _RADIX_H
 #define _RADIX_H
 
+#include <config.h>
+
 #include <inttypes.h>
 
 #include <isc/magic.h>
