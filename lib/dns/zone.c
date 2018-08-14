@@ -357,6 +357,10 @@ struct dns_zone {
 	dns_signinglist_t	signing;
 	dns_nsec3chainlist_t	nsec3chain;
 	/*%
+	 * List of outstanding NSEC3PARAM change requests.
+	 */
+	isc_eventlist_t		setnsec3param_queue;
+	/*%
 	 * Signing / re-signing quantum stopping parameters.
 	 */
 	uint32_t		signatures;
@@ -1044,6 +1048,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->isselfarg = NULL;
 	ISC_LIST_INIT(zone->signing);
 	ISC_LIST_INIT(zone->nsec3chain);
+	ISC_LIST_INIT(zone->setnsec3param_queue);
 	zone->signatures = 10;
 	zone->nodes = 100;
 	zone->privatetype = (dns_rdatatype_t)0xffffU;
@@ -1110,6 +1115,7 @@ zone_free(dns_zone_t *zone) {
 	isc_mem_t *mctx = NULL;
 	dns_signing_t *signing;
 	dns_nsec3chain_t *nsec3chain;
+	isc_event_t *setnsec3param_event;
 	dns_include_t *include;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1143,6 +1149,12 @@ zone_free(dns_zone_t *zone) {
 	}
 
 	/* Unmanaged objects */
+	while (!ISC_LIST_EMPTY(zone->setnsec3param_queue)) {
+		setnsec3param_event = ISC_LIST_HEAD(zone->setnsec3param_queue);
+		ISC_LIST_UNLINK(zone->setnsec3param_queue, setnsec3param_event,
+				ev_link);
+		isc_event_free(&setnsec3param_event);
+	}
 	for (signing = ISC_LIST_HEAD(zone->signing);
 	     signing != NULL;
 	     signing = ISC_LIST_HEAD(zone->signing)) {
@@ -14697,6 +14709,8 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	unsigned int oldserial = 0;
 	bool have_oldserial = false;
 	nsec3paramlist_t nsec3list;
+	isc_event_t *setnsec3param_event;
+	dns_zone_t *dummy;
 
 	UNUSED(task);
 
@@ -14815,6 +14829,18 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 	result = zone_postload(zone, db, loadtime, ISC_R_SUCCESS);
 	zone_needdump(zone, 0); /* XXXMPA */
 	UNLOCK_ZONE(zone->raw);
+
+	/*
+	 * Process any queued NSEC3PARAM change requests.
+	 */
+	while (!ISC_LIST_EMPTY(zone->setnsec3param_queue)) {
+		setnsec3param_event = ISC_LIST_HEAD(zone->setnsec3param_queue);
+		ISC_LIST_UNLINK(zone->setnsec3param_queue, setnsec3param_event,
+				ev_link);
+		dummy = NULL;
+		zone_iattach(zone, &dummy);
+		isc_task_send(zone->task, &setnsec3param_event);
+	}
 
  failure:
 	UNLOCK_ZONE(zone);
@@ -19069,8 +19095,22 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 		np->nsec = false;
 	}
 
-	zone_iattach(zone, &dummy);
-	isc_task_send(zone->task, &e);
+	/*
+	 * setnsec3param() will silently return early if the zone does not yet
+	 * have a database.  Prevent that by queueing the event up if zone->db
+	 * is NULL.  All events queued here are subsequently processed by
+	 * receive_secure_db() if it ever gets called or simply freed by
+	 * zone_free() otherwise.
+	 */
+	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
+	if (zone->db != NULL) {
+		zone_iattach(zone, &dummy);
+		isc_task_send(zone->task, &e);
+	} else {
+		ISC_LIST_APPEND(zone->setnsec3param_queue, e, ev_link);
+		e = NULL;
+	}
+	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
  failure:
 	if (e != NULL)

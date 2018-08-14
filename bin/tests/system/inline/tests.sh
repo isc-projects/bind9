@@ -27,22 +27,6 @@ do
 	sleep 1
 done
 
-# Loop until retransfer3 has been transferred.
-for i in 1 2 3 4 5 6 7 8 9 0
-do
-        ans=0
-        $RNDCCMD 10.53.0.3 signing -nsec3param 1 0 0 - retransfer3 > /dev/null 2>&1 || ans=1
-	[ $ans = 0 ] && break
-        sleep 1
-done
-
-for i in 1 2 3 4 5 6 7 8 9 0
-do
-	nsec3param=`$DIG $DIGOPTS +nodnssec +short @10.53.0.3 nsec3param retransfer3.`
-	test "$nsec3param" = "1 0 0 -" && break
-	sleep 1
-done
-
 n=`expr $n + 1`
 echo_i "checking that rrsigs are replaced with ksk only ($n)"
 ret=0
@@ -772,8 +756,44 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check 'rndc signing -nsec3param' requests are queued for zones which are not loaded ($n)"
+ret=0
+# The "retransfer3" zone is configured with "allow-transfer { none; };" on ns2,
+# which means it should not yet be available on ns3.
+$DIG $DIGOPTS @10.53.0.3 retransfer3 SOA > dig.out.ns3.pre.test$n
+grep "status: SERVFAIL" dig.out.ns3.pre.test$n > /dev/null || ret=1
+# Switch the zone to NSEC3.  An "NSEC3 -> NSEC -> NSEC3" sequence is used purely
+# to test that multiple queued "rndc signing -nsec3param" requests are handled
+# properly.
+$RNDCCMD 10.53.0.3 signing -nsec3param 1 0 0 - retransfer3 > /dev/null 2>&1 || ret=1
+$RNDCCMD 10.53.0.3 signing -nsec3param none retransfer3 > /dev/null 2>&1 || ret=1
+$RNDCCMD 10.53.0.3 signing -nsec3param 1 0 0 - retransfer3 > /dev/null 2>&1 || ret=1
+# Reconfigure ns2 to allow outgoing transfers for the "retransfer3" zone.
+sed "s|\(allow-transfer { none; };.*\)|// \1|;" ns2/named.conf > ns2/named.conf.new
+mv ns2/named.conf.new ns2/named.conf
+$RNDCCMD 10.53.0.2 reconfig || ret=1
+# Request ns3 to retransfer the "retransfer3" zone.
+$RNDCCMD 10.53.0.3 retransfer retransfer3 || ret=1
+# Wait until ns3 finishes building the NSEC3 chain for "retransfer3".  There is
+# no need to immediately set ret=1 if the expected message does not appear in
+# the log within the time limit because the query we will send shortly will
+# detect problems anyway.
+for i in 0 1 2 3 4 5 6 7 8 9
+do
+	grep "add.*retransfer3.*NSEC3PARAM 1 0 0 -" ns3/named.run > /dev/null && break
+	sleep 1
+done
+# Check whether "retransfer3" uses NSEC3 as requested.
+$DIG $DIGOPTS @10.53.0.3 nonexist.retransfer3 A > dig.out.ns3.post.test$n
+grep "status: NXDOMAIN" dig.out.ns3.post.test$n > /dev/null || ret=1
+grep "NSEC3" dig.out.ns3.post.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "check rndc retransfer of a inline nsec3 slave retains nsec3 ($n)"
 ret=0
+$RNDCCMD 10.53.0.3 signing -nsec3param 1 0 0 - retransfer3 > /dev/null 2>&1 || ret=1
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	ans=0
