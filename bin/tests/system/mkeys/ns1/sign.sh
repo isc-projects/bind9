@@ -15,8 +15,8 @@ SYSTEMTESTTOP=../..
 zone=.
 zonefile=root.db
 
-keyname=`$KEYGEN -qfk -r $RANDFILE $zone`
-zskkeyname=`$KEYGEN -q -r $RANDFILE $zone`
+keyname=`$KEYGEN -v1 -qfk -r $RANDFILE $zone`
+zskkeyname=`$KEYGEN -v1 -q -r $RANDFILE $zone`
 
 $SIGNER -Sg -r $RANDFILE -o $zone $zonefile > /dev/null 2>/dev/null
 
