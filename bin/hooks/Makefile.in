@@ -34,7 +34,7 @@ NSLIBS =	../../lib/ns/libns.@A@
 
 LIBS =		${NSLIBS} ${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
 
-SO_TARGETS =	filter-aaaa.@SO@
+SO_TARGETS =	lib/filter-aaaa.@SO@
 TARGETS =	@SO_TARGETS@
 
 SO_OBJS =	filter-aaaa.@O@
@@ -53,15 +53,19 @@ MANOBJS =	${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
 
-filter-aaaa.@SO@: ${SO_OBJS}
+lib/filter-aaaa.@SO@: filter-aaaa.@SO@
+	$(SHELL) ${top_srcdir}/mkinstalldirs `pwd`/lib
+	${LIBTOOL_MODE_INSTALL} ${INSTALL} filter-aaaa.@SO@ `pwd`/lib
+
+filter-aaaa.@SO@: filter-aaaa.@O@
 	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} -o $@ \
 		filter-aaaa.@O@ ${LIBS}
 
 doc man:: ${MANOBJS}
 
 clean distclean maintainer-clean::
+	rm -f filter-aaaa.so
 	rm -f ${TARGETS} ${OBJS}
-	rm -f ${MANOBJS}
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
