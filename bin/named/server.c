@@ -5734,6 +5734,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	const cfg_obj_t *typeobj = NULL;
 	const cfg_obj_t *forwarders = NULL;
 	const cfg_obj_t *forwardtype = NULL;
+	const cfg_obj_t *ixfrfromdiffs = NULL;
 	const cfg_obj_t *only = NULL;
 	const cfg_obj_t *signing = NULL;
 	const cfg_obj_t *viewobj = NULL;
@@ -6086,6 +6087,15 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			dns_zone_setview(raw, view);
 			dns_zone_setstats(raw, named_g_server->zonestats);
 			CHECK(dns_zone_link(zone, raw));
+		}
+		if (cfg_map_get(zoptions, "ixfr-from-differences",
+			        &ixfrfromdiffs) == ISC_R_SUCCESS)
+		{
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "zone '%s': 'ixfr-from-differences' is "
+				      "ignored for inline-signed zones",
+				      zname);
 		}
 	}
 
