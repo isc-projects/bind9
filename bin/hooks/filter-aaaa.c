@@ -68,37 +68,37 @@ static isc_mempool_t *datapool = NULL;
 static bool
 filter_qctx_initialize(void *hookdata, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_init = {
-	.callback = filter_qctx_initialize,
+	.action = filter_qctx_initialize,
 };
 
 static bool
 filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_respbegin = {
-	.callback = filter_respond_begin,
+	.action = filter_respond_begin,
 };
 
 static bool
 filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_respanyfound = {
-	.callback = filter_respond_any_found,
+	.action = filter_respond_any_found,
 };
 
 static bool
 filter_prep_response_begin(void *hookdata, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_prepresp = {
-	.callback = filter_prep_response_begin,
+	.action = filter_prep_response_begin,
 };
 
 static bool
 filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_donesend = {
-	.callback = filter_query_done_send,
+	.action = filter_query_done_send,
 };
 
 static bool
 filter_qctx_destroy(void *hookdata, void *cbdata, isc_result_t *resp);
 ns_hook_t filter_destroy = {
-	.callback = filter_qctx_destroy,
+	.action = filter_qctx_destroy,
 };
 
 /**

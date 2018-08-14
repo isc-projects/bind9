@@ -254,30 +254,73 @@ static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
-#define PROCESS_HOOK(_id, _qctx, ...)					\
+
+/*
+ * Return the hooktable in use with 'qctx', or if there isn't one
+ * set, return the default hooktable.
+ */
+static inline ns_hooktable_t *
+get_hooktab(query_ctx_t *qctx) {
+	if (qctx == NULL || qctx->view == NULL ||
+	    qctx->view->hooktable == NULL)
+	{
+		return (ns__hook_table);
+	}
+
+	return (qctx->view->hooktable);
+}
+
+/*
+ * Call the specified hook function in every configured module that
+ * implements that function. If any hook function returns 'true', we set
+ * 'result' and terminate processing by jumping to the 'cleanup' tag.
+ *
+ * (Note that a hook function may set the 'result' to ISC_R_SUCCESS but
+ * still terminate processing within the calling function. That's why this
+ * is a macro instead of an inline function; it needs to be able to use
+ * 'goto cleanup' regardless of the return value.)
+ */
+#define PROCESS_HOOK(_id, _qctx)					\
 	do {								\
-		ns_hooktable_t *_tab = ns__hook_table; 			\
-		query_ctx_t *_q = (_qctx);				\
-		if (_q != NULL &&					\
-		    _q->view != NULL &&					\
-		    _q->view->hooktable != NULL)			\
-		{							\
-			_tab = _q->view->hooktable;			\
+		isc_result_t _res;					\
+		ns_hooktable_t *_tab = get_hooktab(_qctx);		\
+		ns_hook_t *_hook;					\
+		_hook = ISC_LIST_HEAD((*_tab)[_id]);			\
+		while (_hook != NULL) {					\
+			ns_hook_action_t _func = _hook->action;		\
+			void *_data = _hook->action_data;		\
+			INSIST(_func != NULL);				\
+			if (_func(_qctx, _data, &_res)) {		\
+				result = _res;				\
+				goto cleanup;				\
+			} else {					\
+				_hook = ISC_LIST_NEXT(_hook, link);	\
+			}						\
 		}							\
-		NS_PROCESS_HOOK(_tab, _id, _q, __VA_ARGS__);		\
 	} while (false)
 
-#define PROCESS_HOOK_VOID(_id, _qctx, ...)				\
+/*
+ * Call the specified hook function in every configured module that
+ * implements that function. All modules are called; hook function return
+ * codes are ignored. This is intended for use with initialization and
+ * destruction calls which *must* run in every configured module.
+ *
+ * (This could be implemented as an inline void function, but is left as a
+ * macro for symmetry with PROCESS_HOOK above.)
+ */
+#define PROCESS_ALL_HOOKS(_id, _qctx)					\
 	do {								\
-		ns_hooktable_t *_tab = ns__hook_table; 			\
-		query_ctx_t *_q = (_qctx);				\
-		if (_q != NULL &&					\
-		    _q->view != NULL &&					\
-		    _q->view->hooktable != NULL)			\
-		{							\
-			_tab = _q->view->hooktable;			\
+		isc_result_t _res;					\
+		ns_hooktable_t *_tab = get_hooktab(_qctx);		\
+		ns_hook_t *_hook;					\
+		_hook = ISC_LIST_HEAD((*_tab)[_id]);			\
+		while (_hook != NULL) {					\
+			ns_hook_action_t _func = _hook->action;		\
+			void *_data = _hook->action_data;		\
+			INSIST(_func != NULL);				\
+			_func(_qctx, _data, &_res);			\
+			_hook = ISC_LIST_NEXT(_hook, link);		\
 		}							\
-		NS_PROCESS_HOOK_VOID(_tab, _id, _q, __VA_ARGS__);	\
 	} while (false)
 
 /*
@@ -1903,6 +1946,7 @@ query_setorder(query_ctx_t *qctx, dns_name_t *name, dns_rdataset_t *rdataset) {
 static void
 query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 	ns_client_t *client = qctx->client;
+	isc_result_t result;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional");
 
@@ -1918,7 +1962,6 @@ query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 	    (client->query.gluedb != NULL) &&
 	    dns_db_iszone(client->query.gluedb))
 	{
-		isc_result_t result;
 		ns_dbversion_t *dbversion;
 
 		dbversion = ns_client_findversion(client, client->query.gluedb);
@@ -1933,7 +1976,7 @@ query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 		}
 	}
 
-regular:
+ regular:
 	/*
 	 * Add other additional data if needed.
 	 * We don't care if dns_rdataset_additionaldata() fails.
@@ -4851,7 +4894,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->methods.query_done = query_done;
 	qctx->methods.query_recurse = query_recurse;
 
-	PROCESS_HOOK_VOID(NS_QUERY_QCTX_INITIALIZED, qctx);
+	PROCESS_ALL_HOOKS(NS_QUERY_QCTX_INITIALIZED, qctx);
 }
 
 /*%
@@ -4916,7 +4959,8 @@ qctx_freedata(query_ctx_t *qctx) {
 
 static void
 qctx_destroy(query_ctx_t *qctx) {
-	PROCESS_HOOK_VOID(NS_QUERY_QCTX_DESTROYED, qctx);
+	PROCESS_ALL_HOOKS(NS_QUERY_QCTX_DESTROYED, qctx);
+
 	dns_view_detach(&qctx->view);
 }
 
@@ -4970,6 +5014,8 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	qctx_init(client, NULL, qtype, &qctx);
 	query_trace(&qctx);
 
+	PROCESS_HOOK(NS_QUERY_SETUP, &qctx);
+
 	/*
 	 * If it's a SIG query, we'll iterate the node.
 	 */
@@ -4989,6 +5035,8 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	}
 
 	result = ns__query_start(&qctx);
+
+ cleanup:
 	qctx_destroy(&qctx);
 	return (result);
 }
@@ -5253,6 +5301,9 @@ ns__query_start(query_ctx_t *qctx) {
 	}
 
 	return (query_lookup(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -5378,6 +5429,9 @@ query_lookup(query_ctx_t *qctx) {
 	}
 
 	return (query_gotanswer(qctx, result));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -5887,6 +5941,9 @@ query_resume(query_ctx_t *qctx) {
 	qctx->resuming = true;
 
 	return (query_gotanswer(qctx, result));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -6454,7 +6511,8 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
  * result from the search.
  */
 static isc_result_t
-query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
+query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
+	isc_result_t result = res;
 	char errmsg[256];
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_gotanswer");
@@ -6469,8 +6527,9 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	    !dns_name_equal(qctx->client->query.qname, dns_rootname))
 	{
 		result = query_checkrpz(qctx, result);
-		if (result == ISC_R_COMPLETE)
+		if (result == ISC_R_COMPLETE) {
 			return (query_done(qctx));
+		}
 	}
 
 	/*
@@ -6546,6 +6605,9 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 		}
 		return (query_done(qctx));
 	}
+
+ cleanup:
+	return (result);
 }
 
 static void
@@ -6844,6 +6906,9 @@ query_respond_any(query_ctx_t *qctx) {
 	query_addauth(qctx);
 
 	return (query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -7059,6 +7124,9 @@ query_respond(query_ctx_t *qctx) {
 	query_addauth(qctx);
 
 	return (query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 static isc_result_t
@@ -7474,6 +7542,9 @@ query_notfound(query_ctx_t *qctx) {
 	}
 
 	return (query_delegation(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -7482,6 +7553,7 @@ query_notfound(query_ctx_t *qctx) {
  */
 static isc_result_t
 query_prepare_delegation_response(query_ctx_t *qctx) {
+	isc_result_t result;
 	dns_rdataset_t **sigrdatasetp = NULL;
 	bool detach = false;
 
@@ -7524,6 +7596,9 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 	query_addds(qctx);
 
 	return (query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -7616,6 +7691,9 @@ query_zone_delegation(query_ctx_t *qctx) {
 	}
 
 	return (query_prepare_delegation_response(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -7741,6 +7819,9 @@ query_delegation(query_ctx_t *qctx) {
 	}
 
 	return (query_prepare_delegation_response(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -7881,7 +7962,9 @@ query_addds(query_ctx_t *qctx) {
  * Handle authoritative NOERROR/NODATA responses.
  */
 static isc_result_t
-query_nodata(query_ctx_t *qctx, isc_result_t result) {
+query_nodata(query_ctx_t *qctx, isc_result_t res) {
+	isc_result_t result = res;
+
 	PROCESS_HOOK(NS_QUERY_NODATA_BEGIN, qctx);
 
 #ifdef dns64_bis_return_excluded_addresses
@@ -7991,6 +8074,9 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	return (query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -8264,6 +8350,9 @@ query_nxdomain(query_ctx_t *qctx, bool empty_wild) {
 		qctx->client->message->rcode = dns_rcode_nxdomain;
 
 	return (query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -9204,6 +9293,9 @@ query_cname(query_ctx_t *qctx) {
 	query_addauth(qctx);
 
 	return (query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -9355,6 +9447,9 @@ query_dname(query_ctx_t *qctx) {
 	query_addauth(qctx);
 
 	return (query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -9436,6 +9531,8 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
  */
 static isc_result_t
 query_prepresponse(query_ctx_t *qctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	PROCESS_HOOK(NS_QUERY_PREP_RESPONSE_BEGIN, qctx);
 
 	if (WANTDNSSEC(qctx->client) &&
@@ -9449,9 +9546,12 @@ query_prepresponse(query_ctx_t *qctx) {
 
 	if (qctx->type == dns_rdatatype_any) {
 		return (query_respond_any(qctx));
-	} else {
-		return (query_respond(qctx));
 	}
+
+	return (query_respond(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -10479,6 +10579,9 @@ query_done(query_ctx_t *qctx) {
 
 	ns_client_detach(&qctx->client);
 	return (qctx->result);
+
+ cleanup:
+	return (result);
 }
 
 static inline void
