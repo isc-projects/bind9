@@ -31,7 +31,6 @@ typedef long long atomic_llong;
 typedef unsigned long long atomic_ullong;
 typedef uint_least16_t atomic_char16_t;
 typedef uint_least32_t atomic_char32_t;
-typedef wchar_t atomic_wchar_t;
 typedef int_least8_t atomic_int_least8_t;
 typedef uint_least8_t atomic_uint_least8_t;
 typedef int_least16_t atomic_int_least16_t;
@@ -51,7 +50,6 @@ typedef uint_fast64_t atomic_uint_fast64_t;
 typedef intptr_t atomic_intptr_t;
 typedef uintptr_t atomic_uintptr_t;
 typedef size_t atomic_size_t;
-typedef ptrdiff_t atomic_ptrdiff_t;
 typedef intmax_t atomic_intmax_t;
 typedef uintmax_t atomic_uintmax_t;
 #endif
