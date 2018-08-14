@@ -1,3 +1,7 @@
+5008.	[bug]		"rndc signing -nsec3param ..." requests were silently
+			ignored for zones which were not yet loaded or
+			transferred. [GL #468]
+
 5007.	[cleanup]	Replace custom ISC boolean and integer data types
 			with C99 stdint.h and stdbool.h types. [GL #9]
 
