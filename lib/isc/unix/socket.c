@@ -4794,12 +4794,13 @@ socket_recv(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
-		if ((flags & ISC_SOCKFLAG_IMMEDIATE) == 0)
+		if ((flags & ISC_SOCKFLAG_IMMEDIATE) == 0) {
 			if (have_lock) {
 				UNLOCK(&sock->recvlock);
 				have_lock = false;
 			}
 			send_recvdone_event(sock, &dev);
+		}
 		break;
 	}
 

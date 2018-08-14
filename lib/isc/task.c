@@ -497,6 +497,7 @@ isc_task_send(isc_task_t *task0, isc_event_t **eventp) {
 		 */
 		task_ready(task);
 	}
+	pthread_yield();
 }
 
 void
@@ -519,7 +520,7 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
 	idle1 = task_send(task, eventp);
 	idle2 = task_detach(task);
 	UNLOCK(&task->lock);
-
+	
 	/*
 	 * If idle1, then idle2 shouldn't be true as well since we're holding
 	 * the task lock, and thus the task cannot switch from ready back to
@@ -529,7 +530,7 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
 
 	if (idle1 || idle2)
 		task_ready(task);
-
+	pthread_yield();
 	*taskp = NULL;
 }
 
