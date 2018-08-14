@@ -195,7 +195,7 @@ struct dns_adbname {
 	isc_stdtime_t                   last_used;
 
 	ISC_LINK(dns_adbname_t)         plink;
-	const isc_sockaddr_t		*client;
+	isc_sockaddr_t			client;
 	dns_messageid_t			id;
 };
 
@@ -1542,7 +1542,7 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 
 			isc_task_sendanddetach(&task, (isc_event_t **)&ev);
 			find->flags |= FIND_EVENT_SENT;
-			name->client = NULL;
+			memset(&name->client, 0, sizeof(name->client));
 			name->id = 0;
 		} else {
 			DP(DEF_LEVEL, "cfan: skipping find %p", find);
@@ -1700,7 +1700,7 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname) {
 	name->fetch_aaaa = NULL;
 	name->fetch_err = FIND_ERR_UNEXPECTED;
 	name->fetch6_err = FIND_ERR_UNEXPECTED;
-	name->client = NULL;
+	memset(&name->client, 0, sizeof(name->client));
 	name->id = 0;
 	ISC_LIST_INIT(name->finds);
 	ISC_LINK_INIT(name, plink);
@@ -3032,8 +3032,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = ISC_R_SHUTTINGDOWN;
 		goto out;
 	}
-	if (adbname != NULL && client != NULL && adbname->client != NULL &&
-	    isc_sockaddr_equal(client, adbname->client) && id == adbname->id) {
+	if (adbname != NULL && client != NULL &&
+	    isc_sockaddr_equal(client, &adbname->client) && id == adbname->id) {
 		char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE];
 		char typebuf[DNS_RDATATYPE_FORMATSIZE];
 		dns_name_format(qname, buf, sizeof(buf));
@@ -3242,16 +3242,18 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		find->name_bucket = bucket;
 		bool empty = ISC_LIST_EMPTY(adbname->finds);
 		/* If there are no finds pending take ownership of adbname */
-		if (adbname->client == NULL) {
-			adbname->client = client;
+		if (adbname->client.length == 0) {
+			memcpy(&adbname->client, client, sizeof(adbname->client));
 			adbname->id = id;
 		}
 		ISC_LIST_APPEND(adbname->finds, find, plink);
 		find->query_pending = (query_pending & wanted_addresses);
 		find->flags &= ~DNS_ADBFIND_ADDRESSMASK;
 		find->flags |= (find->query_pending & DNS_ADBFIND_ADDRESSMASK);
-		DP(DEF_LEVEL, "createfind: attaching find %p to adbname %p (%p/%d) %d",
-		   find, adbname, adbname->client, adbname->id, empty);
+		DP(DEF_LEVEL, "createfind: attaching find %p to adbname "
+			      "%p (%d/%d) %d",
+		   find, adbname, isc_sockaddr_hash(&adbname->client, true),
+		   adbname->id, empty);
 	} else {
 		/*
 		 * Remove the flag so the caller knows there will never
