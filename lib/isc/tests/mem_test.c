@@ -135,6 +135,20 @@ ATF_TC_BODY(isc_mem, tc) {
 
 	isc_mem_destroy(&localmctx);
 
+	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
+				  NULL, &localmctx, ISC_MEMFLAG_INTERNAL);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = isc_mempool_create(localmctx, 2, &mp1);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	tmp = isc_mempool_get(mp1);
+	ATF_CHECK(tmp != NULL);
+
+	isc_mempool_put(mp1, tmp);
+
+	isc_mempool_destroy(&mp1);
+
 	isc_test_end();
 }
 
