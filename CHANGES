@@ -1,3 +1,6 @@
+5009.	[bug]		Upon an OpenSSL failure, the first error in the OpenSSL
+			error queue was not logged. [GL #476]
+
 5008.	[bug]		"rndc signing -nsec3param ..." requests were silently
 			ignored for zones which were not yet loaded or
 			transferred. [GL #468]
