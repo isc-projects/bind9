@@ -910,6 +910,7 @@ insert_nodes(dns_rbt_t *mytree, char **names,
 				node->data = n;
 				names[*names_count] = isc_mem_strdup(mctx,
 								     namebuf);
+				ATF_REQUIRE(names[*names_count] != NULL);
 				*names_count += 1;
 				break;
 			}
@@ -995,6 +996,7 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 	 */
 	isc_result_t result;
 	dns_rbt_t *mytree = NULL;
+	size_t *n;
 	/*
 	 * We use an array for storing names instead of a set
 	 * structure. It's slow, but works and is good enough for tests.
@@ -1011,6 +1013,11 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_rbt_create(mctx, delete_data, NULL, &mytree);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	n = isc_mem_get(mctx, sizeof(size_t));
+	ATF_REQUIRE(n != NULL);
+	result = dns_rbt_addname(mytree, dns_rootname, n);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	memset(names, 0, sizeof(names));
@@ -1050,6 +1057,12 @@ ATF_TC_BODY(rbt_insert_and_remove, tc) {
 			isc_mem_free(mctx, names[i]);
 		}
 	}
+
+	result = dns_rbt_deletename(mytree, dns_rootname, false);
+	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
+			 "result: %s", isc_result_totext(result));
+	ATF_CHECK_EQ_MSG(dns_rbt_nodecount(mytree), 0,
+			 "%u != 0", dns_rbt_nodecount(mytree));
 
 	dns_rbt_destroy(&mytree);
 
