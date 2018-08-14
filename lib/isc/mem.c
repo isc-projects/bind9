@@ -1857,6 +1857,12 @@ isc__mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	mpctx->common.magic = ISCAPI_MPOOL_MAGIC;
 	mpctx->lock = NULL;
 	mpctx->mctx = mctx;
+	/*
+	 * Mempools are stored as a linked list of element.
+	 */
+	if (size < sizeof(element)) {
+		size = sizeof(element);
+	}
 	mpctx->size = size;
 	mpctx->maxalloc = UINT_MAX;
 	mpctx->allocated = 0;
