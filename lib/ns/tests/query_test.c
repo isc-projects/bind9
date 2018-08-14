@@ -85,7 +85,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	query_ctx_t *qctx = NULL;
 	isc_result_t result;
 	ns_hook_t hook = {
-		.callback = ns_test_hook_catch_call,
+		.action = ns_test_hook_catch_call,
 	};
 
 	REQUIRE(test != NULL);
@@ -282,7 +282,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 	query_ctx_t *qctx = NULL;
 	isc_result_t result;
 	ns_hook_t hook = {
-		.callback = ns_test_hook_catch_call,
+		.action = ns_test_hook_catch_call,
 	};
 
 	REQUIRE(test != NULL);

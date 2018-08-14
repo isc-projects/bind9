@@ -629,17 +629,17 @@ destroy_message:
 }
 
 /*%
- * A hook callback which stores the query context pointed to by "hook_data" at
- * "callback_data".  Causes execution to be interrupted at hook insertion
+ * A hook action which stores the query context pointed to by "arg" at
+ * "data".  Causes execution to be interrupted at hook insertion
  * point.
  */
 static bool
-extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
+extract_qctx(void *arg, void *data, isc_result_t *resultp) {
 	query_ctx_t **qctxp;
 	query_ctx_t *qctx;
 
-	REQUIRE(hook_data != NULL);
-	REQUIRE(callback_data != NULL);
+	REQUIRE(arg != NULL);
+	REQUIRE(data != NULL);
 	REQUIRE(resultp != NULL);
 
 	/*
@@ -649,10 +649,10 @@ extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
 	 */
 	qctx = isc_mem_get(mctx, sizeof(*qctx));
 	if (qctx != NULL) {
-		memmove(qctx, (query_ctx_t *)hook_data, sizeof(*qctx));
+		memmove(qctx, (query_ctx_t *)arg, sizeof(*qctx));
 	}
 
-	qctxp = (query_ctx_t **)callback_data;
+	qctxp = (query_ctx_t **)data;
 	/*
 	 * If memory allocation failed, the supplied pointer will simply be set
 	 * to NULL.  We rely on the user of this hook to react properly.
@@ -674,8 +674,8 @@ static isc_result_t
 create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	ns_hooktable_t *saved_hook_table, query_hooks;
 	ns_hook_t hook = {
-		.callback = extract_qctx,
-		.callback_data = qctxp,
+		.action = extract_qctx,
+		.action_data = qctxp,
 	};
 
 	REQUIRE(client != NULL);
@@ -691,7 +691,7 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	 */
 
 	ns_hooktable_init(&query_hooks);
-	ns_hook_add(&query_hooks, NS_QUERY_QCTX_INITIALIZED, &hook);
+	ns_hook_add(&query_hooks, NS_QUERY_SETUP, &hook);
 
 	saved_hook_table = ns__hook_table;
 	ns__hook_table = &query_hooks;
@@ -801,11 +801,10 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 }
 
 bool
-ns_test_hook_catch_call(void *hook_data, void *callback_data,
-			isc_result_t *resultp)
+ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp)
 {
-	UNUSED(hook_data);
-	UNUSED(callback_data);
+	UNUSED(arg);
+	UNUSED(data);
 
 	*resultp = ISC_R_UNSET;
 
