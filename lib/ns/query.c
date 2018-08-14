@@ -249,6 +249,7 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
 #define PROCESS_HOOK(_id, _qctx, ...)					\
 	do {								\
 		ns_hooktable_t *_tab = ns__hook_table; 			\
+		ns_hook_t *_hook;					\
 		query_ctx_t *_q = (_qctx);				\
 		if (_q != NULL &&					\
 		    _q->view != NULL &&					\
@@ -256,20 +257,18 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
 		{							\
 			_tab = _q->view->hooktable;			\
 		}							\
-		NS_PROCESS_HOOK(_tab, _id, _q, __VA_ARGS__);		\
-	} while (false)
-
-#define PROCESS_HOOK_VOID(_id, _qctx, ...)				\
-	do {								\
-		ns_hooktable_t *_tab = ns__hook_table; 			\
-		query_ctx_t *_q = (_qctx);				\
-		if (_q != NULL &&					\
-		    _q->view != NULL &&					\
-		    _q->view->hooktable != NULL)			\
-		{							\
-			_tab = _q->view->hooktable;			\
+		_hook = ISC_LIST_HEAD((*_tab)[_id]);			\
+		while (_hook != NULL) {					\
+			ns_hook_cb_t _callback = _hook->callback;	\
+			void *_data = _hook->callback_data;		\
+			if (_callback != NULL &&			\
+			    _callback(_q, _data, &result))		\
+			{						\
+				goto cleanup;				\
+			} else {					\
+				_hook = ISC_LIST_NEXT(_hook, link);	\
+			}						\
 		}							\
-		NS_PROCESS_HOOK_VOID(_tab, _id, _q, __VA_ARGS__);	\
 	} while (false)
 
 /*
@@ -1895,8 +1894,9 @@ query_setorder(query_ctx_t *qctx, dns_name_t *name, dns_rdataset_t *rdataset) {
 static void
 query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 	ns_client_t *client = qctx->client;
+	isc_result_t result;
 
-	PROCESS_HOOK_VOID(NS_QUERY_ADDITIONAL_BEGIN, qctx);
+	PROCESS_HOOK(NS_QUERY_ADDITIONAL_BEGIN, qctx);
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional");
 
@@ -1912,7 +1912,6 @@ query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 	    (client->query.gluedb != NULL) &&
 	    dns_db_iszone(client->query.gluedb))
 	{
-		isc_result_t result;
 		ns_dbversion_t *dbversion;
 
 		dbversion = ns_client_findversion(client, client->query.gluedb);
@@ -1927,13 +1926,16 @@ query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 		}
 	}
 
-regular:
+ regular:
 	/*
 	 * Add other additional data if needed.
 	 * We don't care if dns_rdataset_additionaldata() fails.
 	 */
 	(void)dns_rdataset_additionaldata(rdataset, query_additional_cb, qctx);
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional: done");
+
+ cleanup:
+	return;
 }
 
 static void
@@ -4799,6 +4801,8 @@ static void
 qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	  dns_rdatatype_t qtype, query_ctx_t *qctx)
 {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	REQUIRE(qctx != NULL);
 	REQUIRE(client != NULL);
 
@@ -4839,7 +4843,10 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->answer_has_ns = false;
 	qctx->authoritative = false;
 
-	PROCESS_HOOK_VOID(NS_QUERY_QCTX_INITIALIZED, qctx);
+	PROCESS_HOOK(NS_QUERY_QCTX_INITIALIZED, qctx);
+
+ cleanup:
+	return;
 }
 
 /*%
@@ -4904,7 +4911,11 @@ qctx_freedata(query_ctx_t *qctx) {
 
 static void
 qctx_destroy(query_ctx_t *qctx) {
-	PROCESS_HOOK_VOID(NS_QUERY_QCTX_DESTROYED, qctx);
+	isc_result_t result = ISC_R_SUCCESS;
+
+	PROCESS_HOOK(NS_QUERY_QCTX_DESTROYED, qctx);
+
+ cleanup:
 	dns_view_detach(&qctx->view);
 }
 
@@ -4958,6 +4969,8 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	qctx_init(client, NULL, qtype, &qctx);
 	query_trace(&qctx);
 
+	PROCESS_HOOK(NS_QUERY_SETUP, &qctx);
+
 	/*
 	 * If it's a SIG query, we'll iterate the node.
 	 */
@@ -4977,6 +4990,8 @@ query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	}
 
 	result = ns__query_start(&qctx);
+
+ cleanup:
 	qctx_destroy(&qctx);
 	return (result);
 }
@@ -5241,6 +5256,9 @@ ns__query_start(query_ctx_t *qctx) {
 	}
 
 	return (query_lookup(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -5366,6 +5384,9 @@ query_lookup(query_ctx_t *qctx) {
 	}
 
 	return (query_gotanswer(qctx, result));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -5869,6 +5890,9 @@ query_resume(query_ctx_t *qctx) {
 	qctx->resuming = true;
 
 	return (query_gotanswer(qctx, result));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -6436,7 +6460,8 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
  * result from the search.
  */
 static isc_result_t
-query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
+query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
+	isc_result_t result = res;
 	char errmsg[256];
 
 	CCTRACE(ISC_LOG_DEBUG(3), "query_gotanswer");
@@ -6451,8 +6476,9 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	    !dns_name_equal(qctx->client->query.qname, dns_rootname))
 	{
 		result = query_checkrpz(qctx, result);
-		if (result == ISC_R_COMPLETE)
+		if (result == ISC_R_COMPLETE) {
 			return (ns_query_done(qctx));
+		}
 	}
 
 	/*
@@ -6528,6 +6554,9 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 		}
 		return (ns_query_done(qctx));
 	}
+
+ cleanup:
+	return (result);
 }
 
 static void
@@ -6826,6 +6855,9 @@ query_respond_any(query_ctx_t *qctx) {
 	query_addauth(qctx);
 
 	return (ns_query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -7041,6 +7073,9 @@ query_respond(query_ctx_t *qctx) {
 	query_addauth(qctx);
 
 	return (ns_query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 static isc_result_t
@@ -7456,6 +7491,9 @@ query_notfound(query_ctx_t *qctx) {
 	}
 
 	return (query_delegation(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -7464,6 +7502,7 @@ query_notfound(query_ctx_t *qctx) {
  */
 static isc_result_t
 query_prepare_delegation_response(query_ctx_t *qctx) {
+	isc_result_t result;
 	dns_rdataset_t **sigrdatasetp = NULL;
 	bool detach = false;
 
@@ -7506,6 +7545,9 @@ query_prepare_delegation_response(query_ctx_t *qctx) {
 	query_addds(qctx);
 
 	return (ns_query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -7598,6 +7640,9 @@ query_zone_delegation(query_ctx_t *qctx) {
 	}
 
 	return (query_prepare_delegation_response(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -7723,6 +7768,9 @@ query_delegation(query_ctx_t *qctx) {
 	}
 
 	return (query_prepare_delegation_response(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -7863,7 +7911,9 @@ query_addds(query_ctx_t *qctx) {
  * Handle authoritative NOERROR/NODATA responses.
  */
 static isc_result_t
-query_nodata(query_ctx_t *qctx, isc_result_t result) {
+query_nodata(query_ctx_t *qctx, isc_result_t res) {
+	isc_result_t result = res;
+
 	PROCESS_HOOK(NS_QUERY_NODATA_BEGIN, qctx);
 
 #ifdef dns64_bis_return_excluded_addresses
@@ -7973,6 +8023,9 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	return (ns_query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -8246,6 +8299,9 @@ query_nxdomain(query_ctx_t *qctx, bool empty_wild) {
 		qctx->client->message->rcode = dns_rcode_nxdomain;
 
 	return (ns_query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -9186,6 +9242,9 @@ query_cname(query_ctx_t *qctx) {
 	query_addauth(qctx);
 
 	return (ns_query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -9337,6 +9396,9 @@ query_dname(query_ctx_t *qctx) {
 	query_addauth(qctx);
 
 	return (ns_query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -9418,6 +9480,8 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
  */
 static isc_result_t
 query_prepresponse(query_ctx_t *qctx) {
+	isc_result_t result = ISC_R_SUCCESS;
+
 	PROCESS_HOOK(NS_QUERY_PREP_RESPONSE_BEGIN, qctx);
 
 	if (WANTDNSSEC(qctx->client) &&
@@ -9431,9 +9495,12 @@ query_prepresponse(query_ctx_t *qctx) {
 
 	if (qctx->type == dns_rdatatype_any) {
 		return (query_respond_any(qctx));
-	} else {
-		return (query_respond(qctx));
 	}
+
+	return (query_respond(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*%
@@ -10461,6 +10528,9 @@ ns_query_done(query_ctx_t *qctx) {
 
 	ns_client_detach(&qctx->client);
 	return (qctx->result);
+
+ cleanup:
+	return (result);
 }
 
 static inline void
