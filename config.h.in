@@ -443,6 +443,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `setresuid' function. */
 #undef HAVE_SETRESUID
 
+/* Define to 1 if you have the <stdatomic.h> header file. */
+#undef HAVE_STDATOMIC_H
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -509,6 +512,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if running under Compaq TruCluster */
 #undef HAVE_TRUCLUSTER
 
+/* Define to 1 if you have the <uchar.h> header file. */
+#undef HAVE_UCHAR_H
+
 /* Define to 1 if the system has the type `uintptr_t'. */
 #undef HAVE_UINTPTR_T
 
@@ -520,6 +526,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if zlib was found */
 #undef HAVE_ZLIB
+
+/* define if __atomic builtins are available */
+#undef HAVE___ATOMIC
 
 /* Define if __thread keyword is available */
 #undef HAVE___THREAD
@@ -588,9 +597,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Sets which flag to pass to open/fcntl to make non-blocking
    (O_NDELAY/O_NONBLOCK). */
 #undef PORT_NONBLOCK
-
-/* The size of `void *', as computed by sizeof. */
-#undef SIZEOF_VOID_P
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
