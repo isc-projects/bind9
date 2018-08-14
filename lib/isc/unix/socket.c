@@ -3573,6 +3573,7 @@ static void
 internal_recv(isc_task_t *me, isc_event_t *ev) {
 	isc_socketevent_t *dev;
 	isc__socket_t *sock;
+	bool locked = true;
 
 	INSIST(ev->ev_type == ISC_SOCKEVENT_INTR);
 
@@ -3583,6 +3584,7 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
 		   "internal_recv: task %p got event %p", me, ev);
 
+	LOCK(&sock->sendlock);
 	LOCK(&sock->recvlock);
 	INSIST(sock->pending_recv == 1);
 	sock->pending_recv = 0;
@@ -3594,7 +3596,9 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 		destroy(&sock);
 		return;
 	}
-
+	UNLOCK(&sock->recvlock);
+	UNLOCK(&sock->sendlock);
+	LOCK(&sock->recvlock);
 	/*
 	 * Try to do as much I/O as possible on this socket.  There are no
 	 * limits here, currently.
@@ -3613,14 +3617,18 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 			 */
 			do {
 				dev->result = ISC_R_EOF;
+				UNLOCK(&sock->recvlock);
 				send_recvdone_event(sock, &dev);
+				LOCK(&sock->recvlock);
 				dev = ISC_LIST_HEAD(sock->recv_list);
 			} while (dev != NULL);
 			goto poke;
-
+			
 		case DOIO_SUCCESS:
 		case DOIO_HARD:
+			UNLOCK(&sock->recvlock);
 			send_recvdone_event(sock, &dev);
+			LOCK(&sock->recvlock);
 			break;
 		}
 		dev = ISC_LIST_HEAD(sock->recv_list);
@@ -3628,10 +3636,12 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 
  poke:
 	if (!ISC_LIST_EMPTY(sock->recv_list)) {
-		UNLOCK(&sock->recvlock);
+		if (locked)
+			UNLOCK(&sock->recvlock);
 		select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
 	} else {
-		UNLOCK(&sock->recvlock);
+		if (locked)
+			UNLOCK(&sock->recvlock);
 	}
 }
 
@@ -4794,12 +4804,13 @@ socket_recv(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
-		if ((flags & ISC_SOCKFLAG_IMMEDIATE) == 0)
+		if ((flags & ISC_SOCKFLAG_IMMEDIATE) == 0) {
 			if (have_lock) {
 				UNLOCK(&sock->recvlock);
 				have_lock = false;
 			}
 			send_recvdone_event(sock, &dev);
+		}
 		break;
 	}
 
