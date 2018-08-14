@@ -227,12 +227,4 @@ ns__query_start(query_ctx_t *qctx);
  * (Must not be used outside this module and its associated unit tests.)
  */
 
-void
-ns__query_inithooks(void);
-/*
- * XXX:
- * Temporary function used to initialize the filter-aaaa hooks,
- * which are currently hard-coded rather than loaded as a module.
- */
-
 #endif /* NS_QUERY_H */
