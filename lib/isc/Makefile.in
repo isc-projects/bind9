@@ -19,7 +19,6 @@ VERSION=@BIND9_VERSION@
 
 CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/pthreads/include \
-		-I${srcdir}/@ISC_ARCH_DIR@/include \
 		-I./include \
 		-I${srcdir}/include ${DNS_INCLUDES} @OPENSSL_INCLUDES@
 CDEFINES =
@@ -83,7 +82,7 @@ LIBS =		@OPENSSL_LIBS@ @LIBS@
 # Attempt to disable parallel processing.
 .NOTPARALLEL:
 .NO_PARALLEL:
-SUBDIRS =	include unix nls pthreads @ISC_ARCH_DIR@
+SUBDIRS =	include unix nls pthreads
 TARGETS =	timestamp
 TESTDIRS =	@UNITTESTS@
 
