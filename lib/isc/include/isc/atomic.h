@@ -60,7 +60,7 @@ typedef uintmax_t atomic_uintmax_t;
 
 #include <stdatomic.h>
 
-#else HAVE___ATOMIC
+#elif HAVE___ATOMIC
 
 enum memory_order {
 	memory_order_relaxed = __ATOMIC_RELAXED,
