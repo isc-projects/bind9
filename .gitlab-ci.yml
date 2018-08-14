@@ -115,11 +115,18 @@ stages:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
 #    - ./autogen.sh
   script:
-    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr $EXTRA_CONFIGURE || cat config.log
+    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr --prefix=$HOME/.local $EXTRA_CONFIGURE || cat config.log
     - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
     expire_in: '1 hour'
     untracked: true
+
+.install_test: &install_test_job
+  stage: test
+  before_script:
+    - make $HOME/.local
+  script:
+    - make install
 
 .system_test: &system_test_job
   stage: test
@@ -332,6 +339,12 @@ systemtest:debian:sid:i386:
   <<: *system_test_job
   dependencies:
     - build:debian:sid:i386
+
+install:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *install_test_job
+  dependencies:
+    - build:debian:sid:amd64
 
 pkcs11:build:debian:sid:amd64:
   variables:
