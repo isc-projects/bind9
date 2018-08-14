@@ -17,14 +17,11 @@
 
 /*! \file isc/rwlock.h */
 
+#include <isc/atomic.h>
 #include <isc/condition.h>
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
-
-#if defined(ISC_PLATFORM_HAVESTDATOMIC)
-#include <stdatomic.h>
-#endif
 
 ISC_LANG_BEGINDECLS
 
@@ -34,20 +31,12 @@ typedef enum {
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || (defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG))
-#define ISC_RWLOCK_USEATOMIC 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
-#define ISC_RWLOCK_USESTDATOMIC 1
-#endif
-#endif
-
 struct isc_rwlock {
 	/* Unlocked. */
 	unsigned int		magic;
 	isc_mutex_t		lock;
 	int32_t		spins;
 
-#if defined(ISC_RWLOCK_USEATOMIC)
 	/*
 	 * When some atomic instructions with hardware assistance are
 	 * available, rwlock will use those so that concurrent readers do not
@@ -62,15 +51,9 @@ struct isc_rwlock {
 	 */
 
 	/* Read or modified atomically. */
-#if defined(ISC_RWLOCK_USESTDATOMIC)
 	atomic_int_fast32_t	write_requests;
 	atomic_int_fast32_t	write_completions;
 	atomic_int_fast32_t	cnt_and_flag;
-#else
-	int32_t		write_requests;
-	int32_t		write_completions;
-	int32_t		cnt_and_flag;
-#endif
 
 	/* Locked by lock. */
 	isc_condition_t		readable;
@@ -83,29 +66,6 @@ struct isc_rwlock {
 	/* Unlocked. */
 	unsigned int		write_quota;
 
-#else  /* ISC_RWLOCK_USEATOMIC */
-
-	/*%< Locked by lock. */
-	isc_condition_t		readable;
-	isc_condition_t		writeable;
-	isc_rwlocktype_t	type;
-
-	/*% The number of threads that have the lock. */
-	unsigned int		active;
-
-	/*%
-	 * The number of lock grants made since the lock was last switched
-	 * from reading to writing or vice versa; used in determining
-	 * when the quota is reached and it is time to switch.
-	 */
-	unsigned int		granted;
-
-	unsigned int		readers_waiting;
-	unsigned int		writers_waiting;
-	unsigned int		read_quota;
-	unsigned int		write_quota;
-	isc_rwlocktype_t	original;
-#endif  /* ISC_RWLOCK_USEATOMIC */
 };
 
 isc_result_t
