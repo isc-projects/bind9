@@ -1774,7 +1774,7 @@ ret=0
 rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 keyid=$(cat ns1/managed.key.id)
 cp ns4/named.secroots named.secroots.test$n
-linecount=$(grep -c "./${DEFAULT_ALGORITHM}/$keyid ; trusted" named.secroots.test$n || true)
+linecount=$(grep -c "./${DEFAULT_ALGORITHM}/$keyid ; static" named.secroots.test$n || true)
 [ "$linecount" -eq 1 ] || ret=1
 linecount=$(< named.secroots.test$n wc -l)
 [ "$linecount" -eq 10 ] || ret=1
@@ -3759,12 +3759,12 @@ status=$((status+ret))
 # lines in the logfile.
 echo_i "checking that keys with unsupported algorithms and disabled algorithms are ignored ($n)"
 ret=0
-grep -q "ignoring trusted key for 'disabled\.trusted\.': algorithm is disabled" ns8/named.run || ret=1
-grep -q "ignoring trusted key for 'unsupported\.trusted\.': algorithm is unsupported" ns8/named.run || ret=1
-grep -q "ignoring trusted key for 'revoked\.trusted\.': bad key type" ns8/named.run || ret=1
-grep -q "ignoring managed key for 'disabled\.managed\.': algorithm is disabled" ns8/named.run || ret=1
-grep -q "ignoring managed key for 'unsupported\.managed\.': algorithm is unsupported" ns8/named.run || ret=1
-grep -q "ignoring trusted key for 'revoked\.trusted\.': bad key type" ns8/named.run || ret=1
+grep -q "ignoring static-key for 'disabled\.trusted\.': algorithm is disabled" ns8/named.run || ret=1
+grep -q "ignoring static-key for 'unsupported\.trusted\.': algorithm is unsupported" ns8/named.run || ret=1
+grep -q "ignoring static-key for 'revoked\.trusted\.': bad key type" ns8/named.run || ret=1
+grep -q "ignoring initial-key for 'disabled\.managed\.': algorithm is disabled" ns8/named.run || ret=1
+grep -q "ignoring initial-key for 'unsupported\.managed\.': algorithm is unsupported" ns8/named.run || ret=1
+grep -q "ignoring initial-key for 'revoked\.managed\.': bad key type" ns8/named.run || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))

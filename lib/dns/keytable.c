@@ -685,7 +685,7 @@ dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **text) {
 			dst_key_format(knode->key, pbuf, sizeof(pbuf));
 			snprintf(obuf, sizeof(obuf), "%s ; %s%s\n", pbuf,
 				 knode->initial ? "initializing " : "",
-				 knode->managed ? "managed" : "trusted");
+				 knode->managed ? "managed" : "static");
 			result = putstr(text, obuf);
 			if (result != ISC_R_SUCCESS)
 				break;

@@ -763,7 +763,7 @@ rm -f ns6/managed-keys.bind*
 nextpart ns6/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns6
 # log when an unsupported algorithm is encountered during startup
-wait_for_log "ignoring managed key for 'unsupported\.': algorithm is unsupported" ns6/named.run
+wait_for_log "ignoring initial-key for 'unsupported\.': algorithm is unsupported" ns6/named.run
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
