@@ -15,7 +15,7 @@
  * draft-ietf-dnsext-tsig-sha-01.txt.
  */
 
-#include "config.h"
+#include <config.h>
 
 #include <stdbool.h>
 
