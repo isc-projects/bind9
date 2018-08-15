@@ -656,5 +656,14 @@ grep "address family not supported" rndc.out.1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "check rndc nta reports adding to multiple views ($n)"
+ret=0
+$RNDCCMD 10.53.0.3 nta test.com > rndc.out.test$n 2>&1 || ret=1
+lines=`cat rndc.out.test$n | wc -l`
+[ ${lines:-0} -eq 2 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

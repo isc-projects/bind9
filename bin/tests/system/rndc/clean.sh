@@ -24,3 +24,4 @@ rm -f ns*/named.conf
 rm -f nsupdate.out.*.test*
 rm -f python.out.*.test*
 rm -f rndc.out.*.test*
+rm -f ns*/*.nta
