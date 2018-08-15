@@ -4101,17 +4101,19 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_CANCELED) {
 		fctx_done(fctx, result, __LINE__);
 		goto cleanup;
-	} else if (NXDOMAIN_RESULT(result) || result == DNS_R_FORMERR || result == DNS_R_REMOTEFORMERR) {
-			if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-					      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-					      "disabling qname minimization for '%s' "
-					      "due to nxdomain", fctx->info);
-				fctx->qmin_labels = DNS_MAX_LABELS + 1;
-			} else {
-				fctx_done(fctx, result, __LINE__);
-				goto cleanup;
-			}
+	} else if (NXDOMAIN_RESULT(result) || result == DNS_R_FORMERR ||
+	           result == DNS_R_REMOTEFORMERR)
+	{
+		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+				      "disabling qname minimization for '%s' "
+				      "due to nxdomain", fctx->info);
+			fctx->qmin_labels = DNS_MAX_LABELS + 1;
+		} else {
+			fctx_done(fctx, result, __LINE__);
+			goto cleanup;
+		}
 	}
 
 
