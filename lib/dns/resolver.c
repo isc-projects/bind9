@@ -3980,7 +3980,7 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 						  &fctx->qminfetch);
 		if (result != ISC_R_SUCCESS) {
 			LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
-			bucket_empty = fctx_decreference(fctx);
+			RUNTIME_CHECK(!fctx_decreference(fctx));
 			UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		}
