@@ -3965,19 +3965,23 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	 * We're minimizing and we're not yet at the final NS -
 	 * we need to launch a query for NS for 'upper' domain
 	 */
-	if (fctx->minimized == true) {
+	if (fctx->minimized) {
 		unsigned int options = fctx->options;
 		options &= ~DNS_FETCHOPT_QMINIMIZE;
 		fctx_increference(fctx);
 		task = res->buckets[bucketnum].task;
 		result = dns_resolver_createfetch(fctx->res, &fctx->qminname,
 						  fctx->qmintype, &fctx->domain,
-						  &fctx->nameservers, NULL, fctx->client,
-						  fctx->id, options, 0,
-						  fctx->qc, task, resume_qmin,
-						  fctx, &fctx->qminrrset,
-						  NULL, &fctx->qminfetch);
+						  &fctx->nameservers, NULL,
+						  fctx->client, fctx->id,
+						  options, 0, fctx->qc, task,
+						  resume_qmin, fctx,
+						  &fctx->qminrrset, NULL,
+						  &fctx->qminfetch);
 		if (result != ISC_R_SUCCESS) {
+			LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+			bucket_empty = fctx_decreference(fctx);
+			UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 		}
 		return;
@@ -4101,8 +4105,10 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	if (result == ISC_R_CANCELED) {
 		fctx_done(fctx, result, __LINE__);
 		goto cleanup;
-	} else if (NXDOMAIN_RESULT(result) || result == DNS_R_FORMERR ||
-	           result == DNS_R_REMOTEFORMERR)
+	}
+
+	if (NXDOMAIN_RESULT(result) || result == DNS_R_FORMERR ||
+	    result == DNS_R_REMOTEFORMERR)
 	{
 		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
@@ -4115,7 +4121,6 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 			goto cleanup;
 		}
 	}
-
 
 	if (dns_rdataset_isassociated(&fctx->nameservers)) {
 		dns_rdataset_disassociate(&fctx->nameservers);
@@ -4130,7 +4135,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(fctx, result, __LINE__);
-		return;
+		goto cleanup;
 	}
 	fcount_decr(fctx);
 	dns_name_free(&fctx->domain, fctx->mctx);
@@ -4138,14 +4143,14 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	result = dns_name_dup(fname, fctx->mctx, &fctx->domain);
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(fctx, result, __LINE__);
-		return;
+		goto cleanup;
 	}
 	dns_name_free(&fctx->qmindcname, fctx->mctx);
 	dns_name_init(&fctx->qmindcname, NULL);
 	result = dns_name_dup(dcname, fctx->mctx, &fctx->qmindcname);
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(fctx, result, __LINE__);
-		return;
+		goto cleanup;
 	}
 	fctx->ns_ttl = fctx->nameservers.ttl;
 	fctx->ns_ttl_ok = true;
@@ -4401,6 +4406,9 @@ fctx_doshutdown(isc_task_t *task, isc_event_t *event) {
 
 	if (fctx->nsfetch != NULL)
 		dns_resolver_cancelfetch(fctx->nsfetch);
+
+	if (fctx->qminfetch != NULL)
+		dns_resolver_cancelfetch(fctx->qminfetch);
 
 	/*
 	 * Shut down anything still running on behalf of this
