@@ -360,6 +360,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  When a negative trust anchor was added to multiple views
+	  using <command>rndc nta</command>, the text returned via
+	  <command>rndc</command> was incorrectly truncated after the
+	  first line, making it appear that only one NTA had been
+	  added. This has been fixed. [GL #105]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>named</command> now rejects excessively large
 	  incremental (IXFR) zone transfers in order to prevent
 	  possible corruption of journal files which could cause

@@ -1,3 +1,12 @@
+5012.	[cleanup]	DNSSEC key configuration and NTA table creation are
+			now disabled in views that are not in class IN, to
+			save a bit of wasted memory. [GL #105]
+
+5011.	[bug]		When adding NTAs to multiple views using "rndc nta",
+			the text returned via rndc was incorrectly terminated
+			after the first line, making it look like only one
+			NTA had been added. [GL #105]
+
 5010.	[func]		New "validate-except" option specifies a list of
 			domains beneath which DNSSEC validation should not
 			be performed. [GL #237]
