@@ -9,7 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#include "config.h"
+#include <config.h>
 
 #ifndef HAVE_LMDB
 #error This program requires the LMDB library.
