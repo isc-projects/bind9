@@ -1,3 +1,11 @@
+5033.	[bug]		When adding NTAs to multiple views using "rndc nta",
+			the text returned via rndc was incorrectly terminated
+			after the first line, making it look as if only one
+			NTA had been added. Also, it was not possible to
+			differentiate between views with the same name but
+			different classes; this has been corrected with the
+			addition of a "-class" option. [GL #105]
+
 5032.	[func]		Add krb5-selfsub and ms-selfsub update policy rules.
 			[GL #511]
 
