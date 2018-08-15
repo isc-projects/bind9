@@ -1593,6 +1593,21 @@ AC_SUBST(NZD_TOOLS)
 AC_SUBST(NZDSRCS)
 AC_SUBST(NZDTARGETS)
 
+# Enforce Concurrency Kit
+save_LIBS="$LIBS"
+save_CFLAGS="$CFLAGS"
+LIBS="$LIBS -L/opt/ck/lib"
+CFLAGS="$CFLAGS -I/opt/ck/include"
+AC_SEARCH_LIBS([ck_array_init], [ck],
+	       [AC_DEFINE([HAVE_CK], [1], "enforce ConcurrencyKit")
+		ck_CFLAGS="-I/opt/ck/include"
+		ck_LIBS="-Wl,rpath,/opt/ck/lib -L/opt/ck/lib -lck"
+		CFLAGS="$save_CFLAGS"
+		LIBS="$save_LIBS"
+	       ])
+CFLAGS="$CFLAGS $ck_CFLAGS"
+LIBS="$LIBS $ck_LIBS"
+
 #
 # was --with-libxml2 specified?
 #
