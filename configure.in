@@ -837,221 +837,51 @@ AC_SUBST(CHECK_DSA)
 #
 AC_CHECK_FUNCS(arc4random arc4random_buf arc4random_uniform getrandom)
 
-sinclude(config.threads.in)dnl
+AX_PTHREAD
 
-if $use_threads
-then
-	if test "X$GCC" = "Xyes"; then
-		case "$host" in
-		*-freebsd*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			CCNOOPT="$CCNOOPT -pthread"
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		*-openbsd*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			CCNOOPT="$CCNOOPT -pthread"
-			;;
-		*-solaris*)
-			LIBS="$LIBS -lthread"
-			;;
-		*-ibm-aix*)
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		esac
-	else
-		case $host in
-		*-dec-osf*)
-			CC="$CC -pthread"
-			CCOPT="$CCOPT -pthread"
-			CCNOOPT="$CCNOOPT -pthread"
-			;;
-		*-solaris*)
-			CC="$CC -mt"
-			CCOPT="$CCOPT -mt"
-			CCNOOPT="$CCNOOPT -mt"
-			;;
-		*-ibm-aix*)
-			STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-			;;
-		*-sco-sysv*uw*|*-*-sysv*UnixWare*)
-			CC="$CC -Kthread"
-			CCOPT="$CCOPT -Kthread"
-			CCNOOPT="$CCNOOPT -Kthread"
-			;;
-		*-*-sysv*OpenUNIX*)
-			CC="$CC -Kpthread"
-			CCOPT="$CCOPT -Kpthread"
-			CCNOOPT="$CCNOOPT -Kpthread"
-			;;
-		esac
-	fi
-	ALWAYS_DEFINES="-D_REENTRANT"
-	ISC_PLATFORM_USETHREADS="#define ISC_PLATFORM_USETHREADS 1"
-	THREADOPTOBJS='${THREADOPTOBJS}'
-	THREADOPTSRCS='${THREADOPTSRCS}'
-	thread_dir=pthreads
-	#
-	# We'd like to use sigwait() too
-	#
-	AC_CHECK_FUNC(sigwait,
-		      AC_DEFINE(HAVE_SIGWAIT),
-		      AC_CHECK_LIB(c, sigwait,
-		      AC_DEFINE(HAVE_SIGWAIT),
-		      AC_CHECK_LIB(pthread, sigwait,
-				   AC_DEFINE(HAVE_SIGWAIT),
-				   AC_CHECK_LIB(pthread, _Psigwait,
-						AC_DEFINE(HAVE_SIGWAIT),))))
+LIBS="$PTHREAD_LIBS $LIBS"
+CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+CC="$PTHREAD_CC"
 
-	AC_CHECK_FUNC(pthread_attr_getstacksize,
-		      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
-
-	AC_CHECK_FUNC(pthread_attr_setstacksize,
-		      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
-
-	AC_ARG_WITH(locktype,
-		    AS_HELP_STRING([--with-locktype=ARG],
-				   [Specify mutex lock type
-					(adaptive or standard)]),
-		    locktype="$withval", locktype="adaptive")
-
-	case "$locktype" in
-		adaptive)
-			AC_MSG_CHECKING([for PTHREAD_MUTEX_ADAPTIVE_NP])
-
-			AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-			  #ifndef _GNU_SOURCE
-			  #define _GNU_SOURCE
-			  #endif
-			  #include <pthread.h>
-			]], [[
-			  return (PTHREAD_MUTEX_ADAPTIVE_NP);
-			]])],
-			[ AC_MSG_RESULT(using adaptive lock type)
-			  AC_DEFINE([HAVE_PTHREAD_MUTEX_ADAPTIVE_NP], 1,
-				    [Support for PTHREAD_MUTEX_ADAPTIVE_NP]) ],
-			[ AC_MSG_RESULT(using standard lock type) ])
-			;;
-		standard)
-			AC_MSG_RESULT(using standard lock type)
-			;;
-		*)
-			AC_MSG_ERROR([You must specify "adaptive" or "standard" for --with-locktype.])
-			;;
-	esac
-
-	AC_CHECK_HEADERS(sched.h)
-
-	case "$host" in
-	*-freebsd*)
-		CC="$CC -pthread"
-		CCOPT="$CCOPT -pthread"
-		CCNOOPT="$CCNOOPT -pthread"
-		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-		;;
-	*-openbsd*)
-		CC="$CC -pthread"
-		CCOPT="$CCOPT -pthread"
-		CCNOOPT="$CCNOOPT -pthread"
-		;;
-	*-solaris*)
-		LIBS="$LIBS -lthread"
-		;;
-	*-ibm-aix*)
-		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-		;;
-	esac
-else
-	case $host in
-	*-dec-osf*)
-		CC="$CC -pthread"
-		CCOPT="$CCOPT -pthread"
-		CCNOOPT="$CCNOOPT -pthread"
-		;;
-	*-solaris*)
-		CC="$CC -mt"
-		CCOPT="$CCOPT -mt"
-		CCNOOPT="$CCNOOPT -mt"
-		;;
-	*-ibm-aix*)
-		STD_CDEFINES="$STD_CDEFINES -D_THREAD_SAFE"
-		;;
-	*-sco-sysv*uw*|*-*-sysv*UnixWare*)
-		CC="$CC -Kthread"
-		CCOPT="$CCOPT -Kthread"
-		CCNOOPT="$CCNOOPT -Kthread"
-		;;
-	*-*-sysv*OpenUNIX*)
-		CC="$CC -Kpthread"
-		CCOPT="$CCOPT -Kpthread"
-		CCNOOPT="$CCNOOPT -Kpthread"
-		;;
-	esac
-fi
-ALWAYS_DEFINES="-D_REENTRANT"
-THREADOPTOBJS='${THREADOPTOBJS}'
-THREADOPTSRCS='${THREADOPTSRCS}'
-thread_dir=pthreads
 #
 # We'd like to use sigwait() too
 #
-AC_CHECK_FUNC(sigwait,
-	      AC_DEFINE(HAVE_SIGWAIT),
-	      AC_CHECK_LIB(c, sigwait,
-	      AC_DEFINE(HAVE_SIGWAIT),
-	      AC_CHECK_LIB(pthread, sigwait,
-			   AC_DEFINE(HAVE_SIGWAIT),
-			   AC_CHECK_LIB(pthread, _Psigwait,
-					AC_DEFINE(HAVE_SIGWAIT),))))
+AC_CHECK_FUNCS([sigwait pthread_attr_getstacksize pthread_attr_setstacksize])
 
-AC_CHECK_FUNC(pthread_attr_getstacksize,
-	      AC_DEFINE(HAVE_PTHREAD_ATTR_GETSTACKSIZE),)
-
-AC_CHECK_FUNC(pthread_attr_setstacksize,
-	      AC_DEFINE(HAVE_PTHREAD_ATTR_SETSTACKSIZE),)
-
-AC_ARG_WITH(locktype,
+AC_ARG_WITH([locktype],
 	    AS_HELP_STRING([--with-locktype=ARG],
 			   [Specify mutex lock type
-				(adaptive or standard)]),
-	    locktype="$withval", locktype="adaptive")
+			    (adaptive or standard)]),
+	    [], [with_locktype="adaptive"])
 
-case "$locktype" in
-	adaptive)
-		AC_MSG_CHECKING([for PTHREAD_MUTEX_ADAPTIVE_NP])
+AS_CASE([$with_locktype],
+	[adaptive],[
+	  AC_MSG_CHECKING([for PTHREAD_MUTEX_ADAPTIVE_NP])
+	  AC_COMPILE_IFELSE(
+	    [AC_LANG_PROGRAM(
+	       [[
+		 #ifndef _GNU_SOURCE
+		 #define _GNU_SOURCE
+		 #endif
+		 #include <pthread.h>
+	       ]],
+	       [[
+		 return (PTHREAD_MUTEX_ADAPTIVE_NP);
+	       ]]
+	     )],
+	    [AC_MSG_RESULT([using adaptive lock type])
+	     AC_DEFINE([HAVE_PTHREAD_MUTEX_ADAPTIVE_NP], 1,
+		       [Support for PTHREAD_MUTEX_ADAPTIVE_NP]) ],
+	    [AC_MSG_RESULT([using standard lock type])]
+	  )],
+	[standard],[AC_MSG_RESULT([using standard lock type])],
+	[AC_MSG_ERROR([You must specify "adaptive" or "standard" for --with-locktype.])]
+       )
 
-		AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
-		  #ifndef _GNU_SOURCE
-		  #define _GNU_SOURCE
-		  #endif
-		  #include <pthread.h>
-		]], [[
-		  return (PTHREAD_MUTEX_ADAPTIVE_NP);
-		]])],
-		[ AC_MSG_RESULT(using adaptive lock type)
-		  AC_DEFINE([HAVE_PTHREAD_MUTEX_ADAPTIVE_NP], 1,
-			    [Support for PTHREAD_MUTEX_ADAPTIVE_NP]) ],
-		[ AC_MSG_RESULT(using standard lock type) ])
-		;;
-	standard)
-		AC_MSG_RESULT(using standard lock type)
-		;;
-	*)
-		AC_MSG_ERROR([You must specify "adaptive" or "standard" for --with-locktype.])
-		;;
-esac
+AC_CHECK_HEADERS([sched.h])
 
-AC_CHECK_HEADERS(sched.h)
-
-case "$host" in
-*solaris-*)
-	AC_CHECK_LIB(rt, sched_yield)
-	;;
-esac
-
-AC_CHECK_FUNCS(sched_yield pthread_yield pthread_yield_np)
+AC_SEARCH_LIBS([sched_yield],[rt])
+AC_CHECK_FUNCS([sched_yield pthread_yield pthread_yield_np])
 
 #
 # Additional OS-specific issues related to pthreads and sigwait.
@@ -1105,7 +935,7 @@ case "$host" in
 esac
 
 # Look for functions relating to thread naming
-AC_CHECK_FUNCS(pthread_setname_np pthread_set_name_np)
+AC_CHECK_FUNCS([pthread_setname_np pthread_set_name_np])
 AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 
 #
@@ -1114,10 +944,6 @@ AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
 
 AC_SUBST(ALWAYS_DEFINES)
-AC_SUBST(THREADOPTOBJS)
-AC_SUBST(THREADOPTSRCS)
-ISC_THREAD_DIR=$thread_dir
-AC_SUBST(ISC_THREAD_DIR)
 
 AC_MSG_CHECKING(for libtool)
 AC_ARG_WITH(libtool, AS_HELP_STRING([--with-libtool], [use GNU libtool]),
@@ -4476,9 +4302,9 @@ AC_CONFIG_FILES([
 	lib/isc/$arch/Makefile
 	lib/isc/$arch/include/Makefile
 	lib/isc/$arch/include/isc/Makefile
-	lib/isc/$thread_dir/Makefile
-	lib/isc/$thread_dir/include/Makefile
-	lib/isc/$thread_dir/include/isc/Makefile
+	lib/isc/pthreads/Makefile
+	lib/isc/pthreads/include/Makefile
+	lib/isc/pthreads/include/isc/Makefile
 	lib/isc/Makefile
 	lib/isc/include/Makefile
 	lib/isc/include/isc/Makefile
