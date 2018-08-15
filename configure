@@ -775,6 +775,8 @@ MKDEPCC
 ZLIB
 JSONSTATS
 XMLSTATS
+CK_LIBS
+CK_CFLAGS
 NZDTARGETS
 NZDSRCS
 NZD_TOOLS
@@ -956,6 +958,7 @@ enable_native_pkcs11
 with_pkcs11
 with_gssapi
 with_lmdb
+with_ck
 with_libxml2
 with_libjson
 with_zlib
@@ -1016,6 +1019,8 @@ PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
 OPENSSL_CFLAGS
 OPENSSL_LIBS
+CK_CFLAGS
+CK_LIBS
 LIBIDN2_CFLAGS
 LIBIDN2_LIBS
 CMOCKA_CFLAGS
@@ -1699,6 +1704,7 @@ Optional Packages:
                           Specify path for system-supplied GSSAPI
                           [default=yes]
   --with-lmdb=PATH        build with LMDB library [yes|no|path]
+  --with-ck=PATH          specify path to Concurrency Kit
   --with-libxml2=PATH     build with libxml2 library [yes|no|path]
   --with-libjson=PATH     build with libjson0 library [yes|no|path]
   --with-zlib=PATH        build with zlib for HTTP compression [default=yes]
@@ -1757,6 +1763,8 @@ Some influential environment variables:
               C compiler flags for OPENSSL, overriding pkg-config
   OPENSSL_LIBS
               linker flags for OPENSSL, overriding pkg-config
+  CK_CFLAGS   C compiler flags for CK, overriding pkg-config
+  CK_LIBS     linker flags for CK, overriding pkg-config
   LIBIDN2_CFLAGS
               C compiler flags for LIBIDN2, overriding pkg-config
   LIBIDN2_LIBS
@@ -16794,6 +16802,202 @@ fi
 
 
 
+# Search for Concurrency Kit
+
+
+# Check whether --with-ck was given.
+if test "${with_ck+set}" = set; then :
+  withval=$with_ck; :
+else
+  with_ck=yes
+fi
+
+case $with_ck in #(
+  no) :
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "Concurrency Kit is mandatory
+See \`config.log' for more details" "$LINENO" 5; } ;; #(
+  yes) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for ck" >&5
+$as_echo_n "checking for ck... " >&6; }
+
+if test -n "$CK_CFLAGS"; then
+    pkg_cv_CK_CFLAGS="$CK_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"ck\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "ck") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_CK_CFLAGS=`$PKG_CONFIG --cflags "ck" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$CK_LIBS"; then
+    pkg_cv_CK_LIBS="$CK_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"ck\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "ck") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_CK_LIBS=`$PKG_CONFIG --libs "ck" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        CK_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "ck" 2>&1`
+        else
+	        CK_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "ck" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$CK_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (ck) were not met:
+
+$CK_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables CK_CFLAGS
+and CK_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables CK_CFLAGS
+and CK_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	CK_CFLAGS=$pkg_cv_CK_CFLAGS
+	CK_LIBS=$pkg_cv_CK_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+fi ;; #(
+  *) :
+
+	  save_CFLAGS="$CFLAGS"
+	  save_LIBS="$LIBS"
+	  CFLAGS="$CFLAGS -I$with_ck/include"
+	  LIBS="$LIBS -L$with_ck/lib"
+	  for ac_header in ck_pr.h
+do :
+  ac_fn_c_check_header_mongrel "$LINENO" "ck_pr.h" "ac_cv_header_ck_pr_h" "$ac_includes_default"
+if test "x$ac_cv_header_ck_pr_h" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CK_PR_H 1
+_ACEOF
+ :
+else
+  as_fn_error $? "ck_pr.h not found; Concurrency Kit is mandatory" "$LINENO" 5
+fi
+
+done
+
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing ck_array_init" >&5
+$as_echo_n "checking for library containing ck_array_init... " >&6; }
+if ${ac_cv_search_ck_array_init+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char ck_array_init ();
+int
+main ()
+{
+return ck_array_init ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' ck; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_ck_array_init=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_ck_array_init+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_ck_array_init+:} false; then :
+
+else
+  ac_cv_search_ck_array_init=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_ck_array_init" >&5
+$as_echo "$ac_cv_search_ck_array_init" >&6; }
+ac_res=$ac_cv_search_ck_array_init
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+			   CK_CFLAGS="-I$with_ck/include"
+			   CK_LIBS="-L$with_ck/lib -lck"
+
+else
+  as_fn_error $? "Concurrency Kit is mandatory" "$LINENO" 5
+fi
+ ;; #(
+  *) :
+     ;;
+esac
+
+CFLAGS="$CFLAGS $CK_CFLAGS"
+LIBS="$LIBS $CK_LIBS"
+
 #
 # was --with-libxml2 specified?
 #
@@ -19491,125 +19695,6 @@ _ACEOF
 fi
 done
 
-
-ISC_ATOMIC_LIBS=""
-for ac_header in stdatomic.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "stdatomic.h" "ac_cv_header_stdatomic_h" "$ac_includes_default"
-if test "x$ac_cv_header_stdatomic_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_STDATOMIC_H 1
-_ACEOF
- { $as_echo "$as_me:${as_lineno-$LINENO}: checking for memory model aware atomic operations" >&5
-$as_echo_n "checking for memory model aware atomic operations... " >&6; }
-   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdatomic.h>
-int
-main ()
-{
-atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: stdatomic.h" >&5
-$as_echo "stdatomic.h" >&6; }
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -latomic is needed for 64-bit stdatomic.h functions" >&5
-$as_echo_n "checking whether -latomic is needed for 64-bit stdatomic.h functions... " >&6; }
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <stdatomic.h>
-int
-main ()
-{
-atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_ATOMIC_LIBS="-latomic"
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-else
-  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "stdatomic.h header found, but compilation failed, fix your toolchaing.
-See \`config.log' for more details" "$LINENO" 5; }
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for memory model aware atomic operations" >&5
-$as_echo_n "checking for memory model aware atomic operations... " >&6; }
-   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <inttypes.h>
-int
-main ()
-{
-int32_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: __atomic builtins" >&5
-$as_echo "__atomic builtins" >&6; }
-
-$as_echo "#define HAVE___ATOMIC 1" >>confdefs.h
-
-      { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether -latomic is needed for 64-bit __atomic builtins" >&5
-$as_echo_n "checking whether -latomic is needed for 64-bit __atomic builtins... " >&6; }
-      cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-#include <inttypes.h>
-int
-main ()
-{
-int64_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_ATOMIC_LIBS="-latomic"
-
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: __sync builtins" >&5
-$as_echo "__sync builtins" >&6; }
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-fi
-
-done
-
-LIBS="$LIBS $ISC_ATOMIC_LIBS"
 
 #
 # Check for __builtin_expect
