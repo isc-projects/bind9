@@ -648,7 +648,7 @@ isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 			/* BIND9 internal, but using multiple contexts */
 			ctx->want_reload = true;
 		else {
-			ctx->want_reload = true;
+#ifdef HAVE_LINUXTHREADS
 			if (isc_bind9) {
 				/* BIND9 internal, single context */
 				int result;

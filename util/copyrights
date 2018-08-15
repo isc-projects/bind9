@@ -3913,6 +3913,7 @@
 ./lib/win32/bindevt/bindevt.vcxproj.user	X	2013,2018
 ./ltmain.sh					X	1999,2000,2001,2003,2004,2006,2009,2012,2018
 ./m4/ax_check_openssl.m4			X	2018
+./m4/ax_pthread.m4				X	2018
 ./m4/libtool.m4					X	2012,2018
 ./m4/ltoptions.m4				X	2012,2018
 ./m4/ltsugar.m4					X	2012,2018

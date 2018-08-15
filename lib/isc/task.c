@@ -978,10 +978,6 @@ push_readyq(isc__taskmgr_t *manager, isc__task_t *task) {
 static void
 dispatch(isc__taskmgr_t *manager) {
 	isc__task_t *task;
-	unsigned int total_dispatch_count = 0;
-	isc__tasklist_t new_ready_tasks;
-	isc__tasklist_t new_priority_tasks;
-	unsigned int tasks_ready = 0;
 
 	REQUIRE(VALID_MANAGER(manager));
 
@@ -1035,8 +1031,6 @@ dispatch(isc__taskmgr_t *manager) {
 	 * unlocks.  The while expression is always protected by the lock.
 	 */
 
-	ISC_LIST_INIT(new_ready_tasks);
-	ISC_LIST_INIT(new_priority_tasks);
 	LOCK(&manager->lock);
 
 	while (!FINISHED(manager)) {
