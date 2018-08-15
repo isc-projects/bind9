@@ -326,14 +326,8 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <krb5/krb5.h> header file. */
 #undef HAVE_KRB5_KRB5_H
 
-/* Define to 1 if you have the `c' library (-lc). */
-#undef HAVE_LIBC
-
 /* if system have backtrace function */
 #undef HAVE_LIBCTRACE
-
-/* Define to 1 if you have the `c_r' library (-lc_r). */
-#undef HAVE_LIBC_R
 
 /* Define if libidn2 was found */
 #undef HAVE_LIBIDN2
@@ -341,20 +335,11 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `nsl' library (-lnsl). */
 #undef HAVE_LIBNSL
 
-/* Define to 1 if you have the `pthread' library (-lpthread). */
-#undef HAVE_LIBPTHREAD
-
-/* Define to 1 if you have the `rt' library (-lrt). */
-#undef HAVE_LIBRT
-
 /* Define to 1 if you have the `scf' library (-lscf). */
 #undef HAVE_LIBSCF
 
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
-
-/* Define to 1 if you have the `thr' library (-lthr). */
-#undef HAVE_LIBTHR
 
 /* Define if libxml2 was found */
 #undef HAVE_LIBXML2
@@ -389,11 +374,23 @@ int sigwait(const unsigned int *set, int *sig);
 /* define if OpenSSL supports Ed25519 */
 #undef HAVE_OPENSSL_ED25519
 
+/* Define if you have POSIX threads libraries and header files. */
+#undef HAVE_PTHREAD
+
+/* Define to 1 if you have the `pthread_attr_getstacksize' function. */
+#undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
+
+/* Define to 1 if you have the `pthread_attr_setstacksize' function. */
+#undef HAVE_PTHREAD_ATTR_SETSTACKSIZE
+
 /* Support for PTHREAD_MUTEX_ADAPTIVE_NP */
 #undef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
 
 /* Define to 1 if you have the <pthread_np.h> header file. */
 #undef HAVE_PTHREAD_NP_H
+
+/* Have PTHREAD_PRIO_INHERIT. */
+#undef HAVE_PTHREAD_PRIO_INHERIT
 
 /* Define to 1 if you have the `pthread_setname_np' function. */
 #undef HAVE_PTHREAD_SETNAME_NP
@@ -442,6 +439,9 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define to 1 if you have the `setresuid' function. */
 #undef HAVE_SETRESUID
+
+/* Define to 1 if you have the `sigwait' function. */
+#undef HAVE_SIGWAIT
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
@@ -588,6 +588,10 @@ int sigwait(const unsigned int *set, int *sig);
 /* Sets which flag to pass to open/fcntl to make non-blocking
    (O_NDELAY/O_NONBLOCK). */
 #undef PORT_NONBLOCK
+
+/* Define to necessary symbol if this constant uses a non-standard name on
+   your system. */
+#undef PTHREAD_CREATE_JOINABLE
 
 /* The size of `void *', as computed by sizeof. */
 #undef SIZEOF_VOID_P
