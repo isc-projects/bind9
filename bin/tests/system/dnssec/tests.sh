@@ -1677,7 +1677,7 @@ ret=0
 $RNDCCMD 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 keyid=`cat ns1/managed.key.id`
 cp ns4/named.secroots named.secroots.test$n
-linecount=`grep "./RSAMD5/$keyid ; trusted" named.secroots.test$n | wc -l`
+linecount=`grep "./RSAMD5/$keyid ; static" named.secroots.test$n | wc -l`
 [ "$linecount" -eq 1 ] || ret=1
 linecount=`cat named.secroots.test$n | wc -l`
 [ "$linecount" -eq 10 ] || ret=1
