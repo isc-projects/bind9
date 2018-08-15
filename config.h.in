@@ -194,6 +194,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 
+/* Define to 1 if you have the <ck_pr.h> header file. */
+#undef HAVE_CK_PR_H
+
 /* Define if clock_gettime is available. */
 #undef HAVE_CLOCK_GETTIME
 
@@ -443,9 +446,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `sigwait' function. */
 #undef HAVE_SIGWAIT
 
-/* Define to 1 if you have the <stdatomic.h> header file. */
-#undef HAVE_STDATOMIC_H
-
 /* Define to 1 if you have the <stdint.h> header file. */
 #undef HAVE_STDINT_H
 
@@ -523,9 +523,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if zlib was found */
 #undef HAVE_ZLIB
-
-/* define if __atomic builtins are not available */
-#undef HAVE___ATOMIC
 
 /* Define if __thread keyword is available */
 #undef HAVE___THREAD
