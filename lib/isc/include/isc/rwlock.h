@@ -34,7 +34,16 @@ typedef enum {
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
-#ifdef ISC_PLATFORM_USETHREADS
+#ifdef HAVE_CK
+#include <ck_rwlock.h>
+
+struct isc_rwlock {
+	unsigned int	magic;
+	ck_rwlock_t	lock;
+};
+
+
+#elif ISC_PLATFORM_USETHREADS
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || (defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG))
 #define ISC_RWLOCK_USEATOMIC 1
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
