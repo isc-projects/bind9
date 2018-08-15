@@ -3242,8 +3242,8 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		find->name_bucket = bucket;
 		bool empty = ISC_LIST_EMPTY(adbname->finds);
 		/* If there are no finds pending take ownership of adbname */
-		if (adbname->client.length == 0) {
-			memcpy(&adbname->client, client, sizeof(adbname->client));
+		if (adbname->client.length == 0 && client != NULL) {
+			adbname->client = *client;
 			adbname->id = id;
 		}
 		ISC_LIST_APPEND(adbname->finds, find, plink);
