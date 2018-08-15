@@ -194,6 +194,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 
+/* "enforce ConcurrencyKit" */
+#undef HAVE_CK
+
 /* Define if clock_gettime is available. */
 #undef HAVE_CLOCK_GETTIME
 
