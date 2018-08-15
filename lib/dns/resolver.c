@@ -4124,8 +4124,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	}
 	result = dns_view_findzonecut(res->view, &fctx->name, fname,
 				      dcname, fctx->now, findoptions,
-				      true, true,
-				      &fctx->nameservers, NULL);
+				      true, true, &fctx->nameservers, NULL);
 
 	if (result != ISC_R_SUCCESS) {
 		fctx_done(fctx, result, __LINE__);
@@ -4760,8 +4759,8 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 			if (dns_rdatatype_atparent(fctx->type))
 				findoptions |= DNS_DBFIND_NOEXACT;
 			result = dns_view_findzonecut(res->view, name, fname,
-						      dcname, fctx->now, findoptions,
-						      true, true,
+						      dcname, fctx->now,
+						      findoptions, true, true,
 						      &fctx->nameservers,
 						      NULL);
 			if (result != ISC_R_SUCCESS) {
@@ -9186,11 +9185,9 @@ rctx_nextserver(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo,
 		} else {
 			name = &fctx->domain;
 		}
-		result = dns_view_findzonecut(fctx->res->view,
-					      name, fname, dcname,
-					      fctx->now, findoptions,
-					      true, true,
-					      &fctx->nameservers,
+		result = dns_view_findzonecut(fctx->res->view, name, fname,
+					      dcname, fctx->now, findoptions,
+					      true, true, &fctx->nameservers,
 					      NULL);
 		if (result != ISC_R_SUCCESS) {
 			FCTXTRACE("couldn't find a zonecut");
