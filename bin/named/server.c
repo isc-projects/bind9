@@ -917,7 +917,8 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 
 	/* We don't need trust anchors for the _bind view */
 	if (strcmp(view->name, "_bind") == 0 &&
-	    view->rdclass == dns_rdataclass_chaos) {
+	    view->rdclass == dns_rdataclass_chaos)
+	{
 		return (ISC_R_SUCCESS);
 	}
 
@@ -13778,18 +13779,23 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (viewname != NULL &&
-		    strcmp(view->name, viewname) != 0)
-			continue;
+		static bool first = true;
 
-		if (view->nta_lifetime == 0)
+		if (viewname != NULL && strcmp(view->name, viewname) != 0) {
 			continue;
+		}
 
-		if (!ttlset)
+		if (view->nta_lifetime == 0) {
+			continue;
+		}
+
+		if (!ttlset) {
 			ntattl = view->nta_lifetime;
+		}
 
-		if (ntatable != NULL)
+		if (ntatable != NULL) {
 			dns_ntatable_detach(&ntatable);
+		}
 
 		result = dns_view_getntatable(view, &ntatable);
 		if (result == ISC_R_NOTFOUND) {
@@ -13812,6 +13818,11 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 			isc_time_set(&t, when, 0);
 			isc_time_formattimestamp(&t, tbuf, sizeof(tbuf));
 
+			if (!first) {
+				CHECK(putstr(text, "\n"));
+			}
+			first = false;
+
 			CHECK(putstr(text, "Negative trust anchor added: "));
 			CHECK(putstr(text, namebuf));
 			CHECK(putstr(text, "/"));
@@ -13825,6 +13836,11 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 				      namebuf, ntattl, view->name);
 		} else {
 			CHECK(dns_ntatable_delete(ntatable, ntaname));
+
+			if (!first) {
+				CHECK(putstr(text, "\n"));
+			}
+			first = false;
 
 			CHECK(putstr(text, "Negative trust anchor removed: "));
 			CHECK(putstr(text, namebuf));
@@ -13845,10 +13861,9 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 				      "for view '%s': %s",
 				      view->name, isc_result_totext(result));
 		}
-
-		CHECK(putnull(text));
-
 	}
+
+	CHECK(putnull(text));
 
  cleanup:
 	if (msg != NULL) {
