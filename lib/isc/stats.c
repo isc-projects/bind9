@@ -81,6 +81,22 @@
 #define ISC_STATS_USEMULTIFIELDS 0
 #endif
 
+#if ISC_STATS_HAVEATOMICQ
+#pragma message("ISC_STATS_HAVEATOMICQ is defined")
+#endif
+#if ISC_STATS_HAVESTDATOMICQ
+#pragma message("ISC_STATS_HAVESTDATOMICQ is defined")
+#endif
+#if ISC_STATS_LOCKCOUNTERS
+#pragma message("ISC_STATS_LOCKCOUNTERS is defined")
+#endif
+#if ISC_STATS_USEMULTIFIELDS
+#pragma message("ISC_STATS_USEMULTIFIELDS is defined")
+#endif
+#if ISC_STATS_HAVESTDATOMIC
+#pragma message("ISC_STATS_HAVESTDATOMIC is defined")
+#endif
+
 #if ISC_STATS_USEMULTIFIELDS
 typedef struct {
 #if defined(ISC_STATS_HAVESTDATOMIC)

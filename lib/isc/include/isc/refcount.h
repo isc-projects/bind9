@@ -101,6 +101,14 @@ ISC_LANG_BEGINDECLS
 #define ISC_REFCOUNT_HAVESTDATOMIC 1
 #endif
 
+#if ISC_RECOUNT_HAVEATOMIC
+#pragma message("ISC_RECOUNT_HAVEATOMIC is defined")
+#endif
+
+#if ISC_REFCOUNT_HAVESTDATOMIC
+#pragma message("ISC_REFCOUNT_HAVESTDATOMIC is defined")
+#endif
+
 typedef struct isc_refcount {
 #if defined(ISC_REFCOUNT_HAVESTDATOMIC)
 	atomic_int_fast32_t refs;

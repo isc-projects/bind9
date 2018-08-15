@@ -42,6 +42,14 @@ typedef enum {
 #endif
 #endif
 
+#if ISC_RWLOCK_USEATOMIC
+#pragma message("ISC_RWLOCK_USEATOMIC is defined")
+#endif
+#if ISC_RWLOCK_USESTDATOMIC
+#pragma message("ISC_RWLOCK_USESTDATOMIC is defined")
+#endif
+
+
 struct isc_rwlock {
 	/* Unlocked. */
 	unsigned int		magic;
