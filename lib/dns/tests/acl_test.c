@@ -127,6 +127,7 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = dns_acl_merge(notgeoip, geoip, false);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 #endif
 
 	ATF_CHECK(dns_acl_isinsecure(any));		/* any; */
