@@ -695,10 +695,9 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 }
 
 static isc_result_t
-dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
-		  bool managed, dst_key_t **target, isc_mem_t *mctx)
+dstkey_fromconfig(const cfg_obj_t *key, bool *initialp,
+		  dst_key_t **target, isc_mem_t *mctx)
 {
-	dns_rdataclass_t viewclass;
 	dns_rdata_dnskey_t keystruct;
 	uint32_t flags, proto, alg;
 	const char *keystr, *keynamestr;
@@ -721,11 +720,13 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	keyname = dns_fixedname_name(&fkeyname);
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 
-	if (managed) {
+	if (*initialp) {
 		const char *initmethod;
 		initmethod = cfg_obj_asstring(cfg_tuple_get(key, "init"));
 
-		if (strcasecmp(initmethod, "initial-key") != 0) {
+		if (strcasecmp(initmethod, "static-key") == 0) {
+			*initialp = false;
+		} else if (strcasecmp(initmethod, "initial-key") != 0) {
 			cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 				    "managed key '%s': "
 				    "invalid initialization method '%s'",
@@ -735,15 +736,12 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 		}
 	}
 
-	if (vconfig == NULL)
-		viewclass = dns_rdataclass_in;
-	else {
-		const cfg_obj_t *classobj = cfg_tuple_get(vconfig, "class");
-		CHECK(named_config_getclass(classobj, dns_rdataclass_in,
-					 &viewclass));
-	}
-	keystruct.common.rdclass = viewclass;
+	/*
+	 * This function should never be reached for non-IN classes.
+	 */
+	keystruct.common.rdclass = dns_rdataclass_in;
 	keystruct.common.rdtype = dns_rdatatype_dnskey;
+
 	/*
 	 * The key data in keystruct is not dynamically allocated.
 	 */
@@ -775,7 +773,7 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "%s key '%s' has a weak exponent",
-			    managed ? "managed" : "trusted",
+			    *initialp ? "initializing" : "static",
 			    keynamestr);
 
 	CHECK(dns_rdata_fromstruct(NULL,
@@ -786,7 +784,7 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	isc_buffer_constinit(&namebuf, keynamestr, strlen(keynamestr));
 	isc_buffer_add(&namebuf, strlen(keynamestr));
 	CHECK(dns_name_fromtext(keyname, &namebuf, dns_rootname, 0, NULL));
-	CHECK(dst_key_fromdns(keyname, viewclass, &rrdatabuf,
+	CHECK(dst_key_fromdns(keyname, dns_rdataclass_in, &rrdatabuf,
 			      mctx, &dstkey));
 
 	*target = dstkey;
@@ -796,23 +794,24 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	if (result == DST_R_NOCRYPTO) {
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 			    "ignoring %s key for '%s': no crypto support",
-			    managed ? "managed" : "trusted",
+			    *initialp ? "initializing" : "static",
 			    keynamestr);
 	} else if (result == DST_R_UNSUPPORTEDALG) {
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "skipping %s key for '%s': %s",
-			    managed ? "managed" : "trusted",
+			    *initialp ? "initializing" : "static",
 			    keynamestr, isc_result_totext(result));
 	} else {
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 			    "configuring %s key for '%s': %s",
-			    managed ? "managed" : "trusted",
+			    *initialp ? "initializing" : "static",
 			    keynamestr, isc_result_totext(result));
 		result = ISC_R_FAILURE;
 	}
 
-	if (dstkey != NULL)
+	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
+	}
 
 	return (result);
 }
@@ -823,8 +822,7 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
  * an initializing key.
  */
 static isc_result_t
-load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
-	       dns_view_t *view, bool managed,
+load_view_keys(const cfg_obj_t *keys, dns_view_t *view, bool managed,
 	       const dns_name_t *keyname, isc_mem_t *mctx)
 {
 	const cfg_listelt_t *elt, *elt2;
@@ -832,6 +830,7 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 	dst_key_t *dstkey = NULL;
 	isc_result_t result;
 	dns_keytable_t *secroots = NULL;
+	bool initializing = managed;
 
 	CHECK(dns_view_getsecroots(view, &secroots));
 
@@ -846,7 +845,7 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 		     elt2 = cfg_list_next(elt2))
 		{
 			key = cfg_listelt_value(elt2);
-			result = dstkey_fromconfig(vconfig, key, managed,
+			result = dstkey_fromconfig(key, &initializing,
 						   &dstkey, mctx);
 			if (result ==  DST_R_UNSUPPORTEDALG) {
 				result = ISC_R_SUCCESS;
@@ -867,13 +866,14 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			}
 
 			/*
-			 * This key is taken from the configuration, so
-			 * if it's a managed key then it's an
-			 * initializing key; that's why 'managed'
-			 * is duplicated below.
+			 * Keys from a "managed-keys" statement may
+			 * be either static or initializing keys. If
+			 * it's not initializing, we don't want to
+			 * treat it as managed, so we use 'initializing'
+			 * twice here.
 			 */
-			CHECK(dns_keytable_add(secroots, managed,
-					       managed, &dstkey));
+			CHECK(dns_keytable_add(secroots, initializing,
+					       initializing, &dstkey));
 		}
 	}
 
@@ -984,7 +984,6 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 
 	if (auto_root && view->rdclass == dns_rdataclass_in) {
 		const cfg_obj_t *builtin_keys = NULL;
-		const cfg_obj_t *builtin_managed_keys = NULL;
 
 		/*
 		 * If bind.keys exists and is populated, it overrides
@@ -997,13 +996,10 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 				      "from '%s'",
 				      view->name, named_g_server->bindkeysfile);
 
-			(void)cfg_map_get(bindkeys, "trusted-keys",
-					  &builtin_keys);
 			(void)cfg_map_get(bindkeys, "managed-keys",
-					  &builtin_managed_keys);
+					  &builtin_keys);
 
-			if ((builtin_keys == NULL) &&
-			    (builtin_managed_keys == NULL))
+			if (builtin_keys == NULL) {
 				isc_log_write(named_g_lctx,
 					      DNS_LOGCATEGORY_SECURITY,
 					      NAMED_LOGMODULE_SERVER,
@@ -1011,29 +1007,23 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 					      "dnssec-validation auto: "
 					      "WARNING: root zone key "
 					      "not found");
+			}
 		}
 
-		if ((builtin_keys == NULL) &&
-		    (builtin_managed_keys == NULL))
-		{
+		if (builtin_keys == NULL) {
 			isc_log_write(named_g_lctx, DNS_LOGCATEGORY_SECURITY,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 				      "using built-in root key for view %s",
 				      view->name);
 
-			(void)cfg_map_get(named_g_config, "trusted-keys",
-					  &builtin_keys);
 			(void)cfg_map_get(named_g_config, "managed-keys",
-					  &builtin_managed_keys);
+					  &builtin_keys);
 		}
 
-		if (builtin_keys != NULL)
-			CHECK(load_view_keys(builtin_keys, vconfig, view,
-					     false, dns_rootname, mctx));
-		if (builtin_managed_keys != NULL)
-			CHECK(load_view_keys(builtin_managed_keys, vconfig,
-					     view, true, dns_rootname,
-					     mctx));
+		if (builtin_keys != NULL) {
+			CHECK(load_view_keys(builtin_keys, view, true,
+					     dns_rootname, mctx));
+		}
 
 		if (!keyloaded(view, dns_rootname)) {
 			isc_log_write(named_g_lctx, DNS_LOGCATEGORY_SECURITY,
@@ -1044,16 +1034,13 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		}
 	}
 
-	CHECK(load_view_keys(view_keys, vconfig, view, false,
-			     NULL, mctx));
-	CHECK(load_view_keys(view_managed_keys, vconfig, view, true,
-			     NULL, mctx));
+	CHECK(load_view_keys(view_keys, view, false, NULL, mctx));
+	CHECK(load_view_keys(view_managed_keys, view, true, NULL, mctx));
 
 	if (view->rdclass == dns_rdataclass_in) {
-		CHECK(load_view_keys(global_keys, vconfig, view, false,
+		CHECK(load_view_keys(global_keys, view, false, NULL, mctx));
+		CHECK(load_view_keys(global_managed_keys, view, true,
 				     NULL, mctx));
-		CHECK(load_view_keys(global_managed_keys, vconfig, view,
-				     true, NULL, mctx));
 	}
 
 	/*
