@@ -29,7 +29,74 @@
 #define RWLOCK_MAGIC		ISC_MAGIC('R', 'W', 'L', 'k')
 #define VALID_RWLOCK(rwl)	ISC_MAGIC_VALID(rwl, RWLOCK_MAGIC)
 
-#ifdef ISC_PLATFORM_USETHREADS
+#if HAVE_CK
+
+#include <ck_rwlock.h>
+
+isc_result_t
+isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
+		unsigned int write_quota)
+{
+	UNUSED(read_quota);
+	UNUSED(write_quota);
+	ck_rwlock_init(&rwl->lock);
+	rwl->magic = RWLOCK_MAGIC;
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	switch (type) {
+	case isc_rwlocktype_read: ck_rwlock_read_lock(&rwl->lock); break;
+	case isc_rwlocktype_write: ck_rwlock_write_lock(&rwl->lock); break;
+	default: INSIST(0);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	switch (type) {
+	case isc_rwlocktype_read: return (ck_rwlock_read_trylock(&rwl->lock)?ISC_R_SUCCESS:ISC_R_LOCKBUSY);
+	case isc_rwlocktype_write: return (ck_rwlock_write_trylock(&rwl->lock)?ISC_R_SUCCESS:ISC_R_LOCKBUSY);
+	default: INSIST(0);
+	}
+	return (ISC_R_FAILURE);
+}
+
+isc_result_t
+isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	switch (type) {
+	case isc_rwlocktype_read: ck_rwlock_read_unlock(&rwl->lock); break;
+	case isc_rwlocktype_write: ck_rwlock_write_unlock(&rwl->lock); break;
+	default: INSIST(0);
+	}
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
+#if CK_TRYUPGRADE_HACK
+	isc_rwlock_unlock(rwl, isc_rwlocktype_read);
+	isc_rwlock_lock(rwl, isc_rwlocktype_write);
+	return (ISC_R_SUCCESS);
+#else
+	UNUSED(rwl);
+	return (ISC_R_LOCKBUSY);
+#endif
+}
+
+void
+isc_rwlock_downgrade(isc_rwlock_t *rwl) {
+	(void)ck_rwlock_write_downgrade(&rwl->lock);
+}
+
+void
+isc_rwlock_destroy(isc_rwlock_t *rwl) {
+	UNUSED(rwl);
+}
+
+#elif ISC_PLATFORM_USETHREADS
 
 #ifndef RWLOCK_DEFAULT_READ_QUOTA
 #define RWLOCK_DEFAULT_READ_QUOTA 4
