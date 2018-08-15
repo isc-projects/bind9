@@ -11,7 +11,7 @@
 
 /*! \file */
 
-#include "config.h"
+#include <config.h>
 
 #include <dns/clientinfo.h>
 
