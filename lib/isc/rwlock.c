@@ -505,60 +505,8 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
-	REQUIRE(VALID_RWLOCK(rwl));
-
-#if defined(ISC_RWLOCK_USESTDATOMIC)
-	{
-		int_fast32_t reader_incr = READER_INCR;
-
-		/* Try to acquire write access. */
-		atomic_compare_exchange_strong_explicit
-			(&rwl->cnt_and_flag, &reader_incr, WRITER_ACTIVE,
-			 memory_order_relaxed, memory_order_relaxed);
-		/*
-		 * There must have been no writer, and there must have
-		 * been at least one reader.
-		 */
-		INSIST((reader_incr & WRITER_ACTIVE) == 0 &&
-		       (reader_incr & ~WRITER_ACTIVE) != 0);
-
-		if (reader_incr == READER_INCR) {
-			/*
-			 * We are the only reader and have been upgraded.
-			 * Now jump into the head of the writer waiting queue.
-			 */
-			atomic_fetch_sub_explicit(&rwl->write_completions, 1,
-						  memory_order_relaxed);
-		} else
-			return (ISC_R_LOCKBUSY);
-
-	}
-#else
-	{
-		int32_t prevcnt;
-
-		/* Try to acquire write access. */
-		prevcnt = isc_atomic_cmpxchg(&rwl->cnt_and_flag,
-					     READER_INCR, WRITER_ACTIVE);
-		/*
-		 * There must have been no writer, and there must have
-		 * been at least one reader.
-		 */
-		INSIST((prevcnt & WRITER_ACTIVE) == 0 &&
-		       (prevcnt & ~WRITER_ACTIVE) != 0);
-
-		if (prevcnt == READER_INCR) {
-			/*
-			 * We are the only reader and have been upgraded.
-			 * Now jump into the head of the writer waiting queue.
-			 */
-			(void)isc_atomic_xadd(&rwl->write_completions, -1);
-		} else
-			return (ISC_R_LOCKBUSY);
-	}
-#endif
-
-	return (ISC_R_SUCCESS);
+	UNUSED(rwl);
+	return (ISC_R_LOCKBUSY);
 }
 
 void
@@ -788,23 +736,8 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(VALID_RWLOCK(rwl));
-	LOCK(&rwl->lock);
-	REQUIRE(rwl->type == isc_rwlocktype_read);
-	REQUIRE(rwl->active != 0);
-
-	/* If we are the only reader then succeed. */
-	if (rwl->active == 1) {
-		rwl->original = (rwl->original == isc_rwlocktype_none) ?
-				isc_rwlocktype_read : isc_rwlocktype_none;
-		rwl->type = isc_rwlocktype_write;
-	} else
-		result = ISC_R_LOCKBUSY;
-
-	UNLOCK(&rwl->lock);
-	return (result);
+	UNUSED(rwl);
+	return (ISC_R_LOCKBUSY);
 }
 
 void
@@ -935,18 +868,8 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 isc_result_t
 isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(VALID_RWLOCK(rwl));
-	REQUIRE(rwl->type == isc_rwlocktype_read);
-	REQUIRE(rwl->active != 0);
-
-	/* If we are the only reader then succeed. */
-	if (rwl->active == 1)
-		rwl->type = isc_rwlocktype_write;
-	else
-		result = ISC_R_LOCKBUSY;
-	return (result);
+	UNUSED(rwl);
+	return (ISC_R_LOCKBUSY);
 }
 
 void
