@@ -123,6 +123,7 @@ static const char copyright[] =
 " ***************/\n"
 "\n"
 "/*! \\file */\n"
+"#include <config.h>\n"
 "\n";
 
 #define STR_EXPAND(tok) #tok

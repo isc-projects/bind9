@@ -9,7 +9,7 @@
  * information regarding copyright ownership.
  */
 
-#include "config.h"
+#include <config.h>
 
 #include <stdbool.h>
 
