@@ -3057,7 +3057,9 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 		const char *initmethod;
 		initmethod = cfg_obj_asstring(cfg_tuple_get(key, "init"));
 
-		if (strcasecmp(initmethod, "initial-key") != 0) {
+		if (strcasecmp(initmethod, "static") == 0) {
+			managed = false;
+		} else if (strcasecmp(initmethod, "initial-key") != 0) {
 			cfg_obj_log(key, logctx, ISC_LOG_ERROR,
 				    "managed key '%s': "
 				    "invalid initialization method '%s'",
@@ -3082,7 +3084,7 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 		    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
 			cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 				    "%s key '%s' has a weak exponent",
-				    managed ? "managed" : "trusted",
+				    managed ? "initializing" : "static/trusted",
 				    keynamestr);
 	}
 

@@ -475,7 +475,7 @@ static cfg_type_t cfg_type_dnsseckey = {
  */
 static cfg_tuplefielddef_t managedkey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
-	{ "init", &cfg_type_ustring, 0 },   /* must be literal "initial-key" */
+	{ "init", &cfg_type_ustring, 0 },   /* "initial-key" or "static" */
 	{ "flags", &cfg_type_uint32, 0 },
 	{ "protocol", &cfg_type_uint32, 0 },
 	{ "algorithm", &cfg_type_uint32, 0 },
@@ -642,20 +642,18 @@ static cfg_type_t cfg_type_keylist = {
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring
 };
 
-/*% A list of dnssec keys, as in "trusted-keys" */
+/*% A list of dnssec keys, as in "trusted-keys". Deprecated. */
 static cfg_type_t cfg_type_dnsseckeys = {
 	"dnsseckeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_dnsseckey
 };
 
 /*%
- * A list of managed key entries, as in "trusted-keys".  Currently
- * (9.7.0) this has a format similar to dnssec keys, except the keyname
- * is followed by the keyword "initial-key".  In future releases, this
- * keyword may take other values indicating different methods for the
- * key to be initialized.
+ * A list of key entries, as in "trusted-keys".  This has a format similar
+ * to dnssec keys, except the keyname is followed by keyword, either
+ * "initial-key" or "static". If "initial-key", then the key is
+ * RFC 5011 managed; if "static", then the key never changes.
  */
-
 static cfg_type_t cfg_type_managedkeys = {
 	"managedkeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_managedkey
@@ -1008,7 +1006,8 @@ namedconf_or_view_clauses[] = {
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
 	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
-	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "trusted-keys", &cfg_type_dnsseckeys,
+	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
