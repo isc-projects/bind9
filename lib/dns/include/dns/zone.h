@@ -314,7 +314,7 @@ dns_zone_getmaxrecords(dns_zone_t *zone);
  */
 
 void
-dns_zone_setmaxttl(dns_zone_t *zone, uint32_t maxttl);
+dns_zone_setmaxttl(dns_zone_t *zone, dns_ttl_t maxttl);
 /*%<
  * 	Sets the max ttl of the zone.
  *
