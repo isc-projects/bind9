@@ -21,6 +21,7 @@
 #include <isc/msgcat.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/refcount.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -71,7 +72,7 @@ static isc_mem_t *dns_g_mctx = NULL;
 static dns_dbimplementation_t *dbimp = NULL;
 static bool initialize_done = false;
 static isc_mutex_t reflock;
-static unsigned int references = 0;
+static isc_refcount_t references;
 
 static void
 initialize(void) {
@@ -94,6 +95,8 @@ initialize(void) {
 	result = isc_mutex_init(&reflock);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dst;
+
+	isc_refcount_init(&references, 0);
 
 	initialize_done = true;
 	return;
@@ -118,35 +121,35 @@ dns_lib_init(void) {
 	 * abort, on any failure.
 	 */
 	result = isc_once_do(&init_once, initialize);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
-	if (!initialize_done)
+	if (!initialize_done) {
 		return (ISC_R_FAILURE);
+	}
 
-	LOCK(&reflock);
-	references++;
-	UNLOCK(&reflock);
+	isc_refcount_increment0(&references, NULL);
 
 	return (ISC_R_SUCCESS);
 }
 
 void
 dns_lib_shutdown(void) {
-	bool cleanup_ok = false;
+	int_fast32_t refs;
 
-	LOCK(&reflock);
-	if (--references == 0)
-		cleanup_ok = true;
-	UNLOCK(&reflock);
-
-	if (!cleanup_ok)
+	isc_refcount_decrement(&references, &refs);
+	if (refs > 0) {
 		return;
+	}
+	isc_refcount_destroy(&references);
 
 	dst_lib_destroy();
 
-	if (dbimp != NULL)
+	if (dbimp != NULL) {
 		dns_ecdb_unregister(&dbimp);
-	if (dns_g_mctx != NULL)
+	}
+	if (dns_g_mctx != NULL) {
 		isc_mem_detach(&dns_g_mctx);
+	}
 }
