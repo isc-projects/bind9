@@ -3558,16 +3558,6 @@
 ./lib/isc/noatomic/include/isc/Makefile.in	MAKE	2007,2012,2015,2016,2018
 ./lib/isc/noatomic/include/isc/atomic.h		C	2005,2007,2016,2018
 ./lib/isc/nonce.c				C	2018
-./lib/isc/nothreads/Makefile.in			MAKE	2000,2001,2004,2007,2009,2010,2012,2013,2016,2018
-./lib/isc/nothreads/condition.c			C	2000,2001,2004,2006,2007,2016,2018
-./lib/isc/nothreads/include/Makefile.in		MAKE	2000,2001,2004,2007,2012,2016,2018
-./lib/isc/nothreads/include/isc/Makefile.in	MAKE	2000,2001,2004,2007,2012,2015,2016,2018
-./lib/isc/nothreads/include/isc/condition.h	C	2000,2001,2004,2007,2016,2018
-./lib/isc/nothreads/include/isc/mutex.h		C	2000,2001,2004,2007,2015,2016,2018
-./lib/isc/nothreads/include/isc/once.h		C	2000,2001,2004,2007,2016,2018
-./lib/isc/nothreads/include/isc/thread.h	C	2000,2001,2004,2007,2013,2016,2017,2018
-./lib/isc/nothreads/mutex.c			C	2000,2001,2004,2006,2007,2016,2018
-./lib/isc/nothreads/thread.c			C	2000,2001,2004,2007,2016,2017,2018
 ./lib/isc/openssl_shim.c			C	2018
 ./lib/isc/openssl_shim.h			C	2018
 ./lib/isc/parseint.c				C	2001,2002,2003,2004,2005,2007,2012,2016,2018
@@ -3914,6 +3904,7 @@
 ./lib/win32/bindevt/bindevt.vcxproj.user	X	2013,2018
 ./ltmain.sh					X	1999,2000,2001,2003,2004,2006,2009,2012,2018
 ./m4/ax_check_openssl.m4			X	2018
+./m4/ax_pthread.m4				X	2018
 ./m4/libtool.m4					X	2012,2018
 ./m4/ltoptions.m4				X	2012,2018
 ./m4/ltsugar.m4					X	2012,2018

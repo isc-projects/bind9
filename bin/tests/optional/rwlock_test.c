@@ -25,8 +25,6 @@
 #define sleep(x)	Sleep(1000 * x)
 #endif
 
-#ifdef ISC_PLATFORM_USETHREADS
-
 isc_rwlock_t lock;
 
 static isc_threadresult_t
@@ -130,15 +128,3 @@ main(int argc, char *argv[]) {
 
 	return (0);
 }
-
-#else
-
-int
-main(int argc, char *argv[]) {
-	UNUSED(argc);
-	UNUSED(argv);
-	fprintf(stderr, "This test requires threads.\n");
-	return(1);
-}
-
-#endif

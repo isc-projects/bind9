@@ -1,3 +1,5 @@
+5011.	[func]		Remove support for unthreaded named. [GL #478]
+
 5010.	[func]		New "validate-except" option specifies a list of
 			domains beneath which DNSSEC validation should not
 			be performed. [GL #237]
