@@ -232,11 +232,11 @@ isnone(const char *str) {
 dns_ttl_t
 strtottl(const char *str) {
 	const char *orig = str;
-	dns_ttl_t ttl;
+	dns_ttl_t ttl = 0;
 	char *endp;
 
 	if (isnone(str))
-		return ((dns_ttl_t) 0);
+		return (ttl);
 
 	ttl = strtol(str, &endp, 0);
 	if (ttl == 0 && endp == str)

@@ -874,7 +874,7 @@ add_dtype(const char *dn) {
 
 static void
 make_new_ds_set(ds_maker_func_t *ds_from_rdata,
-		uint32_t ttl, dns_rdataset_t *rdset)
+		dns_ttl_t ttl, dns_rdataset_t *rdset)
 {
 	unsigned int size = 16;
 	for (;;) {
@@ -1041,7 +1041,7 @@ print_diff(const char *cmd, dns_rdataset_t *rdataset) {
 }
 
 static void
-update_diff(const char *cmd, uint32_t ttl,
+update_diff(const char *cmd, dns_ttl_t ttl,
 	    dns_rdataset_t *addset, dns_rdataset_t *delset)
 {
 	isc_result_t result;
@@ -1090,7 +1090,7 @@ update_diff(const char *cmd, uint32_t ttl,
 }
 
 static void
-nsdiff(uint32_t ttl, dns_rdataset_t *oldset, dns_rdataset_t *newset) {
+nsdiff(dns_ttl_t ttl, dns_rdataset_t *oldset, dns_rdataset_t *newset) {
 	if (ttl == 0) {
 		vbprintf(1, "warning: no TTL in nsupdate script\n");
 	}
@@ -1140,7 +1140,7 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	bool prefer_cdnskey = false;
 	bool nsupdate = false;
-	uint32_t ttl = 0;
+	dns_ttl_t ttl = 0;
 	int ch;
 	char *endp;
 

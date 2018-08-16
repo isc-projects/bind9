@@ -986,13 +986,13 @@ import_rdataset(dns_adbname_t *adbname, dns_rdataset_t *rdataset,
 
 	if (rdtype == dns_rdatatype_a) {
 		DP(NCACHE_LEVEL, "expire_v4 set to MIN(%u,%u) import_rdataset",
-		   adbname->expire_v4, now + rdataset->ttl);
+		   adbname->expire_v4, now + (uint32_t)rdataset->ttl);
 		adbname->expire_v4 = ISC_MIN(adbname->expire_v4,
 					     ISC_MIN(now + ADB_ENTRY_WINDOW,
 						     now + rdataset->ttl));
 	} else {
 		DP(NCACHE_LEVEL, "expire_v6 set to MIN(%u,%u) import_rdataset",
-		   adbname->expire_v6, now + rdataset->ttl);
+		   adbname->expire_v6, now + (uint32_t)rdataset->ttl);
 		adbname->expire_v6 = ISC_MIN(adbname->expire_v6,
 					     ISC_MIN(now + ADB_ENTRY_WINDOW,
 						     now + rdataset->ttl));
@@ -3765,11 +3765,11 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 				adbname->fetch_err = FIND_ERR_NXRRSET;
 			DP(NCACHE_LEVEL,
 			  "adb name %p: Caching negative entry for A (ttl %u)",
-			   adbname, rdataset.ttl);
+			   adbname, (uint32_t)rdataset.ttl);
 		} else {
 			DP(NCACHE_LEVEL,
 		       "adb name %p: Caching negative entry for AAAA (ttl %u)",
-			   adbname, rdataset.ttl);
+			   adbname, (uint32_t)rdataset.ttl);
 			adbname->expire_v6 = rdataset.ttl + now;
 			if (result == DNS_R_NCACHENXDOMAIN)
 				adbname->fetch6_err = FIND_ERR_NXDOMAIN;
@@ -3895,7 +3895,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		if (address_type == DNS_ADBFIND_INET) {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "caching negative entry for A (ttl %u)",
-			   name, dev->rdataset->ttl);
+			   name, (uint32_t)dev->rdataset->ttl);
 			name->expire_v4 = ISC_MIN(name->expire_v4,
 						  dev->rdataset->ttl + now);
 			if (dev->result == DNS_R_NCACHENXDOMAIN)
@@ -3906,7 +3906,7 @@ fetch_callback(isc_task_t *task, isc_event_t *ev) {
 		} else {
 			DP(NCACHE_LEVEL, "adb fetch name %p: "
 			   "caching negative entry for AAAA (ttl %u)",
-			   name, dev->rdataset->ttl);
+			   name, (uint32_t)dev->rdataset->ttl);
 			name->expire_v6 = ISC_MIN(name->expire_v6,
 						  dev->rdataset->ttl + now);
 			if (dev->result == DNS_R_NCACHENXDOMAIN)

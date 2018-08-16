@@ -112,7 +112,7 @@ struct dns_loadctx {
 	isc_result_t		(*load)(dns_loadctx_t *lctx);
 
 	/* Members used by all formats */
-	uint32_t		maxttl;
+	dns_ttl_t		maxttl;
 
 	/* Members specific to the text format: */
 	isc_lex_t		*lex;
@@ -124,8 +124,8 @@ struct dns_loadctx {
 	bool		warn_tcr;
 	bool		warn_sigexpired;
 	bool		seen_include;
-	uint32_t		ttl;
-	uint32_t		default_ttl;
+	dns_ttl_t		ttl;
+	dns_ttl_t		default_ttl;
 	dns_rdataclass_t	zclass;
 	dns_fixedname_t		fixed_top;
 	dns_name_t		*top;			/*%< top of zone */
@@ -938,7 +938,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 
 static void
 limit_ttl(dns_rdatacallbacks_t *callbacks, const char *source,
-	  unsigned int line, uint32_t *ttlp)
+	  unsigned int line, dns_ttl_t *ttlp)
 {
 	if (*ttlp > 0x7fffffffUL) {
 		(callbacks->warn)(callbacks,
