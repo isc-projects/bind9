@@ -60,7 +60,7 @@ static dns_rdataclass_t rdclass;
 static dns_fixedname_t	fixed;
 static dns_name_t	*name = NULL;
 static isc_mem_t	*mctx = NULL;
-static uint32_t	ttl;
+static dns_ttl_t	ttl;
 static bool	emitttl = false;
 
 static isc_result_t

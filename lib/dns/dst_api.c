@@ -1408,7 +1408,7 @@ dst_key_read_public(const char *filename, int type,
 	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
 	isc_lexspecials_t specials;
-	uint32_t ttl = 0;
+	dns_ttl_t ttl = 0;
 	isc_result_t result;
 	dns_rdatatype_t keytype;
 

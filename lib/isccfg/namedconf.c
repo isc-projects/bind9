@@ -24,6 +24,7 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
+#include <dns/types.h>
 #include <dns/ttl.h>
 #include <dns/result.h>
 
@@ -3998,7 +3999,7 @@ static isc_result_t
 parse_ttlval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
 	cfg_obj_t *obj = NULL;
-	uint32_t ttl;
+	dns_ttl_t ttl;
 
 	UNUSED(type);
 
