@@ -158,6 +158,11 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Building <command>named</command> without threads support is no
+	  longer supported.
+	</para>
+      </listitem>
+      <listitem>
 	  <command>named</command> can no longer use the EDNS CLIENT-SUBNET
 	  option for view selection.  In its existing form, the authoritative
 	  ECS feature was not fully RFC-compliant, and could not realistically
