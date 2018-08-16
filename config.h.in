@@ -309,6 +309,9 @@
 /* Have PTHREAD_PRIO_INHERIT. */
 #undef HAVE_PTHREAD_PRIO_INHERIT
 
+/* Define to 1 if you have the `pthread_rwlock_rdlock' function. */
+#undef HAVE_PTHREAD_RWLOCK_RDLOCK
+
 /* Define to 1 if you have the `pthread_setaffinity_np' function. */
 #undef HAVE_PTHREAD_SETAFFINITY_NP
 

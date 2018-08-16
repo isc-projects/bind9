@@ -733,11 +733,7 @@ case $use_libtool in
 esac
 AC_SUBST(INSTALL_LIBRARY)
 
-#
-# If PIC is disabled, shared libraries must also be
-#
-AS_IF([test "$pic_mode" = "no"],
-      [enable_shared="no"])
+AC_CHECK_FUNCS([pthread_rwlock_rdlock])
 
 CRYPTO=OpenSSL
 

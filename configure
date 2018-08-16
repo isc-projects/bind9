@@ -15615,12 +15615,17 @@ $as_echo "no" >&6; }
 esac
 
 
-#
-# If PIC is disabled, shared libraries must also be
-#
-if test "$pic_mode" = "no"; then :
-  enable_shared="no"
+for ac_func in pthread_rwlock_rdlock
+do :
+  ac_fn_c_check_func "$LINENO" "pthread_rwlock_rdlock" "ac_cv_func_pthread_rwlock_rdlock"
+if test "x$ac_cv_func_pthread_rwlock_rdlock" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PTHREAD_RWLOCK_RDLOCK 1
+_ACEOF
+
 fi
+done
+
 
 CRYPTO=OpenSSL
 
