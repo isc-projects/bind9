@@ -56,7 +56,7 @@ dns_ttl_totext(uint32_t src, bool verbose,
  */
 
 isc_result_t
-dns_counter_fromtext(isc_textregion_t *source, uint32_t *ttl);
+dns_counter_fromtext(isc_textregion_t *source, dns_ttl_t *ttl);
 /*%<
  * Converts a counter from either a plain number or a BIND 8 style value.
  *
@@ -66,7 +66,7 @@ dns_counter_fromtext(isc_textregion_t *source, uint32_t *ttl);
  */
 
 isc_result_t
-dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl);
+dns_ttl_fromtext(isc_textregion_t *source, dns_ttl_t *ttl);
 /*%<
  * Converts a ttl from either a plain number or a BIND 8 style value.
  *

@@ -20,7 +20,7 @@ fromtext_soa(ARGS_FROMTEXT) {
 	dns_name_t name;
 	isc_buffer_t buffer;
 	int i;
-	uint32_t n;
+	dns_ttl_t n;
 	bool ok;
 
 	REQUIRE(type == dns_rdatatype_soa);

@@ -38,7 +38,7 @@
 	} while (0)
 
 
-static isc_result_t bind_ttl(isc_textregion_t *source, uint32_t *ttl);
+static isc_result_t bind_ttl(isc_textregion_t *source, dns_ttl_t *ttl);
 
 /*
  * Helper for dns_ttl_totext().
@@ -130,12 +130,12 @@ dns_ttl_totext(uint32_t src, bool verbose,
 }
 
 isc_result_t
-dns_counter_fromtext(isc_textregion_t *source, uint32_t *ttl) {
+dns_counter_fromtext(isc_textregion_t *source, dns_ttl_t *ttl) {
 	return (bind_ttl(source, ttl));
 }
 
 isc_result_t
-dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl) {
+dns_ttl_fromtext(isc_textregion_t *source, dns_ttl_t *ttl) {
 	isc_result_t result;
 
 	result = bind_ttl(source, ttl);
@@ -145,7 +145,7 @@ dns_ttl_fromtext(isc_textregion_t *source, uint32_t *ttl) {
 }
 
 static isc_result_t
-bind_ttl(isc_textregion_t *source, uint32_t *ttl) {
+bind_ttl(isc_textregion_t *source, dns_ttl_t *ttl) {
 	uint64_t tmp = 0ULL;
 	uint32_t n;
 	char *s;
