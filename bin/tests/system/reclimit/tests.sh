@@ -48,7 +48,7 @@ check_query_count() {
 	fi
 
 	if [ $count -ne $expected_count ]; then
-		echo_i "count ($count) != $expected_count"
+		echo_i "count $count (actual) != $expected_count (expected)"
 		ret=1
 	fi
 }
