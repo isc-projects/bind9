@@ -1074,6 +1074,8 @@ case $use_libtool in
 esac
 AC_SUBST(INSTALL_LIBRARY)
 
+AC_CHECK_FUNCS([pthread_rwlock_rdlock])
+
 CRYPTO=OpenSSL
 
 #

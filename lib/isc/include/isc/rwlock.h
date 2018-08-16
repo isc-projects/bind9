@@ -14,6 +14,7 @@
 #define ISC_RWLOCK_H 1
 
 #include <inttypes.h>
+#include <pthread.h>
 
 /*! \file isc/rwlock.h */
 
@@ -34,7 +35,13 @@ typedef enum {
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
-#ifdef ISC_PLATFORM_USETHREADS
+#if HAVE_PTHREAD_RWLOCK_RDLOCK
+
+struct isc_rwlock {
+	pthread_rwlock_t	rwlock;
+};
+
+#elif ISC_PLATFORM_USETHREADS
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || (defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG))
 #define ISC_RWLOCK_USEATOMIC 1
 #if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
