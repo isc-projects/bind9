@@ -1,3 +1,6 @@
+5012.	[bug]		Reloading all zones caused zone maintenance to cease
+			for inline-signed zones. [GL #435]
+
 5011.	[func]		Remove support for unthreaded named. [GL #478]
 
 5010.	[func]		New "validate-except" option specifies a list of
