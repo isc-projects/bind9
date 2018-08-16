@@ -145,7 +145,7 @@ echo_i "set max-recursion-depth=100, max-recursion-queries=40"
 n=`expr $n + 1`
 echo_i "attempt excessive-queries lookup ($n)"
 ret=0
-echo "10" > ans2/ans.limit
+echo "11" > ans2/ans.limit
 ns3_reset ns3/named4.conf.in
 $DIG $DIGOPTS @10.53.0.2 reset > /dev/null || ret=1
 $DIG $DIGOPTS @10.53.0.3 indirect7.example.org > dig.out.1.test$n || ret=1
