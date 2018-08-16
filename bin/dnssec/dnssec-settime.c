@@ -144,7 +144,8 @@ main(int argc, char **argv) {
 	dns_secalg_t 	alg = 0;
 	unsigned int 	size = 0;
 	uint16_t	flags = 0;
-	int		prepub = -1;
+	bool		prepub = false;
+	dns_ttl_t	prepubttl;
 	dns_ttl_t	ttl = 0;
 	isc_stdtime_t	now;
 	isc_stdtime_t	pub = 0, act = 0, rev = 0, inact = 0, del = 0;
@@ -346,7 +347,8 @@ main(int argc, char **argv) {
 			predecessor = isc_commandline_argument;
 			break;
 		case 'i':
-			prepub = strtottl(isc_commandline_argument);
+			prepub = true;
+			prepubttl = strtottl(isc_commandline_argument);
 			break;
 		case '?':
 			if (isc_commandline_option != '?')
@@ -382,8 +384,10 @@ main(int argc, char **argv) {
 	if (predecessor != NULL) {
 		int major, minor;
 
-		if (prepub == -1)
-			prepub = (30 * 86400);
+		if (!prepub) {
+			prepub = true;
+			prepubttl = (30 * 86400);
+		}
 
 		if (setpub || unsetpub)
 			fatal("-S and -P cannot be used together");
@@ -424,10 +428,10 @@ main(int argc, char **argv) {
 			      "You must set one before\n\t"
 			      "generating a successor.");
 
-		pub = previnact - prepub;
+		pub = previnact - prepubttl;
 		act = previnact;
 
-		if ((previnact - prepub) < now && prepub != 0)
+		if ((previnact - prepubttl) < now && prepubttl != 0)
 			fatal("Time until predecessor inactivation is\n\t"
 			      "shorter than the prepublication interval.  "
 			      "Either change\n\t"
@@ -450,24 +454,26 @@ main(int argc, char **argv) {
 
 		changed = setpub = setact = true;
 	} else {
-		if (prepub < 0)
-			prepub = 0;
+		if (!prepub) {
+			prepub = true;
+			prepubttl = 0;
+		}
 
-		if (prepub > 0) {
-			if (setpub && setact && (act - prepub) < pub)
+		if (prepubttl > 0) {
+			if (setpub && setact && (act - prepubttl) < pub)
 				fatal("Activation and publication dates "
 				      "are closer together than the\n\t"
 				      "prepublication interval.");
 
 			if (setpub && !setact) {
 				setact = true;
-				act = pub + prepub;
+				act = pub + prepubttl;
 			} else if (setact && !setpub) {
 				setpub = true;
-				pub = act - prepub;
+				pub = act - prepubttl;
 			}
 
-			if ((act - prepub) < now)
+			if ((act - prepubttl) < now)
 				fatal("Time until activation is shorter "
 				      "than the\n\tprepublication interval.");
 		}

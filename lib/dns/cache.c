@@ -21,6 +21,7 @@
 #include <isc/json.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/string.h>
 #include <isc/stats.h>
 #include <isc/task.h>
@@ -101,7 +102,7 @@ struct cache_cleaner {
 
 	dns_cache_t	*cache;
 	isc_task_t	*task;
-	unsigned int	cleaning_interval; /*% The cleaning-interval from
+	atomic_int	cleaning_interval; /*% The cleaning-interval from
 					      named.conf, in seconds. */
 	isc_timer_t	*cleaning_timer;
 	isc_event_t	*resched_event;	/*% Sent by cleaner task to
@@ -129,16 +130,16 @@ struct dns_cache {
 	isc_mem_t		*hmctx;		/* Heap memory */
 	char			*name;
 
-	/* Locked by 'lock'. */
-	int			references;
-	int			live_tasks;
+	isc_refcount_t		references;
+	isc_refcount_t		live_tasks;
+
 	dns_rdataclass_t	rdclass;
 	dns_db_t		*db;
 	cache_cleaner_t		cleaner;
 	char			*db_type;
 	int			db_argc;
 	char			**db_argv;
-	size_t			size;
+	atomic_size_t		size;
 	dns_ttl_t		serve_stale_ttl;
 	isc_stats_t		*stats;
 
@@ -220,10 +221,12 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_lock;
 
-	cache->references = 1;
-	cache->live_tasks = 0;
+	isc_refcount_init(&cache->references, 1);
+	isc_refcount_init(&cache->live_tasks, 0);
+
 	cache->rdclass = rdclass;
-	cache->serve_stale_ttl = 0;
+
+	atomic_init(&cache->serve_stale_ttl, 0);
 
 	cache->stats = NULL;
 	result = isc_stats_create(cmctx, &cache->stats,
@@ -343,7 +346,7 @@ cache_free(dns_cache_t *cache) {
 	int i;
 
 	REQUIRE(VALID_CACHE(cache));
-	REQUIRE(cache->references == 0);
+	REQUIRE(isc_refcount_current(&cache->references) == 0);
 
 	isc_mem_setwater(cache->mctx, NULL, NULL, 0, 0);
 
@@ -408,9 +411,7 @@ dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp) {
 	REQUIRE(VALID_CACHE(cache));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	LOCK(&cache->lock);
-	cache->references++;
-	UNLOCK(&cache->lock);
+	isc_refcount_increment(&cache->references, NULL);
 
 	*targetp = cache;
 }
@@ -418,23 +419,20 @@ dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp) {
 void
 dns_cache_detach(dns_cache_t **cachep) {
 	dns_cache_t *cache;
-	bool free_cache = false;
+	int_fast32_t refs;
 
 	REQUIRE(cachep != NULL);
 	cache = *cachep;
 	REQUIRE(VALID_CACHE(cache));
 
-	LOCK(&cache->lock);
-	REQUIRE(cache->references > 0);
-	cache->references--;
-	if (cache->references == 0) {
-		cache->cleaner.overmem = false;
-		free_cache = true;
-	}
+	isc_refcount_decrement(&cache->references, &refs);
 
 	*cachep = NULL;
 
-	if (free_cache) {
+	if (refs == 0) {
+		isc_refcount_destroy(&cache->references);
+		cache->cleaner.overmem = false;
+
 		/*
 		 * When the cache is shut down, dump it to a file if one is
 		 * specified.
@@ -449,16 +447,12 @@ dns_cache_detach(dns_cache_t **cachep) {
 		/*
 		 * If the cleaner task exists, let it free the cache.
 		 */
-		if (cache->live_tasks > 0) {
+		if (isc_refcount_current(&cache->live_tasks) > 0) {
 			isc_task_shutdown(cache->cleaner.task);
-			free_cache = false;
+		} else {
+			cache_free(cache);
 		}
 	}
-
-	UNLOCK(&cache->lock);
-
-	if (free_cache)
-		cache_free(cache);
 }
 
 void
@@ -539,6 +533,7 @@ dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
 	 * It may be the case that the cache has already shut down.
 	 * If so, it has no timer.
 	 */
+
 	if (cache->cleaner.cleaning_timer == NULL)
 		goto unlock;
 
@@ -627,7 +622,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
-		cleaner->cache->live_tasks++;
+		isc_refcount_increment(&cleaner->cache->live_tasks, NULL);
 		isc_task_setname(cleaner->task, "cachecleaner", cleaner);
 
 		result = isc_task_onshutdown(cleaner->task,
@@ -1040,9 +1035,7 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 	if (size != 0U && size < DNS_CACHE_MINSIZE)
 		size = DNS_CACHE_MINSIZE;
 
-	LOCK(&cache->lock);
-	cache->size = size;
-	UNLOCK(&cache->lock);
+	atomic_store_explicit(&cache->size, size, memory_order_relaxed);
 
 	hiwater = size - (size >> 3);	/* Approximately 7/8ths. */
 	lowater = size - (size >> 2);	/* Approximately 3/4ths. */
@@ -1069,24 +1062,16 @@ dns_cache_setcachesize(dns_cache_t *cache, size_t size) {
 
 size_t
 dns_cache_getcachesize(dns_cache_t *cache) {
-	size_t size;
-
 	REQUIRE(VALID_CACHE(cache));
 
-	LOCK(&cache->lock);
-	size = cache->size;
-	UNLOCK(&cache->lock);
-
-	return (size);
+	return (atomic_load_explicit(&cache->size, memory_order_acquire));
 }
 
 void
 dns_cache_setservestalettl(dns_cache_t *cache, dns_ttl_t ttl) {
 	REQUIRE(VALID_CACHE(cache));
 
-	LOCK(&cache->lock);
-	cache->serve_stale_ttl = ttl;
-	UNLOCK(&cache->lock);
+	atomic_store_explicit(&cache->serve_stale_ttl, ttl, memory_order_release);
 
 	(void)dns_db_setservestalettl(cache->db, ttl);
 }
@@ -1112,7 +1097,6 @@ dns_cache_getservestalettl(dns_cache_t *cache) {
 static void
 cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	dns_cache_t *cache = event->ev_arg;
-	bool should_free = false;
 
 	UNUSED(task);
 
@@ -1124,13 +1108,8 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	else
 		isc_event_free(&event);
 
-	LOCK(&cache->lock);
-
-	cache->live_tasks--;
-	INSIST(cache->live_tasks == 0);
-
-	if (cache->references == 0)
-		should_free = true;
+	isc_refcount_decrement(&cache->live_tasks, NULL);
+	isc_refcount_destroy(&cache->live_tasks);
 
 	/*
 	 * By detaching the timer in the context of its task,
@@ -1143,10 +1122,9 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	/* Make sure we don't reschedule anymore. */
 	(void)isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
 
-	UNLOCK(&cache->lock);
-
-	if (should_free)
+	if (isc_refcount_current(&cache->references)) {
 		cache_free(cache);
+	}
 }
 
 isc_result_t

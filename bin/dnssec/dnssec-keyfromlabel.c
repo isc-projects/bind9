@@ -18,6 +18,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/mem.h>
@@ -147,7 +148,8 @@ main(int argc, char **argv) {
 	isc_stdtime_t	publish = 0, activate = 0, revoke = 0;
 	isc_stdtime_t	inactive = 0, deltime = 0;
 	isc_stdtime_t	now;
-	int		prepub = -1;
+	bool	prepub = false;
+	dns_ttl_t prepubttl;
 	bool	setpub = false, setact = false;
 	bool	setrev = false, setinact = false;
 	bool	setdel = false, setttl = false;
@@ -315,7 +317,8 @@ main(int argc, char **argv) {
 			predecessor = isc_commandline_argument;
 			break;
 		case 'i':
-			prepub = strtottl(isc_commandline_argument);
+			prepubttl = strtottl(isc_commandline_argument);
+			prepub = true;
 			break;
 		case 'F':
 			/* Reserved for FIPS mode */
@@ -437,8 +440,8 @@ main(int argc, char **argv) {
 				fatal("invalid type %s", type);
 		}
 
-		if (!oldstyle && prepub > 0) {
-			if (setpub && setact && (activate - prepub) < publish)
+		if (!oldstyle && prepubttl > 0) {
+			if (setpub && setact && (activate - prepubttl) < publish)
 				fatal("Activation and publication dates "
 				      "are closer together than the\n\t"
 				      "prepublication interval.");
@@ -446,16 +449,16 @@ main(int argc, char **argv) {
 			if (!setpub && !setact) {
 				setpub = setact = true;
 				publish = now;
-				activate = now + prepub;
+				activate = now + prepubttl;
 			} else if (setpub && !setact) {
 				setact = true;
-				activate = publish + prepub;
+				activate = publish + prepubttl;
 			} else if (setact && !setpub) {
 				setpub = true;
-				publish = activate - prepub;
+				publish = activate - prepubttl;
 			}
 
-			if ((activate - prepub) < now)
+			if ((activate - prepubttl) < now)
 				fatal("Time until activation is shorter "
 				      "than the\n\tprepublication interval.");
 		}
@@ -464,8 +467,10 @@ main(int argc, char **argv) {
 		isc_stdtime_t when;
 		int major, minor;
 
-		if (prepub == -1)
-			prepub = (30 * 86400);
+		if (!prepub) {
+			prepub = true;
+			prepubttl = (30 * 86400);
+		}
 
 		if (algname != NULL)
 			fatal("-S and -a cannot be used together");
@@ -516,7 +521,7 @@ main(int argc, char **argv) {
 			      "You must use dnssec-settime -I to set one "
 			      "before generating a successor.", keystr);
 
-		publish = activate - prepub;
+		publish = activate - prepubttl;
 		if (publish < now)
 			fatal("Key %s becomes inactive\n\t"
 			      "sooner than the prepublication period "

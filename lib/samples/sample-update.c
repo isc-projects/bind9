@@ -483,7 +483,7 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
 		   dns_name_t *name)
 {
 	isc_result_t result;
-	uint32_t ttl;
+	dns_ttl_t ttl;
 	char *word;
 	dns_rdataclass_t rdataclass;
 	dns_rdatatype_t rdatatype;
@@ -522,7 +522,9 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
 			goto doneparsing;
 		}
 	}
-	result = isc_parse_uint32(&ttl, word, 10);
+	uint32_t tmpttl;
+	result = isc_parse_uint32(&tmpttl, word, 10);
+	atomic_store(&ttl, tmpttl);
 	if (result != ISC_R_SUCCESS) {
 		if (isdelete) {
 			ttl = 0;
@@ -620,7 +622,7 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
 	rdatalist->type = rdatatype;
 	rdatalist->rdclass = rdataclass;
 	rdatalist->covers = rdatatype;
-	rdatalist->ttl = (dns_ttl_t)ttl;
+	rdatalist->ttl = ttl;
 	ISC_LIST_APPEND(rdatalist->rdata, rdata, link);
 	ISC_LIST_APPEND(usedrdatalists, rdatalist, link);
 

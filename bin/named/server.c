@@ -22,6 +22,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#include <isc/atomic.h>
 #include <isc/aes.h>
 #include <isc/app.h>
 #include <isc/base64.h>
@@ -1728,7 +1729,7 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 	       bool new_zero_no_soattl,
 	       unsigned int new_cleaning_interval,
 	       uint64_t new_max_cache_size,
-	       uint32_t new_stale_ttl)
+	       dns_ttl_t new_stale_ttl)
 {
 	/*
 	 * If the cache cannot even reused for the same view, it cannot be
@@ -1737,13 +1738,15 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 	if (!cache_reusable(originview, view, new_zero_no_soattl))
 		return (false);
 
+	dns_ttl_t old_stale_ttl = dns_cache_getservestalettl(originview->cache);
+
 	/*
 	 * Check other cache related parameters that must be consistent among
 	 * the sharing views.
 	 */
 	if (dns_cache_getcleaninginterval(originview->cache) !=
 	    new_cleaning_interval ||
-	    dns_cache_getservestalettl(originview->cache) != new_stale_ttl ||
+	    old_stale_ttl != new_stale_ttl ||
 	    dns_cache_getcachesize(originview->cache) != new_max_cache_size) {
 		return (false);
 	}
@@ -3662,7 +3665,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	uint32_t max_cache_size_percent = 0;
 	size_t max_adb_size;
 	uint32_t lame_ttl, fail_ttl;
-	uint32_t max_stale_ttl;
+	dns_ttl_t max_stale_ttl;
 	dns_tsig_keyring_t *ring = NULL;
 	dns_view_t *pview = NULL;	/* Production view */
 	isc_mem_t *cmctx = NULL, *hmctx = NULL;

@@ -567,7 +567,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 				column += target->used - length;
 			} else {
 				length = snprintf(ttlbuf, sizeof(ttlbuf), "%u",
-						  rdataset->ttl);
+						  (uint32_t)rdataset->ttl);
 				INSIST(length <= sizeof(ttlbuf));
 				isc_buffer_availableregion(target, &r);
 				if (r.length < length)
@@ -885,7 +885,7 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name,
 							buffer);
 				INSIST(result == ISC_R_SUCCESS);
 				isc_buffer_usedregion(buffer, &r);
-				fprintf(f, "$TTL %u\t; %.*s\n", rdataset->ttl,
+				fprintf(f, "$TTL %u\t; %.*s\n", (uint32_t)rdataset->ttl,
 					(int) r.length, (char *) r.base);
 			} else {
 				fprintf(f, "$TTL %u\n", rdataset->ttl);
@@ -1572,7 +1572,7 @@ writeheader(dns_dumpctx_t *dctx) {
 		if (dctx->do_date) {
 			fprintf(dctx->f,
 				"; using a %u second stale ttl\n",
-				dctx->tctx.serve_stale_ttl);
+				(uint32_t)dctx->tctx.serve_stale_ttl);
 			result = dns_time32_totext(dctx->now, &buffer);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			isc_buffer_usedregion(&buffer, &r);
