@@ -9133,7 +9133,6 @@ view_loaded(void *arg) {
 	ns_zoneload_t *zl = (ns_zoneload_t *) arg;
 	named_server_t *server = zl->server;
 	bool reconfig = zl->reconfig;
-	unsigned int refs;
 
 
 	/*
@@ -9144,34 +9143,33 @@ view_loaded(void *arg) {
 	 * We use the zoneload reference counter to let us
 	 * know when all views are finished.
 	 */
-	isc_refcount_decrement(&zl->refs, &refs);
-	if (refs != 0)
-		return (ISC_R_SUCCESS);
+	if (isc_refcount_decrement(&zl->refs) == 1) {
 
-	isc_refcount_destroy(&zl->refs);
-	isc_mem_put(server->mctx, zl, sizeof (*zl));
+		isc_refcount_destroy(&zl->refs);
+		isc_mem_put(server->mctx, zl, sizeof (*zl));
 
-	/*
-	 * To maintain compatibility with log parsing tools that might
-	 * be looking for this string after "rndc reconfig", we keep it
-	 * as it is
-	 */
-	if (reconfig) {
+		/*
+		 * To maintain compatibility with log parsing tools that might
+		 * be looking for this string after "rndc reconfig", we keep it
+		 * as it is
+		 */
+		if (reconfig) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "any newly configured zones are now loaded");
+		} else {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
+				      "all zones loaded");
+		}
+
+		CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
+			   "forcing zone maintenance");
+
+		named_os_started();
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "any newly configured zones are now loaded");
-	} else {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
-			      "all zones loaded");
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE, "running");
 	}
-
-	CHECKFATAL(dns_zonemgr_forcemaint(server->zonemgr),
-		   "forcing zone maintenance");
-
-	named_os_started();
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE, "running");
 
 	return (ISC_R_SUCCESS);
 }
@@ -9181,7 +9179,6 @@ load_zones(named_server_t *server, bool init, bool reconfig) {
 	isc_result_t result;
 	dns_view_t *view;
 	ns_zoneload_t *zl;
-	unsigned int refs = 0;
 
 	zl = isc_mem_get(server->mctx, sizeof (*zl));
 	if (zl == NULL)
@@ -9220,13 +9217,12 @@ load_zones(named_server_t *server, bool init, bool reconfig) {
 		 * 'dns_view_asyncload' calls view_loaded if there are no
 		 * zones.
 		 */
-		isc_refcount_increment(&zl->refs, NULL);
+		isc_refcount_increment(&zl->refs);
 		CHECK(dns_view_asyncload(view, view_loaded, zl));
 	}
 
  cleanup:
-	isc_refcount_decrement(&zl->refs, &refs);
-	if (refs == 0) {
+	if (isc_refcount_decrement(&zl->refs) == 1) {
 		isc_refcount_destroy(&zl->refs);
 		isc_mem_put(server->mctx, zl, sizeof (*zl));
 	} else if (init) {
