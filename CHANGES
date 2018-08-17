@@ -1,3 +1,5 @@
+5042.	[cleanup]	Qname minimization has been deeply refactored. [GL #16]
+
 5041.	[test]		The chain test contains a incomplete delegation.
 			[GL #568]
 
