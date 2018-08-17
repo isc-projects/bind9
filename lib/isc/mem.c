@@ -27,7 +27,6 @@
 #include <isc/mem.h>
 #include <isc/msgs.h>
 #include <isc/once.h>
-#include <isc/refcount.h>
 #include <isc/string.h>
 #include <isc/mutex.h>
 #include <isc/print.h>
@@ -129,7 +128,7 @@ struct isc__mem {
 	size_t			max_size;
 	bool		checkfree;
 	struct stats *		stats;
-	isc_refcount_t		references;
+	unsigned int		references;
 	char			name[16];
 	void *			tag;
 	size_t			quota;
@@ -906,7 +905,7 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	else
 		ctx->max_size = init_max_size;
 	ctx->flags = flags;
-	isc_refcount_init(&ctx->references, 1);
+	ctx->references = 1;
 	memset(ctx->name, 0, sizeof(ctx->name));
 	ctx->tag = NULL;
 	ctx->quota = 0;
@@ -1049,7 +1048,7 @@ destroy(isc__mem_t *ctx) {
 		ctx->malloced -= DEBUG_TABLE_COUNT * sizeof(debuglist_t);
 	}
 #endif
-	isc_refcount_destroy(&ctx->references);
+	INSIST(ctx->references == 0);
 
 	if (ctx->checkfree) {
 		for (i = 0; i <= ctx->max_size; i++) {
@@ -1095,12 +1094,13 @@ destroy(isc__mem_t *ctx) {
 void
 isc__mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 	isc__mem_t *source = (isc__mem_t *)source0;
-	int_fast32_t refs;
 
 	REQUIRE(VALID_CONTEXT(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_refcount_increment(&source->references, &refs);
+	MCTXLOCK(source, &source->lock);
+	source->references++;
+	MCTXUNLOCK(source, &source->lock);
 
 	*targetp = (isc_mem_t *)source;
 }
@@ -1108,17 +1108,21 @@ isc__mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 void
 isc__mem_detach(isc_mem_t **ctxp) {
 	isc__mem_t *ctx;
-	int_fast32_t refs;
+	bool want_destroy = false;
 
 	REQUIRE(ctxp != NULL);
 	ctx = (isc__mem_t *)*ctxp;
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	isc_refcount_decrement(&ctx->references, &refs);
+	MCTXLOCK(ctx, &ctx->lock);
+	INSIST(ctx->references > 0);
+	ctx->references--;
+	if (ctx->references == 0)
+		want_destroy = true;
+	MCTXUNLOCK(ctx, &ctx->lock);
 
-	if (refs == 0) {
+	if (want_destroy)
 		destroy(ctx);
-	}
 
 	*ctxp = NULL;
 }
@@ -1136,9 +1140,9 @@ isc__mem_detach(isc_mem_t **ctxp) {
 void
 isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	isc__mem_t *ctx;
+	bool want_destroy = false;
 	size_info *si;
 	size_t oldsize;
-	int_fast32_t refs;
 
 	REQUIRE(ctxp != NULL);
 	ctx = (isc__mem_t *)*ctxp;
@@ -1163,11 +1167,13 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 		}
 		isc__mem_free((isc_mem_t *)ctx, ptr FLARG_PASS);
 
-		isc_refcount_decrement(&ctx->references, &refs);
-
-		if (refs == 0) {
+		MCTXLOCK(ctx, &ctx->lock);
+		ctx->references--;
+		if (ctx->references == 0)
+			want_destroy = true;
+		MCTXUNLOCK(ctx, &ctx->lock);
+		if (want_destroy)
 			destroy(ctx);
-		}
 
 		return;
 	}
@@ -1182,19 +1188,21 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 		mem_putstats(ctx, ptr, size);
 		mem_put(ctx, ptr, size);
 	}
+
+	INSIST(ctx->references > 0);
+	ctx->references--;
+	if (ctx->references == 0)
+		want_destroy = true;
+
 	MCTXUNLOCK(ctx, &ctx->lock);
 
-	isc_refcount_decrement(&ctx->references, &refs);
-
-	if (refs == 0) {
+	if (want_destroy)
 		destroy(ctx);
-	}
 }
 
 void
 isc__mem_destroy(isc_mem_t **ctxp) {
 	isc__mem_t *ctx;
-	int_fast32_t refs;
 
 	/*
 	 * This routine provides legacy support for callers who use mctxs
@@ -1205,13 +1213,15 @@ isc__mem_destroy(isc_mem_t **ctxp) {
 	ctx = (isc__mem_t *)*ctxp;
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	isc_refcount_decrement(&ctx->references, &refs);
+	MCTXLOCK(ctx, &ctx->lock);
 #if ISC_MEM_TRACKLINES
-	if (refs >= 1) {
+	if (ctx->references != 1)
 		print_active(ctx, stderr);
-	}
 #endif
-	isc_refcount_destroy(&ctx->references);
+	REQUIRE(ctx->references == 1);
+	ctx->references--;
+	MCTXUNLOCK(ctx, &ctx->lock);
+
 	destroy(ctx);
 
 	*ctxp = NULL;
@@ -2260,10 +2270,10 @@ print_contexts(FILE *file) {
 	     ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
-		fprintf(file, "context: %p (%s): %" PRIdFAST32 " references\n",
+		fprintf(file, "context: %p (%s): %u references\n",
 			ctx,
 			ctx->name[0] == 0 ? "<unknown>" : ctx->name,
-			isc_refcount_current(&ctx->references));
+			ctx->references);
 		print_active(ctx, file);
 	}
 	fflush(file);
@@ -2305,7 +2315,15 @@ isc_mem_checkdestroyed(FILE *file) {
 unsigned int
 isc_mem_references(isc_mem_t *ctx0) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	return (isc_refcount_current(&ctx->references));
+	unsigned int references;
+
+	REQUIRE(VALID_CONTEXT(ctx));
+
+	MCTXLOCK(ctx, &ctx->lock);
+	references = ctx->references;
+	MCTXUNLOCK(ctx, &ctx->lock);
+
+	return (references);
 }
 
 typedef struct summarystat {
@@ -2352,8 +2370,7 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 	}
 #endif
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "references"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIdFAST32,
-					    isc_refcount_current(&ctx->references)));
+	TRY0(xmlTextWriterWriteFormatString(writer, "%d", ctx->references));
 	TRY0(xmlTextWriterEndElement(writer)); /* references */
 
 	summary->total += ctx->total;
@@ -2553,7 +2570,7 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 		json_object_object_add(ctxobj, "name", obj);
 	}
 
-	obj = json_object_new_int64(isc_refcount_current(&ctx->references));
+	obj = json_object_new_int64(ctx->references);
 	CHECKMEM(obj);
 	json_object_object_add(ctxobj, "references", obj);
 
