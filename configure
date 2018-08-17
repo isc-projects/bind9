@@ -22078,7 +22078,7 @@ ac_res=$ac_cv_search_cmocka_set_message_output
 if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
-			       CMOCKA_CFLAGS="-Iwith_cmocka/include"
+			       CMOCKA_CFLAGS="-I$with_cmocka/include"
 			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
 
 else
