@@ -1,3 +1,5 @@
+5033.	[cleanup]	Qname minimization has been deeply refactored. [GL #16]
+
 5032.	[func]		Add krb5-selfsub and ms-selfsub update policy rules.
 			[GL #511]
 
