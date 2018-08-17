@@ -1124,7 +1124,7 @@ dst_key_attach(dst_key_t *source, dst_key_t **target) {
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE(VALID_KEY(source));
 
-	isc_refcount_increment(&source->refs, NULL);
+	isc_refcount_increment(&source->refs);
 	*target = source;
 }
 
@@ -1132,7 +1132,6 @@ void
 dst_key_free(dst_key_t **keyp) {
 	isc_mem_t *mctx;
 	dst_key_t *key;
-	unsigned int refs;
 
 	REQUIRE(dst_initialized == true);
 	REQUIRE(keyp != NULL && VALID_KEY(*keyp));
@@ -1140,26 +1139,24 @@ dst_key_free(dst_key_t **keyp) {
 	key = *keyp;
 	mctx = key->mctx;
 
-	isc_refcount_decrement(&key->refs, &refs);
-	if (refs != 0)
-		return;
-
-	isc_refcount_destroy(&key->refs);
-	if (key->keydata.generic != NULL) {
-		INSIST(key->func->destroy != NULL);
-		key->func->destroy(key);
+	if (isc_refcount_decrement(&key->refs) == 1) {
+		isc_refcount_destroy(&key->refs);
+		if (key->keydata.generic != NULL) {
+			INSIST(key->func->destroy != NULL);
+			key->func->destroy(key);
+		}
+		if (key->engine != NULL)
+			isc_mem_free(mctx, key->engine);
+		if (key->label != NULL)
+			isc_mem_free(mctx, key->label);
+		dns_name_free(key->key_name, mctx);
+		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
+		if (key->key_tkeytoken) {
+			isc_buffer_free(&key->key_tkeytoken);
+		}
+		isc_safe_memwipe(key, sizeof(*key));
+		isc_mem_putanddetach(&mctx, key, sizeof(*key));
 	}
-	if (key->engine != NULL)
-		isc_mem_free(mctx, key->engine);
-	if (key->label != NULL)
-		isc_mem_free(mctx, key->label);
-	dns_name_free(key->key_name, mctx);
-	isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
-	if (key->key_tkeytoken) {
-		isc_buffer_free(&key->key_tkeytoken);
-	}
-	isc_safe_memwipe(key, sizeof(*key));
-	isc_mem_putanddetach(&mctx, key, sizeof(*key));
 	*keyp = NULL;
 }
 
