@@ -5495,7 +5495,7 @@ printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_read);
 
-	fprintf(out, "node %p, %u references, locknum = %u\n",
+	fprintf(out, "node %p, %u references, locknum = %" PRIu32 "\n",
 		rbtnode, dns_rbtnode_refcurrent(rbtnode),
 		rbtnode->locknum);
 	if (rbtnode->data != NULL) {
