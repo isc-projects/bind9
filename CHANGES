@@ -1,3 +1,5 @@
+5038.	[cleanup]	Qname minimization has been deeply refactored. [GL #16]
+
 5037.	[func]		"allow-recursion-on" and "allow-query-cache-on"
 			each now default to the other if only one of them
 			is set, in order to be more consistent with the way
