@@ -561,10 +561,10 @@ struct dns_resolver {
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
 
 #define NXDOMAIN_RESULT(r)      ((r) == DNS_R_NXDOMAIN || \
-                                 (r) == DNS_R_NCACHENXDOMAIN)
+				 (r) == DNS_R_NCACHENXDOMAIN)
 #define NXRRSET_RESULT(r)       ((r) == DNS_R_NCACHENXRRSET || \
-                                 (r) == DNS_R_NXRRSET || \
-                                 (r) == DNS_R_HINTNXRRSET)
+				 (r) == DNS_R_NXRRSET || \
+				 (r) == DNS_R_HINTNXRRSET)
 
 #ifdef ENABLE_AFL
 bool dns_fuzzing_resolver = false;
