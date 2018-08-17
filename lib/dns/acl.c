@@ -450,7 +450,7 @@ void
 dns_acl_attach(dns_acl_t *source, dns_acl_t **target) {
 	REQUIRE(DNS_ACL_VALID(source));
 
-	isc_refcount_increment(&source->refcount, NULL);
+	isc_refcount_increment(&source->refcount);
 	*target = source;
 }
 
@@ -483,13 +483,13 @@ destroy(dns_acl_t *dacl) {
 void
 dns_acl_detach(dns_acl_t **aclp) {
 	dns_acl_t *acl = *aclp;
-	unsigned int refs;
 
 	REQUIRE(DNS_ACL_VALID(acl));
 
-	isc_refcount_decrement(&acl->refcount, &refs);
-	if (refs == 0)
+	if (isc_refcount_decrement(&acl->refcount) == 1) {
 		destroy(acl);
+	}
+
 	*aclp = NULL;
 }
 

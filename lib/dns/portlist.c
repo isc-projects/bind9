@@ -228,21 +228,19 @@ dns_portlist_attach(dns_portlist_t *portlist, dns_portlist_t **portlistp) {
 	REQUIRE(DNS_VALID_PORTLIST(portlist));
 	REQUIRE(portlistp != NULL && *portlistp == NULL);
 
-	isc_refcount_increment(&portlist->refcount, NULL);
+	isc_refcount_increment(&portlist->refcount);
 	*portlistp = portlist;
 }
 
 void
 dns_portlist_detach(dns_portlist_t **portlistp) {
 	dns_portlist_t *portlist;
-	unsigned int count;
 
 	REQUIRE(portlistp != NULL);
 	portlist = *portlistp;
 	REQUIRE(DNS_VALID_PORTLIST(portlist));
-	*portlistp = NULL;
-	isc_refcount_decrement(&portlist->refcount, &count);
-	if (count == 0) {
+
+	if (isc_refcount_decrement(&portlist->refcount) == 1) {
 		portlist->magic = 0;
 		isc_refcount_destroy(&portlist->refcount);
 		if (portlist->list != NULL)
@@ -253,4 +251,5 @@ dns_portlist_detach(dns_portlist_t **portlistp) {
 		isc_mem_putanddetach(&portlist->mctx, portlist,
 				     sizeof(*portlist));
 	}
+	*portlistp = NULL;
 }
