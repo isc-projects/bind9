@@ -1,3 +1,5 @@
+5043.	[cleanup]	Qname minimization has been deeply refactored. [GL #16]
+
 5042.	[test]		Make the chained delegations in reclimit behave
 			like they would in a regular name server. [GL  #578]
 
