@@ -165,12 +165,7 @@ typedef isc_rwlock_t nodelock_t;
 #define NODE_LOCK(l, t)         RWLOCK((l), (t))
 #define NODE_UNLOCK(l, t)       RWUNLOCK((l), (t))
 #define NODE_TRYUPGRADE(l)      isc_rwlock_tryupgrade(l)
-
-#define NODE_STRONGLOCK(l)      ((void)0)
-#define NODE_STRONGUNLOCK(l)    ((void)0)
-#define NODE_WEAKLOCK(l, t)     NODE_LOCK(l, t)
-#define NODE_WEAKUNLOCK(l, t)   NODE_UNLOCK(l, t)
-#define NODE_WEAKDOWNGRADE(l)   isc_rwlock_downgrade(l)
+#define NODE_DOWNGRADE(l)   isc_rwlock_downgrade(l)
 
 /*%
  * Whether to rate-limit updating the LRU to avoid possible thread contention.
@@ -1869,8 +1864,7 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 	POST(locktype);
 
-	NODE_STRONGLOCK(nodelock);
-	NODE_WEAKLOCK(nodelock, locktype);
+	NODE_LOCK(nodelock, locktype);
 
 	/*
 	 * Check if we can possibly cleanup the dead node.  If so, upgrade
@@ -1885,10 +1879,10 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		/*
 		 * Upgrade the lock and test if we still need to unlink.
 		 */
-		NODE_WEAKUNLOCK(nodelock, locktype);
+		NODE_UNLOCK(nodelock, locktype);
 		locktype = isc_rwlocktype_write;
 		POST(locktype);
-		NODE_WEAKLOCK(nodelock, locktype);
+		NODE_LOCK(nodelock, locktype);
 		if (ISC_LINK_LINKED(node, deadlink))
 			ISC_LIST_UNLINK(rbtdb->deadnodes[node->locknum],
 					node, deadlink);
@@ -1898,8 +1892,7 @@ reactivate_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 	new_reference(rbtdb, node);
 
-	NODE_WEAKUNLOCK(nodelock, locktype);
-	NODE_STRONGUNLOCK(nodelock);
+	NODE_UNLOCK(nodelock, locktype);
 }
 
 /*
@@ -1946,14 +1939,14 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 
 	/* Upgrade the lock? */
 	if (nlock == isc_rwlocktype_read) {
-		NODE_WEAKUNLOCK(&nodelock->lock, isc_rwlocktype_read);
-		NODE_WEAKLOCK(&nodelock->lock, isc_rwlocktype_write);
+		NODE_UNLOCK(&nodelock->lock, isc_rwlocktype_read);
+		NODE_LOCK(&nodelock->lock, isc_rwlocktype_write);
 	}
 
 	if (isc_refcount_decrement(&node->references) > 1) {
 		/* Restore the lock? */
 		if (nlock == isc_rwlocktype_read)
-			NODE_WEAKDOWNGRADE(&nodelock->lock);
+			NODE_DOWNGRADE(&nodelock->lock);
 		return (false);
 	}
 
@@ -2076,7 +2069,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
  restore_locks:
 	/* Restore the lock? */
 	if (nlock == isc_rwlocktype_read)
-		NODE_WEAKDOWNGRADE(&nodelock->lock);
+		NODE_DOWNGRADE(&nodelock->lock);
 
 	/*
 	 * Relock a read lock, or unlock the write lock if no lock was held.
@@ -5646,13 +5639,9 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	iterator->common.version = (dns_dbversion_t *)rbtversion;
 	iterator->common.now = now;
 
-	NODE_STRONGLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
-
 	isc_refcount_increment(&rbtnode->references);
 
 	iterator->current = NULL;
-
-	NODE_STRONGUNLOCK(&rbtdb->node_locks[rbtnode->locknum].lock);
 
 	*iteratorp = (dns_rdatasetiter_t *)iterator;
 
@@ -7685,9 +7674,7 @@ getoriginnode(dns_db_t *db, dns_dbnode_t **nodep) {
 	/* Note that the access to origin_node doesn't require a DB lock */
 	onode = (dns_rbtnode_t *)rbtdb->origin_node;
 	if (onode != NULL) {
-		NODE_STRONGLOCK(&rbtdb->node_locks[onode->locknum].lock);
 		new_reference(rbtdb, onode);
-		NODE_STRONGUNLOCK(&rbtdb->node_locks[onode->locknum].lock);
 
 		*nodep = rbtdb->origin_node;
 	} else {
@@ -9295,9 +9282,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	} else
 		result = ISC_R_SUCCESS;
 
-	NODE_STRONGLOCK(&rbtdb->node_locks[node->locknum].lock);
 	new_reference(rbtdb, node);
-	NODE_STRONGUNLOCK(&rbtdb->node_locks[node->locknum].lock);
 
 	*nodep = rbtdbiter->node;
 
