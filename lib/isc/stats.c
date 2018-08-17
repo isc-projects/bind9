@@ -17,7 +17,8 @@
 #include <inttypes.h>
 #include <string.h>
 
-#include <isc/atomic.h>
+#include <ck_pr.h>
+
 #include <isc/buffer.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -30,123 +31,44 @@
 #define ISC_STATS_MAGIC			ISC_MAGIC('S', 't', 'a', 't')
 #define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
-typedef atomic_int_fast64_t isc_stat_t;
+typedef uint64_t isc_stat_t;
 
 struct isc_stats {
-	/*% Unlocked */
 	unsigned int	magic;
 	isc_mem_t	*mctx;
 	int		ncounters;
 
-	isc_mutex_t	lock;
-	unsigned int	references; /* locked by lock */
+	unsigned int	references;
 
-	/*%
-	 * Locked by counterlock or unlocked if efficient rwlock is not
-	 * available.
-	 */
 	isc_stat_t	*counters;
-
-	/*%
-	 * We don't want to lock the counters while we are dumping, so we first
-	 * copy the current counter values into a local array.  This buffer
-	 * will be used as the copy destination.  It's allocated on creation
-	 * of the stats structure so that the dump operation won't fail due
-	 * to memory allocation failure.
-	 * XXX: this approach is weird for non-threaded build because the
-	 * additional memory and the copy overhead could be avoided.  We prefer
-	 * simplicity here, however, under the assumption that this function
-	 * should be only rarely called.
-	 */
-	uint64_t	*copiedcounters;
 };
-
-static isc_result_t
-create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
-	isc_stats_t *stats;
-	isc_result_t result = ISC_R_SUCCESS;
-
-	REQUIRE(statsp != NULL && *statsp == NULL);
-
-	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
-		return (ISC_R_NOMEMORY);
-
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
-
-	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
-	if (stats->counters == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto clean_mutex;
-	}
-	stats->copiedcounters = isc_mem_get(mctx,
-					    sizeof(uint64_t) * ncounters);
-	if (stats->copiedcounters == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto clean_counters;
-	}
-
-	stats->references = 1;
-	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
-	stats->mctx = NULL;
-	isc_mem_attach(mctx, &stats->mctx);
-	stats->ncounters = ncounters;
-	stats->magic = ISC_STATS_MAGIC;
-
-	*statsp = stats;
-
-	return (result);
-
-clean_counters:
-	isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
-
-clean_mutex:
-	DESTROYLOCK(&stats->lock);
-
-clean_stats:
-	isc_mem_put(mctx, stats, sizeof(*stats));
-
-	return (result);
-}
 
 void
 isc_stats_attach(isc_stats_t *stats, isc_stats_t **statsp) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	LOCK(&stats->lock);
-	stats->references++;
-	UNLOCK(&stats->lock);
+	ck_pr_inc_uint(&stats->references);
 
 	*statsp = stats;
 }
 
 void
 isc_stats_detach(isc_stats_t **statsp) {
-	isc_stats_t *stats;
-
 	REQUIRE(statsp != NULL && ISC_STATS_VALID(*statsp));
 
-	stats = *statsp;
-	*statsp = NULL;
+	isc_stats_t *stats = *statsp;
 
-	LOCK(&stats->lock);
-	stats->references--;
+	ck_pr_dec_uint(&stats->references);
+	ck_pr_fence_atomic_load();
 
-	if (stats->references == 0) {
-		isc_mem_put(stats->mctx, stats->copiedcounters,
-			    sizeof(isc_stat_t) * stats->ncounters);
+	if (ck_pr_load_uint((const unsigned int *)&stats->references) == 0) {
 		isc_mem_put(stats->mctx, stats->counters,
 			    sizeof(isc_stat_t) * stats->ncounters);
-		UNLOCK(&stats->lock);
-		DESTROYLOCK(&stats->lock);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
-		return;
 	}
 
-	UNLOCK(&stats->lock);
+	*statsp = NULL;
 }
 
 int
@@ -160,7 +82,36 @@ isc_result_t
 isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, ncounters, statsp));
+	isc_stats_t *stats;
+
+	stats = isc_mem_get(mctx, sizeof(*stats));
+	if (stats == NULL) {
+		goto cleanup;
+	}
+
+	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
+	if (stats->counters == NULL) {
+		goto cleanup;
+	}
+
+	ck_pr_store_uint(&stats->references, 1);
+
+	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
+	stats->mctx = NULL;
+	isc_mem_attach(mctx, &stats->mctx);
+	stats->ncounters = ncounters;
+	stats->magic = ISC_STATS_MAGIC;
+
+	*statsp = stats;
+
+	return (ISC_R_SUCCESS);
+
+cleanup:
+	if (stats != NULL) {
+		isc_mem_put(mctx, stats, sizeof(*stats));
+	}
+
+	return (ISC_R_NOMEMORY);
 }
 
 void
@@ -168,8 +119,7 @@ isc_stats_increment(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	atomic_fetch_add_explicit(&stats->counters[counter], 1,
-				  memory_order_relaxed);
+	ck_pr_inc_64(&stats->counters[counter]);
 }
 
 void
@@ -177,29 +127,24 @@ isc_stats_decrement(isc_stats_t *stats, isc_statscounter_t counter) {
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	atomic_fetch_sub_explicit(&stats->counters[counter], 1,
-				  memory_order_relaxed);
+	ck_pr_dec_64(&stats->counters[counter]);
 }
 
 void
 isc_stats_dump(isc_stats_t *stats, isc_stats_dumper_t dump_fn,
 	       void *arg, unsigned int options)
 {
-	int i;
-
 	REQUIRE(ISC_STATS_VALID(stats));
 
-	for (i = 0; i < stats->ncounters; i++) {
-		stats->copiedcounters[i] =
-			atomic_load_explicit(&stats->counters[i],
-					     memory_order_relaxed);
-	}
+	bool verbose = (options & ISC_STATSDUMP_VERBOSE);
 
-	for (i = 0; i < stats->ncounters; i++) {
-		if ((options & ISC_STATSDUMP_VERBOSE) == 0 &&
-		    stats->copiedcounters[i] == 0)
-				continue;
-		dump_fn((isc_statscounter_t)i, stats->copiedcounters[i], arg);
+	for (int i = 0; i < stats->ncounters; i++) {
+		if (!verbose && stats->counters[i] == 0) {
+			continue;
+		}
+		dump_fn((isc_statscounter_t)i,
+			ck_pr_load_64((const uint64_t *)stats->counters[i]),
+			arg);
 	}
 }
 
@@ -210,6 +155,5 @@ isc_stats_set(isc_stats_t *stats, uint64_t val,
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	atomic_store_explicit(&stats->counters[counter], val,
-			      memory_order_relaxed);
+	ck_pr_store_64(&stats->counters[counter], val);
 }
