@@ -159,13 +159,13 @@ sub stop_signal {
 		$result = system("/bin/kill -f -$sig $pid");
 		unlink $pid_file;
 		if ($result != 0) {
-			print "I:$server died before a SIG$sig was sent\n";
+			print "I:$test:$server died before a SIG$sig was sent\n";
 			$errors++;
 		}
 	} else {
 		$result = kill $sig, $pid;
 		if (!$result) {
-			print "I:$server died before a SIG$sig was sent\n";
+			print "I:$test:$server died before a SIG$sig was sent\n";
 			unlink $pid_file;
 			$errors++;
 		}
