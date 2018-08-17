@@ -171,11 +171,16 @@ enum memory_order {
 #define atomic_fetch_nand(obj, arg)			\
 	__sync_fetch_and_nand(obj, arg)
 
-#define atomic_compare_exchange_strong(obj, expected, desired)			\
-	__sync_val_compare_and_swap(obj, *expected, desired)
+#define atomic_compare_exchange_strong(obj, expected, desired)		\
+	__extension__ ({						\
+			__typeof__(expected) __ep = (expected);		\
+			__typeof__(*__ep) __e = *__ep;			\
+			(_Bool)((*__ep = __sync_val_compare_and_swap(&(obj)->__val, \
+								     __e, desired)) == __e); \
+		})
 
-#define atomic_compare_exchange_weak(obj, expected, desired)			\
-	__sync_val_compare_and_swap(obj, *expected, desired)
+#define atomic_compare_exchange_weak(object, expected, desired)		\
+	atomic_compare_exchange_strong(object, expected, desired)
 
 #endif
 
