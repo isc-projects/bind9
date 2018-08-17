@@ -73,6 +73,10 @@
 #error "stdatomic.h does not support your compiler"
 #endif
 
+#if !defined(__CLANG_ATOMICS)
+#define _Atomic(T) struct { volatile __typeof__(T) __val; }
+#endif
+
 /*
  * 7.17.1 Atomic lock-free macros.
  */
