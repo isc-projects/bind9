@@ -95,7 +95,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 	atomic_init(target, value)
 
 #define isc_refcount_current(target)				\
-	atomic_load_explicit(target, memory_order_acquire)
+	atomic_load_explicit(target, memory_order_relaxed)
 
 #define isc_refcount_destroy(target)				\
 	ISC_REQUIRE(isc_refcount_current(target) == 0)
@@ -107,6 +107,6 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 	atomic_fetch_add_explicit(target, 1, memory_order_relaxed)
 
 #define isc_refcount_decrement(target)				\
-	atomic_fetch_sub_explicit(target, 1, memory_order_release)
+	atomic_fetch_sub_explicit(target, 1, memory_order_relaxed)
 
 ISC_LANG_ENDDECLS
