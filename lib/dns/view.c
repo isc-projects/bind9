@@ -311,7 +311,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		dns_tsigkeyring_detach(&view->dynamickeys);
 
  cleanup_references:
-	isc_refcount_decrement(&view->references, NULL);
+	(void)isc_refcount_decrement(&view->references);
 	isc_refcount_destroy(&view->references);
 
 	if (view->fwdtable != NULL)
@@ -569,7 +569,7 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 	REQUIRE(DNS_VIEW_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_refcount_increment(&source->references, NULL);
+	isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
@@ -577,7 +577,6 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 static void
 view_flushanddetach(dns_view_t **viewp, bool flush) {
 	dns_view_t *view;
-	unsigned int refs;
 	bool done = false;
 
 	REQUIRE(viewp != NULL);
@@ -586,8 +585,7 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 
 	if (flush)
 		view->flush = true;
-	isc_refcount_decrement(&view->references, &refs);
-	if (refs == 0) {
+	if (isc_refcount_decrement(&view->references) == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
 
 		LOCK(&view->lock);
