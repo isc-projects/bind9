@@ -1095,12 +1095,11 @@ destroy(isc__mem_t *ctx) {
 void
 isc__mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 	isc__mem_t *source = (isc__mem_t *)source0;
-	int_fast32_t refs;
 
 	REQUIRE(VALID_CONTEXT(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_refcount_increment(&source->references, &refs);
+	isc_refcount_increment(&source->references);
 
 	*targetp = (isc_mem_t *)source;
 }
@@ -1108,15 +1107,12 @@ isc__mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 void
 isc__mem_detach(isc_mem_t **ctxp) {
 	isc__mem_t *ctx;
-	int_fast32_t refs;
 
 	REQUIRE(ctxp != NULL);
 	ctx = (isc__mem_t *)*ctxp;
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	isc_refcount_decrement(&ctx->references, &refs);
-
-	if (refs == 0) {
+	if (isc_refcount_decrement(&ctx->references) == 1) {
 		destroy(ctx);
 	}
 
@@ -1138,7 +1134,6 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	isc__mem_t *ctx;
 	size_info *si;
 	size_t oldsize;
-	int_fast32_t refs;
 
 	REQUIRE(ctxp != NULL);
 	ctx = (isc__mem_t *)*ctxp;
@@ -1163,9 +1158,7 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 		}
 		isc__mem_free((isc_mem_t *)ctx, ptr FLARG_PASS);
 
-		isc_refcount_decrement(&ctx->references, &refs);
-
-		if (refs == 0) {
+		if (isc_refcount_decrement(&ctx->references) == 1) {
 			destroy(ctx);
 		}
 
@@ -1184,9 +1177,7 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	}
 	MCTXUNLOCK(ctx, &ctx->lock);
 
-	isc_refcount_decrement(&ctx->references, &refs);
-
-	if (refs == 0) {
+	if (isc_refcount_decrement(&ctx->references) == 1) {
 		destroy(ctx);
 	}
 }
@@ -1194,7 +1185,6 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 void
 isc__mem_destroy(isc_mem_t **ctxp) {
 	isc__mem_t *ctx;
-	int_fast32_t refs;
 
 	/*
 	 * This routine provides legacy support for callers who use mctxs
@@ -1205,11 +1195,12 @@ isc__mem_destroy(isc_mem_t **ctxp) {
 	ctx = (isc__mem_t *)*ctxp;
 	REQUIRE(VALID_CONTEXT(ctx));
 
-	isc_refcount_decrement(&ctx->references, &refs);
 #if ISC_MEM_TRACKLINES
-	if (refs >= 1) {
+	if (isc_refcount_decrement(&ctx->references) != 1) {
 		print_active(ctx, stderr);
 	}
+#else
+	(void)isc_refcount_decrement(&ctx->references);
 #endif
 	isc_refcount_destroy(&ctx->references);
 	destroy(ctx);
