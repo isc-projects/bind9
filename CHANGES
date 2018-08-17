@@ -1,3 +1,7 @@
+5012.	[bug]		Signatures loaded from the journal for the signed
+			version of an inline-signed zone were not scheduled for
+			refresh. [GL #482]
+
 5011.	[func]		Remove support for unthreaded named. [GL #478]
 
 5010.	[func]		New "validate-except" option specifies a list of
