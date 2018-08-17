@@ -1702,6 +1702,7 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname) {
 	name->fetch6_err = FIND_ERR_UNEXPECTED;
 	memset(&name->client, 0, sizeof(name->client));
 	name->id = 0;
+	name->client.length = 0;
 	ISC_LIST_INIT(name->finds);
 	ISC_LINK_INIT(name, plink);
 
@@ -3032,7 +3033,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = ISC_R_SHUTTINGDOWN;
 		goto out;
 	}
-#if 0
+
 	if (adbname != NULL && client != NULL &&
 	    isc_sockaddr_equal(client, &adbname->client) && id == adbname->id) {
 		char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE];
@@ -3045,7 +3046,6 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		RUNTIME_CHECK(!free_adbfind(adb, &find));
 		goto out;
 	}
-#endif
 
 	/*
 	 * Nothing found.  Allocate a new adbname structure for this name.
