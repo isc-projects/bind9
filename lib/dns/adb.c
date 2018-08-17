@@ -3032,6 +3032,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		result = ISC_R_SHUTTINGDOWN;
 		goto out;
 	}
+#if 0
 	if (adbname != NULL && client != NULL &&
 	    isc_sockaddr_equal(client, &adbname->client) && id == adbname->id) {
 		char buf[DNS_NAME_FORMATSIZE + DNS_RDATATYPE_FORMATSIZE];
@@ -3044,6 +3045,7 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 		RUNTIME_CHECK(!free_adbfind(adb, &find));
 		goto out;
 	}
+#endif
 
 	/*
 	 * Nothing found.  Allocate a new adbname structure for this name.
