@@ -84,9 +84,9 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 	rwl->magic = 0;
 
 	rwl->spins = 0;
-	rwl->write_requests = 0;
-	rwl->write_completions = 0;
-	rwl->cnt_and_flag = 0;
+	atomic_init(&rwl->write_requests, 0);
+	atomic_init(&rwl->write_completions, 0);
+	atomic_init(&rwl->cnt_and_flag, 0);
 	rwl->readers_waiting = 0;
 	rwl->write_granted = 0;
 	if (read_quota != 0) {
@@ -138,8 +138,9 @@ void
 isc_rwlock_destroy(isc_rwlock_t *rwl) {
 	REQUIRE(VALID_RWLOCK(rwl));
 
-	REQUIRE(rwl->write_requests == rwl->write_completions &&
-		rwl->cnt_and_flag == 0 && rwl->readers_waiting == 0);
+	REQUIRE(atomic_load(&rwl->write_requests, memory_order_acquire) ==
+		atomic_load(&rwl->write_completions) &&
+		atomic_load(rwl->cnt_and_flag) == 0 && rwl->readers_waiting == 0);
 
 	rwl->magic = 0;
 	(void)isc_condition_destroy(&rwl->readable);
@@ -224,10 +225,13 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #endif
 
 	if (type == isc_rwlocktype_read) {
-		if (rwl->write_requests != rwl->write_completions) {
+		if (atomic_load_explicit(&rwl->write_requests, memory_order_acquire) !=
+		    atomic_load_explicit(&rwl->write_completions, memory_order_acquire))
+		{
 			/* there is a waiting or active writer */
 			LOCK(&rwl->lock);
-			if (rwl->write_requests != rwl->write_completions) {
+			if (atomic_load_explicit(&rwl->write_requests, memory_order_acquire) !=
+			    atomic_load_explict(&rwl->write_completions, memory_order_acquire)) {
 				rwl->readers_waiting++;
 				WAIT(&rwl->readable, &rwl->lock);
 				rwl->readers_waiting--;
@@ -240,7 +244,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 						    memory_order_relaxed);
 		POST(cntflag);
 		while (1) {
-			if ((rwl->cnt_and_flag & WRITER_ACTIVE) == 0)
+			if ((memory_load_explicit(&rwl->cnt_and_flag, memory_order_acquire) & WRITER_ACTIVE) == 0)
 				break;
 
 			/* A writer is still working */
