@@ -227,31 +227,33 @@ typedef _Atomic(long)			atomic_long;
 typedef _Atomic(unsigned long)		atomic_ulong;
 typedef _Atomic(long long)		atomic_llong;
 typedef _Atomic(unsigned long long)	atomic_ullong;
-typedef _Atomic(__char16_t)		atomic_char16_t;
-typedef _Atomic(__char32_t)		atomic_char32_t;
-typedef _Atomic(___wchar_t)		atomic_wchar_t;
-typedef _Atomic(__int_least8_t)		atomic_int_least8_t;
-typedef _Atomic(__uint_least8_t)	atomic_uint_least8_t;
-typedef _Atomic(__int_least16_t)	atomic_int_least16_t;
-typedef _Atomic(__uint_least16_t)	atomic_uint_least16_t;
-typedef _Atomic(__int_least32_t)	atomic_int_least32_t;
-typedef _Atomic(__uint_least32_t)	atomic_uint_least32_t;
-typedef _Atomic(__int_least64_t)	atomic_int_least64_t;
-typedef _Atomic(__uint_least64_t)	atomic_uint_least64_t;
-typedef _Atomic(__int_fast8_t)		atomic_int_fast8_t;
-typedef _Atomic(__uint_fast8_t)		atomic_uint_fast8_t;
-typedef _Atomic(__int_fast16_t)		atomic_int_fast16_t;
-typedef _Atomic(__uint_fast16_t)	atomic_uint_fast16_t;
-typedef _Atomic(__int_fast32_t)		atomic_int_fast32_t;
-typedef _Atomic(__uint_fast32_t)	atomic_uint_fast32_t;
-typedef _Atomic(__int_fast64_t)		atomic_int_fast64_t;
-typedef _Atomic(__uint_fast64_t)	atomic_uint_fast64_t;
-typedef _Atomic(__intptr_t)		atomic_intptr_t;
-typedef _Atomic(__uintptr_t)		atomic_uintptr_t;
-typedef _Atomic(__size_t)		atomic_size_t;
-typedef _Atomic(__ptrdiff_t)		atomic_ptrdiff_t;
-typedef _Atomic(__intmax_t)		atomic_intmax_t;
-typedef _Atomic(__uintmax_t)		atomic_uintmax_t;
+#if 0
+typedef _Atomic(char16_t)		atomic_char16_t;
+typedef _Atomic(char32_t)		atomic_char32_t;
+#endif
+typedef _Atomic(wchar_t)		atomic_wchar_t;
+typedef _Atomic(int_least8_t)		atomic_int_least8_t;
+typedef _Atomic(uint_least8_t)		atomic_uint_least8_t;
+typedef _Atomic(int_least16_t)		atomic_int_least16_t;
+typedef _Atomic(uint_least16_t)		atomic_uint_least16_t;
+typedef _Atomic(int_least32_t)		atomic_int_least32_t;
+typedef _Atomic(uint_least32_t)		atomic_uint_least32_t;
+typedef _Atomic(int_least64_t)		atomic_int_least64_t;
+typedef _Atomic(uint_least64_t)		atomic_uint_least64_t;
+typedef _Atomic(int_fast8_t)		atomic_int_fast8_t;
+typedef _Atomic(uint_fast8_t)		atomic_uint_fast8_t;
+typedef _Atomic(int_fast16_t)		atomic_int_fast16_t;
+typedef _Atomic(uint_fast16_t)		atomic_uint_fast16_t;
+typedef _Atomic(int_fast32_t)		atomic_int_fast32_t;
+typedef _Atomic(uint_fast32_t)		atomic_uint_fast32_t;
+typedef _Atomic(int_fast64_t)		atomic_int_fast64_t;
+typedef _Atomic(uint_fast64_t)		atomic_uint_fast64_t;
+typedef _Atomic(intptr_t)		atomic_intptr_t;
+typedef _Atomic(uintptr_t)		atomic_uintptr_t;
+typedef _Atomic(size_t)			atomic_size_t;
+typedef _Atomic(ptrdiff_t)		atomic_ptrdiff_t;
+typedef _Atomic(intmax_t)		atomic_intmax_t;
+typedef _Atomic(uintmax_t)		atomic_uintmax_t;
 
 /*
  * 7.17.7 Operations on atomic types.
