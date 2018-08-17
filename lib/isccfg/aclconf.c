@@ -64,7 +64,7 @@ cfg_aclconfctx_attach(cfg_aclconfctx_t *src, cfg_aclconfctx_t **dest) {
 	REQUIRE(src != NULL);
 	REQUIRE(dest != NULL && *dest == NULL);
 
-	isc_refcount_increment(&src->references, NULL);
+	isc_refcount_increment(&src->references);
 	*dest = src;
 }
 
@@ -72,14 +72,12 @@ void
 cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
 	cfg_aclconfctx_t *actx;
 	dns_acl_t *dacl, *next;
-	unsigned int refs;
 
 	REQUIRE(actxp != NULL && *actxp != NULL);
 
 	actx = *actxp;
 
-	isc_refcount_decrement(&actx->references, &refs);
-	if (refs == 0) {
+	if (isc_refcount_decrement(&actx->references) == 1) {
 		for (dacl = ISC_LIST_HEAD(actx->named_acl_cache);
 		     dacl != NULL;
 		     dacl = next)
