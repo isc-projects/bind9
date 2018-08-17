@@ -1,3 +1,5 @@
+5040.	[cleanup]	Qname minimization has been deeply refactored. [GL #16]
+
 5039.	[bug]		Named could fail to preserve owner name case of new
 			RRset. [GL #420]
 
