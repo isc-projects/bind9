@@ -531,7 +531,7 @@ dns_dt_attach(dns_dtenv_t *source, dns_dtenv_t **destp) {
 	REQUIRE(VALID_DTENV(source));
 	REQUIRE(destp != NULL && *destp == NULL);
 
-	isc_refcount_increment(&source->refcount, NULL);
+	isc_refcount_increment(&source->refcount);
 	*destp = source;
 }
 
@@ -579,17 +579,17 @@ destroy(dns_dtenv_t *env) {
 
 void
 dns_dt_detach(dns_dtenv_t **envp) {
-	unsigned int refs;
 	dns_dtenv_t *env;
 
 	REQUIRE(envp != NULL && VALID_DTENV(*envp));
 
 	env = *envp;
-	*envp = NULL;
 
-	isc_refcount_decrement(&env->refcount, &refs);
-	if (refs == 0)
+	if (isc_refcount_decrement(&env->refcount) == 1) {
 		destroy(env);
+	}
+
+	*envp = NULL;
 }
 
 static isc_result_t

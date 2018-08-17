@@ -2105,7 +2105,7 @@ dns_rbt_deletenode(dns_rbt_t *rbt, dns_rbtnode_t *node, bool recurse)
 #if DNS_RBT_USEMAGIC
 	node->magic = 0;
 #endif
-	dns_rbtnode_refdestroy(node);
+	isc_refcount_destroy(&node->references);
 
 	freenode(rbt, &node);
 
@@ -2217,7 +2217,7 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	LOCKNUM(node) = 0;
 	WILD(node) = 0;
 	DIRTY(node) = 0;
-	dns_rbtnode_refinit(node, 0);
+	isc_refcount_init(&node->references, 0);
 	node->find_callback = 0;
 	node->nsec = DNS_RBT_NSEC_NORMAL;
 
