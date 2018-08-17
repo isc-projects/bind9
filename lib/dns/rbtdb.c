@@ -5489,14 +5489,16 @@ printnode(dns_db_t *db, dns_dbnode_t *node, FILE *out) {
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)db;
 	dns_rbtnode_t *rbtnode = node;
 	bool first;
+	uint32_t refs;
 
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	NODE_LOCK(&rbtdb->node_locks[rbtnode->locknum].lock,
 		  isc_rwlocktype_read);
 
-	fprintf(out, "node %p, %u references, locknum = %u\n",
-		rbtnode, dns_rbtnode_refcurrent(rbtnode),
+	refs = dns_rbtnode_refcurrent(rbtnode);
+	fprintf(out, "node %p, %" PRIu32 " references, locknum = %u\n",
+		rbtnode, refs,
 		rbtnode->locknum);
 	if (rbtnode->data != NULL) {
 		rdatasetheader_t *current, *top_next;
