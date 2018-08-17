@@ -177,17 +177,10 @@ typedef struct dns_include dns_include_t;
 	do { result = isc_mutex_trylock(&(z)->lock); } while (0)
 #endif
 
-#ifdef ISC_RWLOCK_USEATOMIC
 #define ZONEDB_INITLOCK(l)	isc_rwlock_init((l), 0, 0)
 #define ZONEDB_DESTROYLOCK(l)	isc_rwlock_destroy(l)
 #define ZONEDB_LOCK(l, t)	RWLOCK((l), (t))
 #define ZONEDB_UNLOCK(l, t)	RWUNLOCK((l), (t))
-#else
-#define ZONEDB_INITLOCK(l)	isc_mutex_init(l)
-#define ZONEDB_DESTROYLOCK(l)	DESTROYLOCK(l)
-#define ZONEDB_LOCK(l, t)	LOCK(l)
-#define ZONEDB_UNLOCK(l, t)	UNLOCK(l)
-#endif
 
 #ifdef ENABLE_AFL
 extern bool dns_fuzzing_resolver;
@@ -203,11 +196,7 @@ struct dns_zone {
 	isc_mem_t		*mctx;
 	isc_refcount_t		erefs;
 
-#ifdef ISC_RWLOCK_USEATOMIC
 	isc_rwlock_t		dblock;
-#else
-	isc_mutex_t		dblock;
-#endif
 	dns_db_t		*db;		/* Locked by dblock */
 
 	/* Locked */
