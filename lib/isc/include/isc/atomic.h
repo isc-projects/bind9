@@ -126,10 +126,6 @@ atomic_compare_exchange_strong(intptr_t *obj, intptr_t *expected, intptr_t desir
 	InterlockedAnd(obj, arg)
 #endif /* _WIN64 */
 
-#endif /* !defined(_WIN32) */
-
-#if defined(_WIN32) || (!HAVE_STDATOMIC_H && !HAVE___ATOMIC)
-
 #define atomic_store_explicit(obj, desired, order)	\
 	atomic_store(obj, desired)
 #define atomic_load_explicit(obj, order)		\
@@ -153,4 +149,4 @@ atomic_compare_exchange_strong(intptr_t *obj, intptr_t *expected, intptr_t desir
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail) \
 	atomic_compare_exchange_weak(obj, expected, desired)
 
-#endif /* defined(_WIN32) || HAVE_NO__ATOMIC */
+#endif /* !defined(_WIN32) */
