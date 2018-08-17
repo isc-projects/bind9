@@ -78,7 +78,7 @@ do
 	done
 	for z in bar. example. inacksk2.example. inacksk3.example \
 		 inaczsk2.example. inaczsk3.example
-	do 
+	do
 		$DIG $DIGOPTS $z @10.53.0.3 nsec > dig.out.ns3.test$n || ret=1
 		grep "NS SOA" dig.out.ns3.test$n > /dev/null || ret=1
 	done
@@ -90,6 +90,23 @@ done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "done"; fi
 status=`expr $status + $ret`
+
+echo_i "Initial counts of RRSIG expiry fields values for auto signed zones"
+for z in .
+do
+	echo_i zone $z
+	$DIG $DIGOPTS $z @10.53.0.1 axfr | awk '$4 == "RRSIG" {print $9}' | sort | uniq -c | cat_i
+done
+for z in bar. example. private.secure.example.
+do
+	echo_i zone $z
+	$DIG $DIGOPTS $z @10.53.0.2 axfr | awk '$4 == "RRSIG" {print $9}' | sort | uniq -c | cat_i
+done
+for z in inacksk2.example. inacksk3.example inaczsk2.example. inaczsk3.example
+do
+	echo_i zone $z
+	$DIG $DIGOPTS $z @10.53.0.3 axfr | awk '$4 == "RRSIG" {print $9}' | sort | uniq -c | cat_i
+done
 
 #
 # Check that DNSKEY is initially signed with a KSK and not a ZSK.
@@ -1152,7 +1169,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 # this confirms that key events are never scheduled more than
-# 'dnssec-loadkeys-interval' minutes in the future, and that the 
+# 'dnssec-loadkeys-interval' minutes in the future, and that the
 # event scheduled is within 10 seconds of expected interval.
 check_interval () {
         awk '/next key event/ {print $2 ":" $9}' $1/named.run |
