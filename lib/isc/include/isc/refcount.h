@@ -13,6 +13,8 @@
 
 #include <inttypes.h>
 
+#include <ck_pr.h>
+
 #include <isc/assertions.h>
 #include <isc/atomic.h>
 #include <isc/error.h>
@@ -91,34 +93,24 @@ ISC_LANG_BEGINDECLS
  * Sample implementations
  */
 
-typedef atomic_uint_fast32_t isc_refcount_t;
+typedef uint32_t isc_refcount_t;
 
 #define isc_refcount_init(target, value)			\
-	atomic_init(target, value)
+	ck_pr_store_32(target, value)
 
-#if DONT_WORRY_BE_HAPPY
 #define isc_refcount_current(target)				\
-	atomic_load_explicit(target, memory_order_relaxed)
-#else
-#define isc_refcount_current(target)				\
-	atomic_load_explicit(target, memory_order_acquire)
-#endif
+	ck_pr_load_32((const isc_refcount_t *)target)
 
 #define isc_refcount_destroy(target)				\
 	ISC_REQUIRE(isc_refcount_current(target) == 0)
 
 #define isc_refcount_increment0(target)				\
-	atomic_fetch_add_explicit(target, 1, memory_order_relaxed)
+	ck_pr_faa_32(target, 1)
 
 #define isc_refcount_increment(target)				\
-	atomic_fetch_add_explicit(target, 1, memory_order_relaxed)
+	ck_pr_faa_32(target, 1)
 
-#if DONT_WORRY_BE_HAPPY
 #define isc_refcount_decrement(target)				\
-	atomic_fetch_sub_explicit(target, 1, memory_order_relaxed)
-#else
-#define isc_refcount_decrement(target)				\
-	atomic_fetch_sub_explicit(target, 1, memory_order_release)
-#endif
+	ck_pr_faa_32(target, -1)
 
 ISC_LANG_ENDDECLS
