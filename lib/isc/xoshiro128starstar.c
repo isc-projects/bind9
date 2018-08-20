@@ -60,7 +60,7 @@ static volatile HANDLE _mutex = NULL;
 #else /* defined(_WIN32) || defined(_WIN64) */
 
 #include <pthread.h>
-static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
+//static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
 #define _LOCK()   pthread_mutex_lock(&_mutex)
 #define _UNLOCK() pthread_mutex_unlock(&_mutex)
 #endif /* defined(_WIN32) || defined(_WIN64) */

@@ -213,7 +213,7 @@ task_finished(isc__task_t *task) {
 		 * any idle worker threads so they
 		 * can exit.
 		 */
-		for (int i=0; i<manager->workers; i++) {
+		for (unsigned i=0; i<manager->workers; i++) {
 			LOCK(&manager->locks[i]);
 			BROADCAST(&manager->work_available[i]);
 			UNLOCK(&manager->locks[i]);
@@ -1159,11 +1159,11 @@ dispatch(isc__taskmgr_t *manager, int c) {
 		if (manager->tasks_running == 0 && empty_readyq(manager, c)) {
 			if (manager->mode != isc_taskmgrmode_normal) {
 				manager->mode = isc_taskmgrmode_normal;
-				for (int i=0; i<manager->workers; i++) {
-					if (i != c)
+				for (unsigned i=0; i<manager->workers; i++) {
+					if (i != (unsigned)c)
 						LOCK(&manager->locks[i]);
 					BROADCAST(&manager->work_available[i]);
-					if (i != c)
+					if (i != (unsigned)c)
 						UNLOCK(&manager->locks[i]);
 				}
 			}
@@ -1542,7 +1542,7 @@ isc_task_endexclusive(isc_task_t *task0) {
 	REQUIRE(manager->exclusive_requested);
 	manager->exclusive_requested = false;
 	UNLOCK(&manager->lock);
-	for (int i=0; i < manager->workers; i++) {
+	for (unsigned i=0; i < manager->workers; i++) {
 		LOCK(&manager->locks[i]);
 		BROADCAST(&manager->work_available[i]);
 		UNLOCK(&manager->locks[i]);
