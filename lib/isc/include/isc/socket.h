@@ -244,8 +244,7 @@ typedef enum {
 	isc_sockettype_udp = 1,
 	isc_sockettype_tcp = 2,
 	isc_sockettype_unix = 3,
-	isc_sockettype_fdwatch = 4,
-	isc_sockettype_raw = 5
+	isc_sockettype_raw = 4
 } isc_sockettype_t;
 
 /*@{*/
@@ -274,14 +273,6 @@ typedef enum {
  */
 #define ISC_SOCKFLAG_IMMEDIATE	0x00000001	/*%< send event only if needed */
 #define ISC_SOCKFLAG_NORETRY	0x00000002	/*%< drop failed UDP sends */
-/*@}*/
-
-/*@{*/
-/*!
- * Flags for fdwatchcreate.
- */
-#define ISC_SOCKFDWATCH_READ	0x00000001	/*%< watch for readable */
-#define ISC_SOCKFDWATCH_WRITE	0x00000002	/*%< watch for writable */
 /*@}*/
 
 /*%
@@ -331,85 +322,12 @@ struct isc_socket {
  ***/
 
 isc_result_t
-isc_socket_fdwatchcreate(isc_socketmgr_t *manager,
-			 int fd,
-			 int flags,
-			 isc_sockfdwatch_t callback,
-			 void *cbarg,
-			 isc_task_t *task,
-			 isc_socket_t **socketp);
-/*%<
- * Create a new file descriptor watch socket managed by 'manager'.
- *
- * Note:
- *
- *\li   'fd' is the already-opened file descriptor (must be less
- * 	than maxsockets).
- *\li	This function is not available on Windows.
- *\li	The callback function is called "in-line" - this means the function
- *	needs to return as fast as possible, as all other I/O will be suspended
- *	until the callback completes.
- *
- * Requires:
- *
- *\li	'manager' is a valid manager
- *
- *\li	'socketp' is a valid pointer, and *socketp == NULL
- *
- *\li	'fd' be opened.
- *
- * Ensures:
- *
- *	'*socketp' is attached to the newly created fdwatch socket
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_NORESOURCES
- *\li	#ISC_R_UNEXPECTED
- *\li	#ISC_R_RANGE
- */
-
-isc_result_t
-isc_socket_fdwatchpoke(isc_socket_t *sock,
-		       int flags);
-/*%<
- * Poke a file descriptor watch socket informing the manager that it
- * should restart watching the socket
- *
- * Note:
- *
- *\li   'sock' is the socket returned by isc_socket_fdwatchcreate
- *
- *\li   'flags' indicates what the manager should watch for on the socket
- *      in addition to what it may already be watching.  It can be one or
- *      both of ISC_SOCKFDWATCH_READ and ISC_SOCKFDWATCH_WRITE.  To
- *      temporarily disable watching on a socket the value indicating
- *      no more data should be returned from the call back routine.
- *
- *\li	This function is not available on Windows.
- *
- * Requires:
- *
- *\li	'sock' is a valid isc socket
- *
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS
- */
-
-isc_result_t
 isc_socket_create(isc_socketmgr_t *manager,
 		  int pf,
 		  isc_sockettype_t type,
 		  isc_socket_t **socketp);
 /*%<
  * Create a new 'type' socket managed by 'manager'.
- *
- * For isc_sockettype_fdwatch sockets you should use isc_socket_fdwatchcreate()
- * rather than isc_socket_create().
  *
  * Note:
  *
@@ -420,8 +338,6 @@ isc_socket_create(isc_socketmgr_t *manager,
  *\li	'manager' is a valid manager
  *
  *\li	'socketp' is a valid pointer, and *socketp == NULL
- *
- *\li	'type' is not isc_sockettype_fdwatch
  *
  * Ensures:
  *
@@ -552,16 +468,11 @@ isc_socket_open(isc_socket_t *sock);
  * one.  This optimization may not be available for some systems, in which
  * case this function will return ISC_R_NOTIMPLEMENTED and must not be used.
  *
- * isc_socket_open() should not be called on sockets created by
- * isc_socket_fdwatchcreate().
- *
  * Requires:
  *
  * \li	there must be no other reference to this socket.
  *
  * \li	'socket' is a valid and previously closed by isc_socket_close()
- *
- * \li  'sock->type' is not isc_sockettype_fdwatch
  *
  * Returns:
  *	Same as isc_socket_create().
@@ -578,9 +489,6 @@ isc_socket_close(isc_socket_t *sock);
  * systems, in which case this function will return ISC_R_NOTIMPLEMENTED and
  * must not be used.
  *
- * isc_socket_close() should not be called on sockets created by
- * isc_socket_fdwatchcreate().
- *
  * Requires:
  *
  * \li	The socket must have a valid descriptor.
@@ -588,8 +496,6 @@ isc_socket_close(isc_socket_t *sock);
  * \li	There must be no other reference to this socket.
  *
  * \li	There must be no pending I/O requests.
- *
- * \li  'sock->type' is not isc_sockettype_fdwatch
  *
  * Returns:
  * \li	#ISC_R_NOTIMPLEMENTED
