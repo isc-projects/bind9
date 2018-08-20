@@ -16,7 +16,6 @@
 #include <ck_pr.h>
 
 #include <isc/assertions.h>
-#include <isc/atomic.h>
 #include <isc/error.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
