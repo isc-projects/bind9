@@ -16985,7 +16985,7 @@ if test "$ac_res" != no; then :
   test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
 
 			   CK_CFLAGS="-I$with_ck/include"
-			   CK_LIBS="-L$with_ck/lib -lck"
+			   CK_LIBS="-Wl,-rpath,$with_ck/lib -L$with_ck/lib -lck"
 
 else
   as_fn_error $? "Concurrency Kit is mandatory" "$LINENO" 5
