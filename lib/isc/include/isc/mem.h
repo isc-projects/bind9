@@ -38,7 +38,7 @@ typedef void (*isc_memfree_t)(void *, void *);
  * allocation and freeing by file and line number.
  */
 #ifndef ISC_MEM_TRACKLINES
-#define ISC_MEM_TRACKLINES 1
+#define ISC_MEM_TRACKLINES 0
 #endif
 
 /*%
