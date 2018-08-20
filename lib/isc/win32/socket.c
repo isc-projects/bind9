@@ -1551,7 +1551,6 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
-	REQUIRE(type != isc_sockettype_fdwatch);
 
 #ifndef SOCK_RAW
 	if (type == isc_sockettype_raw)
@@ -1757,7 +1756,6 @@ isc_socket_dup(isc_socket_t *sock, isc_socket_t **socketp) {
 isc_result_t
 isc_socket_open(isc_socket_t *sock) {
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -1789,7 +1787,6 @@ isc_socket_detach(isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL);
 	sock = *socketp;
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	LOCK(&sock->lock);
 	CONSISTENT(sock);
@@ -1815,7 +1812,6 @@ isc_socket_detach(isc_socket_t **socketp) {
 isc_result_t
 isc_socket_close(isc_socket_t *sock) {
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -2903,7 +2899,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	isc_result_t ret;
 
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	LOCK(&sock->lock);
 	CONSISTENT(sock);
@@ -3706,8 +3701,6 @@ _socktype(isc_sockettype_t type) {
 		return ("tcp");
 	else if (type == isc_sockettype_unix)
 		return ("unix");
-	else if (type == isc_sockettype_fdwatch)
-		return ("fdwatch");
 	else
 		return ("not-initialized");
 }
