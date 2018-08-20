@@ -36,6 +36,8 @@ typedef enum {
 } isc_rwlocktype_t;
 
 #if HAVE_PTHREAD_RWLOCK_RDLOCK
+#define ISC_RWLOCK_USEATOMIC 1
+#define ISC_RWLOCK_USESTDATOMIC 1
 
 struct isc_rwlock {
 	pthread_rwlock_t	rwlock;
