@@ -20,6 +20,8 @@
 #include <stddef.h>
 #include <limits.h>
 
+#include <ck_queue.h>
+
 #include <isc/bind9.h>
 #include <isc/json.h>
 #include <isc/magic.h>
@@ -60,24 +62,8 @@ LIBISC_EXTERNAL_DATA unsigned int isc_mem_defaultflags = ISC_MEMFLAG_DEFAULT;
 typedef struct isc__mem isc__mem_t;
 typedef struct isc__mempool isc__mempool_t;
 
-#if ISC_MEM_TRACKLINES
-typedef struct debuglink debuglink_t;
-struct debuglink {
-	ISC_LINK(debuglink_t)	link;
-	const void	       *ptr;
-	size_t			size;
-	const char	       *file;
-	unsigned int		line;
-};
-
-typedef ISC_LIST(debuglink_t)	debuglist_t;
-
-#define FLARG_PASS	, file, line
-#define FLARG		, const char *file, unsigned int line
-#else
 #define FLARG_PASS
 #define FLARG
-#endif
 
 typedef struct element element;
 struct element {
@@ -107,10 +93,9 @@ struct stats {
 
 /* List of all active memory contexts. */
 
-static ISC_LIST(isc__mem_t)	contexts;
+static CK_LIST_HEAD(contexts_list, isc__mem)	contexts = CK_LIST_HEAD_INITIALIZER(contexts);
 
 static isc_once_t		once = ISC_ONCE_INIT;
-static isc_mutex_t		contextslock;
 static isc_mutex_t 		createlock;
 
 /*%
@@ -144,8 +129,7 @@ struct isc__mem {
 	bool		is_overmem;
 	isc_mem_water_t		water;
 	void *			water_arg;
-	ISC_LIST(isc__mempool_t) pools;
-	unsigned int		poolcnt;
+	CK_LIST_HEAD(pool_list, isc__mempool) pools;
 
 	/*  ISC_MEMFLAG_INTERNAL */
 	size_t			mem_target;
@@ -157,13 +141,8 @@ struct isc__mem {
 	unsigned char *		lowest;
 	unsigned char *		highest;
 
-#if ISC_MEM_TRACKLINES
-	debuglist_t *	 	debuglist;
-	size_t			debuglistcnt;
-#endif
-
 	unsigned int		memalloc_failures;
-	ISC_LINK(isc__mem_t)	link;
+	CK_LIST_ENTRY(isc__mem) link;
 };
 
 #define MEMPOOL_MAGIC		ISC_MAGIC('M', 'E', 'M', 'p')
@@ -175,7 +154,6 @@ struct isc__mempool {
 	isc_mutex_t    *lock;		/*%< optional lock */
 	isc__mem_t      *mctx;		/*%< our memory context */
 	/*%< locked via the memory context's lock */
-	ISC_LINK(isc__mempool_t)	link;	/*%< next pool in this mem context */
 	/*%< optionally locked from here down */
 	element	       *items;		/*%< low water item list */
 	size_t		size;		/*%< size of each item on this pool */
@@ -190,35 +168,16 @@ struct isc__mempool {
 #if ISC_MEMPOOL_NAMES
 	char		name[16];	/*%< printed name in stats reports */
 #endif
+	CK_LIST_ENTRY(isc__mempool)	link;
 };
 
 /*
  * Private Inline-able.
  */
 
-#if ! ISC_MEM_TRACKLINES
 #define ADD_TRACE(a, b, c, d, e)
 #define DELETE_TRACE(a, b, c, d, e)
 #define ISC_MEMFUNC_SCOPE
-#else
-#define TRACE_OR_RECORD (ISC_MEM_DEBUGTRACE|ISC_MEM_DEBUGRECORD)
-#define ADD_TRACE(a, b, c, d, e) \
-	do { \
-		if (ISC_UNLIKELY((isc_mem_debugging & TRACE_OR_RECORD) != 0 && \
-				 b != NULL))				\
-			add_trace_entry(a, b, c, d, e);			\
-	} while (0)
-#define DELETE_TRACE(a, b, c, d, e)					\
-	do {								\
-		if (ISC_UNLIKELY((isc_mem_debugging & TRACE_OR_RECORD) != 0 && \
-				 b != NULL))				\
-			delete_trace_entry(a, b, c, d, e);		\
-	} while(0)
-
-static void
-print_active(isc__mem_t *ctx, FILE *out);
-
-#endif /* ISC_MEM_TRACKLINES */
 
 /*%
  * The following are intended for internal use (indicated by "isc__"
@@ -373,85 +332,6 @@ static struct isc__mempoolmethods {
 	(void *)isc_mempool_getmaxalloc,
 	(void *)isc_mempool_getfillcount
 };
-
-#if ISC_MEM_TRACKLINES
-/*!
- * mctx must be locked.
- */
-static void
-add_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size FLARG) {
-	debuglink_t *dl;
-	uint32_t hash;
-	uint32_t idx;
-
-	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
-		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-					       ISC_MSG_ADDTRACE,
-					       "add %p size %u "
-					       "file %s line %u mctx %p\n"),
-			ptr, size, file, line, mctx);
-
-	if (mctx->debuglist == NULL)
-		return;
-
-	hash = isc_hash_function(&ptr, sizeof(ptr), true, NULL);
-	idx = hash % DEBUG_TABLE_COUNT;
-
-	dl = malloc(sizeof(debuglink_t));
-	INSIST(dl != NULL);
-	mctx->malloced += sizeof(debuglink_t);
-	if (mctx->malloced > mctx->maxmalloced)
-		mctx->maxmalloced = mctx->malloced;
-
-	ISC_LINK_INIT(dl, link);
-	dl->ptr = ptr;
-	dl->size = size;
-	dl->file = file;
-	dl->line = line;
-
-	ISC_LIST_PREPEND(mctx->debuglist[idx], dl, link);
-	mctx->debuglistcnt++;
-}
-
-static void
-delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
-		   const char *file, unsigned int line)
-{
-	debuglink_t *dl;
-	uint32_t hash;
-	uint32_t idx;
-
-	if ((isc_mem_debugging & ISC_MEM_DEBUGTRACE) != 0)
-		fprintf(stderr, isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-					       ISC_MSG_DELTRACE,
-					       "del %p size %u "
-					       "file %s line %u mctx %p\n"),
-			ptr, size, file, line, mctx);
-
-	if (mctx->debuglist == NULL)
-		return;
-
-	hash = isc_hash_function(&ptr, sizeof(ptr), true, NULL);
-	idx = hash % DEBUG_TABLE_COUNT;
-
-	dl = ISC_LIST_HEAD(mctx->debuglist[idx]);
-	while (ISC_LIKELY(dl != NULL)) {
-		if (ISC_UNLIKELY(dl->ptr == ptr)) {
-			ISC_LIST_UNLINK(mctx->debuglist[idx], dl, link);
-			mctx->malloced -= sizeof(*dl);
-			free(dl);
-			return;
-		}
-		dl = ISC_LIST_NEXT(dl, link);
-	}
-
-	/*
-	 * If we get here, we didn't find the item on the list.  We're
-	 * screwed.
-	 */
-	INSIST(0);
-}
-#endif /* ISC_MEM_TRACKLINES */
 
 static inline size_t
 rmsize(size_t size) {
@@ -854,8 +734,8 @@ default_memfree(void *arg, void *ptr) {
 static void
 initialize_action(void) {
 	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mutex_init(&contextslock) == ISC_R_SUCCESS);
-	ISC_LIST_INIT(contexts);
+	CK_LIST_INIT(&contexts);
+
 	totallost = 0;
 }
 
@@ -929,12 +809,9 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	ctx->arg = arg;
 	ctx->stats = NULL;
 	ctx->checkfree = true;
-#if ISC_MEM_TRACKLINES
-	ctx->debuglist = NULL;
-	ctx->debuglistcnt = 0;
-#endif
-	ISC_LIST_INIT(ctx->pools);
-	ctx->poolcnt = 0;
+
+	CK_LIST_INIT(&ctx->pools);
+
 	ctx->freelists = NULL;
 	ctx->basic_blocks = NULL;
 	ctx->basic_table = NULL;
@@ -970,28 +847,9 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 		ctx->maxmalloced += ctx->max_size * sizeof(element *);
 	}
 
-#if ISC_MEM_TRACKLINES
-	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0)) {
-		unsigned int i;
-
-		ctx->debuglist = (memalloc)(arg, (DEBUG_TABLE_COUNT *
-						  sizeof(debuglist_t)));
-		if (ctx->debuglist == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto error;
-		}
-		for (i = 0; i < DEBUG_TABLE_COUNT; i++)
-			ISC_LIST_INIT(ctx->debuglist[i]);
-		ctx->malloced += DEBUG_TABLE_COUNT * sizeof(debuglist_t);
-		ctx->maxmalloced += DEBUG_TABLE_COUNT * sizeof(debuglist_t);
-	}
-#endif
-
 	ctx->memalloc_failures = 0;
 
-	LOCK(&contextslock);
-	ISC_LIST_INITANDAPPEND(contexts, ctx, link);
-	UNLOCK(&contextslock);
+	CK_LIST_INSERT_HEAD(&contexts, ctx, link);
 
 	*ctxp = (isc_mem_t *)ctx;
 	return (ISC_R_SUCCESS);
@@ -1002,10 +860,6 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 			(memfree)(arg, ctx->stats);
 		if (ctx->freelists != NULL)
 			(memfree)(arg, ctx->freelists);
-#if ISC_MEM_TRACKLINES
-		if (ctx->debuglist != NULL)
-			(ctx->memfree)(ctx->arg, ctx->debuglist);
-#endif /* ISC_MEM_TRACKLINES */
 		if ((ctx->flags & ISC_MEMFLAG_NOLOCK) == 0)
 			DESTROYLOCK(&ctx->lock);
 		(memfree)(arg, ctx);
@@ -1018,37 +872,14 @@ static void
 destroy(isc__mem_t *ctx) {
 	unsigned int i;
 
-	LOCK(&contextslock);
-	ISC_LIST_UNLINK(contexts, ctx, link);
+	CK_LIST_REMOVE(ctx, link);
 	totallost += ctx->inuse;
-	UNLOCK(&contextslock);
 
 	ctx->common.impmagic = 0;
 	ctx->common.magic = 0;
 
-	INSIST(ISC_LIST_EMPTY(ctx->pools));
+	INSIST(CK_LIST_EMPTY(&ctx->pools));
 
-#if ISC_MEM_TRACKLINES
-	if (ISC_UNLIKELY(ctx->debuglist != NULL)) {
-		debuglink_t *dl;
-		for (i = 0; i < DEBUG_TABLE_COUNT; i++)
-			for (dl = ISC_LIST_HEAD(ctx->debuglist[i]);
-			     dl != NULL;
-			     dl = ISC_LIST_HEAD(ctx->debuglist[i])) {
-				if (ctx->checkfree && dl->ptr != NULL)
-					print_active(ctx, stderr);
-				INSIST (!ctx->checkfree || dl->ptr == NULL);
-
-				ISC_LIST_UNLINK(ctx->debuglist[i],
-						dl, link);
-				free(dl);
-				ctx->malloced -= sizeof(*dl);
-			}
-
-		(ctx->memfree)(ctx->arg, ctx->debuglist);
-		ctx->malloced -= DEBUG_TABLE_COUNT * sizeof(debuglist_t);
-	}
-#endif
 	isc_refcount_destroy(&ctx->references);
 
 	if (ctx->checkfree) {
@@ -1059,9 +890,6 @@ destroy(isc__mem_t *ctx) {
 					"leaked memory in context %p (\"%s\") "
 					"(stats[%u].gets == %lu).\n",
 					ctx, ctx->name, i, ctx->stats[i].gets);
-#if ISC_MEM_TRACKLINES
-				print_active(ctx, stderr);
-#endif
 				INSIST(ctx->stats[i].gets == 0U);
 			}
 		}
@@ -1195,13 +1023,7 @@ isc__mem_destroy(isc_mem_t **ctxp) {
 	ctx = (isc__mem_t *)*ctxp;
 	REQUIRE(VALID_CONTEXT(ctx));
 
-#if ISC_MEM_TRACKLINES
-	if (isc_refcount_decrement(&ctx->references) != 1) {
-		print_active(ctx, stderr);
-	}
-#else
 	(void)isc_refcount_decrement(&ctx->references);
-#endif
 	isc_refcount_destroy(&ctx->references);
 	destroy(ctx);
 
@@ -1318,45 +1140,6 @@ isc__mem_waterack(isc_mem_t *ctx0, int flag) {
 	MCTXUNLOCK(ctx, &ctx->lock);
 }
 
-#if ISC_MEM_TRACKLINES
-static void
-print_active(isc__mem_t *mctx, FILE *out) {
-	if (mctx->debuglist != NULL) {
-		debuglink_t *dl;
-		unsigned int i;
-		const char *format;
-		bool found;
-
-		fprintf(out, "%s", isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-					    ISC_MSG_DUMPALLOC,
-					    "Dump of all outstanding "
-					    "memory allocations:\n"));
-		found = false;
-		format = isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-					ISC_MSG_PTRFILELINE,
-					"\tptr %p size %u file %s line %u\n");
-		for (i = 0; i < DEBUG_TABLE_COUNT; i++) {
-			dl = ISC_LIST_HEAD(mctx->debuglist[i]);
-
-			if (dl != NULL)
-				found = true;
-
-			while (dl != NULL) {
-				if (dl->ptr != NULL)
-					fprintf(out, format,
-						dl->ptr, dl->size,
-						dl->file, dl->line);
-				dl = ISC_LIST_NEXT(dl, link);
-			}
-		}
-
-		if (!found)
-			fputs(isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-					     ISC_MSG_NONE, "\tNone.\n"), out);
-	}
-}
-#endif
-
 /*
  * Print the stats[] on the stream "out" with suitable formatting.
  */
@@ -1384,6 +1167,7 @@ isc_mem_stats(isc_mem_t *ctx0, FILE *out) {
 				s->blocks, s->freefrags);
 		fputc('\n', out);
 	}
+	MCTXUNLOCK(ctx, &ctx->lock);
 
 	/*
 	 * Note that since a pool can be locked now, these stats might be
@@ -1392,31 +1176,8 @@ isc_mem_stats(isc_mem_t *ctx0, FILE *out) {
 	 * lock, however, so walking this list and extracting integers from
 	 * stats fields is always safe.
 	 */
-	pool = ISC_LIST_HEAD(ctx->pools);
-	if (pool != NULL) {
-		fprintf(out, "%s", isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-					    ISC_MSG_POOLSTATS,
-					    "[Pool statistics]\n"));
-		fprintf(out, "%15s %10s %10s %10s %10s %10s %10s %10s %1s\n",
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				       ISC_MSG_POOLNAME, "name"),
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				       ISC_MSG_POOLSIZE, "size"),
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				       ISC_MSG_POOLMAXALLOC, "maxalloc"),
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				       ISC_MSG_POOLALLOCATED, "allocated"),
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				       ISC_MSG_POOLFREECOUNT, "freecount"),
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				       ISC_MSG_POOLFREEMAX, "freemax"),
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				       ISC_MSG_POOLFILLCOUNT, "fillcount"),
-			isc_msgcat_get(isc_msgcat, ISC_MSGSET_MEM,
-				       ISC_MSG_POOLGETS, "gets"),
-			"L");
-	}
-	while (pool != NULL) {
+	CK_LIST_FOREACH(pool, &ctx->pools, link) {
+
 		fprintf(out, "%15s %10lu %10u %10u %10u %10u %10u %10u %s\n",
 #if ISC_MEMPOOL_NAMES
 			pool->name,
@@ -1427,14 +1188,8 @@ isc_mem_stats(isc_mem_t *ctx0, FILE *out) {
 			pool->allocated, pool->freecount, pool->freemax,
 			pool->fillcount, pool->gets,
 			(pool->lock == NULL ? "N" : "Y"));
-		pool = ISC_LIST_NEXT(pool, link);
 	}
 
-#if ISC_MEM_TRACKLINES
-	print_active(ctx, out);
-#endif
-
-	MCTXUNLOCK(ctx, &ctx->lock);
 }
 
 /*
@@ -1842,10 +1597,7 @@ isc__mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 
 	*mpctxp = (isc_mempool_t *)mpctx;
 
-	MCTXLOCK(mctx, &mctx->lock);
-	ISC_LIST_INITANDAPPEND(mctx->pools, mpctx, link);
-	mctx->poolcnt++;
-	MCTXUNLOCK(mctx, &mctx->lock);
+	CK_LIST_INSERT_HEAD(&mctx->pools, mpctx, link);
 
 	return (ISC_R_SUCCESS);
 }
@@ -1919,10 +1671,7 @@ isc__mempool_destroy(isc_mempool_t **mpctxp) {
 	/*
 	 * Remove our linked list entry from the memory context.
 	 */
-	MCTXLOCK(mctx, &mctx->lock);
-	ISC_LIST_UNLINK(mctx->pools, mpctx, link);
-	mctx->poolcnt--;
-	MCTXUNLOCK(mctx, &mctx->lock);
+	CK_LIST_REMOVE(mpctx, link);
 
 	mpctx->common.impmagic = 0;
 	mpctx->common.magic = 0;
@@ -2008,16 +1757,6 @@ isc___mempool_get(isc_mempool_t *mpctx0 FLARG) {
 	if (mpctx->lock != NULL)
 		UNLOCK(mpctx->lock);
 
-#if ISC_MEM_TRACKLINES
-	if (ISC_UNLIKELY(((isc_mem_debugging & TRACE_OR_RECORD) != 0) &&
-			 item != NULL))
-	{
-		MCTXLOCK(mctx, &mctx->lock);
-		ADD_TRACE(mctx, item, mpctx->size, file, line);
-		MCTXUNLOCK(mctx, &mctx->lock);
-	}
-#endif /* ISC_MEM_TRACKLINES */
-
 	return (item);
 }
 
@@ -2038,14 +1777,6 @@ isc___mempool_put(isc_mempool_t *mpctx0, void *mem FLARG) {
 
 	INSIST(mpctx->allocated > 0);
 	mpctx->allocated--;
-
-#if ISC_MEM_TRACKLINES
-	if (ISC_UNLIKELY((isc_mem_debugging & TRACE_OR_RECORD) != 0)) {
-		MCTXLOCK(mctx, &mctx->lock);
-		DELETE_TRACE(mctx, mem, mpctx->size, file, line);
-		MCTXUNLOCK(mctx, &mctx->lock);
-	}
-#endif /* ISC_MEM_TRACKLINES */
 
 	/*
 	 * If our free list is full, return this to the mctx directly.
@@ -2226,71 +1957,22 @@ isc__mem_register(void) {
 
 void
 isc__mem_printactive(isc_mem_t *ctx0, FILE *file) {
-#if ISC_MEM_TRACKLINES
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(file != NULL);
-
-	print_active(ctx, file);
-#else
 	UNUSED(ctx0);
 	UNUSED(file);
-#endif
-}
-
-
-/*
- * Requires contextslock to be held by caller.
- */
-static void
-print_contexts(FILE *file) {
-	isc__mem_t *ctx;
-
-	for (ctx = ISC_LIST_HEAD(contexts);
-	     ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link))
-	{
-		fprintf(file, "context: %p (%s): %" PRIu32 " references\n",
-			ctx,
-			ctx->name[0] == 0 ? "<unknown>" : ctx->name,
-			isc_refcount_current(&ctx->references));
-		print_active(ctx, file);
-	}
-	fflush(file);
 }
 
 void
 isc_mem_printallactive(FILE *file) {
-#if !ISC_MEM_TRACKLINES
 	UNUSED(file);
-#else
-	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
-
-	LOCK(&contextslock);
-	print_contexts(file);
-	UNLOCK(&contextslock);
-#endif
 }
 
 void
 isc_mem_checkdestroyed(FILE *file) {
-#if !ISC_MEM_TRACKLINES
 	UNUSED(file);
-#endif
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
-	LOCK(&contextslock);
-	if (!ISC_LIST_EMPTY(contexts)) {
-#if ISC_MEM_TRACKLINES
-		if (ISC_UNLIKELY((isc_mem_debugging & TRACE_OR_RECORD) != 0)) {
-			print_contexts(file);
-		}
-#endif
-		INSIST(0);
-	}
-	UNLOCK(&contextslock);
+	INSIST(CK_LIST_EMPTY(&contexts));
 }
 
 unsigned int
@@ -2335,13 +2017,6 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 		(ctx->max_size + 1) * sizeof(struct stats) +
 		ctx->max_size * sizeof(element *) +
 		ctx->basic_table_count * sizeof(char *);
-#if ISC_MEM_TRACKLINES
-	if (ctx->debuglist != NULL) {
-		summary->contextsize +=
-			DEBUG_TABLE_COUNT * sizeof(debuglist_t) +
-			ctx->debuglistcnt * sizeof(debuglink_t);
-	}
-#endif
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "references"));
 	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIu32,
 					    isc_refcount_current(&ctx->references)));
@@ -2394,10 +2069,10 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 		TRY0(xmlTextWriterWriteFormatString(writer, "%s", "-"));
 	TRY0(xmlTextWriterEndElement(writer)); /* blocksize */
 
-	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "pools"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%u", ctx->poolcnt));
-	TRY0(xmlTextWriterEndElement(writer)); /* pools */
-	summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t);
+	/* TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "pools")); */
+	/* TRY0(xmlTextWriterWriteFormatString(writer, "%u", ctx->poolcnt)); */
+	/* TRY0(xmlTextWriterEndElement(writer)); /\* pools *\/ */
+	/* summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t); */
 
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "hiwater"));
 	TRY0(xmlTextWriterWriteFormatString(writer,
@@ -2432,18 +2107,13 @@ isc_mem_renderxml(xmlTextWriterPtr writer) {
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
-	LOCK(&contextslock);
 	lost = totallost;
-	for (ctx = ISC_LIST_HEAD(contexts);
-	     ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link)) {
+	CK_LIST_FOREACH(ctx, &contexts, link) {
 		xmlrc = xml_renderctx(ctx, &summary, writer);
 		if (xmlrc < 0) {
-			UNLOCK(&contextslock);
 			goto error;
 		}
 	}
-	UNLOCK(&contextslock);
 
 	TRY0(xmlTextWriterEndElement(writer)); /* contexts */
 
@@ -2522,13 +2192,6 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0)
 		summary->blocksize += ctx->basic_table_count *
 			NUM_BASIC_BLOCKS * ctx->mem_target;
-#if ISC_MEM_TRACKLINES
-	if (ctx->debuglist != NULL) {
-		summary->contextsize +=
-			DEBUG_TABLE_COUNT * sizeof(debuglist_t) +
-			ctx->debuglistcnt * sizeof(debuglink_t);
-	}
-#endif
 
 	ctxobj = json_object_new_object();
 	CHECKMEM(ctxobj);
@@ -2577,11 +2240,11 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 		json_object_object_add(ctxobj, "blocksize", obj);
 	}
 
-	obj = json_object_new_int64(ctx->poolcnt);
-	CHECKMEM(obj);
-	json_object_object_add(ctxobj, "pools", obj);
+	/* obj = json_object_new_int64(ctx->poolcnt); */
+	/* CHECKMEM(obj); */
+	/* json_object_object_add(ctxobj, "pools", obj); */
 
-	summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t);
+	/* summary->contextsize += ctx->poolcnt * sizeof(isc_mempool_t); */
 
 	obj = json_object_new_int64(ctx->hi_water);
 	CHECKMEM(obj);
@@ -2616,18 +2279,13 @@ isc_mem_renderjson(json_object *memobj) {
 	ctxarray = json_object_new_array();
 	CHECKMEM(ctxarray);
 
-	LOCK(&contextslock);
 	lost = totallost;
-	for (ctx = ISC_LIST_HEAD(contexts);
-	     ctx != NULL;
-	     ctx = ISC_LIST_NEXT(ctx, link)) {
+	CK_LIST_FOREACH(ctx, &contexts, link) {
 		result = json_renderctx(ctx, &summary, ctxarray);
 		if (result != ISC_R_SUCCESS) {
-			UNLOCK(&contextslock);
 			goto error;
 		}
 	}
-	UNLOCK(&contextslock);
 
 	obj = json_object_new_int64(summary.total);
 	CHECKMEM(obj);
