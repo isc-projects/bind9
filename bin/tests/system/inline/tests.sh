@@ -1286,9 +1286,15 @@ do
 	sleep 1
 done
 if [ $ans != 0 ]; then ret=1; fi
-# Restart the server.  Note --use-rndc is not used since it causes master file
-# flushing upon shutdown and we specifically want to avoid it.
-$PERL $SYSTEMTESTTOP/stop.pl . ns3
+# Halt rather than stopping the server to prevent the masterfile being
+# flushed upon shutdown and we specifically want to avoid it.
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
+# Check that we were successful.
+rrsig1=`$CHECKZONE -q -i none -f raw -F text -D -o - delayedkeys ns3/delayedkeys.db.signed |
+        grep -w RRSIG | wc -l`
+rrsig2=`$CHECKZONE -q -j -i none -f raw -F text -D -o - delayedkeys ns3/delayedkeys.db.signed |
+        grep -w RRSIG | wc -l`
+test ${rrsig1:-1} -eq 0 -a ${rrsig2:-0} -gt 0 || { echo_i "halting failed"; ret=1; }
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
 # At this point, the raw zone journal will not have a source serial set.  Upon
 # server startup, receive_secure_serial() will rectify that, update SOA, resign
