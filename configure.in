@@ -1525,7 +1525,7 @@ AS_CASE([$with_ck],
 	  AC_SEARCH_LIBS([ck_array_init], [ck],
 			 [
 			   CK_CFLAGS="-I$with_ck/include"
-			   CK_LIBS="-L$with_ck/lib -lck"
+			   CK_LIBS="-L$with_ck/lib -Wl,rpath=$with_ck/lib -lck"
 			 ],
 			 [AC_MSG_ERROR([Concurrency Kit is mandatory])])])
 
