@@ -468,10 +468,6 @@ static isc_result_t allocate_socket(isc__socketmgr_t *, isc_sockettype_t,
 static void destroy(isc__socket_t **);
 static void internal_accept(isc_task_t *, isc_event_t *);
 static void internal_connect(isc_task_t *, isc_event_t *);
-static void internal_recv(isc_task_t *, isc_event_t *);
-static void internal_send(isc_task_t *, isc_event_t *);
-static void internal_fdwatch_write(isc_task_t *, isc_event_t *);
-static void internal_fdwatch_read(isc_task_t *, isc_event_t *);
 static void process_cmsg(isc__socket_t *, struct msghdr *, isc_socketevent_t *);
 static void build_msghdr_send(isc__socket_t *, char *, isc_socketevent_t *,
 			      struct msghdr *, struct iovec *, size_t *);
@@ -756,7 +752,6 @@ watch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "epoll_ctl(ADD/MOD) returned "
 					 "EEXIST for fd %d", fd);
-		printf("CTL D failed %d %d %d %d %d %u %u %d\n", ret, errno, fd, manager->epoll_fds[fd % NUM_EPOLLS], op, oldevents, event.events, fd == manager->pipe_fds[0]);
 		result = isc__errno2result(errno);
 	}
 	return (result);
@@ -3099,83 +3094,6 @@ isc_socket_close(isc_socket_t *sock0) {
 }
 
 /*
- * I/O is possible on a given socket.  Schedule an event to this task that
- * will call an internal function to do the I/O.  This will charge the
- * task with the I/O operation and let our select loop handler get back
- * to doing something real as fast as possible.
- *
- * The socket and manager must be locked before calling this function.
- */
-static void
-dispatch_recv(isc__socket_t *sock) {
-	intev_t *iev;
-	isc_socketevent_t *ev;
-	isc_task_t *sender;
-
-	INSIST(!sock->pending_recv);
-
-	if (sock->type != isc_sockettype_fdwatch) {
-		ev = ISC_LIST_HEAD(sock->recv_list);
-		if (ev == NULL)
-			return;
-		socket_log(sock, NULL, EVENT, NULL, 0, 0,
-			   "dispatch_recv:  event %p -> task %p",
-			   ev, ev->ev_sender);
-		sender = ev->ev_sender;
-	} else {
-		sender = sock->fdwatchtask;
-	}
-
-	sock->pending_recv = 1;
-	iev = &sock->readable_ev;
-
-	sock->references++;
-	iev->ev_sender = sock;
-	if (sock->type == isc_sockettype_fdwatch)
-		iev->ev_action = internal_fdwatch_read;
-	else
-		iev->ev_action = internal_recv;
-	iev->ev_arg = sock;
-	UNLOCK(&sock->recvlock);
-	isc_task_send(sender, (isc_event_t **)&iev);
-	LOCK(&sock->recvlock);
-}
-
-static void
-dispatch_send(isc__socket_t *sock) {
-	intev_t *iev;
-	isc_socketevent_t *ev;
-	isc_task_t *sender;
-
-	INSIST(!sock->pending_send);
-
-	if (sock->type != isc_sockettype_fdwatch) {
-		ev = ISC_LIST_HEAD(sock->send_list);
-		if (ev == NULL)
-			return;
-		socket_log(sock, NULL, EVENT, NULL, 0, 0,
-			   "dispatch_send:  event %p -> task %p",
-			   ev, ev->ev_sender);
-		sender = ev->ev_sender;
-	} else {
-		sender = sock->fdwatchtask;
-	}
-
-	sock->pending_send = 1;
-	iev = &sock->writable_ev;
-
-	sock->references++;
-	iev->ev_sender = sock;
-	if (sock->type == isc_sockettype_fdwatch)
-		iev->ev_action = internal_fdwatch_write;
-	else
-		iev->ev_action = internal_send;
-	iev->ev_arg = sock;
-
-	isc_task_send(sender, (isc_event_t **)&iev);
-}
-
-/*
  * Dispatch an internal accept event.
  */
 static void
@@ -3570,19 +3488,10 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 }
 
 static void
-internal_recv(isc_task_t *me, isc_event_t *ev) {
+internal_recv(isc__socket_t *sock) {
 	isc_socketevent_t *dev;
-	isc__socket_t *sock;
 	bool locked = true;
-
-	INSIST(ev->ev_type == ISC_SOCKEVENT_INTR);
-
-	sock = ev->ev_sender;
 	INSIST(VALID_SOCKET(sock));
-
-	socket_log(sock, NULL, IOEVENT,
-		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
-		   "internal_recv: task %p got event %p", me, ev);
 
 	LOCK(&sock->sendlock);
 	LOCK(&sock->recvlock);
@@ -3646,22 +3555,12 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 }
 
 static void
-internal_send(isc_task_t *me, isc_event_t *ev) {
+internal_send(isc__socket_t *sock) {
 	isc_socketevent_t *dev;
-	isc__socket_t *sock;
-
-	INSIST(ev->ev_type == ISC_SOCKEVENT_INTW);
-
-	/*
-	 * Find out what socket this is and lock it.
-	 */
-	sock = (isc__socket_t *)ev->ev_sender;
+	
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->sendlock);
-	socket_log(sock, NULL, IOEVENT,
-		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
-		   "internal_send: task %p got event %p", me, ev);
 
 	INSIST(sock->pending_send == 1);
 	sock->pending_send = 0;
@@ -3698,89 +3597,6 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
 
 	UNLOCK(&sock->sendlock);
-}
-
-static void
-internal_fdwatch_write(isc_task_t *me, isc_event_t *ev) {
-	isc__socket_t *sock;
-	int more_data;
-
-	INSIST(ev->ev_type == ISC_SOCKEVENT_INTW);
-
-	/*
-	 * Find out what socket this is and lock it.
-	 */
-	sock = (isc__socket_t *)ev->ev_sender;
-	INSIST(VALID_SOCKET(sock));
-
-	LOCK(&sock->sendlock);
-	socket_log(sock, NULL, IOEVENT,
-		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
-		   "internal_fdwatch_write: task %p got event %p", me, ev);
-
-	INSIST(sock->pending_send == 1);
-
-	UNLOCK(&sock->sendlock);
-	more_data = (sock->fdwatchcb)(me, (isc_socket_t *)sock,
-				      sock->fdwatcharg, ISC_SOCKFDWATCH_WRITE);
-	LOCK(&sock->sendlock);
-
-	sock->pending_send = 0;
-
-	INSIST(sock->references > 0);
-	sock->references--;  /* the internal event is done with this socket */
-	if (sock->references == 0) {
-		UNLOCK(&sock->sendlock);
-		destroy(&sock);
-		return;
-	}
-
-	if (more_data)
-		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
-
-	UNLOCK(&sock->sendlock);
-}
-
-static void
-internal_fdwatch_read(isc_task_t *me, isc_event_t *ev) {
-	isc__socket_t *sock;
-	int more_data;
-
-	INSIST(ev->ev_type == ISC_SOCKEVENT_INTR);
-
-	/*
-	 * Find out what socket this is and lock it.
-	 */
-	sock = (isc__socket_t *)ev->ev_sender;
-	INSIST(VALID_SOCKET(sock));
-
-	LOCK(&sock->recvlock);
-	socket_log(sock, NULL, IOEVENT,
-		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
-		   "internal_fdwatch_read: task %p got event %p", me, ev);
-
-	INSIST(sock->pending_recv == 1);
-
-	UNLOCK(&sock->recvlock);
-	more_data = (sock->fdwatchcb)(me, (isc_socket_t *)sock,
-				      sock->fdwatcharg, ISC_SOCKFDWATCH_READ);
-	LOCK(&sock->recvlock);
-
-	sock->pending_recv = 0;
-
-	INSIST(sock->references > 0);
-	sock->references--;  /* the internal event is done with this socket */
-	if (sock->references == 0) {
-		UNLOCK(&sock->recvlock);
-		destroy(&sock);
-		return;
-	}
-
-	UNLOCK(&sock->recvlock);
-
-	if (more_data)
-		select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
-
 }
 
 /*
@@ -3821,7 +3637,7 @@ process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 			if (sock->listener)
 				dispatch_accept(sock);
 			else
-				dispatch_recv(sock);
+				internal_recv(sock);
 		}
 		unwatch_read = true;
 	}
@@ -3838,7 +3654,7 @@ check_write:
 			if (sock->connecting)
 				dispatch_connect(sock);
 			else
-				dispatch_send(sock);
+				internal_send(sock);
 		}
 		unwatch_write = true;
 	}
@@ -4287,7 +4103,6 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "epoll_ctl(ADD/MOD) returned "
 					 "EEXIST for fd %d", fd);
-			printf("CTL failed %d %d %d %d %d %u %u %d\n", ret, errno, fd, manager->epoll_fds[fd % NUM_EPOLLS], op, oldevents, event.events, fd == manager->pipe_fds[0]);
 			result = isc__errno2result(errno);
 			return (result);
 		}
@@ -4403,7 +4218,7 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 
 static void
 cleanup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 
 // FOO	result = unwatch_fd(manager, manager->pipe_fds[0], SELECT_POKE_READ);
 	if (result != ISC_R_SUCCESS) {
@@ -4529,7 +4344,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	 * Create the special fds that will be used to wake up the
 	 * select/poll loop when something internal needs to be done.
 	 */
-	for (int i=0; i < NUM_EPOLLS; i++) {
+	for (i=0; i < NUM_EPOLLS; i++) {
 		if (pipe(manager->pipe_fds[i]) != 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -4556,7 +4371,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	 * Start up the select/poll thread.
 	 */
 	isc_mem_attach(mctx, &manager->mctx);
-	for (int i=0; i<NUM_EPOLLS; i++) {
+	for (i=0; i<NUM_EPOLLS; i++) {
 		isc__mgrplus_t *m = isc_mem_get(mctx, sizeof(isc__mgrplus_t));
 		m->manager = manager;
 		m->id = i;
@@ -4586,7 +4401,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	return (ISC_R_SUCCESS);
 
 cleanup:
-	for (int i=0; i< NUM_EPOLLS; i++) {
+	for (i=0; i< NUM_EPOLLS; i++) {
 		(void)close(manager->pipe_fds[i][0]);
 		(void)close(manager->pipe_fds[i][1]);
 	}
@@ -4683,13 +4498,13 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * half of the pipe, which will send EOF to the read half.
 	 * This is currently a no-op in the non-threaded case.
 	 */
-	for (int i=0; i<NUM_EPOLLS; i++)
+	for (i=0; i<NUM_EPOLLS; i++)
 		select_poke(manager, i, SELECT_POKE_SHUTDOWN);
 
 	/*
 	 * Wait for thread to exit.
 	 */
-	for (int i=0; i<NUM_EPOLLS; i++) {
+	for (i=0; i<NUM_EPOLLS; i++) {
 		if (isc_thread_join(manager->watcher[i], NULL) != ISC_R_SUCCESS)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_thread_join() %s",
@@ -4702,7 +4517,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 */
 	cleanup_watcher(manager->mctx, manager);
 
-	for (int i=0; i<NUM_EPOLLS; i++) {
+	for (i=0; i<NUM_EPOLLS; i++) {
 		(void)close(manager->pipe_fds[i][0]);
 		(void)close(manager->pipe_fds[i][1]);
 	}
