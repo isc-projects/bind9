@@ -93,10 +93,6 @@
 
 #endif /* HAVE_SYSCTLBYNAME */
 
-#if defined(ISC_PLATFORM_NEEDIN6ADDRANY)
-const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;
-#endif
-
 #if defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 const struct in6_addr isc_net_in6addrloop = IN6ADDR_LOOPBACK_INIT;
 #endif

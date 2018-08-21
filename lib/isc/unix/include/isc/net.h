@@ -80,21 +80,6 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#ifndef IN6ADDR_ANY_INIT
-#ifdef s6_addr
-/*%
- * Required for some pre RFC2133 implementations.
- * IN6ADDR_ANY_INIT and IN6ADDR_LOOPBACK_INIT were added in
- * draft-ietf-ipngwg-bsd-api-04.txt or draft-ietf-ipngwg-bsd-api-05.txt.
- * If 's6_addr' is defined then assume that there is a union and three
- * levels otherwise assume two levels required.
- */
-#define IN6ADDR_ANY_INIT { { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } } }
-#else
-#define IN6ADDR_ANY_INIT { { 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0 } }
-#endif
-#endif
-
 #ifndef IN6ADDR_LOOPBACK_INIT
 #ifdef s6_addr
 /*% IPv6 address loopback init */
@@ -206,14 +191,6 @@ struct sockaddr_storage {
        uint64_t            __ss_align;  /* field to force desired structure */
        char                    __ss_pad2[_SS_PAD2SIZE];
 };
-#endif
-
-#if defined(ISC_PLATFORM_NEEDIN6ADDRANY)
-extern const struct in6_addr isc_net_in6addrany;
-/*%
- * Cope with a missing in6addr_any and in6addr_loopback.
- */
-#define in6addr_any isc_net_in6addrany
 #endif
 
 #if defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
