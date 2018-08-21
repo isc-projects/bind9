@@ -73,7 +73,7 @@ static const char *gai_messages[] = {
  * Returns an error message corresponding to an error code returned by
  * getaddrinfo() and getnameinfo()
  */
-IRS_GAISTRERROR_RETURN_T
+const char *
 gai_strerror(int ecode) {
 	union {
 		const char *const_ptr;

@@ -50,15 +50,6 @@
 /** define if tzset() is available */
 #undef HAVE_TZSET
 
-/** define if struct addrinfo exists */
-#undef HAVE_ADDRINFO
-
-/** define if getaddrinfo() exists */
-#undef HAVE_GETADDRINFO
-
-/** define if gai_strerror() exists */
-#undef HAVE_GAISTRERROR
-
 /**
  * define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.
