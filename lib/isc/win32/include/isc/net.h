@@ -108,9 +108,7 @@
 /*
  * Ensure type in_port_t is defined.
  */
-#ifdef ISC_PLATFORM_NEEDPORTT
 typedef uint16_t in_port_t;
-#endif
 
 /*
  * If this system does not have MSG_TRUNC (as returned from recvmsg())
