@@ -76,9 +76,6 @@
 
 #include <netinet/in.h>		/* Contractual promise. */
 #include <arpa/inet.h>		/* Contractual promise. */
-#ifdef ISC_PLATFORM_NEEDNETINETIN6H
-#include <netinet/in6.h>	/* Required on UnixWare. */
-#endif
 #ifdef ISC_PLATFORM_NEEDNETINET6IN6H
 #include <netinet6/in6.h>	/* Required on BSD/OS for in6_pktinfo. */
 #endif
@@ -236,27 +233,6 @@ extern const struct in6_addr isc_net_in6addrany;
 extern const struct in6_addr isc_net_in6addrloop;
 #define in6addr_loopback isc_net_in6addrloop
 #endif
-
-#ifdef ISC_PLATFORM_FIXIN6ISADDR
-#undef  IN6_IS_ADDR_GEOGRAPHIC
-/*!
- * \brief
- * Fix UnixWare 7.1.1's broken IN6_IS_ADDR_* definitions.
- */
-#define IN6_IS_ADDR_GEOGRAPHIC(a) (((a)->S6_un.S6_l[0] & 0xE0) == 0x80)
-#undef  IN6_IS_ADDR_IPX
-#define IN6_IS_ADDR_IPX(a)        (((a)->S6_un.S6_l[0] & 0xFE) == 0x04)
-#undef  IN6_IS_ADDR_LINKLOCAL
-#define IN6_IS_ADDR_LINKLOCAL(a)  (((a)->S6_un.S6_l[0] & 0xC0FF) == 0x80FE)
-#undef  IN6_IS_ADDR_MULTICAST
-#define IN6_IS_ADDR_MULTICAST(a)  (((a)->S6_un.S6_l[0] & 0xFF) == 0xFF)
-#undef  IN6_IS_ADDR_NSAP
-#define IN6_IS_ADDR_NSAP(a)       (((a)->S6_un.S6_l[0] & 0xFE) == 0x02)
-#undef  IN6_IS_ADDR_PROVIDER
-#define IN6_IS_ADDR_PROVIDER(a)   (((a)->S6_un.S6_l[0] & 0xE0) == 0x40)
-#undef  IN6_IS_ADDR_SITELOCAL
-#define IN6_IS_ADDR_SITELOCAL(a)  (((a)->S6_un.S6_l[0] & 0xC0FF) == 0xC0FE)
-#endif /* ISC_PLATFORM_FIXIN6ISADDR */
 
 #ifdef ISC_PLATFORM_NEEDPORTT
 /*%
