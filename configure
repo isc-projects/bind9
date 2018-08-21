@@ -13319,12 +13319,6 @@ case "$host" in
 		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
 		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
 		;;
-	#HP-UX: need -D_XOPEN_SOURCE_EXTENDED and -lxnet for CMSG macros
-	*-hp-hpux*)
-		STD_CDEFINES="$STD_CDEFINES -D_XOPEN_SOURCE_EXTENDED"
-		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
-		LIBS="-lxnet $LIBS"
-		;;
 	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
 	*-solaris*)
 		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
@@ -17426,12 +17420,6 @@ $as_echo "yes" >&6; }
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	fi
-	case "$host" in
-	*-hp-hpux*)
-		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
-		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
-		;;
-	esac
 	if test "X$enable_warn_shadow" = Xyes; then
 		STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
 	fi
@@ -17445,27 +17433,6 @@ else
 		CCOPT="$CCOPT -std"
 		CCNOOPT="$CCNOOPT -std"
 		MKDEPCC="$CC"
-		;;
-	*-hp-hpux*)
-		CC="$CC -Ae -z"
-		# The version of the C compiler that constantly warns about
-		# 'const' as well as alignment issues is unfortunately not
-		# able to be discerned via the version of the operating
-		# system, nor does cc have a version flag.
-		case "`$CC +W 123 2>&1`" in
-		*Unknown?option*)
-			STD_CWARNINGS="+w1"
-			;;
-		*)
-			# Turn off the pointlessly noisy warnings.
-			STD_CWARNINGS="+w1 +W 474,530,2193,2236"
-			;;
-		esac
-		CCOPT="$CCOPT -Ae -z"
-		CCNOOPT="$CCNOOPT -Ae -z"
-		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
-		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
-		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)
 		STD_CWARNINGS="-fullwarn -woff 1209"
@@ -19151,29 +19118,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 #
-# Older HP-UX doesn't have gettune
-#
-case "$host" in
-	*-hp-hpux*)
-		for ac_header in sys/dyntune.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/dyntune.h" "ac_cv_header_sys_dyntune_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_dyntune_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_DYNTUNE_H 1
-_ACEOF
-
-fi
-
-done
-
-		;;
-	*)
-		;;
-esac
-
-
-#
 # Compaq TruCluster requires more code for handling cluster IP aliases
 #
 case "$host" in
@@ -19318,54 +19262,6 @@ else
   ac_cv_have_if_nametoindex=no
 fi
 
-case $ac_cv_have_if_nametoindex in
-no)
-	case "$host" in
-	*-hp-hpux*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for if_nametoindex in -lipv6" >&5
-$as_echo_n "checking for if_nametoindex in -lipv6... " >&6; }
-if ${ac_cv_lib_ipv6_if_nametoindex+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lipv6  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char if_nametoindex ();
-int
-main ()
-{
-return if_nametoindex ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ipv6_if_nametoindex=yes
-else
-  ac_cv_lib_ipv6_if_nametoindex=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ipv6_if_nametoindex" >&5
-$as_echo "$ac_cv_lib_ipv6_if_nametoindex" >&6; }
-if test "x$ac_cv_lib_ipv6_if_nametoindex" = xyes; then :
-  ac_cv_have_if_nametoindex=yes
-				LIBS="-lipv6 $LIBS"
-fi
-
-	;;
-	esac
-esac
 case $ac_cv_have_if_nametoindex in
 yes)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
@@ -22158,12 +22054,6 @@ if test "yes" = "$dlopen"; then
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
 			SO_LDFLAGS="-G -z text"
-			SO_LD="ld"
-			;;
-		*-hp-hpux*)
-			SO=sl
-			SO_CFLAGS="+z"
-			SO_LDFLAGS="-b +vnocompatwarnings"
 			SO_LD="ld"
 			;;
 		*)
