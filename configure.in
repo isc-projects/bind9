@@ -379,12 +379,6 @@ case "$host" in
 		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
 		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
 		;;
-	#HP-UX: need -D_XOPEN_SOURCE_EXTENDED and -lxnet for CMSG macros
-	*-hp-hpux*)
-		STD_CDEFINES="$STD_CDEFINES -D_XOPEN_SOURCE_EXTENDED"
-		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
-		LIBS="-lxnet $LIBS"
-		;;
 	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
 	*-solaris*)
 		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
@@ -1720,12 +1714,6 @@ if test "X$GCC" = "Xyes"; then
 	else
 		AC_MSG_RESULT(no)
 	fi
-	case "$host" in
-	*-hp-hpux*)
-		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
-		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
-		;;
-	esac
 	if test "X$enable_warn_shadow" = Xyes; then
 		STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
 	fi
@@ -1739,27 +1727,6 @@ else
 		CCOPT="$CCOPT -std"
 		CCNOOPT="$CCNOOPT -std"
 		MKDEPCC="$CC"
-		;;
-	*-hp-hpux*)
-		CC="$CC -Ae -z"
-		# The version of the C compiler that constantly warns about
-		# 'const' as well as alignment issues is unfortunately not
-		# able to be discerned via the version of the operating
-		# system, nor does cc have a version flag.
-		case "`$CC +W 123 2>&1`" in
-		*Unknown?option*)
-			STD_CWARNINGS="+w1"
-			;;
-		*)
-			# Turn off the pointlessly noisy warnings.
-			STD_CWARNINGS="+w1 +W 474,530,2193,2236"
-			;;
-		esac
-		CCOPT="$CCOPT -Ae -z"
-		CCNOOPT="$CCNOOPT -Ae -z"
-		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
-		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
-		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
 		;;
 	*-sgi-irix*)
 		STD_CWARNINGS="-fullwarn -woff 1209"
@@ -2627,18 +2594,6 @@ AC_TRY_COMPILE([#include <sys/fcntl.h>],[struct stat s; return(s.st_mtim.tv_nsec
 AC_SUBST(ISC_PLATFORM_HAVESTATNSEC)
 
 #
-# Older HP-UX doesn't have gettune
-#
-case "$host" in
-	*-hp-hpux*)
-		AC_CHECK_HEADERS(sys/dyntune.h)
-		;;
-	*)
-		;;
-esac
-
-
-#
 # Compaq TruCluster requires more code for handling cluster IP aliases
 #
 case "$host" in
@@ -2709,16 +2664,6 @@ AC_SUBST(ISC_PLATFORM_HAVESTRINGSH)
 #
 AC_CHECK_FUNC(if_nametoindex, ac_cv_have_if_nametoindex=yes,
 		ac_cv_have_if_nametoindex=no)
-case $ac_cv_have_if_nametoindex in
-no)
-	case "$host" in
-	*-hp-hpux*)
-		AC_CHECK_LIB(ipv6, if_nametoindex,
-				ac_cv_have_if_nametoindex=yes
-				LIBS="-lipv6 $LIBS",)
-	;;
-	esac
-esac
 case $ac_cv_have_if_nametoindex in
 yes)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
@@ -3723,12 +3668,6 @@ if test "yes" = "$dlopen"; then
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
 			SO_LDFLAGS="-G -z text"
-			SO_LD="ld"
-			;;
-		*-hp-hpux*)
-			SO=sl
-			SO_CFLAGS="+z"
-			SO_LDFLAGS="-b +vnocompatwarnings"
 			SO_LD="ld"
 			;;
 		*)
