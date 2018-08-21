@@ -927,7 +927,6 @@ enable_epoll
 enable_devpoll
 with_geoip
 with_locktype
-with_libtool
 with_openssl
 with_cc_alg
 enable_native_pkcs11
@@ -1664,7 +1663,6 @@ Optional Packages:
                           installation directory for Python modules
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
   --with-locktype=ARG     Specify mutex lock type (adaptive or standard)
-  --with-libtool          use GNU libtool
   --with-openssl=DIR      root of the OpenSSL directory
   --with-cc-alg=ALG       choose the algorithm for Client Cookie
                           [aes|sha1|sha256] (default is aes)
@@ -15643,50 +15641,16 @@ fi
 
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libtool" >&5
-$as_echo_n "checking for libtool... " >&6; }
 
-# Check whether --with-libtool was given.
-if test "${with_libtool+set}" = set; then :
-  withval=$with_libtool; use_libtool="$withval"
-else
-  use_libtool="no"
-fi
-
-
-case $use_libtool in
-	yes)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-		O=lo
-		A=la
-		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
-		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
-		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall --tag=CC'
-		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-		case "$host" in
-		*) LIBTOOL_ALLOW_UNDEFINED= ;;
-		esac
-		;;
-	*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		O=o
-		A=a
-		LIBTOOL=
-
-		LIBTOOL_MKDEP_SED=
-		LIBTOOL_MODE_COMPILE=
-		LIBTOOL_MODE_INSTALL=
-		LIBTOOL_MODE_LINK=
-		LIBTOOL_MODE_UNINSTALL=
-		LIBTOOL_ALLOW_UNDEFINED=
-		INSTALL_LIBRARY='${INSTALL_DATA}'
-		;;
-esac
+O=lo
+A=la
+LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
+LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
+LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+LIBTOOL_MODE_UNINSTALL='--mode=uninstall --tag=CC'
+INSTALL_LIBRARY='${INSTALL_PROGRAM}'
+LIBTOOL_ALLOW_UNDEFINED=
 
 
 CRYPTO=OpenSSL

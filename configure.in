@@ -882,41 +882,16 @@ AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
 
 AC_SUBST(ALWAYS_DEFINES)
 
-AC_MSG_CHECKING(for libtool)
-AC_ARG_WITH(libtool, AS_HELP_STRING([--with-libtool], [use GNU libtool]),
-	    use_libtool="$withval", use_libtool="no")
-
-case $use_libtool in
-	yes)
-		AC_MSG_RESULT(yes)
-		AM_PROG_LIBTOOL
-		O=lo
-		A=la
-		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
-		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
-		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall --tag=CC'
-		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-		case "$host" in
-		*) LIBTOOL_ALLOW_UNDEFINED= ;;
-		esac
-		;;
-	*)
-		AC_MSG_RESULT(no)
-		O=o
-		A=a
-		LIBTOOL=
-		AC_SUBST(LIBTOOL)
-		LIBTOOL_MKDEP_SED=
-		LIBTOOL_MODE_COMPILE=
-		LIBTOOL_MODE_INSTALL=
-		LIBTOOL_MODE_LINK=
-		LIBTOOL_MODE_UNINSTALL=
-		LIBTOOL_ALLOW_UNDEFINED=
-		INSTALL_LIBRARY='${INSTALL_DATA}'
-		;;
-esac
+AM_PROG_LIBTOOL
+O=lo
+A=la
+LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
+LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
+LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
+LIBTOOL_MODE_LINK='--mode=link --tag=CC'
+LIBTOOL_MODE_UNINSTALL='--mode=uninstall --tag=CC'
+INSTALL_LIBRARY='${INSTALL_PROGRAM}'
+LIBTOOL_ALLOW_UNDEFINED=
 AC_SUBST(INSTALL_LIBRARY)
 
 CRYPTO=OpenSSL
