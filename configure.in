@@ -1946,27 +1946,11 @@ AC_COMPILE_IFELSE(
        struct sockaddr_in6 sin6;
        struct in6_addr in6;
        in6 = in6addr_any;
+       in6 = in6addr_loopback;
        return (0);
      ]])],
   [AC_MSG_RESULT([yes])],
   [AC_MSG_FAILURE([IPv6 support is mandatory])])
-
-AC_MSG_CHECKING([for in6addr_loopback])
-AC_COMPILE_IFELSE(
-  [AC_LANG_PROGRAM(
-     [[
-       #include <sys/types.h>
-       #include <sys/socket.h>
-       #include <netinet/in.h>
-       $isc_in_addr6_hack
-     ]],
-     [[
-       struct in6_addr in6; in6 = in6addr_loopback; return (in6.s6_addr[0]);
-     ]])],
-  [AC_MSG_RESULT(yes)
-   ISC_PLATFORM_NEEDIN6ADDRLOOPBACK="#undef ISC_PLATFORM_NEEDIN6ADDRLOOPBACK"],
-  [AC_MSG_RESULT(no)
-   ISC_PLATFORM_NEEDIN6ADDRLOOPBACK="#define ISC_PLATFORM_NEEDIN6ADDRLOOPBACK 1"])
 
 AC_MSG_CHECKING([for sin6_scope_id in struct sockaddr_in6])
 AC_COMPILE_IFELSE(
@@ -2011,7 +1995,6 @@ ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"],
 [AC_MSG_RESULT(no)
 ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"])
 
-AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
 AC_SUBST(ISC_PLATFORM_HAVESOCKADDRSTORAGE)
 AC_SUBST(ISC_PLATFORM_HAVESCOPEID)
