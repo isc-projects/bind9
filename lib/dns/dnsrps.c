@@ -19,7 +19,6 @@
 #ifdef USE_DNSRPS
 
 #include <isc/mem.h>
-#include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
