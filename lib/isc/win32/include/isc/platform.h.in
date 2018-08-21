@@ -23,6 +23,7 @@
 #if defined(_WIN32) || defined(_WIN64)
 /* We are on Windows */
 # define strtok_r strtok_s
+# define strerror_r(errnum, buf, buflen) strerror_s(buf, buflen, errnum)
 
 #ifndef strtoull
 #define strtoull _strtoui64
