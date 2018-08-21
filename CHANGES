@@ -1,3 +1,5 @@
+5012.	[bug]		Fix lock order reversal in pk11_initialize. [GL !590]
+
 5009.	[bug]		Upon an OpenSSL failure, the first error in the OpenSSL
 			error queue was not logged. [GL #476]
 
