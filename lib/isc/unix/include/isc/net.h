@@ -77,10 +77,6 @@
 #include <netinet/in.h>		/* Contractual promise. */
 #include <arpa/inet.h>		/* Contractual promise. */
 
-#ifndef ISC_PLATFORM_HAVEIPV6
-#include <isc/ipv6.h>		/* Contractual promise. */
-#endif
-
 #include <isc/lang.h>
 #include <isc/types.h>
 
@@ -88,7 +84,6 @@
 #define in6_addr in_addr6	/*%< Required for pre RFC2133 implementations. */
 #endif
 
-#ifdef ISC_PLATFORM_HAVEIPV6
 #ifndef IN6ADDR_ANY_INIT
 #ifdef s6_addr
 /*%
@@ -161,7 +156,6 @@
 #define IN6_IS_ADDR_LOOPBACK(x) \
 	(memcmp((x)->s6_addr, in6addr_loopback.s6_addr, 16) == 0)
 #endif
-#endif
 
 #ifndef AF_INET6
 /*% IPv6 */
@@ -218,7 +212,7 @@ struct sockaddr_storage {
 };
 #endif
 
-#if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
+#if defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 extern const struct in6_addr isc_net_in6addrany;
 /*%
  * Cope with a missing in6addr_any and in6addr_loopback.
@@ -226,7 +220,7 @@ extern const struct in6_addr isc_net_in6addrany;
 #define in6addr_any isc_net_in6addrany
 #endif
 
-#if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
+#if defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 extern const struct in6_addr isc_net_in6addrloop;
 #define in6addr_loopback isc_net_in6addrloop
 #endif

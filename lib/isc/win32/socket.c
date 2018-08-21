@@ -188,10 +188,8 @@ enum {
  * to collect the destination address and interface so the client can
  * set them on outgoing packets.
  */
-#ifdef ISC_PLATFORM_HAVEIPV6
 #ifndef USE_CMSG
 #define USE_CMSG	1
-#endif
 #endif
 
 /*
@@ -1754,7 +1752,6 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	if (type == isc_sockettype_udp) {
 
 #if defined(USE_CMSG)
-#if defined(ISC_PLATFORM_HAVEIPV6)
 #ifdef IPV6_RECVPKTINFO
 		/* 2292bis */
 		if ((pf == AF_INET6)
@@ -1786,7 +1783,6 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 					 strbuf);
 		}
 #endif /* IPV6_RECVPKTINFO */
-#endif /* ISC_PLATFORM_HAVEIPV6 */
 #endif /* defined(USE_CMSG) */
 
 #if defined(SO_RCVBUF)
