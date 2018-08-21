@@ -748,7 +748,6 @@ ISC_PLATFORM_NEEDNTOP
 ISC_PLATFORM_HAVEIF_LADDRCONF
 ISC_PLATFORM_HAVEIF_LADDRREQ
 ISC_PLATFORM_HAVESOCKADDRSTORAGE
-ISC_PLATFORM_HAVEIN6PKTINFO
 BIND9_CO_RULE
 LIBTOOL_ALLOW_UNDEFINED
 LIBTOOL_MODE_UNINSTALL
@@ -17789,6 +17788,7 @@ main ()
 
        struct sockaddr_in6 sin6;
        struct in6_addr in6;
+       struct in6_pktinfo in6_pi;
        in6 = in6addr_any;
        in6 = in6addr_loopback;
        sin6.sin6_scope_id = 0;
@@ -17806,36 +17806,6 @@ else
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
 as_fn_error $? "IPv6 support is mandatory
 See \`config.log' for more details" "$LINENO" 5; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for in6_pktinfo" >&5
-$as_echo_n "checking for in6_pktinfo... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-       #include <sys/types.h>
-       #include <sys/socket.h>
-       #include <netinet/in.h>
-
-int
-main ()
-{
-
-       struct in6_pktinfo xyzzy; return (0);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-   ISC_PLATFORM_HAVEIN6PKTINFO="#define ISC_PLATFORM_HAVEIN6PKTINFO 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no -- disabling runtime ipv6 support" >&5
-$as_echo "no -- disabling runtime ipv6 support" >&6; }
-   ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
@@ -17865,8 +17835,6 @@ $as_echo "no" >&6; }
 ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
 
 
 

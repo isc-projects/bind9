@@ -94,10 +94,7 @@
 #endif /* HAVE_SYSCTLBYNAME */
 
 static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
-
-#if defined(ISC_PLATFORM_HAVEIN6PKTINFO)
 static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
-#endif
 
 #ifndef ISC_CMSG_IP_TOS
 #ifdef __APPLE__
@@ -152,7 +149,6 @@ try_proto(int domain) {
 		}
 	}
 
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	if (domain == PF_INET6) {
 		struct sockaddr_in6 sin6;
 		unsigned int len;
@@ -190,7 +186,6 @@ try_proto(int domain) {
 			}
 		}
 	}
-#endif
 
 	(void)close(s);
 
@@ -200,9 +195,7 @@ try_proto(int domain) {
 static void
 initialize_action(void) {
 	ipv4_result = try_proto(PF_INET);
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	ipv6_result = try_proto(PF_INET6);
-#endif
 #ifdef ISC_PLATFORM_HAVESYSUNH
 	unix_result = try_proto(PF_UNIX);
 #endif
@@ -307,7 +300,6 @@ initialize_ipv6only(void) {
 				  try_ipv6only) == ISC_R_SUCCESS);
 }
 
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 static void
 try_ipv6pktinfo(void) {
 	int s, on;
@@ -359,7 +351,6 @@ initialize_ipv6pktinfo(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo,
 				  try_ipv6pktinfo) == ISC_R_SUCCESS);
 }
-#endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
 
 isc_result_t
 isc_net_probe_ipv6only(void) {
@@ -369,9 +360,7 @@ isc_net_probe_ipv6only(void) {
 
 isc_result_t
 isc_net_probe_ipv6pktinfo(void) {
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	initialize_ipv6pktinfo();
-#endif
 	return (ipv6pktinfo_result);
 }
 
