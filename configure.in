@@ -1923,26 +1923,11 @@ AC_COMPILE_IFELSE(
        struct in6_addr in6;
        in6 = in6addr_any;
        in6 = in6addr_loopback;
+       sin6.sin6_scope_id = 0;
        return (0);
      ]])],
   [AC_MSG_RESULT([yes])],
   [AC_MSG_FAILURE([IPv6 support is mandatory])])
-
-AC_MSG_CHECKING([for sin6_scope_id in struct sockaddr_in6])
-AC_COMPILE_IFELSE(
-  [AC_LANG_PROGRAM(
-     [[
-       #include <sys/types.h>
-       #include <sys/socket.h>
-       #include <netinet/in.h>
-     ]],
-     [[
-       struct sockaddr_in6 xyzzy; xyzzy.sin6_scope_id = 0; return (0);
-     ]])],
-  [AC_MSG_RESULT([yes])
-   ISC_PLATFORM_HAVESCOPEID="#define ISC_PLATFORM_HAVESCOPEID 1"],
-  [AC_MSG_RESULT([no])
-   ISC_PLATFORM_HAVESCOPEID="#undef ISC_PLATFORM_HAVESCOPEID"])
 
 AC_MSG_CHECKING([for in6_pktinfo])
 AC_COMPILE_IFELSE(
@@ -1973,7 +1958,6 @@ ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"])
 
 AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
 AC_SUBST(ISC_PLATFORM_HAVESOCKADDRSTORAGE)
-AC_SUBST(ISC_PLATFORM_HAVESCOPEID)
 
 AC_MSG_CHECKING([for struct if_laddrreq])
 AC_TRY_LINK([
