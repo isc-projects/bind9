@@ -13368,12 +13368,6 @@ fi
 # OS dependent CC flags
 #
 case "$host" in
-	# OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
-	# -D_XOPEN_SOURCE_EXTENDED.
-	*-dec-osf*)
-		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
-		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
-		;;
 	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
 	*-solaris*)
 		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
@@ -17483,12 +17477,6 @@ $as_echo "no" >&6; }
 	fi
 else
 	case $host in
-	*-dec-osf*)
-		CC="$CC -std"
-		CCOPT="$CCOPT -std"
-		CCNOOPT="$CCNOOPT -std"
-		MKDEPCC="$CC"
-		;;
 	*-sgi-irix*)
 		STD_CWARNINGS="-fullwarn -woff 1209"
 		#
@@ -18310,17 +18298,6 @@ fi
 
 
 
-
-#
-# Look for a 4.4BSD-style sa_len member in struct sockaddr.
-#
-case "$host" in
-	*-dec-osf*)
-		# Turn on 4.4BSD style sa_len support.
-		$as_echo "#define _SOCKADDR_LEN 1" >>confdefs.h
-
-		;;
-esac
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sa_len in struct sockaddr" >&5
 $as_echo_n "checking for sa_len in struct sockaddr... " >&6; }
@@ -19171,63 +19148,6 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-
-#
-# Compaq TruCluster requires more code for handling cluster IP aliases
-#
-case "$host" in
-	*-dec-osf*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for clua_getaliasaddress in -lclua" >&5
-$as_echo_n "checking for clua_getaliasaddress in -lclua... " >&6; }
-if ${ac_cv_lib_clua_clua_getaliasaddress+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lclua  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char clua_getaliasaddress ();
-int
-main ()
-{
-return clua_getaliasaddress ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_clua_clua_getaliasaddress=yes
-else
-  ac_cv_lib_clua_clua_getaliasaddress=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_clua_clua_getaliasaddress" >&5
-$as_echo "$ac_cv_lib_clua_clua_getaliasaddress" >&6; }
-if test "x$ac_cv_lib_clua_clua_getaliasaddress" = xyes; then :
-  LIBS="-lclua $LIBS"
-fi
-
-		ac_fn_c_check_func "$LINENO" "clua_getaliasaddress" "ac_cv_func_clua_getaliasaddress"
-if test "x$ac_cv_func_clua_getaliasaddress" = xyes; then :
-
-$as_echo "#define HAVE_TRUCLUSTER 1" >>confdefs.h
-
-fi
-
-		;;
-	*)
-		;;
-esac
 
 #
 # Some hosts need msg_namelen to match the size of the socket structure.

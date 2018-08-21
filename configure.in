@@ -397,12 +397,6 @@ AC_PROG_CC_C99
 # OS dependent CC flags
 #
 case "$host" in
-	# OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
-	# -D_XOPEN_SOURCE_EXTENDED.
-	*-dec-osf*)
-		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
-		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
-		;;
 	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
 	*-solaris*)
 		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
@@ -1746,12 +1740,6 @@ if test "X$GCC" = "Xyes"; then
 	fi
 else
 	case $host in
-	*-dec-osf*)
-		CC="$CC -std"
-		CCOPT="$CCOPT -std"
-		CCNOOPT="$CCNOOPT -std"
-		MKDEPCC="$CC"
-		;;
 	*-sgi-irix*)
 		STD_CWARNINGS="-fullwarn -woff 1209"
 		#
@@ -2209,16 +2197,6 @@ AC_SUBST(ISC_PLATFORM_NEEDPTON)
 AC_SUBST(ISC_EXTRA_OBJS)
 AC_SUBST(ISC_EXTRA_SRCS)
 
-#
-# Look for a 4.4BSD-style sa_len member in struct sockaddr.
-#
-case "$host" in
-	*-dec-osf*)
-		# Turn on 4.4BSD style sa_len support.
-		AC_DEFINE(_SOCKADDR_LEN)
-		;;
-esac
-
 AC_MSG_CHECKING(for sa_len in struct sockaddr)
 AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -2616,20 +2594,6 @@ AC_TRY_COMPILE([#include <sys/fcntl.h>],[struct stat s; return(s.st_mtim.tv_nsec
 	[AC_MSG_RESULT(no)
 	ISC_PLATFORM_HAVESTATNSEC="#undef ISC_PLATFORM_HAVESTATNSEC"])
 AC_SUBST(ISC_PLATFORM_HAVESTATNSEC)
-
-#
-# Compaq TruCluster requires more code for handling cluster IP aliases
-#
-case "$host" in
-	*-dec-osf*)
-		AC_CHECK_LIB(clua, clua_getaliasaddress, LIBS="-lclua $LIBS")
-		AC_CHECK_FUNC(clua_getaliasaddress,
-				AC_DEFINE(HAVE_TRUCLUSTER, 1,
-					[Define if running under Compaq TruCluster]))
-		;;
-	*)
-		;;
-esac
 
 #
 # Some hosts need msg_namelen to match the size of the socket structure.
