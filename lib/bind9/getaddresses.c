@@ -28,20 +28,6 @@
 
 #include <bind9/getaddresses.h>
 
-#ifdef HAVE_ADDRINFO
-#ifdef HAVE_GETADDRINFO
-#ifdef HAVE_GAISTRERROR
-#define USE_GETADDRINFO
-#endif
-#endif
-#endif
-
-#ifndef USE_GETADDRINFO
-#ifndef ISC_PLATFORM_NONSTDHERRNO
-extern int h_errno;
-#endif
-#endif
-
 isc_result_t
 bind9_getaddresses(const char *hostname, in_port_t port,
 		   isc_sockaddr_t *addrs, int addrsize, int *addrcount)
@@ -51,12 +37,8 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	bool have_ipv4, have_ipv6;
 	int i;
 
-#ifdef USE_GETADDRINFO
 	struct addrinfo *ai = NULL, *tmpai, hints;
 	int result;
-#else
-	struct hostent *he;
-#endif
 
 	REQUIRE(hostname != NULL);
 	REQUIRE(addrs != NULL);
@@ -117,7 +99,6 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 			return (ISC_R_SUCCESS);
 		}
 	}
-#ifdef USE_GETADDRINFO
 	memset(&hints, 0, sizeof(hints));
 	if (!have_ipv6)
 		hints.ai_family = PF_INET;
@@ -175,41 +156,6 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 	}
 	freeaddrinfo(ai);
 	*addrcount = i;
-#else
-	he = gethostbyname(hostname);
-	if (he == NULL) {
-		switch (h_errno) {
-		case HOST_NOT_FOUND:
-#ifdef NO_DATA
-		case NO_DATA:
-#endif
-#if defined(NO_ADDRESS) && (!defined(NO_DATA) || (NO_DATA != NO_ADDRESS))
-		case NO_ADDRESS:
-#endif
-			return (ISC_R_NOTFOUND);
-		default:
-			return (ISC_R_FAILURE);
-		}
-	}
-	if (he->h_addrtype != AF_INET && he->h_addrtype != AF_INET6)
-		return (ISC_R_NOTFOUND);
-	for (i = 0; i < addrsize; i++) {
-		if (he->h_addrtype == AF_INET) {
-			struct in_addr *inp;
-			inp = (struct in_addr *)(he->h_addr_list[i]);
-			if (inp == NULL)
-				break;
-			isc_sockaddr_fromin(&addrs[i], inp, port);
-		} else {
-			struct in6_addr *in6p;
-			in6p = (struct in6_addr *)(he->h_addr_list[i]);
-			if (in6p == NULL)
-				break;
-			isc_sockaddr_fromin6(&addrs[i], in6p, port);
-		}
-	}
-	*addrcount = i;
-#endif
 	if (*addrcount == 0)
 		return (ISC_R_NOTFOUND);
 	else
