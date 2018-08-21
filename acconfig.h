@@ -77,38 +77,6 @@
 /** define if getc_unlocked() is available */
 #undef HAVE_GETCUNLOCKED
 
-/** Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
-#undef SHUTUP_SPUTAUX
-#ifdef SHUTUP_SPUTAUX
-struct __sFILE;
-extern __inline int __sputaux(int _c, struct __sFILE *_p);
-#endif
-
-/** Shut up warnings about missing sigwait prototype on BSD/OS 4.0* */
-#undef SHUTUP_SIGWAIT
-#ifdef SHUTUP_SIGWAIT
-int sigwait(const unsigned int *set, int *sig);
-#endif
-
-/** Shut up warnings from gcc -Wcast-qual on BSD/OS 4.1. */
-#undef SHUTUP_STDARG_CAST
-#if defined(SHUTUP_STDARG_CAST) && defined(__GNUC__)
-#include <stdarg.h>		/** Grr.  Must be included *every time*. */
-/**
- * The silly continuation line is to keep configure from
- * commenting out the #undef.
- */
-
-#undef \
-	va_start
-#define	va_start(ap, last) \
-	do { \
-		union { const void *konst; long *var; } _u; \
-		_u.konst = &(last); \
-		ap = (va_list)(_u.var + __va_words(__typeof(last))); \
-	} while (0)
-#endif /** SHUTUP_STDARG_CAST && __GNUC__ */
-
 /** define if the system has a random number generating device */
 #undef PATH_RANDOMDEV
 
