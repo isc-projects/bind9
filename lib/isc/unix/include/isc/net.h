@@ -158,32 +158,6 @@
 #define INADDR_LOOPBACK 0x7f000001UL
 #endif
 
-#ifndef ISC_PLATFORM_HAVESOCKADDRSTORAGE
-#define _SS_MAXSIZE 128
-#define _SS_ALIGNSIZE  (sizeof (uint64_t))
-#ifdef ISC_PLATFORM_HAVESALEN
-#define _SS_PAD1SIZE (_SS_ALIGNSIZE - (2 * sizeof(uint8_t)))
-#define _SS_PAD2SIZE (_SS_MAXSIZE - (_SS_ALIGNSIZE + _SS_PAD1SIZE \
-		       + 2 * sizeof(uint8_t)))
-#else
-#define _SS_PAD1SIZE (_SS_ALIGNSIZE - sizeof(uint16_t))
-#define _SS_PAD2SIZE (_SS_MAXSIZE - (_SS_ALIGNSIZE + _SS_PAD1SIZE \
-			+ sizeof(uint16_t)))
-#endif
-
-struct sockaddr_storage {
-#ifdef ISC_PLATFORM_HAVESALEN
-       uint8_t             ss_len;
-       uint8_t             ss_family;
-#else
-       uint16_t            ss_family;
-#endif
-       char                    __ss_pad1[_SS_PAD1SIZE];
-       uint64_t            __ss_align;  /* field to force desired structure */
-       char                    __ss_pad2[_SS_PAD2SIZE];
-};
-#endif
-
 #ifdef ISC_PLATFORM_NEEDPORTT
 /*%
  * Ensure type in_port_t is defined.
@@ -318,20 +292,6 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
  *\li	*low and *high will be the ports specifying the low and high ends of
  *	the range.
  */
-
-#ifdef ISC_PLATFORM_NEEDNTOP
-const char *
-isc_net_ntop(int af, const void *src, char *dst, size_t size);
-#undef inet_ntop
-#define inet_ntop isc_net_ntop
-#endif
-
-#ifdef ISC_PLATFORM_NEEDPTON
-int
-isc_net_pton(int af, const char *src, void *dst);
-#undef inet_pton
-#define inet_pton isc_net_pton
-#endif
 
 ISC_LANG_ENDDECLS
 
