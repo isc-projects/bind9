@@ -18,10 +18,10 @@
 #include <errno.h>
 #include <limits.h>
 #include <inttypes.h>
+#include <stdlib.h>
 
 #include <isc/parseint.h>
 #include <isc/result.h>
-#include <isc/stdlib.h>
 
 isc_result_t
 isc_parse_uint32(uint32_t *uip, const char *string, int base) {
