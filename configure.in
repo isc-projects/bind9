@@ -1924,46 +1924,6 @@ AC_COMPILE_IFELSE(
   [AC_MSG_RESULT([yes])],
   [AC_MSG_FAILURE([IPv6 support is mandatory])])
 
-#
-# See whether IPv6 support is provided via a Kame add-on.
-# This is done before other IPv6 linking tests to LIBS is properly set.
-#
-AC_MSG_CHECKING(for Kame IPv6 support)
-AC_ARG_WITH(kame,
-	    AS_HELP_STRING([--with-kame[=PATH]],
-			   [use Kame IPv6 [default path /usr/local/v6]]),
-	    use_kame="$withval", use_kame="no")
-
-case "$use_kame" in
-	no)
-		;;
-	yes)
-		kame_path=/usr/local/v6
-		;;
-	*)
-		kame_path="$use_kame"
-		;;
-esac
-
-case "$use_kame" in
-	no)
-		AC_MSG_RESULT(no)
-		;;
-	*)
-		if test -f $kame_path/lib/libinet6.a; then
-			AC_MSG_RESULT($kame_path/lib/libinet6.a)
-			LIBS="-L$kame_path/lib -linet6 $LIBS"
-		else
-			AC_MSG_ERROR([$kame_path/lib/libinet6.a not found.
-
-Please choose the proper path with the following command:
-
-    configure --with-kame=PATH
-])
-		fi
-		;;
-esac
-
 AC_MSG_CHECKING([for in6_addr])
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM(
