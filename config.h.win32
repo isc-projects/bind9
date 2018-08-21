@@ -141,8 +141,6 @@ char *getpassphrase(const char *);
  */
 #define ISC_DLZ_DLOPEN 1
 
-#define WANT_IPV6
-
 #define S_IFMT   _S_IFMT         /* file type mask */
 #define S_IFDIR  _S_IFDIR        /* directory */
 #define S_IFCHR  _S_IFCHR        /* character special */

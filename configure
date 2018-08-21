@@ -968,7 +968,6 @@ with_purify
 with_gperftools_profiler
 enable_backtrace
 enable_symtable
-enable_ipv6
 with_kame
 enable_tcp_fastopen
 enable_getifaddrs
@@ -1658,7 +1657,6 @@ Optional Features:
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
                           [all|minimal(default)|none]
-  --enable-ipv6           use IPv6 [default=autodetect]
   --disable-tcp-fastopen  disable TCP Fast Open support [default=autodetect]
   --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
@@ -17784,24 +17782,6 @@ BIND9_CO_RULE=".c.$O:"
 #
 
 #
-# IPv6
-#
-# Check whether --enable-ipv6 was given.
-if test "${enable_ipv6+set}" = set; then :
-  enableval=$enable_ipv6;
-fi
-
-
-case "$enable_ipv6" in
-	yes|''|autodetect)
-		$as_echo "#define WANT_IPV6 1" >>confdefs.h
-
-		;;
-	no)
-		;;
-esac
-
-#
 # We do the IPv6 compilation checking after libtool so that we can put
 # the right suffix on the files.
 #
@@ -25413,8 +25393,7 @@ report() {
 
     # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
-	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
-	    echo "    IPv6 support (--enable-ipv6)"
+	test "no" = "$found_ipv6" || echo "    IPv6 support (--enable-ipv6)"
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -25465,8 +25444,7 @@ report() {
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
-    test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
-	    echo "    IPv6 support (--enable-ipv6)"
+    test "no" = "$found_ipv6" && echo "    IPv6 support (--enable-ipv6)"
     test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
 
     test "no" = "$use_dnstap" && \
