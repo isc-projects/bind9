@@ -28,10 +28,6 @@
 #include <linux/fs.h>	/* To get the large NR_OPEN. */
 #endif
 
-#if defined(__hpux) && defined(HAVE_SYS_DYNTUNE_H)
-#include <sys/dyntune.h>
-#endif
-
 #include "errno2result.h"
 
 static isc_result_t
@@ -169,16 +165,6 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 		unixresult = setrlimit(unixresource, &rl);
 		if (unixresult == 0)
 			return (ISC_R_SUCCESS);
-	}
-#elif defined(__hpux) && defined(HAVE_SYS_DYNTUNE_H)
-	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
-		uint64_t maxfiles;
-		if (gettune("maxfiles_lim", &maxfiles) == 0) {
-			rl.rlim_cur = rl.rlim_max = maxfiles;
-			unixresult = setrlimit(unixresource, &rl);
-			if (unixresult == 0)
-				return (ISC_R_SUCCESS);
-		}
 	}
 #endif
 	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
