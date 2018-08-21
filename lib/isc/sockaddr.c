@@ -71,7 +71,6 @@ isc_sockaddr_compare(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 		    memcmp(&a->type.sin6.sin6_addr, &b->type.sin6.sin6_addr,
 			   sizeof(a->type.sin6.sin6_addr)) != 0)
 			return (false);
-#ifdef ISC_PLATFORM_HAVESCOPEID
 		/*
 		 * If ISC_SOCKADDR_CMPSCOPEZERO is set then don't return
 		 * false if one of the scopes in zero.
@@ -82,7 +81,6 @@ isc_sockaddr_compare(const isc_sockaddr_t *a, const isc_sockaddr_t *b,
 		      (a->type.sin6.sin6_scope_id != 0 &&
 		       b->type.sin6.sin6_scope_id != 0)))
 			return (false);
-#endif
 		if ((flags & ISC_SOCKADDR_CMPPORT) != 0 &&
 		    a->type.sin6.sin6_port != b->type.sin6.sin6_port)
 			return (false);
@@ -377,9 +375,7 @@ isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
 		sockaddr->type.sin6.sin6_len = sizeof(sockaddr->type.sin6);
 #endif
 		memmove(&sockaddr->type.sin6.sin6_addr, &na->type.in6, 16);
-#ifdef ISC_PLATFORM_HAVESCOPEID
 		sockaddr->type.sin6.sin6_scope_id = isc_netaddr_getzone(na);
-#endif
 		sockaddr->type.sin6.sin6_port = htons(port);
 		break;
 	default:

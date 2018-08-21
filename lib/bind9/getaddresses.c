@@ -98,7 +98,6 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 				return (ISC_R_FAMILYNOSUPPORT);
 
 			if (d != NULL) {
-#ifdef ISC_PLATFORM_HAVESCOPEID
 				isc_result_t iresult;
 
 				iresult = isc_netscope_pton(AF_INET6, d + 1,
@@ -106,15 +105,6 @@ bind9_getaddresses(const char *hostname, in_port_t port,
 
 				if (iresult != ISC_R_SUCCESS)
 					return (iresult);
-#else
-				/*
-				 * The extended format is specified while the
-				 * system does not provide the ability to use
-				 * it.	Throw an explicit error instead of
-				 * ignoring the specified value.
-				 */
-				return (ISC_R_BADADDRESSFORM);
-#endif
 			}
 
 			isc_netaddr_fromin6(&na, &in6);
