@@ -59,11 +59,6 @@
 @ISC_PLATFORM_HAVEIF_LADDRREQ@
 
 /*! \brief
- * Define either ISC_PLATFORM_BSD44MSGHDR or ISC_PLATFORM_BSD43MSGHDR.
- */
-@ISC_PLATFORM_MSGHDRFLAVOR@
-
-/*! \brief
  * Define if the system supports if_nametoindex.
  */
 @ISC_PLATFORM_HAVEIFNAMETOINDEX@

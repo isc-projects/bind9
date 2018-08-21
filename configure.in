@@ -1989,20 +1989,6 @@ AC_TRY_COMPILE([
 AC_SUBST(ISC_PLATFORM_HAVESALEN)
 
 #
-# Look for a 4.4BSD or 4.3BSD struct msghdr
-#
-AC_MSG_CHECKING(for struct msghdr flavor)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>],
-[struct msghdr msg; msg.msg_flags = 0; return (0);],
-	[AC_MSG_RESULT(4.4BSD)
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"],
-	[AC_MSG_RESULT(4.3BSD)
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"])
-AC_SUBST(ISC_PLATFORM_MSGHDRFLAVOR)
-
-#
 # Look for in_port_t.
 #
 AC_MSG_CHECKING(for type in_port_t)
