@@ -161,7 +161,6 @@ schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok) {
 	isc__timermgr_t *manager;
 	isc_time_t due;
 	int cmp;
-	bool timedwait;
 
 	/*!
 	 * Note: the caller must ensure locking.
@@ -170,13 +169,6 @@ schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok) {
 	REQUIRE(timer->type != isc_timertype_inactive);
 
 	manager = timer->manager;
-
-	/*!
-	 * If the manager was timed wait, we may need to signal the
-	 * manager to force a wakeup.
-	 */
-	timedwait = (manager->nscheduled > 0 &&
-		     isc_time_seconds(&manager->due) != 0);
 
 	/*
 	 * Compute the new due time.
@@ -239,31 +231,6 @@ schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok) {
 	 * the current "next" timer.  We do this either by waking up the
 	 * run thread, or explicitly setting the value in the manager.
 	 */
-
-	/*
-	 * This is a temporary (probably) hack to fix a bug on tru64 5.1
-	 * and 5.1a.  Sometimes, pthread_cond_timedwait() doesn't actually
-	 * return when the time expires, so here, we check to see if
-	 * we're 15 seconds or more behind, and if we are, we signal
-	 * the dispatcher.  This isn't such a bad idea as a general purpose
-	 * watchdog, so perhaps we should just leave it in here.
-	 */
-	if (signal_ok && timedwait) {
-		isc_interval_t fifteen;
-		isc_time_t then;
-
-		isc_interval_set(&fifteen, 15, 0);
-		result = isc_time_add(&manager->due, &fifteen, &then);
-
-		if (result == ISC_R_SUCCESS &&
-		    isc_time_compare(&then, now) < 0) {
-			SIGNAL(&manager->wakeup);
-			signal_ok = false;
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_TIMER, ISC_LOG_WARNING,
-				      "*** POKED TIMER ***");
-		}
-	}
 
 	if (timer->index == 1 && signal_ok) {
 		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TIMER,

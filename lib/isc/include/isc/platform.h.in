@@ -267,11 +267,6 @@
 @ISC_PLATFORM_USEGCCASM@
 
 /*
- * Define if Tru64 style ASM syntax must be used.
- */
-@ISC_PLATFORM_USEOSFASM@
-
-/*
  * Define if the standard __asm function must be used.
  */
 @ISC_PLATFORM_USESTDASM@

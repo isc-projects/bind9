@@ -2800,7 +2800,6 @@ fi
 
 AC_SUBST(ISC_PLATFORM_HAVESTDATOMIC)
 
-ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
 ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
 ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
 ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
@@ -2825,9 +2824,6 @@ if test "yes" = "$use_atomic"; then
 		else
 			arch=x86_32
 		fi
-	;;
-	alpha*-*)
-		arch=alpha
 	;;
 	powerpc-*|powerpc64-*)
 		arch=powerpc
@@ -2874,26 +2870,10 @@ if test "yes" = "$have_atomic"; then
 			ISC_PLATFORM_USEMACASM="#define ISC_PLATFORM_USEMACASM 1"
 			], [AC_MSG_RESULT(no)])
 		fi
-	else
-		case "$host" in
-		alpha*-dec-osf*)
-			# Tru64 compiler has its own syntax for inline 
-			# assembly.
-			AC_TRY_COMPILE(, [
-#ifndef __DECC
-#error "unexpected compiler"
-#endif
-				return (0);],
-				[compiler=osf],)
-		;;
-		esac
 	fi
 	case "$compiler" in
 	gcc)
 		ISC_PLATFORM_USEGCCASM="#define ISC_PLATFORM_USEGCCASM 1"
-		;;
-	osf)
-		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
 		;;
 	mac)
 		;;
@@ -2940,7 +2920,6 @@ AC_SUBST(ISC_PLATFORM_HAVEATOMICSTORE)
 AC_SUBST(ISC_PLATFORM_HAVEATOMICSTOREQ)
 
 AC_SUBST(ISC_PLATFORM_USEGCCASM)
-AC_SUBST(ISC_PLATFORM_USEOSFASM)
 AC_SUBST(ISC_PLATFORM_USESTDASM)
 AC_SUBST(ISC_PLATFORM_USEMACASM)
 
