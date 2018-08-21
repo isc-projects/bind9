@@ -2170,17 +2170,6 @@ AC_TRY_COMPILE([#include <sys/fcntl.h>],[struct stat s; return(s.st_mtim.tv_nsec
 AC_SUBST(ISC_PLATFORM_HAVESTATNSEC)
 
 #
-# Some hosts need msg_namelen to match the size of the socket structure.
-# Some hosts don't set msg_namelen appropriately on return from recvmsg().
-#
-case $host in
-*os2*|*hp-mpeix*)
-	AC_DEFINE(BROKEN_RECVMSG, 1,
-		  [Define if recvmsg() does not meet all of the BSD socket API specifications.])
-	;;
-esac
-
-#
 # Microsoft has their own way of handling shared libraries that requires
 # additional qualifiers on extern variables.  Unix systems don't need it.
 #
