@@ -38,7 +38,6 @@
 #include <isc/hmacsha.h>
 #include <isc/print.h>
 #include <isc/safe.h>
-#include <isc/stdlib.h>
 
 #include <pk11/site.h>
 

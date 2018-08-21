@@ -32,7 +32,6 @@
 #include <isc/rwlock.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
-#include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>
