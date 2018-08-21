@@ -1987,48 +1987,6 @@ int has_tfo() { return (0); }
 esac
 AC_SUBST(ISC_PLATFORM_HAVETFO)
 
-AC_ARG_ENABLE(getifaddrs,
-	      AS_HELP_STRING([--enable-getifaddrs],
-			     [enable the use of getifaddrs() [yes|no].]),
-    want_getifaddrs="$enableval",  want_getifaddrs="yes")
-
-#
-# This interface iteration code for getifaddrs() will fall back to using
-# /proc/net/if_inet6 if getifaddrs() in glibc doesn't return any IPv6
-# addresses.
-#
-case $want_getifaddrs in
-glibc)
-AC_MSG_WARN("--enable-getifaddrs=glibc is no longer required")
-AC_CHECK_FUNC(getifaddrs, AC_DEFINE(HAVE_GETIFADDRS))
-;;
-yes)
-AC_CHECK_FUNC(getifaddrs, AC_DEFINE(HAVE_GETIFADDRS))
-;;
-no)
-;;
-esac
-
-#
-# Look for a sysctl call to get the list of network interfaces.
-#
-case $ac_cv_header_sys_sysctl_h in
-yes)
-AC_MSG_CHECKING(for interface list sysctl)
-AC_EGREP_CPP(found_rt_iflist, [
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <sys/socket.h>
-#ifdef NET_RT_IFLIST
-found_rt_iflist
-#endif
-],
-	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_IFLIST_SYSCTL)],
-	[AC_MSG_RESULT(no)])
-;;
-esac
-
 #
 # Check for some other useful functions that are not ever-present.
 #
