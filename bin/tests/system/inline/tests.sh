@@ -1264,6 +1264,15 @@ grep "RRSIG" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# Check that the master file $2 for zone $1 does not contain RRSIG records
+# while the journal file for that zone does contain them.
+ensure_sigs_only_in_journal() {
+	origin="$1"
+	masterfile="$2"
+	$CHECKZONE -i none -f raw -D -o - "$origin" "$masterfile" 2>&1 | grep -w RRSIG > /dev/null && ret=1
+	$CHECKZONE -j -i none -f raw -D -o - "$origin" "$masterfile" 2>&1 | grep -w RRSIG > /dev/null || ret=1
+}
+
 n=`expr $n + 1`
 echo_i "checking that records added from a journal are scheduled to be resigned ($n)"
 ret=0
@@ -1289,12 +1298,7 @@ if [ $ans != 0 ]; then ret=1; fi
 # Halt rather than stopping the server to prevent the masterfile being
 # flushed upon shutdown and we specifically want to avoid it.
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
-# Check that we were successful.
-rrsig1=`$CHECKZONE -q -i none -f raw -F text -D -o - delayedkeys ns3/delayedkeys.db.signed |
-        grep -w RRSIG | wc -l`
-rrsig2=`$CHECKZONE -q -j -i none -f raw -F text -D -o - delayedkeys ns3/delayedkeys.db.signed |
-        grep -w RRSIG | wc -l`
-test ${rrsig1:-1} -eq 0 -a ${rrsig2:-0} -gt 0 || { echo_i "halting failed"; ret=1; }
+ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
 # At this point, the raw zone journal will not have a source serial set.  Upon
 # server startup, receive_secure_serial() will rectify that, update SOA, resign
@@ -1302,7 +1306,8 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
 # return delayedkeys/SOA as the next node to resign, so we restart the server
 # once again; with the raw zone journal now having a source serial set,
 # receive_secure_serial() should refrain from introducing any zone changes.
-$PERL $SYSTEMTESTTOP/stop.pl . ns3
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
+ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
 # We can now test whether the secure zone journal was correctly processed:
 # unless the records contained in it were scheduled for resigning, no resigning
