@@ -2931,18 +2931,6 @@ $as_echo "no" >&6; }
 fi
 
 
-#
-# GNU libtool support
-#
-case $build_os in
-sunos*)
-    # Just set the maximum command line length for sunos as it otherwise
-    # takes a exceptionally long time to work it out. Required for libtool.
-
-    lt_cv_sys_max_cmd_len=4096;
-    ;;
-esac
-
 case `pwd` in
   *\ * | *\	*)
     { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: Libtool does not cope well with whitespace in \`pwd\`" >&5
@@ -19094,11 +19082,6 @@ case "$host" in
 $as_echo "#define NEED_SECURE_DIRECTORY 1" >>confdefs.h
 
 	;;
-*-sunos*)
-
-$as_echo "#define NEED_SECURE_DIRECTORY 1" >>confdefs.h
-
-	;;
 esac
 
 #
@@ -20524,11 +20507,9 @@ fi
 
 #
 #  The following sets up how non-blocking i/o is established.
-#  Sunos, cygwin and solaris 2.x (x<5) require special handling.
+#  cygwin and solaris 2.x (x<5) require special handling.
 #
 case "$host" in
-*-sunos*) $as_echo "#define PORT_NONBLOCK O_NDELAY" >>confdefs.h
-;;
 *-cygwin*) $as_echo "#define PORT_NONBLOCK O_NDELAY" >>confdefs.h
 ;;
 *-solaris2.[01234])
@@ -22075,11 +22056,6 @@ else
   dlopen="yes"
 fi
 
-
-case $host in
-	*-sunos*) dlopen="no"
-		;;
-esac
 
 if test "yes" = "$dlopen"; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
