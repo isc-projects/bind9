@@ -29,14 +29,8 @@
 #include <isc/print.h>
 
 /* XXX what about Alpha? */
-#ifdef sgi
-#define ROUNDUP(a) ((a) > 0 ? \
-		(1 + (((a) - 1) | (sizeof(__uint64_t) - 1))) : \
-		sizeof(__uint64_t))
-#else
 #define ROUNDUP(a) ((a) > 0 ? (1 + (((a) - 1) | (sizeof(long) - 1))) \
 		    : sizeof(long))
-#endif
 
 #define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'S')
 #define VALID_IFITER(t)		ISC_MAGIC_VALID(t, IFITER_MAGIC)
@@ -219,17 +213,9 @@ internal_current(isc_interfaceiter_t *iter) {
 			sa = (struct sockaddr *)((char*)(sa)
 					 + ROUNDUP(sa->sa_len));
 #else
-#ifdef sgi
-			/*
-			 * Do as the contributed SGI code does.
-			 */
-			sa = (struct sockaddr *)((char*)(sa)
-					 + ROUNDUP(_FAKE_SA_LEN_DST(sa)));
-#else
 			/* XXX untested. */
 			sa = (struct sockaddr *)((char*)(sa)
 					 + ROUNDUP(sizeof(struct sockaddr)));
-#endif
 #endif
 		}
 

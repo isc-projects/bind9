@@ -198,9 +198,7 @@ isc_file_settime(const char *file, isc_time_t *when) {
 
 	/*
 	 * isc_time_nanoseconds guarantees a value that divided by 1000 will
-	 * fit into the minimum possible size tv_usec field.  Unfortunately,
-	 * we don't know what that type is so can't cast directly ... but
-	 * we can at least cast to signed so the IRIX compiler shuts up.
+	 * fit into the minimum possible size tv_usec field.
 	 */
 	times[0].tv_usec = times[1].tv_usec =
 		(int32_t)(isc_time_nanoseconds(when) / 1000);
