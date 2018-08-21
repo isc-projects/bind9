@@ -32,7 +32,6 @@
 #include <isc/net.h>
 #include <isc/netdb.h>
 #include <isc/once.h>
-#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/util.h>
 
@@ -137,7 +136,7 @@ try_proto(int domain) {
 #endif
 			return (ISC_R_NOTFOUND);
 		default:
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "socket() %s: %s",
 					 isc_msgcat_get(isc_msgcat,
@@ -245,7 +244,7 @@ try_ipv6only(void) {
 	/* check for TCP sockets */
 	s = socket(PF_INET6, SOCK_STREAM, 0);
 	if (s == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
 				 isc_msgcat_get(isc_msgcat,
@@ -268,7 +267,7 @@ try_ipv6only(void) {
 	/* check for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, 0);
 	if (s == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
 				 isc_msgcat_get(isc_msgcat,
@@ -316,7 +315,7 @@ try_ipv6pktinfo(void) {
 	/* we only use this for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	if (s == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
 				 isc_msgcat_get(isc_msgcat,
@@ -429,7 +428,7 @@ make_nonblock(int fd) {
 #endif
 
 	if (ret == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 #ifdef USE_FIONBIO_IOCTL
 				 "ioctl(%d, FIONBIO, &on): %s", fd,
@@ -461,7 +460,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	isc_result_t result;
 
 	if (bind(s, res->ai_addr, res->ai_addrlen) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(10),
 			      "bind: %s", strbuf);
@@ -469,7 +468,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	}
 
 	if (getsockname(s, (struct sockaddr *)&ss, &len) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(10),
 			      "getsockname: %s", strbuf);
@@ -532,7 +531,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 		default:
 			debug = ISC_LOG_NOTICE;
 		}
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		if (debug != ISC_LOG_NOTICE) {
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(10),
@@ -604,7 +603,7 @@ try_dscp_v4(void) {
 	s = socket(res0->ai_family, res0->ai_socktype, res0->ai_protocol);
 
 	if (s == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(10),
 			      "socket: %s", strbuf);
@@ -662,7 +661,7 @@ try_dscp_v6(void) {
 
 	s = socket(res0->ai_family, res0->ai_socktype, res0->ai_protocol);
 	if (s == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_DEBUG(10),
 			      "socket: %s", strbuf);

@@ -31,7 +31,7 @@ UNIXOBJS =	unix/pk11_api.@O@ \
 		unix/errno2result.@O@ unix/file.@O@ unix/fsaccess.@O@ \
 		unix/interfaceiter.@O@ unix/keyboard.@O@ unix/meminfo.@O@ \
 		unix/net.@O@ unix/os.@O@ unix/resource.@O@ unix/socket.@O@ \
-		unix/stdio.@O@ unix/stdtime.@O@ unix/strerror.@O@ \
+		unix/stdio.@O@ unix/stdtime.@O@ \
 		unix/syslog.@O@ unix/time.@O@
 
 NLSOBJS =	nls/msgcat.@O@
