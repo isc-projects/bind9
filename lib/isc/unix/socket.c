@@ -1244,13 +1244,11 @@ cmsg_space(ISC_SOCKADDR_LEN_T len) {
  */
 static void
 process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
-#ifdef ISC_NET_BSD44MSGHDR
 #ifdef USE_CMSG
 	struct cmsghdr *cmsgp;
 	struct in6_pktinfo *pktinfop;
 #ifdef SO_TIMESTAMP
 	void *timevalp;
-#endif
 #endif
 #endif
 
@@ -1263,8 +1261,6 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 	UNUSED(sock);
 	UNUSED(msg);
 	UNUSED(dev);
-
-#ifdef ISC_NET_BSD44MSGHDR
 
 #ifdef MSG_TRUNC
 	if ((msg->msg_flags & MSG_TRUNC) == MSG_TRUNC)
@@ -1350,8 +1346,6 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 		cmsgp = CMSG_NXTHDR(msg, cmsgp);
 	}
 #endif /* USE_CMSG */
-
-#endif /* ISC_NET_BSD44MSGHDR */
 }
 
 /*
@@ -1375,9 +1369,7 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 	isc_region_t used;
 	size_t write_count;
 	size_t skip_count;
-#ifdef ISC_NET_BSD44MSGHDR
 	struct cmsghdr *cmsgp;
-#endif
 
 	memset(msg, 0, sizeof(*msg));
 
@@ -1439,8 +1431,6 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
  config:
 	msg->msg_iov = iov;
 	msg->msg_iovlen = iovcount;
-
-#ifdef ISC_NET_BSD44MSGHDR
 	msg->msg_control = NULL;
 	msg->msg_controllen = 0;
 	msg->msg_flags = 0;
@@ -1572,10 +1562,6 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 	}
 #endif
 #endif /* USE_CMSG */
-#else /* ISC_NET_BSD44MSGHDR */
-	msg->msg_accrights = NULL;
-	msg->msg_accrightslen = 0;
-#endif /* ISC_NET_BSD44MSGHDR */
 
 	if (write_countp != NULL)
 		*write_countp = write_count;
@@ -1690,7 +1676,6 @@ build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 	msg->msg_iov = iov;
 	msg->msg_iovlen = iovcount;
 
-#ifdef ISC_NET_BSD44MSGHDR
 #if defined(USE_CMSG)
 	msg->msg_control = cmsgbuf;
 	msg->msg_controllen = RECVCMSGBUFLEN;
@@ -1699,10 +1684,6 @@ build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 	msg->msg_controllen = 0;
 #endif /* USE_CMSG */
 	msg->msg_flags = 0;
-#else /* ISC_NET_BSD44MSGHDR */
-	msg->msg_accrights = NULL;
-	msg->msg_accrightslen = 0;
-#endif /* ISC_NET_BSD44MSGHDR */
 
 	if (read_countp != NULL)
 		*read_countp = read_count;
@@ -1774,10 +1755,8 @@ dump_msg(struct msghdr *msg) {
 		printf("\t\t%u\tbase %p, len %ld\n", i,
 		       msg->msg_iov[i].iov_base,
 		       (long) msg->msg_iov[i].iov_len);
-#ifdef ISC_NET_BSD44MSGHDR
 	printf("\tcontrol %p, controllen %ld\n", msg->msg_control,
 	       (long) msg->msg_controllen);
-#endif
 }
 #endif
 

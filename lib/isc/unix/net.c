@@ -364,8 +364,7 @@ isc_net_probe_ipv6pktinfo(void) {
 	return (ipv6pktinfo_result);
 }
 
-#if ISC_CMSG_IP_TOS || \
-    defined(ISC_NET_BSD44MSGHDR) && defined(IPV6_TCLASS)
+#if ISC_CMSG_IP_TOS || defined(IPV6_TCLASS)
 
 static inline ISC_SOCKADDR_LEN_T
 cmsg_len(ISC_SOCKADDR_LEN_T len) {
@@ -411,7 +410,6 @@ cmsg_space(ISC_SOCKADDR_LEN_T len) {
 #endif
 }
 
-#ifdef ISC_NET_BSD44MSGHDR
 /*
  * Make a fd non-blocking.
  */
@@ -574,7 +572,6 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	return (true);
 }
 #endif
-#endif
 
 static void
 try_dscp_v4(void) {
@@ -624,14 +621,10 @@ try_dscp_v4(void) {
 		dscp_result |= ISC_NET_DSCPRECVV4;
 #endif /* IP_RECVTOS */
 
-#ifdef ISC_NET_BSD44MSGHDR
-
 #if ISC_CMSG_IP_TOS
 	if (cmsgsend(s, IPPROTO_IP, IP_TOS, res0))
 		dscp_result |= ISC_NET_DSCPPKTV4;
 #endif /* ISC_CMSG_IP_TOS */
-
-#endif /* ISC_NET_BSD44MSGHDR */
 
 	freeaddrinfo(res0);
 	close(s);
@@ -685,10 +678,8 @@ try_dscp_v6(void) {
 		dscp_result |= ISC_NET_DSCPRECVV6;
 #endif /* IPV6_RECVTCLASS */
 
-#ifdef ISC_NET_BSD44MSGHDR
 	if (cmsgsend(s, IPPROTO_IPV6, IPV6_TCLASS, res0))
 		dscp_result |= ISC_NET_DSCPPKTV6;
-#endif /* ISC_NET_BSD44MSGHDR */
 
 	freeaddrinfo(res0);
 	close(s);
