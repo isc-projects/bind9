@@ -496,24 +496,6 @@ AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(seteuid setresuid)
 AC_CHECK_FUNCS(setegid setresgid)
 
-#
-# UnixWare 7.1.1 with the feature supplement to the UDK compiler
-# is reported to not support "static inline" (RT #1212).
-#
-AC_MSG_CHECKING(for static inline breakage)
-AC_TRY_COMPILE([
-	static inline int foo1() {
-		return 0;
-	}
-
-	static inline int foo2() {
-		return foo1();
-	}
-	], [foo1();],
-	[AC_MSG_RESULT(no)],
-	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(inline, ,[Define to empty if your compiler does not support "static inline".])])
-
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINTPTR_T
@@ -925,12 +907,6 @@ case "$host" in
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
 		AC_CHECK_FUNC(pthread_setconcurrency,
 			      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
-		;;
-	#
-	# UnixWare does things its own way.
-	#
-	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-		AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
 		;;
 esac
 
@@ -1824,10 +1800,6 @@ else
 	*-solaris*)
 		MKDEPCFLAGS="-xM"
 		;;
-	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-		# UnixWare
-		CC="$CC -w"
-		;;
 	esac
 fi
 
@@ -2111,23 +2083,6 @@ esac
 changequote([, ])
 
 #
-# This is similar to the netinet6/in6.h issue.
-#
-case "$host" in
-*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-	# UnixWare
-	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
-	ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
-	isc_netinetin6_hack="#include <netinet/in6.h>"
-	;;
-*)
-	ISC_PLATFORM_NEEDNETINETIN6H="#undef ISC_PLATFORM_NEEDNETINETIN6H"
-	ISC_PLATFORM_FIXIN6ISADDR="#undef ISC_PLATFORM_FIXIN6ISADDR"
-	isc_netinetin6_hack=""
-	;;
-esac
-
-#
 # Now delve deeper into the suitability of the IPv6 support.
 #
 case "$found_ipv6" in
@@ -2139,7 +2094,6 @@ case "$found_ipv6" in
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinetin6_hack
 $isc_netinet6in6_hack
 ],
 [struct in6_addr in6; return (0);],
@@ -2155,7 +2109,6 @@ $isc_netinet6in6_hack
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinetin6_hack
 $isc_netinet6in6_hack
 $isc_in_addr6_hack
 ],
@@ -2170,7 +2123,6 @@ $isc_in_addr6_hack
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinetin6_hack
 $isc_netinet6in6_hack
 $isc_in_addr6_hack
 ],
@@ -2185,7 +2137,6 @@ $isc_in_addr6_hack
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinetin6_hack
 $isc_netinet6in6_hack
 ],
 		[struct sockaddr_in6 xyzzy; xyzzy.sin6_scope_id = 0; return (0);],
@@ -2199,7 +2150,6 @@ $isc_netinet6in6_hack
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinetin6_hack
 $isc_netinet6in6_hack
 ],
 		[struct in6_pktinfo xyzzy; return (0);],
@@ -2224,7 +2174,6 @@ AC_MSG_CHECKING(for struct sockaddr_storage)
 AC_TRY_COMPILE([
 #include <sys/types.h>
 #include <sys/socket.h>
-$isc_netinetin6_hack
 $isc_netinet6in6_hack
 ],
 [struct sockaddr_storage storage; return (0);],
@@ -2234,13 +2183,11 @@ ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"],
 ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"])
 
 AC_SUBST(ISC_PLATFORM_HAVEIPV6)
-AC_SUBST(ISC_PLATFORM_NEEDNETINETIN6H)
 AC_SUBST(ISC_PLATFORM_NEEDNETINET6IN6H)
 AC_SUBST(ISC_PLATFORM_HAVEINADDR6)
 AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRANY)
 AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
-AC_SUBST(ISC_PLATFORM_FIXIN6ISADDR)
 AC_SUBST(ISC_PLATFORM_HAVESOCKADDRSTORAGE)
 AC_SUBST(ISC_IPV6_H)
 AC_SUBST(ISC_IPV6_O)
