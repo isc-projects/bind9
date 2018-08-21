@@ -158,13 +158,6 @@
 #define INADDR_LOOPBACK 0x7f000001UL
 #endif
 
-#ifdef ISC_PLATFORM_NEEDPORTT
-/*%
- * Ensure type in_port_t is defined.
- */
-typedef uint16_t in_port_t;
-#endif
-
 #ifndef MSG_TRUNC
 /*%
  * If this system does not have MSG_TRUNC (as returned from recvmsg())
