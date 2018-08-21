@@ -50,15 +50,6 @@
 /** define if tzset() is available */
 #undef HAVE_TZSET
 
-/** define if struct addrinfo exists */
-#undef HAVE_ADDRINFO
-
-/** define if getaddrinfo() exists */
-#undef HAVE_GETADDRINFO
-
-/** define if gai_strerror() exists */
-#undef HAVE_GAISTRERROR
-
 /**
  * define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.
@@ -485,18 +476,6 @@
 
 /* Use HMAC-SHA256 for Client Cookie generation */
 #undef HMAC_SHA256_CC
-
-/* return type of gai_strerror */
-#undef IRS_GAISTRERROR_RETURN_T
-
-/* Define to the buffer length type used by getnameinfo(3). */
-#undef IRS_GETNAMEINFO_BUFLEN_T
-
-/* Define to the flags type used by getnameinfo(3). */
-#undef IRS_GETNAMEINFO_FLAGS_T
-
-/* Define to the sockaddr length type used by getnameinfo(3). */
-#undef IRS_GETNAMEINFO_SOCKLEN_T
 
 /* Define if you want to use inline buffers */
 #undef ISC_BUFFER_USEINLINE
