@@ -461,7 +461,7 @@ signal_iocompletionport_exit(isc_socketmgr_t *manager) {
 		if (!PostQueuedCompletionStatus(manager->hIoCompletionPort,
 						0, 0, 0)) {
 			errval = GetLastError();
-			isc__strerror(errval, strbuf, sizeof(strbuf));
+			strerror_r(errval, strbuf, sizeof(strbuf));
 			FATAL_ERROR(__FILE__, __LINE__,
 				isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 				ISC_MSG_FAILED,
@@ -491,7 +491,7 @@ iocompletionport_createthreads(int total_threads, isc_socketmgr_t *manager) {
 						&manager->dwIOCPThreadIds[i]);
 		if (manager->hIOCPThreads[i] == NULL) {
 			errval = GetLastError();
-			isc__strerror(errval, strbuf, sizeof(strbuf));
+			strerror_r(errval, strbuf, sizeof(strbuf));
 			FATAL_ERROR(__FILE__, __LINE__,
 				isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 				ISC_MSG_FAILED,
@@ -517,7 +517,7 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 	hHeapHandle = HeapCreate(0, 10 * sizeof(IoCompletionInfo), 0);
 	if (hHeapHandle == NULL) {
 		errval = GetLastError();
-		isc__strerror(errval, strbuf, sizeof(strbuf));
+		strerror_r(errval, strbuf, sizeof(strbuf));
 		FATAL_ERROR(__FILE__, __LINE__,
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 					   ISC_MSG_FAILED,
@@ -534,7 +534,7 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 			0, manager->maxIOCPThreads);
 	if (manager->hIoCompletionPort == NULL) {
 		errval = GetLastError();
-		isc__strerror(errval, strbuf, sizeof(strbuf));
+		strerror_r(errval, strbuf, sizeof(strbuf));
 		FATAL_ERROR(__FILE__, __LINE__,
 				isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 				ISC_MSG_FAILED,
@@ -565,7 +565,7 @@ iocompletionport_update(isc_socket_t *sock) {
 
 	if (hiocp == NULL) {
 		DWORD errval = GetLastError();
-		isc__strerror(errval, strbuf, sizeof(strbuf));
+		strerror_r(errval, strbuf, sizeof(strbuf));
 		isc_log_iwrite(isc_lctx,
 				ISC_LOGCATEGORY_GENERAL,
 				ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
@@ -631,7 +631,7 @@ initialise(void) {
 	err = WSAStartup(wVersionRequested, &wsaData);
 	if (err != 0) {
 		char strbuf[ISC_STRERRORSIZE];
-		isc__strerror(err, strbuf, sizeof(strbuf));
+		strerror_r(err, strbuf, sizeof(strbuf));
 		FATAL_ERROR(__FILE__, __LINE__, "WSAStartup() %s: %s",
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 					   ISC_MSG_FAILED, "failed"),
@@ -898,7 +898,7 @@ make_nonblock(SOCKET fd) {
 	ret = ioctlsocket(fd, FIONBIO, &flags);
 
 	if (ret == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "ioctlsocket(%d, FIOBIO, %d): %s",
 				 fd, flags, strbuf);
@@ -1216,7 +1216,7 @@ map_socket_error(isc_socket_t *sock, int windows_errno, int *isc_errno,
 		break;
 	}
 	if (doreturn == DOIO_HARD) {
-		isc__strerror(windows_errno, errorstring, bufsize);
+		strerror_r(windows_errno, errorstring, bufsize);
 	}
 	return (doreturn);
 }
@@ -1410,7 +1410,7 @@ startio_send(isc_socket_t *sock, isc_socketevent_t *dev, int *nbytes,
 		 * If we got this far then something is wrong
 		 */
 		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
-			isc__strerror(*send_errno, strbuf, sizeof(strbuf));
+			strerror_r(*send_errno, strbuf, sizeof(strbuf));
 			socket_log(__LINE__, sock, NULL, IOEVENT,
 				   isc_msgcat, ISC_MSGSET_SOCKET,
 				   ISC_MSG_INTERNALSEND,
@@ -1719,7 +1719,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 			return (ISC_R_FAMILYNOSUPPORT);
 
 		default:
-			isc__strerror(socket_errno, strbuf, sizeof(strbuf));
+			strerror_r(socket_errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "socket() %s: %s",
 					 isc_msgcat_get(isc_msgcat,
@@ -1757,7 +1757,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
 				   (char *)&on, sizeof(on)) < 0)) {
-			isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
+			strerror_r(WSAGetLastError(), strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_RECVPKTINFO) "
 					 "%s: %s", sock->fd,
@@ -1772,7 +1772,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		if ((pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
 				   (char *)&on, sizeof(on)) < 0)) {
-			isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
+			strerror_r(WSAGetLastError(), strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_PKTINFO) %s: %s",
 					 sock->fd,
@@ -2194,7 +2194,7 @@ internal_connect(isc_socket_t *sock, IoCompletionInfo *lpo, int connect_errno) {
 #undef ERROR_MATCH
 		default:
 			result = ISC_R_UNEXPECTED;
-			isc__strerror(connect_errno, strbuf, sizeof(strbuf));
+			strerror_r(connect_errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_connect: connect() %s",
 					 strbuf);
@@ -2486,7 +2486,7 @@ SocketIoThread(LPVOID ThreadContext) {
 	if (!SetThreadPriority(GetCurrentThread(),
 			       THREAD_PRIORITY_ABOVE_NORMAL)) {
 		errval = GetLastError();
-		isc__strerror(errval, strbuf, sizeof(strbuf));
+		strerror_r(errval, strbuf, sizeof(strbuf));
 		FATAL_ERROR(__FILE__, __LINE__,
 				isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 				ISC_MSG_FAILED,
@@ -3281,7 +3281,7 @@ isc__socket_bind(isc_socket_t *sock, const isc_sockaddr_t *sockaddr,
 		case WSAEINVAL:
 			return (ISC_R_BOUND);
 		default:
-			isc__strerror(bind_errno, strbuf, sizeof(strbuf));
+			strerror_r(bind_errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__, "bind: %s",
 					 strbuf);
 			return (ISC_R_UNEXPECTED);
@@ -3344,7 +3344,7 @@ isc__socket_listen(isc_socket_t *sock, unsigned int backlog) {
 
 	if (listen(sock->fd, (int)backlog) < 0) {
 		UNLOCK(&sock->lock);
-		isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
+		strerror_r(WSAGetLastError(), strbuf, sizeof(strbuf));
 
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "listen: %s", strbuf);
 
@@ -3354,7 +3354,7 @@ isc__socket_listen(isc_socket_t *sock, unsigned int backlog) {
 #if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
 	if (setsockopt(sock->fd, IPPROTO_TCP, TCP_FASTOPEN,
 		       &on, sizeof(on)) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, TCP_FASTOPEN) failed with %s",
 				 sock->fd, strbuf);
@@ -3546,7 +3546,7 @@ isc__socket_connect(isc_socket_t *sock, const isc_sockaddr_t *addr,
 			case WSAEINVAL:
 				return (ISC_R_BOUND);
 			default:
-				isc__strerror(bind_errno, strbuf,
+				strerror_r(bind_errno, strbuf,
 					      sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "bind: %s", strbuf);
@@ -3682,7 +3682,7 @@ isc__socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 
 	len = sizeof(addressp->type);
 	if (getsockname(sock->fd, &addressp->type.sa, (void *)&len) < 0) {
-		isc__strerror(WSAGetLastError(), strbuf, sizeof(strbuf));
+		strerror_r(WSAGetLastError(), strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "getsockname: %s",
 				 strbuf);
 		result = ISC_R_UNEXPECTED;

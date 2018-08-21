@@ -77,7 +77,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 #endif
 
 	if (getifaddrs(&iter->ifaddrs) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 isc_msgcat_get(isc_msgcat,
 						ISC_MSGSET_IFITERGETIFADDRS,

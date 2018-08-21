@@ -40,7 +40,6 @@
 #include <isc/print.h>
 #include <isc/resource.h>
 #include <isc/result.h>
-#include <isc/strerror.h>
 #include <isc/string.h>
 
 #include <named/globals.h>
@@ -130,7 +129,7 @@ linux_setcaps(cap_t caps) {
 		return;
 	}
 	if (cap_set_proc(caps) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("cap_set_proc() failed: %s:"
 				      " please ensure that the capset kernel"
 				      " module is loaded.  see insmod(8)",
@@ -146,13 +145,13 @@ linux_setcaps(cap_t caps) {
 		if (err != -1 && curval) { \
 			err = cap_set_flag(caps, CAP_EFFECTIVE, 1, &capval, CAP_SET); \
 			if (err == -1) { \
-				isc__strerror(errno, strbuf, sizeof(strbuf)); \
+				strerror_r(errno, strbuf, sizeof(strbuf)); \
 				named_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
 			} \
 			\
 			err = cap_set_flag(caps, CAP_PERMITTED, 1, &capval, CAP_SET); \
 			if (err == -1) { \
-				isc__strerror(errno, strbuf, sizeof(strbuf)); \
+				strerror_r(errno, strbuf, sizeof(strbuf)); \
 				named_main_earlyfatal("cap_set_proc failed: %s", strbuf); \
 			} \
 		} \
@@ -161,12 +160,12 @@ linux_setcaps(cap_t caps) {
 	do { \
 		caps = cap_init(); \
 		if (caps == NULL) { \
-			isc__strerror(errno, strbuf, sizeof(strbuf)); \
+			strerror_r(errno, strbuf, sizeof(strbuf)); \
 			named_main_earlyfatal("cap_init failed: %s", strbuf); \
 		} \
 		curcaps = cap_get_proc(); \
 		if (curcaps == NULL) { \
-			isc__strerror(errno, strbuf, sizeof(strbuf)); \
+			strerror_r(errno, strbuf, sizeof(strbuf)); \
 			named_main_earlyfatal("cap_get_proc failed: %s", strbuf); \
 		} \
 	} while (0)
@@ -286,7 +285,7 @@ linux_keepcaps(void) {
 
 	if (prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0) < 0) {
 		if (errno != EINVAL) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlyfatal("prctl() failed: %s", strbuf);
 		}
 	} else {
@@ -331,13 +330,13 @@ named_os_daemonize(void) {
 	char strbuf[ISC_STRERRORSIZE];
 
 	if (pipe(dfd) == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("pipe(): %s", strbuf);
 	}
 
 	pid = fork();
 	if (pid == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("fork(): %s", strbuf);
 	}
 	if (pid != 0) {
@@ -367,7 +366,7 @@ named_os_daemonize(void) {
 #endif
 
 	if (setsid() == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("setsid(): %s", strbuf);
 	}
 
@@ -450,14 +449,14 @@ named_os_chroot(const char *root) {
 	if (root != NULL) {
 #ifdef HAVE_CHROOT
 		if (chroot(root) < 0) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlyfatal("chroot(): %s", strbuf);
 		}
 #else
 		named_main_earlyfatal("chroot(): disabled");
 #endif
 		if (chdir("/") < 0) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlyfatal("chdir(/): %s", strbuf);
 		}
 #ifdef HAVE_LIBSCF
@@ -484,7 +483,7 @@ named_os_inituserinfo(const char *username) {
 
 	if (getuid() == 0) {
 		if (initgroups(runas_pw->pw_name, runas_pw->pw_gid) < 0) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlyfatal("initgroups(): %s", strbuf);
 		}
 	}
@@ -514,12 +513,12 @@ named_os_changeuser(void) {
 #endif
 
 	if (setgid(runas_pw->pw_gid) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("setgid(): %s", strbuf);
 	}
 
 	if (setuid(runas_pw->pw_uid) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("setuid(): %s", strbuf);
 	}
 
@@ -529,7 +528,7 @@ named_os_changeuser(void) {
 	 * call has disabled it.
 	 */
 	if (prctl(PR_SET_DUMPABLE,1,0,0,0) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("prctl(PR_SET_DUMPABLE) failed: %s",
 					strbuf);
 	}
@@ -648,7 +647,7 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 
 		if (stat(filename, &sb) == -1) {
 			if (errno != ENOENT) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				(*report)("couldn't stat '%s': %s", filename,
 					  strbuf);
 				goto error;
@@ -668,7 +667,7 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 			mode |= S_IRGRP | S_IXGRP;		/* g=rx */
 			mode |= S_IROTH | S_IXOTH;		/* o=rx */
 			if (mkdir(filename, mode) == -1) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				(*report)("couldn't mkdir '%s': %s", filename,
 					  strbuf);
 				goto error;
@@ -676,7 +675,7 @@ mkdirpath(char *filename, void (*report)(const char *, ...)) {
 			if (runas_pw != NULL &&
 			    chown(filename, runas_pw->pw_uid,
 				  runas_pw->pw_gid) == -1) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				(*report)("couldn't chown '%s': %s", filename,
 					  strbuf);
 			}
@@ -703,7 +702,7 @@ setperms(uid_t uid, gid_t gid) {
 #endif
 #if defined(HAVE_SETEGID)
 	if (getegid() != gid && setegid(gid) == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("unable to set effective "
 					"gid to %ld: %s",
 					(long)gid, strbuf);
@@ -711,7 +710,7 @@ setperms(uid_t uid, gid_t gid) {
 #elif defined(HAVE_SETRESGID)
 	if (getresgid(&tmpg, &oldgid, &tmpg) == -1 || oldgid != gid) {
 		if (setresgid(-1, gid, -1) == -1) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlywarning("unable to set effective "
 						"gid to %d: %s", gid, strbuf);
 		}
@@ -720,7 +719,7 @@ setperms(uid_t uid, gid_t gid) {
 
 #if defined(HAVE_SETEUID)
 	if (geteuid() != uid && seteuid(uid) == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("unable to set effective "
 					"uid to %ld: %s",
 					(long)uid, strbuf);
@@ -728,7 +727,7 @@ setperms(uid_t uid, gid_t gid) {
 #elif defined(HAVE_SETRESUID)
 	if (getresuid(&tmpu, &olduid, &tmpu) == -1 || olduid != uid) {
 		if (setresuid(-1, uid, -1) == -1) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			named_main_earlywarning("unable to set effective "
 						"uid to %d: %s", uid, strbuf);
 		}
@@ -747,7 +746,7 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 	 */
 	f = strdup(filename);
 	if (f == NULL) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("couldn't strdup() '%s': %s",
 					filename, strbuf);
 		return (NULL);
@@ -799,7 +798,7 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 	}
 
 	if (fd < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("could not open file '%s': %s",
 					filename, strbuf);
 		return (NULL);
@@ -807,7 +806,7 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 
 	fp = fdopen(fd, "w");
 	if (fp == NULL) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlywarning("could not fdopen() file '%s': %s",
 					filename, strbuf);
 	}
@@ -835,7 +834,7 @@ named_os_writepidfile(const char *filename, bool first_time) {
 
 	pidfile = strdup(filename);
 	if (pidfile == NULL) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		(*report)("couldn't strdup() '%s': %s", filename, strbuf);
 		return;
 	}
@@ -882,7 +881,7 @@ named_os_issingleton(const char *filename) {
 	 */
 	lockfile = strdup(filename);
 	if (lockfile == NULL) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("couldn't allocate memory for '%s': %s",
 				      filename, strbuf);
 	} else {

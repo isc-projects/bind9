@@ -101,7 +101,6 @@ isc__socketmgr_destroy
 isc__socketmgr_getmaxsockets
 isc__socketmgr_setreserved
 isc__socketmgr_setstats
-isc__strerror
 isc__task_getname
 isc__task_gettag
 isc__task_unsendrange

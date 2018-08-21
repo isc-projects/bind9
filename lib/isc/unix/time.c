@@ -27,7 +27,6 @@
 #include <isc/log.h>
 #include <isc/platform.h>
 #include <isc/print.h>
-#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/tm.h>
@@ -149,7 +148,7 @@ isc_time_now(isc_time_t *t) {
 	REQUIRE(t != NULL);
 
 	if (gettimeofday(&tv, NULL) == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
@@ -193,7 +192,7 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	INSIST(i->nanoseconds < NS_PER_S);
 
 	if (gettimeofday(&tv, NULL) == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
