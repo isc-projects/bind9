@@ -1856,19 +1856,10 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 		SOFT_OR_HARD(ENETUNREACH, ISC_R_NETUNREACH);
 		SOFT_OR_HARD(EHOSTUNREACH, ISC_R_HOSTUNREACH);
 		SOFT_OR_HARD(EHOSTDOWN, ISC_R_HOSTDOWN);
-		/* HPUX 11.11 can return EADDRNOTAVAIL. */
-		SOFT_OR_HARD(EADDRNOTAVAIL, ISC_R_ADDRNOTAVAIL);
 		SOFT_OR_HARD(ENOBUFS, ISC_R_NORESOURCES);
 		/* Should never get this one but it was seen. */
 #ifdef ENOPROTOOPT
 		SOFT_OR_HARD(ENOPROTOOPT, ISC_R_HOSTUNREACH);
-#endif
-		/*
-		 * HPUX returns EPROTO and EINVAL on receiving some ICMP/ICMPv6
-		 * errors.
-		 */
-#ifdef EPROTO
-		SOFT_OR_HARD(EPROTO, ISC_R_HOSTUNREACH);
 #endif
 		SOFT_OR_HARD(EINVAL, ISC_R_HOSTUNREACH);
 
@@ -5686,10 +5677,14 @@ isc__socket_connect(isc_socket_t *sock0, const isc_sockaddr_t *addr,
 	cc = connect(sock->fd, &addr->type.sa, addr->length);
 	if (cc < 0) {
 		/*
-		 * HP-UX "fails" to connect a UDP socket and sets errno to
-		 * EINPROGRESS if it's non-blocking.  We'd rather regard this as
-		 * a success and let the user detect it if it's really an error
-		 * at the time of sending a packet on the socket.
+		 * The socket is nonblocking and the connection cannot be
+		 * completed immediately.  It is possible to select(2) or
+		 * poll(2) for completion by selecting the socket for writing.
+		 * After select(2) indicates writability, use getsockopt(2) to
+		 * read the SO_ERROR option at level SOL_SOCKET to determine
+		 * whether connect() completed successfully (SO_ERROR is zero)
+		 * or unsuccessfully (SO_ERROR is one of the usual error codes
+		 * listed here, explaining the reason for the failure).
 		 */
 		if (sock->type == isc_sockettype_udp && errno == EINPROGRESS) {
 			cc = 0;
