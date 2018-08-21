@@ -37,7 +37,7 @@ if ($options{'o'}) {
 $nm_prog = "nm";
 $ostype = `uname -s`;
 chop($ostype);
-if ($ostype eq "SunOS" || $ostype eq "HP-UX") {
+if ($ostype eq "HP-UX") {
 	$nm_prog = "/usr/ccs/bin/nm -x"
 }
 
@@ -52,14 +52,7 @@ open(TBLFILE, ">$outputfile") || die "failed to open output file: $outputfile";
 $nsyms = 0;
 while (<SYMBOLS>) {
 	my ($addr, $symbol) = (0, "");
-	if ($ostype eq "SunOS") {
-		if (/\[\d*\]\s*\|\s*0x([0-9a-f]*)\|\s*0x[0-9a-f]*\|FUNC\s*(.*)\|([^|]+)$/) {
-			next if ($2 =~ /UNDEF/); # skip undefined symbols
-			$addr = $1;
-			$symbol = $3;
-			chop($symbol);
-		}
-	} elsif ($ostype eq "HP-UX") {
+	if ($ostype eq "HP-UX") {
 		if (/(\S*)\s*\|0x([0-9a-f]*)\|([^|]*\|entry|extern\|code)/) {
 			$addr = $2;
 			$symbol = $1;

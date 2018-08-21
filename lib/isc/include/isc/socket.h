@@ -1196,8 +1196,8 @@ isc_socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 /*%<
  * Set ownership and file permissions on the UNIX domain socket.
  *
- * Note: On Solaris and SunOS this secures the directory containing
- *       the socket as Solaris and SunOS do not honour the filesystem
+ * Note: On Solaris this secures the directory containing
+ *       the socket as Solaris do not honour the filesystem
  *	 permissions on the socket.
  *
  * Requires:
