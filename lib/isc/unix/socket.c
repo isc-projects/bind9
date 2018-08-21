@@ -56,7 +56,6 @@
 #include <isc/resource.h>
 #include <isc/socket.h>
 #include <isc/stats.h>
-#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>
@@ -959,7 +958,7 @@ unwatch_fd(isc__socketmgr_t *manager, int fd, int msg) {
 	ret = epoll_ctl(manager->epoll_fd, op, fd, &event);
 	if (ret == -1 && errno != ENOENT) {
 		char strbuf[ISC_STRERRORSIZE];
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "epoll_ctl(DEL), %d: %s", fd, strbuf);
 		result = ISC_R_UNEXPECTED;
@@ -1107,7 +1106,7 @@ select_poke(isc__socketmgr_t *mgr, int fd, int msg) {
 	} while (cc < 0 && SOFT_ERROR(errno));
 
 	if (cc < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		FATAL_ERROR(__FILE__, __LINE__,
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 					   ISC_MSG_WRITEFAILED,
@@ -1135,7 +1134,7 @@ select_readmsg(isc__socketmgr_t *mgr, int *fd, int *msg) {
 		if (SOFT_ERROR(errno))
 			return;
 
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		FATAL_ERROR(__FILE__, __LINE__,
 			    isc_msgcat_get(isc_msgcat, ISC_MSGSET_SOCKET,
 					   ISC_MSG_READFAILED,
@@ -1171,7 +1170,7 @@ make_nonblock(int fd) {
 #endif
 
 	if (ret == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 #ifdef USE_FIONBIO_IOCTL
 				 "ioctl(%d, FIONBIO, &on): %s", fd,
@@ -1509,7 +1508,7 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 			       (void *)&dscp, sizeof(int)) < 0)
 			{
 				char strbuf[ISC_STRERRORSIZE];
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "setsockopt(%d, IP_TOS, %.02x)"
 						 " %s: %s",
@@ -1539,7 +1538,7 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 			if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_TCLASS,
 				       (void *)&dscp, sizeof(int)) < 0) {
 				char strbuf[ISC_STRERRORSIZE];
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "setsockopt(%d, IPV6_TCLASS, "
 						 "%.02x) %s: %s",
@@ -1795,7 +1794,7 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 			return (DOIO_SOFT);
 
 		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
-			isc__strerror(recv_errno, strbuf, sizeof(strbuf));
+			strerror_r(recv_errno, strbuf, sizeof(strbuf));
 			socket_log(sock, NULL, IOEVENT,
 				   isc_msgcat, ISC_MSGSET_SOCKET,
 				   ISC_MSG_DOIORECV,
@@ -2033,7 +2032,7 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
 		 * a status.
 		 */
 		isc_sockaddr_format(&dev->address, addrbuf, sizeof(addrbuf));
-		isc__strerror(send_errno, strbuf, sizeof(strbuf));
+		strerror_r(send_errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "internal_send: %s: %s",
 				 addrbuf, strbuf);
 		dev->result = isc__errno2result(send_errno);
@@ -2531,7 +2530,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		switch (errno) {
 		case EMFILE:
 		case ENFILE:
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			isc_log_iwrite(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				       ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				       isc_msgcat, ISC_MSGSET_SOCKET,
@@ -2556,7 +2555,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 			return (ISC_R_FAMILYNOSUPPORT);
 
 		default:
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "%s() %s: %s", err,
 					 isc_msgcat_get(isc_msgcat,
@@ -2586,7 +2585,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	if (sock->type != isc_sockettype_unix && bsdcompat &&
 	    setsockopt(sock->fd, SOL_SOCKET, SO_BSDCOMPAT,
 		       (void *)&on, sizeof(on)) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, SO_BSDCOMPAT) %s: %s",
 				 sock->fd,
@@ -2600,7 +2599,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 #ifdef SO_NOSIGPIPE
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_NOSIGPIPE,
 		       (void *)&on, sizeof(on)) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, SO_NOSIGPIPE) %s: %s",
 				 sock->fd,
@@ -2627,7 +2626,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		if (setsockopt(sock->fd, SOL_SOCKET, SO_TIMESTAMP,
 			       (void *)&on, sizeof(on)) < 0
 		    && errno != ENOPROTOOPT) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, SO_TIMESTAMP) %s: %s",
 					 sock->fd,
@@ -2645,7 +2644,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		if ((sock->pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVPKTINFO,
 				   (void *)&on, sizeof(on)) < 0)) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_RECVPKTINFO) "
 					 "%s: %s", sock->fd,
@@ -2660,7 +2659,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		if ((sock->pf == AF_INET6)
 		    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_PKTINFO,
 				   (void *)&on, sizeof(on)) < 0)) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_PKTINFO) %s: %s",
 					 sock->fd,
@@ -2726,7 +2725,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 						  set_rcvbuf) == ISC_R_SUCCESS);
 			if (setsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
 			       (void *)&rcvbuf, sizeof(rcvbuf)) == -1) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					"setsockopt(%d, SO_RCVBUF, %d) %s: %s",
 					sock->fd, rcvbuf,
@@ -2743,7 +2742,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	if ((sock->pf == AF_INET6)
 	    && (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_RECVTCLASS,
 			   (void *)&on, sizeof(on)) < 0)) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, IPV6_RECVTCLASS) "
 				 "%s: %s", sock->fd,
@@ -2756,7 +2755,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	if ((sock->pf == AF_INET)
 	    && (setsockopt(sock->fd, IPPROTO_IP, IP_RECVTOS,
 			   (void *)&on, sizeof(on)) < 0)) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, IP_RECVTOS) "
 				 "%s: %s", sock->fd,
@@ -3454,7 +3453,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 		default:
 			break;
 		}
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "internal_accept: %s() %s: %s", err,
 				 isc_msgcat_get(isc_msgcat,
@@ -4146,7 +4145,7 @@ watcher(void *uap) {
 #endif	/* USE_KQUEUE */
 
 			if (cc < 0 && !SOFT_ERROR(errno)) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				FATAL_ERROR(__FILE__, __LINE__,
 					    "%s %s: %s", fnname,
 					    isc_msgcat_get(isc_msgcat,
@@ -4241,7 +4240,7 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 	manager->kqueue_fd = kqueue();
 	if (manager->kqueue_fd == -1) {
 		result = isc__errno2result(errno);
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "kqueue %s: %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -4268,7 +4267,7 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 	manager->epoll_fd = epoll_create(manager->nevents);
 	if (manager->epoll_fd == -1) {
 		result = isc__errno2result(errno);
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "epoll_create %s: %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -4311,7 +4310,7 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 	manager->devpoll_fd = open("/dev/poll", O_RDWR);
 	if (manager->devpoll_fd == -1) {
 		result = isc__errno2result(errno);
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "open(/dev/poll) %s: %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -4514,7 +4513,7 @@ isc__socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	 * select/poll loop when something internal needs to be done.
 	 */
 	if (pipe(manager->pipe_fds) != 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "pipe() %s: %s",
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
@@ -5143,7 +5142,7 @@ isc__socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 
 	if (active) {
 		if (stat(sockaddr->type.sunix.sun_path, &sb) < 0) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				      "isc_socket_cleanunix: stat(%s): %s",
@@ -5158,7 +5157,7 @@ isc__socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 			return;
 		}
 		if (unlink(sockaddr->type.sunix.sun_path) < 0) {
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 				      "isc_socket_cleanunix: unlink(%s): %s",
@@ -5169,7 +5168,7 @@ isc__socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 
 	s = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (s < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
 			      "isc_socket_cleanunix: socket(%s): %s",
@@ -5182,7 +5181,7 @@ isc__socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 		case ENOENT:    /* We exited cleanly last time */
 			break;
 		default:
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
 				      "isc_socket_cleanunix: stat(%s): %s",
@@ -5206,7 +5205,7 @@ isc__socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 		case ECONNREFUSED:
 		case ECONNRESET:
 			if (unlink(sockaddr->type.sunix.sun_path) < 0) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 					      ISC_LOGMODULE_SOCKET,
 					      ISC_LOG_WARNING,
@@ -5217,7 +5216,7 @@ isc__socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 			}
 			break;
 		default:
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 				      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
 				      "isc_socket_cleanunix: connect(%s): %s",
@@ -5263,7 +5262,7 @@ isc__socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 #endif
 
 	if (chmod(path, perm) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 			      "isc_socket_permunix: chmod(%s, %d): %s",
@@ -5271,7 +5270,7 @@ isc__socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 		result = ISC_R_FAILURE;
 	}
 	if (chown(path, owner, group) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
 			      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
 			      "isc_socket_permunix: chown(%s, %d, %d): %s",
@@ -5344,7 +5343,7 @@ isc__socket_bind(isc_socket_t *sock0, const isc_sockaddr_t *sockaddr,
 		case EINVAL:
 			return (ISC_R_BOUND);
 		default:
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__, "bind: %s",
 					 strbuf);
 			return (ISC_R_UNEXPECTED);
@@ -5384,7 +5383,7 @@ isc__socket_filter(isc_socket_t *sock0, const char *filter) {
 	strlcpy(afa.af_name, filter, sizeof(afa.af_name));
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_ACCEPTFILTER,
 			 &afa, sizeof(afa)) == -1) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		socket_log(sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
 			   ISC_MSG_FILTER, "setsockopt(SO_ACCEPTFILTER): %s",
 			   strbuf);
@@ -5447,7 +5446,7 @@ set_tcp_fastopen(isc__socket_t *sock, unsigned int backlog) {
 #endif
 	if (setsockopt(sock->fd, IPPROTO_TCP, TCP_FASTOPEN,
 		       (void *)&backlog, sizeof(backlog)) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d, TCP_FASTOPEN) failed with %s",
 				 sock->fd, strbuf);
@@ -5488,7 +5487,7 @@ isc__socket_listen(isc_socket_t *sock0, unsigned int backlog) {
 
 	if (listen(sock->fd, (int)backlog) < 0) {
 		UNLOCK(&sock->lock);
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "listen: %s", strbuf);
 
@@ -5676,7 +5675,7 @@ isc__socket_connect(isc_socket_t *sock0, const isc_sockaddr_t *addr,
 
 		sock->connected = 0;
 
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_sockaddr_format(addr, addrbuf, sizeof(addrbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "connect(%s) %d/%s",
 				 addrbuf, errno, strbuf);
@@ -5838,7 +5837,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 			result = ISC_R_UNEXPECTED;
 			isc_sockaddr_format(&sock->peer_address, peerbuf,
 					    sizeof(peerbuf));
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "internal_connect: connect(%s) %s",
 					 peerbuf, strbuf);
@@ -5903,7 +5902,7 @@ isc__socket_getsockname(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
 
 	len = sizeof(addressp->type);
 	if (getsockname(sock->fd, &addressp->type.sa, (void *)&len) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "getsockname: %s",
 				 strbuf);
 		result = ISC_R_UNEXPECTED;
@@ -6082,7 +6081,7 @@ isc__socket_ipv6only(isc_socket_t *sock0, bool yes) {
 		if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_V6ONLY,
 			       (void *)&onoff, sizeof(int)) < 0) {
 			char strbuf[ISC_STRERRORSIZE];
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_V6ONLY) "
 					 "%s: %s", sock->fd,
@@ -6109,7 +6108,7 @@ setdscp(isc__socket_t *sock, isc_dscp_t dscp) {
 		if (setsockopt(sock->fd, IPPROTO_IP, IP_TOS,
 			       (void *)&value, sizeof(value)) < 0) {
 			char strbuf[ISC_STRERRORSIZE];
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IP_TOS, %.02x) "
 					 "%s: %s", sock->fd, value >> 2,
@@ -6126,7 +6125,7 @@ setdscp(isc__socket_t *sock, isc_dscp_t dscp) {
 		if (setsockopt(sock->fd, IPPROTO_IPV6, IPV6_TCLASS,
 			       (void *)&value, sizeof(value)) < 0) {
 			char strbuf[ISC_STRERRORSIZE];
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d, IPV6_TCLASS, %.02x) "
 					 "%s: %s", sock->fd, dscp >> 2,

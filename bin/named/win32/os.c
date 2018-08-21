@@ -27,7 +27,6 @@
 
 #include <isc/print.h>
 #include <isc/result.h>
-#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/ntpaths.h>
 #include <isc/util.h>
@@ -231,7 +230,7 @@ named_os_openfile(const char *filename, int mode, bool switch_user) {
 	UNUSED(switch_user);
 	fd = safe_open(filename, mode, false);
 	if (fd < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_s(strbuf, sizeof(strbuf), errno);
 		named_main_earlywarning("could not open file '%s': %s",
 					filename, strbuf);
 		return (NULL);
@@ -239,7 +238,7 @@ named_os_openfile(const char *filename, int mode, bool switch_user) {
 
 	fp = fdopen(fd, "w");
 	if (fp == NULL) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_s(strbuf, sizeof(strbuf), errno);
 		named_main_earlywarning("could not fdopen() file '%s': %s",
 					filename, strbuf);
 		close(fd);
@@ -268,7 +267,7 @@ named_os_writepidfile(const char *filename, bool first_time) {
 
 	pidfile = strdup(filename);
 	if (pidfile == NULL) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_s(strbuf, sizeof(strbuf), errno);
 		(*report)("couldn't strdup() '%s': %s", filename, strbuf);
 		return;
 	}
@@ -312,7 +311,7 @@ named_os_issingleton(const char *filename) {
 
 	lockfile = strdup(filename);
 	if (lockfile == NULL) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_s(strbuf, sizeof(strbuf), errno);
 		named_main_earlyfatal("couldn't allocate memory for '%s': %s",
 				      filename, strbuf);
 	}
