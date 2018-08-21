@@ -1,3 +1,8 @@
+5013.	[bug]		Spread the initial RRSIG expiration times over the
+			entire working sig-validity-interval when signing a
+			zone in named to even out re-signing and transfer
+			loads. [GL #418]
+
 5012.	[bug]		Fix lock order reversal in pk11_initialize. [GL !590]
 
 5011.	[func]		Remove support for unthreaded named. [GL #478]
