@@ -1907,20 +1907,6 @@ AC_SUBST(BIND9_CO_RULE)
 #
 
 #
-# IPv6
-#
-AC_ARG_ENABLE(ipv6,
-	      AS_HELP_STRING([--enable-ipv6], [use IPv6 [default=autodetect]]))
-
-case "$enable_ipv6" in
-	yes|''|autodetect)
-		AC_DEFINE(WANT_IPV6)
-		;;
-	no)
-		;;
-esac
-
-#
 # We do the IPv6 compilation checking after libtool so that we can put
 # the right suffix on the files.
 #
@@ -4010,8 +3996,7 @@ report() {
 
     # these lines are only printed if run with --enable-full-report 
     if test "yes" = "$enable_full_report"; then
-	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
-	    echo "    IPv6 support (--enable-ipv6)"
+	test "no" = "$found_ipv6" || echo "    IPv6 support (--enable-ipv6)"
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -4062,8 +4047,7 @@ report() {
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
-    test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
-	    echo "    IPv6 support (--enable-ipv6)"
+    test "no" = "$found_ipv6" && echo "    IPv6 support (--enable-ipv6)"
     test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
 
     test "no" = "$use_dnstap" && \

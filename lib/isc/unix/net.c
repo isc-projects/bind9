@@ -102,13 +102,11 @@ const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;
 const struct in6_addr isc_net_in6addrloop = IN6ADDR_LOOPBACK_INIT;
 # endif
 
-# if defined(WANT_IPV6)
 static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
 
 #  if defined(ISC_PLATFORM_HAVEIN6PKTINFO)
 static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
 #  endif
-# endif /* WANT_IPV6 */
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 
 #ifndef ISC_CMSG_IP_TOS
@@ -165,7 +163,6 @@ try_proto(int domain) {
 	}
 
 #ifdef ISC_PLATFORM_HAVEIPV6
-#ifdef WANT_IPV6
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	if (domain == PF_INET6) {
 		struct sockaddr_in6 sin6;
@@ -206,7 +203,6 @@ try_proto(int domain) {
 	}
 #endif
 #endif
-#endif
 
 	(void)close(s);
 
@@ -217,10 +213,8 @@ static void
 initialize_action(void) {
 	ipv4_result = try_proto(PF_INET);
 #ifdef ISC_PLATFORM_HAVEIPV6
-#ifdef WANT_IPV6
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	ipv6_result = try_proto(PF_INET6);
-#endif
 #endif
 #endif
 #ifdef ISC_PLATFORM_HAVESYSUNH
@@ -252,7 +246,6 @@ isc_net_probeunix(void) {
 }
 
 #ifdef ISC_PLATFORM_HAVEIPV6
-#ifdef WANT_IPV6
 static void
 try_ipv6only(void) {
 #ifdef IPV6_V6ONLY
@@ -328,10 +321,8 @@ initialize_ipv6only(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6only,
 				  try_ipv6only) == ISC_R_SUCCESS);
 }
-#endif /* WANT_IPV6 */
 
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
-#ifdef WANT_IPV6
 static void
 try_ipv6pktinfo(void) {
 	int s, on;
@@ -383,18 +374,13 @@ initialize_ipv6pktinfo(void) {
 	RUNTIME_CHECK(isc_once_do(&once_ipv6pktinfo,
 				  try_ipv6pktinfo) == ISC_R_SUCCESS);
 }
-#endif /* WANT_IPV6 */
 #endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 
 isc_result_t
 isc_net_probe_ipv6only(void) {
 #ifdef ISC_PLATFORM_HAVEIPV6
-#ifdef WANT_IPV6
 	initialize_ipv6only();
-#else
-	ipv6only_result = ISC_R_NOTFOUND;
-#endif
 #endif
 	return (ipv6only_result);
 }
@@ -403,18 +389,14 @@ isc_result_t
 isc_net_probe_ipv6pktinfo(void) {
 #ifdef ISC_PLATFORM_HAVEIPV6
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
-#ifdef WANT_IPV6
 	initialize_ipv6pktinfo();
-#else
-	ipv6pktinfo_result = ISC_R_NOTFOUND;
-#endif
 #endif
 #endif
 	return (ipv6pktinfo_result);
 }
 
 #if ISC_CMSG_IP_TOS || \
-    defined(ISC_NET_BSD44MSGHDR) && defined(IPV6_TCLASS) && defined(WANT_IPV6)
+    defined(ISC_NET_BSD44MSGHDR) && defined(IPV6_TCLASS)
 
 static inline ISC_SOCKADDR_LEN_T
 cmsg_len(ISC_SOCKADDR_LEN_T len) {
@@ -691,7 +673,6 @@ try_dscp_v4(void) {
 static void
 try_dscp_v6(void) {
 #ifdef ISC_PLATFORM_HAVEIPV6
-#ifdef WANT_IPV6
 #ifdef IPV6_TCLASS
 	char strbuf[ISC_STRERRORSIZE];
 	struct addrinfo hints, *res0;
@@ -745,7 +726,6 @@ try_dscp_v6(void) {
 	close(s);
 
 #endif /* IPV6_TCLASS */
-#endif /* WANT_IPV6 */
 #endif /* ISC_PLATFORM_HAVEIPV6 */
 }
 

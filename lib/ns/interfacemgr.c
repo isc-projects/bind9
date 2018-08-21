@@ -862,12 +862,10 @@ do_scan(ns_interfacemgr_t *mgr, ns_listenlist_t *ext_listen,
 
 	if (isc_net_probeipv6() == ISC_R_SUCCESS)
 		scan_ipv6 = true;
-#ifdef WANT_IPV6
 	else if ((mgr->sctx->options & NS_SERVER_DISABLE6) == 0)
 		isc_log_write(IFMGR_COMMON_LOGARGS,
 			      verbose ? ISC_LOG_INFO : ISC_LOG_DEBUG(1),
 			      "no IPv6 interfaces found");
-#endif
 
 	if (isc_net_probeipv4() == ISC_R_SUCCESS)
 		scan_ipv4 = true;
