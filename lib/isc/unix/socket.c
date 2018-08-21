@@ -2325,7 +2325,6 @@ set_rcvbuf(void) {
 	ISC_SOCKADDR_LEN_T len;
 
 	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
-#if defined(ISC_PLATFORM_HAVEIPV6)
 	if (fd == -1) {
 		switch (errno) {
 		case EPROTONOSUPPORT:
@@ -2340,7 +2339,6 @@ set_rcvbuf(void) {
 			break;
 		}
 	}
-#endif
 	if (fd == -1)
 		return;
 
@@ -2673,7 +2671,6 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		}
 #endif /* SO_TIMESTAMP */
 
-#if defined(ISC_PLATFORM_HAVEIPV6)
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 #ifdef IPV6_RECVPKTINFO
 		/* RFC 3542 */
@@ -2718,7 +2715,6 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 					 sizeof(action));
 		}
 #endif
-#endif /* ISC_PLATFORM_HAVEIPV6 */
 #endif /* defined(USE_CMSG) */
 
 #if defined(IP_MTU_DISCOVER) && defined(IP_PMTUDISC_DONT)
