@@ -92,10 +92,6 @@
 /* define if ATF unit tests are to be built. */
 #undef ATF_TEST
 
-/* Define if recvmsg() does not meet all of the BSD socket API specifications.
-   */
-#undef BROKEN_RECVMSG
-
 /* Define if you cannot bind() before connect() for TCP sockets. */
 #undef BROKEN_TCP_BIND_BEFORE_CONNECT
 
