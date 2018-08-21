@@ -65,9 +65,6 @@
  */
 #undef CALL_PTHREAD_SETCONCURRENCY
 
-/** define if IPv6 is not disabled */
-#undef WANT_IPV6
-
 /** define if flockfile() is available */
 #undef HAVE_FLOCKFILE
 
