@@ -1945,6 +1945,7 @@ AC_COMPILE_IFELSE(
      [[
        struct sockaddr_in6 sin6;
        struct in6_addr in6;
+       struct in6_pktinfo in6_pi;
        in6 = in6addr_any;
        in6 = in6addr_loopback;
        sin6.sin6_scope_id = 0;
@@ -1952,22 +1953,6 @@ AC_COMPILE_IFELSE(
      ]])],
   [AC_MSG_RESULT([yes])],
   [AC_MSG_FAILURE([IPv6 support is mandatory])])
-
-AC_MSG_CHECKING([for in6_pktinfo])
-AC_COMPILE_IFELSE(
-  [AC_LANG_PROGRAM(
-     [[
-       #include <sys/types.h>
-       #include <sys/socket.h>
-       #include <netinet/in.h>
-     ]],
-     [[
-       struct in6_pktinfo xyzzy; return (0);
-     ]])],
-  [AC_MSG_RESULT(yes)
-   ISC_PLATFORM_HAVEIN6PKTINFO="#define ISC_PLATFORM_HAVEIN6PKTINFO 1"],
-  [AC_MSG_RESULT(no -- disabling runtime ipv6 support)
-   ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"])
 
 AC_MSG_CHECKING(for struct sockaddr_storage)
 AC_TRY_COMPILE([
@@ -1980,7 +1965,6 @@ ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"],
 [AC_MSG_RESULT(no)
 ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"])
 
-AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
 AC_SUBST(ISC_PLATFORM_HAVESOCKADDRSTORAGE)
 
 AC_MSG_CHECKING([for struct if_laddrreq])

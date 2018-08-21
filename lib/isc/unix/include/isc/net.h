@@ -158,15 +158,6 @@
 #define INADDR_LOOPBACK 0x7f000001UL
 #endif
 
-#ifndef ISC_PLATFORM_HAVEIN6PKTINFO
-/*% IPv6 packet info */
-struct in6_pktinfo {
-	struct in6_addr ipi6_addr;    /*%< src/dst IPv6 address */
-	unsigned int    ipi6_ifindex; /*%< send/recv interface index */
-};
-#endif
-
-
 #ifndef ISC_PLATFORM_HAVESOCKADDRSTORAGE
 #define _SS_MAXSIZE 128
 #define _SS_ALIGNSIZE  (sizeof (uint64_t))

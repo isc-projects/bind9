@@ -86,9 +86,7 @@ static void
 initialize_action(void) {
 	InitSockets();
 	ipv4_result = try_proto(PF_INET);
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	ipv6_result = try_proto(PF_INET6);
-#endif
 }
 
 static void
