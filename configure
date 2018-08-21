@@ -719,7 +719,6 @@ ISC_PLATFORM_HAVEXADD
 ISC_PLATFORM_HAVESTDATOMIC
 ISC_PLATFORM_HAVEIFNAMETOINDEX
 ISC_PLATFORM_HAVESTRINGSH
-ISC_PLATFORM_BRACEPTHREADONCEINIT
 IRS_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_HAVESTATNSEC
@@ -18395,40 +18394,6 @@ IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
 # Random remaining OS-specific issues involving compiler warnings.
 # XXXDCL print messages to indicate some compensation is being done?
 #
-
-ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
-
-case "$host" in
-	*-solaris2.[89])
-		hack_shutup_pthreadonceinit=yes
-		;;
-	*-solaris2.1[0-9])
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
- #include <pthread.h>
-int
-main ()
-{
- static pthread_once_t once_test = { PTHREAD_ONCE_INIT };
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  hack_shutup_pthreadonceinit=yes
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-esac
-
-case "$hack_shutup_pthreadonceinit" in
-	yes)
-		#
-		# Shut up PTHREAD_ONCE_INIT unbraced initializer warnings.
-		#
-		ISC_PLATFORM_BRACEPTHREADONCEINIT="#define ISC_PLATFORM_BRACEPTHREADONCEINIT 1"
-		;;
-esac
 
 for ac_header in strings.h
 do :
