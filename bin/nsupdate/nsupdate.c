@@ -99,20 +99,6 @@
 #endif
 #endif
 
-#ifdef HAVE_ADDRINFO
-#ifdef HAVE_GETADDRINFO
-#ifdef HAVE_GAISTRERROR
-#define USE_GETADDRINFO
-#endif
-#endif
-#endif
-
-#ifndef USE_GETADDRINFO
-#ifndef ISC_PLATFORM_NONSTDHERRNO
-extern int h_errno;
-#endif
-#endif
-
 #define MAXCMD (128 * 1024)
 #define MAXWIRE (64 * 1024)
 #define PACKETSIZE ((64 * 1024) - 1)
