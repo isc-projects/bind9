@@ -28,6 +28,7 @@
 #include <sys/epoll.h>
 #endif
 
+#include <isc/platform.h>
 #include <isc/app.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
@@ -35,7 +36,6 @@
 #include <isc/mutex.h>
 #include <isc/event.h>
 #include <isc/platform.h>
-#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
@@ -181,7 +181,7 @@ handle_signal(int sig, void (*handler)(int)) {
 
 	if (sigfillset(&sa.sa_mask) != 0 ||
 	    sigaction(sig, &sa, NULL) < 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_APP,
 					       ISC_MSG_SIGNALSETUP,
@@ -213,7 +213,7 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
 	 */
 	presult = pthread_init();
 	if (presult != 0) {
-		isc__strerror(presult, strbuf, sizeof(strbuf));
+		strerror_r(presult, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_start() pthread_init: %s", strbuf);
 		return (ISC_R_UNEXPECTED);
@@ -302,7 +302,7 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
 	    sigaddset(&sset, SIGHUP) != 0 ||
 	    sigaddset(&sset, SIGINT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_start() sigsetops: %s", strbuf);
 		result = ISC_R_UNEXPECTED;
@@ -310,7 +310,7 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
 	}
 	presult = pthread_sigmask(SIG_BLOCK, &sset, NULL);
 	if (presult != 0) {
-		isc__strerror(presult, strbuf, sizeof(strbuf));
+		strerror_r(presult, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_app_start() pthread_sigmask: %s",
 				 strbuf);
@@ -450,7 +450,7 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			    sigaddset(&sset, SIGHUP) != 0 ||
 			    sigaddset(&sset, SIGINT) != 0 ||
 			    sigaddset(&sset, SIGTERM) != 0) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "isc_app_run() sigsetops: %s",
 						 strbuf);
@@ -502,7 +502,7 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 				return (ISC_R_SUCCESS);
 
 			if (sigemptyset(&sset) != 0) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "isc_app_run() sigsetops: %s",
 						 strbuf);
@@ -510,7 +510,7 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			}
 #ifdef HAVE_GPERFTOOLS_PROFILER
 			if (sigaddset(&sset, SIGALRM) != 0) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "isc_app_run() sigsetops: %s",
 						 strbuf);
@@ -583,7 +583,7 @@ isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 
 				result = pthread_kill(main_thread, SIGTERM);
 				if (result != 0) {
-					isc__strerror(result,
+					strerror_r(result,
 						      strbuf, sizeof(strbuf));
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 							 "isc_app_shutdown() "
@@ -596,7 +596,7 @@ isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 			if (isc_bind9) {
 				/* BIND9 internal, single context */
 				if (kill(getpid(), SIGTERM) < 0) {
-					isc__strerror(errno,
+					strerror_r(errno,
 						      strbuf, sizeof(strbuf));
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 							 "isc_app_shutdown() "
@@ -656,7 +656,7 @@ isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 
 				result = pthread_kill(main_thread, SIGHUP);
 				if (result != 0) {
-					isc__strerror(result,
+					strerror_r(result,
 						      strbuf, sizeof(strbuf));
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 							 "isc_app_reload() "
@@ -669,7 +669,7 @@ isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 			if (isc_bind9) {
 				/* BIND9 internal, single context */
 				if (kill(getpid(), SIGHUP) < 0) {
-					isc__strerror(errno,
+					strerror_r(errno,
 						      strbuf, sizeof(strbuf));
 					UNEXPECTED_ERROR(__FILE__, __LINE__,
 							 "isc_app_reload() "

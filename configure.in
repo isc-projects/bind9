@@ -2061,8 +2061,6 @@ then
 	AC_CHECK_HEADERS(readline/history.h)
 fi
 
-
-AC_CHECK_FUNC(strerror, AC_DEFINE(HAVE_STRERROR))
 #
 # Use our own SPNEGO implementation?
 #
