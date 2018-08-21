@@ -141,7 +141,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		error = WSAGetLastError();
 		if (error == WSAEAFNOSUPPORT)
 			goto inet6_only;
-		isc__strerror(error, strbuf, sizeof(strbuf));
+		strerror_r(error, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				"making interface scan socket: %s",
 				strbuf);
@@ -169,7 +169,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			error = WSAGetLastError();
 			if (error != WSAEFAULT && error != WSAENOBUFS) {
 				errno = error;
-				isc__strerror(error, strbuf, sizeof(strbuf));
+				strerror_r(error, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						"get interface configuration: %s",
 						strbuf);
@@ -222,7 +222,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 		error = WSAGetLastError();
 		if (error == WSAEAFNOSUPPORT)
 			goto inet_only;
-		isc__strerror(error, strbuf, sizeof(strbuf));
+		strerror_r(error, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				"making interface scan socket: %s",
 				strbuf);
@@ -251,7 +251,7 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 			error = WSAGetLastError();
 			if (error != WSAEFAULT && error != WSAENOBUFS) {
 				errno = error;
-				isc__strerror(error, strbuf, sizeof(strbuf));
+				strerror_r(error, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 						 "sio address list query: %s",
 						 strbuf);

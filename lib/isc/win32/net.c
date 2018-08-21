@@ -65,7 +65,7 @@ try_proto(int domain) {
 		case WSAEINVAL:
 			return (ISC_R_NOTFOUND);
 		default:
-			isc__strerror(errval, strbuf, sizeof(strbuf));
+			strerror_r(errval, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "socket() %s: %s",
 					 isc_msgcat_get(isc_msgcat,
@@ -133,7 +133,7 @@ try_ipv6only(void) {
 	/* check for TCP sockets */
 	s = socket(PF_INET6, SOCK_STREAM, 0);
 	if (s == INVALID_SOCKET) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
 				 isc_msgcat_get(isc_msgcat,
@@ -157,7 +157,7 @@ try_ipv6only(void) {
 	/* check for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, 0);
 	if (s == INVALID_SOCKET) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
 				 isc_msgcat_get(isc_msgcat,
@@ -213,7 +213,7 @@ try_ipv6pktinfo(void) {
 	/* we only use this for UDP sockets */
 	s = socket(PF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 	if (s == INVALID_SOCKET) {
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "socket() %s: %s",
 				 isc_msgcat_get(isc_msgcat,
