@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define on DEC OSF to enable 4.4BSD style sa_len support */
-#undef _SOCKADDR_LEN
-
 /** define if your system needs pthread_init() before using pthreads */
 #undef NEED_PTHREAD_INIT
 
