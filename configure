@@ -949,7 +949,6 @@ with_gperftools_profiler
 enable_backtrace
 enable_symtable
 enable_tcp_fastopen
-enable_getifaddrs
 with_readline
 enable_isc_spnego
 enable_chroot
@@ -1637,7 +1636,6 @@ Optional Features:
   --enable-symtable       use internal symbol table for backtrace
                           [all|minimal(default)|none]
   --disable-tcp-fastopen  disable TCP Fast Open support [default=autodetect]
-  --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
   --disable-linux-caps    disable Linux capabilities
@@ -17906,75 +17904,6 @@ $as_echo "disabled" >&6; }
 		;;
 esac
 
-
-# Check whether --enable-getifaddrs was given.
-if test "${enable_getifaddrs+set}" = set; then :
-  enableval=$enable_getifaddrs; want_getifaddrs="$enableval"
-else
-  want_getifaddrs="yes"
-fi
-
-
-#
-# This interface iteration code for getifaddrs() will fall back to using
-# /proc/net/if_inet6 if getifaddrs() in glibc doesn't return any IPv6
-# addresses.
-#
-case $want_getifaddrs in
-glibc)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: \"--enable-getifaddrs=glibc is no longer required\"" >&5
-$as_echo "$as_me: WARNING: \"--enable-getifaddrs=glibc is no longer required\"" >&2;}
-ac_fn_c_check_func "$LINENO" "getifaddrs" "ac_cv_func_getifaddrs"
-if test "x$ac_cv_func_getifaddrs" = xyes; then :
-  $as_echo "#define HAVE_GETIFADDRS 1" >>confdefs.h
-
-fi
-
-;;
-yes)
-ac_fn_c_check_func "$LINENO" "getifaddrs" "ac_cv_func_getifaddrs"
-if test "x$ac_cv_func_getifaddrs" = xyes; then :
-  $as_echo "#define HAVE_GETIFADDRS 1" >>confdefs.h
-
-fi
-
-;;
-no)
-;;
-esac
-
-#
-# Look for a sysctl call to get the list of network interfaces.
-#
-case $ac_cv_header_sys_sysctl_h in
-yes)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for interface list sysctl" >&5
-$as_echo_n "checking for interface list sysctl... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <sys/socket.h>
-#ifdef NET_RT_IFLIST
-found_rt_iflist
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "found_rt_iflist" >/dev/null 2>&1; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 $as_echo "#define HAVE_IFLIST_SYSCTL 1" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f conftest*
-
-;;
-esac
 
 #
 # Check for some other useful functions that are not ever-present.
