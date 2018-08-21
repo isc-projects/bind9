@@ -37,12 +37,6 @@
 @ISC_PLATFORM_HAVESALEN@
 
 /*! \brief
- * If this system has in6_pktinfo, ISC_PLATFORM_HAVEIN6PKTINFO will be
- * defined.
- */
-@ISC_PLATFORM_HAVEIN6PKTINFO@
-
-/*! \brief
  * If this system needs inet_ntop(), ISC_PLATFORM_NEEDNTOP will be defined.
  */
 @ISC_PLATFORM_NEEDNTOP@
