@@ -17,7 +17,7 @@ The sources are checked out, and the web reports are generated,
 on bb, as driven by the following cron jobs:
 
     # Check out the current bind 9 version and make the source tarball.
-    # Argument to maketar.sh should be v9_0 for 9.0 release branch, 
+    # Argument to maketar.sh should be v9_0 for 9.0 release branch,
     # HEAD for mainline.
     35 2-22 * * * PLATFORM=BSD-3.1 && . $HOME/b9t/hosts/$PLATFORM/env && \
 	nice sh $HOME/b9t/bin/maketar.sh HEAD \
@@ -57,7 +57,6 @@ The current test schedule is as follows:
   :00             Most tests begin
   :45             Status report generator runs (was :30)
 
-  aix:            I can't seem to access that machine; it appears to be down.
   bb:             Build starts at top of hour, 0300 to 2200
   durango:        Build starts at top of hour, 0300 to 2200
   trantor:        Build starts at top of hour, 0300 to 2100, odd-numbered hours

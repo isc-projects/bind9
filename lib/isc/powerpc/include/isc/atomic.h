@@ -38,63 +38,7 @@
  * case.
  */
 
-#if defined(_AIX)
-
-#include <sys/atomic_op.h>
-
-#define isc_atomic_store(p, v) _clear_lock(p, v)
-
-#ifdef __GNUC__
-static inline int32_t
-#else
-static int32_t
-#endif
-isc_atomic_xadd(int32_t *p, int32_t val) {
-	int ret;
-
-#ifdef __GNUC__
-	asm("ics");
-#else
-	 __isync();
-#endif
-
-	ret = fetch_and_add((atomic_p)p, (int)val);
-
-#ifdef __GNUC__
-	asm("ics");
-#else
-	 __isync();
-#endif
-
-	 return (ret);
-}
-
-#ifdef __GNUC__
-static inline int
-#else
-static int
-#endif
-isc_atomic_cmpxchg(atomic_p p, int old, int replacement) {
-	int orig = old;
-
-#ifdef __GNUC__
-	asm("ics");
-#else
-	 __isync();
-#endif
-	if (compare_and_swap(p, &orig, replacement))
-		orig = old;
-
-#ifdef __GNUC__
-	asm("ics");
-#else
-	 __isync();
-#endif
-
-	return (orig);
-}
-
-#elif defined(ISC_PLATFORM_USEGCCASM) || defined(ISC_PLATFORM_USEMACASM)
+#if defined(ISC_PLATFORM_USEGCCASM) || defined(ISC_PLATFORM_USEMACASM)
 static inline int32_t
 isc_atomic_xadd(int32_t *p, int32_t val) {
 	int32_t orig;

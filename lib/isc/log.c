@@ -47,7 +47,7 @@
 #define LOG_BUFFER_SIZE	(8 * 1024)
 
 #ifndef PATH_MAX
-#define PATH_MAX 1024	/* AIX and others don't define this. */
+#define PATH_MAX 1024	/* WIN32 and others don't define this. */
 #endif
 
 /*!

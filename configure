@@ -760,7 +760,6 @@ ISC_PLATFORM_NEEDIN6ADDRANY
 ISC_PLATFORM_HAVEINADDR6
 ISC_PLATFORM_HAVEIPV6
 BIND9_CO_RULE
-LIBTOOL_IN_MAIN
 LIBTOOL_ALLOW_UNDEFINED
 LIBTOOL_MODE_UNINSTALL
 LIBTOOL_MODE_LINK
@@ -15808,10 +15807,6 @@ $as_echo "yes" >&6; }
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
-		case "$host" in
-		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
-		*) LIBTOOL_IN_MAIN= ;;
-		esac;
 		;;
 	*)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -15826,7 +15821,6 @@ $as_echo "no" >&6; }
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_MODE_UNINSTALL=
 		LIBTOOL_ALLOW_UNDEFINED=
-		LIBTOOL_IN_MAIN=
 		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
@@ -17910,7 +17904,6 @@ SA=a
 
 
 
-
 BIND9_CO_RULE=".c.$O:"
 
 
@@ -19339,9 +19332,6 @@ IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
 ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
 
 case "$host" in
-	*-aix5.[123].*)
-		hack_shutup_pthreadonceinit=yes
-		;;
 	*-solaris2.[89])
 		hack_shutup_pthreadonceinit=yes
 		;;
@@ -19519,70 +19509,7 @@ fi
 
 case "$enable_atomic" in
 	yes|''|autodetect)
-		case "$host" in
-		powerpc-ibm-aix*)
-			if test "X$GCC" = "Xyes"; then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"ics\"); works" >&5
-$as_echo_n "checking if asm(\"ics\"); works... " >&6; }
-				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-				main() { asm("ics"); exit(0); }
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-				 use_atomic=yes
-else
-
-				saved_cflags="$CFLAGS"
-				CFLAGS="$CFLAGS -Wa,-many"
-				if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: cross compile, assume yes" >&5
-$as_echo "cross compile, assume yes" >&6; }
-				 CFLAGS="$saved_cflags"
-				 use_atomic=yes
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-				main() { asm("ics"); exit(0); }
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, required -Wa,-many" >&5
-$as_echo "yes, required -Wa,-many" >&6; }
-				 use_atomic=yes
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, use_atomic disabled" >&5
-$as_echo "no, use_atomic disabled" >&6; }
-				 CFLAGS="$saved_cflags"
-				 use_atomic=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-			else
-				use_atomic=yes
-			fi
-			;;
-		*)
-			use_atomic=yes
-			;;
-		esac
+		use_atomic=yes
 		;;
 	no)
 		have_stdatomic=no
@@ -19776,9 +19703,6 @@ if ac_fn_c_try_compile "$LINENO"; then :
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		;;
-		powerpc-ibm-aix*)
-			compiler=aix
-		;;
 		esac
 	fi
 	case "$compiler" in
@@ -19787,8 +19711,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		;;
 	osf)
 		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
-		;;
-	aix)
 		;;
 	mac)
 		;;

@@ -147,7 +147,7 @@ Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
 basic POSIX support, and a 64-bit integer type. Successful builds have been
 observed on many versions of Linux and UNIX, including RedHat, Fedora,
 Debian, Ubuntu, SuSE, Slackware, FreeBSD, NetBSD, OpenBSD, Mac OS X,
-Solaris, HP-UX, AIX, SCO OpenServer, and OpenWRT.
+Solaris, HP-UX, and OpenWRT.
 
 BIND requires a cryptography provider library such as OpenSSL or a
 hardware service module supporting PKCS#11. On Linux, BIND requires
