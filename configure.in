@@ -1946,6 +1946,7 @@ AC_COMPILE_IFELSE(
        struct sockaddr_in6 sin6;
        struct in6_addr in6;
        struct in6_pktinfo in6_pi;
+       struct sockaddr_storage storage;
        in6 = in6addr_any;
        in6 = in6addr_loopback;
        sin6.sin6_scope_id = 0;
@@ -1953,19 +1954,6 @@ AC_COMPILE_IFELSE(
      ]])],
   [AC_MSG_RESULT([yes])],
   [AC_MSG_FAILURE([IPv6 support is mandatory])])
-
-AC_MSG_CHECKING(for struct sockaddr_storage)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-],
-[struct sockaddr_storage storage; return (0);],
-[AC_MSG_RESULT(yes)
-ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"],
-[AC_MSG_RESULT(no)
-ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"])
-
-AC_SUBST(ISC_PLATFORM_HAVESOCKADDRSTORAGE)
 
 AC_MSG_CHECKING([for struct if_laddrreq])
 AC_TRY_LINK([
@@ -1988,61 +1976,6 @@ AC_TRY_LINK([
 	[AC_MSG_RESULT(no)
 	ISC_PLATFORM_HAVEIF_LADDRCONF="#undef ISC_PLATFORM_HAVEIF_LADDRCONF"])
 AC_SUBST(ISC_PLATFORM_HAVEIF_LADDRCONF)
-
-#
-# Check for network functions that are often missing.  We do this
-# after the libtool checking, so we can put the right suffix on
-# the files.  It also needs to come after checking for a Kame add-on,
-# which provides some (all?) of the desired functions.
-#
-
-AC_MSG_CHECKING([for inet_ntop with IPv6 support])
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-main() {
-char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"],
-
-	[AC_MSG_RESULT(no)
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"],
-	[AC_MSG_RESULT(assuming inet_ntop not needed)
-	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"])
-
-
-# On NetBSD 1.4.2 and maybe others, inet_pton() incorrectly accepts
-# addresses with less than four octets, like "1.2.3".  Also leading
-# zeros should also be rejected.
-
-AC_MSG_CHECKING([for working inet_pton with IPv6 support])
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
-			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 : 
-			     (inet_pton(AF_INET6, "::1.2.3.4", a) != 1)); }],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
-	[AC_MSG_RESULT(no)
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
-	[AC_MSG_RESULT(assuming inet_pton needed)
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"])
-
-AC_SUBST(ISC_PLATFORM_NEEDNTOP)
-AC_SUBST(ISC_PLATFORM_NEEDPTON)
-AC_SUBST(ISC_EXTRA_OBJS)
-AC_SUBST(ISC_EXTRA_SRCS)
 
 AC_MSG_CHECKING(for sa_len in struct sockaddr)
 AC_TRY_COMPILE([
