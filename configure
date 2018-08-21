@@ -723,7 +723,6 @@ ISC_PLATFORM_HAVESTRINGSH
 ISC_PLATFORM_BRACEPTHREADONCEINIT
 IRS_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_USEDECLSPEC
-ISC_PLATFORM_RLIMITTYPE
 ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
 LIBCAP_LIBS
@@ -759,7 +758,6 @@ ISC_PLATFORM_HAVEIN6PKTINFO
 ISC_PLATFORM_NEEDIN6ADDRLOOPBACK
 ISC_PLATFORM_NEEDIN6ADDRANY
 ISC_PLATFORM_HAVEINADDR6
-ISC_PLATFORM_NEEDNETINET6IN6H
 ISC_PLATFORM_HAVEIPV6
 BIND9_CO_RULE
 LIBTOOL_IN_MAIN
@@ -981,7 +979,6 @@ with_readline
 enable_isc_spnego
 enable_chroot
 enable_linux_caps
-with_rlimtype
 enable_atomic
 enable_fixed_rrset
 enable_rpz_nsip
@@ -1719,7 +1716,6 @@ Optional Packages:
                           use gperftools CPU profiler
   --with-kame=PATH        use Kame IPv6 [default path /usr/local/v6]
   --with-readline=LIBSPEC specify readline library [default auto]
-
   --with-dnsrps-libname   DNSRPS provider library name (librpz.so)
   --with-dnsrps-dir       path to DNSRPS provider library
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
@@ -15668,15 +15664,6 @@ fi
 		esac
 		;;
 	#
-	# BSDI 3.0 through 4.0.1 needs pthread_init() to be
-	# called before certain pthreads calls.	 This is deprecated
-	# in BSD/OS 4.1.
-	#
-	*-bsdi3.*|*-bsdi4.0*)
-		$as_echo "#define NEED_PTHREAD_INIT 1" >>confdefs.h
-
-		;;
-	#
 	# LinuxThreads requires some changes to the way we
 	# deal with signals.
 	#
@@ -17974,27 +17961,6 @@ Please choose the proper path with the following command:
 esac
 
 #
-# Whether netinet6/in6.h is needed has to be defined in isc/platform.h.
-# Including it on Kame-using platforms is very bad, though, because
-# Kame uses #error against direct inclusion.   So include it on only
-# the platform that is otherwise broken without it -- BSD/OS 4.0 through 4.1.
-# This is done before the in6_pktinfo check because that's what
-# netinet6/in6.h is needed for.
-#
-
-case "$host" in
-*-bsdi4.[01]*)
-	ISC_PLATFORM_NEEDNETINET6IN6H="#define ISC_PLATFORM_NEEDNETINET6IN6H 1"
-	isc_netinet6in6_hack="#include <netinet6/in6.h>"
-	;;
-*)
-	ISC_PLATFORM_NEEDNETINET6IN6H="#undef ISC_PLATFORM_NEEDNETINET6IN6H"
-	isc_netinet6in6_hack=""
-	;;
-esac
-
-
-#
 # Now delve deeper into the suitability of the IPv6 support.
 #
 case "$found_ipv6" in
@@ -18009,7 +17975,6 @@ $as_echo_n "checking for in6_addr... " >&6; }
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinet6in6_hack
 
 int
 main ()
@@ -18040,7 +18005,6 @@ $as_echo_n "checking for in6addr_any... " >&6; }
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinet6in6_hack
 $isc_in_addr6_hack
 
 int
@@ -18071,7 +18035,6 @@ $as_echo_n "checking for in6addr_loopback... " >&6; }
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinet6in6_hack
 $isc_in_addr6_hack
 
 int
@@ -18102,7 +18065,6 @@ $as_echo_n "checking for sin6_scope_id in struct sockaddr_in6... " >&6; }
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinet6in6_hack
 
 int
 main ()
@@ -18131,7 +18093,6 @@ $as_echo_n "checking for in6_pktinfo... " >&6; }
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-$isc_netinet6in6_hack
 
 int
 main ()
@@ -18171,7 +18132,6 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 
 #include <sys/types.h>
 #include <sys/socket.h>
-$isc_netinet6in6_hack
 
 int
 main ()
@@ -19216,120 +19176,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 #
-# BSD/OS, and perhaps some others, don't define rlim_t.
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for type rlim_t" >&5
-$as_echo_n "checking for type rlim_t... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-int
-main ()
-{
-rlim_t rl = 19671212; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
- ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE rlim_t"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking type of rlim_cur" >&5
-$as_echo_n "checking type of rlim_cur... " >&6; }
-if test "$cross_compiling" = yes; then :
-
-
-# Check whether --with-rlimtype was given.
-if test "${with_rlimtype+set}" = set; then :
-  withval=$with_rlimtype; rlimtype="$withval"
-else
-  rlimtype="long long int"
-fi
-
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE $rlimtype"
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: cannot determine type of rlim_cur when cross compiling - assuming $rlimtype" >&5
-$as_echo "cannot determine type of rlim_cur when cross compiling - assuming $rlimtype" >&6; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit(!(sizeof(r.rlim_cur) == sizeof(int)));}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: int" >&5
-$as_echo "int" >&6; }
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE int"
-else
-
-if test "$cross_compiling" = yes; then :
-  as_fn_error $? "this cannot happen" "$LINENO" 5
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit(!(sizeof(r.rlim_cur) == sizeof(long int)));}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: long int" >&5
-$as_echo "long int" >&6; }
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long int"
-else
-
-if test "$cross_compiling" = yes; then :
-  as_fn_error $? "this cannot happen" "$LINENO" 5
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit((!sizeof(r.rlim_cur) == sizeof(long long int)));}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: long long int" >&5
-$as_echo "long long int" >&6; }
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"
-else
-  as_fn_error $? "unable to determine sizeof rlim_cur" "$LINENO" 5
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
 # Older HP-UX doesn't have gettune
 #
 case "$host" in
@@ -19441,16 +19287,6 @@ case "$host" in
 	*-aix5.[123].*)
 		hack_shutup_pthreadonceinit=yes
 		;;
-	*-bsdi3.1*)
-		hack_shutup_sputaux=yes
-		;;
-	*-bsdi4.0*)
-		hack_shutup_sigwait=yes
-		hack_shutup_sputaux=yes
-		;;
-	*-bsdi4.[12]*)
-		hack_shutup_stdargcast=yes
-		;;
 	*-solaris2.[89])
 		hack_shutup_pthreadonceinit=yes
 		;;
@@ -19479,36 +19315,6 @@ case "$hack_shutup_pthreadonceinit" in
 		# Shut up PTHREAD_ONCE_INIT unbraced initializer warnings.
 		#
 		ISC_PLATFORM_BRACEPTHREADONCEINIT="#define ISC_PLATFORM_BRACEPTHREADONCEINIT 1"
-		;;
-esac
-
-case "$hack_shutup_sigwait" in
-	yes)
-		#
-		# Shut up a -Wmissing-prototypes warning for sigwait().
-		#
-		$as_echo "#define SHUTUP_SIGWAIT 1" >>confdefs.h
-
-		;;
-esac
-
-case "$hack_shutup_sputaux" in
-	yes)
-		#
-		# Shut up a -Wmissing-prototypes warning from <stdio.h>.
-		#
-		$as_echo "#define SHUTUP_SPUTAUX 1" >>confdefs.h
-
-		;;
-esac
-
-case "$hack_shutup_stdargcast" in
-	yes)
-		#
-		# Shut up a -Wcast-qual warning from va_start().
-		#
-		$as_echo "#define SHUTUP_STDARG_CAST 1" >>confdefs.h
-
 		;;
 esac
 

@@ -31,12 +31,6 @@
  ***/
 
 /*! \brief
- * Define if this system needs the <netinet6/in6.h> header file included
- * to support in6_pkinfo (pretty much only BSD/OS).
- */
-@ISC_PLATFORM_NEEDNETINET6IN6H@
-
-/*! \brief
  * If sockaddrs on this system have an sa_len field, ISC_PLATFORM_HAVESALEN
  * will be defined.
  */
@@ -209,11 +203,6 @@
  * Define if the system has nanosecond-level accuracy in file stats.
  */
 @ISC_PLATFORM_HAVESTATNSEC@
-
-/*
- * Type used for resource limits.
- */
-@ISC_PLATFORM_RLIMITTYPE@
 
 /*
  * Define if your compiler supports "long long int".
