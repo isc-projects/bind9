@@ -29,7 +29,6 @@
 #include <isc/string.h>
 #include <isc/util.h>
 #include <isc/task.h>
-#include <isc/stdlib.h>
 
 #include <dns/byaddr.h>
 #include <dns/fixedname.h>

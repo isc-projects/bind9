@@ -49,7 +49,6 @@
 #include <isc/serial.h>
 #include <isc/safe.h>
 #include <isc/stdio.h>
-#include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
