@@ -68,11 +68,6 @@ struct isc_interfaceiter {
 	isc_result_t		result6;	/* Last result code. */
 	bool		first6;
 #endif
-#ifdef HAVE_TRUCLUSTER
-	int			clua_context;	/* Cluster alias context */
-	bool		clua_done;
-	struct sockaddr		clua_sa;
-#endif
 #ifdef	__linux
 	FILE *			proc;
 	char			entry[ISC_IF_INET6_SZ];
@@ -81,12 +76,6 @@ struct isc_interfaceiter {
 	isc_interface_t		current;	/* Current interface data. */
 	isc_result_t		result;		/* Last result code. */
 };
-
-#ifdef HAVE_TRUCLUSTER
-#include <clua/clua.h>
-#include <sys/socket.h>
-#endif
-
 
 /*%
  * Size of buffer for SIOCGLIFCONF, in bytes.  We assume no sane system
@@ -339,10 +328,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	 * A newly created iterator has an undefined position
 	 * until isc_interfaceiter_first() is called.
 	 */
-#ifdef HAVE_TRUCLUSTER
-	iter->clua_context = -1;
-	iter->clua_done = true;
-#endif
 #ifdef __linux
 	iter->proc = fopen("/proc/net/if_inet6", "r");
 	iter->valid = ISC_R_FAILURE;
@@ -371,30 +356,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	isc_mem_put(mctx, iter, sizeof(*iter));
 	return (result);
 }
-
-#ifdef HAVE_TRUCLUSTER
-static void
-get_inaddr(isc_netaddr_t *dst, struct in_addr *src) {
-	dst->family = AF_INET;
-	memmove(&dst->type.in, src, sizeof(struct in_addr));
-}
-
-static isc_result_t
-internal_current_clusteralias(isc_interfaceiter_t *iter) {
-	struct clua_info ci;
-	if (clua_getaliasinfo(&iter->clua_sa, &ci) != CLUA_SUCCESS)
-		return (ISC_R_IGNORE);
-	memset(&iter->current, 0, sizeof(iter->current));
-	iter->current.af = iter->clua_sa.sa_family;
-	memset(iter->current.name, 0, sizeof(iter->current.name));
-	snprintf(iter->current.name, sizeof(iter->current.name),
-		 "clua%d", ci.aliasid);
-	iter->current.flags = INTERFACE_F_UP;
-	get_inaddr(&iter->current.address, &ci.addr);
-	get_inaddr(&iter->current.netmask, &ci.netmask);
-	return (ISC_R_SUCCESS);
-}
-#endif
 
 /*
  * Get information about the current interface to iter->current.
@@ -773,10 +734,6 @@ internal_current(isc_interfaceiter_t *iter) {
 			return (iter->result6);
 	}
 #endif
-#ifdef HAVE_TRUCLUSTER
-	if (!iter->clua_done)
-		return(internal_current_clusteralias(iter));
-#endif
 	return (internal_current4(iter));
 }
 
@@ -845,9 +802,6 @@ internal_next6(isc_interfaceiter_t *iter) {
 
 static isc_result_t
 internal_next(isc_interfaceiter_t *iter) {
-#ifdef HAVE_TRUCLUSTER
-	int clua_result;
-#endif
 #if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
 	if (iter->mode == 6) {
 		iter->result6 = internal_next6(iter);
@@ -857,15 +811,6 @@ internal_next(isc_interfaceiter_t *iter) {
 			iter->first6 = false;
 			return (ISC_R_SUCCESS);
 		}
-	}
-#endif
-#ifdef HAVE_TRUCLUSTER
-	if (!iter->clua_done) {
-		clua_result = clua_getaliasaddress(&iter->clua_sa,
-						   &iter->clua_context);
-		if (clua_result != CLUA_SUCCESS)
-			iter->clua_done = true;
-		return (ISC_R_SUCCESS);
 	}
 #endif
 	return (internal_next4(iter));
@@ -889,21 +834,12 @@ internal_destroy(isc_interfaceiter_t *iter) {
 
 static
 void internal_first(isc_interfaceiter_t *iter) {
-#ifdef HAVE_TRUCLUSTER
-	int clua_result;
-#endif
 	iter->pos = 0;
 #if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
 	iter->pos6 = 0;
 	if (iter->result6 == ISC_R_NOMORE)
 		iter->result6 = ISC_R_SUCCESS;
 	iter->first6 = true;
-#endif
-#ifdef HAVE_TRUCLUSTER
-	iter->clua_context = 0;
-	clua_result = clua_getaliasaddress(&iter->clua_sa,
-					   &iter->clua_context);
-	iter->clua_done = (clua_result != CLUA_SUCCESS);
 #endif
 #ifdef __linux
 	linux_if_inet6_first(iter);
