@@ -91,21 +91,6 @@
  */
 @ISC_PLATFORM_NEEDSTRLCAT@
 
-/*
- * Define if this system needs strtoul.
- */
-@ISC_PLATFORM_NEEDSTRTOUL@
-
-/*
- * Define if this system needs memmove.
- */
-@ISC_PLATFORM_NEEDMEMMOVE@
-
-/*
- * Define if this system needs strcasestr.
- */
-@ISC_PLATFORM_NEEDSTRCASESTR@
-
 /***
  *** Miscellaneous.
  ***/
