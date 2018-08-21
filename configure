@@ -963,7 +963,6 @@ with_purify
 with_gperftools_profiler
 enable_backtrace
 enable_symtable
-with_kame
 enable_tcp_fastopen
 enable_getifaddrs
 with_readline
@@ -1706,7 +1705,6 @@ Optional Packages:
   --with-purify=PATH      use Rational purify
   --with-gperftools-profiler
                           use gperftools CPU profiler
-  --with-kame=PATH        use Kame IPv6 [default path /usr/local/v6]
   --with-readline=LIBSPEC specify readline library [default auto]
   --with-dnsrps-libname   DNSRPS provider library name (librpz.so)
   --with-dnsrps-dir       path to DNSRPS provider library
@@ -17864,53 +17862,6 @@ as_fn_error $? "IPv6 support is mandatory
 See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-#
-# See whether IPv6 support is provided via a Kame add-on.
-# This is done before other IPv6 linking tests to LIBS is properly set.
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Kame IPv6 support" >&5
-$as_echo_n "checking for Kame IPv6 support... " >&6; }
-
-# Check whether --with-kame was given.
-if test "${with_kame+set}" = set; then :
-  withval=$with_kame; use_kame="$withval"
-else
-  use_kame="no"
-fi
-
-
-case "$use_kame" in
-	no)
-		;;
-	yes)
-		kame_path=/usr/local/v6
-		;;
-	*)
-		kame_path="$use_kame"
-		;;
-esac
-
-case "$use_kame" in
-	no)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		;;
-	*)
-		if test -f $kame_path/lib/libinet6.a; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $kame_path/lib/libinet6.a" >&5
-$as_echo "$kame_path/lib/libinet6.a" >&6; }
-			LIBS="-L$kame_path/lib -linet6 $LIBS"
-		else
-			as_fn_error $? "$kame_path/lib/libinet6.a not found.
-
-Please choose the proper path with the following command:
-
-    configure --with-kame=PATH
-" "$LINENO" 5
-		fi
-		;;
-esac
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for in6_addr" >&5
 $as_echo_n "checking for in6_addr... " >&6; }
