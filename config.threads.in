@@ -50,11 +50,6 @@ case $host in
 	use_threads=false ;;
 *-freebsd*)
 	use_threads=true ;;
-[*-bsdi[234]*])
-	# Thread signals do not work reliably on some versions of BSD/OS.
-	use_threads=false ;;
-*-bsdi5*)
-	use_threads=true ;;
 *-linux*)
 	use_threads=true ;;	
 *-darwin[[123456789]].*)
