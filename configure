@@ -729,12 +729,8 @@ DST_EXTRA_SRCS
 DST_EXTRA_OBJS
 USE_ISC_SPNEGO
 READLINE_LIB
-ISC_PLATFORM_NEEDSTRCASESTR
 ISC_PLATFORM_NEEDSTRLCAT
 ISC_PLATFORM_NEEDSTRLCPY
-GENRANDOMLIB
-ISC_PLATFORM_NEEDSTRTOUL
-ISC_PLATFORM_NEEDMEMMOVE
 ISC_PLATFORM_HAVETFO
 ISC_PLATFORM_HAVEIF_LADDRCONF
 ISC_PLATFORM_HAVEIF_LADDRREQ
@@ -17908,28 +17904,6 @@ esac
 #
 # Check for some other useful functions that are not ever-present.
 #
-
-ac_fn_c_check_func "$LINENO" "memmove" "ac_cv_func_memmove"
-if test "x$ac_cv_func_memmove" = xyes; then :
-  ISC_PLATFORM_NEEDMEMMOVE="#undef ISC_PLATFORM_NEEDMEMMOVE"
-else
-  ISC_PLATFORM_NEEDMEMMOVE="#define ISC_PLATFORM_NEEDMEMMOVE 1"
-fi
-
-
-
-ac_fn_c_check_func "$LINENO" "strtoul" "ac_cv_func_strtoul"
-if test "x$ac_cv_func_strtoul" = xyes; then :
-  ISC_PLATFORM_NEEDSTRTOUL="#undef ISC_PLATFORM_NEEDSTRTOUL"
-	 GENRANDOMLIB=""
-else
-  ISC_PLATFORM_NEEDSTRTOUL="#define ISC_PLATFORM_NEEDSTRTOUL 1"
-	 GENRANDOMLIB='${ISCLIBS}'
-fi
-
-
-
-
 ac_fn_c_check_func "$LINENO" "strlcpy" "ac_cv_func_strlcpy"
 if test "x$ac_cv_func_strlcpy" = xyes; then :
   ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"
@@ -17944,15 +17918,6 @@ if test "x$ac_cv_func_strlcat" = xyes; then :
   ISC_PLATFORM_NEEDSTRLCAT="#undef ISC_PLATFORM_NEEDSTRLCAT"
 else
   ISC_PLATFORM_NEEDSTRLCAT="#define ISC_PLATFORM_NEEDSTRLCAT 1"
-fi
-
-
-
-ac_fn_c_check_func "$LINENO" "strcasestr" "ac_cv_func_strcasestr"
-if test "x$ac_cv_func_strcasestr" = xyes; then :
-  ISC_PLATFORM_NEEDSTRCASESTR="#undef ISC_PLATFORM_NEEDSTRCASESTR"
-else
-  ISC_PLATFORM_NEEDSTRCASESTR="#define ISC_PLATFORM_NEEDSTRCASESTR 1"
 fi
 
 
@@ -18096,13 +18061,6 @@ _ACEOF
 fi
 
 done
-
-fi
-
-
-ac_fn_c_check_func "$LINENO" "strerror" "ac_cv_func_strerror"
-if test "x$ac_cv_func_strerror" = xyes; then :
-  $as_echo "#define HAVE_STRERROR 1" >>confdefs.h
 
 fi
 
@@ -18368,18 +18326,6 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-
-#
-# Some hosts need msg_namelen to match the size of the socket structure.
-# Some hosts don't set msg_namelen appropriately on return from recvmsg().
-#
-case $host in
-*os2*|*hp-mpeix*)
-
-$as_echo "#define BROKEN_RECVMSG 1" >>confdefs.h
-
-	;;
-esac
 
 #
 # Microsoft has their own way of handling shared libraries that requires
