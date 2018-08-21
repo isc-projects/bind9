@@ -739,15 +739,9 @@ ISC_IRS_GETNAMEINFOSOCKLEN
 ISC_IRS_NEEDADDRINFO
 ISC_PLATFORM_HAVETFO
 ISC_PLATFORM_NEEDPORTT
-ISC_PLATFORM_MSGHDRFLAVOR
 ISC_PLATFORM_HAVESALEN
-ISC_EXTRA_SRCS
-ISC_EXTRA_OBJS
-ISC_PLATFORM_NEEDPTON
-ISC_PLATFORM_NEEDNTOP
 ISC_PLATFORM_HAVEIF_LADDRCONF
 ISC_PLATFORM_HAVEIF_LADDRREQ
-ISC_PLATFORM_HAVESOCKADDRSTORAGE
 BIND9_CO_RULE
 LIBTOOL_ALLOW_UNDEFINED
 LIBTOOL_MODE_UNINSTALL
@@ -17789,6 +17783,7 @@ main ()
        struct sockaddr_in6 sin6;
        struct in6_addr in6;
        struct in6_pktinfo in6_pi;
+       struct sockaddr_storage storage;
        in6 = in6addr_any;
        in6 = in6addr_loopback;
        sin6.sin6_scope_id = 0;
@@ -17808,35 +17803,6 @@ as_fn_error $? "IPv6 support is mandatory
 See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct sockaddr_storage" >&5
-$as_echo_n "checking for struct sockaddr_storage... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-
-int
-main ()
-{
-struct sockaddr_storage storage; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct if_laddrreq" >&5
 $as_echo_n "checking for struct if_laddrreq... " >&6; }
@@ -17896,92 +17862,6 @@ rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
 
 
-#
-# Check for network functions that are often missing.  We do this
-# after the libtool checking, so we can put the right suffix on
-# the files.  It also needs to come after checking for a Kame add-on,
-# which provides some (all?) of the desired functions.
-#
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inet_ntop with IPv6 support" >&5
-$as_echo_n "checking for inet_ntop with IPv6 support... " >&6; }
-if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming inet_ntop not needed" >&5
-$as_echo "assuming inet_ntop not needed" >&6; }
-	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-main() {
-char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-
-# On NetBSD 1.4.2 and maybe others, inet_pton() incorrectly accepts
-# addresses with less than four octets, like "1.2.3".  Also leading
-# zeros should also be rejected.
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for working inet_pton with IPv6 support" >&5
-$as_echo_n "checking for working inet_pton with IPv6 support... " >&6; }
-if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming inet_pton needed" >&5
-$as_echo "assuming inet_pton needed" >&6; }
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
-			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 :
-			     (inet_pton(AF_INET6, "::1.2.3.4", a) != 1)); }
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-
-
-
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for sa_len in struct sockaddr" >&5
 $as_echo_n "checking for sa_len in struct sockaddr... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -18005,36 +17885,6 @@ else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	ISC_PLATFORM_HAVESALEN="#undef ISC_PLATFORM_HAVESALEN"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
-# Look for a 4.4BSD or 4.3BSD struct msghdr
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct msghdr flavor" >&5
-$as_echo_n "checking for struct msghdr flavor... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-int
-main ()
-{
-struct msghdr msg; msg.msg_flags = 0; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: 4.4BSD" >&5
-$as_echo "4.4BSD" >&6; }
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: 4.3BSD" >&5
-$as_echo "4.3BSD" >&6; }
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
