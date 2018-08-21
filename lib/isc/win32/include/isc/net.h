@@ -100,13 +100,6 @@
 #define INADDR_LOOPBACK 0x7f000001UL
 #endif
 
-#ifndef ISC_PLATFORM_HAVEIN6PKTINFO
-struct in6_pktinfo {
-	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
-	unsigned int    ipi6_ifindex; /* send/recv interface index */
-};
-#endif
-
 #if _MSC_VER < 1300
 #define in6addr_any isc_in6addr_any
 #define in6addr_loopback isc_in6addr_loopback

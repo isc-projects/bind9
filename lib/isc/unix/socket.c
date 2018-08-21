@@ -259,10 +259,8 @@ typedef isc_event_t intev_t;
  * to collect the destination address and interface so the client can
  * set them on outgoing packets.
  */
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 #ifndef USE_CMSG
 #define USE_CMSG	1
-#endif
 #endif
 
 /*%
@@ -295,7 +293,7 @@ typedef isc_event_t intev_t;
  * multiplied by 2, everything should fit. Those sizes are not
  * large enough to cause any concern.
  */
-#if defined(USE_CMSG) && defined(ISC_PLATFORM_HAVEIN6PKTINFO)
+#if defined(USE_CMSG)
 #define CMSG_SP_IN6PKT 40
 #else
 #define CMSG_SP_IN6PKT 0
@@ -1249,9 +1247,7 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #ifdef ISC_NET_BSD44MSGHDR
 #ifdef USE_CMSG
 	struct cmsghdr *cmsgp;
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	struct in6_pktinfo *pktinfop;
-#endif
 #ifdef SO_TIMESTAMP
 	void *timevalp;
 #endif
@@ -1289,9 +1285,7 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 #ifdef SO_TIMESTAMP
 	timevalp = NULL;
 #endif
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	pktinfop = NULL;
-#endif
 
 	cmsgp = CMSG_FIRSTHDR(msg);
 	while (cmsgp != NULL) {
@@ -1299,7 +1293,6 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_PROCESSCMSG,
 			   "processing cmsg %p", cmsgp);
 
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 		if (cmsgp->cmsg_level == IPPROTO_IPV6
 		    && cmsgp->cmsg_type == IPV6_PKTINFO) {
 
@@ -1316,7 +1309,6 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 				dev->attributes |= ISC_SOCKEVENTATTR_MULTICAST;
 			goto next;
 		}
-#endif
 
 #ifdef SO_TIMESTAMP
 		if (cmsgp->cmsg_level == SOL_SOCKET
@@ -1454,7 +1446,6 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 	msg->msg_flags = 0;
 #if defined(USE_CMSG)
 
-#if defined(ISC_PLATFORM_HAVEIN6PKTINFO)
 	if ((sock->type == isc_sockettype_udp) &&
 	    ((dev->attributes & ISC_SOCKEVENTATTR_PKTINFO) != 0))
 	{
@@ -1476,7 +1467,6 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 		pktinfop = (struct in6_pktinfo *)CMSG_DATA(cmsgp);
 		memmove(pktinfop, &dev->pktinfo, sizeof(struct in6_pktinfo));
 	}
-#endif
 
 #if defined(IPV6_USE_MIN_MTU)
 	if ((sock->type == isc_sockettype_udp) &&
@@ -2671,7 +2661,6 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		}
 #endif /* SO_TIMESTAMP */
 
-#ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 #ifdef IPV6_RECVPKTINFO
 		/* RFC 3542 */
 		if ((sock->pf == AF_INET6)
@@ -2703,7 +2692,6 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 					 strbuf);
 		}
 #endif /* IPV6_RECVPKTINFO */
-#endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
 #if defined(IPV6_MTU_DISCOVER) && defined(IPV6_PMTUDISC_DONT)
 		/*
 		 * Turn off Path MTU discovery on IPv6/UDP sockets.
