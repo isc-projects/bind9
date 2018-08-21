@@ -710,7 +710,6 @@ ISC_PLATFORM_BUSYWAITNOP
 ISC_ARCH_DIR
 ISC_PLATFORM_USEMACASM
 ISC_PLATFORM_USESTDASM
-ISC_PLATFORM_USEOSFASM
 ISC_PLATFORM_USEGCCASM
 ISC_PLATFORM_HAVEATOMICSTOREQ
 ISC_PLATFORM_HAVEATOMICSTORE
@@ -19550,7 +19549,6 @@ fi
 
 
 
-ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
 ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
 ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
 ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
@@ -19607,9 +19605,6 @@ _ACEOF
 		else
 			arch=x86_32
 		fi
-	;;
-	alpha*-*)
-		arch=alpha
 	;;
 	powerpc-*|powerpc64-*)
 		arch=powerpc
@@ -19678,39 +19673,10 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		fi
-	else
-		case "$host" in
-		alpha*-dec-osf*)
-			# Tru64 compiler has its own syntax for inline
-			# assembly.
-			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-#ifndef __DECC
-#error "unexpected compiler"
-#endif
-				return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  compiler=osf
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-		esac
 	fi
 	case "$compiler" in
 	gcc)
 		ISC_PLATFORM_USEGCCASM="#define ISC_PLATFORM_USEGCCASM 1"
-		;;
-	osf)
-		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
 		;;
 	mac)
 		;;
@@ -19765,7 +19731,6 @@ else
 	ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
 	ISC_PLATFORM_HAVEATOMICSTOREQ="#undef ISC_PLATFORM_HAVEATOMICSTOREQ"
 fi
-
 
 
 
