@@ -40,7 +40,7 @@
 #define ISC_NET_PORTRANGEHIGH 65535
 #endif	/* ISC_NET_PORTRANGEHIGH */
 
-#if defined(ISC_PLATFORM_HAVEIPV6) && defined(ISC_PLATFORM_NEEDIN6ADDRANY)
+#if defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;
 #endif
 
@@ -90,10 +90,8 @@ static void
 initialize_action(void) {
 	InitSockets();
 	ipv4_result = try_proto(PF_INET);
-#ifdef ISC_PLATFORM_HAVEIPV6
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	ipv6_result = try_proto(PF_INET6);
-#endif
 #endif
 }
 
@@ -119,7 +117,6 @@ isc_net_probeunix(void) {
 	return (ISC_R_NOTFOUND);
 }
 
-#ifdef ISC_PLATFORM_HAVEIPV6
 static void
 try_ipv6only(void) {
 #ifdef IPV6_V6ONLY
@@ -259,22 +256,17 @@ initialize_ipv6pktinfo(void) {
 				  try_ipv6pktinfo) == ISC_R_SUCCESS);
 }
 #endif /* __notyet__ */
-#endif /* ISC_PLATFORM_HAVEIPV6 */
 
 isc_result_t
 isc_net_probe_ipv6only(void) {
-#ifdef ISC_PLATFORM_HAVEIPV6
 	initialize_ipv6only();
-#endif
 	return (ipv6only_result);
 }
 
 isc_result_t
 isc_net_probe_ipv6pktinfo(void) {
 #ifdef __notyet__
-#ifdef ISC_PLATFORM_HAVEIPV6
 	initialize_ipv6pktinfo();
-#endif
 #endif /* __notyet__ */
 	return (ipv6pktinfo_result);
 }
