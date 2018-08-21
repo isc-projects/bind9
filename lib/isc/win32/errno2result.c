@@ -101,7 +101,7 @@ isc__errno2resultx(int posixerrno, bool dolog,
 		return (ISC_R_NORESOURCES);
 	default:
 		if (dolog) {
-			isc__strerror(posixerrno, strbuf, sizeof(strbuf));
+			strerror_r(posixerrno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(file, line,
 					 "unable to convert errno "
 					 "to isc_result: %d: %s",

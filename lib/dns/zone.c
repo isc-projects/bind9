@@ -29,7 +29,6 @@
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
-#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/thread.h>
@@ -4593,7 +4592,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 					     "removing journal file");
 			if (remove(zone->journal) < 0 && errno != ENOENT) {
 				char strbuf[ISC_STRERRORSIZE];
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_ZONE,
@@ -15112,7 +15111,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 				     zone->journal);
 		if (result != ISC_R_SUCCESS) {
 			char strbuf[ISC_STRERRORSIZE];
-			isc__strerror(errno, strbuf, sizeof(strbuf));
+			strerror_r(errno, strbuf, sizeof(strbuf));
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "ixfr-from-differences: failed: "
 				     "%s", strbuf);
@@ -15134,7 +15133,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 			if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_FORCEXFER) &&
 			    remove(zone->masterfile) < 0 && errno != ENOENT) {
 				char strbuf[ISC_STRERRORSIZE];
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_ZONE,
@@ -15165,7 +15164,7 @@ zone_replacedb(dns_zone_t *zone, dns_db_t *db, bool dump) {
 				      "removing journal file");
 			if (remove(zone->journal) < 0 && errno != ENOENT) {
 				char strbuf[ISC_STRERRORSIZE];
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_GENERAL,
 					      DNS_LOGMODULE_ZONE,
