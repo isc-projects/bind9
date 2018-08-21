@@ -23,8 +23,8 @@
 
 #include <ctype.h>
 #include <errno.h>
+#include <grp.h>
 #include <fcntl.h>
-#include <grp.h>		/* Required for initgroups() on IRIX. */
 #include <pwd.h>
 #include <stdio.h>
 #include <stdlib.h>

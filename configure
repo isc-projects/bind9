@@ -773,7 +773,6 @@ MKSYMTBL_PROGRAM
 ISC_PLATFORM_USEBACKTRACE
 PURIFY
 purify_path
-IRIX_DNSSEC_WARNINGS_HACK
 MKDEPPROG
 MKDEPCFLAGS
 MKDEPCC
@@ -17347,7 +17346,6 @@ esac
 #
 MKDEPCC="$CC"
 MKDEPCFLAGS="-M"
-IRIX_DNSSEC_WARNINGS_HACK=""
 
 if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
@@ -17422,23 +17420,11 @@ $as_echo "no" >&6; }
 	fi
 else
 	case $host in
-	*-sgi-irix*)
-		STD_CWARNINGS="-fullwarn -woff 1209"
-		#
-		# Silence more than 250 instances of
-		#   "prototyped function redeclared without prototype"
-		# and 11 instances of
-		#   "variable ... was set but never used"
-		# from lib/dns/sec/openssl.
-		#
-		IRIX_DNSSEC_WARNINGS_HACK="-woff 1692,1552"
-		;;
 	*-solaris*)
 		MKDEPCFLAGS="-xM"
 		;;
 	esac
 fi
-
 
 
 
@@ -17464,8 +17450,6 @@ fi
 # Use this for now, instead:
 #
 case "$host" in
-	mips-sgi-irix*)
-		;;
 	*-linux*)
 		;;
 	*)
