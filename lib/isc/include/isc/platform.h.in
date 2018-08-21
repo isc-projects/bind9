@@ -130,11 +130,6 @@
 @ISC_PLATFORM_HAVESTATNSEC@
 
 /*
- * Define if your compiler supports "long long int".
- */
-@ISC_PLATFORM_HAVELONGLONG@
-
-/*
  * Used to control how extern data is linked; needed for Win32 platforms.
  */
 @ISC_PLATFORM_USEDECLSPEC@
