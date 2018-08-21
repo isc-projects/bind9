@@ -9,20 +9,20 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: int.h,v 1.14 2007/06/19 23:47:23 tbox Exp $ */
-
 #ifndef LWRES_INT_H
 #define LWRES_INT_H 1
 
+#include <inttypes.h>
+
 /*! \file lwres/int.h */
 
-typedef char				lwres_int8_t;
-typedef unsigned char			lwres_uint8_t;
-typedef short				lwres_int16_t;
-typedef unsigned short			lwres_uint16_t;
-typedef int				lwres_int32_t;
-typedef unsigned int			lwres_uint32_t;
-typedef long long			lwres_int64_t;
-typedef unsigned long long		lwres_uint64_t;
+typedef lwres_int8_t			int8_t;
+typedef lwres_uint8_t			uint8_t;
+typedef lwres_int16_t			int16_t;
+typedef lwres_uint16_t			uint16_t;
+typedef lwres_int32_t			int32_t;
+typedef lwres_uint32_t			uint32_t;
+typedef lwres_int64_t			int64_t;
+typedef lwres_uint64_t			uint64_t;
 
 #endif /* LWRES_INT_H */

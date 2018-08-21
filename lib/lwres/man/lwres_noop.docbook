@@ -145,14 +145,14 @@ void
     </para>
     <para><programlisting>
 typedef struct {
-        lwres_uint16_t  datalength;
+        uint16_t  datalength;
         unsigned char   *data;
 } lwres_nooprequest_t;
 </programlisting>
     </para>
     <para><programlisting>
 typedef struct {
-        lwres_uint16_t  datalength;
+        uint16_t  datalength;
         unsigned char   *data;
 } lwres_noopresponse_t;
 </programlisting>

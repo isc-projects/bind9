@@ -36,13 +36,13 @@
  *
  * \code
  * typedef struct {
- *         lwres_uint32_t          flags;
- *         lwres_uint16_t          naliases;
- *         lwres_uint16_t          naddrs;
+ *         uint32_t          flags;
+ *         uint16_t          naliases;
+ *         uint16_t          naddrs;
  *         char                   *realname;
  *         char                  **aliases;
- *         lwres_uint16_t          realnamelen;
- *         lwres_uint16_t         *aliaslen;
+ *         uint16_t          realnamelen;
+ *         uint16_t         *aliaslen;
  *         lwres_addrlist_t        addrs;
  *         void                   *base;
  *         size_t                  baselen;
@@ -93,6 +93,7 @@
 #include <config.h>
 
 #include <assert.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -121,9 +122,9 @@
  *
  */
 lwres_result_t
-lwres_data_parse(lwres_buffer_t *b, unsigned char **p, lwres_uint16_t *len)
+lwres_data_parse(lwres_buffer_t *b, unsigned char **p, uint16_t *len)
 {
-	lwres_uint16_t datalen;
+	uint16_t datalen;
 	unsigned char *data;
 
 	REQUIRE(b != NULL);
@@ -169,9 +170,9 @@ lwres_data_parse(lwres_buffer_t *b, unsigned char **p, lwres_uint16_t *len)
  *
  */
 lwres_result_t
-lwres_string_parse(lwres_buffer_t *b, char **c, lwres_uint16_t *len)
+lwres_string_parse(lwres_buffer_t *b, char **c, uint16_t *len)
 {
-	lwres_uint16_t datalen;
+	uint16_t datalen;
 	char *string;
 
 	REQUIRE(b != NULL);
@@ -233,7 +234,7 @@ lwres_addr_parse(lwres_buffer_t *b, lwres_addr_t *addr)
 /*% Used to perform forward lookups. */
 lwres_result_t
 lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
-		     lwres_uint32_t addrtypes, lwres_gabnresponse_t **structp)
+		     uint32_t addrtypes, lwres_gabnresponse_t **structp)
 {
 	lwres_gabnrequest_t request;
 	lwres_gabnresponse_t *response;
@@ -241,7 +242,7 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 	int recvlen;
 	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
-	lwres_uint32_t serial;
+	uint32_t serial;
 	char *buffer;
 	char target_name[1024];
 	unsigned int target_length;
@@ -347,8 +348,8 @@ lwres_getaddrsbyname(lwres_context_t *ctx, const char *name,
 
 /*% Used to perform reverse lookups. */
 lwres_result_t
-lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
-		    lwres_uint16_t addrlen, const unsigned char *addr,
+lwres_getnamebyaddr(lwres_context_t *ctx, uint32_t addrtype,
+		    uint16_t addrlen, const unsigned char *addr,
 		    lwres_gnbaresponse_t **structp)
 {
 	lwres_gnbarequest_t request;
@@ -357,7 +358,7 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 	int recvlen;
 	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
-	lwres_uint32_t serial;
+	uint32_t serial;
 	char *buffer;
 
 	REQUIRE(ctx != NULL);
@@ -457,14 +458,14 @@ lwres_getnamebyaddr(lwres_context_t *ctx, lwres_uint32_t addrtype,
 /*% Get rdata by name. */
 lwres_result_t
 lwres_getrdatabyname(lwres_context_t *ctx, const char *name,
-		     lwres_uint16_t rdclass, lwres_uint16_t rdtype,
-		     lwres_uint32_t flags, lwres_grbnresponse_t **structp)
+		     uint16_t rdclass, uint16_t rdtype,
+		     uint32_t flags, lwres_grbnresponse_t **structp)
 {
 	int ret;
 	int recvlen;
 	lwres_buffer_t b_in, b_out;
 	lwres_lwpacket_t pkt;
-	lwres_uint32_t serial;
+	uint32_t serial;
 	char *buffer;
 	lwres_grbnrequest_t request;
 	lwres_grbnresponse_t *response;

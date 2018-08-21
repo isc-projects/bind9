@@ -131,7 +131,7 @@ void
 
 <funcprototype>
         <funcdef>
-lwres_uint8_t
+uint8_t
 <function>lwres_buffer_getuint8</function></funcdef>
         <paramdef>lwres_buffer_t *<parameter>b</parameter></paramdef>
         </funcprototype>
@@ -141,12 +141,12 @@ lwres_uint8_t
 void
 <function>lwres_buffer_putuint8</function></funcdef>
         <paramdef>lwres_buffer_t *<parameter>b</parameter></paramdef>
-        <paramdef>lwres_uint8_t <parameter>val</parameter></paramdef>
+        <paramdef>uint8_t <parameter>val</parameter></paramdef>
         </funcprototype>
 
 <funcprototype>
         <funcdef>
-lwres_uint16_t
+uint16_t
 <function>lwres_buffer_getuint16</function></funcdef>
         <paramdef>lwres_buffer_t *<parameter>b</parameter></paramdef>
         </funcprototype>
@@ -156,12 +156,12 @@ lwres_uint16_t
 void
 <function>lwres_buffer_putuint16</function></funcdef>
         <paramdef>lwres_buffer_t *<parameter>b</parameter></paramdef>
-        <paramdef>lwres_uint16_t <parameter>val</parameter></paramdef>
+        <paramdef>uint16_t <parameter>val</parameter></paramdef>
         </funcprototype>
 
 <funcprototype>
         <funcdef>
-lwres_uint32_t
+uint32_t
 <function>lwres_buffer_getuint32</function></funcdef>
         <paramdef>lwres_buffer_t *<parameter>b</parameter></paramdef>
         </funcprototype>
@@ -171,7 +171,7 @@ lwres_uint32_t
 void
 <function>lwres_buffer_putuint32</function></funcdef>
         <paramdef>lwres_buffer_t *<parameter>b</parameter></paramdef>
-        <paramdef>lwres_uint32_t <parameter>val</parameter></paramdef>
+        <paramdef>uint32_t <parameter>val</parameter></paramdef>
         </funcprototype>
 
 <funcprototype>

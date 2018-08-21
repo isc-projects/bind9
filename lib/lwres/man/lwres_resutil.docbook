@@ -56,7 +56,7 @@ lwres_result_t
 <function>lwres_string_parse</function></funcdef>
         <paramdef>lwres_buffer_t *<parameter>b</parameter></paramdef>
         <paramdef>char **<parameter>c</parameter></paramdef>
-        <paramdef>lwres_uint16_t *<parameter>len</parameter></paramdef>
+        <paramdef>uint16_t *<parameter>len</parameter></paramdef>
         </funcprototype>
 <funcprototype>
         <funcdef>
@@ -71,7 +71,7 @@ lwres_result_t
 <function>lwres_getaddrsbyname</function></funcdef>
         <paramdef>lwres_context_t *<parameter>ctx</parameter></paramdef>
         <paramdef>const char *<parameter>name</parameter></paramdef>
-        <paramdef>lwres_uint32_t <parameter>addrtypes</parameter></paramdef>
+        <paramdef>uint32_t <parameter>addrtypes</parameter></paramdef>
         <paramdef>lwres_gabnresponse_t **<parameter>structp</parameter></paramdef>
         </funcprototype>
 <funcprototype>
@@ -79,8 +79,8 @@ lwres_result_t
 lwres_result_t
 <function>lwres_getnamebyaddr</function></funcdef>
         <paramdef>lwres_context_t *<parameter>ctx</parameter></paramdef>
-        <paramdef>lwres_uint32_t <parameter>addrtype</parameter></paramdef>
-        <paramdef>lwres_uint16_t <parameter>addrlen</parameter></paramdef>
+        <paramdef>uint32_t <parameter>addrtype</parameter></paramdef>
+        <paramdef>uint16_t <parameter>addrlen</parameter></paramdef>
         <paramdef>const unsigned char *<parameter>addr</parameter></paramdef>
         <paramdef>lwres_gnbaresponse_t **<parameter>structp</parameter></paramdef>
       </funcprototype>
@@ -123,13 +123,13 @@ lwres_result_t
 
 <para><programlisting>
 typedef struct {
-        lwres_uint32_t          flags;
-        lwres_uint16_t          naliases;
-        lwres_uint16_t          naddrs;
+        uint32_t          flags;
+        uint16_t          naliases;
+        uint16_t          naddrs;
         char                   *realname;
         char                  **aliases;
-        lwres_uint16_t          realnamelen;
-        lwres_uint16_t         *aliaslen;
+        uint16_t          realnamelen;
+        uint16_t         *aliaslen;
         lwres_addrlist_t        addrs;
         void                   *base;
         size_t                  baselen;

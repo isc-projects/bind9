@@ -36,12 +36,12 @@
  * #define LWRES_OPCODE_NOOP       0x00000000U
  *
  * typedef struct {
- *         lwres_uint16_t  datalength;
+ *         uint16_t  datalength;
  *         unsigned char   *data;
  * } lwres_nooprequest_t;
  *
  * typedef struct {
- *         lwres_uint16_t  datalength;
+ *         uint16_t  datalength;
  *         unsigned char   *data;
  * } lwres_noopresponse_t;
  * \endcode
@@ -94,6 +94,7 @@
 #include <config.h>
 
 #include <assert.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -120,7 +121,7 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
-	payload_length = sizeof(lwres_uint16_t) + req->datalength;
+	payload_length = sizeof(uint16_t) + req->datalength;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
@@ -128,7 +129,7 @@ lwres_nooprequest_render(lwres_context_t *ctx, lwres_nooprequest_t *req,
 		return (LWRES_R_NOMEMORY);
 	lwres_buffer_init(b, buf, (unsigned int)buflen);
 
-	pkt->length = (lwres_uint32_t)buflen;
+	pkt->length = (uint32_t)buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
 	pkt->pktflags &= ~LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_NOOP;
@@ -173,7 +174,7 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 	REQUIRE(pkt != NULL);
 	REQUIRE(b != NULL);
 
-	payload_length = sizeof(lwres_uint16_t) + req->datalength;
+	payload_length = sizeof(uint16_t) + req->datalength;
 
 	buflen = LWRES_LWPACKET_LENGTH + payload_length;
 	buf = CTXMALLOC(buflen);
@@ -181,7 +182,7 @@ lwres_noopresponse_render(lwres_context_t *ctx, lwres_noopresponse_t *req,
 		return (LWRES_R_NOMEMORY);
 	lwres_buffer_init(b, buf, (unsigned int)buflen);
 
-	pkt->length = (lwres_uint32_t)buflen;
+	pkt->length = (uint32_t)buflen;
 	pkt->version = LWRES_LWPACKETVERSION_0;
 	pkt->pktflags |= LWRES_LWPACKETFLAG_RESPONSE;
 	pkt->opcode = LWRES_OPCODE_NOOP;
@@ -229,7 +230,7 @@ lwres_nooprequest_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	if (req == NULL)
 		return (LWRES_R_NOMEMORY);
 
-	if (!SPACE_REMAINING(b, sizeof(lwres_uint16_t))) {
+	if (!SPACE_REMAINING(b, sizeof(uint16_t))) {
 		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}
@@ -277,7 +278,7 @@ lwres_noopresponse_parse(lwres_context_t *ctx, lwres_buffer_t *b,
 	if (req == NULL)
 		return (LWRES_R_NOMEMORY);
 
-	if (!SPACE_REMAINING(b, sizeof(lwres_uint16_t))) {
+	if (!SPACE_REMAINING(b, sizeof(uint16_t))) {
 		ret = LWRES_R_UNEXPECTEDEND;
 		goto out;
 	}

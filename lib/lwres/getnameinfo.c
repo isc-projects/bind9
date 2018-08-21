@@ -107,6 +107,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 
@@ -172,7 +173,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 	char numaddr[sizeof("abcd:abcd:abcd:abcd:abcd:abcd:255.255.255.255")
 		    + 1 + sizeof("4294967295")];
 	const char *proto;
-	lwres_uint32_t lwf = 0;
+	uint32_t lwf = 0;
 	lwres_context_t *lwrctx = NULL;
 	lwres_gnbaresponse_t *by = NULL;
 	int result = SUCCESS;
@@ -306,7 +307,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 
 		if (n == 0)
 			n = lwres_getnamebyaddr(lwrctx, lwf,
-						(lwres_uint16_t)afd->a_addrlen,
+						(uint16_t)afd->a_addrlen,
 						addr, &by);
 		if (n == 0) {
 			if (flags & NI_NOFQDN) {

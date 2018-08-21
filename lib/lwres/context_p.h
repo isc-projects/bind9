@@ -14,6 +14,8 @@
 #ifndef LWRES_CONTEXT_P_H
 #define LWRES_CONTEXT_P_H 1
 
+#include <inttypes.h>
+
 /*! \file */
 
 /*@{*/
@@ -33,7 +35,7 @@
  */
 struct lwres_context {
 	unsigned int		timeout;	/*%< time to wait for reply */
-	lwres_uint32_t		serial;		/*%< serial number state */
+	uint32_t		serial;		/*%< serial number state */
 
 	/*
 	 * For network I/O.
