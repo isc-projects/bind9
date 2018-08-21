@@ -129,12 +129,6 @@
 @ISC_PLATFORM_HAVELONGLONG@
 
 /*
- * Define if PTHREAD_ONCE_INIT should be surrounded by braces to
- * prevent compiler warnings (such as with gcc on Solaris 2.8).
- */
-@ISC_PLATFORM_BRACEPTHREADONCEINIT@
-
-/*
  * Used to control how extern data is linked; needed for Win32 platforms.
  */
 @ISC_PLATFORM_USEDECLSPEC@
