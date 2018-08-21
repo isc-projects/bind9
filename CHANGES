@@ -1,4 +1,9 @@
-5026.   [bug]           rndc reconfig should not touch already loaded zones.
+5028.	[bug]		Spread the initial RRSIG expiration times over the
+			entire working sig-validity-interval when signing a
+			zone in named to even out re-signing and transfer
+			loads. [GL #418]
+
+5026.	[bug]		rndc reconfig should not touch already loaded zones.
 			[GL #276]
 
 5022.	[doc]		Update ms-self, ms-subdomain, krb5-self, and
