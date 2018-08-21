@@ -193,11 +193,6 @@ struct sockaddr_storage {
 };
 #endif
 
-#if defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
-extern const struct in6_addr isc_net_in6addrloop;
-#define in6addr_loopback isc_net_in6addrloop
-#endif
-
 #ifdef ISC_PLATFORM_NEEDPORTT
 /*%
  * Ensure type in_port_t is defined.

@@ -37,12 +37,6 @@
 @ISC_PLATFORM_HAVESALEN@
 
 /*! \brief
- * If this system is missing in6addr_loopback, ISC_PLATFORM_NEEDIN6ADDRLOOPBACK
- * will be defined.
- */
-@ISC_PLATFORM_NEEDIN6ADDRLOOPBACK@
-
-/*! \brief
  * If this system has in6_pktinfo, ISC_PLATFORM_HAVEIN6PKTINFO will be
  * defined.
  */
