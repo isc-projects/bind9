@@ -36,7 +36,7 @@ zone "example" {
 
 zone "sub.example" {
 	type master;
-	file "sub.example.db.signed";
+	file "sub.example.db.in";
 };
 
 zone "initially-unavailable" {

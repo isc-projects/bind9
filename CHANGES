@@ -16,11 +16,6 @@
 5007.	[cleanup]	Replace custom ISC boolean and integer data types
 			with C99 stdint.h and stdbool.h types. [GL #9]
 
-5006.	[cleanup]	Code preparing a delegation response was extracted from
-			query_delegation() and query_zone_delegation() into a
-			separate function in order to decrease code
-			duplication. [GL #431]
-
 5005.	[bug]		dnssec-verify, and dnssec-signzone at the verification
 			step, failed on some validly signed zones. [GL #442]
 
