@@ -412,7 +412,7 @@ ATF_TC_HEAD(udp_dscp_v6, tc) {
 	atf_tc_set_md_var(tc, "descr", "udp dscp ipv6");
 }
 ATF_TC_BODY(udp_dscp_v6, tc) {
-#if defined(ISC_PLATFORM_HAVEIPV6) && defined(WANT_IPV6)
+#if defined(ISC_PLATFORM_HAVEIPV6)
 	isc_result_t result;
 	isc_sockaddr_t addr1, addr2;
 	struct in6_addr in6;
