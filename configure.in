@@ -17,18 +17,6 @@ AC_CANONICAL_HOST
 
 AC_PROG_MAKE_SET
 
-#
-# GNU libtool support
-#
-case $build_os in
-sunos*)
-    # Just set the maximum command line length for sunos as it otherwise
-    # takes a exceptionally long time to work it out. Required for libtool.
-     
-    lt_cv_sys_max_cmd_len=4096;
-    ;;
-esac
-
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -2634,10 +2622,6 @@ case "$host" in
 	AC_DEFINE(NEED_SECURE_DIRECTORY, 1,
 		  [Define if connect does not honour the permission on the UNIX domain socket.])
 	;;
-*-sunos*)
-	AC_DEFINE(NEED_SECURE_DIRECTORY, 1,
-		  [Define if connect does not honour the permission on the UNIX domain socket.])
-	;;
 esac
 
 #
@@ -3225,10 +3209,9 @@ AC_SUBST(DNSTAP_PB_C_H)
 
 #
 #  The following sets up how non-blocking i/o is established.
-#  Sunos, cygwin and solaris 2.x (x<5) require special handling.
+#  cygwin and solaris 2.x (x<5) require special handling.
 #
 case "$host" in
-*-sunos*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
 *-cygwin*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
 *-solaris2.[[01234]])
 	AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK)
@@ -3716,11 +3699,6 @@ AC_ARG_WITH(dlopen,
 	    AS_HELP_STRING([--with-dlopen=ARG],
 			   [support dynamically loadable DLZ drivers]),
 	    dlopen="$withval", dlopen="yes")
-
-case $host in
-	*-sunos*) dlopen="no"
-		;;
-esac
 
 if test "yes" = "$dlopen"; then
 	AC_CHECK_LIB(dl, dlopen, have_dl=yes, have_dl=no)
