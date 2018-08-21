@@ -16,7 +16,6 @@
 
 #include <isc/print.h>
 #include <isc/serial.h>
-#include <isc/stdlib.h>
 
 int
 main() {

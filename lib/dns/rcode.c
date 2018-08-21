@@ -22,7 +22,6 @@
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
-#include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
