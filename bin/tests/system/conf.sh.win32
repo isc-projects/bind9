@@ -107,7 +107,7 @@ PARALLELDIRS="allow_query catz rpzrecurse serve-stale"
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
 # missing: chain integrity
-# extra: dname ednscompliance forward 
+# extra: dname ednscompliance forward
 
 #Things that are different on Windows
 KILL="/bin/kill -f"
@@ -117,7 +117,7 @@ DOS2UNIX=dos2unix
 TP=
 
 # Configure is launched from native environment, but tests are run in Cygwin -
-# so any detection is unreliable. 
+# so any detection is unreliable.
 SHELL="/bin/bash -o igncr"
 CURL=/usr/bin/curl
 XMLLINT=/usr/bin/xmllint
@@ -135,11 +135,7 @@ else
 	TESTSOCK6=false
 fi
 
-if grep "^#define WANT_IPV6 1" $TOP/config.h > /dev/null 2>&1 ; then
-        TESTSOCK6="$TESTSOCK6"
-else
-        TESTSOCK6=false
-fi
+TESTSOCK6="$TESTSOCK6"
 
 #
 # PsSuspend is part of PSTools and can be downloaded from
