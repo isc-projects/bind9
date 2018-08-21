@@ -44,7 +44,7 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/errno.@O@ \
 		win32/stdtime.@O@ win32/thread.@O@ win32/time.@O@
 
 # Alphabetically
-OBJS =		@ISC_EXTRA_OBJS@ pk11.@O@ pk11_result.@O@ \
+OBJS =		pk11.@O@ pk11_result.@O@ \
 		aes.@O@ assertions.@O@ backtrace.@O@ base32.@O@ base64.@O@ \
 		bind9.@O@ buffer.@O@ bufferlist.@O@ \
 		commandline.@O@ counter.@O@ crc64.@O@ error.@O@ entropy.@O@ \
@@ -63,7 +63,7 @@ OBJS =		@ISC_EXTRA_OBJS@ pk11.@O@ pk11_result.@O@ \
 SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
-SRCS =		@ISC_EXTRA_SRCS@ pk11.c pk11_result.c \
+SRCS =		pk11.c pk11_result.c \
 		aes.c assertions.c backtrace.c base32.c base64.c bind9.c \
 		buffer.c bufferlist.c commandline.c counter.c crc64.c \
 		entropy.c error.c event.c hash.c ht.c heap.c hex.c hmacmd5.c \
