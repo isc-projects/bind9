@@ -93,10 +93,6 @@
 
 #endif /* HAVE_SYSCTLBYNAME */
 
-#if defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
-const struct in6_addr isc_net_in6addrloop = IN6ADDR_LOOPBACK_INIT;
-#endif
-
 static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
 
 #if defined(ISC_PLATFORM_HAVEIN6PKTINFO)
