@@ -1948,24 +1948,6 @@ AC_COMPILE_IFELSE(
   [AC_MSG_RESULT([yes])],
   [AC_MSG_FAILURE([IPv6 support is mandatory])])
 
-AC_MSG_CHECKING([for in6_addr])
-AC_COMPILE_IFELSE(
-  [AC_LANG_PROGRAM(
-     [[
-       #include <sys/types.h>
-       #include <sys/socket.h>
-       #include <netinet/in.h>
-     ]],
-     [[
-       struct in6_addr in6; return (0);
-     ]])],
-  [AC_MSG_RESULT([yes])
-   ISC_PLATFORM_HAVEINADDR6="#undef ISC_PLATFORM_HAVEINADDR6"
-   isc_in_addr6_hack=""],
-  [AC_MSG_RESULT([no])
-   ISC_PLATFORM_HAVEINADDR6="#define ISC_PLATFORM_HAVEINADDR6 1"
-   isc_in_addr6_hack="#define in6_addr in_addr6"])
-
 AC_MSG_CHECKING([for in6addr_any])
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM(
@@ -2043,7 +2025,6 @@ ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"],
 [AC_MSG_RESULT(no)
 ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"])
 
-AC_SUBST(ISC_PLATFORM_HAVEINADDR6)
 AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRANY)
 AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
