@@ -43,11 +43,6 @@
 @ISC_PLATFORM_HAVEIN6PKTINFO@
 
 /*! \brief
- * If this system has sin6_scope_id, ISC_PLATFORM_HAVESCOPEID will be defined.
- */
-@ISC_PLATFORM_HAVESCOPEID@
-
-/*! \brief
  * If this system needs inet_ntop(), ISC_PLATFORM_NEEDNTOP will be defined.
  */
 @ISC_PLATFORM_NEEDNTOP@
