@@ -55,12 +55,6 @@
 @ISC_PLATFORM_HAVEIN6PKTINFO@
 
 /*! \brief
- * If this system has in_addr6, rather than in6_addr, ISC_PLATFORM_HAVEINADDR6
- * will be defined.
- */
-@ISC_PLATFORM_HAVEINADDR6@
-
-/*! \brief
  * If this system has sin6_scope_id, ISC_PLATFORM_HAVESCOPEID will be defined.
  */
 @ISC_PLATFORM_HAVESCOPEID@

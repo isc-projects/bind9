@@ -80,10 +80,6 @@
 #include <isc/lang.h>
 #include <isc/types.h>
 
-#ifdef ISC_PLATFORM_HAVEINADDR6
-#define in6_addr in_addr6	/*%< Required for pre RFC2133 implementations. */
-#endif
-
 #ifndef IN6ADDR_ANY_INIT
 #ifdef s6_addr
 /*%
