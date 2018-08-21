@@ -93,21 +93,19 @@
 
 #endif /* HAVE_SYSCTLBYNAME */
 
-#if defined(ISC_PLATFORM_HAVEIPV6)
-# if defined(ISC_PLATFORM_NEEDIN6ADDRANY)
+#if defined(ISC_PLATFORM_NEEDIN6ADDRANY)
 const struct in6_addr isc_net_in6addrany = IN6ADDR_ANY_INIT;
-# endif
+#endif
 
-# if defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
+#if defined(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
 const struct in6_addr isc_net_in6addrloop = IN6ADDR_LOOPBACK_INIT;
-# endif
+#endif
 
 static isc_once_t 	once_ipv6only = ISC_ONCE_INIT;
 
-#  if defined(ISC_PLATFORM_HAVEIN6PKTINFO)
+#if defined(ISC_PLATFORM_HAVEIN6PKTINFO)
 static isc_once_t 	once_ipv6pktinfo = ISC_ONCE_INIT;
-#  endif
-#endif /* ISC_PLATFORM_HAVEIPV6 */
+#endif
 
 #ifndef ISC_CMSG_IP_TOS
 #ifdef __APPLE__
@@ -162,7 +160,6 @@ try_proto(int domain) {
 		}
 	}
 
-#ifdef ISC_PLATFORM_HAVEIPV6
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	if (domain == PF_INET6) {
 		struct sockaddr_in6 sin6;
@@ -202,7 +199,6 @@ try_proto(int domain) {
 		}
 	}
 #endif
-#endif
 
 	(void)close(s);
 
@@ -212,10 +208,8 @@ try_proto(int domain) {
 static void
 initialize_action(void) {
 	ipv4_result = try_proto(PF_INET);
-#ifdef ISC_PLATFORM_HAVEIPV6
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	ipv6_result = try_proto(PF_INET6);
-#endif
 #endif
 #ifdef ISC_PLATFORM_HAVESYSUNH
 	unix_result = try_proto(PF_UNIX);
@@ -245,7 +239,6 @@ isc_net_probeunix(void) {
 	return (unix_result);
 }
 
-#ifdef ISC_PLATFORM_HAVEIPV6
 static void
 try_ipv6only(void) {
 #ifdef IPV6_V6ONLY
@@ -375,22 +368,17 @@ initialize_ipv6pktinfo(void) {
 				  try_ipv6pktinfo) == ISC_R_SUCCESS);
 }
 #endif /* ISC_PLATFORM_HAVEIN6PKTINFO */
-#endif /* ISC_PLATFORM_HAVEIPV6 */
 
 isc_result_t
 isc_net_probe_ipv6only(void) {
-#ifdef ISC_PLATFORM_HAVEIPV6
 	initialize_ipv6only();
-#endif
 	return (ipv6only_result);
 }
 
 isc_result_t
 isc_net_probe_ipv6pktinfo(void) {
-#ifdef ISC_PLATFORM_HAVEIPV6
 #ifdef ISC_PLATFORM_HAVEIN6PKTINFO
 	initialize_ipv6pktinfo();
-#endif
 #endif
 	return (ipv6pktinfo_result);
 }
@@ -672,7 +660,6 @@ try_dscp_v4(void) {
 
 static void
 try_dscp_v6(void) {
-#ifdef ISC_PLATFORM_HAVEIPV6
 #ifdef IPV6_TCLASS
 	char strbuf[ISC_STRERRORSIZE];
 	struct addrinfo hints, *res0;
@@ -726,7 +713,6 @@ try_dscp_v6(void) {
 	close(s);
 
 #endif /* IPV6_TCLASS */
-#endif /* ISC_PLATFORM_HAVEIPV6 */
 }
 
 static void
