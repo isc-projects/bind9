@@ -209,14 +209,8 @@ internal_current(isc_interfaceiter_t *iter) {
 				dst_sa = sa;
 				break;
 			}
-#ifdef ISC_PLATFORM_HAVESALEN
-			sa = (struct sockaddr *)((char*)(sa)
-					 + ROUNDUP(sa->sa_len));
-#else
-			/* XXX untested. */
 			sa = (struct sockaddr *)((char*)(sa)
 					 + ROUNDUP(sizeof(struct sockaddr)));
-#endif
 		}
 
 		if (addr_sa == NULL)

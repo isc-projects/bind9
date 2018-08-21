@@ -242,9 +242,6 @@ isc_sockaddr_any(isc_sockaddr_t *sockaddr)
 {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->type.sin.sin_family = AF_INET;
-#ifdef ISC_PLATFORM_HAVESALEN
-	sockaddr->type.sin.sin_len = sizeof(sockaddr->type.sin);
-#endif
 	sockaddr->type.sin.sin_addr.s_addr = INADDR_ANY;
 	sockaddr->type.sin.sin_port = 0;
 	sockaddr->length = sizeof(sockaddr->type.sin);
@@ -256,9 +253,6 @@ isc_sockaddr_any6(isc_sockaddr_t *sockaddr)
 {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->type.sin6.sin6_family = AF_INET6;
-#ifdef ISC_PLATFORM_HAVESALEN
-	sockaddr->type.sin6.sin6_len = sizeof(sockaddr->type.sin6);
-#endif
 	sockaddr->type.sin6.sin6_addr = in6addr_any;
 	sockaddr->type.sin6.sin6_port = 0;
 	sockaddr->length = sizeof(sockaddr->type.sin6);
@@ -271,9 +265,6 @@ isc_sockaddr_fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->type.sin.sin_family = AF_INET;
-#ifdef ISC_PLATFORM_HAVESALEN
-	sockaddr->type.sin.sin_len = sizeof(sockaddr->type.sin);
-#endif
 	sockaddr->type.sin.sin_addr = *ina;
 	sockaddr->type.sin.sin_port = htons(port);
 	sockaddr->length = sizeof(sockaddr->type.sin);
@@ -300,9 +291,6 @@ isc_sockaddr_fromin6(isc_sockaddr_t *sockaddr, const struct in6_addr *ina6,
 {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->type.sin6.sin6_family = AF_INET6;
-#ifdef ISC_PLATFORM_HAVESALEN
-	sockaddr->type.sin6.sin6_len = sizeof(sockaddr->type.sin6);
-#endif
 	sockaddr->type.sin6.sin6_addr = *ina6;
 	sockaddr->type.sin6.sin6_port = htons(port);
 	sockaddr->length = sizeof(sockaddr->type.sin6);
@@ -315,9 +303,6 @@ isc_sockaddr_v6fromin(isc_sockaddr_t *sockaddr, const struct in_addr *ina,
 {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->type.sin6.sin6_family = AF_INET6;
-#ifdef ISC_PLATFORM_HAVESALEN
-	sockaddr->type.sin6.sin6_len = sizeof(sockaddr->type.sin6);
-#endif
 	sockaddr->type.sin6.sin6_addr.s6_addr[10] = 0xff;
 	sockaddr->type.sin6.sin6_addr.s6_addr[11] = 0xff;
 	memmove(&sockaddr->type.sin6.sin6_addr.s6_addr[12], ina, 4);
@@ -363,17 +348,11 @@ isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
 	switch (na->family) {
 	case AF_INET:
 		sockaddr->length = sizeof(sockaddr->type.sin);
-#ifdef ISC_PLATFORM_HAVESALEN
-		sockaddr->type.sin.sin_len = sizeof(sockaddr->type.sin);
-#endif
 		sockaddr->type.sin.sin_addr = na->type.in;
 		sockaddr->type.sin.sin_port = htons(port);
 		break;
 	case AF_INET6:
 		sockaddr->length = sizeof(sockaddr->type.sin6);
-#ifdef ISC_PLATFORM_HAVESALEN
-		sockaddr->type.sin6.sin6_len = sizeof(sockaddr->type.sin6);
-#endif
 		memmove(&sockaddr->type.sin6.sin6_addr, &na->type.in6, 16);
 		sockaddr->type.sin6.sin6_scope_id = isc_netaddr_getzone(na);
 		sockaddr->type.sin6.sin6_port = htons(port);
@@ -488,10 +467,6 @@ isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path) {
 	memset(sockaddr, 0, sizeof(*sockaddr));
 	sockaddr->length = sizeof(sockaddr->type.sunix);
 	sockaddr->type.sunix.sun_family = AF_UNIX;
-#ifdef ISC_PLATFORM_HAVESALEN
-	sockaddr->type.sunix.sun_len =
-			(unsigned char)sizeof(sockaddr->type.sunix);
-#endif
 	strlcpy(sockaddr->type.sunix.sun_path, path,
 		sizeof(sockaddr->type.sunix.sun_path));
 	return (ISC_R_SUCCESS);

@@ -738,19 +738,8 @@ internal_current(isc_interfaceiter_t *iter) {
  */
 static isc_result_t
 internal_next4(isc_interfaceiter_t *iter) {
-#ifdef ISC_PLATFORM_HAVESALEN
-	struct ifreq *ifrp;
-#endif
 
 	if (iter->pos < (unsigned int) iter->ifc.ifc_len) {
-#ifdef ISC_PLATFORM_HAVESALEN
-		ifrp = (struct ifreq *)((char *) iter->ifc.ifc_req + iter->pos);
-
-		if (ifrp->ifr_addr.sa_len > sizeof(struct sockaddr))
-			iter->pos += sizeof(ifrp->ifr_name) +
-				     ifrp->ifr_addr.sa_len;
-		else
-#endif
 			iter->pos += sizeof(struct ifreq);
 
 	} else {
@@ -767,23 +756,13 @@ internal_next4(isc_interfaceiter_t *iter) {
 #if defined(SIOCGLIFCONF) && defined(SIOCGLIFADDR)
 static isc_result_t
 internal_next6(isc_interfaceiter_t *iter) {
-#ifdef ISC_PLATFORM_HAVESALEN
-	struct LIFREQ *ifrp;
-#endif
 
 	if (iter->result6 != ISC_R_SUCCESS && iter->result6 != ISC_R_IGNORE)
 		return (iter->result6);
 
 	REQUIRE(iter->pos6 < (unsigned int) iter->lifc.lifc_len);
 
-#ifdef ISC_PLATFORM_HAVESALEN
-	ifrp = (struct LIFREQ *)((char *) iter->lifc.lifc_req + iter->pos6);
-
-	if (ifrp->lifr_addr.sa_len > sizeof(struct sockaddr))
-		iter->pos6 += sizeof(ifrp->lifr_name) + ifrp->lifr_addr.sa_len;
-	else
-#endif
-		iter->pos6 += sizeof(struct LIFREQ);
+	iter->pos6 += sizeof(struct LIFREQ);
 
 	if (iter->pos6 >= (unsigned int) iter->lifc.lifc_len)
 		return (ISC_R_NOMORE);
