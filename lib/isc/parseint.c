@@ -18,6 +18,7 @@
 #include <errno.h>
 #include <limits.h>
 #include <inttypes.h>
+#include <stdlib.h>
 
 #include <isc/parseint.h>
 #include <isc/result.h>
