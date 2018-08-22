@@ -87,6 +87,8 @@ for (;;) {
 	} elsif ($qname eq "www.ok.sub.example.org") {
 		$packet->push("answer",
 			      new Net::DNS::RR($qname . " 300 A 192.0.2.1"));
+	} elsif ($qname eq "foo.glue-in-answer.example.org") {
+		$packet->push("answer", new Net::DNS::RR($qname . " 300 A 192.0.2.1"));
 	} else {
 		$packet->push("answer", new Net::DNS::RR("www.example.com 300 A 1.2.3.4"));
 	}
