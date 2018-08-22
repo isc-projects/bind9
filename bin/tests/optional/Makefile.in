@@ -20,6 +20,7 @@ CDEFINES =	@USE_GSSAPI@
 
 CWARNINGS =
 BACKTRACECFLAGS = @BACKTRACECFLAGS@
+PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 
 DNSLIBS =	../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../../lib/isc/libisc.@A@ @OPENSSL_LIBS@
@@ -106,7 +107,8 @@ XSRCS =		adb_test.c \
 
 # disable optimization for backtrace test to get the expected result
 BTTEST_CFLAGS =	${BACKTRACECFLAGS} ${EXT_CFLAGS} ${ALL_CPPFLAGS} -g \
-		${ALWAYS_WARNINGS} ${STD_CWARNINGS} ${CWARNINGS}
+		${ALWAYS_WARNINGS} ${STD_CWARNINGS} ${CWARNINGS} \
+		${PTHREAD_CFLAGS}
 
 all_tests: ${XTARGETS}
 
