@@ -105,6 +105,7 @@
 
 #include <config.h>
 
+#include <inttypes.h>
 #include <string.h>
 
 #include <lwres/lwbuffer.h>
@@ -214,11 +215,11 @@ lwres_buffer_back(lwres_buffer_t *b, unsigned int n)
 }
 
 /* Read an unsigned 8-bit integer from 'b' and return it. */
-lwres_uint8_t
+uint8_t
 lwres_buffer_getuint8(lwres_buffer_t *b)
 {
 	unsigned char *cp;
-	lwres_uint8_t result;
+	uint8_t result;
 
 
 	REQUIRE(LWRES_BUFFER_VALID(b));
@@ -234,7 +235,7 @@ lwres_buffer_getuint8(lwres_buffer_t *b)
 
 /* Put an unsigned 8-bit integer */
 void
-lwres_buffer_putuint8(lwres_buffer_t *b, lwres_uint8_t val)
+lwres_buffer_putuint8(lwres_buffer_t *b, uint8_t val)
 {
 	unsigned char *cp;
 
@@ -248,11 +249,11 @@ lwres_buffer_putuint8(lwres_buffer_t *b, lwres_uint8_t val)
 }
 
 /*  Read an unsigned 16-bit integer in network byte order from 'b', convert it to host byte order, and return it. */
-lwres_uint16_t
+uint16_t
 lwres_buffer_getuint16(lwres_buffer_t *b)
 {
 	unsigned char *cp;
-	lwres_uint16_t result;
+	uint16_t result;
 
 
 	REQUIRE(LWRES_BUFFER_VALID(b));
@@ -269,7 +270,7 @@ lwres_buffer_getuint16(lwres_buffer_t *b)
 
 /* Put an unsigned 16-bit integer. */
 void
-lwres_buffer_putuint16(lwres_buffer_t *b, lwres_uint16_t val)
+lwres_buffer_putuint16(lwres_buffer_t *b, uint16_t val)
 {
 	unsigned char *cp;
 
@@ -284,11 +285,11 @@ lwres_buffer_putuint16(lwres_buffer_t *b, lwres_uint16_t val)
 }
 
 /*  Read an unsigned 32-bit integer in network byte order from 'b', convert it to host byte order, and return it. */
-lwres_uint32_t
+uint32_t
 lwres_buffer_getuint32(lwres_buffer_t *b)
 {
 	unsigned char *cp;
-	lwres_uint32_t result;
+	uint32_t result;
 
 	REQUIRE(LWRES_BUFFER_VALID(b));
 	REQUIRE(b->used - b->current >= 4);
@@ -306,7 +307,7 @@ lwres_buffer_getuint32(lwres_buffer_t *b)
 
 /* Put an unsigned 32-bit integer. */
 void
-lwres_buffer_putuint32(lwres_buffer_t *b, lwres_uint32_t val)
+lwres_buffer_putuint32(lwres_buffer_t *b, uint32_t val)
 {
 	unsigned char *cp;
 

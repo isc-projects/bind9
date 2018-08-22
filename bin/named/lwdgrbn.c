@@ -15,6 +15,8 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+
 #include <isc/mem.h>
 #include <isc/socket.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
@@ -37,7 +39,7 @@ static void start_lookup(ns_lwdclient_t *);
 
 static isc_result_t
 fill_array(int *pos, dns_rdataset_t *rdataset,
-	   int size, unsigned char **rdatas, lwres_uint16_t *rdatalen)
+	   int size, unsigned char **rdatas, uint16_t *rdatalen)
 {
 	dns_rdata_t rdata;
 	isc_result_t result;
@@ -70,11 +72,11 @@ iterate_node(lwres_grbnresponse_t *grbn, dns_db_t *db, dns_dbnode_t *node,
 	int used = 0, count;
 	int size = 8, oldsize = 0;
 	unsigned char **rdatas = NULL, **oldrdatas = NULL, **newrdatas = NULL;
-	lwres_uint16_t *lens = NULL, *oldlens = NULL, *newlens = NULL;
+	uint16_t *lens = NULL, *oldlens = NULL, *newlens = NULL;
 	dns_rdatasetiter_t *iter = NULL;
 	dns_rdataset_t set;
 	dns_ttl_t ttl = INT32_MAX;
-	lwres_uint32_t flags = LWRDATA_VALIDATED;
+	uint32_t flags = LWRDATA_VALIDATED;
 	isc_result_t result = ISC_R_NOMEMORY;
 
 	result = dns_db_allrdatasets(db, node, NULL, 0, &iter);
@@ -275,7 +277,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 		if (grbn->rdatas == NULL)
 			goto out;
 		grbn->rdatalen = isc_mem_get(cm->mctx, grbn->nrdatas *
-					     sizeof(lwres_uint16_t));
+					     sizeof(uint16_t));
 		if (grbn->rdatalen == NULL)
 			goto out;
 
@@ -306,7 +308,7 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 		if (grbn->sigs == NULL)
 			goto out;
 		grbn->siglen = isc_mem_get(cm->mctx, grbn->nsigs *
-					   sizeof(lwres_uint16_t));
+					   sizeof(uint16_t));
 		if (grbn->siglen == NULL)
 			goto out;
 
@@ -336,14 +338,14 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 	isc_mem_put(cm->mctx, grbn->rdatas,
 		    grbn->nrdatas * sizeof(unsigned char *));
 	isc_mem_put(cm->mctx, grbn->rdatalen,
-		    grbn->nrdatas * sizeof(lwres_uint16_t));
+		    grbn->nrdatas * sizeof(uint16_t));
 
 	if (grbn->sigs != NULL)
 		isc_mem_put(cm->mctx, grbn->sigs,
 			    grbn->nsigs * sizeof(unsigned char *));
 	if (grbn->siglen != NULL)
 		isc_mem_put(cm->mctx, grbn->siglen,
-			    grbn->nsigs * sizeof(lwres_uint16_t));
+			    grbn->nsigs * sizeof(uint16_t));
 
 	r.base = lwb.base;
 	r.length = lwb.used;
@@ -366,14 +368,14 @@ lookup_done(isc_task_t *task, isc_event_t *event) {
 			    grbn->nrdatas * sizeof(unsigned char *));
 	if (grbn->rdatalen != NULL)
 		isc_mem_put(cm->mctx, grbn->rdatalen,
-			    grbn->nrdatas * sizeof(lwres_uint16_t));
+			    grbn->nrdatas * sizeof(uint16_t));
 
 	if (grbn->sigs != NULL)
 		isc_mem_put(cm->mctx, grbn->sigs,
 			    grbn->nsigs * sizeof(unsigned char *));
 	if (grbn->siglen != NULL)
 		isc_mem_put(cm->mctx, grbn->siglen,
-			    grbn->nsigs * sizeof(lwres_uint16_t));
+			    grbn->nsigs * sizeof(uint16_t));
  out2:
 	if (client->lookup != NULL)
 		dns_lookup_destroy(&client->lookup);

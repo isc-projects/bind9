@@ -50,6 +50,7 @@
 #include <assert.h>
 #include <ctype.h>
 #include <errno.h>
+#include <inttypes.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -588,19 +589,19 @@ lwres_conf_parseoption(lwres_context_t *ctx,  FILE *fp) {
 				return (LWRES_R_FAILURE);
 			if (ndots < 0 || ndots > 0xff) /* Out of range. */
 				return (LWRES_R_FAILURE);
-			confdata->ndots = (lwres_uint8_t)ndots;
+			confdata->ndots = (uint8_t)ndots;
 		} else if (strncmp("timeout:", word, 8) == 0) {
 			timeout = strtol(word + 8, &p, 10);
 			if (*p != '\0') /* Bad string. */
 				return (LWRES_R_FAILURE);
-			confdata->timeout = (lwres_int32_t)timeout;
+			confdata->timeout = (int32_t)timeout;
 		} else if (strncmp("attempts:", word, 9) == 0) {
 			attempts = strtol(word + 9, &p, 10);
 			if (*p != '\0') /* Bad string. */
 				return (LWRES_R_FAILURE);
 			if (attempts < 0) /* Out of range. */
 				return (LWRES_R_FAILURE);
-			confdata->attempts = (lwres_int32_t)attempts;
+			confdata->attempts = (int32_t)attempts;
 		}
 
 		if (delim == EOF || delim == '\n')

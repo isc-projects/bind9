@@ -97,8 +97,9 @@
  *** Imports
  ***/
 
+#include <inttypes.h>
+
 #include <lwres/lang.h>
-#include <lwres/int.h>
 
 LWRES_LANG_BEGINDECLS
 
@@ -262,7 +263,7 @@ lwres_buffer_back(lwres_buffer_t *b, unsigned int n);
  *
  */
 
-lwres_uint8_t
+uint8_t
 lwres_buffer_getuint8(lwres_buffer_t *b);
 /**<
  * Read an unsigned 8-bit integer from 'b' and return it.
@@ -283,7 +284,7 @@ lwres_buffer_getuint8(lwres_buffer_t *b);
  */
 
 void
-lwres_buffer_putuint8(lwres_buffer_t *b, lwres_uint8_t val);
+lwres_buffer_putuint8(lwres_buffer_t *b, uint8_t val);
 /**<
  * Store an unsigned 8-bit integer from 'val' into 'b'.
  *
@@ -296,7 +297,7 @@ lwres_buffer_putuint8(lwres_buffer_t *b, lwres_uint8_t val);
  *	The used pointer in 'b' is advanced by 1.
  */
 
-lwres_uint16_t
+uint16_t
 lwres_buffer_getuint16(lwres_buffer_t *b);
 /**<
  * Read an unsigned 16-bit integer in network byte order from 'b', convert
@@ -318,7 +319,7 @@ lwres_buffer_getuint16(lwres_buffer_t *b);
  */
 
 void
-lwres_buffer_putuint16(lwres_buffer_t *b, lwres_uint16_t val);
+lwres_buffer_putuint16(lwres_buffer_t *b, uint16_t val);
 /**<
  * Store an unsigned 16-bit integer in host byte order from 'val'
  * into 'b' in network byte order.
@@ -332,7 +333,7 @@ lwres_buffer_putuint16(lwres_buffer_t *b, lwres_uint16_t val);
  *	The used pointer in 'b' is advanced by 2.
  */
 
-lwres_uint32_t
+uint32_t
 lwres_buffer_getuint32(lwres_buffer_t *b);
 /**<
  * Read an unsigned 32-bit integer in network byte order from 'b', convert
@@ -354,7 +355,7 @@ lwres_buffer_getuint32(lwres_buffer_t *b);
  */
 
 void
-lwres_buffer_putuint32(lwres_buffer_t *b, lwres_uint32_t val);
+lwres_buffer_putuint32(lwres_buffer_t *b, uint32_t val);
 /**<
  * Store an unsigned 32-bit integer in host byte order from 'val'
  * into 'b' in network byte order.
