@@ -1,3 +1,7 @@
+5014.	[bug]		Signatures loaded from the journal for the signed
+			version of an inline-signed zone were not scheduled for
+			refresh. [GL #482]
+
 5013.	[bug]		A referral response with a non-empty ANSWER section was
 			inadvertently being treated as an error. [GL #390]
 
