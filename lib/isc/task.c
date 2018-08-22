@@ -1271,6 +1271,10 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 			snprintf(name, sizeof(name), "isc-worker%04u", i);
 			isc_thread_setname(manager->threads[manager->workers],
 					   name);
+			cpu_set_t cpuset;
+			CPU_ZERO(&cpuset);
+			CPU_SET(manager->workers, &cpuset);
+			pthread_setaffinity_np(manager->threads[manager->workers], sizeof(cpuset), &cpuset); /* ignore failure */
 			manager->workers++;
 			started++;
 		}
