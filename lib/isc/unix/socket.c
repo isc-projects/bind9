@@ -2065,6 +2065,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->dupped = 0;
 	sock->statsindex = NULL;
 	sock->active = 0;
+	sock->threadid = 0;
 
 	ISC_LINK_INIT(sock, link);
 
@@ -3137,6 +3138,7 @@ internal_accept(isc__socket_t *sock) {
 		NEWCONNSOCK(dev)->fd = fd;
 		NEWCONNSOCK(dev)->bound = 1;
 		NEWCONNSOCK(dev)->connected = 1;
+		NEWCONNSOCK(dev)->threadid = sock->threadid;
 
 		/*
 		 * Use minimum mtu if possible.
