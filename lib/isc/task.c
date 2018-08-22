@@ -159,7 +159,7 @@ isc__taskmgr_resume(isc_taskmgr_t *manager0);
 
 
 #define DEFAULT_TASKMGR_QUANTUM		10
-#define DEFAULT_DEFAULT_QUANTUM		5
+#define DEFAULT_DEFAULT_QUANTUM		50
 #define FINISHED(m)			((m)->exiting && EMPTY((m)->tasks))
 
 /*%
