@@ -4488,11 +4488,13 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	    ! DNS_ZONE_OPTION(zone, DNS_ZONEOPT_NOMERGE) &&
 	    ! DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
 	{
-		if (zone->type == dns_zone_master &&
-		    (zone->update_acl != NULL || zone->ssutable != NULL))
+		if (zone->type == dns_zone_master && (inline_secure(zone) ||
+		    (zone->update_acl != NULL || zone->ssutable != NULL)))
+		{
 			options = DNS_JOURNALOPT_RESIGN;
-		else
+		} else {
 			options = 0;
+		}
 		result = dns_journal_rollforward(zone->mctx, db, options,
 						 zone->journal);
 		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND &&

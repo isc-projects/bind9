@@ -141,6 +141,13 @@ zone "nokeys" {
 	file "nokeys.bk";
 };
 
+zone "delayedkeys" {
+	type master;
+	inline-signing yes;
+	auto-dnssec maintain;
+	file "delayedkeys.db";
+};
+
 zone "removedkeys-primary" {
 	type master;
 	inline-signing yes;

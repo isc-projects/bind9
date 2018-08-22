@@ -73,6 +73,10 @@ rm -f ns3/nsec3.db
 rm -f ns3/nsec3.db.jnl
 rm -f ns3/nsec3.db.signed
 rm -f ns3/nsec3.db.signed.jnl
+rm -f ns3/delayedkeys.db
+rm -f ns3/delayedkeys.db.jnl
+rm -f ns3/delayedkeys.db.signed
+rm -f ns3/delayedkeys.db.signed.jnl
 rm -f ns3/removedkeys-primary.db
 rm -f ns3/removedkeys-primary.db.jnl
 rm -f ns3/removedkeys-primary.db.signed
