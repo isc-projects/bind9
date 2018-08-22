@@ -1267,7 +1267,61 @@ grep "RRSIG" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# Check that the master file $2 for zone $1 does not contain RRSIG records
+# while the journal file for that zone does contain them.
+ensure_sigs_only_in_journal() {
+	origin="$1"
+	masterfile="$2"
+	$CHECKZONE -i none -f raw -D -o - "$origin" "$masterfile" 2>&1 | grep -w RRSIG > /dev/null && ret=1
+	$CHECKZONE -j -i none -f raw -D -o - "$origin" "$masterfile" 2>&1 | grep -w RRSIG > /dev/null || ret=1
+}
+
 n=`expr $n + 1`
+echo_i "checking that records added from a journal are scheduled to be resigned ($n)"
+ret=0
+# Signing keys for the "delayedkeys" zone are not yet accessible.  Thus, the
+# zone file for the signed version of the zone will contain no DNSSEC records.
+# Move keys into place now and load them, which will cause DNSSEC records to
+# only be present in the journal for the signed version of the zone.
+mv Kdelayedkeys* ns3/
+$RNDCCMD 10.53.0.3 loadkeys delayedkeys > rndc.out.ns3.pre.test$n 2>&1 || ret=1
+# Wait until the zone is signed.
+ans=1
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	$RNDCCMD 10.53.0.3 signing -list delayedkeys > signing.out.test$n 2>&1
+	num=`grep "Done signing with" signing.out.test$n | wc -l`
+	if [ $num -eq 2 ]; then
+		ans=0
+		break
+	fi
+	sleep 1
+done
+if [ $ans != 0 ]; then ret=1; fi
+# Halt rather than stopping the server to prevent the master file from being
+# flushed upon shutdown since we specifically want to avoid it.
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
+ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+# At this point, the raw zone journal will not have a source serial set.  Upon
+# server startup, receive_secure_serial() will rectify that, update SOA, resign
+# it, and schedule its future resign.  This will cause "rndc zonestatus" to
+# return delayedkeys/SOA as the next node to resign, so we restart the server
+# once again; with the raw zone journal now having a source serial set,
+# receive_secure_serial() should refrain from introducing any zone changes.
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
+ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+# We can now test whether the secure zone journal was correctly processed:
+# unless the records contained in it were scheduled for resigning, no resigning
+# event will be scheduled at all since the secure zone master file contains no
+# DNSSEC records.
+$RNDCCMD 10.53.0.3 zonestatus delayedkeys > rndc.out.ns3.post.test$n 2>&1 || ret=1
+grep "next resign node:" rndc.out.ns3.post.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
 echo_i "check that zonestatus reports 'type: master' for a inline master zone ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 zonestatus master > rndc.out.ns3.test$n
