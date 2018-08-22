@@ -4099,7 +4099,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		RUNTIME_CHECK(parms != NULL);
 		parms->manager = manager;
 		parms->thread = i;
-		cpu_set_t cpuset;
 		if (isc_thread_create(netthread, parms, &manager->threads[i]) !=
 		    ISC_R_SUCCESS) {
 			/* XXXWPK TODO cleanup previous threads! */
@@ -4111,9 +4110,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
-		CPU_ZERO(&cpuset);
-		CPU_SET(i, &cpuset);
-		pthread_setaffinity_np(manager->threads[i], sizeof(cpuset), &cpuset); /* ignore failure */
 		char tname[1024];
 		sprintf(tname, "isc-socket-%d", i);
 		isc_thread_setname(manager->threads[i], tname);
@@ -4893,21 +4889,13 @@ isc_socket_bind(isc_socket_t *sock0, const isc_sockaddr_t *sockaddr,
 		goto bind_socket;
 #endif
 	if ((options & ISC_SOCKET_REUSEADDRESS) != 0 &&
-	    isc_sockaddr_getport(sockaddr) != (in_port_t)0) {
-		if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
+	    isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
+	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof(on)) < 0) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d) %s", sock->fd,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"));
-		}
-		if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEPORT, (void *)&on,
-		       sizeof(on)) < 0) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "setsockopt(%d) %s", sock->fd,
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		}
 		/* Press on... */
 	}
 #ifdef AF_UNIX
