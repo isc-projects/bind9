@@ -899,6 +899,31 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check that reloading all zones does not cause zone maintenance to cease for inline-signed zones ($n)"
+ret=1
+# Ensure "rndc reload" attempts to load ns3/master.db by waiting 1 second so
+# that the master file modification time has no possibility of being equal to
+# the one stored during server startup.
+sleep 1
+nextpart ns3/named.run > /dev/null
+cp ns3/master5.db.in ns3/master.db
+$RNDCCMD 10.53.0.3 reload 2>&1 | sed 's/^/ns3 /' | cat_i
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	if nextpart ns3/named.run | grep "zone master.*sending notifies" > /dev/null; then
+		ret=0
+		break
+	fi
+	sleep 1
+done
+# Sanity check: master file updates should be reflected in the signed zone,
+# i.e. SOA RNAME should no longer be set to "hostmaster".
+$DIG $DIGOPTS @10.53.0.3 master SOA > dig.out.ns3.test$n || ret=1
+grep "hostmaster" dig.out.ns3.test$n > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "test add/del zone combinations ($n)"
 ret=0
 for zone in a b c d e f g h i j k l m n o p q r s t u v w x y z
