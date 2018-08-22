@@ -3016,9 +3016,9 @@ internal_accept(isc__socket_t *sock) {
 	/*
 	 * Poke watcher if there are more pending accepts.
 	 */
-	if (!ISC_LIST_EMPTY(sock->accept_list))
-		watch_fd(sock->manager, sock->threadid, sock->fd,
-			 SELECT_POKE_ACCEPT);
+	if (ISC_LIST_EMPTY(sock->accept_list))
+		unwatch_fd(sock->manager, sock->threadid, sock->fd,
+			   SELECT_POKE_ACCEPT);
 
 	UNLOCK(&sock->lock);
 
@@ -3104,7 +3104,6 @@ internal_accept(isc__socket_t *sock) {
 	return;
 
  soft_error:
-	watch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_ACCEPT);
 	UNLOCK(&sock->lock);
 
 	inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
@@ -3160,8 +3159,8 @@ internal_recv(isc__socket_t *sock) {
 	}
 
  poke:
-	if (!ISC_LIST_EMPTY(sock->recv_list))
-		watch_fd(sock->manager, sock->threadid, sock->fd,
+	if (ISC_LIST_EMPTY(sock->recv_list))
+		unwatch_fd(sock->manager, sock->threadid, sock->fd,
 			 SELECT_POKE_READ);
 
 	UNLOCK(&sock->lock);
@@ -3202,8 +3201,8 @@ internal_send(isc__socket_t *sock) {
 	}
 
  poke:
-	if (!ISC_LIST_EMPTY(sock->send_list))
-		watch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
+	if (ISC_LIST_EMPTY(sock->send_list))
+		unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
 
 	UNLOCK(&sock->lock);
 }
@@ -3247,8 +3246,9 @@ process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 				internal_accept(sock);
 			else
 				internal_recv(sock);
+		} else {
+			unwatch_read = true;
 		}
-		unwatch_read = true;
 	}
 check_write:
 	if (writeable) {
@@ -3261,8 +3261,9 @@ check_write:
 				internal_connect(sock);
 			else
 				internal_send(sock);
+		} else {
+			unwatch_write = true;
 		}
-		unwatch_write = true;
 	}
 
  unlock_fd:
@@ -5243,6 +5244,8 @@ internal_connect(isc__socket_t *sock) {
 
 	INSIST(sock->connecting);
 	sock->connecting = 0;
+
+	(void)unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
 
 	/*
 	 * Get any possible error status here.
