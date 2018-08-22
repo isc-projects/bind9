@@ -1,3 +1,6 @@
+5013.	[bug]		A referral response with a non-empty ANSWER section was
+			inadvertently being treated as an error. [GL #390]
+
 5012.	[bug]		Fix lock order reversal in pk11_initialize. [GL !590]
 
 5011.	[func]		Remove support for unthreaded named. [GL #478]
