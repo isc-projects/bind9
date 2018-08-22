@@ -31,11 +31,12 @@ use Getopt::Long;
 #
 #   server          Name of the server directory.
 
-my $usage = "usage: $0 [--use-rndc [--port port]] test-directory [server-directory]";
+my $usage = "usage: $0 [--use-rndc [--halt] [--port port]] test-directory [server-directory]";
 
 my $use_rndc = 0;
+my $halt = 0;
 my $port = 9953;
-GetOptions('use-rndc' => \$use_rndc, 'port=i' => \$port) or die "$usage\n";
+GetOptions('use-rndc' => \$use_rndc, 'halt' => \$halt, 'port=i' => \$port) or die "$usage\n";
 
 my $errors = 0;
 
@@ -134,9 +135,10 @@ sub stop_rndc {
 
 	return unless ($server =~ /^ns(\d+)$/);
 	my $ip = "10.53.0.$1";
+	my $how = $halt ? "halt" : "stop";
 
 	# Ugly, but should work.
-	system("$ENV{RNDC} -c ../common/rndc.conf -s $ip -p $port stop | sed 's/^/I:$server /'");
+	system("$ENV{RNDC} -c ../common/rndc.conf -s $ip -p $port $how | sed 's/^/I:$server /'");
 	return;
 }
 
