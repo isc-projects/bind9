@@ -2717,9 +2717,9 @@ dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	 */
 	result = dispatch_createudp(mgr, sockmgr, taskmgr, localaddr,
 				    maxrequests, attributes, &disp,
-				    dup_dispatch == NULL
-					    ? NULL
-					    : dup_dispatch->socket);
+				    NULL); //dup_dispatch == NULL
+					   // ? NULL
+					   // : dup_dispatch->socket);
 
 	if (result != ISC_R_SUCCESS) {
 		UNLOCK(&mgr->lock);
