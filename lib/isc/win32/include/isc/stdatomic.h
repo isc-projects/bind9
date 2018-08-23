@@ -25,25 +25,22 @@ typedef intptr_t atomic_uint_fast64_t;
 #define atomic_init(obj, desired)		\
 	(*(obj) = (desired))
 
-#define atomic_store(obj, desired)	 	\
-	do {					\
-		*(obj) = (desired);		\
-		MemoryBarrier();		\
-	} while (0)
-
-#define atomic_load(obj)			\
-	(MemoryBarrier(), *(obj))
-
 #ifdef _WIN64
+#define atomic_store(obj, desired)	 	\
+	(void)InterlockedExchange64(obj, desired)
+#define atomic_load(obj)			\
+	InterlockedExchangeAdd64(obj, 0)
 #define atomic_fetch_add(obj, arg) \
 	InterlockedExchangeAdd64(obj, arg)
-
 #define atomic_fetch_sub(obj, arg) \
 	InterlockedExchangeAdd64(obj, -(arg))
 #else /* _WIN64 */
-#define atomic_fetch_add(obj, arg) \
+#define atomic_store(obj, desired)	 	\
+	(void)InterlockedExchange(obj, desired)
+#define atomic_load(obj)			\
 	InterlockedExchangeAdd(obj, arg)
-
+#define atomic_fetch_add(obj, arg)		\
+	InterlockedExchangeAdd(obj, arg)
 #define atomic_fetch_sub(obj, arg) \
 	InterlockedExchangeAdd(obj, -(arg))
 #endif /* _WIN64 */
