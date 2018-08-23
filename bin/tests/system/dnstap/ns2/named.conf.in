@@ -26,6 +26,7 @@ options {
 	dnstap { all; };
 	send-cookie no;
 	require-server-cookie no;
+	dnssec-validation yes;
 };
 
 key rndc_key {
