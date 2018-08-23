@@ -324,7 +324,9 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			UNLOCK(&rwl->lock);
 		}
 
-		INSIST((atomic_load_explicit(&rwl->cnt_and_flag, memory_order_relaxed) & WRITER_ACTIVE));
+		cntflag = atomic_load_explicit(&rwl->cnt_and_flag, memory_order_relaxed);
+
+		INSIST((cntflag & WRITER_ACTIVE) != 0);
 		rwl->write_granted++;
 	}
 
