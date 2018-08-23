@@ -264,18 +264,14 @@ dst__openssl_init(const char *engine) {
 		}
 	}
 
-	re = ENGINE_get_default_RAND();
+	re = ENGINE_new();
 	if (re == NULL) {
-		re = ENGINE_new();
-		if (re == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_rm;
-		}
-		ENGINE_set_RAND(re, rm);
-		ENGINE_set_default_RAND(re);
-		ENGINE_free(re);
-	} else
-		ENGINE_finish(re);
+		result = ISC_R_NOMEMORY;
+		goto cleanup_rm;
+	}
+	ENGINE_set_RAND(re, rm);
+	ENGINE_set_default_RAND(re);
+	ENGINE_free(re);
 #else
 	RAND_set_rand_method(rm);
 #endif /* !defined(OPENSSL_NO_ENGINE) */
