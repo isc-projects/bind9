@@ -2573,7 +2573,9 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		case dns_ssumatchtype_name:
 		case dns_ssumatchtype_subdomain: /* also zonesub */
 		case dns_ssumatchtype_subdomainms:
+		case dns_ssumatchtype_subdomainselfmsrhs:
 		case dns_ssumatchtype_subdomainkrb5:
+		case dns_ssumatchtype_subdomainselfkrb5rhs:
 		case dns_ssumatchtype_wildcard:
 		case dns_ssumatchtype_external:
 		case dns_ssumatchtype_local:

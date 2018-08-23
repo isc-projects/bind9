@@ -991,7 +991,8 @@ VIEW
   		update-check-ksk boolean;
   		update-policy ( local | { ( deny | grant ) string (
   		    6to4-self | external | krb5-self | krb5-selfsub |
-  		    krb5-subdomain | ms-self | ms-selfsub | ms-subdomain |
+  		    krb5-subdomain | krb5-subdomain-self-rhs | ms-self |
+  		    ms-selfsub | ms-subdomain | ms-subdomain-self-rhs |
   		    name | self | selfsub | selfwild | subdomain | tcp-self
   		    | wildcard | zonesub ) [ string ] rrtypelist; ... };
   		use-alt-transfer-source boolean;
@@ -1106,9 +1107,10 @@ ZONE
   	    stub );
   	update-check-ksk boolean;
   	update-policy ( local | { ( deny | grant ) string ( 6to4-self |
-  	    external | krb5-self | krb5-selfsub | krb5-subdomain | ms-self
-  	    | ms-selfsub | ms-subdomain | name | self | selfsub | selfwild
-  	    | subdomain | tcp-self | wildcard | zonesub ) [ string ]
+  	    external | krb5-self | krb5-selfsub | krb5-subdomain |
+  	    krb5-subdomain-self-rhs | ms-self | ms-selfsub | ms-subdomain |
+  	    ms-subdomain-self-rhs | name | self | selfsub | selfwild |
+  	    subdomain | tcp-self | wildcard | zonesub ) [ string ]
   	    rrtypelist; ... };
   	use-alt-transfer-source boolean;
   	zero-no-soa-ttl boolean;
