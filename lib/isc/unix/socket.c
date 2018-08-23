@@ -3302,6 +3302,7 @@ process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 {
 	isc__socket_t *sock;
 	bool unwatch_read = false, unwatch_write = false;
+	bool kill_socket;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
@@ -3359,7 +3360,10 @@ check_write:
 		(void)unwatch_fd(manager, threadid, fd, SELECT_POKE_WRITE);
 	LOCK(&sock->lock);
 	sock->references--;
+	kill_socket = (sock->references == 0);
 	UNLOCK(&sock->lock);
+	if (kill_socket)
+		destroy(&sock);
 }
 
 #ifdef USE_KQUEUE
