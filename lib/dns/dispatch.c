@@ -1678,7 +1678,7 @@ open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 		result = isc_socket_open(sock);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-	} else if (dup_socket != NULL) {
+	} else if (dup_socket != NULL && !isc_socket_hasreuseport()) {
 		result = isc_socket_dup(dup_socket, &sock);
 		if (result != ISC_R_SUCCESS)
 			return (result);
