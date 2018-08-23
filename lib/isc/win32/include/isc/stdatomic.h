@@ -48,13 +48,9 @@ typedef intptr_t atomic_uint_fast64_t;
 static inline bool
 atomic_compare_exchange_strong(intptr_t *obj, intptr_t *expected, intptr_t desired) {
 	bool __r;
-	intptr_t __v = \
-#if _WIN64
-	InterlockedCompareExchange64(obj, desired, *(expected));
-#else /* _WIN64 */
-	InterlockedCompareExchange(obj, desired, *(expected));
-#endif /* _WIN64 */
-	__r = *(expected) == __v;
+	intptr_t __v = InterlockedCompareExchangePointer
+		((PVOID *)obj, (PVOID)desired, (PVOID)(*(expected)));
+	__r = (*(expected) == __v);
 	*(expected) = __v;
 	return (__r);
 }
