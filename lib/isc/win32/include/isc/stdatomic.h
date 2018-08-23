@@ -25,20 +25,33 @@ typedef intptr_t atomic_uint_fast64_t;
 #define atomic_init(obj, desired)		\
 	(*(obj) = (desired))
 
+#define atomic_store(obj, desired)		\
+	do {					\
+		*(obj) = (desired);		\
+		MemoryBarrier();		\
+	} while (0)
+
+#define atomic_load(obj, desired)		\
+	(MemoryBarrier(), *(object))
+
 #ifdef _WIN64
+#if 0
 #define atomic_store(obj, desired)	 	\
 	(void)InterlockedExchange64(obj, desired)
 #define atomic_load(obj)			\
 	InterlockedExchangeAdd64(obj, 0)
+#endif
 #define atomic_fetch_add(obj, arg) \
 	InterlockedExchangeAdd64(obj, arg)
 #define atomic_fetch_sub(obj, arg) \
 	InterlockedExchangeAdd64(obj, -(arg))
 #else /* _WIN64 */
+#if 0
 #define atomic_store(obj, desired)	 	\
 	(void)InterlockedExchange(obj, desired)
 #define atomic_load(obj)			\
 	InterlockedExchangeAdd(obj, 0)
+#endif
 #define atomic_fetch_add(obj, arg)		\
 	InterlockedExchangeAdd(obj, arg)
 #define atomic_fetch_sub(obj, arg) \
@@ -48,13 +61,12 @@ typedef intptr_t atomic_uint_fast64_t;
 static inline bool
 atomic_compare_exchange_strong(intptr_t *obj, intptr_t *expected, intptr_t desired) {
 	bool __r;
-	intptr_t __v = \
 #if _WIN64
-	InterlockedCompareExchange64(obj, desired, *(expected));
+	intptr_t __v = InterlockedCompareExchange64(obj, desired, *(expected));
 #else /* _WIN64 */
-	InterlockedCompareExchange(obj, desired, *(expected));
+	intptr_t __v = InterlockedCompareExchange(obj, desired, *(expected));
 #endif /* _WIN64 */
-	__r = *(expected) == __v;
+	__r = (*(expected) == __v);
 	*(expected) = __v;
 	return (__r);
 }
