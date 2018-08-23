@@ -1,3 +1,9 @@
+5021.	[func]		Replace custom assembly for atomic operations with
+			atomic support from the compiler. The code will now use
+			C11 stdatomic, or __atomic, or __sync builtins with GCC
+			or Clang compilers, and Interlocked functions with MSVC.
+			[GL #10]
+
 5020.	[func]		RNG uses thread-local storage instead of locks, if
 			supported by platform. [GL #496]
 
