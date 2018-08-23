@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -x
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
