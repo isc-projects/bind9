@@ -11,6 +11,26 @@
 
 #pragma once
 
+#if defined(_MSV_VER) || __cplusplus
+
+#include <atomic>
+#define _Atomic(T) std::atomic<T>
+
+using std::memory_order;
+using std::memory_order_relaxed;
+using std::memory_order_consume;
+using std::memory_order_acquire;
+using std::memory_order_release;
+using std::memory_order_acq_rel;
+using std::memory_order_seq_cst;
+
+using std::atomic_int_fast32_t;
+using std::atomic_uint_fast32_t;
+using std::atomic_int_fast64_t;
+using std::atomic_uint_fast64_t;
+
+#else /* __cplusplus */
+
 #define WIN32_LEAN_AND_MEAN
 #include <stddef.h>
 #include <stdint.h>
@@ -70,3 +90,5 @@ atomic_compare_exchange_strong(intptr_t *obj, intptr_t *expected, intptr_t desir
 	atomic_compare_exchange_strong(obj, expected, desired)
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail) \
 	atomic_compare_exchange_weak(obj, expected, desired)
+
+#endif /* __cplusplus */
