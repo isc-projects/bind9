@@ -1008,7 +1008,7 @@ plus_option(char *option, bool is_batchfile,
 						code = NULL;
 						if (value != NULL) {
 							code = strtok_r(value,
-								        ":",
+									":",
 									&last);
 						}
 						if (code == NULL) {
