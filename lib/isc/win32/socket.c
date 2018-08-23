@@ -3691,6 +3691,11 @@ isc_socket_socketevent(isc_mem_t *mctx, void *sender,
 	return (allocate_socketevent(mctx, sender, eventtype, action, arg));
 }
 
+bool
+isc_socket_hasreuseport() {
+        return (false);
+}
+
 #ifdef HAVE_LIBXML2
 
 static const char *
