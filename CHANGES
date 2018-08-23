@@ -1,3 +1,6 @@
+5016.	[bug]		Named could assert with overlapping filter-aaaa and
+			dns64 acls. [GL #445]
+
 5015.	[bug]		Reloading all zones caused zone maintenance to cease
 			for inline-signed zones. [GL #435]
 

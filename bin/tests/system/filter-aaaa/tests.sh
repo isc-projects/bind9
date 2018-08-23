@@ -1374,5 +1374,17 @@ grep "^mx.unsigned.*AAAA" dig.out.ns3.test$n > /dev/null 2>&1 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+# We don't check for the AAAA record here as configuration in ns5 does
+# not make sense.  The AAAA record is wanted by filter-aaaa but discarded
+# by the dns64 configuration. We just want to ensure the server stays
+# running.
+n=`expr $n + 1`
+echo_i "checking filter-aaaa with dns64 ($n)"
+ret=0
+$DIG $DIGOPTS aaaa aaaa-only.unsigned @10.53.0.5 > dig.out.ns5.test$n || ret=1
+grep "status: NOERROR" dig.out.ns5.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
