@@ -1043,6 +1043,12 @@ isc_socketmgr_maxudp(isc_socketmgr_t *mgr, int maxudp);
  * Test interface. Drop UDP packet > 'maxudp'.
  */
 
+bool
+isc_socket_hasreuseport(void);
+/*%<
+ * Return true if there is SO_REUSEPORT support
+ */
+
 #ifdef HAVE_LIBXML2
 int
 isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
