@@ -133,8 +133,9 @@ stages:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
   script:
+    - dd if=/dev/urandom of=bin/tests/system/random.data bs=1k count=400
     - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
-    - test -s bin/tests/system/systests.output
+    - /bin/false
   artifacts:
     untracked: true
     expire_in: '1 week'
