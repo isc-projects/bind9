@@ -1235,6 +1235,8 @@
 ./bin/tests/system/filter-aaaa/ns4/sign.sh	SH	2010,2012,2014,2016,2018
 ./bin/tests/system/filter-aaaa/ns4/signed.db.in	ZONE	2010,2012,2016,2017,2018
 ./bin/tests/system/filter-aaaa/ns4/unsigned.db	ZONE	2010,2012,2016,2017,2018
+./bin/tests/system/filter-aaaa/ns5/hints	ZONE	2018
+./bin/tests/system/filter-aaaa/ns5/named.conf.in	CONF-C	2018
 ./bin/tests/system/filter-aaaa/setup.sh		SH	2010,2012,2014,2016,2017,2018
 ./bin/tests/system/filter-aaaa/tests.sh		SH	2010,2012,2015,2016,2018
 ./bin/tests/system/formerr/clean.sh		SH	2013,2014,2015,2016,2018
