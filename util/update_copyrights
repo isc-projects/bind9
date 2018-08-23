@@ -91,12 +91,15 @@ sub copyrights {
 	return "$a";
 }
 
+my $ret = 0;
+
 foreach $file (keys %file_types) {
 	$typeandowner = $file_types{$file};
 	$years_list = $file_years{$file};
 
         if ( ! -f $file ) {
-                print "$file: missing\n";
+		print "$file: missing\n";
+		$ret++;
                 next;
         }
 	# print "Doing: $file";
@@ -105,6 +108,7 @@ foreach $file (keys %file_types) {
 		getyears($years_list);
 		if (!defined $years_list) {
 			print "$file: has bad parent $parent\n";
+			$ret++;
 			next;
 		}
 	}
@@ -116,6 +120,7 @@ foreach $file (keys %file_types) {
 		docbook($file);
 		if (!defined $years_list) {
 			print "$file: has bad parent $parent\n";
+			$ret++;
 			next;
 		}
 	}
@@ -128,6 +133,7 @@ foreach $file (keys %file_types) {
         $textp = $owner2text{$owner};
         if (!defined $textp) {
                 print "$file: unknown copyright owner $owner\n";
+		$ret++;
                 next;
         }
 
@@ -219,6 +225,7 @@ foreach $file (keys %file_types) {
                 $prefix = "";
         } else {
                 print "$file: type '$type' not supported yet; skipping\n";
+		$ret++;
                 next;
         }
 
@@ -231,6 +238,7 @@ foreach $file (keys %file_types) {
                         print "$file: unexpected yacc file start ",
                               "(expected \"%{\\n\")\n";
                         close(SOURCE);
+			$ret++;
                         next;
                 }
                 $before_copyright = "$_";
@@ -241,6 +249,7 @@ foreach $file (keys %file_types) {
                 if ($_ !~ /[Cc]opyright/) {
                         print "$file: non-copyright comment\n";
                         close(SOURCE);
+			$ret++;
                         next;
                 }
                 if ($_ !~ /\*\//) {
@@ -258,6 +267,7 @@ foreach $file (keys %file_types) {
                         if ($_ !~ /[Cc]opyright/) {
                                 print "$file: non-copyright comment\n";
                                 close(SOURCE);
+				$ret++;
                                 next;
                         }
                         while (<SOURCE>) {
@@ -283,6 +293,7 @@ foreach $file (keys %file_types) {
                         if ($_ !~ /[Cc]opyright/) {
                                 print "$file: non-copyright comment\n";
                                 close(SOURCE);
+				$ret++;
                                 next;
                         }
                         while (<SOURCE>) {
@@ -304,6 +315,7 @@ foreach $file (keys %file_types) {
                 if ($_ !~ /[Cc]opyright/) {
                         print "$file: non-copyright comment\n";
                         close(SOURCE);
+			$ret++;
                         next;
                 }
                 while (<SOURCE>) {
@@ -357,6 +369,7 @@ foreach $file (keys %file_types) {
                         if ($_ !~ /[Cc]opyright/) {
                                 print "$file: non-copyright comment\n";
                                 close(SOURCE);
+				$ret++;
                                 next;
                         }
                         while (defined($_)) {
@@ -380,6 +393,7 @@ foreach $file (keys %file_types) {
                         if ($_ !~ /[Cc]opyright/) {
                                 print "$file: non-copyright comment\n";
                                 close(SOURCE);
+				$ret++;
                                 next;
                         }
                         while (defined($_)) {
@@ -596,3 +610,5 @@ foreach $file (keys %file_types) {
                   or die "rename($file.new, $file): $!";
         }
 }
+
+exit $ret;
