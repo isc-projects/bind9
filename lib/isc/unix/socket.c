@@ -4800,13 +4800,21 @@ isc_socket_bind(isc_socket_t *sock0, const isc_sockaddr_t *sockaddr,
 		goto bind_socket;
 #endif
 	if ((options & ISC_SOCKET_REUSEADDRESS) != 0 &&
-	    isc_sockaddr_getport(sockaddr) != (in_port_t)0 &&
-	    setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
+	    isc_sockaddr_getport(sockaddr) != (in_port_t)0) {
+		if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEADDR, (void *)&on,
 		       sizeof(on)) < 0) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "setsockopt(%d) %s", sock->fd,
 				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 						ISC_MSG_FAILED, "failed"));
+		}
+		if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEPORT, (void *)&on,
+		       sizeof(on)) < 0) {
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "setsockopt(%d) %s", sock->fd,
+				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+						ISC_MSG_FAILED, "failed"));
+		}
 		/* Press on... */
 	}
 #ifdef AF_UNIX
@@ -5664,6 +5672,38 @@ isc_socket_getfd(isc_socket_t *socket0) {
 
 	return ((short) sock->fd);
 }
+
+static isc_once_t	hasreuseport_once = ISC_ONCE_INIT;
+static bool		hasreuseport = false;
+
+static void
+init_hasreuseport() {
+#ifdef SO_REUSEPORT
+	int sock, yes = 1;
+	sock = socket(AF_INET, SOCK_DGRAM, 0);
+	if (sock < 0) {
+		close(sock);
+		return;
+	} else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&yes,
+                       sizeof(yes)) < 0) {
+		close(sock);
+		return;
+	} else if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (void *)&yes,
+                       sizeof(yes)) < 0) {
+		close(sock);
+		return;
+	}
+	hasreuseport = true;
+#endif
+}
+
+bool
+isc_socket_hasreuseport() {
+	RUNTIME_CHECK(isc_once_do(&hasreuseport_once, init_hasreuseport)
+		      == ISC_R_SUCCESS);
+	return (hasreuseport);
+}
+
 
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON)
 static const char *
