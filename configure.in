@@ -910,6 +910,13 @@ case $use_libtool in
 esac
 AC_SUBST(INSTALL_LIBRARY)
 
+#
+# If PIC is disabled, shared libraries must also be
+#
+if test "no" = "$pic_mode"; then
+        enable_shared="no"
+fi
+
 CRYPTO=OpenSSL
 
 #
@@ -3005,8 +3012,24 @@ SO_STRIP="cat"
 
 AC_ARG_WITH(dlopen,
 	    AS_HELP_STRING([--with-dlopen=ARG],
-			   [support dynamically loadable DLZ drivers]),
-	    dlopen="$withval", dlopen="yes")
+			   [support dynamically loadable DLZ and DYNDB drivers]),
+	    dlopen="$withval", dlopen="auto")
+
+
+#
+# If PIC is disabled, dlopen must also be
+#
+if test "auto" = "$dlopen"; then
+        if test "no" = "$pic_mode"; then
+                dlopen="no"
+        else
+                dlopen="yes"
+        fi
+elif test "yes" = "$dlopen"; then
+        if test "no" = "$pic_mode"; then
+		AC_MSG_ERROR([--with-dlopen requires PIC])
+        fi
+fi
 
 if test "yes" = "$dlopen"; then
 	AC_CHECK_LIB(dl, dlopen, have_dl=yes, have_dl=no)
