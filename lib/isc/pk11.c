@@ -596,7 +596,7 @@ scan_slots(void) {
 	/* it's not an error if we didn't find any providers */
 	if (slotCount == 0)
 		return;
-	slotList = pk11_mem_get(sizeof(CK_SLOT_ID_PTR) * slotCount);
+	slotList = pk11_mem_get(sizeof(CK_SLOT_ID) * slotCount);
 	RUNTIME_CHECK(slotList != NULL);
 	PK11_FATALCHECK(pkcs_C_GetSlotList, (CK_FALSE, slotList, &slotCount));
 
@@ -920,8 +920,9 @@ scan_slots(void) {
 			aes_token = token;
 	}
 
-	if (slotList != NULL)
-		pk11_mem_put(slotList, sizeof(CK_SLOT_ID_PTR) * slotCount);
+	if (slotList != NULL) {
+		pk11_mem_put(slotList, sizeof(CK_SLOT_ID) * slotCount);
+	}
 }
 
 CK_SLOT_ID
