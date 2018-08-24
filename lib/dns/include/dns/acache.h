@@ -153,7 +153,6 @@
 
 #include <isc/mutex.h>
 #include <isc/lang.h>
-#include <isc/refcount.h>
 #include <isc/stdtime.h>
 
 #include <dns/types.h>

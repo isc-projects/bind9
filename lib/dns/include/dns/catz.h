@@ -18,7 +18,6 @@
 
 #include <isc/ht.h>
 #include <isc/lang.h>
-#include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/time.h>
 #include <isc/timer.h>

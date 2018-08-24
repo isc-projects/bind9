@@ -19,6 +19,7 @@
 
 #include <isc/lex.h>
 #include <isc/netaddr.h>
+#include <isc/refcount.h>
 #include <isc/sockaddr.h>
 #include <isc/region.h>
 #include <isc/types.h>

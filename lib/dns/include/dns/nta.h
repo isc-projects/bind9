@@ -29,7 +29,6 @@
 #include <isc/buffer.h>
 #include <isc/lang.h>
 #include <isc/magic.h>
-#include <isc/refcount.h>
 #include <isc/rwlock.h>
 #include <isc/stdtime.h>
 #include <isc/task.h>

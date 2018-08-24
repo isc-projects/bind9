@@ -30,7 +30,6 @@
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
-#include <isc/refcount.h>
 
 #include <dns/name.h>
 #include <dns/types.h>

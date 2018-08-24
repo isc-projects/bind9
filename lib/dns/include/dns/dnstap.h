@@ -34,7 +34,6 @@
 struct fstrm_iothr_options;
 #endif /* HAVE_DNSTAP */
 
-#include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/time.h>
