@@ -277,11 +277,6 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 
 void
 ns_test_end(void) {
-	if (dst_active) {
-		dst_lib_destroy();
-		dst_active = false;
-	}
-
 	cleanup_managers();
 
 	if (lctx != NULL)
@@ -289,6 +284,11 @@ ns_test_end(void) {
 
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
+	if (dst_active) {
+		dst_lib_destroy();
+		dst_active = false;
+	}
+
 }
 
 isc_result_t
