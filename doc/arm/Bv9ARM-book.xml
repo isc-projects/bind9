@@ -12857,10 +12857,12 @@ example.com. NS ns2.example.net.
 		      <para>
 			This rule takes a Windows machine principal
 			(machine$@REALM) for machine in REALM and
-			and converts it machine.realm allowing the machine
-			to update machine.realm.  The REALM to be matched
-			is specified in the <replaceable>identity</replaceable>
-			field.  The name field should be set to "."
+			allows records with the absolute name of
+			'machine' to be updated.  The REALM to be
+			matched is specified in the
+			<replaceable>identity</replaceable> field.
+			The <replaceable>name</replaceable> field
+			should be set to "."
 		      </para>
 		    </entry>
 		  </row>
@@ -12872,11 +12874,14 @@ example.com. NS ns2.example.net.
 		    </entry> <entry colname="2">
 		      <para>
 			This rule takes a Windows machine principal
-			(machine$@REALM) for machine in REALM and
-			converts it to machine.realm allowing the machine
-			to update subdomains of machine.realm.  The REALM
-			to be matched is specified in the
-			<replaceable>identity</replaceable> field.
+			(machine$@REALM) and allows any machine in
+			the REALM to update the subdomain specified
+			in the <replaceable>name</replaceable>
+			field.  The REALM to be matched is specified
+			in the <replaceable>identity</replaceable>
+			field.  If you wish to allow the entire
+			zone to be updated <replaceable>name</replaceable>
+			should be set to "."
 		      </para>
 		    </entry>
 		  </row>
@@ -12888,11 +12893,12 @@ example.com. NS ns2.example.net.
 		    </entry> <entry colname="2">
 		      <para>
 			This rule takes a Kerberos machine principal
-			(host/machine@REALM) for machine in REALM and
-			and converts it machine.realm allowing the machine
-			to update machine.realm.  The REALM to be matched
-			is specified in the <replaceable>identity</replaceable>
-			field. The name field should be set to "."
+			(host/machine@REALM) and allows records with
+			the absolute name of 'machine' to be updated.
+			The REALM to be matched is specified in the
+			<replaceable>identity</replaceable> field.
+			The <replaceable>name</replaceable> field should
+			be set to "."
 		      </para>
 		    </entry>
 		  </row>
@@ -12904,12 +12910,14 @@ example.com. NS ns2.example.net.
 		    </entry> <entry colname="2">
 		      <para>
 			This rule takes a Kerberos machine principal
-			(host/machine@REALM) for machine in REALM and
-			converts it to machine.realm allowing the machine
-			to update subdomains of machine.realm.  The REALM
-			to be matched is specified in the
-			<replaceable>identity</replaceable> field. The
-			name field should be set to "."
+			(host/machine@REALM) and allows any machine
+			in the REALM to update the subdomain specified
+			in the <replaceable>name</replaceable>
+			field.  The REALM to be matched is specified
+			in the <replaceable>identity</replaceable>
+			field.  If you wish to allow the entire
+			zone to be updated <replaceable>name</replaceable>
+			should be set to "."
 		      </para>
 		    </entry>
 		  </row>
