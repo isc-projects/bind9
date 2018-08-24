@@ -25,6 +25,7 @@
 #include <dns/acl.h>
 #include <dns/rcode.h>
 #include <dns/view.h>
+#include <dns/lib.h>
 
 #include <ns/client.h>
 #include <ns/notify.h>

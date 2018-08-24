@@ -13,7 +13,7 @@
 
 #include <isc/util.h>
 #include <isc/types.h>
-
+#include <string.h>
 #include "entropy_private.h"
 
 #include <openssl/rand.h>
