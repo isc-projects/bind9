@@ -8861,6 +8861,35 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			goto cleanup;
 		}
 
+		/*
+		 * Check to see if the AAAA RRset has non-excluded addresses
+		 * in it.  If not look for a A RRset.
+		 *
+		 * Note: the order of dns64_aaaaok() and filter_aaaa check is
+		 * important. Both result is fetches being called but the
+		 * dns64 case goes to db_find while the filter_aaaa case
+		 * adds the records now for later potential exclusion.
+		 */
+		INSIST(client->query.dns64_aaaaok == NULL);
+
+		if (qtype == dns_rdatatype_aaaa && !dns64_exclude &&
+		    !ISC_LIST_EMPTY(client->view->dns64) &&
+		    client->message->rdclass == dns_rdataclass_in &&
+		    !dns64_aaaaok(client, rdataset, sigrdataset)) {
+			/*
+			 * Look to see if there are A records for this
+			 * name.
+			 */
+			client->query.dns64_ttl = rdataset->ttl;
+			SAVE(client->query.dns64_aaaa, rdataset);
+			SAVE(client->query.dns64_sigaaaa, sigrdataset);
+			query_releasename(client, &fname);
+			dns_db_detachnode(db, &node);
+			type = qtype = dns_rdatatype_a;
+			dns64_exclude = dns64 = true;
+			goto db_find;
+		}
+
 #ifdef ALLOW_FILTER_AAAA
 		/*
 		 * Optionally hide AAAAs from IPv4 clients if there is an A.
@@ -8945,29 +8974,6 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			}
 		}
 #endif
-		/*
-		 * Check to see if the AAAA RRset has non-excluded addresses
-		 * in it.  If not look for a A RRset.
-		 */
-		INSIST(client->query.dns64_aaaaok == NULL);
-
-		if (qtype == dns_rdatatype_aaaa && !dns64_exclude &&
-		    !ISC_LIST_EMPTY(client->view->dns64) &&
-		    client->message->rdclass == dns_rdataclass_in &&
-		    !dns64_aaaaok(client, rdataset, sigrdataset)) {
-			/*
-			 * Look to see if there are A records for this
-			 * name.
-			 */
-			client->query.dns64_ttl = rdataset->ttl;
-			SAVE(client->query.dns64_aaaa, rdataset);
-			SAVE(client->query.dns64_sigaaaa, sigrdataset);
-			query_releasename(client, &fname);
-			dns_db_detachnode(db, &node);
-			type = qtype = dns_rdatatype_a;
-			dns64_exclude = dns64 = true;
-			goto db_find;
-		}
 
 		if (sigrdataset != NULL)
 			sigrdatasetp = &sigrdataset;
