@@ -28,7 +28,11 @@
 #include <isc/util.h>
 
 #if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#if defined(__cplusplus)
+#include <isc/stdatomic.h>
+#else
 #include <stdatomic.h>
+#endif
 #endif
 
 #define ISC_STATS_MAGIC			ISC_MAGIC('S', 't', 'a', 't')

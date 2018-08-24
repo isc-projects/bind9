@@ -23,7 +23,11 @@
 #include <isc/types.h>
 
 #if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#if defined(__cplusplus)
+#include <isc/stdatomic.h>
+#else
 #include <stdatomic.h>
+#endif
 #endif
 
 ISC_LANG_BEGINDECLS
