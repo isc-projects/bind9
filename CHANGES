@@ -1,3 +1,6 @@
+5017.	[bug]		lib/isc/pk11.c failed to unlink the session before
+			releasing the lock which is unsafe. [GL !589]
+
 5016.	[bug]		Named could assert with overlapping filter-aaaa and
 			dns64 acls. [GL #445]
 
