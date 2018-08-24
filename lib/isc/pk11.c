@@ -515,6 +515,7 @@ free_session_list(pk11_sessionlist_t *slist) {
 	LOCK(&sessionlock);
 	while (!ISC_LIST_EMPTY(*slist)) {
 		sp = ISC_LIST_HEAD(*slist);
+		ISC_LIST_UNLINK(*slist, sp, link);
 		UNLOCK(&sessionlock);
 		if (sp->session != CK_INVALID_HANDLE) {
 			rv = pkcs_C_CloseSession(sp->session);
@@ -522,7 +523,6 @@ free_session_list(pk11_sessionlist_t *slist) {
 				ret = DST_R_CRYPTOFAILURE;
 		}
 		LOCK(&sessionlock);
-		ISC_LIST_UNLINK(*slist, sp, link);
 		pk11_mem_put(sp, sizeof(*sp));
 	}
 	UNLOCK(&sessionlock);
