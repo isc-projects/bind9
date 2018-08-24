@@ -30,7 +30,7 @@ dns_name_fromtext_target@EXEEXT@: dns_name_fromtext_target.@O@ main.@O@ ${ISCDEP
 
 check: ${TARGETS}
 	for fuzzer in ${TARGETS}; do \
-		./$${fuzzer} \
+		./$${fuzzer} ; \
 	done
 
 oss-fuzz: ${TARGETS}
