@@ -1,3 +1,6 @@
+5019.	[cleanup]	A message is now logged when ixfr-from-differences is
+			set at zone level for an inline-signed zone. [GL #470]
+
 5018.	[bug]		Fix incorrect sizeof arguments in lib/isc/pk11.c.
 			[GL !588]
 
