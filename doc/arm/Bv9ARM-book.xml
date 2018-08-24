@@ -6608,6 +6608,11 @@ options {
 		  <command>slave</command> zones respectively.
 		  It is off by default.
 		</para>
+		<para>
+		  Note: if inline signing is enabled for a zone, the
+		  user-provided <command>ixfr-from-differences</command>
+		  setting is ignored for that zone.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
