@@ -40,7 +40,11 @@
 #include <dns/zone.h>
 
 #if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#if defined(__cplusplus)
+#include <isc/stdatomic.h>
+#else
 #include <stdatomic.h>
+#endif
 #endif
 
 #define ACACHE_MAGIC			ISC_MAGIC('A', 'C', 'H', 'E')
