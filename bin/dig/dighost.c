@@ -3244,6 +3244,7 @@ connect_done(isc_task_t *task, isc_event_t *event) {
 		UNLOCK_LOOKUP;
 		return;
 	}
+	exitcode = 0;
 	if (keep_open) {
 		if (keep != NULL)
 			isc_socket_detach(&keep);
