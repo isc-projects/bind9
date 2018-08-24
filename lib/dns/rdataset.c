@@ -312,8 +312,7 @@ towire_compare(const void *av, const void *bv) {
 
 static inline void
 swap_rdata(dns_rdata_t *in, unsigned int a, unsigned int b) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	rdata = in[a];
+	dns_rdata_t rdata = in[a];
 	in[a] = in[b];
 	in[b] = rdata;
 }
@@ -403,7 +402,7 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 	if ((shuffle || sort)) {
 		uint32_t seed = 0;
-		unsigned int j;
+		unsigned int j = 0;
 
 		/*
 		 * First we get handles to all of the rdata.
@@ -423,15 +422,12 @@ towiresorted(dns_rdataset_t *rdataset, const dns_name_t *owner_name,
 
 		if (ISC_LIKELY(want_random)) {
 			seed = isc_random32();
-			j = 0;
 		}
 
 		if (ISC_UNLIKELY(want_cyclic) &&
 		    (rdataset->count != DNS_RDATASET_COUNT_UNDEFINED))
 		{
 			j = rdataset->count % count;
-		} else { /* Otherwise, just start from beginning */
-			j = 0;
 		}
 
 		for (i = 0; i < count; i++) {

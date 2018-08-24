@@ -445,10 +445,11 @@ token_login(pk11_session_t *sp) {
 				  (CK_UTF8CHAR_PTR) token->pin,
 				  (CK_ULONG) strlen(token->pin));
 		if (rv != CKR_OK) {
-			ret = ISC_R_NOPERM;
 #if PK11_NO_LOGERR
 			pk11_error_fatalcheck(__FILE__, __LINE__,
 					      "pkcs_C_Login", rv);
+#else
+			ret = ISC_R_NOPERM;
 #endif
 		} else
 			token->logged = true;
@@ -766,14 +767,13 @@ pk11_attribute_bytype(const pk11_object_t *obj, CK_ATTRIBUTE_TYPE type) {
 static char *
 percent_decode(char *x, size_t *len) {
 	char *p, *c;
-	unsigned char v;
+	unsigned char v = 0;
 
 	INSIST(len != NULL);
 
 	for (p = c = x; p[0] != '\0'; p++, c++) {
 		switch (p[0]) {
 		case '%':
-			v = 0;
 			switch (p[1]) {
 			case '0':
 			case '1':
@@ -1112,7 +1112,6 @@ pk11_dump_tokens(void) {
 		if (token->operations & (1 << OP_ECDSA)) {
 			if (!first)
 				printf(",");
-			first = false;
 			printf("EC");
 		}
 		printf(")\n");
