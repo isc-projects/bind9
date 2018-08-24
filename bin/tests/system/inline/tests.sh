@@ -775,12 +775,15 @@ $RNDCCMD 10.53.0.2 reconfig || ret=1
 # Request ns3 to retransfer the "retransfer3" zone.
 $RNDCCMD 10.53.0.3 retransfer retransfer3 || ret=1
 # Wait until ns3 finishes building the NSEC3 chain for "retransfer3".  There is
-# no need to immediately set ret=1 if the expected message does not appear in
-# the log within the time limit because the query we will send shortly will
-# detect problems anyway.
+# no need to immediately set ret=1 if building the NSEC3 chain is not finished
+# within the time limit because the query we will send shortly will detect any
+# problems anyway.
 for i in 0 1 2 3 4 5 6 7 8 9
 do
-	grep "add.*retransfer3.*NSEC3PARAM 1 0 0 -" ns3/named.run > /dev/null && break
+	$RNDCCMD 10.53.0.3 signing -list retransfer3 > signing.out.test$n.$i 2>&1
+	keys_done=`grep "Done signing" signing.out.test$n.$i | wc -l`
+	nsec3_pending=`grep "NSEC3 chain" signing.out.test$n.$i | wc -l`
+	test $keys_done -eq 2 -a $nsec3_pending -eq 0 && break
 	sleep 1
 done
 # Check whether "retransfer3" uses NSEC3 as requested.
