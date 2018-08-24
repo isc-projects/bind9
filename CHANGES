@@ -1,3 +1,6 @@
+5021.	[bug]		dig returned a non-zero exit code when it received a
+			reply over TCP after a retry. [GL #487]
+
 5019.	[cleanup]	A message is now logged when ixfr-from-differences is
 			set at zone level for an inline-signed zone. [GL #470]
 
