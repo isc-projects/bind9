@@ -746,7 +746,7 @@ verifynsec3(const vctx_t *vctx, const dns_name_t *name,
 	dns_rdata_nsec3param_t nsec3param;
 	dns_fixedname_t fixed;
 	dns_name_t *hashname;
-	isc_result_t result, tvresult;
+	isc_result_t result, tvresult = ISC_R_UNSET;
 	dns_dbnode_t *node = NULL;
 	unsigned char rawhash[NSEC3_MAX_HASH_LENGTH];
 	size_t rhsize = sizeof(rawhash);
@@ -975,7 +975,7 @@ verifynode(vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	unsigned char types[8192];
 	unsigned int maxtype = 0;
 	dns_rdataset_t rdataset; dns_rdatasetiter_t *rdsiter = NULL;
-	isc_result_t result, tvresult;
+	isc_result_t result, tvresult = ISC_R_UNSET;
 
 	REQUIRE(vresult != NULL || (nsecset == NULL && nsec3paramset == NULL));
 
@@ -1298,7 +1298,7 @@ verifyemptynodes(const vctx_t *vctx, const dns_name_t *name,
 	int order;
 	unsigned int labels, nlabels, i;
 	dns_name_t suffix;
-	isc_result_t result, tvresult;
+	isc_result_t result, tvresult = ISC_R_UNSET;
 
 	*vresult = ISC_R_SUCCESS;
 
@@ -1744,7 +1744,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 	dns_dbnode_t *node = NULL, *nextnode;
 	dns_dbiterator_t *dbiter = NULL;
 	bool done = false;
-	isc_result_t tvresult;
+	isc_result_t tvresult = ISC_R_UNSET;
 	isc_result_t result;
 
 	name = dns_fixedname_initname(&fname);
