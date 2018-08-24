@@ -1680,7 +1680,7 @@ Optional Packages:
   --with-cmocka=no        enable cmocka based tests (default is no)
   --with-atf              support Automated Test Framework
   --with-tuning=ARG       Specify server tuning (large or default)
-  --with-dlopen=ARG       support dynamically loadable DLZ drivers
+  --with-dlopen=ARG       support dynamically loadable DLZ and DYNDB drivers
   --with-dlz-postgres=PATH
                           Build with Postgres DLZ driver [yes|no|path].
                           (Required to use Postgres with DLZ)
@@ -15548,6 +15548,13 @@ $as_echo "no" >&6; }
 esac
 
 
+#
+# If PIC is disabled, shared libraries must also be
+#
+if test "no" = "$pic_mode"; then
+        enable_shared="no"
+fi
+
 CRYPTO=OpenSSL
 
 #
@@ -20727,9 +20734,25 @@ SO_STRIP="cat"
 if test "${with_dlopen+set}" = set; then :
   withval=$with_dlopen; dlopen="$withval"
 else
-  dlopen="yes"
+  dlopen="auto"
 fi
 
+
+
+#
+# If PIC is disabled, dlopen must also be
+#
+if test "auto" = "$dlopen"; then
+        if test "no" = "$pic_mode"; then
+                dlopen="no"
+        else
+                dlopen="yes"
+        fi
+elif test "yes" = "$dlopen"; then
+        if test "no" = "$pic_mode"; then
+		as_fn_error $? "--with-dlopen requires PIC" "$LINENO" 5
+        fi
+fi
 
 if test "yes" = "$dlopen"; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
