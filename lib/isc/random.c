@@ -67,6 +67,8 @@
 static thread_local isc_once_t isc_random_once = ISC_ONCE_INIT;
 #elif defined(HAVE___THREAD)
 static __thread isc_once_t isc_random_once = ISC_ONCE_INIT;
+#elif defined(HAVE___DECLSPEC_THREAD)
+static __declspec( thread ) isc_once_t isc_random_once = ISC_ONCE_INIT;
 #else
 #error "Unknown method for defining a TLS variable!"
 #endif

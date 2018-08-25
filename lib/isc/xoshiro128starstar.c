@@ -42,6 +42,8 @@
 static thread_local uint32_t seed[4];
 #elif defined(HAVE___THREAD)
 static __thread uint32_t seed[4];
+#elif defined(HAVE___DECLSPEC_THREAD)
+static __declspec( thread ) uint32_t seed[4];
 #else
 #error "Unknown method for defining a TLS variable!"
 #endif
