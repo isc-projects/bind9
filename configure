@@ -988,10 +988,6 @@ enable_atomic
 enable_fixed_rrset
 enable_rpz_nsip
 enable_rpz_nsdname
-enable_dnsrps_dl
-with_dnsrps_libname
-with_dnsrps_dir
-enable_dnsrps
 enable_dnstap
 with_protobuf_c
 with_libfstrm
@@ -1003,6 +999,10 @@ with_tuning
 enable_querytrace
 enable_auto_validation
 with_dlopen
+enable_dnsrps_dl
+with_dnsrps_libname
+with_dnsrps_dir
+enable_dnsrps
 with_dlz_postgres
 with_dlz_mysql
 with_dlz_bdb
@@ -1679,14 +1679,14 @@ Optional Features:
   --enable-fixed-rrset    enable fixed rrset ordering [default=no]
   --disable-rpz-nsip      disable rpz nsip rules [default=enabled]
   --disable-rpz-nsdname   disable rpz nsdname rules [default=enabled]
-  --enable-dnsrps-dl      DNS Response Policy Service delayed link
-                          [default=$librpz_dl]
-  --enable-dnsrps         enable DNS Response Policy Service API
   --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
   --enable-querytrace     enable very verbose query trace logging [default=no]
   --enable-auto-validation
                           turn on DNSSEC validation by default, using the IANA
                           root key [default=yes]
+  --enable-dnsrps-dl      DNS Response Policy Service delayed link
+                          [default=$librpz_dl]
+  --enable-dnsrps         enable DNS Response Policy Service API
   --enable-full-report    report values of all configure options
 
 Optional Packages:
@@ -1724,8 +1724,6 @@ Optional Packages:
   --with-kame=PATH        use Kame IPv6 [default path /usr/local/v6]
   --with-readline=LIBSPEC specify readline library [default auto]
 
-  --with-dnsrps-libname   DNSRPS provider library name (librpz.so)
-  --with-dnsrps-dir       path to DNSRPS provider library
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
   --with-libfstrm=path    Path where libfstrm is installed, for dnstap
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
@@ -1735,6 +1733,8 @@ Optional Packages:
   --with-atf              support Automated Test Framework
   --with-tuning=ARG       Specify server tuning (large or default)
   --with-dlopen=ARG       support dynamically loadable DLZ and DYNDB drivers
+  --with-dnsrps-libname   DNSRPS provider library name (librpz.so)
+  --with-dnsrps-dir       path to DNSRPS provider library
   --with-dlz-postgres=PATH
                           Build with Postgres DLZ driver [yes|no|path].
                           (Required to use Postgres with DLZ)
@@ -20385,232 +20385,6 @@ $as_echo "#define ENABLE_RPZ_NSDNAME 1" >>confdefs.h
 esac
 
 #
-# Response policy rewriting using DNS Response Policy Service (DNSRPS)
-# interface.
-#
-# DNSRPS can be compiled into BIND everywhere with a reasonably
-# modern C compiler.  It is enabled on systems with dlopen() and librpz.so.
-#
-dnsrps_avail=yes
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for librpz __attribute__s" >&5
-$as_echo_n "checking for librpz __attribute__s... " >&6; }
-    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-	extern void f(char *p __attribute__((unused)), ...)
-	__attribute__((format(printf,1,2))) __attribute__((__noreturn__));
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  librpz_have_attr=yes
-
-$as_echo "#define LIBRPZ_HAVE_ATTR 1" >>confdefs.h
-
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-else
-  librpz_have_attr=no
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing dlopen" >&5
-$as_echo_n "checking for library containing dlopen... " >&6; }
-if ${ac_cv_search_dlopen+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char dlopen ();
-int
-main ()
-{
-return dlopen ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' dl; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_dlopen=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_dlopen+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_dlopen+:} false; then :
-
-else
-  ac_cv_search_dlopen=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_dlopen" >&5
-$as_echo "$ac_cv_search_dlopen" >&6; }
-ac_res=$ac_cv_search_dlopen
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-fi
-
-librpz_dl=yes
-for ac_func in dlopen dlclose dlsym
-do :
-  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
-ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
-if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
-  cat >>confdefs.h <<_ACEOF
-#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
-_ACEOF
-
-else
-  librpz_dl=no
-fi
-done
-
-# Check whether --enable-dnsrps-dl was given.
-if test "${enable_dnsrps_dl+set}" = set; then :
-  enableval=$enable_dnsrps_dl; enable_librpz_dl="$enableval"
-else
-  enable_librpz_dl="$librpz_dl"
-fi
-
-
-# Check whether --with-dnsrps-libname was given.
-if test "${with_dnsrps_libname+set}" = set; then :
-  withval=$with_dnsrps_libname; librpz_name="$withval"
-else
-  librpz_name="librpz.so"
-fi
-
-
-# Check whether --with-dnsrps-dir was given.
-if test "${with_dnsrps_dir+set}" = set; then :
-  withval=$with_dnsrps_dir; librpz_path="$withval/$librpz_name"
-else
-  librpz_path="$librpz_name"
-fi
-
-
-cat >>confdefs.h <<_ACEOF
-#define DNSRPS_LIBRPZ_PATH "$librpz_path"
-_ACEOF
-
-if test "x$enable_librpz_dl" = "xyes"; then
-	dnsrps_lib_open=2
-else
-	dnsrps_lib_open=1
-	# Add librpz.so to linked libraries if we are not using dlopen()
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing librpz_client_create" >&5
-$as_echo_n "checking for library containing librpz_client_create... " >&6; }
-if ${ac_cv_search_librpz_client_create+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char librpz_client_create ();
-int
-main ()
-{
-return librpz_client_create ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' rpz; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_librpz_client_create=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_librpz_client_create+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_librpz_client_create+:} false; then :
-
-else
-  ac_cv_search_librpz_client_create=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_librpz_client_create" >&5
-$as_echo "$ac_cv_search_librpz_client_create" >&6; }
-ac_res=$ac_cv_search_librpz_client_create
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  dnsrps_lib_open=0
-		 dnsrps_avail=no
-fi
-
-fi
-
-cat >>confdefs.h <<_ACEOF
-#define DNSRPS_LIB_OPEN $dnsrps_lib_open
-_ACEOF
-
-
-# Check whether --enable-dnsrps was given.
-if test "${enable_dnsrps+set}" = set; then :
-  enableval=$enable_dnsrps; enable_dnsrps=$enableval
-else
-  enable_dnsrps=no
-fi
-
-if test "x$enable_dnsrps" != "xno"; then
-	if test "x$dnsrps_avail" != "xyes"; then
-		as_fn_error $? "dlopen and librpz.so needed for DNSRPS" "$LINENO" 5
-	fi
-	if test "x$dnsrps_lib_open" = "x0"; then
-		as_fn_error $? "dlopen and librpz.so needed for DNSRPS" "$LINENO" 5
-	fi
-
-$as_echo "#define USE_DNSRPS 1" >>confdefs.h
-
-fi
-
-#
 # Activate dnstap?
 #
 # Check whether --enable-dnstap was given.
@@ -22725,6 +22499,178 @@ CFLAGS="$CFLAGS $SO_CFLAGS"
 
 
 
+
+#
+# Response policy rewriting using DNS Response Policy Service (DNSRPS)
+# interface.
+#
+# DNSRPS can be compiled into BIND everywhere with a reasonably
+# modern C compiler.  It is enabled on systems with dlopen() and librpz.so.
+#
+dnsrps_avail=yes
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for librpz __attribute__s" >&5
+$as_echo_n "checking for librpz __attribute__s... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+       extern void f(char *p __attribute__((unused)), ...)
+       __attribute__((format(printf,1,2))) __attribute__((__noreturn__));
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+    librpz_have_attr=yes
+
+$as_echo "#define LIBRPZ_HAVE_ATTR 1" >>confdefs.h
+
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+else
+
+    librpz_have_attr=no
+    { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+
+# Check whether --enable-dnsrps-dl was given.
+if test "${enable_dnsrps_dl+set}" = set; then :
+  enableval=$enable_dnsrps_dl; enable_librpz_dl="$enableval"
+else
+  enable_librpz_dl="$with_dlopen"
+fi
+
+
+if test "$enable_librpz_dl" = "yes" -a "$with_dlopen" = "no"; then :
+  as_fn_error $? "DNS Response Policy Service delayed link requires dlopen to be enabled" "$LINENO" 5
+fi
+
+
+# Check whether --with-dnsrps-libname was given.
+if test "${with_dnsrps_libname+set}" = set; then :
+  withval=$with_dnsrps_libname; librpz_name="$withval"
+else
+  librpz_name="librpz.so"
+fi
+
+
+# Check whether --with-dnsrps-dir was given.
+if test "${with_dnsrps_dir+set}" = set; then :
+  withval=$with_dnsrps_dir; librpz_path="$withval/$librpz_name"
+else
+  librpz_path="$librpz_name"
+fi
+
+
+cat >>confdefs.h <<_ACEOF
+#define DNSRPS_LIBRPZ_PATH "$librpz_path"
+_ACEOF
+
+if test "$enable_librpz_dl" = "yes"; then :
+
+	dnsrps_lib_open=2
+
+else
+
+	dnsrps_lib_open=1
+	# Add librpz.so to linked libraries if we are not using dlopen()
+	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing librpz_client_create" >&5
+$as_echo_n "checking for library containing librpz_client_create... " >&6; }
+if ${ac_cv_search_librpz_client_create+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char librpz_client_create ();
+int
+main ()
+{
+return librpz_client_create ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' rpz; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_librpz_client_create=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_librpz_client_create+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_librpz_client_create+:} false; then :
+
+else
+  ac_cv_search_librpz_client_create=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_librpz_client_create" >&5
+$as_echo "$ac_cv_search_librpz_client_create" >&6; }
+ac_res=$ac_cv_search_librpz_client_create
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+else
+  dnsrps_lib_open=0
+		 dnsrps_avail=no
+fi
+
+
+fi
+
+cat >>confdefs.h <<_ACEOF
+#define DNSRPS_LIB_OPEN $dnsrps_lib_open
+_ACEOF
+
+
+# Check whether --enable-dnsrps was given.
+if test "${enable_dnsrps+set}" = set; then :
+  enableval=$enable_dnsrps; enable_dnsrps=$enableval
+else
+  enable_dnsrps=no
+fi
+
+
+if test "$enable_dnsrps" != "no"; then :
+
+	if test "$dnsrps_avail" != "yes"; then :
+  as_fn_error $? "dlopen and librpz.so needed for DNSRPS" "$LINENO" 5
+fi
+	if test "$dnsrps_lib_open" = "0"; then :
+  as_fn_error $? "dlopen and librpz.so needed for DNSRPS" "$LINENO" 5
+fi
+
+$as_echo "#define USE_DNSRPS 1" >>confdefs.h
+
+
+fi
 
 # Copyright (C) 2005  Internet Systems Consortium, Inc. ("ISC")
 #
