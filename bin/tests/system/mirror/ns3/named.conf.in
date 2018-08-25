@@ -48,6 +48,7 @@ zone "initially-unavailable" {
 	masters { 10.53.0.2; };
 	mirror yes;
 	file "initially-unavailable.db.mirror";
+	use-alt-transfer-source no;
 };
 
 zone "verify-axfr" {
