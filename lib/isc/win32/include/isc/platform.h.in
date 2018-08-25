@@ -16,6 +16,12 @@
  ***** Platform-dependent defines.
  *****/
 
+#if _MSC_VER > 1400
+#define HAVE_TLS 1
+#define HAVE_THREAD_LOCAL 1
+#define thread_local __declspec( thread )
+#endif
+
 /*
  * Some compatibility cludges
  */
