@@ -34,6 +34,21 @@
  *
  * The state must be seeded so that it is not everywhere zero.
  */
+#if defined(HAVE_TLS)
+#define _LOCK() {};
+#define _UNLOCK() {};
+
+#if defined(HAVE_THREAD_LOCAL)
+static thread_local uint32_t seed[4];
+#elif defined(HAVE___THREAD)
+static __thread uint32_t seed[4];
+#elif defined(HAVE___DECLSPEC_THREAD)
+static __declspec( thread ) uint32_t seed[4];
+#else
+#error "Unknown method for defining a TLS variable!"
+#endif
+
+#else
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
 static volatile HANDLE _mutex = NULL;
@@ -61,15 +76,17 @@ static volatile HANDLE _mutex = NULL;
 
 #include <pthread.h>
 static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
-#define _LOCK()   pthread_mutex_lock(&_mutex)
-#define _UNLOCK() pthread_mutex_unlock(&_mutex)
+#define _LOCK()   RUNTIME_CHECK(pthread_mutex_lock(&_mutex)==0)
+#define _UNLOCK() RUNTIME_CHECK(pthread_mutex_unlock(&_mutex)==0)
 #endif /* defined(_WIN32) || defined(_WIN64) */
+
+static uint32_t seed[4];
+
+#endif /* defined(HAVE_TLS) */
 
 static inline uint32_t rotl(const uint32_t x, int k) {
 	return (x << k) | (x >> (32 - k));
 }
-
-static uint32_t seed[4];
 
 static inline uint32_t
 next(void) {

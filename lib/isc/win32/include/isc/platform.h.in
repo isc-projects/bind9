@@ -16,6 +16,11 @@
  ***** Platform-dependent defines.
  *****/
 
+#if _MSC_VER > 1400
+#define HAVE_TLS 1
+#define HAVE___DECLSPEC_THREAD 1
+#endif
+
 /*
  * Some compatibility cludges
  */
