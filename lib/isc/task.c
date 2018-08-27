@@ -521,6 +521,205 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp) {
 	*taskp = NULL;
 }
 
+void
+isc_task_sendorexecute(isc_task_t **taskp, isc_event_t **eventp, bool detach) {
+	bool idle1, idle2 = false;
+	isc__task_t *task;
+	isc__taskmgr_t *manager;
+	/*
+	 * Send '*event' to '*taskp' and then detach '*taskp' from its
+	 * task.
+	 */
+
+	REQUIRE(taskp != NULL);
+	task = (isc__task_t *)*taskp;
+	REQUIRE(VALID_TASK(task));
+	manager = task->manager;
+	REQUIRE(VALID_MANAGER(manager));
+
+	XTRACE("isc_task_sendanddetach");
+
+	LOCK(&task->lock);
+	idle1 = task_send(task, eventp);
+	if (detach) {
+		idle2 = task_detach(task);
+	}
+	UNLOCK(&task->lock);
+
+	/*
+	 * If idle1, then idle2 shouldn't be true as well since we're holding
+	 * the task lock, and thus the task cannot switch from ready back to
+	 * idle.
+	 */
+	INSIST(!(idle1 && idle2));
+
+	if (idle1 || idle2) {
+		unsigned int dispatch_count = 0;
+		bool done = false;
+		bool requeue = false;
+		bool finished = false;
+		isc_event_t *event;
+		LOCK(&manager->lock);
+		manager->tasks_ready--;
+		manager->tasks_running++;
+		UNLOCK(&manager->lock);
+
+		LOCK(&task->lock);
+		INSIST(task->state == task_state_ready);
+		task->state = task_state_running;
+		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+				      ISC_MSG_RUNNING, "running"));
+		TIME_NOW(&task->tnow);
+		task->now = isc_time_seconds(&task->tnow);
+		do {
+			if (!EMPTY(task->events)) {
+				event = HEAD(task->events);
+				DEQUEUE(task->events, event, ev_link);
+				task->nevents--;
+				/*
+				 * Execute the event action.
+				 */
+				XTRACE(isc_msgcat_get(isc_msgcat,
+						    ISC_MSGSET_TASK,
+						    ISC_MSG_EXECUTE,
+						    "execute action"));
+				if (event->ev_action != NULL) {
+					UNLOCK(&task->lock);
+					(event->ev_action)(
+						(isc_task_t *)task,
+						event);
+					LOCK(&task->lock);
+				}
+				dispatch_count++;
+			}
+			if (task->references == 0 &&
+			    EMPTY(task->events) &&
+			    !TASK_SHUTTINGDOWN(task)) {
+				bool was_idle;
+				/*
+				 * There are no references and no
+				 * pending events for this task,
+				 * which means it will not become
+				 * runnable again via an external
+				 * action (such as sending an event
+				 * or detaching).
+				 *
+				 * We initiate shutdown to prevent
+				 * it from becoming a zombie.
+				 *
+				 * We do this here instead of in
+				 * the "if EMPTY(task->events)" block
+				 * below because:
+				 *
+				 *	If we post no shutdown events,
+				 *	we want the task to finish.
+				 *
+				 *	If we did post shutdown events,
+				 *	will still want the task's
+				 *	quantum to be applied.
+				 */
+				was_idle = task_shutdown(task);
+				INSIST(!was_idle);
+			}
+
+			if (EMPTY(task->events)) {
+				/*
+				 * Nothing else to do for this task
+				 * right now.
+				 */
+				XTRACE(isc_msgcat_get(isc_msgcat,
+						      ISC_MSGSET_TASK,
+						      ISC_MSG_EMPTY,
+						      "empty"));
+				if (task->references == 0 &&
+				    TASK_SHUTTINGDOWN(task)) {
+					/*
+					 * The task is done.
+					 */
+					XTRACE(isc_msgcat_get(
+						       isc_msgcat,
+						       ISC_MSGSET_TASK,
+						       ISC_MSG_DONE,
+						       "done"));
+					finished = true;
+					task->state = task_state_done;
+				} else
+					task->state = task_state_idle;
+				done = true;
+			} else if (dispatch_count >= task->quantum) {
+				/*
+				 * Our quantum has expired, but
+				 * there is more work to be done.
+				 * We'll requeue it to the ready
+				 * queue later.
+				 *
+				 * We don't check quantum until
+				 * dispatching at least one event,
+				 * so the minimum quantum is one.
+				 */
+				XTRACE(isc_msgcat_get(isc_msgcat,
+						      ISC_MSGSET_TASK,
+						      ISC_MSG_QUANTUM,
+						      "quantum"));
+				task->state = task_state_ready;
+				requeue = true;
+				done = true;
+			}
+		} while (!done);
+		UNLOCK(&task->lock);
+
+		if (finished)
+			task_finished(task);
+
+		LOCK(&manager->lock);
+		manager->tasks_running--;
+		if (manager->exclusive_requested &&
+		    manager->tasks_running == 1) {
+			SIGNAL(&manager->exclusive_granted);
+		} else if (manager->pause_requested &&
+			   manager->tasks_running == 0) {
+			SIGNAL(&manager->paused);
+		}
+		if (requeue) {
+			/*
+			 * We know we're awake, so we don't have
+			 * to wakeup any sleeping threads if the
+			 * ready queue is empty before we requeue.
+			 *
+			 * A possible optimization if the queue is
+			 * empty is to 'goto' the 'if (task != NULL)'
+			 * block, avoiding the ENQUEUE of the task
+			 * and the subsequent immediate DEQUEUE
+			 * (since it is the only executable task).
+			 * We don't do this because then we'd be
+			 * skipping the exit_requested check.  The
+			 * cost of ENQUEUE is low anyway, especially
+			 * when you consider that we'd have to do
+			 * an extra EMPTY check to see if we could
+			 * do the optimization.  If the ready queue
+			 * were usually nonempty, the 'optimization'
+			 * might even hurt rather than help.
+			 */
+			push_readyq(manager, task);
+		}
+		/*
+		 * If we are in privileged execution mode and there are no
+		 * tasks remaining on the current ready queue, then
+		 * we're stuck.  Automatically drop privileges at that
+		 * point and continue with the regular ready queue.
+		 */
+		if (manager->tasks_running == 0 && empty_readyq(manager)) {
+			manager->mode = isc_taskmgrmode_normal;
+			if (!empty_readyq(manager))
+				BROADCAST(&manager->work_available);
+		}
+		UNLOCK(&manager->lock);
+	}
+	if (detach) {
+			*taskp = NULL;
+	}
+}
+
 #define PURGE_OK(event)	(((event)->ev_attributes & ISC_EVENTATTR_NOPURGE) == 0)
 
 static unsigned int
