@@ -565,7 +565,6 @@ isc_task_sendto(isc_task_t *task0, isc_event_t **eventp, int c) {
 		 * we add the task to the ready queue.
 		 */
 		task_ready(task);
-		isc_thread_yield();
 	}
 }
 
@@ -596,10 +595,8 @@ isc_task_sendanddetachto(isc_task_t **taskp, isc_event_t **eventp, int c) {
 	 */
 	INSIST(!(idle1 && idle2));
 
-	if (idle1 || idle2) {
+	if (idle1 || idle2)
 		task_ready(task);
-		isc_thread_yield();
-	}
 
 	*taskp = NULL;
 }
