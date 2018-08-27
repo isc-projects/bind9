@@ -318,10 +318,6 @@ isc_interfaceiter_next
 isc_interval_iszero
 isc_interval_set
 isc_iterated_hash
-isc_keyboard_canceled
-isc_keyboard_close
-isc_keyboard_getchar
-isc_keyboard_open
 isc_lex_close
 isc_lex_create
 isc_lex_destroy
