@@ -28,7 +28,7 @@ CWARNINGS =
 UNIXOBJS =	unix/pk11_api.@O@ \
 		unix/app.@O@ unix/dir.@O@ unix/errno.@O@ \
 		unix/errno2result.@O@ unix/file.@O@ unix/fsaccess.@O@ \
-		unix/interfaceiter.@O@ unix/keyboard.@O@ unix/meminfo.@O@ \
+		unix/interfaceiter.@O@ unix/meminfo.@O@ \
 		unix/net.@O@ unix/os.@O@ unix/resource.@O@ unix/socket.@O@ \
 		unix/stdio.@O@ unix/stdtime.@O@ \
 		unix/syslog.@O@ unix/time.@O@
