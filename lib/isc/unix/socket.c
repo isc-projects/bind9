@@ -2752,7 +2752,6 @@ isc_socket_close(isc_socket_t *sock0) {
 
 	LOCK(&sock->lock);
 
-	REQUIRE(sock->references == 1);
 	REQUIRE(sock->fd >= 0 && sock->fd < (int)sock->manager->maxsocks);
 
 	INSIST(!sock->connecting);
@@ -3134,7 +3133,10 @@ internal_recv(isc__socket_t *sock) {
 	 * limits here, currently.
 	 */
 	while (dev != NULL) {
-		switch (doio_recv(sock, dev)) {
+		UNLOCK(&sock->lock);
+		int r = doio_recv(sock, dev);
+		LOCK(&sock->lock);
+		switch (r) {
 		case DOIO_SOFT:
 			goto poke;
 
@@ -3152,8 +3154,27 @@ internal_recv(isc__socket_t *sock) {
 			goto poke;
 
 		case DOIO_SUCCESS:
-		case DOIO_HARD:
-			send_recvdone_event(sock, &dev);
+		case DOIO_HARD: {
+			if (ISC_LINK_LINKED(dev, ev_link))
+				ISC_LIST_DEQUEUE(sock->recv_list, dev, ev_link);
+			bool empty = false; // ISC_LIST_EMPTY(sock->recv_list);
+			UNLOCK(&sock->lock);
+			isc_task_t *task;
+			task = dev->ev_sender;
+			dev->ev_sender = sock;
+			bool detach = dev->attributes & ISC_SOCKEVENTATTR_ATTACHED;
+			if (empty) {
+				isc_task_sendorexecute(&task, (isc_event_t**)&dev, detach);
+			} else {
+				if (detach) {
+					isc_task_sendanddetach(&task, (isc_event_t**)&dev);
+				}
+				else {
+					isc_task_send(task, (isc_event_t**)&dev);
+				}
+			}
+			}
+			LOCK(&sock->lock);
 			break;
 		}
 
@@ -3166,6 +3187,7 @@ internal_recv(isc__socket_t *sock) {
 			 SELECT_POKE_READ);
 
 	UNLOCK(&sock->lock);
+	return;
 }
 
 static void
@@ -3195,7 +3217,11 @@ internal_send(isc__socket_t *sock) {
 
 		case DOIO_HARD:
 		case DOIO_SUCCESS:
-			send_senddone_event(sock, &dev);
+			if (ISC_LIST_EMPTY(sock->send_list)) {
+				goto launch_directly;
+			} else {
+				send_senddone_event(sock, &dev);
+			}
 			break;
 		}
 
@@ -3207,6 +3233,17 @@ internal_send(isc__socket_t *sock) {
 		unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
 
 	UNLOCK(&sock->lock);
+ 	return;
+ launch_directly:
+	if (ISC_LINK_LINKED(dev, ev_link))
+		ISC_LIST_DEQUEUE(sock->send_list, dev, ev_link);
+        unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
+	UNLOCK(&sock->lock);
+	isc_task_t *task;
+	task = dev->ev_sender;
+	dev->ev_sender = sock;
+	bool detach = dev->attributes & ISC_SOCKEVENTATTR_ATTACHED;
+	isc_task_sendorexecute(&task, (isc_event_t**)&dev, detach);
 }
 
 /*
@@ -3235,6 +3272,7 @@ process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 	}
 
 	sock = manager->fds[fd];
+	UNLOCK(&manager->fdlock[lockid]);
 	LOCK(&sock->lock);
 	sock->references++;
 	UNLOCK(&sock->lock);
@@ -3270,7 +3308,6 @@ check_write:
 	}
 
  unlock_fd:
-	UNLOCK(&manager->fdlock[lockid]);
 	if (unwatch_read)
 		(void)unwatch_fd(manager, threadid, fd, SELECT_POKE_READ);
 	if (unwatch_write)
