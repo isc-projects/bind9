@@ -3564,6 +3564,8 @@ netthread(void *uap) {
 	 */
 	ctlfd = manager->pipe_fds[threadid*2];
 #endif
+
+
 	done = false;
 	while (!done) {
 		do {
@@ -4078,6 +4080,10 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
+	        cpu_set_t set;
+	        CPU_ZERO(&set);
+	        CPU_SET(i, &set);
+	        pthread_setaffinity_np(manager->threads[i], sizeof(cpu_set_t), &set);
 		char tname[1024];
 		sprintf(tname, "isc-socket-%d", i);
 		isc_thread_setname(manager->threads[i], tname);
