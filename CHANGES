@@ -1,3 +1,6 @@
+5022.	[doc]		Update ms-self, ms-subdomain, krb5-self, and
+			krb5-subdomain documentation. [GL !708]
+
 5021.	[bug]		dig returned a non-zero exit code when it received a
 			reply over TCP after a retry. [GL #487]
 
