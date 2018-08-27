@@ -161,18 +161,19 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 
 void
 dns_test_end(void) {
+	cleanup_managers();
+
 	if (dst_active) {
 		dst_lib_destroy();
 		dst_active = false;
 	}
-
-	cleanup_managers();
 
 	if (lctx != NULL)
 		isc_log_destroy(&lctx);
 
 	if (mctx != NULL)
 		isc_mem_destroy(&mctx);
+
 }
 
 /*
