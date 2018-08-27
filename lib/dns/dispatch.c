@@ -2950,7 +2950,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 			}
 			goto kill_socket;
 		}
-		isc_task_setname(disp->task[i], "udpdispatch", disp);
+		isc_task_setname(disp->task[i], "UDPDISPATCH", disp);
 	}
 
 	disp->ctlevent = isc_event_allocate(mgr->mctx, disp,
