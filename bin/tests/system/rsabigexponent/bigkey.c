@@ -75,6 +75,8 @@ main(int argc, char **argv) {
 	UNUSED(argc);
 	UNUSED(argv);
 
+#if !USE_PKCS11
+
 	rsa = RSA_new();
 	e = BN_new();
 	pkey = EVP_PKEY_new();
@@ -149,6 +151,9 @@ main(int argc, char **argv) {
 	dns_name_destroy();
 	isc_mem_destroy(&mctx);
 	return (0);
+#else /* !USE_PKCS11 */
+	return (1);
+#endif /* !USE_PKC11 */
 }
 
 /*! \file */
