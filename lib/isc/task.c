@@ -356,11 +356,10 @@ task_ready(isc__task_t *task) {
 	REQUIRE(task->state == task_state_ready);
 
 	XTRACE("task_ready");
-	task->c = isc_random_uniform(manager->workers);
 	LOCK(&manager->locks[task->c]);
 	push_readyq(manager, task, task->c);
 	if (manager->mode == isc_taskmgrmode_normal || has_privilege)
-		BROADCAST(&manager->work_available[task->c]);
+		SIGNAL(&manager->work_available[task->c]);
 	UNLOCK(&manager->locks[task->c]);
 }
 
@@ -1037,6 +1036,12 @@ dispatch(isc__taskmgr_t *manager, int c) {
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_GENERAL,
 						    ISC_MSG_WAIT, "wait"));
+			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
+						    ISC_MSGSET_GENERAL,
+						    ISC_MSG_WAIT, manager->pause_requested ? "paused" : "notpaused"));
+			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
+						    ISC_MSGSET_GENERAL,
+						    ISC_MSG_WAIT, manager->exclusive_requested ? "excreq" : "notexcreq"));
 			WAIT(&manager->work_available[c], &manager->locks[c]);
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_TASK,
@@ -1218,10 +1223,14 @@ dispatch(isc__taskmgr_t *manager, int c) {
 		 * point and continue with the regular ready queue.
 		 */
 		if (manager->tasks_running == 0 && empty_readyq(manager, c)) {
-			manager->mode = isc_taskmgrmode_normal;
-			if (!empty_readyq(manager, c))
-				BROADCAST(&manager->work_available[c]);
+			if (manager->mode != isc_taskmgrmode_normal) {
+				manager->mode = isc_taskmgrmode_normal;
+				for (unsigned i=0; i < manager->workers; i++) {
+					BROADCAST(&manager->work_available[i]);
+				}
+			}
 		}
+		LOCK(&manager->locks[c]);
 	}
 	UNLOCK(&manager->locks[c]);
 }
