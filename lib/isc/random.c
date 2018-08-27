@@ -75,17 +75,10 @@ static __declspec( thread ) isc_once_t isc_random_once = ISC_ONCE_INIT;
 #endif
 #else
 static isc_once_t isc_random_once = ISC_ONCE_INIT;
-#endif
 
 static void
 isc_random_initialize(void) {
-#if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-	memset(seed, 0, sizeof(seed));
-#else
-	int useed[4] = {0,0,0,0};
-	isc_entropy_get(useed, sizeof(useed));
-	memcpy(seed, useed, sizeof(seed));
-#endif
+	isc_entropy_get(seed, sizeof(seed));
 }
 
 uint8_t
