@@ -2807,6 +2807,7 @@ isc_socket_attach(isc_socket_t *sock0, isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
 	LOCK(&sock->lock);
+	REQUIRE(sock->references > 0);
 	sock->references++;
 	UNLOCK(&sock->lock);
 
@@ -2850,7 +2851,6 @@ isc_socket_close(isc_socket_t *sock0) {
 
 	LOCK(&sock->lock);
 
-	REQUIRE(sock->references == 1);
 	REQUIRE(sock->fd >= 0 && sock->fd < (int)sock->manager->maxsocks);
 
 	INSIST(!sock->connecting);
@@ -3312,11 +3312,10 @@ internal_send(isc__socket_t *sock) {
  * and unlocking twice if both reads and writes are possible.
  */
 static void
-process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
+process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 	   bool writeable)
 {
 	isc__socket_t *sock;
-	bool unwatch_read = false, unwatch_write = false;
 	bool kill_socket;
 	int lockid = FDLOCK_ID(fd);
 
@@ -3324,55 +3323,35 @@ process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 	 * If the socket is going to be closed, don't do more I/O.
 	 */
 	LOCK(&manager->fdlock[lockid]);
-	if (manager->fdstate[fd] == CLOSE_PENDING) {
+	if (manager->fdstate[fd] == CLOSE_PENDING || manager->fds[fd] == NULL) {
 		UNLOCK(&manager->fdlock[lockid]);
-
-		(void)unwatch_fd(manager, threadid, fd, SELECT_POKE_READ);
-		(void)unwatch_fd(manager, threadid, fd, SELECT_POKE_WRITE);
 		return;
 	}
 
 	sock = manager->fds[fd];
 	LOCK(&sock->lock);
+	if (SOCK_DEAD(sock)) { /* Sock is being closed, bail */
+		UNLOCK(&sock->lock);
+		UNLOCK(&manager->fdlock[lockid]);
+		return;
+	}
 	sock->references++;
 	UNLOCK(&sock->lock);
 
 	if (readable) {
-		if (sock == NULL) {
-			unwatch_read = true;
-			goto check_write;
-		}
-		if (!SOCK_DEAD(sock)) {
-			if (sock->listener)
-				internal_accept(sock);
-			else
-				internal_recv(sock);
-		} else {
-			unwatch_read = true;
-		}
+		if (sock->listener)
+			internal_accept(sock);
+		else
+			internal_recv(sock);
 	}
-check_write:
 	if (writeable) {
-		if (sock == NULL) {
-			unwatch_write = true;
-			goto unlock_fd;
-		}
-		if (!SOCK_DEAD(sock)) {
-			if (sock->connecting)
-				internal_connect(sock);
-			else
-				internal_send(sock);
-		} else {
-			unwatch_write = true;
-		}
+		if (sock->connecting)
+			internal_connect(sock);
+		else
+			internal_send(sock);
 	}
 
- unlock_fd:
 	UNLOCK(&manager->fdlock[lockid]);
-	if (unwatch_read)
-		(void)unwatch_fd(manager, threadid, fd, SELECT_POKE_READ);
-	if (unwatch_write)
-		(void)unwatch_fd(manager, threadid, fd, SELECT_POKE_WRITE);
 	LOCK(&sock->lock);
 	sock->references--;
 	kill_socket = (sock->references == 0);
@@ -3455,7 +3434,7 @@ process_fds(isc__socketmgr_t *manager, int threadid,
 			int fd = events[i].data.fd;
 			events[i].events |= manager->epoll_events[fd];
 		}
-		process_fd(manager, threadid, events[i].data.fd,
+		process_fd(manager, events[i].data.fd,
 			   (events[i].events & EPOLLIN) != 0,
 			   (events[i].events & EPOLLOUT) != 0);
 	}
