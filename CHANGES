@@ -1,3 +1,5 @@
+5023.	[cleanup]	Remove isc_keyboard family of functions. [GL #178]
+
 5022.	[doc]		Update ms-self, ms-subdomain, krb5-self, and
 			krb5-subdomain documentation. [GL !708]
 
