@@ -29,7 +29,7 @@ sunos*)
     ;;
 esac
 
-AC_PROG_LIBTOOL
+LT_INIT([dlopen])
 AC_PROG_INSTALL
 AC_PROG_LN_S
 
@@ -980,18 +980,11 @@ case $use_libtool in
 		O=lo
 		A=la
 		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
-		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
-		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall --tag=CC'
+		LIBTOOL_MODE_COMPILE='--mode=compile'
+		LIBTOOL_MODE_INSTALL='--mode=install'
+		LIBTOOL_MODE_LINK='--mode=link'
+		LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
 		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-		case "$host" in
-		*) LIBTOOL_ALLOW_UNDEFINED= ;;
-		esac
-		case "$host" in
-		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
-		*) LIBTOOL_IN_MAIN= ;;
-		esac;
 		;;
 	*)
 		AC_MSG_RESULT(no)
@@ -1004,8 +997,6 @@ case $use_libtool in
 		LIBTOOL_MODE_INSTALL=
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_MODE_UNINSTALL=
-		LIBTOOL_ALLOW_UNDEFINED=
-		LIBTOOL_IN_MAIN=
 		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
@@ -2040,8 +2031,6 @@ AC_SUBST(LIBTOOL_MODE_COMPILE)
 AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_MODE_UNINSTALL)
-AC_SUBST(LIBTOOL_ALLOW_UNDEFINED)
-AC_SUBST(LIBTOOL_IN_MAIN)
 
 BIND9_CO_RULE=".c.$O:"
 AC_SUBST(BIND9_CO_RULE)
@@ -3926,24 +3915,19 @@ AS_IF([test "$with_dlopen" = "yes"],
 	       [*-linux*|*-gnu*],[
 		 SO_CFLAGS="-fPIC"
 		 SO_LDFLAGS=""
-		 AS_IF([test "$ac_cv_search_dlopen" != "none required"],[
-			 AS_IF([test "$use_libtool" = "yes"],[
-				 SO_LDFLAGS="-Xcompiler -shared"
-				 SO_LD="${CC}"
-			       ],[
-				 SO_LDFLAGS="-shared"
-				 SO_LD="${CC}"
-			       ])
+		 AS_IF([test "$use_libtool" = "yes"],[
+			 SO_LDFLAGS="-module -avoid-version -Xcompiler -shared"
+			 SO_LD="${CC}"
 		       ],[
 			 SO_LDFLAGS="-shared"
-			 SO_LD="ld"
+			 SO_LD="${CC}"
 		       ])
 	       ],
 	       [*-freebsd*|*-openbsd*],[
 		 LDFLAGS="${LDFLAGS} -Wl,-E"
 		 SO_CFLAGS="-fpic"
 		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LDFLAGS="-module -avoid-version -Xcompiler -shared"
 			 SO_LD="${CC}"
 		       ],[
 			 SO_LDFLAGS="-shared"
@@ -3974,7 +3958,7 @@ AS_IF([test "$with_dlopen" = "yes"],
 	       SO_CFLAGS="-fPIC"
 	       AS_IF([test -z "$SO_LD"],
 		     [AS_IF([test "$use_libtool" = "yes"],[
-			      SO_LDFLAGS="-Xcompiler -shared"
+			      SO_LDFLAGS="-module -avoid-version -Xcompiler -shared"
 			      SO_LD="${CC}"
 			    ],[
 			      SO_LDFLAGS="-shared"
