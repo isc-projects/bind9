@@ -1,3 +1,6 @@
+5021.	[bug]		dig returned a non-zero exit code when it received a
+			reply over TCP after a retry. [GL #487]
+
 5020.	[func]		RNG uses thread-local storage instead of locks, if
 			supported by platform. [GL #496]
 
