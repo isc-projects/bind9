@@ -2807,6 +2807,7 @@ isc_socket_attach(isc_socket_t *sock0, isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
 	LOCK(&sock->lock);
+	REQUIRE(sock->references > 0);
 	sock->references++;
 	UNLOCK(&sock->lock);
 
@@ -3324,16 +3325,18 @@ process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 	 * If the socket is going to be closed, don't do more I/O.
 	 */
 	LOCK(&manager->fdlock[lockid]);
-	if (manager->fdstate[fd] == CLOSE_PENDING) {
+	if (manager->fdstate[fd] == CLOSE_PENDING || manager->fds[fd] == NULL) {
 		UNLOCK(&manager->fdlock[lockid]);
-
-		(void)unwatch_fd(manager, threadid, fd, SELECT_POKE_READ);
-		(void)unwatch_fd(manager, threadid, fd, SELECT_POKE_WRITE);
 		return;
 	}
 
 	sock = manager->fds[fd];
 	LOCK(&sock->lock);
+	if (sock->references == 0) { /* Sock is being closed, bail */
+		UNLOCK(&sock->lock);
+		UNLOCK(&manager->fdlock[lockid]);
+		return;
+	}
 	sock->references++;
 	UNLOCK(&sock->lock);
 
