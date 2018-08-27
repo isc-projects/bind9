@@ -2959,7 +2959,6 @@ internal_accept(isc__socket_t *sock) {
 
 	INSIST(VALID_SOCKET(sock));
 
-	LOCK(&sock->lock);
 	socket_log(sock, NULL, TRACE,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTLOCK,
 		   "internal_accept called, locked socket");
@@ -2975,7 +2974,6 @@ internal_accept(isc__socket_t *sock) {
 	 */
 	dev = ISC_LIST_HEAD(sock->accept_list);
 	if (dev == NULL) {
-		UNLOCK(&sock->lock);
 		return;
 	}
 
@@ -3104,8 +3102,6 @@ internal_accept(isc__socket_t *sock) {
 		unwatch_fd(sock->manager, sock->threadid, sock->fd,
 			   SELECT_POKE_ACCEPT);
 
-	UNLOCK(&sock->lock);
-
 	if (fd != -1) {
 		result = make_nonblock(fd);
 		if (result != ISC_R_SUCCESS) {
@@ -3189,8 +3185,6 @@ internal_accept(isc__socket_t *sock) {
 	return;
 
  soft_error:
-	UNLOCK(&sock->lock);
-
 	inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
 	return;
 }
@@ -3201,10 +3195,8 @@ internal_recv(isc__socket_t *sock) {
 
 	INSIST(VALID_SOCKET(sock));
 
-	LOCK(&sock->lock);
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	if (dev == NULL) {
-		UNLOCK(&sock->lock);
 		return;
 	}
 
@@ -3248,7 +3240,6 @@ internal_recv(isc__socket_t *sock) {
 		unwatch_fd(sock->manager, sock->threadid, sock->fd,
 			 SELECT_POKE_READ);
 
-	UNLOCK(&sock->lock);
 }
 
 static void
@@ -3257,10 +3248,8 @@ internal_send(isc__socket_t *sock) {
 
 	INSIST(VALID_SOCKET(sock));
 
-	LOCK(&sock->lock);
 	dev = ISC_LIST_HEAD(sock->send_list);
 	if (dev == NULL) {
-		UNLOCK(&sock->lock);
 		return;
 	}
 	socket_log(sock, NULL, EVENT, NULL, 0, 0,
@@ -3288,8 +3277,6 @@ internal_send(isc__socket_t *sock) {
  poke:
 	if (ISC_LIST_EMPTY(sock->send_list))
 		unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
-
-	UNLOCK(&sock->lock);
 }
 
 /*
@@ -3321,7 +3308,6 @@ process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 		return;
 	}
 	sock->references++;
-	UNLOCK(&sock->lock);
 
 	if (readable) {
 		if (sock->listener)
@@ -3337,7 +3323,6 @@ process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 	}
 
 	UNLOCK(&manager->fdlock[lockid]);
-	LOCK(&sock->lock);
 	sock->references--;
 	kill_socket = (sock->references == 0);
 	UNLOCK(&sock->lock);
@@ -5305,7 +5290,6 @@ internal_connect(isc__socket_t *sock) {
 
 	INSIST(VALID_SOCKET(sock));
 
-	LOCK(&sock->lock);
 
 	/*
 	 * Get the first item off the connect list.
@@ -5314,7 +5298,6 @@ internal_connect(isc__socket_t *sock) {
 	dev = ISC_LIST_HEAD(sock->connect_list);
 	if (dev == NULL) {
 		INSIST(!sock->connecting);
-		UNLOCK(&sock->lock);
 		return;
 	}
 
@@ -5342,7 +5325,6 @@ internal_connect(isc__socket_t *sock) {
 			sock->connecting = 1;
 			watch_fd(sock->manager, sock->threadid, sock->fd,
 				    SELECT_POKE_CONNECT);
-			UNLOCK(&sock->lock);
 
 			return;
 		}
@@ -5393,7 +5375,6 @@ internal_connect(isc__socket_t *sock) {
 		dev = ISC_LIST_HEAD(sock->connect_list);
 	} while (dev != NULL);
 
-	UNLOCK(&sock->lock);
 }
 
 isc_result_t
