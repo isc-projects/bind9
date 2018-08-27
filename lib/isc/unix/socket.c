@@ -2901,9 +2901,9 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
-		isc_task_sendanddetach(&task, (isc_event_t **)dev);
+		isc_task_sendanddetachto(&task, (isc_event_t **)dev, sock->threadid);
 	else
-		isc_task_send(task, (isc_event_t **)dev);
+		isc_task_sendto(task, (isc_event_t **)dev, sock->threadid);
 }
 
 /*
@@ -2925,9 +2925,9 @@ send_senddone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
-		isc_task_sendanddetach(&task, (isc_event_t **)dev);
+		isc_task_sendanddetachto(&task, (isc_event_t **)dev, sock->threadid);
 	else
-		isc_task_send(task, (isc_event_t **)dev);
+		isc_task_sendto(task, (isc_event_t **)dev, sock->threadid);
 }
 
 /*
