@@ -537,7 +537,7 @@ isc_task_sendorexecute(isc_task_t **taskp, isc_event_t **eventp, bool detach) {
 	manager = task->manager;
 	REQUIRE(VALID_MANAGER(manager));
 
-	XTRACE("isc_task_sendanddetach");
+	XTRACE("isc_task_sendorexecuting");
 
 	LOCK(&task->lock);
 	idle1 = task_send(task, eventp);
@@ -554,6 +554,7 @@ isc_task_sendorexecute(isc_task_t **taskp, isc_event_t **eventp, bool detach) {
 	INSIST(!(idle1 && idle2));
 
 	if (idle1 || idle2) {
+		XTRACE("Really executing");
 		unsigned int dispatch_count = 0;
 		bool done = false;
 		bool requeue = false;
@@ -701,6 +702,7 @@ isc_task_sendorexecute(isc_task_t **taskp, isc_event_t **eventp, bool detach) {
 			 * might even hurt rather than help.
 			 */
 			push_readyq(manager, task);
+			BROADCAST(&manager->work_available);
 		}
 		/*
 		 * If we are in privileged execution mode and there are no
