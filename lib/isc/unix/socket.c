@@ -3157,7 +3157,7 @@ internal_recv(isc__socket_t *sock) {
 		case DOIO_HARD: {
 			if (ISC_LINK_LINKED(dev, ev_link))
 				ISC_LIST_DEQUEUE(sock->recv_list, dev, ev_link);
-			bool empty = false; // ISC_LIST_EMPTY(sock->recv_list);
+			bool empty = ISC_LIST_EMPTY(sock->recv_list);
 			UNLOCK(&sock->lock);
 			isc_task_t *task;
 			task = dev->ev_sender;
@@ -3187,7 +3187,6 @@ internal_recv(isc__socket_t *sock) {
 			 SELECT_POKE_READ);
 
 	UNLOCK(&sock->lock);
-	return;
 }
 
 static void
@@ -3211,20 +3210,37 @@ internal_send(isc__socket_t *sock) {
 	 * limits here, currently.
 	 */
 	while (dev != NULL) {
-		switch (doio_send(sock, dev)) {
+		UNLOCK(&sock->lock);
+		int r = doio_send(sock, dev);
+		LOCK(&sock->lock);
+		switch (r) {
 		case DOIO_SOFT:
 			goto poke;
 
 		case DOIO_HARD:
-		case DOIO_SUCCESS:
-			if (ISC_LIST_EMPTY(sock->send_list)) {
-				goto launch_directly;
+		case DOIO_SUCCESS: {
+			if (ISC_LINK_LINKED(dev, ev_link))
+				ISC_LIST_DEQUEUE(sock->send_list, dev, ev_link);
+			bool empty = ISC_LIST_EMPTY(sock->send_list);
+			UNLOCK(&sock->lock);
+			isc_task_t *task;
+			task = dev->ev_sender;
+			dev->ev_sender = sock;
+			bool detach = dev->attributes & ISC_SOCKEVENTATTR_ATTACHED;
+			if (empty) {
+				isc_task_sendorexecute(&task, (isc_event_t**)&dev, detach);
 			} else {
-				send_senddone_event(sock, &dev);
+				if (detach) {
+					isc_task_sendanddetach(&task, (isc_event_t**)&dev);
+				}
+				else {
+					isc_task_send(task, (isc_event_t**)&dev);
+				}
 			}
+			}
+			LOCK(&sock->lock);
 			break;
 		}
-
 		dev = ISC_LIST_HEAD(sock->send_list);
 	}
 
@@ -3233,17 +3249,6 @@ internal_send(isc__socket_t *sock) {
 		unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
 
 	UNLOCK(&sock->lock);
- 	return;
- launch_directly:
-	if (ISC_LINK_LINKED(dev, ev_link))
-		ISC_LIST_DEQUEUE(sock->send_list, dev, ev_link);
-        unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
-	UNLOCK(&sock->lock);
-	isc_task_t *task;
-	task = dev->ev_sender;
-	dev->ev_sender = sock;
-	bool detach = dev->attributes & ISC_SOCKEVENTATTR_ATTACHED;
-	isc_task_sendorexecute(&task, (isc_event_t**)&dev, detach);
 }
 
 /*
