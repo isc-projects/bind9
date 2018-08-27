@@ -1,3 +1,30 @@
+5020.	[func]		RNG uses thread-local storage instead of locks, if
+			supported by platform. [GL #496]
+
+5019.	[cleanup]	A message is now logged when ixfr-from-differences is
+			set at zone level for an inline-signed zone. [GL #470]
+
+5018.	[bug]		Fix incorrect sizeof arguments in lib/isc/pk11.c.
+			[GL !588]
+
+5017.	[bug]		lib/isc/pk11.c failed to unlink the session before
+			releasing the lock which is unsafe. [GL !589]
+
+5016.	[bug]		Named could assert with overlapping filter-aaaa and
+			dns64 acls. [GL #445]
+
+5015.	[bug]		Reloading all zones caused zone maintenance to cease
+			for inline-signed zones. [GL #435]
+
+5014.	[bug]		Signatures loaded from the journal for the signed
+			version of an inline-signed zone were not scheduled for
+			refresh. [GL #482]
+
+5013.	[bug]		A referral response with a non-empty ANSWER section was
+			inadvertently being treated as an error. [GL #390]
+
+5012.	[bug]		Fix lock order reversal in pk11_initialize. [GL !590]
+
 5011.	[func]		Remove support for unthreaded named. [GL #478]
 
 5010.	[func]		New "validate-except" option specifies a list of
