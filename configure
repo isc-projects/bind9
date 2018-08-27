@@ -22393,30 +22393,25 @@ done
      ;;
 esac
 
+if test "$use_libtool" = "yes"; then :
+  SO="la"
+fi
+
 if test "$with_dlopen" = "yes"; then :
   case $host in #(
   *-linux*|*-gnu*) :
 
 		 SO_CFLAGS="-fPIC"
 		 SO_LDFLAGS=""
-		 if test "$ac_cv_search_dlopen" != "none required"; then :
+		 if test "$use_libtool" = "yes"; then :
 
-			 if test "$use_libtool" = "yes"; then :
-
-				 SO_LDFLAGS="-Xcompiler -shared"
-				 SO_LD="${CC}"
-
-else
-
-				 SO_LDFLAGS="-shared"
-				 SO_LD="${CC}"
-
-fi
+			 SO_LDFLAGS="-module -avoid-version"
+			 SO_LD="${CC}"
 
 else
 
 			 SO_LDFLAGS="-shared"
-			 SO_LD="ld"
+			 SO_LD="${CC}"
 
 fi
 	        ;; #(
@@ -22426,7 +22421,7 @@ fi
 		 SO_CFLAGS="-fpic"
 		 if test "$use_libtool" = "yes"; then :
 
-			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LDFLAGS="-module -avoid-version"
 			 SO_LD="${CC}"
 
 else
@@ -22467,7 +22462,7 @@ esac
 	       if test -z "$SO_LD"; then :
   if test "$use_libtool" = "yes"; then :
 
-			      SO_LDFLAGS="-Xcompiler -shared"
+			      SO_LDFLAGS="-module -avoid-version"
 			      SO_LD="${CC}"
 
 else
