@@ -277,12 +277,12 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 
 void
 ns_test_end(void) {
-	cleanup_managers();
-
 	if (dst_active) {
 		dst_lib_destroy();
 		dst_active = false;
 	}
+
+	cleanup_managers();
 
 	if (lctx != NULL)
 		isc_log_destroy(&lctx);
