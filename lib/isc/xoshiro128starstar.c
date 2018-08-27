@@ -39,6 +39,7 @@
 #define _UNLOCK() {};
 
 #if defined(HAVE_THREAD_LOCAL)
+#include <threads.h>
 static thread_local uint32_t seed[4];
 #elif defined(HAVE___THREAD)
 static __thread uint32_t seed[4];

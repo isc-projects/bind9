@@ -64,6 +64,7 @@
 
 #if defined(HAVE_TLS)
 #if defined(HAVE_THREAD_LOCAL)
+#include <threads.h>
 static thread_local isc_once_t isc_random_once = ISC_ONCE_INIT;
 #elif defined(HAVE___THREAD)
 static __thread isc_once_t isc_random_once = ISC_ONCE_INIT;
