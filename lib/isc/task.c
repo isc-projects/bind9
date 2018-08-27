@@ -1065,7 +1065,6 @@ dispatch(isc__taskmgr_t *manager, int c) {
 			 * have a task to do.  We must reacquire the manager
 			 * lock before exiting the 'if (task != NULL)' block.
 			 */
-			UNLOCK(&manager->locks[c]);
 			isc_atomic_xadd(&manager->tasks_ready, -1);
 			isc_atomic_xadd(&manager->tasks_running, 1);
 
@@ -1093,11 +1092,13 @@ dispatch(isc__taskmgr_t *manager, int c) {
 							    "execute action"));
 					XTRACE(task->name);
 					if (event->ev_action != NULL) {
+						UNLOCK(&manager->locks[c]);
 						UNLOCK(&task->lock);
 						(event->ev_action)(
 							(isc_task_t *)task,
 							event);
 						LOCK(&task->lock);
+						LOCK(&manager->locks[c]);
 					}
 					dispatch_count++;
 				}
@@ -1210,9 +1211,7 @@ dispatch(isc__taskmgr_t *manager, int c) {
 				 * were usually nonempty, the 'optimization'
 				 * might even hurt rather than help.
 				 */
-				LOCK(&manager->locks[c]);
 				push_readyq(manager, task, c);
-				UNLOCK(&manager->locks[c]);
 			}
 		}
 
@@ -1230,7 +1229,6 @@ dispatch(isc__taskmgr_t *manager, int c) {
 				}
 			}
 		}
-		LOCK(&manager->locks[c]);
 	}
 	UNLOCK(&manager->locks[c]);
 }
