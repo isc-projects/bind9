@@ -3890,7 +3890,7 @@ DLZ_DRIVER_MYSQL_LIBS=""
 # for building the dlzexternal system test, so we'll try it the
 # old-fashioned way.
 #
-SO="so"
+SO="la"
 SO_CFLAGS=""
 SO_LDFLAGS=""
 SO_LD=""
@@ -3928,7 +3928,7 @@ AS_IF([test "$with_dlopen" = "yes"],
 		 SO_LDFLAGS=""
 		 AS_IF([test "$ac_cv_search_dlopen" != "none required"],[
 			 AS_IF([test "$use_libtool" = "yes"],[
-				 SO_LDFLAGS="-Xcompiler -shared"
+				 SO_LDFLAGS="-module -avoid-version"
 				 SO_LD="${CC}"
 			       ],[
 				 SO_LDFLAGS="-shared"
@@ -3943,7 +3943,7 @@ AS_IF([test "$with_dlopen" = "yes"],
 		 LDFLAGS="${LDFLAGS} -Wl,-E"
 		 SO_CFLAGS="-fpic"
 		 AS_IF([test "$use_libtool" = "yes"],[
-			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LDFLAGS="-module -avoid-version"
 			 SO_LD="${CC}"
 		       ],[
 			 SO_LDFLAGS="-shared"
@@ -3974,7 +3974,7 @@ AS_IF([test "$with_dlopen" = "yes"],
 	       SO_CFLAGS="-fPIC"
 	       AS_IF([test -z "$SO_LD"],
 		     [AS_IF([test "$use_libtool" = "yes"],[
-			      SO_LDFLAGS="-Xcompiler -shared"
+			      SO_LDFLAGS="-module -avoid-version"
 			      SO_LD="${CC}"
 			    ],[
 			      SO_LDFLAGS="-shared"

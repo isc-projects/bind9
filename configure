@@ -22278,7 +22278,7 @@ DLZ_DRIVER_MYSQL_LIBS=""
 # for building the dlzexternal system test, so we'll try it the
 # old-fashioned way.
 #
-SO="so"
+SO="la"
 SO_CFLAGS=""
 SO_LDFLAGS=""
 SO_LD=""
@@ -22403,7 +22403,7 @@ if test "$with_dlopen" = "yes"; then :
 
 			 if test "$use_libtool" = "yes"; then :
 
-				 SO_LDFLAGS="-Xcompiler -shared"
+				 SO_LDFLAGS="-module -avoid-version"
 				 SO_LD="${CC}"
 
 else
@@ -22426,7 +22426,7 @@ fi
 		 SO_CFLAGS="-fpic"
 		 if test "$use_libtool" = "yes"; then :
 
-			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LDFLAGS="-module -avoid-version"
 			 SO_LD="${CC}"
 
 else
@@ -22467,7 +22467,7 @@ esac
 	       if test -z "$SO_LD"; then :
   if test "$use_libtool" = "yes"; then :
 
-			      SO_LDFLAGS="-Xcompiler -shared"
+			      SO_LDFLAGS="-module -avoid-version"
 			      SO_LD="${CC}"
 
 else
