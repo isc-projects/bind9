@@ -52,7 +52,6 @@ XTARGETS =	adb_test@EXEEXT@ \
 		hash_test@EXEEXT@ \
 		fsaccess_test@EXEEXT@ \
 		inter_test@EXEEXT@ \
-		keyboard_test@EXEEXT@ \
 		lex_test@EXEEXT@ \
 		lfsr_test@EXEEXT@ \
 		log_test@EXEEXT@ \
@@ -83,7 +82,6 @@ XSRCS =		adb_test.c \
 		fsaccess_test.c \
 		gsstest.c \
 		inter_test.c \
-		keyboard_test.c \
 		lex_test.c \
 		lfsr_test.c \
 		log_test.c \
@@ -239,10 +237,6 @@ fsaccess_test@EXEEXT@: fsaccess_test.@O@ ${ISCDEPLIBS}
 
 inter_test@EXEEXT@: inter_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ inter_test.@O@ \
-		${ISCLIBS} ${LIBS}
-
-keyboard_test@EXEEXT@: keyboard_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ keyboard_test.@O@ \
 		${ISCLIBS} ${LIBS}
 
 sig0_test@EXEEXT@: sig0_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
