@@ -81,11 +81,13 @@ static pthread_mutex_t _mutex = PTHREAD_MUTEX_INITIALIZER;
 #define _UNLOCK() RUNTIME_CHECK(pthread_mutex_unlock(&_mutex)==0)
 #endif /* defined(_WIN32) || defined(_WIN64) */
 
+static uint32_t seed[4];
+
+#endif /* defined(HAVE_TLS) */
+
 static inline uint32_t rotl(const uint32_t x, int k) {
 	return (x << k) | (x >> (32 - k));
 }
-
-static uint32_t seed[4];
 
 static inline uint32_t
 next(void) {
