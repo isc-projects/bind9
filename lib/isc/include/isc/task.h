@@ -247,8 +247,6 @@ isc_task_sendanddetach(isc_task_t **taskp, isc_event_t **eventp);
  *		all resources used by the task will be freed.
  */
 
-void
-isc_task_sendorexecute(isc_task_t **taskp, isc_event_t **eventp, bool detach);
 
 unsigned int
 isc_task_purgerange(isc_task_t *task, void *sender, isc_eventtype_t first,
