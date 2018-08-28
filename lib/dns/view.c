@@ -219,7 +219,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->prefetch_trigger = 0;
 	view->dstport = 53;
 	view->preferred_glue = 0;
-	view->flush = false;
 	view->dlv = NULL;
 	view->maxudp = 0;
 	view->staleanswerttl = 1;
@@ -579,8 +578,6 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 	dns_view_t *view = *viewp;
 	*viewp = NULL;
 
-	view->flush = flush;
-
 	bool done = false;
 	if (isc_refcount_decrement(&view->references) == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
@@ -597,7 +594,7 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 			dns_requestmgr_shutdown(view->requestmgr);
 		}
 		if (view->zonetable != NULL) {
-			if (view->flush) {
+			if (flush) {
 				dns_zt_flushanddetach(&view->zonetable);
 			} else {
 				dns_zt_detach(&view->zonetable);
@@ -606,15 +603,16 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		if (view->managed_keys != NULL) {
 			mkzone = view->managed_keys;
 			view->managed_keys = NULL;
-			if (view->flush) {
+			if (flush) {
 				dns_zone_flush(mkzone);
 			}
 		}
 		if (view->redirect != NULL) {
 			rdzone = view->redirect;
 			view->redirect = NULL;
-			if (view->flush)
+			if (flush) {
 				dns_zone_flush(rdzone);
+			}
 		}
 		if (view->catzs != NULL) {
 			dns_catz_catzs_detach(&view->catzs);
