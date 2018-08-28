@@ -13,10 +13,17 @@
 
 /*! \file isc/string.h */
 
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#define _DEFAULT_SOURCE 1
 #include <string.h>
+#define _GNU_SOURCE 1
+#else /* _GNU_SOURCE */
+#include <string.h>
+#endif /* _GNU_SOURCE */
 
-#include "isc/platform.h"
-#include "isc/lang.h"
+#include <isc/platform.h>
+#include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
 
