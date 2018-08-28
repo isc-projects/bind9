@@ -579,17 +579,14 @@ destroy(dns_dtenv_t *env) {
 
 void
 dns_dt_detach(dns_dtenv_t **envp) {
-	dns_dtenv_t *env;
-
 	REQUIRE(envp != NULL && VALID_DTENV(*envp));
-
-	env = *envp;
+	dns_dtenv_t *env = *envp;
+	*envp = NULL;
 
 	if (isc_refcount_decrement(&env->refcount) == 1) {
+		isc_refcount_destroy(&env->refcount);
 		destroy(env);
 	}
-
-	*envp = NULL;
 }
 
 static isc_result_t

@@ -87,14 +87,13 @@ free_sampledb(sampledb_t *sampledb) {
 
 static void
 detach(dns_db_t **dbp) {
+	REQUIRE(dbp != NULL && VALID_SAMPLEDB((sampledb_t *)(*dbp)));
 	sampledb_t *sampledb = (sampledb_t *)(*dbp);
-
-	REQUIRE(VALID_SAMPLEDB(sampledb));
+	*dbp = NULL;
 
 	if (isc_refcount_decrement(&sampledb->refs) == 1) {
 		free_sampledb(sampledb);
 	}
-	*dbp = NULL;
 }
 
 /*

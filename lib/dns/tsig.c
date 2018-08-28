@@ -370,7 +370,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
  cleanup_refs:
 	tkey->magic = 0;
 	while (refs-- > 0) {
-		(void)isc_refcount_decrement(&tkey->refs);
+		INSIST(isc_refcount_decrement(&tkey->refs) > 0);
 	}
 	isc_refcount_destroy(&tkey->refs);
 
@@ -729,24 +729,19 @@ tsigkey_free(dns_tsigkey_t *key) {
 		dns_name_free(key->creator, key->mctx);
 		isc_mem_put(key->mctx, key->creator, sizeof(dns_name_t));
 	}
-	isc_refcount_destroy(&key->refs);
 	isc_mem_putanddetach(&key->mctx, key, sizeof(dns_tsigkey_t));
 }
 
 void
 dns_tsigkey_detach(dns_tsigkey_t **keyp) {
-	dns_tsigkey_t *key;
-
-	REQUIRE(keyp != NULL);
-	REQUIRE(VALID_TSIG_KEY(*keyp));
-
-	key = *keyp;
+	REQUIRE(keyp != NULL && VALID_TSIG_KEY(*keyp));
+	dns_tsigkey_t *key = *keyp;
+	*keyp = NULL;
 
 	if (isc_refcount_decrement(&key->refs) == 1) {
+		isc_refcount_destroy(&key->refs);
 		tsigkey_free(key);
 	}
-
-	*keyp = NULL;
 }
 
 void

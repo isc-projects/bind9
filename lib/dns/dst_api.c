@@ -1130,17 +1130,14 @@ dst_key_attach(dst_key_t *source, dst_key_t **target) {
 
 void
 dst_key_free(dst_key_t **keyp) {
-	isc_mem_t *mctx;
-	dst_key_t *key;
-
 	REQUIRE(dst_initialized == true);
 	REQUIRE(keyp != NULL && VALID_KEY(*keyp));
-
-	key = *keyp;
-	mctx = key->mctx;
+	dst_key_t *key = *keyp;
+	*keyp = NULL;
 
 	if (isc_refcount_decrement(&key->refs) == 1) {
 		isc_refcount_destroy(&key->refs);
+		isc_mem_t *mctx = key->mctx;
 		if (key->keydata.generic != NULL) {
 			INSIST(key->func->destroy != NULL);
 			key->func->destroy(key);
@@ -1157,7 +1154,6 @@ dst_key_free(dst_key_t **keyp) {
 		isc_safe_memwipe(key, sizeof(*key));
 		isc_mem_putanddetach(&mctx, key, sizeof(*key));
 	}
-	*keyp = NULL;
 }
 
 bool

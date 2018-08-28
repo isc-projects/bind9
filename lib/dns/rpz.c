@@ -1485,7 +1485,7 @@ cleanup_task:
 	dns_rbt_destroy(&zones->rbt);
 
 cleanup_rbt:
-	(void)isc_refcount_decrement(&zones->refs);
+	INSIST(isc_refcount_decrement(&zones->refs) > 0);
 	isc_refcount_destroy(&zones->refs);
 
 	DESTROYLOCK(&zones->maint_lock);
@@ -1568,7 +1568,7 @@ cleanup_ht:
 	isc_timer_detach(&zone->updatetimer);
 
 cleanup_timer:
-	isc_refcount_decrement(&zone->refs);
+	INSIST(isc_refcount_decrement(&zone->refs) > 0);
 	isc_refcount_destroy(&zone->refs);
 
 	isc_mem_put(zone->rpzs->mctx, zone, sizeof(*zone));
@@ -2049,9 +2049,9 @@ cidr_free(dns_rpz_zones_t *rpzs) {
  */
 static void
 rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
-	dns_rpz_zone_t *rpz;
-
-	rpz = *rpzp;
+	REQUIRE(rpzp != NULL && *rpzp != NULL);
+	dns_rpz_zone_t *rpz = *rpzp;
+	*rpzp = NULL;
 
 	if (isc_refcount_decrement(&rpz->refs) == 1) {
 		isc_refcount_destroy(&rpz->refs);
@@ -2087,8 +2087,6 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 
 		isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
 	}
-
-	*rpzp = NULL;
 }
 
 void
@@ -2103,23 +2101,20 @@ dns_rpz_attach_rpzs(dns_rpz_zones_t *rpzs, dns_rpz_zones_t **rpzsp) {
  */
 void
 dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
-	dns_rpz_zones_t *rpzs;
-	dns_rpz_zone_t *rpz;
-	dns_rpz_num_t rpz_num;
-
-	REQUIRE(rpzsp != NULL);
-	rpzs = *rpzsp;
-	REQUIRE(rpzs != NULL);
-
+	REQUIRE(rpzsp != NULL && *rpzsp != NULL);
+	dns_rpz_zones_t *rpzs = *rpzsp;
 	*rpzsp = NULL;
+
 	if (isc_refcount_decrement(&rpzs->refs) == 1) {
 		isc_refcount_destroy(&rpzs->refs);
-
 		/*
 		 * Forget the last of view's rpz machinery after the last reference.
 		 */
-		for (rpz_num = 0; rpz_num < DNS_RPZ_MAX_ZONES; ++rpz_num) {
-			rpz = rpzs->zones[rpz_num];
+		for (dns_rpz_num_t rpz_num = 0;
+		     rpz_num < DNS_RPZ_MAX_ZONES;
+		     ++rpz_num)
+		{
+			dns_rpz_zone_t *rpz = rpzs->zones[rpz_num];
 			rpzs->zones[rpz_num] = NULL;
 			if (rpz != NULL) {
 				rpz_detach(&rpz, rpzs);

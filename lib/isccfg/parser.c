@@ -675,7 +675,6 @@ cfg_parser_destroy(cfg_parser_t **pctxp) {
 	cfg_parser_t *pctx;
 
 	REQUIRE(pctxp != NULL && *pctxp != NULL);
-
 	pctx = *pctxp;
 	*pctxp = NULL;
 
@@ -3136,19 +3135,17 @@ cfg_obj_istype(const cfg_obj_t *obj, const cfg_type_t *type) {
  */
 void
 cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **objp) {
-	cfg_obj_t *obj;
-
 	REQUIRE(objp != NULL && *objp != NULL);
 	REQUIRE(pctx != NULL);
 
-	obj = *objp;
+	cfg_obj_t *obj = *objp;
+	*objp = NULL;
 
 	if (isc_refcount_decrement(&obj->references) == 1) {
 		obj->type->rep->free(pctx, obj);
 		isc_refcount_destroy(&obj->references);
 		isc_mem_put(pctx->mctx, obj, sizeof(cfg_obj_t));
 	}
-	*objp = NULL;
 }
 
 void

@@ -134,22 +134,19 @@ dns_order_attach(dns_order_t *source, dns_order_t **target) {
 
 void
 dns_order_detach(dns_order_t **orderp) {
+	REQUIRE(orderp != NULL && DNS_ORDER_VALID(*orderp));
 	dns_order_t *order;
-	dns_order_ent_t *ent;
-
-	REQUIRE(orderp != NULL);
 	order = *orderp;
-	REQUIRE(DNS_ORDER_VALID(order));
+	*orderp = NULL;
 
 	if (isc_refcount_decrement(&order->references) == 1) {
+		isc_refcount_destroy(&order->references);
 		order->magic = 0;
+		dns_order_ent_t *ent;
 		while ((ent = ISC_LIST_HEAD(order->ents)) != NULL) {
 			ISC_LIST_UNLINK(order->ents, ent, link);
 			isc_mem_put(order->mctx, ent, sizeof(*ent));
 		}
-		isc_refcount_destroy(&order->references);
 		isc_mem_putanddetach(&order->mctx, order, sizeof(*order));
 	}
-
-	*orderp = NULL;
 }
