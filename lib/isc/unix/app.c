@@ -36,6 +36,7 @@
 #include <isc/mutex.h>
 #include <isc/event.h>
 #include <isc/platform.h>
+#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
