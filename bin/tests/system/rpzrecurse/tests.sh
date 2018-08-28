@@ -20,14 +20,13 @@ status=0
 t=0
 
 DEBUG=
-DNSRPS_TEST_MODE=	# "" to test with and then without DNSRPS
 ARGS=
 
-USAGE="$0: [-xS] [-D {1,2}]"
-while getopts "xSD:" c; do
+USAGE="$0: [-xS]"
+while getopts "xS:" c; do
     case $c in
 	x) set -x; DEBUG=-x; ARGS="$ARGS -x";;
-	D) DNSRPS_TEST_MODE="$OPTARG";;		# with or without DNSRPS
+	S) SAVE_RESULTS=-S; ARGS="$ARGS -S";;
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
@@ -38,7 +37,6 @@ if test "$#" -ne 0; then
 fi
 # really quit on control-C
 trap 'exit 1' 1 2 15
-
 
 DNSRPSCMD=../rpz/dnsrps
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
@@ -107,43 +105,42 @@ add_test_marker() {
     done
 }
 
-case "$DNSRPS_TEST_MODE" in
-''|native|dnsrps);;
-*)
-  echo "bad test mode'${DNSRPS_TEST_MODE}' should be 'native' or 'dnsrps'"
-  exit 1
-  ;;
-esac
-
-for mode in ${DNSRPS_TEST_MODE:-native dnsrps}
-do
+for mode in native dnsrps; do
   status=0
   case $mode in
   native)
-    if [ ${DNSRPS_TEST_MODE:-unset} = unset -a -e dnsrps-only ] ; then
-     echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
-     continue
+    if [ -e dnsrps-only ] ; then
+      echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
+      continue
+    else
+      echo_i "running native RPZ sub-test"
     fi
     ;;
   dnsrps)
-    if [ ${DNSRPS_TEST_MODE:-unset} = unset -a -e dnsrps-off ] ; then
+    if [ -e dnsrps-off ] ; then
       echo_i "'dnsrps-off' found: skipping DNSRPS sub-test"
       continue
     fi
-    if grep '^#skip' dnsrps.conf > /dev/null ; then
+    echo_i "attempting to configure servers with DNSRPS..."
+    $PERL $SYSTEMTESTTOP/stop.pl .
+    $SHELL ./setup.sh -N -D $DEBUG
+    sed -n 's/^## //p' dnsrps.conf | cat_i
+    if grep '^#fail' dnsrps.conf >/dev/null; then
+      echo_i "exit status: 1"
+      exit 1
+    fi
+    if grep '^#skip' dnsrps.conf > /dev/null; then
       echo_i "DNSRPS sub-test skipped"
       continue
+    else
+      echo_i "running DNSRPS sub-test"
+      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
     fi
-    $SHELL ./setup.sh -N -D $DEBUG
-    $RNDCCMD 10.53.0.2 reload
-    $RNDCCMD 10.53.0.3 reload
-    $RNDCCMD 10.53.0.2 flush
-    $RNDCCMD 10.53.0.3 flush
     ;;
   esac
 
   # show whether and why DNSRPS is enabled or disabled
-  sed -n 's/^## /I:/p' dnsrps.conf
+  sed -n 's/^## //p' dnsrps.conf | cat_i
 
   t=`expr $t + 1`
   echo_i "testing that l1.l0 exists without RPZ (${t})"
@@ -261,7 +258,7 @@ do
     echo_i "adding an NSDNAME policy"
     cp ns2/db.6a.00.policy.local ns2/saved.policy.local
     cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     t=`expr $t + 1`
@@ -271,7 +268,7 @@ do
     sleep 1
     echo_i "removing the NSDNAME policy"
     cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     echo_i "resuming authority server"
@@ -313,7 +310,7 @@ do
     fi
     echo_i "adding an NSDNAME policy"
     cp ns2/db.6b.00.policy.local ns2/db.6a.00.policy.local
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /'
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.local 2>&1 | sed 's/^/I:ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     t=`expr $t + 1`
@@ -323,7 +320,7 @@ do
     sleep 1
     echo_i "removing the policy zone"
     cp ns2/named.default.conf ns2/named.conf
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reconfig 2>&1 | sed 's/^/I:ns2 /'
+    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reconfig 2>&1 | sed 's/^/I:ns2 /' | cat_i
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     echo_i "resuming authority server"
