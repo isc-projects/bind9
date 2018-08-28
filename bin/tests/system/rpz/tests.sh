@@ -418,8 +418,8 @@ for mode in native dnsrps; do
   case ${mode} in
   native)
     if [ -e dnsrps-only ] ; then
-    echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
-    continue
+      echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
+      continue
     fi
     ;;
   dnsrps)
@@ -431,19 +431,19 @@ for mode in native dnsrps; do
     $PERL $SYSTEMTESTTOP/stop.pl .
     $SHELL ./setup.sh -N -D $DEBUG
     for server in ns*; do
-            resetstats $server
+      resetstats $server
     done
     sed -n 's/^## //p' dnsrps.conf | cat_i
     if grep '^#fail' dnsrps.conf >/dev/null; then
-        echo_i "exit status: 1"
-        exit 1
+      echo_i "exit status: 1"
+      exit 1
     fi
-    if test -z "`grep '^#skip' dnsrps.conf`"; then
-        echo_i "running DNSRPS sub-test"
-        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
+    if grep '^#skip' dnsrps.conf > /dev/null; then
+      echo_i "DNSRPS sub-test skipped"
+      continue
     else
-        echo_i "DNSRPS sub-test skipped"
-        continue
+      echo_i "running DNSRPS sub-test"
+      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
     fi
     ;;
   esac
