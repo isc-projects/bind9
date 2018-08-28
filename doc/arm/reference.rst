@@ -6071,9 +6071,10 @@ Typical use with a rule ``grant * tcp-self . PTR(1);`` in the zone
   send
   EOF
 
-The ruletype field has 16 values: ``name``, ``subdomain``, ``zonesub``, ``wildcard``,
-``self``, ``selfsub``, ``selfwild``, ``ms-self``, ``ms-selfsub``, ``ms-subdomain``,
-``krb5-self``, ``krb5-selfsub``, ``krb5-subdomain``, 
+The ruletype field has 20 values: ``name``, ``subdomain``, ``zonesub``,
+``wildcard``, ``self``, ``selfsub``, ``selfwild``, ``ms-self``,
+``ms-selfsub``, ``ms-subdomain``, ``ms-subdomain-self-rhs``, ``krb5-self``,
+``krb5-selfsub``, ``krb5-subdomain``,  ``krb5-subdomain-self-rhs``,
 ``tcp-self``, ``6to4-self``, and ``external``.
 
 ``name``
@@ -6120,6 +6121,11 @@ The ruletype field has 16 values: ``name``, ``subdomain``, ``zonesub``, ``wildca
 
     For example, if ``update-policy`` for the zone "example.com" includes ``grant EXAMPLE.COM ms-subdomain hosts.example.com. AA AAAA``, any machine with a valid principal in the realm ``EXAMPLE.COM`` is able to update address records at or below ``hosts.example.com``.
 
+``ms-subdomain-self-rhs``
+    This rule is similar to ``ms-subdomain``, with an additional
+    restriction that PTR and SRV target names must match the name of the
+    machine identified in the principal.
+
 ``krb5-self``
     When a client sends an UPDATE using a Kerberos machine principal (for example, ``host/machine@REALM``), this rule allows records with the absolute name of ``machine`` to be updated, provided it has been authenticated by REALM. This is similar but not identical to ``ms-self``, due to the ``machine`` part of the Kerberos principal being an absolute name instead of an unqualified name.
 
@@ -6134,6 +6140,11 @@ The ruletype field has 16 values: ``name``, ``subdomain``, ``zonesub``, ``wildca
 
 ``krb5-subdomain``
     This rule is identical to ``ms-subdomain``, except that it works with Kerberos machine principals (i.e., ``host/machine@REALM``) rather than Windows machine principals.
+
+``krb5-subdomain-self-rhs``
+    This rule is similar to ``krb5-subdomain``, with an additional
+    restriction that PTR and SRV target names must match the name of the
+    machine identified in the principal.
 
 ``tcp-self``
     This rule allows updates that have been sent via TCP and for which the standard mapping from the client's IP address into the ``in-addr.arpa`` and ``ip6.arpa`` namespaces matches the name to be updated. The ``identity`` field must match that name. The ``name`` field should be set to ".". Note that, since identity is based on the client's IP address, it is not necessary for update request messages to be signed.
