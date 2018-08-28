@@ -14,9 +14,8 @@
 /*! \file isc/string.h */
 
 #include <string.h>
-
-#include "isc/platform.h"
-#include "isc/lang.h"
+#include <isc/platform.h>
+#include <isc/lang.h>
 
 ISC_LANG_BEGINDECLS
 

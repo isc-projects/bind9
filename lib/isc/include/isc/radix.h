@@ -19,8 +19,7 @@
 #include <isc/mutex.h>
 #include <isc/net.h>
 #include <isc/refcount.h>
-
-#include <string.h>
+#include <isc/string.h>
 
 #define NETADDR_TO_PREFIX_T(na,pt,bits)	\
 	do { \

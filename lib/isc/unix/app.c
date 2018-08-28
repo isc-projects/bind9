@@ -13,6 +13,14 @@
 
 #include <config.h>
 
+/* Ensure POSIX strerror_r variant is used */
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#define _DEFAULT_SOURCE 1
+#include <string.h>
+#define _GNU_SOURCE 1
+#endif /* _GNU_SOURCE */
+
 #include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/types.h>
 

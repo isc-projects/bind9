@@ -14,11 +14,19 @@
 
 #include <config.h>
 
-#include <stdbool.h>
+/* Ensure POSIX strerror_r variant is used */
+#ifdef _GNU_SOURCE
+#undef _GNU_SOURCE
+#define _DEFAULT_SOURCE 1
 #include <string.h>
+#define _GNU_SOURCE 1
+#endif /* _GNU_SOURCE */
+
+#include <stdbool.h>
 
 #include <isc/platform.h>
 #include <isc/result.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include "errno2result.h"
