@@ -24,88 +24,62 @@
 /*! \file isc/refcount.h
  * \brief Implements a locked reference counter.
  *
- * These functions may actually be
- * implemented using macros, and implementations of these macros are below.
- * The isc_refcount_t type should not be accessed directly, as its contents
- * depend on the implementation.
+ * These macros uses C11(-like) atomic functions to implement reference
+ * counting.  The isc_refcount_t type must not be accessed directly.
  */
 
 ISC_LANG_BEGINDECLS
 
-/*
- * Function prototypes
- */
-
-/*
- * void
- * isc_refcount_init(isc_refcount_t *ref, unsigned int n);
- *
- * Initialize the reference counter.  There will be 'n' initial references.
- *
- * Requires:
- *	ref != NULL
- */
-
-/*
- * void
- * isc_refcount_destroy(isc_refcount_t *ref);
- *
- * Destroys a reference counter.
- *
- * Requires:
- *	ref != NULL
- *	The number of references is 0.
- */
-
-/*
- * void
- * isc_refcount_increment(isc_refcount_t *ref, unsigned int *targetp);
- * isc_refcount_increment0(isc_refcount_t *ref, unsigned int *targetp);
- *
- * Increments the reference count, returning the new value in targetp if it's
- * not NULL.  The reference counter typically begins with the initial counter
- * of 1, and will be destroyed once the counter reaches 0.  Thus,
- * isc_refcount_increment() additionally requires the previous counter be
- * larger than 0 so that an error which violates the usage can be easily
- * caught.  isc_refcount_increment0() does not have this restriction.
- *
- * Requires:
- *	ref != NULL.
- */
-
-/*
- * void
- * isc_refcount_decrement(isc_refcount_t *ref, unsigned int *targetp);
- *
- * Decrements the reference count,  returning the new value in targetp if it's
- * not NULL.
- *
- * Requires:
- *	ref != NULL.
- */
-
-
-/*
- * Sample implementations
- */
-
 typedef atomic_uint_fast32_t isc_refcount_t;
 
+/** \def isc_refcount_init(ref, n)
+ *  \brief Initialize the reference counter.
+ *  \param[in] ref pointer to reference counter.
+ *  \param[in] n an initial number of references.
+ *  \return nothing.
+ *
+ *  \warning No memory barrier are being imposed here.
+ */
 #define isc_refcount_init(target, value)			\
 	atomic_init(target, value)
 
+/** \def isc_refcount_current(ref)
+ *  \brief Returns current number of references.
+ *  \param[in] ref pointer to reference counter.
+ *  \returns current value of reference counter.
+ */
 #define isc_refcount_current(target)				\
 	atomic_load_explicit(target, memory_order_relaxed)
 
+/** \def isc_refcount_destroy(ref)
+ *  \brief a destructor that makes sure that all references were cleared.
+ *  \param[in] ref pointer to reference counter.
+ *  \returns nothing.
+ */
 #define isc_refcount_destroy(target)				\
 	ISC_REQUIRE(isc_refcount_current(target) == 0)
 
+/** \def isc_refcount_increment0(ref)
+ *  \brief increases reference counter by 1.
+ *  \param[in] ref pointer to reference counter.
+ *  \returns previous value of reference counter.
+ */
 #define isc_refcount_increment0(target)				\
 	atomic_fetch_add_explicit(target, 1, memory_order_relaxed)
 
+/** \def isc_refcount_increment(ref)
+ *  \brief increases reference counter by 1.
+ *  \param[in] ref pointer to reference counter.
+ *  \returns previous value of reference counter.
+ */
 #define isc_refcount_increment(target)				\
 	atomic_fetch_add_explicit(target, 1, memory_order_relaxed)
 
+/** \def isc_refcount_decrement(ref)
+ *  \brief decreases reference counter by 1.
+ *  \param[in] ref pointer to reference counter.
+ *  \returns previous value of reference counter.
+ */
 #define isc_refcount_decrement(target)				\
 	atomic_fetch_sub_explicit(target, 1, memory_order_relaxed)
 
