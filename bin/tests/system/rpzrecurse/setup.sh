@@ -16,12 +16,12 @@ set -e
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-USAGE="$0: [-xD]"
+USAGE="$0: [-DNx]"
 DEBUG=
-while getopts "xD" c; do
+while getopts "DNx" c; do
     case $c in
 	x) set -x; DEBUG=-x;;
-	D) TEST_DNSRPS="-D";;
+        D) TEST_DNSRPS="-D";;
 	N) NOCLEAN=set;;
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
@@ -31,7 +31,6 @@ if test "$#" -ne 0; then
     echo "$USAGE" 1>&2
     exit 1
 fi
-OPTIND=1
 
 [ ${NOCLEAN:-unset} = unset ] && $SHELL clean.sh $DEBUG
 
