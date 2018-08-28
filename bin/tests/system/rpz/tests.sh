@@ -410,14 +410,10 @@ EOF
   sleep 2
 }
 
-# make prototype files to check against rewritten results
-digcmd nonexistent @$ns2 >proto.nxdomain
-digcmd txt-only.tld2 @$ns2 >proto.nodata
-
 case "$DNSRPS_TEST_MODE" in
 ''|native|dnsrps);;
 *)
-  echo "bad test mode'${DNSRPS_TEST_MODE}' should be 'native' or 'dnsrps'"
+  echo "bad test mode '${DNSRPS_TEST_MODE}' should be 'native' or 'dnsrps'"
   exit 1
   ;;
 esac
@@ -437,16 +433,20 @@ do
       echo_i "'dnsrps-off' found: skipping DNSRPS sub-test"
       continue
     fi
+    $PERL $SYSTEMTESTTOP/stop.pl .
+    $SHELL ./setup.sh -N -D $DEBUG
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
     if grep '^#skip' dnsrps.conf > /dev/null ; then
       echo_i "DNSRPS sub-test skipped"
       continue
     fi
-    $PERL $SYSTEMTESTTOP/stop.pl .
-    $SHELL ./setup.sh -N -D $DEBUG
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
     ;;
   esac
   sed -n 's/^## //p' dnsrps.conf | cat_i
+
+  # make prototype files to check against rewritten results
+  digcmd nonexistent @$ns2 >proto.nxdomain
+  digcmd txt-only.tld2 @$ns2 >proto.nodata
 
   start_group "QNAME rewrites" test1
   nochange .				# 1 do not crash or rewrite root
