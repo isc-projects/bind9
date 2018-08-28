@@ -482,15 +482,13 @@ destroy(dns_acl_t *dacl) {
 
 void
 dns_acl_detach(dns_acl_t **aclp) {
+	REQUIRE(aclp != NULL && DNS_ACL_VALID(*aclp));
 	dns_acl_t *acl = *aclp;
-
-	REQUIRE(DNS_ACL_VALID(acl));
+	*aclp = NULL;
 
 	if (isc_refcount_decrement(&acl->refcount) == 1) {
 		destroy(acl);
 	}
-
-	*aclp = NULL;
 }
 
 
