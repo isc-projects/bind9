@@ -20,7 +20,6 @@
 #include <isc/base64.h>
 #include <isc/buffer.h>
 #include <isc/file.h>
-#include <isc/keyboard.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
@@ -192,4 +191,3 @@ write_key_file(const char *keyfile, const char *user,
 		fatal("fclose(%s) failed\n", keyfile);
 	fprintf(stderr, "wrote key file \"%s\"\n", keyfile);
 }
-
