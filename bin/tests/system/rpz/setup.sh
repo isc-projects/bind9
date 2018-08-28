@@ -18,9 +18,9 @@ SYSTEMTESTTOP=..
 
 QPERF=`$SHELL qperf.sh`
 
-USAGE="$0: [-Dx]"
+USAGE="$0: [-DNx]"
 DEBUG=
-while getopts "Dx" c; do
+while getopts "DNx" c; do
     case $c in
 	x) set -x; DEBUG=-x;;
         D) TEST_DNSRPS="-D";;
