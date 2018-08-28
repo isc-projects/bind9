@@ -311,7 +311,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		dns_tsigkeyring_detach(&view->dynamickeys);
 
  cleanup_references:
-	(void)isc_refcount_decrement(&view->references);
+	INSIST(isc_refcount_decrement(&view->references) > 0);
 	isc_refcount_destroy(&view->references);
 
 	if (view->fwdtable != NULL)
@@ -542,7 +542,6 @@ destroy(dns_view_t *view) {
 		dns_badcache_destroy(&view->failcache);
 	DESTROYLOCK(&view->new_zone_lock);
 	DESTROYLOCK(&view->lock);
-	isc_refcount_destroy(&view->references);
 	isc_mem_free(view->mctx, view->nta_file);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
@@ -576,36 +575,40 @@ dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 
 static void
 view_flushanddetach(dns_view_t **viewp, bool flush) {
-	dns_view_t *view;
+	REQUIRE(viewp != NULL && DNS_VIEW_VALID(*viewp));
+	dns_view_t *view = *viewp;
+	*viewp = NULL;
+
+	view->flush = flush;
+
 	bool done = false;
-
-	REQUIRE(viewp != NULL);
-	view = *viewp;
-	REQUIRE(DNS_VIEW_VALID(view));
-
-	if (flush)
-		view->flush = true;
 	if (isc_refcount_decrement(&view->references) == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
 
+		isc_refcount_destroy(&view->references);
 		LOCK(&view->lock);
-		if (!RESSHUTDOWN(view))
+		if (!RESSHUTDOWN(view)) {
 			dns_resolver_shutdown(view->resolver);
-		if (!ADBSHUTDOWN(view))
+		}
+		if (!ADBSHUTDOWN(view)) {
 			dns_adb_shutdown(view->adb);
-		if (!REQSHUTDOWN(view))
+		}
+		if (!REQSHUTDOWN(view)) {
 			dns_requestmgr_shutdown(view->requestmgr);
+		}
 		if (view->zonetable != NULL) {
-			if (view->flush)
+			if (view->flush) {
 				dns_zt_flushanddetach(&view->zonetable);
-			else
+			} else {
 				dns_zt_detach(&view->zonetable);
+			}
 		}
 		if (view->managed_keys != NULL) {
 			mkzone = view->managed_keys;
 			view->managed_keys = NULL;
-			if (view->flush)
+			if (view->flush) {
 				dns_zone_flush(mkzone);
+			}
 		}
 		if (view->redirect != NULL) {
 			rdzone = view->redirect;
@@ -620,17 +623,20 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		UNLOCK(&view->lock);
 
 		/* Need to detach zones outside view lock */
-		if (mkzone != NULL)
+		if (mkzone != NULL) {
 			dns_zone_detach(&mkzone);
+		}
 
-		if (rdzone != NULL)
+		if (rdzone != NULL) {
 			dns_zone_detach(&rdzone);
+		}
 	}
 
 	*viewp = NULL;
 
-	if (done)
+	if (done) {
 		destroy(view);
+	}
 }
 
 void

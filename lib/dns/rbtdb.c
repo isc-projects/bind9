@@ -968,7 +968,9 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 
 	if (rbtdb->current_version != NULL) {
 
-		INSIST(isc_refcount_decrement(&rbtdb->current_version->references) == 1);
+		INSIST(isc_refcount_decrement(
+			       &rbtdb->current_version->references)
+		       == 1);
 
 		UNLINK(rbtdb->open_versions, rbtdb->current_version, link);
 		isc_rwlock_destroy(&rbtdb->current_version->glue_rwlock);
@@ -1179,15 +1181,14 @@ maybe_free_rbtdb(dns_rbtdb_t *rbtdb) {
 
 static void
 detach(dns_db_t **dbp) {
+	REQUIRE(dbp != NULL && VALID_RBTDB((dns_rbtdb_t *)(*dbp)));
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *)(*dbp);
-
-	REQUIRE(VALID_RBTDB(rbtdb));
+	*dbp = NULL;
 
 	if (isc_refcount_decrement(&rbtdb->references) == 1) {
+		(void)isc_refcount_current(&rbtdb->references);
 		maybe_free_rbtdb(rbtdb);
 	}
-
-	*dbp = NULL;
 }
 
 static void
@@ -1991,7 +1992,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	} else
 		write_locked = true;
 
-	isc_refcount_decrement(&nodelock->references);
+	INSIST(isc_refcount_decrement(&nodelock->references) > 0);
 
 	if (KEEP_NODE(node, rbtdb))
 		goto restore_locks;
@@ -2363,6 +2364,7 @@ cleanup_dead_nodes_callback(isc_task_t *task, isc_event_t *event) {
 	else {
 		isc_event_free(&event);
 		if (isc_refcount_decrement(&rbtdb->references) == 1) {
+			(void)isc_refcount_current(&rbtdb->references);
 			maybe_free_rbtdb(rbtdb);
 		}
 	}
@@ -2422,6 +2424,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 			cur_version = rbtdb->current_version;
 			cur_ref = isc_refcount_decrement(&cur_version->references);
 			if (cur_ref == 1) {
+				(void)isc_refcount_current(&cur_version->references);
 				if (cur_version->serial == rbtdb->least_serial)
 					INSIST(EMPTY(cur_version->changed_list));
 				UNLINK(rbtdb->open_versions,
@@ -8318,7 +8321,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	rbtdb->next_serial = 2;
 	rbtdb->current_version = allocate_version(mctx, 1, 1, false);
 	if (rbtdb->current_version == NULL) {
-		isc_refcount_decrement(&rbtdb->references);
+		INSIST(isc_refcount_decrement(&rbtdb->references) > 0);
 		free_rbtdb(rbtdb, false, NULL);
 		return (ISC_R_NOMEMORY);
 	}
@@ -8339,7 +8342,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		isc_mem_put(mctx, rbtdb->current_version,
 			    sizeof(*rbtdb->current_version));
 		rbtdb->current_version = NULL;
-		isc_refcount_decrement(&rbtdb->references);
+		INSIST(isc_refcount_decrement(&rbtdb->references) > 0);
 		free_rbtdb(rbtdb, false, NULL);
 		return (result);
 	}

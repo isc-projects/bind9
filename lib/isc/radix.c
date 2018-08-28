@@ -76,13 +76,12 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 
 static void
 _deref_prefix(isc_prefix_t *prefix) {
-	if (prefix == NULL)
-		return;
-
-	if (isc_refcount_decrement(&prefix->refcount) == 1) {
-		isc_refcount_destroy(&prefix->refcount);
-		isc_mem_putanddetach(&prefix->mctx, prefix,
-				     sizeof(isc_prefix_t));
+	if (prefix != NULL) {
+		if (isc_refcount_decrement(&prefix->refcount) == 1) {
+			isc_refcount_destroy(&prefix->refcount);
+			isc_mem_putanddetach(&prefix->mctx, prefix,
+					     sizeof(isc_prefix_t));
+		}
 	}
 }
 
@@ -706,10 +705,3 @@ isc_radix_remove(isc_radix_tree_t *radix, isc_radix_node_t *node) {
 		parent->l = child;
 	}
 }
-
-/*
-Local Variables:
-c-basic-offset: 4
-indent-tabs-mode: t
-End:
-*/

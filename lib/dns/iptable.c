@@ -148,14 +148,14 @@ dns_iptable_attach(dns_iptable_t *source, dns_iptable_t **target) {
 
 void
 dns_iptable_detach(dns_iptable_t **tabp) {
+	REQUIRE(tabp != NULL && DNS_IPTABLE_VALID(*tabp));
 	dns_iptable_t *tab = *tabp;
-	REQUIRE(DNS_IPTABLE_VALID(tab));
+	*tabp = NULL;
 
 	if (isc_refcount_decrement(&tab->refcount) == 1) {
+		isc_refcount_destroy(&tab->refcount);
 		destroy_iptable(tab);
 	}
-
-	*tabp = NULL;
 }
 
 static void
@@ -168,7 +168,6 @@ destroy_iptable(dns_iptable_t *dtab) {
 		dtab->radix = NULL;
 	}
 
-	isc_refcount_destroy(&dtab->refcount);
 	dtab->magic = 0;
 	isc_mem_putanddetach(&dtab->mctx, dtab, sizeof(*dtab));
 }

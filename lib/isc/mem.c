@@ -1049,7 +1049,6 @@ destroy(isc__mem_t *ctx) {
 		ctx->malloced -= DEBUG_TABLE_COUNT * sizeof(debuglist_t);
 	}
 #endif
-	isc_refcount_destroy(&ctx->references);
 
 	if (ctx->checkfree) {
 		for (i = 0; i <= ctx->max_size; i++) {
@@ -1106,17 +1105,14 @@ isc__mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 
 void
 isc__mem_detach(isc_mem_t **ctxp) {
-	isc__mem_t *ctx;
-
-	REQUIRE(ctxp != NULL);
-	ctx = (isc__mem_t *)*ctxp;
-	REQUIRE(VALID_CONTEXT(ctx));
+	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
+	isc__mem_t *ctx = (isc__mem_t *)*ctxp;
+	*ctxp = NULL;
 
 	if (isc_refcount_decrement(&ctx->references) == 1) {
+		isc_refcount_destroy(&ctx->references);
 		destroy(ctx);
 	}
-
-	*ctxp = NULL;
 }
 
 /*
@@ -1131,38 +1127,24 @@ isc__mem_detach(isc_mem_t **ctxp) {
 
 void
 isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
-	isc__mem_t *ctx;
-	size_info *si;
-	size_t oldsize;
-
-	REQUIRE(ctxp != NULL);
-	ctx = (isc__mem_t *)*ctxp;
-	REQUIRE(VALID_CONTEXT(ctx));
+	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
 	REQUIRE(ptr != NULL);
-
-	/*
-	 * Must be before mem_putunlocked() as ctxp is usually within
-	 * [ptr..ptr+size).
-	 */
+	isc__mem_t *ctx = (isc__mem_t *)*ctxp;
 	*ctxp = NULL;
 
 	if (ISC_UNLIKELY((isc_mem_debugging &
 			  (ISC_MEM_DEBUGSIZE|ISC_MEM_DEBUGCTX)) != 0))
 	{
 		if ((isc_mem_debugging & ISC_MEM_DEBUGSIZE) != 0) {
-			si = &(((size_info *)ptr)[-1]);
-			oldsize = si->u.size - ALIGNMENT_SIZE;
+			size_info *si = &(((size_info *)ptr)[-1]);
+			size_t oldsize = si->u.size - ALIGNMENT_SIZE;
 			if ((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)
 				oldsize -= ALIGNMENT_SIZE;
 			INSIST(oldsize == size);
 		}
 		isc__mem_free((isc_mem_t *)ctx, ptr FLARG_PASS);
 
-		if (isc_refcount_decrement(&ctx->references) == 1) {
-			destroy(ctx);
-		}
-
-		return;
+		goto destroy;
 	}
 
 	MCTXLOCK(ctx, &ctx->lock);
@@ -1177,7 +1159,9 @@ isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	}
 	MCTXUNLOCK(ctx, &ctx->lock);
 
+destroy:
 	if (isc_refcount_decrement(&ctx->references) == 1) {
+		isc_refcount_destroy(&ctx->references);
 		destroy(ctx);
 	}
 }
@@ -1200,7 +1184,7 @@ isc__mem_destroy(isc_mem_t **ctxp) {
 		print_active(ctx, stderr);
 	}
 #else
-	(void)isc_refcount_decrement(&ctx->references);
+	INSIST(isc_refcount_decrement(&ctx->references) == 1);
 #endif
 	isc_refcount_destroy(&ctx->references);
 	destroy(ctx);

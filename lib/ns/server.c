@@ -127,9 +127,9 @@ void
 ns_server_detach(ns_server_t **sctxp) {
 	ns_server_t *sctx;
 
-	REQUIRE(sctxp != NULL);
+	REQUIRE(sctxp != NULL && SCTX_VALID(*sctxp));
 	sctx = *sctxp;
-	REQUIRE(SCTX_VALID(sctx));
+	*sctxp = NULL;
 
 	if (isc_refcount_decrement(&sctx->references) == 1) {
 		ns_altsecret_t *altsecret;
@@ -185,8 +185,6 @@ ns_server_detach(ns_server_t **sctxp) {
 
 		isc_mem_putanddetach(&sctx->mctx, sctx, sizeof(*sctx));
 	}
-
-	*sctxp = NULL;
 }
 
 isc_result_t
