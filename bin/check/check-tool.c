@@ -62,14 +62,6 @@
 #define CHECK_LOCAL 1
 #endif
 
-#ifdef HAVE_ADDRINFO
-#ifdef HAVE_GETADDRINFO
-#ifdef HAVE_GAISTRERROR
-#define USE_GETADDRINFO
-#endif
-#endif
-#endif
-
 #define CHECK(r) \
 	do { \
 		result = (r); \
@@ -177,7 +169,6 @@ static bool
 checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	dns_rdataset_t *a, dns_rdataset_t *aaaa)
 {
-#ifdef USE_GETADDRINFO
 	dns_rdataset_t *rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	struct addrinfo hints, *ai, *cur;
@@ -373,14 +364,10 @@ checkns(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner,
 	}
 	freeaddrinfo(ai);
 	return (answer);
-#else
-	return (true);
-#endif
 }
 
 static bool
 checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
-#ifdef USE_GETADDRINFO
 	struct addrinfo hints, *ai, *cur;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
@@ -459,14 +446,10 @@ checkmx(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 		}
 		return (true);
 	}
-#else
-	return (true);
-#endif
 }
 
 static bool
 checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
-#ifdef USE_GETADDRINFO
 	struct addrinfo hints, *ai, *cur;
 	char namebuf[DNS_NAME_FORMATSIZE + 1];
 	char ownerbuf[DNS_NAME_FORMATSIZE];
@@ -544,9 +527,6 @@ checksrv(dns_zone_t *zone, const dns_name_t *name, const dns_name_t *owner) {
 		}
 		return (true);
 	}
-#else
-	return (true);
-#endif
 }
 
 isc_result_t
@@ -791,4 +771,3 @@ DestroySockets(void) {
 	WSACleanup();
 }
 #endif
-

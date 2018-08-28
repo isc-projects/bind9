@@ -34,7 +34,6 @@
 #include <isc/net.h>
 #include <isc/print.h>
 #include <isc/result.h>
-#include <isc/strerror.h>
 #include <isc/string.h>
 #include <isc/types.h>
 #include <isc/util.h>
@@ -62,8 +61,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 {
 	struct sockaddr_in6 *sa6;
 
-#if !defined(ISC_PLATFORM_HAVEIFNAMETOINDEX) || \
-    !defined(ISC_PLATFORM_HAVESCOPEID)
+#if !defined(ISC_PLATFORM_HAVEIFNAMETOINDEX)
 	UNUSED(ifname);
 #endif
 
@@ -81,7 +79,6 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 		sa6 = (struct sockaddr_in6 *)src;
 		memmove(&dst->type.in6, &sa6->sin6_addr,
 			sizeof(struct in6_addr));
-#ifdef ISC_PLATFORM_HAVESCOPEID
 		if (sa6->sin6_scope_id != 0)
 			isc_netaddr_setzone(dst, sa6->sin6_scope_id);
 		else {
@@ -127,7 +124,6 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 				}
 			}
 		}
-#endif
 		break;
 	default:
 		INSIST(0);
@@ -147,13 +143,7 @@ static isc_result_t linux_if_inet6_current(isc_interfaceiter_t *);
 static void linux_if_inet6_first(isc_interfaceiter_t *iter);
 #endif
 
-#if HAVE_GETIFADDRS
 #include "ifiter_getifaddrs.c"
-#elif HAVE_IFLIST_SYSCTL
-#include "ifiter_sysctl.c"
-#else
-#include "ifiter_ioctl.c"
-#endif
 
 #ifdef __linux
 static void

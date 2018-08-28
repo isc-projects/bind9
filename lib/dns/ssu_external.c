@@ -35,7 +35,6 @@
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
-#include <isc/strerror.h>
 
 #include <dns/fixedname.h>
 #include <dns/name.h>
@@ -82,7 +81,7 @@ ux_socket_connect(const char *path) {
 	fd = socket(AF_UNIX, SOCK_STREAM, 0);
 	if (fd == -1) {
 		char strbuf[ISC_STRERRORSIZE];
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to create socket - %s",
 			  strbuf);
 		return (-1);
@@ -90,7 +89,7 @@ ux_socket_connect(const char *path) {
 
 	if (connect(fd, (struct sockaddr *)&addr, sizeof(addr)) == -1) {
 		char strbuf[ISC_STRERRORSIZE];
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to connect to "
 			     "socket '%s' - %s",
 			  path, strbuf);
@@ -224,7 +223,7 @@ dns_ssu_external_match(const dns_name_t *identity,
 	isc_mem_free(mctx, data);
 	if (ret != (ssize_t) req_len) {
 		char strbuf[ISC_STRERRORSIZE];
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to send request - %s",
 			  strbuf);
 		close(fd);
@@ -235,7 +234,7 @@ dns_ssu_external_match(const dns_name_t *identity,
 	ret = read(fd, &reply, sizeof(uint32_t));
 	if (ret != (ssize_t) sizeof(uint32_t)) {
 		char strbuf[ISC_STRERRORSIZE];
-		isc__strerror(errno, strbuf, sizeof(strbuf));
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		ssu_e_log(3, "ssu_external: unable to receive reply - %s",
 			  strbuf);
 		close(fd);

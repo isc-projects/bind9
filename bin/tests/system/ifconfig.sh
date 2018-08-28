@@ -38,15 +38,7 @@ EOF
 	exit 1
 fi
 
-# If running on hp-ux, don't even try to run config.guess.
-# It will try to create a temporary file in the current directory,
-# which fails when running as root with the current directory
-# on a NFS mounted disk.
-
-case `uname -a` in
-	*HP-UX*) sys=hpux ;;
-	*) sys=`sh $config_guess` ;;
-esac
+sys=`sh $config_guess`
 
 use_ip=
 case "$sys" in

@@ -147,7 +147,7 @@ Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
 basic POSIX support, and a 64-bit integer type. Successful builds have been
 observed on many versions of Linux and UNIX, including RedHat, Fedora,
 Debian, Ubuntu, SuSE, Slackware, FreeBSD, NetBSD, OpenBSD, Mac OS X,
-Solaris, HP-UX, AIX, SCO OpenServer, and OpenWRT.
+Solaris, HP-UX, and OpenWRT.
 
 BIND requires a cryptography provider library such as OpenSSL or a
 hardware service module supporting PKCS#11. On Linux, BIND requires
@@ -270,10 +270,6 @@ Support for the "fixed" rrset-order option can be enabled or disabled by
 specifying `--enable-fixed-rrset` or `--disable-fixed-rrset` on the
 configure command line.  By default, fixed rrset-order is disabled to
 reduce memory footprint.
-
-If your operating system has integrated support for IPv6, it will be used
-automatically.  If you have installed KAME IPv6 separately, use
-`--with-kame[=PATH]` to specify its location.
 
 `make install` will install `named` and the various BIND 9 libraries.  By
 default, installation is into /usr/local, but this can be changed with the

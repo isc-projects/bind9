@@ -17,9 +17,6 @@
  *** it does not get installed.
  ***/
 
-/** define on DEC OSF to enable 4.4BSD style sa_len support */
-#undef _SOCKADDR_LEN
-
 /** define if your system needs pthread_init() before using pthreads */
 #undef NEED_PTHREAD_INIT
 
@@ -53,61 +50,17 @@
 /** define if tzset() is available */
 #undef HAVE_TZSET
 
-/** define if struct addrinfo exists */
-#undef HAVE_ADDRINFO
-
-/** define if getaddrinfo() exists */
-#undef HAVE_GETADDRINFO
-
-/** define if gai_strerror() exists */
-#undef HAVE_GAISTRERROR
-
 /**
  * define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.
  */
 #undef CALL_PTHREAD_SETCONCURRENCY
 
-/** define if IPv6 is not disabled */
-#undef WANT_IPV6
-
 /** define if flockfile() is available */
 #undef HAVE_FLOCKFILE
 
 /** define if getc_unlocked() is available */
 #undef HAVE_GETCUNLOCKED
-
-/** Shut up warnings about sputaux in stdio.h on BSD/OS pre-4.1 */
-#undef SHUTUP_SPUTAUX
-#ifdef SHUTUP_SPUTAUX
-struct __sFILE;
-extern __inline int __sputaux(int _c, struct __sFILE *_p);
-#endif
-
-/** Shut up warnings about missing sigwait prototype on BSD/OS 4.0* */
-#undef SHUTUP_SIGWAIT
-#ifdef SHUTUP_SIGWAIT
-int sigwait(const unsigned int *set, int *sig);
-#endif
-
-/** Shut up warnings from gcc -Wcast-qual on BSD/OS 4.1. */
-#undef SHUTUP_STDARG_CAST
-#if defined(SHUTUP_STDARG_CAST) && defined(__GNUC__)
-#include <stdarg.h>		/** Grr.  Must be included *every time*. */
-/**
- * The silly continuation line is to keep configure from
- * commenting out the #undef.
- */
-
-#undef \
-	va_start
-#define	va_start(ap, last) \
-	do { \
-		union { const void *konst; long *var; } _u; \
-		_u.konst = &(last); \
-		ap = (va_list)(_u.var + __va_words(__typeof(last))); \
-	} while (0)
-#endif /** SHUTUP_STDARG_CAST && __GNUC__ */
 
 /** define if the system has a random number generating device */
 #undef PATH_RANDOMDEV
@@ -138,10 +91,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* define if ATF unit tests are to be built. */
 #undef ATF_TEST
-
-/* Define if recvmsg() does not meet all of the BSD socket API specifications.
-   */
-#undef BROKEN_RECVMSG
 
 /* Define if you cannot bind() before connect() for TCP sockets. */
 #undef BROKEN_TCP_BIND_BEFORE_CONNECT
@@ -461,9 +410,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to 1 if you have the <sys/devpoll.h> header file. */
 #undef HAVE_SYS_DEVPOLL_H
 
-/* Define to 1 if you have the <sys/dyntune.h> header file. */
-#undef HAVE_SYS_DYNTUNE_H
-
 /* Define to 1 if you have the <sys/mman.h> header file. */
 #undef HAVE_SYS_MMAN_H
 
@@ -506,9 +452,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if Thread-Local Storage is available */
 #undef HAVE_TLS
 
-/* Define if running under Compaq TruCluster */
-#undef HAVE_TRUCLUSTER
-
 /* Define to 1 if the system has the type `uintptr_t'. */
 #undef HAVE_UINTPTR_T
 
@@ -529,18 +472,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Use HMAC-SHA256 for Client Cookie generation */
 #undef HMAC_SHA256_CC
-
-/* return type of gai_strerror */
-#undef IRS_GAISTRERROR_RETURN_T
-
-/* Define to the buffer length type used by getnameinfo(3). */
-#undef IRS_GETNAMEINFO_BUFLEN_T
-
-/* Define to the flags type used by getnameinfo(3). */
-#undef IRS_GETNAMEINFO_FLAGS_T
-
-/* Define to the sockaddr length type used by getnameinfo(3). */
-#undef IRS_GETNAMEINFO_SOCKLEN_T
 
 /* Define if you want to use inline buffers */
 #undef ISC_BUFFER_USEINLINE
@@ -639,8 +570,11 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
 
-/* Define to empty if your compiler does not support "static inline". */
+/* Define to `__inline__' or `__inline' if that's what the C compiler
+   calls it, or to nothing if 'inline' is not supported under any name.  */
+#ifndef __cplusplus
 #undef inline
+#endif
 
 /* Define to `unsigned int' if <sys/types.h> does not define. */
 #undef size_t

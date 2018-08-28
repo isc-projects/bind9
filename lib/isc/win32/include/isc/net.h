@@ -100,13 +100,6 @@
 #define INADDR_LOOPBACK 0x7f000001UL
 #endif
 
-#ifndef ISC_PLATFORM_HAVEIN6PKTINFO
-struct in6_pktinfo {
-	struct in6_addr ipi6_addr;    /* src/dst IPv6 address */
-	unsigned int    ipi6_ifindex; /* send/recv interface index */
-};
-#endif
-
 #if _MSC_VER < 1300
 #define in6addr_any isc_in6addr_any
 #define in6addr_loopback isc_in6addr_loopback
@@ -115,9 +108,7 @@ struct in6_pktinfo {
 /*
  * Ensure type in_port_t is defined.
  */
-#ifdef ISC_PLATFORM_NEEDPORTT
 typedef uint16_t in_port_t;
-#endif
 
 /*
  * If this system does not have MSG_TRUNC (as returned from recvmsg())
@@ -398,19 +389,6 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
  *\li	*low and *high will be the ports specifying the low and high ends of
  *	the range.
  */
-
-#ifdef ISC_PLATFORM_NEEDNTOP
-const char *
-isc_net_ntop(int af, const void *src, char *dst, size_t size);
-#undef inet_ntop
-#define inet_ntop isc_net_ntop
-#endif
-
-#ifdef ISC_PLATFORM_NEEDPTON
-int
-isc_net_pton(int af, const char *src, void *dst);
-#define inet_pton isc_net_pton
-#endif
 
 ISC_LANG_ENDDECLS
 

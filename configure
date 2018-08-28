@@ -710,7 +710,6 @@ ISC_PLATFORM_BUSYWAITNOP
 ISC_ARCH_DIR
 ISC_PLATFORM_USEMACASM
 ISC_PLATFORM_USESTDASM
-ISC_PLATFORM_USEOSFASM
 ISC_PLATFORM_USEGCCASM
 ISC_PLATFORM_HAVEATOMICSTOREQ
 ISC_PLATFORM_HAVEATOMICSTORE
@@ -720,10 +719,8 @@ ISC_PLATFORM_HAVEXADD
 ISC_PLATFORM_HAVESTDATOMIC
 ISC_PLATFORM_HAVEIFNAMETOINDEX
 ISC_PLATFORM_HAVESTRINGSH
-ISC_PLATFORM_BRACEPTHREADONCEINIT
 IRS_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_USEDECLSPEC
-ISC_PLATFORM_RLIMITTYPE
 ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
 LIBCAP_LIBS
@@ -731,40 +728,12 @@ DST_EXTRA_SRCS
 DST_EXTRA_OBJS
 USE_ISC_SPNEGO
 READLINE_LIB
-ISC_PLATFORM_NEEDSTRCASESTR
 ISC_PLATFORM_NEEDSTRLCAT
 ISC_PLATFORM_NEEDSTRLCPY
-GENRANDOMLIB
-ISC_PLATFORM_NEEDSTRTOUL
-ISC_PLATFORM_NEEDMEMMOVE
-ISC_IRS_GETNAMEINFOSOCKLEN
-ISC_IRS_NEEDADDRINFO
 ISC_PLATFORM_HAVETFO
-ISC_PLATFORM_NEEDPORTT
-ISC_PLATFORM_MSGHDRFLAVOR
-ISC_PLATFORM_HAVESALEN
-ISC_EXTRA_SRCS
-ISC_EXTRA_OBJS
-ISC_PLATFORM_NEEDPTON
-ISC_PLATFORM_NEEDNTOP
 ISC_PLATFORM_HAVEIF_LADDRCONF
 ISC_PLATFORM_HAVEIF_LADDRREQ
-ISC_PLATFORM_HAVESCOPEID
-ISC_IPV6_C
-ISC_ISCIPV6_O
-ISC_IPV6_O
-ISC_IPV6_H
-ISC_PLATFORM_HAVESOCKADDRSTORAGE
-ISC_PLATFORM_FIXIN6ISADDR
-ISC_PLATFORM_HAVEIN6PKTINFO
-ISC_PLATFORM_NEEDIN6ADDRLOOPBACK
-ISC_PLATFORM_NEEDIN6ADDRANY
-ISC_PLATFORM_HAVEINADDR6
-ISC_PLATFORM_NEEDNETINET6IN6H
-ISC_PLATFORM_NEEDNETINETIN6H
-ISC_PLATFORM_HAVEIPV6
 BIND9_CO_RULE
-LIBTOOL_IN_MAIN
 LIBTOOL_ALLOW_UNDEFINED
 LIBTOOL_MODE_UNINSTALL
 LIBTOOL_MODE_LINK
@@ -779,7 +748,6 @@ MKSYMTBL_PROGRAM
 ISC_PLATFORM_USEBACKTRACE
 PURIFY
 purify_path
-IRIX_DNSSEC_WARNINGS_HACK
 MKDEPPROG
 MKDEPCFLAGS
 MKDEPCC
@@ -820,7 +788,6 @@ ISC_PLATFORM_HAVEKQUEUE
 ISC_PLATFORM_HAVELIFCONF
 ISC_PLATFORM_NORETURN_POST
 ISC_PLATFORM_NORETURN_PRE
-ISC_PLATFORM_HAVELONGLONG
 ISC_SOCKADDR_LEN_T
 expanded_sysconfdir
 PYTHON_INSTALL_LIB
@@ -975,15 +942,11 @@ with_purify
 with_gperftools_profiler
 enable_backtrace
 enable_symtable
-enable_ipv6
-with_kame
 enable_tcp_fastopen
-enable_getifaddrs
 with_readline
 enable_isc_spnego
 enable_chroot
 enable_linux_caps
-with_rlimtype
 enable_atomic
 enable_fixed_rrset
 enable_rpz_nsip
@@ -1668,9 +1631,7 @@ Optional Features:
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
                           [all|minimal(default)|none]
-  --enable-ipv6           use IPv6 [default=autodetect]
   --disable-tcp-fastopen  disable TCP Fast Open support [default=autodetect]
-  --enable-getifaddrs     enable the use of getifaddrs() [yes|no].
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
   --disable-linux-caps    disable Linux capabilities
@@ -1721,9 +1682,7 @@ Optional Packages:
   --with-purify=PATH      use Rational purify
   --with-gperftools-profiler
                           use gperftools CPU profiler
-  --with-kame=PATH        use Kame IPv6 [default path /usr/local/v6]
   --with-readline=LIBSPEC specify readline library [default auto]
-
   --with-dnsrps-libname   DNSRPS provider library name (librpz.so)
   --with-dnsrps-dir       path to DNSRPS provider library
   --with-protobuf-c=path  Path where protobuf-c is installed, for dnstap
@@ -2940,18 +2899,6 @@ $as_echo "no" >&6; }
   SET_MAKE="MAKE=${MAKE-make}"
 fi
 
-
-#
-# GNU libtool support
-#
-case $build_os in
-sunos*)
-    # Just set the maximum command line length for sunos as it otherwise
-    # takes a exceptionally long time to work it out. Required for libtool.
-
-    lt_cv_sys_max_cmd_len=4096;
-    ;;
-esac
 
 case `pwd` in
   *\ * | *\	*)
@@ -13388,18 +13335,6 @@ fi
 # OS dependent CC flags
 #
 case "$host" in
-	# OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
-	# -D_XOPEN_SOURCE_EXTENDED.
-	*-dec-osf*)
-		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
-		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
-		;;
-	#HP-UX: need -D_XOPEN_SOURCE_EXTENDED and -lxnet for CMSG macros
-	*-hp-hpux*)
-		STD_CDEFINES="$STD_CDEFINES -D_XOPEN_SOURCE_EXTENDED"
-		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
-		LIBS="-lxnet $LIBS"
-		;;
 	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
 	*-solaris*)
 		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
@@ -13908,43 +13843,6 @@ fi
 done
 
 
-#
-# UnixWare 7.1.1 with the feature supplement to the UDK compiler
-# is reported to not support "static inline" (RT #1212).
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for static inline breakage" >&5
-$as_echo_n "checking for static inline breakage... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-	static inline int foo1() {
-		return 0;
-	}
-
-	static inline int foo2() {
-		return foo1();
-	}
-
-int
-main ()
-{
-foo1();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-$as_echo "#define inline /**/" >>confdefs.h
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
 ac_fn_c_check_type "$LINENO" "size_t" "ac_cv_type_size_t" "$ac_includes_default"
 if test "x$ac_cv_type_size_t" = xyes; then :
 
@@ -14076,30 +13974,6 @@ if test $ac_cv_header_time = yes; then
 $as_echo "#define TIME_WITH_SYS_TIME 1" >>confdefs.h
 
 fi
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for long long" >&5
-$as_echo_n "checking for long long... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-long long i = 0; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-		ISC_PLATFORM_HAVELONGLONG="#define ISC_PLATFORM_HAVELONGLONG 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		ISC_PLATFORM_HAVELONGLONG="#undef ISC_PLATFORM_HAVELONGLONG"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 #
@@ -15762,15 +15636,6 @@ fi
 		esac
 		;;
 	#
-	# BSDI 3.0 through 4.0.1 needs pthread_init() to be
-	# called before certain pthreads calls.	 This is deprecated
-	# in BSD/OS 4.1.
-	#
-	*-bsdi3.*|*-bsdi4.0*)
-		$as_echo "#define NEED_PTHREAD_INIT 1" >>confdefs.h
-
-		;;
-	#
 	# LinuxThreads requires some changes to the way we
 	# deal with signals.
 	#
@@ -15790,13 +15655,6 @@ if test "x$ac_cv_func_pthread_setconcurrency" = xyes; then :
   $as_echo "#define CALL_PTHREAD_SETCONCURRENCY 1" >>confdefs.h
 
 fi
-
-		;;
-	#
-	# UnixWare does things its own way.
-	#
-	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-		$as_echo "#define HAVE_UNIXWARE_SIGWAIT 1" >>confdefs.h
 
 		;;
 esac
@@ -15867,10 +15725,6 @@ $as_echo "yes" >&6; }
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
-		case "$host" in
-		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
-		*) LIBTOOL_IN_MAIN= ;;
-		esac;
 		;;
 	*)
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
@@ -15885,7 +15739,6 @@ $as_echo "no" >&6; }
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_MODE_UNINSTALL=
 		LIBTOOL_ALLOW_UNDEFINED=
-		LIBTOOL_IN_MAIN=
 		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
@@ -17492,7 +17345,6 @@ esac
 #
 MKDEPCC="$CC"
 MKDEPCFLAGS="-M"
-IRIX_DNSSEC_WARNINGS_HACK=""
 
 if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
@@ -17559,12 +17411,6 @@ $as_echo "yes" >&6; }
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	fi
-	case "$host" in
-	*-hp-hpux*)
-		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
-		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
-		;;
-	esac
 	if test "X$enable_warn_shadow" = Xyes; then
 		STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
 	fi
@@ -17573,54 +17419,11 @@ $as_echo "no" >&6; }
 	fi
 else
 	case $host in
-	*-dec-osf*)
-		CC="$CC -std"
-		CCOPT="$CCOPT -std"
-		CCNOOPT="$CCNOOPT -std"
-		MKDEPCC="$CC"
-		;;
-	*-hp-hpux*)
-		CC="$CC -Ae -z"
-		# The version of the C compiler that constantly warns about
-		# 'const' as well as alignment issues is unfortunately not
-		# able to be discerned via the version of the operating
-		# system, nor does cc have a version flag.
-		case "`$CC +W 123 2>&1`" in
-		*Unknown?option*)
-			STD_CWARNINGS="+w1"
-			;;
-		*)
-			# Turn off the pointlessly noisy warnings.
-			STD_CWARNINGS="+w1 +W 474,530,2193,2236"
-			;;
-		esac
-		CCOPT="$CCOPT -Ae -z"
-		CCNOOPT="$CCNOOPT -Ae -z"
-		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
-		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
-		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
-		;;
-	*-sgi-irix*)
-		STD_CWARNINGS="-fullwarn -woff 1209"
-		#
-		# Silence more than 250 instances of
-		#   "prototyped function redeclared without prototype"
-		# and 11 instances of
-		#   "variable ... was set but never used"
-		# from lib/dns/sec/openssl.
-		#
-		IRIX_DNSSEC_WARNINGS_HACK="-woff 1692,1552"
-		;;
 	*-solaris*)
 		MKDEPCFLAGS="-xM"
 		;;
-	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-		# UnixWare
-		CC="$CC -w"
-		;;
 	esac
 fi
-
 
 
 
@@ -17646,8 +17449,6 @@ fi
 # Use this for now, instead:
 #
 case "$host" in
-	mips-sgi-irix*)
-		;;
 	*-linux*)
 		;;
 	*)
@@ -17973,7 +17774,6 @@ SA=a
 
 
 
-
 BIND9_CO_RULE=".c.$O:"
 
 
@@ -17981,24 +17781,6 @@ BIND9_CO_RULE=".c.$O:"
 # Here begins a very long section to determine the system's networking
 # capabilities.  The order of the tests is significant.
 #
-
-#
-# IPv6
-#
-# Check whether --enable-ipv6 was given.
-if test "${enable_ipv6+set}" = set; then :
-  enableval=$enable_ipv6;
-fi
-
-
-case "$enable_ipv6" in
-	yes|''|autodetect)
-		$as_echo "#define WANT_IPV6 1" >>confdefs.h
-
-		;;
-	no)
-		;;
-esac
 
 #
 # We do the IPv6 compilation checking after libtool so that we can put
@@ -18009,13 +17791,23 @@ $as_echo_n "checking for IPv6 structures... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
+       #include <sys/types.h>
+       #include <sys/socket.h>
+       #include <netinet/in.h>
+
 int
 main ()
 {
-struct sockaddr_in6 sin6; return (0);
+
+       struct sockaddr_in6 sin6;
+       struct in6_addr in6;
+       struct in6_pktinfo in6_pi;
+       struct sockaddr_storage storage;
+       in6 = in6addr_any;
+       in6 = in6addr_loopback;
+       sin6.sin6_scope_id = 0;
+       return (0);
+
   ;
   return 0;
 }
@@ -18023,317 +17815,13 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	 found_ipv6=yes
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	 found_ipv6=no
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "IPv6 support is mandatory
+See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-#
-# See whether IPv6 support is provided via a Kame add-on.
-# This is done before other IPv6 linking tests to LIBS is properly set.
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for Kame IPv6 support" >&5
-$as_echo_n "checking for Kame IPv6 support... " >&6; }
-
-# Check whether --with-kame was given.
-if test "${with_kame+set}" = set; then :
-  withval=$with_kame; use_kame="$withval"
-else
-  use_kame="no"
-fi
-
-
-case "$use_kame" in
-	no)
-		;;
-	yes)
-		kame_path=/usr/local/v6
-		;;
-	*)
-		kame_path="$use_kame"
-		;;
-esac
-
-case "$use_kame" in
-	no)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		;;
-	*)
-		if test -f $kame_path/lib/libinet6.a; then
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $kame_path/lib/libinet6.a" >&5
-$as_echo "$kame_path/lib/libinet6.a" >&6; }
-			LIBS="-L$kame_path/lib -linet6 $LIBS"
-		else
-			as_fn_error $? "$kame_path/lib/libinet6.a not found.
-
-Please choose the proper path with the following command:
-
-    configure --with-kame=PATH
-" "$LINENO" 5
-		fi
-		;;
-esac
-
-#
-# Whether netinet6/in6.h is needed has to be defined in isc/platform.h.
-# Including it on Kame-using platforms is very bad, though, because
-# Kame uses #error against direct inclusion.   So include it on only
-# the platform that is otherwise broken without it -- BSD/OS 4.0 through 4.1.
-# This is done before the in6_pktinfo check because that's what
-# netinet6/in6.h is needed for.
-#
-
-case "$host" in
-*-bsdi4.[01]*)
-	ISC_PLATFORM_NEEDNETINET6IN6H="#define ISC_PLATFORM_NEEDNETINET6IN6H 1"
-	isc_netinet6in6_hack="#include <netinet6/in6.h>"
-	;;
-*)
-	ISC_PLATFORM_NEEDNETINET6IN6H="#undef ISC_PLATFORM_NEEDNETINET6IN6H"
-	isc_netinet6in6_hack=""
-	;;
-esac
-
-
-#
-# This is similar to the netinet6/in6.h issue.
-#
-case "$host" in
-*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-	# UnixWare
-	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
-	ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
-	isc_netinetin6_hack="#include <netinet/in6.h>"
-	;;
-*)
-	ISC_PLATFORM_NEEDNETINETIN6H="#undef ISC_PLATFORM_NEEDNETINETIN6H"
-	ISC_PLATFORM_FIXIN6ISADDR="#undef ISC_PLATFORM_FIXIN6ISADDR"
-	isc_netinetin6_hack=""
-	;;
-esac
-
-#
-# Now delve deeper into the suitability of the IPv6 support.
-#
-case "$found_ipv6" in
-	yes)
-		ISC_PLATFORM_HAVEIPV6="#define ISC_PLATFORM_HAVEIPV6 1"
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for in6_addr" >&5
-$as_echo_n "checking for in6_addr... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-
-int
-main ()
-{
-struct in6_addr in6; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-		 ISC_PLATFORM_HAVEINADDR6="#undef ISC_PLATFORM_HAVEINADDR6"
-		 isc_in_addr6_hack=""
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		 ISC_PLATFORM_HAVEINADDR6="#define ISC_PLATFORM_HAVEINADDR6 1"
-		 isc_in_addr6_hack="#define in6_addr in_addr6"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for in6addr_any" >&5
-$as_echo_n "checking for in6addr_any... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-$isc_in_addr6_hack
-
-int
-main ()
-{
-struct in6_addr in6; in6 = in6addr_any; return (in6.s6_addr[0]);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-			 ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-			 ISC_PLATFORM_NEEDIN6ADDRANY="#define ISC_PLATFORM_NEEDIN6ADDRANY 1"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for in6addr_loopback" >&5
-$as_echo_n "checking for in6addr_loopback... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-$isc_in_addr6_hack
-
-int
-main ()
-{
-struct in6_addr in6; in6 = in6addr_loopback; return (in6.s6_addr[0]);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-			 ISC_PLATFORM_NEEDIN6ADDRLOOPBACK="#undef ISC_PLATFORM_NEEDIN6ADDRLOOPBACK"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-			 ISC_PLATFORM_NEEDIN6ADDRLOOPBACK="#define ISC_PLATFORM_NEEDIN6ADDRLOOPBACK 1"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sin6_scope_id in struct sockaddr_in6" >&5
-$as_echo_n "checking for sin6_scope_id in struct sockaddr_in6... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-
-int
-main ()
-{
-struct sockaddr_in6 xyzzy; xyzzy.sin6_scope_id = 0; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-			 ISC_PLATFORM_HAVESCOPEID="#define ISC_PLATFORM_HAVESCOPEID 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-			 ISC_PLATFORM_HAVESCOPEID="#undef ISC_PLATFORM_HAVESCOPEID"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for in6_pktinfo" >&5
-$as_echo_n "checking for in6_pktinfo... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-
-int
-main ()
-{
-struct in6_pktinfo xyzzy; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-			 ISC_PLATFORM_HAVEIN6PKTINFO="#define ISC_PLATFORM_HAVEIN6PKTINFO 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no -- disabling runtime ipv6 support" >&5
-$as_echo "no -- disabling runtime ipv6 support" >&6; }
-			 ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-	no)
-		ISC_PLATFORM_HAVEIPV6="#undef ISC_PLATFORM_HAVEIPV6"
-		ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"
-		ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
-		ISC_PLATFORM_HAVESCOPEID="#define ISC_PLATFORM_HAVESCOPEID 1"
-		ISC_IPV6_H="ipv6.h"
-		ISC_IPV6_O="ipv6.$O"
-		ISC_ISCIPV6_O="unix/ipv6.$O"
-		ISC_IPV6_C="ipv6.c"
-		;;
-esac
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct sockaddr_storage" >&5
-$as_echo_n "checking for struct sockaddr_storage... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-
-int
-main ()
-{
-struct sockaddr_storage storage; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct if_laddrreq" >&5
 $as_echo_n "checking for struct if_laddrreq... " >&6; }
@@ -18394,190 +17882,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 #
-# Check for network functions that are often missing.  We do this
-# after the libtool checking, so we can put the right suffix on
-# the files.  It also needs to come after checking for a Kame add-on,
-# which provides some (all?) of the desired functions.
-#
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inet_ntop with IPv6 support" >&5
-$as_echo_n "checking for inet_ntop with IPv6 support... " >&6; }
-if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming inet_ntop not needed" >&5
-$as_echo "assuming inet_ntop not needed" >&6; }
-	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-main() {
-char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-
-# On NetBSD 1.4.2 and maybe others, inet_pton() incorrectly accepts
-# addresses with less than four octets, like "1.2.3".  Also leading
-# zeros should also be rejected.
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for working inet_pton with IPv6 support" >&5
-$as_echo_n "checking for working inet_pton with IPv6 support... " >&6; }
-if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: assuming inet_pton needed" >&5
-$as_echo "assuming inet_pton needed" >&6; }
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
-			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 :
-			     (inet_pton(AF_INET6, "::1.2.3.4", a) != 1)); }
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-
-
-
-
-
-#
-# Look for a 4.4BSD-style sa_len member in struct sockaddr.
-#
-case "$host" in
-	*-dec-osf*)
-		# Turn on 4.4BSD style sa_len support.
-		$as_echo "#define _SOCKADDR_LEN 1" >>confdefs.h
-
-		;;
-esac
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sa_len in struct sockaddr" >&5
-$as_echo_n "checking for sa_len in struct sockaddr... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-int
-main ()
-{
-struct sockaddr sa; sa.sa_len = 0; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_HAVESALEN="#define ISC_PLATFORM_HAVESALEN 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_HAVESALEN="#undef ISC_PLATFORM_HAVESALEN"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
-# Look for a 4.4BSD or 4.3BSD struct msghdr
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct msghdr flavor" >&5
-$as_echo_n "checking for struct msghdr flavor... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-int
-main ()
-{
-struct msghdr msg; msg.msg_flags = 0; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: 4.4BSD" >&5
-$as_echo "4.4BSD" >&6; }
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: 4.3BSD" >&5
-$as_echo "4.3BSD" >&6; }
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
-# Look for in_port_t.
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for type in_port_t" >&5
-$as_echo_n "checking for type in_port_t... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <netinet/in.h>
-int
-main ()
-{
-in_port_t port = 25; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_NEEDPORTT="#undef ISC_PLATFORM_NEEDPORTT"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
 # comment in lib/isc/unix/socket.c).
@@ -18627,280 +17931,8 @@ esac
 
 
 #
-# Check for addrinfo
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct addrinfo" >&5
-$as_echo_n "checking for struct addrinfo... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <netdb.h>
-int
-main ()
-{
-struct addrinfo a; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_IRS_NEEDADDRINFO="#undef ISC_IRS_NEEDADDRINFO"
-	$as_echo "#define HAVE_ADDRINFO 1" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_IRS_NEEDADDRINFO="#define ISC_IRS_NEEDADDRINFO 1"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
-# Sadly, the definitions of system-supplied getnameinfo(3) vary.  Try to catch
-# known variations here:
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for getnameinfo prototype definitions" >&5
-$as_echo_n "checking for getnameinfo prototype definitions... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-int getnameinfo(const struct sockaddr *, socklen_t, char *,
-		socklen_t, char *, socklen_t, unsigned int);
-int
-main ()
-{
- return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: socklen_t for buflen; u_int for flags" >&5
-$as_echo "socklen_t for buflen; u_int for flags" >&6; }
-
-$as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
-
-
-$as_echo "#define IRS_GETNAMEINFO_BUFLEN_T socklen_t" >>confdefs.h
-
-
-$as_echo "#define IRS_GETNAMEINFO_FLAGS_T unsigned int" >>confdefs.h
-
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-int getnameinfo(const struct sockaddr *, socklen_t, char *,
-		size_t, char *, size_t, int);
-int
-main ()
-{
- return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: size_t for buflen; int for flags" >&5
-$as_echo "size_t for buflen; int for flags" >&6; }
-	 $as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
-
-	 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T size_t" >>confdefs.h
-
-	 $as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
-
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-int getnameinfo(const struct sockaddr *, size_t, char *,
-		size_t, char *, size_t, int);
-int
-main ()
-{
- return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: size_t for buflen; int for flags" >&5
-$as_echo "size_t for buflen; int for flags" >&6; }
-	 $as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T size_t" >>confdefs.h
-
-	 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T size_t" >>confdefs.h
-
-	 $as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not match any subspecies; assume standard definition" >&5
-$as_echo "not match any subspecies; assume standard definition" >&6; }
-$as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
-
-$as_echo "#define IRS_GETNAMEINFO_BUFLEN_T socklen_t" >>confdefs.h
-
-$as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-#
-# ...and same for gai_strerror().
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for gai_strerror prototype definitions" >&5
-$as_echo_n "checking for gai_strerror prototype definitions... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-char *gai_strerror(int ecode);
-int
-main ()
-{
- return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: returning char *" >&5
-$as_echo "returning char *" >&6; }
-
-$as_echo "#define IRS_GAISTRERROR_RETURN_T char *" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not match any subspecies; assume standard definition" >&5
-$as_echo "not match any subspecies; assume standard definition" >&6; }
-$as_echo "#define IRS_GAISTRERROR_RETURN_T const char *" >>confdefs.h
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-ac_fn_c_check_func "$LINENO" "getaddrinfo" "ac_cv_func_getaddrinfo"
-if test "x$ac_cv_func_getaddrinfo" = xyes; then :
-  $as_echo "#define HAVE_GETADDRINFO 1" >>confdefs.h
-
-fi
-
-ac_fn_c_check_func "$LINENO" "gai_strerror" "ac_cv_func_gai_strerror"
-if test "x$ac_cv_func_gai_strerror" = xyes; then :
-  $as_echo "#define HAVE_GAISTRERROR 1" >>confdefs.h
-
-fi
-
-
-
-# Check whether --enable-getifaddrs was given.
-if test "${enable_getifaddrs+set}" = set; then :
-  enableval=$enable_getifaddrs; want_getifaddrs="$enableval"
-else
-  want_getifaddrs="yes"
-fi
-
-
-#
-# This interface iteration code for getifaddrs() will fall back to using
-# /proc/net/if_inet6 if getifaddrs() in glibc doesn't return any IPv6
-# addresses.
-#
-case $want_getifaddrs in
-glibc)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: \"--enable-getifaddrs=glibc is no longer required\"" >&5
-$as_echo "$as_me: WARNING: \"--enable-getifaddrs=glibc is no longer required\"" >&2;}
-ac_fn_c_check_func "$LINENO" "getifaddrs" "ac_cv_func_getifaddrs"
-if test "x$ac_cv_func_getifaddrs" = xyes; then :
-  $as_echo "#define HAVE_GETIFADDRS 1" >>confdefs.h
-
-fi
-
-;;
-yes)
-ac_fn_c_check_func "$LINENO" "getifaddrs" "ac_cv_func_getifaddrs"
-if test "x$ac_cv_func_getifaddrs" = xyes; then :
-  $as_echo "#define HAVE_GETIFADDRS 1" >>confdefs.h
-
-fi
-
-;;
-no)
-;;
-esac
-
-#
-# Look for a sysctl call to get the list of network interfaces.
-#
-case $ac_cv_header_sys_sysctl_h in
-yes)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for interface list sysctl" >&5
-$as_echo_n "checking for interface list sysctl... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <sys/socket.h>
-#ifdef NET_RT_IFLIST
-found_rt_iflist
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "found_rt_iflist" >/dev/null 2>&1; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 $as_echo "#define HAVE_IFLIST_SYSCTL 1" >>confdefs.h
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f conftest*
-
-;;
-esac
-
-#
 # Check for some other useful functions that are not ever-present.
 #
-
-ac_fn_c_check_func "$LINENO" "memmove" "ac_cv_func_memmove"
-if test "x$ac_cv_func_memmove" = xyes; then :
-  ISC_PLATFORM_NEEDMEMMOVE="#undef ISC_PLATFORM_NEEDMEMMOVE"
-else
-  ISC_PLATFORM_NEEDMEMMOVE="#define ISC_PLATFORM_NEEDMEMMOVE 1"
-fi
-
-
-
-ac_fn_c_check_func "$LINENO" "strtoul" "ac_cv_func_strtoul"
-if test "x$ac_cv_func_strtoul" = xyes; then :
-  ISC_PLATFORM_NEEDSTRTOUL="#undef ISC_PLATFORM_NEEDSTRTOUL"
-	 GENRANDOMLIB=""
-else
-  ISC_PLATFORM_NEEDSTRTOUL="#define ISC_PLATFORM_NEEDSTRTOUL 1"
-	 GENRANDOMLIB='${ISCLIBS}'
-fi
-
-
-
-
 ac_fn_c_check_func "$LINENO" "strlcpy" "ac_cv_func_strlcpy"
 if test "x$ac_cv_func_strlcpy" = xyes; then :
   ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"
@@ -18915,15 +17947,6 @@ if test "x$ac_cv_func_strlcat" = xyes; then :
   ISC_PLATFORM_NEEDSTRLCAT="#undef ISC_PLATFORM_NEEDSTRLCAT"
 else
   ISC_PLATFORM_NEEDSTRLCAT="#define ISC_PLATFORM_NEEDSTRLCAT 1"
-fi
-
-
-
-ac_fn_c_check_func "$LINENO" "strcasestr" "ac_cv_func_strcasestr"
-if test "x$ac_cv_func_strcasestr" = xyes; then :
-  ISC_PLATFORM_NEEDSTRCASESTR="#undef ISC_PLATFORM_NEEDSTRCASESTR"
-else
-  ISC_PLATFORM_NEEDSTRCASESTR="#define ISC_PLATFORM_NEEDSTRCASESTR 1"
 fi
 
 
@@ -19067,13 +18090,6 @@ _ACEOF
 fi
 
 done
-
-fi
-
-
-ac_fn_c_check_func "$LINENO" "strerror" "ac_cv_func_strerror"
-if test "x$ac_cv_func_strerror" = xyes; then :
-  $as_echo "#define HAVE_STRERROR 1" >>confdefs.h
 
 fi
 
@@ -19272,11 +18288,6 @@ case "$host" in
 $as_echo "#define NEED_SECURE_DIRECTORY 1" >>confdefs.h
 
 	;;
-*-sunos*)
-
-$as_echo "#define NEED_SECURE_DIRECTORY 1" >>confdefs.h
-
-	;;
 esac
 
 #
@@ -19346,212 +18357,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 #
-# BSD/OS, and perhaps some others, don't define rlim_t.
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for type rlim_t" >&5
-$as_echo_n "checking for type rlim_t... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-int
-main ()
-{
-rlim_t rl = 19671212; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
- ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE rlim_t"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking type of rlim_cur" >&5
-$as_echo_n "checking type of rlim_cur... " >&6; }
-if test "$cross_compiling" = yes; then :
-
-
-# Check whether --with-rlimtype was given.
-if test "${with_rlimtype+set}" = set; then :
-  withval=$with_rlimtype; rlimtype="$withval"
-else
-  rlimtype="long long int"
-fi
-
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE $rlimtype"
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: cannot determine type of rlim_cur when cross compiling - assuming $rlimtype" >&5
-$as_echo "cannot determine type of rlim_cur when cross compiling - assuming $rlimtype" >&6; }
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit(!(sizeof(r.rlim_cur) == sizeof(int)));}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: int" >&5
-$as_echo "int" >&6; }
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE int"
-else
-
-if test "$cross_compiling" = yes; then :
-  as_fn_error $? "this cannot happen" "$LINENO" 5
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit(!(sizeof(r.rlim_cur) == sizeof(long int)));}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: long int" >&5
-$as_echo "long int" >&6; }
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long int"
-else
-
-if test "$cross_compiling" = yes; then :
-  as_fn_error $? "this cannot happen" "$LINENO" 5
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit((!sizeof(r.rlim_cur) == sizeof(long long int)));}
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: long long int" >&5
-$as_echo "long long int" >&6; }
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"
-else
-  as_fn_error $? "unable to determine sizeof rlim_cur" "$LINENO" 5
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
-# Older HP-UX doesn't have gettune
-#
-case "$host" in
-	*-hp-hpux*)
-		for ac_header in sys/dyntune.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/dyntune.h" "ac_cv_header_sys_dyntune_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_dyntune_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_DYNTUNE_H 1
-_ACEOF
-
-fi
-
-done
-
-		;;
-	*)
-		;;
-esac
-
-
-#
-# Compaq TruCluster requires more code for handling cluster IP aliases
-#
-case "$host" in
-	*-dec-osf*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for clua_getaliasaddress in -lclua" >&5
-$as_echo_n "checking for clua_getaliasaddress in -lclua... " >&6; }
-if ${ac_cv_lib_clua_clua_getaliasaddress+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lclua  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char clua_getaliasaddress ();
-int
-main ()
-{
-return clua_getaliasaddress ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_clua_clua_getaliasaddress=yes
-else
-  ac_cv_lib_clua_clua_getaliasaddress=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_clua_clua_getaliasaddress" >&5
-$as_echo "$ac_cv_lib_clua_clua_getaliasaddress" >&6; }
-if test "x$ac_cv_lib_clua_clua_getaliasaddress" = xyes; then :
-  LIBS="-lclua $LIBS"
-fi
-
-		ac_fn_c_check_func "$LINENO" "clua_getaliasaddress" "ac_cv_func_clua_getaliasaddress"
-if test "x$ac_cv_func_clua_getaliasaddress" = xyes; then :
-
-$as_echo "#define HAVE_TRUCLUSTER 1" >>confdefs.h
-
-fi
-
-		;;
-	*)
-		;;
-esac
-
-#
-# Some hosts need msg_namelen to match the size of the socket structure.
-# Some hosts don't set msg_namelen appropriately on return from recvmsg().
-#
-case $host in
-*os2*|*hp-mpeix*)
-
-$as_echo "#define BROKEN_RECVMSG 1" >>confdefs.h
-
-	;;
-esac
-
-#
 # Microsoft has their own way of handling shared libraries that requires
 # additional qualifiers on extern variables.  Unix systems don't need it.
 #
@@ -19564,83 +18369,6 @@ IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
 # Random remaining OS-specific issues involving compiler warnings.
 # XXXDCL print messages to indicate some compensation is being done?
 #
-
-ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
-
-case "$host" in
-	*-aix5.[123].*)
-		hack_shutup_pthreadonceinit=yes
-		;;
-	*-bsdi3.1*)
-		hack_shutup_sputaux=yes
-		;;
-	*-bsdi4.0*)
-		hack_shutup_sigwait=yes
-		hack_shutup_sputaux=yes
-		;;
-	*-bsdi4.[12]*)
-		hack_shutup_stdargcast=yes
-		;;
-	*-solaris2.[89])
-		hack_shutup_pthreadonceinit=yes
-		;;
-	*-solaris2.1[0-9])
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
- #include <pthread.h>
-int
-main ()
-{
- static pthread_once_t once_test = { PTHREAD_ONCE_INIT };
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  hack_shutup_pthreadonceinit=yes
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-esac
-
-case "$hack_shutup_pthreadonceinit" in
-	yes)
-		#
-		# Shut up PTHREAD_ONCE_INIT unbraced initializer warnings.
-		#
-		ISC_PLATFORM_BRACEPTHREADONCEINIT="#define ISC_PLATFORM_BRACEPTHREADONCEINIT 1"
-		;;
-esac
-
-case "$hack_shutup_sigwait" in
-	yes)
-		#
-		# Shut up a -Wmissing-prototypes warning for sigwait().
-		#
-		$as_echo "#define SHUTUP_SIGWAIT 1" >>confdefs.h
-
-		;;
-esac
-
-case "$hack_shutup_sputaux" in
-	yes)
-		#
-		# Shut up a -Wmissing-prototypes warning from <stdio.h>.
-		#
-		$as_echo "#define SHUTUP_SPUTAUX 1" >>confdefs.h
-
-		;;
-esac
-
-case "$hack_shutup_stdargcast" in
-	yes)
-		#
-		# Shut up a -Wcast-qual warning from va_start().
-		#
-		$as_echo "#define SHUTUP_STDARG_CAST 1" >>confdefs.h
-
-		;;
-esac
 
 for ac_header in strings.h
 do :
@@ -19670,54 +18398,6 @@ else
   ac_cv_have_if_nametoindex=no
 fi
 
-case $ac_cv_have_if_nametoindex in
-no)
-	case "$host" in
-	*-hp-hpux*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for if_nametoindex in -lipv6" >&5
-$as_echo_n "checking for if_nametoindex in -lipv6... " >&6; }
-if ${ac_cv_lib_ipv6_if_nametoindex+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lipv6  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char if_nametoindex ();
-int
-main ()
-{
-return if_nametoindex ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_ipv6_if_nametoindex=yes
-else
-  ac_cv_lib_ipv6_if_nametoindex=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_ipv6_if_nametoindex" >&5
-$as_echo "$ac_cv_lib_ipv6_if_nametoindex" >&6; }
-if test "x$ac_cv_lib_ipv6_if_nametoindex" = xyes; then :
-  ac_cv_have_if_nametoindex=yes
-				LIBS="-lipv6 $LIBS"
-fi
-
-	;;
-	esac
-esac
 case $ac_cv_have_if_nametoindex in
 yes)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
@@ -19788,70 +18468,7 @@ fi
 
 case "$enable_atomic" in
 	yes|''|autodetect)
-		case "$host" in
-		powerpc-ibm-aix*)
-			if test "X$GCC" = "Xyes"; then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"ics\"); works" >&5
-$as_echo_n "checking if asm(\"ics\"); works... " >&6; }
-				cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-				main() { asm("ics"); exit(0); }
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-				 use_atomic=yes
-else
-
-				saved_cflags="$CFLAGS"
-				CFLAGS="$CFLAGS -Wa,-many"
-				if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: cross compile, assume yes" >&5
-$as_echo "cross compile, assume yes" >&6; }
-				 CFLAGS="$saved_cflags"
-				 use_atomic=yes
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-				main() { asm("ics"); exit(0); }
-
-_ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes, required -Wa,-many" >&5
-$as_echo "yes, required -Wa,-many" >&6; }
-				 use_atomic=yes
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no, use_atomic disabled" >&5
-$as_echo "no, use_atomic disabled" >&6; }
-				 CFLAGS="$saved_cflags"
-				 use_atomic=no
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
-
-
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-			else
-				use_atomic=yes
-			fi
-			;;
-		*)
-			use_atomic=yes
-			;;
-		esac
+		use_atomic=yes
 		;;
 	no)
 		have_stdatomic=no
@@ -19892,7 +18509,6 @@ fi
 
 
 
-ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
 ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
 ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
 ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
@@ -19949,9 +18565,6 @@ _ACEOF
 		else
 			arch=x86_32
 		fi
-	;;
-	alpha*-*)
-		arch=alpha
 	;;
 	powerpc-*|powerpc64-*)
 		arch=powerpc
@@ -20020,44 +18633,10 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		fi
-	else
-		case "$host" in
-		alpha*-dec-osf*)
-			# Tru64 compiler has its own syntax for inline
-			# assembly.
-			cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-
-#ifndef __DECC
-#error "unexpected compiler"
-#endif
-				return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  compiler=osf
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-		powerpc-ibm-aix*)
-			compiler=aix
-		;;
-		esac
 	fi
 	case "$compiler" in
 	gcc)
 		ISC_PLATFORM_USEGCCASM="#define ISC_PLATFORM_USEGCCASM 1"
-		;;
-	osf)
-		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
-		;;
-	aix)
 		;;
 	mac)
 		;;
@@ -20112,7 +18691,6 @@ else
 	ISC_PLATFORM_HAVEXADDQ="#undef ISC_PLATFORM_HAVEXADDQ"
 	ISC_PLATFORM_HAVEATOMICSTOREQ="#undef ISC_PLATFORM_HAVEATOMICSTOREQ"
 fi
-
 
 
 
@@ -20961,11 +19539,9 @@ fi
 
 #
 #  The following sets up how non-blocking i/o is established.
-#  Sunos, cygwin and solaris 2.x (x<5) require special handling.
+#  cygwin and solaris 2.x (x<5) require special handling.
 #
 case "$host" in
-*-sunos*) $as_echo "#define PORT_NONBLOCK O_NDELAY" >>confdefs.h
-;;
 *-cygwin*) $as_echo "#define PORT_NONBLOCK O_NDELAY" >>confdefs.h
 ;;
 *-solaris2.[01234])
@@ -22513,11 +21089,6 @@ else
 fi
 
 
-case $host in
-	*-sunos*) dlopen="no"
-		;;
-esac
-
 if test "yes" = "$dlopen"; then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
 $as_echo_n "checking for dlopen in -ldl... " >&6; }
@@ -22619,12 +21190,6 @@ if test "yes" = "$dlopen"; then
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
 			SO_LDFLAGS="-G -z text"
-			SO_LD="ld"
-			;;
-		*-hp-hpux*)
-			SO=sl
-			SO_CFLAGS="+z"
-			SO_LDFLAGS="-b +vnocompatwarnings"
 			SO_LD="ld"
 			;;
 		*)
@@ -26081,8 +24646,7 @@ report() {
 
     # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
-	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
-	    echo "    IPv6 support (--enable-ipv6)"
+	test "no" = "$found_ipv6" || echo "    IPv6 support (--enable-ipv6)"
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -26133,8 +24697,7 @@ report() {
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
-    test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
-	    echo "    IPv6 support (--enable-ipv6)"
+    test "no" = "$found_ipv6" && echo "    IPv6 support (--enable-ipv6)"
     test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
 
     test "no" = "$use_dnstap" && \

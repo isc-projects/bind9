@@ -26,12 +26,12 @@ CDEFINES =
 CWARNINGS =
 
 # Alphabetically
-UNIXOBJS =	@ISC_ISCIPV6_O@ unix/pk11_api.@O@ \
+UNIXOBJS =	unix/pk11_api.@O@ \
 		unix/app.@O@ unix/dir.@O@ unix/errno.@O@ \
 		unix/errno2result.@O@ unix/file.@O@ unix/fsaccess.@O@ \
 		unix/interfaceiter.@O@ unix/keyboard.@O@ unix/meminfo.@O@ \
 		unix/net.@O@ unix/os.@O@ unix/resource.@O@ unix/socket.@O@ \
-		unix/stdio.@O@ unix/stdtime.@O@ unix/strerror.@O@ \
+		unix/stdio.@O@ unix/stdtime.@O@ \
 		unix/syslog.@O@ unix/time.@O@
 
 NLSOBJS =	nls/msgcat.@O@
@@ -44,7 +44,7 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/errno.@O@ \
 		win32/stdtime.@O@ win32/thread.@O@ win32/time.@O@
 
 # Alphabetically
-OBJS =		@ISC_EXTRA_OBJS@ pk11.@O@ pk11_result.@O@ \
+OBJS =		pk11.@O@ pk11_result.@O@ \
 		aes.@O@ assertions.@O@ backtrace.@O@ base32.@O@ base64.@O@ \
 		bind9.@O@ buffer.@O@ bufferlist.@O@ \
 		commandline.@O@ counter.@O@ crc64.@O@ error.@O@ entropy.@O@ \
@@ -57,13 +57,13 @@ OBJS =		@ISC_EXTRA_OBJS@ pk11.@O@ pk11_result.@O@ \
 		ratelimiter.@O@ refcount.@O@ region.@O@ regex.@O@ result.@O@ \
 		rwlock.@O@ \
 		serial.@O@ sha1.@O@ sha2.@O@ sockaddr.@O@ stats.@O@ \
-		string.@O@ strtoul.@O@ symtab.@O@ task.@O@ taskpool.@O@ \
+		string.@O@ symtab.@O@ task.@O@ taskpool.@O@ \
 		tm.@O@ timer.@O@ version.@O@ \
 		${UNIXOBJS} ${NLSOBJS} ${THREADOBJS}
 SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
-SRCS =		@ISC_EXTRA_SRCS@ pk11.c pk11_result.c \
+SRCS =		pk11.c pk11_result.c \
 		aes.c assertions.c backtrace.c base32.c base64.c bind9.c \
 		buffer.c bufferlist.c commandline.c counter.c crc64.c \
 		entropy.c error.c event.c hash.c ht.c heap.c hex.c hmacmd5.c \
@@ -74,7 +74,7 @@ SRCS =		@ISC_EXTRA_SRCS@ pk11.c pk11_result.c \
 		parseint.c portset.c quota.c radix.c random.c \
 		ratelimiter.c refcount.c region.c regex.c result.c rwlock.c \
 		serial.c sha1.c sha2.c sockaddr.c stats.c string.c \
-		strtoul.c symtab.c task.c taskpool.c timer.c \
+		symtab.c task.c taskpool.c timer.c \
 		tm.c version.c
 
 LIBS =		@OPENSSL_LIBS@ @LIBS@

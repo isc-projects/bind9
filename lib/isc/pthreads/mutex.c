@@ -16,6 +16,7 @@
 
 #include <stdbool.h>
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include <sys/time.h>
 #include <errno.h>
@@ -23,7 +24,6 @@
 #include <isc/mutex.h>
 #include <isc/util.h>
 #include <isc/print.h>
-#include <isc/strerror.h>
 #include <isc/once.h>
 
 #if ISC_MUTEX_PROFILE
@@ -292,7 +292,7 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 	if (err == ENOMEM)
 		return (ISC_R_NOMEMORY);
 	if (err != 0) {
-		isc__strerror(err, strbuf, sizeof(strbuf));
+		strerror_r(err, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(file, line, "isc_mutex_init() failed: %s",
 				 strbuf);
 		result = ISC_R_UNEXPECTED;

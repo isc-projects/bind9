@@ -15,9 +15,10 @@
 #include <config.h>
 
 #include <stdbool.h>
+#include <string.h>
 
+#include <isc/platform.h>
 #include <isc/result.h>
-#include <isc/strerror.h>
 #include <isc/util.h>
 
 #include "errno2result.h"
@@ -109,7 +110,7 @@ isc___errno2result(int posixerrno, bool dolog,
 		return (ISC_R_CONNREFUSED);
 	default:
 		if (dolog) {
-			isc__strerror(posixerrno, strbuf, sizeof(strbuf));
+			strerror_r(posixerrno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(file, line, "unable to convert errno "
 					 "to isc_result: %d: %s",
 					 posixerrno, strbuf);

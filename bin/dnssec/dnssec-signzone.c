@@ -49,7 +49,6 @@
 #include <isc/serial.h>
 #include <isc/safe.h>
 #include <isc/stdio.h>
-#include <isc/stdlib.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
@@ -89,7 +88,7 @@
 #include "dnssectool.h"
 
 #ifndef PATH_MAX
-#define PATH_MAX 1024   /* AIX, WIN32, and others don't define this. */
+#define PATH_MAX 1024   /* WIN32, and others don't define this. */
 #endif
 
 const char *program = "dnssec-signzone";

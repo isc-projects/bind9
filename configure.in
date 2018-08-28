@@ -17,18 +17,6 @@ AC_CANONICAL_HOST
 
 AC_PROG_MAKE_SET
 
-#
-# GNU libtool support
-#
-case $build_os in
-sunos*)
-    # Just set the maximum command line length for sunos as it otherwise
-    # takes a exceptionally long time to work it out. Required for libtool.
-     
-    lt_cv_sys_max_cmd_len=4096;
-    ;;
-esac
-
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_LN_S
@@ -409,18 +397,6 @@ AC_PROG_CC_C99
 # OS dependent CC flags
 #
 case "$host" in
-	# OSF 5.0: recv/send are only available with -D_POSIX_PII_SOCKET or
-	# -D_XOPEN_SOURCE_EXTENDED.
-	*-dec-osf*)
-		STD_CDEFINES="$STD_CDEFINES -D_POSIX_PII_SOCKET"
-		CPPFLAGS="$CPPFLAGS -D_POSIX_PII_SOCKET"
-		;;
-	#HP-UX: need -D_XOPEN_SOURCE_EXTENDED and -lxnet for CMSG macros
-	*-hp-hpux*)
-		STD_CDEFINES="$STD_CDEFINES -D_XOPEN_SOURCE_EXTENDED"
-		CPPFLAGS="$CPPFLAGS -D_XOPEN_SOURCE_EXTENDED"
-		LIBS="-lxnet $LIBS"
-		;;
 	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
 	*-solaris*)
 		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
@@ -520,24 +496,6 @@ AC_CHECK_FUNCS(mmap)
 AC_CHECK_FUNCS(seteuid setresuid)
 AC_CHECK_FUNCS(setegid setresgid)
 
-#
-# UnixWare 7.1.1 with the feature supplement to the UDK compiler
-# is reported to not support "static inline" (RT #1212).
-#
-AC_MSG_CHECKING(for static inline breakage)
-AC_TRY_COMPILE([
-	static inline int foo1() {
-		return 0;
-	}
-
-	static inline int foo2() {
-		return foo1();
-	}
-	], [foo1();],
-	[AC_MSG_RESULT(no)],
-	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(inline, ,[Define to empty if your compiler does not support "static inline".])])
-
 AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINTPTR_T
@@ -560,13 +518,6 @@ int getsockname(int, struct sockaddr *, size_t *);
 ])
 AC_SUBST(ISC_SOCKADDR_LEN_T)
 AC_HEADER_TIME
-AC_MSG_CHECKING(for long long)
-AC_TRY_COMPILE([],[long long i = 0; return (0);],
-	[AC_MSG_RESULT(yes)
-		ISC_PLATFORM_HAVELONGLONG="#define ISC_PLATFORM_HAVELONGLONG 1"],
-	[AC_MSG_RESULT(no)
-		ISC_PLATFORM_HAVELONGLONG="#undef ISC_PLATFORM_HAVELONGLONG"])
-AC_SUBST(ISC_PLATFORM_HAVELONGLONG)
 
 #
 # check for uname library routine
@@ -927,14 +878,6 @@ case "$host" in
 		esac
 		;;
 	#
-	# BSDI 3.0 through 4.0.1 needs pthread_init() to be
-	# called before certain pthreads calls.	 This is deprecated
-	# in BSD/OS 4.1.
-	#
-	*-bsdi3.*|*-bsdi4.0*)
-		AC_DEFINE(NEED_PTHREAD_INIT)
-		;;
-	#
 	# LinuxThreads requires some changes to the way we
 	# deal with signals.
 	#
@@ -949,12 +892,6 @@ case "$host" in
 		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
 		AC_CHECK_FUNC(pthread_setconcurrency,
 			      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
-		;;
-	#
-	# UnixWare does things its own way.
-	#
-	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-		AC_DEFINE(HAVE_UNIXWARE_SIGWAIT)
 		;;
 esac
 
@@ -988,10 +925,6 @@ case $use_libtool in
 		case "$host" in
 		*) LIBTOOL_ALLOW_UNDEFINED= ;;
 		esac
-		case "$host" in
-		*-ibm-aix*) LIBTOOL_IN_MAIN="-Wl,-bI:T_testlist.imp" ;;
-		*) LIBTOOL_IN_MAIN= ;;
-		esac;
 		;;
 	*)
 		AC_MSG_RESULT(no)
@@ -1005,7 +938,6 @@ case $use_libtool in
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_MODE_UNINSTALL=
 		LIBTOOL_ALLOW_UNDEFINED=
-		LIBTOOL_IN_MAIN=
 		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
@@ -1306,7 +1238,7 @@ case "$use_gssapi" in
 		DNS_GSSAPI_LIBS="-framework Kerberos"
 		AC_MSG_RESULT(framework)
 		;;
-		
+
 	*)
 		AC_MSG_RESULT(looking in $use_gssapi/lib)
 		USE_GSSAPI='-DGSSAPI'
@@ -1763,7 +1695,6 @@ esac
 #
 MKDEPCC="$CC"
 MKDEPCFLAGS="-M"
-IRIX_DNSSEC_WARNINGS_HACK=""
 
 if test "X$GCC" = "Xyes"; then
 	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
@@ -1793,12 +1724,6 @@ if test "X$GCC" = "Xyes"; then
 	else
 		AC_MSG_RESULT(no)
 	fi
-	case "$host" in
-	*-hp-hpux*)
-		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
-		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
-		;;
-	esac
 	if test "X$enable_warn_shadow" = Xyes; then
 		STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
 	fi
@@ -1807,50 +1732,8 @@ if test "X$GCC" = "Xyes"; then
 	fi
 else
 	case $host in
-	*-dec-osf*)
-		CC="$CC -std"
-		CCOPT="$CCOPT -std"
-		CCNOOPT="$CCNOOPT -std"
-		MKDEPCC="$CC"
-		;;
-	*-hp-hpux*)
-		CC="$CC -Ae -z"
-		# The version of the C compiler that constantly warns about
-		# 'const' as well as alignment issues is unfortunately not
-		# able to be discerned via the version of the operating
-		# system, nor does cc have a version flag.
-		case "`$CC +W 123 2>&1`" in
-		*Unknown?option*)
-			STD_CWARNINGS="+w1"
-			;;
-		*)
-			# Turn off the pointlessly noisy warnings.
-			STD_CWARNINGS="+w1 +W 474,530,2193,2236"
-			;;
-		esac
-		CCOPT="$CCOPT -Ae -z"
-		CCNOOPT="$CCNOOPT -Ae -z"
-		CFLAGS="$CFLAGS -Wl,+vnocompatwarnings"
-		BACKTRACECFLAGS="$BACKTRACECFLAGS -Wl,+vnocompatwarnings"
-		MKDEPPROG='cc -Ae -E -Wp,-M >/dev/null 2>>$TMP'
-		;;
-	*-sgi-irix*)
-		STD_CWARNINGS="-fullwarn -woff 1209"
-		#
-		# Silence more than 250 instances of
-		#   "prototyped function redeclared without prototype"
-		# and 11 instances of
-		#   "variable ... was set but never used"
-		# from lib/dns/sec/openssl.
-		#
-		IRIX_DNSSEC_WARNINGS_HACK="-woff 1692,1552"
-		;;
 	*-solaris*)
 		MKDEPCFLAGS="-xM"
-		;;
-	*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-		# UnixWare
-		CC="$CC -w"
 		;;
 	esac
 fi
@@ -1858,7 +1741,6 @@ fi
 AC_SUBST(MKDEPCC)
 AC_SUBST(MKDEPCFLAGS)
 AC_SUBST(MKDEPPROG)
-AC_SUBST(IRIX_DNSSEC_WARNINGS_HACK)
 
 #
 # NLS
@@ -1875,8 +1757,6 @@ AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
 # Use this for now, instead:
 #
 case "$host" in
-	mips-sgi-irix*)
-		;;
 	*-linux*)
 		;;
 	*)
@@ -2034,7 +1914,6 @@ AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_MODE_UNINSTALL)
 AC_SUBST(LIBTOOL_ALLOW_UNDEFINED)
-AC_SUBST(LIBTOOL_IN_MAIN)
 
 BIND9_CO_RULE=".c.$O:"
 AC_SUBST(BIND9_CO_RULE)
@@ -2045,232 +1924,29 @@ AC_SUBST(BIND9_CO_RULE)
 #
 
 #
-# IPv6
-#
-AC_ARG_ENABLE(ipv6,
-	      AS_HELP_STRING([--enable-ipv6], [use IPv6 [default=autodetect]]))
-
-case "$enable_ipv6" in
-	yes|''|autodetect)
-		AC_DEFINE(WANT_IPV6)
-		;;
-	no)
-		;;
-esac
-
-#
 # We do the IPv6 compilation checking after libtool so that we can put
 # the right suffix on the files.
 #
-AC_MSG_CHECKING(for IPv6 structures)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>],
-[struct sockaddr_in6 sin6; return (0);],
-	[AC_MSG_RESULT(yes)
-	 found_ipv6=yes],
-	[AC_MSG_RESULT(no)
-	 found_ipv6=no])
-
-#
-# See whether IPv6 support is provided via a Kame add-on.
-# This is done before other IPv6 linking tests to LIBS is properly set.
-#
-AC_MSG_CHECKING(for Kame IPv6 support)
-AC_ARG_WITH(kame,
-	    AS_HELP_STRING([--with-kame[=PATH]],
-			   [use Kame IPv6 [default path /usr/local/v6]]),
-	    use_kame="$withval", use_kame="no")
-
-case "$use_kame" in
-	no)
-		;;
-	yes)
-		kame_path=/usr/local/v6
-		;;
-	*)
-		kame_path="$use_kame"
-		;;
-esac
-
-case "$use_kame" in
-	no)
-		AC_MSG_RESULT(no)
-		;;
-	*)
-		if test -f $kame_path/lib/libinet6.a; then
-			AC_MSG_RESULT($kame_path/lib/libinet6.a)
-			LIBS="-L$kame_path/lib -linet6 $LIBS"
-		else
-			AC_MSG_ERROR([$kame_path/lib/libinet6.a not found.
-
-Please choose the proper path with the following command:
-
-    configure --with-kame=PATH
-])
-		fi
-		;;
-esac
-
-#
-# Whether netinet6/in6.h is needed has to be defined in isc/platform.h.
-# Including it on Kame-using platforms is very bad, though, because
-# Kame uses #error against direct inclusion.   So include it on only
-# the platform that is otherwise broken without it -- BSD/OS 4.0 through 4.1.
-# This is done before the in6_pktinfo check because that's what
-# netinet6/in6.h is needed for.
-#
-changequote({, })
-case "$host" in
-*-bsdi4.[01]*)
-	ISC_PLATFORM_NEEDNETINET6IN6H="#define ISC_PLATFORM_NEEDNETINET6IN6H 1"
-	isc_netinet6in6_hack="#include <netinet6/in6.h>"
-	;;
-*)
-	ISC_PLATFORM_NEEDNETINET6IN6H="#undef ISC_PLATFORM_NEEDNETINET6IN6H"
-	isc_netinet6in6_hack=""
-	;;
-esac
-changequote([, ])
-
-#
-# This is similar to the netinet6/in6.h issue.
-#
-case "$host" in
-*-sco-sysv*uw*|*-*-sysv*UnixWare*|*-*-sysv*OpenUNIX*)
-	# UnixWare
-	ISC_PLATFORM_NEEDNETINETIN6H="#define ISC_PLATFORM_NEEDNETINETIN6H 1"
-	ISC_PLATFORM_FIXIN6ISADDR="#define ISC_PLATFORM_FIXIN6ISADDR 1"
-	isc_netinetin6_hack="#include <netinet/in6.h>"
-	;;
-*)
-	ISC_PLATFORM_NEEDNETINETIN6H="#undef ISC_PLATFORM_NEEDNETINETIN6H"
-	ISC_PLATFORM_FIXIN6ISADDR="#undef ISC_PLATFORM_FIXIN6ISADDR"
-	isc_netinetin6_hack=""
-	;;
-esac
-
-#
-# Now delve deeper into the suitability of the IPv6 support.
-#
-case "$found_ipv6" in
-	yes)
-		ISC_PLATFORM_HAVEIPV6="#define ISC_PLATFORM_HAVEIPV6 1"
-
-		AC_MSG_CHECKING(for in6_addr)
-		AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-],
-[struct in6_addr in6; return (0);],
-		[AC_MSG_RESULT(yes)
-		 ISC_PLATFORM_HAVEINADDR6="#undef ISC_PLATFORM_HAVEINADDR6"
-		 isc_in_addr6_hack=""],
-		[AC_MSG_RESULT(no)
-		 ISC_PLATFORM_HAVEINADDR6="#define ISC_PLATFORM_HAVEINADDR6 1"
-		 isc_in_addr6_hack="#define in6_addr in_addr6"])
-
-		AC_MSG_CHECKING(for in6addr_any)
-		AC_TRY_LINK([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-$isc_in_addr6_hack
-],
-		[struct in6_addr in6; in6 = in6addr_any; return (in6.s6_addr[0]);],
-			[AC_MSG_RESULT(yes)
-			 ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"],
-			[AC_MSG_RESULT(no)
-			 ISC_PLATFORM_NEEDIN6ADDRANY="#define ISC_PLATFORM_NEEDIN6ADDRANY 1"])
-
-		AC_MSG_CHECKING(for in6addr_loopback)
-		AC_TRY_LINK([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-$isc_in_addr6_hack
-],
-		[struct in6_addr in6; in6 = in6addr_loopback; return (in6.s6_addr[0]);],
-			[AC_MSG_RESULT(yes)
-			 ISC_PLATFORM_NEEDIN6ADDRLOOPBACK="#undef ISC_PLATFORM_NEEDIN6ADDRLOOPBACK"],
-			[AC_MSG_RESULT(no)
-			 ISC_PLATFORM_NEEDIN6ADDRLOOPBACK="#define ISC_PLATFORM_NEEDIN6ADDRLOOPBACK 1"])
-
-		AC_MSG_CHECKING(for sin6_scope_id in struct sockaddr_in6)
-		AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-],
-		[struct sockaddr_in6 xyzzy; xyzzy.sin6_scope_id = 0; return (0);],
-			[AC_MSG_RESULT(yes)
-			 ISC_PLATFORM_HAVESCOPEID="#define ISC_PLATFORM_HAVESCOPEID 1"],
-			[AC_MSG_RESULT(no)
-			 ISC_PLATFORM_HAVESCOPEID="#undef ISC_PLATFORM_HAVESCOPEID"])
-
-		AC_MSG_CHECKING(for in6_pktinfo)
-		AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-],
-		[struct in6_pktinfo xyzzy; return (0);],
-			[AC_MSG_RESULT(yes)
-			 ISC_PLATFORM_HAVEIN6PKTINFO="#define ISC_PLATFORM_HAVEIN6PKTINFO 1"],
-			[AC_MSG_RESULT(no -- disabling runtime ipv6 support)
-			 ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"])
-		;;
-	no)
-		ISC_PLATFORM_HAVEIPV6="#undef ISC_PLATFORM_HAVEIPV6"
-		ISC_PLATFORM_NEEDIN6ADDRANY="#undef ISC_PLATFORM_NEEDIN6ADDRANY"
-		ISC_PLATFORM_HAVEIN6PKTINFO="#undef ISC_PLATFORM_HAVEIN6PKTINFO"
-		ISC_PLATFORM_HAVESCOPEID="#define ISC_PLATFORM_HAVESCOPEID 1"
-		ISC_IPV6_H="ipv6.h"
-		ISC_IPV6_O="ipv6.$O"
-		ISC_ISCIPV6_O="unix/ipv6.$O"
-		ISC_IPV6_C="ipv6.c"
-		;;
-esac
-
-AC_MSG_CHECKING(for struct sockaddr_storage)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-$isc_netinetin6_hack
-$isc_netinet6in6_hack
-],
-[struct sockaddr_storage storage; return (0);],
-[AC_MSG_RESULT(yes)
-ISC_PLATFORM_HAVESOCKADDRSTORAGE="#define ISC_PLATFORM_HAVESOCKADDRSTORAGE 1"],
-[AC_MSG_RESULT(no)
-ISC_PLATFORM_HAVESOCKADDRSTORAGE="#undef ISC_PLATFORM_HAVESOCKADDRSTORAGE"])
-
-AC_SUBST(ISC_PLATFORM_HAVEIPV6)
-AC_SUBST(ISC_PLATFORM_NEEDNETINETIN6H)
-AC_SUBST(ISC_PLATFORM_NEEDNETINET6IN6H)
-AC_SUBST(ISC_PLATFORM_HAVEINADDR6)
-AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRANY)
-AC_SUBST(ISC_PLATFORM_NEEDIN6ADDRLOOPBACK)
-AC_SUBST(ISC_PLATFORM_HAVEIN6PKTINFO)
-AC_SUBST(ISC_PLATFORM_FIXIN6ISADDR)
-AC_SUBST(ISC_PLATFORM_HAVESOCKADDRSTORAGE)
-AC_SUBST(ISC_IPV6_H)
-AC_SUBST(ISC_IPV6_O)
-AC_SUBST(ISC_ISCIPV6_O)
-AC_SUBST(ISC_IPV6_C)
-AC_SUBST(ISC_PLATFORM_HAVESCOPEID)
+AC_MSG_CHECKING([for IPv6 structures])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[
+       #include <sys/types.h>
+       #include <sys/socket.h>
+       #include <netinet/in.h>
+     ]],
+     [[
+       struct sockaddr_in6 sin6;
+       struct in6_addr in6;
+       struct in6_pktinfo in6_pi;
+       struct sockaddr_storage storage;
+       in6 = in6addr_any;
+       in6 = in6addr_loopback;
+       sin6.sin6_scope_id = 0;
+       return (0);
+     ]])],
+  [AC_MSG_RESULT([yes])],
+  [AC_MSG_FAILURE([IPv6 support is mandatory])])
 
 AC_MSG_CHECKING([for struct if_laddrreq])
 AC_TRY_LINK([
@@ -2293,110 +1969,6 @@ AC_TRY_LINK([
 	[AC_MSG_RESULT(no)
 	ISC_PLATFORM_HAVEIF_LADDRCONF="#undef ISC_PLATFORM_HAVEIF_LADDRCONF"])
 AC_SUBST(ISC_PLATFORM_HAVEIF_LADDRCONF)
-
-#
-# Check for network functions that are often missing.  We do this
-# after the libtool checking, so we can put the right suffix on
-# the files.  It also needs to come after checking for a Kame add-on,
-# which provides some (all?) of the desired functions.
-#
-
-AC_MSG_CHECKING([for inet_ntop with IPv6 support])
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-main() {
-char a[16],b[64]; return(inet_ntop(AF_INET6, a, b, sizeof(b)) == (char*)0);}],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"],
-
-	[AC_MSG_RESULT(no)
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_ntop.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_ntop.c"
-	ISC_PLATFORM_NEEDNTOP="#define ISC_PLATFORM_NEEDNTOP 1"],
-	[AC_MSG_RESULT(assuming inet_ntop not needed)
-	ISC_PLATFORM_NEEDNTOP="#undef ISC_PLATFORM_NEEDNTOP"])
-
-
-# On NetBSD 1.4.2 and maybe others, inet_pton() incorrectly accepts
-# addresses with less than four octets, like "1.2.3".  Also leading
-# zeros should also be rejected.
-
-AC_MSG_CHECKING([for working inet_pton with IPv6 support])
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
-			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 : 
-			     (inet_pton(AF_INET6, "::1.2.3.4", a) != 1)); }],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
-	[AC_MSG_RESULT(no)
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"],
-	[AC_MSG_RESULT(assuming inet_pton needed)
-	ISC_EXTRA_OBJS="$ISC_EXTRA_OBJS inet_pton.$O"
-	ISC_EXTRA_SRCS="$ISC_EXTRA_SRCS inet_pton.c"
-	ISC_PLATFORM_NEEDPTON="#define ISC_PLATFORM_NEEDPTON 1"])
-
-AC_SUBST(ISC_PLATFORM_NEEDNTOP)
-AC_SUBST(ISC_PLATFORM_NEEDPTON)
-AC_SUBST(ISC_EXTRA_OBJS)
-AC_SUBST(ISC_EXTRA_SRCS)
-
-#
-# Look for a 4.4BSD-style sa_len member in struct sockaddr.
-#
-case "$host" in
-	*-dec-osf*)
-		# Turn on 4.4BSD style sa_len support.
-		AC_DEFINE(_SOCKADDR_LEN)
-		;;
-esac
-
-AC_MSG_CHECKING(for sa_len in struct sockaddr)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>],
-[struct sockaddr sa; sa.sa_len = 0; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVESALEN="#define ISC_PLATFORM_HAVESALEN 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVESALEN="#undef ISC_PLATFORM_HAVESALEN"])
-AC_SUBST(ISC_PLATFORM_HAVESALEN)
-
-#
-# Look for a 4.4BSD or 4.3BSD struct msghdr
-#
-AC_MSG_CHECKING(for struct msghdr flavor)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>],
-[struct msghdr msg; msg.msg_flags = 0; return (0);],
-	[AC_MSG_RESULT(4.4BSD)
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD44MSGHDR 1"],
-	[AC_MSG_RESULT(4.3BSD)
-	ISC_PLATFORM_MSGHDRFLAVOR="#define ISC_NET_BSD43MSGHDR 1"])
-AC_SUBST(ISC_PLATFORM_MSGHDRFLAVOR)
-
-#
-# Look for in_port_t.
-#
-AC_MSG_CHECKING(for type in_port_t)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <netinet/in.h>],
-[in_port_t port = 25; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_NEEDPORTT="#undef ISC_PLATFORM_NEEDPORTT"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_NEEDPORTT="#define ISC_PLATFORM_NEEDPORTT 1"])
-AC_SUBST(ISC_PLATFORM_NEEDPORTT)
 
 #
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
@@ -2433,144 +2005,8 @@ esac
 AC_SUBST(ISC_PLATFORM_HAVETFO)
 
 #
-# Check for addrinfo
-#
-AC_MSG_CHECKING(for struct addrinfo)
-AC_TRY_COMPILE([
-#include <netdb.h>],
-[struct addrinfo a; return (0);],
-	[AC_MSG_RESULT(yes)
-	ISC_IRS_NEEDADDRINFO="#undef ISC_IRS_NEEDADDRINFO"
-	AC_DEFINE(HAVE_ADDRINFO)],
-	[AC_MSG_RESULT(no)
-	ISC_IRS_NEEDADDRINFO="#define ISC_IRS_NEEDADDRINFO 1"])
-AC_SUBST(ISC_IRS_NEEDADDRINFO)
-
-#
-# Sadly, the definitions of system-supplied getnameinfo(3) vary.  Try to catch
-# known variations here:
-#
-AC_MSG_CHECKING(for getnameinfo prototype definitions)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-int getnameinfo(const struct sockaddr *, socklen_t, char *,
-		socklen_t, char *, socklen_t, unsigned int);],
-[ return (0);],
-	[AC_MSG_RESULT(socklen_t for buflen; u_int for flags)
-	 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, socklen_t,
-		   [Define to the sockaddr length type used by getnameinfo(3).])
-	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t,
-		   [Define to the buffer length type used by getnameinfo(3).])
-	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, unsigned int,
-		   [Define to the flags type used by getnameinfo(3).])],
-[AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-int getnameinfo(const struct sockaddr *, socklen_t, char *,
-		size_t, char *, size_t, int);],
-[ return (0);],
-	[AC_MSG_RESULT(size_t for buflen; int for flags)
-	 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, socklen_t)
-	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, size_t)
-	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)],
-[AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-int getnameinfo(const struct sockaddr *, size_t, char *,
-		size_t, char *, size_t, int);],
-[ return (0);],
-	[AC_MSG_RESULT(size_t for buflen; int for flags)
-	 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, size_t)
-	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, size_t)
-	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)],
-[AC_MSG_RESULT(not match any subspecies; assume standard definition)
-AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, socklen_t)
-AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t)
-AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)])])])
-
-#
-# ...and same for gai_strerror().
-#
-AC_MSG_CHECKING(for gai_strerror prototype definitions)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netdb.h>
-char *gai_strerror(int ecode);],
-[ return (0); ],
-	[AC_MSG_RESULT(returning char *)
-	 AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [char *],
-	 [return type of gai_strerror])],
-[AC_MSG_RESULT(not match any subspecies; assume standard definition)
-AC_DEFINE([IRS_GAISTRERROR_RETURN_T], [const char *])])
-
-AC_CHECK_FUNC(getaddrinfo, AC_DEFINE(HAVE_GETADDRINFO))
-AC_CHECK_FUNC(gai_strerror, AC_DEFINE(HAVE_GAISTRERROR))
-AC_SUBST(ISC_IRS_GETNAMEINFOSOCKLEN)
-
-AC_ARG_ENABLE(getifaddrs,
-	      AS_HELP_STRING([--enable-getifaddrs],
-			     [enable the use of getifaddrs() [yes|no].]),
-    want_getifaddrs="$enableval",  want_getifaddrs="yes")
-
-#
-# This interface iteration code for getifaddrs() will fall back to using
-# /proc/net/if_inet6 if getifaddrs() in glibc doesn't return any IPv6
-# addresses.
-# 
-case $want_getifaddrs in
-glibc)
-AC_MSG_WARN("--enable-getifaddrs=glibc is no longer required")
-AC_CHECK_FUNC(getifaddrs, AC_DEFINE(HAVE_GETIFADDRS))
-;;
-yes)
-AC_CHECK_FUNC(getifaddrs, AC_DEFINE(HAVE_GETIFADDRS))
-;;
-no)
-;;
-esac
-
-#
-# Look for a sysctl call to get the list of network interfaces.
-#
-case $ac_cv_header_sys_sysctl_h in
-yes)
-AC_MSG_CHECKING(for interface list sysctl)
-AC_EGREP_CPP(found_rt_iflist, [
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <sys/socket.h>
-#ifdef NET_RT_IFLIST
-found_rt_iflist
-#endif
-],
-	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_IFLIST_SYSCTL)],
-	[AC_MSG_RESULT(no)])
-;;
-esac
-
-#
 # Check for some other useful functions that are not ever-present.
 #
-
-AC_CHECK_FUNC(memmove,
-	[ISC_PLATFORM_NEEDMEMMOVE="#undef ISC_PLATFORM_NEEDMEMMOVE"],
-	[ISC_PLATFORM_NEEDMEMMOVE="#define ISC_PLATFORM_NEEDMEMMOVE 1"])
-AC_SUBST(ISC_PLATFORM_NEEDMEMMOVE)
-
-AC_CHECK_FUNC(strtoul,
-	[ISC_PLATFORM_NEEDSTRTOUL="#undef ISC_PLATFORM_NEEDSTRTOUL"
-	 GENRANDOMLIB=""],
-	[ISC_PLATFORM_NEEDSTRTOUL="#define ISC_PLATFORM_NEEDSTRTOUL 1"
-	 GENRANDOMLIB='${ISCLIBS}'])
-AC_SUBST(ISC_PLATFORM_NEEDSTRTOUL)
-AC_SUBST(GENRANDOMLIB)
-
 AC_CHECK_FUNC(strlcpy,
 	[ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"],
 	[ISC_PLATFORM_NEEDSTRLCPY="#define ISC_PLATFORM_NEEDSTRLCPY 1"])
@@ -2580,11 +2016,6 @@ AC_CHECK_FUNC(strlcat,
 	[ISC_PLATFORM_NEEDSTRLCAT="#undef ISC_PLATFORM_NEEDSTRLCAT"],
 	[ISC_PLATFORM_NEEDSTRLCAT="#define ISC_PLATFORM_NEEDSTRLCAT 1"])
 AC_SUBST(ISC_PLATFORM_NEEDSTRLCAT)
-
-AC_CHECK_FUNC(strcasestr,
-	[ISC_PLATFORM_NEEDSTRCASESTR="#undef ISC_PLATFORM_NEEDSTRCASESTR"],
-	[ISC_PLATFORM_NEEDSTRCASESTR="#define ISC_PLATFORM_NEEDSTRCASESTR 1"])
-AC_SUBST(ISC_PLATFORM_NEEDSTRCASESTR)
 
 AC_SUBST(READLINE_LIB)
 AC_ARG_WITH(readline,
@@ -2647,8 +2078,6 @@ then
 	AC_CHECK_HEADERS(readline/history.h)
 fi
 
-
-AC_CHECK_FUNC(strerror, AC_DEFINE(HAVE_STRERROR))
 #
 # Use our own SPNEGO implementation?
 #
@@ -2729,10 +2158,6 @@ case "$host" in
 	AC_DEFINE(NEED_SECURE_DIRECTORY, 1,
 		  [Define if connect does not honour the permission on the UNIX domain socket.])
 	;;
-*-sunos*)
-	AC_DEFINE(NEED_SECURE_DIRECTORY, 1,
-		  [Define if connect does not honour the permission on the UNIX domain socket.])
-	;;
 esac
 
 #
@@ -2762,90 +2187,6 @@ AC_TRY_COMPILE([#include <sys/fcntl.h>],[struct stat s; return(s.st_mtim.tv_nsec
 AC_SUBST(ISC_PLATFORM_HAVESTATNSEC)
 
 #
-# BSD/OS, and perhaps some others, don't define rlim_t.
-#
-AC_MSG_CHECKING(for type rlim_t)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>],
-[rlim_t rl = 19671212; return (0);],
-[AC_MSG_RESULT(yes)
- ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE rlim_t"],
-[AC_MSG_RESULT(no)
-
-AC_MSG_CHECKING(type of rlim_cur)
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit(!(sizeof(r.rlim_cur) == sizeof(int)));}],
-[AC_MSG_RESULT(int)
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE int"],
-[
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit(!(sizeof(r.rlim_cur) == sizeof(long int)));}],
-[AC_MSG_RESULT(long int)
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long int"],
-[
-AC_TRY_RUN([
-#include <sys/types.h>
-#include <sys/time.h>
-#include <sys/resource.h>
-main() { struct rlimit r; exit((!sizeof(r.rlim_cur) == sizeof(long long int)));}],
-[AC_MSG_RESULT(long long int)
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE long long int"],
-[AC_MSG_ERROR([unable to determine sizeof rlim_cur])
-],[AC_MSG_ERROR(this cannot happen)])
-],[AC_MSG_ERROR(this cannot happen)])
-],[
-AC_ARG_WITH(rlimtype, , rlimtype="$withval", rlimtype="long long int")
-ISC_PLATFORM_RLIMITTYPE="#define ISC_PLATFORM_RLIMITTYPE $rlimtype"
-AC_MSG_RESULT(cannot determine type of rlim_cur when cross compiling - assuming $rlimtype)])
-])
-AC_SUBST(ISC_PLATFORM_RLIMITTYPE)
-
-#
-# Older HP-UX doesn't have gettune
-#
-case "$host" in
-	*-hp-hpux*)
-		AC_CHECK_HEADERS(sys/dyntune.h)
-		;;
-	*)
-		;;
-esac
-
-
-#
-# Compaq TruCluster requires more code for handling cluster IP aliases
-#
-case "$host" in
-	*-dec-osf*)
-		AC_CHECK_LIB(clua, clua_getaliasaddress, LIBS="-lclua $LIBS")
-		AC_CHECK_FUNC(clua_getaliasaddress,
-				AC_DEFINE(HAVE_TRUCLUSTER, 1,
-					[Define if running under Compaq TruCluster]))
-		;;
-	*)
-		;;
-esac
-
-#
-# Some hosts need msg_namelen to match the size of the socket structure.
-# Some hosts don't set msg_namelen appropriately on return from recvmsg().
-#
-case $host in
-*os2*|*hp-mpeix*)
-	AC_DEFINE(BROKEN_RECVMSG, 1,
-		  [Define if recvmsg() does not meet all of the BSD socket API specifications.])
-	;;
-esac
-
-#
 # Microsoft has their own way of handling shared libraries that requires
 # additional qualifiers on extern variables.  Unix systems don't need it.
 #
@@ -2858,66 +2199,6 @@ IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
 # Random remaining OS-specific issues involving compiler warnings.
 # XXXDCL print messages to indicate some compensation is being done?
 #
-AC_SUBST(ISC_PLATFORM_BRACEPTHREADONCEINIT)
-ISC_PLATFORM_BRACEPTHREADONCEINIT="#undef ISC_PLATFORM_BRACEPTHREADONCEINIT"
-
-case "$host" in
-	*-aix5.[[123]].*)
-		hack_shutup_pthreadonceinit=yes
-		;;
-	*-bsdi3.1*)
-		hack_shutup_sputaux=yes
-		;;
-	*-bsdi4.0*)
-		hack_shutup_sigwait=yes
-		hack_shutup_sputaux=yes
-		;;
-	[*-bsdi4.[12]*])
-		hack_shutup_stdargcast=yes
-		;;
-	[*-solaris2.[89]])
-		hack_shutup_pthreadonceinit=yes
-		;;
-	*-solaris2.1[[0-9]])
-		AC_TRY_COMPILE([ #include <pthread.h> ], [ static pthread_once_t once_test = { PTHREAD_ONCE_INIT }; ], [hack_shutup_pthreadonceinit=yes], )
-		;;
-esac
-
-case "$hack_shutup_pthreadonceinit" in
-	yes)
-		#
-		# Shut up PTHREAD_ONCE_INIT unbraced initializer warnings.
-		#
-		ISC_PLATFORM_BRACEPTHREADONCEINIT="#define ISC_PLATFORM_BRACEPTHREADONCEINIT 1"
-		;;
-esac
-
-case "$hack_shutup_sigwait" in
-	yes)
-		#
-		# Shut up a -Wmissing-prototypes warning for sigwait().
-		#
-		AC_DEFINE(SHUTUP_SIGWAIT)
-		;;
-esac
-
-case "$hack_shutup_sputaux" in
-	yes)
-		#
-		# Shut up a -Wmissing-prototypes warning from <stdio.h>.
-		#
-		AC_DEFINE(SHUTUP_SPUTAUX)
-		;;
-esac
-
-case "$hack_shutup_stdargcast" in
-	yes)
-		#
-		# Shut up a -Wcast-qual warning from va_start().
-		#
-		AC_DEFINE(SHUTUP_STDARG_CAST)
-		;;
-esac
 
 AC_CHECK_HEADERS(strings.h,
   ISC_PLATFORM_HAVESTRINGSH="#define ISC_PLATFORM_HAVESTRINGSH 1"
@@ -2931,16 +2212,6 @@ AC_SUBST(ISC_PLATFORM_HAVESTRINGSH)
 #
 AC_CHECK_FUNC(if_nametoindex, ac_cv_have_if_nametoindex=yes,
 		ac_cv_have_if_nametoindex=no)
-case $ac_cv_have_if_nametoindex in
-no)
-	case "$host" in
-	*-hp-hpux*)
-		AC_CHECK_LIB(ipv6, if_nametoindex,
-				ac_cv_have_if_nametoindex=yes
-				LIBS="-lipv6 $LIBS",)
-	;;
-	esac
-esac
 case $ac_cv_have_if_nametoindex in
 yes)
 	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
@@ -2981,39 +2252,7 @@ AC_ARG_ENABLE(atomic,
 			enable_atomic="autodetect")
 case "$enable_atomic" in
 	yes|''|autodetect)
-		case "$host" in
-		powerpc-ibm-aix*)
-			if test "X$GCC" = "Xyes"; then
-				AC_MSG_CHECKING([if asm("ics"); works])
-				AC_TRY_COMPILE(,[
-				main() { asm("ics"); exit(0); }
-				],
-				[AC_MSG_RESULT(yes)
-				 use_atomic=yes],
-				[
-				saved_cflags="$CFLAGS"
-				CFLAGS="$CFLAGS -Wa,-many"
-				AC_TRY_RUN([
-				main() { asm("ics"); exit(0); }
-				],
-				[AC_MSG_RESULT([yes, required -Wa,-many])
-				 use_atomic=yes],
-				[AC_MSG_RESULT([no, use_atomic disabled])
-				 CFLAGS="$saved_cflags"
-				 use_atomic=no],
-				[AC_MSG_RESULT([cross compile, assume yes])
-				 CFLAGS="$saved_cflags"
-				 use_atomic=yes])
-				]
-				)
-			else
-				use_atomic=yes
-			fi
-			;;
-		*)
-			use_atomic=yes
-			;;
-		esac
+		use_atomic=yes
 		;;
 	no)
 		have_stdatomic=no
@@ -3038,7 +2277,6 @@ fi
 
 AC_SUBST(ISC_PLATFORM_HAVESTDATOMIC)
 
-ISC_PLATFORM_USEOSFASM="#undef ISC_PLATFORM_USEOSFASM"
 ISC_PLATFORM_USEGCCASM="#undef ISC_PLATFORM_USEGCCASM"
 ISC_PLATFORM_USESTDASM="#undef ISC_PLATFORM_USESTDASM"
 ISC_PLATFORM_USEMACASM="#undef ISC_PLATFORM_USEMACASM"
@@ -3063,9 +2301,6 @@ if test "yes" = "$use_atomic"; then
 		else
 			arch=x86_32
 		fi
-	;;
-	alpha*-*)
-		arch=alpha
 	;;
 	powerpc-*|powerpc64-*)
 		arch=powerpc
@@ -3112,31 +2347,10 @@ if test "yes" = "$have_atomic"; then
 			ISC_PLATFORM_USEMACASM="#define ISC_PLATFORM_USEMACASM 1"
 			], [AC_MSG_RESULT(no)])
 		fi
-	else
-		case "$host" in
-		alpha*-dec-osf*)
-			# Tru64 compiler has its own syntax for inline 
-			# assembly.
-			AC_TRY_COMPILE(, [
-#ifndef __DECC
-#error "unexpected compiler"
-#endif
-				return (0);],
-				[compiler=osf],)
-		;;
-		powerpc-ibm-aix*)
-			compiler=aix
-		;;
-		esac
 	fi
 	case "$compiler" in
 	gcc)
 		ISC_PLATFORM_USEGCCASM="#define ISC_PLATFORM_USEGCCASM 1"
-		;;
-	osf)
-		ISC_PLATFORM_USEOSFASM="#define ISC_PLATFORM_USEOSFASM 1"
-		;;
-	aix)
 		;;
 	mac)
 		;;
@@ -3183,7 +2397,6 @@ AC_SUBST(ISC_PLATFORM_HAVEATOMICSTORE)
 AC_SUBST(ISC_PLATFORM_HAVEATOMICSTOREQ)
 
 AC_SUBST(ISC_PLATFORM_USEGCCASM)
-AC_SUBST(ISC_PLATFORM_USEOSFASM)
 AC_SUBST(ISC_PLATFORM_USESTDASM)
 AC_SUBST(ISC_PLATFORM_USEMACASM)
 
@@ -3465,10 +2678,9 @@ AC_SUBST(DNSTAP_PB_C_H)
 
 #
 #  The following sets up how non-blocking i/o is established.
-#  Sunos, cygwin and solaris 2.x (x<5) require special handling.
+#  cygwin and solaris 2.x (x<5) require special handling.
 #
 case "$host" in
-*-sunos*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
 *-cygwin*) AC_DEFINE(PORT_NONBLOCK, O_NDELAY);;
 *-solaris2.[[01234]])
 	AC_DEFINE(PORT_NONBLOCK, O_NONBLOCK)
@@ -3557,11 +2769,11 @@ AC_SUBST(CURL)
 #   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
 #
 # If the file FILENAME is found in one of the DIRECTORIES, the shell
-# variable VARIABLE is defined to its absolute pathname.  Otherwise, 
+# variable VARIABLE is defined to its absolute pathname.  Otherwise,
 # it is set to FILENAME, with no directory prefix (that's not terribly
 # useful, but looks less confusing in substitutions than leaving it
 # empty).  The variable VARIABLE will be substituted into output files.
-# 
+#
 
 AC_DEFUN([NOM_PATH_FILE], [
 $1=""
@@ -3937,7 +3149,7 @@ DLZ_SYSTEM_TEST=""
 DLZ_DRIVER_MYSQL_INCLUDES=""
 DLZ_DRIVER_MYSQL_LIBS=""
 
-# 
+#
 # Configure support for building a shared library object
 #
 # Even when libtool is available it can't always be relied upon
@@ -3956,11 +3168,6 @@ AC_ARG_WITH(dlopen,
 	    AS_HELP_STRING([--with-dlopen=ARG],
 			   [support dynamically loadable DLZ drivers]),
 	    dlopen="$withval", dlopen="yes")
-
-case $host in
-	*-sunos*) dlopen="no"
-		;;
-esac
 
 if test "yes" = "$dlopen"; then
 	AC_CHECK_LIB(dl, dlopen, have_dl=yes, have_dl=no)
@@ -4009,12 +3216,6 @@ if test "yes" = "$dlopen"; then
 		*-solaris*)
 			SO_CFLAGS="-KPIC"
 			SO_LDFLAGS="-G -z text"
-			SO_LD="ld"
-			;;
-		*-hp-hpux*)
-			SO=sl
-			SO_CFLAGS="+z"
-			SO_LDFLAGS="-b +vnocompatwarnings"
 			SO_LD="ld"
 			;;
 		*)
@@ -4086,8 +3287,8 @@ if test "yes" = "$cross_compiling"; then
 	BUILD_LDFLAGS="$BUILD_LDFLAGS"
 	BUILD_LIBS="$BUILD_LIBS"
 else
-	BUILD_CC="$CC" 
-	BUILD_CFLAGS="$CFLAGS" 
+	BUILD_CC="$CC"
+	BUILD_CFLAGS="$CFLAGS"
 	BUILD_CPPFLAGS="$CPPFLAGS $GEN_NEED_OPTARG"
 	BUILD_LDFLAGS="$LDFLAGS"
 	BUILD_LIBS="$LIBS"
@@ -4407,10 +3608,9 @@ report() {
 	echo "        Algorithm: $with_cc_alg"
     fi
 
-    # these lines are only printed if run with --enable-full-report 
+    # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
-	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
-	    echo "    IPv6 support (--enable-ipv6)"
+	test "no" = "$found_ipv6" || echo "    IPv6 support (--enable-ipv6)"
 	test "X$PYTHON" = "X" || echo "    Python tools (--with-python)"
 	test "X$XMLSTATS" = "X" || echo "    XML statistics (--with-libxml2)"
 	test "X$JSONSTATS" = "X" || echo "    JSON statistics (--with-libjson)"
@@ -4461,8 +3661,7 @@ report() {
     echo "-------------------------------------------------------------------------------"
 
     echo "Features disabled or unavailable on this platform:"
-    test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" && \
-	    echo "    IPv6 support (--enable-ipv6)"
+    test "no" = "$found_ipv6" && echo "    IPv6 support (--enable-ipv6)"
     test "large" = "$use_tuning" || echo "    Large-system tuning (--with-tuning)"
 
     test "no" = "$use_dnstap" && \

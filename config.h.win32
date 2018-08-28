@@ -141,8 +141,6 @@ char *getpassphrase(const char *);
  */
 #define ISC_DLZ_DLOPEN 1
 
-#define WANT_IPV6
-
 #define S_IFMT   _S_IFMT         /* file type mask */
 #define S_IFDIR  _S_IFDIR        /* directory */
 #define S_IFCHR  _S_IFCHR        /* character special */
@@ -290,27 +288,6 @@ typedef __int64 off_t;
  * Define if libxml2 is present
  */
 @HAVE_LIBXML2@
-
-/** define if struct addrinfo exists */
-#define HAVE_ADDRINFO
-
-/** define if getaddrinfo() exists */
-#define HAVE_GETADDRINFO
-
-/** define if gai_strerror() exists */
-#define HAVE_GAISTRERROR
-
-/* return type of gai_strerror */
-#define IRS_GAISTRERROR_RETURN_T char *
-
-/* Define to the buffer length type used by getnameinfo(3). */
-#define IRS_GETNAMEINFO_BUFLEN_T DWORD
-
-/* Define to the flags type used by getnameinfo(3). */
-#define IRS_GETNAMEINFO_FLAGS_T int
-
-/* Define to the sockaddr length type used by getnameinfo(3). */
-#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t
 
 /* Define to enable "rrset-order fixed" syntax. */
 @DNS_RDATASET_FIXED@
