@@ -27,6 +27,7 @@
 #include <isc/log.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/tm.h>
