@@ -1,3 +1,5 @@
+5025.	[cleanup]	Remove isc_keyboard family of functions. [GL #178]
+
 5024.	[func]		Replace custom assembly for atomic operations with
 			atomic support from the compiler. The code will now use
 			C11 stdatomic, or __atomic, or __sync builtins with GCC

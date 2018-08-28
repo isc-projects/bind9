@@ -28,7 +28,6 @@
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/file.h>
-#include <isc/keyboard.h>
 #include <isc/mem.h>
 #include <isc/net.h>
 #include <isc/print.h>
