@@ -2506,10 +2506,6 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 			break;
 		}
 	}
-#ifdef PSEUDOSEND
-	client_pseudosend(client, id);
-	return;
-#endif
 
 	/*
 	 * It's a request.  Parse it.
@@ -2531,6 +2527,10 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_error(client, result);
 		return;
 	}
+#ifdef PSEUDOSEND
+	client_pseudosend(client, id);
+	return;
+#endif
 
 	/*
 	 * Pipeline TCP query processing.
