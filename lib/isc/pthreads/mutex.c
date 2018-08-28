@@ -16,7 +16,6 @@
 
 #include <stdbool.h>
 #include <stdio.h>
-#include <string.h>
 #include <time.h>
 #include <sys/time.h>
 #include <errno.h>
@@ -24,6 +23,7 @@
 #include <isc/mutex.h>
 #include <isc/util.h>
 #include <isc/print.h>
+#include <isc/string.h>
 #include <isc/once.h>
 
 #if ISC_MUTEX_PROFILE
