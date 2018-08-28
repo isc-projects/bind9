@@ -2587,7 +2587,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 						  set_rcvsndbuf) == ISC_R_SUCCESS);
 			if (setsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF,
 			       (void *)&sndbuf, sizeof(sndbuf)) == -1) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					"setsockopt(%d, SO_SNDBUF, %d) %s: %s",
 					sock->fd, sndbuf,
@@ -3778,6 +3778,7 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 				      manager->nthreads);
 	if (manager->events == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	for (alloc_events=0; alloc_events < manager->nthreads; alloc_events++) {
 		manager->events[alloc_events] = isc_mem_get(mctx, 
