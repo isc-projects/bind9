@@ -593,7 +593,7 @@ get_entry(dns_rrl_t *rrl, const isc_sockaddr_t *client_addr,
 
 static void
 debit_log(const dns_rrl_entry_t *e, int age, const char *action) {
-	char buf[sizeof("age=12345678")];
+	char buf[sizeof("age=1234567890")];
 	const char *age_str;
 
 	if (age == DNS_RRL_FOREVER) {
