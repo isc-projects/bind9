@@ -35,7 +35,6 @@
 #include <fcntl.h>
 #include <stddef.h>
 #include <stdlib.h>
-#include <string.h>
 #include <unistd.h>
 
 #include <isc/buffer.h>
@@ -56,6 +55,7 @@
 #include <isc/resource.h>
 #include <isc/socket.h>
 #include <isc/stats.h>
+#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/thread.h>

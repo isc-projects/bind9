@@ -34,4 +34,7 @@ isc_string_strlcat(char *dst, const char *src, size_t size);
 #define strlcat isc_string_strlcat
 #endif
 
+int
+isc_string_strerror_r(int errnum, char *buf, size_t buflen);
+
 ISC_LANG_ENDDECLS

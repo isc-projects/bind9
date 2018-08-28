@@ -245,6 +245,9 @@
     <ClInclude Include="..\include\isc\stdlib.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\strerr.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\string.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>

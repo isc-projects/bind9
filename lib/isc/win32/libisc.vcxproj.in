@@ -363,6 +363,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\stats.h" />
     <ClInclude Include="..\include\isc\stdio.h" />
     <ClInclude Include="..\include\isc\stdlib.h" />
+    <ClInclude Include="..\include\isc\strerr.h" />
     <ClInclude Include="..\include\isc\string.h" />
     <ClInclude Include="..\include\isc\symtab.h" />
     <ClInclude Include="..\include\isc\task.h" />

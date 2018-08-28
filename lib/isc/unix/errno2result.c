@@ -15,10 +15,11 @@
 #include <config.h>
 
 #include <stdbool.h>
-#include <string.h>
 
 #include <isc/platform.h>
 #include <isc/result.h>
+#include <isc/strerr.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include "errno2result.h"
