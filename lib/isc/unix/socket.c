@@ -2050,13 +2050,15 @@ free_socket(isc__socket_t **socketp) {
 }
 
 #ifdef SO_RCVBUF
-static isc_once_t	rcvbuf_once = ISC_ONCE_INIT;
+static isc_once_t	rcvsndbuf_once = ISC_ONCE_INIT;
 static int		rcvbuf = RCVBUFSIZE;
+static int		sndbuf = SNDBUFSIZE;
 
 static void
-set_rcvbuf(void) {
+set_rcvsndbuf(void) {
 	int fd;
-	int max = rcvbuf, min;
+	int maxrcv = rcvbuf, minrcv;
+	int maxsnd = sndbuf, minsnd;
 	ISC_SOCKADDR_LEN_T len;
 
 	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -2077,28 +2079,52 @@ set_rcvbuf(void) {
 	if (fd == -1)
 		return;
 
-	len = sizeof(min);
-	if (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&min, &len) == 0 &&
-	    min < rcvbuf) {
- again:
+	len = sizeof(minrcv);
+	while (getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&minrcv, &len) == 0 &&
+	    minrcv < rcvbuf) {
 		if (setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&rcvbuf,
 			       sizeof(rcvbuf)) == -1) {
-			if (errno == ENOBUFS && rcvbuf > min) {
-				max = rcvbuf - 1;
-				rcvbuf = (rcvbuf + min) / 2;
-				goto again;
+			if (errno == ENOBUFS && rcvbuf > minrcv) {
+				maxrcv = rcvbuf - 1;
+				rcvbuf = (rcvbuf + minrcv) / 2;
+				continue;
 			} else {
-				rcvbuf = min;
-				goto cleanup;
+				rcvbuf = minrcv;
+				break;
 			}
-		} else
-			min = rcvbuf;
-		if (min != max) {
-			rcvbuf = max;
-			goto again;
+		} else {
+			minrcv = rcvbuf;
+		}
+
+		if (minrcv != maxrcv) {
+			rcvbuf = maxrcv;
+		} else {
+			break;
 		}
 	}
- cleanup:
+	while (getsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&minsnd, &len) == 0 &&
+	    minsnd < sndbuf) {
+		if (setsockopt(fd, SOL_SOCKET, SO_SNDBUF, (void *)&sndbuf,
+			       sizeof(sndbuf)) == -1) {
+			if (errno == ENOBUFS && sndbuf > minsnd) {
+				maxsnd = sndbuf - 1;
+				sndbuf = (sndbuf + minsnd) / 2;
+				continue;
+			} else {
+				sndbuf = minsnd;
+				break;
+			}
+		} else {
+			minsnd = sndbuf;
+		}
+
+		if (minsnd != maxsnd) {
+			sndbuf = maxsnd;
+		} else {
+			break;
+		}
+	}
+
 	close (fd);
 }
 #endif
@@ -2540,14 +2566,31 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		optlen = sizeof(size);
 		if (getsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
 			       (void *)&size, &optlen) == 0 && size < rcvbuf) {
-			RUNTIME_CHECK(isc_once_do(&rcvbuf_once,
-						  set_rcvbuf) == ISC_R_SUCCESS);
+			RUNTIME_CHECK(isc_once_do(&rcvsndbuf_once,
+						  set_rcvsndbuf) == ISC_R_SUCCESS);
 			if (setsockopt(sock->fd, SOL_SOCKET, SO_RCVBUF,
 			       (void *)&rcvbuf, sizeof(rcvbuf)) == -1) {
 				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					"setsockopt(%d, SO_RCVBUF, %d) %s: %s",
 					sock->fd, rcvbuf,
+					isc_msgcat_get(isc_msgcat,
+						       ISC_MSGSET_GENERAL,
+						       ISC_MSG_FAILED,
+						       "failed"),
+					strbuf);
+			}
+		}
+		if (getsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF,
+			       (void *)&size, &optlen) == 0 && size < sndbuf) {
+			RUNTIME_CHECK(isc_once_do(&rcvsndbuf_once,
+						  set_rcvsndbuf) == ISC_R_SUCCESS);
+			if (setsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF,
+			       (void *)&sndbuf, sizeof(sndbuf)) == -1) {
+				isc__strerror(errno, strbuf, sizeof(strbuf));
+				UNEXPECTED_ERROR(__FILE__, __LINE__,
+					"setsockopt(%d, SO_SNDBUF, %d) %s: %s",
+					sock->fd, sndbuf,
 					isc_msgcat_get(isc_msgcat,
 						       ISC_MSGSET_GENERAL,
 						       ISC_MSG_FAILED,
