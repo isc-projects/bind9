@@ -2790,7 +2790,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 						  set_sndbuf) == ISC_R_SUCCESS);
 			if (setsockopt(sock->fd, SOL_SOCKET, SO_SNDBUF,
 			       (void *)&sndbuf, sizeof(sndbuf)) == -1) {
-				isc__strerror(errno, strbuf, sizeof(strbuf));
+				strerror_r(errno, strbuf, sizeof(strbuf));
 				UNEXPECTED_ERROR(__FILE__, __LINE__,
 					"setsockopt(%d, SO_SNDBUF, %d) %s: %s",
 					sock->fd, sndbuf,
