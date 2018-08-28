@@ -66,30 +66,31 @@ nta_ref(dns_nta_t *nta) {
 
 static void
 nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
+	REQUIRE(ntap != NULL && VALID_NTA(*ntap));
 	dns_nta_t *nta = *ntap;
-
-	REQUIRE(VALID_NTA(nta));
+	*ntap = NULL;
 
 	if (isc_refcount_decrement(&nta->refcount) == 1) {
+		isc_refcount_destroy(&nta->refcount);
 		nta->magic = 0;
 		if (nta->timer != NULL) {
-			(void) isc_timer_reset(nta->timer,
-					       isc_timertype_inactive,
-					       NULL, NULL, true);
+			(void)isc_timer_reset(nta->timer,
+					      isc_timertype_inactive,
+					      NULL, NULL, true);
 			isc_timer_detach(&nta->timer);
 		}
-		isc_refcount_destroy(&nta->refcount);
-		if (dns_rdataset_isassociated(&nta->rdataset))
+		if (dns_rdataset_isassociated(&nta->rdataset)) {
 			dns_rdataset_disassociate(&nta->rdataset);
-		if (dns_rdataset_isassociated(&nta->sigrdataset))
+		}
+		if (dns_rdataset_isassociated(&nta->sigrdataset)) {
 			dns_rdataset_disassociate(&nta->sigrdataset);
+		}
 		if (nta->fetch != NULL) {
 			dns_resolver_cancelfetch(nta->fetch);
 			dns_resolver_destroyfetch(&nta->fetch);
 		}
 		isc_mem_put(mctx, nta, sizeof(dns_nta_t));
 	}
-	*ntap = NULL;
 }
 
 static void

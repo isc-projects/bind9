@@ -125,27 +125,19 @@ dns_keytable_attach(dns_keytable_t *source, dns_keytable_t **targetp) {
 
 void
 dns_keytable_detach(dns_keytable_t **keytablep) {
-	dns_keytable_t *keytable;
-
-	/*
-	 * Detach *keytablep from its keytable.
-	 */
-
 	REQUIRE(keytablep != NULL && VALID_KEYTABLE(*keytablep));
-
-	keytable = *keytablep;
+	dns_keytable_t *keytable = *keytablep;
+	*keytablep = NULL;
 
 	if (isc_refcount_decrement(&keytable->references) == 1) {
-		INSIST(isc_refcount_current(&keytable->active_nodes) == 0);
-		isc_refcount_destroy(&keytable->active_nodes);
 		isc_refcount_destroy(&keytable->references);
+		isc_refcount_destroy(&keytable->active_nodes);
 		dns_rbt_destroy(&keytable->table);
 		isc_rwlock_destroy(&keytable->rwlock);
 		keytable->magic = 0;
 		isc_mem_putanddetach(&keytable->mctx,
 				     keytable, sizeof(*keytable));
 	}
-	*keytablep = NULL;
 }
 
 /*%
@@ -587,7 +579,7 @@ dns_keytable_detachkeynode(dns_keytable_t *keytable, dns_keynode_t **keynodep)
 	REQUIRE(VALID_KEYTABLE(keytable));
 	REQUIRE(keynodep != NULL && VALID_KEYNODE(*keynodep));
 
-	(void)isc_refcount_decrement(&keytable->active_nodes);
+	INSIST(isc_refcount_decrement(&keytable->active_nodes) > 0);
 	dns_keynode_detach(keytable->mctx, keynodep);
 }
 
@@ -745,7 +737,7 @@ dns_keytable_forall(dns_keytable_t *keytable,
 			break;
 		}
 	}
-	(void)isc_refcount_decrement(&keytable->active_nodes);
+	INSIST(isc_refcount_decrement(&keytable->active_nodes) > 0);
 
    cleanup:
 	dns_rbtnodechain_invalidate(&chain);
@@ -812,15 +804,17 @@ dns_keynode_attach(dns_keynode_t *source, dns_keynode_t **target) {
 
 void
 dns_keynode_detach(isc_mem_t *mctx, dns_keynode_t **keynode) {
+	REQUIRE(keynode != NULL && VALID_KEYNODE(*keynode));
 	dns_keynode_t *node = *keynode;
-	REQUIRE(VALID_KEYNODE(node));
+	*keynode = NULL;
+
 	if (isc_refcount_decrement(&node->refcount) == 1) {
-		if (node->key != NULL)
-			dst_key_free(&node->key);
 		isc_refcount_destroy(&node->refcount);
+		if (node->key != NULL) {
+			dst_key_free(&node->key);
+		}
 		isc_mem_put(mctx, node, sizeof(dns_keynode_t));
 	}
-	*keynode = NULL;
 }
 
 void

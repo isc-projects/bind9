@@ -70,14 +70,13 @@ cfg_aclconfctx_attach(cfg_aclconfctx_t *src, cfg_aclconfctx_t **dest) {
 
 void
 cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
-	cfg_aclconfctx_t *actx;
-	dns_acl_t *dacl, *next;
-
 	REQUIRE(actxp != NULL && *actxp != NULL);
-
-	actx = *actxp;
+	cfg_aclconfctx_t *actx = *actxp;
+	*actxp = NULL;
 
 	if (isc_refcount_decrement(&actx->references) == 1) {
+		dns_acl_t *dacl, *next;
+		isc_refcount_destroy(&actx->references);
 		for (dacl = ISC_LIST_HEAD(actx->named_acl_cache);
 		     dacl != NULL;
 		     dacl = next)
@@ -89,8 +88,6 @@ cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
 		}
 		isc_mem_putanddetach(&actx->mctx, actx, sizeof(*actx));
 	}
-
-	*actxp = NULL;
 }
 
 /*
