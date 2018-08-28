@@ -17,7 +17,7 @@
 
 #include "errno2result.h"
 #include <isc/result.h>
-#include <isc/strerror.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 /*

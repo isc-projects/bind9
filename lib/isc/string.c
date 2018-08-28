@@ -103,3 +103,8 @@ isc_string_strlcat(char *dst, const char *src, size_t size)
 
 	return(dlen + (s - src));	/* count does not include NUL */
 }
+
+int
+isc_string_strerror(int errnum, char *buf, size_t buflen) {
+	return (strerror_r(errnum, buf, buflen));
+}
