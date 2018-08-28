@@ -1,3 +1,9 @@
+5024.	[func]		Replace custom assembly for atomic operations with
+			atomic support from the compiler. The code will now use
+			C11 stdatomic, or __atomic, or __sync builtins with GCC
+			or Clang compilers, and Interlocked functions with MSVC.
+			[GL #10]
+
 5023.	[cleanup]	Remove wrappers that try to fix broken or incomplete
 			implementations of IPv6, pthreads and other core
 			functionality required and used by BIND. [GL #192]

@@ -9,24 +9,10 @@
  * information regarding copyright ownership.
  */
 
+#pragma once
 
-#include <config.h>
-
-#include <stddef.h>
-
-#include <isc/mutex.h>
-#include <isc/refcount.h>
-#include <isc/result.h>
-#include <isc/util.h>
-
-isc_result_t
-isc_refcount_init(isc_refcount_t *ref, unsigned int n) {
-	REQUIRE(ref != NULL);
-
-	ref->refs = n;
-#if !defined(ISC_REFCOUNT_HAVEATOMIC)
-	return (isc_mutex_init(&ref->lock));
+#if HAVE_STDATOMIC_H
+#include <stdatomic.h>
 #else
-	return (ISC_R_SUCCESS);
+#include <isc/stdatomic.h>
 #endif
-}

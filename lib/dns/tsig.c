@@ -331,9 +331,8 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		refs = 1;
 	if (ring != NULL)
 		refs++;
-	ret = isc_refcount_init(&tkey->refs, refs);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_creator;
+
+	isc_refcount_init(&tkey->refs, refs);
 
 	tkey->generated = generated;
 	tkey->inception = inception;
@@ -370,10 +369,11 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 
  cleanup_refs:
 	tkey->magic = 0;
-	while (refs-- > 0)
-		isc_refcount_decrement(&tkey->refs, NULL);
+	while (refs-- > 0) {
+		INSIST(isc_refcount_decrement(&tkey->refs) > 0);
+	}
 	isc_refcount_destroy(&tkey->refs);
- cleanup_creator:
+
 	if (tkey->key != NULL)
 		dst_key_free(&tkey->key);
 	if (tkey->creator != NULL) {
@@ -707,7 +707,7 @@ dns_tsigkey_attach(dns_tsigkey_t *source, dns_tsigkey_t **targetp) {
 	REQUIRE(VALID_TSIG_KEY(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_refcount_increment(&source->refs, NULL);
+	isc_refcount_increment(&source->refs);
 	*targetp = source;
 }
 
@@ -729,25 +729,19 @@ tsigkey_free(dns_tsigkey_t *key) {
 		dns_name_free(key->creator, key->mctx);
 		isc_mem_put(key->mctx, key->creator, sizeof(dns_name_t));
 	}
-	isc_refcount_destroy(&key->refs);
 	isc_mem_putanddetach(&key->mctx, key, sizeof(dns_tsigkey_t));
 }
 
 void
 dns_tsigkey_detach(dns_tsigkey_t **keyp) {
-	dns_tsigkey_t *key;
-	unsigned int refs;
-
-	REQUIRE(keyp != NULL);
-	REQUIRE(VALID_TSIG_KEY(*keyp));
-
-	key = *keyp;
-	isc_refcount_decrement(&key->refs, &refs);
-
-	if (refs == 0)
-		tsigkey_free(key);
-
+	REQUIRE(keyp != NULL && VALID_TSIG_KEY(*keyp));
+	dns_tsigkey_t *key = *keyp;
 	*keyp = NULL;
+
+	if (isc_refcount_decrement(&key->refs) == 1) {
+		isc_refcount_destroy(&key->refs);
+		tsigkey_free(key);
+	}
 }
 
 void
@@ -1785,7 +1779,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
 		return (ISC_R_NOTFOUND);
 	}
 #endif
-	isc_refcount_increment(&key->refs, NULL);
+	isc_refcount_increment(&key->refs);
 	RWUNLOCK(&ring->lock, isc_rwlocktype_read);
 	adjust_lru(key);
 	*tsigkey = key;
@@ -1855,7 +1849,7 @@ dns_tsigkeyring_add(dns_tsig_keyring_t *ring, const dns_name_t *name,
 
 	result = keyring_add(ring, name, tkey);
 	if (result == ISC_R_SUCCESS)
-		isc_refcount_increment(&tkey->refs, NULL);
+		isc_refcount_increment(&tkey->refs);
 
 	return (result);
 }

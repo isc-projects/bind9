@@ -50,9 +50,7 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	isc_mem_attach(mctx, &sctx->mctx);
 
-	result = isc_refcount_init(&sctx->references, 1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_refcount_init(&sctx->references, 1);
 
 	CHECKFATAL(isc_quota_init(&sctx->xfroutquota, 10));
 	CHECKFATAL(isc_quota_init(&sctx->tcpquota, 10));
@@ -113,11 +111,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	*sctxp = sctx;
 
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	isc_mem_putanddetach(&sctx->mctx, sctx, sizeof(*sctx));
-
-	return (result);
 }
 
 void
@@ -125,7 +118,7 @@ ns_server_attach(ns_server_t *src, ns_server_t **dest) {
 	REQUIRE(SCTX_VALID(src));
 	REQUIRE(dest != NULL && *dest == NULL);
 
-	isc_refcount_increment(&src->references, NULL);
+	isc_refcount_increment(&src->references);
 
 	*dest = src;
 }
@@ -133,14 +126,12 @@ ns_server_attach(ns_server_t *src, ns_server_t **dest) {
 void
 ns_server_detach(ns_server_t **sctxp) {
 	ns_server_t *sctx;
-	unsigned int refs;
 
-	REQUIRE(sctxp != NULL);
+	REQUIRE(sctxp != NULL && SCTX_VALID(*sctxp));
 	sctx = *sctxp;
-	REQUIRE(SCTX_VALID(sctx));
+	*sctxp = NULL;
 
-	isc_refcount_decrement(&sctx->references, &refs);
-	if (refs == 0) {
+	if (isc_refcount_decrement(&sctx->references) == 1) {
 		ns_altsecret_t *altsecret;
 
 		sctx->magic = 0;
@@ -194,8 +185,6 @@ ns_server_detach(ns_server_t **sctxp) {
 
 		isc_mem_putanddetach(&sctx->mctx, sctx, sizeof(*sctx));
 	}
-
-	*sctxp = NULL;
 }
 
 isc_result_t

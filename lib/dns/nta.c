@@ -61,31 +61,30 @@ struct dns_nta {
  */
 static void
 nta_ref(dns_nta_t *nta) {
-	isc_refcount_increment(&nta->refcount, NULL);
+	isc_refcount_increment(&nta->refcount);
 }
 
 static void
 nta_detach(isc_mem_t *mctx, dns_nta_t **ntap) {
-	unsigned int refs;
+	REQUIRE(ntap != NULL && VALID_NTA(*ntap));
 	dns_nta_t *nta = *ntap;
-
-	REQUIRE(VALID_NTA(nta));
-
 	*ntap = NULL;
-	isc_refcount_decrement(&nta->refcount, &refs);
-	if (refs == 0) {
+
+	if (isc_refcount_decrement(&nta->refcount) == 1) {
+		isc_refcount_destroy(&nta->refcount);
 		nta->magic = 0;
 		if (nta->timer != NULL) {
-			(void) isc_timer_reset(nta->timer,
-					       isc_timertype_inactive,
-					       NULL, NULL, true);
+			(void)isc_timer_reset(nta->timer,
+					      isc_timertype_inactive,
+					      NULL, NULL, true);
 			isc_timer_detach(&nta->timer);
 		}
-		isc_refcount_destroy(&nta->refcount);
-		if (dns_rdataset_isassociated(&nta->rdataset))
+		if (dns_rdataset_isassociated(&nta->rdataset)) {
 			dns_rdataset_disassociate(&nta->rdataset);
-		if (dns_rdataset_isassociated(&nta->sigrdataset))
+		}
+		if (dns_rdataset_isassociated(&nta->sigrdataset)) {
 			dns_rdataset_disassociate(&nta->sigrdataset);
+		}
 		if (nta->fetch != NULL) {
 			dns_resolver_cancelfetch(nta->fetch);
 			dns_resolver_destroyfetch(&nta->fetch);
@@ -308,7 +307,6 @@ static isc_result_t
 nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 	   dns_nta_t **target)
 {
-	isc_result_t result;
 	dns_nta_t *nta = NULL;
 	dns_view_t *view;
 
@@ -328,11 +326,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 	dns_rdataset_init(&nta->rdataset);
 	dns_rdataset_init(&nta->sigrdataset);
 
-	result = isc_refcount_init(&nta->refcount, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(view->mctx, nta, sizeof(dns_nta_t));
-		return (result);
-	}
+	isc_refcount_init(&nta->refcount, 1);
 
 	nta->name = dns_fixedname_initname(&nta->fn);
 	dns_name_copy(name, nta->name, NULL);

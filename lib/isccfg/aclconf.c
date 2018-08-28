@@ -36,7 +36,6 @@
 
 isc_result_t
 cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
-	isc_result_t result;
 	cfg_aclconfctx_t *actx;
 
 	REQUIRE(mctx != NULL);
@@ -46,9 +45,7 @@ cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
 	if (actx == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_refcount_init(&actx->references, 1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_refcount_init(&actx->references, 1);
 
 	actx->mctx = NULL;
 	isc_mem_attach(mctx, &actx->mctx);
@@ -60,10 +57,6 @@ cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
 
 	*ret = actx;
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	isc_mem_put(mctx, actx, sizeof(*actx));
-	return (result);
 }
 
 void
@@ -71,22 +64,19 @@ cfg_aclconfctx_attach(cfg_aclconfctx_t *src, cfg_aclconfctx_t **dest) {
 	REQUIRE(src != NULL);
 	REQUIRE(dest != NULL && *dest == NULL);
 
-	isc_refcount_increment(&src->references, NULL);
+	isc_refcount_increment(&src->references);
 	*dest = src;
 }
 
 void
 cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
-	cfg_aclconfctx_t *actx;
-	dns_acl_t *dacl, *next;
-	unsigned int refs;
-
 	REQUIRE(actxp != NULL && *actxp != NULL);
+	cfg_aclconfctx_t *actx = *actxp;
+	*actxp = NULL;
 
-	actx = *actxp;
-
-	isc_refcount_decrement(&actx->references, &refs);
-	if (refs == 0) {
+	if (isc_refcount_decrement(&actx->references) == 1) {
+		dns_acl_t *dacl, *next;
+		isc_refcount_destroy(&actx->references);
 		for (dacl = ISC_LIST_HEAD(actx->named_acl_cache);
 		     dacl != NULL;
 		     dacl = next)
@@ -98,8 +88,6 @@ cfg_aclconfctx_detach(cfg_aclconfctx_t **actxp) {
 		}
 		isc_mem_putanddetach(&actx->mctx, actx, sizeof(*actx));
 	}
-
-	*actxp = NULL;
 }
 
 /*

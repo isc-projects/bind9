@@ -50,11 +50,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 
 	acl->name = NULL;
 
-	result = isc_refcount_init(&acl->refcount, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, acl, sizeof(*acl));
-		return (result);
-	}
+	isc_refcount_init(&acl->refcount, 1);
 
 	result = dns_iptable_create(mctx, &acl->iptable);
 	if (result != ISC_R_SUCCESS) {
@@ -454,7 +450,7 @@ void
 dns_acl_attach(dns_acl_t *source, dns_acl_t **target) {
 	REQUIRE(DNS_ACL_VALID(source));
 
-	isc_refcount_increment(&source->refcount, NULL);
+	isc_refcount_increment(&source->refcount);
 	*target = source;
 }
 
@@ -486,15 +482,13 @@ destroy(dns_acl_t *dacl) {
 
 void
 dns_acl_detach(dns_acl_t **aclp) {
+	REQUIRE(aclp != NULL && DNS_ACL_VALID(*aclp));
 	dns_acl_t *acl = *aclp;
-	unsigned int refs;
-
-	REQUIRE(DNS_ACL_VALID(acl));
-
-	isc_refcount_decrement(&acl->refcount, &refs);
-	if (refs == 0)
-		destroy(acl);
 	*aclp = NULL;
+
+	if (isc_refcount_decrement(&acl->refcount) == 1) {
+		destroy(acl);
+	}
 }
 
 

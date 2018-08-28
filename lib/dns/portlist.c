@@ -80,12 +80,7 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
 		isc_mem_put(mctx, portlist, sizeof(*portlist));
 		return (result);
 	}
-	result = isc_refcount_init(&portlist->refcount, 1);
-	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&portlist->lock);
-		isc_mem_put(mctx, portlist, sizeof(*portlist));
-		return (result);
-	}
+	isc_refcount_init(&portlist->refcount, 1);
 	portlist->list = NULL;
 	portlist->allocated = 0;
 	portlist->active = 0;
@@ -233,21 +228,17 @@ dns_portlist_attach(dns_portlist_t *portlist, dns_portlist_t **portlistp) {
 	REQUIRE(DNS_VALID_PORTLIST(portlist));
 	REQUIRE(portlistp != NULL && *portlistp == NULL);
 
-	isc_refcount_increment(&portlist->refcount, NULL);
+	isc_refcount_increment(&portlist->refcount);
 	*portlistp = portlist;
 }
 
 void
 dns_portlist_detach(dns_portlist_t **portlistp) {
-	dns_portlist_t *portlist;
-	unsigned int count;
-
-	REQUIRE(portlistp != NULL);
-	portlist = *portlistp;
-	REQUIRE(DNS_VALID_PORTLIST(portlist));
+	REQUIRE(portlistp != NULL && DNS_VALID_PORTLIST(*portlistp));
+	dns_portlist_t *portlist = *portlistp;
 	*portlistp = NULL;
-	isc_refcount_decrement(&portlist->refcount, &count);
-	if (count == 0) {
+
+	if (isc_refcount_decrement(&portlist->refcount) == 1) {
 		portlist->magic = 0;
 		isc_refcount_destroy(&portlist->refcount);
 		if (portlist->list != NULL)

@@ -214,7 +214,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	memset(env, 0, sizeof(dns_dtenv_t));
 
-	CHECK(isc_refcount_init(&env->refcount, 1));
+	isc_refcount_init(&env->refcount, 1);
 	CHECK(isc_stats_create(mctx, &env->stats, dns_dnstapcounter_max));
 	env->path = isc_mem_strdup(mctx, path);
 	if (env->path == NULL)
@@ -531,7 +531,7 @@ dns_dt_attach(dns_dtenv_t *source, dns_dtenv_t **destp) {
 	REQUIRE(VALID_DTENV(source));
 	REQUIRE(destp != NULL && *destp == NULL);
 
-	isc_refcount_increment(&source->refcount, NULL);
+	isc_refcount_increment(&source->refcount);
 	*destp = source;
 }
 
@@ -579,17 +579,14 @@ destroy(dns_dtenv_t *env) {
 
 void
 dns_dt_detach(dns_dtenv_t **envp) {
-	unsigned int refs;
-	dns_dtenv_t *env;
-
 	REQUIRE(envp != NULL && VALID_DTENV(*envp));
-
-	env = *envp;
+	dns_dtenv_t *env = *envp;
 	*envp = NULL;
 
-	isc_refcount_decrement(&env->refcount, &refs);
-	if (refs == 0)
+	if (isc_refcount_decrement(&env->refcount) == 1) {
+		isc_refcount_destroy(&env->refcount);
 		destroy(env);
+	}
 }
 
 static isc_result_t

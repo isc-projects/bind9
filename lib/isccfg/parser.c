@@ -451,11 +451,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	pctx->mctx = NULL;
 	isc_mem_attach(mctx, &pctx->mctx);
 
-	result = isc_refcount_init(&pctx->references, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_putanddetach(&pctx->mctx, pctx, sizeof(*pctx));
-		return (result);
-	}
+	isc_refcount_init(&pctx->references, 1);
 
 	pctx->lctx = lctx;
 	pctx->lexer = NULL;
@@ -670,22 +666,19 @@ cfg_parser_attach(cfg_parser_t *src, cfg_parser_t **dest) {
 	REQUIRE(src != NULL);
 	REQUIRE(dest != NULL && *dest == NULL);
 
-	isc_refcount_increment(&src->references, NULL);
+	isc_refcount_increment(&src->references);
 	*dest = src;
 }
 
 void
 cfg_parser_destroy(cfg_parser_t **pctxp) {
 	cfg_parser_t *pctx;
-	unsigned int refs;
 
 	REQUIRE(pctxp != NULL && *pctxp != NULL);
-
 	pctx = *pctxp;
 	*pctxp = NULL;
 
-	isc_refcount_decrement(&pctx->references, &refs);
-	if (refs == 0) {
+	if (isc_refcount_decrement(&pctx->references) == 1) {
 		isc_lex_destroy(&pctx->lexer);
 		/*
 		 * Cleaning up open_files does not
@@ -3060,7 +3053,6 @@ cfg_obj_line(const cfg_obj_t *obj) {
 
 isc_result_t
 cfg_create_obj(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	isc_result_t result;
 	cfg_obj_t *obj;
 
 	REQUIRE(pctx != NULL);
@@ -3076,11 +3068,8 @@ cfg_create_obj(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	obj->line = pctx->line;
 	obj->pctx = pctx;
 
-	result = isc_refcount_init(&obj->references, 1);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(pctx->mctx, obj, sizeof(cfg_obj_t));
-		return (result);
-	}
+	isc_refcount_init(&obj->references, 1);
+
 	*ret = obj;
 
 	return (ISC_R_SUCCESS);
@@ -3142,21 +3131,17 @@ cfg_obj_istype(const cfg_obj_t *obj, const cfg_type_t *type) {
  */
 void
 cfg_obj_destroy(cfg_parser_t *pctx, cfg_obj_t **objp) {
-	cfg_obj_t *obj;
-	unsigned int refs;
-
 	REQUIRE(objp != NULL && *objp != NULL);
 	REQUIRE(pctx != NULL);
 
-	obj = *objp;
+	cfg_obj_t *obj = *objp;
+	*objp = NULL;
 
-	isc_refcount_decrement(&obj->references, &refs);
-	if (refs == 0) {
+	if (isc_refcount_decrement(&obj->references) == 1) {
 		obj->type->rep->free(pctx, obj);
 		isc_refcount_destroy(&obj->references);
 		isc_mem_put(pctx->mctx, obj, sizeof(cfg_obj_t));
 	}
-	*objp = NULL;
 }
 
 void
@@ -3164,7 +3149,7 @@ cfg_obj_attach(cfg_obj_t *src, cfg_obj_t **dest) {
     REQUIRE(src != NULL);
     REQUIRE(dest != NULL && *dest == NULL);
 
-    isc_refcount_increment(&src->references, NULL);
+    isc_refcount_increment(&src->references);
     *dest = src;
 }
 

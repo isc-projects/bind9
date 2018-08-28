@@ -177,17 +177,10 @@ typedef struct dns_include dns_include_t;
 	do { result = isc_mutex_trylock(&(z)->lock); } while (0)
 #endif
 
-#ifdef ISC_RWLOCK_USEATOMIC
 #define ZONEDB_INITLOCK(l)	isc_rwlock_init((l), 0, 0)
 #define ZONEDB_DESTROYLOCK(l)	isc_rwlock_destroy(l)
 #define ZONEDB_LOCK(l, t)	RWLOCK((l), (t))
 #define ZONEDB_UNLOCK(l, t)	RWUNLOCK((l), (t))
-#else
-#define ZONEDB_INITLOCK(l)	isc_mutex_init(l)
-#define ZONEDB_DESTROYLOCK(l)	DESTROYLOCK(l)
-#define ZONEDB_LOCK(l, t)	LOCK(l)
-#define ZONEDB_UNLOCK(l, t)	UNLOCK(l)
-#endif
 
 #ifdef ENABLE_AFL
 extern bool dns_fuzzing_resolver;
@@ -203,11 +196,7 @@ struct dns_zone {
 	isc_mem_t		*mctx;
 	isc_refcount_t		erefs;
 
-#ifdef ISC_RWLOCK_USEATOMIC
 	isc_rwlock_t		dblock;
-#else
-	isc_mutex_t		dblock;
-#endif
 	dns_db_t		*db;		/* Locked by dblock */
 
 	/* Locked */
@@ -926,10 +915,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->db = NULL;
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
-	result = isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
-	if (result != ISC_R_SUCCESS) {
-		goto free_dblock;
-	}
+	isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
 	zone->irefs = 0;
 	dns_name_init(&zone->origin, NULL);
 	zone->strnamerd = NULL;
@@ -1097,10 +1083,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 		isc_stats_detach(&zone->gluecachestats);
 
  free_erefs:
-	isc_refcount_decrement(&zone->erefs, NULL);
+	INSIST(isc_refcount_decrement(&zone->erefs) > 0);
 	isc_refcount_destroy(&zone->erefs);
 
- free_dblock:
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 
  free_mutex:
@@ -1271,7 +1256,6 @@ zone_free(dns_zone_t *zone) {
 	/* last stuff */
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 	DESTROYLOCK(&zone->lock);
-	isc_refcount_destroy(&zone->erefs);
 	zone->magic = 0;
 	mctx = zone->mctx;
 	isc_mem_put(mctx, zone, sizeof(*zone));
@@ -5267,25 +5251,22 @@ void
 dns_zone_attach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(DNS_ZONE_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
-	isc_refcount_increment(&source->erefs, NULL);
+	isc_refcount_increment(&source->erefs);
 	*target = source;
 }
 
 void
 dns_zone_detach(dns_zone_t **zonep) {
-	dns_zone_t *zone;
+	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
+	dns_zone_t *zone = *zonep;
+	*zonep = NULL;
+
+	bool free_now = false;
 	dns_zone_t *raw = NULL;
 	dns_zone_t *secure = NULL;
-	unsigned int refs;
-	bool free_now = false;
+	if (isc_refcount_decrement(&zone->erefs) == 1) {
+		isc_refcount_destroy(&zone->erefs);
 
-	REQUIRE(zonep != NULL && DNS_ZONE_VALID(*zonep));
-
-	zone = *zonep;
-
-	isc_refcount_decrement(&zone->erefs, &refs);
-
-	if (refs == 0) {
 		LOCK_ZONE(zone);
 		INSIST(zone != zone->raw);
 		/*
@@ -5321,12 +5302,13 @@ dns_zone_detach(dns_zone_t **zonep) {
 		}
 		UNLOCK_ZONE(zone);
 	}
-	*zonep = NULL;
 	if (free_now) {
-		if (raw != NULL)
+		if (raw != NULL) {
 			dns_zone_detach(&raw);
-		if (secure != NULL)
+		}
+		if (secure != NULL) {
 			dns_zone_idetach(&secure);
+		}
 		zone_free(zone);
 	}
 }
@@ -18653,7 +18635,7 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 
 
 	/* dns_zone_attach(raw, &zone->raw); */
-	isc_refcount_increment(&raw->erefs, NULL);
+	isc_refcount_increment(&raw->erefs);
 	zone->raw = raw;
 
 	/* dns_zone_iattach(zone,  &raw->secure); */
