@@ -26,9 +26,6 @@
 /** define if sigwait() is the UnixWare flavor */
 #undef HAVE_UNIXWARE_SIGWAIT
 
-/** define on Solaris to get sigwait() to work using pthreads semantics */
-#undef _POSIX_PTHREAD_SEMANTICS
-
 /** define if LinuxThreads is in use */
 #undef HAVE_LINUXTHREADS
 
@@ -455,6 +452,9 @@
 /* Define if Thread-Local Storage is available */
 #undef HAVE_TLS
 
+/* Define to 1 if you have the <uchar.h> header file. */
+#undef HAVE_UCHAR_H
+
 /* Define to 1 if the system has the type `uintptr_t'. */
 #undef HAVE_UINTPTR_T
 
@@ -569,6 +569,61 @@
 #  undef WORDS_BIGENDIAN
 # endif
 #endif
+
+/* Enable extensions on AIX 3, Interix. */
+#undef _ALL_SOURCE
+
+/* Additional *at interfaces. */
+#undef _ATFILE_SOURCE
+
+/* Enable functions, types, and other interfaces that are not part of SUSv3 on
+   macOS. */
+#undef _DARWIN_C_SOURCE
+
+/* The default set of features. */
+#undef _DEFAULT_SOURCE
+
+/* Select default filesystem interface. */
+#undef _FILE_OFFSET_BITS
+
+/* Fortify source by default. */
+#undef _FORTIFY_SOURCE
+
+/* Extensions to ISO C99 from ISO C11. */
+#undef _ISOC11_SOURCE
+
+/* Extensions to ISO C89 from ISO C99. */
+#undef _ISOC99_SOURCE
+
+/* Additional functionality from LFS for large files. */
+#undef _LARGEFILE64_SOURCE
+
+/* Some more functions for correct standard I/O. */
+#undef _LARGEFILE_SOURCE
+
+/* IEEE 1003.1-2008. */
+#undef _POSIX_1_SOURCE
+
+/* define on Solaris to get sigwait() to work using pthreads semantics */
+#undef _POSIX_PTHREAD_SEMANTICS
+
+/* IEEE Std 1003.1. */
+#undef _POSIX_SOURCE
+
+/* Enable extensions on HP NonStop. */
+#undef _TANDEM_SOURCE
+
+/* Includes POSIX and XPG things. */
+#undef _XOPEN_SOURCE
+
+/* XPG things and X/Open Unix extensions. */
+#undef _XOPEN_SOURCE_EXTENDED
+
+/* Select RFC3542 IPv6 API on macOS */
+#undef __APPLE_USE_RFC_3542
+
+/* Enable general extensions on Solaris. */
+#undef __EXTENSIONS__
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
