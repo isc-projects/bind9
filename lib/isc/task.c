@@ -566,6 +566,7 @@ isc_task_sendto(isc_task_t *task0, isc_event_t **eventp, int c) {
 		 */
 		task_ready(task);
 	}
+	isc_thread_yield();
 }
 
 void
@@ -595,10 +596,12 @@ isc_task_sendanddetachto(isc_task_t **taskp, isc_event_t **eventp, int c) {
 	 */
 	INSIST(!(idle1 && idle2));
 
-	if (idle1 || idle2)
+	if (idle1 || idle2) {
 		task_ready(task);
+	}
 
 	*taskp = NULL;
+	isc_thread_yield();
 }
 
 #define PURGE_OK(event)	(((event)->ev_attributes & ISC_EVENTATTR_NOPURGE) == 0)
