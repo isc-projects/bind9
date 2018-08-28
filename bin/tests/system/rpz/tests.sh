@@ -33,15 +33,13 @@ t=0
 
 DEBUG=
 SAVE_RESULTS=
-DNSRPS_TEST_MODE=       # "" to test with and then without DNSRPS
 ARGS=
 
-USAGE="$0: [-xS] [-D {1,2}]"
+USAGE="$0: [-xS]"
 while getopts "xSD:" c; do
     case $c in
 	x) set -x; DEBUG=-x; ARGS="$ARGS -x";;
 	S) SAVE_RESULTS=-S; ARGS="$ARGS -S";;
-	D) DNSRPS_TEST_MODE="$OPTARG";;  # with or without DNSRPZ
 	*) echo "$USAGE" 1>&2; exit 1;;
     esac
 done
@@ -130,7 +128,7 @@ get_sn_fast () {
 # $1=domain  $2=DNS server IP address
 FZONES=`sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrpzd.conf`
 dnsrps_loaded() {
-    test "$DNSRPS_TEST_MODE" = dnsrps || return
+    test "$mode" = dnsrps || return
     n=0
     for V in $FZONES; do
 	eval "$V"
@@ -157,7 +155,7 @@ dnsrps_loaded() {
 ck_soa() {
     n=0
     while true; do
-	if test "$DNSRPS_TEST_MODE" = dnsrps; then
+	if test "$mode" = dnsrps; then
 	    get_sn_fast "$2"
 	    test "$RSN" -eq "$1" && return
 	else
@@ -226,6 +224,11 @@ ckalive () {
     # restart the server to avoid stalling waiting for it to stop
     restart $CKALIVE_NS
     return 1
+}
+
+resetstats () {
+        NSDIR=$1
+        eval "${NSDIR}_CNT=''"
 }
 
 ckstats () {
@@ -410,39 +413,40 @@ EOF
   sleep 2
 }
 
-case "$DNSRPS_TEST_MODE" in
-''|native|dnsrps);;
-*)
-  echo "bad test mode '${DNSRPS_TEST_MODE}' should be 'native' or 'dnsrps'"
-  exit 1
-  ;;
-esac
-
-for mode in ${DNSRPS_TEST_MODE:-native dnsrps}
-do
+for mode in native dnsrps; do
   status=0
   case ${mode} in
   native)
-    if [ ${DNSRPS_TEST_MODE:-unset} = unset -a -e dnsrps-only ] ; then
+    if [ -e dnsrps-only ] ; then
     echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
     continue
     fi
     ;;
   dnsrps)
-    if [ ${DNSRPS_TEST_MODE:-unset} = unset -a -e dnsrps-off ] ; then
+    if [ -e dnsrps-off ] ; then
       echo_i "'dnsrps-off' found: skipping DNSRPS sub-test"
       continue
     fi
+    echo_i "attempting to configure servers with DNSRPS..."
     $PERL $SYSTEMTESTTOP/stop.pl .
     $SHELL ./setup.sh -N -D $DEBUG
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
-    if grep '^#skip' dnsrps.conf > /dev/null ; then
-      echo_i "DNSRPS sub-test skipped"
-      continue
+    for server in ns*; do
+            resetstats $server
+    done
+    sed -n 's/^## //p' dnsrps.conf | cat_i
+    if grep '^#fail' dnsrps.conf >/dev/null; then
+        echo_i "exit status: 1"
+        exit 1
+    fi
+    if test -z "`grep '^#skip' dnsrps.conf`"; then
+        echo_i "running DNSRPS sub-test"
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
+    else
+        echo_i "DNSRPS sub-test skipped"
+        continue
     fi
     ;;
   esac
-  sed -n 's/^## //p' dnsrps.conf | cat_i
 
   # make prototype files to check against rewritten results
   digcmd nonexistent @$ns2 >proto.nxdomain
