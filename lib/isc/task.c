@@ -962,7 +962,7 @@ push_readyq(isc__taskmgr_t *manager, isc__task_t *task, int c) {
 	if ((task->flags & TASK_F_PRIVILEGED) != 0)
 		ENQUEUE(manager->ready_priority_tasks[c], task,
 			ready_priority_link);
-	isc_atomic_xadd(&manager->tasks_ready, 1);
+	atomic_fetch_add_explicit(&manager->tasks_ready, 1, memory_order_relaxed);
 }
 
 static void
@@ -1068,8 +1068,8 @@ dispatch(isc__taskmgr_t *manager, int c) {
 			 * have a task to do.  We must reacquire the manager
 			 * lock before exiting the 'if (task != NULL)' block.
 			 */
-			isc_atomic_xadd(&manager->tasks_ready, -1);
-			isc_atomic_xadd(&manager->tasks_running, 1);
+			atomic_fetch_add_explicit(&manager->tasks_ready, -1, memory_order_relaxed);
+			atomic_fetch_add_explicit(&manager->tasks_running, 1, memory_order_relaxed);
 
 			LOCK(&task->lock);
 			INSIST(task->state == task_state_ready);
@@ -1186,7 +1186,7 @@ dispatch(isc__taskmgr_t *manager, int c) {
 			if (finished)
 				task_finished(task);
 
-			isc_atomic_xadd(&manager->tasks_running, -1);;
+			atomic_fetch_add_explicit(&manager->tasks_running, -1, memory_order_relaxed);
 			if (manager->exclusive_requested &&
 			    manager->tasks_running == 1) {
 				SIGNAL(&manager->exclusive_granted);
