@@ -2052,6 +2052,7 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 	dns_rpz_zone_t *rpz;
 
 	rpz = *rpzp;
+	*rpzp = NULL;
 
 	if (isc_refcount_decrement(&rpz->refs) == 1) {
 		isc_refcount_destroy(&rpz->refs);
@@ -2087,8 +2088,6 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 
 		isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
 	}
-
-	*rpzp = NULL;
 }
 
 void
