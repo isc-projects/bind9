@@ -377,7 +377,7 @@ struct isc__socketmgr {
 	isc_socketmgr_t		common;
 	isc_mem_t	       *mctx;
 	isc_mutex_t		lock;
-	isc_mutex_t		*fdlock;
+	isc_mutex_t		**fdlock;
 	isc_stats_t		*stats;
 	int			nthreads;
 #ifdef USE_KQUEUE
@@ -712,7 +712,7 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		pfd.events = POLLOUT;
 	pfd.fd = fd;
 	pfd.revents = 0;
-	LOCK(&manager->fdlock[lockid]);
+	LOCK(manager->fdlock[lockid]);
 	if (write(manager->devpoll_fd, &pfd, sizeof(pfd)) == -1)
 		result = isc__errno2result(errno);
 	else {
@@ -721,7 +721,7 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		else
 			manager->fdpollinfo[fd].want_write = 1;
 	}
-	UNLOCK(&manager->fdlock[lockid]);
+	UNLOCK(manager->fdlock[lockid]);
 
 	return (result);
 #elif defined(USE_SELECT)
@@ -795,7 +795,7 @@ unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	 * only provides a way of canceling per FD, we may need to re-poll the
 	 * socket for the other operation.
 	 */
-	LOCK(&manager->fdlock[lockid]);
+	LOCK(manager->fdlock[lockid]);
 	if (msg == SELECT_POKE_READ &&
 	    manager->fdpollinfo[fd].want_write == 1) {
 		pfds[1].events = POLLOUT;
@@ -817,7 +817,7 @@ unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		else
 			manager->fdpollinfo[fd].want_write = 0;
 	}
-	UNLOCK(&manager->fdlock[lockid]);
+	UNLOCK(manager->fdlock[lockid]);
 
 	return (result);
 #elif defined(USE_SELECT)
@@ -856,9 +856,9 @@ wakeup_socket(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		return;
 	}
 
-	LOCK(&manager->fdlock[lockid]);
+	LOCK(manager->fdlock[lockid]);
 	if (manager->fdstate[fd] == CLOSE_PENDING) {
-		UNLOCK(&manager->fdlock[lockid]);
+		UNLOCK(manager->fdlock[lockid]);
 
 		/*
 		 * We accept (and ignore) any error from unwatch_fd() as we are
@@ -873,10 +873,10 @@ wakeup_socket(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		return;
 	}
 	if (manager->fdstate[fd] != MANAGED) {
-		UNLOCK(&manager->fdlock[lockid]);
+		UNLOCK(manager->fdlock[lockid]);
 		return;
 	}
-	UNLOCK(&manager->fdlock[lockid]);
+	UNLOCK(manager->fdlock[lockid]);
 
 	/*
 	 * Set requested bit.
@@ -1878,10 +1878,10 @@ socketclose(isc__socketmgr_t *manager, isc__socket_t *sock, int fd) {
 	 * No one has this socket open, so the watcher doesn't have to be
 	 * poked, and the socket doesn't have to be locked.
 	 */
-	LOCK(&manager->fdlock[lockid]);
+	LOCK(manager->fdlock[lockid]);
 	manager->fds[fd] = NULL;
 	manager->fdstate[fd] = CLOSE_PENDING;
-	UNLOCK(&manager->fdlock[lockid]);
+	UNLOCK(manager->fdlock[lockid]);
 	select_poke(manager, sock->threadid, fd, SELECT_POKE_CLOSE);
 
 	inc_stats(manager->stats, sock->statsindex[STATID_CLOSE]);
@@ -1903,13 +1903,13 @@ socketclose(isc__socketmgr_t *manager, isc__socket_t *sock, int fd) {
 		for (i = fd - 1; i >= 0; i--) {
 			lockid = FDLOCK_ID(i);
 
-			LOCK(&manager->fdlock[lockid]);
+			LOCK(manager->fdlock[lockid]);
 			if (manager->fdstate[i] == MANAGED) {
 				manager->maxfd = i;
-				UNLOCK(&manager->fdlock[lockid]);
+				UNLOCK(manager->fdlock[lockid]);
 				break;
 			}
-			UNLOCK(&manager->fdlock[lockid]);
+			UNLOCK(manager->fdlock[lockid]);
 		}
 		if (manager->maxfd < manager->pipe_fds[0])
 			manager->maxfd = manager->pipe_fds[0];
@@ -2720,7 +2720,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	 */
 
 	lockid = FDLOCK_ID(sock->fd);
-	LOCK(&manager->fdlock[lockid]);
+	LOCK(manager->fdlock[lockid]);
 	manager->fds[sock->fd] = sock;
 	manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
@@ -2732,7 +2732,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
 	       sock->manager->fdpollinfo[sock->fd].want_write == 0);
 #endif
-	UNLOCK(&manager->fdlock[lockid]);
+	UNLOCK(manager->fdlock[lockid]);
 
 	LOCK(&manager->lock);
 	ISC_LIST_APPEND(manager->socklist, sock, link);
@@ -2800,7 +2800,7 @@ isc_socket_open(isc_socket_t *sock0) {
 	if (result == ISC_R_SUCCESS) {
 		int lockid = FDLOCK_ID(sock->fd);
 
-		LOCK(&sock->manager->fdlock[lockid]);
+		LOCK(sock->manager->fdlock[lockid]);
 		sock->manager->fds[sock->fd] = sock;
 		sock->manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
@@ -2810,7 +2810,7 @@ isc_socket_open(isc_socket_t *sock0) {
 		INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
 		       sock->manager->fdpollinfo[sock->fd].want_write == 0);
 #endif
-		UNLOCK(&sock->manager->fdlock[lockid]);
+		UNLOCK(sock->manager->fdlock[lockid]);
 
 #ifdef USE_SELECT
 		LOCK(&sock->manager->lock);
@@ -3186,13 +3186,13 @@ internal_accept(isc__socket_t *sock) {
 			NEWCONNSOCK(dev)->active = 1;
 		}
 
-		LOCK(&manager->fdlock[lockid]);
+		LOCK(manager->fdlock[lockid]);
 		manager->fds[fd] = NEWCONNSOCK(dev);
 		manager->fdstate[fd] = MANAGED;
 #if defined(USE_EPOLL)
 		manager->epoll_events[fd] = 0;
 #endif
-		UNLOCK(&manager->fdlock[lockid]);
+		UNLOCK(manager->fdlock[lockid]);
 
 		LOCK(&manager->lock);
 
@@ -3337,9 +3337,9 @@ process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 	/*
 	 * If the socket is going to be closed, don't do more I/O.
 	 */
-	LOCK(&manager->fdlock[lockid]);
+	LOCK(manager->fdlock[lockid]);
 	if (manager->fdstate[fd] == CLOSE_PENDING || manager->fds[fd] == NULL) {
-		UNLOCK(&manager->fdlock[lockid]);
+		UNLOCK(manager->fdlock[lockid]);
 		return;
 	}
 
@@ -3347,7 +3347,7 @@ process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 	LOCK(&sock->lock);
 	if (SOCK_DEAD(sock)) { /* Sock is being closed, bail */
 		UNLOCK(&sock->lock);
-		UNLOCK(&manager->fdlock[lockid]);
+		UNLOCK(manager->fdlock[lockid]);
 		return;
 	}
 	sock->references++;
@@ -3365,7 +3365,7 @@ process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 			internal_send(sock);
 	}
 
-	UNLOCK(&manager->fdlock[lockid]);
+	UNLOCK(manager->fdlock[lockid]);
 	sock->references--;
 	kill_socket = (sock->references == 0);
 	UNLOCK(&sock->lock);
@@ -4030,16 +4030,17 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	result = isc_mutex_init(&manager->lock);
 	if (result != ISC_R_SUCCESS)
 		goto free_manager;
-	manager->fdlock = isc_mem_get(mctx, FDLOCK_COUNT * sizeof(isc_mutex_t));
+	manager->fdlock = isc_mem_get(mctx, FDLOCK_COUNT * sizeof(isc_mutex_t*));
 	if (manager->fdlock == NULL) {
 		result = ISC_R_NOMEMORY;
 		goto cleanup_lock;
 	}
 	for (i = 0; i < FDLOCK_COUNT; i++) {
-		result = isc_mutex_init(&manager->fdlock[i]);
+		manager->fdlock[i] = isc_mem_get(mctx, 4096);
+		result = isc_mutex_init(manager->fdlock[i]);
 		if (result != ISC_R_SUCCESS) {
 			while (--i >= 0)
-				DESTROYLOCK(&manager->fdlock[i]);
+				DESTROYLOCK(manager->fdlock[i]);
 			isc_mem_put(mctx, manager->fdlock,
 				    FDLOCK_COUNT * sizeof(isc_mutex_t));
 			manager->fdlock = NULL;
@@ -4134,7 +4135,7 @@ cleanup_condition:
 cleanup_lock:
 	if (manager->fdlock != NULL) {
 		for (i = 0; i < FDLOCK_COUNT; i++)
-			DESTROYLOCK(&manager->fdlock[i]);
+			DESTROYLOCK(manager->fdlock[i]);
 	}
 	DESTROYLOCK(&manager->lock);
 
@@ -4262,10 +4263,12 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 		isc_stats_detach(&manager->stats);
 
 	if (manager->fdlock != NULL) {
-		for (i = 0; i < FDLOCK_COUNT; i++)
-			DESTROYLOCK(&manager->fdlock[i]);
+		for (i = 0; i < FDLOCK_COUNT; i++) {
+			DESTROYLOCK(manager->fdlock[i]);
+			isc_mem_put(manager->mctx, manager->fdlock[i], 4096);
+		}
 		isc_mem_put(manager->mctx, manager->fdlock,
-			    FDLOCK_COUNT * sizeof(isc_mutex_t));
+			    FDLOCK_COUNT * sizeof(isc_mutex_t *));
 	}
 	DESTROYLOCK(&manager->lock);
 	manager->common.magic = 0;
