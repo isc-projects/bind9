@@ -1558,10 +1558,16 @@ dns_view_loadnew(dns_view_t *view, bool stop) {
 
 isc_result_t
 dns_view_asyncload(dns_view_t *view, dns_zt_allloaded_t callback, void *arg) {
+	return (dns_view_asyncload2(view, callback, arg, false));
+}
+
+isc_result_t
+dns_view_asyncload2(dns_view_t *view, dns_zt_allloaded_t callback, void *arg,
+		    bool newonly) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(view->zonetable != NULL);
 
-	return (dns_zt_asyncload(view->zonetable, callback, arg));
+	return (dns_zt_asyncload2(view->zonetable, callback, arg, newonly));
 }
 
 isc_result_t

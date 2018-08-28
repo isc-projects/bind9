@@ -404,6 +404,10 @@ dns_zone_loadandthaw(dns_zone_t *zone);
 
 isc_result_t
 dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg);
+
+isc_result_t
+dns_zone_asyncload2(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg,
+		    bool newonly);
 /*%<
  * Cause the database to be loaded from its backing store asynchronously.
  * Other zone maintenance functions are suspended until this is complete.
