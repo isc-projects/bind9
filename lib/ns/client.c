@@ -2448,10 +2448,6 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		ns_client_next(client, result);
 		return;
 	}
-#ifdef PSEUDOSEND
-	client_pseudosend(client, id);
-	return;
-#endif
 	/*
 	 * The client object handles requests, not responses.
 	 * If this is a UDP response, forward it to the dispatcher.
@@ -2510,6 +2506,10 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 			break;
 		}
 	}
+#ifdef PSEUDOSEND
+	client_pseudosend(client, id);
+	return;
+#endif
 
 	/*
 	 * It's a request.  Parse it.
