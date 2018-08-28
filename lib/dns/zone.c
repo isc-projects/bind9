@@ -498,9 +498,9 @@ struct dns_zone {
 #define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
 
 /* Flags for zone_load() */
-#define DNS_ZONELOADFLAG_NOSTAT	0x00000001U	/* Do not stat() master files */
-#define DNS_ZONELOADFLAG_THAW	0x00000002U	/* Thaw the zone on successful
-						   load. */
+#define DNS_ZONELOADFLAG_NOSTAT        0x00000001U     /* Do not stat() master files */
+#define DNS_ZONELOADFLAG_THAW  0x00000002U     /* Thaw the zone on successful
+						  load. */
 
 #define UNREACH_CHACHE_SIZE	10U
 #define UNREACH_HOLD_TIME	600	/* 10 minutes */
@@ -701,6 +701,7 @@ struct dns_keyfetch {
  */
 struct dns_asyncload {
 	dns_zone_t *zone;
+	unsigned int flags;
 	dns_zt_zoneloaded_t loaded;
 	void *loaded_arg;
 };
@@ -2156,13 +2157,8 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 }
 
 isc_result_t
-dns_zone_load(dns_zone_t *zone) {
-	return (zone_load(zone, 0, false));
-}
-
-isc_result_t
-dns_zone_loadnew(dns_zone_t *zone) {
-	return (zone_load(zone, DNS_ZONELOADFLAG_NOSTAT, false));
+dns_zone_load(dns_zone_t *zone, bool newonly) {
+	return (zone_load(zone, newonly ? DNS_ZONELOADFLAG_NOSTAT : 0, false));
 }
 
 static void
@@ -2178,7 +2174,7 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	LOCK_ZONE(zone);
-	result = zone_load(zone, 0, true);
+	result = zone_load(zone, asl->flags, true);
 	if (result != DNS_R_CONTINUE) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
 	}
@@ -2193,7 +2189,9 @@ zone_asyncload(isc_task_t *task, isc_event_t *event) {
 }
 
 isc_result_t
-dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
+dns_zone_asyncload(dns_zone_t *zone, bool newonly,
+		   dns_zt_zoneloaded_t done, void *arg)
+{
 	isc_event_t *e;
 	dns_asyncload_t *asl = NULL;
 	isc_result_t result = ISC_R_SUCCESS;
@@ -2215,6 +2213,7 @@ dns_zone_asyncload(dns_zone_t *zone, dns_zt_zoneloaded_t done, void *arg) {
 		CHECK(ISC_R_NOMEMORY);
 
 	asl->zone = NULL;
+	asl->flags = newonly ? DNS_ZONELOADFLAG_NOSTAT : 0;
 	asl->loaded = done;
 	asl->loaded_arg = arg;
 
