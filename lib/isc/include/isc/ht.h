@@ -15,10 +15,10 @@
 #define ISC_HT_H 1
 
 #include <inttypes.h>
-#include <string.h>
 
 #include <isc/types.h>
 #include <isc/result.h>
+#include <isc/string.h>
 
 typedef struct isc_ht isc_ht_t;
 typedef struct isc_ht_iter isc_ht_iter_t;
