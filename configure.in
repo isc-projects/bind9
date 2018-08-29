@@ -8,12 +8,16 @@
 # information regarding copyright ownership.
 
 AC_INIT(BIND, [9.13], [info@isc.org], [], [https://www.isc.org/downloads/BIND/])
-AC_PREREQ(2.59)
+AC_PREREQ([2.60])
 
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
+AC_USE_SYSTEM_EXTENSIONS
+
+# Enable RFC 3542 APIs on macOS
+AC_DEFINE([__APPLE_USE_RFC_3542], [1], [Select RFC3542 IPv6 API on macOS])
 
 AC_PROG_MAKE_SET
 
@@ -392,34 +396,6 @@ esac
 
 AC_PROG_CC
 AC_PROG_CC_C99
-
-#
-# OS dependent CC flags
-#
-case "$host" in
-	# Solaris: need -D_XPG4_2 and -D__EXTENSIONS__ for CMSG macros
-	*-solaris*)
-		STD_CDEFINES="$STD_CDEFINES -D_XPG4_2 -D__EXTENSIONS__"
-		CPPFLAGS="$CPPFLAGS -D_XPG4_2 -D__EXTENSIONS__"
-		;;
-	# POSIX doesn't include the IPv6 Advanced Socket API and glibc hides
-	# parts of the IPv6 Advanced Socket API as a result.  This is stupid
-	# as it breaks how the two halves (Basic and Advanced) of the IPv6
-	# Socket API were designed to be used but we have to live with it.
-	# Define _GNU_SOURCE to pull in the IPv6 Advanced Socket API.
-	*-linux* | *-kfreebsd*-gnu*)
-		STD_CDEFINES="$STD_CDEFINES -D_GNU_SOURCE"
-		CPPFLAGS="$CPPFLAGS -D_GNU_SOURCE"
-		;;
-	#
-	# Starting with OSX 10.7 (Lion) we must choose which IPv6 API to use.
-	# Setting this is sufficient to select the correct behavior for BIND 9.
-	#
-	*-darwin*)
-	  STD_CDEFINES="$STD_CDEFINES -D__APPLE_USE_RFC_3542"
-	  CPPFLAGS="$CPPFLAGS -D__APPLE_USE_RFC_3542"
-	  ;;
-esac
 
 #
 # CCNOOPT defaults to -O0 on gcc and disables optimization when is last
@@ -883,15 +859,6 @@ case "$host" in
 	#
 	*-linux*)
 		AC_DEFINE(HAVE_LINUXTHREADS)
-		;;
-	#
-	# Ensure the right sigwait() semantics on Solaris and make
-	# sure we call pthread_setconcurrency.
-	#
-	*-solaris*)
-		AC_DEFINE(_POSIX_PTHREAD_SEMANTICS)
-		AC_CHECK_FUNC(pthread_setconcurrency,
-			      AC_DEFINE(CALL_PTHREAD_SETCONCURRENCY))
 		;;
 esac
 

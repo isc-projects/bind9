@@ -32,6 +32,7 @@
 #include <isc/net.h>
 #include <isc/netdb.h>
 #include <isc/once.h>
+#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/util.h>
 

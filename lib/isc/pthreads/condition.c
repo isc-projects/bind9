@@ -18,6 +18,7 @@
 
 #include <isc/condition.h>
 #include <isc/msgs.h>
+#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/time.h>
 #include <isc/util.h>

@@ -29,6 +29,7 @@
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
+#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/taskpool.h>
 #include <isc/thread.h>
