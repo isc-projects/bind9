@@ -437,8 +437,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\hmacsha.c" />
     <ClCompile Include="..\ht.c" />
     <ClCompile Include="..\httpd.c" />
-    <ClCompile Include="..\inet_ntop.c" />
-    <ClCompile Include="..\inet_pton.c" />
     <ClCompile Include="..\iterated_hash.c" />
     <ClCompile Include="..\lex.c" />
     <ClCompile Include="..\lfsr.c" />
@@ -497,7 +495,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="socket.c" />
     <ClCompile Include="stdio.c" />
     <ClCompile Include="stdtime.c" />
-    <ClCompile Include="strerror.c" />
     <ClCompile Include="syslog.c" />
     <ClCompile Include="thread.c" />
     <ClCompile Include="time.c" />
