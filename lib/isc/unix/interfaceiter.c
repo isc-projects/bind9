@@ -16,6 +16,7 @@
 
 /* Ensure POSIX strerror_r variant is used */
 #ifdef _GNU_SOURCE
+#include <features.h>
 #undef _GNU_SOURCE
 #define _DEFAULT_SOURCE 1
 #include <string.h>
