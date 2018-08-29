@@ -420,6 +420,7 @@ if test "X$CCNOOPT" = "X" -a "X$GCC" = "Xyes"; then
 fi
 
 AC_HEADER_STDC
+AC_CHECK_HEADERS([features.h])
 
 AC_CHECK_HEADERS(fcntl.h regex.h sys/time.h unistd.h sys/mman.h sys/sockio.h sys/select.h sys/param.h sys/sysctl.h net/if6.h sys/socket.h net/route.h linux/netlink.h linux/rtnetlink.h,,,
 [$ac_includes_default

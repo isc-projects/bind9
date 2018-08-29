@@ -77,7 +77,7 @@ isc_thread_setconcurrency(unsigned int level) {
 
 void
 isc_thread_setname(isc_thread_t thread, const char *name) {
-#if defined(HAVE_PTHREAD_SETNAME_NP) && defined(_GNU_SOURCE)
+#if defined(HAVE_PTHREAD_SETNAME_NP) && defined(_GNU_SOURCE) && !defined(__APPLE__)
 	/*
 	 * macOS has pthread_setname_np but only works on the
 	 * current thread so it's not used here
