@@ -1073,7 +1073,6 @@ dns_view_iscacheshared
 dns_view_isdelegationonly
 dns_view_issecuredomain
 dns_view_load
-dns_view_loadnew
 dns_view_loadnta
 dns_view_ntacovers
 dns_view_restorekeyring
@@ -1207,7 +1206,6 @@ dns_zone_keydone
 dns_zone_link
 dns_zone_load
 dns_zone_loadandthaw
-dns_zone_loadnew
 dns_zone_log
 dns_zone_logc
 dns_zone_logv
@@ -1346,7 +1344,6 @@ dns_zt_find
 dns_zt_flushanddetach
 dns_zt_freezezones
 dns_zt_load
-dns_zt_loadnew
 dns_zt_mount
 dns_zt_setviewcommit
 dns_zt_setviewrevert
