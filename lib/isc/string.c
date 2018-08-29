@@ -109,5 +109,9 @@ isc_string_strlcat(char *dst, const char *src, size_t size)
 
 int
 isc_string_strerror_r(int errnum, char *buf, size_t buflen) {
+#if defined(_WIN32) || defined(_WIN64)
+	return (strerror_s(buf, buflen, errnum));
+#else _GNU_SOURCE
 	return (strerror_r(errnum, buf, buflen));
+#endif
 }
