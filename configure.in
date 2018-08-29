@@ -909,7 +909,7 @@ AC_SUBST(INSTALL_LIBRARY)
 #
 # If PIC is disabled, shared libraries must also be
 #
-AS_IF(["$pic_mode" = "no"],
+AS_IF([test "$pic_mode" = "no"],
       [enable_shared="no"])
 
 CRYPTO=OpenSSL
