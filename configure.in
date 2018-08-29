@@ -30,13 +30,13 @@ AC_DEFINE([_POSIX_PTHREAD_SEMANTICS], [1], [define on Solaris to get sigwait() t
 AC_DEFINE([_TANDEM_SOURCE], [1], [Enable extensions on HP NonStop.])
 AC_DEFINE([__EXTENSIONS__], [1], [Enable general extensions on Solaris.])
 
-#AC_CASE([$host],
-#	[*-linux*],[
-#	  AC_DEFINE([_POSIX_SOURCE], [1], [IEEE Std 1003.1.])
-#	  AC_DEFINE([_POSIX_1_SOURCE], [200809L], [IEEE 1003.1-2008.])
-#	  AC_DEFINE([_XOPEN_SOURCE], [700], [Includes POSIX and XPG things.])
-#	  AC_DEFINE([_XOPEN_SOURCE_EXTENDED], [1], [XPG things and X/Open Unix extensions.])
-#	])
+AS_CASE([$host],
+	[*-linux*],[
+	  AC_DEFINE([_POSIX_SOURCE], [1], [IEEE Std 1003.1.])
+	  AC_DEFINE([_POSIX_1_SOURCE], [200809L], [IEEE 1003.1-2008.])
+	  AC_DEFINE([_XOPEN_SOURCE], [700], [Includes POSIX and XPG things.])
+	  AC_DEFINE([_XOPEN_SOURCE_EXTENDED], [1], [XPG things and X/Open Unix extensions.])
+	])
 
 # Enable stack protection by default
 AC_DEFINE([_FORTIFY_SOURCE], [2], [Fortify source by default.])
