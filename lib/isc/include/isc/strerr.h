@@ -17,7 +17,7 @@
 
 #include <string.h>
 
-#if _GNU_SOURCE
+#if defined(strerror_r)
 #undef strerror_r
 #define strerror_r isc_string_strerror_r
 #endif
