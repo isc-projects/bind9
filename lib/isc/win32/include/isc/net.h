@@ -390,6 +390,14 @@ isc_net_getudpportrange(int af, in_port_t *low, in_port_t *high);
  *	the range.
  */
 
+#ifndef inet_ntop
+#define inet_ntop InetNtopW
+#endif
+
+#ifndef inet_pton
+#define inet_pton InetPtonW
+#endif
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_NET_H */
