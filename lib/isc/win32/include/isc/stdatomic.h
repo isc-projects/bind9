@@ -205,13 +205,13 @@ atomic_compare_exchange_strong_explicit64(atomic_int_fast64_t *obj,
 	REQUIRE(succ == fail);
 	switch (succ) {
 	case memory_order_relaxed:
-		__v = InterlockedCompareExchange64NoFence((atomic_int_fast64_t *)obj, desired, *expected);
+		__v = InterlockedCompareExchangeNoFence64((atomic_int_fast64_t *)obj, desired, *expected);
 		break;
 	case memory_order_acquire:
-		__v = InterlockedCompareExchange64Acquire((atomic_int_fast64_t *)obj, desired, *expected);
+		__v = InterlockedCompareExchangeAcquire64((atomic_int_fast64_t *)obj, desired, *expected);
 		break;
 	case memory_order_release:
-		__v = InterlockedCompareExchange64Release((atomic_int_fast64_t *)obj, desired, *expected);
+		__v = InterlockedCompareExchangeRelease64((atomic_int_fast64_t *)obj, desired, *expected);
 		break;
 	default:
 		__v = InterlockedCompareExchange64((atomic_int_fast64_t *)obj, desired, *expected);

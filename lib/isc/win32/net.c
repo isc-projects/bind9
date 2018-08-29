@@ -19,7 +19,7 @@
 #include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/once.h>
-#include <isc/strerror.h>
+#include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/util.h>
 

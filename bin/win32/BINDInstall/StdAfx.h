@@ -4,10 +4,10 @@
 //
 
 /*
- * Minimum version is Windows XP SP1
+ * Minimum version is Windows Vista and Windows Server 2008
  */
-#define _WIN32_WINNT 0x0501
-#define NTDDI_VERSION 0x05010100
+#define _WIN32_WINNT 0x0600
+#define NTDDI_VERSION 0x06000100
 
 #ifndef _CRT_SECURE_NO_DEPRECATE
 #define _CRT_SECURE_NO_DEPRECATE 1

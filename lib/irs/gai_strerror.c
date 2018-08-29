@@ -73,7 +73,11 @@ static const char *gai_messages[] = {
  * Returns an error message corresponding to an error code returned by
  * getaddrinfo() and getnameinfo()
  */
+#if defined _WIN32
+char *
+#else
 const char *
+#endif
 gai_strerror(int ecode) {
 	union {
 		const char *const_ptr;
