@@ -538,12 +538,6 @@
     <ClCompile Include="..\httpd.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\inet_ntop.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\inet_pton.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\iterated_hash.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>

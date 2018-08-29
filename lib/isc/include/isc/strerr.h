@@ -17,7 +17,9 @@
 
 #include <string.h>
 
-#if _GNU_SOURCE
+#if defined(_WIN32) || defined(_WIN64)
+#define strerror_r(errnum, buf, buflen) strerror_s(buf, buflen, errnum)
+#elif _GNU_SOURCE
 #undef strerror_r
 #define strerror_r isc_string_strerror_r
 #endif
