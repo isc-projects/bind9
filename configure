@@ -2687,17 +2687,6 @@ $as_echo "#define _ISOC11_SOURCE 1" >>confdefs.h
 $as_echo "#define _DEFAULT_SOURCE 1" >>confdefs.h
 
 
-$as_echo "#define _POSIX_SOURCE 1" >>confdefs.h
-
-
-$as_echo "#define _POSIX_1_SOURCE 200809L" >>confdefs.h
-
-
-$as_echo "#define _XOPEN_SOURCE 700" >>confdefs.h
-
-
-$as_echo "#define _XOPEN_SOURCE_EXTENDED 1" >>confdefs.h
-
 
 $as_echo "#define _LARGEFILE_SOURCE 1" >>confdefs.h
 
@@ -2719,6 +2708,14 @@ $as_echo "#define _TANDEM_SOURCE 1" >>confdefs.h
 
 $as_echo "#define __EXTENSIONS__ 1" >>confdefs.h
 
+
+#AC_CASE([$host],
+#	[*-linux*],[
+#	  AC_DEFINE([_POSIX_SOURCE], [1], [IEEE Std 1003.1.])
+#	  AC_DEFINE([_POSIX_1_SOURCE], [200809L], [IEEE 1003.1-2008.])
+#	  AC_DEFINE([_XOPEN_SOURCE], [700], [Includes POSIX and XPG things.])
+#	  AC_DEFINE([_XOPEN_SOURCE_EXTENDED], [1], [XPG things and X/Open Unix extensions.])
+#	])
 
 # Enable stack protection by default
 

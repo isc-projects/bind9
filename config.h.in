@@ -601,23 +601,11 @@
 /* Some more functions for correct standard I/O. */
 #undef _LARGEFILE_SOURCE
 
-/* IEEE 1003.1-2008. */
-#undef _POSIX_1_SOURCE
-
 /* define on Solaris to get sigwait() to work using pthreads semantics */
 #undef _POSIX_PTHREAD_SEMANTICS
 
-/* IEEE Std 1003.1. */
-#undef _POSIX_SOURCE
-
 /* Enable extensions on HP NonStop. */
 #undef _TANDEM_SOURCE
-
-/* Includes POSIX and XPG things. */
-#undef _XOPEN_SOURCE
-
-/* XPG things and X/Open Unix extensions. */
-#undef _XOPEN_SOURCE_EXTENDED
 
 /* Select RFC3542 IPv6 API on macOS */
 #undef __APPLE_USE_RFC_3542
