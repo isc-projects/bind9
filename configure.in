@@ -884,14 +884,11 @@ case $use_libtool in
 		O=lo
 		A=la
 		LIBTOOL_MKDEP_SED='s;\.o;\.lo;'
-		LIBTOOL_MODE_COMPILE='--mode=compile --tag=CC'
-		LIBTOOL_MODE_INSTALL='--mode=install --tag=CC'
-		LIBTOOL_MODE_LINK='--mode=link --tag=CC'
-		LIBTOOL_MODE_UNINSTALL='--mode=uninstall --tag=CC'
+		LIBTOOL_MODE_COMPILE='--mode=compile'
+		LIBTOOL_MODE_INSTALL='--mode=install'
+		LIBTOOL_MODE_LINK='--mode=link'
+		LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
 		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
-		case "$host" in
-		*) LIBTOOL_ALLOW_UNDEFINED= ;;
-		esac
 		;;
 	*)
 		AC_MSG_RESULT(no)
@@ -904,11 +901,16 @@ case $use_libtool in
 		LIBTOOL_MODE_INSTALL=
 		LIBTOOL_MODE_LINK=
 		LIBTOOL_MODE_UNINSTALL=
-		LIBTOOL_ALLOW_UNDEFINED=
 		INSTALL_LIBRARY='${INSTALL_DATA}'
 		;;
 esac
 AC_SUBST(INSTALL_LIBRARY)
+
+#
+# If PIC is disabled, shared libraries must also be
+#
+AS_IF(["$pic_mode" = "no"],
+      [enable_shared="no"])
 
 CRYPTO=OpenSSL
 
@@ -1880,7 +1882,6 @@ AC_SUBST(LIBTOOL_MODE_COMPILE)
 AC_SUBST(LIBTOOL_MODE_INSTALL)
 AC_SUBST(LIBTOOL_MODE_LINK)
 AC_SUBST(LIBTOOL_MODE_UNINSTALL)
-AC_SUBST(LIBTOOL_ALLOW_UNDEFINED)
 
 BIND9_CO_RULE=".c.$O:"
 AC_SUBST(BIND9_CO_RULE)
@@ -2378,68 +2379,6 @@ case "$enable_nsdname" in
 	*)
 		;;
 esac
-
-#
-# Response policy rewriting using DNS Response Policy Service (DNSRPS)
-# interface.
-#
-# DNSRPS can be compiled into BIND everywhere with a reasonably
-# modern C compiler.  It is enabled on systems with dlopen() and librpz.so.
-#
-dnsrps_avail=yes
-AC_MSG_CHECKING([for librpz __attribute__s])
-    AC_TRY_COMPILE(,[
-	extern void f(char *p __attribute__((unused)), ...)
-	__attribute__((format(printf,1,2))) __attribute__((__noreturn__));],
-    librpz_have_attr=yes
-    AC_DEFINE([LIBRPZ_HAVE_ATTR], 1, [have __attribute__s used in librpz.h])
-    AC_MSG_RESULT([yes]),
-    librpz_have_attr=no
-    AC_MSG_RESULT([no]))
-
-AC_SEARCH_LIBS(dlopen, dl)
-librpz_dl=yes
-AC_CHECK_FUNCS(dlopen dlclose dlsym,,librpz_dl=no)
-AC_ARG_ENABLE([dnsrps-dl],
-	      AS_HELP_STRING([--enable-dnsrps-dl],
-			     [DNS Response Policy Service delayed link
-				[default=$librpz_dl]]),
-	      [enable_librpz_dl="$enableval"], [enable_librpz_dl="$librpz_dl"])
-AC_ARG_WITH([dnsrps-libname],
-	    AS_HELP_STRING([--with-dnsrps-libname],
-			   [DNSRPS provider library name (librpz.so)]),
-	    [librpz_name="$withval"], [librpz_name="librpz.so"])
-AC_ARG_WITH([dnsrps-dir],
-	    AS_HELP_STRING([--with-dnsrps-dir],
-			   [path to DNSRPS provider library]),
-	    [librpz_path="$withval/$librpz_name"], [librpz_path="$librpz_name"])
-AC_DEFINE_UNQUOTED([DNSRPS_LIBRPZ_PATH], ["$librpz_path"],
-	[dnsrps $librpz_name])
-if test "x$enable_librpz_dl" = "xyes"; then
-	dnsrps_lib_open=2
-else
-	dnsrps_lib_open=1
-	# Add librpz.so to linked libraries if we are not using dlopen()
-	AC_SEARCH_LIBS([librpz_client_create], [rpz], [],
-		[dnsrps_lib_open=0
-		 dnsrps_avail=no])
-fi
-AC_DEFINE_UNQUOTED([DNSRPS_LIB_OPEN], [$dnsrps_lib_open],
-	[0=no DNSRPS  1=static link  2=dlopen()])
-
-AC_ARG_ENABLE([dnsrps],
-	      AS_HELP_STRING([--enable-dnsrps],
-			     [enable DNS Response Policy Service API]),
-	      [enable_dnsrps=$enableval], [enable_dnsrps=no])
-if test "x$enable_dnsrps" != "xno"; then
-	if test "x$dnsrps_avail" != "xyes"; then
-		AC_MSG_ERROR([[dlopen and librpz.so needed for DNSRPS]])
-	fi
-	if test "x$dnsrps_lib_open" = "x0"; then
-		AC_MSG_ERROR([[dlopen and librpz.so needed for DNSRPS]])
-	fi
-	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
-fi
 
 #
 # Activate dnstap?
@@ -3003,86 +2942,86 @@ SO_LD=""
 SO_TARGETS=""
 SO_STRIP="cat"
 
-AC_ARG_WITH(dlopen,
+AC_ARG_WITH([dlopen],
 	    AS_HELP_STRING([--with-dlopen=ARG],
-			   [support dynamically loadable DLZ drivers]),
-	    dlopen="$withval", dlopen="yes")
+			   [support dynamically loadable DLZ and DYNDB drivers]),
+	    [], [with_dlopen="auto"])
 
-if test "yes" = "$dlopen"; then
-	AC_CHECK_LIB(dl, dlopen, have_dl=yes, have_dl=no)
-	if test "yes" = "$have_dl"; then
-		LIBS="-ldl $LIBS"
-	fi
-	AC_CHECK_FUNCS(dlopen dlclose dlsym,,dlopen=no)
-fi
 
-if test "yes" = "$dlopen"; then
-	case $host in
-		*-linux*|*-gnu*)
-			SO_CFLAGS="-fPIC"
-			SO_LDFLAGS=""
-			if test "yes" = "$have_dl"
-			then
-				if test "yes" = "$use_libtool"; then
-					SO_LDFLAGS="-Xcompiler -shared"
-					SO_LD="${CC}"
-				else
-					SO_LDFLAGS="-shared"
-					SO_LD="${CC}"
-				fi
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="ld"
-			fi
-			;;
-		*-freebsd*|*-openbsd*)
-			LDFLAGS="${LDFLAGS} -Wl,-E"
-			SO_CFLAGS="-fpic"
-			if test "yes" = "$use_libtool"; then
-				SO_LDFLAGS="-Xcompiler -shared"
-				SO_LD="${CC}"
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="${CC}"
-			fi
-			;;
-		*-netbsd*)
-			SO_CFLAGS="-fpic"
-			SO_LDFLAGS="-Bshareable -x"
-			SO_LD="ld"
-			SO_STRIP="sed -e s/-Wl,//g"
-			;;
-		*-solaris*)
-			SO_CFLAGS="-KPIC"
-			SO_LDFLAGS="-G -z text"
-			SO_LD="ld"
-			;;
-		*)
-			SO_CFLAGS="-fPIC"
-			;;
-	esac
+#
+# If PIC is disabled, dlopen must also be
+#
+AS_IF([test "$pic_mode" = "no"],
+      [AS_CASE([$with_dlopen],
+	       [auto],[with_dlopen="no"],
+	       [yes],[AC_MSG_ERROR([--with-dlopen requires PIC])])])
 
-	if test "X$GCC" = "Xyes"; then
-		SO_CFLAGS="-fPIC"
-		if test -z "$SO_LD"
-		then
-			if test "yes" = "$use_libtool"; then
-				SO_LDFLAGS="-Xcompiler -shared"
-				SO_LD="${CC}"
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="${CC}"
-			fi
-		fi
-	fi
+AS_CASE([$with_dlopen],
+	[auto|yes],[
+	  AC_SEARCH_LIBS([dlopen],[dl])
+	  AC_CHECK_FUNCS([dlopen dlclose dlsym],
+			 [with_dlopen="yes"],
+			 [with_dlopen="no"])
+	])
 
-	# If we still don't know how to make shared objects, don't make any.
-	if test -n "$SO_LD"; then
-		SO_TARGETS="\${SO_TARGETS}"
-		AC_DEFINE(ISC_DLZ_DLOPEN, 1,
-			  [Define to allow building of objects for dlopen().])
-	fi
-fi
+AS_IF([test "$with_dlopen" = "yes"],
+      [AS_CASE([$host],
+	       [*-linux*|*-gnu*],[
+		 SO_CFLAGS="-fPIC"
+		 SO_LDFLAGS=""
+		 AS_IF([test "$use_libtool" = "yes"],[
+			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LD="${CC}"
+		       ],[
+			 SO_LDFLAGS="-shared"
+			 SO_LD="${CC}"
+		       ])
+	       ],
+	       [*-freebsd*|*-openbsd*],[
+		 LDFLAGS="${LDFLAGS} -Wl,-E"
+		 SO_CFLAGS="-fpic"
+		 AS_IF([test "$use_libtool" = "yes"],[
+			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LD="${CC}"
+		       ],[
+			 SO_LDFLAGS="-shared"
+			 SO_LD="${CC}"
+		       ])
+	       ],
+	       [*-netbsd*],[
+		 SO_CFLAGS="-fpic"
+		 SO_LDFLAGS="-Bshareable -x"
+		 SO_LD="ld"
+		 SO_STRIP="sed -e s/-Wl,//g"
+	       ],
+	       [*-solaris*],[
+		 SO_CFLAGS="-KPIC"
+		 SO_LDFLAGS="-G -z text"
+		 SO_LD="ld"
+	       ],
+	       [
+		 SO_CFLAGS="-fPIC"
+	       ])
+       AS_IF([test "$GCC" = "yes"],[
+	       SO_CFLAGS="-fPIC"
+	       AS_IF([test -z "$SO_LD"],
+		     [AS_IF([test "$use_libtool" = "yes"],[
+			      SO_LDFLAGS="-Xcompiler -shared"
+			      SO_LD="${CC}"
+			    ],[
+			      SO_LDFLAGS="-shared"
+			      SO_LD="${CC}"
+			    ])
+		     ])
+	     ])
+       # If we still don't know how to make shared objects, don't make any.
+       AS_IF([test -n "$SO_LD"],
+	     [SO_TARGETS="\${SO_TARGETS}"
+	      AC_DEFINE([ISC_DLZ_DLOPEN], [1],
+			[Define to allow building of objects for dlopen().])
+	     ])
+      ])
+
 CFLAGS="$CFLAGS $SO_CFLAGS"
 
 AC_SUBST(SO)
@@ -3091,6 +3030,76 @@ AC_SUBST(SO_LDFLAGS)
 AC_SUBST(SO_LD)
 AC_SUBST(SO_STRIP)
 AC_SUBST(SO_TARGETS)
+
+#
+# Response policy rewriting using DNS Response Policy Service (DNSRPS)
+# interface.
+#
+# DNSRPS can be compiled into BIND everywhere with a reasonably
+# modern C compiler.  It is enabled on systems with dlopen() and librpz.so.
+#
+dnsrps_avail=yes
+AC_MSG_CHECKING([for librpz __attribute__s])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[]],
+     [[
+       extern void f(char *p __attribute__((unused)), ...)
+       __attribute__((format(printf,1,2))) __attribute__((__noreturn__));
+     ]])],
+  [
+    librpz_have_attr=yes
+    AC_DEFINE([LIBRPZ_HAVE_ATTR], [1], [have __attribute__s used in librpz.h])
+    AC_MSG_RESULT([yes])
+  ],[
+    librpz_have_attr=no
+    AC_MSG_RESULT([no])
+  ])
+
+AC_ARG_ENABLE([dnsrps-dl],
+	      [AS_HELP_STRING([--enable-dnsrps-dl],
+			      [DNS Response Policy Service delayed link
+			       [default=$librpz_dl]])],
+	      [enable_librpz_dl="$enableval"], [enable_librpz_dl="$with_dlopen"])
+
+AS_IF([test "$enable_librpz_dl" = "yes" -a "$with_dlopen" = "no"],
+      [AC_MSG_ERROR([DNS Response Policy Service delayed link requires dlopen to be enabled])])
+
+AC_ARG_WITH([dnsrps-libname],
+	    [AS_HELP_STRING([--with-dnsrps-libname],
+			    [DNSRPS provider library name (librpz.so)])],
+	    [librpz_name="$withval"], [librpz_name="librpz.so"])
+AC_ARG_WITH([dnsrps-dir],
+	    [AS_HELP_STRING([--with-dnsrps-dir],
+			    [path to DNSRPS provider library])],
+	    [librpz_path="$withval/$librpz_name"], [librpz_path="$librpz_name"])
+AC_DEFINE_UNQUOTED([DNSRPS_LIBRPZ_PATH], ["$librpz_path"],
+		   [dnsrps $librpz_name])
+AS_IF([test "$enable_librpz_dl" = "yes"],
+      [
+	dnsrps_lib_open=2
+      ],[
+	dnsrps_lib_open=1
+	# Add librpz.so to linked libraries if we are not using dlopen()
+	AC_SEARCH_LIBS([librpz_client_create], [rpz], [],
+		[dnsrps_lib_open=0
+		 dnsrps_avail=no])
+      ])
+AC_DEFINE_UNQUOTED([DNSRPS_LIB_OPEN], [$dnsrps_lib_open],
+		   [0=no DNSRPS  1=static link  2=dlopen()])
+
+AC_ARG_ENABLE([dnsrps],
+	      AS_HELP_STRING([--enable-dnsrps],
+			     [enable DNS Response Policy Service API]),
+	      [enable_dnsrps=$enableval], [enable_dnsrps=no])
+
+AS_IF([test "$enable_dnsrps" != "no"],[
+	AS_IF([test "$dnsrps_avail" != "yes"],
+	      [AC_MSG_ERROR([dlopen and librpz.so needed for DNSRPS])])
+	AS_IF([test "$dnsrps_lib_open" = "0"],
+	      [AC_MSG_ERROR([dlopen and librpz.so needed for DNSRPS])])
+	AC_DEFINE([USE_DNSRPS], [1], [Enable DNS Response Policy Service API])
+      ])
 
 sinclude(contrib/dlz/config.dlz.in)
 AC_MSG_CHECKING(contributed DLZ drivers)
