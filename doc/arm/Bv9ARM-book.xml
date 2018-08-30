@@ -12719,12 +12719,13 @@ example.com. NS ns2.example.net.
 	      the rules are checked for each existing record type.
 	    </para>
 	    <para>
-	      The <replaceable>ruletype</replaceable> field has 13
+	      The <replaceable>ruletype</replaceable> field has 16
 	      values:
 	      <varname>name</varname>, <varname>subdomain</varname>,
 	      <varname>wildcard</varname>, <varname>self</varname>,
 	      <varname>selfsub</varname>, <varname>selfwild</varname>,
 	      <varname>krb5-self</varname>, <varname>ms-self</varname>,
+	      <varname>krb5-selfsub</varname>, <varname>ms-selfsub</varname>,
 	      <varname>krb5-subdomain</varname>,
 	      <varname>ms-subdomain</varname>,
 	      <varname>tcp-self</varname>, <varname>6to4-self</varname>,
@@ -12886,6 +12887,20 @@ example.com. NS ns2.example.net.
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			<varname>ms-selfsub</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This is similar to <command>ms-self</command>
+			except the records to be updated are allowed
+			be a subdomain of the name permitted by
+			<command>ms-self</command>.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			<varname>ms-subdomain</varname>
 		      </para>
 		    </entry> <entry colname="2">
@@ -12951,6 +12966,20 @@ example.com. NS ns2.example.net.
 			allows any machine with a valid principal in
 			the realm <userinput>EXAMPLE.COM</userinput> to update
 			its own address records.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>krb5-selfsub</varname>
+		      </para>
+		    </entry> <entry colname="2">
+		      <para>
+			This is similar to <command>krb5-self</command>
+			except the records to be updated are allowed
+			be a subdomain of the name permitted by
+			<command>krb5-self</command>.
 		      </para>
 		    </entry>
 		  </row>
