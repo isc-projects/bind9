@@ -231,7 +231,7 @@ enum {
  * _USEMINMTU:	Set the per packet IPV6_USE_MIN_MTU flag.
  */
 typedef enum {
-	ISC_SOCKEVENTATTR_ATTACHED =	0x80000000U, /* internal */
+	ISC_SOCKEVENTATTR_ATTACHED =	0x10000000U, /* internal */
 	ISC_SOCKEVENTATTR_TRUNC =	0x00800000U, /* public */
 	ISC_SOCKEVENTATTR_CTRUNC =	0x00400000U, /* public */
 	ISC_SOCKEVENTATTR_TIMESTAMP =	0x00200000U, /* public */
@@ -352,7 +352,7 @@ typedef struct isc_socketmethods {
 	void		(*detach)(isc_socket_t **socketp);
 	isc_result_t	(*bind)(isc_socket_t *sock,
 				const isc_sockaddr_t *sockaddr,
-				unsigned int options);
+				isc_socket_options_t options);
 	isc_result_t	(*sendto)(isc_socket_t *sock, isc_region_t *region,
 				  isc_task_t *task, isc_taskaction_t action,
 				  void *arg,
