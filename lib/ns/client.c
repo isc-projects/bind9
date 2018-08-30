@@ -2389,6 +2389,19 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		}
 		return;
 	}
+#ifdef PSEUDOSEND
+	result = dns_message_peekheader(buffer, &id, &flags);
+	if (result != ISC_R_SUCCESS) {
+		/*
+		 * There isn't enough header to determine whether
+		 * this was a request or a response.  Drop it.
+		 */
+		ns_client_next(client, result);
+		return;
+	}
+	client_pseudosend(client, id);
+	return;
+#endif
 
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 
@@ -2506,10 +2519,6 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 			break;
 		}
 	}
-#ifdef PSEUDOSEND
-	client_pseudosend(client, id);
-	return;
-#endif
 
 	/*
 	 * It's a request.  Parse it.
