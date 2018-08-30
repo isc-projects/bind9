@@ -4995,16 +4995,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				      &view->sortlist));
 
 	/*
-	 * Configure default allow-notify, allow-update
-	 * and allow-update-forwarding ACLs, so they can be
-	 * inherited by zones. (Note these cannot be set at
+	 * Configure default allow-update and allow-update-forwarding ACLs,
+	 * so they can be inherited by zones.  (Note these cannot be set at
 	 * options/view level.)
 	 */
-	if (view->notifyacl == NULL) {
-		CHECK(configure_view_acl(vconfig, config, named_g_config,
-					 "allow-notify", NULL, actx,
-					 named_g_mctx, &view->notifyacl));
-	}
 	if (view->updateacl == NULL) {
 		CHECK(configure_view_acl(NULL, NULL, named_g_config,
 					 "allow-update", NULL, actx,
@@ -5017,13 +5011,18 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	/*
-	 * Configure default allow-transer ACL so it can be inherited
-	 * by zones. (Note this *can* be set at options or view level.)
+	 * Configure default allow-transfer and allow-notify ACLs so they
+	 * can be inherited by zones.
 	 */
 	if (view->transferacl == NULL) {
 		CHECK(configure_view_acl(vconfig, config, named_g_config,
 					 "allow-transfer", NULL, actx,
 					 named_g_mctx, &view->transferacl));
+	}
+	if (view->notifyacl == NULL) {
+		CHECK(configure_view_acl(vconfig, config, named_g_config,
+					 "allow-notify", NULL, actx,
+					 named_g_mctx, &view->notifyacl));
 	}
 
 	obj = NULL;
