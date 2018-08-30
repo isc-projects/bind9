@@ -1249,7 +1249,7 @@ dispatch(isc__taskmgr_t *manager, int threadid) {
 
 typedef struct st {
 	isc__taskmgr_t *manager;
-	int c;
+	int threadid;
 } stt;
 
 static isc_threadresult_t
@@ -1259,13 +1259,14 @@ WINAPI
 run(void *uap) {
 	stt *st = uap;
 	isc__taskmgr_t *manager = st->manager;
-	int c = st->c;
-	free(st);
+	int threadid = st->threadid;
+	isc_mem_put(manager->mctx, st, sizeof(*st));
+	isc_thread_setaffinity(threadid);
 
 	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 				    ISC_MSG_STARTING, "starting"));
 
-	dispatch(manager, c);
+	dispatch(manager, threadid);
 
 	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
 				    ISC_MSG_EXITING, "exiting"));
@@ -1383,9 +1384,9 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 			result = ISC_R_UNEXPECTED;
 			goto cleanup_threads;
 		}
-		stt *st = malloc(sizeof(stt));
+		stt *st = isc_mem_get(mctx, sizeof(stt));
 		st->manager = manager;
-		st->c = i;
+		st->threadid = i;
 		if (isc_thread_create(run, st,
 				      &manager->threads[i]) != ISC_R_SUCCESS) {
 			goto cleanup_threads;
@@ -1394,10 +1395,6 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		snprintf(name, sizeof(name), "isc-worker%04u", i);
 		isc_thread_setname(manager->threads[manager->workers],
 				   name);
-		cpu_set_t cpuset;
-		CPU_ZERO(&cpuset);
-	        CPU_SET(i, &cpuset);
-	        pthread_setaffinity_np(manager->threads[i], sizeof(cpu_set_t), &cpuset);
 		manager->workers++;
 		started++;
 	}
