@@ -3521,6 +3521,9 @@ netthread(void *uap) {
 	isc__netthreadparms_t *parms = uap;
 	isc__socketmgr_t *manager = parms->manager;
 	int threadid = parms->thread;
+	if (manager->nthreads > 1) {
+		isc_thread_setaffinity(threadid);
+	}
 
 	bool done;
 	int cc;
@@ -4075,10 +4078,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
-	        cpu_set_t set;
-	        CPU_ZERO(&set);
-	        CPU_SET(i, &set);
-	        pthread_setaffinity_np(manager->threads[i], sizeof(cpu_set_t), &set);
 		char tname[1024];
 		sprintf(tname, "isc-socket-%d", i);
 		isc_thread_setname(manager->threads[i], tname);
