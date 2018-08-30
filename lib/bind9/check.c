@@ -484,6 +484,43 @@ check_viewacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	return (result);
 }
 
+static isc_result_t
+check_non_viewacls(const cfg_obj_t *voptions, const cfg_obj_t *config,
+		   isc_log_t *logctx)
+{
+	const cfg_obj_t *aclobj = NULL;
+	const cfg_obj_t *options;
+	const char *where = NULL;
+	int i;
+
+	static const char *acls[] = {
+		"allow-update", "allow-update-forwarding", NULL
+	};
+
+	for (i = 0; acls[i] != NULL; i++) {
+		if (voptions != NULL && aclobj == NULL) {
+			cfg_map_get(voptions, acls[i], &aclobj);
+			where = "view";
+		}
+		if (config != NULL && aclobj == NULL) {
+			options = NULL;
+			cfg_map_get(config, "options", &options);
+			if (options != NULL) {
+				cfg_map_get(options, acls[i], &aclobj);
+				where = "options";
+			}
+		}
+		if (aclobj != NULL) {
+			cfg_obj_log(aclobj, logctx, ISC_LOG_ERROR,
+				    "'%s' can only be set per-zone, "
+				    "not in '%s'", acls[i], where);
+			return (ISC_R_FAILURE);
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
 static const unsigned char zeros[16];
 
 static isc_result_t
@@ -3691,6 +3728,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	tresult = check_viewacls(actx, voptions, config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
+
+	tresult = check_non_viewacls(voptions, config, logctx);
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
 
 	tresult = check_recursionacls(actx, voptions, viewname,
 				      config, logctx, mctx);
