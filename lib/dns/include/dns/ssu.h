@@ -39,9 +39,11 @@ typedef enum {
 	dns_ssumatchtype_6to4self = 11,
 	dns_ssumatchtype_external = 12,
 	dns_ssumatchtype_local = 13,
-	dns_ssumatchtype_max = 13,	/* max value */
+	dns_ssumatchtype_selfsubms = 14,
+	dns_ssumatchtype_selfsubkrb5 = 15,
+	dns_ssumatchtype_max = 15,	/* max value */
 
-	dns_ssumatchtype_dlz = 14	/* intentionally higher than _max */
+	dns_ssumatchtype_dlz = 16	/* intentionally higher than _max */
 } dns_ssumatchtype_t;
 
 isc_result_t
