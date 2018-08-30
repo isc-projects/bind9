@@ -1,4 +1,4 @@
-##Release Checklist
+## Release Checklist
 
  - [ ] Check for the presence of a milestone for the release
     - If there is a milestone, are all the issues for the milestone resolved? (other than this checklist)
@@ -18,11 +18,12 @@
  - [ ] Edit the release https://gitlab.isc.org/isc-projects/bind9/tags and the NEWS snippet + links to the tarballs
  - [ ] Update DEB and RPM packages
 
-##Communication
+## Communication
 
  - [ ] Inform support to upload to the web site (nice to give them a heads-up in advance)
-       Write release e-mail to bind9-announce, bind-users in case of a major release 
+       - Write release e-mail to bind9-announce, bind-users in case of a major release
+       - Update tickets in case of waiting support customers
  - [ ] Inform marketing to announce the release
-        Post short note to Twitter 
-        Update http://en.wikipedia.org/wiki/BIND (mktg)
-        Blog post if a major release
+        - Post short note to Twitter 
+        - Update http://en.wikipedia.org/wiki/BIND (mktg)
+        - Blog post if a major release
