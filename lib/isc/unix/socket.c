@@ -2667,7 +2667,11 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		return (result);
 	}
 
+#if defined(USE_EPOLL)
 	sock->threadid = sock->fd % manager->nthreads; // TODO
+#else
+	sock->threadid = 0;
+#endif
 	sock->references = 1;
 	*socketp = (isc_socket_t *)sock;
 
@@ -2682,8 +2686,6 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
 	manager->epoll_events[sock->fd] = 0;
-#else
-	sock->threadid = 0;
 #endif
 #ifdef USE_DEVPOLL
 	INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
@@ -2876,7 +2878,7 @@ isc_socket_close(isc_socket_t *sock0) {
 static void
 send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 	isc_task_t *task;
-
+	int to = sock->manager->nthreads > 1 ? sock->threadid : -1;
 	task = (*dev)->ev_sender;
 
 	(*dev)->ev_sender = sock;
@@ -2886,9 +2888,9 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
-		isc_task_sendanddetachto(&task, (isc_event_t **)dev, sock->threadid);
+		isc_task_sendanddetachto(&task, (isc_event_t **)dev, to);
 	else
-		isc_task_sendto(task, (isc_event_t **)dev, sock->threadid);
+		isc_task_sendto(task, (isc_event_t **)dev, to);
 }
 
 /*
@@ -2899,6 +2901,7 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 static void
 send_senddone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 	isc_task_t *task;
+	int to = sock->manager->nthreads > 1 ? sock->threadid : -1;
 
 	INSIST(dev != NULL && *dev != NULL);
 
@@ -2910,9 +2913,9 @@ send_senddone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
-		isc_task_sendanddetachto(&task, (isc_event_t **)dev, sock->threadid);
+		isc_task_sendanddetachto(&task, (isc_event_t **)dev, to);
 	else
-		isc_task_sendto(task, (isc_event_t **)dev, sock->threadid);
+		isc_task_sendto(task, (isc_event_t **)dev, to);
 }
 
 /*
@@ -3365,7 +3368,7 @@ process_fds(isc__socketmgr_t *manager, int threadid, struct kevent *events,
 	}
 
 	if (have_ctlevent)
-		done = process_ctlfd(manager);
+		done = process_ctlfd(manager, threadid);
 
 	return (done);
 }
@@ -3443,7 +3446,7 @@ process_fds(isc__socketmgr_t *manager, int threadid, struct pollfd *events,
 	}
 
 	if (have_ctlevent)
-		done = process_ctlfd(manager);
+		done = process_ctlfd(manager, threadid);
 
 	return (done);
 }
@@ -3661,7 +3664,7 @@ netthread(void *uap) {
 		 * Process reads on internal, control fd.
 		 */
 		if (FD_ISSET(ctlfd, manager->read_fds_copy))
-			done = process_ctlfd(manager);
+			done = process_ctlfd(manager, threadid);
 #endif
 	}
 
@@ -3957,7 +3960,11 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->maxsocks = maxsocks;
 	manager->reserved = 0;
 	manager->maxudp = 0;
+#if defined(USE_EPOLL)
 	manager->nthreads = nthreads;
+#else
+	manager->nthreads = 1;
+#endif
 	manager->fds = isc_mem_get(mctx,
 				   manager->maxsocks * sizeof(isc__socket_t *));
 	if (manager->fds == NULL) {
