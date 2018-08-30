@@ -381,9 +381,9 @@ struct isc__socketmgr {
 	isc_stats_t		*stats;
 	int			nthreads;
 #ifdef USE_KQUEUE
-	int			kqueue_fd;
+	int			*kqueue_fds;
 	int			nevents;
-	struct kevent		*events;
+	struct kevent		**events;
 #endif	/* USE_KQUEUE */
 #ifdef USE_EPOLL
 	int			*epoll_fds;
@@ -659,7 +659,6 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 
 #ifdef USE_KQUEUE
-	INSIST(threadid == 0);
 	struct kevent evchange;
 
 	memset(&evchange, 0, sizeof(evchange));
@@ -669,7 +668,7 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		evchange.filter = EVFILT_WRITE;
 	evchange.flags = EV_ADD;
 	evchange.ident = fd;
-	if (kevent(manager->kqueue_fd, &evchange, 1, NULL, 0, NULL) != 0)
+	if (kevent(manager->kqueue_fds[threadid], &evchange, 1, NULL, 0, NULL) != 0)
 		result = isc__errno2result(errno);
 
 	return (result);
@@ -743,7 +742,6 @@ unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 
 #ifdef USE_KQUEUE
 	struct kevent evchange;
-	INSIST(threadid == 0);
 
 	memset(&evchange, 0, sizeof(evchange));
 	if (msg == SELECT_POKE_READ)
@@ -752,7 +750,7 @@ unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		evchange.filter = EVFILT_WRITE;
 	evchange.flags = EV_DELETE;
 	evchange.ident = fd;
-	if (kevent(manager->kqueue_fd, &evchange, 1, NULL, 0, NULL) != 0)
+	if (kevent(manager->kqueue_fds[threadid], &evchange, 1, NULL, 0, NULL) != 0)
 		result = isc__errno2result(errno);
 
 	return (result);
@@ -3335,14 +3333,14 @@ process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 
 #ifdef USE_KQUEUE
 static bool
-process_fds(isc__socketmgr_t *manager, int threadid, struct kevent *events,
+process_fds(isc__socketmgr_t *manager, int threadid, struct kevent **pevents,
 	    int nevents)
 {
 	int i;
 	bool readable, writable;
 	bool done = false;
 	bool have_ctlevent = false;
-	INSIST(threadid == 0);
+	struct kevent *events = pevents[threadid];
 
 	if (nevents == manager->nevents) {
 		/*
@@ -3358,7 +3356,8 @@ process_fds(isc__socketmgr_t *manager, int threadid, struct kevent *events,
 
 	for (i = 0; i < nevents; i++) {
 		REQUIRE(events[i].ident < manager->maxsocks);
-		if (events[i].ident == (uintptr_t)manager->pipe_fds[0]) {
+		if (events[i].ident ==
+		    (uintptr_t)manager->pipe_fds[2*threadid]) {
 			have_ctlevent = true;
 			continue;
 		}
@@ -3528,7 +3527,6 @@ netthread(void *uap) {
 	bool done;
 	int cc;
 #ifdef USE_KQUEUE
-	INSIST(threadid == 0);
 	const char *fnname = "kevent()";
 #elif defined (USE_EPOLL)
 	const char *fnname = "epoll_wait()";
@@ -3561,8 +3559,8 @@ netthread(void *uap) {
 	while (!done) {
 		do {
 #ifdef USE_KQUEUE
-			cc = kevent(manager->kqueue_fd, NULL, 0,
-				    manager->events, manager->nevents, NULL);
+			cc = kevent(manager->kqueue_fds[threadid], NULL, 0,
+				    manager->events[threadid], manager->nevents, NULL);
 #elif defined(USE_EPOLL)
 			cc = epoll_wait(manager->epoll_fds[threadid], 
 					manager->events[threadid],
@@ -3710,31 +3708,56 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 
 #ifdef USE_KQUEUE
 	manager->nevents = ISC_SOCKET_MAXEVENTS;
-	manager->events = isc_mem_get(mctx, sizeof(struct kevent) *
-				      manager->nevents);
-	if (manager->events == NULL)
+	manager->events = isc_mem_get(mctx, sizeof(struct kevent *) *
+				      manager->nthreads);
+	if (manager->events == NULL) {
 		return (ISC_R_NOMEMORY);
-	manager->kqueue_fd = kqueue();
-	if (manager->kqueue_fd == -1) {
-		result = isc__errno2result(errno);
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "kqueue %s: %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"),
-				 strbuf);
-		isc_mem_put(mctx, manager->events,
-			    sizeof(struct kevent) * manager->nevents);
-		return (result);
 	}
 
-	result = watch_fd(manager, 0, manager->pipe_fds[0], SELECT_POKE_READ);
-	if (result != ISC_R_SUCCESS) {
-		close(manager->kqueue_fd);
-		isc_mem_put(mctx, manager->events,
-			    sizeof(struct kevent) * manager->nevents);
-		return (result);
+	for (alloc_events=0; alloc_events < manager->nthreads; alloc_events++) {
+		manager->events[alloc_events] = isc_mem_get(mctx, 
+							    sizeof(struct kevent) *
+							    manager->nevents);
+		if (manager->events[alloc_events] == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup;
+		}
 	}
+	manager->kqueue_fds = isc_mem_get(mctx, sizeof(int) * manager->nthreads);
+	RUNTIME_CHECK(manager->kqueue_fds != NULL);
+	
+	for (setup_polls=0; setup_polls < manager->nthreads; setup_polls++) {
+		manager->kqueue_fds[setup_polls] = kqueue();
+		if (manager->kqueue_fds[setup_polls] == -1) {
+			result = isc__errno2result(errno);
+			strerror_r(errno, strbuf, sizeof(strbuf));
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "kqueue %s: %s",
+					 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
+							ISC_MSG_FAILED, "failed"),
+							strbuf);
+			goto cleanup;
+		}
+	}
+	for (i = 0; i < manager->nthreads; i++) {
+		result = watch_fd(manager, i, manager->pipe_fds[2*i], SELECT_POKE_READ);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+	}
+	return (result);
+
+cleanup:
+	for (i=0; i < setup_polls-1; i++) {
+		close(manager->kqueue_fds[i]);
+	}
+	for (i=0; i < alloc_events-1; i++) {
+		isc_mem_put(mctx, manager->events[i],
+			    sizeof(struct kevent) * manager->nevents);
+	}
+	isc_mem_put(mctx, manager->events, manager->nthreads * sizeof(struct epoll_event *));
+	return (result);
+
 #elif defined(USE_EPOLL)
 	manager->nevents = ISC_SOCKET_MAXEVENTS;
 	manager->events = isc_mem_get(mctx, sizeof(struct epoll_event *) *
@@ -3904,9 +3927,16 @@ cleanup_watchers(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 		}
 	}
 #ifdef USE_KQUEUE
-	close(manager->kqueue_fd);
+	for (i=0; i < manager->nthreads; i++) {
+		close(manager->kqueue_fds[i]);
+	}
+	isc_mem_put(mctx, manager->kqueue_fds, sizeof(int) * manager->nthreads);
+	for (i=0; i < manager->nthreads; i++) {
+		isc_mem_put(mctx, manager->events[i],
+			    sizeof(struct kevent) * manager->nevents);
+	}
 	isc_mem_put(mctx, manager->events,
-		    sizeof(struct kevent) * manager->nevents);
+		    sizeof(struct kevent*) * manager->nevents);
 #elif defined(USE_EPOLL)
 	for (i=0; i < manager->nthreads; i++) {
 		close(manager->epoll_fds[i]);
@@ -3963,7 +3993,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->maxsocks = maxsocks;
 	manager->reserved = 0;
 	manager->maxudp = 0;
-#if defined(USE_EPOLL)
+#if defined(USE_EPOLL) || defined(USE_KQUEUE)
 	manager->nthreads = nthreads;
 #else
 	manager->nthreads = 1;

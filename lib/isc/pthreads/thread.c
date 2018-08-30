@@ -115,7 +115,15 @@ isc_thread_yield(void) {
 
 isc_result_t
 isc_thread_setaffinity(int cpu) {
-#if defined(HAVE_PTHREAD_SETAFFINITY_NP)
+#if defined(HAVE_CPUSET_SETAFFINITY)
+	cpuset_t cpuset;
+	CPU_ZERO(&cpuset);
+	CPU_SET(cpu, &cpuset);
+	if (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1,
+	    &cpuset, sizeof(cpuset)) != 0) {
+		return (ISC_R_FAILURE);
+	}
+#elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
         cpu_set_t set;
         CPU_ZERO(&set);
         CPU_SET(cpu, &set);
@@ -123,20 +131,11 @@ isc_thread_setaffinity(int cpu) {
 	    &set) != 0) {
 		return (ISC_R_FAILURE);
 	}
-#elif defined(HAVE_CPUSET_SETAFFINITY)
-	cpuset_t cpuset;
-	CPU_ZERO(&cpuset);
-	CPU_SET(cpu, &cpuset);
-	if (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, gettid(),
-	    &cpuset, sizeof(cpuset)) != 0) {
-		return (ISC_R_FAILURE);
-	}
 #elif defined(HAVE_PROCESSOR_BIND)
 	if (processor_bind(P_LWPID, P_MYID, cpu, NULL) != 0) {
 		return (ISC_R_FAILURE);
 	}
 #else
-	UNUSED(thread);
 	UNUSED(cpu);
 #endif
 	return (ISC_R_SUCCESS);

@@ -836,7 +836,7 @@ AC_CHECK_FUNCS([sched_yield pthread_yield pthread_yield_np])
 
 AC_CHECK_HEADERS([sys/cpuset.h])
 AC_CHECK_HEADERS([sys/procset.h])
-AC_CHECK_FUNCS([pthread_setaffinity_np cpuset_setaffinty processor_bind sched_setaffinity])
+AC_CHECK_FUNCS([pthread_setaffinity_np cpuset_setaffinity processor_bind sched_setaffinity])
 
 #
 # Additional OS-specific issues related to pthreads and sigwait.
