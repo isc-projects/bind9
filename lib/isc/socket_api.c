@@ -134,7 +134,7 @@ isc_socket_detach(isc_socket_t **socketp) {
 
 isc_result_t
 isc_socket_bind(isc_socket_t *sock, const isc_sockaddr_t *sockaddr,
-		unsigned int options)
+		isc_socket_options_t options)
 {
 	REQUIRE(ISCAPI_SOCKET_VALID(sock));
 
