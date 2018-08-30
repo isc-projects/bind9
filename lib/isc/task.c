@@ -146,8 +146,8 @@ struct isc__taskmgr {
 	isc_condition_t			*work_available;
 	isc_condition_t			exclusive_granted;
 	isc_condition_t			paused;
-	int32_t				tasks_running;
-	int32_t				tasks_ready;
+	_Atomic int				tasks_running;
+	_Atomic int				tasks_ready;
 	bool			pause_requested;
 	bool			exclusive_requested;
 	bool			exiting;
