@@ -572,6 +572,8 @@
 ./bin/tests/system/checkconf/altdb.conf		CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/altdlz.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-acl.conf	CONF-C	2016,2018
+./bin/tests/system/checkconf/bad-allow-update-forwarding.conf	CONF-C	2018
+./bin/tests/system/checkconf/bad-allow-update.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-also-notify.conf	CONF-C	2012,2013,2016,2018
 ./bin/tests/system/checkconf/bad-catz-zone.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/bad-dnskey-validity.conf	CONF-C	2018
