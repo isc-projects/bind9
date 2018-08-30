@@ -7053,18 +7053,24 @@ options {
 	      <term><command>allow-notify</command></term>
 	      <listitem>
 		<para>
-		  Specifies which hosts are allowed to
-		  notify this server, a slave, of zone changes in addition
-		  to the zone masters.
-		  <command>allow-notify</command> may also be
-		  specified in the
-		  <command>zone</command> statement, in which case
-		  it overrides the
-		  <command>options allow-notify</command>
-		  statement.  It is only meaningful
-		  for a slave zone.  If not specified, the default is to
-		  process notify messages
-		  only from a zone's master.
+		  This ACL specifies which hosts may send NOTIFY messages
+		  to inform this server of changes to zones for which it
+		  is acting as a secondary server.  This is only
+		  applicable for secondary zones (i.e., type
+		  <literal>secondary</literal> or <literal>slave</literal>).
+		</para>
+		<para>
+		  If this option is set in <command>view</command> or
+		  <command>options</command>, it is globally applied to
+		  all secondary zones. If set in the <command>zone</command>
+		  statement, the global value is overridden.
+		</para>
+		<para>
+		  If not specified, the default is to process NOTIFY
+		  messages only from the configured
+		  <command>masters</command> for the zone.
+		  <command>allow-notify</command> can be used to expand the
+		  list of permitted hosts, not to reduce it.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7199,11 +7205,16 @@ options {
 	      <term><command>allow-update</command></term>
 	      <listitem>
 		<para>
-		  Specifies which hosts are allowed to
-		  submit Dynamic DNS updates for master zones. The default is
-		  to deny
-		  updates from all hosts.  Note that allowing updates based
-		  on the requestor's IP address is insecure; see
+		  When set in the <command>zone</command> statement for
+		  a master zone, specifies which hosts are allowed to
+		  submit Dynamic DNS updates to that zone.  The default
+		  is to deny updates from all hosts.  This can only
+		  be set at the <command>zone</command> level, not in
+		  <command>options</command> or <command>view</command>.
+		</para>
+		<para>
+		  Note that allowing updates based on the
+		  requestor's IP address is insecure; see
 		  <xref linkend="dynamic_update_security"/> for details.
 		</para>
 	      </listitem>
@@ -7213,29 +7224,30 @@ options {
 	      <term><command>allow-update-forwarding</command></term>
 	      <listitem>
 		<para>
-		  Specifies which hosts are allowed to
-		  submit Dynamic DNS updates to slave zones to be forwarded to
-		  the
-		  master.  The default is <userinput>{ none; }</userinput>,
-		  which
-		  means that no update forwarding will be performed.  To
-		  enable
-		  update forwarding, specify
+		  When set in the <command>zone</command> statement for
+		  a slave zone, specifies which hosts are allowed to
+		  submit Dynamic DNS updates and have them be forwarded
+		  to the master.  The default is
+		  <userinput>{ none; }</userinput>, which means that no
+		  update forwarding will be performed.  This can only be
+		  set at the <command>zone</command> level, not in
+		  <command>options</command> or <command>view</command>.
+		</para>
+		<para>
+		  To enable update forwarding, specify
 		  <userinput>allow-update-forwarding { any; };</userinput>.
-		  Specifying values other than <userinput>{ none; }</userinput> or
-		  <userinput>{ any; }</userinput> is usually
-		  counterproductive, since
-		  the responsibility for update access control should rest
-		  with the
-		  master server, not the slaves.
+		  in the <command>zone</command> statement.
+		  Specifying values other than <userinput>{ none; }</userinput>
+		  or <userinput>{ any; }</userinput> is usually
+		  counterproductive; the responsibility for update
+		  access control should rest with the master server, not
+		  the slave.
 		</para>
 		<para>
 		  Note that enabling the update forwarding feature on a slave
-		  server
-		  may expose master servers relying on insecure IP address
-		  based
-		  access control to attacks; see <xref linkend="dynamic_update_security"/>
-		  for more details.
+		  server may expose master servers to attacks if they rely
+		  on insecure IP-address-based access control; see
+		  <xref linkend="dynamic_update_security"/> for more details.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7259,13 +7271,14 @@ options {
 	      <term xml:id="allow_transfer_term"><command>allow-transfer</command></term>
 	      <listitem>
 		<para>
-		  Specifies which hosts are allowed to
-		  receive zone transfers from the server. <command>allow-transfer</command> may
-		  also be specified in the <command>zone</command>
-		  statement, in which
-		  case it overrides the <command>options allow-transfer</command> statement.
-		  If not specified, the default is to allow transfers to all
-		  hosts.
+		  Specifies which hosts are allowed to receive zone
+		  transfers from the server.  <command>allow-transfer</command>
+		  may also be specified in the <command>zone</command>
+		  statement, in which case it overrides the
+		  <command>allow-transfer</command> statement set in
+		  <command>options</command> or <command>view</command>.
+		  If not specified, the default is to allow transfers to
+		  all hosts.
 		</para>
 	      </listitem>
 	    </varlistentry>
