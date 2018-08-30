@@ -395,10 +395,12 @@ dns_ssutable_checkrules2(dns_ssutable_t *table, dns_name_t *signer,
 					continue;
 			}
 			break;
-		case DNS_SSUMATCHTYPE_SELFKRB5:
-		case DNS_SSUMATCHTYPE_SELFMS:
-		case DNS_SSUMATCHTYPE_SUBDOMAINKRB5:
-		case DNS_SSUMATCHTYPE_SUBDOMAINMS:
+		case dns_ssumatchtype_selfkrb5:
+		case dns_ssumatchtype_selfms:
+		case dns_ssumatchtype_selfsubkrb5:
+		case dns_ssumatchtype_selfsubms:
+		case dns_ssumatchtype_subdomainkrb5:
+		case dns_ssumatchtype_subdomainms:
 			if (signer == NULL)
 				continue;
 			break;
@@ -462,30 +464,56 @@ dns_ssutable_checkrules2(dns_ssutable_t *table, dns_name_t *signer,
 			if (!dns_name_matcheswildcard(name, wildcard))
 				continue;
 			break;
-		case DNS_SSUMATCHTYPE_SELFKRB5:
-			if (!dst_gssapi_identitymatchesrealmkrb5(signer, name,
-							       rule->identity))
-				continue;
-			break;
-		case DNS_SSUMATCHTYPE_SELFMS:
-			if (!dst_gssapi_identitymatchesrealmms(signer, name,
-							       rule->identity))
-				continue;
-			break;
-		case DNS_SSUMATCHTYPE_SUBDOMAINKRB5:
+		case dns_ssumatchtype_selfkrb5:
+			if (dst_gssapi_identitymatchesrealmkrb5(signer, name,
+								rule->identity,
+								false))
+			{
+				break;
+			}
+			continue;
+		case dns_ssumatchtype_selfms:
+			if (dst_gssapi_identitymatchesrealmms(signer, name,
+							      rule->identity,
+							      false))
+			{
+				break;
+			}
+			continue;
+		case dns_ssumatchtype_selfsubkrb5:
+			if (dst_gssapi_identitymatchesrealmkrb5(signer, name,
+								rule->identity,
+								true))
+			{
+				break;
+			}
+			continue;
+		case dns_ssumatchtype_selfsubms:
+			if (dst_gssapi_identitymatchesrealmms(signer, name,
+							      rule->identity,
+							      true))
+				break;
+			continue;
+		case dns_ssumatchtype_subdomainkrb5:
 			if (!dns_name_issubdomain(name, rule->name))
 				continue;
-			if (!dst_gssapi_identitymatchesrealmkrb5(signer, NULL,
-							       rule->identity))
-				continue;
-			break;
-		case DNS_SSUMATCHTYPE_SUBDOMAINMS:
+			if (dst_gssapi_identitymatchesrealmkrb5(signer, NULL,
+								rule->identity,
+								false))
+			{
+				break;
+			}
+			continue;
+		case dns_ssumatchtype_subdomainms:
 			if (!dns_name_issubdomain(name, rule->name))
 				continue;
-			if (!dst_gssapi_identitymatchesrealmms(signer, NULL,
-							       rule->identity))
-				continue;
-			break;
+			if (dst_gssapi_identitymatchesrealmms(signer, NULL,
+							      rule->identity,
+							      false))
+			{
+				break;
+			}
+			continue;
 		case DNS_SSUMATCHTYPE_TCPSELF:
 			tcpself = dns_fixedname_initname(&fixed);
 			reverse_from_address(tcpself, addr);
@@ -658,8 +686,12 @@ dns_ssu_mtypefromstring(const char *str, dns_ssumatchtype_t *mtype) {
 		*mtype = dns_ssumatchtype_selfwild;
 	} else if (strcasecmp(str, "ms-self") == 0) {
 		*mtype = dns_ssumatchtype_selfms;
+	} else if (strcasecmp(str, "ms-selfsub") == 0) {
+		*mtype = dns_ssumatchtype_selfsubms;
 	} else if (strcasecmp(str, "krb5-self") == 0) {
 		*mtype = dns_ssumatchtype_selfkrb5;
+	} else if (strcasecmp(str, "krb5-selfsub") == 0) {
+		*mtype = dns_ssumatchtype_selfsubkrb5;
 	} else if (strcasecmp(str, "ms-subdomain") == 0) {
 		*mtype = dns_ssumatchtype_subdomainms;
 	} else if (strcasecmp(str, "krb5-subdomain") == 0) {

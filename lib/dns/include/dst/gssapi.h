@@ -187,8 +187,10 @@ gss_error_tostring(uint32_t major, uint32_t minor,
  */
 
 bool
-dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
-			      dns_name_t *realm);
+dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
+				    const dns_name_t *name,
+				    const dns_name_t *realm,
+				    bool subdomain);
 /*
  *	Compare a "signer" (in the format of a Kerberos-format Kerberos5
  *	principal: host/example.com@EXAMPLE.COM) to the realm name stored
@@ -197,8 +199,10 @@ dst_gssapi_identitymatchesrealmkrb5(dns_name_t *signer, dns_name_t *name,
  */
 
 bool
-dst_gssapi_identitymatchesrealmms(dns_name_t *signer, dns_name_t *name,
-			    dns_name_t *realm);
+dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
+				  const dns_name_t *name,
+				  const dns_name_t *realm,
+				  bool subdomain);
 /*
  *	Compare a "signer" (in the format of a Kerberos-format Kerberos5
  *	principal: host/example.com@EXAMPLE.COM) to the realm name stored

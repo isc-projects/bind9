@@ -1731,6 +1731,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			break;
 		case dns_ssumatchtype_selfkrb5:
 		case dns_ssumatchtype_selfms:
+		case dns_ssumatchtype_selfsubkrb5:
+		case dns_ssumatchtype_selfsubms:
 		case dns_ssumatchtype_tcpself:
 		case dns_ssumatchtype_6to4self:
 			if (tresult == ISC_R_SUCCESS &&
