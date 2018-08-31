@@ -680,15 +680,15 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 
 	oldevents = manager->epoll_events[fd];
 	if (msg == SELECT_POKE_READ)
-		manager->epoll_events[fd] |= EPOLLIN;
+		manager->epoll_events[fd] |= EPOLLIN | EPOLLET;
 	else
-		manager->epoll_events[fd] |= EPOLLOUT;
+		manager->epoll_events[fd] |= EPOLLOUT | EPOLLET;
 
 	event.events = manager->epoll_events[fd];
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
-	op = (oldevents == 0U) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+	op = ((oldevents & ~(EPOLLET)) == 0U) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
 	ret = epoll_ctl(manager->epoll_fds[threadid], op, fd, &event);
 	if (ret == -1) {
 		if (errno == EEXIST)
@@ -768,7 +768,7 @@ unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
 
-	op = (event.events == 0U) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
+	op = ((event.events & ~(EPOLLET)) == 0U) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
 	ret = epoll_ctl(manager->epoll_fds[threadid], op, fd, &event);
 	if (ret == -1 && errno != ENOENT) {
 		char strbuf[ISC_STRERRORSIZE];
@@ -2683,7 +2683,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	manager->fds[sock->fd] = sock;
 	manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
-	manager->epoll_events[sock->fd] = 0;
+	manager->epoll_events[sock->fd] = EPOLLET;
 #endif
 #ifdef USE_DEVPOLL
 	INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
@@ -2761,7 +2761,7 @@ isc_socket_open(isc_socket_t *sock0) {
 		sock->manager->fds[sock->fd] = sock;
 		sock->manager->fdstate[sock->fd] = MANAGED;
 #if defined(USE_EPOLL)
-		sock->manager->epoll_events[sock->fd] = 0;
+		sock->manager->epoll_events[sock->fd] = EPOLLET;
 #endif
 #ifdef USE_DEVPOLL
 		INSIST(sock->manager->fdpollinfo[sock->fd].want_read == 0 &&
@@ -3148,7 +3148,7 @@ internal_accept(isc__socket_t *sock) {
 		manager->fds[fd] = NEWCONNSOCK(dev);
 		manager->fdstate[fd] = MANAGED;
 #if defined(USE_EPOLL)
-		manager->epoll_events[fd] = 0;
+		manager->epoll_events[fd] = EPOLLET;
 #endif
 		UNLOCK(manager->fdlock[lockid]);
 
@@ -3407,7 +3407,7 @@ process_fds(isc__socketmgr_t *manager, int threadid,
 			int fd = events[i].data.fd;
 			events[i].events |= manager->epoll_events[fd];
 		}
-		process_fd(manager, events[i].data.fd,
+		process_fd(manager, threadid, events[i].data.fd,
 			   (events[i].events & EPOLLIN) != 0,
 			   (events[i].events & EPOLLOUT) != 0);
 	}
