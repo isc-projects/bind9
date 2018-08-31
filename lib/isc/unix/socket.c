@@ -5767,7 +5767,6 @@ static bool		hasreuseport = false;
 
 static void
 init_hasreuseport() {
-	return; 
 #ifdef SO_REUSEPORT
 	int sock, yes = 1;
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
