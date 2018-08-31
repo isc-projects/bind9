@@ -3372,9 +3372,6 @@ AC_CONFIG_FILES([
 	lib/irs/include/irs/netdb.h
 	lib/irs/include/irs/platform.h
 	lib/irs/tests/Makefile
-	lib/isc/$arch/Makefile
-	lib/isc/$arch/include/Makefile
-	lib/isc/$arch/include/isc/Makefile
 	lib/isc/pthreads/Makefile
 	lib/isc/pthreads/include/Makefile
 	lib/isc/pthreads/include/isc/Makefile
