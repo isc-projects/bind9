@@ -81,10 +81,10 @@ sub handleUDP {
 
 	if ($qname eq "truncated.no-questions") {
 		# QR, AA, TC
-		return (pack("nnnnnn", $packet->header->id, 0x8600, 0, 0, 0, 0));
+		return (pack("nnnnnn", $id, 0x8600, 0, 0, 0, 0));
 	}
 	# QR, AA
-	return (pack("nnnnnn", $packet->header->id, 0x8400, 0, 0, 0, 0));
+	return (pack("nnnnnn", $id, 0x8400, 0, 0, 0, 0));
 }
 
 sub handleTCP {
