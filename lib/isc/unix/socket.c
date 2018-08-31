@@ -95,7 +95,7 @@
 /*%
  * Choose the most preferable multiplex method.
  */
-#if 0
+#if 1
 #include <poll.h>
 #define USE_POLL
 #elif defined (ISC_PLATFORM_HAVEKQUEUE)
