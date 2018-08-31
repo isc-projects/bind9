@@ -95,7 +95,7 @@
 /*%
  * Choose the most preferable multiplex method.
  */
-#if 1
+#if 0
 #include <poll.h>
 #define USE_POLL
 #elif defined (ISC_PLATFORM_HAVEKQUEUE)
@@ -667,7 +667,6 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 #ifdef USE_POLL
 	struct pollfd* pfd;
-	printf("WATCH %d %d\n", fd, threadid);
 	int pos;
 	int lockid = FDLOCK_ID(fd);
 	LOCK(manager->fdlock[lockid]);
@@ -768,7 +767,6 @@ static inline isc_result_t
 unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
 #ifdef USE_POLL
-	printf("UNWATCH %d %d\n", fd, threadid);
 	struct pollfd* pfd;
 	int lockid = FDLOCK_ID(fd);
 	if (manager->fdpos[fd] == -1) {
@@ -950,6 +948,14 @@ wakeup_socket(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
  */
 static void
 select_poke(isc__socketmgr_t *mgr, int threadid, int fd, int msg) {
+	if (msg == SELECT_POKE_READ) {
+		watch_fd(mgr, threadid, fd, msg);
+		return;
+	} else if (msg == SELECT_POKE_WRITE) {
+		watch_fd(mgr, threadid, fd, msg);
+		return;
+	}
+		
 	int cc;
 	int buf[2];
 	char strbuf[ISC_STRERRORSIZE];
@@ -3248,6 +3254,7 @@ internal_recv(isc__socket_t *sock) {
 
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	if (dev == NULL) {
+		unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_READ);
 		return;
 	}
 
@@ -3287,6 +3294,7 @@ internal_recv(isc__socket_t *sock) {
 	}
 
  poke:
+ 	return;
 	if (ISC_LIST_EMPTY(sock->recv_list))
 		unwatch_fd(sock->manager, sock->threadid, sock->fd,
 			 SELECT_POKE_READ);
@@ -3301,6 +3309,7 @@ internal_send(isc__socket_t *sock) {
 
 	dev = ISC_LIST_HEAD(sock->send_list);
 	if (dev == NULL) {
+		unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
 		return;
 	}
 	socket_log(sock, NULL, EVENT, NULL, 0, 0,
@@ -3326,8 +3335,9 @@ internal_send(isc__socket_t *sock) {
 	}
 
  poke:
-	if (ISC_LIST_EMPTY(sock->send_list))
-		unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
+ 	return;
+//	if (ISC_LIST_EMPTY(sock->send_list))
+//		unwatch_fd(sock->manager, sock->threadid, sock->fd, SELECT_POKE_WRITE);
 }
 
 /*
