@@ -178,6 +178,7 @@ ATF_TC_BODY(asyncload_zone, tc) {
 	origfile = fopen("./testdata/zt/zone1.db", "r+b");
 	ATF_CHECK(origfile != NULL);
 	n = fread(buf, 1, 4096, origfile);
+	fclose(origfile);
 	fwrite(buf, 1, n, zonefile);
 	fflush(zonefile);
 
@@ -203,6 +204,7 @@ ATF_TC_BODY(asyncload_zone, tc) {
 	 */
 	fprintf(zonefile, "\nb in b 1.2.3.4\n");
 	fflush(zonefile);
+	fclose(zonefile);
 
 	args.arg1 = zone;
 	args.arg2 = &done;
