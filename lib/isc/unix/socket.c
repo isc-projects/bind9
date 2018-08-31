@@ -716,6 +716,9 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	event.data.fd = fd;
 
 	op = ((oldevents & ~(EPOLLET)) == 0U) ? EPOLL_CTL_ADD : EPOLL_CTL_MOD;
+	if (oldevents == event.events) {
+		return (result);
+	}
 	ret = epoll_ctl(manager->epoll_fds[threadid], op, fd, &event);
 	if (ret == -1) {
 		if (errno == EEXIST)
@@ -807,6 +810,7 @@ unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	int ret;
 	int op;
 
+	int oldevents = manager->epoll_events[fd];
 	if (msg == SELECT_POKE_READ)
 		manager->epoll_events[fd] &= ~(EPOLLIN);
 	else
@@ -815,6 +819,9 @@ unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	event.events = manager->epoll_events[fd];
 	memset(&event.data, 0, sizeof(event.data));
 	event.data.fd = fd;
+	if (oldevents == event.events) {
+		return (result);
+	}
 
 	op = ((event.events & ~(EPOLLET)) == 0U) ? EPOLL_CTL_DEL : EPOLL_CTL_MOD;
 	ret = epoll_ctl(manager->epoll_fds[threadid], op, fd, &event);
