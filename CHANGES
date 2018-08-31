@@ -1,3 +1,8 @@
+5028.	[bug]		Spread the initial RRSIG expiration times over the
+			entire working sig-validity-interval when signing a
+			zone in named to even out re-signing and transfer
+			loads. [GL #418]
+
 5027.	[func]		Set SO_SNDBUF size on sockets. [GL #74]
 
 5026.	[bug]		rndc reconfig should not touch already loaded zones.
