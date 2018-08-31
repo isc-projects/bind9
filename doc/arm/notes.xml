@@ -158,28 +158,43 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  Work arounds for lack of EDNS compliance in authoritative servers
-	  have been removed because the work arounds cause issues with DNSSEC
-	  validation.  In particular fall back to on no response has been
-	  removed.  This will cause some zones to become non resolvable
-	  without manual intervention.  Adding server clauses for the
-	  offending servers with
-	  <command>edns <replacable>no</replacable></command> or
-	  <command>send-cookie <replacable>no</replacable></command>
-	  depending apon the lack of EDNS compliance.
+	  Workarounds for servers that misbehave when queried with EDNS
+	  have been removed, because these broken servers and the
+	  workarounds for their noncompliance cause unnecessary delays,
+	  increase code complexity, and prevent deployment of new DNS
+	  features. See <link xmlns:xlink="http://www.w3.org/1999/xlink"
+	    xlink:href="https://dnsflagday.net">https://dnsflagday.net</link>
+	  for further details. [GL #150]
 	</para>
 	<para>
-	  To workout which server clause to use:
+	  In particular, resolution will no longer fall back to
+	  plain DNS when there was no response from an authoritative
+	  server.  This will cause some zones to become non-resolvable
+	  without manual intervention.  In these cases, resolution can
+	  be restored by adding <command>server</command> clauses for the
+	  offending servers, specifying <command>edns no</command> or
+	  <command>send-cookie no</command>, depending on the specific
+	  noncompliance.
+	</para>
+	<para>
+	  To determine which <command>server</command> clause to use, use
+	  the following commands to send queries to authoritative
+	  servers for the broken domain:
+	</para>
 <literallayout>
 	  dig soa &lt;zone&gt; @&lt;server&gt; +dnssec
 	  dig soa &lt;zone&gt; @&lt;server&gt; +dnssec +nocookie
 	  dig soa &lt;zone&gt; @&lt;server&gt; +noedns
 </literallayout>
-	  to find out if it is just a DNS COOKIE option being present in the
-	  query or EDNS itself causing the query to fail.  In most cases it
-	  will be <command>send-cookie <replacable>no</replacable></command>
-	  required as there are very few servers/firewalls left that are
-	  broken on just EDNS.
+	<para>
+	  If the first command fails but the second succeeds, the
+	  server most likely needs <command>send-cookie no</command>.
+	  If the first two fail but the third succeeds, then the server
+	  needs EDNS to be fully disabled with <command>edns no</command>.
+	</para>
+	<para>
+	  Please contact the administrators of faulty authoritative
+	  servers and encourage them to upgrade broken DNS software.
 	</para>
       </listitem>
       <listitem>
