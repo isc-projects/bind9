@@ -95,7 +95,10 @@
 /*%
  * Choose the most preferable multiplex method.
  */
-#ifdef ISC_PLATFORM_HAVEKQUEUE
+#if 1
+#include <poll.h>
+#define USE_POLL
+#elif defined (ISC_PLATFORM_HAVEKQUEUE)
 #define USE_KQUEUE
 #elif defined (ISC_PLATFORM_HAVEEPOLL)
 #define USE_EPOLL
@@ -136,7 +139,7 @@ int isc_dscp_check_value = -1;
  * this is a build for an authoritative only DNS server.
  */
 #ifndef ISC_SOCKET_MAXSOCKETS
-#if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
+#if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL) || defined(USE_POLL)
 #ifdef TUNE_LARGE
 #define ISC_SOCKET_MAXSOCKETS 21000
 #else
@@ -380,6 +383,11 @@ struct isc__socketmgr {
 	isc_mutex_t		**fdlock;
 	isc_stats_t		*stats;
 	int			nthreads;
+#ifdef USE_POLL
+	struct pollfd		**pollfds;
+	int			*pollnos;
+	int			*fdpos;
+#endif	
 #ifdef USE_KQUEUE
 	int			*kqueue_fds;
 	int			nevents;
@@ -657,8 +665,27 @@ dec_stats(isc_stats_t *stats, isc_statscounter_t counterid) {
 static inline isc_result_t
 watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
-
-#ifdef USE_KQUEUE
+#ifdef USE_POLL
+	struct pollfd* pfd;
+	int pos;
+	int lockid = FDLOCK_ID(fd);
+	LOCK(manager->fdlock[lockid]);
+	if (manager->fdpos[fd] == -1) {
+		int pos = manager->pollnos[threadid]++;
+		pfd = &manager->pollfds[threadid][pos];
+		manager->fdpos[fd] = pos;
+		pfd->fd = fd;
+	} else {
+		pfd = &manager->pollfds[threadid][manager->fdpos[fd]];
+	}
+	if (msg == SELECT_POKE_READ) {
+		pfd->events |= POLLIN;
+	} else {
+		pfd->events |= POLLOUT;
+	}
+	UNLOCK(manager->fdlock[lockid]);
+	return (result);
+#elif defined(USE_KQUEUE)
 	struct kevent evchange;
 
 	memset(&evchange, 0, sizeof(evchange));
@@ -739,8 +766,32 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 static inline isc_result_t
 unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 	isc_result_t result = ISC_R_SUCCESS;
+#ifdef USE_POLL
+	struct pollfd* pfd;
+	int lockid = FDLOCK_ID(fd);
+	LOCK(manager->fdlock[lockid]);
+	if (manager->fdpos[fd] == -1) {
+                UNEXPECTED_ERROR(__FILE__, __LINE__,
+                                 "poll del, %d", fd);
+		UNLOCK(manager->fdlock[lockid]);
+		return (ISC_R_UNEXPECTED);
+	}
+	int pos = manager->fdpos[fd];
+	pfd = &manager->pollfds[threadid][manager->fdpos[fd]];
+	if (msg == SELECT_POKE_READ) {
+		pfd->events &= ~(POLLIN);
+	} else {
+		pfd->events &= ~(POLLOUT);
+	}
+	if (pfd->events == 0) {
+		*pfd = manager->pollfds[threadid][--manager->pollnos[threadid]];
+		manager->fdpos[pfd->fd] = pos;
+		manager->fdpos[fd] = -1;
+	}
+	UNLOCK(manager->fdlock[lockid]);
 
-#ifdef USE_KQUEUE
+	return (result);
+#elif defined(USE_KQUEUE)
 	struct kevent evchange;
 
 	memset(&evchange, 0, sizeof(evchange));
@@ -2665,7 +2716,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		return (result);
 	}
 
-#if defined(USE_EPOLL)
+#if defined(USE_EPOLL) || defined(USE_POLL)
 	sock->threadid = sock->fd % manager->nthreads; // TODO
 #else
 	sock->threadid = 0;
@@ -3331,8 +3382,39 @@ process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 	if (kill_socket)
 		destroy(&sock);
 }
+#ifdef USE_POLL
+static bool
+process_fds(isc__socketmgr_t *manager, int threadid, int nevents)
+{
+	int i;
+	bool readable, writable;
+	bool done = false;
+	bool have_ctlevent = false;
+	struct pollfd *pollfds = manager->pollfds[threadid];
+	int count = manager->pollnos[threadid];
+	int processed = 0;
 
-#ifdef USE_KQUEUE
+	for (i = 0; i < count; i++) {
+		if (pollfds[i].revents == 0) {
+			continue;
+		}
+		processed++;
+		if (pollfds[i].fd ==
+		    manager->pipe_fds[2*threadid]) {
+			have_ctlevent = true;
+			continue;
+		}
+		readable = (pollfds[i].revents & POLLIN);
+		writable = (pollfds[i].revents & POLLOUT);
+		process_fd(manager, threadid, pollfds[i].fd, readable, writable);
+	}
+
+	if (have_ctlevent)
+		done = process_ctlfd(manager, threadid);
+	INSIST(nevents == processed);
+	return (done);
+}
+#elif defined(USE_KQUEUE)
 static bool
 process_fds(isc__socketmgr_t *manager, int threadid, struct kevent **pevents,
 	    int nevents)
@@ -3527,7 +3609,9 @@ netthread(void *uap) {
 
 	bool done;
 	int cc;
-#ifdef USE_KQUEUE
+#ifdef USE_POLL
+	const char *fnname = "poll()";
+#elif defined (USE_KQUEUE)
 	const char *fnname = "kevent()";
 #elif defined (USE_EPOLL)
 	const char *fnname = "epoll_wait()";
@@ -3559,7 +3643,9 @@ netthread(void *uap) {
 	done = false;
 	while (!done) {
 		do {
-#ifdef USE_KQUEUE
+#ifdef USE_POLL
+			cc = poll(manager->pollfds[threadid], manager->pollnos[threadid], -1);
+#elif defined(USE_KQUEUE)
 			cc = kevent(manager->kqueue_fds[0], NULL, 0,
 				    manager->events[threadid], manager->nevents, NULL);
 #elif defined(USE_EPOLL)
@@ -3656,7 +3742,9 @@ netthread(void *uap) {
 #endif
 		} while (cc < 0);
 
-#if defined(USE_KQUEUE) || defined (USE_EPOLL) || defined (USE_DEVPOLL)
+#if defined(USE_POLL)
+		done = process_fds(manager, threadid, cc);
+#elif defined(USE_KQUEUE) || defined (USE_EPOLL) || defined (USE_DEVPOLL)
 		done = process_fds(manager, threadid, manager->events, cc);
 #elif defined(USE_SELECT)
 		process_fds(manager, maxfd, manager->read_fds_copy,
@@ -3706,7 +3794,37 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 #if defined(USE_KQUEUE) || defined(USE_EPOLL) || defined(USE_DEVPOLL)
 	char strbuf[ISC_STRERRORSIZE];
 #endif
+#ifdef USE_POLL
+	manager->pollfds = isc_mem_get(mctx, sizeof(struct pollfd *) * manager->nthreads);
+	if (manager->pollfds == NULL) {
+		return (ISC_R_NOMEMORY);
+	}
 
+	for (alloc_events=0; alloc_events < manager->nthreads; alloc_events++) {
+		manager->pollfds[alloc_events] = isc_mem_get(mctx, 
+							    sizeof(struct pollfd) *
+							    manager->maxsocks);
+		if (manager->pollfds[alloc_events] == NULL) {
+			result = ISC_R_NOMEMORY;
+			goto cleanup;
+		}
+	}
+	manager->pollnos = isc_mem_get(mctx, sizeof(int) * manager->nthreads);
+	memset(manager->pollnos, 0, sizeof(int) * manager->nthreads);
+	manager->fdpos = isc_mem_get(mctx, sizeof(int) * manager->maxsocks);
+	for (int i=0; i<manager->maxsocks; i++) {
+		manager->fdpos[i] = -1;
+	}
+	for (i = 0; i < manager->nthreads; i++) {
+		result = watch_fd(manager, i, manager->pipe_fds[2*i], SELECT_POKE_READ);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+	}
+	return (result);
+ cleanup:
+ 	abort();
+#endif
 #ifdef USE_KQUEUE
 	manager->nevents = ISC_SOCKET_MAXEVENTS;
 	manager->events = isc_mem_get(mctx, sizeof(struct kevent *) *
@@ -3995,7 +4113,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->maxsocks = maxsocks;
 	manager->reserved = 0;
 	manager->maxudp = 0;
-#if defined(USE_EPOLL) || defined(USE_KQUEUE)
+#if defined(USE_EPOLL) || defined(USE_KQUEUE) || defined(USE_POLL)
 	manager->nthreads = nthreads;
 #else
 	manager->nthreads = 1;
