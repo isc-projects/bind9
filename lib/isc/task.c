@@ -86,7 +86,7 @@ static const char *statenames[] = {
 #define TASK_MAGIC			ISC_MAGIC('T', 'A', 'S', 'K')
 #define VALID_TASK(t)			ISC_MAGIC_VALID(t, TASK_MAGIC)
 
-#if defined(USE_EPOLL)
+#if defined(ISC_PLATFORM_HAVEEPOLL) || defined(ISC_PLATFORM_HAVEKQUEUE)
 #define TASKMGR_MULTIPLE_QUEUES 1
 #endif
 
@@ -1403,6 +1403,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 #else
 	manager->queues = 1;
 #endif
+	printf("Using %d queues\n", manager->queues);
 	UNLOCK(&manager->lock);
 
 	if (started == 0) {

@@ -668,7 +668,7 @@ watch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		evchange.filter = EVFILT_WRITE;
 	evchange.flags = EV_ADD;
 	evchange.ident = fd;
-	if (kevent(manager->kqueue_fds[threadid], &evchange, 1, NULL, 0, NULL) != 0)
+	if (kevent(manager->kqueue_fds[0], &evchange, 1, NULL, 0, NULL) != 0)
 		result = isc__errno2result(errno);
 
 	return (result);
@@ -750,7 +750,7 @@ unwatch_fd(isc__socketmgr_t *manager, int threadid, int fd, int msg) {
 		evchange.filter = EVFILT_WRITE;
 	evchange.flags = EV_DELETE;
 	evchange.ident = fd;
-	if (kevent(manager->kqueue_fds[threadid], &evchange, 1, NULL, 0, NULL) != 0)
+	if (kevent(manager->kqueue_fds[0], &evchange, 1, NULL, 0, NULL) != 0)
 		result = isc__errno2result(errno);
 
 	return (result);
@@ -3285,7 +3285,7 @@ internal_send(isc__socket_t *sock) {
  * and unlocking twice if both reads and writes are possible.
  */
 static void
-process_fd(isc__socketmgr_t *manager, int fd, bool readable,
+process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 	   bool writeable)
 {
 	isc__socket_t *sock;
@@ -3309,7 +3309,8 @@ process_fd(isc__socketmgr_t *manager, int fd, bool readable,
 		return;
 	}
 	sock->references++;
-
+	sock->threadid = threadid;
+	
 	if (readable) {
 		if (sock->listener)
 			internal_accept(sock);
@@ -3363,7 +3364,7 @@ process_fds(isc__socketmgr_t *manager, int threadid, struct kevent **pevents,
 		}
 		readable = (events[i].filter == EVFILT_READ);
 		writable = (events[i].filter == EVFILT_WRITE);
-		process_fd(manager, events[i].ident, readable, writable);
+		process_fd(manager, threadid, events[i].ident, readable, writable);
 	}
 
 	if (have_ctlevent)
@@ -3559,7 +3560,7 @@ netthread(void *uap) {
 	while (!done) {
 		do {
 #ifdef USE_KQUEUE
-			cc = kevent(manager->kqueue_fds[threadid], NULL, 0,
+			cc = kevent(manager->kqueue_fds[0], NULL, 0,
 				    manager->events[threadid], manager->nevents, NULL);
 #elif defined(USE_EPOLL)
 			cc = epoll_wait(manager->epoll_fds[threadid], 
@@ -3726,7 +3727,8 @@ setup_watcher(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 	manager->kqueue_fds = isc_mem_get(mctx, sizeof(int) * manager->nthreads);
 	RUNTIME_CHECK(manager->kqueue_fds != NULL);
 	
-	for (setup_polls=0; setup_polls < manager->nthreads; setup_polls++) {
+//	for (setup_polls=0; setup_polls < manager->nthreads; setup_polls++) {
+	setup_polls = 0; {
 		manager->kqueue_fds[setup_polls] = kqueue();
 		if (manager->kqueue_fds[setup_polls] == -1) {
 			result = isc__errno2result(errno);
@@ -3755,7 +3757,7 @@ cleanup:
 		isc_mem_put(mctx, manager->events[i],
 			    sizeof(struct kevent) * manager->nevents);
 	}
-	isc_mem_put(mctx, manager->events, manager->nthreads * sizeof(struct epoll_event *));
+	isc_mem_put(mctx, manager->events, manager->nthreads * sizeof(struct kevent *));
 	return (result);
 
 #elif defined(USE_EPOLL)
@@ -3936,7 +3938,7 @@ cleanup_watchers(isc_mem_t *mctx, isc__socketmgr_t *manager) {
 			    sizeof(struct kevent) * manager->nevents);
 	}
 	isc_mem_put(mctx, manager->events,
-		    sizeof(struct kevent*) * manager->nevents);
+		    sizeof(struct kevent*) * manager->nthreads);
 #elif defined(USE_EPOLL)
 	for (i=0; i < manager->nthreads; i++) {
 		close(manager->epoll_fds[i]);
@@ -5765,6 +5767,7 @@ static bool		hasreuseport = false;
 
 static void
 init_hasreuseport() {
+	return; 
 #ifdef SO_REUSEPORT
 	int sock, yes = 1;
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
