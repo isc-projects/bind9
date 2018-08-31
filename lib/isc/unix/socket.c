@@ -543,7 +543,7 @@ isc__socket_permunix(const isc_sockaddr_t *sockaddr, uint32_t perm,
 		     uint32_t owner, uint32_t group);
 isc_result_t
 isc__socket_bind(isc_socket_t *sock, const isc_sockaddr_t *sockaddr,
-		 unsigned int options);
+		 isc_socket_options_t options);
 isc_result_t
 isc__socket_filter(isc_socket_t *sock, const char *filter);
 isc_result_t
