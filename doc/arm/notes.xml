@@ -158,6 +158,32 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Work arounds for lack of EDNS compliance in authoritative servers
+	  have been removed because the work arounds cause issues with DNSSEC
+	  validation.  In particular fall back to on no response has been
+	  removed.  This will cause some zones to become non resolvable
+	  without manual intervention.  Adding server clauses for the
+	  offending servers with
+	  <command>edns <replacable>no</replacable></command> or
+	  <command>send-cookie <replacable>no</replacable></command>
+	  depending apon the lack of EDNS compliance.
+	</para>
+	<para>
+	  To workout which server clause to use:
+<literallayout>
+	  dig soa &lt;zone&gt; @&lt;server&gt; +dnssec
+	  dig soa &lt;zone&gt; @&lt;server&gt; +dnssec +nocookie
+	  dig soa &lt;zone&gt; @&lt;server&gt; +noedns
+</literallayout>
+	  to find out if it is just a DNS COOKIE option being present in the
+	  query or EDNS itself causing the query to fail.  In most cases it
+	  will be <command>send-cookie <replacable>no</replacable></command>
+	  required as there are very few servers/firewalls left that are
+	  broken on just EDNS.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Previously, it was possible to build BIND without thread support
 	  for old architectures and systems without threads support.
 	  BIND now requires threading support (either POSIX or Windows) from
