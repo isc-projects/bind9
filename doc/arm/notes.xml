@@ -158,6 +158,47 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Workarounds for servers that misbehave when queried with EDNS
+	  have been removed, because these broken servers and the
+	  workarounds for their noncompliance cause unnecessary delays,
+	  increase code complexity, and prevent deployment of new DNS
+	  features. See <link xmlns:xlink="http://www.w3.org/1999/xlink"
+	    xlink:href="https://dnsflagday.net">https://dnsflagday.net</link>
+	  for further details.
+	</para>
+	<para>
+	  In particular, resolution will no longer fall back to
+	  plain DNS when there was no response from an authoritative
+	  server.  This will cause some domains to become non-resolvable
+	  without manual intervention.  In these cases, resolution can
+	  be restored by adding <command>server</command> clauses for the
+	  offending servers, specifying <command>edns no</command> or
+	  <command>send-cookie no</command>, depending on the specific
+	  noncompliance.
+	</para>
+	<para>
+	  To determine which <command>server</command> clause to use, run
+	  the following commands to send queries to the authoritative
+	  servers for the broken domain:
+	</para>
+<literallayout>
+	  dig soa &lt;zone&gt; @&lt;server&gt; +dnssec
+	  dig soa &lt;zone&gt; @&lt;server&gt; +dnssec +nocookie
+	  dig soa &lt;zone&gt; @&lt;server&gt; +noedns
+</literallayout>
+	<para>
+	  If the first command fails but the second succeeds, the
+	  server most likely needs <command>send-cookie no</command>.
+	  If the first two fail but the third succeeds, then the server
+	  needs EDNS to be fully disabled with <command>edns no</command>.
+	</para>
+	<para>
+	  Please contact the administrators of noncompliant domains
+	  and encourage them to upgrade their broken DNS servers. [GL #150]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  Previously, it was possible to build BIND without thread support
 	  for old architectures and systems without threads support.
 	  BIND now requires threading support (either POSIX or Windows) from
