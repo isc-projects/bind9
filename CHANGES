@@ -1,3 +1,8 @@
+5028.	[func]		Work arounds for servers that misbehave when queried
+			with a valid EDNS queries have been removed as they
+			cause problems with getting answers from compliant
+			servers. [GL #150]
+
 5027.	[func]		Set SO_SNDBUF size on sockets. [GL #74]
 
 5026.	[bug]		rndc reconfig should not touch already loaded zones.
