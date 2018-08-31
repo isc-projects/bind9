@@ -17139,7 +17139,58 @@ allow-query { !{ !10/8; any; }; key example; };
 	    source of hints and information that can be used to figure out
 	    what went wrong and how to fix the problem.
 	  </para>
+	</section>
 
+	<section><info><title>EDNS compliance issues</title></info>
+	  <para>
+	    EDNS (Extended DNS) is a standard that was first specified
+	    in 1999. It is required for DNSSEC validation, DNS COOKIE
+	    options, and other features. There are broken and outdated
+	    DNS servers and firewalls still in use which misbehave when
+	    queried with EDNS; for example, they may drop EDNS queries
+	    rather than replying with FORMERR. BIND and other recursive
+	    name servers have traditionally employed workarounds in this
+	    situation, retrying queries in different ways and eventually
+	    falling back to plain DNS queries without EDNS.
+	  </para>
+	  <para>
+	    Such workarounds cause unnecessary resolution delays,
+	    increase code complexity, and prevent deployment of new DNS
+	    features. As of February 2019, all major DNS software vendors
+	    have agreed to remove these workarounds; see
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink"
+	      xlink:href="https://dnsflagday.net">https://dnsflagday.net</link>
+	    for further details. This change was implemented in BIND
+	    as of release 9.14.0.
+	  </para>
+	  <para>
+	    As a result, some domains may be non-resolvable without manual
+	    intervention.  In these cases, resolution can be restored by
+	    adding <command>server</command> clauses for the offending
+	    servers, specifying <command>edns no</command> or
+	    <command>send-cookie no</command>, depending on the specific
+	    noncompliance.
+	  </para>
+	  <para>
+	    To determine which <command>server</command> clause to use,
+	    run the following commands to send queries to the authoritative
+	    servers for the broken domain:
+	  </para>
+  <literallayout>
+	    dig soa &lt;zone&gt; @&lt;server&gt; +dnssec
+	    dig soa &lt;zone&gt; @&lt;server&gt; +dnssec +nocookie
+	    dig soa &lt;zone&gt; @&lt;server&gt; +noedns
+  </literallayout>
+	  <para>
+	    If the first command fails but the second succeeds, the
+	    server most likely needs <command>send-cookie no</command>.
+	    If the first two fail but the third succeeds, then the server
+	    needs EDNS to be fully disabled with <command>edns no</command>.
+	  </para>
+	  <para>
+	    Please contact the administrators of noncompliant domains
+	    and encourage them to upgrade broken DNS servers.
+	  </para>
 	</section>
       </section>
       <section><info><title>Incrementing and Changing the Serial Number</title></info>
