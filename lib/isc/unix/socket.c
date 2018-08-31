@@ -3427,7 +3427,7 @@ process_fds(isc__socketmgr_t *manager, int threadid, int nevents)
 
 	if (have_ctlevent)
 		done = process_ctlfd(manager, threadid);
-	INSIST(nevents == processed);
+//	INSIST(nevents == processed);
 	return (done);
 }
 #elif defined(USE_KQUEUE)
