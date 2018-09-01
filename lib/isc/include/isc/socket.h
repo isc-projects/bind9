@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 #ifndef ISC_SOCKET_H
 #define ISC_SOCKET_H 1
 
@@ -259,7 +257,7 @@ struct isc_socket_connev {
  * _DSCP:	The UDP DSCP value is valid.
  * _USEMINMTU:	Set the per packet IPV6_USE_MIN_MTU flag.
  */
-#define ISC_SOCKEVENTATTR_ATTACHED		0x80000000U /* internal */
+#define ISC_SOCKEVENTATTR_ATTACHED		0x10000000U /* internal */
 #define ISC_SOCKEVENTATTR_TRUNC			0x00800000U /* public */
 #define ISC_SOCKEVENTATTR_CTRUNC		0x00400000U /* public */
 #define ISC_SOCKEVENTATTR_TIMESTAMP		0x00200000U /* public */

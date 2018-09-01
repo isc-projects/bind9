@@ -1772,7 +1772,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 
 typedef struct {
 	const char *name;
-	int allowed;
+	unsigned int allowed;
 } optionstable;
 
 static isc_result_t
