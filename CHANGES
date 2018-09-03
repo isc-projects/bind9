@@ -1,3 +1,8 @@
+5036.	[bug]		Prevent dig from hanging indefinitely when no
+			lookup-specific nameservers are provided and no
+			acceptable nameservers are found in /etc/resolv.conf.
+			[GL #433]
+
 5035.	[test]		Fixed errors that prevented the DNSRPS subtests
 			from running in the rpz and rpzrecurse system
 			tests. [GL #503]
