@@ -12,9 +12,10 @@
 
 In general, this version of BIND will build and run on any POSIX-compliant
 system with a C99-compliant C compiler, BSD-style sockets with RFC-compliant
-IPv6 support, POSIX-compliant threads, and the OpenSSL cryptography library.  An
-atomic operations support from compiler is needed, either in form of builtin
-operatins, C11 atomics or Interlocked family of functions on Windows.
+IPv6 support, POSIX-compliant threads, and the OpenSSL cryptography library.
+Atomic operations support from the compiler is needed, either in the form of
+builtin operations, C11 atomics or the Interlocked family of functions on
+Windows.
 
 ISC regularly tests BIND on many operating systems and architectures, but
 lacks the resources to test all of them. Consequently, ISC is only able to

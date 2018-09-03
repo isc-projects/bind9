@@ -60,11 +60,10 @@
     Advanced Sockets Application Program Interface (API) for IPv6 (RFC 3542) and
     atomic operation support from compiler.  More information can be found in
     the PLATFORM.md file that is included in the source distribution of BIND 9.
-    If your platform compiler and system library provides aforementioned
-    features, BIND 9 should generally compile and run fine, and if that isn't
-    the case, the BIND Development Team will generally accept patches to add
-    any patches that will add support for systems that are still supported by
-    their respective vendors.
+    If your platform compiler and system library provides the aforementioned
+    features, BIND 9 should generally compile and run: if that isn't the case,
+    the BIND development team will generally accept patches that will add
+    support for systems that are still supported by their respective vendors.
   </para>
   </section>
 
