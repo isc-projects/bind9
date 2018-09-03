@@ -45,16 +45,16 @@ installdirs:
 
 install:: installdirs
 	for i in ${HEADERS}; do \
-		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/dns ; \
+		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/dns || exit 1; \
 	done
 	for i in ${GENHEADERS}; do \
-		${INSTALL_DATA} $$i ${DESTDIR}${includedir}/dns ; \
+		${INSTALL_DATA} $$i ${DESTDIR}${includedir}/dns || exit 1; \
 	done
 
 uninstall::
 	for i in ${GENHEADERS}; do \
-		rm -f ${DESTDIR}${includedir}/dns/$$i ; \
+		rm -f ${DESTDIR}${includedir}/dns/$$i || exit 1; \
 	done
 	for i in ${HEADERS}; do \
-		rm -f ${DESTDIR}${includedir}/dns/$$i ; \
+		rm -f ${DESTDIR}${includedir}/dns/$$i || exit 1; \
 	done

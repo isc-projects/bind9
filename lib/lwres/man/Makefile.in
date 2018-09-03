@@ -93,7 +93,7 @@ timestamp: ${MANOBJS}
 	touch timestamp
 
 install:: installdirs
-	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man3; done
+	for m in ${MANPAGES}; do ${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man3 || exit 1; done
 	rm -f ${man3}/lwres_addr_parse.3
 	@LN@ ${man3}/lwres_resutil.3 ${man3}/lwres_addr_parse.3
 	rm -f ${man3}/lwres_buffer_add.3
@@ -232,7 +232,7 @@ install:: installdirs
 	@LN@ ${man3}/lwres_resutil.3 ${man3}/lwres_string_parse.3
 
 uninstall::
-	for m in ${MANPAGES}; do rm -f ${man3}/$$m ; done
+	for m in ${MANPAGES}; do rm -f ${man3}/$$m || exit 1; done
 	rm -f ${man3}/lwres_addr_parse.3
 	rm -f ${man3}/lwres_buffer_add.3
 	rm -f ${man3}/lwres_buffer_back.3
