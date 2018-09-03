@@ -53,26 +53,32 @@
 
   <section xml:id="relnotes_platforms"><info><title>Supported Platforms</title></info>
     <para>
-      BIND 9.13 underwent a code refactoring and cleanup and various quirks for
-      legacy systems have been removed.  Namely various workarounds for old
-      versions of UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster and IRIX have
-      been removed.  BIND in UNIX-like systems now requires POSIX.1c threads,
-      Advanced Sockets Application Program Interface (API) for IPv6 (RFC 3542)
-      and atomic operation support from compiler.  More information can be found
-      in the PLATFORM.md file that is included in the source distribution of
-      BIND 9.  If your platform compiler and system library provides the
-      aforementioned features, BIND 9 should generally compile and run: if that
-      isn't the case, the BIND development team will generally accept patches
-      that will add support for systems that are still supported by their
-      respective vendors.
+      BIND 9.13 has undergone substantial code refactoring and cleanup,
+      and some very old code has been removed that was needed to support
+      legacy platforms which are no longer supported by their vendors,
+      and for which ISC is no longer able to perform quality assurance
+      testing.  Specifically, workarounds for old versions of UnixWare,
+      BSD/OS, AIX, Tru64, SunOS, TruCluster and IRIX have been removed.
+      On UNIX-like systems, BIND now requires support for POSIX.1c
+      threads (IEEE Std 1003.1c-1995), the Advanced Sockets API for
+      IPv6 (RFC 3542), and atomic operations in the compiler.
     </para>
     <para>
-      In BIND 9.13, the BIND development team has also decided to make
-      cryptography (TSIG, DNSSEC) in DNS an integral part of the DNS server.
-      Therefore, the OpenSSL cryptography library must be available for the
-      target platform.  A PKCS#11 provider could be used instead for Public Key
-      cryptography, but the OpenSSL library is still required for the general
-      cryptography operations.
+      More information can be found in the <filename>PLATFORM.md</filename>
+      file that is included in the source distribution of BIND 9.  If your
+      platform compiler and system libraries provide the above features,
+      BIND 9 should compile and run. If that isn't the case, the BIND
+      development team will generally accept patches that add support
+      for systems that are still supported by their respective vendors.
+    </para>
+    <para>
+      As of BIND 9.13, the BIND development team has also made cryptography
+      (i.e., TSIG and DNSSEC) an integral part of the DNS server.  The
+      OpenSSL cryptography library must be available for the target
+      platform.  A PKCS#11 provider can be used instead for Public Key
+      cryptography (i.e., DNSSEC signing and validation), but OpenSSL is
+      still required for general cryptography operations such as hashing
+      and random number generation.
     </para>
   </section>
 
