@@ -51,6 +51,22 @@
     </para>
   </section>
 
+  <section xml:id="relnotes_platforms"><info><title>Supported Platforms</title></info>
+  <para>
+    BIND 9.13 underwent a code refactoring and cleanup and various quirks for
+    legacy systems have been removed.  Namely various workarounds for old
+    versions of UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster and IRIX have
+    been removed.  BIND in UNIX-like systems now requires POSIX.1c threads,
+    Advanced Sockets Application Program Interface (API) for IPv6 (RFC 3542) and
+    atomic operation support from compiler.  More information can be found in
+    the PLATFORM.md file that is included in the source distribution of BIND 9.
+    If your platform compiler and system library provides the aforementioned
+    features, BIND 9 should generally compile and run: if that isn't the case,
+    the BIND development team will generally accept patches that will add
+    support for systems that are still supported by their respective vendors.
+  </para>
+  </section>
+
   <section xml:id="relnotes_download"><info><title>Download</title></info>
     <para>
       The latest versions of BIND 9 software can always be found at
