@@ -4030,6 +4030,13 @@ do_lookup(dig_lookup_t *lookup) {
 	REQUIRE(lookup != NULL);
 
 	debug("do_lookup()");
+
+	if (ISC_LIST_EMPTY(lookup->my_server_list)) {
+		printf(";; No acceptable nameservers\n");
+		check_next_lookup(lookup);
+		return;
+	}
+
 	lookup->pending = true;
 	query = ISC_LIST_HEAD(lookup->q);
 	if (query != NULL) {
