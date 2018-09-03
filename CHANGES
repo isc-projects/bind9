@@ -1,3 +1,8 @@
+5030.	[bug]		Prevent dig from hanging indefinitely when no
+			lookup-specific nameservers are provided and no
+			acceptable nameservers are found in /etc/resolv.conf.
+			[GL #433]
+
 5029.	[func]		Workarounds for servers that misbehave when queried
 			with EDNS have been removed, because these broken
 			servers and the workarounds for their noncompliance
