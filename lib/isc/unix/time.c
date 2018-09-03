@@ -695,7 +695,7 @@ isc_time_ISO8601fromtext(isc_time_t *t, const char *str) {
 		}
 
 		/*
-	         * '+' offsets are in front of UTC so they need to be
+		 * '+' offsets are in front of UTC so they need to be
 		 * subtracted.
 		 */
 		if (plus) {
