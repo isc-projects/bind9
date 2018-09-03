@@ -216,6 +216,54 @@ ATF_TC_BODY(isc_time_formatshorttimestamp, tc) {
 	ATF_CHECK_STREQ(buf, "20151213094640123");
 }
 
+ATF_TC(isc_time_ISO8601fromtext);
+ATF_TC_HEAD(isc_time_ISO8601fromtext, tc) {
+	atf_tc_set_md_var(tc, "descr",
+			  "convert the restricted ISO8601 to isc_time_t");
+}
+ATF_TC_BODY(isc_time_ISO8601fromtext, tc) {
+	isc_result_t result;
+	isc_time_t t;
+	time_t secs;
+	size_t i;
+	struct {
+		const char *time;
+		bool valid;
+		unsigned int secs;
+		unsigned int nsecs;
+	} test[] = {
+		{ "1969-12-31T23:59:59Z", false, 0, 0 },
+		{ "1970-01-01T00:00:00Z", true, 0, 0 },
+		{ "1969-12-31T23:00:00-01:00", true, 0, 0 },
+		{ "1970-01-01T00:00:00+01:00", false, 0, 0 },
+		{ "2018-09-03T06:10:29Z", true, 1535955029, 0 },
+		{ "2018-09-03T06:10:29+00:00", true, 1535955029, 0 },
+		{ "2018-09-03T06:10:29-00:00", false, 0, 0 },
+		{ "2018-09-03T06:10:29+01:30", true, 1535949629, 0 },
+		{ "2018-09-03T06:10:29.524Z", true, 1535955029, 524000000 },
+		{ "2018-09-03T06:10:29.000Z", true, 1535955029, 0 },
+	};
+
+	for (i = 0; i < (sizeof(test)/sizeof(test[0])); i++) {
+		result = isc_time_ISO8601fromtext(&t, test[i].time);
+		if (test[i].valid) {
+			ATF_CHECK_EQ_MSG(result,  ISC_R_SUCCESS,
+					 "%s failed", test[i].time);
+			result = isc_time_secondsastimet(&t, &secs);
+			ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
+					 "%s isc_time_secondsastimet failed",
+					 test[i].time);
+			ATF_CHECK_EQ_MSG(secs, test[i].secs,
+					 "%s secs failed", test[i].time);
+			ATF_CHECK_EQ_MSG(isc_time_nanoseconds(&t),
+					 test[i].nsecs,
+					 "%s nsecs failed", test[i].time);
+		} else {
+			ATF_CHECK_MSG(result != ISC_R_SUCCESS,
+				      "%s failed", test[i].time);
+		}
+	}
+}
 /*
  * Main
  */
@@ -225,6 +273,7 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601ms);
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601L);
 	ATF_TP_ADD_TC(tp, isc_time_formatISO8601Lms);
+	ATF_TP_ADD_TC(tp, isc_time_ISO8601fromtext);
 	ATF_TP_ADD_TC(tp, isc_time_formatshorttimestamp);
 	return (atf_no_error());
 }

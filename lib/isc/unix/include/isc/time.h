@@ -398,6 +398,25 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len);
  *
  */
 
+isc_result_t
+isc_time_ISO8601fromtext(isc_time_t *t, const char *str);
+/*%<
+ * Convert the restricted ISO8601 formated time in 'str' into isc_time_t;
+ *
+ *         yyyy-mm-ddTHH:MM:SS[.fractions]{Z,[+-]HH:MM}
+ *
+ * 'str' is restriction to dates and times after 1970-01-01T00:00:00Z.
+ * fractions of seconds is optional and is truncated to the nanosecond.
+ * The timezone is manditory.  Local time zone (-00:00) is not permitted.
+ *
+ *  Requires:
+ *\li      't' to be non NULL.
+ *
+ *  Returns:
+ *\li	Success
+ *\li   Other values on error.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_TIME_H */

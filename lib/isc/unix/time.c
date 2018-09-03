@@ -14,6 +14,7 @@
 
 #include <config.h>
 
+#include <ctype.h>
 #include <errno.h>
 #include <limits.h>
 #include <inttypes.h>
@@ -54,6 +55,8 @@
 
 static const isc_interval_t zero_interval = { 0, 0 };
 const isc_interval_t * const isc_interval_zero = &zero_interval;
+
+static const int days[12] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
 
 #if ISC_FIX_TV_USEC
 static inline void
@@ -529,4 +532,185 @@ isc_time_formatshorttimestamp(const isc_time_t *t, char *buf, unsigned int len)
 		snprintf(buf + flen, len - flen, "%03u",
 			 t->nanoseconds / NS_PER_MS);
 	}
+}
+
+#define is_leap(y) ((((y) % 4) == 0 && ((y) % 100) != 0) || ((y) % 400) == 0)
+
+#define RANGE(min, max, value) \
+	do { \
+		if (value < (min) || value > (max)) \
+			return (ISC_R_RANGE); \
+	} while (0)
+
+isc_result_t
+isc_time_ISO8601fromtext(isc_time_t *t, const char *str) {
+	int year, month, day, hour, minute, second;
+	int64_t value;
+	unsigned int ns = 0;
+	int secs;
+	int i;
+	const char *cp;
+
+	if (strlen(str) < 20)
+		return (ISC_R_BADTIME);
+	/*
+	 * Confirm the source digits are only digits.  sscanf() allows some
+	 * minor exceptions.
+	 */
+	for (i = 0; i < 19; i++) {
+		switch (i) {
+		case 4:
+		case 7:
+			if (str[i] != '-') {
+				return (ISC_R_BADTIME);
+			}
+			break;
+		case 10:
+			if (str[i] != 'T' && str[i] != 't') {
+				return (ISC_R_BADTIME);
+			}
+			break;
+		case 13:
+		case 16:
+			if (str[i] != ':') {
+				return (ISC_R_BADTIME);
+			}
+			break;
+		default:
+			if (!isdigit((unsigned char)str[i]))
+				return (ISC_R_BADTIME);
+			break;
+		}
+	}
+	if (sscanf(str, "%4d-%2d-%2d%*c%2d:%2d:%2d",
+		   &year, &month, &day, &hour, &minute, &second) != 6) {
+		return (ISC_R_BADTIME);
+	}
+
+	RANGE(0, 9999, year);
+	RANGE(1, 12, month);
+	RANGE(1, days[month - 1] +
+		 ((month == 2 && is_leap(year)) ? 1 : 0), day);
+#ifdef __COVERITY__
+	/*
+	 * Use a simplified range to silence Coverity warning (in
+	 * arithmetic with day below).
+	 */
+	RANGE(1, 31, day);
+#endif /* __COVERITY__ */
+
+	RANGE(0, 23, hour);
+	RANGE(0, 59, minute);
+	RANGE(0, 60, second);           /* 60 == leap second. */
+
+	/*
+	 * Calculate seconds from epoch.
+	 * Note: this uses a idealized calendar.
+	 */
+	value = second + (60 * minute) + (3600 * hour) + ((day - 1) * 86400);
+	for (i = 0; i < (month - 1); i++)
+		value += days[i] * 86400;
+	if (is_leap(year) && month > 2)
+		value += 86400;
+	if (year < 1970) {
+		for (i = 1969; i >= year; i--) {
+			secs = (is_leap(i) ? 366 : 365) * 86400;
+			value -= secs;
+		}
+	} else {
+		for (i = 1970; i < year; i++) {
+			secs = (is_leap(i) ? 366 : 365) * 86400;
+			value += secs;
+		}
+	}
+
+	/*
+	 * Skip to fractions of seconds or time zone.
+	 */
+	cp = str + 19;
+
+	/*
+	 * Process fractions of seconds.
+	 */
+	if (*cp == '.') {
+		int m = 100000000;	/* .1 in ns. */
+
+		/*
+		 * Skip decimal point.
+		 */
+		cp++;
+
+		/*
+		 * Process leading zeros.
+		 */
+		while (*cp == '0') {
+			m /= 10;
+			cp++;
+		}
+
+		/*
+		 * Process any other digits.
+		 */
+		while (*cp >= '0' && *cp <= '9') {
+			ns += (*cp - '0') * m;
+			m /= 10;
+			cp++;
+		}
+	}
+
+	/*
+	 * Process timezone offset which must exist.
+	 */
+	if (*cp == 'z' || *cp == 'Z') {
+		/* empty */
+	} else if (*cp == '-' || *cp == '+') {
+		bool plus = (*cp++ == '+');
+		if (strlen(cp) != 5) {
+			return (ISC_R_BADTIME);
+		}
+		for (i = 0; i < 5; i++) {
+			switch (i) {
+			case 2:
+				if (cp[i] != ':') {
+					return (ISC_R_BADTIME);
+				}
+				break;
+			default:
+				if (!isdigit((unsigned char)cp[i]))
+					return (ISC_R_BADTIME);
+				break;
+			}
+		}
+		if (sscanf(cp, "%2d:%2d", &hour, &minute) != 2) {
+			return (ISC_R_BADTIME);
+		}
+		RANGE(0, 23, hour);
+		RANGE(0, 59, minute);
+
+		/*
+		 * -00:00 is localtime which is not permitted.
+		 */
+		if (!plus && hour == 0 && minute == 0) {
+			return (ISC_R_BADTIME);
+		}
+
+		/*
+	         * '+' offsets are in front of UTC so they need to be
+		 * subtracted.
+		 */
+		if (plus) {
+			value -= hour * 3600 + minute * 60;
+		} else {
+			value += hour * 3600 + minute * 60;
+		}
+	} else {
+		return (ISC_R_BADTIME);
+	}
+
+	if (value < 0)
+		return (ISC_R_BADTIME);
+
+	t->seconds = value;
+	t->nanoseconds = ns;
+	return (ISC_R_SUCCESS);
 }
