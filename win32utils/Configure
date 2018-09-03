@@ -238,8 +238,7 @@ my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
 
 my %configtest;
 
-my @substtest = ("CHECK_DSA",
-                 "CHECKDS",
+my @substtest = ("CHECKDS",
                  "COVERAGE",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
@@ -2862,9 +2861,6 @@ sub makeinstallfile {
 }
 
 # Adjust system tests
-
-# WIN32 not a BSD
-$configtest{"CHECK_DSA"} = 0;
 
 # dnstap not supported
 #$configtest{"DNSTAP"} = "dnstap";
