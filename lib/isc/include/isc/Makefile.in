@@ -32,7 +32,7 @@ HEADERS =	aes.h app.h assertions.h atomic.h backtrace.h base32.h base64.h \
 		radix.h random.h ratelimiter.h refcount.h regex.h \
 		region.h resource.h result.h resultclass.h rwlock.h \
 		safe.h serial.h sha1.h sha2.h sockaddr.h socket.h \
-		stats.h stdio.h stdlib.h strerr.h string.h symtab.h \
+		stats.h stdio.h strerr.h string.h symtab.h \
 	        task.h taskpool.h timer.h tm.h types.h util.h version.h \
 		xml.h
 
@@ -46,14 +46,14 @@ installdirs:
 
 install:: installdirs
 	for i in ${HEADERS}; do \
-		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/isc ; \
+		${INSTALL_DATA} ${srcdir}/$$i ${DESTDIR}${includedir}/isc || exit 1; \
 	done
 	${INSTALL_DATA} platform.h ${DESTDIR}${includedir}/isc
 
 uninstall::
 	rm -f ${DESTDIR}${includedir}/isc/platform.h
 	for i in ${HEADERS}; do \
-		rm -f ${DESTDIR}${includedir}/isc/$$i ; \
+		rm -f ${DESTDIR}${includedir}/isc/$$i || exit 1; \
 	done
 
 distclean::
