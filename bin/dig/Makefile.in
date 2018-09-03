@@ -99,12 +99,12 @@ install:: dig@EXEEXT@ host@EXEEXT@ nslookup@EXEEXT@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_PROGRAM} \
 		nslookup@EXEEXT@ ${DESTDIR}${bindir}
 	for m in ${MANPAGES}; do \
-		${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man1; \
-		done
+		${INSTALL_DATA} ${srcdir}/$$m ${DESTDIR}${mandir}/man1 || exit 1; \
+	done
 
 uninstall::
 	for m in ${MANPAGES}; do \
-		rm -f ${DESTDIR}${mandir}/man1/$$m ; \
+		rm -f ${DESTDIR}${mandir}/man1/$$m || exit 1; \
 	done
 	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${bindir}/nslookup@EXEEXT@
 	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${bindir}/host@EXEEXT@
