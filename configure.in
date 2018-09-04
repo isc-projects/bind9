@@ -1925,17 +1925,6 @@ AC_TRY_LINK([
 	ISC_PLATFORM_HAVEIF_LADDRREQ="#undef ISC_PLATFORM_HAVEIF_LADDRREQ"])
 AC_SUBST(ISC_PLATFORM_HAVEIF_LADDRREQ)
 
-AC_MSG_CHECKING([for struct if_laddrconf])
-AC_TRY_LINK([
-#include <sys/types.h>
-#include <net/if6.h>
-],[ struct if_laddrconf a; ],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVEIF_LADDRCONF="#define ISC_PLATFORM_HAVEIF_LADDRCONF 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEIF_LADDRCONF="#undef ISC_PLATFORM_HAVEIF_LADDRCONF"])
-AC_SUBST(ISC_PLATFORM_HAVEIF_LADDRCONF)
-
 #
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()

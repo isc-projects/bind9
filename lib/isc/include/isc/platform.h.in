@@ -43,12 +43,6 @@
 @ISC_PLATFORM_HAVELIFCONF@
 
 /*! \brief
- * Define if the system has struct if_laddrconf which is a extended struct
- * ifconf for IPv6.
- */
-@ISC_PLATFORM_HAVEIF_LADDRCONF@
-
-/*! \brief
  * Define if the system has struct if_laddrreq.
  */
 @ISC_PLATFORM_HAVEIF_LADDRREQ@
