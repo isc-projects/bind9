@@ -13667,6 +13667,7 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 	dns_name_t *ntaname;
 	dns_ttl_t ntattl;
 	bool ttlset = false, excl = false;
+	dns_rdataclass_t rdclass = dns_rdataclass_in;
 
 	UNUSED(force);
 
@@ -13674,18 +13675,20 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 
 	/* Skip the command name. */
 	ptr = next_token(lex, text);
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	for (;;) {
 		/* Check for options */
 		ptr = next_token(lex, text);
-		if (ptr == NULL)
+		if (ptr == NULL) {
 			return (ISC_R_UNEXPECTEDEND);
+		}
 
-		if (argcheck(ptr, "dump"))
+		if (argcheck(ptr, "dump")) {
 			dump = true;
-		else if (argcheck(ptr, "remove")) {
+		} else if (argcheck(ptr, "remove")) {
 			ntattl = 0;
 			ttlset = true;
 		} else if (argcheck(ptr, "force")) {
@@ -13715,8 +13718,22 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 
 			ttlset = true;
 			continue;
-		} else
+		} else if (argcheck(ptr, "class")) {
+			isc_textregion_t tr;
+
+			ptr = next_token(lex, text);
+			if (ptr == NULL) {
+				msg = "No class specified";
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+
+			tr.base = ptr;
+			tr.length = strlen(ptr);
+			CHECK(dns_rdataclass_fromtext(&rdclass, &tr));
+			continue;
+		} else {
 			nametext = ptr;
+		}
 
 		break;
 	}
@@ -13729,11 +13746,13 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 		     view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
 		{
-			if (ntatable != NULL)
+			if (ntatable != NULL) {
 				dns_ntatable_detach(&ntatable);
+			}
 			result = dns_view_getntatable(view, &ntatable);
-			if (result == ISC_R_NOTFOUND)
+			if (result == ISC_R_NOTFOUND) {
 				continue;
+			}
 			CHECK(dns_ntatable_totext(ntatable, text));
 		}
 		CHECK(putnull(text));
@@ -13750,17 +13769,19 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 	}
 
 	/* Get the NTA name. */
-	if (nametext == NULL)
+	if (nametext == NULL) {
 		nametext = next_token(lex, text);
-	if (nametext == NULL)
+	}
+	if (nametext == NULL) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	/* Copy nametext as it'll be overwritten by next_token() */
 	strlcpy(namebuf, nametext, DNS_NAME_FORMATSIZE);
 
-	if (strcmp(namebuf, ".") == 0)
+	if (strcmp(namebuf, ".") == 0) {
 		ntaname = dns_rootname;
-	else {
+	} else {
 		isc_buffer_t b;
 		isc_buffer_init(&b, namebuf, strlen(namebuf));
 		isc_buffer_add(&b, strlen(namebuf));
@@ -13782,6 +13803,10 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 		static bool first = true;
 
 		if (viewname != NULL && strcmp(view->name, viewname) != 0) {
+			continue;
+		}
+
+		if (view->rdclass != rdclass && rdclass != dns_rdataclass_any) {
 			continue;
 		}
 
@@ -13870,10 +13895,12 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 		(void) putstr(text, msg);
 		(void) putnull(text);
 	}
-	if (excl)
+	if (excl) {
 		isc_task_endexclusive(server->task);
-	if (ntatable != NULL)
+	}
+	if (ntatable != NULL) {
 		dns_ntatable_detach(&ntatable);
+	}
 	return (result);
 }
 
