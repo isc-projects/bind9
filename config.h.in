@@ -251,7 +251,7 @@
 /* Define to 1 if you have the <idn2.h> header file. */
 #undef HAVE_IDN2_H
 
-/* Define to 1 if you have the if_nametoindex function. */
+/* Define to 1 if you have the `if_nametoindex' function. */
 #undef HAVE_IF_NAMETOINDEX
 
 /* Define to 1 if you have the <inttypes.h> header file. */

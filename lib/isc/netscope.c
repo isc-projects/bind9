@@ -24,7 +24,7 @@
 isc_result_t
 isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid) {
 	char *ep;
-#ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
+#ifdef HAVE_IF_NAMETOINDEX
 	unsigned int ifid;
 	struct in6_addr *in6;
 #endif
@@ -43,7 +43,7 @@ isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid) {
 	 * interface names as link names, assuming one to one mapping between
 	 * interfaces and links.
 	 */
-#ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
+#ifdef HAVE_IF_NAMETOINDEX
 	in6 = (struct in6_addr *)addr;
 	if (IN6_IS_ADDR_LINKLOCAL(in6) &&
 	    (ifid = if_nametoindex((const char *)scopename)) != 0)
@@ -58,7 +58,7 @@ isc_netscope_pton(int af, char *scopename, void *addr, uint32_t *zoneid) {
 		zone = (uint32_t)(llz & 0xffffffffUL);
 		if (zone != llz)
 			return (ISC_R_FAILURE);
-#ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
+#ifdef HAVE_IF_NAMETOINDEX
 	}
 #endif
 
