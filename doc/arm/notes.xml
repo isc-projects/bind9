@@ -42,36 +42,24 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  There was a long-existing flaw in the documentation for
+	  <command>ms-self</command>, <command>krb5-self</command>,
+	  <command>ms-subdomain</command>, and <command>krb5-subdomain</command>
+	  rules in <command>update-policy</command> statements.  Though
+	  the policies worked as intended, operators who configured their
+	  servers according to the misleading documentation may have
+	  thought zone updates were more restricted than they were;
+	  users of these rule types are advised to review the documentation
+	  and correct their configurations if necessary.  New rule types
+	  matching the previously documented behavior will be introduced
+	  in a future maintenance release. [GL !708]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>named</command> could crash during recursive processing
 	  of DNAME records when <command>deny-answer-aliases</command> was
 	  in use. This flaw is disclosed in CVE-2018-5740. [GL #387]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When recursion is enabled but the <command>allow-recursion</command>
-	  and <command>allow-query-cache</command> ACLs are not specified, they
-	  should be limited to local networks, but they were inadvertently set
-	  to match the default <command>allow-query</command>, thus allowing
-	  remote queries. This flaw is disclosed in CVE-2018-5738. [GL #309]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The serve-stale feature could cause an assertion failure in
-	  rbtdb.c even when stale-answer-enable was false. The
-	  simultaneous use of stale cache records and NSEC aggressive
-	  negative caching could trigger a recursion loop in the
-	  <command>named</command> process. This flaw is disclosed in
-	  CVE-2018-5737. [GL #185]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  A bug in zone database reference counting could lead to a crash
-	  when multiple versions of a slave zone were transferred from a
-	  master in close succession. This flaw is disclosed in
-	  CVE-2018-5736. [GL #134]
 	</para>
       </listitem>
     </itemizedlist>

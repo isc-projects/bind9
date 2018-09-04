@@ -12565,7 +12565,7 @@ example.com. NS ns2.example.net.
 	      has been used to create a shared secret, the identity of
 	      the key used to authenticate the TKEY exchange will be
 	      used as the identity of the shared secret.  Some rule types
-	      use indentities matching the client's Kerberos principal
+	      use identities matching the client's Kerberos principal
 	      (e.g, <userinput>"host/machine@REALM"</userinput>) or
 	      Windows realm (<userinput>machine$@REALM</userinput>).
 	    </para>
@@ -12726,12 +12726,26 @@ example.com. NS ns2.example.net.
 		      </para>
 		    </entry> <entry colname="2">
 		      <para>
-			This rule takes a Windows machine principal
-			(machine$@REALM) for machine in REALM and
-			and converts it machine.realm allowing the machine
-			to update machine.realm.  The REALM to be matched
-			is specified in the <replaceable>identity</replaceable>
-			field.  The name field should be set to "."
+			When a client sends an UPDATE using a Windows
+			machine principal (for example, 'machine$@REALM'),
+			this rule allows records with the absolute name
+			of 'machine.REALM' to be updated.
+		      </para>
+		      <para>
+			The realm to be matched is specified in the
+			<replaceable>identity</replaceable> field.
+		      </para>
+		      <para>
+			The <replaceable>name</replaceable> field has
+			no effect on this rule; it should be set to "."
+			as a placeholder.
+		      </para>
+		      <para>
+			For example,
+			<userinput>grant EXAMPLE.COM ms-self . A AAAA</userinput>
+			allows any machine with a valid principal in
+			the realm <userinput>EXAMPLE.COM</userinput> to update
+			its own address records.
 		      </para>
 		    </entry>
 		  </row>
@@ -12742,12 +12756,31 @@ example.com. NS ns2.example.net.
 		      </para>
 		    </entry> <entry colname="2">
 		      <para>
-			This rule takes a Windows machine principal
-			(machine$@REALM) for machine in REALM and
-			converts it to machine.realm allowing the machine
-			to update subdomains of machine.realm.  The REALM
-			to be matched is specified in the
+			When a client sends an UPDATE using a Windows
+			machine principal (for example, 'machine$@REALM'),
+			this rule allows any machine in the specified
+			realm to update any record in the zone or in a
+			specified subdomain of the zone.
+		      </para>
+		      <para>
+			The realm to be matched is specified in the
 			<replaceable>identity</replaceable> field.
+		      </para>
+		      <para>
+			The <replaceable>name</replaceable> field
+			specifies the subdomain that may be updated.
+			If set to "." (or any other name at or above
+			the zone apex), any name in the zone can be
+			updated.
+		      </para>
+		      <para>
+			For example, if <command>update-policy</command>
+			for the zone "example.com" includes
+			<userinput>grant EXAMPLE.COM ms-subdomain hosts.example.com. A AAAA</userinput>,
+			any machine with a valid principal in
+			the realm <userinput>EXAMPLE.COM</userinput> will
+			be able to update address records at or below
+			"hosts.example.com".
 		      </para>
 		    </entry>
 		  </row>
@@ -12758,12 +12791,32 @@ example.com. NS ns2.example.net.
 		      </para>
 		    </entry> <entry colname="2">
 		      <para>
-			This rule takes a Kerberos machine principal
-			(host/machine@REALM) for machine in REALM and
-			and converts it machine.realm allowing the machine
-			to update machine.realm.  The REALM to be matched
-			is specified in the <replaceable>identity</replaceable>
-			field. The name field should be set to "."
+			When a client sends an UPDATE using a
+			Kerberos machine principal (for example,
+			'host/machine@REALM'), this rule allows
+			records with the absolute name of 'machine'
+			to be updated provided it has been authenticated
+			by REALM.  This is similar but not identical
+			to <command>ms-self</command> due to the
+			'machine' part of the Kerberos principal
+			being an absolute name instead of a unqualified
+			name.
+		      </para>
+		      <para>
+			The realm to be matched is specified in the
+			<replaceable>identity</replaceable> field.
+		      </para>
+		      <para>
+			The <replaceable>name</replaceable> field has
+			no effect on this rule; it should be set to "."
+			as a placeholder.
+		      </para>
+		      <para>
+			For example,
+			<userinput>grant EXAMPLE.COM krb5-self . A AAAA</userinput>
+			allows any machine with a valid principal in
+			the realm <userinput>EXAMPLE.COM</userinput> to update
+			its own address records.
 		      </para>
 		    </entry>
 		  </row>
@@ -12774,13 +12827,11 @@ example.com. NS ns2.example.net.
 		      </para>
 		    </entry> <entry colname="2">
 		      <para>
-			This rule takes a Kerberos machine principal
-			(host/machine@REALM) for machine in REALM and
-			converts it to machine.realm allowing the machine
-			to update subdomains of machine.realm.  The REALM
-			to be matched is specified in the
-			<replaceable>identity</replaceable> field. The
-			name field should be set to "."
+			This rule is identical to
+			<command>ms-subdomain</command>, except that it works
+			with Kerberos machine principals (i.e.,
+			'host/machine@REALM') rather than Windows machine
+			principals.
 		      </para>
 		    </entry>
 		  </row>
