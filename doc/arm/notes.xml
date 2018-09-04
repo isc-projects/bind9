@@ -96,6 +96,21 @@
   <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
     <itemizedlist>
       <listitem>
+        <para>
+          There was a long-existing flaw in the documentation for
+          <command>ms-self</command>, <command>krb5-self</command>,
+          <command>ms-subdomain</command>, and <command>krb5-subdomain</command>
+          rules in <command>update-policy</command> statements.  Though
+          the policies worked as intended, operators who configured their
+          servers according to the misleading documentation may have
+          thought zone updates were more restricted than they were;
+          users of these rule types are advised to review the documentation
+          and correct their configurations if necessary.  New rule types
+          matching the previously documented behavior will be introduced
+          in a future maintenance release. [GL !708]
+        </para>
+      </listitem>
+      <listitem>
 	<para>
 	  When recursion is enabled but the <command>allow-recursion</command>
 	  and <command>allow-query-cache</command> ACLs are not specified, they
@@ -446,6 +461,33 @@
 
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
+      <listitem>
+        <para>
+          Running <command>rndc reconfig</command> could cause
+          <command>inline-signing</command> zones to stop signing.
+	  [GL #439]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Reloading all zones caused zone maintenance to stop for
+          <command>inline-signing</command> zones. [GL #435]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Signatures loaded from the journal for the signed version
+          of an <command>inline-signing</command> zone were not scheduled
+	  for refresh. [GL #482]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A referral response with a non-empty ANSWER section was
+          incorrectly treated as an error; this caused certain domains
+          to be non-resolvable. [GL #390]
+        </para>
+      </listitem>
       <listitem>
 	<para>
 	  <command>named</command> now rejects excessively large

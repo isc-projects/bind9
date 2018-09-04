@@ -122,8 +122,7 @@ BIND 9.13 is the newest development branch of BIND 9. It includes a
 number of changes from BIND 9.12 and earlier releases.  New features
 include:
 
-* The default value of "dnssec-validation" is now "auto".
-* Support for IDNA2008 when linking with `libidn2`.
+* QNAME minimization, as described in RFC 7816, is now supported.
 * "Root key sentinel" support, enabling validating resolvers to indicate
   via a special query which trust anchors are configured for the root zone.
 * Secondary zones can now be configured as "mirror" zones; their contents
@@ -131,15 +130,27 @@ include:
   DNSSEC validation and are not treated as authoritative data when
   answering. This makes it easier to configure a local copy of the root
   zone as described in RFC 7706.
-* QNAME minimization is now supported
 * The "validate-except" option allows configuration of domains below which
   DNSSEC validation should not be performed.
+* The default value of "dnssec-validation" is now "auto".
+* IDNA2008 is now supported when linking with `libidn2`.
 
-In addition, cryptographic support has been modernized. BIND now uses the
+In addition, workarounds that were formerly in place to enable resolution
+of domains whose authoritative servers did not respond to EDNS queries
+have been removed. See [https://dnsflagday.net](https://dnsflagday.net)
+for more details.
+
+Cryptographic support has been modernized. BIND now uses the
 best available pseudo-random number generator for the platform on which
 it's built. Very old versions of OpenSSL are no longer supported.
-Cryptography is now mandatory; building BIND without DNSSEC is now
+Cryptography is now mandatory: building BIND without DNSSEC is now
 longer supported.
+
+Special code to support certain legacy operating systems has also
+been removed; see the file [PLATFORMS.md](PLATFORMS.md) for details
+of supported platforms. In addition to OpenSSL, BIND now requires
+support for IPv6, threads, and standard atomic operations provided
+by the C compiler.
 
 ### <a name="build"/> Building BIND
 
