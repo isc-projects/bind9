@@ -2276,55 +2276,6 @@ if test "yes" = "$have_builtin_clz"; then
 fi
 
 #
-# CPU relax (for spin locks)
-#
-case "$host" in
-[i[3456]86-*])
-	# x86_32
-	AC_MSG_CHECKING([if asm("rep; nop"); works])
-	AC_TRY_COMPILE(,[asm("rep; nop");],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"],
-	[AC_MSG_RESULT(no)],
-	[AC_MSG_RESULT([cross compile, assume yes])
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"])
-	;;
-x86_64-*|amd64-*)
-	# x86_64
-	AC_MSG_CHECKING([if asm("rep; nop"); works])
-	AC_TRY_COMPILE(,[asm("rep; nop");],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"],
-	[AC_MSG_RESULT(no)],
-	[AC_MSG_RESULT([cross compile, assume yes])
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"])
-	;;
-ia64-*)
-	# ia64
-	AC_MSG_CHECKING([if asm("hint @pause"); works])
-	AC_TRY_COMPILE(,[asm("hint @pause");],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"hint @pause\")"],
-	[AC_MSG_RESULT(no)],
-	[AC_MSG_RESULT([cross compile, assume yes])
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"hint @pause\")"])
-	;;
-sparc-*)
-	# sparc
-	AC_MSG_CHECKING([if cpu_relax(); or __cpu_relax(); works])
-	AC_CHECK_FUNC(cpu_relax,
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP cpu_relax()"],
-	 [AC_CHECK_FUNC(__cpu_relax,
-	  [AC_MSG_RESULT(yes)
-	   ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP __cpu_relax()"],
-	   [AC_MSG_RESULT(no)])])
-	;;
-esac
-
-AC_SUBST(ISC_PLATFORM_BUSYWAITNOP)
-
-#
 # Activate "rrset-order fixed" or not?
 #
 AC_ARG_ENABLE(fixed-rrset,
