@@ -7835,7 +7835,9 @@ rctx_answer(respctx_t *rctx) {
 			}
 		}
 
-		if (result != DNS_R_DELEGATION) {
+		if (result == DNS_R_DELEGATION) {
+			result = ISC_R_SUCCESS;
+		} else {
 			/*
 			 * At this point, AA is not set, the response
 			 * is not a referral, and the server is not a
