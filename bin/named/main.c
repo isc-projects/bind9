@@ -1044,16 +1044,6 @@ setup(void) {
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "linked to zlib version: %s", zlibVersion());
 #endif
-#ifdef ISC_PLATFORM_USETHREADS
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "threads support is enabled");
-#else
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "threads support is disabled");
-#endif
-
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "----------------------------------------------------");
