@@ -367,6 +367,9 @@ typedef __int64 off_t;
 /* Large system tuning */
 @TUNE_LARGE@
 
+/* define if we can use backtrace */
+@USE_BACKTRACE@
+
 /* the default value of dnssec-validation option */
 @VALIDATION_DEFAULT@
 
