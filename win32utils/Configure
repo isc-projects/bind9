@@ -227,7 +227,7 @@ my @substdefh = ("AES_CC",
 
 my %configdefp;
 
-my @substdefp = ("ISC_PLATFORM_NEEDSTRCASESTR");
+my @substdefp = ();
 
 # for conf.sh
 
@@ -1155,9 +1155,6 @@ if ($msc_ver < 1400) {
 if ($msc_ver >= 1700) {
     $configdefh{"USE_BACKTRACE"} = 1;
 }
-
-# no version of MSVS supports strcasestr() yet
-$configdefp{"ISC_PLATFORM_NEEDSTRCASESTR"} = 1;
 
 # warn when cross compiling
 
