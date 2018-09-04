@@ -6300,7 +6300,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 							 newheader, link);
 			} else if (RESIGN(newheader) &&
 				   RBTDB_RDATATYPE_BASE(newheader->type) ==
-						        dns_rdatatype_rrsig)
+							dns_rdatatype_rrsig)
 			{
 				result = resign_insert(rbtdb, idx, newheader);
 				if (result != ISC_R_SUCCESS) {
