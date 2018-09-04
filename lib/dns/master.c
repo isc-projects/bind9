@@ -2989,7 +2989,7 @@ uint64_fromregion(isc_region_t *region) {
 	result <<= 32;
 	result |= ((unsigned int)(region->base[4]) << 24) |
 		  ((unsigned int)(region->base[5]) << 16) |
-	          ((unsigned int)(region->base[6]) << 8) |
+		  ((unsigned int)(region->base[6]) << 8) |
 		  ((unsigned int)(region->base[7]));
 	return (result);
 }

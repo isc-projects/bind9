@@ -2629,7 +2629,7 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 		if (rollback && !IGNORE(header)) {
 			isc_result_t result;
 			result = timeout_insert(rbtdb, header->node->locknum,
-					        header);
+						header);
 			if (result != ISC_R_SUCCESS)
 				isc_log_write(dns_lctx,
 					      DNS_LOGCATEGORY_DATABASE,
@@ -7257,7 +7257,7 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 				return (result);
 		} else if (rbtdb != NULL && RESIGN(header) &&
 			   header->type == dns_rdatatype_timeout &&
-		           (header->resign != 0 || header->resign_lsb != 0))
+			   (header->resign != 0 || header->resign_lsb != 0))
 		{
 			int idx = header->node->locknum;
 			result = isc_heap_insert(rbtdb->timeouts[idx], header);
