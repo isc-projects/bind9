@@ -1,3 +1,7 @@
+5014.	[bug]		Signatures loaded from the journal for the signed
+			version of an inline-signed zone were not scheduled for
+			refresh. [GL #482]
+
 5004.	[bug]		'rndc reconfig' could cause inline zones to stop
 			re-signing. [GL #439]
 
