@@ -1899,6 +1899,11 @@ zone_touched(dns_zone_t *zone) {
 	return (ISC_FALSE);
 }
 
+/*
+ * Note: when dealing with inline-signed zones, external callers will always
+ * call zone_load() for the secure zone; zone_load() calls itself recursively
+ * in order to load the raw zone.
+ */
 static isc_result_t
 zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 	isc_result_t result;
@@ -1915,6 +1920,28 @@ zone_load(dns_zone_t *zone, unsigned int flags, isc_boolean_t locked) {
 	INSIST(zone != zone->raw);
 	hasraw = inline_secure(zone);
 	if (hasraw) {
+		/*
+		 * We are trying to load an inline-signed zone.  First call
+		 * self recursively to try loading the raw version of the zone.
+		 * Assuming the raw zone file is readable, there are two
+		 * possibilities:
+		 *
+		 *  a) the raw zone was not yet loaded and thus it will be
+		 *     loaded now, synchronously; if this succeeds, a
+		 *     subsequent attempt to load the signed zone file will
+		 *     take place and thus zone_postload() will be called
+		 *     twice: first for the raw zone and then for the secure
+		 *     zone; the latter call will take care of syncing the raw
+		 *     version with the secure version,
+		 *
+		 *  b) the raw zone was already loaded and we are trying to
+		 *     reload it, which will happen asynchronously; this means
+		 *     zone_postload() will only be called for the raw zone
+		 *     because "result" returned by the zone_load() call below
+		 *     will not be ISC_R_SUCCESS but rather DNS_R_CONTINUE;
+		 *     zone_postload() called for the raw zone will take care
+		 *     of syncing the raw version with the secure version.
+		 */
 		result = zone_load(zone->raw, flags, ISC_FALSE);
 		if (result != ISC_R_SUCCESS) {
 			if (!locked)
@@ -4673,7 +4700,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 						      ISC_LOG_INFO,
 						     "ixfr-from-differences: "
 						     "unchanged");
-					return(ISC_R_SUCCESS);
+					goto done;
 				}
 
 				serialmin = (oldserial + 1) & 0xffffffffU;
@@ -4905,8 +4932,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	}
 
 	zone->loadtime = loadtime;
-	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
-	return (result);
+	goto done;
 
  cleanup:
 	if (zone->type == dns_zone_key && result != ISC_R_SUCCESS) {
@@ -4950,6 +4976,23 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				      "not loaded due to errors.");
 		else if (zone->type == dns_zone_master)
 			result = ISC_R_SUCCESS;
+	}
+
+ done:
+	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADPENDING);
+	/*
+	 * If this is an inline-signed zone and we were called for the raw
+	 * zone, we need to clear DNS_ZONEFLG_LOADPENDING for the secure zone
+	 * as well, but only if this is a reload, not an initial zone load: in
+	 * the former case, zone_postload() will not be run for the secure
+	 * zone; in the latter case, it will be.  Check which case we are
+	 * dealing with by consulting the DNS_ZONEFLG_LOADED flag for the
+	 * secure zone: if it is set, this must be a reload.
+	 */
+	if (inline_raw(zone) &&
+	    DNS_ZONE_FLAG(zone->secure, DNS_ZONEFLG_LOADED))
+	{
+		DNS_ZONE_CLRFLAG(zone->secure, DNS_ZONEFLG_LOADPENDING);
 	}
 
 	return (result);
