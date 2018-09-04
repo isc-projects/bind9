@@ -224,7 +224,6 @@ ATF_TC_HEAD(isc_time_ISO8601fromtext, tc) {
 ATF_TC_BODY(isc_time_ISO8601fromtext, tc) {
 	isc_result_t result;
 	isc_time_t t;
-	time_t secs;
 	size_t i;
 	struct {
 		const char *time;
@@ -249,11 +248,7 @@ ATF_TC_BODY(isc_time_ISO8601fromtext, tc) {
 		if (test[i].valid) {
 			ATF_CHECK_EQ_MSG(result,  ISC_R_SUCCESS,
 					 "%s failed", test[i].time);
-			result = isc_time_secondsastimet(&t, &secs);
-			ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
-					 "%s isc_time_secondsastimet failed",
-					 test[i].time);
-			ATF_CHECK_EQ_MSG(secs, test[i].secs,
+			ATF_CHECK_EQ_MSG(isc_time_seconds(&t), test[i].secs,
 					 "%s secs failed", test[i].time);
 			ATF_CHECK_EQ_MSG(isc_time_nanoseconds(&t),
 					 test[i].nsecs,
