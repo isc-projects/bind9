@@ -207,6 +207,7 @@ my @substdefh = ("AES_CC",
 		 "HAVE_DSA_GET0_PQG",
 		 "HAVE_ECDSA_SIG_GET0",
 		 "HAVE_RSA_SET0_KEY",
+		 "USE_BACKTRACE",
 		 "USE_OPENSSL",
 		 "USE_PKCS11",
                  "HAVE_PKCS11_ED25519",
@@ -231,8 +232,7 @@ my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
                  "ISC_PLATFORM_HAVECMPXCHG",
                  "ISC_PLATFORM_HAVEXADD",
                  "ISC_PLATFORM_HAVEXADDQ",
-                 "ISC_PLATFORM_NEEDSTRCASESTR",
-                 "ISC_PLATFORM_USEBACKTRACE");
+                 "ISC_PLATFORM_NEEDSTRCASESTR");
 
 # for conf.sh
 
@@ -1160,7 +1160,7 @@ if ($msc_ver < 1400) {
 # backtrace for >= VS 2012
 
 if ($msc_ver >= 1700) {
-    $configdefp{"ISC_PLATFORM_USEBACKTRACE"} = 1;
+    $configdefh{"USE_BACKTRACE"} = 1;
 }
 
 # no version of MSVS supports strcasestr() yet
@@ -1411,7 +1411,7 @@ if ($use_openssl eq "yes") {
             die "find more than one OpenSSL libcrypto-*.dll DLL candidate\n";
         }
         $openssl_dll = File::Spec->catdir($openssl_path, "@dirlist[0]");
-    }   
+    }
 
     $cryptolib = "openssl";
     $configvar{"OPENSSL_PATH"} = "$openssl_path";

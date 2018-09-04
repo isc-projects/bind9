@@ -1811,22 +1811,20 @@ esac
 # enable/disable dumping stack backtrace.  Also check if the system supports
 # glibc-compatible backtrace() function.
 #
-AC_ARG_ENABLE(backtrace,
-	      AS_HELP_STRING([--enable-backtrace],
-			     [log stack backtrace on abort [default=yes]]),
-	      want_backtrace="$enableval",  want_backtrace="yes")
-case $want_backtrace in
-yes)
-	ISC_PLATFORM_USEBACKTRACE="#define ISC_PLATFORM_USEBACKTRACE 1"
-	AC_TRY_LINK([#include <execinfo.h>],
-	[return (backtrace((void **)0, 0));],
-	[AC_DEFINE([HAVE_LIBCTRACE], [], [if system have backtrace function])],)
-	;;
-*)
-	ISC_PLATFORM_USEBACKTRACE="#undef ISC_PLATFORM_USEBACKTRACE"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_USEBACKTRACE)
+AC_ARG_ENABLE([backtrace],
+	      [AS_HELP_STRING([--enable-backtrace],
+			      [log stack backtrace on abort [default=yes]])],
+	      [], [enable_backtrace="yes"])
+
+AS_IF([test "$enable_backtrace" = "yes"],
+      [AC_DEFINE([USE_BACKTRACE], [1], [define if we can use backtrace])
+       AC_LINK_IFELSE(
+	 [AC_LANG_PROGRAM(
+	    [[#include <execinfo.h>]],
+	    [[return (backtrace((void **)0, 0));]]
+	  )],
+	 [AC_DEFINE([HAVE_LIBCTRACE], [1], [define if system have backtrace function])]
+       )])
 
 AC_ARG_ENABLE(symtable,
 	      AS_HELP_STRING([--enable-symtable],
