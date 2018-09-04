@@ -40,20 +40,40 @@
 
 /*! \file */
 
-#include <config.h>      // IWYU pragma: keep
+#include <config.h>
 
-#ifdef _GNU_SOURCE
-#undef _GNU_SOURCE
-#endif
 #include <string.h>
 
-#include "isc/string.h"  // IWYU pragma: keep
+#if !defined(HAVE_STRLCAT)
 
-int
-isc_string_strerror_r(int errnum, char *buf, size_t buflen) {
-#if defined(_WIN32) || defined(_WIN64)
-	return (strerror_s(buf, buflen, errnum));
-#else
-	return (strerror_r(errnum, buf, buflen));
-#endif
+size_t
+strlcat(char *dst, const char *src, size_t size)
+{
+	char *d = dst;
+	const char *s = src;
+	size_t n = size;
+	size_t dlen;
+
+	/* Find the end of dst and adjust bytes left but don't go past end */
+	while (n-- != 0U && *d != '\0') {
+		d++;
+	}
+	dlen = d - dst;
+	n = size - dlen;
+
+	if (n == 0U) {
+		return(dlen + strlen(s));
+	}
+	while (*s != '\0') {
+		if (n != 1U) {
+			*d++ = *s;
+			n--;
+		}
+		s++;
+	}
+	*d = '\0';
+
+	return(dlen + (s - src));	/* count does not include NUL */
 }
+
+#endif /* HAVE_STRLCAT */
