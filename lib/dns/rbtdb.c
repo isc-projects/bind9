@@ -1478,7 +1478,10 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 
 	if (rdataset->heap_index != 0) {
 		isc_heap_t *heap;
-		if (IS_CACHE(rbtdb) || rdataset->type == dns_rdatatype_rrsig) {
+		if (IS_CACHE(rbtdb) ||
+		    RBTDB_RDATATYPE_BASE(rdataset->type) ==
+		    dns_rdatatype_rrsig)
+		{
 			heap = rbtdb->heaps[idx];
 		} else {
 			INSIST(rdataset->type == dns_rdatatype_timeout);
@@ -6226,7 +6229,9 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					return (result);
 				}
 			} else if (RESIGN(newheader) &&
-				   newheader->type == dns_rdatatype_rrsig) {
+				   RBTDB_RDATATYPE_BASE(newheader->type) ==
+							dns_rdatatype_rrsig)
+			{
 				result = resign_insert(rbtdb, idx, newheader);
 				if (result != ISC_R_SUCCESS) {
 					free_rdataset(rbtdb,
@@ -6294,7 +6299,9 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 					ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
 							 newheader, link);
 			} else if (RESIGN(newheader) &&
-				   newheader->type == dns_rdatatype_rrsig) {
+				   RBTDB_RDATATYPE_BASE(newheader->type) ==
+						        dns_rdatatype_rrsig)
+			{
 				result = resign_insert(rbtdb, idx, newheader);
 				if (result != ISC_R_SUCCESS) {
 					free_rdataset(rbtdb,
@@ -6370,7 +6377,9 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				ISC_LIST_PREPEND(rbtdb->rdatasets[idx],
 						 newheader, link);
 		} else if (RESIGN(newheader) &&
-			   newheader->type == dns_rdatatype_rrsig) {
+			   RBTDB_RDATATYPE_BASE(newheader->type) ==
+			   dns_rdatatype_rrsig)
+		{
 			result = resign_insert(rbtdb, idx, newheader);
 			if (result != ISC_R_SUCCESS) {
 				free_rdataset(rbtdb, rbtdb->common.mctx,
@@ -7248,7 +7257,7 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 		header->node_is_relative = 0;
 
 		if (rbtdb != NULL && RESIGN(header) &&
-		    header->type == dns_rdatatype_rrsig &&
+		    RBTDB_RDATATYPE_BASE(header->type) == dns_rdatatype_rrsig &&
 		    (header->resign != 0 || header->resign_lsb != 0))
 		{
 			int idx = header->node->locknum;
