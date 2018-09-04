@@ -272,7 +272,7 @@
 /* Define to 1 if you have the <krb5/krb5.h> header file. */
 #undef HAVE_KRB5_KRB5_H
 
-/* if system have backtrace function */
+/* define if system have backtrace function */
 #undef HAVE_LIBCTRACE
 
 /* Define if libidn2 was found */
@@ -538,6 +538,9 @@
 
 /* Define to use large-system tuning. */
 #undef TUNE_LARGE
+
+/* define if we can use backtrace */
+#undef USE_BACKTRACE
 
 /* Enable DNS Response Policy Service API */
 #undef USE_DNSRPS
