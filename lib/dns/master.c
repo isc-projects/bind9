@@ -2968,28 +2968,104 @@ grow_rdata(int new_len, dns_rdata_t *oldlist, int old_len,
 	return (newlist);
 }
 
+static uint16_t
+uint16_fromregion(isc_region_t *region) {
+
+	REQUIRE(region->length >= 2);
+
+	return ((region->base[0] << 8) | region->base[1]);
+}
+
+static uint64_t
+uint64_fromregion(isc_region_t *region) {
+	uint64_t result;
+
+	REQUIRE(region->length >= 8);
+
+	result = ((unsigned int)(region->base[0]) << 24) |
+		 ((unsigned int)(region->base[1]) << 16) |
+		 ((unsigned int)(region->base[2]) << 8) |
+		 ((unsigned int)(region->base[3]));
+	result <<= 32;
+	result |= ((unsigned int)(region->base[4]) << 24) |
+		  ((unsigned int)(region->base[5]) << 16) |
+	          ((unsigned int)(region->base[6]) << 8) |
+		  ((unsigned int)(region->base[7]));
+	return (result);
+}
+
 static uint32_t
 resign_fromlist(dns_rdatalist_t *this, dns_loadctx_t *lctx) {
 	dns_rdata_t *rdata;
-	dns_rdata_rrsig_t sig;
-	uint32_t when;
+	uint32_t when = 0;
 
-	rdata = ISC_LIST_HEAD(this->rdata);
-	INSIST(rdata != NULL);
-	(void)dns_rdata_tostruct(rdata, &sig, NULL);
-	if (isc_serial_gt(sig.timesigned, lctx->now))
-		when = lctx->now;
-	else
-		when = sig.timeexpire - lctx->resign;
-
-	rdata = ISC_LIST_NEXT(rdata, link);
-	while (rdata != NULL) {
+	switch (this->type) {
+	case dns_rdatatype_rrsig: {
+		dns_rdata_rrsig_t sig;
+		rdata = ISC_LIST_HEAD(this->rdata);
+		INSIST(rdata != NULL);
 		(void)dns_rdata_tostruct(rdata, &sig, NULL);
 		if (isc_serial_gt(sig.timesigned, lctx->now))
 			when = lctx->now;
-		else if (sig.timeexpire - lctx->resign < when)
+		else
 			when = sig.timeexpire - lctx->resign;
+
 		rdata = ISC_LIST_NEXT(rdata, link);
+		while (rdata != NULL) {
+			(void)dns_rdata_tostruct(rdata, &sig, NULL);
+			if (isc_serial_gt(sig.timesigned, lctx->now))
+				when = lctx->now;
+			else if (sig.timeexpire - lctx->resign < when)
+				when = sig.timeexpire - lctx->resign;
+			rdata = ISC_LIST_NEXT(rdata, link);
+		}
+		break;
+	}
+	case dns_rdatatype_timeout: {
+		unsigned int count, alg;
+		uint64_t expire;
+		isc_region_t r;
+		bool first = true;
+
+		rdata = ISC_LIST_HEAD(this->rdata);
+		INSIST(rdata != NULL);
+		do {
+			dns_rdata_toregion(rdata, &r);
+			do {
+				count =  uint16_fromregion(&r);
+				isc_region_consume(&r, 2);
+
+				alg =  uint16_fromregion(&r);
+				isc_region_consume(&r, 2);
+
+				expire = uint64_fromregion(&r);
+				isc_region_consume(&r, 8);
+
+				/*
+				 * XXXMPA truncate to 32 bit time;
+				 */
+				if (expire > 0xffffffffULL)
+					expire = 0xffffffffULL;
+				if (first || expire < when) {
+					when = expire;
+					first = false;
+				}
+				while (count-- > 0) {
+					switch (alg) {
+					case 1:
+						isc_region_consume(&r, 16);
+						break;
+					default:
+						INSIST(0);
+					}
+				}
+			} while (r.length > 0);
+			rdata = ISC_LIST_NEXT(rdata, link);
+		} while (r.length > 0);
+		break;
+	}
+	default:
+		INSIST(0);
 	}
 	return (when);
 }
@@ -3023,7 +3099,8 @@ commit(dns_rdatacallbacks_t *callbacks, dns_loadctx_t *lctx,
 		/*
 		 * If this is a secure dynamic zone set the re-signing time.
 		 */
-		if (dataset.type == dns_rdatatype_rrsig &&
+		if ((dataset.type == dns_rdatatype_rrsig ||
+		     dataset.type == dns_rdatatype_timeout) &&
 		    (lctx->options & DNS_MASTER_RESIGN) != 0) {
 			dataset.attributes |= DNS_RDATASETATTR_RESIGN;
 			dataset.resign = resign_fromlist(this, lctx);

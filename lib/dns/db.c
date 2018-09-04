@@ -1124,3 +1124,21 @@ dns_db_setgluecachestats(dns_db_t *db, isc_stats_t *stats) {
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
+
+isc_result_t
+dns_db_settimeouttime(dns_db_t *db, dns_rdataset_t *rdataset,
+		      isc_stdtime_t resign)
+{
+	if (db->methods->settimeouttime != NULL)
+		return ((db->methods->settimeouttime)(db, rdataset, resign));
+	return (ISC_R_NOTIMPLEMENTED);
+}
+
+isc_result_t
+dns_db_gettimeouttime(dns_db_t *db, dns_rdataset_t *rdataset,
+		      dns_name_t *name)
+{
+	if (db->methods->gettimeouttime != NULL)
+		return ((db->methods->gettimeouttime)(db, rdataset, name));
+	return (ISC_R_NOTFOUND);
+}

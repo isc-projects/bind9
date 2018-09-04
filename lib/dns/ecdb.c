@@ -589,7 +589,9 @@ static dns_dbmethods_t ecdb_methods = {
 	NULL,			/* getsize */
 	NULL,			/* setservestalettl */
 	NULL,			/* getservestalettl */
-	NULL			/* setgluecachestats */
+	NULL,			/* setgluecachestats */
+	NULL,			/* settimeouttime */
+	NULL			/* gettimeouttime */
 };
 
 static isc_result_t

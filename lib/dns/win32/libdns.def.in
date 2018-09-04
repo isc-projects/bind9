@@ -204,6 +204,7 @@ dns_db_getservestalettl
 dns_db_getsigningtime
 dns_db_getsize
 dns_db_getsoaserial
+dns_db_gettimeouttime
 dns_db_hashsize
 dns_db_iscache
 dns_db_isdnssec
@@ -228,6 +229,7 @@ dns_db_setgluecachestats
 dns_db_setservestalettl
 dns_db_setsigningtime
 dns_db_settask
+dns_db_settimeouttime
 dns_db_subtractrdataset
 dns_db_transfernode
 dns_db_unregister
