@@ -31,7 +31,7 @@ CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
 CMOCKA_LIBS =	@CMOCKA_LIBS@
 
 OBJS =		isctest.@O@
-SRCS =		isctest.c aes_test.c atomic_test.c buffer_test.c \
+SRCS =		isctest.c aes_test.c buffer_test.c \
 		counter_test.c errno_test.c file_test.c hash_test.c \
 		heap_test.c ht_test.c lex_test.c \
 		mem_test.c netaddr_test.c parse_test.c pool_test.c \
@@ -41,7 +41,7 @@ SRCS =		isctest.c aes_test.c atomic_test.c buffer_test.c \
 		taskpool_test.c time_test.c timer_test.c
 
 SUBDIRS =
-TARGETS =	aes_test@EXEEXT@ atomic_test@EXEEXT@ buffer_test@EXEEXT@ \
+TARGETS =	aes_test@EXEEXT@ buffer_test@EXEEXT@ \
 		counter_test@EXEEXT@ errno_test@EXEEXT@ file_test@EXEEXT@ \
 		hash_test@EXEEXT@ heap_test@EXEEXT@ ht_test@EXEEXT@ \
 		lex_test@EXEEXT@ mem_test@EXEEXT@ \
@@ -53,10 +53,6 @@ TARGETS =	aes_test@EXEEXT@ atomic_test@EXEEXT@ buffer_test@EXEEXT@ \
 		taskpool_test@EXEEXT@ time_test@EXEEXT@ timer_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
-
-atomic_test@EXEEXT@: atomic_test.@O@ isctest.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			atomic_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
 aes_test@EXEEXT@: aes_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
