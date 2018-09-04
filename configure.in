@@ -529,26 +529,6 @@ AC_SUBST(ISC_PLATFORM_NORETURN_PRE)
 AC_SUBST(ISC_PLATFORM_NORETURN_POST)
 
 #
-# check if we have lifconf
-#
-AC_MSG_CHECKING(for struct lifconf)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <net/if.h>
-],
-[
-struct lifconf lifconf;
-lifconf.lifc_len = 0;
-]
-,
-	[AC_MSG_RESULT(yes)
-		ISC_PLATFORM_HAVELIFCONF="#define ISC_PLATFORM_HAVELIFCONF 1"],
-	[AC_MSG_RESULT(no)
-		ISC_PLATFORM_HAVELIFCONF="#undef ISC_PLATFORM_HAVELIFCONF"])
-AC_SUBST(ISC_PLATFORM_HAVELIFCONF)
-
-#
 # check if we have kqueue
 #
 AC_ARG_ENABLE(kqueue,
