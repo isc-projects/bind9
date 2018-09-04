@@ -250,6 +250,15 @@ BIND 9.11.4
 BIND 9.11.4 is a maintenance release, and addresses the security flaw
 disclosed in CVE-2018-5738.
 
+BIND 9.11.4-P1
+
+BIND 9.11.4-P1 addresses the security flaw disclosed in CVE-2018-5740.
+
+BIND 9.11.4-P2
+
+BIND 9.11.4-P2 fixes several operationally significant bugs with
+inline-signing zones.
+
 Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
