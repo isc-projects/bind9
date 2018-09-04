@@ -46,9 +46,6 @@
 
 #undef MSG_TRUNC
 
-#define ISC_PLATFORM_NEEDSTRLCPY
-#define ISC_PLATFORM_NEEDSTRLCAT
-
 /*
  * Used to control how extern data is linked; needed for Win32 platforms.
  */
