@@ -62,7 +62,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 {
 	struct sockaddr_in6 *sa6;
 
-#if !defined(ISC_PLATFORM_HAVEIFNAMETOINDEX)
+#if !defined(HAVE_IF_NAMETOINDEX)
 	UNUSED(ifname);
 #endif
 
@@ -106,7 +106,7 @@ get_addr(unsigned int family, isc_netaddr_t *dst, struct sockaddr *src,
 							    (uint32_t)zone16);
 					dst->type.in6.s6_addr[2] = 0;
 					dst->type.in6.s6_addr[3] = 0;
-#ifdef ISC_PLATFORM_HAVEIFNAMETOINDEX
+#ifdef HAVE_IF_NAMETOINDEX
 				} else if (ifname != NULL) {
 					unsigned int zone;
 

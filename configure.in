@@ -2154,19 +2154,7 @@ AC_SUBST(ISC_PLATFORM_HAVESTRINGSH)
 #
 # Check for if_nametoindex() for IPv6 scoped addresses support
 #
-AC_CHECK_FUNC(if_nametoindex, ac_cv_have_if_nametoindex=yes,
-		ac_cv_have_if_nametoindex=no)
-case $ac_cv_have_if_nametoindex in
-yes)
-	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
-	AC_DEFINE(HAVE_IF_NAMETOINDEX, 1,
-	[Define to 1 if you have the if_nametoindex function.])
-	;;
-*)
-	ISC_PLATFORM_HAVEIFNAMETOINDEX="#undef ISC_PLATFORM_HAVEIFNAMETOINDEX"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
+AC_CHECK_FUNCS([if_nametoindex])
 
 AC_CHECK_FUNCS(nanosleep usleep explicit_bzero)
 
