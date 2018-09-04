@@ -49,8 +49,9 @@
 
 #include "isc/string.h"  // IWYU pragma: keep
 
+#if !defined(HAVE_STRLCPY)
 size_t
-isc_string_strlcpy(char *dst, const char *src, size_t size)
+strlcpy(char *dst, const char *src, size_t size)
 {
 	char *d = dst;
 	const char *s = src;
@@ -76,9 +77,11 @@ isc_string_strlcpy(char *dst, const char *src, size_t size)
 
 	return(s - src - 1);	/* count does not include NUL */
 }
+#endif /* !defined(HAVE_STRLCPY) */
 
+#if !defined(HAVE_STRLCAT)
 size_t
-isc_string_strlcat(char *dst, const char *src, size_t size)
+strlcat(char *dst, const char *src, size_t size)
 {
 	char *d = dst;
 	const char *s = src;
@@ -106,6 +109,7 @@ isc_string_strlcat(char *dst, const char *src, size_t size)
 
 	return(dlen + (s - src));	/* count does not include NUL */
 }
+#endif /* !defined(HAVE_STRLCAT) */
 
 int
 isc_string_strerror_r(int errnum, char *buf, size_t buflen) {

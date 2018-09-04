@@ -716,8 +716,6 @@ DST_EXTRA_SRCS
 DST_EXTRA_OBJS
 USE_ISC_SPNEGO
 READLINE_LIB
-ISC_PLATFORM_NEEDSTRLCAT
-ISC_PLATFORM_NEEDSTRLCPY
 ISC_PLATFORM_HAVETFO
 BIND9_CO_RULE
 LIBTOOL_MODE_UNINSTALL
@@ -17608,22 +17606,17 @@ esac
 #
 # Check for some other useful functions that are not ever-present.
 #
-ac_fn_c_check_func "$LINENO" "strlcpy" "ac_cv_func_strlcpy"
-if test "x$ac_cv_func_strlcpy" = xyes; then :
-  ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"
-else
-  ISC_PLATFORM_NEEDSTRLCPY="#define ISC_PLATFORM_NEEDSTRLCPY 1"
+for ac_func in strlcpy strlcat
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
 fi
-
-
-
-ac_fn_c_check_func "$LINENO" "strlcat" "ac_cv_func_strlcat"
-if test "x$ac_cv_func_strlcat" = xyes; then :
-  ISC_PLATFORM_NEEDSTRLCAT="#undef ISC_PLATFORM_NEEDSTRLCAT"
-else
-  ISC_PLATFORM_NEEDSTRLCAT="#define ISC_PLATFORM_NEEDSTRLCAT 1"
-fi
-
+done
 
 
 
