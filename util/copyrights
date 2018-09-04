@@ -3465,7 +3465,6 @@
 ./lib/isc/tests/Atffile				X	2011,2017,2018
 ./lib/isc/tests/Kyuafile			X	2017,2018
 ./lib/isc/tests/aes_test.c			C	2014,2016,2018
-./lib/isc/tests/atomic_test.c			C	2018
 ./lib/isc/tests/buffer_test.c			C	2014,2015,2016,2017,2018
 ./lib/isc/tests/counter_test.c			C	2014,2016,2018
 ./lib/isc/tests/errno_test.c			C	2016,2018
