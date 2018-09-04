@@ -69,42 +69,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  <command>update-policy</command> rules that otherwise ignore the
-	  name field now require that it be set to "." to ensure that any
-	  type list present is properly interpreted.  Previously, if the
-	  name field was omitted from the rule declaration but a type list
-	  was present, it wouldn't be interpreted as expected.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> now supports the "root key sentinel"
-	  mechanism. This enables validating resolvers to indicate
-	  which trust anchors are configured for the root, so that
-	  information about root key rollover status can be gathered.
-	  To disable this feature, add
-	  <command>root-key-sentinel no;</command> to
-	  <filename>named.conf</filename>. [GL #37]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Add the ability to not return a DNS COOKIE option when one
-	  is present in the request.  To prevent a cookie being returned
-	  add <command>answer-cookie no;</command> to
-	  <filename>named.conf</filename>. [GL #173]
-	</para>
-	<para>
-	  <command>answer-cookie no</command> is only intended as a
-	  temporary measure, for use when <command>named</command>
-	  shares an IP address with other servers that do not yet
-	  support DNS COOKIE.  A mismatch between servers on the
-	  same address is not expected to cause operational problems,
-	  but the option to disable COOKIE responses so that all
-	  servers have the same behavior is provided out of an
-	  abundance of caution. DNS COOKIE is an important security
-	  mechanism, and should not be disabled unless absolutely
-	  necessary.
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -114,16 +79,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  BIND now can be compiled against libidn2 library to add
-	  IDNA2008 support.  Previously BIND only supported IDNA2003
-	  using (now obsolete) idnkit-1 library.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>dig +noidnin</command> can be used to disable IDN
-	  processing on the input domain name, when BIND is compiled
-	  with IDN support.
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -133,10 +89,22 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  <command>named</command> now rejects excessively large
-	  incremental (IXFR) zone transfers in order to prevent
-	  possible corruption of journal files which could cause
-	  <command>named</command> to abort when loading zones. [GL #339]
+	  Running <command>rndc reconfig</command> could cause
+	  <command>inline-signing</command> to stop signing. [GL #439]
+	</para>
+	<para>
+	  Reloading all zones caused zone maintenance to stop for
+	  <command>inline-signing</command> zones. [GL #435]
+	</para>
+	<para>
+	  Signatures loaded from the journal for the signed version
+	  <command>inline-signing</command> zone were not scheduled for
+	  refresh. [GL #482]
+	</para>
+	<para>
+	  A referral response with a non-empty ANSWER section was
+	  incorrectly treated as an error; this caused certain domains
+	  to be non-resolvable. [GL #390]
 	</para>
       </listitem>
     </itemizedlist>
