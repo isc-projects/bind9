@@ -43,11 +43,6 @@
 @ISC_PLATFORM_HAVELIFCONF@
 
 /*! \brief
- * Define if the system has struct if_laddrreq.
- */
-@ISC_PLATFORM_HAVEIF_LADDRREQ@
-
-/*! \brief
  * Define if the system supports if_nametoindex.
  */
 @ISC_PLATFORM_HAVEIFNAMETOINDEX@

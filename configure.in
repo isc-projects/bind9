@@ -1914,17 +1914,6 @@ AC_COMPILE_IFELSE(
   [AC_MSG_RESULT([yes])],
   [AC_MSG_FAILURE([IPv6 support is mandatory])])
 
-AC_MSG_CHECKING([for struct if_laddrreq])
-AC_TRY_LINK([
-#include <sys/types.h>
-#include <net/if6.h>
-],[ struct if_laddrreq a; ],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVEIF_LADDRREQ="#define ISC_PLATFORM_HAVEIF_LADDRREQ 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEIF_LADDRREQ="#undef ISC_PLATFORM_HAVEIF_LADDRREQ"])
-AC_SUBST(ISC_PLATFORM_HAVEIF_LADDRREQ)
-
 #
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
