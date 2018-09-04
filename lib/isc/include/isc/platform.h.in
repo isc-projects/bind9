@@ -70,11 +70,6 @@
  ***/
 
 /*
- * Defined if unistd.h does not cause fd_set to be delared.
- */
-@ISC_PLATFORM_NEEDSYSSELECTH@
-
-/*
  * Defined to <gssapi.h> or <gssapi/gssapi.h> for how to include
  * the GSSAPI header.
  */
