@@ -1,9 +1,11 @@
 Supported platforms
 
 In general, this version of BIND will build and run on any POSIX-compliant
-system with a C99-compliant C compiler, BSD-style sockets, and the OpenSSL
-cryptography library. To build with multiprocessing support, a
-C11-compliant C compiler will be needed for standard atomics.
+system with a C99-compliant C compiler, BSD-style sockets with RFC-compliant
+IPv6 support, POSIX-compliant threads, and the OpenSSL cryptography library.
+Atomic operations support from the compiler is needed, either in the form of
+builtin operations, C11 atomics or the Interlocked family of functions on
+Windows.
 
 ISC regularly tests BIND on many operating systems and architectures, but
 lacks the resources to test all of them. Consequently, ISC is only able to
@@ -53,4 +55,6 @@ These are platforms on which BIND is known not to build or run:
 
   * Platforms without at least OpenSSL 1.0.2
   * Windows 10 / x86
-  * Windows Server 2012
+  * Windows Server 2012 and older
+  * Platforms that don't support IPv6 Advanced Socket API (RFC 3542)
+  * Platforms that don't support atomic operations (via compiler or library)
