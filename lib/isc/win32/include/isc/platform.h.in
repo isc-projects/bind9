@@ -46,21 +46,13 @@
 
 #undef MSG_TRUNC
 
-#define ISC_PLATFORM_NEEDSTRSEP
 #define ISC_PLATFORM_NEEDSTRLCPY
 #define ISC_PLATFORM_NEEDSTRLCAT
-#define ISC_PLATFORM_NEEDSTRLCPY
 
 /*
  * Used to control how extern data is linked; needed for Win32 platforms.
  */
 #define ISC_PLATFORM_USEDECLSPEC 1
-
-/*
- * Define this here for now as winsock2.h defines h_errno
- * and we don't want to redeclare it.
- */
-#define ISC_PLATFORM_NONSTDHERRNO
 
 /*
  * Define if the platform has <sys/un.h>.
@@ -72,35 +64,6 @@
  */
 #define ISC_PLATFORM_NORETURN_PRE __declspec(noreturn)
 #define ISC_PLATFORM_NORETURN_POST
-
-/*
- * If the "xadd" operation is available on this architecture,
- * ISC_PLATFORM_HAVEXADD will be defined.
- */
-@ISC_PLATFORM_HAVEXADD@
-
-/*
- * If the "xaddq" operation (64bit xadd) is available on this architecture,
- * ISC_PLATFORM_HAVEXADDQ will be defined.
- */
-@ISC_PLATFORM_HAVEXADDQ@
-
-/*
- * If the "atomic swap" operation is available on this architecture,
- * ISC_PLATFORM_HAVEATOMICSTORE" will be defined.
- */
-@ISC_PLATFORM_HAVEATOMICSTORE@
-
-/*
- * If the "compare-and-exchange" operation is available on this architecture,
- * ISC_PLATFORM_HAVECMPXCHG will be defined.
- */
-@ISC_PLATFORM_HAVECMPXCHG@
-
-/*
- * Define with the busy wait nop asm or function call.
- */
-@ISC_PLATFORM_BUSYWAITNOP@
 
 /*
  * If the strcasestr() operation is not available on this platform,

@@ -706,7 +706,6 @@ DNSTAPSRCS
 DNSTAP
 FSTRM_CAPTURE
 PROTOC_C
-ISC_PLATFORM_BUSYWAITNOP
 ISC_PLATFORM_HAVEIFNAMETOINDEX
 ISC_PLATFORM_HAVESTRINGSH
 IRS_PLATFORM_USEDECLSPEC
@@ -18460,112 +18459,6 @@ if test "yes" = "$have_builtin_clz"; then
 $as_echo "#define HAVE_BUILTIN_CLZ 1" >>confdefs.h
 
 fi
-
-#
-# CPU relax (for spin locks)
-#
-case "$host" in
-i[3456]86-*)
-	# x86_32
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"rep; nop\"); works" >&5
-$as_echo_n "checking if asm(\"rep; nop\"); works... " >&6; }
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-asm("rep; nop");
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	;;
-x86_64-*|amd64-*)
-	# x86_64
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"rep; nop\"); works" >&5
-$as_echo_n "checking if asm(\"rep; nop\"); works... " >&6; }
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-asm("rep; nop");
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	;;
-ia64-*)
-	# ia64
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"hint @pause\"); works" >&5
-$as_echo_n "checking if asm(\"hint @pause\"); works... " >&6; }
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-asm("hint @pause");
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"hint @pause\")"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	;;
-sparc-*)
-	# sparc
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if cpu_relax(); or __cpu_relax(); works" >&5
-$as_echo_n "checking if cpu_relax(); or __cpu_relax(); works... " >&6; }
-	ac_fn_c_check_func "$LINENO" "cpu_relax" "ac_cv_func_cpu_relax"
-if test "x$ac_cv_func_cpu_relax" = xyes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP cpu_relax()"
-else
-  ac_fn_c_check_func "$LINENO" "__cpu_relax" "ac_cv_func___cpu_relax"
-if test "x$ac_cv_func___cpu_relax" = xyes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	   ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP __cpu_relax()"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-fi
-
-	;;
-esac
-
-
 
 #
 # Activate "rrset-order fixed" or not?
