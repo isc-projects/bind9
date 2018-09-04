@@ -610,42 +610,6 @@ esac
 AC_SUBST(ISC_PLATFORM_HAVEDEVPOLL)
 
 #
-# check if we need to #include sys/select.h explicitly
-#
-case $ac_cv_header_unistd_h in
-yes)
-AC_MSG_CHECKING(if unistd.h or sys/types.h defines fd_set)
-AC_TRY_COMPILE([
-#include <sys/types.h> /* Ultrix */
-#include <unistd.h>],
-[fd_set read_set; return (0);],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"],
-	[AC_MSG_RESULT(no)
-	case $ac_cv_header_sys_select_h in
-	yes)
-	 ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		AC_MSG_ERROR([need either working unistd.h or sys/select.h])
-		;;
-	esac
-	])
-	;;
-no)
-	case $ac_cv_header_sys_select_h in
-	yes)
-	     ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		AC_MSG_ERROR([need either unistd.h or sys/select.h])
-		;;
-	esac
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_NEEDSYSSELECTH)
-
-#
 # Find the machine's endian flavor.
 #
 AC_C_BIGENDIAN
