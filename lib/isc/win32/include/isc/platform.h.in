@@ -68,11 +68,6 @@
 #undef ISC_PLATFORM_HAVESYSUNH
 
 /*
- * Define if we want to log backtrace
- */
-@ISC_PLATFORM_USEBACKTRACE@
-
-/*
  * Defines for the noreturn attribute.
  */
 #define ISC_PLATFORM_NORETURN_PRE __declspec(noreturn)

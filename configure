@@ -734,7 +734,6 @@ A
 O
 ALWAYS_MAKE_SYMTABLE
 MKSYMTBL_PROGRAM
-ISC_PLATFORM_USEBACKTRACE
 PURIFY
 purify_path
 MKDEPPROG
@@ -17511,38 +17510,37 @@ esac
 #
 # Check whether --enable-backtrace was given.
 if test "${enable_backtrace+set}" = set; then :
-  enableval=$enable_backtrace; want_backtrace="$enableval"
+  enableval=$enable_backtrace;
 else
-  want_backtrace="yes"
+  enable_backtrace="yes"
 fi
 
-case $want_backtrace in
-yes)
-	ISC_PLATFORM_USEBACKTRACE="#define ISC_PLATFORM_USEBACKTRACE 1"
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+if test "$enable_backtrace" = "yes"; then :
+
+$as_echo "#define USE_BACKTRACE 1" >>confdefs.h
+
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <execinfo.h>
 int
 main ()
 {
 return (backtrace((void **)0, 0));
+
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
 
-$as_echo "#define HAVE_LIBCTRACE /**/" >>confdefs.h
+$as_echo "#define HAVE_LIBCTRACE 1" >>confdefs.h
+
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	;;
-*)
-	ISC_PLATFORM_USEBACKTRACE="#undef ISC_PLATFORM_USEBACKTRACE"
-	;;
-esac
-
+fi
 
 # Check whether --enable-symtable was given.
 if test "${enable_symtable+set}" = set; then :
