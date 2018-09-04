@@ -43,11 +43,6 @@
 @ISC_PLATFORM_HAVELIFCONF@
 
 /*! \brief
- * Define if the system supports if_nametoindex.
- */
-@ISC_PLATFORM_HAVEIFNAMETOINDEX@
-
-/*! \brief
  * Define if the system has TCP_FASTOPEN socket option.
  */
 @ISC_PLATFORM_HAVETFO@
