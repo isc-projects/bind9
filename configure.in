@@ -466,6 +466,9 @@ AC_C_FLEXIBLE_ARRAY_MEMBER
 #
 AC_CHECK_FUNCS(mmap)
 
+AC_CONFIG_LIBOBJ_DIR([lib/obj])
+AC_REPLACE_FUNCS([strlcat strlcpy])
+
 #
 # Older versions of HP/UX don't define seteuid() and setegid()
 #
@@ -1891,19 +1894,6 @@ int has_tfo() { return (0); }
 		;;
 esac
 AC_SUBST(ISC_PLATFORM_HAVETFO)
-
-#
-# Check for some other useful functions that are not ever-present.
-#
-AC_CHECK_FUNC(strlcpy,
-	[ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"],
-	[ISC_PLATFORM_NEEDSTRLCPY="#define ISC_PLATFORM_NEEDSTRLCPY 1"])
-AC_SUBST(ISC_PLATFORM_NEEDSTRLCPY)
-
-AC_CHECK_FUNC(strlcat,
-	[ISC_PLATFORM_NEEDSTRLCAT="#undef ISC_PLATFORM_NEEDSTRLCAT"],
-	[ISC_PLATFORM_NEEDSTRLCAT="#define ISC_PLATFORM_NEEDSTRLCAT 1"])
-AC_SUBST(ISC_PLATFORM_NEEDSTRLCAT)
 
 AC_SUBST(READLINE_LIB)
 AC_ARG_WITH(readline,

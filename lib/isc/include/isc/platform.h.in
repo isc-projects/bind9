@@ -66,11 +66,6 @@
  *** Printing.
  ***/
 
-/*
- * If the system needs strlcat(), ISC_PLATFORM_NEEDSTRLCAT will be defined.
- */
-@ISC_PLATFORM_NEEDSTRLCAT@
-
 /***
  *** Miscellaneous.
  ***/
