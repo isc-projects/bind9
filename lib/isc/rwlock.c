@@ -41,6 +41,25 @@
 #define RWLOCK_MAX_ADAPTIVE_COUNT 100
 #endif
 
+#if defined(_MSC_VER)
+# include <intrin.h>
+# define isc_rwlock_pause() YieldProcessor()
+#elif defined(__x86_64__) || defined(__i386__)
+# include <immintrin.h>
+# define isc_rwlock_pause() _mm_pause()
+#elif defined(__ia64__)
+# define isc_rwlock_pause() __asm__ __volatile__ ("hint @pause")
+#elif defined(__arm__)
+# define isc_rwlock_pause() __asm__ __volatile__ ("yield")
+#elif defined(__sparc) || defined(__sparc__)
+# define plasma_spin_pause() __asm__ __volatile__ ("pause")
+#elif defined(__ppc__) || defined(_ARCH_PPC)  ||			\
+	defined(_ARCH_PWR) || defined(_ARCH_PWR2) || defined(_POWER)
+# define isc_rwlock_pause() __asm__ volatile ("or 27,27,27")
+#else
+# define isc_rwlock_pause()
+#endif
+
 static isc_result_t
 isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 
@@ -350,9 +369,7 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 			result = isc__rwlock_lock(rwl, type);
 			break;
 		}
-#ifdef ISC_PLATFORM_BUSYWAITNOP
-		ISC_PLATFORM_BUSYWAITNOP;
-#endif
+		isc_rwlock_pause();
 	} while (isc_rwlock_trylock(rwl, type) != ISC_R_SUCCESS);
 
 	rwl->spins += (cnt - rwl->spins) / 8;
