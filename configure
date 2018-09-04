@@ -765,7 +765,6 @@ ax_pthread_config
 CHECK_DSA
 GEOIPLINKOBJS
 GEOIPLINKSRCS
-ISC_PLATFORM_NEEDSYSSELECTH
 ISC_PLATFORM_HAVEDEVPOLL
 ISC_PLATFORM_HAVEEPOLL
 ISC_PLATFORM_HAVEKQUEUE
@@ -13999,58 +13998,6 @@ done
 	;;
 *)
 	ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
-	;;
-esac
-
-
-#
-# check if we need to #include sys/select.h explicitly
-#
-case $ac_cv_header_unistd_h in
-yes)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if unistd.h or sys/types.h defines fd_set" >&5
-$as_echo_n "checking if unistd.h or sys/types.h defines fd_set... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h> /* Ultrix */
-#include <unistd.h>
-int
-main ()
-{
-fd_set read_set; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	case $ac_cv_header_sys_select_h in
-	yes)
-	 ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		as_fn_error $? "need either working unistd.h or sys/select.h" "$LINENO" 5
-		;;
-	esac
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	;;
-no)
-	case $ac_cv_header_sys_select_h in
-	yes)
-	     ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		as_fn_error $? "need either unistd.h or sys/select.h" "$LINENO" 5
-		;;
-	esac
 	;;
 esac
 
