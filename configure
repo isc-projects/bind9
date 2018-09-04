@@ -720,7 +720,6 @@ READLINE_LIB
 ISC_PLATFORM_NEEDSTRLCAT
 ISC_PLATFORM_NEEDSTRLCPY
 ISC_PLATFORM_HAVETFO
-ISC_PLATFORM_HAVEIF_LADDRREQ
 BIND9_CO_RULE
 LIBTOOL_MODE_UNINSTALL
 LIBTOOL_MODE_LINK
@@ -17647,35 +17646,6 @@ as_fn_error $? "IPv6 support is mandatory
 See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct if_laddrreq" >&5
-$as_echo_n "checking for struct if_laddrreq... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <net/if6.h>
-
-int
-main ()
-{
- struct if_laddrreq a;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_HAVEIF_LADDRREQ="#define ISC_PLATFORM_HAVEIF_LADDRREQ 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_HAVEIF_LADDRREQ="#undef ISC_PLATFORM_HAVEIF_LADDRREQ"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
 
 #
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
