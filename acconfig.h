@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define if you have the NET_RT_IFLIST sysctl variable and sys/sysctl.h */
-#undef HAVE_IFLIST_SYSCTL
-
 /** define if tzset() is available */
 #undef HAVE_TZSET
 
