@@ -764,7 +764,6 @@ GEOIPLINKOBJS
 GEOIPLINKSRCS
 ISC_PLATFORM_HAVEDEVPOLL
 ISC_PLATFORM_HAVEEPOLL
-ISC_PLATFORM_HAVEKQUEUE
 ISC_PLATFORM_NORETURN_POST
 ISC_PLATFORM_NORETURN_PRE
 ISC_SOCKADDR_LEN_T
@@ -13880,34 +13879,25 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 #
 # Check whether --enable-kqueue was given.
 if test "${enable_kqueue+set}" = set; then :
-  enableval=$enable_kqueue; want_kqueue="$enableval"
+  enableval=$enable_kqueue;
 else
-  want_kqueue="yes"
+  enable_kqueue="yes"
 fi
 
-case $want_kqueue in
-yes)
-	ac_fn_c_check_func "$LINENO" "kqueue" "ac_cv_func_kqueue"
+
+if test "$enable_kqueue" = "yes"; then :
+  for ac_func in kqueue
+do :
+  ac_fn_c_check_func "$LINENO" "kqueue" "ac_cv_func_kqueue"
 if test "x$ac_cv_func_kqueue" = xyes; then :
-  ac_cv_have_kqueue=yes
-else
-  ac_cv_have_kqueue=no
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KQUEUE 1
+_ACEOF
+
 fi
+done
 
-	case $ac_cv_have_kqueue in
-	yes)
-		ISC_PLATFORM_HAVEKQUEUE="#define ISC_PLATFORM_HAVEKQUEUE 1"
-		;;
-	*)
-		ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
-		;;
-	esac
-	;;
-*)
-	ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
-	;;
-esac
-
+fi
 
 #
 # check if we have epoll.  Linux kernel 2.4 has epoll_create() which fails,
