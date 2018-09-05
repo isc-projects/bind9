@@ -208,19 +208,6 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
 	 * Start an ISC library application.
 	 */
 
-#ifdef NEED_PTHREAD_INIT
-	/*
-	 * BSDI 3.1 seg faults in pthread_sigmask() if we don't do this.
-	 */
-	presult = pthread_init();
-	if (presult != 0) {
-		strerror_r(presult, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_app_start() pthread_init: %s", strbuf);
-		return (ISC_R_UNEXPECTED);
-	}
-#endif
-
 #ifdef HAVE_LINUXTHREADS
 	main_thread = pthread_self();
 #endif /* HAVE_LINUXTHREADS */
