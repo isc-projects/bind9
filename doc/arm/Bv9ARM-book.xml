@@ -12892,9 +12892,9 @@ example.com. NS ns2.example.net.
 		    </entry> <entry colname="2">
 		      <para>
 			This is similar to <command>ms-self</command>
-			except the records to be updated are allowed
-			be a subdomain of the name permitted by
-			<command>ms-self</command>.
+			except it also allows updates to any subdomain of
+			the name specified in the Windows machine
+			principal, not just to the name itself.
 		      </para>
 		    </entry>
 		  </row>
@@ -12977,9 +12977,9 @@ example.com. NS ns2.example.net.
 		    </entry> <entry colname="2">
 		      <para>
 			This is similar to <command>krb5-self</command>
-			except the records to be updated are allowed
-			be a subdomain of the name permitted by
-			<command>krb5-self</command>.
+			except it also allows updates to any subdomain of
+			the name specified in the 'machine' part of the
+			Kerberos principal, not just to the name itself.
 		      </para>
 		    </entry>
 		  </row>
