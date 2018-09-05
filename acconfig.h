@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define if catgets() is available */
-#undef HAVE_CATGETS
-
 /** define if getifaddrs() exists */
 #undef HAVE_GETIFADDRS
 
