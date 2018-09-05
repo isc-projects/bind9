@@ -543,36 +543,13 @@ AS_IF([test "$enable_kqueue" = "yes"],
 # check if we have epoll.  Linux kernel 2.4 has epoll_create() which fails,
 # so we need to try running the code, not just test its existence.
 #
-AC_ARG_ENABLE(epoll,
-	      AS_HELP_STRING([--enable-epoll],
-			     [use Linux epoll when available [default=auto]]),
-	      want_epoll="$enableval",  want_epoll="auto")
-case $want_epoll in
-auto)
-	AC_MSG_CHECKING(epoll support)
-	AC_TRY_RUN([
-#include <sys/epoll.h>
-int main() {
-	if (epoll_create(1) < 0)
-		return (1);
-	return (0);
-}
-],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"])
-	;;
-yes)
-	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"
-	;;
-*)
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_HAVEEPOLL)
+AC_ARG_ENABLE([epoll],
+	      [AS_HELP_STRING([--enable-epoll],
+			      [use Linux epoll when available [default=auto]])],
+	      [], [enable_epoll="yes"])
+
+AS_IF([test "$enable_epoll" = "yes"],
+      [AC_CHECK_FUNCS([epoll_create1])])
 
 #
 # check if we support /dev/poll
