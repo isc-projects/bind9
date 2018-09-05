@@ -100,11 +100,6 @@
 @ISC_PLATFORM_HAVESYSUNH@
 
 /*
- * Define if the platform has <strings.h>.
- */
-@ISC_PLATFORM_HAVESTRINGSH@
-
-/*
  * Defines for the noreturn attribute.
  */
 @ISC_PLATFORM_NORETURN_PRE@
