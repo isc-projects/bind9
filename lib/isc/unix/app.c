@@ -144,20 +144,6 @@ static struct {
 	(void *)isc__app_unblock
 };
 
-#ifdef HAVE_LINUXTHREADS
-/*!
- * Linux has sigwait(), but it appears to prevent signal handlers from
- * running, even if they're not in the set being waited for.  This makes
- * it impossible to get the default actions for SIGILL, SIGSEGV, etc.
- * Instead of messing with it, we just use sigsuspend() instead.
- */
-#undef HAVE_SIGWAIT
-/*!
- * We need to remember which thread is the main thread...
- */
-static pthread_t		main_thread;
-#endif
-
 #ifndef HAVE_SIGWAIT
 static void
 exit_action(int arg) {
@@ -207,10 +193,6 @@ isc__app_ctxstart(isc_appctx_t *ctx0) {
 	/*
 	 * Start an ISC library application.
 	 */
-
-#ifdef HAVE_LINUXTHREADS
-	main_thread = pthread_self();
-#endif /* HAVE_LINUXTHREADS */
 
 	result = isc_mutex_init(&ctx->readylock);
 	if (result != ISC_R_SUCCESS)
@@ -388,10 +370,6 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 
 	REQUIRE(VALID_APPCTX(ctx));
 
-#ifdef HAVE_LINUXTHREADS
-	REQUIRE(main_thread == pthread_self());
-#endif
-
 	LOCK(&ctx->lock);
 
 	if (!ctx->running) {
@@ -564,23 +542,6 @@ isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 			/* BIND9 internal, but using multiple contexts */
 			ctx->want_shutdown = true;
 		else {
-#ifdef HAVE_LINUXTHREADS
-			if (isc_bind9) {
-				/* BIND9 internal, single context */
-				int result;
-
-				result = pthread_kill(main_thread, SIGTERM);
-				if (result != 0) {
-					strerror_r(result,
-						      strbuf, sizeof(strbuf));
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "isc_app_shutdown() "
-							 "pthread_kill: %s",
-							 strbuf);
-					return (ISC_R_UNEXPECTED);
-				}
-			}
-#else
 			if (isc_bind9) {
 				/* BIND9 internal, single context */
 				if (kill(getpid(), SIGTERM) < 0) {
@@ -592,7 +553,6 @@ isc__app_ctxshutdown(isc_appctx_t *ctx0) {
 					return (ISC_R_UNEXPECTED);
 				}
 			}
-#endif /* HAVE_LINUXTHREADS */
 			else {
 				/* External, multiple contexts */
 				LOCK(&ctx->readylock);
@@ -637,23 +597,6 @@ isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 			ctx->want_reload = true;
 		else {
 			ctx->want_reload = true;
-#ifdef HAVE_LINUXTHREADS
-			if (isc_bind9) {
-				/* BIND9 internal, single context */
-				int result;
-
-				result = pthread_kill(main_thread, SIGHUP);
-				if (result != 0) {
-					strerror_r(result,
-						      strbuf, sizeof(strbuf));
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "isc_app_reload() "
-							 "pthread_kill: %s",
-							 strbuf);
-					return (ISC_R_UNEXPECTED);
-				}
-			}
-#else
 			if (isc_bind9) {
 				/* BIND9 internal, single context */
 				if (kill(getpid(), SIGHUP) < 0) {
@@ -665,7 +608,6 @@ isc__app_ctxsuspend(isc_appctx_t *ctx0) {
 					return (ISC_R_UNEXPECTED);
 				}
 			}
-#endif /* HAVE_LINUXTHREADS */
 			else {
 				/* External, multiple contexts */
 				LOCK(&ctx->readylock);
