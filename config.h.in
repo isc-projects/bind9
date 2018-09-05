@@ -110,6 +110,9 @@
 /* Define to enable rpz nsip rules. */
 #undef ENABLE_RPZ_NSIP
 
+/* define if you want TCP_FASTOPEN enabled if available */
+#undef ENABLE_TCP_FASTOPEN
+
 /* Solaris hack to get select_large_fdset. */
 #undef FD_SETSIZE
 
