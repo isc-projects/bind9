@@ -266,6 +266,9 @@
 /* Define to 1 if you have the <kerberosv5/krb5.h> header file. */
 #undef HAVE_KERBEROSV5_KRB5_H
 
+/* Define to 1 if you have the `kqueue' function. */
+#undef HAVE_KQUEUE
+
 /* Define to 1 if you have the <krb5.h> header file. */
 #undef HAVE_KRB5_H
 
