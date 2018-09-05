@@ -1603,7 +1603,7 @@ AC_SUBST(MKDEPPROG)
 #
 # NLS
 #
-AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
+AC_CHECK_FUNCS([catgets])
 
 #
 # -lxnet buys us one big porting headache...  standards, gotta love 'em.
