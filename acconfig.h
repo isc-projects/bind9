@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define if tzset() is available */
-#undef HAVE_TZSET
-
 /**
  * define if pthread_setconcurrency() should be called to tell the
  * OS how many threads we might want to run.
