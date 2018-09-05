@@ -13807,18 +13807,17 @@ fi
 $as_echo_n "checking for uname... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-
 #include <sys/utsname.h>
-#include <stdio.h>
+       #include <stdio.h>
 
 int
 main ()
 {
 
-struct utsname uts;
-uname(&uts);
-printf("running on %s %s %s for %s\n",
-       uts.sysname, uts.release, uts.version, uts.machine);
+       struct utsname uts;
+       uname(&uts);
+       printf("running on %s %s %s for %s\n",
+	      uts.sysname, uts.release, uts.version, uts.machine);
 
   ;
   return 0;
@@ -13827,13 +13826,16 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	 $as_echo "#define HAVE_UNAME 1" >>confdefs.h
+
+$as_echo "#define HAVE_UNAME 1" >>confdefs.h
+
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	 { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: uname is not correctly supported" >&5
+   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: uname is not correctly supported" >&5
 $as_echo "$as_me: WARNING: uname is not correctly supported" >&2;}
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
@@ -17877,11 +17879,16 @@ esac
 #
 # Time Zone Stuff
 #
-ac_fn_c_check_func "$LINENO" "tzset" "ac_cv_func_tzset"
+for ac_func in tzset
+do :
+  ac_fn_c_check_func "$LINENO" "tzset" "ac_cv_func_tzset"
 if test "x$ac_cv_func_tzset" = xyes; then :
-  $as_echo "#define HAVE_TZSET 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TZSET 1
+_ACEOF
 
 fi
+done
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for optarg declaration" >&5

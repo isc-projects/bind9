@@ -498,21 +498,24 @@ AC_HEADER_TIME
 #
 # check for uname library routine
 #
-AC_MSG_CHECKING(for uname)
-AC_TRY_COMPILE([
-#include <sys/utsname.h>
-#include <stdio.h>
-],
-[
-struct utsname uts;
-uname(&uts);
-printf("running on %s %s %s for %s\n",
-       uts.sysname, uts.release, uts.version, uts.machine);
-],
-	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_UNAME)],
-	[AC_MSG_RESULT(no)
-	 AC_MSG_WARN([uname is not correctly supported])])
+AC_MSG_CHECKING([for uname])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <sys/utsname.h>
+       #include <stdio.h>
+      ]],
+     [[
+       struct utsname uts;
+       uname(&uts);
+       printf("running on %s %s %s for %s\n",
+	      uts.sysname, uts.release, uts.version, uts.machine);
+     ]])],
+  [AC_MSG_RESULT(yes)
+   AC_DEFINE([HAVE_UNAME], [1], [define if uname is available])
+  ],
+  [AC_MSG_RESULT(no)
+   AC_MSG_WARN([uname is not correctly supported])
+  ])
 
 #
 # check for GCC noreturn attribute
@@ -1975,7 +1978,7 @@ esac
 #
 # Time Zone Stuff
 #
-AC_CHECK_FUNC(tzset, AC_DEFINE(HAVE_TZSET))
+AC_CHECK_FUNCS([tzset])
 
 AC_MSG_CHECKING(for optarg declaration)
 AC_TRY_COMPILE([
