@@ -15326,14 +15326,6 @@ fi
 			;;
 		esac
 		;;
-	#
-	# LinuxThreads requires some changes to the way we
-	# deal with signals.
-	#
-	*-linux*)
-		$as_echo "#define HAVE_LINUXTHREADS 1" >>confdefs.h
-
-		;;
 esac
 
 # Look for functions relating to thread naming
