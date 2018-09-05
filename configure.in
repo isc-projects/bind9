@@ -2076,18 +2076,6 @@ AC_SUBST(IRS_PLATFORM_USEDECLSPEC)
 IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
 
 #
-# Random remaining OS-specific issues involving compiler warnings.
-# XXXDCL print messages to indicate some compensation is being done?
-#
-
-AC_CHECK_HEADERS(strings.h,
-  ISC_PLATFORM_HAVESTRINGSH="#define ISC_PLATFORM_HAVESTRINGSH 1"
-,
-  ISC_PLATFORM_HAVESTRINGSH="#undef ISC_PLATFORM_HAVESTRINGSH"
-)
-AC_SUBST(ISC_PLATFORM_HAVESTRINGSH)
-
-#
 # Check for if_nametoindex() for IPv6 scoped addresses support
 #
 AC_CHECK_FUNCS([if_nametoindex])
