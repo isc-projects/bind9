@@ -18,14 +18,10 @@
  ***** Platform-dependent defines.
  *****/
 
-#ifndef IRS_PLATFORM_USEDECLSPEC
-#define LIBIRS_EXTERNAL_DATA
-#else
 #ifdef LIBIRS_EXPORTS
 #define LIBIRS_EXTERNAL_DATA __declspec(dllexport)
 #else
 #define LIBIRS_EXTERNAL_DATA __declspec(dllimport)
-#endif
 #endif
 
 /*
