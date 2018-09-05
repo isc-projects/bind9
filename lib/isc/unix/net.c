@@ -36,8 +36,8 @@
 #include <isc/string.h>
 #include <isc/util.h>
 
-#ifndef ISC_SOCKADDR_LEN_T
-#define ISC_SOCKADDR_LEN_T unsigned int
+#ifndef socklen_t
+#define socklen_t unsigned int
 #endif
 
 /*%
@@ -366,24 +366,24 @@ isc_net_probe_ipv6pktinfo(void) {
 
 #if ISC_CMSG_IP_TOS || defined(IPV6_TCLASS)
 
-static inline ISC_SOCKADDR_LEN_T
-cmsg_len(ISC_SOCKADDR_LEN_T len) {
+static inline socklen_t
+cmsg_len(socklen_t len) {
 #ifdef CMSG_LEN
 	return (CMSG_LEN(len));
 #else
-	ISC_SOCKADDR_LEN_T hdrlen;
+	socklen_t hdrlen;
 
 	/*
 	 * Cast NULL so that any pointer arithmetic performed by CMSG_DATA
 	 * is correct.
 	 */
-	hdrlen = (ISC_SOCKADDR_LEN_T)CMSG_DATA(((struct cmsghdr *)NULL));
+	hdrlen = (socklen_t)CMSG_DATA(((struct cmsghdr *)NULL));
 	return (hdrlen + len);
 #endif
 }
 
-static inline ISC_SOCKADDR_LEN_T
-cmsg_space(ISC_SOCKADDR_LEN_T len) {
+static inline socklen_t
+cmsg_space(socklen_t len) {
 #ifdef CMSG_SPACE
 	return (CMSG_SPACE(len));
 #else
@@ -448,7 +448,7 @@ static bool
 cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	char strbuf[ISC_STRERRORSIZE];
 	struct sockaddr_storage ss;
-	ISC_SOCKADDR_LEN_T len = sizeof(ss);
+	socklen_t len = sizeof(ss);
 	struct msghdr msg;
 	union {
 		struct cmsghdr h;

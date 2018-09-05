@@ -113,14 +113,6 @@ static void consistent(isc_socket_t *sock);
 #endif
 
 /*
- * Some systems define the socket length argument as an int, some as size_t,
- * some as socklen_t.  This is here so it can be easily changed if needed.
- */
-#ifndef ISC_SOCKADDR_LEN_T
-#define ISC_SOCKADDR_LEN_T unsigned int
-#endif
-
-/*
  * Define what the possible "soft" errors can be.  These are non-fatal returns
  * of various network related functions, like recv() and so on.
  */
@@ -1649,7 +1641,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 	int on = 1;
 #endif
 #if defined(SO_RCVBUF)
-	ISC_SOCKADDR_LEN_T optlen;
+	socklen_t optlen;
 	int size;
 #endif
 	int socket_errno;
@@ -3655,7 +3647,7 @@ isc__socket_getpeername(isc_socket_t *sock, isc_sockaddr_t *addressp) {
 
 isc_result_t
 isc__socket_getsockname(isc_socket_t *sock, isc_sockaddr_t *addressp) {
-	ISC_SOCKADDR_LEN_T len;
+	socklen_t len;
 	isc_result_t result;
 	char strbuf[ISC_STRERRORSIZE];
 
@@ -4007,7 +3999,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer)
 	isc_socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
-	ISC_SOCKADDR_LEN_T len;
+	socklen_t len;
 	int xmlrc;
 
 	LOCK(&mgr->lock);
@@ -4118,7 +4110,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr, json_object *stats) {
 	isc_socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
-	ISC_SOCKADDR_LEN_T len;
+	socklen_t len;
 	json_object *obj, *array = json_object_new_array();
 
 	CHECKMEM(array);
