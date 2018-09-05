@@ -17,9 +17,6 @@
  *** it does not get installed.
  ***/
 
-/** define if catgets() is available */
-#undef HAVE_CATGETS
-
 /** define if getifaddrs() exists */
 #undef HAVE_GETIFADDRS
 
@@ -121,6 +118,9 @@
 
 /* Define to 1 if the compiler supports __builtin_expect. */
 #undef HAVE_BUILTIN_EXPECT
+
+/* Define to 1 if you have the `catgets' function. */
+#undef HAVE_CATGETS
 
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
