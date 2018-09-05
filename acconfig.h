@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/* Define to the length type used by the socket API (socklen_t, size_t, int). */
-#undef ISC_SOCKADDR_LEN_T
-
 /* Define if threads need PTHREAD_SCOPE_SYSTEM */
 #undef NEED_PTHREAD_SCOPE_SYSTEM
 
