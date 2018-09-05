@@ -14240,18 +14240,20 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 
 	/* Skip the command name. */
 	ptr = next_token(lex, text);
-	if (ptr == NULL)
+	if (ptr == NULL) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	for (;;) {
 		/* Check for options */
 		ptr = next_token(lex, text);
-		if (ptr == NULL)
+		if (ptr == NULL) {
 			return (ISC_R_UNEXPECTEDEND);
+		}
 
-		if (argcheck(ptr, "dump"))
+		if (argcheck(ptr, "dump")) {
 			dump = true;
-		else if (argcheck(ptr, "remove")) {
+		} else if (argcheck(ptr, "remove")) {
 			ntattl = 0;
 			ttlset = true;
 		} else if (argcheck(ptr, "force")) {
@@ -14293,6 +14295,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 			tr.base = ptr;
 			tr.length = strlen(ptr);
 			CHECK(dns_rdataclass_fromtext(&rdclass, &tr));
+			continue;
 		} else {
 			nametext = ptr;
 		}
@@ -14308,11 +14311,6 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 		     view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
 		{
-			if (view->rdclass != rdclass &&
-			    rdclass != dns_rdataclass_any)
-			{
-				continue;
-			}
 			if (ntatable != NULL) {
 				dns_ntatable_detach(&ntatable);
 			}
