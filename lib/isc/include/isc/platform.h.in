@@ -48,11 +48,6 @@
 @ISC_PLATFORM_HAVETFO@
 
 /*! \brief
- * Define if the system supports kqueue multiplexing
- */
-@ISC_PLATFORM_HAVEKQUEUE@
-
-/*! \brief
  * Define if the system supports epoll multiplexing
  */
 @ISC_PLATFORM_HAVEEPOLL@

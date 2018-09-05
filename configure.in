@@ -531,27 +531,13 @@ AC_SUBST(ISC_PLATFORM_NORETURN_POST)
 #
 # check if we have kqueue
 #
-AC_ARG_ENABLE(kqueue,
-	      AS_HELP_STRING([--enable-kqueue],
-			     [use BSD kqueue when available [default=yes]]),
-	      want_kqueue="$enableval",  want_kqueue="yes")
-case $want_kqueue in
-yes)
-	AC_CHECK_FUNC(kqueue, ac_cv_have_kqueue=yes, ac_cv_have_kqueue=no)
-	case $ac_cv_have_kqueue in
-	yes)
-		ISC_PLATFORM_HAVEKQUEUE="#define ISC_PLATFORM_HAVEKQUEUE 1"
-		;;
-	*)
-		ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
-		;;
-	esac
-	;;
-*)
-	ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_HAVEKQUEUE)
+AC_ARG_ENABLE([kqueue],
+	      [AS_HELP_STRING([--enable-kqueue],
+			      [use BSD kqueue when available [default=yes]])],
+	      [], enable_kqueue="yes")
+
+AS_IF([test "$enable_kqueue" = "yes"],
+      [AC_CHECK_FUNCS([kqueue])])
 
 #
 # check if we have epoll.  Linux kernel 2.4 has epoll_create() which fails,
