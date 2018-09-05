@@ -68,7 +68,7 @@
 #ifdef HAVE_KQUEUE
 #include <sys/event.h>
 #endif
-#ifdef ISC_PLATFORM_HAVEEPOLL
+#ifdef HAVE_EPOLL_CREATE1
 #include <sys/epoll.h>
 #endif
 #ifdef ISC_PLATFORM_HAVEDEVPOLL
@@ -96,7 +96,7 @@
  */
 #if defined(HAVE_KQUEUE)
 #define USE_KQUEUE
-#elif defined (ISC_PLATFORM_HAVEEPOLL)
+#elif defined(HAVE_EPOLL_CREATE1)
 #define USE_EPOLL
 #elif defined (ISC_PLATFORM_HAVEDEVPOLL)
 #define USE_DEVPOLL
