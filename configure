@@ -708,7 +708,6 @@ FSTRM_CAPTURE
 PROTOC_C
 IRS_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_USEDECLSPEC
-ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
 LIBCAP_LIBS
 DST_EXTRA_SRCS
@@ -17918,30 +17917,27 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 #
 # Check for nanoseconds in file stats
 #
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking st_mtim.tv_nsec" >&5
-$as_echo_n "checking st_mtim.tv_nsec... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_mtim.tv_nsec" >&5
+$as_echo_n "checking for st_mtim.tv_nsec... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <sys/fcntl.h>
 int
 main ()
 {
-struct stat s; return(s.st_mtim.tv_nsec);
+struct stat s;
+       return(s.st_mtim.tv_nsec);
+
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_HAVESTATNSEC="#define ISC_PLATFORM_HAVESTATNSEC 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_HAVESTATNSEC="#undef ISC_PLATFORM_HAVESTATNSEC"
+
+$as_echo "#define HAVE_STAT_NSEC 1" >>confdefs.h
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
 
 #
 # Microsoft has their own way of handling shared libraries that requires
