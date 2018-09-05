@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define if sysctlbyname() is available */
-#undef HAVE_SYSCTLBYNAME
-
 /** define if catgets() is available */
 #undef HAVE_CATGETS
 
