@@ -36,17 +36,6 @@
  *** Network.
  ***/
 
-/*! \brief
- * Define if the system has struct lifconf which is a extended struct ifconf
- * for IPv6.
- */
-@ISC_PLATFORM_HAVELIFCONF@
-
-/*! \brief
- * Define if the system has TCP_FASTOPEN socket option.
- */
-@ISC_PLATFORM_HAVETFO@
-
 /***
  *** Miscellaneous.
  ***/
