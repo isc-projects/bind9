@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define if your system has sigwait() */
-#undef HAVE_SIGWAIT
-
 /** define if sysctlbyname() is available */
 #undef HAVE_SYSCTLBYNAME
 
