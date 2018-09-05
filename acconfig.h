@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define if you have strerror in the C library. */
-#undef HAVE_STRERROR
-
 /* Define to the length type used by the socket API (socklen_t, size_t, int). */
 #undef ISC_SOCKADDR_LEN_T
 
