@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define if your system needs pthread_init() before using pthreads */
-#undef NEED_PTHREAD_INIT
-
 /** define if your system has sigwait() */
 #undef HAVE_SIGWAIT
 
