@@ -68,7 +68,6 @@ static int singletonfd = -1;
 
 /*
  * Linux defines:
- *	(T) HAVE_LINUXTHREADS
  *	(C) HAVE_SYS_CAPABILITY_H
  *	(P) HAVE_SYS_PRCTL_H
  * The possible cases are:
@@ -102,10 +101,6 @@ static int singletonfd = -1;
  *
  * It will be nice when Linux threads work properly with setuid().
  */
-
-#ifdef HAVE_LINUXTHREADS
-static pid_t mainpid = 0;
-#endif
 
 static struct passwd *runas_pw = NULL;
 static bool done_setuid = false;
@@ -201,7 +196,7 @@ linux_initialprivs(void) {
 	 */
 	SET_CAP(CAP_SYS_CHROOT);
 
-#if defined(HAVE_SYS_PRCTL_H) || !defined(HAVE_LINUXTHREADS)
+#if defined(HAVE_SYS_PRCTL_H)
 	/*
 	 * We can setuid() only if either the kernel supports keeping
 	 * capabilities after setuid() (which we don't know until we've
@@ -317,9 +312,6 @@ named_os_init(const char *progname) {
 #ifdef HAVE_SYS_CAPABILITY_H
 	linux_initialprivs();
 #endif
-#ifdef HAVE_LINUXTHREADS
-	mainpid = getpid();
-#endif
 #ifdef SIGXFSZ
 	signal(SIGXFSZ, SIG_IGN);
 #endif
@@ -361,10 +353,6 @@ named_os_daemonize(void) {
 	/*
 	 * We're the child.
 	 */
-
-#ifdef HAVE_LINUXTHREADS
-	mainpid = getpid();
-#endif
 
 	if (setsid() == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
@@ -499,20 +487,6 @@ named_os_changeuser(void) {
 
 	done_setuid = true;
 
-#ifdef HAVE_LINUXTHREADS
-#ifdef HAVE_SYS_CAPABILITY_H
-	if (!non_root_caps) {
-		named_main_earlyfatal("-u with Linux threads not supported: "
-				      "requires kernel support for "
-				      "prctl(PR_SET_KEEPCAPS)");
-	}
-#else
-	named_main_earlyfatal("-u with Linux threads not supported: "
-			      "no capabilities support or capabilities "
-			      "disabled at build time");
-#endif
-#endif
-
 	if (setgid(runas_pw->pw_gid) < 0) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("setgid(): %s", strbuf);
@@ -534,7 +508,7 @@ named_os_changeuser(void) {
 					strbuf);
 	}
 #endif
-#if defined(HAVE_SYS_CAPABILITY_H) && !defined(HAVE_LINUXTHREADS)
+#if defined(HAVE_SYS_CAPABILITY_H)
 	linux_minprivs();
 #endif
 }
@@ -548,7 +522,7 @@ ns_os_uid(void) {
 
 void
 named_os_adjustnofile(void) {
-#ifdef HAVE_LINUXTHREADS
+#if defined(__linux__)
 	isc_result_t result;
 	isc_resourcevalue_t newvalue;
 
@@ -570,11 +544,7 @@ named_os_minprivs(void) {
 	linux_keepcaps();
 #endif
 
-#ifdef HAVE_LINUXTHREADS
-	named_os_changeuser(); /* Call setuid() before threads are started */
-#endif
-
-#if defined(HAVE_SYS_CAPABILITY_H) && defined(HAVE_LINUXTHREADS)
+#if defined(HAVE_SYS_CAPABILITY_H)
 	linux_minprivs();
 #endif
 }
@@ -759,21 +729,16 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 	free(f);
 
 	if (switch_user && runas_pw != NULL) {
-#ifndef HAVE_LINUXTHREADS
 		gid_t oldgid = getgid();
-#endif
 		/* Set UID/GID to the one we'll be running with eventually */
 		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
 
 		fd = safe_open(filename, mode, false);
 
-#ifndef HAVE_LINUXTHREADS
 		/* Restore UID/GID to root */
 		setperms(0, oldgid);
-#endif /* HAVE_LINUXTHREADS */
 
 		if (fd == -1) {
-#ifndef HAVE_LINUXTHREADS
 			fd = safe_open(filename, mode, false);
 			if (fd != -1) {
 				named_main_earlywarning("Required root "
@@ -786,13 +751,6 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 			named_main_earlywarning("Please check file and "
 						"directory permissions "
 						"or reconfigure the filename.");
-#else /* HAVE_LINUXTHREADS */
-			named_main_earlywarning("Could not open "
-						"'%s'.", filename);
-			named_main_earlywarning("Please check file and "
-						"directory permissions "
-						"or reconfigure the filename.");
-#endif /* HAVE_LINUXTHREADS */
 		}
 	} else {
 		fd = safe_open(filename, mode, false);
@@ -846,11 +804,7 @@ named_os_writepidfile(const char *filename, bool first_time) {
 		cleanup_pidfile();
 		return;
 	}
-#ifdef HAVE_LINUXTHREADS
-	pid = mainpid;
-#else
 	pid = getpid();
-#endif
 	if (fprintf(fh, "%ld\n", (long)pid) < 0) {
 		(*report)("fprintf() to pid file '%s' failed", filename);
 		(void)fclose(fh);
@@ -956,11 +910,7 @@ named_os_shutdownmsg(char *command, isc_buffer_t *text) {
 		return;
 	}
 
-#ifdef HAVE_LINUXTHREADS
-	pid = mainpid;
-#else
 	pid = getpid();
-#endif
 
 	(void)isc_buffer_printf(text, "pid: %ld", (long)pid);
 }
