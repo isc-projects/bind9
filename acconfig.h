@@ -16,6 +16,3 @@
  *** it does not get installed.
  ***/
 @TOP@
-
-/* Define to 1 if you have the uname library function. */
-#undef HAVE_UNAME
