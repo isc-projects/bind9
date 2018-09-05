@@ -65,7 +65,7 @@
 #ifdef ISC_PLATFORM_HAVESYSUNH
 #include <sys/un.h>
 #endif
-#ifdef ISC_PLATFORM_HAVEKQUEUE
+#ifdef HAVE_KQUEUE
 #include <sys/event.h>
 #endif
 #ifdef ISC_PLATFORM_HAVEEPOLL
@@ -94,7 +94,7 @@
 /*%
  * Choose the most preferable multiplex method.
  */
-#ifdef ISC_PLATFORM_HAVEKQUEUE
+#if defined(HAVE_KQUEUE)
 #define USE_KQUEUE
 #elif defined (ISC_PLATFORM_HAVEEPOLL)
 #define USE_EPOLL
@@ -106,7 +106,7 @@ typedef struct {
 } pollinfo_t;
 #else
 #define USE_SELECT
-#endif	/* ISC_PLATFORM_HAVEKQUEUE */
+#endif	/* HAVE_KQUEUE */
 
 /*
  * Set by the -T dscp option on the command line. If set to a value
