@@ -175,7 +175,7 @@ main(int argc, char **argv) {
 		int s;
 		int n = -1;
 		int v6only = -1;
-		ISC_SOCKADDR_LEN_T len = sizeof(v6only);
+		socklen_t len = sizeof(v6only);
 
 		s = socket(AF_INET6, SOCK_DGRAM, IPPROTO_UDP);
 		if (s >= 0) {
