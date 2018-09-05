@@ -20,9 +20,6 @@
 /** define if your system has sigwait() */
 #undef HAVE_SIGWAIT
 
-/** define if sigwait() is the UnixWare flavor */
-#undef HAVE_UNIXWARE_SIGWAIT
-
 /** define if sysconf() is available */
 #undef HAVE_SYSCONF
 
