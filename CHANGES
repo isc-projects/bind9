@@ -1,3 +1,6 @@
+5030.	[bug]		Align CMSG buffers to a 64-bit boundary, fixes crash
+			on architectures with strict alignment. [GL #521]
+
 	--- 9.13.3 released ---
 
 5029.	[func]		Workarounds for servers that misbehave when queried
