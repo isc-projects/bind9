@@ -17,9 +17,6 @@
  ***/
 @TOP@
 
-/** define if the system has a random number generating device */
-#undef PATH_RANDOMDEV
-
 /** define if pthread_attr_getstacksize() is available */
 #undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
 
