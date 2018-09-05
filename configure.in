@@ -1990,13 +1990,14 @@ AC_DEFINE(NEED_OPTARG, 1, [Defined if extern char *optarg is not declared.])])
 #
 # Check for nanoseconds in file stats
 #
-AC_MSG_CHECKING(st_mtim.tv_nsec)
-AC_TRY_COMPILE([#include <sys/fcntl.h>],[struct stat s; return(s.st_mtim.tv_nsec);],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVESTATNSEC="#define ISC_PLATFORM_HAVESTATNSEC 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVESTATNSEC="#undef ISC_PLATFORM_HAVESTATNSEC"])
-AC_SUBST(ISC_PLATFORM_HAVESTATNSEC)
+AC_MSG_CHECKING([for st_mtim.tv_nsec])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <sys/fcntl.h>]],
+     [[struct stat s;
+       return(s.st_mtim.tv_nsec);
+      ]])],
+   [AC_DEFINE([HAVE_STAT_NSEC], [1], [define if struct stat has st_mtim.tv_nsec field])])
 
 #
 # Microsoft has their own way of handling shared libraries that requires
