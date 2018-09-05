@@ -16944,24 +16944,6 @@ fi
 
 
 #
-# flockfile is usually provided by pthreads, but we may want to use it
-# even if compiled with --disable-threads.  getc_unlocked might also not
-# be defined.
-#
-ac_fn_c_check_func "$LINENO" "flockfile" "ac_cv_func_flockfile"
-if test "x$ac_cv_func_flockfile" = xyes; then :
-  $as_echo "#define HAVE_FLOCKFILE 1" >>confdefs.h
-
-fi
-
-ac_fn_c_check_func "$LINENO" "getc_unlocked" "ac_cv_func_getc_unlocked"
-if test "x$ac_cv_func_getc_unlocked" = xyes; then :
-  $as_echo "#define HAVE_GETCUNLOCKED 1" >>confdefs.h
-
-fi
-
-
-#
 # Large File
 #
 # Check whether --enable-largefile was given.
