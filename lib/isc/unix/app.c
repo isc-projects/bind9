@@ -423,7 +423,6 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 				return (ISC_R_UNEXPECTED);
 			}
 
-#ifndef HAVE_UNIXWARE_SIGWAIT
 			result = sigwait(&sset, &sig);
 			if (result == 0) {
 				if (sig == SIGINT || sig == SIGTERM)
@@ -432,15 +431,6 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 					ctx->want_reload = true;
 			}
 
-#else /* Using UnixWare sigwait semantics. */
-			sig = sigwait(&sset);
-			if (sig >= 0) {
-				if (sig == SIGINT || sig == SIGTERM)
-					ctx->want_shutdown = true;
-				else if (sig == SIGHUP)
-					ctx->want_reload = true;
-			}
-#endif /* HAVE_UNIXWARE_SIGWAIT */
 		} else {
 			/*
 			 * External, or BIND9 using multiple contexts:
