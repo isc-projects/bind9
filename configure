@@ -762,7 +762,6 @@ ax_pthread_config
 CHECK_DSA
 GEOIPLINKOBJS
 GEOIPLINKSRCS
-ISC_PLATFORM_HAVEDEVPOLL
 ISC_PLATFORM_NORETURN_POST
 ISC_PLATFORM_NORETURN_PRE
 ISC_SOCKADDR_LEN_T
@@ -13929,14 +13928,13 @@ fi
 #
 # Check whether --enable-devpoll was given.
 if test "${enable_devpoll+set}" = set; then :
-  enableval=$enable_devpoll; want_devpoll="$enableval"
+  enableval=$enable_devpoll;
 else
-  want_devpoll="yes"
+  enable_devpoll="yes"
 fi
 
-case $want_devpoll in
-yes)
-	for ac_header in sys/devpoll.h devpoll.h
+if test "$enable_devpoll" = "yes"; then :
+  for ac_header in sys/devpoll.h devpoll.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -13944,21 +13942,12 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
- ISC_PLATFORM_HAVEDEVPOLL="#define ISC_PLATFORM_HAVEDEVPOLL 1"
-
-else
-  ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
 
 fi
 
 done
 
-	;;
-*)
-	ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
-	;;
-esac
-
+fi
 
 #
 # Find the machine's endian flavor.
