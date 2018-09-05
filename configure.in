@@ -704,23 +704,6 @@ AC_CHECK_HEADERS([sched.h])
 AC_SEARCH_LIBS([sched_yield],[rt])
 AC_CHECK_FUNCS([sched_yield pthread_yield pthread_yield_np])
 
-#
-# Additional OS-specific issues related to pthreads.
-#
-case "$host" in
-	*-freebsd*)
-		case $host in
-		*-freebsd5.[[012]]|*-freebsd5.[[012]].*);;
-		*-freebsd5.[[3456789]]|*-freebsd5.[[3456789]].*)
-			AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
-			;;
-		*-freebsd6.*)
-			AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
-			;;
-		esac
-		;;
-esac
-
 # Look for functions relating to thread naming
 AC_CHECK_FUNCS([pthread_setname_np pthread_set_name_np])
 AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])

@@ -17,8 +17,5 @@
  ***/
 @TOP@
 
-/* Define if threads need PTHREAD_SCOPE_SYSTEM */
-#undef NEED_PTHREAD_SCOPE_SYSTEM
-
 /* Define to 1 if you have the uname library function. */
 #undef HAVE_UNAME

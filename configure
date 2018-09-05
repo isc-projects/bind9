@@ -15246,25 +15246,6 @@ fi
 done
 
 
-#
-# Additional OS-specific issues related to pthreads.
-#
-case "$host" in
-	*-freebsd*)
-		case $host in
-		*-freebsd5.[012]|*-freebsd5.[012].*);;
-		*-freebsd5.[3456789]|*-freebsd5.[3456789].*)
-			$as_echo "#define NEED_PTHREAD_SCOPE_SYSTEM 1" >>confdefs.h
-
-			;;
-		*-freebsd6.*)
-			$as_echo "#define NEED_PTHREAD_SCOPE_SYSTEM 1" >>confdefs.h
-
-			;;
-		esac
-		;;
-esac
-
 # Look for functions relating to thread naming
 for ac_func in pthread_setname_np pthread_set_name_np
 do :

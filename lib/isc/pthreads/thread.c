@@ -51,12 +51,6 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 	}
 #endif
 
-#if defined(PTHREAD_SCOPE_SYSTEM) && defined(NEED_PTHREAD_SCOPE_SYSTEM)
-	ret = pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
-	if (ret != 0)
-		return (ISC_R_UNEXPECTED);
-#endif
-
 	ret = pthread_create(thread, &attr, func, arg);
 	if (ret != 0)
 		return (ISC_R_UNEXPECTED);
