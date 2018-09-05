@@ -670,22 +670,6 @@ esac
 AC_SUBST(GEOIPLINKSRCS)
 AC_SUBST(GEOIPLINKOBJS)
 
-# XXXOND: Change this to deterministic DSA generation
-#
-# Only check dsa signature generation on these platforms when performing
-# system tests.
-#
-CHECK_DSA=0
-if grep "#define PATH_RANDOMDEV " confdefs.h > /dev/null
-then
-	case "$host" in
-	*darwin*|*freebsd*)
-		CHECK_DSA=1
-		;;
-	esac
-fi
-AC_SUBST(CHECK_DSA)
-
 #
 # Do we have arc4random(), etc ?
 #
@@ -3075,7 +3059,6 @@ AC_CONFIG_FILES([
 	bin/tests/system/dlzexternal/ns1/dlzs.conf
 	bin/tests/system/dyndb/Makefile
 	bin/tests/system/dyndb/driver/Makefile
-	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/pipelined/Makefile
 	bin/tests/system/rndc/Makefile
 	bin/tests/system/rpz/Makefile
