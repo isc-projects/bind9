@@ -17,9 +17,6 @@
  *** it does not get installed.
  ***/
 
-/** define if getifaddrs() exists */
-#undef HAVE_GETIFADDRS
-
 /** define if you have the NET_RT_IFLIST sysctl variable and sys/sysctl.h */
 #undef HAVE_IFLIST_SYSCTL
 
