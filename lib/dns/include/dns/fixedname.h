@@ -50,6 +50,7 @@
  *****/
 
 #include <isc/buffer.h>
+#include <isc/lang.h>
 
 #include <dns/name.h>
 
@@ -64,6 +65,8 @@ struct dns_fixedname {
 	unsigned char			data[DNS_NAME_MAXWIRE];
 };
 
+ISC_LANG_BEGINDECLS
+
 void
 dns_fixedname_init(dns_fixedname_t *fixed);
 
@@ -75,5 +78,7 @@ dns_fixedname_name(dns_fixedname_t *fixed);
 
 dns_name_t *
 dns_fixedname_initname(dns_fixedname_t *fixed);
+
+ISC_LANG_ENDDECLS
 
 #endif /* DNS_FIXEDNAME_H */
