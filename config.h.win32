@@ -76,9 +76,6 @@
 /* define if catgets() is available */
 /* #undef HAVE_CATGETS */
 
-/* define if you have the NET_RT_IFLIST sysctl variable. */
-#define HAVE_IFLIST_SYSCTL 1
-
 /* define if you need to #define _XPG4_2 before including sys/socket.h */
 /* #undef NEED_XPG4_2_BEFORE_SOCKET_H */
 
