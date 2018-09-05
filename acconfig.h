@@ -17,12 +17,6 @@
  ***/
 @TOP@
 
-/**
- * define if pthread_setconcurrency() should be called to tell the
- * OS how many threads we might want to run.
- */
-#undef CALL_PTHREAD_SETCONCURRENCY
-
 /** define if flockfile() is available */
 #undef HAVE_FLOCKFILE
 
