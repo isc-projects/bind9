@@ -59,11 +59,6 @@
 @ISC_PLATFORM_KRB5HEADER@
 
 /*
- * Define if the system has nanosecond-level accuracy in file stats.
- */
-@ISC_PLATFORM_HAVESTATNSEC@
-
-/*
  * Used to control how extern data is linked; needed for Win32 platforms.
  */
 @ISC_PLATFORM_USEDECLSPEC@
