@@ -17,12 +17,6 @@
  ***/
 @TOP@
 
-/** define if flockfile() is available */
-#undef HAVE_FLOCKFILE
-
-/** define if getc_unlocked() is available */
-#undef HAVE_GETCUNLOCKED
-
 /** define if the system has a random number generating device */
 #undef PATH_RANDOMDEV
 
