@@ -41,11 +41,6 @@
  */
 @ISC_PLATFORM_HAVETFO@
 
-/*! \brief
- * Define if the system supports /dev/poll multiplexing
- */
-@ISC_PLATFORM_HAVEDEVPOLL@
-
 /*
  *** Printing.
  ***/

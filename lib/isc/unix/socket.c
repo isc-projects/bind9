@@ -71,12 +71,10 @@
 #ifdef HAVE_EPOLL_CREATE1
 #include <sys/epoll.h>
 #endif
-#ifdef ISC_PLATFORM_HAVEDEVPOLL
 #if defined(HAVE_SYS_DEVPOLL_H)
 #include <sys/devpoll.h>
 #elif defined(HAVE_DEVPOLL_H)
 #include <devpoll.h>
-#endif
 #endif
 
 #include <netinet/tcp.h>
@@ -98,7 +96,7 @@
 #define USE_KQUEUE
 #elif defined(HAVE_EPOLL_CREATE1)
 #define USE_EPOLL
-#elif defined (ISC_PLATFORM_HAVEDEVPOLL)
+#elif defined(HAVE_SYS_DEVPOLL_H) || defined(HAVE_DEVPOLL_H)
 #define USE_DEVPOLL
 typedef struct {
 	unsigned int want_read : 1,
