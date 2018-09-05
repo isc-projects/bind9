@@ -17071,11 +17071,16 @@ fi
 #
 # NLS
 #
-ac_fn_c_check_func "$LINENO" "catgets" "ac_cv_func_catgets"
+for ac_func in catgets
+do :
+  ac_fn_c_check_func "$LINENO" "catgets" "ac_cv_func_catgets"
 if test "x$ac_cv_func_catgets" = xyes; then :
-  $as_echo "#define HAVE_CATGETS 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CATGETS 1
+_ACEOF
 
 fi
+done
 
 
 #
