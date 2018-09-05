@@ -734,14 +734,10 @@ AC_SEARCH_LIBS([sched_yield],[rt])
 AC_CHECK_FUNCS([sched_yield pthread_yield pthread_yield_np])
 
 #
-# Additional OS-specific issues related to pthreads and sigwait.
+# Additional OS-specific issues related to pthreads.
 #
 case "$host" in
-	#
-	# One more place to look for sigwait.
-	#
 	*-freebsd*)
-		AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
 		case $host in
 		*-freebsd5.[[012]]|*-freebsd5.[[012]].*);;
 		*-freebsd5.[[3456789]]|*-freebsd5.[[3456789]].*)
