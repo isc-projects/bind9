@@ -458,8 +458,9 @@ AC_CHECK_HEADERS([threads.h],
 AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
-AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
 AC_C_FLEXIBLE_ARRAY_MEMBER
+
+AC_CHECK_FUNCS([sysctlbyname])
 
 #
 # Check for the existence of mmap to enable the fast format zones

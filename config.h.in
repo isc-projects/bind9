@@ -17,9 +17,6 @@
  *** it does not get installed.
  ***/
 
-/** define if sysctlbyname() is available */
-#undef HAVE_SYSCTLBYNAME
-
 /** define if catgets() is available */
 #undef HAVE_CATGETS
 
@@ -409,6 +406,9 @@
 
 /* Define to 1 if you have the `sysconf' function. */
 #undef HAVE_SYSCONF
+
+/* Define to 1 if you have the `sysctlbyname' function. */
+#undef HAVE_SYSCTLBYNAME
 
 /* Define to 1 if you have the <sys/capability.h> header file. */
 #undef HAVE_SYS_CAPABILITY_H
