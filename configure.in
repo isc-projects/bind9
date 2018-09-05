@@ -1530,14 +1530,6 @@ AC_SUBST(ZLIB)
 AC_CHECK_LIB(scf, smf_enable_instance)
 
 #
-# flockfile is usually provided by pthreads, but we may want to use it
-# even if compiled with --disable-threads.  getc_unlocked might also not
-# be defined.
-#
-AC_CHECK_FUNC(flockfile, AC_DEFINE(HAVE_FLOCKFILE),)
-AC_CHECK_FUNC(getc_unlocked, AC_DEFINE(HAVE_GETCUNLOCKED),)
-
-#
 # Large File
 #
 AC_ARG_ENABLE(largefile,
