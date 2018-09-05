@@ -36,11 +36,6 @@
  *** Network.
  ***/
 
-/*! \brief
- * Define if the system has TCP_FASTOPEN socket option.
- */
-@ISC_PLATFORM_HAVETFO@
-
 /*
  *** Printing.
  ***/

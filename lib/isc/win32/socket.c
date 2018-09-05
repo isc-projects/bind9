@@ -3318,7 +3318,7 @@ isc__socket_filter(isc_socket_t *sock, const char *filter) {
 isc_result_t
 isc__socket_listen(isc_socket_t *sock, unsigned int backlog) {
 	char strbuf[ISC_STRERRORSIZE];
-#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
+#if defined(ENABLE_TCP_FASTOPEN) && defined(TCP_FASTOPEN)
 	char on = 1;
 #endif
 
@@ -3351,7 +3351,7 @@ isc__socket_listen(isc_socket_t *sock, unsigned int backlog) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
+#if defined(ENABLE_TCP_FASTOPEN) && defined(TCP_FASTOPEN)
 	if (setsockopt(sock->fd, IPPROTO_TCP, TCP_FASTOPEN,
 		       &on, sizeof(on)) < 0) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
