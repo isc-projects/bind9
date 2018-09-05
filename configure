@@ -706,7 +706,6 @@ DNSTAPSRCS
 DNSTAP
 FSTRM_CAPTURE
 PROTOC_C
-ISC_PLATFORM_HAVESTRINGSH
 IRS_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_HAVESTATNSEC
@@ -18032,29 +18031,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 ISC_PLATFORM_USEDECLSPEC="#undef ISC_PLATFORM_USEDECLSPEC"
 
 IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
-
-#
-# Random remaining OS-specific issues involving compiler warnings.
-# XXXDCL print messages to indicate some compensation is being done?
-#
-
-for ac_header in strings.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "strings.h" "ac_cv_header_strings_h" "$ac_includes_default"
-if test "x$ac_cv_header_strings_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_STRINGS_H 1
-_ACEOF
- ISC_PLATFORM_HAVESTRINGSH="#define ISC_PLATFORM_HAVESTRINGSH 1"
-
-else
-  ISC_PLATFORM_HAVESTRINGSH="#undef ISC_PLATFORM_HAVESTRINGSH"
-
-fi
-
-done
-
-
 
 #
 # Check for if_nametoindex() for IPv6 scoped addresses support
