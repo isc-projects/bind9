@@ -85,7 +85,7 @@
 #include <sys/utsname.h>
 #endif
 
-#ifdef ISC_PLATFORM_HAVETFO
+#ifdef ENABLE_TCP_FASTOPEN
 #include <netinet/tcp.h>
 #endif
 
@@ -5464,7 +5464,7 @@ isc__socket_filter(isc_socket_t *sock0, const char *filter) {
  */
 static void
 set_tcp_fastopen(isc__socket_t *sock, unsigned int backlog) {
-#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
+#if defined(ENABLE_TCP_FASTOPEN) && defined(TCP_FASTOPEN)
 	char strbuf[ISC_STRERRORSIZE];
 
 /*
