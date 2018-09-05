@@ -34,6 +34,10 @@
 #ifndef strtoull
 #define strtoull _strtoui64
 #endif
+
+#include <stdint.h>
+typedef uint32_t socklen_t;
+
 #endif
 
 /***
