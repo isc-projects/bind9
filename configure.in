@@ -761,7 +761,7 @@ AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 #
 # Look for sysconf to allow detection of the number of processors.
 #
-AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
+AC_CHECK_FUNCS([sysconf])
 
 AC_SUBST(ALWAYS_DEFINES)
 

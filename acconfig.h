@@ -20,9 +20,6 @@
 /** define if your system has sigwait() */
 #undef HAVE_SIGWAIT
 
-/** define if sysconf() is available */
-#undef HAVE_SYSCONF
-
 /** define if sysctlbyname() is available */
 #undef HAVE_SYSCTLBYNAME
 
