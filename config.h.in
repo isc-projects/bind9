@@ -17,9 +17,6 @@
  *** it does not get installed.
  ***/
 
-/** define if your system needs pthread_init() before using pthreads */
-#undef NEED_PTHREAD_INIT
-
 /** define if your system has sigwait() */
 #undef HAVE_SIGWAIT
 
@@ -470,11 +467,17 @@
 /* Define if Thread-Local Storage is available */
 #undef HAVE_TLS
 
+/* Define to 1 if you have the `tzset' function. */
+#undef HAVE_TZSET
+
 /* Define to 1 if you have the <uchar.h> header file. */
 #undef HAVE_UCHAR_H
 
 /* Define to 1 if the system has the type `uintptr_t'. */
 #undef HAVE_UINTPTR_T
+
+/* define if uname is available */
+#undef HAVE_UNAME
 
 /* Define to 1 if you have the <unistd.h> header file. */
 #undef HAVE_UNISTD_H
