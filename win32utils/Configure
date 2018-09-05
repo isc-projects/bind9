@@ -572,8 +572,8 @@ if ($want_checkfiles eq "yes") {
 if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     die "can't ask for both Win32 and x64 platforms\n";
 } elsif ($want_win32 eq "yes") {
-    $configvar{"PLATFORM"} = "Win32";
-    $configvar{"BUILD_PLATFORM"} = "Win32";
+    $configvar{"PLATFORM"} = "x86";
+    $configvar{"BUILD_PLATFORM"} = "x86";
     $configvar{"MACHINE"} = "/machine:X86";
     $configvar{"BUILD_MACHINE"} = "/machine:X86";
     $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "__asm { rep nop }";
