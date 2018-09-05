@@ -17,12 +17,6 @@
  *** it does not get installed.
  ***/
 
-/** define if pthread_attr_getstacksize() is available */
-#undef HAVE_PTHREAD_ATTR_GETSTACKSIZE
-
-/** define if pthread_attr_setstacksize() is available */
-#undef HAVE_PTHREAD_ATTR_SETSTACKSIZE
-
 /** define if you have strerror in the C library. */
 #undef HAVE_STRERROR
 
