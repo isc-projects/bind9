@@ -188,6 +188,9 @@
 /* Define to 1 if you have the <edit/readline/readline.h> header file. */
 #undef HAVE_EDIT_READLINE_READLINE_H
 
+/* Define to 1 if you have the `epoll_create1' function. */
+#undef HAVE_EPOLL_CREATE1
+
 /* Define to 1 if you have the `EVP_aes_128_ecb' function. */
 #undef HAVE_EVP_AES_128_ECB
 
