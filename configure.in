@@ -752,13 +752,6 @@ case "$host" in
 			;;
 		esac
 		;;
-	#
-	# LinuxThreads requires some changes to the way we
-	# deal with signals.
-	#
-	*-linux*)
-		AC_DEFINE(HAVE_LINUXTHREADS)
-		;;
 esac
 
 # Look for functions relating to thread naming

@@ -23,9 +23,6 @@
 /** define if sigwait() is the UnixWare flavor */
 #undef HAVE_UNIXWARE_SIGWAIT
 
-/** define if LinuxThreads is in use */
-#undef HAVE_LINUXTHREADS
-
 /** define if sysconf() is available */
 #undef HAVE_SYSCONF
 

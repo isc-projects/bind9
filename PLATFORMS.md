@@ -66,3 +66,4 @@ These are platforms on which BIND is known *not* to build or run:
 * Windows Server 2012 and older
 * Platforms that don't support IPv6 Advanced Socket API (RFC 3542)
 * Platforms that don't support atomic operations (via compiler or library)
+* Linux without NPTL (Native POSIX Thread Library)
