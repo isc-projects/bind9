@@ -15358,11 +15358,16 @@ done
 #
 # Look for sysconf to allow detection of the number of processors.
 #
-ac_fn_c_check_func "$LINENO" "sysconf" "ac_cv_func_sysconf"
+for ac_func in sysconf
+do :
+  ac_fn_c_check_func "$LINENO" "sysconf" "ac_cv_func_sysconf"
 if test "x$ac_cv_func_sysconf" = xyes; then :
-  $as_echo "#define HAVE_SYSCONF 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYSCONF 1
+_ACEOF
 
 fi
+done
 
 
 

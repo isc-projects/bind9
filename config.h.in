@@ -20,9 +20,6 @@
 /** define if your system has sigwait() */
 #undef HAVE_SIGWAIT
 
-/** define if sysconf() is available */
-#undef HAVE_SYSCONF
-
 /** define if sysctlbyname() is available */
 #undef HAVE_SYSCTLBYNAME
 
@@ -412,6 +409,9 @@
 
 /* Define to 1 if you have the `strlcpy' function. */
 #undef HAVE_STRLCPY
+
+/* Define to 1 if you have the `sysconf' function. */
+#undef HAVE_SYSCONF
 
 /* Define to 1 if you have the <sys/capability.h> header file. */
 #undef HAVE_SYS_CAPABILITY_H
