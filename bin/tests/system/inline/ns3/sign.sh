@@ -135,22 +135,6 @@ rm -f K${zone}.+*+*.private
 
 for alg in ECDSAP256SHA256 NSEC3RSASHA1 DSA
 do
-    case $alg in
-        DSA)
-            $SHELL ../checkdsa.sh 2> /dev/null || continue
-            checkfile=../checkdsa
-            touch $checkfile ;;
-        ECDSAP256SHA256)
-            fail=0
-            $KEYGEN -q -a ecdsap256sha256 test > /dev/null 2>&1 || fail=1
-            rm -f Ktest*
-            [ $fail != 0 ] && continue
-            $SHELL ../checkdsa.sh 2> /dev/null || continue
-            checkfile=../checkecdsa
-            touch $checkfile ;;
-        *) ;;
-    esac
-
     k1=`$KEYGEN -q -a $alg -b 1024 -n zone -f KSK $zone`
     k2=`$KEYGEN -q -a $alg -b 1024 -n zone $zone`
     k3=`$KEYGEN -q -a $alg -b 1024 -n zone $zone`
@@ -161,9 +145,9 @@ do
     rm -f $k1.private 
     mv $k1.key a-file
     $IMPORTKEY -P now -D now+3600 -f a-file $zone > /dev/null 2>&1 ||
-        ( echo "importkey failed: $alg"; rm -f $checkfile )
+        ( echo "importkey failed: $alg" )
     rm -f $k2.private 
     mv $k2.key a-file
     $IMPORTKEY -f a-file $zone > /dev/null 2>&1 ||
-        ( echo "importkey failed: $alg"; rm -f $checkfile )
+        ( echo "importkey failed: $alg" )
 done
