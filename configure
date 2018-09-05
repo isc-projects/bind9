@@ -706,8 +706,6 @@ DNSTAPSRCS
 DNSTAP
 FSTRM_CAPTURE
 PROTOC_C
-IRS_PLATFORM_USEDECLSPEC
-ISC_PLATFORM_USEDECLSPEC
 ISC_PLATFORM_HAVESYSUNH
 LIBCAP_LIBS
 DST_EXTRA_SRCS
@@ -17938,15 +17936,6 @@ $as_echo "#define HAVE_STAT_NSEC 1" >>confdefs.h
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-#
-# Microsoft has their own way of handling shared libraries that requires
-# additional qualifiers on extern variables.  Unix systems don't need it.
-#
-
-ISC_PLATFORM_USEDECLSPEC="#undef ISC_PLATFORM_USEDECLSPEC"
-
-IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
 
 #
 # Check for if_nametoindex() for IPv6 scoped addresses support

@@ -47,11 +47,6 @@
 #undef MSG_TRUNC
 
 /*
- * Used to control how extern data is linked; needed for Win32 platforms.
- */
-#define ISC_PLATFORM_USEDECLSPEC 1
-
-/*
  * Define if the platform has <sys/un.h>.
  */
 #undef ISC_PLATFORM_HAVESYSUNH
