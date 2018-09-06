@@ -1725,8 +1725,6 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			break;
 		case dns_ssumatchtype_selfkrb5:
 		case dns_ssumatchtype_selfms:
-		case dns_ssumatchtype_subdomainms:
-		case dns_ssumatchtype_subdomainkrb5:
 		case dns_ssumatchtype_tcpself:
 		case dns_ssumatchtype_6to4self:
 			if (tresult == ISC_R_SUCCESS &&
@@ -1739,6 +1737,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			break;
 		case dns_ssumatchtype_name:
 		case dns_ssumatchtype_subdomain:
+		case dns_ssumatchtype_subdomainms:
+		case dns_ssumatchtype_subdomainkrb5:
 		case dns_ssumatchtype_wildcard:
 		case dns_ssumatchtype_external:
 		case dns_ssumatchtype_local:
