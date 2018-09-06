@@ -40,6 +40,14 @@ rm -f ns3/nsec3param.test.db
 rm -f ns3/too-big.test.db
 rm -f ns5/local.db
 rm -f ns6/in-addr.db
+rm -f ns7/in-addr.db
+rm -f ns7/example.com.db
+rm -f ns8/in-addr.db
+rm -f ns8/example.com.db
+rm -f ns9/in-addr.db
+rm -f ns9/example.com.db
+rm -f ns10/in-addr.db
+rm -f ns10/example.com.db
 rm -f nsupdate.out*
 rm -f typelist.out.*
 rm -f ns1/sample.db
