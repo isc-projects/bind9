@@ -1745,6 +1745,8 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 	dns_fixedname_t fixed_id, fixed_name;
 	dns_name_t *id, *name;
 	const char *str;
+	isc_textregion_t r;
+	dns_rdatatype_t type;
 
 	/* Check for "update-policy local;" */
 	if (cfg_obj_isstring(policy) &&
@@ -1782,12 +1784,16 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		}
 
 		/*
-		 * There is no name field for subzone.
+		 * There is no name field for subzone and dname is void
 		 */
-		if (tresult == ISC_R_SUCCESS &&
-		    mtype != dns_ssumatchtype_subdomain)
+		if (mtype == dns_ssumatchtype_subdomain &&
+		    cfg_obj_isvoid(dname))
 		{
+			str = ".";	/* Use "." as a replacement. */
+		} else {
 			str = cfg_obj_asstring(dname);
+		}
+		if (tresult == ISC_R_SUCCESS) {
 			tresult = dns_name_fromstring(name, str, 0, NULL);
 			if (tresult != ISC_R_SUCCESS) {
 				cfg_obj_log(dname, logctx, ISC_LOG_ERROR,
@@ -1835,12 +1841,24 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			}
 			break;
 		case dns_ssumatchtype_name:
-		case dns_ssumatchtype_subdomain:
+		case dns_ssumatchtype_subdomain: /* also zonesub */
 		case dns_ssumatchtype_subdomainms:
 		case dns_ssumatchtype_subdomainkrb5:
 		case dns_ssumatchtype_wildcard:
 		case dns_ssumatchtype_external:
 		case dns_ssumatchtype_local:
+			if (tresult == ISC_R_SUCCESS) {
+				DE_CONST(str, r.base);
+				r.length = strlen(str);
+				tresult = dns_rdatatype_fromtext(&type, &r);
+			}
+			if (tresult == ISC_R_SUCCESS) {
+				cfg_obj_log(identity, logctx, ISC_LOG_ERROR,
+					    "missing name field type '%s' "
+					    "found", str);
+				result = ISC_R_FAILURE;
+				break;
+			}
 			break;
 		default:
 			INSIST(0);
@@ -1851,8 +1869,6 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 		     element2 = cfg_list_next(element2))
 		{
 			const cfg_obj_t *typeobj;
-			isc_textregion_t r;
-			dns_rdatatype_t type;
 
 			typeobj = cfg_listelt_value(element2);
 			DE_CONST(cfg_obj_asstring(typeobj), r.base);
