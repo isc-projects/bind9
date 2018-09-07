@@ -16,6 +16,7 @@
 #include <inttypes.h>
 
 #include <isc/lang.h>
+#include <isc/refcount.h>
 
 #include <isccfg/cfg.h>
 
