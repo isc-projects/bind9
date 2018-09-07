@@ -3004,7 +3004,6 @@
 ./doc/arm/forward.zoneopt.xml			SGML	2018
 ./doc/arm/hint.zoneopt.xml			SGML	2018
 ./doc/arm/in-view.zoneopt.xml			SGML	2018
-./doc/arm/isc-logo.eps				X	2005,2010,2018
 ./doc/arm/isc-logo.pdf				X	2005,2010,2018
 ./doc/arm/key.grammar.xml			SGML	2018
 ./doc/arm/libdns.xml				SGML	2010,2014,2015,2016,2017,2018
