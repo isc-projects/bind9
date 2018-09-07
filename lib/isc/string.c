@@ -47,7 +47,7 @@
 #endif
 #include <string.h>
 
-#include "isc/string.h"  // IWYU pragma: keep
+#include <isc/string.h>  // IWYU pragma: keep
 
 #if !defined(HAVE_STRLCPY)
 size_t
