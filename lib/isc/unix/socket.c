@@ -65,18 +65,16 @@
 #ifdef ISC_PLATFORM_HAVESYSUNH
 #include <sys/un.h>
 #endif
-#ifdef ISC_PLATFORM_HAVEKQUEUE
+#ifdef HAVE_KQUEUE
 #include <sys/event.h>
 #endif
-#ifdef ISC_PLATFORM_HAVEEPOLL
+#ifdef HAVE_EPOLL_CREATE1
 #include <sys/epoll.h>
 #endif
-#ifdef ISC_PLATFORM_HAVEDEVPOLL
 #if defined(HAVE_SYS_DEVPOLL_H)
 #include <sys/devpoll.h>
 #elif defined(HAVE_DEVPOLL_H)
 #include <devpoll.h>
-#endif
 #endif
 
 #include <netinet/tcp.h>
@@ -87,18 +85,18 @@
 #include <sys/utsname.h>
 #endif
 
-#ifdef ISC_PLATFORM_HAVETFO
+#ifdef ENABLE_TCP_FASTOPEN
 #include <netinet/tcp.h>
 #endif
 
 /*%
  * Choose the most preferable multiplex method.
  */
-#ifdef ISC_PLATFORM_HAVEKQUEUE
+#if defined(HAVE_KQUEUE)
 #define USE_KQUEUE
-#elif defined (ISC_PLATFORM_HAVEEPOLL)
+#elif defined(HAVE_EPOLL_CREATE1)
 #define USE_EPOLL
-#elif defined (ISC_PLATFORM_HAVEDEVPOLL)
+#elif defined(HAVE_SYS_DEVPOLL_H) || defined(HAVE_DEVPOLL_H)
 #define USE_DEVPOLL
 typedef struct {
 	unsigned int want_read : 1,
@@ -106,7 +104,7 @@ typedef struct {
 } pollinfo_t;
 #else
 #define USE_SELECT
-#endif	/* ISC_PLATFORM_HAVEKQUEUE */
+#endif	/* HAVE_KQUEUE */
 
 /*
  * Set by the -T dscp option on the command line. If set to a value
@@ -209,8 +207,8 @@ typedef enum { poll_idle, poll_active, poll_checking } pollstate_t;
  * Some systems define the socket length argument as an int, some as size_t,
  * some as socklen_t.  This is here so it can be easily changed if needed.
  */
-#ifndef ISC_SOCKADDR_LEN_T
-#define ISC_SOCKADDR_LEN_T unsigned int
+#ifndef socklen_t
+#define socklen_t unsigned int
 #endif
 
 /*%
@@ -1197,24 +1195,24 @@ make_nonblock(int fd) {
  * Note that cmsg_space() could run slow on OSes that do not have
  * CMSG_SPACE.
  */
-static inline ISC_SOCKADDR_LEN_T
-cmsg_len(ISC_SOCKADDR_LEN_T len) {
+static inline socklen_t
+cmsg_len(socklen_t len) {
 #ifdef CMSG_LEN
 	return (CMSG_LEN(len));
 #else
-	ISC_SOCKADDR_LEN_T hdrlen;
+	socklen_t hdrlen;
 
 	/*
 	 * Cast NULL so that any pointer arithmetic performed by CMSG_DATA
 	 * is correct.
 	 */
-	hdrlen = (ISC_SOCKADDR_LEN_T)CMSG_DATA(((struct cmsghdr *)NULL));
+	hdrlen = (socklen_t)CMSG_DATA(((struct cmsghdr *)NULL));
 	return (hdrlen + len);
 #endif
 }
 
-static inline ISC_SOCKADDR_LEN_T
-cmsg_space(ISC_SOCKADDR_LEN_T len) {
+static inline socklen_t
+cmsg_space(socklen_t len) {
 #ifdef CMSG_SPACE
 	return (CMSG_SPACE(len));
 #else
@@ -2276,7 +2274,7 @@ static void
 set_rcvbuf(void) {
 	int fd;
 	int max = rcvbuf, min;
-	ISC_SOCKADDR_LEN_T len;
+	socklen_t len;
 
 	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	if (fd == -1) {
@@ -2330,7 +2328,7 @@ static void
 set_sndbuf(void) {
 	int fd;
 	int max = sndbuf, min;
-	ISC_SOCKADDR_LEN_T len;
+	socklen_t len;
 
 	fd = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 #if defined(ISC_PLATFORM_HAVEIPV6)
@@ -2465,7 +2463,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	int on = 1;
 #endif
 #if defined(SO_RCVBUF) || defined(SO_SNDBUF)
-	ISC_SOCKADDR_LEN_T optlen;
+	socklen_t optlen;
 	int size = 0;
 #endif
 
@@ -3414,7 +3412,7 @@ internal_accept(isc_task_t *me, isc_event_t *ev) {
 	isc__socketmgr_t *manager;
 	isc_socket_newconnev_t *dev;
 	isc_task_t *task;
-	ISC_SOCKADDR_LEN_T addrlen;
+	socklen_t addrlen;
 	int fd;
 	isc_result_t result = ISC_R_SUCCESS;
 	char strbuf[ISC_STRERRORSIZE];
@@ -5466,7 +5464,7 @@ isc__socket_filter(isc_socket_t *sock0, const char *filter) {
  */
 static void
 set_tcp_fastopen(isc__socket_t *sock, unsigned int backlog) {
-#if defined(ISC_PLATFORM_HAVETFO) && defined(TCP_FASTOPEN)
+#if defined(ENABLE_TCP_FASTOPEN) && defined(TCP_FASTOPEN)
 	char strbuf[ISC_STRERRORSIZE];
 
 /*
@@ -5814,7 +5812,7 @@ internal_connect(isc_task_t *me, isc_event_t *ev) {
 	isc_socket_connev_t *dev;
 	int cc;
 	isc_result_t result;
-	ISC_SOCKADDR_LEN_T optlen;
+	socklen_t optlen;
 	char strbuf[ISC_STRERRORSIZE];
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 
@@ -5950,7 +5948,7 @@ isc__socket_getpeername(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
 isc_result_t
 isc__socket_getsockname(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
 	isc__socket_t *sock = (isc__socket_t *)sock0;
-	ISC_SOCKADDR_LEN_T len;
+	socklen_t len;
 	isc_result_t result;
 	char strbuf[ISC_STRERRORSIZE];
 
@@ -6306,7 +6304,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 	isc__socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
-	ISC_SOCKADDR_LEN_T len;
+	socklen_t len;
 	int xmlrc;
 
 	LOCK(&mgr->lock);
@@ -6418,7 +6416,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats) {
 	isc__socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
-	ISC_SOCKADDR_LEN_T len;
+	socklen_t len;
 	json_object *obj, *array = json_object_new_array();
 
 	CHECKMEM(array);

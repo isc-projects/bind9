@@ -67,23 +67,14 @@
 /* define on DEC OSF to enable 4.4BSD style sa_len support */
 /* #undef _SOCKADDR_LEN */
 
-/* define if your system needs pthread_init() before using pthreads */
-/* #undef NEED_PTHREAD_INIT */
-
 /* define if your system has sigwait() */
 /* #undef HAVE_SIGWAIT */
 
 /* define on Solaris to get sigwait() to work using pthreads semantics */
 /* #undef _POSIX_PTHREAD_SEMANTICS */
 
-/* define if LinuxThreads is in use */
-/* #undef HAVE_LINUXTHREADS */
-
 /* define if catgets() is available */
 /* #undef HAVE_CATGETS */
-
-/* define if you have the NET_RT_IFLIST sysctl variable. */
-#define HAVE_IFLIST_SYSCTL 1
 
 /* define if you need to #define _XPG4_2 before including sys/socket.h */
 /* #undef NEED_XPG4_2_BEFORE_SOCKET_H */
@@ -236,9 +227,6 @@ typedef __int64 off_t;
  */
 #include <versions.h>
 
-/* We actually are using the CryptAPI and not a device */
-#define PATH_RANDOMDEV		"CryptAPI"
-
 #include <stddef.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -366,6 +354,9 @@ typedef __int64 off_t;
 
 /* Large system tuning */
 @TUNE_LARGE@
+
+/* define if we can use backtrace */
+@USE_BACKTRACE@
 
 /* the default value of dnssec-validation option */
 @VALIDATION_DEFAULT@

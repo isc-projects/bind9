@@ -207,6 +207,7 @@ my @substdefh = ("AES_CC",
 		 "HAVE_DSA_GET0_PQG",
 		 "HAVE_ECDSA_SIG_GET0",
 		 "HAVE_RSA_SET0_KEY",
+		 "USE_BACKTRACE",
 		 "USE_OPENSSL",
 		 "USE_PKCS11",
                  "HAVE_PKCS11_ED25519",
@@ -219,27 +220,20 @@ my @substdefh = ("AES_CC",
                  "TUNE_LARGE",
                  "WANT_QUERYTRACE",
                  "WITH_IDN",
+		 "CPU_RELAX",
                  "VALIDATION_DEFAULT");
 
 # for platform.h
 
 my %configdefp;
 
-my @substdefp = ("ISC_PLATFORM_BUSYWAITNOP",
-                 "ISC_PLATFORM_HAVEATOMICSTORE",
-                 "ISC_PLATFORM_HAVEATOMICSTOREQ",
-                 "ISC_PLATFORM_HAVECMPXCHG",
-                 "ISC_PLATFORM_HAVEXADD",
-                 "ISC_PLATFORM_HAVEXADDQ",
-                 "ISC_PLATFORM_NEEDSTRCASESTR",
-                 "ISC_PLATFORM_USEBACKTRACE");
+my @substdefp = ();
 
 # for conf.sh
 
 my %configtest;
 
-my @substtest = ("CHECK_DSA",
-                 "CHECKDS",
+my @substtest = ("CHECKDS",
                  "COVERAGE",
                  "DNSTAP",
                  "FSTRM_CAPTURE",
@@ -576,13 +570,11 @@ if (($want_win32 eq "yes") && ($want_x64 eq "yes")) {
     $configvar{"BUILD_PLATFORM"} = "Win32";
     $configvar{"MACHINE"} = "/machine:X86";
     $configvar{"BUILD_MACHINE"} = "/machine:X86";
-    $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "__asm { rep nop }";
 } elsif ($want_x64 eq "yes") {
     $configvar{"PLATFORM"} = "x64";
     $configvar{"BUILD_PLATFORM"} = "x64";
     $configvar{"MACHINE"} = "/machine:X64";
     $configvar{"BUILD_MACHINE"} = "/machine:X64";
-    $configdefp{"ISC_PLATFORM_BUSYWAITNOP"} = "_mm_pause()";
 }
 # Standard configure variable
 $configvar{"EXEEXT"} = ".exe";
@@ -1160,11 +1152,8 @@ if ($msc_ver < 1400) {
 # backtrace for >= VS 2012
 
 if ($msc_ver >= 1700) {
-    $configdefp{"ISC_PLATFORM_USEBACKTRACE"} = 1;
+    $configdefh{"USE_BACKTRACE"} = 1;
 }
-
-# no version of MSVS supports strcasestr() yet
-$configdefp{"ISC_PLATFORM_NEEDSTRCASESTR"} = 1;
 
 # warn when cross compiling
 
@@ -1230,22 +1219,6 @@ EOF
 }
 
 # Process arguments
-
-# enable-intrinsics
-if ($enable_intrinsics eq "yes") {
-    $configcond{"ATOMIC"} = 1;
-    $configvar{"INTRINSIC"} = "true";
-    $configvar{"COPTI"} = "/Oi";
-    $configdefp{"ISC_PLATFORM_HAVEXADD"} = 1;
-    if ($want_x64 eq "yes") {
-        $configdefp{"ISC_PLATFORM_HAVEXADDQ"} = 1;
-        $configdefp{"ISC_PLATFORM_HAVEATOMICSTOREQ"} = 1;
-    }
-    $configdefp{"ISC_PLATFORM_HAVEATOMICSTORE"} = 1;
-    $configdefp{"ISC_PLATFORM_HAVECMPXCHG"} = 1;
-} else {
-    $configvar{"INTRINSIC"} = "false";
-}
 
 # enable-native-pkcs11
 if ($enable_native_pkcs11 eq "yes") {
@@ -1411,7 +1384,7 @@ if ($use_openssl eq "yes") {
             die "find more than one OpenSSL libcrypto-*.dll DLL candidate\n";
         }
         $openssl_dll = File::Spec->catdir($openssl_path, "@dirlist[0]");
-    }   
+    }
 
     $cryptolib = "openssl";
     $configvar{"OPENSSL_PATH"} = "$openssl_path";
@@ -2862,9 +2835,6 @@ sub makeinstallfile {
 }
 
 # Adjust system tests
-
-# WIN32 not a BSD
-$configtest{"CHECK_DSA"} = 0;
 
 # dnstap not supported
 #$configtest{"DNSTAP"} = "dnstap";

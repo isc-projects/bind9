@@ -458,8 +458,9 @@ AC_CHECK_HEADERS([threads.h],
 AC_C_CONST
 AC_C_INLINE
 AC_C_VOLATILE
-AC_CHECK_FUNC(sysctlbyname, AC_DEFINE(HAVE_SYSCTLBYNAME))
 AC_C_FLEXIBLE_ARRAY_MEMBER
+
+AC_CHECK_FUNCS([sysctlbyname])
 
 #
 # Check for the existence of mmap to enable the fast format zones
@@ -476,43 +477,29 @@ AC_TYPE_SIZE_T
 AC_TYPE_SSIZE_T
 AC_TYPE_UINTPTR_T
 
-AC_CHECK_TYPE(socklen_t,
-[AC_DEFINE(ISC_SOCKADDR_LEN_T, socklen_t)],
-[
-AC_TRY_COMPILE(
-[
-#include <sys/types.h>
-#include <sys/socket.h>
-int getsockname(int, struct sockaddr *, size_t *);
-],[],
-[AC_DEFINE(ISC_SOCKADDR_LEN_T, size_t)],
-[AC_DEFINE(ISC_SOCKADDR_LEN_T, int)])
-],
-[
-#include <sys/types.h>
-#include <sys/socket.h>
-])
-AC_SUBST(ISC_SOCKADDR_LEN_T)
 AC_HEADER_TIME
 
 #
 # check for uname library routine
 #
-AC_MSG_CHECKING(for uname)
-AC_TRY_COMPILE([
-#include <sys/utsname.h>
-#include <stdio.h>
-],
-[
-struct utsname uts;
-uname(&uts);
-printf("running on %s %s %s for %s\n",
-       uts.sysname, uts.release, uts.version, uts.machine);
-],
-	[AC_MSG_RESULT(yes)
-	 AC_DEFINE(HAVE_UNAME)],
-	[AC_MSG_RESULT(no)
-	 AC_MSG_WARN([uname is not correctly supported])])
+AC_MSG_CHECKING([for uname])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <sys/utsname.h>
+       #include <stdio.h>
+      ]],
+     [[
+       struct utsname uts;
+       uname(&uts);
+       printf("running on %s %s %s for %s\n",
+	      uts.sysname, uts.release, uts.version, uts.machine);
+     ]])],
+  [AC_MSG_RESULT(yes)
+   AC_DEFINE([HAVE_UNAME], [1], [define if uname is available])
+  ],
+  [AC_MSG_RESULT(no)
+   AC_MSG_WARN([uname is not correctly supported])
+  ])
 
 #
 # check for GCC noreturn attribute
@@ -529,141 +516,37 @@ AC_SUBST(ISC_PLATFORM_NORETURN_PRE)
 AC_SUBST(ISC_PLATFORM_NORETURN_POST)
 
 #
-# check if we have lifconf
-#
-AC_MSG_CHECKING(for struct lifconf)
-AC_TRY_COMPILE([
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <net/if.h>
-],
-[
-struct lifconf lifconf;
-lifconf.lifc_len = 0;
-]
-,
-	[AC_MSG_RESULT(yes)
-		ISC_PLATFORM_HAVELIFCONF="#define ISC_PLATFORM_HAVELIFCONF 1"],
-	[AC_MSG_RESULT(no)
-		ISC_PLATFORM_HAVELIFCONF="#undef ISC_PLATFORM_HAVELIFCONF"])
-AC_SUBST(ISC_PLATFORM_HAVELIFCONF)
-
-#
 # check if we have kqueue
 #
-AC_ARG_ENABLE(kqueue,
-	      AS_HELP_STRING([--enable-kqueue],
-			     [use BSD kqueue when available [default=yes]]),
-	      want_kqueue="$enableval",  want_kqueue="yes")
-case $want_kqueue in
-yes)
-	AC_CHECK_FUNC(kqueue, ac_cv_have_kqueue=yes, ac_cv_have_kqueue=no)
-	case $ac_cv_have_kqueue in
-	yes)
-		ISC_PLATFORM_HAVEKQUEUE="#define ISC_PLATFORM_HAVEKQUEUE 1"
-		;;
-	*)
-		ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
-		;;
-	esac
-	;;
-*)
-	ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_HAVEKQUEUE)
+AC_ARG_ENABLE([kqueue],
+	      [AS_HELP_STRING([--enable-kqueue],
+			      [use BSD kqueue when available [default=yes]])],
+	      [], enable_kqueue="yes")
+
+AS_IF([test "$enable_kqueue" = "yes"],
+      [AC_CHECK_FUNCS([kqueue])])
 
 #
 # check if we have epoll.  Linux kernel 2.4 has epoll_create() which fails,
 # so we need to try running the code, not just test its existence.
 #
-AC_ARG_ENABLE(epoll,
-	      AS_HELP_STRING([--enable-epoll],
-			     [use Linux epoll when available [default=auto]]),
-	      want_epoll="$enableval",  want_epoll="auto")
-case $want_epoll in
-auto)
-	AC_MSG_CHECKING(epoll support)
-	AC_TRY_RUN([
-#include <sys/epoll.h>
-int main() {
-	if (epoll_create(1) < 0)
-		return (1);
-	return (0);
-}
-],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"])
-	;;
-yes)
-	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"
-	;;
-*)
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_HAVEEPOLL)
+AC_ARG_ENABLE([epoll],
+	      [AS_HELP_STRING([--enable-epoll],
+			      [use Linux epoll when available [default=auto]])],
+	      [], [enable_epoll="yes"])
+
+AS_IF([test "$enable_epoll" = "yes"],
+      [AC_CHECK_FUNCS([epoll_create1])])
 
 #
 # check if we support /dev/poll
 #
-AC_ARG_ENABLE(devpoll,
-	      AS_HELP_STRING([--enable-devpoll],
-			     [use /dev/poll when available [default=yes]]),
-	      want_devpoll="$enableval",  want_devpoll="yes")
-case $want_devpoll in
-yes)
-	AC_CHECK_HEADERS(sys/devpoll.h devpoll.h,
-	ISC_PLATFORM_HAVEDEVPOLL="#define ISC_PLATFORM_HAVEDEVPOLL 1"
-	,
-	ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
-	)
-	;;
-*)
-	ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_HAVEDEVPOLL)
-
-#
-# check if we need to #include sys/select.h explicitly
-#
-case $ac_cv_header_unistd_h in
-yes)
-AC_MSG_CHECKING(if unistd.h or sys/types.h defines fd_set)
-AC_TRY_COMPILE([
-#include <sys/types.h> /* Ultrix */
-#include <unistd.h>],
-[fd_set read_set; return (0);],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"],
-	[AC_MSG_RESULT(no)
-	case $ac_cv_header_sys_select_h in
-	yes)
-	 ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		AC_MSG_ERROR([need either working unistd.h or sys/select.h])
-		;;
-	esac
-	])
-	;;
-no)
-	case $ac_cv_header_sys_select_h in
-	yes)
-	     ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		AC_MSG_ERROR([need either unistd.h or sys/select.h])
-		;;
-	esac
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_NEEDSYSSELECTH)
+AC_ARG_ENABLE([devpoll],
+	      [AS_HELP_STRING([--enable-devpoll],
+			      [use /dev/poll when available [default=yes]])],
+	      [], [enable_devpoll="yes"])
+AS_IF([test "$enable_devpoll" = "yes"],
+      [AC_CHECK_HEADERS([sys/devpoll.h devpoll.h])])
 
 #
 # Find the machine's endian flavor.
@@ -767,22 +650,6 @@ esac
 AC_SUBST(GEOIPLINKSRCS)
 AC_SUBST(GEOIPLINKOBJS)
 
-# XXXOND: Change this to deterministic DSA generation
-#
-# Only check dsa signature generation on these platforms when performing
-# system tests.
-#
-CHECK_DSA=0
-if grep "#define PATH_RANDOMDEV " confdefs.h > /dev/null
-then
-	case "$host" in
-	*darwin*|*freebsd*)
-		CHECK_DSA=1
-		;;
-	esac
-fi
-AC_SUBST(CHECK_DSA)
-
 #
 # Do we have arc4random(), etc ?
 #
@@ -834,34 +701,6 @@ AC_CHECK_HEADERS([sched.h])
 AC_SEARCH_LIBS([sched_yield],[rt])
 AC_CHECK_FUNCS([sched_yield pthread_yield pthread_yield_np])
 
-#
-# Additional OS-specific issues related to pthreads and sigwait.
-#
-case "$host" in
-	#
-	# One more place to look for sigwait.
-	#
-	*-freebsd*)
-		AC_CHECK_LIB(c_r, sigwait, AC_DEFINE(HAVE_SIGWAIT),)
-		case $host in
-		*-freebsd5.[[012]]|*-freebsd5.[[012]].*);;
-		*-freebsd5.[[3456789]]|*-freebsd5.[[3456789]].*)
-			AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
-			;;
-		*-freebsd6.*)
-			AC_DEFINE(NEED_PTHREAD_SCOPE_SYSTEM)
-			;;
-		esac
-		;;
-	#
-	# LinuxThreads requires some changes to the way we
-	# deal with signals.
-	#
-	*-linux*)
-		AC_DEFINE(HAVE_LINUXTHREADS)
-		;;
-esac
-
 # Look for functions relating to thread naming
 AC_CHECK_FUNCS([pthread_setname_np pthread_set_name_np])
 AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
@@ -869,7 +708,7 @@ AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 #
 # Look for sysconf to allow detection of the number of processors.
 #
-AC_CHECK_FUNC(sysconf, AC_DEFINE(HAVE_SYSCONF),)
+AC_CHECK_FUNCS([sysconf])
 
 AC_SUBST(ALWAYS_DEFINES)
 
@@ -1638,14 +1477,6 @@ AC_SUBST(ZLIB)
 AC_CHECK_LIB(scf, smf_enable_instance)
 
 #
-# flockfile is usually provided by pthreads, but we may want to use it
-# even if compiled with --disable-threads.  getc_unlocked might also not
-# be defined.
-#
-AC_CHECK_FUNC(flockfile, AC_DEFINE(HAVE_FLOCKFILE),)
-AC_CHECK_FUNC(getc_unlocked, AC_DEFINE(HAVE_GETCUNLOCKED),)
-
-#
 # Large File
 #
 AC_ARG_ENABLE(largefile,
@@ -1714,7 +1545,7 @@ AC_SUBST(MKDEPPROG)
 #
 # NLS
 #
-AC_CHECK_FUNC(catgets, AC_DEFINE(HAVE_CATGETS),)
+AC_CHECK_FUNCS([catgets])
 
 #
 # -lxnet buys us one big porting headache...  standards, gotta love 'em.
@@ -1811,22 +1642,20 @@ esac
 # enable/disable dumping stack backtrace.  Also check if the system supports
 # glibc-compatible backtrace() function.
 #
-AC_ARG_ENABLE(backtrace,
-	      AS_HELP_STRING([--enable-backtrace],
-			     [log stack backtrace on abort [default=yes]]),
-	      want_backtrace="$enableval",  want_backtrace="yes")
-case $want_backtrace in
-yes)
-	ISC_PLATFORM_USEBACKTRACE="#define ISC_PLATFORM_USEBACKTRACE 1"
-	AC_TRY_LINK([#include <execinfo.h>],
-	[return (backtrace((void **)0, 0));],
-	[AC_DEFINE([HAVE_LIBCTRACE], [], [if system have backtrace function])],)
-	;;
-*)
-	ISC_PLATFORM_USEBACKTRACE="#undef ISC_PLATFORM_USEBACKTRACE"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_USEBACKTRACE)
+AC_ARG_ENABLE([backtrace],
+	      [AS_HELP_STRING([--enable-backtrace],
+			      [log stack backtrace on abort [default=yes]])],
+	      [], [enable_backtrace="yes"])
+
+AS_IF([test "$enable_backtrace" = "yes"],
+      [AC_DEFINE([USE_BACKTRACE], [1], [define if we can use backtrace])
+       AC_LINK_IFELSE(
+	 [AC_LANG_PROGRAM(
+	    [[#include <execinfo.h>]],
+	    [[return (backtrace((void **)0, 0));]]
+	  )],
+	 [AC_DEFINE([HAVE_LIBCTRACE], [1], [define if system have backtrace function])]
+       )])
 
 AC_ARG_ENABLE(symtable,
 	      AS_HELP_STRING([--enable-symtable],
@@ -1916,74 +1745,24 @@ AC_COMPILE_IFELSE(
   [AC_MSG_RESULT([yes])],
   [AC_MSG_FAILURE([IPv6 support is mandatory])])
 
-AC_MSG_CHECKING([for struct if_laddrreq])
-AC_TRY_LINK([
-#include <sys/types.h>
-#include <net/if6.h>
-],[ struct if_laddrreq a; ],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVEIF_LADDRREQ="#define ISC_PLATFORM_HAVEIF_LADDRREQ 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEIF_LADDRREQ="#undef ISC_PLATFORM_HAVEIF_LADDRREQ"])
-AC_SUBST(ISC_PLATFORM_HAVEIF_LADDRREQ)
-
-AC_MSG_CHECKING([for struct if_laddrconf])
-AC_TRY_LINK([
-#include <sys/types.h>
-#include <net/if6.h>
-],[ struct if_laddrconf a; ],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVEIF_LADDRCONF="#define ISC_PLATFORM_HAVEIF_LADDRCONF 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVEIF_LADDRCONF="#undef ISC_PLATFORM_HAVEIF_LADDRCONF"])
-AC_SUBST(ISC_PLATFORM_HAVEIF_LADDRCONF)
-
 #
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
 # comment in lib/isc/unix/socket.c).
 #
 
-AC_ARG_ENABLE(tcp_fastopen,
-	      AS_HELP_STRING([--disable-tcp-fastopen],
-		     [disable TCP Fast Open support [default=autodetect]]))
+AC_ARG_ENABLE([tcp_fastopen],
+	      [AS_HELP_STRING([--disable-tcp-fastopen],
+			      [disable TCP Fast Open support [default=yes]])],
+	     [], [enable_tcp_fastopen="yes"])
 
-AC_MSG_CHECKING(for TCP_FASTOPEN socket option)
-case "$enable_tcp_fastopen" in
-yes|''|autodetect)
-	AC_EGREP_CPP(has_tfo, [
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/tcp.h>
-#ifdef TCP_FASTOPEN
-int has_tfo() { return (0); }
-#endif
-],
-		[AC_MSG_RESULT(yes)
-		ISC_PLATFORM_HAVETFO="#define ISC_PLATFORM_HAVETFO 1"],
-		[AC_MSG_RESULT(no)
-		ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"])
-
-		;;
-	no)
-		AC_MSG_RESULT(disabled)
-		ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"
-		;;
-esac
-AC_SUBST(ISC_PLATFORM_HAVETFO)
+AS_IF([test "$enable_tcp_fastopen" = "yes"],
+      [AC_DEFINE([ENABLE_TCP_FASTOPEN], [1], [define if you want TCP_FASTOPEN enabled if available])])
 
 #
 # Check for some other useful functions that are not ever-present.
 #
-AC_CHECK_FUNC(strlcpy,
-	[ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"],
-	[ISC_PLATFORM_NEEDSTRLCPY="#define ISC_PLATFORM_NEEDSTRLCPY 1"])
-AC_SUBST(ISC_PLATFORM_NEEDSTRLCPY)
-
-AC_CHECK_FUNC(strlcat,
-	[ISC_PLATFORM_NEEDSTRLCAT="#undef ISC_PLATFORM_NEEDSTRLCAT"],
-	[ISC_PLATFORM_NEEDSTRLCAT="#define ISC_PLATFORM_NEEDSTRLCAT 1"])
-AC_SUBST(ISC_PLATFORM_NEEDSTRLCAT)
+AC_CHECK_FUNCS([strlcpy strlcat])
 
 AC_SUBST(READLINE_LIB)
 AC_ARG_WITH(readline,
@@ -2112,8 +1891,6 @@ AS_IF([test "$enable_linux_caps" = "yes"],
       [AC_MSG_RESULT([no])])
 AC_SUBST([LIBCAP_LIBS])
 
-AC_CHECK_HEADERS(sys/prctl.h)
-
 AC_CHECK_HEADERS(sys/un.h,
 ISC_PLATFORM_HAVESYSUNH="#define ISC_PLATFORM_HAVESYSUNH 1"
 ,
@@ -2131,7 +1908,7 @@ esac
 #
 # Time Zone Stuff
 #
-AC_CHECK_FUNC(tzset, AC_DEFINE(HAVE_TZSET))
+AC_CHECK_FUNCS([tzset])
 
 AC_MSG_CHECKING(for optarg declaration)
 AC_TRY_COMPILE([
@@ -2146,51 +1923,19 @@ AC_DEFINE(NEED_OPTARG, 1, [Defined if extern char *optarg is not declared.])])
 #
 # Check for nanoseconds in file stats
 #
-AC_MSG_CHECKING(st_mtim.tv_nsec)
-AC_TRY_COMPILE([#include <sys/fcntl.h>],[struct stat s; return(s.st_mtim.tv_nsec);],
-	[AC_MSG_RESULT(yes)
-	ISC_PLATFORM_HAVESTATNSEC="#define ISC_PLATFORM_HAVESTATNSEC 1"],
-	[AC_MSG_RESULT(no)
-	ISC_PLATFORM_HAVESTATNSEC="#undef ISC_PLATFORM_HAVESTATNSEC"])
-AC_SUBST(ISC_PLATFORM_HAVESTATNSEC)
-
-#
-# Microsoft has their own way of handling shared libraries that requires
-# additional qualifiers on extern variables.  Unix systems don't need it.
-#
-AC_SUBST(ISC_PLATFORM_USEDECLSPEC)
-ISC_PLATFORM_USEDECLSPEC="#undef ISC_PLATFORM_USEDECLSPEC"
-AC_SUBST(IRS_PLATFORM_USEDECLSPEC)
-IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
-
-#
-# Random remaining OS-specific issues involving compiler warnings.
-# XXXDCL print messages to indicate some compensation is being done?
-#
-
-AC_CHECK_HEADERS(strings.h,
-  ISC_PLATFORM_HAVESTRINGSH="#define ISC_PLATFORM_HAVESTRINGSH 1"
-,
-  ISC_PLATFORM_HAVESTRINGSH="#undef ISC_PLATFORM_HAVESTRINGSH"
-)
-AC_SUBST(ISC_PLATFORM_HAVESTRINGSH)
+AC_MSG_CHECKING([for st_mtim.tv_nsec])
+AC_COMPILE_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[#include <sys/fcntl.h>]],
+     [[struct stat s;
+       return(s.st_mtim.tv_nsec);
+      ]])],
+   [AC_DEFINE([HAVE_STAT_NSEC], [1], [define if struct stat has st_mtim.tv_nsec field])])
 
 #
 # Check for if_nametoindex() for IPv6 scoped addresses support
 #
-AC_CHECK_FUNC(if_nametoindex, ac_cv_have_if_nametoindex=yes,
-		ac_cv_have_if_nametoindex=no)
-case $ac_cv_have_if_nametoindex in
-yes)
-	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
-	AC_DEFINE(HAVE_IF_NAMETOINDEX, 1,
-	[Define to 1 if you have the if_nametoindex function.])
-	;;
-*)
-	ISC_PLATFORM_HAVEIFNAMETOINDEX="#undef ISC_PLATFORM_HAVEIFNAMETOINDEX"
-	;;
-esac
-AC_SUBST(ISC_PLATFORM_HAVEIFNAMETOINDEX)
+AC_CHECK_FUNCS([if_nametoindex])
 
 AC_CHECK_FUNCS(nanosleep usleep explicit_bzero)
 
@@ -2276,55 +2021,6 @@ AC_TRY_LINK(, [
 if test "yes" = "$have_builtin_clz"; then
 	AC_DEFINE(HAVE_BUILTIN_CLZ, 1, [Define to 1 if the compiler supports __builtin_clz.])
 fi
-
-#
-# CPU relax (for spin locks)
-#
-case "$host" in
-[i[3456]86-*])
-	# x86_32
-	AC_MSG_CHECKING([if asm("rep; nop"); works])
-	AC_TRY_COMPILE(,[asm("rep; nop");],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"],
-	[AC_MSG_RESULT(no)],
-	[AC_MSG_RESULT([cross compile, assume yes])
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"])
-	;;
-x86_64-*|amd64-*)
-	# x86_64
-	AC_MSG_CHECKING([if asm("rep; nop"); works])
-	AC_TRY_COMPILE(,[asm("rep; nop");],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"],
-	[AC_MSG_RESULT(no)],
-	[AC_MSG_RESULT([cross compile, assume yes])
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"])
-	;;
-ia64-*)
-	# ia64
-	AC_MSG_CHECKING([if asm("hint @pause"); works])
-	AC_TRY_COMPILE(,[asm("hint @pause");],
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"hint @pause\")"],
-	[AC_MSG_RESULT(no)],
-	[AC_MSG_RESULT([cross compile, assume yes])
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"hint @pause\")"])
-	;;
-sparc-*)
-	# sparc
-	AC_MSG_CHECKING([if cpu_relax(); or __cpu_relax(); works])
-	AC_CHECK_FUNC(cpu_relax,
-	[AC_MSG_RESULT(yes)
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP cpu_relax()"],
-	 [AC_CHECK_FUNC(__cpu_relax,
-	  [AC_MSG_RESULT(yes)
-	   ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP __cpu_relax()"],
-	   [AC_MSG_RESULT(no)])])
-	;;
-esac
-
-AC_SUBST(ISC_PLATFORM_BUSYWAITNOP)
 
 #
 # Activate "rrset-order fixed" or not?
@@ -3329,7 +3025,6 @@ AC_CONFIG_FILES([
 	bin/tests/system/dlzexternal/ns1/dlzs.conf
 	bin/tests/system/dyndb/Makefile
 	bin/tests/system/dyndb/driver/Makefile
-	bin/tests/system/inline/checkdsa.sh
 	bin/tests/system/pipelined/Makefile
 	bin/tests/system/rndc/Makefile
 	bin/tests/system/rpz/Makefile

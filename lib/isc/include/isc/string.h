@@ -20,18 +20,14 @@
 
 ISC_LANG_BEGINDECLS
 
+#if !defined(HAVE_STRLCPY)
 size_t
-isc_string_strlcpy(char *dst, const char *src, size_t size);
+strlcpy(char *dst, const char *src, size_t size);
+#endif /* !defined(HAVE_STRLCPY) */
 
-#ifdef ISC_PLATFORM_NEEDSTRLCPY
-#define strlcpy isc_string_strlcpy
-#endif
-
+#if !defined(HAVE_STRLCAT)
 size_t
-isc_string_strlcat(char *dst, const char *src, size_t size);
-
-#ifdef ISC_PLATFORM_NEEDSTRLCAT
-#define strlcat isc_string_strlcat
+strlcat(char *dst, const char *src, size_t size);
 #endif
 
 int

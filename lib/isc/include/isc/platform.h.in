@@ -33,78 +33,8 @@
 #define ISC_STRERRORSIZE 128
 
 /***
- *** Network.
- ***/
-
-/*! \brief
- * Define if the system has struct lifconf which is a extended struct ifconf
- * for IPv6.
- */
-@ISC_PLATFORM_HAVELIFCONF@
-
-/*! \brief
- * Define if the system has struct if_laddrconf which is a extended struct
- * ifconf for IPv6.
- */
-@ISC_PLATFORM_HAVEIF_LADDRCONF@
-
-/*! \brief
- * Define if the system has struct if_laddrreq.
- */
-@ISC_PLATFORM_HAVEIF_LADDRREQ@
-
-/*! \brief
- * Define if the system supports if_nametoindex.
- */
-@ISC_PLATFORM_HAVEIFNAMETOINDEX@
-
-/*! \brief
- * Define if the system has TCP_FASTOPEN socket option.
- */
-@ISC_PLATFORM_HAVETFO@
-
-/*! \brief
- * Define if the system supports kqueue multiplexing
- */
-@ISC_PLATFORM_HAVEKQUEUE@
-
-/*! \brief
- * Define if the system supports epoll multiplexing
- */
-@ISC_PLATFORM_HAVEEPOLL@
-
-/*! \brief
- * Define if the system supports /dev/poll multiplexing
- */
-@ISC_PLATFORM_HAVEDEVPOLL@
-
-/*! \brief
- * Define if we want to log backtrace
- */
-@ISC_PLATFORM_USEBACKTRACE@
-
-/*
- *** Printing.
- ***/
-
-/*
- * If the system needs strlcpy(), ISC_PLATFORM_NEEDSTRLCPY will be defined.
- */
-@ISC_PLATFORM_NEEDSTRLCPY@
-
-/*
- * If the system needs strlcat(), ISC_PLATFORM_NEEDSTRLCAT will be defined.
- */
-@ISC_PLATFORM_NEEDSTRLCAT@
-
-/***
  *** Miscellaneous.
  ***/
-
-/*
- * Defined if unistd.h does not cause fd_set to be delared.
- */
-@ISC_PLATFORM_NEEDSYSSELECTH@
 
 /*
  * Defined to <gssapi.h> or <gssapi/gssapi.h> for how to include
@@ -125,29 +55,9 @@
 @ISC_PLATFORM_KRB5HEADER@
 
 /*
- * Define if the system has nanosecond-level accuracy in file stats.
- */
-@ISC_PLATFORM_HAVESTATNSEC@
-
-/*
- * Used to control how extern data is linked; needed for Win32 platforms.
- */
-@ISC_PLATFORM_USEDECLSPEC@
-
-/*
  * Define if the platform has <sys/un.h>.
  */
 @ISC_PLATFORM_HAVESYSUNH@
-
-/*
- * Define with the busy wait nop asm or function call.
- */
-@ISC_PLATFORM_BUSYWAITNOP@
-
-/*
- * Define if the platform has <strings.h>.
- */
-@ISC_PLATFORM_HAVESTRINGSH@
 
 /*
  * Defines for the noreturn attribute.
@@ -159,7 +69,6 @@
  ***	Windows dll support.
  ***/
 
-#ifndef ISC_PLATFORM_USEDECLSPEC
 #define LIBISC_EXTERNAL_DATA
 #define LIBDNS_EXTERNAL_DATA
 #define LIBISCCC_EXTERNAL_DATA
@@ -167,43 +76,6 @@
 #define LIBNS_EXTERNAL_DATA
 #define LIBBIND9_EXTERNAL_DATA
 #define LIBTESTS_EXTERNAL_DATA
-#else /*! \brief ISC_PLATFORM_USEDECLSPEC */
-#ifdef LIBISC_EXPORTS
-#define LIBISC_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBISC_EXTERNAL_DATA __declspec(dllimport)
-#endif
-#ifdef LIBDNS_EXPORTS
-#define LIBDNS_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBDNS_EXTERNAL_DATA __declspec(dllimport)
-#endif
-#ifdef LIBISCCC_EXPORTS
-#define LIBISCCC_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBISCCC_EXTERNAL_DATA __declspec(dllimport)
-#endif
-#ifdef LIBISCCFG_EXPORTS
-#define LIBISCCFG_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBISCCFG_EXTERNAL_DATA __declspec(dllimport)
-#endif
-#ifdef LIBNS_EXPORTS
-#define LIBNS_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBNS_EXTERNAL_DATA __declspec(dllimport)
-#endif
-#ifdef LIBBIND9_EXPORTS
-#define LIBBIND9_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBBIND9_EXTERNAL_DATA __declspec(dllimport)
-#endif
-#ifdef LIBTESTS_EXPORTS
-#define LIBTESTS_EXTERNAL_DATA __declspec(dllexport)
-#else
-#define LIBTESTS_EXTERNAL_DATA __declspec(dllimport)
-#endif
-#endif /*! \brief ISC_PLATFORM_USEDECLSPEC */
 
 /*
  * Tell emacs to use C mode for this file.

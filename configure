@@ -706,23 +706,12 @@ DNSTAPSRCS
 DNSTAP
 FSTRM_CAPTURE
 PROTOC_C
-ISC_PLATFORM_BUSYWAITNOP
-ISC_PLATFORM_HAVEIFNAMETOINDEX
-ISC_PLATFORM_HAVESTRINGSH
-IRS_PLATFORM_USEDECLSPEC
-ISC_PLATFORM_USEDECLSPEC
-ISC_PLATFORM_HAVESTATNSEC
 ISC_PLATFORM_HAVESYSUNH
 LIBCAP_LIBS
 DST_EXTRA_SRCS
 DST_EXTRA_OBJS
 USE_ISC_SPNEGO
 READLINE_LIB
-ISC_PLATFORM_NEEDSTRLCAT
-ISC_PLATFORM_NEEDSTRLCPY
-ISC_PLATFORM_HAVETFO
-ISC_PLATFORM_HAVEIF_LADDRCONF
-ISC_PLATFORM_HAVEIF_LADDRREQ
 BIND9_CO_RULE
 LIBTOOL_MODE_UNINSTALL
 LIBTOOL_MODE_LINK
@@ -734,7 +723,6 @@ A
 O
 ALWAYS_MAKE_SYMTABLE
 MKSYMTBL_PROGRAM
-ISC_PLATFORM_USEBACKTRACE
 PURIFY
 purify_path
 MKDEPPROG
@@ -767,17 +755,10 @@ PTHREAD_CFLAGS
 PTHREAD_LIBS
 PTHREAD_CC
 ax_pthread_config
-CHECK_DSA
 GEOIPLINKOBJS
 GEOIPLINKSRCS
-ISC_PLATFORM_NEEDSYSSELECTH
-ISC_PLATFORM_HAVEDEVPOLL
-ISC_PLATFORM_HAVEEPOLL
-ISC_PLATFORM_HAVEKQUEUE
-ISC_PLATFORM_HAVELIFCONF
 ISC_PLATFORM_NORETURN_POST
 ISC_PLATFORM_NORETURN_PRE
-ISC_SOCKADDR_LEN_T
 expanded_sysconfdir
 PYTHON_INSTALL_LIB
 PYTHON_INSTALL_DIR
@@ -1619,7 +1600,7 @@ Optional Features:
   --enable-backtrace      log stack backtrace on abort [default=yes]
   --enable-symtable       use internal symbol table for backtrace
                           [all|minimal(default)|none]
-  --disable-tcp-fastopen  disable TCP Fast Open support [default=autodetect]
+  --disable-tcp-fastopen  disable TCP Fast Open support [default=yes]
   --disable-isc-spnego    use SPNEGO from GSSAPI library
   --disable-chroot        disable chroot
   --disable-linux-caps    disable Linux capabilities
@@ -13592,12 +13573,6 @@ $as_echo "#define volatile /**/" >>confdefs.h
 
 fi
 
-ac_fn_c_check_func "$LINENO" "sysctlbyname" "ac_cv_func_sysctlbyname"
-if test "x$ac_cv_func_sysctlbyname" = xyes; then :
-  $as_echo "#define HAVE_SYSCTLBYNAME 1" >>confdefs.h
-
-fi
-
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for flexible array members" >&5
 $as_echo_n "checking for flexible array members... " >&6; }
@@ -13639,6 +13614,18 @@ $as_echo "#define FLEXIBLE_ARRAY_MEMBER /**/" >>confdefs.h
     $as_echo "#define FLEXIBLE_ARRAY_MEMBER 1" >>confdefs.h
 
   fi
+
+
+for ac_func in sysctlbyname
+do :
+  ac_fn_c_check_func "$LINENO" "sysctlbyname" "ac_cv_func_sysctlbyname"
+if test "x$ac_cv_func_sysctlbyname" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYSCTLBYNAME 1
+_ACEOF
+
+fi
+done
 
 
 #
@@ -13744,43 +13731,6 @@ fi
 
 
 
-ac_fn_c_check_type "$LINENO" "socklen_t" "ac_cv_type_socklen_t" "
-#include <sys/types.h>
-#include <sys/socket.h>
-
-"
-if test "x$ac_cv_type_socklen_t" = xyes; then :
-  $as_echo "#define ISC_SOCKADDR_LEN_T socklen_t" >>confdefs.h
-
-else
-
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-int getsockname(int, struct sockaddr *, size_t *);
-
-int
-main ()
-{
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  $as_echo "#define ISC_SOCKADDR_LEN_T size_t" >>confdefs.h
-
-else
-  $as_echo "#define ISC_SOCKADDR_LEN_T int" >>confdefs.h
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-fi
-
-
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether time.h and sys/time.h may both be included" >&5
 $as_echo_n "checking whether time.h and sys/time.h may both be included... " >&6; }
 if ${ac_cv_header_time+:} false; then :
@@ -13824,18 +13774,17 @@ fi
 $as_echo_n "checking for uname... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-
 #include <sys/utsname.h>
-#include <stdio.h>
+       #include <stdio.h>
 
 int
 main ()
 {
 
-struct utsname uts;
-uname(&uts);
-printf("running on %s %s %s for %s\n",
-       uts.sysname, uts.release, uts.version, uts.machine);
+       struct utsname uts;
+       uname(&uts);
+       printf("running on %s %s %s for %s\n",
+	      uts.sysname, uts.release, uts.version, uts.machine);
 
   ;
   return 0;
@@ -13844,13 +13793,16 @@ _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	 $as_echo "#define HAVE_UNAME 1" >>confdefs.h
+
+$as_echo "#define HAVE_UNAME 1" >>confdefs.h
+
 
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	 { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: uname is not correctly supported" >&5
+   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: uname is not correctly supported" >&5
 $as_echo "$as_me: WARNING: uname is not correctly supported" >&2;}
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
@@ -13886,74 +13838,29 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 
 #
-# check if we have lifconf
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct lifconf" >&5
-$as_echo_n "checking for struct lifconf... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <net/if.h>
-
-int
-main ()
-{
-
-struct lifconf lifconf;
-lifconf.lifc_len = 0;
-
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-		ISC_PLATFORM_HAVELIFCONF="#define ISC_PLATFORM_HAVELIFCONF 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		ISC_PLATFORM_HAVELIFCONF="#undef ISC_PLATFORM_HAVELIFCONF"
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
 # check if we have kqueue
 #
 # Check whether --enable-kqueue was given.
 if test "${enable_kqueue+set}" = set; then :
-  enableval=$enable_kqueue; want_kqueue="$enableval"
+  enableval=$enable_kqueue;
 else
-  want_kqueue="yes"
+  enable_kqueue="yes"
 fi
 
-case $want_kqueue in
-yes)
-	ac_fn_c_check_func "$LINENO" "kqueue" "ac_cv_func_kqueue"
+
+if test "$enable_kqueue" = "yes"; then :
+  for ac_func in kqueue
+do :
+  ac_fn_c_check_func "$LINENO" "kqueue" "ac_cv_func_kqueue"
 if test "x$ac_cv_func_kqueue" = xyes; then :
-  ac_cv_have_kqueue=yes
-else
-  ac_cv_have_kqueue=no
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_KQUEUE 1
+_ACEOF
+
 fi
+done
 
-	case $ac_cv_have_kqueue in
-	yes)
-		ISC_PLATFORM_HAVEKQUEUE="#define ISC_PLATFORM_HAVEKQUEUE 1"
-		;;
-	*)
-		ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
-		;;
-	esac
-	;;
-*)
-	ISC_PLATFORM_HAVEKQUEUE="#undef ISC_PLATFORM_HAVEKQUEUE"
-	;;
-esac
-
+fi
 
 #
 # check if we have epoll.  Linux kernel 2.4 has epoll_create() which fails,
@@ -13961,67 +13868,38 @@ esac
 #
 # Check whether --enable-epoll was given.
 if test "${enable_epoll+set}" = set; then :
-  enableval=$enable_epoll; want_epoll="$enableval"
+  enableval=$enable_epoll;
 else
-  want_epoll="auto"
+  enable_epoll="yes"
 fi
 
-case $want_epoll in
-auto)
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking epoll support" >&5
-$as_echo_n "checking epoll support... " >&6; }
-	if test "$cross_compiling" = yes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"
-else
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
 
-#include <sys/epoll.h>
-int main() {
-	if (epoll_create(1) < 0)
-		return (1);
-	return (0);
-}
-
+if test "$enable_epoll" = "yes"; then :
+  for ac_func in epoll_create1
+do :
+  ac_fn_c_check_func "$LINENO" "epoll_create1" "ac_cv_func_epoll_create1"
+if test "x$ac_cv_func_epoll_create1" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_EPOLL_CREATE1 1
 _ACEOF
-if ac_fn_c_try_run "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"
-fi
-rm -f core *.core core.conftest.* gmon.out bb.out conftest$ac_exeext \
-  conftest.$ac_objext conftest.beam conftest.$ac_ext
-fi
 
-	;;
-yes)
-	ISC_PLATFORM_HAVEEPOLL="#define ISC_PLATFORM_HAVEEPOLL 1"
-	;;
-*)
-	ISC_PLATFORM_HAVEEPOLL="#undef ISC_PLATFORM_HAVEEPOLL"
-	;;
-esac
+fi
+done
 
+fi
 
 #
 # check if we support /dev/poll
 #
 # Check whether --enable-devpoll was given.
 if test "${enable_devpoll+set}" = set; then :
-  enableval=$enable_devpoll; want_devpoll="$enableval"
+  enableval=$enable_devpoll;
 else
-  want_devpoll="yes"
+  enable_devpoll="yes"
 fi
 
-case $want_devpoll in
-yes)
-	for ac_header in sys/devpoll.h devpoll.h
+if test "$enable_devpoll" = "yes"; then :
+  for ac_header in sys/devpoll.h devpoll.h
 do :
   as_ac_Header=`$as_echo "ac_cv_header_$ac_header" | $as_tr_sh`
 ac_fn_c_check_header_mongrel "$LINENO" "$ac_header" "$as_ac_Header" "$ac_includes_default"
@@ -14029,73 +13907,12 @@ if eval test \"x\$"$as_ac_Header"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_header" | $as_tr_cpp` 1
 _ACEOF
- ISC_PLATFORM_HAVEDEVPOLL="#define ISC_PLATFORM_HAVEDEVPOLL 1"
-
-else
-  ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
 
 fi
 
 done
 
-	;;
-*)
-	ISC_PLATFORM_HAVEDEVPOLL="#undef ISC_PLATFORM_HAVEDEVPOLL"
-	;;
-esac
-
-
-#
-# check if we need to #include sys/select.h explicitly
-#
-case $ac_cv_header_unistd_h in
-yes)
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if unistd.h or sys/types.h defines fd_set" >&5
-$as_echo_n "checking if unistd.h or sys/types.h defines fd_set... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h> /* Ultrix */
-#include <unistd.h>
-int
-main ()
-{
-fd_set read_set; return (0);
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_NEEDSYSSELECTH="#undef ISC_PLATFORM_NEEDSYSSELECTH"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	case $ac_cv_header_sys_select_h in
-	yes)
-	 ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		as_fn_error $? "need either working unistd.h or sys/select.h" "$LINENO" 5
-		;;
-	esac
-
 fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	;;
-no)
-	case $ac_cv_header_sys_select_h in
-	yes)
-	     ISC_PLATFORM_NEEDSYSSELECTH="#define ISC_PLATFORM_NEEDSYSSELECTH 1"
-		;;
-	no)
-		as_fn_error $? "need either unistd.h or sys/select.h" "$LINENO" 5
-		;;
-	esac
-	;;
-esac
-
 
 #
 # Find the machine's endian flavor.
@@ -14584,22 +14401,6 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 		;;
 esac
 
-
-
-# XXXOND: Change this to deterministic DSA generation
-#
-# Only check dsa signature generation on these platforms when performing
-# system tests.
-#
-CHECK_DSA=0
-if grep "#define PATH_RANDOMDEV " confdefs.h > /dev/null
-then
-	case "$host" in
-	*darwin*|*freebsd*)
-		CHECK_DSA=1
-		;;
-	esac
-fi
 
 
 #
@@ -15415,77 +15216,6 @@ fi
 done
 
 
-#
-# Additional OS-specific issues related to pthreads and sigwait.
-#
-case "$host" in
-	#
-	# One more place to look for sigwait.
-	#
-	*-freebsd*)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for sigwait in -lc_r" >&5
-$as_echo_n "checking for sigwait in -lc_r... " >&6; }
-if ${ac_cv_lib_c_r_sigwait+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lc_r  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char sigwait ();
-int
-main ()
-{
-return sigwait ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_c_r_sigwait=yes
-else
-  ac_cv_lib_c_r_sigwait=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_c_r_sigwait" >&5
-$as_echo "$ac_cv_lib_c_r_sigwait" >&6; }
-if test "x$ac_cv_lib_c_r_sigwait" = xyes; then :
-  $as_echo "#define HAVE_SIGWAIT 1" >>confdefs.h
-
-fi
-
-		case $host in
-		*-freebsd5.[012]|*-freebsd5.[012].*);;
-		*-freebsd5.[3456789]|*-freebsd5.[3456789].*)
-			$as_echo "#define NEED_PTHREAD_SCOPE_SYSTEM 1" >>confdefs.h
-
-			;;
-		*-freebsd6.*)
-			$as_echo "#define NEED_PTHREAD_SCOPE_SYSTEM 1" >>confdefs.h
-
-			;;
-		esac
-		;;
-	#
-	# LinuxThreads requires some changes to the way we
-	# deal with signals.
-	#
-	*-linux*)
-		$as_echo "#define HAVE_LINUXTHREADS 1" >>confdefs.h
-
-		;;
-esac
-
 # Look for functions relating to thread naming
 for ac_func in pthread_setname_np pthread_set_name_np
 do :
@@ -15516,11 +15246,16 @@ done
 #
 # Look for sysconf to allow detection of the number of processors.
 #
-ac_fn_c_check_func "$LINENO" "sysconf" "ac_cv_func_sysconf"
+for ac_func in sysconf
+do :
+  ac_fn_c_check_func "$LINENO" "sysconf" "ac_cv_func_sysconf"
 if test "x$ac_cv_func_sysconf" = xyes; then :
-  $as_echo "#define HAVE_SYSCONF 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_SYSCONF 1
+_ACEOF
 
 fi
+done
 
 
 
@@ -17135,24 +16870,6 @@ fi
 
 
 #
-# flockfile is usually provided by pthreads, but we may want to use it
-# even if compiled with --disable-threads.  getc_unlocked might also not
-# be defined.
-#
-ac_fn_c_check_func "$LINENO" "flockfile" "ac_cv_func_flockfile"
-if test "x$ac_cv_func_flockfile" = xyes; then :
-  $as_echo "#define HAVE_FLOCKFILE 1" >>confdefs.h
-
-fi
-
-ac_fn_c_check_func "$LINENO" "getc_unlocked" "ac_cv_func_getc_unlocked"
-if test "x$ac_cv_func_getc_unlocked" = xyes; then :
-  $as_echo "#define HAVE_GETCUNLOCKED 1" >>confdefs.h
-
-fi
-
-
-#
 # Large File
 #
 # Check whether --enable-largefile was given.
@@ -17262,11 +16979,16 @@ fi
 #
 # NLS
 #
-ac_fn_c_check_func "$LINENO" "catgets" "ac_cv_func_catgets"
+for ac_func in catgets
+do :
+  ac_fn_c_check_func "$LINENO" "catgets" "ac_cv_func_catgets"
 if test "x$ac_cv_func_catgets" = xyes; then :
-  $as_echo "#define HAVE_CATGETS 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CATGETS 1
+_ACEOF
 
 fi
+done
 
 
 #
@@ -17511,38 +17233,37 @@ esac
 #
 # Check whether --enable-backtrace was given.
 if test "${enable_backtrace+set}" = set; then :
-  enableval=$enable_backtrace; want_backtrace="$enableval"
+  enableval=$enable_backtrace;
 else
-  want_backtrace="yes"
+  enable_backtrace="yes"
 fi
 
-case $want_backtrace in
-yes)
-	ISC_PLATFORM_USEBACKTRACE="#define ISC_PLATFORM_USEBACKTRACE 1"
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+if test "$enable_backtrace" = "yes"; then :
+
+$as_echo "#define USE_BACKTRACE 1" >>confdefs.h
+
+       cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <execinfo.h>
 int
 main ()
 {
 return (backtrace((void **)0, 0));
+
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
 
-$as_echo "#define HAVE_LIBCTRACE /**/" >>confdefs.h
+$as_echo "#define HAVE_LIBCTRACE 1" >>confdefs.h
+
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	;;
-*)
-	ISC_PLATFORM_USEBACKTRACE="#undef ISC_PLATFORM_USEBACKTRACE"
-	;;
-esac
-
+fi
 
 # Check whether --enable-symtable was given.
 if test "${enable_symtable+set}" = set; then :
@@ -17652,64 +17373,6 @@ See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct if_laddrreq" >&5
-$as_echo_n "checking for struct if_laddrreq... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <net/if6.h>
-
-int
-main ()
-{
- struct if_laddrreq a;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_HAVEIF_LADDRREQ="#define ISC_PLATFORM_HAVEIF_LADDRREQ 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_HAVEIF_LADDRREQ="#undef ISC_PLATFORM_HAVEIF_LADDRREQ"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for struct if_laddrconf" >&5
-$as_echo_n "checking for struct if_laddrconf... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <net/if6.h>
-
-int
-main ()
-{
- struct if_laddrconf a;
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_HAVEIF_LADDRCONF="#define ISC_PLATFORM_HAVEIF_LADDRCONF 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_HAVEIF_LADDRCONF="#undef ISC_PLATFORM_HAVEIF_LADDRCONF"
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-
-
 #
 # Allow forcibly disabling TCP Fast Open support as autodetection might yield
 # confusing results on some systems (e.g. FreeBSD; see set_tcp_fastopen()
@@ -17719,65 +17382,31 @@ rm -f core conftest.err conftest.$ac_objext \
 # Check whether --enable-tcp_fastopen was given.
 if test "${enable_tcp_fastopen+set}" = set; then :
   enableval=$enable_tcp_fastopen;
-fi
-
-
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for TCP_FASTOPEN socket option" >&5
-$as_echo_n "checking for TCP_FASTOPEN socket option... " >&6; }
-case "$enable_tcp_fastopen" in
-yes|''|autodetect)
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/tcp.h>
-#ifdef TCP_FASTOPEN
-int has_tfo() { return (0); }
-#endif
-
-_ACEOF
-if (eval "$ac_cpp conftest.$ac_ext") 2>&5 |
-  $EGREP "has_tfo" >/dev/null 2>&1; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-		ISC_PLATFORM_HAVETFO="#define ISC_PLATFORM_HAVETFO 1"
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-		ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"
+  enable_tcp_fastopen="yes"
 fi
-rm -f conftest*
 
 
-		;;
-	no)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
-		ISC_PLATFORM_HAVETFO="#undef ISC_PLATFORM_HAVETFO"
-		;;
-esac
+if test "$enable_tcp_fastopen" = "yes"; then :
 
+$as_echo "#define ENABLE_TCP_FASTOPEN 1" >>confdefs.h
+
+fi
 
 #
 # Check for some other useful functions that are not ever-present.
 #
-ac_fn_c_check_func "$LINENO" "strlcpy" "ac_cv_func_strlcpy"
-if test "x$ac_cv_func_strlcpy" = xyes; then :
-  ISC_PLATFORM_NEEDSTRLCPY="#undef ISC_PLATFORM_NEEDSTRLCPY"
-else
-  ISC_PLATFORM_NEEDSTRLCPY="#define ISC_PLATFORM_NEEDSTRLCPY 1"
+for ac_func in strlcpy strlcat
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
 fi
-
-
-
-ac_fn_c_check_func "$LINENO" "strlcat" "ac_cv_func_strlcat"
-if test "x$ac_cv_func_strlcat" = xyes; then :
-  ISC_PLATFORM_NEEDSTRLCAT="#undef ISC_PLATFORM_NEEDSTRLCAT"
-else
-  ISC_PLATFORM_NEEDSTRLCAT="#define ISC_PLATFORM_NEEDSTRLCAT 1"
-fi
-
+done
 
 
 
@@ -18080,19 +17709,6 @@ $as_echo "no" >&6; }
 fi
 
 
-for ac_header in sys/prctl.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "sys/prctl.h" "ac_cv_header_sys_prctl_h" "$ac_includes_default"
-if test "x$ac_cv_header_sys_prctl_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_SYS_PRCTL_H 1
-_ACEOF
-
-fi
-
-done
-
-
 for ac_header in sys/un.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "sys/un.h" "ac_cv_header_sys_un_h" "$ac_includes_default"
@@ -18122,11 +17738,16 @@ esac
 #
 # Time Zone Stuff
 #
-ac_fn_c_check_func "$LINENO" "tzset" "ac_cv_func_tzset"
+for ac_func in tzset
+do :
+  ac_fn_c_check_func "$LINENO" "tzset" "ac_cv_func_tzset"
 if test "x$ac_cv_func_tzset" = xyes; then :
-  $as_echo "#define HAVE_TZSET 1" >>confdefs.h
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_TZSET 1
+_ACEOF
 
 fi
+done
 
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for optarg declaration" >&5
@@ -18160,84 +17781,41 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 #
 # Check for nanoseconds in file stats
 #
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking st_mtim.tv_nsec" >&5
-$as_echo_n "checking st_mtim.tv_nsec... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for st_mtim.tv_nsec" >&5
+$as_echo_n "checking for st_mtim.tv_nsec... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 #include <sys/fcntl.h>
 int
 main ()
 {
-struct stat s; return(s.st_mtim.tv_nsec);
+struct stat s;
+       return(s.st_mtim.tv_nsec);
+
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	ISC_PLATFORM_HAVESTATNSEC="#define ISC_PLATFORM_HAVESTATNSEC 1"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	ISC_PLATFORM_HAVESTATNSEC="#undef ISC_PLATFORM_HAVESTATNSEC"
+
+$as_echo "#define HAVE_STAT_NSEC 1" >>confdefs.h
+
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-
-#
-# Microsoft has their own way of handling shared libraries that requires
-# additional qualifiers on extern variables.  Unix systems don't need it.
-#
-
-ISC_PLATFORM_USEDECLSPEC="#undef ISC_PLATFORM_USEDECLSPEC"
-
-IRS_PLATFORM_USEDECLSPEC="#undef IRS_PLATFORM_USEDECLSPEC"
-
-#
-# Random remaining OS-specific issues involving compiler warnings.
-# XXXDCL print messages to indicate some compensation is being done?
-#
-
-for ac_header in strings.h
-do :
-  ac_fn_c_check_header_mongrel "$LINENO" "strings.h" "ac_cv_header_strings_h" "$ac_includes_default"
-if test "x$ac_cv_header_strings_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_STRINGS_H 1
-_ACEOF
- ISC_PLATFORM_HAVESTRINGSH="#define ISC_PLATFORM_HAVESTRINGSH 1"
-
-else
-  ISC_PLATFORM_HAVESTRINGSH="#undef ISC_PLATFORM_HAVESTRINGSH"
-
-fi
-
-done
-
-
 
 #
 # Check for if_nametoindex() for IPv6 scoped addresses support
 #
-ac_fn_c_check_func "$LINENO" "if_nametoindex" "ac_cv_func_if_nametoindex"
+for ac_func in if_nametoindex
+do :
+  ac_fn_c_check_func "$LINENO" "if_nametoindex" "ac_cv_func_if_nametoindex"
 if test "x$ac_cv_func_if_nametoindex" = xyes; then :
-  ac_cv_have_if_nametoindex=yes
-else
-  ac_cv_have_if_nametoindex=no
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_IF_NAMETOINDEX 1
+_ACEOF
+
 fi
-
-case $ac_cv_have_if_nametoindex in
-yes)
-	ISC_PLATFORM_HAVEIFNAMETOINDEX="#define ISC_PLATFORM_HAVEIFNAMETOINDEX 1"
-
-$as_echo "#define HAVE_IF_NAMETOINDEX 1" >>confdefs.h
-
-	;;
-*)
-	ISC_PLATFORM_HAVEIFNAMETOINDEX="#undef ISC_PLATFORM_HAVEIFNAMETOINDEX"
-	;;
-esac
+done
 
 
 for ac_func in nanosleep usleep explicit_bzero
@@ -18462,112 +18040,6 @@ if test "yes" = "$have_builtin_clz"; then
 $as_echo "#define HAVE_BUILTIN_CLZ 1" >>confdefs.h
 
 fi
-
-#
-# CPU relax (for spin locks)
-#
-case "$host" in
-i[3456]86-*)
-	# x86_32
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"rep; nop\"); works" >&5
-$as_echo_n "checking if asm(\"rep; nop\"); works... " >&6; }
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-asm("rep; nop");
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	;;
-x86_64-*|amd64-*)
-	# x86_64
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"rep; nop\"); works" >&5
-$as_echo_n "checking if asm(\"rep; nop\"); works... " >&6; }
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-asm("rep; nop");
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"rep; nop\")"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	;;
-ia64-*)
-	# ia64
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if asm(\"hint @pause\"); works" >&5
-$as_echo_n "checking if asm(\"hint @pause\"); works... " >&6; }
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-int
-main ()
-{
-asm("hint @pause");
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP asm(\"hint @pause\")"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	;;
-sparc-*)
-	# sparc
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if cpu_relax(); or __cpu_relax(); works" >&5
-$as_echo_n "checking if cpu_relax(); or __cpu_relax(); works... " >&6; }
-	ac_fn_c_check_func "$LINENO" "cpu_relax" "ac_cv_func_cpu_relax"
-if test "x$ac_cv_func_cpu_relax" = xyes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	 ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP cpu_relax()"
-else
-  ac_fn_c_check_func "$LINENO" "__cpu_relax" "ac_cv_func___cpu_relax"
-if test "x$ac_cv_func___cpu_relax" = xyes; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	   ISC_PLATFORM_BUSYWAITNOP="#define ISC_PLATFORM_BUSYWAITNOP __cpu_relax()"
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-fi
-
-	;;
-esac
-
-
 
 #
 # Activate "rrset-order fixed" or not?
@@ -21954,7 +21426,7 @@ ac_config_commands="$ac_config_commands chmod"
 # elsewhere if there's a good reason for doing so.
 #
 
-ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delv/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/isc/Makefile bin/python/isc/utils.py bin/python/isc/tests/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/python/dnssec-keymgr.py bin/python/isc/__init__.py bin/python/isc/checkds.py bin/python/isc/coverage.py bin/python/isc/dnskey.py bin/python/isc/eventlist.py bin/python/isc/keydict.py bin/python/isc/keyevent.py bin/python/isc/keymgr.py bin/python/isc/keyseries.py bin/python/isc/keyzone.py bin/python/isc/policy.py bin/python/isc/rndc.py bin/python/isc/tests/dnskey_test.py bin/python/isc/tests/policy_test.py bin/rndc/Makefile bin/tests/Makefile bin/tests/headerdep_test.sh bin/tests/optional/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/dlzs.conf bin/tests/system/dyndb/Makefile bin/tests/system/dyndb/driver/Makefile bin/tests/system/inline/checkdsa.sh bin/tests/system/pipelined/Makefile bin/tests/system/rndc/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/arm/noteversion.xml doc/arm/pkgversion.xml doc/arm/releaseinfo.xml doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/tex/Makefile doc/tex/armstyle.sty doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-manpage.xsl doc/xsl/isc-notes-html.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/irs/tests/Makefile lib/isc/pthreads/Makefile lib/isc/pthreads/include/Makefile lib/isc/pthreads/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/unix/include/pkcs11/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/isccfg/tests/Makefile lib/ns/Makefile lib/ns/include/Makefile lib/ns/include/ns/Makefile lib/ns/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh fuzz/Makefile"
+ac_config_files="$ac_config_files make/Makefile make/mkdep Makefile bin/Makefile bin/check/Makefile bin/confgen/Makefile bin/confgen/unix/Makefile bin/delv/Makefile bin/dig/Makefile bin/dnssec/Makefile bin/named/Makefile bin/named/unix/Makefile bin/nsupdate/Makefile bin/pkcs11/Makefile bin/python/Makefile bin/python/isc/Makefile bin/python/isc/utils.py bin/python/isc/tests/Makefile bin/python/dnssec-checkds.py bin/python/dnssec-coverage.py bin/python/dnssec-keymgr.py bin/python/isc/__init__.py bin/python/isc/checkds.py bin/python/isc/coverage.py bin/python/isc/dnskey.py bin/python/isc/eventlist.py bin/python/isc/keydict.py bin/python/isc/keyevent.py bin/python/isc/keymgr.py bin/python/isc/keyseries.py bin/python/isc/keyzone.py bin/python/isc/policy.py bin/python/isc/rndc.py bin/python/isc/tests/dnskey_test.py bin/python/isc/tests/policy_test.py bin/rndc/Makefile bin/tests/Makefile bin/tests/headerdep_test.sh bin/tests/optional/Makefile bin/tests/pkcs11/Makefile bin/tests/pkcs11/benchmarks/Makefile bin/tests/system/Makefile bin/tests/system/conf.sh bin/tests/system/dlz/prereq.sh bin/tests/system/dlzexternal/Makefile bin/tests/system/dlzexternal/ns1/dlzs.conf bin/tests/system/dyndb/Makefile bin/tests/system/dyndb/driver/Makefile bin/tests/system/pipelined/Makefile bin/tests/system/rndc/Makefile bin/tests/system/rpz/Makefile bin/tests/system/rsabigexponent/Makefile bin/tests/system/tkey/Makefile bin/tests/virtual-time/Makefile bin/tests/virtual-time/conf.sh bin/tools/Makefile contrib/scripts/check-secure-delegation.pl contrib/scripts/zone-edit.sh doc/Makefile doc/arm/Makefile doc/arm/noteversion.xml doc/arm/pkgversion.xml doc/arm/releaseinfo.xml doc/doxygen/Doxyfile doc/doxygen/Makefile doc/doxygen/doxygen-input-filter doc/misc/Makefile doc/tex/Makefile doc/tex/armstyle.sty doc/xsl/Makefile doc/xsl/isc-docbook-chunk.xsl doc/xsl/isc-docbook-html.xsl doc/xsl/isc-manpage.xsl doc/xsl/isc-notes-html.xsl isc-config.sh lib/Makefile lib/bind9/Makefile lib/bind9/include/Makefile lib/bind9/include/bind9/Makefile lib/dns/Makefile lib/dns/include/Makefile lib/dns/include/dns/Makefile lib/dns/include/dst/Makefile lib/dns/tests/Makefile lib/irs/Makefile lib/irs/include/Makefile lib/irs/include/irs/Makefile lib/irs/include/irs/netdb.h lib/irs/include/irs/platform.h lib/irs/tests/Makefile lib/isc/pthreads/Makefile lib/isc/pthreads/include/Makefile lib/isc/pthreads/include/isc/Makefile lib/isc/Makefile lib/isc/include/Makefile lib/isc/include/isc/Makefile lib/isc/include/isc/platform.h lib/isc/include/pk11/Makefile lib/isc/include/pkcs11/Makefile lib/isc/tests/Makefile lib/isc/nls/Makefile lib/isc/unix/Makefile lib/isc/unix/include/Makefile lib/isc/unix/include/isc/Makefile lib/isc/unix/include/pkcs11/Makefile lib/isccc/Makefile lib/isccc/include/Makefile lib/isccc/include/isccc/Makefile lib/isccfg/Makefile lib/isccfg/include/Makefile lib/isccfg/include/isccfg/Makefile lib/isccfg/tests/Makefile lib/ns/Makefile lib/ns/include/Makefile lib/ns/include/ns/Makefile lib/ns/tests/Makefile lib/samples/Makefile lib/samples/Makefile-postinstall unit/Makefile unit/unittest.sh fuzz/Makefile"
 
 
 #
@@ -23004,7 +22476,6 @@ do
     "bin/tests/system/dlzexternal/ns1/dlzs.conf") CONFIG_FILES="$CONFIG_FILES bin/tests/system/dlzexternal/ns1/dlzs.conf" ;;
     "bin/tests/system/dyndb/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/dyndb/Makefile" ;;
     "bin/tests/system/dyndb/driver/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/dyndb/driver/Makefile" ;;
-    "bin/tests/system/inline/checkdsa.sh") CONFIG_FILES="$CONFIG_FILES bin/tests/system/inline/checkdsa.sh" ;;
     "bin/tests/system/pipelined/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/pipelined/Makefile" ;;
     "bin/tests/system/rndc/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/rndc/Makefile" ;;
     "bin/tests/system/rpz/Makefile") CONFIG_FILES="$CONFIG_FILES bin/tests/system/rpz/Makefile" ;;
