@@ -487,20 +487,6 @@ named_os_changeuser(void) {
 
 	done_setuid = true;
 
-#if defined(__linux__)
-#ifdef HAVE_SYS_CAPABILITY_H
-	if (!non_root_caps) {
-		named_main_earlyfatal("-u with Linux threads not supported: "
-				      "requires kernel support for "
-				      "prctl(PR_SET_KEEPCAPS)");
-	}
-#else
-	named_main_earlyfatal("-u with Linux threads not supported: "
-			      "no capabilities support or capabilities "
-			      "disabled at build time");
-#endif
-#endif
-
 	if (setgid(runas_pw->pw_gid) < 0) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		named_main_earlyfatal("setgid(): %s", strbuf);
@@ -522,6 +508,9 @@ named_os_changeuser(void) {
 					strbuf);
 	}
 #endif
+#if defined(HAVE_SYS_CAPABILITY_H)
+	linux_minprivs();
+#endif
 }
 
 uid_t
@@ -533,7 +522,7 @@ ns_os_uid(void) {
 
 void
 named_os_adjustnofile(void) {
-#if defined(__linux__)
+ #if defined(__linux__)
 	isc_result_t result;
 	isc_resourcevalue_t newvalue;
 
@@ -553,10 +542,6 @@ void
 named_os_minprivs(void) {
 #ifdef HAVE_SYS_PRCTL_H
 	linux_keepcaps();
-#endif
-
-#if defined(__linux__)
-	named_os_changeuser(); /* Call setuid() before threads are started */
 #endif
 
 #if defined(HAVE_SYS_CAPABILITY_H)
@@ -744,21 +729,16 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 	free(f);
 
 	if (switch_user && runas_pw != NULL) {
-#if !defined(__linux__)
 		gid_t oldgid = getgid();
-#endif
 		/* Set UID/GID to the one we'll be running with eventually */
 		setperms(runas_pw->pw_uid, runas_pw->pw_gid);
 
 		fd = safe_open(filename, mode, false);
 
-#if !defined(__linux__)
 		/* Restore UID/GID to root */
 		setperms(0, oldgid);
-#endif
 
 		if (fd == -1) {
-#if !defined(__linux__)
 			fd = safe_open(filename, mode, false);
 			if (fd != -1) {
 				named_main_earlywarning("Required root "
@@ -771,13 +751,6 @@ named_os_openfile(const char *filename, mode_t mode, bool switch_user) {
 			named_main_earlywarning("Please check file and "
 						"directory permissions "
 						"or reconfigure the filename.");
-#else /* !defined(__linux__) */
-			named_main_earlywarning("Could not open "
-						"'%s'.", filename);
-			named_main_earlywarning("Please check file and "
-						"directory permissions "
-						"or reconfigure the filename.");
-#endif /* !defined(__linux__) */
 		}
 	} else {
 		fd = safe_open(filename, mode, false);
