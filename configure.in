@@ -3241,10 +3241,11 @@ report() {
     echo "    prefix: $prefix"
     echo "    sysconfdir: $sysconfdir"
     echo "    localstatedir: $localstatedir"
-
+    echo "-------------------------------------------------------------------------------"
+    echo "Compiler: $CC"
+    $CC --version 2>&1 | sed 's/^/    /'
 
     if test "X$ac_unrecognized_opts" != "X"; then
-	echo
 	echo "Unrecognized options:"
 	echo "    $ac_unrecognized_opts"
     fi
