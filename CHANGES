@@ -1,3 +1,6 @@
+5030.	[bug]		Align CMSG buffers to a 64-bit boundary, fixes crash
+			on architectures with strict alignment. [GL #521]
+
 5028.	[bug]		Spread the initial RRSIG expiration times over the
 			entire working sig-validity-interval when signing a
 			zone in named to even out re-signing and transfer
