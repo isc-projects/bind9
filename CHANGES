@@ -1,3 +1,10 @@
+5031.	[cleanup]	Various defines in platform.h has been either dropped
+			if always or never triggered on supported platforms
+			or replaced with config.h equivalents if the defines
+			didn't have any impact on public headers.  Workarounds
+			for LinuxThreads have been removed because NPTL is
+			available since Linux kernel 2.6.0.  [GL #525]
+
 5030.	[bug]		Align CMSG buffers to a 64-bit boundary, fixes crash
 			on architectures with strict alignment. [GL #521]
 
