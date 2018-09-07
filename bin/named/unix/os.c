@@ -59,49 +59,6 @@ static int singletonfd = -1;
 #define ISC_FACILITY LOG_DAEMON
 #endif
 
-/*
- * If there's no <sys/capability.h>, we don't care about <sys/prctl.h>
- */
-#ifndef HAVE_SYS_CAPABILITY_H
-#undef HAVE_SYS_PRCTL_H
-#endif
-
-/*
- * Linux defines:
- *	(C) HAVE_SYS_CAPABILITY_H
- *	(P) HAVE_SYS_PRCTL_H
- * The possible cases are:
- *	none:	setuid() normally
- *	T:	no setuid()
- *	C:	setuid() normally, drop caps (keep CAP_SETUID)
- *	T+C:	no setuid(), drop caps (don't keep CAP_SETUID)
- *	T+C+P:	setuid() early, drop caps (keep CAP_SETUID)
- *	C+P:	setuid() normally, drop caps (keep CAP_SETUID)
- *	P:	not possible
- *	T+P:	not possible
- *
- * if (C)
- *	caps = BIND_SERVICE + CHROOT + SETGID
- *	if ((T && C && P) || !T)
- *		caps += SETUID
- *	endif
- *	capset(caps)
- * endif
- * if (T && C && P && -u)
- *	setuid()
- * else if (T && -u)
- *	fail
- * --> start threads
- * if (!T && -u)
- *	setuid()
- * if (C && (P || !-u))
- *	caps = BIND_SERVICE
- *	capset(caps)
- * endif
- *
- * It will be nice when Linux threads work properly with setuid().
- */
-
 static struct passwd *runas_pw = NULL;
 static bool done_setuid = false;
 static int dfd[2] = { -1, -1 };
@@ -112,10 +69,7 @@ static bool non_root = false;
 static bool non_root_caps = false;
 
 #include <sys/capability.h>
-
-#ifdef HAVE_SYS_PRCTL_H
-#include <sys/prctl.h>		/* Required for prctl(). */
-#endif /* HAVE_SYS_PRCTL_H */
+#include <sys/prctl.h>
 
 static void
 linux_setcaps(cap_t caps) {
@@ -196,15 +150,11 @@ linux_initialprivs(void) {
 	 */
 	SET_CAP(CAP_SYS_CHROOT);
 
-#if defined(HAVE_SYS_PRCTL_H)
 	/*
-	 * We can setuid() only if either the kernel supports keeping
-	 * capabilities after setuid() (which we don't know until we've
-	 * tried) or we're not using threads.  If either of these is
-	 * true, we want the setuid capability.
+	 * We need setuid() as the kernel supports keeping capabilities after
+	 * setuid().
 	 */
 	SET_CAP(CAP_SETUID);
-#endif
 
 	/*
 	 * Since we call initgroups, we need this.
@@ -270,7 +220,6 @@ linux_minprivs(void) {
 	FREE_CAP;
 }
 
-#ifdef HAVE_SYS_PRCTL_H
 static void
 linux_keepcaps(void) {
 	char strbuf[ISC_STRERRORSIZE];
@@ -290,10 +239,8 @@ linux_keepcaps(void) {
 			non_root = true;
 	}
 }
-#endif
 
 #endif	/* HAVE_SYS_CAPABILITY_H */
-
 
 static void
 setup_syslog(const char *progname) {
@@ -497,7 +444,7 @@ named_os_changeuser(void) {
 		named_main_earlyfatal("setuid(): %s", strbuf);
 	}
 
-#if defined(HAVE_SYS_PRCTL_H) && defined(PR_SET_DUMPABLE)
+#if defined(PR_SET_DUMPABLE)
 	/*
 	 * Restore the ability of named to drop core after the setuid()
 	 * call has disabled it.
@@ -540,11 +487,8 @@ named_os_adjustnofile(void) {
 
 void
 named_os_minprivs(void) {
-#ifdef HAVE_SYS_PRCTL_H
-	linux_keepcaps();
-#endif
-
 #if defined(HAVE_SYS_CAPABILITY_H)
+	linux_keepcaps();
 	linux_minprivs();
 #endif
 }

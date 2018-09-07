@@ -1891,8 +1891,6 @@ AS_IF([test "$enable_linux_caps" = "yes"],
       [AC_MSG_RESULT([no])])
 AC_SUBST([LIBCAP_LIBS])
 
-AC_CHECK_HEADERS(sys/prctl.h)
-
 AC_CHECK_HEADERS(sys/un.h,
 ISC_PLATFORM_HAVESYSUNH="#define ISC_PLATFORM_HAVESYSUNH 1"
 ,
