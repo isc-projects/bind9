@@ -444,7 +444,7 @@ named_os_changeuser(void) {
 		named_main_earlyfatal("setuid(): %s", strbuf);
 	}
 
-#if defined(PR_SET_DUMPABLE)
+#if defined(HAVE_SYS_CAPABILITY_H)
 	/*
 	 * Restore the ability of named to drop core after the setuid()
 	 * call has disabled it.
@@ -454,8 +454,7 @@ named_os_changeuser(void) {
 		named_main_earlywarning("prctl(PR_SET_DUMPABLE) failed: %s",
 					strbuf);
 	}
-#endif
-#if defined(HAVE_SYS_CAPABILITY_H)
+
 	linux_minprivs();
 #endif
 }
