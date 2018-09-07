@@ -260,6 +260,11 @@ extern void mock_assert(const int result, const char* const expression,
 #define TIME_NOW(tp) 	RUNTIME_CHECK(isc_time_now((tp)) == ISC_R_SUCCESS)
 
 /*%
+ * Alignment
+ */
+#define ALIGN(x, a) ((x) + (a) - 1) & ~((typeof(x))(a)-1)
+
+/*%
  * Misc
  */
 #include <isc/deprecated.h>
