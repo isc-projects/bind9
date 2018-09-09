@@ -198,6 +198,15 @@
 	  them. [GL #237]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Two new update policy rule types have been added
+	  <command>krb5-selfsub</command> and <command>ms-selfsub</command>
+	  which allow machines with Kerberos principals to update
+	  the name space at or below the machine names identified
+	  in the respective principals.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
