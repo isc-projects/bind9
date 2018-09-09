@@ -348,8 +348,8 @@ typedef isc_event_t intev_t;
 #define CMSG_SP_INT 24
 
 /* Align cmsg buffers to be safe on SPARC etc. */
-#define RECVCMSGBUFLEN ALIGN(2*(CMSG_SP_IN6PKT + CMSG_SP_TIMESTAMP + CMSG_SP_TCTOS)+1, sizeof(void*))
-#define SENDCMSGBUFLEN ALIGN(2*(CMSG_SP_IN6PKT + CMSG_SP_INT + CMSG_SP_TCTOS)+1, sizeof(void*))
+#define RECVCMSGBUFLEN ISC_ALIGN(2*(CMSG_SP_IN6PKT + CMSG_SP_TIMESTAMP + CMSG_SP_TCTOS)+1, sizeof(void*))
+#define SENDCMSGBUFLEN ISC_ALIGN(2*(CMSG_SP_IN6PKT + CMSG_SP_INT + CMSG_SP_TCTOS)+1, sizeof(void*))
 
 /*%
  * The number of times a send operation is repeated if the result is EINTR.
