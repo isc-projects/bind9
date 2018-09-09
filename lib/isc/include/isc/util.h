@@ -237,7 +237,7 @@
 /*%
  * Alignment
  */
-#define ALIGN(x, a) (((x) + (a) - 1) & ~((typeof(x))(a)-1))
+#define ISC_ALIGN(x, a) (((x) + (a) - 1) & ~((typeof(x))(a)-1))
 
 /*%
  * Misc
