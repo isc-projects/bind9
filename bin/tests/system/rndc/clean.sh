@@ -12,7 +12,7 @@
 rm -f dig.out.*.test*
 rm -f ns*/named.lock
 rm -f ns*/named.memstats
-rm -f ns*/named.run
+rm -f ns*/named.run ns*/named.run.prev
 rm -f ns2/named.stats
 rm -f ns2/nil.db ns2/other.db ns2/static.db ns2/*.jnl
 rm -f ns2/session.key
@@ -25,3 +25,4 @@ rm -f nsupdate.out.*.test*
 rm -f python.out.*.test*
 rm -f rndc.out.*.test*
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*
+rm -f ns*/*.nta
