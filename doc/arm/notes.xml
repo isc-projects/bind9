@@ -147,11 +147,28 @@
 	  with IDN support.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The <command>rndc nta</command> command could not differentiate
+	  between views of the same name but different class; this
+	  has been corrected with the addition of a <command>-class</command>
+	  option. [GL #105]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
+      <listitem>
+	<para>
+	  When a negative trust anchor was added to multiple views
+	  using <command>rndc nta</command>, the text returned via
+	  <command>rndc</command> was incorrectly truncated after the
+	  first line, making it appear that only one NTA had been
+	  added. This has been fixed. [GL #105]
+	</para>
+      </listitem>
       <listitem>
 	<para>
 	  <command>named</command> now rejects excessively large
