@@ -54,8 +54,12 @@ do
 	pat="identity and name fields are not the same"
 	grep "$pat" checkconf.out > /dev/null || ret=1
 	;;
-    bad-update-policy*.conf)
+    bad-update-policy[4589].conf|bad-update-policy1[01].conf)
 	pat="name field not set to placeholder value"
+	grep "$pat" checkconf.out > /dev/null || ret=1
+	;;
+    bad-update-policy[67].conf|bad-update-policy1[2345].conf)
+	pat="missing name field type '.*' found"
 	grep "$pat" checkconf.out > /dev/null || ret=1
 	;;
     esac
