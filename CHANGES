@@ -1,3 +1,6 @@
+5032.	[func]		Add krb5-selfsub and ms-selfsub update policy rules.
+			[GL #511]
+
 5031.	[cleanup]	Various defines in platform.h has been either dropped
 			if always or never triggered on supported platforms
 			or replaced with config.h equivalents if the defines

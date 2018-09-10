@@ -347,11 +347,11 @@ cleanup:
 bool
 dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 				    const dns_name_t *name,
-				    const dns_name_t *realm)
+				    const dns_name_t *realm,
+				    bool subdomain)
 {
 #ifdef GSSAPI
 	char sbuf[DNS_NAME_FORMATSIZE];
-	char nbuf[DNS_NAME_FORMATSIZE];
 	char rbuf[DNS_NAME_FORMATSIZE];
 	char *sname;
 	char *rname;
@@ -366,8 +366,6 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	result = dns_name_toprincipal(signer, &buffer);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(&buffer, 0);
-	if (name != NULL)
-		dns_name_format(name, nbuf, sizeof(nbuf));
 	dns_name_format(realm, rbuf, sizeof(rbuf));
 
 	/*
@@ -381,6 +379,10 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	}
 	*rname = '\0';
 	rname++;
+
+	if (strcmp(rname, rbuf) != 0) {
+		return (false);
+	}
 
 	/*
 	 * Find the host portion of the signer's name.	We do this by
@@ -401,24 +403,30 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 	}
 
 	/*
-	 * Now, we do a simple comparison between the name and the realm.
+	 * If name is non NULL check that it matches against the
+	 * machine name as expected.
 	 */
 	if (name != NULL) {
-		if ((strcasecmp(sname, nbuf) == 0)
-		    && (strcmp(rname, rbuf) == 0)) {
-			return (true);
+		dns_fixedname_t fixed;
+		dns_name_t *machine;
+
+		machine = dns_fixedname_initname(&fixed);
+		result = dns_name_fromstring(machine, sname, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
+			return (false);
 		}
-	} else {
-		if (strcmp(rname, rbuf) == 0) {
-			return (true);
+		if (subdomain) {
+			return (dns_name_issubdomain(name, machine));
 		}
+		return (dns_name_equal(name, machine));
 	}
 
-	return (false);
+	return (true);
 #else
 	UNUSED(signer);
 	UNUSED(name);
 	UNUSED(realm);
+	UNUSED(subdomain);
 	return (false);
 #endif
 }
@@ -426,14 +434,13 @@ dst_gssapi_identitymatchesrealmkrb5(const dns_name_t *signer,
 bool
 dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 				  const dns_name_t *name,
-				  const dns_name_t *realm)
+				  const dns_name_t *realm,
+				  bool subdomain)
 {
 #ifdef GSSAPI
 	char sbuf[DNS_NAME_FORMATSIZE];
-	char nbuf[DNS_NAME_FORMATSIZE];
 	char rbuf[DNS_NAME_FORMATSIZE];
 	char *sname;
-	char *nname;
 	char *rname;
 	isc_buffer_t buffer;
 	isc_result_t result;
@@ -446,8 +453,6 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	result = dns_name_toprincipal(signer, &buffer);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	isc_buffer_putuint8(&buffer, 0);
-	if (name != NULL)
-		dns_name_format(name, nbuf, sizeof(nbuf));
 	dns_name_format(realm, rbuf, sizeof(rbuf));
 
 	/*
@@ -484,39 +489,35 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	*sname = '\0';
 	sname = sbuf;
 
+	if (strcmp(rname, rbuf) != 0) {
+		return (false);
+	}
+
 	/*
-	 * Find the first . in the target name, and make it the end of
-	 * the string.	 The rest of the name has to match the realm.
+	 * Now, we check that the realm matches (case sensitive) and that
+	 * 'name' matches against 'machinename' qualified with 'realm'.
 	 */
 	if (name != NULL) {
-		nname = strchr(nbuf, '.');
-		if (nname == NULL) {
+		dns_fixedname_t fixed;
+		dns_name_t *machine;
+
+		machine = dns_fixedname_initname(&fixed);
+		result = dns_name_fromstring2(machine, sbuf, realm, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
 			return (false);
 		}
-		*nname++ = '\0';
+		if (subdomain) {
+			return (dns_name_issubdomain(name, machine));
+		}
+		return (dns_name_equal(name, machine));
 	}
 
-	/*
-	 * Now, we do a simple comparison between the name and the realm.
-	 */
-	if (name != NULL) {
-		if ((strcasecmp(sname, nbuf) == 0)
-		    && (strcmp(rname, rbuf) == 0)
-		    && (strcasecmp(nname, rbuf) == 0)) {
-			return (true);
-		}
-	} else {
-		if (strcmp(rname, rbuf) == 0) {
-			return (true);
-		}
-	}
-
-
-	return (false);
+	return (true);
 #else
 	UNUSED(signer);
 	UNUSED(name);
 	UNUSED(realm);
+	UNUSED(subdomain);
 	return (false);
 #endif
 }
