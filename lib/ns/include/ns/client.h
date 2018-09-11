@@ -172,11 +172,10 @@ struct ns_client {
 	uint16_t		keytag_len;
 
 	/*%
-	 * Allows a hook module to identify clients
-	 * returning from recursion that the hook
-	 * module itself previously initiated.
+	 * Allows a hook module to set flags
+	 * that persist across recursion.
 	 */
-	uint32_t		hook_magic;
+	uint32_t		hookflags[NS_MAX_MODULES];
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;
