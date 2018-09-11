@@ -420,6 +420,8 @@ ns__clientmgr_getclient(ns_clientmgr_t *manager, ns_interface_t *ifp,
  * Get a client object from the inactive queue, or create one, as needed.
  * (Not intended for use outside this module and associated tests.)
  */
+isc_result_t
+ns_clientmgr_subscribe_clients(ns_clientmgr_t *manager, unsigned int n, ns_interface_t *ifp);
 
 void
 ns__client_request(isc_task_t *task, isc_event_t *event);

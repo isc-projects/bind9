@@ -52,6 +52,7 @@
 #include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/resource.h>
 #include <isc/socket.h>
@@ -330,6 +331,8 @@ typedef struct isc__netthreadparms isc__netthreadparms_t;
 
 #define NEWCONNSOCK(ev) ((isc__socket_t *)(ev)->newsocket)
 
+typedef isc_socketevent_t* (*isc_socketevent_factory_t)(void*);
+
 struct isc__socket {
 	/* Not locked. */
 	isc_socket_t		common;
@@ -340,13 +343,15 @@ struct isc__socket {
 
 	/* Locked by socket lock. */
 	ISC_LINK(isc__socket_t)	link;
-	unsigned int		references;
+	isc_refcount_t		references;
 	int			fd;
 	int			pf;
 	int			threadid;
 	char				name[16];
 	void *				tag;
 
+	isc_socketevent_factory_t		recv_subscriber;
+	void 					*recv_subscriber_arg;
 	ISC_LIST(isc_socketevent_t)		send_list;
 	ISC_LIST(isc_socketevent_t)		recv_list;
 	ISC_LIST(isc_socket_newconnev_t)	accept_list;
@@ -478,7 +483,7 @@ static void setdscp(isc__socket_t *sock, isc_dscp_t dscp);
 #define SELECT_POKE_CONNECT		(-4) /*%< Same as _WRITE */
 #define SELECT_POKE_CLOSE		(-5)
 
-#define SOCK_DEAD(s)			((s)->references == 0)
+#define SOCK_DEAD(s)			(isc_refcount_current(&(s)->references) == 0)
 
 /*%
  * Shortcut index arrays to get access to statistics counters.
@@ -1965,7 +1970,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 
 	sock->common.magic = 0;
 	sock->common.impmagic = 0;
-	sock->references = 0;
+	isc_refcount_init(&sock->references, 0);
 
 	sock->manager = manager;
 	sock->type = type;
@@ -1985,6 +1990,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	/*
 	 * Set up list of readers and writers to be initially empty.
 	 */
+	sock->recv_subscriber = NULL;
 	ISC_LIST_INIT(sock->recv_list);
 	ISC_LIST_INIT(sock->send_list);
 	ISC_LIST_INIT(sock->accept_list);
@@ -2029,7 +2035,7 @@ free_socket(isc__socket_t **socketp) {
 	isc__socket_t *sock = *socketp;
 
 	INSIST(VALID_SOCKET(sock));
-	INSIST(sock->references == 0);
+	INSIST(isc_refcount_current(&sock->references) == 0);
 	INSIST(!sock->connecting);
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
@@ -2670,7 +2676,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 #else
 	sock->threadid = 0;
 #endif
-	sock->references = 1;
+	isc_refcount_init(&sock->references, 1);
 	*socketp = (isc_socket_t *)sock;
 
 	/*
@@ -2742,7 +2748,7 @@ isc_socket_open(isc_socket_t *sock0) {
 	REQUIRE(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
-	REQUIRE(sock->references == 1);
+	REQUIRE(isc_refcount_current(&sock->references) == 1);
 	UNLOCK(&sock->lock);
 	/*
 	 * We don't need to retain the lock hereafter, since no one else has
@@ -2790,11 +2796,8 @@ isc_socket_attach(isc_socket_t *sock0, isc_socket_t **socketp) {
 
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(socketp != NULL && *socketp == NULL);
-
-	LOCK(&sock->lock);
-	REQUIRE(sock->references > 0);
-	sock->references++;
-	UNLOCK(&sock->lock);
+	int old = isc_refcount_increment(&sock->references);
+	REQUIRE(old > 0);
 
 	*socketp = (isc_socket_t *)sock;
 }
@@ -2812,12 +2815,10 @@ isc_socket_detach(isc_socket_t **socketp) {
 	sock = (isc__socket_t *)*socketp;
 	REQUIRE(VALID_SOCKET(sock));
 
-	LOCK(&sock->lock);
-	REQUIRE(sock->references > 0);
-	sock->references--;
-	if (sock->references == 0)
+	int old = isc_refcount_decrement(&sock->references);
+	REQUIRE(old > 0);
+	if (old == 1)
 		kill_socket = true;
-	UNLOCK(&sock->lock);
 
 	if (kill_socket)
 		destroy(&sock);
@@ -2878,7 +2879,6 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 	isc_task_t *task;
 	int to = sock->manager->nthreads > 1 ? sock->threadid : -1;
 	task = (*dev)->ev_sender;
-
 	(*dev)->ev_sender = sock;
 
 	if (ISC_LINK_LINKED(*dev, ev_link))
@@ -3171,7 +3171,7 @@ internal_accept(isc__socket_t *sock) {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPT]);
 	} else {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
-		NEWCONNSOCK(dev)->references--;
+		isc_refcount_decrement(&NEWCONNSOCK(dev)->references);
 		free_socket((isc__socket_t **)&dev->newsocket);
 	}
 
@@ -3192,11 +3192,18 @@ internal_accept(isc__socket_t *sock) {
 
 static void
 internal_recv(isc__socket_t *sock) {
-	isc_socketevent_t *dev;
+	isc_socketevent_t *dev = NULL;
 
 	INSIST(VALID_SOCKET(sock));
-
 	dev = ISC_LIST_HEAD(sock->recv_list);
+	if (dev == NULL) {
+		if (sock->recv_subscriber != NULL) {
+			dev = sock->recv_subscriber(sock->recv_subscriber_arg);
+			if (dev != NULL) {
+				ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
+			}
+		}
+	}
 	if (dev == NULL) {
 		return;
 	}
@@ -3223,7 +3230,14 @@ internal_recv(isc__socket_t *sock) {
 			do {
 				dev->result = ISC_R_EOF;
 				send_recvdone_event(sock, &dev);
-				dev = ISC_LIST_HEAD(sock->recv_list);
+				if (sock->recv_subscriber != NULL) {
+					dev = sock->recv_subscriber(sock->recv_subscriber_arg);
+					if (dev != NULL) {
+						ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
+					}
+				} else {
+					dev = ISC_LIST_HEAD(sock->recv_list);
+				}
 			} while (dev != NULL);
 			goto poke;
 
@@ -3232,12 +3246,18 @@ internal_recv(isc__socket_t *sock) {
 			send_recvdone_event(sock, &dev);
 			break;
 		}
-
-		dev = ISC_LIST_HEAD(sock->recv_list);
+		if (sock->recv_subscriber != NULL) {
+			dev = sock->recv_subscriber(sock->recv_subscriber_arg);
+			if (dev != NULL) {
+				ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
+			}
+		} else {
+			dev = ISC_LIST_HEAD(sock->recv_list);
+		}
 	}
 
  poke:
-	if (ISC_LIST_EMPTY(sock->recv_list))
+	if (ISC_LIST_EMPTY(sock->recv_list) && sock->recv_subscriber == NULL)
 		unwatch_fd(sock->manager, sock->threadid, sock->fd,
 			 SELECT_POKE_READ);
 
@@ -3308,7 +3328,7 @@ process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 		UNLOCK(manager->fdlock[lockid]);
 		return;
 	}
-	sock->references++;
+	isc_refcount_increment(&sock->references);
 	sock->threadid = threadid;
 	
 	if (readable) {
@@ -3325,8 +3345,8 @@ process_fd(isc__socketmgr_t *manager, int threadid, int fd, bool readable,
 	}
 
 	UNLOCK(manager->fdlock[lockid]);
-	sock->references--;
-	kill_socket = (sock->references == 0);
+	int old = isc_refcount_decrement(&sock->references);
+	kill_socket = (old == 1);
 	UNLOCK(&sock->lock);
 	if (kill_socket)
 		destroy(&sock);
@@ -4367,6 +4387,7 @@ isc_socket_recvv(isc_socket_t *sock0, isc_bufferlist_t *buflist,
 	REQUIRE(!ISC_LIST_EMPTY(*buflist));
 	REQUIRE(task != NULL);
 	REQUIRE(action != NULL);
+	INSIST(sock->recv_subscriber == NULL);
 
 	manager = sock->manager;
 	REQUIRE(VALID_MANAGER(manager));
@@ -4437,7 +4458,7 @@ isc_socket_recv2(isc_socket_t *sock0, isc_region_t *region,
 		  isc_socketevent_t *event, unsigned int flags)
 {
 	isc__socket_t *sock = (isc__socket_t *)sock0;
-
+//	INSIST(sock->recv_subscriber == NULL);
 	event->ev_sender = sock;
 	event->result = ISC_R_UNSET;
 	ISC_LIST_INIT(event->bufferlist);
@@ -5140,7 +5161,7 @@ isc_socket_accept(isc_socket_t *sock0,
 		UNLOCK(&sock->lock);
 		return (ISC_R_SHUTTINGDOWN);
 	}
-	nsock->references++;
+	isc_refcount_increment(&nsock->references);
 	nsock->statsindex = sock->statsindex;
 
 	dev->ev_sender = ntask;
@@ -5567,7 +5588,7 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 				ISC_LIST_UNLINK(sock->accept_list, dev,
 						ev_link);
 
-				NEWCONNSOCK(dev)->references--;
+				isc_refcount_decrement(&NEWCONNSOCK(dev)->references);
 				free_socket((isc__socket_t **)&dev->newsocket);
 
 				dev->result = ISC_R_CANCELED;
@@ -5945,7 +5966,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats) {
 			json_object_object_add(entry, "name", obj);
 		}
 
-		obj = json_object_new_int(sock->references);
+		obj = json_object_new_int(isc_refcount_current(&sock->references));
 		CHECKMEM(obj);
 		json_object_object_add(entry, "references", obj);
 
@@ -6030,4 +6051,16 @@ isc_socketmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 		isc_appctx_setsocketmgr(actx, *managerp);
 
 	return (result);
+}
+
+isc_result_t
+isc_socket_udpsubscribe(isc_socket_t *usock, isc_socketevent_factory_t evf, void* arg) {
+	isc__socket_t *sock = (isc__socket_t*) usock;
+	REQUIRE(sock->recv_subscriber == NULL);
+	REQUIRE(ISC_LIST_EMPTY(sock->recv_list));
+	sock->recv_subscriber = evf;
+	sock->recv_subscriber_arg = arg;
+	select_poke(sock->manager, sock->threadid, sock->fd,
+		    SELECT_POKE_READ);
+	return (ISC_R_SUCCESS);  
 }

@@ -495,8 +495,8 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 
 	}
 
-	result = ns_clientmgr_createclients(ifp->clientmgr, ifp->nudpdispatch,
-					    ifp, false);
+	result = ns_clientmgr_subscribe_clients(ifp->clientmgr, ifp->nudpdispatch,
+					    ifp);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "UDP ns_clientmgr_createclients(): %s",

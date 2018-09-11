@@ -78,7 +78,6 @@
  * If a routine is ever created that allows someone other than the client's
  * task to change the client, then the client will have to be locked.
  */
-
 #define NS_CLIENT_TRACE
 #ifdef NS_CLIENT_TRACE
 #define CTRACE(m)	ns_client_log(client, \
@@ -127,7 +126,7 @@ struct ns_clientmgr {
 
 	/* The queue object has its own locks */
 	client_queue_t			inactive;     /*%< To be recycled */
-
+	unsigned int			nclients;
 	isc_mem_t *			mctx;
 	ns_server_t *			sctx;
 	isc_taskmgr_t *			taskmgr;
@@ -155,6 +154,12 @@ struct ns_clientmgr {
 
 #define MANAGER_MAGIC			ISC_MAGIC('N', 'S', 'C', 'm')
 #define VALID_MANAGER(m)		ISC_MAGIC_VALID(m, MANAGER_MAGIC)
+
+typedef struct create_udp_socketevent_arg {
+	ns_clientmgr_t *manager;
+	isc_socket_t   *socket;
+	ns_interface_t *interface;
+} create_udp_socketevent_arg_t;
 
 /*!
  * Client object states.  Ordering is significant: higher-numbered
@@ -247,6 +252,7 @@ static isc_result_t get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp,
 static void compute_cookie(ns_client_t *client, uint32_t when,
 			   uint32_t nonce, const unsigned char *secret,
 			   isc_buffer_t *buf);
+static isc_socketevent_t *ns__create_udp_socketevent(void* argp);
 
 void
 ns_client_recursing(ns_client_t *client) {
@@ -592,6 +598,7 @@ exit_check(ns_client_t *client) {
 		if (manager != NULL) {
 			LOCK(&manager->listlock);
 			ISC_LIST_UNLINK(manager->clients, client, link);
+			manager->nclients--;
 			LOCK(&manager->lock);
 			if (manager->exiting &&
 			    ISC_LIST_EMPTY(manager->clients))
@@ -2281,6 +2288,7 @@ process_opt(ns_client_t *client, dns_rdataset_t *opt) {
 	return (result);
 }
 
+	
 /*
  * Handle an incoming request event from the socket (UDP case)
  * or tcpmsg (TCP case).
@@ -2320,7 +2328,7 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 
 	ns_client_requests++;
 
-	if (event->ev_type == ISC_SOCKEVENT_RECVDONE) {
+ 	if (event->ev_type == ISC_SOCKEVENT_RECVDONE) {
 		INSIST(!TCP_CLIENT(client));
 		sevent = (isc_socketevent_t *)event;
 		REQUIRE(sevent == client->recvevent);
@@ -3010,7 +3018,10 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	 */
 
 	REQUIRE(clientp != NULL && *clientp == NULL);
-
+	if (manager->nclients > 10000) {
+		return (ISC_R_NOMEMORY);
+	}
+	manager->nclients++;
 	result = get_clientmctx(manager, &mctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -3496,6 +3507,7 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 		goto cleanup_listlock;
 
 	manager->excl = NULL;
+	manager->nclients = 0;
 	result = isc_taskmgr_excltask(taskmgr, &manager->excl);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup_reclock;
@@ -3580,6 +3592,7 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 	*managerp = NULL;
 }
+
 
 static isc_result_t
 get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
@@ -3782,6 +3795,24 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 			break;
 	}
 
+	return (result);
+}
+
+isc_result_t
+ns_clientmgr_subscribe_clients(ns_clientmgr_t *manager, unsigned int n, ns_interface_t *ifp) {
+	isc_result_t result = ISC_R_SUCCESS;
+	unsigned int disp;
+	create_udp_socketevent_arg_t *arg;
+	for (disp = 0; disp < n; disp++) {
+		arg = malloc(sizeof(*arg));
+		arg->manager = manager;
+                arg->socket = dns_dispatch_getsocket(ifp->udpdispatch[disp]);
+                arg->interface = ifp;
+                result = isc_socket_udpsubscribe(arg->socket, &ns__create_udp_socketevent, arg);
+                if (result != ISC_R_SUCCESS) {
+                	break;
+		}
+	}
 	return (result);
 }
 
@@ -4071,4 +4102,77 @@ ns_client_sourceip(dns_clientinfo_t *ci, isc_sockaddr_t **addrp) {
 
 	*addrp = &client->peeraddr;
 	return (ISC_R_SUCCESS);
+}
+
+static isc_socketevent_t *
+ns__create_udp_socketevent(void* argp) {
+	create_udp_socketevent_arg_t *arg = (create_udp_socketevent_arg_t*)argp;
+	ns_clientmgr_t *manager = arg->manager;
+	isc_socket_t *sock = arg->socket;
+	isc_socketevent_t *sev;
+	ns_client_t *client;
+	isc_result_t result;
+	MTRACE("create_udp_socketevent");
+
+	REQUIRE(manager != NULL);
+
+	if (manager->exiting) {
+		return (NULL);
+	}
+	/*
+	 * Allocate a client.  First try to get a recycled one;
+	 * if that fails, make a new one.
+	 */
+	client = NULL;
+	if ((manager->sctx->options & NS_SERVER_CLIENTTEST) == 0)
+		ISC_QUEUE_POP(manager->inactive, ilink, client);
+
+	if (client != NULL) {
+		MTRACE("recycle");
+	} else {
+		MTRACE("create new");
+		LOCK(&manager->lock);
+		result = client_create(manager, &client);
+		UNLOCK(&manager->lock);
+		if (result != ISC_R_SUCCESS)
+			return (NULL);
+
+		LOCK(&manager->listlock);
+		ISC_LIST_APPEND(manager->clients, client, link);
+		UNLOCK(&manager->listlock);
+	}
+
+//	client->interface = arg->interface;
+	ns_interface_attach(arg->interface, &client->interface);
+	client->manager = manager;
+	client->mortal = true;
+	client->state = NS_CLIENTSTATE_READY;
+	client->sctx = manager->sctx;
+	INSIST(client->recursionquota == NULL);
+
+//	client->dscp = ifp->dscp;
+	client->mortal = true;
+	
+//	client->udpsocket = sock;
+	isc_socket_attach(sock, &client->udpsocket);
+
+	INSIST(client->nctls == 0);
+
+	if (exit_check(client))
+		return (NULL);
+	
+	sev = client->recvevent;
+	sev->ev_sender = client->task;
+	sev->ev_arg = client;
+        sev->result = ISC_R_UNSET;
+        ISC_LIST_INIT(sev->bufferlist);
+        sev->n = 0;
+        sev->offset = 0;
+        sev->attributes = 0;
+	
+	sev->region.base = client->recvbuf;
+	sev->region.length = RECV_BUFFER_SIZE;
+	sev->minimum = 1;
+	client->nrecvs++;
+	return (sev);
 }
