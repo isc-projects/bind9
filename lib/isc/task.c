@@ -217,7 +217,7 @@ task_finished(isc__task_t *task) {
 		 * any idle worker threads so they
 		 * can exit.
 		 */
-		for (unsigned int i=0; i<manager->workers; i++) {
+		for (unsigned int i=0; i<manager->queues; i++) {
 			BROADCAST(&manager->work_available[i]);
 		}
 	}
@@ -1499,7 +1499,11 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	 * there's work left to do, and if there are already no tasks left
 	 * it will cause the workers to see manager->exiting.
 	 */
-	BROADCAST(&manager->work_available[0]);
+	for (i = 0; i < manager->queues; i++) {
+		LOCK(manager->locks[i]);
+		BROADCAST(&manager->work_available[i]);
+		UNLOCK(manager->locks[i]);
+	}
 	UNLOCK(&manager->lock);
 
 	/*
