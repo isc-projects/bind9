@@ -1071,6 +1071,9 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr, json_object *stats);
 typedef isc_result_t
 (*isc_socketmgrcreatefunc_t)(isc_mem_t *mctx, isc_socketmgr_t **managerp);
 
-ISC_LANG_ENDDECLS
+typedef isc_socketevent_t* (*isc_socketevent_factory_t)(void*);
 
+ISC_LANG_ENDDECLS
+isc_result_t
+isc_socket_udpsubscribe(isc_socket_t *sock, isc_socketevent_factory_t evf, void* arg);
 #endif /* ISC_SOCKET_H */
