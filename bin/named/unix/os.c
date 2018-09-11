@@ -488,6 +488,7 @@ void
 named_os_minprivs(void) {
 #if defined(HAVE_SYS_CAPABILITY_H)
 	linux_keepcaps();
+	named_os_changeuser();
 	linux_minprivs();
 #endif
 }
