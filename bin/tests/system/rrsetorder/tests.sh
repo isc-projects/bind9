@@ -17,7 +17,7 @@ DIGCMD="$DIG $DIGOPTS -p ${PORT}"
 
 status=0
 
-GOOD_RANDOM="$(seq 1 24)"
+GOOD_RANDOM="1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24"
 GOOD_RANDOM_NO=24
 
 if grep "^#define DNS_RDATASET_FIXED" $TOP/config.h > /dev/null 2>&1 ; then
@@ -139,7 +139,7 @@ do
 	eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Random selection return $match of ${GOOD_RANDOM_NO} possible orders in 36 samples"
-if [ $match -lt $(((${GOOD_RANDOM_NO}/3))) ]; then ret=1; fi
+if [ $match -lt `expr ${GOOD_RANDOM_NO} / 3` ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -233,7 +233,7 @@ do
 eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Random selection return $match of ${GOOD_RANDOM_NO} possible orders in 36 samples"
-if [ $match -lt $(((${GOOD_RANDOM_NO}/3))) ]; then ret=1; fi
+if [ $match -lt `expr ${GOOD_RANDOM_NO} / 3` ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -343,7 +343,7 @@ do
 eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Random selection return $match of ${GOOD_RANDOM_NO} possible orders in 36 samples"
-if [ $match -lt $(((${GOOD_RANDOM_NO}/3))) ]; then ret=1; fi
+if [ $match -lt `expr ${GOOD_RANDOM_NO} / 3` ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -441,7 +441,7 @@ do
 eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Random selection return $match of ${GOOD_RANDOM_NO} possible orders in 36 samples"
-if [ $match -lt $(((${GOOD_RANDOM_NO}/3))) ]; then ret=1; fi
+if [ $match -lt `expr ${GOOD_RANDOM_NO} / 3` ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
 echo_i "Checking default order (cache)"
@@ -467,7 +467,7 @@ do
 eval "match=\`expr \$match + \$match$i\`"
 done
 echo_i "Default selection return $match of ${GOOD_RANDOM_NO} possible orders in 36 samples"
-if [ $match -lt $(((${GOOD_RANDOM_NO}/3))) ]; then ret=1; fi
+if [ $match -lt `expr ${GOOD_RANDOM_NO} / 3` ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 
 echo_i "Checking default order no match in rrset-order (no shuffling)"
