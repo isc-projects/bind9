@@ -212,6 +212,7 @@ struct isc_socketevent {
 						     enum */
 	isc_eventdestructor_t   destroy;	/*%< original destructor */
 	unsigned int		dscp;		/*%< UDP dscp value */
+	isc_taskaction_t	action;	
 };
 
 typedef struct isc_socket_newconnev isc_socket_newconnev_t;

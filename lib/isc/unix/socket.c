@@ -1539,6 +1539,7 @@ allocate_socketevent(isc_mem_t *mctx, void *sender,
 	ev->destroy = ev->ev_destroy;
 	ev->ev_destroy = destroy_socketevent;
 	ev->dscp = 0;
+	ev->action = NULL;
 
 	return (ev);
 }
@@ -2883,7 +2884,11 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 
 	if (ISC_LINK_LINKED(*dev, ev_link))
 		ISC_LIST_DEQUEUE(sock->recv_list, *dev, ev_link);
-
+	if ((*dev)->action != NULL) {
+		(*dev)->action(task, *dev);
+		return;
+	}
+	
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
 		isc_task_sendanddetachto(&task, (isc_event_t **)dev, to);
@@ -6062,5 +6067,14 @@ isc_socket_udpsubscribe(isc_socket_t *usock, isc_socketevent_factory_t evf, void
 	sock->recv_subscriber_arg = arg;
 	select_poke(sock->manager, sock->threadid, sock->fd,
 		    SELECT_POKE_READ);
+	return (ISC_R_SUCCESS);  
+}
+
+isc_result_t
+isc_socket_udpunsubscribe(isc_socket_t *usock) {
+	isc__socket_t *sock = (isc__socket_t*) usock;
+	REQUIRE(sock->recv_subscriber != NULL);
+	sock->recv_subscriber = NULL;
+	sock->recv_subscriber_arg = NULL;
 	return (ISC_R_SUCCESS);  
 }

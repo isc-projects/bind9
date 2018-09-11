@@ -4168,7 +4168,7 @@ ns__create_udp_socketevent(void* argp) {
         ISC_LIST_INIT(sev->bufferlist);
         sev->n = 0;
         sev->offset = 0;
-        sev->attributes = 0;
+        sev->action = ns__client_request;
 	
 	sev->region.base = client->recvbuf;
 	sev->region.length = RECV_BUFFER_SIZE;
