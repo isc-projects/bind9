@@ -22,13 +22,13 @@ touch empty
 
 Z=cds.test
 
-keyz=$($KEYGEN -q -r $RANDFILE -a RSASHA256 $Z)
-key1=$($KEYGEN -q -r $RANDFILE -a RSASHA256 -f KSK $Z)
-key2=$($KEYGEN -q -r $RANDFILE -a RSASHA256 -f KSK $Z)
+keyz=`$KEYGEN -q -r $RANDFILE -a RSASHA256 $Z`
+key1=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -f KSK $Z`
+key2=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -f KSK $Z`
 
-idz=$(echo $keyz | sed 's/.*+0*//')
-id1=$(echo $key1 | sed 's/.*+0*//')
-id2=$(echo $key2 | sed 's/.*+0*//')
+idz=`echo $keyz | sed 's/.*+0*//'`
+id1=`echo $key1 | sed 's/.*+0*//'`
+id2=`echo $key2 | sed 's/.*+0*//'`
 
 cat <<EOF >vars.sh
 Z=$Z
@@ -122,10 +122,11 @@ $mangle '\s+IN\s+RRSIG\s+CDS .* '$id1' '$Z'\. ' \
 $mangle " IN CDS $id1 8 1 " <db.cds.1 |
 sign cds-mangled
 
-sed 's/IN CDS '$id1' 8 1 /IN CDS '$((id1 ^ 255))' 8 1 /' <db.cds.1 |
+bad=`$PERL -le "print ($id1 ^ 255);"`
+sed 's/IN CDS '$id1' 8 1 /IN CDS '$bad' 8 1 /' <db.cds.1 |
 sign bad-digests
 
-sed '/IN CDS '$id1' 8 /p;s//IN CDS '$((id1 ^ 255))' 13 /' <db.cds.1 |
+sed '/IN CDS '$id1' 8 /p;s//IN CDS '$bad' 13 /' <db.cds.1 |
 sign bad-algos
 
 rm -f dsset-*

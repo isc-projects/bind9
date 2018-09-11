@@ -749,7 +749,7 @@ Bash should be avoided.  Some pitfalls to avoid:
   `$(parentheses)`
 * For arithmetical computation, use `` `expr {expression}` ``, not
   `$((expression))`
-* To text string length use `` `expr $string : ".*"` `` rather than ``
+* To test string length use `` `expr $string : ".*"` `` rather than ``
   `expr length $string` ``
 * To test for the presence of a string in a file without printing anything
   to stdout, use `"grep string filename > /dev/null 2>&1"`, rather than
