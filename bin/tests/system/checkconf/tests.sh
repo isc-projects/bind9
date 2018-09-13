@@ -61,7 +61,7 @@ do
 	pat="name field not set to placeholder value"
 	grep "$pat" < checkconf.out$n > /dev/null || ret=1
 	;;
-    bad-update-policy[67].conf|bad-update-policy1[2345].conf)
+    bad-update-policy[67].conf|bad-update-policy1[2345789].conf|bad-update-policy20.conf)
 	pat="missing name field type '.*' found"
 	grep "$pat" < checkconf.out$n > /dev/null || ret=1
 	;;

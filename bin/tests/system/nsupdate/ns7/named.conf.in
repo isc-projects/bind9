@@ -35,7 +35,7 @@ controls {
 zone "in-addr.arpa" {
 	type primary;
 	file "in-addr.db";
-	update-policy {	grant EXAMPLE.COM krb5-subdomain . PTR; };
+	update-policy {	grant EXAMPLE.COM krb5-subdomain-self-rhs . PTR; };
 };
 
 zone "example.com" {
@@ -44,5 +44,7 @@ zone "example.com" {
 	update-policy {
 		grant EXAMPLE.COM krb5-self . ANY;
 		grant EXAMPLE.COM krb5-subdomain _tcp.example.com SRV;
+		grant EXAMPLE.COM krb5-subdomain-self-rhs self-srv.example.com SRV;
+		grant EXAMPLE.COM krb5-subdomain-self-rhs self-srv-no-type.example.com;
 	};
 };

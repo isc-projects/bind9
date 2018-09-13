@@ -35,7 +35,7 @@ controls {
 zone "in-addr.arpa" {
 	type primary;
 	file "in-addr.db";
-	update-policy {	grant EXAMPLE.COM ms-subdomain . PTR; };
+	update-policy {	grant EXAMPLE.COM ms-subdomain-self-rhs . PTR; };
 };
 
 zone "example.com" {
@@ -44,5 +44,6 @@ zone "example.com" {
 	update-policy {
 		grant EXAMPLE.COM ms-selfsub . ANY;
 		grant EXAMPLE.COM ms-subdomain _tcp.example.com SRV;
+		grant EXAMPLE.COM ms-subdomain-self-rhs self-srv.example.com SRV;
 	};
 };
