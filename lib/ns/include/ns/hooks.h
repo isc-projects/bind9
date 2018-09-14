@@ -301,7 +301,7 @@ ns_hookmodule_load(const char *libname, const unsigned int modid,
 		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable);
 void
-ns_hookmodule_cleanup(bool exiting);
+ns_hookmodule_cleanup(void);
 
 void
 ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
