@@ -48,6 +48,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed -b 10.53.0.1 @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns1.test$n > /dev/null && ret=1
 grep "AUTHORITY: 0" dig.out.ns1.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -58,6 +59,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b 10.53.0.1 @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns1.test$n > /dev/null && ret=1
 grep "AUTHORITY: 0" dig.out.ns1.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -77,6 +79,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b 10.53.0.1 @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns1.test$n > /dev/null && ret=1
 grep "AUTHORITY: 0," dig.out.ns1.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -228,6 +231,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed -b 10.53.0.4 @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "AUTHORITY: 0," dig.out.ns4.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -238,6 +242,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b 10.53.0.4 @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -247,6 +252,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed +dnssec -b 10.53.0.4 @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -256,6 +262,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b 10.53.0.4 @10.53.0.4 > dig.out.ns4.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -397,6 +404,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -406,6 +414,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -423,6 +432,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned +dnssec -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -564,6 +574,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed -b 10.53.0.3 @10.53.0.3 > dig.out.ns3.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -573,6 +584,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b 10.53.0.3 @10.53.0.3 > dig.out.ns3.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -582,6 +594,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed +dnssec -b 10.53.0.3 @10.53.0.3 > dig.out.ns3.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -590,6 +603,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned +dnssec -b 10.53.0.3 @10.53.0.3 > dig.out.ns3.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -749,6 +763,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed -b fd92:7065:b8e:ffff::1 @fd92:7065:b8e:ffff::1 > dig.out.ns1.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns1.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -758,6 +773,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b fd92:7065:b8e:ffff::1 @fd92:7065:b8e:ffff::1 > dig.out.ns1.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns1.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -775,6 +791,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b fd92:7065:b8e:ffff::1 @fd92:7065:b8e:ffff::1 > dig.out.ns1.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns1.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns1.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns1.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -906,6 +923,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed -b fd92:7065:b8e:ffff::4 @fd92:7065:b8e:ffff::4 > dig.out.ns4.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -915,6 +933,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b fd92:7065:b8e:ffff::4 @fd92:7065:b8e:ffff::4 > dig.out.ns4.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -924,6 +943,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed +dnssec -b fd92:7065:b8e:ffff::4 @fd92:7065:b8e:ffff::4 > dig.out.ns4.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -933,6 +953,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b fd92:7065:b8e:ffff::4 @fd92:7065:b8e:ffff::4 > dig.out.ns4.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1064,6 +1085,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed -b fd92:7065:b8e:ffff::2 @fd92:7065:b8e:ffff::2 > dig.out.ns2.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1073,6 +1095,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b fd92:7065:b8e:ffff::2 @fd92:7065:b8e:ffff::2 > dig.out.ns2.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1090,6 +1113,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned +dnssec -b fd92:7065:b8e:ffff::2 @fd92:7065:b8e:ffff::2 > dig.out.ns2.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1221,6 +1245,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed -b fd92:7065:b8e:ffff::3 @fd92:7065:b8e:ffff::3 > dig.out.ns3.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1230,6 +1255,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned -b fd92:7065:b8e:ffff::3 @fd92:7065:b8e:ffff::3 > dig.out.ns3.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1239,6 +1265,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.signed +dnssec -b fd92:7065:b8e:ffff::3 @fd92:7065:b8e:ffff::3 > dig.out.ns3.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1247,6 +1274,7 @@ echo_i "checking that NODATA/NOERROR is returned when both AAAA and A records ex
 ret=0
 $DIG $DIGOPTS aaaa dual.unsigned +dnssec -b fd92:7065:b8e:ffff::3 @fd92:7065:b8e:ffff::3 > dig.out.ns3.test$n || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null && ret=1
 grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
