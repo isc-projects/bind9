@@ -21,10 +21,8 @@ infile=signed.db.in
 zonefile=signed.db.signed
 outfile=signed.db.signed
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null`
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+$KEYGEN -a rsasha256 $zone > /dev/null 2>&1
+keyname=`$KEYGEN -f KSK -a rsasha256 $zone 2> /dev/null`
 
-cat $infile $keyname1.key $keyname2.key >$zonefile
-
-$SIGNER -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-echo_i "signed $zone"
+$SIGNER -S -o $zone -f $outfile $infile > /dev/null 2> signer.err || cat signer.err
+echo_i "signed zone '$zone'"
