@@ -50,7 +50,7 @@
       to omit some IPv6 addresses when responding to clients.
     </para>
     <para>
-      Until BIND 9.12, this feature was impleented natively in
+      Until BIND 9.12, this feature was implemented natively in
       <command>named</command> and enabled with the
       <command>filter-aaaa</command> ACL and the
       <command>filter-aaaa-on-v4</command> and
