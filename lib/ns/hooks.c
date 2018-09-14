@@ -47,6 +47,7 @@ typedef struct ns_hook_module ns_hook_module_t;
 struct ns_hook_module {
 	isc_mem_t			*mctx;
 	void				*handle;
+	char				*filename;
 	ns_hook_register_t		*register_func;
 	ns_hook_destroy_t		*destroy_func;
 	void				*inst;
@@ -103,16 +104,16 @@ load_symbol(void *handle, const char *filename,
 }
 
 static isc_result_t
-load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
+load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 	isc_result_t result;
 	void *handle = NULL;
-	ns_hook_module_t *imp = NULL;
+	ns_hook_module_t *hmod = NULL;
 	ns_hook_register_t *register_func = NULL;
 	ns_hook_destroy_t *destroy_func = NULL;
 	ns_hook_version_t *version_func = NULL;
 	int version, flags;
 
-	REQUIRE(impp != NULL && *impp == NULL);
+	REQUIRE(hmodp != NULL && *hmodp == NULL);
 
 	flags = RTLD_NOW | RTLD_LOCAL;
 #ifdef RTLD_DEEPBIND
@@ -146,21 +147,22 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	CHECK(load_symbol(handle, filename, "hook_destroy",
 			  (void **)&destroy_func));
 
-	imp = isc_mem_get(mctx, sizeof(*imp));
-	if (imp == NULL) {
+	hmod = isc_mem_get(mctx, sizeof(*hmod));
+	if (hmod == NULL) {
 		CHECK(ISC_R_NOMEMORY);
 	}
 
-	imp->mctx = NULL;
-	isc_mem_attach(mctx, &imp->mctx);
-	imp->handle = handle;
-	imp->register_func = register_func;
-	imp->destroy_func = destroy_func;
+	hmod->mctx = NULL;
+	isc_mem_attach(mctx, &hmod->mctx);
+	hmod->handle = handle;
+	hmod->filename = isc_mem_strdup(hmod->mctx, filename);
+	hmod->register_func = register_func;
+	hmod->destroy_func = destroy_func;
 
-	ISC_LINK_INIT(imp, link);
+	ISC_LINK_INIT(hmod, link);
 
-	*impp = imp;
-	imp = NULL;
+	*hmodp = hmod;
+	hmod = NULL;
 
 cleanup:
 	if (result != ISC_R_SUCCESS) {
@@ -170,8 +172,9 @@ cleanup:
 			      "hook module '%s': %s (%s)", filename,
 			      dlerror(), isc_result_totext(result));
 
-		if (imp != NULL) {
-			isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
+		if (hmod != NULL) {
+			isc_mem_putanddetach(&hmod->mctx, hmod,
+					     sizeof(*hmod));
 		}
 
 		if (handle != NULL) {
@@ -183,19 +186,22 @@ cleanup:
 }
 
 static void
-unload_library(ns_hook_module_t **impp) {
-	ns_hook_module_t *imp;
+unload_library(ns_hook_module_t **hmodp) {
+	ns_hook_module_t *hmod;
 
-	REQUIRE(impp != NULL && *impp != NULL);
+	REQUIRE(hmodp != NULL && *hmodp != NULL);
 
-	imp = *impp;
-	*impp = NULL;
+	hmod = *hmodp;
+	*hmodp = NULL;
 
-	if (imp->handle != NULL) {
-		dlclose(imp->handle);
+	if (hmod->handle != NULL) {
+		dlclose(hmod->handle);
+	}
+	if (hmod->filename != NULL) {
+		isc_mem_free(hmod->mctx, hmod->filename);
 	}
 
-	isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
+	isc_mem_putanddetach(&hmod->mctx, hmod, sizeof(*hmod));
 }
 #elif _WIN32
 static isc_result_t
@@ -224,16 +230,16 @@ load_symbol(HMODULE handle, const char *filename,
 }
 
 static isc_result_t
-load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
+load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 	isc_result_t result;
 	HMODULE handle;
-	ns_hook_module_t *imp = NULL;
+	ns_hook_module_t *hmod = NULL;
 	ns_hook_register_t *register_func = NULL;
 	ns_hook_destroy_t *destroy_func = NULL;
 	ns_hook_version_t *version_func = NULL;
 	int version;
 
-	REQUIRE(impp != NULL && *impp == NULL);
+	REQUIRE(hmodp != NULL && *hmodp == NULL);
 
 	handle = LoadLibraryA(filename);
 	if (handle == NULL) {
@@ -259,21 +265,22 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	CHECK(load_symbol(handle, filename, "hook_destroy",
 			  (void **)&destroy_func));
 
-	imp = isc_mem_get(mctx, sizeof(*imp));
-	if (imp == NULL) {
+	hmod = isc_mem_get(mctx, sizeof(*hmod));
+	if (hmod == NULL) {
 		CHECK(ISC_R_NOMEMORY);
 	}
 
-	imp->mctx = NULL;
-	isc_mem_attach(mctx, &imp->mctx);
-	imp->handle = handle;
-	imp->register_func = register_func;
-	imp->destroy_func = destroy_func;
+	hmod->mctx = NULL;
+	isc_mem_attach(mctx, &hmod->mctx);
+	hmod->handle = handle;
+	hmod->filename = isc_mem_strdup(hmod->mctx, filename);
+	hmod->register_func = register_func;
+	hmod->destroy_func = destroy_func;
 
-	ISC_LINK_INIT(imp, link);
+	ISC_LINK_INIT(hmod, link);
 
-	*impp = imp;
-	imp = NULL;
+	*hmodp = hmod;
+	hmod = NULL;
 
 cleanup:
 	if (result != ISC_R_SUCCESS) {
@@ -282,8 +289,9 @@ cleanup:
 			      "failed to dynamically load "
 			      "hook module '%s': %d (%s)", filename,
 			      GetLastError(), isc_result_totext(result));
-		if (imp != NULL) {
-			isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
+		if (hmod != NULL) {
+			isc_mem_putanddetach(&hmod->mctx, hmod,
+					     sizeof(*hmod));
 		}
 
 		if (handle != NULL) {
@@ -295,37 +303,41 @@ cleanup:
 }
 
 static void
-unload_library(ns_hook_module_t **impp) {
-	ns_hook_module_t *imp;
+unload_library(ns_hook_module_t **hmodp) {
+	ns_hook_module_t *hmod;
 
-	REQUIRE(impp != NULL && *impp != NULL);
+	REQUIRE(hmodp != NULL && *hmodp != NULL);
 
-	imp = *impp;
-	*impp = NULL;
+	hmod = *hmodp;
+	*hmodp = NULL;
 
-	if (imp->handle != NULL) {
-		FreeLibrary(imp->handle);
+	if (hmod->handle != NULL) {
+		FreeLibrary(hmod->handle);
 	}
 
-	isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
+	if (hmod->filename != NULL) {
+		isc_mem_free(hmod->mctx, hmod->filename);
+	}
+
+	isc_mem_putanddetach(&hmod->mctx, hmod, sizeof(*hmod));
 }
 #else	/* HAVE_DLFCN_H || _WIN32 */
 static isc_result_t
-load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
+load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 	UNUSED(mctx);
 	UNUSED(filename);
-	UNUSED(impp);
+	UNUSED(hmodp);
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_DATABASE,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
-		      "hook module support is not implemented");
+		      "hook module support is not hmodlemented");
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
 
 static void
-unload_library(ns_hook_module_t **impp) {
-	UNUSED(impp);
+unload_library(ns_hook_module_t **hmodp) {
+	UNUSED(hmodp);
 }
 #endif	/* HAVE_DLFCN_H */
 
@@ -346,7 +358,7 @@ ns_hookmodule_load(const char *libname, const unsigned int modid,
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading hook module '%s'", libname);
+		      "loading module '%s'", libname);
 
 	CHECK(load_library(hctx->mctx, libname, &module));
 	CHECK(module->register_func(modid, parameters, file, line,
@@ -364,20 +376,20 @@ cleanup:
 
 void
 ns_hookmodule_cleanup(void) {
-	ns_hook_module_t *elem, *prev;
+	ns_hook_module_t *hmod, *prev;
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
 
-	elem = ISC_LIST_TAIL(hook_modules);
-	while (elem != NULL) {
-		prev = ISC_LIST_PREV(elem, link);
-		UNLINK(hook_modules, elem, link);
+	hmod = ISC_LIST_TAIL(hook_modules);
+	while (hmod != NULL) {
+		prev = ISC_LIST_PREV(hmod, link);
+		UNLINK(hook_modules, hmod, link);
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-			      "unloading module");
-		elem->destroy_func();
-		unload_library(&elem);
-		elem = prev;
+			      "unloading module '%s'", hmod->filename);
+		hmod->destroy_func();
+		unload_library(&hmod);
+		hmod = prev;
 	}
 }
 
