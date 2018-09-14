@@ -246,8 +246,14 @@ static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
+/*
+ * Call the specified hook function in every configured module that
+ * implements that function. If any hook function returns 'true',
+ * we interrupt processing, set 'result' and jump to the 'cleanup' tag.
+ */
 #define PROCESS_HOOK(_id, _qctx, ...)					\
 	do {								\
+		isc_result_t _res;					\
 		ns_hooktable_t *_tab = ns__hook_table; 			\
 		ns_hook_t *_hook;					\
 		query_ctx_t *_q = (_qctx);				\
@@ -262,10 +268,40 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
 			ns_hook_cb_t _callback = _hook->callback;	\
 			void *_data = _hook->callback_data;		\
 			if (_callback != NULL &&			\
-			    _callback(_q, _data, &result))		\
+			    _callback(_q, _data, &_res))		\
 			{						\
+				result = _res;				\
 				goto cleanup;				\
 			} else {					\
+				_hook = ISC_LIST_NEXT(_hook, link);	\
+			}						\
+		}							\
+	} while (false)
+
+/*
+ * Call the specified hook function in every configured module that
+ * implements that function. All modules are called, hook function
+ * return codes are ignored. This is intended for use with initialization
+ * and destruction calls which must run in every module.
+ */
+#define PROCESS_HOOK_ALL(_id, _qctx, ...)				\
+	do {								\
+		isc_result_t _res;					\
+		ns_hooktable_t *_tab = ns__hook_table; 			\
+		ns_hook_t *_hook;					\
+		query_ctx_t *_q = (_qctx);				\
+		if (_q != NULL &&					\
+		    _q->view != NULL &&					\
+		    _q->view->hooktable != NULL)			\
+		{							\
+			_tab = _q->view->hooktable;			\
+		}							\
+		_hook = ISC_LIST_HEAD((*_tab)[_id]);			\
+		while (_hook != NULL) {					\
+			ns_hook_cb_t _callback = _hook->callback;	\
+			void *_data = _hook->callback_data;		\
+			if (_callback != NULL) {			\
+				_callback(_q, _data, &_res);		\
 				_hook = ISC_LIST_NEXT(_hook, link);	\
 			}						\
 		}							\
@@ -4801,8 +4837,6 @@ static void
 qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	  dns_rdatatype_t qtype, query_ctx_t *qctx)
 {
-	isc_result_t result = ISC_R_SUCCESS;
-
 	REQUIRE(qctx != NULL);
 	REQUIRE(client != NULL);
 
@@ -4843,10 +4877,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->answer_has_ns = false;
 	qctx->authoritative = false;
 
-	PROCESS_HOOK(NS_QUERY_QCTX_INITIALIZED, qctx);
-
- cleanup:
-	return;
+	PROCESS_HOOK_ALL(NS_QUERY_QCTX_INITIALIZED, qctx);
 }
 
 /*%
@@ -4911,11 +4942,7 @@ qctx_freedata(query_ctx_t *qctx) {
 
 static void
 qctx_destroy(query_ctx_t *qctx) {
-	isc_result_t result = ISC_R_SUCCESS;
-
-	PROCESS_HOOK(NS_QUERY_QCTX_DESTROYED, qctx);
-
- cleanup:
+	PROCESS_HOOK_ALL(NS_QUERY_QCTX_DESTROYED, qctx);
 	dns_view_detach(&qctx->view);
 }
 
