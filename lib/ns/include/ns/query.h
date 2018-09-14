@@ -252,13 +252,13 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 
 isc_result_t
 ns__query_sfcache(query_ctx_t *qctx);
-/*%
+/*%<
  * (Must not be used outside this module and its associated unit tests.)
  */
 
 isc_result_t
 ns__query_start(query_ctx_t *qctx);
-/*%
+/*%<
  * (Must not be used outside this module and its associated unit tests.)
  */
 

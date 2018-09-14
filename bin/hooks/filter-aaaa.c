@@ -13,29 +13,45 @@
 
 #include <config.h>
 
+#include <inttypes.h>
+#include <stdbool.h>
+#include <string.h>
+
+#include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/lib.h>
+#include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/netaddr.h>
 #include <isc/result.h>
+#include <isc/types.h>
 #include <isc/util.h>
 
 #include <isccfg/aclconf.h>
+#include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
-#include <isccfg/namedconf.h>
-
-#include <dns/acl.h>
-#include <dns/result.h>
 
 #include <ns/client.h>
 #include <ns/hooks.h>
 #include <ns/log.h>
 #include <ns/query.h>
+#include <ns/types.h>
 
-#define CHECK(r) \
-	do { \
-		result = (r); \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup; \
+#include <dns/acl.h>
+#include <dns/db.h>
+#include <dns/enumtype.h>
+#include <dns/log.h>
+#include <dns/message.h>
+#include <dns/rdataset.h>
+#include <dns/result.h>
+#include <dns/types.h>
+
+#define CHECK(op)						\
+	do {							\
+		result = (op);					\
+		if (result != ISC_R_SUCCESS) {			\
+			goto cleanup;				\
+		}						\
 	} while (0)
 
 /*
@@ -228,15 +244,12 @@ parse_parameters(const char *parameters, const void *cfg,
 }
 
 /**
- ** Mandatory hook API functions.
+ ** Mandatory hook API functions:
+ **
+ ** - hook_destroy
+ ** - hook_register
+ ** - hook_version
  **/
-
-/*
- * Prototypes for the hook module API functions defined below.
- */
-ns_hook_destroy_t hook_destroy;
-ns_hook_register_t hook_register;
-ns_hook_version_t hook_version;
 
 /*
  * Called by ns_hookmodule_load() to register hook functions into
@@ -244,7 +257,7 @@ ns_hook_version_t hook_version;
  */
 isc_result_t
 hook_register(const unsigned int modid, const char *parameters,
-	      const char *file, unsigned long line,
+	      const char *cfg_file, unsigned long cfg_line,
 	      const void *cfg, void *actx,
 	      ns_hookctx_t *hctx, ns_hooktable_t *hooktable, void **instp)
 {
@@ -254,20 +267,14 @@ hook_register(const unsigned int modid, const char *parameters,
 
 	module_id = modid;
 
-	if (parameters != NULL) {
-		isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-			      "loading params for 'filter-aaaa' "
-			      "module from %s:%lu",
-			      file, line);
+	isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+		      "loading 'filter-aaaa' "
+		      "module from %s:%lu, %s parameters",
+		      cfg_file, cfg_line, parameters != NULL ? "with" : "no");
 
+	if (parameters != NULL) {
 		CHECK(parse_parameters(parameters, cfg, actx, hctx));
-	} else {
-		isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
-			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-			      "loading 'filter-aaaa' "
-			      "module from %s:%lu, no parameters",
-			      file, line);
 	}
 
 	ns_hook_add(hooktable, NS_QUERY_QCTX_INITIALIZED, &filter_init);
@@ -304,7 +311,7 @@ hook_register(const unsigned int modid, const char *parameters,
 }
 
 /*
- * Called by ns_hookmodule_cleanup(); frees memory allocated by
+ * Called by ns_hookmodule_unload_all(); frees memory allocated by
  * the module when it was registered.
  */
 void
@@ -325,18 +332,16 @@ hook_destroy(void **instp) {
  * Returns hook module API version for compatibility checks.
  */
 int
-hook_version(unsigned int *flags) {
-	UNUSED(flags);
-
+hook_version(void) {
 	return (NS_HOOK_VERSION);
 }
 
 /**
- ** "filter-aaaa" feature implementation begins here
+ ** "filter-aaaa" feature implementation begins here.
  **/
 
 /*
- * Check whether this is a V4 client.
+ * Check whether this is an IPv4 client.
  */
 static bool
 is_v4_client(ns_client_t *client) {
@@ -352,7 +357,7 @@ is_v4_client(ns_client_t *client) {
 }
 
 /*
- * Check whether this is a V6 client.
+ * Check whether this is an IPv6 client.
  */
 static bool
 is_v6_client(ns_client_t *client) {
@@ -389,7 +394,7 @@ filter_qctx_initialize(void *hookdata, void *cbdata, isc_result_t *resp) {
 }
 
 /*
- * Determine whether this client should have AAAA filtered nor not,
+ * Determine whether this client should have AAAA filtered or not,
  * based on the client address family and the settings of
  * filter-aaaa-on-v4 and filter-aaaa-on-v6.
  */
@@ -474,6 +479,7 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 		 * cached an A if it existed.
 		 */
 		if (result == ISC_R_SUCCESS) {
+			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			qctx->rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 			if (qctx->sigrdataset != NULL &&
 			    dns_rdataset_isassociated(qctx->sigrdataset))
@@ -511,7 +517,6 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 		   ((qctx->client->hookflags[module_id] &
 		     FILTER_AAAA_RECURSING) != 0))
 	{
-
 		dns_rdataset_t *mrdataset = NULL;
 		dns_rdataset_t *sigrdataset = NULL;
 
@@ -520,6 +525,7 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 					      dns_rdatatype_aaaa, 0,
 					      NULL, &mrdataset);
 		if (result == ISC_R_SUCCESS) {
+			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			mrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 		}
 
@@ -529,6 +535,7 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 					      dns_rdatatype_aaaa,
 					      NULL, &sigrdataset);
 		if (result == ISC_R_SUCCESS) {
+			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			sigrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 		}
 
@@ -593,6 +600,7 @@ filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
 	    (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
 	     **mode == BREAK_DNSSEC))
 	{
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
 		if (aaaa_sig != NULL) {
 			aaaa_sig->attributes |= DNS_RDATASETATTR_RENDERED;
@@ -605,7 +613,7 @@ filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
 
 /*
  * Hide AAAA rrsets in the additional section if there is a matching A,
- * and hide NS in the additional section if AAAA was filtered in the answer
+ * and hide NS in the authority section if AAAA was filtered in the answer
  * section.
  */
 static bool
@@ -674,6 +682,8 @@ filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
 			result = dns_message_findtype(name, dns_rdatatype_ns,
 						      0, &ns);
 			if (result == ISC_R_SUCCESS) {
+				qctx->client->message->flags &=
+					~DNS_MESSAGEFLAG_AD;
 				ns->attributes |= DNS_RDATASETATTR_RENDERED;
 			}
 

@@ -46,8 +46,8 @@ ns_clientmgr_destroy
 ns_hook_add
 ns_hook_createctx
 ns_hook_destroyctx
-ns_hookmodule_cleanup
 ns_hookmodule_load
+ns_hookmodule_unload_all
 ns_hooktable_create
 ns_hooktable_free
 ns_hooktable_init

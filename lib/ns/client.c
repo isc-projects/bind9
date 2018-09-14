@@ -4044,6 +4044,7 @@ ns_client_newname(ns_client_t *client, isc_buffer_t *dbuf, isc_buffer_t *nbuf) {
 	REQUIRE((client->query.attributes & NS_QUERYATTR_NAMEBUFUSED) == 0);
 
 	CTRACE("ns_client_newname");
+
 	name = NULL;
 	result = dns_message_gettempname(client->message, &name);
 	if (result != ISC_R_SUCCESS) {
