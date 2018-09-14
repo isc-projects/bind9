@@ -92,7 +92,6 @@ typedef struct dns_rdatasetmethods {
 						dns_name_t *name);
 	isc_result_t		(*addglue)(dns_rdataset_t *rdataset,
 					   dns_dbversion_t *version,
-					   unsigned int options,
 					   dns_message_t *msg);
 } dns_rdatasetmethods_t;
 
@@ -573,9 +572,7 @@ dns_rdataset_getownercase(const dns_rdataset_t *rdataset, dns_name_t *name);
  */
 
 isc_result_t
-dns_rdataset_addglue(dns_rdataset_t *rdataset,
-		     dns_dbversion_t *version,
-		     unsigned int options,
+dns_rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 		     dns_message_t *msg);
 /*%<
  * Add glue records for rdataset to the additional section of message in
@@ -587,7 +584,6 @@ dns_rdataset_addglue(dns_rdataset_t *rdataset,
  * Requires:
  * \li	'rdataset' is a valid NS rdataset.
  * \li	'version' is the DB version.
- * \li  'options' is options; currently none are defined
  * \li	'msg' is the DNS message to which the glue should be added.
  *
  * Returns:
