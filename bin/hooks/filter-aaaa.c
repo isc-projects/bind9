@@ -485,6 +485,7 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 		 * cached an A if it existed.
 		 */
 		if (result == ISC_R_SUCCESS) {
+			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			qctx->rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 			if (qctx->sigrdataset != NULL &&
 			    dns_rdataset_isassociated(qctx->sigrdataset))
@@ -531,6 +532,7 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 					      dns_rdatatype_aaaa, 0,
 					      NULL, &mrdataset);
 		if (result == ISC_R_SUCCESS) {
+			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			mrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 		}
 
@@ -540,6 +542,7 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 					      dns_rdatatype_aaaa,
 					      NULL, &sigrdataset);
 		if (result == ISC_R_SUCCESS) {
+			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			sigrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 		}
 
@@ -604,6 +607,7 @@ filter_respond_any_found(void *hookdata, void *cbdata, isc_result_t *resp) {
 	    (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
 	     **mode == BREAK_DNSSEC))
 	{
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
 		if (aaaa_sig != NULL) {
 			aaaa_sig->attributes |= DNS_RDATASETATTR_RENDERED;
@@ -685,6 +689,8 @@ filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
 			result = dns_message_findtype(name, dns_rdatatype_ns,
 						      0, &ns);
 			if (result == ISC_R_SUCCESS) {
+				qctx->client->message->flags &=
+					~DNS_MESSAGEFLAG_AD;
 				ns->attributes |= DNS_RDATASETATTR_RENDERED;
 			}
 
