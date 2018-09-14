@@ -57,22 +57,17 @@ static ns_hooklist_t default_hooktable[NS_QUERY_HOOKS_COUNT];
 LIBNS_EXTERNAL_DATA ns_hooktable_t *ns__hook_table = &default_hooktable;
 
 /*
- * List of hook modules. Locked by modules_lock.
+ * List of hook modules.
  *
  * These are stored here so they can be cleaned up on shutdown.
  * (The order in which they are stored is not important.)
  */
 static LIST(ns_hook_module_t) hook_modules;
 
-/*
- * Locks hook_modules.
- */
-static isc_mutex_t modules_lock;
 static isc_once_t once = ISC_ONCE_INIT;
 
 static void
 init_modules(void) {
-	RUNTIME_CHECK(isc_mutex_init(&modules_lock) == ISC_R_SUCCESS);
 	INIT_LIST(hook_modules);
 }
 
@@ -349,8 +344,6 @@ ns_hookmodule_load(const char *libname, const unsigned int modid,
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
 
-	LOCK(&modules_lock);
-
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 		      "loading hook module '%s'", libname);
@@ -366,17 +359,15 @@ cleanup:
 		unload_library(&module);
 	}
 
-	UNLOCK(&modules_lock);
 	return (result);
 }
 
 void
-ns_hookmodule_cleanup(bool exiting) {
+ns_hookmodule_cleanup(void) {
 	ns_hook_module_t *elem, *prev;
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
 
-	LOCK(&modules_lock);
 	elem = ISC_LIST_TAIL(hook_modules);
 	while (elem != NULL) {
 		prev = ISC_LIST_PREV(elem, link);
@@ -387,11 +378,6 @@ ns_hookmodule_cleanup(bool exiting) {
 		elem->destroy_func();
 		unload_library(&elem);
 		elem = prev;
-	}
-	UNLOCK(&modules_lock);
-
-	if (exiting) {
-		isc_mutex_destroy(&modules_lock);
 	}
 }
 
