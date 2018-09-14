@@ -290,35 +290,6 @@ typedef int ns_hook_version_t(unsigned int *flags);
  * the future to pass back driver capabilities or other information.
  */
 
-/*
- * Run a hook. Calls the function or functions registered at hookpoint 'id'.
- * If one of them returns true, we interrupt processing and return the
- * result that was returned by the hook function. If none of them return
- * true, we continue processing.
- */
-#define _NS_PROCESS_HOOK(table, id, data, ...)				\
-	if (table != NULL) {						\
-		ns_hook_t *_hook = ISC_LIST_HEAD((*table)[id]);		\
-		isc_result_t _result;					\
-									\
-		while (_hook != NULL) {					\
-			ns_hook_cb_t _callback = _hook->callback;	\
-			void *_callback_data = _hook->callback_data;	\
-			if (_callback != NULL &&			\
-			    _callback(data, _callback_data, &_result))	\
-			{						\
-				return __VA_ARGS__;			\
-			} else {					\
-				_hook = ISC_LIST_NEXT(_hook, link);	\
-			}						\
-		}							\
-	}
-
-#define NS_PROCESS_HOOK(table, id, data, ...) \
-	_NS_PROCESS_HOOK(table, id, data, _result)
-#define NS_PROCESS_HOOK_VOID(table, id, data, ...) \
-	_NS_PROCESS_HOOK(table, id, data)
-
 isc_result_t
 ns_hook_createctx(isc_mem_t *mctx, const void *hashinit, ns_hookctx_t **hctxp);
 
