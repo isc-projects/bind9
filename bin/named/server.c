@@ -5221,6 +5221,13 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		const cfg_obj_t *hook = cfg_listelt_value(element);
 		static unsigned int module_counter = 0;
 
+		if (module_counter >= NS_MAX_MODULES) {
+			cfg_obj_log(hook, named_g_lctx, ISC_LOG_ERROR,
+				    "Exceeded maximum of %d hook modules",
+				    NS_MAX_MODULES);
+			CHECK(ISC_R_FAILURE);
+		}
+
 		if (view->hooktable == NULL) {
 			ns_hooktable_create(view->mctx,
 				    (ns_hooktable_t **) &view->hooktable);
