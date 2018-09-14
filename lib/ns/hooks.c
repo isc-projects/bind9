@@ -21,18 +21,26 @@
 #include <windows.h>
 #endif
 
+#include <isc/list.h>
+#include <isc/log.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/result.h>
 #include <isc/once.h>
+#include <isc/platform.h>
 #include <isc/util.h>
+#include <isc/types.h>
 
 #include <ns/hooks.h>
 #include <ns/log.h>
+#include <ns/query.h>
 
 #define CHECK(op)						\
-	do { result = (op);					\
-		if (result != ISC_R_SUCCESS) goto cleanup;	\
+	do {							\
+		result = (op);					\
+		if (result != ISC_R_SUCCESS) {			\
+			goto cleanup;				\
+		}						\
 	} while (0)
 
 typedef struct ns_hook_module ns_hook_module_t;
@@ -45,24 +53,26 @@ struct ns_hook_module {
 	LINK(ns_hook_module_t)		link;
 };
 
-static ns_hooklist_t hooktab[NS_QUERY_HOOKS_COUNT];
-LIBNS_EXTERNAL_DATA ns_hooktable_t *ns__hook_table = &hooktab;
+static ns_hooklist_t default_hooktable[NS_QUERY_HOOKS_COUNT];
+LIBNS_EXTERNAL_DATA ns_hooktable_t *ns__hook_table = &default_hooktable;
 
 /*
- * List of hook modules. Locked by hook_lock.
+ * List of hook modules. Locked by modules_lock.
  *
  * These are stored here so they can be cleaned up on shutdown.
  * (The order in which they are stored is not important.)
  */
 static LIST(ns_hook_module_t) hook_modules;
 
-/* Locks ns_hook_modules. */
-static isc_mutex_t hook_lock;
+/*
+ * Locks hook_modules.
+ */
+static isc_mutex_t modules_lock;
 static isc_once_t once = ISC_ONCE_INIT;
 
 static void
 init_modules(void) {
-	RUNTIME_CHECK(isc_mutex_init(&hook_lock) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&modules_lock) == ISC_R_SUCCESS);
 	INIT_LIST(hook_modules);
 }
 
@@ -85,7 +95,7 @@ load_symbol(void *handle, const char *filename,
 		}
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
-			      "failed to look upsymbol %s in "
+			      "failed to look up symbol %s in "
 			      "hook module '%s': %s",
 			      symbol_name, filename, errmsg);
 		return (ISC_R_FAILURE);
@@ -109,11 +119,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 
 	REQUIRE(impp != NULL && *impp == NULL);
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading hook module '%s'", filename);
-
-	flags = RTLD_NOW|RTLD_LOCAL;
+	flags = RTLD_NOW | RTLD_LOCAL;
 #ifdef RTLD_DEEPBIND
 	flags |= RTLD_DEEPBIND;
 #endif
@@ -129,13 +135,13 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	CHECK(load_symbol(handle, filename, "hook_version",
 			  (void **)&version_func));
 
-	version = version_func(NULL);
+	version = version_func();
 	if (version < (NS_HOOK_VERSION - NS_HOOK_AGE) ||
 	    version > NS_HOOK_VERSION)
 	{
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
-			      "driver API version mismatch: %d/%d",
+			      "hook API version mismatch: %d/%d",
 			      version, NS_HOOK_VERSION);
 		CHECK(ISC_R_FAILURE);
 	}
@@ -145,7 +151,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	CHECK(load_symbol(handle, filename, "hook_destroy",
 			  (void **)&destroy_func));
 
-	imp = isc_mem_get(mctx, sizeof(ns_hook_module_t));
+	imp = isc_mem_get(mctx, sizeof(*imp));
 	if (imp == NULL) {
 		CHECK(ISC_R_NOMEMORY);
 	}
@@ -156,7 +162,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	imp->register_func = register_func;
 	imp->destroy_func = destroy_func;
 
-	INIT_LINK(imp, link);
+	ISC_LINK_INIT(imp, link);
 
 	*impp = imp;
 	imp = NULL;
@@ -168,13 +174,14 @@ cleanup:
 			      "failed to dynamically load "
 			      "hook module '%s': %s (%s)", filename,
 			      dlerror(), isc_result_totext(result));
-	}
-	if (imp != NULL) {
-		isc_mem_putanddetach(&imp->mctx, imp,
-				     sizeof(ns_hook_module_t));
-	}
-	if (result != ISC_R_SUCCESS && handle != NULL) {
-		dlclose(handle);
+
+		if (imp != NULL) {
+			isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
+		}
+
+		if (handle != NULL) {
+			dlclose(handle);
+		}
 	}
 
 	return (result);
@@ -187,10 +194,13 @@ unload_library(ns_hook_module_t **impp) {
 	REQUIRE(impp != NULL && *impp != NULL);
 
 	imp = *impp;
-
-	isc_mem_putanddetach(&imp->mctx, imp, sizeof(ns_hook_module_t));
-
 	*impp = NULL;
+
+	if (imp->handle != NULL) {
+		dlclose(imp->handle);
+	}
+
+	isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
 }
 #elif _WIN32
 static isc_result_t
@@ -230,11 +240,6 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 
 	REQUIRE(impp != NULL && *impp == NULL);
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading hook module '%s'",
-		      filename);
-
 	handle = LoadLibraryA(filename);
 	if (handle == NULL) {
 		CHECK(ISC_R_FAILURE);
@@ -249,7 +254,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	{
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
-			      "driver API version mismatch: %d/%d",
+			      "hook API version mismatch: %d/%d",
 			      version, NS_HOOK_VERSION);
 		CHECK(ISC_R_FAILURE);
 	}
@@ -259,7 +264,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	CHECK(load_symbol(handle, filename, "hook_destroy",
 			  (void **)&destroy_func));
 
-	imp = isc_mem_get(mctx, sizeof(ns_hook_module_t));
+	imp = isc_mem_get(mctx, sizeof(*imp));
 	if (imp == NULL) {
 		CHECK(ISC_R_NOMEMORY);
 	}
@@ -270,7 +275,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	imp->register_func = register_func;
 	imp->destroy_func = destroy_func;
 
-	INIT_LINK(imp, link);
+	ISC_LINK_INIT(imp, link);
 
 	*impp = imp;
 	imp = NULL;
@@ -282,13 +287,13 @@ cleanup:
 			      "failed to dynamically load "
 			      "hook module '%s': %d (%s)", filename,
 			      GetLastError(), isc_result_totext(result));
-	}
-	if (imp != NULL) {
-		isc_mem_putanddetach(&imp->mctx, imp,
-				     sizeof(ns_hook_module_t));
-	}
-	if (result != ISC_R_SUCCESS && handle != NULL) {
-		FreeLibrary(handle);
+		if (imp != NULL) {
+			isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
+		}
+
+		if (handle != NULL) {
+			FreeLibrary(handle);
+		}
 	}
 
 	return (result);
@@ -301,10 +306,13 @@ unload_library(ns_hook_module_t **impp) {
 	REQUIRE(impp != NULL && *impp != NULL);
 
 	imp = *impp;
-
-	isc_mem_putanddetach(&imp->mctx, imp, sizeof(ns_hook_module_t));
-
 	*impp = NULL;
+
+	if (imp->handle != NULL) {
+		FreeLibrary(imp->handle);
+	}
+
+	isc_mem_putanddetach(&imp->mctx, imp, sizeof(*imp));
 }
 #else	/* HAVE_DLFCN_H || _WIN32 */
 static isc_result_t
@@ -313,9 +321,9 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **impp) {
 	UNUSED(filename);
 	UNUSED(impp);
 
-	isc_log_write(ns_lctx, NS_LOGCATEGORY_DATABASE, NS_LOGMODULE_HOOKS,
-		      ISC_LOG_ERROR,
-		      "dynamic database support is not implemented");
+	isc_log_write(ns_lctx, NS_LOGCATEGORY_DATABASE,
+		      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
+		      "hook module support is not implemented");
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -333,28 +341,32 @@ ns_hookmodule_load(const char *libname, const unsigned int modid,
 		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
-	isc_result_t result;
-	ns_hook_module_t *implementation = NULL;
+	isc_result_t result = ISC_R_SUCCESS;
+	ns_hook_module_t *module = NULL;
 
 	REQUIRE(NS_HOOKCTX_VALID(hctx));
+	REQUIRE(hooktable != NULL);
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
 
-	LOCK(&hook_lock);
+	LOCK(&modules_lock);
 
-	CHECK(load_library(hctx->mctx, libname, &implementation));
-	CHECK(implementation->register_func(modid, parameters, file, line,
-					    cfg, actx, hctx, hooktable));
+	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+		      "loading hook module '%s'", libname);
 
-	APPEND(hook_modules, implementation, link);
-	result = ISC_R_SUCCESS;
+	CHECK(load_library(hctx->mctx, libname, &module));
+	CHECK(module->register_func(modid, parameters, file, line,
+				    cfg, actx, hctx, hooktable));
+
+	ISC_LIST_APPEND(hook_modules, module, link);
 
 cleanup:
-	if (result != ISC_R_SUCCESS && implementation != NULL) {
-		unload_library(&implementation);
+	if (result != ISC_R_SUCCESS && module != NULL) {
+		unload_library(&module);
 	}
 
-	UNLOCK(&hook_lock);
+	UNLOCK(&modules_lock);
 	return (result);
 }
 
@@ -364,10 +376,10 @@ ns_hookmodule_cleanup(bool exiting) {
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
 
-	LOCK(&hook_lock);
-	elem = TAIL(hook_modules);
+	LOCK(&modules_lock);
+	elem = ISC_LIST_TAIL(hook_modules);
 	while (elem != NULL) {
-		prev = PREV(elem, link);
+		prev = ISC_LIST_PREV(elem, link);
 		UNLINK(hook_modules, elem, link);
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
@@ -376,10 +388,10 @@ ns_hookmodule_cleanup(bool exiting) {
 		unload_library(&elem);
 		elem = prev;
 	}
-	UNLOCK(&hook_lock);
+	UNLOCK(&modules_lock);
 
 	if (exiting) {
-		isc_mutex_destroy(&hook_lock);
+		isc_mutex_destroy(&modules_lock);
 	}
 }
 
@@ -421,8 +433,6 @@ ns_hook_destroyctx(ns_hookctx_t **hctxp) {
 
 	hctx->magic = 0;
 
-	hctx->lctx = NULL;
-
 	isc_mem_putanddetach(&hctx->mctx, hctx, sizeof(*hctx));
 }
 
@@ -443,7 +453,7 @@ ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep) {
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
 
-	hooktable = isc_mem_get(mctx, sizeof(ns_hooktable_t));
+	hooktable = isc_mem_get(mctx, sizeof(*hooktable));
 	if (hooktable == NULL) {
 		return (ISC_R_NOMEMORY);
 	}

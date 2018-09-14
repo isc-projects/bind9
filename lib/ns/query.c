@@ -1909,23 +1909,23 @@ query_addtoname(dns_name_t *name, dns_rdataset_t *rdataset) {
  */
 static void
 query_setorder(query_ctx_t *qctx, dns_name_t *name, dns_rdataset_t *rdataset) {
-	ns_client_t *client = qctx->client;
+	ns_client_t *client= qctx->client;
+	dns_order_t *order = client->view->order;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_setorder");
 
 	UNUSED(client);
 
-	if (qctx->view->order != NULL) {
-		rdataset->attributes |=
-			dns_order_find(qctx->view->order,
-				       name, rdataset->type,
-				       rdataset->rdclass);
+	if (order != NULL) {
+		rdataset->attributes |= dns_order_find(order, name,
+						       rdataset->type,
+						       rdataset->rdclass);
 	}
 	rdataset->attributes |= DNS_RDATASETATTR_LOADORDER;
 };
 
 /*
- * Handle glue and fetch any other needed additional data for 'rdataset'
+ * Handle glue and fetch any other needed additional data for 'rdataset'.
  */
 static void
 query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
@@ -4840,7 +4840,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	REQUIRE(qctx != NULL);
 	REQUIRE(client != NULL);
 
-	memset(qctx, 0, sizeof(query_ctx_t));
+	memset(qctx, 0, sizeof(*qctx));
 
 	/* Set this first so CCTRACE will work */
 	qctx->client = client;
@@ -4851,31 +4851,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->event = event;
 	qctx->qtype = qctx->type = qtype;
 	qctx->result = ISC_R_SUCCESS;
-	qctx->fname = NULL;
-	qctx->zfname = NULL;
-	qctx->rdataset = NULL;
-	qctx->zrdataset = NULL;
-	qctx->sigrdataset = NULL;
-	qctx->zsigrdataset = NULL;
-	qctx->zversion = NULL;
-	qctx->node = NULL;
-	qctx->znode = NULL;
-	qctx->db = NULL;
-	qctx->zdb = NULL;
-	qctx->version = NULL;
-	qctx->zone = NULL;
-	qctx->need_wildcardproof = false;
-	qctx->redirected = false;
-	qctx->dns64_exclude = qctx->dns64 = qctx->rpz = false;
-	qctx->options = 0;
-	qctx->resuming = false;
-	qctx->is_zone = false;
 	qctx->findcoveringnsec = qctx->view->synthfromdnssec;
-	qctx->is_staticstub_zone = false;
-	qctx->nxrewrite = false;
-	qctx->want_stale = false;
-	qctx->answer_has_ns = false;
-	qctx->authoritative = false;
 
 	PROCESS_HOOK_ALL(NS_QUERY_QCTX_INITIALIZED, qctx);
 }
@@ -10397,15 +10373,6 @@ query_glueanswer(query_ctx_t *qctx) {
 	}
 }
 
-/*%
- * Finalize this phase of the query process:
- *
- * - Clean up
- * - If we have an answer ready (positive or negative), send it.
- * - If we need to restart for a chaining query, call ns__query_start() again.
- * - If we've started recursion, then just clean up; things will be
- *   restarted via fetch_callback()/query_resume().
- */
 isc_result_t
 ns_query_done(query_ctx_t *qctx) {
 	isc_result_t result;

@@ -13,14 +13,6 @@ top_srcdir =	@top_srcdir@
 
 VERSION=@BIND9_VERSION@
 
-@BIND9_PRODUCT@
-
-@BIND9_DESCRIPTION@
-
-@BIND9_SRCID@
-
-@BIND9_CONFIGARGS@
-
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
