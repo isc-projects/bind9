@@ -187,22 +187,26 @@ totext_any_tsig(ARGS_TOTEXT) {
 	/*
 	 * Signature.
 	 */
-	REQUIRE(n <= sr.length);
-	sigr = sr;
-	sigr.length = n;
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
-		RETERR(str_totext(" (", target));
-	RETERR(str_totext(tctx->linebreak, target));
-	if (tctx->width == 0)   /* No splitting */
-		RETERR(isc_base64_totext(&sigr, 60, "", target));
-	else
-		RETERR(isc_base64_totext(&sigr, tctx->width - 2,
-					 tctx->linebreak, target));
-	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
-		RETERR(str_totext(" ) ", target));
-	else
+	if (n != 0U) {
+		REQUIRE(n <= sr.length);
+		sigr = sr;
+		sigr.length = n;
+		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+			RETERR(str_totext(" (", target));
+		RETERR(str_totext(tctx->linebreak, target));
+		if (tctx->width == 0)   /* No splitting */
+			RETERR(isc_base64_totext(&sigr, 60, "", target));
+		else
+			RETERR(isc_base64_totext(&sigr, tctx->width - 2,
+						 tctx->linebreak, target));
+		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0)
+			RETERR(str_totext(" ) ", target));
+		else
+			RETERR(str_totext(" ", target));
+		isc_region_consume(&sr, n);
+	} else {
 		RETERR(str_totext(" ", target));
-	isc_region_consume(&sr, n);
+	}
 
 	/*
 	 * Original ID.
