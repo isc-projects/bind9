@@ -561,7 +561,6 @@ static void rdataset_getownercase(const dns_rdataset_t *rdataset,
 				  dns_name_t *name);
 static isc_result_t rdataset_addglue(dns_rdataset_t *rdataset,
 				     dns_dbversion_t *version,
-				     unsigned int options,
 				     dns_message_t *msg);
 static void free_gluetable(rbtdb_version_t *version);
 
@@ -9799,7 +9798,7 @@ out:
 
 static isc_result_t
 rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
-		 unsigned int options, dns_message_t *msg)
+		 dns_message_t *msg)
 {
 	dns_rbtdb_t *rbtdb = rdataset->private1;
 	dns_rbtnode_t *node = rdataset->private2;
@@ -9815,8 +9814,6 @@ rdataset_addglue(dns_rdataset_t *rdataset, dns_dbversion_t *version,
 	REQUIRE(rdataset->type == dns_rdatatype_ns);
 	REQUIRE(rbtdb == rbtversion->rbtdb);
 	REQUIRE(!IS_CACHE(rbtdb) && !IS_STUB(rbtdb));
-
-	UNUSED(options);
 
 	/*
 	 * The glue table cache that forms a part of the DB version

@@ -1956,7 +1956,7 @@ query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
 		}
 
 		result = dns_rdataset_addglue(rdataset, dbversion->version,
-					      0, client->message);
+					      client->message);
 		if (result == ISC_R_SUCCESS) {
 			return;
 		}
