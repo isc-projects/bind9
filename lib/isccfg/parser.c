@@ -1350,10 +1350,6 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bracketed_text = {
 	&cfg_rep_string, NULL
 };
 
-/*%
- * A bracketed address match list
- */
-
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_negated;
 
@@ -1440,6 +1436,9 @@ static cfg_type_t cfg_type_addrmatchelt = {
 	NULL, NULL
 };
 
+/*%
+ * A bracketed address match list
+ */
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bracketed_aml = {
 	"bracketed_aml", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_addrmatchelt

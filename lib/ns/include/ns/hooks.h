@@ -163,17 +163,18 @@
  */
 
 typedef enum {
+	NS_QUERY_ADDITIONAL_BEGIN,
 	NS_QUERY_QCTX_INITIALIZED,
+	NS_QUERY_QCTX_DESTROYED,
 	NS_QUERY_SETUP,
 	NS_QUERY_START_BEGIN,
 	NS_QUERY_LOOKUP_BEGIN,
 	NS_QUERY_RESUME_BEGIN,
-	NS_QUERY_PREP_RESPONSE_BEGIN,
+	NS_QUERY_GOT_ANSWER_BEGIN,
 	NS_QUERY_RESPOND_ANY_BEGIN,
 	NS_QUERY_RESPOND_ANY_FOUND,
 	NS_QUERY_RESPOND_ANY_NOT_FOUND,
 	NS_QUERY_RESPOND_BEGIN,
-	NS_QUERY_GOT_ANSWER_BEGIN,
 	NS_QUERY_NOTFOUND_BEGIN,
 	NS_QUERY_PREP_DELEGATION_BEGIN,
 	NS_QUERY_ZONE_DELEGATION_BEGIN,
@@ -182,10 +183,9 @@ typedef enum {
 	NS_QUERY_NXDOMAIN_BEGIN,
 	NS_QUERY_CNAME_BEGIN,
 	NS_QUERY_DNAME_BEGIN,
-	NS_QUERY_ADDITIONAL_BEGIN,
+	NS_QUERY_PREP_RESPONSE_BEGIN,
 	NS_QUERY_DONE_BEGIN,
 	NS_QUERY_DONE_SEND,
-	NS_QUERY_QCTX_DESTROYED,
 	NS_QUERY_HOOKS_COUNT	/* MUST BE LAST */
 } ns_hookpoint_t;
 
@@ -220,6 +220,7 @@ typedef isc_result_t (*ns_hook_queryrecurse_t)(ns_client_t *client,
 					       dns_name_t *qdomain,
 					       dns_rdataset_t *nameservers,
 					       bool resuming);
+
 /*!
  * Context for intializing a hook module.
  *
@@ -240,7 +241,7 @@ typedef struct ns_hookctx {
 } ns_hookctx_t;
 
 #define NS_HOOKCTX_MAGIC	ISC_MAGIC('H', 'k', 'c', 'x')
-#define NS_HOOKCTX_VALID(d)	ISC_MAGIC_VALID(d, NS_HOOKCTX_MAGIC)
+#define NS_HOOKCTX_VALID(h)	ISC_MAGIC_VALID(h, NS_HOOKCTX_MAGIC)
 /*
  * API version
  *
@@ -278,16 +279,13 @@ typedef void ns_hook_destroy_t(void);
  * Destroy a module instance.
  */
 
-typedef int ns_hook_version_t(unsigned int *flags);
+typedef int ns_hook_version_t(void);
 /*%
  * Return the API version number a hook module was compiled with.
  *
- * If the returned version number is no greater than than
+ * If the returned version number is no greater than
  * NS_HOOK_VERSION, and no less than NS_HOOK_VERSION - NS_HOOK_AGE,
  * then the module is API-compatible with named.
- *
- * 'flags' is currently unused and may be NULL, but could be used in
- * the future to pass back driver capabilities or other information.
  */
 
 isc_result_t
@@ -308,7 +306,7 @@ ns_hookmodule_cleanup(bool exiting);
 void
 ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
 	    ns_hook_t *hook);
-/*%
+/*%<
  * Append hook function 'hook' to the list of hooks at 'hookpoint' in
  * 'hooktable'.
  *
@@ -321,21 +319,20 @@ ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
 
 void
 ns_hooktable_init(ns_hooktable_t *hooktable);
-/*%
+/*%<
  * Initialize a hook table.
  */
 
 isc_result_t
 ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep);
-/*%
+/*%<
  * Allocate and initialize a hook table.
  */
 
 void
 ns_hooktable_free(isc_mem_t *mctx, void **tablep);
-/*%
+/*%<
  * Free a hook table.
  */
-
 
 #endif /* NS_HOOKS_H */
