@@ -1532,6 +1532,7 @@ configure_hook(ns_hooktable_t *hooktable, const unsigned int modid,
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *obj;
 	const char *type, *library;
+	const char *parameters = NULL;
 
 	/* Get the path to the hook module. */
 	obj = cfg_tuple_get(hook, "type");
@@ -1548,22 +1549,12 @@ configure_hook(ns_hooktable_t *hooktable, const unsigned int modid,
 
 	obj = cfg_tuple_get(hook, "parameters");
 	if (obj != NULL && cfg_obj_isstring(obj)) {
-		result = ns_hookmodule_load(library, modid,
-					    cfg_obj_asstring(obj),
-					    cfg_obj_file(obj),
-					    cfg_obj_line(obj),
-					    config,
-					    named_g_aclconfctx,
-					    hctx, hooktable);
-	} else {
-		result = ns_hookmodule_load(library, modid, NULL,
-					    cfg_obj_file(hook),
-					    cfg_obj_line(hook),
-					    config,
-					    named_g_aclconfctx,
-					    hctx, hooktable);
+		parameters = cfg_obj_asstring(obj);
 	}
-
+	result = ns_hookmodule_load(library, modid, parameters,
+				    cfg_obj_file(obj), cfg_obj_line(obj),
+				    config, named_g_aclconfctx,
+				    hctx, hooktable);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -5215,6 +5206,16 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 #ifdef HAVE_DLOPEN
+	if (hook_list != NULL) {
+		const void *hashinit = isc_hash_get_initializer();
+		CHECK(ns_hook_createctx(mctx, hashinit, &hctx));
+
+		INSIST(view->hooktable == NULL);
+		CHECK(ns_hooktable_create(view->mctx,
+				  (ns_hooktable_t **) &view->hooktable));
+		view->hooktable_free = ns_hooktable_free;
+	}
+
 	for (element = cfg_list_first(hook_list);
 	     element != NULL;
 	     element = cfg_list_next(element))
@@ -5222,8 +5223,8 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		const cfg_obj_t *hook = cfg_listelt_value(element);
 
 		if (view->hooktable == NULL) {
-			ns_hooktable_create(view->mctx,
-				    (ns_hooktable_t **) &view->hooktable);
+			CHECK(ns_hooktable_create(view->mctx,
+				  (ns_hooktable_t **) &view->hooktable));
 			view->hooktable_free = ns_hooktable_free;
 		}
 
@@ -7972,7 +7973,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Shut down all dyndb and hook module instances.
 	 */
 	dns_dyndb_cleanup(false);
-	ns_hookmodule_cleanup();
+	ns_hookmodule_unload_all();
 
 	/*
 	 * Parse the global default pseudo-config file.
@@ -9438,7 +9439,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	 * Shut down all dyndb and hook module instances.
 	 */
 	dns_dyndb_cleanup(true);
-	ns_hookmodule_cleanup();
+	ns_hookmodule_unload_all();
 
 	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);

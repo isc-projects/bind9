@@ -22,7 +22,7 @@ ISC_LANG_BEGINDECLS
 
 /*!
  * \brief
- * Context for intializing a dyndb module.
+ * Context for initializing a dyndb module.
  *
  * This structure passes global server data to which a dyndb
  * module will need access -- the server memory context, hash

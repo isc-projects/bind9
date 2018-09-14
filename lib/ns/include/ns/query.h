@@ -216,13 +216,13 @@ ns_query_cancel(ns_client_t *client);
 
 isc_result_t
 ns__query_sfcache(query_ctx_t *qctx);
-/*%
+/*%<
  * (Must not be used outside this module and its associated unit tests.)
  */
 
 isc_result_t
 ns__query_start(query_ctx_t *qctx);
-/*%
+/*%<
  * (Must not be used outside this module and its associated unit tests.)
  */
 
