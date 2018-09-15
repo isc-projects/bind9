@@ -230,12 +230,14 @@ parse_parameters(const char *parameters, const void *cfg,
 
 	obj = NULL;
 	result = cfg_map_get(param_obj, "filter-aaaa", &obj);
-	if (result != ISC_R_SUCCESS) {
+	if (result == ISC_R_SUCCESS) {
+		CHECK(cfg_acl_fromconfig(obj, (const cfg_obj_t *) cfg,
+					 hctx->lctx,
+					 (cfg_aclconfctx_t *) actx,
+					 hctx->mctx, 0, &aaaa_acl));
+	} else {
 		CHECK(dns_acl_any(hctx->mctx, &aaaa_acl));
 	}
-	CHECK(cfg_acl_fromconfig(obj, (const cfg_obj_t *) cfg, hctx->lctx,
-				 (cfg_aclconfctx_t *) actx,
-				 hctx->mctx, 0, &aaaa_acl));
 
  cleanup:
 	if (param_obj != NULL) {
