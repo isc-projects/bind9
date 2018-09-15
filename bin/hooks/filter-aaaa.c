@@ -481,23 +481,23 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 		ns_client_putrdataset(qctx->client, &trdataset);
 
 		/*
-		 * We have an AAAA but if the A is not in our
-		 * cache, any result other than DNS_R_DELEGATION
-		 * or ISC_R_NOTFOUND means there is no A and
-		 * so AAAAs are ok.
+		 * We found an AAAA. If we also found an A, then the AAAA
+		 * must not be rendered.
 		 *
-		 * Assume there is no A if we can't recurse
-		 * for this client, although that could be
-		 * the wrong answer. What else can we do?
-		 * Besides, that we have the AAAA and are using
-		 * this mechanism suggests that we care more
-		 * about As than AAAAs and would have cached
-		 * the A if it existed.
+		 * If the A is not in our cache, then any result other than
+		 * DNS_R_DELEGATION or ISC_R_NOTFOUND means there is no A,
+		 * and so AAAAs are okay.
+		 *
+		 * We assume there is no A if we can't recurse for this
+		 * client. That might be the wrong answer, but what else
+		 * can we do?  Besides, the fact that we have the AAAA and
+		 * are using this mechanism in the first place suggests
+		 * that we care more about As than AAAAs, and would have
+		 * cached an A if it existed.
 		 */
 		if (result == ISC_R_SUCCESS) {
 			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
-			qctx->rdataset->attributes |=
-				DNS_RDATASETATTR_RENDERED;
+			qctx->rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 			if (qctx->sigrdataset != NULL &&
 			    dns_rdataset_isassociated(qctx->sigrdataset))
 			{
@@ -507,21 +507,11 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 
 			qctx->client->hookflags[module_id] |=
 				FILTER_AAAA_FILTERED;
-		} else if (qctx->authoritative ||
-			   !RECURSIONOK(qctx->client) ||
-			   (result != DNS_R_DELEGATION &&
-			    result != ISC_R_NOTFOUND))
+		} else if (!qctx->authoritative &&
+			   RECURSIONOK(qctx->client) &&
+			   (result == DNS_R_DELEGATION ||
+			    result == ISC_R_NOTFOUND))
 		{
-			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
-			qctx->rdataset->attributes &=
-				~DNS_RDATASETATTR_RENDERED;
-			if (qctx->sigrdataset != NULL &&
-			    dns_rdataset_isassociated(qctx->sigrdataset))
-			{
-				qctx->sigrdataset->attributes &=
-					~DNS_RDATASETATTR_RENDERED;
-			}
-		} else {
 			/*
 			 * This is an ugly kludge to recurse
 			 * for the A and discard the result.

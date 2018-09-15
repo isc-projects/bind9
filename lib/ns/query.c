@@ -6796,6 +6796,7 @@ query_respond_any(query_ctx_t *qctx) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_respond_any: rdataset iterator failed");
 		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		return (ns_query_done(qctx));
 	}
 
 	if (found) {
@@ -6818,9 +6819,8 @@ query_respond_any(query_ctx_t *qctx) {
 		 * searching for RRSIG/SIG, that's probably okay;
 		 * otherwise this is an error condition.
 		 */
-		if ((qctx->qtype == dns_rdatatype_rrsig ||
-		     qctx->qtype == dns_rdatatype_sig) &&
-		    result == ISC_R_NOMORE)
+		if (qctx->qtype == dns_rdatatype_rrsig ||
+		     qctx->qtype == dns_rdatatype_sig)
 		{
 			isc_buffer_t b;
 			if (!qctx->is_zone) {
@@ -6845,7 +6845,7 @@ query_respond_any(query_ctx_t *qctx) {
 			}
 
 			qctx->fname = ns_client_newname(qctx->client,
-						    qctx->dbuf, &b);
+							qctx->dbuf, &b);
 			return (query_sign_nodata(qctx));
 		} else {
 			CCTRACE(ISC_LOG_ERROR,
