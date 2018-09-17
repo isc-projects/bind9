@@ -273,10 +273,10 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
 		}							\
 		_hook = ISC_LIST_HEAD((*_tab)[_id]);			\
 		while (_hook != NULL) {					\
-			ns_hook_cb_t _callback = _hook->callback;	\
-			void *_data = _hook->callback_data;		\
-			if (_callback != NULL &&			\
-			    _callback(_q, _data, &_res))		\
+			ns_hook_action_t _func = _hook->action;		\
+			void *_data = _hook->action_data;		\
+			if (_func != NULL &&				\
+			    _func(_q, _data, &_res))			\
 			{						\
 				result = _res;				\
 				goto cleanup;				\
@@ -306,10 +306,10 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
 		}							\
 		_hook = ISC_LIST_HEAD((*_tab)[_id]);			\
 		while (_hook != NULL) {					\
-			ns_hook_cb_t _callback = _hook->callback;	\
-			void *_data = _hook->callback_data;		\
-			if (_callback != NULL) {			\
-				_callback(_q, _data, &_res);		\
+			ns_hook_action_t _func = _hook->action;		\
+			void *_data = _hook->action_data;		\
+			if (_func != NULL) {				\
+				_func(_q, _data, &_res);		\
 				_hook = ISC_LIST_NEXT(_hook, link);	\
 			}						\
 		}							\
@@ -5553,7 +5553,7 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 
 /*
  * Prepare client for recursion, then create a resolver fetch, with
- * the event callback set to fetch_callback(). Afterward we terminate
+ * the event action set to fetch_callback(). Afterward we terminate
  * this phase of the query, and resume with a new query context when
  * recursion completes.
  */
