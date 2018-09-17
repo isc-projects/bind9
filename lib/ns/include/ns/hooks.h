@@ -190,11 +190,11 @@ typedef enum {
 } ns_hookpoint_t;
 
 typedef bool
-(*ns_hook_cb_t)(void *hook_data, void *callback_data, isc_result_t *resultp);
+(*ns_hook_action_t)(void *arg, void *data, isc_result_t *resultp);
 
 typedef struct ns_hook {
-	ns_hook_cb_t callback;
-	void *callback_data;
+	ns_hook_action_t action;
+	void *action_data;
 	ISC_LINK(struct ns_hook) link;
 } ns_hook_t;
 
