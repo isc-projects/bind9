@@ -127,6 +127,7 @@ struct ns_client {
 	void			(*shutdown)(void *arg, isc_result_t result);
 	void 			*shutdown_arg;
 	ns_query_t		query;
+	query_ctx_t		qctx;
 	isc_time_t		requesttime;
 	isc_stdtime_t		now;
 	isc_time_t		tnow;
