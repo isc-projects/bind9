@@ -57,8 +57,6 @@
 /*
  * Set up in the register function.
  */
-static ns_hook_querydone_t query_done;
-static ns_hook_queryrecurse_t query_recurse;
 static int module_id;
 
 /*
@@ -290,9 +288,6 @@ hook_register(const unsigned int modid, const char *parameters,
 
 	isc_hash_set_initializer(hctx->hashinit);
 
-	query_done = hctx->query_done;
-	query_recurse = hctx->query_recurse;
-
 	isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 		      "loading 'filter-aaaa' "
@@ -522,10 +517,10 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 			 * We'll make a note to not render it
 			 * if the recursion for the A succeeds.
 			 */
-			result = (*query_recurse)(qctx->client,
-						  dns_rdatatype_a,
-						  qctx->client->query.qname,
-						  NULL, NULL, qctx->resuming);
+			result = (*qctx->methods.query_recurse)(qctx->client,
+						 dns_rdatatype_a,
+						 qctx->client->query.qname,
+						 NULL, NULL, qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
 				qctx->client->hookflags[module_id] |=
 					FILTER_AAAA_RECURSING;
@@ -561,7 +556,7 @@ filter_respond_begin(void *hookdata, void *cbdata, isc_result_t *resp) {
 
 		qctx->client->hookflags[module_id] &= ~FILTER_AAAA_RECURSING;
 
-		result = (*query_done)(qctx);
+		result = (*qctx->methods.query_done)(qctx);
 
 		*resp = result;
 

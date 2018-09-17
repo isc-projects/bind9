@@ -207,20 +207,6 @@ typedef ns_hooklist_t ns_hooktable_t[NS_QUERY_HOOKS_COUNT];
  */
 LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
 
-/*
- * These define functions in the calling program that may need
- * to be run from a hook module. Currently the set includes
- * ns_query_done() and ns_query_recurse().
- */
-typedef isc_result_t (*ns_hook_querydone_t)(query_ctx_t *qctx);
-
-typedef isc_result_t (*ns_hook_queryrecurse_t)(ns_client_t *client,
-					       dns_rdatatype_t qtype,
-					       dns_name_t *qname,
-					       dns_name_t *qdomain,
-					       dns_rdataset_t *nameservers,
-					       bool resuming);
-
 /*!
  * Context for intializing a hook module.
  *
@@ -235,8 +221,6 @@ typedef struct ns_hookctx {
 	const void		*hashinit;
 	isc_mem_t		*mctx;
 	isc_log_t		*lctx;
-	ns_hook_querydone_t	query_done;
-	ns_hook_queryrecurse_t	query_recurse;
 	bool			*refvar;
 } ns_hookctx_t;
 
