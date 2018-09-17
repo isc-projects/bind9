@@ -4846,6 +4846,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	  dns_rdatatype_t qtype, query_ctx_t *qctx)
 {
 	REQUIRE(qctx != NULL);
+	REQUIRE(!qctx->initialized);
 	REQUIRE(client != NULL);
 
 	memset(qctx, 0, sizeof(*qctx));
@@ -4860,6 +4861,8 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->qtype = qctx->type = qtype;
 	qctx->result = ISC_R_SUCCESS;
 	qctx->findcoveringnsec = qctx->view->synthfromdnssec;
+
+	qctx->initialized = true;
 
 	/*
 	 * Pointers to methods that may be needed by query hooks.
@@ -4933,7 +4936,9 @@ qctx_freedata(query_ctx_t *qctx) {
 static void
 qctx_destroy(query_ctx_t *qctx) {
 	PROCESS_HOOK_ALL(NS_QUERY_QCTX_DESTROYED, qctx);
+
 	dns_view_detach(&qctx->view);
+	qctx->initialized = false;
 }
 
 /*%
@@ -4981,35 +4986,34 @@ query_trace(query_ctx_t *qctx) {
 static isc_result_t
 query_setup(ns_client_t *client, dns_rdatatype_t qtype) {
 	isc_result_t result;
-	query_ctx_t qctx;
 
-	qctx_init(client, NULL, qtype, &qctx);
-	query_trace(&qctx);
+	qctx_init(client, NULL, qtype, &client->qctx);
+	query_trace(&client->qctx);
 
-	PROCESS_HOOK(NS_QUERY_SETUP, &qctx);
+	PROCESS_HOOK(NS_QUERY_SETUP, &client->qctx);
 
 	/*
 	 * If it's a SIG query, we'll iterate the node.
 	 */
-	if (qctx.qtype == dns_rdatatype_rrsig ||
-	    qctx.qtype == dns_rdatatype_sig)
+	if (client->qctx.qtype == dns_rdatatype_rrsig ||
+	    client->qctx.qtype == dns_rdatatype_sig)
 	{
-		qctx.type = dns_rdatatype_any;
+		client->qctx.type = dns_rdatatype_any;
 	}
 
 	/*
 	 * Check SERVFAIL cache
 	 */
-	result = ns__query_sfcache(&qctx);
+	result = ns__query_sfcache(&client->qctx);
 	if (result != ISC_R_COMPLETE) {
-		qctx_destroy(&qctx);
+		qctx_destroy(&client->qctx);
 		return (result);
 	}
 
-	result = ns__query_start(&qctx);
+	result = ns__query_start(&client->qctx);
 
  cleanup:
-	qctx_destroy(&qctx);
+	qctx_destroy(&client->qctx);
 	return (result);
 }
 
@@ -5473,16 +5477,14 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 		 */
 		ns_client_detach(&client);
 	} else {
-		query_ctx_t qctx;
-
 		/*
 		 * Initalize a new qctx and use it to resume
 		 * from recursion.
 		 */
-		qctx_init(client, devent, 0, &qctx);
-		query_trace(&qctx);
+		qctx_init(client, devent, 0, &client->qctx);
+		query_trace(&client->qctx);
 
-		result = query_resume(&qctx);
+		result = query_resume(&client->qctx);
 		if (result != ISC_R_SUCCESS) {
 			if (result == DNS_R_SERVFAIL) {
 				errorloglevel = ISC_LOG_DEBUG(2);
@@ -5497,7 +5499,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 			}
 		}
 
-		qctx_destroy(&qctx);
+		qctx_destroy(&client->qctx);
 	}
 
 	dns_resolver_destroyfetch(&fetch);

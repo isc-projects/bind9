@@ -159,6 +159,8 @@ struct query_ctx {
 
 	unsigned int options;			/* DB lookup options */
 
+	bool initialized;			/* QCTX initialized */
+
 	bool redirected;			/* nxdomain redirected? */
 	bool is_zone;				/* is DB a zone DB? */
 	bool is_staticstub_zone;
