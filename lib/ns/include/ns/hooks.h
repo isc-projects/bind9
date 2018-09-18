@@ -162,7 +162,14 @@
  * called this time and foo_bar() will return ISC_R_SUCCESS.
  */
 
+/*!
+ * Currently-defined hook points. So long as these are unique,
+ * the order in which they are declared is unimportant, but
+ * currently matches the order in which they are referenced in
+ * query.c.
+ */
 typedef enum {
+	/* hookpoints from query.c */
 	NS_QUERY_ADDITIONAL_BEGIN,
 	NS_QUERY_QCTX_INITIALIZED,
 	NS_QUERY_QCTX_DESTROYED,
@@ -186,7 +193,10 @@ typedef enum {
 	NS_QUERY_PREP_RESPONSE_BEGIN,
 	NS_QUERY_DONE_BEGIN,
 	NS_QUERY_DONE_SEND,
-	NS_QUERY_HOOKS_COUNT	/* MUST BE LAST */
+
+	/* XXX other files could be added later */
+
+	NS_HOOKPOINTS_COUNT	/* MUST BE LAST */
 } ns_hookpoint_t;
 
 typedef bool
@@ -199,16 +209,16 @@ typedef struct ns_hook {
 } ns_hook_t;
 
 typedef ISC_LIST(ns_hook_t) ns_hooklist_t;
-typedef ns_hooklist_t ns_hooktable_t[NS_QUERY_HOOKS_COUNT];
+typedef ns_hooklist_t ns_hooktable_t[NS_HOOKPOINTS_COUNT];
 
-/*
+/*%
  * ns__hook_table is a global hook table, which is used if view->hooktable
  * is NULL.  It's intended only for use by unit tests.
  */
 LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
 
 /*!
- * Context for intializing a hook module.
+ * Context for initializing a hook module.
  *
  * This structure passes data to which a hook module will need
  * access -- server memory context, hash initializer, log context, etc.
@@ -226,6 +236,7 @@ typedef struct ns_hookctx {
 
 #define NS_HOOKCTX_MAGIC	ISC_MAGIC('H', 'k', 'c', 'x')
 #define NS_HOOKCTX_VALID(h)	ISC_MAGIC_VALID(h, NS_HOOKCTX_MAGIC)
+
 /*
  * API version
  *
@@ -247,7 +258,7 @@ typedef isc_result_t ns_hook_register_t(const unsigned int modid,
 					void *actx,
 					ns_hookctx_t *hctx,
 					ns_hooktable_t *hooktable);
-/*%
+/*%<
  * Called when registering a new module.
  *
  * 'parameters' contains the driver configuration text.
@@ -259,12 +270,12 @@ typedef isc_result_t ns_hook_register_t(const unsigned int modid,
  */
 
 typedef void ns_hook_destroy_t(void);
-/*%
+/*%<
  * Destroy a module instance.
  */
 
 typedef int ns_hook_version_t(void);
-/*%
+/*%<
  * Return the API version number a hook module was compiled with.
  *
  * If the returned version number is no greater than
@@ -272,20 +283,46 @@ typedef int ns_hook_version_t(void);
  * then the module is API-compatible with named.
  */
 
+/*%
+ * Prototypes for API functions to be defined in each module.
+ */
+ns_hook_destroy_t hook_destroy;
+ns_hook_register_t hook_register;
+ns_hook_version_t hook_version;
+
 isc_result_t
 ns_hook_createctx(isc_mem_t *mctx, const void *hashinit, ns_hookctx_t **hctxp);
-
 void
 ns_hook_destroyctx(ns_hookctx_t **hctxp);
+/*%<
+ * Create/destroy a hook module context.
+ */
 
 isc_result_t
-ns_hookmodule_load(const char *libname, const unsigned int modid,
+ns_hookmodule_load(const char *modpath, const unsigned int modid,
 		   const char *parameters,
-		   const char *file, unsigned long line,
+		   const char *cfg_file, unsigned long cfg_line,
 		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable);
+/*%<
+ * Load the hook module specified from the file 'modpath', using
+ * parameters 'parameters'.
+ *
+ * 'cfg_file' and 'cfg_line' specify the location of the hook module
+ * declaration in the configuration file.
+ *
+ * 'cfg' and 'actx' are the configuration context and ACL configuration
+ * context, respectively; they are passed as void * here in order to
+ * prevent this library from having a dependency on libisccfg).
+ *
+ * 'hctx' is the hook context and 'hooktable' is the active hook table.
+ */
+
 void
-ns_hookmodule_cleanup(void);
+ns_hookmodule_unload_all(void);
+/*%<
+ * Unload all currently loaded hook modules.
+ */
 
 void
 ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,

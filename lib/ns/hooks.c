@@ -47,14 +47,14 @@ typedef struct ns_hook_module ns_hook_module_t;
 struct ns_hook_module {
 	isc_mem_t			*mctx;
 	void				*handle;
-	char				*filename;
+	char				*modpath;
 	ns_hook_register_t		*register_func;
 	ns_hook_destroy_t		*destroy_func;
 	void				*inst;
 	LINK(ns_hook_module_t)		link;
 };
 
-static ns_hooklist_t default_hooktable[NS_QUERY_HOOKS_COUNT];
+static ns_hooklist_t default_hooktable[NS_HOOKPOINTS_COUNT];
 LIBNS_EXTERNAL_DATA ns_hooktable_t *ns__hook_table = &default_hooktable;
 
 /*
@@ -63,29 +63,36 @@ LIBNS_EXTERNAL_DATA ns_hooktable_t *ns__hook_table = &default_hooktable;
  * These are stored here so they can be cleaned up on shutdown.
  * (The order in which they are stored is not important.)
  */
-static LIST(ns_hook_module_t) hook_modules;
+static ISC_LIST(ns_hook_module_t) hook_modules;
 
 static isc_once_t once = ISC_ONCE_INIT;
 
 static void
 init_modules(void) {
-	INIT_LIST(hook_modules);
+	ISC_LIST_INIT(hook_modules);
 }
 
 #if HAVE_DLFCN_H && HAVE_DLOPEN
 static isc_result_t
-load_symbol(void *handle, const char *filename,
+load_symbol(void *handle, const char *modpath,
 	    const char *symbol_name, void **symbolp)
 {
-	const char *errmsg;
 	void *symbol;
 
 	REQUIRE(handle != NULL);
 	REQUIRE(symbolp != NULL && *symbolp == NULL);
 
+	/*
+	 * Clear any pre-existing error conditions before running dlsym().
+	 * (In this case, we expect dlsym() to return non-NULL values
+	 * and will always return an error if it returns NULL, but
+	 * this ensures that we'll report the correct error condition
+	 * if there is one.)
+	 */
+	dlerror();
 	symbol = dlsym(handle, symbol_name);
 	if (symbol == NULL) {
-		errmsg = dlerror();
+		const char *errmsg = dlerror();
 		if (errmsg == NULL) {
 			errmsg = "returned function pointer is NULL";
 		}
@@ -93,10 +100,9 @@ load_symbol(void *handle, const char *filename,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
 			      "failed to look up symbol %s in "
 			      "hook module '%s': %s",
-			      symbol_name, filename, errmsg);
+			      symbol_name, modpath, errmsg);
 		return (ISC_R_FAILURE);
 	}
-	dlerror();
 
 	*symbolp = symbol;
 
@@ -104,7 +110,7 @@ load_symbol(void *handle, const char *filename,
 }
 
 static isc_result_t
-load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
+load_library(isc_mem_t *mctx, const char *modpath, ns_hook_module_t **hmodp) {
 	isc_result_t result;
 	void *handle = NULL;
 	ns_hook_module_t *hmod = NULL;
@@ -120,15 +126,12 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 	flags |= RTLD_DEEPBIND;
 #endif
 
-	handle = dlopen(filename, flags);
+	handle = dlopen(modpath, flags);
 	if (handle == NULL) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	/* Clear dlerror */
-	dlerror();
-
-	CHECK(load_symbol(handle, filename, "hook_version",
+	CHECK(load_symbol(handle, modpath, "hook_version",
 			  (void **)&version_func));
 
 	version = version_func();
@@ -142,9 +145,9 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(handle, filename, "hook_register",
+	CHECK(load_symbol(handle, modpath, "hook_register",
 			  (void **)&register_func));
-	CHECK(load_symbol(handle, filename, "hook_destroy",
+	CHECK(load_symbol(handle, modpath, "hook_destroy",
 			  (void **)&destroy_func));
 
 	hmod = isc_mem_get(mctx, sizeof(*hmod));
@@ -155,7 +158,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 	hmod->mctx = NULL;
 	isc_mem_attach(mctx, &hmod->mctx);
 	hmod->handle = handle;
-	hmod->filename = isc_mem_strdup(hmod->mctx, filename);
+	hmod->modpath = isc_mem_strdup(hmod->mctx, modpath);
 	hmod->register_func = register_func;
 	hmod->destroy_func = destroy_func;
 
@@ -166,11 +169,15 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 
 cleanup:
 	if (result != ISC_R_SUCCESS) {
+		const char *errmsg = dlerror();
+		if (errmsg == NULL) {
+			errmsg = "failure";
+		}
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
 			      "failed to dynamically load "
-			      "hook module '%s': %s (%s)", filename,
-			      dlerror(), isc_result_totext(result));
+			      "hook module '%s': %s (%s)", modpath,
+			      errmsg, isc_result_totext(result));
 
 		if (hmod != NULL) {
 			isc_mem_putanddetach(&hmod->mctx, hmod,
@@ -178,7 +185,7 @@ cleanup:
 		}
 
 		if (handle != NULL) {
-			dlclose(handle);
+			(void) dlclose(handle);
 		}
 	}
 
@@ -195,17 +202,17 @@ unload_library(ns_hook_module_t **hmodp) {
 	*hmodp = NULL;
 
 	if (hmod->handle != NULL) {
-		dlclose(hmod->handle);
+		(void) dlclose(hmod->handle);
 	}
-	if (hmod->filename != NULL) {
-		isc_mem_free(hmod->mctx, hmod->filename);
+	if (hmod->modpath != NULL) {
+		isc_mem_free(hmod->mctx, hmod->modpath);
 	}
 
 	isc_mem_putanddetach(&hmod->mctx, hmod, sizeof(*hmod));
 }
 #elif _WIN32
 static isc_result_t
-load_symbol(HMODULE handle, const char *filename,
+load_symbol(HMODULE handle, const char *modpath,
 	    const char *symbol_name, void **symbolp)
 {
 	void *symbol;
@@ -220,7 +227,7 @@ load_symbol(HMODULE handle, const char *filename,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
 			      "failed to look up symbol %s in "
 			      "hook module '%s': %d",
-			      symbol_name, filename, errstatus);
+			      symbol_name, modpath, errstatus);
 		return (ISC_R_FAILURE);
 	}
 
@@ -230,7 +237,7 @@ load_symbol(HMODULE handle, const char *filename,
 }
 
 static isc_result_t
-load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
+load_library(isc_mem_t *mctx, const char *modpath, ns_hook_module_t **hmodp) {
 	isc_result_t result;
 	HMODULE handle;
 	ns_hook_module_t *hmod = NULL;
@@ -241,12 +248,12 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 
 	REQUIRE(hmodp != NULL && *hmodp == NULL);
 
-	handle = LoadLibraryA(filename);
+	handle = LoadLibraryA(modpath);
 	if (handle == NULL) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(handle, filename, "hook_version",
+	CHECK(load_symbol(handle, modpath, "hook_version",
 			  (void **)&version_func));
 
 	version = version_func(NULL);
@@ -260,9 +267,9 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 		CHECK(ISC_R_FAILURE);
 	}
 
-	CHECK(load_symbol(handle, filename, "hook_register",
+	CHECK(load_symbol(handle, modpath, "hook_register",
 			  (void **)&register_func));
-	CHECK(load_symbol(handle, filename, "hook_destroy",
+	CHECK(load_symbol(handle, modpath, "hook_destroy",
 			  (void **)&destroy_func));
 
 	hmod = isc_mem_get(mctx, sizeof(*hmod));
@@ -273,7 +280,7 @@ load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
 	hmod->mctx = NULL;
 	isc_mem_attach(mctx, &hmod->mctx);
 	hmod->handle = handle;
-	hmod->filename = isc_mem_strdup(hmod->mctx, filename);
+	hmod->modpath = isc_mem_strdup(hmod->mctx, modpath);
 	hmod->register_func = register_func;
 	hmod->destroy_func = destroy_func;
 
@@ -287,7 +294,7 @@ cleanup:
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
 			      "failed to dynamically load "
-			      "hook module '%s': %d (%s)", filename,
+			      "hook module '%s': %d (%s)", modpath,
 			      GetLastError(), isc_result_totext(result));
 		if (hmod != NULL) {
 			isc_mem_putanddetach(&hmod->mctx, hmod,
@@ -315,22 +322,22 @@ unload_library(ns_hook_module_t **hmodp) {
 		FreeLibrary(hmod->handle);
 	}
 
-	if (hmod->filename != NULL) {
-		isc_mem_free(hmod->mctx, hmod->filename);
+	if (hmod->modpath != NULL) {
+		isc_mem_free(hmod->mctx, hmod->modpath);
 	}
 
 	isc_mem_putanddetach(&hmod->mctx, hmod, sizeof(*hmod));
 }
 #else	/* HAVE_DLFCN_H || _WIN32 */
 static isc_result_t
-load_library(isc_mem_t *mctx, const char *filename, ns_hook_module_t **hmodp) {
+load_library(isc_mem_t *mctx, const char *modpath, ns_hook_module_t **hmodp) {
 	UNUSED(mctx);
-	UNUSED(filename);
+	UNUSED(modpath);
 	UNUSED(hmodp);
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_DATABASE,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
-		      "hook module support is not hmodlemented");
+		      "hook module support is not implemented");
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -342,14 +349,14 @@ unload_library(ns_hook_module_t **hmodp) {
 #endif	/* HAVE_DLFCN_H */
 
 isc_result_t
-ns_hookmodule_load(const char *libname, const unsigned int modid,
+ns_hookmodule_load(const char *modpath, const unsigned int modid,
 		   const char *parameters,
-		   const char *file, unsigned long line,
+		   const char *cfg_file, unsigned long cfg_line,
 		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
 	isc_result_t result = ISC_R_SUCCESS;
-	ns_hook_module_t *module = NULL;
+	ns_hook_module_t *hmod = NULL;
 
 	REQUIRE(NS_HOOKCTX_VALID(hctx));
 	REQUIRE(hooktable != NULL);
@@ -358,24 +365,24 @@ ns_hookmodule_load(const char *libname, const unsigned int modid,
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading module '%s'", libname);
+		      "loading module '%s'", modpath);
 
-	CHECK(load_library(hctx->mctx, libname, &module));
-	CHECK(module->register_func(modid, parameters, file, line,
-				    cfg, actx, hctx, hooktable));
+	CHECK(load_library(hctx->mctx, modpath, &hmod));
+	CHECK(hmod->register_func(modid, parameters, cfg_file, cfg_line,
+				  cfg, actx, hctx, hooktable));
 
-	ISC_LIST_APPEND(hook_modules, module, link);
+	ISC_LIST_APPEND(hook_modules, hmod, link);
 
 cleanup:
-	if (result != ISC_R_SUCCESS && module != NULL) {
-		unload_library(&module);
+	if (result != ISC_R_SUCCESS && hmod != NULL) {
+		unload_library(&hmod);
 	}
 
 	return (result);
 }
 
 void
-ns_hookmodule_cleanup(void) {
+ns_hookmodule_unload_all(void) {
 	ns_hook_module_t *hmod, *prev;
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
@@ -383,10 +390,10 @@ ns_hookmodule_cleanup(void) {
 	hmod = ISC_LIST_TAIL(hook_modules);
 	while (hmod != NULL) {
 		prev = ISC_LIST_PREV(hmod, link);
-		UNLINK(hook_modules, hmod, link);
+		ISC_LIST_UNLINK(hook_modules, hmod, link);
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-			      "unloading module '%s'", hmod->filename);
+			      "unloading module '%s'", hmod->modpath);
 		hmod->destroy_func();
 		unload_library(&hmod);
 		hmod = prev;
@@ -437,7 +444,7 @@ ns_hooktable_init(ns_hooktable_t *hooktable) {
 
 	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
 
-	for (i = 0; i < NS_QUERY_HOOKS_COUNT; i++) {
+	for (i = 0; i < NS_HOOKPOINTS_COUNT; i++) {
 		ISC_LIST_INIT((*hooktable)[i]);
 	}
 }
@@ -462,17 +469,20 @@ ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep) {
 
 void
 ns_hooktable_free(isc_mem_t *mctx, void **tablep) {
+	ns_hooktable_t *table;
+
 	REQUIRE(tablep != NULL && *tablep != NULL);
 
-	isc_mem_put(mctx, *tablep, sizeof(ns_hooktable_t));
+	table = *tablep;
 	*tablep = NULL;
+	isc_mem_put(mctx, table, sizeof(*table));
 }
 
 void
 ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
 	    ns_hook_t *hook)
 {
-	REQUIRE(hookpoint < NS_QUERY_HOOKS_COUNT);
+	REQUIRE(hookpoint < NS_HOOKPOINTS_COUNT);
 	REQUIRE(hook != NULL);
 
 	if (hooktable == NULL) {

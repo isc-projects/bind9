@@ -11,8 +11,6 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-VERSION=@BIND9_VERSION@
-
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
@@ -31,8 +29,6 @@ TARGETS =	@SO_TARGETS@
 
 SO_OBJS =	filter-aaaa.@O@
 SO_SRCS =	filter-aaaa.c
-
-OBJS =
 
 CFLAGS =	@CFLAGS@ @SO_CFLAGS@
 SO_LDFLAGS =	@LDFLAGS@ @SO_LDFLAGS@
