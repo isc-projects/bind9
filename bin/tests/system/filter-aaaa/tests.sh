@@ -202,7 +202,6 @@ else
 echo_i "skipped."
 fi
 
-
 #
 # Authoritative tests against:
 #	filter-aaaa-on-v4 break-dnssec;
@@ -387,6 +386,7 @@ n=`expr $n + 1`
 echo_i "checking that AAAA is returned when only AAAA record exists, signed, recursive ($n)"
 ret=0
 $DIG $DIGOPTS aaaa aaaa-only.signed -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep ::2 dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -423,6 +423,7 @@ n=`expr $n + 1`
 echo_i "checking that AAAA is returned when both AAAA and A records exist, signed and DO set, recursive ($n)"
 ret=0
 $DIG $DIGOPTS aaaa dual.signed +dnssec -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep ::3 dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -471,6 +472,7 @@ echo_i "checking that both A and AAAA are returned when both AAAA and A records 
 ret=0
 $DIG $DIGOPTS any dual.signed +dnssec -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep ::3 dig.out.ns2.test$n > /dev/null || ret=1
 grep "1.0.0.3" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -519,23 +521,30 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking that AAAA is omitted from additional section, qtype=MX, unsigned ($n)"
+echo_i "checking that AAAA is omitted from additional section, qtype=MX, unsigned, recursive ($n)"
 ret=0
 $DIG $DIGOPTS +add +dnssec mx unsigned -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep "^mx.unsigned.*AAAA" dig.out.ns2.test$n > /dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+
 n=`expr $n + 1`
-echo_i "checking that AAAA is included in additional section, qtype=MX, signed ($n)"
+echo_i "checking that AAAA is included in additional section, qtype=MX, signed, recursive ($n)"
 ret=0
+# we need to prime the cache with addresses for the MX, since additional
+# section data won't be included unless it's validated, and that doesn't
+# necessarily happen otherwise.
+$DIG $DIGOPTS +dnssec mx.signed @10.53.0.2 > /dev/null
+$DIG $DIGOPTS +dnssec mx.signed aaaa @10.53.0.2 > /dev/null
 $DIG $DIGOPTS +add +dnssec mx signed -b 10.53.0.2 @10.53.0.2 > dig.out.ns2.test$n || ret=1
 grep "^mx.signed.*AAAA" dig.out.ns2.test$n > /dev/null 2>&1 || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking that AAAA is included in additional section, qtype=MX, unsigned, over IPv6 ($n)"
+echo_i "checking that AAAA is included in additional section, qtype=MX, unsigned, recursive, over IPv6 ($n)"
 if $TESTSOCK6 fd92:7065:b8e:ffff::2
 then
 ret=0
@@ -547,7 +556,6 @@ else
 echo_i "skipped."
 fi
 
-
 #
 # Recursive tests against:
 #	filter-aaaa-on-v4 break-dnssec;
@@ -557,6 +565,7 @@ n=`expr $n + 1`
 echo_i "checking that AAAA is returned when only AAAA record exists, signed, recursive with break-dnssec ($n)"
 ret=0
 $DIG $DIGOPTS aaaa aaaa-only.signed -b 10.53.0.3 @10.53.0.3 > dig.out.ns3.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null || ret=1
 grep ::2 dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -702,6 +711,7 @@ echo_i "checking that AAAA is omitted from additional section, qtype=MX, signed,
 ret=0
 $DIG $DIGOPTS +add +dnssec mx signed -b 10.53.0.3 @10.53.0.3 > dig.out.ns3.test$n || ret=1
 grep "^mx.signed.*AAAA" dig.out.ns3.test$n > /dev/null 2>&1 && ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1068,6 +1078,7 @@ n=`expr $n + 1`
 echo_i "checking that AAAA is returned when only AAAA record exists, signed, recursive ($n)"
 ret=0
 $DIG $DIGOPTS aaaa aaaa-only.signed -b fd92:7065:b8e:ffff::2 @fd92:7065:b8e:ffff::2 > dig.out.ns2.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep ::2 dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1104,6 +1115,7 @@ n=`expr $n + 1`
 echo_i "checking that AAAA is returned when both AAAA and A records exist, signed and DO set, recursive ($n)"
 ret=0
 $DIG $DIGOPTS aaaa dual.signed +dnssec -b fd92:7065:b8e:ffff::2 @fd92:7065:b8e:ffff::2 > dig.out.ns2.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep ::3 dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1152,6 +1164,7 @@ echo_i "checking that both A and AAAA are returned when both AAAA and A records 
 ret=0
 $DIG $DIGOPTS any dual.signed +dnssec -b fd92:7065:b8e:ffff::2 @fd92:7065:b8e:ffff::2 > dig.out.ns2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns2.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 grep ::3 dig.out.ns2.test$n > /dev/null || ret=1
 grep "1.0.0.3" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1207,6 +1220,7 @@ echo_i "checking that AAAA is included in additional section, qtype=MX, signed (
 ret=0
 $DIG $DIGOPTS +add +dnssec mx signed -b fd92:7065:b8e:ffff::2 @fd92:7065:b8e:ffff::2 > dig.out.ns2.test$n || ret=1
 grep "^mx.signed.*AAAA" dig.out.ns2.test$n > /dev/null 2>&1 || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1228,6 +1242,7 @@ n=`expr $n + 1`
 echo_i "checking that AAAA is returned when only AAAA record exists, signed, recursive with break-dnssec ($n)"
 ret=0
 $DIG $DIGOPTS aaaa aaaa-only.signed -b fd92:7065:b8e:ffff::3 @fd92:7065:b8e:ffff::3 > dig.out.ns3.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null || ret=1
 grep ::2 dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1367,6 +1382,7 @@ n=`expr $n + 1`
 echo_i "checking that AAAA is omitted from additional section, qtype=MX, signed, recursive with break-dnssec ($n)"
 ret=0
 $DIG $DIGOPTS +add +dnssec mx signed -b fd92:7065:b8e:ffff::3 @fd92:7065:b8e:ffff::3 > dig.out.ns3.test$n || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns3.test$n > /dev/null || ret=1
 grep "^mx.signed.*AAAA" dig.out.ns3.test$n > /dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

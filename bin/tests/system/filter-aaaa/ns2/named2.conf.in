@@ -38,3 +38,5 @@ controls {
 };
 
 zone "." { type hint; file "hints"; };
+
+include "trusted.conf";
