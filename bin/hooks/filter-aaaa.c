@@ -675,7 +675,6 @@ filter_query_done_send(void *hookdata, void *cbdata, isc_result_t *resp) {
 		if (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
 		    **mode == BREAK_DNSSEC)
 		{
-			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 			aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
 			if (aaaa_sig != NULL) {
 				aaaa_sig->attributes |=
