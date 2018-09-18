@@ -16,7 +16,7 @@ use IO::File;
 use IO::Socket;
 use Net::DNS;
 
-my $localaddr = "10.53.0.2";
+my $localaddr = "10.53.0.4";
 my $limit = getlimit();
 my $no_more_waiting = 0;
 my @delayed_response;
@@ -37,7 +37,7 @@ $SIG{INT} = \&rmpid;
 $SIG{TERM} = \&rmpid;
 
 my $count = 0;
-my $send_response = 0;
+my $send_response = 1;
 
 sub getlimit {
     if ( -e "ans.limit") {
@@ -76,7 +76,7 @@ sub reply_handler {
 	$rcode = "NOERROR";
     } elsif ($qname eq "reset" ) {
 	$count = 0;
-	$send_response = 0;
+	$send_response = 1;
 	$limit = getlimit();
 	$rcode = "NOERROR";
 	print ("\tlimit: $limit\n");
@@ -96,60 +96,20 @@ sub reply_handler {
 	     $qname eq "indirect6.example.org" ||
 	     $qname eq "indirect7.example.org" ||
 	     $qname eq "indirect8.example.org") {
-	if (! $send_response) {
-	    my $rr = new Net::DNS::RR("$qname 86400 $qclass NS ns1.1.example.org");
-	    push @auth, $rr;
-	    print ("\twait=$wait auth: $qname 86400 $qclass NS ns1.1.example.org\n");
-	} elsif ($qtype eq "A") {
+	if ($qtype eq "A") {
 	    my ($ttl, $rdata) = (3600, $localaddr);
 	    my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
-	    print ("\twait=$wait ans: $qname $ttl $qclass $qtype $rdata\n");
 	    push @ans, $rr;
+	    print ("\twait=$wait ans: $qname $ttl $qclass $qtype $rdata\n");
 	}
 	$rcode = "NOERROR";
     } elsif ($qname =~ /^ns1\.(\d+)\.example\.org$/) {
 	my $next = $1 + 1;
 	$wait = 1;
-	if ($limit == 0 || (! $send_response && $next <= $limit)) {
+	if ($limit == 0) {
 	    my $rr = new Net::DNS::RR("$1.example.org 86400 $qclass NS ns1.$next.example.org");
 	    push @auth, $rr;
 	    print ("\twait=$wait auth: $1.example.org 86400 $qclass NS ns1.$next.example.org\n");
-	} else {
-	    $send_response = 1;
-	    if ($qtype eq "A") {
-		my ($ttl, $rdata) = (3600, "10.53.0.4");
-		my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
-		print("\tresponse: $qname $ttl $qclass $qtype $rdata\n");
-		push @ans, $rr;
-	    }
-	}
-	$rcode = "NOERROR";
-    } elsif ($qname eq "indirect1.example.com" ||
-	     $qname eq "indirect2.example.com" ||
-	     $qname eq "indirect3.example.com" ||
-	     $qname eq "indirect4.example.com" ||
-	     $qname eq "indirect5.example.com" ||
-	     $qname eq "indirect6.example.com" ||
-	     $qname eq "indirect7.example.com" ||
-	     $qname eq "indirect8.example.com") {
-	if (! $send_response) {
-	    my $rr = new Net::DNS::RR("$qname 86400 $qclass NS ns1.1.example.org");
-	    push @auth, $rr;
-	    print ("\twait=$wait auth: $qname 86400 $qclass NS ns1.1.example.org\n");
-	} elsif ($qtype eq "A") {
-	    my ($ttl, $rdata) = (3600, $localaddr);
-	    my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
-	    push @ans, $rr;
-	    print ("\twait=$wait ans: $qname $ttl $qclass $qtype $rdata\n");
-	}
-	$rcode = "NOERROR";
-    } elsif ($qname =~ /^ns1\.(\d+)\.example\.com$/) {
-	my $next = $1 + 1;
-	$wait = 1;
-	if ($limit == 0 || (! $send_response && $next <= $limit)) {
-	    my $rr = new Net::DNS::RR("$1.example.com 86400 $qclass NS ns1.$next.example.org");
-	    push @auth, $rr;
-	    print ("\twait=$wait auth: $1.example.com 86400 $qclass NS ns1.$next.example.org\n");
 	} else {
 	    $send_response = 1;
 	    if ($qtype eq "A") {
