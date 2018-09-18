@@ -3737,6 +3737,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	unsigned int resolver_param;
 	dns_ntatable_t *ntatable = NULL;
 	const char *qminmode = NULL;
+	unsigned int module_counter = 0;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -5210,7 +5211,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	     element = cfg_list_next(element))
 	{
 		const cfg_obj_t *hook = cfg_listelt_value(element);
-		static unsigned int module_counter = 0;
 
 		if (module_counter >= NS_MAX_MODULES) {
 			cfg_obj_log(hook, named_g_lctx, ISC_LOG_ERROR,
