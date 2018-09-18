@@ -248,15 +248,12 @@ parse_parameters(const char *parameters, const void *cfg,
 }
 
 /**
- ** Mandatory hook API functions.
+ ** Mandatory hook API functions:
+ **
+ ** - hook_destroy
+ ** - hook_register
+ ** - hook_version
  **/
-
-/*
- * Prototypes for the hook module API functions defined below.
- */
-ns_hook_destroy_t hook_destroy;
-ns_hook_register_t hook_register;
-ns_hook_version_t hook_version;
 
 /*
  * Called by ns_hookmodule_load() to register hook functions into
@@ -264,7 +261,7 @@ ns_hook_version_t hook_version;
  */
 isc_result_t
 hook_register(const unsigned int modid, const char *parameters,
-	      const char *file, unsigned long line,
+	      const char *cfg_file, unsigned long cfg_line,
 	      const void *cfg, void *actx,
 	      ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
@@ -292,7 +289,7 @@ hook_register(const unsigned int modid, const char *parameters,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 		      "loading 'filter-aaaa' "
 		      "module from %s:%lu, %s parameters",
-		      file, line, parameters != NULL ? "with" : "no");
+		      cfg_file, cfg_line, parameters != NULL ? "with" : "no");
 
 	if (parameters != NULL) {
 		CHECK(parse_parameters(parameters, cfg, actx, hctx));
@@ -332,7 +329,7 @@ hook_register(const unsigned int modid, const char *parameters,
 }
 
 /*
- * Called by ns_hookmodule_cleanup(); frees memory allocated by
+ * Called by ns_hookmodule_unload_all(); frees memory allocated by
  * the module when it was registered.
  */
 void

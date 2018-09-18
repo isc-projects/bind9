@@ -5206,6 +5206,19 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 #ifdef HAVE_DLOPEN
+	if (hook_list != NULL) {
+		if (view->hooktable == NULL) {
+			CHECK(ns_hooktable_create(view->mctx,
+				  (ns_hooktable_t **) &view->hooktable));
+			view->hooktable_free = ns_hooktable_free;
+		}
+
+		if (hctx == NULL) {
+			const void *hashinit = isc_hash_get_initializer();
+			CHECK(ns_hook_createctx(mctx, hashinit, &hctx));
+		}
+	}
+
 	for (element = cfg_list_first(hook_list);
 	     element != NULL;
 	     element = cfg_list_next(element))
@@ -5217,18 +5230,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 				    "Exceeded maximum of %d hook modules",
 				    NS_MAX_MODULES);
 			CHECK(ISC_R_FAILURE);
-		}
-
-		if (view->hooktable == NULL) {
-			CHECK(ns_hooktable_create(view->mctx,
-				  (ns_hooktable_t **) &view->hooktable));
-			view->hooktable_free = ns_hooktable_free;
-		}
-
-		if (hctx == NULL) {
-			const void *hashinit = isc_hash_get_initializer();
-			CHECK(ns_hook_createctx(mctx, hashinit,
-						&hctx));
 		}
 
 		CHECK(configure_hook(view->hooktable, module_counter,
@@ -7970,7 +7971,7 @@ load_configuration(const char *filename, named_server_t *server,
 	 * Shut down all dyndb and hook module instances.
 	 */
 	dns_dyndb_cleanup(false);
-	ns_hookmodule_cleanup();
+	ns_hookmodule_unload_all();
 
 	/*
 	 * Parse the global default pseudo-config file.
@@ -9436,7 +9437,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	 * Shut down all dyndb and hook module instances.
 	 */
 	dns_dyndb_cleanup(true);
-	ns_hookmodule_cleanup();
+	ns_hookmodule_unload_all();
 
 	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);

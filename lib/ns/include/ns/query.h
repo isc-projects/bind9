@@ -127,7 +127,7 @@ typedef struct query_ctx query_ctx_t;
 /*
  * These define functions in the calling program that may need
  * to be run from a hook module. Currently the set includes
- * ns_query_done() and ns_query_recurse().
+ * query_done() and query_recurse().
  */
 typedef isc_result_t (*ns_hook_querydone_t)(query_ctx_t *qctx);
 
@@ -215,13 +215,13 @@ ns_query_cancel(ns_client_t *client);
 
 isc_result_t
 ns__query_sfcache(query_ctx_t *qctx);
-/*%
+/*%<
  * (Must not be used outside this module and its associated unit tests.)
  */
 
 isc_result_t
 ns__query_start(query_ctx_t *qctx);
-/*%
+/*%<
  * (Must not be used outside this module and its associated unit tests.)
  */
 
