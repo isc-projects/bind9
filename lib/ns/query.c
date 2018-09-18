@@ -254,30 +254,43 @@ static void
 log_noexistnodata(void *val, int level, const char *fmt, ...)
 	ISC_FORMAT_PRINTF(3, 4);
 
+
+/*
+ * Return the hooktable in use with 'qctx', or if there isn't one
+ * set, return the default hooktable.
+ */
+static inline ns_hooktable_t *
+get_hooktab(query_ctx_t *qctx) {
+	if (qctx == NULL || qctx->view == NULL ||
+	    qctx->view->hooktable == NULL)
+	{
+		return (ns__hook_table);
+	}
+
+	return (qctx->view->hooktable);
+}
+
 /*
  * Call the specified hook function in every configured module that
- * implements that function. If any hook function returns 'true',
- * we interrupt processing, set 'result' and jump to the 'cleanup' tag.
+ * implements that function. If any hook function returns 'true', we set
+ * 'result' and terminate processing by jumping to the 'cleanup' tag.
+ *
+ * (Note that a hook function may set the 'result' to ISC_R_SUCCESS but
+ * still terminate processing within the calling function. That's why this
+ * is a macro instead of an inline function; it needs to be able to use
+ * 'goto cleanup' regardless of the return value.)
  */
-#define PROCESS_HOOK(_id, _qctx, ...)					\
+#define PROCESS_HOOK(_id, _qctx)					\
 	do {								\
 		isc_result_t _res;					\
-		ns_hooktable_t *_tab = ns__hook_table; 			\
+		ns_hooktable_t *_tab = get_hooktab(_qctx);		\
 		ns_hook_t *_hook;					\
-		query_ctx_t *_q = (_qctx);				\
-		if (_q != NULL &&					\
-		    _q->view != NULL &&					\
-		    _q->view->hooktable != NULL)			\
-		{							\
-			_tab = _q->view->hooktable;			\
-		}							\
 		_hook = ISC_LIST_HEAD((*_tab)[_id]);			\
 		while (_hook != NULL) {					\
 			ns_hook_action_t _func = _hook->action;		\
 			void *_data = _hook->action_data;		\
-			if (_func != NULL &&				\
-			    _func(_q, _data, &_res))			\
-			{						\
+			INSIST(_func != NULL);				\
+			if (_func(_qctx, _data, &_res)) {		\
 				result = _res;				\
 				goto cleanup;				\
 			} else {					\
@@ -288,30 +301,25 @@ log_noexistnodata(void *val, int level, const char *fmt, ...)
 
 /*
  * Call the specified hook function in every configured module that
- * implements that function. All modules are called, hook function
- * return codes are ignored. This is intended for use with initialization
- * and destruction calls which must run in every module.
+ * implements that function. All modules are called; hook function return
+ * codes are ignored. This is intended for use with initialization and
+ * destruction calls which *must* run in every configured module.
+ *
+ * (This could be implemented as an inline void function, but is left as a
+ * macro for symmetry with PROCESS_HOOK above.)
  */
-#define PROCESS_HOOK_ALL(_id, _qctx, ...)				\
+#define PROCESS_ALL_HOOKS(_id, _qctx)					\
 	do {								\
 		isc_result_t _res;					\
-		ns_hooktable_t *_tab = ns__hook_table; 			\
+		ns_hooktable_t *_tab = get_hooktab(_qctx);		\
 		ns_hook_t *_hook;					\
-		query_ctx_t *_q = (_qctx);				\
-		if (_q != NULL &&					\
-		    _q->view != NULL &&					\
-		    _q->view->hooktable != NULL)			\
-		{							\
-			_tab = _q->view->hooktable;			\
-		}							\
 		_hook = ISC_LIST_HEAD((*_tab)[_id]);			\
 		while (_hook != NULL) {					\
 			ns_hook_action_t _func = _hook->action;		\
 			void *_data = _hook->action_data;		\
-			if (_func != NULL) {				\
-				_func(_q, _data, &_res);		\
-				_hook = ISC_LIST_NEXT(_hook, link);	\
-			}						\
+			INSIST(_func != NULL);				\
+			_func(_qctx, _data, &_res);			\
+			_hook = ISC_LIST_NEXT(_hook, link);		\
 		}							\
 	} while (false)
 
@@ -4867,7 +4875,7 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->methods.query_done = query_done;
 	qctx->methods.query_recurse = query_recurse;
 
-	PROCESS_HOOK_ALL(NS_QUERY_QCTX_INITIALIZED, qctx);
+	PROCESS_ALL_HOOKS(NS_QUERY_QCTX_INITIALIZED, qctx);
 }
 
 /*%
@@ -4932,7 +4940,8 @@ qctx_freedata(query_ctx_t *qctx) {
 
 static void
 qctx_destroy(query_ctx_t *qctx) {
-	PROCESS_HOOK_ALL(NS_QUERY_QCTX_DESTROYED, qctx);
+	PROCESS_ALL_HOOKS(NS_QUERY_QCTX_DESTROYED, qctx);
+
 	dns_view_detach(&qctx->view);
 }
 
