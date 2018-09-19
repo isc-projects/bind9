@@ -176,6 +176,33 @@ static cfg_type_t cfg_type_parameters = {
 };
 
 static isc_result_t
+parse_filter_aaaa_on(const cfg_obj_t *param_obj, const char *param_name,
+		     filter_aaaa_t *dstp)
+{
+	const cfg_obj_t *obj = NULL;
+	isc_result_t result;
+
+	result = cfg_map_get(param_obj, param_name, &obj);
+	if (result != ISC_R_SUCCESS) {
+		return (ISC_R_SUCCESS);
+	}
+
+	if (cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj)) {
+			*dstp = FILTER;
+		} else {
+			*dstp = NONE;
+		}
+	} else if (strcasecmp(cfg_obj_asstring(obj), "break-dnssec") == 0) {
+		*dstp = BREAK_DNSSEC;
+	} else {
+		result = ISC_R_UNEXPECTED;
+	}
+
+	return (result);
+}
+
+static isc_result_t
 parse_parameters(const char *parameters, const void *cfg,
 		 void *actx, ns_hookctx_t *hctx)
 {
@@ -192,39 +219,8 @@ parse_parameters(const char *parameters, const void *cfg,
 	CHECK(cfg_parse_buffer(parser, &b, &cfg_type_parameters,
 			       &param_obj));
 
-	obj = NULL;
-	result = cfg_map_get(param_obj, "filter-aaaa-on-v4", &obj);
-	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
-		if (cfg_obj_asboolean(obj)) {
-			v4_aaaa = FILTER;
-		} else {
-			v4_aaaa = NONE;
-		}
-	} else if (result == ISC_R_SUCCESS) {
-		const char *aaaastr = cfg_obj_asstring(obj);
-		if (strcasecmp(aaaastr, "break-dnssec") == 0) {
-			v4_aaaa = BREAK_DNSSEC;
-		} else {
-			return (ISC_R_UNEXPECTED);
-		}
-	}
-
-	obj = NULL;
-	result = cfg_map_get(param_obj, "filter-aaaa-on-v6", &obj);
-	if (result == ISC_R_SUCCESS && cfg_obj_isboolean(obj)) {
-		if (cfg_obj_asboolean(obj)) {
-			v6_aaaa = FILTER;
-		} else {
-			v6_aaaa = NONE;
-		}
-	} else if (result == ISC_R_SUCCESS) {
-		const char *aaaastr = cfg_obj_asstring(obj);
-		if (strcasecmp(aaaastr, "break-dnssec") == 0) {
-			v6_aaaa = BREAK_DNSSEC;
-		} else {
-			return (ISC_R_UNEXPECTED);
-		}
-	}
+	CHECK(parse_filter_aaaa_on(param_obj, "filter-aaaa-on-v4", &v4_aaaa));
+	CHECK(parse_filter_aaaa_on(param_obj, "filter-aaaa-on-v6", &v6_aaaa));
 
 	obj = NULL;
 	result = cfg_map_get(param_obj, "filter-aaaa", &obj);
