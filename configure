@@ -19553,7 +19553,7 @@ cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 #include <sys/socket.h>
 #include <netdb.h>
 int getnameinfo(const struct sockaddr *, socklen_t, char *,
-		socklen_t, char *, socklen_t, unsigned int);
+		socklen_t, char *, socklen_t, int);
 int
 main ()
 {
@@ -19563,8 +19563,8 @@ main ()
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: socklen_t for buflen; u_int for flags" >&5
-$as_echo "socklen_t for buflen; u_int for flags" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: socklen_t for buflen; int for flags" >&5
+$as_echo "socklen_t for buflen; int for flags" >&6; }
 
 $as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
 
@@ -19572,7 +19572,7 @@ $as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T socklen_t" >>confdefs.h
 
 
-$as_echo "#define IRS_GETNAMEINFO_FLAGS_T unsigned int" >>confdefs.h
+$as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
 
 else
   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
@@ -19633,7 +19633,7 @@ $as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
 
 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T socklen_t" >>confdefs.h
 
-$as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
+$as_echo "#define IRS_GETNAMEINFO_FLAGS_T unsigned int" >>confdefs.h
 
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
