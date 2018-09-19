@@ -27,12 +27,6 @@
 
 #include <ns/types.h>
 
-/*
- * Maximum number of query hook modules that can be configured;
- * more than this will overflow qctx->hookdata.
- */
-#define NS_MAX_MODULES 16
-
 /*% nameserver database version structure */
 typedef struct ns_dbversion {
 	dns_db_t			*db;
@@ -156,6 +150,8 @@ struct query_ctx {
 	dns_fixedname_t dsname;			/* name needing DS */
 
 	ns_client_t *client;			/* client object */
+	bool detach_client;			/* client needs detaching */
+
 	dns_fetchevent_t *event;		/* recursion event */
 
 	dns_db_t *db;				/* zone or cache database */
@@ -173,8 +169,6 @@ struct query_ctx {
 	dns_zone_t *zone;			/* zone to search */
 
 	dns_view_t *view;			/* client view */
-
-	void *hookdata[NS_MAX_MODULES];		/* data used by query hooks */
 
 	isc_result_t result;			/* query result */
 	int line;				/* line to report error */

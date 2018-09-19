@@ -246,8 +246,7 @@ typedef struct ns_hookctx {
 #define NS_HOOK_AGE 0
 #endif
 
-typedef isc_result_t ns_hook_register_t(const unsigned int modid,
-					const char *parameters,
+typedef isc_result_t ns_hook_register_t(const char *parameters,
 					const char *file,
 					unsigned long line,
 					const void *cfg,
@@ -302,8 +301,7 @@ ns_hook_destroyctx(ns_hookctx_t **hctxp);
  */
 
 isc_result_t
-ns_hookmodule_load(const char *modpath, const unsigned int modid,
-		   const char *parameters,
+ns_hookmodule_load(const char *modpath, const char *parameters,
 		   const char *cfg_file, unsigned long cfg_line,
 		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable);
