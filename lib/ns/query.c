@@ -4938,6 +4938,9 @@ qctx_destroy(query_ctx_t *qctx) {
 	CALL_HOOK_NORETURN(NS_QUERY_QCTX_DESTROYED, qctx);
 
 	dns_view_detach(&qctx->view);
+	if (qctx->detach_client) {
+		ns_client_detach(&qctx->client);
+	}
 }
 
 /*%
@@ -6837,9 +6840,9 @@ query_respond_any(query_ctx_t *qctx) {
 	}
 
 	/*
-	 * If we're here, no matching rdatasets were found in
-	 * cache. If we were searching for RRSIG/SIG, that
-	 * may be okay, but otherwise something's gone wrong.
+	 * If we're here, no matching rdatasets were found.  If we were
+	 * searching for RRSIG/SIG, that may be okay, but otherwise
+	 * something's gone wrong.
 	 */
 	INSIST(qctx->qtype == dns_rdatatype_rrsig ||
 	       qctx->qtype == dns_rdatatype_sig);
@@ -10494,7 +10497,7 @@ query_done(query_ctx_t *qctx) {
 			query_error(qctx->client, qctx->result, qctx->line);
 		}
 
-		ns_client_detach(&qctx->client);
+		qctx->detach_client = true;
 		return (qctx->result);
 	}
 
@@ -10538,7 +10541,7 @@ query_done(query_ctx_t *qctx) {
 
 	query_send(qctx->client);
 
-	ns_client_detach(&qctx->client);
+	qctx->detach_client = true;
 	return (qctx->result);
 
  cleanup:
