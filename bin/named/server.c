@@ -5207,16 +5207,13 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 #ifdef HAVE_DLOPEN
 	if (hook_list != NULL) {
-		if (view->hooktable == NULL) {
-			CHECK(ns_hooktable_create(view->mctx,
-				  (ns_hooktable_t **) &view->hooktable));
-			view->hooktable_free = ns_hooktable_free;
-		}
+		const void *hashinit = isc_hash_get_initializer();
+		CHECK(ns_hook_createctx(mctx, hashinit, &hctx));
 
-		if (hctx == NULL) {
-			const void *hashinit = isc_hash_get_initializer();
-			CHECK(ns_hook_createctx(mctx, hashinit, &hctx));
-		}
+		INSIST(view->hooktable == NULL);
+		CHECK(ns_hooktable_create(view->mctx,
+				  (ns_hooktable_t **) &view->hooktable));
+		view->hooktable_free = ns_hooktable_free;
 	}
 
 	for (element = cfg_list_first(hook_list);

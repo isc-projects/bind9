@@ -315,7 +315,8 @@ ns_hookmodule_load(const char *modpath, const unsigned int modid,
  * context, respectively; they are passed as void * here in order to
  * prevent this library from having a dependency on libisccfg).
  *
- * 'hctx' is the hook context and 'hooktable' is the active hook table.
+ * 'hctx' is the hook context and 'hooktable' is the hook table
+ * into which hook points should be registered.
  */
 
 void
