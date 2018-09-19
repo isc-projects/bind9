@@ -26,7 +26,6 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/result.h>
-#include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/util.h>
 #include <isc/types.h>
@@ -64,13 +63,7 @@ LIBNS_EXTERNAL_DATA ns_hooktable_t *ns__hook_table = &default_hooktable;
  * (The order in which they are stored is not important.)
  */
 static ISC_LIST(ns_hook_module_t) hook_modules;
-
-static isc_once_t once = ISC_ONCE_INIT;
-
-static void
-init_modules(void) {
-	ISC_LIST_INIT(hook_modules);
-}
+static bool hook_modules_initialized = false;
 
 #if HAVE_DLFCN_H && HAVE_DLOPEN
 static isc_result_t
@@ -128,7 +121,15 @@ load_library(isc_mem_t *mctx, const char *modpath, ns_hook_module_t **hmodp) {
 
 	handle = dlopen(modpath, flags);
 	if (handle == NULL) {
-		CHECK(ISC_R_FAILURE);
+		const char *errmsg = dlerror();
+		if (errmsg == NULL) {
+			errmsg = "unknown error";
+		}
+		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
+			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
+			      "failed to dlopen() hook module '%s': %s",
+			      modpath, errmsg);
+		return (ISC_R_FAILURE);
 	}
 
 	CHECK(load_symbol(handle, modpath, "hook_version",
@@ -169,15 +170,11 @@ load_library(isc_mem_t *mctx, const char *modpath, ns_hook_module_t **hmodp) {
 
 cleanup:
 	if (result != ISC_R_SUCCESS) {
-		const char *errmsg = dlerror();
-		if (errmsg == NULL) {
-			errmsg = "failure";
-		}
 		isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_HOOKS, ISC_LOG_ERROR,
 			      "failed to dynamically load "
-			      "hook module '%s': %s (%s)", modpath,
-			      errmsg, isc_result_totext(result));
+			      "hook module '%s': %s", modpath,
+			      isc_result_totext(result));
 
 		if (hmod != NULL) {
 			isc_mem_putanddetach(&hmod->mctx, hmod,
@@ -358,10 +355,9 @@ ns_hookmodule_load(const char *modpath, const unsigned int modid,
 	isc_result_t result = ISC_R_SUCCESS;
 	ns_hook_module_t *hmod = NULL;
 
+	REQUIRE(hook_modules_initialized);
 	REQUIRE(NS_HOOKCTX_VALID(hctx));
 	REQUIRE(hooktable != NULL);
-
-	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
@@ -385,7 +381,9 @@ void
 ns_hookmodule_unload_all(void) {
 	ns_hook_module_t *hmod, *prev;
 
-	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
+	if (!hook_modules_initialized) {
+		return;
+	}
 
 	hmod = ISC_LIST_TAIL(hook_modules);
 	while (hmod != NULL) {
@@ -442,7 +440,10 @@ void
 ns_hooktable_init(ns_hooktable_t *hooktable) {
 	int i;
 
-	RUNTIME_CHECK(isc_once_do(&once, init_modules) == ISC_R_SUCCESS);
+	if (!hook_modules_initialized) {
+		ISC_LIST_INIT(hook_modules);
+		hook_modules_initialized = true;
+	}
 
 	for (i = 0; i < NS_HOOKPOINTS_COUNT; i++) {
 		ISC_LIST_INIT((*hooktable)[i]);

@@ -521,7 +521,6 @@ grep "^mx.unsigned.*AAAA" dig.out.ns2.test$n > /dev/null 2>&1 && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-
 n=`expr $n + 1`
 echo_i "checking that AAAA is included in additional section, qtype=MX, signed, recursive ($n)"
 ret=0
