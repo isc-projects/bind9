@@ -211,7 +211,6 @@ cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS ugly.
 NS boing.ugly.
 NS boing.ugly.
-NS boing.ugly.
 ADDR icky.icky.icky.ptang.zoop.boing.ugly.
 ADDR ns3.ugly.
 ADDR ns3.ugly.
