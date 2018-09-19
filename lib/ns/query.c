@@ -6675,6 +6675,7 @@ query_respond_any(query_ctx_t *qctx) {
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 	dns_rdatatype_t onetype = 0; 	/* type to use for minimal-any */
+	isc_buffer_t b;
 
 	CALL_HOOK(NS_QUERY_RESPOND_ANY_BEGIN, qctx);
 
@@ -6835,58 +6836,42 @@ query_respond_any(query_ctx_t *qctx) {
 			dns_message_puttempname(qctx->client->message,
 						&qctx->fname);
 		}
-	} else {
-		CALL_HOOK(NS_QUERY_RESPOND_ANY_NOT_FOUND, qctx);
 
-		if (qctx->fname != NULL) {
-			dns_message_puttempname(qctx->client->message,
-						&qctx->fname);
-		}
-
-		/*
-		 * No matching rdatasets found in cache. If we were
-		 * searching for RRSIG/SIG, that's probably okay;
-		 * otherwise this is an error condition.
-		 */
-		if (qctx->qtype == dns_rdatatype_rrsig ||
-		     qctx->qtype == dns_rdatatype_sig)
-		{
-			isc_buffer_t b;
-			if (!qctx->is_zone) {
-				qctx->authoritative = false;
-				qctx->client->attributes &= ~NS_CLIENTATTR_RA;
-				query_addauth(qctx);
-				return (query_done(qctx));
-			}
-
-			if (qctx->qtype == dns_rdatatype_rrsig &&
-			    dns_db_issecure(qctx->db)) {
-				char namebuf[DNS_NAME_FORMATSIZE];
-				dns_name_format(qctx->client->query.qname,
-						namebuf,
-						sizeof(namebuf));
-				ns_client_log(qctx->client,
-					      DNS_LOGCATEGORY_DNSSEC,
-					      NS_LOGMODULE_QUERY,
-					      ISC_LOG_WARNING,
-					      "missing signature for %s",
-					      namebuf);
-			}
-
-			qctx->fname = ns_client_newname(qctx->client,
-							qctx->dbuf, &b);
-			return (query_sign_nodata(qctx));
-		} else {
-			CCTRACE(ISC_LOG_ERROR,
-			       "query_respond_any: "
-			       "no matching rdatasets in cache");
-			result = DNS_R_SERVFAIL;
-		}
+		query_addauth(qctx);
+		return (query_done(qctx));
 	}
 
-	query_addauth(qctx);
+	/*
+	 * If we're here, no matching rdatasets were found in
+	 * cache. If we were searching for RRSIG/SIG, that
+	 * may be okay, but otherwise something's gone wrong.
+	 */
+	INSIST(qctx->qtype == dns_rdatatype_rrsig ||
+	       qctx->qtype == dns_rdatatype_sig);
 
-	return (query_done(qctx));
+	if (qctx->fname != NULL) {
+		dns_message_puttempname(qctx->client->message,
+					&qctx->fname);
+	}
+
+	if (!qctx->is_zone) {
+		qctx->authoritative = false;
+		qctx->client->attributes &= ~NS_CLIENTATTR_RA;
+		query_addauth(qctx);
+		return (query_done(qctx));
+	}
+
+	if (qctx->qtype == dns_rdatatype_rrsig && dns_db_issecure(qctx->db)) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+		dns_name_format(qctx->client->query.qname,
+				namebuf, sizeof(namebuf));
+		ns_client_log(qctx->client, DNS_LOGCATEGORY_DNSSEC,
+			      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+			      "missing signature for %s", namebuf);
+	}
+
+	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
+	return (query_sign_nodata(qctx));
 
  cleanup:
 	return (result);
