@@ -3468,14 +3468,14 @@ AC_TRY_COMPILE([
 #include <sys/socket.h>
 #include <netdb.h>
 int getnameinfo(const struct sockaddr *, socklen_t, char *,
-		socklen_t, char *, socklen_t, unsigned int);],
+		socklen_t, char *, socklen_t, int);],
 [ return (0);],
-	[AC_MSG_RESULT(socklen_t for buflen; u_int for flags)
+	[AC_MSG_RESULT(socklen_t for buflen; int for flags)
 	 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, socklen_t,
 		   [Define to the sockaddr length type used by getnameinfo(3).])
 	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t,
 		   [Define to the buffer length type used by getnameinfo(3).])
-	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, unsigned int,
+	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int,
 		   [Define to the flags type used by getnameinfo(3).])],
 [AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -3499,10 +3499,10 @@ int getnameinfo(const struct sockaddr *, size_t, char *,
 	 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, size_t)
 	 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, size_t)
 	 AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)],
-[AC_MSG_RESULT(not match any subspecies; assume standard definition)
+[AC_MSG_RESULT(not match any subspecies; socklen_t for buflen; u_int for flags)
 AC_DEFINE(IRS_GETNAMEINFO_SOCKLEN_T, socklen_t)
 AC_DEFINE(IRS_GETNAMEINFO_BUFLEN_T, socklen_t)
-AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, int)])])])
+AC_DEFINE(IRS_GETNAMEINFO_FLAGS_T, unsigned int)])])])
 
 #
 # ...and same for gai_strerror().
