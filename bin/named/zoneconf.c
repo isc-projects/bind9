@@ -224,7 +224,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		const char *str;
 		bool grant = false;
 		bool usezone = false;
-		unsigned int mtype = dns_ssumatchtype_name;
+		dns_ssumatchtype_t mtype = dns_ssumatchtype_name;
 		dns_fixedname_t fname, fident;
 		isc_buffer_t b;
 		dns_rdatatype_t *types;
