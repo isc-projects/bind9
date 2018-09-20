@@ -1525,8 +1525,7 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 }
 
 static isc_result_t
-configure_hook(ns_hooktable_t *hooktable, const unsigned int modid,
-	       const cfg_obj_t *hook,
+configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
 	       const cfg_obj_t *config, ns_hookctx_t *hctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1551,7 +1550,7 @@ configure_hook(ns_hooktable_t *hooktable, const unsigned int modid,
 	if (obj != NULL && cfg_obj_isstring(obj)) {
 		parameters = cfg_obj_asstring(obj);
 	}
-	result = ns_hookmodule_load(library, modid, parameters,
+	result = ns_hookmodule_load(library, parameters,
 				    cfg_obj_file(obj), cfg_obj_line(obj),
 				    config, named_g_aclconfctx,
 				    hctx, hooktable);
@@ -3737,7 +3736,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	unsigned int resolver_param;
 	dns_ntatable_t *ntatable = NULL;
 	const char *qminmode = NULL;
-	unsigned int module_counter = 0;
 
 	REQUIRE(DNS_VIEW_VALID(view));
 
@@ -5222,17 +5220,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	{
 		const cfg_obj_t *hook = cfg_listelt_value(element);
 
-		if (module_counter >= NS_MAX_MODULES) {
-			cfg_obj_log(hook, named_g_lctx, ISC_LOG_ERROR,
-				    "Exceeded maximum of %d hook modules",
-				    NS_MAX_MODULES);
-			CHECK(ISC_R_FAILURE);
-		}
-
-		CHECK(configure_hook(view->hooktable, module_counter,
-				     hook, config, hctx));
-
-		module_counter++;
+		CHECK(configure_hook(view->hooktable, hook, config, hctx));
 	}
 #endif
 
