@@ -105,42 +105,42 @@ static isc_ht_t *client_ht = NULL;
  */
 static bool
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hook_t filter_init = {
+static const ns_hook_t filter_init = {
 	.action = filter_qctx_initialize,
 	.action_data = &client_ht,
 };
 
 static bool
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hook_t filter_respbegin = {
+static const ns_hook_t filter_respbegin = {
 	.action = filter_respond_begin,
 	.action_data = &client_ht,
 };
 
 static bool
 filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hook_t filter_respanyfound = {
+static const ns_hook_t filter_respanyfound = {
 	.action = filter_respond_any_found,
 	.action_data = &client_ht,
 };
 
 static bool
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hook_t filter_prepresp = {
+static const ns_hook_t filter_prepresp = {
 	.action = filter_prep_response_begin,
 	.action_data = &client_ht,
 };
 
 static bool
 filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp);
-static ns_hook_t filter_donesend = {
+static const ns_hook_t filter_donesend = {
 	.action = filter_query_done_send,
 	.action_data = &client_ht,
 };
 
 static bool
 filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp);
-ns_hook_t filter_destroy = {
+static const ns_hook_t filter_destroy = {
 	.action = filter_qctx_destroy,
 	.action_data = &client_ht,
 };
@@ -292,13 +292,18 @@ hook_register(const char *parameters,
 		CHECK(parse_parameters(parameters, cfg, actx, hctx));
 	}
 
-	ns_hook_add(hooktable, NS_QUERY_QCTX_INITIALIZED, &filter_init);
-	ns_hook_add(hooktable, NS_QUERY_RESPOND_BEGIN, &filter_respbegin);
-	ns_hook_add(hooktable, NS_QUERY_RESPOND_ANY_FOUND,
+	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_QCTX_INITIALIZED,
+		    &filter_init);
+	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_RESPOND_BEGIN,
+		    &filter_respbegin);
+	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_RESPOND_ANY_FOUND,
 		    &filter_respanyfound);
-	ns_hook_add(hooktable, NS_QUERY_PREP_RESPONSE_BEGIN, &filter_prepresp);
-	ns_hook_add(hooktable, NS_QUERY_DONE_SEND, &filter_donesend);
-	ns_hook_add(hooktable, NS_QUERY_QCTX_DESTROYED, &filter_destroy);
+	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_PREP_RESPONSE_BEGIN,
+		    &filter_prepresp);
+	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_DONE_SEND,
+		    &filter_donesend);
+	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_QCTX_DESTROYED,
+		    &filter_destroy);
 
 	CHECK(isc_mempool_create(hctx->mctx, sizeof(filter_data_t),
 				 &datapool));

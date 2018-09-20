@@ -672,8 +672,8 @@ extract_qctx(void *arg, void *data, isc_result_t *resultp) {
  */
 static isc_result_t
 create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
-	ns_hooktable_t *saved_hook_table, query_hooks;
-	ns_hook_t hook = {
+	ns_hooktable_t *saved_hook_table = NULL, *query_hooks = NULL;
+	const ns_hook_t hook = {
 		.action = extract_qctx,
 		.action_data = qctxp,
 	};
@@ -690,15 +690,16 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	 * set hooks.
 	 */
 
-	ns_hooktable_init(&query_hooks);
-	ns_hook_add(&query_hooks, NS_QUERY_SETUP, &hook);
+	ns_hooktable_create(mctx, &query_hooks);
+	ns_hook_add(query_hooks, mctx, NS_QUERY_SETUP, &hook);
 
 	saved_hook_table = ns__hook_table;
-	ns__hook_table = &query_hooks;
+	ns__hook_table = query_hooks;
 
 	ns_query_start(client);
 
 	ns__hook_table = saved_hook_table;
+	ns_hooktable_free(mctx, (void **)&query_hooks);
 
 	if (*qctxp == NULL) {
 		return (ISC_R_NOMEMORY);

@@ -82,9 +82,10 @@ typedef struct {
  */
 static void
 run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
+	ns_hooktable_t *query_hooks = NULL;
 	query_ctx_t *qctx = NULL;
 	isc_result_t result;
-	ns_hook_t hook = {
+	const ns_hook_t hook = {
 		.action = ns_test_hook_catch_call,
 	};
 
@@ -97,8 +98,9 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	 * Interrupt execution if ns_query_done() is called.
 	 */
 
-	ns_hooktable_init(ns__hook_table);
-	ns_hook_add(ns__hook_table, NS_QUERY_DONE_BEGIN, &hook);
+	ns_hooktable_create(mctx, &query_hooks);
+	ns_hook_add(query_hooks, mctx, NS_QUERY_DONE_BEGIN, &hook);
+	ns__hook_table = query_hooks;
 
 	/*
 	 * Construct a query context for a ./NS query with given flags.
@@ -157,6 +159,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	 * Clean up.
 	 */
 	ns_test_qctx_destroy(&qctx);
+	ns_hooktable_free(mctx, (void **)&query_hooks);
 }
 
 /* test ns__query_sfcache() */
@@ -279,9 +282,10 @@ typedef struct {
  */
 static void
 run_start_test(const ns__query_start_test_params_t *test) {
+	ns_hooktable_t *query_hooks = NULL;
 	query_ctx_t *qctx = NULL;
 	isc_result_t result;
-	ns_hook_t hook = {
+	const ns_hook_t hook = {
 		.action = ns_test_hook_catch_call,
 	};
 
@@ -295,10 +299,10 @@ run_start_test(const ns__query_start_test_params_t *test) {
 	/*
 	 * Interrupt execution if query_lookup() or ns_query_done() is called.
 	 */
-
-	ns_hooktable_init(ns__hook_table);
-	ns_hook_add(ns__hook_table, NS_QUERY_LOOKUP_BEGIN, &hook);
-	ns_hook_add(ns__hook_table, NS_QUERY_DONE_BEGIN, &hook);
+	ns_hooktable_create(mctx, &query_hooks);
+	ns_hook_add(query_hooks, mctx, NS_QUERY_LOOKUP_BEGIN, &hook);
+	ns_hook_add(query_hooks, mctx, NS_QUERY_DONE_BEGIN, &hook);
+	ns__hook_table = query_hooks;
 
 	/*
 	 * Construct a query context using the supplied parameters.
@@ -414,6 +418,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 		ns_test_cleanup_zone();
 	}
 	ns_test_qctx_destroy(&qctx);
+	ns_hooktable_free(mctx, (void **)&query_hooks);
 }
 
 /* test ns__query_start() */

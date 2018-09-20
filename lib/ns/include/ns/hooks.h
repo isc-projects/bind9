@@ -201,6 +201,7 @@ typedef bool
 (*ns_hook_action_t)(void *arg, void *data, isc_result_t *resultp);
 
 typedef struct ns_hook {
+	isc_mem_t *mctx;
 	ns_hook_action_t action;
 	void *action_data;
 	ISC_LINK(struct ns_hook) link;
@@ -327,17 +328,21 @@ ns_hookmodule_unload_all(void);
  */
 
 void
-ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
-	    ns_hook_t *hook);
+ns_hook_add(ns_hooktable_t *hooktable, isc_mem_t *mctx,
+	    ns_hookpoint_t hookpoint, const ns_hook_t *hook);
 /*%<
- * Append hook function 'hook' to the list of hooks at 'hookpoint' in
- * 'hooktable'.
+ * Allocate (using memory context 'mctx') a copy of the 'hook' structure
+ * describing a hook callback and append it to the list of hooks at 'hookpoint'
+ * in 'hooktable'.
  *
  * Requires:
- *\li 'hook' is not NULL
+ *\li 'hooktable' is not NULL
+ *
+ *\li 'mctx' is not NULL
  *
  *\li 'hookpoint' is less than NS_QUERY_HOOKS_COUNT
  *
+ *\li 'hook' is not NULL
  */
 
 void
