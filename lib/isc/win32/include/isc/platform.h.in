@@ -36,7 +36,9 @@
 #endif
 
 #include <stdint.h>
+#if _MSC_VER < 1914
 typedef uint32_t socklen_t;
+#endif
 
 #endif
 
