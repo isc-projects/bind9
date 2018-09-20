@@ -501,7 +501,7 @@ query_addwildcardproof(query_ctx_t *qctx, bool ispositive, bool nodata);
 static void
 query_addauth(query_ctx_t *qctx);
 
-/*%
+/*
  * Increment query statistics counters.
  */
 static inline void
