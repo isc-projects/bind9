@@ -377,6 +377,18 @@ hook_version(void) {
  ** "filter-aaaa" feature implementation begins here.
  **/
 
+/*%
+ * Structure describing the filtering to be applied by process_section().
+ */
+typedef struct section_filter {
+	query_ctx_t *		qctx;
+	filter_aaaa_t 		mode;
+	dns_section_t		section;
+	const dns_name_t *	name;
+	dns_rdatatype_t		type;
+	bool			only_if_a_exists;
+} section_filter_t;
+
 /*
  * Check whether this is an IPv4 client.
  */
@@ -446,6 +458,128 @@ client_state_destroy(const query_ctx_t *qctx, isc_ht_t **htp) {
 	isc_mempool_put(datapool, client_state);
 }
 
+/*%
+ * Mark 'rdataset' and 'sigrdataset' as rendered, gracefully handling NULL
+ * pointers and non-associated rdatasets.
+ */
+static void
+mark_as_rendered(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
+	if (rdataset != NULL && dns_rdataset_isassociated(rdataset)) {
+		rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+	}
+	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset)) {
+		sigrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
+	}
+}
+
+/*%
+ * Check whether an RRset of given 'type' is present at given 'name'.  If it is
+ * found and either it is not signed or the combination of query flags and
+ * configured processing 'mode' allows it, mark the RRset and its associated
+ * signatures as already rendered to prevent them from appearing in the
+ * response message stored in 'qctx'.  If 'only_if_a_exists' is true, an RRset
+ * of type A must also exist at 'name' in order for the above processing to
+ * happen.
+ */
+static isc_result_t
+process_name(query_ctx_t *qctx, filter_aaaa_t mode, const dns_name_t *name,
+	     dns_rdatatype_t type, bool only_if_a_exists)
+{
+	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
+	bool name_modified = false;
+	isc_result_t result;
+
+	if (only_if_a_exists) {
+		result = dns_message_findtype(name, dns_rdatatype_a, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
+			/*
+			 * No A RRset was found at 'name' when required.
+			 */
+			goto done;
+		}
+	}
+
+	dns_message_findtype(name, type, 0, &rdataset);
+	dns_message_findtype(name, dns_rdatatype_rrsig, type, &sigrdataset);
+
+	if (rdataset == NULL) {
+		/*
+		 * No RRset of given 'type' was found at 'name'.
+		 */
+		goto done;
+	}
+
+	if (sigrdataset == NULL || !WANTDNSSEC(qctx->client) ||
+	    mode == BREAK_DNSSEC)
+	{
+		/*
+		 * An RRset of given 'type' was found at 'name' and at least
+		 * one of the following is true:
+		 *
+		 *   - the RRset is not signed,
+		 *   - the client did not set the DO bit in its request,
+		 *   - configuration allows us to tamper with signed responses.
+		 *
+		 * This means it is okay to filter out this RRset and its
+		 * signatures, if any, from the response.
+		 */
+		mark_as_rendered(rdataset, sigrdataset);
+		name_modified = true;
+	}
+
+ done:
+	return (name_modified ? ISC_R_SUCCESS : DNS_R_UNCHANGED);
+}
+
+/*%
+ * Apply the requested section filter, i.e. prevent (when possible, as
+ * determined by process_name()) RRsets of given 'type' from being rendered in
+ * the given 'section' of the response message stored in 'qctx'.  Clear the AD
+ * bit if the answer and/or authority section was modified.  If 'name' is NULL,
+ * all names in the given 'section' are processed; otherwise, only 'name' is.
+ * 'only_if_a_exists' is passed through to process_name().
+ */
+static void
+process_section(const section_filter_t *filter) {
+	query_ctx_t *qctx = filter->qctx;
+	filter_aaaa_t mode = filter->mode;
+	dns_section_t section = filter->section;
+	const dns_name_t *name = filter->name;
+	dns_rdatatype_t type = filter->type;
+	bool only_if_a_exists = filter->only_if_a_exists;
+
+	dns_message_t *message = qctx->client->message;
+	isc_result_t result;
+
+	for (result = dns_message_firstname(message, section);
+	     result == ISC_R_SUCCESS;
+	     result = dns_message_nextname(message, section))
+	{
+		dns_name_t *cur = NULL;
+		dns_message_currentname(message, section, &cur);
+		if (name != NULL && !dns_name_equal(name, cur)) {
+			/*
+			 * We only want to process 'name' and this is not it.
+			 */
+			continue;
+		}
+
+		result = process_name(qctx, mode, cur, type, only_if_a_exists);
+		if (result != ISC_R_SUCCESS) {
+			/*
+			 * Response was not modified, do not touch the AD bit.
+			 */
+			continue;
+		}
+
+		if (section == DNS_SECTION_ANSWER ||
+		    section == DNS_SECTION_AUTHORITY)
+		{
+			message->flags &= ~DNS_MESSAGEFLAG_AD;
+		}
+	}
+}
+
 /*
  * Initialize filter state, fetching it from a memory pool and storing it
  * in a hash table keyed according to the client object; this enables
@@ -458,12 +592,13 @@ filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
 	filter_data_t *client_state;
 
+	*resp = ISC_R_UNSET;
+
 	client_state = client_state_get(qctx, htp);
 	if (client_state == NULL) {
 		client_state_create(qctx, htp);
 	}
 
-	*resp = ISC_R_UNSET;
 	return (false);
 }
 
@@ -478,6 +613,8 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
 	filter_data_t *client_state = client_state_get(qctx, htp);
 	isc_result_t result;
+
+	*resp = ISC_R_UNSET;
 
 	if (client_state == NULL) {
 		return (false);
@@ -499,7 +636,6 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 		}
 	}
 
-	*resp = ISC_R_UNSET;
 	return (false);
 }
 
@@ -508,7 +644,7 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
  * necessary to find out whether an A exists.
  *
  * (This version is for processing answers to explicit AAAA
- * queries; ANY queries are handled in query_filter_aaaa_any().)
+ * queries; ANY queries are handled in filter_respond_any_found().)
  */
 static bool
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
@@ -516,6 +652,8 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
 	filter_data_t *client_state = client_state_get(qctx, htp);
 	isc_result_t result = ISC_R_UNSET;
+
+	*resp = ISC_R_UNSET;
 
 	if (client_state == NULL) {
 		return (false);
@@ -526,7 +664,6 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	     (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
 	      dns_rdataset_isassociated(qctx->sigrdataset))))
 	{
-		*resp = result;
 		return (false);
 	}
 
@@ -559,15 +696,8 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 		 * cached an A if it existed.
 		 */
 		if (result == ISC_R_SUCCESS) {
+			mark_as_rendered(qctx->rdataset, qctx->sigrdataset);
 			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
-			qctx->rdataset->attributes |= DNS_RDATASETATTR_RENDERED;
-			if (qctx->sigrdataset != NULL &&
-			    dns_rdataset_isassociated(qctx->sigrdataset))
-			{
-				qctx->sigrdataset->attributes |=
-					DNS_RDATASETATTR_RENDERED;
-			}
-
 			client_state->flags |= FILTER_AAAA_FILTERED;
 		} else if (!qctx->authoritative &&
 			   RECURSIONOK(qctx->client) &&
@@ -595,27 +725,14 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	} else if (qctx->qtype == dns_rdatatype_a &&
 		   (client_state->flags & FILTER_AAAA_RECURSING) != 0)
 	{
-		dns_rdataset_t *mrdataset = NULL;
-		dns_rdataset_t *sigrdataset = NULL;
-
-		result = dns_message_findname(qctx->client->message,
-					      DNS_SECTION_ANSWER, qctx->fname,
-					      dns_rdatatype_aaaa, 0,
-					      NULL, &mrdataset);
-		if (result == ISC_R_SUCCESS) {
-			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
-			mrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
-		}
-
-		result = dns_message_findname(qctx->client->message,
-					      DNS_SECTION_ANSWER, qctx->fname,
-					      dns_rdatatype_rrsig,
-					      dns_rdatatype_aaaa,
-					      NULL, &sigrdataset);
-		if (result == ISC_R_SUCCESS) {
-			qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
-			sigrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
-		}
+		const section_filter_t filter_answer = {
+			.qctx = qctx,
+			.mode = client_state->mode,
+			.section = DNS_SECTION_ANSWER,
+			.name = qctx->fname,
+			.type = dns_rdatatype_aaaa,
+		};
+		process_section(&filter_answer);
 
 		client_state->flags &= ~FILTER_AAAA_RECURSING;
 
@@ -638,57 +755,28 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
 	filter_data_t *client_state = client_state_get(qctx, htp);
-	dns_name_t *name = NULL;
-	dns_rdataset_t *aaaa = NULL, *aaaa_sig = NULL;
-	dns_rdataset_t *a = NULL;
-	bool have_a = true;
-
-	if (client_state == NULL) {
-		return (false);
-	}
-
-	if (client_state->mode == NONE) {
-		*resp = ISC_R_UNSET;
-		return (false);
-	}
-
-	dns_message_findname(qctx->client->message, DNS_SECTION_ANSWER,
-			     (qctx->fname != NULL)
-			      ? qctx->fname
-			      : qctx->tname,
-			     dns_rdatatype_any, 0, &name, NULL);
-
-	/*
-	 * If we're not authoritative, just assume there's an
-	 * A even if it wasn't in the cache and therefore isn't
-	 * in the message.  But if we're authoritative, then
-	 * if there was an A, it should be here.
-	 */
-	if (qctx->authoritative && name != NULL) {
-		dns_message_findtype(name, dns_rdatatype_a, 0, &a);
-		if (a == NULL) {
-			have_a = false;
-		}
-	}
-
-	if (name != NULL) {
-		dns_message_findtype(name, dns_rdatatype_aaaa, 0, &aaaa);
-		dns_message_findtype(name, dns_rdatatype_rrsig,
-				     dns_rdatatype_aaaa, &aaaa_sig);
-	}
-
-	if (have_a && aaaa != NULL &&
-	    (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
-	     client_state->mode == BREAK_DNSSEC))
-	{
-		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
-		aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
-		if (aaaa_sig != NULL) {
-			aaaa_sig->attributes |= DNS_RDATASETATTR_RENDERED;
-		}
-	}
 
 	*resp = ISC_R_UNSET;
+
+	if (client_state != NULL && client_state->mode != NONE) {
+		/*
+		 * If we are authoritative, require an A record to be present
+		 * before filtering out AAAA records; otherwise, just assume an
+		 * A record exists even if it was not in the cache (and
+		 * therefore is not in the response message), thus proceeding
+		 * with filtering out AAAA records.
+		 */
+		const section_filter_t filter_answer = {
+			.qctx = qctx,
+			.mode = client_state->mode,
+			.section = DNS_SECTION_ANSWER,
+			.name = qctx->tname,
+			.type = dns_rdatatype_aaaa,
+			.only_if_a_exists = qctx->authoritative,
+		};
+		process_section(&filter_answer);
+	}
+
 	return (false);
 }
 
@@ -702,88 +790,30 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
 	filter_data_t *client_state = client_state_get(qctx, htp);
-	isc_result_t result;
-
-	if (client_state == NULL) {
-		return (false);
-	}
-
-	if (client_state->mode == NONE) {
-		*resp = ISC_R_UNSET;
-		return (false);
-	}
-
-	result = dns_message_firstname(qctx->client->message,
-				       DNS_SECTION_ADDITIONAL);
-	while (result == ISC_R_SUCCESS) {
-		dns_name_t *name = NULL;
-		dns_rdataset_t *aaaa = NULL, *aaaa_sig = NULL;
-		dns_rdataset_t *a = NULL;
-
-		dns_message_currentname(qctx->client->message,
-					DNS_SECTION_ADDITIONAL,
-					&name);
-
-		result = dns_message_nextname(qctx->client->message,
-					      DNS_SECTION_ADDITIONAL);
-
-		dns_message_findtype(name, dns_rdatatype_a, 0, &a);
-		if (a == NULL) {
-			continue;
-		}
-
-		dns_message_findtype(name, dns_rdatatype_aaaa, 0,
-				     &aaaa);
-		if (aaaa == NULL) {
-			continue;
-		}
-
-		dns_message_findtype(name, dns_rdatatype_rrsig,
-				     dns_rdatatype_aaaa, &aaaa_sig);
-
-		if (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
-		    client_state->mode == BREAK_DNSSEC)
-		{
-			aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
-			if (aaaa_sig != NULL) {
-				aaaa_sig->attributes |=
-					DNS_RDATASETATTR_RENDERED;
-			}
-		}
-	}
-
-	if ((client_state->flags & FILTER_AAAA_FILTERED) != 0) {
-		result = dns_message_firstname(qctx->client->message,
-					       DNS_SECTION_AUTHORITY);
-		while (result == ISC_R_SUCCESS) {
-			dns_name_t *name = NULL;
-			dns_rdataset_t *ns = NULL, *ns_sig = NULL;
-
-			dns_message_currentname(qctx->client->message,
-						DNS_SECTION_AUTHORITY,
-						&name);
-
-			result = dns_message_findtype(name, dns_rdatatype_ns,
-						      0, &ns);
-			if (result == ISC_R_SUCCESS) {
-				qctx->client->message->flags &=
-					~DNS_MESSAGEFLAG_AD;
-				ns->attributes |= DNS_RDATASETATTR_RENDERED;
-			}
-
-			result = dns_message_findtype(name, dns_rdatatype_rrsig,
-						      dns_rdatatype_ns,
-						      &ns_sig);
-			if (result == ISC_R_SUCCESS) {
-				ns_sig->attributes |= DNS_RDATASETATTR_RENDERED;
-			}
-
-			result = dns_message_nextname(qctx->client->message,
-						      DNS_SECTION_AUTHORITY);
-		}
-	}
 
 	*resp = ISC_R_UNSET;
+
+	if (client_state != NULL && client_state->mode != NONE) {
+		const section_filter_t filter_additional = {
+			.qctx = qctx,
+			.mode = client_state->mode,
+			.section = DNS_SECTION_ADDITIONAL,
+			.type = dns_rdatatype_aaaa,
+			.only_if_a_exists = true,
+		};
+		process_section(&filter_additional);
+
+		if ((client_state->flags & FILTER_AAAA_FILTERED) != 0) {
+			const section_filter_t filter_authority = {
+				.qctx = qctx,
+				.mode = client_state->mode,
+				.section = DNS_SECTION_AUTHORITY,
+				.type = dns_rdatatype_ns,
+			};
+			process_section(&filter_authority);
+		}
+	}
+
 	return (false);
 }
 
@@ -796,12 +826,13 @@ filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
 
+	*resp = ISC_R_UNSET;
+
 	if (!qctx->detach_client) {
 		return (false);
 	}
 
 	client_state_destroy(qctx, htp);
 
-	*resp = ISC_R_UNSET;
 	return (false);
 }
