@@ -613,8 +613,6 @@ isc_stdio_tell
 isc_stdio_write
 isc_stdtime_get
 isc_string_strerror_r
-isc_string_strlcat
-isc_string_strlcpy
 isc_symtab_count
 isc_symtab_create
 isc_symtab_define
