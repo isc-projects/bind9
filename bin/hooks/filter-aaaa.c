@@ -402,40 +402,40 @@ is_v6_client(ns_client_t *client) {
 }
 
 static filter_data_t *
-data_get(const query_ctx_t *qctx, isc_ht_t **htp) {
-	filter_data_t *data;
+client_state_get(const query_ctx_t *qctx, isc_ht_t **htp) {
+	filter_data_t *client_state;
 	isc_result_t result;
 
 	result = isc_ht_find(*htp, (const unsigned char *)&qctx->client,
-			     sizeof(qctx->client), (void **)&data);
+			     sizeof(qctx->client), (void **)&client_state);
 
-	return (result == ISC_R_SUCCESS ? data : NULL);
+	return (result == ISC_R_SUCCESS ? client_state : NULL);
 }
 
 static void
-data_create(const query_ctx_t *qctx, isc_ht_t **htp) {
-	filter_data_t *data;
+client_state_create(const query_ctx_t *qctx, isc_ht_t **htp) {
+	filter_data_t *client_state;
 	isc_result_t result;
 
-	data = isc_mempool_get(datapool);
-	if (data == NULL) {
+	client_state = isc_mempool_get(datapool);
+	if (client_state == NULL) {
 		return;
 	}
 
-	data->mode = NONE;
-	data->flags = 0;
+	client_state->mode = NONE;
+	client_state->flags = 0;
 
 	result = isc_ht_add(*htp, (const unsigned char *)&qctx->client,
-			    sizeof(qctx->client), data);
+			    sizeof(qctx->client), client_state);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
 
 static void
-data_destroy(const query_ctx_t *qctx, isc_ht_t **htp) {
-	filter_data_t *data = data_get(qctx, htp);
+client_state_destroy(const query_ctx_t *qctx, isc_ht_t **htp) {
+	filter_data_t *client_state = client_state_get(qctx, htp);
 	isc_result_t result;
 
-	if (data == NULL) {
+	if (client_state == NULL) {
 		return;
 	}
 
@@ -443,7 +443,7 @@ data_destroy(const query_ctx_t *qctx, isc_ht_t **htp) {
 			       sizeof(qctx->client));
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	isc_mempool_put(datapool, data);
+	isc_mempool_put(datapool, client_state);
 }
 
 /*
@@ -456,11 +456,11 @@ static bool
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *data;
+	filter_data_t *client_state;
 
-	data = data_get(qctx, htp);
-	if (data == NULL) {
-		data_create(qctx, htp);
+	client_state = client_state_get(qctx, htp);
+	if (client_state == NULL) {
+		client_state_create(qctx, htp);
 	}
 
 	*resp = ISC_R_UNSET;
@@ -476,10 +476,10 @@ static bool
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *data = data_get(qctx, htp);
+	filter_data_t *client_state = client_state_get(qctx, htp);
 	isc_result_t result;
 
-	if (data == NULL) {
+	if (client_state == NULL) {
 		return (false);
 	}
 
@@ -490,12 +490,12 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 		    v4_aaaa != NONE &&
 		    is_v4_client(qctx->client))
 		{
-			data->mode = v4_aaaa;
+			client_state->mode = v4_aaaa;
 		} else if (result == ISC_R_SUCCESS &&
 			   v6_aaaa != NONE &&
 			   is_v6_client(qctx->client))
 		{
-			data->mode = v6_aaaa;
+			client_state->mode = v6_aaaa;
 		}
 	}
 
@@ -514,15 +514,15 @@ static bool
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *data = data_get(qctx, htp);
+	filter_data_t *client_state = client_state_get(qctx, htp);
 	isc_result_t result = ISC_R_UNSET;
 
-	if (data == NULL) {
+	if (client_state == NULL) {
 		return (false);
 	}
 
-	if (data->mode != BREAK_DNSSEC &&
-	    (data->mode != FILTER ||
+	if (client_state->mode != BREAK_DNSSEC &&
+	    (client_state->mode != FILTER ||
 	     (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
 	      dns_rdataset_isassociated(qctx->sigrdataset))))
 	{
@@ -568,7 +568,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 					DNS_RDATASETATTR_RENDERED;
 			}
 
-			data->flags |= FILTER_AAAA_FILTERED;
+			client_state->flags |= FILTER_AAAA_FILTERED;
 		} else if (!qctx->authoritative &&
 			   RECURSIONOK(qctx->client) &&
 			   (result == DNS_R_DELEGATION ||
@@ -587,13 +587,13 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 						 qctx->client->query.qname,
 						 NULL, NULL, qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
-				data->flags |= FILTER_AAAA_RECURSING;
+				client_state->flags |= FILTER_AAAA_RECURSING;
 				qctx->client->query.attributes |=
 					NS_QUERYATTR_RECURSING;
 			}
 		}
 	} else if (qctx->qtype == dns_rdatatype_a &&
-		   (data->flags & FILTER_AAAA_RECURSING) != 0)
+		   (client_state->flags & FILTER_AAAA_RECURSING) != 0)
 	{
 		dns_rdataset_t *mrdataset = NULL;
 		dns_rdataset_t *sigrdataset = NULL;
@@ -617,7 +617,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			sigrdataset->attributes |= DNS_RDATASETATTR_RENDERED;
 		}
 
-		data->flags &= ~FILTER_AAAA_RECURSING;
+		client_state->flags &= ~FILTER_AAAA_RECURSING;
 
 		result = (*qctx->methods.query_done)(qctx);
 
@@ -637,17 +637,17 @@ static bool
 filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *data = data_get(qctx, htp);
+	filter_data_t *client_state = client_state_get(qctx, htp);
 	dns_name_t *name = NULL;
 	dns_rdataset_t *aaaa = NULL, *aaaa_sig = NULL;
 	dns_rdataset_t *a = NULL;
 	bool have_a = true;
 
-	if (data == NULL) {
+	if (client_state == NULL) {
 		return (false);
 	}
 
-	if (data->mode == NONE) {
+	if (client_state->mode == NONE) {
 		*resp = ISC_R_UNSET;
 		return (false);
 	}
@@ -679,7 +679,7 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 
 	if (have_a && aaaa != NULL &&
 	    (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
-	     data->mode == BREAK_DNSSEC))
+	     client_state->mode == BREAK_DNSSEC))
 	{
 		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
 		aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
@@ -701,14 +701,14 @@ static bool
 filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *data = data_get(qctx, htp);
+	filter_data_t *client_state = client_state_get(qctx, htp);
 	isc_result_t result;
 
-	if (data == NULL) {
+	if (client_state == NULL) {
 		return (false);
 	}
 
-	if (data->mode == NONE) {
+	if (client_state->mode == NONE) {
 		*resp = ISC_R_UNSET;
 		return (false);
 	}
@@ -742,7 +742,7 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 				     dns_rdatatype_aaaa, &aaaa_sig);
 
 		if (aaaa_sig == NULL || !WANTDNSSEC(qctx->client) ||
-		    data->mode == BREAK_DNSSEC)
+		    client_state->mode == BREAK_DNSSEC)
 		{
 			aaaa->attributes |= DNS_RDATASETATTR_RENDERED;
 			if (aaaa_sig != NULL) {
@@ -752,7 +752,7 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 		}
 	}
 
-	if ((data->flags & FILTER_AAAA_FILTERED) != 0) {
+	if ((client_state->flags & FILTER_AAAA_FILTERED) != 0) {
 		result = dns_message_firstname(qctx->client->message,
 					       DNS_SECTION_AUTHORITY);
 		while (result == ISC_R_SUCCESS) {
@@ -800,7 +800,7 @@ filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
 		return (false);
 	}
 
-	data_destroy(qctx, htp);
+	client_state_destroy(qctx, htp);
 
 	*resp = ISC_R_UNSET;
 	return (false);
