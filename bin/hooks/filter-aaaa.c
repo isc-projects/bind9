@@ -473,44 +473,32 @@ mark_as_rendered(dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset) {
 }
 
 /*%
- * Check whether an RRset of given 'type' is present at given 'name'.  If it is
- * found and either it is not signed or the combination of query flags and
- * configured processing 'mode' allows it, mark the RRset and its associated
- * signatures as already rendered to prevent them from appearing in the
- * response message stored in 'qctx'.  If 'only_if_a_exists' is true, an RRset
- * of type A must also exist at 'name' in order for the above processing to
- * happen.
+ * Check whether an RRset of given 'type' is present at given 'name'.  If
+ * it is found and either it is not signed or the combination of query
+ * flags and configured processing 'mode' allows it, mark the RRset and its
+ * associated signatures as already rendered to prevent them from appearing
+ * in the response message stored in 'qctx'.  If 'only_if_a_exists' is
+ * true, an RRset of type A must also exist at 'name' in order for the
+ * above processing to happen.
  */
-static isc_result_t
+static bool
 process_name(query_ctx_t *qctx, filter_aaaa_t mode, const dns_name_t *name,
 	     dns_rdatatype_t type, bool only_if_a_exists)
 {
 	dns_rdataset_t *rdataset = NULL, *sigrdataset = NULL;
-	bool name_modified = false;
 	isc_result_t result;
+	bool modified = false;
 
 	if (only_if_a_exists) {
-		result = dns_message_findtype(name, dns_rdatatype_a, 0, NULL);
-		if (result != ISC_R_SUCCESS) {
-			/*
-			 * No A RRset was found at 'name' when required.
-			 */
-			goto done;
-		}
+		CHECK(dns_message_findtype(name, dns_rdatatype_a, 0, NULL));
 	}
 
 	dns_message_findtype(name, type, 0, &rdataset);
 	dns_message_findtype(name, dns_rdatatype_rrsig, type, &sigrdataset);
 
-	if (rdataset == NULL) {
-		/*
-		 * No RRset of given 'type' was found at 'name'.
-		 */
-		goto done;
-	}
-
-	if (sigrdataset == NULL || !WANTDNSSEC(qctx->client) ||
-	    mode == BREAK_DNSSEC)
+	if (rdataset != NULL &&
+	    (sigrdataset == NULL || !WANTDNSSEC(qctx->client) ||
+	     mode == BREAK_DNSSEC))
 	{
 		/*
 		 * An RRset of given 'type' was found at 'name' and at least
@@ -524,20 +512,21 @@ process_name(query_ctx_t *qctx, filter_aaaa_t mode, const dns_name_t *name,
 		 * signatures, if any, from the response.
 		 */
 		mark_as_rendered(rdataset, sigrdataset);
-		name_modified = true;
+		modified = true;
 	}
 
- done:
-	return (name_modified ? ISC_R_SUCCESS : DNS_R_UNCHANGED);
+ cleanup:
+	return (modified);
 }
 
 /*%
  * Apply the requested section filter, i.e. prevent (when possible, as
- * determined by process_name()) RRsets of given 'type' from being rendered in
- * the given 'section' of the response message stored in 'qctx'.  Clear the AD
- * bit if the answer and/or authority section was modified.  If 'name' is NULL,
- * all names in the given 'section' are processed; otherwise, only 'name' is.
- * 'only_if_a_exists' is passed through to process_name().
+ * determined by process_name()) RRsets of given 'type' from being rendered
+ * in the given 'section' of the response message stored in 'qctx'.  Clear
+ * the AD bit if the answer and/or authority section was modified.  If
+ * 'name' is NULL, all names in the given 'section' are processed;
+ * otherwise, only 'name' is.  'only_if_a_exists' is passed through to
+ * process_name().
  */
 static void
 process_section(const section_filter_t *filter) {
@@ -564,8 +553,7 @@ process_section(const section_filter_t *filter) {
 			continue;
 		}
 
-		result = process_name(qctx, mode, cur, type, only_if_a_exists);
-		if (result != ISC_R_SUCCESS) {
+		if (!process_name(qctx, mode, cur, type, only_if_a_exists)) {
 			/*
 			 * Response was not modified, do not touch the AD bit.
 			 */
@@ -582,9 +570,9 @@ process_section(const section_filter_t *filter) {
 
 /*
  * Initialize filter state, fetching it from a memory pool and storing it
- * in a hash table keyed according to the client object; this enables
- * us to retrieve persistent data related to a client query for as long
- * as the object persists..
+ * in a hash table keyed according to the client object; this enables us to
+ * retrieve persistent data related to a client query for as long as the
+ * object persists.
  */
 static bool
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
@@ -603,9 +591,9 @@ filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 }
 
 /*
- * Determine whether this client should have AAAA filtered or not,
- * based on the client address family and the settings of
- * filter-aaaa-on-v4 and filter-aaaa-on-v6.
+ * Determine whether this client should have AAAA filtered or not, based on
+ * the client address family and the settings of filter-aaaa-on-v4 and
+ * filter-aaaa-on-v6.
  */
 static bool
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
@@ -643,8 +631,8 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
  * Hide AAAA rrsets if there is a matching A. Trigger recursion if
  * necessary to find out whether an A exists.
  *
- * (This version is for processing answers to explicit AAAA
- * queries; ANY queries are handled in filter_respond_any_found().)
+ * (This version is for processing answers to explicit AAAA queries; ANY
+ * queries are handled in filter_respond_any_found().)
  */
 static bool
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
@@ -760,11 +748,11 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 
 	if (client_state != NULL && client_state->mode != NONE) {
 		/*
-		 * If we are authoritative, require an A record to be present
-		 * before filtering out AAAA records; otherwise, just assume an
-		 * A record exists even if it was not in the cache (and
-		 * therefore is not in the response message), thus proceeding
-		 * with filtering out AAAA records.
+		 * If we are authoritative, require an A record to be
+		 * present before filtering out AAAA records; otherwise,
+		 * just assume an A record exists even if it was not in the
+		 * cache (and therefore is not in the response message),
+		 * thus proceeding with filtering out AAAA records.
 		 */
 		const section_filter_t filter_answer = {
 			.qctx = qctx,
@@ -781,8 +769,8 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 }
 
 /*
- * Hide AAAA rrsets in the additional section if there is a matching A,
- * and hide NS in the authority section if AAAA was filtered in the answer
+ * Hide AAAA rrsets in the additional section if there is a matching A, and
+ * hide NS in the authority section if AAAA was filtered in the answer
  * section.
  */
 static bool
@@ -818,8 +806,8 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 }
 
 /*
- * If the client is being detached, then we can delete our persistent
- * data from hash table and return it to the memory pool.
+ * If the client is being detached, then we can delete our persistent data
+ * from hash table and return it to the memory pool.
  */
 static bool
 filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
