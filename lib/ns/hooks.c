@@ -70,7 +70,7 @@ static isc_result_t
 load_symbol(void *handle, const char *modpath,
 	    const char *symbol_name, void **symbolp)
 {
-	void *symbol;
+	void *symbol = NULL;
 
 	REQUIRE(handle != NULL);
 	REQUIRE(symbolp != NULL && *symbolp == NULL);
@@ -191,7 +191,7 @@ cleanup:
 
 static void
 unload_library(ns_hook_module_t **hmodp) {
-	ns_hook_module_t *hmod;
+	ns_hook_module_t *hmod = NULL;
 
 	REQUIRE(hmodp != NULL && *hmodp != NULL);
 
@@ -212,7 +212,7 @@ static isc_result_t
 load_symbol(HMODULE handle, const char *modpath,
 	    const char *symbol_name, void **symbolp)
 {
-	void *symbol;
+	void *symbol = NULL;
 
 	REQUIRE(handle != NULL);
 	REQUIRE(symbolp != NULL && *symbolp == NULL);
@@ -308,7 +308,7 @@ cleanup:
 
 static void
 unload_library(ns_hook_module_t **hmodp) {
-	ns_hook_module_t *hmod;
+	ns_hook_module_t *hmod = NULL;
 
 	REQUIRE(hmodp != NULL && *hmodp != NULL);
 
@@ -379,7 +379,7 @@ cleanup:
 
 void
 ns_hookmodule_unload_all(void) {
-	ns_hook_module_t *hmod, *prev;
+	ns_hook_module_t *hmod = NULL, *prev = NULL;
 
 	if (!hook_modules_initialized) {
 		return;
@@ -400,7 +400,7 @@ ns_hookmodule_unload_all(void) {
 
 isc_result_t
 ns_hook_createctx(isc_mem_t *mctx, const void *hashinit, ns_hookctx_t **hctxp) {
-	ns_hookctx_t *hctx;
+	ns_hookctx_t *hctx = NULL;
 
 	REQUIRE(hctxp != NULL && *hctxp == NULL);
 
@@ -424,7 +424,7 @@ ns_hook_createctx(isc_mem_t *mctx, const void *hashinit, ns_hookctx_t **hctxp) {
 
 void
 ns_hook_destroyctx(ns_hookctx_t **hctxp) {
-	ns_hookctx_t *hctx;
+	ns_hookctx_t *hctx = NULL;
 
 	REQUIRE(hctxp != NULL && NS_HOOKCTX_VALID(*hctxp));
 
@@ -452,7 +452,7 @@ ns_hooktable_init(ns_hooktable_t *hooktable) {
 
 isc_result_t
 ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep) {
-	ns_hooktable_t *hooktable;
+	ns_hooktable_t *hooktable = NULL;
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
 
@@ -470,26 +470,57 @@ ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep) {
 
 void
 ns_hooktable_free(isc_mem_t *mctx, void **tablep) {
-	ns_hooktable_t *table;
+	ns_hooktable_t *table = NULL;
+	ns_hook_t *hook = NULL, *next = NULL;
+	int i = 0;
 
 	REQUIRE(tablep != NULL && *tablep != NULL);
 
 	table = *tablep;
 	*tablep = NULL;
+
+	for (i = 0; i < NS_HOOKPOINTS_COUNT; i++) {
+		for (hook = ISC_LIST_HEAD((*table)[i]);
+		     hook != NULL;
+		     hook = next)
+		{
+			next = ISC_LIST_NEXT(hook, link);
+			ISC_LIST_UNLINK((*table)[i], hook, link);
+			if (hook->mctx != NULL) {
+				isc_mem_putanddetach(&hook->mctx,
+						     hook, sizeof(*hook));
+			}
+		}
+	}
+
 	isc_mem_put(mctx, table, sizeof(*table));
 }
 
 void
-ns_hook_add(ns_hooktable_t *hooktable, ns_hookpoint_t hookpoint,
-	    ns_hook_t *hook)
+ns_hook_add(ns_hooktable_t *hooktable, isc_mem_t *mctx,
+	    ns_hookpoint_t hookpoint, ns_hook_t *hook)
 {
+	ns_hook_t *copy = NULL;
+
 	REQUIRE(hookpoint < NS_HOOKPOINTS_COUNT);
 	REQUIRE(hook != NULL);
+	REQUIRE(hook->mctx == NULL);
 
 	if (hooktable == NULL) {
 		hooktable = ns__hook_table;
 	}
 
-	ISC_LINK_INIT(hook, link);
-	ISC_LIST_APPEND((*hooktable)[hookpoint], hook, link);
+	if (mctx == NULL) {
+		copy = hook;
+	} else {
+		copy = isc_mem_get(mctx, sizeof(*copy));
+		memset(copy, 0, sizeof(*copy));
+
+		copy->action = hook->action;
+		copy->action_data = hook->action_data;
+		isc_mem_attach(mctx, &copy->mctx);
+	}
+
+	ISC_LINK_INIT(copy, link);
+	ISC_LIST_APPEND((*hooktable)[hookpoint], copy, link);
 }
