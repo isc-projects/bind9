@@ -401,6 +401,51 @@ is_v6_client(ns_client_t *client) {
 	return (false);
 }
 
+static filter_data_t *
+data_get(const query_ctx_t *qctx, isc_ht_t **htp) {
+	filter_data_t *data;
+	isc_result_t result;
+
+	result = isc_ht_find(*htp, (const unsigned char *)&qctx->client,
+			     sizeof(qctx->client), (void **)&data);
+
+	return (result == ISC_R_SUCCESS ? data : NULL);
+}
+
+static void
+data_create(const query_ctx_t *qctx, isc_ht_t **htp) {
+	filter_data_t *data;
+	isc_result_t result;
+
+	data = isc_mempool_get(datapool);
+	if (data == NULL) {
+		return;
+	}
+
+	data->mode = NONE;
+	data->flags = 0;
+
+	result = isc_ht_add(*htp, (const unsigned char *)&qctx->client,
+			    sizeof(qctx->client), data);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+}
+
+static void
+data_destroy(const query_ctx_t *qctx, isc_ht_t **htp) {
+	filter_data_t *data = data_get(qctx, htp);
+	isc_result_t result;
+
+	if (data == NULL) {
+		return;
+	}
+
+	result = isc_ht_delete(*htp, (const unsigned char *)&qctx->client,
+			       sizeof(qctx->client));
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	isc_mempool_put(datapool, data);
+}
+
 /*
  * Initialize filter state, fetching it from a memory pool and storing it
  * in a hash table keyed according to the client object; this enables
@@ -409,38 +454,17 @@ is_v6_client(ns_client_t *client) {
  */
 static bool
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
-	isc_result_t result;
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
 	filter_data_t *data;
 
-	result = isc_ht_find(*htp, (const unsigned char *)&qctx->client,
-			     sizeof(qctx->client), NULL);
-	if (result == ISC_R_NOTFOUND) {
-		data = isc_mempool_get(datapool);
-
-		result = isc_ht_add(*htp, (const unsigned char *)&qctx->client,
-				    sizeof(qctx->client), data);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		data->mode = NONE;
-		data->flags = 0;
+	data = data_get(qctx, htp);
+	if (data == NULL) {
+		data_create(qctx, htp);
 	}
 
 	*resp = ISC_R_UNSET;
 	return (false);
-}
-
-static filter_data_t *
-get_data(query_ctx_t *qctx, isc_ht_t **htp) {
-	filter_data_t *data;
-	isc_result_t result;
-
-	result = isc_ht_find(*htp, (const unsigned char *)&qctx->client,
-			     sizeof(qctx->client), (void **)&data);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	return (data);
 }
 
 /*
@@ -451,8 +475,13 @@ get_data(query_ctx_t *qctx, isc_ht_t **htp) {
 static bool
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	filter_data_t *data = get_data(qctx, cbdata);
+	isc_ht_t **htp = (isc_ht_t **) cbdata;
+	filter_data_t *data = data_get(qctx, htp);
 	isc_result_t result;
+
+	if (data == NULL) {
+		return (false);
+	}
 
 	if (v4_aaaa != NONE || v6_aaaa != NONE) {
 		result = ns_client_checkaclsilent(qctx->client, NULL,
@@ -484,8 +513,13 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 static bool
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	filter_data_t *data = get_data(qctx, cbdata);
+	isc_ht_t **htp = (isc_ht_t **) cbdata;
+	filter_data_t *data = data_get(qctx, htp);
 	isc_result_t result = ISC_R_UNSET;
+
+	if (data == NULL) {
+		return (false);
+	}
 
 	if (data->mode != BREAK_DNSSEC &&
 	    (data->mode != FILTER ||
@@ -602,11 +636,16 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 static bool
 filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	filter_data_t *data = get_data(qctx, cbdata);
+	isc_ht_t **htp = (isc_ht_t **) cbdata;
+	filter_data_t *data = data_get(qctx, htp);
 	dns_name_t *name = NULL;
 	dns_rdataset_t *aaaa = NULL, *aaaa_sig = NULL;
 	dns_rdataset_t *a = NULL;
 	bool have_a = true;
+
+	if (data == NULL) {
+		return (false);
+	}
 
 	if (data->mode == NONE) {
 		*resp = ISC_R_UNSET;
@@ -661,8 +700,13 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 static bool
 filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	filter_data_t *data = get_data(qctx, cbdata);
+	isc_ht_t **htp = (isc_ht_t **) cbdata;
+	filter_data_t *data = data_get(qctx, htp);
 	isc_result_t result;
+
+	if (data == NULL) {
+		return (false);
+	}
 
 	if (data->mode == NONE) {
 		*resp = ISC_R_UNSET;
@@ -749,22 +793,14 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
  */
 static bool
 filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
-	isc_result_t result;
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *data;
 
 	if (!qctx->detach_client) {
 		return (false);
 	}
 
-	data = get_data(qctx, htp);
-
-	result = isc_ht_delete(*htp, (const unsigned char *)&qctx->client,
-			       sizeof(qctx->client));
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-	isc_mempool_put(datapool, data);
+	data_destroy(qctx, htp);
 
 	*resp = ISC_R_UNSET;
 	return (false);
