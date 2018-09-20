@@ -68,7 +68,7 @@ ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	 */
 
 	ns_hooktable_init(ns__hook_table);
-	ns_hook_add(ns__hook_table, NS_QUERY_DONE_BEGIN, &hook);
+	ns_hook_add(ns__hook_table, NULL, NS_QUERY_DONE_BEGIN, &hook);
 
 	/*
 	 * Construct a query context for a ./NS query with given flags.
@@ -274,8 +274,8 @@ ns__query_start_test(const ns__query_start_test_params_t *test) {
 	 */
 
 	ns_hooktable_init(ns__hook_table);
-	ns_hook_add(ns__hook_table, NS_QUERY_LOOKUP_BEGIN, &hook);
-	ns_hook_add(ns__hook_table, NS_QUERY_DONE_BEGIN, &hook);
+	ns_hook_add(ns__hook_table, NULL, NS_QUERY_LOOKUP_BEGIN, &hook);
+	ns_hook_add(ns__hook_table, NULL, NS_QUERY_DONE_BEGIN, &hook);
 
 	/*
 	 * Construct a query context using the supplied parameters.
