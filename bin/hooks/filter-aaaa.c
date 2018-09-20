@@ -82,9 +82,9 @@ typedef struct filter_data {
 static isc_mempool_t *datapool = NULL;
 
 /*
- * Hash table associating 'qctx' with its data.
+ * Hash table associating a client object with its persistent data.
  */
-static isc_ht_t *qctx_ht = NULL;
+static isc_ht_t *client_ht = NULL;
 
 /*
  * Per-client flags set by this module
@@ -107,42 +107,42 @@ static bool
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_init = {
 	.action = filter_qctx_initialize,
-	.action_data = &qctx_ht,
+	.action_data = &client_ht,
 };
 
 static bool
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_respbegin = {
 	.action = filter_respond_begin,
-	.action_data = &qctx_ht,
+	.action_data = &client_ht,
 };
 
 static bool
 filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_respanyfound = {
 	.action = filter_respond_any_found,
-	.action_data = &qctx_ht,
+	.action_data = &client_ht,
 };
 
 static bool
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_prepresp = {
 	.action = filter_prep_response_begin,
-	.action_data = &qctx_ht,
+	.action_data = &client_ht,
 };
 
 static bool
 filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp);
 static ns_hook_t filter_donesend = {
 	.action = filter_query_done_send,
-	.action_data = &qctx_ht,
+	.action_data = &client_ht,
 };
 
 static bool
 filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp);
 ns_hook_t filter_destroy = {
 	.action = filter_qctx_destroy,
-	.action_data = &qctx_ht,
+	.action_data = &client_ht,
 };
 
 /**
@@ -322,7 +322,7 @@ hook_register(const char *parameters,
 	CHECK(isc_mempool_create(hctx->mctx, sizeof(filter_data_t),
 				 &datapool));
 
-	CHECK(isc_ht_init(&qctx_ht, hctx->mctx, 16));
+	CHECK(isc_ht_init(&client_ht, hctx->mctx, 16));
 
 	/*
 	 * Fill the mempool with 1K filter_aaaa state objects at
@@ -352,8 +352,8 @@ hook_register(const char *parameters,
  */
 void
 hook_destroy(void) {
-	if (qctx_ht != NULL) {
-		isc_ht_destroy(&qctx_ht);
+	if (client_ht != NULL) {
+		isc_ht_destroy(&client_ht);
 	}
 	if (datapool != NULL) {
 		isc_mempool_destroy(&datapool);
