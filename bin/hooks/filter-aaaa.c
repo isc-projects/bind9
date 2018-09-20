@@ -56,11 +56,6 @@
 	} while (0)
 
 /*
- * Set up in the register function.
- */
-static int module_id;
-
-/*
  * Possible values for the settings of filter-aaaa-on-v4 and
  * filter-aaaa-on-v6: "no" is NONE, "yes" is FILTER, "break-dnssec"
  * is BREAK_DNSSEC.
@@ -278,14 +273,12 @@ parse_parameters(const char *parameters, const void *cfg,
  * a hook table.
  */
 isc_result_t
-hook_register(const unsigned int modid, const char *parameters,
+hook_register(const char *parameters,
 	      const char *cfg_file, unsigned long cfg_line,
 	      const void *cfg, void *actx,
 	      ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
 {
 	isc_result_t result;
-
-	module_id = modid;
 
 	/*
 	 * Depending on how dlopen() works on the current platform, we

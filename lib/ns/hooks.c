@@ -346,8 +346,7 @@ unload_library(ns_hook_module_t **hmodp) {
 #endif	/* HAVE_DLFCN_H */
 
 isc_result_t
-ns_hookmodule_load(const char *modpath, const unsigned int modid,
-		   const char *parameters,
+ns_hookmodule_load(const char *modpath, const char *parameters,
 		   const char *cfg_file, unsigned long cfg_line,
 		   const void *cfg, void *actx,
 		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable)
@@ -364,7 +363,7 @@ ns_hookmodule_load(const char *modpath, const unsigned int modid,
 		      "loading module '%s'", modpath);
 
 	CHECK(load_library(hctx->mctx, modpath, &hmod));
-	CHECK(hmod->register_func(modid, parameters, cfg_file, cfg_line,
+	CHECK(hmod->register_func(parameters, cfg_file, cfg_line,
 				  cfg, actx, hctx, hooktable));
 
 	ISC_LIST_APPEND(hook_modules, hmod, link);
