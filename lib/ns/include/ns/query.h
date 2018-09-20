@@ -170,7 +170,7 @@ struct query_ctx {
 	dns_fixedname_t dsname;			/* name needing DS */
 
 	ns_client_t *client;			/* client object */
-	bool detach_client;
+	bool detach_client;			/* client needs detaching */
 
 	dns_fetchevent_t *event;		/* recursion event */
 
