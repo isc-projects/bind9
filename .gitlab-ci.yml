@@ -212,7 +212,7 @@ build:centos:centos6:amd64:
 build:centos:centos7:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "-Wall -Wextra -O2 -g -DDIG_SIGCHASE=1"
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
