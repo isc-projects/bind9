@@ -327,7 +327,7 @@ main(int argc, char **argv) {
 		case 'e':
 			fprintf(stderr,
 				"phased-out option -e "
-				"(was 'use (RSA) large exponent)\n");
+				"(was 'use (RSA) large exponent')\n");
 			break;
 		case 'f':
 			c = (unsigned char)(isc_commandline_argument[0]);
