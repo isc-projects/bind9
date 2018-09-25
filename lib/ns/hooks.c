@@ -413,7 +413,6 @@ ns_hook_createctx(isc_mem_t *mctx, const void *hashinit, ns_hookctx_t **hctxp) {
 	memset(hctx, 0, sizeof(*hctx));
 	hctx->hashinit = hashinit;
 	hctx->lctx = ns_lctx;
-	hctx->refvar = &isc_bind9;
 
 	isc_mem_attach(mctx, &hctx->mctx);
 	hctx->magic = NS_HOOKCTX_MAGIC;

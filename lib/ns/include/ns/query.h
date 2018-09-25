@@ -118,25 +118,6 @@ struct ns_query {
 
 typedef struct query_ctx query_ctx_t;
 
-/*
- * These define functions in the calling program that may need
- * to be run from a hook module. Currently the set includes
- * query_done() and query_recurse().
- */
-typedef isc_result_t (*ns_hook_querydone_t)(query_ctx_t *qctx);
-
-typedef isc_result_t (*ns_hook_queryrecurse_t)(ns_client_t *client,
-					       dns_rdatatype_t qtype,
-					       dns_name_t *qname,
-					       dns_name_t *qdomain,
-					       dns_rdataset_t *nameservers,
-					       bool resuming);
-/* methods used in query hooks */
-typedef struct query_methods {
-	ns_hook_querydone_t query_done;
-	ns_hook_queryrecurse_t query_recurse;
-} query_methods_t;
-
 /* query context structure */
 struct query_ctx {
 	isc_buffer_t *dbuf;			/* name buffer */
@@ -190,8 +171,6 @@ struct query_ctx {
 
 	dns_view_t *view;			/* client view */
 
-	query_methods_t methods;		/* query hook methods */
-
 	isc_result_t result;			/* query result */
 	int line;				/* line to report error */
 };
@@ -207,6 +186,34 @@ ns_query_start(ns_client_t *client);
 
 void
 ns_query_cancel(ns_client_t *client);
+
+/*
+ * The following functions are expected to be used only within query.c
+ * and query modules.
+ */
+isc_result_t
+ns_query_done(query_ctx_t *qctx);
+/*%<
+ * Finalize this phase of the query process:
+ *
+ * - Clean up
+ * - If we have an answer ready (positive or negative), send it.
+ * - If we need to restart for a chaining query, call ns__query_start() again.
+ * - If we've started recursion, then just clean up; things will be
+ *   restarted via fetch_callback()/query_resume().
+ */
+
+isc_result_t
+ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
+		 dns_name_t *qdomain, dns_rdataset_t *nameservers,
+		 bool resuming);
+/*%<
+ * Prepare client for recursion, then create a resolver fetch, with
+ * the event callback set to fetch_callback(). Afterward we terminate
+ * this phase of the query, and resume with a new query context when
+ * recursion completes.
+ */
+
 
 isc_result_t
 ns__query_sfcache(query_ctx_t *qctx);

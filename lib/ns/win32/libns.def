@@ -79,8 +79,10 @@ ns_log_init
 ns_log_setcontext
 ns_notify_start
 ns_query_cancel
+ns_query_done
 ns_query_free
 ns_query_init
+ns_query_recurse
 ns_query_start
 ns_server_attach
 ns_server_create

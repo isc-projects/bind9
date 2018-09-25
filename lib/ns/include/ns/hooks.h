@@ -230,7 +230,6 @@ typedef struct ns_hookctx {
 	const void		*hashinit;
 	isc_mem_t		*mctx;
 	isc_log_t		*lctx;
-	bool			*refvar;
 } ns_hookctx_t;
 
 #define NS_HOOKCTX_MAGIC	ISC_MAGIC('H', 'k', 'c', 'x')
