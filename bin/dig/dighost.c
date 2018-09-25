@@ -628,8 +628,8 @@ make_empty_lookup(void) {
 	looknew->ttlunits = false;
 	looknew->qr = false;
 #ifdef HAVE_LIBIDN2
-	looknew->idnin = true;
-	looknew->idnout = true;
+	looknew->idnin = (getenv("IDN_DISABLE") == NULL);
+	looknew->idnout = looknew->idnin;
 #else
 	looknew->idnin = false;
 	looknew->idnout = false;

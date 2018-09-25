@@ -1330,7 +1330,9 @@ dig +qr www.isc.org any -x 127.0.0.1 isc.org ns +noqr
       reply from the server.
       If you'd like to turn off the IDN support for some reason, use
       parameters <parameter>+noidnin</parameter> and
-      <parameter>+noidnout</parameter>.
+      <parameter>+noidnout</parameter> or define
+      the <envar>IDN_DISABLE</envar> environment variable.
+
     </para>
   </refsection>
 
