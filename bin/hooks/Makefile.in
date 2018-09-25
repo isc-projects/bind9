@@ -22,7 +22,8 @@ ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LIBS@
 NSLIBS =	../../lib/ns/libns.@A@
 
-LIBS =		${NSLIBS} ${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
+#LIBS =		${NSLIBS} ${DNSLIBS} ${ISCCFGLIBS} ${ISCLIBS} @LIBS@
+LIBS =
 
 SO_TARGETS =	lib/filter-aaaa.@SO@
 TARGETS =	@SO_TARGETS@

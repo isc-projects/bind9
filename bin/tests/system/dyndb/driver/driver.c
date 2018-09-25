@@ -76,11 +76,13 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 	 * access to named's global namespace, in which case we need
 	 * to initialize libisc/libdns
 	 */
+#if 0
 	if (dctx->refvar != &isc_bind9) {
 		isc_lib_register();
 		isc_log_setcontext(dctx->lctx);
 		dns_log_setcontext(dctx->lctx);
 	}
+#endif
 
 	isc_hash_set_initializer(dctx->hashinit);
 

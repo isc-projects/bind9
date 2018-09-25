@@ -282,20 +282,6 @@ hook_register(const char *parameters,
 
 	UNUSED(instp);
 
-	/*
-	 * Depending on how dlopen() works on the current platform, we
-	 * may not have access to named's global namespace, in which
-	 * case we need to initialize libisc/libdns/libns. We compare
-	 * the address of a global reference variable to its address
-	 * in the calling program to determine whether this is necessary.
-	 */
-	if (hctx->refvar != &isc_bind9) {
-		isc_lib_register();
-		isc_log_setcontext(hctx->lctx);
-		dns_log_setcontext(hctx->lctx);
-		ns_log_setcontext(hctx->lctx);
-	}
-
 	isc_hash_set_initializer(hctx->hashinit);
 
 	isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
@@ -704,10 +690,9 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 			 * We'll make a note to not render it
 			 * if the recursion for the A succeeds.
 			 */
-			result = (*qctx->methods.query_recurse)(qctx->client,
-						 dns_rdatatype_a,
-						 qctx->client->query.qname,
-						 NULL, NULL, qctx->resuming);
+			result = ns_query_recurse(qctx->client, dns_rdatatype_a,
+						  qctx->client->query.qname,
+						  NULL, NULL, qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
 				client_state->flags |= FILTER_AAAA_RECURSING;
 				qctx->client->query.attributes |=
@@ -728,7 +713,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 
 		client_state->flags &= ~FILTER_AAAA_RECURSING;
 
-		result = (*qctx->methods.query_done)(qctx);
+		result = ns_query_done(qctx);
 
 		*resp = result;
 
