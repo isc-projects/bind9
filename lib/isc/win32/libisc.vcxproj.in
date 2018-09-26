@@ -405,8 +405,8 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="include\isc\thread.h" />
     <ClInclude Include="include\isc\time.h" />
     <ClInclude Include="include\isc\win32os.h" />
-    <ClInclude Include="../entropy_private.h" />
-    <ClInclude Include="../openssl_shim.h" />
+    <ClInclude Include="..\entropy_private.h" />
+    <ClInclude Include="..\openssl_shim.h" />
     <ClInclude Include="syslog.h" />
     <ClInclude Include="unistd.h" />
 @IF PKCS11
