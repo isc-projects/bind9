@@ -18,14 +18,14 @@ SYSTEMTESTTOP=..
 
 QPERF=`$SHELL qperf.sh`
 
-USAGE="$0: [-Dx]"
+USAGE="$0: [-DNx]"
 DEBUG=
-while getopts "Dx" c; do
+while getopts "DNx" c; do
     case $c in
-	x) set -x; DEBUG=-x;;
-        D) TEST_DNSRPS="-D";;
-	N) NOCLEAN=set;;
-	*) echo "$USAGE" 1>&2; exit 1;;
+	x) set -x; DEBUG=-x ;;
+        D) TEST_DNSRPS="-D" ;;
+	N) PARTIAL=-P ;;
+	*) echo "$USAGE" 1>&2; exit 1 ;;
     esac
 done
 shift `expr $OPTIND - 1 || true`
@@ -34,7 +34,14 @@ if test "$#" -ne 0; then
     exit 1
 fi
 
-[ ${NOCLEAN:-unset} = unset ] && $SHELL clean.sh $DEBUG
+if [ ${NOCLEAN:-unset} = unset ]; then
+    $SHELL clean.sh $PARTIAL $DEBUG
+fi
+
+for dir in ns*; do
+    touch $dir/named.run
+    nextpart $dir/named.run > /dev/null
+done
 
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
