@@ -7034,8 +7034,8 @@ query_respond_any(query_ctx_t *qctx) {
 }
 
 /*
- * Set the expire time, if requested, when answering from a
- * slave or master zone.
+ * Set the expire time, if requested, when answering from a slave, mirror, or
+ * master zone.
  */
 static void
 query_getexpire(query_ctx_t *qctx) {
@@ -7052,7 +7052,9 @@ query_getexpire(query_ctx_t *qctx) {
 	dns_zone_getraw(qctx->zone, &raw);
 	mayberaw = (raw != NULL) ? raw : qctx->zone;
 
-	if (dns_zone_gettype(mayberaw) == dns_zone_slave) {
+	if (dns_zone_gettype(mayberaw) == dns_zone_slave ||
+	    dns_zone_gettype(mayberaw) == dns_zone_mirror)
+	{
 		isc_time_t expiretime;
 		uint32_t secs;
 		dns_zone_getexpiretime(qctx->zone, &expiretime);
