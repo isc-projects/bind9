@@ -34,7 +34,22 @@ if test "$#" -ne 0; then
     exit 1
 fi
 
-[ ${NOCLEAN:-unset} = unset ] && $SHELL clean.sh $DEBUG
+if [ ${NOCLEAN:-unset} = unset ]; then
+    $SHELL clean.sh $DEBUG
+else
+    # even if we're not cleaning up all of the files, we do need to
+    # remove some of them, or the second test pass will fail due
+    # to leftover changes from the first.
+    rm -f ns2/tld2s.db ns2/bl.tld2.db
+    rm -f ns3/bl*.db ns*/empty.db
+    rm -f ns5/example.db ns5/bl.db
+    rm -f */policy2.db
+    rm -f */*.jnl
+    for runfile in ns*/named.run; do
+       nextpart $runfile > /dev/null
+    done
+fi
+
 
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf

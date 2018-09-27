@@ -36,7 +36,7 @@ SAVE_RESULTS=
 ARGS=
 
 USAGE="$0: [-xS]"
-while getopts "xSD:" c; do
+while getopts "xS:" c; do
     case $c in
 	x) set -x; DEBUG=-x; ARGS="$ARGS -x";;
 	S) SAVE_RESULTS=-S; ARGS="$ARGS -S";;
@@ -420,6 +420,8 @@ for mode in native dnsrps; do
     if [ -e dnsrps-only ] ; then
       echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
       continue
+    else
+      echo_i "running native RPZ sub-test"
     fi
     ;;
   dnsrps)
@@ -746,12 +748,14 @@ EOF
   fi
 
   # look for complaints from lib/dns/rpz.c and bin/name/query.c
-  EMSGS=`egrep -l 'invalid rpz|rpz.*failed' ns*/named.run`
-  if test -n "$EMSGS"; then
-    setret "error messages in $EMSGS starting with:"
-    egrep 'invalid rpz|rpz.*failed' ns*/named.run | \
-            sed -e '10,$d' -e 's/^//' | cat_i
-  fi
+  for runfile in ns*/named.run; do
+    EMSGS=`nextpart $runfile | egrep -l 'invalid rpz|rpz.*failed'`
+    if test -n "$EMSGS"; then
+      setret "error messages in $runfile starting with:"
+      egrep 'invalid rpz|rpz.*failed' ns*/named.run | \
+              sed -e '10,$d' -e 's/^//' | cat_i
+    fi
+  done
 
   t=`expr $t + 1`
   echo_i "checking that ttl values are not zeroed when qtype is '*' (${t})"
