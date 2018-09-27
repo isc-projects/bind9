@@ -474,8 +474,10 @@ isc__timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 		result = schedule(timer, &now, true);
 	else
 		result = ISC_R_SUCCESS;
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
+		*timerp = (isc_timer_t *)timer;
 		APPEND(manager->timers, timer, link);
+	}
 
 	UNLOCK(&manager->lock);
 
@@ -487,8 +489,6 @@ isc__timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 		isc_mem_put(manager->mctx, timer, sizeof(*timer));
 		return (result);
 	}
-
-	*timerp = (isc_timer_t *)timer;
 
 	return (ISC_R_SUCCESS);
 }
