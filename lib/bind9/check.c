@@ -1915,6 +1915,68 @@ check_nonzero(const cfg_obj_t *options, isc_log_t *logctx) {
 	return (result);
 }
 
+/*%
+ * Try to determine whether recursion is available in a view without resorting
+ * to extraordinary measures: just check the "recursion" and "allow-recursion"
+ * settings.  The point is to prevent accidental mirror zone misuse rather than
+ * to enforce some sort of policy.  Recursion is assumed to be allowed by
+ * default if it is not explicitly disabled.
+ */
+static bool
+check_recursion(const cfg_obj_t *config, const cfg_obj_t *voptions,
+		const cfg_obj_t *goptions, isc_log_t *logctx,
+		cfg_aclconfctx_t *actx, isc_mem_t *mctx)
+{
+	dns_acl_t *acl = NULL;
+	const cfg_obj_t *obj;
+	isc_result_t result;
+	bool retval = true;
+
+	/*
+	 * Check the "recursion" option first.
+	 */
+	obj = NULL;
+	result = ISC_R_NOTFOUND;
+	if (voptions != NULL) {
+		result = cfg_map_get(voptions, "recursion", &obj);
+	}
+	if (result != ISC_R_SUCCESS && goptions != NULL) {
+		result = cfg_map_get(goptions, "recursion", &obj);
+	}
+	if (result == ISC_R_SUCCESS && !cfg_obj_asboolean(obj)) {
+		retval = false;
+		goto cleanup;
+	}
+
+	/*
+	 * If recursion is not disabled by the "recursion" option, check
+	 * whether it is disabled by the "allow-recursion" ACL.
+	 */
+	obj = NULL;
+	result = ISC_R_NOTFOUND;
+	if (voptions != NULL) {
+		result = cfg_map_get(voptions, "allow-recursion", &obj);
+	}
+	if (result != ISC_R_SUCCESS && goptions != NULL) {
+		result = cfg_map_get(goptions, "allow-recursion", &obj);
+	}
+	if (result == ISC_R_SUCCESS) {
+		result = cfg_acl_fromconfig(obj, config, logctx, actx, mctx, 0,
+					    &acl);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+		retval = !dns_acl_isnone(acl);
+	}
+
+ cleanup:
+	if (acl != NULL) {
+		dns_acl_detach(&acl);
+	}
+
+	return (retval);
+}
+
 static isc_result_t
 check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
@@ -2270,6 +2332,19 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				result = ISC_R_FAILURE;
 			}
 		}
+	}
+
+	/*
+	 * Configuring a mirror zone and disabling recursion at the same time
+	 * contradicts the purpose of the former.
+	 */
+	if (ztype == CFG_ZONE_MIRROR &&
+	    !check_recursion(config, voptions, goptions, logctx, actx, mctx))
+	{
+		cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
+			    "zone '%s': mirror zones cannot be used if "
+			    "recursion is disabled", znamestr);
+		result = ISC_R_FAILURE;
 	}
 
 	/*
