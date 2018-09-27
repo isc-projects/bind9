@@ -596,6 +596,7 @@
 ./bin/tests/system/checkconf/bad-maxcachettl.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-maxncachettl.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-maxttlmap.conf	CONF-C	2014,2016,2018
+./bin/tests/system/checkconf/bad-mirror-explicit-notify-yes.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-options-also-notify.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/bad-printtime.conf	CONF-C	2016,2018

@@ -1174,10 +1174,22 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = named_config_get(maps, "notify", &obj);
 		INSIST(result == ISC_R_SUCCESS && obj != NULL);
 		if (cfg_obj_isboolean(obj)) {
-			if (cfg_obj_asboolean(obj))
-				notifytype = dns_notifytype_yes;
-			else
+			if (cfg_obj_asboolean(obj)) {
+				/*
+				 * Explicit "notify yes;" is disallowed for
+				 * mirror zones by the configuration checker,
+				 * but that setting may have also been
+				 * inherited from the default configuration.
+				 * Change it to "explicit" in such a case.
+				 */
+				if (ztype == dns_zone_mirror) {
+					notifytype = dns_notifytype_explicit;
+				} else {
+					notifytype = dns_notifytype_yes;
+				}
+			} else {
 				notifytype = dns_notifytype_no;
+			}
 		} else {
 			const char *notifystr = cfg_obj_asstring(obj);
 			if (strcasecmp(notifystr, "explicit") == 0)
@@ -1713,11 +1725,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setxfracl(zone, none);
 			dns_acl_detach(&none);
 		}
-		/*
-		 * Only allow "also-notify".
-		 */
-		notifytype = dns_notifytype_explicit;
-		dns_zone_setnotifytype(zone, notifytype);
 		/* FALLTHROUGH */
 	case dns_zone_slave:
 	case dns_zone_stub:

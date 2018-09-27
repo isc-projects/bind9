@@ -2212,6 +2212,19 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			}
 		}
 
+		/*
+		 * Mirror zones cannot be used if "notify yes;" is explicitly
+		 * configured at any level.
+		 */
+		if (obj != NULL && cfg_obj_isboolean(obj) && donotify &&
+		    ztype == CFG_ZONE_MIRROR)
+		{
+			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
+				    "zone '%s': 'notify yes;' is not allowed "
+				    "for mirror zones", znamestr);
+			result = ISC_R_FAILURE;
+		}
+
 		obj = NULL;
 		tresult = cfg_map_get(zoptions, "also-notify", &obj);
 		if (tresult == ISC_R_SUCCESS && !donotify) {
