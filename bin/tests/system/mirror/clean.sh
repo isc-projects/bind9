@@ -11,6 +11,7 @@ rm -f */*.conf
 rm -f */*.db
 rm -f */*.jnl
 rm -f */*.mirror
+rm -f */*.nzd*
 rm -f */*.prev
 rm -f */*.signed
 rm -f */K*

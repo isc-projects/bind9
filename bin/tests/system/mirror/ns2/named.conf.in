@@ -45,6 +45,11 @@ zone "initially-unavailable" {
 	allow-transfer { 10.53.0.254; };
 };
 
+zone "verify-addzone" {
+	type master;
+	file "verify-addzone.db.original.signed";
+};
+
 zone "verify-axfr" {
 	type master;
 	file "verify-axfr.db.signed";
