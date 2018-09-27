@@ -1201,7 +1201,6 @@ dns_zone_idetach
 dns_zone_isdynamic
 dns_zone_isforced
 dns_zone_isloaded
-dns_zone_ismirror
 dns_zone_keydone
 dns_zone_link
 dns_zone_load

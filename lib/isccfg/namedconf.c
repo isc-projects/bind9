@@ -2151,9 +2151,6 @@ zone_clauses[] = {
 	{ "min-retry-time", &cfg_type_uint32,
 		CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB
 	},
-	{ "mirror", &cfg_type_boolean,
-		CFG_ZONE_SLAVE
-	},
 	{ "multi-master", &cfg_type_boolean,
 		CFG_ZONE_SLAVE | CFG_ZONE_MIRROR | CFG_ZONE_STUB
 	},
