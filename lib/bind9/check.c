@@ -1989,6 +1989,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			   strcasecmp(typestr, "secondary") == 0)
 		{
 			ztype = CFG_ZONE_SLAVE;
+		} else if (strcasecmp(typestr, "mirror") == 0) {
+			ztype = CFG_ZONE_MIRROR;
 		} else if (strcasecmp(typestr, "stub") == 0) {
 			ztype = CFG_ZONE_STUB;
 		} else if (strcasecmp(typestr, "static-stub") == 0) {
@@ -2100,6 +2102,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		case CFG_ZONE_MASTER:
 		case CFG_ZONE_SLAVE:
+		case CFG_ZONE_MIRROR:
 		case CFG_ZONE_HINT:
 		case CFG_ZONE_STUB:
 		case CFG_ZONE_STATICSTUB:
@@ -2184,10 +2187,12 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Master & slave zones may have an "also-notify" field, but
+	 * Master, slave, and mirror zones may have an "also-notify" field, but
 	 * shouldn't if notify is disabled.
 	 */
-	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE) {
+	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE ||
+	    ztype == CFG_ZONE_MIRROR)
+	{
 		bool donotify = true;
 
 		obj = NULL;
@@ -2228,9 +2233,11 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Slave & stub zones must have a "masters" field.
+	 * Slave, mirror, and stub zones must have a "masters" field.
 	 */
-	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_STUB) {
+	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_MIRROR ||
+	    ztype == CFG_ZONE_STUB)
+	{
 		obj = NULL;
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
 			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
@@ -2628,7 +2635,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			    znamestr);
 			result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
-			   (ztype == CFG_ZONE_SLAVE || ddns)) {
+			   (ztype == CFG_ZONE_SLAVE ||
+			    ztype == CFG_ZONE_MIRROR || ddns))
+		{
 			tresult = fileexist(fileobj, files, true, logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
