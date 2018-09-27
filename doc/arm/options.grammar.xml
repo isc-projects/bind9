@@ -179,7 +179,6 @@
 	<command>min-retry-time</command> <replaceable>integer</replaceable>;
 	<command>minimal-any</command> <replaceable>boolean</replaceable>;
 	<command>minimal-responses</command> ( no-auth | no-auth-recursive | <replaceable>boolean</replaceable> );
-	<command>mirror</command> <replaceable>boolean</replaceable>;
 	<command>multi-master</command> <replaceable>boolean</replaceable>;
 	<command>new-zones-directory</command> <replaceable>quoted_string</replaceable>;
 	<command>no-case-compress</command> { <replaceable>address_match_element</replaceable>; ... };

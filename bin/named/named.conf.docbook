@@ -861,7 +861,6 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		max-zone-ttl ( unlimited | <replaceable>ttlval</replaceable> );
 		min-refresh-time <replaceable>integer</replaceable>;
 		min-retry-time <replaceable>integer</replaceable>;
-		mirror <replaceable>boolean</replaceable>;
 		multi-master <replaceable>boolean</replaceable>;
 		notify ( explicit | master-only | <replaceable>boolean</replaceable> );
 		notify-delay <replaceable>integer</replaceable>;
@@ -888,7 +887,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port (
 		    <replaceable>integer</replaceable> | * ) ] [ dscp <replaceable>integer</replaceable> ];
 		try-tcp-refresh <replaceable>boolean</replaceable>;
-		type ( primary | master | secondary | slave |
+		type ( primary | master | secondary | slave | mirror |
 		    delegation-only | forward | hint | redirect |
 		    static-stub | stub );
 		update-check-ksk <replaceable>boolean</replaceable>;
@@ -967,7 +966,6 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	max-zone-ttl ( unlimited | <replaceable>ttlval</replaceable> );
 	min-refresh-time <replaceable>integer</replaceable>;
 	min-retry-time <replaceable>integer</replaceable>;
-	mirror <replaceable>boolean</replaceable>;
 	multi-master <replaceable>boolean</replaceable>;
 	notify ( explicit | master-only | <replaceable>boolean</replaceable> );
 	notify-delay <replaceable>integer</replaceable>;
@@ -992,8 +990,9 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	try-tcp-refresh <replaceable>boolean</replaceable>;
-	type ( primary | master | secondary | slave | delegation-only |
-	    forward | hint | redirect | static-stub | stub );
+	type ( primary | master | secondary | slave | mirror |
+	    delegation-only | forward | hint | redirect | static-stub |
+	    stub );
 	update-check-ksk <replaceable>boolean</replaceable>;
 	update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> ( 6to4-self |
 	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain

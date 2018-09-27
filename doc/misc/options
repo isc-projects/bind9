@@ -241,7 +241,6 @@ options {
         min-roots <integer>; // not implemented
         minimal-any <boolean>;
         minimal-responses ( no-auth | no-auth-recursive | <boolean> );
-        mirror <boolean>;
         multi-master <boolean>;
         multiple-cnames <boolean>; // obsolete
         named-xfer <quoted_string>; // obsolete
@@ -582,7 +581,6 @@ view <string> [ <class> ] {
         min-roots <integer>; // not implemented
         minimal-any <boolean>;
         minimal-responses ( no-auth | no-auth-recursive | <boolean> );
-        mirror <boolean>;
         multi-master <boolean>;
         new-zones-directory <quoted_string>;
         no-case-compress { <address_match_element>; ... };
@@ -788,7 +786,6 @@ view <string> [ <class> ] {
                 max-zone-ttl ( unlimited | <ttlval> );
                 min-refresh-time <integer>;
                 min-retry-time <integer>;
-                mirror <boolean>;
                 multi-master <boolean>;
                 notify ( explicit | master-only | <boolean> );
                 notify-delay <integer>;
@@ -817,7 +814,7 @@ view <string> [ <class> ] {
                 transfer-source-v6 ( <ipv6_address> | * ) [ port (
                     <integer> | * ) ] [ dscp <integer> ];
                 try-tcp-refresh <boolean>;
-                type ( primary | master | secondary | slave |
+                type ( primary | master | secondary | slave | mirror |
                     delegation-only | forward | hint | redirect |
                     static-stub | stub );
                 update-check-ksk <boolean>;
@@ -895,7 +892,6 @@ zone <string> [ <class> ] {
         max-zone-ttl ( unlimited | <ttlval> );
         min-refresh-time <integer>;
         min-retry-time <integer>;
-        mirror <boolean>;
         multi-master <boolean>;
         notify ( explicit | master-only | <boolean> );
         notify-delay <integer>;
@@ -922,8 +918,9 @@ zone <string> [ <class> ] {
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         try-tcp-refresh <boolean>;
-        type ( primary | master | secondary | slave | delegation-only |
-            forward | hint | redirect | static-stub | stub );
+        type ( primary | master | secondary | slave | mirror |
+            delegation-only | forward | hint | redirect | static-stub |
+            stub );
         update-check-ksk <boolean>;
         update-policy ( local | { ( deny | grant ) <string> ( 6to4-self |
             external | krb5-self | krb5-subdomain | ms-self | ms-subdomain
