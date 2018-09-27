@@ -9989,7 +9989,7 @@ zone_maintenance(dns_zone_t *zone) {
 	const char me[] = "zone_maintenance";
 	isc_time_t now;
 	isc_result_t result;
-	bool dumping;
+	bool dumping, load_pending;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	ENTER;
@@ -9997,8 +9997,13 @@ zone_maintenance(dns_zone_t *zone) {
 	/*
 	 * Are we pending load/reload?
 	 */
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING))
+	LOCK_ZONE(zone);
+	load_pending = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADPENDING);
+	UNLOCK_ZONE(zone);
+
+	if (load_pending) {
 		return;
+	}
 
 	/*
 	 * Configuring the view of this zone may have
