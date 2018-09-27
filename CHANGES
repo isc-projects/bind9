@@ -1,3 +1,15 @@
+5041.	[func]		A default list of primary servers for the root zone is
+			now built into named, allowing the "masters" statement
+			to be omitted when configuring an IANA root zone
+			mirror. [GL #564]
+
+5040.	[func]		Attempts to use mirror zones with recursion disabled
+			and/or "notify yes;" are now considered a configuration
+			error. [GL #564]
+
+5039.	[func]		Mirror zones are now configured using "type mirror;"
+			rather than "mirror yes;". [GL #564]
+
 5038.	[bug]		Chaosnet addresses were compared incorrectly.
 			[GL #562]
 
