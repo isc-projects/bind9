@@ -598,6 +598,7 @@
 ./bin/tests/system/checkconf/bad-maxttlmap.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-mirror-allow-recursion-none.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-mirror-explicit-notify-yes.conf	CONF-C	2018
+./bin/tests/system/checkconf/bad-mirror-non-root-zone-without-masters.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-mirror-recursion-no.conf	CONF-C	2018
 ./bin/tests/system/checkconf/bad-noddns.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/bad-options-also-notify.conf	CONF-C	2016,2018
@@ -670,6 +671,7 @@
 ./bin/tests/system/checkconf/good-lmdb-mapsize-smallest.conf	CONF-C	2017,2018
 ./bin/tests/system/checkconf/good-maxcachettl.conf	CONF-C	2018
 ./bin/tests/system/checkconf/good-maxncachettl.conf	CONF-C	2018
+./bin/tests/system/checkconf/good-mirror-root-zone-without-masters.conf	CONF-C	2018
 ./bin/tests/system/checkconf/good-nested.conf	CONF-C	2015,2016,2018
 ./bin/tests/system/checkconf/good-options-also-notify.conf	CONF-C	2016,2018
 ./bin/tests/system/checkconf/good-printtime.conf	CONF-C	2016,2018

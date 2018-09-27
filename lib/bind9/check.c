@@ -2308,10 +2308,12 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Slave, mirror, and stub zones must have a "masters" field.
+	 * Slave, mirror, and stub zones must have a "masters" field, with one
+	 * exception: when mirroring the root zone, a default, built-in master
+	 * server list is used in the absence of one explicitly specified.
 	 */
-	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_MIRROR ||
-	    ztype == CFG_ZONE_STUB)
+	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_STUB ||
+	    (ztype == CFG_ZONE_MIRROR && !dns_name_equal(zname, dns_rootname)))
 	{
 		obj = NULL;
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
