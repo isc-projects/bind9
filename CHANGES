@@ -1,3 +1,6 @@
+5036.	[bug]		Chaosnet addresses were compared incorrectly.
+			[GL #562]
+
 5035.	[test]		Fixed errors that prevented the DNSRPS subtests
 			from running in the rpz and rpzrecurse system
 			tests. [GL #503]
