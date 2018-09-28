@@ -473,6 +473,15 @@
 	  option. [GL #105]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>allow-recursion-on</command> and
+	  <command>allow-query-cache-on</command> each now default to
+	  the other if only one of them is set, in order to be consistent
+	  with the way <command>allow-recursion</command> and
+	  <command>allow-query-cache</command> work. [GL #319]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
