@@ -179,7 +179,7 @@ compare_ch_a(ARGS_COMPARE) {
 	if (order != 0)
 		return (order);
 
-	order = memcmp(rdata1->data, rdata2->data, 2);
+	order = memcmp(region1.base, region2.base, 2);
 	if (order != 0)
 		order = (order < 0) ? -1 : 1;
 	return (order);
