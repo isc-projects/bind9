@@ -3345,7 +3345,9 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 				    fctx->depth + 1, fctx->qc, &find);
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_DEBUG(3),
-		      "fctx %p(%s): createfind for %p/%d - %s", fctx, fctx->info, fctx->client, fctx->id, isc_result_totext(result));
+		      "fctx %p(%s): createfind for %p/%d - %s",
+		      fctx, fctx->info, fctx->client, fctx->id,
+		      isc_result_totext(result));
 	if (result != ISC_R_SUCCESS) {
 		if (result == DNS_R_ALIAS) {
 			char namebuf[DNS_NAME_FORMATSIZE];
