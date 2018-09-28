@@ -4053,8 +4053,7 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone,
 					  adb->task, fetch_callback, adbname,
 					  &fetch->rdataset, NULL,
 					  &fetch->fetch);
-	if (result != ISC_R_SUCCESS)
-	{
+	if (result != ISC_R_SUCCESS) {
 		DP(ENTER_LEVEL,
 		   "fetch_name: createfetch failed with %s",
 		   isc_result_totext(result));
