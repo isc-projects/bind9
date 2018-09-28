@@ -4718,6 +4718,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->rand_bits = 0;
 	fctx->timeout = false;
 	fctx->addrinfo = NULL;
+	fctx->client = NULL;
 	fctx->ns_ttl = 0;
 	fctx->ns_ttl_ok = false;
 
