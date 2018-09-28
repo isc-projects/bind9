@@ -1,3 +1,6 @@
+5036.	[cleanup]	Fixed a spacing/formatting error in some RPZ-related
+			error messages in the log. [GL !805]
+
 5035.	[test]		Fixed errors that prevented the DNSRPS subtests
 			from running in the rpz and rpzrecurse system
 			tests. [GL #503]

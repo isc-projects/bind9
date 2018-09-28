@@ -1363,7 +1363,7 @@ rpz_log_fail_helper(ns_client_t *client, int level, dns_name_t *p_name,
 	 * bin/tests/system/rpz/tests.sh looks for "rpz.*failed" for problems.
 	 */
 	if (level <= DNS_RPZ_DEBUG_LEVEL1)
-		failed = "failed: ";
+		failed = " failed: ";
 	else
 		failed = ": ";
 
@@ -1390,7 +1390,7 @@ rpz_log_fail_helper(ns_client_t *client, int level, dns_name_t *p_name,
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERY_ERRORS,
 		      NS_LOGMODULE_QUERY, level,
-		      "rpz %s%s%s rewrite %s%s%s%s%s%s : %s",
+		      "rpz %s%s%s rewrite %s%s%s%s%s%s%s",
 		      rpztypestr1, slash, rpztypestr2,
 		      qnamebuf, via, p_namebuf, str_blank,
 		      str, failed, isc_result_totext(result));
@@ -1443,7 +1443,7 @@ rpz_getdb(ns_client_t *client, dns_name_t *p_name, dns_rpz_type_t rpz_type,
 		return (ISC_R_SUCCESS);
 	}
 	rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, p_name, rpz_type,
-		     " query_getzonedb()", result);
+		     "query_getzonedb()", result);
 	return (result);
 }
 
@@ -2745,7 +2745,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 		if (result == DNS_R_DELEGATION) {
 			CTRACE(ISC_LOG_ERROR, "RPZ recursing");
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, name,
-				     rpz_type, " rpz_rrset_find(1)", result);
+				     rpz_type, "rpz_rrset_find(1)", result);
 			st->m.policy = DNS_RPZ_POLICY_ERROR;
 			result = DNS_R_SERVFAIL;
 		}
@@ -2768,7 +2768,7 @@ rpz_rrset_find(ns_client_t *client, dns_name_t *name, dns_rdatatype_t type,
 				     &version, &is_zone);
 		if (result != ISC_R_SUCCESS) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, name,
-				     rpz_type, " rpz_rrset_find(2)", result);
+				     rpz_type, "rpz_rrset_find(2)", result);
 			st->m.policy = DNS_RPZ_POLICY_ERROR;
 			if (zone != NULL)
 				dns_zone_detach(&zone);
@@ -2883,7 +2883,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 		 */
 		if (labels-first < 2) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, suffix,
-				     rpz_type, " concatentate()", result);
+				     rpz_type, "concatentate()", result);
 			return (ISC_R_FAILURE);
 		}
 		/*
@@ -2891,7 +2891,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 		 */
 		if (first == 0) {
 			rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, suffix,
-				     rpz_type, " concatentate()", result);
+				     rpz_type, "concatentate()", result);
 		}
 		++first;
 	}
@@ -2959,7 +2959,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 					     &rdsiter);
 		if (result != ISC_R_SUCCESS) {
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, p_name,
-				     rpz_type, " allrdatasets()", result);
+				     rpz_type, "allrdatasets()", result);
 			CTRACE(ISC_LOG_ERROR,
 			       "rpz_find_p: allrdatasets failed");
 			return (DNS_R_SERVFAIL);
@@ -2978,7 +2978,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 			if (result != ISC_R_NOMORE) {
 				rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL,
 					     p_name, rpz_type,
-					     " rdatasetiter", result);
+					     "rdatasetiter", result);
 				CTRACE(ISC_LOG_ERROR,
 				       "rpz_find_p: rdatasetiter failed");
 				return (DNS_R_SERVFAIL);
@@ -3544,13 +3544,13 @@ rpz_rewrite_ip_rrset(ns_client_t *client,
 	case DNS_R_CNAME:
 	case DNS_R_DNAME:
 		rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, name, rpz_type,
-			     " NS address rewrite rrset", result);
+			     "NS address rewrite rrset", result);
 		return (ISC_R_SUCCESS);
 	default:
 		if (client->query.rpz_st->m.policy != DNS_RPZ_POLICY_ERROR) {
 			client->query.rpz_st->m.policy = DNS_RPZ_POLICY_ERROR;
 			rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL, name,
-				     rpz_type, " NS address rewrite rrset",
+				     rpz_type, "NS address rewrite rrset",
 				     result);
 		}
 		CTRACE(ISC_LOG_ERROR,
@@ -3999,12 +3999,12 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 	case DNS_R_BROKENCHAIN:
 		rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL3, NULL,
 			     DNS_RPZ_TYPE_QNAME,
-			     " stop on qresult in rpz_rewrite()", qresult);
+			     "stop on qresult in rpz_rewrite()", qresult);
 		return (ISC_R_SUCCESS);
 	default:
 		rpz_log_fail(client, DNS_RPZ_DEBUG_LEVEL1, NULL,
 			     DNS_RPZ_TYPE_QNAME,
-			     " stop on unrecognized qresult in rpz_rewrite()",
+			     "stop on unrecognized qresult in rpz_rewrite()",
 			     qresult);
 		return (ISC_R_SUCCESS);
 	}
