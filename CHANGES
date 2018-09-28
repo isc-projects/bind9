@@ -1,3 +1,6 @@
+5038.	[bug]		Chaosnet addresses were compared incorrectly.
+			[GL #562]
+
 5034.	[bug]		A race between threads could prevent zone maintenance
 			scheduled immediately after zone load from being
 			performed. [GL #542]
