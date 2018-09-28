@@ -16,6 +16,6 @@ $TTL 300	; 5 minutes
 				3600       ; minimum (1 hour)
 				)
 			NS	ns
-ns			A	ch-addr.net. 1001
-test 			A	ch-addr.net. 1002
-			A	ch-addr.net. 1003
+ns			A	ch-addr.example. 1001
+test 			A	ch-addr.example. 1002
+			A	ch-addr.example. 1003
