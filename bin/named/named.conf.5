@@ -907,10 +907,10 @@ view \fIstring\fR [ \fIclass\fR ] {
 		    | slave | static\-stub | stub );
 		update\-check\-ksk \fIboolean\fR;
 		update\-policy ( local | { ( deny | grant ) \fIstring\fR (
-		    6to4\-self | external | krb5\-self | krb5\-subdomain |
-		    ms\-self | ms\-subdomain | name | self | selfsub |
-		    selfwild | subdomain | tcp\-self | wildcard | zonesub )
-		    [ \fIstring\fR ] \fIrrtypelist\fR; \&.\&.\&. };
+		    6to4\-self | external | krb5\-self | krb5\-selfsub |
+		    krb5\-subdomain | ms\-self | ms\-selfsub | ms\-subdomain |
+		    name | self | selfsub | selfwild | subdomain | tcp\-self
+		    | wildcard | zonesub ) [ \fIstring\fR ] \fIrrtypelist\fR; \&.\&.\&. };
 		use\-alt\-transfer\-source \fIboolean\fR;
 		zero\-no\-soa\-ttl \fIboolean\fR;
 		zone\-statistics ( full | terse | none | \fIboolean\fR );
@@ -1012,9 +1012,10 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	    | static\-stub | stub );
 	update\-check\-ksk \fIboolean\fR;
 	update\-policy ( local | { ( deny | grant ) \fIstring\fR ( 6to4\-self |
-	    external | krb5\-self | krb5\-subdomain | ms\-self | ms\-subdomain
-	    | name | self | selfsub | selfwild | subdomain | tcp\-self |
-	    wildcard | zonesub ) [ \fIstring\fR ] \fIrrtypelist\fR; \&.\&.\&. };
+	    external | krb5\-self | krb5\-selfsub | krb5\-subdomain | ms\-self
+	    | ms\-selfsub | ms\-subdomain | name | self | selfsub | selfwild
+	    | subdomain | tcp\-self | wildcard | zonesub ) [ \fIstring\fR ]
+	    \fIrrtypelist\fR; \&.\&.\&. };
 	use\-alt\-transfer\-source \fIboolean\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zone\-statistics ( full | terse | none | \fIboolean\fR );
