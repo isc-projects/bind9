@@ -856,10 +856,10 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		    | slave | static-stub | stub );<br>
 		update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 		update-policy ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> (<br>
-		    6to4-self | external | krb5-self | krb5-subdomain |<br>
-		    ms-self | ms-subdomain | name | self | selfsub |<br>
-		    selfwild | subdomain | tcp-self | wildcard | zonesub )<br>
-		    [ <em class="replaceable"><code>string</code></em> ] <em class="replaceable"><code>rrtypelist</code></em>; ... };<br>
+		    6to4-self | external | krb5-self | krb5-selfsub |<br>
+		    krb5-subdomain | ms-self | ms-selfsub | ms-subdomain |<br>
+		    name | self | selfsub | selfwild | subdomain | tcp-self<br>
+		    | wildcard | zonesub ) [ <em class="replaceable"><code>string</code></em> ] <em class="replaceable"><code>rrtypelist</code></em>; ... };<br>
 		use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>
 		zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 		zone-statistics ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );<br>
@@ -958,9 +958,10 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    | static-stub | stub );<br>
 	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 	update-policy ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> ( 6to4-self |<br>
-	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain<br>
-	    | name | self | selfsub | selfwild | subdomain | tcp-self |<br>
-	    wildcard | zonesub ) [ <em class="replaceable"><code>string</code></em> ] <em class="replaceable"><code>rrtypelist</code></em>; ... };<br>
+	    external | krb5-self | krb5-selfsub | krb5-subdomain | ms-self<br>
+	    | ms-selfsub | ms-subdomain | name | self | selfsub | selfwild<br>
+	    | subdomain | tcp-self | wildcard | zonesub ) [ <em class="replaceable"><code>string</code></em> ]<br>
+	    <em class="replaceable"><code>rrtypelist</code></em>; ... };<br>
 	use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>
 	zero-no-soa-ttl <em class="replaceable"><code>boolean</code></em>;<br>
 	zone-statistics ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );<br>
