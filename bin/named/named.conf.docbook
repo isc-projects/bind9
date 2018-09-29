@@ -863,10 +863,10 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		    | slave | static-stub | stub );
 		update-check-ksk <replaceable>boolean</replaceable>;
 		update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> (
-		    6to4-self | external | krb5-self | krb5-subdomain |
-		    ms-self | ms-subdomain | name | self | selfsub |
-		    selfwild | subdomain | tcp-self | wildcard | zonesub )
-		    [ <replaceable>string</replaceable> ] <replaceable>rrtypelist</replaceable>; ... };
+		    6to4-self | external | krb5-self | krb5-selfsub |
+		    krb5-subdomain | ms-self | ms-selfsub | ms-subdomain |
+		    name | self | selfsub | selfwild | subdomain | tcp-self
+		    | wildcard | zonesub ) [ <replaceable>string</replaceable> ] <replaceable>rrtypelist</replaceable>; ... };
 		use-alt-transfer-source <replaceable>boolean</replaceable>;
 		zero-no-soa-ttl <replaceable>boolean</replaceable>;
 		zone-statistics ( full | terse | none | <replaceable>boolean</replaceable> );
@@ -964,9 +964,10 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	    | static-stub | stub );
 	update-check-ksk <replaceable>boolean</replaceable>;
 	update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> ( 6to4-self |
-	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain
-	    | name | self | selfsub | selfwild | subdomain | tcp-self |
-	    wildcard | zonesub ) [ <replaceable>string</replaceable> ] <replaceable>rrtypelist</replaceable>; ... };
+	    external | krb5-self | krb5-selfsub | krb5-subdomain | ms-self
+	    | ms-selfsub | ms-subdomain | name | self | selfsub | selfwild
+	    | subdomain | tcp-self | wildcard | zonesub ) [ <replaceable>string</replaceable> ]
+	    <replaceable>rrtypelist</replaceable>; ... };
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zone-statistics ( full | terse | none | <replaceable>boolean</replaceable> );

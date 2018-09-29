@@ -50,7 +50,7 @@ zone <string> [ <class> ] {
 	sig-signing-type <integer>;
 	sig-validity-interval <integer> [ <integer> ];
 	update-check-ksk <boolean>;
-	update-policy ( local | { ( deny | grant ) <string> ( 6to4-self | external | krb5-self | krb5-subdomain | ms-self | ms-subdomain | name | self | selfsub | selfwild | subdomain | tcp-self | wildcard | zonesub ) [ <string> ] <rrtypelist>; ... };
+	update-policy ( local | { ( deny | grant ) <string> ( 6to4-self | external | krb5-self | krb5-selfsub | krb5-subdomain | ms-self | ms-selfsub | ms-subdomain | name | self | selfsub | selfwild | subdomain | tcp-self | wildcard | zonesub ) [ <string> ] <rrtypelist>; ... };
 	zero-no-soa-ttl <boolean>;
 	zone-statistics ( full | terse | none | <boolean> );
 };
