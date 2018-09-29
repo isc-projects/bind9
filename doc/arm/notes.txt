@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.12.2-P1
+Release Notes for BIND Version 9.12.3rc1
 
 Introduction
 
@@ -62,6 +62,11 @@ New Features
     security mechanism, and should not be disabled unless absolutely
     necessary.
 
+  * Two new update policy rule types have been added krb5-selfsub and
+    ms-selfsub which allow machines with Kerberos principals to update the
+    name space at or below the machine names identified in the respective
+    principals.
+
 Feature Changes
 
   * BIND now can be compiled against libidn2 library to add IDNA2008
@@ -71,7 +76,16 @@ Feature Changes
   * dig +noidnin can be used to disable IDN processing on the input domain
     name, when BIND is compiled with IDN support.
 
+  * The rndc nta command could not differentiate between views of the same
+    name but different class; this has been corrected with the addition of
+    a -class option. [GL #105]
+
 Bug Fixes
+
+  * When a negative trust anchor was added to multiple views using rndc
+    nta, the text returned via rndc was incorrectly truncated after the
+    first line, making it appear that only one NTA had been added. This
+    has been fixed. [GL #105]
 
   * named now rejects excessively large incremental (IXFR) zone transfers
     in order to prevent possible corruption of journal files which could
