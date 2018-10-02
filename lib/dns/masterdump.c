@@ -1193,19 +1193,25 @@ dump_rdataset_raw(isc_mem_t *mctx, const dns_name_t *name,
 }
 
 static isc_result_t
-dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *name,
+dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 		   dns_rdatasetiter_t *rdsiter, dns_totext_ctx_t *ctx,
 		   isc_buffer_t *buffer, FILE *f)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
 
+	name = dns_fixedname_initname(&fixed);
+	dns_name_copy(owner_name, name, NULL);
 	for (result = dns_rdatasetiter_first(rdsiter);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter)) {
 
 		dns_rdataset_init(&rdataset);
 		dns_rdatasetiter_current(rdsiter, &rdataset);
+
+		dns_rdataset_getownercase(&rdataset, name);
 
 		if (((rdataset.attributes & DNS_RDATASETATTR_NEGATIVE) != 0) &&
 		    (ctx->style.flags & DNS_STYLEFLAG_NCACHE) == 0) {

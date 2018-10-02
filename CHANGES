@@ -1,3 +1,6 @@
+5039.	[bug]		Named could fail to preserve owner name case of new
+			RRset. [GL #420]
+
 	--- 9.12.3rc1 released ---
 
 5038.	[bug]		Chaosnet addresses were compared incorrectly.
