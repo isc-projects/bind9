@@ -4366,10 +4366,11 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		The <command>dnstap</command> option is a bracketed list
 		of message types to be logged. These may be set differently
 		for each view. Supported types are <literal>client</literal>,
-		<literal>auth</literal>, <literal>resolver</literal>, and
-		<literal>forwarder</literal>.  Specifying type
-		<literal>all</literal> will cause all <command>dnstap</command>
-		messages to be logged, regardless of type.
+		<literal>auth</literal>, <literal>resolver</literal>,
+		<literal>forwarder</literal>, and <literal>update</literal>.
+		Specifying type <literal>all</literal> will cause all
+		<command>dnstap</command> messages to be logged, regardless of
+		type.
 	      </para>
 	      <para>
 		Each type may take an additional argument to indicate whether

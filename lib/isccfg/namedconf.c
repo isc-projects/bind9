@@ -1276,10 +1276,11 @@ static cfg_type_t cfg_type_resppadding = {
  *      ...
  *  }
  *
- *  ... where message type is one of: client, resolver, auth, forwarder, all
+ *  ... where message type is one of: client, resolver, auth, forwarder,
+ *                                    update, all
  */
 static const char *dnstap_types[] = {
-	"all", "auth", "client", "forwarder", "resolver", NULL
+	"all", "auth", "client", "forwarder", "resolver", "update", NULL
 };
 
 static const char *dnstap_modes[] = { "query", "response", NULL };
