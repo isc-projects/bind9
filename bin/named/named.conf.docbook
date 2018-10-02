@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2018-06-21</date>
+    <date>2018-09-04</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -192,6 +192,7 @@ options {
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	alt-transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
 	    * ) ] [ dscp <replaceable>integer</replaceable> ];
+	answer-cookie <replaceable>boolean</replaceable>;
 	attach-cache <replaceable>string</replaceable>;
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
 	auto-dnssec ( allow | maintain | off );
@@ -257,8 +258,8 @@ options {
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
 	dnssec-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver ) [ ( query |
-	    response ) ]; ... };
+	dnstap { ( all | auth | client | forwarder | resolver | update ) [
+	    ( query | response ) ]; ... };
 	dnstap-identity ( <replaceable>quoted_string</replaceable> | none | hostname );
 	dnstap-output ( file | unix ) <replaceable>quoted_string</replaceable> [ size ( unlimited |
 	    <replaceable>size</replaceable> ) ] [ versions ( unlimited | <replaceable>integer</replaceable> ) ] [ suffix (
@@ -340,6 +341,7 @@ options {
 	min-retry-time <replaceable>integer</replaceable>;
 	minimal-any <replaceable>boolean</replaceable>;
 	minimal-responses ( no-auth | no-auth-recursive | <replaceable>boolean</replaceable> );
+	mirror <replaceable>boolean</replaceable>;
 	multi-master <replaceable>boolean</replaceable>;
 	new-zones-directory <replaceable>quoted_string</replaceable>;
 	no-case-compress { <replaceable>address_match_element</replaceable>; ... };
@@ -609,8 +611,8 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
 	dnssec-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver ) [ ( query |
-	    response ) ]; ... };
+	dnstap { ( all | auth | client | forwarder | resolver | update ) [
+	    ( query | response ) ]; ... };
 	dual-stack-servers [ port <replaceable>integer</replaceable> ] { ( <replaceable>quoted_string</replaceable> [ port
 	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] | <replaceable>ipv4_address</replaceable> [ port
 	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
@@ -671,6 +673,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	min-retry-time <replaceable>integer</replaceable>;
 	minimal-any <replaceable>boolean</replaceable>;
 	minimal-responses ( no-auth | no-auth-recursive | <replaceable>boolean</replaceable> );
+	mirror <replaceable>boolean</replaceable>;
 	multi-master <replaceable>boolean</replaceable>;
 	new-zones-directory <replaceable>quoted_string</replaceable>;
 	no-case-compress { <replaceable>address_match_element</replaceable>; ... };
@@ -893,10 +896,10 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		    static-stub | stub );
 		update-check-ksk <replaceable>boolean</replaceable>;
 		update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> (
-		    6to4-self | external | krb5-self | krb5-subdomain |
-		    ms-self | ms-subdomain | name | self | selfsub |
-		    selfwild | subdomain | tcp-self | wildcard | zonesub )
-		    [ <replaceable>string</replaceable> ] <replaceable>rrtypelist</replaceable>; ... };
+		    6to4-self | external | krb5-self | krb5-selfsub |
+		    krb5-subdomain | ms-self | ms-selfsub | ms-subdomain |
+		    name | self | selfsub | selfwild | subdomain | tcp-self
+		    | wildcard | zonesub ) [ <replaceable>string</replaceable> ] <replaceable>rrtypelist</replaceable>; ... };
 		use-alt-transfer-source <replaceable>boolean</replaceable>;
 		zero-no-soa-ttl <replaceable>boolean</replaceable>;
 		zone-statistics ( full | terse | none | <replaceable>boolean</replaceable> );
@@ -996,9 +999,10 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	    forward | hint | redirect | static-stub | stub );
 	update-check-ksk <replaceable>boolean</replaceable>;
 	update-policy ( local | { ( deny | grant ) <replaceable>string</replaceable> ( 6to4-self |
-	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain
-	    | name | self | selfsub | selfwild | subdomain | tcp-self |
-	    wildcard | zonesub ) [ <replaceable>string</replaceable> ] <replaceable>rrtypelist</replaceable>; ... };
+	    external | krb5-self | krb5-selfsub | krb5-subdomain | ms-self
+	    | ms-selfsub | ms-subdomain | name | self | selfsub | selfwild
+	    | subdomain | tcp-self | wildcard | zonesub ) [ <replaceable>string</replaceable> ]
+	    <replaceable>rrtypelist</replaceable>; ... };
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
 	zero-no-soa-ttl <replaceable>boolean</replaceable>;
 	zone-statistics ( full | terse | none | <replaceable>boolean</replaceable> );
