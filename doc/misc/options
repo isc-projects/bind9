@@ -146,15 +146,13 @@ options {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder |
-            resolver ) [ ( query | response ) ]; ... }; // not configured
-        dnstap-identity ( <quoted_string> | none |
-            hostname ); // not configured
-        dnstap-output ( file | unix ) <quoted_string> [
-            size ( unlimited | <size> ) ] [ versions (
-            unlimited | <integer> ) ] [ suffix ( increment
-            | timestamp ) ]; // not configured
-        dnstap-version ( <quoted_string> | none ); // not configured
+        dnstap { ( all | auth | client | forwarder | resolver | update ) [
+            ( query | response ) ]; ... };
+        dnstap-identity ( <quoted_string> | none | hostname );
+        dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited |
+            <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix (
+            increment | timestamp ) ];
+        dnstap-version ( <quoted_string> | none );
         dscp <integer>;
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
@@ -178,14 +176,14 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
-        fstrm-set-buffer-hint <integer>; // not configured
-        fstrm-set-flush-timeout <integer>; // not configured
-        fstrm-set-input-queue-size <integer>; // not configured
-        fstrm-set-output-notify-threshold <integer>; // not configured
-        fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
-        fstrm-set-output-queue-size <integer>; // not configured
-        fstrm-set-reopen-interval <ttlval>; // not configured
-        geoip-directory ( <quoted_string> | none ); // not configured
+        fstrm-set-buffer-hint <integer>;
+        fstrm-set-flush-timeout <integer>;
+        fstrm-set-input-queue-size <integer>;
+        fstrm-set-output-notify-threshold <integer>;
+        fstrm-set-output-queue-model ( mpsc | spsc );
+        fstrm-set-output-queue-size <integer>;
+        fstrm-set-reopen-interval <ttlval>;
+        geoip-directory ( <quoted_string> | none );
         geoip-use-ecs <boolean>; // obsolete
         glue-cache <boolean>;
         has-old-clients <boolean>; // obsolete
@@ -206,7 +204,7 @@ options {
         listen-on-v6 [ port <integer> ] [ dscp
             <integer> ] {
             <address_match_element>; ... }; // may occur multiple times
-        lmdb-mapsize <sizeval>; // non-operational
+        lmdb-mapsize <sizeval>;
         lock-file ( <quoted_string> | none );
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys-directory <quoted_string>;
@@ -515,8 +513,8 @@ view <string> [ <class> ] {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder |
-            resolver ) [ ( query | response ) ]; ... }; // not configured
+        dnstap { ( all | auth | client | forwarder | resolver | update ) [
+            ( query | response ) ]; ... };
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
             <integer> ] [ dscp <integer> ] | <ipv6_address> [ port
@@ -547,7 +545,7 @@ view <string> [ <class> ] {
         }; // may occur multiple times
         key-directory <quoted_string>;
         lame-ttl <ttlval>;
-        lmdb-mapsize <sizeval>; // non-operational
+        lmdb-mapsize <sizeval>;
         maintain-ixfr-base <boolean>; // obsolete
         managed-keys { <string> <string>
             <integer> <integer> <integer>
@@ -822,10 +820,10 @@ view <string> [ <class> ] {
                     static-stub | stub );
                 update-check-ksk <boolean>;
                 update-policy ( local | { ( deny | grant ) <string> (
-                    6to4-self | external | krb5-self | krb5-subdomain |
-                    ms-self | ms-subdomain | name | self | selfsub |
-                    selfwild | subdomain | tcp-self | wildcard | zonesub )
-                    [ <string> ] <rrtypelist>; ... };
+                    6to4-self | external | krb5-self | krb5-selfsub |
+                    krb5-subdomain | ms-self | ms-selfsub | ms-subdomain |
+                    name | self | selfsub | selfwild | subdomain | tcp-self
+                    | wildcard | zonesub ) [ <string> ] <rrtypelist>; ... };
                 use-alt-transfer-source <boolean>;
                 zero-no-soa-ttl <boolean>;
                 zone-statistics ( full | terse | none | <boolean> );
@@ -926,9 +924,10 @@ zone <string> [ <class> ] {
             forward | hint | redirect | static-stub | stub );
         update-check-ksk <boolean>;
         update-policy ( local | { ( deny | grant ) <string> ( 6to4-self |
-            external | krb5-self | krb5-subdomain | ms-self | ms-subdomain
-            | name | self | selfsub | selfwild | subdomain | tcp-self |
-            wildcard | zonesub ) [ <string> ] <rrtypelist>; ... };
+            external | krb5-self | krb5-selfsub | krb5-subdomain | ms-self
+            | ms-selfsub | ms-subdomain | name | self | selfsub | selfwild
+            | subdomain | tcp-self | wildcard | zonesub ) [ <string> ]
+            <rrtypelist>; ... };
         use-alt-transfer-source <boolean>;
         zero-no-soa-ttl <boolean>;
         zone-statistics ( full | terse | none | <boolean> );
