@@ -47,9 +47,22 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  *  \brief Returns current number of references.
  *  \param[in] ref pointer to reference counter.
  *  \returns current value of reference counter.
+ *
+ *  As VC doesn't support C 11 atomics and hence atomic_load_explicit
+ *  we need to save the result to a temporary variable of the right type
+ *  so that PRIdFAST32 works consistently across platforms.
  */
+#ifdef _WIN32
+#define isc_refcount_current(target) 					\
+	({								\
+	   uint_fast32_t _tmp =						\
+		atomic_load_explicit(target, memory_order_relaxed);	\
+	   _tmp;							\
+	})
+#else
 #define isc_refcount_current(target)				\
 	atomic_load_explicit(target, memory_order_relaxed)
+#endif
 
 /** \def isc_refcount_destroy(ref)
  *  \brief a destructor that makes sure that all references were cleared.
