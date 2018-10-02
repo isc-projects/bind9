@@ -1,3 +1,6 @@
+5041.	[test]		The chain test contains a incomplete delegation.
+			[GL #568]
+
 5040.	[func]		Extended dnstap so that it can log UPDATE requests
 			and responses as separate message types. Thanks
 			to Greg Rabil. [GL #570]
