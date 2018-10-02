@@ -47,9 +47,18 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  *  \brief Returns current number of references.
  *  \param[in] ref pointer to reference counter.
  *  \returns current value of reference counter.
+ *
+ *   Undo implict promotion to 64 bits in our Windows implementation of
+ *   atomic_load_explicit() by casting to uint_fast32_t.
  */
+
+#ifdef _WIN32
+#define isc_refcount_current(target)				\
+	(uint_fast32_t)atomic_load_explicit(target, memory_order_relaxed)
+#else
 #define isc_refcount_current(target)				\
 	atomic_load_explicit(target, memory_order_relaxed)
+#endif
 
 /** \def isc_refcount_destroy(ref)
  *  \brief a destructor that makes sure that all references were cleared.
