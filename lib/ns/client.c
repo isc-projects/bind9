@@ -1227,6 +1227,8 @@ client_send(ns_client_t *client) {
 
 	if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
 		dtmsgtype = DNS_DTTYPE_CR;
+	else if (client->message->opcode == dns_opcode_update)
+		dtmsgtype = DNS_DTTYPE_UR;
 	else
 		dtmsgtype = DNS_DTTYPE_AR;
 #endif /* HAVE_DNSTAP */
@@ -2847,6 +2849,11 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		break;
 	case dns_opcode_update:
 		CTRACE("update");
+#ifdef HAVE_DNSTAP
+		dns_dt_send(client->view, DNS_DTTYPE_UQ, &client->peeraddr,
+			    &client->destsockaddr, TCP_CLIENT(client), NULL,
+			    &client->requesttime, NULL, buffer);
+#endif /* HAVE_DNSTAP */
 		ns_client_settimeout(client, 60);
 		ns_update_start(client, sigresult);
 		break;

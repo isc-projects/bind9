@@ -694,6 +694,10 @@ dnstap_type(dns_dtmsgtype_t msgtype) {
 		return (DNSTAP__MESSAGE__TYPE__TOOL_QUERY);
 	case DNS_DTTYPE_TR:
 		return (DNSTAP__MESSAGE__TYPE__TOOL_RESPONSE);
+	case DNS_DTTYPE_UQ:
+		return (DNSTAP__MESSAGE__TYPE__UPDATE_QUERY);
+	case DNS_DTTYPE_UR:
+		return (DNSTAP__MESSAGE__TYPE__UPDATE_RESPONSE);
 	default:
 		INSIST(0);
 	}
@@ -860,6 +864,7 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	case DNS_DTTYPE_FR:
 	case DNS_DTTYPE_SR:
 	case DNS_DTTYPE_TR:
+	case DNS_DTTYPE_UR:
 		if (rtime != NULL)
 			t = rtime;
 
@@ -881,6 +886,7 @@ dns_dt_send(dns_view_t *view, dns_dtmsgtype_t msgtype,
 	case DNS_DTTYPE_RQ:
 	case DNS_DTTYPE_SQ:
 	case DNS_DTTYPE_TQ:
+	case DNS_DTTYPE_UQ:
 		if (qtime != NULL)
 			t = qtime;
 
@@ -1160,6 +1166,12 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 	case DNSTAP__MESSAGE__TYPE__TOOL_RESPONSE:
 		d->type = DNS_DTTYPE_TR;
 		break;
+	case DNSTAP__MESSAGE__TYPE__UPDATE_QUERY:
+		d->type = DNS_DTTYPE_UQ;
+		break;
+	case DNSTAP__MESSAGE__TYPE__UPDATE_RESPONSE:
+		d->type = DNS_DTTYPE_UR;
+		break;
 	default:
 		CHECK(DNS_R_BADDNSTAP);
 	}
@@ -1315,6 +1327,12 @@ dns_dt_datatotext(dns_dtdata_t *d, isc_buffer_t **dest) {
 		break;
 	case DNS_DTTYPE_TR:
 		CHECK(putstr(dest, "TR "));
+		break;
+	case DNS_DTTYPE_UQ:
+		CHECK(putstr(dest, "UQ "));
+		break;
+	case DNS_DTTYPE_UR:
+		CHECK(putstr(dest, "UR "));
 		break;
 	default:
 		return (DNS_R_BADDNSTAP);
