@@ -124,7 +124,7 @@ atomic_load_abort() {
 }
 
 #define atomic_load_explicit(obj, order)			\
-	(sizeof(*obj) == 8					\
+	(typeof(obj))(sizeof(*obj) == 8				\
 	 ? atomic_load_explicit64(obj, order)			\
 	 : (sizeof(*obj == 4)					\
 	    ? atomic_load_explicit32(obj, order)		\
