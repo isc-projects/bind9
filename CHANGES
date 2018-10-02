@@ -1,3 +1,8 @@
+5040.	[bug]		In a "forward first;" configuration, a forwarder
+			timeout did not prevent that forwarder from being
+			queried again after falling back to full recursive
+			resolution. [GL #315]
+
 5039.	[bug]		Named could fail to preserve owner name case of new
 			RRset. [GL #420]
 
