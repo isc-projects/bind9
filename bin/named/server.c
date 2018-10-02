@@ -3412,11 +3412,14 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 			dt |= DNS_DTTYPE_RQ|DNS_DTTYPE_RR;
 		} else if (strcasecmp(str, "forwarder") == 0) {
 			dt |= DNS_DTTYPE_FQ|DNS_DTTYPE_FR;
+		} else if (strcasecmp(str, "update") == 0) {
+			dt |= DNS_DTTYPE_UQ|DNS_DTTYPE_UR;
 		} else if (strcasecmp(str, "all") == 0) {
 			dt |= DNS_DTTYPE_CQ|DNS_DTTYPE_CR|
 			      DNS_DTTYPE_AQ|DNS_DTTYPE_AR|
 			      DNS_DTTYPE_RQ|DNS_DTTYPE_RR|
-			      DNS_DTTYPE_FQ|DNS_DTTYPE_FR;
+			      DNS_DTTYPE_FQ|DNS_DTTYPE_FR|
+			      DNS_DTTYPE_UQ|DNS_DTTYPE_UR;
 		}
 
 		obj2 = cfg_tuple_get(obj, "mode");
