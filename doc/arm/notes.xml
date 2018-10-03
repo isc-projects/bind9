@@ -347,9 +347,10 @@
       </listitem>
       <listitem>
 	<para>
-	  Add the ability to not return a DNS COOKIE option when one
-	  is present in the request.  To prevent a cookie being returned
-	  add 'answer-cookie no;' to named.conf. [GL #173]
+	  Add the option not to return a DNS COOKIE option when one
+	  is present in the request.  To prevent cookies being returned,
+	  add <command>answer-cookie no;</command> to
+	  <filename>named.conf.</filename>
 	</para>
 	<para>
 	  <command>answer-cookie</command> is only intended as a temporary
@@ -361,11 +362,15 @@
 	  abundance of caution. DNS COOKIE is an important security mechanism,
 	  and should not be disabled unless absolutely necessary.
 	</para>
+      </listitem>
+      <listitem>
 	<para>
 	  Remove support for silently ignoring 'no-change' deltas from
 	  BIND 8 when processing an IXFR stream.  'no-change' deltas
 	  will now trigger a fallback to AXFR as the recovery mechanism.
 	</para>
+      </listitem>
+      <listitem>
 	<para>
 	  BIND 9 will no longer build on platforms that doesn't have
 	  proper IPv6 support.  BIND 9 now also requires non-broken
@@ -377,6 +382,16 @@
 	  Support for DSA and DSA-NSEC3-SHA1 algorithms has been
 	  removed from BIND as the DSA key length is limited to 1024
 	  bits and this is not considered secure enough.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  In the interest of preventing future problems with key roll
+	  events, the <command>trusted-keys</command> statement has been
+	  deprecated.  <command>managed-keys</command> should now be used
+	  instead. (The <command>static-key</command> keyword can be used
+	  when it is necessary to configure a key that is not maintained
+	  via RFC 5011. This is not recommended for the root key.) [GL #6]
 	</para>
       </listitem>
     </itemizedlist>
@@ -425,8 +440,21 @@
       <listitem>
 	<para>
 	  <command>named</command> will now log a warning if the old
-	  root DNSSEC key is explicitly configured and has not been updated.
-	  [RT #43670]
+	  root DNSSEC key has been configured and has not been updated,
+	  or if a static key is configured for the root zone, or if
+	  any key is configured for "dlv.isc.org", which has been shut
+	  down. [RT #43670] [GL #6]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The <command>managed-keys</command> statement can now use the
+	  keyword <command>static-key</command> in place of
+	  <command>initial-key</command> to configure trusted keys
+	  for which RFC 5011 trust anchor maintenance is not to be used.
+	  The <command>trusted-keys</command> statement is now deprecated,
+	  and will generate a warning in the log when used, but is still
+	  functional. [GL #6]
 	</para>
       </listitem>
       <listitem>
