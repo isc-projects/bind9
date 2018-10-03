@@ -1,3 +1,16 @@
+5041.	[func]		In the interest of preventing problems with future
+			key roll events, the "trusted-keys" option is now
+			deprecated.  The "managed-keys" statement can now be
+			used for all trust anchors.  Old configurations
+			that used "trusted-keys" to set up DNSSEC validation
+			will now generate warnings in the log, and should be
+			changed to use "managed-keys" instead.
+
+			If it is necessary for a key not to use RFC 5011
+			trust anchor maintenance, it can be specified as
+			"static". This will trigger a warning if used
+			for the root zone. [GL #6]
+
 5040.	[func]		Extended dnstap so that it can log UPDATE requests
 			and responses as separate message types. Thanks
 			to Greg Rabil. [GL #570]
