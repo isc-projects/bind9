@@ -269,7 +269,7 @@ update_log(ns_client_t *client, dns_zone_t *zone,
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 
-	if (client == NULL && zone == NULL) {
+	if (client == NULL) {
 		return;
 	}
 
@@ -294,7 +294,7 @@ update_log(ns_client_t *client, dns_zone_t *zone,
 	} else {
 		ns_client_log(client, NS_LOGCATEGORY_UPDATE,
 			      NS_LOGMODULE_UPDATE,
-			      level, "update: %s", message);
+			      level, "%s", message);
 	}
 
 }
