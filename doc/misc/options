@@ -47,8 +47,9 @@ logging {
 
 lwres { <unspecified-text> }; // obsolete, may occur multiple times
 
-managed-keys { <string> <string> <integer>
-    <integer> <integer> <quoted_string>; ... }; // may occur multiple times
+managed-keys { <string> ( static-key |
+    initial-key ) <integer> <integer> <integer>
+    <quoted_string>; ... }; // may occur multiple times
 
 masters <string> [ port <integer> ] [ dscp
     <integer> ] { ( <masters> | <ipv4_address> [
@@ -146,13 +147,16 @@ options {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder | resolver | update ) [
-            ( query | response ) ]; ... };
-        dnstap-identity ( <quoted_string> | none | hostname );
-        dnstap-output ( file | unix ) <quoted_string> [ size ( unlimited |
-            <size> ) ] [ versions ( unlimited | <integer> ) ] [ suffix (
-            increment | timestamp ) ];
-        dnstap-version ( <quoted_string> | none );
+        dnstap { ( all | auth | client | forwarder |
+            resolver | update ) [ ( query | response ) ];
+            ... }; // not configured
+        dnstap-identity ( <quoted_string> | none |
+            hostname ); // not configured
+        dnstap-output ( file | unix ) <quoted_string> [
+            size ( unlimited | <size> ) ] [ versions (
+            unlimited | <integer> ) ] [ suffix ( increment
+            | timestamp ) ]; // not configured
+        dnstap-version ( <quoted_string> | none ); // not configured
         dscp <integer>;
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
@@ -176,14 +180,14 @@ options {
         forward ( first | only );
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
-        fstrm-set-buffer-hint <integer>;
-        fstrm-set-flush-timeout <integer>;
-        fstrm-set-input-queue-size <integer>;
-        fstrm-set-output-notify-threshold <integer>;
-        fstrm-set-output-queue-model ( mpsc | spsc );
-        fstrm-set-output-queue-size <integer>;
-        fstrm-set-reopen-interval <ttlval>;
-        geoip-directory ( <quoted_string> | none );
+        fstrm-set-buffer-hint <integer>; // not configured
+        fstrm-set-flush-timeout <integer>; // not configured
+        fstrm-set-input-queue-size <integer>; // not configured
+        fstrm-set-output-notify-threshold <integer>; // not configured
+        fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
+        fstrm-set-output-queue-size <integer>; // not configured
+        fstrm-set-reopen-interval <ttlval>; // not configured
+        geoip-directory ( <quoted_string> | none ); // not configured
         geoip-use-ecs <boolean>; // obsolete
         glue-cache <boolean>;
         has-old-clients <boolean>; // obsolete
@@ -427,8 +431,9 @@ statistics-channels {
             } ]; // may occur multiple times
 }; // may occur multiple times
 
-trusted-keys { <string> <integer> <integer>
-    <integer> <quoted_string>; ... }; // may occur multiple times
+trusted-keys { <string> <integer>
+    <integer> <integer>
+    <quoted_string>; ... }; // deprecated, may occur multiple times
 
 view <string> [ <class> ] {
         acache-cleaning-interval <integer>; // obsolete
@@ -513,8 +518,9 @@ view <string> [ <class> ] {
         dnssec-secure-to-insecure <boolean>;
         dnssec-update-mode ( maintain | no-resign );
         dnssec-validation ( yes | no | auto );
-        dnstap { ( all | auth | client | forwarder | resolver | update ) [
-            ( query | response ) ]; ... };
+        dnstap { ( all | auth | client | forwarder |
+            resolver | update ) [ ( query | response ) ];
+            ... }; // not configured
         dual-stack-servers [ port <integer> ] { ( <quoted_string> [ port
             <integer> ] [ dscp <integer> ] | <ipv4_address> [ port
             <integer> ] [ dscp <integer> ] | <ipv6_address> [ port
@@ -547,9 +553,9 @@ view <string> [ <class> ] {
         lame-ttl <ttlval>;
         lmdb-mapsize <sizeval>;
         maintain-ixfr-base <boolean>; // obsolete
-        managed-keys { <string> <string>
-            <integer> <integer> <integer>
-            <quoted_string>; ... }; // may occur multiple times
+        managed-keys { <string> ( static-key |
+            initial-key ) <integer> <integer>
+            <integer> <quoted_string>; ... }; // may occur multiple times
         masterfile-format ( map | raw | text );
         masterfile-style ( full | relative );
         match-clients { <address_match_element>; ... };
@@ -709,9 +715,10 @@ view <string> [ <class> ] {
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         trust-anchor-telemetry <boolean>; // experimental
-        trusted-keys { <string> <integer>
-            <integer> <integer> <quoted_string>;
-            ... }; // may occur multiple times
+        trusted-keys { <string>
+            <integer> <integer>
+            <integer>
+            <quoted_string>; ... }; // deprecated, may occur multiple times
         try-tcp-refresh <boolean>;
         update-check-ksk <boolean>;
         use-alt-transfer-source <boolean>;
