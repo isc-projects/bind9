@@ -1,3 +1,7 @@
+5040.	[bug]		Messages logged for certain query processing failures
+			now include a more specific error description if it is
+			available. [GL #572]
+
 5039.	[bug]		Named could fail to preserve owner name case of new
 			RRset. [GL #420]
 
