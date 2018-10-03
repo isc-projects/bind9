@@ -3568,10 +3568,13 @@ process_ctlfd(isc__socketthread_t *thread) {
 static isc_threadresult_t
 netthread(void *uap) {
 	isc__socketthread_t *thread = uap;
-//	isc__socketmgr_t *manager = thread->manager;
+	isc__socketmgr_t *manager = thread->manager;
 
 	bool done;
 	int cc;
+	if (manager->nthreads > 1) {
+		isc_thread_setaffinity(thread->threadid);
+	}
 #ifdef USE_KQUEUE
 	INSIST(threadid == 0);
 	const char *fnname = "kevent()";

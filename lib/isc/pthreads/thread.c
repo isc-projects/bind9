@@ -18,6 +18,17 @@
 #include <sched.h>
 #endif
 
+#if defined(HAVE_CPUSET_H)
+#include <sys/param.h>
+#include <sys/cpuset.h>
+#endif
+
+#if defined(HAVE_SYS_PROCESET_H)
+#include <sys/types.h>
+#include <sys/processor.h>
+#include <sys/procset.h>
+#endif
+
 #include <isc/thread.h>
 #include <isc/util.h>
 
@@ -90,4 +101,32 @@ isc_thread_yield(void) {
 #elif defined( HAVE_PTHREAD_YIELD_NP)
 	pthread_yield_np();
 #endif
+}
+
+isc_result_t
+isc_thread_setaffinity(int cpu) {
+#if defined(HAVE_PTHREAD_SETAFFINITY_NP)
+        cpu_set_t set;
+        CPU_ZERO(&set);
+        CPU_SET(cpu, &set);
+        if (pthread_setaffinity_np(pthread_self(), sizeof(cpu_set_t),
+	    &set) != 0) {
+		return (ISC_R_FAILURE);
+	}
+#elif defined(HAVE_CPUSET_SETAFFINITY)
+	cpuset_t cpuset;
+	CPU_ZERO(&cpuset);
+	CPU_SET(cpu, &cpuset);
+	if (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, gettid(),
+	    &cpuset, sizeof(cpuset)) != 0) {
+		return (ISC_R_FAILURE);
+	}
+#elif defined(HAVE_PROCESSOR_BIND)
+	if (processor_bind(P_LWPID, P_MYID, cpu, NULL) != 0) {
+		return (ISC_R_FAILURE);
+	}
+#else
+	UNUSED(cpu);
+#endif
+	return (ISC_R_SUCCESS);
 }
