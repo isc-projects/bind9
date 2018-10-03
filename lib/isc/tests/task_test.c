@@ -31,6 +31,8 @@
 
 #include "isctest.h"
 
+#include "../task_p.h"
+
 /*
  * Helper functions
  */
