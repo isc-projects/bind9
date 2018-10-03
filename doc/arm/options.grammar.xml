@@ -31,6 +31,7 @@
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	<command>alt-transfer-source-v6</command> ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> |
 	    * ) ] [ dscp <replaceable>integer</replaceable> ];
+	<command>answer-cookie</command> <replaceable>boolean</replaceable>;
 	<command>attach-cache</command> <replaceable>string</replaceable>;
 	<command>auth-nxdomain</command> <replaceable>boolean</replaceable>; // default changed
 	<command>auto-dnssec</command> ( allow | maintain | off );
@@ -96,8 +97,8 @@
 	<command>dnssec-secure-to-insecure</command> <replaceable>boolean</replaceable>;
 	<command>dnssec-update-mode</command> ( maintain | no-resign );
 	<command>dnssec-validation</command> ( yes | no | auto );
-	<command>dnstap</command> { ( all | auth | client | forwarder | resolver ) [ ( query |
-	    <command>response</command> ) ]; ... };
+	<command>dnstap</command> { ( all | auth | client | forwarder | resolver | update ) [
+	    ( query | response ) ]; ... };
 	<command>dnstap-identity</command> ( <replaceable>quoted_string</replaceable> | none | hostname );
 	<command>dnstap-output</command> ( file | unix ) <replaceable>quoted_string</replaceable> [ size ( unlimited |
 	    <replaceable>size</replaceable> ) ] [ versions ( unlimited | <replaceable>integer</replaceable> ) ] [ suffix (
