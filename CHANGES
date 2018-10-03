@@ -1,3 +1,7 @@
+5045.	[bug]		Messages logged for certain query processing failures
+			now include a more specific error description if it is
+			available. [GL #572]
+
 5044.	[cleanup]	If "dnssec-enable" is no, then "dnssec-validation"
 			now also defaults to no.  [GL #388]
 
