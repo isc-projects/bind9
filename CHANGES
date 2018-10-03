@@ -1,3 +1,20 @@
+5248.	[func]		To clarify the configuration of DNSSEC keys,
+			the "managed-keys" and "trusted-keys" options
+			have both been deprecated.  The new "dnssec-keys"
+			statement can now be used for all trust anchors,
+			with the keywords "iniital-key" or "static-key"
+			to indicate whether the configured trust anchor
+			should be used for initialization of RFC 5011 key
+			management, or as a permanent trust anchor.
+
+			The "static-key" keyword will generate a warning if
+			used for the root zone.
+
+			Configurations using "trusted-keys" or "managed-keys"
+			will continue to work with no changes, but will
+			generate warnings in the log. In a future release,
+			these options will be marked obsolete. [GL #6]
+
 5247.	[cleanup]	The 'cleaning-interval' option has been removed.
 			[GL !1731]
 
