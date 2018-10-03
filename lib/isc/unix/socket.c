@@ -2705,6 +2705,7 @@ isc_socket_attach(isc_socket_t *sock0, isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
 	LOCK(&sock->lock);
+	REQUIRE(sock->references > 0);
 	sock->references++;
 	UNLOCK(&sock->lock);
 
@@ -2748,7 +2749,6 @@ isc_socket_close(isc_socket_t *sock0) {
 
 	LOCK(&sock->lock);
 
-	REQUIRE(sock->references == 1);
 	REQUIRE(sock->fd >= 0 && sock->fd < (int)sock->manager->maxsocks);
 
 	INSIST(!sock->connecting);
@@ -3239,32 +3239,29 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 		unwatch_write = writeable;
 		goto unlock_fd;
 	}
+	if (SOCK_DEAD(sock)) { /* Sock is being closed, bail */
+		UNLOCK(&sock->lock);
+		UNLOCK(&thread->fdlock[lockid]);
+		return;
+	}
 
 	LOCK(&sock->lock);
 	sock->references++;
 	UNLOCK(&sock->lock);
 
 	if (readable) {
-		if (!SOCK_DEAD(sock)) {
-			if (sock->listener)
-				internal_accept(sock);
-			else
-				internal_recv(sock);
-		}
+		if (sock->listener)
+			internal_accept(sock);
+		else
+			internal_recv(sock);
 		unwatch_read = true;
 	}
 
 	if (writeable) {
-		if (sock == NULL) {
-			unwatch_write = true;
-			goto unlock_fd;
-		}
-		if (!SOCK_DEAD(sock)) {
-			if (sock->connecting)
-				internal_connect(sock);
-			else
-				internal_send(sock);
-		}
+		if (sock->connecting)
+			internal_connect(sock);
+		else
+			internal_send(sock);
 		unwatch_write = true;
 	}
 
