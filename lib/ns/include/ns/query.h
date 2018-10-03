@@ -130,19 +130,18 @@ typedef struct query_ctx {
 
 	unsigned int options;			/* DB lookup options */
 
-	bool redirected;		/* nxdomain redirected? */
-	bool is_zone;			/* is DB a zone DB? */
+	bool redirected;			/* nxdomain redirected? */
+	bool is_zone;				/* is DB a zone DB? */
 	bool is_staticstub_zone;
-	bool resuming;			/* resumed from recursion? */
+	bool resuming;				/* resumed from recursion? */
 	bool dns64, dns64_exclude, rpz;
-	bool authoritative;		/* authoritative query? */
-	bool want_restart;		/* CNAME chain or other
+	bool authoritative;			/* authoritative query? */
+	bool want_restart;			/* CNAME chain or other
 						 * restart needed */
-	bool need_wildcardproof;	/* wilcard proof needed */
-	bool nxrewrite;		/* negative answer from RPZ */
-	bool findcoveringnsec;		/* lookup covering NSEC */
-	bool want_stale;		/* want stale records? */
-	bool answer_has_ns;		/* NS is in answer */
+	bool need_wildcardproof;		/* wilcard proof needed */
+	bool nxrewrite;				/* negative answer from RPZ */
+	bool findcoveringnsec;			/* lookup covering NSEC */
+	bool answer_has_ns;			/* NS is in answer */
 	dns_fixedname_t wildcardname;		/* name needing wcard proof */
 	dns_fixedname_t dsname;			/* name needing DS */
 
