@@ -765,8 +765,8 @@
 	<listitem>
 	  <para>
 	    Dump the security roots (i.e., trust anchors
-	    configured via <command>trusted-keys</command>,
-	    <command>managed-keys</command>, or
+	    configured via <command>managed-keys</command>,
+	    <command>trusted-keys</command>, or
 	    <command>dnssec-validation auto</command>) and negative trust
 	    anchors for the specified views.  If no view is specified, all
 	    views are dumped.  Security roots will indicate whether
