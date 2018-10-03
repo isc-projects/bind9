@@ -48,7 +48,7 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep);
 /*%<
  * Create a keytable.

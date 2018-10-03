@@ -461,7 +461,7 @@ static void send_recvdone_event(isc__socket_t *, isc_socketevent_t **);
 static void send_senddone_event(isc__socket_t *, isc_socketevent_t **);
 static void send_connectdone_event(isc__socket_t *, isc_socket_connev_t **);
 static void free_socket(isc__socket_t **);
-static isc_result_t allocate_socket(isc__socketmgr_t *, isc_sockettype_t,
+static void allocate_socket(isc__socketmgr_t *, isc_sockettype_t,
 				    isc__socket_t **);
 static void destroy(isc__socket_t **);
 static void internal_accept(isc_task_t *, isc_event_t *);
@@ -1986,17 +1986,13 @@ destroy(isc__socket_t **sockp) {
 	UNLOCK(&manager->lock);
 }
 
-static isc_result_t
+static void
 allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 		isc__socket_t **socketp)
 {
 	isc__socket_t *sock;
-	isc_result_t result;
 
 	sock = isc_mem_get(manager->mctx, sizeof(*sock));
-
-	if (sock == NULL)
-		return (ISC_R_NOMEMORY);
 
 	sock->common.magic = 0;
 	sock->common.impmagic = 0;
@@ -2035,12 +2031,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	/*
 	 * Initialize the lock.
 	 */
-	result = isc_mutex_init(&sock->lock);
-	if (result != ISC_R_SUCCESS) {
-		sock->common.magic = 0;
-		sock->common.impmagic = 0;
-		goto error;
-	}
+	isc_mutex_init(&sock->lock);
 
 	/*
 	 * Initialize readable and writable events.
@@ -2055,13 +2046,6 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->common.magic = ISCAPI_SOCKET_MAGIC;
 	sock->common.impmagic = SOCKET_MAGIC;
 	*socketp = sock;
-
-	return (ISC_R_SUCCESS);
-
- error:
-	isc_mem_put(manager->mctx, sock, sizeof(*sock));
-
-	return (result);
 }
 
 /*
@@ -2690,9 +2674,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 	REQUIRE(socketp != NULL && *socketp == NULL);
 	REQUIRE(type != isc_sockettype_fdwatch);
 
-	result = allocate_socket(manager, type, &sock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	allocate_socket(manager, type, &sock);
 
 	switch (sock->type) {
 	case isc_sockettype_udp:
@@ -2847,7 +2829,6 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 {
 	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
 	isc__socket_t *sock = NULL;
-	isc_result_t result;
 	int lockid;
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -2856,9 +2837,7 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 	if (fd < 0 || (unsigned int)fd >= manager->maxsocks)
 		return (ISC_R_RANGE);
 
-	result = allocate_socket(manager, isc_sockettype_fdwatch, &sock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	allocate_socket(manager, isc_sockettype_fdwatch, &sock);
 
 	sock->fd = fd;
 	sock->fdwatcharg = cbarg;
@@ -4371,34 +4350,15 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->mctx = NULL;
 	memset(manager->fds, 0, manager->maxsocks * sizeof(isc_socket_t *));
 	ISC_LIST_INIT(manager->socklist);
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS)
-		goto free_manager;
+	isc_mutex_init(&manager->lock);
+
 	manager->fdlock = isc_mem_get(mctx, FDLOCK_COUNT * sizeof(isc_mutex_t));
-	if (manager->fdlock == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_lock;
-	}
+
 	for (i = 0; i < FDLOCK_COUNT; i++) {
-		result = isc_mutex_init(&manager->fdlock[i]);
-		if (result != ISC_R_SUCCESS) {
-			while (--i >= 0)
-				DESTROYLOCK(&manager->fdlock[i]);
-			isc_mem_put(mctx, manager->fdlock,
-				    FDLOCK_COUNT * sizeof(isc_mutex_t));
-			manager->fdlock = NULL;
-			goto cleanup_lock;
-		}
+		isc_mutex_init(&manager->fdlock[i]);
 	}
 
-	if (isc_condition_init(&manager->shutdown_ok) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_lock;
-	}
+	isc_condition_init(&manager->shutdown_ok);
 
 	/*
 	 * Create the special fds that will be used to wake up the
@@ -4452,9 +4412,6 @@ cleanup:
 
 cleanup_condition:
 	(void)isc_condition_destroy(&manager->shutdown_ok);
-
-
-cleanup_lock:
 	if (manager->fdlock != NULL) {
 		for (i = 0; i < FDLOCK_COUNT; i++)
 			DESTROYLOCK(&manager->fdlock[i]);
@@ -5406,7 +5363,6 @@ isc_socket_accept(isc_socket_t *sock0,
 	isc__socketmgr_t *manager;
 	isc_task_t *ntask = NULL;
 	isc__socket_t *nsock;
-	isc_result_t result;
 	bool do_poke = false;
 
 	REQUIRE(VALID_SOCKET(sock));
@@ -5431,12 +5387,7 @@ isc_socket_accept(isc_socket_t *sock0,
 	}
 	ISC_LINK_INIT(dev, ev_link);
 
-	result = allocate_socket(manager, sock->type, &nsock);
-	if (result != ISC_R_SUCCESS) {
-		isc_event_free(ISC_EVENT_PTR(&dev));
-		UNLOCK(&sock->lock);
-		return (result);
-	}
+	allocate_socket(manager, sock->type, &nsock);
 
 	/*
 	 * Attach to socket and to task.

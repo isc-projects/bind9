@@ -34,7 +34,7 @@
 static isc_mutex_t wks_lock;
 
 static void init_lock(void) {
-	RUNTIME_CHECK(isc_mutex_init(&wks_lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&wks_lock);
 }
 
 static bool

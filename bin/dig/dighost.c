@@ -862,8 +862,7 @@ setup_text_key(void) {
 	unsigned char *secretstore;
 
 	debug("setup_text_key()");
-	result = isc_buffer_allocate(mctx, &namebuf, MXNAME);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(mctx, &namebuf, MXNAME);
 	dns_name_init(&keyname, NULL);
 	check_result(result, "dns_name_init");
 	isc_buffer_putstr(namebuf, keynametext);
@@ -1328,8 +1327,7 @@ setup_libs(void) {
 	if (!have_ipv6 && !have_ipv4)
 		fatal("can't find either v4 or v6 networking");
 
-	result = isc_mem_create(0, 0, &mctx);
-	check_result(result, "isc_mem_create");
+	isc_mem_create(0, 0, &mctx);
 	isc_mem_setname(mctx, "dig", NULL);
 
 	result = isc_log_create(mctx, &lctx, &logconfig);
@@ -1351,8 +1349,7 @@ setup_libs(void) {
 	check_result(result, "isc_task_create");
 	isc_task_setname(global_task, "dig", NULL);
 
-	result = isc_timermgr_create(mctx, &timermgr);
-	check_result(result, "isc_timermgr_create");
+	isc_timermgr_create(mctx, &timermgr);
 
 	result = isc_socketmgr_create(mctx, &socketmgr);
 	check_result(result, "isc_socketmgr_create");
@@ -1361,8 +1358,7 @@ setup_libs(void) {
 	check_result(result, "dst_lib_init");
 	is_dst_up = true;
 
-	result = isc_mempool_create(mctx, COMMSIZE, &commctx);
-	check_result(result, "isc_mempool_create");
+	isc_mempool_create(mctx, COMMSIZE, &commctx);
 	isc_mempool_setname(commctx, "COMMPOOL");
 	/*
 	 * 6 and 2 set as reasonable parameters for 3 or 4 nameserver
@@ -1371,8 +1367,7 @@ setup_libs(void) {
 	isc_mempool_setfreemax(commctx, 6);
 	isc_mempool_setfillcount(commctx, 2);
 
-	result = isc_mutex_init(&lookup_lock);
-	check_result(result, "isc_mutex_init");
+	isc_mutex_init(&lookup_lock);
 }
 
 typedef struct dig_ednsoptname {
@@ -2018,9 +2013,8 @@ setup_lookup(dig_lookup_t *lookup) {
 
 	debug("setup_lookup(%p)", lookup);
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
 				    &lookup->sendmsg);
-	check_result(result, "dns_message_create");
 
 	if (lookup->new_search) {
 		debug("resetting lookup counter.");
@@ -2256,8 +2250,7 @@ setup_lookup(dig_lookup_t *lookup) {
 	if (lookup->sendspace == NULL)
 		fatal("memory allocation failure");
 
-	result = dns_compress_init(&cctx, -1, mctx);
-	check_result(result, "dns_compress_init");
+	dns_compress_init(&cctx, -1, mctx);
 
 	debug("starting to render the message");
 	isc_buffer_init(&lookup->renderbuf, lookup->sendspace, COMMSIZE);
@@ -3611,8 +3604,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	if (!match)
 		goto udp_mismatch;
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	check_result(result, "dns_message_create");
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	if (tsigkey != NULL) {
 		if (l->querysig == NULL) {

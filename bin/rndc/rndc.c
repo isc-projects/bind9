@@ -932,7 +932,7 @@ main(int argc, char **argv) {
 
 	serial = isc_random32();
 
-	DO("create memory context", isc_mem_create(0, 0, &rndc_mctx));
+	isc_mem_create(0, 0, &rndc_mctx);
 	DO("create socket manager", isc_socketmgr_create(rndc_mctx, &socketmgr));
 	DO("create task manager", isc_taskmgr_create(rndc_mctx, 1, 0, &taskmgr));
 	DO("create task", isc_task_create(taskmgr, 0, &task));
@@ -957,8 +957,7 @@ main(int argc, char **argv) {
 
 	command = *argv;
 
-	DO("allocate data buffer",
-	   isc_buffer_allocate(rndc_mctx, &databuf, 2048));
+	isc_buffer_allocate(rndc_mctx, &databuf, 2048);
 
 	/*
 	 * Convert argc/argv into a space-delimited command string

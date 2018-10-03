@@ -225,7 +225,7 @@ tostruct_mx(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&mx->mx, NULL);
-	RETERR(name_duporclone(&name, mctx, &mx->mx));
+	name_duporclone(&name, mctx, &mx->mx);
 	mx->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

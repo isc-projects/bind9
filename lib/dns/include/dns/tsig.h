@@ -238,7 +238,7 @@ dns_tsigkey_find(dns_tsigkey_t **tsigkey, const dns_name_t *name,
  */
 
 
-isc_result_t
+void
 dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
 /*%<
  *	Create an empty TSIG key ring.
@@ -246,10 +246,6 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp);
  *	Requires:
  *\li		'mctx' is not NULL
  *\li		'ringp' is not NULL, and '*ringp' is NULL
- *
- *	Returns:
- *\li		#ISC_R_SUCCESS
- *\li		#ISC_R_NOMEMORY
  */
 
 isc_result_t

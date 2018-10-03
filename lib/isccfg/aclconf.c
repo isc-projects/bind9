@@ -196,7 +196,8 @@ convert_keyname(const cfg_obj_t *keyobj, isc_log_t *lctx, isc_mem_t *mctx,
 			    txtname);
 		return (result);
 	}
-	return (dns_name_dup(dns_fixedname_name(&fixname), mctx, dnsname));
+	dns_name_dup(dns_fixedname_name(&fixname), mctx, dnsname);
+	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -657,9 +658,7 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 		} else
 			nelem = cfg_list_length(caml, false);
 
-		result = dns_acl_create(mctx, nelem, &dacl);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		dns_acl_create(mctx, nelem, &dacl);
 	}
 
 	de = dacl->elements;
@@ -690,11 +689,9 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 		iptab = dacl->iptable;
 
 		if (nest_level != 0) {
-			result = dns_acl_create(mctx,
+			dns_acl_create(mctx,
 						cfg_list_length(ce, false),
 						&de->nestedacl);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
 			iptab = de->nestedacl->iptable;
 		}
 
@@ -729,10 +726,8 @@ cfg_acl_fromconfig2(const cfg_obj_t *caml, const cfg_obj_t *cctx,
 			 * the nestedacl element, not the iptable entry.
 			 */
 			setpos = (nest_level != 0 || !neg);
-			result = dns_iptable_addprefix(iptab, &addr, bitlen,
+			dns_iptable_addprefix(iptab, &addr, bitlen,
 						       setpos);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
 
 			if (nest_level > 0) {
 				INSIST(dacl->length < dacl->alloc);
@@ -803,10 +798,8 @@ nested_acl:
 			if (strcasecmp(name, "any") == 0) {
 				/* Iptable entry with zero bit length. */
 				setpos = (nest_level != 0 || !neg);
-				result = dns_iptable_addprefix(iptab, NULL, 0,
+				dns_iptable_addprefix(iptab, NULL, 0,
 							       setpos);
-				if (result != ISC_R_SUCCESS)
-					goto cleanup;
 
 				if (nest_level != 0) {
 					INSIST(dacl->length < dacl->alloc);
@@ -823,10 +816,8 @@ nested_acl:
 				 * "!none;".
 				 */
 				setpos = (nest_level != 0 || neg);
-				result = dns_iptable_addprefix(iptab, NULL, 0,
+				dns_iptable_addprefix(iptab, NULL, 0,
 							       setpos);
-				if (result != ISC_R_SUCCESS)
-					goto cleanup;
 
 				if (!neg)
 					dacl->has_negatives = !neg;

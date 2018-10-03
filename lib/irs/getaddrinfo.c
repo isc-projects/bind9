@@ -928,10 +928,7 @@ resolve_name(int family, const char *hostname, int flags,
 	head.ai_port = port;
 	head.actx = actx;
 	head.dnsclient = client;
-	result = isc_mutex_init(&head.list_lock);
-	if (result != ISC_R_SUCCESS) {
-		return (EAI_FAIL);
-	}
+	isc_mutex_init(&head.list_lock);
 
 	ISC_LIST_INIT(head.resstates);
 	result = make_resstates(mctx, hostname, &head, conf);

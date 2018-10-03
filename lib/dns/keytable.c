@@ -62,7 +62,7 @@ free_keynode(void *node, void *arg) {
 	dns_keynode_detachall(mctx, &keynode);
 }
 
-isc_result_t
+void
 dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	dns_keytable_t *keytable;
 	isc_result_t result;
@@ -74,20 +74,11 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	REQUIRE(keytablep != NULL && *keytablep == NULL);
 
 	keytable = isc_mem_get(mctx, sizeof(*keytable));
-	if (keytable == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	keytable->table = NULL;
-	result = dns_rbt_create(mctx, free_keynode, mctx, &keytable->table);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_keytable;
-	}
+	dns_rbt_create(mctx, free_keynode, mctx, &keytable->table);
 
-	result = isc_rwlock_init(&keytable->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_rbt;
-	}
+	isc_rwlock_init(&keytable->rwlock, 0, 0);
 
 	isc_refcount_init(&keytable->active_nodes, 0);
 	isc_refcount_init(&keytable->references, 1);
@@ -96,16 +87,6 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	isc_mem_attach(mctx, &keytable->mctx);
 	keytable->magic = KEYTABLE_MAGIC;
 	*keytablep = keytable;
-
-	return (ISC_R_SUCCESS);
-
- cleanup_rbt:
-	dns_rbt_destroy(&keytable->table);
-
- cleanup_keytable:
-	isc_mem_putanddetach(&mctx, keytable, sizeof(*keytable));
-
-	return (result);
 }
 
 void
@@ -636,9 +617,7 @@ dns_keytable_dump(dns_keytable_t *keytable, FILE *fp) {
 	REQUIRE(VALID_KEYTABLE(keytable));
 	REQUIRE(fp != NULL);
 
-	result = isc_buffer_allocate(keytable->mctx, &text, 4096);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(keytable->mctx, &text, 4096);
 
 	result = dns_keytable_totext(keytable, &text);
 

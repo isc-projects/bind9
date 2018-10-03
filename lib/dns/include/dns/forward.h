@@ -35,7 +35,7 @@ struct dns_forwarders {
 	dns_fwdpolicy_t		fwdpolicy;
 };
 
-isc_result_t
+void
 dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep);
 /*%<
  * Creates a new forwarding table.
@@ -43,10 +43,6 @@ dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep);
  * Requires:
  * \li 	mctx is a valid memory context.
  * \li	fwdtablep != NULL && *fwdtablep == NULL
- *
- * Returns:
- * \li	#ISC_R_SUCCESS
- * \li	#ISC_R_NOMEMORY
  */
 
 isc_result_t

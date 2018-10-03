@@ -520,8 +520,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
 	if (!query->lookup->comments)
 		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
 
-	result = isc_buffer_allocate(mctx, &buf, len);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(mctx, &buf, len);
 
 	if (query->lookup->comments && !short_form) {
 		if (query->lookup->cmdline[0] != 0)
@@ -597,11 +596,8 @@ repopulate_buffer:
 buftoosmall:
 			len += OUTPUTBUF;
 			isc_buffer_free(&buf);
-			result = isc_buffer_allocate(mctx, &buf, len);
-			if (result == ISC_R_SUCCESS)
-				goto repopulate_buffer;
-			else
-				goto cleanup;
+			isc_buffer_allocate(mctx, &buf, len);
+			goto repopulate_buffer;
 		}
 		check_result(result,
 		     "dns_message_pseudosectiontotext");

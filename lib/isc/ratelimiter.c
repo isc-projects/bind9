@@ -74,9 +74,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	rl->state = isc_ratelimiter_idle;
 	ISC_LIST_INIT(rl->pending);
 
-	result = isc_mutex_init(&rl->lock);
-	if (result != ISC_R_SUCCESS)
-		goto free_mem;
+	isc_mutex_init(&rl->lock);
 
 	result = isc_timer_create(timermgr, isc_timertype_inactive,
 				  NULL, NULL, rl->task, ratelimiter_tick,
@@ -100,7 +98,6 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 
 free_mutex:
 	DESTROYLOCK(&rl->lock);
-free_mem:
 	isc_mem_put(mctx, rl, sizeof(*rl));
 	return (result);
 }

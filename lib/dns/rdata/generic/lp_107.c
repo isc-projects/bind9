@@ -162,7 +162,7 @@ tostruct_lp(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&lp->lp, NULL);
-	RETERR(name_duporclone(&name, mctx, &lp->lp));
+	name_duporclone(&name, mctx, &lp->lp);
 	lp->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

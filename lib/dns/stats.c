@@ -125,7 +125,7 @@ dns_stats_detach(dns_stats_t **statsp) {
 /*%
  * Create methods
  */
-static isc_result_t
+static void
 create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	     dns_stats_t **statsp)
 {
@@ -133,72 +133,57 @@ create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	isc_result_t result;
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
-		return (ISC_R_NOMEMORY);
 
 	stats->counters = NULL;
 	stats->references = 1;
 
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
+	isc_mutex_init(&stats->lock);
 
-	result = isc_stats_create(mctx, &stats->counters, ncounters);
-	if (result != ISC_R_SUCCESS)
-		goto clean_mutex;
+	isc_stats_create(mctx, &stats->counters, ncounters);
 
 	stats->magic = DNS_STATS_MAGIC;
 	stats->type = type;
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
 	*statsp = stats;
-
-	return (ISC_R_SUCCESS);
-
-  clean_mutex:
-	DESTROYLOCK(&stats->lock);
-  clean_stats:
-	isc_mem_put(mctx, stats, sizeof(*stats));
-
-	return (result);
 }
 
-isc_result_t
+void
 dns_generalstats_create(isc_mem_t *mctx, dns_stats_t **statsp, int ncounters) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_general, ncounters, statsp));
+	create_stats(mctx, dns_statstype_general, ncounters, statsp);
 }
 
-isc_result_t
+void
 dns_rdatatypestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_rdtype, rdtypecounter_max,
-			     statsp));
+	create_stats(mctx, dns_statstype_rdtype, rdtypecounter_max,
+			     statsp);
 }
 
-isc_result_t
+void
 dns_rdatasetstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_rdataset,
-			     rdatasettypecounter_max, statsp));
+	create_stats(mctx, dns_statstype_rdataset,
+			     rdatasettypecounter_max, statsp);
 }
 
-isc_result_t
+void
 dns_opcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_opcode, 16, statsp));
+	create_stats(mctx, dns_statstype_opcode, 16, statsp);
 }
 
-isc_result_t
+void
 dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, dns_statstype_rcode,
-			     dns_rcode_badcookie + 1, statsp));
+	create_stats(mctx, dns_statstype_rcode,
+			     dns_rcode_badcookie + 1, statsp);
 }
 
 /*%

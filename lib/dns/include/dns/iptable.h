@@ -38,20 +38,20 @@ struct dns_iptable {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target);
 /*
  * Create a new IP table and the underlying radix structure
  */
 
-isc_result_t
+void
 dns_iptable_addprefix(dns_iptable_t *tab, const isc_netaddr_t *addr,
 		      uint16_t bitlen, bool pos);
 /*
  * Add an IP prefix to an existing IP table
  */
 
-isc_result_t
+void
 dns_iptable_merge(dns_iptable_t *tab, dns_iptable_t *source, bool pos);
 /*
  * Merge one IP table into another one.

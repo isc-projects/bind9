@@ -464,14 +464,12 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 	sdlz->future_version = NULL;
 }
 
-static isc_result_t
+static void
 createnode(dns_sdlz_db_t *sdlz, dns_sdlznode_t **nodep) {
 	dns_sdlznode_t *node;
 	isc_result_t result;
 
 	node = isc_mem_get(sdlz->common.mctx, sizeof(dns_sdlznode_t));
-	if (node == NULL)
-		return (ISC_R_NOMEMORY);
 
 	node->sdlz = NULL;
 	attach((dns_db_t *)sdlz, (dns_db_t **)&node->sdlz);
@@ -479,20 +477,12 @@ createnode(dns_sdlz_db_t *sdlz, dns_sdlznode_t **nodep) {
 	ISC_LIST_INIT(node->buffers);
 	ISC_LINK_INIT(node, link);
 	node->name = NULL;
-	result = isc_mutex_init(&node->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		isc_mem_put(sdlz->common.mctx, node, sizeof(dns_sdlznode_t));
-		return (ISC_R_UNEXPECTED);
-	}
+	isc_mutex_init(&node->lock);
 	dns_rdatacallbacks_init(&node->callbacks);
 	node->references = 1;
 	node->magic = SDLZLOOKUP_MAGIC;
 
 	*nodep = node;
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -582,9 +572,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 		return (result);
 	isc_buffer_putuint8(&b2, 0);
 
-	result = createnode(sdlz, &node);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	createnode(sdlz, &node);
 
 	isorigin = dns_name_equal(name, &sdlz->common.origin);
 
@@ -679,18 +667,8 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	if (node->name == NULL) {
 		node->name = isc_mem_get(sdlz->common.mctx,
 					 sizeof(dns_name_t));
-		if (node->name == NULL) {
-			destroynode(node);
-			return (ISC_R_NOMEMORY);
-		}
 		dns_name_init(node->name, NULL);
-		result = dns_name_dup(name, sdlz->common.mctx, node->name);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(sdlz->common.mctx, node->name,
-				    sizeof(dns_name_t));
-			destroynode(node);
-			return (result);
-		}
+		dns_name_dup(name, sdlz->common.mctx, node->name);
 	}
 
 	*nodep = node;
@@ -815,8 +793,6 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 	isc_buffer_putuint8(&b, 0);
 
 	sdlziter = isc_mem_get(sdlz->common.mctx, sizeof(sdlz_dbiterator_t));
-	if (sdlziter == NULL)
-		return (ISC_R_NOMEMORY);
 
 	sdlziter->common.methods = &dbiterator_methods;
 	sdlziter->common.db = NULL;
@@ -1081,8 +1057,6 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	UNUSED(now);
 
 	iterator = isc_mem_get(db->mctx, sizeof(sdlz_rdatasetiter_t));
-	if (iterator == NULL)
-		return (ISC_R_NOMEMORY);
 
 	iterator->common.magic = DNS_RDATASETITER_MAGIC;
 	iterator->common.methods = &rdatasetiter_methods;
@@ -1124,9 +1098,7 @@ modrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 
 	mctx = sdlz->common.mctx;
 
-	result = isc_buffer_allocate(mctx, &buffer, 1024);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(mctx, &buffer, 1024);
 
 	result = dns_master_stylecreate(&style, 0, 0, 0, 0, 0, 0, 1,
 					0xffffffff, mctx);
@@ -1519,7 +1491,7 @@ list_tordataset(dns_rdatalist_t *rdatalist,
  * not made available anywhere else.
  */
 
-static isc_result_t
+static void
 dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 		  const dns_name_t *name, dns_rdataclass_t rdclass,
 		  dns_db_t **dbp)
@@ -1536,20 +1508,14 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 
 	/* allocate and zero memory for driver structure */
 	sdlzdb = isc_mem_get(mctx, sizeof(dns_sdlz_db_t));
-	if (sdlzdb == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(sdlzdb, 0, sizeof(dns_sdlz_db_t));
 
 	/* initialize and set origin */
 	dns_name_init(&sdlzdb->common.origin, NULL);
-	result = dns_name_dupwithoffsets(name, mctx, &sdlzdb->common.origin);
-	if (result != ISC_R_SUCCESS)
-		goto mem_cleanup;
+	dns_name_dupwithoffsets(name, mctx, &sdlzdb->common.origin);
 
 	/* initialize the reference count mutex */
-	result = isc_mutex_init(&sdlzdb->refcnt_lock);
-	if (result != ISC_R_SUCCESS)
-		goto name_cleanup;
+	isc_mutex_init(&sdlzdb->refcnt_lock);
 
 	/* set the rest of the database structure attributes */
 	sdlzdb->dlzimp = imp;
@@ -1567,18 +1533,6 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 	sdlzdb->common.magic = DNS_DB_MAGIC;
 	sdlzdb->common.impmagic = SDLZDB_MAGIC;
 	*dbp = (dns_db_t *) sdlzdb;
-
-	return (result);
-
-	/*
-	 * reference count mutex could not be initialized, clean up
-	 * name memory
-	 */
- name_cleanup:
-	dns_name_free(&sdlzdb->common.origin, mctx);
- mem_cleanup:
-	isc_mem_put(mctx, sdlzdb, sizeof(dns_sdlz_db_t));
-	return (result);
 }
 
 static isc_result_t
@@ -1634,9 +1588,10 @@ dns_sdlzallowzonexfr(void *driverarg, void *dbdata, isc_mem_t *mctx,
 		 * if zone is supported and transfers allowed build a 'bind'
 		 * database driver
 		 */
-		if (result == ISC_R_SUCCESS)
-			result = dns_sdlzcreateDBP(mctx, driverarg, dbdata,
+		if (result == ISC_R_SUCCESS) {
+			dns_sdlzcreateDBP(mctx, driverarg, dbdata,
 						   name, rdclass, dbp);
+		}
 		return (result);
 	}
 
@@ -1740,7 +1695,7 @@ dns_sdlzfindzone(void *driverarg, void *dbdata, isc_mem_t *mctx,
 	 * structure to return
 	 */
 	if (result == ISC_R_SUCCESS)
-		result = dns_sdlzcreateDBP(mctx, driverarg, dbdata, name,
+		dns_sdlzcreateDBP(mctx, driverarg, dbdata, name,
 					   rdclass, dbp);
 
 	return (result);
@@ -1881,8 +1836,6 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 
 	if (rdatalist == NULL) {
 		rdatalist = isc_mem_get(mctx, sizeof(dns_rdatalist_t));
-		if (rdatalist == NULL)
-			return (ISC_R_NOMEMORY);
 		dns_rdatalist_init(rdatalist);
 		rdatalist->rdclass = lookup->sdlz->common.rdclass;
 		rdatalist->type = typeval;
@@ -1901,8 +1854,6 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 		}
 
 	rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
-	if (rdata == NULL)
-		return (ISC_R_NOMEMORY);
 	dns_rdata_init(rdata);
 
 	if ((lookup->sdlz->dlzimp->flags & DNS_SDLZFLAG_RELATIVERDATA) != 0)
@@ -1911,23 +1862,17 @@ dns_sdlz_putrr(dns_sdlzlookup_t *lookup, const char *type, dns_ttl_t ttl,
 		origin = dns_rootname;
 
 	lex = NULL;
-	result = isc_lex_create(mctx, 64, &lex);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	isc_lex_create(mctx, 64, &lex);
 
 	size = initial_size(data);
 	do {
 		isc_buffer_constinit(&b, data, strlen(data));
 		isc_buffer_add(&b, strlen(data));
 
-		result = isc_lex_openbuffer(lex, &b);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
+		isc_lex_openbuffer(lex, &b);
 
 		rdatabuf = NULL;
-		result = isc_buffer_allocate(mctx, &rdatabuf, size);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
+		isc_buffer_allocate(mctx, &rdatabuf, size);
 
 		result = dns_rdata_fromtext(rdata, rdatalist->rdclass,
 					    rdatalist->type, lex,
@@ -1999,21 +1944,10 @@ dns_sdlz_putnamedrr(dns_sdlzallnodes_t *allnodes, const char *name,
 	sdlznode = ISC_LIST_HEAD(allnodes->nodelist);
 	if (sdlznode == NULL || !dns_name_equal(sdlznode->name, newname)) {
 		sdlznode = NULL;
-		result = createnode(sdlz, &sdlznode);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		createnode(sdlz, &sdlznode);
 		sdlznode->name = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (sdlznode->name == NULL) {
-			destroynode(sdlznode);
-			return (ISC_R_NOMEMORY);
-		}
 		dns_name_init(sdlznode->name, NULL);
-		result = dns_name_dup(newname, mctx, sdlznode->name);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, sdlznode->name, sizeof(dns_name_t));
-			destroynode(sdlznode);
-			return (result);
-		}
+		dns_name_dup(newname, mctx, sdlznode->name);
 		ISC_LIST_PREPEND(allnodes->nodelist, sdlznode, link);
 		if (allnodes->origin == NULL &&
 		    dns_name_equal(newname, &sdlz->common.origin))
@@ -2072,8 +2006,6 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	 * we cannot.
 	 */
 	imp = isc_mem_get(mctx, sizeof(dns_sdlzimplementation_t));
-	if (imp == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/* Make sure memory region is set to all 0's */
 	memset(imp, 0, sizeof(dns_sdlzimplementation_t));
@@ -2091,13 +2023,7 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	 * initialize the driver lock, error if we cannot
 	 * (used if a driver does not support multiple threads)
 	 */
-	result = isc_mutex_init(&imp->driverlock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		goto cleanup_mctx;
-	}
+	isc_mutex_init(&imp->driverlock);
 
 	imp->dlz_imp = NULL;
 
@@ -2166,14 +2092,11 @@ dns_sdlzunregister(dns_sdlzimplementation_t **sdlzimp) {
 }
 
 
-isc_result_t
+void
 dns_sdlz_setdb(dns_dlzdb_t *dlzdatabase, dns_rdataclass_t rdclass,
 	       const dns_name_t *name, dns_db_t **dbp)
 {
-	isc_result_t result;
-
-	result = dns_sdlzcreateDBP(dlzdatabase->mctx,
+	dns_sdlzcreateDBP(dlzdatabase->mctx,
 				   dlzdatabase->implementation->driverarg,
 				   dlzdatabase->dbdata, name, rdclass, dbp);
-	return (result);
 }

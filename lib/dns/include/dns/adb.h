@@ -251,7 +251,7 @@ struct dns_adbaddrinfo {
  ****/
 
 
-isc_result_t
+void
 dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
 	       isc_taskmgr_t *taskmgr, dns_adb_t **newadb);
 /*%<
@@ -273,11 +273,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *tmgr,
  *\li	'taskmgr' be a pointer to a valid task manager.
  *
  *\li	'newadb' != NULL && '*newadb' == NULL.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS	after happiness.
- *\li	#ISC_R_NOMEMORY	after resource allocation failure.
  */
 
 void

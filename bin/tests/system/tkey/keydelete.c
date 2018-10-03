@@ -79,8 +79,7 @@ recvquery(isc_task_t *task, isc_event_t *event) {
 	query = reqev->ev_arg;
 
 	response = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
 	result = dns_request_getresponse(reqev->request, response,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
@@ -120,8 +119,7 @@ sendquery(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_fromin(&address, &inaddr, PORT);
 
 	query = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &query);
 
 	result = dns_tkey_builddeletequery(query, tsigkey);
 	CHECK("dns_tkey_builddeletequery", result);
@@ -169,7 +167,7 @@ main(int argc, char **argv) {
 	dns_result_register();
 
 	mctx = NULL;
-	RUNCHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(0, 0, &mctx);
 
 	log = NULL;
 	logconfig = NULL;
@@ -182,11 +180,11 @@ main(int argc, char **argv) {
 	task = NULL;
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	timermgr = NULL;
-	RUNCHECK(isc_timermgr_create(mctx, &timermgr));
+	isc_timermgr_create(mctx, &timermgr);
 	socketmgr = NULL;
 	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
 	dispatchmgr = NULL;
-	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	dns_dispatchmgr_create(mctx, &dispatchmgr);
 	isc_sockaddr_any(&bind_any);
 	attrs = DNS_DISPATCHATTR_UDP |
 		DNS_DISPATCHATTR_MAKEQUERY |
@@ -200,12 +198,12 @@ main(int argc, char **argv) {
 					  &bind_any, 4096, 4, 2, 3, 5,
 					  attrs, attrmask, &dispatchv4));
 	requestmgr = NULL;
-	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
+	dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
 					    dispatchmgr, dispatchv4, NULL,
-					    &requestmgr));
+					    &requestmgr);
 
 	ring = NULL;
-	RUNCHECK(dns_tsigkeyring_create(mctx, &ring));
+	dns_tsigkeyring_create(mctx, &ring);
 	tctx = NULL;
 	RUNCHECK(dns_tkeyctx_create(mctx, &tctx));
 

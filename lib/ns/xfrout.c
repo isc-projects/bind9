@@ -1297,8 +1297,8 @@ sendstream(xfrout_ctx_t *xfr) {
 		 * message.
 		 */
 
-		CHECK(dns_message_create(xfr->mctx,
-					 DNS_MESSAGE_INTENTRENDER, &tcpmsg));
+		dns_message_create(xfr->mctx,
+					 DNS_MESSAGE_INTENTRENDER, &tcpmsg);
 		msg = tcpmsg;
 
 		msg->id = xfr->id;
@@ -1495,7 +1495,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	}
 
 	if (is_tcp) {
-		CHECK(dns_compress_init(&cctx, -1, xfr->mctx));
+		dns_compress_init(&cctx, -1, xfr->mctx);
 		dns_compress_setsensitive(&cctx, true);
 		cleanup_cctx = true;
 		CHECK(dns_message_renderbegin(msg, &cctx, &xfr->txbuf));

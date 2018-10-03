@@ -234,20 +234,20 @@ struct isc_mempool {
 	} while (0)
 
 /*@{*/
-isc_result_t
+void
 isc_mem_create(size_t max_size, size_t target_size,
 	       isc_mem_t **mctxp);
 
-isc_result_t
+void
 isc_mem_create2(size_t max_size, size_t target_size,
 		isc_mem_t **mctxp, unsigned int flags);
 
-isc_result_t
+void
 isc_mem_createx(size_t max_size, size_t target_size,
 		isc_memalloc_t memalloc, isc_memfree_t memfree,
 		void *arg, isc_mem_t **mctxp);
 
-isc_result_t
+void
 isc_mem_createx2(size_t max_size, size_t target_size,
 		 isc_memalloc_t memalloc, isc_memfree_t memfree,
 		 void *arg, isc_mem_t **mctxp, unsigned int flags);
@@ -503,7 +503,7 @@ isc_mem_renderjson(json_object *memobj);
  * Memory pools
  */
 
-isc_result_t
+void
 isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp);
 /*%<
  * Create a memory pool.
@@ -518,9 +518,6 @@ isc_mempool_create(isc_mem_t *mctx, size_t size, isc_mempool_t **mpctxp);
  *\li	freemax = 1
  *\li	fillcount = 1
  *
- * Returns:
- *\li	#ISC_R_NOMEMORY		-- not enough memory to create pool
- *\li	#ISC_R_SUCCESS		-- all is well.
  */
 
 void

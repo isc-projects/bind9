@@ -352,7 +352,7 @@ tostruct_in_a6(ARGS_TOSTRUCT) {
 	if (a6->prefixlen != 0) {
 		dns_name_init(&name, NULL);
 		dns_name_fromregion(&name, &r);
-		RETERR(name_duporclone(&name, mctx, &a6->prefix));
+		name_duporclone(&name, mctx, &a6->prefix);
 	}
 	a6->mctx = mctx;
 	return (ISC_R_SUCCESS);

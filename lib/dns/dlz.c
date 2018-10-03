@@ -83,7 +83,7 @@ static isc_once_t once = ISC_ONCE_INIT;
 
 static void
 dlz_initialize(void) {
-	RUNTIME_CHECK(isc_rwlock_init(&dlz_implock, 0, 0) == ISC_R_SUCCESS);
+	isc_rwlock_init(&dlz_implock, 0, 0);
 	ISC_LIST_INIT(dlz_implementations);
 }
 
@@ -476,10 +476,8 @@ dns_dlz_writeablezone(dns_view_t *view, dns_dlzdb_t *dlzdb,
 	dns_zone_setadded(zone, true);
 
 	if (dlzdb->ssutable == NULL) {
-		result = dns_ssutable_createdlz(dlzdb->mctx,
+		dns_ssutable_createdlz(dlzdb->mctx,
 						&dlzdb->ssutable, dlzdb);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
 	}
 	dns_zone_setssutable(zone, dlzdb->ssutable);
 

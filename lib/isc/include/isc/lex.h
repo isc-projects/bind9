@@ -138,7 +138,7 @@ typedef struct isc_token {
  *** Functions
  ***/
 
-isc_result_t
+void
 isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp);
 /*%<
  * Create a lexer.
@@ -150,10 +150,6 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp);
  *
  * Ensures:
  *\li	On success, *lexp is attached to the newly created lexer.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 void
@@ -233,7 +229,7 @@ isc_lex_openfile(isc_lex_t *lex, const char *filename);
  *\li	#ISC_R_UNEXPECTED
  */
 
-isc_result_t
+void
 isc_lex_openstream(isc_lex_t *lex, FILE *stream);
 /*%<
  * Make 'stream' the current input source for 'lex'.
@@ -243,12 +239,9 @@ isc_lex_openstream(isc_lex_t *lex, FILE *stream);
  *
  *\li	'stream' is a valid C stream.
  *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY			Out of memory
  */
 
-isc_result_t
+void
 isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer);
 /*%<
  * Make 'buffer' the current input source for 'lex'.
@@ -258,9 +251,6 @@ isc_lex_openbuffer(isc_lex_t *lex, isc_buffer_t *buffer);
  *
  *\li	'buffer' is a valid buffer.
  *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY			Out of memory
  */
 
 isc_result_t

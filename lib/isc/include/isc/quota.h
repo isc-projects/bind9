@@ -48,14 +48,11 @@ struct isc_quota {
 	int		soft;
 };
 
-isc_result_t
+void
 isc_quota_init(isc_quota_t *quota, int max);
 /*%<
  * Initialize a quota object.
  *
- * Returns:
- * 	ISC_R_SUCCESS
- *	Other error	Lock creation failed.
  */
 
 void

@@ -491,7 +491,7 @@ isc_buffer_putdecint(isc_buffer_t *b, int64_t v) {
 	b->used += l;
 }
 
-isc_result_t
+void
 isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src) {
 	isc_buffer_t *dst = NULL;
 	isc_region_t region;
@@ -502,14 +502,11 @@ isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src) {
 
 	isc_buffer_usedregion(src, &region);
 
-	result = isc_buffer_allocate(mctx, &dst, region.length);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(mctx, &dst, region.length);
 
 	result = isc_buffer_copyregion(dst, &region);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS); /* NOSPACE is impossible */
 	*dstp = dst;
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -541,7 +538,7 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 		    unsigned int length)
 {
@@ -551,14 +548,8 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	REQUIRE(*dynbuffer == NULL);
 
 	dbuf = isc_mem_get(mctx, sizeof(isc_buffer_t));
-	if (dbuf == NULL)
-		return (ISC_R_NOMEMORY);
 
 	bdata = isc_mem_get(mctx, length);
-	if (bdata == NULL) {
-		isc_mem_put(mctx, dbuf, sizeof(isc_buffer_t));
-		return (ISC_R_NOMEMORY);
-	}
 
 	isc_buffer_init(dbuf, bdata, length);
 	dbuf->mctx = mctx;
@@ -566,8 +557,6 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	ENSURE(ISC_BUFFER_VALID(dbuf));
 
 	*dynbuffer = dbuf;
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -606,9 +595,6 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 	 * isc_mem_reallocate(), which has additional issues.
 	 */
 	bdata = isc_mem_get((*dynbuffer)->mctx, (unsigned int) len);
-	if (bdata == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	memmove(bdata, (*dynbuffer)->base, (*dynbuffer)->length);
 	isc_mem_put((*dynbuffer)->mctx, (*dynbuffer)->base,

@@ -100,15 +100,11 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		return (result);
 	}
 
-	result = isc_lex_create(named_g_mctx, strlen(cmdline), &lex);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_lex_create(named_g_mctx, strlen(cmdline), &lex);
 
 	isc_buffer_init(&src, cmdline, strlen(cmdline));
 	isc_buffer_add(&src, strlen(cmdline));
-	result = isc_lex_openbuffer(lex, &src);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_lex_openbuffer(lex, &src);
 
 	result = getcommand(lex, &command);
 	if (result != ISC_R_SUCCESS)

@@ -379,13 +379,14 @@ locator_pton(const char *src, unsigned char *dst) {
 	return (1);
 }
 
-static inline isc_result_t
+static inline void
 name_duporclone(const dns_name_t *source, isc_mem_t *mctx, dns_name_t *target) {
 
-	if (mctx != NULL)
-		return (dns_name_dup(source, mctx, target));
-	dns_name_clone(source, target);
-	return (ISC_R_SUCCESS);
+	if (mctx != NULL) {
+		dns_name_dup(source, mctx, target);
+	} else {
+		dns_name_clone(source, target);
+	}
 }
 
 static inline void *
@@ -395,8 +396,7 @@ mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
 	if (mctx == NULL)
 		return (source);
 	copy = isc_mem_allocate(mctx, length);
-	if (copy != NULL)
-		memmove(copy, source, length);
+	memmove(copy, source, length);
 
 	return (copy);
 }
@@ -864,9 +864,7 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 					false));
 	if (token.value.as_ulong > 65535U)
 		return (ISC_R_RANGE);
-	result = isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(mctx, &buf, token.value.as_ulong);
 
 	result = isc_hex_tobuffer(lexer, buf,
 				  (unsigned int)token.value.as_ulong);

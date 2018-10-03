@@ -192,7 +192,7 @@ struct isc_buffer {
  *** Functions
  ***/
 
-isc_result_t
+void
 isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 		    unsigned int length);
 /*!<
@@ -711,7 +711,7 @@ isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r);
  *					big enough.
  */
 
-isc_result_t
+void
 isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src);
 /*!<
  * \brief Allocate 'dst' and copy used contents  of 'src' into it

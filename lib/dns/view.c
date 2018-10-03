@@ -94,54 +94,28 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
 	view = isc_mem_get(mctx, sizeof(*view));
-	if (view == NULL)
-		return (ISC_R_NOMEMORY);
 
 	view->nta_file = NULL;
 	view->mctx = NULL;
 	isc_mem_attach(mctx, &view->mctx);
 	view->name = isc_mem_strdup(mctx, name);
-	if (view->name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_view;
-	}
 
 	result = isc_file_sanitize(NULL, view->name, "nta",
 				   buffer, sizeof(buffer));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_name;
 	view->nta_file = isc_mem_strdup(mctx, buffer);
-	if (view->nta_file == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_name;
-	}
 
-	result = isc_mutex_init(&view->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_name;
+	isc_mutex_init(&view->lock);
 
 	view->zonetable = NULL;
 	if (isc_bind9) {
-		result = dns_zt_create(mctx, rdclass, &view->zonetable);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "dns_zt_create() failed: %s",
-					 isc_result_totext(result));
-			result = ISC_R_UNEXPECTED;
-			goto cleanup_mutex;
-		}
+		dns_zt_create(mctx, rdclass, &view->zonetable);
 	}
 	view->secroots_priv = NULL;
 	view->ntatable_priv = NULL;
 	view->fwdtable = NULL;
-	result = dns_fwdtable_create(mctx, &view->fwdtable);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "dns_fwdtable_create() failed: %s",
-				 isc_result_totext(result));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_zt;
-	}
+	dns_fwdtable_create(mctx, &view->fwdtable);
 
 	view->cache = NULL;
 	view->cachedb = NULL;
@@ -163,9 +137,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->matchclients = NULL;
 	view->matchdestinations = NULL;
 	view->matchrecursiveonly = false;
-	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_references;
+	dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	view->peers = NULL;
 	view->order = NULL;
 	view->delonly = NULL;
@@ -260,9 +232,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
-	result = isc_mutex_init(&view->new_zone_lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_dynkeys;
+	isc_mutex_init(&view->new_zone_lock);
 
 	if (isc_bind9) {
 		result = dns_order_create(view->mctx, &view->order);
@@ -274,9 +244,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_order;
 
-	result = dns_aclenv_init(view->mctx, &view->aclenv);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_peerlist;
+	dns_aclenv_init(view->mctx, &view->aclenv);
 
 	ISC_LINK_INIT(view, link);
 	ISC_EVENT_INIT(&view->resevent, sizeof(view->resevent), 0, NULL,
@@ -774,17 +742,17 @@ req_shutdown(isc_task_t *task, isc_event_t *event) {
 		destroy(view);
 }
 
-isc_result_t
+void
 dns_view_createzonetable(dns_view_t *view) {
 
 	REQUIRE(DNS_VIEW_VALID(view));
 	REQUIRE(!view->frozen);
 	REQUIRE(view->zonetable == NULL);
 
-	return (dns_zt_create(view->mctx, view->rdclass, &view->zonetable));
+	dns_zt_create(view->mctx, view->rdclass, &view->zonetable);
 }
 
-isc_result_t
+void
 dns_view_createresolver(dns_view_t *view,
 			isc_taskmgr_t *taskmgr,
 			unsigned int ntasks,
@@ -804,55 +772,34 @@ dns_view_createresolver(dns_view_t *view,
 	REQUIRE(!view->frozen);
 	REQUIRE(view->resolver == NULL);
 
-	result = isc_task_create(taskmgr, 0, &view->task);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &view->task) == ISC_R_SUCCESS);
 	isc_task_setname(view->task, "view", view);
 
-	result = dns_resolver_create(view, taskmgr, ntasks, ndisp, socketmgr,
+	dns_resolver_create(view, taskmgr, ntasks, ndisp, socketmgr,
 				     timermgr, options, dispatchmgr,
 				     dispatchv4, dispatchv6,
 				     &view->resolver);
-	if (result != ISC_R_SUCCESS) {
-		isc_task_detach(&view->task);
-		return (result);
-	}
 	event = &view->resevent;
 	dns_resolver_whenshutdown(view->resolver, view->task, &event);
 	view->attributes &= ~DNS_VIEWATTR_RESSHUTDOWN;
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS) {
-		dns_resolver_shutdown(view->resolver);
-		return (result);
-	}
+	isc_mem_create(0, 0, &mctx);
 
-	result = dns_adb_create(mctx, view, timermgr, taskmgr, &view->adb);
+	dns_adb_create(mctx, view, timermgr, taskmgr, &view->adb);
 	isc_mem_setname(mctx, "ADB", NULL);
 	isc_mem_detach(&mctx);
-	if (result != ISC_R_SUCCESS) {
-		dns_resolver_shutdown(view->resolver);
-		return (result);
-	}
 	event = &view->adbevent;
 	dns_adb_whenshutdown(view->adb, view->task, &event);
 	view->attributes &= ~DNS_VIEWATTR_ADBSHUTDOWN;
 
-	result = dns_requestmgr_create(view->mctx, timermgr, socketmgr,
+	dns_requestmgr_create(view->mctx, timermgr, socketmgr,
 				      dns_resolver_taskmgr(view->resolver),
 				      dns_resolver_dispatchmgr(view->resolver),
 				      dispatchv4, dispatchv6,
 				      &view->requestmgr);
-	if (result != ISC_R_SUCCESS) {
-		dns_adb_shutdown(view->adb);
-		dns_resolver_shutdown(view->resolver);
-		return (result);
-	}
 	event = &view->reqevent;
 	dns_requestmgr_whenshutdown(view->requestmgr, view->task, &event);
 	view->attributes &= ~DNS_VIEWATTR_REQSHUTDOWN;
-
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -1658,9 +1605,8 @@ dns_view_flushnode(dns_view_t *view, const dns_name_t *name,
 	return (result);
 }
 
-isc_result_t
+void
 dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
-	isc_result_t result;
 	dns_name_t *item;
 	uint32_t hash;
 
@@ -1670,8 +1616,6 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 		view->delonly = isc_mem_get(view->mctx,
 					    sizeof(dns_namelist_t) *
 					    DNS_VIEW_DELONLYHASH);
-		if (view->delonly == NULL)
-			return (ISC_R_NOMEMORY);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
 			ISC_LIST_INIT(view->delonly[hash]);
 	}
@@ -1680,20 +1624,14 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 	while (item != NULL && !dns_name_equal(item, name))
 		item = ISC_LIST_NEXT(item, link);
 	if (item != NULL)
-		return (ISC_R_SUCCESS);
+		return;
 	item = isc_mem_get(view->mctx, sizeof(*item));
-	if (item == NULL)
-		return (ISC_R_NOMEMORY);
 	dns_name_init(item, NULL);
-	result = dns_name_dup(name, view->mctx, item);
-	if (result == ISC_R_SUCCESS)
-		ISC_LIST_APPEND(view->delonly[hash], item, link);
-	else
-		isc_mem_put(view->mctx, item, sizeof(*item));
-	return (result);
+	dns_name_dup(name, view->mctx, item);
+	ISC_LIST_APPEND(view->delonly[hash], item, link);
 }
 
-isc_result_t
+void
 dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 	isc_result_t result;
 	dns_name_t *item;
@@ -1705,8 +1643,6 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 		view->rootexclude = isc_mem_get(view->mctx,
 					    sizeof(dns_namelist_t) *
 					    DNS_VIEW_DELONLYHASH);
-		if (view->rootexclude == NULL)
-			return (ISC_R_NOMEMORY);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
 			ISC_LIST_INIT(view->rootexclude[hash]);
 	}
@@ -1715,17 +1651,11 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 	while (item != NULL && !dns_name_equal(item, name))
 		item = ISC_LIST_NEXT(item, link);
 	if (item != NULL)
-		return (ISC_R_SUCCESS);
+		return;
 	item = isc_mem_get(view->mctx, sizeof(*item));
-	if (item == NULL)
-		return (ISC_R_NOMEMORY);
 	dns_name_init(item, NULL);
-	result = dns_name_dup(name, view->mctx, item);
-	if (result == ISC_R_SUCCESS)
-		ISC_LIST_APPEND(view->rootexclude[hash], item, link);
-	else
-		isc_mem_put(view->mctx, item, sizeof(*item));
-	return (result);
+	dns_name_dup(name, view->mctx, item);
+	ISC_LIST_APPEND(view->rootexclude[hash], item, link);
 }
 
 bool
@@ -1857,12 +1787,12 @@ dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp) {
 	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx) {
 	REQUIRE(DNS_VIEW_VALID(view));
 	if (view->secroots_priv != NULL)
 		dns_keytable_detach(&view->secroots_priv);
-	return (dns_keytable_create(mctx, &view->secroots_priv));
+	dns_keytable_create(mctx, &view->secroots_priv);
 }
 
 isc_result_t
@@ -2323,7 +2253,7 @@ dns_view_loadnta(dns_view_t *view) {
 	if (view->nta_lifetime == 0)
 		return (ISC_R_SUCCESS);
 
-	CHECK(isc_lex_create(view->mctx, 1025, &lex));
+	isc_lex_create(view->mctx, 1025, &lex);
 	CHECK(isc_lex_openfile(lex, view->nta_file));
 	CHECK(dns_view_getntatable(view, &ntatable));
 	isc_stdtime_get(&now);

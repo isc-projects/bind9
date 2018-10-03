@@ -156,9 +156,7 @@ dst__openssl_init(const char *engine) {
 	locks = mem_alloc(sizeof(isc_mutex_t) * nlocks FILELINE);
 	if (locks == NULL)
 		return (ISC_R_NOMEMORY);
-	result = isc_mutexblock_init(locks, nlocks);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mutexalloc;
+	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(lock_callback);
 # if defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_id_callback(id_callback);

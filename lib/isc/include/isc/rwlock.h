@@ -68,7 +68,7 @@ struct isc_rwlock {
 
 };
 
-isc_result_t
+void
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota);
 

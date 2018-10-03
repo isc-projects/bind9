@@ -109,7 +109,7 @@ struct dns_aclenv {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
 /*%<
  * Create a new ACL, including an IP table and an array with room
@@ -117,13 +117,13 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target);
  * length is 0.
  */
 
-isc_result_t
+void
 dns_acl_any(isc_mem_t *mctx, dns_acl_t **target);
 /*%<
  * Create a new ACL that matches everything.
  */
 
-isc_result_t
+void
 dns_acl_none(isc_mem_t *mctx, dns_acl_t **target);
 /*%<
  * Create a new ACL that matches nothing.
@@ -141,7 +141,7 @@ dns_acl_isnone(dns_acl_t *acl);
  * Test whether ACL is set to "{ none; }"
  */
 
-isc_result_t
+void
 dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos);
 /*%<
  * Merge the contents of one ACL into another.  Call dns_iptable_merge()
@@ -195,7 +195,7 @@ dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
  * permitted by 'acl' in environment 'aclenv'.
  */
 
-isc_result_t
+void
 dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env);
 /*%<
  * Initialize ACL environment, setting up localhost and localnets ACLs

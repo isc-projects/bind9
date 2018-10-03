@@ -372,7 +372,7 @@ dns_view_weakdetach(dns_view_t **targetp);
  *\li	*viewp is NULL.
  */
 
-isc_result_t
+void
 dns_view_createzonetable(dns_view_t *view);
 /*%<
  * Create a zonetable for the view.
@@ -383,14 +383,9 @@ dns_view_createzonetable(dns_view_t *view);
  *
  *\li	'view' does not have a zonetable already.
  *
- * Returns:
- *
- *\li   	#ISC_R_SUCCESS
- *
- *\li	Any error that dns_zt_create() can return.
  */
 
-isc_result_t
+void
 dns_view_createresolver(dns_view_t *view,
 			isc_taskmgr_t *taskmgr,
 			unsigned int ntasks, unsigned int ndisp,
@@ -412,12 +407,6 @@ dns_view_createresolver(dns_view_t *view,
  *\li	The requirements of dns_resolver_create() apply to 'taskmgr',
  *	'ntasks', 'socketmgr', 'timermgr', 'options', 'dispatchv4', and
  *	'dispatchv6'.
- *
- * Returns:
- *
- *\li   	#ISC_R_SUCCESS
- *
- *\li	Any error that dns_resolver_create() can return.
  */
 
 void
@@ -950,7 +939,7 @@ dns_view_flushname(dns_view_t *view, const dns_name_t *name);
  *	other returns are failures.
  */
 
-isc_result_t
+void
 dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name);
 /*%<
  * Add the given name to the delegation only table.
@@ -958,13 +947,9 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name);
  * Requires:
  *\li	'view' is valid.
  *\li	'name' is valid.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
-isc_result_t
+void
 dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name);
 /*%<
  * Add the given name to be excluded from the root-delegation-only.
@@ -973,10 +958,6 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name);
  * Requires:
  *\li	'view' is valid.
  *\li	'name' is valid.
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 bool
@@ -1142,7 +1123,7 @@ dns_view_getntatable(dns_view_t *view, dns_ntatable_t **ntp);
  *\li	ISC_R_NOTFOUND
  */
 
-isc_result_t
+void
 dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx);
 /*%<
  * Initialize security roots for the view, detaching any previously
@@ -1154,10 +1135,6 @@ dns_view_initsecroots(dns_view_t *view, isc_mem_t *mctx);
  *
  * Requires:
  * \li	'view' is valid.
- *
- * Returns:
- *\li	ISC_R_SUCCESS
- *\li	Any other result indicates failure
  */
 
 isc_result_t

@@ -65,7 +65,7 @@ compare(const void *arg1, const void *arg2) {
 	return (0);
 }
 
-isc_result_t
+void
 dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
 	dns_portlist_t *portlist;
 	isc_result_t result;
@@ -73,13 +73,7 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
 	REQUIRE(portlistp != NULL && *portlistp == NULL);
 
 	portlist = isc_mem_get(mctx, sizeof(*portlist));
-	if (portlist == NULL)
-		return (ISC_R_NOMEMORY);
-	result = isc_mutex_init(&portlist->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, portlist, sizeof(*portlist));
-		return (result);
-	}
+	isc_mutex_init(&portlist->lock);
 	isc_refcount_init(&portlist->refcount, 1);
 	portlist->list = NULL;
 	portlist->allocated = 0;
@@ -88,7 +82,6 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
 	isc_mem_attach(mctx, &portlist->mctx);
 	portlist->magic = DNS_PORTLIST_MAGIC;
 	*portlistp = portlist;
-	return (ISC_R_SUCCESS);
 }
 
 static dns_element_t *
@@ -124,10 +117,9 @@ find_port(dns_element_t *list, unsigned int len, in_port_t port) {
 	return (NULL);
 }
 
-isc_result_t
+void
 dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port) {
 	dns_element_t *el;
-	isc_result_t result;
 
 	REQUIRE(DNS_VALID_PORTLIST(portlist));
 	REQUIRE(af == AF_INET || af == AF_INET6);
@@ -140,7 +132,6 @@ dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port) {
 				el->flags |= DNS_PL_INET;
 			else
 				el->flags |= DNS_PL_INET6;
-			result = ISC_R_SUCCESS;
 			goto unlock;
 		}
 	}
@@ -149,10 +140,6 @@ dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port) {
 		unsigned int allocated;
 		allocated = portlist->allocated + DNS_PL_ALLOCATE;
 		el = isc_mem_get(portlist->mctx, sizeof(*el) * allocated);
-		if (el == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto unlock;
-		}
 		if (portlist->list != NULL) {
 			memmove(el, portlist->list,
 				portlist->allocated * sizeof(*el));
@@ -169,10 +156,8 @@ dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port) {
 		portlist->list[portlist->active].flags = DNS_PL_INET6;
 	portlist->active++;
 	qsort(portlist->list, portlist->active, sizeof(*el), compare);
-	result = ISC_R_SUCCESS;
  unlock:
 	UNLOCK(&portlist->lock);
-	return (result);
 }
 
 void

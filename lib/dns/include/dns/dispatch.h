@@ -146,7 +146,7 @@ struct dns_dispatchset {
  */
 #define DNS_DISPATCHOPT_FIXEDID		0x00000001U
 
-isc_result_t
+void
 dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
 /*%<
  * Creates a new dispatchmgr object.
@@ -155,11 +155,6 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp);
  *\li	"mctx" be a valid memory context.
  *
  *\li	mgrp != NULL && *mgrp == NULL
- *
- * Returns:
- *\li	ISC_R_SUCCESS	-- all ok
- *
- *\li	anything else	-- failure
  */
 
 
@@ -217,7 +212,7 @@ dns_dispatchmgr_getblackportlist(dns_dispatchmgr_t *mgr);
  *\li	mgr is a valid dispatchmgr
  */
 
-isc_result_t
+void
 dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 			      isc_portset_t *v6portset);
 /*%<
@@ -286,7 +281,7 @@ dns_dispatch_getudp_dup(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
  *\li	Anything else	-- failure.
  */
 
-isc_result_t
+void
 dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 		       isc_taskmgr_t *taskmgr, const isc_sockaddr_t *localaddr,
 		       const isc_sockaddr_t *destaddr, unsigned int buffersize,

@@ -190,9 +190,7 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 
 	dns_name_init(&nentry->name, NULL);
 	if (domain != NULL) {
-		result = dns_name_dup(domain, mctx, &nentry->name);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		dns_name_dup(domain, mctx, &nentry->name);
 	}
 
 	dns_catz_options_init(&nentry->opts);
@@ -354,33 +352,19 @@ dns_catz_zones_merge(dns_catz_zone_t *target, dns_catz_zone_t *newzone) {
 
 	dns_name_format(&target->name, czname, DNS_NAME_FORMATSIZE);
 
-	result = isc_ht_init(&toadd, target->catzs->mctx, 16);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_ht_init(&toadd, target->catzs->mctx, 16);
 
-	result = isc_ht_init(&tomod, target->catzs->mctx, 16);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_ht_init(&tomod, target->catzs->mctx, 16);
+	isc_ht_iter_create(newzone->entries, &iter1);
 
-	result = isc_ht_iter_create(newzone->entries, &iter1);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	result = isc_ht_iter_create(target->entries, &iter2);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_ht_iter_create(target->entries, &iter2);
 
 	/*
 	 * We can create those iterators now, even though toadd and tomod are
 	 * empty
 	 */
-	result = isc_ht_iter_create(toadd, &iteradd);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	result = isc_ht_iter_create(tomod, &itermod);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_ht_iter_create(toadd, &iteradd);
+	isc_ht_iter_create(tomod, &itermod);
 
 	/*
 	 * First - walk the new zone and find all nodes that are not in the
@@ -541,7 +525,7 @@ cleanup:
 
 }
 
-isc_result_t
+void
 dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 		   isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr)
@@ -553,41 +537,22 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 	REQUIRE(zmm != NULL);
 
 	new_zones = isc_mem_get(mctx, sizeof(*new_zones));
-	if (new_zones == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(new_zones, 0, sizeof(*new_zones));
 
-	result = isc_mutex_init(&new_zones->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_newzones;
+	isc_mutex_init(&new_zones->lock);
 
 	isc_refcount_init(&new_zones->refs, 1);
 
-	result = isc_ht_init(&new_zones->zones, mctx, 4);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_refcount;
+	isc_ht_init(&new_zones->zones, mctx, 4);
 
 	isc_mem_attach(mctx, &new_zones->mctx);
 	new_zones->zmm = zmm;
 	new_zones->timermgr = timermgr;
 	new_zones->taskmgr = taskmgr;
 
-	result = isc_task_create(taskmgr, 0, &new_zones->updater);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_ht;
+	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &new_zones->updater) == ISC_R_SUCCESS);
 
 	*catzsp = new_zones;
-	return (ISC_R_SUCCESS);
-
-  cleanup_ht:
-	isc_ht_destroy(&new_zones->zones);
-  cleanup_refcount:
-	isc_refcount_destroy(&new_zones->refs);
-	isc_mutex_destroy(&new_zones->lock);
-  cleanup_newzones:
-	isc_mem_put(mctx, new_zones, sizeof(*new_zones));
-
-	return (result);
 }
 
 void
@@ -617,13 +582,9 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 
 	dns_name_init(&new_zone->name, NULL);
 
-	result = dns_name_dup(name, catzs->mctx, &new_zone->name);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_newzone;
+	dns_name_dup(name, catzs->mctx, &new_zone->name);
 
-	result = isc_ht_init(&new_zone->entries, catzs->mctx, 4);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_name;
+	isc_ht_init(&new_zone->entries, catzs->mctx, 4);
 
 	new_zone->updatetimer = NULL;
 	result = isc_timer_create(catzs->timermgr, isc_timertype_inactive,
@@ -744,8 +705,7 @@ dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 		if (zone->entries != NULL) {
 			isc_ht_iter_t *iter = NULL;
 			isc_result_t result;
-			result = isc_ht_iter_create(zone->entries, &iter);
-			INSIST(result == ISC_R_SUCCESS);
+			isc_ht_iter_create(zone->entries, &iter);
 			for (result = isc_ht_iter_first(iter);
 			     result == ISC_R_SUCCESS;
 			     result = isc_ht_iter_delcurrent_next(iter))
@@ -800,8 +760,7 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 		if (catzs->zones != NULL) {
 			isc_ht_iter_t *iter = NULL;
 			isc_result_t result;
-			result = isc_ht_iter_create(catzs->zones, &iter);
-			INSIST(result == ISC_R_SUCCESS);
+			isc_ht_iter_create(catzs->zones, &iter);
 			for (result = isc_ht_iter_first(iter);
 			     result == ISC_R_SUCCESS;)
 			{
@@ -917,12 +876,8 @@ catz_process_zones_entry(dns_catz_zone_t *zone, dns_rdataset_t *value,
 			dns_rdata_freestruct(&ptr);
 			return (ISC_R_FAILURE);
 		} else {
-			result = dns_name_dup(&ptr.ptr, zone->catzs->mctx,
+			dns_name_dup(&ptr.ptr, zone->catzs->mctx,
 					      &entry->name);
-			if (result != ISC_R_SUCCESS) {
-				dns_rdata_freestruct(&ptr);
-				return (result);
-			}
 		}
 	} else {
 		result = dns_catz_entry_new(zone->catzs->mctx, &ptr.ptr,
@@ -1116,11 +1071,7 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 				memmove(&ipkl->addrs[i], &sockaddr,
 					sizeof(isc_sockaddr_t));
 		} else {
-			result = dns_ipkeylist_resize(mctx, ipkl,
-						      i+1);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
-			}
+			dns_ipkeylist_resize(mctx, ipkl, i+1);
 
 			ipkl->labels[i] = isc_mem_get(mctx, sizeof(dns_name_t));
 			if (ipkl->labels[i] == NULL)  {
@@ -1132,15 +1083,7 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 				return (ISC_R_NOMEMORY);
 			}
 			dns_name_init(ipkl->labels[i], NULL);
-			result = dns_name_dup(name, mctx, ipkl->labels[i]);
-			if (result != ISC_R_SUCCESS) {
-				if (keyname != NULL) {
-					dns_name_free(keyname, mctx);
-					isc_mem_put(mctx, keyname,
-						    sizeof(dns_name_t));
-				}
-				return (result);
-			}
+			dns_name_dup(name, mctx, ipkl->labels[i]);
 
 			if (value->type == dns_rdatatype_txt)
 				ipkl->keys[i] = keyname;
@@ -1159,10 +1102,7 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 
 	rcount = dns_rdataset_count(value) + ipkl->count;
 
-	result = dns_ipkeylist_resize(mctx, ipkl, rcount);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
+	dns_ipkeylist_resize(mctx, ipkl, rcount);
 
 	for (result = dns_rdataset_first(value);
 	     result == ISC_R_SUCCESS;
@@ -1228,10 +1168,9 @@ catz_process_apl(dns_catz_zone_t *zone, isc_buffer_t **aclbp,
 	result = dns_rdata_tostruct(&rdata, &rdata_apl, zone->catzs->mctx);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = isc_buffer_allocate(zone->catzs->mctx, &aclb, 16);
+	isc_buffer_allocate(zone->catzs->mctx, &aclb, 16);
 	isc_buffer_setautorealloc(aclb, true);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+
 	for (result = dns_rdata_apl_first(&rdata_apl);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdata_apl_next(&rdata_apl)) {
@@ -1434,11 +1373,9 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	REQUIRE(entry != NULL);
 	REQUIRE(buffer != NULL && *buffer != NULL);
 
-	result = isc_buffer_allocate(zone->catzs->mctx, &tbuf,
+	isc_buffer_allocate(zone->catzs->mctx, &tbuf,
 				     strlen(zone->catzs->view->name) +
 				     2 * DNS_NAME_FORMATSIZE + 2);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 	INSIST(tbuf != NULL);
 
 	isc_buffer_putstr(tbuf, zone->catzs->view->name);
@@ -1515,11 +1452,8 @@ dns_catz_generate_zonecfg(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 	 * The buffer will be reallocated if something won't fit,
 	 * ISC_BUFFER_INCR seems like a good start.
 	 */
-	result = isc_buffer_allocate(zone->catzs->mctx, &buffer,
+	isc_buffer_allocate(zone->catzs->mctx, &buffer,
 				     ISC_BUFFER_INCR);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup;
-	}
 
 	isc_buffer_setautorealloc(buffer, true);
 	isc_buffer_putstr(buffer, "zone ");
@@ -1892,11 +1826,10 @@ dns_catz_update_from_db(dns_db_t *db, dns_catz_zones_t *catzs) {
 	 * call onupdate() artificially so we can register the callback here.
 	 */
 	if (oldzone->db_registered == false) {
-		result = dns_db_updatenotify_register(db,
+		dns_db_updatenotify_register(db,
 						    dns_catz_dbupdate_callback,
 						    oldzone->catzs);
-		if (result == ISC_R_SUCCESS)
-			oldzone->db_registered = true;
+		oldzone->db_registered = true;
 	}
 }
 
@@ -1908,8 +1841,7 @@ dns_catz_prereconfig(dns_catz_zones_t *catzs) {
 
 	REQUIRE(catzs != NULL);
 
-	result = isc_ht_iter_create(catzs->zones, &iter);
-	INSIST(result == ISC_R_SUCCESS);
+	isc_ht_iter_create(catzs->zones, &iter);
 	for (result = isc_ht_iter_first(iter);
 	     result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_next(iter))
@@ -1929,8 +1861,7 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs) {
 	dns_catz_zone_t *zone;
 
 	LOCK(&catzs->lock);
-	result = isc_ht_iter_create(catzs->zones, &iter);
-	INSIST(result == ISC_R_SUCCESS);
+	isc_ht_iter_create(catzs->zones, &iter);
 	for (result = isc_ht_iter_first(iter);
 	     result == ISC_R_SUCCESS;)
 	{
@@ -1967,7 +1898,7 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs) {
 	isc_ht_iter_destroy(&iter);
 }
 
-isc_result_t
+void
 dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp) {
-	return (isc_ht_iter_create(catz->entries, itp));
+	isc_ht_iter_create(catz->entries, itp);
 }

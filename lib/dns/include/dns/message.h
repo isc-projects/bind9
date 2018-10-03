@@ -280,7 +280,7 @@ struct dns_ednsopt {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
 
 /*%<
@@ -300,10 +300,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp);
  * Ensures:
  *\li	The data in "*msg" is set to indicate an unused and empty msg
  *	structure.
- *
- * Returns:
- *\li	#ISC_R_NOMEMORY		-- out of memory
- *\li	#ISC_R_SUCCESS		-- success
  */
 
 void

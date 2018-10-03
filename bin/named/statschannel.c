@@ -3235,7 +3235,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	     isc_sockaddr_t *addr, cfg_aclconfctx_t *aclconfctx,
 	     const char *socktext)
 {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	named_statschannel_t *listener;
 	isc_task_t *task = NULL;
 	isc_socket_t *sock = NULL;
@@ -3243,8 +3243,6 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	dns_acl_t *new_acl = NULL;
 
 	listener = isc_mem_get(server->mctx, sizeof(*listener));
-	if (listener == NULL)
-		return (ISC_R_NOMEMORY);
 
 	listener->httpdmgr = NULL;
 	listener->address = *addr;
@@ -3252,11 +3250,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	listener->mctx = NULL;
 	ISC_LINK_INIT(listener, link);
 
-	result = isc_mutex_init(&listener->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(server->mctx, listener, sizeof(*listener));
-		return (ISC_R_FAILURE);
-	}
+	isc_mutex_init(&listener->lock);
 
 	isc_mem_attach(server->mctx, &listener->mctx);
 
@@ -3266,7 +3260,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 					    aclconfctx, listener->mctx, 0,
 					    &new_acl);
 	} else
-		result = dns_acl_any(listener->mctx, &new_acl);
+		dns_acl_any(listener->mctx, &new_acl);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 	dns_acl_attach(new_acl, &listener->acl);
@@ -3394,7 +3388,7 @@ update_listener(named_server_t *server, named_statschannel_t **listenerp,
 					    aclconfctx, listener->mctx, 0,
 					    &new_acl);
 	} else
-		result = dns_acl_any(listener->mctx, &new_acl);
+		dns_acl_any(listener->mctx, &new_acl);
 
 	if (result == ISC_R_SUCCESS) {
 		LOCK(&listener->lock);

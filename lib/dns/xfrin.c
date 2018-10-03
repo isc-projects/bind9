@@ -855,7 +855,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->axfr.add = NULL;
 	xfr->axfr.add_private = NULL;
 
-	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
+	dns_name_dup(zonename, mctx, &xfr->name);
 
 	CHECK(isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
 			       task, xfrin_timeout, xfr, &xfr->timer));
@@ -926,7 +926,7 @@ render(dns_message_t *msg, isc_mem_t *mctx, isc_buffer_t *buf) {
 	bool cleanup_cctx = false;
 	isc_result_t result;
 
-	CHECK(dns_compress_init(&cctx, -1, mctx));
+	dns_compress_init(&cctx, -1, mctx);
 	cleanup_cctx = true;
 	CHECK(dns_message_renderbegin(msg, &cctx, buf));
 	CHECK(dns_message_rendersection(msg, DNS_SECTION_QUESTION, 0));
@@ -1076,7 +1076,7 @@ xfrin_send_request(dns_xfrin_ctx_t *xfr) {
 	dns_name_t *msgsoaname = NULL;
 
 	/* Create the request message */
-	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg));
+	dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTRENDER, &msg);
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 
 	/* Create a name for the question section. */
@@ -1219,7 +1219,7 @@ xfrin_recv_done(isc_task_t *task, isc_event_t *ev) {
 
 	CHECK(isc_timer_touch(xfr->timer));
 
-	CHECK(dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg));
+	dns_message_create(xfr->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	CHECK(dns_message_settsigkey(msg, xfr->tsigkey));
 	CHECK(dns_message_setquerytsig(msg, xfr->lasttsig));

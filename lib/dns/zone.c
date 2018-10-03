@@ -893,22 +893,13 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 
 	TIME_NOW(&now);
 	zone = isc_mem_get(mctx, sizeof(*zone));
-	if (zone == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	zone->mctx = NULL;
 	isc_mem_attach(mctx, &zone->mctx);
 
-	result = isc_mutex_init(&zone->lock);
-	if (result != ISC_R_SUCCESS) {
-		goto free_zone;
-	}
+	isc_mutex_init(&zone->lock);
 
-	result = ZONEDB_INITLOCK(&zone->dblock);
-	if (result != ISC_R_SUCCESS) {
-		goto free_mutex;
-	}
+	ZONEDB_INITLOCK(&zone->dblock);
 
 	/* XXX MPA check that all elements are initialised */
 #ifdef DNS_ZONE_CHECKLOCK
@@ -1062,11 +1053,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->magic = ZONE_MAGIC;
 
 	zone->gluecachestats = NULL;
-	result = isc_stats_create(mctx, &zone->gluecachestats,
+	isc_stats_create(mctx, &zone->gluecachestats,
 				  dns_gluecachestatscounter_max);
-	if (result != ISC_R_SUCCESS) {
-		goto free_erefs;
-	}
 
 	/* Must be after magic is set. */
 	result = dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
@@ -1559,7 +1547,7 @@ dns_zone_setviewrevert(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	char namebuf[1024];
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1571,7 +1559,7 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 		dns_name_free(&zone->origin, zone->mctx);
 		dns_name_init(&zone->origin, NULL);
 	}
-	result = dns_name_dup(origin, zone->mctx, &zone->origin);
+	dns_name_dup(origin, zone->mctx, &zone->origin);
 
 	if (zone->strnamerd != NULL)
 		isc_mem_free(zone->mctx, zone->strnamerd);
@@ -1583,7 +1571,7 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 	zone_name_tostr(zone, namebuf, sizeof namebuf);
 	zone->strname = isc_mem_strdup(zone->mctx, namebuf);
 
-	if (result == ISC_R_SUCCESS && inline_secure(zone))
+	if (inline_secure(zone))
 		result = dns_zone_setorigin(zone->raw, origin);
 	UNLOCK_ZONE(zone);
 	return (result);
@@ -1788,10 +1776,9 @@ dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db) {
 		return;
 	REQUIRE(zone->rpzs != NULL);
 	zone->rpzs->zones[zone->rpz_num]->db_registered = true;
-	result = dns_db_updatenotify_register(db,
+	dns_db_updatenotify_register(db,
 					      dns_rpz_dbupdate_callback,
 					      zone->rpzs->zones[zone->rpz_num]);
-	REQUIRE(result == ISC_R_SUCCESS);
 }
 
 void
@@ -5706,7 +5693,7 @@ clear_addresskeylist(isc_sockaddr_t **addrsp, isc_dscp_t **dscpsp,
 	}
 }
 
-static isc_result_t
+static void
 set_addrkeylist(unsigned int count,
 		const isc_sockaddr_t *addrs, isc_sockaddr_t **newaddrsp,
 		const isc_dscp_t *dscp, isc_dscp_t **newdscpp,
@@ -5724,55 +5711,25 @@ set_addrkeylist(unsigned int count,
 	REQUIRE(newnamesp != NULL && *newnamesp == NULL);
 
 	newaddrs = isc_mem_get(mctx, count * sizeof(*newaddrs));
-	if (newaddrs == NULL)
-		return (ISC_R_NOMEMORY);
 	memmove(newaddrs, addrs, count * sizeof(*newaddrs));
 
 	if (dscp != NULL) {
 		newdscp = isc_mem_get(mctx, count * sizeof(*newdscp));
-		if (newdscp == NULL) {
-			isc_mem_put(mctx, newaddrs, count * sizeof(*newaddrs));
-			return (ISC_R_NOMEMORY);
-		}
 		memmove(newdscp, dscp, count * sizeof(*newdscp));
 	} else
 		newdscp = NULL;
 
 	if (names != NULL) {
 		newnames = isc_mem_get(mctx, count * sizeof(*newnames));
-		if (newnames == NULL) {
-			if (newdscp != NULL)
-				isc_mem_put(mctx, newdscp,
-					    count * sizeof(*newdscp));
-			isc_mem_put(mctx, newaddrs, count * sizeof(*newaddrs));
-			return (ISC_R_NOMEMORY);
-		}
 		for (i = 0; i < count; i++)
 			newnames[i] = NULL;
 		for (i = 0; i < count; i++) {
 			if (names[i] != NULL) {
 				newnames[i] = isc_mem_get(mctx,
 							 sizeof(dns_name_t));
-				if (newnames[i] == NULL)
-					goto allocfail;
 				dns_name_init(newnames[i], NULL);
-				result = dns_name_dup(names[i], mctx,
+				dns_name_dup(names[i], mctx,
 						      newnames[i]);
-				if (result != ISC_R_SUCCESS) {
-				allocfail:
-					for (i = 0; i < count; i++)
-						if (newnames[i] != NULL)
-							dns_name_free(
-							       newnames[i],
-							       mctx);
-					isc_mem_put(mctx, newaddrs,
-						    count * sizeof(*newaddrs));
-					isc_mem_put(mctx, newdscp,
-						    count * sizeof(*newdscp));
-					isc_mem_put(mctx, newnames,
-						    count * sizeof(*newnames));
-					return (ISC_R_NOMEMORY);
-				}
 			}
 		}
 	} else
@@ -5781,7 +5738,6 @@ set_addrkeylist(unsigned int count,
 	*newdscpp = newdscp;
 	*newaddrsp = newaddrs;
 	*newnamesp = newnames;
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -5849,11 +5805,8 @@ dns_zone_setalsonotifydscpkeys(dns_zone_t *zone, const isc_sockaddr_t *notify,
 	/*
 	 * Set up the notify and notifykey lists
 	 */
-	result = set_addrkeylist(count, notify, &newaddrs, dscps, &newdscps,
+	set_addrkeylist(count, notify, &newaddrs, dscps, &newdscps,
 				 keynames, &newnames, zone->mctx);
-	if (result != ISC_R_SUCCESS)
-		goto unlock;
-
 	/*
 	 * Everything is ok so attach to the zone.
 	 */
@@ -5944,13 +5897,9 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 	/*
 	 * Now set up the masters and masterkey lists
 	 */
-	result = set_addrkeylist(count, masters, &newaddrs, NULL, &newdscps,
+	set_addrkeylist(count, masters, &newaddrs, NULL, &newdscps,
 				 keynames, &newnames, zone->mctx);
 	INSIST(newdscps == NULL);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(zone->mctx, newok, count * sizeof(*newok));
-		goto unlock;
-	}
 
 	/*
 	 * Everything is ok so attach to the zone.
@@ -11324,11 +11273,9 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	result = dns_rdata_tostruct(&rdata, &soa, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
-	result = dns_name_dup(&soa.origin, zone->mctx, &master);
+	dns_name_dup(&soa.origin, zone->mctx, &master);
 	serial = soa.serial;
 	dns_rdataset_disassociate(&soardset);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup3;
 
 	/*
 	 * Enqueue notify requests for 'also-notify' servers.
@@ -11431,13 +11378,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		if (result != ISC_R_SUCCESS)
 			continue;
 		dns_zone_iattach(zone, &notify->zone);
-		result = dns_name_dup(&ns.name, zone->mctx, &notify->ns);
-		if (result != ISC_R_SUCCESS) {
-			LOCK_ZONE(zone);
-			notify_destroy(notify, true);
-			UNLOCK_ZONE(zone);
-			continue;
-		}
+		dns_name_dup(&ns.name, zone->mctx, &notify->ns);
 		LOCK_ZONE(zone);
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		UNLOCK_ZONE(zone);
@@ -11602,9 +11543,7 @@ stub_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	if (result != ISC_R_SUCCESS)
-		goto next_master;
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS)
@@ -11975,9 +11914,7 @@ refresh_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	if (result != ISC_R_SUCCESS)
-		goto next_master;
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 	result = dns_request_getresponse(revent->request, msg, 0);
 	if (result != ISC_R_SUCCESS) {
 		dns_zone_log(zone, ISC_LOG_INFO,
@@ -12335,10 +12272,8 @@ create_query(dns_zone_t *zone, dns_rdatatype_t rdtype,
 	dns_rdataset_t *qrdataset = NULL;
 	isc_result_t result;
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
 				    &message);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 
 	message->opcode = dns_opcode_query;
 	message->rdclass = zone->rdclass;
@@ -13141,10 +13076,8 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(messagep != NULL && *messagep == NULL);
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTRENDER,
 				    &message);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	message->opcode = dns_opcode_notify;
 	message->flags |= DNS_MESSAGEFLAG_AA;
@@ -13210,9 +13143,7 @@ notify_createmessage(dns_zone_t *zone, unsigned int flags,
 		goto soa_cleanup;
 	dns_rdataset_current(&rdataset, &rdata);
 	dns_rdata_toregion(&rdata, &r);
-	result = isc_buffer_allocate(zone->mctx, &b, r.length);
-	if (result != ISC_R_SUCCESS)
-		goto soa_cleanup;
+	isc_buffer_allocate(zone->mctx, &b, r.length);
 	isc_buffer_putmem(b, r.base, r.length);
 	isc_buffer_usedregion(b, &r);
 	dns_rdata_init(temprdata);
@@ -14037,12 +13968,12 @@ notify_done(isc_task_t *task, isc_event_t *event) {
 	isc_sockaddr_format(&notify->dst, addrbuf, sizeof(addrbuf));
 
 	result = revent->result;
-	if (result == ISC_R_SUCCESS)
-		result = dns_message_create(notify->zone->mctx,
+	if (result == ISC_R_SUCCESS) {
+		dns_message_create(notify->zone->mctx,
 					    DNS_MESSAGE_INTENTPARSE, &message);
-	if (result == ISC_R_SUCCESS)
 		result = dns_request_getresponse(revent->request, message,
 					DNS_MESSAGEPARSE_PRESERVEORDER);
+	}
 	if (result == ISC_R_SUCCESS)
 		result = dns_rcode_totext(message->rcode, &buf);
 	if (result == ISC_R_SUCCESS)
@@ -15907,9 +15838,7 @@ forward_callback(isc_task_t *task, isc_event_t *event) {
 		goto next_master;
 	}
 
-	result = dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
-	if (result != ISC_R_SUCCESS)
-		goto next_master;
+	dns_message_create(zone->mctx, DNS_MESSAGE_INTENTPARSE, &msg);
 
 	result = dns_request_getresponse(revent->request, msg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER |
@@ -16026,9 +15955,7 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 		goto cleanup;
 	}
 
-	result = isc_buffer_allocate(zone->mctx, &forward->msgbuf, mr->length);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_buffer_allocate(zone->mctx, &forward->msgbuf, mr->length);
 	result = isc_buffer_copyregion(forward->msgbuf, mr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -16101,17 +16028,13 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(zmgr->waiting_for_xfrin);
 	ISC_LIST_INIT(zmgr->xfrin_in_progress);
 	memset(zmgr->unreachable, 0, sizeof(zmgr->unreachable));
-	result = isc_rwlock_init(&zmgr->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		goto free_mem;
+	isc_rwlock_init(&zmgr->rwlock, 0, 0);
 
 	zmgr->transfersin = 10;
 	zmgr->transfersperns = 2;
 
 	/* Unreachable lock. */
-	result = isc_rwlock_init(&zmgr->urlock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		goto free_rwlock;
+	isc_rwlock_init(&zmgr->urlock, 0, 0);
 
 	/* Create a single task for queueing of SOA queries. */
 	result = isc_task_create(taskmgr, 1, &zmgr->task);
@@ -16152,9 +16075,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	ISC_LIST_INIT(zmgr->high);
 	ISC_LIST_INIT(zmgr->low);
 
-	result = isc_mutex_init(&zmgr->iolock);
-	if (result != ISC_R_SUCCESS)
-		goto free_startuprefreshrl;
+	isc_mutex_init(&zmgr->iolock);
 
 	zmgr->magic = ZONEMGR_MAGIC;
 
@@ -16405,9 +16326,7 @@ mctxinit(void **target, void *arg) {
 
 	REQUIRE(target != NULL && *target == NULL);
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mem_create(0, 0, &mctx);
 	isc_mem_setname(mctx, "zonemgr-pool", NULL);
 
 	*target = mctx;

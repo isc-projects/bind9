@@ -68,7 +68,7 @@ static dns_dbimplementation_t rbtimp;
 
 static void
 initialize(void) {
-	RUNTIME_CHECK(isc_rwlock_init(&implock, 0, 0) == ISC_R_SUCCESS);
+	isc_rwlock_init(&implock, 0, 0);
 
 	rbtimp.name = "rbt";
 	rbtimp.create = dns_rbtdb_create;
@@ -881,10 +881,6 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 	}
 
 	imp = isc_mem_get(mctx, sizeof(dns_dbimplementation_t));
-	if (imp == NULL) {
-		RWUNLOCK(&implock, isc_rwlocktype_write);
-		return (ISC_R_NOMEMORY);
-	}
 	imp->name = name;
 	imp->create = create;
 	imp->mctx = NULL;
@@ -1031,7 +1027,7 @@ dns_db_rpz_ready(dns_db_t *db) {
 /**
  * Attach a notify-on-update function the database
  */
-isc_result_t
+void
 dns_db_updatenotify_register(dns_db_t *db,
 			     dns_dbupdate_callback_t fn,
 			     void *fn_arg)
@@ -1042,16 +1038,12 @@ dns_db_updatenotify_register(dns_db_t *db,
 	REQUIRE(fn != NULL);
 
 	listener = isc_mem_get(db->mctx, sizeof(dns_dbonupdatelistener_t));
-	if (listener == NULL)
-		return (ISC_R_NOMEMORY);
 
 	listener->onupdate = fn;
 	listener->onupdate_arg = fn_arg;
 
 	ISC_LINK_INIT(listener, link);
 	ISC_LIST_APPEND(db->update_listeners, listener, link);
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
