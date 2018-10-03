@@ -25,13 +25,7 @@ while (<>) {
 
 my $mkey = '#define MANAGED_KEYS "\\' . "\n" . $lines . "\"\n";
 
-$lines =~ s/managed-keys/trusted-keys/;
-$lines =~ s/\s+initial-key//g;
-my $tkey = '#define TRUSTED_KEYS "\\' . "\n" . $lines . "\"\n";
-
 print "#ifndef BIND_KEYS_H\n";
 print "#define BIND_KEYS_H 1\n";
-print $tkey;
-print "\n";
 print $mkey;
 print "#endif /* BIND_KEYS_H */\n";
