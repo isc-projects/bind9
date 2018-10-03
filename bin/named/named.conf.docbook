@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2018-09-04</date>
+    <date>2018-10-04</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -79,14 +79,12 @@
   </refsection>
 
   <refsection><info><title>ACL</title></info>
-
     <literallayout class="normal">
 acl <replaceable>string</replaceable> { <replaceable>address_match_element</replaceable>; ... };
 </literallayout>
   </refsection>
 
   <refsection><info><title>CONTROLS</title></info>
-
     <literallayout class="normal">
 controls {
 	inet ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> |
@@ -103,7 +101,6 @@ controls {
   </refsection>
 
   <refsection><info><title>DLZ</title></info>
-
     <literallayout class="normal">
 dlz <replaceable>string</replaceable> {
 	database <replaceable>string</replaceable>;
@@ -113,7 +110,6 @@ dlz <replaceable>string</replaceable> {
   </refsection>
 
   <refsection><info><title>DYNDB</title></info>
-
     <literallayout class="normal">
 dyndb <replaceable>string</replaceable> <replaceable>quoted_string</replaceable> {
     <replaceable>unspecified-text</replaceable> };
@@ -121,7 +117,6 @@ dyndb <replaceable>string</replaceable> <replaceable>quoted_string</replaceable>
   </refsection>
 
   <refsection><info><title>KEY</title></info>
-
     <literallayout class="normal">
 key <replaceable>string</replaceable> {
 	algorithm <replaceable>string</replaceable>;
@@ -131,7 +126,6 @@ key <replaceable>string</replaceable> {
   </refsection>
 
   <refsection><info><title>LOGGING</title></info>
-
     <literallayout class="normal">
 logging {
 	category <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
@@ -153,15 +147,14 @@ logging {
 
 
   <refsection><info><title>MANAGED-KEYS</title></info>
-
     <literallayout class="normal">
-managed-keys { <replaceable>string</replaceable> <replaceable>string</replaceable> <replaceable>integer</replaceable>
-    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
+managed-keys { <replaceable>string</replaceable> ( static-key |
+    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>quoted_string</replaceable>; ... };
 </literallayout>
   </refsection>
 
   <refsection><info><title>MASTERS</title></info>
-
     <literallayout class="normal">
 masters <replaceable>string</replaceable> [ port <replaceable>integer</replaceable> ] [ dscp
     <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [
@@ -171,7 +164,6 @@ masters <replaceable>string</replaceable> [ port <replaceable>integer</replaceab
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-
     <literallayout class="normal">
 options {
 	allow-new-zones <replaceable>boolean</replaceable>;
@@ -258,12 +250,15 @@ options {
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
 	dnssec-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver | update ) [
-	    ( query | response ) ]; ... };
-	dnstap-identity ( <replaceable>quoted_string</replaceable> | none | hostname );
-	dnstap-output ( file | unix ) <replaceable>quoted_string</replaceable> [ size ( unlimited |
-	    <replaceable>size</replaceable> ) ] [ versions ( unlimited | <replaceable>integer</replaceable> ) ] [ suffix (
-	    increment | timestamp ) ];
+	dnstap { ( all | auth | client | forwarder |
+	    resolver | update ) [ ( query | response ) ];
+	    ... };
+	dnstap-identity ( <replaceable>quoted_string</replaceable> | none |
+	    hostname );
+	dnstap-output ( file | unix ) <replaceable>quoted_string</replaceable> [
+	    size ( unlimited | <replaceable>size</replaceable> ) ] [ versions (
+	    unlimited | <replaceable>integer</replaceable> ) ] [ suffix ( increment
+	    | timestamp ) ];
 	dnstap-version ( <replaceable>quoted_string</replaceable> | none );
 	dscp <replaceable>integer</replaceable>;
 	dual-stack-servers [ port <replaceable>integer</replaceable> ] { ( <replaceable>quoted_string</replaceable> [ port
@@ -473,7 +468,6 @@ options {
   </refsection>
 
   <refsection><info><title>SERVER</title></info>
-
     <literallayout class="normal">
 server <replaceable>netprefix</replaceable> {
 	bogus <replaceable>boolean</replaceable>;
@@ -511,7 +505,6 @@ server <replaceable>netprefix</replaceable> {
   </refsection>
 
   <refsection><info><title>STATISTICS-CHANNELS</title></info>
-
     <literallayout class="normal">
 statistics-channels {
 	inet ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> |
@@ -523,15 +516,15 @@ statistics-channels {
   </refsection>
 
   <refsection><info><title>TRUSTED-KEYS</title></info>
-
+  <para>Deprecated - see MANAGED-KEYS.</para>
     <literallayout class="normal">
-trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
+trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
+    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>quoted_string</replaceable>; ... };// deprecated
 </literallayout>
   </refsection>
 
   <refsection><info><title>VIEW</title></info>
-
     <literallayout class="normal">
 view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	allow-new-zones <replaceable>boolean</replaceable>;
@@ -611,8 +604,9 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
 	dnssec-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver | update ) [
-	    ( query | response ) ]; ... };
+	dnstap { ( all | auth | client | forwarder |
+	    resolver | update ) [ ( query | response ) ];
+	    ... };
 	dual-stack-servers [ port <replaceable>integer</replaceable> ] { ( <replaceable>quoted_string</replaceable> [ port
 	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] | <replaceable>ipv4_address</replaceable> [ port
 	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port
@@ -643,9 +637,9 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	key-directory <replaceable>quoted_string</replaceable>;
 	lame-ttl <replaceable>ttlval</replaceable>;
 	lmdb-mapsize <replaceable>sizeval</replaceable>;
-	managed-keys { <replaceable>string</replaceable> <replaceable>string</replaceable>
-	    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-	    <replaceable>quoted_string</replaceable>; ... };
+	managed-keys { <replaceable>string</replaceable> ( static-key |
+	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
 	masterfile-format ( map | raw | text );
 	masterfile-style ( full | relative );
 	match-clients { <replaceable>address_match_element</replaceable>; ... };
@@ -792,9 +786,10 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	trust-anchor-telemetry <replaceable>boolean</replaceable>; // experimental
-	trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
-	    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>;
-	    ... };
+	trusted-keys { <replaceable>string</replaceable>
+	    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>integer</replaceable>
+	    <replaceable>quoted_string</replaceable>; ... };// deprecated
 	try-tcp-refresh <replaceable>boolean</replaceable>;
 	update-check-ksk <replaceable>boolean</replaceable>;
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
@@ -910,7 +905,6 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
   </refsection>
 
   <refsection><info><title>ZONE</title></info>
-
     <literallayout class="normal">
 zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	allow-notify { <replaceable>address_match_element</replaceable>; ... };

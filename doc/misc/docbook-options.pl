@@ -126,8 +126,9 @@ while (<FH>) {
 
 	s{ // not configured}{};
 	s{ // non-operational}{};
-	s{ // may occur multiple times}{};
+	s{ (// )*may occur multiple times}{};
 	s{<([a-z0-9_-]+)>}{<replaceable>$1</replaceable>}g;
+	s{ // deprecated,*}{// deprecated};
 	s{[[]}{[}g;
 	s{[]]}{]}g;
 	s{        }{\t}g;
@@ -135,10 +136,18 @@ while (<FH>) {
 		my $HEADING = uc $1;
 		print <<END;
   <refsection><info><title>$HEADING</title></info>
+END
 
+                if ($1 eq "trusted-keys") {
+                        print <<END;
+  <para>Deprecated - see MANAGED-KEYS.</para>
+END
+                }
+
+		print <<END;
     <literallayout class="normal">
 END
-	}
+        }
 
 	if (m{^\s*$} && !$blank) {
 		$blank = 1;
