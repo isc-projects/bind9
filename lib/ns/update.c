@@ -269,24 +269,34 @@ update_log(ns_client_t *client, dns_zone_t *zone,
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 
-	if (client == NULL || zone == NULL)
+	if (client == NULL && zone == NULL) {
 		return;
+	}
 
-	if (isc_log_wouldlog(ns_lctx, level) == false)
+	if (isc_log_wouldlog(ns_lctx, level) == false) {
 		return;
-
-	dns_name_format(dns_zone_getorigin(zone), namebuf,
-			sizeof(namebuf));
-	dns_rdataclass_format(dns_zone_getclass(zone), classbuf,
-			      sizeof(classbuf));
+	}
 
 	va_start(ap, fmt);
 	vsnprintf(message, sizeof(message), fmt, ap);
 	va_end(ap);
 
-	ns_client_log(client, NS_LOGCATEGORY_UPDATE, NS_LOGMODULE_UPDATE,
-		      level, "updating zone '%s/%s': %s",
-		      namebuf, classbuf, message);
+	if (zone != NULL) {
+		dns_name_format(dns_zone_getorigin(zone), namebuf,
+				sizeof(namebuf));
+		dns_rdataclass_format(dns_zone_getclass(zone), classbuf,
+				      sizeof(classbuf));
+
+		ns_client_log(client, NS_LOGCATEGORY_UPDATE,
+			      NS_LOGMODULE_UPDATE,
+			      level, "updating zone '%s/%s': %s",
+			      namebuf, classbuf, message);
+	} else {
+		ns_client_log(client, NS_LOGCATEGORY_UPDATE,
+			      NS_LOGMODULE_UPDATE,
+			      level, "update: %s", message);
+	}
+
 }
 
 static void
