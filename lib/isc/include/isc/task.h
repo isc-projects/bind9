@@ -759,41 +759,6 @@ isc_result_t
 isc_taskmgr_renderjson(isc_taskmgr_t *mgr, json_object *tasksobj);
 #endif
 
-/*%<
- * See isc_taskmgr_create() above.
- */
-typedef isc_result_t
-(*isc_taskmgrcreatefunc_t)(isc_mem_t *mctx, unsigned int workers,
-			   unsigned int default_quantum,
-			   isc_taskmgr_t **managerp);
-
-isc_result_t
-isc_task_register(isc_taskmgrcreatefunc_t createfunc);
-/*%<
- * Register a new task management implementation and add it to the list of
- * supported implementations.  This function must be called when a different
- * event library is used than the one contained in the ISC library.
- */
-
-isc_result_t
-isc__task_register(void);
-/*%<
- * A short cut function that specifies the task management module in the ISC
- * library for isc_task_register().  An application that uses the ISC library
- * usually do not have to care about this function: it would call
- * isc_lib_register(), which internally calls this function.
- */
-
-/*%<
- * These functions allow unit tests to manipulate the processing
- * of the task queue. They are not intended as part of the public API.
- */
-void
-isc__taskmgr_pause(isc_taskmgr_t *taskmgr);
-
-void
-isc__taskmgr_resume(isc_taskmgr_t *taskmgr);
-
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_TASK_H */
