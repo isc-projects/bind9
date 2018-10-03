@@ -512,6 +512,15 @@ status=`expr $status + $ret`
 if [ -n "$FSTRM_CAPTURE" ] ; then
 	$DIG $DIGOPTS @10.53.0.4 a.example > dig.out
 
+	# send an UPDATE to ns4
+	$NSUPDATE <<- EOF > nsupdate.out 2>&1
+	server 10.53.0.4 ${PORT}
+	zone example
+	update add b.example 3600 in a 10.10.10.10
+	send
+EOF
+	grep "update failed: NOTAUTH" nsupdate.out > /dev/null || ret=1
+
 	echo_i "checking unix socket message counts"
 	sleep 2
 	kill $fstrm_capture_pid
@@ -524,11 +533,13 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 	cr4=`$DNSTAPREAD dnstap.out | grep "CR " | wc -l`
 	rq4=`$DNSTAPREAD dnstap.out | grep "RQ " | wc -l`
 	rr4=`$DNSTAPREAD dnstap.out | grep "RR " | wc -l`
+	uq4=`$DNSTAPREAD dnstap.out | grep "UQ " | wc -l`
+	ur4=`$DNSTAPREAD dnstap.out | grep "UR " | wc -l`
 
 	echo_i "checking UDP message counts"
 	ret=0
-	[ $udp4 -eq 2 ] || {
-		echo_i "ns4 $udp4 expected 2"
+	[ $udp4 -eq 4 ] || {
+		echo_i "ns4 $udp4 expected 4"
 		ret=1
 	}
 	if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -594,7 +605,27 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 		echo_i "ns4 $rr4 expected 0"
 		ret=1
 	}
+
+	echo_i "checking UPDATE_QUERY message counts"
+	ret=0
+	[ $uq4 -eq 1 ] || {
+		echo_i "ns4 $uq4 expected 1"
+		ret=1
+	}
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=`expr $status + $ret`
+
+	echo_i "checking UPDATE_RESPONSE message counts"
+	ret=0
+	[ $ur4 -eq 1 ] || {
+		echo_i "ns4 $ur4 expected 1"
+		ret=1
+	}
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=`expr $status + $ret`
+
 	mv dnstap.out dnstap.out.save
+
 	$FSTRM_CAPTURE -t protobuf:dnstap.Dnstap -u ns4/dnstap.out \
 		-w dnstap.out > fstrm_capture.out 2>&1 &
 	fstrm_capture_pid=$!
@@ -613,6 +644,8 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 	cr4=`$DNSTAPREAD dnstap.out | grep "CR " | wc -l`
 	rq4=`$DNSTAPREAD dnstap.out | grep "RQ " | wc -l`
 	rr4=`$DNSTAPREAD dnstap.out | grep "RR " | wc -l`
+	uq4=`$DNSTAPREAD dnstap.out | grep "UQ " | wc -l`
+	ur4=`$DNSTAPREAD dnstap.out | grep "UR " | wc -l`
 
 	echo_i "checking UDP message counts"
 	ret=0
@@ -683,6 +716,24 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 		echo_i "ns4 $rr4 expected 0"
 		ret=1
 	}
+
+	echo_i "checking UPDATE_QUERY message counts"
+	ret=0
+	[ $uq4 -eq 0 ] || {
+		echo_i "ns4 $uq4 expected 0"
+		ret=1
+	}
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=`expr $status + $ret`
+
+	echo_i "checking UPDATE_RESPONSE message counts"
+	ret=0
+	[ $ur4 -eq 0 ] || {
+		echo_i "ns4 $ur4 expected 0"
+		ret=1
+	}
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=`expr $status + $ret`
 fi
 
 echo_i "exit status: $status"
