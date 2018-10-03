@@ -2229,8 +2229,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  DNSSEC validation only occurs if
 	  at least one trust anchor has been explicitly configured
 	  in <filename>named.conf</filename>,
-	  using a <command>trusted-keys</command> or
-	  <command>managed-keys</command> statement.
+	  using a <command>managed-keys</command> statement.
 	  If <command>dnssec-validation</command> is set to
 	  <userinput>no</userinput>, then DNSSEC validation will
 	  not occur.
@@ -2240,23 +2239,20 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para>
-	  <command>trusted-keys</command> are copies of DNSKEY RRs
-	  for zones that are used to form the first link in the
-	  cryptographic chain of trust.  All keys listed in
-	  <command>trusted-keys</command> (and corresponding zones)
-	  are deemed to exist and only the listed keys will be used
-	  to validated the DNSKEY RRset that they are from.
+	  The keys specified in <command>managed-keys</command> are
+	  copies of DNSKEY RRs for zones that are used to form the
+	  first link in the cryptographic chain of trust.  Keys configured
+	  with the keyword <command>static-key</command> are loaded directly
+	  into the table of trust anchors, and can only be changed by
+	  altering the configuration. Keys configured with
+	  <command>initial-key</command> are used to initialize
+	  RFC 5011 trust anchor maintenance, and will be kept up to
+	  date automatically after the first time <command>named</command>
+	  runs.
 	</para>
 
 	<para>
-	  <command>managed-keys</command> are trusted keys which are
-	  automatically kept up to date via RFC 5011 trust anchor
-	  maintenance.
-	</para>
-
-	<para>
-	  <command>trusted-keys</command> and
-	  <command>managed-keys</command> are described in more detail
+	  <command>managed-keys</command> is described in more detail
 	  later in this document.
 	</para>
 
@@ -2291,11 +2287,8 @@ managed-keys {
 				 66gKodQj+MiA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ
 				 97S+LKUTpQcq27R7AT3/V5hRQxScINqwcz4jYqZD2fQ
 				 dgxbcDTClU0CRBdiieyLMNzXG3";
-};
-
-trusted-keys {
 	/* Key for our organization's forward zone */
-	example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
+	example.com. static-key 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
 			      5KbhTjrW1ZaARmPhEZZe3Y9ifgEuq7vZ/z
 			      GZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb
 			      4JKUbbOTcM8pwXlj0EiX3oDFVmjHO444gL
@@ -2308,7 +2301,7 @@ trusted-keys {
 			      1OTQ09A0=";
 
 	/* Key for our reverse zone. */
-	2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
+	2.0.192.IN-ADDRPA.NET. static-key 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
 				       xOdNax071L18QqZnQQQAVVr+i
 				       LhGTnNGp3HoWQLUIzKrJVZ3zg
 				       gy3WwNT6kZo6c0tszYqbtvchm
@@ -3224,7 +3217,10 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	      </entry>
 	      <entry colname="2">
 		<para>
-		  defines trusted DNSSEC keys.
+		  defines permanent trusted DNSSEC keys;
+		  this option is deprecated in favor
+		  of <command>managed-keys</command> with
+		  the <command>static-key</command> keyword.
 		</para>
 	      </entry>
 	    </row>
@@ -3234,8 +3230,11 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	      </entry>
 	      <entry colname="2">
 		<para>
-		  lists DNSSEC keys to be kept up to date
-		  using RFC 5011 trust anchor maintenance.
+		  defines DNSSEC keys: if used with the
+		  <command>initial-key</command> keyword,
+		  keys are kept up to date using RFC 5011
+		  trust anchor maintenance, and if used with
+		  <command>static-key</command>, keys are permanent.
 		</para>
 	      </entry>
 	    </row>
@@ -4612,10 +4611,12 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    <listitem>
 	      <para>
 		Specifies the directory in which to store the files that
-		track managed DNSSEC keys.  By default, this is the working
-		directory.  The directory <emphasis>must</emphasis>
-		be writable by the effective user ID of the
-		<command>named</command> process.
+		track managed DNSSEC keys (i.e., those configured using
+		the <command>initial-key</command> keyword in a
+		<command>managed-keys</command> statement).  By default,
+		this is the working directory.  The directory
+		<emphasis>must</emphasis> be writable by the effective
+		user ID of the <command>named</command> process.
 	      </para>
 	      <para>
 		If <command>named</command> is not configured to use views,
@@ -5126,7 +5127,6 @@ options {
 		they are secure.  If <userinput>no</userinput>, then normal
 		DNSSEC validation applies allowing for insecure answers to
 		be accepted.  The specified domain must be under a
-		<command>trusted-keys</command> or
 		<command>managed-keys</command> statement, or
 		<command>dnssec-validation auto</command> must be active.
 	      </para>
@@ -6298,8 +6298,7 @@ options {
 		<para>
 		  Causes <command>named</command> to send specially-formed
 		  queries once per day to domains for which trust anchors
-		  have been configured via <command>trusted-keys</command>,
-		  <command>managed-keys</command>, or
+		  have been configured via <command>managed-keys</command> or
 		  <command>dnssec-validation auto</command>.
 		</para>
 		<para>
@@ -6611,8 +6610,8 @@ options {
 		  is enabled, and a default trust anchor for the DNS root
 		  zone is used.  If set to <userinput>yes</userinput>,
 		  DNSSEC validation is enabled, but a trust anchor must be
-		  manually configured using a <command>trusted-keys</command>
-		  or <command>managed-keys</command> statement.  The default
+		  manually configured using a
+		  <command>managed-keys</command> statement.  The default
 		  is <userinput>yes</userinput>.
 		</para>
 		<para>
@@ -11070,43 +11069,9 @@ example.com                 CNAME   rpz-tcp-only.
 	    and Usage</title></info>
 
 	  <para>
-	    The <command>trusted-keys</command> statement defines
-	    DNSSEC security roots. DNSSEC is described in <xref linkend="DNSSEC"/>. A security root is defined when the
-	    public key for a non-authoritative zone is known, but
-	    cannot be securely obtained through DNS, either because
-	    it is the DNS root zone or because its parent zone is
-	    unsigned.  Once a key has been configured as a trusted
-	    key, it is treated as if it had been validated and
-	    proven secure. The resolver attempts DNSSEC validation
-	    on all DNS data in subdomains of a security root.
-	  </para>
-	  <para>
-	    All keys (and corresponding zones) listed in
-	    <command>trusted-keys</command> are deemed to exist regardless
-	    of what parent zones say.  Similarly for all keys listed in
-	    <command>trusted-keys</command> only those keys are
-	    used to validate the DNSKEY RRset.  The parent's DS RRset
-	    will not be used.
-	  </para>
-	  <para>
-	    The <command>trusted-keys</command> statement can contain
-	    multiple key entries, each consisting of the key's
-	    domain name, flags, protocol, algorithm, and the Base64
-	    representation of the key data.
-	    Spaces, tabs, newlines and carriage returns are ignored
-	    in the key data, so the configuration may be split up into
-	    multiple lines.
-	  </para>
-	  <para>
-	    <command>trusted-keys</command> may be set at the top level
-	    of <filename>named.conf</filename> or within a view.  If it is
-	    set in both places, they are additive: keys defined at the top
-	    level are inherited by all views, but keys defined in a view
-	    are only used within that view.
-	  </para>
-	  <para>
-	    Validation below specified names can be temporarily disabled
-	    by using <command>rndc nta</command>.
+	    The <command>trusted-keys</command> statement has been
+	    deprecated in favor of <xref linkend="managed_keys"/>
+	    with the <command>static</command> keyword.
 	  </para>
 	</section>
 
@@ -11117,79 +11082,116 @@ example.com                 CNAME   rpz-tcp-only.
 	    and Usage</title></info>
 
 	  <para>
-	    The <command>managed-keys</command> statement, like
-	    <command>trusted-keys</command>, defines DNSSEC
-	    security roots.  The difference is that
-	    <command>managed-keys</command> can be kept up to date
-	    automatically, without intervention from the resolver
-	    operator.
+	    The <command>managed-keys</command> statement defines DNSSEC
+	    trust anchors.  DNSSEC is described in <xref linkend="DNSSEC"/>.
+	  </para>
+	  <para>
+	    A trust anchor is defined when the public key for
+	    a non-authoritative zone is known, but cannot be securely
+	    obtained through DNS, either because it is the DNS root zone
+	    or because its parent zone is unsigned.  Once a key has been
+	    configured as a trust anchor, it is treated as if it had
+	    been validated and proven secure.
+	  </para>
+	  <para>
+	    The resolver attempts DNSSEC validation on all DNS data
+	    in subdomains of configured trust anchors.  (Validation below
+	    specified names can be temporarily disabled by using
+	    <command>rndc nta</command>, or permanently disabled with
+	    the <command>validate-except</command> option).
+	  </para>
+	  <para>
+	    All keys listed in <command>managed-keys</command>, and
+	    their corresponding zones, are deemed to exist regardless
+	    of what parent zones say.   Only keys configured as trust anchors
+	    are used to validate the DNSKEY RRset for the corresponding
+	    name.  The parent's DS RRset will not be used.
+	  </para>
+	  <para>
+	    The <command>managed-keys</command> statement can contain
+	    multiple key entries, each consisting of the key's
+	    domain name, followed by the <command>static-key</command> or
+	    <command>initial-key</command> keyword, then the key's flags,
+	    protocol, algorithm, and the Base64 representation of the key
+	    data.  Spaces, tabs, newlines and carriage returns are ignored
+	    in the key data, so the configuration may be split up into
+	    multiple lines.
+	  </para>
+	  <para>
+	    <command>managed-keys</command> may be set at the top level
+	    of <filename>named.conf</filename> or within a view.  If it is
+	    set in both places, the configurations are additive: keys
+	    defined at the top level are inherited by all views, but keys
+	    defined in a view are only used within that view.
+	  </para>
+	  <para>
+	    <command>managed-keys</command> entries can be configured with
+	    two keywords: <command>static-key</command> or
+	    <command>initial-key</command>.  Keys configured with
+	    <command>static-key</command> are immutable,
+	    while keys configured with <command>initial-key</command>
+	    can be kept up to date automatically, without intervention
+	    from the resolver operator. (<command>static-key</command>
+	    keys are identical to keys configured using the deprecated
+	    <command>trusted-keys</command> statement.)
 	  </para>
 	  <para>
 	    Suppose, for example, that a zone's key-signing
 	    key was compromised, and the zone owner had to revoke and
-	    replace the key.  A resolver which had the old key in a
-	    <command>trusted-keys</command> statement would be
+	    replace the key.  A resolver which had the original key
+	    configured as a <command>static-key</command> would be
 	    unable to validate this zone any longer; it would
 	    reply with a SERVFAIL response code.  This would
 	    continue until the resolver operator had updated the
-	    <command>trusted-keys</command> statement with the new key.
+	    <command>managed-keys</command> statement with the new key.
 	  </para>
 	  <para>
-	    If, however, the zone were listed in a
-	    <command>managed-keys</command> statement instead, then the
-	    zone owner could add a "stand-by" key to the zone in advance.
+	    If, however, the trust anchor had been configured with
+	    <command>intiial-key</command> instead, then the
+	    zone owner could add a "stand-by" key to their zone in advance.
 	    <command>named</command> would store the stand-by key, and
 	    when the original key was revoked, <command>named</command>
 	    would be able to transition smoothly to the new key.  It would
 	    also recognize that the old key had been revoked, and cease
 	    using that key to validate answers, minimizing the damage that
-	    the compromised key could do.
+	    the compromised key could do. This is the process used to
+	    keep the ICANN root DNSSEC key up to date.
 	  </para>
 	  <para>
-	    A <command>managed-keys</command> statement contains a list of
-	    the keys to be managed, along with information about how the
-	    keys are to be initialized for the first time.  The only
-	    initialization method currently supported is
-	    <literal>initial-key</literal>.
-	    This means the <command>managed-keys</command> statement must
-	    contain a copy of the initializing key.  (Future releases may
-	    allow keys to be initialized by other methods, eliminating this
-	    requirement.)
+	    Whereas <command>static-key</command>
+	    keys continue to be trusted until they are removed from
+	    <filename>named.conf</filename>, an
+	    <command>initial-key</command> is only trusted
+	    <emphasis>once</emphasis>: for as long as it
+	    takes to load the managed key database and start the RFC 5011
+	    key maintenance process.
 	  </para>
 	  <para>
-	    Consequently, a <command>managed-keys</command> statement
-	    appears similar to a <command>trusted-keys</command>, differing
-	    in the presence of the second field, containing the keyword
-	    <literal>initial-key</literal>.  The difference is, whereas the
-	    keys listed in a <command>trusted-keys</command> continue to be
-	    trusted until they are removed from
-	    <filename>named.conf</filename>, an initializing key listed
-	    in a <command>managed-keys</command> statement is only trusted
-	    <emphasis>once</emphasis>: for as long as it takes to load the
-	    managed key database and start the RFC 5011 key maintenance
-	    process.
-	  </para>
-	  <para>
-	    The first time <command>named</command> runs with a managed key
-	    configured in <filename>named.conf</filename>, it fetches the
+	    The first time <command>named</command> runs with an
+	    <command>initial-key</command> configured in
+	    <filename>named.conf</filename>, it fetches the
 	    DNSKEY RRset directly from the zone apex, and validates it
-	    using the key specified in the <command>managed-keys</command>
-	    statement.  If the DNSKEY RRset is validly signed, then it is
+	    using the key specified in <command>managed-keys</command>.
+	    If the DNSKEY RRset is validly signed, then it is
 	    used as the basis for a new managed keys database.
 	  </para>
 	  <para>
 	    From that point on, whenever <command>named</command> runs, it
-	    sees the <command>managed-keys</command> statement, checks to
+	    sees the <command>initial-key</command> listed in
+	    <command>managed-keys</command>, checks to
 	    make sure RFC 5011 key maintenance has already been initialized
 	    for the specified domain, and if so, it simply moves on.  The
 	    key specified in the <command>managed-keys</command>
-	    statement is not used to validate answers; it has been
-	    superseded by the key or keys stored in the managed keys database.
+	    statement is not used to validate answers; it is
+	    superseded by the key or keys stored in the managed keys
+	    database.
 	  </para>
 	  <para>
-	    The next time <command>named</command> runs after a name
-	    has been <emphasis>removed</emphasis> from the
-	    <command>managed-keys</command> statement, the corresponding
+	    The next time <command>named</command> runs after an
+	    <command>initial-key</command> has been
+	    <emphasis>removed</emphasis> from the
+	    <command>managed-keys</command> statement (or changed to
+	    a <command>static-key</command>), the corresponding
 	    zone will be removed from the managed keys database,
 	    and RFC 5011 key maintenance will no longer be used for that
 	    domain.
@@ -11224,8 +11226,8 @@ example.com                 CNAME   rpz-tcp-only.
 	  <para>
 	    If the <command>dnssec-validation</command> option is
 	    set to <userinput>auto</userinput>, <command>named</command>
-	    will automatically initialize a managed key for the
-	    root zone.  The key that is used to initialize the key
+	    will automatically initialize an <command>initial-key</command>
+	    for the root zone.  The key that is used to initialize the key
 	    maintenance process is stored in <filename>bind.keys</filename>;
 	    the location of this file can be overridden with the
 	    <command>bindkeys-file</command> option. As a fallback
@@ -12518,8 +12520,7 @@ example.com. NS ns2.example.net.
 		    the zone must be configured as a trust anchor in
 		    <filename>named.conf</filename>:
 		    that is, a key for the zone must either be specified in
-		    <command>managed-keys</command> or
-		    <command>trusted-keys</command>, or in the case of
+		    <command>managed-keys</command>, or in the case of
 		    the root zone, <command>dnssec-validation</command>
 		    must be set to <userinput>auto</userinput>.
 		    Answers coming from a mirror zone look almost exactly like
