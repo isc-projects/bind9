@@ -61,32 +61,18 @@ struct isc_stats {
 	uint64_t	*copiedcounters;
 };
 
-static isc_result_t
+static void
 create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	isc_stats_t *stats;
-	isc_result_t result = ISC_R_SUCCESS;
-
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
-		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
+	isc_mutex_init(&stats->lock);
 
 	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
-	if (stats->counters == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto clean_mutex;
-	}
 	stats->copiedcounters = isc_mem_get(mctx,
 					    sizeof(uint64_t) * ncounters);
-	if (stats->copiedcounters == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto clean_counters;
-	}
 
 	stats->references = 1;
 	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
@@ -96,19 +82,6 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	stats->magic = ISC_STATS_MAGIC;
 
 	*statsp = stats;
-
-	return (result);
-
-clean_counters:
-	isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
-
-clean_mutex:
-	DESTROYLOCK(&stats->lock);
-
-clean_stats:
-	isc_mem_put(mctx, stats, sizeof(*stats));
-
-	return (result);
 }
 
 void
@@ -156,11 +129,11 @@ isc_stats_ncounters(isc_stats_t *stats) {
 	return (stats->ncounters);
 }
 
-isc_result_t
+void
 isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	return (create_stats(mctx, ncounters, statsp));
+	create_stats(mctx, ncounters, statsp);
 }
 
 void

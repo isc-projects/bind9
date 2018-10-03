@@ -66,7 +66,7 @@ ns_stats_detach(ns_stats_t **statsp) {
 	}
 }
 
-isc_result_t
+void
 ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 	ns_stats_t *stats;
 	isc_result_t result;
@@ -74,33 +74,18 @@ ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
-		return (ISC_R_NOMEMORY);
 
 	stats->counters = NULL;
 	stats->references = 1;
 
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
+	isc_mutex_init(&stats->lock);
 
-	result = isc_stats_create(mctx, &stats->counters, ncounters);
-	if (result != ISC_R_SUCCESS)
-		goto clean_mutex;
+	isc_stats_create(mctx, &stats->counters, ncounters);
 
 	stats->magic = NS_STATS_MAGIC;
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
 	*statsp = stats;
-
-	return (ISC_R_SUCCESS);
-
-  clean_mutex:
-	DESTROYLOCK(&stats->lock);
-  clean_stats:
-	isc_mem_put(mctx, stats, sizeof(*stats));
-
-	return (result);
 }
 
 /*%

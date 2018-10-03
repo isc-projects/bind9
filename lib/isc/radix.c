@@ -24,14 +24,14 @@
 #include <isc/util.h>
 #include <isc/radix.h>
 
-static isc_result_t
+static void
 _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family,
 	    void *dest, int bitlen);
 
 static void
 _deref_prefix(isc_prefix_t *prefix);
 
-static isc_result_t
+static void
 _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix);
 
 static int
@@ -40,7 +40,7 @@ _comp_with_mask(void *addr, void *dest, u_int mask);
 static void
 _clear_radix(isc_radix_tree_t *radix, isc_radix_destroyfunc_t func);
 
-static isc_result_t
+static void
 _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 	    int bitlen)
 {
@@ -48,12 +48,9 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 
 	REQUIRE(target != NULL);
 
-	if (family != AF_INET6 && family != AF_INET && family != AF_UNSPEC)
-		return (ISC_R_NOTIMPLEMENTED);
+	REQUIRE(family == AF_INET6 || family == AF_INET || family == AF_UNSPEC);
 
 	prefix = isc_mem_get(mctx, sizeof(isc_prefix_t));
-	if (prefix == NULL)
-		return (ISC_R_NOMEMORY);
 
 	if (family == AF_INET6) {
 		prefix->bitlen = (bitlen >= 0) ? bitlen : 128;
@@ -71,7 +68,6 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 	isc_refcount_init(&prefix->refcount, 1);
 
 	*target = prefix;
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -85,7 +81,7 @@ _deref_prefix(isc_prefix_t *prefix) {
 	}
 }
 
-static isc_result_t
+static void
 _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 	INSIST(prefix != NULL);
 	INSIST((prefix->family == AF_INET && prefix->bitlen <= 32) ||
@@ -99,16 +95,12 @@ _ref_prefix(isc_mem_t *mctx, isc_prefix_t **target, isc_prefix_t *prefix) {
 	 * routine.)
 	 */
 	if (isc_refcount_current(&prefix->refcount) == 0) {
-		isc_result_t ret;
-		ret = _new_prefix(mctx, target, prefix->family,
-				  &prefix->add, prefix->bitlen);
-		return (ret);
+		_new_prefix(mctx, target, prefix->family,
+			    &prefix->add, prefix->bitlen);
+	} else {
+		isc_refcount_increment(&prefix->refcount);
+		*target = prefix;
 	}
-
-	isc_refcount_increment(&prefix->refcount);
-
-	*target = prefix;
-	return (ISC_R_SUCCESS);
 }
 
 static int
@@ -129,15 +121,13 @@ _comp_with_mask(void *addr, void *dest, u_int mask) {
 	return (0);
 }
 
-isc_result_t
+void
 isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits) {
 	isc_radix_tree_t *radix;
 
 	REQUIRE(target != NULL && *target == NULL);
 
 	radix = isc_mem_get(mctx, sizeof(isc_radix_tree_t));
-	if (radix == NULL)
-		return (ISC_R_NOMEMORY);
 
 	radix->mctx = NULL;
 	isc_mem_attach(mctx, &radix->mctx);
@@ -148,7 +138,6 @@ isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits) {
 	RUNTIME_CHECK(maxbits <= RADIX_MAXBITS); /* XXX */
 	radix->magic = RADIX_TREE_MAGIC;
 	*target = radix;
-	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -292,7 +281,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	}
 }
 
-isc_result_t
+void
 isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		 isc_radix_node_t *source, isc_prefix_t *prefix)
 {
@@ -300,7 +289,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	u_char *addr, *test_addr;
 	uint32_t bitlen, fam, check_bit, differ_bit;
 	uint32_t i, j, r;
-	isc_result_t result;
 
 	REQUIRE(radix != NULL);
 	REQUIRE(target != NULL && *target == NULL);
@@ -317,19 +305,12 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 
 	if (radix->head == NULL) {
 		node = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
-		if (node == NULL)
-			return (ISC_R_NOMEMORY);
 		node->bit = bitlen;
 		for (i = 0; i < RADIX_FAMILIES; i++) {
 			node->node_num[i] = -1;
 		}
 		node->prefix = NULL;
-		result = _ref_prefix(radix->mctx, &node->prefix, prefix);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(radix->mctx, node,
-				    sizeof(isc_radix_node_t));
-			return (result);
-		}
+		_ref_prefix(radix->mctx, &node->prefix, prefix);
 		node->parent = NULL;
 		node->l = node->r = NULL;
 		if (source != NULL) {
@@ -365,7 +346,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		radix->head = node;
 		radix->num_active_node++;
 		*target = node;
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	addr = isc_prefix_touchar(prefix);
@@ -455,12 +436,10 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 				}
 			}
 			*target = node;
-			return (ISC_R_SUCCESS);
+			return;
 		} else {
-			result = _ref_prefix(radix->mctx,
-					     &node->prefix, prefix);
-			if (result != ISC_R_SUCCESS)
-				return (result);
+			_ref_prefix(radix->mctx,
+				    &node->prefix, prefix);
 		}
 		INSIST(node->data[RADIX_V4] == NULL &&
 		       node->node_num[RADIX_V4] == -1 &&
@@ -488,30 +467,16 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			}
 		}
 		*target = node;
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	new_node = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
-	if (new_node == NULL)
-		return (ISC_R_NOMEMORY);
 	if (node->bit != differ_bit && bitlen != differ_bit) {
 		glue = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
-		if (glue == NULL) {
-			isc_mem_put(radix->mctx, new_node,
-				    sizeof(isc_radix_node_t));
-			return (ISC_R_NOMEMORY);
-		}
 	}
 	new_node->bit = bitlen;
 	new_node->prefix = NULL;
-	result = _ref_prefix(radix->mctx, &new_node->prefix, prefix);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(radix->mctx, new_node, sizeof(isc_radix_node_t));
-		if (glue != NULL)
-			isc_mem_put(radix->mctx, glue,
-				    sizeof(isc_radix_node_t));
-		return (result);
-	}
+	_ref_prefix(radix->mctx, &new_node->prefix, prefix);
 	new_node->parent = NULL;
 	new_node->l = new_node->r = NULL;
 	for (i = 0; i < RADIX_FAMILIES; i++) {
@@ -555,7 +520,7 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 			node->l = new_node;
 		}
 		*target = new_node;
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	if (bitlen == differ_bit) {
@@ -608,7 +573,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	}
 
 	*target = new_node;
-	return (ISC_R_SUCCESS);
 }
 
 void

@@ -231,7 +231,7 @@ tostruct_nxt(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&nxt->next, NULL);
-	RETERR(name_duporclone(&name, mctx, &nxt->next));
+	name_duporclone(&name, mctx, &nxt->next);
 
 	nxt->len = region.length;
 	nxt->typebits = mem_maybedup(mctx, region.base, region.length);

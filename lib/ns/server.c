@@ -52,43 +52,43 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 
 	isc_refcount_init(&sctx->references, 1);
 
-	CHECKFATAL(isc_quota_init(&sctx->xfroutquota, 10));
-	CHECKFATAL(isc_quota_init(&sctx->tcpquota, 10));
-	CHECKFATAL(isc_quota_init(&sctx->recursionquota, 100));
+	isc_quota_init(&sctx->xfroutquota, 10);
+	isc_quota_init(&sctx->tcpquota, 10);
+	isc_quota_init(&sctx->recursionquota, 100);
 
 	CHECKFATAL(dns_tkeyctx_create(mctx, &sctx->tkeyctx));
 
-	CHECKFATAL(ns_stats_create(mctx, ns_statscounter_max, &sctx->nsstats));
+	ns_stats_create(mctx, ns_statscounter_max, &sctx->nsstats);
 
-	CHECKFATAL(dns_rdatatypestats_create(mctx, &sctx->rcvquerystats));
+	dns_rdatatypestats_create(mctx, &sctx->rcvquerystats);
 
-	CHECKFATAL(dns_opcodestats_create(mctx, &sctx->opcodestats));
+	dns_opcodestats_create(mctx, &sctx->opcodestats);
 
-	CHECKFATAL(dns_rcodestats_create(mctx, &sctx->rcodestats));
+	dns_rcodestats_create(mctx, &sctx->rcodestats);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->udpinstats4,
-				    dns_sizecounter_in_max));
+	isc_stats_create(mctx, &sctx->udpinstats4,
+				    dns_sizecounter_in_max);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->udpoutstats4,
-				    dns_sizecounter_out_max));
+	isc_stats_create(mctx, &sctx->udpoutstats4,
+				    dns_sizecounter_out_max);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->udpinstats6,
-				    dns_sizecounter_in_max));
+	isc_stats_create(mctx, &sctx->udpinstats6,
+				    dns_sizecounter_in_max);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->udpoutstats6,
-				    dns_sizecounter_out_max));
+	isc_stats_create(mctx, &sctx->udpoutstats6,
+				    dns_sizecounter_out_max);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpinstats4,
-				    dns_sizecounter_in_max));
+	isc_stats_create(mctx, &sctx->tcpinstats4,
+				    dns_sizecounter_in_max);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpoutstats4,
-				    dns_sizecounter_out_max));
+	isc_stats_create(mctx, &sctx->tcpoutstats4,
+				    dns_sizecounter_out_max);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpinstats6,
-				    dns_sizecounter_in_max));
+	isc_stats_create(mctx, &sctx->tcpinstats6,
+				    dns_sizecounter_in_max);
 
-	CHECKFATAL(isc_stats_create(mctx, &sctx->tcpoutstats6,
-				    dns_sizecounter_out_max));
+	isc_stats_create(mctx, &sctx->tcpoutstats6,
+				    dns_sizecounter_out_max);
 
 	sctx->initialtimo = 300;
 	sctx->idletimo = 300;

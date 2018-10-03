@@ -79,7 +79,7 @@ heap_check(isc_heap_t *heap) {
 #define heap_check(x) (void)0
 #endif
 
-isc_result_t
+void
 isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 		isc_heapindex_t idx, unsigned int size_increment,
 		isc_heap_t **heapp)
@@ -90,8 +90,6 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 	REQUIRE(compare != NULL);
 
 	heap = isc_mem_get(mctx, sizeof(*heap));
-	if (heap == NULL)
-		return (ISC_R_NOMEMORY);
 	heap->magic = HEAP_MAGIC;
 	heap->size = 0;
 	heap->mctx = NULL;
@@ -106,8 +104,6 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 	heap->index = idx;
 
 	*heapp = heap;
-
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -127,7 +123,7 @@ isc_heap_destroy(isc_heap_t **heapp) {
 	*heapp = NULL;
 }
 
-static bool
+static void
 resize(isc_heap_t *heap) {
 	void **new_array;
 	unsigned int new_size;
@@ -136,8 +132,6 @@ resize(isc_heap_t *heap) {
 
 	new_size = heap->size + heap->size_increment;
 	new_array = isc_mem_get(heap->mctx, new_size * sizeof(void *));
-	if (new_array == NULL)
-		return (false);
 	if (heap->array != NULL) {
 		memmove(new_array, heap->array, heap->size * sizeof(void *));
 		isc_mem_put(heap->mctx, heap->array,
@@ -145,8 +139,6 @@ resize(isc_heap_t *heap) {
 	}
 	heap->size = new_size;
 	heap->array = new_array;
-
-	return (true);
 }
 
 static void
@@ -194,7 +186,7 @@ sink_down(isc_heap_t *heap, unsigned int i, void *elt) {
 	heap_check(heap);
 }
 
-isc_result_t
+void
 isc_heap_insert(isc_heap_t *heap, void *elt) {
 	unsigned int new_last;
 
@@ -203,13 +195,11 @@ isc_heap_insert(isc_heap_t *heap, void *elt) {
 	heap_check(heap);
 	new_last = heap->last + 1;
 	RUNTIME_CHECK(new_last > 0); /* overflow check */
-	if (new_last >= heap->size && !resize(heap))
-		return (ISC_R_NOMEMORY);
+	if (new_last >= heap->size)
+		resize(heap);
 	heap->last = new_last;
 
 	float_up(heap, new_last, elt);
-
-	return (ISC_R_SUCCESS);
 }
 
 void

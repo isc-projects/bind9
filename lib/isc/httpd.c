@@ -265,14 +265,8 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	REQUIRE(httpdmgrp != NULL && *httpdmgrp == NULL);
 
 	httpdmgr = isc_mem_get(mctx, sizeof(isc_httpdmgr_t));
-	if (httpdmgr == NULL)
-		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&httpdmgr->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, httpdmgr, sizeof(isc_httpdmgr_t));
-		return (result);
-	}
+	isc_mutex_init(&httpdmgr->lock);
 	httpdmgr->mctx = NULL;
 	isc_mem_attach(mctx, &httpdmgr->mctx);
 	httpdmgr->sock = NULL;
@@ -641,12 +635,6 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev) {
 	}
 
 	httpd = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpd_t));
-	if (httpd == NULL) {
-		/* XXXMLG log failure */
-		NOTICE("accept failed to allocate memory, goto requeue");
-		isc_socket_detach(&nev->newsocket);
-		goto requeue;
-	}
 
 	httpd->mgr = httpdmgr;
 	ISC_LINK_INIT(httpd, link);
@@ -660,11 +648,7 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev) {
 	 * Initialize the buffer for our headers.
 	 */
 	headerdata = isc_mem_get(httpdmgr->mctx, HTTP_SENDGROW);
-	if (headerdata == NULL) {
-		isc_mem_put(httpdmgr->mctx, httpd, sizeof(isc_httpd_t));
-		isc_socket_detach(&nev->newsocket);
-		goto requeue;
-	}
+
 	isc_buffer_init(&httpd->headerbuffer, headerdata, HTTP_SENDGROW);
 
 	ISC_LIST_INIT(httpd->bufflist);
@@ -758,31 +742,24 @@ render_500(const char *url, isc_httpdurl_t *urlinfo,
  *
  * Requires:
  *\li	httpd a valid isc_httpd_t object
- *
- * Returns:
- *\li	#ISC_R_SUCCESS		-- all is well.
- *\li	#ISC_R_NOMEMORY		-- not enough memory to extend buffer
  */
-static isc_result_t
+static void
 alloc_compspace(isc_httpd_t *httpd, unsigned int size) {
 	char *newspace;
 	isc_region_t r;
 
 	isc_buffer_region(&httpd->compbuffer, &r);
 	if (size < r.length) {
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	newspace = isc_mem_get(httpd->mgr->mctx, size);
-	if (newspace == NULL)
-		return (ISC_R_NOMEMORY);
+
 	isc_buffer_reinit(&httpd->compbuffer, newspace, size);
 
 	if (r.base != NULL) {
 		isc_mem_put(httpd->mgr->mctx, r.base, r.length);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 /*%<
@@ -802,15 +779,11 @@ static isc_result_t
 isc_httpd_compress(isc_httpd_t *httpd) {
 	z_stream zstr;
 	isc_region_t r;
-	isc_result_t result;
 	int ret;
 	int inputlen;
 
 	inputlen = isc_buffer_usedlength(&httpd->bodybuffer);
-	result = alloc_compspace(httpd, inputlen);
-	if (result != ISC_R_SUCCESS) {
-		return result;
-	}
+	alloc_compspace(httpd, inputlen);
 	isc_buffer_region(&httpd->compbuffer, &r);
 
 	/*
@@ -1025,13 +998,11 @@ grow_headerspace(isc_httpd_t *httpd) {
 		return (ISC_R_NOSPACE);
 
 	newspace = isc_mem_get(httpd->mgr->mctx, newlen);
-	if (newspace == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_buffer_reinit(&httpd->headerbuffer, newspace, newlen);
 
 	isc_mem_put(httpd->mgr->mctx, r.base, r.length);
-
+	
 	return (ISC_R_SUCCESS);
 }
 
@@ -1208,14 +1179,14 @@ reset_client(isc_httpd_t *httpd) {
 	isc_buffer_invalidate(&httpd->bodybuffer);
 }
 
-isc_result_t
+void
 isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url,
 		    isc_httpdaction_t *func, void *arg)
 {
-	return (isc_httpdmgr_addurl2(httpdmgr, url, false, func, arg));
+	isc_httpdmgr_addurl2(httpdmgr, url, false, func, arg);
 }
 
-isc_result_t
+void
 isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 		     bool isstatic,
 		     isc_httpdaction_t *func, void *arg)
@@ -1224,18 +1195,12 @@ isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 
 	if (url == NULL) {
 		httpdmgr->render_404 = func;
-		return (ISC_R_SUCCESS);
+		return;
 	}
 
 	item = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpdurl_t));
-	if (item == NULL)
-		return (ISC_R_NOMEMORY);
 
 	item->url = isc_mem_strdup(httpdmgr->mctx, url);
-	if (item->url == NULL) {
-		isc_mem_put(httpdmgr->mctx, item, sizeof(isc_httpdurl_t));
-		return (ISC_R_NOMEMORY);
-	}
 
 	item->action = func;
 	item->action_arg = arg;
@@ -1244,8 +1209,6 @@ isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 
 	ISC_LINK_INIT(item, link);
 	ISC_LIST_APPEND(httpdmgr->urls, item, link);
-
-	return (ISC_R_SUCCESS);
 }
 
 void

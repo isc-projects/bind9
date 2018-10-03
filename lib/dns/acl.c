@@ -30,9 +30,8 @@
  * for 'n' ACL elements.  The elements are uninitialized and the
  * length is 0.
  */
-isc_result_t
+void
 dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
-	isc_result_t result;
 	dns_acl_t *acl;
 
 	/*
@@ -42,9 +41,6 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 		n = 1;
 
 	acl = isc_mem_get(mctx, sizeof(*acl));
-	if (acl == NULL)
-		return (ISC_R_NOMEMORY);
-
 	acl->mctx = NULL;
 	isc_mem_attach(mctx, &acl->mctx);
 
@@ -52,11 +48,7 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 
 	isc_refcount_init(&acl->refcount, 1);
 
-	result = dns_iptable_create(mctx, &acl->iptable);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, acl, sizeof(*acl));
-		return (result);
-	}
+	dns_iptable_create(mctx, &acl->iptable);
 
 	acl->elements = NULL;
 	acl->alloc = 0;
@@ -70,18 +62,9 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	acl->magic = DNS_ACL_MAGIC;
 
 	acl->elements = isc_mem_get(mctx, n * sizeof(dns_aclelement_t));
-	if (acl->elements == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	acl->alloc = n;
 	memset(acl->elements, 0, n * sizeof(dns_aclelement_t));
 	*target = acl;
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	dns_acl_detach(&acl);
-	return (result);
 }
 
 /*
@@ -90,39 +73,30 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
  * "any" is a positive iptable entry with bit length 0.
  * "none" is the same as "!any".
  */
-static isc_result_t
+static void
 dns_acl_anyornone(isc_mem_t *mctx, bool neg, dns_acl_t **target) {
-	isc_result_t result;
 	dns_acl_t *acl = NULL;
 
-	result = dns_acl_create(mctx, 0, &acl);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_acl_create(mctx, 0, &acl);
 
-	result = dns_iptable_addprefix(acl->iptable, NULL, 0, !neg);
-	if (result != ISC_R_SUCCESS) {
-		dns_acl_detach(&acl);
-		return (result);
-	}
-
+	dns_iptable_addprefix(acl->iptable, NULL, 0, !neg);
 	*target = acl;
-	return (result);
 }
 
 /*
  * Create a new ACL that matches everything.
  */
-isc_result_t
+void
 dns_acl_any(isc_mem_t *mctx, dns_acl_t **target) {
-	return (dns_acl_anyornone(mctx, false, target));
+	dns_acl_anyornone(mctx, false, target);
 }
 
 /*
  * Create a new ACL that matches nothing.
  */
-isc_result_t
+void
 dns_acl_none(isc_mem_t *mctx, dns_acl_t **target) {
-	return (dns_acl_anyornone(mctx, true, target));
+	dns_acl_anyornone(mctx, true, target);
 }
 
 /*
@@ -262,10 +236,9 @@ dns_acl_match(const isc_netaddr_t *reqaddr,
  * but leave negatives alone, so as to prevent a double-negative causing
  * an unexpected positive match in the parent ACL.
  */
-isc_result_t
+void
 dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 {
-	isc_result_t result;
 	unsigned int newalloc, nelem, i;
 	int max_node = 0, nodes;
 
@@ -279,8 +252,6 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 
 		newmem = isc_mem_get(dest->mctx,
 				     newalloc * sizeof(dns_aclelement_t));
-		if (newmem == NULL)
-			return (ISC_R_NOMEMORY);
 
 		/* Zero. */
 		memset(newmem, 0, newalloc * sizeof(dns_aclelement_t));
@@ -324,11 +295,9 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 		/* Duplicate key name. */
 		if (source->elements[i].type == dns_aclelementtype_keyname) {
 			dns_name_init(&dest->elements[nelem+i].keyname, NULL);
-			result = dns_name_dup(&source->elements[i].keyname,
-					      dest->mctx,
-					      &dest->elements[nelem+i].keyname);
-			if (result != ISC_R_SUCCESS)
-				return result;
+			dns_name_dup(&source->elements[i].keyname,
+				     dest->mctx,
+				     &dest->elements[nelem+i].keyname);
 		}
 
 #ifdef HAVE_GEOIP
@@ -353,13 +322,9 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 	 * node_count value is set correctly afterward.
 	 */
 	nodes = max_node + dest->node_count;
-	result = dns_iptable_merge(dest->iptable, source->iptable, pos);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_iptable_merge(dest->iptable, source->iptable, pos);
 	if (nodes > dest->node_count)
 		dest->node_count = nodes;
-
-	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -498,7 +463,7 @@ static bool	insecure_prefix_found;
 
 static void
 initialize_action(void) {
-	RUNTIME_CHECK(isc_mutex_init(&insecure_prefix_lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&insecure_prefix_lock);
 }
 
 /*
@@ -625,28 +590,18 @@ dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
 /*
  * Initialize ACL environment, setting up localhost and localnets ACLs
  */
-isc_result_t
+void
 dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env) {
 	isc_result_t result;
 
 	env->localhost = NULL;
 	env->localnets = NULL;
-	result = dns_acl_create(mctx, 0, &env->localhost);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_nothing;
-	result = dns_acl_create(mctx, 0, &env->localnets);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_localhost;
+	dns_acl_create(mctx, 0, &env->localhost);
+	dns_acl_create(mctx, 0, &env->localnets);
 	env->match_mapped = false;
 #ifdef HAVE_GEOIP
 	env->geoip = NULL;
 #endif
-	return (ISC_R_SUCCESS);
-
- cleanup_localhost:
-	dns_acl_detach(&env->localhost);
- cleanup_nothing:
-	return (result);
 }
 
 void

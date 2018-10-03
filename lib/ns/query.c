@@ -725,7 +725,7 @@ ns_query_free(ns_client_t *client) {
 /*%
  * Allocate a name buffer.
  */
-static inline isc_result_t
+static inline void
 query_newnamebuf(ns_client_t *client) {
 	isc_buffer_t *dbuf;
 	isc_result_t result;
@@ -733,16 +733,10 @@ query_newnamebuf(ns_client_t *client) {
 	CTRACE(ISC_LOG_DEBUG(3), "query_newnamebuf");
 
 	dbuf = NULL;
-	result = isc_buffer_allocate(client->mctx, &dbuf, 1024);
-	if (result != ISC_R_SUCCESS) {
-		CTRACE(ISC_LOG_DEBUG(3),
-		       "query_newnamebuf: isc_buffer_allocate failed: done");
-		return (result);
-	}
+	isc_buffer_allocate(client->mctx, &dbuf, 1024);
 	ISC_LIST_APPEND(client->query.namebufs, dbuf, link);
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_newnamebuf: done");
-	return (ISC_R_SUCCESS);
 }
 
 /*%
@@ -761,25 +755,14 @@ query_getnamebuf(ns_client_t *client) {
 	 */
 
 	if (ISC_LIST_EMPTY(client->query.namebufs)) {
-		result = query_newnamebuf(client);
-		if (result != ISC_R_SUCCESS) {
-		    CTRACE(ISC_LOG_DEBUG(3),
-			   "query_getnamebuf: query_newnamebuf failed: done");
-			return (NULL);
-		}
+		query_newnamebuf(client);
 	}
 
 	dbuf = ISC_LIST_TAIL(client->query.namebufs);
 	INSIST(dbuf != NULL);
 	isc_buffer_availableregion(dbuf, &r);
 	if (r.length < DNS_NAME_MAXWIRE) {
-		result = query_newnamebuf(client);
-		if (result != ISC_R_SUCCESS) {
-		    CTRACE(ISC_LOG_DEBUG(3),
-			   "query_getnamebuf: query_newnamebuf failed: done");
-			return (NULL);
-
-		}
+		query_newnamebuf(client);
 		dbuf = ISC_LIST_TAIL(client->query.namebufs);
 		isc_buffer_availableregion(dbuf, &r);
 		INSIST(r.length >= 255);
@@ -931,9 +914,7 @@ ns_query_init(ns_client_t *client) {
 	 * This mutex is destroyed when the client is destroyed in
 	 * exit_check().
 	 */
-	result = isc_mutex_init(&client->query.fetchlock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mutex_init(&client->query.fetchlock);
 	client->query.fetch = NULL;
 	client->query.prefetch = NULL;
 	client->query.authdb = NULL;
@@ -961,11 +942,7 @@ ns_query_init(ns_client_t *client) {
 		DESTROYLOCK(&client->query.fetchlock);
 		return (result);
 	}
-	result = query_newnamebuf(client);
-	if (result != ISC_R_SUCCESS) {
-		query_freefreeversions(client, true);
-		DESTROYLOCK(&client->query.fetchlock);
-	}
+	query_newnamebuf(client);
 
 	return (result);
 }
@@ -7419,11 +7396,9 @@ query_dns64(query_ctx_t *qctx) {
 
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 
-	result = isc_buffer_allocate(client->mctx, &buffer,
+	isc_buffer_allocate(client->mctx, &buffer,
 				     view->dns64cnt * 16 *
 				     dns_rdataset_count(qctx->rdataset));
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 	result = dns_message_gettemprdataset(client->message,
 					     &dns64_rdataset);
 	if (result != ISC_R_SUCCESS)
@@ -7584,10 +7559,8 @@ query_filter64(query_ctx_t *qctx) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
 	}
 
-	result = isc_buffer_allocate(client->mctx, &buffer,
+	isc_buffer_allocate(client->mctx, &buffer,
 				     16 * dns_rdataset_count(qctx->rdataset));
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 	result = dns_message_gettemprdataset(client->message, &myrdataset);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -8845,12 +8818,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	}
 
 	dns_name_init(tname, NULL);
-	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		dns_rdata_freestruct(&cname);
-		return (result);
-	}
+	dns_name_dup(&cname.cname, qctx->client->mctx, tname);
 
 	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
@@ -9450,12 +9418,7 @@ query_cname(query_ctx_t *qctx) {
 	}
 
 	dns_name_init(tname, NULL);
-	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		dns_rdata_freestruct(&cname);
-		return (query_done(qctx));
-	}
+	dns_name_dup(&cname.cname, qctx->client->mctx, tname);
 
 	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
@@ -9633,11 +9596,7 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	result = dns_message_gettempname(client->message, &aname);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_name_dup(client->query.qname, client->mctx, aname);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(client->message, &aname);
-		return (result);
-	}
+	dns_name_dup(client->query.qname, client->mctx, aname);
 
 	result = dns_message_gettemprdatalist(client->message, &rdatalist);
 	if (result != ISC_R_SUCCESS) {

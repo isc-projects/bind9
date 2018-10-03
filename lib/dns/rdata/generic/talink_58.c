@@ -178,22 +178,15 @@ tostruct_talink(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&talink->prev, NULL);
-	RETERR(name_duporclone(&name, mctx, &talink->prev));
+	name_duporclone(&name, mctx, &talink->prev);
 
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&talink->next, NULL);
-	result = name_duporclone(&name, mctx, &talink->next);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	name_duporclone(&name, mctx, &talink->next);
 
 	talink->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	if (mctx != NULL)
-		dns_name_free(&talink->prev, mctx);
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

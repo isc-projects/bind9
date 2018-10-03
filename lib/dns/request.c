@@ -129,7 +129,7 @@ static void do_cancel(isc_task_t *task, isc_event_t *event);
  *** Public
  ***/
 
-isc_result_t
+void
 dns_requestmgr_create(isc_mem_t *mctx,
 		      isc_timermgr_t *timermgr,
 		      isc_socketmgr_t *socketmgr,
@@ -163,23 +163,10 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	}
 
 	requestmgr = isc_mem_get(mctx, sizeof(*requestmgr));
-	if (requestmgr == NULL)
-		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&requestmgr->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
-		return (result);
-	}
+	isc_mutex_init(&requestmgr->lock);
 	for (i = 0; i < DNS_REQUEST_NLOCKS; i++) {
-		result = isc_mutex_init(&requestmgr->locks[i]);
-		if (result != ISC_R_SUCCESS) {
-			while (--i >= 0)
-				DESTROYLOCK(&requestmgr->locks[i]);
-			DESTROYLOCK(&requestmgr->lock);
-			isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
-			return (result);
-		}
+		isc_mutex_init(&requestmgr->locks[i]);
 	}
 	requestmgr->timermgr = timermgr;
 	requestmgr->socketmgr = socketmgr;
@@ -204,7 +191,6 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	req_log(ISC_LOG_DEBUG(3), "dns_requestmgr_create: %p", requestmgr);
 
 	*requestmgrp = requestmgr;
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -591,11 +577,12 @@ create_tcp_dispatch(bool newtcp, bool share,
 	attrs |= DNS_DISPATCHATTR_MAKEQUERY;
 
 	isc_socket_dscp(sock, dscp);
-	result = dns_dispatch_createtcp(requestmgr->dispatchmgr,
+	dns_dispatch_createtcp(requestmgr->dispatchmgr,
 					sock, requestmgr->taskmgr,
 					srcaddr, destaddr,
 					4096, 32768, 32768, 16411, 16433,
 					attrs, dispatchp);
+	result = ISC_R_SUCCESS;
 cleanup:
 	isc_socket_detach(&sock);
 	return (result);
@@ -804,10 +791,8 @@ dns_request_createraw(dns_requestmgr_t *requestmgr, isc_buffer_t *msgbuf,
 	sock = req_getsocket(request);
 	INSIST(sock != NULL);
 
-	result = isc_buffer_allocate(mctx, &request->query,
+	isc_buffer_allocate(mctx, &request->query,
 				     r.length + (tcp ? 2 : 0));
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 	if (tcp)
 		isc_buffer_putuint16(request->query, (uint16_t)r.length);
 	result = isc_buffer_copyregion(request->query, &r);
@@ -1068,13 +1053,10 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 	/*
 	 * Create buffer able to hold largest possible message.
 	 */
-	result = isc_buffer_allocate(mctx, &buf1, 65535);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(mctx, &buf1, 65535);
 
-	result = dns_compress_init(&cctx, -1, mctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_compress_init(&cctx, -1, mctx);
+
 	cleanup_cctx = true;
 
 	if ((options & DNS_REQUESTOPT_CASE) != 0)
@@ -1115,9 +1097,7 @@ req_render(dns_message_t *message, isc_buffer_t **bufferp,
 		result = DNS_R_USETCP;
 		goto cleanup;
 	}
-	result = isc_buffer_allocate(mctx, &buf2, r.length + (tcp ? 2 : 0));
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_buffer_allocate(mctx, &buf2, r.length + (tcp ? 2 : 0));
 	if (tcp)
 		isc_buffer_putuint16(buf2, (uint16_t)r.length);
 	result = isc_buffer_copyregion(buf2, &r);
@@ -1369,10 +1349,8 @@ req_response(isc_task_t *task, isc_event_t *event) {
 	 * Copy buffer to request.
 	 */
 	isc_buffer_usedregion(&devent->buffer, &r);
-	result = isc_buffer_allocate(request->mctx, &request->answer,
+	isc_buffer_allocate(request->mctx, &request->answer,
 				     r.length);
-	if (result != ISC_R_SUCCESS)
-		goto done;
 	result = isc_buffer_copyregion(request->answer, &r);
 	if (result != ISC_R_SUCCESS)
 		isc_buffer_free(&request->answer);

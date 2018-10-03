@@ -88,7 +88,7 @@ struct dns_decompress {
 	dns_decompresstype_t	type;		/*%< Strict checking */
 };
 
-isc_result_t
+void
 dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx);
 /*%<
  *	Initialise the compression context structure pointed to by
@@ -101,9 +101,6 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx);
  *	\li	'mctx' is an initialized memory context.
  *	Ensures:
  *	\li	cctx->global is initialized.
- *
- *	Returns:
- *	\li	#ISC_R_SUCCESS
  */
 
 void

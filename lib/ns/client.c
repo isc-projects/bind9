@@ -1131,9 +1131,7 @@ client_send(ns_client_t *client) {
 	if (result != ISC_R_SUCCESS)
 		goto done;
 
-	result = dns_compress_init(&cctx, -1, client->mctx);
-	if (result != ISC_R_SUCCESS)
-		goto done;
+	dns_compress_init(&cctx, -1, client->mctx);
 	if (client->peeraddr_valid && client->view != NULL) {
 		isc_netaddr_t netaddr;
 		dns_name_t *name = NULL;
@@ -2894,10 +2892,9 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 	(void)exit_check(client);
 }
 
-static isc_result_t
+static void
 get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 	isc_mem_t *clientmctx;
-	isc_result_t result;
 #if NMCTXS > 0
 	unsigned int nextmctx;
 #endif
@@ -2908,10 +2905,9 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 	 * Caller must be holding the manager lock.
 	 */
 	if ((manager->sctx->options & NS_SERVER_CLIENTTEST) != 0) {
-		result = isc_mem_create(0, 0, mctxp);
-		if (result == ISC_R_SUCCESS)
-			isc_mem_setname(*mctxp, "client", NULL);
-		return (result);
+		isc_mem_create(0, 0, mctxp);
+		isc_mem_setname(*mctxp, "client", NULL);
+		return;
 	}
 #if NMCTXS > 0
 	nextmctx = manager->nextmctx++;
@@ -2922,11 +2918,8 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 
 	clientmctx = manager->mctxpool[nextmctx];
 	if (clientmctx == NULL) {
-		result = isc_mem_create(0, 0, &clientmctx);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		isc_mem_create(0, 0, &clientmctx);
 		isc_mem_setname(clientmctx, "client", NULL);
-
 		manager->mctxpool[nextmctx] = clientmctx;
 	}
 #else
@@ -2935,7 +2928,7 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 
 	isc_mem_attach(clientmctx, mctxp);
 
-	return (ISC_R_SUCCESS);
+	return;
 }
 
 static isc_result_t
@@ -2954,15 +2947,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
-	result = get_clientmctx(manager, &mctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
+	get_clientmctx(manager, &mctx);
 	client = isc_mem_get(mctx, sizeof(*client));
-	if (client == NULL) {
-		isc_mem_detach(&mctx);
-		return (ISC_R_NOMEMORY);
-	}
 	client->mctx = mctx;
 
 	client->sctx = NULL;
@@ -2985,10 +2971,8 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->delaytimer = NULL;
 
 	client->message = NULL;
-	result = dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,
+	dns_message_create(client->mctx, DNS_MESSAGE_INTENTPARSE,
 				    &client->message);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_timer;
 
 	/* XXXRTH  Hardwired constants */
 
@@ -3423,20 +3407,10 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 #endif
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	if (manager == NULL)
-		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_manager;
-
-	result = isc_mutex_init(&manager->listlock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
-
-	result = isc_mutex_init(&manager->reclock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_listlock;
+	isc_mutex_init(&manager->lock);
+	isc_mutex_init(&manager->listlock);
+	isc_mutex_init(&manager->reclock);
 
 	manager->excl = NULL;
 	result = isc_taskmgr_excltask(taskmgr, &manager->excl);

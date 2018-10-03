@@ -50,14 +50,8 @@ initialize(void) {
 
 	REQUIRE(initialize_done == false);
 
-	result = isc_mem_create(0, 0, &ns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		return;
-
-	result = isc_mutex_init(&reflock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mctx;
-
+	isc_mem_create(0, 0, &ns_g_mctx);
+	isc_mutex_init(&reflock);
 	initialize_done = true;
 	return;
 

@@ -1626,7 +1626,7 @@ dns_db_rpz_ready(dns_db_t *db)
  * Finish loading a response policy zone.
  */
 
-isc_result_t
+void
 dns_db_updatenotify_register(dns_db_t *db,
 			     dns_dbupdate_callback_t fn,
 			     void *fn_arg);

@@ -388,7 +388,7 @@ dns__rbtnode_getdistance(dns_rbtnode_t *node) {
 static isc_result_t
 create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep);
 
-static isc_result_t
+static void
 inithash(dns_rbt_t *rbt);
 
 static inline void
@@ -864,7 +864,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 
 	isc_crc64_init(&crc);
 
-	CHECK(dns_rbt_create(mctx, deleter, deleter_arg, &rbt));
+	dns_rbt_create(mctx, deleter, deleter_arg, &rbt);
 
 	rbt->mmap_location = base_address;
 
@@ -946,7 +946,7 @@ dns_rbt_deserialize_tree(void *base_address, size_t filesize,
 /*
  * Initialize a red/black tree of trees.
  */
-isc_result_t
+void
 dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	       void *deleter_arg, dns_rbt_t **rbtp)
 {
@@ -958,8 +958,6 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	REQUIRE(deleter == NULL ? deleter_arg == NULL : 1);
 
 	rbt = (dns_rbt_t *)isc_mem_get(mctx, sizeof(*rbt));
-	if (rbt == NULL)
-		return (ISC_R_NOMEMORY);
 
 	rbt->mctx = NULL;
 	isc_mem_attach(mctx, &rbt->mctx);
@@ -971,17 +969,11 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	rbt->hashsize = 0;
 	rbt->mmap_location = NULL;
 
-	result = inithash(rbt);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_putanddetach(&rbt->mctx, rbt, sizeof(*rbt));
-		return (result);
-	}
+	inithash(rbt);
 
 	rbt->magic = RBT_MAGIC;
 
 	*rbtp = rbt;
-
-	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -2272,7 +2264,7 @@ hash_add_node(dns_rbt_t *rbt, dns_rbtnode_t *node, const dns_name_t *name) {
 /*
  * Initialize hash table
  */
-static isc_result_t
+static void
 inithash(dns_rbt_t *rbt) {
 	unsigned int bytes;
 
@@ -2280,12 +2272,7 @@ inithash(dns_rbt_t *rbt) {
 	bytes = (unsigned int)rbt->hashsize * sizeof(dns_rbtnode_t *);
 	rbt->hashtable = isc_mem_get(rbt->mctx, bytes);
 
-	if (rbt->hashtable == NULL)
-		return (ISC_R_NOMEMORY);
-
 	memset(rbt->hashtable, 0, bytes);
-
-	return (ISC_R_SUCCESS);
 }
 
 /*

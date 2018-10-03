@@ -315,11 +315,11 @@ isc_timer_gettype(isc_timer_t *timer);
  *\li	'timer' to be a valid timer.
  */
 
-isc_result_t
+void
 isc_timermgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 			 isc_timermgr_t **managerp);
 
-isc_result_t
+void
 isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp);
 /*%<
  * Create a timer manager.  isc_timermgr_createinctx() also associates

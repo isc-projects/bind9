@@ -194,7 +194,7 @@ tostruct_in_kx(ARGS_TOSTRUCT) {
 
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&kx->exchange, NULL);
-	RETERR(name_duporclone(&name, mctx, &kx->exchange));
+	name_duporclone(&name, mctx, &kx->exchange);
 	kx->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

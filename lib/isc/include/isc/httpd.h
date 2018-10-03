@@ -58,11 +58,11 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 void
 isc_httpdmgr_shutdown(isc_httpdmgr_t **httpdp);
 
-isc_result_t
+void
 isc_httpdmgr_addurl(isc_httpdmgr_t *httpdmgr, const char *url,
 		    isc_httpdaction_t *func, void *arg);
 
-isc_result_t
+void
 isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 		     bool isstatic,
 		     isc_httpdaction_t *func, void *arg);

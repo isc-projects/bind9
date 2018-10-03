@@ -191,20 +191,10 @@ main(int argc, char *argv[]) {
 	qmessage = NULL;
 	rmessage = NULL;
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to create a memory context\n");
-		exit(1);
-	}
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &qmessage);
-	if (result == ISC_R_SUCCESS) {
-		result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
+	isc_mem_create(0, 0, &mctx);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &qmessage);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
 					    &rmessage);
-	}
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to create messages\n");
-		exit(1);
-	}
 
 	/* Initialize the nameserver address */
 	memset(&hints, 0, sizeof(hints));
@@ -243,11 +233,7 @@ main(int argc, char *argv[]) {
 
 	/* Dump the response */
 	outputbuf = NULL;
-	result = isc_buffer_allocate(mctx, &outputbuf, 65535);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to allocate a result buffer\n");
-		exit(1);
-	}
+	isc_buffer_allocate(mctx, &outputbuf, 65535);
 	for (i = 0; i < DNS_SECTION_MAX; i++) {
 		print_section(rmessage, i, outputbuf);
 		isc_buffer_clear(outputbuf);

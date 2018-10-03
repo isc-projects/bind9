@@ -191,8 +191,6 @@ msgblock_allocate(isc_mem_t *mctx, unsigned int sizeof_type,
 	length = sizeof(dns_msgblock_t) + (sizeof_type * count);
 
 	block = isc_mem_get(mctx, length);
-	if (block == NULL)
-		return (NULL);
 
 	block->count = count;
 	block->remaining = count;
@@ -245,18 +243,15 @@ msgblock_free(isc_mem_t *mctx, dns_msgblock_t *block, unsigned int sizeof_type)
  * "current" buffer.  (which is always the last on the list, for our
  * uses)
  */
-static inline isc_result_t
+static inline void
 newbuffer(dns_message_t *msg, unsigned int size) {
 	isc_result_t result;
 	isc_buffer_t *dynbuf;
 
 	dynbuf = NULL;
-	result = isc_buffer_allocate(msg->mctx, &dynbuf, size);
-	if (result != ISC_R_SUCCESS)
-		return (ISC_R_NOMEMORY);
+	isc_buffer_allocate(msg->mctx, &dynbuf, size);
 
 	ISC_LIST_APPEND(msg->scratchpad, dynbuf, link);
-	return (ISC_R_SUCCESS);
 }
 
 static inline isc_buffer_t *
@@ -290,9 +285,6 @@ newrdata(dns_message_t *msg) {
 	if (rdata == NULL) {
 		msgblock = msgblock_allocate(msg->mctx, sizeof(dns_rdata_t),
 					     RDATA_COUNT);
-		if (msgblock == NULL)
-			return (NULL);
-
 		ISC_LIST_APPEND(msg->rdatas, msgblock, link);
 
 		rdata = msgblock_get(msgblock, dns_rdata_t);
@@ -324,9 +316,6 @@ newrdatalist(dns_message_t *msg) {
 		msgblock = msgblock_allocate(msg->mctx,
 					     sizeof(dns_rdatalist_t),
 					     RDATALIST_COUNT);
-		if (msgblock == NULL)
-			return (NULL);
-
 		ISC_LIST_APPEND(msg->rdatalists, msgblock, link);
 
 		rdatalist = msgblock_get(msgblock, dns_rdatalist_t);
@@ -349,9 +338,6 @@ newoffsets(dns_message_t *msg) {
 		msgblock = msgblock_allocate(msg->mctx,
 					     sizeof(dns_offsets_t),
 					     OFFSET_COUNT);
-		if (msgblock == NULL)
-			return (NULL);
-
 		ISC_LIST_APPEND(msg->offsets, msgblock, link);
 
 		offsets = msgblock_get(msgblock, dns_offsets_t);
@@ -700,7 +686,7 @@ spacefortsig(dns_tsigkey_t *key, int otherlen) {
 	return (26 + r1.length + r2.length + x + otherlen);
 }
 
-isc_result_t
+void
 dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 {
 	dns_message_t *m;
@@ -715,8 +701,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 		|| intent == DNS_MESSAGE_INTENTRENDER);
 
 	m = isc_mem_get(mctx, sizeof(dns_message_t));
-	if (m == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/*
 	 * No allocations until further notice.  Just initialize all lists
@@ -747,49 +731,24 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 	 * Ok, it is safe to allocate (and then "goto cleanup" if failure)
 	 */
 
-	result = isc_mempool_create(m->mctx, sizeof(dns_name_t), &m->namepool);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mempool_create(m->mctx, sizeof(dns_name_t), &m->namepool);
 	isc_mempool_setfillcount(m->namepool, NAME_COUNT);
 	isc_mempool_setfreemax(m->namepool, NAME_COUNT);
 	isc_mempool_setname(m->namepool, "msg:names");
 
-	result = isc_mempool_create(m->mctx, sizeof(dns_rdataset_t),
+	isc_mempool_create(m->mctx, sizeof(dns_rdataset_t),
 				    &m->rdspool);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 	isc_mempool_setfillcount(m->rdspool, RDATASET_COUNT);
 	isc_mempool_setfreemax(m->rdspool, RDATASET_COUNT);
 	isc_mempool_setname(m->rdspool, "msg:rdataset");
 
 	dynbuf = NULL;
-	result = isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_buffer_allocate(mctx, &dynbuf, SCRATCHPAD_SIZE);
 	ISC_LIST_APPEND(m->scratchpad, dynbuf, link);
 
 	m->cctx = NULL;
 
 	*msgp = m;
-	return (ISC_R_SUCCESS);
-
-	/*
-	 * Cleanup for error returns.
-	 */
- cleanup:
-	dynbuf = ISC_LIST_HEAD(m->scratchpad);
-	if (dynbuf != NULL) {
-		ISC_LIST_UNLINK(m->scratchpad, dynbuf, link);
-		isc_buffer_free(&dynbuf);
-	}
-	if (m->namepool != NULL)
-		isc_mempool_destroy(&m->namepool);
-	if (m->rdspool != NULL)
-		isc_mempool_destroy(&m->rdspool);
-	m->magic = 0;
-	isc_mem_putanddetach(&mctx, m, sizeof(dns_message_t));
-
-	return (ISC_R_NOMEMORY);
 }
 
 void
@@ -909,9 +868,7 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 		if (result == ISC_R_NOSPACE) {
 			tries++;
 
-			result = newbuffer(msg, SCRATCHPAD_SIZE);
-			if (result != ISC_R_SUCCESS)
-				return (result);
+			newbuffer(msg, SCRATCHPAD_SIZE);
 
 			scratch = currentbuffer(msg);
 			dns_name_reset(name);
@@ -966,10 +923,7 @@ getrdata(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				trysize *= 2;
 			}
 			tries++;
-			result = newbuffer(msg, trysize);
-			if (result != ISC_R_SUCCESS)
-				return (result);
-
+			newbuffer(msg, trysize);
 			scratch = currentbuffer(msg);
 		} else {
 			return (result);
@@ -1764,8 +1718,6 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	else {
 		msg->saved.length = isc_buffer_usedlength(&origsource);
 		msg->saved.base = isc_mem_get(msg->mctx, msg->saved.length);
-		if (msg->saved.base == NULL)
-			return (ISC_R_NOMEMORY);
 		memmove(msg->saved.base, isc_buffer_base(&origsource),
 			msg->saved.length);
 		msg->free_saved = 1;
@@ -2924,9 +2876,7 @@ dns_message_setquerytsig(dns_message_t *msg, isc_buffer_t *querytsig) {
 		goto cleanup;
 
 	isc_buffer_usedregion(querytsig, &r);
-	result = isc_buffer_allocate(msg->mctx, &buf, r.length);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_buffer_allocate(msg->mctx, &buf, r.length);
 	isc_buffer_putmem(buf, r.base, r.length);
 	isc_buffer_usedregion(buf, &r);
 	dns_rdata_init(rdata);
@@ -2971,9 +2921,7 @@ dns_message_getquerytsig(dns_message_t *msg, isc_mem_t *mctx,
 	dns_rdataset_current(msg->tsig, &rdata);
 	dns_rdata_toregion(&rdata, &r);
 
-	result = isc_buffer_allocate(mctx, querytsig, r.length);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(mctx, querytsig, r.length);
 	isc_buffer_putmem(*querytsig, r.base, r.length);
 	return (ISC_R_SUCCESS);
 }
@@ -3092,9 +3040,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 
 	if (!dns_name_hasbuffer(signer)) {
 		isc_buffer_t *dynbuf = NULL;
-		result = isc_buffer_allocate(msg->mctx, &dynbuf, 512);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		isc_buffer_allocate(msg->mctx, &dynbuf, 512);
 		dns_name_setbuffer(signer, dynbuf);
 		dns_message_takebuffer(msg, &dynbuf);
 	}
@@ -4307,8 +4253,6 @@ logfmtpacket(dns_message_t *message, const char *description,
 
 	do {
 		buf = isc_mem_get(mctx, len);
-		if (buf == NULL)
-			break;
 		isc_buffer_init(&buffer, buf, len);
 		result = dns_message_totext(message, style, 0, &buffer);
 		if (result == ISC_R_NOSPACE) {
@@ -4377,9 +4321,7 @@ dns_message_buildopt(dns_message_t *message, dns_rdataset_t **rdatasetp,
 			goto cleanup;
 		}
 
-		result = isc_buffer_allocate(message->mctx, &buf, len);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		isc_buffer_allocate(message->mctx, &buf, len);
 
 		for (i = 0; i < count; i++)  {
 			if (ednsopts[i].code == DNS_OPT_PAD &&

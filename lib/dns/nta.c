@@ -112,24 +112,19 @@ dns_ntatable_create(dns_view_t *view,
 	REQUIRE(ntatablep != NULL && *ntatablep == NULL);
 
 	ntatable = isc_mem_get(view->mctx, sizeof(*ntatable));
-	if (ntatable == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ntatable->task = NULL;
 	result = isc_task_create(taskmgr, 0, &ntatable->task);
+	REQUIRE(result == ISC_R_SUCCESS);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_ntatable;
 	isc_task_setname(ntatable->task, "ntatable", ntatable);
 
 	ntatable->table = NULL;
-	result = dns_rbt_create(view->mctx, free_nta, view->mctx,
+	dns_rbt_create(view->mctx, free_nta, view->mctx,
 				&ntatable->table);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_task;
 
-	result = isc_rwlock_init(&ntatable->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_rbt;
+	isc_rwlock_init(&ntatable->rwlock, 0, 0);
 
 	ntatable->timermgr = timermgr;
 	ntatable->taskmgr = taskmgr;
@@ -141,12 +136,6 @@ dns_ntatable_create(dns_view_t *view,
 	*ntatablep = ntatable;
 
 	return (ISC_R_SUCCESS);
-
-   cleanup_rbt:
-	dns_rbt_destroy(&ntatable->table);
-
-   cleanup_task:
-	isc_task_detach(&ntatable->task);
 
    cleanup_ntatable:
 	isc_mem_put(ntatable->view->mctx, ntatable, sizeof(*ntatable));
@@ -584,9 +573,7 @@ dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
 	isc_buffer_t *text = NULL;
 	int len = 4096;
 
-	result = isc_buffer_allocate(ntatable->view->mctx, &text, len);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_buffer_allocate(ntatable->view->mctx, &text, len);
 
 	result = dns_ntatable_totext(ntatable, &text);
 

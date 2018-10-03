@@ -52,7 +52,7 @@ ISC_LANG_BEGINDECLS
  ***	Functions
  ***/
 
-isc_result_t
+void
 dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp);
 /*%
  * Allocate and initialize a badcache and store it in '*bcp'.

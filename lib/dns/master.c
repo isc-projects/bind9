@@ -471,15 +471,13 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 	isc_mem_detach(&mctx);
 }
 
-static isc_result_t
+static void
 incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 	dns_incctx_t *ictx;
 	isc_region_t r;
 	int i;
 
 	ictx = isc_mem_get(mctx, sizeof(*ictx));
-	if (ictx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	for (i = 0; i < NBUFS; i++) {
 		dns_fixedname_init(&ictx->fixed[i]);
@@ -503,10 +501,9 @@ incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 	ictx->origin_changed = true;
 
 	*ictxp = ictx;
-	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	       unsigned int options, uint32_t resign, dns_name_t *top,
 	       dns_rdataclass_t zclass, dns_name_t *origin,
@@ -532,18 +529,10 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		(task != NULL && done != NULL));
 
 	lctx = isc_mem_get(mctx, sizeof(*lctx));
-	if (lctx == NULL)
-		return (ISC_R_NOMEMORY);
-	result = isc_mutex_init(&lctx->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, lctx, sizeof(*lctx));
-		return (result);
-	}
+	isc_mutex_init(&lctx->lock);
 
 	lctx->inc = NULL;
-	result = incctx_create(mctx, origin, &lctx->inc);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_ctx;
+	incctx_create(mctx, origin, &lctx->inc);
 
 	lctx->maxttl = 0;
 
@@ -570,9 +559,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		lctx->keep_lex = true;
 	} else {
 		lctx->lex = NULL;
-		result = isc_lex_create(mctx, TOKENSIZ, &lctx->lex);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_inc;
+		isc_lex_create(mctx, TOKENSIZ, &lctx->lex);
 		lctx->keep_lex = false;
 		memset(specials, 0, sizeof(specials));
 		specials[0] = 1;
@@ -620,13 +607,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	lctx->references = 1;			/* Implicit attach. */
 	lctx->magic = DNS_LCTX_MAGIC;
 	*lctxp = lctx;
-	return (ISC_R_SUCCESS);
-
- cleanup_inc:
-	incctx_destroy(mctx, lctx->inc);
- cleanup_ctx:
-	isc_mem_put(mctx, lctx, sizeof(*lctx));
-	return (result);
 }
 
 static const char *hex = "0123456789abcdef0123456789ABCDEF";
@@ -888,9 +868,7 @@ generate(dns_loadctx_t *lctx, char *range, char *lhs, char *gtype, char *rhs,
 		isc_buffer_add(&buffer, strlen(rhsbuf));
 		isc_buffer_setactive(&buffer, strlen(rhsbuf));
 
-		result = isc_lex_openbuffer(lctx->lex, &buffer);
-		if (result != ISC_R_SUCCESS)
-			goto error_cleanup;
+		isc_lex_openbuffer(lctx->lex, &buffer);
 
 		isc_buffer_init(&target, target_mem, target_size);
 		result = dns_rdata_fromtext(&rdata, lctx->zclass, type,
@@ -2106,9 +2084,7 @@ pushfile(const char *master_file, dns_name_t *origin, dns_loadctx_t *lctx) {
 	ictx = lctx->inc;
 	lctx->seen_include = true;
 
-	result = incctx_create(lctx->mctx, origin, &newctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	incctx_create(lctx->mctx, origin, &newctx);
 
 	/*
 	 * Push origin_changed.
@@ -2608,11 +2584,9 @@ dns_master_loadfile(const char *master_file, dns_name_t *top,
 	dns_loadctx_t *lctx = NULL;
 	isc_result_t result;
 
-	result = loadctx_create(format, mctx, options, resign, top, zclass,
+	loadctx_create(format, mctx, options, resign, top, zclass,
 				origin, callbacks, NULL, NULL, NULL,
 				include_cb, include_arg, NULL, &lctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	lctx->maxttl = maxttl;
 
@@ -2645,11 +2619,9 @@ dns_master_loadfileinc(const char *master_file, dns_name_t *top,
 	REQUIRE(task != NULL);
 	REQUIRE(done != NULL);
 
-	result = loadctx_create(format, mctx, options, resign, top, zclass,
+	loadctx_create(format, mctx, options, resign, top, zclass,
 				origin, callbacks, task, done, done_arg,
 				include_cb, include_arg, NULL, &lctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	lctx->maxttl = maxttl;
 
@@ -2678,15 +2650,11 @@ dns_master_loadstream(FILE *stream, dns_name_t *top, dns_name_t *origin,
 
 	REQUIRE(stream != NULL);
 
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
+	loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, NULL, NULL, NULL,
 				NULL, NULL, NULL, &lctx);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 
-	result = isc_lex_openstream(lctx->lex, stream);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_lex_openstream(lctx->lex, stream);
 
 	result = (lctx->load)(lctx);
 	INSIST(result != DNS_R_CONTINUE);
@@ -2711,15 +2679,11 @@ dns_master_loadstreaminc(FILE *stream, dns_name_t *top, dns_name_t *origin,
 	REQUIRE(task != NULL);
 	REQUIRE(done != NULL);
 
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
+	loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, task, done,
 				done_arg, NULL, NULL, NULL, &lctx);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
 
-	result = isc_lex_openstream(lctx->lex, stream);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_lex_openstream(lctx->lex, stream);
 
 	result = task_send(lctx);
 	if (result == ISC_R_SUCCESS) {
@@ -2744,15 +2708,10 @@ dns_master_loadbuffer(isc_buffer_t *buffer, dns_name_t *top,
 
 	REQUIRE(buffer != NULL);
 
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
+	loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, NULL, NULL, NULL,
 				NULL, NULL, NULL, &lctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	result = isc_lex_openbuffer(lctx->lex, buffer);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_lex_openbuffer(lctx->lex, buffer);
 
 	result = (lctx->load)(lctx);
 	INSIST(result != DNS_R_CONTINUE);
@@ -2777,15 +2736,11 @@ dns_master_loadbufferinc(isc_buffer_t *buffer, dns_name_t *top,
 	REQUIRE(task != NULL);
 	REQUIRE(done != NULL);
 
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
+	loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, task, done,
 				done_arg, NULL, NULL, NULL, &lctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
-	result = isc_lex_openbuffer(lctx->lex, buffer);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_lex_openbuffer(lctx->lex, buffer);
 
 	result = task_send(lctx);
 	if (result == ISC_R_SUCCESS) {
@@ -2809,11 +2764,9 @@ dns_master_loadlexer(isc_lex_t *lex, dns_name_t *top,
 
 	REQUIRE(lex != NULL);
 
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
+	loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, NULL, NULL, NULL,
 				NULL, NULL, lex, &lctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	result = (lctx->load)(lctx);
 	INSIST(result != DNS_R_CONTINUE);
@@ -2837,11 +2790,9 @@ dns_master_loadlexerinc(isc_lex_t *lex, dns_name_t *top,
 	REQUIRE(task != NULL);
 	REQUIRE(done != NULL);
 
-	result = loadctx_create(dns_masterformat_text, mctx, options, 0, top,
+	loadctx_create(dns_masterformat_text, mctx, options, 0, top,
 				zclass, origin, callbacks, task, done,
 				done_arg, NULL, NULL, lex, &lctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 
 	result = task_send(lctx);
 	if (result == ISC_R_SUCCESS) {

@@ -24,7 +24,7 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp);
 /*%<
  * Create a port list.
@@ -32,14 +32,9 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp);
  * Requires:
  *\li	'mctx' to be valid.
  *\li	'portlistp' to be non NULL and '*portlistp' to be NULL;
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_UNEXPECTED
  */
 
-isc_result_t
+void
 dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port);
 /*%<
  * Add the given <port,af> tuple to the portlist.
@@ -47,10 +42,6 @@ dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port);
  * Requires:
  *\li	'portlist' to be valid.
  *\li	'af' to be AF_INET or AF_INET6
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
  */
 
 void

@@ -232,8 +232,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 
 	dns_rdataset_init(&rds);
 
-	result = isc_buffer_allocate(mctx, &buffer, bufsize);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(mctx, &buffer, bufsize);
 
 	for (result = dns_rdatasetiter_first(iter);
 	     result == ISC_R_SUCCESS;
@@ -258,8 +257,7 @@ dumpnode(dns_name_t *name, dns_dbnode_t *node) {
 
 			bufsize <<= 1;
 			isc_buffer_free(&buffer);
-			result = isc_buffer_allocate(mctx, &buffer, bufsize);
-			check_result(result, "isc_buffer_allocate");
+			isc_buffer_allocate(mctx, &buffer, bufsize);
 		}
 		check_result(result, "dns_master_rdatasettotext");
 
@@ -3277,9 +3275,7 @@ main(int argc, char *argv[]) {
 
 	check_result(isc_app_start(), "isc_app_start");
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS)
-		fatal("out of memory");
+	isc_mem_create(0, 0, &mctx);
 
 #if USE_PKCS11
 	pk11_result_register();
@@ -3710,10 +3706,7 @@ main(int argc, char *argv[]) {
 	 * of keys rather early.
 	 */
 	ISC_LIST_INIT(keylist);
-	result = isc_rwlock_init(&keylist_lock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		fatal("could not initialize keylist_lock: %s",
-		      isc_result_totext(result));
+	isc_rwlock_init(&keylist_lock, 0, 0);
 
 	/*
 	 * Fill keylist with:
@@ -3875,9 +3868,9 @@ main(int argc, char *argv[]) {
 			      isc_result_totext(result));
 	}
 
-	RUNTIME_CHECK(isc_mutex_init(&namelock) == ISC_R_SUCCESS);
+	isc_mutex_init(&namelock);
 	if (printstats)
-		RUNTIME_CHECK(isc_mutex_init(&statslock) == ISC_R_SUCCESS);
+		isc_mutex_init(&statslock);
 
 	presign();
 	TIME_NOW(&sign_start);

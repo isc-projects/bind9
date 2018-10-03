@@ -148,8 +148,8 @@ main(int argc, char *argv[]) {
 	if (doexit)
 		exit(0);
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_lex_create(mctx, 256, &lex) == ISC_R_SUCCESS);
+	isc_mem_create(0, 0, &mctx);
+	isc_lex_create(mctx, 256, &lex);
 
 	/*
 	 * Set up to lex DNS master file.
@@ -162,7 +162,7 @@ main(int argc, char *argv[]) {
 	options = ISC_LEXOPT_EOL;
 	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 
-	RUNTIME_CHECK(isc_lex_openstream(lex, stdin) == ISC_R_SUCCESS);
+	isc_lex_openstream(lex, stdin);
 
 	if (origin != NULL) {
 		name = dns_fixedname_initname(&fixed);

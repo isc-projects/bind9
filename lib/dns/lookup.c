@@ -96,7 +96,7 @@ start_fetch(dns_lookup_t *lookup) {
 	return (result);
 }
 
-static isc_result_t
+static void
 build_event(dns_lookup_t *lookup) {
 	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
@@ -104,22 +104,12 @@ build_event(dns_lookup_t *lookup) {
 	isc_result_t result;
 
 	name = isc_mem_get(lookup->mctx, sizeof(dns_name_t));
-	if (name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto fail;
-	}
 	dns_name_init(name, NULL);
-	result = dns_name_dup(dns_fixedname_name(&lookup->name),
+	dns_name_dup(dns_fixedname_name(&lookup->name),
 			      lookup->mctx, name);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
 
 	if (dns_rdataset_isassociated(&lookup->rdataset)) {
 		rdataset = isc_mem_get(lookup->mctx, sizeof(dns_rdataset_t));
-		if (rdataset == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
 		dns_rdataset_init(rdataset);
 		dns_rdataset_clone(&lookup->rdataset, rdataset);
 	}
@@ -127,10 +117,6 @@ build_event(dns_lookup_t *lookup) {
 	if (dns_rdataset_isassociated(&lookup->sigrdataset)) {
 		sigrdataset = isc_mem_get(lookup->mctx,
 					  sizeof(dns_rdataset_t));
-		if (sigrdataset == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
 		dns_rdataset_init(sigrdataset);
 		dns_rdataset_clone(&lookup->sigrdataset, sigrdataset);
 	}
@@ -138,21 +124,6 @@ build_event(dns_lookup_t *lookup) {
 	lookup->event->name = name;
 	lookup->event->rdataset = rdataset;
 	lookup->event->sigrdataset = sigrdataset;
-
-	return (ISC_R_SUCCESS);
-
- fail:
-	if (name != NULL) {
-		if (dns_name_dynamic(name))
-			dns_name_free(name, lookup->mctx);
-		isc_mem_put(lookup->mctx, name, sizeof(dns_name_t));
-	}
-	if (rdataset != NULL) {
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		isc_mem_put(lookup->mctx, rdataset, sizeof(dns_rdataset_t));
-	}
-	return (result);
 }
 
 static isc_result_t
@@ -248,7 +219,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 
 		switch (result) {
 		case ISC_R_SUCCESS:
-			result = build_event(lookup);
+			build_event(lookup);
 			if (event == NULL)
 				break;
 			if (event->db != NULL)
@@ -410,9 +381,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 	lookup->task = NULL;
 	isc_task_attach(task, &lookup->task);
 
-	result = isc_mutex_init(&lookup->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_event;
+	isc_mutex_init(&lookup->lock);
 
 	dns_fixedname_init(&lookup->name);
 

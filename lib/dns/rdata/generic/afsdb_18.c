@@ -210,7 +210,7 @@ tostruct_afsdb(ARGS_TOSTRUCT) {
 	dns_name_init(&name, NULL);
 	dns_name_fromregion(&name, &region);
 
-	RETERR(name_duporclone(&name, mctx, &afsdb->server));
+	name_duporclone(&name, mctx, &afsdb->server);
 	afsdb->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

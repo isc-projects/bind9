@@ -207,9 +207,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		updatepolicy = NULL;
 	}
 
-	result = dns_ssutable_create(mctx, &table);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_ssutable_create(mctx, &table);
 
 	for (element = cfg_list_first(updatepolicy);
 	     element != NULL;
@@ -320,16 +318,13 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		}
 		INSIST(i == n);
 
-		result = dns_ssutable_addrule(table, grant,
+		dns_ssutable_addrule(table, grant,
 					      dns_fixedname_name(&fident),
 					      mtype,
 					      dns_fixedname_name(&fname),
 					      n, types);
 		if (types != NULL)
 			isc_mem_put(mctx, types, n * sizeof(dns_rdatatype_t));
-		if (result != ISC_R_SUCCESS) {
-			goto cleanup;
-		}
 	}
 
 	/*
@@ -350,14 +345,11 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			goto cleanup;
 		}
 
-		result = dns_ssutable_addrule(table, true,
+		dns_ssutable_addrule(table, true,
 					      named_g_server->session_keyname,
 					      dns_ssumatchtype_local,
 					      dns_zone_getorigin(zone),
 					      1, &any);
-
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
 	}
 
 	result = ISC_R_SUCCESS;
@@ -1144,10 +1136,10 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	zoneqrystats  = NULL;
 	rcvquerystats = NULL;
 	if (statlevel == dns_zonestat_full) {
-		RETERR(isc_stats_create(mctx, &zoneqrystats,
-					ns_statscounter_max));
-		RETERR(dns_rdatatypestats_create(mctx,
-					&rcvquerystats));
+		isc_stats_create(mctx, &zoneqrystats,
+					ns_statscounter_max);
+		dns_rdatatypestats_create(mctx,
+					&rcvquerystats);
 	}
 	dns_zone_setrequeststats(zone,  zoneqrystats);
 	dns_zone_setrcvquerystats(zone, rcvquerystats);
@@ -1744,7 +1736,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 						  &obj);
 				if (obj == NULL) {
 					dns_acl_t *none;
-					RETERR(dns_acl_none(mctx, &none));
+					dns_acl_none(mctx, &none);
 					dns_zone_setxfracl(zone, none);
 					dns_acl_detach(&none);
 				}
@@ -1880,9 +1872,7 @@ named_zone_configure_writeable_dlz(dns_dlzdb_t *dlzdatabase,
 	TIME_NOW(&now);
 
 	dns_zone_settype(zone, dns_zone_dlz);
-	result = dns_sdlz_setdb(dlzdatabase, rdclass, name, &db);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_sdlz_setdb(dlzdatabase, rdclass, name, &db);
 	result = dns_zone_dlzpostload(zone, db);
 	dns_db_detach(&db);
 	return (result);

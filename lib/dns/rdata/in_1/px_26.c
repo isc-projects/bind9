@@ -263,13 +263,11 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 
 	dns_name_init(&px->map822, NULL);
-	RETERR(name_duporclone(&name, mctx, &px->map822));
+	name_duporclone(&name, mctx, &px->map822);
 	isc_region_consume(&region, name_length(&px->map822));
 
 	dns_name_init(&px->mapx400, NULL);
-	result = name_duporclone(&name, mctx, &px->mapx400);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	name_duporclone(&name, mctx, &px->mapx400);
 
 	px->mctx = mctx;
 	return (result);

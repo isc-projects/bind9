@@ -202,7 +202,7 @@ tostruct_rt(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&rt->host, NULL);
-	RETERR(name_duporclone(&name, mctx, &rt->host));
+	name_duporclone(&name, mctx, &rt->host);
 
 	rt->mctx = mctx;
 	return (ISC_R_SUCCESS);

@@ -418,7 +418,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	dns_name_init(&alg, NULL);
 	dns_name_fromregion(&alg, &sr);
 	dns_name_init(&tkey->algorithm, NULL);
-	RETERR(name_duporclone(&alg, mctx, &tkey->algorithm));
+	name_duporclone(&alg, mctx, &tkey->algorithm);
 	isc_region_consume(&sr, name_length(&tkey->algorithm));
 
 	/*

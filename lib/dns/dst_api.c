@@ -1,4 +1,4 @@
-/*
+	/*
  * Portions Copyright (C) Internet Systems Consortium, Inc. ("ISC")
  *
  * This Source Code Form is subject to the terms of the Mozilla Public
@@ -159,10 +159,8 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	 * ISC_MEMFLAG_INTERNAL as it will free up memory still being used
 	 * by libcrypto.
 	 */
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
+	isc_mem_createx2(0, 0, default_memalloc, default_memfree,
 				  NULL, &dst__memory_pool, 0);
-	if (result != ISC_R_SUCCESS)
-		return (result);
 	isc_mem_setname(dst__memory_pool, "dst", NULL);
 #ifndef OPENSSL_LEAKS
 	isc_mem_setdestroycheck(dst__memory_pool, false);
@@ -606,7 +604,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 			   dirname, filename, ".private");
 	INSIST(result == ISC_R_SUCCESS);
 
-	RETERR(isc_lex_create(mctx, 1500, &lex));
+	isc_lex_create(mctx, 1500, &lex);
 	RETERR(isc_lex_openfile(lex, newfilename));
 	isc_mem_put(mctx, newfilename, newfilenamelen);
 
@@ -760,8 +758,8 @@ dst_key_privatefrombuffer(dst_key_t *key, isc_buffer_t *buffer) {
 	if (key->func->parse == NULL)
 		RETERR(DST_R_UNSUPPORTEDALG);
 
-	RETERR(isc_lex_create(key->mctx, 1500, &lex));
-	RETERR(isc_lex_openbuffer(lex, buffer));
+	isc_lex_create(key->mctx, 1500, &lex);
+	isc_lex_openbuffer(lex, buffer);
 	RETERR(key->func->parse(key, lex, NULL));
  out:
 	if (lex != NULL)
@@ -797,8 +795,8 @@ dst_key_fromgssapi(const dns_name_t *name, gss_ctx_id_t gssctx,
 		 * Keep the token for use by external ssu rules. They may need
 		 * to examine the PAC in the kerberos ticket.
 		 */
-		RETERR(isc_buffer_allocate(key->mctx, &key->key_tkeytoken,
-		       intoken->length));
+		isc_buffer_allocate(key->mctx, &key->key_tkeytoken,
+		       intoken->length);
 		RETERR(isc_buffer_copyregion(key->key_tkeytoken, intoken));
 	}
 
@@ -1340,12 +1338,7 @@ get_key_struct(const dns_name_t *name, unsigned int alg,
 	}
 
 	dns_name_init(key->key_name, NULL);
-	result = dns_name_dup(name, mctx, key->key_name);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, key->key_name, sizeof(dns_name_t));
-		isc_mem_put(mctx, key, sizeof(dst_key_t));
-		return (NULL);
-	}
+	dns_name_dup(name, mctx, key->key_name);
 
 	isc_refcount_init(&key->refs, 1);
 	isc_mem_attach(mctx, &key->mctx);
@@ -1412,9 +1405,7 @@ dst_key_read_public(const char *filename, int type,
 	 */
 
 	/* 1500 should be large enough for any key */
-	ret = isc_lex_create(mctx, 1500, &lex);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_lex_create(mctx, 1500, &lex);
 
 	memset(specials, 0, sizeof(specials));
 	specials['('] = 1;

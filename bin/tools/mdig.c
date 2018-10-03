@@ -234,8 +234,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 			exit(-1);
 	}
 
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
 	parseflags |= DNS_MESSAGEPARSE_PRESERVEORDER;
 	if (besteffort) {
@@ -292,8 +291,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	if (!display_comments)
 		flags |= DNS_MESSAGETEXTFLAG_NOCOMMENTS;
 
-	result = isc_buffer_allocate(mctx, &buf, len);
-	CHECK("isc_buffer_allocate", result);
+	isc_buffer_allocate(mctx, &buf, len);
 
 	if (display_comments && !display_short_form) {
 		printf(";; Got answer:\n");
@@ -346,11 +344,8 @@ repopulate_buffer:
 buftoosmall:
 			len += OUTPUTBUF;
 			isc_buffer_free(&buf);
-			result = isc_buffer_allocate(mctx, &buf, len);
-			if (result == ISC_R_SUCCESS)
-				goto repopulate_buffer;
-			else
-				goto cleanup;
+			isc_buffer_allocate(mctx, &buf, len);
+			goto repopulate_buffer;
 		}
 		CHECK("dns_message_pseudosectiontotext", result);
 	}
@@ -536,8 +531,7 @@ sendquery(struct query *query, isc_task_t *task)
 	CHECK("dns_name_fromtext", result);
 
 	message = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
 	if (query->recurse)
@@ -608,7 +602,6 @@ sendquery(struct query *query, isc_task_t *task)
 			INSIST(i < DNS_EDNSOPTIONS);
 			opts[i].code = DNS_OPT_CLIENT_SUBNET;
 			opts[i].length = (uint16_t) addrl + 4;
-			CHECK("isc_buffer_allocate", result);
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));
 			if (sa->sa_family == AF_INET) {
 				family = 1;
@@ -1941,7 +1934,7 @@ main(int argc, char *argv[]) {
 	preparse_args(argc, argv);
 
 	mctx = NULL;
-	RUNCHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(0, 0, &mctx);
 
 	lctx = NULL;
 	lcfg = NULL;
@@ -1978,11 +1971,11 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	timermgr = NULL;
 
-	RUNCHECK(isc_timermgr_create(mctx, &timermgr));
+	isc_timermgr_create(mctx, &timermgr);
 	socketmgr = NULL;
 	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
 	dispatchmgr = NULL;
-	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	dns_dispatchmgr_create(mctx, &dispatchmgr);
 
 	attrs = DNS_DISPATCHATTR_UDP |
 		DNS_DISPATCHATTR_MAKEQUERY;
@@ -2003,11 +1996,11 @@ main(int argc, char *argv[]) {
 				     4096, 100, 100, 17, 19,
 				     attrs, attrmask, &dispatchvx));
 	requestmgr = NULL;
-	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr,
+	dns_requestmgr_create(mctx, timermgr, socketmgr,
 				       taskmgr, dispatchmgr,
 				       have_ipv4 ? dispatchvx : NULL,
 				       have_ipv6 ? dispatchvx : NULL,
-				       &requestmgr));
+				       &requestmgr);
 
 	view = NULL;
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));

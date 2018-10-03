@@ -69,7 +69,7 @@ typedef pthread_mutex_t	isc_mutex_t;
 #else
 #define isc_mutex_init(mp) \
 	isc__mutex_init((mp), __FILE__, __LINE__)
-isc_result_t isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line);
+void isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line);
 #endif
 #endif
 

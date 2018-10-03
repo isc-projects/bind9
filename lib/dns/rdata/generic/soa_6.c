@@ -313,14 +313,12 @@ tostruct_soa(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&soa->origin, NULL);
-	RETERR(name_duporclone(&name, mctx, &soa->origin));
+	name_duporclone(&name, mctx, &soa->origin);
 
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&soa->contact, NULL);
-	result = name_duporclone(&name, mctx, &soa->contact);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	name_duporclone(&name, mctx, &soa->contact);
 
 	soa->serial = uint32_fromregion(&region);
 	isc_region_consume(&region, 4);
@@ -338,11 +336,6 @@ tostruct_soa(ARGS_TOSTRUCT) {
 
 	soa->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	if (mctx != NULL)
-		dns_name_free(&soa->origin, mctx);
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

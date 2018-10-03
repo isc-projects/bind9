@@ -354,9 +354,8 @@ reset_system(void) {
 	if (updatemsg != NULL)
 		dns_message_reset(updatemsg, DNS_MESSAGE_INTENTRENDER);
 	else {
-		result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER,
+		dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER,
 					    &updatemsg);
-		check_result(result, "dns_message_create");
 	}
 	updatemsg->opcode = dns_opcode_update;
 	if (usegsstsig) {
@@ -876,14 +875,12 @@ setup_system(void) {
 
 	irs_resconf_destroy(&resconf);
 
-	result = dns_dispatchmgr_create(gmctx, &dispatchmgr);
-	check_result(result, "dns_dispatchmgr_create");
+	dns_dispatchmgr_create(gmctx, &dispatchmgr);
 
 	result = isc_socketmgr_create(gmctx, &socketmgr);
 	check_result(result, "dns_socketmgr_create");
 
-	result = isc_timermgr_create(gmctx, &timermgr);
-	check_result(result, "dns_timermgr_create");
+	isc_timermgr_create(gmctx, &timermgr);
 
 	result = isc_taskmgr_create(gmctx, 1, 0, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
@@ -925,10 +922,9 @@ setup_system(void) {
 		check_result(result, "dns_dispatch_getudp (v4)");
 	}
 
-	result = dns_requestmgr_create(gmctx, timermgr,
+	dns_requestmgr_create(gmctx, timermgr,
 				       socketmgr, taskmgr, dispatchmgr,
 				       dispatchv4, dispatchv6, &requestmgr);
-	check_result(result, "dns_requestmgr_create");
 
 	if (keystr != NULL)
 		setup_keystr();
@@ -1215,8 +1211,7 @@ parse_name(char **cmdlinep, dns_message_t *msg, dns_name_t **namep) {
 
 	result = dns_message_gettempname(msg, namep);
 	check_result(result, "dns_message_gettempname");
-	result = isc_buffer_allocate(gmctx, &namebuf, DNS_NAME_MAXWIRE);
-	check_result(result, "isc_buffer_allocate");
+	isc_buffer_allocate(gmctx, &namebuf, DNS_NAME_MAXWIRE);
 	dns_name_init(*namep, NULL);
 	dns_name_setbuffer(*namep, namebuf);
 	dns_message_takebuffer(msg, &namebuf);
@@ -1255,22 +1250,18 @@ parse_rdata(char **cmdlinep, dns_rdataclass_t rdataclass,
 
 	if (*cmdline != 0) {
 		dns_rdatacallbacks_init(&callbacks);
-		result = isc_lex_create(gmctx, strlen(cmdline), &lex);
-		check_result(result, "isc_lex_create");
+		isc_lex_create(gmctx, strlen(cmdline), &lex);
 		isc_buffer_init(&source, cmdline, strlen(cmdline));
 		isc_buffer_add(&source, strlen(cmdline));
-		result = isc_lex_openbuffer(lex, &source);
-		check_result(result, "isc_lex_openbuffer");
-		result = isc_buffer_allocate(gmctx, &buf, MAXWIRE);
-		check_result(result, "isc_buffer_allocate");
+		isc_lex_openbuffer(lex, &source);
+		isc_buffer_allocate(gmctx, &buf, MAXWIRE);
 		result = dns_rdata_fromtext(NULL, rdataclass, rdatatype, lex,
 					    dns_rootname, 0, gmctx, buf,
 					    &callbacks);
 		isc_lex_destroy(&lex);
 		if (result == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(buf, &r);
-			result = isc_buffer_allocate(gmctx, &newbuf, r.length);
-			check_result(result, "isc_buffer_allocate");
+			isc_buffer_allocate(gmctx, &newbuf, r.length);
 			isc_buffer_putmem(newbuf, r.base, r.length);
 			isc_buffer_usedregion(newbuf, &r);
 			dns_rdata_fromregion(rdata, rdataclass, rdatatype, &r);
@@ -2026,8 +2017,7 @@ show_message(FILE *stream, dns_message_t *msg, const char *description) {
 		}
 		if (buf != NULL)
 			isc_buffer_free(&buf);
-		result = isc_buffer_allocate(gmctx, &buf, bufsz);
-		check_result(result, "isc_buffer_allocate");
+		isc_buffer_allocate(gmctx, &buf, bufsz);
 		result = dns_message_totext(msg, style, 0, buf);
 		bufsz *= 2;
 	} while (result == ISC_R_NOSPACE);
@@ -2298,8 +2288,7 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &answer);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &answer);
 	result = dns_request_getresponse(request, answer,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	switch (result) {
@@ -2480,8 +2469,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 	reqev = NULL;
 
 	ddebug("About to create rcvmsg");
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
 	if (result == DNS_R_TSIGERRORSET && servers != NULL) {
@@ -2793,11 +2781,7 @@ start_gssrequest(dns_name_t *master) {
 	if (gssring != NULL)
 		dns_tsigkeyring_detach(&gssring);
 	gssring = NULL;
-	result = dns_tsigkeyring_create(gmctx, &gssring);
-
-	if (result != ISC_R_SUCCESS)
-		fatal("dns_tsigkeyring_create failed: %s",
-		      isc_result_totext(result));
+	dns_tsigkeyring_create(gmctx, &gssring);
 
 	dns_name_format(master, namestr, sizeof(namestr));
 	if (kserver == NULL) {
@@ -2846,10 +2830,7 @@ start_gssrequest(dns_name_t *master) {
 	keyname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 
 	rmsg = NULL;
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &rmsg);
-	if (result != ISC_R_SUCCESS)
-		fatal("dns_message_create failed: %s",
-		      isc_result_totext(result));
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER, &rmsg);
 
 	/* Build first request. */
 	context = GSS_C_NO_CONTEXT;
@@ -2971,8 +2952,7 @@ recvgss(isc_task_t *task, isc_event_t *event) {
 	reqev = NULL;
 
 	ddebug("recvgss creating rcvmsg");
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
-	check_result(result, "dns_message_create");
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTPARSE, &rcvmsg);
 
 	result = dns_request_getresponse(request, rcvmsg,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
@@ -3094,9 +3074,8 @@ start_update(void) {
 		return;
 	}
 
-	result = dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER,
+	dns_message_create(gmctx, DNS_MESSAGE_INTENTRENDER,
 				    &soaquery);
-	check_result(result, "dns_message_create");
 
 	if (default_servers)
 		soaquery->flags |= DNS_MESSAGEFLAG_RD;
@@ -3254,8 +3233,7 @@ main(int argc, char **argv) {
 
 	pre_parse_args(argc, argv);
 
-	result = isc_mem_create(0, 0, &gmctx);
-	check_result(result, "isc_mem_create");
+	isc_mem_create(0, 0, &gmctx);
 
 	parse_args(argc, argv);
 

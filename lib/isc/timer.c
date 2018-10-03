@@ -159,11 +159,7 @@ schedule(isc__timer_t *timer, isc_time_t *now, bool signal_ok) {
 		}
 	} else {
 		timer->due = due;
-		result = isc_heap_insert(manager->heap, timer);
-		if (result != ISC_R_SUCCESS) {
-			INSIST(result == ISC_R_NOMEMORY);
-			return (ISC_R_NOMEMORY);
-		}
+		isc_heap_insert(manager->heap, timer);
 		manager->nscheduled++;
 	}
 
@@ -288,8 +284,6 @@ isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 
 
 	timer = isc_mem_get(manager->mctx, sizeof(*timer));
-	if (timer == NULL)
-		return (ISC_R_NOMEMORY);
 
 	timer->manager = manager;
 	timer->references = 1;
@@ -321,12 +315,8 @@ isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 	 */
 	DE_CONST(arg, timer->arg);
 	timer->index = 0;
-	result = isc_mutex_init(&timer->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_task_detach(&timer->task);
-		isc_mem_put(manager->mctx, timer, sizeof(*timer));
-		return (result);
-	}
+	isc_mutex_init(&timer->lock);
+
 	ISC_LINK_INIT(timer, link);
 	timer->common.impmagic = TIMER_MAGIC;
 	timer->common.magic = ISCAPI_TIMER_MAGIC;
@@ -714,11 +704,9 @@ set_index(void *what, unsigned int index) {
 	timer->index = index;
 }
 
-isc_result_t
+void
 isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	isc__timermgr_t *manager;
-	isc_result_t result;
-
 	/*
 	 * Create a timer manager.
 	 */
@@ -726,8 +714,6 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	if (manager == NULL)
-		return (ISC_R_NOMEMORY);
 
 	manager->common.impmagic = TIMER_MANAGER_MAGIC;
 	manager->common.magic = ISCAPI_TIMERMGR_MAGIC;
@@ -737,48 +723,18 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	manager->nscheduled = 0;
 	isc_time_settoepoch(&manager->due);
 	manager->heap = NULL;
-	result = isc_heap_create(mctx, sooner, set_index, 0, &manager->heap);
-	if (result != ISC_R_SUCCESS) {
-		INSIST(result == ISC_R_NOMEMORY);
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		return (ISC_R_NOMEMORY);
-	}
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		return (result);
-	}
+	isc_heap_create(mctx, sooner, set_index, 0, &manager->heap);
+	isc_mutex_init(&manager->lock);
 	isc_mem_attach(mctx, &manager->mctx);
-	if (isc_condition_init(&manager->wakeup) != ISC_R_SUCCESS) {
-		isc_mem_detach(&manager->mctx);
-		DESTROYLOCK(&manager->lock);
-		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
-	}
+	isc_condition_init(&manager->wakeup);
+	
 	if (isc_thread_create(run, manager, &manager->thread) !=
 	    ISC_R_SUCCESS) {
-		isc_mem_detach(&manager->mctx);
-		(void)isc_condition_destroy(&manager->wakeup);
-		DESTROYLOCK(&manager->lock);
-		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_thread_create() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
+	    	abort();
 	}
 	isc_thread_setname(manager->thread, "isc-timer");
 
 	*managerp = (isc_timermgr_t *)manager;
-
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -839,16 +795,11 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 
 }
 
-isc_result_t
+void
 isc_timermgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 			 isc_timermgr_t **managerp)
 {
-	isc_result_t result;
+	isc_timermgr_create(mctx, managerp);
 
-	result = isc_timermgr_create(mctx, managerp);
-
-	if (result == ISC_R_SUCCESS)
-		isc_appctx_settimermgr(actx, *managerp);
-
-	return (result);
+	isc_appctx_settimermgr(actx, *managerp);
 }

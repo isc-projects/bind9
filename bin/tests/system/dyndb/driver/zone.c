@@ -51,7 +51,7 @@ create_zone(sample_instance_t * const inst, dns_name_t * const name,
 	CHECK(dns_zonemgr_managezone(inst->zmgr, raw));
 
 	/* This is completely insecure - use some sensible values instead! */
-	CHECK(dns_acl_any(inst->mctx, &acl_any));
+	dns_acl_any(inst->mctx, &acl_any);
 	dns_zone_setupdateacl(raw, acl_any);
 	dns_zone_setqueryacl(raw, acl_any);
 	dns_zone_setxfracl(raw, acl_any);

@@ -218,9 +218,7 @@ ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp,
 {
 	isc_result_t result;
 
-	result = isc_mem_create(0, 0, mctxp);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
+	isc_mem_create(0, 0, mctxp);
 
 	result = isc_appctx_create(*mctxp, actxp);
 	if (result != ISC_R_SUCCESS)
@@ -234,9 +232,7 @@ ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp,
 	if (result != ISC_R_SUCCESS)
 		goto fail;
 
-	result = isc_timermgr_createinctx(*mctxp, *actxp, timermgrp);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
+	isc_timermgr_createinctx(*mctxp, *actxp, timermgrp);
 
 	return (ISC_R_SUCCESS);
 
@@ -1144,17 +1140,11 @@ main(int argc, char *argv[]) {
 		probes[i].reqid = NULL;
 
 		probes[i].qmessage = NULL;
-		result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
+		dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER,
 					    &probes[i].qmessage);
-		if (result == ISC_R_SUCCESS) {
-			result = dns_message_create(mctx,
+		dns_message_create(mctx,
 						    DNS_MESSAGE_INTENTPARSE,
 						    &probes[i].rmessage);
-		}
-		if (result != ISC_R_SUCCESS) {
-			fprintf(stderr, "initialization failure\n");
-			exit(1);
-		}
 	}
 	for (i = 0; i < MAX_PROBES; i++) {
 		result = probe_domain(&probes[i]);

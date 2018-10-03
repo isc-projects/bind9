@@ -265,13 +265,9 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	REQUIRE(key != NULL || ring != NULL);
 
 	tkey = (dns_tsigkey_t *) isc_mem_get(mctx, sizeof(dns_tsigkey_t));
-	if (tkey == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dns_name_init(&tkey->name, NULL);
-	ret = dns_name_dup(name, mctx, &tkey->name);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_key;
+	dns_name_dup(name, mctx, &tkey->name);
 	(void)dns_name_downcase(&tkey->name, &tkey->name, NULL);
 
 	/* Check against known algorithm names */
@@ -293,32 +289,16 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			goto cleanup_name;
 		}
 		tmpname = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (tmpname == NULL) {
-			ret = ISC_R_NOMEMORY;
-			goto cleanup_name;
-		}
 		dns_name_init(tmpname, NULL);
-		ret = dns_name_dup(algorithm, mctx, tmpname);
-		if (ret != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, tmpname, sizeof(dns_name_t));
-			goto cleanup_name;
-		}
+		dns_name_dup(algorithm, mctx, tmpname);
 		(void)dns_name_downcase(tmpname, tmpname, NULL);
 		tkey->algorithm = tmpname;
 	}
 
 	if (creator != NULL) {
 		tkey->creator = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (tkey->creator == NULL) {
-			ret = ISC_R_NOMEMORY;
-			goto cleanup_algorithm;
-		}
 		dns_name_init(tkey->creator, NULL);
-		ret = dns_name_dup(creator, mctx, tkey->creator);
-		if (ret != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
-			goto cleanup_algorithm;
-		}
+		dns_name_dup(creator, mctx, tkey->creator);
 	} else
 		tkey->creator = NULL;
 
@@ -380,7 +360,6 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 		dns_name_free(tkey->creator, mctx);
 		isc_mem_put(mctx, tkey->creator, sizeof(dns_name_t));
 	}
- cleanup_algorithm:
 	if (dns__tsig_algallocated(tkey->algorithm)) {
 		dns_name_t *tmpname;
 		DE_CONST(tkey->algorithm, tmpname);
@@ -388,9 +367,9 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			dns_name_free(tmpname, mctx);
 		isc_mem_put(mctx, tmpname, sizeof(dns_name_t));
 	}
+
  cleanup_name:
 	dns_name_free(&tkey->name, mctx);
- cleanup_key:
 	isc_mem_put(mctx, tkey, sizeof(dns_tsigkey_t));
 
 	return (ret);
@@ -1000,9 +979,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	ret = dns_message_gettemprdata(msg, &rdata);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_signature;
-	ret = isc_buffer_allocate(msg->mctx, &dynbuf, 512);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_rdata;
+	isc_buffer_allocate(msg->mctx, &dynbuf, 512);
 	ret = dns_rdata_fromstruct(rdata, dns_rdataclass_any,
 				   dns_rdatatype_tsig, &tsig, dynbuf);
 	if (ret != ISC_R_SUCCESS)
@@ -1020,9 +997,7 @@ dns_tsig_sign(dns_message_t *msg) {
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup_rdata;
 	dns_name_init(owner, NULL);
-	ret = dns_name_dup(&key->name, msg->mctx, owner);
-	if (ret != ISC_R_SUCCESS)
-		goto cleanup_owner;
+	dns_name_dup(&key->name, msg->mctx, owner);
 
 	datalist = NULL;
 	ret = dns_message_gettemprdatalist(msg, &datalist);
@@ -1802,7 +1777,7 @@ free_tsignode(void *node, void *_unused) {
 	dns_tsigkey_detach(&key);
 }
 
-isc_result_t
+void
 dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	isc_result_t result;
 	dns_tsig_keyring_t *ring;
@@ -1812,22 +1787,11 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	REQUIRE(*ringp == NULL);
 
 	ring = isc_mem_get(mctx, sizeof(dns_tsig_keyring_t));
-	if (ring == NULL)
-		return (ISC_R_NOMEMORY);
 
-	result = isc_rwlock_init(&ring->lock, 0, 0);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, ring, sizeof(dns_tsig_keyring_t));
-		return (result);
-	}
+	isc_rwlock_init(&ring->lock, 0, 0);
 
 	ring->keys = NULL;
-	result = dns_rbt_create(mctx, free_tsignode, NULL, &ring->keys);
-	if (result != ISC_R_SUCCESS) {
-		isc_rwlock_destroy(&ring->lock);
-		isc_mem_put(mctx, ring, sizeof(dns_tsig_keyring_t));
-		return (result);
-	}
+	dns_rbt_create(mctx, free_tsignode, NULL, &ring->keys);
 
 	ring->writecount = 0;
 	ring->mctx = NULL;
@@ -1838,7 +1802,6 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	ring->references = 1;
 
 	*ringp = ring;
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
