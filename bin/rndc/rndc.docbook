@@ -458,7 +458,7 @@
 	<term><userinput>managed-keys <replaceable>(status | refresh | sync | destroy)</replaceable> <optional><replaceable>class</replaceable> <optional><replaceable>view</replaceable></optional></optional></userinput></term>
 	<listitem>
 	  <para>
-            Inspect and control the "managed-keys" database which
+            Inspect and control the "managed keys" database which
             handles RFC 5011 DNSSEC trust anchor maintenance. If a view
             is specified, these commands are applied to that view;
             otherwise they are applied to all views.
@@ -467,14 +467,14 @@
             <listitem>
               <para>
                 When run with the <literal>status</literal> keyword, prints
-                the current status of the managed-keys database.
+                the current status of the managed keys database.
               </para>
             </listitem>
             <listitem>
               <para>
                 When run with the <literal>refresh</literal> keyword,
                 forces an immediate refresh query to be sent for all
-                the managed keys, updating the managed-keys database
+                the managed keys, updating the managed keys database
                 if any new keys are found, without waiting the normal
                 refresh interval.
               </para>
@@ -482,7 +482,7 @@
             <listitem>
               <para>
                 When run with the <literal>sync</literal> keyword, forces an
-                immediate dump of the managed-keys database to disk
+                immediate dump of the managed keys database to disk
                 (in the file <filename>managed-keys.bind</filename> or
                 (<filename><replaceable>viewname</replaceable>.mkeys</filename>).
                 This synchronizes the database with its journal file, so
@@ -493,7 +493,7 @@
             <listitem>
               <para>
                 When run with the <literal>destroy</literal> keyword, the
-                managed-keys database is shut down and deleted, and all key
+                managed keys database is shut down and deleted, and all key
                 maintenance is terminated.  This command should be used only
                 with extreme caution.
               </para>
@@ -772,9 +772,10 @@
 	<listitem>
 	  <para>
 	    Dump the security roots (i.e., trust anchors
-	    configured via <command>trusted-keys</command>,
-	    <command>managed-keys</command>, or
-	    <command>dnssec-validation auto</command>) and negative trust
+	    configured via <command>dnssec-keys</command> statements,
+	    or the synonymous <command>managed-keys</command> or
+	    the deprecated <command>trusted-keys</command> statements, or
+	    via <command>dnssec-validation auto</command>) and negative trust
 	    anchors for the specified views.  If no view is specified, all
 	    views are dumped.  Security roots will indicate whether
 	    they are configured as trusted keys, managed keys, or

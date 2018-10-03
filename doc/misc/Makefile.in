@@ -71,5 +71,6 @@ docbook: options
 	${PERL} docbook-grammars.pl options options > ${top_srcdir}/doc/arm/options.grammar.xml
 	${PERL} docbook-grammars.pl options server > ${top_srcdir}/doc/arm/server.grammar.xml
 	${PERL} docbook-grammars.pl options statistics-channels > ${top_srcdir}/doc/arm/statistics-channels.grammar.xml
-	${PERL} docbook-grammars.pl options trusted-keys > ${top_srcdir}/doc/arm/trusted-keys.grammar.xml
+	${PERL} docbook-grammars.pl options dnssec-keys > ${top_srcdir}/doc/arm/dnssec-keys.grammar.xml
 	${PERL} docbook-grammars.pl options managed-keys > ${top_srcdir}/doc/arm/managed-keys.grammar.xml
+	${PERL} docbook-grammars.pl options trusted-keys > ${top_srcdir}/doc/arm/trusted-keys.grammar.xml

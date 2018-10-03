@@ -4365,10 +4365,10 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 
 	/*
 	 * Walk the zone DB.  If we find any keys whose names are no longer
-	 * in managed-keys (or *are* in trusted-keys, meaning they are
-	 * permanent and not RFC5011-maintained), delete them from the
-	 * zone.  Otherwise call load_secroots(), which loads keys into
-	 * secroots as appropriate.
+	 * in managed-keys as initial-keys (or which are now configured as
+	 * static keys, meaning they are permanent and not RFC5011-maintained),
+	 * delete them from the zone.  Otherwise call load_secroots(), which
+	 * loads keys into secroots as appropriate.
 	 */
 	dns_rriterator_init(&rrit, db, ver, 0);
 	for (result = dns_rriterator_first(&rrit);
