@@ -1225,12 +1225,13 @@ client_send(ns_client_t *client) {
 			isc_buffer_usedregion(&b, &zr);
 	}
 
-	if (client->message->opcode == dns_opcode_update)
+	if (client->message->opcode == dns_opcode_update) {
 		dtmsgtype = DNS_DTTYPE_UR;
-	else if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
+	} else if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0) {
 		dtmsgtype = DNS_DTTYPE_CR;
-	else
+	} else {
 		dtmsgtype = DNS_DTTYPE_AR;
+	}
 #endif /* HAVE_DNSTAP */
 
 	if (cleanup_cctx) {
@@ -1271,9 +1272,11 @@ client_send(ns_client_t *client) {
 			break;
 		}
 	} else {
-		respsize = isc_buffer_usedlength(&buffer);
-		result = client_sendpkg(client, &buffer);
 #ifdef HAVE_DNSTAP
+		/*
+		 * Log dnstap data first, because client_sendpkg() may
+		 * leave client->view set to NULL.
+		 */
 		if (client->view != NULL) {
 			dns_dt_send(client->view, dtmsgtype,
 				    &client->peeraddr,
@@ -1282,6 +1285,9 @@ client_send(ns_client_t *client) {
 				    &client->requesttime, NULL, &buffer);
 		}
 #endif /* HAVE_DNSTAP */
+
+		respsize = isc_buffer_usedlength(&buffer);
+		result = client_sendpkg(client, &buffer);
 
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
 		case AF_INET:
