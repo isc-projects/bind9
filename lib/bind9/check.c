@@ -3055,9 +3055,12 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	return (result);
 }
 
-#define ROOT_KSK_2010	0x1
-#define ROOT_KSK_2017	0x2
-#define DLV_KSK_KEY	0x4
+#define ROOT_KSK_STATIC		0x01
+#define ROOT_KSK_MANAGED	0x02
+#define ROOT_KSK_ANY		0x03
+#define ROOT_KSK_2010		0x04
+#define ROOT_KSK_2017		0x08
+#define DLV_KSK_KEY		0x10
 
 static isc_result_t
 check_trusted_key(const cfg_obj_t *key, bool managed,
@@ -3134,10 +3137,12 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 
 		if ((alg == DST_ALG_RSASHA1) &&
 		    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
+		{
 			cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 				    "%s key '%s' has a weak exponent",
 				    managed ? "initializing" : "static",
 				    keynamestr);
+		}
 	}
 
 	if (result == ISC_R_SUCCESS && dns_name_equal(keyname, dns_rootname)) {
@@ -3174,7 +3179,8 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 			0x6a, 0xab, 0x02, 0x64, 0x4b, 0x28, 0x13, 0xf5,
 			0x75, 0xfc, 0x21, 0x60, 0x1e, 0x0d, 0xee, 0x49,
 			0xcd, 0x9e, 0xe9, 0x6a, 0x43, 0x10, 0x3e, 0x52,
-			0x4d, 0x62, 0x87, 0x3d };
+			0x4d, 0x62, 0x87, 0x3d
+		};
 		static const unsigned char root_ksk_2017[] = {
 			0x03, 0x01, 0x00, 0x01, 0xac, 0xff, 0xb4, 0x09,
 			0xbc, 0xc9, 0x39, 0xf8, 0x31, 0xf7, 0xa1, 0xe5,
@@ -3208,58 +3214,34 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 			0x9e, 0x79, 0x2a, 0xb5, 0x01, 0xe6, 0xa8, 0xa1,
 			0xca, 0x51, 0x9a, 0xf2, 0xcb, 0x9b, 0x5f, 0x63,
 			0x67, 0xe9, 0x4c, 0x0d, 0x47, 0x50, 0x24, 0x51,
-			0x35, 0x7b, 0xe1, 0xb5 };
+			0x35, 0x7b, 0xe1, 0xb5
+		};
+
+		/*
+		 * Flag any use of a root key, regardless of content.
+		 */
+		*keyflags |= (managed ? ROOT_KSK_MANAGED : ROOT_KSK_STATIC);
+
 		if (flags == 257 && proto == 3 && alg == 8 &&
 		    isc_buffer_usedlength(&b) == sizeof(root_ksk_2010) &&
-		    !memcmp(keydata, root_ksk_2010, sizeof(root_ksk_2010))) {
+		    !memcmp(keydata, root_ksk_2010, sizeof(root_ksk_2010)))
+		{
 			*keyflags |= ROOT_KSK_2010;
 		}
+
 		if (flags == 257 && proto == 3 && alg == 8 &&
 		    isc_buffer_usedlength(&b) == sizeof(root_ksk_2017) &&
-		    !memcmp(keydata, root_ksk_2017, sizeof(root_ksk_2017))) {
+		    !memcmp(keydata, root_ksk_2017, sizeof(root_ksk_2017)))
+		{
 			*keyflags |= ROOT_KSK_2017;
 		}
 	}
-	if (result == ISC_R_SUCCESS && dns_name_equal(keyname, &dlviscorg)) {
-		static const unsigned char dlviscorgkey[] = {
-			0x04, 0x40, 0x00, 0x00, 0x03, 0xc7, 0x32, 0xef,
-			0xf9, 0xa2, 0x7c, 0xeb, 0x10, 0x4e, 0xf3, 0xd5,
-			0xe8, 0x26, 0x86, 0x0f, 0xd6, 0x3c, 0xed, 0x3e,
-			0x8e, 0xea, 0x19, 0xad, 0x6d, 0xde, 0xb9, 0x61,
-			0x27, 0xe0, 0xcc, 0x43, 0x08, 0x4d, 0x7e, 0x94,
-			0xbc, 0xb6, 0x6e, 0xb8, 0x50, 0xbf, 0x9a, 0xcd,
-			0xdf, 0x64, 0x4a, 0xb4, 0xcc, 0xd7, 0xe8, 0xc8,
-			0xfb, 0xd2, 0x37, 0x73, 0x78, 0xd0, 0xf8, 0x5e,
-			0x49, 0xd6, 0xe7, 0xc7, 0x67, 0x24, 0xd3, 0xc2,
-			0xc6, 0x7f, 0x3e, 0x8c, 0x01, 0xa5, 0xd8, 0x56,
-			0x4b, 0x2b, 0xcb, 0x7e, 0xd6, 0xea, 0xb8, 0x5b,
-			0xe9, 0xe7, 0x03, 0x7a, 0x8e, 0xdb, 0xe0, 0xcb,
-			0xfa, 0x4e, 0x81, 0x0f, 0x89, 0x9e, 0xc0, 0xc2,
-			0xdb, 0x21, 0x81, 0x70, 0x7b, 0x43, 0xc6, 0xef,
-			0x74, 0xde, 0xf5, 0xf6, 0x76, 0x90, 0x96, 0xf9,
-			0xe9, 0xd8, 0x60, 0x31, 0xd7, 0xb9, 0xca, 0x65,
-			0xf8, 0x04, 0x8f, 0xe8, 0x43, 0xe7, 0x00, 0x2b,
-			0x9d, 0x3f, 0xc6, 0xf2, 0x6f, 0xd3, 0x41, 0x6b,
-			0x7f, 0xc9, 0x30, 0xea, 0xe7, 0x0c, 0x4f, 0x01,
-			0x65, 0x80, 0xf7, 0xbe, 0x8e, 0x71, 0xb1, 0x3c,
-			0xf1, 0x26, 0x1c, 0x0b, 0x5e, 0xfd, 0x44, 0x64,
-			0x63, 0xad, 0x99, 0x7e, 0x42, 0xe8, 0x04, 0x00,
-			0x03, 0x2c, 0x74, 0x3d, 0x22, 0xb4, 0xb6, 0xb6,
-			0xbc, 0x80, 0x7b, 0xb9, 0x9b, 0x05, 0x95, 0x5c,
-			0x3b, 0x02, 0x1e, 0x53, 0xf4, 0x70, 0xfe, 0x64,
-			0x71, 0xfe, 0xfc, 0x30, 0x30, 0x24, 0xe0, 0x35,
-			0xba, 0x0c, 0x40, 0xab, 0x54, 0x76, 0xf3, 0x57,
-			0x0e, 0xb6, 0x09, 0x0d, 0x21, 0xd9, 0xc2, 0xcd,
-			0xf1, 0x89, 0x15, 0xc5, 0xd5, 0x17, 0xfe, 0x6a,
-			0x5f, 0x54, 0x99, 0x97, 0xd2, 0x6a, 0xff, 0xf8,
-			0x35, 0x62, 0xca, 0x8c, 0x7c, 0xe9, 0x4f, 0x9f,
-			0x64, 0xfd, 0x54, 0xad, 0x4c, 0x33, 0x74, 0x61,
-			0x4b, 0x96, 0xac, 0x13, 0x61 };
-		if (flags == 257 && proto == 3 && alg == 5 &&
-		    isc_buffer_usedlength(&b) == sizeof(dlviscorgkey) &&
-		    !memcmp(keydata, dlviscorgkey, sizeof(dlviscorgkey))) {
-			*keyflags |= DLV_KSK_KEY;
-		}
+
+	/*
+	 * Flag any use of dlv.isc.org, regardless of content.
+	 */
+	if (dns_name_equal(keyname, &dlviscorg)) {
+		*keyflags |= DLV_KSK_KEY;
 	}
 
 	return (result);
@@ -3686,10 +3668,12 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	 * Check trusted-keys and managed-keys.
 	 */
 	tkeys = NULL;
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "trusted-keys", &tkeys);
-	if (tkeys == NULL)
+	}
+	if (tkeys == NULL) {
 		(void)cfg_map_get(config, "trusted-keys", &tkeys);
+	}
 
 	tflags = 0;
 	for (element = cfg_list_first(tkeys);
@@ -3699,33 +3683,37 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		const cfg_obj_t *keylist = cfg_listelt_value(element);
 		for (element2 = cfg_list_first(keylist);
 		     element2 != NULL;
-		     element2 = cfg_list_next(element2)) {
+		     element2 = cfg_list_next(element2))
+		{
 			obj = cfg_listelt_value(element2);
-			tresult = check_trusted_key(obj, false, &tflags,
-						    logctx);
-			if (tresult != ISC_R_SUCCESS)
+			tresult = check_trusted_key(obj, false,
+						    &tflags, logctx);
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		}
 	}
 
-	if ((tflags & ROOT_KSK_2010) != 0 && (tflags & ROOT_KSK_2017) == 0) {
-		cfg_obj_log(tkeys, logctx, ISC_LOG_WARNING,
-			    "trusted-key for root from 2010 without updated "
-			    "trusted-key from 2017: THIS WILL FAIL AFTER "
-			    "KEY ROLLOVER");
+	if ((tflags & ROOT_KSK_STATIC) != 0) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "trusted-keys entry for the root zone "
+			    "WILL FAIL after key rollover - use "
+			    "managed-keys with initial-key instead.");
 	}
 
 	if ((tflags & DLV_KSK_KEY) != 0) {
-		cfg_obj_log(tkeys, logctx, ISC_LOG_WARNING,
-			    "trusted-key for dlv.isc.org still present; "
-			    "dlv.isc.org has been shut down");
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "trusted-keys entry for dlv.isc.org is still "
+			    "present: dlv.isc.org has been shut down");
 	}
 
 	mkeys = NULL;
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "managed-keys", &mkeys);
-	if (mkeys == NULL)
+	}
+	if (keys == NULL) {
 		(void)cfg_map_get(config, "managed-keys", &mkeys);
+	}
 
 	mflags = 0;
 	for (element = cfg_list_first(mkeys);
@@ -3740,29 +3728,42 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			obj = cfg_listelt_value(element2);
 			tresult = check_trusted_key(obj, true, &mflags,
 						    logctx);
-			if (tresult != ISC_R_SUCCESS)
+			if (tresult != ISC_R_SUCCESS) {
 				result = tresult;
+			}
 		}
 	}
 
+	if ((mflags & ROOT_KSK_STATIC) != 0) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "managed-keys static-key entry for the root zone "
+			    "WILL FAIL after key rollover - use "
+			    "managed-keys with initial-key instead.");
+	}
+
 	if ((mflags & ROOT_KSK_2010) != 0 && (mflags & ROOT_KSK_2017) == 0) {
-		cfg_obj_log(mkeys, logctx, ISC_LOG_WARNING,
-			    "managed-key for root from 2010 without updated "
-			    "managed-key from 2017");
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "managed-keys initial-key entry for the root zone "
+			    "uses the 2010 key without the updated "
+			    "2017 key");
+	}
+
+	if ((tflags & ROOT_KSK_ANY) != 0 && (mflags & ROOT_KSK_ANY) != 0) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "both trusted-keys and managed-keys for the "
+			    "root zone are present");
+	}
+
+	if ((mflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "both initial-key and static-key entries for the "
+			    "root zone are present");
 	}
 
 	if ((mflags & DLV_KSK_KEY) != 0) {
-		cfg_obj_log(mkeys, logctx, ISC_LOG_WARNING,
-			    "managed-key for dlv.isc.org still present; "
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "managed-keys entry for dlv.isc.org still present; "
 			    "dlv.isc.org has been shut down");
-	}
-
-	if ((tflags & (ROOT_KSK_2010|ROOT_KSK_2017)) != 0 &&
-	    (mflags & (ROOT_KSK_2010|ROOT_KSK_2017)) != 0)
-	{
-		cfg_obj_log(mkeys, logctx, ISC_LOG_WARNING,
-			    "both trusted-keys and managed-keys for the ICANN "
-			    "root are present");
 	}
 
 	obj = NULL;

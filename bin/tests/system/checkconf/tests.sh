@@ -383,7 +383,7 @@ echo_i "check that the 2010 ICANN ROOT KSK without the 2017 ICANN ROOT KSK gener
 ret=0
 $CHECKCONF check-root-ksk-2010.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
-grep "static key for root from 2010 without updated key" checkconf.out$n > /dev/null || ret=1
+grep "key without the updated" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
@@ -402,11 +402,32 @@ $CHECKCONF check-root-ksk-2017.conf > checkconf.out$n 2>/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+echo_i "check that a static root key generates a warning ($n)"
+ret=0
+$CHECKCONF check-root-static-key.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "static-key entry for the root zone WILL FAIL" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo_i "check that a trusted-keys entry for root generates a warning ($n)"
+ret=0
+$CHECKCONF check-root-trusted-key.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "trusted-keys entry for the root zone WILL FAIL" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo_i "check that mixed static-key and initial-key for root generates a warning ($n)"
+ret=0
+$CHECKCONF check-root-mixed-key.conf > checkconf.out$n 2>/dev/null || ret=1
+ grep "both initial-key and static-key" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
 echo_i "check that the dlv.isc.org KSK generates a warning ($n)"
 ret=0
 $CHECKCONF check-dlv-ksk-key.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
-grep "static key for dlv.isc.org still present" checkconf.out$n > /dev/null || ret=1
+grep "entry for dlv.isc.org still present" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
