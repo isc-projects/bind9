@@ -1091,7 +1091,7 @@
 ./bin/tests/system/dnstap/good-size-version.conf	CONF-C	2017,2018
 ./bin/tests/system/dnstap/ns1/named.conf.in	CONF-C	2015,2016,2017,2018
 ./bin/tests/system/dnstap/ns1/root.db		ZONE	2015,2016,2018
-./bin/tests/system/dnstap/ns2/example.db	ZONE	2015,2016,2018
+./bin/tests/system/dnstap/ns2/example.db.in	ZONE	2015,2016,2018
 ./bin/tests/system/dnstap/ns2/named.conf.in	CONF-C	2015,2016,2017,2018
 ./bin/tests/system/dnstap/ns3/named.conf.in	CONF-C	2015,2016,2017,2018
 ./bin/tests/system/dnstap/ns4/named.conf.in	CONF-C	2016,2018
