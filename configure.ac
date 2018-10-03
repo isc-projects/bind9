@@ -701,6 +701,10 @@ AC_CHECK_HEADERS([sched.h])
 AC_SEARCH_LIBS([sched_yield],[rt])
 AC_CHECK_FUNCS([sched_yield pthread_yield pthread_yield_np])
 
+AC_CHECK_HEADERS([sys/cpuset.h])
+AC_CHECK_HEADERS([sys/procset.h])
+AC_CHECK_FUNCS([pthread_setaffinity_np cpuset_setaffinity processor_bind sched_setaffinity])
+
 # Look for functions relating to thread naming
 AC_CHECK_FUNCS([pthread_setname_np pthread_set_name_np])
 AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
