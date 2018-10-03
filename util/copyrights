@@ -651,6 +651,8 @@
 ./bin/tests/system/checkconf/check-root-ksk-2010.conf	CONF-C	2018
 ./bin/tests/system/checkconf/check-root-ksk-2017.conf	CONF-C	2018
 ./bin/tests/system/checkconf/check-root-ksk-both.conf	CONF-C	2018
+./bin/tests/system/checkconf/check-root-static-key.conf	CONF-C	2018
+./bin/tests/system/checkconf/check-root-trusted-key.conf	CONF-C	2018
 ./bin/tests/system/checkconf/check-srv-cname-fail.conf	CONF-C	2014,2016,2018
 ./bin/tests/system/checkconf/check-srv-cname.db	ZONE	2014,2016,2018
 ./bin/tests/system/checkconf/clean.sh		SH	2011,2012,2013,2014,2016,2018
