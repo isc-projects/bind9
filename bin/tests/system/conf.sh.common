@@ -226,17 +226,17 @@ keyfile_to_keys_section() {
 }
 
 # keyfile_to_trusted_keys: convert key data contained in the keyfile(s)
-# provided to a "trusted-keys" section suitable for including in a
+# provided to a *static* "managed-keys" section suitable for including in a
 # resolver's configuration file
 keyfile_to_trusted_keys() {
-    keyfile_to_keys_section "trusted-keys" "" $*
+    keyfile_to_keys_section "managed-keys" "static-key" $*
 }
 
 # keyfile_to_managed_keys: convert key data contained in the keyfile(s)
 # provided to a "managed-keys" section suitable for including in a
 # resolver's configuration file
 keyfile_to_managed_keys() {
-    keyfile_to_keys_section "managed-keys" "initial-key " $*
+    keyfile_to_keys_section "managed-keys" "initial-key" $*
 }
 
 # nextpart*() - functions for reading files incrementally
