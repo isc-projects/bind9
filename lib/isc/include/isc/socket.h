@@ -813,7 +813,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp);
 
 isc_result_t
 isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
-		      unsigned int maxsocks);
+		      unsigned int maxsocks, int nthreads);
 /*%<
  * Create a socket manager.  If "maxsocks" is non-zero, it specifies the
  * maximum number of sockets that the created manager should handle.
