@@ -333,29 +333,6 @@ isc_appctx_settimermgr(isc_appctx_t *ctx, isc_timermgr_t *timermgr);
  *\li	'timermgr' is a valid timer manager.
  */
 
-/*%<
- * See isc_appctx_create() above.
- */
-typedef isc_result_t
-(*isc_appctxcreatefunc_t)(isc_mem_t *mctx, isc_appctx_t **ctxp);
-
-isc_result_t
-isc_app_register(isc_appctxcreatefunc_t createfunc);
-/*%<
- * Register a new application implementation and add it to the list of
- * supported implementations.  This function must be called when a different
- * event library is used than the one contained in the ISC library.
- */
-
-isc_result_t
-isc__app_register(void);
-/*%<
- * A short cut function that specifies the application module in the ISC
- * library for isc_app_register().  An application that uses the ISC library
- * usually do not have to care about this function: it would call
- * isc_lib_register(), which internally calls this function.
- */
-
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_APP_H */
