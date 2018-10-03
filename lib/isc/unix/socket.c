@@ -184,10 +184,12 @@ typedef enum { poll_idle, poll_active, poll_checking } pollstate_t;
 #endif	/* ISC_SOCKET_USE_POLLWATCH */
 
 /*%
- * Size of per-FD lock buckets.
+ * Per-FD lock buckets, we shuffle them around a bit as FDs come in herds.
  */
-#define FDLOCK_COUNT		1024
-#define FDLOCK_ID(fd)		((fd) % FDLOCK_COUNT)
+#define FDLOCK_BITS		10
+#define FDLOCK_COUNT		(1<<FDLOCK_BITS)
+#define FDLOCK_ID(fd)		(((fd)%(FDLOCK_COUNT)>>(FDLOCK_BITS/2)) |\
+				 (((fd)<<(FDLOCK_BITS/2))%(FDLOCK_COUNT)))
 
 /*%
  * Maximum number of events communicated with the kernel.  There should normally
@@ -3756,7 +3758,7 @@ setup_thread(isc__socketthread_t *thread) {
 	if (result != ISC_R_SUCCESS)
 		manager->open_max = 64;
 	manager->calls = 0;
-	manager->events = isc_mem_get(thread->manager->mctx, 
+	manager->events = isc_mem_get(thread->manager->mctx,
 				      sizeof(struct pollfd) *
 				      manager->nevents);
 	if (manager->events == NULL)
@@ -5469,11 +5471,11 @@ init_hasreuseport() {
 		close(sock);
 		return;
 	} else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, (void *)&yes,
-                       sizeof(yes)) < 0) {
+		       sizeof(yes)) < 0) {
 		close(sock);
 		return;
 	} else if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT, (void *)&yes,
-                       sizeof(yes)) < 0) {
+		       sizeof(yes)) < 0) {
 		close(sock);
 		return;
 	}

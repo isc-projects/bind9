@@ -3693,7 +3693,7 @@ isc_socket_socketevent(isc_mem_t *mctx, void *sender,
 
 bool
 isc_socket_hasreuseport() {
-        return (false);
+	return (false);
 }
 
 #ifdef HAVE_LIBXML2
