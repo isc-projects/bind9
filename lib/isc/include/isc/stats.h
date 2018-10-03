@@ -31,7 +31,7 @@ ISC_LANG_BEGINDECLS
  */
 typedef void (*isc_stats_dumper_t)(isc_statscounter_t, uint64_t, void *);
 
-isc_result_t
+void
 isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters);
 /*%<
  * Create a statistics counter structure of general type.  It counts a general
@@ -42,10 +42,6 @@ isc_stats_create(isc_mem_t *mctx, isc_stats_t **statsp, int ncounters);
  *
  *\li	'statsp' != NULL && '*statsp' == NULL.
  *
- * Returns:
- *\li	ISC_R_SUCCESS	-- all ok
- *
- *\li	anything else	-- failure
  */
 
 void

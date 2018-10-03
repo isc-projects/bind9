@@ -91,7 +91,7 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 			goto failure;
 		}
 		dns_name_init(tctx->domain, NULL);
-		RETERR(dns_name_dup(name, mctx, tctx->domain));
+		dns_name_dup(name, mctx, tctx->domain);
 	}
 
 	obj = NULL;

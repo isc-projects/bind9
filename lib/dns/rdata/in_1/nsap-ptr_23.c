@@ -159,7 +159,7 @@ tostruct_in_nsap_ptr(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&nsap_ptr->owner, NULL);
-	RETERR(name_duporclone(&name, mctx, &nsap_ptr->owner));
+	name_duporclone(&name, mctx, &nsap_ptr->owner);
 	nsap_ptr->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

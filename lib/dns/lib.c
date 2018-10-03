@@ -79,9 +79,7 @@ initialize(void) {
 
 	REQUIRE(initialize_done == false);
 
-	result = isc_mem_create(0, 0, &dns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		return;
+	isc_mem_create(0, 0, &dns_g_mctx);
 	dns_result_register();
 	result = dns_ecdb_register(dns_g_mctx, &dbimp);
 	if (result != ISC_R_SUCCESS)
@@ -91,15 +89,10 @@ initialize(void) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_db;
 
-	result = isc_mutex_init(&reflock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_dst;
-
+	isc_mutex_init(&reflock);
 	initialize_done = true;
 	return;
 
-  cleanup_dst:
-	dst_lib_destroy();
   cleanup_db:
 	if (dbimp != NULL)
 		dns_ecdb_unregister(&dbimp);

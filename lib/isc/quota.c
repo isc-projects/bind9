@@ -19,12 +19,12 @@
 #include <isc/quota.h>
 #include <isc/util.h>
 
-isc_result_t
+void
 isc_quota_init(isc_quota_t *quota, int max) {
 	quota->max = max;
 	quota->used = 0;
 	quota->soft = 0;
-	return (isc_mutex_init(&quota->lock));
+	isc_mutex_init(&quota->lock);
 }
 
 void

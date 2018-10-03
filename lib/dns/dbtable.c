@@ -48,7 +48,7 @@ dbdetach(void *data, void *arg) {
 	dns_db_detach(&db);
 }
 
-isc_result_t
+void
 dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_dbtable_t **dbtablep)
 {
@@ -59,21 +59,13 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	REQUIRE(dbtablep != NULL && *dbtablep == NULL);
 
 	dbtable = (dns_dbtable_t *)isc_mem_get(mctx, sizeof(*dbtable));
-	if (dbtable == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dbtable->rbt = NULL;
-	result = dns_rbt_create(mctx, dbdetach, NULL, &dbtable->rbt);
-	if (result != ISC_R_SUCCESS)
-		goto clean1;
+	dns_rbt_create(mctx, dbdetach, NULL, &dbtable->rbt);
 
-	result = isc_mutex_init(&dbtable->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean2;
+	isc_mutex_init(&dbtable->lock);
 
-	result = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		goto clean3;
+	isc_rwlock_init(&dbtable->tree_lock, 0, 0);
 
 	dbtable->default_db = NULL;
 	dbtable->mctx = NULL;
@@ -83,19 +75,6 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	dbtable->references = 1;
 
 	*dbtablep = dbtable;
-
-	return (ISC_R_SUCCESS);
-
- clean3:
-	DESTROYLOCK(&dbtable->lock);
-
- clean2:
-	dns_rbt_destroy(&dbtable->rbt);
-
- clean1:
-	isc_mem_putanddetach(&mctx, dbtable, sizeof(*dbtable));
-
-	return (result);
 }
 
 static inline void

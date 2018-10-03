@@ -142,7 +142,7 @@ static unsigned char tableindex[256] = {
  ***	Compression
  ***/
 
-isc_result_t
+void
 dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	REQUIRE(cctx != NULL);
 	REQUIRE(mctx != NULL);	/* See: rdataset.c:towiresorted(). */
@@ -155,8 +155,6 @@ dns_compress_init(dns_compress_t *cctx, int edns, isc_mem_t *mctx) {
 	memset(&cctx->table[0], 0, sizeof(cctx->table));
 
 	cctx->magic = CCTX_MAGIC;
-
-	return (ISC_R_SUCCESS);
 }
 
 void

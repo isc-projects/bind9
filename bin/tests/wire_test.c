@@ -138,7 +138,7 @@ main(int argc, char *argv[]) {
 	}
 	isc_commandline_reset = true;
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(0, 0, &mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
@@ -181,8 +181,7 @@ main(int argc, char *argv[]) {
 	} else
 		f = stdin;
 
-	result = isc_buffer_allocate(mctx, &input, 64 * 1024);
-	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	isc_buffer_allocate(mctx, &input, 64 * 1024);
 
 	if (rawdata) {
 		while (fread(&c, 1, 1, f) != 0) {
@@ -266,8 +265,7 @@ process_message(isc_buffer_t *source) {
 	int i;
 
 	message = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
-	CHECKRESULT(result, "dns_message_create failed");
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &message);
 
 	result = dns_message_parse(message, source, parseflags);
 	if (result == DNS_R_RECOVERABLE)
@@ -297,8 +295,7 @@ process_message(isc_buffer_t *source) {
 		for (i = 0; i < DNS_SECTION_MAX; i++)
 			message->counts[i] = 0;  /* Another hack XXX */
 
-		result = dns_compress_init(&cctx, -1, mctx);
-		CHECKRESULT(result, "dns_compress_init() failed");
+		dns_compress_init(&cctx, -1, mctx);
 
 		result = dns_message_renderbegin(message, &cctx, &buffer);
 		CHECKRESULT(result, "dns_message_renderbegin() failed");
@@ -334,9 +331,8 @@ process_message(isc_buffer_t *source) {
 		if (printmemstats)
 			isc_mem_stats(mctx, stdout);
 
-		result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
+		dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,
 					    &message);
-		CHECKRESULT(result, "dns_message_create failed");
 
 		result = dns_message_parse(message, &buffer, parseflags);
 		CHECKRESULT(result, "dns_message_parse failed");

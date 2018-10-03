@@ -269,7 +269,7 @@ dns_rrl(dns_view_t *view,
 void
 dns_rrl_view_destroy(dns_view_t *view);
 
-isc_result_t
+void
 dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries);
 
 ISC_LANG_ENDDECLS

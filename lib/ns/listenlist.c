@@ -105,11 +105,9 @@ ns_listenlist_default(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 
 	REQUIRE(target != NULL && *target == NULL);
 	if (enabled)
-		result = dns_acl_any(mctx, &acl);
+		dns_acl_any(mctx, &acl);
 	else
-		result = dns_acl_none(mctx, &acl);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+		dns_acl_none(mctx, &acl);
 
 	result = ns_listenelt_create(mctx, port, dscp, acl, &elt);
 	if (result != ISC_R_SUCCESS)

@@ -169,7 +169,7 @@ tostruct_nsec(ARGS_TOSTRUCT) {
 	dns_name_fromregion(&name, &region);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_init(&nsec->next, NULL);
-	RETERR(name_duporclone(&name, mctx, &nsec->next));
+	name_duporclone(&name, mctx, &nsec->next);
 
 	nsec->len = region.length;
 	nsec->typebits = mem_maybedup(mctx, region.base, region.length);

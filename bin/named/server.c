@@ -656,9 +656,7 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 			return (ISC_R_SUCCESS);
 	}
 
-	result = dns_rbt_create(mctx, NULL, NULL, rbtp);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_rbt_create(mctx, NULL, NULL, rbtp);
 
 	name = dns_fixedname_initname(&fixed);
 	for (element = cfg_list_first(obj);
@@ -966,13 +964,7 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 	maps[i++] = named_g_defaults;
 	maps[i] = NULL;
 
-	result = dns_view_initsecroots(view, mctx);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "couldn't create keytable");
-		return (ISC_R_UNEXPECTED);
-	}
+	dns_view_initsecroots(view, mctx);
 
 	result = dns_view_initntatable(view, named_g_taskmgr, named_g_timermgr);
 	if (result != ISC_R_SUCCESS) {
@@ -1677,10 +1669,8 @@ setquerystats(dns_zone_t *zone, isc_mem_t *mctx, dns_zonestat_level_t level) {
 
 	zoneqrystats = NULL;
 	if (level == dns_zonestat_full) {
-		result = isc_stats_create(mctx, &zoneqrystats,
+		isc_stats_create(mctx, &zoneqrystats,
 					  ns_statscounter_max);
-		if (result != ISC_R_SUCCESS)
-			return (result);
 	}
 	dns_zone_setrequeststats(zone, zoneqrystats);
 	if (zoneqrystats != NULL)
@@ -2836,13 +2826,7 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 		 * We have to walk through all the member zones and attach
 		 * them to current view
 		 */
-		result = dns_catz_get_iterator(zone, &it);
-		if (result != ISC_R_SUCCESS) {
-			cfg_obj_log(catz_obj, named_g_lctx,
-				    DNS_CATZ_ERROR_LEVEL,
-				    "catz: unable to create iterator");
-			goto cleanup;
-		}
+		dns_catz_get_iterator(zone, &it);
 
 		for (result = isc_ht_iter_first(it);
 		     result == ISC_R_SUCCESS;
@@ -2938,9 +2922,9 @@ configure_catz(dns_view_t *view, const cfg_obj_t *config,
 	if (zone_element == NULL)
 		return (ISC_R_SUCCESS);
 
-	CHECK(dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods,
+	dns_catz_new_zones(&view->catzs, &ns_catz_zonemodmethods,
 				 view->mctx, named_g_taskmgr,
-				 named_g_timermgr));
+				 named_g_timermgr);
 
 	result = dns_viewlist_find(&named_g_server->viewlist, view->name,
 				   view->rdclass, &pview);
@@ -3017,9 +3001,7 @@ configure_rrl(dns_view_t *view, const cfg_obj_t *config, const cfg_obj_t *map) {
 		if (min_entries < 1)
 			min_entries = 1;
 	}
-	result = dns_rrl_init(&rrl, view, min_entries);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_rrl_init(&rrl, view, min_entries);
 
 	i = ISC_MAX(20000, min_entries);
 	obj = NULL;
@@ -3603,24 +3585,18 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 }
 #endif /* HAVE_DNSTAP */
 
-static isc_result_t
+static void
 create_mapped_acl(void) {
-	isc_result_t result;
 	dns_acl_t *acl = NULL;
 	struct in6_addr in6 = IN6ADDR_V4MAPPED_INIT;
 	isc_netaddr_t addr;
 
 	isc_netaddr_fromin6(&addr, &in6);
 
-	result = dns_acl_create(named_g_mctx, 1, &acl);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_acl_create(named_g_mctx, 1, &acl);
 
-	result = dns_iptable_addprefix(acl->iptable, &addr, 96, true);
-	if (result == ISC_R_SUCCESS)
-		dns_acl_attach(acl, &named_g_mapped);
+	dns_iptable_addprefix(acl->iptable, &addr, 96, true);
 	dns_acl_detach(&acl);
-	return (result);
 }
 
 /*
@@ -4021,9 +3997,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 					goto cleanup;
 			} else {
 				if (named_g_mapped == NULL) {
-					result = create_mapped_acl();
-					if (result != ISC_R_SUCCESS)
-						goto cleanup;
+					create_mapped_acl();
 				}
 				dns_acl_attach(named_g_mapped, &excluded);
 			}
@@ -4202,9 +4176,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			 * cache, for the main cache memory and the heap
 			 * memory.
 			 */
-			CHECK(isc_mem_create(0, 0, &cmctx));
+			isc_mem_create(0, 0, &cmctx);
 			isc_mem_setname(cmctx, "cache", NULL);
-			CHECK(isc_mem_create(0, 0, &hmctx));
+			isc_mem_create(0, 0, &hmctx);
 			isc_mem_setname(hmctx, "cache_heap", NULL);
 			CHECK(dns_cache_create(cmctx, hmctx, named_g_taskmgr,
 					       named_g_timermgr, view->rdclass,
@@ -4270,20 +4244,20 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	if (resstats == NULL) {
-		CHECK(isc_stats_create(mctx, &resstats,
-				       dns_resstatscounter_max));
+		isc_stats_create(mctx, &resstats,
+				       dns_resstatscounter_max);
 	}
 	dns_view_setresstats(view, resstats);
 	if (resquerystats == NULL)
-		CHECK(dns_rdatatypestats_create(mctx, &resquerystats));
+		dns_rdatatypestats_create(mctx, &resquerystats);
 	dns_view_setresquerystats(view, resquerystats);
 
 	ndisp = 4 * ISC_MIN(named_g_udpdisp, MAX_UDP_DISPATCH);
-	CHECK(dns_view_createresolver(view, named_g_taskmgr, RESOLVER_NTASKS,
+	dns_view_createresolver(view, named_g_taskmgr, RESOLVER_NTASKS,
 				      ndisp, named_g_socketmgr,
 				      named_g_timermgr, resopts,
 				      named_g_dispatchmgr,
-				      dispatch4, dispatch6));
+				      dispatch4, dispatch6);
 
 	if (dscp4 == -1)
 		dscp4 = named_g_dscp;
@@ -4838,10 +4812,10 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		 * been set at the options/view level, set them to none.
 		 */
 		if (view->cacheacl == NULL) {
-			CHECK(dns_acl_none(mctx, &view->cacheacl));
+			dns_acl_none(mctx, &view->cacheacl);
 		}
 		if (view->cacheonacl == NULL) {
-			CHECK(dns_acl_none(mctx, &view->cacheonacl));
+			dns_acl_none(mctx, &view->cacheonacl);
 		}
 	}
 
@@ -5196,7 +5170,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			CHECK(dns_name_fromstring(name,
 						  cfg_obj_asstring(exclude),
 						  0, NULL));
-			CHECK(dns_view_excludedelegationonly(view, name));
+			dns_view_excludedelegationonly(view, name);
 		}
 	} else
 		dns_view_setrootdelonly(view, false);
@@ -5958,7 +5932,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 			tresult = cfg_map_get(zoptions, "delegation-only",
 					      &only);
 			if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(only))
-				CHECK(dns_view_adddelegationonly(view, origin));
+				dns_view_adddelegationonly(view, origin);
 		} else {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
@@ -5989,7 +5963,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 		only = NULL;
 		tresult = cfg_map_get(zoptions, "delegation-only", &only);
 		if (tresult == ISC_R_SUCCESS && cfg_obj_asboolean(only))
-			CHECK(dns_view_adddelegationonly(view, origin));
+			dns_view_adddelegationonly(view, origin);
 		goto cleanup;
 	}
 
@@ -5997,7 +5971,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	 * "delegation-only zones" aren't zones either.
 	 */
 	if (strcasecmp(ztypestr, "delegation-only") == 0) {
-		result = dns_view_adddelegationonly(view, origin);
+		dns_view_adddelegationonly(view, origin);
+		result = ISC_R_SUCCESS;
 		goto cleanup;
 	}
 
@@ -6152,7 +6127,7 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	if (cfg_map_get(zoptions, "delegation-only", &only) == ISC_R_SUCCESS)
 	{
 		if (cfg_obj_asboolean(only))
-			CHECK(dns_view_adddelegationonly(view, origin));
+			dns_view_adddelegationonly(view, origin);
 	}
 
 	/*
@@ -6283,7 +6258,7 @@ add_keydata_zone(dns_view_t *view, const char *directory, isc_mem_t *mctx) {
 
 	CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
 
-	CHECK(dns_acl_none(mctx, &none));
+	dns_acl_none(mctx, &none);
 	dns_zone_setqueryacl(zone, none);
 	dns_zone_setqueryonacl(zone, none);
 	dns_acl_detach(&none);
@@ -6392,14 +6367,10 @@ add_listenelt(isc_mem_t *mctx, ns_listenlist_t *list, isc_sockaddr_t *addr,
 	    (wcardport_ok || isc_sockaddr_getport(addr) != 0)) {
 		isc_netaddr_fromin6(&netaddr, &addr->type.sin6.sin6_addr);
 
-		result = dns_acl_create(mctx, 0, &src_acl);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		dns_acl_create(mctx, 0, &src_acl);
 
-		result = dns_iptable_addprefix(src_acl->iptable, &netaddr,
+		dns_iptable_addprefix(src_acl->iptable, &netaddr,
 					       128, true);
-		if (result != ISC_R_SUCCESS)
-			goto clean;
 
 		result = ns_listenelt_create(mctx, isc_sockaddr_getport(addr),
 					     dscp, src_acl, &lelt);
@@ -7173,7 +7144,7 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 		if (server->session_keyname == NULL)
 			goto cleanup;
 		dns_name_init(server->session_keyname, NULL);
-		CHECK(dns_name_dup(keyname, mctx, server->session_keyname));
+		dns_name_dup(keyname, mctx, server->session_keyname);
 
 		server->session_keyfile = isc_mem_strdup(mctx, keyfile);
 		if (server->session_keyfile == NULL)
@@ -8241,10 +8212,8 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Configure sets of UDP query source ports.
 	 */
-	CHECKM(isc_portset_create(named_g_mctx, &v4portset),
-	       "creating UDP port set");
-	CHECKM(isc_portset_create(named_g_mctx, &v6portset),
-	       "creating UDP port set");
+	isc_portset_create(named_g_mctx, &v4portset);
+	isc_portset_create(named_g_mctx, &v6portset);
 
 	usev4ports = NULL;
 	usev6ports = NULL;
@@ -9305,8 +9274,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	CHECKFATAL(dns_dispatchmgr_create(named_g_mctx, &named_g_dispatchmgr),
-		   "creating dispatch manager");
+	dns_dispatchmgr_create(named_g_mctx, &named_g_dispatchmgr);
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
 
@@ -9537,8 +9505,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				     &server->in_roothints),
 		   "setting up root hints");
 
-	CHECKFATAL(isc_mutex_init(&server->reload_event_lock),
-		   "initializing reload event lock");
+	isc_mutex_init(&server->reload_event_lock);
 	server->reload_event =
 		isc_event_allocate(named_g_mctx, server,
 				   NAMED_EVENT_RELOAD,
@@ -9629,18 +9596,15 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	server->zonestats = NULL;
 	server->resolverstats = NULL;
 	server->sockstats = NULL;
-	CHECKFATAL(isc_stats_create(server->mctx, &server->sockstats,
-				    isc_sockstatscounter_max),
-		   "isc_stats_create");
+	isc_stats_create(server->mctx, &server->sockstats,
+				    isc_sockstatscounter_max);
 	isc_socketmgr_setstats(named_g_socketmgr, server->sockstats);
 
-	CHECKFATAL(isc_stats_create(named_g_mctx, &server->zonestats,
-				    dns_zonestatscounter_max),
-		   "dns_stats_create (zone)");
+	isc_stats_create(named_g_mctx, &server->zonestats,
+				    dns_zonestatscounter_max);
 
-	CHECKFATAL(isc_stats_create(named_g_mctx, &server->resolverstats,
-				    dns_resstatscounter_max),
-		   "dns_stats_create (resolver)");
+	isc_stats_create(named_g_mctx, &server->resolverstats,
+				    dns_resstatscounter_max);
 
 	server->flushonshutdown = false;
 

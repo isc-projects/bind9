@@ -815,14 +815,7 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 
-	result = isc_timermgr_create(named_g_mctx, &named_g_timermgr);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_timermgr_create() failed: %s",
-				 isc_result_totext(result));
-		return (ISC_R_UNEXPECTED);
-	}
-
+	isc_timermgr_create(named_g_mctx, &named_g_timermgr);
 	result = isc_socketmgr_create2(named_g_mctx, &named_g_socketmgr,
 				       maxsocks);
 	if (result != ISC_R_SUCCESS) {
@@ -1387,10 +1380,7 @@ main(int argc, char *argv[]) {
 						named_g_chrootdir);
 	}
 
-	result = isc_mem_create(0, 0, &named_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		named_main_earlyfatal("isc_mem_create() failed: %s",
-				   isc_result_totext(result));
+	isc_mem_create(0, 0, &named_g_mctx);
 	isc_mem_setname(named_g_mctx, "main", NULL);
 
 	setup();

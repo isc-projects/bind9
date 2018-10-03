@@ -3738,8 +3738,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
 
 	val = isc_mem_get(view->mctx, sizeof(*val));
-	if (val == NULL)
-		return (ISC_R_NOMEMORY);
 	val->view = NULL;
 	dns_view_weakattach(view, &val->view);
 
@@ -3748,10 +3746,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				   DNS_EVENT_VALIDATORSTART,
 				   validator_start, NULL,
 				   sizeof(dns_validatorevent_t));
-	if (event == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_val;
-	}
 	isc_task_attach(task, &tclone);
 	event->validator = val;
 	event->result = ISC_R_FAILURE;
@@ -3763,9 +3757,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	memset(event->proofs, 0, sizeof(event->proofs));
 	event->optout = false;
 	event->secure = false;
-	result = isc_mutex_init(&val->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_event;
+	isc_mutex_init(&val->lock);
 	val->event = event;
 	val->options = options;
 	val->attributes = 0;

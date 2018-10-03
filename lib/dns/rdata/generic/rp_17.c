@@ -209,21 +209,14 @@ tostruct_rp(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&rp->mail, NULL);
-	RETERR(name_duporclone(&name, mctx, &rp->mail));
+	name_duporclone(&name, mctx, &rp->mail);
 	isc_region_consume(&region, name_length(&name));
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&rp->text, NULL);
-	result = name_duporclone(&name, mctx, &rp->text);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	name_duporclone(&name, mctx, &rp->text);
 
 	rp->mctx = mctx;
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	if (mctx != NULL)
-		dns_name_free(&rp->mail, mctx);
-	return (ISC_R_NOMEMORY);
 }
 
 static inline void

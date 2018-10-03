@@ -59,7 +59,7 @@ struct dns_ssutable {
 	ISC_LIST(dns_ssurule_t) rules;
 };
 
-isc_result_t
+void
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	isc_result_t result;
 	dns_ssutable_t *table;
@@ -68,20 +68,13 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	REQUIRE(mctx != NULL);
 
 	table = isc_mem_get(mctx, sizeof(dns_ssutable_t));
-	if (table == NULL)
-		return (ISC_R_NOMEMORY);
-	result = isc_mutex_init(&table->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, table, sizeof(dns_ssutable_t));
-		return (result);
-	}
+	isc_mutex_init(&table->lock);
 	table->references = 1;
 	table->mctx = NULL;
 	isc_mem_attach(mctx, &table->mctx);
 	ISC_LIST_INIT(table->rules);
 	table->magic = SSUTABLEMAGIC;
 	*tablep = table;
-	return (ISC_R_SUCCESS);
 }
 
 static inline void
@@ -151,7 +144,7 @@ dns_ssutable_detach(dns_ssutable_t **tablep) {
 		destroy(table);
 }
 
-isc_result_t
+void
 dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
@@ -172,8 +165,6 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 
 	mctx = table->mctx;
 	rule = isc_mem_get(mctx, sizeof(dns_ssurule_t));
-	if (rule == NULL)
-		return (ISC_R_NOMEMORY);
 
 	rule->identity = NULL;
 	rule->name = NULL;
@@ -182,24 +173,11 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 	rule->grant = grant;
 
 	rule->identity = isc_mem_get(mctx, sizeof(dns_name_t));
-	if (rule->identity == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failure;
-	}
 	dns_name_init(rule->identity, NULL);
-	result = dns_name_dup(identity, mctx, rule->identity);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
+	dns_name_dup(identity, mctx, rule->identity);
 	rule->name = isc_mem_get(mctx, sizeof(dns_name_t));
-	if (rule->name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failure;
-	}
 	dns_name_init(rule->name, NULL);
-	result = dns_name_dup(name, mctx, rule->name);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	dns_name_dup(name, mctx, rule->name);
 
 	rule->matchtype = matchtype;
 
@@ -207,36 +185,12 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 	if (ntypes > 0) {
 		rule->types = isc_mem_get(mctx,
 					  ntypes * sizeof(dns_rdatatype_t));
-		if (rule->types == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto failure;
-		}
 		memmove(rule->types, types, ntypes * sizeof(dns_rdatatype_t));
 	} else
 		rule->types = NULL;
 
 	rule->magic = SSURULEMAGIC;
 	ISC_LIST_INITANDAPPEND(table->rules, rule, link);
-
-	return (ISC_R_SUCCESS);
-
- failure:
-	if (rule->identity != NULL) {
-		if (dns_name_dynamic(rule->identity))
-			dns_name_free(rule->identity, mctx);
-		isc_mem_put(mctx, rule->identity, sizeof(dns_name_t));
-	}
-	if (rule->name != NULL) {
-		if (dns_name_dynamic(rule->name))
-			dns_name_free(rule->name, mctx);
-		isc_mem_put(mctx, rule->name, sizeof(dns_name_t));
-	}
-	if (rule->types != NULL)
-		isc_mem_put(mctx, rule->types,
-			    ntypes * sizeof(dns_rdatatype_t));
-	isc_mem_put(mctx, rule, sizeof(dns_ssurule_t));
-
-	return (result);
 }
 
 static inline bool
@@ -624,7 +578,7 @@ dns_ssutable_nextrule(dns_ssurule_t *rule, dns_ssurule_t **nextrule) {
 /*
  * Create a specialised SSU table that points at an external DLZ database
  */
-isc_result_t
+void
 dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 		       dns_dlzdb_t *dlzdatabase)
 {
@@ -634,17 +588,11 @@ dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
 
-	result = dns_ssutable_create(mctx, &table);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_ssutable_create(mctx, &table);
 
 	table->dlzdatabase = dlzdatabase;
 
 	rule = isc_mem_get(table->mctx, sizeof(dns_ssurule_t));
-	if (rule == NULL) {
-		dns_ssutable_detach(&table);
-		return (ISC_R_NOMEMORY);
-	}
 
 	rule->identity = NULL;
 	rule->name = NULL;
@@ -657,7 +605,6 @@ dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 
 	ISC_LIST_INITANDAPPEND(table->rules, rule, link);
 	*tablep = table;
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t

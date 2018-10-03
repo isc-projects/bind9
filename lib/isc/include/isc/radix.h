@@ -126,7 +126,7 @@ isc_radix_search(isc_radix_tree_t *radix, isc_radix_node_t **target,
  * \li	ISC_R_SUCCESS
  */
 
-isc_result_t
+void
 isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 		 isc_radix_node_t *source, isc_prefix_t *prefix);
 /*%<
@@ -139,9 +139,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
  * \li	'prefix' to be valid or 'source' to be non NULL and contain
  *	a valid prefix.
  *
- * Returns:
- * \li	ISC_R_NOMEMORY
- * \li	ISC_R_SUCCESS
  */
 
 void
@@ -154,7 +151,7 @@ isc_radix_remove(isc_radix_tree_t *radix, isc_radix_node_t *node);
  * \li	'node' to be valid.
  */
 
-isc_result_t
+void
 isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits);
 /*%<
  * Create a radix tree with a maximum depth of 'maxbits';
@@ -164,9 +161,6 @@ isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits);
  * \li	'target' to be non NULL and '*target' to be NULL.
  * \li	'maxbits' to be less than or equal to RADIX_MAXBITS.
  *
- * Returns:
- * \li	ISC_R_NOMEMORY
- * \li	ISC_R_SUCCESS
  */
 
 void

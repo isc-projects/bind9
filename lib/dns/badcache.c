@@ -58,32 +58,23 @@ struct dns_bcentry {
 	dns_name_t		name;
 };
 
-static isc_result_t
+static void
 badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow);
 
-isc_result_t
+void
 dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
-	isc_result_t result;
 	dns_badcache_t *bc = NULL;
 
 	REQUIRE(bcp != NULL && *bcp == NULL);
 	REQUIRE(mctx != NULL);
 
 	bc = isc_mem_get(mctx, sizeof(dns_badcache_t));
-	if (bc == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(bc, 0, sizeof(dns_badcache_t));
 
 	isc_mem_attach(mctx, &bc->mctx);
-	result = isc_mutex_init(&bc->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mutex_init(&bc->lock);
 
 	bc->table = isc_mem_get(bc->mctx, sizeof(*bc->table) * size);
-	if (bc->table == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto destroy_lock;
-	}
 
 	bc->size = bc->minsize = size;
 	memset(bc->table, 0, bc->size * sizeof(dns_bcentry_t *));
@@ -93,13 +84,6 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 	bc->magic = BADCACHE_MAGIC;
 
 	*bcp = bc;
-	return (ISC_R_SUCCESS);
-
- destroy_lock:
-	DESTROYLOCK(&bc->lock);
- cleanup:
-	isc_mem_putanddetach(&bc->mctx, bc, sizeof(dns_badcache_t));
-	return (result);
 }
 
 void
@@ -118,7 +102,7 @@ dns_badcache_destroy(dns_badcache_t **bcp) {
 	*bcp = NULL;
 }
 
-static isc_result_t
+static void
 badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow) {
 	dns_bcentry_t **newtable, *bad, *next;
 	unsigned int newsize, i;
@@ -129,8 +113,6 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow) {
 		newsize = (bc->size - 1) / 2;
 
 	newtable = isc_mem_get(bc->mctx, sizeof(dns_bcentry_t *) * newsize);
-	if (newtable == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(newtable, 0, sizeof(dns_bcentry_t *) * newsize);
 
 	for (i = 0; bc->count > 0 && i < bc->size; i++) {
@@ -151,8 +133,6 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow) {
 	isc_mem_put(bc->mctx, bc->table, sizeof(*bc->table) * bc->size);
 	bc->size = newsize;
 	bc->table = newtable;
-
-	return (ISC_R_SUCCESS);
 }
 
 void

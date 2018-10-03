@@ -331,7 +331,7 @@ struct dns_catz_zonemodmethods {
 };
 
 
-isc_result_t
+void
 dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 		   isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr);
@@ -455,7 +455,7 @@ dns_catz_postreconfig(dns_catz_zones_t *catzs);
  * \li	catzs is not NULL
  */
 
-isc_result_t
+void
 dns_catz_get_iterator(dns_catz_zone_t *catz, isc_ht_iter_t **itp);
 /*%<
  * Get the hashtable iterator on catalog zone members, point '*itp' to it.

@@ -195,7 +195,7 @@ set_age(dns_rrl_t *rrl, dns_rrl_entry_t *e, isc_stdtime_t now) {
 	e->ts_valid = true;
 }
 
-static isc_result_t
+static void
 expand_entries(dns_rrl_t *rrl, int newsize) {
 	unsigned int bsize;
 	dns_rrl_block_t *b;
@@ -208,7 +208,7 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 	{
 		newsize = rrl->max_entries - rrl->num_entries;
 		if (newsize <= 0)
-			return (ISC_R_SUCCESS);
+			return;
 	}
 
 	/*
@@ -230,13 +230,6 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 
 	bsize = sizeof(dns_rrl_block_t) + (newsize-1)*sizeof(dns_rrl_entry_t);
 	b = isc_mem_get(rrl->mctx, bsize);
-	if (b == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_FAIL,
-			      "isc_mem_get(%d) failed for RRL entries",
-			      bsize);
-		return (ISC_R_NOMEMORY);
-	}
 	memset(b, 0, bsize);
 	b->size = bsize;
 
@@ -247,8 +240,6 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 	}
 	rrl->num_entries += newsize;
 	ISC_LIST_INITANDAPPEND(rrl->blocks, b, link);
-
-	return (ISC_R_SUCCESS);
 }
 
 static inline dns_rrl_bin_t *
@@ -280,7 +271,7 @@ free_old_hash(dns_rrl_t *rrl) {
 	rrl->old_hash = NULL;
 }
 
-static isc_result_t
+static void
 expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 	dns_rrl_hash_t *hash;
 	int old_bins, new_bins, hsize;
@@ -301,14 +292,6 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 
 	hsize = sizeof(dns_rrl_hash_t) + (new_bins-1)*sizeof(hash->bins[0]);
 	hash = isc_mem_get(rrl->mctx, hsize);
-	if (hash == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_FAIL,
-			      "isc_mem_get(%d) failed for"
-			      " RRL hash table",
-			      hsize);
-		return (ISC_R_NOMEMORY);
-	}
 	memset(hash, 0, hsize);
 	hash->length = new_bins;
 	rrl->hash_gen ^= 1;
@@ -329,8 +312,6 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 	if (rrl->old_hash != NULL)
 		rrl->old_hash->check_time = now;
 	rrl->hash = hash;
-
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -1283,7 +1264,7 @@ dns_rrl_view_destroy(dns_view_t *view) {
 	isc_mem_putanddetach(&rrl->mctx, rrl, sizeof(*rrl));
 }
 
-isc_result_t
+void
 dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries) {
 	dns_rrl_t *rrl;
 	isc_result_t result;
@@ -1291,30 +1272,14 @@ dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries) {
 	*rrlp = NULL;
 
 	rrl = isc_mem_get(view->mctx, sizeof(*rrl));
-	if (rrl == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(rrl, 0, sizeof(*rrl));
 	isc_mem_attach(view->mctx, &rrl->mctx);
-	result = isc_mutex_init(&rrl->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_putanddetach(&rrl->mctx, rrl, sizeof(*rrl));
-		return (result);
-	}
+	isc_mutex_init(&rrl->lock);
 	isc_stdtime_get(&rrl->ts_bases[0]);
 
 	view->rrl = rrl;
 
-	result = expand_entries(rrl, min_entries);
-	if (result != ISC_R_SUCCESS) {
-		dns_rrl_view_destroy(view);
-		return (result);
-	}
-	result = expand_rrl_hash(rrl, 0);
-	if (result != ISC_R_SUCCESS) {
-		dns_rrl_view_destroy(view);
-		return (result);
-	}
-
+	expand_entries(rrl, min_entries);
+	expand_rrl_hash(rrl, 0);
 	*rrlp = rrl;
-	return (ISC_R_SUCCESS);
 }

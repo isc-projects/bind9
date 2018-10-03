@@ -243,11 +243,7 @@ main(int argc, char *argv[]) {
 		fprintf(stderr, "dns_lib_init failed: %u\n", result);
 		exit(1);
 	}
-	result = isc_mem_create(0, 0, &umctx);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to crate mctx\n");
-		exit(1);
-	}
+	isc_mem_create(0, 0, &umctx);
 
 	result = dns_client_create(&client, 0);
 	if (result != ISC_R_SUCCESS) {
@@ -444,22 +440,18 @@ parse_rdata(isc_mem_t *mctx, char **cmdlinep, dns_rdataclass_t rdataclass,
 
 	if (cmdline != NULL && *cmdline != 0) {
 		dns_rdatacallbacks_init(&callbacks);
-		result = isc_lex_create(mctx, strlen(cmdline), &lex);
-		check_result(result, "isc_lex_create");
+		isc_lex_create(mctx, strlen(cmdline), &lex);
 		isc_buffer_init(&source, cmdline, strlen(cmdline));
 		isc_buffer_add(&source, strlen(cmdline));
-		result = isc_lex_openbuffer(lex, &source);
-		check_result(result, "isc_lex_openbuffer");
-		result = isc_buffer_allocate(mctx, &buf, MAXWIRE);
-		check_result(result, "isc_buffer_allocate");
+		isc_lex_openbuffer(lex, &source);
+		isc_buffer_allocate(mctx, &buf, MAXWIRE);
 		result = dns_rdata_fromtext(rdata, rdataclass, rdatatype, lex,
 					    dns_rootname, 0, mctx, buf,
 					    &callbacks);
 		isc_lex_destroy(&lex);
 		if (result == ISC_R_SUCCESS) {
 			isc_buffer_usedregion(buf, &r);
-			result = isc_buffer_allocate(mctx, &newbuf, r.length);
-			check_result(result, "isc_buffer_allocate");
+			isc_buffer_allocate(mctx, &newbuf, r.length);
 			isc_buffer_putmem(newbuf, r.base, r.length);
 			isc_buffer_usedregion(newbuf, &r);
 			dns_rdata_reset(rdata);

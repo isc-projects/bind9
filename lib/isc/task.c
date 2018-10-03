@@ -225,21 +225,15 @@ isc_task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 	isc__task_t *task;
 	bool exiting;
-	isc_result_t result;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
 
 	task = isc_mem_get(manager->mctx, sizeof(*task));
-	if (task == NULL)
-		return (ISC_R_NOMEMORY);
 	XTRACE("isc_task_create");
 	task->manager = manager;
-	result = isc_mutex_init(&task->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(manager->mctx, task, sizeof(*task));
-		return (result);
-	}
+	isc_mutex_init(&task->lock);
+
 	task->state = task_state_idle;
 	task->references = 1;
 	INIT_LIST(task->events);
@@ -1186,7 +1180,6 @@ isc_result_t
 isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		    unsigned int default_quantum, isc_taskmgr_t **managerp)
 {
-	isc_result_t result;
 	unsigned int i, started = 0;
 	isc__taskmgr_t *manager;
 
@@ -1204,46 +1197,16 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	manager->common.magic = ISCAPI_TASKMGR_MAGIC;
 	manager->mode = isc_taskmgrmode_normal;
 	manager->mctx = NULL;
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mgr;
-	result = isc_mutex_init(&manager->excl_lock);
-	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&manager->lock);
-		goto cleanup_mgr;
-	}
+	isc_mutex_init(&manager->lock);
+
+	isc_mutex_init(&manager->excl_lock);
 
 	manager->workers = 0;
 	manager->threads = isc_mem_allocate(mctx,
 					    workers * sizeof(isc_thread_t));
-	if (manager->threads == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_lock;
-	}
-	if (isc_condition_init(&manager->work_available) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_threads;
-	}
-	if (isc_condition_init(&manager->exclusive_granted) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_workavailable;
-	}
-	if (isc_condition_init(&manager->paused) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		result = ISC_R_UNEXPECTED;
-		goto cleanup_exclusivegranted;
-	}
+	isc_condition_init(&manager->work_available);
+	isc_condition_init(&manager->exclusive_granted);
+	isc_condition_init(&manager->paused);
 	if (default_quantum == 0)
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
 	manager->default_quantum = default_quantum;
@@ -1286,18 +1249,6 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	*managerp = (isc_taskmgr_t *)manager;
 
 	return (ISC_R_SUCCESS);
-
- cleanup_exclusivegranted:
-	(void)isc_condition_destroy(&manager->exclusive_granted);
- cleanup_workavailable:
-	(void)isc_condition_destroy(&manager->work_available);
- cleanup_threads:
-	isc_mem_free(mctx, manager->threads);
- cleanup_lock:
-	DESTROYLOCK(&manager->lock);
- cleanup_mgr:
-	isc_mem_put(mctx, manager, sizeof(*manager));
-	return (result);
 }
 
 void

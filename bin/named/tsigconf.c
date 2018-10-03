@@ -155,9 +155,7 @@ named_tsigkeyring_fromconfig(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		maps[i++] = cfg_tuple_get(vconfig, "options");
 	maps[i] = NULL;
 
-	result = dns_tsigkeyring_create(mctx, &ring);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	dns_tsigkeyring_create(mctx, &ring);
 
 	for (i = 0; ; i++) {
 		if (maps[i] == NULL)

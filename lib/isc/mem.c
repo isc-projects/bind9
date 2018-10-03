@@ -695,7 +695,7 @@ default_memfree(void *arg, void *ptr) {
 
 static void
 initialize_action(void) {
-	RUNTIME_CHECK(isc_mutex_init(&contextslock) == ISC_R_SUCCESS);
+	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
 	totallost = 0;
 }
@@ -704,17 +704,17 @@ initialize_action(void) {
  * Public.
  */
 
-isc_result_t
+void
 isc_mem_createx(size_t init_max_size, size_t target_size,
 		 isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 		 isc_mem_t **ctxp)
 {
-	return (isc_mem_createx2(init_max_size, target_size, memalloc, memfree,
-				 arg, ctxp, isc_mem_defaultflags));
+	isc_mem_createx2(init_max_size, target_size, memalloc, memfree,
+				 arg, ctxp, isc_mem_defaultflags);
 
 }
 
-isc_result_t
+void
 isc_mem_createx2(size_t init_max_size, size_t target_size,
 		  isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 		  isc_mem_t **ctxp, unsigned int flags)
@@ -732,14 +732,10 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 
 	ctx = (memalloc)(arg, sizeof(*ctx));
 	if (ctx == NULL)
-		return (ISC_R_NOMEMORY);
+		abort();
 
 	if ((flags & ISC_MEMFLAG_NOLOCK) == 0) {
-		result = isc_mutex_init(&ctx->lock);
-		if (result != ISC_R_SUCCESS) {
-			(memfree)(arg, ctx);
-			return (result);
-		}
+		isc_mutex_init(&ctx->lock);
 	}
 
 	if (init_max_size == 0U)
@@ -786,8 +782,7 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	ctx->stats = (memalloc)(arg,
 				(ctx->max_size+1) * sizeof(struct stats));
 	if (ctx->stats == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto error;
+		abort();
 	}
 	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof(struct stats));
 	ctx->malloced += (ctx->max_size+1) * sizeof(struct stats);
@@ -801,8 +796,7 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 		ctx->freelists = (memalloc)(arg, ctx->max_size *
 						 sizeof(element *));
 		if (ctx->freelists == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto error;
+			abort();
 		}
 		memset(ctx->freelists, 0,
 		       ctx->max_size * sizeof(element *));
@@ -817,8 +811,7 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 		ctx->debuglist = (memalloc)(arg, (DEBUG_TABLE_COUNT *
 						  sizeof(debuglist_t)));
 		if (ctx->debuglist == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto error;
+			abort();
 		}
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++)
 			ISC_LIST_INIT(ctx->debuglist[i]);
@@ -834,24 +827,6 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	UNLOCK(&contextslock);
 
 	*ctxp = (isc_mem_t *)ctx;
-	return (ISC_R_SUCCESS);
-
-  error:
-	if (ctx != NULL) {
-		if (ctx->stats != NULL)
-			(memfree)(arg, ctx->stats);
-		if (ctx->freelists != NULL)
-			(memfree)(arg, ctx->freelists);
-#if ISC_MEM_TRACKLINES
-		if (ctx->debuglist != NULL)
-			(ctx->memfree)(ctx->arg, ctx->debuglist);
-#endif /* ISC_MEM_TRACKLINES */
-		if ((ctx->flags & ISC_MEMFLAG_NOLOCK) == 0)
-			DESTROYLOCK(&ctx->lock);
-		(memfree)(arg, ctx);
-	}
-
-	return (result);
 }
 
 static void
@@ -1624,7 +1599,7 @@ isc_mem_gettag(isc_mem_t *ctx0) {
  * Memory pool stuff
  */
 
-isc_result_t
+void
 isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	isc__mem_t *mctx = (isc__mem_t *)mctx0;
 	isc__mempool_t *mpctx;
@@ -1638,8 +1613,6 @@ isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	 * well, attach to the memory context.
 	 */
 	mpctx = isc_mem_get((isc_mem_t *)mctx, sizeof(isc__mempool_t));
-	if (mpctx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	mpctx->common.impmagic = MEMPOOL_MAGIC;
 	mpctx->common.magic = ISCAPI_MPOOL_MAGIC;
@@ -1669,8 +1642,6 @@ isc_mempool_create(isc_mem_t *mctx0, size_t size, isc_mempool_t **mpctxp) {
 	ISC_LIST_INITANDAPPEND(mctx->pools, mpctx, link);
 	mctx->poolcnt++;
 	MCTXUNLOCK(mctx, &mctx->lock);
-
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -2481,18 +2452,18 @@ isc_mem_renderjson(json_object *memobj) {
 }
 #endif /* HAVE_JSON */
 
-isc_result_t
+void
 isc_mem_create(size_t init_max_size, size_t target_size, isc_mem_t **mctxp) {
-	return (isc_mem_createx2(init_max_size, target_size,
+	isc_mem_createx2(init_max_size, target_size,
 				 default_memalloc, default_memfree,
-				 NULL, mctxp, isc_mem_defaultflags));
+				 NULL, mctxp, isc_mem_defaultflags);
 }
 
-isc_result_t
+void
 isc_mem_create2(size_t init_max_size, size_t target_size, isc_mem_t **mctxp,
 		 unsigned int flags)
 {
-	return (isc_mem_createx2(init_max_size, target_size,
+	isc_mem_createx2(init_max_size, target_size,
 				 default_memalloc, default_memfree,
-				 NULL, mctxp, flags));
+				 NULL, mctxp, flags);
 }

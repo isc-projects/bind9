@@ -41,17 +41,13 @@ typedef isc_result_t
  * can be informed via a callback function with this signature.
  */
 
-isc_result_t
+void
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **zt);
 /*%<
  * Creates a new zone table.
  *
  * Requires:
  * \li	'mctx' to be initialized.
- *
- * Returns:
- * \li	#ISC_R_SUCCESS on success.
- * \li	#ISC_R_NOMEMORY
  */
 
 isc_result_t

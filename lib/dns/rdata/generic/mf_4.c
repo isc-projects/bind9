@@ -151,7 +151,7 @@ tostruct_mf(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &r);
 	dns_name_fromregion(&name, &r);
 	dns_name_init(&mf->mf, NULL);
-	RETERR(name_duporclone(&name, mctx, &mf->mf));
+	name_duporclone(&name, mctx, &mf->mf);
 	mf->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

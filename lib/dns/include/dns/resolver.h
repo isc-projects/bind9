@@ -151,7 +151,7 @@ typedef enum {
 #define DNS_QMIN_MAX_NO_DELEGATION	3
 #define DNS_MAX_LABELS			127
 
-isc_result_t
+void
 dns_resolver_create(dns_view_t *view,
 		    isc_taskmgr_t *taskmgr,
 		    unsigned int ntasks, unsigned int ndisp,
@@ -190,12 +190,6 @@ dns_resolver_create(dns_view_t *view,
  *	If not NULL, 'ndisp' clones of it will be created by the resolver.
  *
  *\li	resp != NULL && *resp == NULL.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS				On success.
- *
- *\li	Anything else				Failure.
  */
 
 void

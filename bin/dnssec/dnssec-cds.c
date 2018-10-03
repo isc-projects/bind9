@@ -383,8 +383,7 @@ formatset(dns_rdataset_t *rdataset) {
 					mctx);
 	check_result(result, "dns_master_stylecreate2 failed");
 
-	result = isc_buffer_allocate(mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
-	check_result(result, "printing DS records");
+	isc_buffer_allocate(mctx, &buf, MAX_CDS_RDATA_TEXT_SIZE);
 	result = dns_master_rdatasettotext(name, rdataset, style, buf);
 
 	if ((result == ISC_R_SUCCESS) && isc_buffer_availablelength(buf) < 1) {
@@ -896,8 +895,7 @@ make_new_ds_set(ds_maker_func_t *ds_from_rdata,
 		result = dns_rdatalist_tordataset(dslist, &new_ds_set);
 		check_result(result, "dns_rdatalist_tordataset(dslist)");
 
-		result = isc_buffer_allocate(mctx, &new_ds_buf, size);
-		check_result(result, "building new DS records");
+		isc_buffer_allocate(mctx, &new_ds_buf, size);
 
 		for (result = dns_rdataset_first(rdset);
 		     result == ISC_R_SUCCESS;
@@ -1144,10 +1142,7 @@ main(int argc, char *argv[]) {
 	int ch;
 	char *endp;
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS) {
-		fatal("out of memory");
-	}
+	isc_mem_create(0, 0, &mctx);
 
 #if USE_PKCS11
 	pk11_result_register();

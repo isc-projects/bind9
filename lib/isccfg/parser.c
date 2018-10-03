@@ -476,7 +476,7 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	specials['"'] = 1;
 	specials['!'] = 1;
 
-	CHECK(isc_lex_create(pctx->mctx, 1024, &pctx->lexer));
+	isc_lex_create(pctx->mctx, 1024, &pctx->lexer);
 
 	isc_lex_setspecials(pctx->lexer, specials);
 	isc_lex_setcomments(pctx->lexer, (ISC_LEXCOMMENT_C |
@@ -646,7 +646,7 @@ cfg_parse_buffer4(cfg_parser_t *pctx, isc_buffer_t *buffer,
 	REQUIRE(ret != NULL && *ret == NULL);
 	REQUIRE((flags & ~(CFG_PCTX_NODEPRECATED)) == 0);
 
-	CHECK(isc_lex_openbuffer(pctx->lexer, buffer));
+	isc_lex_openbuffer(pctx->lexer, buffer);
 
 	pctx->buf_name = file;
 	pctx->flags = flags;

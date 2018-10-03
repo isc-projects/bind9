@@ -275,7 +275,7 @@ initialize_attr(void) {
 }
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
-isc_result_t
+void
 isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 	char strbuf[ISC_STRERRORSIZE];
 	isc_result_t result = ISC_R_SUCCESS;
@@ -290,14 +290,9 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 	err = pthread_mutex_init(mp, ISC__MUTEX_ATTRS);
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
-	if (err == ENOMEM)
-		return (ISC_R_NOMEMORY);
-	if (err != 0) {
-		strerror_r(err, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(file, line, "isc_mutex_init() failed: %s",
-				 strbuf);
-		result = ISC_R_UNEXPECTED;
-	}
-	return (result);
+	if (err != 0)
+		abort();
+	return;
+	
 }
 #endif

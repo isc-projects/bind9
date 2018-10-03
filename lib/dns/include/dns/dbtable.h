@@ -48,7 +48,7 @@
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		   dns_dbtable_t **dbtablep);
 /*%<
@@ -58,11 +58,6 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  *\li	mctx != NULL
  * \li	dbtablep != NULL && *dptablep == NULL
  *\li	'rdclass' is a valid class
- *
- * Returns:
- *\li	#ISC_R_SUCCESS
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_UNEXPECTED
  */
 
 void

@@ -152,7 +152,7 @@ tostruct_cname(ARGS_TOSTRUCT) {
 	dns_rdata_toregion(rdata, &region);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&cname->cname, NULL);
-	RETERR(name_duporclone(&name, mctx, &cname->cname));
+	name_duporclone(&name, mctx, &cname->cname);
 	cname->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

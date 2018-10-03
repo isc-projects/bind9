@@ -147,7 +147,7 @@ static isc_result_t findrdataset(dns_db_t *db, dns_dbnode_t *node,
 				 isc_stdtime_t now, dns_rdataset_t *rdataset,
 				 dns_rdataset_t *sigrdataset);
 
-static isc_result_t createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep);
+static void createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep);
 
 static void destroynode(dns_sdbnode_t *node);
 
@@ -226,9 +226,7 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 	imp->flags = flags;
 	imp->mctx = NULL;
 	isc_mem_attach(mctx, &imp->mctx);
-	result = isc_mutex_init(&imp->driverlock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mctx;
+	isc_mutex_init(&imp->driverlock);
 
 	imp->dbimp = NULL;
 	result = dns_db_register(drivername, dns_sdb_create, imp, mctx,
@@ -241,7 +239,6 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 
  cleanup_mutex:
 	DESTROYLOCK(&imp->driverlock);
- cleanup_mctx:
 	isc_mem_put(mctx, imp, sizeof(dns_sdbimplementation_t));
 	return (result);
 }
@@ -297,8 +294,6 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval,
 
 	if (rdatalist == NULL) {
 		rdatalist = isc_mem_get(mctx, sizeof(dns_rdatalist_t));
-		if (rdatalist == NULL)
-			return (ISC_R_NOMEMORY);
 		dns_rdatalist_init(rdatalist);
 		rdatalist->rdclass = lookup->sdb->common.rdclass;
 		rdatalist->type = typeval;
@@ -309,12 +304,8 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval,
 			return (DNS_R_BADTTL);
 
 	rdata = isc_mem_get(mctx, sizeof(dns_rdata_t));
-	if (rdata == NULL)
-		return (ISC_R_NOMEMORY);
 
-	result = isc_buffer_allocate(mctx, &rdatabuf, rdlen);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	isc_buffer_allocate(mctx, &rdatabuf, rdlen);
 	DE_CONST(rdatap, region.base);
 	region.length = rdlen;
 	isc_buffer_copyregion(rdatabuf, &region);
@@ -326,9 +317,6 @@ dns_sdb_putrdata(dns_sdblookup_t *lookup, dns_rdatatype_t typeval,
 	ISC_LIST_APPEND(lookup->buffers, rdatabuf, link);
 	rdata = NULL;
 
- failure:
-	if (rdata != NULL)
-		isc_mem_put(mctx, rdata, sizeof(dns_rdata_t));
 	return (result);
 }
 
@@ -367,26 +355,18 @@ dns_sdb_putrr(dns_sdblookup_t *lookup, const char *type, dns_ttl_t ttl,
 	else
 		origin = dns_rootname;
 
-	result = isc_lex_create(mctx, 64, &lex);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
+	isc_lex_create(mctx, 64, &lex);
 
 	datalen = strlen(data);
 	size = initial_size(datalen);
 	do {
 		isc_buffer_constinit(&b, data, datalen);
 		isc_buffer_add(&b, datalen);
-		result = isc_lex_openbuffer(lex, &b);
-		if (result != ISC_R_SUCCESS)
-			goto failure;
+		isc_lex_openbuffer(lex, &b);
 
 		if (size >= 65535)
 			size = 65535;
 		p = isc_mem_get(mctx, size);
-		if (p == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto failure;
-		}
 		isc_buffer_init(&rb, p, size);
 		result = dns_rdata_fromtext(NULL,
 					    lookup->sdb->common.rdclass,
@@ -456,21 +436,10 @@ getnode(dns_sdballnodes_t *allnodes, const char *name, dns_sdbnode_t **nodep) {
 	sdbnode = ISC_LIST_HEAD(allnodes->nodelist);
 	if (sdbnode == NULL || !dns_name_equal(sdbnode->name, newname)) {
 		sdbnode = NULL;
-		result = createnode(sdb, &sdbnode);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		createnode(sdb, &sdbnode);
 		sdbnode->name = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (sdbnode->name == NULL) {
-			destroynode(sdbnode);
-			return (ISC_R_NOMEMORY);
-		}
 		dns_name_init(sdbnode->name, NULL);
-		result = dns_name_dup(newname, mctx, sdbnode->name);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, sdbnode->name, sizeof(dns_name_t));
-			destroynode(sdbnode);
-			return (result);
-		}
+		dns_name_dup(newname, mctx, sdbnode->name);
 		ISC_LIST_PREPEND(allnodes->nodelist, sdbnode, link);
 		if (allnodes->origin == NULL &&
 		    dns_name_equal(newname, &sdb->common.origin))
@@ -652,14 +621,12 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 	*versionp = NULL;
 }
 
-static isc_result_t
+static void
 createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 	dns_sdbnode_t *node;
 	isc_result_t result;
 
 	node = isc_mem_get(sdb->common.mctx, sizeof(dns_sdbnode_t));
-	if (node == NULL)
-		return (ISC_R_NOMEMORY);
 
 	node->sdb = NULL;
 	attach((dns_db_t *)sdb, (dns_db_t **)&node->sdb);
@@ -667,17 +634,13 @@ createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 	ISC_LIST_INIT(node->buffers);
 	ISC_LINK_INIT(node, link);
 	node->name = NULL;
-	result = isc_mutex_init(&node->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(sdb->common.mctx, node, sizeof(dns_sdbnode_t));
-		return (result);
-	}
+	isc_mutex_init(&node->lock);
+
 	dns_rdatacallbacks_init(&node->callbacks);
 	node->references = 1;
 	node->magic = SDBLOOKUP_MAGIC;
 
 	*nodep = node;
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -771,9 +734,7 @@ findnodeext(dns_db_t *db, const dns_name_t *name, bool create,
 		isc_buffer_putuint8(&b, 0);
 	}
 
-	result = createnode(sdb, &node);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	createnode(sdb, &node);
 
 	MAYBE_LOCK(sdb);
 	if (imp->methods->lookup2 != NULL)
@@ -1331,13 +1292,9 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	isc_mem_attach(mctx, &sdb->common.mctx);
 
-	result = isc_mutex_init(&sdb->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mctx;
+	isc_mutex_init(&sdb->lock);
 
-	result = dns_name_dupwithoffsets(origin, mctx, &sdb->common.origin);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
+	dns_name_dupwithoffsets(origin, mctx, &sdb->common.origin);
 
 	isc_buffer_init(&b, zonestr, sizeof(zonestr));
 	result = dns_name_totext(origin, true, &b);
@@ -1376,7 +1333,6 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	dns_name_free(&sdb->common.origin, mctx);
  cleanup_lock:
 	(void)isc_mutex_destroy(&sdb->lock);
- cleanup_mctx:
 	isc_mem_put(mctx, sdb, sizeof(dns_sdb_t));
 	isc_mem_detach(&mctx);
 

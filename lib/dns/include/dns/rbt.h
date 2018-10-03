@@ -280,7 +280,7 @@ typedef struct dns_rbtnodechain {
 /*****
  ***** Public interfaces.
  *****/
-isc_result_t
+void
 dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	       void *deleter_arg, dns_rbt_t **rbtp);
 /*%<
@@ -304,10 +304,6 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
  *
  *\li   If result is failure:
  *              *rbtp does not point to a valid red-black tree manager.
- *
- * Returns:
- *\li   #ISC_R_SUCCESS  Success
- *\li   #ISC_R_NOMEMORY Resource limit: Out of Memory
  */
 
 isc_result_t

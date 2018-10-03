@@ -216,7 +216,7 @@ static void
 initialize_action(void) {
 	isc_result_t result;
 
-	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 	ISC_LIST_INIT(description_tables);
 	ISC_LIST_INIT(identifier_tables);
 

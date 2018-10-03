@@ -129,9 +129,7 @@ add(char *key, int value) {
 	isc_symvalue_t symvalue;
 
 	if (sym_mctx == NULL) {
-		result = isc_mem_create(0, 0, &sym_mctx);
-		if (result != ISC_R_SUCCESS)
-			return;
+		isc_mem_create(0, 0, &sym_mctx);
 	}
 
 	if (symtab == NULL) {

@@ -1585,14 +1585,12 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_lib_init failed: %d", result);
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to create mctx");
+	isc_mem_create(0, 0, &mctx);
 
 	CHECK(isc_appctx_create(mctx, &actx));
 	CHECK(isc_taskmgr_createinctx(mctx, actx, 1, 0, &taskmgr));
 	CHECK(isc_socketmgr_createinctx(mctx, actx, &socketmgr));
-	CHECK(isc_timermgr_createinctx(mctx, actx, &timermgr));
+	isc_timermgr_createinctx(mctx, actx, &timermgr);
 
 	parse_args(argc, argv);
 

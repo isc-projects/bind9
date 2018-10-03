@@ -270,7 +270,7 @@ tostruct_in_srv(ARGS_TOSTRUCT) {
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 	dns_name_init(&srv->target, NULL);
-	RETERR(name_duporclone(&name, mctx, &srv->target));
+	name_duporclone(&name, mctx, &srv->target);
 	srv->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }

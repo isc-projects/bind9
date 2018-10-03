@@ -196,8 +196,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	REQUIRE(cachename != NULL);
 
 	cache = isc_mem_get(cmctx, sizeof(*cache));
-	if (cache == NULL)
-		return (ISC_R_NOMEMORY);
 
 	cache->mctx = cache->hmctx = NULL;
 	isc_mem_attach(cmctx, &cache->mctx);
@@ -206,19 +204,10 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	cache->name = NULL;
 	if (cachename != NULL) {
 		cache->name = isc_mem_strdup(cmctx, cachename);
-		if (cache->name == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_mem;
-		}
 	}
 
-	result = isc_mutex_init(&cache->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mem;
-
-	result = isc_mutex_init(&cache->filelock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
+	isc_mutex_init(&cache->lock);
+	isc_mutex_init(&cache->filelock);
 
 	cache->references = 1;
 	cache->live_tasks = 0;
@@ -226,16 +215,10 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	cache->serve_stale_ttl = 0;
 
 	cache->stats = NULL;
-	result = isc_stats_create(cmctx, &cache->stats,
+	isc_stats_create(cmctx, &cache->stats,
 				  dns_cachestatscounter_max);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_filelock;
 
 	cache->db_type = isc_mem_strdup(cmctx, db_type);
-	if (cache->db_type == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_stats;
-	}
 
 	/*
 	 * For databases of type "rbt" we pass hmctx to dns_db_create()
@@ -251,10 +234,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	if (cache->db_argc != 0) {
 		cache->db_argv = isc_mem_get(cmctx,
 					     cache->db_argc * sizeof(char *));
-		if (cache->db_argv == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_dbtype;
-		}
 
 		for (i = 0; i < cache->db_argc; i++)
 			cache->db_argv[i] = NULL;
@@ -263,10 +242,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		for (i = extra; i < cache->db_argc; i++) {
 			cache->db_argv[i] = isc_mem_strdup(cmctx,
 							   db_argv[i - extra]);
-			if (cache->db_argv[i] == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup_dbargv;
-			}
 		}
 	}
 
@@ -279,9 +254,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		goto cleanup_dbargv;
 	if (taskmgr != NULL) {
 		dbtask = NULL;
-		result = isc_task_create(taskmgr, 1, &dbtask);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_db;
+		RUNTIME_CHECK(isc_task_create(taskmgr, 1, &dbtask) == ISC_R_SUCCESS);
 
 		isc_task_setname(dbtask, "cache_dbtask", NULL);
 		dns_db_settask(cache->db, dbtask);
@@ -596,9 +569,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 {
 	isc_result_t result;
 
-	result = isc_mutex_init(&cleaner->lock);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
+	isc_mutex_init(&cleaner->lock);
 
 	cleaner->increment = DNS_CACHE_CLEANERINCREMENT;
 	cleaner->state = cleaner_s_idle;
@@ -619,14 +590,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		goto cleanup;
 
 	if (taskmgr != NULL && timermgr != NULL) {
-		result = isc_task_create(taskmgr, 1, &cleaner->task);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_task_create() failed: %s",
-					 dns_result_totext(result));
-			result = ISC_R_UNEXPECTED;
-			goto cleanup;
-		}
+		RUNTIME_CHECK(isc_task_create(taskmgr, 1, &cleaner->task) == ISC_R_SUCCESS);
 		cleaner->cache->live_tasks++;
 		isc_task_setname(cleaner->task, "cachecleaner", cleaner);
 
@@ -657,20 +621,12 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 					   DNS_EVENT_CACHECLEAN,
 					   incremental_cleaning_action,
 					   cleaner, sizeof(isc_event_t));
-		if (cleaner->resched_event == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 
 		cleaner->overmem_event =
 			isc_event_allocate(cache->mctx, cleaner,
 					   DNS_EVENT_CACHEOVERMEM,
 					   overmem_cleaning_action,
 					   cleaner, sizeof(isc_event_t));
-		if (cleaner->overmem_event == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 	}
 
 	return (ISC_R_SUCCESS);

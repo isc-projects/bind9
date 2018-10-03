@@ -88,8 +88,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	query = reqev->ev_arg;
 
 	response = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE, &response);
 
 	result = dns_request_getresponse(reqev->request, response,
 					 DNS_MESSAGEPARSE_PRESERVEORDER);
@@ -152,8 +151,7 @@ sendquery(isc_task_t *task) {
 	CHECK("dns_name_fromtext", result);
 
 	message = NULL;
-	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
-	CHECK("dns_message_create", result);
+	dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &message);
 
 	message->opcode = dns_opcode_query;
 	message->flags |= DNS_MESSAGEFLAG_RD;
@@ -270,7 +268,7 @@ main(int argc, char *argv[]) {
 	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
 	mctx = NULL;
-	RUNCHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(0, 0, &mctx);
 
 	lctx = NULL;
 	lcfg = NULL;
@@ -284,11 +282,11 @@ main(int argc, char *argv[]) {
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	timermgr = NULL;
 
-	RUNCHECK(isc_timermgr_create(mctx, &timermgr));
+	isc_timermgr_create(mctx, &timermgr);
 	socketmgr = NULL;
 	RUNCHECK(isc_socketmgr_create(mctx, &socketmgr));
 	dispatchmgr = NULL;
-	RUNCHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
+	dns_dispatchmgr_create(mctx, &dispatchmgr);
 
 	attrs = DNS_DISPATCHATTR_UDP |
 		DNS_DISPATCHATTR_MAKEQUERY |
@@ -303,9 +301,9 @@ main(int argc, char *argv[]) {
 				     4096, 4, 2, 3, 5,
 				     attrs, attrmask, &dispatchv4));
 	requestmgr = NULL;
-	RUNCHECK(dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
+	dns_requestmgr_create(mctx, timermgr, socketmgr, taskmgr,
 					    dispatchmgr, dispatchv4, NULL,
-					    &requestmgr));
+					    &requestmgr);
 
 	view = NULL;
 	RUNCHECK(dns_view_create(mctx, 0, "_test", &view));

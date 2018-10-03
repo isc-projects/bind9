@@ -46,7 +46,7 @@ typedef enum {
 	dns_ssumatchtype_dlz = 16	/* intentionally higher than _max */
 } dns_ssumatchtype_t;
 
-isc_result_t
+void
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
 /*%<
  *	Creates a table that will be used to store simple-secure-update rules.
@@ -56,12 +56,9 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
  *\li		'mctx' is a valid memory context
  *\li		'table' is not NULL, and '*table' is NULL
  *
- *	Returns:
- *\li		ISC_R_SUCCESS
- *\li		ISC_R_NOMEMORY
  */
 
-isc_result_t
+void
 dns_ssutable_createdlz(isc_mem_t *mctx, dns_ssutable_t **tablep,
 		       dns_dlzdb_t *dlzdatabase);
 /*%<
@@ -98,7 +95,7 @@ dns_ssutable_detach(dns_ssutable_t **tablep);
  *			resources used by the table will be freed.
  */
 
-isc_result_t
+void
 dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
@@ -125,10 +122,6 @@ dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
  *\li		'matchtype' must be one of the defined constants.
  *\li		'name' is a valid absolute name
  *\li		If 'ntypes' > 0, 'types' must not be NULL
- *
- *	Returns:
- *\li		ISC_R_SUCCESS
- *\li		ISC_R_NOMEMORY
  */
 
 bool

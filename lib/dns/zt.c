@@ -73,7 +73,7 @@ freezezones(dns_zone_t *zone, void *uap);
 static isc_result_t
 doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task);
 
-isc_result_t
+void
 dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 	dns_zt_t *zt;
 	isc_result_t result;
@@ -81,17 +81,10 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 	REQUIRE(ztp != NULL && *ztp == NULL);
 
 	zt = isc_mem_get(mctx, sizeof(*zt));
-	if (zt == NULL)
-		return (ISC_R_NOMEMORY);
 
 	zt->table = NULL;
-	result = dns_rbt_create(mctx, auto_detach, zt, &zt->table);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_zt;
-
-	result = isc_rwlock_init(&zt->rwlock, 0, 0);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_rbt;
+	dns_rbt_create(mctx, auto_detach, zt, &zt->table);
+	isc_rwlock_init(&zt->rwlock, 0, 0);
 
 	zt->mctx = NULL;
 	isc_mem_attach(mctx, &zt->mctx);
@@ -104,16 +97,6 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 	zt->loadparams = NULL;
 	zt->loads_pending = 0;
 	*ztp = zt;
-
-	return (ISC_R_SUCCESS);
-
-   cleanup_rbt:
-	dns_rbt_destroy(&zt->table);
-
-   cleanup_zt:
-	isc_mem_put(mctx, zt, sizeof(*zt));
-
-	return (result);
 }
 
 isc_result_t

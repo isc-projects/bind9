@@ -132,17 +132,9 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		name = isc_mem_get(byaddr->mctx, sizeof(*name));
-		if (name == NULL) {
-			dns_rdata_freestruct(&ptr);
-			return (ISC_R_NOMEMORY);
-		}
 		dns_name_init(name, NULL);
-		result = dns_name_dup(&ptr.ptr, byaddr->mctx, name);
+		dns_name_dup(&ptr.ptr, byaddr->mctx, name);
 		dns_rdata_freestruct(&ptr);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(byaddr->mctx, name, sizeof(*name));
-			return (ISC_R_NOMEMORY);
-		}
 		ISC_LIST_APPEND(byaddr->event->names, name, link);
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);
@@ -214,10 +206,7 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 	byaddr->options = options;
 
 	byaddr->event = isc_mem_get(mctx, sizeof(*byaddr->event));
-	if (byaddr->event == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_byaddr;
-	}
+
 	ISC_EVENT_INIT(byaddr->event, sizeof(*byaddr->event), 0, NULL,
 		       DNS_EVENT_BYADDRDONE, action, arg, byaddr,
 		       bevent_destroy, mctx);
@@ -227,9 +216,7 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 	byaddr->task = NULL;
 	isc_task_attach(task, &byaddr->task);
 
-	result = isc_mutex_init(&byaddr->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_event;
+	isc_mutex_init(&byaddr->lock);
 
 	dns_fixedname_init(&byaddr->name);
 
@@ -254,15 +241,12 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 
  cleanup_lock:
 	DESTROYLOCK(&byaddr->lock);
-
- cleanup_event:
 	ievent = (isc_event_t *)byaddr->event;
 	isc_event_free(&ievent);
 	byaddr->event = NULL;
 
 	isc_task_detach(&byaddr->task);
 
- cleanup_byaddr:
 	isc_mem_putanddetach(&mctx, byaddr, sizeof(*byaddr));
 
 	return (result);

@@ -1283,7 +1283,7 @@ free_specific(void *arg) {
 
 static void
 thread_key_mutex_init(void) {
-	RUNTIME_CHECK(isc_mutex_init(&thread_key_mutex) == ISC_R_SUCCESS);
+	isc_mutex_init(&thread_key_mutex);
 }
 
 static isc_result_t
@@ -1301,9 +1301,7 @@ totext_filter_proc_key_init(void) {
 	if (!thread_key_initialized) {
 		LOCK(&thread_key_mutex);
 		if (thread_key_mctx == NULL)
-			result = isc_mem_create2(0, 0, &thread_key_mctx, 0);
-		if (result != ISC_R_SUCCESS)
-			goto unlock;
+			isc_mem_create2(0, 0, &thread_key_mctx, 0);
 		isc_mem_setname(thread_key_mctx, "threadkey", NULL);
 		isc_mem_setdestroycheck(thread_key_mctx, false);
 
@@ -1312,8 +1310,10 @@ totext_filter_proc_key_init(void) {
 					   free_specific) != 0) {
 			result = ISC_R_FAILURE;
 			isc_mem_detach(&thread_key_mctx);
-		} else
+		} else {
+			result = ISC_R_SUCCESS;
 			thread_key_initialized = 1;
+		}
  unlock:
 		UNLOCK(&thread_key_mutex);
 	}
@@ -2158,7 +2158,7 @@ dns_name_split(const dns_name_t *name, unsigned int suffixlabels,
 	return;
 }
 
-isc_result_t
+void
 dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
 	     dns_name_t *target)
 {
@@ -2177,8 +2177,6 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
 	MAKE_EMPTY(target);
 
 	target->ndata = isc_mem_get(mctx, source->length);
-	if (target->ndata == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memmove(target->ndata, source->ndata, source->length);
 
@@ -2194,11 +2192,9 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
 		else
 			set_offsets(target, target->offsets, NULL);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 dns_name_dupwithoffsets(const dns_name_t *source, isc_mem_t *mctx,
 			dns_name_t *target)
 {
@@ -2219,8 +2215,6 @@ dns_name_dupwithoffsets(const dns_name_t *source, isc_mem_t *mctx,
 	MAKE_EMPTY(target);
 
 	target->ndata = isc_mem_get(mctx, source->length + source->labels);
-	if (target->ndata == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memmove(target->ndata, source->ndata, source->length);
 
@@ -2235,8 +2229,6 @@ dns_name_dupwithoffsets(const dns_name_t *source, isc_mem_t *mctx,
 		memmove(target->offsets, source->offsets, source->labels);
 	else
 		set_offsets(target, target->offsets, NULL);
-
-	return (ISC_R_SUCCESS);
 }
 
 void
@@ -2452,8 +2444,7 @@ dns_name_fromstring2(dns_name_t *target, const char *src,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	if (name != target)
-		result = dns_name_dupwithoffsets(name, mctx, target);
+	dns_name_dupwithoffsets(name, mctx, target);
 	return (result);
 }
 
