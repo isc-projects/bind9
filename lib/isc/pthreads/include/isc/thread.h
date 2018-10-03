@@ -44,6 +44,9 @@ isc_thread_yield(void);
 void
 isc_thread_setname(isc_thread_t thread, const char *name);
 
+isc_result_t
+isc_thread_setaffinity(int cpu);
+
 /* XXX We could do fancier error handling... */
 
 #define isc_thread_join(t, rp) \
