@@ -373,29 +373,6 @@ isc_timermgr_destroy(isc_timermgr_t **managerp);
 
 void isc_timermgr_poke(isc_timermgr_t *m);
 
-/*%<
- * See isc_timermgr_create() above.
- */
-typedef isc_result_t
-(*isc_timermgrcreatefunc_t)(isc_mem_t *mctx, isc_timermgr_t **managerp);
-
-isc_result_t
-isc__timer_register(void);
-/*%<
- * Register a new timer management implementation and add it to the list of
- * supported implementations.  This function must be called when a different
- * event library is used than the one contained in the ISC library.
- */
-
-isc_result_t
-isc_timer_register(isc_timermgrcreatefunc_t createfunc);
-/*%<
- * A short cut function that specifies the timer management module in the ISC
- * library for isc_timer_register().  An application that uses the ISC library
- * usually do not have to care about this function: it would call
- * isc_lib_register(), which internally calls this function.
- */
-
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_TIMER_H */
