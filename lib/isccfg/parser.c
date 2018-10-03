@@ -1993,6 +1993,7 @@ static struct flagtext {
 	{ CFG_CLAUSEFLAG_NOTIMP, "not implemented" },
 	{ CFG_CLAUSEFLAG_NYI, "not yet implemented" },
 	{ CFG_CLAUSEFLAG_OBSOLETE, "obsolete" },
+	{ CFG_CLAUSEFLAG_DEPRECATED, "deprecated" },
 	{ CFG_CLAUSEFLAG_NEWDEFAULT, "default changed" },
 	{ CFG_CLAUSEFLAG_TESTONLY, "test only" },
 	{ CFG_CLAUSEFLAG_NOTCONFIGURED, "not configured" },
