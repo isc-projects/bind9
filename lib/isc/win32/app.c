@@ -422,9 +422,4 @@ isc_appctx_settimermgr(isc_appctx_t *ctx0, isc_timermgr_t *timermgr) {
 	ctx->timermgr = timermgr;
 }
 
-isc_result_t
-isc_app_register(void) {
-	return (isc_app_register(isc__appctx_create));
-}
-
 #include "../app_api.c"
