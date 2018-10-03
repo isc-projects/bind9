@@ -427,8 +427,9 @@ statistics-channels {
             } ]; // may occur multiple times
 }; // may occur multiple times
 
-trusted-keys { <string> <integer> <integer>
-    <integer> <quoted_string>; ... }; // may occur multiple times
+trusted-keys { <string> <integer>
+    <integer> <integer>
+    <quoted_string>; ... }; // deprecated, may occur multiple times
 
 view <string> [ <class> ] {
         acache-cleaning-interval <integer>; // obsolete
@@ -709,9 +710,10 @@ view <string> [ <class> ] {
         transfer-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * )
             ] [ dscp <integer> ];
         trust-anchor-telemetry <boolean>; // experimental
-        trusted-keys { <string> <integer>
-            <integer> <integer> <quoted_string>;
-            ... }; // may occur multiple times
+        trusted-keys { <string>
+            <integer> <integer>
+            <integer>
+            <quoted_string>; ... }; // deprecated, may occur multiple times
         try-tcp-refresh <boolean>;
         update-check-ksk <boolean>;
         use-alt-transfer-source <boolean>;
