@@ -2235,7 +2235,7 @@ print_contexts(FILE *file) {
 	     ctx != NULL;
 	     ctx = ISC_LIST_NEXT(ctx, link))
 	{
-		fprintf(file, "context: %p (%s): %" PRIdFAST32 " references\n",
+		fprintf(file, "context: %p (%s): %" PRIuFAST32 " references\n",
 			ctx,
 			ctx->name[0] == 0 ? "<unknown>" : ctx->name,
 			isc_refcount_current(&ctx->references));
@@ -2327,7 +2327,7 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 	}
 #endif
 	TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "references"));
-	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIdFAST32,
+	TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIuFAST32,
 					    isc_refcount_current(&ctx->references)));
 	TRY0(xmlTextWriterEndElement(writer)); /* references */
 
