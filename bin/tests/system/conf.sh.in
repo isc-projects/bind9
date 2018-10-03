@@ -279,7 +279,7 @@ keyfile_to_keys_section() {
 # provided to a *static* "managed-keys" section suitable for including in a
 # resolver's configuration file
 keyfile_to_trusted_keys() {
-    keyfile_to_keys_section "managed-keys" "static" $*
+    keyfile_to_keys_section "managed-keys" "static-key" $*
 }
 
 # keyfile_to_managed_keys: convert key data contained in the keyfile(s)
