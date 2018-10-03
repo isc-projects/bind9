@@ -1225,10 +1225,10 @@ client_send(ns_client_t *client) {
 			isc_buffer_usedregion(&b, &zr);
 	}
 
-	if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
-		dtmsgtype = DNS_DTTYPE_CR;
-	else if (client->message->opcode == dns_opcode_update)
+	if (client->message->opcode == dns_opcode_update)
 		dtmsgtype = DNS_DTTYPE_UR;
+	else if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
+		dtmsgtype = DNS_DTTYPE_CR;
 	else
 		dtmsgtype = DNS_DTTYPE_AR;
 #endif /* HAVE_DNSTAP */
