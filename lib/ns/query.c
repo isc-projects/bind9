@@ -6612,7 +6612,7 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
  * return true; otherwise, return false.
  */
 static bool
-qctx_setupservestale(query_ctx_t *qctx) {
+query_usestale(query_ctx_t *qctx) {
 	bool staleanswersok = false;
 	dns_ttl_t stale_ttl = 0;
 	isc_result_t result;
@@ -6745,7 +6745,11 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 			 "query_gotanswer: unexpected error: %s",
 			 isc_result_totext(result));
 		CCTRACE(ISC_LOG_ERROR, errmsg);
-		if (qctx->resuming && qctx_setupservestale(qctx)) {
+		if (qctx->resuming && query_usestale(qctx)) {
+			/*
+			 * If serve-stale is enabled, query_usestale() already
+			 * set up 'qctx' for looking up a stale response.
+			 */
 			return (query_lookup(qctx));
 		}
 		QUERY_ERROR(qctx, result);
