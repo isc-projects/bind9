@@ -3019,6 +3019,7 @@ internal_accept(isc__socket_t *sock) {
 	 */
 	dev = ISC_LIST_HEAD(sock->accept_list);
 	if (dev == NULL) {
+		unwatch_fd(thread, sock->fd, SELECT_POKE_ACCEPT);
 		UNLOCK(&sock->rlock);
 		return;
 	}
@@ -3144,9 +3145,9 @@ internal_accept(isc__socket_t *sock) {
 	/*
 	 * Poke watcher if there are more pending accepts.
 	 */
-	if (!ISC_LIST_EMPTY(sock->accept_list))
-		watch_fd(thread, sock->fd,
-			 SELECT_POKE_ACCEPT);
+	if (ISC_LIST_EMPTY(sock->accept_list))
+		unwatch_fd(thread, sock->fd,
+			   SELECT_POKE_ACCEPT);
 
 	UNLOCK(&sock->rlock);
 
@@ -3250,7 +3251,7 @@ internal_recv(isc__socket_t *sock) {
 	LOCK(&sock->rlock);
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	if (dev == NULL) {
-		UNLOCK(&sock->rlock);
+		goto finish;
 		return;
 	}
 
@@ -3265,7 +3266,7 @@ internal_recv(isc__socket_t *sock) {
 	while (dev != NULL) {
 		switch (doio_recv(sock, dev)) {
 		case DOIO_SOFT:
-			goto poke;
+			goto finish;
 
 		case DOIO_EOF:
 			/*
@@ -3278,7 +3279,7 @@ internal_recv(isc__socket_t *sock) {
 				send_recvdone_event(sock, &dev);
 				dev = ISC_LIST_HEAD(sock->recv_list);
 			} while (dev != NULL);
-			goto poke;
+			goto finish;
 
 		case DOIO_SUCCESS:
 		case DOIO_HARD:
@@ -3289,11 +3290,10 @@ internal_recv(isc__socket_t *sock) {
 		dev = ISC_LIST_HEAD(sock->recv_list);
 	}
 
- poke:
-	if (!ISC_LIST_EMPTY(sock->recv_list))
-		watch_fd(&sock->manager->threads[sock->threadid], sock->fd,
-			 SELECT_POKE_READ);
-
+ finish:
+	if (ISC_LIST_EMPTY(sock->recv_list))
+		unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
+			   SELECT_POKE_READ);
 	UNLOCK(&sock->rlock);
 }
 
@@ -3306,7 +3306,7 @@ internal_send(isc__socket_t *sock) {
 	LOCK(&sock->wlock);
 	dev = ISC_LIST_HEAD(sock->send_list);
 	if (dev == NULL) {
-		UNLOCK(&sock->wlock);
+		goto finish;
 		return;
 	}
 	socket_log(sock, NULL, EVENT, NULL, 0, 0,
@@ -3320,7 +3320,7 @@ internal_send(isc__socket_t *sock) {
 	while (dev != NULL) {
 		switch (doio_send(sock, dev)) {
 		case DOIO_SOFT:
-			goto poke;
+			goto finish;
 
 		case DOIO_HARD:
 		case DOIO_SUCCESS:
@@ -3331,10 +3331,10 @@ internal_send(isc__socket_t *sock) {
 		dev = ISC_LIST_HEAD(sock->send_list);
 	}
 
- poke:
-	if (!ISC_LIST_EMPTY(sock->send_list))
-		watch_fd(&sock->manager->threads[sock->threadid], sock->fd, SELECT_POKE_WRITE);
-
+ finish:
+	if (ISC_LIST_EMPTY(sock->send_list))
+		unwatch_fd(&sock->manager->threads[sock->threadid],
+			   sock->fd, SELECT_POKE_WRITE);
 	UNLOCK(&sock->wlock);
 }
 
@@ -3347,7 +3347,6 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 	   bool writeable)
 {
 	isc__socket_t *sock;
-	bool unwatch_read = false, unwatch_write = false;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
@@ -3364,9 +3363,8 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 
 	sock = thread->fds[fd];
 	if (sock == NULL) {
-		unwatch_read = readable;
-		unwatch_write = writeable;
-		goto unlock_fd;
+		UNLOCK(&thread->fdlock[lockid]);
+		return;
 	}
 	if (SOCK_DEAD(sock)) { /* Sock is being closed, bail */
 		goto unlock_fd;
@@ -3379,7 +3377,6 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 			internal_accept(sock);
 		else
 			internal_recv(sock);
-		unwatch_read = true;
 	}
 
 	if (writeable) {
@@ -3387,15 +3384,10 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 			internal_connect(sock);
 		else
 			internal_send(sock);
-		unwatch_write = true;
 	}
 
  unlock_fd:
 	UNLOCK(&thread->fdlock[lockid]);
-	if (unwatch_read)
-		(void)unwatch_fd(thread, fd, SELECT_POKE_READ);
-	if (unwatch_write)
-		(void)unwatch_fd(thread, fd, SELECT_POKE_WRITE);
 	if (sock != NULL) {
 		if (isc_refcount_decrement(&sock->references) == 1) {
 			destroy(&sock);
@@ -4255,10 +4247,12 @@ socket_recv(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 		 * Enqueue the request.  If the socket was previously not being
 		 * watched, poke the watcher to start paying attention to it.
 		 */
-		if (ISC_LIST_EMPTY(sock->recv_list))
+		bool do_poke = ISC_LIST_EMPTY(sock->recv_list);
+		ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
+		if (do_poke) {
 			select_poke(sock->manager, sock->threadid, sock->fd,
 				    SELECT_POKE_READ);
-		ISC_LIST_ENQUEUE(sock->recv_list, dev, ev_link);
+		}
 
 		socket_log(sock, NULL, EVENT, NULL, 0, 0,
 			   "socket_recv: event %p -> task %p",
@@ -4459,12 +4453,13 @@ socket_send(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 			 * not being watched, poke the watcher to start
 			 * paying attention to it.
 			 */
-			if (ISC_LIST_EMPTY(sock->send_list))
+			bool do_poke = ISC_LIST_EMPTY(sock->send_list);
+			ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
+			if (do_poke) {
 				select_poke(sock->manager, sock->threadid,
 					    sock->fd,
 					    SELECT_POKE_WRITE);
-			ISC_LIST_ENQUEUE(sock->send_list, dev, ev_link);
-
+			}
 			socket_log(sock, NULL, EVENT, NULL, 0, 0,
 				   "socket_send: event %p -> task %p",
 				   dev, ntask);
@@ -5085,15 +5080,12 @@ isc_socket_accept(isc_socket_t *sock0,
 	 * is no race condition.  We will keep the lock for such a short
 	 * bit of time waking it up now or later won't matter all that much.
 	 */
-	if (ISC_LIST_EMPTY(sock->accept_list))
-		do_poke = true;
-
+	do_poke = ISC_LIST_EMPTY(sock->accept_list);
 	ISC_LIST_ENQUEUE(sock->accept_list, dev, ev_link);
-
-	if (do_poke)
+	if (do_poke) {
 		select_poke(manager, sock->threadid, sock->fd,
 			    SELECT_POKE_ACCEPT);
-
+	}
 	UNLOCK(&sock->rlock);
 	return (ISC_R_SUCCESS);
 }
@@ -5246,13 +5238,13 @@ isc_socket_connect(isc_socket_t *sock0, const isc_sockaddr_t *addr,
 	 * is no race condition.  We will keep the lock for such a short
 	 * bit of time waking it up now or later won't matter all that much.
 	 */
-	if (ISC_LIST_EMPTY(sock->connect_list) && !sock->connecting)
+	bool do_poke = ISC_LIST_EMPTY(sock->connect_list);
+	ISC_LIST_ENQUEUE(sock->connect_list, dev, ev_link);
+	if (do_poke && !sock->connecting) {
+		sock->connecting = 1;
 		select_poke(manager, sock->threadid, sock->fd,
 			    SELECT_POKE_CONNECT);
-
-	sock->connecting = 1;
-
-	ISC_LIST_ENQUEUE(sock->connect_list, dev, ev_link);
+	}
 
 	UNLOCK(&sock->wlock);
 	return (ISC_R_SUCCESS);
@@ -5281,8 +5273,7 @@ internal_connect(isc__socket_t *sock) {
 	dev = ISC_LIST_HEAD(sock->connect_list);
 	if (dev == NULL) {
 		INSIST(!sock->connecting);
-		UNLOCK(&sock->wlock);
-		return;
+		goto finish;
 	}
 
 	INSIST(sock->connecting);
@@ -5305,8 +5296,6 @@ internal_connect(isc__socket_t *sock) {
 		 */
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS) {
 			sock->connecting = 1;
-			watch_fd(&sock->manager->threads[sock->threadid], sock->fd,
-				 SELECT_POKE_CONNECT);
 			UNLOCK(&sock->wlock);
 
 			return;
@@ -5358,6 +5347,10 @@ internal_connect(isc__socket_t *sock) {
 		dev = ISC_LIST_HEAD(sock->connect_list);
 	} while (dev != NULL);
 
+ finish:
+	unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
+		   SELECT_POKE_CONNECT);
+
 	UNLOCK(&sock->wlock);
 }
 
@@ -5369,7 +5362,7 @@ isc_socket_getpeername(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(addressp != NULL);
 
-	LOCK(&sock->lock);
+	LOCK(&sock->wlock);
 
 	if (sock->connected) {
 		*addressp = sock->peer_address;
@@ -5378,7 +5371,7 @@ isc_socket_getpeername(isc_socket_t *sock0, isc_sockaddr_t *addressp) {
 		result = ISC_R_NOTCONNECTED;
 	}
 
-	UNLOCK(&sock->lock);
+	UNLOCK(&sock->wlock);
 
 	return (result);
 }
@@ -5780,7 +5773,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 		TRY0(xmlTextWriterStartElement(writer,
 					       ISC_XMLCHAR "references"));
 		TRY0(xmlTextWriterWriteFormatString(writer, "%d",
-				    isc_refcount_current(&sock->references)));
+				    (int)isc_refcount_current(&sock->references)));
 		TRY0(xmlTextWriterEndElement(writer));
 
 		TRY0(xmlTextWriterWriteElement(writer, ISC_XMLCHAR "type",
@@ -5882,7 +5875,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats) {
 			json_object_object_add(entry, "name", obj);
 		}
 
-		obj = json_object_new_int(isc_refcount_current(&sock->references));
+		obj = json_object_new_int((int)isc_refcount_current(&sock->references));
 		CHECKMEM(obj);
 		json_object_object_add(entry, "references", obj);
 
