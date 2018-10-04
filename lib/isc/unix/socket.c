@@ -52,6 +52,7 @@
 #include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/resource.h>
 #include <isc/socket.h>
@@ -338,10 +339,10 @@ struct isc__socket {
 	isc_mutex_t		lock;
 	isc_sockettype_t	type;
 	const isc_statscounter_t	*statsindex;
+	isc_refcount_t		references;
 
 	/* Locked by socket lock. */
 	ISC_LINK(isc__socket_t)	link;
-	unsigned int		references;
 	int			fd;
 	int			pf;
 	int			threadid;
@@ -473,7 +474,7 @@ static void setdscp(isc__socket_t *sock, isc_dscp_t dscp);
 #define SELECT_POKE_CONNECT		(-4) /*%< Same as _WRITE */
 #define SELECT_POKE_CLOSE		(-5)
 
-#define SOCK_DEAD(s)			((s)->references == 0)
+#define SOCK_DEAD(s)			(isc_refcount_current(&((s)->references)) == 0)
 
 /*%
  * Shortcut index arrays to get access to statistics counters.
@@ -1990,7 +1991,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 
 	sock->common.magic = 0;
 	sock->common.impmagic = 0;
-	sock->references = 0;
+	isc_refcount_init(&sock->references, 0);
 
 	sock->manager = manager;
 	sock->type = type;
@@ -2054,7 +2055,7 @@ free_socket(isc__socket_t **socketp) {
 	isc__socket_t *sock = *socketp;
 
 	INSIST(VALID_SOCKET(sock));
-	INSIST(sock->references == 0);
+	INSIST(isc_refcount_current(&sock->references) == 0);
 	INSIST(!sock->connecting);
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
@@ -2695,7 +2696,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		abort();
 	}
 	sock->threadid = gen_threadid(sock);
-	sock->references = 1;
+	isc_refcount_init(&sock->references, 1);
 	thread = &manager->threads[sock->threadid];
 	*socketp = (isc_socket_t *)sock;
 
@@ -2769,9 +2770,7 @@ isc_socket_open(isc_socket_t *sock0) {
 
 	REQUIRE(VALID_SOCKET(sock));
 
-	LOCK(&sock->lock);
-	REQUIRE(sock->references == 1);
-	UNLOCK(&sock->lock);
+	REQUIRE(isc_refcount_current(&sock->references) == 1);
 	/*
 	 * We don't need to retain the lock hereafter, since no one else has
 	 * this socket.
@@ -2821,10 +2820,8 @@ isc_socket_attach(isc_socket_t *sock0, isc_socket_t **socketp) {
 	REQUIRE(VALID_SOCKET(sock));
 	REQUIRE(socketp != NULL && *socketp == NULL);
 
-	LOCK(&sock->lock);
-	REQUIRE(sock->references > 0);
-	sock->references++;
-	UNLOCK(&sock->lock);
+	int old_refs = isc_refcount_increment(&sock->references);
+	REQUIRE(old_refs > 0);
 
 	*socketp = (isc_socket_t *)sock;
 }
@@ -2842,15 +2839,9 @@ isc_socket_detach(isc_socket_t **socketp) {
 	sock = (isc__socket_t *)*socketp;
 	REQUIRE(VALID_SOCKET(sock));
 
-	LOCK(&sock->lock);
-	REQUIRE(sock->references > 0);
-	sock->references--;
-	if (sock->references == 0)
-		kill_socket = true;
-	UNLOCK(&sock->lock);
-
-	if (kill_socket)
+	if (isc_refcount_decrement(&sock->references) == 1) {
 		destroy(&sock);
+	}
 
 	*socketp = NULL;
 }
@@ -3360,14 +3351,10 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 		goto unlock_fd;
 	}
 	if (SOCK_DEAD(sock)) { /* Sock is being closed, bail */
-		UNLOCK(&sock->lock);
-		UNLOCK(&thread->fdlock[lockid]);
-		return;
+		goto unlock_fd;
 	}
 
-	LOCK(&sock->lock);
-	sock->references++;
-	UNLOCK(&sock->lock);
+	isc_refcount_increment(&sock->references);
 
 	if (readable) {
 		if (sock->listener)
@@ -3392,9 +3379,9 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 	if (unwatch_write)
 		(void)unwatch_fd(thread, fd, SELECT_POKE_WRITE);
 	if (sock != NULL) {
-		LOCK(&sock->lock);
-		sock->references--;
-		UNLOCK(&sock->lock);
+		if (isc_refcount_decrement(&sock->references) == 1) {
+			destroy(&sock);
+		}
 	}
 }
 
@@ -5069,7 +5056,7 @@ isc_socket_accept(isc_socket_t *sock0,
 		UNLOCK(&sock->lock);
 		return (ISC_R_SHUTTINGDOWN);
 	}
-	nsock->references++;
+	isc_refcount_increment(&nsock->references);
 	nsock->statsindex = sock->statsindex;
 
 	dev->ev_sender = ntask;
@@ -5774,7 +5761,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 		TRY0(xmlTextWriterStartElement(writer,
 					       ISC_XMLCHAR "references"));
 		TRY0(xmlTextWriterWriteFormatString(writer, "%d",
-						    sock->references));
+				    isc_refcount_current(sock->references)));
 		TRY0(xmlTextWriterEndElement(writer));
 
 		TRY0(xmlTextWriterWriteElement(writer, ISC_XMLCHAR "type",
@@ -5876,7 +5863,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats) {
 			json_object_object_add(entry, "name", obj);
 		}
 
-		obj = json_object_new_int(sock->references);
+		obj = json_object_new_int(isc_refcount_current(sock->references));
 		CHECKMEM(obj);
 		json_object_object_add(entry, "references", obj);
 
