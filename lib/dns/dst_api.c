@@ -159,8 +159,8 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	 * ISC_MEMFLAG_INTERNAL as it will free up memory still being used
 	 * by libcrypto.
 	 */
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &dst__memory_pool, 0);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &dst__memory_pool, 0);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	isc_mem_setname(dst__memory_pool, "dst", NULL);
