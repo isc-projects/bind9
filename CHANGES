@@ -1,3 +1,6 @@
+5041.	[test]		The chain test contains a incomplete delegation.
+			[GL #568]
+
 5039.	[bug]		Named could fail to preserve owner name case of new
 			RRset. [GL #420]
 
