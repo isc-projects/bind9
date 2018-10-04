@@ -4073,19 +4073,19 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 	obj = NULL;
 	/* 'optionmaps' not 'maps' */
-	result = named_config_get(optionmaps, "dnssec-validation", &obj);
+	(void)named_config_get(optionmaps, "dnssec-validation", &obj);
 	if (obj == NULL) {
 		/*
 		 * If dnssec-enable is yes, then we default to
 		 * VALIDATION_DEFAULT as set in config.c. Otherwise
 		 * we default to "no".
 		 */
-		if (!view->enablednssec) {
-			view->enablevalidation = false;
-		} else {
-			(void)cfg_map_get(named_g_defaults,
-					  "dnssec-validation", &obj);
+		if (view->enablednssec) {
+			(void)named_config_get(maps, "dnssec-validation",
+					       &obj);
 			INSIST(obj != NULL);
+		} else {
+			view->enablevalidation = false;
 		}
 	}
 	if (obj != NULL) {
