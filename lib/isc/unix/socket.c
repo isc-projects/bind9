@@ -3144,9 +3144,9 @@ internal_accept(isc__socket_t *sock) {
 	/*
 	 * Poke watcher if there are more pending accepts.
 	 */
-	if (!ISC_LIST_EMPTY(sock->accept_list))
-		watch_fd(thread, sock->fd,
-			 SELECT_POKE_ACCEPT);
+	if (ISC_LIST_EMPTY(sock->accept_list))
+		unwatch_fd(thread, sock->fd,
+			   SELECT_POKE_ACCEPT);
 
 	UNLOCK(&sock->rlock);
 
@@ -3290,10 +3290,9 @@ internal_recv(isc__socket_t *sock) {
 	}
 
  poke:
-	if (!ISC_LIST_EMPTY(sock->recv_list))
-		watch_fd(&sock->manager->threads[sock->threadid], sock->fd,
-			 SELECT_POKE_READ);
-
+	if (ISC_LIST_EMPTY(sock->recv_list))
+		unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
+			   SELECT_POKE_READ);
 	UNLOCK(&sock->rlock);
 }
 
@@ -3332,9 +3331,9 @@ internal_send(isc__socket_t *sock) {
 	}
 
  poke:
-	if (!ISC_LIST_EMPTY(sock->send_list))
-		watch_fd(&sock->manager->threads[sock->threadid], sock->fd, SELECT_POKE_WRITE);
-
+	if (ISC_LIST_EMPTY(sock->send_list))
+		unwatch_fd(&sock->manager->threads[sock->threadid],
+			   sock->fd, SELECT_POKE_WRITE);
 	UNLOCK(&sock->wlock);
 }
 
@@ -3347,7 +3346,6 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 	   bool writeable)
 {
 	isc__socket_t *sock;
-	bool unwatch_read = false, unwatch_write = false;
 	int lockid = FDLOCK_ID(fd);
 
 	/*
@@ -3364,9 +3362,8 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 
 	sock = thread->fds[fd];
 	if (sock == NULL) {
-		unwatch_read = readable;
-		unwatch_write = writeable;
-		goto unlock_fd;
+		UNLOCK(&thread->fdlock[lockid]);
+		return;
 	}
 	if (SOCK_DEAD(sock)) { /* Sock is being closed, bail */
 		goto unlock_fd;
@@ -3379,7 +3376,6 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 			internal_accept(sock);
 		else
 			internal_recv(sock);
-		unwatch_read = true;
 	}
 
 	if (writeable) {
@@ -3387,15 +3383,10 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 			internal_connect(sock);
 		else
 			internal_send(sock);
-		unwatch_write = true;
 	}
 
  unlock_fd:
 	UNLOCK(&thread->fdlock[lockid]);
-	if (unwatch_read)
-		(void)unwatch_fd(thread, fd, SELECT_POKE_READ);
-	if (unwatch_write)
-		(void)unwatch_fd(thread, fd, SELECT_POKE_WRITE);
 	if (sock != NULL) {
 		if (isc_refcount_decrement(&sock->references) == 1) {
 			destroy(&sock);
@@ -5305,8 +5296,6 @@ internal_connect(isc__socket_t *sock) {
 		 */
 		if (SOFT_ERROR(errno) || errno == EINPROGRESS) {
 			sock->connecting = 1;
-			watch_fd(&sock->manager->threads[sock->threadid], sock->fd,
-				 SELECT_POKE_CONNECT);
 			UNLOCK(&sock->wlock);
 
 			return;
@@ -5357,6 +5346,8 @@ internal_connect(isc__socket_t *sock) {
 		send_connectdone_event(sock, &dev);
 		dev = ISC_LIST_HEAD(sock->connect_list);
 	} while (dev != NULL);
+	unwatch_fd(&sock->manager->threads[sock->threadid], sock->fd,
+		   SELECT_POKE_CONNECT);
 
 	UNLOCK(&sock->wlock);
 }
@@ -5779,7 +5770,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 
 		TRY0(xmlTextWriterStartElement(writer,
 					       ISC_XMLCHAR "references"));
-		TRY0(xmlTextWriterWriteFormatString(writer, "%d",
+		TRY0(xmlTextWriterWriteFormatString(writer, "%lu",
 				    isc_refcount_current(&sock->references)));
 		TRY0(xmlTextWriterEndElement(writer));
 
