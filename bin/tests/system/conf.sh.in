@@ -73,10 +73,12 @@ KRB5_CONFIG=/dev/null
 # load on the machine to make it unusable to other users.
 # The "dialup", "delzone", and "dupsigs" tests are also not run by
 # default because they take a very long time to complete.
+# The "eddsa" test is not run by default until BIND's EdDSA code is
+# fixed to work with the final version of OpenSSL 1.1.1.
 #
 # List of tests hard-coded to use ports 5300 and 9953. For this
 # reason, these must be run sequentially.
-SEQUENTIALDIRS="ecdsa eddsa @PKCS11_TEST@ tkey"
+SEQUENTIALDIRS="ecdsa @PKCS11_TEST@ tkey"
 
 # List of tests that use ports assigned by caller (other than 5300
 # and 9953). Because separate blocks of ports can be used for teach
