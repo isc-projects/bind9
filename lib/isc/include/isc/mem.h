@@ -138,20 +138,6 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 #endif
 
 
-/*%<
- * We use either isc___mem (three underscores) or isc__mem (two) depending on
- * whether it's for BIND9's internal purpose (with -DBIND9) or generic export
- * library.
- */
-#define ISCMEMFUNC(sfx) isc__mem_ ## sfx
-#define ISCMEMPOOLFUNC(sfx) isc__mempool_ ## sfx
-
-#define isc_mem_get(c, s)	ISCMEMFUNC(get)((c), (s) _ISC_MEM_FILELINE)
-#define isc_mem_allocate(c, s)	ISCMEMFUNC(allocate)((c), (s) _ISC_MEM_FILELINE)
-#define isc_mem_reallocate(c, p, s) ISCMEMFUNC(reallocate)((c), (p), (s) _ISC_MEM_FILELINE)
-#define isc_mem_strdup(c, p)	ISCMEMFUNC(strdup)((c), (p) _ISC_MEM_FILELINE)
-#define isc_mempool_get(c)	ISCMEMPOOLFUNC(get)((c) _ISC_MEM_FILELINE)
-
 /*%
  * isc_mem_putanddetach() is a convenience function for use where you
  * have a structure with an attached memory context.
@@ -211,6 +197,21 @@ struct isc_mempool {
 #define ISCAPI_MPOOL_MAGIC	ISC_MAGIC('A','m','p','l')
 #define ISCAPI_MPOOL_VALID(mp)	((mp) != NULL && \
 				 (mp)->magic == ISCAPI_MPOOL_MAGIC)
+
+/*%<
+ * These functions are actually implemented in isc__mem_<function>
+ * (two underscores). The single-underscore macros are used to pass
+ * __FILE__ and __LINE__, and in the put functions, to set the pointer
+ * being freed to NULL in the calling function.
+ */
+#define ISCMEMFUNC(sfx) isc__mem_ ## sfx
+#define ISCMEMPOOLFUNC(sfx) isc__mempool_ ## sfx
+
+#define isc_mem_get(c, s)	ISCMEMFUNC(get)((c), (s) _ISC_MEM_FILELINE)
+#define isc_mem_allocate(c, s)	ISCMEMFUNC(allocate)((c), (s) _ISC_MEM_FILELINE)
+#define isc_mem_reallocate(c, p, s) ISCMEMFUNC(reallocate)((c), (p), (s) _ISC_MEM_FILELINE)
+#define isc_mem_strdup(c, p)	ISCMEMFUNC(strdup)((c), (p) _ISC_MEM_FILELINE)
+#define isc_mempool_get(c)	ISCMEMPOOLFUNC(get)((c) _ISC_MEM_FILELINE)
 
 #define isc_mem_put(c, p, s) \
 	do { \
