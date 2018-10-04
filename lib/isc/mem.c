@@ -217,6 +217,34 @@ struct isc__mempool {
 static void
 print_active(isc__mem_t *ctx, FILE *out);
 
+#endif /* ISC_MEM_TRACKLINES */
+
+static void *
+isc___mem_get(isc_mem_t *ctx, size_t size FLARG);
+static void
+isc___mem_put(isc_mem_t *ctx, void *ptr, size_t size FLARG);
+static void
+isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG);
+static void *
+isc___mem_allocate(isc_mem_t *ctx, size_t size FLARG);
+static void *
+isc___mem_reallocate(isc_mem_t *ctx, void *ptr, size_t size FLARG);
+static char *
+isc___mem_strdup(isc_mem_t *mctx, const char *s FLARG);
+static void
+isc___mem_free(isc_mem_t *ctx, void *ptr FLARG);
+
+static isc_memmethods_t memmethods = {
+	isc___mem_get,
+	isc___mem_put,
+	isc___mem_putanddetach,
+	isc___mem_allocate,
+	isc___mem_reallocate,
+	isc___mem_strdup,
+	isc___mem_free,
+};
+
+#if ISC_MEM_TRACKLINES
 /*!
  * mctx must be locked.
  */
@@ -706,18 +734,8 @@ initialize_action(void) {
 
 isc_result_t
 isc_mem_createx(size_t init_max_size, size_t target_size,
-		 isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
-		 isc_mem_t **ctxp)
-{
-	return (isc_mem_createx2(init_max_size, target_size, memalloc, memfree,
-				 arg, ctxp, isc_mem_defaultflags));
-
-}
-
-isc_result_t
-isc_mem_createx2(size_t init_max_size, size_t target_size,
-		  isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
-		  isc_mem_t **ctxp, unsigned int flags)
+		isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
+		isc_mem_t **ctxp, unsigned int flags)
 {
 	isc__mem_t *ctx;
 	isc_result_t result;
@@ -731,8 +749,9 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
 	ctx = (memalloc)(arg, sizeof(*ctx));
-	if (ctx == NULL)
+	if (ctx == NULL) {
 		return (ISC_R_NOMEMORY);
+	}
 
 	if ((flags & ISC_MEMFLAG_NOLOCK) == 0) {
 		result = isc_mutex_init(&ctx->lock);
@@ -764,6 +783,7 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	ctx->water_arg = NULL;
 	ctx->common.impmagic = MEM_MAGIC;
 	ctx->common.magic = ISCAPI_MCTX_MAGIC;
+	ctx->common.methods = (isc_memmethods_t *)&memmethods;
 	ctx->memalloc = memalloc;
 	ctx->memfree = memfree;
 	ctx->arg = arg;
@@ -834,6 +854,7 @@ isc_mem_createx2(size_t init_max_size, size_t target_size,
 	UNLOCK(&contextslock);
 
 	*ctxp = (isc_mem_t *)ctx;
+
 	return (ISC_R_SUCCESS);
 
   error:
@@ -966,7 +987,7 @@ isc_mem_detach(isc_mem_t **ctxp) {
  */
 
 void
-isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
+isc___mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG) {
 	REQUIRE(ctxp != NULL && VALID_CONTEXT(*ctxp));
 	REQUIRE(ptr != NULL);
 	isc__mem_t *ctx = (isc__mem_t *)*ctxp;
@@ -1033,7 +1054,7 @@ isc_mem_destroy(isc_mem_t **ctxp) {
 }
 
 void *
-isc__mem_get(isc_mem_t *ctx0, size_t size FLARG) {
+isc___mem_get(isc_mem_t *ctx0, size_t size FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	void *ptr;
 	bool call_water = false;
@@ -1077,7 +1098,7 @@ isc__mem_get(isc_mem_t *ctx0, size_t size FLARG) {
 }
 
 void
-isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
+isc___mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	bool call_water = false;
 	size_info *si;
@@ -1291,7 +1312,7 @@ mem_allocateunlocked(isc_mem_t *ctx0, size_t size) {
 }
 
 void *
-isc__mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
+isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_info *si;
 	bool call_water = false;
@@ -1331,7 +1352,7 @@ isc__mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 }
 
 void *
-isc__mem_reallocate(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
+isc___mem_reallocate(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	void *new_ptr = NULL;
 	size_t oldsize, copysize;
@@ -1372,7 +1393,7 @@ isc__mem_reallocate(isc_mem_t *ctx0, void *ptr, size_t size FLARG) {
 }
 
 void
-isc__mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
+isc___mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	size_info *si;
 	size_t size;
@@ -1430,7 +1451,7 @@ isc__mem_free(isc_mem_t *ctx0, void *ptr FLARG) {
  */
 
 char *
-isc__mem_strdup(isc_mem_t *mctx0, const char *s FLARG) {
+isc___mem_strdup(isc_mem_t *mctx0, const char *s FLARG) {
 	isc__mem_t *mctx = (isc__mem_t *)mctx0;
 	size_t len;
 	char *ns;
@@ -1538,7 +1559,7 @@ isc_mem_total(isc_mem_t *ctx0) {
 
 void
 isc_mem_setwater(isc_mem_t *ctx0, isc_mem_water_t water, void *water_arg,
-		  size_t hiwater, size_t lowater)
+		 size_t hiwater, size_t lowater)
 {
 	isc__mem_t *ctx = (isc__mem_t *)ctx0;
 	bool callwater = false;
@@ -1707,7 +1728,7 @@ isc_mempool_destroy(isc_mempool_t **mpctxp) {
 #if ISC_MEMPOOL_NAMES
 	if (mpctx->allocated > 0)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc__mempool_destroy(): mempool %s "
+				 "isc_mempool_destroy(): mempool %s "
 				 "leaked memory",
 				 mpctx->name);
 #endif
@@ -2041,22 +2062,6 @@ isc_mempool_getfillcount(isc_mempool_t *mpctx0) {
 
 	return (fillcount);
 }
-
-void
-isc_mem_printactive(isc_mem_t *ctx0, FILE *file) {
-#if ISC_MEM_TRACKLINES
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-	REQUIRE(file != NULL);
-
-	print_active(ctx, file);
-#else
-	UNUSED(ctx0);
-	UNUSED(file);
-#endif
-}
-
 
 /*
  * Requires contextslock to be held by caller.
@@ -2483,16 +2488,57 @@ isc_mem_renderjson(json_object *memobj) {
 
 isc_result_t
 isc_mem_create(size_t init_max_size, size_t target_size, isc_mem_t **mctxp) {
-	return (isc_mem_createx2(init_max_size, target_size,
-				 default_memalloc, default_memfree,
-				 NULL, mctxp, isc_mem_defaultflags));
+	return (isc_mem_createx(init_max_size, target_size,
+				default_memalloc, default_memfree,
+				NULL, mctxp, isc_mem_defaultflags));
 }
 
-isc_result_t
-isc_mem_create2(size_t init_max_size, size_t target_size, isc_mem_t **mctxp,
-		 unsigned int flags)
-{
-	return (isc_mem_createx2(init_max_size, target_size,
-				 default_memalloc, default_memfree,
-				 NULL, mctxp, flags));
+void *
+isc__mem_get(isc_mem_t *mctx, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->memget(mctx, size FLARG_PASS));
+
+}
+
+void
+isc__mem_put(isc_mem_t *mctx, void *ptr, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	mctx->methods->memput(mctx, ptr, size FLARG_PASS);
+}
+
+void
+isc__mem_putanddetach(isc_mem_t **mctxp, void *ptr, size_t size FLARG) {
+	REQUIRE(mctxp != NULL && ISCAPI_MCTX_VALID(*mctxp));
+
+	(*mctxp)->methods->memputanddetach(mctxp, ptr, size FLARG_PASS);
+}
+
+void *
+isc__mem_allocate(isc_mem_t *mctx, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->memallocate(mctx, size FLARG_PASS));
+}
+
+void *
+isc__mem_reallocate(isc_mem_t *mctx, void *ptr, size_t size FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->memreallocate(mctx, ptr, size FLARG_PASS));
+}
+
+char *
+isc__mem_strdup(isc_mem_t *mctx, const char *s FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	return (mctx->methods->memstrdup(mctx, s FLARG_PASS));
+}
+
+void
+isc__mem_free(isc_mem_t *mctx, void *ptr FLARG) {
+	REQUIRE(ISCAPI_MCTX_VALID(mctx));
+
+	mctx->methods->memfree(mctx, ptr FLARG_PASS);
 }

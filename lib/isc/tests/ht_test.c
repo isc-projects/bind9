@@ -47,8 +47,8 @@ static void test_ht_full(int bits, uintptr_t count) {
 	isc_mem_t *mctx = NULL;
 	uintptr_t i;
 
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &mctx, 0);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &mctx, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_ht_init(&ht, mctx, bits);
@@ -200,8 +200,8 @@ static void test_ht_iterator() {
 	unsigned char *tkey;
 	size_t tksize;
 
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &mctx, 0);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &mctx, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_ht_init(&ht, mctx, 16);
