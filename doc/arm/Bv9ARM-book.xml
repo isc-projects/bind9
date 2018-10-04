@@ -6616,6 +6616,8 @@ options {
 		  If set to <userinput>auto</userinput>,
 		  DNSSEC validation is enabled, and a default trust anchor
 		  for the DNS root zone is used.
+		</para>
+		<para>
 		  If set to <userinput>yes</userinput>, DNSSEC validation is
 		  enabled, but a trust anchor must be manually configured
 		  using a <command>trusted-keys</command>
@@ -6626,12 +6628,12 @@ options {
 		<para>
 		  If set to <userinput>no</userinput>, DNSSEC validation
 		  is disabled.
+		</para>
+		<para>
 		  The default is <userinput>auto</userinput>, unless
 		  BIND is built with
 		  <command>configure --disable-auto-validation</command>,
 		  in which case the default is <userinput>yes</userinput>.
-		</para>
-		<para>
 		  If <command>dnssec-enable</command> is set to
 		  <userinput>no</userinput>, then the default for
 		  <command>dnssec-validation</command> is also
@@ -6645,14 +6647,14 @@ options {
 		  <filename>bind.keys</filename>.
 		  <command>named</command> will load that key at
 		  startup if <command>dnssec-validation</command> is
-		  set to <constant>auto</constant>.  A copy of the file is
+		  set to <userinput>auto</userinput>.  A copy of the file is
 		  installed along with BIND 9, and is current as of the
 		  release date.  If the root key expires, a new copy of
 		  <filename>bind.keys</filename> can be downloaded
 		  from <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/bind-keys">https://www.isc.org/bind-keys</link>.
 		</para>
 		<para>
-		  To prevent problems if <filename>bind.keys</filename> is
+		  (To prevent problems if <filename>bind.keys</filename> is
 		  not found, the current trust anchor is also compiled in
 		  to <command>named</command>.  Relying on this is not
 		  recommended, however, as it requires <command>named</command>
