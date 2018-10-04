@@ -1,3 +1,6 @@
+5042.	[test]		Make the chained delegations in reclimit behave
+			like they would in a regular name server. [GL  #578]
+
 5041.	[test]		The chain test contains a incomplete delegation.
 			[GL #568]
 
