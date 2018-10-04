@@ -1301,7 +1301,7 @@ totext_filter_proc_key_init(void) {
 	if (!thread_key_initialized) {
 		LOCK(&thread_key_mutex);
 		if (thread_key_mctx == NULL)
-			result = isc_mem_create2(0, 0, &thread_key_mctx, 0);
+			result = isc_mem_create(0, 0, &thread_key_mctx);
 		if (result != ISC_R_SUCCESS)
 			goto unlock;
 		isc_mem_setname(thread_key_mctx, "threadkey", NULL);
