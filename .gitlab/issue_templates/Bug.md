@@ -9,6 +9,10 @@ email to [security-officer@isc.org](security-officer@isc.org).
 
 (Summarize the bug encountered concisely.)
 
+### BIND version used
+
+(Paste the output of `named -V`.)
+
 ### Steps to reproduce
 
 (How one can reproduce the issue - this is very important.)
