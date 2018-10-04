@@ -355,16 +355,13 @@ openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	isc_buffer_usedregion(buf, &tbsreg);
 
-	if (EVP_DigestSignInit(ctx, NULL, NULL, NULL, pkey))
+	if (EVP_DigestSignInit(ctx, NULL, NULL, NULL, pkey) != 1) {
 		DST_RET(dst__openssl_toresult3(dctx->category,
 					       "EVP_DigestSignInit",
 					       ISC_R_FAILURE));
-	if (EVP_DigestSignUpdate(ctx, tbsreg.base, tbsreg.length) != 1) {
-		DST_RET(dst__openssl_toresult3(dctx->category,
-					       "EVP_DigestSignUpdate",
-					       DST_R_SIGNFAILURE));
 	}
-	if (EVP_DigestSignFinal(ctx, sigreg.base, &siglen) != 1) {
+	if (EVP_DigestSign(ctx, sigreg.base, &siglen,
+			   tbsreg.base, tbsreg.length) != 1) {
 		DST_RET(dst__openssl_toresult3(dctx->category,
 					       "EVP_DigestSign",
 					       DST_R_SIGNFAILURE));
@@ -423,13 +420,8 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 					       ISC_R_FAILURE));
 	}
 
-	if (EVP_DigestVerifyUpdate(ctx, tbsreg.base, tbsreg.length) != 1) {
-		DST_RET(dst__openssl_toresult3(dctx->category,
-					       "EVP_DigestVerifyUpdate",
-					       ISC_R_FAILURE));
-	}
-
-	status = EVP_DigestVerifyFinal(ctx, sig->base, siglen);
+	status = EVP_DigestVerify(ctx, sig->base, siglen,
+				  tbsreg.base, tbsreg.length);
 
 	switch (status) {
 	case 1:
