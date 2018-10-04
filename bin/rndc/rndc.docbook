@@ -650,6 +650,12 @@
 	    <option>-l</option>, <option>-r</option>, <option>-d</option>,
 	    <option>-f</option>, and <option>-c</option>.
 	  </para>
+	  <para>
+	    Unrecognized options are treated as errors. To reference
+	    a domain or view name that begins with a hyphen,
+	    use a double-hyphen on the command line to indicate the
+	    end of options.
+	  </para>
 	</listitem>
       </varlistentry>
 
