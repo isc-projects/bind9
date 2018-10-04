@@ -18,8 +18,6 @@ $TTL 300
 .			NS	a.root-servers.nil.
 a.root-servers.nil.	A	10.53.0.1
 
-ns2.nil.		A	10.53.0.2
-
 example.		NS	ns2.example.
 ns2.example.		A	10.53.0.2
 
