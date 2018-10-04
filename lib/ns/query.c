@@ -6129,6 +6129,13 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 	 * Don't mess with responses rewritten by RPZ
 	 * Count each response at most once.
 	 */
+fprintf(stderr, "rrl=%p, HAVECOOKIE=%u, result=%u, fname=%p(%u), is_zone=%u, RECURSIONOK=%u, query.rpz_st=%p(%u), NS_QUERYATTR_RRL_CHECKED=%u\n",
+	qctx->client->view->rrl, HAVECOOKIE(qctx->client), result,
+	qctx->fname, qctx->fname?dns_name_isabsolute(qctx->fname) : 0,
+	qctx->is_zone, RECURSIONOK(qctx->client), qctx->client->query.rpz_st,
+	qctx->client->query.rpz_st ? (qctx->client->query.rpz_st->state & DNS_RPZ_REWRITTEN) != 0 : 0,
+	(qctx->client->query.attributes & NS_QUERYATTR_RRL_CHECKED) != 0);
+
 	if (qctx->client->view->rrl != NULL &&
 	    !HAVECOOKIE(qctx->client) &&
 	    ((qctx->fname != NULL && dns_name_isabsolute(qctx->fname)) ||
