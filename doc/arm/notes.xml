@@ -525,6 +525,13 @@
       </listitem>
       <listitem>
 	<para>
+	  The view name is now included in the output of
+	  <command>rndc nta -dump</command>, for consistency with
+	  other options. [GL !816]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  <command>named</command> now rejects excessively large
 	  incremental (IXFR) zone transfers in order to prevent
 	  possible corruption of journal files which could cause

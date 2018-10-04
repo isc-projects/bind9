@@ -1,3 +1,13 @@
+5044.	[func]		Improvements to "rndc nta" user interface:
+			- catch and report invalid command line options
+			- when removing an NTA from all views, do not
+			  abort with an error if the NTA was not found
+			  in one of the views
+			- include the view name in "rndc nta -dump"
+			  output, for consistency with the add and remove
+			  actions
+			Thanks to Tony Finch. [GL !816]
+
 5043.	[bug]		Fix creating and validating EdDSA signatures. [GL #579]
 
 5042.	[test]		Make the chained delegations in reclimit behave
