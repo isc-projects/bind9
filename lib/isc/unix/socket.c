@@ -3193,10 +3193,10 @@ internal_accept(isc__socket_t *sock) {
 		}
 
 		LOCK(&nthread->fdlock[lockid]);
-		thread->fds[fd] = NEWCONNSOCK(dev);
-		thread->fdstate[fd] = MANAGED;
+		nthread->fds[fd] = NEWCONNSOCK(dev);
+		nthread->fdstate[fd] = MANAGED;
 #if defined(USE_EPOLL)
-		thread->epoll_events[fd] = 0;
+		nthread->epoll_events[fd] = 0;
 #endif
 		UNLOCK(&nthread->fdlock[lockid]);
 
