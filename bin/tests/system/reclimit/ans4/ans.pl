@@ -16,7 +16,7 @@ use IO::File;
 use IO::Socket;
 use Net::DNS;
 
-my $localaddr = "10.53.0.2";
+my $localaddr = "10.53.0.4";
 my $limit = getlimit();
 my $no_more_waiting = 0;
 my @delayed_response;
@@ -37,7 +37,7 @@ $SIG{INT} = \&rmpid;
 $SIG{TERM} = \&rmpid;
 
 my $count = 0;
-my $send_response = 0;
+my $send_response = 1;
 
 sub getlimit {
     if ( -e "ans.limit") {
@@ -76,7 +76,7 @@ sub reply_handler {
 	$rcode = "NOERROR";
     } elsif ($qname eq "reset" ) {
 	$count = 0;
-	$send_response = 0;
+	$send_response = 1;
 	$limit = getlimit();
 	$rcode = "NOERROR";
 	print ("\tlimit: $limit\n");
@@ -85,6 +85,7 @@ sub reply_handler {
 	    my ($ttl, $rdata) = (3600, $localaddr);
 	    my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
 	    push @ans, $rr;
+	    print ("\twait=$wait ans: $qname $ttl $qclass $qtype $rdata\n");
 	}
 	$rcode = "NOERROR";
     } elsif ($qname eq "indirect1.example.org" ||
@@ -95,25 +96,24 @@ sub reply_handler {
 	     $qname eq "indirect6.example.org" ||
 	     $qname eq "indirect7.example.org" ||
 	     $qname eq "indirect8.example.org") {
-	if (! $send_response) {
-	    my $rr = new Net::DNS::RR("$qname 86400 $qclass NS ns1.1.example.org");
-	    push @auth, $rr;
-	} elsif ($qtype eq "A") {
+	if ($qtype eq "A") {
 	    my ($ttl, $rdata) = (3600, $localaddr);
 	    my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
 	    push @ans, $rr;
+	    print ("\twait=$wait ans: $qname $ttl $qclass $qtype $rdata\n");
 	}
 	$rcode = "NOERROR";
     } elsif ($qname =~ /^ns1\.(\d+)\.example\.org$/) {
 	my $next = $1 + 1;
 	$wait = 1;
-	if ($limit == 0 || (! $send_response && $next <= $limit)) {
+	if ($limit == 0) {
 	    my $rr = new Net::DNS::RR("$1.example.org 86400 $qclass NS ns1.$next.example.org");
 	    push @auth, $rr;
+	    print ("\twait=$wait auth: $1.example.org 86400 $qclass NS ns1.$next.example.org\n");
 	} else {
 	    $send_response = 1;
 	    if ($qtype eq "A") {
-		my ($ttl, $rdata) = (3600, "10.53.0.4");
+		my ($ttl, $rdata) = (3600, $localaddr);
 		my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
 		print("\tresponse: $qname $ttl $qclass $qtype $rdata\n");
 		push @ans, $rr;
@@ -121,24 +121,28 @@ sub reply_handler {
 	}
 	$rcode = "NOERROR";
     } elsif ($qname eq "direct.example.net" ) {
-	if ($qtype eq "A") {
-	    my ($ttl, $rdata) = (3600, $localaddr);
-	    my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
-	    push @ans, $rr;
-	}
-	$rcode = "NOERROR";
+        if ($qtype eq "A") {
+            my ($ttl, $rdata) = (3600, $localaddr);
+            my $rr = new Net::DNS::RR("$qname $ttl $qclass $qtype $rdata");
+            push @ans, $rr;
+	    print ("\twait=$wait ans: $qname $ttl $qclass $qtype $rdata\n");
+        }
+        $rcode = "NOERROR";
     } elsif( $qname =~ /^ns1\.(\d+)\.example\.net$/ ) {
-	my $next = ($1 + 1) * 16;
-	for (my $i = 1; $i < 16; $i++) {
-	    my $s = $next + $i;
-	    my $rr = new Net::DNS::RR("$1.example.net 86400 $qclass NS ns1.$s.example.net");
-	    push @auth, $rr;
-	    $rr = new Net::DNS::RR("ns1.$s.example.net 86400 $qclass A 10.53.0.7");
-	    push @add, $rr;
-	}
-	$rcode = "NOERROR";
+        my $next = ($1 + 1) * 16;
+        for (my $i = 1; $i < 16; $i++) {
+            my $s = $next + $i;
+            my $rr = new Net::DNS::RR("$1.example.net 86400 $qclass NS ns1.$s.example.net");
+            push @auth, $rr;
+	    print ("\twait=$wait auth: $1.example.net 86400 $qclass NS ns1.$s.example.net\n");
+            $rr = new Net::DNS::RR("ns1.$s.example.net 86400 $qclass A 10.53.0.7");
+	    print ("\twait=$wait add: ns1.$s.example.net 86400 $qclass A 10.53.0.7\n");
+            push @add, $rr;
+        }
+        $rcode = "NOERROR";
     } else {
 	$rcode = "NXDOMAIN";
+	    print ("\twait=$wait NXDOMAIN\n");
     }
 
     return ($rcode, \@ans, \@auth, \@add, $wait);
@@ -203,6 +207,7 @@ sub send_delayed_response {
 	$udpsock->send($reply->data(512), 0, $peer);
 	undef @delayed_response;
 	undef $timeout;
+	print ("send_delayed_response\n");
 }
 
 # Main
