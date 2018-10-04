@@ -3329,27 +3329,19 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 	 * If the socket is going to be closed, don't do more I/O.
 	 */
 	LOCK(&thread->fdlock[lockid]);
-	if (thread->fdstate[fd] == CLOSE_PENDING) {
+	sock = thread->fds[fd];
+	if (thread->fdstate[fd] == CLOSE_PENDING || sock == NULL) {
 		UNLOCK(&thread->fdlock[lockid]);
-
-		(void)unwatch_fd(thread, fd, SELECT_POKE_READ);
-		(void)unwatch_fd(thread, fd, SELECT_POKE_WRITE);
 		return;
 	}
 
-	sock = thread->fds[fd];
-	if (sock == NULL) {
-		unwatch_read = readable;
-		unwatch_write = writeable;
-		goto unlock_fd;
-	}
+
+	LOCK(&sock->lock);
 	if (SOCK_DEAD(sock)) { /* Sock is being closed, bail */
 		UNLOCK(&sock->lock);
 		UNLOCK(&thread->fdlock[lockid]);
 		return;
 	}
-
-	LOCK(&sock->lock);
 	sock->references++;
 	UNLOCK(&sock->lock);
 
@@ -3358,7 +3350,6 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 			internal_accept(sock);
 		else
 			internal_recv(sock);
-		unwatch_read = true;
 	}
 
 	if (writeable) {
@@ -3366,20 +3357,12 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 			internal_connect(sock);
 		else
 			internal_send(sock);
-		unwatch_write = true;
 	}
 
- unlock_fd:
 	UNLOCK(&thread->fdlock[lockid]);
-	if (unwatch_read)
-		(void)unwatch_fd(thread, fd, SELECT_POKE_READ);
-	if (unwatch_write)
-		(void)unwatch_fd(thread, fd, SELECT_POKE_WRITE);
-	if (sock != NULL) {
-		LOCK(&sock->lock);
-		sock->references--;
-		UNLOCK(&sock->lock);
-	}
+	LOCK(&sock->lock);
+	sock->references--;
+	UNLOCK(&sock->lock);
 }
 
 #ifdef USE_KQUEUE
