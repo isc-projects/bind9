@@ -1,3 +1,6 @@
+5043.	[bug]		Fix EDDSA signatures creation and validation.
+			[GL !844]
+
 5042.	[test]		Make the chained delegations in reclimit behave
 			like they would in a regular name server. [GL  #578]
 
