@@ -6056,12 +6056,15 @@ options {
 	      <term><command>prefetch-additional</command></term>
 	      <listitem>
 		<para>
-		  Prefetch additional data if it was not available
-		  for adding to a response when constucting the response.
-		  The default is <userinput>yes</userinput>.
+		  When answering a query for which there might have been
+		  additional section data (for example, address
+		  records associated with MX or SRV responses), but such
+		  data was not found in the cache, send a query for the
+		  data so it will be available in the cache the next time
+		  it is needed. The default is <userinput>yes</userinput>.
 		</para>
 		<para>
-		  Currently only one prefetch is made per query.
+		  Currently, only one prefetch query is initiated per query.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6178,8 +6181,11 @@ options {
 	      <term><command>srv-full-additional</command></term>
 	      <listitem>
 		<para>
-		  Lookup missing additional data before returning if
-		  the query type is SRV.
+		  If <userinput>yes</userinput>, then when answering
+		  recursive queries for type SRV, the additional section
+		  will be fully populated before a response is returned.
+		  If <userinput>no</userinput>, then the additional section
+		  is only populated by data already present in the cache.
 		  The default is <userinput>yes</userinput>.
 		</para>
 	      </listitem>
