@@ -23,7 +23,7 @@ while (<>) {
     $lines .= $_ . "\n";
 }
 
-my $mkey = '#define MANAGED_KEYS "\\' . "\n" . $lines . "\"\n";
+my $mkey = '#define DNSSEC_KEYS "\\' . "\n" . $lines . "\"\n";
 
 print "#ifndef BIND_KEYS_H\n";
 print "#define BIND_KEYS_H 1\n";

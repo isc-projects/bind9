@@ -1,6 +1,6 @@
 #ifndef BIND_KEYS_H
 #define BIND_KEYS_H 1
-#define MANAGED_KEYS "\
+#define DNSSEC_KEYS "\
 # The bind.keys file is used to override the built-in DNSSEC trust anchors\n\
 # which are included as part of BIND 9.  The only trust anchors it contains\n\
 # are for the DNS root zone (\".\").  Trust anchors for any other zones MUST\n\
@@ -25,7 +25,7 @@
 # See https://data.iana.org/root-anchors/root-anchors.xml\n\
 # for current trust anchor information for the root zone.\n\
 \n\
-managed-keys {\n\
+dnssec-keys {\n\
         # This key (19036) is to be phased out starting in 2017. It will\n\
         # remain in the root zone for some time after its successor key\n\
         # has been added. It will remain this file until it is removed from\n\
