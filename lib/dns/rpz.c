@@ -2062,42 +2062,64 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 	dns_rpz_zone_t *rpz;
 	unsigned int refs;
 
+	REQUIRE(rpzp != NULL && *rpzp != NULL);
+
 	rpz = *rpzp;
 	*rpzp = NULL;
+
 	isc_refcount_decrement(&rpz->refs, &refs);
-	if (refs != 0)
+	if (refs != 0) {
 		return;
+	}
+
 	isc_refcount_destroy(&rpz->refs);
 
-	if (dns_name_dynamic(&rpz->origin))
+	if (dns_name_dynamic(&rpz->origin)) {
 		dns_name_free(&rpz->origin, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->client_ip))
+	}
+	if (dns_name_dynamic(&rpz->client_ip)) {
 		dns_name_free(&rpz->client_ip, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->ip))
+	}
+	if (dns_name_dynamic(&rpz->ip)) {
 		dns_name_free(&rpz->ip, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->nsdname))
+	}
+	if (dns_name_dynamic(&rpz->nsdname)) {
 		dns_name_free(&rpz->nsdname, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->nsip))
+	}
+	if (dns_name_dynamic(&rpz->nsip)) {
 		dns_name_free(&rpz->nsip, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->passthru))
+	}
+	if (dns_name_dynamic(&rpz->passthru)) {
 		dns_name_free(&rpz->passthru, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->drop))
+	}
+	if (dns_name_dynamic(&rpz->drop)) {
 		dns_name_free(&rpz->drop, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->tcp_only))
+	}
+	if (dns_name_dynamic(&rpz->tcp_only)) {
 		dns_name_free(&rpz->tcp_only, rpzs->mctx);
-	if (dns_name_dynamic(&rpz->cname))
+	}
+	if (dns_name_dynamic(&rpz->cname)) {
 		dns_name_free(&rpz->cname, rpzs->mctx);
-	if (rpz->db_registered)
+	}
+	if (rpz->db_registered) {
 		dns_db_updatenotify_unregister(rpz->db,
 					       dns_rpz_dbupdate_callback, rpz);
-	if (rpz->dbversion != NULL)
-		dns_db_closeversion(rpz->db, &rpz->dbversion,
-				    false);
-	if (rpz->db)
+	}
+	if (rpz->dbversion != NULL) {
+		dns_db_closeversion(rpz->db, &rpz->dbversion, false);
+	}
+	if (rpz->db != NULL) {
 		dns_db_detach(&rpz->db);
-	isc_ht_destroy(&rpz->nodes);
+	}
+	if (rpz->updaterunning) {
+		isc_task_purgeevent(rpz->rpzs->updater, &rpz->updateevent);
+	}
+
+	isc_timer_reset(rpz->updatetimer, isc_timertype_inactive,
+			NULL, NULL, true);
 	isc_timer_detach(&rpz->updatetimer);
 
+	isc_ht_destroy(&rpz->nodes);
 	isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
 }
 
