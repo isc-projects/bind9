@@ -2361,7 +2361,7 @@ AC_ARG_WITH([cmocka],
 
 AS_CASE([$with_cmocka],
 	[no],[:],
-	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka])],
+	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.1.0])],
 	[*],[
 	    save_CFLAGS="$CFLAGS"
 	    save_LIBS="$LIBS"
