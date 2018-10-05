@@ -13,8 +13,6 @@
 
 #include <config.h>
 
-#if HAVE_OPENSSL
-
 #include <openssl/opensslv.h>
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
@@ -23,7 +21,7 @@
 #include <openssl/hmac.h>
 
 void *OPENSSL_zalloc(size_t size);
-EVP_CIPHER_CTX* EVP_CIPHER_CTX_new(void);
+EVP_CIPHER_CTX*EVP_CIPHER_CTX_new(void);
 void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx);
 EVP_MD_CTX *EVP_MD_CTX_new(void);
 void EVP_MD_CTX_free(EVP_MD_CTX *ctx);
@@ -32,6 +30,5 @@ HMAC_CTX *HMAC_CTX_new(void);
 void HMAC_CTX_free(HMAC_CTX *ctx);
 int HMAC_CTX_reset(HMAC_CTX *ctx);
 
-#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER) */
-
-#endif /* HAVE_OPENSSL */
+#endif /* OPENSSL_VERSION_NUMBER < 0x10100000L ||
+        * defined(LIBRESSL_VERSION_NUMBER) */
