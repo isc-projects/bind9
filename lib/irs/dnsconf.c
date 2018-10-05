@@ -164,19 +164,13 @@ configure_key(isc_mem_t *mctx, const cfg_obj_t *key, irs_dnsconf_t *conf,
 }
 
 static isc_result_t
-configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
-		     dns_rdataclass_t rdclass)
+configure_keygroup(irs_dnsconf_t *conf, const cfg_obj_t *keys,
+		   dns_rdataclass_t rdclass)
 {
 	isc_result_t result;
-	isc_mem_t *mctx = conf->mctx;
-	const cfg_obj_t *keys = NULL;
 	const cfg_obj_t *key, *keylist;
 	const cfg_listelt_t *element, *element2;
-
-	cfg_map_get(cfgobj, "trusted-keys", &keys);
-	if (keys == NULL) {
-		return (ISC_R_SUCCESS);
-	}
+	isc_mem_t *mctx = conf->mctx;
 
 	for (element = cfg_list_first(keys);
 	     element != NULL;
@@ -193,6 +187,37 @@ configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
 				return (result);
 			}
 		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+static isc_result_t
+configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
+		     dns_rdataclass_t rdclass)
+{
+	isc_result_t result;
+	const cfg_obj_t *keys = NULL;
+
+	cfg_map_get(cfgobj, "trusted-keys", &keys);
+	if (keys == NULL) {
+		return (ISC_R_SUCCESS);
+	}
+
+	result = configure_keygroup(conf, keys, rdclass);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	keys = NULL;
+	cfg_map_get(cfgobj, "dnssec-keys", &keys);
+	if (keys == NULL) {
+		return (ISC_R_SUCCESS);
+	}
+
+	result = configure_keygroup(conf, keys, rdclass);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
 	keys = NULL;
@@ -201,21 +226,9 @@ configure_dnsseckeys(irs_dnsconf_t *conf, cfg_obj_t *cfgobj,
 		return (ISC_R_SUCCESS);
 	}
 
-	for (element = cfg_list_first(keys);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
-		keylist = cfg_listelt_value(element);
-		for (element2 = cfg_list_first(keylist);
-		     element2 != NULL;
-		     element2 = cfg_list_next(element2))
-		{
-			key = cfg_listelt_value(element2);
-			result = configure_key(mctx, key, conf, rdclass);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
-			}
-		}
+	result = configure_keygroup(conf, keys, rdclass);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
 	return (ISC_R_SUCCESS);

@@ -427,7 +427,7 @@ echo_i "check that the dlv.isc.org KSK generates a warning ($n)"
 ret=0
 $CHECKCONF check-dlv-ksk-key.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
-grep "entry for dlv.isc.org still present" checkconf.out$n > /dev/null || ret=1
+grep "trust anchor for dlv.isc.org is present" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
