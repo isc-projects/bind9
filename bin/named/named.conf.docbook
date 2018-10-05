@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2018-10-04</date>
+    <date>2018-10-05</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -109,6 +109,14 @@ dlz <replaceable>string</replaceable> {
 </literallayout>
   </refsection>
 
+  <refsection><info><title>DNSSEC-KEYS</title></info>
+    <literallayout class="normal">
+dnssec-keys { <replaceable>string</replaceable> ( static-key |
+    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>quoted_string</replaceable>; ... };
+</literallayout>
+  </refsection>
+
   <refsection><info><title>DYNDB</title></info>
     <literallayout class="normal">
 dyndb <replaceable>string</replaceable> <replaceable>quoted_string</replaceable> {
@@ -147,6 +155,7 @@ logging {
 
 
   <refsection><info><title>MANAGED-KEYS</title></info>
+  <para>See DNSSEC-KEYS.</para>
     <literallayout class="normal">
 managed-keys { <replaceable>string</replaceable> ( static-key |
     initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
@@ -516,7 +525,7 @@ statistics-channels {
   </refsection>
 
   <refsection><info><title>TRUSTED-KEYS</title></info>
-  <para>Deprecated - see MANAGED-KEYS.</para>
+  <para>Deprecated - see DNSSEC-KEYS.</para>
     <literallayout class="normal">
 trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
     <replaceable>integer</replaceable> <replaceable>integer</replaceable>
@@ -597,6 +606,9 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-enable <replaceable>boolean</replaceable>;
+	dnssec-keys { <replaceable>string</replaceable> ( static-key |
+	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-lookaside ( <replaceable>string</replaceable> trust-anchor
 	    <replaceable>string</replaceable> | auto | no );
