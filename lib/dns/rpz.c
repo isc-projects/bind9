@@ -2048,8 +2048,11 @@ cidr_free(dns_rpz_zones_t *rpzs) {
  */
 static void
 rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
+	dns_rpz_zone_t *rpz;
+
 	REQUIRE(rpzp != NULL && *rpzp != NULL);
-	dns_rpz_zone_t *rpz = *rpzp;
+
+	rpz = *rpzp;
 	*rpzp = NULL;
 
 	if (isc_refcount_decrement(&rpz->refs) != 1) {
@@ -2092,7 +2095,7 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 	if (rpz->dbversion != NULL) {
 		dns_db_closeversion(rpz->db, &rpz->dbversion, false);
 	}
-	if (rpz->db) {
+	if (rpz->db != NULL) {
 		dns_db_detach(&rpz->db);
 	}
 	if (rpz->updaterunning) {
