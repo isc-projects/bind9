@@ -11,6 +11,8 @@
 
 #include <config.h>
 
+#if HAVE_CMOCKA
+
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
@@ -140,3 +142,11 @@ int main(void) {
 	};
 	return (cmocka_run_group_tests(tkey_tests, NULL, NULL));
 }
+
+#else
+
+int main(void) {
+	return (0);
+}
+
+#endif

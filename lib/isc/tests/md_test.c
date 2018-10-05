@@ -11,6 +11,7 @@
 
 #include <config.h>
 
+#if HAVE_CMOCKA
 
 #include <stdarg.h>
 #include <stddef.h>
@@ -571,3 +572,11 @@ int main(void) {
 
 	return (cmocka_run_group_tests(tests, _setup, _teardown));
 }
+
+#else /* HAVE_CMOCKA */
+
+int main(void) {
+	return (0);
+}
+
+#endif
