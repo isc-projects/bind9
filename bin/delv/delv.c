@@ -140,7 +140,7 @@ static dns_fixedname_t afn, dfn;
 static dns_name_t *anchor_name = NULL, *dlv_name = NULL;
 
 /* Default bind.keys contents */
-static char anchortext[] = MANAGED_KEYS;
+static char anchortext[] = DNSSEC_KEYS;
 
 /*
  * Static function prototypes
@@ -696,11 +696,13 @@ setup_dnsseckeys(dns_client_t *client) {
 	cfg_parser_t *parser = NULL;
 	const cfg_obj_t *keys = NULL;
 	const cfg_obj_t *managed_keys = NULL;
+	const cfg_obj_t *dnssec_keys = NULL;
 	cfg_obj_t *bindkeys = NULL;
 	const char *filename = anchorfile;
 
-	if (!root_validation && !dlv_validation)
+	if (!root_validation && !dlv_validation) {
 		return (ISC_R_SUCCESS);
+	}
 
 	if (filename == NULL) {
 #ifndef WIN32
@@ -715,27 +717,33 @@ setup_dnsseckeys(dns_client_t *client) {
 
 	if (trust_anchor == NULL) {
 		trust_anchor = isc_mem_strdup(mctx, ".");
-		if (trust_anchor == NULL)
+		if (trust_anchor == NULL) {
 			fatal("out of memory");
+		}
 	}
 
-	if (trust_anchor != NULL)
+	if (trust_anchor != NULL) {
 		CHECK(convert_name(&afn, &anchor_name, trust_anchor));
-	if (dlv_anchor != NULL)
+	}
+	if (dlv_anchor != NULL) {
 		CHECK(convert_name(&dfn, &dlv_name, dlv_anchor));
+	}
 
 	CHECK(cfg_parser_create(mctx, dns_lctx, &parser));
 
 	if (access(filename, R_OK) != 0) {
-		if (anchorfile != NULL)
+		if (anchorfile != NULL) {
 			fatal("Unable to read key file '%s'", anchorfile);
+		}
 	} else {
 		result = cfg_parse_file(parser, filename,
 					&cfg_type_bindkeys, &bindkeys);
-		if (result != ISC_R_SUCCESS)
-			if (anchorfile != NULL)
+		if (result != ISC_R_SUCCESS) {
+			if (anchorfile != NULL) {
 				fatal("Unable to load keys from '%s'",
 				      anchorfile);
+			}
+		}
 	}
 
 	if (bindkeys == NULL) {
@@ -745,30 +753,40 @@ setup_dnsseckeys(dns_client_t *client) {
 		isc_buffer_add(&b, sizeof(anchortext) - 1);
 		result = cfg_parse_buffer(parser, &b, &cfg_type_bindkeys,
 					  &bindkeys);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("Unable to parse built-in keys");
+		}
 	}
 
 	INSIST(bindkeys != NULL);
 	cfg_map_get(bindkeys, "trusted-keys", &keys);
 	cfg_map_get(bindkeys, "managed-keys", &managed_keys);
+	cfg_map_get(bindkeys, "dnssec-keys", &dnssec_keys);
 
-	if (keys != NULL)
+	if (keys != NULL) {
 		CHECK(load_keys(keys, client));
-	if (managed_keys != NULL)
+	}
+	if (managed_keys != NULL) {
 		CHECK(load_keys(managed_keys, client));
+	}
+	if (dnssec_keys != NULL) {
+		CHECK(load_keys(dnssec_keys, client));
+	}
 	result = ISC_R_SUCCESS;
 
-	if (trusted_keys == 0)
+	if (trusted_keys == 0) {
 		fatal("No trusted keys were loaded");
+	}
 
-	if (dlv_validation)
+	if (dlv_validation) {
 		dns_client_setdlv(client, dns_rdataclass_in, dlv_anchor);
+	}
 
  cleanup:
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		delv_log(ISC_LOG_ERROR, "setup_dnsseckeys: %s",
 			  isc_result_totext(result));
+	}
 	return (result);
 }
 
