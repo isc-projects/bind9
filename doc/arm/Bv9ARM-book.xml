@@ -2090,7 +2090,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	zone key of another zone above this one in the DNS tree.
       </para>
 
-      <section xml:id="dnssec_keys"><info><title>Generating Keys</title></info>
+      <section xml:id="generating_dnssec_keys"><info><title>Generating Keys</title></info>
 
 	<para>
 	  The <command>dnssec-keygen</command> program is used to
@@ -2226,7 +2226,9 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  <userinput>yes</userinput>, DNSSEC validation will only occur
 	  if at least one trust anchor has been explicitly configured
 	  in <filename>named.conf</filename>
-	  using a <command>managed-keys</command> statement.
+	  using a <command>dnssec-keys</command> statement (or the
+	  synonymous <command>managed-keys</command> or the deprecated
+	  <command>trusted-keys</command> statements).
 	</para>
 	<para>
 	  When <command>dnssec-validation</command> is set to
@@ -2250,7 +2252,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para>
-	  The keys specified in <command>managed-keys</command> are
+	  The keys specified in <command>dnssec-keys</command>
 	  copies of DNSKEY RRs for zones that are used to form the
 	  first link in the cryptographic chain of trust.  Keys configured
 	  with the keyword <command>static-key</command> are loaded directly
@@ -2263,7 +2265,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para>
-	  <command>managed-keys</command> is described in more detail
+	  <command>dnssec-keys</command> is described in more detail
 	  later in this document.
 	</para>
 
@@ -2286,7 +2288,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 <programlisting>
-managed-keys {
+dnssec-keys {
 	/* Root Key */
 	"." initial-key 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
 				 JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
@@ -3224,14 +3226,17 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    </row>
 	    <row rowsep="0">
 	      <entry colname="1">
-		<para><command>trusted-keys</command></para>
+		<para><command>dnssec-keys</command></para>
 	      </entry>
 	      <entry colname="2">
 		<para>
-		  defines permanent trusted DNSSEC keys;
-		  this option is deprecated in favor
-		  of <command>managed-keys</command> with
-		  the <command>static-key</command> keyword.
+		  defines DNSSEC keys: if used with the
+		  <command>initial-key</command> keyword,
+		  keys are kept up to date using RFC 5011
+		  trust anchor maintenance, and if used with
+		  <command>static-key</command>, keys are permanent.
+		  Identical to <command>managed-keys</command>,
+		  but has been added for improved clarity.
 		</para>
 	      </entry>
 	    </row>
@@ -3241,11 +3246,22 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	      </entry>
 	      <entry colname="2">
 		<para>
-		  defines DNSSEC keys: if used with the
-		  <command>initial-key</command> keyword,
-		  keys are kept up to date using RFC 5011
-		  trust anchor maintenance, and if used with
-		  <command>static-key</command>, keys are permanent.
+		  is identical to <command>dnssec-keys</command>,
+		  and is retained for backward compatibility.
+		</para>
+	      </entry>
+	    </row>
+	    <row rowsep="0">
+	      <entry colname="1">
+		<para><command>trusted-keys</command></para>
+	      </entry>
+	      <entry colname="2">
+		<para>
+		  defines permanent trusted DNSSEC keys;
+		  this option is deprecated in favor
+		  of <command>dnssec-keys</command> with
+		  the <command>static-key</command> keyword,
+		  and may be removed in a future release.
 		</para>
 	      </entry>
 	    </row>
@@ -4624,7 +4640,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		Specifies the directory in which to store the files that
 		track managed DNSSEC keys (i.e., those configured using
 		the <command>initial-key</command> keyword in a
-		<command>managed-keys</command> statement).  By default,
+		<command>dnssec-keys</command> statement).  By default,
 		this is the working directory.  The directory
 		<emphasis>must</emphasis> be writable by the effective
 		user ID of the <command>named</command> process.
@@ -5137,9 +5153,10 @@ options {
 		then <command>named</command> will only accept answers if
 		they are secure.  If <userinput>no</userinput>, then normal
 		DNSSEC validation applies allowing for insecure answers to
-		be accepted.  The specified domain must be under a
-		<command>managed-keys</command> statement, or
-		<command>dnssec-validation auto</command> must be active.
+		be accepted.  The specified domain must be defined as a
+		trust anchor, for instance in a <command>dnssec-keys</command>
+		statement, or <command>dnssec-validation auto</command> must
+		be active.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -6309,7 +6326,8 @@ options {
 		<para>
 		  Causes <command>named</command> to send specially-formed
 		  queries once per day to domains for which trust anchors
-		  have been configured via <command>managed-keys</command> or
+		  have been configured via, e.g.,
+		  <command>dnssec-keys</command> or
 		  <command>dnssec-validation auto</command>.
 		</para>
 		<para>
@@ -6623,10 +6641,11 @@ options {
 		<para>
 		  If set to <userinput>yes</userinput>, DNSSEC validation is
 		  enabled, but a trust anchor must be manually configured
-		  using a <command>trusted-keys</command>
-		  or <command>managed-keys</command> statement; if there
-		  is no configured trust anchor, validation will not take
-		  place.
+		  using a <command>dnssec-keys</command> statement (or
+		  the synonymous <command>managed-keys</command>, or the
+		  deprecated <command>trusted-keys</command> statements).
+		  If there is no configured trust anchor, validation will
+		  not take place.
 		</para>
 		<para>
 		  If set to <userinput>no</userinput>, DNSSEC validation
@@ -10969,151 +10988,138 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	</section>
 
-      <section xml:id="statschannels"><info><title><command>statistics-channels</command> Statement Grammar</title></info>
-	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="statistics-channels.grammar.xml"/>
-      </section>
-
-      <section xml:id="statistics_channels"><info><title><command>statistics-channels</command> Statement Definition and
-	    Usage</title></info>
-
-	<para>
-	  The <command>statistics-channels</command> statement
-	  declares communication channels to be used by system
-	  administrators to get access to statistics information of
-	  the name server.
-	</para>
-
-	<para>
-	  This statement intends to be flexible to support multiple
-	  communication protocols in the future, but currently only
-	  HTTP access is supported.
-	  It requires that BIND 9 be compiled with libxml2 and/or
-	  json-c (also known as libjson0); the
-	  <command>statistics-channels</command> statement is
-	  still accepted even if it is built without the library,
-	  but any HTTP access will fail with an error.
-	</para>
-
-	<para>
-	  An <command>inet</command> control channel is a TCP socket
-	  listening at the specified <command>ip_port</command> on the
-	  specified <command>ip_addr</command>, which can be an IPv4 or IPv6
-	  address.  An <command>ip_addr</command> of <literal>*</literal>
-	  (asterisk) is
-	  interpreted as the IPv4 wildcard address; connections will be
-	  accepted on any of the system's IPv4 addresses.
-	  To listen on the IPv6 wildcard address,
-	  use an <command>ip_addr</command> of <literal>::</literal>.
-	</para>
-
-	<para>
-	  If no port is specified, port 80 is used for HTTP channels.
-	  The asterisk "<literal>*</literal>" cannot be used for
-	  <command>ip_port</command>.
-	</para>
-
-	<para>
-	  The attempt of opening a statistics channel is
-	  restricted by the optional <command>allow</command> clause.
-	  Connections to the statistics channel are permitted based on the
-	  <command>address_match_list</command>.
-	  If no <command>allow</command> clause is present,
-	  <command>named</command> accepts connection
-	  attempts from any address; since the statistics may
-	  contain sensitive internal information, it is highly
-	  recommended to restrict the source of connection requests
-	  appropriately.
-	</para>
-
-	<para>
-	  If no <command>statistics-channels</command> statement is present,
-	  <command>named</command> will not open any communication channels.
-	</para>
-
-	<para>
-	  The statistics are available in various formats and views
-	  depending on the URI used to access them.  For example, if
-	  the statistics channel is configured to listen on 127.0.0.1
-	  port 8888, then the statistics are accessible in XML format at
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/">http://127.0.0.1:8888/</link> or
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml">http://127.0.0.1:8888/xml</link>. A CSS file is
-	  included which can format the XML statistics into tables
-	  when viewed with a stylesheet-capable browser, and into
-	  charts and graphs using the Google Charts API when using a
-	  javascript-capable browser.
-	</para>
-
-	<para>
-	  Applications that depend on a particular XML schema
-	  can request
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v2">http://127.0.0.1:8888/xml/v2</link> for version 2
-	  of the statistics XML schema or
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3">http://127.0.0.1:8888/xml/v3</link> for version 3.
-	  If the requested schema is supported by the server, then
-	  it will respond; if not, it will return a "page not found"
-	  error.
-	</para>
-
-	<para>
-	  Broken-out subsets of the statistics can be viewed at
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/status">http://127.0.0.1:8888/xml/v3/status</link>
-	  (server uptime and last reconfiguration time),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/server">http://127.0.0.1:8888/xml/v3/server</link>
-	  (server and resolver statistics),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/zones">http://127.0.0.1:8888/xml/v3/zones</link>
-	  (zone statistics),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/net">http://127.0.0.1:8888/xml/v3/net</link>
-	  (network status and socket statistics),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/mem">http://127.0.0.1:8888/xml/v3/mem</link>
-	  (memory manager statistics),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/tasks">http://127.0.0.1:8888/xml/v3/tasks</link>
-	  (task manager statistics), and
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/traffic">http://127.0.0.1:8888/xml/v3/traffic</link>
-	  (traffic sizes).
-	</para>
-
-	<para>
-	  The full set of statistics can also be read in JSON format at
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json">http://127.0.0.1:8888/json</link>,
-	  with the broken-out subsets at
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/status">http://127.0.0.1:8888/json/v1/status</link>
-	  (server uptime and last reconfiguration time),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/server">http://127.0.0.1:8888/json/v1/server</link>
-	  (server and resolver statistics),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/zones">http://127.0.0.1:8888/json/v1/zones</link>
-	  (zone statistics),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/net">http://127.0.0.1:8888/json/v1/net</link>
-	  (network status and socket statistics),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/mem">http://127.0.0.1:8888/json/v1/mem</link>
-	  (memory manager statistics),
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/tasks">http://127.0.0.1:8888/json/v1/tasks</link>
-	  (task manager statistics), and
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/traffic">http://127.0.0.1:8888/json/v1/traffic</link>
-	  (traffic sizes).
-	</para>
-      </section>
-
-	<section xml:id="trusted-keys"><info><title><command>trusted-keys</command> Statement Grammar</title></info>
-	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="trusted-keys.grammar.xml"/>
+	<section xml:id="statschannels"><info><title><command>statistics-channels</command> Statement Grammar</title></info>
+	  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="statistics-channels.grammar.xml"/>
 	</section>
-	<section xml:id="trusted_keys"><info><title><command>trusted-keys</command> Statement Definition
-	    and Usage</title></info>
+
+	<section xml:id="statistics_channels"><info><title><command>statistics-channels</command> Statement Definition and
+	      Usage</title></info>
 
 	  <para>
-	    The <command>trusted-keys</command> statement has been
-	    deprecated in favor of <xref linkend="managed_keys"/>
-	    with the <command>static</command> keyword.
+	    The <command>statistics-channels</command> statement
+	    declares communication channels to be used by system
+	    administrators to get access to statistics information of
+	    the name server.
+	  </para>
+
+	  <para>
+	    This statement intends to be flexible to support multiple
+	    communication protocols in the future, but currently only
+	    HTTP access is supported.
+	    It requires that BIND 9 be compiled with libxml2 and/or
+	    json-c (also known as libjson0); the
+	    <command>statistics-channels</command> statement is
+	    still accepted even if it is built without the library,
+	    but any HTTP access will fail with an error.
+	  </para>
+
+	  <para>
+	    An <command>inet</command> control channel is a TCP socket
+	    listening at the specified <command>ip_port</command> on the
+	    specified <command>ip_addr</command>, which can be an IPv4 or IPv6
+	    address.  An <command>ip_addr</command> of <literal>*</literal>
+	    (asterisk) is
+	    interpreted as the IPv4 wildcard address; connections will be
+	    accepted on any of the system's IPv4 addresses.
+	    To listen on the IPv6 wildcard address,
+	    use an <command>ip_addr</command> of <literal>::</literal>.
+	  </para>
+
+	  <para>
+	    If no port is specified, port 80 is used for HTTP channels.
+	    The asterisk "<literal>*</literal>" cannot be used for
+	    <command>ip_port</command>.
+	  </para>
+
+	  <para>
+	    The attempt of opening a statistics channel is
+	    restricted by the optional <command>allow</command> clause.
+	    Connections to the statistics channel are permitted based on the
+	    <command>address_match_list</command>.
+	    If no <command>allow</command> clause is present,
+	    <command>named</command> accepts connection
+	    attempts from any address; since the statistics may
+	    contain sensitive internal information, it is highly
+	    recommended to restrict the source of connection requests
+	    appropriately.
+	  </para>
+
+	  <para>
+	    If no <command>statistics-channels</command> statement is present,
+	    <command>named</command> will not open any communication channels.
+	  </para>
+
+	  <para>
+	    The statistics are available in various formats and views
+	    depending on the URI used to access them.  For example, if
+	    the statistics channel is configured to listen on 127.0.0.1
+	    port 8888, then the statistics are accessible in XML format at
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/">http://127.0.0.1:8888/</link> or
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml">http://127.0.0.1:8888/xml</link>. A CSS file is
+	    included which can format the XML statistics into tables
+	    when viewed with a stylesheet-capable browser, and into
+	    charts and graphs using the Google Charts API when using a
+	    javascript-capable browser.
+	  </para>
+
+	  <para>
+	    Applications that depend on a particular XML schema
+	    can request
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v2">http://127.0.0.1:8888/xml/v2</link> for version 2
+	    of the statistics XML schema or
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3">http://127.0.0.1:8888/xml/v3</link> for version 3.
+	    If the requested schema is supported by the server, then
+	    it will respond; if not, it will return a "page not found"
+	    error.
+	  </para>
+
+	  <para>
+	    Broken-out subsets of the statistics can be viewed at
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/status">http://127.0.0.1:8888/xml/v3/status</link>
+	    (server uptime and last reconfiguration time),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/server">http://127.0.0.1:8888/xml/v3/server</link>
+	    (server and resolver statistics),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/zones">http://127.0.0.1:8888/xml/v3/zones</link>
+	    (zone statistics),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/net">http://127.0.0.1:8888/xml/v3/net</link>
+	    (network status and socket statistics),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/mem">http://127.0.0.1:8888/xml/v3/mem</link>
+	    (memory manager statistics),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/tasks">http://127.0.0.1:8888/xml/v3/tasks</link>
+	    (task manager statistics), and
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/traffic">http://127.0.0.1:8888/xml/v3/traffic</link>
+	    (traffic sizes).
+	  </para>
+
+	  <para>
+	    The full set of statistics can also be read in JSON format at
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json">http://127.0.0.1:8888/json</link>,
+	    with the broken-out subsets at
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/status">http://127.0.0.1:8888/json/v1/status</link>
+	    (server uptime and last reconfiguration time),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/server">http://127.0.0.1:8888/json/v1/server</link>
+	    (server and resolver statistics),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/zones">http://127.0.0.1:8888/json/v1/zones</link>
+	    (zone statistics),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/net">http://127.0.0.1:8888/json/v1/net</link>
+	    (network status and socket statistics),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/mem">http://127.0.0.1:8888/json/v1/mem</link>
+	    (memory manager statistics),
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/tasks">http://127.0.0.1:8888/json/v1/tasks</link>
+	    (task manager statistics), and
+	    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/json/v1/traffic">http://127.0.0.1:8888/json/v1/traffic</link>
+	    (traffic sizes).
 	  </para>
 	</section>
 
-	<section xml:id="managed_keys"><info><title><command>managed-keys</command> Statement Grammar</title></info>
-	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="managed-keys.grammar.xml"/>
+	<section xml:id="dnssec_keys"><info><title><command>dnssec-keys</command> Statement Grammar</title></info>
+	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="dnssec-keys.grammar.xml"/>
 	</section>
-	<section xml:id="managed-keys"><info><title><command>managed-keys</command> Statement Definition
+	<section xml:id="dnssec-keys"><info><title><command>dnssec-keys</command> Statement Definition
 	    and Usage</title></info>
 
 	  <para>
-	    The <command>managed-keys</command> statement defines DNSSEC
+	    The <command>dnssec-keys</command> statement defines DNSSEC
 	    trust anchors.  DNSSEC is described in <xref linkend="DNSSEC"/>.
 	  </para>
 	  <para>
@@ -11132,14 +11138,14 @@ example.com                 CNAME   rpz-tcp-only.
 	    the <command>validate-except</command> option).
 	  </para>
 	  <para>
-	    All keys listed in <command>managed-keys</command>, and
+	    All keys listed in <command>dnssec-keys</command>, and
 	    their corresponding zones, are deemed to exist regardless
 	    of what parent zones say.   Only keys configured as trust anchors
 	    are used to validate the DNSKEY RRset for the corresponding
 	    name.  The parent's DS RRset will not be used.
 	  </para>
 	  <para>
-	    The <command>managed-keys</command> statement can contain
+	    The <command>dnssec-keys</command> statement can contain
 	    multiple key entries, each consisting of the key's
 	    domain name, followed by the <command>static-key</command> or
 	    <command>initial-key</command> keyword, then the key's flags,
@@ -11149,14 +11155,14 @@ example.com                 CNAME   rpz-tcp-only.
 	    multiple lines.
 	  </para>
 	  <para>
-	    <command>managed-keys</command> may be set at the top level
+	    <command>dnssec-keys</command> may be set at the top level
 	    of <filename>named.conf</filename> or within a view.  If it is
 	    set in both places, the configurations are additive: keys
 	    defined at the top level are inherited by all views, but keys
 	    defined in a view are only used within that view.
 	  </para>
 	  <para>
-	    <command>managed-keys</command> entries can be configured with
+	    <command>dnssec-keys</command> entries can be configured with
 	    two keywords: <command>static-key</command> or
 	    <command>initial-key</command>.  Keys configured with
 	    <command>static-key</command> are immutable,
@@ -11174,7 +11180,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    unable to validate this zone any longer; it would
 	    reply with a SERVFAIL response code.  This would
 	    continue until the resolver operator had updated the
-	    <command>managed-keys</command> statement with the new key.
+	    <command>dnssec-keys</command> statement with the new key.
 	  </para>
 	  <para>
 	    If, however, the trust anchor had been configured with
@@ -11202,17 +11208,17 @@ example.com                 CNAME   rpz-tcp-only.
 	    <command>initial-key</command> configured in
 	    <filename>named.conf</filename>, it fetches the
 	    DNSKEY RRset directly from the zone apex, and validates it
-	    using the key specified in <command>managed-keys</command>.
+	    using the key specified in <command>dnssec-keys</command>.
 	    If the DNSKEY RRset is validly signed, then it is
 	    used as the basis for a new managed keys database.
 	  </para>
 	  <para>
 	    From that point on, whenever <command>named</command> runs, it
 	    sees the <command>initial-key</command> listed in
-	    <command>managed-keys</command>, checks to
+	    <command>dnssec-keys</command>, checks to
 	    make sure RFC 5011 key maintenance has already been initialized
 	    for the specified domain, and if so, it simply moves on.  The
-	    key specified in the <command>managed-keys</command>
+	    key specified in the <command>dnssec-keys</command>
 	    statement is not used to validate answers; it is
 	    superseded by the key or keys stored in the managed keys
 	    database.
@@ -11221,7 +11227,7 @@ example.com                 CNAME   rpz-tcp-only.
 	    The next time <command>named</command> runs after an
 	    <command>initial-key</command> has been
 	    <emphasis>removed</emphasis> from the
-	    <command>managed-keys</command> statement (or changed to
+	    <command>dnssec-keys</command> statement (or changed to
 	    a <command>static-key</command>), the corresponding
 	    zone will be removed from the managed keys database,
 	    and RFC 5011 key maintenance will no longer be used for that
@@ -11265,6 +11271,32 @@ example.com                 CNAME   rpz-tcp-only.
 	    in the event no <filename>bind.keys</filename> can be
 	    found, the initializing key is also compiled directly
 	    into <command>named</command>.
+	  </para>
+	</section>
+
+	<section xml:id="managed-keys"><info><title><command>managed-keys</command> Statement Grammar</title></info>
+	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="managed-keys.grammar.xml"/>
+	</section>
+	<section xml:id="managed_keys"><info><title><command>managed-keys</command> Statement Definition
+	    and Usage</title></info>
+
+	  <para>
+	    The <command>managed-keys</command> statement is
+	    identical to the <command>dnssec-keys</command>, and is
+	    retained for backward compatibility.
+	  </para>
+	</section>
+
+	<section xml:id="trusted-keys"><info><title><command>trusted-keys</command> Statement Grammar</title></info>
+	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="trusted-keys.grammar.xml"/>
+	</section>
+	<section xml:id="trusted_keys"><info><title><command>trusted-keys</command> Statement Definition
+	    and Usage</title></info>
+
+	  <para>
+	    The <command>trusted-keys</command> statement has been
+	    deprecated in favor of <xref linkend="dnssec_keys"/>
+	    with the <command>static</command> keyword.
 	  </para>
 	</section>
 
@@ -12551,7 +12583,7 @@ example.com. NS ns2.example.net.
 		    the zone must be configured as a trust anchor in
 		    <filename>named.conf</filename>:
 		    that is, a key for the zone must either be specified in
-		    <command>managed-keys</command>, or in the case of
+		    <command>dnssec-keys</command>, or in the case of
 		    the root zone, <command>dnssec-validation</command>
 		    must be set to <userinput>auto</userinput>.
 		    Answers coming from a mirror zone look almost exactly like
