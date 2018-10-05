@@ -23,8 +23,8 @@ infile=root.db.in
 zonefile=root.db
 outfile=root.signed
 
-keyname1=`$KEYGEN -a DSA -b 768 -n zone $zone 2> /dev/null` 
-keyname2=`$KEYGEN -f KSK -a DSA -b 768 -n zone $zone 2> /dev/null`
+keyname1=`$KEYGEN -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
+keyname2=`$KEYGEN -f KSK -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone 2> /dev/null`
 
 cat $infile $keyname1.key $keyname2.key >$zonefile
 

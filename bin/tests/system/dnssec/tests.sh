@@ -147,10 +147,10 @@ status=`expr $status + $ret`
 
 if [ -x ${DELV} ] ; then
    ret=0
-   echo_i "checking postive validation NSEC using dns_client ($n)"
+   echo_i "checking positive validation NSEC using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.example > delv.out$n || ret=1
    grep "a.example..*10.0.0.1" delv.out$n > /dev/null || ret=1
-   grep "a.example..*.RRSIG.A 3 2 300 .*" delv.out$n > /dev/null || ret=1
+   grep "a.example..*.RRSIG.A $DEFAULT_ALGORITHM_NUMBER 2 300 .*" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -222,7 +222,7 @@ if [ -x ${DELV} ] ; then
    echo_i "checking positive wildcard validation NSEC using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.wild.example > delv.out$n || ret=1
    grep "a.wild.example..*10.0.0.27" delv.out$n > /dev/null || ret=1
-   grep "a.wild.example..*RRSIG.A 3 2 300.*" delv.out$n > /dev/null || ret=1
+   grep -E "a.wild.example..*RRSIG.A [0-9]+ 2 300.*" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -1190,7 +1190,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking that lookups succeed after disabling a algorithm works ($n)"
+echo_i "checking that lookups succeed after disabling an algorithm ($n)"
 ret=0
 $DIG $DIGOPTS +noauth example. SOA @10.53.0.2 \
 	> dig.out.ns2.test$n || ret=1
@@ -2997,11 +2997,11 @@ echo_i "check dig's +nocrypto flag ($n)"
 ret=0
 $DIG $DIGOPTS +norec +nocrypto DNSKEY . \
 	@10.53.0.1 > dig.out.dnskey.ns1.test$n || ret=1
-grep '256 3 1 \[key id = [1-9][0-9]*]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
-grep 'RRSIG.* \[omitted]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
+grep -E '256 [0-9]+ 1 \[key id = [1-9][0-9]*]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
+grep -E 'RRSIG.* \[omitted]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +norec +nocrypto DS example \
 	@10.53.0.1 > dig.out.ds.ns1.test$n || ret=1
-grep 'DS.* 3 [12] \[omitted]' dig.out.ds.ns1.test$n > /dev/null || ret=1
+grep -E 'DS.* [0-9]+ [12] \[omitted]' dig.out.ds.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -3137,12 +3137,8 @@ do
 	2) # Diffie Helman
 	   alg=`expr $alg + 1`
 	   continue;;
-	3) # DSA/SHA1
-	   size="-b 512";;
 	5) # RSA/SHA-1
 	   size="-b 1024";;
-	6) # DSA-NSEC3-SHA1
-	   size="-b 512";;
 	7) # RSASHA1-NSEC3-SHA1
 	   size="-b 1024";;
 	8) # RSA/SHA-256

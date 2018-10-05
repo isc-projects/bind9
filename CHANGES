@@ -1,3 +1,6 @@
+5045.	[cleanup]	Remove support for DNSSEC algorithms 3 (DSA)
+			and 6 (DSA-NSEC3-SHA1). [GL #22]
+
 5044.	[cleanup]	If "dnssec-enable" is no, then "dnssec-validation"
 			now also defaults to no.  [GL #388]
 
