@@ -1,15 +1,24 @@
 5047.	[func]		In the interest of preventing problems with future
 			key roll events, the "trusted-keys" option has been
-			deprecated.  The "managed-keys" statement can now be
-			used for all trust anchors.  Old configurations
-			that used "trusted-keys" to set up DNSSEC validation
-			will now generate warnings in the log, and should be
-			changed to use "managed-keys" instead.
+			deprecated.  The "dnssec-keys" statement can now be
+			used for all trust anchors, and the older
+			"managed-keys" statement is a synonym for it,
+			retained for backward compatibility.
+
+			Old configurations that used "trusted-keys" to set
+			up DNSSEC validation will now generate warnings in
+			the log, and should be changed to use "dnssec-keys"
+			instead.
+
+			Configurations using "managed-keys" will continue
+			to work with no changes, but can be changed to
+			"dnssec-keys" if desired.
 
 			If it is necessary for a key not to use RFC 5011
 			trust anchor maintenance, it can be specified with
-			the keyword "static-key". This will trigger a warning
-			if used for the root zone. [GL #6]
+			the keyword "static-key" in place of "initial-key".
+			Note that this will trigger a warning if used for
+			the root zone. [GL #6]
 
 5046.	[bug]		named could crash during shutdown if an RPZ
 			reload was in progress. [RT #46210]
