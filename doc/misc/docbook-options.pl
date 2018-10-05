@@ -140,7 +140,13 @@ END
 
                 if ($1 eq "trusted-keys") {
                         print <<END;
-  <para>Deprecated - see MANAGED-KEYS.</para>
+  <para>Deprecated - see DNSSEC-KEYS.</para>
+END
+                }
+
+                if ($1 eq "managed-keys") {
+                        print <<END;
+  <para>See DNSSEC-KEYS.</para>
 END
                 }
 

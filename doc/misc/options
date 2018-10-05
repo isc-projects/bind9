@@ -21,6 +21,10 @@ dlz <string> {
         search <boolean>;
 }; // may occur multiple times
 
+dnssec-keys { <string> ( static-key |
+    initial-key ) <integer> <integer> <integer>
+    <quoted_string>; ... }; // may occur multiple times
+
 dyndb <string> <quoted_string> {
     <unspecified-text> }; // may occur multiple times
 
@@ -511,6 +515,9 @@ view <string> [ <class> ] {
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-enable <boolean>;
+        dnssec-keys { <string> ( static-key |
+            initial-key ) <integer> <integer>
+            <integer> <quoted_string>; ... }; // may occur multiple times
         dnssec-loadkeys-interval <integer>;
         dnssec-lookaside ( <string> trust-anchor
             <string> | auto | no ); // may occur multiple times
