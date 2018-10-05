@@ -3299,7 +3299,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *opts = NULL;
 	bool enablednssec, enablevalidation;
 	const char *valstr = "no";
-	unsigned int tflags, mflags;
+	unsigned int tflags = 0, dflags = 0, mflags = 0;
 
 	/*
 	 * Get global options block
@@ -3484,7 +3484,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 			    valstr);
 
 	/*
-	 * Check trusted-keys and managed-keys.
+	 * Check trusted-keys and dnssec-keys/managed-keys.
 	 */
 	keys = NULL;
 	if (voptions != NULL) {
@@ -3494,7 +3494,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		(void)cfg_map_get(config, "trusted-keys", &keys);
 	}
 
-	tflags = 0;
 	for (element = cfg_list_first(keys);
 	     element != NULL;
 	     element = cfg_list_next(element))
@@ -3517,15 +3516,77 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
 			    "trusted-keys entry for the root zone "
 			    "WILL FAIL after key rollover - use "
-			    "managed-keys with initial-key instead.");
+			    "dnssec-keys with initial-key instead.");
 	}
 
 	if ((tflags & DLV_KSK_KEY) != 0) {
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "trusted-keys entry for dlv.isc.org is still "
-			    "present: dlv.isc.org has been shut down");
+			    "trust anchor for dlv.isc.org is present; "
+			    "dlv.isc.org has been shut down");
 	}
 
+	keys = NULL;
+	if (voptions != NULL) {
+		(void)cfg_map_get(voptions, "dnssec-keys", &keys);
+	}
+	if (keys == NULL) {
+		(void)cfg_map_get(config, "dnssec-keys", &keys);
+	}
+
+	for (element = cfg_list_first(keys);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const cfg_obj_t *keylist = cfg_listelt_value(element);
+		for (element2 = cfg_list_first(keylist);
+		     element2 != NULL;
+		     element2 = cfg_list_next(element2))
+		{
+			obj = cfg_listelt_value(element2);
+			tresult = check_trusted_key(obj, true, &dflags,
+						    logctx);
+			if (tresult != ISC_R_SUCCESS) {
+				result = tresult;
+			}
+		}
+	}
+
+	if ((dflags & ROOT_KSK_STATIC) != 0) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "static-key entry for the root zone "
+			    "WILL FAIL after key rollover - use "
+			    "dnssec-keys with initial-key instead.");
+	}
+
+	if ((dflags & ROOT_KSK_2010) != 0 && (dflags & ROOT_KSK_2017) == 0) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "initial-key entry for the root zone "
+			    "uses the 2010 key without the updated "
+			    "2017 key");
+	}
+
+	if ((tflags & ROOT_KSK_ANY) != 0 && (dflags & ROOT_KSK_ANY) != 0) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "both trusted-keys and dnssec-keys "
+			    "for the root zone are present");
+	}
+
+	if ((dflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "both initial-key and static-key entries for the "
+			    "root zone are present");
+	}
+
+	if ((dflags & DLV_KSK_KEY) != 0) {
+		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
+			    "trust anchor for dlv.isc.org is present; "
+			    "dlv.isc.org has been shut down");
+	}
+
+	/*
+	 * "managed-keys" is a backward-compatible synonym for
+	 * "dnssec-keys"; perform the same checks.
+	 */
 	keys = NULL;
 	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "managed-keys", &keys);
@@ -3534,7 +3595,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		(void)cfg_map_get(config, "managed-keys", &keys);
 	}
 
-	mflags = 0;
 	for (element = cfg_list_first(keys);
 	     element != NULL;
 	     element = cfg_list_next(element))
@@ -3542,7 +3602,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		const cfg_obj_t *keylist = cfg_listelt_value(element);
 		for (element2 = cfg_list_first(keylist);
 		     element2 != NULL;
-		     element2 = cfg_list_next(element2)) {
+		     element2 = cfg_list_next(element2))
+		{
 			obj = cfg_listelt_value(element2);
 			tresult = check_trusted_key(obj, true, &mflags,
 						    logctx);
@@ -3554,22 +3615,22 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 
 	if ((mflags & ROOT_KSK_STATIC) != 0) {
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "managed-keys static-key entry for the root zone "
+			    "static-key entry for the root zone "
 			    "WILL FAIL after key rollover - use "
-			    "managed-keys with initial-key instead.");
+			    "dnssec-keys with initial-key instead.");
 	}
 
 	if ((mflags & ROOT_KSK_2010) != 0 && (mflags & ROOT_KSK_2017) == 0) {
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "managed-keys initial-key entry for the root zone "
+			    "initial-key entry for the root zone "
 			    "uses the 2010 key without the updated "
 			    "2017 key");
 	}
 
 	if ((tflags & ROOT_KSK_ANY) != 0 && (mflags & ROOT_KSK_ANY) != 0) {
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "both trusted-keys and managed-keys for the "
-			    "root zone are present");
+			    "both trusted-keys and managed-keys "
+			    "for the root zone are present");
 	}
 
 	if ((mflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
@@ -3580,9 +3641,10 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 
 	if ((mflags & DLV_KSK_KEY) != 0) {
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "managed-keys entry for dlv.isc.org still present; "
+			    "trust anchor for dlv.isc.org is present; "
 			    "dlv.isc.org has been shut down");
 	}
+
 
 	/*
 	 * Check options.
