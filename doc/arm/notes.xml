@@ -388,10 +388,14 @@
 	<para>
 	  In the interest of preventing future problems with key roll
 	  events, the <command>trusted-keys</command> statement has been
-	  deprecated.  <command>managed-keys</command> should now be used
-	  instead. (The <command>static-key</command> keyword can be used
+	  deprecated.  The new <command>dnssec-keys</command> should be used
+	  instead. (<command>managed-keys</command> is a synonym for
+	  <command>dnssec-keys</command>, retained for backward compatibility.)
+	</para>
+	<para>
+	  The <command>static-key</command> keyword can be used
 	  when it is necessary to configure a key that is not maintained
-	  via RFC 5011. This is not recommended for the root key.) [GL #6]
+	  via RFC 5011. This is not recommended for the root key. [GL #6]
 	</para>
       </listitem>
     </itemizedlist>
@@ -448,13 +452,17 @@
       </listitem>
       <listitem>
 	<para>
-	  The <command>managed-keys</command> statement can now use the
+	  The new <command>dnssec-keys</command> statement can now be
+	  used to configure all DNSSEC trust anchors.  The older
+	  <command>managed-keys</command> statement is a synonym for
+	  <command>dnssec-keys</command>, retained for backward
+	  compatibility. Both statements can now use the
 	  keyword <command>static-key</command> in place of
 	  <command>initial-key</command> to configure trusted keys
 	  for which RFC 5011 trust anchor maintenance is not to be used.
 	  The <command>trusted-keys</command> statement is now deprecated,
-	  and will generate a warning in the log when used, but is still
-	  functional. [GL #6]
+	  and will generate a warning in the log when used, but it is
+	  still functional. [GL #6]
 	</para>
       </listitem>
       <listitem>
