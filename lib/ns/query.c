@@ -93,14 +93,6 @@ do { \
 	qctx->line = __LINE__; \
 } while (0)
 
-#define RECURSE_ERROR(qctx, r) \
-do { \
-	if ((r) == DNS_R_DUPLICATE || (r) == DNS_R_DROP) \
-		QUERY_ERROR(qctx, r); \
-	else \
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL); \
-} while (0)
-
 /*% Partial answer? */
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_PARTIALANSWER) != 0)
@@ -521,12 +513,12 @@ static void
 query_error(ns_client_t *client, isc_result_t result, int line) {
 	int loglevel = ISC_LOG_DEBUG(3);
 
-	switch (result) {
-	case DNS_R_SERVFAIL:
+	switch (dns_result_torcode(result)) {
+	case dns_rcode_servfail:
 		loglevel = ISC_LOG_DEBUG(1);
 		inc_stats(client, ns_statscounter_servfail);
 		break;
-	case DNS_R_FORMERR:
+	case dns_rcode_formerr:
 		inc_stats(client, ns_statscounter_formerr);
 		break;
 	default:
@@ -5345,7 +5337,7 @@ ns__query_start(query_ctx_t *qctx) {
 		} else {
 			CCTRACE(ISC_LOG_ERROR,
 			       "ns__query_start: query_getdb failed");
-			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			QUERY_ERROR(qctx, result);
 		}
 		return (query_done(qctx));
 	}
@@ -5422,7 +5414,7 @@ query_lookup(query_ctx_t *qctx) {
 	if (ISC_UNLIKELY(qctx->dbuf == NULL)) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_lookup: query_getnamebuf failed (2)");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 		return (query_done(qctx));
 	}
 
@@ -5432,7 +5424,7 @@ query_lookup(query_ctx_t *qctx) {
 	if (ISC_UNLIKELY(qctx->fname == NULL || qctx->rdataset == NULL)) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_lookup: query_newname failed (2)");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 		return (query_done(qctx));
 	}
 
@@ -5443,7 +5435,7 @@ query_lookup(query_ctx_t *qctx) {
 		if (qctx->sigrdataset == NULL) {
 			CCTRACE(ISC_LOG_ERROR,
 			       "query_lookup: query_newrdataset failed (2)");
-			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 			return (query_done(qctx));
 		}
 	}
@@ -5974,7 +5966,7 @@ query_resume(query_ctx_t *qctx) {
 	if (qctx->dbuf == NULL) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_resume: query_getnamebuf failed (1)");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 		return (query_done(qctx));
 	}
 
@@ -5982,7 +5974,7 @@ query_resume(query_ctx_t *qctx) {
 	if (qctx->fname == NULL) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_resume: query_newname failed (1)");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 		return (query_done(qctx));
 	}
 
@@ -5999,7 +5991,7 @@ query_resume(query_ctx_t *qctx) {
 	if (result != ISC_R_SUCCESS) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_resume: dns_name_copy failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, result);
 		return (query_done(qctx));
 	}
 
@@ -6283,8 +6275,8 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		qctx->client->query.attributes |= NS_QUERYATTR_RECURSING;
 		return (ISC_R_COMPLETE);
 	default:
-		RECURSE_ERROR(qctx, rresult);
-		return (ISC_R_COMPLETE);;
+		QUERY_ERROR(qctx, rresult);
+		return (ISC_R_COMPLETE);
 	}
 
 	if (qctx->rpz_st->m.policy != DNS_RPZ_POLICY_MISS) {
@@ -6726,7 +6718,7 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 			 */
 			return (query_lookup(qctx));
 		}
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, result);
 		return (query_done(qctx));
 	}
 }
@@ -6832,7 +6824,7 @@ query_respond_any(query_ctx_t *qctx) {
 	if (result != ISC_R_SUCCESS) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_respond_any: allrdatasets failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, result);
 		return (query_done(qctx));
 	}
 
@@ -7041,7 +7033,7 @@ query_respond_any(query_ctx_t *qctx) {
 	if (result != ISC_R_NOMORE) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_respond_any: dns_rdatasetiter_destroy failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, result);
 	} else {
 		query_addauth(qctx);
 	}
@@ -7227,7 +7219,7 @@ query_respond(query_ctx_t *qctx) {
 				qctx->client->query.attributes |=
 				      NS_QUERYATTR_DNS64EXCLUDE;
 		} else {
-			RECURSE_ERROR(qctx, result);
+			QUERY_ERROR(qctx, result);
 		}
 
 		return (query_done(qctx));
@@ -7744,14 +7736,15 @@ query_notfound(query_ctx_t *qctx) {
 				if (qctx->dns64_exclude)
 					qctx->client->query.attributes |=
 						NS_QUERYATTR_DNS64EXCLUDE;
-			} else
-				RECURSE_ERROR(qctx, result);
+			} else {
+				QUERY_ERROR(qctx, result);
+			}
 			return (query_done(qctx));
 		} else {
 			/* Unable to give root server referral. */
 			CCTRACE(ISC_LOG_ERROR,
 				"unable to give root server referral");
-			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			QUERY_ERROR(qctx, result);
 			return (query_done(qctx));
 		}
 	}
@@ -8004,10 +7997,8 @@ query_delegation(query_ctx_t *qctx) {
 			if (qctx->dns64_exclude)
 				qctx->client->query.attributes |=
 				      NS_QUERYATTR_DNS64EXCLUDE;
-		} else if (result == DNS_R_DUPLICATE || result == DNS_R_DROP) {
-			QUERY_ERROR(qctx, result);
 		} else {
-			RECURSE_ERROR(qctx, result);
+			QUERY_ERROR(qctx, result);
 		}
 
 		return (query_done(qctx));
@@ -8174,7 +8165,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 				CCTRACE(ISC_LOG_ERROR,
 				       "query_nodata: "
 				       "query_getnamebuf failed (3)");
-				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+				QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 				return (query_done(qctx));;
 			}
 			qctx->fname = query_newname(qctx->client,
@@ -8183,7 +8174,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 				CCTRACE(ISC_LOG_ERROR,
 				       "query_nodata: "
 				       "query_newname failed (3)");
-				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+				QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 				return (query_done(qctx));;
 			}
 		}
@@ -8329,7 +8320,7 @@ query_sign_nodata(query_ctx_t *qctx) {
 					       "query_sign_nodata: "
 					       "failure getting "
 					       "closest encloser");
-					QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+					QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 					return (query_done(qctx));
 				}
 				/*
@@ -9390,7 +9381,7 @@ query_cname(query_ctx_t *qctx) {
 				qctx->client->query.attributes |=
 					NS_QUERYATTR_DNS64EXCLUDE;
 		} else {
-			RECURSE_ERROR(qctx, result);
+			QUERY_ERROR(qctx, result);
 		}
 
 		return (query_done(qctx));
