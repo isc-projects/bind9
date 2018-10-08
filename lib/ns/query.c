@@ -6139,12 +6139,24 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 	 * Don't mess with responses rewritten by RPZ
 	 * Count each response at most once.
 	 */
-fprintf(stderr, "rrl=%p, HAVECOOKIE=%u, result=%u, fname=%p(%u), is_zone=%u, RECURSIONOK=%u, query.rpz_st=%p(%u), NS_QUERYATTR_RRL_CHECKED=%u\n",
-	qctx->client->view->rrl, HAVECOOKIE(qctx->client), result,
-	qctx->fname, qctx->fname?dns_name_isabsolute(qctx->fname) : 0,
-	qctx->is_zone, RECURSIONOK(qctx->client), qctx->client->query.rpz_st,
-	qctx->client->query.rpz_st ? (qctx->client->query.rpz_st->state & DNS_RPZ_REWRITTEN) != 0 : 0,
-	(qctx->client->query.attributes & NS_QUERYATTR_RRL_CHECKED) != 0);
+
+	/*
+	 * XXXMPA the rrl system tests fails sometimes and RRL_CHECKED
+	 * is set when we are called the second time preventing the
+	 * response being dropped.
+	 */
+	ns_client_log(qctx->client, DNS_LOGCATEGORY_RRL, NS_LOGMODULE_QUERY,
+		      ISC_LOG_DEBUG(99), "rrl=%p, HAVECOOKIE=%u, result=%s, "
+		      "fname=%p(%u), is_zone=%u, RECURSIONOK=%u, "
+		      "query.rpz_st=%p(%u), RRL_CHECKED=%u\n",
+		      qctx->client->view->rrl, HAVECOOKIE(qctx->client),
+		      isc_result_toid(result), qctx->fname,
+		      qctx->fname?dns_name_isabsolute(qctx->fname) : 0,
+		      qctx->is_zone, RECURSIONOK(qctx->client),
+		      qctx->client->query.rpz_st,
+		      qctx->client->query.rpz_st ?
+			(qctx->client->query.rpz_st->state & DNS_RPZ_REWRITTEN) != 0 : 0,
+		      (qctx->client->query.attributes & NS_QUERYATTR_RRL_CHECKED) != 0);
 
 	if (qctx->client->view->rrl != NULL &&
 	    !HAVECOOKIE(qctx->client) &&
