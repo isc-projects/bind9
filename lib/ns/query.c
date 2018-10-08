@@ -5034,7 +5034,6 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->findcoveringnsec = client->view->synthfromdnssec;
 	qctx->is_staticstub_zone = false;
 	qctx->nxrewrite = false;
-	qctx->want_stale = false;
 	qctx->answer_has_ns = false;
 	qctx->authoritative = false;
 }
@@ -5524,12 +5523,11 @@ query_lookup(query_ctx_t *qctx) {
 		dns_cache_updatestats(qctx->client->view->cache, result);
 	}
 
-	if (qctx->want_stale) {
+	if ((qctx->client->query.dboptions & DNS_DBFIND_STALEOK) != 0) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		bool success;
 
 		qctx->client->query.dboptions &= ~DNS_DBFIND_STALEOK;
-		qctx->want_stale = false;
 		if (dns_rdataset_isassociated(qctx->rdataset) &&
 		    dns_rdataset_count(qctx->rdataset) > 0 &&
 		    STALE(qctx->rdataset)) {
@@ -6654,7 +6652,6 @@ query_usestale(query_ctx_t *qctx) {
 	}
 
 	if (staleanswersok) {
-		qctx->want_stale = true;
 		qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
 		inc_stats(qctx->client, ns_statscounter_trystale);
 		if (qctx->client->query.fetch != NULL) {
