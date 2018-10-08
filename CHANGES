@@ -1,3 +1,7 @@
+5047.	[bug]		Messages logged for certain query processing failures
+			now include a more specific error description if it is
+			available. [GL #572]
+
 5046.	[bug]		named could crash during shutdown if an RPZ
 			reload was in progress. [RT #46210]
 

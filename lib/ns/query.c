@@ -94,14 +94,6 @@ do { \
 	qctx->line = __LINE__; \
 } while (0)
 
-#define RECURSE_ERROR(qctx, r) \
-do { \
-	if ((r) == DNS_R_DUPLICATE || (r) == DNS_R_DROP) \
-		QUERY_ERROR(qctx, r); \
-	else \
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL); \
-} while (0)
-
 /*% Partial answer? */
 #define PARTIALANSWER(c)	(((c)->query.attributes & \
 				  NS_QUERYATTR_PARTIALANSWER) != 0)
@@ -522,12 +514,12 @@ static void
 query_error(ns_client_t *client, isc_result_t result, int line) {
 	int loglevel = ISC_LOG_DEBUG(3);
 
-	switch (result) {
-	case DNS_R_SERVFAIL:
+	switch (dns_result_torcode(result)) {
+	case dns_rcode_servfail:
 		loglevel = ISC_LOG_DEBUG(1);
 		inc_stats(client, ns_statscounter_servfail);
 		break;
-	case DNS_R_FORMERR:
+	case dns_rcode_formerr:
 		inc_stats(client, ns_statscounter_formerr);
 		break;
 	default:
@@ -5034,7 +5026,6 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event,
 	qctx->findcoveringnsec = client->view->synthfromdnssec;
 	qctx->is_staticstub_zone = false;
 	qctx->nxrewrite = false;
-	qctx->want_stale = false;
 	qctx->answer_has_ns = false;
 	qctx->authoritative = false;
 }
@@ -5377,7 +5368,7 @@ ns__query_start(query_ctx_t *qctx) {
 		} else {
 			CCTRACE(ISC_LOG_ERROR,
 			       "ns__query_start: query_getdb failed");
-			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			QUERY_ERROR(qctx, result);
 		}
 		return (query_done(qctx));
 	}
@@ -5459,7 +5450,7 @@ query_lookup(query_ctx_t *qctx) {
 	if (ISC_UNLIKELY(qctx->dbuf == NULL)) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_lookup: query_getnamebuf failed (2)");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 		return (query_done(qctx));
 	}
 
@@ -5469,7 +5460,7 @@ query_lookup(query_ctx_t *qctx) {
 	if (ISC_UNLIKELY(qctx->fname == NULL || qctx->rdataset == NULL)) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_lookup: query_newname failed (2)");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 		return (query_done(qctx));
 	}
 
@@ -5480,7 +5471,7 @@ query_lookup(query_ctx_t *qctx) {
 		if (qctx->sigrdataset == NULL) {
 			CCTRACE(ISC_LOG_ERROR,
 			       "query_lookup: query_newrdataset failed (2)");
-			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 			return (query_done(qctx));
 		}
 	}
@@ -5524,12 +5515,11 @@ query_lookup(query_ctx_t *qctx) {
 		dns_cache_updatestats(qctx->client->view->cache, result);
 	}
 
-	if (qctx->want_stale) {
+	if ((qctx->client->query.dboptions & DNS_DBFIND_STALEOK) != 0) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		bool success;
 
 		qctx->client->query.dboptions &= ~DNS_DBFIND_STALEOK;
-		qctx->want_stale = false;
 		if (dns_rdataset_isassociated(qctx->rdataset) &&
 		    dns_rdataset_count(qctx->rdataset) > 0 &&
 		    STALE(qctx->rdataset)) {
@@ -6010,7 +6000,7 @@ query_resume(query_ctx_t *qctx) {
 	if (qctx->dbuf == NULL) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_resume: query_getnamebuf failed (1)");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 		return (query_done(qctx));
 	}
 
@@ -6018,7 +6008,7 @@ query_resume(query_ctx_t *qctx) {
 	if (qctx->fname == NULL) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_resume: query_newname failed (1)");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 		return (query_done(qctx));
 	}
 
@@ -6035,7 +6025,7 @@ query_resume(query_ctx_t *qctx) {
 	if (result != ISC_R_SUCCESS) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_resume: dns_name_copy failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, result);
 		return (query_done(qctx));
 	}
 
@@ -6319,8 +6309,8 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		qctx->client->query.attributes |= NS_QUERYATTR_RECURSING;
 		return (ISC_R_COMPLETE);
 	default:
-		RECURSE_ERROR(qctx, rresult);
-		return (ISC_R_COMPLETE);;
+		QUERY_ERROR(qctx, rresult);
+		return (ISC_R_COMPLETE);
 	}
 
 	if (qctx->rpz_st->m.policy != DNS_RPZ_POLICY_MISS) {
@@ -6618,6 +6608,55 @@ root_key_sentinel_return_servfail(query_ctx_t *qctx, isc_result_t result) {
 }
 
 /*%
+ * If serving stale answers is allowed, set up 'qctx' to look for one and
+ * return true; otherwise, return false.
+ */
+static bool
+query_usestale(query_ctx_t *qctx) {
+	bool staleanswersok = false;
+	dns_ttl_t stale_ttl = 0;
+	isc_result_t result;
+
+	qctx_clean(qctx);
+	qctx_freedata(qctx);
+
+	/*
+	 * Stale answers only make sense if stale_ttl > 0 but we want rndc to
+	 * be able to control returning stale answers if they are configured.
+	 */
+	dns_db_attach(qctx->client->view->cachedb, &qctx->db);
+	result = dns_db_getservestalettl(qctx->db, &stale_ttl);
+	if (result == ISC_R_SUCCESS && stale_ttl > 0)  {
+		switch (qctx->client->view->staleanswersok) {
+		case dns_stale_answer_yes:
+			staleanswersok = true;
+			break;
+		case dns_stale_answer_conf:
+			staleanswersok =
+				qctx->client->view->staleanswersenable;
+			break;
+		case dns_stale_answer_no:
+			staleanswersok = false;
+			break;
+		}
+	} else {
+		staleanswersok = false;
+	}
+
+	if (staleanswersok) {
+		qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
+		inc_stats(qctx->client, ns_statscounter_trystale);
+		if (qctx->client->query.fetch != NULL) {
+			dns_resolver_destroyfetch(&qctx->client->query.fetch);
+		}
+	} else {
+		dns_db_detach(&qctx->db);
+	}
+
+	return (staleanswersok);
+}
+
+/*%
  * Continue after doing a database lookup or returning from
  * recursion, and call out to the next function depending on the
  * result from the search.
@@ -6706,11 +6745,14 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 			 "query_gotanswer: unexpected error: %s",
 			 isc_result_totext(result));
 		CCTRACE(ISC_LOG_ERROR, errmsg);
-		if (qctx->resuming) {
-			qctx->want_stale = true;
-		} else {
-			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		if (qctx->resuming && query_usestale(qctx)) {
+			/*
+			 * If serve-stale is enabled, query_usestale() already
+			 * set up 'qctx' for looking up a stale response.
+			 */
+			return (query_lookup(qctx));
 		}
+		QUERY_ERROR(qctx, result);
 		return (query_done(qctx));
 	}
 }
@@ -6816,7 +6858,7 @@ query_respond_any(query_ctx_t *qctx) {
 	if (result != ISC_R_SUCCESS) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_respond_any: allrdatasets failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, result);
 		return (query_done(qctx));
 	}
 
@@ -7025,7 +7067,7 @@ query_respond_any(query_ctx_t *qctx) {
 	if (result != ISC_R_NOMORE) {
 		CCTRACE(ISC_LOG_ERROR,
 		       "query_respond_any: dns_rdatasetiter_destroy failed");
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		QUERY_ERROR(qctx, result);
 	} else {
 		query_addauth(qctx);
 	}
@@ -7211,7 +7253,7 @@ query_respond(query_ctx_t *qctx) {
 				qctx->client->query.attributes |=
 				      NS_QUERYATTR_DNS64EXCLUDE;
 		} else {
-			RECURSE_ERROR(qctx, result);
+			QUERY_ERROR(qctx, result);
 		}
 
 		return (query_done(qctx));
@@ -7728,14 +7770,15 @@ query_notfound(query_ctx_t *qctx) {
 				if (qctx->dns64_exclude)
 					qctx->client->query.attributes |=
 						NS_QUERYATTR_DNS64EXCLUDE;
-			} else
-				RECURSE_ERROR(qctx, result);
+			} else {
+				QUERY_ERROR(qctx, result);
+			}
 			return (query_done(qctx));
 		} else {
 			/* Unable to give root server referral. */
 			CCTRACE(ISC_LOG_ERROR,
 				"unable to give root server referral");
-			QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+			QUERY_ERROR(qctx, result);
 			return (query_done(qctx));
 		}
 	}
@@ -7991,10 +8034,8 @@ query_delegation(query_ctx_t *qctx) {
 			if (qctx->dns64_exclude)
 				qctx->client->query.attributes |=
 				      NS_QUERYATTR_DNS64EXCLUDE;
-		} else if (result == DNS_R_DUPLICATE || result == DNS_R_DROP) {
-			QUERY_ERROR(qctx, result);
 		} else {
-			RECURSE_ERROR(qctx, result);
+			QUERY_ERROR(qctx, result);
 		}
 
 		return (query_done(qctx));
@@ -8161,7 +8202,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 				CCTRACE(ISC_LOG_ERROR,
 				       "query_nodata: "
 				       "query_getnamebuf failed (3)");
-				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+				QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 				return (query_done(qctx));;
 			}
 			qctx->fname = query_newname(qctx->client,
@@ -8170,7 +8211,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 				CCTRACE(ISC_LOG_ERROR,
 				       "query_nodata: "
 				       "query_newname failed (3)");
-				QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+				QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 				return (query_done(qctx));;
 			}
 		}
@@ -8316,7 +8357,7 @@ query_sign_nodata(query_ctx_t *qctx) {
 					       "query_sign_nodata: "
 					       "failure getting "
 					       "closest encloser");
-					QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+					QUERY_ERROR(qctx, ISC_R_NOMEMORY);
 					return (query_done(qctx));
 				}
 				/*
@@ -9377,7 +9418,7 @@ query_cname(query_ctx_t *qctx) {
 				qctx->client->query.attributes |=
 					NS_QUERYATTR_DNS64EXCLUDE;
 		} else {
-			RECURSE_ERROR(qctx, result);
+			QUERY_ERROR(qctx, result);
 		}
 
 		return (query_done(qctx));
@@ -10637,49 +10678,6 @@ query_done(query_ctx_t *qctx) {
 	if (qctx->want_restart && qctx->client->query.restarts < MAX_RESTARTS) {
 		qctx->client->query.restarts++;
 		return (ns__query_start(qctx));
-	}
-
-	if (qctx->want_stale) {
-		dns_ttl_t stale_ttl = 0;
-		isc_result_t result;
-		bool staleanswersok = false;
-
-		/*
-		 * Stale answers only make sense if stale_ttl > 0 but
-		 * we want rndc to be able to control returning stale
-		 * answers if they are configured.
-		 */
-		dns_db_attach(qctx->client->view->cachedb, &qctx->db);
-		result = dns_db_getservestalettl(qctx->db, &stale_ttl);
-		if (result == ISC_R_SUCCESS && stale_ttl > 0)  {
-			switch (qctx->client->view->staleanswersok) {
-			case dns_stale_answer_yes:
-				staleanswersok = true;
-				break;
-			case dns_stale_answer_conf:
-				staleanswersok =
-					qctx->client->view->staleanswersenable;
-				break;
-			case dns_stale_answer_no:
-				staleanswersok = false;
-				break;
-			}
-		} else {
-			staleanswersok = false;
-		}
-
-		if (staleanswersok) {
-			qctx->client->query.dboptions |= DNS_DBFIND_STALEOK;
-			inc_stats(qctx->client, ns_statscounter_trystale);
-			if (qctx->client->query.fetch != NULL)
-				dns_resolver_destroyfetch(
-						   &qctx->client->query.fetch);
-			return (query_lookup(qctx));
-		}
-		dns_db_detach(&qctx->db);
-		qctx->want_stale = false;
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-		return (query_done(qctx));
 	}
 
 	if (qctx->result != ISC_R_SUCCESS &&
