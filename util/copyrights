@@ -1537,6 +1537,7 @@
 ./bin/tests/system/metadata/parent.db		ZONE	2009,2016,2018
 ./bin/tests/system/metadata/setup.sh		SH	2009,2011,2012,2014,2016,2017,2018
 ./bin/tests/system/metadata/tests.sh		SH	2009,2011,2012,2013,2014,2016,2017,2018
+./bin/tests/system/mirror/README		TXT.BRIEF	2018
 ./bin/tests/system/mirror/clean.sh		SH	2018
 ./bin/tests/system/mirror/ns1/named.conf.in	CONF-C	2018
 ./bin/tests/system/mirror/ns1/root.db.in	ZONE	2018

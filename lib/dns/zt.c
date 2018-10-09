@@ -181,7 +181,8 @@ dns_zt_find(dns_zt_t *zt, const dns_name_t *name, unsigned int options,
 		 * instead of returning a SERVFAIL.
 		 */
 		if ((options & DNS_ZTFIND_MIRROR) != 0 &&
-		    dns_zone_ismirror(dummy) && !dns_zone_isloaded(dummy))
+		    dns_zone_gettype(dummy) == dns_zone_mirror &&
+		    !dns_zone_isloaded(dummy))
 		{
 			result = ISC_R_NOTFOUND;
 		} else {

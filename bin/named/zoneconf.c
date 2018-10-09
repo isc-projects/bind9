@@ -1700,8 +1700,26 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * Configure slave functionality.
 	 */
 	switch (ztype) {
-	case dns_zone_slave:
 	case dns_zone_mirror:
+		/*
+		 * Disable outgoing zone transfers for mirror zones unless they
+		 * are explicitly enabled by zone configuration.
+		 */
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "allow-transfer", &obj);
+		if (obj == NULL) {
+			dns_acl_t *none;
+			RETERR(dns_acl_none(mctx, &none));
+			dns_zone_setxfracl(zone, none);
+			dns_acl_detach(&none);
+		}
+		/*
+		 * Only allow "also-notify".
+		 */
+		notifytype = dns_notifytype_explicit;
+		dns_zone_setnotifytype(zone, notifytype);
+		/* FALLTHROUGH */
+	case dns_zone_slave:
 	case dns_zone_stub:
 	case dns_zone_redirect:
 		count = 0;
@@ -1732,35 +1750,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			multi = cfg_obj_asboolean(obj);
 		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_MULTIMASTER, multi);
-
-		obj = NULL;
-		(void)cfg_map_get(zoptions, "mirror", &obj);
-		if (obj != NULL) {
-			bool mirror = cfg_obj_asboolean(obj);
-			dns_zone_setoption(mayberaw, DNS_ZONEOPT_MIRROR,
-					   mirror);
-			if (mirror) {
-				/*
-				 * Disable outgoing zone transfers unless they
-				 * are explicitly enabled by zone
-				 * configuration.
-				 */
-				obj = NULL;
-				(void)cfg_map_get(zoptions, "allow-transfer",
-						  &obj);
-				if (obj == NULL) {
-					dns_acl_t *none;
-					RETERR(dns_acl_none(mctx, &none));
-					dns_zone_setxfracl(zone, none);
-					dns_acl_detach(&none);
-				}
-				/*
-				 * Only allow "also-notify".
-				 */
-				notifytype = dns_notifytype_explicit;
-				dns_zone_setnotifytype(zone, notifytype);
-			}
-		}
 
 		obj = NULL;
 		result = named_config_get(maps, "max-transfer-time-in", &obj);
@@ -1901,7 +1890,7 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	const char *cfilename;
 	const char *zfilename;
 	dns_zone_t *raw = NULL;
-	bool has_raw, mirror;
+	bool has_raw;
 	dns_zonetype_t ztype;
 
 	zoptions = cfg_tuple_get(zconfig, "options");
@@ -1938,21 +1927,6 @@ named_zone_reusable(dns_zone_t *zone, const cfg_obj_t *zconfig) {
 	} else if ((obj != NULL && cfg_obj_asboolean(obj)) && !has_raw) {
 		dns_zone_log(zone, ISC_LOG_DEBUG(1),
 			     "not reusable: old zone was not inline-signing");
-		return (false);
-	}
-
-	/*
-	 * Do not reuse a zone whose "mirror" setting was changed.
-	 */
-	obj = NULL;
-	mirror = false;
-	(void)cfg_map_get(zoptions, "mirror", &obj);
-	if (obj != NULL) {
-		mirror = cfg_obj_asboolean(obj);
-	}
-	if (dns_zone_ismirror(zone) != mirror) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(1),
-			     "not reusable: mirror setting changed");
 		return (false);
 	}
 
