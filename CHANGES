@@ -1,3 +1,18 @@
+5051.	[func]		A default list of primary servers for the root zone is
+			now built into named, allowing the "masters" statement
+			to be omitted when configuring an IANA root zone
+			mirror. [GL #564]
+
+5050.	[func]		Attempts to use mirror zones with recursion disabled
+			are now considered a configuration error. [GL #564]
+
+5049.	[func]		The only valid zone-level NOTIFY settings for mirror
+			zones are now "notify no;" and "notify explicit;".
+			[GL #564]
+
+5048.	[func]		Mirror zones are now configured using "type mirror;"
+			rather than "mirror yes;". [GL #564]
+
 5047.	[bug]		Messages logged for certain query processing failures
 			now include a more specific error description if it is
 			available. [GL #572]
