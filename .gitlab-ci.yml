@@ -6,6 +6,10 @@ variables:
   CCACHE_DIR: "/ccache"
   SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
 
+cache:
+  paths:
+    - /ccache/
+
 stages:
   - precheck
   - build
