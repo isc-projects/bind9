@@ -2531,7 +2531,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>minimal-any</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>minimal-responses</strong></span> ( no-auth | no-auth-recursive | <em class="replaceable"><code>boolean</code></em> );
-	<span class="command"><strong>mirror</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>new-zones-directory</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
 	<span class="command"><strong>no-case-compress</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
@@ -5369,7 +5368,9 @@ options {
                   It is now ignored with some warning messages.
                 </p>
               </dd>
-<dt><span class="term"><span class="command"><strong>allow-transfer</strong></span></span></dt>
+<dt>
+<a name="allow_transfer"></a><span class="term"><a name="allow_transfer_term"></a><span class="command"><strong>allow-transfer</strong></span></span>
+</dt>
 <dd>
                 <p>
                   Specifies which hosts are allowed to
@@ -9398,7 +9399,6 @@ view "external" {
 	<span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>mirror</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>notify</strong></span> ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );
 	<span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>integer</code></em>;
@@ -9415,6 +9415,50 @@ view "external" {
 	<span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
 	<span class="command"><strong>try-tcp-refresh</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
+};
+</pre>
+<pre class="programlisting">
+<span class="command"><strong>zone</strong></span> <em class="replaceable"><code>string</code></em> [ <em class="replaceable"><code>class</code></em> ] {
+	<span class="command"><strong>type</strong></span> mirror;
+	<span class="command"><strong>allow-notify</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-query-on</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-transfer</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>allow-update-forwarding</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
+	<span class="command"><strong>also-notify</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
+	<span class="command"><strong>alt-transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>check-names</strong></span> ( fail | warn | ignore );
+	<span class="command"><strong>database</strong></span> <em class="replaceable"><code>string</code></em>;
+	<span class="command"><strong>file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>ixfr-from-differences</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>journal</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
+	<span class="command"><strong>masterfile-format</strong></span> ( map | raw | text );
+	<span class="command"><strong>masterfile-style</strong></span> ( full | relative );
+	<span class="command"><strong>masters</strong></span> [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };
+	<span class="command"><strong>max-journal-size</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
+	<span class="command"><strong>max-records</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-idle-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-idle-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-time-in</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>max-transfer-time-out</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>min-refresh-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>min-retry-time</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>multi-master</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>notify</strong></span> ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );
+	<span class="command"><strong>notify-delay</strong></span> <em class="replaceable"><code>integer</code></em>;
+	<span class="command"><strong>notify-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>notify-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>request-expire</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>request-ixfr</strong></span> <em class="replaceable"><code>boolean</code></em>;
+	<span class="command"><strong>transfer-source</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>try-tcp-refresh</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>use-alt-transfer-source</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
@@ -9519,6 +9563,7 @@ view "external" {
               acceptable values include:
               <code class="varname">master</code> (or <code class="varname">primary</code>),
               <code class="varname">slave</code> (or <code class="varname">secondary</code>),
+              <code class="varname">mirror</code>,
               <code class="varname">delegation-only</code>,
               <code class="varname">forward</code>,
               <code class="varname">hint</code>,
@@ -9652,6 +9697,97 @@ view "external" {
                         to use a set of internal name servers as the
                         authoritative
                         servers for that domain.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
+                        <code class="varname">mirror</code>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                      </p>
+                      <p>
+                        A mirror zone acts like a zone of type
+                        <strong class="userinput"><code>secondary</code></strong> whose data is
+                        subject to DNSSEC validation before being used
+                        in answers.  Validation is performed during the
+                        zone transfer process, and again when the zone
+                        file is loaded from disk when
+                        <span class="command"><strong>named</strong></span> is restarted.  If
+                        validation fails, a retransfer of the zone is
+                        scheduled; if the mirror zone had not previously
+                        been loaded or if the previous version has
+                        expired, traditional DNS recursion will be used
+                        to look up the answers instead.
+                      </p>
+                      <p>
+                        For validation to succeed, a key-signing key
+                        (KSK) for the zone must be configured as a trust
+                        anchor in <code class="filename">named.conf</code>: that
+                        is, a key for the zone must either be specified
+                        in <span class="command"><strong>managed-keys</strong></span> or
+                        <span class="command"><strong>trusted-keys</strong></span>, or in the case
+                        of the root zone,
+                        <span class="command"><strong>dnssec-validation</strong></span> must be set
+                        to <strong class="userinput"><code>auto</code></strong>.  Answers coming
+                        from a mirror zone look almost exactly like
+                        answers from a zone of type
+                        <strong class="userinput"><code>secondary</code></strong>, with the
+                        notable exceptions that the AA bit
+                        ("authoritative answer") is not set, and the AD
+                        bit ("authenticated data") is.
+                      </p>
+                      <p>
+                        Since mirror zones are intended to be used by
+                        recursive resolvers, adding one to a view with
+                        recursion disabled is considered to be a
+                        configuration error.
+                      </p>
+                      <p>
+                        When configuring NOTIFY for a mirror zone, only
+                        <strong class="userinput"><code>notify no;</code></strong> and
+                        <strong class="userinput"><code>notify explicit;</code></strong> can be
+                        used.  Using any other
+                        <strong class="userinput"><code>notify</code></strong> setting at the
+                        zone level is a configuration error.  Using any
+                        other <strong class="userinput"><code>notify</code></strong> setting at
+                        the <strong class="userinput"><code>options</code></strong> or
+                        <strong class="userinput"><code>view</code></strong> level will cause
+                        that setting to be overridden with
+                        <strong class="userinput"><code>notify explicit;</code></strong> for the
+                        mirror zone in question.
+                      </p>
+                      <p>
+                        Outgoing transfers of mirror zones are disabled
+                        by default but may be enabled using
+                        <a class="xref" href="Bv9ARM.ch05.html#allow_transfer"><span class="command"><strong>allow-transfer</strong></span></a>.
+                      </p>
+                      <p>
+                        While any zone may be configured with this type,
+                        it is intended to be used to set up a fast local
+                        copy of the root zone, similar to the one
+                        described in RFC 7706.  Note, however, that
+                        mirror zones are not supposed to augment the
+                        example configuration provided by RFC 7706 but
+                        rather to replace it altogether.
+                      </p>
+                      <p>
+                        A default list of primary servers for the root
+                        zone is built into <span class="command"><strong>named</strong></span> and
+                        thus IANA root zone mirroring can be enabled
+                        using the following configuration:
+                      </p>
+<pre class="programlisting">zone "." {
+        type mirror;
+};</pre>
+                      <p>
+                        To make mirror zone contents persist between
+                        <span class="command"><strong>named</strong></span> restarts, use the
+                        <a class="xref" href="Bv9ARM.ch05.html#file_option"><span class="command"><strong>file</strong></span></a>
+                        option.
                       </p>
                     </td>
 </tr>
@@ -10093,18 +10229,21 @@ view "external" {
                     See caveats in <a class="xref" href="Bv9ARM.ch05.html#root_delegation_only"><span class="command"><strong>root-delegation-only</strong></span></a>.
                   </p>
                 </dd>
-<dt><span class="term"><span class="command"><strong>file</strong></span></span></dt>
+<dt>
+<a name="file_option"></a><span class="term"><a name="file_option_term"></a><span class="command"><strong>file</strong></span></span>
+</dt>
 <dd>
                   <p>
                     Set the zone's filename. In <span class="command"><strong>master</strong></span>,
                     <span class="command"><strong>hint</strong></span>, and <span class="command"><strong>redirect</strong></span>
                     zones which do not have <span class="command"><strong>masters</strong></span>
                     defined, zone data is loaded from this file. In
-                    <span class="command"><strong>slave</strong></span>, <span class="command"><strong>stub</strong></span>, and
-                    <span class="command"><strong>redirect</strong></span> zones which do have
-                    <span class="command"><strong>masters</strong></span> defined, zone data is
-                    retrieved from another server and saved in this file.
-                    This option is not applicable to other zone types.
+                    <span class="command"><strong>slave</strong></span>, <span class="command"><strong>mirror</strong></span>,
+                    <span class="command"><strong>stub</strong></span>, and <span class="command"><strong>redirect</strong></span>
+                    zones which do have <span class="command"><strong>masters</strong></span>
+                    defined, zone data is retrieved from another server
+                    and saved in this file.  This option is not
+                    applicable to other zone types.
                   </p>
                 </dd>
 <dt><span class="term"><span class="command"><strong>forward</strong></span></span></dt>
@@ -10443,65 +10582,6 @@ example.com. NS ns2.example.net.
                     with possibly, a different serial number.  This
                     behavior is disabled by default.
                   </p>
-                </dd>
-<dt><span class="term"><span class="command"><strong>mirror</strong></span></span></dt>
-<dd>
-                  <p>
-                    If set to <strong class="userinput"><code>yes</code></strong>, this causes the
-                    zone to become a mirror zone.  A mirror zone is a
-                    <strong class="userinput"><code>secondary</code></strong> zone whose data
-                    is subject to DNSSEC validation before being
-                    used in answers.  The default is
-                    <strong class="userinput"><code>no</code></strong>.
-                  </p>
-                  <p>
-                    A mirror zone's contents are validated during the transfer
-                    process, and again when the zone file is loaded from disk
-                    when <span class="command"><strong>named</strong></span> is restarted.  If validation
-                    fails, a retransfer of the zone is scheduled; if the mirror
-                    zone had not previously been loaded or if the previous
-                    version has expired, traditional DNS recursion will be used
-                    to look up the answers instead.
-                  </p>
-                  <p>
-                    For validation to succeed, a key-signing key (KSK) for
-                    the zone must be configured as a trust anchor in
-                    <code class="filename">named.conf</code>:
-                    that is, a key for the zone must either be specified in
-                    <span class="command"><strong>managed-keys</strong></span> or
-                    <span class="command"><strong>trusted-keys</strong></span>, or in the case of
-                    the root zone, <span class="command"><strong>dnssec-validation</strong></span>
-                    must be set to <strong class="userinput"><code>auto</code></strong>.
-                    Answers coming from a mirror zone look almost exactly like
-                    answers from a normal slave zone, with the notable
-                    exceptions that the AA bit ("authoritative answer") is
-                    not set, and the AD bit ("authenticated data") is.
-                  </p>
-                  <p>
-                    Though this option can be used for other zones, it
-                    is intended to be used to set up a fast local copy of
-                    the root zone, as described in RFC 7706.
-                    This can be done by using the following configuration:
-                  </p>
-<pre class="programlisting">zone "." {
-        type slave;
-        mirror yes;
-        file "root.mirror";
-        masters {
-                192.228.79.201;       # b.root-servers.net
-                192.33.4.12;          # c.root-servers.net
-                192.5.5.241;          # f.root-servers.net
-                192.112.36.4;         # g.root-servers.net
-                193.0.14.129;         # k.root-servers.net
-                192.0.47.132;         # xfr.cjr.dns.icann.org
-                192.0.32.132;         # xfr.lax.dns.icann.org
-                2001:500:84::b;       # b.root-servers.net
-                2001:500:2f::f;       # f.root-servers.net
-                2001:7fd::1;          # k.root-servers.net
-                2620:0:2830:202::132; # xfr.cjr.dns.icann.org
-                2620:0:2d0:202::132;  # xfr.lax.dns.icann.org
-        };
-};</pre>
                 </dd>
 <dt><span class="term"><span class="command"><strong>multi-master</strong></span></span></dt>
 <dd>
