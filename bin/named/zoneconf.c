@@ -833,6 +833,37 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 	return (view == myview);
 }
 
+/*%
+ * For mirror zones, change "notify yes;" to "notify explicit;", informing the
+ * user only if "notify" was explicitly configured rather than inherited from
+ * default configuration.
+ */
+static dns_notifytype_t
+process_notifytype(dns_notifytype_t ntype, dns_zonetype_t ztype,
+		   const char *zname, const cfg_obj_t **maps)
+{
+	const cfg_obj_t *obj = NULL;
+
+	/*
+	 * Return the original setting if this is not a mirror zone or if the
+	 * zone is configured with something else than "notify yes;".
+	 */
+	if (ztype != dns_zone_mirror || ntype != dns_notifytype_yes) {
+		return (ntype);
+	}
+
+	/*
+	 * Only log a message if "notify" was set in the configuration
+	 * hierarchy supplied in 'maps'.
+	 */
+	if (named_config_get(maps, "notify", &obj) == ISC_R_SUCCESS) {
+		cfg_obj_log(obj, named_g_lctx, ISC_LOG_INFO,
+			    "'notify explicit;' will be used for mirror zone "
+			    "'%s'", zname);
+	}
+
+	return (dns_notifytype_explicit);
+}
 
 isc_result_t
 named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
@@ -1187,6 +1218,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			else
 				INSIST(0);
 		}
+		notifytype = process_notifytype(notifytype, ztype, zname,
+						nodefault);
 		if (raw != NULL)
 			dns_zone_setnotifytype(raw, dns_notifytype_no);
 		dns_zone_setnotifytype(zone, notifytype);
@@ -1713,11 +1746,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dns_zone_setxfracl(zone, none);
 			dns_acl_detach(&none);
 		}
-		/*
-		 * Only allow "also-notify".
-		 */
-		notifytype = dns_notifytype_explicit;
-		dns_zone_setnotifytype(zone, notifytype);
 		/* FALLTHROUGH */
 	case dns_zone_slave:
 	case dns_zone_stub:
