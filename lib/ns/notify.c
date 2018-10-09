@@ -141,6 +141,7 @@ ns_notify_start(ns_client_t *client) {
 
 		if ((zonetype == dns_zone_master) ||
 		    (zonetype == dns_zone_slave) ||
+		    (zonetype == dns_zone_mirror) ||
 		    (zonetype == dns_zone_stub))
 		{
 			isc_sockaddr_t *from = ns_client_getsockaddr(client);

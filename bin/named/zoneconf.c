@@ -755,8 +755,13 @@ checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
 	isc_result_t result;
 
 	switch (ztype) {
-	case dns_zone_slave: zone = "slave"; break;
-	case dns_zone_master: zone = "master"; break;
+	case dns_zone_slave:
+	case dns_zone_mirror:
+		zone = "slave";
+		break;
+	case dns_zone_master:
+		zone = "master";
+		break;
 	default:
 		INSIST(0);
 	}
@@ -982,7 +987,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		return (ISC_R_FAILURE);
 	}
 
-	if (ztype == dns_zone_slave)
+	if (ztype == dns_zone_slave || ztype == dns_zone_mirror)
 		masterformat = dns_masterformat_raw;
 	else
 		masterformat = dns_masterformat_text;
@@ -1076,7 +1081,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	/*
 	 * Notify messages are processed by the raw zone if it exists.
 	 */
-	if (ztype == dns_zone_slave)
+	if (ztype == dns_zone_slave || ztype == dns_zone_mirror)
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  allow_notify, ac, mayberaw,
 					  dns_zone_setnotifyacl,
@@ -1537,7 +1542,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		}
 	}
 
-	if (ztype == dns_zone_slave) {
+	if (ztype == dns_zone_slave || ztype == dns_zone_mirror) {
 		RETERR(configure_zone_acl(zconfig, vconfig, config,
 					  allow_update_forwarding, ac,
 					  mayberaw, dns_zone_setforwardacl,
@@ -1696,6 +1701,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 */
 	switch (ztype) {
 	case dns_zone_slave:
+	case dns_zone_mirror:
 	case dns_zone_stub:
 	case dns_zone_redirect:
 		count = 0;

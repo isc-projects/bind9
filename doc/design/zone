@@ -111,6 +111,7 @@ Types:
 		dns_zone_none = 0,
 		dns_zone_master,
 		dns_zone_slave,
+		dns_zone_mirror,
 		dns_zone_stub,
 		dns_zone_hint,
 		dns_zone_cache,

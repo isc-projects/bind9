@@ -848,9 +848,12 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	} else {
 		/* zone table has a match */
 		switch(dns_zone_gettype(zone)) {
-			/* Master and slave zones are OK for transfer. */
+			/*
+			 * Master, slave, and mirror zones are OK for transfer.
+			 */
 			case dns_zone_master:
 			case dns_zone_slave:
+			case dns_zone_mirror:
 			case dns_zone_dlz:
 				break;
 			default:
@@ -1087,7 +1090,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		dns_zone_getraw(zone, &raw);
 		mayberaw = (raw != NULL) ? raw : zone;
 		if ((client->attributes & NS_CLIENTATTR_WANTEXPIRE) != 0 &&
-		    dns_zone_gettype(mayberaw) == dns_zone_slave) {
+		    (dns_zone_gettype(mayberaw) == dns_zone_slave ||
+		     dns_zone_gettype(mayberaw) == dns_zone_mirror))
+		{
 			isc_time_t expiretime;
 			uint32_t secs;
 			dns_zone_getexpiretime(zone, &expiretime);

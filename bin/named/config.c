@@ -432,6 +432,8 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 		   strcasecmp(str, "slave") == 0)
 	{
 		ztype = dns_zone_slave;
+	} else if (strcasecmp(str, "mirror") == 0) {
+		ztype = dns_zone_mirror;
 	} else if (strcasecmp(str, "stub") == 0) {
 		ztype = dns_zone_stub;
 	} else if (strcasecmp(str, "static-stub") == 0) {

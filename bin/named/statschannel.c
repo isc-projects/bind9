@@ -94,6 +94,7 @@ user_zonetype( dns_zone_t *zone ) {
 		{ dns_zone_none, "none" },
 		{ dns_zone_master, "master" },
 		{ dns_zone_slave, "slave" },
+		{ dns_zone_mirror, "mirror" },
 		{ dns_zone_stub, "stub" },
 		{ dns_zone_staticstub, "static-stub" },
 		{ dns_zone_key, "key" },
