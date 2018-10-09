@@ -38,6 +38,7 @@ typedef enum {
 	dns_zone_none,
 	dns_zone_master,
 	dns_zone_slave,
+	dns_zone_mirror,
 	dns_zone_stub,
 	dns_zone_staticstub,
 	dns_zone_key,
