@@ -1915,6 +1915,52 @@ check_nonzero(const cfg_obj_t *options, isc_log_t *logctx) {
 	return (result);
 }
 
+/*%
+ * Check whether NOTIFY configuration at the zone level is acceptable for a
+ * mirror zone.  Return true if it is; return false otherwise.
+ */
+static bool
+check_mirror_zone_notify(const cfg_obj_t *zoptions, const char *znamestr,
+			 isc_log_t *logctx)
+{
+	bool notify_configuration_ok = true;
+	const cfg_obj_t *obj = NULL;
+
+	(void)cfg_map_get(zoptions, "notify", &obj);
+	if (obj == NULL) {
+		/*
+		 * "notify" not set at zone level.  This is fine.
+		 */
+		return (true);
+	}
+
+	if (cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj)) {
+			/*
+			 * "notify yes;" set at zone level.  This is an error.
+			 */
+			notify_configuration_ok = false;
+		}
+	} else {
+		const char *notifystr = cfg_obj_asstring(obj);
+		if (strcasecmp(notifystr, "explicit") != 0) {
+			/*
+			 * Something else than "notify explicit;" set at zone
+			 * level.  This is an error.
+			 */
+			notify_configuration_ok = false;
+		}
+	}
+
+	if (!notify_configuration_ok) {
+		cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
+			    "zone '%s': mirror zones can only be used with "
+			    "'notify no;' or 'notify explicit;'", znamestr);
+	}
+
+	return (notify_configuration_ok);
+}
+
 static isc_result_t
 check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
@@ -2184,6 +2230,16 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (tresult != ISC_R_SUCCESS) {
 			result = tresult;
 		}
+	}
+
+	/*
+	 * Only a limited subset of all possible "notify" settings can be used
+	 * at the zone level for mirror zones.
+	 */
+	if (ztype == CFG_ZONE_MIRROR &&
+	    !check_mirror_zone_notify(zoptions, znamestr, logctx))
+	{
+		result = ISC_R_FAILURE;
 	}
 
 	/*
