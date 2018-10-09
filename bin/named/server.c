@@ -6978,6 +6978,9 @@ removed(dns_zone_t *zone, void *uap) {
 	case dns_zone_slave:
 		type = "slave";
 		break;
+	case dns_zone_mirror:
+		type = "mirror";
+		break;
 	case dns_zone_stub:
 		type = "stub";
 		break;
@@ -14043,7 +14046,10 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 		type = "master";
 		break;
 	case dns_zone_slave:
-		type = dns_zone_ismirror(zone) ? "mirror" : "slave";
+		type = "slave";
+		break;
+	case dns_zone_mirror:
+		type = "mirror";
 		break;
 	case dns_zone_stub:
 		type = "stub";

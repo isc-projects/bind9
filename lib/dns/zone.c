@@ -19446,13 +19446,6 @@ dns_zone_isloaded(const dns_zone_t *zone) {
 	return (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED));
 }
 
-bool
-dns_zone_ismirror(const dns_zone_t *zone) {
-	REQUIRE(DNS_ZONE_VALID(zone));
-
-	return (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MIRROR));
-}
-
 isc_result_t
 dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver) {
 	dns_dbversion_t *version = NULL;
@@ -19466,7 +19459,7 @@ dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(db != NULL);
 
-	if (!dns_zone_ismirror(zone)) {
+	if (dns_zone_gettype(zone) != dns_zone_mirror) {
 		return (ISC_R_SUCCESS);
 	}
 

@@ -1095,7 +1095,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	/*
 	 * Mirror zone data is treated as cache data.
 	 */
-	if (dns_zone_ismirror(zone)) {
+	if (dns_zone_gettype(zone) == dns_zone_mirror) {
 		return (query_checkcacheaccess(client, name, qtype, options));
 	}
 
@@ -5382,7 +5382,7 @@ ns__query_start(query_ctx_t *qctx) {
 	if (qctx->is_zone) {
 		qctx->authoritative = true;
 		if (qctx->zone != NULL) {
-			if (dns_zone_ismirror(qctx->zone)) {
+			if (dns_zone_gettype(qctx->zone) == dns_zone_mirror) {
 				qctx->authoritative = false;
 			}
 			if (dns_zone_gettype(qctx->zone) ==
@@ -7920,7 +7920,8 @@ query_zone_delegation(query_ctx_t *qctx) {
 
 	if (USECACHE(qctx->client) &&
 	    (RECURSIONOK(qctx->client) ||
-	     (qctx->zone != NULL && dns_zone_ismirror(qctx->zone))))
+	     (qctx->zone != NULL &&
+	      dns_zone_gettype(qctx->zone) == dns_zone_mirror)))
 	{
 		/*
 		 * We might have a better answer or delegation in the
