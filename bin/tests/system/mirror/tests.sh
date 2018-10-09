@@ -428,6 +428,39 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking that a mirror zone can be added using rndc ($n)"
+ret=0
+# Sanity check: the zone should not exist in the root zone.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-addzone SOA > dig.out.ns3.test$n.1 2>&1 || ret=1
+grep "NXDOMAIN" dig.out.ns3.test$n.1 > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n.1 > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n.1 > /dev/null || ret=1
+# Mirror a zone which does not exist in the root zone.
+nextpart ns3/named.run > /dev/null
+$RNDCCMD 10.53.0.3 addzone verify-addzone '{ type mirror; masters { 10.53.0.2; }; };' > rndc.out.ns3.test$n 2>&1 || ret=1
+wait_for_transfer verify-addzone
+# Check whether the mirror zone was added and whether it behaves as expected.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-addzone SOA > dig.out.ns3.test$n.2 2>&1 || ret=1
+grep "NOERROR" dig.out.ns3.test$n.2 > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n.2 > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that a mirror zone can be deleted using rndc ($n)"
+ret=0
+# Remove the mirror zone added in the previous test.
+$RNDCCMD 10.53.0.3 delzone verify-addzone > rndc.out.ns3.test$n 2>&1 || ret=1
+# Check whether the mirror zone was removed.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-addzone SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "ensuring trust anchor telemetry queries are sent upstream for a mirror zone ($n)"
 ret=0
 # ns3 is started with "-T tat=1", so TAT queries should have already been sent.

@@ -36,7 +36,7 @@ ORIGINAL_SERIAL=`awk '$2 == "SOA" {print $5}' verify.db.in`
 UPDATED_SERIAL_BAD=`expr ${ORIGINAL_SERIAL} + 1`
 UPDATED_SERIAL_GOOD=`expr ${ORIGINAL_SERIAL} + 2`
 
-for variant in axfr ixfr load reconfig untrusted; do
+for variant in addzone axfr ixfr load reconfig untrusted; do
 	zone=verify-$variant
 	infile=verify.db.in
 	zonefile=verify-$variant.db
