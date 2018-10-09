@@ -1753,6 +1753,18 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		count = 0;
 		obj = NULL;
 		(void)cfg_map_get(zoptions, "masters", &obj);
+		/*
+		 * Use the built-in master server list if one was not
+		 * explicitly specified and this is a root zone mirror.
+		 */
+		if (obj == NULL && ztype == dns_zone_mirror &&
+		    dns_name_equal(dns_zone_getorigin(zone), dns_rootname))
+		{
+			result = named_config_getmastersdef(named_g_config,
+						DEFAULT_IANA_ROOT_ZONE_MASTERS,
+						&obj);
+			RETERR(result);
+		}
 		if (obj != NULL) {
 			dns_ipkeylist_t ipkl;
 			dns_ipkeylist_init(&ipkl);
