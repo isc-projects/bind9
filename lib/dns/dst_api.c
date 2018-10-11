@@ -425,13 +425,13 @@ dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 	if (key->func->tofile == NULL)
 		return (DST_R_UNSUPPORTEDALG);
 
-	if (type & DST_TYPE_PUBLIC) {
+	if ((type & DST_TYPE_PUBLIC) != 0) {
 		ret = write_public_key(key, type, directory);
 		if (ret != ISC_R_SUCCESS)
 			return (ret);
 	}
 
-	if ((type & DST_TYPE_PRIVATE) &&
+	if (((type & DST_TYPE_PRIVATE) != 0) &&
 	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
 		return (key->func->tofile(key, directory));
 	else
@@ -647,7 +647,7 @@ dst_key_todns(const dst_key_t *key, isc_buffer_t *target) {
 	isc_buffer_putuint8(target, (uint8_t)key->key_proto);
 	isc_buffer_putuint8(target, (uint8_t)key->key_alg);
 
-	if (key->key_flags & DNS_KEYFLAG_EXTENDED) {
+	if ((key->key_flags & DNS_KEYFLAG_EXTENDED) != 0) {
 		if (isc_buffer_availablelength(target) < 2)
 			return (ISC_R_NOSPACE);
 		isc_buffer_putuint16(target,
@@ -685,7 +685,7 @@ dst_key_fromdns(const dns_name_t *name, dns_rdataclass_t rdclass,
 	id = dst_region_computeid(&r, alg);
 	rid = dst_region_computerid(&r, alg);
 
-	if (flags & DNS_KEYFLAG_EXTENDED) {
+	if ((flags & DNS_KEYFLAG_EXTENDED) != 0) {
 		if (isc_buffer_remaininglength(source) < 2)
 			return (DST_R_INVALIDPUBLICKEY);
 		extflags = isc_buffer_getuint16(source);

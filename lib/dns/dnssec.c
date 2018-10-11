@@ -46,7 +46,7 @@
 
 LIBDNS_EXTERNAL_DATA isc_stats_t *dns_dnssec_stats;
 
-#define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)
+#define is_response(msg) ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
 
 #define RETERR(x) do { \
 	result = (x); \
@@ -220,10 +220,12 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * Is the key allowed to sign data?
 	 */
 	flags = dst_key_flags(key);
-	if (flags & DNS_KEYTYPE_NOAUTH)
+	if ((flags & DNS_KEYTYPE_NOAUTH) != 0) {
 		return (DNS_R_KEYUNAUTHORIZED);
-	if ((flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE)
+	}
+	if ((flags & DNS_KEYFLAG_OWNERMASK) == 0) {
 		return (DNS_R_KEYUNAUTHORIZED);
+	}
 
 	sig.mctx = mctx;
 	sig.common.rdclass = set->rdclass;
@@ -447,11 +449,11 @@ dns_dnssec_verify(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * Is the key allowed to sign data?
 	 */
 	flags = dst_key_flags(key);
-	if (flags & DNS_KEYTYPE_NOAUTH) {
+	if ((flags & DNS_KEYTYPE_NOAUTH) != 0) {
 		inc_stat(dns_dnssecstats_fail);
 		return (DNS_R_KEYUNAUTHORIZED);
 	}
-	if ((flags & DNS_KEYFLAG_OWNERMASK) != DNS_KEYOWNER_ZONE) {
+	if ((flags & DNS_KEYFLAG_OWNERMASK) == 0) {
 		inc_stat(dns_dnssecstats_fail);
 		return (DNS_R_KEYUNAUTHORIZED);
 	}
@@ -1237,7 +1239,7 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 	dk->index = 0;
 
 	/* KSK or ZSK? */
-	dk->ksk = (dst_key_flags(dk->key) & DNS_KEYFLAG_KSK);
+	dk->ksk = ((dst_key_flags(dk->key) & DNS_KEYFLAG_KSK) != 0);
 
 	/* Is this an old-style key? */
 	result = dst_key_getprivateformat(dk->key, &major, &minor);

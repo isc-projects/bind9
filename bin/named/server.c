@@ -8904,7 +8904,7 @@ load_configuration(const char *filename, named_server_t *server,
 		named_g_memstatistics = cfg_obj_asboolean(obj);
 	} else {
 		named_g_memstatistics =
-			(isc_mem_debugging & ISC_MEM_DEBUGRECORD);
+			((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0);
 	}
 
 	obj = NULL;
@@ -14071,8 +14071,8 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 	/* Security */
 	secure = dns_db_issecure(db);
-	allow = (dns_zone_getkeyopts(zone) & DNS_ZONEKEY_ALLOW);
-	maintain = (dns_zone_getkeyopts(zone) & DNS_ZONEKEY_MAINTAIN);
+	allow = ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_ALLOW) != 0);
+	maintain = ((dns_zone_getkeyopts(zone) & DNS_ZONEKEY_MAINTAIN) != 0);
 
 	/* Master files */
 	file = dns_zone_getfile(mayberaw);
@@ -14732,7 +14732,7 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 			snprintf(buf, sizeof(buf), "\n\talgorithm: %s", alg);
 			CHECK(putstr(text, buf));
 
-			revoked = (kd.flags & DNS_KEYFLAG_REVOKE);
+			revoked = ((kd.flags & DNS_KEYFLAG_REVOKE) != 0);
 			snprintf(buf, sizeof(buf), "\n\tflags:%s%s%s",
 				 revoked ? " REVOKE" : "",
 				 ((kd.flags & DNS_KEYFLAG_KSK) != 0)
