@@ -63,8 +63,6 @@ ISC_LANG_BEGINDECLS
 #define VALID_KEY(x) ISC_MAGIC_VALID(x, KEY_MAGIC)
 #define VALID_CTX(x) ISC_MAGIC_VALID(x, CTX_MAGIC)
 
-LIBDNS_EXTERNAL_DATA extern isc_mem_t *dst__memory_pool;
-
 /***
  *** Types
  ***/
@@ -191,7 +189,7 @@ struct dst_func {
 /*%
  * Initializers
  */
-isc_result_t dst__openssl_init(const char *engine);
+isc_result_t dst__openssl_init(isc_mem_t *, const char *engine);
 #define dst__pkcs11_init pk11_initialize
 
 isc_result_t dst__hmacmd5_init(struct dst_func **funcp);
