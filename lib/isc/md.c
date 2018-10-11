@@ -15,6 +15,7 @@
 
 #include <isc/md.h>
 #include <isc/util.h>
+#include <isc/once.h>
 
 #include <openssl/evp.h>
 #include <openssl/err.h>
@@ -22,8 +23,16 @@
 
 #include "openssl_shim.h"
 
+#if OPENSSL_API_COMPAT < 0x10100000L
+static isc_once_t isc_md_once = ISC_ONCE_INIT;
+#endif
+
 isc_md_t *
 isc_md_new(void) {
+#if OPENSSL_API_COMPAT < 0x10100000L
+	RUNTIME_CHECK(isc_once_do(&isc_md_once,
+				  OpenSSL_add_all_ciphers) == ISC_R_SUCCESS);
+#endif
 	isc_md_t *md = EVP_MD_CTX_new();
 	RUNTIME_CHECK(md != NULL);
 	return (md);

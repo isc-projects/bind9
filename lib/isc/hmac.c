@@ -14,6 +14,7 @@
 #include <isc/assertions.h>
 #include <isc/hmac.h>
 #include <isc/md.h>
+#include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/safe.h>
 #include <isc/string.h>
@@ -25,8 +26,17 @@
 
 #include "openssl_shim.h"
 
+#if OPENSSL_API_COMPAT < 0x10100000L
+static isc_once_t isc_hmac_once = ISC_ONCE_INIT;
+#endif
+
 isc_hmac_t *
 isc_hmac_new(void) {
+#if OPENSSL_API_COMPAT < 0x10100000L
+	RUNTIME_CHECK(isc_once_do(&isc_hmac_once,
+				  OpenSSL_add_all_ciphers) == ISC_R_SUCCESS);
+#endif
+
 	isc_hmac_t *hmac = HMAC_CTX_new();
 	RUNTIME_CHECK(hmac != NULL);
 	return (hmac);
