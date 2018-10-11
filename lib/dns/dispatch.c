@@ -299,7 +299,8 @@ static isc_result_t get_udpsocket(dns_dispatchmgr_t *mgr,
 				  isc_socketmgr_t *sockmgr,
 				  const isc_sockaddr_t *localaddr,
 				  isc_socket_t **sockp,
-				  isc_socket_t *dup_socket);
+				  isc_socket_t *dup_socket,
+				  bool duponly);
 static isc_result_t dispatch_createudp(dns_dispatchmgr_t *mgr,
 				       isc_socketmgr_t *sockmgr,
 				       isc_taskmgr_t *taskmgr,
@@ -317,7 +318,7 @@ static void qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp);
 static isc_result_t open_socket(isc_socketmgr_t *mgr,
 				const isc_sockaddr_t *local,
 				unsigned int options, isc_socket_t **sockp,
-				isc_socket_t *dup_socket);
+				isc_socket_t *dup_socket, bool duponly);
 static bool portavailable(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 				   isc_sockaddr_t *sockaddrp);
 
@@ -728,7 +729,7 @@ get_dispsocket(dns_dispatch_t *disp, const isc_sockaddr_t *dest,
 		if (portentry != NULL)
 			bindoptions |= ISC_SOCKET_REUSEADDRESS;
 		result = open_socket(sockmgr, &localaddr, bindoptions, &sock,
-				     NULL);
+				     NULL, false);
 		if (result == ISC_R_SUCCESS) {
 			if (portentry == NULL) {
 				portentry = new_portentry(disp, port);
@@ -1668,7 +1669,7 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 static isc_result_t
 open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 	    unsigned int options, isc_socket_t **sockp,
-	    isc_socket_t *dup_socket)
+	    isc_socket_t *dup_socket, bool duponly)
 {
 	isc_socket_t *sock;
 	isc_result_t result;
@@ -1678,7 +1679,7 @@ open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 		result = isc_socket_open(sock);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-	} else if (dup_socket != NULL && !isc_socket_hasreuseport()) {
+	} else if (dup_socket != NULL && (!isc_socket_hasreuseport() || duponly)) {
 		result = isc_socket_dup(dup_socket, &sock);
 		if (result != ISC_R_SUCCESS)
 			return (result);
@@ -2758,7 +2759,7 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 static isc_result_t
 get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	      isc_socketmgr_t *sockmgr, const isc_sockaddr_t *localaddr,
-	      isc_socket_t **sockp, isc_socket_t *dup_socket)
+	      isc_socket_t **sockp, isc_socket_t *dup_socket, bool duponly)
 {
 	unsigned int i, j;
 	isc_socket_t *held[DNS_DISPATCH_HELD];
@@ -2796,7 +2797,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 			prt = ports[isc_random_uniform(nports)];
 			isc_sockaddr_setport(&localaddr_bound, prt);
 			result = open_socket(sockmgr, &localaddr_bound,
-					     0, &sock, NULL);
+					     0, &sock, NULL, false);
 			/*
 			 * Continue if the port choosen is already in use
 			 * or the OS has reserved it.
@@ -2817,7 +2818,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		/* Allow to reuse address for non-random ports. */
 		result = open_socket(sockmgr, localaddr,
 				     ISC_SOCKET_REUSEADDRESS, &sock,
-				     dup_socket);
+				     dup_socket, duponly);
 
 		if (result == ISC_R_SUCCESS)
 			*sockp = sock;
@@ -2829,7 +2830,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	i = 0;
 
 	for (j = 0; j < 0xffffU; j++) {
-		result = open_socket(sockmgr, localaddr, 0, &sock, NULL);
+		result = open_socket(sockmgr, localaddr, 0, &sock, NULL, false);
 		if (result != ISC_R_SUCCESS)
 			goto end;
 		else if (portavailable(mgr, sock, NULL))
@@ -2873,6 +2874,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	dns_dispatch_t *disp;
 	isc_socket_t *sock = NULL;
 	int i = 0;
+	bool duponly = ((attributes & DNS_DISPATCHATTR_NOLISTEN) != 0);
 
 	/*
 	 * dispatch_allocate() checks mgr for us.
@@ -2886,7 +2888,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 	if ((attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0) {
 		result = get_udpsocket(mgr, disp, sockmgr, localaddr, &sock,
-				       dup_socket);
+				       dup_socket, duponly);
 		if (result != ISC_R_SUCCESS)
 			goto deallocate_dispatch;
 
@@ -2911,7 +2913,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		 */
 		isc_sockaddr_anyofpf(&sa_any, isc_sockaddr_pf(localaddr));
 		if (!isc_sockaddr_eqaddr(&sa_any, localaddr)) {
-			result = open_socket(sockmgr, localaddr, 0, &sock, NULL);
+			result = open_socket(sockmgr, localaddr, 0, &sock, NULL, false);
 			if (sock != NULL)
 				isc_socket_detach(&sock);
 			if (result != ISC_R_SUCCESS)
