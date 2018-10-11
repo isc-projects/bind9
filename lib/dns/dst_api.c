@@ -563,7 +563,7 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 	newfilename = NULL;
 	RETERR(result);
 
-	if (((type & DST_TYPE_PUBLIC) != 0) ||
+	if ((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) == DST_TYPE_PUBLIC ||
 	    (pubkey->key_flags & DNS_KEYFLAG_TYPEMASK) == DNS_KEYTYPE_NOKEY) {
 		result = computeid(pubkey);
 		if (result != ISC_R_SUCCESS) {
