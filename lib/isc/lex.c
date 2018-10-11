@@ -650,10 +650,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						goto done;
 					done = true;
 					continue;
-				} else if (!(options & ISC_LEXOPT_CNUMBER) ||
+				} else if ((options & ISC_LEXOPT_CNUMBER) == 0 ||
 					   ((c != 'x' && c != 'X') ||
-					   (curr != &lex->data[1]) ||
-					   (lex->data[0] != '0'))) {
+					    (curr != &lex->data[1]) ||
+					    (lex->data[0] != '0'))) {
 					/* Above test supports hex numbers */
 					state = lexstate_string;
 				}

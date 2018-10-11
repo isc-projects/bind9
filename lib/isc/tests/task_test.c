@@ -986,7 +986,7 @@ pg_event2(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (sender_match && type_match && tag_match) {
-		if (event->ev_attributes & ISC_EVENTATTR_NOPURGE) {
+		if ((event->ev_attributes & ISC_EVENTATTR_NOPURGE) != 0) {
 			printf("event %p,%d,%p matched but was not purgeable\n",
 			       event->ev_sender, (int)event->ev_type,
 			       event->ev_tag);
@@ -1440,4 +1440,3 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, purgeevent_notpurge);
 	return (atf_no_error());
 }
-
