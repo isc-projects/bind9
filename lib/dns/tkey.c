@@ -232,12 +232,6 @@ free_namelist(dns_message_t *msg, dns_namelist_t *namelist) {
 	}
 }
 
-#define rtx(fn, ...)                                                    \
-	if ((err = fn ( __VA_ARGS__ )) != ISC_R_SUCCESS) {		\
-		isc_md_free(md);					\
-		return (err);						\
-	}
-
 static isc_result_t
 compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	       isc_region_t *serverrandomness, isc_buffer_t *secret)
@@ -248,7 +242,7 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	unsigned char *digest1, *digest2;
 	unsigned int digestslen, digestlen1 = 0, digestlen2 = 0;
 	unsigned int i;
-	isc_result_t err;
+	isc_result_t result;
 
 	isc_buffer_usedregion(shared, &r);
 
@@ -262,24 +256,62 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 	 */
 	digest1 = digests;
 
-	rtx(isc_md_init, md, ISC_MD_MD5);
-	rtx(isc_md_update, md, queryrandomness->base, queryrandomness->length);
-	rtx(isc_md_update, md, r.base, r.length);
-	rtx(isc_md_final, md, digest1, &digestlen1);
+	result = isc_md_init(md, ISC_MD_MD5);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
 
-	rtx(isc_md_reset, md);
+	result = isc_md_update(md,
+			       queryrandomness->base,
+			       queryrandomness->length);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_update(md, r.base, r.length);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_final(md, digest1, &digestlen1);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_reset(md);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
 
 	/*
 	 * MD5 ( server data | DH value ).
 	 */
 	digest2 = digests + digestlen1;
 
-	rtx(isc_md_init, md, ISC_MD_MD5);
-	rtx(isc_md_update, md, serverrandomness->base, serverrandomness->length);
-	rtx(isc_md_update, md, r.base, r.length);
-	rtx(isc_md_final, md, digest2, &digestlen2);
+	result = isc_md_init(md, ISC_MD_MD5);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_update(md,
+			       serverrandomness->base,
+			       serverrandomness->length);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_update(md, r.base, r.length);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
+
+	result = isc_md_final(md, digest2, &digestlen2);
+	if (result != ISC_R_SUCCESS) {
+		goto end;
+	}
 
 	isc_md_free(md);
+	md = NULL;
 
 	digestslen = digestlen1 + digestlen2;
 
@@ -298,16 +330,19 @@ compute_secret(isc_buffer_t *shared, isc_region_t *queryrandomness,
 		}
 		isc_buffer_add(secret, r2.length);
 	} else {
-		memmove(r.base, digests, sizeof(digests));
+		memmove(r.base, digests, digestslen);
 		for (i = 0; i < r2.length; i++) {
 			r.base[i] ^= r2.base[i];
 		}
-		isc_buffer_add(secret, sizeof(digests));
+		isc_buffer_add(secret, digestslen);
 	}
-	return (ISC_R_SUCCESS);
+	result = ISC_R_SUCCESS;
+end:
+	if (md != NULL) {
+		isc_md_free(md);
+	}
+	return (result);
 }
-
-#undef rtx
 
 static isc_result_t
 process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
