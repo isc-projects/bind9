@@ -88,7 +88,7 @@ ATF_TC_BODY(isc_crc64, tc) {
 	hash_testcase_t *testcase = testcases;
 
 	while (testcase->input != NULL && testcase->result != NULL) {
-		char str[19];
+		char str[17];
 
 		isc_crc64_init(&crc);
 		for(i = 0; i < testcase->repeats; i++) {
@@ -98,7 +98,7 @@ ATF_TC_BODY(isc_crc64, tc) {
 		}
 		isc_crc64_final(&crc);
 		snprintf(str, sizeof(str),
-			 "0x%016" PRIX64, crc);
+			 "%016" PRIX64, crc);
 		ATF_CHECK_STREQ(str, testcase->result);
 
 		testcase++;
