@@ -793,10 +793,10 @@ create_managers(void) {
 	named_g_udpdisp = 1;
 #else
 	if (named_g_udpdisp == 0) {
-		named_g_udpdisp = named_g_cpus_detected;
+		named_g_udpdisp = named_g_cpus_detected * 2;
 	}
-	if (named_g_udpdisp > named_g_cpus)
-		named_g_udpdisp = named_g_cpus;
+//	if (named_g_udpdisp > named_g_cpus)
+//		named_g_udpdisp = named_g_cpus;
 #endif
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
