@@ -72,8 +72,6 @@ static bool dst_initialized = false;
 
 void gss_log(int level, const char *fmt, ...) ISC_FORMAT_PRINTF(2, 3);
 
-LIBDNS_EXTERNAL_DATA isc_mem_t *dst__memory_pool = NULL;
-
 /*
  * Static functions.
  */
@@ -124,20 +122,6 @@ static isc_result_t	addsuffix(char *filename, int len,
 			return (_r);		\
 	} while (0);				\
 
-static void *
-default_memalloc(void *arg, size_t size) {
-	UNUSED(arg);
-	if (size == 0U)
-		size = 1;
-	return (malloc(size));
-}
-
-static void
-default_memfree(void *arg, void *ptr) {
-	UNUSED(arg);
-	free(ptr);
-}
-
 isc_result_t
 dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	isc_result_t result;
@@ -146,8 +130,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	REQUIRE(dst_initialized == false);
 
 	UNUSED(engine);
-
-	dst__memory_pool = NULL;
 
 	UNUSED(mctx);
 	/*
@@ -158,14 +140,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	 * ISC_MEMFLAG_INTERNAL as it will free up memory still being used
 	 * by libcrypto.
 	 */
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &dst__memory_pool, 0);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-	isc_mem_setname(dst__memory_pool, "dst", NULL);
-#ifndef OPENSSL_LEAKS
-	isc_mem_setdestroycheck(dst__memory_pool, false);
-#endif
 
 	dst_result_register();
 
@@ -242,8 +216,6 @@ dst_lib_destroy(void) {
 #if USE_PKCS11
 	(void) dst__pkcs11_destroy();
 #endif /* USE_PKCS11 */
-	if (dst__memory_pool != NULL)
-		isc_mem_detach(&dst__memory_pool);
 }
 
 bool
