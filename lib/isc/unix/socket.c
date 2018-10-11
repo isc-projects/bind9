@@ -2909,9 +2909,9 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
-		isc_task_sendanddetach(&task, (isc_event_t **)dev);
+		isc_task_sendtoanddetach(&task, (isc_event_t **)dev, sock->threadid);
 	else
-		isc_task_send(task, (isc_event_t **)dev);
+		isc_task_sendto(task, (isc_event_t **)dev, sock->threadid);
 }
 
 /*
@@ -2933,9 +2933,9 @@ send_senddone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)
-		isc_task_sendanddetach(&task, (isc_event_t **)dev);
+		isc_task_sendtoanddetach(&task, (isc_event_t **)dev, sock->threadid);
 	else
-		isc_task_send(task, (isc_event_t **)dev);
+		isc_task_sendto(task, (isc_event_t **)dev, sock->threadid);
 }
 
 /*
@@ -2955,7 +2955,7 @@ send_connectdone_event(isc__socket_t *sock, isc_socket_connev_t **dev) {
 	if (ISC_LINK_LINKED(*dev, ev_link))
 		ISC_LIST_DEQUEUE(sock->connect_list, *dev, ev_link);
 
-	isc_task_sendanddetach(&task, (isc_event_t **)dev);
+	isc_task_sendtoanddetach(&task, (isc_event_t **)dev, sock->threadid);
 }
 
 /*
@@ -3212,7 +3212,7 @@ internal_accept(isc__socket_t *sock) {
 	task = dev->ev_sender;
 	dev->ev_sender = sock;
 
-	isc_task_sendanddetach(&task, ISC_EVENT_PTR(&dev));
+	isc_task_sendtoanddetach(&task, ISC_EVENT_PTR(&dev), sock->threadid);
 	return;
 
  soft_error:
@@ -5114,7 +5114,7 @@ isc_socket_connect(isc_socket_t *sock0, const isc_sockaddr_t *addr,
 	if (sock->connected) {
 		INSIST(isc_sockaddr_equal(&sock->peer_address, addr));
 		dev->result = ISC_R_SUCCESS;
-		isc_task_send(task, ISC_EVENT_PTR(&dev));
+		isc_task_sendto(task, ISC_EVENT_PTR(&dev), sock->threadid);
 
 		UNLOCK(&sock->lock);
 
@@ -5178,7 +5178,7 @@ isc_socket_connect(isc_socket_t *sock0, const isc_sockaddr_t *addr,
 
 	err_exit:
 		sock->connected = 0;
-		isc_task_send(task, ISC_EVENT_PTR(&dev));
+		isc_task_sendto(task, ISC_EVENT_PTR(&dev), sock->threadid);
 
 		UNLOCK(&sock->lock);
 		inc_stats(sock->manager->stats,
@@ -5194,7 +5194,7 @@ isc_socket_connect(isc_socket_t *sock0, const isc_sockaddr_t *addr,
 		sock->connected = 1;
 		sock->bound = 1;
 		dev->result = ISC_R_SUCCESS;
-		isc_task_send(task, ISC_EVENT_PTR(&dev));
+		isc_task_sendto(task, ISC_EVENT_PTR(&dev), sock->threadid);
 
 		UNLOCK(&sock->lock);
 
@@ -5480,8 +5480,8 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 
 				dev->result = ISC_R_CANCELED;
 				dev->ev_sender = sock;
-				isc_task_sendanddetach(&current_task,
-						       ISC_EVENT_PTR(&dev));
+				isc_task_sendtoanddetach(&current_task,
+						       ISC_EVENT_PTR(&dev), sock->threadid);
 			}
 
 			dev = next;
