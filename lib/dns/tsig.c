@@ -50,7 +50,7 @@
 #define DNS_TSIG_MAXGENERATEDKEYS 4096
 #endif
 
-#define is_response(msg) (msg->flags & DNS_MESSAGEFLAG_QR)
+#define is_response(msg) ((msg->flags & DNS_MESSAGEFLAG_QR) != 0)
 
 #define BADTIMELEN 6
 

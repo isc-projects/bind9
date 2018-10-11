@@ -567,8 +567,8 @@ adj_trigger_cnt(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 		const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 		bool inc)
 {
-	dns_rpz_trigger_counter_t *cnt = 0;
-	dns_rpz_zbits_t *have = 0;
+	dns_rpz_trigger_counter_t *cnt = NULL;
+	dns_rpz_zbits_t *have = NULL;
 
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_CLIENT_IP:

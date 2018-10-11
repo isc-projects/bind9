@@ -1160,7 +1160,7 @@ udp_recv(isc_event_t *ev_in, dns_dispatch_t *disp, dispsocket_t *dispsock) {
 
 	dispatch_log(disp, LVL(92),
 		     "got valid DNS message header, /QR %c, id %u",
-		     ((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id);
+		     (((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0'), id);
 
 	/*
 	 * Look at flags.  If query, drop it. If response,
@@ -1413,7 +1413,7 @@ tcp_recv(isc_task_t *task, isc_event_t *ev_in) {
 
 	dispatch_log(disp, LVL(92),
 		     "got valid DNS message header, /QR %c, id %u",
-		     ((flags & DNS_MESSAGEFLAG_QR) ? '1' : '0'), id);
+		     (((flags & DNS_MESSAGEFLAG_QR) != 0) ? '1' : '0'), id);
 
 	/*
 	 * Allocate an event to send to the query or response client, and

@@ -58,7 +58,7 @@ dns_nsec_isset(const unsigned char *array, unsigned int type) {
 	shift = 7 - (type % 8);
 	mask = 1 << shift;
 
-	return (byte & mask);
+	return ((byte & mask) != 0);
 }
 
 unsigned int

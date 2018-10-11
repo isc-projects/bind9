@@ -721,7 +721,7 @@ isoptout(const vctx_t *vctx, const dns_rdata_t *nsec3rdata,
 
 	result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	*optout = (nsec3.flags & DNS_NSEC3FLAG_OPTOUT);
+	*optout = ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
 
  done:
 	if (dns_rdataset_isassociated(&rdataset)) {
@@ -1629,7 +1629,7 @@ check_dnskey(vctx_t *vctx) {
 		dns_rdataset_current(&vctx->keyset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		is_ksk = (dnskey.flags & DNS_KEYFLAG_KSK);
+		is_ksk = ((dnskey.flags & DNS_KEYFLAG_KSK) != 0);
 
 		if ((dnskey.flags & DNS_KEYOWNER_ZONE) == 0) {
 			;
