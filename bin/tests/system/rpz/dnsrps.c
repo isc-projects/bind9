@@ -135,6 +135,7 @@ main(int argc, char **argv) {
 			printf("%u\n", serial);
 #else
 			INSIST(0);
+			/* UNREACHABLE */
 #endif
 			return (0);
 

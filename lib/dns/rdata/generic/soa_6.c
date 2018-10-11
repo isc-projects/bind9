@@ -91,11 +91,12 @@ totext_soa(ARGS_TOTEXT) {
 	REQUIRE(rdata->type == dns_rdatatype_soa);
 	REQUIRE(rdata->length != 0);
 
-	multiline = (tctx->flags & DNS_STYLEFLAG_MULTILINE);
-	if (multiline)
-		comm = (tctx->flags & DNS_STYLEFLAG_RRCOMMENT);
-	else
+	multiline = ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0);
+	if (multiline) {
+		comm = ((tctx->flags & DNS_STYLEFLAG_RRCOMMENT) != 0);
+	} else {
 		comm = false;
+	}
 
 
 	dns_name_init(&mname, NULL);

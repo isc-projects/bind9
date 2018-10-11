@@ -1796,7 +1796,8 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 			/* Single-valued clause */
 			if (result == ISC_R_NOTFOUND) {
 				bool callback =
-					(clause->flags & CFG_CLAUSEFLAG_CALLBACK);
+					((clause->flags &
+					  CFG_CLAUSEFLAG_CALLBACK) != 0);
 				CHECK(parse_symtab_elt(pctx, clause->name,
 						       clause->type,
 						       obj->value.map.symtab,
@@ -2493,19 +2494,21 @@ static void
 cfg_doc_netaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 	const unsigned int *flagp = type->of;
 	int n = 0;
-	if (*flagp != CFG_ADDR_V4OK && *flagp != CFG_ADDR_V6OK)
+	if ((*flagp != CFG_ADDR_V4OK) != 0 &&
+	    (*flagp != CFG_ADDR_V6OK) != 0) {
 		cfg_print_cstr(pctx, "( ");
-	if (*flagp & CFG_ADDR_V4OK) {
+	}
+	if ((*flagp & CFG_ADDR_V4OK) != 0) {
 		cfg_print_cstr(pctx, "<ipv4_address>");
 		n++;
 	}
-	if (*flagp & CFG_ADDR_V6OK) {
+	if ((*flagp & CFG_ADDR_V6OK) != 0) {
 		if (n != 0)
 			cfg_print_cstr(pctx, " | ");
 		cfg_print_cstr(pctx, "<ipv6_address>");
 		n++;
 	}
-	if (*flagp & CFG_ADDR_WILDOK) {
+	if ((*flagp & CFG_ADDR_WILDOK) != 0) {
 		if (n != 0)
 			cfg_print_cstr(pctx, " | ");
 		cfg_print_cstr(pctx, "*");
@@ -2741,17 +2744,17 @@ cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 	REQUIRE(type != NULL);
 
 	cfg_print_cstr(pctx, "( ");
-	if (*flagp & CFG_ADDR_V4OK) {
+	if ((*flagp & CFG_ADDR_V4OK) != 0) {
 		cfg_print_cstr(pctx, "<ipv4_address>");
 		n++;
 	}
-	if (*flagp & CFG_ADDR_V6OK) {
+	if ((*flagp & CFG_ADDR_V6OK) != 0) {
 		if (n != 0)
 			cfg_print_cstr(pctx, " | ");
 		cfg_print_cstr(pctx, "<ipv6_address>");
 		n++;
 	}
-	if (*flagp & CFG_ADDR_WILDOK) {
+	if ((*flagp & CFG_ADDR_WILDOK) != 0) {
 		if (n != 0)
 			cfg_print_cstr(pctx, " | ");
 		cfg_print_cstr(pctx, "*");
@@ -2759,7 +2762,7 @@ cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
 		POST(n);
 	}
 	cfg_print_cstr(pctx, " ) ");
-	if (*flagp & CFG_ADDR_WILDOK) {
+	if ((*flagp & CFG_ADDR_WILDOK) != 0) {
 		cfg_print_cstr(pctx, "[ port ( <integer> | * ) ]");
 	} else {
 		cfg_print_cstr(pctx, "[ port <integer> ]");
@@ -3000,12 +3003,13 @@ parser_complain(cfg_parser_t *pctx, bool is_warning,
 		}
 
 		/* Choose a preposition. */
-		if (flags & CFG_LOG_NEAR)
+		if ((flags & CFG_LOG_NEAR) != 0) {
 			prep = " near ";
-		else if (flags & CFG_LOG_BEFORE)
+		} else if ((flags & CFG_LOG_BEFORE) != 0) {
 			prep = " before ";
-		else
+		} else {
 			prep = " ";
+		}
 	} else {
 		tokenbuf[0] = '\0';
 	}
