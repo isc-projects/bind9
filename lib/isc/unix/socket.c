@@ -2906,6 +2906,8 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 
 	if (ISC_LINK_LINKED(*dev, ev_link))
 		ISC_LIST_DEQUEUE(sock->recv_list, *dev, ev_link);
+	
+//	printf("SENDTO %d\n", sock->threadid);
 
 	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
 	    == ISC_SOCKEVENTATTR_ATTACHED)

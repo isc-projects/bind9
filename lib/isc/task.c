@@ -449,7 +449,7 @@ task_send(isc__task_t *task, isc_event_t **eventp, int c) {
 	ENQUEUE(task->events, event, ev_link);
 	task->nevents++;
 	*eventp = NULL;
-
+//	printf("GOTITON %d %d\n", task->threadid, c);
 	return (was_idle);
 }
 
@@ -1296,6 +1296,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	manager->tasks_ready = 0;
 	manager->exclusive_requested = false;
 	manager->pause_requested = false;
+	manager->curq = 0;
 	manager->exiting = false;
 	manager->excl = NULL;
 
