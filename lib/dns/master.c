@@ -583,7 +583,7 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		isc_lex_setcomments(lctx->lex, ISC_LEXCOMMENT_DNSMASTERFILE);
 	}
 
-	lctx->ttl_known = (options & DNS_MASTER_NOTTL);
+	lctx->ttl_known = ((options & DNS_MASTER_NOTTL) != 0);
 	lctx->ttl = 0;
 	lctx->default_ttl_known = lctx->ttl_known;
 	lctx->default_ttl = 0;

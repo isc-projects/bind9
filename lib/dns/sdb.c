@@ -1084,7 +1084,7 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 	sdbiter->common.methods = &dbiterator_methods;
 	sdbiter->common.db = NULL;
 	dns_db_attach(db, &sdbiter->common.db);
-	sdbiter->common.relative_names = (options & DNS_DB_RELATIVENAMES);
+	sdbiter->common.relative_names = ((options & DNS_DB_RELATIVENAMES) != 0);
 	sdbiter->common.magic = DNS_DBITERATOR_MAGIC;
 	ISC_LIST_INIT(sdbiter->nodelist);
 	sdbiter->current = NULL;

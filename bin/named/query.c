@@ -9559,7 +9559,7 @@ ns_query_start(ns_client_t *client) {
 	 * We don't need to set DNS_DBFIND_PENDINGOK when validation is
 	 * disabled as there will be no pending data.
 	 */
-	if (message->flags & DNS_MESSAGEFLAG_CD ||
+	if ((message->flags & DNS_MESSAGEFLAG_CD) != 0 ||
 	    qtype == dns_rdatatype_rrsig)
 	{
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
@@ -9571,8 +9571,9 @@ ns_query_start(ns_client_t *client) {
 	 * Allow glue NS records to be added to the authority section
 	 * if the answer is secure.
 	 */
-	if (message->flags & DNS_MESSAGEFLAG_CD)
+	if ((message->flags & DNS_MESSAGEFLAG_CD) != 0) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
+	}
 
 	/*
 	 * Set NS_CLIENTATTR_WANTAD if the client has set AD in the query.

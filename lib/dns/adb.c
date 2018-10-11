@@ -2187,7 +2187,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *qname,
 
 	bucket = DNS_ADB_INVALIDBUCKET;
 
-	if (find->options & DNS_ADBFIND_INET) {
+	if ((find->options & DNS_ADBFIND_INET) != 0) {
 		namehook = ISC_LIST_HEAD(name->v4);
 		while (namehook != NULL) {
 			entry = namehook->entry;
@@ -2227,7 +2227,7 @@ copy_namehook_lists(dns_adb_t *adb, dns_adbfind_t *find, dns_name_t *qname,
 		}
 	}
 
-	if (find->options & DNS_ADBFIND_INET6) {
+	if ((find->options & DNS_ADBFIND_INET6) != 0) {
 		namehook = ISC_LIST_HEAD(name->v6);
 		while (namehook != NULL) {
 			entry = namehook->entry;
@@ -3710,8 +3710,7 @@ dbfind_name(dns_adbname_t *adbname, isc_stdtime_t now, dns_rdatatype_t rdtype)
 	result = dns_view_find2(adb->view, &adbname->name, rdtype, now,
 				NAME_GLUEOK(adbname) ? DNS_DBFIND_GLUEOK : 0,
 				NAME_HINTOK(adbname),
-				(adbname->flags & NAME_STARTATZONE) != 0 ?
-				true : false,
+				((adbname->flags & NAME_STARTATZONE) != 0),
 				NULL, NULL, fname, &rdataset, NULL);
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */

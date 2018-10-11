@@ -1767,7 +1767,7 @@ isc__task_setprivilege(isc_task_t *task0, bool priv) {
 	bool oldpriv;
 
 	LOCK(&task->lock);
-	oldpriv = (task->flags & TASK_F_PRIVILEGED);
+	oldpriv = ((task->flags & TASK_F_PRIVILEGED) != 0);
 	if (priv)
 		task->flags |= TASK_F_PRIVILEGED;
 	else
@@ -1793,7 +1793,7 @@ isc__task_privilege(isc_task_t *task0) {
 	bool priv;
 
 	LOCK(&task->lock);
-	priv = (task->flags & TASK_F_PRIVILEGED);
+	priv = ((task->flags & TASK_F_PRIVILEGED) != 0);
 	UNLOCK(&task->lock);
 	return (priv);
 }

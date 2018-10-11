@@ -1950,11 +1950,11 @@ send_recvdone_event(isc_socket_t *sock, isc_socketevent_t **dev) {
 	if (ISC_LINK_LINKED(*dev, ev_link))
 		ISC_LIST_DEQUEUE(sock->recv_list, *dev, ev_link);
 
-	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
-	    == ISC_SOCKEVENTATTR_ATTACHED)
+	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED) != 0) {
 		isc_task_sendanddetach(&task, (isc_event_t **)dev);
-	else
+	} else {
 		isc_task_send(task, (isc_event_t **)dev);
+	}
 
 	CONSISTENT(sock);
 }
@@ -1974,11 +1974,11 @@ send_senddone_event(isc_socket_t *sock, isc_socketevent_t **dev) {
 	if (ISC_LINK_LINKED(*dev, ev_link))
 		ISC_LIST_DEQUEUE(sock->send_list, *dev, ev_link);
 
-	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
-	    == ISC_SOCKEVENTATTR_ATTACHED)
+	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED) != 0) {
 		isc_task_sendanddetach(&task, (isc_event_t **)dev);
-	else
+	} else {
 		isc_task_send(task, (isc_event_t **)dev);
+	}
 
 	CONSISTENT(sock);
 }
@@ -3738,7 +3738,7 @@ isc__socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	 *	o Reset any state needed.
 	 */
 
-	if ((how & ISC_SOCKCANCEL_RECV) == ISC_SOCKCANCEL_RECV) {
+	if ((how & ISC_SOCKCANCEL_RECV) != 0) {
 		isc_socketevent_t      *dev;
 		isc_socketevent_t      *next;
 		isc_task_t	       *current_task;
@@ -3756,7 +3756,7 @@ isc__socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	}
 	how &= ~ISC_SOCKCANCEL_RECV;
 
-	if ((how & ISC_SOCKCANCEL_SEND) == ISC_SOCKCANCEL_SEND) {
+	if ((how & ISC_SOCKCANCEL_SEND) != 0) {
 		isc_socketevent_t      *dev;
 		isc_socketevent_t      *next;
 		isc_task_t	       *current_task;
@@ -3775,7 +3775,7 @@ isc__socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	}
 	how &= ~ISC_SOCKCANCEL_SEND;
 
-	if (((how & ISC_SOCKCANCEL_ACCEPT) == ISC_SOCKCANCEL_ACCEPT)
+	if (((how & ISC_SOCKCANCEL_ACCEPT) != 0)
 	    && !ISC_LIST_EMPTY(sock->accept_list)) {
 		isc_socket_newconnev_t *dev;
 		isc_socket_newconnev_t *next;
@@ -3802,7 +3802,7 @@ isc__socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 	}
 	how &= ~ISC_SOCKCANCEL_ACCEPT;
 
-	if (((how & ISC_SOCKCANCEL_CONNECT) == ISC_SOCKCANCEL_CONNECT)
+	if (((how & ISC_SOCKCANCEL_CONNECT) != 0)
 	    && !ISC_LIST_EMPTY(sock->connect_list)) {
 		isc_socket_connev_t    *dev;
 		isc_socket_connev_t    *next;
