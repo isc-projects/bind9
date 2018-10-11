@@ -470,6 +470,7 @@ ns_interface_listenudp(ns_interface_t *ifp) {
 	else
 		attrs |= DNS_DISPATCHATTR_IPV6;
 	attrs |= DNS_DISPATCHATTR_NOLISTEN;
+	attrs |= DNS_DISPATCHATTR_CANREUSE;
 	attrmask = 0;
 	attrmask |= DNS_DISPATCHATTR_UDP | DNS_DISPATCHATTR_TCP;
 	attrmask |= DNS_DISPATCHATTR_IPV4 | DNS_DISPATCHATTR_IPV6;
