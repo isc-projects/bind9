@@ -574,6 +574,7 @@ int main(void) {
 #else /* HAVE_CMOCKA */
 
 int main(void) {
+	printf("1..0 # cmocka not available\n");
 	return (0);
 }
 
