@@ -580,6 +580,8 @@ isc_task_purgeevent
 isc_task_purgerange
 isc_task_send
 isc_task_sendanddetach
+isc_task_sendto
+isc_task_sendtoanddetach
 isc_task_setname
 isc_task_setprivilege
 isc_task_shutdown
