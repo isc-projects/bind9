@@ -129,12 +129,14 @@ totext_keydata(ARGS_TOTEXT) {
 	RETERR(str_totext(buf, target));
 	RETERR(str_totext(" ", target));
 	if ((flags & DNS_KEYFLAG_KSK) != 0) {
-		if (flags & DNS_KEYFLAG_REVOKE)
+		if ((flags & DNS_KEYFLAG_REVOKE) != 0) {
 			keyinfo = "revoked KSK";
-		else
+		} else {
 			keyinfo = "KSK";
-	} else
+		}
+	} else {
 		keyinfo = "ZSK";
+	}
 
 	/* protocol */
 	snprintf(buf, sizeof(buf), "%u", sr.base[0]);
