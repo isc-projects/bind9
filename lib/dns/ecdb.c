@@ -725,7 +725,7 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	raw += 2;
 #endif
 	if (rdataset->type == dns_rdatatype_rrsig) {
-		if (*raw & DNS_RDATASLAB_OFFLINE)
+		if ((*raw & DNS_RDATASLAB_OFFLINE) != 0)
 			flags |= DNS_RDATA_OFFLINE;
 		length--;
 		raw++;
