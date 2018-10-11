@@ -726,7 +726,7 @@ process_answer(isc_task_t *task, isc_event_t *event) {
 		goto done;
 	}
 
-	wantcname = (resstate->head->ai_flags & AI_CANONNAME);
+	wantcname = ((resstate->head->ai_flags & AI_CANONNAME) != 0);
 
 	/* Parse the response and construct the addrinfo chain */
 	for (name = ISC_LIST_HEAD(rev->answerlist); name != NULL;
