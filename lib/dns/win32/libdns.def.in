@@ -1438,6 +1438,5 @@ dns_tsig_hmacmd5_name	DATA
 dns_zone_mkey_day	DATA
 dns_zone_mkey_hour	DATA
 dns_zone_mkey_month	DATA
-dst__memory_pool	DATA
 dst_msgcat		DATA
 @END NOLONGER
