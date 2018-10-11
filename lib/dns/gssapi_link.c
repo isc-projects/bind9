@@ -190,7 +190,7 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	gss_buffer_desc gmessage, gsig;
 	OM_uint32 minor, gret;
 	gss_ctx_id_t gssctx = dctx->key->keydata.gssctx;
-	unsigned char *buf;
+	unsigned char buf[sig->length];
 	char err[1024];
 
 	/*
@@ -206,9 +206,6 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	 * at least on Heimdal's implementation.  Copy it here to an allocated
 	 * buffer.
 	 */
-	buf = isc_mem_allocate(dst__memory_pool, sig->length);
-	if (buf == NULL)
-		return (ISC_R_FAILURE);
 	memmove(buf, sig->base, sig->length);
 	r.base = buf;
 	r.length = sig->length;
@@ -218,8 +215,6 @@ gssapi_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	 * Verify the data.
 	 */
 	gret = gss_verify_mic(&minor, gssctx, &gmessage, &gsig, NULL);
-
-	isc_mem_free(dst__memory_pool, buf);
 
 	/*
 	 * Convert return codes into something useful to us.

@@ -94,41 +94,6 @@ id_callback(void) {
 
 #endif
 
-static void *
-mem_alloc(size_t size FLARG) {
-#ifdef OPENSSL_LEAKS
-	void *ptr;
-
-	INSIST(dst__memory_pool != NULL);
-	ptr = isc__mem_allocate(dst__memory_pool, size FLARG_PASS);
-	return (ptr);
-#else
-	INSIST(dst__memory_pool != NULL);
-	return (isc__mem_allocate(dst__memory_pool, size FLARG_PASS));
-#endif
-}
-
-static void
-mem_free(void *ptr FLARG) {
-	INSIST(dst__memory_pool != NULL);
-	if (ptr != NULL)
-		isc__mem_free(dst__memory_pool, ptr FLARG_PASS);
-}
-
-static void *
-mem_realloc(void *ptr, size_t size FLARG) {
-#ifdef OPENSSL_LEAKS
-	void *rptr;
-
-	INSIST(dst__memory_pool != NULL);
-	rptr = isc__mem_reallocate(dst__memory_pool, ptr, size FLARG_PASS);
-	return (rptr);
-#else
-	INSIST(dst__memory_pool != NULL);
-	return (isc__mem_reallocate(dst__memory_pool, ptr, size FLARG_PASS));
-#endif
-}
-
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 static void
 _set_thread_id(CRYPTO_THREADID *id)
@@ -145,12 +110,6 @@ dst__openssl_init(const char *engine) {
 	UNUSED(engine);
 #endif
 
-#ifdef  DNS_CRYPTO_LEAKS
-	CRYPTO_malloc_debug_init();
-	CRYPTO_set_mem_debug_options(V_CRYPTO_MDEBUG_ALL);
-	CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
-#endif
-	CRYPTO_set_mem_functions(mem_alloc, mem_realloc, mem_free);
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	nlocks = CRYPTO_num_locks();
 	locks = mem_alloc(sizeof(isc_mutex_t) * nlocks FILELINE);
@@ -167,6 +126,7 @@ dst__openssl_init(const char *engine) {
 # endif
 	ERR_load_crypto_strings();
 #endif
+	OpenSSL_add_all_algorithms();
 
 #if !defined(OPENSSL_NO_ENGINE)
 #if !defined(CONF_MFLAGS_DEFAULT_SECTION)
@@ -251,10 +211,6 @@ dst__openssl_destroy(void) {
 	ERR_remove_state(0);
 #endif
 	ERR_free_strings();
-
-#ifdef  DNS_CRYPTO_LEAKS
-	CRYPTO_mem_leaks_fp(stderr);
-#endif
 
 	if (locks != NULL) {
 		CRYPTO_set_locking_callback(NULL);
