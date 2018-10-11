@@ -573,7 +573,10 @@ int main(void) {
 
 #else /* HAVE_CMOCKA */
 
+#include <stdio.h>
+
 int main(void) {
+	printf("1..0 # cmocka not available\n");
 	return (0);
 }
 
