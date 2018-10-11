@@ -1055,8 +1055,8 @@ dns_request_createvia4(dns_requestmgr_t *requestmgr, dns_message_t *message,
 		dns_tsigkey_attach(key, &request->tsigkey);
 
  use_tcp:
-	tcp = (options & DNS_REQUESTOPT_TCP);
-	share = (options & DNS_REQUESTOPT_SHARE);
+	tcp = ((options & DNS_REQUESTOPT_TCP) != 0);
+	share = ((options & DNS_REQUESTOPT_SHARE) != 0);
 	result = get_dispatch(tcp, false, share,
 			      requestmgr, srcaddr, destaddr,
 			      dscp, &connected, &request->dispatch);
@@ -1317,7 +1317,7 @@ bool
 dns_request_usedtcp(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));
 
-	return (request->flags & DNS_REQUEST_F_TCP);
+	return ((request->flags & DNS_REQUEST_F_TCP) != 0);
 }
 
 void

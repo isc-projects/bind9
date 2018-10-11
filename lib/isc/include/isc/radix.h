@@ -61,8 +61,6 @@ typedef void (*isc_radix_processfunc_t)(isc_prefix_t *, void **);
 #define isc_prefix_tochar(prefix) ((char *)&(prefix)->add.sin)
 #define isc_prefix_touchar(prefix) ((u_char *)&(prefix)->add.sin)
 
-#define BIT_TEST(f, b)  ((f) & (b))
-
 /*
  * We need "first match" when we search the radix tree to preserve
  * compatibility with the existing ACL implementation. Radix trees

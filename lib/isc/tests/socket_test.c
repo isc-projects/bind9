@@ -78,7 +78,7 @@ event_done(isc_task_t *task, isc_event_t *event) {
 	} else {
 		recv_dscp = false;
 	}
-	recv_trunc = (dev->attributes & ISC_SOCKEVENTATTR_TRUNC);
+	recv_trunc = ((dev->attributes & ISC_SOCKEVENTATTR_TRUNC) != 0);
 	isc_event_free(&event);
 }
 

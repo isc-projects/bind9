@@ -263,5 +263,5 @@ bool
 ns_server_getoption(ns_server_t *sctx, unsigned int option) {
 	REQUIRE(SCTX_VALID(sctx));
 
-	return (sctx->options & option);
+	return ((sctx->options & option) != 0);
 }

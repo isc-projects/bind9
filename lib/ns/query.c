@@ -4523,7 +4523,7 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdata_reset(&rdata);
-		optout = (nsec3.flags & DNS_NSEC3FLAG_OPTOUT);
+		optout = ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
 		if (found != NULL && optout &&
 		    dns_name_issubdomain(&name, dns_db_origin(db)))
 		{
@@ -11042,7 +11042,7 @@ ns_query_start(ns_client_t *client) {
 	 * We don't need to set DNS_DBFIND_PENDINGOK when validation is
 	 * disabled as there will be no pending data.
 	 */
-	if (message->flags & DNS_MESSAGEFLAG_CD ||
+	if ((message->flags & DNS_MESSAGEFLAG_CD) != 0 ||
 	    qtype == dns_rdatatype_rrsig)
 	{
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
@@ -11054,8 +11054,9 @@ ns_query_start(ns_client_t *client) {
 	 * Allow glue NS records to be added to the authority section
 	 * if the answer is secure.
 	 */
-	if (message->flags & DNS_MESSAGEFLAG_CD)
+	if ((message->flags & DNS_MESSAGEFLAG_CD) != 0) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
+	}
 
 	/*
 	 * Set NS_CLIENTATTR_WANTAD if the client has set AD in the query.
