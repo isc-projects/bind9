@@ -15,6 +15,7 @@
 
 #include <stdarg.h>
 #include <stddef.h>
+#include <stdio.h>
 #include <setjmp.h>
 
 #include <string.h>
