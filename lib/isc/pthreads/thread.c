@@ -105,6 +105,7 @@ isc_thread_yield(void) {
 
 isc_result_t
 isc_thread_setaffinity(int cpu) {
+	return (ISC_R_SUCCESS);
 #if defined(HAVE_CPUSET_SETAFFINITY)
 	cpuset_t cpuset;
 	CPU_ZERO(&cpuset);
