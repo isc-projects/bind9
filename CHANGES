@@ -1,3 +1,6 @@
+5062.	[func]		Use non-crypto-secure PRNG to generate nonces for
+			cookies [GL !887]
+
 5061.	[protocol]	Add support for EID and NIMLOC. [GL #626]
 
 5060.	[bug]		GID, UID and UINFO could not be loaded using unknown
