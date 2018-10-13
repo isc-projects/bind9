@@ -1,0 +1,50 @@
+env:
+  - PATH="/usr/lib/ccache:$PATH"
+  - CFLAGS="-g -O1 --coverage -fno-omit-frame-pointer -Wall -Wno-deprecated-declarations -Wno-macro-redefined -fno-optimize-sibling-calls -O1 -g -fstack-protector-all"
+  - LDFLAGS="--coverage"
+
+language: c
+
+os:
+#  - linux
+  - osx
+
+compiler:
+#  - gcc
+  - clang
+
+dist: trusty
+
+addons:
+  apt:
+    packages:
+      - autotools-dev
+      - autoconf
+      - automake
+      - libtool
+      - ccache
+      - libcap2-dev
+      - libcmocka-dev
+      - libdb-dev
+      - libssl-dev
+      - libxml2-dev
+      - perl
+      - pkg-config
+      - zlib1g-dev
+      - lcov
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew bundle; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install pyenv; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then eval "$(pyenv init -)"; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install 2.7.6; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv global 2.7.6; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv rehash; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install cpp-coveralls; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv rehash; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux:" ]]; then pip install --user cpp-coveralls; fi
+
+script:
+  - ./configure --with-libtool --with-atf=/usr/local --enable-developer --with-libidn2=/usr/local --enable-warn-error --prefix=$HOME/.local --with-openssl=/usr/local/opt/openssl --without-make-clean
+  - make
+  - make check
