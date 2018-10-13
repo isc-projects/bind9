@@ -1,7 +1,5 @@
 env:
-  - PATH="/usr/lib/ccache:$PATH"
-  - CFLAGS="-g -O1 --coverage -fno-omit-frame-pointer -Wall -Wno-deprecated-declarations -Wno-macro-redefined -fno-optimize-sibling-calls -O1 -g -fstack-protector-all"
-  - LDFLAGS="--coverage"
+  - PATH="/usr/lib/ccache:$PATH" CFLAGS="-g -O1 --coverage -fno-omit-frame-pointer -Wall -Wno-deprecated-declarations -Wno-macro-redefined -fno-optimize-sibling-calls -O1 -g -fstack-protector-all" LDFLAGS="--coverage"
 
 language: c
 
