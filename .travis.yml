@@ -45,4 +45,4 @@ before_install:
 script:
   - ./configure --with-libtool --with-atf=/usr/local --enable-developer --with-libidn2=/usr/local --enable-warn-error --prefix=$HOME/.local --with-openssl=/usr/local/opt/openssl --without-make-clean
   - make
-  - make check
+  - make unit
