@@ -53,6 +53,23 @@ static int nlocks;
 static ENGINE *e = NULL;
 #endif
 
+static void
+enable_fips_mode(void) {
+#ifdef HAVE_FIPS_MODE
+	if (FIPS_mode() != 0) {
+		/*
+		 * FIPS mode is already enabled.
+		 */
+		return;
+	}
+
+	if (FIPS_mode_set(1) == 0) {
+		dst__openssl_toresult2("FIPS_mode_set", DST_R_OPENSSLFAILURE);
+		exit(1);
+	}
+#endif /* HAVE_FIPS_MODE */
+}
+
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 static void
 lock_callback(int mode, int type, const char *file, int line) {
@@ -144,6 +161,8 @@ dst__openssl_init(const char *engine) {
 #if defined(OPENSSL_NO_ENGINE)
 	UNUSED(engine);
 #endif
+
+	enable_fips_mode();
 
 #ifdef  DNS_CRYPTO_LEAKS
 	CRYPTO_malloc_debug_init();
