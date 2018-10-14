@@ -9206,6 +9206,14 @@ view_loaded(void *arg) {
 		   "forcing zone maintenance");
 
 	named_os_started();
+
+#ifdef HAVE_FIPS_MODE
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
+			      "FIPS mode is %s",
+			      FIPS_mode() ? "enabled" : "disabled");
+#endif
+
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE, "running");
 
