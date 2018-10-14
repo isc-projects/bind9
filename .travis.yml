@@ -3,6 +3,12 @@ env:
 
 language: c
 
+cache:
+  ccache: true
+  pip: true
+  directories:
+    - "$HOME/.pyenv"
+
 os:
 #  - linux
   - osx
@@ -32,15 +38,14 @@ addons:
       - lcov
 
 before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew config; fi
   - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew bundle; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install pyenv; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then eval "$(pyenv init -)"; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv install 2.7.6; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv global 2.7.6; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv rehash; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pip install cpp-coveralls; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then pyenv rehash; fi
-  - if [[ "$TRAVIS_OS_NAME" == "linux:" ]]; then pip install --user cpp-coveralls; fi
+  - pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
+  - eval "$(pyenv init -)"
+  - pyenv rehash
+  - pip install cpp-coveralls
+  - pyenv rehash
+  - export PATH="/usr/local/opt/ccache/libexec:$PATH"
 
 script:
   - ./configure --with-libtool --with-atf=/usr/local --enable-developer --with-libidn2=/usr/local --enable-warn-error --prefix=$HOME/.local --with-openssl=/usr/local/opt/openssl --without-make-clean
