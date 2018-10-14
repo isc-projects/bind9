@@ -1,53 +1,52 @@
 env:
-  - PATH="/usr/lib/ccache:$PATH" CFLAGS="-g -O1 --coverage -fno-omit-frame-pointer -Wall -Wno-deprecated-declarations -Wno-macro-redefined -fno-optimize-sibling-calls -O1 -g -fstack-protector-all" LDFLAGS="--coverage"
-
+  global:
+  - CFLAGS="-g -O1 --coverage -fno-omit-frame-pointer Wall -Wno-deprecated-declarations
+    -Wno-macro-redefined -fno-optimize-sibling-calls -O1 -g -fstack-protector-all"
+  - LDFLAGS="--coverage"
+  - secure: FnL8CS19aRn9hKEbwPdosw27hvdSqo7cgGqFKuCeEYN71kTLGFmRa5qE4K1kK88PoULInvUasMQTmm5YLZgLzCrSy3nSewhu1lFmTgV3alxRSkpj8ssE7k4TeoaPMnQvNT9w6FPymMuYyc1Dq02nz35CbU0ahZ/HjYO9XEd2Jnqkl3UP/yvncpvBfBc4Tt6TGGsbBnLEKZvRG0ZIPB9mEepY2mx9CVe0VBb5pQETd/MXJyXfCF/nVxsS6yVHg0wc0ih+WRPCrJpLMVcJBgBDCaQ8MyIes6hlqR9F53/LKWJLXAnfMCA2Aue1djmwWXPDqb8iFhlLO+D1NHSOcBHaC3DBalenc+wKp84ib+DbhHWNYa98AbrrVWrG6p+SFQ6BpGgc2r6rtmCjxdwktNzRj6lNccgwwWZq1fgRcFkr+gTw+Htm21G7Dt7KegTTu7OgUb+/GyTPPmONaM8HD8a1rBP8QQqr8FwrPXIUHZpwMaAMz0Bewq7qNVV9Im4soTdnc0zilfv4tpa8ttpynHSjWaa008pdXJcIJwijjGl1AVgn9Y8/zfvvPUXkB+yOklwQVwspIgcHcx//PB4nKQIG2ylmoOkApptWP/T79x/aQlM1vWy37idL0yVD8GFEy4valkBf1wSO5IIyfMY0sMGcVkCF2nQmfB/fcOKEY/duXM8=
 language: c
-
 cache:
   ccache: true
   pip: true
   directories:
-    - "$HOME/.pyenv"
-
+  - "$HOME/.pyenv"
 os:
-#  - linux
-  - osx
-
+- osx
 compiler:
-#  - gcc
-  - clang
-
+- clang
 dist: trusty
-
 addons:
   apt:
     packages:
-      - autotools-dev
-      - autoconf
-      - automake
-      - libtool
-      - ccache
-      - libcap2-dev
-      - libcmocka-dev
-      - libdb-dev
-      - libssl-dev
-      - libxml2-dev
-      - perl
-      - pkg-config
-      - zlib1g-dev
-      - lcov
-
+    - autotools-dev
+    - autoconf
+    - automake
+    - libtool
+    - ccache
+    - libcap2-dev
+    - libcmocka-dev
+    - libdb-dev
+    - libssl-dev
+    - libxml2-dev
+    - perl
+    - pkg-config
+    - zlib1g-dev
+    - lcov
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew config; fi
-  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew bundle; fi
-  - pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1 pip install -U
-  - eval "$(pyenv init -)"
-  - pyenv rehash
-  - pip install cpp-coveralls
-  - pyenv rehash
-  - export PATH="/usr/local/opt/ccache/libexec:$PATH"
-
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew config; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew bundle; fi
+- pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1
+  pip install -U
+- eval "$(pyenv init -)"
+- pyenv rehash
+- pip install cpp-coveralls
+- pyenv rehash
+- export PATH="/usr/local/opt/ccache/libexec:$PATH"
 script:
-  - ./configure --with-libtool --with-atf=/usr/local --enable-developer --with-libidn2=/usr/local --enable-warn-error --prefix=$HOME/.local --with-openssl=/usr/local/opt/openssl --without-make-clean
-  - make
-  - make unit
+- "./configure --with-libtool --with-atf=/usr/local --enable-developer --with-libidn2=/usr/local
+  --enable-warn-error --prefix=$HOME/.local --with-openssl=/usr/local/opt/openssl
+  --without-make-clean"
+- make
+- make unit
+after_success:
+- coveralls --exclude lib --exclude tests --gcov-options '\-lp'
