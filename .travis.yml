@@ -33,19 +33,18 @@ addons:
     - zlib1g-dev
     - lcov
 before_install:
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew config; fi
-- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update && brew bundle; fi
-- pip list --outdated --format=freeze | grep -v '^\-e' | cut -d = -f 1  | xargs -n1
-  pip install -U
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install atf kyua cmocka; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install autoconf automake libtool m4 make ccache pkg-config; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install openssl lmdb libidn2; fi
+- if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew install python@2; fi
 - eval "$(pyenv init -)"
 - pyenv rehash
 - pip install cpp-coveralls
 - pyenv rehash
 - export PATH="/usr/local/opt/ccache/libexec:$PATH"
 script:
-- "./configure --with-libtool --with-atf=/usr/local --enable-developer --with-libidn2=/usr/local
-  --enable-warn-error --prefix=$HOME/.local --with-openssl=/usr/local/opt/openssl
-  --without-make-clean"
+- "./configure --enable-developer --with-libtool --enable-warn-error --without-make-clean
+  --with-atf=/usr/local --with-libidn2=/usr/local --with-openssl=/usr/local/opt/openssl"
 - make
 - make unit
 after_success:
