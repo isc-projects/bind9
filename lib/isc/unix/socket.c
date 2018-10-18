@@ -3469,6 +3469,9 @@ netthread(void *uap) {
 	(void)manager;
 	bool done;
 	int cc;
+	if (manager->nthreads > 1) {
+		isc_thread_setaffinity(thread->threadid);
+	}
 #ifdef USE_KQUEUE
 	const char *fnname = "kevent()";
 #elif defined (USE_EPOLL)
