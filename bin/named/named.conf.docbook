@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2018-09-04</date>
+    <date>2018-10-23</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -879,8 +879,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		request-expire <replaceable>boolean</replaceable>;
 		request-ixfr <replaceable>boolean</replaceable>;
 		serial-update-method ( date | increment | unixtime );
-		server-addresses { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) [
-		    port <replaceable>integer</replaceable> ]; ... };
+		server-addresses { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ); ... };
 		server-names { <replaceable>string</replaceable>; ... };
 		sig-signing-nodes <replaceable>integer</replaceable>;
 		sig-signing-signatures <replaceable>integer</replaceable>;
@@ -983,8 +982,7 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	request-expire <replaceable>boolean</replaceable>;
 	request-ixfr <replaceable>boolean</replaceable>;
 	serial-update-method ( date | increment | unixtime );
-	server-addresses { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ) [ port
-	    <replaceable>integer</replaceable> ]; ... };
+	server-addresses { ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> ); ... };
 	server-names { <replaceable>string</replaceable>; ... };
 	sig-signing-nodes <replaceable>integer</replaceable>;
 	sig-signing-signatures <replaceable>integer</replaceable>;

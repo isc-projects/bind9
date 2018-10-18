@@ -98,7 +98,7 @@ static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_bracketed_aml;
 static cfg_type_t cfg_type_bracketed_dscpsockaddrlist;
 static cfg_type_t cfg_type_bracketed_namesockaddrkeylist;
-static cfg_type_t cfg_type_bracketed_sockaddrlist;
+static cfg_type_t cfg_type_bracketed_netaddrlist;
 static cfg_type_t cfg_type_bracketed_sockaddrnameportlist;
 static cfg_type_t cfg_type_controls;
 static cfg_type_t cfg_type_controls_sockaddr;
@@ -566,10 +566,10 @@ static cfg_type_t cfg_type_bracketed_dscpsockaddrlist = {
 	&cfg_type_sockaddrdscp
 };
 
-static cfg_type_t cfg_type_bracketed_sockaddrlist = {
-	"bracketed_sockaddrlist", cfg_parse_bracketed_list,
+static cfg_type_t cfg_type_bracketed_netaddrlist = {
+	"bracketed_netaddrlist", cfg_parse_bracketed_list,
 	cfg_print_bracketed_list, cfg_doc_bracketed_list, &cfg_rep_list,
-	&cfg_type_sockaddr
+	&cfg_type_netaddr
 };
 
 static const char *autodnssec_enums[] = {
@@ -2281,7 +2281,7 @@ zone_only_clauses[] = {
 	{ "pubkey", &cfg_type_pubkey,
 		CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE
 	},
-	{ "server-addresses", &cfg_type_bracketed_sockaddrlist,
+	{ "server-addresses", &cfg_type_bracketed_netaddrlist,
 		CFG_ZONE_STATICSTUB
 	},
 	{ "server-names", &cfg_type_namelist,

@@ -2461,13 +2461,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			obj = cfg_listelt_value(element);
 			sa = *cfg_obj_assockaddr(obj);
 
-			if (isc_sockaddr_getport(&sa) != 0) {
-				result = ISC_R_FAILURE;
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "port is not configurable for "
-					    "static stub server-addresses");
-			}
-
 			isc_netaddr_fromsockaddr(&na, &sa);
 			if (isc_netaddr_getzone(&na) != 0) {
 				result = ISC_R_FAILURE;
