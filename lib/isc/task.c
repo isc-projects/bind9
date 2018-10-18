@@ -1180,6 +1180,15 @@ dispatch(isc__taskmgr_t *manager, int threadid) {
 		}
 	}
 	UNLOCK(manager->locks[queue]);
+	/*
+	 * There might be other dispatchers waiting on empty tasks,
+	 * wake them up.
+	 */
+	for (unsigned i=0; i < manager->workers; i++) {
+		LOCK(manager->locks[i]);
+		BROADCAST(&manager->work_available[i]);
+		UNLOCK(manager->locks[i]);
+	}
 }
 
 typedef struct st {
@@ -1421,8 +1430,10 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	     task != NULL;
 	     task = NEXT(task, link)) {
 		LOCK(&task->lock);
-		if (task_shutdown(task))
-			push_readyq(manager, task, 0);
+		if (task_shutdown(task)) {
+			int queue = task->threadid % manager->queues;
+			push_readyq(manager, task, queue);
+		}
 		UNLOCK(&task->lock);
 	}
 	/*
