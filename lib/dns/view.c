@@ -121,16 +121,15 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_name;
 
 	view->zonetable = NULL;
-	if (isc_bind9) {
-		result = dns_zt_create(mctx, rdclass, &view->zonetable);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "dns_zt_create() failed: %s",
-					 isc_result_totext(result));
-			result = ISC_R_UNEXPECTED;
-			goto cleanup_mutex;
-		}
+	result = dns_zt_create(mctx, rdclass, &view->zonetable);
+	if (result != ISC_R_SUCCESS) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				 "dns_zt_create() failed: %s",
+				 isc_result_totext(result));
+		result = ISC_R_UNEXPECTED;
+		goto cleanup_mutex;
 	}
+
 	view->secroots_priv = NULL;
 	view->ntatable_priv = NULL;
 	view->fwdtable = NULL;
@@ -264,10 +263,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_dynkeys;
 
-	if (isc_bind9) {
-		result = dns_order_create(view->mctx, &view->order);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_new_zone_lock;
+	result = dns_order_create(view->mctx, &view->order);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_new_zone_lock;
 	}
 
 	result = dns_peerlist_new(view->mctx, &view->peers);

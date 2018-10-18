@@ -8120,7 +8120,7 @@ load_configuration(const char *filename, named_server_t *server,
 			      "less than 128 UDP sockets available after "
 			      "applying 'reserved-sockets' and 'maxsockets'");
 	}
-	isc__socketmgr_setreserved(named_g_socketmgr, reserved);
+	isc_socketmgr_setreserved(named_g_socketmgr, reserved);
 
 #ifdef HAVE_GEOIP
 	/*

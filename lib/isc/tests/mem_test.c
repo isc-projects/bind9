@@ -16,13 +16,15 @@
 
 #include <atf-c.h>
 
-#include "isctest.h"
-
 #include <isc/file.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
+
+#include "../mem_p.h"
+
+#include "isctest.h"
 
 static void *
 default_memalloc(void *arg, size_t size) {
@@ -137,9 +139,9 @@ ATF_TC_BODY(isc_mem, tc) {
 
 	isc_mem_destroy(&localmctx);
 
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &localmctx,
-				  ISC_MEMFLAG_FILL | ISC_MEMFLAG_INTERNAL);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &localmctx,
+				 ISC_MEMFLAG_FILL | ISC_MEMFLAG_INTERNAL);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	result = isc_mempool_create(localmctx, 2, &mp1);
@@ -172,8 +174,8 @@ ATF_TC_BODY(isc_mem_total, tc) {
 
 	/* Local alloc, free */
 	mctx2 = NULL;
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &mctx2, 0);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &mctx2, 0);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
@@ -238,8 +240,8 @@ ATF_TC_BODY(isc_mem_inuse, tc) {
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	mctx2 = NULL;
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &mctx2, 0);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &mctx2, 0);
 	if (result != ISC_R_SUCCESS)
 		goto out;
 
@@ -282,8 +284,8 @@ ATF_TC_BODY(isc_mem_noflags, tc) {
 	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &mctx2, 0);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &mctx2, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	isc_mem_debugging = 0;
 	ptr = isc_mem_get(mctx2, 2048);
@@ -334,8 +336,8 @@ ATF_TC_BODY(isc_mem_recordflag, tc) {
 	result = isc_test_begin(NULL, false, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &mctx2, 0);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &mctx2, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ptr = isc_mem_get(mctx2, 2048);
 	ATF_CHECK(ptr != NULL);
@@ -384,8 +386,8 @@ ATF_TC_BODY(isc_mem_traceflag, tc) {
 	result = isc_test_begin(NULL, true, 0);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
-	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
-				  NULL, &mctx2, 0);
+	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
+				 NULL, &mctx2, 0);
 	isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	ptr = isc_mem_get(mctx2, 2048);
