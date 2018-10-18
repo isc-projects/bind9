@@ -207,6 +207,15 @@
 	  in the respective principals.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The new configure option <command>--enable-fips-mode</command>
+	  can be used to make BIND enable and enforce FIPS mode in the
+	  OpenSSL library.  When compiled with such option the BIND will
+	  refuse to run if FIPS mode can't be enabled, thus this option
+	  must be only enabled for the systems where FIPS mode is available.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
