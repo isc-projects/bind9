@@ -253,10 +253,12 @@ isc_app_ctxrun(isc_appctx_t *ctx0) {
 isc_result_t
 isc_app_run(void) {
 	isc_result_t result;
-	is_running = ISC_TRUE;
+
+	is_running = true;
 	result = isc_app_ctxrun((isc_appctx_t *)&isc_g_appctx);
-	is_running = ISC_FALSE;
-	return result;
+	is_running = false;
+
+	return (result);
 }
 
 bool
