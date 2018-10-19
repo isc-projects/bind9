@@ -2,7 +2,7 @@ variables:
   DEBIAN_FRONTEND: noninteractive
   LC_ALL: C
   DOCKER_DRIVER: overlay2
-  CI_REGISTRY_IMAGE: oerdnj/bind9
+  CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
   CCACHE_DIR: "/ccache"
 
 stages:
@@ -217,10 +217,14 @@ build:centos:centos7:amd64:
   <<: *build_job
 
 build:debian:sid:amd64:
+  variables:
+    EXTRA_CONFIGURE: "--without-eddsa"
   <<: *debian_sid_amd64_image
   <<: *build_job
     
 build:debian:sid:i386:
+  variables:
+    EXTRA_CONFIGURE: "--without-eddsa"
   <<: *debian_sid_i386_image
   <<: *build_job
 
