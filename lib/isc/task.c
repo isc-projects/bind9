@@ -1171,11 +1171,9 @@ dispatch(isc__taskmgr_t *manager, int threadid) {
 		 * point and continue with the regular ready queue.
 		 */
 		if (manager->tasks_running == 0 && empty_readyq(manager, queue)) {
-			if (manager->mode != isc_taskmgrmode_normal) {
-				manager->mode = isc_taskmgrmode_normal;
-				for (unsigned i=0; i < manager->workers; i++) {
-					BROADCAST(&manager->work_available[i]);
-				}
+			manager->mode = isc_taskmgrmode_normal;
+			for (unsigned i=0; i < manager->workers; i++) {
+				BROADCAST(&manager->work_available[i]);
 			}
 		}
 	}
