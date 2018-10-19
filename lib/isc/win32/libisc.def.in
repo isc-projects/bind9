@@ -8,7 +8,6 @@ closelog
 @IF PKCS11
 getpassphrase
 @END PKCS11
-isc___socketmgr_maxudp
 isc_app_block
 isc_app_ctxfinish
 isc_app_ctxonrun
@@ -51,16 +50,16 @@ isc__buffer_remainingregion
 isc__buffer_setactive
 isc__buffer_subtract
 isc__buffer_usedregion
-isc_mem_allocate
-isc_mem_free
-isc_mem_get
-isc_mem_printactive
-isc_mem_put
-isc_mem_putanddetach
-isc_mem_reallocate
-isc_mem_strdup
-isc_mempool_get
-isc_mempool_put
+isc__mem_allocate
+isc__mem_free
+isc__mem_get
+isc__mem_printactive
+isc__mem_put
+isc__mem_putanddetach
+isc__mem_reallocate
+isc__mem_strdup
+isc__mempool_get
+isc__mempool_put
 isc_socket_accept
 isc_socket_attach
 isc_socket_bind
@@ -80,14 +79,12 @@ isc_socket_getsockname
 isc_socket_gettag
 isc_socket_gettype
 isc_socket_ipv6only
-isc_socket_isbound
 isc_socket_listen
 isc_socket_open
 isc_socket_permunix
 isc_socket_recv
 isc_socket_recv2
 isc_socket_recvv
-isc_socket_register
 isc_socket_send
 isc_socket_sendto
 isc_socket_sendto2
@@ -101,7 +98,6 @@ isc_socketmgr_destroy
 isc_socketmgr_getmaxsockets
 isc_socketmgr_setreserved
 isc_socketmgr_setstats
-isc__strerror
 isc_task_getname
 isc_task_gettag
 isc_task_unsendrange
@@ -121,7 +117,6 @@ isc_app_ctxsuspend
 isc_app_finish
 isc_app_isrunning
 isc_app_onrun
-isc_app_register
 isc_app_reload
 isc_app_run
 isc_app_shutdown
@@ -384,9 +379,7 @@ isc_md5_update
 isc_mem_attach
 isc_mem_checkdestroyed
 isc_mem_create
-isc_mem_create2
 isc_mem_createx
-isc_mem_createx2
 isc_mem_destroy
 isc_mem_detach
 isc_mem_getname
@@ -395,9 +388,7 @@ isc_mem_gettag
 isc_mem_inuse
 isc_mem_isovermem
 isc_mem_maxinuse
-isc_mem_printallactive
 isc_mem_references
-isc_mem_register
 @IF NOTYET
 isc_mem_renderjson
 @END NOTYET
@@ -590,6 +581,7 @@ isc_sockaddr_totext
 isc_sockaddr_v6fromin
 isc_socket_socketevent
 isc_socketmgr_createinctx
+isc_socketmgr_maxudp
 @IF NOTYET
 isc_socketmgr_renderjson
 @END NOTYET
@@ -635,7 +627,6 @@ isc_task_privilege
 isc_task_purge
 isc_task_purgeevent
 isc_task_purgerange
-isc_task_register
 isc_task_send
 isc_task_sendanddetach
 isc_task_setname
@@ -691,7 +682,6 @@ isc_timer_attach
 isc_timer_create
 isc_timer_detach
 isc_timer_gettype
-isc_timer_register
 isc_timer_reset
 isc_timer_touch
 isc_timermgr_create

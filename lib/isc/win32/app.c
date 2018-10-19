@@ -123,7 +123,6 @@ isc_result_t
 isc_app_start(void) {
 	isc_g_appctx.common.impmagic = APPCTX_MAGIC;
 	isc_g_appctx.common.magic = ISCAPI_APPCTX_MAGIC;
-	isc_g_appctx.common.methods = &appmethods.methods;
 	isc_g_appctx.mctx = NULL;
 	/* The remaining members will be initialized in ctxstart() */
 
@@ -370,7 +369,6 @@ isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 
 	ctx->common.impmagic = APPCTX_MAGIC;
 	ctx->common.magic = ISCAPI_APPCTX_MAGIC;
-	ctx->common.methods = &appmethods.methods;
 
 	ctx->mctx = NULL;
 	isc_mem_attach(mctx, &ctx->mctx);
@@ -423,5 +421,3 @@ isc_appctx_settimermgr(isc_appctx_t *ctx0, isc_timermgr_t *timermgr) {
 
 	ctx->timermgr = timermgr;
 }
-
-#include "../app_api.c"

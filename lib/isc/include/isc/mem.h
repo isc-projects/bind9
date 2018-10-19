@@ -419,22 +419,6 @@ isc_mem_waterack(isc_mem_t *ctx, int mark);
  */
 
 void
-isc_mem_printactive(isc_mem_t *mctx, FILE *file);
-/*%<
- * Print to 'file' all active memory in 'mctx'.
- *
- * Requires ISC_MEM_DEBUGRECORD to have been set.
- */
-
-void
-isc_mem_printallactive(FILE *file);
-/*%<
- * Print to 'file' all active memory in all contexts.
- *
- * Requires ISC_MEM_DEBUGRECORD to have been set.
- */
-
-void
 isc_mem_checkdestroyed(FILE *file);
 /*%<
  * Check that all memory contexts have been destroyed.

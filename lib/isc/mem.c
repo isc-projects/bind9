@@ -2086,19 +2086,6 @@ print_contexts(FILE *file) {
 }
 
 void
-isc_mem_printallactive(FILE *file) {
-#if !ISC_MEM_TRACKLINES
-	UNUSED(file);
-#else
-	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
-
-	LOCK(&contextslock);
-	print_contexts(file);
-	UNLOCK(&contextslock);
-#endif
-}
-
-void
 isc_mem_checkdestroyed(FILE *file) {
 #if !ISC_MEM_TRACKLINES
 	UNUSED(file);
