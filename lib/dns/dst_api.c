@@ -802,6 +802,9 @@ dst_key_fromgssapi(const dns_name_t *name, gss_ctx_id_t gssctx,
 	*keyp = key;
 	result = ISC_R_SUCCESS;
 out:
+	if (result != ISC_R_SUCCESS) {
+		dst_key_free(&key);
+	}
 	return result;
 }
 
