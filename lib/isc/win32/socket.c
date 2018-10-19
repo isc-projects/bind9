@@ -2837,7 +2837,7 @@ socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 }
 
 isc_result_t
-isc;_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
+isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
 		 unsigned int minimum, isc_task_t *task,
 		 isc_taskaction_t action, void *arg)
 {
@@ -4217,4 +4217,11 @@ isc_socketmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 		isc_appctx_setsocketmgr(actx, *managerp);
 
 	return (result);
+}
+
+/* Not implemented for win32 */
+void
+isc_socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
+	UNUSED(manager);
+	UNUSED(maxudp);
 }

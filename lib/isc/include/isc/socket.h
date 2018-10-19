@@ -1032,12 +1032,6 @@ isc_socket_gettype(isc_socket_t *sock);
  */
 
 /*@{*/
-bool
-isc_socket_isbound(isc_socket_t *sock);
-/*%
- * Intended for internal use in BIND9 only
- */
-
 void
 isc_socket_ipv6only(isc_socket_t *sock, bool yes);
 /*%<
