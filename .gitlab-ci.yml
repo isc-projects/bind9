@@ -117,6 +117,8 @@ stages:
     - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr --with-libidn2 --prefix=$HOME/.local --without-make-clean "${EXTRA_CONFIGURE}" || cat config.log
     - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
+    paths:
+    - doc/
     expire_in: '1 hour'
     untracked: true
 
@@ -176,6 +178,19 @@ precheck:debian:sid:amd64:
     - checklibs.out
     expire_in: '1 week'
     when: on_failure
+
+docs:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: test
+  dependencies:
+    - build:debian:sid:amd64
+  script:
+    - make -C doc/misc docbook
+    - make -C doc/arm Bv9ARM.html
+  artifacts:
+    paths:
+    - doc/arm/
+    expire_in: '1 hour'
 
 #build:debian:jessie:amd64:
 #  <<: *debian_jessie_amd64_image
