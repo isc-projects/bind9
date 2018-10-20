@@ -9,6 +9,7 @@ stages:
   - precheck
   - build
   - test
+  - push
 
 .centos-centos6-amd64: &centos_centos6_amd64_image
   image: "$CI_REGISTRY_IMAGE:centos-centos6-amd64"
@@ -190,7 +191,17 @@ docs:debian:sid:amd64:
   artifacts:
     paths:
     - doc/arm/
-    expire_in: '1 hour'
+    expire_in: '1 month'
+
+push:docs:
+  <<: *debian_sid_amd64_image
+  stage: push
+  dependencies: []
+  script:
+    - curl -X POST -F token=$GITLAB_PAGES_DOCS_TRIGGER_TOKEN -F ref=master $GITLAB_PAGES_DOCS_TRIGGER_URL
+  only:
+    - master@isc-projects/bind9
+    - /^v9_.*$/@isc-projects/bind9
 
 #build:debian:jessie:amd64:
 #  <<: *debian_jessie_amd64_image
