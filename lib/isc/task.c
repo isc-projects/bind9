@@ -1391,17 +1391,21 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 
 	/*
 	 * Post shutdown event(s) to every task (if they haven't already been
-	 * posted).
+	 * posted). To make things easier post idle tasks to worker 0.
 	 */
+	LOCK(&manager->queues[0].lock);
 	for (task = HEAD(manager->tasks);
 	     task != NULL;
 	     task = NEXT(task, link)) {
 		LOCK(&task->lock);
 		if (task_shutdown(task)) {
-			push_readyq(manager, task, task->threadid);
+			task->threadid = 0;
+			push_readyq(manager, task, 0);
 		}
 		UNLOCK(&task->lock);
 	}
+	UNLOCK(&manager->queues[0].lock);
+
 	/*
 	 * Wake up any sleeping workers.  This ensures we get work done if
 	 * there's work left to do, and if there are already no tasks left
