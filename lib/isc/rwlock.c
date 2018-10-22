@@ -52,7 +52,7 @@
 #elif defined(__arm__)
 # define isc_rwlock_pause() __asm__ __volatile__ ("yield")
 #elif defined(__sparc) || defined(__sparc__)
-# define plasma_spin_pause() __asm__ __volatile__ ("pause")
+# define isc_rwlock_pause() __asm__ __volatile__ ("pause")
 #elif defined(__ppc__) || defined(_ARCH_PPC)  ||			\
 	defined(_ARCH_PWR) || defined(_ARCH_PWR2) || defined(_POWER)
 # define isc_rwlock_pause() __asm__ volatile ("or 27,27,27")
