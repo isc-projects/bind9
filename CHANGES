@@ -1,3 +1,6 @@
+5048.	[feature]	Add configure option to enabled and enforce FIPS mode
+			in BIND 9. [GL #506]
+
 5047.	[bug]		Messages logged for certain query processing failures
 			now include a more specific error description if it is
 			available. [GL #572]
