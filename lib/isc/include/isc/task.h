@@ -672,7 +672,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  */
 
 void
-isc_taskmgr_setmode(isc_taskmgr_t *manager, isc_taskmgrmode_t mode);
+isc_taskmgr_setprivilegedmode(isc_taskmgr_t *manager);
 
 isc_taskmgrmode_t
 isc_taskmgr_mode(isc_taskmgr_t *manager);

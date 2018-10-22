@@ -598,7 +598,7 @@ isc_taskmgr_renderjson
 isc_taskmgr_renderxml
 @END LIBXML2
 isc_taskmgr_setexcltask
-isc_taskmgr_setmode
+isc_taskmgr_setprivilegedmode
 isc_taskpool_create
 isc_taskpool_destroy
 isc_taskpool_expand

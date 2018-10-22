@@ -1450,11 +1450,11 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 }
 
 void
-isc_taskmgr_setmode(isc_taskmgr_t *manager0, isc_taskmgrmode_t mode) {
+isc_taskmgr_setprivilegedmode(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 
 	LOCK(&manager->lock);
-	manager->mode = mode;
+	manager->mode = isc_taskmgrmode_privileged;
 	UNLOCK(&manager->lock);
 }
 
