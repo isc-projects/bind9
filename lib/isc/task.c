@@ -43,6 +43,14 @@
 #include <openssl/err.h>
 #endif
 
+/*
+ * Task manager is built around 'as little locking as possible' concept.
+ * Each thread has his own queue of tasks to be run, if a task is in running
+ * state it will stay on the runner it's currently on, if a task is in idle
+ * state it can be woken up on a specific runner with isc_task_sendto - that
+ * helps with data locality on CPU.
+ */
+
 #ifdef ISC_TASK_TRACE
 #define XTRACE(m)		fprintf(stderr, "task %p thread %lu: %s\n", \
 				       task, isc_thread_self(), (m))
@@ -95,7 +103,7 @@ struct isc__task {
 	isc_time_t			tnow;
 	char				name[16];
 	void *				tag;
-	int				threadid;
+	unsigned int			threadid;
 	/* Locked by task manager lock. */
 	LINK(isc__task_t)		link;
 	LINK(isc__task_t)		ready_link;
@@ -911,7 +919,7 @@ push_readyq(isc__taskmgr_t *manager, isc__task_t *task, int c) {
 }
 
 static void
-dispatch(isc__taskmgr_t *manager, int threadid) {
+dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 	isc__task_t *task;
 
 	REQUIRE(VALID_MANAGER(manager));
@@ -1191,10 +1199,22 @@ dispatch(isc__taskmgr_t *manager, int threadid) {
 		 * we're stuck.  Automatically drop privileges at that
 		 * point and continue with the regular ready queue.
 		 */
-		if (manager->tasks_running == 0 && empty_readyq(manager, threadid)) {
-			manager->mode = isc_taskmgrmode_normal;
-			for (unsigned i=0; i < manager->workers; i++) {
-				BROADCAST(&manager->queues[i].work_available);
+		if (atomic_load(&manager->tasks_running) == 0 && manager->mode != isc_taskmgrmode_normal) {
+			bool empty = true;
+			for (unsigned i=0; i<manager->workers && empty; i++) {
+				if (i != threadid) {
+					LOCK(&manager->queues[i].lock);
+				}
+				empty &= empty_readyq(manager, i);
+				if (i != threadid) {
+					UNLOCK(&manager->queues[i].lock);
+				}
+			}
+			if (empty) {
+				manager->mode = isc_taskmgrmode_normal;
+				for (unsigned i=0; i < manager->workers; i++) {
+					BROADCAST(&manager->queues[i].work_available);
+				}
 			}
 		}
 	}
