@@ -29,7 +29,7 @@ case $build_os in
 sunos*)
     # Just set the maximum command line length for sunos as it otherwise
     # takes a exceptionally long time to work it out. Required for libtool.
-     
+
     lt_cv_sys_max_cmd_len=4096;
     ;;
 esac
@@ -150,7 +150,7 @@ case "$enable_seccomp" in
 					return 1;
 				}
 			}
-			ret = 
+			ret =
 			prctl(PR_SET_SECCOMP, SECCOMP_MODE_FILTER, NULL, 0, 0);
 			if (ret < 0) {
 				switch (errno) {
@@ -165,8 +165,8 @@ case "$enable_seccomp" in
 	return 1;
 	}
 	]
-	, AC_DEFINE([HAVE_LIBSECCOMP], 1, 
-	[Define to use libseccomp system call filtering.])   
+	, AC_DEFINE([HAVE_LIBSECCOMP], 1,
+	[Define to use libseccomp system call filtering.])
 	, []
 	)
 	fi
@@ -957,7 +957,7 @@ case "$use_gssapi" in
 		DNS_GSSAPI_LIBS="-framework Kerberos"
 		AC_MSG_RESULT(framework)
 		;;
-		
+
 	*)
 		AC_MSG_RESULT(looking in $use_gssapi/lib)
 		USE_GSSAPI='-DGSSAPI'
@@ -1141,7 +1141,7 @@ case "$use_randomdev" in
 		AC_CHECK_FILE($devrandom,
 			      AC_DEFINE_UNQUOTED(PATH_RANDOMDEV,
 						 "$devrandom"),)
-			      
+
 		;;
 	yes)
 		AC_MSG_ERROR([--with-randomdev must specify a path])
@@ -1700,20 +1700,21 @@ DSO_METHOD_dlfcn();
 		[AC_MSG_RESULT(assuming it does work on target platform)]
 		)
 
-	AC_MSG_CHECKING(for OpenSSL FIPS mode support)
-	have_fips_mode=""
-	AC_TRY_LINK([#include <openssl/crypto.h>],
-		    [FIPS_mode();],
-		    have_fips_mode=yes,
-		    have_fips_mode=no)
-	if test "x$have_fips_mode" = "xyes"
-	then
-		AC_DEFINE([HAVE_FIPS_MODE], [1],
-			  [Define if OpenSSL provides FIPS_mode()])
-		AC_MSG_RESULT(yes)
-	else
-		AC_MSG_RESULT(no)
-	fi
+#
+# Check whether FIPS mode is available and whether we should enable it
+#
+AC_ARG_ENABLE([fips-mode],
+	      [AS_HELP_STRING([--enable-fips-mode],
+			      [enable FIPS mode in OpenSSL library [default=no]])],
+	      [], [enable_fips_mode="no"])
+
+AC_MSG_CHECKING([whether to enable FIPS mode in OpenSSL library])
+AS_CASE([$enable_fips_mode],
+	[yes], [AC_MSG_RESULT([yes])
+		AC_CHECK_FUNCS([FIPS_mode],
+			       [AC_DEFINE([PK11_MD5_DISABLE], [1], [Disable MD5 functions (for FIPSmode)])],
+			       [AC_MSG_FAILURE([OpenSSL FIPS mode requested but not available.])])],
+	[no], [AC_MSG_RESULT([no])])
 
 	AC_MSG_CHECKING(for OpenSSL DSA support)
 	if test -f $use_openssl/include/openssl/dsa.h
@@ -1916,7 +1917,7 @@ int main() {
 		yes)
 			AC_DEFINE(HAVE_OPENSSL_ED448, 1,
 				  [Define if your OpenSSL version supports Ed448.])
-			;;	   
+			;;
 		*)
 			;;
 		esac
@@ -1961,7 +1962,7 @@ int main() {
 			ISC_OPENSSL_INC="$DST_OPENSSL_INC"
 			ISC_OPENSSL_LIBS="$DST_OPENSSL_LIBS"
 			;;
-		yes)	
+		yes)
 			AC_DEFINE(HAVE_OPENSSL_AES, 1,
 				  [Define if your OpenSSL version supports AES])
 			ISC_OPENSSL_INC="$DST_OPENSSL_INC"
@@ -2682,7 +2683,7 @@ AC_CHECK_LIB(scf, smf_enable_instance)
 AC_CHECK_FUNC(flockfile, AC_DEFINE(HAVE_FLOCKFILE),)
 AC_CHECK_FUNC(getc_unlocked, AC_DEFINE(HAVE_GETCUNLOCKED),)
 
-# 
+#
 # Indicate what the final decision was regarding threads.
 #
 AC_MSG_CHECKING(whether to build with threads)
@@ -2692,7 +2693,7 @@ else
 	AC_MSG_RESULT(no)
 fi
 
-# 
+#
 # End of pthreads stuff.
 #
 
@@ -3283,7 +3284,7 @@ AC_TRY_RUN([
 #include <netinet/in.h>
 #include <arpa/inet.h>
 main() { char a[16]; return (inet_pton(AF_INET, "1.2.3", a) == 1 ? 1 :
-			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 : 
+			     inet_pton(AF_INET, "1.2.3.04", a) == 1 ? 1 :
 			     (inet_pton(AF_INET6, "::1.2.3.4", a) != 1)); }],
 	[AC_MSG_RESULT(yes)
 	ISC_PLATFORM_NEEDPTON="#undef ISC_PLATFORM_NEEDPTON"],
@@ -3471,7 +3472,7 @@ AC_ARG_ENABLE(getifaddrs,
 # This interface iteration code for getifaddrs() will fall back to using
 # /proc/net/if_inet6 if getifaddrs() in glibc doesn't return any IPv6
 # addresses.
-# 
+#
 case $want_getifaddrs in
 glibc)
 AC_MSG_WARN("--enable-getifaddrs=glibc is no longer required")
@@ -4123,7 +4124,7 @@ if test "yes" = "$have_atomic"; then
 	else
 		case "$host" in
 		alpha*-dec-osf*)
-			# Tru64 compiler has its own syntax for inline 
+			# Tru64 compiler has its own syntax for inline
 			# assembly.
 			AC_TRY_COMPILE(, [
 #ifndef __DECC
@@ -4571,11 +4572,11 @@ AC_SUBST(CURL)
 #   NOM_PATH_FILE(VARIABLE, FILENAME, DIRECTORIES)
 #
 # If the file FILENAME is found in one of the DIRECTORIES, the shell
-# variable VARIABLE is defined to its absolute pathname.  Otherwise, 
+# variable VARIABLE is defined to its absolute pathname.  Otherwise,
 # it is set to FILENAME, with no directory prefix (that's not terribly
 # useful, but looks less confusing in substitutions than leaving it
 # empty).  The variable VARIABLE will be substituted into output files.
-# 
+#
 
 AC_DEFUN(NOM_PATH_FILE, [
 $1=""
@@ -4982,7 +4983,7 @@ DLZ_SYSTEM_TEST=""
 DLZ_DRIVER_MYSQL_INCLUDES=""
 DLZ_DRIVER_MYSQL_LIBS=""
 
-# 
+#
 # Configure support for building a shared library object
 #
 # Even when libtool is available it can't always be relied upon
@@ -5131,8 +5132,8 @@ if test "yes" = "$cross_compiling"; then
 	BUILD_LDFLAGS="$BUILD_LDFLAGS"
 	BUILD_LIBS="$BUILD_LIBS"
 else
-	BUILD_CC="$CC" 
-	BUILD_CFLAGS="$CFLAGS" 
+	BUILD_CC="$CC"
+	BUILD_CFLAGS="$CFLAGS"
 	BUILD_CPPFLAGS="$CPPFLAGS $GEN_NEED_OPTARG"
 	BUILD_LDFLAGS="$LDFLAGS"
 	BUILD_LIBS="$LIBS"
@@ -5454,7 +5455,7 @@ report() {
 	echo "        Algorithm: $with_cc_alg"
     fi
 
-    # these lines are only printed if run with --enable-full-report 
+    # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
 	test "no" = "$enable_ipv6" -o "no" = "$found_ipv6" || \
 	    echo "    IPv6 support (--enable-ipv6)"
@@ -5600,7 +5601,7 @@ if test "yes" != "$silent"; then
 fi
 
 if test "X$CRYPTO" = "X"; then
-cat << \EOF                                                             
+cat << \EOF
 BIND 9 is being built without cryptography support. This means it will
 not have DNSSEC support. Use --with-openssl, or --with-pkcs11 and
 --enable-native-pkcs11 to enable cryptography.

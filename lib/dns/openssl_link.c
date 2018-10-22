@@ -80,6 +80,22 @@ entropy_getpseudo(unsigned char *buf, int num) {
 		return (-1);
 	result = dst__entropy_getdata(buf, (unsigned int) num, true);
 	return (result == ISC_R_SUCCESS ? 1 : -1);
+
+static void
+enable_fips_mode(void) {
+#ifdef HAVE_FIPS_MODE
+	if (FIPS_mode() != 0) {
+		/*
+		 * FIPS mode is already enabled.
+		 */
+		return;
+	}
+
+	if (FIPS_mode_set(1) == 0) {
+		dst__openssl_toresult2("FIPS_mode_set", DST_R_OPENSSLFAILURE);
+		exit(1);
+	}
+#endif /* HAVE_FIPS_MODE */
 }
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
@@ -199,6 +215,8 @@ dst__openssl_init(const char *engine) {
 
 	UNUSED(engine);
 #endif
+
+	enable_fips_mode();
 
 #ifdef  DNS_CRYPTO_LEAKS
 	CRYPTO_malloc_debug_init();
