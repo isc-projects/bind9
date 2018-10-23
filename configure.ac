@@ -89,7 +89,6 @@ yes)
 	STD_CDEFINES="$STD_CDEFINES -DISC_LIST_CHECKINIT=1"
 	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
 	test "${enable_querytrace+set}" = set || enable_querytrace=yes
-	test "${with_atf+set}" = set || with_atf=yes
 	test "${enable_filter_aaaa+set}" = set || enable_filter_aaaa=yes
 	test "${with_cmocka+set}" = set || with_cmocka=yes
 	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
@@ -4875,6 +4874,18 @@ AC_SUBST([CMOCKA_LIBS])
 AC_SUBST(UNITTESTS)
 
 #
+# Check for kyua execution engine if ATF was requested
+# and bail out if execution engine was not found
+#
+AC_ARG_VAR([KYUA], [path to kyua execution engine])
+AS_IF([test "$with_cmocka" != "no"],
+      [AC_PATH_PROGS([KYUA], [kyua], [])
+       AS_IF([test -z "$KYUA"],
+            [AC_MSG_ERROR([kyua test execution engine not found])])])
+
+AC_SUBST([KYUA])
+
+#
 # Check for -Wl,--wrap= support
 #
 
@@ -4896,6 +4907,9 @@ AC_SUBST([LD_WRAP_TESTS])
 
 LDFLAGS=$save_LDFLAGS
 
+#
+# Check for i18n
+#
 AC_CHECK_HEADERS(locale.h)
 AC_CHECK_FUNCS(setlocale)
 
