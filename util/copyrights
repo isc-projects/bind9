@@ -3298,6 +3298,7 @@
 ./lib/irs/tests/resconf_test.c			C	2016,2018
 ./lib/irs/tests/testdata/domain.conf		CONF-SH	2016,2018
 ./lib/irs/tests/testdata/nameserver-v4.conf	CONF-SH	2016,2018
+./lib/irs/tests/testdata/nameserver-v6-scoped.conf	CONF-SH	2018
 ./lib/irs/tests/testdata/nameserver-v6.conf	CONF-SH	2016,2018
 ./lib/irs/tests/testdata/options-bad-ndots.conf	CONF-SH	2018
 ./lib/irs/tests/testdata/options-debug.conf	CONF-SH	2016,2018
