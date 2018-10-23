@@ -1,3 +1,7 @@
+5050.	[bug]		The libirs version of getaddrinfo() was unable to parse
+			scoped IPv6 addresses present in /etc/resolv.conf.
+			[GL #187]
+
 5048.	[feature]	Add configure option to enabled and enforce FIPS mode
 			in BIND 9. [GL #506]
 
