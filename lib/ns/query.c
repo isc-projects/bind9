@@ -6737,6 +6737,10 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t result) {
 	case DNS_R_DNAME:
 		return (query_dname(qctx));
 
+	case DNS_R_FORMERR:
+		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
+		return (query_done(qctx));
+
 	default:
 		/*
 		 * Something has gone wrong.
