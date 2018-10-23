@@ -50,8 +50,6 @@ while (<CHANGES>) {
 	# Contributed code should maintain its own copyright.
 	if ($base =~ /\.\/contrib\//) {
 	     $file_types{$_} = "X";
-	} elsif ($base =~ /\.\/unit\/atf-src\//) {
-	     $file_types{$_} = "X";
 	} elsif ($base =~ /\/openssl-[a-z0-9.]*-patch$/) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(c|h|css)$/) {
@@ -97,7 +95,7 @@ while (<CHANGES>) {
 	    $file_types{$_} = "ZONE";
 	} elsif ($base =~ /\.md$/) {
 	    $file_types{$_} = "MKD";
-	} elsif ($base =~ /(\/\.(gitignore|gitattributes)|Atffile|Kyuafile|\.(gif|jpg))$/i) {
+	} elsif ($base =~ /(\/\.(gitignore|gitattributes)|Kyuafile|\.(gif|jpg))$/i) {
 	    $file_types{$_} = "X";
 	} elsif ($base =~ /\.(def|dep|dsp|dsw|mak|sln)$/i) {
 	    $file_types{$_} = "X";
