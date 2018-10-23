@@ -2,9 +2,9 @@
 			scoped IPv6 addresses present in /etc/resolv.conf.
 			[GL #187]
 
-5049.	[cleanup]	Qname minimization has been deeply refactored. [GL #16]
+5049.	[cleanup]	QNAME minimization has been deeply refactored. [GL #16]
 
-5048.	[feature]	Add configure option to enabled and enforce FIPS mode
+5048.	[func]		Add configure option to enable and enforce FIPS mode
 			in BIND 9. [GL #506]
 
 5047.	[bug]		Messages logged for certain query processing failures
@@ -14,7 +14,7 @@
 5046.	[bug]		named could crash during shutdown if an RPZ
 			reload was in progress. [RT #46210]
 
-5045.	[cleanup]	Remove support for DNSSEC algorithms 3 (DSA)
+5045.	[func]		Remove support for DNSSEC algorithms 3 (DSA)
 			and 6 (DSA-NSEC3-SHA1). [GL #22]
 
 5044.	[cleanup]	If "dnssec-enable" is no, then "dnssec-validation"
