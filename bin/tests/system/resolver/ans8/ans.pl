@@ -61,6 +61,14 @@ sub handleUDP {
 	my $qclass = $questions[0]->qclass;
 	my $id = $request->header->id;
 
+	if ($qname =~ /\.formerr-to-all$/) {
+		$request->header->qr(1);
+		$request->header->aa(1);
+		$request->header->tc(0);
+		$request->header->rcode("FORMERR");
+		return $request->data;
+	}
+
 	# don't use Net::DNS to construct the header only reply as early
 	# versions just get it completely wrong.
 
