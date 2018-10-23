@@ -1015,6 +1015,16 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TASK,
 					    ISC_MSG_WORKING, "halting"));
 
+			/*
+			 * Switching to exclusive mode is done as a 2-phase-lock,
+			 * checking if we have to switch is done without any locks
+			 * on pause_requested and exclusive_requested to save time -
+			 * the worst thing that can happen is that we'll launch one task
+			 * more and exclusive task will be postponed a bit.
+			 *
+			 * Broadcasting on halt_cond seems suboptimal, but exclusive tasks
+			 * are rare enought that we don't care.
+			 */
 			LOCK(&manager->halt_lock);
 			manager->halted++;
 			BROADCAST(&manager->halt_cond);
@@ -1532,11 +1542,8 @@ isc_task_beginexclusive(isc_task_t *task0) {
 	REQUIRE(VALID_TASK(task));
 
 	REQUIRE(task->state == task_state_running);
-
-/*
- *  TODO REQUIRE(task == task->manager->excl);
- *  it should be here, it fails on shutdown server->task
- */
+	REQUIRE(task == task->manager->excl ||
+		(task->manager->exiting && task->manager->excl == NULL));
 
 	if (manager->exclusive_requested || manager->pause_requested) {
 		return (ISC_R_LOCKBUSY);
