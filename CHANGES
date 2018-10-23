@@ -2,7 +2,7 @@
 			scoped IPv6 addresses present in /etc/resolv.conf.
 			[GL #187]
 
-5048.	[feature]	Add configure option to enabled and enforce FIPS mode
+5048.	[func]		Add configure option to enabled and enforce FIPS mode
 			in BIND 9. [GL #506]
 
 5047.	[bug]		Messages logged for certain query processing failures
