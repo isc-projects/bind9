@@ -65,6 +65,9 @@ ATF_TC_BODY(irs_resconf_load, tc) {
 			"testdata/nameserver-v6.conf", ISC_R_SUCCESS,
 			NULL, ISC_R_SUCCESS
 		}, {
+			"testdata/nameserver-v6-scoped.conf", ISC_R_SUCCESS,
+			NULL, ISC_R_SUCCESS
+		}, {
 			"testdata/options-debug.conf", ISC_R_SUCCESS,
 			NULL, ISC_R_SUCCESS
 		}, {
