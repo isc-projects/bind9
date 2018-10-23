@@ -122,10 +122,11 @@ struct isc__task {
 typedef ISC_LIST(isc__task_t)	isc__tasklist_t;
 
 struct isc__taskqueue {
+	/* Everything locked by lock */
+	isc_mutex_t			lock;
 	isc__tasklist_t			ready_tasks;
 	isc__tasklist_t			ready_priority_tasks;
 	isc_condition_t			work_available;
-	isc_mutex_t			lock;
 	isc_thread_t			thread;
 	unsigned int			threadid;
 	isc__taskmgr_t			*manager;
@@ -156,7 +157,6 @@ struct isc__taskmgr {
 
 	/* Locked by {pre/post}halt_lock combo */
 	unsigned int			halted;
-
 
 	/*
 	 * Multiple threads can read/write 'excl' at the same time, so we need
@@ -250,7 +250,9 @@ isc_task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 		return (ISC_R_NOMEMORY);
 	XTRACE("isc_task_create");
 	task->manager = manager;
-	task->threadid = atomic_fetch_add_explicit(&manager->curq, 1, memory_order_relaxed) % manager->workers;
+	task->threadid = atomic_fetch_add_explicit(&manager->curq, 1,
+						   memory_order_relaxed)
+						   % manager->workers;
 	result = isc_mutex_init(&task->lock);
 	if (result != ISC_R_SUCCESS) {
 		isc_mem_put(manager->mctx, task, sizeof(*task));
@@ -1257,12 +1259,14 @@ run(void *queuep) {
 
 static void
 manager_free(isc__taskmgr_t *manager) {
-	/* TODO */
-
+	for (unsigned int i=0; i < manager->workers; i++) {
+		DESTROYLOCK(&manager->queues[i].lock);
+	}
 	DESTROYLOCK(&manager->lock);
 	DESTROYLOCK(&manager->prehalt_lock);
 	DESTROYLOCK(&manager->posthalt_lock);
-	isc_mem_put(manager->mctx, manager->queues, manager->workers * sizeof(isc__taskqueue_t));
+	isc_mem_put(manager->mctx, manager->queues,
+		    manager->workers * sizeof(isc__taskqueue_t));
 	manager->common.impmagic = 0;
 	manager->common.magic = 0;
 	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
@@ -1272,7 +1276,6 @@ isc_result_t
 isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		    unsigned int default_quantum, isc_taskmgr_t **managerp)
 {
-	isc_result_t result;
 	unsigned int i;
 	isc__taskmgr_t *manager;
 
@@ -1284,25 +1287,20 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	if (manager == NULL)
-		return (ISC_R_NOMEMORY);
+	RUNTIME_CHECK(manager != NULL);
 	manager->common.impmagic = TASK_MANAGER_MAGIC;
 	manager->common.magic = ISCAPI_TASKMGR_MAGIC;
 	manager->mode = isc_taskmgrmode_normal;
 	manager->mctx = NULL;
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mgr;
-	result = isc_mutex_init(&manager->excl_lock);
-	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&manager->lock);
-		goto cleanup_mgr;
-	}
+	RUNTIME_CHECK(isc_mutex_init(&manager->lock) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&manager->excl_lock) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_mutex_init(&manager->prehalt_lock) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mutex_init(&manager->posthalt_lock) == ISC_R_SUCCESS);
-
-	RUNTIME_CHECK(isc_condition_init(&manager->halt_cond) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&manager->prehalt_lock)
+		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&manager->posthalt_lock)
+		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_condition_init(&manager->halt_cond)
+		      == ISC_R_SUCCESS);
 
 	manager->workers = workers;
 
@@ -1310,7 +1308,10 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
 	manager->default_quantum = default_quantum;
 	INIT_LIST(manager->tasks);
-	manager->queues = isc_mem_get(mctx, workers * sizeof(isc__taskqueue_t));
+	manager->queues = isc_mem_get(mctx, workers *
+				      sizeof(isc__taskqueue_t));
+	RUNTIME_CHECK(manager->queues != NULL);
+
 	manager->tasks_running = 0;
 	manager->tasks_ready = 0;
 	manager->curq = 0;
@@ -1350,10 +1351,6 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	*managerp = (isc_taskmgr_t *)manager;
 
 	return (ISC_R_SUCCESS);
-
- cleanup_mgr:
-	isc_mem_put(mctx, manager, sizeof(*manager));
-	return (result);
 }
 
 void
