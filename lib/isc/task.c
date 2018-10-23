@@ -137,10 +137,8 @@ struct isc__taskmgr {
 	isc_taskmgr_t			common;
 	isc_mem_t *			mctx;
 	isc_mutex_t			lock;
-	isc_mutex_t			prehalt_lock;
-	isc_mutex_t			posthalt_lock;
+	isc_mutex_t			halt_lock;
 	isc_condition_t			halt_cond;
-	isc_condition_t			halt_avail_cond;
 	unsigned int			workers;
 	atomic_uint_fast32_t		tasks_running;
 	atomic_uint_fast32_t		tasks_ready;
@@ -155,7 +153,7 @@ struct isc__taskmgr {
 	bool				exclusive_requested;
 	bool				exiting;
 
-	/* Locked by {pre/post}halt_lock combo */
+	/* Locked by halt_lock */
 	unsigned int			halted;
 
 	/*
@@ -1017,21 +1015,15 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TASK,
 					    ISC_MSG_WORKING, "halting"));
 
-			/*
-			 * First we increase 'halted' and signal the thread
-			 * that's waiting on exclusivity/pause. Then we
-			 * try locking posthalt lock, which will be locked
-			 * by exclusive/pausing thread. It is only unlocked
-			 * after exclusivity/pause is done.
-			 */
-			LOCK(&manager->prehalt_lock);
+			LOCK(&manager->halt_lock);
 			manager->halted++;
-			SIGNAL(&manager->halt_cond);
-			UNLOCK(&manager->prehalt_lock);
-
-			LOCK(&manager->posthalt_lock);
+			BROADCAST(&manager->halt_cond);
+			while (manager->pause_requested || manager->exclusive_requested) {
+				WAIT(&manager->halt_cond, &manager->halt_lock);
+			}
 			manager->halted--;
-			UNLOCK(&manager->posthalt_lock);
+			SIGNAL(&manager->halt_cond);
+			UNLOCK(&manager->halt_lock);
 
 			LOCK(&manager->queues[threadid].lock);
 			/* Restart the loop after */
@@ -1263,8 +1255,7 @@ manager_free(isc__taskmgr_t *manager) {
 		DESTROYLOCK(&manager->queues[i].lock);
 	}
 	DESTROYLOCK(&manager->lock);
-	DESTROYLOCK(&manager->prehalt_lock);
-	DESTROYLOCK(&manager->posthalt_lock);
+	DESTROYLOCK(&manager->halt_lock);
 	isc_mem_put(manager->mctx, manager->queues,
 		    manager->workers * sizeof(isc__taskqueue_t));
 	manager->common.impmagic = 0;
@@ -1295,9 +1286,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	RUNTIME_CHECK(isc_mutex_init(&manager->lock) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_mutex_init(&manager->excl_lock) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_mutex_init(&manager->prehalt_lock)
-		      == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mutex_init(&manager->posthalt_lock)
+	RUNTIME_CHECK(isc_mutex_init(&manager->halt_lock)
 		      == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_condition_init(&manager->halt_cond)
 		      == ISC_R_SUCCESS);
@@ -1470,31 +1459,36 @@ isc__taskmgr_pause(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 	unsigned int i;
 
-	LOCK(&manager->posthalt_lock);
+	LOCK(&manager->halt_lock);
 	while (manager->exclusive_requested || manager->pause_requested) {
-		UNLOCK(&manager->posthalt_lock);
+		UNLOCK(&manager->halt_lock);
 		/* This is ugly but pause is used EXCLUSIVELY in tests */
 		isc_thread_yield();
-		LOCK(&manager->posthalt_lock);
+		LOCK(&manager->halt_lock);
 	}
+
 	manager->pause_requested = true;
-	LOCK(&manager->prehalt_lock);
 	while (manager->halted < manager->workers) {
 		for (i = 0; i < manager->workers; i++) {
 			BROADCAST(&manager->queues[i].work_available);
 		}
-		WAIT(&manager->halt_cond, &manager->prehalt_lock);
+		WAIT(&manager->halt_cond, &manager->halt_lock);
 	}
-	UNLOCK(&manager->prehalt_lock);
+	UNLOCK(&manager->halt_lock);
 }
 
 void
 isc__taskmgr_resume(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
+	LOCK(&manager->halt_lock);
 	if (manager->pause_requested) {
 		manager->pause_requested = false;
-		UNLOCK(&manager->posthalt_lock);
+		while (manager->halted > 0) {
+			BROADCAST(&manager->halt_cond);
+			WAIT(&manager->halt_cond, &manager->halt_lock);
+		}
 	}
+	UNLOCK(&manager->halt_lock);
 }
 
 void
@@ -1548,17 +1542,16 @@ isc_task_beginexclusive(isc_task_t *task0) {
 		return (ISC_R_LOCKBUSY);
 	}
 
-	LOCK(&manager->posthalt_lock);
+	LOCK(&manager->halt_lock);
 	INSIST(!manager->exclusive_requested && !manager->pause_requested);
 	manager->exclusive_requested = true;
-	LOCK(&manager->prehalt_lock);
 	while (manager->halted + 1 < manager->workers) {
 		for (i = 0; i < manager->workers; i++) {
 			BROADCAST(&manager->queues[i].work_available);
 		}
-		WAIT(&manager->halt_cond, &manager->prehalt_lock);
+		WAIT(&manager->halt_cond, &manager->halt_lock);
 	}
-	UNLOCK(&manager->prehalt_lock);
+	UNLOCK(&manager->halt_lock);
 	return (ISC_R_SUCCESS);
 }
 
@@ -1569,9 +1562,14 @@ isc_task_endexclusive(isc_task_t *task0) {
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(task->state == task_state_running);
+	LOCK(&manager->halt_lock);
 	REQUIRE(manager->exclusive_requested);
 	manager->exclusive_requested = false;
-	UNLOCK(&manager->posthalt_lock);
+	while (manager->halted > 0) {
+		BROADCAST(&manager->halt_cond);
+		WAIT(&manager->halt_cond, &manager->halt_lock);
+	}
+	UNLOCK(&manager->halt_lock);
 }
 
 void
