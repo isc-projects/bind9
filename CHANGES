@@ -1,3 +1,5 @@
+5049.	[cleanup]	Qname minimization has been deeply refactored. [GL #16]
+
 5048.	[feature]	Add configure option to enabled and enforce FIPS mode
 			in BIND 9. [GL #506]
 

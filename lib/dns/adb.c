@@ -1546,7 +1546,6 @@ clean_finds_at_name(dns_adbname_t *name, isc_eventtype_t evtype,
 		UNLOCK(&find->lock);
 		find = next_find;
 	}
-
 	DP(ENTER_LEVEL, "EXIT clean_finds_at_name, name %p", name);
 }
 
@@ -3221,12 +3220,14 @@ dns_adb_createfind(dns_adb_t *adb, isc_task_t *task, isc_taskaction_t action,
 	if (want_event) {
 		find->adbname = adbname;
 		find->name_bucket = bucket;
+		bool empty = ISC_LIST_EMPTY(adbname->finds);
 		ISC_LIST_APPEND(adbname->finds, find, plink);
 		find->query_pending = (query_pending & wanted_addresses);
 		find->flags &= ~DNS_ADBFIND_ADDRESSMASK;
 		find->flags |= (find->query_pending & DNS_ADBFIND_ADDRESSMASK);
-		DP(DEF_LEVEL, "createfind: attaching find %p to adbname %p",
-		   find, adbname);
+		DP(DEF_LEVEL, "createfind: attaching find %p to adbname "
+			      "%p %d",
+		   find, adbname, empty);
 	} else {
 		/*
 		 * Remove the flag so the caller knows there will never
@@ -4024,20 +4025,12 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone,
 		   adbname);
 		name = dns_fixedname_initname(&fixed);
 		result = dns_view_findzonecut(adb->view, &adbname->name, name,
-					      0, 0, true, false,
+					      NULL, 0, 0, true, false,
 					      &rdataset, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_HINT)
 			goto cleanup;
 		nameservers = &rdataset;
 		options |= DNS_FETCHOPT_UNSHARED;
-	}
-
-	if (adb->view->qminimization) {
-		options |= DNS_FETCHOPT_QMINIMIZE;
-		options |= DNS_FETCHOPT_QMIN_SKIP_IP6A;
-		if (adb->view->qmin_strict) {
-			options |= DNS_FETCHOPT_QMIN_STRICT;
-		}
 	}
 
 	fetch = new_adbfetch(adb);
@@ -4047,14 +4040,25 @@ fetch_name(dns_adbname_t *adbname, bool start_at_zone,
 	}
 	fetch->depth = depth;
 
+	/*
+	 * We're not minimizing this query, as nothing user-related should
+	 * be leaked here.
+	 * However, if we'd ever want to change it we'd have to modify
+	 * createfetch to find deepest cached name when we're providing
+	 * domain and nameservers.
+	 */
 	result = dns_resolver_createfetch(adb->view->resolver, &adbname->name,
 					  type, name, nameservers, NULL,
 					  NULL, 0, options, depth, qc,
 					  adb->task, fetch_callback, adbname,
 					  &fetch->rdataset, NULL,
 					  &fetch->fetch);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		DP(ENTER_LEVEL,
+		   "fetch_name: createfetch failed with %s",
+		   isc_result_totext(result));
 		goto cleanup;
+	}
 
 	if (type == dns_rdatatype_a) {
 		adbname->fetch_a = fetch;

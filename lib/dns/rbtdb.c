@@ -4307,7 +4307,7 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 static isc_result_t
 zone_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		 isc_stdtime_t now, dns_dbnode_t **nodep,
-		 dns_name_t *foundname,
+		 dns_name_t *foundname, dns_name_t *dcname,
 		 dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	UNUSED(db);
@@ -4316,6 +4316,7 @@ zone_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	UNUSED(now);
 	UNUSED(nodep);
 	UNUSED(foundname);
+	UNUSED(dcname);
 	UNUSED(rdataset);
 	UNUSED(sigrdataset);
 
@@ -5034,7 +5035,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 static isc_result_t
 cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		  isc_stdtime_t now, dns_dbnode_t **nodep,
-		  dns_name_t *foundname,
+		  dns_name_t *foundname, dns_name_t *dcname,
 		  dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	dns_rbtnode_t *node = NULL;
@@ -5045,6 +5046,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	rdatasetheader_t *found, *foundsig;
 	unsigned int rbtoptions = DNS_RBTFIND_EMPTYDATA;
 	isc_rwlocktype_t locktype;
+	bool dcnull = (dcname == NULL);
 
 	search.rbtdb = (dns_rbtdb_t *)db;
 
@@ -5064,6 +5066,10 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
 	search.now = now;
 
+	if (dcnull) {
+		dcname = foundname;
+	}
+
 	if ((options & DNS_DBFIND_NOEXACT) != 0)
 		rbtoptions |= DNS_RBTFIND_NOEXACT;
 
@@ -5072,17 +5078,18 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	/*
 	 * Search down from the root of the tree.
 	 */
-	result = dns_rbt_findnode(search.rbtdb->tree, name, foundname, &node,
+	result = dns_rbt_findnode(search.rbtdb->tree, name, dcname, &node,
 				  &search.chain, rbtoptions, NULL, &search);
 
 	if (result == DNS_R_PARTIALMATCH) {
-	find_ns:
 		result = find_deepest_zonecut(&search, node, nodep, foundname,
 					      rdataset, sigrdataset);
 		goto tree_exit;
-	} else if (result != ISC_R_SUCCESS)
+	} else if (result != ISC_R_SUCCESS) {
 		goto tree_exit;
-
+	} else if (!dcnull) {
+		dns_name_copy(dcname, foundname, NULL);
+	}
 	/*
 	 * We now go looking for an NS rdataset at the node.
 	 */
@@ -5129,7 +5136,9 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 		 * No NS records here.
 		 */
 		NODE_UNLOCK(lock, locktype);
-		goto find_ns;
+		result = find_deepest_zonecut(&search, node, nodep, foundname,
+					      rdataset, sigrdataset);
+		goto tree_exit;
 	}
 
 	if (nodep != NULL) {
