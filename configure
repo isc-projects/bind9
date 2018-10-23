@@ -19817,8 +19817,8 @@ $as_echo "size_t for buflen; int for flags" >&6; }
 	 $as_echo "#define IRS_GETNAMEINFO_FLAGS_T int" >>confdefs.h
 
 else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not match any subspecies; assume standard definition" >&5
-$as_echo "not match any subspecies; assume standard definition" >&6; }
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: not match any subspecies; socklen_t for buflen; u_int for flags" >&5
+$as_echo "not match any subspecies; socklen_t for buflen; u_int for flags" >&6; }
 $as_echo "#define IRS_GETNAMEINFO_SOCKLEN_T socklen_t" >>confdefs.h
 
 $as_echo "#define IRS_GETNAMEINFO_BUFLEN_T socklen_t" >>confdefs.h
