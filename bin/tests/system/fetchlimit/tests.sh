@@ -166,7 +166,7 @@ touch ans4/norespond
 for try in 1 2 3 4 5; do
     burst b $try 400
     $DIG @10.53.0.3 -p ${PORT}  a ${try}.example > dig.out.ns3.$try
-    stat 360 || exceeded=`expr $exceeded + 1`
+    stat 370 || exceeded=`expr $exceeded + 1`
     grep "status: NOERROR" dig.out.ns3.$try > /dev/null 2>&1 && \
             success=`expr $success + 1`
     grep "status: SERVFAIL" dig.out.ns3.$try > /dev/null 2>&1 && \
@@ -177,7 +177,7 @@ echo_i "$success successful valid queries (expected 5)"
 [ "$success" -eq 5 ] || { echo_i "failed"; ret=1; }
 echo_i "$fail SERVFAIL responses (expected 0)"
 [ "$fail" -eq 0 ] || { echo_i "failed"; ret=1; }
-echo_i "clients count exceeded 360 on $exceeded trials (expected 0)"
+echo_i "clients count exceeded 370 on $exceeded trials (expected 0)"
 [ "$exceeded" -eq 0 ] || { echo_i "failed"; ret=1; }
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
