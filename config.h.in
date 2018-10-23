@@ -6,9 +6,6 @@
 /* Use AES for Client Cookie generation */
 #undef AES_CC
 
-/* define if ATF unit tests are to be built. */
-#undef ATF_TEST
-
 /* Define if you cannot bind() before connect() for TCP sockets. */
 #undef BROKEN_TCP_BIND_BEFORE_CONNECT
 
