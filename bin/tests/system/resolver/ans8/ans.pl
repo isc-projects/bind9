@@ -74,6 +74,9 @@ sub handleUDP {
 	} elsif ($qname eq "ns.no-questions") {
 		$packet->push("answer", new Net::DNS::RR($qname . " 300 A 10.53.0.8"));
 		return $packet->data;
+	} elsif ($qname =~ /\.formerr-to-all$/) {
+		$packet->header->rcode("FORMERR");
+		return $packet->data;
 	}
 
 	# don't use Net::DNS to construct the header only reply as early
