@@ -508,8 +508,6 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 			    strbuf);
 	}
 
-	manager->maxIOCPThreads = min(isc_os_ncpus() + 1, MAX_IOCPTHREADS);
-
 	/* Now Create the Completion Port */
 	manager->hIoCompletionPort = CreateIoCompletionPort(
 			INVALID_HANDLE_VALUE, NULL,
@@ -2538,7 +2536,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 
 isc_result_t
 isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
-		       unsigned int maxsocks)
+		      unsigned int maxsocks, int nthreads)
 {
 	isc_socketmgr_t *manager;
 	isc_result_t result;
@@ -2574,6 +2572,10 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	}
 
 	isc_mem_attach(mctx, &manager->mctx);
+	if (nthreads == 0) {
+		nthreads = isc_os_ncpus() + 1;
+	}
+	manager->maxIOCPThreads = min(nthreads, MAX_IOCPTHREADS);
 
 	iocompletionport_init(manager);	/* Create the Completion Ports */
 
