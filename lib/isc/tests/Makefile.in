@@ -73,8 +73,9 @@ crc64_test@EXEEXT@: crc64_test.@O@ ${ISCDEPLIBS}
 			crc64_test.@O@ ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 errno_test@EXEEXT@: errno_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			errno_test.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ errno_test.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 file_test@EXEEXT@: file_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
