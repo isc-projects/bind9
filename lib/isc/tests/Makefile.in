@@ -186,8 +186,9 @@ time_test@EXEEXT@: time_test.@O@ ${ISCDEPLIBS}
 		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 timer_test@EXEEXT@: timer_test.@O@ isctest.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			timer_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ timer_test.@O@ isctest.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh
