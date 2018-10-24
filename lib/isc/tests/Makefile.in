@@ -99,8 +99,9 @@ ht_test@EXEEXT@: ht_test.@O@ ${ISCDEPLIBS}
 			ht_test.@O@ ${ISCLIBS} ${LIBS}
 
 lex_test@EXEEXT@: lex_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			lex_test.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ lex_test.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 md_test@EXEEXT@: md_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} ${LDFLAGS} -o $@ \
