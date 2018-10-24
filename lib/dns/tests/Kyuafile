@@ -3,7 +3,7 @@ test_suite('bind9')
 
 tap_test_program{name='acl_test'}
 atf_test_program{name='db_test'}
-atf_test_program{name='dbdiff_test'}
+tap_test_program{name='dbdiff_test'}
 atf_test_program{name='dbiterator_test'}
 atf_test_program{name='dbversion_test'}
 tap_test_program{name='dh_test'}

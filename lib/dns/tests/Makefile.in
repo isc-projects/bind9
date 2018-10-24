@@ -110,9 +110,9 @@ db_test@EXEEXT@: db_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 			${ISCLIBS} ${LIBS}
 
 dbdiff_test@EXEEXT@: dbdiff_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			dbdiff_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ dbdiff_test.@O@ dnstest.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 dbiterator_test@EXEEXT@: dbiterator_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
