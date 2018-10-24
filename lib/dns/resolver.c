@@ -592,7 +592,9 @@ static bool fctx_unlink(fetchctx_t *fctx);
 static isc_result_t ncache_adderesult(dns_message_t *message,
 				      dns_db_t *cache, dns_dbnode_t *node,
 				      dns_rdatatype_t covers,
-				      isc_stdtime_t now, dns_ttl_t maxttl,
+				      isc_stdtime_t now,
+				      dns_ttl_t minttl,
+				      dns_ttl_t maxttl,
 				      bool optout,
 				      bool secure,
 				      dns_rdataset_t *ardataset,
@@ -5464,8 +5466,10 @@ validated(isc_task_t *task, isc_event_t *event) {
 			ttl = 0;
 
 		result = ncache_adderesult(fctx->rmessage, fctx->cache, node,
-					   covers, now, ttl, vevent->optout,
-					   vevent->secure, ardataset, &eresult);
+					   covers, now,
+					   fctx->res->view->minncachettl, ttl,
+					   vevent->optout, vevent->secure,
+					   ardataset, &eresult);
 		if (result != ISC_R_SUCCESS)
 			goto noanswer_response;
 		goto answer_response;
@@ -5959,6 +5963,13 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		}
 
 		/*
+		 * Enforce configured minimum cache TTL.
+		 */
+		if (rdataset->ttl < res->view->mincachettl) {
+			rdataset->ttl = res->view->mincachettl;
+		}
+
+		/*
 		 * Mark the rdataset as being prefetch eligible.
 		 */
 		if (rdataset->ttl > fctx->res->view->prefetch_eligible) {
@@ -6346,7 +6357,8 @@ cache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_stdtime_t now)
  */
 static isc_result_t
 ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
-		  dns_rdatatype_t covers, isc_stdtime_t now, dns_ttl_t maxttl,
+		  dns_rdatatype_t covers, isc_stdtime_t now,
+		  dns_ttl_t minttl, dns_ttl_t maxttl,
 		  bool optout, bool secure,
 		  dns_rdataset_t *ardataset, isc_result_t *eresultp)
 {
@@ -6359,10 +6371,10 @@ ncache_adderesult(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	}
 	if (secure)
 		result = dns_ncache_addoptout(message, cache, node, covers,
-					      now, maxttl, optout, ardataset);
+					      now, minttl, maxttl, optout, ardataset);
 	else
 		result = dns_ncache_add(message, cache, node, covers, now,
-					maxttl, ardataset);
+					minttl, maxttl, ardataset);
 	if (result == DNS_R_UNCHANGED || result == ISC_R_SUCCESS) {
 		/*
 		 * If the cache now contains a negative entry and we
@@ -6537,8 +6549,9 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		ttl = 0;
 
 	result = ncache_adderesult(fctx->rmessage, fctx->cache, node,
-				   covers, now, ttl, false,
-				   false, ardataset, &eresult);
+				   covers, now,
+				   fctx->res->view->minncachettl, ttl,
+				   false, false, ardataset, &eresult);
 	if (result != ISC_R_SUCCESS)
 		goto unlock;
 

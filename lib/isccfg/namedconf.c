@@ -1929,6 +1929,8 @@ view_clauses[] = {
 	{ "max-stale-ttl", &cfg_type_ttlval, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "message-compression", &cfg_type_boolean, 0 },
+	{ "min-cache-ttl", &cfg_type_ttlval, 0 },
+	{ "min-ncache-ttl", &cfg_type_ttlval, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_NOTIMP },
 	{ "minimal-any", &cfg_type_boolean, 0 },
 	{ "minimal-responses", &cfg_type_minimal, 0 },

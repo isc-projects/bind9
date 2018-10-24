@@ -174,6 +174,8 @@ options {\n\
 	max-recursion-queries 75;\n\
 	max-stale-ttl 604800; /* 1 week */\n\
 	message-compression yes;\n\
+	min-ncache-ttl 0; /* 0 hours */\n\
+	min-cache-ttl 0; /* 0 seconds */\n\
 #	min-roots <obsolete>;\n\
 	minimal-any false;\n\
 	minimal-responses no-auth-recursive;\n\
