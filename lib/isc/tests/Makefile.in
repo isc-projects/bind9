@@ -145,8 +145,9 @@ random_test@EXEEXT@: random_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 regex_test@EXEEXT@: regex_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			regex_test.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ regex_test.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 result_test@EXEEXT@: result_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
