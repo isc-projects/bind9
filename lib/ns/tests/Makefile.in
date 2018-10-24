@@ -55,9 +55,9 @@ notify_test@EXEEXT@: notify_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNS
 				${ISCLIBS} ${LIBS}
 
 query_test@EXEEXT@: query_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			query_test.@O@ nstest.@O@ ${NSLIBS} ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ query_test.@O@ nstest.@O@ \
+		${NSLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh
