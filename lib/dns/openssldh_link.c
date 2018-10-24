@@ -725,9 +725,16 @@ openssldh_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 static void
 openssldh_cleanup(void) {
 	BN_free(bn2);
+	bn2 = NULL;
+
 	BN_free(bn768);
+	bn768 = NULL;
+
 	BN_free(bn1024);
+	bn1024 = NULL;
+
 	BN_free(bn1536);
+	bn1536 = NULL;
 }
 
 static dst_func_t openssldh_functions = {
