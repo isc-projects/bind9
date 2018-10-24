@@ -100,9 +100,9 @@ TARGETS =	acl_test@EXEEXT@ \
 @BIND9_MAKE_RULES@
 
 acl_test@EXEEXT@: acl_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			acl_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ acl_test.@O@ dnstest.@O@ ${DNSLIBS} \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 db_test@EXEEXT@: db_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
