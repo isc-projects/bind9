@@ -29,4 +29,4 @@ tap_test_program{name='symtab_test'}
 tap_test_program{name='task_test'}
 tap_test_program{name='taskpool_test'}
 tap_test_program{name='time_test'}
-atf_test_program{name='timer_test'}
+tap_test_program{name='timer_test'}
