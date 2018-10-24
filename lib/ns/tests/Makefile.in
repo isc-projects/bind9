@@ -26,10 +26,9 @@ DNSDEPLIBS =	../../dns/libdns.@A@
 NSLIBS =	../libns.@A@
 NSDEPLIBS =	../libns.@A@
 
-LIBS =		@LIBS@ @ATFLIBS@
+CFLAGS =	@CFLAGS@ @CMOCKA_CFLAGS@
+LIBS =		@LIBS@ @CMOCKA_LIBS@
 
-CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
-CMOCKA_LIBS =	@CMOCKA_LIBS@
 
 OBJS =		nstest.@O@
 SRCS =		nstest.c \
@@ -45,19 +44,19 @@ TARGETS =	listenlist_test@EXEEXT@ \
 @BIND9_MAKE_RULES@
 
 listenlist_test@EXEEXT@: listenlist_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			listenlist_test.@O@ nstest.@O@ ${NSLIBS} ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
+		${LDFLAGS} -o $@ listenlist_test.@O@ nstest.@O@ \
+		${NSLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 notify_test@EXEEXT@: notify_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
 		${LDFLAGS} -o $@ notify_test.@O@ nstest.@O@ \
-		${NSLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
+		${NSLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 query_test@EXEEXT@: query_test.@O@ nstest.@O@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
 		${LDFLAGS} -o $@ query_test.@O@ nstest.@O@ \
-		${NSLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
+		${NSLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh
