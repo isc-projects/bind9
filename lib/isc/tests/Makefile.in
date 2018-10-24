@@ -82,8 +82,9 @@ hash_test@EXEEXT@: hash_test.@O@ ${ISCDEPLIBS}
 			hash_test.@O@ ${ISCLIBS} ${LIBS}
 
 heap_test@EXEEXT@: heap_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			heap_test.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ heap_test.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 ht_test@EXEEXT@: ht_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
