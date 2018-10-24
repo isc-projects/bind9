@@ -16,7 +16,7 @@ atf_test_program{name='keytable_test'}
 atf_test_program{name='master_test'}
 atf_test_program{name='name_test'}
 atf_test_program{name='nsec3_test'}
-atf_test_program{name='peer_test'}
+tap_test_program{name='peer_test'}
 atf_test_program{name='private_test'}
 atf_test_program{name='rbt_serialize_test', is_exclusive=true}
 atf_test_program{name='rbt_test'}
