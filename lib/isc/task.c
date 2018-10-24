@@ -1559,8 +1559,11 @@ isc_task_beginexclusive(isc_task_t *task0) {
 	REQUIRE(VALID_TASK(task));
 
 	REQUIRE(task->state == task_state_running);
+
+	LOCK(&manager->excl_lock);
 	REQUIRE(task == task->manager->excl ||
 		(task->manager->exiting && task->manager->excl == NULL));
+	UNLOCK(&manager->excl_lock);
 
 	if (manager->exclusive_requested || manager->pause_requested) {
 		return (ISC_R_LOCKBUSY);
