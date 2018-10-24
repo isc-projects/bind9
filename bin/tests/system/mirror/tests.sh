@@ -380,7 +380,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking that \"rndc reconfig\" properly handles a yes -> no \"mirror\" setting change ($n)"
+echo_i "checking that \"rndc reconfig\" properly handles a mirror -> slave zone type change ($n)"
 ret=0
 # Sanity check before we start.
 $DIG $DIGOPTS @10.53.0.3 +norec verify-reconfig SOA > dig.out.ns3.test$n.1 2>&1 || ret=1
@@ -390,13 +390,13 @@ grep "flags:.* ad" dig.out.ns3.test$n.1 > /dev/null || ret=1
 # Reconfigure the zone so that it is no longer a mirror zone.
 # (NOTE: Keep the embedded newline in the sed function list below.)
 sed '/^zone "verify-reconfig" {$/,/^};$/ {
-	s/mirror yes;/mirror no;/
+	s/type mirror;/type slave;/
 }' ns3/named.conf > ns3/named.conf.modified
 mv ns3/named.conf.modified ns3/named.conf
 nextpart ns3/named.run > /dev/null
 $RNDCCMD 10.53.0.3 reconfig > /dev/null 2>&1
-# Zones whose "mirror" setting was changed should not be reusable, which means
-# the tested zone should have been reloaded from disk.
+# Zones whose type was changed should not be reusable, which means the tested
+# zone should have been reloaded from disk.
 wait_for_load verify-reconfig ${ORIGINAL_SERIAL} ns3/named.run
 # Ensure responses sourced from the reconfigured zone have AA=1 and AD=0.
 $DIG $DIGOPTS @10.53.0.3 +norec verify-reconfig SOA > dig.out.ns3.test$n.2 2>&1 || ret=1
@@ -407,7 +407,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "checking that \"rndc reconfig\" properly handles a no -> yes \"mirror\" setting change ($n)"
+echo_i "checking that \"rndc reconfig\" properly handles a slave -> mirror zone type change ($n)"
 ret=0
 # Put an incorrectly signed version of the zone in the zone file used by ns3.
 nextpart ns3/named.run > /dev/null
@@ -415,7 +415,7 @@ cat ns2/verify-reconfig.db.bad.signed > ns3/verify-reconfig.db.mirror
 # Reconfigure the zone so that it is a mirror zone again.
 # (NOTE: Keep the embedded newline in the sed function list below.)
 sed '/^zone "verify-reconfig" {$/,/^};$/ {
-	s/mirror no;/mirror yes;/
+	s/type slave;/type mirror;/
 }' ns3/named.conf > ns3/named.conf.modified
 mv ns3/named.conf.modified ns3/named.conf
 $RNDCCMD 10.53.0.3 reconfig > /dev/null 2>&1
@@ -424,6 +424,39 @@ wait_for_load verify-reconfig ${UPDATED_SERIAL_BAD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-reconfig SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpart ns3/named.run | grep "No correct RSASHA256 signature for verify-reconfig SOA" > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that a mirror zone can be added using rndc ($n)"
+ret=0
+# Sanity check: the zone should not exist in the root zone.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-addzone SOA > dig.out.ns3.test$n.1 2>&1 || ret=1
+grep "NXDOMAIN" dig.out.ns3.test$n.1 > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n.1 > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n.1 > /dev/null || ret=1
+# Mirror a zone which does not exist in the root zone.
+nextpart ns3/named.run > /dev/null
+$RNDCCMD 10.53.0.3 addzone verify-addzone '{ type mirror; masters { 10.53.0.2; }; };' > rndc.out.ns3.test$n 2>&1 || ret=1
+wait_for_transfer verify-addzone
+# Check whether the mirror zone was added and whether it behaves as expected.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-addzone SOA > dig.out.ns3.test$n.2 2>&1 || ret=1
+grep "NOERROR" dig.out.ns3.test$n.2 > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n.2 > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that a mirror zone can be deleted using rndc ($n)"
+ret=0
+# Remove the mirror zone added in the previous test.
+$RNDCCMD 10.53.0.3 delzone verify-addzone > rndc.out.ns3.test$n 2>&1 || ret=1
+# Check whether the mirror zone was removed.
+$DIG $DIGOPTS @10.53.0.3 +norec verify-addzone SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "NXDOMAIN" dig.out.ns3.test$n > /dev/null || ret=1
+grep "flags:.* aa" dig.out.ns3.test$n > /dev/null && ret=1
+grep "flags:.* ad" dig.out.ns3.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

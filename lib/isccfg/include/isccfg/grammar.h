@@ -72,6 +72,7 @@
 #define CFG_ZONE_REDIRECT		0x02000000
 #define CFG_ZONE_DELEGATION		0x01000000
 #define CFG_ZONE_INVIEW			0x00800000
+#define CFG_ZONE_MIRROR			0x00400000
 
 typedef struct cfg_clausedef cfg_clausedef_t;
 typedef struct cfg_tuplefielddef cfg_tuplefielddef_t;

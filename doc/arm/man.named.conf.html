@@ -871,7 +871,6 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		max-zone-ttl ( unlimited | <em class="replaceable"><code>ttlval</code></em> );<br>
 		min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 		min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
-		mirror <em class="replaceable"><code>boolean</code></em>;<br>
 		multi-master <em class="replaceable"><code>boolean</code></em>;<br>
 		notify ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );<br>
 		notify-delay <em class="replaceable"><code>integer</code></em>;<br>
@@ -897,7 +896,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port (<br>
 		    <em class="replaceable"><code>integer</code></em> | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 		try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
-		type ( primary | master | secondary | slave |<br>
+		type ( primary | master | secondary | slave | mirror |<br>
 		    delegation-only | forward | hint | redirect |<br>
 		    static-stub | stub );<br>
 		update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
@@ -977,7 +976,6 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	max-zone-ttl ( unlimited | <em class="replaceable"><code>ttlval</code></em> );<br>
 	min-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
 	min-retry-time <em class="replaceable"><code>integer</code></em>;<br>
-	mirror <em class="replaceable"><code>boolean</code></em>;<br>
 	multi-master <em class="replaceable"><code>boolean</code></em>;<br>
 	notify ( explicit | master-only | <em class="replaceable"><code>boolean</code></em> );<br>
 	notify-delay <em class="replaceable"><code>integer</code></em>;<br>
@@ -1001,8 +999,9 @@ zone <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	transfer-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> | * )<br>
 	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 	try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
-	type ( primary | master | secondary | slave | delegation-only |<br>
-	    forward | hint | redirect | static-stub | stub );<br>
+	type ( primary | master | secondary | slave | mirror |<br>
+	    delegation-only | forward | hint | redirect | static-stub |<br>
+	    stub );<br>
 	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 	update-policy ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> ( 6to4-self |<br>
 	    external | krb5-self | krb5-subdomain | ms-self | ms-subdomain<br>

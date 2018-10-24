@@ -7317,8 +7317,8 @@ options {
 	      </listitem>
 	    </varlistentry>
 
-	    <varlistentry>
-	      <term><command>allow-transfer</command></term>
+	    <varlistentry xml:id="allow_transfer">
+	      <term xml:id="allow_transfer_term"><command>allow-transfer</command></term>
 	      <listitem>
 		<para>
 		  Specifies which hosts are allowed to
@@ -11410,6 +11410,7 @@ view "external" {
 
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="master.zoneopt.xml"/>
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="slave.zoneopt.xml"/>
+<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="mirror.zoneopt.xml"/>
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="hint.zoneopt.xml"/>
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="stub.zoneopt.xml"/>
 <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="static-stub.zoneopt.xml"/>
@@ -11429,6 +11430,7 @@ view "external" {
 	      acceptable values include:
 	      <varname>master</varname> (or <varname>primary</varname>),
 	      <varname>slave</varname> (or <varname>secondary</varname>),
+	      <varname>mirror</varname>,
 	      <varname>delegation-only</varname>,
 	      <varname>forward</varname>,
 	      <varname>hint</varname>,
@@ -11562,6 +11564,97 @@ view "external" {
 			to use a set of internal name servers as the
 			authoritative
 			servers for that domain.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			<varname>mirror</varname>
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+		      </para>
+		      <para>
+			A mirror zone acts like a zone of type
+			<userinput>secondary</userinput> whose data is
+			subject to DNSSEC validation before being used
+			in answers.  Validation is performed during the
+			zone transfer process, and again when the zone
+			file is loaded from disk when
+			<command>named</command> is restarted.  If
+			validation fails, a retransfer of the zone is
+			scheduled; if the mirror zone had not previously
+			been loaded or if the previous version has
+			expired, traditional DNS recursion will be used
+			to look up the answers instead.
+		      </para>
+		      <para>
+			For validation to succeed, a key-signing key
+			(KSK) for the zone must be configured as a trust
+			anchor in <filename>named.conf</filename>: that
+			is, a key for the zone must either be specified
+			in <command>managed-keys</command> or
+			<command>trusted-keys</command>, or in the case
+			of the root zone,
+			<command>dnssec-validation</command> must be set
+			to <userinput>auto</userinput>.  Answers coming
+			from a mirror zone look almost exactly like
+			answers from a zone of type
+			<userinput>secondary</userinput>, with the
+			notable exceptions that the AA bit
+			("authoritative answer") is not set, and the AD
+			bit ("authenticated data") is.
+		      </para>
+		      <para>
+			Since mirror zones are intended to be used by
+			recursive resolvers, adding one to a view with
+			recursion disabled is considered to be a
+			configuration error.
+		      </para>
+		      <para>
+			When configuring NOTIFY for a mirror zone, only
+			<userinput>notify no;</userinput> and
+			<userinput>notify explicit;</userinput> can be
+			used.  Using any other
+			<userinput>notify</userinput> setting at the
+			zone level is a configuration error.  Using any
+			other <userinput>notify</userinput> setting at
+			the <userinput>options</userinput> or
+			<userinput>view</userinput> level will cause
+			that setting to be overridden with
+			<userinput>notify explicit;</userinput> for the
+			mirror zone in question.
+		      </para>
+		      <para>
+			Outgoing transfers of mirror zones are disabled
+			by default but may be enabled using
+			<xref endterm="allow_transfer_term" linkend="allow_transfer"/>.
+		      </para>
+		      <para>
+			While any zone may be configured with this type,
+			it is intended to be used to set up a fast local
+			copy of the root zone, similar to the one
+			described in RFC 7706.  Note, however, that
+			mirror zones are not supposed to augment the
+			example configuration provided by RFC 7706 but
+			rather to replace it altogether.
+		      </para>
+		      <para>
+			A default list of primary servers for the root
+			zone is built into <command>named</command> and
+			thus IANA root zone mirroring can be enabled
+			using the following configuration:
+		      </para>
+<programlisting>zone "." {
+	type mirror;
+};</programlisting>
+		      <para>
+			To make mirror zone contents persist between
+			<command>named</command> restarts, use the
+			<xref endterm="file_option_term" linkend="file_option"/>
+			option.
 		      </para>
 		    </entry>
 		  </row>
@@ -12067,19 +12160,20 @@ view "external" {
 		</listitem>
 	      </varlistentry>
 
-	      <varlistentry>
-		<term><command>file</command></term>
+	      <varlistentry xml:id="file_option">
+		<term xml:id="file_option_term"><command>file</command></term>
 		<listitem>
 		  <para>
 		    Set the zone's filename. In <command>master</command>,
 		    <command>hint</command>, and <command>redirect</command>
 		    zones which do not have <command>masters</command>
 		    defined, zone data is loaded from this file. In
-		    <command>slave</command>, <command>stub</command>, and
-		    <command>redirect</command> zones which do have
-		    <command>masters</command> defined, zone data is
-		    retrieved from another server and saved in this file.
-		    This option is not applicable to other zone types.
+		    <command>slave</command>, <command>mirror</command>,
+		    <command>stub</command>, and <command>redirect</command>
+		    zones which do have <command>masters</command>
+		    defined, zone data is retrieved from another server
+		    and saved in this file.  This option is not
+		    applicable to other zone types.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -12521,68 +12615,6 @@ example.com. NS ns2.example.net.
 		    with possibly, a different serial number.  This
 		    behavior is disabled by default.
 		  </para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term><command>mirror</command></term>
-		<listitem>
-		  <para>
-		    If set to <userinput>yes</userinput>, this causes the
-		    zone to become a mirror zone.  A mirror zone is a
-		    <userinput>secondary</userinput> zone whose data
-		    is subject to DNSSEC validation before being
-		    used in answers.  The default is
-		    <userinput>no</userinput>.
-		  </para>
-		  <para>
-		    A mirror zone's contents are validated during the transfer
-		    process, and again when the zone file is loaded from disk
-		    when <command>named</command> is restarted.  If validation
-		    fails, a retransfer of the zone is scheduled; if the mirror
-		    zone had not previously been loaded or if the previous
-		    version has expired, traditional DNS recursion will be used
-		    to look up the answers instead.
-		  </para>
-		  <para>
-		    For validation to succeed, a key-signing key (KSK) for
-		    the zone must be configured as a trust anchor in
-		    <filename>named.conf</filename>:
-		    that is, a key for the zone must either be specified in
-		    <command>managed-keys</command> or
-		    <command>trusted-keys</command>, or in the case of
-		    the root zone, <command>dnssec-validation</command>
-		    must be set to <userinput>auto</userinput>.
-		    Answers coming from a mirror zone look almost exactly like
-		    answers from a normal slave zone, with the notable
-		    exceptions that the AA bit ("authoritative answer") is
-		    not set, and the AD bit ("authenticated data") is.
-		  </para>
-		  <para>
-		    Though this option can be used for other zones, it
-		    is intended to be used to set up a fast local copy of
-		    the root zone, as described in RFC 7706.
-		    This can be done by using the following configuration:
-		  </para>
-<programlisting>zone "." {
-	type slave;
-	mirror yes;
-	file "root.mirror";
-	masters {
-		192.228.79.201;       # b.root-servers.net
-		192.33.4.12;          # c.root-servers.net
-		192.5.5.241;          # f.root-servers.net
-		192.112.36.4;         # g.root-servers.net
-		193.0.14.129;         # k.root-servers.net
-		192.0.47.132;         # xfr.cjr.dns.icann.org
-		192.0.32.132;         # xfr.lax.dns.icann.org
-		2001:500:84::b;       # b.root-servers.net
-		2001:500:2f::f;       # f.root-servers.net
-		2001:7fd::1;          # k.root-servers.net
-		2620:0:2830:202::132; # xfr.cjr.dns.icann.org
-		2620:0:2d0:202::132;  # xfr.lax.dns.icann.org
-	};
-};</programlisting>
 		</listitem>
 	      </varlistentry>
 

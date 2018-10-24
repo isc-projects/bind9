@@ -1095,7 +1095,7 @@ query_validatezonedb(ns_client_t *client, const dns_name_t *name,
 	/*
 	 * Mirror zone data is treated as cache data.
 	 */
-	if (dns_zone_ismirror(zone)) {
+	if (dns_zone_gettype(zone) == dns_zone_mirror) {
 		return (query_checkcacheaccess(client, name, qtype, options));
 	}
 
@@ -5382,7 +5382,7 @@ ns__query_start(query_ctx_t *qctx) {
 	if (qctx->is_zone) {
 		qctx->authoritative = true;
 		if (qctx->zone != NULL) {
-			if (dns_zone_ismirror(qctx->zone)) {
+			if (dns_zone_gettype(qctx->zone) == dns_zone_mirror) {
 				qctx->authoritative = false;
 			}
 			if (dns_zone_gettype(qctx->zone) ==
@@ -7099,8 +7099,8 @@ query_respond_any(query_ctx_t *qctx) {
 }
 
 /*
- * Set the expire time, if requested, when answering from a
- * slave or master zone.
+ * Set the expire time, if requested, when answering from a slave, mirror, or
+ * master zone.
  */
 static void
 query_getexpire(query_ctx_t *qctx) {
@@ -7117,7 +7117,9 @@ query_getexpire(query_ctx_t *qctx) {
 	dns_zone_getraw(qctx->zone, &raw);
 	mayberaw = (raw != NULL) ? raw : qctx->zone;
 
-	if (dns_zone_gettype(mayberaw) == dns_zone_slave) {
+	if (dns_zone_gettype(mayberaw) == dns_zone_slave ||
+	    dns_zone_gettype(mayberaw) == dns_zone_mirror)
+	{
 		isc_time_t expiretime;
 		uint32_t secs;
 		dns_zone_getexpiretime(qctx->zone, &expiretime);
@@ -7918,7 +7920,8 @@ query_zone_delegation(query_ctx_t *qctx) {
 
 	if (USECACHE(qctx->client) &&
 	    (RECURSIONOK(qctx->client) ||
-	     (qctx->zone != NULL && dns_zone_ismirror(qctx->zone))))
+	     (qctx->zone != NULL &&
+	      dns_zone_gettype(qctx->zone) == dns_zone_mirror)))
 	{
 		/*
 		 * We might have a better answer or delegation in the

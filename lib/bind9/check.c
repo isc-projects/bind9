@@ -1915,6 +1915,114 @@ check_nonzero(const cfg_obj_t *options, isc_log_t *logctx) {
 	return (result);
 }
 
+/*%
+ * Check whether NOTIFY configuration at the zone level is acceptable for a
+ * mirror zone.  Return true if it is; return false otherwise.
+ */
+static bool
+check_mirror_zone_notify(const cfg_obj_t *zoptions, const char *znamestr,
+			 isc_log_t *logctx)
+{
+	bool notify_configuration_ok = true;
+	const cfg_obj_t *obj = NULL;
+
+	(void)cfg_map_get(zoptions, "notify", &obj);
+	if (obj == NULL) {
+		/*
+		 * "notify" not set at zone level.  This is fine.
+		 */
+		return (true);
+	}
+
+	if (cfg_obj_isboolean(obj)) {
+		if (cfg_obj_asboolean(obj)) {
+			/*
+			 * "notify yes;" set at zone level.  This is an error.
+			 */
+			notify_configuration_ok = false;
+		}
+	} else {
+		const char *notifystr = cfg_obj_asstring(obj);
+		if (strcasecmp(notifystr, "explicit") != 0) {
+			/*
+			 * Something else than "notify explicit;" set at zone
+			 * level.  This is an error.
+			 */
+			notify_configuration_ok = false;
+		}
+	}
+
+	if (!notify_configuration_ok) {
+		cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
+			    "zone '%s': mirror zones can only be used with "
+			    "'notify no;' or 'notify explicit;'", znamestr);
+	}
+
+	return (notify_configuration_ok);
+}
+
+/*%
+ * Try to determine whether recursion is available in a view without resorting
+ * to extraordinary measures: just check the "recursion" and "allow-recursion"
+ * settings.  The point is to prevent accidental mirror zone misuse rather than
+ * to enforce some sort of policy.  Recursion is assumed to be allowed by
+ * default if it is not explicitly disabled.
+ */
+static bool
+check_recursion(const cfg_obj_t *config, const cfg_obj_t *voptions,
+		const cfg_obj_t *goptions, isc_log_t *logctx,
+		cfg_aclconfctx_t *actx, isc_mem_t *mctx)
+{
+	dns_acl_t *acl = NULL;
+	const cfg_obj_t *obj;
+	isc_result_t result;
+	bool retval = true;
+
+	/*
+	 * Check the "recursion" option first.
+	 */
+	obj = NULL;
+	result = ISC_R_NOTFOUND;
+	if (voptions != NULL) {
+		result = cfg_map_get(voptions, "recursion", &obj);
+	}
+	if (result != ISC_R_SUCCESS && goptions != NULL) {
+		result = cfg_map_get(goptions, "recursion", &obj);
+	}
+	if (result == ISC_R_SUCCESS && !cfg_obj_asboolean(obj)) {
+		retval = false;
+		goto cleanup;
+	}
+
+	/*
+	 * If recursion is not disabled by the "recursion" option, check
+	 * whether it is disabled by the "allow-recursion" ACL.
+	 */
+	obj = NULL;
+	result = ISC_R_NOTFOUND;
+	if (voptions != NULL) {
+		result = cfg_map_get(voptions, "allow-recursion", &obj);
+	}
+	if (result != ISC_R_SUCCESS && goptions != NULL) {
+		result = cfg_map_get(goptions, "allow-recursion", &obj);
+	}
+	if (result == ISC_R_SUCCESS) {
+		result = cfg_acl_fromconfig(obj, config, logctx, actx, mctx, 0,
+					    &acl);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+		retval = !dns_acl_isnone(acl);
+	}
+
+ cleanup:
+	if (acl != NULL) {
+		dns_acl_detach(&acl);
+	}
+
+	return (retval);
+}
+
 static isc_result_t
 check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	       const cfg_obj_t *config, isc_symtab_t *symtab,
@@ -1989,6 +2097,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			   strcasecmp(typestr, "secondary") == 0)
 		{
 			ztype = CFG_ZONE_SLAVE;
+		} else if (strcasecmp(typestr, "mirror") == 0) {
+			ztype = CFG_ZONE_MIRROR;
 		} else if (strcasecmp(typestr, "stub") == 0) {
 			ztype = CFG_ZONE_STUB;
 		} else if (strcasecmp(typestr, "static-stub") == 0) {
@@ -2100,6 +2210,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		case CFG_ZONE_MASTER:
 		case CFG_ZONE_SLAVE:
+		case CFG_ZONE_MIRROR:
 		case CFG_ZONE_HINT:
 		case CFG_ZONE_STUB:
 		case CFG_ZONE_STATICSTUB:
@@ -2184,10 +2295,22 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Master & slave zones may have an "also-notify" field, but
+	 * Only a limited subset of all possible "notify" settings can be used
+	 * at the zone level for mirror zones.
+	 */
+	if (ztype == CFG_ZONE_MIRROR &&
+	    !check_mirror_zone_notify(zoptions, znamestr, logctx))
+	{
+		result = ISC_R_FAILURE;
+	}
+
+	/*
+	 * Master, slave, and mirror zones may have an "also-notify" field, but
 	 * shouldn't if notify is disabled.
 	 */
-	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE) {
+	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE ||
+	    ztype == CFG_ZONE_MIRROR)
+	{
 		bool donotify = true;
 
 		obj = NULL;
@@ -2228,9 +2351,13 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	}
 
 	/*
-	 * Slave & stub zones must have a "masters" field.
+	 * Slave, mirror, and stub zones must have a "masters" field, with one
+	 * exception: when mirroring the root zone, a default, built-in master
+	 * server list is used in the absence of one explicitly specified.
 	 */
-	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_STUB) {
+	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_STUB ||
+	    (ztype == CFG_ZONE_MIRROR && !dns_name_equal(zname, dns_rootname)))
+	{
 		obj = NULL;
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
 			cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
@@ -2250,6 +2377,19 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				result = ISC_R_FAILURE;
 			}
 		}
+	}
+
+	/*
+	 * Configuring a mirror zone and disabling recursion at the same time
+	 * contradicts the purpose of the former.
+	 */
+	if (ztype == CFG_ZONE_MIRROR &&
+	    !check_recursion(config, voptions, goptions, logctx, actx, mctx))
+	{
+		cfg_obj_log(zoptions, logctx, ISC_LOG_ERROR,
+			    "zone '%s': mirror zones cannot be used if "
+			    "recursion is disabled", znamestr);
+		result = ISC_R_FAILURE;
 	}
 
 	/*
@@ -2621,7 +2761,9 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			    znamestr);
 			result = tresult;
 		} else if (tresult == ISC_R_SUCCESS &&
-			   (ztype == CFG_ZONE_SLAVE || ddns)) {
+			   (ztype == CFG_ZONE_SLAVE ||
+			    ztype == CFG_ZONE_MIRROR || ddns))
+		{
 			tresult = fileexist(fileobj, files, true, logctx);
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;

@@ -115,6 +115,8 @@ main(int argc, char **argv) {
 				   strcmp(argv[1], "seconary") == 0)
 			{
 				zonetype = CFG_ZONE_SLAVE;
+			} else if (strcmp(argv[1], "mirror") == 0) {
+				zonetype = CFG_ZONE_MIRROR;
 			} else if (strcmp(argv[1], "stub") == 0) {
 				zonetype = CFG_ZONE_STUB;
 			} else if (strcmp(argv[1], "static-stub") == 0) {

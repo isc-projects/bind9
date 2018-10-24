@@ -301,6 +301,21 @@ view \"_bind\" chaos {\n\
 MANAGED_KEYS
 
 "# END MANAGED KEYS\n\
+\n\
+masters " DEFAULT_IANA_ROOT_ZONE_MASTERS " {\n\
+	2001:500:84::b;		# b.root-servers.net\n\
+	2001:500:2f::f;		# f.root-servers.net\n\
+	2001:7fd::1;		# k.root-servers.net\n\
+	2620:0:2830:202::132;	# xfr.cjr.dns.icann.org\n\
+	2620:0:2d0:202::132;	# xfr.lax.dns.icann.org\n\
+	192.228.79.201;		# b.root-servers.net\n\
+	192.33.4.12;		# c.root-servers.net\n\
+	192.5.5.241;		# f.root-servers.net\n\
+	192.112.36.4;		# g.root-servers.net\n\
+	193.0.14.129;		# k.root-servers.net\n\
+	192.0.47.132;		# xfr.cjr.dns.icann.org\n\
+	192.0.32.132;		# xfr.lax.dns.icann.org\n\
+};\n\
 ";
 
 isc_result_t
@@ -432,6 +447,8 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 		   strcasecmp(str, "slave") == 0)
 	{
 		ztype = dns_zone_slave;
+	} else if (strcasecmp(str, "mirror") == 0) {
+		ztype = dns_zone_mirror;
 	} else if (strcasecmp(str, "stub") == 0) {
 		ztype = dns_zone_stub;
 	} else if (strcasecmp(str, "static-stub") == 0) {
@@ -553,9 +570,9 @@ named_config_putiplist(isc_mem_t *mctx, isc_sockaddr_t **addrsp,
 	}
 }
 
-static isc_result_t
-get_masters_def(const cfg_obj_t *cctx, const char *name,
-		const cfg_obj_t **ret)
+isc_result_t
+named_config_getmastersdef(const cfg_obj_t *cctx, const char *name,
+			   const cfg_obj_t **ret)
 {
 	isc_result_t result;
 	const cfg_obj_t *masters = NULL;
@@ -697,7 +714,8 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 					break;
 			if (j < l)
 				continue;
-			tresult = get_masters_def(config, listname, &list);
+			tresult = named_config_getmastersdef(config, listname,
+							     &list);
 			if (tresult == ISC_R_NOTFOUND) {
 				cfg_obj_log(addr, named_g_lctx, ISC_LOG_ERROR,
 				    "masters \"%s\" not found", listname);

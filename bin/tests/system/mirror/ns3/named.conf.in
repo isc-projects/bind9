@@ -29,6 +29,7 @@ options {
 	recursion yes;
 	allow-query-cache { 10.53.0.1; };
 	trust-anchor-telemetry yes;
+	allow-new-zones yes;
 };
 
 zone "." {
@@ -37,62 +38,54 @@ zone "." {
 };
 
 zone "." {
-	type slave;
+	type mirror;
 	masters { 10.53.0.1; };
-	mirror yes;
 	file "root.db.mirror";
 };
 
 zone "initially-unavailable" {
-	type slave;
+	type mirror;
 	masters { 10.53.0.2; };
-	mirror yes;
 	file "initially-unavailable.db.mirror";
 	use-alt-transfer-source no;
 };
 
 zone "verify-axfr" {
-	type slave;
+	type mirror;
 	masters { 10.53.0.2; };
-	mirror yes;
 	file "verify-axfr.db.mirror";
 };
 
 zone "verify-ixfr" {
-	type slave;
+	type mirror;
 	masters { 10.53.0.2; };
-	mirror yes;
 	file "verify-ixfr.db.mirror";
 	masterfile-format text;
 };
 
 zone "verify-load" {
-	type slave;
+	type mirror;
 	masters { 10.53.0.2; };
-	mirror yes;
 	file "verify-load.db.mirror";
 	masterfile-format text;
 };
 
 zone "verify-reconfig" {
-	type slave;
+	type mirror;
 	masters { 10.53.0.2; };
-	mirror yes;
 	file "verify-reconfig.db.mirror";
 	masterfile-format text;
 };
 
 zone "verify-unsigned" {
-	type slave;
+	type mirror;
 	masters { 10.53.0.2; };
-	mirror yes;
 	file "verify-unsigned.db.mirror";
 };
 
 zone "verify-untrusted" {
-	type slave;
+	type mirror;
 	masters { 10.53.0.2; };
-	mirror yes;
 	file "verify-untrusted.db.mirror";
 };
 

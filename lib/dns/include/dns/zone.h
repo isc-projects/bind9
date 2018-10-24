@@ -38,6 +38,7 @@ typedef enum {
 	dns_zone_none,
 	dns_zone_master,
 	dns_zone_slave,
+	dns_zone_mirror,
 	dns_zone_stub,
 	dns_zone_staticstub,
 	dns_zone_key,
@@ -82,7 +83,6 @@ typedef enum {
 	DNS_ZONEOPT_CHECKSPF         = 1<<27, /*%< check SPF records */
 	DNS_ZONEOPT_CHECKTTL         = 1<<28, /*%< check max-zone-ttl */
 	DNS_ZONEOPT_AUTOEMPTY        = 1<<29, /*%< automatic empty zone */
-	DNS_ZONEOPT_MIRROR           = 1<<30, /*%< mirror zone */
 } dns_zoneopt_t;
 
 /*
@@ -2483,12 +2483,6 @@ dns_zone_isloaded(const dns_zone_t *zone);
 /*%<
  * Return true if 'zone' was loaded and has not expired yet, return
  * false otherwise.
- */
-
-bool
-dns_zone_ismirror(const dns_zone_t *zone);
-/*%<
- * Return true if 'zone' is a mirror zone, return false otherwise.
  */
 
 isc_result_t

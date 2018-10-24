@@ -884,7 +884,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 		max\-zone\-ttl ( unlimited | \fIttlval\fR );
 		min\-refresh\-time \fIinteger\fR;
 		min\-retry\-time \fIinteger\fR;
-		mirror \fIboolean\fR;
 		multi\-master \fIboolean\fR;
 		notify ( explicit | master\-only | \fIboolean\fR );
 		notify\-delay \fIinteger\fR;
@@ -910,7 +909,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 		transfer\-source\-v6 ( \fIipv6_address\fR | * ) [ port (
 		    \fIinteger\fR | * ) ] [ dscp \fIinteger\fR ];
 		try\-tcp\-refresh \fIboolean\fR;
-		type ( primary | master | secondary | slave |
+		type ( primary | master | secondary | slave | mirror |
 		    delegation\-only | forward | hint | redirect |
 		    static\-stub | stub );
 		update\-check\-ksk \fIboolean\fR;
@@ -993,7 +992,6 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	max\-zone\-ttl ( unlimited | \fIttlval\fR );
 	min\-refresh\-time \fIinteger\fR;
 	min\-retry\-time \fIinteger\fR;
-	mirror \fIboolean\fR;
 	multi\-master \fIboolean\fR;
 	notify ( explicit | master\-only | \fIboolean\fR );
 	notify\-delay \fIinteger\fR;
@@ -1017,8 +1015,9 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	transfer\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * )
 	    ] [ dscp \fIinteger\fR ];
 	try\-tcp\-refresh \fIboolean\fR;
-	type ( primary | master | secondary | slave | delegation\-only |
-	    forward | hint | redirect | static\-stub | stub );
+	type ( primary | master | secondary | slave | mirror |
+	    delegation\-only | forward | hint | redirect | static\-stub |
+	    stub );
 	update\-check\-ksk \fIboolean\fR;
 	update\-policy ( local | { ( deny | grant ) \fIstring\fR ( 6to4\-self |
 	    external | krb5\-self | krb5\-subdomain | ms\-self | ms\-subdomain

@@ -6978,6 +6978,9 @@ removed(dns_zone_t *zone, void *uap) {
 	case dns_zone_slave:
 		type = "slave";
 		break;
+	case dns_zone_mirror:
+		type = "mirror";
+		break;
 	case dns_zone_stub:
 		type = "stub";
 		break;
@@ -10162,7 +10165,8 @@ named_server_retransfercommand(named_server_t *server, isc_lex_t *lex,
 		dns_zone_detach(&raw);
 	}
 	type = dns_zone_gettype(zone);
-	if (type == dns_zone_slave || type == dns_zone_stub ||
+	if (type == dns_zone_slave || type == dns_zone_mirror ||
+	    type == dns_zone_stub ||
 	    (type == dns_zone_redirect &&
 	     dns_zone_getredirecttype(zone) == dns_zone_slave))
 		dns_zone_forcereload(zone);
@@ -10194,7 +10198,9 @@ named_server_reloadcommand(named_server_t *server, isc_lex_t *lex,
 			msg = "server reload successful";
 	} else {
 		type = dns_zone_gettype(zone);
-		if (type == dns_zone_slave || type == dns_zone_stub) {
+		if (type == dns_zone_slave || type == dns_zone_mirror ||
+		    type == dns_zone_stub)
+		{
 			dns_zone_refresh(zone);
 			dns_zone_detach(&zone);
 			msg = "zone refresh queued";
@@ -10285,7 +10291,7 @@ named_server_refreshcommand(named_server_t *server, isc_lex_t *lex,
 	isc_result_t result;
 	dns_zone_t *zone = NULL, *raw = NULL;
 	const char msg1[] = "zone refresh queued";
-	const char msg2[] = "not a slave or stub zone";
+	const char msg2[] = "not a slave, mirror, or stub zone";
 	dns_zonetype_t type;
 
 	result = zone_from_args(server, lex, NULL, &zone, NULL,
@@ -10303,7 +10309,9 @@ named_server_refreshcommand(named_server_t *server, isc_lex_t *lex,
 	}
 
 	type = dns_zone_gettype(zone);
-	if (type == dns_zone_slave || type == dns_zone_stub) {
+	if (type == dns_zone_slave || type == dns_zone_mirror ||
+	    type == dns_zone_stub)
+	{
 		dns_zone_refresh(zone);
 		dns_zone_detach(&zone);
 		(void) putstr(text, msg1);
@@ -13495,6 +13503,7 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 		TCHECK(putstr(text, zonename));
 		TCHECK(putstr(text, "' and associated files will be deleted."));
 	} else if (dns_zone_gettype(mayberaw) == dns_zone_slave ||
+		   dns_zone_gettype(mayberaw) == dns_zone_mirror ||
 		   dns_zone_gettype(mayberaw) == dns_zone_stub)
 	{
 		bool first;
@@ -14037,7 +14046,10 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 		type = "master";
 		break;
 	case dns_zone_slave:
-		type = dns_zone_ismirror(zone) ? "mirror" : "slave";
+		type = "slave";
+		break;
+	case dns_zone_mirror:
+		type = "mirror";
 		break;
 	case dns_zone_stub:
 		type = "stub";
@@ -14093,6 +14105,7 @@ named_server_zonestatus(named_server_t *server, isc_lex_t *lex,
 
 	/* Refresh/expire times */
 	if (zonetype == dns_zone_slave ||
+	    zonetype == dns_zone_mirror ||
 	    zonetype == dns_zone_stub ||
 	    zonetype == dns_zone_redirect)
 	{
