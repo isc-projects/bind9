@@ -174,8 +174,9 @@ task_test@EXEEXT@: task_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 			task_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
 
 taskpool_test@EXEEXT@: taskpool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			taskpool_test.@O@ isctest.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ taskpool_test.@O@ isctest.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 time_test@EXEEXT@: time_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
