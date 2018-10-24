@@ -201,9 +201,9 @@ rdata_test@EXEEXT@: rdata_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 			${ISCLIBS} ${LIBS}
 
 rdataset_test@EXEEXT@: rdataset_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			rdataset_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ rdataset_test.@O@ dnstest.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 rdatasetstats_test@EXEEXT@: rdatasetstats_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
