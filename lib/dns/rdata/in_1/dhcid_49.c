@@ -36,7 +36,7 @@ static inline isc_result_t
 totext_in_dhcid(ARGS_TOTEXT) {
 	isc_region_t sr, sr2;
 	/* " ; 64000 255 64000" */
-	char buf[5 + 3*5 + 1];
+	char buf[5 + 3*11 + 1];
 
 	REQUIRE(rdata->type == dns_rdatatype_dhcid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
@@ -55,7 +55,7 @@ totext_in_dhcid(ARGS_TOTEXT) {
 	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		RETERR(str_totext(/* ( */ " )", target));
 		if (rdata->length > 2) {
-			snprintf(NULL, 0, " ; %u %u %u",
+			snprintf(buf, sizeof(buf), " ; %u %u %u",
 				 sr2.base[0] * 256U + sr2.base[1],
 				 sr2.base[2], rdata->length - 3U);
 			RETERR(str_totext(buf, target));

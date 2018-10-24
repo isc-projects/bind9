@@ -570,6 +570,7 @@ openssleddsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	default:
 		INSIST(0);
 	}
+	return (DST_R_OPENSSLFAILURE);
 }
 
 static isc_result_t
