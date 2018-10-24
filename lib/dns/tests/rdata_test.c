@@ -346,6 +346,81 @@ check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
  ***** Individual unit tests
  *****/
 
+ATF_TC(atma);
+ATF_TC_HEAD(atma, tc) {
+	atf_tc_set_md_var(tc, "descr", "ATMA RDATA manipulations");
+}
+ATF_TC_BODY(atma, tc) {
+	text_ok_t text_ok[] = {
+		TEXT_VALID("00"),
+		TEXT_VALID_CHANGED("0.0", "00"),
+		/*
+		 * multiple consecutive periods
+		 */
+		TEXT_INVALID("0..0"),
+		/*
+		 * trailing period
+		 */
+		TEXT_INVALID("00."),
+		/*
+		 * leading period
+		 */
+		TEXT_INVALID(".00"),
+		/*
+		 * Not full octets.
+		 */
+		TEXT_INVALID("000"),
+		/*
+		 * E.164
+		 */
+		TEXT_VALID("+61200000000"),
+		/*
+		 * E.164 with periods
+		 */
+		TEXT_VALID_CHANGED("+61.2.0000.0000", "+61200000000"),
+		/*
+		 * E.164 with period at end
+		 */
+		TEXT_INVALID("+61200000000."),
+		/*
+		 * E.164 with multiple consecutive periods
+		 */
+		TEXT_INVALID("+612..00000000"),
+		/*
+		 * E.164 with period before the leading digit.
+		 */
+		TEXT_INVALID("+.61200000000"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Too short.
+		 */
+		WIRE_INVALID(0x00),
+		WIRE_INVALID(0x01),
+		/*
+		 * all digits
+		 */
+		WIRE_VALID(0x01, '6', '1', '2', '0', '0', '0'),
+		/*
+		 * non digit
+		 */
+		WIRE_INVALID(0x01, '+', '6', '1', '2', '0', '0', '0'),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(tc);
+
+	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+		    dns_rdatatype_atma, sizeof(dns_rdata_in_atma_t));
+}
+
 /*
  * CSYNC tests.
  *
@@ -1201,6 +1276,7 @@ ATF_TC_BODY(wks, tc) {
  *****/
 
 ATF_TP_ADD_TCS(tp) {
+	ATF_TP_ADD_TC(tp, atma);
 	ATF_TP_ADD_TC(tp, csync);
 	ATF_TP_ADD_TC(tp, doa);
 	ATF_TP_ADD_TC(tp, edns_client_subnet);
