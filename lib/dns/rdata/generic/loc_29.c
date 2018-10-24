@@ -551,7 +551,7 @@ totext_loc(ARGS_TOTEXT) {
 		altitude -= 10000000;
 	}
 
-	snprintf(NULL, 0,
+	snprintf(buf, sizeof(buf),
 		 "%d %d %d.%03d %s %d %d %d.%03d %s %s%lu.%02lum %s %s %s",
 		 d1, m1, s1, fs1, north ? "N" : "S",
 		 d2, m2, s2, fs2, east ? "E" : "W",
