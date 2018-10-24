@@ -899,8 +899,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 		request\-expire \fIboolean\fR;
 		request\-ixfr \fIboolean\fR;
 		serial\-update\-method ( date | increment | unixtime );
-		server\-addresses { ( \fIipv4_address\fR | \fIipv6_address\fR ) [
-		    port \fIinteger\fR ]; \&.\&.\&. };
+		server\-addresses { ( \fIipv4_address\fR | \fIipv6_address\fR ); \&.\&.\&. };
 		server\-names { \fIstring\fR; \&.\&.\&. };
 		sig\-signing\-nodes \fIinteger\fR;
 		sig\-signing\-signatures \fIinteger\fR;
@@ -1007,8 +1006,7 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	request\-expire \fIboolean\fR;
 	request\-ixfr \fIboolean\fR;
 	serial\-update\-method ( date | increment | unixtime );
-	server\-addresses { ( \fIipv4_address\fR | \fIipv6_address\fR ) [ port
-	    \fIinteger\fR ]; \&.\&.\&. };
+	server\-addresses { ( \fIipv4_address\fR | \fIipv6_address\fR ); \&.\&.\&. };
 	server\-names { \fIstring\fR; \&.\&.\&. };
 	sig\-signing\-nodes \fIinteger\fR;
 	sig\-signing\-signatures \fIinteger\fR;

@@ -1,3 +1,7 @@
+5051.	[doc]		Documentation incorrectly stated that the
+			"server-addresses" static-stub zone option accepts
+			custom port numbers. [GL #582]
+
 5050.	[bug]		The libirs version of getaddrinfo() was unable to parse
 			scoped IPv6 addresses present in /etc/resolv.conf.
 			[GL #187]
