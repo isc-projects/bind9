@@ -27,10 +27,8 @@ ISCDEPLIBS =	../../isc/libisc.@A@
 IRSLIBS =	../libirs.@A@
 IRSDEPLIBS =	../libirs.@A@
 
-LIBS =		${IRSLIBS} ${CFGLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@ @ATFLIBS@
-
-CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
-CMOCKA_LIBS =	@CMOCKA_LIBS@
+CFLAGS =	@CFLAGS@ @CMOCKA_CFLAGS@
+LIBS =		${IRSLIBS} ${CFGLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@ @CMOCKA_LIBS@
 
 OBJS =
 SRCS =		resconf_test.c
@@ -41,8 +39,8 @@ TARGETS =	resconf_test@EXEEXT@
 @BIND9_MAKE_RULES@
 
 resconf_test@EXEEXT@: resconf_test.@O@ ${CFGDEPLIBS} ${DNSDEPLIBS} ${IRSDEPLIBS} ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			resconf_test.@O@ ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
+		${LDFLAGS} -o $@ resconf_test.@O@ ${LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh
