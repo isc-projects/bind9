@@ -193,7 +193,11 @@ loc02			LOC 	60 09 00.000 N 24 39 00.000 E 10.00m 20.00m (
 srv01			SRV 0 0 0 .
 srv02			SRV 65535 65535 65535  old-slow-box
 
-; type 34 (ATMA - not implemented by BIND)
+; type 34
+atma01			ATMA	+61200000000
+atma02			ATMA	+61.2.0000.0000
+atma03			ATMA	1234567890abcdef
+atma04			ATMA	f.e.d.c.b.a.0.9.8.7.6.5.4.3.2.1
 
 ; type 35
 naptr01			NAPTR   0 0 "" "" "" . 
