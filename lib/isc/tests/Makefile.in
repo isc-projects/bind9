@@ -54,8 +54,9 @@ TARGETS =	aes_test@EXEEXT@ buffer_test@EXEEXT@ \
 @BIND9_MAKE_RULES@
 
 aes_test@EXEEXT@: aes_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			aes_test.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ aes_test.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 buffer_test@EXEEXT@: buffer_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
