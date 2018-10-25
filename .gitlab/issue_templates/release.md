@@ -29,3 +29,4 @@
  - [ ] (Manager) Inform marketing of the release
 
  - [ ] (SwEng) Update DEB and RPM packages
+ - [ ] (SwEng) Merge the automatically prepared `prep 9.X.Y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_X`)
