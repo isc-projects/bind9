@@ -915,7 +915,8 @@ push_readyq(isc__taskmgr_t *manager, isc__task_t *task, int c) {
 	if ((task->flags & TASK_F_PRIVILEGED) != 0)
 		ENQUEUE(manager->queues[c].ready_priority_tasks, task,
 			ready_priority_link);
-	atomic_fetch_add_explicit(&manager->tasks_ready, 1, memory_order_relaxed);
+	atomic_fetch_add_explicit(&manager->tasks_ready, 1,
+				  memory_order_acquire);
 }
 
 static void
@@ -1051,13 +1052,15 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			INSIST(VALID_TASK(task));
 
 			/*
-			 * Note we only unlock the manager lock if we actually
-			 * have a task to do.  We must reacquire the manager
+			 * Note we only unlock the queue lock if we actually
+			 * have a task to do.  We must reacquire the queue
 			 * lock before exiting the 'if (task != NULL)' block.
 			 */
 			UNLOCK(&manager->queues[threadid].lock);
-			atomic_fetch_add_explicit(&manager->tasks_ready, -1, memory_order_relaxed);
-			atomic_fetch_add_explicit(&manager->tasks_running, 1, memory_order_relaxed);
+			RUNTIME_CHECK(atomic_fetch_sub_explicit(&manager->tasks_ready,
+						  1, memory_order_release) > 0);
+			atomic_fetch_add_explicit(&manager->tasks_running, 1,
+						  memory_order_acquire);
 
 			LOCK(&task->lock);
 			INSIST(task->state == task_state_ready);
@@ -1171,7 +1174,8 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			if (finished)
 				task_finished(task);
 
-			atomic_fetch_add_explicit(&manager->tasks_running, -1, memory_order_relaxed);
+			RUNTIME_CHECK(atomic_fetch_sub_explicit(&manager->tasks_running,
+						1, memory_order_release) > 0);
 			LOCK(&manager->queues[threadid].lock);
 			if (requeue) {
 				/*
@@ -1203,7 +1207,10 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 		 * we're stuck.  Automatically drop privileges at that
 		 * point and continue with the regular ready queue.
 		 */
-		if (atomic_load(&manager->tasks_running) == 0 && manager->mode != isc_taskmgrmode_normal) {
+		if (atomic_load_explicit(&manager->tasks_running,
+					 memory_order_acquire) == 0 &&
+		    manager->mode != isc_taskmgrmode_normal)
+		{
 			bool empty = true;
 			for (unsigned i=0; i<manager->workers && empty; i++) {
 				if (i != threadid) {
