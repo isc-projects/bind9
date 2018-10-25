@@ -1,3 +1,6 @@
+5059.	[bug]		Display a per-view list of zones in the web interface.
+			[GL #427]
+
 5058.	[func]		Replace old message digest and hmac APIs with more
 			generic isc_md and isc_hmac APIs, and convert their
 			respective tests to cmocka. [GL #305]
@@ -208,7 +211,7 @@
 5000.	[bug]		named_server_servestale() could leave the server in
 			exclusive mode if an error occured. [GL #441]
 
-4999.	[cleanup]	Remove custom printf implementaion in lib/isc/print.c.
+4999.	[cleanup]	Remove custom printf implementation in lib/isc/print.c.
 			[GL #261]
 
 4998.	[test]		Make resolver and cacheclean tests more civilized.
