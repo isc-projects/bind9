@@ -133,19 +133,20 @@ isc_pool_expand(isc_pool_t **sourcep, unsigned int count,
 		newpool->init = pool->init;
 		newpool->initarg = pool->initarg;
 
+		/* Populate the new entries */
+		for (i = pool->count; i < count; i++) {
+			result = newpool->init(&newpool->pool[i],
+					       newpool->initarg);
+			if (result != ISC_R_SUCCESS) {
+				isc_pool_destroy(&newpool);
+				return (result);
+			}
+		}
+
 		/* Copy over the objects from the old pool */
 		for (i = 0; i < pool->count; i++) {
 			newpool->pool[i] = pool->pool[i];
 			pool->pool[i] = NULL;
-		}
-
-		/* Populate the new entries */
-		for (i = pool->count; i < count; i++) {
-			result = pool->init(&newpool->pool[i], pool->initarg);
-			if (result != ISC_R_SUCCESS) {
-				isc_pool_destroy(&pool);
-				return (result);
-			}
 		}
 
 		isc_pool_destroy(&pool);
