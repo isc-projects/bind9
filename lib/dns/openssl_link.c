@@ -40,6 +40,8 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 
+static isc_mem_t *dst__memory_pool = NULL;
+
 #if !defined(OPENSSL_NO_ENGINE)
 #include <openssl/engine.h>
 #endif
@@ -89,63 +91,6 @@ id_callback(void) {
 }
 #endif
 
-#if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
-
-#define FLARG
-#define FILELINE
-#if ISC_MEM_TRACKLINES
-#define FLARG_PASS      , __FILE__, __LINE__
-#else
-#define FLARG_PASS
-#endif
-
-#else
-
-#define FLARG           , const char *file, int line
-#define FILELINE	, __FILE__, __LINE__
-#if ISC_MEM_TRACKLINES
-#define FLARG_PASS      , file, line
-#else
-#define FLARG_PASS
-#endif
-
-#endif
-
-static void *
-mem_alloc(size_t size FLARG) {
-#ifdef OPENSSL_LEAKS
-	void *ptr;
-
-	INSIST(dst__memory_pool != NULL);
-	ptr = isc__mem_allocate(dst__memory_pool, size FLARG_PASS);
-	return (ptr);
-#else
-	INSIST(dst__memory_pool != NULL);
-	return (isc__mem_allocate(dst__memory_pool, size FLARG_PASS));
-#endif
-}
-
-static void
-mem_free(void *ptr FLARG) {
-	INSIST(dst__memory_pool != NULL);
-	if (ptr != NULL)
-		isc__mem_free(dst__memory_pool, ptr FLARG_PASS);
-}
-
-static void *
-mem_realloc(void *ptr, size_t size FLARG) {
-#ifdef OPENSSL_LEAKS
-	void *rptr;
-
-	INSIST(dst__memory_pool != NULL);
-	rptr = isc__mem_reallocate(dst__memory_pool, ptr, size FLARG_PASS);
-	return (rptr);
-#else
-	INSIST(dst__memory_pool != NULL);
-	return (isc__mem_reallocate(dst__memory_pool, ptr, size FLARG_PASS));
-#endif
-}
-
 #if OPENSSL_VERSION_NUMBER < 0x10100000L
 static void
 _set_thread_id(CRYPTO_THREADID *id)
@@ -155,8 +100,11 @@ _set_thread_id(CRYPTO_THREADID *id)
 #endif
 
 isc_result_t
-dst__openssl_init(const char *engine) {
+dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	isc_result_t result;
+
+	REQUIRE(dst__memory_pool == NULL);
+	dst__memory_pool = mctx;
 
 #if defined(OPENSSL_NO_ENGINE)
 	UNUSED(engine);
@@ -164,15 +112,9 @@ dst__openssl_init(const char *engine) {
 
 	enable_fips_mode();
 
-#ifdef  DNS_CRYPTO_LEAKS
-	CRYPTO_malloc_debug_init();
-	CRYPTO_set_mem_debug_options(V_CRYPTO_MDEBUG_ALL);
-	CRYPTO_mem_ctrl(CRYPTO_MEM_CHECK_ON);
-#endif
-	CRYPTO_set_mem_functions(mem_alloc, mem_realloc, mem_free);
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	nlocks = CRYPTO_num_locks();
-	locks = mem_alloc(sizeof(isc_mutex_t) * nlocks FILELINE);
+	locks = isc_mem_allocate(dst__memory_pool, sizeof(isc_mutex_t) * nlocks);
 	if (locks == NULL)
 		return (ISC_R_NOMEMORY);
 	result = isc_mutexblock_init(locks, nlocks);
@@ -241,7 +183,7 @@ dst__openssl_init(const char *engine) {
 	CRYPTO_set_locking_callback(NULL);
 	DESTROYMUTEXBLOCK(locks, nlocks);
  cleanup_mutexalloc:
-	mem_free(locks FILELINE);
+	isc_mem_free(dst__memory_pool, locks);
 	locks = NULL;
 #endif
 	return (result);
@@ -278,7 +220,7 @@ dst__openssl_destroy(void) {
 	if (locks != NULL) {
 		CRYPTO_set_locking_callback(NULL);
 		DESTROYMUTEXBLOCK(locks, nlocks);
-		mem_free(locks FILELINE);
+		isc_mem_free(dst__memory_pool, locks);
 		locks = NULL;
 	}
 #else

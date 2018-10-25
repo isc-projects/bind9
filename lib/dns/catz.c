@@ -17,11 +17,11 @@
 #include <stdbool.h>
 
 #include <isc/hex.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/parseint.h>
 #include <isc/print.h>
 #include <isc/result.h>
-#include <isc/sha2.h>
 #include <isc/task.h>
 #include <isc/util.h>
 
@@ -1420,12 +1420,27 @@ dns_catz_update_process(dns_catz_zones_t *catzs, dns_catz_zone_t *zone,
 	return (result);
 }
 
+static isc_result_t
+digest2hex(unsigned char *digest, unsigned int digestlen,
+	   char *hash, size_t hashlen)
+{
+	unsigned int i;
+	int ret;
+	for (i = 0; i < digestlen; i++) {
+		size_t left = hashlen - i * 2;
+		ret = snprintf(hash + i * 2, left, "%02x", digest[i]);
+		if (ret < 0 || (size_t)ret >= left) {
+			return (ISC_R_NOSPACE);
+		}
+	}
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 				 isc_buffer_t **buffer)
 {
 	isc_buffer_t *tbuf = NULL;
-	isc_sha256_t sha256;
 	isc_region_t r;
 	isc_result_t result;
 	size_t rlen;
@@ -1453,7 +1468,7 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 		goto cleanup;
 
 	/* __catz__<digest>.db */
-	rlen = ISC_SHA256_DIGESTSTRINGLENGTH + 12;
+	rlen = (isc_md_type_get_size(ISC_MD_SHA256) * 2 + 1) + 12;
 
 	/* optionally prepend with <zonedir>/ */
 	if (entry->opts.zonedir != NULL)
@@ -1470,11 +1485,20 @@ dns_catz_generate_masterfilename(dns_catz_zone_t *zone, dns_catz_entry_t *entry,
 
 	isc_buffer_usedregion(tbuf, &r);
 	isc_buffer_putstr(*buffer, "__catz__");
-	if (tbuf->used > ISC_SHA256_DIGESTSTRINGLENGTH) {
-		isc_sha256_init(&sha256);
-		isc_sha256_update(&sha256, r.base, r.length);
+	if (tbuf->used > ISC_SHA256_DIGESTLENGTH * 2 + 1) {
+		unsigned char digest[ISC_MAX_MD_SIZE];
+		unsigned int digestlen;
 		/* we can do that because digest string < 2 * DNS_NAME */
-		isc_sha256_end(&sha256, (char *) r.base);
+		result = isc_md(ISC_MD_SHA256, r.base, r.length,
+				digest, &digestlen);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+		result = digest2hex(digest, digestlen, (char *)r.base,
+				    ISC_SHA256_DIGESTLENGTH * 2 + 1);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
 		isc_buffer_putstr(*buffer, (char *) r.base);
 	} else {
 		isc_buffer_copyregion(*buffer, &r);

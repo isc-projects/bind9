@@ -314,8 +314,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\hash.h" />
     <ClInclude Include="..\include\isc\heap.h" />
     <ClInclude Include="..\include\isc\hex.h" />
-    <ClInclude Include="..\include\isc\hmacmd5.h" />
-    <ClInclude Include="..\include\isc\hmacsha.h" />
+    <ClInclude Include="..\include\isc\hmac.h" />
     <ClInclude Include="..\include\isc\ht.h" />
     <ClInclude Include="..\include\isc\httpd.h" />
     <ClInclude Include="..\include\isc\interfaceiter.h" />
@@ -328,7 +327,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\list.h" />
     <ClInclude Include="..\include\isc\log.h" />
     <ClInclude Include="..\include\isc\magic.h" />
-    <ClInclude Include="..\include\isc\md5.h" />
     <ClInclude Include="..\include\isc\mem.h" />
     <ClInclude Include="..\include\isc\meminfo.h" />
     <ClInclude Include="..\include\isc\msgcat.h" />
@@ -356,8 +354,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\rwlock.h" />
     <ClInclude Include="..\include\isc\safe.h" />
     <ClInclude Include="..\include\isc\serial.h" />
-    <ClInclude Include="..\include\isc\sha1.h" />
-    <ClInclude Include="..\include\isc\sha2.h" />
     <ClInclude Include="..\include\isc\sockaddr.h" />
     <ClInclude Include="..\include\isc\socket.h" />
     <ClInclude Include="..\include\isc\stats.h" />
@@ -433,8 +429,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\hash.c" />
     <ClCompile Include="..\heap.c" />
     <ClCompile Include="..\hex.c" />
-    <ClCompile Include="..\hmacmd5.c" />
-    <ClCompile Include="..\hmacsha.c" />
+    <ClCompile Include="..\hmac.c" />
     <ClCompile Include="..\ht.c" />
     <ClCompile Include="..\httpd.c" />
     <ClCompile Include="..\iterated_hash.c" />
@@ -442,7 +437,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\lfsr.c" />
     <ClCompile Include="..\lib.c" />
     <ClCompile Include="..\log.c" />
-    <ClCompile Include="..\md5.c" />
     <ClCompile Include="..\mem.c" />
     <ClCompile Include="..\mutexblock.c" />
     <ClCompile Include="..\netaddr.c" />
@@ -462,8 +456,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\result.c" />
     <ClCompile Include="..\rwlock.c" />
     <ClCompile Include="..\serial.c" />
-    <ClCompile Include="..\sha1.c" />
-    <ClCompile Include="..\sha2.c" />
     <ClCompile Include="..\sockaddr.c" />
     <ClCompile Include="..\stats.c" />
     <ClCompile Include="..\string.c" />

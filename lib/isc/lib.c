@@ -17,6 +17,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <openssl/evp.h>
+
 #include <isc/app.h>
 #include <isc/lib.h>
 #include <isc/mem.h>

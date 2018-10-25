@@ -98,10 +98,7 @@
     <ClInclude Include="..\include\isc\hex.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\hmacmd5.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\isc\hmacsha.h">
+    <ClInclude Include="..\include\isc\hmac.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\ht.h">
@@ -138,9 +135,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\magic.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\isc\md5.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\mem.h">
@@ -222,12 +216,6 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\serial.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\isc\sha1.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\include\isc\sha2.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\sockaddr.h">
@@ -523,10 +511,7 @@
     <ClCompile Include="..\hex.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\hmacmd5.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\hmacsha.c">
+    <ClCompile Include="..\hmac.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\ht.c">
@@ -548,9 +533,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\log.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\md5.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\mem.c">
@@ -608,12 +590,6 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\serial.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sha1.c">
-      <Filter>Library Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\sha2.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\sockaddr.c">

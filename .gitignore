@@ -62,3 +62,4 @@ unit/atf-src/test-programs/sh_helpers
 .project
 .cproject
 .settings
+kyua.log

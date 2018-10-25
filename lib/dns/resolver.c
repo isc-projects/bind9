@@ -32,7 +32,7 @@
 #ifdef AES_CC
 #include <isc/aes.h>
 #else
-#include <isc/hmacsha.h>
+#include <isc/hmac.h>
 #endif
 
 #include <dns/acl.h>
@@ -2256,53 +2256,38 @@ compute_cc(resquery_t *query, unsigned char *cookie, size_t len) {
 		digest[i] ^= digest[i + 8];
 	memmove(cookie, digest, 8);
 #endif
-#ifdef HMAC_SHA1_CC
-	unsigned char digest[ISC_SHA1_DIGESTLENGTH];
+#if defined(HMAC_SHA1_CC) || defined(HMAC_SHA256_CC)
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned char *input = NULL;
+	unsigned int length = 0;
 	isc_netaddr_t netaddr;
-	isc_hmacsha1_t hmacsha1;
-
-	INSIST(len >= 8U);
-
-	isc_hmacsha1_init(&hmacsha1, query->fctx->res->view->secret,
-			  ISC_SHA1_DIGESTLENGTH);
-	isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
-	switch (netaddr.family) {
-	case AF_INET:
-		isc_hmacsha1_update(&hmacsha1,
-				    (unsigned char *)&netaddr.type.in, 4);
-		break;
-	case AF_INET6:
-		isc_hmacsha1_update(&hmacsha1,
-				    (unsigned char *)&netaddr.type.in6, 16);
-		break;
-	}
-	isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
-	memmove(cookie, digest, 8);
-	isc_hmacsha1_invalidate(&hmacsha1);
+#if defined(HMAC_SHA1_CC)
+	isc_md_type_t type = ISC_MD_SHA1;
+	unsigned int secret_len = ISC_SHA1_DIGESTLENGTH;
+#elif defined(HMAC_SHA256_CC)
+	isc_md_type_t type = ISC_MD_SHA256;
+	unsigned int secret_len = ISC_SHA256_DIGESTLENGHT;
 #endif
-#ifdef HMAC_SHA256_CC
-	unsigned char digest[ISC_SHA256_DIGESTLENGTH];
-	isc_netaddr_t netaddr;
-	isc_hmacsha256_t hmacsha256;
 
 	INSIST(len >= 8U);
 
-	isc_hmacsha256_init(&hmacsha256, query->fctx->res->view->secret,
-			    ISC_SHA256_DIGESTLENGTH);
 	isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
 	switch (netaddr.family) {
 	case AF_INET:
-		isc_hmacsha256_update(&hmacsha256,
-				      (unsigned char *)&netaddr.type.in, 4);
+		input = (unsigned char *)&netaddr.type.in;
+		length = 4;
 		break;
 	case AF_INET6:
-		isc_hmacsha256_update(&hmacsha256,
-				      (unsigned char *)&netaddr.type.in6, 16);
+		input = (unsigned char *)&netaddr.type.in6;
+		length = 16;
 		break;
 	}
-	isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
+
+	RUNTIME_CHECK(isc_hmac(type,
+			       query->fctx->res->view->secret, secret_len,
+			       input, length,
+			       digest, NULL) == ISC_R_SUCCESS);
 	memmove(cookie, digest, 8);
-	isc_hmacsha256_invalidate(&hmacsha256);
 #endif
 }
 

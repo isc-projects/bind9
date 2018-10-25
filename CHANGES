@@ -1,3 +1,7 @@
+5058.	[func]		Replace old message digest and hmac APIs with more
+			generic isc_md and isc_hmac APIs, and convert their
+			respective tests to cmocka. [GL #305]
+
 5057.	[protocol]	Add support for ATMA. [GL #619]
 
 5056.	[placeholder]

@@ -26,11 +26,11 @@
 #include <sys/utime.h>
 
 #include <isc/file.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
-#include <isc/sha2.h>
 #include <isc/stat.h>
 #include <isc/string.h>
 #include <isc/time.h>
@@ -780,12 +780,32 @@ isc_file_munmap(void *addr, size_t len) {
 #define PATH_MAX 1024
 #endif
 
+static isc_result_t
+digest2hex(unsigned char *digest, unsigned int digestlen,
+	   char *hash, size_t hashlen)
+{
+	unsigned int i;
+	int ret;
+	for (i = 0; i < digestlen; i++) {
+		size_t left = hashlen - i * 2;
+		ret = snprintf(hash + i * 2, left, "%02x", digest[i]);
+		if (ret < 0 || (size_t)ret >= left) {
+			return (ISC_R_NOSPACE);
+		}
+	}
+	return (ISC_R_SUCCESS);
+}
+
 isc_result_t
 isc_file_sanitize(const char *dir, const char *base, const char *ext,
 		  char *path, size_t length)
 {
-	char buf[PATH_MAX], hash[ISC_SHA256_DIGESTSTRINGLENGTH];
+	char buf[PATH_MAX];
+	unsigned char digest[ISC_MAX_MD_SIZE];
+	unsigned int digestlen;
+	char hash[ISC_MAX_MD_SIZE * 2 + 1];
 	size_t l = 0;
+	isc_result_t err;
 
 	REQUIRE(base != NULL);
 	REQUIRE(path != NULL);
@@ -808,7 +828,17 @@ isc_file_sanitize(const char *dir, const char *base, const char *ext,
 		return (ISC_R_NOSPACE);
 
 	/* Check whether the full-length SHA256 hash filename exists */
-	isc_sha256_data((const void *) base, strlen(base), hash);
+	err = isc_md(ISC_MD_SHA256, (const unsigned char *)base,
+		     strlen(base), digest, &digestlen);
+	if (err != ISC_R_SUCCESS) {
+		return (err);
+	}
+
+	err = digest2hex(digest, digestlen, hash, sizeof(hash));
+	if (err != ISC_R_SUCCESS) {
+		return (err);
+	}
+
 	snprintf(buf, sizeof(buf), "%s%s%s%s%s",
 		dir != NULL ? dir : "", dir != NULL ? "/" : "",
 		hash, ext != NULL ? "." : "", ext != NULL ? ext : "");

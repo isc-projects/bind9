@@ -84,9 +84,10 @@
 #define ISC_R_MULTIPLE			62	/*%< multiple */
 #define ISC_R_WOULDBLOCK		63	/*%< would block */
 #define ISC_R_COMPLETE			64	/*%< complete */
+#define ISC_R_CRYPTOFAILURE		65	/*%< cryptography library failure */
 
 /*% Not a result code: the number of results. */
-#define ISC_R_NRESULTS 			65
+#define ISC_R_NRESULTS 			66
 
 ISC_LANG_BEGINDECLS
 
