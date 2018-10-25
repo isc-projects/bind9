@@ -22,7 +22,7 @@ atf_test_program{name='rbt_serialize_test', is_exclusive=true}
 atf_test_program{name='rbt_test'}
 atf_test_program{name='rdata_test'}
 tap_test_program{name='rdataset_test'}
-atf_test_program{name='rdatasetstats_test'}
+tap_test_program{name='rdatasetstats_test'}
 atf_test_program{name='resolver_test'}
 tap_test_program{name='result_test'}
 atf_test_program{name='rsa_test'}

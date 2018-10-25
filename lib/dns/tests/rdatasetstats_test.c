@@ -9,40 +9,67 @@
  * information regarding copyright ownership.
  */
 
-
-/*! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 
+#define UNIT_TESTING
+#include <cmocka.h>
+
 #include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/stats.h>
 
 #include "dnstest.h"
 
-/*
- * Helper functions
- */
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = dns_test_begin(NULL, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	dns_test_end();
+
+	return (0);
+}
+
 static void
-set_typestats(dns_stats_t *stats, dns_rdatatype_t type,
-	      bool stale)
-{
+set_typestats(dns_stats_t *stats, dns_rdatatype_t type, bool stale) {
 	dns_rdatastatstype_t which;
 	unsigned int attributes;
 
 	attributes = 0;
-	if (stale) attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+	if (stale) {
+		attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+	}
 	which = DNS_RDATASTATSTYPE_VALUE(type, attributes);
 	dns_rdatasetstats_increment(stats, which);
 
 	attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
-	if (stale) attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+	if (stale) {
+		attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+	}
 	which = DNS_RDATASTATSTYPE_VALUE(type, attributes);
 	dns_rdatasetstats_increment(stats, which);
 }
@@ -53,7 +80,9 @@ set_nxdomainstats(dns_stats_t *stats, bool stale) {
 	unsigned int attributes;
 
 	attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
-	if (stale) attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+	if (stale) {
+		attributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+	}
 	which = DNS_RDATASTATSTYPE_VALUE(0, attributes);
 	dns_rdatasetstats_increment(stats, which);
 }
@@ -80,10 +109,11 @@ checkit1(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
 		type, (unsigned)value);
 #endif
-	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0)
-		ATF_REQUIRE_EQ(value, 1);
-	else
-		ATF_REQUIRE_EQ(value, 0);
+	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0) {
+		assert_int_equal(value, 1);
+	} else {
+		assert_int_equal(value, 0);
+	}
 }
 
 static void
@@ -107,31 +137,27 @@ checkit2(dns_rdatastatstype_t which, uint64_t value, void *arg) {
 		ATTRIBUTE_SET(DNS_RDATASTATSTYPE_ATTR_NXDOMAIN) ? "X" : " ",
 		type, (unsigned)value);
 #endif
-	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0)
-		ATF_REQUIRE_EQ(value, 0);
-	else
-		ATF_REQUIRE_EQ(value, 1);
+	if ((attributes & DNS_RDATASTATSTYPE_ATTR_STALE) == 0) {
+		assert_int_equal(value, 0);
+	} else {
+		assert_int_equal(value, 1);
+	}
 }
 /*
  * Individual unit tests
  */
 
-ATF_TC(rdatasetstats);
-ATF_TC_HEAD(rdatasetstats, tc) {
-	atf_tc_set_md_var(tc, "descr", "test that rdatasetstats counters are properly set");
-}
-ATF_TC_BODY(rdatasetstats, tc) {
+/* test that rdatasetstats counters are properly set */
+static void
+rdatasetstats(void **state) {
 	unsigned int i;
 	dns_stats_t *stats = NULL;
 	isc_result_t result;
 
-	UNUSED(tc);
-
-	result = dns_test_begin(NULL, true);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	result = dns_rdatasetstats_create(mctx, &stats);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* First 256 types. */
 	for (i = 0; i <= 255; i++)
@@ -160,13 +186,26 @@ ATF_TC_BODY(rdatasetstats, tc) {
 	dns_rdatasetstats_dump(stats, checkit2, NULL, 1);
 
 	dns_stats_detach(&stats);
-	dns_test_end();
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, rdatasetstats);
-	return (atf_no_error());
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(rdatasetstats,
+						_setup, _teardown),
+	};
+
+	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
