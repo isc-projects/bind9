@@ -255,7 +255,7 @@ main(int argc, char *argv[]) {
 	CHECK("dns_name_fromtext", result);
 
 	key = NULL;
-	result = dst_key_fromfile(name, 4017, DNS_KEYALG_DSA,
+	result = dst_key_fromfile(name, 33180, DNS_KEYALG_RSASHA1,
 				  DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
 				  NULL, mctx, &key);
 	CHECK("dst_key_fromfile", result);
