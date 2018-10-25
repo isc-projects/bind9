@@ -481,14 +481,13 @@ isc_task_sendto(isc_task_t *task0, isc_event_t **eventp, int c) {
 	 */
 
 	REQUIRE(VALID_TASK(task));
-
-	if (c == -1) {
-		c = atomic_fetch_add_explicit(&task->manager->curq, 1,
-					      memory_order_relaxed)
-					      % task->manager->workers;
-	}
-
 	XTRACE("isc_task_send");
+
+	if (c < 0) {
+		c = atomic_fetch_add_explicit(&task->manager->curq, 1,
+					      memory_order_relaxed);
+	}
+	c %= task->manager->workers;
 
 	/*
 	 * We're trying hard to hold locks for as short a time as possible.
@@ -532,13 +531,14 @@ isc_task_sendtoanddetach(isc_task_t **taskp, isc_event_t **eventp, int c) {
 	REQUIRE(taskp != NULL);
 	task = (isc__task_t *)*taskp;
 	REQUIRE(VALID_TASK(task));
-	if (c == -1) {
-		c = atomic_fetch_add_explicit(&task->manager->curq, 1,
-					      memory_order_relaxed)
-					      % task->manager->workers;
-	}
-
 	XTRACE("isc_task_sendanddetach");
+
+	if (c < 0) {
+		c = atomic_fetch_add_explicit(&task->manager->curq, 1,
+					      memory_order_relaxed);
+	}
+	c %= task->manager->workers;
+
 	LOCK(&task->lock);
 	idle1 = task_send(task, eventp, c);
 	idle2 = task_detach(task);
