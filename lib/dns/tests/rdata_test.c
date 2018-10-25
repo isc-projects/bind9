@@ -937,6 +937,47 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 }
 
 /*
+ * http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt
+ *
+ * The RDATA portion of both the NIMLOC and EID records contains
+ * uninterpreted binary data.  The representation in the text master file
+ * is an even number of hex characters (0 to 9, a to f), case is not
+ * significant.  For readability, whitespace may be included in the value
+ * field and should be ignored when reading a master file.
+ */
+ATF_TC(eid);
+ATF_TC_HEAD(eid, tc) {
+	atf_tc_set_md_var(tc, "descr", "EID RDATA manipulations");
+}
+ATF_TC_BODY(eid, tc) {
+	text_ok_t text_ok[] = {
+		TEXT_VALID("AABBCC"),
+		TEXT_VALID_CHANGED("AA bb cc", "AABBCC"),
+		TEXT_INVALID("aab"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Too short.
+		 */
+		WIRE_INVALID(),
+		WIRE_VALID(0x00),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(tc);
+
+	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+		    dns_rdatatype_eid, sizeof(dns_rdata_in_eid_t));
+}
+
+/*
  * Successful load test.
  */
 ATF_TC(hip);
@@ -1076,6 +1117,47 @@ ATF_TC_BODY(isdn, tc) {
 
 	check_rdata(NULL, wire_ok, false, dns_rdataclass_in,
 		    dns_rdatatype_isdn, sizeof(dns_rdata_isdn_t));
+}
+
+/*
+ * http://ana-3.lcs.mit.edu/~jnc/nimrod/dns.txt
+ *
+ * The RDATA portion of both the NIMLOC and EID records contains
+ * uninterpreted binary data.  The representation in the text master file
+ * is an even number of hex characters (0 to 9, a to f), case is not
+ * significant.  For readability, whitespace may be included in the value
+ * field and should be ignored when reading a master file.
+ */
+ATF_TC(nimloc);
+ATF_TC_HEAD(nimloc, tc) {
+	atf_tc_set_md_var(tc, "descr", "NIMLOC RDATA manipulations");
+}
+ATF_TC_BODY(nimloc, tc) {
+	text_ok_t text_ok[] = {
+		TEXT_VALID("AABBCC"),
+		TEXT_VALID_CHANGED("AA bb cc", "AABBCC"),
+		TEXT_INVALID("aab"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Too short.
+		 */
+		WIRE_INVALID(),
+		WIRE_VALID(0x00),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(tc);
+
+	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+		    dns_rdatatype_nimloc, sizeof(dns_rdata_in_nimloc_t));
 }
 
 /*
@@ -1293,9 +1375,11 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, atma);
 	ATF_TP_ADD_TC(tp, csync);
 	ATF_TP_ADD_TC(tp, doa);
+	ATF_TP_ADD_TC(tp, eid);
 	ATF_TP_ADD_TC(tp, edns_client_subnet);
 	ATF_TP_ADD_TC(tp, hip);
 	ATF_TP_ADD_TC(tp, isdn);
+	ATF_TP_ADD_TC(tp, nimloc);
 	ATF_TP_ADD_TC(tp, nsec);
 	ATF_TP_ADD_TC(tp, nsec3);
 	ATF_TP_ADD_TC(tp, wks);
