@@ -196,7 +196,6 @@ my @substdefh = ("AES_CC",
                  "DNS_RDATASET_FIXED",
                  "ENABLE_RPZ_NSDNAME",
                  "ENABLE_RPZ_NSIP",
-                 "HAVE_FIPS_MODE",
                  "HAVE_GEOIP",
                  "HAVE_GEOIP_CITY_V6",
                  "HAVE_GEOIP_V6",
@@ -1504,31 +1503,6 @@ EOF
 }
 
 # check FIPS_mode
-
-if ($use_openssl eq "yes") {
-    if ($verbose) {
-        printf "checking for FIPS_mode\n";
-    }
-    open F, ">testfips.c" || die $!;
-    print F << 'EOF';
-extern int FIPS_mode();
-
-int main() {
-    return FIPS_mode();
-}
-EOF
-    close F;
-    my $library = $configlib{"OPENSSL_LIB"};
-    $compret = `cl /nologo /MD testfips.c "$library"`;
-    if (grep { -f and -x } ".\\testfips.exe") {
-        $configdefh{"HAVE_FIPS_MODE"} = 1;
-    } else {
-        if ($verbose) {
-            print "can't compile FIPS_mode test: $compret\n";
-            print "disabling FIPS_mode\n";
-        }
-    }
-}
 
 # with-eddsa
 if ($use_openssl eq "no") {
