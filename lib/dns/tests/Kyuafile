@@ -20,7 +20,7 @@ tap_test_program{name='nsec3_test'}
 tap_test_program{name='peer_test'}
 atf_test_program{name='private_test'}
 atf_test_program{name='rbt_serialize_test', is_exclusive=true}
-atf_test_program{name='rbt_test'}
+tap_test_program{name='rbt_test'}
 atf_test_program{name='rdata_test'}
 tap_test_program{name='rdataset_test'}
 tap_test_program{name='rdatasetstats_test'}
