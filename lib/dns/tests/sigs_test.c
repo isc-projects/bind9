@@ -218,7 +218,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	/*
 	 * Create a diff representing the supplied changes.
 	 */
-	result = dns_test_difffromchanges(&raw_diff, test->changes);
+	result = dns_test_difffromchanges(&raw_diff, test->changes, false);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	/*
