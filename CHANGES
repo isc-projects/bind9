@@ -1,3 +1,5 @@
+5061.	[protocol]	Add support for EID and NIMLOC. [GL #626]
+
 5060.	[bug]		GID, UID and UINFO could not be loaded using unknown
 			record format. [GL #627]
 
