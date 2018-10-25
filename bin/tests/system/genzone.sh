@@ -370,9 +370,14 @@ csync02			CSYNC	0 0
 spf01			SPF	"v=spf1 -all"
 spf02			SPF	"v=spf1" " -all"
 
-; type 100 (UINFO - not implemented by BIND)
-; type 101 (UID - not implemented by BIND)
-; type 102 (GID - not implemented by BIND)
+; type 100 (UINFO - not implemented by BIND - unknown record format only)
+uinfo01			UINFO	\# 1 01
+
+; type 101 (UID - not implemented by BIND - unknown record format only)
+uid01			UID	\# 1 02
+
+; type 102 (GID - not implemented by BIND - unknown record format only)
+gid01			GID	\# 1 03
 
 ; type 103 (UNSPEC - XXXMUKS TODO - this has some weird encoding - see btoa_totext())
 
