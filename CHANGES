@@ -1,3 +1,6 @@
+5060.	[bug]		GID, UID and UINFO could not be loaded using unknown
+			record format. [GL #627]
+
 5059.	[bug]		Display a per-view list of zones in the web interface.
 			[GL #427]
 
