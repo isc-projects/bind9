@@ -1409,11 +1409,11 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 }
 
 static dns_keytag_t
-compute_keytag(dns_rdata_t *rdata, dns_rdata_dnskey_t *key) {
+compute_keytag(dns_rdata_t *rdata) {
 	isc_region_t r;
 
 	dns_rdata_toregion(rdata, &r);
-	return (dst_region_computeid(&r, key->algorithm));
+	return (dst_region_computeid(&r));
 }
 
 /*%
@@ -1452,7 +1452,7 @@ isselfsigned(dns_validator_t *val) {
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &key, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		keytag = compute_keytag(&rdata, &key);
+		keytag = compute_keytag(&rdata);
 		for (result = dns_rdataset_first(sigrdataset);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(sigrdataset))
@@ -1776,7 +1776,7 @@ keyfromds(dns_validator_t *val, dns_rdataset_t *rdataset, dns_rdata_t *dsrdata,
 		dns_rdataset_current(rdataset, keyrdata);
 		result = dns_rdata_tostruct(keyrdata, &key, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		keytag = compute_keytag(keyrdata, &key);
+		keytag = compute_keytag(keyrdata);
 		if (keyid != keytag || algorithm != key.algorithm)
 			continue;
 		dns_rdata_reset(&newdsrdata);

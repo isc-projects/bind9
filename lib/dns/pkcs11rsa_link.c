@@ -81,8 +81,7 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 	isc_result_t ret;
 	unsigned int i;
 
-	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
-		key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
@@ -91,7 +90,6 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
 	 * Reject incorrect RSA key lengths.
 	 */
 	switch (dctx->key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */
@@ -233,9 +231,6 @@ pkcs11rsa_createctx_sign(dst_key_t *key, dst_context_t *dctx) {
     token_key:
 
 	switch (dctx->key->key_alg) {
-	case DST_ALG_RSAMD5:
-		mech.mechanism = CKM_MD5_RSA_PKCS;
-		break;
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		mech.mechanism = CKM_SHA1_RSA_PKCS;
@@ -310,8 +305,7 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 	isc_result_t ret;
 	unsigned int i;
 
-	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
-		key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
@@ -320,7 +314,6 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 	 * Reject incorrect RSA key lengths.
 	 */
 	switch (dctx->key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */
@@ -394,9 +387,6 @@ pkcs11rsa_createctx_verify(dst_key_t *key, unsigned int maxbits,
 		 ISC_R_FAILURE);
 
 	switch (dctx->key->key_alg) {
-	case DST_ALG_RSAMD5:
-		mech.mechanism = CKM_MD5_RSA_PKCS;
-		break;
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		mech.mechanism = CKM_SHA1_RSA_PKCS;
@@ -577,8 +567,7 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	pk11_context_t *pk11_ctx;
 	isc_result_t ret;
 
-	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
-		key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
@@ -588,7 +577,6 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	 * Reject incorrect RSA key lengths.
 	 */
 	switch (dctx->key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */
@@ -613,9 +601,6 @@ pkcs11rsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	}
 
 	switch (key->key_alg) {
-	case DST_ALG_RSAMD5:
-		mech.mechanism = CKM_MD5;
-		break;
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		mech.mechanism = CKM_SHA_1;
@@ -726,8 +711,7 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	isc_result_t ret = ISC_R_SUCCESS;
 	unsigned int i;
 
-	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
-		key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
@@ -737,7 +721,6 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	 * Reject incorrect RSA key lengths.
 	 */
 	switch (dctx->key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */
@@ -762,11 +745,6 @@ pkcs11rsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	}
 
 	switch (key->key_alg) {
-	case DST_ALG_RSAMD5:
-		der = md5_der;
-		derlen = sizeof(md5_der);
-		hashlen = ISC_MD5_DIGESTLENGTH;
-		break;
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		der = sha1_der;
@@ -970,19 +948,13 @@ pkcs11rsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	isc_result_t ret = ISC_R_SUCCESS;
 	unsigned int i;
 
-	REQUIRE(key->key_alg == DST_ALG_RSAMD5 ||
-		key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(key->key_alg == DST_ALG_RSASHA1 ||
 		key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		key->key_alg == DST_ALG_RSASHA256 ||
 		key->key_alg == DST_ALG_RSASHA512);
 	REQUIRE(rsa != NULL);
 
 	switch (key->key_alg) {
-	case DST_ALG_RSAMD5:
-		der = md5_der;
-		derlen = sizeof(md5_der);
-		hashlen = ISC_MD5_DIGESTLENGTH;
-		break;
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		der = sha1_der;
@@ -1172,7 +1144,6 @@ pkcs11rsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	 * Reject incorrect RSA key lengths.
 	 */
 	switch (key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */

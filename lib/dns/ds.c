@@ -108,7 +108,7 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 	ds.common.rdclass = key->rdclass;
 	ds.common.rdtype = dns_rdatatype_ds;
 	ds.algorithm = r.base[3];
-	ds.key_tag = dst_region_computeid(&r, ds.algorithm);
+	ds.key_tag = dst_region_computeid(&r);
 	ds.digest_type = digest_type;
 	ds.digest = digest;
 	ds.length = digestlen;

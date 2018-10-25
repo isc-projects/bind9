@@ -573,7 +573,7 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 		ki->algo = dnskey.algorithm;
 
 		dns_rdata_toregion(keyrdata, &r);
-		ki->tag = dst_region_computeid(&r, ki->algo);
+		ki->tag = dst_region_computeid(&r);
 
 		ki->dst = NULL;
 		if (!match_key_dsset(ki, dsset, strictness)) {

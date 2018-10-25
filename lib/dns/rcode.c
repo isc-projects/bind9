@@ -106,7 +106,6 @@
 
 #define SECALGNAMES \
 	{ DNS_KEYALG_RSAMD5, "RSAMD5", 0 }, \
-	{ DNS_KEYALG_RSAMD5, "RSA", 0 }, \
 	{ DNS_KEYALG_DH, "DH", 0 }, \
 	{ DNS_KEYALG_DSA, "DSA", 0 }, \
 	{ DNS_KEYALG_RSASHA1, "RSASHA1", 0 }, \

@@ -64,7 +64,7 @@ usage(void) {
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -a algorithm: \n"
-			"        RSA | RSAMD5 | DH | RSASHA1 |\n"
+			"        DH | RSASHA1 |\n"
 			"        NSEC3RSASHA1 |\n"
 			"        RSASHA256 | RSASHA512 |\n"
 			"        ECDSAP256SHA256 | ECDSAP384SHA384\n");
@@ -382,22 +382,14 @@ main(int argc, char **argv) {
 			fatal("no algorithm specified");
 		}
 
-		if (strcasecmp(algname, "RSA") == 0) {
-			fprintf(stderr, "The use of RSA (RSAMD5) is not "
-					"recommended.\nIf you still wish to "
-					"use RSA (RSAMD5) please specify "
-					"\"-a RSAMD5\"\n");
-			if (freeit != NULL)
-				free(freeit);
-			return (1);
-		} else {
-			r.base = algname;
-			r.length = strlen(algname);
-			ret = dns_secalg_fromtext(&alg, &r);
-			if (ret != ISC_R_SUCCESS)
-				fatal("unknown algorithm %s", algname);
-			if (alg == DST_ALG_DH)
-				options |= DST_TYPE_KEY;
+		r.base = algname;
+		r.length = strlen(algname);
+		ret = dns_secalg_fromtext(&alg, &r);
+		if (ret != ISC_R_SUCCESS) {
+			fatal("unknown algorithm %s", algname);
+		}
+		if (alg == DST_ALG_DH) {
+			options |= DST_TYPE_KEY;
 		}
 
 		if (use_nsec3) {

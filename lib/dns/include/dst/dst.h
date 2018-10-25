@@ -46,8 +46,8 @@ typedef struct dst_context 	dst_context_t;
 
 /* DST algorithm codes */
 #define DST_ALG_UNKNOWN		0
+#define DST_ALG_RSA		1 /* Used for parsing RSASHA1, RSASHA256 and RSASHA512 */
 #define DST_ALG_RSAMD5		1
-#define DST_ALG_RSA		DST_ALG_RSAMD5	/*%< backwards compatibility */
 #define DST_ALG_DH		2
 #define DST_ALG_DSA		3
 #define DST_ALG_ECC		4
@@ -751,12 +751,12 @@ dst_key_secretsize(const dst_key_t *key, unsigned int *n);
  */
 
 uint16_t
-dst_region_computeid(const isc_region_t *source, unsigned int alg);
+dst_region_computeid(const isc_region_t *source);
 uint16_t
-dst_region_computerid(const isc_region_t *source, unsigned int alg);
+dst_region_computerid(const isc_region_t *source);
 /*%<
  * Computes the (revoked) key id of the key stored in the provided
- * region with the given algorithm.
+ * region.
  *
  * Requires:
  *\li	"source" contains a valid, non-NULL region.

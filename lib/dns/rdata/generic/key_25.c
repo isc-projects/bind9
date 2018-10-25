@@ -58,10 +58,6 @@ generic_fromtext_key(ARGS_FROMTEXT) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	/* Ensure there's at least enough data to compute a key ID for MD5 */
-	if (alg == DST_ALG_RSAMD5 && isc_buffer_usedlength(target) < 7)
-		return (ISC_R_UNEXPECTEDEND);
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -135,7 +131,7 @@ generic_totext_key(ARGS_TOTEXT) {
 	} else {
 		dns_rdata_toregion(rdata, &tmpr);
 		snprintf(buf, sizeof(buf), "[key id = %u]",
-			 dst_region_computeid(&tmpr, algorithm));
+			 dst_region_computeid(&tmpr));
 		RETERR(str_totext(buf, target));
 	}
 
@@ -159,7 +155,7 @@ generic_totext_key(ARGS_TOTEXT) {
 		RETERR(str_totext(" ; key id = ", target));
 		dns_rdata_toregion(rdata, &tmpr);
 		snprintf(buf, sizeof(buf), "%u",
-			 dst_region_computeid(&tmpr, algorithm));
+			 dst_region_computeid(&tmpr));
 		RETERR(str_totext(buf, target));
 	}
 	return (ISC_R_SUCCESS);
@@ -190,14 +186,6 @@ generic_fromwire_key(ARGS_FROMWIRE) {
 		dns_name_init(&name, NULL);
 		RETERR(dns_name_fromwire(&name, source, dctx, options, target));
 	}
-
-	/*
-	 * RSAMD5 computes key ID differently from other
-	 * algorithms: we need to ensure there's enough data
-	 * present for the computation
-	 */
-	if (algorithm == DST_ALG_RSAMD5 && sr.length < 3)
-		return (ISC_R_UNEXPECTEDEND);
 
 	isc_buffer_activeregion(source, &sr);
 	isc_buffer_forward(source, sr.length);

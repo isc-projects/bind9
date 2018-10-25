@@ -239,7 +239,7 @@ main(int argc, char **argv) {
 		 * Remove old key file, if told to (and if
 		 * it isn't the same as the new file)
 		 */
-		if (removefile && dst_key_alg(key) != DST_ALG_RSAMD5) {
+		if (removefile) {
 			isc_buffer_init(&buf, oldname, sizeof(oldname));
 			dst_key_setflags(key, flags & ~DNS_KEYFLAG_REVOKE);
 			dst_key_buildfilename(key, DST_TYPE_PRIVATE, dir, &buf);

@@ -261,7 +261,6 @@ sig_test(void **state) {
 		dns_secalg_t alg;
 		bool expect;
 	} testcases[] = {
-		/* XXXOND: Why isn't this failing? */
 		{
 			"testdata/dst/test1.data",
 			"testdata/dst/test1.ecdsa256sig",

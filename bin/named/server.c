@@ -777,8 +777,7 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	keystruct.datalen = r.length;
 	keystruct.data = r.base;
 
-	if ((keystruct.algorithm == DST_ALG_RSASHA1 ||
-	     keystruct.algorithm == DST_ALG_RSAMD5) &&
+	if ((keystruct.algorithm == DST_ALG_RSASHA1) &&
 	    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "%s key '%s' has a weak exponent",
@@ -14911,7 +14910,7 @@ mkey_dumpzone(dns_view_t *view, isc_buffer_t **text) {
 
 			dns_rdata_toregion(&rdata, &r);
 			isc_region_consume(&r, 12);
-			keyid = dst_region_computeid(&r, kd.algorithm);
+			keyid = dst_region_computeid(&r);
 
 			snprintf(buf, sizeof(buf), "\n    keyid: %u", keyid);
 			CHECK(putstr(text, buf));
