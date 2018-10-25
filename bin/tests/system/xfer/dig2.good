@@ -43,6 +43,7 @@ ds02.example.		3600	IN	NS	ns43.example.
 ds02.example.		3600	IN	DS	12892 5 1 7AA4A3F416C2F2391FB7AB0D434F762CD62D1390
 eui48.example.		3600	IN	EUI48   01-23-45-67-89-ab
 eui64.example.		3600	IN	EUI64	01-23-45-67-89-ab-cd-ef
+gid01.example.		3600	IN	GID	\# 1 03
 gpos01.example.		3600	IN	GPOS	"-22.6882" "116.8652" "250.0"
 gpos02.example.		3600	IN	GPOS	"" "" ""
 hinfo01.example.	3600	IN	HINFO	"Generic PC clone" "NetBSD-1.4"
@@ -146,6 +147,8 @@ txt12.example.		3600	IN	TXT	"\"foo\""
 txt13.example.		3600	IN	TXT	"foo;"
 txt14.example.		3600	IN	TXT	"foo;"
 txt15.example.		3600	IN	TXT	"bar\\;"
+uid01.example.		3600	IN	UID	\# 1 02
+uinfo01.example.	3600	IN	UINFO	\# 1 01
 uri01.example.		3600	IN	URI	10 20 "https://www.isc.org/"
 uri02.example.		3600	IN	URI	30 40 "https://www.isc.org/HolyCowThisSureIsAVeryLongURIRecordIDontEvenKnowWhatSomeoneWouldEverWantWithSuchAThingButTheSpecificationRequiresThatWesupportItSoHereWeGoTestingItLaLaLaLaLaLaLaSeriouslyThoughWhyWouldYouEvenConsiderUsingAURIThisLongItSeemsLikeASillyIdeaButEnhWhatAreYouGonnaDo/"
 uri03.example.		3600	IN	URI	30 40 ""
