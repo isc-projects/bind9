@@ -135,9 +135,9 @@ dispatch_test@EXEEXT@: dispatch_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 				${ISCLIBS} ${LIBS}
 
 dnstap_test@EXEEXT@: dnstap_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			dnstap_test.@O@ dnstest.@O@ ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ dnstap_test.@O@ dnstest.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 dst_test@EXEEXT@: dst_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
