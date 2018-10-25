@@ -142,10 +142,10 @@ dst_test@EXEEXT@: dst_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 			dst_test.@O@ dnstest.@O@ ${DNSLIBS} \
 			${ISCLIBS} ${LIBS}
 
-geoip_test@EXEEXT@: geoip_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			geoip_test.@O@ dnstest.@O@ ${DNSLIBS} \
-			${ISCLIBS} ${LIBS}
+geoip_test@EXEEXT@: geoip_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ geoip_test.@O@ dnstest.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 gost_test@EXEEXT@: gost_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
