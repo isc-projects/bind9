@@ -1960,8 +1960,7 @@ check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		if (tuple->rdata.type == dns_rdatatype_dnskey) {
 			uint8_t alg;
 			alg = tuple->rdata.data[3];
-			if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
-			    alg == DST_ALG_DSA) {
+			if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1) {
 				nseconly = true;
 				break;
 			}

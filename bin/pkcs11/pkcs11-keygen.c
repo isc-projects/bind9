@@ -78,11 +78,10 @@
 static CK_BBOOL truevalue = TRUE;
 static CK_BBOOL falsevalue = FALSE;
 
-/* Key class: RSA, ECC, ECX, DSA, or unknown */
+/* Key class: RSA, ECC, ECX, or unknown */
 typedef enum {
 	key_unknown,
 	key_rsa,
-	key_dsa,
 	key_ecc,
 	key_ecx
 } key_class_t;
@@ -151,45 +150,6 @@ static CK_ATTRIBUTE ecc_template[] = {
 };
 
 /*
- * Public key template for DSA keys
- */
-#define DSA_LABEL 0
-#define DSA_VERIFY 1
-#define DSA_TOKEN 2
-#define DSA_PRIVATE 3
-#define DSA_PRIME 4
-#define DSA_SUBPRIME 5
-#define DSA_BASE 6
-#define DSA_ID 7
-#define DSA_ATTRS 8
-static CK_ATTRIBUTE dsa_template[] = {
-	{CKA_LABEL, NULL_PTR, 0},
-	{CKA_VERIFY, &truevalue, sizeof(truevalue)},
-	{CKA_TOKEN, &truevalue, sizeof(truevalue)},
-	{CKA_PRIVATE, &falsevalue, sizeof(falsevalue)},
-	{CKA_PRIME, NULL_PTR, 0},
-	{CKA_SUBPRIME, NULL_PTR, 0},
-	{CKA_BASE, NULL_PTR, 0},
-	{CKA_ID, NULL_PTR, 0}
-};
-#define DSA_PARAM_PRIME 0
-#define DSA_PARAM_SUBPRIME 1
-#define DSA_PARAM_BASE 2
-#define DSA_PARAM_ATTRS 3
-static CK_ATTRIBUTE dsa_param_template[] = {
-	{CKA_PRIME, NULL_PTR, 0},
-	{CKA_SUBPRIME, NULL_PTR, 0},
-	{CKA_BASE, NULL_PTR, 0},
-};
-#define DSA_DOMAIN_PRIMEBITS 0
-#define DSA_DOMAIN_PRIVATE 1
-#define DSA_DOMAIN_ATTRS 2
-static CK_ATTRIBUTE dsa_domain_template[] = {
-	{CKA_PRIME_BITS, NULL_PTR, 0},
-	{CKA_PRIVATE, &falsevalue, sizeof(falsevalue)},
-};
-
-/*
  * Convert from text to key class.  Accepts the names of DNSSEC
  * signing algorithms, so e.g., ECDSAP256SHA256 maps to ECC and
  * NSEC3RSASHA1 maps to RSA.
@@ -202,9 +162,6 @@ keyclass_fromtext(const char *name) {
 	if (strncasecmp(name, "rsa", 3) == 0 ||
 	    strncasecmp(name, "nsec3rsa", 8) == 0)
 		return (key_rsa);
-	else if (strncasecmp(name, "dsa", 3) == 0 ||
-		 strncasecmp(name, "nsec3dsa", 8) == 0)
-		return (key_dsa);
 	else if (strncasecmp(name, "ecc", 3) == 0 ||
 		 strncasecmp(name, "ecdsa", 5) == 0)
 		return (key_ecc);
@@ -242,7 +199,7 @@ main(int argc, char *argv[]) {
 	pk11_context_t pctx;
 	int error = 0;
 	int c, errflg = 0;
-	int hide = 1, special = 0, quiet = 0;
+	int hide = 1, quiet = 0;
 	int idlen = 0, id_offset = 0;
 	unsigned int i;
 	unsigned long id = 0;
@@ -415,30 +372,6 @@ main(int argc, char *argv[]) {
 
 #endif
 		break;
-	case key_dsa:
-		op_type = OP_DSA;
-		if (bits == 0)
-			usage();
-
-		dpmech.mechanism = CKM_DSA_PARAMETER_GEN;
-		dpmech.pParameter = NULL;
-		dpmech.ulParameterLen = 0;
-		mech.mechanism = CKM_DSA_KEY_PAIR_GEN;
-		mech.pParameter = NULL;
-		mech.ulParameterLen = 0;
-
-		public_template = dsa_template;
-		public_attrcnt = DSA_ATTRS;
-		id_offset = DSA_ID;
-
-		domain_template = dsa_domain_template;
-		domain_attrcnt = DSA_DOMAIN_ATTRS;
-		param_template = dsa_param_template;
-		param_attrcnt = DSA_PARAM_ATTRS;
-
-		domain_template[DSA_DOMAIN_PRIMEBITS].pValue = &bits;
-		domain_template[DSA_DOMAIN_PRIMEBITS].ulValueLen = sizeof(bits);
-		break;
 	case key_unknown:
 		usage();
 	}
@@ -546,7 +479,7 @@ main(int argc, char *argv[]) {
 		fprintf(stderr,
 			"C_GetAttributeValue0: Error = 0x%.8lX\n", rv);
 		error = 1;
-		goto exit_domain;
+		goto exit_search;
 	}
 
 	/* Allocate space for parameter attributes */
@@ -559,37 +492,8 @@ main(int argc, char *argv[]) {
 		if (param_template[i].pValue == NULL) {
 			fprintf(stderr, "malloc failed\n");
 			error = 1;
-			goto exit_params;
+			goto exit_search;
 		}
-	}
-
-	rv = pkcs_C_GetAttributeValue(hSession, domainparams,
-				 dsa_param_template, DSA_PARAM_ATTRS);
-
-	if (rv != CKR_OK) {
-		fprintf(stderr,
-			"C_GetAttributeValue1: Error = 0x%.8lX\n", rv);
-		error = 1;
-		goto exit_params;
-	}
-
-	switch (keyclass) {
-	case key_dsa:
-		public_template[DSA_PRIME].pValue =
-			param_template[DSA_PARAM_PRIME].pValue;
-		public_template[DSA_PRIME].ulValueLen =
-			param_template[DSA_PARAM_PRIME].ulValueLen;
-		public_template[DSA_SUBPRIME].pValue =
-			param_template[DSA_PARAM_SUBPRIME].pValue;
-		public_template[DSA_SUBPRIME].ulValueLen =
-			param_template[DSA_PARAM_SUBPRIME].ulValueLen;
-		public_template[DSA_BASE].pValue =
-			param_template[DSA_PARAM_BASE].pValue;
-		public_template[DSA_BASE].ulValueLen =
-			param_template[DSA_PARAM_BASE].ulValueLen;
-		break;
-	default:
-		break;
 	}
 
  generate_keys:
@@ -604,27 +508,6 @@ main(int argc, char *argv[]) {
 		error = 1;
 	 } else if (!quiet)
 		printf("Key pair generation complete.\n");
-
- exit_params:
-	/* Free parameter attributes */
-	if (keyclass == key_dsa) {
-		for (i = 0; i < param_attrcnt; i++) {
-			if (param_template[i].pValue != NULL) {
-				free(param_template[i].pValue);
-			}
-		}
-	}
-
- exit_domain:
-	/* Destroy domain parameters */
-	if (keyclass == key_dsa) {
-		rv = pkcs_C_DestroyObject(hSession, domainparams);
-		if (rv != CKR_OK) {
-			fprintf(stderr,
-				"C_DestroyObject: Error = 0x%.8lX\n", rv);
-			error = 1;
-		}
-	}
 
  exit_search:
 	rv = pkcs_C_FindObjectsFinal(hSession);

@@ -79,8 +79,8 @@ usage(void) {
 	fprintf(stderr, "Options:\n");
 	fprintf(stderr, "    -K <directory>: write keys into directory\n");
 	fprintf(stderr, "    -a <algorithm>:\n");
-	fprintf(stderr, "        RSA | RSAMD5 | DSA | RSASHA1 | NSEC3RSASHA1"
-				" | NSEC3DSA |\n");
+	fprintf(stderr, "        RSA | RSAMD5 | RSASHA1 | NSEC3RSASHA1"
+				" |\n");
 	fprintf(stderr, "        RSASHA256 | RSASHA512 |\n");
 	fprintf(stderr, "        ECDSAP256SHA256 | ECDSAP384SHA384 |\n");
 	fprintf(stderr, "        ED25519 | ED448 | DH\n");
@@ -92,9 +92,6 @@ usage(void) {
 	fprintf(stderr, "        RSASHA256:\t[1024..%d]\n", MAX_RSA);
 	fprintf(stderr, "        RSASHA512:\t[1024..%d]\n", MAX_RSA);
 	fprintf(stderr, "        DH:\t\t[128..4096]\n");
-	fprintf(stderr, "        DSA:\t\t[512..1024] and divisible by 64\n");
-	fprintf(stderr, "        NSEC3DSA:\t[512..1024] and divisible "
-				"by 64\n");
 	fprintf(stderr, "        ECCGOST:\tignored\n");
 	fprintf(stderr, "        ECDSAP256SHA256:\tignored\n");
 	fprintf(stderr, "        ECDSAP384SHA384:\tignored\n");
@@ -159,11 +156,6 @@ usage(void) {
 			"K<name>+<alg>+<id>.private\n");
 
 	exit (-1);
-}
-
-static bool
-dsa_size_ok(int size) {
-	return (size >= 512 && size <= 1024 && size % 64 == 0);
 }
 
 static void
@@ -542,13 +534,9 @@ main(int argc, char **argv) {
 
 		if (use_nsec3) {
 			switch (alg) {
-			case DST_ALG_DSA:
-				alg = DST_ALG_NSEC3DSA;
-				break;
 			case DST_ALG_RSASHA1:
 				alg = DST_ALG_NSEC3RSASHA1;
 				break;
-			case DST_ALG_NSEC3DSA:
 			case DST_ALG_NSEC3RSASHA1:
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
@@ -728,11 +716,6 @@ main(int argc, char **argv) {
 		if (size != 0 && (size < 128 || size > 4096))
 			fatal("DH key size %d out of range", size);
 		break;
-	case DNS_KEYALG_DSA:
-	case DNS_KEYALG_NSEC3DSA:
-		if (size != 0 && !dsa_size_ok(size))
-			fatal("invalid DSS key size: %d", size);
-		break;
 	case DST_ALG_ECCGOST:
 		size = 256;
 		break;
@@ -815,8 +798,6 @@ main(int argc, char **argv) {
 		param = generator;
 		break;
 
-	case DNS_KEYALG_DSA:
-	case DNS_KEYALG_NSEC3DSA:
 	case DST_ALG_ECCGOST:
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:

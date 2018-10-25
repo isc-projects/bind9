@@ -58,7 +58,6 @@ typedef struct pk11_object pk11_object_t;
 typedef enum {
 	OP_ANY = 0,
 	OP_RSA = 1,
-	OP_DSA = 2,
 	OP_DH = 3,
 	OP_ECDSA = 4,
 	OP_EDDSA = 5,

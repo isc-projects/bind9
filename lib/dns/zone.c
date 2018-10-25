@@ -17861,8 +17861,7 @@ dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 			continue;
 
 		alg = tuple->rdata.data[3];
-		if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1 ||
-		    alg == DST_ALG_DSA) {
+		if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1) {
 			nseconly = true;
 			break;
 		}

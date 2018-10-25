@@ -64,8 +64,8 @@ usage(void) {
 	fprintf(stderr, "    name: owner of the key\n");
 	fprintf(stderr, "Other options:\n");
 	fprintf(stderr, "    -a algorithm: \n"
-			"        RSA | RSAMD5 | DH | DSA | RSASHA1 |\n"
-			"        NSEC3DSA | NSEC3RSASHA1 |\n"
+			"        RSA | RSAMD5 | DH | RSASHA1 |\n"
+			"        NSEC3RSASHA1 |\n"
 			"        RSASHA256 | RSASHA512 |\n"
 			"        ECDSAP256SHA256 | ECDSAP384SHA384\n");
 	fprintf(stderr, "    -3: use NSEC3-capable algorithm\n");
@@ -402,13 +402,9 @@ main(int argc, char **argv) {
 
 		if (use_nsec3) {
 			switch (alg) {
-			case DST_ALG_DSA:
-				alg = DST_ALG_NSEC3DSA;
-				break;
 			case DST_ALG_RSASHA1:
 				alg = DST_ALG_NSEC3RSASHA1;
 				break;
-			case DST_ALG_NSEC3DSA:
 			case DST_ALG_NSEC3RSASHA1:
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
