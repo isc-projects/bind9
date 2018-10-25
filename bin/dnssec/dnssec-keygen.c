@@ -92,7 +92,6 @@ usage(void) {
 	fprintf(stderr, "        RSASHA256:\t[1024..%d]\n", MAX_RSA);
 	fprintf(stderr, "        RSASHA512:\t[1024..%d]\n", MAX_RSA);
 	fprintf(stderr, "        DH:\t\t[128..4096]\n");
-	fprintf(stderr, "        ECCGOST:\tignored\n");
 	fprintf(stderr, "        ECDSAP256SHA256:\tignored\n");
 	fprintf(stderr, "        ECDSAP384SHA384:\tignored\n");
 	fprintf(stderr, "        ED25519:\tignored\n");
@@ -540,7 +539,6 @@ main(int argc, char **argv) {
 			case DST_ALG_NSEC3RSASHA1:
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
-			case DST_ALG_ECCGOST:
 			case DST_ALG_ECDSA256:
 			case DST_ALG_ECDSA384:
 			case DST_ALG_ED25519:
@@ -586,7 +584,6 @@ main(int argc, char **argv) {
 							" to %d\n", size);
 				}
 				break;
-			case DST_ALG_ECCGOST:
 			case DST_ALG_ECDSA256:
 			case DST_ALG_ECDSA384:
 			case DST_ALG_ED25519:
@@ -716,9 +713,6 @@ main(int argc, char **argv) {
 		if (size != 0 && (size < 128 || size > 4096))
 			fatal("DH key size %d out of range", size);
 		break;
-	case DST_ALG_ECCGOST:
-		size = 256;
-		break;
 	case DST_ALG_ECDSA256:
 		size = 256;
 		break;
@@ -798,7 +792,6 @@ main(int argc, char **argv) {
 		param = generator;
 		break;
 
-	case DST_ALG_ECCGOST:
 	case DST_ALG_ECDSA256:
 	case DST_ALG_ECDSA384:
 	case DST_ALG_ED25519:
