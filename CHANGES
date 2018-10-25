@@ -1,3 +1,6 @@
+5059.	[bug]		Display a per-view list of zones in the web interface.
+			[GL #427]
+
 5057.	[protocol]	Add support for ATMA. [GL #619]
 
 5051.	[doc]		Documentation incorrectly stated that the
