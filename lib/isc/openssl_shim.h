@@ -21,8 +21,10 @@
 #include <openssl/hmac.h>
 
 void *OPENSSL_zalloc(size_t size);
+#if OPENSSL_VERSION_NUMBER < 0x10001000L || defined(LIBRESSL_VERSION_NUMBER)
 EVP_CIPHER_CTX *EVP_CIPHER_CTX_new(void);
 void EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx);
+#endif
 EVP_MD_CTX *EVP_MD_CTX_new(void);
 void EVP_MD_CTX_free(EVP_MD_CTX *ctx);
 int EVP_MD_CTX_reset(EVP_MD_CTX *ctx);

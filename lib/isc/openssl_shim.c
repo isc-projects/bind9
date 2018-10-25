@@ -32,6 +32,7 @@ OPENSSL_zalloc(size_t size)
 	return (ret);
 }
 
+#if OPENSSL_VERSION_NUMBER < 0x10001000L || defined(LIBRESSL_VERSION_NUMBER)
 EVP_CIPHER_CTX *
 EVP_CIPHER_CTX_new(void)
 {
@@ -47,6 +48,7 @@ EVP_CIPHER_CTX_free(EVP_CIPHER_CTX *ctx)
 		OPENSSL_free(ctx);
 	}
 }
+#endif
 
 EVP_MD_CTX *
 EVP_MD_CTX_new(void)
