@@ -327,6 +327,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\list.h" />
     <ClInclude Include="..\include\isc\log.h" />
     <ClInclude Include="..\include\isc\magic.h" />
+    <ClInclude Include="..\include\isc\md.h" />
     <ClInclude Include="..\include\isc\mem.h" />
     <ClInclude Include="..\include\isc\meminfo.h" />
     <ClInclude Include="..\include\isc\msgcat.h" />
@@ -437,6 +438,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\lfsr.c" />
     <ClCompile Include="..\lib.c" />
     <ClCompile Include="..\log.c" />
+    <ClCompile Include="..\md.c" />
     <ClCompile Include="..\mem.c" />
     <ClCompile Include="..\mutexblock.c" />
     <ClCompile Include="..\netaddr.c" />
