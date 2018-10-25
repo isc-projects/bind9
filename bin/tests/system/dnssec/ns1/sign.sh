@@ -27,7 +27,7 @@ cp ../ns2/dsset-in-addr.arpa$TP .
 grep "8 [12] " ../ns2/dsset-algroll$TP > dsset-algroll$TP
 cp ../ns6/dsset-optout-tld$TP .
 
-keyname=`$KEYGEN -q -a RSAMD5 -b 1024 -n zone $zone`
+keyname=`$KEYGEN -q -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -n zone $zone`
 
 cat $infile $keyname.key > $zonefile
 

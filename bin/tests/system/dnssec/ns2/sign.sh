@@ -102,7 +102,7 @@ privzone=private.secure.example.
 privinfile=private.secure.example.db.in
 privzonefile=private.secure.example.db
 
-privkeyname=`$KEYGEN -q -a RSAMD5 -b 1024 -n zone $privzone`
+privkeyname=`$KEYGEN -q -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -n zone $privzone`
 
 cat $privinfile $privkeyname.key >$privzonefile
 
@@ -116,7 +116,7 @@ dlvinfile=dlv.db.in
 dlvzonefile=dlv.db
 dlvsetfile=dlvset-`echo $privzone |sed -e "s/\.$//g"`$TP
 
-dlvkeyname=`$KEYGEN -q -a RSAMD5 -b 1024 -n zone $dlvzone`
+dlvkeyname=`$KEYGEN -q -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -n zone $dlvzone`
 
 cat $dlvinfile $dlvkeyname.key $dlvsetfile > $dlvzonefile
 
