@@ -559,35 +559,6 @@ scan_slots(void) {
 			}
 		}
 
-		/* Check for DH support */
-		bad = false;
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_PARAMETER_GEN,
-					     &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_GENERATE) == 0)) {
-			PK11_TRACEM(CKM_DH_PKCS_PARAMETER_GEN);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_KEY_PAIR_GEN,
-					     &mechInfo);
-		if ((rv != CKR_OK) ||
-		    ((mechInfo.flags & CKF_GENERATE_KEY_PAIR) == 0)) {
-#ifndef PK11_DH_PKCS_PARAMETER_GEN_SKIP
-			bad = true;
-#endif
-			PK11_TRACEM(CKM_DH_PKCS_KEY_PAIR_GEN);
-		}
-		rv = pkcs_C_GetMechanismInfo(slot, CKM_DH_PKCS_DERIVE,
-					     &mechInfo);
-		if ((rv != CKR_OK) || ((mechInfo.flags & CKF_DERIVE) == 0)) {
-			bad = true;
-			PK11_TRACEM(CKM_DH_PKCS_DERIVE);
-		}
-		if (!bad) {
-			token->operations |= 1 << OP_DH;
-			if (best_dh_token == NULL) {
-				best_dh_token = token;
-			}
-		}
-
 		/* Check for ECDSA support */
 		bad = false;
 		rv = pkcs_C_GetMechanismInfo(slot, CKM_EC_KEY_PAIR_GEN,
@@ -650,9 +621,6 @@ pk11_get_best_token(pk11_optype_t optype) {
 	switch (optype) {
 	case OP_RSA:
 		token = best_rsa_token;
-		break;
-	case OP_DH:
-		token = best_dh_token;
 		break;
 	case OP_ECDSA:
 		token = best_ecdsa_token;
@@ -999,8 +967,6 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 	if (token == NULL) {
 		if (optype == OP_RSA) {
 			token = best_rsa_token;
-		} else if (optype == OP_DH) {
-			token = best_dh_token;
 		} else if (optype == OP_ECDSA) {
 			token = best_ecdsa_token;
 		} else if (optype == OP_EDDSA) {
@@ -1057,12 +1023,6 @@ pk11_dump_tokens(void) {
 		if (token->operations & (1 << OP_RSA)) {
 			first = false;
 			printf("RSA");
-		}
-		if (token->operations & (1 << OP_DH)) {
-			if (!first)
-				printf(",");
-			first = false;
-			printf("DH");
 		}
 		if (token->operations & (1 << OP_ECDSA)) {
 			if (!first)
