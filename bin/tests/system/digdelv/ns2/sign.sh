@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -12,9 +12,11 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
-$SHELL clean.sh
-copy_setports ns1/named.conf.in ns1/named.conf
-copy_setports ns2/named.conf.in ns2/named.conf
-copy_setports ns3/named.conf.in ns3/named.conf
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "dnskey.example.")
 
-cd ns2 && $SHELL sign.sh
+cp example.db.in example.db
+
+cat "$keyname.key" >> example.db
+
+echo "$keyname" | sed -e 's/.*[+]//' -e 's/^0*//' > keyid
+< "$keyname.key" grep -Ev '^;' | cut -f 7- -d ' ' > keydata
