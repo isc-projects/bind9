@@ -688,7 +688,8 @@ main(int argc, char **argv) {
 			 "DNS_RDATATYPEATTR_NOTQUESTION"
 #define METAQUESTIONONLY "DNS_RDATATYPEATTR_META | " \
 			 "DNS_RDATATYPEATTR_QUESTIONONLY"
-#define RESERVED "DNS_RDATATYPEATTR_RESERVED"
+#define RESERVEDNAME	 "0"
+#define RESERVED	 "DNS_RDATATYPEATTR_RESERVED"
 
 		/*
 		 * Add in reserved/special types.  This will let us
@@ -697,9 +698,9 @@ main(int argc, char **argv) {
 		insert_into_typenames(0, "reserved0", RESERVED);
 		insert_into_typenames(31, "eid", RESERVED);
 		insert_into_typenames(32, "nimloc", RESERVED);
-		insert_into_typenames(100, "uinfo", RESERVED);
-		insert_into_typenames(101, "uid", RESERVED);
-		insert_into_typenames(102, "gid", RESERVED);
+		insert_into_typenames(100, "uinfo", RESERVEDNAME);
+		insert_into_typenames(101, "uid", RESERVEDNAME);
+		insert_into_typenames(102, "gid", RESERVEDNAME);
 		insert_into_typenames(251, "ixfr", METAQUESTIONONLY);
 		insert_into_typenames(252, "axfr", METAQUESTIONONLY);
 		insert_into_typenames(253, "mailb", METAQUESTIONONLY);
