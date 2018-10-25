@@ -12,7 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if $KEYGEN -q -a RSAMD5 -b 1024 -n zone foo > /dev/null 2>&1
+if $KEYGEN -q -a ${DEFAULT_ALGORITHM} -b ${DEFAULT_BITS} -n zone foo > /dev/null 2>&1
 then
     rm -f Kfoo*
 else
