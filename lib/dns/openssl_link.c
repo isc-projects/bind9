@@ -40,7 +40,7 @@
 #include "dst_internal.h"
 #include "dst_openssl.h"
 
-static isc_mem_t *dst__memory_pool = NULL;
+static isc_mem_t *dst__mctx = NULL;
 
 #if !defined(OPENSSL_NO_ENGINE)
 #include <openssl/engine.h>
@@ -103,8 +103,8 @@ isc_result_t
 dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	isc_result_t result;
 
-	REQUIRE(dst__memory_pool == NULL);
-	dst__memory_pool = mctx;
+	REQUIRE(dst__mctx == NULL);
+	isc_mem_attach(mctx, &dst__mctx);
 
 #if defined(OPENSSL_NO_ENGINE)
 	UNUSED(engine);
@@ -114,7 +114,7 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	nlocks = CRYPTO_num_locks();
-	locks = isc_mem_allocate(dst__memory_pool, sizeof(isc_mutex_t) * nlocks);
+	locks = isc_mem_allocate(dst__mctx, sizeof(isc_mutex_t) * nlocks);
 	if (locks == NULL)
 		return (ISC_R_NOMEMORY);
 	result = isc_mutexblock_init(locks, nlocks);
@@ -183,7 +183,7 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	CRYPTO_set_locking_callback(NULL);
 	DESTROYMUTEXBLOCK(locks, nlocks);
  cleanup_mutexalloc:
-	isc_mem_free(dst__memory_pool, locks);
+	isc_mem_free(dst__mctx, locks);
 	locks = NULL;
 #endif
 	return (result);
@@ -220,12 +220,13 @@ dst__openssl_destroy(void) {
 	if (locks != NULL) {
 		CRYPTO_set_locking_callback(NULL);
 		DESTROYMUTEXBLOCK(locks, nlocks);
-		isc_mem_free(dst__memory_pool, locks);
+		isc_mem_free(dst__mctx, locks);
 		locks = NULL;
 	}
 #else
 	OPENSSL_cleanup();
 #endif
+	isc_mem_detach(&dst__mctx);
 }
 
 static isc_result_t
