@@ -791,8 +791,7 @@ view <string> [ <class> ] {
                 request-expire <boolean>;
                 request-ixfr <boolean>;
                 serial-update-method ( date | increment | unixtime );
-                server-addresses { ( <ipv4_address> | <ipv6_address> ) [
-                    port <integer> ]; ... };
+                server-addresses { ( <ipv4_address> | <ipv6_address> ); ... };
                 server-names { <quoted_string>; ... };
                 sig-signing-nodes <integer>;
                 sig-signing-signatures <integer>;
@@ -893,8 +892,7 @@ zone <string> [ <class> ] {
         request-expire <boolean>;
         request-ixfr <boolean>;
         serial-update-method ( date | increment | unixtime );
-        server-addresses { ( <ipv4_address> | <ipv6_address> ) [ port
-            <integer> ]; ... };
+        server-addresses { ( <ipv4_address> | <ipv6_address> ); ... };
         server-names { <quoted_string>; ... };
         sig-signing-nodes <integer>;
         sig-signing-signatures <integer>;
