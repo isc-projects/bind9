@@ -26,7 +26,9 @@
 #include <config.h>
 
 #include <stdbool.h>
+#ifndef WIN32
 #include <arpa/inet.h>
+#endif /* WIN32 */
 
 #include <isc/buffer.h>
 #include <isc/hmac.h>
