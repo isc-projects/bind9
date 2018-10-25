@@ -38,6 +38,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
@@ -473,11 +474,21 @@ dns_test_getdata(const char *file, unsigned char *buf,
 	return (result);
 }
 
+static void
+nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
+	va_list ap;
+
+	UNUSED(cb);
+	UNUSED(fmt);
+	UNUSED(ap);
+}
+
 isc_result_t
 dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			 dns_rdatatype_t rdtype, unsigned char *dst,
-			 size_t dstlen, const char *src)
+			 size_t dstlen, const char *src, bool warnings)
 {
+	dns_rdatacallbacks_t callbacks;
 	isc_buffer_t source, target;
 	isc_lex_t *lex = NULL;
 	isc_result_t result;
@@ -517,10 +528,18 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_buffer_init(&target, dst, dstlen);
 
 	/*
+	 * Set up callbacks so warnings and errors are not printed.
+	 */
+	if (!warnings) {
+		dns_rdatacallbacks_init(&callbacks);
+		callbacks.warn = callbacks.error = nullmsg;
+	}
+
+	/*
 	 * Parse input string, determining result.
 	 */
 	result = dns_rdata_fromtext(rdata, rdclass, rdtype, lex, dns_rootname,
-				    0, mctx, &target, NULL);
+				    0, mctx, &target, &callbacks);
 
  destroy_lexer:
 	isc_lex_destroy(&lex);
@@ -550,7 +569,9 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
 }
 
 isc_result_t
-dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes) {
+dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
+			 bool warnings)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned char rdata_buf[1024];
 	dns_difftuple_t *tuple = NULL;
@@ -594,7 +615,8 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes) {
 		result = dns_test_rdatafromstring(&rdata, dns_rdataclass_in,
 						  rdatatype, rdata_buf,
 						  sizeof(rdata_buf),
-						  changes[i].rdata);
+						  changes[i].rdata,
+						  warnings);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
