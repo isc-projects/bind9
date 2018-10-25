@@ -1,3 +1,5 @@
+5057.	[protocol]	Add support for ATMA. [GL #619]
+
 5050.	[bug]		The libirs version of getaddrinfo() was unable to parse
 			scoped IPv6 addresses present in /etc/resolv.conf.
 			[GL #187]
