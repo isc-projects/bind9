@@ -1211,22 +1211,34 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					 memory_order_acquire) == 0 &&
 		    manager->mode != isc_taskmgrmode_normal)
 		{
-			bool empty = true;
-			for (unsigned i=0; i<manager->workers && empty; i++) {
-				if (i != threadid) {
+			UNLOCK(&manager->queues[threadid].lock);
+			LOCK(&manager->lock);
+			/*
+			 * Check once again, under lock. Mode can only
+			 * change from privileged to normal anyway, and
+			 * if we enter this loop twice at the same time
+			 * we'll end up in a deadlock over queue locks.
+			 *
+			 */
+			if (atomic_load_explicit(&manager->tasks_running,
+						 memory_order_acquire) == 0 &&
+			    manager->mode != isc_taskmgrmode_normal)
+			{
+				bool empty = true;
+				for (unsigned i=0; i<manager->workers && empty; i++) {
 					LOCK(&manager->queues[i].lock);
-				}
-				empty &= empty_readyq(manager, i);
-				if (i != threadid) {
+					empty &= empty_readyq(manager, i);
 					UNLOCK(&manager->queues[i].lock);
 				}
-			}
-			if (empty) {
-				manager->mode = isc_taskmgrmode_normal;
-				for (unsigned i=0; i < manager->workers; i++) {
-					BROADCAST(&manager->queues[i].work_available);
+				if (empty) {
+					manager->mode = isc_taskmgrmode_normal;
+					for (unsigned i=0; i < manager->workers; i++) {
+						BROADCAST(&manager->queues[i].work_available);
+					}
 				}
 			}
+			UNLOCK(&manager->lock);
+			LOCK(&manager->queues[threadid].lock);
 		}
 	}
 	UNLOCK(&manager->queues[threadid].lock);
