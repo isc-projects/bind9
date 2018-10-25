@@ -196,9 +196,21 @@ pop_readyq(isc__taskmgr_t *manager, int c);
 static inline void
 push_readyq(isc__taskmgr_t *manager, isc__task_t *task, int c);
 
+static inline void
+wake_all_queues(isc__taskmgr_t *manager);
+
 /***
  *** Tasks.
  ***/
+
+static inline void
+wake_all_queues(isc__taskmgr_t *manager) {
+	for (unsigned i=0; i < manager->workers; i++) {
+		LOCK(&manager->queues[i].lock);
+		BROADCAST(&manager->queues[i].work_available);
+		UNLOCK(&manager->queues[i].lock);
+	}
+}
 
 static void
 task_finished(isc__task_t *task) {
@@ -221,9 +233,7 @@ task_finished(isc__task_t *task) {
 		 * any idle worker threads so they
 		 * can exit.
 		 */
-		for (unsigned int i=0; i<manager->workers; i++) {
-			BROADCAST(&manager->queues[i].work_available);
-		}
+		wake_all_queues(manager);
 	}
 	DESTROYLOCK(&task->lock);
 	task->common.impmagic = 0;
@@ -1207,9 +1217,9 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 		 * we're stuck.  Automatically drop privileges at that
 		 * point and continue with the regular ready queue.
 		 */
-		if (atomic_load_explicit(&manager->tasks_running,
-					 memory_order_acquire) == 0 &&
-		    manager->mode != isc_taskmgrmode_normal)
+		if (manager->mode != isc_taskmgrmode_normal &&
+		    atomic_load_explicit(&manager->tasks_running,
+					 memory_order_acquire) == 0)
 		{
 			UNLOCK(&manager->queues[threadid].lock);
 			LOCK(&manager->lock);
@@ -1220,21 +1230,21 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			 * we'll end up in a deadlock over queue locks.
 			 *
 			 */
-			if (atomic_load_explicit(&manager->tasks_running,
-						 memory_order_acquire) == 0 &&
-			    manager->mode != isc_taskmgrmode_normal)
+			if (manager->mode != isc_taskmgrmode_normal &&
+			    atomic_load_explicit(&manager->tasks_running,
+						 memory_order_acquire) == 0)
 			{
 				bool empty = true;
-				for (unsigned i=0; i<manager->workers && empty; i++) {
+				unsigned int i;
+				for (i=0; i<manager->workers && empty; i++)
+				{
 					LOCK(&manager->queues[i].lock);
 					empty &= empty_readyq(manager, i);
 					UNLOCK(&manager->queues[i].lock);
 				}
 				if (empty) {
 					manager->mode = isc_taskmgrmode_normal;
-					for (unsigned i=0; i < manager->workers; i++) {
-						BROADCAST(&manager->queues[i].work_available);
-					}
+					wake_all_queues(manager);
 				}
 			}
 			UNLOCK(&manager->lock);
@@ -1246,11 +1256,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 	 * There might be other dispatchers waiting on empty tasks,
 	 * wake them up.
 	 */
-	for (unsigned i=0; i < manager->workers; i++) {
-		LOCK(&manager->queues[i].lock);
-		BROADCAST(&manager->queues[i].work_available);
-		UNLOCK(&manager->queues[i].lock);
-	}
+	wake_all_queues(manager);
 }
 
 static isc_threadresult_t
@@ -1446,11 +1452,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	 * there's work left to do, and if there are already no tasks left
 	 * it will cause the workers to see manager->exiting.
 	 */
-	for (i = 0; i < manager->workers; i++) {
-		LOCK(&manager->queues[i].lock);
-		BROADCAST(&manager->queues[i].work_available);
-		UNLOCK(&manager->queues[i].lock);
-	}
+	wake_all_queues(manager);
 	UNLOCK(&manager->lock);
 
 	/*
@@ -1486,7 +1488,6 @@ isc_taskmgr_mode(isc_taskmgr_t *manager0) {
 void
 isc__taskmgr_pause(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
-	unsigned int i;
 
 	LOCK(&manager->halt_lock);
 	while (manager->exclusive_requested || manager->pause_requested) {
@@ -1498,9 +1499,7 @@ isc__taskmgr_pause(isc_taskmgr_t *manager0) {
 
 	manager->pause_requested = true;
 	while (manager->halted < manager->workers) {
-		for (i = 0; i < manager->workers; i++) {
-			BROADCAST(&manager->queues[i].work_available);
-		}
+		wake_all_queues(manager);
 		WAIT(&manager->halt_cond, &manager->halt_lock);
 	}
 	UNLOCK(&manager->halt_lock);
@@ -1556,7 +1555,6 @@ isc_result_t
 isc_task_beginexclusive(isc_task_t *task0) {
 	isc__task_t *task = (isc__task_t *)task0;
 	isc__taskmgr_t *manager = task->manager;
-	unsigned int i;
 
 	REQUIRE(VALID_TASK(task));
 
@@ -1572,9 +1570,7 @@ isc_task_beginexclusive(isc_task_t *task0) {
 	INSIST(!manager->exclusive_requested && !manager->pause_requested);
 	manager->exclusive_requested = true;
 	while (manager->halted + 1 < manager->workers) {
-		for (i = 0; i < manager->workers; i++) {
-			BROADCAST(&manager->queues[i].work_available);
-		}
+		wake_all_queues(manager);
 		WAIT(&manager->halt_cond, &manager->halt_lock);
 	}
 	UNLOCK(&manager->halt_lock);
