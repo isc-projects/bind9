@@ -186,12 +186,15 @@ loc02			LOC 	60 09 00.000 N 24 39 00.000 E 10.00m 20.00m (
 ;nxt03			NXT	. 1
 ;nxt04			NXT	. 127
 
-; type 31 (EID - not implemented by BIND)
-; type 32 (NIMLOC - not implemented by BIND)
+; type 31
+eid01			EID	12 89 AB
+
+; type 32
+nimloc01		NIMLOC	12 89 AB
 
 ; type 33
-srv01			SRV 0 0 0 .
-srv02			SRV 65535 65535 65535  old-slow-box
+srv01			SRV	0 0 0 .
+srv02			SRV	65535 65535 65535  old-slow-box
 
 ; type 34
 atma01			ATMA	+61200000000
