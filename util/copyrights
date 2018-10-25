@@ -3437,8 +3437,12 @@
 ./lib/dns/rdata/in_1/atma_34.h			C	2018
 ./lib/dns/rdata/in_1/dhcid_49.c			C	2006,2007,2009,2011,2012,2015,2016,2017,2018
 ./lib/dns/rdata/in_1/dhcid_49.h			C	2006,2007,2016,2018
+./lib/dns/rdata/in_1/eid_31.c			C	2018
+./lib/dns/rdata/in_1/eid_31.h			C	2018
 ./lib/dns/rdata/in_1/kx_36.c			C	1999,2000,2001,2003,2004,2005,2007,2009,2015,2016,2017,2018
 ./lib/dns/rdata/in_1/kx_36.h			C	1999,2000,2001,2004,2005,2007,2016,2018
+./lib/dns/rdata/in_1/nimloc_32.c		C	2018
+./lib/dns/rdata/in_1/nimloc_32.h		C	2018
 ./lib/dns/rdata/in_1/nsap-ptr_23.c		C	1999,2000,2001,2004,2005,2007,2009,2015,2016,2018
 ./lib/dns/rdata/in_1/nsap-ptr_23.h		C	1999,2000,2001,2004,2005,2007,2016,2018
 ./lib/dns/rdata/in_1/nsap_22.c			C	1999,2000,2001,2002,2004,2005,2007,2009,2013,2015,2016,2017,2018
