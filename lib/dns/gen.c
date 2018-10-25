@@ -696,8 +696,6 @@ main(int argc, char **argv) {
 		 * sort them without special cases.
 		 */
 		insert_into_typenames(0, "reserved0", RESERVED);
-		insert_into_typenames(31, "eid", RESERVED);
-		insert_into_typenames(32, "nimloc", RESERVED);
 		insert_into_typenames(100, "uinfo", RESERVEDNAME);
 		insert_into_typenames(101, "uid", RESERVEDNAME);
 		insert_into_typenames(102, "gid", RESERVEDNAME);
