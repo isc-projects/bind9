@@ -1,5 +1,9 @@
 5057.	[protocol]	Add support for ATMA. [GL #619]
 
+5051.	[doc]		Documentation incorrectly stated that the
+			"server-addresses" static-stub zone option accepts
+			custom port numbers. [GL #582]
+
 5042.	[test]		Make the chained delegations in reclimit behave
 			like they would in a regular name server. [GL  #578]
 
