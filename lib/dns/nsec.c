@@ -274,9 +274,7 @@ dns_nsec_nseconly(dns_db_t *db, dns_dbversion_t *version,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (dnskey.algorithm == DST_ALG_RSAMD5 ||
-		    dnskey.algorithm == DST_ALG_RSASHA1 ||
-		    dnskey.algorithm == DST_ALG_DSA ||
-		    dnskey.algorithm == DST_ALG_ECC)
+		    dnskey.algorithm == DST_ALG_RSASHA1)
 			break;
 	}
 	dns_rdataset_disassociate(&rdataset);

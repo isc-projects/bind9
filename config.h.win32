@@ -111,15 +111,6 @@
 /* Define if you have h_errno */
 #define HAVE_H_ERRNO
 
-/* Define if you have RSA_generate_key(). */
-#define HAVE_RSA_GENERATE_KEY
-
-/* Define if you have DSA_generate_parameters(). */
-#define HAVE_DSA_GENERATE_PARAMETERS
-
-/* Define if you have DH_generate_parameters(). */
-#define HAVE_DH_GENERATE_PARAMETERS
-
 /* Define if you have getpassphrase in the C library. */
 #define HAVE_GETPASSPHRASE
 
@@ -288,9 +279,6 @@ typedef __int64 off_t;
 
 /* Define if your OpenSSL version supports DH functions. */
 @HAVE_DH_GET0_KEY@
-
-/* Define if your OpenSSL version supports DSA functions. */
-@HAVE_DSA_GET0_PQG@
 
 /* Define if your OpenSSL version supports ECDSA functions. */
 @HAVE_ECDSA_SIG_GET0@

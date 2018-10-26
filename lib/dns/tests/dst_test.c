@@ -19,6 +19,7 @@
 #include <unistd.h>
 
 #include <isc/file.h>
+#include <isc/hex.h>
 #include <isc/util.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -185,9 +186,38 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	result = dst_context_verify(ctx, &sigreg);
 
+	if (expect && result != ISC_R_SUCCESS) {
+		isc_result_t result2;
+		result2 = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL,
+					    false, 0, &ctx);
+		ATF_REQUIRE_EQ(result2, ISC_R_SUCCESS);
+
+		result2 = dst_context_adddata(ctx, &datareg);
+		ATF_REQUIRE_EQ(result2, ISC_R_SUCCESS);
+
+		char sigbuf2[4096];
+		isc_buffer_t sigb;
+		isc_buffer_init(&sigb, sigbuf2, sizeof(sigbuf2));
+
+		result2 = dst_context_sign(ctx, &sigb);
+		ATF_REQUIRE_EQ(result2, ISC_R_SUCCESS);
+
+		isc_region_t r;
+		isc_buffer_usedregion(&sigb, &r);
+
+		char hexbuf[4096] = { 0 };
+		isc_buffer_t hb;
+		isc_buffer_init(&hb, hexbuf, sizeof(hexbuf));
+
+		isc_hex_totext(&r, 0, "", &hb);
+
+		fprintf(stderr, "%s\n", hexbuf);
+
+		dst_context_destroy(&ctx);
+	}
+
 	ATF_REQUIRE((expect && (result == ISC_R_SUCCESS)) ||
 		    (!expect && (result != ISC_R_SUCCESS)));
-
 
 	isc_mem_put(mctx, data, size + 1);
 	dst_context_destroy(&ctx);
@@ -211,27 +241,28 @@ ATF_TC_BODY(sig, tc) {
 		dns_secalg_t alg;
 		bool expect;
 	} testcases[] = {
+		/* XXXOND: Why the heck isn't this failing? */
 		{
 			"testdata/dst/test1.data",
-			"testdata/dst/test1.dsasig",
-			"test.", 23616, DST_ALG_DSA, true
+			"testdata/dst/test1.ecdsa256sig",
+			"test.", 49130, DST_ALG_ECDSA256, true
 		},
 		{
 			"testdata/dst/test1.data",
-			"testdata/dst/test1.rsasig",
-			"test.", 54622, DST_ALG_RSAMD5, true
+			"testdata/dst/test1.rsasha256sig",
+			"test.", 11349, DST_ALG_RSASHA256, true
 		},
 		{
 			/* wrong sig */
 			"testdata/dst/test1.data",
-			"testdata/dst/test1.dsasig",
-			"test.", 54622, DST_ALG_RSAMD5, false
+			"testdata/dst/test1.ecdsa256sig",
+			"test.", 11349, DST_ALG_RSASHA256, false
 		},
 		{
 			/* wrong data */
 			"testdata/dst/test2.data",
-			"testdata/dst/test1.dsasig",
-			"test.", 23616, DST_ALG_DSA, false
+			"testdata/dst/test1.ecdsa256sig",
+			"test.", 49130, DST_ALG_ECDSA256, false
 		},
 	};
 	unsigned int i;

@@ -254,11 +254,9 @@ main(void) {
 	result = dns_name_fromtext(name, &b, NULL, 0, NULL);
 	if (result != ISC_R_SUCCESS)
 		return (1);
-	io(name, 23616, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 	io(name, 54622, DST_ALG_RSAMD5, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 	   mctx);
 
-	io(name, 49667, DST_ALG_DSA, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 	io(name, 2, DST_ALG_RSAMD5, DST_TYPE_PRIVATE|DST_TYPE_PUBLIC, mctx);
 
 	isc_buffer_constinit(&b, "dh.", 3);
@@ -270,7 +268,6 @@ main(void) {
 
 	generate(DST_ALG_RSAMD5, mctx);
 	generate(DST_ALG_DH, mctx);
-	generate(DST_ALG_DSA, mctx);
 	generate(DST_ALG_HMACMD5, mctx);
 
 	dst_lib_destroy();

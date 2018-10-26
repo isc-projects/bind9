@@ -203,7 +203,6 @@ my @substdefh = ("AES_CC",
                  "HAVE_OPENSSL_ED25519",
                  "HAVE_OPENSSL_ED448",
 		 "HAVE_DH_GET0_KEY",
-		 "HAVE_DSA_GET0_PQG",
 		 "HAVE_ECDSA_SIG_GET0",
 		 "HAVE_RSA_SET0_KEY",
 		 "USE_BACKTRACE",
@@ -1483,7 +1482,7 @@ int main() {
         }
         printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
                OPENSSL_VERSION_NUMBER);
-        printf("This version has no built-in support for DH/DSA/ECDSA/RSA functions.\n\n");
+        printf("This version has no built-in support for DH/ECDSA/RSA functions.\n\n");
         return (1);
 }
 EOF
@@ -1495,7 +1494,6 @@ EOF
         `.\\testosslfunc.exe`;
         if ($? == 0) {
             $configdefh{"HAVE_DH_GET0_KEY"} = 1;
-            $configdefh{"HAVE_DSA_GET0_PQG"} = 1;
             $configdefh{"HAVE_ECDSA_SIG_GET0"} = 1;
             $configdefh{"HAVE_RSA_SET0_KEY"} = 1;
         }

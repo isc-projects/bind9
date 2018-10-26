@@ -15787,7 +15787,7 @@ done
 #
 # Check for OpenSSL 1.1.x/LibreSSL functions
 #
-for ac_func in DH_get0_key ECDSA_SIG_get0 RSA_set0_key DSA_get0_pqg
+for ac_func in DH_get0_key ECDSA_SIG_get0 RSA_set0_key
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
