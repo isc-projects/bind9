@@ -790,6 +790,15 @@ AC_COMPILE_IFELSE(
     [AC_MSG_FAILURE([not found])])
 
 #
+# Check for functions added in OpenSSL or LibreSSL
+#
+
+AC_CHECK_FUNCS([CRYPTO_zalloc])
+AC_CHECK_FUNCS([EVP_CIPHER_CTX_new EVP_CIPHER_CTX_free])
+AC_CHECK_FUNCS([EVP_MD_CTX_new EVP_MD_CTX_free EVP_MD_CTX_reset])
+AC_CHECK_FUNCS([HMAC_CTX_new HMAC_CTX_free HMAC_CTX_reset HMAC_CTX_get_md])
+
+#
 # Check for algorithm support in OpenSSL
 #
 

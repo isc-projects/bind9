@@ -15565,6 +15565,58 @@ fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 #
+# Check for functions added in OpenSSL or LibreSSL
+#
+
+for ac_func in CRYPTO_zalloc
+do :
+  ac_fn_c_check_func "$LINENO" "CRYPTO_zalloc" "ac_cv_func_CRYPTO_zalloc"
+if test "x$ac_cv_func_CRYPTO_zalloc" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_CRYPTO_ZALLOC 1
+_ACEOF
+
+fi
+done
+
+for ac_func in EVP_CIPHER_CTX_new EVP_CIPHER_CTX_free
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+for ac_func in EVP_MD_CTX_new EVP_MD_CTX_free EVP_MD_CTX_reset
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+for ac_func in HMAC_CTX_new HMAC_CTX_free HMAC_CTX_reset HMAC_CTX_get_md
+do :
+  as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
+ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
+if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
+  cat >>confdefs.h <<_ACEOF
+#define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
+_ACEOF
+
+fi
+done
+
+
+#
 # Check for algorithm support in OpenSSL
 #
 
