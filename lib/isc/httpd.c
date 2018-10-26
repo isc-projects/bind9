@@ -114,9 +114,9 @@ struct isc_httpd {
 	 * compressed HTTP data, if compression is used.
 	 *
 	 */
-	isc_bufferlist_t	bufflist;
 	isc_buffer_t		headerbuffer;
 	isc_buffer_t		compbuffer;
+	isc_buffer_t		*sendbuffer;
 
 	const char	       *mimetype;
 	unsigned int		retcode;
@@ -667,10 +667,9 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev) {
 	}
 	isc_buffer_init(&httpd->headerbuffer, headerdata, HTTP_SENDGROW);
 
-	ISC_LIST_INIT(httpd->bufflist);
-
 	isc_buffer_initnull(&httpd->compbuffer);
 	isc_buffer_initnull(&httpd->bodybuffer);
+	httpd->sendbuffer = NULL;
 	reset_client(httpd);
 
 	r.base = (unsigned char *)httpd->recvbuf;
@@ -840,12 +839,13 @@ isc_httpd_compress(isc_httpd_t *httpd) {
 
 static void
 isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
-	isc_region_t r;
 	isc_result_t result;
 	isc_httpd_t *httpd = ev->ev_arg;
 	isc_socketevent_t *sev = (isc_socketevent_t *)ev;
 	isc_httpdurl_t *url;
 	isc_time_t now;
+	isc_region_t headerr, datar, r;
+	size_t total;
 	bool is_compressed = false;
 	char datebuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 
@@ -963,22 +963,20 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 
 	isc_httpd_endheaders(httpd);  /* done */
 
-	ISC_LIST_APPEND(httpd->bufflist, &httpd->headerbuffer, link);
-	/*
-	 * Link the data buffer into our send queue, should we have any data
-	 * rendered into it.  If no data is present, we won't do anything
-	 * with the buffer.
-	 */
+	isc_buffer_usedregion(&httpd->headerbuffer, &headerr);
 	if (is_compressed == true) {
-		ISC_LIST_APPEND(httpd->bufflist, &httpd->compbuffer, link);
+		isc_buffer_usedregion(&httpd->compbuffer, &datar);
 	} else {
-		if (isc_buffer_length(&httpd->bodybuffer) > 0) {
-				ISC_LIST_APPEND(httpd->bufflist, &httpd->bodybuffer, link);
-		}
+		isc_buffer_usedregion(&httpd->bodybuffer, &datar);
 	}
+	total = headerr.length + datar.length;
+	isc_buffer_allocate(httpd->mgr->mctx, &httpd->sendbuffer, total);
+	isc_buffer_copyregion(httpd->sendbuffer, &headerr);
+	isc_buffer_copyregion(httpd->sendbuffer, &datar);
+	isc_buffer_usedregion(httpd->sendbuffer, &r);
 
 	/* check return code? */
-	(void)isc_socket_sendv(httpd->sock, &httpd->bufflist, task,
+	(void)isc_socket_send(httpd->sock, &r, task,
 			       isc_httpd_senddone, httpd);
 
  out:
@@ -1126,13 +1124,7 @@ isc_httpd_senddone(isc_task_t *task, isc_event_t *ev) {
 	ENTER("senddone");
 	INSIST(ISC_HTTPD_ISSEND(httpd));
 
-	/*
-	 * First, unlink our header buffer from the socket's bufflist.  This
-	 * is sort of an evil hack, since we know our buffer will be there,
-	 * and we know it's address, so we can just remove it directly.
-	 */
-	NOTICE("senddone unlinked header");
-	ISC_LIST_UNLINK(sev->bufferlist, &httpd->headerbuffer, link);
+	isc_buffer_free(&httpd->sendbuffer);
 
 	/*
 	 * We will always want to clean up our receive buffer, even if we
@@ -1148,13 +1140,6 @@ isc_httpd_senddone(isc_task_t *task, isc_event_t *ev) {
 			httpd->freecb(b, httpd->freecb_arg);
 		}
 		NOTICE("senddone free callback performed");
-	}
-	if (ISC_LINK_LINKED(&httpd->bodybuffer, link)) {
-		ISC_LIST_UNLINK(sev->bufferlist, &httpd->bodybuffer, link);
-		NOTICE("senddone body buffer unlinked");
-	} else if (ISC_LINK_LINKED(&httpd->compbuffer, link)) {
-		ISC_LIST_UNLINK(sev->bufferlist, &httpd->compbuffer, link);
-		NOTICE("senddone compressed data unlinked and freed");
 	}
 
 	if (sev->result != ISC_R_SUCCESS) {
