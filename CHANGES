@@ -1,3 +1,5 @@
+5071.	[bug]		Comparision of NXT records was broken. [GL #631]
+
 5070.	[bug]		Record types which support a empty rdata field were
 			not handling the empty rdata field case. [GL #638]
 
