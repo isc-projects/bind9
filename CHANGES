@@ -1,5 +1,9 @@
+5063.	[test]		In statschannel test try a few times before failing when
+			checking if the compressed output is the same as
+			uncompressed. [GL !909]
+
 5062.	[func]		Use non-crypto-secure PRNG to generate nonces for
-			cookies [GL !887]
+			cookies. [GL !887]
 
 5061.	[protocol]	Add support for EID and NIMLOC. [GL #626]
 
