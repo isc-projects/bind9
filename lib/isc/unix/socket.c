@@ -736,7 +736,6 @@ watch_fd(isc__socketthread_t *thread, int fd, int msg) {
 		pfd.events = POLLOUT;
 	pfd.fd = fd;
 	pfd.revents = 0;
-	LOCK(&thread->fdlock[lockid]);
 	if (write(thread->devpoll_fd, &pfd, sizeof(pfd)) == -1)
 		result = isc__errno2result(errno);
 	else {
@@ -745,7 +744,6 @@ watch_fd(isc__socketthread_t *thread, int fd, int msg) {
 		else
 			thread->fdpollinfo[fd].want_write = 1;
 	}
-	UNLOCK(&thread->fdlock[lockid]);
 
 	return (result);
 #elif defined(USE_SELECT)
@@ -817,7 +815,6 @@ unwatch_fd(isc__socketthread_t *thread, int fd, int msg) {
 	 * only provides a way of canceling per FD, we may need to re-poll the
 	 * socket for the other operation.
 	 */
-	LOCK(&thread->fdlock[lockid]);
 	if (msg == SELECT_POKE_READ &&
 	    thread->fdpollinfo[fd].want_write == 1) {
 		pfds[1].events = POLLOUT;
@@ -839,7 +836,6 @@ unwatch_fd(isc__socketthread_t *thread, int fd, int msg) {
 		else
 			thread->fdpollinfo[fd].want_write = 0;
 	}
-	UNLOCK(&thread->fdlock[lockid]);
 
 	return (result);
 #elif defined(USE_SELECT)
@@ -3134,7 +3130,6 @@ internal_recv(isc__socket_t *sock) {
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	if (dev == NULL) {
 		goto finish;
-		return;
 	}
 
 	socket_log(sock, NULL, IOEVENT,
