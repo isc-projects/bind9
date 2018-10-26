@@ -933,7 +933,7 @@ dns_rdata_fromtext(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 		callback = default_fromtext_callback;
 
 	result = isc_lex_getmastertoken(lexer, &token, isc_tokentype_qstring,
-					false);
+					true);
 	if (result != ISC_R_SUCCESS) {
 		name = isc_lex_getsourcename(lexer);
 		line = isc_lex_getsourceline(lexer);
