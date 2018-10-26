@@ -75,6 +75,9 @@
 /* Define to 1 if you have the <cmocka.h> header file. */
 #undef HAVE_CMOCKA_H
 
+/* Define to 1 if you have the `CRYPTO_zalloc' function. */
+#undef HAVE_CRYPTO_ZALLOC
+
 /* Define to 1 if you have the <devpoll.h> header file. */
 #undef HAVE_DEVPOLL_H
 
@@ -129,6 +132,21 @@
 /* Define to 1 if you have the `EVP_aes_256_ecb' function. */
 #undef HAVE_EVP_AES_256_ECB
 
+/* Define to 1 if you have the `EVP_CIPHER_CTX_free' function. */
+#undef HAVE_EVP_CIPHER_CTX_FREE
+
+/* Define to 1 if you have the `EVP_CIPHER_CTX_new' function. */
+#undef HAVE_EVP_CIPHER_CTX_NEW
+
+/* Define to 1 if you have the `EVP_MD_CTX_free' function. */
+#undef HAVE_EVP_MD_CTX_FREE
+
+/* Define to 1 if you have the `EVP_MD_CTX_new' function. */
+#undef HAVE_EVP_MD_CTX_NEW
+
+/* Define to 1 if you have the `EVP_MD_CTX_reset' function. */
+#undef HAVE_EVP_MD_CTX_RESET
+
 /* Define to 1 if you have the `EVP_sha1' function. */
 #undef HAVE_EVP_SHA1
 
@@ -182,6 +200,18 @@
 
 /* Define to 1 if you have the <gssapi_krb5.h> header file. */
 #undef HAVE_GSSAPI_KRB5_H
+
+/* Define to 1 if you have the `HMAC_CTX_free' function. */
+#undef HAVE_HMAC_CTX_FREE
+
+/* Define to 1 if you have the `HMAC_CTX_get_md' function. */
+#undef HAVE_HMAC_CTX_GET_MD
+
+/* Define to 1 if you have the `HMAC_CTX_new' function. */
+#undef HAVE_HMAC_CTX_NEW
+
+/* Define to 1 if you have the `HMAC_CTX_reset' function. */
+#undef HAVE_HMAC_CTX_RESET
 
 /* Define to 1 if you have the <idn2.h> header file. */
 #undef HAVE_IDN2_H
