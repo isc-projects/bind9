@@ -110,7 +110,7 @@ isc_thread_setaffinity(int cpu) {
 	CPU_ZERO(&cpuset);
 	CPU_SET(cpu, &cpuset);
 	if (cpuset_setaffinity(CPU_LEVEL_WHICH, CPU_WHICH_TID, -1,
-	    &cpuset, sizeof(cpuset)) != 0) {
+	    sizeof(cpuset), &cpuset) != 0) {
 		return (ISC_R_FAILURE);
 	}
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)

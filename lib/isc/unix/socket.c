@@ -3280,8 +3280,6 @@ process_fds(isc__socketthread_t *thread, struct kevent *events,
 	bool readable, writable;
 	bool done = false;
 	bool have_ctlevent = false;
-	INSIST(thread->threadid == 0);
-
 	if (nevents == thread->nevents) {
 		/*
 		 * This is not an error, but something unexpected.  If this
@@ -5455,7 +5453,12 @@ static bool		hasreuseport = false;
 
 static void
 init_hasreuseport() {
-#ifdef SO_REUSEPORT
+/*
+ * SO_REUSEPORT works very differently on *BSD and on Linux (because why not).
+ * We only want to use it on Linux, if it's available. On BSD we want to dup()
+ * sockets instead of re-binding them.
+ */
+#if defined(SO_REUSEPORT) && defined(__linux__)
 	int sock, yes = 1;
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) {
