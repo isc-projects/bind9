@@ -346,6 +346,64 @@ check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
  ***** Individual unit tests
  *****/
 
+ATF_TC(apl);
+ATF_TC_HEAD(apl, tc) {
+	atf_tc_set_md_var(tc, "descr", "APL RDATA manipulations");
+}
+ATF_TC_BODY(apl, tc) {
+	text_ok_t text_ok[] = {
+		/* empty list */
+		TEXT_VALID(""),
+		/* min,max prefix IPv4 */
+		TEXT_VALID("1:0.0.0.0/0"),
+		TEXT_VALID("1:127.0.0.1/32"),
+		/* min,max prefix IPv6 */
+		TEXT_VALID("2:::/0"),
+		TEXT_VALID("2:::1/128"),
+		/* negated */
+		TEXT_VALID("!1:0.0.0.0/0"),
+		TEXT_VALID("!1:127.0.0.1/32"),
+		TEXT_VALID("!2:::/0"),
+		TEXT_VALID("!2:::1/128"),
+		/* bits set after prefix length - not disallowed */
+		TEXT_VALID("1:127.0.0.0/0"),
+		TEXT_VALID("2:8000::/0"),
+		/* multiple */
+		TEXT_VALID("1:0.0.0.0/0 1:127.0.0.1/32"),
+		TEXT_VALID("1:0.0.0.0/0 !1:127.0.0.1/32"),
+		/* family 0, prefix 0, positive */
+		TEXT_VALID("\\# 4 00000000"),
+		/* family 0, prefix 0, negative */
+		TEXT_VALID("\\# 4 00000080"),
+		/* prefix too long */
+		TEXT_INVALID("1:0.0.0.0/33"),
+		TEXT_INVALID("2:::/129"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/* zero length */
+		WIRE_VALID(),
+		/* prefix too big IPv4 */
+		WIRE_INVALID(0x00, 0x01, 33U, 0x00),
+		/* prefix too big IPv6 */
+		WIRE_INVALID(0x00, 0x02, 129U, 0x00),
+		/* trailing zero octet in afdpart */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x01, 0x00),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(tc);
+
+	check_rdata(text_ok, wire_ok, true, dns_rdataclass_in,
+		    dns_rdatatype_apl, sizeof(dns_rdata_in_apl_t));
+}
+
 ATF_TC(atma);
 ATF_TC_HEAD(atma, tc) {
 	atf_tc_set_md_var(tc, "descr", "ATMA RDATA manipulations");
@@ -1358,6 +1416,7 @@ ATF_TC_BODY(wks, tc) {
  *****/
 
 ATF_TP_ADD_TCS(tp) {
+	ATF_TP_ADD_TC(tp, apl);
 	ATF_TP_ADD_TC(tp, atma);
 	ATF_TP_ADD_TC(tp, csync);
 	ATF_TP_ADD_TC(tp, doa);
