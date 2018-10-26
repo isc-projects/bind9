@@ -59,11 +59,21 @@ extern bool app_running;
 extern int ncpus;
 extern bool debug_mem_record;
 
+/* Run once before all tests */
+int
+dns_test_init(void **);
+
+/* Can be run before each test case */
 isc_result_t
 dns_test_begin(FILE *logfile, bool create_managers);
 
+/* Can be after each test case */
 void
 dns_test_end(void);
+
+/* Run once after all tests */
+int
+dns_test_final(void **);
 
 isc_result_t
 dns_test_makeview(const char *name, dns_view_t **viewp);

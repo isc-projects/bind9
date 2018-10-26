@@ -60,7 +60,7 @@ bool app_running = false;
 int ncpus;
 bool debug_mem_record = true;
 
-static bool hash_active = false, dst_active = false;
+static bool tests_active = false, test_running = false;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
@@ -79,16 +79,22 @@ static isc_logcategory_t categories[] = {
 
 static void
 cleanup_managers(void) {
-	if (app_running)
-		isc_app_finish();
-	if (socketmgr != NULL)
-		isc_socketmgr_destroy(&socketmgr);
-	if (maintask != NULL)
+	if (maintask != NULL) {
+		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
-	if (taskmgr != NULL)
+	}
+	if (socketmgr != NULL) {
+		isc_socketmgr_destroy(&socketmgr);
+	}
+	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
-	if (timermgr != NULL)
+	}
+	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
+	}
+	if (app_running) {
+		isc_app_finish();
+	}
 }
 
 static isc_result_t
@@ -111,29 +117,50 @@ create_managers(void) {
 	return (result);
 }
 
+int
+dns_test_init(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	if (debug_mem_record) {
+		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+	}
+
+	INSIST(mctx == NULL);
+	result = isc_mem_create(0, 0, &mctx);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	result = isc_entropy_create(mctx, &ectx);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	result = dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	result = isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	tests_active = true;
+	return (0);
+}
+
 isc_result_t
 dns_test_begin(FILE *logfile, bool start_managers) {
 	isc_result_t result;
 
-	if (start_managers)
+	INSIST(!test_running);
+	test_running = true;
+
+	if (start_managers) {
 		CHECK(isc_app_start());
-	if (debug_mem_record)
-		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	CHECK(isc_mem_create(0, 0, &mctx));
-	CHECK(isc_entropy_create(mctx, &ectx));
-
-	INSIST(!dst_active);
-	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
-	dst_active = true;
-
-	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = true;
-
+	}
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
 		isc_logconfig_t *logconfig = NULL;
 
+		INSIST(lctx == NULL);
 		CHECK(isc_log_create(mctx, &lctx, &logconfig));
+
 		isc_log_registercategories(lctx, categories);
 		isc_log_setcontext(lctx);
 		dns_log_init(lctx);
@@ -152,8 +179,9 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 
 	dns_result_register();
 
-	if (start_managers)
+	if (start_managers) {
 		CHECK(create_managers());
+	}
 
 	/*
 	 * The caller might run from another directory, so tests
@@ -173,25 +201,29 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 
 void
 dns_test_end(void) {
-	if (hash_active) {
-		isc_hash_destroy();
-		hash_active = false;
-	}
-	if (ectx != NULL)
-		isc_entropy_detach(&ectx);
-
 	cleanup_managers();
 
-	if (dst_active) {
-		dst_lib_destroy();
-		dst_active = false;
+	if (lctx != NULL) {
+		isc_log_destroy(&lctx);
 	}
 
-	if (lctx != NULL)
-		isc_log_destroy(&lctx);
+	test_running = false;
+}
 
-	if (mctx != NULL)
-		isc_mem_destroy(&mctx);
+int
+dns_test_final(void **state) {
+	UNUSED(state);
+
+	if (!tests_active) {
+		return (0);
+	}
+
+	isc_hash_destroy();
+	isc_entropy_detach(&ectx);
+	dst_lib_destroy();
+	isc_mem_destroy(&mctx);
+
+	return (0);
 }
 
 /*

@@ -18,7 +18,6 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/entropy.h>
 #include <isc/hash.h>
@@ -41,7 +40,7 @@ isc_socketmgr_t *socketmgr = NULL;
 isc_task_t *maintask = NULL;
 int ncpus;
 
-static bool hash_active = false;
+static bool hash_active = false, test_running = false;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
@@ -60,14 +59,19 @@ static isc_logcategory_t categories[] = {
 
 static void
 cleanup_managers(void) {
-	if (maintask != NULL)
+	if (maintask != NULL) {
+		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
-	if (socketmgr != NULL)
+	}
+	if (socketmgr != NULL) {
 		isc_socketmgr_destroy(&socketmgr);
-	if (taskmgr != NULL)
+	}
+	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
-	if (timermgr != NULL)
+	}
+	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
+	}
 }
 
 static isc_result_t
@@ -107,7 +111,12 @@ isc_test_begin(FILE *logfile, bool start_managers,
 {
 	isc_result_t result;
 
+	INSIST(!test_running);
+	test_running = true;
+
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+
+	INSIST(mctx == NULL);
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
@@ -118,7 +127,9 @@ isc_test_begin(FILE *logfile, bool start_managers,
 		isc_logdestination_t destination;
 		isc_logconfig_t *logconfig = NULL;
 
+		INSIST(lctx == NULL);
 		CHECK(isc_log_create(mctx, &lctx, &logconfig));
+
 		isc_log_registercategories(lctx, categories);
 		isc_log_setcontext(lctx);
 
@@ -152,23 +163,31 @@ isc_test_begin(FILE *logfile, bool start_managers,
 
 void
 isc_test_end(void) {
-	if (maintask != NULL)
+	if (maintask != NULL) {
 		isc_task_detach(&maintask);
-	if (taskmgr != NULL)
+	}
+	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
+	}
+
 	if (hash_active) {
 		isc_hash_destroy();
 		hash_active = false;
 	}
-	if (ectx != NULL)
+	if (ectx != NULL) {
 		isc_entropy_detach(&ectx);
+	}
 
 	cleanup_managers();
 
-	if (lctx != NULL)
+	if (lctx != NULL) {
 		isc_log_destroy(&lctx);
-	if (mctx != NULL)
+	}
+	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);
+	}
+
+	test_running = false;
 }
 
 /*
