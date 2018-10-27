@@ -32,9 +32,6 @@ LIBS =		@LIBS@ @ATFLIBS@
 
 CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
 CMOCKA_LIBS =	@CMOCKA_LIBS@
-ifeq ($(LD_WRAP),true)
-CMOCKA_MEM =	-Wl,--wrap=isc__mem_put,--wrap=isc__mem_get,--wrap=isc_mem_attach,--wrap=isc_mem_detach
-endif
 
 OBJS =		dnstest.@O@
 SRCS =		acl_test.c \
@@ -236,10 +233,12 @@ time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 			time_test.@O@ dnstest.@O@ ${DNSLIBS} \
 				${ISCLIBS} ${LIBS}
 
+WRAP = -Wl,--wrap=isc__mem_put,--wrap=isc__mem_get,--wrap=isc_mem_attach,--wrap=isc_mem_detach
 tkey_test@EXEEXT@: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	if test "${LD_WRAP}" = true; then wrap="${WRAP}"; fi; \
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} ${LDFLAGS} -o $@ \
 			tkey_test.@O@ ${DNSLIBS} \
-			${ISCLIBS} ${LIBS} ${CMOCKA_LIBS} ${CMOCKA_MEM}
+			${ISCLIBS} ${LIBS} ${CMOCKA_LIBS} $$wrap
 
 tsig_test@EXEEXT@: tsig_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
