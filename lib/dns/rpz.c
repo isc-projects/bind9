@@ -2125,6 +2125,14 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 	}
 	if (rpz->updaterunning) {
 		isc_task_purgeevent(rpz->rpzs->updater, &rpz->updateevent);
+		if (rpz->updbit != NULL) {
+			dns_dbiterator_destroy(&rpz->updbit);
+		}
+		if (rpz->newnodes != NULL) {
+			isc_ht_destroy(&rpz->newnodes);
+		}
+		dns_db_closeversion(rpz->updb, &rpz->updbversion, false);
+		dns_db_detach(&rpz->updb);
 	}
 
 	isc_timer_reset(rpz->updatetimer, isc_timertype_inactive,
