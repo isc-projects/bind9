@@ -39,3 +39,11 @@ zone "." {
 	type hint;
 	file "../../common/root.hint";
 };
+
+zone "fwd." IN {
+	type forward;
+	forwarders {
+		10.53.0.2;
+	};
+	forward only;
+};

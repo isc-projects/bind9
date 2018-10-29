@@ -310,5 +310,22 @@ for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "qname minimization is disabled when forwarding ($n)"
+ret=0
+$CLEANQL
+$RNDCCMD 10.53.0.7 flush
+$DIG $DIGOPTS a.bit.longer.ns.name.fwd. @10.53.0.7 > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "a.bit.longer.ns.name.fwd. 1	IN	A	10.53.0.4" dig.out.test$n >/dev/null || ret=1
+sleep 1
+cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
+NS fwd.
+ADDR a.bit.longer.ns.name.good.
+__EOF
+for ans in ans2; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

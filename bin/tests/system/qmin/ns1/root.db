@@ -30,3 +30,6 @@ ns2.slow.		A	10.53.0.2
 
 ugly.			NS	ns2.ugly.
 ns2.ugly.		A	10.53.0.2
+
+fwd.			NS	ns2.fwd.
+ns2.fwd.		A	10.53.0.2
