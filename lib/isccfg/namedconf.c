@@ -1461,7 +1461,7 @@ cfg_doc_kv_tuple(cfg_printer_t *pctx, const cfg_type_t *type) {
 	}
 }
 
-static keyword_type_t zone_kw = {"zone", &cfg_type_qstring};
+static keyword_type_t zone_kw = {"zone", &cfg_type_astring};
 static cfg_type_t cfg_type_rpz_zone = {
 	"zone", parse_keyvalue, print_keyvalue,
 	doc_keyvalue, &cfg_rep_string,
