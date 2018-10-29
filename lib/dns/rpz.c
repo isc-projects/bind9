@@ -15,6 +15,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
@@ -1802,18 +1803,30 @@ finish_update(dns_rpz_zone_t *rpz) {
 	 * If there's an update pending schedule it
 	 */
 	if (rpz->updatepending == true) {
-		uint64_t defer = rpz->min_update_interval;
-		isc_interval_t interval;
-		dns_name_format(&rpz->origin, dname,
-				DNS_NAME_FORMATSIZE);
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
-			      "rpz: %s: new zone version came "
-			      "too soon, deferring update for "
-			      "%" PRIu64 " seconds", dname, defer);
-		isc_interval_set(&interval, (unsigned int)defer, 0);
-		isc_timer_reset(rpz->updatetimer, isc_timertype_once,
-				NULL, &interval, true);
+		if (rpz->min_update_interval > 0) {
+			uint64_t defer = rpz->min_update_interval;
+			isc_interval_t interval;
+			dns_name_format(&rpz->origin, dname,
+					DNS_NAME_FORMATSIZE);
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+				      DNS_LOGMODULE_MASTER, ISC_LOG_INFO,
+				      "rpz: %s: new zone version came "
+				      "too soon, deferring update for "
+				      "%" PRIu64 " seconds", dname, defer);
+			isc_interval_set(&interval, (unsigned int)defer, 0);
+			isc_timer_reset(rpz->updatetimer, isc_timertype_once,
+					NULL, &interval, true);
+		} else {
+			isc_event_t *event;
+			INSIST(!ISC_LINK_LINKED(&rpz->updateevent, ev_link));
+			ISC_EVENT_INIT(&rpz->updateevent,
+				       sizeof(rpz->updateevent), 0, NULL,
+				       DNS_EVENT_RPZUPDATED,
+				       dns_rpz_update_taskaction,
+				       rpz, rpz, NULL, NULL);
+			event = &rpz->updateevent;
+			isc_task_send(rpz->rpzs->updater, &event);
+		}
 	}
 	UNLOCK(&rpz->rpzs->maint_lock);
 
@@ -2100,6 +2113,14 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 	}
 	if (rpz->updaterunning) {
 		isc_task_purgeevent(rpz->rpzs->updater, &rpz->updateevent);
+		if (rpz->updbit != NULL) {
+			dns_dbiterator_destroy(&rpz->updbit);
+		}
+		if (rpz->newnodes != NULL) {
+			isc_ht_destroy(&rpz->newnodes);
+		}
+		dns_db_closeversion(rpz->updb, &rpz->updbversion, false);
+		dns_db_detach(&rpz->updb);
 	}
 
 	isc_timer_reset(rpz->updatetimer, isc_timertype_inactive,
