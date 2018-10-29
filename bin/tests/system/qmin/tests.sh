@@ -117,14 +117,16 @@ $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.good. @10.53.0.6 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.good. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
 sleep 1
-cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
-NS good.
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
+ADDR a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
+ADDR ns2.good.
+ADDR ns3.good.
+ADDR ns3.good.
 NS boing.good.
+NS good.
 NS zoop.boing.good.
-ADDR ns3.good.
-ADDR ns3.good.
-ADDR a.bit.longer.ns.name.good.
-ADDR a.bit.longer.ns.name.good.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
 NS zoop.boing.good.
@@ -151,6 +153,7 @@ sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
 NS bad.
 NS boing.bad.
+ADDR ns2.bad.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -165,14 +168,16 @@ $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.bad. @10.53.0.7 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.bad. 1 IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
 sleep 1
-cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
+ADDR a.bit.longer.ns.name.bad.
+ADDR a.bit.longer.ns.name.bad.
+ADDR icky.icky.icky.ptang.zoop.boing.bad.
+ADDR ns2.bad.
+ADDR ns3.bad.
+ADDR ns3.bad.
 NS bad.
 NS boing.bad.
-ADDR icky.icky.icky.ptang.zoop.boing.bad.
-ADDR ns3.bad.
-ADDR ns3.bad.
-ADDR a.bit.longer.ns.name.bad.
-ADDR a.bit.longer.ns.name.bad.
 __EOF
 echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | diff ans3/query.log - > /dev/null || ret=1
 echo "ADDR icky.icky.icky.ptang.zoop.boing.bad." | diff ans4/query.log - > /dev/null || ret=1
@@ -188,10 +193,12 @@ $RNDCCMD 10.53.0.6 flush
 $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.ugly. @10.53.0.6 > dig.out.test$n
 grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 sleep 1
-cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
+ADDR ns2.ugly.
+NS boing.ugly.
+NS boing.ugly.
 NS ugly.
-NS boing.ugly.
-NS boing.ugly.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -207,15 +214,17 @@ $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.ugly. @10.53.0.7 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.ugly. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
 sleep 1
-cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
-NS ugly.
-NS boing.ugly.
-NS boing.ugly.
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
+ADDR a.bit.longer.ns.name.ugly.
+ADDR a.bit.longer.ns.name.ugly.
 ADDR icky.icky.icky.ptang.zoop.boing.ugly.
+ADDR ns2.ugly.
 ADDR ns3.ugly.
 ADDR ns3.ugly.
-ADDR a.bit.longer.ns.name.ugly.
-ADDR a.bit.longer.ns.name.ugly.
+NS boing.ugly.
+NS boing.ugly.
+NS ugly.
 __EOF
 echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans3/query.log - > /dev/null || ret=1
 echo "ADDR icky.icky.icky.ptang.zoop.boing.ugly." | diff ans4/query.log - > /dev/null || ret=1
@@ -233,14 +242,16 @@ $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.slow. @10.53.0.6 > dig.out.test$n
 sleep 5
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "icky.icky.icky.ptang.zoop.boing.slow. 1	IN A	192.0.2.1" dig.out.test$n > /dev/null || ret=1
-cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
-NS slow.
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
+ADDR a.bit.longer.ns.name.slow.
+ADDR a.bit.longer.ns.name.slow.
+ADDR ns2.slow.
+ADDR ns3.slow.
+ADDR ns3.slow.
 NS boing.slow.
+NS slow.
 NS zoop.boing.slow.
-ADDR ns3.slow.
-ADDR ns3.slow.
-ADDR a.bit.longer.ns.name.slow.
-ADDR a.bit.longer.ns.name.slow.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
 NS zoop.boing.slow.
@@ -265,7 +276,8 @@ $DIG $DIGOPTS -x 2001:4f8::1 @10.53.0.6 > dig.out.test$n
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa. 1 IN PTR nee.com." dig.out.test$n > /dev/null || ret=1
 sleep 1
-cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
+grep -v ADDR ans2/query.log > ans2/query.log.trimmed
+cat << __EOF | diff ans2/query.log.trimmed - > /dev/null || ret=1
 NS 1.0.0.2.ip6.arpa.
 NS 8.f.4.0.1.0.0.2.ip6.arpa.
 NS 0.0.0.0.8.f.4.0.1.0.0.2.ip6.arpa.
@@ -286,14 +298,16 @@ $DIG $DIGOPTS more.icky.icky.icky.ptang.zoop.boing.good. @10.53.0.6 > dig.out.te
 grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "more.icky.icky.icky.ptang.zoop.boing.good. 1 IN	A 192.0.2.2" dig.out.test$n > /dev/null || ret=1
 sleep 1
-cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
-NS good.
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
+ADDR a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.good.
+ADDR ns2.good.
+ADDR ns3.good.
+ADDR ns3.good.
 NS boing.good.
+NS good.
 NS zoop.boing.good.
-ADDR ns3.good.
-ADDR ns3.good.
-ADDR a.bit.longer.ns.name.good.
-ADDR a.bit.longer.ns.name.good.
 __EOF
 cat << __EOF | diff ans3/query.log - > /dev/null || ret=1
 NS zoop.boing.good.
@@ -320,8 +334,7 @@ grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
 grep "a.bit.longer.ns.name.fwd. 1	IN	A	10.53.0.4" dig.out.test$n >/dev/null || ret=1
 sleep 1
 cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
-NS fwd.
-ADDR a.bit.longer.ns.name.good.
+ADDR a.bit.longer.ns.name.fwd.
 __EOF
 for ans in ans2; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi

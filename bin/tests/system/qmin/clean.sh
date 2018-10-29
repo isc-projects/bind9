@@ -14,5 +14,5 @@ rm -f */named.memstats
 rm -f */named.run
 rm -f dig.out.*
 rm -f ns*/named.lock
-rm -f ans*/query.log
+rm -f ans*/query.log*
 rm -f query*.log
