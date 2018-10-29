@@ -15,6 +15,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #include <isc/buffer.h>
 #include <isc/mem.h>
