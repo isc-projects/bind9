@@ -120,6 +120,9 @@ def create_response(msg):
         slow = True
         suffix = "slow."
         lqname = lqname[:-5]
+    elif lqname.endswith("fwd."):
+        suffix = "fwd."
+        lqname = lqname[:-4]
     else:
         r.set_rcode(REFUSED)
         return r

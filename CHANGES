@@ -1,3 +1,6 @@
+5067.	[bug]		Don't minimize qname when sending the query
+			to a forwarder. [GL #361]
+
 5066.	[cleanup]	Allow unquoted strings to be used as a zone names
 			in response-policy statements. [GL #641]
 

@@ -311,6 +311,7 @@ struct fetchctx {
 	bool			minimized;
 	unsigned int			qmin_labels;
 	bool				ip6arpaskip;
+	bool				forwarding;
 	dns_name_t			qminname;
 	dns_rdatatype_t			qmintype;
 	dns_fetch_t *			qminfetch;
@@ -3799,6 +3800,7 @@ fctx_nextaddress(fetchctx_t *fctx) {
 		if (UNMARKED(addrinfo)) {
 			addrinfo->flags |= FCTX_ADDRINFO_MARK;
 			fctx->find = NULL;
+			fctx->forwarding = true;
 			return (addrinfo);
 		}
 	}
@@ -3806,13 +3808,13 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	/*
 	 * No forwarders.  Move to the next find.
 	 */
-
+	fctx->forwarding = false;
 	fctx->attributes |= FCTX_ATTR_TRIEDFIND;
 
 	find = fctx->find;
-	if (find == NULL)
+	if (find == NULL) {
 		find = ISC_LIST_HEAD(fctx->finds);
-	else {
+	} else {
 		find = ISC_LIST_NEXT(find, publink);
 		if (find == NULL)
 			find = ISC_LIST_HEAD(fctx->finds);
@@ -3855,9 +3857,9 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	fctx->attributes |= FCTX_ATTR_TRIEDALT;
 
 	find = fctx->altfind;
-	if (find == NULL)
+	if (find == NULL) {
 		find = ISC_LIST_HEAD(fctx->altfinds);
-	else {
+	} else {
 		find = ISC_LIST_NEXT(find, publink);
 		if (find == NULL)
 			find = ISC_LIST_HEAD(fctx->altfinds);
@@ -3947,36 +3949,12 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		return;
 	}
 
-	/*
-	 * We're minimizing and we're not yet at the final NS -
-	 * we need to launch a query for NS for 'upper' domain
-	 */
-	if (fctx->minimized) {
-		unsigned int options = fctx->options;
-		options &= ~DNS_FETCHOPT_QMINIMIZE;
-		fctx_increference(fctx);
-		task = res->buckets[bucketnum].task;
-		result = dns_resolver_createfetch(fctx->res, &fctx->qminname,
-						  fctx->qmintype, &fctx->domain,
-						  &fctx->nameservers, NULL, NULL, 0,
-						  options, 0, fctx->qc, task,
-						  resume_qmin, fctx,
-						  &fctx->qminrrset, NULL,
-						  &fctx->qminfetch);
-		if (result != ISC_R_SUCCESS) {
-			LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
-			RUNTIME_CHECK(!fctx_decreference(fctx));
-			UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
-			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
-		}
-		return;
-	}
-
 	addrinfo = fctx_nextaddress(fctx);
 
 	/* Try to find an address that isn't over quota */
-	while (addrinfo != NULL && dns_adbentry_overquota(addrinfo->entry))
+	while (addrinfo != NULL && dns_adbentry_overquota(addrinfo->entry)) {
 		addrinfo = fctx_nextaddress(fctx);
+	}
 
 	if (addrinfo == NULL) {
 		/* We have no more addresses.  Start over. */
@@ -4001,8 +3979,9 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		addrinfo = fctx_nextaddress(fctx);
 
 		while (addrinfo != NULL &&
-		       dns_adbentry_overquota(addrinfo->entry))
+		       dns_adbentry_overquota(addrinfo->entry)) {
 			addrinfo = fctx_nextaddress(fctx);
+		}
 
 		/*
 		 * While we may have addresses from the ADB, they
@@ -4012,6 +3991,30 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
 			return;
 		}
+	}
+	/*
+	 * We're minimizing and we're not yet at the final NS -
+	 * we need to launch a query for NS for 'upper' domain
+	 */
+	if (fctx->minimized && !fctx->forwarding) {
+		unsigned int options = fctx->options;
+		options &= ~DNS_FETCHOPT_QMINIMIZE;
+		fctx_increference(fctx);
+		task = res->buckets[bucketnum].task;
+		result = dns_resolver_createfetch(fctx->res, &fctx->qminname,
+						  fctx->qmintype, &fctx->domain,
+						  &fctx->nameservers, NULL, NULL, 0,
+						  options, 0, fctx->qc, task,
+						  resume_qmin, fctx,
+						  &fctx->qminrrset, NULL,
+						  &fctx->qminfetch);
+		if (result != ISC_R_SUCCESS) {
+			LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+			RUNTIME_CHECK(!fctx_decreference(fctx));
+			UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+		}
+		return;
 	}
 
 	if (dns_name_countlabels(&fctx->domain) > 2) {
@@ -4035,8 +4038,9 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		UNLOCK(&res->buckets[bucketnum].lock);
 		if (bucket_empty)
 			empty_bucket(res);
-	} else if (retrying)
+	} else if (retrying) {
 		inc_stats(res, dns_resstatscounter_retry);
+	}
 }
 
 static void
@@ -4659,6 +4663,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->depth = depth;
 	fctx->minimized = false;
 	fctx->ip6arpaskip = false;
+	fctx->forwarding = false;
 	fctx->qmin_labels = 1;
 	fctx->qminfetch = NULL;
 	dns_rdataset_init(&fctx->qminrrset);
