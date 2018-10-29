@@ -586,7 +586,7 @@ static void resquery_response(isc_task_t *task, isc_event_t *event);
 static void resquery_connected(isc_task_t *task, isc_event_t *event);
 static void fctx_try(fetchctx_t *fctx, bool retrying,
 		     bool badcache);
-void fctx_minimize_qname(fetchctx_t *fctx);
+static isc_result_t fctx_minimize_qname(fetchctx_t *fctx);
 static void fctx_destroy(fetchctx_t *fctx);
 static bool fctx_unlink(fetchctx_t *fctx);
 static isc_result_t ncache_adderesult(dns_message_t *message,
@@ -4142,7 +4142,13 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	}
 	fctx->ns_ttl = fctx->nameservers.ttl;
 	fctx->ns_ttl_ok = true;
-	fctx_minimize_qname(fctx);
+
+	result = fctx_minimize_qname(fctx);
+	if (result != ISC_R_SUCCESS) {
+		fctx_done(fctx, result, __LINE__);
+		goto cleanup;
+	}
+
 	if (!fctx->minimized) {
 		/*
 		 * We have finished minimizing, but fctx->finds was filled at
@@ -4152,6 +4158,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 		fctx_cancelqueries(fctx, false, false);
 		fctx_cleanupall(fctx);
 	}
+
 	fctx_try(fctx, true, false);
 
  cleanup:
@@ -4903,7 +4910,10 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 		fctx->ip6arpaskip =
 			(options & DNS_FETCHOPT_QMIN_SKIP_IP6A) != 0 &&
 			 dns_name_issubdomain(&fctx->name, &ip6_arpa);
-		fctx_minimize_qname(fctx);
+		result = fctx_minimize_qname(fctx);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup_mctx;
+		}
 	}
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
@@ -4916,6 +4926,13 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	*fctxp = fctx;
 
 	return (ISC_R_SUCCESS);
+
+ cleanup_mctx:
+	fctx->magic = 0;
+	isc_mem_detach(&fctx->mctx);
+	dns_adb_detach(&fctx->adb);
+	dns_db_detach(&fctx->cache);
+	isc_timer_detach(&fctx->timer);
 
  cleanup_rmessage:
 	dns_message_destroy(&fctx->rmessage);
@@ -10329,19 +10346,24 @@ log_fetch(const dns_name_t *name, dns_rdatatype_t type) {
 		      "fetch: %s/%s", namebuf, typebuf);
 }
 
-void
+static isc_result_t
 fctx_minimize_qname(fetchctx_t *fctx) {
+	isc_result_t result;
 	unsigned int dlabels, nlabels;
+
+	REQUIRE(VALID_FCTX(fctx));
 
 	dlabels = dns_name_countlabels(&fctx->qmindcname);
 	nlabels = dns_name_countlabels(&fctx->name);
 	dns_name_free(&fctx->qminname, fctx->mctx);
 	dns_name_init(&fctx->qminname, NULL);
+
 	if (dlabels > fctx->qmin_labels) {
-		fctx->qmin_labels = dlabels+1;
+		fctx->qmin_labels = dlabels + 1;
 	} else {
 		fctx->qmin_labels++;
 	}
+
 	if (fctx->ip6arpaskip) {
 		/*
 		 * For ip6.arpa we want to skip some of the labels, with
@@ -10366,6 +10388,7 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 	} else if (fctx->qmin_labels > DNS_QMIN_MAXLABELS) {
 		fctx->qmin_labels = DNS_MAX_LABELS + 1;
 	}
+
 	if (fctx->qmin_labels < nlabels) {
 		/*
 		 * We want to query for qmin_labels from fctx->name
@@ -10375,16 +10398,18 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		dns_name_split(&fctx->name,
 			       fctx->qmin_labels,
 			       NULL, dns_fixedname_name(&fname));
-		dns_name_dup(dns_fixedname_name(&fname), fctx->mctx,
-			     &fctx->qminname);
+		result = dns_name_dup(dns_fixedname_name(&fname), fctx->mctx,
+				      &fctx->qminname);
 		fctx->qmintype = dns_rdatatype_ns;
 		fctx->minimized = true;
 	} else {
 		/* Minimization is done, we'll ask for whole qname */
 		fctx->qmintype = fctx->type;
-		dns_name_dup(&fctx->name, fctx->mctx, &fctx->qminname);
+		result = dns_name_dup(&fctx->name, fctx->mctx, &fctx->qminname);
 		fctx->minimized = false;
 	}
+
+	return (result);
 }
 
 isc_result_t
