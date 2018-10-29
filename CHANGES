@@ -1,5 +1,8 @@
-5063.	[test]		In statschannel test try a few times before failing when
-			checking if the compressed output is the same as
+5064.	[test]		Initalize TZ environment variable before calling
+			dns_test_begin in dnstap_test. [GL #624]
+
+5063.	[test]		In statschannel test try a few times before failing
+			when checking if the compressed output is the same as
 			uncompressed. [GL !909]
 
 5062.	[func]		Use non-crypto-secure PRNG to generate nonces for

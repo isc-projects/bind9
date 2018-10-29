@@ -297,6 +297,9 @@ ATF_TC_BODY(totext, tc) {
 
 	UNUSED(tc);
 
+	/* make sure text conversion gets the right local time */
+	setenv("TZ", "PST8", 1);
+
 	result = dns_test_begin(NULL, true);
 	ATF_REQUIRE(result == ISC_R_SUCCESS);
 
@@ -305,9 +308,6 @@ ATF_TC_BODY(totext, tc) {
 
 	result = isc_stdio_open(TAPTEXT, "r", &fp);
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	/* make sure text conversion gets the right local time */
-	setenv("TZ", "PST8", 1);
 
 	while (dns_dt_getframe(handle, &data, &dsize) == ISC_R_SUCCESS) {
 		dns_dtdata_t *dtdata = NULL;
