@@ -1,3 +1,5 @@
+5065.	[bug]		Only set IPV6_USE_MIN_MTU on IPv6. [GL #553]
+
 5064.	[test]		Initalize TZ environment variable before calling
 			dns_test_begin in dnstap_test. [GL #624]
 
