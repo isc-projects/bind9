@@ -1574,7 +1574,7 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 #endif
 
 #if defined(IPV6_USE_MIN_MTU)
-	if ((sock->type == isc_sockettype_udp) &&
+	if ((sock->type == isc_sockettype_udp) && (sock->pf == AF_INET6) &&
 	    ((dev->attributes & ISC_SOCKEVENTATTR_USEMINMTU) != 0))
 	{
 		int use_min_mtu = 1;	/* -1, 0, 1 */
