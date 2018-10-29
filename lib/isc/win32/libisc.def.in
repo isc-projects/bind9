@@ -84,13 +84,9 @@ isc_socket_open
 isc_socket_permunix
 isc_socket_recv
 isc_socket_recv2
-isc_socket_recvv
 isc_socket_send
 isc_socket_sendto
 isc_socket_sendto2
-isc_socket_sendtov
-isc_socket_sendtov2
-isc_socket_sendv
 isc_socket_setname
 isc_socketmgr_create
 isc_socketmgr_create2
