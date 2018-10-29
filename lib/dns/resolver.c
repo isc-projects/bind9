@@ -3812,9 +3812,9 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	fctx->attributes |= FCTX_ATTR_TRIEDFIND;
 
 	find = fctx->find;
-	if (find == NULL)
+	if (find == NULL) {
 		find = ISC_LIST_HEAD(fctx->finds);
-	else {
+	} else {
 		find = ISC_LIST_NEXT(find, publink);
 		if (find == NULL)
 			find = ISC_LIST_HEAD(fctx->finds);
@@ -3857,9 +3857,9 @@ fctx_nextaddress(fetchctx_t *fctx) {
 	fctx->attributes |= FCTX_ATTR_TRIEDALT;
 
 	find = fctx->altfind;
-	if (find == NULL)
+	if (find == NULL) {
 		find = ISC_LIST_HEAD(fctx->altfinds);
-	else {
+	} else {
 		find = ISC_LIST_NEXT(find, publink);
 		if (find == NULL)
 			find = ISC_LIST_HEAD(fctx->altfinds);
@@ -3952,8 +3952,9 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	addrinfo = fctx_nextaddress(fctx);
 
 	/* Try to find an address that isn't over quota */
-	while (addrinfo != NULL && dns_adbentry_overquota(addrinfo->entry))
+	while (addrinfo != NULL && dns_adbentry_overquota(addrinfo->entry)) {
 		addrinfo = fctx_nextaddress(fctx);
+	}
 
 	if (addrinfo == NULL) {
 		/* We have no more addresses.  Start over. */
@@ -3978,8 +3979,9 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		addrinfo = fctx_nextaddress(fctx);
 
 		while (addrinfo != NULL &&
-		       dns_adbentry_overquota(addrinfo->entry))
+		       dns_adbentry_overquota(addrinfo->entry)) {
 			addrinfo = fctx_nextaddress(fctx);
+		}
 
 		/*
 		 * While we may have addresses from the ADB, they
@@ -4036,8 +4038,9 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		UNLOCK(&res->buckets[bucketnum].lock);
 		if (bucket_empty)
 			empty_bucket(res);
-	} else if (retrying)
+	} else if (retrying) {
 		inc_stats(res, dns_resstatscounter_retry);
+	}
 }
 
 static void
