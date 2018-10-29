@@ -2359,8 +2359,7 @@ validate(ns_client_t *client, dns_db_t *db, dns_name_t *name,
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(sigrdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
-		if (result != ISC_R_SUCCESS)
-			return (false);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if (!dns_resolver_algorithm_supported(client->view->resolver,
 						      name, rrsig.algorithm))
 			continue;
@@ -4207,14 +4206,9 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 
 			dns_rdataset_current(st->r.ns_rdataset, &nsrdata);
 			result = dns_rdata_tostruct(&nsrdata, &ns, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			dns_rdata_reset(&nsrdata);
-			if (result != ISC_R_SUCCESS) {
-				rpz_log_fail(client, DNS_RPZ_ERROR_LEVEL,
-					     nsname, DNS_RPZ_TYPE_NSIP,
-					     " rdata_tostruct()", result);
-				st->m.policy = DNS_RPZ_POLICY_ERROR;
-				goto cleanup;
-			}
+
 			/*
 			 * Do nothing about "NS ."
 			 */
@@ -4557,7 +4551,8 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		result = dns_rdataset_first(rdataset);
 		INSIST(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
-		dns_rdata_tostruct(&rdata, &nsec3, NULL);
+		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdata_reset(&rdata);
 		optout = (nsec3.flags & DNS_NSEC3FLAG_OPTOUT);
 		if (found != NULL && optout &&
@@ -8453,6 +8448,7 @@ query_addnxrrsetnsec(query_ctx_t *qctx) {
 	unsigned int labels;
 	isc_buffer_t *dbuf, b;
 	dns_name_t *fname;
+	isc_result_t result;
 
 	INSIST(qctx->fname != NULL);
 
@@ -8475,9 +8471,8 @@ query_addnxrrsetnsec(query_ctx_t *qctx) {
 
 	dns_rdata_init(&sigrdata);
 	dns_rdataset_current(qctx->sigrdataset, &sigrdata);
-	if (dns_rdata_tostruct(&sigrdata, &sig, NULL) != ISC_R_SUCCESS) {
-		return;
-	}
+	result = dns_rdata_tostruct(&sigrdata, &sig, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	labels = dns_name_countlabels(qctx->fname);
 	if ((unsigned int)sig.labels + 1 >= labels) {
@@ -8693,7 +8688,8 @@ query_synthttl(dns_rdataset_t *soardataset, dns_rdataset_t *sigsoardataset,
 	result = dns_rdataset_first(soardataset);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdataset_current(soardataset, &rdata);
-	dns_rdata_tostruct(&rdata, &soa, NULL);
+	result = dns_rdata_tostruct(&rdata, &soa, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	ttl = ISC_MIN(soa.minimum, soardataset->ttl);
 	ttl = ISC_MIN(ttl, sigsoardataset->ttl);
@@ -8905,11 +8901,8 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 
 	dns_rdataset_current(rdataset, &rdata);
 	result = dns_rdata_tostruct(&rdata, &cname, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		return (result);
-	}
 
 	dns_name_init(tname, NULL);
 	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
@@ -9510,11 +9503,8 @@ query_cname(query_ctx_t *qctx) {
 
 	dns_rdataset_current(trdataset, &rdata);
 	result = dns_rdata_tostruct(&rdata, &cname, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		return (query_done(qctx));
-	}
 
 	dns_name_init(tname, NULL);
 	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
@@ -9611,11 +9601,8 @@ query_dname(query_ctx_t *qctx) {
 
 	dns_rdataset_current(trdataset, &rdata);
 	result = dns_rdata_tostruct(&rdata, &dname, NULL);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		return (query_done(qctx));
-	}
 
 	dns_name_clone(&dname.dname, tname);
 	dns_rdata_freestruct(&dname);
@@ -9903,8 +9890,7 @@ query_addsoa(query_ctx_t *qctx, unsigned int override_ttl,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &soa, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		if (override_ttl != UINT32_MAX &&
 		    override_ttl < rdataset->ttl)
@@ -10478,8 +10464,7 @@ query_addwildcardproof(query_ctx_t *qctx, bool ispositive,
 		if (result == ISC_R_SUCCESS) {
 			dns_rdataset_current(rdataset, &rdata);
 			result = dns_rdata_tostruct(&rdata, &nsec, NULL);
-		}
-		if (result == ISC_R_SUCCESS) {
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			(void)dns_name_fullcompare(name, fname, &order,
 						   &olabels);
 			(void)dns_name_fullcompare(name, &nsec.next, &order,
