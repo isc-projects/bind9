@@ -1,3 +1,6 @@
+5064.	[test]		Initalize TZ environment variable before calling
+			dns_test_begin in dnstap_test. [GL #624]
+
 5061.	[protocol]	Add support for EID and NIMLOC. [GL #626]
 
 5060.	[bug]		GID, UID and UINFO could not be loaded using unknown
