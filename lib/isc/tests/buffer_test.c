@@ -10,16 +10,20 @@
  */
 
 #include <config.h>
+
+#include <limits.h>
+#include <stdbool.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <fcntl.h>
+#include <string.h>
 
 #include <atf-c.h>
 
 #include "isctest.h"
 
 #include <isc/buffer.h>
+#include <isc/region.h>
 #include <isc/result.h>
+#include <isc/types.h>
 
 ATF_TC(isc_buffer_reserve);
 ATF_TC_HEAD(isc_buffer_reserve, tc) {
@@ -192,6 +196,51 @@ ATF_TC_BODY(isc_buffer_dynamic, tc) {
 	isc_test_end();
 }
 
+ATF_TC(isc_buffer_copyregion);
+ATF_TC_HEAD(isc_buffer_copyregion, tc) {
+	atf_tc_set_md_var(tc, "descr", "copy a region into a buffer");
+}
+
+ATF_TC_BODY(isc_buffer_copyregion, tc) {
+	unsigned char data[] = { 0x11, 0x22, 0x33, 0x44 };
+	isc_buffer_t *b = NULL;
+	isc_result_t result;
+
+	isc_region_t r = {
+		.base = data,
+		.length = sizeof(data),
+	};
+
+	result = isc_test_begin(NULL, true, 0);
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	result = isc_buffer_allocate(mctx, &b, sizeof(data));
+	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+
+	/*
+	 * Fill originally allocated buffer space.
+	 */
+	result = isc_buffer_copyregion(b, &r);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+
+	/*
+	 * Appending more data to the buffer should fail.
+	 */
+	result = isc_buffer_copyregion(b, &r);
+	ATF_CHECK_EQ(result, ISC_R_NOSPACE);
+
+	/*
+	 * Enable auto reallocation and retry.  Appending should now succeed.
+	 */
+	isc_buffer_setautorealloc(b, true);
+	result = isc_buffer_copyregion(b, &r);
+	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+
+	isc_buffer_free(&b);
+
+	isc_test_end();
+}
+
 /*
  * Main
  */
@@ -199,5 +248,6 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, isc_buffer_reserve);
 	ATF_TP_ADD_TC(tp, isc_buffer_reallocate);
 	ATF_TP_ADD_TC(tp, isc_buffer_dynamic);
+	ATF_TP_ADD_TC(tp, isc_buffer_copyregion);
 	return (atf_no_error());
 }
