@@ -16,8 +16,6 @@
 
 #pragma once
 
-#include <config.h>
-
 #include <isc/lang.h>
 #include <isc/platform.h>
 #include <isc/types.h>
