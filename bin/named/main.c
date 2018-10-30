@@ -1335,9 +1335,6 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		named_main_earlyfatal("program name too long");
 
-	if (result != ISC_R_SUCCESS)
-		named_main_earlyfatal("failed to build internal symbol table");
-
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
 	isc_error_setunexpected(library_unexpected_error);
