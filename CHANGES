@@ -1,3 +1,6 @@
+5073.	[bug]		Destroy a task first when destroying rpzs and catzs.
+			[GL #84]
+
 5072.	[bug]		Add unit tests for isc_buffer_copyregion() and fix its
 			behavior for auto-reallocated buffers. [GL #644]
 
