@@ -13,8 +13,6 @@
 
 /*! \file isc/strerr.h */
 
-#include <config.h>
-
 #include <string.h>
 
 #if defined(strerror_r)
