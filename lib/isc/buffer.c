@@ -514,27 +514,24 @@ isc_buffer_dup(isc_mem_t *mctx, isc_buffer_t **dstp, const isc_buffer_t *src) {
 
 isc_result_t
 isc_buffer_copyregion(isc_buffer_t *b, const isc_region_t *r) {
-	unsigned char *base;
-	unsigned int available;
 	isc_result_t result;
 
 	REQUIRE(ISC_BUFFER_VALID(b));
 	REQUIRE(r != NULL);
 
-	/*
-	 * XXXDCL
-	 */
-	base = isc_buffer_used(b);
-	available = isc_buffer_availablelength(b);
 	if (ISC_UNLIKELY(b->autore)) {
 		result = isc_buffer_reserve(&b, r->length);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	}
-	if (r->length > available)
+
+	if (r->length > isc_buffer_availablelength(b)) {
 		return (ISC_R_NOSPACE);
+	}
+
 	if (r->length > 0U) {
-		memmove(base, r->base, r->length);
+		memmove(isc_buffer_used(b), r->base, r->length);
 		b->used += r->length;
 	}
 
