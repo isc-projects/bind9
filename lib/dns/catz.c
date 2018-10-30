@@ -795,7 +795,7 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 	*catzsp = NULL;
 
 	if (isc_refcount_decrement(&catzs->refs) == 1) {
-		isc_refcount_destroy(&catzs->refs);
+		isc_task_destroy(&catzs->updater);
 		DESTROYLOCK(&catzs->lock);
 		if (catzs->zones != NULL) {
 			isc_ht_iter_t *iter = NULL;
@@ -815,7 +815,7 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 			INSIST(isc_ht_count(catzs->zones) == 0);
 			isc_ht_destroy(&catzs->zones);
 		}
-		isc_task_destroy(&catzs->updater);
+		isc_refcount_destroy(&catzs->refs);
 		isc_mem_putanddetach(&catzs->mctx, catzs, sizeof(*catzs));
 	}
 }

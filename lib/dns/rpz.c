@@ -2148,7 +2148,12 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 	*rpzsp = NULL;
 
 	if (isc_refcount_decrement(&rpzs->refs) == 1) {
-		isc_refcount_destroy(&rpzs->refs);
+		/*
+		 * Destroy the task first, so that nothing runs
+		 * in the background that might race with us.
+		 */
+		isc_task_destroy(&rpzs->updater);
+
 		/*
 		 * Forget the last of view's rpz machinery after
 		 * the last reference.
@@ -2178,7 +2183,7 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 		}
 		DESTROYLOCK(&rpzs->maint_lock);
 		isc_rwlock_destroy(&rpzs->search_lock);
-		isc_task_destroy(&rpzs->updater);
+		isc_refcount_destroy(&rpzs->refs);
 		isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));
 	}
 }
