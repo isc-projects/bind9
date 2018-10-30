@@ -729,6 +729,19 @@ do
     }
     try=`expr $try + 1`
 done
+if [ $ret = 0 ]; then
+	ret=1
+	try=0
+	while test $try -lt 45
+	do
+	    sleep 1
+	    sed -n "$cur,"'$p' < ns2/named.run | grep "transfer of 'dom8.example/IN' from 10.53.0.1#${PORT}: Transfer status: success" > /dev/null && {
+		ret=0
+		break
+	    }
+	    try=`expr $try + 1`
+	done
+fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
