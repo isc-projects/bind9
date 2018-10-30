@@ -482,7 +482,7 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	 * Parse input string, determining result.
 	 */
 	result = dns_rdata_fromtext(rdata, rdclass, rdtype, lex, dns_rootname,
-				    0, NULL, &target, NULL);
+				    0, mctx, &target, NULL);
 
  destroy_lexer:
 	isc_lex_destroy(&lex);

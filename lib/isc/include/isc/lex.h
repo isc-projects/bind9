@@ -306,7 +306,8 @@ isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
  * Get the next token from a DNS master file type stream.  This is a
  * convenience function that sets appropriate options and handles quoted
  * strings and end of line correctly for master files.  It also ungets
- * unexpected tokens.
+ * unexpected tokens.  If `eol` is set then expect end-of-line otherwise
+ * eol is a error.
  *
  * Requires:
  *\li	'lex' is a valid lexer.
@@ -324,6 +325,7 @@ isc_lex_getoctaltoken(isc_lex_t *lex, isc_token_t *token, bool eol);
  * Get the next token from a DNS master file type stream.  This is a
  * convenience function that sets appropriate options and handles end
  * of line correctly for master files.  It also ungets unexpected tokens.
+ * If `eol` is set then expect end-of-line otherwise eol is a error.
  *
  * Requires:
  *\li	'lex' is a valid lexer.
