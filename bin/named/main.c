@@ -1423,9 +1423,6 @@ main(int argc, char *argv[]) {
 	if (strcmp(program_name, "lwresd") == 0)
 		ns_g_lwresdonly = true;
 
-	if (result != ISC_R_SUCCESS)
-		ns_main_earlyfatal("failed to build internal symbol table");
-
 	isc_assertion_setcallback(assertion_failed);
 	isc_error_setfatal(library_fatal_error);
 	isc_error_setunexpected(library_unexpected_error);
