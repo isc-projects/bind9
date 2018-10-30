@@ -285,10 +285,11 @@ dns_zt_asyncload2(dns_zt_t *zt, dns_zt_allloaded_t alldone, void *arg,
 {
 	isc_result_t result;
 	struct zt_load_params params;
+	int pending;
+
 	params.dl = doneloading;
 	params.newonly = newonly;
 	params.zt = zt;
-	int pending;
 
 	REQUIRE(VALID_ZT(zt));
 
