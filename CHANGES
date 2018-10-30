@@ -1,3 +1,6 @@
+5072.	[bug]		Add unit tests for isc_buffer_copyregion() and fix its
+			behavior for auto-reallocated buffers. [GL #644]
+
 5071.	[bug]		Comparision of NXT records was broken. [GL #631]
 
 5070.	[bug]		Record types which support a empty rdata field were
