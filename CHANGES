@@ -3,6 +3,12 @@
 5070.	[bug]		Record types which support a empty rdata field were
 			not handling the empty rdata field case. [GL #638]
 
+5069.	[bug]		Fix a hang on in RPZ when named is shutdown during RPZ
+			zone update. [GL !907]
+
+5068.	[bug]		Fix a race in RPZ with min-update-interval set to 0.
+			[GL #643]
+
 5066.	[cleanup]	Allow unquoted strings to be used as a zone names
 			in response-policy statements. [GL #641]
 
