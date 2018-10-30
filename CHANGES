@@ -1,3 +1,8 @@
+5074.	[cleanup]	Remove vector socket functions - isc_socket_recvv(),
+			isc_socket_sendtov(), isc_socket_sendtov2(),
+			isc_socket_sendv() - in order to simplify socket code.
+			[GL #645]
+
 5073.	[bug]		Destroy a task first when destroying rpzs and catzs.
 			[GL #84]
 
