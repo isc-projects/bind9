@@ -30,6 +30,16 @@
 /*****
  ***** Commonly used structures
  *****/
+/*
+ * An array of these structures is passed to compare_ok().
+ */
+struct compare_ok {
+	const char *text1;		/* text passed to fromtext_*() */
+	const char *text2;		/* text passed to fromtext_*() */
+	int answer;			/* -1, 0, 1 */
+	int lineno;			/* source line defining this RDATA */
+};
+typedef struct compare_ok compare_ok_t;
 
 /*
  * An array of these structures is passed to check_text_ok().
@@ -56,6 +66,11 @@ typedef struct wire_ok wire_ok_t;
 /*****
  ***** Convenience macros for creating the above structures
  *****/
+
+#define COMPARE(r1, r2, answer) \
+	{ r1, r2, answer, __LINE__ }
+#define COMPARE_SENTINEL() \
+	{ NULL, NULL, 0, __LINE__ }
 
 #define TEXT_VALID_CHANGED(data_in, data_out) \
 				{ data_in, data_out, __LINE__ }
@@ -311,6 +326,78 @@ check_wire_ok(const wire_ok_t *wire_ok, bool empty_ok,
 }
 
 /*
+ * Check that two records compare as expected with dns_rdata_compare().
+ */
+static void
+check_compare_ok_single(const compare_ok_t *compare_ok,
+			dns_rdataclass_t rdclass, dns_rdatatype_t type)
+{
+	dns_rdata_t rdata1 = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT;
+	unsigned char buf1[1024], buf2[1024];
+	isc_result_t result;
+	int answer;
+
+	result = dns_test_rdatafromstring(&rdata1, rdclass, type,
+					  buf1, sizeof(buf1),
+					  compare_ok->text1);
+
+	ATF_REQUIRE_EQ_MSG(result, ISC_R_SUCCESS, "line %d: '%s': "
+			   "expected success, got failure",
+			   compare_ok->lineno, compare_ok->text1);
+
+	result = dns_test_rdatafromstring(&rdata2, rdclass, type,
+					  buf2, sizeof(buf2),
+					  compare_ok->text2);
+
+	ATF_REQUIRE_EQ_MSG(result, ISC_R_SUCCESS, "line %d: '%s': "
+			   "expected success, got failure",
+			   compare_ok->lineno, compare_ok->text2);
+
+	answer = dns_rdata_compare(&rdata1, &rdata2);
+	if (compare_ok->answer == 0) {
+		ATF_REQUIRE_MSG(answer == 0,
+				"line %d: dns_rdata_compare('%s', '%s'): "
+				"expected equal, got %s",
+				compare_ok->lineno,
+				compare_ok->text1, compare_ok->text2,
+				(answer > 0) ? "greater than" : "less than");
+	}
+	if (compare_ok->answer < 0) {
+		ATF_REQUIRE_MSG(answer < 0,
+				"line %d: dns_rdata_compare('%s', '%s'): "
+				"expected less than, got %s",
+				compare_ok->lineno,
+				compare_ok->text1, compare_ok->text2,
+				(answer == 0) ? "equal" : "greater than");
+	}
+	if (compare_ok->answer > 0) {
+		ATF_REQUIRE_MSG(answer > 0,
+				"line %d: dns_rdata_compare('%s', '%s'): "
+				"expected greater than, got %s",
+				compare_ok->lineno,
+				compare_ok->text1, compare_ok->text2,
+				(answer == 0) ? "equal" : "less than");
+	}
+}
+
+/*
+ * Check that all the records sets in compare_ok compare as expected
+ * with dns_rdata_compare().
+ */
+static void
+check_compare_ok(const compare_ok_t *compare_ok,
+		 dns_rdataclass_t rdclass, dns_rdatatype_t type)
+{
+	size_t i;
+	/*
+	 * Check all entries in the supplied array.
+	 */
+	for (i = 0; compare_ok[i].text1 != NULL; i++) {
+		check_compare_ok_single(&compare_ok[i], rdclass, type);
+	}
+}
+
+/*
  * Test whether supplied sets of text form and/or wire form RDATA are handled
  * as expected.  This is just a helper function which should be the only
  * function called for a test case using it, due to the use of dns_test_begin()
@@ -324,6 +411,7 @@ check_wire_ok(const wire_ok_t *wire_ok, bool empty_ok,
  */
 static void
 check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
+	    const compare_ok_t *compare_ok,
 	    bool empty_ok, dns_rdataclass_t rdclass,
 	    dns_rdatatype_t type, size_t structsize)
 {
@@ -337,6 +425,9 @@ check_rdata(const text_ok_t *text_ok, const wire_ok_t *wire_ok,
 	}
 	if (wire_ok != NULL) {
 		check_wire_ok(wire_ok, empty_ok, rdclass, type, structsize);
+	}
+	if (compare_ok != NULL) {
+		check_compare_ok(compare_ok, rdclass, type);
 	}
 
 	dns_test_end();
@@ -400,7 +491,7 @@ ATF_TC_BODY(apl, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, true, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, true, dns_rdataclass_in,
 		    dns_rdatatype_apl, sizeof(dns_rdata_in_apl_t));
 }
 
@@ -475,7 +566,7 @@ ATF_TC_BODY(atma, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_atma, sizeof(dns_rdata_in_atma_t));
 }
 
@@ -606,7 +697,7 @@ ATF_TC_BODY(csync, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_csync, sizeof(dns_rdata_csync_t));
 }
 
@@ -824,7 +915,7 @@ ATF_TC_BODY(doa, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_doa, sizeof(dns_rdata_doa_t));
 }
 
@@ -990,7 +1081,7 @@ ATF_TC_BODY(edns_client_subnet, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(NULL, wire_ok, true, dns_rdataclass_in,
+	check_rdata(NULL, wire_ok, NULL, true, dns_rdataclass_in,
 		    dns_rdatatype_opt, sizeof(dns_rdata_opt_t));
 }
 
@@ -1031,7 +1122,7 @@ ATF_TC_BODY(eid, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_eid, sizeof(dns_rdata_in_eid_t));
 }
 
@@ -1173,7 +1264,7 @@ ATF_TC_BODY(isdn, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(NULL, wire_ok, false, dns_rdataclass_in,
+	check_rdata(NULL, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_isdn, sizeof(dns_rdata_isdn_t));
 }
 
@@ -1214,7 +1305,7 @@ ATF_TC_BODY(nimloc, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_nimloc, sizeof(dns_rdata_in_nimloc_t));
 }
 
@@ -1305,7 +1396,7 @@ ATF_TC_BODY(nsec, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_nsec, sizeof(dns_rdata_nsec_t));
 }
 
@@ -1334,8 +1425,41 @@ ATF_TC_BODY(nsec3, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, NULL, false, dns_rdataclass_in,
+	check_rdata(text_ok, NULL, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_nsec3, sizeof(dns_rdata_nsec3_t));
+}
+
+/*
+ * NXT Tests.
+ */
+ATF_TC(nxt);
+ATF_TC_HEAD(nxt, tc) {
+	atf_tc_set_md_var(tc, "descr", "NXT RDATA manipulations");
+}
+ATF_TC_BODY(nxt, tc) {
+	compare_ok_t compare_ok[] = {
+		COMPARE("a. A SIG", "a. A SIG", 0),
+		/*
+		 * Records that differ only in the case of the next
+		 * name should be equal.
+		 */
+		COMPARE("A. A SIG", "a. A SIG", 0),
+		/*
+		 * Sorting on name field.
+		 */
+		COMPARE("A. A SIG", "b. A SIG", -1),
+		COMPARE("b. A SIG", "A. A SIG", 1),
+		/* bit map differs */
+		COMPARE("b. A SIG", "b. A AAAA SIG", -1),
+		/* order of bit map does not matter */
+		COMPARE("b. A SIG AAAA", "b. A AAAA SIG", 0),
+		COMPARE_SENTINEL()
+	};
+
+	UNUSED(tc);
+
+	check_rdata(NULL, NULL, compare_ok, false, dns_rdataclass_in,
+		    dns_rdatatype_nxt, sizeof(dns_rdata_nxt_t));
 }
 
 /*
@@ -1421,7 +1545,7 @@ ATF_TC_BODY(wks, tc) {
 
 	UNUSED(tc);
 
-	check_rdata(text_ok, wire_ok, false, dns_rdataclass_in,
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
 		    dns_rdatatype_wks, sizeof(dns_rdata_in_wks_t));
 }
 
@@ -1441,6 +1565,7 @@ ATF_TP_ADD_TCS(tp) {
 	ATF_TP_ADD_TC(tp, nimloc);
 	ATF_TP_ADD_TC(tp, nsec);
 	ATF_TP_ADD_TC(tp, nsec3);
+	ATF_TP_ADD_TC(tp, nxt);
 	ATF_TP_ADD_TC(tp, wks);
 
 	return (atf_no_error());

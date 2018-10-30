@@ -185,6 +185,9 @@ compare_nxt(ARGS_COMPARE) {
 	if (order != 0)
 		return (order);
 
+	isc_region_consume(&r1, name_length(&name1));
+	isc_region_consume(&r2, name_length(&name2));
+
 	return (isc_region_compare(&r1, &r2));
 }
 
