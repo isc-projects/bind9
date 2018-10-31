@@ -44,39 +44,42 @@ $SIG{TERM} = \&rmpid;
 
 sub handleUDP {
 	my ($buf) = @_;
-	my $packet;
+	my $request;
 
 	if ($Net::DNS::VERSION > 0.68) {
-		$packet = new Net::DNS::Packet(\$buf, 0);
+		$request = new Net::DNS::Packet(\$buf, 0);
 		$@ and die $@;
 	} else {
 		my $err;
-		($packet, $err) = new Net::DNS::Packet(\$buf, 0);
+		($request, $err) = new Net::DNS::Packet(\$buf, 0);
 		$err and die $err;
 	}
 
-	my @questions = $packet->question;
+	my @questions = $request->question;
 	my $qname = $questions[0]->qname;
 	my $qtype = $questions[0]->qtype;
 	my $qclass = $questions[0]->qclass;
-	my $id = $packet->header->id;
+	my $id = $request->header->id;
 
-	$packet->header->qr(1);
-	$packet->header->aa(1);
-	$packet->header->tc(0);
+	my $response = new Net::DNS::Packet($qname, $qtype, $qclass);
+	$response->header->qr(1);
+	$response->header->aa(1);
+	$response->header->tc(0);
+	$response->header->id($id);
 
 	# Responses to queries for no-questions/NS and ns.no-questions/A are
 	# _not_ malformed or truncated.
 	if ($qname eq "no-questions" && $qtype eq "NS") {
-		$packet->push("answer", new Net::DNS::RR($qname . " 300 NS ns.no-questions"));
-		$packet->push("additional", new Net::DNS::RR("ns.no-questions. 300 A 10.53.0.8"));
-		return $packet->data;
+		$response->push("answer", new Net::DNS::RR($qname . " 300 NS ns.no-questions"));
+		$response->push("additional", new Net::DNS::RR("ns.no-questions. 300 A 10.53.0.8"));
+		return $response->data;
 	} elsif ($qname eq "ns.no-questions") {
-		$packet->push("answer", new Net::DNS::RR($qname . " 300 A 10.53.0.8"));
-		return $packet->data;
+		$response->push("answer", new Net::DNS::RR($qname . " 300 A 10.53.0.8"))
+			if ($qtype eq "A");
+		return $response->data;
 	} elsif ($qname =~ /\.formerr-to-all$/) {
-		$packet->header->rcode("FORMERR");
-		return $packet->data;
+		$response->header->rcode("FORMERR");
+		return $response->data;
 	}
 
 	# don't use Net::DNS to construct the header only reply as early
@@ -110,14 +113,14 @@ sub handleTCP {
 	my $id = $request->header->id;
 
 	my @results = ();
-	my $packet = new Net::DNS::Packet($qname, $qtype, $qclass);
+	my $response = new Net::DNS::Packet($qname, $qtype, $qclass);
 
-	$packet->header->qr(1);
-	$packet->header->aa(1);
-	$packet->header->id($id);
+	$response->header->qr(1);
+	$response->header->aa(1);
+	$response->header->id($id);
 
-	$packet->push("answer", new Net::DNS::RR("$qname 300 A 1.2.3.4"));
-	push(@results, $packet->data);
+	$response->push("answer", new Net::DNS::RR("$qname 300 A 1.2.3.4"));
+	push(@results, $response->data);
 
 	return \@results;
 }
