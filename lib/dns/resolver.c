@@ -4143,6 +4143,15 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	fctx->ns_ttl = fctx->nameservers.ttl;
 	fctx->ns_ttl_ok = true;
 	fctx_minimize_qname(fctx);
+	if (!fctx->minimized) {
+		/*
+		 * We have finished minimizing, but fctx->finds was filled at
+		 * the beginning of the run - now we need to clear it before
+		 * sending the final query to use proper nameservers.
+		 */
+		fctx_cancelqueries(fctx, false, false);
+		fctx_cleanupall(fctx);
+	}
 	fctx_try(fctx, true, false);
 
  cleanup:

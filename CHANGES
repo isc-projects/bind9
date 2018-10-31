@@ -1,3 +1,6 @@
+5075.	[bug]		Refresh nameservers from cache when sending final
+			query in qname minimization. [GL #16]
+
 5074.	[cleanup]	Remove vector socket functions - isc_socket_recvv(),
 			isc_socket_sendtov(), isc_socket_sendtov2(),
 			isc_socket_sendv() - in order to simplify socket code.
