@@ -47,7 +47,6 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
-#include <isc/bufferlist.h>
 #include <isc/condition.h>
 #include <isc/list.h>
 #include <isc/log.h>
@@ -271,16 +270,6 @@ struct isc_socket {
 
 #define _set_state(sock, _state) do { (sock)->state = (_state); (sock)->state_lineno = __LINE__; } while (0)
 
-/*
- * Buffer structure
- */
-typedef struct buflist buflist_t;
-
-struct buflist {
-	void			*buf;
-	unsigned int		buflen;
-	ISC_LINK(buflist_t)	link;
-};
 
 /*
  * I/O Completion ports Info structures
@@ -296,7 +285,8 @@ typedef struct IoCompletionInfo {
 	DWORD			received_bytes;
 	int			request_type;
 	struct msghdr		messagehdr;
-	ISC_LIST(buflist_t)	bufferlist;	/*%< list of buffers */
+	void			*buf;
+	unsigned int		buflen;
 } IoCompletionInfo;
 
 /*
@@ -950,91 +940,33 @@ build_msghdr_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		  IoCompletionInfo  *lpo)
 {
 	unsigned int iovcount;
-	isc_buffer_t *buffer;
-	buflist_t  *cpbuffer;
-	isc_region_t used;
 	size_t write_count;
-	size_t skip_count;
 
 	memset(msg, 0, sizeof(*msg));
 
 	memmove(&msg->to_addr, &dev->address.type, dev->address.length);
 	msg->to_addr_len = dev->address.length;
 
-	buffer = ISC_LIST_HEAD(dev->bufferlist);
 	write_count = 0;
 	iovcount = 0;
 
 	/*
 	 * Single buffer I/O?  Skip what we've done so far in this region.
 	 */
-	if (buffer == NULL) {
-		write_count = dev->region.length - dev->n;
-		cpbuffer = HeapAlloc(hHeapHandle, HEAP_ZERO_MEMORY, sizeof(buflist_t));
-		RUNTIME_CHECK(cpbuffer != NULL);
-		cpbuffer->buf = HeapAlloc(hHeapHandle, HEAP_ZERO_MEMORY, write_count);
-		RUNTIME_CHECK(cpbuffer->buf != NULL);
+	write_count = dev->region.length - dev->n;
+	lpo->buf = HeapAlloc(hHeapHandle, HEAP_ZERO_MEMORY, write_count);
+	RUNTIME_CHECK(lpo->buf != NULL);
 
-		socket_log(__LINE__, sock, NULL, TRACE,
-		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTLOCK,
-		   "alloc_buffer %p %d %p %d", cpbuffer, sizeof(buflist_t),
-		   cpbuffer->buf, write_count);
+	socket_log(__LINE__, sock, NULL, TRACE,
+	   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTLOCK,
+	   "alloc_buffer %p %d", lpo->buf, write_count);
 
-		memmove(cpbuffer->buf,(dev->region.base + dev->n), write_count);
-		cpbuffer->buflen = (unsigned int)write_count;
-		ISC_LINK_INIT(cpbuffer, link);
-		ISC_LIST_ENQUEUE(lpo->bufferlist, cpbuffer, link);
-		iov[0].buf = cpbuffer->buf;
-		iov[0].len = (u_long)write_count;
-		iovcount = 1;
+	memmove(lpo->buf,(dev->region.base + dev->n), write_count);
+	lpo->buflen = (unsigned int)write_count;
+	iov[0].buf = lpo->buf;
+	iov[0].len = (u_long)write_count;
+	iovcount = 1;
 
-		goto config;
-	}
-
-	/*
-	 * Multibuffer I/O.
-	 * Skip the data in the buffer list that we have already written.
-	 */
-	skip_count = dev->n;
-	while (buffer != NULL) {
-		REQUIRE(ISC_BUFFER_VALID(buffer));
-		if (skip_count < isc_buffer_usedlength(buffer))
-			break;
-		skip_count -= isc_buffer_usedlength(buffer);
-		buffer = ISC_LIST_NEXT(buffer, link);
-	}
-
-	while (buffer != NULL) {
-		INSIST(iovcount < MAXSCATTERGATHER_SEND);
-
-		isc_buffer_usedregion(buffer, &used);
-
-		if (used.length > 0) {
-			int uselen = (int)(used.length - skip_count);
-			cpbuffer = HeapAlloc(hHeapHandle, HEAP_ZERO_MEMORY, sizeof(buflist_t));
-			RUNTIME_CHECK(cpbuffer != NULL);
-			cpbuffer->buf = HeapAlloc(hHeapHandle, HEAP_ZERO_MEMORY, uselen);
-			RUNTIME_CHECK(cpbuffer->buf != NULL);
-
-			socket_log(__LINE__, sock, NULL, TRACE,
-			   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTLOCK,
-			   "alloc_buffer %p %d %p %d", cpbuffer, sizeof(buflist_t),
-			   cpbuffer->buf, write_count);
-
-			memmove(cpbuffer->buf,(used.base + skip_count), uselen);
-			cpbuffer->buflen = uselen;
-			iov[iovcount].buf = cpbuffer->buf;
-			iov[iovcount].len = (u_long)(used.length - skip_count);
-			write_count += uselen;
-			skip_count = 0;
-			iovcount++;
-		}
-		buffer = ISC_LIST_NEXT(buffer, link);
-	}
-
-	INSIST(skip_count == 0);
-
- config:
 	msg->msg_iov = iov;
 	msg->msg_iovlen = iovcount;
 	msg->msg_totallen = (u_int)write_count;
@@ -1059,8 +991,6 @@ static void
 destroy_socketevent(isc_event_t *event) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)event;
 
-	INSIST(ISC_LIST_EMPTY(ev->bufferlist));
-
 	(ev->destroy)(event);
 }
 
@@ -1079,7 +1009,6 @@ allocate_socketevent(isc_mem_t *mctx, isc_socket_t *sock,
 
 	ev->result = ISC_R_IOERROR; // XXXMLG temporary change to detect failure to set
 	ISC_LINK_INIT(ev, ev_link);
-	ISC_LIST_INIT(ev->bufferlist);
 	ev->region.base = NULL;
 	ev->n = 0;
 	ev->offset = 0;
@@ -1215,9 +1144,7 @@ map_socket_error(isc_socket_t *sock, int windows_errno, int *isc_errno,
 
 static void
 fill_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
-	isc_region_t r;
 	int copylen;
-	isc_buffer_t *buffer;
 
 	INSIST(dev->n < dev->minimum);
 	INSIST(sock->recvbuf.remaining > 0);
@@ -1241,36 +1168,12 @@ fill_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 		dev->address = sock->address;
 	}
 
-	/*
-	 * Run through the list of buffers we were given, and find the
-	 * first one with space.  Once it is found, loop through, filling
-	 * the buffers as much as possible.
-	 */
-	buffer = ISC_LIST_HEAD(dev->bufferlist);
-	if (buffer != NULL) { // Multi-buffer receive
-		while (buffer != NULL && sock->recvbuf.remaining > 0) {
-			REQUIRE(ISC_BUFFER_VALID(buffer));
-			if (isc_buffer_availablelength(buffer) > 0) {
-				isc_buffer_availableregion(buffer, &r);
-				copylen = min(r.length,
-					      sock->recvbuf.remaining);
-				memmove(r.base, sock->recvbuf.consume_position,
-					copylen);
-				sock->recvbuf.consume_position += copylen;
-				sock->recvbuf.remaining -= copylen;
-				isc_buffer_add(buffer, copylen);
-				dev->n += copylen;
-			}
-			buffer = ISC_LIST_NEXT(buffer, link);
-		}
-	} else { // Single-buffer receive
-		copylen = min(dev->region.length - dev->n, sock->recvbuf.remaining);
-		memmove(dev->region.base + dev->n,
-			sock->recvbuf.consume_position, copylen);
-		sock->recvbuf.consume_position += copylen;
-		sock->recvbuf.remaining -= copylen;
-		dev->n += copylen;
-	}
+	copylen = min(dev->region.length - dev->n, sock->recvbuf.remaining);
+	memmove(dev->region.base + dev->n,
+		sock->recvbuf.consume_position, copylen);
+	sock->recvbuf.consume_position += copylen;
+	sock->recvbuf.remaining -= copylen;
+	dev->n += copylen;
 
 	/*
 	 * UDP receives are all-consuming.  That is, if we have 4k worth of
@@ -1377,7 +1280,6 @@ startio_send(isc_socket_t *sock, isc_socketevent_t *dev, int *nbytes,
 	lpo->dev = dev;
 	mh = &lpo->messagehdr;
 	memset(mh, 0, sizeof(struct msghdr));
-	ISC_LIST_INIT(lpo->bufferlist);
 
 	build_msghdr_send(sock, dev, mh, cmsg, sock->iov, lpo);
 
@@ -2301,8 +2203,6 @@ static void
 internal_send(isc_socket_t *sock, isc_socketevent_t *dev,
 	      struct msghdr *messagehdr, int nbytes, int send_errno, IoCompletionInfo *lpo)
 {
-	buflist_t *buffer;
-
 	/*
 	 * Find out what socket this is and lock it.
 	 */
@@ -2315,17 +2215,14 @@ internal_send(isc_socket_t *sock, isc_socketevent_t *dev,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
 		   "internal_send: task got socket event %p", dev);
 
-	buffer = ISC_LIST_HEAD(lpo->bufferlist);
-	while (buffer != NULL) {
-		ISC_LIST_DEQUEUE(lpo->bufferlist, buffer, link);
-
+	if (lpo->buf != NULL) {
 		socket_log(__LINE__, sock, NULL, TRACE,
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_ACCEPTLOCK,
-		   "free_buffer %p %p", buffer, buffer->buf);
+		   "free_buffer %p", lpo->buf);
 
-		HeapFree(hHeapHandle, 0, buffer->buf);
-		HeapFree(hHeapHandle, 0, buffer);
-		buffer = ISC_LIST_HEAD(lpo->bufferlist);
+		HeapFree(hHeapHandle, 0, lpo->buf);
+		lpo->buf = NULL;
+		lpo->buflen = 0;
 	}
 
 	INSIST(sock->pending_iocp > 0);
@@ -2837,77 +2734,6 @@ socket_recv(isc_socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 }
 
 isc_result_t
-isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		 unsigned int minimum, isc_task_t *task,
-		 isc_taskaction_t action, void *arg)
-{
-	isc_socketevent_t *dev;
-	isc_socketmgr_t *manager;
-	unsigned int iocount;
-	isc_buffer_t *buffer;
-	isc_result_t ret;
-
-	REQUIRE(VALID_SOCKET(sock));
-	LOCK(&sock->lock);
-	CONSISTENT(sock);
-
-	/*
-	 * Make sure that the socket is not closed.  XXXMLG change error here?
-	 */
-	if (sock->fd == INVALID_SOCKET) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_CONNREFUSED);
-	}
-
-	REQUIRE(buflist != NULL);
-	REQUIRE(!ISC_LIST_EMPTY(*buflist));
-	REQUIRE(task != NULL);
-	REQUIRE(action != NULL);
-
-	manager = sock->manager;
-	REQUIRE(VALID_MANAGER(manager));
-
-	iocount = isc_bufferlist_availablecount(buflist);
-	REQUIRE(iocount > 0);
-
-	INSIST(sock->bound);
-
-	dev = allocate_socketevent(manager->mctx, sock,
-				   ISC_SOCKEVENT_RECVDONE, action, arg);
-	if (dev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
-
-	/*
-	 * UDP sockets are always partial read
-	 */
-	if (sock->type == isc_sockettype_udp)
-		dev->minimum = 1;
-	else {
-		if (minimum == 0)
-			dev->minimum = iocount;
-		else
-			dev->minimum = minimum;
-	}
-
-	/*
-	 * Move each buffer from the passed in list to our internal one.
-	 */
-	buffer = ISC_LIST_HEAD(*buflist);
-	while (buffer != NULL) {
-		ISC_LIST_DEQUEUE(*buflist, buffer, link);
-		ISC_LIST_ENQUEUE(dev->bufferlist, buffer, link);
-		buffer = ISC_LIST_HEAD(*buflist);
-	}
-
-	ret = socket_recv(sock, dev, task, 0);
-
-	UNLOCK(&sock->lock);
-	return (ret);
-}
-
-isc_result_t
 isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 		 unsigned int minimum, isc_task_t *task,
 		 isc_taskaction_t action, void *arg)
@@ -2967,7 +2793,6 @@ isc_socket_recv2(isc_socket_t *sock, isc_region_t *region,
 		return (ISC_R_CONNREFUSED);
 	}
 
-	ISC_LIST_INIT(event->bufferlist);
 	event->region = *region;
 	event->n = 0;
 	event->offset = 0;
@@ -3113,80 +2938,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 }
 
 isc_result_t
-isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		  isc_task_t *task, isc_taskaction_t action, void *arg)
-{
-	return (isc_socket_sendtov2(sock, buflist, task, action, arg, NULL,
-				    NULL, 0));
-}
-
-isc_result_t
-isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		   isc_task_t *task, isc_taskaction_t action, void *arg,
-		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
-{
-	return (isc_socket_sendtov2(sock, buflist, task, action, arg, address,
-				    pktinfo, 0));
-}
-
-isc_result_t
-isc_socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		    isc_task_t *task, isc_taskaction_t action, void *arg,
-		    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
-		    unsigned int flags)
-{
-	isc_socketevent_t *dev;
-	isc_socketmgr_t *manager;
-	unsigned int iocount;
-	isc_buffer_t *buffer;
-	isc_result_t ret;
-
-	REQUIRE(VALID_SOCKET(sock));
-
-	LOCK(&sock->lock);
-	CONSISTENT(sock);
-
-	/*
-	 * make sure that the socket's not closed
-	 */
-	if (sock->fd == INVALID_SOCKET) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_CONNREFUSED);
-	}
-	REQUIRE(buflist != NULL);
-	REQUIRE(!ISC_LIST_EMPTY(*buflist));
-	REQUIRE(task != NULL);
-	REQUIRE(action != NULL);
-
-	manager = sock->manager;
-	REQUIRE(VALID_MANAGER(manager));
-
-	iocount = isc_bufferlist_usedcount(buflist);
-	REQUIRE(iocount > 0);
-
-	dev = allocate_socketevent(manager->mctx, sock,
-				   ISC_SOCKEVENT_SENDDONE, action, arg);
-	if (dev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
-
-	/*
-	 * Move each buffer from the passed in list to our internal one.
-	 */
-	buffer = ISC_LIST_HEAD(*buflist);
-	while (buffer != NULL) {
-		ISC_LIST_DEQUEUE(*buflist, buffer, link);
-		ISC_LIST_ENQUEUE(dev->bufferlist, buffer, link);
-		buffer = ISC_LIST_HEAD(*buflist);
-	}
-
-	ret = socket_send(sock, dev, task, address, pktinfo, flags);
-	UNLOCK(&sock->lock);
-	return (ret);
-}
-
-isc_result_t
 isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
 		   isc_socketevent_t *event, unsigned int flags)
@@ -3209,7 +2960,6 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region, isc_task_t *task,
 		UNLOCK(&sock->lock);
 		return (ISC_R_CONNREFUSED);
 	}
-	ISC_LIST_INIT(event->bufferlist);
 	event->region = *region;
 	event->n = 0;
 	event->offset = 0;

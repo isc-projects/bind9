@@ -204,7 +204,6 @@ struct isc_socketevent {
 	unsigned int		n;		/*%< bytes read or written */
 	unsigned int		offset;		/*%< offset into buffer list */
 	isc_region_t		region;		/*%< for single-buffer i/o */
-	isc_bufferlist_t	bufferlist;	/*%< list of buffers */
 	isc_sockaddr_t		address;	/*%< source address */
 	isc_time_t		timestamp;	/*%< timestamp of packet recv */
 	struct in6_pktinfo	pktinfo;	/*%< ipv6 pktinfo */
@@ -742,10 +741,6 @@ isc_result_t
 isc_socket_recv(isc_socket_t *sock, isc_region_t *region,
 		unsigned int minimum,
 		isc_task_t *task, isc_taskaction_t action, void *arg);
-isc_result_t
-isc_socket_recvv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		 unsigned int minimum,
-		 isc_task_t *task, isc_taskaction_t action, void *arg);
 
 isc_result_t
 isc_socket_recv2(isc_socket_t *sock, isc_region_t *region,
@@ -774,11 +769,6 @@ isc_socket_recv2(isc_socket_t *sock, isc_region_t *region,
  *\li	The caller may not modify 'region', the buffers which are passed
  *	into this function, or any data they refer to until the completion
  *	event is received.
- *
- *\li	For isc_socket_recvv():
- *	On successful completion, '*buflist' will be empty, and the list of
- *	all buffers will be returned in the done event's 'bufferlist'
- *	member.  On error return, '*buflist' will be unchanged.
  *
  *\li	For isc_socket_recv2():
  *	'event' is not NULL, and the non-socket specific fields are
@@ -834,18 +824,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 		  isc_task_t *task, isc_taskaction_t action, void *arg,
 		  const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
 isc_result_t
-isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		 isc_task_t *task, isc_taskaction_t action, void *arg);
-isc_result_t
-isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		   isc_task_t *task, isc_taskaction_t action, void *arg,
-		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo);
-isc_result_t
-isc_socket_sendtov2(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		    isc_task_t *task, isc_taskaction_t action, void *arg,
-		    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
-		    unsigned int flags);
-isc_result_t
 isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 		   isc_task_t *task,
 		   const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
@@ -865,11 +843,6 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
  *\li	The caller may not modify 'region', the buffers which are passed
  *	into this function, or any data they refer to until the completion
  *	event is received.
- *
- *\li	For isc_socket_sendv() and isc_socket_sendtov():
- *	On successful completion, '*buflist' will be empty, and the list of
- *	all buffers will be returned in the done event's 'bufferlist'
- *	member.  On error return, '*buflist' will be unchanged.
  *
  *\li	For isc_socket_sendto2():
  *	'event' is not NULL, and the non-socket specific fields are

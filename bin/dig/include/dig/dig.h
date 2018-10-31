@@ -203,15 +203,12 @@ struct dig_query {
 	bool ixfr_axfr;
 	char *servname;
 	char *userarg;
-	isc_bufferlist_t sendlist,
-		recvlist,
-		lengthlist;
 	isc_buffer_t recvbuf,
 		lengthbuf,
-		slbuf;
-	char *recvspace,
-		lengthspace[4],
-		slspace[4];
+		tmpsendbuf,
+		sendbuf;
+	char *recvspace, *tmpsendspace,
+		lengthspace[4];
 	isc_socket_t *sock;
 	ISC_LINK(dig_query_t) link;
 	ISC_LINK(dig_query_t) clink;
@@ -219,7 +216,6 @@ struct dig_query {
 	isc_time_t time_sent;
 	isc_time_t time_recv;
 	uint64_t byte_count;
-	isc_buffer_t sendbuf;
 	isc_timer_t *timer;
 };
 

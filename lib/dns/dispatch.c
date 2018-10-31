@@ -956,7 +956,6 @@ allocate_sevent(dns_dispatch_t *disp, isc_socket_t *sock,
 		       free_sevent, disp->sepool);
 	ev->result = ISC_R_UNSET;
 	ISC_LINK_INIT(ev, ev_link);
-	ISC_LIST_INIT(ev->bufferlist);
 	ev->region.base = NULL;
 	ev->n = 0;
 	ev->offset = 0;

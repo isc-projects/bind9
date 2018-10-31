@@ -923,12 +923,6 @@ flush_lookup_list(void) {
 						  ISC_SOCKCANCEL_ALL);
 				isc_socket_detach(&q->sock);
 			}
-			if (ISC_LINK_LINKED(&q->recvbuf, link))
-				ISC_LIST_DEQUEUE(q->recvlist, &q->recvbuf,
-						 link);
-			if (ISC_LINK_LINKED(&q->lengthbuf, link))
-				ISC_LIST_DEQUEUE(q->lengthlist, &q->lengthbuf,
-						 link);
 			isc_buffer_invalidate(&q->recvbuf);
 			isc_buffer_invalidate(&q->lengthbuf);
 			qp = q;

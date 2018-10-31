@@ -39,7 +39,6 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
-#include <isc/bufferlist.h>
 #include <isc/condition.h>
 #include <isc/formatcheck.h>
 #include <isc/json.h>
@@ -1197,10 +1196,7 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 		  struct msghdr *msg, struct iovec *iov, size_t *write_countp)
 {
 	unsigned int iovcount;
-	isc_buffer_t *buffer;
-	isc_region_t used;
 	size_t write_count;
-	size_t skip_count;
 	struct cmsghdr *cmsgp;
 
 	memset(msg, 0, sizeof(*msg));
@@ -1213,54 +1209,14 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 		msg->msg_namelen = 0;
 	}
 
-	buffer = ISC_LIST_HEAD(dev->bufferlist);
 	write_count = 0;
 	iovcount = 0;
 
-	/*
-	 * Single buffer I/O?  Skip what we've done so far in this region.
-	 */
-	if (buffer == NULL) {
-		write_count = dev->region.length - dev->n;
-		iov[0].iov_base = (void *)(dev->region.base + dev->n);
-		iov[0].iov_len = write_count;
-		iovcount = 1;
+	write_count = dev->region.length - dev->n;
+	iov[0].iov_base = (void *)(dev->region.base + dev->n);
+	iov[0].iov_len = write_count;
+	iovcount = 1;
 
-		goto config;
-	}
-
-	/*
-	 * Multibuffer I/O.
-	 * Skip the data in the buffer list that we have already written.
-	 */
-	skip_count = dev->n;
-	while (buffer != NULL) {
-		REQUIRE(ISC_BUFFER_VALID(buffer));
-		if (skip_count < isc_buffer_usedlength(buffer))
-			break;
-		skip_count -= isc_buffer_usedlength(buffer);
-		buffer = ISC_LIST_NEXT(buffer, link);
-	}
-
-	while (buffer != NULL) {
-		INSIST(iovcount < MAXSCATTERGATHER_SEND);
-
-		isc_buffer_usedregion(buffer, &used);
-
-		if (used.length > 0) {
-			iov[iovcount].iov_base = (void *)(used.base
-							  + skip_count);
-			iov[iovcount].iov_len = used.length - skip_count;
-			write_count += (used.length - skip_count);
-			skip_count = 0;
-			iovcount++;
-		}
-		buffer = ISC_LIST_NEXT(buffer, link);
-	}
-
-	INSIST(skip_count == 0U);
-
- config:
 	msg->msg_iov = iov;
 	msg->msg_iovlen = iovcount;
 	msg->msg_control = NULL;
@@ -1416,8 +1372,6 @@ build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 		  struct msghdr *msg, struct iovec *iov, size_t *read_countp)
 {
 	unsigned int iovcount;
-	isc_buffer_t *buffer;
-	isc_region_t available;
 	size_t read_count;
 
 	memset(msg, 0, sizeof(struct msghdr));
@@ -1432,48 +1386,12 @@ build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 		dev->address = sock->peer_address;
 	}
 
-	buffer = ISC_LIST_HEAD(dev->bufferlist);
 	read_count = 0;
 
-	/*
-	 * Single buffer I/O?  Skip what we've done so far in this region.
-	 */
-	if (buffer == NULL) {
-		read_count = dev->region.length - dev->n;
-		iov[0].iov_base = (void *)(dev->region.base + dev->n);
-		iov[0].iov_len = read_count;
-		iovcount = 1;
-
-		goto config;
-	}
-
-	/*
-	 * Multibuffer I/O.
-	 * Skip empty buffers.
-	 */
-	while (buffer != NULL) {
-		REQUIRE(ISC_BUFFER_VALID(buffer));
-		if (isc_buffer_availablelength(buffer) != 0)
-			break;
-		buffer = ISC_LIST_NEXT(buffer, link);
-	}
-
-	iovcount = 0;
-	while (buffer != NULL) {
-		INSIST(iovcount < MAXSCATTERGATHER_RECV);
-
-		isc_buffer_availableregion(buffer, &available);
-
-		if (available.length > 0) {
-			iov[iovcount].iov_base = (void *)(available.base);
-			iov[iovcount].iov_len = available.length;
-			read_count += available.length;
-			iovcount++;
-		}
-		buffer = ISC_LIST_NEXT(buffer, link);
-	}
-
- config:
+	read_count = dev->region.length - dev->n;
+	iov[0].iov_base = (void *)(dev->region.base + dev->n);
+	iov[0].iov_len = read_count;
+	iovcount = 1;
 
 	/*
 	 * If needed, set up to receive that one extra byte.
@@ -1522,8 +1440,6 @@ static void
 destroy_socketevent(isc_event_t *event) {
 	isc_socketevent_t *ev = (isc_socketevent_t *)event;
 
-	INSIST(ISC_LIST_EMPTY(ev->bufferlist));
-
 	(ev->destroy)(event);
 }
 
@@ -1543,7 +1459,6 @@ allocate_socketevent(isc_mem_t *mctx, void *sender,
 
 	ev->result = ISC_R_UNSET;
 	ISC_LINK_INIT(ev, ev_link);
-	ISC_LIST_INIT(ev->bufferlist);
 	ev->region.base = NULL;
 	ev->n = 0;
 	ev->offset = 0;
@@ -1584,9 +1499,7 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	int cc;
 	struct iovec iov[MAXSCATTERGATHER_RECV];
 	size_t read_count;
-	size_t actual_count;
 	struct msghdr msghdr;
-	isc_buffer_t *buffer;
 	int recv_errno;
 	char strbuf[ISC_STRERRORSIZE];
 	char cmsgbuf[RECVCMSGBUFLEN] = {0};
@@ -1719,25 +1632,6 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	 * update the buffers (if any) and the i/o count
 	 */
 	dev->n += cc;
-	actual_count = cc;
-	buffer = ISC_LIST_HEAD(dev->bufferlist);
-	while (buffer != NULL && actual_count > 0U) {
-		REQUIRE(ISC_BUFFER_VALID(buffer));
-		if (isc_buffer_availablelength(buffer) <= actual_count) {
-			actual_count -= isc_buffer_availablelength(buffer);
-			isc_buffer_add(buffer,
-				       isc_buffer_availablelength(buffer));
-		} else {
-			isc_buffer_add(buffer, actual_count);
-			actual_count = 0;
-			POST(actual_count);
-			break;
-		}
-		buffer = ISC_LIST_NEXT(buffer, link);
-		if (buffer == NULL) {
-			INSIST(actual_count == 0U);
-		}
-	}
 
 	/*
 	 * If we read less than we expected, update counters,
@@ -4669,61 +4563,6 @@ socket_recv(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 }
 
 isc_result_t
-isc_socket_recvv(isc_socket_t *sock0, isc_bufferlist_t *buflist,
-		  unsigned int minimum, isc_task_t *task,
-		  isc_taskaction_t action, void *arg)
-{
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-	isc_socketevent_t *dev;
-	isc__socketmgr_t *manager;
-	unsigned int iocount;
-	isc_buffer_t *buffer;
-
-	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(buflist != NULL);
-	REQUIRE(!ISC_LIST_EMPTY(*buflist));
-	REQUIRE(task != NULL);
-	REQUIRE(action != NULL);
-
-	manager = sock->manager;
-	REQUIRE(VALID_MANAGER(manager));
-
-	iocount = isc_bufferlist_availablecount(buflist);
-	REQUIRE(iocount > 0);
-
-	INSIST(sock->bound);
-
-	dev = allocate_socketevent(manager->mctx, sock,
-				   ISC_SOCKEVENT_RECVDONE, action, arg);
-	if (dev == NULL)
-		return (ISC_R_NOMEMORY);
-
-	/*
-	 * UDP sockets are always partial read
-	 */
-	if (sock->type == isc_sockettype_udp)
-		dev->minimum = 1;
-	else {
-		if (minimum == 0)
-			dev->minimum = iocount;
-		else
-			dev->minimum = minimum;
-	}
-
-	/*
-	 * Move each buffer from the passed in list to our internal one.
-	 */
-	buffer = ISC_LIST_HEAD(*buflist);
-	while (buffer != NULL) {
-		ISC_LIST_DEQUEUE(*buflist, buffer, link);
-		ISC_LIST_ENQUEUE(dev->bufferlist, buffer, link);
-		buffer = ISC_LIST_HEAD(*buflist);
-	}
-
-	return (socket_recv(sock, dev, task, 0));
-}
-
-isc_result_t
 isc_socket_recv(isc_socket_t *sock0, isc_region_t *region,
 		 unsigned int minimum, isc_task_t *task,
 		 isc_taskaction_t action, void *arg)
@@ -4757,7 +4596,6 @@ isc_socket_recv2(isc_socket_t *sock0, isc_region_t *region,
 
 	event->ev_sender = sock;
 	event->result = ISC_R_UNSET;
-	ISC_LIST_INIT(event->bufferlist);
 	event->region = *region;
 	event->n = 0;
 	event->offset = 0;
@@ -4913,65 +4751,6 @@ isc_socket_sendto(isc_socket_t *sock0, isc_region_t *region,
 }
 
 isc_result_t
-isc_socket_sendv(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		  isc_task_t *task, isc_taskaction_t action, void *arg)
-{
-	return (isc_socket_sendtov2(sock, buflist, task, action, arg, NULL,
-				     NULL, 0));
-}
-
-isc_result_t
-isc_socket_sendtov(isc_socket_t *sock, isc_bufferlist_t *buflist,
-		    isc_task_t *task, isc_taskaction_t action, void *arg,
-		    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo)
-{
-	return (isc_socket_sendtov2(sock, buflist, task, action, arg, address,
-				     pktinfo, 0));
-}
-
-isc_result_t
-isc_socket_sendtov2(isc_socket_t *sock0, isc_bufferlist_t *buflist,
-		     isc_task_t *task, isc_taskaction_t action, void *arg,
-		     const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
-		     unsigned int flags)
-{
-	isc__socket_t *sock = (isc__socket_t *)sock0;
-	isc_socketevent_t *dev;
-	isc__socketmgr_t *manager;
-	unsigned int iocount;
-	isc_buffer_t *buffer;
-
-	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(buflist != NULL);
-	REQUIRE(!ISC_LIST_EMPTY(*buflist));
-	REQUIRE(task != NULL);
-	REQUIRE(action != NULL);
-
-	manager = sock->manager;
-	REQUIRE(VALID_MANAGER(manager));
-
-	iocount = isc_bufferlist_usedcount(buflist);
-	REQUIRE(iocount > 0);
-
-	dev = allocate_socketevent(manager->mctx, sock,
-				   ISC_SOCKEVENT_SENDDONE, action, arg);
-	if (dev == NULL)
-		return (ISC_R_NOMEMORY);
-
-	/*
-	 * Move each buffer from the passed in list to our internal one.
-	 */
-	buffer = ISC_LIST_HEAD(*buflist);
-	while (buffer != NULL) {
-		ISC_LIST_DEQUEUE(*buflist, buffer, link);
-		ISC_LIST_ENQUEUE(dev->bufferlist, buffer, link);
-		buffer = ISC_LIST_HEAD(*buflist);
-	}
-
-	return (socket_send(sock, dev, task, address, pktinfo, flags));
-}
-
-isc_result_t
 isc_socket_sendto2(isc_socket_t *sock0, isc_region_t *region,
 		    isc_task_t *task,
 		    const isc_sockaddr_t *address, struct in6_pktinfo *pktinfo,
@@ -4985,7 +4764,6 @@ isc_socket_sendto2(isc_socket_t *sock0, isc_region_t *region,
 		REQUIRE(sock->type == isc_sockettype_udp);
 	event->ev_sender = sock;
 	event->result = ISC_R_UNSET;
-	ISC_LIST_INIT(event->bufferlist);
 	event->region = *region;
 	event->n = 0;
 	event->offset = 0;
