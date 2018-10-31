@@ -842,10 +842,10 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	isc_result_t result;
 	isc_httpd_t *httpd = ev->ev_arg;
 	isc_socketevent_t *sev = (isc_socketevent_t *)ev;
+	isc_buffer_t *databuffer;
 	isc_httpdurl_t *url;
 	isc_time_t now;
-	isc_region_t headerr, datar, r;
-	size_t total;
+	isc_region_t r;
 	bool is_compressed = false;
 	char datebuf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 
@@ -963,16 +963,20 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 
 	isc_httpd_endheaders(httpd);  /* done */
 
-	isc_buffer_usedregion(&httpd->headerbuffer, &headerr);
-	if (is_compressed == true) {
-		isc_buffer_usedregion(&httpd->compbuffer, &datar);
-	} else {
-		isc_buffer_usedregion(&httpd->bodybuffer, &datar);
-	}
-	total = headerr.length + datar.length;
-	isc_buffer_allocate(httpd->mgr->mctx, &httpd->sendbuffer, total);
-	isc_buffer_copyregion(httpd->sendbuffer, &headerr);
-	isc_buffer_copyregion(httpd->sendbuffer, &datar);
+	/*
+	 * Append either the compressed or the non-compressed response body to
+	 * the response headers and store the result in httpd->sendbuffer.
+	 */
+	isc_buffer_dup(httpd->mgr->mctx,
+		       &httpd->sendbuffer, &httpd->headerbuffer);
+	isc_buffer_setautorealloc(httpd->sendbuffer, true);
+	databuffer = (is_compressed ? &httpd->compbuffer : &httpd->bodybuffer);
+	isc_buffer_usedregion(databuffer, &r);
+	result = isc_buffer_copyregion(httpd->sendbuffer, &r);
+	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+	/*
+	 * Determine total response size.
+	 */
 	isc_buffer_usedregion(httpd->sendbuffer, &r);
 
 	/* check return code? */
