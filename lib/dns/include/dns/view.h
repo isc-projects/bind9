@@ -236,8 +236,14 @@ struct dns_view {
 	dns_dtmsgtype_t			dttypes;	/* Dnstap message types
 							   to log */
 
+	/* Registered module instances */
+	void				*modlist;
+	void				(*modlist_free)(isc_mem_t *, void **);
+
+	/* Hook table */
 	void				*hooktable;	/* ns_hooktable */
 	void				(*hooktable_free)(isc_mem_t *, void **);
+
 };
 
 #define DNS_VIEW_MAGIC			ISC_MAGIC('V','i','e','w')

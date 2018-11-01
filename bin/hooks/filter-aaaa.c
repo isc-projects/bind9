@@ -46,6 +46,7 @@
 #include <dns/rdataset.h>
 #include <dns/result.h>
 #include <dns/types.h>
+#include <dns/view.h>
 
 #define CHECK(op)						\
 	do {							\
@@ -76,15 +77,27 @@ typedef struct filter_data {
 	uint32_t flags;
 } filter_data_t;
 
-/*
- * Memory pool for use with persistent data.
- */
-static isc_mempool_t *datapool = NULL;
+typedef struct filter_instance {
+	ns_module_t *module;
+	isc_mem_t *mctx;
 
-/*
- * Hash table associating a client object with its persistent data.
- */
-static isc_ht_t *client_ht = NULL;
+	/*
+	 * Memory pool for use with persistent data.
+	 */
+	isc_mempool_t *datapool;
+
+	/*
+	 * Hash table associating a client object with its persistent data.
+	 */
+	isc_ht_t *ht;
+
+	/*
+	 * Values configured when the module is loaded.
+	 */
+	filter_aaaa_t v4_aaaa;
+	filter_aaaa_t v6_aaaa;
+	dns_acl_t *aaaa_acl;
+} filter_instance_t;
 
 /*
  * Per-client flags set by this module
@@ -100,61 +113,78 @@ static isc_ht_t *client_ht = NULL;
 				  NS_QUERYATTR_RECURSIONOK) != 0)
 
 /*
- * Hook registration structures: pointers to these structures will
- * be added to a hook table when this module is registered.
+ * Forward declarations of functions referenced in install_hooks().
  */
 static bool
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp);
-static const ns_hook_t filter_init = {
-	.action = filter_qctx_initialize,
-	.action_data = &client_ht,
-};
-
 static bool
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp);
-static const ns_hook_t filter_respbegin = {
-	.action = filter_respond_begin,
-	.action_data = &client_ht,
-};
-
 static bool
 filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp);
-static const ns_hook_t filter_respanyfound = {
-	.action = filter_respond_any_found,
-	.action_data = &client_ht,
-};
-
 static bool
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp);
-static const ns_hook_t filter_prepresp = {
-	.action = filter_prep_response_begin,
-	.action_data = &client_ht,
-};
-
 static bool
 filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp);
-static const ns_hook_t filter_donesend = {
-	.action = filter_query_done_send,
-	.action_data = &client_ht,
-};
-
 static bool
 filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp);
-static const ns_hook_t filter_destroy = {
-	.action = filter_qctx_destroy,
-	.action_data = &client_ht,
-};
+
+/*%
+ * Register the functions to be called at each hook point in 'hooktable', using
+ * memory context 'mctx' for allocating copies of stack-allocated structures
+ * passed to ns_hook_add().  Make sure 'inst' will be passed as the 'cbdata'
+ * argument to every callback.
+ */
+static void
+install_hooks(ns_hooktable_t *hooktable, isc_mem_t *mctx,
+	      filter_instance_t *inst)
+{
+	const ns_hook_t filter_init = {
+		.action = filter_qctx_initialize,
+		.action_data = inst,
+	};
+
+	const ns_hook_t filter_respbegin = {
+		.action = filter_respond_begin,
+		.action_data = inst,
+	};
+
+	const ns_hook_t filter_respanyfound = {
+		.action = filter_respond_any_found,
+		.action_data = inst,
+	};
+
+	const ns_hook_t filter_prepresp = {
+		.action = filter_prep_response_begin,
+		.action_data = inst,
+	};
+
+	const ns_hook_t filter_donesend = {
+		.action = filter_query_done_send,
+		.action_data = inst,
+	};
+
+	const ns_hook_t filter_destroy = {
+		.action = filter_qctx_destroy,
+		.action_data = inst,
+	};
+
+	ns_hook_add(hooktable, mctx, -
+		    NS_QUERY_QCTX_INITIALIZED, &filter_init);
+	ns_hook_add(hooktable, mctx,
+		    NS_QUERY_RESPOND_BEGIN, &filter_respbegin);
+	ns_hook_add(hooktable, mctx,
+		    NS_QUERY_RESPOND_ANY_FOUND, &filter_respanyfound);
+	ns_hook_add(hooktable, mctx,
+		    NS_QUERY_PREP_RESPONSE_BEGIN, &filter_prepresp);
+	ns_hook_add(hooktable, mctx,
+		    NS_QUERY_DONE_SEND, &filter_donesend);
+	ns_hook_add(hooktable, mctx,
+		    NS_QUERY_QCTX_DESTROYED, &filter_destroy);
+}
 
 /**
  ** Support for parsing of parameters and configuration of the module.
  **/
-
-/*
- * Values configured when the module is loaded.
- */
-static filter_aaaa_t v4_aaaa = NONE;
-static filter_aaaa_t v6_aaaa = NONE;
-static dns_acl_t *aaaa_acl = NULL;
 
 /*
  * Support for parsing of parameters.
@@ -220,8 +250,8 @@ parse_filter_aaaa_on(const cfg_obj_t *param_obj, const char *param_name,
 }
 
 static isc_result_t
-parse_parameters(const char *parameters, const void *cfg,
-		 void *actx, ns_hookctx_t *hctx)
+parse_parameters(filter_instance_t *inst, const char *parameters,
+		 const void *cfg, void *actx, ns_hookctx_t *hctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_parser_t *parser = NULL;
@@ -236,18 +266,18 @@ parse_parameters(const char *parameters, const void *cfg,
 	CHECK(cfg_parse_buffer(parser, &b, &cfg_type_parameters,
 			       &param_obj));
 
-	CHECK(parse_filter_aaaa_on(param_obj, "filter-aaaa-on-v4", &v4_aaaa));
-	CHECK(parse_filter_aaaa_on(param_obj, "filter-aaaa-on-v6", &v6_aaaa));
+	CHECK(parse_filter_aaaa_on(param_obj, "filter-aaaa-on-v4",
+				   &inst->v4_aaaa));
+	CHECK(parse_filter_aaaa_on(param_obj, "filter-aaaa-on-v6",
+				   &inst->v6_aaaa));
 
-	obj = NULL;
 	result = cfg_map_get(param_obj, "filter-aaaa", &obj);
 	if (result == ISC_R_SUCCESS) {
 		CHECK(cfg_acl_fromconfig(obj, (const cfg_obj_t *) cfg,
-					 hctx->lctx,
-					 (cfg_aclconfctx_t *) actx,
-					 hctx->mctx, 0, &aaaa_acl));
+					 hctx->lctx, (cfg_aclconfctx_t *) actx,
+					 hctx->mctx, 0, &inst->aaaa_acl));
 	} else {
-		CHECK(dns_acl_any(hctx->mctx, &aaaa_acl));
+		CHECK(dns_acl_any(hctx->mctx, &inst->aaaa_acl));
 	}
 
  cleanup:
@@ -269,46 +299,36 @@ parse_parameters(const char *parameters, const void *cfg,
  **/
 
 /*
- * Called by ns_hookmodule_load() to register hook functions into
+ * Called by ns_module_load() to register hook functions into
  * a hook table.
  */
 isc_result_t
 hook_register(const char *parameters,
 	      const char *cfg_file, unsigned long cfg_line,
-	      const void *cfg, void *actx,
-	      ns_hookctx_t *hctx, ns_hooktable_t *hooktable, void **instp)
+	      const void *cfg, void *actx, ns_hookctx_t *hctx,
+	      ns_hooktable_t *hooktable, void **instp)
 {
+	filter_instance_t *inst = NULL;
 	isc_result_t result;
 
-	UNUSED(instp);
 
 	isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
-		      "loading 'filter-aaaa' "
+		      "registering 'filter-aaaa' "
 		      "module from %s:%lu, %s parameters",
 		      cfg_file, cfg_line, parameters != NULL ? "with" : "no");
 
+	inst = isc_mem_get(hctx->mctx, sizeof(*inst));
+	memset(inst, 0, sizeof(*inst));
+	isc_mem_attach(hctx->mctx, &inst->mctx);
+
 	if (parameters != NULL) {
-		CHECK(parse_parameters(parameters, cfg, actx, hctx));
+		CHECK(parse_parameters(inst, parameters, cfg, actx, hctx));
 	}
 
-	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_QCTX_INITIALIZED,
-		    &filter_init);
-	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_RESPOND_BEGIN,
-		    &filter_respbegin);
-	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_RESPOND_ANY_FOUND,
-		    &filter_respanyfound);
-	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_PREP_RESPONSE_BEGIN,
-		    &filter_prepresp);
-	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_DONE_SEND,
-		    &filter_donesend);
-	ns_hook_add(hooktable, hctx->mctx, NS_QUERY_QCTX_DESTROYED,
-		    &filter_destroy);
-
 	CHECK(isc_mempool_create(hctx->mctx, sizeof(filter_data_t),
-				 &datapool));
-
-	CHECK(isc_ht_init(&client_ht, hctx->mctx, 16));
+				 &inst->datapool));
+	CHECK(isc_ht_init(&inst->ht, hctx->mctx, 16));
 
 	/*
 	 * Fill the mempool with 1K filter_aaaa state objects at
@@ -320,35 +340,44 @@ hook_register(const char *parameters,
 	 * so that they'll always be returned to the pool and not
 	 * freed until the pool is destroyed on shutdown.
 	 */
-	isc_mempool_setfillcount(datapool, 1024);
-	isc_mempool_setfreemax(datapool, UINT_MAX);
+	isc_mempool_setfillcount(inst->datapool, 1024);
+	isc_mempool_setfreemax(inst->datapool, UINT_MAX);
+
+	/*
+	 * Set hook points in the view's hooktable.
+	 */
+	install_hooks(hooktable, hctx->mctx, inst);
+
+	*instp = inst;
 
  cleanup:
-	if (result != ISC_R_SUCCESS) {
-		if (datapool != NULL) {
-			isc_mempool_destroy(&datapool);
-		}
+	if (result != ISC_R_SUCCESS && inst != NULL) {
+		hook_destroy((void **) &inst);
 	}
+
 	return (result);
 }
 
 /*
- * Called by ns_hookmodule_unload_all(); frees memory allocated by
+ * Called by ns_module_unload(); frees memory allocated by
  * the module when it was registered.
  */
 void
 hook_destroy(void **instp) {
-	UNUSED(instp);
+	filter_instance_t *inst = (filter_instance_t *) *instp;
 
-	if (client_ht != NULL) {
-		isc_ht_destroy(&client_ht);
+	if (inst->ht != NULL) {
+		isc_ht_destroy(&inst->ht);
 	}
-	if (datapool != NULL) {
-		isc_mempool_destroy(&datapool);
+	if (inst->datapool != NULL) {
+		isc_mempool_destroy(&inst->datapool);
 	}
-	if (aaaa_acl != NULL) {
-		dns_acl_detach(&aaaa_acl);
+	if (inst->aaaa_acl != NULL) {
+		dns_acl_detach(&inst->aaaa_acl);
 	}
+
+	isc_mem_putanddetach(&inst->mctx, inst, sizeof(*inst));
+	*instp = NULL;
 
 	return;
 }
@@ -407,22 +436,22 @@ is_v6_client(ns_client_t *client) {
 }
 
 static filter_data_t *
-client_state_get(const query_ctx_t *qctx, isc_ht_t **htp) {
+client_state_get(const query_ctx_t *qctx, filter_instance_t *inst) {
 	filter_data_t *client_state = NULL;
 	isc_result_t result;
 
-	result = isc_ht_find(*htp, (const unsigned char *)&qctx->client,
+	result = isc_ht_find(inst->ht, (const unsigned char *)&qctx->client,
 			     sizeof(qctx->client), (void **)&client_state);
 
 	return (result == ISC_R_SUCCESS ? client_state : NULL);
 }
 
 static void
-client_state_create(const query_ctx_t *qctx, isc_ht_t **htp) {
+client_state_create(const query_ctx_t *qctx, filter_instance_t *inst) {
 	filter_data_t *client_state;
 	isc_result_t result;
 
-	client_state = isc_mempool_get(datapool);
+	client_state = isc_mempool_get(inst->datapool);
 	if (client_state == NULL) {
 		return;
 	}
@@ -430,25 +459,25 @@ client_state_create(const query_ctx_t *qctx, isc_ht_t **htp) {
 	client_state->mode = NONE;
 	client_state->flags = 0;
 
-	result = isc_ht_add(*htp, (const unsigned char *)&qctx->client,
+	result = isc_ht_add(inst->ht, (const unsigned char *)&qctx->client,
 			    sizeof(qctx->client), client_state);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
 
 static void
-client_state_destroy(const query_ctx_t *qctx, isc_ht_t **htp) {
-	filter_data_t *client_state = client_state_get(qctx, htp);
+client_state_destroy(const query_ctx_t *qctx, filter_instance_t *inst) {
+	filter_data_t *client_state = client_state_get(qctx, inst);
 	isc_result_t result;
 
 	if (client_state == NULL) {
 		return;
 	}
 
-	result = isc_ht_delete(*htp, (const unsigned char *)&qctx->client,
+	result = isc_ht_delete(inst->ht, (const unsigned char *)&qctx->client,
 			       sizeof(qctx->client));
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-	isc_mempool_put(datapool, client_state);
+	isc_mempool_put(inst->datapool, client_state);
 }
 
 /*%
@@ -570,14 +599,14 @@ process_section(const section_filter_t *filter) {
 static bool
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	isc_ht_t **htp = (isc_ht_t **) cbdata;
+	filter_instance_t *inst = (filter_instance_t *) cbdata;
 	filter_data_t *client_state;
 
 	*resp = ISC_R_UNSET;
 
-	client_state = client_state_get(qctx, htp);
+	client_state = client_state_get(qctx, inst);
 	if (client_state == NULL) {
-		client_state_create(qctx, htp);
+		client_state_create(qctx, inst);
 	}
 
 	return (false);
@@ -591,8 +620,8 @@ filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 static bool
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *client_state = client_state_get(qctx, htp);
+	filter_instance_t *inst = (filter_instance_t *) cbdata;
+	filter_data_t *client_state = client_state_get(qctx, inst);
 	isc_result_t result;
 
 	*resp = ISC_R_UNSET;
@@ -601,19 +630,19 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 		return (false);
 	}
 
-	if (v4_aaaa != NONE || v6_aaaa != NONE) {
+	if (inst->v4_aaaa != NONE || inst->v6_aaaa != NONE) {
 		result = ns_client_checkaclsilent(qctx->client, NULL,
-						  aaaa_acl, true);
+						  inst->aaaa_acl, true);
 		if (result == ISC_R_SUCCESS &&
-		    v4_aaaa != NONE &&
+		    inst->v4_aaaa != NONE &&
 		    is_v4_client(qctx->client))
 		{
-			client_state->mode = v4_aaaa;
+			client_state->mode = inst->v4_aaaa;
 		} else if (result == ISC_R_SUCCESS &&
-			   v6_aaaa != NONE &&
+			   inst->v6_aaaa != NONE &&
 			   is_v6_client(qctx->client))
 		{
-			client_state->mode = v6_aaaa;
+			client_state->mode = inst->v6_aaaa;
 		}
 	}
 
@@ -630,8 +659,8 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 static bool
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *client_state = client_state_get(qctx, htp);
+	filter_instance_t *inst = (filter_instance_t *) cbdata;
+	filter_data_t *client_state = client_state_get(qctx, inst);
 	isc_result_t result = ISC_R_UNSET;
 
 	*resp = ISC_R_UNSET;
@@ -734,8 +763,8 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 static bool
 filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *client_state = client_state_get(qctx, htp);
+	filter_instance_t *inst = (filter_instance_t *) cbdata;
+	filter_data_t *client_state = client_state_get(qctx, inst);
 
 	*resp = ISC_R_UNSET;
 
@@ -769,8 +798,8 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 static bool
 filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	isc_ht_t **htp = (isc_ht_t **) cbdata;
-	filter_data_t *client_state = client_state_get(qctx, htp);
+	filter_instance_t *inst = (filter_instance_t *) cbdata;
+	filter_data_t *client_state = client_state_get(qctx, inst);
 
 	*resp = ISC_R_UNSET;
 
@@ -805,7 +834,7 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 static bool
 filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
-	isc_ht_t **htp = (isc_ht_t **) cbdata;
+	filter_instance_t *inst = (filter_instance_t *) cbdata;
 
 	*resp = ISC_R_UNSET;
 
@@ -813,7 +842,7 @@ filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
 		return (false);
 	}
 
-	client_state_destroy(qctx, htp);
+	client_state_destroy(qctx, inst);
 
 	return (false);
 }

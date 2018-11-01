@@ -1537,7 +1537,7 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 }
 
 static isc_result_t
-configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
+configure_hook(dns_view_t *view, const cfg_obj_t *hook,
 	       const cfg_obj_t *config, ns_hookctx_t *hctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -1562,14 +1562,14 @@ configure_hook(ns_hooktable_t *hooktable, const cfg_obj_t *hook,
 	if (obj != NULL && cfg_obj_isstring(obj)) {
 		parameters = cfg_obj_asstring(obj);
 	}
-	result = ns_hookmodule_load(library, parameters,
-				    cfg_obj_file(obj), cfg_obj_line(obj),
-				    config, named_g_aclconfctx,
-				    hctx, hooktable);
+	result = ns_module_load(library, parameters,
+				cfg_obj_file(obj), cfg_obj_line(obj),
+				config, named_g_aclconfctx,
+				hctx, view->modlist, view->hooktable);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "%s: hook module configuration failed: %s",
+			      "%s: module configuration failed: %s",
 			      library, isc_result_totext(result));
 	}
 	return (result);
@@ -5314,6 +5314,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		CHECK(ns_hooktable_create(view->mctx,
 				  (ns_hooktable_t **) &view->hooktable));
 		view->hooktable_free = ns_hooktable_free;
+
+		ns_modlist_create(view->mctx, (ns_modlist_t **)&view->modlist);
+		view->modlist_free = ns_modlist_free;
 	}
 
 	for (element = cfg_list_first(hook_list);
@@ -5322,7 +5325,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	{
 		const cfg_obj_t *hook = cfg_listelt_value(element);
 
-		CHECK(configure_hook(view->hooktable, hook, config, hctx));
+		CHECK(configure_hook(view, hook, config, hctx));
 	}
 #endif
 
@@ -8062,10 +8065,9 @@ load_configuration(const char *filename, named_server_t *server,
 	CHECK(cfg_aclconfctx_create(named_g_mctx, &named_g_aclconfctx));
 
 	/*
-	 * Shut down all dyndb and hook module instances.
+	 * Shut down all dyndb instances.
 	 */
 	dns_dyndb_cleanup(false);
-	ns_hookmodule_unload_all();
 
 	/*
 	 * Parse the global default pseudo-config file.
@@ -9547,10 +9549,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/*
-	 * Shut down all dyndb and hook module instances.
+	 * Shut down all dyndb instances.
 	 */
 	dns_dyndb_cleanup(true);
-	ns_hookmodule_unload_all();
 
 	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {
 		ISC_LIST_UNLINK(server->cachelist, nsc, link);

@@ -18,6 +18,8 @@ typedef struct ns_altsecret		ns_altsecret_t;
 typedef ISC_LIST(ns_altsecret_t)	ns_altsecretlist_t;
 typedef struct ns_client		ns_client_t;
 typedef struct ns_clientmgr		ns_clientmgr_t;
+typedef struct ns_module		ns_module_t;
+typedef ISC_LIST(ns_module_t) 		ns_modlist_t;
 typedef struct ns_interface 		ns_interface_t;
 typedef struct ns_interfacemgr		ns_interfacemgr_t;
 typedef struct ns_query			ns_query_t;

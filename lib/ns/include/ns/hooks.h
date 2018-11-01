@@ -253,14 +253,11 @@ typedef struct ns_hookctx {
 #define NS_HOOK_AGE 0
 #endif
 
-typedef isc_result_t ns_hook_register_t(const char *parameters,
-					const char *file,
-					unsigned long line,
-					const void *cfg,
-					void *actx,
-					ns_hookctx_t *hctx,
-					ns_hooktable_t *hooktable,
-					void **instp);
+typedef isc_result_t
+ns_hook_register_t(const char *parameters,
+		   const char *file, unsigned long line,
+		   const void *cfg, void *actx, ns_hookctx_t *hctx,
+		   ns_hooktable_t *hooktable, void **instp);
 /*%<
  * Called when registering a new module.
  *
@@ -308,13 +305,13 @@ ns_hook_destroyctx(ns_hookctx_t **hctxp);
  */
 
 isc_result_t
-ns_hookmodule_load(const char *modpath, const char *parameters,
-		   const char *cfg_file, unsigned long cfg_line,
-		   const void *cfg, void *actx,
-		   ns_hookctx_t *hctx, ns_hooktable_t *hooktable);
+ns_module_load(const char *modpath, const char *parameters,
+	       const char *cfg_file, unsigned long cfg_line,
+	       const void *cfg, void *actx, ns_hookctx_t *hctx,
+	       ns_modlist_t *modlist, ns_hooktable_t *hooktable);
 /*%<
- * Load the hook module specified from the file 'modpath', using
- * parameters 'parameters'.
+ * Load the module specified from the file 'modpath', and
+ * register an instance using 'parameters'.
  *
  * 'cfg_file' and 'cfg_line' specify the location of the hook module
  * declaration in the configuration file.
@@ -325,12 +322,27 @@ ns_hookmodule_load(const char *modpath, const char *parameters,
  *
  * 'hctx' is the hook context and 'hooktable' is the hook table
  * into which hook points should be registered.
+ *
+ * 'instp' will be left pointing to the instance of the module
+ * created by the module's hook_register function.
  */
 
 void
-ns_hookmodule_unload_all(void);
+ns_modlist_create(isc_mem_t *mctx, ns_modlist_t **listp);
 /*%<
- * Unload all currently loaded hook modules.
+ * Create and initialize a module list.
+ */
+
+void
+ns_modlist_free(isc_mem_t *mctx, void **listp);
+/*%<
+ * Close each module in a module list, then free the list object.
+ */
+
+void
+ns_hooktable_free(isc_mem_t *mctx, void **tablep);
+/*%<
+ * Free a hook table.
  */
 
 void
@@ -362,11 +374,4 @@ ns_hooktable_create(isc_mem_t *mctx, ns_hooktable_t **tablep);
 /*%<
  * Allocate and initialize a hook table.
  */
-
-void
-ns_hooktable_free(isc_mem_t *mctx, void **tablep);
-/*%<
- * Free a hook table.
- */
-
 #endif /* NS_HOOKS_H */
