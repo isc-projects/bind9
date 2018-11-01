@@ -979,12 +979,15 @@ rpz_log_rewrite(ns_client_t *client, bool disabled,
 		dns_zone_t *p_zone, dns_name_t *p_name,
 		dns_name_t *cname, dns_rpz_num_t rpz_num)
 {
-	isc_stats_t *zonestats;
-	char qname_buf[DNS_NAME_FORMATSIZE];
-	char p_name_buf[DNS_NAME_FORMATSIZE];
 	char cname_buf[DNS_NAME_FORMATSIZE] = { 0 };
+	char p_name_buf[DNS_NAME_FORMATSIZE];
+	char qname_buf[DNS_NAME_FORMATSIZE];
+	char classname[DNS_RDATACLASS_FORMATSIZE];
+	char typename[DNS_RDATATYPE_FORMATSIZE];
 	const char *s1 = cname_buf, *s2 = cname_buf;
+	dns_rdataset_t *rdataset;
 	dns_rpz_st_t *st;
+	isc_stats_t *zonestats;
 
 	/*
 	 * Count enabled rewrites in the global counter.
@@ -1016,11 +1019,29 @@ rpz_log_rewrite(ns_client_t *client, bool disabled,
 		s2 = ")";
 	}
 
+	/*
+	 *  Log Qclass and Qtype in addition to existing
+	 *  fields.
+	 */
+	rdataset = ISC_LIST_HEAD(client->query.origqname->list);
+	INSIST(rdataset != NULL);
+	dns_rdataclass_format(rdataset->rdclass, classname, sizeof(classname));
+	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
+
 	ns_client_log(client, DNS_LOGCATEGORY_RPZ, NS_LOGMODULE_QUERY,
-		      DNS_RPZ_INFO_LEVEL, "%srpz %s %s rewrite %s via %s%s%s%s",
+		      DNS_RPZ_INFO_LEVEL,
+#ifdef RPZ_LOG_QTYPE_QCLASS
+		      "%srpz %s %s rewrite %s/%s/%s via %s%s%s%s",
+#else /* RPZ_LOG_QTYPE_QCLASS */
+		      "%srpz %s %s rewrite %s via %s%s%s%s",
+#endif /* RPZ_LOG_QTYPE_QCLASS */
 		      disabled ? "disabled " : "",
 		      dns_rpz_type2str(type), dns_rpz_policy2str(policy),
-		      qname_buf, p_name_buf, s1, cname_buf, s2);
+		      qname_buf,
+#ifdef RPZ_LOG_QTYPE_QCLASS
+		      typename, classname,
+#endif /* RPZ_LOG_QTYPE_QCLASS */
+		      p_name_buf, s1, cname_buf, s2);
 }
 
 static void
