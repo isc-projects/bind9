@@ -150,10 +150,11 @@ $RNDCCMD 10.53.0.6 flush
 $DIG $DIGOPTS icky.icky.icky.ptang.zoop.boing.bad. @10.53.0.6 > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 sleep 1
-cat << __EOF | diff ans2/query.log - > /dev/null || ret=1
+sort ans2/query.log > ans2/query.log.sorted
+cat << __EOF | diff ans2/query.log.sorted - > /dev/null || ret=1
+ADDR ns2.bad.
 NS bad.
 NS boing.bad.
-ADDR ns2.bad.
 __EOF
 for ans in ans2 ans3 ans4; do mv -f $ans/query.log query-$ans-$n.log 2>/dev/null || true; done
 if [ $ret != 0 ]; then echo_i "failed"; fi
