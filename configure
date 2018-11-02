@@ -23969,7 +23969,7 @@ report() {
 	echo "    DNS Response Policy Service interface (--enable-dnsrps)"
     test "yes" = "$enable_fixed" && \
 	echo "    Allow 'fixed' rrset-order (--enable-fixed-rrset)"
-    test "yes" = "$want_backtrace" && \
+    test "yes" = "$enable_backtrace" && \
 	echo "    Print backtrace on crash (--enable-backtrace)"
     test "minimal" = "$want_symtable" && \
 	echo "    Use symbol table for backtrace, named only (--enable-symtable)"
@@ -24027,7 +24027,7 @@ report() {
 	echo "    Using PKCS#11 for Public-Key Cryptography (--without-native-pkcs11)"
     )
 
-    test "yes" = "$want_backtrace" || \
+    test "yes" = "$enable_backtrace" || \
 	echo "    Print backtrace on crash (--enable-backtrace)"
     test "yes" = "$want_querytrace" || \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
