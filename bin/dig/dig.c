@@ -65,7 +65,7 @@ static char domainopt[DNS_NAME_MAXTEXT];
 static char hexcookie[81];
 
 static bool short_form = false, printcmd = true,
-	ip6_int = false, plusquest = false, pluscomm = false,
+	plusquest = false, pluscomm = false,
 	ipv4only = false, ipv6only = false;
 static uint32_t splitwidth = 0xffffffff;
 
@@ -153,7 +153,6 @@ help(void) {
 "                 -b address[#port]   (bind to source address/port)\n"
 "                 -c class            (specify query class)\n"
 "                 -f filename         (batch mode)\n"
-"                 -i                  (use IP6.INT for IPv6 reverse lookups)\n"
 "                 -k keyfile          (specify tsig key file)\n"
 "                 -m                  (enable memory usage debugging)\n"
 "                 -p port             (specify port number)\n"
@@ -1606,7 +1605,7 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			exit(0);
 			break;
 		case 'i':
-			ip6_int = true;
+			/* deprecated */
 			break;
 		case 'm': /* memdebug */
 			/* memdebug is handled in preparse_args() */
@@ -1787,13 +1786,12 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			*lookup = clone_lookup(default_lookup, true);
 		*need_clone = true;
 		if (get_reverse(textname, sizeof(textname), value,
-				ip6_int, false) == ISC_R_SUCCESS) {
+				false) == ISC_R_SUCCESS) {
 			strlcpy((*lookup)->textname, textname,
 				sizeof((*lookup)->textname));
 			debug("looking up %s", (*lookup)->textname);
 			(*lookup)->trace_root = ((*lookup)->trace  ||
 						 (*lookup)->ns_search_only);
-			(*lookup)->ip6_int = ip6_int;
 			if (!(*lookup)->rdtypeset)
 				(*lookup)->rdtype = dns_rdatatype_ptr;
 			if (!(*lookup)->rdclassset)

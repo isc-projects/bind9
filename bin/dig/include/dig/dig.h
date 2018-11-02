@@ -103,7 +103,6 @@ struct dig_lookup {
 		trace_root, /*% initial query for either +trace or +nssearch */
 		tcp_mode,
 		tcp_mode_set,
-		ip6_int,
 		comments,
 		stats,
 		section_question,
@@ -280,8 +279,7 @@ int
 getaddresses(dig_lookup_t *lookup, const char *host, isc_result_t *resultp);
 
 isc_result_t
-get_reverse(char *reverse, size_t len, char *value, bool ip6_int,
-	    bool strict);
+get_reverse(char *reverse, size_t len, char *value, bool strict);
 
 ISC_PLATFORM_NORETURN_PRE void
 fatal(const char *format, ...)

@@ -55,6 +55,7 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
 	unsigned int len;
 
 	REQUIRE(address != NULL);
+	UNUSED(options);
 
 	/*
 	 * We create the text representation and then convert to a
@@ -81,11 +82,7 @@ dns_byaddr_createptrname(const isc_netaddr_t *address, unsigned int options,
 			*cp++ = '.';
 		}
 		remaining = sizeof(textname) - (cp - textname);
-		if ((options & DNS_BYADDROPT_IPV6INT) != 0) {
-			strlcpy(cp, "ip6.int.", remaining);
-		} else {
-			strlcpy(cp, "ip6.arpa.", remaining);
-		}
+		strlcpy(cp, "ip6.arpa.", remaining);
 	} else
 		return (ISC_R_NOTIMPLEMENTED);
 

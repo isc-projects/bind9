@@ -143,7 +143,6 @@ show_usage(void) {
 "       -c specifies query class for non-IN data\n"
 "       -C compares SOA records on authoritative nameservers\n"
 "       -d is equivalent to -v\n"
-"       -i IP6.INT reverse lookups\n"
 "       -l lists all hosts in a domain, using AXFR\n"
 "       -m set memory debugging flag (trace|record|usage)\n"
 "       -N changes the number of dots allowed before root lookup is done\n"
@@ -762,7 +761,7 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 			default_lookups = false;
 			break;
 		case 'i':
-			lookup->ip6_int = true;
+			/* deprecated */
 			break;
 		case 'n':
 			/* deprecated */
@@ -841,8 +840,8 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 		check_ra = true;
 
 	lookup->pending = false;
-	if (get_reverse(store, sizeof(store), hostname,
-			lookup->ip6_int, true) == ISC_R_SUCCESS) {
+	if (get_reverse(store, sizeof(store), hostname, true)
+	    == ISC_R_SUCCESS) {
 		strlcpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->rdtype = dns_rdatatype_ptr;
 		lookup->rdtypeset = true;

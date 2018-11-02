@@ -272,17 +272,6 @@
       </varlistentry>
 
       <varlistentry>
-	<term>-i</term>
-	<listitem>
-	  <para>
-	    Do reverse IPv6 lookups using the obsolete RFC 1886 IP6.INT
-	    domain, which is no longer in use. Obsolete bit string
-	    label queries (RFC 2874) are not attempted.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
 	<term>-k <replaceable class="parameter">keyfile</replaceable></term>
 	<listitem>
 	  <para>
@@ -394,8 +383,7 @@
 	    <literal>94.2.0.192.in-addr.arpa</literal> and sets the
 	    query type and class to PTR and IN respectively. IPv6
 	    addresses are looked up using nibble format under the
-	    IP6.ARPA domain (but see also the <option>-i</option>
-	    option).
+	    IP6.ARPA domain.
 	  </para>
 	</listitem>
       </varlistentry>
