@@ -28,6 +28,7 @@ options {
 	require-server-cookie no;
 	minimal-responses no;
 	dnssec-validation yes;
+	qname-minimization disabled;
 };
 
 server 10.53.0.1 { tcp-only yes; };
