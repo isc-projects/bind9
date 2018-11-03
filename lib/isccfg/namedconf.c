@@ -434,6 +434,7 @@ static cfg_type_t cfg_type_category = {
  */
 static cfg_tuplefielddef_t dnsseckey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
+	{ "init", &cfg_type_void, 0 },
 	{ "flags", &cfg_type_uint32, 0 },
 	{ "protocol", &cfg_type_uint32, 0 },
 	{ "algorithm", &cfg_type_uint32, 0 },

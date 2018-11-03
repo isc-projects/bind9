@@ -3247,108 +3247,214 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 	return (result);
 }
 
-/*
- * Check for conflicts between trusted-keys and managed-keys.
- */
 static isc_result_t
-check_ta_conflicts(const cfg_obj_t *mkeys, const cfg_obj_t *tkeys,
-		   bool autovalidation, isc_mem_t *mctx, isc_log_t *logctx)
+record_static_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
+		   isc_log_t *logctx, bool autovalidation)
 {
-	isc_result_t result = ISC_R_SUCCESS, tresult;
-	const cfg_listelt_t *elt = NULL, *elt2 = NULL;
+	isc_result_t result, ret = ISC_R_SUCCESS;
+	const cfg_listelt_t *elt;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
-	const cfg_obj_t *obj;
-	const char *str;
-	isc_symtab_t *symtab = NULL;
-	isc_symvalue_t symvalue;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	const char *file;
-	unsigned int line;
 
 	name = dns_fixedname_initname(&fixed);
+
+	for (elt = cfg_list_first(keylist);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		const char *initmethod;
+		const cfg_obj_t *init = NULL;
+		const cfg_obj_t *obj = cfg_listelt_value(elt);
+		const char *str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		isc_symvalue_t symvalue;
+
+		result = dns_name_fromstring(name, str, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
+			continue;
+		}
+
+		init = cfg_tuple_get(obj, "init");
+		if (!cfg_obj_isvoid(init)) {
+			initmethod = cfg_obj_asstring(init);
+			if (strcasecmp(initmethod, "initial-key") == 0) {
+				/* initializing key, skip it */
+				continue;
+			}
+		}
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		symvalue.as_cpointer = obj;
+		result = isc_symtab_define(symtab, namebuf, 1, symvalue,
+					   isc_symexists_reject);
+		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
+			continue;
+		}
+
+		if (autovalidation && dns_name_equal(name, dns_rootname)) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "static key for root zone "
+				    "cannot be used with "
+				    "'dnssec-validation auto'.");
+			ret = ISC_R_FAILURE;
+			continue;
+		}
+	}
+
+	return (ret);
+}
+
+static isc_result_t
+check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
+			isc_log_t *logctx)
+{
+	isc_result_t result, ret = ISC_R_SUCCESS;
+	const cfg_listelt_t *elt;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	char namebuf[DNS_NAME_FORMATSIZE];
+
+	name = dns_fixedname_initname(&fixed);
+
+	for (elt = cfg_list_first(keylist);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		const cfg_obj_t *obj = cfg_listelt_value(elt);
+		const cfg_obj_t *init = NULL;
+		const char *str;
+		isc_symvalue_t symvalue;
+
+		init = cfg_tuple_get(obj, "init");
+		if (cfg_obj_isvoid(init) ||
+		    strcasecmp(cfg_obj_asstring(init), "static-key") == 0)
+		{
+			/* static key, skip it */
+			continue;
+		}
+
+		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		result = dns_name_fromstring(name, str, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
+			continue;
+		}
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		result = isc_symtab_lookup(symtab, namebuf, 1, &symvalue);
+		if (result == ISC_R_SUCCESS) {
+			const char *file = cfg_obj_file(symvalue.as_cpointer);
+			unsigned int line = cfg_obj_line(symvalue.as_cpointer);
+			if (file == NULL) {
+				file = "<unknown file>";
+			}
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "static and initializing keys "
+				    "cannot be used for the "
+				    "same domain. "
+				    "static key defined at "
+				    "%s:%u", file, line);
+
+			ret = ISC_R_FAILURE;
+		}
+	}
+
+	return (ret);
+}
+
+/*
+ * Check for conflicts between static and initialiizing keys.
+ */
+static isc_result_t
+check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
+		   const cfg_obj_t *global_tkeys, const cfg_obj_t *view_tkeys,
+		   bool autovalidation, isc_mem_t *mctx, isc_log_t *logctx)
+{
+	isc_result_t result, tresult;
+	const cfg_listelt_t *elt = NULL;
+	const cfg_obj_t *keylist = NULL;
+	isc_symtab_t *symtab = NULL;
 
 	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
-	for (elt = cfg_list_first(mkeys);
+	/*
+	 * First we record all the static keys (i.e., old-style
+	 * trusted-keys and dnssec-keys configured with "static-key")
+	 */
+	for (elt = cfg_list_first(global_dkeys);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
-		const cfg_obj_t *keylist = cfg_listelt_value(elt);
-		for (elt2 = cfg_list_first(keylist);
-		     elt2 != NULL;
-		     elt2 = cfg_list_next(elt2))
-		{
-			obj = cfg_listelt_value(elt2);
-			str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
-			tresult = dns_name_fromstring(name, str, 0, NULL);
-			if (tresult != ISC_R_SUCCESS) {
-				/* already reported */
-				continue;
-			}
-
-			dns_name_format(name, namebuf, sizeof(namebuf));
-			symvalue.as_cpointer = obj;
-			tresult = isc_symtab_define(symtab, namebuf, 1,
-						   symvalue,
-						   isc_symexists_reject);
-			if (tresult != ISC_R_SUCCESS &&
-			    tresult != ISC_R_EXISTS)
-			{
-				result = tresult;
-				continue;
-			}
+		keylist = cfg_listelt_value(elt);
+		tresult = record_static_keys(symtab, keylist,
+					     logctx, autovalidation);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
 		}
 	}
 
-	for (elt = cfg_list_first(tkeys);
+	for (elt = cfg_list_first(view_dkeys);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
-		const cfg_obj_t *keylist = cfg_listelt_value(elt);
-		for (elt2 = cfg_list_first(keylist);
-		     elt2 != NULL;
-		     elt2 = cfg_list_next(elt2))
-		{
-			obj = cfg_listelt_value(elt2);
-			str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
-			result = dns_name_fromstring(name, str, 0, NULL);
-			if (result != ISC_R_SUCCESS) {
-				/* already reported */
-				continue;
-			}
+		keylist = cfg_listelt_value(elt);
+		tresult = record_static_keys(symtab, keylist,
+					     logctx, autovalidation);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
 
-			if (autovalidation &&
-			    dns_name_equal(name, dns_rootname))
-			{
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "trusted-keys for root zone "
-					    "cannot be used with "
-					    "'dnssec-validation auto'.");
-				result = ISC_R_FAILURE;
-				continue;
-			}
+	for (elt = cfg_list_first(global_tkeys);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		keylist = cfg_listelt_value(elt);
+		tresult = record_static_keys(symtab, keylist,
+					     logctx, autovalidation);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
 
-			dns_name_format(name, namebuf, sizeof(namebuf));
-			tresult = isc_symtab_lookup(symtab, namebuf, 1,
-						   &symvalue);
-			if (tresult == ISC_R_SUCCESS) {
-				file = cfg_obj_file(symvalue.as_cpointer);
-				line = cfg_obj_line(symvalue.as_cpointer);
-				if (file == NULL) {
-					file = "<unknown file>";
-				}
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "trusted-keys and managed-keys "
-					    "cannot be used for the "
-					    "same name.  managed-key defined "
-					    "(%s:%u)", file, line);
+	for (elt = cfg_list_first(view_tkeys);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		keylist = cfg_listelt_value(elt);
+		tresult = record_static_keys(symtab, keylist,
+					     logctx, autovalidation);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
 
-				result = ISC_R_FAILURE;
-			}
+
+	/*
+	 * Next, ensure that there's no conflict between the
+	 * static keys and the dnssec-keys configured with "initial-key"
+	 */
+	for (elt = cfg_list_first(global_dkeys);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		keylist = cfg_listelt_value(elt);
+		tresult = check_initializing_keys(symtab, keylist, logctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
+
+	for (elt = cfg_list_first(view_dkeys);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		keylist = cfg_listelt_value(elt);
+		tresult = check_initializing_keys(symtab, keylist, logctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
 		}
 	}
 
@@ -3500,7 +3606,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *zones = NULL;
-	const cfg_obj_t *keys = NULL, *tkeys = NULL, *mkeys = NULL;
+	const cfg_obj_t *view_tkeys = NULL, *global_tkeys = NULL;
+	const cfg_obj_t *view_mkeys = NULL, *global_mkeys = NULL;
+	const cfg_obj_t *view_dkeys = NULL, *global_dkeys = NULL;
+	const cfg_obj_t *check_keys[2] = { NULL, NULL };
+	const cfg_obj_t *keys = NULL;
 #ifndef HAVE_DLOPEN
 	const cfg_obj_t *dyndb = NULL;
 #endif
@@ -3514,9 +3624,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *opts = NULL;
 	const cfg_obj_t *plugin_list = NULL;
 	bool autovalidation = false;
-	bool enablednssec, enablevalidation;
-	const char *valstr = "no";
-	unsigned int tflags = 0, dflags = 0, mflags = 0;
+	unsigned int tflags = 0, dflags = 0;
+	int i;
 
 	/*
 	 * Get global options block
@@ -3667,165 +3776,158 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	isc_symtab_destroy(&symtab);
 
 	/*
-	 * Check trusted-keys and dnssec-keys/managed-keys.
+	 * Load all DNSSEC keys.
 	 */
-	tkeys = NULL;
 	if (voptions != NULL) {
-		(void)cfg_map_get(voptions, "trusted-keys", &tkeys);
+		(void)cfg_map_get(voptions, "trusted-keys", &view_tkeys);
+		(void)cfg_map_get(voptions, "dnssec-keys", &view_dkeys);
+		(void)cfg_map_get(voptions, "managed-keys", &view_mkeys);
 	}
-	if (tkeys == NULL) {
-		(void)cfg_map_get(config, "trusted-keys", &tkeys);
-	}
+	(void)cfg_map_get(config, "trusted-keys", &global_tkeys);
+	(void)cfg_map_get(config, "dnssec-keys", &global_dkeys);
+	(void)cfg_map_get(config, "managed-keys", &global_mkeys);
 
-	for (element = cfg_list_first(tkeys);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
-		const cfg_obj_t *keylist = cfg_listelt_value(element);
-		for (element2 = cfg_list_first(keylist);
-		     element2 != NULL;
-		     element2 = cfg_list_next(element2))
-		{
-			obj = cfg_listelt_value(element2);
-			tresult = check_trusted_key(obj, false,
-						    &tflags, logctx);
-			if (tresult != ISC_R_SUCCESS) {
-				result = tresult;
+	/*
+	 * Check trusted-keys.
+	 */
+	check_keys[0] = view_tkeys;
+	check_keys[1] = global_tkeys;
+	for (i = 0; i < 2; i++) {
+		if (check_keys[i] != NULL) {
+			unsigned int flags = 0;
+
+			for (element = cfg_list_first(check_keys[i]);
+			     element != NULL;
+			     element = cfg_list_next(element))
+			{
+				const cfg_obj_t *keylist =
+					cfg_listelt_value(element);
+				for (element2 = cfg_list_first(keylist);
+				     element2 != NULL;
+				     element2 = cfg_list_next(element2))
+				{
+					obj = cfg_listelt_value(element2);
+					tresult = check_trusted_key(obj,
+								    false,
+								    &flags,
+								    logctx);
+					if (tresult != ISC_R_SUCCESS) {
+						result = tresult;
+					}
+				}
 			}
+
+			if ((flags & ROOT_KSK_STATIC) != 0) {
+				cfg_obj_log(check_keys[i], logctx,
+					    ISC_LOG_WARNING,
+					    "trusted-keys entry for the root "
+					    "zone WILL FAIL after key "
+					    "rollover - use dnssec-keys "
+					    "with initial-key instead.");
+			}
+
+			if ((flags & DLV_KSK_KEY) != 0) {
+				cfg_obj_log(check_keys[i], logctx,
+					    ISC_LOG_WARNING,
+					    "trust anchor for dlv.isc.org "
+					    "is present; dlv.isc.org has "
+					    "been shut down");
+			}
+
+			tflags |= flags;
 		}
 	}
 
-	if ((tflags & ROOT_KSK_STATIC) != 0) {
-		cfg_obj_log(tkeys, logctx, ISC_LOG_WARNING,
-			    "trusted-keys entry for the root zone "
-			    "WILL FAIL after key rollover - use "
-			    "dnssec-keys with initial-key instead.");
-	}
-
-	if ((tflags & DLV_KSK_KEY) != 0) {
-		cfg_obj_log(tkeys, logctx, ISC_LOG_WARNING,
-			    "trust anchor for dlv.isc.org is present; "
-			    "dlv.isc.org has been shut down");
-	}
-
-	keys = NULL;
-	if (voptions != NULL) {
-		(void)cfg_map_get(voptions, "dnssec-keys", &keys);
-	}
-	if (keys == NULL) {
-		(void)cfg_map_get(config, "dnssec-keys", &keys);
-	}
-
-	for (element = cfg_list_first(keys);
-	     element != NULL;
-	     element = cfg_list_next(element))
+	/*
+	 * Check dnssec/managed-keys. (Only one or the other can be used.)
+	 */
+	if ((view_mkeys != NULL || global_mkeys != NULL) &&
+	    (view_dkeys != NULL || global_dkeys != NULL))
 	{
-		const cfg_obj_t *keylist = cfg_listelt_value(element);
-		for (element2 = cfg_list_first(keylist);
-		     element2 != NULL;
-		     element2 = cfg_list_next(element2))
-		{
-			obj = cfg_listelt_value(element2);
-			tresult = check_trusted_key(obj, true, &dflags,
-						    logctx);
-			if (tresult != ISC_R_SUCCESS) {
-				result = tresult;
+		keys = (view_mkeys != NULL) ? view_mkeys : global_mkeys;
+
+		cfg_obj_log(keys, logctx, ISC_LOG_ERROR,
+			    "use of managed-keys is not allowed when "
+			    "dnssec-keys is also in use");
+		result = ISC_R_FAILURE;
+
+	}
+
+	if (view_dkeys == NULL && global_dkeys == NULL) {
+		view_dkeys = view_mkeys;
+		global_dkeys = global_mkeys;
+	}
+
+	check_keys[0] = view_dkeys;
+	check_keys[1] = global_dkeys;
+	for (i = 0; i < 2; i++) {
+		if (check_keys[i] != NULL) {
+			unsigned int flags = 0;
+
+			for (element = cfg_list_first(check_keys[i]);
+			     element != NULL;
+			     element = cfg_list_next(element))
+			{
+				const cfg_obj_t *keylist =
+					cfg_listelt_value(element);
+				for (element2 = cfg_list_first(keylist);
+				     element2 != NULL;
+				     element2 = cfg_list_next(element2))
+				{
+					obj = cfg_listelt_value(element2);
+					tresult = check_trusted_key(obj,
+								    true,
+								    &flags,
+								    logctx);
+					if (tresult != ISC_R_SUCCESS) {
+						result = tresult;
+					}
+				}
 			}
+
+			if ((flags & ROOT_KSK_STATIC) != 0) {
+				cfg_obj_log(check_keys[i], logctx,
+					    ISC_LOG_WARNING,
+					    "static-key entry for the root "
+					    "zone WILL FAIL after key "
+					    "rollover - use dnssec-keys "
+					    "with initial-key instead.");
+			}
+
+			if ((flags & ROOT_KSK_2010) != 0 &&
+			    (flags & ROOT_KSK_2017) == 0)
+			{
+				cfg_obj_log(check_keys[i], logctx,
+					    ISC_LOG_WARNING,
+					    "initial-key entry for the root "
+					    "zone uses the 2010 key without "
+					    "the updated 2017 key");
+			}
+
+			if ((flags & DLV_KSK_KEY) != 0) {
+				cfg_obj_log(check_keys[i], logctx,
+					    ISC_LOG_WARNING,
+					    "trust anchor for dlv.isc.org "
+					    "is present; dlv.isc.org has "
+					    "been shut down");
+			}
+
+			dflags |= flags;
 		}
-	}
-
-	if ((dflags & ROOT_KSK_STATIC) != 0) {
-		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "static-key entry for the root zone "
-			    "WILL FAIL after key rollover - use "
-			    "dnssec-keys with initial-key instead.");
-	}
-
-	if ((dflags & ROOT_KSK_2010) != 0 && (dflags & ROOT_KSK_2017) == 0) {
-		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "initial-key entry for the root zone "
-			    "uses the 2010 key without the updated "
-			    "2017 key");
 	}
 
 	if ((tflags & ROOT_KSK_ANY) != 0 && (dflags & ROOT_KSK_ANY) != 0) {
+		keys = (view_dkeys != NULL) ? view_dkeys : global_dkeys;
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
 			    "both trusted-keys and dnssec-keys "
 			    "for the root zone are present");
 	}
 
 	if ((dflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
+		keys = (view_dkeys != NULL) ? view_dkeys : global_dkeys;
 		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
 			    "both initial-key and static-key entries for the "
 			    "root zone are present");
-	}
-
-	if ((dflags & DLV_KSK_KEY) != 0) {
-		cfg_obj_log(keys, logctx, ISC_LOG_WARNING,
-			    "trust anchor for dlv.isc.org is present; "
-			    "dlv.isc.org has been shut down");
-	}
-
-	/*
-	 * "managed-keys" is a backward-compatible synonym for
-	 * "dnssec-keys"; perform the same checks.
-	 */
-	mkeys = NULL;
-	if (voptions != NULL) {
-		(void)cfg_map_get(voptions, "managed-keys", &mkeys);
-	}
-	if (mkeys == NULL) {
-		(void)cfg_map_get(config, "managed-keys", &mkeys);
-	}
-
-	for (element = cfg_list_first(mkeys);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
-		const cfg_obj_t *keylist = cfg_listelt_value(element);
-		for (element2 = cfg_list_first(keylist);
-		     element2 != NULL;
-		     element2 = cfg_list_next(element2))
-		{
-			obj = cfg_listelt_value(element2);
-			tresult = check_trusted_key(obj, true, &mflags,
-						    logctx);
-			if (tresult != ISC_R_SUCCESS) {
-				result = tresult;
-			}
-		}
-	}
-
-	if ((mflags & ROOT_KSK_STATIC) != 0) {
-		cfg_obj_log(mkeys, logctx, ISC_LOG_WARNING,
-			    "static-key entry for the root zone "
-			    "WILL FAIL after key rollover - use "
-			    "dnssec-keys with initial-key instead.");
-	}
-
-	if ((mflags & ROOT_KSK_2010) != 0 && (mflags & ROOT_KSK_2017) == 0) {
-		cfg_obj_log(mkeys, logctx, ISC_LOG_WARNING,
-			    "initial-key entry for the root zone "
-			    "uses the 2010 key without the updated "
-			    "2017 key");
-	}
-
-	if ((tflags & ROOT_KSK_ANY) != 0 && (mflags & ROOT_KSK_ANY) != 0) {
-		cfg_obj_log(mkeys, logctx, ISC_LOG_WARNING,
-			    "both trusted-keys and managed-keys "
-			    "for the root zone are present");
-	}
-
-	if ((mflags & ROOT_KSK_ANY) == ROOT_KSK_ANY) {
-		cfg_obj_log(mkeys, logctx, ISC_LOG_WARNING,
-			    "both initial-key and static-key entries for the "
-			    "root zone are present");
-	}
-
-	if ((mflags & DLV_KSK_KEY) != 0) {
-		cfg_obj_log(mkeys, logctx, ISC_LOG_WARNING,
-			    "trust anchor for dlv.isc.org is present; "
-			    "dlv.isc.org has been shut down");
 	}
 
 	obj = NULL;
@@ -3839,7 +3941,8 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		autovalidation = true;
 	}
 
-	tresult = check_ta_conflicts(mkeys, tkeys,
+	tresult = check_ta_conflicts(global_dkeys, view_dkeys,
+				     global_tkeys, view_tkeys,
 				     autovalidation, mctx, logctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
@@ -3848,31 +3951,37 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	/*
 	 * Check options.
 	 */
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		tresult = check_options(voptions, logctx, mctx,
 					optlevel_view);
-	else
+	} else {
 		tresult = check_options(config, logctx, mctx,
 					optlevel_config);
-	if (tresult != ISC_R_SUCCESS)
+	}
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+	}
 
 	tresult = check_viewacls(actx, voptions, config, logctx, mctx);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+	}
 
 	tresult = check_recursionacls(actx, voptions, viewname,
 				      config, logctx, mctx);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+	}
 
 	tresult = check_dns64(actx, voptions, config, logctx, mctx);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+	}
 
 	tresult = check_ratelimit(actx, voptions, config, logctx, mctx);
-	if (tresult != ISC_R_SUCCESS)
+	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
+	}
 
 	/*
 	 * Load plugins.

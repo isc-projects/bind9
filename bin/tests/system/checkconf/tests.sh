@@ -416,10 +416,10 @@ grep "trusted-keys entry for the root zone WILL FAIL" checkconf.out$n > /dev/nul
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
-echo_i "check that mixed static-key and initial-key for root generates a warning ($n)"
+echo_i "check that using dnssec-keys and managed-keys generates an error ($n)"
 ret=0
-$CHECKCONF check-root-mixed-key.conf > checkconf.out$n 2>/dev/null || ret=1
- grep "both initial-key and static-key" checkconf.out$n > /dev/null || ret=1
+$CHECKCONF check-mixed-keys.conf > checkconf.out$n 2>/dev/null && ret=1
+grep "use of managed-keys is not allowed" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
