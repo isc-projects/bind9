@@ -60,6 +60,8 @@ PK11_PAD_HMAC_KEYS
 #define PK11_CRYPTECH_FLAVOR 3
 /* AEP Keyper */
 #define PK11_AEP_FLAVOR 4
+/* Utimaco HSM */
+#define PK11_UTIMACO_FLAVOR 5
 
 /* Default is for Thales nCipher */
 #ifndef PK11_FLAVOR
