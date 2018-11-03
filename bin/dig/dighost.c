@@ -664,12 +664,12 @@ make_empty_lookup(void) {
 	looknew->ttlunits = false;
 	looknew->qr = false;
 #ifdef WITH_IDN_SUPPORT
-	looknew->idnin = true;
+	looknew->idnin = isatty(1)?(getenv("IDN_DISABLE") == NULL):false;
 #else
 	looknew->idnin = false;
 #endif
 #ifdef WITH_IDN_OUT_SUPPORT
-	looknew->idnout = true;
+	looknew->idnout = looknew->idnin;
 #else
 	looknew->idnout = false;
 #endif
