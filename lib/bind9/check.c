@@ -54,6 +54,8 @@
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
+#include <ns/hooks.h>
+
 #include <bind9/check.h>
 
 static unsigned char dlviscorg_ndata[] = "\003dlv\003isc\003org";
@@ -3349,7 +3351,7 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
-	       isc_symtab_t *files, isc_symtab_t *inview,
+	       isc_symtab_t *files, bool checkhooks, isc_symtab_t *inview,
 	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *zones = NULL;
@@ -3365,6 +3367,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *obj;
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *opts = NULL;
+	const cfg_obj_t *hook_list = NULL;
 	bool enablednssec, enablevalidation;
 	const char *valstr = "no";
 	unsigned int tflags, mflags;
@@ -3662,6 +3665,56 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
+	/*
+	 * Load hook modules.
+	 */
+	if (checkhooks) {
+		if (voptions != NULL) {
+			(void)cfg_map_get(voptions, "hook", &hook_list);
+		} else {
+			(void)cfg_map_get(config, "hook", &hook_list);
+		}
+	}
+
+#ifdef HAVE_DLOPEN
+	for (element = cfg_list_first(hook_list);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const cfg_obj_t *hook = cfg_listelt_value(element);
+
+		const char *type, *library;
+		const char *parameters = NULL;
+
+		/* Get the path to the hook module. */
+		obj = cfg_tuple_get(hook, "type");
+		type = cfg_obj_asstring(obj);
+
+		/* Only query hooks are supported currently. */
+		if (strcasecmp(type, "query") != 0) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "unsupported hook type");
+			return (ISC_R_FAILURE);
+		}
+
+		library = cfg_obj_asstring(cfg_tuple_get(hook, "library"));
+
+		obj = cfg_tuple_get(hook, "parameters");
+		if (obj != NULL && cfg_obj_isstring(obj)) {
+			parameters = cfg_obj_asstring(obj);
+		}
+		tresult = ns_module_check(library, parameters,
+					  cfg_obj_file(obj), cfg_obj_line(obj),
+					  config, mctx, logctx, actx);
+		if (tresult != ISC_R_SUCCESS) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "%s: module check failed: %s",
+				    library, isc_result_totext(tresult));
+			result = tresult;
+		}
+	}
+#endif /* HAVE_DLOPEN */
+
  cleanup:
 	if (symtab != NULL)
 		isc_symtab_destroy(&symtab);
@@ -3916,8 +3969,8 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 }
 
 isc_result_t
-bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
-		      isc_mem_t *mctx)
+bind9_check_namedconf(const cfg_obj_t *config, bool hooks,
+		      isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *views = NULL;
@@ -3973,19 +4026,29 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 	}
 
 	if (views == NULL) {
-		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
-					 files, inview, logctx, mctx);
+		tresult = check_viewconf(config, NULL, NULL,
+					 dns_rdataclass_in, files,
+					 hooks, inview, logctx, mctx);
 		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
 	} else {
 		const cfg_obj_t *zones = NULL;
+		const cfg_obj_t *hooks = NULL;
 
 		(void)cfg_map_get(config, "zone", &zones);
 		if (zones != NULL) {
 			cfg_obj_log(zones, logctx, ISC_LOG_ERROR,
 				    "when using 'view' statements, "
 				    "all zones must be in views");
+			result = ISC_R_FAILURE;
+		}
+
+		(void)cfg_map_get(config, "hook", &hooks);
+		if (hooks != NULL) {
+			cfg_obj_log(hooks, logctx, ISC_LOG_ERROR,
+				    "when using 'view' statements, "
+				    "all hooks must be defined in views");
 			result = ISC_R_FAILURE;
 		}
 	}
@@ -4051,8 +4114,9 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 			}
 		}
 		if (tresult == ISC_R_SUCCESS)
-			tresult = check_viewconf(config, voptions, key, vclass,
-						 files, inview, logctx, mctx);
+			tresult = check_viewconf(config, voptions, key,
+						 vclass, files, hooks,
+						 inview, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}

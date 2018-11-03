@@ -79,6 +79,7 @@ ns_log_init
 ns_log_setcontext
 ns_modlist_create
 ns_modlist_free
+ns_module_check
 ns_module_load
 ns_notify_start
 ns_query_cancel

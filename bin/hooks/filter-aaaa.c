@@ -250,7 +250,51 @@ parse_filter_aaaa_on(const cfg_obj_t *param_obj, const char *param_name,
 }
 
 static isc_result_t
+check_syntax(cfg_obj_t *fmap, const void *cfg,
+	     isc_mem_t *mctx, isc_log_t *lctx, void *actx)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_obj_t *aclobj = NULL;
+	dns_acl_t *acl = NULL;
+	filter_aaaa_t f4 = NONE, f6 = NONE;
+
+	cfg_map_get(fmap, "filter-aaaa", &aclobj);
+	if (aclobj == NULL) {
+		return (result);
+	}
+
+	CHECK(cfg_acl_fromconfig(aclobj, (const cfg_obj_t *) cfg,
+				 lctx, (cfg_aclconfctx_t *) actx,
+				 mctx, 0, &acl));
+
+	CHECK(parse_filter_aaaa_on(fmap, "filter-aaaa-on-v4", &f4));
+	CHECK(parse_filter_aaaa_on(fmap, "filter-aaaa-on-v6", &f6));
+
+	if ((f4 != NONE || f6 != NONE) && dns_acl_isnone(acl)) {
+		cfg_obj_log(aclobj, lctx, ISC_LOG_WARNING,
+			    "\"filter-aaaa\" is 'none;' but "
+			    "either filter-aaaa-on-v4 or filter-aaaa-on-v6 "
+			    "is enabled");
+		result = ISC_R_FAILURE;
+	} else if (f4 == NONE && f6 == NONE && !dns_acl_isnone(acl)) {
+		cfg_obj_log(aclobj, lctx, ISC_LOG_WARNING,
+			    "\"filter-aaaa\" is set but "
+			    "neither filter-aaaa-on-v4 or filter-aaaa-on-v6 "
+			    "is enabled");
+		result = ISC_R_FAILURE;
+	}
+
+ cleanup:
+	if (acl != NULL) {
+		dns_acl_detach(&acl);
+	}
+
+	return (result);
+}
+
+static isc_result_t
 parse_parameters(filter_instance_t *inst, const char *parameters,
+		 const char *cfg_file, unsigned long cfg_line,
 		 const void *cfg, void *actx, ns_hookctx_t *hctx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
@@ -263,8 +307,10 @@ parse_parameters(filter_instance_t *inst, const char *parameters,
 
 	isc_buffer_constinit(&b, parameters, strlen(parameters));
 	isc_buffer_add(&b, strlen(parameters));
-	CHECK(cfg_parse_buffer(parser, &b, &cfg_type_parameters,
-			       &param_obj));
+	CHECK(cfg_parse_buffer4(parser, &b, cfg_file, cfg_line,
+				&cfg_type_parameters, 0, &param_obj));
+
+	CHECK(check_syntax(param_obj, cfg, hctx->mctx, hctx->lctx, actx));
 
 	CHECK(parse_filter_aaaa_on(param_obj, "filter-aaaa-on-v4",
 				   &inst->v4_aaaa));
@@ -323,7 +369,9 @@ hook_register(const char *parameters,
 	isc_mem_attach(hctx->mctx, &inst->mctx);
 
 	if (parameters != NULL) {
-		CHECK(parse_parameters(inst, parameters, cfg, actx, hctx));
+		CHECK(parse_parameters(inst, parameters,
+				       cfg_file, cfg_line,
+				       cfg, actx, hctx));
 	}
 
 	CHECK(isc_mempool_create(hctx->mctx, sizeof(filter_data_t),
@@ -355,6 +403,34 @@ hook_register(const char *parameters,
 		hook_destroy((void **) &inst);
 	}
 
+	return (result);
+}
+
+isc_result_t
+hook_check(const char *parameters, const char *cfg_file, unsigned long cfg_line,
+	   const void *cfg, isc_mem_t *mctx, isc_log_t *lctx, void *actx)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	cfg_parser_t *parser = NULL;
+	cfg_obj_t *param_obj = NULL;
+	isc_buffer_t b;
+
+	CHECK(cfg_parser_create(mctx, lctx, &parser));
+
+	isc_buffer_constinit(&b, parameters, strlen(parameters));
+	isc_buffer_add(&b, strlen(parameters));
+	CHECK(cfg_parse_buffer4(parser, &b, cfg_file, cfg_line,
+				&cfg_type_parameters, 0, &param_obj));
+
+	CHECK(check_syntax(param_obj, cfg, mctx, lctx, actx));
+
+ cleanup:
+	if (param_obj != NULL) {
+		cfg_obj_destroy(parser, &param_obj);
+	}
+	if (parser != NULL) {
+		cfg_parser_destroy(&parser);
+	}
 	return (result);
 }
 

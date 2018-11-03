@@ -233,6 +233,7 @@ LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
  */
 typedef struct ns_hookctx {
 	unsigned int		magic;
+	dns_view_t		*view;
 	isc_mem_t		*mctx;
 	isc_log_t		*lctx;
 } ns_hookctx_t;
@@ -272,14 +273,23 @@ ns_hook_register_t(const char *parameters,
  *\li	Other errors are possible
  */
 
-typedef void ns_hook_destroy_t(void **instp);
+typedef void
+ns_hook_destroy_t(void **instp);
 /*%<
  * Destroy a module instance.
  *
  * '*instp' must be set to NULL by the function before it returns.
  */
 
-typedef int ns_hook_version_t(void);
+typedef isc_result_t
+ns_hook_check_t(const char *parameters, const char *file, unsigned long line,
+		const void *cfg, isc_mem_t *mctx, isc_log_t *lctx, void *actx);
+/*%<
+ * Check the validity of 'parameters'.
+ */
+
+typedef int
+ns_hook_version_t(void);
 /*%<
  * Return the API version number a hook module was compiled with.
  *
@@ -291,13 +301,13 @@ typedef int ns_hook_version_t(void);
 /*%
  * Prototypes for API functions to be defined in each module.
  */
+ns_hook_check_t hook_check;
 ns_hook_destroy_t hook_destroy;
 ns_hook_register_t hook_register;
 ns_hook_version_t hook_version;
 
 isc_result_t
-ns_hook_createctx(isc_mem_t *mctx, ns_hookctx_t **hctxp);
-
+ns_hook_createctx(isc_mem_t *mctx, dns_view_t *view, ns_hookctx_t **hctxp);
 void
 ns_hook_destroyctx(ns_hookctx_t **hctxp);
 /*%<
@@ -325,6 +335,16 @@ ns_module_load(const char *modpath, const char *parameters,
  *
  * 'instp' will be left pointing to the instance of the module
  * created by the module's hook_register function.
+ */
+
+isc_result_t
+ns_module_check(const char *modpath, const char *parameters,
+		const char *cfg_file, unsigned long cfg_line,
+		const void *cfg, isc_mem_t *mctx, isc_log_t *lctx, void *actx);
+/*%<
+ * Open the module at 'modpath' and check the validity of
+ * 'parameters', logging any errors or warnings found, then
+ * close it without configuring it.
  */
 
 void

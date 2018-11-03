@@ -30,6 +30,8 @@
 #include <isc/util.h>
 #include <isc/types.h>
 
+#include <dns/view.h>
+
 #include <ns/hooks.h>
 #include <ns/log.h>
 #include <ns/query.h>
@@ -47,6 +49,7 @@ struct ns_module {
        void			*handle;
        void			*inst;
        char			*modpath;
+       ns_hook_check_t		*check_func;
        ns_hook_register_t	*register_func;
        ns_hook_destroy_t	*destroy_func;
        LINK(ns_module_t)	link;
@@ -97,6 +100,7 @@ load_library(isc_mem_t *mctx, const char *modpath, ns_module_t **hmodp) {
 	isc_result_t result;
 	void *handle = NULL;
 	ns_module_t *hmod = NULL;
+	ns_hook_check_t *check_func = NULL;
 	ns_hook_register_t *register_func = NULL;
 	ns_hook_destroy_t *destroy_func = NULL;
 	ns_hook_version_t *version_func = NULL;
@@ -104,7 +108,7 @@ load_library(isc_mem_t *mctx, const char *modpath, ns_module_t **hmodp) {
 
 	REQUIRE(hmodp != NULL && *hmodp == NULL);
 
-	flags = RTLD_NOW | RTLD_LOCAL;
+	flags = RTLD_LAZY | RTLD_LOCAL;
 #ifdef RTLD_DEEPBIND
 	flags |= RTLD_DEEPBIND;
 #endif
@@ -136,16 +140,19 @@ load_library(isc_mem_t *mctx, const char *modpath, ns_module_t **hmodp) {
 		CHECK(ISC_R_FAILURE);
 	}
 
+	CHECK(load_symbol(handle, modpath, "hook_check",
+			  (void **)&check_func));
 	CHECK(load_symbol(handle, modpath, "hook_register",
 			  (void **)&register_func));
 	CHECK(load_symbol(handle, modpath, "hook_destroy",
 			  (void **)&destroy_func));
 
 	hmod = isc_mem_get(mctx, sizeof(*hmod));
-	hmod->mctx = NULL;
+	memset(hmod, 0, sizeof(*hmod));
 	isc_mem_attach(mctx, &hmod->mctx);
 	hmod->handle = handle;
 	hmod->modpath = isc_mem_strdup(hmod->mctx, modpath);
+	hmod->check_func = check_func;
 	hmod->register_func = register_func;
 	hmod->destroy_func = destroy_func;
 
@@ -262,7 +269,7 @@ load_library(isc_mem_t *mctx, const char *modpath, ns_module_t **hmodp) {
 			  (void **)&destroy_func));
 
 	hmod = isc_mem_get(mctx, sizeof(*hmod));
-	hmod->mctx = NULL;
+	memset(hmod, 0, sizeof(*hmod));
 	isc_mem_attach(mctx, &hmod->mctx);
 	hmod->handle = handle;
 	hmod->modpath = isc_mem_strdup(hmod->mctx, modpath);
@@ -377,7 +384,28 @@ cleanup:
 }
 
 isc_result_t
-ns_hook_createctx(isc_mem_t *mctx, ns_hookctx_t **hctxp) {
+ns_module_check(const char *modpath, const char *parameters,
+		const char *cfg_file, unsigned long cfg_line,
+		const void *cfg, isc_mem_t *mctx, isc_log_t *lctx, void *actx)
+{
+	isc_result_t result;
+	ns_module_t *hmod = NULL;
+
+	CHECK(load_library(mctx, modpath, &hmod));
+
+	result = hmod->check_func(parameters, cfg_file, cfg_line,
+				  cfg, mctx, lctx, actx);
+
+cleanup:
+	if (hmod != NULL) {
+		unload_library(&hmod);
+	}
+
+	return (result);
+}
+
+isc_result_t
+ns_hook_createctx(isc_mem_t *mctx, dns_view_t *view, ns_hookctx_t **hctxp) {
 	ns_hookctx_t *hctx = NULL;
 
 	REQUIRE(hctxp != NULL && *hctxp == NULL);
@@ -385,6 +413,8 @@ ns_hook_createctx(isc_mem_t *mctx, ns_hookctx_t **hctxp) {
 	hctx = isc_mem_get(mctx, sizeof(*hctx));
 	memset(hctx, 0, sizeof(*hctx));
 	hctx->lctx = ns_lctx;
+
+	dns_view_attach(view, &hctx->view);
 
 	isc_mem_attach(mctx, &hctx->mctx);
 	hctx->magic = NS_HOOKCTX_MAGIC;
@@ -405,6 +435,7 @@ ns_hook_destroyctx(ns_hookctx_t **hctxp) {
 
 	hctx->magic = 0;
 
+	dns_view_detach(&hctx->view);
 	isc_mem_putanddetach(&hctx->mctx, hctx, sizeof(*hctx));
 }
 

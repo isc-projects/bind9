@@ -5308,7 +5308,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 #ifdef HAVE_DLOPEN
 	if (hook_list != NULL) {
-		CHECK(ns_hook_createctx(mctx, &hctx));
+		CHECK(ns_hook_createctx(mctx, view, &hctx));
 
 		INSIST(view->hooktable == NULL);
 		CHECK(ns_hooktable_create(view->mctx,
@@ -8102,8 +8102,12 @@ load_configuration(const char *filename, named_server_t *server,
 
 	/*
 	 * Check the validity of the configuration.
+	 *
+	 * (Ignore hook module parameters for now; they will be
+	 * checked later when the modules are actually loaded and
+	 * registered.)
 	 */
-	CHECK(bind9_check_namedconf(config, named_g_lctx, named_g_mctx));
+	CHECK(bind9_check_namedconf(config, false, named_g_lctx, named_g_mctx));
 
 	/*
 	 * Fill in the maps array, used for resolving defaults.
