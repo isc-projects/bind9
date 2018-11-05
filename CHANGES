@@ -1,3 +1,6 @@
+5076.	[bug]		"require-server-cookie" was not effective if
+			"rate-limit" was configured. [GL #617]
+
 5072.	[bug]		Add unit tests for isc_buffer_copyregion() and fix its
 			behavior for auto-reallocated buffers. [GL #644]
 
