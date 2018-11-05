@@ -5206,6 +5206,19 @@ ns__query_start(query_ctx_t *qctx) {
 	qctx->need_wildcardproof = false;
 	qctx->rpz = false;
 
+	/*
+	 * If we require a server cookie then send back BADCOOKIE
+	 * before we have done too much work.
+	 */
+	if (!TCP(qctx->client) && qctx->client->view->requireservercookie &&
+	    WANTCOOKIE(qctx->client) && !HAVECOOKIE(qctx->client))
+	{
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AA;
+		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
+		qctx->client->message->rcode = dns_rcode_badcookie;
+		return (query_done(qctx));
+	}
+
 	if (qctx->client->view->checknames &&
 	    !dns_rdata_checkowner(qctx->client->query.qname,
 				  qctx->client->message->rdclass,
@@ -6223,14 +6236,6 @@ query_checkrrl(query_ctx_t *qctx, isc_result_t result) {
 				return (DNS_R_DROP);
 			}
 		}
-	} else if (!TCP(qctx->client) &&
-		   qctx->client->view->requireservercookie &&
-		   WANTCOOKIE(qctx->client) && !HAVECOOKIE(qctx->client))
-	{
-		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AA;
-		qctx->client->message->flags &= ~DNS_MESSAGEFLAG_AD;
-		qctx->client->message->rcode = dns_rcode_badcookie;
-		return (DNS_R_DROP);
 	}
 
 	return (ISC_R_SUCCESS);
