@@ -921,6 +921,8 @@
 ./bin/tests/system/cookie/ns6/root.hint		ZONE	2018
 ./bin/tests/system/cookie/ns7/named.conf.in	CONF-C	2018
 ./bin/tests/system/cookie/ns7/root.db		ZONE	2018
+./bin/tests/system/cookie/ns8/example.db	ZONE	2018
+./bin/tests/system/cookie/ns8/named.conf.in	CONF-C	2018
 ./bin/tests/system/cookie/setup.sh		SH	2018
 ./bin/tests/system/cookie/tests.sh		SH	2014,2015,2016,2017,2018
 ./bin/tests/system/coverage/01-ksk-inactive/README	X	2013,2018

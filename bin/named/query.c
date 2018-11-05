@@ -7047,6 +7047,19 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	need_wildcardproof = false;
 	rpz = false;
 
+	/*
+	 * If we require a server cookie then send back BADCOOKIE
+	 * before we have done too much work.
+	 */
+	if (!TCP(client) && client->view->requireservercookie &&
+	    WANTCOOKIE(client) && !HAVECOOKIE(client))
+	{
+		client->message->flags &= ~DNS_MESSAGEFLAG_AA;
+		client->message->flags &= ~DNS_MESSAGEFLAG_AD;
+		client->message->rcode = dns_rcode_badcookie;
+		goto cleanup;
+	}
+
 	if (client->view->checknames &&
 	    !dns_rdata_checkowner(client->query.qname,
 				  client->message->rdclass,
