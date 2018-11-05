@@ -3919,6 +3919,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
  udp_mismatch:
 	isc_buffer_invalidate(&query->recvbuf);
+	isc_buffer_init(&query->recvbuf, query->recvspace, COMMSIZE);
 	isc_buffer_availableregion(&query->recvbuf, &r);
 	result = isc_socket_recv(query->sock, &r, 1,
 				 global_task, recv_done, query);
