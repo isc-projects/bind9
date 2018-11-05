@@ -1,3 +1,6 @@
+5076.	[bug]		"require-server-cookie" was not effective if
+			"rate-limit" was configured. [GL #617]
+
 5075.	[bug]		Refresh nameservers from cache when sending final
 			query in qname minimization. [GL #16]
 
