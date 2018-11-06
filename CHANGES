@@ -1,3 +1,6 @@
+5079.	[func]		Disable IDN processing in dig and nslookup
+			when not on a tty. [GL #653]
+
 5078.	[cleanup]	Require python components to be explicitly disabled if
 			python is not available on unix platforms. [GL #601]
 
