@@ -11697,6 +11697,44 @@ else
 $as_echo "no, using $LN_S" >&6; }
 fi
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for a POSIX-compatible shell" >&5
+$as_echo_n "checking for a POSIX-compatible shell... " >&6; }
+if ${ac_cv_prog_shell+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_test_shell_script='
+			  test "$(expr 1 + 1)" = "2" &&
+			  test "$(( 1 + 1 ))" = "2"
+			  '
+
+			  for ac_cv_prog_shell in \
+			    "$CONFIG_SHELL" "$SHELL" /bin/sh /bin/bash /bin/ksh /bin/sh5 no; do
+			    case $ac_cv_prog_shell in #(
+  /*) :
+
+				      if "$ac_cv_prog_shell" -c "$ac_test_shell_script" 2>/dev/null; then :
+  ac_cv_path_shell=$SHELL
+fi
+				     ;; #(
+  *) :
+     ;;
+esac
+			  done
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_prog_shell" >&5
+$as_echo "$ac_cv_prog_shell" >&6; }
+	  if test "$ac_cv_prog_shell" = "no"; then :
+  SHELL=/bin/sh
+		 { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: using $SHELL, even though it does not conform to POSIX" >&5
+$as_echo "$as_me: WARNING: using $SHELL, even though it does not conform to POSIX" >&2;}
+
+else
+  SHELL="$ac_cv_prog_shell"
+
+fi
+
+
 
 
 
