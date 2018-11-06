@@ -489,7 +489,8 @@ nslookup -query=hinfo  -timeout=10
       If you'd like to turn off the IDN support for some reason, define
       the <envar>IDN_DISABLE</envar> environment variable.
       The IDN support is disabled if the variable is set when
-      <command>nslookup</command> runs.
+      <command>nslookup</command> runs or when the standard output is not
+      a tty.
     </para>
   </refsection>
 
