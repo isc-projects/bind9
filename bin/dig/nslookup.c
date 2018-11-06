@@ -772,7 +772,7 @@ addlookup(char *opt) {
 		rdclass = dns_rdataclass_in;
 	}
 	lookup = make_empty_lookup();
-	if (get_reverse(store, sizeof(store), opt, lookup->ip6_int, true)
+	if (get_reverse(store, sizeof(store), opt, true)
 	    == ISC_R_SUCCESS) {
 		strlcpy(lookup->textname, store, sizeof(lookup->textname));
 		lookup->rdtype = dns_rdatatype_ptr;

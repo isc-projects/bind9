@@ -312,8 +312,7 @@ reverse_octets(const char *in, char **p, char *end) {
 }
 
 isc_result_t
-get_reverse(char *reverse, size_t len, char *value, bool ip6_int,
-	    bool strict)
+get_reverse(char *reverse, size_t len, char *value, bool strict)
 {
 	int r;
 	isc_result_t result;
@@ -327,8 +326,6 @@ get_reverse(char *reverse, size_t len, char *value, bool ip6_int,
 		dns_name_t *name;
 		unsigned int options = 0;
 
-		if (ip6_int)
-			options |= DNS_BYADDROPT_IPV6INT;
 		name = dns_fixedname_initname(&fname);
 		result = dns_byaddr_createptrname(&addr, options, name);
 		if (result != ISC_R_SUCCESS)
@@ -652,7 +649,6 @@ make_empty_lookup(void) {
 	looknew->nsfound = 0;
 	looknew->tcp_mode = false;
 	looknew->tcp_mode_set = false;
-	looknew->ip6_int = false;
 	looknew->comments = true;
 	looknew->stats = true;
 	looknew->section_question = true;

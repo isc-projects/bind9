@@ -1,3 +1,6 @@
+5077.	[cleanup]	Remove ip6.int support (-i) from dig and mdig.
+			[GL !969]
+
 5076.	[bug]		"require-server-cookie" was not effective if
 			"rate-limit" was configured. [GL #617]
 

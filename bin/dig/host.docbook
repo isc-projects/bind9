@@ -180,18 +180,6 @@
       </varlistentry>
 
       <varlistentry>
-	<term>-i</term>
-	<listitem>
-	  <para>
-	    Obsolete.
-	    Use the IP6.INT domain for reverse lookups of IPv6
-	    addresses as defined in RFC1886 and deprecated in RFC4159.
-	    The default is to use IP6.ARPA as specified in RFC3596.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
 	<term>-l</term>
 	<listitem>
 	  <para>
