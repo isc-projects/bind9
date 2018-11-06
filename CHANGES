@@ -1,3 +1,5 @@
+5094.	[func]		Add 'dig -r' to disable reading of .digrc. [GL !970]
+
 5092.	[bug]		Address memory leak on SIGTERM in nsupdate when using
 			GSS-TSIG. [GL #558]
 
