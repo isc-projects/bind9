@@ -1873,8 +1873,8 @@ $PERL -e 'my $delay = '$start' + 13 - time(); select(undef, undef, undef, $delay
 $RNDCCMD 10.53.0.4 nta -d > rndc.out.ns4.test$n._11
 lines=`grep " expiry " rndc.out.ns4.test$n._11 | wc -l`
 [ "$lines" -le 2 ] || ret=1
-grep "bogus.example: expiry" rndc.out.ns4.test$n._11 > /dev/null || ret=1
-grep "badds.example: expiry" rndc.out.ns4.test$n._11 > /dev/null && ret=1
+grep "bogus.example/_default: expiry" rndc.out.ns4.test$n._11 > /dev/null || ret=1
+grep "badds.example/_default: expiry" rndc.out.ns4.test$n._11 > /dev/null && ret=1
 $DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.11 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.11 > /dev/null && ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.12 || ret=1
@@ -1910,14 +1910,14 @@ ret=0
 echo_i "testing NTA removals ($n)"
 $RNDCCMD 10.53.0.4 nta badds.example 2>&1 | sed 's/^/ns4 /' | cat_i
 $RNDCCMD 10.53.0.4 nta -d > rndc.out.ns4.test$n.1
-grep "badds.example: expiry" rndc.out.ns4.test$n.1 > /dev/null || ret=1
+grep "badds.example/_default: expiry" rndc.out.ns4.test$n.1 > /dev/null || ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.1 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.1 > /dev/null && ret=1
 grep "^a.badds.example." dig.out.ns4.test$n.1 > /dev/null || ret=1
 $RNDCCMD 10.53.0.4 nta -remove badds.example > rndc.out.ns4.test$n.2
 grep "Negative trust anchor removed: badds.example/_default" rndc.out.ns4.test$n.2 > /dev/null || ret=1
 $RNDCCMD 10.53.0.4 nta -d > rndc.out.ns4.test$n.3
-grep "badds.example: expiry" rndc.out.ns4.test$n.3 > /dev/null && ret=1
+grep "badds.example/_default: expiry" rndc.out.ns4.test$n.3 > /dev/null && ret=1
 $DIG $DIGOPTS a.badds.example. a @10.53.0.4 > dig.out.ns4.test$n.2 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.2 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -1928,7 +1928,7 @@ echo_i "remove non-existent NTA three times"
 $RNDCCMD 10.53.0.4 nta -r foo > rndc.out.ns4.test$n.4 2>&1
 $RNDCCMD 10.53.0.4 nta -remove foo > rndc.out.ns4.test$n.5 2>&1
 $RNDCCMD 10.53.0.4 nta -r foo > rndc.out.ns4.test$n.6 2>&1
-grep "'nta' failed: not found" rndc.out.ns4.test$n.6 > /dev/null || ret=1
+grep "not found" rndc.out.ns4.test$n.6 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 ret=0
@@ -2009,7 +2009,7 @@ sleep 4
 $RNDCCMD 10.53.0.4 nta -d > rndc.out.ns4.test$n.3
 lines=`wc -l < rndc.out.ns4.test$n.3`
 [ "$lines" -eq 1 ] || ret=1
-grep "bogus.example: expiry" rndc.out.ns4.test$n.3 > /dev/null || ret=1
+grep "bogus.example/_default: expiry" rndc.out.ns4.test$n.3 > /dev/null || ret=1
 $DIG $DIGOPTS b.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.4 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.4 > /dev/null && ret=1
 grep "flags:[^;]* ad[^;]*;" dig.out.ns4.test$n.4 > /dev/null && ret=1

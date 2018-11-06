@@ -509,7 +509,9 @@ putstr(isc_buffer_t **b, const char *str) {
 }
 
 isc_result_t
-dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
+dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
+		    isc_buffer_t **buf)
+{
 	isc_result_t result;
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
@@ -552,8 +554,10 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf) {
 				isc_time_formattimestamp(&t, tbuf,
 							 sizeof(tbuf));
 
-				snprintf(obuf, sizeof(obuf), "%s%s: %s %s",
+				snprintf(obuf, sizeof(obuf), "%s%s%s%s: %s %s",
 					 first ? "" : "\n", nbuf,
+					 view != NULL ? "/" : "",
+					 view != NULL ? view : "",
 					 n->expiry <= now
 					  ? "expired"
 					  : "expiry",
@@ -588,7 +592,7 @@ dns_ntatable_dump(dns_ntatable_t *ntatable, FILE *fp) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_ntatable_totext(ntatable, &text);
+	result = dns_ntatable_totext(ntatable, NULL, &text);
 
 	if (isc_buffer_usedlength(text) != 0) {
 		(void) putstr(&text, "\n");

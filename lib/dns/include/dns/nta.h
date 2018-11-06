@@ -182,9 +182,10 @@ dns_ntatable_covered(dns_ntatable_t *ntatable, isc_stdtime_t now,
  */
 
 isc_result_t
-dns_ntatable_totext(dns_ntatable_t *ntatable, isc_buffer_t **buf);
+dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
+		    isc_buffer_t **buf);
 /*%<
- * Dump the NTA table to buffer at 'buf'
+ * Dump the NTA table to buffer at 'buf', with view names
  *
  * Requires:
  * \li   "ntatable" is a valid table.

@@ -1,3 +1,13 @@
+5080.	[func]		Improvements to "rndc nta" user interface:
+			- catch and report invalid command line options
+			- when removing an NTA from all views, do not
+			  abort with an error if the NTA was not found
+			  in one of the views
+			- include the view name in "rndc nta -dump"
+			  output, for consistency with the add and remove
+			  actions
+			Thanks to Tony Finch. [GL !816]
+
 5079.	[func]		Disable IDN processing in dig and nslookup
 			when not on a tty. [GL #653]
 
