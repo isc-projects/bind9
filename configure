@@ -12359,7 +12359,7 @@ done
 if test "${with_python+set}" = set; then :
   withval=$with_python; use_python="$withval"
 else
-  use_python="unspec"
+  use_python="yes"
 fi
 
 
@@ -12390,9 +12390,9 @@ $as_echo_n "checking for python support... " >&6; }
 		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
 $as_echo "disabled" >&6; }
 		;;
-	unspec|yes|*)
+	yes|*)
 		case "$use_python" in
-		unspec|yes|'')
+		yes|'')
 			for p in $python
 			do
 				for ac_prog in $p
@@ -12481,30 +12481,16 @@ $as_echo "not found" >&6; }
 					unset PYTHON
 				fi
 			done
+			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
+$as_echo_n "checking for python support... " >&6; }
 			if test "X$PYTHON" != "X"
 			then
-				case "$use_python_install_dir" in
-				unspec)
-					PYTHON_INSTALL_DIR=""
-					PYTHON_INSTALL_LIB=""
-					;;
-				*)
-					PYTHON_INSTALL_DIR="$use_python_install_dir"
-					PYTHON_INSTALL_LIB="--install-lib=$use_python_install_dir"
-					;;
-				esac
+				PYTHON_INSTALL_DIR="$use_python_install_dir"
+				PYTHON_INSTALL_LIB="--install-lib=$use_python_install_dir"
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 			else
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
-$as_echo_n "checking for python support... " >&6; }
-				case "$use_python" in
-				unspec)
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
-					;;
-				yes)
-					as_fn_error $? "missing python" "$LINENO" 5
-					;;
-				esac
+				as_fn_error $? "no; python required for dnssec-keymgr" "$LINENO" 5
 			fi
 			;;
 		*)
