@@ -9327,8 +9327,7 @@ load_zones(named_server_t *server, bool init, bool reconfig) {
 		 * the initial server setup; it isn't necessary during
 		 * a reload.)
 		 */
-		isc_taskmgr_setmode(named_g_taskmgr,
-				    isc_taskmgrmode_privileged);
+		isc_taskmgr_setprivilegedmode(named_g_taskmgr);
 	}
 
 	isc_task_endexclusive(server->task);

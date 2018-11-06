@@ -67,7 +67,6 @@ set_and_drop(isc_task_t *task, isc_event_t *event) {
 	*value = (int) isc_taskmgr_mode(taskmgr);
 	counter++;
 	UNLOCK(&lock);
-	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_normal);
 }
 
 /*
@@ -230,7 +229,7 @@ ATF_TC_BODY(privileged_events, tc) {
 	isc_task_send(task2, &event);
 
 	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
-	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
+	isc_taskmgr_setprivilegedmode(taskmgr);
 	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
 
 	isc__taskmgr_resume(taskmgr);
@@ -351,7 +350,7 @@ ATF_TC_BODY(privilege_drop, tc) {
 	isc_task_send(task2, &event);
 
 	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
-	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
+	isc_taskmgr_setprivilegedmode(taskmgr);
 	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
 
 	isc__taskmgr_resume(taskmgr);
@@ -363,14 +362,12 @@ ATF_TC_BODY(privilege_drop, tc) {
 	}
 
 	/*
-	 * We can't guarantee what order the events fire, but
-	 * we do know *exactly one* of the privileged tasks will
-	 * have run in privileged mode...
+	 * We need to check that all privilege mode events were fired
+	 * in privileged mode, and non privileged in non-privileged.
 	 */
-	ATF_CHECK(a == isc_taskmgrmode_privileged ||
-		  c == isc_taskmgrmode_privileged ||
+	ATF_CHECK(a == isc_taskmgrmode_privileged &&
+		  c == isc_taskmgrmode_privileged &&
 		  d == isc_taskmgrmode_privileged);
-	ATF_CHECK(a + c + d == isc_taskmgrmode_privileged);
 
 	/* ...and neither of the non-privileged tasks did... */
 	ATF_CHECK(b == isc_taskmgrmode_normal || e == isc_taskmgrmode_normal);

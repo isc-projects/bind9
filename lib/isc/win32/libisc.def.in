@@ -580,6 +580,8 @@ isc_task_purgeevent
 isc_task_purgerange
 isc_task_send
 isc_task_sendanddetach
+isc_task_sendto
+isc_task_sendtoanddetach
 isc_task_setname
 isc_task_setprivilege
 isc_task_shutdown
@@ -596,7 +598,7 @@ isc_taskmgr_renderjson
 isc_taskmgr_renderxml
 @END LIBXML2
 isc_taskmgr_setexcltask
-isc_taskmgr_setmode
+isc_taskmgr_setprivilegedmode
 isc_taskpool_create
 isc_taskpool_destroy
 isc_taskpool_expand
@@ -609,6 +611,7 @@ isc_thread_key_create
 isc_thread_key_delete
 isc_thread_key_getspecific
 isc_thread_key_setspecific
+isc_thread_setaffinity
 isc_thread_setconcurrency
 isc_thread_setname
 isc_time_add

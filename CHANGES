@@ -1,3 +1,6 @@
+5081.	[func]		Use per-worker queues in task manager, make task
+			runners CPU-affine. [GL #659]
+
 5080.	[func]		Improvements to "rndc nta" user interface:
 			- catch and report invalid command line options
 			- when removing an NTA from all views, do not
