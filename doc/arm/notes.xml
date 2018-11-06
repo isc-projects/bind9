@@ -180,6 +180,16 @@
 	  option. [GL #105]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  When compiled with IDN support, the <command>dig</command> and the
+	  <command>nslookup</command> commands now disable IDN processing when
+	  the standard output is not a tty (e.g. not used by human).  The command
+	  line options +idnin and +idnout need to be used to enable IDN
+	  processing when <command>dig</command> or <command>nslookup</command>
+	  is used from the shell scripts.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
