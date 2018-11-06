@@ -777,7 +777,13 @@
 	    <para>
 	      Process [do not process] IDN domain names on input.
 	      This requires IDN SUPPORT to have been enabled at
-	      compile time.  The default is to process IDN input.
+	      compile time.
+	    </para>
+	    <para>
+	      The default is to process IDN input when standard output
+	      is a tty.  The IDN processing on input is disabled when
+	      dig output is redirected to files, pipes, and other
+	      non-tty file descriptors.
 	    </para>
 	  </listitem>
 	</varlistentry>
@@ -788,7 +794,13 @@
 	    <para>
 	      Convert [do not convert] puny code on output.
 	      This requires IDN SUPPORT to have been enabled at
-	      compile time.  The default is to convert output.
+	      compile time.
+	    </para>
+	    <para>
+	      The default is to process puny code on output when
+	      standard output is a tty.  The puny code processing on
+	      output is disabled when dig output is redirected to
+	      files, pipes, and other non-tty file descriptors.
 	    </para>
 	  </listitem>
 	</varlistentry>

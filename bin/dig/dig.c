@@ -192,8 +192,10 @@ help(void) {
 "                 +[no]fail           (Don't try next server on SERVFAIL)\n"
 "                 +[no]header-only    (Send query without a question section)\n"
 "                 +[no]identify       (ID responders in short answers)\n"
-"                 +[no]idnin          (Parse IDN names)\n"
-"                 +[no]idnout         (Convert IDN response)\n"
+#ifdef HAVE_LIBIDN2
+"                 +[no]idnin          (Parse IDN names [default=on on tty])\n"
+"                 +[no]idnout         (Convert IDN response [default=on on tty])\n"
+#endif
 "                 +[no]ignore         (Don't revert to TCP for TC responses.)\n"
 "                 +[no]keepalive      (Request EDNS TCP keepalive)\n"
 "                 +[no]keepopen       (Keep the TCP socket open between queries)\n"
