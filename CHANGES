@@ -1,3 +1,7 @@
+5083.	[func]		Add autoconf macro AX_POSIX_SHELL, so we
+			can use POSIX-compatible shell features
+			in the scripts.
+
 5082.	[bug]		Fixed a race that could cause a crash in
 			dig/host/nslookup. [GL #650]
 
