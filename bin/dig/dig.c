@@ -1849,6 +1849,20 @@ preparse_args(int argc, char **argv) {
 			}
 			option = &option[1];
 		}
+		if (strlen(option) == 0U) {
+			continue;
+		}
+		/* Look for dash value option. */
+		if (strpbrk(option, dash_opts) != &option[0] ||
+		    strlen(option) > 1U) {
+			/* Error or value in option. */
+			continue;
+		}
+		/* Dash value is next argument so we need to skip it. */
+		rc--, rv++;
+		/* Handle missing argument */
+		if (rc == 0)
+			break;
 	}
 }
 
