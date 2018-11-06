@@ -237,7 +237,7 @@ AC_SUBST(PERL)
 AC_ARG_WITH(python,
 	    AS_HELP_STRING([--with-python=PATH],
 			   [specify path to python interpreter]),
-    use_python="$withval", use_python="unspec")
+    use_python="$withval", use_python="yes")
 AC_ARG_WITH(python-install-dir,
 	    AS_HELP_STRING([--with-python-install-dir=PATH],
 			   [installation directory for Python modules]),
@@ -258,11 +258,11 @@ if (sys.version_info < (2,7)) or (sys.version_info < (3,2) and sys.version_info 
 case "$use_python" in
 	no)
 		AC_MSG_CHECKING([for python support])
-		AC_MSG_RESULT(disabled)
+		AC_MSG_RESULT([disabled])
 		;;
-	unspec|yes|*)
+	yes|*)
 		case "$use_python" in
-		unspec|yes|'')
+		yes|'')
 			for p in $python
 			do
 				AC_PATH_PROGS(PYTHON, $p)
@@ -298,28 +298,14 @@ case "$use_python" in
 					unset PYTHON
 				fi
 			done
+			AC_MSG_CHECKING([for python support])
 			if test "X$PYTHON" != "X"
 			then
-				case "$use_python_install_dir" in
-				unspec)
-					PYTHON_INSTALL_DIR=""
-					PYTHON_INSTALL_LIB=""
-					;;
-				*)
-					PYTHON_INSTALL_DIR="$use_python_install_dir"
-					PYTHON_INSTALL_LIB="--install-lib=$use_python_install_dir"
-					;;
-				esac
+				PYTHON_INSTALL_DIR="$use_python_install_dir"
+				PYTHON_INSTALL_LIB="--install-lib=$use_python_install_dir"
+				AC_MSG_RESULT([yes])
 			else
-				AC_MSG_CHECKING([for python support])
-				case "$use_python" in
-				unspec)
-					AC_MSG_RESULT(disabled)
-					;;
-				yes)
-					AC_MSG_ERROR([missing python])
-					;;
-				esac
+				AC_MSG_ERROR([no; python required for dnssec-keymgr])
 			fi
 			;;
 		*)

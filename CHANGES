@@ -1,3 +1,6 @@
+5078.	[cleanup]	Require python components to be explicitly disabled if
+			python is not available on unix platforms. [GL #601]
+
 5076.	[bug]		"require-server-cookie" was not effective if
 			"rate-limit" was configured. [GL #617]
 
