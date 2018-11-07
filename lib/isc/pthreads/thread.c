@@ -23,7 +23,7 @@
 #include <sys/cpuset.h>
 #endif
 
-#if defined(HAVE_SYS_PROCESET_H)
+#if defined(HAVE_SYS_PROCSET_H)
 #include <sys/types.h>
 #include <sys/processor.h>
 #include <sys/procset.h>
