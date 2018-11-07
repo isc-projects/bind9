@@ -289,6 +289,7 @@ AS_VAR_IF([$1], [""], [$5], [$4])dnl
 ])dnl PKG_CHECK_VAR
 
 m4_include([m4/ax_check_openssl.m4])
+m4_include([m4/ax_posix_shell.m4])
 m4_include([m4/ax_pthread.m4])
 m4_include([m4/libtool.m4])
 m4_include([m4/ltoptions.m4])
