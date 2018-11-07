@@ -1,3 +1,6 @@
+5082.	[bug]		Fixed a race that could cause a crash in
+			dig/host/nslookup. [GL #650]
+
 5081.	[func]		Use per-worker queues in task manager, make task
 			runners CPU-affine. [GL #659]
 
