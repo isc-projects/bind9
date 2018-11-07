@@ -268,9 +268,8 @@ dns_rpz_policy2str(dns_rpz_policy_t policy) {
 		str = "MISS";
 		break;
 	default:
-		str = "";
-		POST(str);
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	return (str);
 }

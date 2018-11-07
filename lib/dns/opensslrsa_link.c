@@ -222,6 +222,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	evp_md_ctx = EVP_MD_CTX_create();
@@ -244,6 +245,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (!EVP_DigestInit_ex(evp_md_ctx, type, NULL)) {
@@ -481,6 +483,7 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (rsa == NULL || e == NULL || cb == NULL)

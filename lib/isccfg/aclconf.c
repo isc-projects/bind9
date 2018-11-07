@@ -389,6 +389,7 @@ get_subtype(const cfg_obj_t *obj, isc_log_t *lctx,
 		return (subtype);
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -583,8 +584,10 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 	} else if (strcasecmp(stype, "netspeed") == 0) {
 		subtype = dns_geoip_netspeed_id;
 		de.geoip_elem.as_int = atoi(search);
-	} else
+	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
+	}
 
 	de.geoip_elem.subtype = get_subtype(obj, lctx, subtype, dbname);
 

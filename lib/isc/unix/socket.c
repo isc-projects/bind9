@@ -1587,6 +1587,7 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	case isc_sockettype_fdwatch:
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (sock->type == isc_sockettype_udp) {
@@ -2250,7 +2251,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 			 * sockets.
 			 */
 			INSIST(0);
-			break;
+			ISC_UNREACHABLE();
 		}
 	} else {
 		sock->fd = dup(dup_socket->fd);
@@ -2609,6 +2610,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	sock->pf = pf;

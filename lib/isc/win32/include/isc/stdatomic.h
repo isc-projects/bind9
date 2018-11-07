@@ -80,7 +80,7 @@ static inline
 void
 atomic_store_abort() {
 	INSIST(0);
-	return;
+	ISC_UNREACHABLE();
 }
 
 #define atomic_store_explicit(obj, desired, order) 		\
@@ -120,7 +120,7 @@ static inline
 int8_t
 atomic_load_abort() {
 	INSIST(0);
-	return (0);
+	ISC_UNREACHABLE();
 }
 
 #define atomic_load_explicit(obj, order)			\
@@ -160,7 +160,7 @@ static inline
 int8_t
 atomic_add_abort() {
 	INSIST(0);
-	return (0);
+	ISC_UNREACHABLE();
 }
 
 #define atomic_fetch_add_explicit(obj, arg, order)		\
@@ -247,7 +247,7 @@ static inline
 bool
 atomic_compare_exchange_abort() {
 	INSIST(0);
-	return (false);
+	ISC_UNREACHABLE();
 }
 
 #define atomic_compare_exchange_strong_explicit(obj, expected, desired, \

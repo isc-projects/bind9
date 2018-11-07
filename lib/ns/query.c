@@ -2637,7 +2637,7 @@ rpz_get_zbits(ns_client_t *client,
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 
 	/*
@@ -2861,6 +2861,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	/*
@@ -3278,6 +3279,7 @@ dnsrps_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	do {
@@ -3330,6 +3332,7 @@ dnsrps_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	dns_name_toregion(trig_name, &r);
@@ -6459,6 +6462,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			return (ISC_R_COMPLETE);
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		/*
@@ -8281,6 +8285,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		SAVE(qctx->client->query.dns64_aaaa, qctx->rdataset);
@@ -10606,7 +10611,7 @@ query_setup_sortlist(query_ctx_t *qctx) {
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 }
 

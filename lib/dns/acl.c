@@ -416,8 +416,8 @@ dns_aclelement_match(const isc_netaddr_t *reqaddr,
 		return (dns_geoip_match(reqaddr, env->geoip, &e->geoip_elem));
 #endif
 	default:
-		/* Should be impossible. */
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	result = dns_acl_match(reqaddr, reqsigner, inner, env,
@@ -593,7 +593,7 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 
 		default:
 			INSIST(0);
-			return (true);
+			ISC_UNREACHABLE();
 		}
 	}
 

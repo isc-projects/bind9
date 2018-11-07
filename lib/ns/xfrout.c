@@ -764,7 +764,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 
 	ns_client_log(client,

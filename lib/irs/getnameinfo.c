@@ -196,6 +196,7 @@ getnameinfo(const struct sockaddr *sa, socklen_t salen,
 
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	proto = ((flags & NI_DGRAM) != 0) ? "udp" : "tcp";
 

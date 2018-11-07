@@ -346,6 +346,7 @@ isc_netaddr_fromsockaddr(isc_netaddr_t *t, const isc_sockaddr_t *s) {
 #endif
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 

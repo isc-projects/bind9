@@ -322,6 +322,7 @@ delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
 	 * screwed.
 	 */
 	INSIST(0);
+	ISC_UNREACHABLE();
 }
 #endif /* ISC_MEM_TRACKLINES */
 
@@ -2101,6 +2102,7 @@ isc_mem_checkdestroyed(FILE *file) {
 		}
 #endif
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	UNLOCK(&contextslock);
 }
