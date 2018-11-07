@@ -1848,6 +1848,7 @@ check_update_policy(const cfg_obj_t *policy, isc_log_t *logctx) {
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		for (element2 = cfg_list_first(typelist);
@@ -2103,6 +2104,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 	}
 
@@ -2499,14 +2501,16 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	(void)cfg_map_get(zoptions, "masterfile-format", &obj);
 	if (obj != NULL) {
 		const char *masterformatstr = cfg_obj_asstring(obj);
-		if (strcasecmp(masterformatstr, "text") == 0)
+		if (strcasecmp(masterformatstr, "text") == 0) {
 			masterformat = dns_masterformat_text;
-		else if (strcasecmp(masterformatstr, "raw") == 0)
+		} else if (strcasecmp(masterformatstr, "raw") == 0) {
 			masterformat = dns_masterformat_raw;
-		else if (strcasecmp(masterformatstr, "map") == 0)
+		} else if (strcasecmp(masterformatstr, "map") == 0) {
 			masterformat = dns_masterformat_map;
-		else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	}
 
 	if (masterformat == dns_masterformat_map) {

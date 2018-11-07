@@ -9012,6 +9012,7 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target,
 		break;
 	    default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -15838,7 +15839,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		break;
 	default:
 		INSIST(0);
-	};
+		ISC_UNREACHABLE();
+	}
 	UNLOCK_ZONE(zone);
 	INSIST(isc_sockaddr_pf(&masteraddr) == isc_sockaddr_pf(&sourceaddr));
 	result = dns_xfrin_create3(zone, xfrtype, &masteraddr, &sourceaddr,
@@ -17307,6 +17309,7 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	UNLOCK_ZONE(zone);
 }
@@ -17382,6 +17385,7 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);

@@ -1809,6 +1809,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				sigs++;
 			} else {
 				INSIST(0);
+				ISC_UNREACHABLE();
 			}
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
@@ -1982,6 +1983,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				sigs++;
 			} else {
 				INSIST(0);
+				ISC_UNREACHABLE();
 			}
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
@@ -2008,6 +2010,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
  failure:

@@ -298,6 +298,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 #if USE_EVP
@@ -327,6 +328,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 #endif
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (!EVP_DigestInit_ex(evp_md_ctx, type, NULL)) {
@@ -389,6 +391,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 #endif
 
@@ -474,6 +477,7 @@ opensslrsa_destroyctx(dst_context_t *dctx) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 #endif
 }
@@ -538,6 +542,7 @@ opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 #endif
 	return (ISC_R_SUCCESS);
@@ -659,6 +664,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 #if OPENSSL_VERSION_NUMBER < 0x00908000L
@@ -692,6 +698,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 #else
 	INSIST(type != 0);
@@ -821,6 +828,7 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (sig->length != (unsigned int) RSA_size(rsa))
@@ -874,6 +882,7 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 #else
 	INSIST(type != 0);
@@ -1022,6 +1031,7 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (rsa == NULL || e == NULL || cb == NULL)

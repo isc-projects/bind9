@@ -2400,6 +2400,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				break;
 			default:
 				INSIST(0);
+				ISC_UNREACHABLE();
 			}
 
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));

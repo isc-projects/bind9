@@ -779,7 +779,7 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 	UNUSED(node);
 	UNUSED(now);
 	INSIST(0);
-	return (ISC_R_UNEXPECTED);
+	ISC_UNREACHABLE();
 }
 
 static void

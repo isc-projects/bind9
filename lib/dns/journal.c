@@ -751,6 +751,7 @@ ixfr_order(const void *av, const void *bv) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	switch (b->op) {
@@ -764,6 +765,7 @@ ixfr_order(const void *av, const void *bv) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	r = bop - aop;

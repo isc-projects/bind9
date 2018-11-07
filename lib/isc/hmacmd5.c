@@ -406,16 +406,5 @@ isc_hmacmd5_check(int testing) {
 }
 
 #else /* !PK11_MD5_DISABLE */
-#ifdef WIN32
-/* Make the Visual Studio linker happy */
-#include <isc/util.h>
-
-void isc_hmacmd5_init() { INSIST(0); }
-void isc_hmacmd5_invalidate() { INSIST(0); }
-void isc_hmacmd5_sign() { INSIST(0); }
-void isc_hmacmd5_update() { INSIST(0); }
-void isc_hmacmd5_verify() { INSIST(0); }
-void isc_hmacmd5_verify2() { INSIST(0); }
-void isc_hmacmd5_check() { INSIST(0); }
-#endif
+EMPTY_TRANSLATION_UNIT
 #endif /* PK11_MD5_DISABLE */

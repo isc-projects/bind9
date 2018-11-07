@@ -3250,12 +3250,14 @@ parse_querysource(cfg_parser_t *pctx, const cfg_type_t *type,
 	unsigned int have_dscp = 0;
 	const unsigned int *flagp = type->of;
 
-	if ((*flagp & CFG_ADDR_V4OK) != 0)
+	if ((*flagp & CFG_ADDR_V4OK) != 0) {
 		isc_netaddr_any(&netaddr);
-	else if ((*flagp & CFG_ADDR_V6OK) != 0)
+	} else if ((*flagp & CFG_ADDR_V6OK) != 0) {
 		isc_netaddr_any6(&netaddr);
-	else
+	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
+	}
 
 	for (;;) {
 		CHECK(cfg_peektoken(pctx, 0));
@@ -3343,6 +3345,7 @@ doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
 		cfg_print_cstr(pctx, "<ipv6_address>");
 	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	cfg_print_cstr(pctx, " | * ) [ port ( <integer> | * ) ] ) | "
 		       "( [ [ address ] ( ");
@@ -3352,6 +3355,7 @@ doc_querysource(cfg_printer_t *pctx, const cfg_type_t *type) {
 		cfg_print_cstr(pctx, "<ipv6_address>");
 	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	cfg_print_cstr(pctx, " | * ) ] port ( <integer> | * ) ) )"
 		       " [ dscp <integer> ]");
@@ -4142,6 +4146,7 @@ cfg_print_zonegrammar(const unsigned int zonetype,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	for (clause = clauses; clause->name != NULL; clause++) {

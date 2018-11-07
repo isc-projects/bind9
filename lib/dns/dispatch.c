@@ -918,7 +918,7 @@ free_buffer(dns_dispatch_t *disp, void *buf, unsigned int len) {
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -1588,7 +1588,7 @@ startrecv(dns_dispatch_t *disp, dispsocket_t *dispsock) {
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 
 	return (ISC_R_SUCCESS);

@@ -379,7 +379,7 @@ ns__query_start_test(const ns__query_start_test_params_t *test) {
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 
 	/*

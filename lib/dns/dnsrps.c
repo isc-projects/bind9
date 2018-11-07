@@ -312,6 +312,7 @@ dns_dnsrps_2policy(librpz_policy_t rps_policy) {
 	case LIBRPZ_POLICY_DISABLED:
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
