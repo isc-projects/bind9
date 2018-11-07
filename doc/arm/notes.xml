@@ -216,6 +216,22 @@
 	  must be only enabled for the systems where FIPS mode is available.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Two new configuration options <command>min-cache-ttl</command> and
+	  <command>min-ncache-ttl</command> has been added to allow the BIND 9
+	  administrator to override the minimum TTL in the received DNS records
+	  (positive caching) and for storing the information about non-existent
+	  records (negative caching).  The configured minimum TTL for both
+	  configuration options cannot exceed 90 seconds.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The configuration option <command>max-ncache-ttl</command> was
+	  silently capped to 7 days, and the upper limit is now enforced.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
