@@ -236,7 +236,7 @@ status=`expr $status + $ret`
 
 echo_i "checking for nsec3param signing record ($n)"
 ret=0
-$RNDCCMD 10.53.0.3 signing -list autonsec3.example. > signing.out.test$n 2>&1 | sed 's/^/ns3 /' | cat_i
+$RNDCCMD 10.53.0.3 signing -list autonsec3.example. > signing.out.test$n 2>&1
 grep "Pending NSEC3 chain 1 0 20 DEAF" signing.out.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
