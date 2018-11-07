@@ -1,3 +1,6 @@
+5091.	[func]		Two new global and per-view options max-cache-ttl
+			and min-ncache-ttl [GL #613]
+
 5090.	[bug]		dig and mdig failed to properly preparse dash value
 			pairs when value was a seperate argument and started
 			with a dash. [GL #584]
