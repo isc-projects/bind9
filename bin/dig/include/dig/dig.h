@@ -26,6 +26,7 @@
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
 #include <isc/list.h>
+#include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/sockaddr.h>
@@ -80,6 +81,11 @@ typedef struct dig_query dig_query_t;
 typedef struct dig_server dig_server_t;
 typedef ISC_LIST(dig_server_t) dig_serverlist_t;
 typedef struct dig_searchlist dig_searchlist_t;
+
+#define DIG_QUERY_MAGIC		ISC_MAGIC('D','i','g','q')
+
+#define DIG_VALID_QUERY(x)	ISC_MAGIC_VALID((x), DIG_QUERY_MAGIC)
+
 
 /*% The dig_lookup structure */
 struct dig_lookup {
@@ -184,6 +190,7 @@ struct dig_lookup {
 
 /*% The dig_query structure */
 struct dig_query {
+	unsigned int magic;
 	dig_lookup_t *lookup;
 	bool waiting_connect,
 		pending_free,
