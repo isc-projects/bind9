@@ -275,6 +275,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	attrmask = 0;
 	attrmask |= DNS_DISPATCHATTR_UDP;
@@ -3183,6 +3184,7 @@ dns_client_updaterec(dns_client_updateop_t op, dns_name_t *owner,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	rdatalist->type = rdata->type;

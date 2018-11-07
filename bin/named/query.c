@@ -4471,6 +4471,7 @@ rpz_get_zbits(ns_client_t *client,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 		break;
 	}
 
@@ -4695,6 +4696,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	/*
@@ -6009,6 +6011,7 @@ setup_query_sortlist(ns_client_t *client) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 		break;
 	}
 	dns_message_setsortorder(client->message, order, order_arg);

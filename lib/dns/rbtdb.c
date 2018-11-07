@@ -9773,6 +9773,7 @@ rdataset_getadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (acarray == NULL) {
@@ -9832,6 +9833,7 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	count = cbarg->count;
@@ -9966,6 +9968,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (acarray[count].entry != NULL) {
@@ -10048,6 +10051,7 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (acarray == NULL) {

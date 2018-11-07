@@ -623,7 +623,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, uint32_t ttl,
 		/* FALLTHROUGH */
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 	result = ISC_R_SUCCESS;
  failure:
@@ -651,6 +651,7 @@ dns_xfrin_create(dns_zone_t *zone, dns_rdatatype_t xfrtype,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	return(dns_xfrin_create3(zone, xfrtype, masteraddr, &sourceaddr,

@@ -1490,7 +1490,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 
 	result = totext_ctx_init(style, &dctx->tctx);
@@ -1618,6 +1618,7 @@ writeheader(dns_dumpctx_t *dctx) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	isc_mem_put(dctx->mctx, buffer.base, buffer.length);

@@ -306,6 +306,7 @@ country_lookup(GeoIP *db, dns_geoip_subtype_t subtype,
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		if (text == NULL)
@@ -373,6 +374,7 @@ city_string(GeoIPRecord *record, dns_geoip_subtype_t subtype, int *maxlen) {
 		return (deconst);
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -467,6 +469,7 @@ static char * region_string(GeoIPRegion *region, dns_geoip_subtype_t subtype, in
 		return (deconst);
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -861,6 +864,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr, uint8_t *scope,
 
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	return (false);
