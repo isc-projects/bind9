@@ -1089,6 +1089,14 @@
 ./bin/tests/system/tsiggss/prereq.sh		SH	2010,2011,2012,2014,2016,2018
 ./bin/tests/system/tsiggss/setup.sh		SH	2010,2011,2012,2014,2016,2017,2018
 ./bin/tests/system/tsiggss/tests.sh		SH	2010,2011,2014,2016,2017,2018
+./bin/tests/system/ttl/clean.sh			X	2018
+./bin/tests/system/ttl/ns1/max-example.db	X	2018
+./bin/tests/system/ttl/ns1/min-example.db	X	2018
+./bin/tests/system/ttl/ns1/named.conf.in	X	2018
+./bin/tests/system/ttl/ns2/hints.db		X	2018
+./bin/tests/system/ttl/ns2/named.conf.in	X	2018
+./bin/tests/system/ttl/setup.sh			X	2018
+./bin/tests/system/ttl/tests.sh			X	2018
 ./bin/tests/system/unknown/clean.sh		SH	2000,2001,2004,2007,2012,2013,2014,2015,2016,2018
 ./bin/tests/system/unknown/large.out		X	2012,2018
 ./bin/tests/system/unknown/ns3/sign.sh		SH	2012,2014,2016,2017,2018

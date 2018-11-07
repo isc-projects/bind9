@@ -69,7 +69,7 @@ PARALLEL = rpzrecurse serve-stale dnssec \
 	   rrchecker rrl rrsetorder rsabigexponent runtime \
 	   sfcache smartsign sortlist \
 	   spf staticstub statistics statschannel stub synthfromdnssec \
-	   tcp tools tsig tsiggss \
+	   tcp tools tsig tsiggss ttl \
 	   unknown upforwd verify views wildcard \
 	   xfer xferquota zero zonechecks
 

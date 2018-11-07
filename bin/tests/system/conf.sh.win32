@@ -100,7 +100,7 @@ SEQUENTIALDIRS="acl additional addzone autosign builtin \
 	 reclimit redirect resolver rndc rpz rrchecker rrl \
 	 rrsetorder rsabigexponent runtime sfcache smartsign sortlist \
 	 spf staticstub statistics statschannel stub tcp tkey tsig \
-	 tsiggss unknown upforwd verify views wildcard xfer xferquota \
+	 tsiggss ttl unknown upforwd verify views wildcard xfer xferquota \
 	 zero zonechecks"
 
 # List of tests that use unique ports (other than 5300 and 9953). These
