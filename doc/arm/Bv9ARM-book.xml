@@ -4311,6 +4311,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		  <command>max-ncache-ttl</command>,
 		  <command>max-stale-ttl</command>,
 		  <command>max-cache-size</command>, and
+		  <command>min-cache-ttl</command>,
+		  <command>min-ncache-ttl</command>,
 		  <command>zero-no-soa-ttl</command>.
 		</para>
 
@@ -8991,6 +8993,38 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  seconds; any higher value will be silently
 		  reduced. The default is <literal>1</literal>
 		  second.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>min-ncache-ttl</command></term>
+	      <listitem>
+		<para>
+		  To reduce network traffic and increase performance, the server
+		  stores negative answers. <command>min-ncache-ttl</command> is
+		  used to set a minimum retention time for these answers in the
+		  server in seconds.  For convenience, TTL-style time unit
+		  suffixes may be used to specify the value.  The default
+		  <command>min-ncache-ttl</command> is <literal>0</literal>
+		  seconds.  <command>min-ncache-ttl</command> cannot exceed 90
+		  seconds and will be truncated to 90 seconds if set to a
+		  greater value.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>min-cache-ttl</command></term>
+	      <listitem>
+		<para>
+		  Sets the minimum time for which the server will cache ordinary
+		  (positive) answers in seconds. For convenience, TTL-style time
+		  unit suffixes may be used to specify the value. The default
+		  <command>min-cache-ttl</command> is <literal>0</literal>
+		  seconds. <command>min-cache-ttl</command> cannot exceed 90
+		  seconds and will be truncated to 90 seconds if set to a
+		  greater value.
 		</para>
 	      </listitem>
 	    </varlistentry>
