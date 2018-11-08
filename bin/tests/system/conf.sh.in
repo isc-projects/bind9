@@ -226,20 +226,20 @@ fi
 SYSTESTDIR="`basename $PWD`"
 
 echo_i() {
-    echo "$@" | while read LINE ; do
-       echoinfo "I:$SYSTESTDIR:$LINE"
+    echo "$@" | while read __LINE ; do
+       echoinfo "I:$SYSTESTDIR:$__LINE"
     done
 }
 
 echo_ic() {
-    echo "$@" | while read LINE ; do
-       echoinfo "I:$SYSTESTDIR:  $LINE"
+    echo "$@" | while read __LINE ; do
+       echoinfo "I:$SYSTESTDIR:  $__LINE"
     done
 }
 
 cat_i() {
-    while read LINE ; do
-       echoinfo "I:$SYSTESTDIR:$LINE"
+    while read __LINE ; do
+       echoinfo "I:$SYSTESTDIR:$__LINE"
     done
 }
 

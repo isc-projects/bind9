@@ -42,7 +42,8 @@ tac() {
 }
 
 convert() {
-	local key=$1 n=$2
+	key=$1
+	n=$2
 	$DSFROMKEY $key >DS.$n
 	grep ' 8 1 ' DS.$n >DS.$n-1
 	grep ' 8 2 ' DS.$n >DS.$n-2
