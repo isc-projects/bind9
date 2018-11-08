@@ -43,10 +43,10 @@
  * increment and store operations, just to make
  * the later macros simpler
  */
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_LONG_LOCK_FREE)) || \
+#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_LONG_LOCK_FREE == 2) || \
 	(defined(ISC_PLATFORM_HAVEXADDQ) && defined(ISC_PLATFORM_HAVEATOMICSTOREQ))
 #define ISC_STATS_HAVEATOMICQ 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_LONG_LOCK_FREE))
+#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_LONG_LOCK_FREE == 2)
 #define ISC_STATS_HAVESTDATOMICQ 1
 #endif
 #else
@@ -76,9 +76,11 @@
  * Otherwise, just rely on standard 64-bit data types
  * and operations
  */
-#if !ISC_STATS_HAVEATOMICQ && ((defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD))
+#if !ISC_STATS_HAVEATOMICQ && \
+	((defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2) || \
+	 defined(ISC_PLATFORM_HAVEXADD))
 #define ISC_STATS_USEMULTIFIELDS 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
+#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2)
 #define ISC_STATS_HAVESTDATOMIC 1
 #endif
 #else
