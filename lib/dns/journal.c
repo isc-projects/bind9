@@ -361,7 +361,7 @@ journal_header_decode(journal_rawheader_t *raw, journal_header_t *cooked) {
 	journal_pos_decode(&raw->h.end, &cooked->end);
 	cooked->index_size = decode_uint32(raw->h.index_size);
 	cooked->sourceserial = decode_uint32(raw->h.sourceserial);
-	cooked->serialset = (raw->h.flags & JOURNAL_SERIALSET);
+	cooked->serialset = ((raw->h.flags & JOURNAL_SERIALSET) != 0);
 }
 
 static void
@@ -375,8 +375,9 @@ journal_header_encode(journal_header_t *cooked, journal_rawheader_t *raw) {
 	journal_pos_encode(&raw->h.end, &cooked->end);
 	encode_uint32(cooked->index_size, raw->h.index_size);
 	encode_uint32(cooked->sourceserial, raw->h.sourceserial);
-	if (cooked->serialset)
+	if (cooked->serialset) {
 		flags |= JOURNAL_SERIALSET;
+	}
 	raw->h.flags = flags;
 }
 
@@ -699,8 +700,8 @@ dns_journal_open(isc_mem_t *mctx, const char *filename, unsigned int mode,
 	char backup[1024];
 	bool writable, create;
 
-	create = (mode & DNS_JOURNAL_CREATE);
-	writable = (mode & (DNS_JOURNAL_WRITE|DNS_JOURNAL_CREATE));
+	create = ((mode & DNS_JOURNAL_CREATE) != 0);
+	writable = ((mode & (DNS_JOURNAL_WRITE|DNS_JOURNAL_CREATE)) != 0);
 
 	result = journal_open(mctx, filename, writable, create, journalp);
 	if (result == ISC_R_NOTFOUND) {
@@ -750,6 +751,7 @@ ixfr_order(const void *av, const void *bv) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	switch (b->op) {
@@ -763,6 +765,7 @@ ixfr_order(const void *av, const void *bv) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	r = bop - aop;

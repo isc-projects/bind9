@@ -269,9 +269,8 @@ dns_rpz_policy2str(dns_rpz_policy_t policy) {
 		str = "MISS";
 		break;
 	default:
-		str = "";
-		POST(str);
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	return (str);
 }
@@ -338,7 +337,7 @@ make_addr_set(dns_rpz_addr_zbits_t *tgt_set, dns_rpz_zbits_t zbits,
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -357,7 +356,7 @@ make_nm_set(dns_rpz_nm_zbits_t *tgt_set,
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -572,8 +571,8 @@ adj_trigger_cnt(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 		const dns_rpz_cidr_key_t *tgt_ip, dns_rpz_prefix_t tgt_prefix,
 		bool inc)
 {
-	dns_rpz_trigger_counter_t *cnt;
-	dns_rpz_zbits_t *have;
+	dns_rpz_trigger_counter_t *cnt = NULL;
+	dns_rpz_zbits_t *have = NULL;
 
 	switch (rpz_type) {
 	case DNS_RPZ_TYPE_CLIENT_IP:
@@ -616,6 +615,7 @@ adj_trigger_cnt(dns_rpz_zones_t *rpzs, dns_rpz_num_t rpz_num,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (inc) {
@@ -2492,7 +2492,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 	dns_rpz_addr_zbits_t tgt_set;
 	dns_rpz_cidr_node_t *found;
 	isc_result_t result;
-	dns_rpz_num_t rpz_num;
+	dns_rpz_num_t rpz_num = 0;
 	dns_rpz_have_t have;
 	int i;
 
@@ -2520,7 +2520,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 			break;
 		default:
 			INSIST(0);
-			break;
+			ISC_UNREACHABLE();
 		}
 	} else if (netaddr->family == AF_INET6) {
 		dns_rpz_cidr_key_t src_ip6;
@@ -2546,7 +2546,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 			break;
 		default:
 			INSIST(0);
-			break;
+			ISC_UNREACHABLE();
 		}
 	} else {
 		return (DNS_RPZ_INVALID_NUM);
@@ -2583,7 +2583,7 @@ dns_rpz_find_ip(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 	result = ip2name(&found->ip, found->prefix, dns_rootname, ip_name);
 	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);

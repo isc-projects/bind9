@@ -130,10 +130,12 @@ main(int argc, char **argv) {
 	if (PROGCMP("tsig-keygen")) {
 		progmode = progmode_keygen;
 		quiet = true;
-	} else if (PROGCMP("ddns-confgen"))
+	} else if (PROGCMP("ddns-confgen")) {
 		progmode = progmode_confgen;
-	else
+	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
+	}
 
 	isc_commandline_errprint = false;
 

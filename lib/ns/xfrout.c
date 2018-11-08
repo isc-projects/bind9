@@ -764,7 +764,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 
 	ns_client_log(client,
@@ -1280,7 +1280,7 @@ sendstream(xfrout_ctx_t *xfr) {
 	isc_buffer_clear(&xfr->txlenbuf);
 	isc_buffer_clear(&xfr->txbuf);
 
-	is_tcp = (xfr->client->attributes & NS_CLIENTATTR_TCP);
+	is_tcp = ((xfr->client->attributes & NS_CLIENTATTR_TCP) != 0);
 	if (!is_tcp) {
 		/*
 		 * In the UDP case, we put the response data directly into

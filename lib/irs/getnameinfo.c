@@ -196,8 +196,9 @@ getnameinfo(const struct sockaddr *sa, IRS_GETNAMEINFO_SOCKLEN_T salen,
 
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
-	proto = (flags & NI_DGRAM) ? "udp" : "tcp";
+	proto = ((flags & NI_DGRAM) != 0) ? "udp" : "tcp";
 
 	if (serv == NULL || servlen == 0U) {
 		/*

@@ -100,6 +100,7 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	tsec->magic = DNS_TSEC_MAGIC;
@@ -125,6 +126,7 @@ dns_tsec_destroy(dns_tsec_t **tsecp) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	tsec->magic = 0;
@@ -154,5 +156,6 @@ dns_tsec_getkey(dns_tsec_t *tsec, void *keyp) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }

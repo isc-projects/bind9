@@ -706,6 +706,7 @@ dnstap_type(dns_dtmsgtype_t msgtype) {
 		return (DNSTAP__MESSAGE__TYPE__TOOL_RESPONSE);
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -1046,6 +1047,7 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, isc_mem_t *mctx,
 		return (ISC_R_NOTIMPLEMENTED);
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	isc_mem_attach(mctx, &handle->mctx);

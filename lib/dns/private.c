@@ -312,9 +312,9 @@ dns_private_totext(dns_rdata_t *private, isc_buffer_t *buf) {
 
 		CHECK(dns_rdata_tostruct(&rdata, &nsec3param, NULL));
 
-		del = (nsec3param.flags & DNS_NSEC3FLAG_REMOVE);
-		init = (nsec3param.flags & DNS_NSEC3FLAG_INITIAL);
-		nonsec = (nsec3param.flags & DNS_NSEC3FLAG_NONSEC);
+		del = ((nsec3param.flags & DNS_NSEC3FLAG_REMOVE) != 0);
+		init = ((nsec3param.flags & DNS_NSEC3FLAG_INITIAL) != 0);
+		nonsec = ((nsec3param.flags & DNS_NSEC3FLAG_NONSEC) != 0);
 
 		nsec3param.flags &= ~(DNS_NSEC3FLAG_CREATE|
 				      DNS_NSEC3FLAG_REMOVE|

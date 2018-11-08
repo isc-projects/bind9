@@ -273,6 +273,7 @@ getudpdispatch(int family, dns_dispatchmgr_t *dispatchmgr,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	attrmask = 0;
 	attrmask |= DNS_DISPATCHATTR_UDP;
@@ -1340,10 +1341,10 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	mctx = client->mctx;
 	rdataset = NULL;
 	sigrdataset = NULL;
-	want_dnssec = !(options & DNS_CLIENTRESOPT_NODNSSEC);
-	want_validation = !(options & DNS_CLIENTRESOPT_NOVALIDATE);
-	want_cdflag = !(options & DNS_CLIENTRESOPT_NOCDFLAG);
-	want_tcp = (options & DNS_CLIENTRESOPT_TCP);
+	want_dnssec = ((options & DNS_CLIENTRESOPT_NODNSSEC) == 0);
+	want_validation = ((options & DNS_CLIENTRESOPT_NOVALIDATE) == 0);
+	want_cdflag = ((options & DNS_CLIENTRESOPT_NOCDFLAG) == 0);
+	want_tcp = ((options & DNS_CLIENTRESOPT_TCP) != 0);
 
 	/*
 	 * Prepare some intermediate resources
@@ -2855,7 +2856,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	want_tcp = (options & DNS_CLIENTUPDOPT_TCP);
+	want_tcp = ((options & DNS_CLIENTUPDOPT_TCP) != 0);
 
 	/*
 	 * Create a context and prepare some resources.
@@ -3184,6 +3185,7 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	rdatalist->type = rdata->type;

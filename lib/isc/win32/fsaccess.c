@@ -189,23 +189,30 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	/* Owner check */
 
 	NTFSbits = 0;
-	if (caccess & ISC_FSACCESS_READ)
+	if ((caccess & ISC_FSACCESS_READ) != 0) {
 		NTFSbits |= FILE_GENERIC_READ;
-	if (caccess & ISC_FSACCESS_WRITE)
+	}
+	if ((caccess & ISC_FSACCESS_WRITE) != 0) {
 		NTFSbits |= FILE_GENERIC_WRITE;
-	if (caccess & ISC_FSACCESS_EXECUTE)
+	}
+	if ((caccess & ISC_FSACCESS_EXECUTE) != 0) {
 		NTFSbits |= FILE_GENERIC_EXECUTE;
+	}
 
 	/* For directories check the directory-specific bits */
 	if (isdir == true) {
-		if (caccess & ISC_FSACCESS_CREATECHILD)
+		if ((caccess & ISC_FSACCESS_CREATECHILD) != 0) {
 			NTFSbits |= FILE_ADD_SUBDIRECTORY | FILE_ADD_FILE;
-		if (caccess & ISC_FSACCESS_DELETECHILD)
+		}
+		if ((caccess & ISC_FSACCESS_DELETECHILD) != 0) {
 			NTFSbits |= FILE_DELETE_CHILD;
-		if (caccess & ISC_FSACCESS_LISTDIRECTORY)
+		}
+		if ((caccess & ISC_FSACCESS_LISTDIRECTORY) != 0) {
 			NTFSbits |= FILE_LIST_DIRECTORY;
-		if (caccess & ISC_FSACCESS_ACCESSCHILD)
+		}
+		if ((caccess & ISC_FSACCESS_ACCESSCHILD) != 0) {
 			NTFSbits |= FILE_TRAVERSE;
+		}
 	}
 
 	if (NTFSbits == (FILE_GENERIC_READ | FILE_GENERIC_WRITE
@@ -238,23 +245,30 @@ NTFS_Access_Control(const char *filename, const char *user, int access,
 	caccess = caccess >> STEP;
 
 	NTFSbits = 0;
-	if (caccess & ISC_FSACCESS_READ)
+	if ((caccess & ISC_FSACCESS_READ) != 0) {
 		NTFSbits |= FILE_GENERIC_READ;
-	if (caccess & ISC_FSACCESS_WRITE)
+	}
+	if ((caccess & ISC_FSACCESS_WRITE) != 0) {
 		NTFSbits |= FILE_GENERIC_WRITE;
-	if (caccess & ISC_FSACCESS_EXECUTE)
+	}
+	if ((caccess & ISC_FSACCESS_EXECUTE) != 0) {
 		NTFSbits |= FILE_GENERIC_EXECUTE;
+	}
 
 	/* For directories check the directory-specific bits */
 	if (isdir == TRUE) {
-		if (caccess & ISC_FSACCESS_CREATECHILD)
+		if ((caccess & ISC_FSACCESS_CREATECHILD) != 0) {
 			NTFSbits |= FILE_ADD_SUBDIRECTORY | FILE_ADD_FILE;
-		if (caccess & ISC_FSACCESS_DELETECHILD)
+		}
+		if ((caccess & ISC_FSACCESS_DELETECHILD) != 0) {
 			NTFSbits |= FILE_DELETE_CHILD;
-		if (caccess & ISC_FSACCESS_LISTDIRECTORY)
+		}
+		if ((caccess & ISC_FSACCESS_LISTDIRECTORY) != 0) {
 			NTFSbits |= FILE_LIST_DIRECTORY;
-		if (caccess & ISC_FSACCESS_ACCESSCHILD)
+		}
+		if ((caccess & ISC_FSACCESS_ACCESSCHILD) != 0) {
 			NTFSbits |= FILE_TRAVERSE;
+		}
 	}
 	/* Add the ACE to the ACL */
 	if (!AddAccessAllowedAce(pacl, ACL_REVISION, NTFSbits,

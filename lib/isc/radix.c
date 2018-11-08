@@ -25,6 +25,8 @@
 #include <isc/util.h>
 #include <isc/radix.h>
 
+#define BIT_TEST(f, b)  (((f) & (b)) != 0)
+
 static isc_result_t
 _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family,
 	    void *dest, int bitlen);
