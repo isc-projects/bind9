@@ -1633,16 +1633,16 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 			}
 		}
 
-		printtime     = (channel->flags & ISC_LOG_PRINTTIME);
+		printtime     = ((channel->flags & ISC_LOG_PRINTTIME) != 0);
 		printtag      = ((channel->flags &
-				  (ISC_LOG_PRINTTAG|ISC_LOG_PRINTPREFIX))
-				 && lcfg->tag != NULL);
-		printcolon    = ((channel->flags & ISC_LOG_PRINTTAG)
-				 && lcfg->tag != NULL);
-		printcategory = (channel->flags & ISC_LOG_PRINTCATEGORY);
-		printmodule   = (channel->flags & ISC_LOG_PRINTMODULE);
-		printlevel    = (channel->flags & ISC_LOG_PRINTLEVEL);
-		buffered      = (channel->flags & ISC_LOG_BUFFERED);
+				  (ISC_LOG_PRINTTAG|ISC_LOG_PRINTPREFIX)) != 0 &&
+				 lcfg->tag != NULL);
+		printcolon    = ((channel->flags & ISC_LOG_PRINTTAG) != 0 &&
+				 lcfg->tag != NULL);
+		printcategory = ((channel->flags & ISC_LOG_PRINTCATEGORY) != 0);
+		printmodule   = ((channel->flags & ISC_LOG_PRINTMODULE) != 0);
+		printlevel    = ((channel->flags & ISC_LOG_PRINTLEVEL) != 0);
+		buffered      = ((channel->flags & ISC_LOG_BUFFERED) != 0);
 
 		switch (channel->type) {
 		case ISC_LOG_TOFILE:

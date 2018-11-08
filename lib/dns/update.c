@@ -1429,9 +1429,11 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		 * and one doesn't.
 		 */
 		state->check_ksk =
-			(dns_zone_getoptions(zone) & DNS_ZONEOPT_UPDATECHECKKSK);
+			((dns_zone_getoptions(zone) &
+			  DNS_ZONEOPT_UPDATECHECKKSK) != 0);
 		state->keyset_kskonly =
-			(dns_zone_getoptions(zone) & DNS_ZONEOPT_DNSKEYKSKONLY);
+			((dns_zone_getoptions(zone) &
+			  DNS_ZONEOPT_DNSKEYKSKONLY) != 0);
 
 		/*
 		 * Get the NSEC/NSEC3 TTL from the SOA MINIMUM field.
@@ -1806,6 +1808,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				sigs++;
 			} else {
 				INSIST(0);
+				ISC_UNREACHABLE();
 			}
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
@@ -1979,6 +1982,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				sigs++;
 			} else {
 				INSIST(0);
+				ISC_UNREACHABLE();
 			}
 			ISC_LIST_UNLINK(state->nsec_mindiff.tuples, t, link);
 			ISC_LIST_APPEND(state->work.tuples, t, link);
@@ -2005,6 +2009,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
  failure:

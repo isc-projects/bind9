@@ -293,6 +293,7 @@ isc_sockaddr_anyofpf(isc_sockaddr_t *sockaddr, int pf) {
 	     break;
      default:
 	     INSIST(0);
+	     ISC_UNREACHABLE();
      }
 }
 
@@ -384,6 +385,7 @@ isc_sockaddr_fromnetaddr(isc_sockaddr_t *sockaddr, const isc_netaddr_t *na,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	ISC_LINK_INIT(sockaddr, link);
 }

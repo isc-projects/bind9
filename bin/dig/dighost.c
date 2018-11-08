@@ -2648,7 +2648,7 @@ setup_lookup(dig_lookup_t *lookup) {
 
 		if (lookup->ecs_addr != NULL) {
 			uint8_t addr[16];
-			uint16_t family;
+			uint16_t family = 0;
 			uint32_t plen;
 			struct sockaddr *sa;
 			struct sockaddr_in *sin;
@@ -2705,6 +2705,7 @@ setup_lookup(dig_lookup_t *lookup) {
 				break;
 			default:
 				INSIST(0);
+				ISC_UNREACHABLE();
 			}
 
 			isc_buffer_init(&b, ecsbuf, sizeof(ecsbuf));

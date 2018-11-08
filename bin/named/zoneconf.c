@@ -122,7 +122,7 @@ configure_zone_acl(const cfg_obj_t *zconfig, const cfg_obj_t *vconfig,
 		break;
 	    default:
 		INSIST(0);
-		return (ISC_R_FAILURE);
+		ISC_UNREACHABLE();
 	}
 
 	/* First check to see if ACL is defined within the zone */
@@ -228,12 +228,14 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		unsigned int i, n;
 
 		str = cfg_obj_asstring(mode);
-		if (strcasecmp(str, "grant") == 0)
+		if (strcasecmp(str, "grant") == 0) {
 			grant = true;
-		else if (strcasecmp(str, "deny") == 0)
+		} else if (strcasecmp(str, "deny") == 0) {
 			grant = false;
-		else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 
 		str = cfg_obj_asstring(matchtype);
 		CHECK(dns_ssu_mtypefromstring(str, &mtype));
@@ -753,6 +755,7 @@ checknames(dns_zonetype_t ztype, const cfg_obj_t **maps,
 	case dns_zone_master: zone = "master"; break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	result = ns_checknames_get(maps, zone, objp);
 	INSIST(result == ISC_R_SUCCESS && objp != NULL && *objp != NULL);
@@ -796,7 +799,7 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const dns_master_style_t *masterstyle = &dns_master_style_default;
 	isc_stats_t *zoneqrystats;
 	dns_stats_t *rcvquerystats;
-	dns_zonestat_level_t statlevel;
+	dns_zonestat_level_t statlevel = dns_zonestat_none;
 	int seconds;
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
 	isc_dscp_t dscp;
@@ -920,14 +923,16 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (result == ISC_R_SUCCESS) {
 		const char *masterformatstr = cfg_obj_asstring(obj);
 
-		if (strcasecmp(masterformatstr, "text") == 0)
+		if (strcasecmp(masterformatstr, "text") == 0) {
 			masterformat = dns_masterformat_text;
-		else if (strcasecmp(masterformatstr, "raw") == 0)
+		} else if (strcasecmp(masterformatstr, "raw") == 0) {
 			masterformat = dns_masterformat_raw;
-		else if (strcasecmp(masterformatstr, "map") == 0)
+		} else if (strcasecmp(masterformatstr, "map") == 0) {
 			masterformat = dns_masterformat_map;
-		else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	}
 
 	obj = NULL;
@@ -943,12 +948,14 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			return (ISC_R_FAILURE);
 		}
 
-		if (strcasecmp(masterstylestr, "full") == 0)
+		if (strcasecmp(masterstylestr, "full") == 0) {
 			masterstyle = &dns_master_style_full;
-		else if (strcasecmp(masterstylestr, "relative") == 0)
+		} else if (strcasecmp(masterstylestr, "relative") == 0) {
 			masterstyle = &dns_master_style_default;
-		else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	}
 
 	obj = NULL;
@@ -1034,16 +1041,18 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			dialup = dns_dialuptype_no;
 	} else {
 		const char *dialupstr = cfg_obj_asstring(obj);
-		if (strcasecmp(dialupstr, "notify") == 0)
+		if (strcasecmp(dialupstr, "notify") == 0) {
 			dialup = dns_dialuptype_notify;
-		else if (strcasecmp(dialupstr, "notify-passive") == 0)
+		} else if (strcasecmp(dialupstr, "notify-passive") == 0) {
 			dialup = dns_dialuptype_notifypassive;
-		else if (strcasecmp(dialupstr, "refresh") == 0)
+		} else if (strcasecmp(dialupstr, "refresh") == 0) {
 			dialup = dns_dialuptype_refresh;
-		else if (strcasecmp(dialupstr, "passive") == 0)
+		} else if (strcasecmp(dialupstr, "passive") == 0) {
 			dialup = dns_dialuptype_passive;
-		else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	}
 	if (raw != NULL)
 		dns_zone_setdialup(raw, dialup);
@@ -1059,14 +1068,16 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			statlevel = dns_zonestat_none;
 	} else {
 		const char *levelstr = cfg_obj_asstring(obj);
-		if (strcasecmp(levelstr, "full") == 0)
+		if (strcasecmp(levelstr, "full") == 0) {
 			statlevel = dns_zonestat_full;
-		else if (strcasecmp(levelstr, "terse") == 0)
+		} else if (strcasecmp(levelstr, "terse") == 0) {
 			statlevel = dns_zonestat_terse;
-		else if (strcasecmp(levelstr, "none") == 0)
+		} else if (strcasecmp(levelstr, "none") == 0) {
 			statlevel = dns_zonestat_none;
-		else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	}
 	dns_zone_setstatlevel(zone, statlevel);
 
@@ -1104,12 +1115,14 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 				notifytype = dns_notifytype_no;
 		} else {
 			const char *notifystr = cfg_obj_asstring(obj);
-			if (strcasecmp(notifystr, "explicit") == 0)
+			if (strcasecmp(notifystr, "explicit") == 0) {
 				notifytype = dns_notifytype_explicit;
-			else if (strcasecmp(notifystr, "master-only") == 0)
+			} else if (strcasecmp(notifystr, "master-only") == 0) {
 				notifytype = dns_notifytype_masteronly;
-			else
+			} else {
 				INSIST(0);
+				ISC_UNREACHABLE();
+			}
 		}
 		if (raw != NULL)
 			dns_zone_setnotifytype(raw, dns_notifytype_no);
@@ -1250,8 +1263,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			fail = check = true;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			fail = check = false;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 		if (raw != NULL) {
 			dns_zone_setoption(raw, DNS_ZONEOPT_CHECKNAMES,
 					   check);
@@ -1286,8 +1301,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			check = true;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			check = false;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 		dns_zone_setoption(zone, DNS_ZONEOPT_CHECKSPF, check);
 
 		obj = NULL;
@@ -1424,14 +1441,16 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = cfg_map_get(zoptions, "auto-dnssec", &obj);
 		if (result == ISC_R_SUCCESS) {
 			const char *arg = cfg_obj_asstring(obj);
-			if (strcasecmp(arg, "allow") == 0)
+			if (strcasecmp(arg, "allow") == 0) {
 				allow = true;
-			else if (strcasecmp(arg, "maintain") == 0)
+			} else if (strcasecmp(arg, "maintain") == 0) {
 				allow = maint = true;
-			else if (strcasecmp(arg, "off") == 0)
+			} else if (strcasecmp(arg, "off") == 0) {
 				;
-			else
+			} else {
 				INSIST(0);
+				ISC_UNREACHABLE();
+			}
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_ALLOW, allow);
 			dns_zone_setkeyopt(zone, DNS_ZONEKEY_MAINTAIN, maint);
 		}
@@ -1482,8 +1501,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			fail = check = true;
 		} else if (strcasecmp(dupcheck, "ignore") == 0) {
 			fail = check = false;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKDUPRR, check);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKDUPRRFAIL, fail);
 
@@ -1497,8 +1518,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			fail = check = true;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			fail = check = false;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMX, check);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_CHECKMXFAIL, fail);
 
@@ -1533,8 +1556,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			warn = ignore = false;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			warn = ignore = true;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNMXCNAME, warn);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_IGNOREMXCNAME, ignore);
 
@@ -1548,8 +1573,10 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 			warn = ignore = false;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			warn = ignore = true;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_WARNSRVCNAME, warn);
 		dns_zone_setoption(mayberaw, DNS_ZONEOPT_IGNORESRVCNAME,
 				   ignore);
@@ -1564,13 +1591,15 @@ ns_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		result = cfg_map_get(zoptions, "dnssec-update-mode", &obj);
 		if (result == ISC_R_SUCCESS) {
 			const char *arg = cfg_obj_asstring(obj);
-			if (strcasecmp(arg, "no-resign") == 0)
+			if (strcasecmp(arg, "no-resign") == 0) {
 				dns_zone_setkeyopt(zone, DNS_ZONEKEY_NORESIGN,
 						   true);
-			else if (strcasecmp(arg, "maintain") == 0)
+			} else if (strcasecmp(arg, "maintain") == 0) {
 				;
-			else
+			} else {
 				INSIST(0);
+				ISC_UNREACHABLE();
+			}
 		}
 
 		obj = NULL;

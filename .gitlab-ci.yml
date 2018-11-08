@@ -307,3 +307,23 @@ install:debian:sid:amd64:
   <<: *install_test_job
   dependencies:
     - build:debian:sid:amd64
+
+noassert:build:debian:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g -DISC_CHECK_NONE=1"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+noassert:unittest:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - noassert:build:debian:sid:amd64
+
+noassert:systemtest:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - noassert:build:debian:sid:amd64

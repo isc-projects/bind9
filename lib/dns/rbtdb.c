@@ -5711,7 +5711,8 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 	rbtdbiter->common.methods = &dbiterator_methods;
 	rbtdbiter->common.db = NULL;
 	dns_db_attach(db, &rbtdbiter->common.db);
-	rbtdbiter->common.relative_names = (options & DNS_DB_RELATIVENAMES);
+	rbtdbiter->common.relative_names =
+		((options & DNS_DB_RELATIVENAMES) != 0);
 	rbtdbiter->common.magic = DNS_DBITERATOR_MAGIC;
 	rbtdbiter->common.cleaning = false;
 	rbtdbiter->paused = true;
@@ -5721,8 +5722,8 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 	dns_fixedname_init(&rbtdbiter->origin);
 	rbtdbiter->node = NULL;
 	rbtdbiter->delcnt = 0;
-	rbtdbiter->nsec3only = (options & DNS_DB_NSEC3ONLY);
-	rbtdbiter->nonsec3 = (options & DNS_DB_NONSEC3);
+	rbtdbiter->nsec3only = ((options & DNS_DB_NSEC3ONLY) != 0);
+	rbtdbiter->nonsec3 = ((options & DNS_DB_NONSEC3) != 0);
 	memset(rbtdbiter->deletions, 0, sizeof(rbtdbiter->deletions));
 	dns_rbtnodechain_init(&rbtdbiter->chain, db->mctx);
 	dns_rbtnodechain_init(&rbtdbiter->nsec3chain, db->mctx);
@@ -9772,6 +9773,7 @@ rdataset_getadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (acarray == NULL) {
@@ -9831,6 +9833,7 @@ acache_callback(dns_acacheentry_t *entry, void **arg) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	count = cbarg->count;
@@ -9965,6 +9968,7 @@ rdataset_setadditional(dns_rdataset_t *rdataset, dns_rdatasetadditional_t type,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (acarray[count].entry != NULL) {
@@ -10047,6 +10051,7 @@ rdataset_putadditional(dns_acache_t *acache, dns_rdataset_t *rdataset,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (acarray == NULL) {

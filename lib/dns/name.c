@@ -1114,7 +1114,7 @@ dns_name_fromtext(dns_name_t *name, isc_buffer_t *source,
 	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
 		(target == NULL && ISC_BUFFER_VALID(name->buffer)));
 
-	downcase = (options & DNS_NAME_DOWNCASE);
+	downcase = ((options & DNS_NAME_DOWNCASE) != 0);
 
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
@@ -1409,7 +1409,7 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 	dns_name_totextfilter_t totext_filter_proc = NULL;
 	isc_result_t result;
 #endif
-	bool omit_final_dot = (options & DNS_NAME_OMITFINALDOT);
+	bool omit_final_dot = ((options & DNS_NAME_OMITFINALDOT) != 0);
 
 	/*
 	 * This function assumes the name is in proper uncompressed
@@ -1823,7 +1823,7 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 	REQUIRE((target != NULL && ISC_BUFFER_VALID(target)) ||
 		(target == NULL && ISC_BUFFER_VALID(name->buffer)));
 
-	downcase = (options & DNS_NAME_DOWNCASE);
+	downcase = ((options & DNS_NAME_DOWNCASE) != 0);
 
 	if (target == NULL && name->buffer != NULL) {
 		target = name->buffer;
@@ -1907,9 +1907,10 @@ dns_name_fromwire(dns_name_t *name, isc_buffer_t *source,
 				/*
 				 * Ordinary 14-bit pointer.
 				 */
-				if ((dctx->allowed & DNS_COMPRESS_GLOBAL14) ==
-				    0)
+				if ((dctx->allowed & DNS_COMPRESS_GLOBAL14) == 0)
+				{
 					return (DNS_R_DISALLOWED);
+				}
 				new_current = c & 0x3F;
 				state = fw_newcurrent;
 			} else

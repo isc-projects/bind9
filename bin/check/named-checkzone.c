@@ -141,12 +141,14 @@ main(int argc, char **argv) {
 #define PROGCMP(X) \
 	(strcasecmp(prog_name, X) == 0 || strcasecmp(prog_name, X ".exe") == 0)
 
-	if (PROGCMP("named-checkzone"))
+	if (PROGCMP("named-checkzone")) {
 		progmode = progmode_check;
-	else if (PROGCMP("named-compilezone"))
+	} else if (PROGCMP("named-compilezone")) {
 		progmode = progmode_compile;
-	else
+	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
+	}
 
 	/* Compilation specific defaults */
 	if (progmode == progmode_compile) {

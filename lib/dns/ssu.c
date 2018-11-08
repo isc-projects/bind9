@@ -289,6 +289,7 @@ reverse_from_address(dns_name_t *tcpself, isc_netaddr_t *tcpaddr) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	isc_buffer_init(&b, buf, strlen(buf));
 	isc_buffer_add(&b, strlen(buf));
@@ -331,6 +332,7 @@ stf_from_address(dns_name_t *stfself, isc_netaddr_t *tcpaddr) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	isc_buffer_init(&b, buf, strlen(buf));
 	isc_buffer_add(&b, strlen(buf));

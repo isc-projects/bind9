@@ -382,14 +382,5 @@ isc_md5_check(bool testing) {
 }
 
 #else /* !PK11_MD5_DISABLE */
-#ifdef WIN32
-/* Make the Visual Studio linker happy */
-#include <isc/util.h>
-
-void isc_md5_final() { INSIST(0); }
-void isc_md5_init() { INSIST(0); }
-void isc_md5_invalidate() { INSIST(0); }
-void isc_md5_update() { INSIST(0); }
-void isc_md5_check() { INSIST(0); }
-#endif
+EMPTY_TRANSLATION_UNIT
 #endif /* PK11_MD5_DISABLE */

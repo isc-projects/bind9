@@ -564,6 +564,7 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 #endif
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (sendmsg(s, &msg, 0) < 0) {

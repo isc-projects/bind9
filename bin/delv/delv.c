@@ -1236,6 +1236,7 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			/* NOTREACHED */
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 		if (strlen(option) > 1U)
 			option = &option[1];

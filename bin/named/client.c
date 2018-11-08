@@ -617,6 +617,7 @@ exit_check(ns_client_t *client) {
 		if (ns_g_clienttest && isc_mem_references(client->mctx) != 1) {
 			isc_mem_stats(client->mctx, stderr);
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		/*
@@ -1230,7 +1231,7 @@ client_send(ns_client_t *client) {
 			break;
 		default:
 			INSIST(0);
-			break;
+			ISC_UNREACHABLE();
 		}
 	} else {
 		respsize = isc_buffer_usedlength(&buffer);
@@ -1256,7 +1257,7 @@ client_send(ns_client_t *client) {
 			break;
 		default:
 			INSIST(0);
-			break;
+			ISC_UNREACHABLE();
 		}
 	}
 
@@ -1638,7 +1639,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		isc_buffer_t buf;
 		uint8_t addr[16];
 		uint32_t plen, addrl;
-		uint16_t family;
+		uint16_t family = 0;
 
 		/* Add CLIENT-SUBNET option. */
 
@@ -1664,6 +1665,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		isc_buffer_init(&buf, ecs, sizeof(ecs));
@@ -1851,6 +1853,7 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 		isc_hmacsha1_update(&hmacsha1, cp, length);
 		isc_hmacsha1_sign(&hmacsha1, digest, sizeof(digest));
@@ -1886,6 +1889,7 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 		isc_hmacsha256_update(&hmacsha256, cp, length);
 		isc_hmacsha256_sign(&hmacsha256, digest, sizeof(digest));
@@ -1895,6 +1899,7 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 	}
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -2439,7 +2444,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			break;
 		default:
 			INSIST(0);
-			break;
+			ISC_UNREACHABLE();
 		}
 	} else {
 		switch (isc_sockaddr_pf(&client->peeraddr)) {
@@ -2453,7 +2458,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 			break;
 		default:
 			INSIST(0);
-			break;
+			ISC_UNREACHABLE();
 		}
 	}
 

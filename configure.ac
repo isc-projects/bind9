@@ -1894,9 +1894,9 @@ int main() {
 	return (0);
 }
 ],
-		[AC_MSG_RESULT(yes)
-		have_ed448="yes"],
-		[AC_MSG_RESULT(no)
+		[AC_MSG_RESULT([broken])
+		have_ed448="no"],
+		[AC_MSG_RESULT([no])
 		have_ed448="no"],
 		[AC_MSG_RESULT(using --with-eddsa)])
 		case $with_eddsa in
@@ -4272,6 +4272,21 @@ AC_SUBST(ISC_PLATFORM_USEMACASM)
 
 ISC_ARCH_DIR=$arch
 AC_SUBST(ISC_ARCH_DIR)
+
+#
+# Check for __builtin_unreachable
+#
+AC_MSG_CHECKING([compiler support for __builtin_unreachable()])
+AC_LINK_IFELSE(
+  [AC_LANG_PROGRAM(
+     [[]],
+     [[__builtin_unreachable();]]
+   )],
+  [AC_MSG_RESULT([yes])
+   AC_DEFINE([HAVE_BUILTIN_UNREACHABLE], [1], [define if the compiler supports __builtin_unreachable().])
+  ],
+  [AC_MSG_RESULT([no])
+  ])
 
 #
 # Check for __builtin_expect

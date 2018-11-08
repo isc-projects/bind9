@@ -995,6 +995,7 @@ pk11_numbits(CK_BYTE_PTR data, unsigned int bytecnt) {
 		break;
 	}
 	INSIST(0);
+	ISC_UNREACHABLE();
 }
 
 CK_ATTRIBUTE *

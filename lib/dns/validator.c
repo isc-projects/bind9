@@ -3703,10 +3703,8 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 			val->attributes |= VALATTR_NEEDNODATA;
 		result = nsecvalidate(val, false);
 	} else {
-		/*
-		 * This shouldn't happen.
-		 */
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (result != DNS_R_WAIT) {
