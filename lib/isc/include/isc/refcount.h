@@ -95,9 +95,10 @@ ISC_LANG_BEGINDECLS
  * Sample implementations
  */
 #ifdef ISC_PLATFORM_USETHREADS
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD)
+#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2) || \
+	defined(ISC_PLATFORM_HAVEXADD)
 #define ISC_REFCOUNT_HAVEATOMIC 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE))
+#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2)
 #define ISC_REFCOUNT_HAVESTDATOMIC 1
 #endif
 
@@ -252,7 +253,7 @@ typedef struct isc_refcount {
 		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
 	} while (0)
 
-#endif /* (defined(ISC_PLATFORM_HAVESTDATOMIC) && defined(ATOMIC_INT_LOCK_FREE)) || defined(ISC_PLATFORM_HAVEXADD) */
+#endif /* (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2) || defined(ISC_PLATFORM_HAVEXADD) */
 #else  /* ISC_PLATFORM_USETHREADS */
 
 typedef struct isc_refcount {
