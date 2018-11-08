@@ -182,6 +182,11 @@ precheck:debian:sid:amd64:
     expire_in: '1 week'
     when: on_failure
 
+precheck:🐞:sid:amd64:
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script: util/check-cocci
+
 docs:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   stage: test
