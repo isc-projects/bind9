@@ -1888,9 +1888,9 @@ int main() {
 	return (0);
 }
 ],
-		[AC_MSG_RESULT(yes)
-		have_ed448="yes"],
-		[AC_MSG_RESULT(no)
+		[AC_MSG_RESULT([broken])
+		have_ed448="no"],
+		[AC_MSG_RESULT([no])
 		have_ed448="no"],
 		[AC_MSG_RESULT(using --with-eddsa)])
 		case $with_eddsa in
