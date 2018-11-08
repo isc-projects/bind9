@@ -3262,7 +3262,6 @@ sub makeinstallfile {
     print LOUT "named-compilezone.exe-BNFF\n";
     print LOUT "named-journalprint.exe-BNFF\n";
     print LOUT "named-rrchecker.exe-BNFF\n";
-    print LOUT "isc-hmax-fixup.exe-BNFF\n";
     if ($use_pkcs11 eq "yes") {
         print LOUT "pkcs11-destroy.exe-BNFF\n";
         print LOUT "pkcs11-keygen.exe-BNFF\n";
