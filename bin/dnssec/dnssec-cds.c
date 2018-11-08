@@ -163,8 +163,8 @@ verbose_time(int level, const char *msg, isc_stdtime_t time) {
 	if (verbose < 3) {
 		vbprintf(level, "%s %s\n", msg, timestr);
 	} else {
-		vbprintf(level, "%s %s (%lld)\n",
-			 msg, timestr, (long long)time);
+		vbprintf(level, "%s %s (%" PRIu32 ")\n",
+			 msg, timestr, time);
 	}
 }
 
