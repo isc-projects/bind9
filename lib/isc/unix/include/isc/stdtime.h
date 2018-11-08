@@ -25,16 +25,6 @@
  */
 typedef uint32_t isc_stdtime_t;
 
-/* but this flag helps... */
-#define STDTIME_ON_32BITS	1
-
-/*
- * isc_stdtime32_t is a 32-bit version of isc_stdtime_t.  A variable of this
- * type should only be used as an opaque integer (e.g.,) to compare two
- * time values.
- */
-typedef uint32_t isc_stdtime32_t;
-
 ISC_LANG_BEGINDECLS
 /* */
 void

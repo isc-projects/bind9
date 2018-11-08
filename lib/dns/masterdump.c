@@ -1591,24 +1591,7 @@ writeheader(dns_dumpctx_t *dctx) {
 		r.base = (unsigned char *)&rawheader;
 		r.length = sizeof(rawheader);
 		isc_buffer_region(&buffer, &r);
-#if !defined(STDTIME_ON_32BITS) || (STDTIME_ON_32BITS + 0) != 1
-		/*
-		 * We assume isc_stdtime_t is a 32-bit integer,
-		 * which should be the case on most platforms.
-		 * If it turns out to be uncommon, we'll need
-		 * to bump the version number and revise the
-		 * header format.
-		 */
-		isc_log_write(dns_lctx,
-			      ISC_LOGCATEGORY_GENERAL,
-			      DNS_LOGMODULE_MASTERDUMP,
-			      ISC_LOG_INFO,
-			      "dumping master file in raw "
-			      "format: stdtime is not 32bits");
-		now32 = 0;
-#else
 		now32 = dctx->now;
-#endif
 		rawversion = 1;
 		if ((dctx->header.flags & DNS_MASTERRAW_COMPAT) != 0)
 			rawversion = 0;

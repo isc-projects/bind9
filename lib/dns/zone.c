@@ -6346,17 +6346,14 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
 	if (timewarn > 0) {
-#if defined(STDTIME_ON_32BITS)
 		isc_stdtime_t stdwarn = (isc_stdtime_t)timewarn;
-		if (timewarn == stdwarn)
-#endif
+		if (timewarn == stdwarn) {
 			set_key_expiry_warning(zone, (isc_stdtime_t)timewarn,
 					       now);
-#if defined(STDTIME_ON_32BITS)
-		else
+		} else {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "key expiry warning time out of range");
-#endif
+		}
 	}
  failure:
 	if (node != NULL)
