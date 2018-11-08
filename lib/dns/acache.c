@@ -255,7 +255,7 @@ struct dns_acacheentry {
 #ifdef ACACHE_HAVESTDATOMIC
 	atomic_uint_fast32_t	lastused;
 #else
-	isc_stdtime32_t		lastused;
+	isc_stdtime_t		lastused;
 #endif
 };
 
@@ -776,7 +776,7 @@ acache_cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
 /* The caller must hold entry lock. */
 static inline bool
 entry_stale(acache_cleaner_t *cleaner, dns_acacheentry_t *entry,
-	    isc_stdtime32_t now32, unsigned int interval)
+	    isc_stdtime_t now32, unsigned int interval)
 {
 	/*
 	 * If the callback has been canceled, we definitely do not need the
@@ -825,7 +825,7 @@ acache_incremental_cleaning_action(isc_task_t *task, isc_event_t *event) {
 	dns_acache_t *acache = cleaner->acache;
 	dns_acacheentry_t *entry, *next = NULL;
 	int n_entries;
-	isc_stdtime32_t now32, last32;
+	isc_stdtime_t now32, last32;
 	isc_stdtime_t now;
 	unsigned int interval;
 
@@ -1470,7 +1470,7 @@ dns_acache_getentry(dns_acacheentry_t *entry, dns_zone_t **zonep,
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdataset_t *erdataset;
-	isc_stdtime32_t	now32;
+	isc_stdtime_t	now32;
 	dns_acache_t *acache;
 	int locknum;
 
