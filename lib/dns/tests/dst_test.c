@@ -9,19 +9,26 @@
  * information regarding copyright ownership.
  */
 
-/* ! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
 
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+
+#include <stdlib.h>
 #include <stdbool.h>
 #include <unistd.h>
 
+#define UNIT_TESTING
+#include <cmocka.h>
+
 #include <isc/file.h>
-#include <isc/util.h>
+#include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dst/dst.h>
 #include <dst/result.h>
@@ -30,14 +37,28 @@
 
 #include "dnstest.h"
 
-ATF_TC(sig);
-ATF_TC_HEAD(sig, tc) {
-	atf_tc_set_md_var(tc, "descr", "signature ineffability");
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = dns_test_begin(NULL, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
 }
 
-/*
- * Read sig in file at path to buf.
- */
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	dns_test_end();
+
+	return (0);
+}
+
+/* Read sig in file at path to buf. Check signature ineffability */
 static isc_result_t
 sig_fromfile(const char *path, isc_buffer_t *buf) {
 	isc_result_t result;
@@ -48,19 +69,19 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 	off_t size;
 
 	result = isc_stdio_open(path, "rb", &fp);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_file_getsizefd(fileno(fp), &size);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	data = isc_mem_get(mctx, (size + 1));
-	ATF_REQUIRE(data != NULL);
+	assert_non_null(data);
 
 	len = (size_t)size;
 	p = data;
 	while (len != 0U) {
 		result = isc_stdio_read(p, 1, len, fp, &rval);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 		len -= rval;
 		p += rval;
 	}
@@ -73,8 +94,9 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 			++p;
 			--len;
 			continue;
-		} else if (len < 2U)
+		} else if (len < 2U) {
 		       goto err;
+		}
 		if (('0' <= *p) && (*p <= '9')) {
 			val = *p - '0';
 		} else if (('A' <= *p) && (*p <= 'F')) {
@@ -129,19 +151,19 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	 * Read data from file in a form usable by dst_verify.
 	 */
 	result = isc_stdio_open(datapath, "rb", &fp);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_file_getsizefd(fileno(fp), &size);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	data = isc_mem_get(mctx, (size + 1));
-	ATF_REQUIRE(data != NULL);
+	assert_non_null(data);
 
 	p = data;
 	len = (size_t)size;
 	do {
 		result = isc_stdio_read(p, 1, len, fp, &rval);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 		len -= rval;
 		p += rval;
 	} while (len);
@@ -154,10 +176,10 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	isc_buffer_constinit(&b, keyname, strlen(keyname));
 	isc_buffer_add(&b, strlen(keyname));
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_fromfile(name, id, alg, type, "testdata/dst",
 				  mctx, &key);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&databuf, data, (unsigned int)size);
 	isc_buffer_add(&databuf, (unsigned int)size);
@@ -170,7 +192,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	 * Read precomputed signature from file in a form usable by dst_verify.
 	 */
 	result = sig_fromfile(sigpath, &sigbuf);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Verify that the key signed the data.
@@ -179,13 +201,13 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 
 	result = dst_context_create3(key, mctx, DNS_LOGCATEGORY_GENERAL,
 				     false, &ctx);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dst_context_adddata(ctx, &datareg);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_context_verify(ctx, &sigreg);
 
-	ATF_REQUIRE((expect && (result == ISC_R_SUCCESS)) ||
+	assert_true((expect && (result == ISC_R_SUCCESS)) ||
 		    (!expect && (result != ISC_R_SUCCESS)));
 
 
@@ -196,13 +218,10 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	return;
 }
 
-ATF_TC_BODY(sig, tc) {
-	isc_result_t result;
+static void
+sig_test(void **state) {
+	UNUSED(state);
 
-	UNUSED(tc);
-
-	result = dns_test_begin(NULL, false);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 	struct {
 		const char *datapath;
 		const char *sigpath;
@@ -249,15 +268,25 @@ ATF_TC_BODY(sig, tc) {
 			  DST_TYPE_PRIVATE|DST_TYPE_PUBLIC,
 			  testcases[i].expect);
 	}
-
-	dns_test_end();
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, sig);
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(sig_test, _setup, _teardown),
+	};
 
-	return (atf_no_error());
+	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
