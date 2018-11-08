@@ -103,9 +103,13 @@ attachversion(isc_assertioncallback_t callback) {
 
 	isc_assertion_setcallback(callback);
 	dns_db_attachversion(db1, VERSION(callback), &v);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_attachversion did not assert");
-
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(v, v1);
 	dns_db_closeversion(db1, &v, false);
 	ATF_REQUIRE_EQ(v, NULL);
@@ -147,8 +151,13 @@ closeversion(isc_assertioncallback_t callback) {
 
 	isc_assertion_setcallback(callback);
 	dns_db_closeversion(db1, VERSIONP(callback), false);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_closeversion did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(v1, NULL);
 
 	close_db();
@@ -195,8 +204,13 @@ find(isc_assertioncallback_t callback) {
 	result = dns_db_find(db1, dns_rootname, VERSION(callback),
 			     dns_rdatatype_soa, 0, 0, NULL,
 			     dns_fixedname_name(&fixed), &rdataset, NULL);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_find did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(result, DNS_R_NXDOMAIN);
 
 	close_db();
@@ -242,8 +256,13 @@ allrdatasets(isc_assertioncallback_t callback) {
 	isc_assertion_setcallback(callback);
 	result = dns_db_allrdatasets(db1, node, VERSION(callback), 0,
 				     &iterator);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_allrdatasets did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	dns_rdatasetiter_destroy(&iterator);
@@ -300,8 +319,13 @@ findrdataset(isc_assertioncallback_t callback) {
 	isc_assertion_setcallback(callback);
 	result = dns_db_findrdataset(db1, node, VERSION(callback),
 				     dns_rdatatype_soa, 0, 0, &rdataset, NULL);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_findrdataset did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(result, ISC_R_NOTFOUND);
 
 	dns_db_detachnode(db1, &node);
@@ -355,8 +379,13 @@ deleterdataset(isc_assertioncallback_t callback) {
 	isc_assertion_setcallback(callback);
 	result = dns_db_deleterdataset(db1, node, VERSION(callback),
 				       dns_rdatatype_soa, 0);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_deleterdataset did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(result, DNS_R_UNCHANGED);
 
 	dns_db_detachnode(db1, &node);
@@ -417,8 +446,13 @@ subtract(isc_assertioncallback_t callback) {
 	isc_assertion_setcallback(callback);
 	result = dns_db_subtractrdataset(db1, node, VERSION(callback),
 					 &rdataset, 0, NULL);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_subtractrdataset did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(result, DNS_R_UNCHANGED);
 
 	dns_db_detachnode(db1, &node);
@@ -468,8 +502,13 @@ dump(isc_assertioncallback_t callback) {
 	isc_assertion_setcallback(callback);
 	result = dns_db_dump(db1, VERSION(callback), tempname);
 	(void)unlink(tempname);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_dump did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	close_db();
@@ -527,8 +566,13 @@ addrdataset(isc_assertioncallback_t callback) {
 	isc_assertion_setcallback(callback);
 	result = dns_db_addrdataset(db1, node, VERSION(callback), 0, &rdataset,
 				    0, NULL);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_adddataset did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 	dns_db_detachnode(db1, &node);
@@ -579,8 +623,13 @@ getnsec3parameters(isc_assertioncallback_t callback) {
 	result = dns_db_getnsec3parameters(db1, VERSION(callback), &hash,
 					   &flags, &iterations, salt,
 					   &salt_length);
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_dump did not assert");
+#else
+		atf_tc_pass();
+#endif
+	}
 	ATF_REQUIRE_EQ(result, ISC_R_NOTFOUND);
 
 	close_db();
@@ -672,9 +721,13 @@ resigned(isc_assertioncallback_t callback) {
 
 	isc_assertion_setcallback(callback);
 	dns_db_resigned(db1, &added, VERSION(callback));
-	if (callback != NULL)
+	if (callback != NULL) {
+#ifndef ISC_CHECK_NONE
 		atf_tc_fail("dns_db_resigned did not assert");
-
+#else
+		atf_tc_pass();
+#endif
+	}
 	dns_rdataset_disassociate(&added);
 
 	close_db();

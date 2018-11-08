@@ -2336,7 +2336,7 @@ resquery_send(resquery_t *query) {
 	dns_compress_t cctx;
 	bool cleanup_cctx = false;
 	bool secure_domain;
-	bool tcp = (query->options & DNS_FETCHOPT_TCP);
+	bool tcp = ((query->options & DNS_FETCHOPT_TCP) != 0);
 	dns_ednsopt_t ednsopts[DNS_EDNSOPTIONS];
 	unsigned ednsopt = 0;
 	uint16_t hint = 0, udpsize = 0;	/* No EDNS */
@@ -2425,7 +2425,7 @@ resquery_send(resquery_t *query) {
 	else if (res->view->enablevalidation &&
 		 ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0))
 	{
-		bool checknta = !(query->options & DNS_FETCHOPT_NONTA);
+		bool checknta = ((query->options & DNS_FETCHOPT_NONTA) == 0);
 		result = issecuredomain(res->view, &fctx->name, fctx->type,
 					isc_time_seconds(&query->start),
 					checknta, &secure_domain);
@@ -3305,7 +3305,7 @@ findname(fetchctx_t *fctx, const dns_name_t *name, in_port_t port,
 
 	FCTXTRACE("FINDNAME");
 	res = fctx->res;
-	unshared = (fctx->options & DNS_FETCHOPT_UNSHARED);
+	unshared = ((fctx->options & DNS_FETCHOPT_UNSHARED) != 0);
 	/*
 	 * If this name is a subdomain of the query domain, tell
 	 * the ADB to start looking using zone/hint data. This keeps us
@@ -5295,7 +5295,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 
 	negative = (vevent->rdataset == NULL);
 
-	sentresponse = (fctx->options & DNS_FETCHOPT_NOVALIDATE);
+	sentresponse = ((fctx->options & DNS_FETCHOPT_NOVALIDATE) != 0);
 
 	/*
 	 * If shutting down, ignore the results.  Check to see if we're
@@ -5919,7 +5919,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * Cache or validate each cacheable rdataset.
 	 */
-	fail = (fctx->res->options & DNS_RESOLVER_CHECKNAMESFAIL);
+	fail = ((fctx->res->options & DNS_RESOLVER_CHECKNAMESFAIL) != 0);
 	for (rdataset = ISC_LIST_HEAD(name->list);
 	     rdataset != NULL;
 	     rdataset = ISC_LIST_NEXT(rdataset, link))
@@ -6808,6 +6808,7 @@ is_answertarget_allowed(fetchctx_t *fctx, dns_name_t *qname, dns_name_t *rname,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (chainingp != NULL)
@@ -7614,7 +7615,7 @@ static void
 rctx_answer_init(respctx_t *rctx) {
 	fetchctx_t *fctx = rctx->fctx;
 
-	rctx->aa = (fctx->rmessage->flags & DNS_MESSAGEFLAG_AA);
+	rctx->aa = ((fctx->rmessage->flags & DNS_MESSAGEFLAG_AA) != 0);
 	if (rctx->aa) {
 		rctx->trust = dns_trust_authanswer;
 	} else {
@@ -9487,7 +9488,7 @@ rctx_logpacket(respctx_t *rctx) {
 
 	dns_dt_send(fctx->res->view, dtmsgtype, la,
 		    &rctx->query->addrinfo->sockaddr,
-		    (rctx->query->options & DNS_FETCHOPT_TCP),
+		    ((rctx->query->options & DNS_FETCHOPT_TCP) != 0),
 		    &zr, &rctx->query->start, NULL, &rctx->devent->buffer);
 #endif /* HAVE_DNSTAP */
 }

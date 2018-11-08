@@ -625,7 +625,7 @@ xfr_rr(dns_xfrin_ctx_t *xfr, dns_name_t *name, uint32_t ttl,
 		/* FALLTHROUGH */
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 	result = ISC_R_SUCCESS;
  failure:

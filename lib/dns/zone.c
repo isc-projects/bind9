@@ -3388,27 +3388,28 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 		strlcpy(flags, "NONE", sizeof(flags));
 	else {
 		flags[0] = '\0';
-		if (nsec3param->flags & DNS_NSEC3FLAG_REMOVE)
+		if ((nsec3param->flags & DNS_NSEC3FLAG_REMOVE) != 0) {
 			strlcat(flags, "REMOVE", sizeof(flags));
-		if (nsec3param->flags & DNS_NSEC3FLAG_INITIAL) {
+		}
+		if ((nsec3param->flags & DNS_NSEC3FLAG_INITIAL) != 0) {
 			if (flags[0] == '\0')
 				strlcpy(flags, "INITIAL", sizeof(flags));
 			else
 				strlcat(flags, "|INITIAL", sizeof(flags));
 		}
-		if (nsec3param->flags & DNS_NSEC3FLAG_CREATE) {
+		if ((nsec3param->flags & DNS_NSEC3FLAG_CREATE) != 0) {
 			if (flags[0] == '\0')
 				strlcpy(flags, "CREATE", sizeof(flags));
 			else
 				strlcat(flags, "|CREATE", sizeof(flags));
 		}
-		if (nsec3param->flags & DNS_NSEC3FLAG_NONSEC) {
+		if ((nsec3param->flags & DNS_NSEC3FLAG_NONSEC) != 0) {
 			if (flags[0] == '\0')
 				strlcpy(flags, "NONSEC", sizeof(flags));
 			else
 				strlcat(flags, "|NONSEC", sizeof(flags));
 		}
-		if (nsec3param->flags & DNS_NSEC3FLAG_OPTOUT) {
+		if ((nsec3param->flags & DNS_NSEC3FLAG_OPTOUT) != 0) {
 			if (flags[0] == '\0')
 				strlcpy(flags, "OPTOUT", sizeof(flags));
 			else
@@ -8981,6 +8982,7 @@ normalize_key(dns_rdata_t *rr, dns_rdata_t *target,
 		break;
 	    default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -9532,13 +9534,14 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		/* Skip ZSK's */
-		if (!(dnskey.flags & DNS_KEYFLAG_KSK))
+		if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0) {
 			continue;
+		}
 
 		result = compute_tag(keyname, &dnskey, mctx, &keytag);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		revoked = (dnskey.flags & DNS_KEYFLAG_REVOKE);
+		revoked = ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0);
 
 		if (matchkey(&kfetch->keydataset, &dnskeyrr)) {
 			dns_rdata_reset(&keydatarr);
@@ -11234,7 +11237,7 @@ notify_send(dns_notify_t *notify) {
 		zone_iattach(notify->zone, &newnotify->zone);
 		ISC_LIST_APPEND(newnotify->zone->notifies, newnotify, link);
 		newnotify->dst = dst;
-		startup = (notify->flags & DNS_NOTIFY_STARTUP);
+		startup = ((notify->flags & DNS_NOTIFY_STARTUP) != 0);
 		result = notify_send_queue(newnotify, startup);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
@@ -15804,7 +15807,8 @@ got_transfer_quota(isc_task_t *task, isc_event_t *event) {
 		break;
 	default:
 		INSIST(0);
-	};
+		ISC_UNREACHABLE();
+	}
 	UNLOCK_ZONE(zone);
 	INSIST(isc_sockaddr_pf(&masteraddr) == isc_sockaddr_pf(&sourceaddr));
 	result = dns_xfrin_create(zone, xfrtype, &masteraddr, &sourceaddr,
@@ -17257,6 +17261,7 @@ dns_zone_setdialup(dns_zone_t *zone, dns_dialuptype_t dialup) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	UNLOCK_ZONE(zone);
 }
@@ -17332,6 +17337,7 @@ dns_zonemgr_getcount(dns_zonemgr_t *zmgr, int state) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_read);

@@ -392,6 +392,7 @@ hmac__get_tag_key(isc_md_type_t type) {
 		return (TAG_HMACSHA512_KEY);
 	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -411,6 +412,7 @@ hmac__get_tag_bits(isc_md_type_t type) {
 		return (TAG_HMACSHA512_BITS);
 	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -462,6 +464,7 @@ hmac__to_dst_alg(isc_md_type_t type) {
 		return (DST_ALG_HMACSHA512);
 	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 }
 

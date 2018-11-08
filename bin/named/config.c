@@ -457,6 +457,7 @@ named_config_getzonetype(const cfg_obj_t *zonetypeobj) {
 		ztype = dns_zone_redirect;
 	} else {
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 	return (ztype);
 }
@@ -1029,6 +1030,7 @@ named_config_getkeyalgorithm2(const char *str, const dns_name_t **name,
 		case hmacsha512: *name = dns_tsig_hmacsha512_name; break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 	}
 	if (typep != NULL)

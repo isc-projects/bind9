@@ -282,8 +282,10 @@ configure_zone(const char *vclass, const char *view,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			zone_options &= ~DNS_ZONEOPT_CHECKDUPRR;
 			zone_options &= ~DNS_ZONEOPT_CHECKDUPRRFAIL;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	} else {
 		zone_options |= DNS_ZONEOPT_CHECKDUPRR;
 		zone_options &= ~DNS_ZONEOPT_CHECKDUPRRFAIL;
@@ -300,8 +302,10 @@ configure_zone(const char *vclass, const char *view,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			zone_options &= ~DNS_ZONEOPT_CHECKMX;
 			zone_options &= ~DNS_ZONEOPT_CHECKMXFAIL;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	} else {
 		zone_options |= DNS_ZONEOPT_CHECKMX;
 		zone_options &= ~DNS_ZONEOPT_CHECKMXFAIL;
@@ -327,8 +331,10 @@ configure_zone(const char *vclass, const char *view,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			zone_options |= DNS_ZONEOPT_WARNMXCNAME;
 			zone_options |= DNS_ZONEOPT_IGNOREMXCNAME;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	} else {
 		zone_options |= DNS_ZONEOPT_WARNMXCNAME;
 		zone_options &= ~DNS_ZONEOPT_IGNOREMXCNAME;
@@ -345,8 +351,10 @@ configure_zone(const char *vclass, const char *view,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
 			zone_options |= DNS_ZONEOPT_IGNORESRVCNAME;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	} else {
 		zone_options |= DNS_ZONEOPT_WARNSRVCNAME;
 		zone_options &= ~DNS_ZONEOPT_IGNORESRVCNAME;
@@ -366,8 +374,10 @@ configure_zone(const char *vclass, const char *view,
 			zone_options |= DNS_ZONEOPT_CHECKSPF;
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			zone_options &= ~DNS_ZONEOPT_CHECKSPF;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	} else {
 		zone_options |= DNS_ZONEOPT_CHECKSPF;
 	}
@@ -383,8 +393,10 @@ configure_zone(const char *vclass, const char *view,
 		} else if (strcasecmp(cfg_obj_asstring(obj), "ignore") == 0) {
 			zone_options &= ~DNS_ZONEOPT_CHECKNAMES;
 			zone_options &= ~DNS_ZONEOPT_CHECKNAMESFAIL;
-		} else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	} else {
 	       zone_options |= DNS_ZONEOPT_CHECKNAMES;
 	       zone_options |= DNS_ZONEOPT_CHECKNAMESFAIL;
@@ -394,14 +406,16 @@ configure_zone(const char *vclass, const char *view,
 	fmtobj = NULL;
 	if (get_maps(maps, "masterfile-format", &fmtobj)) {
 		const char *masterformatstr = cfg_obj_asstring(fmtobj);
-		if (strcasecmp(masterformatstr, "text") == 0)
+		if (strcasecmp(masterformatstr, "text") == 0) {
 			masterformat = dns_masterformat_text;
-		else if (strcasecmp(masterformatstr, "raw") == 0)
+		} else if (strcasecmp(masterformatstr, "raw") == 0) {
 			masterformat = dns_masterformat_raw;
-		else if (strcasecmp(masterformatstr, "map") == 0)
+		} else if (strcasecmp(masterformatstr, "map") == 0) {
 			masterformat = dns_masterformat_map;
-		else
+		} else {
 			INSIST(0);
+			ISC_UNREACHABLE();
+		}
 	}
 
 	obj = NULL;

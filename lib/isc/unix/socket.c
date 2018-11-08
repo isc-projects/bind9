@@ -1094,13 +1094,15 @@ process_cmsg(isc__socket_t *sock, struct msghdr *msg, isc_socketevent_t *dev) {
 	UNUSED(dev);
 
 #ifdef MSG_TRUNC
-	if ((msg->msg_flags & MSG_TRUNC) == MSG_TRUNC)
+	if ((msg->msg_flags & MSG_TRUNC) != 0) {
 		dev->attributes |= ISC_SOCKEVENTATTR_TRUNC;
+	}
 #endif
 
 #ifdef MSG_CTRUNC
-	if ((msg->msg_flags & MSG_CTRUNC) == MSG_CTRUNC)
+	if ((msg->msg_flags & MSG_CTRUNC) != 0) {
 		dev->attributes |= ISC_SOCKEVENTATTR_CTRUNC;
+	}
 #endif
 
 #ifndef USE_CMSG
@@ -1585,6 +1587,7 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 	case isc_sockettype_fdwatch:
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	if (sock->type == isc_sockettype_udp) {
@@ -2248,7 +2251,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 			 * sockets.
 			 */
 			INSIST(0);
-			break;
+			ISC_UNREACHABLE();
 		}
 	} else {
 		sock->fd = dup(dup_socket->fd);
@@ -2607,6 +2610,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	sock->pf = pf;
@@ -2786,10 +2790,12 @@ isc_socket_fdwatchcreate(isc_socketmgr_t *manager0, int fd, int flags,
 #endif
 	UNLOCK(&manager->lock);
 
-	if (flags & ISC_SOCKFDWATCH_READ)
+	if ((flags & ISC_SOCKFDWATCH_READ) != 0) {
 		select_poke(sock->manager, sock->fd, SELECT_POKE_READ);
-	if (flags & ISC_SOCKFDWATCH_WRITE)
+	}
+	if ((flags & ISC_SOCKFDWATCH_WRITE) != 0) {
 		select_poke(sock->manager, sock->fd, SELECT_POKE_WRITE);
+	}
 
 	socket_log(sock, NULL, CREATION, isc_msgcat, ISC_MSGSET_SOCKET,
 		   ISC_MSG_CREATED, "fdwatch-created");
@@ -3067,11 +3073,11 @@ send_recvdone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 	if (ISC_LINK_LINKED(*dev, ev_link))
 		ISC_LIST_DEQUEUE(sock->recv_list, *dev, ev_link);
 
-	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
-	    == ISC_SOCKEVENTATTR_ATTACHED)
+	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED) != 0) {
 		isc_task_sendanddetach(&task, (isc_event_t **)dev);
-	else
+	} else {
 		isc_task_send(task, (isc_event_t **)dev);
+	}
 }
 
 /*
@@ -3091,11 +3097,11 @@ send_senddone_event(isc__socket_t *sock, isc_socketevent_t **dev) {
 	if (ISC_LINK_LINKED(*dev, ev_link))
 		ISC_LIST_DEQUEUE(sock->send_list, *dev, ev_link);
 
-	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED)
-	    == ISC_SOCKEVENTATTR_ATTACHED)
+	if (((*dev)->attributes & ISC_SOCKEVENTATTR_ATTACHED) != 0) {
 		isc_task_sendanddetach(&task, (isc_event_t **)dev);
-	else
+	} else {
 		isc_task_send(task, (isc_event_t **)dev);
+	}
 }
 
 /*
@@ -5615,7 +5621,7 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 	 *	  its done event with status of "ISC_R_CANCELED".
 	 *	o Reset any state needed.
 	 */
-	if (((how & ISC_SOCKCANCEL_RECV) == ISC_SOCKCANCEL_RECV)
+	if (((how & ISC_SOCKCANCEL_RECV) != 0)
 	    && !ISC_LIST_EMPTY(sock->recv_list)) {
 		isc_socketevent_t      *dev;
 		isc_socketevent_t      *next;
@@ -5635,7 +5641,7 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 		}
 	}
 
-	if (((how & ISC_SOCKCANCEL_SEND) == ISC_SOCKCANCEL_SEND)
+	if (((how & ISC_SOCKCANCEL_SEND) != 0)
 	    && !ISC_LIST_EMPTY(sock->send_list)) {
 		isc_socketevent_t      *dev;
 		isc_socketevent_t      *next;
@@ -5655,7 +5661,7 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 		}
 	}
 
-	if (((how & ISC_SOCKCANCEL_ACCEPT) == ISC_SOCKCANCEL_ACCEPT)
+	if (((how & ISC_SOCKCANCEL_ACCEPT) != 0)
 	    && !ISC_LIST_EMPTY(sock->accept_list)) {
 		isc_socket_newconnev_t *dev;
 		isc_socket_newconnev_t *next;
@@ -5684,7 +5690,7 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 		}
 	}
 
-	if (((how & ISC_SOCKCANCEL_CONNECT) == ISC_SOCKCANCEL_CONNECT)
+	if (((how & ISC_SOCKCANCEL_CONNECT) != 0)
 	    && !ISC_LIST_EMPTY(sock->connect_list)) {
 		isc_socket_connev_t    *dev;
 		isc_socket_connev_t    *next;

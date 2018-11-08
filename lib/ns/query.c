@@ -2587,7 +2587,7 @@ rpz_get_zbits(ns_client_t *client,
 	      dns_rdatatype_t ip_type, dns_rpz_type_t rpz_type)
 {
 	dns_rpz_st_t *st;
-	dns_rpz_zbits_t zbits;
+	dns_rpz_zbits_t zbits = 0;
 
 	REQUIRE(client != NULL);
 	REQUIRE(client->query.rpz_st != NULL);
@@ -2637,7 +2637,7 @@ rpz_get_zbits(ns_client_t *client,
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 
 	/*
@@ -2861,6 +2861,7 @@ rpz_get_p_name(ns_client_t *client, dns_name_t *p_name,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	/*
@@ -3278,6 +3279,7 @@ dnsrps_rewrite_ip(ns_client_t *client, const isc_netaddr_t *netaddr,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	do {
@@ -3330,6 +3332,7 @@ dnsrps_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	dns_name_toregion(trig_name, &r);
@@ -4554,7 +4557,7 @@ query_findclosestnsec3(dns_name_t *qname, dns_db_t *db,
 		result = dns_rdata_tostruct(&rdata, &nsec3, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		dns_rdata_reset(&rdata);
-		optout = (nsec3.flags & DNS_NSEC3FLAG_OPTOUT);
+		optout = ((nsec3.flags & DNS_NSEC3FLAG_OPTOUT) != 0);
 		if (found != NULL && optout &&
 		    dns_name_issubdomain(&name, dns_db_origin(db)))
 		{
@@ -6459,6 +6462,7 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			return (ISC_R_COMPLETE);
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		/*
@@ -8281,6 +8285,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t result) {
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		SAVE(qctx->client->query.dns64_aaaa, qctx->rdataset);
@@ -10606,7 +10611,7 @@ query_setup_sortlist(query_ctx_t *qctx) {
 		break;
 	default:
 		INSIST(0);
-		break;
+		ISC_UNREACHABLE();
 	}
 }
 
@@ -11101,7 +11106,7 @@ ns_query_start(ns_client_t *client) {
 	 * We don't need to set DNS_DBFIND_PENDINGOK when validation is
 	 * disabled as there will be no pending data.
 	 */
-	if (message->flags & DNS_MESSAGEFLAG_CD ||
+	if ((message->flags & DNS_MESSAGEFLAG_CD) != 0 ||
 	    qtype == dns_rdatatype_rrsig)
 	{
 		client->query.dboptions |= DNS_DBFIND_PENDINGOK;
@@ -11121,8 +11126,9 @@ ns_query_start(ns_client_t *client) {
 	 * Allow glue NS records to be added to the authority section
 	 * if the answer is secure.
 	 */
-	if (message->flags & DNS_MESSAGEFLAG_CD)
+	if ((message->flags & DNS_MESSAGEFLAG_CD) != 0) {
 		client->query.attributes &= ~NS_QUERYATTR_SECURE;
+	}
 
 	/*
 	 * Set NS_CLIENTATTR_WANTAD if the client has set AD in the query.

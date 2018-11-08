@@ -920,8 +920,8 @@ getname(dns_name_t *name, isc_buffer_t *source, dns_message_t *msg,
 		}
 	}
 
-	INSIST(0);  /* Cannot get here... */
-	return (ISC_R_UNEXPECTED);
+	INSIST(0);
+	ISC_UNREACHABLE();
 }
 
 static isc_result_t
@@ -1008,7 +1008,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 
 	section = &msg->sections[DNS_SECTION_QUESTION];
 
-	best_effort = (options & DNS_MESSAGEPARSE_BESTEFFORT);
+	best_effort = ((options & DNS_MESSAGEPARSE_BESTEFFORT) != 0);
 	seen_problem = false;
 
 	name = NULL;
@@ -1240,8 +1240,8 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	bool preserve_order, best_effort, seen_problem;
 	bool issigzero;
 
-	preserve_order = (options & DNS_MESSAGEPARSE_PRESERVEORDER);
-	best_effort = (options & DNS_MESSAGEPARSE_BESTEFFORT);
+	preserve_order = ((options & DNS_MESSAGEPARSE_PRESERVEORDER) != 0);
+	best_effort = ((options & DNS_MESSAGEPARSE_BESTEFFORT) != 0);
 	seen_problem = false;
 
 	section = &msg->sections[sectionid];
@@ -1677,7 +1677,7 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	REQUIRE(msg->from_to_wire == DNS_MESSAGE_INTENTPARSE);
 
 	seen_problem = false;
-	ignore_tc = (options & DNS_MESSAGEPARSE_IGNORETRUNCATION);
+	ignore_tc = ((options & DNS_MESSAGEPARSE_IGNORETRUNCATION) != 0);
 
 	origsource = *source;
 

@@ -923,7 +923,7 @@ isc_httpd_recvdone(isc_task_t *task, isc_event_t *ev) {
 	}
 
 #ifdef HAVE_ZLIB
-	if (httpd->flags & HTTPD_ACCEPT_DEFLATE) {
+	if ((httpd->flags & HTTPD_ACCEPT_DEFLATE) != 0) {
 			result = isc_httpd_compress(httpd);
 			if (result == ISC_R_SUCCESS) {
 				is_compressed = true;
