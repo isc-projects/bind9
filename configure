@@ -17610,6 +17610,12 @@ $as_echo "AEP Keyper" >&6; }
 				pk11_flavor="PK11_AEP_FLAVOR"
 				set_pk11_flavor="yes"
 				;;
+			*libcs*)
+				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: Utimaco HSM" >&5
+$as_echo "Utimaco HSM" >&6; }
+				pk11_flavor="PK11_UTIMACO_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
 			undefined)
 				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: undefined provider?" >&5
 $as_echo "undefined provider?" >&6; }

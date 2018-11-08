@@ -355,12 +355,13 @@ dst__hmacmd5_init(dst_func_t **funcp) {
 	}
 #endif
 
+#if PK11_FLAVOR != PK11_UTIMACO_FLAVOR
 	/*
 	 * Prevent use of incorrect crypto
 	 */
-
 	RUNTIME_CHECK(isc_md5_check(false));
 	RUNTIME_CHECK(isc_hmacmd5_check(0));
+#endif
 
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL)
@@ -648,11 +649,13 @@ static dst_func_t hmacsha1_functions = {
 
 isc_result_t
 dst__hmacsha1_init(dst_func_t **funcp) {
+#if PK11_FLAVOR != PK11_UTIMACO_FLAVOR
 	/*
 	 * Prevent use of incorrect crypto
 	 */
 	RUNTIME_CHECK(isc_sha1_check(false));
 	RUNTIME_CHECK(isc_hmacsha1_check(0));
+#endif
 
 	REQUIRE(funcp != NULL);
 	if (*funcp == NULL)

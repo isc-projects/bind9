@@ -2285,6 +2285,11 @@ case "$want_native_pkcs11" in
 				pk11_flavor="PK11_AEP_FLAVOR"
 				set_pk11_flavor="yes"
 				;;
+			*libcs*)
+				AC_MSG_RESULT(Utimaco HSM)
+				pk11_flavor="PK11_UTIMACO_FLAVOR"
+				set_pk11_flavor="yes"
+				;;
 			undefined)
 				AC_MSG_RESULT(undefined provider?)
 				;;
