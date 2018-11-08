@@ -15,10 +15,7 @@
 #
 
 # Find the top of the BIND9 tree.
-TOP=${SYSTEMTESTTOP:=.}/../../..
-
-# Make it absolute so that it continues to work after we cd.
-TOP=`cd $TOP && pwd`
+TOP=@abs_top_builddir@
 
 # Default algorithm for testing
 DEFAULT_ALGORITHM=ECDSAP256SHA256
