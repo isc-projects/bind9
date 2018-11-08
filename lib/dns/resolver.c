@@ -305,11 +305,12 @@ struct fetchctx {
 	ISC_LIST(dns_validator_t)       validators;
 	dns_db_t *			cache;
 	dns_adb_t *			adb;
-	bool			ns_ttl_ok;
+	bool				ns_ttl_ok;
 	uint32_t			ns_ttl;
 	isc_counter_t *			qc;
-	bool			minimized;
+	bool				minimized;
 	unsigned int			qmin_labels;
+	isc_result_t			qmin_warning;
 	bool				ip6arpaskip;
 	bool				forwarding;
 	dns_name_t			qminname;
@@ -1664,8 +1665,6 @@ log_edns(fetchctx_t *fctx) {
 		      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
 		      "success resolving '%s' (in '%s'?) after %s",
 		      fctx->info, domainbuf, fctx->reason);
-
-	fctx->reason = NULL;
 }
 
 static void
@@ -1686,9 +1685,19 @@ fctx_done(fetchctx_t *fctx, isc_result_t result, int line) {
 		 */
 		log_edns(fctx);
 		no_response = true;
-	} else if (result == ISC_R_TIMEDOUT)
+		if (fctx->qmin_warning != ISC_R_SUCCESS) {
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_LAME_SERVERS,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
+				      "success resolving '%s' "
+				      "after disabling qname minimization due to '%s'",
+				      fctx->info,
+				      isc_result_totext(fctx->qmin_warning));
+		}
+	} else if (result == ISC_R_TIMEDOUT) {
 		age_untried = true;
+	}
 
+	fctx->qmin_warning = ISC_R_SUCCESS;
 	fctx->reason = NULL;
 
 	fctx_stopqueries(fctx, no_response, age_untried);
@@ -4101,11 +4110,12 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	    result == DNS_R_REMOTEFORMERR)
 	{
 		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
-				      DNS_LOGMODULE_RESOLVER, ISC_LOG_INFO,
-				      "disabling qname minimization for '%s' "
-				      "due to nxdomain", fctx->info);
 			fctx->qmin_labels = DNS_MAX_LABELS + 1;
+			/*
+			 * We store the result. If we succeed in the end
+			 * we'll issue a warning that the server is broken.
+			 */
+			fctx->qmin_warning = result;
 		} else {
 			fctx_done(fctx, result, __LINE__);
 			goto cleanup;
@@ -4683,6 +4693,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	fctx->ip6arpaskip = false;
 	fctx->forwarding = false;
 	fctx->qmin_labels = 1;
+	fctx->qmin_warning = ISC_R_SUCCESS;
 	fctx->qminfetch = NULL;
 	dns_rdataset_init(&fctx->qminrrset);
 	dns_name_init(&fctx->qmindcname, NULL);

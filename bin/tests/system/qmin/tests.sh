@@ -235,6 +235,13 @@ status=`expr $status + $ret`
 $RNDCCMD 10.53.0.7 flush
 
 n=`expr $n + 1`
+echo_i "information that minimization was unsuccessful for .ugly is logged ($n)"
+ret=0
+grep "success resolving 'icky.icky.icky.ptang.zoop.boing.ugly/A' after disabling qname minimization due to 'FORMERR'" ns7/named.run > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "query for .slow is properly minimized when qname-minimization is on ($n)"
 ret=0
 $CLEANQL
