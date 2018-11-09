@@ -150,7 +150,7 @@ dns_ntatable_create(dns_view_t *view,
 	isc_task_detach(&ntatable->task);
 
    cleanup_ntatable:
-	isc_mem_put(ntatable->view->mctx, ntatable, sizeof(*ntatable));
+	isc_mem_put(view->mctx, ntatable, sizeof(*ntatable));
 
 	return (result);
 }
