@@ -289,6 +289,7 @@ static const char *ids[DNS_R_NRESULTS] = {
 	"DNS_R_BADDNSTAP",
 	"DNS_R_BADTSIG",
 	"DNS_R_BADSIG0",
+	"DNS_R_TOOMANYRECORDS",
 };
 
 static const char *rcode_text[DNS_R_NRCODERESULTS] = {

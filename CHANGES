@@ -1,3 +1,5 @@
+5087.	[test]		Check that result tables are complete. [GL #676]
+
 5085.	[bug]		win32: Restore looking up nameservers, search list,
 			etc. [GL #186]
 
