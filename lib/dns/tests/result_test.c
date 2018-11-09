@@ -9,38 +9,47 @@
  * information regarding copyright ownership.
  */
 
+/* ! \file */
+
 #include <config.h>
 
 #include <atf-c.h>
 
-#include <string.h>
-
 #include <isc/result.h>
-#include <pk11/result.h>
+#include <isc/util.h>
 
-ATF_TC(tables);
-ATF_TC_HEAD(tables, tc) {
-	atf_tc_set_md_var(tc, "descr", "check tables are populated");
+#include <dns/lib.h>
+#include <dns/result.h>
+#include <dst/result.h>
+
+ATF_TC(ids);
+ATF_TC_HEAD(ids, tc) {
+	atf_tc_set_md_var(tc, "descr", "check ids array is populated");
 }
-ATF_TC_BODY(tables, tc) {
+ATF_TC_BODY(ids, tc) {
 	const char *str;
 	isc_result_t result;
 
-	pk11_result_register();
+	UNUSED(tc);
 
-	for (result = 0; result < ISC_R_NRESULTS; result++) {
+	dns_result_register();
+	dst_result_register();
+
+	for (result = ISC_RESULTCLASS_DNS;
+	     result < (ISC_RESULTCLASS_DNS + DNS_R_NRESULTS);
+	     result++) {
 		str = isc_result_toid(result);
 		ATF_REQUIRE_MSG(str != NULL,
 				"isc_result_toid(%u) returned NULL", result);
 		ATF_CHECK_MSG(strcmp(str,
-			      "(result code text not available)") != 0,
+				     "(result code text not available)") != 0,
 			      "isc_result_toid(%u) returned %s", result, str);
 
 		str = isc_result_totext(result);
 		ATF_REQUIRE_MSG(str != NULL,
 				"isc_result_totext(%u) returned NULL", result);
 		ATF_CHECK_MSG(strcmp(str,
-			      "(result code text not available)") != 0,
+				     "(result code text not available)") != 0,
 			      "isc_result_totext(%u) returned %s", result, str);
 	}
 
@@ -52,22 +61,21 @@ ATF_TC_BODY(tables, tc) {
 	ATF_REQUIRE(str != NULL);
 	ATF_CHECK_STREQ(str, "(result code text not available)");
 
-	for (result = ISC_RESULTCLASS_PK11;
-	     result < (ISC_RESULTCLASS_PK11 + PK11_R_NRESULTS);
-	     result++)
-	{
+	for (result = ISC_RESULTCLASS_DST;
+	     result < (ISC_RESULTCLASS_DST + DST_R_NRESULTS);
+	     result++) {
 		str = isc_result_toid(result);
 		ATF_REQUIRE_MSG(str != NULL,
 				"isc_result_toid(%u) returned NULL", result);
 		ATF_CHECK_MSG(strcmp(str,
-			      "(result code text not available)") != 0,
+				     "(result code text not available)") != 0,
 			      "isc_result_toid(%u) returned %s", result, str);
 
 		str = isc_result_totext(result);
 		ATF_REQUIRE_MSG(str != NULL,
 				"isc_result_totext(%u) returned NULL", result);
 		ATF_CHECK_MSG(strcmp(str,
-			      "(result code text not available)") != 0,
+				     "(result code text not available)") != 0,
 			      "isc_result_totext(%u) returned %s", result, str);
 	}
 
@@ -78,43 +86,39 @@ ATF_TC_BODY(tables, tc) {
 	str = isc_result_totext(result);
 	ATF_REQUIRE(str != NULL);
 	ATF_CHECK_STREQ(str, "(result code text not available)");
-}
 
-ATF_TC(isc_result_toid);
-ATF_TC_HEAD(isc_result_toid, tc) {
-	atf_tc_set_md_var(tc, "descr", "convert result to identifier string");
-}
-ATF_TC_BODY(isc_result_toid, tc) {
-	const char *id;
+	for (result = ISC_RESULTCLASS_DNSRCODE;
+	     result < (ISC_RESULTCLASS_DNSRCODE + DNS_R_NRCODERESULTS);
+	     result++) {
+		str = isc_result_toid(result);
+		ATF_REQUIRE_MSG(str != NULL,
+				"isc_result_toid(%u) returned NULL", result);
+		ATF_CHECK_MSG(strcmp(str,
+				     "(result code text not available)") != 0,
+			      "isc_result_toid(%u) returned %s", result, str);
 
-	id = isc_result_toid(ISC_R_SUCCESS);
-	ATF_REQUIRE_STREQ("ISC_R_SUCCESS", id);
+		str = isc_result_totext(result);
+		ATF_REQUIRE_MSG(str != NULL,
+				"isc_result_totext(%u) returned NULL", result);
+		ATF_CHECK_MSG(strcmp(str,
+				     "(result code text not available)") != 0,
+			      "isc_result_totext(%u) returned %s", result, str);
+	}
 
-	id = isc_result_toid(ISC_R_FAILURE);
-	ATF_REQUIRE_STREQ("ISC_R_FAILURE", id);
-}
+	str = isc_result_toid(result);
+	ATF_REQUIRE(str != NULL);
+	ATF_CHECK_STREQ(str, "(result code text not available)");
 
-ATF_TC(isc_result_totext);
-ATF_TC_HEAD(isc_result_totext, tc) {
-	atf_tc_set_md_var(tc, "descr", "convert result to description string");
-}
-ATF_TC_BODY(isc_result_totext, tc) {
-	const char *str;
-
-	str = isc_result_totext(ISC_R_SUCCESS);
-	ATF_REQUIRE_STREQ("success", str);
-
-	str = isc_result_totext(ISC_R_FAILURE);
-	ATF_REQUIRE_STREQ("failure", str);
+	str = isc_result_totext(result);
+	ATF_REQUIRE(str != NULL);
+	ATF_CHECK_STREQ(str, "(result code text not available)");
 }
 
 /*
  * Main
  */
 ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_result_toid);
-	ATF_TP_ADD_TC(tp, isc_result_totext);
-	ATF_TP_ADD_TC(tp, tables);
+	ATF_TP_ADD_TC(tp, ids);
 
 	return (atf_no_error());
 }

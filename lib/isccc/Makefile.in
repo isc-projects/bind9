@@ -45,6 +45,7 @@ SRCS =		alist.c base64.c cc.c ccmsg.c \
 
 
 TARGETS = 	timestamp
+TESTDIRS =	@UNITTESTS@
 
 @BIND9_MAKE_RULES@
 
@@ -68,6 +69,8 @@ libisccc.la: ${OBJS}
 
 timestamp: libisccc.@A@
 	touch timestamp
+
+testdirs: libisccc.@A@
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
