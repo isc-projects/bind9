@@ -3647,6 +3647,7 @@
 ./lib/irs/win32/libirs.vcxproj.filters.in	X	2014,2015,2016,2018
 ./lib/irs/win32/libirs.vcxproj.in		X	2014,2015,2016,2017,2018
 ./lib/irs/win32/libirs.vcxproj.user		X	2014,2018
+./lib/irs/win32/resconf.c			C	2018
 ./lib/irs/win32/version.c			C	2014,2016,2018
 ./lib/isc/Atffile				X	2011,2018
 ./lib/isc/Kyuafile				X	2017,2018
