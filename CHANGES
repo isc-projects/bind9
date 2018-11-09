@@ -1,3 +1,6 @@
+5085.	[bug]		win32: Restore looking up nameservers, search list,
+			etc. [GL #186]
+
 5084.	[func]		Log of RPZ now includes the QTYPE and QCLASS. [GL #623]
 
 5083.	[func]		Add autoconf macro AX_POSIX_SHELL, so we

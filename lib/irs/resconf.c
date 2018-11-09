@@ -126,6 +126,10 @@ resconf_parsesortlist(irs_resconf_t *conf,  FILE *fp);
 static isc_result_t
 resconf_parseoption(irs_resconf_t *ctx,  FILE *fp);
 
+#if HAVE_GET_WIN32_NAMESERVERS
+static isc_result_t get_win32_nameservers(irs_resconf_t *conf);
+#endif
+
 /*!
  * Eat characters from FP until EOL or EOF. Returns EOF or '\n'
  */
@@ -562,15 +566,6 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 		goto error;
 	}
 
-	/* If we don't find a nameserver fall back to localhost */
-	if (conf->numns == 0U) {
-		INSIST(ISC_LIST_EMPTY(conf->nameservers));
-
-		/* XXX: should we catch errors? */
-		(void)add_server(conf->mctx, "::1", &conf->nameservers);
-		(void)add_server(conf->mctx, "127.0.0.1", &conf->nameservers);
-	}
-
 	/*
 	 * Construct unified search list from domain or configured
 	 * search list
@@ -583,6 +578,22 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 			if (ret != ISC_R_SUCCESS)
 				break;
 		}
+	}
+
+#if HAVE_GET_WIN32_NAMESERVERS
+	ret = get_win32_nameservers(conf);
+	if (ret != ISC_R_SUCCESS) {
+		goto error;
+	}
+#endif
+
+	/* If we don't find a nameserver fall back to localhost */
+	if (conf->numns == 0U) {
+		INSIST(ISC_LIST_EMPTY(conf->nameservers));
+
+		/* XXX: should we catch errors? */
+		(void)add_server(conf->mctx, "::1", &conf->nameservers);
+		(void)add_server(conf->mctx, "127.0.0.1", &conf->nameservers);
 	}
 
  error:
