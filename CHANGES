@@ -1,3 +1,6 @@
+5085.	[bug]		win32: Restore looking up nameservers, search list,
+			etc. [GL #186]
+
 5084.	[func]		Add configure time detection of Utimaco HSM
 			and disable runtime md5/sha1 detection when it
 			compiled with it. [GL #656]
