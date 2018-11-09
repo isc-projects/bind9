@@ -254,15 +254,19 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->cfg_destroy = NULL;
 	view->fail_ttl = 0;
 	view->failcache = NULL;
-	(void)dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
+	result = dns_badcache_init(view->mctx, DNS_VIEW_FAILCACHESIZE,
 				   &view->failcache);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_dynkeys;
+	}
 	view->v6bias = 0;
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
 	result = isc_mutex_init(&view->new_zone_lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_dynkeys;
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_failcache;
+	}
 
 	if (isc_bind9) {
 		result = dns_order_create(view->mctx, &view->order);
@@ -271,12 +275,14 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	}
 
 	result = dns_peerlist_new(view->mctx, &view->peers);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_order;
+	}
 
 	result = dns_aclenv_init(view->mctx, &view->aclenv);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_peerlist;
+	}
 
 	ISC_LINK_INIT(view, link);
 	ISC_EVENT_INIT(&view->resevent, sizeof(view->resevent), 0, NULL,
@@ -296,37 +302,46 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	return (ISC_R_SUCCESS);
 
  cleanup_peerlist:
-	if (view->peers != NULL)
+	if (view->peers != NULL) {
 		dns_peerlist_detach(&view->peers);
+	}
 
  cleanup_order:
-	if (view->order != NULL)
+	if (view->order != NULL) {
 		dns_order_detach(&view->order);
+	}
 
  cleanup_new_zone_lock:
 	DESTROYLOCK(&view->new_zone_lock);
 
+ cleanup_failcache:
+	dns_badcache_destroy(&view->failcache);
+
  cleanup_dynkeys:
-	if (view->dynamickeys != NULL)
+	if (view->dynamickeys != NULL) {
 		dns_tsigkeyring_detach(&view->dynamickeys);
+	}
 
  cleanup_references:
 	isc_refcount_decrement(&view->references, NULL);
 	isc_refcount_destroy(&view->references);
 
  cleanup_fwdtable:
-	if (view->fwdtable != NULL)
+	if (view->fwdtable != NULL) {
 		dns_fwdtable_destroy(&view->fwdtable);
+	}
 
  cleanup_zt:
-	if (view->zonetable != NULL)
+	if (view->zonetable != NULL) {
 		dns_zt_detach(&view->zonetable);
+	}
 
  cleanup_mutex:
 	DESTROYLOCK(&view->lock);
 
-	if (view->nta_file != NULL)
+	if (view->nta_file != NULL) {
 		isc_mem_free(mctx, view->nta_file);
+	}
 
  cleanup_name:
 	isc_mem_free(mctx, view->name);
