@@ -3702,14 +3702,16 @@ isc_socket_hasreuseport() {
 
 static const char *
 _socktype(isc_sockettype_t type) {
-	if (type == isc_sockettype_udp)
+	switch (type) {
+	case isc_sockettype_udp:
 		return ("udp");
-	else if (type == isc_sockettype_tcp)
+	case isc_sockettype_tcp:
 		return ("tcp");
-	else if (type == isc_sockettype_unix)
+	case isc_sockettype_unix:
 		return ("unix");
-	else
+	default:
 		return ("not-initialized");
+	}
 }
 
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
