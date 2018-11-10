@@ -9,11 +9,17 @@
  * information regarding copyright ownership.
  */
 
-/* ! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <string.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/result.h>
 #include <isc/util.h>
@@ -22,103 +28,106 @@
 #include <dns/result.h>
 #include <dst/result.h>
 
-ATF_TC(ids);
-ATF_TC_HEAD(ids, tc) {
-	atf_tc_set_md_var(tc, "descr", "check ids array is populated");
-}
-ATF_TC_BODY(ids, tc) {
+/*
+ * Check ids array is populated.
+ */
+static void
+ids(void **state) {
 	const char *str;
 	isc_result_t result;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	dns_result_register();
 	dst_result_register();
 
 	for (result = ISC_RESULTCLASS_DNS;
 	     result < (ISC_RESULTCLASS_DNS + DNS_R_NRESULTS);
-	     result++) {
+	     result++)
+	{
 		str = isc_result_toid(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_toid(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-				     "(result code text not available)") != 0,
-			      "isc_result_toid(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 
 		str = isc_result_totext(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_totext(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-				     "(result code text not available)") != 0,
-			      "isc_result_totext(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 	}
 
 	str = isc_result_toid(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 
 	str = isc_result_totext(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 
 	for (result = ISC_RESULTCLASS_DST;
 	     result < (ISC_RESULTCLASS_DST + DST_R_NRESULTS);
-	     result++) {
+	     result++)
+	{
 		str = isc_result_toid(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_toid(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-				     "(result code text not available)") != 0,
-			      "isc_result_toid(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 
 		str = isc_result_totext(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_totext(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-				     "(result code text not available)") != 0,
-			      "isc_result_totext(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 	}
 
 	str = isc_result_toid(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 
 	str = isc_result_totext(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 
 	for (result = ISC_RESULTCLASS_DNSRCODE;
 	     result < (ISC_RESULTCLASS_DNSRCODE + DNS_R_NRCODERESULTS);
-	     result++) {
+	     result++)
+	{
 		str = isc_result_toid(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_toid(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-				     "(result code text not available)") != 0,
-			      "isc_result_toid(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 
 		str = isc_result_totext(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_totext(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-				     "(result code text not available)") != 0,
-			      "isc_result_totext(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 	}
 
 	str = isc_result_toid(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 
 	str = isc_result_totext(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, ids);
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(ids),
+	};
 
-	return (atf_no_error());
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
