@@ -11,23 +11,59 @@
 
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
 
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 #include <string.h>
 
+#define UNIT_TESTING
+#include <cmocka.h>
+
+#include <isc/print.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #ifdef PKCS11CRYPTO
 #include <pk11/result.h>
 #endif
 
-ATF_TC(tables);
-ATF_TC_HEAD(tables, tc) {
-	atf_tc_set_md_var(tc, "descr", "check tables are populated");
+/* convert result to identifier string */
+static void
+isc_result_toid_test(void **state) {
+	const char *id;
+
+	UNUSED(state);
+
+	id = isc_result_toid(ISC_R_SUCCESS);
+	assert_string_equal("ISC_R_SUCCESS", id);
+
+	id = isc_result_toid(ISC_R_FAILURE);
+	assert_string_equal("ISC_R_FAILURE", id);
 }
-ATF_TC_BODY(tables, tc) {
+
+/* convert result to description string */
+static void
+isc_result_totext_test(void **state) {
+	const char *str;
+
+	UNUSED(state);
+
+	str = isc_result_totext(ISC_R_SUCCESS);
+	assert_string_equal("success", str);
+
+	str = isc_result_totext(ISC_R_FAILURE);
+	assert_string_equal("failure", str);
+}
+
+/* check tables are populated */
+static void
+tables(void **state) {
 	const char *str;
 	isc_result_t result;
+
+	UNUSED(state);
 
 #ifdef PKCS11CRYPTO
 	pk11_result_register();
@@ -35,27 +71,23 @@ ATF_TC_BODY(tables, tc) {
 
 	for (result = 0; result < ISC_R_NRESULTS; result++) {
 		str = isc_result_toid(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_toid(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-			      "(result code text not available)") != 0,
-			      "isc_result_toid(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 
 		str = isc_result_totext(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_totext(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-			      "(result code text not available)") != 0,
-			      "isc_result_totext(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 	}
 
 	str = isc_result_toid(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 
 	str = isc_result_totext(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 
 #ifdef PKCS11CRYPTO
 	for (result = ISC_RESULTCLASS_PK11;
@@ -63,65 +95,45 @@ ATF_TC_BODY(tables, tc) {
 	     result++)
 	{
 		str = isc_result_toid(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_toid(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-			      "(result code text not available)") != 0,
-			      "isc_result_toid(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 
 		str = isc_result_totext(result);
-		ATF_REQUIRE_MSG(str != NULL,
-				"isc_result_totext(%u) returned NULL", result);
-		ATF_CHECK_MSG(strcmp(str,
-			      "(result code text not available)") != 0,
-			      "isc_result_totext(%u) returned %s", result, str);
+		assert_non_null(str);
+		assert_string_not_equal(str,
+					"(result code text not available)");
 	}
 
 	str = isc_result_toid(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 
 	str = isc_result_totext(result);
-	ATF_REQUIRE(str != NULL);
-	ATF_CHECK_STREQ(str, "(result code text not available)");
+	assert_non_null(str);
+	assert_string_equal(str, "(result code text not available)");
 #endif
 }
 
-ATF_TC(isc_result_toid);
-ATF_TC_HEAD(isc_result_toid, tc) {
-	atf_tc_set_md_var(tc, "descr", "convert result to identifier string");
-}
-ATF_TC_BODY(isc_result_toid, tc) {
-	const char *id;
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(isc_result_toid_test),
+		cmocka_unit_test(isc_result_totext_test),
+		cmocka_unit_test(tables),
+	};
 
-	id = isc_result_toid(ISC_R_SUCCESS);
-	ATF_REQUIRE_STREQ("ISC_R_SUCCESS", id);
-
-	id = isc_result_toid(ISC_R_FAILURE);
-	ATF_REQUIRE_STREQ("ISC_R_FAILURE", id);
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
 
-ATF_TC(isc_result_totext);
-ATF_TC_HEAD(isc_result_totext, tc) {
-	atf_tc_set_md_var(tc, "descr", "convert result to description string");
-}
-ATF_TC_BODY(isc_result_totext, tc) {
-	const char *str;
+#else /* HAVE_CMOCKA */
 
-	str = isc_result_totext(ISC_R_SUCCESS);
-	ATF_REQUIRE_STREQ("success", str);
+#include <stdio.h>
 
-	str = isc_result_totext(ISC_R_FAILURE);
-	ATF_REQUIRE_STREQ("failure", str);
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_result_toid);
-	ATF_TP_ADD_TC(tp, isc_result_totext);
-	ATF_TP_ADD_TC(tp, tables);
-
-	return (atf_no_error());
-}
+#endif
