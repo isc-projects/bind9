@@ -39,11 +39,10 @@ TARGETS =	result_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
-result_test@EXEEXT@: result_test.@O@ \
-		${ISCDEPLIBS} ${ISCCCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			result_test.@O@ ${ISCCCLIBS} \
-				${ISCLIBS} ${LIBS}
+result_test@EXEEXT@: result_test.@O@ ${ISCDEPLIBS} ${ISCCCDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_FLAGS} \
+		${LDFLAGS} -o $@ result_test.@O@ \
+		${ISCCCLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh

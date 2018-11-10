@@ -137,8 +137,9 @@ netaddr_test@EXEEXT@: netaddr_test.@O@ ${ISCDEPLIBS}
 			netaddr_test.@O@ ${ISCLIBS} ${LIBS}
 
 result_test@EXEEXT@: result_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			result_test.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ result_test.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 safe_test@EXEEXT@: safe_test.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
