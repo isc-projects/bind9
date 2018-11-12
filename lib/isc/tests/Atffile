@@ -22,7 +22,6 @@ tp: queue_test
 tp: radix_test
 tp: random_test
 tp: regex_test
-tp: result_test
 tp: safe_test
 tp: sockaddr_test
 tp: socket_test
