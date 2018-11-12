@@ -4838,7 +4838,8 @@ fi
 #
 
 AC_ARG_WITH([cmocka],
-	    [AS_HELP_STRING([--with-cmocka=no],[enable cmocka based tests (default is no)])])
+	    [AS_HELP_STRING([--with-cmocka=no],[enable cmocka based tests (default is no)])],
+	    [:],[with_cmocka=no])
 
 AS_CASE([$with_cmocka],
 	[no],[:],
