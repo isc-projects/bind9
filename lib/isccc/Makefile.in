@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id$
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -47,6 +45,7 @@ SRCS =		alist.c base64.c cc.c ccmsg.c \
 
 
 TARGETS = 	timestamp
+TESTDIRS =	@UNITTESTS@
 
 @BIND9_MAKE_RULES@
 
@@ -70,6 +69,8 @@ libisccc.la: ${OBJS}
 
 timestamp: libisccc.@A@
 	touch timestamp
+
+testdirs: libisccc.@A@
 
 installdirs:
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}

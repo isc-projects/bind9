@@ -25,39 +25,12 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#ifdef PKCS11CRYPTO
-#include <pk11/result.h>
-#endif
+#include <isccc/lib.h>
+#include <isccc/result.h>
 
-/* convert result to identifier string */
-static void
-isc_result_toid_test(void **state) {
-	const char *id;
-
-	UNUSED(state);
-
-	id = isc_result_toid(ISC_R_SUCCESS);
-	assert_string_equal("ISC_R_SUCCESS", id);
-
-	id = isc_result_toid(ISC_R_FAILURE);
-	assert_string_equal("ISC_R_FAILURE", id);
-}
-
-/* convert result to description string */
-static void
-isc_result_totext_test(void **state) {
-	const char *str;
-
-	UNUSED(state);
-
-	str = isc_result_totext(ISC_R_SUCCESS);
-	assert_string_equal("success", str);
-
-	str = isc_result_totext(ISC_R_FAILURE);
-	assert_string_equal("failure", str);
-}
-
-/* check tables are populated */
+/*
+ * Check tables are populated.
+ */
 static void
 tables(void **state) {
 	const char *str;
@@ -65,33 +38,10 @@ tables(void **state) {
 
 	UNUSED(state);
 
-#ifdef PKCS11CRYPTO
-	pk11_result_register();
-#endif
+	isccc_result_register();
 
-	for (result = 0; result < ISC_R_NRESULTS; result++) {
-		str = isc_result_toid(result);
-		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
-
-		str = isc_result_totext(result);
-		assert_non_null(str);
-		assert_string_not_equal(str,
-					"(result code text not available)");
-	}
-
-	str = isc_result_toid(result);
-	assert_non_null(str);
-	assert_string_equal(str, "(result code text not available)");
-
-	str = isc_result_totext(result);
-	assert_non_null(str);
-	assert_string_equal(str, "(result code text not available)");
-
-#ifdef PKCS11CRYPTO
-	for (result = ISC_RESULTCLASS_PK11;
-	     result < (ISC_RESULTCLASS_PK11 + PK11_R_NRESULTS);
+	for (result = ISC_RESULTCLASS_ISCCC;
+	     result < (ISC_RESULTCLASS_ISCCC + ISCCC_R_NRESULTS);
 	     result++)
 	{
 		str = isc_result_toid(result);
@@ -112,14 +62,11 @@ tables(void **state) {
 	str = isc_result_totext(result);
 	assert_non_null(str);
 	assert_string_equal(str, "(result code text not available)");
-#endif
 }
 
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test(isc_result_toid_test),
-		cmocka_unit_test(isc_result_totext_test),
 		cmocka_unit_test(tables),
 	};
 
