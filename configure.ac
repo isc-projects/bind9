@@ -4843,7 +4843,8 @@ AC_ARG_WITH([cmocka],
 
 AS_CASE([$with_cmocka],
 	[no],[:],
-	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka])],
+	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
+				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])])],
 	[*],[
 	    save_CFLAGS="$CFLAGS"
 	    save_LIBS="$LIBS"
@@ -4861,6 +4862,7 @@ AS_CASE([$with_cmocka],
 			   [
 			       CMOCKA_CFLAGS="-Iwith_cmocka/include"
 			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
+			       AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])
 			   ],
 			   [AC_MSG_ERROR([cmocka unit testing framework not found in $with_cmocka path])])
 	    ])
