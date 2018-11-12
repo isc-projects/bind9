@@ -1,3 +1,5 @@
+5098.	[func]		Failed memory allocations are now fatal. [GL #674]
+
 5097.	[cleanup]	Remove embedded ATF unit testing framework
 			from BIND source distribution.  [GL !875]
 
