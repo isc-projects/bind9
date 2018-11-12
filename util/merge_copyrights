@@ -42,6 +42,8 @@ while (<CHANGES>) {
 	       util/newcopyrights | # our output
 	       \.bak$ |		# created by update_copyrights
 	       \.md$ |          # READMEs and such
+	       \.conf$ |        # configuration files
+	       \.conf\.in$ |    # configuration files
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
 	       doc/(draft|expired|rfc)/		# imported
 	     %x);
@@ -92,10 +94,6 @@ while (<CHANGES>) {
 	    $base = $base . ".docbook";
 	} elsif ($base =~ /\/Makefile$/) {
 	    $file_types{$_} = "MAKE";
-	} elsif ($base =~ /\/(named|rndc|good|bad).{0,2}\.conf$/) {
-	    $file_types{$_} = "CONF-C";
-	} elsif ($base =~ /\/checkconf\/(good|bad)-.*\.conf$/) {
-	    $file_types{$_} = "CONF-C";
 	} elsif ($base =~ /\/resolv.?\.conf$/) {
 	    $file_types{$_} = "CONF-SH";
 	} elsif ($base =~ /\.(db|hint)$/) {
