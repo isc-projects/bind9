@@ -177,14 +177,13 @@ foreach $file (keys %file_types) {
         $m4_comment = 0;
         $sgml_comment = 0;
         $mkd_comment = 0;
-        $zone_comment = 0;
         $man_comment = 0;
         $python_comment = 0;
         $python_bin_comment = 0;
         $start_comment = "";
         $end_comment = "";
         $first = "";
-        if ($type =~ /^(C|YACC|CONF-C)$/) {
+        if ($type =~ /^(C|YACC)$/) {
                 $c_comment = 1;
                 $start_comment = "/*\n";
                 $prefix = " * ";
@@ -202,9 +201,6 @@ foreach $file (keys %file_types) {
                 $start_comment = "############################################################################\n";
                 $prefix = "# ";
 		$end_comment = "############################################################################\n"
-        } elsif ($type eq "ZONE" || $type eq "MC") {
-                $zone_comment = 1;
-                $prefix = "; ";
         } elsif ($type eq "MAN") {
                 $man_comment = 1;
                 $prefix = ".\\\" ";
@@ -305,7 +301,7 @@ foreach $file (keys %file_types) {
                 } else {
                         $first = $_;
                 }
-        } elsif (($m4_comment || $zone_comment || $man_comment) &&
+        } elsif (($m4_comment || $man_comment) &&
                  /^\Q$nonspaceprefix\E/) {
 
                 while (/^\Q$nonspaceprefix\E\s*$/) {
@@ -518,7 +514,7 @@ foreach $file (keys %file_types) {
 	                print TARGET "\n";
                 }
 
-		if (($type eq "C" || $type eq "CONF-C") &&
+		if (($type eq "C") &&
 		    $sysyears =~ /$this_year/) {
 			my $body = "";
 			while (<SOURCE>) {
