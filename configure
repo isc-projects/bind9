@@ -23180,19 +23180,19 @@ case $with_cmocka in #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka" >&5
-$as_echo_n "checking for cmocka... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
+$as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
 
 if test -n "$CMOCKA_CFLAGS"; then
     pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "cmocka") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.0.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.0.0") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_CMOCKA_CFLAGS=`$PKG_CONFIG --cflags "cmocka" 2>/dev/null`
+  pkg_cv_CMOCKA_CFLAGS=`$PKG_CONFIG --cflags "cmocka >= 1.0.0" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -23204,12 +23204,12 @@ if test -n "$CMOCKA_LIBS"; then
     pkg_cv_CMOCKA_LIBS="$CMOCKA_LIBS"
  elif test -n "$PKG_CONFIG"; then
     if test -n "$PKG_CONFIG" && \
-    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka\""; } >&5
-  ($PKG_CONFIG --exists --print-errors "cmocka") 2>&5
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.0.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.0.0") 2>&5
   ac_status=$?
   $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; then
-  pkg_cv_CMOCKA_LIBS=`$PKG_CONFIG --libs "cmocka" 2>/dev/null`
+  pkg_cv_CMOCKA_LIBS=`$PKG_CONFIG --libs "cmocka >= 1.0.0" 2>/dev/null`
 		      test "x$?" != "x0" && pkg_failed=yes
 else
   pkg_failed=yes
@@ -23230,14 +23230,14 @@ else
         _pkg_short_errors_supported=no
 fi
         if test $_pkg_short_errors_supported = yes; then
-	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cmocka" 2>&1`
+	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cmocka >= 1.0.0" 2>&1`
         else
-	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cmocka" 2>&1`
+	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cmocka >= 1.0.0" 2>&1`
         fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$CMOCKA_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements (cmocka) were not met:
+	as_fn_error $? "Package requirements (cmocka >= 1.0.0) were not met:
 
 $CMOCKA_PKG_ERRORS
 
@@ -23267,6 +23267,8 @@ else
 	CMOCKA_LIBS=$pkg_cv_CMOCKA_LIBS
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
 fi ;; #(
   *) :
@@ -23349,6 +23351,9 @@ if test "$ac_res" != no; then :
 
 			       CMOCKA_CFLAGS="-Iwith_cmocka/include"
 			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
+
+$as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
+
 
 else
   as_fn_error $? "cmocka unit testing framework not found in $with_cmocka path" "$LINENO" 5
