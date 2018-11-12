@@ -42,6 +42,17 @@ while (<CHANGES>) {
 	       util/newcopyrights | # our output
 	       \.bak$ |		# created by update_copyrights
 	       \.md$ |          # READMEs and such
+	       \.data$ |        # zone files
+	       \.data[0-9]$ |   # zone files
+	       \.data\.in$ |    # zone files
+	       \.db$ |          # zone files
+	       \.db\.in$ |      # zone files
+	       /db\.[^/]*$ |     # zone files
+	       /[^/]*\.db\.[^/]* | # zone files
+	       \.hints?$ |      # zone files
+	       \.hints?\.in$ |  # zone files
+	       /hints$ |        # zone files
+	       \.zone$ |        # zone files
 	       \.conf$ |        # configuration files
 	       \.conf\.in$ |    # configuration files
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
@@ -96,8 +107,6 @@ while (<CHANGES>) {
 	    $file_types{$_} = "MAKE";
 	} elsif ($base =~ /\/resolv.?\.conf$/) {
 	    $file_types{$_} = "CONF-SH";
-	} elsif ($base =~ /\.(db|hint)$/) {
-	    $file_types{$_} = "ZONE";
 	} elsif ($base =~ /\.md$/) {
 	    $file_types{$_} = "MKD";
 	} elsif ($base =~ /(\/\.(gitignore|gitattributes)|Atffile|Kyuafile|\.(gif|jpg))$/i) {
