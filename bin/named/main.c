@@ -821,7 +821,7 @@ create_managers(void) {
 	}
 
 	result = isc_socketmgr_create2(named_g_mctx, &named_g_socketmgr,
-				       maxsocks, named_g_udpdisp);
+				       maxsocks, named_g_cpus);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_socketmgr_create() failed: %s",
