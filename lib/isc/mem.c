@@ -747,7 +747,8 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	REQUIRE(memalloc != NULL);
 	REQUIRE(memfree != NULL);
 
-	INSIST((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0);
+	STATIC_ASSERT((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0,
+		      "wrong alignment size");
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
