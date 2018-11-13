@@ -1228,6 +1228,19 @@ create_search_list(irs_resconf_t *resconf) {
 }
 
 /*%
+ * Append 'addr' to the list of servers to be queried.  This function is only
+ * called when no server addresses are explicitly specified and either libirs
+ * returns an empty list of servers to use or none of the addresses returned by
+ * libirs are usable due to the specified address family restrictions.
+ */
+static void
+add_fallback_nameserver(const char *addr) {
+	dig_server_t *server = make_server(addr, addr);
+	ISC_LINK_INIT(server, link);
+	ISC_LIST_APPEND(server_list, server, link);
+}
+
+/*%
  * Setup the system as a whole, reading key information and resolv.conf
  * settings.
  */
@@ -1270,6 +1283,16 @@ setup_system(bool ipv4only, bool ipv6only) {
 	/* If user doesn't specify server use nameservers from resolv.conf. */
 	if (ISC_LIST_EMPTY(server_list)) {
 		get_server_list(resconf);
+	}
+
+	/* If we don't find a nameserver fall back to localhost */
+	if (ISC_LIST_EMPTY(server_list)) {
+		if (have_ipv6) {
+			add_fallback_nameserver("::1");
+		}
+		if (have_ipv4) {
+			add_fallback_nameserver("127.0.0.1");
+		}
 	}
 
 	irs_resconf_destroy(&resconf);
