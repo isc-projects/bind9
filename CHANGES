@@ -1,3 +1,8 @@
+5089.	[bug]		Restore localhost fallback in dig and host which is
+			used when no nameserver addresses present in
+			/etc/resolv.conf are usable due to the requested
+			address family restrictions. [GL #433]
+
 5088.	[bug]		dig/host/nslookup could crash when interrupted close to
 			a query timeout. [GL #599]
 
