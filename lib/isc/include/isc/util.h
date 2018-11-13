@@ -208,6 +208,18 @@
 #define ISC_UNREACHABLE()
 #endif
 
+#if !defined(__has_feature)
+#define __has_feature(x) 0
+#endif
+
+#if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6)
+#define STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
+#elif __has_feature(c_static_assert)
+#define STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
+#else
+#define STATIC_ASSERT(cond, msg) INSIST(cond)
+#endif
+
 #ifdef UNIT_TESTING
 extern void mock_assert(const int result, const char* const expression,
 			const char * const file, const int line);
