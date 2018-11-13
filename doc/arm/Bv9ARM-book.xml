@@ -11045,17 +11045,6 @@ example.com                 CNAME   rpz-tcp-only.
 	</para>
 
 	<para>
-	  Applications that depend on a particular XML schema
-	  can request
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v2">http://127.0.0.1:8888/xml/v2</link> for version 2
-	  of the statistics XML schema or
-	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3">http://127.0.0.1:8888/xml/v3</link> for version 3.
-	  If the requested schema is supported by the server, then
-	  it will respond; if not, it will return a "page not found"
-	  error.
-	</para>
-
-	<para>
 	  Broken-out subsets of the statistics can be viewed at
 	  <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://127.0.0.1:8888/xml/v3/status">http://127.0.0.1:8888/xml/v3/status</link>
 	  (server uptime and last reconfiguration time),
