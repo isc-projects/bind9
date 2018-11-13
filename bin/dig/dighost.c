@@ -2958,6 +2958,11 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(!free_now);
 
+	if (cancel_now) {
+		UNLOCK_LOOKUP;
+		return;
+	}
+
 	if ((query != NULL) && (query->lookup->current_query != NULL) &&
 	    ISC_LINK_LINKED(query->lookup->current_query, link) &&
 	    (ISC_LIST_NEXT(query->lookup->current_query, link) != NULL)) {
