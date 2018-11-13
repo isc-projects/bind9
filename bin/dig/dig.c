@@ -1544,7 +1544,7 @@ plus_option(char *option, bool is_batchfile,
  * #true returned if value was used
  */
 static const char *single_dash_opts = "46dhimnuv";
-static const char *dash_opts = "46bcdfhikmnptvyx";
+static const char *dash_opts = "46bcdfhikmnpqtvyx";
 static bool
 dash_option(char *option, char *next, dig_lookup_t **lookup,
 	    bool *open_type_class, bool *need_clone,
