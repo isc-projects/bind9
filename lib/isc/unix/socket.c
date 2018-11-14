@@ -866,6 +866,10 @@ unwatch_fd(isc__socketthread_t *thread, int fd, int msg) {
 #endif
 }
 
+/*
+ * A poke message was received, perform a proper watch/unwatch
+ * on a fd provided
+ */
 static void
 wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
 	isc_result_t result;
@@ -3280,6 +3284,11 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 	}
 }
 
+/*
+ * process_fds is different for different event loops
+ * it takes the events from event loops and for each FD
+ * launches process_fd
+ */
 #ifdef USE_KQUEUE
 static bool
 process_fds(isc__socketthread_t *thread, struct kevent *events,
