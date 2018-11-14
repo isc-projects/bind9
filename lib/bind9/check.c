@@ -954,15 +954,25 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	uint32_t lifetime = 3600;
 	const char *ccalg = "aes";
 
+	/*
+	 * { "name", scale, value }
+	 * (scale * value) <= UINT32_MAX
+	 */
 	static intervaltable intervals[] = {
-	{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
-	{ "heartbeat-interval", 60, 28 * 24 * 60 },	/* 28 days */
-	{ "interface-interval", 60, 28 * 24 * 60 },	/* 28 days */
-	{ "max-transfer-idle-in", 60, 28 * 24 * 60 },	/* 28 days */
-	{ "max-transfer-idle-out", 60, 28 * 24 * 60 },	/* 28 days */
-	{ "max-transfer-time-in", 60, 28 * 24 * 60 },	/* 28 days */
-	{ "max-transfer-time-out", 60, 28 * 24 * 60 },	/* 28 days */
-	{ "statistics-interval", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "cleaning-interval", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "heartbeat-interval", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "interface-interval", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "max-transfer-idle-in", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "max-transfer-idle-out", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "max-transfer-time-in", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "max-transfer-time-out", 60, 28 * 24 * 60 },	/* 28 days */
+		{ "statistics-interval", 60, 28 * 24 * 60 },	/* 28 days */
+
+		/* minimum and maximum cache and negative cache TTLs */
+		{ "min-cache-ttl", 1, MAX_MIN_CACHE_TTL },	/* 90 secs */
+		{ "max-cache-ttl", 1, UINT32_MAX },		/* no limit */
+		{ "min-ncache-ttl", 1, MAX_MIN_NCACHE_TTL},	/* 90 secs */
+		{ "max-ncache-ttl", 1, MAX_MAX_NCACHE_TTL },	/*  7 days */
 	};
 
 	static const char *server_contact[] = {

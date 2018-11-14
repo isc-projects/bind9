@@ -15,10 +15,7 @@
 #
 
 # Find the top of the BIND9 tree.
-TOP=${SYSTEMTESTTOP:=.}/../../..
-
-# Make it absolute so that it continues to work after we cd.
-TOP=`cd $TOP && pwd`
+TOP=@abs_top_builddir@
 
 # Default algorithm for testing
 DEFAULT_ALGORITHM=ECDSAP256SHA256
@@ -105,7 +102,7 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	rrchecker rrl rrsetorder rsabigexponent runtime \
 	serve-stale sfcache smartsign sortlist \
 	spf staticstub statistics statschannel stub synthfromdnssec \
-	tcp tools tsig tsiggss \
+	tcp tools tsig tsiggss ttl \
 	unknown upforwd verify views wildcard \
 	xfer xferquota zero zonechecks"
 

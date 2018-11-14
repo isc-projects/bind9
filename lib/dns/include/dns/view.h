@@ -154,6 +154,8 @@ struct dns_view {
 	bool			sendcookie;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
+	dns_ttl_t			mincachettl;
+	dns_ttl_t			minncachettl;
 	uint32_t			nta_lifetime;
 	uint32_t			nta_recheck;
 	char				*nta_file;
