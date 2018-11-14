@@ -503,7 +503,6 @@ if [ -x ${DIG} ] ; then
   grep "Dump of all outstanding memory allocations" dig.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
-
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi
@@ -701,6 +700,24 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS @10.53.0.3 -c CH -t a a.example > delv.out.test$n || ret=1
   grep "a.example." < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "checking delv H is ignored, and treated like IN ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 -c CH -t a a.example > delv.out.test$n || ret=1
+  grep "a.example." < delv.out.test$n > /dev/null || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "check that delv -q -m works ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 -q -m > delv.out.test$n 2>&1
+  grep '^; -m\..*[0-9]*.*IN.*ANY.*;' delv.out.test$n > /dev/null || ret=1
+  grep "^add " delv.out.test$n > /dev/null && ret=1
+  grep "^del " delv.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 else
