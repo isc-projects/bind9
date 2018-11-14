@@ -9,15 +9,22 @@
  * information regarding copyright ownership.
  */
 
-/* ! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/hash.h>
 
@@ -83,15 +90,13 @@ typedef struct hash_test_key {
 
 /* non-hmac tests */
 
-ATF_TC(isc_sha1);
-ATF_TC_HEAD(isc_sha1, tc) {
-	atf_tc_set_md_var(tc, "descr", "sha1 examples from RFC4634");
-}
-ATF_TC_BODY(isc_sha1, tc) {
+/* SHA1 examples from RFC 4634 */
+static void
+isc_sha1_test(void **state) {
 	isc_sha1_t sha1;
 	int i;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -206,21 +211,19 @@ ATF_TC_BODY(isc_sha1, tc) {
 		}
 		isc_sha1_final(&sha1, digest);
 		tohexstr(digest, ISC_SHA1_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 	}
 }
 
-ATF_TC(isc_sha224);
-ATF_TC_HEAD(isc_sha224, tc) {
-	atf_tc_set_md_var(tc, "descr", "sha224 examples from RFC4634");
-}
-ATF_TC_BODY(isc_sha224, tc) {
+/* SHA224 examples from RFC 4634 */
+static void
+isc_sha224_test(void **state) {
 	isc_sha224_t sha224;
 	int i;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -339,21 +342,19 @@ ATF_TC_BODY(isc_sha224, tc) {
 		* isc_sha224_final(&sha224, digest);
 		 */
 		tohexstr(digest, ISC_SHA224_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 	}
 }
 
-ATF_TC(isc_sha256);
-ATF_TC_HEAD(isc_sha256, tc) {
-	atf_tc_set_md_var(tc, "descr", "sha224 examples from RFC4634");
-}
-ATF_TC_BODY(isc_sha256, tc) {
+/* SHA256 examples from RFC 4634 */
+static void
+isc_sha256_test(void **state) {
 	isc_sha256_t sha256;
 	int i;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -471,21 +472,19 @@ ATF_TC_BODY(isc_sha256, tc) {
 		* isc_sha224_final(&sha224, digest);
 		 */
 		tohexstr(digest, ISC_SHA256_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 	}
 }
 
-ATF_TC(isc_sha384);
-ATF_TC_HEAD(isc_sha384, tc) {
-	atf_tc_set_md_var(tc, "descr", "sha224 examples from RFC4634");
-}
-ATF_TC_BODY(isc_sha384, tc) {
+/* SHA384 examples from RFC 4634 */
+static void
+isc_sha384_test(void **state) {
 	isc_sha384_t sha384;
 	int i;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -617,21 +616,19 @@ ATF_TC_BODY(isc_sha384, tc) {
 		* isc_sha224_final(&sha224, digest);
 		 */
 		tohexstr(digest, ISC_SHA384_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 	}
 }
 
-ATF_TC(isc_sha512);
-ATF_TC_HEAD(isc_sha512, tc) {
-	atf_tc_set_md_var(tc, "descr", "sha224 examples from RFC4634");
-}
-ATF_TC_BODY(isc_sha512, tc) {
+/* SHA512 examples from RFC 4634 */
+static void
+isc_sha512_test(void **state) {
 	isc_sha512_t sha512;
 	int i;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -764,22 +761,20 @@ ATF_TC_BODY(isc_sha512, tc) {
 		* isc_sha224_final(&sha224, digest);
 		 */
 		tohexstr(digest, ISC_SHA512_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 	}
 }
 
 #ifndef PK11_MD5_DISABLE
-ATF_TC(isc_md5);
-ATF_TC_HEAD(isc_md5, tc) {
-	atf_tc_set_md_var(tc, "descr", "md5 example from RFC1321");
-}
-ATF_TC_BODY(isc_md5, tc) {
+/* MD5 examples from RFC 1321 */
+static void
+isc_md5_test(void **state) {
 	isc_md5_t md5;
 	int i;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -838,22 +833,19 @@ ATF_TC_BODY(isc_md5, tc) {
 		}
 		isc_md5_final(&md5, digest);
 		tohexstr(digest, ISC_MD5_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 	}
 }
 #endif
 
-/* HMAC-SHA1 test */
-ATF_TC(isc_hmacsha1);
-ATF_TC_HEAD(isc_hmacsha1, tc) {
-	atf_tc_set_md_var(tc, "descr", "HMAC-SHA1 examples from RFC2104");
-}
-ATF_TC_BODY(isc_hmacsha1, tc) {
+/* HMAC-SHA1 examples from RFC 2104 */
+static void
+isc_hmacsha1_test(void **state) {
 	isc_hmacsha1_t hmacsha1;
 
-	UNUSED(tc);
+	UNUSED(state);
 	/*
 	 * These are the various test vectors.  All of these are passed
 	 * through the hash function and the results are compared to the
@@ -968,22 +960,19 @@ ATF_TC_BODY(isc_hmacsha1, tc) {
 				    testcase->input_len);
 		isc_hmacsha1_sign(&hmacsha1, digest, ISC_SHA1_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA1_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 		test_key++;
 	}
 }
 
-/* HMAC-SHA224 test */
-ATF_TC(isc_hmacsha224);
-ATF_TC_HEAD(isc_hmacsha224, tc) {
-	atf_tc_set_md_var(tc, "descr", "HMAC-SHA224 examples from RFC4634");
-}
-ATF_TC_BODY(isc_hmacsha224, tc) {
+/* HMAC-SHA224 examples from RFC 4634 */
+static void
+isc_hmacsha224_test(void **state) {
 	isc_hmacsha224_t hmacsha224;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -1129,24 +1118,22 @@ ATF_TC_BODY(isc_hmacsha224, tc) {
 		isc_hmacsha224_update(&hmacsha224,
 				      (const uint8_t *) testcase->input,
 				      testcase->input_len);
-		isc_hmacsha224_sign(&hmacsha224, digest, ISC_SHA224_DIGESTLENGTH);
+		isc_hmacsha224_sign(&hmacsha224, digest,
+				    ISC_SHA224_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA224_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 		test_key++;
 	}
 }
 
-/* HMAC-SHA256 test */
-ATF_TC(isc_hmacsha256);
-ATF_TC_HEAD(isc_hmacsha256, tc) {
-	atf_tc_set_md_var(tc, "descr", "HMAC-SHA256 examples from RFC4634");
-}
-ATF_TC_BODY(isc_hmacsha256, tc) {
+/* HMAC-SHA256 examples from RFC 4634 */
+static void
+isc_hmacsha256_test(void **state) {
 	isc_hmacsha256_t hmacsha256;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -1292,24 +1279,22 @@ ATF_TC_BODY(isc_hmacsha256, tc) {
 		isc_hmacsha256_update(&hmacsha256,
 				      (const uint8_t *) testcase->input,
 				      testcase->input_len);
-		isc_hmacsha256_sign(&hmacsha256, digest, ISC_SHA256_DIGESTLENGTH);
+		isc_hmacsha256_sign(&hmacsha256, digest,
+				    ISC_SHA256_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA256_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 		test_key++;
 	}
 }
 
-/* HMAC-SHA384 test */
-ATF_TC(isc_hmacsha384);
-ATF_TC_HEAD(isc_hmacsha384, tc) {
-	atf_tc_set_md_var(tc, "descr", "HMAC-SHA384 examples from RFC4634");
-}
-ATF_TC_BODY(isc_hmacsha384, tc) {
+/* HMAC-SHA384 examples from RFC 4634 */
+static void
+isc_hmacsha384_test(void **state) {
 	isc_hmacsha384_t hmacsha384;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -1461,24 +1446,22 @@ ATF_TC_BODY(isc_hmacsha384, tc) {
 		isc_hmacsha384_update(&hmacsha384,
 				      (const uint8_t *) testcase->input,
 				      testcase->input_len);
-		isc_hmacsha384_sign(&hmacsha384, digest, ISC_SHA384_DIGESTLENGTH);
+		isc_hmacsha384_sign(&hmacsha384, digest,
+				    ISC_SHA384_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA384_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 		test_key++;
 	}
 }
 
-/* HMAC-SHA512 test */
-ATF_TC(isc_hmacsha512);
-ATF_TC_HEAD(isc_hmacsha512, tc) {
-	atf_tc_set_md_var(tc, "descr", "HMAC-SHA512 examples from RFC4634");
-}
-ATF_TC_BODY(isc_hmacsha512, tc) {
+/* HMAC-SHA512 examples from RFC 4634 */
+static void
+isc_hmacsha512_test(void **state) {
 	isc_hmacsha512_t hmacsha512;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -1630,26 +1613,23 @@ ATF_TC_BODY(isc_hmacsha512, tc) {
 		isc_hmacsha512_update(&hmacsha512,
 				      (const uint8_t *) testcase->input,
 				      testcase->input_len);
-		isc_hmacsha512_sign(&hmacsha512, digest, ISC_SHA512_DIGESTLENGTH);
+		isc_hmacsha512_sign(&hmacsha512, digest,
+				    ISC_SHA512_DIGESTLENGTH);
 		tohexstr(digest, ISC_SHA512_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 		test_key++;
 	}
 }
 
-
 #ifndef PK11_MD5_DISABLE
-/* HMAC-MD5 Test */
-ATF_TC(isc_hmacmd5);
-ATF_TC_HEAD(isc_hmacmd5, tc) {
-	atf_tc_set_md_var(tc, "descr", "HMAC-MD5 examples from RFC2104");
-}
-ATF_TC_BODY(isc_hmacmd5, tc) {
+/* HMAC-MD5 examples from RFC 2104 */
+static void
+isc_hmacmd5_test(void **state) {
 	isc_hmacmd5_t hmacmd5;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -1776,7 +1756,7 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 				   testcase->input_len);
 		isc_hmacmd5_sign(&hmacmd5, digest);
 		tohexstr(digest, ISC_MD5_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 		test_key++;
@@ -1784,16 +1764,13 @@ ATF_TC_BODY(isc_hmacmd5, tc) {
 }
 #endif
 
-/* CRC64 Test */
-ATF_TC(isc_crc64);
-ATF_TC_HEAD(isc_crc64, tc) {
-	atf_tc_set_md_var(tc, "descr", "64-bit cyclic redundancy check");
-}
-ATF_TC_BODY(isc_crc64, tc) {
+/* 64-bit cyclic redundancy check */
+static void
+isc_crc64_test(void **state) {
 	uint64_t crc;
 	int i;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	hash_testcase_t testcases[] = {
 		{
@@ -1841,21 +1818,19 @@ ATF_TC_BODY(isc_crc64, tc) {
 		isc_crc64_final(&crc);
 		snprintf(str, sizeof(str),
 			 "0x%016" PRIX64, crc);
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 	}
 }
 
-ATF_TC(isc_hash_function);
-ATF_TC_HEAD(isc_hash_function, tc) {
-	atf_tc_set_md_var(tc, "descr", "Hash function test");
-}
-ATF_TC_BODY(isc_hash_function, tc) {
+/*Hash function test */
+static void
+isc_hash_function_test(void **state) {
 	unsigned int h1;
 	unsigned int h2;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/* Incremental hashing */
 
@@ -1867,42 +1842,40 @@ ATF_TC_BODY(isc_hash_function, tc) {
 	h2 = isc_hash_function("This is a long test", 20,
 			       true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Immutability of hash function */
 	h1 = isc_hash_function(NULL, 0, true, NULL);
 	h2 = isc_hash_function(NULL, 0, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Hash function characteristics */
 	h1 = isc_hash_function("Hello world", 12, true, NULL);
 	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Case */
 	h1 = isc_hash_function("Hello world", 12, false, NULL);
 	h2 = isc_hash_function("heLLo WorLd", 12, false, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Unequal */
 	h1 = isc_hash_function("Hello world", 12, true, NULL);
 	h2 = isc_hash_function("heLLo WorLd", 12, true, NULL);
 
-	ATF_CHECK(h1 != h2);
+	assert_int_not_equal(h1, h2);
 }
 
-ATF_TC(isc_hash_function_reverse);
-ATF_TC_HEAD(isc_hash_function_reverse, tc) {
-	atf_tc_set_md_var(tc, "descr", "Reverse hash function test");
-}
-ATF_TC_BODY(isc_hash_function_reverse, tc) {
+/* Reverse hash function test */
+static void
+isc_hash_function_reverse_test(void **state) {
 	unsigned int h1;
 	unsigned int h2;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/* Incremental hashing */
 
@@ -1914,125 +1887,127 @@ ATF_TC_BODY(isc_hash_function_reverse, tc) {
 	h2 = isc_hash_function_reverse("\007example\003org\000", 13,
 				       true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Immutability of hash function */
 	h1 = isc_hash_function_reverse(NULL, 0, true, NULL);
 	h2 = isc_hash_function_reverse(NULL, 0, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Hash function characteristics */
 	h1 = isc_hash_function_reverse("Hello world", 12, true, NULL);
 	h2 = isc_hash_function_reverse("Hello world", 12, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Case */
 	h1 = isc_hash_function_reverse("Hello world", 12, false, NULL);
 	h2 = isc_hash_function_reverse("heLLo WorLd", 12, false, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Unequal */
 	h1 = isc_hash_function_reverse("Hello world", 12, true, NULL);
 	h2 = isc_hash_function_reverse("heLLo WorLd", 12, true, NULL);
 
-	ATF_CHECK(h1 != h2);
+	assert_true(h1 != h2);
 }
 
-ATF_TC(isc_hash_initializer);
-ATF_TC_HEAD(isc_hash_initializer, tc) {
-	atf_tc_set_md_var(tc, "descr", "Hash function initializer test");
-}
-ATF_TC_BODY(isc_hash_initializer, tc) {
+/* Hash function initializer test */
+static void
+isc_hash_initializer_test(void **state) {
 	unsigned int h1;
 	unsigned int h2;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	h1 = isc_hash_function("Hello world", 12, true, NULL);
 	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	isc_hash_set_initializer(isc_hash_get_initializer());
 
 	/* Hash value must not change */
 	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 }
 
 #ifndef PK11_MD5_DISABLE
-ATF_TC(md5_check);
-ATF_TC_HEAD(md5_check, tc) {
-	atf_tc_set_md_var(tc, "descr", "Startup MD5 check test");
-}
-ATF_TC_BODY(md5_check, tc) {
-	UNUSED(tc);
+/* Startup MD5 check test */
+static void
+md5_check_test(void **state) {
+	UNUSED(state);
 
-	ATF_REQUIRE(isc_md5_check(false));
-	ATF_CHECK(!isc_md5_check(true));
+	assert_true(isc_md5_check(false));
+	assert_false(isc_md5_check(true));
 
-	ATF_REQUIRE(isc_hmacmd5_check(0));
-	ATF_CHECK(!isc_hmacmd5_check(1));
-	ATF_CHECK(!isc_hmacmd5_check(2));
-	ATF_CHECK(!isc_hmacmd5_check(3));
-	ATF_CHECK(!isc_hmacmd5_check(4));
+	assert_true(isc_hmacmd5_check(0));
+	assert_false(isc_hmacmd5_check(1));
+	assert_false(isc_hmacmd5_check(2));
+	assert_false(isc_hmacmd5_check(3));
+	assert_false(isc_hmacmd5_check(4));
 }
 #endif
 
-ATF_TC(sha1_check);
-ATF_TC_HEAD(sha1_check, tc) {
-	atf_tc_set_md_var(tc, "descr", "Startup SHA-1 check test");
-}
-ATF_TC_BODY(sha1_check, tc) {
-	UNUSED(tc);
+/* Startup SHA-1 check test */
+static void
+sha1_check_test(void **state) {
+	UNUSED(state);
 
-	ATF_REQUIRE(isc_sha1_check(false));
-	ATF_CHECK(!isc_sha1_check(true));
+	assert_true(isc_sha1_check(false));
+	assert_false(isc_sha1_check(true));
 
-	ATF_REQUIRE(isc_hmacsha1_check(0));
-	ATF_CHECK(!isc_hmacsha1_check(1));
-	ATF_CHECK(!isc_hmacsha1_check(2));
-	ATF_CHECK(!isc_hmacsha1_check(3));
-	ATF_CHECK(!isc_hmacsha1_check(4));
+	assert_true(isc_hmacsha1_check(0));
+	assert_false(isc_hmacsha1_check(1));
+	assert_false(isc_hmacsha1_check(2));
+	assert_false(isc_hmacsha1_check(3));
+	assert_false(isc_hmacsha1_check(4));
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	/*
-	 * Tests of hash functions, including isc_hash and the
-	 * various cryptographic hashes.
-	 */
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
 #ifndef PK11_MD5_DISABLE
-	ATF_TP_ADD_TC(tp, md5_check);
+		cmocka_unit_test(md5_check_test),
 #endif
-	ATF_TP_ADD_TC(tp, sha1_check);
+		cmocka_unit_test(sha1_check_test),
 
-	ATF_TP_ADD_TC(tp, isc_hash_function);
-	ATF_TP_ADD_TC(tp, isc_hash_function_reverse);
-	ATF_TP_ADD_TC(tp, isc_hash_initializer);
+		cmocka_unit_test(isc_hash_function_test),
+		cmocka_unit_test(isc_hash_function_reverse_test),
+		cmocka_unit_test(isc_hash_initializer_test),
 #ifndef PK11_MD5_DISABLE
-	ATF_TP_ADD_TC(tp, isc_hmacmd5);
+		cmocka_unit_test(isc_hmacmd5_test),
 #endif
-	ATF_TP_ADD_TC(tp, isc_hmacsha1);
-	ATF_TP_ADD_TC(tp, isc_hmacsha224);
-	ATF_TP_ADD_TC(tp, isc_hmacsha256);
-	ATF_TP_ADD_TC(tp, isc_hmacsha384);
-	ATF_TP_ADD_TC(tp, isc_hmacsha512);
+		cmocka_unit_test(isc_hmacsha1_test),
+		cmocka_unit_test(isc_hmacsha224_test),
+		cmocka_unit_test(isc_hmacsha256_test),
+		cmocka_unit_test(isc_hmacsha384_test),
+		cmocka_unit_test(isc_hmacsha512_test),
 #ifndef PK11_MD5_DISABLE
-	ATF_TP_ADD_TC(tp, isc_md5);
+		cmocka_unit_test(isc_md5_test),
 #endif
-	ATF_TP_ADD_TC(tp, isc_sha1);
-	ATF_TP_ADD_TC(tp, isc_sha224);
-	ATF_TP_ADD_TC(tp, isc_sha256);
-	ATF_TP_ADD_TC(tp, isc_sha384);
-	ATF_TP_ADD_TC(tp, isc_sha512);
-	ATF_TP_ADD_TC(tp, isc_crc64);
+		cmocka_unit_test(isc_sha1_test),
+		cmocka_unit_test(isc_sha224_test),
+		cmocka_unit_test(isc_sha256_test),
+		cmocka_unit_test(isc_sha384_test),
+		cmocka_unit_test(isc_sha512_test),
+		cmocka_unit_test(isc_crc64_test),
+	};
 
-	return (atf_no_error());
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
