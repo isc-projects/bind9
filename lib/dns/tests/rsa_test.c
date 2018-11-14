@@ -10,14 +10,21 @@
  */
 
 
-/* ! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/util.h>
 #include <isc/print.h>
@@ -27,6 +34,27 @@
 #include "dnstest.h"
 
 #include "../dst_internal.h"
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = dns_test_begin(NULL, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	dns_test_end();
+
+	return (0);
+}
 
 static unsigned char d[10] = {
 	0xa, 0x10, 0xbb, 0, 0xfe, 0x15, 0x1, 0x88, 0xcc, 0x7d
@@ -172,11 +200,9 @@ static unsigned char sigsha512[512] = {
 	0xff, 0x6a, 0x63, 0x8b, 0xe1, 0x2e, 0xa3, 0xa7
 };
 
-ATF_TC(isc_rsa_verify);
-ATF_TC_HEAD(isc_rsa_verify, tc) {
-	atf_tc_set_md_var(tc, "descr", "RSA verify");
-}
-ATF_TC_BODY(isc_rsa_verify, tc) {
+/* RSA verify */
+static void
+isc_rsa_verify_test(void **state) {
 	isc_result_t ret;
 	dns_fixedname_t fname;
 	isc_buffer_t buf;
@@ -185,36 +211,33 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 	dst_context_t *ctx = NULL;
 	isc_region_t r;
 
-	UNUSED(tc);
-
-	ret = dns_test_begin(NULL, false);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	name = dns_fixedname_initname(&fname);
 	isc_buffer_constinit(&buf, "rsa.", 4);
 	isc_buffer_add(&buf, 4);
 	ret = dns_name_fromtext(name, &buf, NULL, 0, NULL);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	ret = dst_key_fromfile(name, 29235, DST_ALG_RSASHA1,
 			       DST_TYPE_PUBLIC, "./", mctx, &key);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	/* RSASHA1 */
 
 	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
 				 false, 0, &ctx);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	r.base = d;
 	r.length = 10;
 	ret = dst_context_adddata(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	r.base = sigsha1;
 	r.length = 256;
 	ret = dst_context_verify(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	dst_context_destroy(&ctx);
 
@@ -224,17 +247,17 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 
 	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
 				 false, 0, &ctx);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	r.base = d;
 	r.length = 10;
 	ret = dst_context_adddata(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	r.base = sigmd5;
 	r.length = 256;
 	ret = dst_context_verify(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	dst_context_destroy(&ctx);
 
@@ -244,17 +267,17 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 
 	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
 				 false, 0, &ctx);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	r.base = d;
 	r.length = 10;
 	ret = dst_context_adddata(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	r.base = sigsha256;
 	r.length = 256;
 	ret = dst_context_verify(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	dst_context_destroy(&ctx);
 
@@ -264,30 +287,42 @@ ATF_TC_BODY(isc_rsa_verify, tc) {
 
 	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
 				 false, 0, &ctx);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	r.base = d;
 	r.length = 10;
 	ret = dst_context_adddata(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	r.base = sigsha512;
 	r.length = 256;
 	ret = dst_context_verify(ctx, &r);
-	ATF_REQUIRE_EQ(ret, ISC_R_SUCCESS);
+	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	dst_context_destroy(&ctx);
 
 
 	dst_key_free(&key);
-	dns_test_end();
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_rsa_verify);
-	return (atf_no_error());
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(isc_rsa_verify_test,
+						_setup, _teardown),
+	};
+
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
 
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
