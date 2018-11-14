@@ -5436,7 +5436,6 @@ AC_CONFIG_FILES([
 	lib/ns/tests/Makefile
 	lib/samples/Makefile
 	lib/samples/Makefile-postinstall
-	unit/Makefile
 	unit/unittest.sh
 ])
 
