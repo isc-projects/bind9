@@ -158,8 +158,8 @@ static dns_fixedname_t fuserzone;
 static dns_fixedname_t fzname;
 static dns_name_t *userzone = NULL;
 static dns_name_t *zname = NULL;
-static dns_name_t tmpzonename;
-static dns_name_t restart_master;
+static dns_name_t tmpzonename = DNS_NAME_INITEMPTY;
+static dns_name_t restart_master = DNS_NAME_INITEMPTY;
 static dns_tsig_keyring_t *gssring = NULL;
 static dns_tsigkey_t *tsigkey = NULL;
 static dst_key_t *sig0key = NULL;
@@ -2459,6 +2459,8 @@ update_completed(isc_task_t *task, isc_event_t *event) {
 	if (usegsstsig) {
 		dns_name_free(&tmpzonename, gmctx);
 		dns_name_free(&restart_master, gmctx);
+		dns_name_init(&tmpzonename, 0);
+		dns_name_init(&restart_master, 0);
 	}
 	isc_event_free(&event);
 	done_update();
@@ -2874,6 +2876,8 @@ failed_gssrequest() {
 
 	dns_name_free(&tmpzonename, gmctx);
 	dns_name_free(&restart_master, gmctx);
+	dns_name_init(&tmpzonename, NULL);
+	dns_name_init(&restart_master, NULL);
 
 	done_update();
 }
@@ -3281,6 +3285,12 @@ cleanup(void) {
 	if (realm != NULL) {
 		isc_mem_free(gmctx, realm);
 		realm = NULL;
+	}
+	if (dns_name_dynamic(&tmpzonename)) {
+		dns_name_free(&tmpzonename, gmctx);
+	}
+	if (dns_name_dynamic(&restart_master)) {
+		dns_name_free(&restart_master, gmctx);
 	}
 #endif
 
