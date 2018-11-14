@@ -13,13 +13,20 @@
 
 #include <config.h>
 
-#include <atf-c.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+
+#if HAVE_CMOCKA
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/app.h>
 #include <isc/buffer.h>
@@ -425,7 +432,7 @@ dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen)
 	memset(buf, 0, buflen);
 	isc_buffer_init(&target, buf, buflen);
 	result = isc_hex_totext((isc_region_t *)&source, 1, " ", &target);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	return (buf);
 }
@@ -568,14 +575,13 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
 
 	length = strlen(namestr);
 
-	result = isc_buffer_allocate(mctx, &b, length);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	isc_buffer_putmem(b, (const unsigned char *) namestr, length);
-
 	name = dns_fixedname_initname(fname);
-	ATF_REQUIRE(name != NULL);
+
+	result = isc_buffer_allocate(mctx, &b, length);
+
+	isc_buffer_putmem(b, (const unsigned char *) namestr, length);
 	result = dns_name_fromtext(name, b, dns_rootname, 0, NULL);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_free(&b);
 }
@@ -651,3 +657,4 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
 
 	return (result);
 }
+#endif /* HAVE_CMOCKA */

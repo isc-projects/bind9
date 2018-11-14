@@ -29,6 +29,6 @@ tap_test_program{name='rsa_test'}
 tap_test_program{name='sigs_test'}
 tap_test_program{name='time_test'}
 tap_test_program{name='tsig_test'}
-atf_test_program{name='update_test'}
+tap_test_program{name='update_test'}
 tap_test_program{name='zonemgr_test'}
 tap_test_program{name='zt_test'}
