@@ -1,3 +1,6 @@
+5093.	[bug]		Log lame qname-minimization servers only if they're
+			really lame. [GL #671]
+
 5092.	[bug]		Address memory leak on SIGTERM in nsupdate when using
 			GSS-TSIG. [GL #558]
 
