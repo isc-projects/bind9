@@ -116,7 +116,7 @@ stages:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
 #    - ./autogen.sh
   script:
-    - ./configure --enable-developer --with-libtool --disable-static --with-atf=/usr --prefix=$HOME/.local --without-make-clean $EXTRA_CONFIGURE || cat config.log
+    - ./configure --enable-developer --with-libtool --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean $EXTRA_CONFIGURE || cat config.log
     - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
     paths:
@@ -156,7 +156,6 @@ stages:
     - kyua report-html --force --results-file kyua.results --results-filter "" --output kyua_html
   artifacts:
     paths:
-    - atf.out
     - kyua.log
     - kyua.results
     - kyua_html/
