@@ -669,11 +669,8 @@ BIND9_ISCCFG_BUILDINCLUDE
 BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
-UNITTESTS
-ATFLIBS
-ATFBIN
-ATFBUILD
 LD_WRAP_TESTS
+UNITTESTS
 CMOCKA_LIBS
 CMOCKA_CFLAGS
 LIBIDN2_LDFLAGS
@@ -844,6 +841,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -927,7 +925,6 @@ with_libfstrm
 with_docbook_xsl
 with_libidn2
 with_cmocka
-with_atf
 with_tuning
 enable_querytrace
 enable_auto_validation
@@ -1003,6 +1000,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1255,6 +1253,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1392,7 +1399,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1545,6 +1552,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1658,7 +1666,6 @@ Optional Packages:
   --with-libidn2=PATH     enable IDN support using GNU libidn2
                           [yes|no(default)|path]
   --with-cmocka=no        enable cmocka based tests (default is no)
-  --with-atf              support Automated Test Framework
   --with-tuning=ARG       Specify server tuning (large or default)
   --with-dlopen=ARG       support dynamically loadable DLZ and DYNDB drivers
   --with-dnsrps-libname   DNSRPS provider library name (librpz.so)
@@ -19685,6 +19692,7 @@ case $with_cmocka in #(
     : ;; #(
   yes) :
 
+
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
 $as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
@@ -19776,7 +19784,9 @@ $as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
-fi ;; #(
+fi
+            UNITTESTS=tests
+             ;; #(
   *) :
 
 	    save_CFLAGS="$CFLAGS"
@@ -19857,6 +19867,7 @@ if test "$ac_res" != no; then :
 
 			       CMOCKA_CFLAGS="-I$with_cmocka/include"
 			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
+                               UNITTESTS=tests
 
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
@@ -19869,6 +19880,7 @@ fi
   *) :
      ;;
 esac
+
 
 
 
@@ -19912,87 +19924,6 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 LDFLAGS=$save_LDFLAGS
-
-#
-# Check whether to build Automated Test Framework unit tests
-#
-
-# Check whether --with-atf was given.
-if test "${with_atf+set}" = set; then :
-  withval=$with_atf; atf="$withval"
-else
-  atf="no"
-fi
-
-if test "yes" = "$atf"; then
-	atf=`pwd`/unit/atf
-	ATFBUILD=atf-src
-
-	ac_config_commands="$ac_config_commands atf-config"
-
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: building ATF from bind9/unit/atf-src" >&5
-$as_echo "building ATF from bind9/unit/atf-src" >&6; }
-fi
-
-ATFLIBS=
-if test "no" != "$atf"; then
-
-$as_echo "#define ATF_TEST 1" >>confdefs.h
-
-	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
-	STD_CDEFINES="$STD_CDEFINES -DNS_HOOKS_ENABLE=1"
-	ATFBIN="$atf/bin"
-	ATFLIBS="-L$atf/lib -latf-c"
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for exp in -lm" >&5
-$as_echo_n "checking for exp in -lm... " >&6; }
-if ${ac_cv_lib_m_exp+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-lm  $LIBS"
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char exp ();
-int
-main ()
-{
-return exp ();
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_m_exp=yes
-else
-  ac_cv_lib_m_exp=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_m_exp" >&5
-$as_echo "$ac_cv_lib_m_exp" >&6; }
-if test "x$ac_cv_lib_m_exp" = xyes; then :
-  libm=yes
-else
-  libm=no
-fi
-
-	if test "yes" = "$libm"; then
-		ATFLIBS="$ATFLIBS -lm"
-	fi
-	UNITTESTS=tests
-fi
-
-
-
 
 for ac_header in locale.h
 do :
@@ -22631,7 +22562,6 @@ fi
 
 
 
-atfdir=`pwd`/unit/atf
 
 _ACEOF
 
@@ -22645,7 +22575,6 @@ do
     "libtool") CONFIG_COMMANDS="$CONFIG_COMMANDS libtool" ;;
     "make/rules") CONFIG_FILES="$CONFIG_FILES make/rules" ;;
     "make/includes") CONFIG_FILES="$CONFIG_FILES make/includes" ;;
-    "atf-config") CONFIG_COMMANDS="$CONFIG_COMMANDS atf-config" ;;
     "contrib/dlz/bin/dlzbdb/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/dlz/bin/dlzbdb/Makefile" ;;
     "$DLZ_DRIVER_RULES") CONFIG_FILES="$CONFIG_FILES $DLZ_DRIVER_RULES" ;;
     "contrib/dlz/modules/mysql/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/dlz/modules/mysql/Makefile" ;;
@@ -23910,15 +23839,6 @@ ltmain=$ac_aux_dir/ltmain.sh
   chmod +x "$ofile"
 
  ;;
-    "atf-config":C) (
-		 mkdir -p unit/atf-src;
-		 cd unit/atf-src;
-		 case "$srcdir" in
-		 /*) ;;
-		 *) srcdir="../../$srcdir";;
-		 esac
-		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" --enable-tools --disable-shared MISSING=: --prefix $atfdir;
-		) || as_fn_error $? "Failed to configure ATF." "$LINENO" 5  ;;
     "chmod":C) chmod a+x isc-config.sh doc/doxygen/doxygen-input-filter ;;
 
   esac
@@ -24031,7 +23951,7 @@ report() {
     test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "yes" = "$want_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
-    test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
+    test "no" = "$with_cmocka" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "no" = "$want_autoval" || echo "    DNSSEC validation active by default (--enable-auto-validation)"
 
@@ -24086,7 +24006,7 @@ report() {
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
     test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
-    test "no" = "$atf" && echo "    Automated Testing Framework (--with-atf)"
+    test "no" = "$with_cmocka" && echo "    CMocka Unit Testng Framework (--with-cmocka)"
 
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"
