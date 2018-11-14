@@ -7012,17 +7012,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 		{
 			if (isc_log_wouldlog(ns_g_lctx, ISC_LOG_DEBUG(1))) {
 				char namebuf[DNS_NAME_FORMATSIZE];
-				char typename[DNS_RDATATYPE_FORMATSIZE];
+				char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 				dns_name_format(client->query.qname,
 						namebuf, sizeof(namebuf));
-				dns_rdatatype_format(qtype, typename,
-						     sizeof(typename));
+				dns_rdatatype_format(qtype, typebuf,
+						     sizeof(typebuf));
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 					      NS_LOGMODULE_QUERY,
 					      ISC_LOG_DEBUG(1),
 					      "servfail cache hit %s/%s (%s)",
-					      namebuf, typename,
+					      namebuf, typebuf,
 					      ((flags & NS_FAILCACHE_CD) != 0)
 					       ? "CD=1"
 					       : "CD=0");
@@ -7068,17 +7068,17 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 				  client->message->rdclass,
 				  qtype, false)) {
 		char namebuf[DNS_NAME_FORMATSIZE];
-		char typename[DNS_RDATATYPE_FORMATSIZE];
-		char classname[DNS_RDATACLASS_FORMATSIZE];
+		char typebuf[DNS_RDATATYPE_FORMATSIZE];
+		char classbuf[DNS_RDATACLASS_FORMATSIZE];
 
 		dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
-		dns_rdatatype_format(qtype, typename, sizeof(typename));
-		dns_rdataclass_format(client->message->rdclass, classname,
-				      sizeof(classname));
+		dns_rdatatype_format(qtype, typebuf, sizeof(typebuf));
+		dns_rdataclass_format(client->message->rdclass, classbuf,
+				      sizeof(classbuf));
 		ns_client_log(client, DNS_LOGCATEGORY_SECURITY,
 			      NS_LOGMODULE_QUERY, ISC_LOG_ERROR,
 			      "check-names failure %s/%s/%s", namebuf,
-			      typename, classname);
+			      typebuf, classbuf);
 		QUERY_ERROR(DNS_R_REFUSED);
 		goto cleanup;
 	}
@@ -9240,7 +9240,7 @@ static inline void
 log_tat(ns_client_t *client) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char clientbuf[ISC_NETADDR_FORMATSIZE];
-	char classname[DNS_RDATACLASS_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	isc_netaddr_t netaddr;
 	char *tags = NULL;
 	size_t taglen = 0;
@@ -9260,8 +9260,8 @@ log_tat(ns_client_t *client) {
 	isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
 	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
 	isc_netaddr_format(&netaddr, clientbuf, sizeof(clientbuf));
-	dns_rdataclass_format(client->view->rdclass, classname,
-			      sizeof(classname));
+	dns_rdataclass_format(client->view->rdclass, classbuf,
+			      sizeof(classbuf));
 
 	if (client->query.qtype == dns_rdatatype_dnskey) {
 		uint16_t keytags = client->keytag_len / 2;
@@ -9290,7 +9290,7 @@ log_tat(ns_client_t *client) {
 
 	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_TAT, NS_LOGMODULE_QUERY,
 		      ISC_LOG_INFO, "trust-anchor-telemetry '%s/%s' from %s%s",
-		      namebuf, classname, clientbuf, tags != NULL? tags : "");
+		      namebuf, classbuf, clientbuf, tags != NULL? tags : "");
 	if (tags != NULL) {
 		isc_mem_put(client->mctx, tags, taglen);
 	}
@@ -9299,8 +9299,8 @@ log_tat(ns_client_t *client) {
 static inline void
 log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char typename[DNS_RDATATYPE_FORMATSIZE];
-	char classname[DNS_RDATACLASS_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	char onbuf[ISC_NETADDR_FORMATSIZE];
 	char ednsbuf[sizeof("E(65535)")] = { 0 };
 	dns_rdataset_t *rdataset;
@@ -9312,8 +9312,8 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 	rdataset = ISC_LIST_HEAD(client->query.qname->list);
 	INSIST(rdataset != NULL);
 	dns_name_format(client->query.qname, namebuf, sizeof(namebuf));
-	dns_rdataclass_format(rdataset->rdclass, classname, sizeof(classname));
-	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
+	dns_rdataclass_format(rdataset->rdclass, classbuf, sizeof(classbuf));
+	dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 	isc_netaddr_format(&client->destaddr, onbuf, sizeof(onbuf));
 
 	if (client->ednsversion >= 0)
@@ -9322,7 +9322,7 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 
 	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY,
 		      level, "query: %s %s %s %s%s%s%s%s%s%s (%s)", namebuf,
-		      classname, typename, WANTRECURSION(client) ? "+" : "-",
+		      classbuf, typebuf, WANTRECURSION(client) ? "+" : "-",
 		      (client->signer != NULL) ? "S" : "", ednsbuf,
 		      TCP(client) ? "T" : "",
 		      ((extflags & DNS_MESSAGEEXTFLAG_DO) != 0) ? "D" : "",
@@ -9334,8 +9334,8 @@ log_query(ns_client_t *client, unsigned int flags, unsigned int extflags) {
 static inline void
 log_queryerror(ns_client_t *client, isc_result_t result, int line, int level) {
 	char namebuf[DNS_NAME_FORMATSIZE];
-	char typename[DNS_RDATATYPE_FORMATSIZE];
-	char classname[DNS_RDATACLASS_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
 	const char *namep, *typep, *classp, *sep1, *sep2;
 	dns_rdataset_t *rdataset;
 
@@ -9357,12 +9357,12 @@ log_queryerror(ns_client_t *client, isc_result_t result, int line, int level) {
 
 		rdataset = ISC_LIST_HEAD(client->query.origqname->list);
 		if (rdataset != NULL) {
-			dns_rdataclass_format(rdataset->rdclass, classname,
-					      sizeof(classname));
-			classp = classname;
-			dns_rdatatype_format(rdataset->type, typename,
-					     sizeof(typename));
-			typep = typename;
+			dns_rdataclass_format(rdataset->rdclass, classbuf,
+					      sizeof(classbuf));
+			classp = classbuf;
+			dns_rdatatype_format(rdataset->type, typebuf,
+					     sizeof(typebuf));
+			typep = typebuf;
 			sep2 = "/";
 		}
 	}
