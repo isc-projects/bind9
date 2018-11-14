@@ -1894,12 +1894,8 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 		isc__socket_t **socketp)
 {
 	isc__socket_t *sock;
-	isc_result_t result;
 
 	sock = isc_mem_get(manager->mctx, sizeof(*sock));
-
-	if (sock == NULL)
-		return (ISC_R_NOMEMORY);
 
 	sock->common.magic = 0;
 	sock->common.impmagic = 0;
@@ -1915,7 +1911,6 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->active = 0;
 
 	ISC_LINK_INIT(sock, link);
-
 
 	memset(sock->name, 0, sizeof(sock->name));
 	sock->tag = NULL;
@@ -1936,23 +1931,13 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	/*
 	 * Initialize the lock.
 	 */
-	result = isc_mutex_init(&sock->lock);
-	if (result != ISC_R_SUCCESS) {
-		sock->common.magic = 0;
-		sock->common.impmagic = 0;
-		goto error;
-	}
+	RUNTIME_CHECK(isc_mutex_init(&sock->lock) == ISC_R_SUCCESS);
 
 	sock->common.magic = ISCAPI_SOCKET_MAGIC;
 	sock->common.impmagic = SOCKET_MAGIC;
 	*socketp = sock;
 
 	return (ISC_R_SUCCESS);
-
- error:
-	isc_mem_put(manager->mctx, sock, sizeof(*sock));
-
-	return (result);
 }
 
 /*
@@ -3675,26 +3660,17 @@ setup_thread(isc__socketthread_t *thread) {
 	thread->fds = isc_mem_get(thread->manager->mctx,
 				  thread->manager->maxsocks *
 				   sizeof(isc__socket_t *));
-	if (thread->fds == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	memset(thread->fds, 0,
 	       thread->manager->maxsocks * sizeof(isc_socket_t *));
 
 	thread->fdstate = isc_mem_get(thread->manager->mctx,
 				      thread->manager->maxsocks * sizeof(int));
-	if (thread ->fdstate == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	memset(thread->fdstate, 0, thread->manager->maxsocks * sizeof(int));
 
 	thread->fdlock = isc_mem_get(thread->manager->mctx,
 				     FDLOCK_COUNT * sizeof(isc_mutex_t));
-	if (thread->fdlock == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	for (i = 0; i < FDLOCK_COUNT; i++) {
 		result = isc_mutex_init(&thread->fdlock[i]);
@@ -3718,9 +3694,6 @@ setup_thread(isc__socketthread_t *thread) {
 	thread->nevents = ISC_SOCKET_MAXEVENTS;
 	thread->events = isc_mem_get(thread->manager->mctx,
 				     sizeof(struct kevent) * thread->nevents);
-	if (thread->events == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	thread->kqueue_fd = kqueue();
 	if (thread->kqueue_fd == -1) {
@@ -3749,9 +3722,6 @@ setup_thread(isc__socketthread_t *thread) {
 	thread->epoll_events = isc_mem_get(thread->manager->mctx,
 					   (thread->manager->maxsocks *
 					    sizeof(uint32_t)));
-	if (thread->epoll_events == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	memset(thread->epoll_events, 0,
 	       thread->manager->maxsocks * sizeof(uint32_t));
@@ -3759,9 +3729,6 @@ setup_thread(isc__socketthread_t *thread) {
 	thread->events = isc_mem_get(thread->manager->mctx,
 				     sizeof(struct epoll_event) *
 				      thread->nevents);
-	if (thread->events == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	thread->epoll_fd = epoll_create(thread->nevents);
 	if (thread->epoll_fd == -1) {
@@ -3788,9 +3755,6 @@ setup_thread(isc__socketthread_t *thread) {
 	thread->calls = 0;
 	thread->events = isc_mem_get(thread->manager->mctx,
 				     sizeof(struct pollfd) * thread->nevents);
-	if (thread->events == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	/*
 	 * Note: fdpollinfo should be able to support all possible FDs, so
@@ -3799,12 +3763,6 @@ setup_thread(isc__socketthread_t *thread) {
 	thread->fdpollinfo = isc_mem_get(thread->manager->mctx,
 					 sizeof(pollinfo_t) *
 					  thread->manager->maxsocks);
-	if (thread->fdpollinfo == NULL) {
-		isc_mem_put(thread->manager->mctx, thread->events,
-			    sizeof(struct pollfd) * thread->nevents);
-		return (ISC_R_NOMEMORY);
-	}
-
 	memset(thread->fdpollinfo, 0, sizeof(pollinfo_t) *
 	       thread->manager->maxsocks);
 	thread->devpoll_fd = open("/dev/poll", O_RDWR);
@@ -3848,40 +3806,14 @@ setup_thread(isc__socketthread_t *thread) {
 	thread->fd_bufsize = sizeof(fd_set);
 #endif
 
-	thread->read_fds = NULL;
-	thread->read_fds_copy = NULL;
-	thread->write_fds = NULL;
-	thread->write_fds_copy = NULL;
-
 	thread->read_fds = isc_mem_get(thread->manager->mctx,
 				       thread->fd_bufsize);
-	if (thread->read_fds != NULL) {
-		thread->read_fds_copy = isc_mem_get(thread->manager->mctx,
-						    thread->fd_bufsize);
-	}
-	if (thread->read_fds_copy != NULL) {
-		thread->write_fds = isc_mem_get(thread->manager->mctx,
-						 thread->fd_bufsize);
-	}
-	if (thread->write_fds != NULL) {
-		thread->write_fds_copy = isc_mem_get(thread->manager->mctx,
-						     thread->fd_bufsize);
-	}
-	if (thread->write_fds_copy == NULL) {
-		if (thread->write_fds != NULL) {
-			isc_mem_put(thread->manager->mctx,
-				    thread->write_fds, thread->fd_bufsize);
-		}
-		if (thread->read_fds_copy != NULL) {
-			isc_mem_put(thread->manager->mctx,
-				    thread->read_fds_copy, thread->fd_bufsize);
-		}
-		if (thread->read_fds != NULL) {
-			isc_mem_put(thread->manager->mctx,
-				    thread->read_fds, thread->fd_bufsize);
-		}
-		return (ISC_R_NOMEMORY);
-	}
+	thread->read_fds_copy = isc_mem_get(thread->manager->mctx,
+					    thread->fd_bufsize);
+	thread->write_fds = isc_mem_get(thread->manager->mctx,
+					thread->fd_bufsize);
+	thread->write_fds_copy = isc_mem_get(thread->manager->mctx,
+					     thread->fd_bufsize);
 	memset(thread->read_fds, 0, thread->fd_bufsize);
 	memset(thread->write_fds, 0, thread->fd_bufsize);
 
@@ -3971,7 +3903,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 {
 	int i;
 	isc__socketmgr_t *manager;
-	isc_result_t result;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
@@ -3979,9 +3910,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		maxsocks = ISC_SOCKET_MAXSOCKETS;
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	if (manager == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	/* zero-clear so that necessary cleanup on failure will be easy */
 	memset(manager, 0, sizeof(*manager));
@@ -3995,42 +3923,26 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->common.impmagic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
 	ISC_LIST_INIT(manager->socklist);
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS) {
-		return (result);
-	}
-	if (isc_condition_init(&manager->shutdown_ok) != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
-	}
+	RUNTIME_CHECK(isc_mutex_init(&manager->lock) == ISC_R_SUCCESS);
 
+	RUNTIME_CHECK(isc_condition_init(&manager->shutdown_ok)
+		      == ISC_R_SUCCESS);
 
 	/*
 	 * Start up the select/poll thread.
 	 */
 	manager->threads = isc_mem_get(mctx, sizeof(isc__socketthread_t)
 					      * manager->nthreads);
-	RUNTIME_CHECK(manager->threads != NULL);
 	isc_mem_attach(mctx, &manager->mctx);
 
 	for (i=0; i < manager->nthreads; i++) {
 		manager->threads[i].manager = manager;
 		manager->threads[i].threadid = i;
 		setup_thread(&manager->threads[i]);
-		result = isc_thread_create(netthread, &manager->threads[i],
-					   &manager->threads[i].thread);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_thread_create() %s",
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_GENERAL,
-							ISC_MSG_FAILED,
-							"failed"));
-			return (ISC_R_UNEXPECTED);
-		}
+		RUNTIME_CHECK(isc_thread_create(netthread,
+						&manager->threads[i],
+						&manager->threads[i].thread)
+			      == ISC_R_SUCCESS);
 		char tname[1024];
 		sprintf(tname, "isc-socket-%d", i);
 		isc_thread_setname(manager->threads[i].thread, tname);
