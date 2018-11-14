@@ -1718,15 +1718,15 @@ load_text(dns_loadctx_t *lctx) {
 		if ((lctx->options & DNS_MASTER_ZONE) != 0 &&
 		    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
 		    (type == dns_rdatatype_md || type == dns_rdatatype_mf)) {
-			char typename[DNS_RDATATYPE_FORMATSIZE];
+			char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 			result = DNS_R_OBSOLETE;
 
-			dns_rdatatype_format(type, typename, sizeof(typename));
+			dns_rdatatype_format(type, typebuf, sizeof(typebuf));
 			(*callbacks->error)(callbacks,
 					    "%s:%lu: %s '%s': %s",
 					    source, line,
-					    "type", typename,
+					    "type", typebuf,
 					    dns_result_totext(result));
 			if (MANYERRS(lctx, result)) {
 				SETRESULT(lctx, result);
@@ -1742,15 +1742,15 @@ load_text(dns_loadctx_t *lctx) {
 		    (lctx->options & DNS_MASTER_SLAVE) == 0 &&
 		    dns_rdatatype_ismeta(type))
 		{
-			char typename[DNS_RDATATYPE_FORMATSIZE];
+			char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
 			result = DNS_R_METATYPE;
 
-			dns_rdatatype_format(type, typename, sizeof(typename));
+			dns_rdatatype_format(type, typebuf, sizeof(typebuf));
 			(*callbacks->error)(callbacks,
 					    "%s:%lu: %s '%s': %s",
 					    source, line,
-					    "type", typename,
+					    "type", typebuf,
 					    dns_result_totext(result));
 			if (MANYERRS(lctx, result)) {
 				SETRESULT(lctx, result);
