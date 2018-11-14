@@ -445,6 +445,16 @@ ret=0
   grep "ednsopt no code point specified" dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "check that dig -q -m works ($n)"
+  ret=0
+  $DIG $DIGOPTS @10.53.0.3 -q -m > dig.out.test$n 2>&1
+  grep '^;-m\..*IN.*A$' dig.out.test$n > /dev/null || ret=1
+  grep "Dump of all outstanding memory allocations" dig.out.test$n > /dev/null && ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi
