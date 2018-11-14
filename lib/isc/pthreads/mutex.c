@@ -88,10 +88,10 @@ isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line) {
 	int i, err;
 
 	err = pthread_mutex_init(&mp->mutex, NULL);
-	if (err == ENOMEM)
-		return (ISC_R_NOMEMORY);
-	if (err != 0)
-		return (ISC_R_UNEXPECTED);
+	if (err != 0) {
+		strerror_r(err, strbuf, sizeof(strbuf));
+		isc_error_fatal(file, line, "pthread_mutex_init failed: %s", strbuf);
+	}
 
 	RUNTIME_CHECK(pthread_mutex_lock(&statslock) == 0);
 
@@ -294,9 +294,7 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 		return (ISC_R_NOMEMORY);
 	if (err != 0) {
 		strerror_r(err, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(file, line, "isc_mutex_init() failed: %s",
-				 strbuf);
-		result = ISC_R_UNEXPECTED;
+		isc_error_fatal(file, line, "pthread_mutex_init failed: %s", strbuf);
 	}
 	return (result);
 }

@@ -23,8 +23,8 @@
 typedef pthread_cond_t isc_condition_t;
 
 #define isc_condition_init(cp) \
-	((pthread_cond_init((cp), NULL) == 0) ? \
-	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
+	(RUNTIME_CHECK(pthread_cond_init((cp), NULL) == 0), \
+	 ISC_R_SUCCESS)
 
 #if ISC_MUTEX_PROFILE
 #define isc_condition_wait(cp, mp) \
