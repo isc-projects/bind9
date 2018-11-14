@@ -182,6 +182,11 @@ LIBDNS_EXTERNAL_DATA extern dns_name_t *dns_wildcardname;
 	{NULL, NULL} \
 }
 
+#define DNS_NAME_INITEMPTY { \
+	DNS_NAME_MAGIC, NULL, 0, 0, 0, NULL, NULL, \
+	{ (void *)-1, (void *)-1 }, { NULL, NULL } \
+}
+
 /*%
  * Standard size of a wire format name
  */
