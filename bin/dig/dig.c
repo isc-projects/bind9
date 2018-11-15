@@ -66,7 +66,7 @@ static char hexcookie[81];
 
 static bool short_form = false, printcmd = true,
 	plusquest = false, pluscomm = false,
-	ipv4only = false, ipv6only = false;
+	ipv4only = false, ipv6only = false, digrc = true;
 static uint32_t splitwidth = 0xffffffff;
 
 /*% opcode text */
@@ -157,6 +157,7 @@ help(void) {
 "                 -m                  (enable memory usage debugging)\n"
 "                 -p port             (specify port number)\n"
 "                 -q name             (specify query name)\n"
+"                 -r                  (do not read ~/.digrc)\n"
 "                 -t type             (specify query type)\n"
 "                 -u                  (display times in usec instead of msec)\n"
 "                 -x dot-notation     (shortcut for reverse lookups)\n"
@@ -1543,8 +1544,8 @@ plus_option(char *option, bool is_batchfile,
 /*%
  * #true returned if value was used
  */
-static const char *single_dash_opts = "46dhimnuv";
-static const char *dash_opts = "46bcdfhikmnpqtvyx";
+static const char *single_dash_opts = "46dhimnruv";
+static const char *dash_opts = "46bcdfhikmnpqrtvyx";
 static bool
 dash_option(char *option, char *next, dig_lookup_t **lookup,
 	    bool *open_type_class, bool *need_clone,
@@ -1614,6 +1615,10 @@ dash_option(char *option, char *next, dig_lookup_t **lookup,
 			break;
 		case 'n':
 			/* deprecated */
+			break;
+		case 'r':
+			debug("digrc (late)");
+			digrc = false;
 			break;
 		case 'u':
 			(*lookup)->use_usec = true;
@@ -1841,10 +1846,22 @@ preparse_args(int argc, char **argv) {
 		option = &rv[0][1];
 		while (strpbrk(option, single_dash_opts) == &option[0]) {
 			switch (option[0]) {
+			case 'd':
+				/* For debugging early startup */
+				debugging = true;
+				break;
 			case 'm':
 				memdebugging = true;
 				isc_mem_debugging = ISC_MEM_DEBUGTRACE |
 					ISC_MEM_DEBUGRECORD;
+				break;
+			case 'r':
+				/*
+				 * Must be done early, because ~/.digrc
+				 * is read before command line parsing
+				 */
+				debug("digrc (early)");
+				digrc = false;
 				break;
 			case '4':
 				if (ipv6only)
@@ -1939,8 +1956,9 @@ parse_args(bool is_batchfile, bool config_only,
 		 */
 		INSIST(batchfp == NULL);
 		homedir = getenv("HOME");
-		if (homedir != NULL) {
+		if (homedir != NULL && digrc) {
 			unsigned int n;
+			debug("digrc (open)");
 			n = snprintf(rcfile, sizeof(rcfile), "%s/.digrc",
 				     homedir);
 			if (n < sizeof(rcfile)) {
