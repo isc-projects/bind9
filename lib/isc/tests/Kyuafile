@@ -2,7 +2,7 @@ syntax(2)
 test_suite('bind9')
 
 tap_test_program{name='aes_test'}
-atf_test_program{name='atomic_test'}
+tap_test_program{name='atomic_test'}
 tap_test_program{name='buffer_test'}
 tap_test_program{name='counter_test'}
 tap_test_program{name='errno_test'}
