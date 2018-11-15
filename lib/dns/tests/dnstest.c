@@ -115,8 +115,10 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	CHECK(isc_mem_create(0, 0, &mctx));
 
-	CHECK(dst_lib_init(mctx, NULL));
-	dst_active = true;
+	if (!dst_active) {
+		CHECK(dst_lib_init(mctx, NULL));
+		dst_active = true;
+	}
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
@@ -145,12 +147,13 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 		CHECK(create_managers());
 
 	/*
-	 * atf-run changes us to a /tmp directory, so tests
+	 * The caller might run from another directory, so tests
 	 * that access test data files must first chdir to the proper
 	 * location.
 	 */
-	if (chdir(TESTS) == -1)
+	if (chdir(TESTS) == -1) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	return (ISC_R_SUCCESS);
 
