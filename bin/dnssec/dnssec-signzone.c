@@ -533,8 +533,6 @@ signset(dns_diff_t *del, dns_diff_t *add, dns_dbnode_t *node, dns_name_t *name,
 		arraysize += dns_rdataset_count(&sigset);
 	wassignedby = isc_mem_get(mctx, arraysize * sizeof(bool));
 	nowsignedby = isc_mem_get(mctx, arraysize * sizeof(bool));
-	if (wassignedby == NULL || nowsignedby == NULL)
-		fatal("out of memory");
 
 	for (i = 0; i < arraysize; i++)
 		wassignedby[i] = nowsignedby[i] = false;
