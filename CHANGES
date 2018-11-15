@@ -1,3 +1,6 @@
+5097.	[cleanup]	Remove embedded ATF unit testing framework
+			from BIND source distribution.  [GL !875]
+
 5095.	[test]		Converted all unit tests from ATF to CMocka;
 			removed the source code for the ATF libraries.
 			Build with "configure --with-cmocka" to enable
