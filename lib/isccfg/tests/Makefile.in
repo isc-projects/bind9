@@ -33,6 +33,9 @@ ISCCFGDEPLIBS = ../libisccfg.@A@
 
 LIBS =		@LIBS@ @ATFLIBS@
 
+CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
+CMOCKA_LIBS =	@CMOCKA_LIBS@
+
 OBJS =
 SRCS =		parser_test.c
 

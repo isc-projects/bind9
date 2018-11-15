@@ -122,8 +122,10 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
-	dst_active = true;
+	if (!dst_active) {
+		CHECK(dst_lib_init(mctx, NULL));
+		dst_active = true;
+	}
 
 	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
 	hash_active = true;
@@ -155,12 +157,13 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 		CHECK(create_managers());
 
 	/*
-	 * atf-run changes us to a /tmp directory, so tests
+	 * The caller might run from another directory, so tests
 	 * that access test data files must first chdir to the proper
 	 * location.
 	 */
-	if (chdir(TESTS) == -1)
+	if (chdir(TESTS) == -1) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	return (ISC_R_SUCCESS);
 

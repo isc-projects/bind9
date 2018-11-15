@@ -32,6 +32,9 @@ NSDEPLIBS =	../libns.@A@
 
 LIBS =		@LIBS@ @ATFLIBS@
 
+CMOCKA_CFLAGS =	@CMOCKA_CFLAGS@
+CMOCKA_LIBS =	@CMOCKA_LIBS@
+
 OBJS =		nstest.@O@
 SRCS =		nstest.c \
 		listenlist_test.c \
