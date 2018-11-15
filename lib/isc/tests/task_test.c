@@ -9,17 +9,24 @@
  * information regarding copyright ownership.
  */
 
-/*! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <stdbool.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <inttypes.h>
+#include <string.h>
 
+#define UNIT_TESTING
+#include <cmocka.h>
+
+#include <isc/commandline.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
 #include <isc/platform.h>
@@ -31,11 +38,11 @@
 
 #include "isctest.h"
 
-/*
- * Helper functions
- */
+static bool verbose = false;
 
 static isc_mutex_t lock;
+static isc_condition_t cv;
+
 int counter = 0;
 static int active[10];
 static bool done = false;
@@ -43,6 +50,72 @@ static bool done = false;
 #ifdef ISC_PLATFORM_USETHREADS
 static isc_condition_t cv;
 #endif
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_condition_init(&cv);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_test_begin(NULL, true, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_setup2(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_condition_init(&cv);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/* Two worker threads */
+	result = isc_test_begin(NULL, true, 2);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_setup4(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_mutex_init(&lock);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	result = isc_condition_init(&cv);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	/* Four worker threads */
+	result = isc_test_begin(NULL, true, 4);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	isc_test_end();
+	isc_condition_destroy(&cv);
+
+	return (0);
+}
 
 static void
 set(isc_task_t *task, isc_event_t *event) {
@@ -70,71 +143,50 @@ set_and_drop(isc_task_t *task, isc_event_t *event) {
 	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_normal);
 }
 
-/*
- * Individual unit tests
- */
-
 /* Create a task */
-ATF_TC(create_task);
-ATF_TC_HEAD(create_task, tc) {
-	atf_tc_set_md_var(tc, "descr", "create and destroy a task");
-}
-ATF_TC_BODY(create_task, tc) {
+static void
+create_task(void **state) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
 
-	UNUSED(tc);
-
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	result = isc_task_create(taskmgr, 0, &task);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_task_destroy(&task);
-	ATF_REQUIRE_EQ(task, NULL);
-
-	isc_test_end();
+	assert_null(task);
 }
 
 /* Process events */
-ATF_TC(all_events);
-ATF_TC_HEAD(all_events, tc) {
-	atf_tc_set_md_var(tc, "descr", "process task events");
-}
-ATF_TC_BODY(all_events, tc) {
+static void
+all_events(void **state) {
 	isc_result_t result;
 	isc_task_t *task = NULL;
 	isc_event_t *event = NULL;
 	int a = 0, b = 0;
 	int i = 0;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	counter = 1;
 
-	result = isc_mutex_init(&lock);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
 	result = isc_task_create(taskmgr, 0, &task);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* First event */
 	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
 				   set, &a, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(a, 0);
+	assert_int_equal(a, 0);
 	isc_task_send(task, &event);
 
 	event = isc_event_allocate(mctx, task, ISC_TASKEVENT_TEST,
 				   set, &b, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(b, 0);
+	assert_int_equal(b, 0);
 	isc_task_send(task, &event);
 
 	while ((a == 0 || b == 0) && i++ < 5000) {
@@ -145,35 +197,25 @@ ATF_TC_BODY(all_events, tc) {
 		isc_test_nap(1000);
 	}
 
-	ATF_CHECK(a != 0);
-	ATF_CHECK(b != 0);
+	assert_int_not_equal(a, 0);
+	assert_int_not_equal(b, 0);
 
 	isc_task_destroy(&task);
-	ATF_REQUIRE_EQ(task, NULL);
-
-	isc_test_end();
+	assert_null(task);
 }
 
 /* Privileged events */
-ATF_TC(privileged_events);
-ATF_TC_HEAD(privileged_events, tc) {
-	atf_tc_set_md_var(tc, "descr", "process privileged events");
-}
-ATF_TC_BODY(privileged_events, tc) {
+static void
+privileged_events(void **state) {
 	isc_result_t result;
 	isc_task_t *task1 = NULL, *task2 = NULL;
 	isc_event_t *event = NULL;
 	int a = 0, b = 0, c = 0, d = 0, e = 0;
 	int i = 0;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	counter = 1;
-	result = isc_mutex_init(&lock);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 #ifdef ISC_PLATFORM_USETHREADS
 	/*
@@ -184,60 +226,60 @@ ATF_TC_BODY(privileged_events, tc) {
 #endif
 
 	result = isc_task_create(taskmgr, 0, &task1);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_task_setname(task1, "privileged", NULL);
-	ATF_CHECK(!isc_task_privilege(task1));
+	assert_false(isc_task_privilege(task1));
 	isc_task_setprivilege(task1, true);
-	ATF_CHECK(isc_task_privilege(task1));
+	assert_true(isc_task_privilege(task1));
 
 	result = isc_task_create(taskmgr, 0, &task2);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_task_setname(task2, "normal", NULL);
-	ATF_CHECK(!isc_task_privilege(task2));
+	assert_false(isc_task_privilege(task2));
 
 	/* First event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &a, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(a, 0);
+	assert_int_equal(a, 0);
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
 	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set, &b, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(b, 0);
+	assert_int_equal(b, 0);
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &c, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(c, 0);
+	assert_int_equal(c, 0);
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set, &d, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(d, 0);
+	assert_int_equal(d, 0);
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
 	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set, &e, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(e, 0);
+	assert_int_equal(e, 0);
 	isc_task_send(task2, &event);
 
-	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
+	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
 	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
-	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
+	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
 
 #ifdef ISC_PLATFORM_USETHREADS
 	isc__taskmgr_resume(taskmgr);
@@ -257,52 +299,42 @@ ATF_TC_BODY(privileged_events, tc) {
 	 * we do know the privileged tasks that set a, c, and d
 	 * would have fired first.
 	 */
-	ATF_CHECK(a <= 3);
-	ATF_CHECK(c <= 3);
-	ATF_CHECK(d <= 3);
+	assert_true(a <= 3);
+	assert_true(c <= 3);
+	assert_true(d <= 3);
 
 	/* ...and the non-privileged tasks that set b and e, last */
-	ATF_CHECK(b >= 4);
-	ATF_CHECK(e >= 4);
+	assert_true(b >= 4);
+	assert_true(e >= 4);
 
-	ATF_CHECK_EQ(counter, 6);
+	assert_int_equal(counter, 6);
 
 	isc_task_setprivilege(task1, false);
-	ATF_CHECK(!isc_task_privilege(task1));
+	assert_false(isc_task_privilege(task1));
 
-	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
+	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
 
 	isc_task_destroy(&task1);
-	ATF_REQUIRE_EQ(task1, NULL);
+	assert_null(task1);
 	isc_task_destroy(&task2);
-	ATF_REQUIRE_EQ(task2, NULL);
-
-	isc_test_end();
+	assert_null(task2);
 }
 
 /*
  * Edge case: this tests that the task manager behaves as expected when
  * we explicitly set it into normal mode *while* running privileged.
  */
-ATF_TC(privilege_drop);
-ATF_TC_HEAD(privilege_drop, tc) {
-	atf_tc_set_md_var(tc, "descr", "process privileged events");
-}
-ATF_TC_BODY(privilege_drop, tc) {
+static void
+privilege_drop(void **state) {
 	isc_result_t result;
 	isc_task_t *task1 = NULL, *task2 = NULL;
 	isc_event_t *event = NULL;
 	int a = -1, b = -1, c = -1, d = -1, e = -1;	/* non valid states */
 	int i = 0;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	counter = 1;
-	result = isc_mutex_init(&lock);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
 
 #ifdef ISC_PLATFORM_USETHREADS
 	/*
@@ -313,60 +345,60 @@ ATF_TC_BODY(privilege_drop, tc) {
 #endif
 
 	result = isc_task_create(taskmgr, 0, &task1);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_task_setname(task1, "privileged", NULL);
-	ATF_CHECK(!isc_task_privilege(task1));
+	assert_false(isc_task_privilege(task1));
 	isc_task_setprivilege(task1, true);
-	ATF_CHECK(isc_task_privilege(task1));
+	assert_true(isc_task_privilege(task1));
 
 	result = isc_task_create(taskmgr, 0, &task2);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	isc_task_setname(task2, "normal", NULL);
-	ATF_CHECK(!isc_task_privilege(task2));
+	assert_false(isc_task_privilege(task2));
 
 	/* First event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &a, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(a, -1);
+	assert_int_equal(a, -1);
 	isc_task_send(task1, &event);
 
 	/* Second event: not privileged */
 	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set_and_drop, &b, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(b, -1);
+	assert_int_equal(b, -1);
 	isc_task_send(task2, &event);
 
 	/* Third event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &c, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(c, -1);
+	assert_int_equal(c, -1);
 	isc_task_send(task1, &event);
 
 	/* Fourth event: privileged */
 	event = isc_event_allocate(mctx, task1, ISC_TASKEVENT_TEST,
 				   set_and_drop, &d, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(d, -1);
+	assert_int_equal(d, -1);
 	isc_task_send(task1, &event);
 
 	/* Fifth event: not privileged */
 	event = isc_event_allocate(mctx, task2, ISC_TASKEVENT_TEST,
 				   set_and_drop, &e, sizeof (isc_event_t));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
-	ATF_CHECK_EQ(e, -1);
+	assert_int_equal(e, -1);
 	isc_task_send(task2, &event);
 
-	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
+	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
 	isc_taskmgr_setmode(taskmgr, isc_taskmgrmode_privileged);
-	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
+	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_privileged);
 
 #ifdef ISC_PLATFORM_USETHREADS
 	isc__taskmgr_resume(taskmgr);
@@ -387,25 +419,23 @@ ATF_TC_BODY(privilege_drop, tc) {
 	 * we do know *exactly one* of the privileged tasks will
 	 * have run in privileged mode...
 	 */
-	ATF_CHECK(a == isc_taskmgrmode_privileged ||
-		  c == isc_taskmgrmode_privileged ||
-		  d == isc_taskmgrmode_privileged);
-	ATF_CHECK(a + c + d == isc_taskmgrmode_privileged);
+	assert_true(a == isc_taskmgrmode_privileged ||
+		    c == isc_taskmgrmode_privileged ||
+		    d == isc_taskmgrmode_privileged);
+	assert_true(a + c + d == isc_taskmgrmode_privileged);
 
 	/* ...and neither of the non-privileged tasks did... */
-	ATF_CHECK(b == isc_taskmgrmode_normal || e == isc_taskmgrmode_normal);
+	assert_true(b == isc_taskmgrmode_normal || e == isc_taskmgrmode_normal);
 
 	/* ...but all five of them did run. */
-	ATF_CHECK_EQ(counter, 6);
+	assert_int_equal(counter, 6);
 
-	ATF_CHECK_EQ(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
+	assert_int_equal(isc_taskmgr_mode(taskmgr), isc_taskmgrmode_normal);
 
 	isc_task_destroy(&task1);
-	ATF_REQUIRE_EQ(task1, NULL);
+	assert_null(task1);
 	isc_task_destroy(&task2);
-	ATF_REQUIRE_EQ(task2, NULL);
-
-	isc_test_end();
+	assert_null(task2);
 }
 
 /*
@@ -413,8 +443,7 @@ ATF_TC_BODY(privilege_drop, tc) {
  */
 static void
 basic_cb(isc_task_t *task, isc_event_t *event) {
-	int i;
-	int j;
+	int i, j;
 
 	UNUSED(task);
 
@@ -423,7 +452,10 @@ basic_cb(isc_task_t *task, isc_event_t *event) {
 		j += 100;
 	}
 
-	printf("task %s\n", (char *)event->ev_arg);
+	if (verbose) {
+		print_message("# task %s\n", (char *)event->ev_arg);
+	}
+
 	isc_event_free(&event);
 }
 
@@ -431,7 +463,10 @@ static void
 basic_shutdown(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
-	printf("shutdown %s\n", (char *)event->ev_arg);
+	if (verbose) {
+		print_message("# shutdown %s\n", (char *)event->ev_arg);
+	}
+
 	isc_event_free(&event);
 }
 
@@ -440,7 +475,10 @@ basic_tick(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	printf("%s\n", (char *)event->ev_arg);
+	if (verbose) {
+		print_message("# %s\n", (char *)event->ev_arg);
+	}
+
 	isc_event_free(&event);
 }
 
@@ -451,12 +489,8 @@ static char four[] = "4";
 static char tick[] = "tick";
 static char tock[] = "tock";
 
-
-ATF_TC(basic);
-ATF_TC_HEAD(basic, tc) {
-	atf_tc_set_md_var(tc, "descr", "basic task system check");
-}
-ATF_TC_BODY(basic, tc) {
+static void
+basic(void **state) {
 	isc_result_t result;
 	isc_task_t *task1 = NULL;
 	isc_task_t *task2 = NULL;
@@ -473,35 +507,32 @@ ATF_TC_BODY(basic, tc) {
 	};
 	int i;
 
-	UNUSED(tc);
-
-	result = isc_test_begin(NULL, true, 2);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	result = isc_task_create(taskmgr, 0, &task1);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_create(taskmgr, 0, &task2);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_create(taskmgr, 0, &task3);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_create(taskmgr, 0, &task4);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_onshutdown(task1, basic_shutdown, one);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_onshutdown(task2, basic_shutdown, two);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_onshutdown(task3, basic_shutdown, three);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	result = isc_task_onshutdown(task4, basic_shutdown, four);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_time_settoepoch(&absolute);
 	isc_interval_set(&interval, 1, 0);
 	result = isc_timer_create(timermgr, isc_timertype_ticker,
 				&absolute, &interval,
 				task1, basic_tick, tick, &ti1);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	ti2 = NULL;
 	isc_time_settoepoch(&absolute);
@@ -509,7 +540,7 @@ ATF_TC_BODY(basic, tc) {
 	result = isc_timer_create(timermgr, isc_timertype_ticker,
 				  &absolute, &interval,
 				  task2, basic_tick, tock, &ti2);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 #ifndef WIN32
 	sleep(2);
@@ -529,7 +560,7 @@ ATF_TC_BODY(basic, tc) {
 		 */
 		event = isc_event_allocate(mctx, (void *)1, 1, basic_cb,
 					   testarray[i], sizeof(*event));
-		ATF_REQUIRE(event != NULL);
+		assert_non_null(event);
 		isc_task_send(task1, &event);
 	}
 
@@ -547,8 +578,6 @@ ATF_TC_BODY(basic, tc) {
 #endif
 	isc_timer_detach(&ti1);
 	isc_timer_detach(&ti2);
-
-	isc_test_end();
 }
 
 /*
@@ -556,14 +585,15 @@ ATF_TC_BODY(basic, tc) {
  * When one task enters exclusive mode, all other active
  * tasks complete first.
  */
-static
-int spin(int n) {
+static int
+spin(int n) {
 	int i;
 	int r = 0;
 	for (i = 0; i < n; i++) {
 		r += i;
-		if (r > 1000000)
+		if (r > 1000000) {
 			r = 0;
+		}
 	}
 	return (r);
 }
@@ -572,7 +602,9 @@ static void
 exclusive_cb(isc_task_t *task, isc_event_t *event) {
 	int taskno = *(int *)(event->ev_arg);
 
-	printf("task enter %d\n", taskno);
+	if (verbose) {
+		print_message("# task enter %d\n", taskno);
+	}
 
 	/* task chosen from the middle of the range */
 	if (taskno == 6) {
@@ -580,10 +612,10 @@ exclusive_cb(isc_task_t *task, isc_event_t *event) {
 		int i;
 
 		result = isc_task_beginexclusive(task);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 
 		for (i = 0; i < 10; i++) {
-			ATF_CHECK(active[i] == 0);
+			assert_int_equal(active[i], 0);
 		}
 
 		isc_task_endexclusive(task);
@@ -594,7 +626,9 @@ exclusive_cb(isc_task_t *task, isc_event_t *event) {
 		active[taskno]--;
 	}
 
-	printf("task exit %d\n", taskno);
+	if (verbose) {
+		print_message("# task exit %d\n", taskno);
+	}
 
 	if (done) {
 		isc_mem_put(event->ev_destroy_arg, event->ev_arg, sizeof (int));
@@ -604,19 +638,13 @@ exclusive_cb(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-ATF_TC(task_exclusive);
-ATF_TC_HEAD(task_exclusive, tc) {
-	atf_tc_set_md_var(tc, "descr", "test exclusive mode");
-}
-ATF_TC_BODY(task_exclusive, tc) {
+static void
+task_exclusive(void **state) {
 	isc_task_t *tasks[10];
 	isc_result_t result;
 	int i;
 
-	UNUSED(tc);
-
-	result = isc_test_begin(NULL, true, 4);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	for (i = 0; i < 10; i++) {
 		isc_event_t *event = NULL;
@@ -625,16 +653,21 @@ ATF_TC_BODY(task_exclusive, tc) {
 		tasks[i] = NULL;
 
 		result = isc_task_create(taskmgr, 0, &tasks[i]);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
+
+		/* task chosen from the middle of the range */
+		if (i == 6) {
+			isc_taskmgr_setexcltask(taskmgr, tasks[6]);
+		}
 
 		v = isc_mem_get(mctx, sizeof *v);
-		ATF_REQUIRE(v != NULL);
+		assert_non_null(v);
 
 		*v = i;
 
 		event = isc_event_allocate(mctx, NULL, 1, exclusive_cb,
 					   v, sizeof(*event));
-		ATF_REQUIRE(event != NULL);
+		assert_non_null(event);
 
 		isc_task_send(tasks[i], &event);
 	}
@@ -642,7 +675,6 @@ ATF_TC_BODY(task_exclusive, tc) {
 	for (i = 0; i < 10; i++) {
 		isc_task_detach(&tasks[i]);
 	}
-	isc_test_end();
 }
 
 /*
@@ -664,14 +696,9 @@ maxtask_shutdown(isc_task_t *task, isc_event_t *event) {
 		done = true;
 		SIGNAL(&cv);
 		UNLOCK(&lock);
-
-		isc_event_free(&event);
-		isc_taskmgr_destroy(&taskmgr);
-		isc_mem_destroy(&mctx);
-
-		isc_condition_destroy(&cv);
-		DESTROYLOCK(&lock);
 	}
+
+	isc_event_free(&event);
 }
 
 static void
@@ -687,54 +714,58 @@ maxtask_cb(isc_task_t *task, isc_event_t *event) {
 		 * Create a new task and forward the message.
 		 */
 		result = isc_task_create(taskmgr, 0, &newtask);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 
 		result = isc_task_onshutdown(newtask, maxtask_shutdown,
-						 (void *)task);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+					     (void *)task);
+		assert_int_equal(result, ISC_R_SUCCESS);
 
 		isc_task_send(newtask, &event);
 	} else if (task != NULL) {
 		isc_task_destroy(&task);
+		isc_event_free(&event);
 	}
 }
 
-ATF_TC(manytasks);
-ATF_TC_HEAD(manytasks, tc) {
-	atf_tc_set_md_var(tc, "descr", "many tasks");
-}
-ATF_TC_BODY(manytasks, tc) {
+static void
+manytasks(void **state) {
 	isc_result_t result;
 	isc_event_t *event = NULL;
 	uintptr_t ntasks = 10000;
 
-	UNUSED(tc);
+	UNUSED(state);
 
-	printf("Testing with %lu tasks\n", (unsigned long)ntasks);
-
-	result = isc_mutex_init(&lock);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	if (verbose) {
+		print_message("# Testing with %lu tasks\n",
+			      (unsigned long)ntasks);
+	}
 
 	result = isc_condition_init(&cv);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
+	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	result = isc_mem_create(0, 0, &mctx);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_taskmgr_create(mctx, 4, 0, &taskmgr);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	done = false;
 
 	event = isc_event_allocate(mctx, (void *)1, 1, maxtask_cb,
 				   (void *)ntasks, sizeof(*event));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 
 	LOCK(&lock);
 	maxtask_cb(NULL, event);
 	while (!done) {
 		WAIT(&cv, &lock);
 	}
-}
 
+	isc_taskmgr_destroy(&taskmgr);
+	isc_mem_destroy(&mctx);
+	isc_condition_destroy(&cv);
+}
 
 /*
  * Shutdown test:
@@ -742,30 +773,39 @@ ATF_TC_BODY(manytasks, tc) {
  * in LIFO order.
  */
 
-static int senders[4];
 static int nevents = 0;
 static int nsdevents = 0;
+static int senders[4];
+bool ready = false, all_done = false;
 
 static void
 sd_sde1(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
-	ATF_CHECK_EQ(nevents, 256);
-	ATF_REQUIRE_EQ(nsdevents, 1);
+	assert_int_equal(nevents, 256);
+	assert_int_equal(nsdevents, 1);
 	++nsdevents;
-	printf("shutdown 1\n");
+
+	if (verbose) {
+		print_message("# shutdown 1\n");
+	}
 
 	isc_event_free(&event);
+
+	all_done = true;
 }
 
 static void
 sd_sde2(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
-	ATF_CHECK_EQ(nevents, 256);
-	ATF_REQUIRE_EQ(nsdevents, 0);
+	assert_int_equal(nevents, 256);
+	assert_int_equal(nsdevents, 0);
 	++nsdevents;
-	printf("shutdown 2\n");
+
+	if (verbose) {
+		print_message("# shutdown 2\n");
+	}
 
 	isc_event_free(&event);
 }
@@ -775,11 +815,14 @@ sd_event1(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	LOCK(&lock);
-	while (!done) {
+	while (!ready) {
 		WAIT(&cv, &lock);
 	}
+	UNLOCK(&lock);
 
-	printf("event 1\n");
+	if (verbose) {
+		print_message("# event 1\n");
+	}
 
 	isc_event_free(&event);
 }
@@ -790,48 +833,38 @@ sd_event2(isc_task_t *task, isc_event_t *event) {
 
 	++nevents;
 
-	printf("event 2\n");
+	if (verbose) {
+		print_message("# event 2\n");
+	}
 
 	isc_event_free(&event);
 }
 
-ATF_TC(shutdown);
-ATF_TC_HEAD(shutdown, tc) {
-	atf_tc_set_md_var(tc, "descr", "task shutdown");
-}
-ATF_TC_BODY(shutdown, tc) {
+static void
+shutdown(void **state) {
 	isc_result_t result;
 	isc_eventtype_t event_type;
 	isc_event_t *event = NULL;
 	isc_task_t *task = NULL;
 	int i;
 
+	UNUSED(state);
+
 	nevents = nsdevents = 0;
-	done = false;
-
 	event_type = 3;
-
-	result = isc_test_begin(NULL, true, 4);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	result = isc_mutex_init(&lock);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	result = isc_condition_init(&cv);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	ready = false;
 
 	LOCK(&lock);
 
-	task = NULL;
 	result = isc_task_create(taskmgr, 0, &task);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * This event causes the task to wait on cv.
 	 */
 	event = isc_event_allocate(mctx, &senders[1], event_type, sd_event1,
 				   NULL, sizeof(*event));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 	isc_task_send(task, &event);
 
 	/*
@@ -840,7 +873,7 @@ ATF_TC_BODY(shutdown, tc) {
 	for (i = 0; i < 256; ++i) {
 		event = isc_event_allocate(mctx, &senders[1], event_type,
 					   sd_event2, NULL, sizeof(*event));
-		ATF_REQUIRE(event != NULL);
+		assert_non_null(event);
 		isc_task_send(task, &event);
 	}
 
@@ -848,25 +881,26 @@ ATF_TC_BODY(shutdown, tc) {
 	 * Now we register two shutdown events.
 	 */
 	result = isc_task_onshutdown(task, sd_sde1, NULL);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_onshutdown(task, sd_sde2, NULL);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_task_shutdown(task);
+	isc_task_detach(&task);
 
 	/*
 	 * Now we free the task by signaling cv.
 	 */
-	done = true;
+	ready = true;
 	SIGNAL(&cv);
 	UNLOCK(&lock);
 
-	isc_task_detach(&task);
+	while (!all_done) {
+		isc_test_nap(1000);
+	}
 
-	isc_test_end();
-
-	ATF_REQUIRE_EQ(nsdevents, 2);
+	assert_int_equal(nsdevents, 2);
 }
 
 /*
@@ -896,46 +930,39 @@ psd_sde(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 }
 
-ATF_TC(post_shutdown);
-ATF_TC_HEAD(post_shutdown, tc) {
-	atf_tc_set_md_var(tc, "descr", "post-shutdown");
-}
-ATF_TC_BODY(post_shutdown, tc) {
+static void
+post_shutdown(void **state) {
 	isc_result_t result;
 	isc_eventtype_t event_type;
 	isc_event_t *event;
 	isc_task_t *task;
 
+	UNUSED(state);
+
 	done = false;
 	event_type = 4;
 
-	result = isc_mutex_init(&lock);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
 	result = isc_condition_init(&cv);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	result = isc_test_begin(NULL, true, 2);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	LOCK(&lock);
 
 	task = NULL;
 	result = isc_task_create(taskmgr, 0, &task);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * This event causes the task to wait on cv.
 	 */
 	event = isc_event_allocate(mctx, &senders[1], event_type, psd_event1,
 				   NULL, sizeof(*event));
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 	isc_task_send(task, &event);
 
 	isc_task_shutdown(task);
 
 	result = isc_task_onshutdown(task, psd_sde, NULL);
-	ATF_CHECK_EQ(result, ISC_R_SHUTTINGDOWN);
+	assert_int_equal(result, ISC_R_SHUTTINGDOWN);
 
 	/*
 	 * Release the task.
@@ -946,10 +973,6 @@ ATF_TC_BODY(post_shutdown, tc) {
 	UNLOCK(&lock);
 
 	isc_task_detach(&task);
-	isc_test_end();
-
-	(void) isc_condition_destroy(&cv);
-	DESTROYLOCK(&lock);
 }
 
 /*
@@ -1013,14 +1036,19 @@ pg_event2(isc_task_t *task, isc_event_t *event) {
 
 	if (sender_match && type_match && tag_match) {
 		if ((event->ev_attributes & ISC_EVENTATTR_NOPURGE) != 0) {
-			printf("event %p,%d,%p matched but was not purgeable\n",
-			       event->ev_sender, (int)event->ev_type,
-			       event->ev_tag);
+			if (verbose) {
+				print_message("# event %p,%d,%p "
+					      "matched but was not "
+					      "purgeable\n",
+					      event->ev_sender,
+					      (int)event->ev_type,
+					      event->ev_tag);
+			}
 			++eventcnt;
-		} else {
-			printf("*** event %p,%d,%p not purged\n",
-			       event->ev_sender, (int)event->ev_type,
-			       event->ev_tag);
+		} else if (verbose) {
+			print_message("# event %p,%d,%p not purged\n",
+				      event->ev_sender, (int)event->ev_type,
+				      event->ev_tag);
 		}
 	} else {
 		++eventcnt;
@@ -1056,20 +1084,14 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 	done = false;
 	eventcnt = 0;
 
-	result = isc_test_begin(NULL, true, 2);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	result = isc_mutex_init(&lock);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
 	result = isc_condition_init(&cv);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_create(taskmgr, 0, &task);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_onshutdown(task, pg_sde, NULL);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Block the task on cv.
@@ -1077,7 +1099,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 	event = isc_event_allocate(mctx, (void *)1, 9999,
 				   pg_event1, NULL, sizeof(*event));
 
-	ATF_REQUIRE(event != NULL);
+	assert_non_null(event);
 	isc_task_send(task, &event);
 
 	/*
@@ -1094,7 +1116,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 					    (isc_eventtype_t)(type + type_cnt),
 					    pg_event2, NULL, sizeof(*event));
 
-				ATF_REQUIRE(eventtab[event_cnt] != NULL);
+				assert_non_null(eventtab[event_cnt]);
 
 				eventtab[event_cnt]->ev_tag =
 					(void *)((uintptr_t)tag + tag_cnt);
@@ -1129,18 +1151,25 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 					      (isc_eventtype_t)purge_type_first,
 					      (isc_eventtype_t)purge_type_last,
 					      purge_tag);
-		ATF_CHECK_EQ(purged, exp_purged);
+		assert_int_equal(purged, exp_purged);
 	} else {
 		/*
 		 * We're testing isc_task_purge.
 		 */
-		printf("purge events %p,%u,%p\n",
-		       purge_sender, purge_type_first, purge_tag);
+		if (verbose) {
+			print_message("# purge events %p,%u,%p\n",
+				      purge_sender, purge_type_first,
+				      purge_tag);
+		}
 		purged = isc_task_purge(task, purge_sender,
 					(isc_eventtype_t)purge_type_first,
 					purge_tag);
-		printf("purged %d expected %d\n", purged, exp_purged);
-		ATF_CHECK_EQ(purged, exp_purged);
+		if (verbose) {
+			print_message("# purged %d expected %d\n",
+				      purged, exp_purged);
+		}
+
+		assert_int_equal(purged, exp_purged);
 	}
 
 	/*
@@ -1159,7 +1188,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 	 */
 	while (!done) {
 		result = isc_time_nowplusinterval(&now, &interval);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 
 		WAITUNTIL(&cv, &lock, &now);
 	}
@@ -1168,11 +1197,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 
 	isc_task_detach(&task);
 
-	isc_test_end();
-	DESTROYLOCK(&lock);
-	(void) isc_condition_destroy(&cv);
-
-	ATF_CHECK_EQ(eventcnt, event_cnt - exp_purged);
+	assert_int_equal(eventcnt, event_cnt - exp_purged);
 }
 
 /*
@@ -1181,13 +1206,14 @@ test_purge(int sender, int type, int tag, int exp_purged) {
  * type 'type' and with tag 'tag' not marked as unpurgeable from sender
  * from the task's " queue and returns the number of events purged.
  */
-ATF_TC(purge);
-ATF_TC_HEAD(purge, tc) {
-	atf_tc_set_md_var(tc, "descr", "purge");
-}
-ATF_TC_BODY(purge, tc) {
+static void
+purge(void **state) {
+	UNUSED(state);
+
 	/* Try purging on a specific sender. */
-	printf("testing purge on 2,4,8 expecting 1\n");
+	if (verbose) {
+		print_message("# testing purge on 2,4,8 expecting 1\n");
+	}
 	purge_sender = &senders[2];
 	purge_type_first = 4;
 	purge_type_last = 4;
@@ -1196,7 +1222,9 @@ ATF_TC_BODY(purge, tc) {
 	test_purge(1, 4, 7, 1);
 
 	/* Try purging on all senders. */
-	printf("testing purge on 0,4,8 expecting 3\n");
+	if (verbose) {
+		print_message("# testing purge on 0,4,8 expecting 3\n");
+	}
 	purge_sender = NULL;
 	purge_type_first = 4;
 	purge_type_last = 4;
@@ -1205,7 +1233,9 @@ ATF_TC_BODY(purge, tc) {
 	test_purge(1, 4, 7, 3);
 
 	/* Try purging on all senders, specified type, all tags. */
-	printf("testing purge on 0,4,0 expecting 15\n");
+	if (verbose) {
+		print_message("# testing purge on 0,4,0 expecting 15\n");
+	}
 	purge_sender = NULL;
 	purge_type_first = 4;
 	purge_type_last = 4;
@@ -1214,7 +1244,9 @@ ATF_TC_BODY(purge, tc) {
 	test_purge(1, 4, 7, 15);
 
 	/* Try purging on a specified tag, no such type. */
-	printf("testing purge on 0,99,8 expecting 0\n");
+	if (verbose) {
+		print_message("# testing purge on 0,99,8 expecting 0\n");
+	}
 	purge_sender = NULL;
 	purge_type_first = 99;
 	purge_type_last = 99;
@@ -1222,10 +1254,10 @@ ATF_TC_BODY(purge, tc) {
 	testrange = false;
 	test_purge(1, 4, 7, 0);
 
-	/*
-	 * Try purging on specified sender, type, all tags.
-	 */
-	printf("testing purge on 3,5,0 expecting 5\n");
+	/* Try purging on specified sender, type, all tags. */
+	if (verbose) {
+		print_message("# testing purge on 3,5,0 expecting 5\n");
+	}
 	purge_sender = &senders[3];
 	purge_type_first = 5;
 	purge_type_last = 5;
@@ -1242,13 +1274,12 @@ ATF_TC_BODY(purge, tc) {
  * returns the number of tasks purged.
  */
 
-ATF_TC(purgerange);
-ATF_TC_HEAD(purgerange, tc) {
-	atf_tc_set_md_var(tc, "descr", "purge-range");
-}
-ATF_TC_BODY(purgerange, tc) {
+static void
+purgerange(void **state) {
+	UNUSED(state);
+
 	/* Now let's try some ranges. */
-	printf("testing purgerange on 2,4-5,8 expecting 1\n");
+	/* testing purgerange on 2,4-5,8 expecting 1 */
 	purge_sender = &senders[2];
 	purge_type_first = 4;
 	purge_type_last = 5;
@@ -1257,7 +1288,9 @@ ATF_TC_BODY(purgerange, tc) {
 	test_purge(1, 4, 7, 1);
 
 	/* Try purging on all senders. */
-	printf("testing purge on 0,4-5,8 expecting 5\n");
+	if (verbose) {
+		print_message("# testing purge on 0,4-5,8 expecting 5\n");
+	}
 	purge_sender = NULL;
 	purge_type_first = 4;
 	purge_type_last = 5;
@@ -1266,7 +1299,9 @@ ATF_TC_BODY(purgerange, tc) {
 	test_purge(1, 4, 7, 5);
 
 	/* Try purging on all senders, specified type, all tags. */
-	printf("testing purge on 0,5-6,0 expecting 28\n");
+	if (verbose) {
+		print_message("# testing purge on 0,5-6,0 expecting 28\n");
+	}
 	purge_sender = NULL;
 	purge_type_first = 5;
 	purge_type_last = 6;
@@ -1275,7 +1310,9 @@ ATF_TC_BODY(purgerange, tc) {
 	test_purge(1, 4, 7, 28);
 
 	/* Try purging on a specified tag, no such type. */
-	printf("testing purge on 0,99-101,8 expecting 0\n");
+	if (verbose) {
+		print_message("# testing purge on 0,99-101,8 expecting 0\n");
+	}
 	purge_sender = NULL;
 	purge_type_first = 99;
 	purge_type_last = 101;
@@ -1284,7 +1321,9 @@ ATF_TC_BODY(purgerange, tc) {
 	test_purge(1, 4, 7, 0);
 
 	/* Try purging on specified sender, type, all tags. */
-	printf("testing purge on 3,5-6,0 expecting 10\n");
+	if (verbose) {
+		print_message("# testing purge on 3,5-6,0 expecting 10\n");
+	}
 	purge_sender = &senders[3];
 	purge_type_first = 5;
 	purge_type_last = 6;
@@ -1345,32 +1384,26 @@ try_purgeevent(bool purgeable) {
 	done = false;
 	eventcnt = 0;
 
-	result = isc_mutex_init(&lock);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
 	result = isc_condition_init(&cv);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-	result = isc_test_begin(NULL, true, 2);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_create(taskmgr, 0, &task);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_task_onshutdown(task, pge_sde, NULL);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Block the task on cv.
 	 */
 	event1 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
 				    pge_event1, NULL, sizeof(*event1));
-	ATF_REQUIRE(event1 != NULL);
+	assert_non_null(event1);
 	isc_task_send(task, &event1);
 
 	event2 = isc_event_allocate(mctx, (void *)1, (isc_eventtype_t)1,
 				    pge_event2, NULL, sizeof(*event2));
-	ATF_REQUIRE(event2 != NULL);
+	assert_non_null(event2);
 
 	event2_clone = event2;
 
@@ -1383,7 +1416,7 @@ try_purgeevent(bool purgeable) {
 	isc_task_send(task, &event2);
 
 	purged = isc_task_purgeevent(task, event2_clone);
-	ATF_CHECK_EQ(purgeable, purged);
+	assert_int_equal(purgeable, purged);
 
 	/*
 	 * Unblock the task, allowing event processing.
@@ -1401,7 +1434,7 @@ try_purgeevent(bool purgeable) {
 	 */
 	while (!done) {
 		result = isc_time_nowplusinterval(&now, &interval);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 
 		WAITUNTIL(&cv, &lock, &now);
 	}
@@ -1410,11 +1443,7 @@ try_purgeevent(bool purgeable) {
 
 	isc_task_detach(&task);
 
-	isc_test_end();
-	DESTROYLOCK(&lock);
-	(void) isc_condition_destroy(&cv);
-
-	ATF_REQUIRE_EQ(eventcnt, (purgeable ? 0 : 1));
+	assert_int_equal(eventcnt, (purgeable ? 0 : 1));
 }
 
 /*
@@ -1424,11 +1453,10 @@ try_purgeevent(bool purgeable) {
  * task's queue and returns true.
  */
 
-ATF_TC(purgeevent);
-ATF_TC_HEAD(purgeevent, tc) {
-	atf_tc_set_md_var(tc, "descr", "purge-event");
-}
-ATF_TC_BODY(purgeevent, tc) {
+static void
+purgeevent(void **state) {
+	UNUSED(state);
+
 	try_purgeevent(true);
 }
 
@@ -1439,35 +1467,62 @@ ATF_TC_BODY(purgeevent, tc) {
  * 'event' from the task's queue and returns false.
  */
 
-ATF_TC(purgeevent_notpurge);
-ATF_TC_HEAD(purgeevent_notpurge, tc) {
-	atf_tc_set_md_var(tc, "descr", "purge-event");
-}
-ATF_TC_BODY(purgeevent_notpurge, tc) {
+static void
+purgeevent_notpurge(void **state) {
+	UNUSED(state);
+
 	try_purgeevent(false);
 }
 #endif
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, create_task);
-	ATF_TP_ADD_TC(tp, all_events);
-	ATF_TP_ADD_TC(tp, privileged_events);
-	ATF_TP_ADD_TC(tp, privilege_drop);
-	ATF_TP_ADD_TC(tp, basic);
-	ATF_TP_ADD_TC(tp, task_exclusive);
-
+int
+main(int argc, char **argv) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(create_task, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(all_events, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(privileged_events,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(privilege_drop,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(basic, _setup2, _teardown),
+		cmocka_unit_test_setup_teardown(task_exclusive,
+						_setup4, _teardown),
 #ifdef ISC_PLATFORM_USETHREADS
-	ATF_TP_ADD_TC(tp, manytasks);
-	ATF_TP_ADD_TC(tp, shutdown);
-	ATF_TP_ADD_TC(tp, post_shutdown);
-	ATF_TP_ADD_TC(tp, purge);
-	ATF_TP_ADD_TC(tp, purgerange);
-	ATF_TP_ADD_TC(tp, purgeevent);
-	ATF_TP_ADD_TC(tp, purgeevent_notpurge);
+		cmocka_unit_test(manytasks),
+		cmocka_unit_test_setup_teardown(shutdown, _setup4, _teardown),
+		cmocka_unit_test_setup_teardown(post_shutdown,
+						_setup2, _teardown),
+		cmocka_unit_test_setup_teardown(purge, _setup2, _teardown),
+		cmocka_unit_test_setup_teardown(purgerange, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(purgeevent, _setup2, _teardown),
+		cmocka_unit_test_setup_teardown(purgeevent_notpurge,
+						_setup, _teardown),
 #endif
+	};
+	int c;
 
-	return (atf_no_error());
+	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
+		switch (c) {
+		case 'v':
+			verbose = true;
+			break;
+		default:
+			break;
+		}
+	}
+
+
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
