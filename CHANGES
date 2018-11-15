@@ -1,3 +1,6 @@
+5097.	[cleanup]	Remove embedded ATF unit testing framework
+			from BIND source distribution.  [GL !875]
+
 5096.	[func]		Use multiple event loops in socket code, and
 			make network threads CPU-affinitive.  This
 			significantly improves performance on large
