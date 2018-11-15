@@ -19875,7 +19875,7 @@ esac
 
 
 #
-# Check for kyua execution engine if ATF was requested
+# Check for kyua execution engine if CMocka was requested
 # and bail out if execution engine was not found
 #
 
@@ -19926,7 +19926,8 @@ fi
 done
 
        if test -z "$KYUA"; then :
-  as_fn_error $? "kyua test execution engine not found" "$LINENO" 5
+  { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: kyua test execution engine not found" >&5
+$as_echo "$as_me: WARNING: kyua test execution engine not found" >&2;}
 fi
 fi
 
