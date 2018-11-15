@@ -299,7 +299,8 @@ static isc_result_t get_udpsocket(dns_dispatchmgr_t *mgr,
 				  isc_socketmgr_t *sockmgr,
 				  const isc_sockaddr_t *localaddr,
 				  isc_socket_t **sockp,
-				  isc_socket_t *dup_socket);
+				  isc_socket_t *dup_socket,
+				  bool duponly);
 static isc_result_t dispatch_createudp(dns_dispatchmgr_t *mgr,
 				       isc_socketmgr_t *sockmgr,
 				       isc_taskmgr_t *taskmgr,
@@ -317,7 +318,7 @@ static void qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp);
 static isc_result_t open_socket(isc_socketmgr_t *mgr,
 				const isc_sockaddr_t *local,
 				unsigned int options, isc_socket_t **sockp,
-				isc_socket_t *dup_socket);
+				isc_socket_t *dup_socket, bool duponly);
 static bool portavailable(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 				   isc_sockaddr_t *sockaddrp);
 
@@ -728,7 +729,7 @@ get_dispsocket(dns_dispatch_t *disp, const isc_sockaddr_t *dest,
 		if (portentry != NULL)
 			bindoptions |= ISC_SOCKET_REUSEADDRESS;
 		result = open_socket(sockmgr, &localaddr, bindoptions, &sock,
-				     NULL);
+				     NULL, false);
 		if (result == ISC_R_SUCCESS) {
 			if (portentry == NULL) {
 				portentry = new_portentry(disp, port);
@@ -1667,7 +1668,7 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 static isc_result_t
 open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 	    unsigned int options, isc_socket_t **sockp,
-	    isc_socket_t *dup_socket)
+	    isc_socket_t *dup_socket, bool duponly)
 {
 	isc_socket_t *sock;
 	isc_result_t result;
@@ -1675,12 +1676,16 @@ open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 	sock = *sockp;
 	if (sock != NULL) {
 		result = isc_socket_open(sock);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
-	} else if (dup_socket != NULL) {
+		}
+	} else if (dup_socket != NULL &&
+		   (!isc_socket_hasreuseport() || duponly))
+	{
 		result = isc_socket_dup(dup_socket, &sock);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 
 		isc_socket_setname(sock, "dispatcher", NULL);
 		*sockp = sock;
@@ -1688,8 +1693,9 @@ open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 	} else {
 		result = isc_socket_create(mgr, isc_sockaddr_pf(local),
 					   isc_sockettype_udp, &sock);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (result);
+		}
 	}
 
 	isc_socket_setname(sock, "dispatcher", NULL);
@@ -1699,9 +1705,9 @@ open_socket(isc_socketmgr_t *mgr, const isc_sockaddr_t *local,
 #endif
 	result = isc_socket_bind(sock, local, options);
 	if (result != ISC_R_SUCCESS) {
-		if (*sockp == NULL)
+		if (*sockp == NULL) {
 			isc_socket_detach(&sock);
-		else {
+		} else {
 			isc_socket_close(sock);
 		}
 		return (result);
@@ -2757,7 +2763,7 @@ dns_dispatch_getudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 static isc_result_t
 get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	      isc_socketmgr_t *sockmgr, const isc_sockaddr_t *localaddr,
-	      isc_socket_t **sockp, isc_socket_t *dup_socket)
+	      isc_socket_t **sockp, isc_socket_t *dup_socket, bool duponly)
 {
 	unsigned int i, j;
 	isc_socket_t *held[DNS_DISPATCH_HELD];
@@ -2795,7 +2801,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 			prt = ports[isc_random_uniform(nports)];
 			isc_sockaddr_setport(&localaddr_bound, prt);
 			result = open_socket(sockmgr, &localaddr_bound,
-					     0, &sock, NULL);
+					     0, &sock, NULL, false);
 			/*
 			 * Continue if the port choosen is already in use
 			 * or the OS has reserved it.
@@ -2816,7 +2822,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 		/* Allow to reuse address for non-random ports. */
 		result = open_socket(sockmgr, localaddr,
 				     ISC_SOCKET_REUSEADDRESS, &sock,
-				     dup_socket);
+				     dup_socket, duponly);
 
 		if (result == ISC_R_SUCCESS)
 			*sockp = sock;
@@ -2828,7 +2834,7 @@ get_udpsocket(dns_dispatchmgr_t *mgr, dns_dispatch_t *disp,
 	i = 0;
 
 	for (j = 0; j < 0xffffU; j++) {
-		result = open_socket(sockmgr, localaddr, 0, &sock, NULL);
+		result = open_socket(sockmgr, localaddr, 0, &sock, NULL, false);
 		if (result != ISC_R_SUCCESS)
 			goto end;
 		else if (portavailable(mgr, sock, NULL))
@@ -2872,22 +2878,27 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	dns_dispatch_t *disp;
 	isc_socket_t *sock = NULL;
 	int i = 0;
+	bool duponly = ((attributes & DNS_DISPATCHATTR_CANREUSE) == 0);
 
+	/* This is an attribute needed only at creation time */
+	attributes &= ~DNS_DISPATCHATTR_CANREUSE;
 	/*
 	 * dispatch_allocate() checks mgr for us.
 	 */
 	disp = NULL;
 	result = dispatch_allocate(mgr, maxrequests, &disp);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (result);
+	}
 
 	disp->socktype = isc_sockettype_udp;
 
 	if ((attributes & DNS_DISPATCHATTR_EXCLUSIVE) == 0) {
 		result = get_udpsocket(mgr, disp, sockmgr, localaddr, &sock,
-				       dup_socket);
-		if (result != ISC_R_SUCCESS)
+				       dup_socket, duponly);
+		if (result != ISC_R_SUCCESS) {
 			goto deallocate_dispatch;
+		}
 
 		if (isc_log_wouldlog(dns_lctx, 90)) {
 			char addrbuf[ISC_SOCKADDR_FORMATSIZE];
@@ -2910,35 +2921,42 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		 */
 		isc_sockaddr_anyofpf(&sa_any, isc_sockaddr_pf(localaddr));
 		if (!isc_sockaddr_eqaddr(&sa_any, localaddr)) {
-			result = open_socket(sockmgr, localaddr, 0, &sock, NULL);
-			if (sock != NULL)
+			result = open_socket(sockmgr, localaddr, 0,
+					     &sock, NULL, false);
+			if (sock != NULL) {
 				isc_socket_detach(&sock);
-			if (result != ISC_R_SUCCESS)
+			}
+			if (result != ISC_R_SUCCESS) {
 				goto deallocate_dispatch;
+			}
 		}
 
 		disp->port_table = isc_mem_get(mgr->mctx,
 					       sizeof(disp->port_table[0]) *
 					       DNS_DISPATCH_PORTTABLESIZE);
-		if (disp->port_table == NULL)
+		if (disp->port_table == NULL) {
 			goto deallocate_dispatch;
-		for (i = 0; i < DNS_DISPATCH_PORTTABLESIZE; i++)
+		}
+		for (i = 0; i < DNS_DISPATCH_PORTTABLESIZE; i++) {
 			ISC_LIST_INIT(disp->port_table[i]);
+		}
 
 		result = isc_mempool_create(mgr->mctx, sizeof(dispportentry_t),
 					    &disp->portpool);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto deallocate_dispatch;
+		}
 		isc_mempool_setname(disp->portpool, "disp_portpool");
 		isc_mempool_setfreemax(disp->portpool, 128);
 	}
 	disp->socket = sock;
 	disp->local = *localaddr;
 
-	if ((attributes & DNS_DISPATCHATTR_EXCLUSIVE) != 0)
+	if ((attributes & DNS_DISPATCHATTR_EXCLUSIVE) != 0) {
 		disp->ntasks = MAX_INTERNAL_TASKS;
-	else
+	} else {
 		disp->ntasks = 1;
+	}
 	for (i = 0; i < disp->ntasks; i++) {
 		disp->task[i] = NULL;
 		result = isc_task_create(taskmgr, 50, &disp->task[i]);
@@ -2970,8 +2988,9 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	}
 
 	result = isc_mutex_init(&disp->sepool_lock);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto kill_sepool;
+	}
 
 	isc_mempool_setname(disp->sepool, "disp_sepool");
 	isc_mempool_setmaxalloc(disp->sepool, 32768);
@@ -2990,8 +3009,9 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 
 	mgr_log(mgr, LVL(90), "created UDP dispatcher %p", disp);
 	dispatch_log(disp, LVL(90), "created task %p", disp->task[0]); /* XXX */
-	if (disp->socket != NULL)
+	if (disp->socket != NULL) {
 		dispatch_log(disp, LVL(90), "created socket %p", disp->socket);
+	}
 
 	*dispp = disp;
 
@@ -3005,11 +3025,13 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
  kill_ctlevent:
 	isc_event_free(&disp->ctlevent);
  kill_task:
-	for (i = 0; i < disp->ntasks; i++)
+	for (i = 0; i < disp->ntasks; i++) {
 		isc_task_detach(&disp->task[i]);
+	}
  kill_socket:
-	if (disp->socket != NULL)
+	if (disp->socket != NULL) {
 		isc_socket_detach(&disp->socket);
+	}
  deallocate_dispatch:
 	dispatch_free(&disp);
 

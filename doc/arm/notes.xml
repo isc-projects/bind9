@@ -133,6 +133,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  Task manager and socket code have been substantially modified.
+	  The manager uses per-cpu queues for tasks and network stack runs
+	  multiple event loops in CPU-affinitive threads. This greatly
+	  improves performance on large systems, especially when using
+	  multi-queue NICs.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  A new secondary zone option, <command>mirror</command>,
 	  enables <command>named</command> to serve a transferred copy
 	  of a zone's contents without acting as an authority for the

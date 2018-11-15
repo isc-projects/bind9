@@ -793,10 +793,7 @@ create_managers(void) {
 	named_g_udpdisp = 1;
 #else
 	if (named_g_udpdisp == 0) {
-		if (named_g_cpus_detected == 1)
-			named_g_udpdisp = 1;
-		else
-			named_g_udpdisp = named_g_cpus_detected - 1;
+		named_g_udpdisp = named_g_cpus_detected;
 	}
 	if (named_g_udpdisp > named_g_cpus)
 		named_g_udpdisp = named_g_cpus;
@@ -824,7 +821,7 @@ create_managers(void) {
 	}
 
 	result = isc_socketmgr_create2(named_g_mctx, &named_g_socketmgr,
-				       maxsocks);
+				       maxsocks, named_g_cpus);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_socketmgr_create() failed: %s",

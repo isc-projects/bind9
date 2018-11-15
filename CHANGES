@@ -1,3 +1,8 @@
+5096.	[func]		Use multiple event loops in socket code, and
+			make network threads CPU-affinitive.  This
+			significantly improves performance on large
+			systems. [GL #666]
+
 5095.	[test]		Converted all unit tests from ATF to CMocka;
 			removed the source code for the ATF libraries.
 			Build with "configure --with-cmocka" to enable

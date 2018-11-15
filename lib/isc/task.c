@@ -205,7 +205,7 @@ wake_all_queues(isc__taskmgr_t *manager);
 
 static inline void
 wake_all_queues(isc__taskmgr_t *manager) {
-	for (unsigned i=0; i < manager->workers; i++) {
+	for (unsigned int i = 0; i < manager->workers; i++) {
 		LOCK(&manager->queues[i].lock);
 		BROADCAST(&manager->queues[i].work_available);
 		UNLOCK(&manager->queues[i].lock);
@@ -379,8 +379,9 @@ task_ready(isc__task_t *task) {
 	XTRACE("task_ready");
 	LOCK(&manager->queues[task->threadid].lock);
 	push_readyq(manager, task, task->threadid);
-	if (manager->mode == isc_taskmgrmode_normal || has_privilege)
+	if (manager->mode == isc_taskmgrmode_normal || has_privilege) {
 		SIGNAL(&manager->queues[task->threadid].work_available);
+	}
 	UNLOCK(&manager->queues[task->threadid].lock);
 }
 
@@ -898,16 +899,18 @@ static inline isc__task_t *
 pop_readyq(isc__taskmgr_t *manager, int c) {
 	isc__task_t *task;
 
-	if (manager->mode == isc_taskmgrmode_normal)
+	if (manager->mode == isc_taskmgrmode_normal) {
 		task = HEAD(manager->queues[c].ready_tasks);
-	else
+	} else {
 		task = HEAD(manager->queues[c].ready_priority_tasks);
+	}
 
 	if (task != NULL) {
 		DEQUEUE(manager->queues[c].ready_tasks, task, ready_link);
-		if (ISC_LINK_LINKED(task, ready_priority_link))
+		if (ISC_LINK_LINKED(task, ready_priority_link)) {
 			DEQUEUE(manager->queues[c].ready_priority_tasks, task,
 				ready_priority_link);
+		}
 	}
 
 	return (task);
@@ -922,9 +925,10 @@ pop_readyq(isc__taskmgr_t *manager, int c) {
 static inline void
 push_readyq(isc__taskmgr_t *manager, isc__task_t *task, int c) {
 	ENQUEUE(manager->queues[c].ready_tasks, task, ready_link);
-	if ((task->flags & TASK_F_PRIVILEGED) != 0)
+	if ((task->flags & TASK_F_PRIVILEGED) != 0) {
 		ENQUEUE(manager->queues[c].ready_priority_tasks, task,
 			ready_priority_link);
+	}
 	atomic_fetch_add_explicit(&manager->tasks_ready, 1,
 				  memory_order_acquire);
 }
@@ -1001,19 +1005,26 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 		 * If a pause has been requested, don't do any work
 		 * until it's been released.
 		 */
-		while ((empty_readyq(manager, threadid) && !manager->pause_requested &&
-			!manager->exclusive_requested) && !FINISHED(manager))
+		while ((empty_readyq(manager, threadid) &&
+			!manager->pause_requested &&
+			!manager->exclusive_requested) &&
+		       !FINISHED(manager))
 		{
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_GENERAL,
 						    ISC_MSG_WAIT, "wait"));
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_GENERAL,
-						    ISC_MSG_WAIT, manager->pause_requested ? "paused" : "notpaused"));
+						    ISC_MSG_WAIT,
+						    manager->pause_requested
+						     ? "paused" : "notpaused"));
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_GENERAL,
-						    ISC_MSG_WAIT, manager->exclusive_requested ? "excreq" : "notexcreq"));
-			WAIT(&manager->queues[threadid].work_available, &manager->queues[threadid].lock);
+						    ISC_MSG_WAIT,
+						    manager->exclusive_requested
+						     ? "excreq" : "notexcreq"));
+			WAIT(&manager->queues[threadid].work_available,
+			     &manager->queues[threadid].lock);
 			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
 						    ISC_MSGSET_TASK,
 						    ISC_MSG_AWAKE, "awake"));
@@ -1027,19 +1038,24 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					    ISC_MSG_WORKING, "halting"));
 
 			/*
-			 * Switching to exclusive mode is done as a 2-phase-lock,
-			 * checking if we have to switch is done without any locks
-			 * on pause_requested and exclusive_requested to save time -
-			 * the worst thing that can happen is that we'll launch one task
-			 * more and exclusive task will be postponed a bit.
+			 * Switching to exclusive mode is done as a
+			 * 2-phase-lock, checking if we have to switch is
+			 * done without any locks on pause_requested and
+			 * exclusive_requested to save time - the worst
+			 * thing that can happen is that we'll launch one
+			 * task more and exclusive task will be postponed a
+			 * bit.
 			 *
-			 * Broadcasting on halt_cond seems suboptimal, but exclusive tasks
-			 * are rare enought that we don't care.
+			 * Broadcasting on halt_cond seems suboptimal, but
+			 * exclusive tasks are rare enought that we don't
+			 * care.
 			 */
 			LOCK(&manager->halt_lock);
 			manager->halted++;
 			BROADCAST(&manager->halt_cond);
-			while (manager->pause_requested || manager->exclusive_requested) {
+			while (manager->pause_requested ||
+			       manager->exclusive_requested)
+			{
 				WAIT(&manager->halt_cond, &manager->halt_lock);
 			}
 			manager->halted--;
@@ -1067,8 +1083,9 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			 * lock before exiting the 'if (task != NULL)' block.
 			 */
 			UNLOCK(&manager->queues[threadid].lock);
-			RUNTIME_CHECK(atomic_fetch_sub_explicit(&manager->tasks_ready,
-						  1, memory_order_release) > 0);
+			RUNTIME_CHECK(
+			      atomic_fetch_sub_explicit(&manager->tasks_ready,
+						1, memory_order_release) > 0);
 			atomic_fetch_add_explicit(&manager->tasks_running, 1,
 						  memory_order_acquire);
 
@@ -1184,7 +1201,8 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			if (finished)
 				task_finished(task);
 
-			RUNTIME_CHECK(atomic_fetch_sub_explicit(&manager->tasks_running,
+			RUNTIME_CHECK(
+			      atomic_fetch_sub_explicit(&manager->tasks_running,
 						1, memory_order_release) > 0);
 			LOCK(&manager->queues[threadid].lock);
 			if (requeue) {
@@ -1236,7 +1254,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			{
 				bool empty = true;
 				unsigned int i;
-				for (i=0; i<manager->workers && empty; i++)
+				for (i = 0; i < manager->workers && empty; i++)
 				{
 					LOCK(&manager->queues[i].lock);
 					empty &= empty_readyq(manager, i);
@@ -1286,7 +1304,7 @@ run(void *queuep) {
 
 static void
 manager_free(isc__taskmgr_t *manager) {
-	for (unsigned int i=0; i < manager->workers; i++) {
+	for (unsigned int i = 0; i < manager->workers; i++) {
 		DESTROYLOCK(&manager->queues[i].lock);
 	}
 	DESTROYLOCK(&manager->lock);
@@ -1321,19 +1339,17 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	RUNTIME_CHECK(isc_mutex_init(&manager->lock) == ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_mutex_init(&manager->excl_lock) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_mutex_init(&manager->halt_lock)
-		      == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_condition_init(&manager->halt_cond)
-		      == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&manager->halt_lock) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_condition_init(&manager->halt_cond) == ISC_R_SUCCESS);
 
 	manager->workers = workers;
 
-	if (default_quantum == 0)
+	if (default_quantum == 0) {
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
+	}
 	manager->default_quantum = default_quantum;
 	INIT_LIST(manager->tasks);
-	manager->queues = isc_mem_get(mctx, workers *
-				      sizeof(isc__taskqueue_t));
+	manager->queues = isc_mem_get(mctx, workers * sizeof(isc__taskqueue_t));
 	RUNTIME_CHECK(manager->queues != NULL);
 
 	manager->tasks_running = 0;
@@ -1357,7 +1373,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		RUNTIME_CHECK(isc_mutex_init(&manager->queues[i].lock)
 			      == ISC_R_SUCCESS);
 		RUNTIME_CHECK(isc_condition_init(
-					   &manager->queues[i].work_available)
+					 &manager->queues[i].work_available)
 			      == ISC_R_SUCCESS);
 		manager->queues[i].manager = manager;
 		manager->queues[i].threadid = i;

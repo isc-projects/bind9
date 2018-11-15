@@ -508,8 +508,6 @@ iocompletionport_init(isc_socketmgr_t *manager) {
 			    strbuf);
 	}
 
-	manager->maxIOCPThreads = min(isc_os_ncpus() + 1, MAX_IOCPTHREADS);
-
 	/* Now Create the Completion Port */
 	manager->hIoCompletionPort = CreateIoCompletionPort(
 			INVALID_HANDLE_VALUE, NULL,
@@ -1551,7 +1549,6 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(socketp != NULL && *socketp == NULL);
-	REQUIRE(type != isc_sockettype_fdwatch);
 
 #ifndef SOCK_RAW
 	if (type == isc_sockettype_raw)
@@ -1757,7 +1754,6 @@ isc_socket_dup(isc_socket_t *sock, isc_socket_t **socketp) {
 isc_result_t
 isc_socket_open(isc_socket_t *sock) {
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -1789,7 +1785,6 @@ isc_socket_detach(isc_socket_t **socketp) {
 	REQUIRE(socketp != NULL);
 	sock = *socketp;
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	LOCK(&sock->lock);
 	CONSISTENT(sock);
@@ -1815,7 +1810,6 @@ isc_socket_detach(isc_socket_t **socketp) {
 isc_result_t
 isc_socket_close(isc_socket_t *sock) {
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	return (ISC_R_NOTIMPLEMENTED);
 }
@@ -2542,7 +2536,7 @@ isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
 
 isc_result_t
 isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
-		       unsigned int maxsocks)
+		      unsigned int maxsocks, int nthreads)
 {
 	isc_socketmgr_t *manager;
 	isc_result_t result;
@@ -2578,6 +2572,10 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	}
 
 	isc_mem_attach(mctx, &manager->mctx);
+	if (nthreads == 0) {
+		nthreads = isc_os_ncpus() + 1;
+	}
+	manager->maxIOCPThreads = min(nthreads, MAX_IOCPTHREADS);
 
 	iocompletionport_init(manager);	/* Create the Completion Ports */
 
@@ -2903,7 +2901,6 @@ isc_socket_sendto(isc_socket_t *sock, isc_region_t *region,
 	isc_result_t ret;
 
 	REQUIRE(VALID_SOCKET(sock));
-	REQUIRE(sock->type != isc_sockettype_fdwatch);
 
 	LOCK(&sock->lock);
 	CONSISTENT(sock);
@@ -3696,20 +3693,25 @@ isc_socket_socketevent(isc_mem_t *mctx, void *sender,
 	return (allocate_socketevent(mctx, sender, eventtype, action, arg));
 }
 
+bool
+isc_socket_hasreuseport() {
+	return (false);
+}
+
 #ifdef HAVE_LIBXML2
 
 static const char *
 _socktype(isc_sockettype_t type) {
-	if (type == isc_sockettype_udp)
+	switch (type) {
+	case isc_sockettype_udp:
 		return ("udp");
-	else if (type == isc_sockettype_tcp)
+	case isc_sockettype_tcp:
 		return ("tcp");
-	else if (type == isc_sockettype_unix)
+	case isc_sockettype_unix:
 		return ("unix");
-	else if (type == isc_sockettype_fdwatch)
-		return ("fdwatch");
-	else
+	default:
 		return ("not-initialized");
+	}
 }
 
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
