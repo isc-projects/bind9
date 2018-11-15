@@ -126,8 +126,9 @@ pool_test@EXEEXT@: pool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 
 print_test.@O@:	${top_srcdir}/lib/isc/print.c
 print_test@EXEEXT@: print_test.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			print_test.@O@ ${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ print_test.@O@ \
+		${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 queue_test@EXEEXT@: queue_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
