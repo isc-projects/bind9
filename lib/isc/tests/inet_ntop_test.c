@@ -11,7 +11,18 @@
 
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+#include <string.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
+
+#include <isc/print.h>
+#include <isc/util.h>
 
 /*
  * Force the prototype for isc_net_ntop to be declared.
@@ -21,11 +32,9 @@
 #define ISC_PLATFORM_NEEDNTOP
 #include "../inet_ntop.c"
 
-ATF_TC(isc_net_ntop);
-ATF_TC_HEAD(isc_net_ntop, tc) {
-	atf_tc_set_md_var(tc, "descr", "isc_net_ntop implementation");
-}
-ATF_TC_BODY(isc_net_ntop, tc) {
+/* Test isc_net_ntop implementation */
+static void
+isc_net_ntop_test(void **state) {
 	char buf[sizeof("ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")];
 	int r;
 	size_t i;
@@ -45,18 +54,33 @@ ATF_TC_BODY(isc_net_ntop, tc) {
 		{ AF_INET6, "ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff" }
 	};
 
+	UNUSED(state);
+
 	for (i = 0; i < sizeof(testdata)/sizeof(testdata[0]); i++) {
 		r = inet_pton(testdata[i].family, testdata[i].address, abuf);
-		ATF_REQUIRE_EQ_MSG(r, 1, "%s", testdata[i].address);
+		assert_int_equal(r, 1);
 		isc_net_ntop(testdata[i].family, abuf, buf, sizeof(buf));
-		ATF_CHECK_STREQ(buf, testdata[i].address);
+		assert_string_equal(buf, testdata[i].address);
 	}
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_net_ntop);
-	return (atf_no_error());
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(isc_net_ntop_test),
+	};
+
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
