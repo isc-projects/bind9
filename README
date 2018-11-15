@@ -409,9 +409,10 @@ and will be skipped if these are not available. Some tests require Python
 and the 'dnspython' module and will be skipped if these are not available.
 See bin/tests/system/README for further details.
 
-Unit tests are implemented using cmocka unit testing framework.
-To run them, use configure --with-cmocka, then run make test or
-make unit.
+Unit tests are implemented using the CMocka unit testing framework. To
+build them, use configure --with-cmocka. Execution of tests is done by the
+Kyua test execution engine; if the kyua command is available, then unit
+tests can be run via make test or make unit.
 
 Documentation
 
