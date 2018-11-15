@@ -14,7 +14,7 @@ status=0
 #
 # Check for missing #include <isc/print.h> or "print_p.h"
 #
-list=`git grep -l snprintf lib bin |
+list=`git grep -wl '\(printf\|snprintf\|sprintf\|vsnprintf\|fprintf\)' lib bin |
       grep '\.c$' |
       grep -vE -e '(lib/bind|lib/dns/rdata|lib/dns/gen.c)' \
 	       -e '(lib/isc/win32/time.c|dlzexternal/driver.c)' |
