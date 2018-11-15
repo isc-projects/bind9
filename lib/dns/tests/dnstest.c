@@ -122,11 +122,12 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 	CHECK(isc_mem_create(0, 0, &mctx));
 	CHECK(isc_entropy_create(mctx, &ectx));
 
-	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
-	hash_active = true;
-
+	INSIST(!dst_active);
 	CHECK(dst_lib_init(mctx, ectx, ISC_ENTROPY_BLOCKING));
 	dst_active = true;
+
+	CHECK(isc_hash_create(mctx, ectx, DNS_NAME_MAXWIRE));
+	hash_active = true;
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
@@ -155,12 +156,13 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 		CHECK(create_managers());
 
 	/*
-	 * atf-run changes us to a /tmp directory, so tests
+	 * The caller might run from another directory, so tests
 	 * that access test data files must first chdir to the proper
 	 * location.
 	 */
-	if (chdir(TESTS) == -1)
+	if (chdir(TESTS) == -1) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	return (ISC_R_SUCCESS);
 
@@ -171,10 +173,6 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 
 void
 dns_test_end(void) {
-	if (dst_active) {
-		dst_lib_destroy();
-		dst_active = false;
-	}
 	if (hash_active) {
 		isc_hash_destroy();
 		hash_active = false;
@@ -183,6 +181,11 @@ dns_test_end(void) {
 		isc_entropy_detach(&ectx);
 
 	cleanup_managers();
+
+	if (dst_active) {
+		dst_lib_destroy();
+		dst_active = false;
+	}
 
 	if (lctx != NULL)
 		isc_log_destroy(&lctx);
