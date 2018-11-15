@@ -16,7 +16,7 @@
 5092.	[bug]		Address memory leak on SIGTERM in nsupdate when using
 			GSS-TSIG. [GL #558]
 
-5091.	[func]		Two new global and per-view options max-cache-ttl
+5091.	[func]		Two new global and per-view options min-cache-ttl
 			and min-ncache-ttl [GL #613]
 
 5090.	[bug]		dig and mdig failed to properly preparse dash value
