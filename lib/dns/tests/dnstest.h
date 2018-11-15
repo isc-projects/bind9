@@ -118,11 +118,12 @@ dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen);
  * Try parsing text form RDATA in "src" (of class "rdclass" and type "rdtype")
  * into a structure representing that RDATA at "rdata", storing the
  * uncompressed wire form of that RDATA at "dst", which is "dstlen" bytes long.
+ * Set 'warnings' to true to print logged warnings from dns_rdata_fromtext().
  */
 isc_result_t
 dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			 dns_rdatatype_t rdtype, unsigned char *dst,
-			 size_t dstlen, const char *src);
+			 size_t dstlen, const char *src, bool warnings);
 
 void
 dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname);
@@ -130,6 +131,8 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname);
 /*%
  * Given a pointer to an uninitialized dns_diff_t structure in 'diff', make it
  * contain diff tuples representing zone database changes listed in 'changes'.
+ * Set 'warnings' to true to print logged warnings from dns_rdata_fromtext().
  */
 isc_result_t
-dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes);
+dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
+			 bool warnings);

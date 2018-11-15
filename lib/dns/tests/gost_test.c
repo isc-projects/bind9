@@ -9,15 +9,20 @@
  * information regarding copyright ownership.
  */
 
-
-/* ! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/util.h>
 #include <isc/print.h>
@@ -43,6 +48,27 @@
 #endif
 
 #if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = dns_test_begin(NULL, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	dns_test_end();
+
+	return (0);
+}
+
 /*
  * Test data from Wikipedia GOST (hash function)
  */
@@ -87,16 +113,13 @@ typedef struct hash_testcase {
 	int repeats;
 } hash_testcase_t;
 
-ATF_TC(isc_gost_md);
-ATF_TC_HEAD(isc_gost_md, tc) {
-	atf_tc_set_md_var(tc, "descr",
-			  "GOST R 34.11-94 examples from Wikipedia");
-}
-ATF_TC_BODY(isc_gost_md, tc) {
+/* GOST R 34.11-94 examples from Wikipedia */
+static void
+isc_gost_md(void **state) {
 	isc_gost_t gost;
 	isc_result_t result;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * These are the various test vectors.  All of these are passed
@@ -190,37 +213,29 @@ ATF_TC_BODY(isc_gost_md, tc) {
 		{ NULL, 0, NULL, 1 }
 	};
 
-	result = dns_test_begin(NULL, false);
-	ATF_REQUIRE(result == ISC_R_SUCCESS);
-
 	hash_testcase_t *testcase = testcases;
 
 	while (testcase->input != NULL && testcase->result != NULL) {
 		result = isc_gost_init(&gost);
-		ATF_REQUIRE(result == ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 		for(i = 0; i < testcase->repeats; i++) {
 			result = isc_gost_update(&gost,
 					(const uint8_t *) testcase->input,
 					testcase->input_len);
-			ATF_REQUIRE(result == ISC_R_SUCCESS);
+			assert_int_equal(result, ISC_R_SUCCESS);
 		}
 		result = isc_gost_final(&gost, digest);
-		ATF_REQUIRE(result == ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 		tohexstr(digest, ISC_GOST_DIGESTLENGTH, str, sizeof(str));
-		ATF_CHECK_STREQ(str, testcase->result);
+		assert_string_equal(str, testcase->result);
 
 		testcase++;
 	}
-
-	dns_test_end();
 }
 
-ATF_TC(isc_gost_private);
-ATF_TC_HEAD(isc_gost_private, tc) {
-  atf_tc_set_md_var(tc, "descr", "GOST R 34.10-2001 private key");
-}
-ATF_TC_BODY(isc_gost_private, tc) {
-	isc_result_t result;
+/* GOST R 34.10-2001 private key */
+static void
+isc_gost_private(void **state) {
 	unsigned char privraw[31] = {
 		0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08,
 		0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0e, 0x0f, 0x10,
@@ -260,46 +275,43 @@ ATF_TC_BODY(isc_gost_private, tc) {
 	int len;
 	unsigned char *q;
 
-	result = dns_test_begin(NULL, false);
-	ATF_REQUIRE(result == ISC_R_SUCCESS);
+	UNUSED(state);
 
 	/* raw parse */
 	privkey = BN_bin2bn(privraw, (int) sizeof(privraw), NULL);
-	ATF_REQUIRE(privkey != NULL);
+	assert_non_null(privkey);
 	p = gost_dummy_key;
 	pkey = NULL;
-	ATF_REQUIRE(d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
-				   (long) sizeof(gost_dummy_key)) != NULL);
-	ATF_REQUIRE(pkey != NULL);
-	ATF_REQUIRE(EVP_PKEY_bits(pkey) == 256);
+	assert_non_null(d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				       (long) sizeof(gost_dummy_key)));
+	assert_non_null(pkey);
+	assert_int_equal(EVP_PKEY_bits(pkey), 256);
 	eckey = EVP_PKEY_get0(pkey);
-	ATF_REQUIRE(eckey != NULL);
-	ATF_REQUIRE(EC_KEY_set_private_key(eckey, privkey) == 1);
+	assert_non_null(eckey);
+	assert_int_equal(EC_KEY_set_private_key(eckey, privkey), 1);
 	BN_clear_free(privkey);
 
 	/* asn1 tofile */
 	len = i2d_PrivateKey(pkey, NULL);
-	ATF_REQUIRE(len == 70);
+	assert_int_equal(len, 70);
 	q = abuf;
-	ATF_REQUIRE(i2d_PrivateKey(pkey, &q) == len);
-	ATF_REQUIRE(memcmp(abuf, privasn1, len) == 0);
+	assert_int_equal(i2d_PrivateKey(pkey, &q), len);
+	assert_int_equal(memcmp(abuf, privasn1, len), 0);
 	EVP_PKEY_free(pkey);
 
 	/* asn1 parse */
 	p = privasn1;
 	pkey = NULL;
-	ATF_REQUIRE(d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
-				   (long) len) != NULL);
-	ATF_REQUIRE(pkey != NULL);
+	assert_non_null(d2i_PrivateKey(NID_id_GostR3410_2001, &pkey, &p,
+				       (long) len));
+	assert_non_null(pkey);
 	eckey = EVP_PKEY_get0(pkey);
-	ATF_REQUIRE(eckey != NULL);
+	assert_non_null(eckey);
 	privkey1 = EC_KEY_get0_private_key(eckey);
 	len = BN_num_bytes(privkey1);
-	ATF_REQUIRE(len == 31);
-	ATF_REQUIRE(BN_bn2bin(privkey1, rbuf) == len);
-	ATF_REQUIRE(memcmp(rbuf, privraw, len) == 0);
-
-	dns_test_end();
+	assert_int_equal(len, 31);
+	assert_int_equal(BN_bn2bin(privkey1, rbuf), len);
+	assert_memory_equal(rbuf, privraw, len);
 #else
 	CK_BBOOL truevalue = TRUE;
 	CK_BBOOL falsevalue = FALSE;
@@ -324,56 +336,61 @@ ATF_TC_BODY(isc_gost_private, tc) {
 	CK_ULONG siglen;
 	pk11_context_t pk11_ctx;
 
-	result = dns_test_begin(NULL, false);
-	ATF_REQUIRE(result == ISC_R_SUCCESS);
-
 	/* create the private key */
 	memset(&pk11_ctx, 0, sizeof(pk11_ctx));
-	ATF_REQUIRE(pk11_get_session(&pk11_ctx, OP_GOST, true,
-				     false, false, NULL,
-				     pk11_get_best_token(OP_GOST)) ==
-		    ISC_R_SUCCESS);
+	assert_int_equal(pk11_get_session(&pk11_ctx, OP_GOST, true,
+					  false, false, NULL,
+					  pk11_get_best_token(OP_GOST)),
+			 ISC_R_SUCCESS);
 	pk11_ctx.object = CK_INVALID_HANDLE;
 	pk11_ctx.ontoken = false;
-	ATF_REQUIRE(pkcs_C_CreateObject(pk11_ctx.session, keyTemplate,
-					(CK_ULONG) 9, &pk11_ctx.object) ==
-		    CKR_OK);
-	ATF_REQUIRE(pk11_ctx.object != CK_INVALID_HANDLE);
+	assert_int_equal(pkcs_C_CreateObject(pk11_ctx.session, keyTemplate,
+					     (CK_ULONG) 9,
+					     &pk11_ctx.object),
+			 CKR_OK);
+	assert_int_not_equal(pk11_ctx.object, CK_INVALID_HANDLE);
 
 	/* sign something */
-	ATF_REQUIRE(pkcs_C_SignInit(pk11_ctx.session, &mech,
-				    pk11_ctx.object) == CKR_OK);
+	assert_int_equal(pkcs_C_SignInit(pk11_ctx.session, &mech,
+					 pk11_ctx.object),
+			 CKR_OK);
 	siglen = 0;
-	ATF_REQUIRE(pkcs_C_Sign(pk11_ctx.session, sig, 64,
-				NULL, &siglen) == CKR_OK);
-	ATF_REQUIRE(siglen == 64);
-	ATF_REQUIRE(pkcs_C_Sign(pk11_ctx.session, sig, 64,
-				sig, &siglen) == CKR_OK);
-	ATF_REQUIRE(siglen == 64);
-
-	dns_test_end();
+	assert_int_equal(pkcs_C_Sign(pk11_ctx.session, sig, 64,
+				     NULL, &siglen),
+			 CKR_OK);
+	assert_int_equal(siglen, 64);
+	assert_int_equal(pkcs_C_Sign(pk11_ctx.session, sig, 64,
+				     sig, &siglen),
+			 CKR_OK);
+	assert_int_equal(siglen, 64);
 #endif
 };
-#else
-ATF_TC(untested);
-ATF_TC_HEAD(untested, tc) {
-	atf_tc_set_md_var(tc, "descr", "skipping gost test");
-}
-ATF_TC_BODY(untested, tc) {
-	UNUSED(tc);
-	atf_tc_skip("GOST not available");
-}
 #endif
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
+
+int
+main(void) {
 #if defined(HAVE_OPENSSL_GOST) || defined(HAVE_PKCS11_GOST)
-	ATF_TP_ADD_TC(tp, isc_gost_md);
-	ATF_TP_ADD_TC(tp, isc_gost_private);
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(isc_gost_md,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(isc_gost_private,
+						_setup, _teardown),
+	};
+
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 #else
-	ATF_TP_ADD_TC(tp, untested);
+	print_message("1..0 # Skipped: GOST is unavailable");
 #endif
-	return (atf_no_error());
 }
 
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
