@@ -1340,7 +1340,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	RUNTIME_CHECK(isc_mutex_init(&manager->excl_lock) == ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_mutex_init(&manager->halt_lock) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_condition_init(&manager->halt_cond) == ISC_R_SUCCESS);
+	isc_condition_init(&manager->halt_cond);
 
 	manager->workers = workers;
 
@@ -1372,9 +1372,8 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		INIT_LIST(manager->queues[i].ready_priority_tasks);
 		RUNTIME_CHECK(isc_mutex_init(&manager->queues[i].lock)
 			      == ISC_R_SUCCESS);
-		RUNTIME_CHECK(isc_condition_init(
-					 &manager->queues[i].work_available)
-			      == ISC_R_SUCCESS);
+		isc_condition_init(&manager->queues[i].work_available);
+
 		manager->queues[i].manager = manager;
 		manager->queues[i].threadid = i;
 		RUNTIME_CHECK(isc_thread_create(run, &manager->queues[i],
@@ -1875,4 +1874,3 @@ isc_taskmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 
 	return (result);
 }
-

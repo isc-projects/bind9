@@ -108,8 +108,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	result = isc_mutex_init(&mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	LOCK(&mx);
 
@@ -506,8 +505,7 @@ purge(void **state) {
 	result = isc_mutex_init(&mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	assert_int_equal(result, ISC_R_SUCCESS);

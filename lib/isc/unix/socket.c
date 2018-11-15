@@ -3934,8 +3934,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	ISC_LIST_INIT(manager->socklist);
 	RUNTIME_CHECK(isc_mutex_init(&manager->lock) == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_condition_init(&manager->shutdown_ok)
-		      == ISC_R_SUCCESS);
+	isc_condition_init(&manager->shutdown_ok);
 
 	/*
 	 * Start up the select/poll thread.

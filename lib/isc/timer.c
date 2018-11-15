@@ -750,17 +750,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		return (result);
 	}
 	isc_mem_attach(mctx, &manager->mctx);
-	if (isc_condition_init(&manager->wakeup) != ISC_R_SUCCESS) {
-		isc_mem_detach(&manager->mctx);
-		DESTROYLOCK(&manager->lock);
-		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
-	}
+	isc_condition_init(&manager->wakeup);
 	if (isc_thread_create(run, manager, &manager->thread) !=
 	    ISC_R_SUCCESS) {
 		isc_mem_detach(&manager->mctx);

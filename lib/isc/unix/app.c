@@ -142,9 +142,7 @@ isc_app_ctxstart(isc_appctx_t *ctx0) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = isc_condition_init(&ctx->ready);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_rlock;
+	isc_condition_init(&ctx->ready);
 
 	result = isc_mutex_init(&ctx->lock);
 	if (result != ISC_R_SUCCESS)
@@ -236,8 +234,6 @@ isc_app_ctxstart(isc_appctx_t *ctx0) {
 
  cleanup:
 	(void)isc_condition_destroy(&ctx->ready);
-
- cleanup_rlock:
 	(void)isc_mutex_destroy(&ctx->readylock);
 	return (result);
 }

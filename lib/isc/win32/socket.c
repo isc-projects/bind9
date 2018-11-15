@@ -2561,15 +2561,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		isc_mem_put(mctx, manager, sizeof(*manager));
 		return (result);
 	}
-	if (isc_condition_init(&manager->shutdown_ok) != ISC_R_SUCCESS) {
-		DESTROYLOCK(&manager->lock);
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_condition_init() %s",
-				 isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed"));
-		return (ISC_R_UNEXPECTED);
-	}
+	isc_condition_init(&manager->shutdown_ok);
 
 	isc_mem_attach(mctx, &manager->mctx);
 	if (nthreads == 0) {

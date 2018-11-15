@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
 #include <config.h>
 
 #include <inttypes.h>
@@ -17,14 +16,16 @@
 
 #include <isc/condition.h>
 #include <isc/assertions.h>
+#include <isc/error.h>
 #include <isc/util.h>
+#include <isc/strerr.h>
 #include <isc/thread.h>
 #include <isc/time.h>
 
 #define LSIGNAL		0
 #define LBROADCAST	1
 
-isc_result_t
+void
 isc_condition_init(isc_condition_t *cond) {
 	HANDLE h;
 
@@ -36,8 +37,11 @@ isc_condition_init(isc_condition_t *cond) {
 	 */
 	h = CreateEvent(NULL, FALSE, FALSE, NULL);
 	if (h == NULL) {
-		/* XXX */
-		return (ISC_R_UNEXPECTED);
+		char strbuf[ISC_STRERRORSIZE];
+		DWORD err = GetLastError();
+		strerror_r(err, strbuf, sizeof(strbuf));
+		isc_error_fatal(__FILE__, __LINE,
+				"CreateEvent failed: %s", strbuf);
 	}
 	cond->events[LSIGNAL] = h;
 
@@ -46,8 +50,6 @@ isc_condition_init(isc_condition_t *cond) {
 	 * for the wait condition
 	 */
 	ISC_LIST_INIT(cond->threadlist);
-
-	return (ISC_R_SUCCESS);
 }
 
 /*
@@ -131,7 +133,6 @@ isc_condition_signal(isc_condition_t *cond) {
 		/* XXX */
 		return (ISC_R_UNEXPECTED);
 	}
-
 	return (ISC_R_SUCCESS);
 }
 

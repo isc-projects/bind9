@@ -37,7 +37,7 @@ typedef struct isc_condition {
 
 ISC_LANG_BEGINDECLS
 
-isc_result_t
+void
 isc_condition_init(isc_condition_t *);
 
 isc_result_t
