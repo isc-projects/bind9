@@ -155,9 +155,9 @@ geoip_test@EXEEXT@: geoip_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 		${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 gost_test@EXEEXT@: gost_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			gost_test.@O@ dnstest.@O@ ${DNSLIBS} \
-			${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
+		${LDFLAGS} -o $@ gost_test.@O@ dnstest.@O@ \
+		${DNSLIBS} ${ISCLIBS} ${LIBS} ${CMOCKA_LIBS}
 
 keytable_test@EXEEXT@: keytable_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${CMOCKA_CFLAGS} \
