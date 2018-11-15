@@ -1,9 +1,7 @@
-Unit tests for BIND 9 are based on NetBSD Automated Test Framework, cmocka and
-test execution engine Kyua.
+Unit tests for BIND 9 are based on cmocka and test execution engine Kyua.
 
-If your distribution of choice doesn't include packages for atf, kyua and
-cmocka, the sources can be found here:
+If your distribution of choice doesn't include packages for kyua or cmocka, the
+sources can be found here:
 
- * ATF 0.20 - https://github.com/jmmv/atf/releases
  * Kyua 0.13 - https://github.com/jmmv/kyua/releases
  * CMocka 1.0 - https://cmocka.org/files/
