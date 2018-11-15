@@ -9,24 +9,53 @@
  * information regarding copyright ownership.
  */
 
-/*! \file */
-
 #include <config.h>
+
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdlib.h>
+#include <string.h>
 
-#include <atf-c.h>
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <dns/badcache.h>
 #include <dns/view.h>
 #include <isc/util.h>
 #include <ns/client.h>
 #include <ns/query.h>
+#include <isc/util.h>
 
 #include "../hooks.h"
 
 #include "nstest.h"
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = ns_test_begin(NULL, true);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	ns_test_end();
+
+	return (0);
+}
 
 /*****
  ***** ns__query_sfcache() tests
@@ -38,12 +67,12 @@
 typedef struct {
 	const ns_test_id_t id;		   /* libns test identifier */
 	unsigned int qflags;		   /* query flags */
-	bool cache_entry_present; /* whether a SERVFAIL cache entry
+	bool cache_entry_present; 	   /* whether a SERVFAIL cache entry
 					      matching the query should be
 					      present */
 	uint32_t cache_entry_flags;	   /* NS_FAILCACHE_* flags to set for
 					      the SERVFAIL cache entry */
-	bool servfail_expected;   /* whether a cached SERVFAIL is
+	bool servfail_expected;   	   /* whether a cached SERVFAIL is
 					      expected to be returned */
 } ns__query_sfcache_test_params_t;
 
@@ -51,7 +80,7 @@ typedef struct {
  * Perform a single ns__query_sfcache() check using given parameters.
  */
 static void
-ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
+run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	query_ctx_t *qctx = NULL;
 	isc_result_t result;
 
@@ -83,7 +112,7 @@ ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 		};
 
 		result = ns_test_qctx_create(&qctx_params, &qctx);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
 	/*
@@ -96,7 +125,7 @@ ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 
 		isc_interval_set(&hour, 3600, 0);
 		result = isc_time_nowplusinterval(&expire, &hour);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 
 		dns_badcache_add(qctx->client->view->failcache, dns_rootname,
 				 dns_rdatatype_ns, true,
@@ -109,32 +138,30 @@ ns__query_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	ns__query_sfcache(qctx);
 
 	if (test->servfail_expected) {
-		ATF_CHECK_EQ_MSG(qctx->result, DNS_R_SERVFAIL,
-				 "test \"%s\" on line %d: "
+		if (qctx->result != DNS_R_SERVFAIL) {
+			fail_msg("# test \"%s\" on line %d: "
 				 "expected SERVFAIL, got %s",
 				 test->id.description, test->id.lineno,
 				 isc_result_totext(qctx->result));
+		}
 	} else {
-		ATF_CHECK_EQ_MSG(qctx->result, ISC_R_SUCCESS,
-				 "test \"%s\" on line %d: "
+		if (qctx->result != ISC_R_SUCCESS) {
+			fail_msg("# test \"%s\" on line %d: "
 				 "expected success, got %s",
 				 test->id.description, test->id.lineno,
 				 isc_result_totext(qctx->result));
+		}
 	}
 
 	/*
 	 * Clean up.
 	 */
 	ns_test_qctx_destroy(&qctx);
-
 }
 
-ATF_TC(ns__query_sfcache);
-ATF_TC_HEAD(ns__query_sfcache, tc) {
-	atf_tc_set_md_var(tc, "descr", "ns__query_sfcache()");
-}
-ATF_TC_BODY(ns__query_sfcache, tc) {
-	isc_result_t result;
+/* test ns__query_sfcache() */
+static void
+ns__query_sfcache_test(void **state) {
 	size_t i;
 
 	const ns__query_sfcache_test_params_t tests[] = {
@@ -207,16 +234,11 @@ ATF_TC_BODY(ns__query_sfcache, tc) {
 		},
 	};
 
-	UNUSED(tc);
-
-	result = ns_test_begin(NULL, true);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
-		ns__query_sfcache_test(&tests[i]);
+		run_sfcache_test(&tests[i]);
 	}
-
-	ns_test_end();
 }
 
 /*****
@@ -256,7 +278,7 @@ typedef struct {
  * Perform a single ns__query_start() check using given parameters.
  */
 static void
-ns__query_start_test(const ns__query_start_test_params_t *test) {
+run_start_test(const ns__query_start_test_params_t *test) {
 	query_ctx_t *qctx = NULL;
 	isc_result_t result;
 
@@ -293,7 +315,7 @@ ns__query_start_test(const ns__query_start_test_params_t *test) {
 			.with_cache = test->recursive_service,
 		};
 		result = ns_test_qctx_create(&qctx_params, &qctx);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
 	/*
@@ -309,7 +331,7 @@ ns__query_start_test(const ns__query_start_test_params_t *test) {
 		result = ns_test_serve_zone(test->auth_zone_origin,
 					    test->auth_zone_path,
 					    qctx->client->view);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 	}
 
 	/*
@@ -319,63 +341,70 @@ ns__query_start_test(const ns__query_start_test_params_t *test) {
 
 	switch (test->expected_result) {
 	case NS__QUERY_START_R_REFUSE:
-		ATF_CHECK_EQ_MSG(qctx->result, DNS_R_REFUSED,
-				 "test \"%s\" on line %d: "
+		if (qctx->result != DNS_R_REFUSED) {
+			fail_msg("# test \"%s\" on line %d: "
 				 "expected REFUSED, got %s",
 				 test->id.description, test->id.lineno,
 				 isc_result_totext(qctx->result));
-		ATF_CHECK_EQ_MSG(qctx->zone, NULL,
-				 "test \"%s\" on line %d: "
+		}
+		if (qctx->zone != NULL) {
+			fail_msg("# test \"%s\" on line %d: "
 				 "no zone was expected to be attached to "
 				 "query context, but some was",
 				 test->id.description, test->id.lineno);
-		ATF_CHECK_EQ_MSG(qctx->db, NULL,
-				 "test \"%s\" on line %d: "
+		}
+		if (qctx->db != NULL) {
+			fail_msg("# test \"%s\" on line %d: "
 				 "no database was expected to be attached to "
 				 "query context, but some was",
 				 test->id.description, test->id.lineno);
+		}
 		break;
 	case NS__QUERY_START_R_CACHE:
-		ATF_CHECK_EQ_MSG(qctx->result, ISC_R_SUCCESS,
-				 "test \"%s\" on line %d: "
+		if (qctx->result != ISC_R_SUCCESS) {
+			fail_msg("# test \"%s\" on line %d: "
 				 "expected success, got %s",
 				 test->id.description, test->id.lineno,
 				 isc_result_totext(qctx->result));
-		ATF_CHECK_EQ_MSG(qctx->zone, NULL,
-				 "test \"%s\" on line %d: "
+		}
+		if (qctx->zone != NULL) {
+			fail_msg("# test \"%s\" on line %d: "
 				 "no zone was expected to be attached to "
 				 "query context, but some was",
 				 test->id.description, test->id.lineno);
-		ATF_CHECK_MSG((qctx->db != NULL &&
-			       qctx->db == qctx->client->view->cachedb),
-			      "test \"%s\" on line %d: "
-			      "cache database was expected to be attached to "
-			      "query context, but it was not",
-			      test->id.description, test->id.lineno);
+		}
+		if (qctx->db == NULL ||
+		    qctx->db != qctx->client->view->cachedb)
+		{
+			fail_msg("# test \"%s\" on line %d: "
+				 "cache database was expected to be "
+				 "attached to query context, but it was not",
+				 test->id.description, test->id.lineno);
+		}
 		break;
 	case NS__QUERY_START_R_AUTH:
-		ATF_CHECK_EQ_MSG(qctx->result, ISC_R_SUCCESS,
-				 "test \"%s\" on line %d: "
+		if (qctx->result != ISC_R_SUCCESS) {
+			fail_msg("# test \"%s\" on line %d: "
 				 "expected success, got %s",
 				 test->id.description, test->id.lineno,
 				 isc_result_totext(qctx->result));
-		ATF_CHECK_MSG(qctx->zone != NULL,
-			      "test \"%s\" on line %d: "
-			      "a zone was expected to be attached to query "
-			      "context, but it was not",
-			      test->id.description, test->id.lineno);
-		ATF_CHECK_MSG((qctx->db != NULL &&
-			       qctx->db != qctx->client->view->cachedb),
-			      "test \"%s\" on line %d: "
-			      "cache database was not expected to be attached "
-			      "to query context, but it is",
-			      test->id.description, test->id.lineno);
+		}
+		if (qctx->zone == NULL) {
+			fail_msg("# test \"%s\" on line %d: "
+				 "a zone was expected to be attached to query "
+				 "context, but it was not",
+				 test->id.description, test->id.lineno);
+		}
+		if (qctx->db == qctx->client->view->cachedb) {
+			fail_msg("# test \"%s\" on line %d: "
+				 "cache database was not expected to be "
+				 "attached to query context, but it is",
+				 test->id.description, test->id.lineno);
+		}
 		break;
 	case NS__QUERY_START_R_INVALID:
-		ATF_REQUIRE_MSG(false,
-				"test \"%s\" on line %d has no expected "
-				"result set",
-				test->id.description, test->id.lineno);
+		fail_msg("# test \"%s\" on line %d has no expected result set",
+			 test->id.description, test->id.lineno);
 		break;
 	default:
 		INSIST(0);
@@ -391,12 +420,9 @@ ns__query_start_test(const ns__query_start_test_params_t *test) {
 	ns_test_qctx_destroy(&qctx);
 }
 
-ATF_TC(ns__query_start);
-ATF_TC_HEAD(ns__query_start, tc) {
-	atf_tc_set_md_var(tc, "descr", "ns__query_start()");
-}
-ATF_TC_BODY(ns__query_start, tc) {
-	isc_result_t result;
+/* test ns__query_start() */
+static void
+ns__query_start_test(void **state) {
 	size_t i;
 
 	const ns__query_start_test_params_t tests[] = {
@@ -557,24 +583,33 @@ ATF_TC_BODY(ns__query_start, tc) {
 		},
 	};
 
-	UNUSED(tc);
-
-	result = ns_test_begin(NULL, true);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	for (i = 0; i < sizeof(tests) / sizeof(tests[0]); i++) {
-		ns__query_start_test(&tests[i]);
+		run_start_test(&tests[i]);
 	}
-
-	ns_test_end();
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, ns__query_sfcache);
-	ATF_TP_ADD_TC(tp, ns__query_start);
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(ns__query_sfcache_test,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(ns__query_start_test,
+						_setup, _teardown),
+	};
 
-	return (atf_no_error());
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif

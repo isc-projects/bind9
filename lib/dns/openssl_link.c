@@ -223,8 +223,6 @@ dst__openssl_destroy(void) {
 		isc_mem_free(dst__mctx, locks);
 		locks = NULL;
 	}
-#else
-	OPENSSL_cleanup();
 #endif
 	isc_mem_detach(&dst__mctx);
 }

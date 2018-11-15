@@ -13,13 +13,20 @@
 
 #include <config.h>
 
-#include <atf-c.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
+
+#if HAVE_CMOCKA
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/app.h>
 #include <isc/buffer.h>
@@ -37,6 +44,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/callbacks.h>
 #include <dns/db.h>
 #include <dns/fixedname.h>
 #include <dns/log.h>
@@ -59,6 +67,7 @@ int ncpus;
 bool debug_mem_record = true;
 
 static bool dst_active = false;
+static bool test_running = false;
 
 /*
  * Logging categories: this needs to match the list in bin/named/log.c.
@@ -77,16 +86,22 @@ static isc_logcategory_t categories[] = {
 
 static void
 cleanup_managers(void) {
-	if (app_running)
-		isc_app_finish();
-	if (socketmgr != NULL)
-		isc_socketmgr_destroy(&socketmgr);
-	if (maintask != NULL)
+	if (maintask != NULL) {
+		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
-	if (taskmgr != NULL)
+	}
+	if (socketmgr != NULL) {
+		isc_socketmgr_destroy(&socketmgr);
+	}
+	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
-	if (timermgr != NULL)
+	}
+	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
+	}
+	if (app_running) {
+		isc_app_finish();
+	}
 }
 
 static isc_result_t
@@ -109,12 +124,20 @@ isc_result_t
 dns_test_begin(FILE *logfile, bool start_managers) {
 	isc_result_t result;
 
-	if (start_managers)
+	INSIST(!test_running);
+	test_running = true;
+
+	if (start_managers) {
 		CHECK(isc_app_start());
-	if (debug_mem_record)
+	}
+	if (debug_mem_record) {
 		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+	}
+
+	INSIST(mctx == NULL);
 	CHECK(isc_mem_create(0, 0, &mctx));
 
+	INSIST(!dst_active);
 	CHECK(dst_lib_init(mctx, NULL));
 	dst_active = true;
 
@@ -122,7 +145,9 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 		isc_logdestination_t destination;
 		isc_logconfig_t *logconfig = NULL;
 
+		INSIST(lctx == NULL);
 		CHECK(isc_log_create(mctx, &lctx, &logconfig));
+
 		isc_log_registercategories(lctx, categories);
 		isc_log_setcontext(lctx);
 		dns_log_init(lctx);
@@ -141,16 +166,18 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 
 	dns_result_register();
 
-	if (start_managers)
+	if (start_managers) {
 		CHECK(create_managers());
+	}
 
 	/*
-	 * atf-run changes us to a /tmp directory, so tests
+	 * The caller might run from another directory, so tests
 	 * that access test data files must first chdir to the proper
 	 * location.
 	 */
-	if (chdir(TESTS) == -1)
+	if (chdir(TESTS) == -1) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	return (ISC_R_SUCCESS);
 
@@ -163,17 +190,18 @@ void
 dns_test_end(void) {
 	cleanup_managers();
 
-	if (dst_active) {
-		dst_lib_destroy();
-		dst_active = false;
+	dst_lib_destroy();
+	dst_active = false;
+
+	if (lctx != NULL) {
+		isc_log_destroy(&lctx);
 	}
 
-	if (lctx != NULL)
-		isc_log_destroy(&lctx);
-
-	if (mctx != NULL)
+	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);
+	}
 
+	test_running = false;
 }
 
 /*
@@ -374,7 +402,7 @@ dns_test_tohex(const unsigned char *data, size_t len, char *buf, size_t buflen)
 	memset(buf, 0, buflen);
 	isc_buffer_init(&target, buf, buflen);
 	result = isc_hex_totext((isc_region_t *)&source, 1, " ", &target);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	return (buf);
 }
@@ -435,11 +463,21 @@ dns_test_getdata(const char *file, unsigned char *buf,
 	return (result);
 }
 
+static void
+nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
+	va_list ap;
+
+	UNUSED(cb);
+	UNUSED(fmt);
+	UNUSED(ap);
+}
+
 isc_result_t
 dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 			 dns_rdatatype_t rdtype, unsigned char *dst,
-			 size_t dstlen, const char *src)
+			 size_t dstlen, const char *src, bool warnings)
 {
+	dns_rdatacallbacks_t callbacks;
 	isc_buffer_t source, target;
 	isc_lex_t *lex = NULL;
 	isc_result_t result;
@@ -479,10 +517,18 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_buffer_init(&target, dst, dstlen);
 
 	/*
+	 * Set up callbacks so warnings and errors are not printed.
+	 */
+	if (!warnings) {
+		dns_rdatacallbacks_init(&callbacks);
+		callbacks.warn = callbacks.error = nullmsg;
+	}
+
+	/*
 	 * Parse input string, determining result.
 	 */
 	result = dns_rdata_fromtext(rdata, rdclass, rdtype, lex, dns_rootname,
-				    0, mctx, &target, NULL);
+				    0, mctx, &target, &callbacks);
 
  destroy_lexer:
 	isc_lex_destroy(&lex);
@@ -499,20 +545,21 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
 
 	length = strlen(namestr);
 
-	result = isc_buffer_allocate(mctx, &b, length);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	isc_buffer_putmem(b, (const unsigned char *) namestr, length);
-
 	name = dns_fixedname_initname(fname);
-	ATF_REQUIRE(name != NULL);
+
+	result = isc_buffer_allocate(mctx, &b, length);
+
+	isc_buffer_putmem(b, (const unsigned char *) namestr, length);
 	result = dns_name_fromtext(name, b, dns_rootname, 0, NULL);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_free(&b);
 }
 
 isc_result_t
-dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes) {
+dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
+			 bool warnings)
+{
 	isc_result_t result = ISC_R_SUCCESS;
 	unsigned char rdata_buf[1024];
 	dns_difftuple_t *tuple = NULL;
@@ -556,7 +603,8 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes) {
 		result = dns_test_rdatafromstring(&rdata, dns_rdataclass_in,
 						  rdatatype, rdata_buf,
 						  sizeof(rdata_buf),
-						  changes[i].rdata);
+						  changes[i].rdata,
+						  warnings);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
@@ -579,3 +627,4 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes) {
 
 	return (result);
 }
+#endif /* HAVE_CMOCKA */

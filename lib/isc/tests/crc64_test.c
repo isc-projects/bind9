@@ -70,6 +70,7 @@ _crc64(const char *buf, size_t buflen,
 	assert_memory_equal(hex, result, (result?strlen(result):0));
 }
 
+/* 64-bit cyclic redundancy check */
 static void
 isc_crc64_test(void **state) {
 	UNUSED(state);
@@ -88,11 +89,10 @@ isc_crc64_test(void **state) {
 	       "81E5EB73C8E7874A", 1);
 }
 
-int main(void) {
+int
+main(void) {
 	const struct CMUnitTest tests[] = {
-		/* isc_hmac_init() */
 		cmocka_unit_test(isc_crc64_init_test),
-
 		cmocka_unit_test(isc_crc64_test),
 	};
 
@@ -103,7 +103,8 @@ int main(void) {
 
 #include <stdio.h>
 
-int main(void) {
+int
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

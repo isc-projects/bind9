@@ -1,3 +1,8 @@
+5095.	[test]		Converted all unit tests from ATF to CMocka;
+			removed the source code for the ATF libraries.
+			Build with "configure --with-cmocka" to enable
+			unit testing. [GL #620]
+
 5094.	[func]		Add 'dig -r' to disable reading of .digrc. [GL !970]
 
 5093.	[bug]		Log lame qname-minimization servers only if they're

@@ -9,34 +9,58 @@
  * information regarding copyright ownership.
  */
 
-/*! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
 
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+
+#include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/print.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <dns/acl.h>
+
 #include "dnstest.h"
 
-/*
- * Helper functions
- */
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = dns_test_begin(NULL, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	dns_test_end();
+
+	return (0);
+}
 
 #define	BUFLEN		255
 #define	BIGBUFLEN	(70 * 1024)
 #define TEST_ORIGIN	"test"
 
-ATF_TC(dns_acl_isinsecure);
-ATF_TC_HEAD(dns_acl_isinsecure, tc) {
-	atf_tc_set_md_var(tc, "descr", "test that dns_acl_isinsecure works");
-}
-ATF_TC_BODY(dns_acl_isinsecure, tc) {
+/* test that dns_acl_isinsecure works */
+static void
+dns_acl_isinsecure_test(void **state) {
 	isc_result_t result;
 	dns_acl_t *any = NULL;
 	dns_acl_t *none = NULL;
@@ -48,60 +72,57 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	dns_aclelement_t *de;
 #endif
 
-	UNUSED(tc);
-
-	result = dns_test_begin(NULL, false);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	result = dns_acl_any(mctx, &any);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_acl_none(mctx, &none);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_acl_create(mctx, 1, &notnone);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_acl_create(mctx, 1, &notany);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_acl_merge(notnone, none, false);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_acl_merge(notany, any, false);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 #ifdef HAVE_GEOIP
 	result = dns_acl_create(mctx, 1, &geoip);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	de = geoip->elements;
-	ATF_REQUIRE(de != NULL);
+	assert_non_null(de);
 	strlcpy(de->geoip_elem.as_string, "AU",
 		sizeof(de->geoip_elem.as_string));
 	de->geoip_elem.subtype = dns_geoip_country_code;
 	de->type = dns_aclelementtype_geoip;
 	de->negative = false;
-	ATF_REQUIRE(geoip->length < geoip->alloc);
+	assert_true(geoip->length < geoip->alloc);
 	geoip->node_count++;
 	de->node_num = geoip->node_count;
 	geoip->length++;
 
 	result = dns_acl_create(mctx, 1, &notgeoip);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_acl_merge(notgeoip, geoip, false);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 #endif
 
-	ATF_CHECK(dns_acl_isinsecure(any));		/* any; */
-	ATF_CHECK(!dns_acl_isinsecure(none));		/* none; */
-	ATF_CHECK(!dns_acl_isinsecure(notany));		/* !any; */
-	ATF_CHECK(!dns_acl_isinsecure(notnone));	/* !none; */
+	assert_true(dns_acl_isinsecure(any));		/* any; */
+	assert_false(dns_acl_isinsecure(none));		/* none; */
+	assert_false(dns_acl_isinsecure(notany));	/* !any; */
+	assert_false(dns_acl_isinsecure(notnone));	/* !none; */
 
 #ifdef HAVE_GEOIP
-	ATF_CHECK(dns_acl_isinsecure(geoip));		/* geoip; */
-	ATF_CHECK(!dns_acl_isinsecure(notgeoip));	/* !geoip; */
+	assert_true(dns_acl_isinsecure(geoip));		/* geoip; */
+	assert_false(dns_acl_isinsecure(notgeoip));	/* !geoip; */
 #endif
 
 	dns_acl_detach(&any);
@@ -112,14 +133,26 @@ ATF_TC_BODY(dns_acl_isinsecure, tc) {
 	dns_acl_detach(&geoip);
 	dns_acl_detach(&notgeoip);
 #endif
-
-	dns_test_end();
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, dns_acl_isinsecure);
-	return (atf_no_error());
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(dns_acl_isinsecure_test,
+						_setup, _teardown),
+	};
+
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif

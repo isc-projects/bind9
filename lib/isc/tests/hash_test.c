@@ -9,15 +9,22 @@
  * information regarding copyright ownership.
  */
 
-/* ! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/buffer.h>
 #include <isc/hash.h>
@@ -39,15 +46,13 @@ typedef struct hash_testcase {
 	int repeats;
 } hash_testcase_t;
 
-ATF_TC(isc_hash_function);
-ATF_TC_HEAD(isc_hash_function, tc) {
-	atf_tc_set_md_var(tc, "descr", "Hash function test");
-}
-ATF_TC_BODY(isc_hash_function, tc) {
+/*Hash function test */
+static void
+isc_hash_function_test(void **state) {
 	unsigned int h1;
 	unsigned int h2;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/* Incremental hashing */
 
@@ -59,42 +64,40 @@ ATF_TC_BODY(isc_hash_function, tc) {
 	h2 = isc_hash_function("This is a long test", 20,
 			       true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Immutability of hash function */
 	h1 = isc_hash_function(NULL, 0, true, NULL);
 	h2 = isc_hash_function(NULL, 0, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Hash function characteristics */
 	h1 = isc_hash_function("Hello world", 12, true, NULL);
 	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Case */
 	h1 = isc_hash_function("Hello world", 12, false, NULL);
 	h2 = isc_hash_function("heLLo WorLd", 12, false, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Unequal */
 	h1 = isc_hash_function("Hello world", 12, true, NULL);
 	h2 = isc_hash_function("heLLo WorLd", 12, true, NULL);
 
-	ATF_CHECK(h1 != h2);
+	assert_int_not_equal(h1, h2);
 }
 
-ATF_TC(isc_hash_function_reverse);
-ATF_TC_HEAD(isc_hash_function_reverse, tc) {
-	atf_tc_set_md_var(tc, "descr", "Reverse hash function test");
-}
-ATF_TC_BODY(isc_hash_function_reverse, tc) {
+/* Reverse hash function test */
+static void
+isc_hash_function_reverse_test(void **state) {
 	unsigned int h1;
 	unsigned int h2;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/* Incremental hashing */
 
@@ -106,67 +109,73 @@ ATF_TC_BODY(isc_hash_function_reverse, tc) {
 	h2 = isc_hash_function_reverse("\007example\003org\000", 13,
 				       true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Immutability of hash function */
 	h1 = isc_hash_function_reverse(NULL, 0, true, NULL);
 	h2 = isc_hash_function_reverse(NULL, 0, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Hash function characteristics */
 	h1 = isc_hash_function_reverse("Hello world", 12, true, NULL);
 	h2 = isc_hash_function_reverse("Hello world", 12, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Case */
 	h1 = isc_hash_function_reverse("Hello world", 12, false, NULL);
 	h2 = isc_hash_function_reverse("heLLo WorLd", 12, false, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	/* Unequal */
 	h1 = isc_hash_function_reverse("Hello world", 12, true, NULL);
 	h2 = isc_hash_function_reverse("heLLo WorLd", 12, true, NULL);
 
-	ATF_CHECK(h1 != h2);
+	assert_true(h1 != h2);
 }
 
-ATF_TC(isc_hash_initializer);
-ATF_TC_HEAD(isc_hash_initializer, tc) {
-	atf_tc_set_md_var(tc, "descr", "Hash function initializer test");
-}
-ATF_TC_BODY(isc_hash_initializer, tc) {
+/* Hash function initializer test */
+static void
+isc_hash_initializer_test(void **state) {
 	unsigned int h1;
 	unsigned int h2;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	h1 = isc_hash_function("Hello world", 12, true, NULL);
 	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 
 	isc_hash_set_initializer(isc_hash_get_initializer());
 
 	/* Hash value must not change */
 	h2 = isc_hash_function("Hello world", 12, true, NULL);
 
-	ATF_CHECK_EQ(h1, h2);
+	assert_int_equal(h1, h2);
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	/*
-	 * Tests of isc_hash functions.
-	 */
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(isc_hash_function_test),
+		cmocka_unit_test(isc_hash_function_reverse_test),
+		cmocka_unit_test(isc_hash_initializer_test),
+	};
 
-	ATF_TP_ADD_TC(tp, isc_hash_function);
-	ATF_TP_ADD_TC(tp, isc_hash_function_reverse);
-	ATF_TP_ADD_TC(tp, isc_hash_initializer);
-
-	return (atf_no_error());
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif

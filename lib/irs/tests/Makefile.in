@@ -11,10 +11,6 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-# Attempt to disable parallel processing.
-.NOTPARALLEL:
-.NO_PARALLEL:
-
 VERSION=@BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
@@ -31,7 +27,8 @@ ISCDEPLIBS =	../../isc/libisc.@A@
 IRSLIBS =	../libirs.@A@
 IRSDEPLIBS =	../libirs.@A@
 
-LIBS =		${IRSLIBS} ${CFGLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@ @ATFLIBS@
+CFLAGS =	@CFLAGS@ @CMOCKA_CFLAGS@
+LIBS =		${IRSLIBS} ${CFGLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@ @CMOCKA_LIBS@
 
 OBJS =
 SRCS =		resconf_test.c
@@ -42,8 +39,8 @@ TARGETS =	resconf_test@EXEEXT@
 @BIND9_MAKE_RULES@
 
 resconf_test@EXEEXT@: resconf_test.@O@ ${CFGDEPLIBS} ${DNSDEPLIBS} ${IRSDEPLIBS} ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			resconf_test.@O@ ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
+		${LDFLAGS} -o $@ resconf_test.@O@ ${LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh

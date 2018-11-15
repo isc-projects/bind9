@@ -69,6 +69,7 @@ bool debug_mem_record = true;
 bool run_managers = false;
 
 static bool dst_active = false;
+static bool test_running = false;
 
 static dns_zone_t *served_zone = NULL;
 
@@ -131,9 +132,6 @@ shutdown_managers(isc_task_t *task, isc_event_t *event) {
 
 static void
 cleanup_managers(void) {
-	if (app_running)
-		isc_app_finish();
-
 	shutdown_done = false;
 
 	if (maintask != NULL) {
@@ -150,14 +148,21 @@ cleanup_managers(void) {
 		ns_test_nap(500000);
 	}
 
-	if (sctx != NULL)
+	if (sctx != NULL) {
 		ns_server_detach(&sctx);
-	if (socketmgr != NULL)
+	}
+	if (socketmgr != NULL) {
 		isc_socketmgr_destroy(&socketmgr);
-	if (taskmgr != NULL)
+	}
+	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
-	if (timermgr != NULL)
+	}
+	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
+	}
+	if (app_running) {
+		isc_app_finish();
+	}
 }
 
 static void
@@ -203,6 +208,7 @@ create_managers(void) {
 				   scan_interfaces, NULL,
 				   sizeof (isc_event_t));
 	isc_task_send(maintask, &event);
+
 	/*
 	 * There's no straightforward way to determine
 	 * whether the interfaces have been scanned,
@@ -223,20 +229,31 @@ isc_result_t
 ns_test_begin(FILE *logfile, bool start_managers) {
 	isc_result_t result;
 
-	if (start_managers)
+	INSIST(!test_running);
+	test_running = true;
+
+	if (start_managers) {
 		CHECK(isc_app_start());
-	if (debug_mem_record)
+	}
+	if (debug_mem_record) {
 		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+	}
+
+	INSIST(mctx == NULL);
 	CHECK(isc_mem_create(0, 0, &mctx));
 
-	CHECK(dst_lib_init(mctx, NULL));
-	dst_active = true;
+	if (!dst_active) {
+		CHECK(dst_lib_init(mctx, NULL));
+		dst_active = true;
+	}
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;
 		isc_logconfig_t *logconfig = NULL;
 
+		INSIST(lctx == NULL);
 		CHECK(isc_log_create(mctx, &lctx, &logconfig));
+
 		isc_log_registercategories(lctx, categories);
 		isc_log_setcontext(lctx);
 		dns_log_init(lctx);
@@ -255,16 +272,18 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 
 	dns_result_register();
 
-	if (start_managers)
+	if (start_managers) {
 		CHECK(create_managers());
+	}
 
 	/*
 	 * atf-run changes us to a /tmp directory, so tests
 	 * that access test data files must first chdir to the proper
 	 * location.
 	 */
-	if (chdir(TESTS) == -1)
+	if (chdir(TESTS) == -1) {
 		CHECK(ISC_R_FAILURE);
+	}
 
 	ns__hook_table = NULL;
 
@@ -279,16 +298,18 @@ void
 ns_test_end(void) {
 	cleanup_managers();
 
-	if (dst_active) {
-		dst_lib_destroy();
-		dst_active = false;
+	dst_lib_destroy();
+	dst_active = false;
+
+	if (lctx != NULL) {
+		isc_log_destroy(&lctx);
 	}
 
-	if (lctx != NULL)
-		isc_log_destroy(&lctx);
-
-	if (mctx != NULL)
+	if (mctx != NULL) {
 		isc_mem_destroy(&mctx);
+	}
+
+	test_running = false;
 }
 
 isc_result_t

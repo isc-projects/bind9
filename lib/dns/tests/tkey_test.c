@@ -102,44 +102,37 @@ dns_tkeyctx_destroy_test(void **state) {
 	dns_tkeyctx_destroy(&tctx);
 }
 
-#else /* LD_WRAP */
-
-#define _setup NULL
-#define _teardown NULL
-
-static void
-dns_tkeyctx_create_test(void **state __attribute__ ((unused))) {
-	skip();
-}
-
-static void
-dns_tkeyctx_destroy_test(void **state __attribute__ ((unused))) {
-	skip();
-}
-
 #endif /* LD_WRAP */
 
-int main(void) {
+int
+main(void) {
+#if LD_WRAP
 	const struct CMUnitTest tkey_tests[] = {
 		cmocka_unit_test_teardown(dns_tkeyctx_create_test, _teardown),
-		/* cmocka_unit_test(dns_tkey_processquery_test), */
-		/* cmocka_unit_test(dns_tkey_builddhquery_test), */
-		/* cmocka_unit_test(dns_tkey_buildgssquery_test), */
-		/* cmocka_unit_test(dns_tkey_builddeletequery_test), */
-		/* cmocka_unit_test(dns_tkey_processdhresponse_test), */
-		/* cmocka_unit_test(dns_tkey_processgssresponse_test), */
-		/* cmocka_unit_test(dns_tkey_processdeleteresponse_test), */
-		/* cmocka_unit_test(dns_tkey_gssnegotiate_test), */
 		cmocka_unit_test_setup(dns_tkeyctx_destroy_test, _setup),
+#if 0 /* not yet */
+		cmocka_unit_test(dns_tkey_processquery_test),
+		cmocka_unit_test(dns_tkey_builddhquery_test),
+		cmocka_unit_test(dns_tkey_buildgssquery_test),
+		cmocka_unit_test(dns_tkey_builddeletequery_test),
+		cmocka_unit_test(dns_tkey_processdhresponse_test),
+		cmocka_unit_test(dns_tkey_processgssresponse_test),
+		cmocka_unit_test(dns_tkey_processdeleteresponse_test),
+		cmocka_unit_test(dns_tkey_gssnegotiate_test),
+#endif
 	};
 	return (cmocka_run_group_tests(tkey_tests, NULL, NULL));
+#else
+	print_message("1..0 # Skip tkey_test requires LD_WRAP");
+#endif /* LD_WRAP */
 }
 
 #else
 
 #include <stdio.h>
 
-int main(void) {
+int
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }

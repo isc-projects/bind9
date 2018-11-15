@@ -2405,8 +2405,11 @@ AC_ARG_WITH([cmocka],
 
 AS_CASE([$with_cmocka],
 	[no],[:],
-	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
-				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])])],
+	[yes],[
+            PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
+			      [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])])
+            UNITTESTS=tests
+            ],
 	[*],[
 	    save_CFLAGS="$CFLAGS"
 	    save_LIBS="$LIBS"
@@ -2424,12 +2427,14 @@ AS_CASE([$with_cmocka],
 			   [
 			       CMOCKA_CFLAGS="-I$with_cmocka/include"
 			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
+                               UNITTESTS=tests
 			       AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])
 			   ],
 			   [AC_MSG_ERROR([cmocka unit testing framework not found in $with_cmocka path])])
 	    ])
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
+AC_SUBST(UNITTESTS)
 
 #
 # Check for -Wl,--wrap= support
@@ -2452,47 +2457,6 @@ AC_LINK_IFELSE(
 AC_SUBST([LD_WRAP_TESTS])
 
 LDFLAGS=$save_LDFLAGS
-
-#
-# Check whether to build Automated Test Framework unit tests
-#
-AC_ARG_WITH(atf,
-	    AS_HELP_STRING([--with-atf],[support Automated Test Framework]),
-	atf="$withval", atf="no")
-if test "yes" = "$atf"; then
-	atf=`pwd`/unit/atf
-	ATFBUILD=atf-src
-	AC_SUBST(ATFBUILD)
-	AC_CONFIG_COMMANDS([atf-config],
-		[(
-		 mkdir -p unit/atf-src;
-		 cd unit/atf-src;
-		 case "$srcdir" in
-		 /*) ;;
-		 *) srcdir="../../$srcdir";;
-		 esac
-		 ${SHELL} "${srcdir}${srcdir:+/unit/atf-src/}./configure" --enable-tools --disable-shared MISSING=: --prefix $atfdir;
-		) || AC_MSG_ERROR([Failed to configure ATF.]) ],
-		[atfdir=`pwd`/unit/atf])
-	AC_MSG_RESULT(building ATF from bind9/unit/atf-src)
-fi
-
-ATFLIBS=
-if test "no" != "$atf"; then
-	AC_DEFINE(ATF_TEST, 1, [define if ATF unit tests are to be built.])
-	STD_CINCLUDES="$STD_CINCLUDES -I$atf/include"
-	STD_CDEFINES="$STD_CDEFINES -DNS_HOOKS_ENABLE=1"
-	ATFBIN="$atf/bin"
-	ATFLIBS="-L$atf/lib -latf-c"
-	AC_CHECK_LIB(m, exp, libm=yes, libm=no)
-	if test "yes" = "$libm"; then
-		ATFLIBS="$ATFLIBS -lm"
-	fi
-	UNITTESTS=tests
-fi
-AC_SUBST(ATFBIN)
-AC_SUBST(ATFLIBS)
-AC_SUBST(UNITTESTS)
 
 AC_CHECK_HEADERS(locale.h)
 AC_CHECK_FUNCS(setlocale)
@@ -3142,7 +3106,6 @@ AC_CONFIG_FILES([
 	lib/ns/tests/Makefile
 	lib/samples/Makefile
 	lib/samples/Makefile-postinstall
-	unit/Makefile
 	unit/unittest.sh
 	fuzz/Makefile
 ])
@@ -3219,7 +3182,7 @@ report() {
     test "no" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
     test "yes" = "$want_querytrace" && \
 	echo "    Very verbose query trace logging (--enable-querytrace)"
-    test "no" = "$atf" || echo "    Automated Testing Framework (--with-atf)"
+    test "no" = "$with_cmocka" || echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "no" = "$want_autoval" || echo "    DNSSEC validation active by default (--enable-auto-validation)"
 
@@ -3274,7 +3237,7 @@ report() {
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
     test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
-    test "no" = "$atf" && echo "    Automated Testing Framework (--with-atf)"
+    test "no" = "$with_cmocka" && echo "    CMocka Unit Testng Framework (--with-cmocka)"
 
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"

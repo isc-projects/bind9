@@ -918,7 +918,8 @@ isc_hmac_sha512_test(void **state) {
 		      1);
 }
 
-int main(void) {
+int
+main(void) {
 	const struct CMUnitTest tests[] = {
 		/* isc_hmac_new() */
 		cmocka_unit_test(isc_hmac_new_test),
@@ -954,7 +955,8 @@ int main(void) {
 
 #include <stdio.h>
 
-int main(void) {
+int
+main(void) {
 	printf("1..0 # Skipped: cmocka not available\n");
 	return (0);
 }
