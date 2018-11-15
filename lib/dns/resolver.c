@@ -9702,8 +9702,11 @@ dns_resolver_create(dns_view_t *view,
 	res->algorithms = NULL;
 	res->digests = NULL;
 	res->badcache = NULL;
-	dns_badcache_init(res->mctx, DNS_RESOLVER_BADCACHESIZE,
-			  &res->badcache);
+	result = dns_badcache_init(res->mctx, DNS_RESOLVER_BADCACHESIZE,
+				   &res->badcache);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_res;
+	}
 	res->mustbesecure = NULL;
 	res->spillatmin = res->spillat = 10;
 	res->spillatmax = 100;
@@ -9726,7 +9729,7 @@ dns_resolver_create(dns_view_t *view,
 				   ntasks * sizeof(fctxbucket_t));
 	if (res->buckets == NULL) {
 		result = ISC_R_NOMEMORY;
-		goto cleanup_res;
+		goto cleanup_badcache;
 	}
 	for (i = 0; i < ntasks; i++) {
 		result = isc_mutex_init(&res->buckets[i].lock);
@@ -9894,6 +9897,9 @@ dns_resolver_create(dns_view_t *view,
 	}
 	isc_mem_put(view->mctx, res->buckets,
 		    res->nbuckets * sizeof(fctxbucket_t));
+
+ cleanup_badcache:
+	dns_badcache_destroy(&res->badcache);
 
  cleanup_res:
 	isc_mem_put(view->mctx, res, sizeof(*res));
