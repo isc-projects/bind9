@@ -29,6 +29,7 @@
 #include <cmocka.h>
 
 #include <isc/parseint.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
 #include "isctest.h"

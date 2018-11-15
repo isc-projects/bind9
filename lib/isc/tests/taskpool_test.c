@@ -24,6 +24,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/print.h>
 #include <isc/task.h>
 #include <isc/taskpool.h>
 #include <isc/util.h>

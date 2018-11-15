@@ -23,6 +23,8 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/print.h>
+
 #include <dns/db.h>
 #include <dns/dbiterator.h>
 #include <dns/journal.h>

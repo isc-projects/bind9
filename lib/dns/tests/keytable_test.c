@@ -28,6 +28,7 @@
 
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
 #include <dns/name.h>

@@ -26,6 +26,7 @@
 
 #include <isc/mem.h>
 #include <isc/pool.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
 #include "isctest.h"

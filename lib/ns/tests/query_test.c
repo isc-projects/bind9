@@ -25,12 +25,14 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/print.h>
+#include <isc/util.h>
+
 #include <dns/badcache.h>
 #include <dns/view.h>
-#include <isc/util.h>
+
 #include <ns/client.h>
 #include <ns/query.h>
-#include <isc/util.h>
 
 #include "../hooks.h"
 

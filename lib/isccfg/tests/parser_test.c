@@ -29,6 +29,7 @@
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/types.h>
 #include <isc/util.h>
 

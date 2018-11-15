@@ -27,6 +27,7 @@
 #include <isc/util.h>
 
 #include <isc/file.h>
+#include <isc/print.h>
 #include <isc/util.h>
 #include <isc/stdio.h>
 #include <isc/string.h>

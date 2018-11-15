@@ -27,6 +27,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/print.h>
 #include <isc/serial.h>
 #include <isc/stdtime.h>
 #include <isc/util.h>
