@@ -40,6 +40,9 @@
 
 #include "dnstest.h"
 
+/* Set to true (or use -v option) for verbose output */
+static bool verbose = false;
+
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -470,8 +473,12 @@ hash_test(void **state) {
 		h1 = dns_name_hash(n1, false);
 		h2 = dns_name_hash(n2, false);
 
-		printf("%s hashes to %u, %s to %u, case insensitive\n",
-		       testcases[i].name1, h1, testcases[i].name2, h2);
+		if (verbose) {
+			print_message("# %s hashes to %u, "
+				      "%s to %u, case insensitive\n",
+				      testcases[i].name1, h1,
+				      testcases[i].name2, h2);
+		}
 
 		assert_int_equal((h1 == h2), testcases[i].expect);
 
@@ -479,8 +486,12 @@ hash_test(void **state) {
 		h1 = dns_name_hash(n1, false);
 		h2 = dns_name_hash(n2, false);
 
-		printf("%s hashes to %u, %s to %u, case sensitive\n",
-		       testcases[i].name1, h1, testcases[i].name2, h2);
+		if (verbose) {
+			print_message("# %s hashes to %u, "
+				      "%s to %u, case sensitive\n",
+				      testcases[i].name1, h1,
+				      testcases[i].name2, h2);
+		}
 
 		assert_int_equal((h1 == h2), testcases[i].expect);
 	}
@@ -521,10 +532,12 @@ issubdomain_test(void **state) {
 					      NULL, 0, NULL);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		printf("check: %s %s a subdomain of %s\n",
-		       testcases[i].name1,
-		       testcases[i].expect ? "is" : "is not",
-		       testcases[i].name2);
+		if (verbose) {
+			print_message("# check: %s %s a subdomain of %s\n",
+				      testcases[i].name1,
+				      testcases[i].expect ? "is" : "is not",
+				      testcases[i].name2);
+		}
 
 		assert_int_equal(dns_name_issubdomain(n1, n2),
 			     testcases[i].expect);
@@ -560,8 +573,11 @@ countlabels_test(void **state) {
 					      NULL, 0, NULL);
 		assert_int_equal(result, ISC_R_SUCCESS);
 
-		printf("%s: expect %u labels\n",
-		       testcases[i].namestr, testcases[i].expect);
+		if (verbose) {
+			print_message("# %s: expect %u labels\n",
+				      testcases[i].namestr,
+				      testcases[i].expect);
+		}
 
 		assert_int_equal(dns_name_countlabels(name),
 			       testcases[i].expect);
@@ -753,7 +769,7 @@ benchmark_test(void **state) {
 #endif /* DNS_BENCHMARK_TESTS */
 
 int
-main(void) {
+main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(fullcompare_test),
 		cmocka_unit_test_setup_teardown(compression_test,
@@ -773,6 +789,18 @@ main(void) {
 						_setup, _teardown),
 #endif /* DNS_BENCHMARK_TESTS */
 	};
+	int c;
+
+	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
+		switch (c) {
+		case 'v':
+			verbose = true;
+			break;
+		default:
+			break;
+		}
+	}
+
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
