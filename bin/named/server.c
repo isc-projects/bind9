@@ -14361,6 +14361,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 	bool ttlset = false, excl = false, viewfound = false;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
 	bool first = true;
+	bool is_option = true;
 
 	UNUSED(force);
 
@@ -14373,7 +14374,6 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 	}
 
 	for (;;) {
-		bool opts = true;
 
 		/* Check for options */
 		ptr = next_token(lex, text);
@@ -14381,16 +14381,16 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 			return (ISC_R_UNEXPECTEDEND);
 		}
 
-		if (!opts) {
+		if (!is_option) {
 			nametext = ptr;
 		} else if (strcmp(ptr, "--") == 0) {
-			opts = false;
+			is_option = false;
 		} else if (argcheck(ptr, "dump")) {
 			dump = true;
 		} else if (argcheck(ptr, "remove")) {
 			ntattl = 0;
 			ttlset = true;
-		} else if (opts && argcheck(ptr, "force")) {
+		} else if (argcheck(ptr, "force")) {
 			force = true;
 			continue;
 		} else if (argcheck(ptr, "lifetime")) {
