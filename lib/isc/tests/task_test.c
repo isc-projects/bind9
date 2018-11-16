@@ -38,6 +38,7 @@
 
 #include "isctest.h"
 
+/* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
 
 static isc_mutex_t lock;
