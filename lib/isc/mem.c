@@ -22,16 +22,17 @@
 #include <limits.h>
 
 #include <isc/bind9.h>
+#include <isc/hash.h>
 #include <isc/json.h>
 #include <isc/magic.h>
-#include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
-#include <isc/once.h>
-#include <isc/refcount.h>
-#include <isc/string.h>
 #include <isc/mutex.h>
+#include <isc/once.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
+#include <isc/strerr.h>
+#include <isc/string.h>
 #include <isc/util.h>
 #include <isc/xml.h>
 
@@ -734,8 +735,9 @@ default_memalloc(void *arg, size_t size) {
 
 	if (ptr == NULL && size != 0) {
 		char strbuf[ISC_STRERRORSIZE];
+		strerror_r(errno, strbuf, sizeof(strbuf));
 		isc_error_fatal(__FILE__, __LINE__, "malloc failed: %s",
-				strerror_r(errno, strbuf, sizeof(strbuf)));
+				strbuf);
 	}
 
 	return (ptr);

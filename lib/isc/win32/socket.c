@@ -2531,7 +2531,7 @@ SocketIoThread(LPVOID ThreadContext) {
  */
 isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp) {
-	return (isc_socketmgr_create2(mctx, managerp, 0));
+	return (isc_socketmgr_create2(mctx, managerp, 0, 1));
 }
 
 isc_result_t

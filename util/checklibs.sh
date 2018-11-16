@@ -26,6 +26,21 @@ list=`git grep -l snprintf lib bin |
 }
 
 #
+# Check for missing #include <isc/strerr.h>
+#
+list=`git grep -wl strerror_r lib bin |
+      grep '\.c$' |
+      grep -vE -e '(lib/bind|lib/dns/rdata|lib/dns/gen.c)' \
+	       -e lib/isc/string.c \
+	       -e '(lib/isc/win32/time.c|dlzexternal/driver.c)' |
+      xargs grep -EL "(isc/strerr.h)" 2> /dev/null`
+[ -n "$list" ] && {
+    status=1
+    echo 'Missing #include <isc/strerr.h>:'
+    echo "$list"
+}
+
+#
 # Check for missing #include <inttypes.h>"
 #
 list=`git grep -l uintptr_t lib bin |
