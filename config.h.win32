@@ -349,6 +349,36 @@ typedef __int64 off_t;
 /* Verbose query trace logging */
 @WANT_QUERYTRACE@
 
+/* Define to 1 if you have the `CRYPTO_zalloc' function. */
+@HAVE_CRYPTO_ZALLOC@
+
+/* Define to 1 if you have the `EVP_CIPHER_CTX_free' function. */
+@HAVE_EVP_CIPHER_CTX_FREE@
+
+/* Define to 1 if you have the `EVP_CIPHER_CTX_new' function. */
+@HAVE_EVP_CIPHER_CTX_NEW@
+
+/* Define to 1 if you have the `EVP_MD_CTX_free' function. */
+@HAVE_EVP_MD_CTX_FREE@
+
+/* Define to 1 if you have the `EVP_MD_CTX_new' function. */
+@HAVE_EVP_MD_CTX_NEW@
+
+/* Define to 1 if you have the `EVP_MD_CTX_reset' function. */
+@HAVE_EVP_MD_CTX_RESET@
+
+/* Define to 1 if you have the `HMAC_CTX_free' function. */
+@HAVE_HMAC_CTX_FREE@
+
+/* Define to 1 if you have the `HMAC_CTX_get_md' function. */
+@HAVE_HMAC_CTX_GET_MD@
+
+/* Define to 1 if you have the `HMAC_CTX_new' function. */
+@HAVE_HMAC_CTX_NEW@
+
+/* Define to 1 if you have the `HMAC_CTX_reset' function. */
+@HAVE_HMAC_CTX_RESET@
+
 /*
  * Define to nothing if C supports flexible array members, and to 1 if it does
  * not. That way, with a declaration like `struct s { int n; double
