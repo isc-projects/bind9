@@ -28,6 +28,7 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
+#include <isc/print.h>
 #include <isc/socket.h>
 #include <isc/task.h>
 #include <isc/timer.h>

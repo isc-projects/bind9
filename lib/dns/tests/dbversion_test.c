@@ -25,10 +25,11 @@
 #include <cmocka.h>
 
 #include <isc/file.h>
+#include <isc/msgcat.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/serial.h>
 #include <isc/stdtime.h>
-#include <isc/msgcat.h>
 #include <isc/string.h>
 #include <isc/util.h>
 

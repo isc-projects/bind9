@@ -24,6 +24,7 @@
 #include <cmocka.h>
 
 #include <isc/counter.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/util.h>
 

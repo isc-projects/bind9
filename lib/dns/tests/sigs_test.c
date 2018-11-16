@@ -25,6 +25,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/print.h>
 #include <isc/util.h>
 
 #include <dns/db.h>

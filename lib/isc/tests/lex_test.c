@@ -27,6 +27,7 @@
 #include <isc/buffer.h>
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
 /* check handling of 0xff */

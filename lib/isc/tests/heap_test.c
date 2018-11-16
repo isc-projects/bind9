@@ -29,6 +29,7 @@
 
 #include <isc/heap.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/util.h>
 
 struct e {
