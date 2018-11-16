@@ -4874,14 +4874,14 @@ AC_SUBST([CMOCKA_LIBS])
 AC_SUBST(UNITTESTS)
 
 #
-# Check for kyua execution engine if ATF was requested
+# Check for kyua execution engine if CMocka was requested
 # and bail out if execution engine was not found
 #
 AC_ARG_VAR([KYUA], [path to kyua execution engine])
 AS_IF([test "$with_cmocka" != "no"],
       [AC_PATH_PROGS([KYUA], [kyua], [])
        AS_IF([test -z "$KYUA"],
-            [AC_MSG_ERROR([kyua test execution engine not found])])])
+            [AC_MSG_WARN([kyua test execution engine not found])])])
 
 AC_SUBST([KYUA])
 
