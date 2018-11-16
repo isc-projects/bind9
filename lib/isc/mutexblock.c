@@ -19,18 +19,10 @@
 
 isc_result_t
 isc_mutexblock_init(isc_mutex_t *block, unsigned int count) {
-	isc_result_t result;
 	unsigned int i;
 
 	for (i = 0; i < count; i++) {
-		result = isc_mutex_init(&block[i]);
-		if (result != ISC_R_SUCCESS) {
-			while (i > 0U) {
-				i--;
-				DESTROYLOCK(&block[i]);
-			}
-			return (result);
-		}
+		isc_mutex_init(&block[i]);
 	}
 
 	return (ISC_R_SUCCESS);

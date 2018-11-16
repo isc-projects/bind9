@@ -201,9 +201,7 @@ ns_interfacemgr_create(isc_mem_t *mctx,
 	mgr->sctx = NULL;
 	ns_server_attach(sctx, &mgr->sctx);
 
-	result = isc_mutex_init(&mgr->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_ctx;
+	isc_mutex_init(&mgr->lock);
 
 	mgr->excl = NULL;
 	result = isc_taskmgr_excltask(taskmgr, &mgr->excl);
@@ -404,9 +402,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	strlcpy(ifp->name, name, sizeof(ifp->name));
 	ifp->clientmgr = NULL;
 
-	result = isc_mutex_init(&ifp->lock);
-	if (result != ISC_R_SUCCESS)
-		goto lock_create_failure;
+	isc_mutex_init(&ifp->lock);
 
 	result = ns_clientmgr_create(mgr->mctx, mgr->sctx,
 				     mgr->taskmgr, mgr->timermgr,
@@ -449,7 +445,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
  clientmgr_create_failure:
 	DESTROYLOCK(&ifp->lock);
 
- lock_create_failure:
 	ifp->magic = 0;
 	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
 

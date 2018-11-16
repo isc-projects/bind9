@@ -115,9 +115,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		goto cleanup_name;
 	}
 
-	result = isc_mutex_init(&view->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_name;
+	isc_mutex_init(&view->lock);
 
 	view->zonetable = NULL;
 	result = dns_zt_create(mctx, rdclass, &view->zonetable);
@@ -261,10 +259,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
-	result = isc_mutex_init(&view->new_zone_lock);
-	if (result != ISC_R_SUCCESS) {
-		goto cleanup_failcache;
-	}
+	isc_mutex_init(&view->new_zone_lock);
 
 	result = dns_order_create(view->mctx, &view->order);
 	if (result != ISC_R_SUCCESS) {
@@ -311,7 +306,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
  cleanup_new_zone_lock:
 	DESTROYLOCK(&view->new_zone_lock);
 
- cleanup_failcache:
 	dns_badcache_destroy(&view->failcache);
 
  cleanup_dynkeys:

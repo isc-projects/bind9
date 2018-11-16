@@ -3762,9 +3762,9 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	memset(event->proofs, 0, sizeof(event->proofs));
 	event->optout = false;
 	event->secure = false;
-	result = isc_mutex_init(&val->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_event;
+
+	isc_mutex_init(&val->lock);
+
 	val->event = event;
 	val->options = options;
 	val->attributes = 0;
@@ -3812,7 +3812,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  cleanup_mutex:
 	DESTROYLOCK(&val->lock);
 
- cleanup_event:
 	isc_task_detach(&tclone);
 	isc_event_free(ISC_EVENT_PTR(&event));
 

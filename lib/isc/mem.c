@@ -751,7 +751,7 @@ default_memfree(void *arg, void *ptr) {
 
 static void
 initialize_action(void) {
-	RUNTIME_CHECK(isc_mutex_init(&contextslock) == ISC_R_SUCCESS);
+	isc_mutex_init(&contextslock);
 	ISC_LIST_INIT(contexts);
 	totallost = 0;
 }
@@ -783,11 +783,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	}
 
 	if ((flags & ISC_MEMFLAG_NOLOCK) == 0) {
-		result = isc_mutex_init(&ctx->lock);
-		if (result != ISC_R_SUCCESS) {
-			(memfree)(arg, ctx);
-			return (result);
-		}
+		isc_mutex_init(&ctx->lock);
 	}
 
 	if (init_max_size == 0U)

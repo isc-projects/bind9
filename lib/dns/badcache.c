@@ -75,9 +75,7 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 	memset(bc, 0, sizeof(dns_badcache_t));
 
 	isc_mem_attach(mctx, &bc->mctx);
-	result = isc_mutex_init(&bc->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mutex_init(&bc->lock);
 
 	bc->table = isc_mem_get(bc->mctx, sizeof(*bc->table) * size);
 	if (bc->table == NULL) {
@@ -97,7 +95,6 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 
  destroy_lock:
 	DESTROYLOCK(&bc->lock);
- cleanup:
 	isc_mem_putanddetach(&bc->mctx, bc, sizeof(dns_badcache_t));
 	return (result);
 }

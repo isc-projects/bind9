@@ -94,8 +94,6 @@ isc_result_t
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		unsigned int write_quota)
 {
-	isc_result_t result;
-
 	REQUIRE(rwl != NULL);
 
 	/*
@@ -118,9 +116,7 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 		write_quota = RWLOCK_DEFAULT_WRITE_QUOTA;
 	rwl->write_quota = write_quota;
 
-	result = isc_mutex_init(&rwl->lock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mutex_init(&rwl->lock);
 
 	isc_condition_init(&rwl->readable);
 	isc_condition_init(&rwl->writeable);

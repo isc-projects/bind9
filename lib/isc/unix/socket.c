@@ -1935,7 +1935,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	/*
 	 * Initialize the lock.
 	 */
-	RUNTIME_CHECK(isc_mutex_init(&sock->lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&sock->lock);
 
 	sock->common.magic = ISCAPI_SOCKET_MAGIC;
 	sock->common.impmagic = SOCKET_MAGIC;
@@ -3682,10 +3682,7 @@ setup_thread(isc__socketthread_t *thread) {
 				     FDLOCK_COUNT * sizeof(isc_mutex_t));
 
 	for (i = 0; i < FDLOCK_COUNT; i++) {
-		result = isc_mutex_init(&thread->fdlock[i]);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		isc_mutex_init(&thread->fdlock[i]);
 	}
 
 	if (pipe(thread->pipe_fds) != 0) {
@@ -3932,8 +3929,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->common.impmagic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
 	ISC_LIST_INIT(manager->socklist);
-	RUNTIME_CHECK(isc_mutex_init(&manager->lock) == ISC_R_SUCCESS);
-
+	isc_mutex_init(&manager->lock);
 	isc_condition_init(&manager->shutdown_ok);
 
 	/*

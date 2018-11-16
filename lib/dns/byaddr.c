@@ -224,9 +224,7 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 	byaddr->task = NULL;
 	isc_task_attach(task, &byaddr->task);
 
-	result = isc_mutex_init(&byaddr->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_event;
+	isc_mutex_init(&byaddr->lock);
 
 	dns_fixedname_init(&byaddr->name);
 
@@ -252,7 +250,6 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
  cleanup_lock:
 	DESTROYLOCK(&byaddr->lock);
 
- cleanup_event:
 	ievent = (isc_event_t *)byaddr->event;
 	isc_event_free(&ievent);
 	byaddr->event = NULL;

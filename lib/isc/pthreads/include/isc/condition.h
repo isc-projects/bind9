@@ -20,6 +20,7 @@
 #include <isc/mutex.h>
 #include <isc/result.h>
 #include <isc/strerr.h>
+#include <isc/string.h>
 #include <isc/types.h>
 
 typedef pthread_cond_t isc_condition_t;

@@ -3421,17 +3421,9 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_manager;
-
-	result = isc_mutex_init(&manager->listlock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
-
-	result = isc_mutex_init(&manager->reclock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_listlock;
+	isc_mutex_init(&manager->lock);
+	isc_mutex_init(&manager->listlock);
+	isc_mutex_init(&manager->reclock);
 
 	manager->excl = NULL;
 	result = isc_taskmgr_excltask(taskmgr, &manager->excl);
@@ -3465,14 +3457,9 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 
  cleanup_reclock:
 	(void) isc_mutex_destroy(&manager->reclock);
-
- cleanup_listlock:
 	(void) isc_mutex_destroy(&manager->listlock);
-
- cleanup_lock:
 	(void) isc_mutex_destroy(&manager->lock);
 
- cleanup_manager:
 	isc_mem_put(manager->mctx, manager, sizeof(*manager));
 
 	return (result);

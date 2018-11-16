@@ -1447,10 +1447,7 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_rwlock;
 
-	result = isc_mutex_init(&zones->maint_lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mutex;
-
+	isc_mutex_init(&zones->maint_lock);
 	isc_refcount_init(&zones->refs, 1);
 
 	zones->rps_cstr = rps_cstr;
@@ -1490,7 +1487,6 @@ cleanup_rbt:
 
 	DESTROYLOCK(&zones->maint_lock);
 
-cleanup_mutex:
 	isc_rwlock_destroy(&zones->search_lock);
 
 cleanup_rwlock:

@@ -138,15 +138,11 @@ isc_app_ctxstart(isc_appctx_t *ctx0) {
 	 * Start an ISC library application.
 	 */
 
-	result = isc_mutex_init(&ctx->readylock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mutex_init(&ctx->readylock);
 
 	isc_condition_init(&ctx->ready);
 
-	result = isc_mutex_init(&ctx->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mutex_init(&ctx->lock);
 
 	ISC_LIST_INIT(ctx->on_run);
 

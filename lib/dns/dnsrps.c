@@ -145,9 +145,7 @@ dns_dnsrps_server_create(void) {
 	if (librpz == NULL)
 		return (ISC_R_SUCCESS);
 
-	result = isc_mutex_init(&dnsrps_mutex);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mutex_init(&dnsrps_mutex);
 
 	librpz->set_log(&dnsrps_log_fnc, NULL);
 

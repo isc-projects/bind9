@@ -268,8 +268,7 @@ dispatch_getnext(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mutex_init(&lock);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);

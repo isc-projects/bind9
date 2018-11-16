@@ -321,12 +321,7 @@ isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 	 */
 	DE_CONST(arg, timer->arg);
 	timer->index = 0;
-	result = isc_mutex_init(&timer->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_task_detach(&timer->task);
-		isc_mem_put(manager->mctx, timer, sizeof(*timer));
-		return (result);
-	}
+	isc_mutex_init(&timer->lock);
 	ISC_LINK_INIT(timer, link);
 	timer->common.impmagic = TIMER_MAGIC;
 	timer->common.magic = ISCAPI_TIMER_MAGIC;
@@ -743,12 +738,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 		isc_mem_put(mctx, manager, sizeof(*manager));
 		return (ISC_R_NOMEMORY);
 	}
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		return (result);
-	}
+	isc_mutex_init(&manager->lock);
 	isc_mem_attach(mctx, &manager->mctx);
 	isc_condition_init(&manager->wakeup);
 	if (isc_thread_create(run, manager, &manager->thread) !=

@@ -268,11 +268,7 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	if (httpdmgr == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&httpdmgr->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, httpdmgr, sizeof(isc_httpdmgr_t));
-		return (result);
-	}
+	isc_mutex_init(&httpdmgr->lock);
 	httpdmgr->mctx = NULL;
 	isc_mem_attach(mctx, &httpdmgr->mctx);
 	httpdmgr->sock = NULL;

@@ -56,8 +56,7 @@ _setup(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mutex_init(&lock);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
 	isc_condition_init(&cv);
 
@@ -73,8 +72,7 @@ _setup2(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mutex_init(&lock);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
 	isc_condition_init(&cv);
 
@@ -91,8 +89,7 @@ _setup4(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mutex_init(&lock);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
 	isc_condition_init(&cv);
 

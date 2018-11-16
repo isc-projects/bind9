@@ -226,9 +226,7 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 	imp->flags = flags;
 	imp->mctx = NULL;
 	isc_mem_attach(mctx, &imp->mctx);
-	result = isc_mutex_init(&imp->driverlock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mctx;
+	isc_mutex_init(&imp->driverlock);
 
 	imp->dbimp = NULL;
 	result = dns_db_register(drivername, dns_sdb_create, imp, mctx,
@@ -241,7 +239,6 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 
  cleanup_mutex:
 	DESTROYLOCK(&imp->driverlock);
- cleanup_mctx:
 	isc_mem_put(mctx, imp, sizeof(dns_sdbimplementation_t));
 	return (result);
 }
@@ -655,7 +652,6 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 static isc_result_t
 createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 	dns_sdbnode_t *node;
-	isc_result_t result;
 
 	node = isc_mem_get(sdb->common.mctx, sizeof(dns_sdbnode_t));
 	if (node == NULL)
@@ -667,11 +663,7 @@ createnode(dns_sdb_t *sdb, dns_sdbnode_t **nodep) {
 	ISC_LIST_INIT(node->buffers);
 	ISC_LINK_INIT(node, link);
 	node->name = NULL;
-	result = isc_mutex_init(&node->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(sdb->common.mctx, node, sizeof(dns_sdbnode_t));
-		return (result);
-	}
+	isc_mutex_init(&node->lock);
 	dns_rdatacallbacks_init(&node->callbacks);
 	node->references = 1;
 	node->magic = SDBLOOKUP_MAGIC;
@@ -1333,9 +1325,7 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 
 	isc_mem_attach(mctx, &sdb->common.mctx);
 
-	result = isc_mutex_init(&sdb->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mctx;
+	isc_mutex_init(&sdb->lock);
 
 	result = dns_name_dupwithoffsets(origin, mctx, &sdb->common.origin);
 	if (result != ISC_R_SUCCESS)
@@ -1378,7 +1368,6 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	dns_name_free(&sdb->common.origin, mctx);
  cleanup_lock:
 	(void)isc_mutex_destroy(&sdb->lock);
- cleanup_mctx:
 	isc_mem_put(mctx, sdb, sizeof(dns_sdb_t));
 	isc_mem_detach(&mctx);
 

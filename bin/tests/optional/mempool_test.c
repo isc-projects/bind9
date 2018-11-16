@@ -30,7 +30,7 @@ main(int argc, char *argv[]) {
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);

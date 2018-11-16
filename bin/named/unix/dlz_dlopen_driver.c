@@ -252,9 +252,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	}
 
 	/* Initialize the lock */
-	result = isc_mutex_init(&cd->lock);
-	if (result != ISC_R_SUCCESS)
-		goto failed;
+	isc_mutex_init(&cd->lock);
 
 	/* Open the library */
 	dlopen_flags = RTLD_NOW|RTLD_GLOBAL;

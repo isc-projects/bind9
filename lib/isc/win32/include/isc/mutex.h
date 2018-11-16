@@ -30,7 +30,7 @@ TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
 #endif /* _WIN32_WINNT < 0x0400 */
 
 #define isc_mutex_init(mp) \
-	(InitializeCriticalSection((mp)), ISC_R_SUCCESS)
+	InitializeCriticalSection((mp))
 #define isc_mutex_lock(mp) \
 	(EnterCriticalSection((mp)), ISC_R_SUCCESS)
 #define isc_mutex_unlock(mp) \

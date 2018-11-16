@@ -68,18 +68,13 @@ compare(const void *arg1, const void *arg2) {
 isc_result_t
 dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
 	dns_portlist_t *portlist;
-	isc_result_t result;
 
 	REQUIRE(portlistp != NULL && *portlistp == NULL);
 
 	portlist = isc_mem_get(mctx, sizeof(*portlist));
 	if (portlist == NULL)
 		return (ISC_R_NOMEMORY);
-	result = isc_mutex_init(&portlist->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, portlist, sizeof(*portlist));
-		return (result);
-	}
+	isc_mutex_init(&portlist->lock);
 	isc_refcount_init(&portlist->refcount, 1);
 	portlist->list = NULL;
 	portlist->allocated = 0;

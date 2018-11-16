@@ -69,7 +69,7 @@ typedef pthread_mutex_t	isc_mutex_t;
 #else
 #define isc_mutex_init(mp) \
 	isc__mutex_init((mp), __FILE__, __LINE__)
-isc_result_t isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line);
+void isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line);
 #endif
 #endif
 
@@ -119,7 +119,7 @@ isc_result_t isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int lin
 
 #if ISC_MUTEX_PROFILE
 
-isc_result_t
+void
 isc_mutex_init_profile(isc_mutex_t *mp, const char * _file, int _line);
 isc_result_t
 isc_mutex_lock_profile(isc_mutex_t *mp, const char * _file, int _line);
@@ -129,7 +129,7 @@ isc_mutex_unlock_profile(isc_mutex_t *mp, const char * _file, int _line);
 void
 isc_mutex_statsprofile(FILE *fp);
 
-isc_result_t
+void
 isc_mutex_init_errcheck(isc_mutex_t *mp);
 
 #endif /* ISC_MUTEX_PROFILE */

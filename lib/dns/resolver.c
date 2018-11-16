@@ -9921,9 +9921,8 @@ dns_resolver_create(dns_view_t *view,
 		goto cleanup_badcache;
 	}
 	for (i = 0; i < ntasks; i++) {
-		result = isc_mutex_init(&res->buckets[i].lock);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup_buckets;
+		isc_mutex_init(&res->buckets[i].lock);
+
 		res->buckets[i].task = NULL;
 		result = isc_task_create(taskmgr, 0, &res->buckets[i].task);
 		if (result != ISC_R_SUCCESS) {
@@ -9960,11 +9959,7 @@ dns_resolver_create(dns_view_t *view,
 		ISC_LIST_INIT(res->dbuckets[i].list);
 		res->dbuckets[i].mctx = NULL;
 		isc_mem_attach(view->mctx, &res->dbuckets[i].mctx);
-		result = isc_mutex_init(&res->dbuckets[i].lock);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_detach(&res->dbuckets[i].mctx);
-			goto cleanup_dbuckets;
-		}
+		isc_mutex_init(&res->dbuckets[i].lock);
 		dbuckets_created++;
 	}
 
@@ -9994,17 +9989,9 @@ dns_resolver_create(dns_view_t *view,
 	res->primefetch = NULL;
 	res->nfctx = 0;
 
-	result = isc_mutex_init(&res->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_dispatches;
-
-	result = isc_mutex_init(&res->nlock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
-
-	result = isc_mutex_init(&res->primelock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_nlock;
+	isc_mutex_init(&res->lock);
+	isc_mutex_init(&res->nlock);
+	isc_mutex_init(&res->primelock);
 
 	task = NULL;
 	result = isc_task_create(taskmgr, 0, &task);
@@ -10052,20 +10039,14 @@ dns_resolver_create(dns_view_t *view,
 
  cleanup_primelock:
 	DESTROYLOCK(&res->primelock);
-
- cleanup_nlock:
 	DESTROYLOCK(&res->nlock);
-
- cleanup_lock:
 	DESTROYLOCK(&res->lock);
 
- cleanup_dispatches:
 	if (res->dispatches6 != NULL)
 		dns_dispatchset_destroy(&res->dispatches6);
 	if (res->dispatches4 != NULL)
 		dns_dispatchset_destroy(&res->dispatches4);
 
- cleanup_dbuckets:
 	for (i = 0; i < dbuckets_created; i++) {
 		DESTROYLOCK(&res->dbuckets[i].lock);
 		isc_mem_detach(&res->dbuckets[i].mctx);

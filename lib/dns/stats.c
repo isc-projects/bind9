@@ -139,9 +139,7 @@ create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	stats->counters = NULL;
 	stats->references = 1;
 
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
+	isc_mutex_init(&stats->lock);
 
 	result = isc_stats_create(mctx, &stats->counters, ncounters);
 	if (result != ISC_R_SUCCESS)
@@ -157,7 +155,6 @@ create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 
   clean_mutex:
 	DESTROYLOCK(&stats->lock);
-  clean_stats:
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
 	return (result);

@@ -1385,9 +1385,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	/*
 	 * Initialize the lock.
 	 */
-	result = isc_mutex_init(&sock->lock);
-	if (result != ISC_R_SUCCESS)
-		goto error;
+	isc_mutex_init(&sock->lock);
 
 	socket_log(__LINE__, sock, NULL, EVENT, NULL, 0, 0,
 		   "allocated");
@@ -2556,11 +2554,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->mctx = NULL;
 	manager->stats = NULL;
 	ISC_LIST_INIT(manager->socklist);
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		return (result);
-	}
+	isc_mutex_init(&manager->lock);
 	isc_condition_init(&manager->shutdown_ok);
 
 	isc_mem_attach(mctx, &manager->mctx);

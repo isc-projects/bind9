@@ -923,9 +923,8 @@ ns_query_init(ns_client_t *client) {
 	 * This mutex is destroyed when the client is destroyed in
 	 * exit_check().
 	 */
-	result = isc_mutex_init(&client->query.fetchlock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mutex_init(&client->query.fetchlock);
+
 	client->query.fetch = NULL;
 	client->query.prefetch = NULL;
 	client->query.authdb = NULL;

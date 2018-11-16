@@ -248,7 +248,6 @@ isc_task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 	isc__task_t *task;
 	bool exiting;
-	isc_result_t result;
 
 	REQUIRE(VALID_MANAGER(manager));
 	REQUIRE(taskp != NULL && *taskp == NULL);
@@ -261,11 +260,8 @@ isc_task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 	task->threadid = atomic_fetch_add_explicit(&manager->curq, 1,
 						   memory_order_relaxed)
 						   % manager->workers;
-	result = isc_mutex_init(&task->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(manager->mctx, task, sizeof(*task));
-		return (result);
-	}
+	isc_mutex_init(&task->lock);
+
 	task->state = task_state_idle;
 	task->references = 1;
 	INIT_LIST(task->events);
@@ -1336,10 +1332,10 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	manager->common.magic = ISCAPI_TASKMGR_MAGIC;
 	manager->mode = isc_taskmgrmode_normal;
 	manager->mctx = NULL;
-	RUNTIME_CHECK(isc_mutex_init(&manager->lock) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mutex_init(&manager->excl_lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&manager->lock);
+	isc_mutex_init(&manager->excl_lock);
 
-	RUNTIME_CHECK(isc_mutex_init(&manager->halt_lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&manager->halt_lock);
 	isc_condition_init(&manager->halt_cond);
 
 	manager->workers = workers;
@@ -1370,8 +1366,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	for (i = 0; i < workers; i++) {
 		INIT_LIST(manager->queues[i].ready_tasks);
 		INIT_LIST(manager->queues[i].ready_priority_tasks);
-		RUNTIME_CHECK(isc_mutex_init(&manager->queues[i].lock)
-			      == ISC_R_SUCCESS);
+		isc_mutex_init(&manager->queues[i].lock);
 		isc_condition_init(&manager->queues[i].work_available);
 
 		manager->queues[i].manager = manager;

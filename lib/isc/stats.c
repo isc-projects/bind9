@@ -72,9 +72,7 @@ create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	if (stats == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&stats->lock);
-	if (result != ISC_R_SUCCESS)
-		goto clean_stats;
+	isc_mutex_init(&stats->lock);
 
 	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
 	if (stats->counters == NULL) {
@@ -104,8 +102,6 @@ clean_counters:
 
 clean_mutex:
 	DESTROYLOCK(&stats->lock);
-
-clean_stats:
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
 	return (result);

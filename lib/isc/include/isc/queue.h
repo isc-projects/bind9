@@ -49,8 +49,8 @@
 
 #define ISC_QUEUE_INIT(queue, link) \
 	do { \
-		(void) isc_mutex_init(&(queue).taillock); \
-		(void) isc_mutex_init(&(queue).headlock); \
+		isc_mutex_init(&(queue).taillock); \
+		isc_mutex_init(&(queue).headlock); \
 		(queue).tail = (queue).head = NULL; \
 	} while (0)
 

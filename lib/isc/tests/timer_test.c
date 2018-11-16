@@ -105,8 +105,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	isc_time_settoepoch(&endtime);
 	eventcnt = 0;
 
-	result = isc_mutex_init(&mx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&mx);
 
 	isc_condition_init(&cv);
 
@@ -502,8 +501,7 @@ purge(void **state) {
 	seconds = 1;
 	nanoseconds = 0;
 
-	result = isc_mutex_init(&mx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&mx);
 
 	isc_condition_init(&cv);
 

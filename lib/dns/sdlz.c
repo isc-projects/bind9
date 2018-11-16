@@ -467,7 +467,6 @@ closeversion(dns_db_t *db, dns_dbversion_t **versionp, bool commit) {
 static isc_result_t
 createnode(dns_sdlz_db_t *sdlz, dns_sdlznode_t **nodep) {
 	dns_sdlznode_t *node;
-	isc_result_t result;
 
 	node = isc_mem_get(sdlz->common.mctx, sizeof(dns_sdlznode_t));
 	if (node == NULL)
@@ -479,14 +478,7 @@ createnode(dns_sdlz_db_t *sdlz, dns_sdlznode_t **nodep) {
 	ISC_LIST_INIT(node->buffers);
 	ISC_LINK_INIT(node, link);
 	node->name = NULL;
-	result = isc_mutex_init(&node->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		isc_mem_put(sdlz->common.mctx, node, sizeof(dns_sdlznode_t));
-		return (ISC_R_UNEXPECTED);
-	}
+	isc_mutex_init(&node->lock);
 	dns_rdatacallbacks_init(&node->callbacks);
 	node->references = 1;
 	node->magic = SDLZLOOKUP_MAGIC;
@@ -1550,9 +1542,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 		goto mem_cleanup;
 
 	/* initialize the reference count mutex */
-	result = isc_mutex_init(&sdlzdb->refcnt_lock);
-	if (result != ISC_R_SUCCESS)
-		goto name_cleanup;
+	isc_mutex_init(&sdlzdb->refcnt_lock);
 
 	/* set the rest of the database structure attributes */
 	sdlzdb->dlzimp = imp;
@@ -1572,13 +1562,6 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 	*dbp = (dns_db_t *) sdlzdb;
 
 	return (result);
-
-	/*
-	 * reference count mutex could not be initialized, clean up
-	 * name memory
-	 */
- name_cleanup:
-	dns_name_free(&sdlzdb->common.origin, mctx);
  mem_cleanup:
 	isc_mem_put(mctx, sdlzdb, sizeof(dns_sdlz_db_t));
 	return (result);
@@ -2096,13 +2079,7 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	 * initialize the driver lock, error if we cannot
 	 * (used if a driver does not support multiple threads)
 	 */
-	result = isc_mutex_init(&imp->driverlock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		goto cleanup_mctx;
-	}
+	isc_mutex_init(&imp->driverlock);
 
 	imp->dlz_imp = NULL;
 
@@ -2127,7 +2104,6 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	/* destroy the driver lock, we don't need it anymore */
 	DESTROYLOCK(&imp->driverlock);
 
- cleanup_mctx:
 	/*
 	 * return the memory back to the available memory pool and
 	 * remove it from the memory context.

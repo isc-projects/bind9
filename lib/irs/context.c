@@ -135,7 +135,7 @@ free_specific_context(void *arg) {
 
 static void
 thread_key_mutex_init(void) {
-	RUNTIME_CHECK(isc_mutex_init(&thread_key_mutex) == ISC_R_SUCCESS);
+	isc_mutex_init(&thread_key_mutex);
 }
 
 static isc_result_t

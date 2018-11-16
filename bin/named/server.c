@@ -9615,8 +9615,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				     &server->in_roothints),
 		   "setting up root hints");
 
-	CHECKFATAL(isc_mutex_init(&server->reload_event_lock),
-		   "initializing reload event lock");
+	isc_mutex_init(&server->reload_event_lock);
+
 	server->reload_event =
 		isc_event_allocate(named_g_mctx, server,
 				   NAMED_EVENT_RELOAD,

@@ -450,11 +450,7 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
 	if (client == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&client->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, client, sizeof(*client));
-		return (result);
-	}
+	isc_mutex_init(&client->lock);
 
 	client->actx = actx;
 	client->taskmgr = taskmgr;
@@ -1244,11 +1240,7 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 	if (resarg == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&resarg->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(client->mctx, resarg, sizeof(*resarg));
-		return (result);
-	}
+	isc_mutex_init(&resarg->lock);
 
 	resarg->actx = actx;
 	resarg->client = client;
@@ -1356,11 +1348,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	if (rctx == NULL)
 		result = ISC_R_NOMEMORY;
 	else {
-		result = isc_mutex_init(&rctx->lock);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, rctx, sizeof(*rctx));
-			rctx = NULL;
-		}
+		isc_mutex_init(&rctx->lock);
 	}
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -1655,11 +1643,7 @@ dns_client_request(dns_client_t *client, dns_message_t *qmessage,
 	if (reqarg == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&reqarg->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(client->mctx, reqarg, sizeof(*reqarg));
-		return (result);
-	}
+	isc_mutex_init(&reqarg->lock);
 
 	reqarg->actx = actx;
 	reqarg->client = client;
@@ -1761,11 +1745,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 	if (ctx == NULL)
 		result = ISC_R_NOMEMORY;
 	else {
-		result = isc_mutex_init(&ctx->lock);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(client->mctx, ctx, sizeof(*ctx));
-			ctx = NULL;
-		}
+		isc_mutex_init(&ctx->lock);
 	}
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
@@ -2714,11 +2694,7 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 	if (uarg == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&uarg->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(client->mctx, uarg, sizeof(*uarg));
-		return (result);
-	}
+	isc_mutex_init(&uarg->lock);
 
 	uarg->actx = actx;
 	uarg->client = client;
@@ -2861,12 +2837,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		return (ISC_R_NOMEMORY);
 	}
 
-	result = isc_mutex_init(&uctx->lock);
-	if (result != ISC_R_SUCCESS) {
-		dns_view_detach(&view);
-		isc_mem_put(client->mctx, uctx, sizeof(*uctx));
-		return (ISC_R_NOMEMORY);
-	}
+	isc_mutex_init(&uctx->lock);
 
 	tclone = NULL;
 	isc_task_attach(task, &tclone);

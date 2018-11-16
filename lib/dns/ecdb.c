@@ -354,14 +354,7 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	if (node == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&node->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		isc_mem_put(mctx, node, sizeof(*node));
-		return (ISC_R_UNEXPECTED);
-	}
+	isc_mutex_init(&node->lock);
 
 	dns_name_init(&node->name, NULL);
 	result = dns_name_dup(name, mctx, &node->name);
@@ -625,16 +618,7 @@ dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		return (result);
 	}
 
-	result = isc_mutex_init(&ecdb->lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		if (dns_name_dynamic(&ecdb->common.origin))
-			dns_name_free(&ecdb->common.origin, mctx);
-		isc_mem_put(mctx, ecdb, sizeof(*ecdb));
-		return (ISC_R_UNEXPECTED);
-	}
+	isc_mutex_init(&ecdb->lock);
 
 	ecdb->references = 1;
 	ISC_LIST_INIT(ecdb->nodes);

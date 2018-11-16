@@ -3253,11 +3253,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	listener->mctx = NULL;
 	ISC_LINK_INIT(listener, link);
 
-	result = isc_mutex_init(&listener->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(server->mctx, listener, sizeof(*listener));
-		return (ISC_R_FAILURE);
-	}
+	isc_mutex_init(&listener->lock);
 
 	isc_mem_attach(server->mctx, &listener->mctx);
 

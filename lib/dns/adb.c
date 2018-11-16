@@ -1895,7 +1895,6 @@ free_adbentry(dns_adb_t *adb, dns_adbentry_t **entry) {
 static inline dns_adbfind_t *
 new_adbfind(dns_adb_t *adb) {
 	dns_adbfind_t *h;
-	isc_result_t result;
 
 	h = isc_mempool_get(adb->ahmp);
 	if (h == NULL)
@@ -1920,11 +1919,7 @@ new_adbfind(dns_adb_t *adb) {
 	/*
 	 * private members
 	 */
-	result = isc_mutex_init(&h->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mempool_put(adb->ahmp, h);
-		return (NULL);
-	}
+	isc_mutex_init(&h->lock);
 
 	ISC_EVENT_INIT(&h->event, sizeof(isc_event_t), 0, 0, 0, NULL, NULL,
 		       NULL, NULL, h);
@@ -2606,29 +2601,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 
 	isc_mem_attach(mem, &adb->mctx);
 
-	result = isc_mutex_init(&adb->lock);
-	if (result != ISC_R_SUCCESS)
-		goto fail0b;
-
-	result = isc_mutex_init(&adb->mplock);
-	if (result != ISC_R_SUCCESS)
-		goto fail0c;
-
-	result = isc_mutex_init(&adb->reflock);
-	if (result != ISC_R_SUCCESS)
-		goto fail0d;
-
-	result = isc_mutex_init(&adb->overmemlock);
-	if (result != ISC_R_SUCCESS)
-		goto fail0e;
-
-	result = isc_mutex_init(&adb->entriescntlock);
-	if (result != ISC_R_SUCCESS)
-		goto fail0f;
-
-	result = isc_mutex_init(&adb->namescntlock);
-	if (result != ISC_R_SUCCESS)
-		goto fail0g;
+	isc_mutex_init(&adb->lock);
+	isc_mutex_init(&adb->mplock);
+	isc_mutex_init(&adb->reflock);
+	isc_mutex_init(&adb->overmemlock);
+	isc_mutex_init(&adb->entriescntlock);
+	isc_mutex_init(&adb->namescntlock);
 
 #define ALLOCENTRY(adb, el) \
 	do { \
@@ -2790,17 +2768,11 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 		isc_mempool_destroy(&adb->afmp);
 
 	DESTROYLOCK(&adb->namescntlock);
- fail0g:
 	DESTROYLOCK(&adb->entriescntlock);
- fail0f:
 	DESTROYLOCK(&adb->overmemlock);
- fail0e:
 	DESTROYLOCK(&adb->reflock);
- fail0d:
 	DESTROYLOCK(&adb->mplock);
- fail0c:
 	DESTROYLOCK(&adb->lock);
- fail0b:
 	if (adb->excl != NULL)
 		isc_task_detach(&adb->excl);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));

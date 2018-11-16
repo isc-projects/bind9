@@ -1760,33 +1760,13 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
 	mgr->blackhole = NULL;
 	mgr->stats = NULL;
 
-	result = isc_mutex_init(&mgr->lock);
-	if (result != ISC_R_SUCCESS)
-		goto deallocate;
-
-	result = isc_mutex_init(&mgr->buffer_lock);
-	if (result != ISC_R_SUCCESS)
-		goto kill_lock;
-
-	result = isc_mutex_init(&mgr->depool_lock);
-	if (result != ISC_R_SUCCESS)
-		goto kill_buffer_lock;
-
-	result = isc_mutex_init(&mgr->rpool_lock);
-	if (result != ISC_R_SUCCESS)
-		goto kill_depool_lock;
-
-	result = isc_mutex_init(&mgr->dpool_lock);
-	if (result != ISC_R_SUCCESS)
-		goto kill_rpool_lock;
-
-	result = isc_mutex_init(&mgr->bpool_lock);
-	if (result != ISC_R_SUCCESS)
-		goto kill_dpool_lock;
-
-	result = isc_mutex_init(&mgr->spool_lock);
-	if (result != ISC_R_SUCCESS)
-		goto kill_bpool_lock;
+	isc_mutex_init(&mgr->lock);
+	isc_mutex_init(&mgr->buffer_lock);
+	isc_mutex_init(&mgr->depool_lock);
+	isc_mutex_init(&mgr->rpool_lock);
+	isc_mutex_init(&mgr->dpool_lock);
+	isc_mutex_init(&mgr->bpool_lock);
+	isc_mutex_init(&mgr->spool_lock);
 
 	mgr->depool = NULL;
 	if (isc_mempool_create(mgr->mctx, sizeof(dns_dispatchevent_t),
@@ -1868,19 +1848,12 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
 	isc_mempool_destroy(&mgr->depool);
  kill_spool_lock:
 	DESTROYLOCK(&mgr->spool_lock);
- kill_bpool_lock:
 	DESTROYLOCK(&mgr->bpool_lock);
- kill_dpool_lock:
 	DESTROYLOCK(&mgr->dpool_lock);
- kill_rpool_lock:
 	DESTROYLOCK(&mgr->rpool_lock);
- kill_depool_lock:
 	DESTROYLOCK(&mgr->depool_lock);
- kill_buffer_lock:
 	DESTROYLOCK(&mgr->buffer_lock);
- kill_lock:
 	DESTROYLOCK(&mgr->lock);
- deallocate:
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
 	isc_mem_detach(&mctx);
 
@@ -2262,7 +2235,6 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 {
 	dns_qid_t *qid;
 	unsigned int i;
-	isc_result_t result;
 
 	REQUIRE(VALID_DISPATCHMGR(mgr));
 	REQUIRE(buckets < 2097169);  /* next prime > 65536 * 32 */
@@ -2292,17 +2264,7 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 		}
 	}
 
-	result = isc_mutex_init(&qid->lock);
-	if (result != ISC_R_SUCCESS) {
-		if (qid->sock_table != NULL) {
-			isc_mem_put(mgr->mctx, qid->sock_table,
-				    buckets * sizeof(dispsocketlist_t));
-		}
-		isc_mem_put(mgr->mctx, qid->qid_table,
-			    buckets * sizeof(dns_displist_t));
-		isc_mem_put(mgr->mctx, qid, sizeof(*qid));
-		return (result);
-	}
+	isc_mutex_init(&qid->lock);
 
 	for (i = 0; i < buckets; i++) {
 		ISC_LIST_INIT(qid->qid_table[i]);
@@ -2385,9 +2347,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	disp->portpool = NULL;
 	disp->dscp = -1;
 
-	result = isc_mutex_init(&disp->lock);
-	if (result != ISC_R_SUCCESS)
-		goto deallocate;
+	isc_mutex_init(&disp->lock);
 
 	disp->failsafe_ev = allocate_devent(disp);
 	if (disp->failsafe_ev == NULL) {
@@ -2405,7 +2365,6 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	 */
  kill_lock:
 	DESTROYLOCK(&disp->lock);
- deallocate:
 	isc_mempool_put(mgr->dpool, disp);
 
 	return (result);
@@ -2987,10 +2946,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		goto kill_ctlevent;
 	}
 
-	result = isc_mutex_init(&disp->sepool_lock);
-	if (result != ISC_R_SUCCESS) {
-		goto kill_sepool;
-	}
+	isc_mutex_init(&disp->sepool_lock);
 
 	isc_mempool_setname(disp->sepool, "disp_sepool");
 	isc_mempool_setmaxalloc(disp->sepool, 32768);
@@ -3020,8 +2976,6 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	/*
 	 * Error returns.
 	 */
- kill_sepool:
-	isc_mempool_destroy(&disp->sepool);
  kill_ctlevent:
 	isc_event_free(&disp->ctlevent);
  kill_task:
@@ -3692,9 +3646,7 @@ dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
 		return (ISC_R_NOMEMORY);
 	memset(dset, 0, sizeof(*dset));
 
-	result = isc_mutex_init(&dset->lock);
-	if (result != ISC_R_SUCCESS)
-		goto fail_alloc;
+	isc_mutex_init(&dset->lock);
 
 	dset->dispatches = isc_mem_get(mctx, sizeof(dns_dispatch_t *) * n);
 	if (dset->dispatches == NULL) {
@@ -3738,8 +3690,6 @@ dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
 
  fail_lock:
 	DESTROYLOCK(&dset->lock);
-
- fail_alloc:
 	isc_mem_put(mctx, dset, sizeof(dns_dispatchset_t));
 	return (result);
 }

@@ -498,7 +498,7 @@ static bool	insecure_prefix_found;
 
 static void
 initialize_action(void) {
-	RUNTIME_CHECK(isc_mutex_init(&insecure_prefix_lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&insecure_prefix_lock);
 }
 
 /*
