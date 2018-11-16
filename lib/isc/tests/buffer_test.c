@@ -11,77 +11,104 @@
 
 #include <config.h>
 
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+
+#include <fcntl.h>
 #include <limits.h>
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
-#include <atf-c.h>
-
-#include "isctest.h"
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/buffer.h>
 #include <isc/print.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
-ATF_TC(isc_buffer_reserve);
-ATF_TC_HEAD(isc_buffer_reserve, tc) {
-	atf_tc_set_md_var(tc, "descr", "reserve space in dynamic buffers");
+#include "isctest.h"
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_test_begin(NULL, true, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
 }
 
-ATF_TC_BODY(isc_buffer_reserve, tc) {
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	isc_test_end();
+
+	return (0);
+}
+
+/* reserve space in dynamic buffers */
+static void
+isc_buffer_reserve_test(void **state) {
 	isc_result_t result;
 	isc_buffer_t *b;
 
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	b = NULL;
 	result = isc_buffer_allocate(mctx, &b, 1024);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_CHECK_EQ(b->length, 1024);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(b->length, 1024);
 
 	/*
 	 * 1024 bytes should already be available, so this call does
 	 * nothing.
 	 */
 	result = isc_buffer_reserve(&b, 1024);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 1024);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(ISC_BUFFER_VALID(b));
+	assert_non_null(b);
+	assert_int_equal(b->length, 1024);
 
 	/*
 	 * This call should grow it to 2048 bytes as only 1024 bytes are
 	 * available in the buffer.
 	 */
 	result = isc_buffer_reserve(&b, 1025);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 2048);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(ISC_BUFFER_VALID(b));
+	assert_non_null(b);
+	assert_int_equal(b->length, 2048);
 
 	/*
 	 * 2048 bytes should already be available, so this call does
 	 * nothing.
 	 */
 	result = isc_buffer_reserve(&b, 2000);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 2048);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(ISC_BUFFER_VALID(b));
+	assert_non_null(b);
+	assert_int_equal(b->length, 2048);
 
 	/*
 	 * This call should grow it to 4096 bytes as only 2048 bytes are
 	 * available in the buffer.
 	 */
 	result = isc_buffer_reserve(&b, 3000);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 4096);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(ISC_BUFFER_VALID(b));
+	assert_non_null(b);
+	assert_int_equal(b->length, 4096);
 
 	/* Consume some of the buffer so we can run the next test. */
 	isc_buffer_add(b, 4096);
@@ -90,70 +117,58 @@ ATF_TC_BODY(isc_buffer_reserve, tc) {
 	 * This call should fail and leave buffer untouched.
 	 */
 	result = isc_buffer_reserve(&b, UINT_MAX);
-	ATF_CHECK_EQ(result, ISC_R_NOMEMORY);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 4096);
+	assert_int_equal(result, ISC_R_NOMEMORY);
+	assert_true(ISC_BUFFER_VALID(b));
+	assert_non_null(b);
+	assert_int_equal(b->length, 4096);
 
 	isc_buffer_free(&b);
-
-	isc_test_end();
 }
 
-ATF_TC(isc_buffer_reallocate);
-ATF_TC_HEAD(isc_buffer_reallocate, tc) {
-	atf_tc_set_md_var(tc, "descr", "reallocate dynamic buffers");
-}
-
-ATF_TC_BODY(isc_buffer_reallocate, tc) {
+/* reallocate dynamic buffers */
+static void
+isc_buffer_reallocate_test(void **state) {
 	isc_result_t result;
 	isc_buffer_t *b;
 
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	b = NULL;
 	result = isc_buffer_allocate(mctx, &b, 1024);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 1024);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(b);
+	assert_int_equal(b->length, 1024);
 
 	result = isc_buffer_reallocate(&b, 512);
-	ATF_CHECK_EQ(result, ISC_R_NOSPACE);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 1024);
+	assert_int_equal(result, ISC_R_NOSPACE);
+	assert_true(ISC_BUFFER_VALID(b));
+	assert_non_null(b);
+	assert_int_equal(b->length, 1024);
 
 	result = isc_buffer_reallocate(&b, 1536);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_CHECK(ISC_BUFFER_VALID(b));
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, 1536);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(ISC_BUFFER_VALID(b));
+	assert_non_null(b);
+	assert_int_equal(b->length, 1536);
 
 	isc_buffer_free(&b);
-
-	isc_test_end();
 }
 
-ATF_TC(isc_buffer_dynamic);
-ATF_TC_HEAD(isc_buffer_dynamic, tc) {
-	atf_tc_set_md_var(tc, "descr", "dynamic buffer automatic reallocation");
-}
-
-ATF_TC_BODY(isc_buffer_dynamic, tc) {
+/* dynamic buffer automatic reallocation */
+static void
+isc_buffer_dynamic_test(void **state) {
 	isc_result_t result;
 	isc_buffer_t *b;
 	size_t last_length = 10;
 	int i;
 
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	b = NULL;
 	result = isc_buffer_allocate(mctx, &b, last_length);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
-	ATF_REQUIRE(b != NULL);
-	ATF_CHECK_EQ(b->length, last_length);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_non_null(b);
+	assert_int_equal(b->length, last_length);
 
 	isc_buffer_setautorealloc(b, true);
 
@@ -162,47 +177,42 @@ ATF_TC_BODY(isc_buffer_dynamic, tc) {
 	for (i = 0; i < 1000; i++) {
 		isc_buffer_putstr(b, "thisisa24charslongstring");
 	}
-	ATF_CHECK(b->length-last_length >= 1000*24);
+	assert_true(b->length-last_length >= 1000*24);
 	last_length+=1000*24;
 
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint8(b, 1);
 	}
 
-	ATF_CHECK(b->length-last_length >= 10000*1);
+	assert_true(b->length-last_length >= 10000*1);
 	last_length += 10000*1;
 
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint16(b, 1);
 	}
 
-	ATF_CHECK(b->length-last_length >= 10000*2);
+	assert_true(b->length-last_length >= 10000*2);
 
 	last_length += 10000*2;
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint24(b, 1);
 	}
-	ATF_CHECK(b->length-last_length >= 10000*3);
+	assert_true(b->length-last_length >= 10000*3);
 
 	last_length+=10000*3;
 
 	for (i = 0; i < 10000; i++) {
 		isc_buffer_putuint32(b, 1);
 	}
-	ATF_CHECK(b->length-last_length >= 10000*4);
+	assert_true(b->length-last_length >= 10000*4);
 
 
 	isc_buffer_free(&b);
-
-	isc_test_end();
 }
 
-ATF_TC(isc_buffer_copyregion);
-ATF_TC_HEAD(isc_buffer_copyregion, tc) {
-	atf_tc_set_md_var(tc, "descr", "copy a region into a buffer");
-}
-
-ATF_TC_BODY(isc_buffer_copyregion, tc) {
+/* copy a region into a buffer */
+static void
+isc_buffer_copyregion_test(void **state) {
 	unsigned char data[] = { 0x11, 0x22, 0x33, 0x44 };
 	isc_buffer_t *b = NULL;
 	isc_result_t result;
@@ -212,43 +222,57 @@ ATF_TC_BODY(isc_buffer_copyregion, tc) {
 		.length = sizeof(data),
 	};
 
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	result = isc_buffer_allocate(mctx, &b, sizeof(data));
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Fill originally allocated buffer space.
 	 */
 	result = isc_buffer_copyregion(b, &r);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Appending more data to the buffer should fail.
 	 */
 	result = isc_buffer_copyregion(b, &r);
-	ATF_CHECK_EQ(result, ISC_R_NOSPACE);
+	assert_int_equal(result, ISC_R_NOSPACE);
 
 	/*
 	 * Enable auto reallocation and retry.  Appending should now succeed.
 	 */
 	isc_buffer_setautorealloc(b, true);
 	result = isc_buffer_copyregion(b, &r);
-	ATF_CHECK_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_free(&b);
-
-	isc_test_end();
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_buffer_reserve);
-	ATF_TP_ADD_TC(tp, isc_buffer_reallocate);
-	ATF_TP_ADD_TC(tp, isc_buffer_dynamic);
-	ATF_TP_ADD_TC(tp, isc_buffer_copyregion);
-	return (atf_no_error());
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(isc_buffer_reserve_test,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(isc_buffer_reallocate_test,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(isc_buffer_dynamic_test,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(isc_buffer_copyregion_test,
+						_setup, _teardown),
+	};
+
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif

@@ -11,14 +11,23 @@
 
 #include <config.h>
 
-#include <inttypes.h>
-#include <stdlib.h>
+#if HAVE_CMOCKA
 
-#include <atf-c.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
+
+#include <inttypes.h>
+#include <string.h>
 
 #include <isc/atomic.h>
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include "isctest.h"
 
@@ -34,6 +43,23 @@ typedef struct {
 } counter_t;
 
 counter_t counters[TASKS];
+
+#if defined(ISC_PLATFORM_HAVEXADD) || \
+    defined(ISC_PLATFORM_HAVEXADDQ) || \
+    defined(ISC_PLATFORM_HAVEATOMICSTORE) || \
+    defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_test_begin(NULL, true, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+#endif
 
 #if defined(ISC_PLATFORM_HAVEXADD)
 static int32_t counter_32;
@@ -55,20 +81,14 @@ do_xadd(isc_task_t *task, isc_event_t *ev) {
 	}
 }
 
-ATF_TC(atomic_xadd);
-ATF_TC_HEAD(atomic_xadd, tc) {
-	atf_tc_set_md_var(tc, "descr", "atomic XADD");
-}
-ATF_TC_BODY(atomic_xadd, tc) {
-	isc_result_t result;
+/* Atomic XADD */
+static void
+atomic_xadd(void **state) {
 	isc_task_t *tasks[TASKS];
 	isc_event_t *event = NULL;
 	int i;
 
-	UNUSED(tc);
-
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	memset(counters, 0, sizeof(counters));
 	counter_32 = 0;
@@ -78,21 +98,18 @@ ATF_TC_BODY(atomic_xadd, tc) {
 	 */
 	for (i = 0 ; i < TASKS ; i++) {
 		tasks[i] = NULL;
-		ATF_REQUIRE_EQ(isc_task_create(taskmgr, 0, &tasks[i]),
-			       ISC_R_SUCCESS);
+		assert_int_equal(isc_task_create(taskmgr, 0, &tasks[i]),
+				 ISC_R_SUCCESS);
 		event = isc_event_allocate(mctx, NULL, 1000, do_xadd,
 					   &counters[i],
 					   sizeof(struct isc_event));
-		ATF_REQUIRE(event != NULL);
+		assert_non_null(event);
 		isc_task_sendanddetach(&tasks[i], &event);
 	}
 
 	isc_test_end();
 
-	printf("32-bit counter %d, expected %d\n",
-	       counter_32, EXPECTED_COUNT_32);
-
-	ATF_CHECK_EQ(counter_32, EXPECTED_COUNT_32);
+	assert_int_equal(counter_32, EXPECTED_COUNT_32);
 	counter_32 = 0;
 }
 #endif
@@ -117,20 +134,14 @@ do_xaddq(isc_task_t *task, isc_event_t *ev) {
 	}
 }
 
-ATF_TC(atomic_xaddq);
-ATF_TC_HEAD(atomic_xaddq, tc) {
-	atf_tc_set_md_var(tc, "descr", "atomic XADDQ");
-}
-ATF_TC_BODY(atomic_xaddq, tc) {
-	isc_result_t result;
+/* Atomic XADDQ */
+static void
+atomic_xaddq(void **state) {
 	isc_task_t *tasks[TASKS];
 	isc_event_t *event = NULL;
 	int i;
 
-	UNUSED(tc);
-
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	memset(counters, 0, sizeof(counters));
 	counter_64 = 0;
@@ -140,22 +151,18 @@ ATF_TC_BODY(atomic_xaddq, tc) {
 	 */
 	for (i = 0 ; i < TASKS ; i++) {
 		tasks[i] = NULL;
-		ATF_REQUIRE_EQ(isc_task_create(taskmgr, 0, &tasks[i]),
-			       ISC_R_SUCCESS);
+		assert_int_equal(isc_task_create(taskmgr, 0, &tasks[i]),
+				 ISC_R_SUCCESS);
 		event = isc_event_allocate(mctx, NULL, 1000, do_xaddq,
 					   &counters[i],
 					   sizeof(struct isc_event));
-		ATF_REQUIRE(event != NULL);
+		assert_non_null(event);
 		isc_task_sendanddetach(&tasks[i], &event);
 	}
 
 	isc_test_end();
 
-	printf("64-bit counter %" PRId64 ", "
-	       "expected %" PRId64 "\n",
-	       counter_64, EXPECTED_COUNT_64);
-
-	ATF_CHECK_EQ(counter_64, EXPECTED_COUNT_64);
+	assert_int_equal(counter_64, EXPECTED_COUNT_64);
 	counter_32 = 0;
 }
 #endif
@@ -185,22 +192,16 @@ do_store(isc_task_t *task, isc_event_t *ev) {
 	}
 }
 
-ATF_TC(atomic_store);
-ATF_TC_HEAD(atomic_store, tc) {
-	atf_tc_set_md_var(tc, "descr", "atomic STORE");
-}
-ATF_TC_BODY(atomic_store, tc) {
-	isc_result_t result;
+/* Atomic STORE */
+static void
+atomic_store(void **state) {
 	isc_task_t *tasks[TASKS];
 	isc_event_t *event = NULL;
 	uint32_t val;
 	uint32_t r;
 	int i;
 
-	UNUSED(tc);
-
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	memset(counters, 0, sizeof(counters));
 	store_32 = 0;
@@ -211,12 +212,12 @@ ATF_TC_BODY(atomic_store, tc) {
 	 */
 	for (i = 0 ; i < TASKS ; i++) {
 		tasks[i] = NULL;
-		ATF_REQUIRE_EQ(isc_task_create(taskmgr, 0, &tasks[i]),
-			       ISC_R_SUCCESS);
+		assert_int_equal(isc_task_create(taskmgr, 0, &tasks[i]),
+				 ISC_R_SUCCESS);
 		event = isc_event_allocate(mctx, NULL, 1000, do_store,
 					   &counters[i],
 					   sizeof(struct isc_event));
-		ATF_REQUIRE(event != NULL);
+		assert_non_null(event);
 		isc_task_sendanddetach(&tasks[i], &event);
 	}
 
@@ -225,10 +226,7 @@ ATF_TC_BODY(atomic_store, tc) {
 	r = store_32 & 0xff;
 	val = (r << 24) | (r << 16) | (r << 8) | r;
 
-	printf("32-bit store 0x%x, expected 0x%x\n",
-	       (uint32_t) store_32, val);
-
-	ATF_CHECK_EQ((uint32_t) store_32, val);
+	assert_int_equal((uint32_t) store_32, val);
 	store_32 = 0;
 }
 #endif
@@ -262,22 +260,16 @@ do_storeq(isc_task_t *task, isc_event_t *ev) {
 	}
 }
 
-ATF_TC(atomic_storeq);
-ATF_TC_HEAD(atomic_storeq, tc) {
-	atf_tc_set_md_var(tc, "descr", "atomic STOREQ");
-}
-ATF_TC_BODY(atomic_storeq, tc) {
-	isc_result_t result;
+/* Atomic STOREQ */
+static void
+atomic_storeq(void **state) {
 	isc_task_t *tasks[TASKS];
 	isc_event_t *event = NULL;
 	uint64_t val;
 	uint32_t r;
 	int i;
 
-	UNUSED(tc);
-
-	result = isc_test_begin(NULL, true, 0);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	memset(counters, 0, sizeof(counters));
 	store_64 = 0;
@@ -288,12 +280,12 @@ ATF_TC_BODY(atomic_storeq, tc) {
 	 */
 	for (i = 0 ; i < TASKS ; i++) {
 		tasks[i] = NULL;
-		ATF_REQUIRE_EQ(isc_task_create(taskmgr, 0, &tasks[i]),
-			       ISC_R_SUCCESS);
+		assert_int_equal(isc_task_create(taskmgr, 0, &tasks[i]),
+				 ISC_R_SUCCESS);
 		event = isc_event_allocate(mctx, NULL, 1000, do_storeq,
 					   &counters[i],
 					   sizeof(struct isc_event));
-		ATF_REQUIRE(event != NULL);
+		assert_non_null(event);
 		isc_task_sendanddetach(&tasks[i], &event);
 	}
 
@@ -306,49 +298,46 @@ ATF_TC_BODY(atomic_storeq, tc) {
 	       (uint64_t) r);
 	val |= ((uint64_t) val << 32);
 
-	printf("64-bit store 0x%" PRIx64 ", "
-	       "expected 0x%" PRIx64 "\n",
-	       (uint64_t) store_64, val);
-
-	ATF_CHECK_EQ((uint64_t) store_64, val);
+	assert_int_equal((uint64_t) store_64, val);
 	store_64 = 0;
 }
 #endif
 
-#if !defined(ISC_PLATFORM_HAVEXADD) && \
-    !defined(ISC_PLATFORM_HAVEXADDQ) && \
-    !defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
-ATF_TC(untested);
-ATF_TC_HEAD(untested, tc) {
-	atf_tc_set_md_var(tc, "descr", "skipping aes test");
-}
-ATF_TC_BODY(untested, tc) {
-	UNUSED(tc);
-	atf_tc_skip("AES not available");
-}
-#endif /* !HAVEXADD, !HAVEXADDQ, !HAVEATOMICSTOREQ */
-
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
+int
+main(void) {
+#if defined(ISC_PLATFORM_HAVEXADD) || \
+    defined(ISC_PLATFORM_HAVEXADDQ) || \
+    defined(ISC_PLATFORM_HAVEATOMICSTORE) || \
+    defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
+	const struct CMUnitTest tests[] = {
 #if defined(ISC_PLATFORM_HAVEXADD)
-	ATF_TP_ADD_TC(tp, atomic_xadd);
+		cmocka_unit_test_setup(atomic_xadd, _setup),
 #endif
 #if defined(ISC_PLATFORM_HAVEXADDQ)
-	ATF_TP_ADD_TC(tp, atomic_xaddq);
+		cmocka_unit_test_setup(atomic_xaddq, _setup),
 #endif
 #ifdef ISC_PLATFORM_HAVEATOMICSTORE
-	ATF_TP_ADD_TC(tp, atomic_store);
+		cmocka_unit_test_setup(atomic_store, _setup),
 #endif
 #if defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
-	ATF_TP_ADD_TC(tp, atomic_storeq);
+		cmocka_unit_test_setup(atomic_storeq, _setup),
 #endif
-#if !defined(ISC_PLATFORM_HAVEXADD) && \
-    !defined(ISC_PLATFORM_HAVEXADDQ) && \
-    !defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
-	ATF_TP_ADD_TC(tp, untested);
-#endif
+	};
 
-	return (atf_no_error());
+	return (cmocka_run_group_tests(tests, NULL, NULL));
+#else
+	print_message("1..0 # Skipped: atomic operations not available\n");
+#endif
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif

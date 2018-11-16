@@ -9,16 +9,24 @@
  * information regarding copyright ownership.
  */
 
-/*! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
 
-#include <isc/util.h>
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #if defined(OPENSSL) || defined(PKCS11CRYPTO)
 #include <string.h>
+#include <stdlib.h>
+#include <unistd.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
+
+#include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/db.h>
 #include <dns/diff.h>
@@ -45,6 +53,27 @@
 
 #include "dnstest.h"
 
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = dns_test_begin(NULL, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	dns_test_end();
+
+	return (0);
+}
+
 /*%
  * Structure characterizing a single diff tuple in the dns_diff_t structure
  * prepared by dns__zone_updatesigs().
@@ -69,11 +98,11 @@ typedef struct {
 
 /*%
  * Check whether the 'found' tuple matches the 'expected' tuple.  'found' is
- * the 'index'th tuple output by dns__zone_updatesigs() in test 'test'.
+ * the 'idx'th tuple output by dns__zone_updatesigs() in test 'test'.
  */
 static void
 compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
-	       const updatesigs_test_params_t *test, size_t index)
+	       size_t idx)
 {
 	char found_covers[DNS_RDATATYPE_FORMATSIZE] = { };
 	char found_type[DNS_RDATATYPE_FORMATSIZE] = { };
@@ -88,38 +117,26 @@ compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
 
 	REQUIRE(expected != NULL);
 	REQUIRE(found != NULL);
-	REQUIRE(index > 0);
+	REQUIRE(idx > 0);
 
 	/*
 	 * Check operation.
 	 */
-	ATF_CHECK_EQ_MSG(expected->op, found->op,
-			 "test \"%s\": tuple %zu: "
-			 "expected op %d, found %d",
-			 test->description, index,
-			 expected->op, found->op);
+	assert_int_equal(expected->op, found->op);
 
 	/*
 	 * Check owner name.
 	 */
 	expected_name = dns_fixedname_initname(&expected_fname);
 	result = dns_name_fromstring(expected_name, expected->owner, 0, mctx);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_name_format(&found->name, found_name, sizeof(found_name));
-	ATF_CHECK_MSG(dns_name_equal(expected_name, &found->name),
-		      "test \"%s\": tuple %zu: "
-		      "expected owner \"%s\", found \"%s\"",
-		      test->description, index,
-		      expected->owner, found_name);
+	assert_true(dns_name_equal(expected_name, &found->name));
 
 	/*
 	 * Check TTL.
 	 */
-	ATF_CHECK_EQ_MSG(expected->ttl, found->ttl,
-		      "test \"%s\": tuple %zu: "
-		      "expected TTL %u, found %u",
-		      test->description, index,
-		      expected->ttl, found->ttl);
+	assert_int_equal(expected->ttl, found->ttl);
 
 	/*
 	 * Parse expected RR type.
@@ -128,14 +145,14 @@ compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
 	typeregion.length = strlen(expected->type);
 	result = dns_rdatatype_fromtext(&expected_type,
 					(isc_textregion_t*)&typeregion);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Format found RR type for reporting purposes.
 	 */
 	isc_buffer_init(&typebuf, found_type, sizeof(found_type));
 	result = dns_rdatatype_totext(found->rdata.type, &typebuf);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Check RR type.
@@ -146,11 +163,7 @@ compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
 		/*
 		 * Found tuple must be of type RRSIG.
 		 */
-		ATF_CHECK_EQ_MSG(found->rdata.type, dns_rdatatype_rrsig,
-				 "test \"%s\": tuple %zu: "
-				 "expected type RRSIG, found %s",
-				 test->description, index,
-				 found_type);
+		assert_int_equal(found->rdata.type, dns_rdatatype_rrsig);
 		if (found->rdata.type != dns_rdatatype_rrsig) {
 			break;
 		}
@@ -158,25 +171,17 @@ compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
 		 * The signature must cover an RRset of type 'expected->type'.
 		 */
 		result = dns_rdata_tostruct(&found->rdata, &rrsig, NULL);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+		assert_int_equal(result, ISC_R_SUCCESS);
 		isc_buffer_init(&typebuf, found_covers, sizeof(found_covers));
 		result = dns_rdatatype_totext(rrsig.covered, &typebuf);
-		ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-		ATF_CHECK_EQ_MSG(expected_type, rrsig.covered,
-				 "test \"%s\": tuple %zu: "
-				 "expected RRSIG to cover %s, found covers %s",
-				 test->description, index,
-				 expected->type, found_covers);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		assert_int_equal(expected_type, rrsig.covered);
 		break;
 	default:
 		/*
 		 * Found tuple must be of type 'expected->type'.
 		 */
-		ATF_CHECK_EQ_MSG(expected_type, found->rdata.type,
-				 "test \"%s\": tuple %zu: "
-				 "expected type %s, found %s",
-				 test->description, index,
-				 expected->type, found_type);
+		assert_int_equal(expected_type, found->rdata.type);
 		break;
 	}
 }
@@ -191,7 +196,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 		dns_db_t *db, dst_key_t *zone_keys[], unsigned int nkeys,
 		isc_stdtime_t now)
 {
-	size_t tuples_expected, tuples_found, index;
+	size_t tuples_expected, tuples_found, idx;
 	dns_dbversion_t *version = NULL;
 	dns_diff_t raw_diff, zone_diff;
 	const zonediff_t *expected;
@@ -214,13 +219,13 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	 * Create a new version of the zone's database.
 	 */
 	result = dns_db_newversion(db, &version);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Create a diff representing the supplied changes.
 	 */
-	result = dns_test_difffromchanges(&raw_diff, test->changes);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	result = dns_test_difffromchanges(&raw_diff, test->changes, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*
 	 * Apply the "raw" diff to the new version of the zone's database as
@@ -240,25 +245,16 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	result = dns__zone_updatesigs(&raw_diff, db, version, zone_keys, nkeys,
 				      zone, now - 3600, now + 3600, now,
 				      true, false, &zonediff);
-	ATF_CHECK_EQ_MSG(result, ISC_R_SUCCESS,
-			 "test \"%s\": expected success, got %s",
-			 test->description, isc_result_totext(result));
-	ATF_CHECK_MSG(ISC_LIST_EMPTY(raw_diff.tuples),
-		      "test \"%s\": raw diff was not emptied",
-		      test->description);
-	ATF_CHECK_MSG(!ISC_LIST_EMPTY(zone_diff.tuples),
-		      "test \"%s\": zone diff was not created",
-		      test->description);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(ISC_LIST_EMPTY(raw_diff.tuples));
+	assert_false(ISC_LIST_EMPTY(zone_diff.tuples));
 
 	/*
 	 * Ensure that the number of tuples in the zone diff is as expected.
 	 */
 
 	tuples_expected = 0;
-	for (expected = test->zonediff;
-	     expected->owner != NULL;
-	     expected++)
-	{
+	for (expected = test->zonediff; expected->owner != NULL; expected++) {
 		tuples_expected++;
 	}
 
@@ -270,24 +266,20 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 		tuples_found++;
 	}
 
-	ATF_REQUIRE_EQ_MSG(tuples_expected, tuples_found,
-			   "test \"%s\": "
-			   "expected %zu tuples in output, found %zu",
-			   test->description,
-			   tuples_expected, tuples_found);
+	assert_int_equal(tuples_expected, tuples_found);
 
 	/*
 	 * Ensure that every tuple in the zone diff matches expectations.
 	 */
 	expected = test->zonediff;
-	index = 1;
+	idx = 1;
 	for (found = ISC_LIST_HEAD(zone_diff.tuples);
 	     found != NULL;
 	     found = ISC_LIST_NEXT(found, link))
 	{
-		compare_tuples(expected, found, test, index);
+		compare_tuples(expected, found, idx);
 		expected++;
-		index++;
+		idx++;
 	}
 
 	/*
@@ -298,11 +290,9 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	dns_diff_clear(&raw_diff);
 }
 
-ATF_TC(updatesigs);
-ATF_TC_HEAD(updatesigs, tc) {
-	atf_tc_set_md_var(tc, "descr", "dns__zone_updatesigs() tests");
-}
-ATF_TC_BODY(updatesigs, tc) {
+/* dns__zone_updatesigs() tests */
+static void
+updatesigs_next_test(void **state) {
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	dns_zone_t *zone = NULL;
 	dns_db_t *db = NULL;
@@ -311,28 +301,27 @@ ATF_TC_BODY(updatesigs, tc) {
 	isc_stdtime_t now;
 	size_t i;
 
-	result = dns_test_begin(NULL, true);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	/*
 	 * Prepare a zone along with its signing keys.
 	 */
 
 	result = dns_test_makezone("example", &zone, NULL, false);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_test_loaddb(&db, dns_dbtype_zone, "example",
 				 "testdata/master/master18.data");
-	ATF_REQUIRE_EQ(result, DNS_R_SEENINCLUDE);
+	assert_int_equal(result, DNS_R_SEENINCLUDE);
 
 	result = dns_zone_setkeydirectory(zone, "testkeys");
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_stdtime_get(&now);
 	result = dns__zone_findkeys(zone, db, NULL, now, mctx, DNS_MAXZONEKEYS,
 				    zone_keys, &nkeys);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	ATF_REQUIRE_EQ(nkeys, 2);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(nkeys, 2);
 
 	/*
 	 * Define the tests to be run.  Note that changes to zone database
@@ -454,26 +443,31 @@ ATF_TC_BODY(updatesigs, tc) {
 	}
 	dns_db_detach(&db);
 	dns_zone_detach(&zone);
-
-	dns_test_end();
-}
-#else
-ATF_TC(untested);
-ATF_TC_HEAD(untested, tc) {
-	atf_tc_set_md_var(tc, "descr", "skipping dns__zone_updatesigs() test");
-}
-ATF_TC_BODY(untested, tc) {
-	UNUSED(tc);
-	atf_tc_skip("DNSSEC support not compiled in");
 }
 #endif
 
-ATF_TP_ADD_TCS(tp) {
+int
+main(void) {
 #if defined(OPENSSL) || defined(PKCS11CRYPTO)
-	ATF_TP_ADD_TC(tp, updatesigs);
-#else
-	ATF_TP_ADD_TC(tp, untested);
-#endif
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(updatesigs_next_test,
+						_setup, _teardown),
+	};
 
-	return (atf_no_error());
+	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
+#else
+	print_message("1..0 # Skipped: sigs test requires crypto\n");
+#endif
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif

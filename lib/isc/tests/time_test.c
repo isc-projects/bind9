@@ -10,37 +10,61 @@
  */
 
 #include <config.h>
+
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
+
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include <atf-c.h>
+#define UNIT_TESTING
+#include <cmocka.h>
 
-#include <isc/time.h>
+#include <isc/print.h>
 #include <isc/result.h>
+#include <isc/time.h>
+#include <isc/util.h>
 
-ATF_TC(isc_time_parsehttptimestamp);
-ATF_TC_HEAD(isc_time_parsehttptimestamp, tc) {
-	atf_tc_set_md_var(tc, "descr", "parse http time stamp");
-}
-ATF_TC_BODY(isc_time_parsehttptimestamp, tc) {
+/* parse http time stamp */
+static void
+isc_time_parsehttptimestamp_test(void **state) {
 	isc_result_t result;
 	isc_time_t t, x;
 	char buf[ISC_FORMATHTTPTIMESTAMP_SIZE];
 
+	UNUSED(state);
+
 	setenv("TZ", "PST8PDT", 1);
 	result = isc_time_now(&t);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_time_formathttptimestamp(&t, buf, sizeof(buf));
 	result = isc_time_parsehttptimestamp(buf, &x);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-	ATF_REQUIRE_EQ(isc_time_seconds(&t), isc_time_seconds(&x));
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(isc_time_seconds(&t), isc_time_seconds(&x));
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, isc_time_parsehttptimestamp);
-	return (atf_no_error());
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(isc_time_parsehttptimestamp_test),
+	};
+
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
 
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif

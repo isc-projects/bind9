@@ -11,10 +11,6 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-# Attempt to disable parallel processing.
-.NOTPARALLEL:
-.NO_PARALLEL:
-
 VERSION=@BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
@@ -31,7 +27,8 @@ DNSDEPLIBS =	../../dns/libdns.@A@
 ISCCFGLIBS = 	../libisccfg.@A@
 ISCCFGDEPLIBS = ../libisccfg.@A@
 
-LIBS =		@LIBS@ @ATFLIBS@
+CFLAGS =	@CFLAGS@ @CMOCKA_CFLAGS@
+LIBS =		@LIBS@ @CMOCKA_LIBS@
 
 OBJS =
 SRCS =		parser_test.c
@@ -42,9 +39,9 @@ TARGETS =	parser_test@EXEEXT@
 @BIND9_MAKE_RULES@
 
 parser_test@EXEEXT@: parser_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCCFGDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
-			parser_test.@O@ ${ISCCFGLIBS} ${DNSLIBS} \
-				${ISCLIBS} ${LIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
+		${LDFLAGS} -o $@ parser_test.@O@ \
+		${ISCCFGLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 unit::
 	sh ${top_builddir}/unit/unittest.sh

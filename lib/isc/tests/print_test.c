@@ -11,13 +11,23 @@
 
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <inttypes.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
+
+#include <isc/util.h>
+#include <isc/types.h>
 
 /*
  * Workout if we need to force the inclusion of print.c so we can test
@@ -28,25 +38,18 @@
     !defined(ISC_PLATFORM_NEEDFPRINTF) && \
     !defined(ISC_PLATFORM_NEEDSPRINTF) && \
     !defined(ISC_PLATFORM_NEEDVSNPRINTF)
-#define ISC__PRINT_SOURCE
-#include "../print.c"
-#else
-#if !defined(ISC_PLATFORM_NEEDPRINTF) || \
-    !defined(ISC_PLATFORM_NEEDFPRINTF) || \
-    !defined(ISC_PLATFORM_NEEDSPRINTF) || \
-    !defined(ISC_PLATFORM_NEEDVSNPRINTF)
-#define ISC__PRINT_SOURCE
-#endif
-#include <isc/print.h>
-#include <isc/types.h>
-#include <isc/util.h>
+# define ISC__PRINT_SOURCE
+# define ISC_PLATFORM_NEEDPRINTF
+# define ISC_PLATFORM_NEEDFPRINTF
+# define ISC_PLATFORM_NEEDSPRINTF
+# define ISC_PLATFORM_NEEDVSNPRINTF
+# include <isc/print.h>
+# include "../print.c"
 #endif
 
-ATF_TC(snprintf);
-ATF_TC_HEAD(snprintf, tc) {
-	atf_tc_set_md_var(tc, "descr", "snprintf implementation");
-}
-ATF_TC_BODY(snprintf, tc) {
+/* Test snprintf() implementation */
+static void
+snprintf_test(void **state) {
 	char buf[10000];
 	uint64_t ll = 8589934592ULL;
 	uint64_t nn = 20000000000000ULL;
@@ -55,7 +58,7 @@ ATF_TC_BODY(snprintf, tc) {
 	int n;
 	size_t size;
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	/*
 	 * 4294967296 <= 8589934592 < 1000000000^2 to verify fix for
@@ -64,121 +67,133 @@ ATF_TC_BODY(snprintf, tc) {
 
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, ll);
-	ATF_CHECK_EQ(n, 10);
-	ATF_CHECK_STREQ(buf, "8589934592");
+	assert_int_equal(n, 10);
+	assert_string_equal(buf, "8589934592");
 
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, ll);
-	ATF_CHECK_EQ(n, 10);
-	ATF_CHECK_STREQ(buf, "8589934592");
+	assert_int_equal(n, 10);
+	assert_string_equal(buf, "8589934592");
 
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, nn);
-	ATF_CHECK_EQ(n, 14);
-	ATF_CHECK_STREQ(buf, "20000000000000");
+	assert_int_equal(n, 14);
+	assert_string_equal(buf, "20000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, nn);
-	ATF_CHECK_EQ(n, 14);
-	ATF_CHECK_STREQ(buf, "20000000000000");
+	assert_int_equal(n, 14);
+	assert_string_equal(buf, "20000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, zz);
-	ATF_CHECK_EQ(n, 20);
-	ATF_CHECK_STREQ(buf, "10000000000000000000");
+	assert_int_equal(n, 20);
+	assert_string_equal(buf, "10000000000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%" PRIu64, zz);
-	ATF_CHECK_EQ(n, 20);
-	ATF_CHECK_STREQ(buf, "10000000000000000000");
+	assert_int_equal(n, 20);
+	assert_string_equal(buf, "10000000000000000000");
 
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%" PRId64, nn);
-	ATF_CHECK_EQ(n, 14);
-	ATF_CHECK_STREQ(buf, "20000000000000");
+	assert_int_equal(n, 14);
+	assert_string_equal(buf, "20000000000000");
 
 	size = 1000;
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%zu", size);
-	ATF_CHECK_EQ(n, 4);
-	ATF_CHECK_STREQ(buf, "1000");
+	assert_int_equal(n, 4);
+	assert_string_equal(buf, "1000");
 
 	size = 1000;
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%zx", size);
-	ATF_CHECK_EQ(n, 3);
-	ATF_CHECK_STREQ(buf, "3e8");
+	assert_int_equal(n, 3);
+	assert_string_equal(buf, "3e8");
 
 	size = 1000;
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "%zo", size);
-	ATF_CHECK_EQ(n, 4);
-	ATF_CHECK_STREQ(buf, "1750");
+	assert_int_equal(n, 4);
+	assert_string_equal(buf, "1750");
 
 	zz = 0xf5f5f5f5f5f5f5f5ULL;
 	memset(buf, 0xff, sizeof(buf));
 	n = isc_print_snprintf(buf, sizeof(buf), "0x%" PRIx64, zz);
-	ATF_CHECK_EQ(n, 18);
-	ATF_CHECK_STREQ(buf, "0xf5f5f5f5f5f5f5f5");
+	assert_int_equal(n, 18);
+	assert_string_equal(buf, "0xf5f5f5f5f5f5f5f5");
 
 	n = isc_print_snprintf(buf, sizeof(buf), "%.2f", pi);
-	ATF_CHECK_EQ(n, 4);
-	ATF_CHECK_STREQ(buf, "3.14");
+	assert_int_equal(n, 4);
+	assert_string_equal(buf, "3.14");
 
 	/* Similar to the above, but additional characters follows */
 	n = isc_print_snprintf(buf, sizeof(buf), "%.2f1592", pi);
-	ATF_CHECK_EQ(n, 8);
-	ATF_CHECK_STREQ(buf, "3.141592");
+	assert_int_equal(n, 8);
+	assert_string_equal(buf, "3.141592");
 
 	/* Similar to the above, but with leading spaces */
 	n = isc_print_snprintf(buf, sizeof(buf), "% 8.2f1592", pi);
-	ATF_CHECK_EQ(n, 12);
-	ATF_CHECK_STREQ(buf, "    3.141592");
+	assert_int_equal(n, 12);
+	assert_string_equal(buf, "    3.141592");
 
 	/* Similar to the above, but with trail spaces after the 4 */
 	n = isc_print_snprintf(buf, sizeof(buf), "%-8.2f1592", pi);
-	ATF_CHECK_EQ(n, 12);
-	ATF_CHECK_STREQ(buf, "3.14    1592");
+	assert_int_equal(n, 12);
+	assert_string_equal(buf, "3.14    1592");
 }
 
-ATF_TC(fprintf);
-ATF_TC_HEAD(fprintf, tc) {
-	atf_tc_set_md_var(tc, "descr", "fprintf implementation");
-}
-ATF_TC_BODY(fprintf, tc) {
+/* Test fprintf implementation */
+static void
+fprintf_test(void **state) {
 	FILE *f;
 	int n;
 	size_t size;
 	char buf[10000];
 
-	UNUSED(tc);
+	UNUSED(state);
 
 	f = fopen("fprintf.test", "w+");
-	ATF_REQUIRE(f != NULL);
+	assert_non_null(f);
 
 	size = 1000;
 	n = isc_print_fprintf(f, "%zu", size);
-	ATF_CHECK_EQ(n, 4);
+	assert_int_equal(n, 4);
 
 	rewind(f);
 
 	memset(buf, 0, sizeof(buf));
 	n = fread(buf, 1, sizeof(buf), f);
-	ATF_CHECK_EQ(n, 4);
+	assert_int_equal(n, 4);
 
 	fclose(f);
 
-	ATF_CHECK_STREQ(buf, "1000");
+	assert_string_equal(buf, "1000");
 
-	if ((n > 0) && (!strcmp(buf, "1000")))
+	if ((n > 0) && (!strcmp(buf, "1000"))) {
 		unlink("fprintf.test");
+	}
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, snprintf);
-	ATF_TP_ADD_TC(tp, fprintf);
-	return (atf_no_error());
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test(snprintf_test),
+		cmocka_unit_test(fprintf_test),
+	};
+
+	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif

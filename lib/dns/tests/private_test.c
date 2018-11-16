@@ -10,17 +10,25 @@
  */
 
 
-/*! \file */
-
 #include <config.h>
 
-#include <atf-c.h>
+#if HAVE_CMOCKA
+
+#include <stdarg.h>
+#include <stddef.h>
+#include <setjmp.h>
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <stdlib.h>
 #include <unistd.h>
 
+#define UNIT_TESTING
+#include <cmocka.h>
+
 #include <isc/buffer.h>
+#include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/nsec3.h>
 #include <dns/private.h>
@@ -32,6 +40,27 @@
 #include "dnstest.h"
 
 static dns_rdatatype_t privatetype = 65534;
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = dns_test_begin(NULL, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	dns_test_end();
+
+	return (0);
+}
 
 typedef struct {
 	unsigned char alg;
@@ -50,9 +79,6 @@ typedef struct {
 	bool nonsec;
 } nsec3_testcase_t;
 
-/*
- * Helper functions
- */
 static void
 make_signing(signing_testcase_t *testcase, dns_rdata_t *private,
 	     unsigned char *buf, size_t len)
@@ -100,12 +126,14 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 	params.flags = testcase->flags;
 	if (testcase->remove) {
 		params.flags |= DNS_NSEC3FLAG_REMOVE;
-		if (testcase->nonsec)
+		if (testcase->nonsec) {
 			params.flags |= DNS_NSEC3FLAG_NONSEC;
+		}
 	} else {
 		params.flags |= DNS_NSEC3FLAG_CREATE;
-		if (testcase->pending)
+		if (testcase->pending) {
 			params.flags |= DNS_NSEC3FLAG_INITIAL;
+		}
 	}
 
 	isc_buffer_init(&buf, bufdata, sizeof(bufdata));
@@ -118,16 +146,9 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 				 pbuf, DNS_NSEC3PARAM_BUFFERSIZE + 1);
 }
 
-/*
- * Individual unit tests
- */
-ATF_TC(private_signing_totext);
-ATF_TC_HEAD(private_signing_totext, tc) {
-	atf_tc_set_md_var(tc, "descr",
-			  "convert private signing records to text");
-}
-ATF_TC_BODY(private_signing_totext, tc) {
-	isc_result_t result;
+/* convert private signing records to text */
+static void
+private_signing_totext_test(void **state) {
 	dns_rdata_t private;
 	int i;
 
@@ -145,10 +166,7 @@ ATF_TC_BODY(private_signing_totext, tc) {
 	};
 	int ncases = 4;
 
-	UNUSED(tc);
-
-	result = dns_test_begin(NULL, true);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	for (i = 0; i < ncases; i++) {
 		unsigned char data[5];
@@ -159,18 +177,14 @@ ATF_TC_BODY(private_signing_totext, tc) {
 
 		make_signing(&testcases[i], &private, data, sizeof(data));
 		dns_private_totext(&private, &buf);
-		ATF_CHECK_STREQ(output, results[i]);
+		assert_string_equal(output, results[i]);
 	}
 
-	dns_test_end();
 }
 
-ATF_TC(private_nsec3_totext);
-ATF_TC_HEAD(private_nsec3_totext, tc) {
-	atf_tc_set_md_var(tc, "descr", "convert private chain records to text");
-}
-ATF_TC_BODY(private_nsec3_totext, tc) {
-	isc_result_t result;
+/* convert private chain records to text */
+static void
+private_nsec3_totext_test(void **state) {
 	dns_rdata_t private;
 	int i;
 
@@ -190,10 +204,7 @@ ATF_TC_BODY(private_nsec3_totext, tc) {
 	};
 	int ncases = 5;
 
-	UNUSED(tc);
-
-	result = dns_test_begin(NULL, true);
-	ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
+	UNUSED(state);
 
 	for (i = 0; i < ncases; i++) {
 		unsigned char data[DNS_NSEC3PARAM_BUFFERSIZE + 1];
@@ -204,17 +215,30 @@ ATF_TC_BODY(private_nsec3_totext, tc) {
 
 		make_nsec3(&testcases[i], &private, data);
 		dns_private_totext(&private, &buf);
-		ATF_CHECK_STREQ(output, results[i]);
+		assert_string_equal(output, results[i]);
 	}
-
-	dns_test_end();
 }
 
-/*
- * Main
- */
-ATF_TP_ADD_TCS(tp) {
-	ATF_TP_ADD_TC(tp, private_signing_totext);
-	ATF_TP_ADD_TC(tp, private_nsec3_totext);
-	return (atf_no_error());
+int
+main(void) {
+	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(private_signing_totext_test,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(private_nsec3_totext_test,
+						_setup, _teardown),
+	};
+
+	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
 }
+
+#else /* HAVE_CMOCKA */
+
+#include <stdio.h>
+
+int
+main(void) {
+	printf("1..0 # Skipped: cmocka not available\n");
+	return (0);
+}
+
+#endif
