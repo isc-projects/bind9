@@ -20,6 +20,8 @@
 
 #include <ifaddrs.h>
 
+#include <isc/strerr.h>
+
 /*% Iterator Magic */
 #define IFITER_MAGIC		ISC_MAGIC('I', 'F', 'I', 'G')
 /*% Valid Iterator */
