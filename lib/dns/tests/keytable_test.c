@@ -622,6 +622,8 @@ issecuredomain_test(void **state) {
 /* check dns_keytable_dump() */
 static void
 dump_test(void **state) {
+	FILE *f = fopen("/dev/null", "w");
+
 	UNUSED(state);
 
 	create_tables();
@@ -630,7 +632,8 @@ dump_test(void **state) {
 	 * Right now, we only confirm the dump attempt doesn't cause disruption
 	 * (so we don't check the dump content).
 	 */
-	assert_int_equal(dns_keytable_dump(keytable, stdout), ISC_R_SUCCESS);
+	assert_int_equal(dns_keytable_dump(keytable, f), ISC_R_SUCCESS);
+	fclose(f);
 
 	destroy_tables();
 }

@@ -27,11 +27,6 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/mem.h>
-#include <isc/print.h>
-#include <isc/random.h>
-#include <isc/string.h>
-
 #include <dns/rbt.h>
 #include <dns/fixedname.h>
 #include <dns/result.h>
@@ -40,11 +35,14 @@
 
 #include <isc/app.h>
 #include <isc/buffer.h>
+#include <isc/commandline.h>
 #include <isc/entropy.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
 #include <isc/os.h>
+#include <isc/print.h>
+#include <isc/random.h>
 #include <isc/string.h>
 #include <isc/socket.h>
 #include <isc/stdio.h>
@@ -61,6 +59,9 @@
 #ifndef MAP_FILE
 #define MAP_FILE 0
 #endif
+
+/* Set to true (or use -v option) for verbose output */
+static bool verbose = false;
 
 static int
 _setup(void **state) {
@@ -315,7 +316,9 @@ serialize_test(void **state) {
 
 	add_test_data(mctx, rbt);
 
-	dns_rbt_printtext(rbt, data_printer, stdout);
+	if (verbose) {
+		dns_rbt_printtext(rbt, data_printer, stdout);
+	}
 
 	/*
 	 * Serialize the tree.
@@ -350,7 +353,9 @@ serialize_test(void **state) {
 
 	check_test_data(rbt_deserialized);
 
-	dns_rbt_printtext(rbt_deserialized, data_printer, stdout);
+	if (verbose) {
+		dns_rbt_printtext(rbt_deserialized, data_printer, stdout);
+	}
 
 	dns_rbt_destroy(&rbt_deserialized);
 	munmap(base, filesize);
@@ -450,7 +455,7 @@ serialize_align_test(void **state) {
 }
 
 int
-main(void) {
+main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(serialize_test,
 						_setup, _teardown),
@@ -458,6 +463,17 @@ main(void) {
 						_setup, _teardown),
 		cmocka_unit_test(serialize_align_test),
 	};
+	int c;
+
+	while ((c = isc_commandline_parse(argc, argv, "v")) != -1) {
+		switch (c) {
+		case 'v':
+			verbose = true;
+			break;
+		default:
+			break;
+		}
+	}
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
