@@ -197,27 +197,10 @@ points to `rndc`, `SIGNZONE` to `dnssec-signzone`, etc.
 
 #### <a name="unittest"></a> Building unit tests
 
-BIND uses the Automated Testing Framework (ATF), originally from the NetBSD
-project, as its unit testing framework.  (Note: ATF has been supplanted by
-a newer version called Kyua, but BIND is still using the older system.)
+BIND uses the cmocka, unit testing framework.
 
-To build BIND with unit tests, run `configure` with the `--with-atf`
-option.  This causes the ATF source code in the `unit/atf-src`
-subdirectory to be built.  
-
-To save time on repeated builds, you can build and install ATF
-in another directory, and configure BIND to use the pre-built
-version.  (Be sure to disable shared libraries in the ATF build,
-and to build the ATF tools; libraries alone are not sufficient).
-
-        $ cd atf-src
-        $ configure --prefix=<prefix> --enable-tools --disable-shared
-        $ make
-        $ make install
-
-After this has been done, specify the ATF prefix when building BIND:
-
-        $ configure --with-atf=<prefix>
+To build BIND with unit tests, run `configure` with the `--with-cmocka`
+option.  This requires cmocka >= 1.0.0 to be installed in the system.
 
 #### Running unit tests
 
@@ -249,53 +232,11 @@ redirected:
 
 #### Writing unit tests
 
-Information on writing ATF tests can be found at the
-[NetBSD site](http://wiki.netbsd.org/tutorials/atf/).
+Information on writing cmocka tests can be found at the
+[cmocka website](https://cmocka.org).
 
-New unit tests should be added whenever significant new API
-functionality is added to libdns or libisc.
-
-Each unit test file contains at least one unit test case, and
-a list of test cases to execute when the test is run.  These
-will look like the following:
-
-        ATF_TC(test_case);
-        ATF_TC_HEAD(test_case, tc) {
-                atf_tc_set_md_var(tc, "descr",
-                                  "Describe the test case here.");
-        }
-        ATF_TC_BODY(serialize_align, tc) {
-                UNUSED(tc);
-
-                result = isc_test_begin(NULL, true);
-                ATF_REQUIRE_EQ(result, ISC_R_SUCCESS);
-
-                ATF_CHECK_EQ(value1, value2);
-                ATF_CHECK(value1 + value2 < 100);
-
-                isc_test_end();
-        }
-
-        /*
-         * Main
-         */
-        ATF_TP_ADD_TCS(tp) {
-                ATF_TP_ADD_TC(tp, test_case);
-        
-                return (atf_no_error());
-        }
-
-If the conditions specified in `ATF_CHECK` and `ATF_CHECK_EQ`
-directives are found to be false, then the test case will fail, but it
-will continue running to see if there are any more failures.
-
-If the conditions specified in `ATF_REQUIRE` and `ATF_REQUIRE_EQ` are
-found to be false, the test case cannot continue running and will stop
-
-`isc_test_begin()` and `isc_test_end()` set up necessary preconditions
-for checking libisc functions, such as starting a task manger and
-creating a memory context.  Similar functions `dns_test_begin()` and
-`dns_test_end()` are available for testing libdns functions.
+New unit tests should be added whenever new API functionality is added to the
+libraries.
 
 ### <a name="arch"></a> BIND system architecture
 
