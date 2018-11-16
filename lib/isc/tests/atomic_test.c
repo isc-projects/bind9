@@ -60,15 +60,6 @@ _setup(void **state) {
 	return (0);
 }
 
-static int
-_teardown(void **state) {
-	UNUSED(state);
-
-	isc_test_end();
-
-	return (0);
-}
-
 #endif
 
 #if defined(ISC_PLATFORM_HAVEXADD)
@@ -231,6 +222,8 @@ atomic_store(void **state) {
 		isc_task_sendanddetach(&tasks[i], &event);
 	}
 
+	isc_test_end();
+
 	r = store_32 & 0xff;
 	val = (r << 24) | (r << 16) | (r << 8) | r;
 
@@ -297,6 +290,8 @@ atomic_storeq(void **state) {
 		isc_task_sendanddetach(&tasks[i], &event);
 	}
 
+	isc_test_end();
+
 	r = store_64 & 0xff;
 	val = (((uint64_t) r << 24) |
 	       ((uint64_t) r << 16) |
@@ -323,12 +318,10 @@ main(void) {
 		cmocka_unit_test_setup(atomic_xaddq, _setup),
 #endif
 #ifdef ISC_PLATFORM_HAVEATOMICSTORE
-		cmocka_unit_test_setup_teardown(atomic_store,
-						_setup, _teardown),
+		cmocka_unit_test_setup(atomic_store, _setup),
 #endif
 #if defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
-		cmocka_unit_test_setup_teardown(atomic_storeq,
-						_setup, _teardown),
+		cmocka_unit_test_setup(atomic_storeq, _setup),
 #endif
 	};
 
