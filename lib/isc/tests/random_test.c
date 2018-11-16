@@ -63,6 +63,7 @@ static double biginv =	2.22044604925031308085e-16;
 static double igamc(double a, double x);
 static double igam(double a, double x);
 
+/* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
 
 typedef enum {

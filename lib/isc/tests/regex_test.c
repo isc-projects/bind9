@@ -34,7 +34,7 @@
 #include <isc/print.h>
 #include <isc/util.h>
 
-/* Set to true for verbose output */
+/* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
 
 /* test isc_regex_validate() */
