@@ -300,8 +300,9 @@ and will be skipped if these are not available. Some tests require Python
 and the 'dnspython' module and will be skipped if these are not available.
 See bin/tests/system/README for further details.
 
-Unit tests are implemented using Automated Testing Framework (ATF). To run
-them, use configure --with-atf, then run make test or make unit.
+Unit tests are implemented using cmocka unit testing framework.
+To run them, use configure --with-cmocka, then run make test or
+make unit.
 
 Documentation
 

@@ -13,6 +13,8 @@
 
 #include <config.h>
 
+#ifdef NS_HOOKS_ENABLE
+
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -956,3 +958,4 @@ ns_test_getdata(const char *file, unsigned char *buf,
 	isc_stdio_close(f);
 	return (result);
 }
+#endif
