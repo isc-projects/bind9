@@ -245,6 +245,19 @@ cat_i() {
     done
 }
 
+echo_d() {
+    echo "$@" | while read __LINE ; do
+       echoinfo "D:$SYSTESTDIR:$__LINE"
+    done
+}
+
+cat_d() {
+    while read __LINE ; do
+       echoinfo "D:$SYSTESTDIR:$__LINE"
+    done
+}
+
+
 digcomp() {
     output=`$PERL $SYSTEMTESTTOP/digcomp.pl "$@"`
     result=$?

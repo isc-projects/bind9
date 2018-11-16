@@ -15,8 +15,8 @@ SYSTEMTESTTOP=../..
 SYSTESTDIR=autosign
 
 dumpit () {
-	echo "D:${debug}: dumping ${1}"
-	cat "${1}" | sed 's/^/D:/'
+	echo_d "${debug}: dumping ${1}"
+	cat "${1}" | cat_d
 }
 
 setup () {
