@@ -36,7 +36,7 @@
 
 #include "isctest.h"
 
-/* Set to true for verbose output */
+/* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
 
 #define	FUDGE_SECONDS	0	     /* in absence of clock_getres() */

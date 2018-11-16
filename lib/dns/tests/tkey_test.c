@@ -123,7 +123,7 @@ main(void) {
 	};
 	return (cmocka_run_group_tests(tkey_tests, NULL, NULL));
 #else
-	print_message("1..0 # Skip tkey_test requires LD_WRAP");
+	print_message("1..0 # Skip tkey_test requires LD_WRAP\n");
 #endif /* LD_WRAP */
 }
 
