@@ -1,4 +1,5 @@
-Unit tests for BIND 9 are based on cmocka and test execution engine Kyua.
+Unit tests for BIND 9 are based on the CMocka testing framework and
+the Kyua test execution engine.
 
 If your distribution of choice doesn't include packages for kyua or cmocka, the
 sources can be found here:
