@@ -14,7 +14,7 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
+test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 cp -f ns2/example1.db ns2/example.db
 rm -f ns2/external/K*

@@ -23,6 +23,6 @@ rm -f tmp
 
 copy_setports ns4/named.conf.in ns4/named.conf
 
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
+test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 cd ns3 && $SHELL -e sign.sh

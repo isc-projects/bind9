@@ -72,6 +72,10 @@ SAMPLEUPDATE=$TOP/lib/samples/sample-update
 # we don't want a KRB5_CONFIG setting breaking the tests
 KRB5_CONFIG=/dev/null
 
+# the amount of fake "entropy" to generate with GENRANDOM in
+# system tests
+RANDOMSIZE=4096
+
 # The "stress" test is not run by default since it creates enough
 # load on the machine to make it unusable to other users.
 # The "dialup", "delzone", and "dupsigs" tests are also not run by

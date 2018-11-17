@@ -12,7 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
+test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 if $KEYGEN -q -a RSAMD5 -b 1024 -n zone -r $RANDFILE foo > /dev/null 2>&1
 then

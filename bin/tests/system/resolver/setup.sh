@@ -12,7 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
+test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 cp ns4/tld1.db ns4/tld.db
 cp ns6/to-be-removed.tld.db.in ns6/to-be-removed.tld.db
