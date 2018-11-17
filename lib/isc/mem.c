@@ -135,7 +135,6 @@ struct isc__mem {
 	isc_refcount_t		references;
 	char			name[16];
 	void *			tag;
-	size_t			quota;
 	size_t			total;
 	size_t			inuse;
 	size_t			maxinuse;
@@ -356,17 +355,9 @@ more_basic_blocks(isc__mem_t *ctx) {
 	unsigned char *first, *last;
 	unsigned char **table;
 	unsigned int table_size;
-	size_t increment;
 	int i;
 
 	/* Require: we hold the context lock. */
-
-	/*
-	 * Did we hit the quota for this context?
-	 */
-	increment = NUM_BASIC_BLOCKS * ctx->mem_target;
-	if (ctx->quota != 0U && ctx->total + increment > ctx->quota)
-		return (false);
 
 	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
 	if (ctx->basic_table_count == ctx->basic_table_size) {
@@ -397,7 +388,7 @@ more_basic_blocks(isc__mem_t *ctx) {
 		ctx->memalloc_failures++;
 		return (false);
 	}
-	ctx->total += increment;
+	ctx->total += NUM_BASIC_BLOCKS * ctx->mem_target;;
 	ctx->basic_table[ctx->basic_table_count] = tmp;
 	ctx->basic_table_count++;
 	ctx->malloced += NUM_BASIC_BLOCKS * ctx->mem_target;
@@ -498,10 +489,6 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 		/*
 		 * memget() was called on something beyond our upper limit.
 		 */
-		if (ctx->quota != 0U && ctx->total + size > ctx->quota) {
-			ret = NULL;
-			goto done;
-		}
 		ret = (ctx->memalloc)(ctx->arg, size);
 		if (ret == NULL) {
 			ctx->memalloc_failures++;
@@ -794,7 +781,6 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	isc_refcount_init(&ctx->references, 1);
 	memset(ctx->name, 0, sizeof(ctx->name));
 	ctx->tag = NULL;
-	ctx->quota = 0;
 	ctx->total = 0;
 	ctx->inuse = 0;
 	ctx->maxinuse = 0;
@@ -1504,37 +1490,6 @@ isc_mem_setdestroycheck(isc_mem_t *ctx0, bool flag) {
 	ctx->checkfree = flag;
 
 	MCTXUNLOCK(ctx, &ctx->lock);
-}
-
-/*
- * Quotas
- */
-
-void
-isc_mem_setquota(isc_mem_t *ctx0, size_t quota) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-	MCTXLOCK(ctx, &ctx->lock);
-
-	ctx->quota = quota;
-
-	MCTXUNLOCK(ctx, &ctx->lock);
-}
-
-size_t
-isc_mem_getquota(isc_mem_t *ctx0) {
-	isc__mem_t *ctx = (isc__mem_t *)ctx0;
-	size_t quota;
-
-	REQUIRE(VALID_CONTEXT(ctx));
-	MCTXLOCK(ctx, &ctx->lock);
-
-	quota = ctx->quota;
-
-	MCTXUNLOCK(ctx, &ctx->lock);
-
-	return (quota);
 }
 
 size_t
