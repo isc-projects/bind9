@@ -654,7 +654,8 @@ fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 	ISC_LIST_INIT(*dir_list);
 
 	if (create_path(zone, NULL, NULL, cd, &basepath) != ISC_R_SUCCESS) {
-		return (ISC_R_NOTFOUND);
+		result = ISC_R_NOTFOUND;
+		goto complete_allnds;
 	}
 
 	/* remove path separator at end of path so stat works properly */
