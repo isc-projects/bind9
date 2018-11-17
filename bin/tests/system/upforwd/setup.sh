@@ -24,7 +24,7 @@ copy_setports ns3/named.conf.in ns3/named.conf
 #
 # SIG(0) required cryptographic support which may not be configured.
 #
-test -r $RANDFILE || $GENRANDOM 800 $RANDFILE
+test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 keyname=`$KEYGEN  -q -r $RANDFILE -n HOST -a RSASHA1 -b 1024 -T KEY sig0.example2 2>/dev/null | $D2U`
 if test -n "$keyname"
 then
