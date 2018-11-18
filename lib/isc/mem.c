@@ -164,7 +164,6 @@ struct isc__mem {
 	size_t			debuglistcnt;
 #endif
 
-	unsigned int		memalloc_failures;
 	ISC_LINK(isc__mem_t)	link;
 };
 
@@ -364,10 +363,7 @@ more_basic_blocks(isc__mem_t *ctx) {
 		table_size = ctx->basic_table_size + TABLE_INCREMENT;
 		table = (ctx->memalloc)(ctx->arg,
 					table_size * sizeof(unsigned char *));
-		if (table == NULL) {
-			ctx->memalloc_failures++;
-			return (false);
-		}
+		RUNTIME_CHECK(table != NULL);
 		ctx->malloced += table_size * sizeof(unsigned char *);
 		if (ctx->malloced > ctx->maxmalloced)
 			ctx->maxmalloced = ctx->malloced;
@@ -384,10 +380,7 @@ more_basic_blocks(isc__mem_t *ctx) {
 	}
 
 	tmp = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
-	if (tmp == NULL) {
-		ctx->memalloc_failures++;
-		return (false);
-	}
+	RUNTIME_CHECK(tmp != NULL);
 	ctx->total += NUM_BASIC_BLOCKS * ctx->mem_target;;
 	ctx->basic_table[ctx->basic_table_count] = tmp;
 	ctx->basic_table_count++;
@@ -490,10 +483,7 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 		 * memget() was called on something beyond our upper limit.
 		 */
 		ret = (ctx->memalloc)(ctx->arg, size);
-		if (ret == NULL) {
-			ctx->memalloc_failures++;
-			goto done;
-		}
+		RUNTIME_CHECK(ret != NULL);
 		ctx->total += size;
 		ctx->inuse += size;
 		ctx->stats[ctx->max_size].gets++;
@@ -616,8 +606,7 @@ mem_get(isc__mem_t *ctx, size_t size) {
 	size += 1;
 #endif
 	ret = (ctx->memalloc)(ctx->arg, size);
-	if (ret == NULL)
-		ctx->memalloc_failures++;
+	RUNTIME_CHECK(ret != NULL);
 
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
 		if (ISC_LIKELY(ret != NULL))
@@ -846,8 +835,6 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 		ctx->maxmalloced += DEBUG_TABLE_COUNT * sizeof(debuglist_t);
 	}
 #endif
-
-	ctx->memalloc_failures = 0;
 
 	LOCK(&contextslock);
 	ISC_LIST_INITANDAPPEND(contexts, ctx, link);
