@@ -57,6 +57,10 @@ lex_0xff(void **state) {
 
 	result = isc_lex_gettoken(lex, 0, &token);
 	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_lex_destroy(&lex);
+
+	isc_mem_destroy(&mctx);
 }
 
 /* check setting of source line */
@@ -101,6 +105,10 @@ lex_setline(void **state) {
 
 	line = isc_lex_getsourceline(lex);
 	assert_int_equal(line, 105U);
+
+	isc_lex_destroy(&lex);
+
+	isc_mem_destroy(&mctx);
 }
 
 int
