@@ -5453,7 +5453,6 @@ init_hasreuseport() {
 	int sock, yes = 1;
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) {
-		close(sock);
 		return;
 	} else if (setsockopt(sock, SOL_SOCKET, SO_REUSEADDR,
 			      (void *)&yes, sizeof(yes)) < 0)
@@ -5467,6 +5466,7 @@ init_hasreuseport() {
 		return;
 	}
 	hasreuseport = true;
+	close(sock);
 #endif
 }
 
