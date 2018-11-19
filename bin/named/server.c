@@ -14416,7 +14416,6 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 	bool ttlset = false, excl = false, viewfound = false;
 	dns_rdataclass_t rdclass = dns_rdataclass_in;
 	bool first = true;
-	bool is_option = true;
 
 	UNUSED(force);
 
@@ -14436,10 +14435,8 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 			return (ISC_R_UNEXPECTEDEND);
 		}
 
-		if (!is_option) {
-			nametext = ptr;
-		} else if (strcmp(ptr, "--") == 0) {
-			is_option = false;
+		if (strcmp(ptr, "--") == 0) {
+			break;
 		} else if (argcheck(ptr, "dump")) {
 			dump = true;
 		} else if (argcheck(ptr, "remove")) {
@@ -14526,7 +14523,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 		CHECK(ISC_R_FAILURE);
 	}
 
-	/* Get the NTA name. */
+	/* Get the NTA name if not found above. */
 	if (nametext == NULL) {
 		nametext = next_token(lex, text);
 	}
