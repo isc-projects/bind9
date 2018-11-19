@@ -275,6 +275,15 @@ build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
+build:asan:debian:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=address,undefined"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
 build:clang:debian:stretch:i386:
   variables:
     CC: clang
@@ -320,6 +329,12 @@ unittest:debian:sid:amd64:
   dependencies:
     - build:debian:sid:amd64
 
+unittest:asan:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:asan:debian:sid:amd64
+
 unittest:clang:debian:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *unit_test_job
@@ -361,6 +376,12 @@ systemtest:debian:sid:amd64:
   <<: *system_test_job
   dependencies:
     - build:debian:sid:amd64
+
+systemtest:asan:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:asan:debian:sid:amd64
 
 systemtest:debian:sid:i386:
   <<: *debian_sid_i386_image
