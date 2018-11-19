@@ -610,9 +610,7 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * Initialise the new resources.
 	 */
-	result = isc_mutexblock_init(newentrylocks, n);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mutexblock_init(newentrylocks, n);
 
 	for (i = 0; i < n; i++) {
 		ISC_LIST_INIT(newentries[i]);
@@ -655,7 +653,7 @@ grow_entries(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * Cleanup old resources.
 	 */
-	DESTROYMUTEXBLOCK(adb->entrylocks, adb->nentries);
+	isc_mutexblock_destroy(adb->entrylocks, adb->nentries);
 	isc_mem_put(adb->mctx, adb->entries,
 		    sizeof(*adb->entries) * adb->nentries);
 	isc_mem_put(adb->mctx, adb->deadentries,
@@ -767,9 +765,7 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * Initialise the new resources.
 	 */
-	result = isc_mutexblock_init(newnamelocks, n);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mutexblock_init(newnamelocks, n);
 
 	for (i = 0; i < n; i++) {
 		ISC_LIST_INIT(newnames[i]);
@@ -812,7 +808,7 @@ grow_names(isc_task_t *task, isc_event_t *ev) {
 	/*
 	 * Cleanup old resources.
 	 */
-	DESTROYMUTEXBLOCK(adb->namelocks, adb->nnames);
+	isc_mutexblock_destroy(adb->namelocks, adb->nnames);
 	isc_mem_put(adb->mctx, adb->names,
 		    sizeof(*adb->names) * adb->nnames);
 	isc_mem_put(adb->mctx, adb->deadnames,
@@ -1979,7 +1975,7 @@ free_adbfind(dns_adb_t *adb, dns_adbfind_t **findp) {
 
 	find->magic = 0;
 
-	DESTROYLOCK(&find->lock);
+	isc_mutex_destroy(&find->lock);
 	isc_mempool_put(adb->ahmp, find);
 	return (dec_adb_irefcnt(adb));
 }
@@ -2475,7 +2471,7 @@ destroy(dns_adb_t *adb) {
 	isc_mempool_destroy(&adb->aimp);
 	isc_mempool_destroy(&adb->afmp);
 
-	DESTROYMUTEXBLOCK(adb->entrylocks, adb->nentries);
+	isc_mutexblock_destroy(adb->entrylocks, adb->nentries);
 	isc_mem_put(adb->mctx, adb->entries,
 		    sizeof(*adb->entries) * adb->nentries);
 	isc_mem_put(adb->mctx, adb->deadentries,
@@ -2487,7 +2483,7 @@ destroy(dns_adb_t *adb) {
 	isc_mem_put(adb->mctx, adb->entry_refcnt,
 		    sizeof(*adb->entry_refcnt) * adb->nentries);
 
-	DESTROYMUTEXBLOCK(adb->namelocks, adb->nnames);
+	isc_mutexblock_destroy(adb->namelocks, adb->nnames);
 	isc_mem_put(adb->mctx, adb->names,
 		    sizeof(*adb->names) * adb->nnames);
 	isc_mem_put(adb->mctx, adb->deadnames,
@@ -2499,12 +2495,12 @@ destroy(dns_adb_t *adb) {
 	isc_mem_put(adb->mctx, adb->name_refcnt,
 		    sizeof(*adb->name_refcnt) * adb->nnames);
 
-	DESTROYLOCK(&adb->reflock);
-	DESTROYLOCK(&adb->lock);
-	DESTROYLOCK(&adb->mplock);
-	DESTROYLOCK(&adb->overmemlock);
-	DESTROYLOCK(&adb->entriescntlock);
-	DESTROYLOCK(&adb->namescntlock);
+	isc_mutex_destroy(&adb->reflock);
+	isc_mutex_destroy(&adb->lock);
+	isc_mutex_destroy(&adb->mplock);
+	isc_mutex_destroy(&adb->overmemlock);
+	isc_mutex_destroy(&adb->entriescntlock);
+	isc_mutex_destroy(&adb->namescntlock);
 
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));
 }
@@ -2644,9 +2640,8 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	 * Initialize the bucket locks for names and elements.
 	 * May as well initialize the list heads, too.
 	 */
-	result = isc_mutexblock_init(adb->namelocks, adb->nnames);
-	if (result != ISC_R_SUCCESS)
-		goto fail1;
+	isc_mutexblock_init(adb->namelocks, adb->nnames);
+
 	for (i = 0; i < adb->nnames; i++) {
 		ISC_LIST_INIT(adb->names[i]);
 		ISC_LIST_INIT(adb->deadnames[i]);
@@ -2661,9 +2656,7 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 		adb->entry_refcnt[i] = 0;
 		adb->irefcnt++;
 	}
-	result = isc_mutexblock_init(adb->entrylocks, adb->nentries);
-	if (result != ISC_R_SUCCESS)
-		goto fail2;
+	isc_mutexblock_init(adb->entrylocks, adb->nentries);
 
 	/*
 	 * Memory pools
@@ -2671,12 +2664,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 #define MPINIT(t, p, n) do { \
 	result = isc_mempool_create(mem, sizeof(t), &(p)); \
 	if (result != ISC_R_SUCCESS) \
-		goto fail3; \
+		goto fail2; \
 	isc_mempool_setfreemax((p), FREE_ITEMS); \
 	isc_mempool_setfillcount((p), FILL_COUNT); \
 	isc_mempool_setname((p), n); \
 	isc_mempool_associatelock((p), &adb->mplock); \
-} while (0)
+	} while (0)
 
 	MPINIT(dns_adbname_t, adb->nmp, "adbname");
 	MPINIT(dns_adbnamehook_t, adb->nhmp, "adbnamehook");
@@ -2693,13 +2686,13 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	 */
 	result = isc_task_create(adb->taskmgr, 0, &adb->task);
 	if (result != ISC_R_SUCCESS)
-		goto fail3;
+		goto fail2;
 
 	isc_task_setname(adb->task, "ADB", adb);
 
 	result = isc_stats_create(adb->mctx, &view->adbstats, dns_adbstats_max);
 	if (result != ISC_R_SUCCESS)
-		goto fail3;
+		goto fail2;
 
 	set_adbstat(adb, adb->nentries, dns_adbstats_nentries);
 	set_adbstat(adb, adb->nnames, dns_adbstats_nnames);
@@ -2711,15 +2704,13 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	*newadb = adb;
 	return (ISC_R_SUCCESS);
 
- fail3:
+ fail2:
 	if (adb->task != NULL)
 		isc_task_detach(&adb->task);
 
 	/* clean up entrylocks */
-	DESTROYMUTEXBLOCK(adb->entrylocks, adb->nentries);
-
- fail2: /* clean up namelocks */
-	DESTROYMUTEXBLOCK(adb->namelocks, adb->nnames);
+	isc_mutexblock_destroy(adb->entrylocks, adb->nentries);
+	isc_mutexblock_destroy(adb->namelocks, adb->nnames);
 
  fail1: /* clean up only allocated memory */
 	if (adb->entries != NULL)
@@ -2767,12 +2758,12 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	if (adb->afmp != NULL)
 		isc_mempool_destroy(&adb->afmp);
 
-	DESTROYLOCK(&adb->namescntlock);
-	DESTROYLOCK(&adb->entriescntlock);
-	DESTROYLOCK(&adb->overmemlock);
-	DESTROYLOCK(&adb->reflock);
-	DESTROYLOCK(&adb->mplock);
-	DESTROYLOCK(&adb->lock);
+	isc_mutex_destroy(&adb->namescntlock);
+	isc_mutex_destroy(&adb->entriescntlock);
+	isc_mutex_destroy(&adb->overmemlock);
+	isc_mutex_destroy(&adb->reflock);
+	isc_mutex_destroy(&adb->mplock);
+	isc_mutex_destroy(&adb->lock);
 	if (adb->excl != NULL)
 		isc_task_detach(&adb->excl);
 	isc_mem_putanddetach(&adb->mctx, adb, sizeof(dns_adb_t));

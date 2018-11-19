@@ -238,7 +238,7 @@ dns_sdb_register(const char *drivername, const dns_sdbmethods_t *methods,
 	return (ISC_R_SUCCESS);
 
  cleanup_mutex:
-	DESTROYLOCK(&imp->driverlock);
+	isc_mutex_destroy(&imp->driverlock);
 	isc_mem_put(mctx, imp, sizeof(dns_sdbimplementation_t));
 	return (result);
 }
@@ -252,7 +252,7 @@ dns_sdb_unregister(dns_sdbimplementation_t **sdbimp) {
 
 	imp = *sdbimp;
 	dns_db_unregister(&imp->dbimp);
-	DESTROYLOCK(&imp->driverlock);
+	isc_mutex_destroy(&imp->driverlock);
 
 	mctx = imp->mctx;
 	isc_mem_put(mctx, imp, sizeof(dns_sdbimplementation_t));
@@ -554,7 +554,7 @@ destroy(dns_sdb_t *sdb) {
 	}
 
 	isc_mem_free(mctx, sdb->zone);
-	DESTROYLOCK(&sdb->lock);
+	isc_mutex_destroy(&sdb->lock);
 
 	sdb->common.magic = 0;
 	sdb->common.impmagic = 0;
@@ -704,7 +704,7 @@ destroynode(dns_sdbnode_t *node) {
 		dns_name_free(node->name, mctx);
 		isc_mem_put(mctx, node->name, sizeof(dns_name_t));
 	}
-	DESTROYLOCK(&node->lock);
+	isc_mutex_destroy(&node->lock);
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(dns_sdbnode_t));
 	detach((dns_db_t **) (void *)&sdb);
@@ -1367,7 +1367,7 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
  cleanup_origin:
 	dns_name_free(&sdb->common.origin, mctx);
  cleanup_lock:
-	(void)isc_mutex_destroy(&sdb->lock);
+	isc_mutex_destroy(&sdb->lock);
 	isc_mem_put(mctx, sdb, sizeof(dns_sdb_t));
 	isc_mem_detach(&mctx);
 

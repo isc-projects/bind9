@@ -336,7 +336,7 @@ destroy(dns_sdlz_db_t *sdlz) {
 	sdlz->common.magic = 0;
 	sdlz->common.impmagic = 0;
 
-	(void)isc_mutex_destroy(&sdlz->refcnt_lock);
+	isc_mutex_destroy(&sdlz->refcnt_lock);
 
 	dns_name_free(&sdlz->common.origin, mctx);
 
@@ -520,7 +520,7 @@ destroynode(dns_sdlznode_t *node) {
 		dns_name_free(node->name, mctx);
 		isc_mem_put(mctx, node->name, sizeof(dns_name_t));
 	}
-	DESTROYLOCK(&node->lock);
+	isc_mutex_destroy(&node->lock);
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(dns_sdlznode_t));
 	db = &sdlz->common;
@@ -2102,7 +2102,7 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 
  cleanup_mutex:
 	/* destroy the driver lock, we don't need it anymore */
-	DESTROYLOCK(&imp->driverlock);
+	isc_mutex_destroy(&imp->driverlock);
 
 	/*
 	 * return the memory back to the available memory pool and
@@ -2132,7 +2132,7 @@ dns_sdlzunregister(dns_sdlzimplementation_t **sdlzimp) {
 	dns_dlzunregister(&imp->dlz_imp);
 
 	/* destroy the driver lock, we don't need it anymore */
-	DESTROYLOCK(&imp->driverlock);
+	isc_mutex_destroy(&imp->driverlock);
 
 	mctx = imp->mctx;
 

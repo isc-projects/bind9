@@ -573,7 +573,7 @@ destroyclient(dns_client_t **clientp) {
 		isc_appctx_destroy(&client->actx);
 	}
 
-	DESTROYLOCK(&client->lock);
+	isc_mutex_destroy(&client->lock);
 	client->magic = 0;
 
 	isc_mem_putanddetach(&client->mctx, client, sizeof(*client));
@@ -1208,7 +1208,7 @@ resolve_done(isc_task_t *task, isc_event_t *event) {
 		 * unexpected event).  Just clean the arg up.
 		 */
 		UNLOCK(&resarg->lock);
-		DESTROYLOCK(&resarg->lock);
+		isc_mutex_destroy(&resarg->lock);
 		isc_mem_put(resarg->client->mctx, resarg, sizeof(*resarg));
 	}
 }
@@ -1252,7 +1252,7 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 					 client->task, resolve_done, resarg,
 					 &resarg->trans);
 	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&resarg->lock);
+		isc_mutex_destroy(&resarg->lock);
 		isc_mem_put(client->mctx, resarg, sizeof(*resarg));
 		return (result);
 	}
@@ -1288,7 +1288,7 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 	} else {
 		UNLOCK(&resarg->lock);
 
-		DESTROYLOCK(&resarg->lock);
+		isc_mutex_destroy(&resarg->lock);
 		isc_mem_put(client->mctx, resarg, sizeof(*resarg));
 	}
 
@@ -1402,7 +1402,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	if (sigrdataset != NULL)
 		putrdataset(client->mctx, &sigrdataset);
 	if (rctx != NULL) {
-		DESTROYLOCK(&rctx->lock);
+		isc_mutex_destroy(&rctx->lock);
 		isc_mem_put(mctx, rctx, sizeof(*rctx));
 	}
 	if (event != NULL)
@@ -1490,7 +1490,7 @@ dns_client_destroyrestrans(dns_clientrestrans_t **transp) {
 
 	INSIST(ISC_LIST_EMPTY(rctx->namelist));
 
-	DESTROYLOCK(&rctx->lock);
+	isc_mutex_destroy(&rctx->lock);
 	rctx->magic = 0;
 
 	isc_mem_put(mctx, rctx, sizeof(*rctx));
@@ -1608,7 +1608,7 @@ localrequest_done(isc_task_t *task, isc_event_t *event) {
 		 * unexpected event).  Just clean the arg up.
 		 */
 		UNLOCK(&reqarg->lock);
-		DESTROYLOCK(&reqarg->lock);
+		isc_mutex_destroy(&reqarg->lock);
 		isc_mem_put(reqarg->client->mctx, reqarg, sizeof(*reqarg));
 	}
 }
@@ -1656,7 +1656,7 @@ dns_client_request(dns_client_t *client, dns_message_t *qmessage,
 					 client->task, localrequest_done,
 					 reqarg, &reqarg->trans);
 	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&reqarg->lock);
+		isc_mutex_destroy(&reqarg->lock);
 		isc_mem_put(client->mctx, reqarg, sizeof(*reqarg));
 		return (result);
 	}
@@ -1684,7 +1684,7 @@ dns_client_request(dns_client_t *client, dns_message_t *qmessage,
 	} else {
 		UNLOCK(&reqarg->lock);
 
-		DESTROYLOCK(&reqarg->lock);
+		isc_mutex_destroy(&reqarg->lock);
 		isc_mem_put(client->mctx, reqarg, sizeof(*reqarg));
 	}
 
@@ -1783,7 +1783,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 		LOCK(&client->lock);
 		ISC_LIST_UNLINK(client->reqctxs, ctx, link);
 		UNLOCK(&client->lock);
-		DESTROYLOCK(&ctx->lock);
+		isc_mutex_destroy(&ctx->lock);
 		isc_mem_put(client->mctx, ctx, sizeof(*ctx));
 	}
 	if (event != NULL)
@@ -1844,7 +1844,7 @@ dns_client_destroyreqtrans(dns_clientreqtrans_t **transp) {
 
 	UNLOCK(&client->lock);
 
-	DESTROYLOCK(&ctx->lock);
+	isc_mutex_destroy(&ctx->lock);
 	ctx->magic = 0;
 
 	isc_mem_put(mctx, ctx, sizeof(*ctx));
@@ -2662,7 +2662,7 @@ internal_update_callback(isc_task_t *task, isc_event_t *event) {
 		 * unexpected event).  Just clean the arg up.
 		 */
 		UNLOCK(&uarg->lock);
-		DESTROYLOCK(&uarg->lock);
+		isc_mutex_destroy(&uarg->lock);
 		isc_mem_put(uarg->client->mctx, uarg, sizeof(*uarg));
 	}
 }
@@ -2708,7 +2708,7 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 					internal_update_callback, uarg,
 					&uarg->trans);
 	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&uarg->lock);
+		isc_mutex_destroy(&uarg->lock);
 		isc_mem_put(client->mctx, uarg, sizeof(*uarg));
 		return (result);
 	}
@@ -2737,7 +2737,7 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 	} else {
 		UNLOCK(&uarg->lock);
 
-		DESTROYLOCK(&uarg->lock);
+		isc_mutex_destroy(&uarg->lock);
 		isc_mem_put(client->mctx, uarg, sizeof(*uarg));
 	}
 
@@ -2975,7 +2975,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	if (uctx->tsigkey != NULL)
 		dns_tsigkey_detach(&uctx->tsigkey);
 	isc_task_detach(&tclone);
-	DESTROYLOCK(&uctx->lock);
+	isc_mutex_destroy(&uctx->lock);
 	uctx->magic = 0;
 	isc_mem_put(client->mctx, uctx, sizeof(*uctx));
 	dns_view_detach(&view);
@@ -3045,7 +3045,7 @@ dns_client_destroyupdatetrans(dns_clientupdatetrans_t **transp) {
 
 	UNLOCK(&client->lock);
 
-	DESTROYLOCK(&uctx->lock);
+	isc_mutex_destroy(&uctx->lock);
 	uctx->magic = 0;
 
 	isc_mem_put(mctx, uctx, sizeof(*uctx));

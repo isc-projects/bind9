@@ -949,13 +949,13 @@ ns_query_init(ns_client_t *client) {
 	query_reset(client, false);
 	result = query_newdbversion(client, 3);
 	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&client->query.fetchlock);
+		isc_mutex_destroy(&client->query.fetchlock);
 		return (result);
 	}
 	result = query_newnamebuf(client);
 	if (result != ISC_R_SUCCESS) {
 		query_freefreeversions(client, true);
-		DESTROYLOCK(&client->query.fetchlock);
+		isc_mutex_destroy(&client->query.fetchlock);
 	}
 
 	return (result);

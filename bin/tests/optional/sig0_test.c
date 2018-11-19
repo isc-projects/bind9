@@ -282,7 +282,7 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
-	DESTROYLOCK(&lock);
+	isc_mutex_destroy(&lock);
 
 	isc_app_finish();
 

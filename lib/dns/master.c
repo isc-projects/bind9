@@ -463,7 +463,7 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 
 	if (lctx->task != NULL)
 		isc_task_detach(&lctx->task);
-	DESTROYLOCK(&lctx->lock);
+	isc_mutex_destroy(&lctx->lock);
 	mctx = NULL;
 	isc_mem_attach(lctx->mctx, &mctx);
 	isc_mem_detach(&lctx->mctx);

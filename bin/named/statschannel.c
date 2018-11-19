@@ -3226,7 +3226,7 @@ destroy_listener(void *arg) {
 	/* We don't have to acquire the lock here since it's already unlinked */
 	dns_acl_detach(&listener->acl);
 
-	DESTROYLOCK(&listener->lock);
+	isc_mutex_destroy(&listener->lock);
 	isc_mem_putanddetach(&listener->mctx, listener, sizeof(*listener));
 }
 
@@ -3348,7 +3348,7 @@ cleanup:
 	if (result != ISC_R_SUCCESS) {
 		if (listener->acl != NULL)
 			dns_acl_detach(&listener->acl);
-		DESTROYLOCK(&listener->lock);
+		isc_mutex_destroy(&listener->lock);
 		isc_mem_putanddetach(&listener->mctx, listener,
 				     sizeof(*listener));
 	}

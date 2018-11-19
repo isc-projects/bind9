@@ -33,7 +33,7 @@ isc_quota_destroy(isc_quota_t *quota) {
 	quota->max = 0;
 	quota->used = 0;
 	quota->soft = 0;
-	DESTROYLOCK(&quota->lock);
+	isc_mutex_destroy(&quota->lock);
 }
 
 void

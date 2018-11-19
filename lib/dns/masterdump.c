@@ -1266,7 +1266,7 @@ static void
 dumpctx_destroy(dns_dumpctx_t *dctx) {
 
 	dctx->magic = 0;
-	DESTROYLOCK(&dctx->lock);
+	isc_mutex_destroy(&dctx->lock);
 	dns_dbiterator_destroy(&dctx->dbiter);
 	if (dctx->version != NULL)
 		dns_db_closeversion(dctx->db, &dctx->version, false);

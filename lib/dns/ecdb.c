@@ -173,7 +173,7 @@ destroy_ecdb(dns_ecdb_t **ecdbp) {
 	if (dns_name_dynamic(&ecdb->common.origin))
 		dns_name_free(&ecdb->common.origin, mctx);
 
-	DESTROYLOCK(&ecdb->lock);
+	isc_mutex_destroy(&ecdb->lock);
 
 	ecdb->common.impmagic = 0;
 	ecdb->common.magic = 0;
@@ -249,7 +249,7 @@ destroynode(dns_ecdbnode_t *node) {
 		isc_mem_put(mctx, header, headersize);
 	}
 
-	DESTROYLOCK(&node->lock);
+	isc_mutex_destroy(&node->lock);
 
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(*node));
@@ -359,7 +359,7 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 	dns_name_init(&node->name, NULL);
 	result = dns_name_dup(name, mctx, &node->name);
 	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&node->lock);
+		isc_mutex_destroy(&node->lock);
 		isc_mem_put(mctx, node, sizeof(*node));
 		return (result);
 	}

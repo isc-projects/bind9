@@ -137,7 +137,7 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 	rwl->magic = 0;
 	(void)isc_condition_destroy(&rwl->readable);
 	(void)isc_condition_destroy(&rwl->writeable);
-	DESTROYLOCK(&rwl->lock);
+	isc_mutex_destroy(&rwl->lock);
 }
 
 /*

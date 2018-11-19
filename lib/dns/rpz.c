@@ -1485,7 +1485,7 @@ cleanup_rbt:
 	INSIST(isc_refcount_decrement(&zones->refs) > 0);
 	isc_refcount_destroy(&zones->refs);
 
-	DESTROYLOCK(&zones->maint_lock);
+	isc_mutex_destroy(&zones->maint_lock);
 
 	isc_rwlock_destroy(&zones->search_lock);
 
@@ -2177,7 +2177,7 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 		if (rpzs->rbt != NULL) {
 			dns_rbt_destroy(&rpzs->rbt);
 		}
-		DESTROYLOCK(&rpzs->maint_lock);
+		isc_mutex_destroy(&rpzs->maint_lock);
 		isc_rwlock_destroy(&rpzs->search_lock);
 		isc_refcount_destroy(&rpzs->refs);
 		isc_mem_putanddetach(&rpzs->mctx, rpzs, sizeof(*rpzs));

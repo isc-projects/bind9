@@ -101,7 +101,7 @@ clean_counters:
 	isc_mem_put(mctx, stats->counters, sizeof(isc_stat_t) * ncounters);
 
 clean_mutex:
-	DESTROYLOCK(&stats->lock);
+	isc_mutex_destroy(&stats->lock);
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
 	return (result);
@@ -137,7 +137,7 @@ isc_stats_detach(isc_stats_t **statsp) {
 		isc_mem_put(stats->mctx, stats->counters,
 			    sizeof(isc_stat_t) * stats->ncounters);
 		UNLOCK(&stats->lock);
-		DESTROYLOCK(&stats->lock);
+		isc_mutex_destroy(&stats->lock);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 		return;
 	}

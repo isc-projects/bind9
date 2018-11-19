@@ -103,7 +103,7 @@ destroy(dns_ssutable_t *table) {
 		rule->magic = 0;
 		isc_mem_put(mctx, rule, sizeof(dns_ssurule_t));
 	}
-	DESTROYLOCK(&table->lock);
+	isc_mutex_destroy(&table->lock);
 	table->magic = 0;
 	isc_mem_putanddetach(&table->mctx, table, sizeof(dns_ssutable_t));
 }

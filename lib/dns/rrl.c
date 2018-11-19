@@ -1263,7 +1263,7 @@ dns_rrl_view_destroy(dns_view_t *view) {
 	if (rrl->exempt != NULL)
 		dns_acl_detach(&rrl->exempt);
 
-	DESTROYLOCK(&rrl->lock);
+	isc_mutex_destroy(&rrl->lock);
 
 	while (!ISC_LIST_EMPTY(rrl->blocks)) {
 		b = ISC_LIST_HEAD(rrl->blocks);

@@ -94,7 +94,7 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 	return (ISC_R_SUCCESS);
 
  destroy_lock:
-	DESTROYLOCK(&bc->lock);
+	isc_mutex_destroy(&bc->lock);
 	isc_mem_putanddetach(&bc->mctx, bc, sizeof(dns_badcache_t));
 	return (result);
 }
@@ -109,7 +109,7 @@ dns_badcache_destroy(dns_badcache_t **bcp) {
 	dns_badcache_flush(bc);
 
 	bc->magic = 0;
-	DESTROYLOCK(&bc->lock);
+	isc_mutex_destroy(&bc->lock);
 	isc_mem_put(bc->mctx, bc->table, sizeof(dns_bcentry_t *) * bc->size);
 	isc_mem_putanddetach(&bc->mctx, bc, sizeof(dns_badcache_t));
 	*bcp = NULL;

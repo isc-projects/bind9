@@ -1967,7 +1967,7 @@ free_socket(isc__socket_t **socketp) {
 	sock->common.magic = 0;
 	sock->common.impmagic = 0;
 
-	DESTROYLOCK(&sock->lock);
+	isc_mutex_destroy(&sock->lock);
 
 	isc_mem_put(sock->manager->mctx, sock, sizeof(*sock));
 
@@ -3890,7 +3890,7 @@ cleanup_thread(isc_mem_t *mctx, isc__socketthread_t *thread) {
 
 	if (thread->fdlock != NULL) {
 		for (i = 0; i < FDLOCK_COUNT; i++) {
-			DESTROYLOCK(&thread->fdlock[i]);
+			isc_mutex_destroy(&thread->fdlock[i]);
 		}
 		isc_mem_put(thread->manager->mctx, thread->fdlock,
 			    FDLOCK_COUNT * sizeof(isc_mutex_t));
@@ -4045,7 +4045,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	if (manager->stats != NULL) {
 		isc_stats_detach(&manager->stats);
 	}
-	DESTROYLOCK(&manager->lock);
+	isc_mutex_destroy(&manager->lock);
 	manager->common.magic = 0;
 	manager->common.impmagic = 0;
 	mctx= manager->mctx;

@@ -793,7 +793,7 @@ dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
 
 	if (isc_refcount_decrement(&catzs->refs) == 1) {
 		isc_task_destroy(&catzs->updater);
-		DESTROYLOCK(&catzs->lock);
+		isc_mutex_destroy(&catzs->lock);
 		if (catzs->zones != NULL) {
 			isc_ht_iter_t *iter = NULL;
 			isc_result_t result;

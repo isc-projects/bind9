@@ -3936,9 +3936,9 @@ main(int argc, char *argv[]) {
 		check_result(result, "dns_master_dumptostream3");
 	}
 
-	DESTROYLOCK(&namelock);
+	isc_mutex_destroy(&namelock);
 	if (printstats)
-		DESTROYLOCK(&statslock);
+		isc_mutex_destroy(&statslock);
 
 	if (!output_stdout) {
 		result = isc_stdio_close(outfp);

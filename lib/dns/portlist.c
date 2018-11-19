@@ -240,7 +240,7 @@ dns_portlist_detach(dns_portlist_t **portlistp) {
 			isc_mem_put(portlist->mctx, portlist->list,
 				    portlist->allocated *
 				    sizeof(*portlist->list));
-		DESTROYLOCK(&portlist->lock);
+		isc_mutex_destroy(&portlist->lock);
 		isc_mem_putanddetach(&portlist->mctx, portlist,
 				     sizeof(*portlist));
 	}

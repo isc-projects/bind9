@@ -306,7 +306,7 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
 	clearlistenon(mgr);
-	DESTROYLOCK(&mgr->lock);
+	isc_mutex_destroy(&mgr->lock);
 	if (mgr->sctx != NULL)
 		ns_server_detach(&mgr->sctx);
 	if (mgr->excl != NULL)
@@ -443,7 +443,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	return (ISC_R_SUCCESS);
 
  clientmgr_create_failure:
-	DESTROYLOCK(&ifp->lock);
+	isc_mutex_destroy(&ifp->lock);
 
 	ifp->magic = 0;
 	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
@@ -656,7 +656,7 @@ ns_interface_destroy(ns_interface_t *ifp) {
 	if (ifp->tcpsocket != NULL)
 		isc_socket_detach(&ifp->tcpsocket);
 
-	DESTROYLOCK(&ifp->lock);
+	isc_mutex_destroy(&ifp->lock);
 
 	ns_interfacemgr_detach(&ifp->mgr);
 

@@ -235,7 +235,7 @@ task_finished(isc__task_t *task) {
 		 */
 		wake_all_queues(manager);
 	}
-	DESTROYLOCK(&task->lock);
+	isc_mutex_destroy(&task->lock);
 	task->common.impmagic = 0;
 	task->common.magic = 0;
 	isc_mem_put(manager->mctx, task, sizeof(*task));
@@ -288,7 +288,7 @@ isc_task_create(isc_taskmgr_t *manager0, unsigned int quantum,
 	UNLOCK(&manager->lock);
 
 	if (exiting) {
-		DESTROYLOCK(&task->lock);
+		isc_mutex_destroy(&task->lock);
 		isc_mem_put(manager->mctx, task, sizeof(*task));
 		return (ISC_R_SHUTTINGDOWN);
 	}
@@ -1301,10 +1301,10 @@ run(void *queuep) {
 static void
 manager_free(isc__taskmgr_t *manager) {
 	for (unsigned int i = 0; i < manager->workers; i++) {
-		DESTROYLOCK(&manager->queues[i].lock);
+		isc_mutex_destroy(&manager->queues[i].lock);
 	}
-	DESTROYLOCK(&manager->lock);
-	DESTROYLOCK(&manager->halt_lock);
+	isc_mutex_destroy(&manager->lock);
+	isc_mutex_destroy(&manager->halt_lock);
 	isc_mem_put(manager->mctx, manager->queues,
 		    manager->workers * sizeof(isc__taskqueue_t));
 	manager->common.impmagic = 0;

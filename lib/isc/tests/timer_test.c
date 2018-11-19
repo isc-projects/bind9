@@ -136,7 +136,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	UNLOCK(&mx);
 
 	isc_task_detach(&task);
-	DESTROYLOCK(&mx);
+	isc_mutex_destroy(&mx);
 	(void) isc_condition_destroy(&cv);
 }
 
@@ -558,7 +558,7 @@ purge(void **state) {
 	isc_timer_detach(&oncetimer);
 	isc_task_destroy(&task1);
 	isc_task_destroy(&task2);
-	DESTROYLOCK(&mx);
+	isc_mutex_destroy(&mx);
 }
 
 int

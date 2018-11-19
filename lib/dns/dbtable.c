@@ -85,7 +85,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	return (ISC_R_SUCCESS);
 
  clean3:
-	DESTROYLOCK(&dbtable->lock);
+	isc_mutex_destroy(&dbtable->lock);
 
 	dns_rbt_destroy(&dbtable->rbt);
 

@@ -77,7 +77,7 @@ static void
 dnsrps_mutex_destroy(void *mutex0) {
 	isc_mutex_t *mutex = mutex0;
 
-	DESTROYLOCK(mutex);
+	isc_mutex_destroy(mutex);
 }
 
 static void

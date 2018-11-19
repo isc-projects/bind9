@@ -61,7 +61,7 @@ ns_stats_detach(ns_stats_t **statsp) {
 
 	if (stats->references == 0) {
 		isc_stats_detach(&stats->counters);
-		DESTROYLOCK(&stats->lock);
+		isc_mutex_destroy(&stats->lock);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 	}
 }
@@ -94,7 +94,7 @@ ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 	return (ISC_R_SUCCESS);
 
   clean_mutex:
-	DESTROYLOCK(&stats->lock);
+	isc_mutex_destroy(&stats->lock);
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
 	return (result);

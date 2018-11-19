@@ -320,10 +320,10 @@ cleanup_dbargv:
 cleanup_dbtype:
 	isc_mem_free(cmctx, cache->db_type);
 cleanup_filelock:
-	DESTROYLOCK(&cache->filelock);
+	isc_mutex_destroy(&cache->filelock);
 cleanup_stats:
 	isc_stats_detach(&cache->stats);
-	DESTROYLOCK(&cache->lock);
+	isc_mutex_destroy(&cache->lock);
 cleanup_mem:
 	if (cache->name != NULL) {
 		isc_mem_free(cmctx, cache->name);
@@ -354,7 +354,7 @@ cache_free(dns_cache_t *cache) {
 	if (cache->cleaner.iterator != NULL)
 		dns_dbiterator_destroy(&cache->cleaner.iterator);
 
-	DESTROYLOCK(&cache->cleaner.lock);
+	isc_mutex_destroy(&cache->cleaner.lock);
 
 	if (cache->filename) {
 		isc_mem_free(cache->mctx, cache->filename);
@@ -388,8 +388,8 @@ cache_free(dns_cache_t *cache) {
 	if (cache->stats != NULL)
 		isc_stats_detach(&cache->stats);
 
-	DESTROYLOCK(&cache->lock);
-	DESTROYLOCK(&cache->filelock);
+	isc_mutex_destroy(&cache->lock);
+	isc_mutex_destroy(&cache->filelock);
 
 	cache->magic = 0;
 	isc_mem_detach(&cache->hmctx);
@@ -679,7 +679,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		isc_task_detach(&cleaner->task);
 	if (cleaner->iterator != NULL)
 		dns_dbiterator_destroy(&cleaner->iterator);
-	DESTROYLOCK(&cleaner->lock);
+	isc_mutex_destroy(&cleaner->lock);
 
 	return (result);
 }

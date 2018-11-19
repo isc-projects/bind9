@@ -304,7 +304,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	}
 
  cleanup_new_zone_lock:
-	DESTROYLOCK(&view->new_zone_lock);
+	isc_mutex_destroy(&view->new_zone_lock);
 
 	dns_badcache_destroy(&view->failcache);
 
@@ -327,7 +327,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	}
 
  cleanup_mutex:
-	DESTROYLOCK(&view->lock);
+	isc_mutex_destroy(&view->lock);
 
 	if (view->nta_file != NULL) {
 		isc_mem_free(mctx, view->nta_file);
@@ -546,8 +546,8 @@ destroy(dns_view_t *view) {
 	dns_aclenv_destroy(&view->aclenv);
 	if (view->failcache != NULL)
 		dns_badcache_destroy(&view->failcache);
-	DESTROYLOCK(&view->new_zone_lock);
-	DESTROYLOCK(&view->lock);
+	isc_mutex_destroy(&view->new_zone_lock);
+	isc_mutex_destroy(&view->lock);
 	isc_mem_free(view->mctx, view->nta_file);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));

@@ -1088,7 +1088,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 
  free_mutex:
-	DESTROYLOCK(&zone->lock);
+	isc_mutex_destroy(&zone->lock);
 
 	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
 	return (result);
@@ -1253,7 +1253,7 @@ zone_free(dns_zone_t *zone) {
 
 	/* last stuff */
 	ZONEDB_DESTROYLOCK(&zone->dblock);
-	DESTROYLOCK(&zone->lock);
+	isc_mutex_destroy(&zone->lock);
 	zone->magic = 0;
 	mctx = zone->mctx;
 	isc_mem_put(mctx, zone, sizeof(*zone));
@@ -16194,7 +16194,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 #if 0
  free_iolock:
-	DESTROYLOCK(&zmgr->iolock);
+	isc_mutex_destroy(&zmgr->iolock);
 #endif
  free_startupnotifyrl:
 	isc_ratelimiter_detach(&zmgr->startupnotifyrl);
@@ -16531,7 +16531,7 @@ zonemgr_free(dns_zonemgr_t *zmgr) {
 
 	zmgr->magic = 0;
 
-	DESTROYLOCK(&zmgr->iolock);
+	isc_mutex_destroy(&zmgr->iolock);
 	isc_ratelimiter_detach(&zmgr->notifyrl);
 	isc_ratelimiter_detach(&zmgr->refreshrl);
 	isc_ratelimiter_detach(&zmgr->startupnotifyrl);

@@ -114,7 +114,7 @@ main(int argc, char *argv[]) {
 
 	isc_mem_destroy(&mctx);
 
-	DESTROYLOCK(&lock);
+	isc_mutex_destroy(&lock);
 
 	return (0);
 }

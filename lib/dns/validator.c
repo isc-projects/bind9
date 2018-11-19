@@ -3810,7 +3810,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	return (ISC_R_SUCCESS);
 
  cleanup_mutex:
-	DESTROYLOCK(&val->lock);
+	isc_mutex_destroy(&val->lock);
 
 	isc_task_detach(&tclone);
 	isc_event_free(ISC_EVENT_PTR(&event));
@@ -3895,7 +3895,7 @@ destroy(dns_validator_t *val) {
 	mctx = val->view->mctx;
 	if (val->siginfo != NULL)
 		isc_mem_put(mctx, val->siginfo, sizeof(*val->siginfo));
-	DESTROYLOCK(&val->lock);
+	isc_mutex_destroy(&val->lock);
 	dns_view_weakdetach(&val->view);
 	val->magic = 0;
 	isc_mem_put(mctx, val, sizeof(*val));

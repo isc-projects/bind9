@@ -4198,7 +4198,7 @@ destroy_libs(void) {
 	}
 
 	UNLOCK_LOOKUP;
-	DESTROYLOCK(&lookup_lock);
+	isc_mutex_destroy(&lookup_lock);
 	debug("Removing log context");
 	isc_log_destroy(&lctx);
 

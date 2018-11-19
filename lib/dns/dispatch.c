@@ -526,7 +526,7 @@ destroy_disp(isc_task_t *task, isc_event_t *event) {
 
 	if (disp->sepool != NULL) {
 		isc_mempool_destroy(&disp->sepool);
-		(void)isc_mutex_destroy(&disp->sepool_lock);
+		isc_mutex_destroy(&disp->sepool_lock);
 	}
 
 	if (disp->socket != NULL)
@@ -1625,7 +1625,7 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 
 	mgr->magic = 0;
 	mgr->mctx = NULL;
-	DESTROYLOCK(&mgr->lock);
+	isc_mutex_destroy(&mgr->lock);
 	mgr->state = 0;
 
 	isc_mempool_destroy(&mgr->depool);
@@ -1636,16 +1636,16 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 	if (mgr->spool != NULL)
 		isc_mempool_destroy(&mgr->spool);
 
-	DESTROYLOCK(&mgr->spool_lock);
-	DESTROYLOCK(&mgr->bpool_lock);
-	DESTROYLOCK(&mgr->dpool_lock);
-	DESTROYLOCK(&mgr->rpool_lock);
-	DESTROYLOCK(&mgr->depool_lock);
+	isc_mutex_destroy(&mgr->spool_lock);
+	isc_mutex_destroy(&mgr->bpool_lock);
+	isc_mutex_destroy(&mgr->dpool_lock);
+	isc_mutex_destroy(&mgr->rpool_lock);
+	isc_mutex_destroy(&mgr->depool_lock);
 
 	if (mgr->qid != NULL)
 		qid_destroy(mctx, &mgr->qid);
 
-	DESTROYLOCK(&mgr->buffer_lock);
+	isc_mutex_destroy(&mgr->buffer_lock);
 
 	if (mgr->blackhole != NULL)
 		dns_acl_detach(&mgr->blackhole);
@@ -1772,7 +1772,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
 	if (isc_mempool_create(mgr->mctx, sizeof(dns_dispatchevent_t),
 			       &mgr->depool) != ISC_R_SUCCESS) {
 		result = ISC_R_NOMEMORY;
-		goto kill_spool_lock;
+		goto kill_locks;
 	}
 
 	mgr->rpool = NULL;
@@ -1846,14 +1846,14 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
 	isc_mempool_destroy(&mgr->rpool);
  kill_depool:
 	isc_mempool_destroy(&mgr->depool);
- kill_spool_lock:
-	DESTROYLOCK(&mgr->spool_lock);
-	DESTROYLOCK(&mgr->bpool_lock);
-	DESTROYLOCK(&mgr->dpool_lock);
-	DESTROYLOCK(&mgr->rpool_lock);
-	DESTROYLOCK(&mgr->depool_lock);
-	DESTROYLOCK(&mgr->buffer_lock);
-	DESTROYLOCK(&mgr->lock);
+ kill_locks:
+	isc_mutex_destroy(&mgr->spool_lock);
+	isc_mutex_destroy(&mgr->bpool_lock);
+	isc_mutex_destroy(&mgr->dpool_lock);
+	isc_mutex_destroy(&mgr->rpool_lock);
+	isc_mutex_destroy(&mgr->depool_lock);
+	isc_mutex_destroy(&mgr->buffer_lock);
+	isc_mutex_destroy(&mgr->lock);
 	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
 	isc_mem_detach(&mctx);
 
@@ -2296,7 +2296,7 @@ qid_destroy(isc_mem_t *mctx, dns_qid_t **qidp) {
 		isc_mem_put(mctx, qid->sock_table,
 			    qid->qid_nbuckets * sizeof(dispsocketlist_t));
 	}
-	DESTROYLOCK(&qid->lock);
+	isc_mutex_destroy(&qid->lock);
 	isc_mem_put(mctx, qid, sizeof(*qid));
 }
 
@@ -2364,7 +2364,7 @@ dispatch_allocate(dns_dispatchmgr_t *mgr, unsigned int maxrequests,
 	 * error returns
 	 */
  kill_lock:
-	DESTROYLOCK(&disp->lock);
+	isc_mutex_destroy(&disp->lock);
 	isc_mempool_put(mgr->dpool, disp);
 
 	return (result);
@@ -2416,7 +2416,7 @@ dispatch_free(dns_dispatch_t **dispp) {
 		isc_mempool_destroy(&disp->portpool);
 
 	disp->mgr = NULL;
-	DESTROYLOCK(&disp->lock);
+	isc_mutex_destroy(&disp->lock);
 	disp->magic = 0;
 	isc_mempool_put(mgr->dpool, disp);
 }
@@ -3689,7 +3689,7 @@ dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
 		isc_mem_detach(&dset->mctx);
 
  fail_lock:
-	DESTROYLOCK(&dset->lock);
+	isc_mutex_destroy(&dset->lock);
 	isc_mem_put(mctx, dset, sizeof(dns_dispatchset_t));
 	return (result);
 }
@@ -3719,7 +3719,7 @@ dns_dispatchset_destroy(dns_dispatchset_t **dsetp) {
 		dns_dispatch_detach(&(dset->dispatches[i]));
 	isc_mem_put(dset->mctx, dset->dispatches,
 		    sizeof(dns_dispatch_t *) * dset->ndisp);
-	DESTROYLOCK(&dset->lock);
+	isc_mutex_destroy(&dset->lock);
 	isc_mem_putanddetach(&dset->mctx, dset, sizeof(dns_dispatchset_t));
 
 	*dsetp = NULL;

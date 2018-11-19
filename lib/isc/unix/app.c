@@ -568,7 +568,7 @@ isc_app_ctxfinish(isc_appctx_t *ctx0) {
 
 	REQUIRE(VALID_APPCTX(ctx));
 
-	DESTROYLOCK(&ctx->lock);
+	isc_mutex_destroy(&ctx->lock);
 }
 
 void

@@ -893,7 +893,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 			(ctx->memfree)(ctx->arg, ctx->debuglist);
 #endif /* ISC_MEM_TRACKLINES */
 		if ((ctx->flags & ISC_MEMFLAG_NOLOCK) == 0)
-			DESTROYLOCK(&ctx->lock);
+			isc_mutex_destroy(&ctx->lock);
 		(memfree)(arg, ctx);
 	}
 
@@ -970,7 +970,7 @@ destroy(isc__mem_t *ctx) {
 	}
 
 	if ((ctx->flags & ISC_MEMFLAG_NOLOCK) == 0)
-		DESTROYLOCK(&ctx->lock);
+		isc_mutex_destroy(&ctx->lock);
 	ctx->malloced -= sizeof(*ctx);
 	if (ctx->checkfree)
 		INSIST(ctx->malloced == 0);

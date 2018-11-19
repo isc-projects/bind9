@@ -59,8 +59,8 @@
 #define ISC_QUEUE_DESTROY(queue) \
 	do { \
 		ISC_QLINK_INSIST(ISC_QUEUE_EMPTY(queue)); \
-		(void) isc_mutex_destroy(&(queue).taillock); \
-		(void) isc_mutex_destroy(&(queue).headlock); \
+		isc_mutex_destroy(&(queue).taillock); \
+		isc_mutex_destroy(&(queue).headlock); \
 	} while (0)
 
 /*

@@ -466,7 +466,7 @@ isc_log_destroy(isc_log_t **lctxp) {
 		isc_logconfig_destroy(&lcfg);
 	}
 
-	DESTROYLOCK(&lctx->lock);
+	isc_mutex_destroy(&lctx->lock);
 
 	while ((message = ISC_LIST_HEAD(lctx->messages)) != NULL) {
 		ISC_LIST_UNLINK(lctx->messages, message, link);

@@ -1507,7 +1507,7 @@ free_socket(isc_socket_t **sockp, int lineno) {
 		   lineno, sock->fd, &sock->lock, sock->lock.LockSemaphore);
 
 	sock->magic = 0;
-	DESTROYLOCK(&sock->lock);
+	isc_mutex_destroy(&sock->lock);
 
 	if (sock->recvbuf.base != NULL)
 		isc_mem_put(manager->mctx, sock->recvbuf.base,
@@ -2647,7 +2647,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 
 	(void)isc_condition_destroy(&manager->shutdown_ok);
 
-	DESTROYLOCK(&manager->lock);
+	isc_mutex_destroy(&manager->lock);
 	if (manager->stats != NULL)
 		isc_stats_detach(&manager->stats);
 	manager->magic = 0;

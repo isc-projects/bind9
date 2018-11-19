@@ -362,15 +362,19 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 
 failed:
 	dlopen_log(ISC_LOG_ERROR, "dlz_dlopen of '%s' failed", dlzname);
-	if (cd->dl_path != NULL)
+	if (cd->dl_path != NULL) {
 		isc_mem_free(mctx, cd->dl_path);
-	if (cd->dlzname != NULL)
+	}
+	if (cd->dlzname != NULL) {
 		isc_mem_free(mctx, cd->dlzname);
-	if (dlopen_flags != 0)
-		(void) isc_mutex_destroy(&cd->lock);
+	}
+	if (dlopen_flags != 0) {
+		isc_mutex_destroy(&cd->lock);
+	}
 #ifdef HAVE_DLCLOSE
-	if (cd->dl_handle)
+	if (cd->dl_handle) {
 		dlclose(cd->dl_handle);
+	}
 #endif
 	isc_mem_put(mctx, cd, sizeof(*cd));
 	isc_mem_destroy(&mctx);
@@ -393,17 +397,20 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 		MAYBE_UNLOCK(cd);
 	}
 
-	if (cd->dl_path)
+	if (cd->dl_path) {
 		isc_mem_free(cd->mctx, cd->dl_path);
-	if (cd->dlzname)
+	}
+	if (cd->dlzname) {
 		isc_mem_free(cd->mctx, cd->dlzname);
+	}
 
 #ifdef HAVE_DLCLOSE
-	if (cd->dl_handle)
+	if (cd->dl_handle) {
 		dlclose(cd->dl_handle);
+	}
 #endif
 
-	(void) isc_mutex_destroy(&cd->lock);
+	isc_mutex_destroy(&cd->lock);
 
 	mctx = cd->mctx;
 	isc_mem_put(mctx, cd, sizeof(*cd));

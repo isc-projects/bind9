@@ -385,9 +385,9 @@ mgr_destroy(dns_requestmgr_t *requestmgr) {
 	REQUIRE(requestmgr->eref == 0);
 	REQUIRE(requestmgr->iref == 0);
 
-	DESTROYLOCK(&requestmgr->lock);
+	isc_mutex_destroy(&requestmgr->lock);
 	for (i = 0; i < DNS_REQUEST_NLOCKS; i++)
-		DESTROYLOCK(&requestmgr->locks[i]);
+		isc_mutex_destroy(&requestmgr->locks[i]);
 	if (requestmgr->dispatchv4 != NULL)
 		dns_dispatch_detach(&requestmgr->dispatchv4);
 	if (requestmgr->dispatchv6 != NULL)

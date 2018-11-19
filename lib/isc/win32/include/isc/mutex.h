@@ -38,7 +38,7 @@ TryEnterCriticalSection(LPCRITICAL_SECTION lpCriticalSection);
 #define isc_mutex_trylock(mp) \
 	(TryEnterCriticalSection((mp)) ? ISC_R_SUCCESS : ISC_R_LOCKBUSY)
 #define isc_mutex_destroy(mp) \
-	(DeleteCriticalSection((mp)), ISC_R_SUCCESS)
+	(DeleteCriticalSection((mp)))
 
 /*
  * This is a placeholder for now since we are not keeping any mutex stats
