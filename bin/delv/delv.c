@@ -765,7 +765,14 @@ setup_dnsseckeys(dns_client_t *client) {
 	if (dlv_validation)
 		dns_client_setdlv(client, dns_rdataclass_in, dlv_anchor);
 
+
  cleanup:
+	if (bindkeys != NULL) {
+		cfg_obj_destroy(parser, &bindkeys);
+	}
+	if (parser != NULL) {
+		cfg_parser_destroy(&parser);
+	}
 	if (result != ISC_R_SUCCESS)
 		delv_log(ISC_LOG_ERROR, "setup_dnsseckeys: %s",
 			  isc_result_totext(result));
