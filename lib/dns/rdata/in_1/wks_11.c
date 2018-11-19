@@ -155,8 +155,7 @@ fromtext_in_wks(ARGS_FROMTEXT) {
 		 * Lowercase the service string as some getservbyname() are
 		 * case sensitive and the database is usually in lowercase.
 		 */
-		strncpy(service, DNS_AS_STR(token), sizeof(service));
-		service[sizeof(service)-1] = '\0';
+		strlcpy(service, DNS_AS_STR(token), sizeof(service));
 		for (i = strlen(service) - 1; i >= 0; i--)
 			if (isupper(service[i]&0xff))
 				service[i] = tolower(service[i]&0xff);
