@@ -93,21 +93,32 @@ accept_done(isc_task_t *task, isc_event_t *event) {
 
 static void
 event_done(isc_task_t *task, isc_event_t *event) {
-	isc_socketevent_t *dev;
+	isc_socketevent_t *sev = NULL;
+	isc_socket_connev_t *connev = NULL;
 	completion_t *completion = event->ev_arg;
-
 	UNUSED(task);
 
-	dev = (isc_socketevent_t *) event;
-	completion->result = dev->result;
-	completion->done = true;
-	if ((dev->attributes & ISC_SOCKEVENTATTR_DSCP) != 0) {
-		recv_dscp = true;
-		recv_dscp_value = dev->dscp;;
-	} else {
-		recv_dscp = false;
+	switch (event->ev_type) {
+	case ISC_SOCKEVENT_RECVDONE:
+	case ISC_SOCKEVENT_SENDDONE:
+		sev = (isc_socketevent_t *) event;
+		completion->result = sev->result;
+		if ((sev->attributes & ISC_SOCKEVENTATTR_DSCP) != 0) {
+			recv_dscp = true;
+			recv_dscp_value = sev->dscp;;
+		} else {
+			recv_dscp = false;
+		}
+		recv_trunc = ((sev->attributes & ISC_SOCKEVENTATTR_TRUNC) != 0);
+		break;
+	case ISC_SOCKEVENT_CONNECT:
+		connev = (isc_socket_connev_t *) event;
+		completion->result = connev->result;
+		break;
+	default:
+		assert_false(true);
 	}
-	recv_trunc = ((dev->attributes & ISC_SOCKEVENTATTR_TRUNC) != 0);
+	completion->done = true;
 	isc_event_free(&event);
 }
 
