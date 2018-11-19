@@ -606,7 +606,6 @@ getlabel_test(void **state) {
 		dns_fixedname_t f1, f2;
 		dns_name_t *n1, *n2;
 		dns_label_t l1, l2;
-		unsigned char *p1, *p2;
 		unsigned int j;
 
 		n1 = dns_fixedname_initname(&f1);
@@ -623,10 +622,8 @@ getlabel_test(void **state) {
 		dns_name_getlabel(n2, testcases[i].pos2, &l2);
 		assert_int_equal(l1.length, l2.length);
 
-		p1 = l1.base;
-		p2 = l2.base;
 		for (j = 0; j < l1.length; j++) {
-			assert_int_equal(*p1++, *p2++);
+			assert_int_equal(l1.base[j], l2.base[j]);
 		}
 	}
 }
