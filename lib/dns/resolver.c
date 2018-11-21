@@ -2278,7 +2278,7 @@ compute_cc(resquery_t *query, unsigned char *cookie, size_t len) {
 	unsigned int secret_len = ISC_SHA1_DIGESTLENGTH;
 #elif defined(HMAC_SHA256_CC)
 	isc_md_type_t type = ISC_MD_SHA256;
-	unsigned int secret_len = ISC_SHA256_DIGESTLENGHT;
+	unsigned int secret_len = ISC_SHA256_DIGESTLENGTH;
 #endif
 
 	INSIST(len >= 8U);
