@@ -94,3 +94,16 @@ void isc__mempool_put(void *mem, void *ptr FLARG) {
 	if (!mem) __coverity_panic__();
 	__coverity_free__(ptr);
 }
+
+/*
+ * Cmocka models.
+ */
+
+#define LargestIntegralType unsigned long int
+
+void _assert_true(const LargestIntegralType result,
+		  const char * const expression,
+		  const char * const file, const int line)
+{
+	if (!result) __coverity_panic__();
+}
