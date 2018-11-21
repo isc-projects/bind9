@@ -1008,8 +1008,7 @@
 ./bin/tests/system/sfcache/clean.sh		SH	2014,2015,2016,2017,2018
 ./bin/tests/system/sfcache/ns1/sign.sh		SH	2014,2016,2017,2018
 ./bin/tests/system/sfcache/ns2/sign.sh		SH	2014,2016,2018
-./bin/tests/system/sfcache/ns5/trusted.conf.bad	X	2014,2016,2018
-./bin/tests/system/sfcache/prereq.sh		SH	2014,2016,2017,2018
+./bin/tests/system/sfcache/ns5/sign.sh		SH	2018
 ./bin/tests/system/sfcache/setup.sh		SH	2014,2016,2017,2018
 ./bin/tests/system/sfcache/tests.sh		SH	2014,2016,2017,2018
 ./bin/tests/system/smartsign/clean.sh		SH	2010,2012,2014,2016,2018
