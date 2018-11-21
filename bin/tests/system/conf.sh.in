@@ -15,10 +15,17 @@
 #
 
 # Find the top of the BIND9 tree.
-TOP=${SYSTEMTESTTOP:=.}/../../..
+TOP=@abs_top_builddir@
 
-# Make it absolute so that it continues to work after we cd.
-TOP=`cd $TOP && pwd`
+# Default algorithm for testing
+DEFAULT_ALGORITHM=ECDSAP256SHA256
+DEFAULT_ALGORITHM_NUMBER=13
+DEFAULT_BITS=256
+
+# must be different from DEFAULT_ALGORITHM
+ALTERNATIVE_ALGORITHM=RSASHA256
+ALTERNATIVE_ALGORITHM_NUMBER=8
+ALTERNATIVE_BITS=1280
 
 NAMED=$TOP/bin/named/named
 # We must use "named -l" instead of "lwresd" because argv[0] is lost
@@ -337,7 +344,14 @@ copy_setports() {
         -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
         -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
         -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
-        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" $1 > $2
+        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
+	-e "s/@DEFAULT_ALGORITHM@/${DEFAULT_ALGORITHM}/g" \
+	-e "s/@DEFAULT_ALGORITHM_NUMBER@/${DEFAULT_ALGORITHM_NUMBER}/g" \
+	-e "s/@DEFAULT_BITS@/${DEFAULT_BITS}/g" \
+	-e "s/@ALTERNATIVE_ALGORITHM@/${ALTERNATIVE_ALGORITHM}/g" \
+	-e "s/@ALTERNATIVE_ALGORITHM_NUMBER@/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
+	-e "s/@ALTERNATIVE_BITS@/${ALTERNATIVE_BITS}/g" \
+	$1 > $2
 }
 
 #
