@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2018-06-21
+.\"      Date: 2018-10-23
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2018\-06\-21" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2018\-10\-23" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -199,6 +199,7 @@ options {
 	    ] [ dscp \fIinteger\fR ];
 	alt\-transfer\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR |
 	    * ) ] [ dscp \fIinteger\fR ];
+	answer\-cookie \fIboolean\fR;
 	attach\-cache \fIstring\fR;
 	auth\-nxdomain \fIboolean\fR; // default changed
 	auto\-dnssec ( allow | maintain | off );
@@ -264,8 +265,8 @@ options {
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
 	dnssec\-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver ) [ ( query |
-	    response ) ]; \&.\&.\&. };
+	dnstap { ( all | auth | client | forwarder | resolver | update ) [
+	    ( query | response ) ]; \&.\&.\&. };
 	dnstap\-identity ( \fIquoted_string\fR | none | hostname );
 	dnstap\-output ( file | unix ) \fIquoted_string\fR [ size ( unlimited |
 	    \fIsize\fR ) ] [ versions ( unlimited | \fIinteger\fR ) ] [ suffix (
@@ -343,6 +344,8 @@ options {
 	memstatistics \fIboolean\fR;
 	memstatistics\-file \fIquoted_string\fR;
 	message\-compression \fIboolean\fR;
+	min\-cache\-ttl \fIttlval\fR;
+	min\-ncache\-ttl \fIttlval\fR;
 	min\-refresh\-time \fIinteger\fR;
 	min\-retry\-time \fIinteger\fR;
 	minimal\-any \fIboolean\fR;
@@ -632,8 +635,8 @@ view \fIstring\fR [ \fIclass\fR ] {
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
 	dnssec\-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver ) [ ( query |
-	    response ) ]; \&.\&.\&. };
+	dnstap { ( all | auth | client | forwarder | resolver | update ) [
+	    ( query | response ) ]; \&.\&.\&. };
 	dual\-stack\-servers [ port \fIinteger\fR ] { ( \fIquoted_string\fR [ port
 	    \fIinteger\fR ] [ dscp \fIinteger\fR ] | \fIipv4_address\fR [ port
 	    \fIinteger\fR ] [ dscp \fIinteger\fR ] | \fIipv6_address\fR [ port
@@ -914,10 +917,10 @@ view \fIstring\fR [ \fIclass\fR ] {
 		    static\-stub | stub );
 		update\-check\-ksk \fIboolean\fR;
 		update\-policy ( local | { ( deny | grant ) \fIstring\fR (
-		    6to4\-self | external | krb5\-self | krb5\-subdomain |
-		    ms\-self | ms\-subdomain | name | self | selfsub |
-		    selfwild | subdomain | tcp\-self | wildcard | zonesub )
-		    [ \fIstring\fR ] \fIrrtypelist\fR; \&.\&.\&. };
+		    6to4\-self | external | krb5\-self | krb5\-selfsub |
+		    krb5\-subdomain | ms\-self | ms\-selfsub | ms\-subdomain |
+		    name | self | selfsub | selfwild | subdomain | tcp\-self
+		    | wildcard | zonesub ) [ \fIstring\fR ] \fIrrtypelist\fR; \&.\&.\&. };
 		use\-alt\-transfer\-source \fIboolean\fR;
 		zero\-no\-soa\-ttl \fIboolean\fR;
 		zone\-statistics ( full | terse | none | \fIboolean\fR );
@@ -1020,9 +1023,10 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	    stub );
 	update\-check\-ksk \fIboolean\fR;
 	update\-policy ( local | { ( deny | grant ) \fIstring\fR ( 6to4\-self |
-	    external | krb5\-self | krb5\-subdomain | ms\-self | ms\-subdomain
-	    | name | self | selfsub | selfwild | subdomain | tcp\-self |
-	    wildcard | zonesub ) [ \fIstring\fR ] \fIrrtypelist\fR; \&.\&.\&. };
+	    external | krb5\-self | krb5\-selfsub | krb5\-subdomain | ms\-self
+	    | ms\-selfsub | ms\-subdomain | name | self | selfsub | selfwild
+	    | subdomain | tcp\-self | wildcard | zonesub ) [ \fIstring\fR ]
+	    \fIrrtypelist\fR; \&.\&.\&. };
 	use\-alt\-transfer\-source \fIboolean\fR;
 	zero\-no\-soa\-ttl \fIboolean\fR;
 	zone\-statistics ( full | terse | none | \fIboolean\fR );

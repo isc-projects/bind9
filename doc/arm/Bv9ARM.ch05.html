@@ -2383,6 +2383,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    ] [ dscp <em class="replaceable"><code>integer</code></em> ];
 	<span class="command"><strong>alt-transfer-source-v6</strong></span> ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em> |
 	    * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];
+	<span class="command"><strong>answer-cookie</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>attach-cache</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>auth-nxdomain</strong></span> <em class="replaceable"><code>boolean</code></em>; // default changed
 	<span class="command"><strong>auto-dnssec</strong></span> ( allow | maintain | off );
@@ -2448,8 +2449,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
 	<span class="command"><strong>dnssec-validation</strong></span> ( yes | no | auto );
-	<span class="command"><strong>dnstap</strong></span> { ( all | auth | client | forwarder | resolver ) [ ( query |
-	    <span class="command"><strong>response</strong></span> ) ]; ... };
+	<span class="command"><strong>dnstap</strong></span> { ( all | auth | client | forwarder | resolver | update ) [
+	    ( query | response ) ]; ... };
 	<span class="command"><strong>dnstap-identity</strong></span> ( <em class="replaceable"><code>quoted_string</code></em> | none | hostname );
 	<span class="command"><strong>dnstap-output</strong></span> ( file | unix ) <em class="replaceable"><code>quoted_string</code></em> [ size ( unlimited |
 	    <em class="replaceable"><code>size</code></em> ) ] [ versions ( unlimited | <em class="replaceable"><code>integer</code></em> ) ] [ suffix (
@@ -2754,6 +2755,8 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                   <span class="command"><strong>max-ncache-ttl</strong></span>,
                   <span class="command"><strong>max-stale-ttl</strong></span>,
                   <span class="command"><strong>max-cache-size</strong></span>, and
+                  <span class="command"><strong>min-cache-ttl</strong></span>,
+                  <span class="command"><strong>min-ncache-ttl</strong></span>,
                   <span class="command"><strong>zero-no-soa-ttl</strong></span>.
                 </p>
 
@@ -2813,10 +2816,11 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                 The <span class="command"><strong>dnstap</strong></span> option is a bracketed list
                 of message types to be logged. These may be set differently
                 for each view. Supported types are <code class="literal">client</code>,
-                <code class="literal">auth</code>, <code class="literal">resolver</code>, and
-                <code class="literal">forwarder</code>.  Specifying type
-                <code class="literal">all</code> will cause all <span class="command"><strong>dnstap</strong></span>
-                messages to be logged, regardless of type.
+                <code class="literal">auth</code>, <code class="literal">resolver</code>,
+                <code class="literal">forwarder</code>, and <code class="literal">update</code>.
+                Specifying type <code class="literal">all</code> will cause all
+                <span class="command"><strong>dnstap</strong></span> messages to be logged, regardless of
+                type.
               </p>
               <p>
                 Each type may take an additional argument to indicate whether
@@ -4784,34 +4788,54 @@ options {
 <dt><span class="term"><span class="command"><strong>dnssec-validation</strong></span></span></dt>
 <dd>
                 <p>
-                  Enable DNSSEC validation in <span class="command"><strong>named</strong></span>.
-                  Note <span class="command"><strong>dnssec-enable</strong></span> also needs to be
-                  set to <strong class="userinput"><code>yes</code></strong> to be effective.
+                  This enables DNSSEC validation in <span class="command"><strong>named</strong></span>.
+                  Note that <span class="command"><strong>dnssec-enable</strong></span> also needs to
+                  be set to <strong class="userinput"><code>yes</code></strong> for signatures to be
+                  returned to the client along with validated answers.
+                </p>
+                <p>
+                  If set to <strong class="userinput"><code>auto</code></strong>,
+                  DNSSEC validation is enabled, and a default trust anchor
+                  for the DNS root zone is used.
+                </p>
+                <p>
+                  If set to <strong class="userinput"><code>yes</code></strong>, DNSSEC validation is
+                  enabled, but a trust anchor must be manually configured
+                  using a <span class="command"><strong>trusted-keys</strong></span>
+                  or <span class="command"><strong>managed-keys</strong></span> statement; if there
+                  is no configured trust anchor, validation will not take
+                  place.
+                </p>
+                <p>
                   If set to <strong class="userinput"><code>no</code></strong>, DNSSEC validation
                   is disabled.
                 </p>
                 <p>
-                  If set to <strong class="userinput"><code>auto</code></strong>, DNSSEC validation
-                  is enabled, and a default trust anchor for the DNS root
-                  zone is used.  If set to <strong class="userinput"><code>yes</code></strong>,
-                  DNSSEC validation is enabled, but a trust anchor must be
-                  manually configured using a <span class="command"><strong>trusted-keys</strong></span>
-                  or <span class="command"><strong>managed-keys</strong></span> statement.  The default
-                  is <strong class="userinput"><code>yes</code></strong>.
+                  The default is <strong class="userinput"><code>auto</code></strong>, unless
+                  BIND is built with
+                  <span class="command"><strong>configure --disable-auto-validation</strong></span>,
+                  in which case the default is <strong class="userinput"><code>yes</code></strong>.
+                  If <span class="command"><strong>dnssec-enable</strong></span> is set to
+                  <strong class="userinput"><code>no</code></strong>, then the default for
+                  <span class="command"><strong>dnssec-validation</strong></span> is also
+                  <strong class="userinput"><code>no</code></strong>. Validation can still be turned on
+                  if desired - this results in a server that performs DNSSEC
+                  validation but does not return signatures when queried -
+                  but it will not be turned on automatically.
                 </p>
                 <p>
                   The default root trust anchor is stored in the file
                   <code class="filename">bind.keys</code>.
                   <span class="command"><strong>named</strong></span> will load that key at
                   startup if <span class="command"><strong>dnssec-validation</strong></span> is
-                  set to <code class="constant">auto</code>.  A copy of the file is
+                  set to <strong class="userinput"><code>auto</code></strong>.  A copy of the file is
                   installed along with BIND 9, and is current as of the
                   release date.  If the root key expires, a new copy of
                   <code class="filename">bind.keys</code> can be downloaded
                   from <a class="link" href="https://www.isc.org/bind-keys" target="_top">https://www.isc.org/bind-keys</a>.
                 </p>
                 <p>
-                  To prevent problems if <code class="filename">bind.keys</code> is
+                  (To prevent problems if <code class="filename">bind.keys</code> is
                   not found, the current trust anchor is also compiled in
                   to <span class="command"><strong>named</strong></span>.  Relying on this is not
                   recommended, however, as it requires <span class="command"><strong>named</strong></span>
@@ -4820,8 +4844,8 @@ options {
                 <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
 <h3 class="title">Note</h3>
                   <p>
-                    <span class="command"><strong>named</strong></span> <span class="emphasis"><em>only</em></span>
-                    loads the root key from <code class="filename">bind.keys</code>.
+                    <span class="command"><strong>named</strong></span> loads <span class="emphasis"><em>only</em></span>
+                    the root key from <code class="filename">bind.keys</code>.
                     The file cannot be used to store keys for other zones.
                     The root key in <code class="filename">bind.keys</code> is ignored
                     if <span class="command"><strong>dnssec-validation auto</strong></span> is not in
@@ -5289,11 +5313,16 @@ options {
 <dt><span class="term"><span class="command"><strong>allow-query-cache-on</strong></span></span></dt>
 <dd>
                 <p>
-                  Specifies which local addresses can give answers
-                  from the cache.  If not specified, the default is
-                  to allow cache queries on any address,
-                  <span class="command"><strong>localnets</strong></span> and
-                  <span class="command"><strong>localhost</strong></span>.
+                  Specifies which local addresses can send answers
+                  from the cache.  If <span class="command"><strong>allow-query-cache-on</strong></span>
+                  is not set, then <span class="command"><strong>allow-recursion-on</strong></span> is
+                  used if set.  Otherwise, the default is
+                  to allow cache responses to be sent from any address.
+                  Note: Both <span class="command"><strong>allow-query-cache</strong></span> and
+                  <span class="command"><strong>allow-query-cache-on</strong></span> must be
+                  satisfied before a cache response can be sent;
+                  a client that is blocked by one cannot be allowed
+                  by the other.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>allow-recursion</strong></span></span></dt>
@@ -5313,8 +5342,17 @@ options {
 <dd>
                 <p>
                   Specifies which local addresses can accept recursive
-                  queries.  If not specified, the default is to allow
-                  recursive queries on all addresses.
+                  queries.  If <span class="command"><strong>allow-recursion-on</strong></span>
+                  is not set, then <span class="command"><strong>allow-query-cache-on</strong></span>
+                  is used if set; otherwise, the default is to allow
+                  recursive queries on all addresses: Any client permitted
+                  to send recursive queries can send them to any address
+                  on which <span class="command"><strong>named</strong></span> is listening.
+                  Note: Both <span class="command"><strong>allow-recursion</strong></span> and
+                  <span class="command"><strong>allow-recursion-on</strong></span> must be
+                  satisfied before recursion is allowed;
+                  a client that is blocked by one cannot be allowed
+                  by the other.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>allow-update</strong></span></span></dt>
@@ -6909,6 +6947,32 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                   seconds; any higher value will be silently
                   reduced. The default is <code class="literal">1</code>
                   second.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>min-ncache-ttl</strong></span></span></dt>
+<dd>
+                <p>
+                  To reduce network traffic and increase performance, the server
+                  stores negative answers. <span class="command"><strong>min-ncache-ttl</strong></span> is
+                  used to set a minimum retention time for these answers in the
+                  server in seconds.  For convenience, TTL-style time unit
+                  suffixes may be used to specify the value.  The default
+                  <span class="command"><strong>min-ncache-ttl</strong></span> is <code class="literal">0</code>
+                  seconds.  <span class="command"><strong>min-ncache-ttl</strong></span> cannot exceed 90
+                  seconds and will be truncated to 90 seconds if set to a
+                  greater value.
+                </p>
+              </dd>
+<dt><span class="term"><span class="command"><strong>min-cache-ttl</strong></span></span></dt>
+<dd>
+                <p>
+                  Sets the minimum time for which the server will cache ordinary
+                  (positive) answers in seconds. For convenience, TTL-style time
+                  unit suffixes may be used to specify the value. The default
+                  <span class="command"><strong>min-cache-ttl</strong></span> is <code class="literal">0</code>
+                  seconds. <span class="command"><strong>min-cache-ttl</strong></span> cannot exceed 90
+                  seconds and will be truncated to 90 seconds if set to a
+                  greater value.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>max-ncache-ttl</strong></span></span></dt>
@@ -8918,17 +8982,6 @@ example.com                 CNAME   rpz-tcp-only.
         </p>
 
         <p>
-          Applications that depend on a particular XML schema
-          can request
-          <a class="link" href="http://127.0.0.1:8888/xml/v2" target="_top">http://127.0.0.1:8888/xml/v2</a> for version 2
-          of the statistics XML schema or
-          <a class="link" href="http://127.0.0.1:8888/xml/v3" target="_top">http://127.0.0.1:8888/xml/v3</a> for version 3.
-          If the requested schema is supported by the server, then
-          it will respond; if not, it will return a "page not found"
-          error.
-        </p>
-
-        <p>
           Broken-out subsets of the statistics can be viewed at
           <a class="link" href="http://127.0.0.1:8888/xml/v3/status" target="_top">http://127.0.0.1:8888/xml/v3/status</a>
           (server uptime and last reconfiguration time),
@@ -9354,7 +9407,7 @@ view "external" {
 	<span class="command"><strong>sig-signing-type</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>sig-validity-interval</strong></span> <em class="replaceable"><code>integer</code></em> [ <em class="replaceable"><code>integer</code></em> ];
 	<span class="command"><strong>update-check-ksk</strong></span> <em class="replaceable"><code>boolean</code></em>;
-	<span class="command"><strong>update-policy</strong></span> ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> ( 6to4-self | external | krb5-self | krb5-subdomain | ms-self | ms-subdomain | name | self | selfsub | selfwild | subdomain | tcp-self | wildcard | zonesub ) [ <em class="replaceable"><code>string</code></em> ] <em class="replaceable"><code>rrtypelist</code></em>; ... };
+	<span class="command"><strong>update-policy</strong></span> ( local | { ( deny | grant ) <em class="replaceable"><code>string</code></em> ( 6to4-self | external | krb5-self | krb5-selfsub | krb5-subdomain | ms-self | ms-selfsub | ms-subdomain | name | self | selfsub | selfwild | subdomain | tcp-self | wildcard | zonesub ) [ <em class="replaceable"><code>string</code></em> ] <em class="replaceable"><code>rrtypelist</code></em>; ... };
 	<span class="command"><strong>zero-no-soa-ttl</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>zone-statistics</strong></span> ( full | terse | none | <em class="replaceable"><code>boolean</code></em> );
 };
@@ -10753,12 +10806,13 @@ example.com. NS ns2.example.net.
               the rules are checked for each existing record type.
             </p>
             <p>
-              The <em class="replaceable"><code>ruletype</code></em> field has 13
+              The <em class="replaceable"><code>ruletype</code></em> field has 16
               values:
               <code class="varname">name</code>, <code class="varname">subdomain</code>,
               <code class="varname">wildcard</code>, <code class="varname">self</code>,
               <code class="varname">selfsub</code>, <code class="varname">selfwild</code>,
               <code class="varname">krb5-self</code>, <code class="varname">ms-self</code>,
+              <code class="varname">krb5-selfsub</code>, <code class="varname">ms-selfsub</code>,
               <code class="varname">krb5-subdomain</code>,
               <code class="varname">ms-subdomain</code>,
               <code class="varname">tcp-self</code>, <code class="varname">6to4-self</code>,
@@ -10929,6 +10983,21 @@ example.com. NS ns2.example.net.
 <tr>
 <td>
                       <p>
+                        <code class="varname">ms-selfsub</code>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        This is similar to <span class="command"><strong>ms-self</strong></span>
+                        except it also allows updates to any subdomain of
+                        the name specified in the Windows machine
+                        principal, not just to the name itself.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
                         <code class="varname">ms-subdomain</code>
                       </p>
                     </td>
@@ -10996,6 +11065,21 @@ example.com. NS ns2.example.net.
                         allows any machine with a valid principal in
                         the realm <strong class="userinput"><code>EXAMPLE.COM</code></strong> to update
                         its own address records.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
+                        <code class="varname">krb5-selfsub</code>
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        This is similar to <span class="command"><strong>krb5-self</strong></span>
+                        except it also allows updates to any subdomain of
+                        the name specified in the 'machine' part of the
+                        Kerberos principal, not just to the name itself.
                       </p>
                     </td>
 </tr>
@@ -14960,6 +15044,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.3 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.4 (Development Release)</p>
 </body>
 </html>

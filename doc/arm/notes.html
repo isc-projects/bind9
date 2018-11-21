@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.13.3</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.13.4</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -143,6 +143,15 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  Task manager and socket code have been substantially modified.
+	  The manager uses per-cpu queues for tasks and network stack runs
+	  multiple event loops in CPU-affinitive threads. This greatly
+	  improves performance on large systems, especially when using
+	  multi-queue NICs.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  A new secondary zone option, <span class="command"><strong>mirror</strong></span>,
 	  enables <span class="command"><strong>named</strong></span> to serve a transferred copy
 	  of a zone's contents without acting as an authority for the
@@ -206,6 +215,34 @@
 	  domains beneath which DNSSEC validation should not be performed,
 	  regardless of whether a trust anchor has been configured above
 	  them. [GL #237]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Two new update policy rule types have been added
+	  <span class="command"><strong>krb5-selfsub</strong></span> and <span class="command"><strong>ms-selfsub</strong></span>
+	  which allow machines with Kerberos principals to update
+	  the name space at or below the machine names identified
+	  in the respective principals.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The new configure option <span class="command"><strong>--enable-fips-mode</strong></span>
+	  can be used to make BIND enable and enforce FIPS mode in the
+	  OpenSSL library.  When compiled with such option the BIND will
+	  refuse to run if FIPS mode can't be enabled, thus this option
+	  must be only enabled for the systems where FIPS mode is available.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Two new configuration options <span class="command"><strong>min-cache-ttl</strong></span> and
+	  <span class="command"><strong>min-ncache-ttl</strong></span> has been added to allow the BIND 9
+	  administrator to override the minimum TTL in the received DNS records
+	  (positive caching) and for storing the information about non-existent
+	  records (negative caching).  The configured minimum TTL for both
+	  configuration options cannot exceed 90 seconds.
 	</p>
       </li>
 </ul></div>
@@ -375,6 +412,11 @@
 	  usually long after their end-of-life date and they are
 	  neither developed nor supported by their respective vendors.
 	</p>
+	<p>
+	  Support for DSA and DSA-NSEC3-SHA1 algorithms has been
+	  removed from BIND as the DSA key length is limited to 1024
+	  bits and this is not considered secure enough.
+	</p>
       </li>
 </ul></div>
   </div>
@@ -436,13 +478,6 @@
       </li>
 <li class="listitem">
 	<p>
-	  <span class="command"><strong>dig +noidnin</strong></span> can be used to disable IDN
-	  processing on the input domain name, when BIND is compiled
-	  with IDN support.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
 	  Up to 64 <span class="command"><strong>response-policy</strong></span> zones are now
 	  supported by default; previously the limit was 32. [GL #123]
 	</p>
@@ -467,6 +502,50 @@
 	  NSID logging (enabled by the <span class="command"><strong>request-nsid</strong></span>
 	  option) now has its own <span class="command"><strong>nsid</strong></span> category,
 	  instead of using the <span class="command"><strong>resolver</strong></span> category.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>rndc nta</strong></span> command could not differentiate
+	  between views of the same name but different class; this
+	  has been corrected with the addition of a <span class="command"><strong>-class</strong></span>
+	  option. [GL #105]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>allow-recursion-on</strong></span> and
+	  <span class="command"><strong>allow-query-cache-on</strong></span> each now default to
+	  the other if only one of them is set, in order to be consistent
+	  with the way <span class="command"><strong>allow-recursion</strong></span> and
+	  <span class="command"><strong>allow-query-cache</strong></span> work. [GL #319]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  When compiled with IDN support, the <span class="command"><strong>dig</strong></span> and
+	  <span class="command"><strong>nslookup</strong></span> commands now disable IDN processing
+	  when the standard output is not a TTY (i.e., when the output
+	  is not being read by a human). When running from a shell
+	  script, the command line options <span class="command"><strong>+idnin</strong></span> and
+	  <span class="command"><strong>+idnout</strong></span> may be used to enable IDN
+	  processing of input and output domain names, respectively.
+	  When running on a TTY, the <span class="command"><strong>+noidnin</strong></span> and
+	  <span class="command"><strong>+noidnout</strong></span> options may be used to disable
+	  IDN processing of input and output domain names.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The configuration option <span class="command"><strong>max-ncache-ttl</strong></span> cannot
+	  exceed seven days. Previously, larger values than this were silently
+	  lowered; now, they trigger a configuration error.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The new <span class="command"><strong>dig -r</strong></span> command line option
+	  disables reading of the file <code class="filename">$HOME/.digrc</code>.
 	</p>
       </li>
 </ul></div>
@@ -502,6 +581,22 @@
           incorrectly treated as an error; this caused certain domains
           to be non-resolvable. [GL #390]
         </p>
+      </li>
+<li class="listitem">
+	<p>
+	  When a negative trust anchor was added to multiple views
+	  using <span class="command"><strong>rndc nta</strong></span>, the text returned via
+	  <span class="command"><strong>rndc</strong></span> was incorrectly truncated after the
+	  first line, making it appear that only one NTA had been
+	  added. This has been fixed. [GL #105]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The view name is now included in the output of
+	  <span class="command"><strong>rndc nta -dump</strong></span>, for consistency with
+	  other options. [GL !816]
+	</p>
       </li>
 <li class="listitem">
 	<p>
