@@ -307,6 +307,13 @@ typedef struct catz_chgzone_event {
 	bool mod;
 } catz_chgzone_event_t;
 
+typedef struct {
+	unsigned int magic;
+#define DZARG_MAGIC		ISC_MAGIC('D', 'z', 'a', 'r')
+	isc_buffer_t **text;
+	isc_result_t result;
+} ns_dzarg_t;
+
 /*
  * These zones should not leak onto the Internet.
  */
@@ -7478,11 +7485,11 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data,
 		goto cleanup;
 	}
 
-	putstr(text, "zone ");
-	putmem(text, (const void *) zone_name, zone_name_len);
-	putstr(text, " ");
-	putmem(text, (const void *) zone_config, zone_config_len);
-	putstr(text, ";\n");
+	CHECK(putstr(text, "zone "));
+	CHECK(putmem(text, (const void *) zone_name, zone_name_len));
+	CHECK(putstr(text, " "));
+	CHECK(putmem(text, (const void *) zone_config, zone_config_len));
+	CHECK(putstr(text, ";\n"));
 
 	cfg_parser_reset(named_g_addparser);
 	result = cfg_parse_buffer3(named_g_addparser, *text, zone_name, 0,
@@ -10782,10 +10789,10 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 	}
 	if (ptr != NULL) {
 		if (!found) {
-			putstr(text, "view '");
-			putstr(text, ptr);
-			putstr(text, "' not found");
-			putnull(text);
+			CHECK(putstr(text, "view '"));
+			CHECK(putstr(text, ptr));
+			CHECK(putstr(text, "' not found"));
+			CHECK(putnull(text));
 			result = ISC_R_NOTFOUND;
 			dumpdone(dctx, result);
 			return (result);
@@ -12078,9 +12085,15 @@ nzd_setkey(MDB_val *key, dns_name_t *name, char *namebuf, size_t buflen) {
 
 static void
 dumpzone(void *arg, const char *buf, int len) {
-	isc_buffer_t **text = arg;
+	ns_dzarg_t *dzarg = arg;
+	isc_result_t result;
 
-	putmem(text, buf, len);
+	REQUIRE(dzarg != NULL && ISC_MAGIC_VALID(dzarg, DZARG_MAGIC));
+
+	result = putmem(dzarg->text, buf, len);
+	if (result != ISC_R_SUCCESS && dzarg->result == ISC_R_SUCCESS) {
+		dzarg->result = result;
+	}
 }
 
 static isc_result_t
@@ -12094,6 +12107,7 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 	isc_buffer_t *text = NULL;
 	char namebuf[1024];
 	MDB_val key, data;
+	ns_dzarg_t dzarg;
 
 	view = dns_zone_getview(zone);
 
@@ -12145,7 +12159,21 @@ nzd_save(MDB_txn **txnp, MDB_dbi dbi, dns_zone_t *zone,
 			goto cleanup;
 		}
 
-		cfg_printx(zoptions, CFG_PRINTER_ONELINE, dumpzone, &text);
+		dzarg.magic = DZARG_MAGIC;
+		dzarg.text = &text;
+		dzarg.result = ISC_R_SUCCESS;
+		cfg_printx(zoptions, CFG_PRINTER_ONELINE, dumpzone, &dzarg);
+		if (dzarg.result != ISC_R_SUCCESS) {
+			isc_log_write(named_g_lctx,
+				      NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR,
+				      "Error writing zone config to "
+				      "buffer in nzd_save(): %s",
+				      isc_result_totext(result));
+			result = dzarg.result;
+			goto cleanup;
+		}
 
 		data.mv_data = isc_buffer_base(text);
 		data.mv_size = isc_buffer_usedlength(text);
@@ -12424,6 +12452,7 @@ migrate_nzf(dns_view_t *view) {
 	MDB_txn *txn = NULL;
 	MDB_dbi dbi;
 	MDB_val key, data;
+	ns_dzarg_t dzarg;
 
 	/*
 	 * If NZF file doesn't exist, or NZD DB exists and already
@@ -12513,7 +12542,21 @@ migrate_nzf(dns_view_t *view) {
 		}
 
 		isc_buffer_clear(text);
-		cfg_printx(zoptions, CFG_PRINTER_ONELINE, dumpzone, &text);
+		dzarg.magic = DZARG_MAGIC;
+		dzarg.text = &text;
+		dzarg.result = ISC_R_SUCCESS;
+		cfg_printx(zoptions, CFG_PRINTER_ONELINE, dumpzone, &dzarg);
+		if (dzarg.result != ISC_R_SUCCESS) {
+			isc_log_write(named_g_lctx,
+				      NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER,
+				      ISC_LOG_ERROR,
+				      "Error writing zone config to "
+				      "buffer in migrate_nzf(): %s",
+				      isc_result_totext(result));
+			result = dzarg.result;
+			goto cleanup;
+		}
 
 		data.mv_data = isc_buffer_base(text);
 		data.mv_size = isc_buffer_usedlength(text);
@@ -13616,8 +13659,14 @@ find_name_in_list_from_map(const cfg_obj_t *config,
 
 static void
 emitzone(void *arg, const char *buf, int len) {
-	isc_buffer_t **tpp = arg;
-	putmem(tpp, buf, len);
+	ns_dzarg_t *dzarg = arg;
+	isc_result_t result;
+
+	REQUIRE(dzarg != NULL && ISC_MAGIC_VALID(dzarg, DZARG_MAGIC));
+	result = putmem(dzarg->text, buf, len);
+	if (result != ISC_R_SUCCESS && dzarg->result == ISC_R_SUCCESS) {
+		dzarg->result = result;
+	}
 }
 
 /*
@@ -13639,6 +13688,7 @@ named_server_showzone(named_server_t *server, isc_lex_t *lex,
 	cfg_obj_t *nzconfig = NULL;
 #endif /* HAVE_LMDB */
 	bool added, redirect;
+	ns_dzarg_t dzarg;
 
 	/* Parse parameters */
 	CHECK(zone_from_args(server, lex, NULL, &zone, zonename,
@@ -13698,9 +13748,14 @@ named_server_showzone(named_server_t *server, isc_lex_t *lex,
 	if (zconfig == NULL)
 		CHECK(ISC_R_NOTFOUND);
 
-	putstr(text, "zone ");
-	cfg_printx(zconfig, CFG_PRINTER_ONELINE, emitzone, text);
-	putstr(text, ";");
+	CHECK(putstr(text, "zone "));
+	dzarg.magic = DZARG_MAGIC;
+	dzarg.text = text;
+	dzarg.result = ISC_R_SUCCESS;
+	cfg_printx(zconfig, CFG_PRINTER_ONELINE, emitzone, &dzarg);
+	CHECK(dzarg.result);
+
+	CHECK(putstr(text, ";"));
 
 	result = ISC_R_SUCCESS;
 
