@@ -458,7 +458,7 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
 	client->timermgr = timermgr;
 
 	client->task = NULL;
-	result = isc_task_create(client->taskmgr, 50, &client->task);
+	result = isc_task_create(client->taskmgr, 0, &client->task);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 

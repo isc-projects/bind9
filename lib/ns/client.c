@@ -2964,7 +2964,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	ns_server_attach(manager->sctx, &client->sctx);
 
 	client->task = NULL;
-	result = isc_task_create(manager->taskmgr, 50, &client->task);
+	result = isc_task_create(manager->taskmgr, 0, &client->task);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_client;
 	isc_task_setname(client->task, "client", client);
