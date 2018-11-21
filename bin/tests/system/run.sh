@@ -13,8 +13,10 @@
 # Run a system test.
 #
 
-SYSTEMTESTTOP=.
+SYSTEMTESTTOP=$(realpath .)
 . $SYSTEMTESTTOP/conf.sh
+
+export SYSTEMTESTTOP
 
 stopservers=true
 baseport=5300
@@ -45,7 +47,7 @@ if [ $# -eq 0 ]; then
     exit 1
 fi
 
-systest=$1
+systest=${1%%/}
 shift
 
 if [ ! -d $systest ]; then
