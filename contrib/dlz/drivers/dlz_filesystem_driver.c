@@ -59,6 +59,7 @@
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/result.h>
+#include <isc/string.h>
 #include <isc/util.h>
 
 #include <named/globals.h>
@@ -437,12 +438,12 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 					 */
 					if (strcmp((char *) &dir->entry.name[6],
 						   "-") == 0)
-						strcpy(host, "*");
-					else {
-						strncpy(host,
+					{
+						strlcpy(host, "*", sizeof(host));
+					} else {
+						strlcpy(host,
 						   (char *) &dir->entry.name[6],
-						   sizeof(host) - 1);
-						host[255] = '\0';
+						   sizeof(host));
 					}
 					foundHost = true;
 					break;
