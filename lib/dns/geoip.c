@@ -810,7 +810,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	default:
 		INSIST(0);
-		ISC_UNREACHABLE()
+		ISC_UNREACHABLE();
 	}
 
 	return (false);
