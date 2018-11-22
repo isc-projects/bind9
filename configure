@@ -20332,7 +20332,7 @@ else
 
 fi
 	        ;; #(
-  *-freebsd*|*-openbsd*) :
+  *-freebsd*|*-openbsd*|*-netbsd*) :
 
 		 LDFLAGS="${LDFLAGS} -Wl,-E"
 		 SO_CFLAGS="-fpic"
@@ -20347,13 +20347,6 @@ else
 			 SO_LD="${CC}"
 
 fi
-	        ;; #(
-  *-netbsd*) :
-
-		 SO_CFLAGS="-fpic"
-		 SO_LDFLAGS="-Bshareable -x"
-		 SO_LD="ld"
-		 SO_STRIP="sed -e s/-Wl,//g"
 	        ;; #(
   *-solaris*) :
 

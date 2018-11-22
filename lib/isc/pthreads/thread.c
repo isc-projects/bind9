@@ -71,6 +71,10 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 	return (ISC_R_SUCCESS);
 }
 
+#ifdef __NetBSD__
+#define pthread_setconcurrency(a)	(void) a/* nothing */
+#endif
+
 void
 isc_thread_setconcurrency(unsigned int level) {
 	(void)pthread_setconcurrency(level);
@@ -83,7 +87,11 @@ isc_thread_setname(isc_thread_t thread, const char *name) {
 	 * macOS has pthread_setname_np but only works on the
 	 * current thread so it's not used here
 	*/
+#if defined(__NetBSD__)
+	(void)pthread_setname_np(thread, name, NULL);
+#else
 	(void)pthread_setname_np(thread, name);
+#endif
 #elif defined(HAVE_PTHREAD_SET_NAME_NP)
 	(void)pthread_set_name_np(thread, name);
 #else
@@ -115,6 +123,20 @@ isc_thread_setaffinity(int cpu) {
 		return (ISC_R_FAILURE);
 	}
 #elif defined(HAVE_PTHREAD_SETAFFINITY_NP)
+#if defined(__NetBSD__)
+	cpuset_t *cset;
+	cset = cpuset_create();
+	if (cset == NULL)
+		return (ISC_R_FAILURE);
+	cpuset_set(cpu, cset);
+	if (pthread_setaffinity_np(pthread_self(),
+		cpuset_size(cset), cset) != 0)
+	{
+		cpuset_destroy(cset);
+		return (ISC_R_FAILURE);
+	}
+	cpuset_destroy(cset);
+#else /* linux? */
 	cpu_set_t set;
 	CPU_ZERO(&set);
 	CPU_SET(cpu, &set);
@@ -123,6 +145,7 @@ isc_thread_setaffinity(int cpu) {
 	{
 		return (ISC_R_FAILURE);
 	}
+#endif /* __NetBSD__ */
 #elif defined(HAVE_PROCESSOR_BIND)
 	if (processor_bind(P_LWPID, P_MYID, cpu, NULL) != 0) {
 		return (ISC_R_FAILURE);
