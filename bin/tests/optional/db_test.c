@@ -359,7 +359,6 @@ main(int argc, char *argv[]) {
 	dbinfo *dbi;
 	dns_dbversion_t *version;
 	const dns_name_t *origin;
-	size_t memory_quota = 0;
 	dns_trust_t trust = 0;
 	unsigned int addopts;
 	isc_log_t *lctx = NULL;
@@ -410,10 +409,6 @@ main(int argc, char *argv[]) {
 			break;
 		case 'P':
 			pause_every = atoi(isc_commandline_argument);
-			break;
-		case 'Q':
-			memory_quota = atoi(isc_commandline_argument);
-			isc_mem_setquota(mctx, memory_quota);
 			break;
 		case 't':
 			type = atoi(isc_commandline_argument);

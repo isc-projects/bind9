@@ -333,18 +333,6 @@ isc_mem_setdestroycheck(isc_mem_t *mctx,
  * destroyed and abort the program if any are present.
  */
 
-/*@{*/
-void
-isc_mem_setquota(isc_mem_t *, size_t);
-size_t
-isc_mem_getquota(isc_mem_t *);
-/*%<
- * Set/get the memory quota of 'mctx'.  This is a hard limit
- * on the amount of memory that may be allocated from mctx;
- * if it is exceeded, allocations will fail.
- */
-/*@}*/
-
 size_t
 isc_mem_inuse(isc_mem_t *mctx);
 /*%<
