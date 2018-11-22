@@ -2697,7 +2697,7 @@ AS_IF([test "$with_dlopen" = "yes"],
 			 SO_LD="${CC}"
 		       ])
 	       ],
-	       [*-freebsd*|*-openbsd*],[
+	       [*-freebsd*|*-openbsd*|*-netbsd*],[
 		 LDFLAGS="${LDFLAGS} -Wl,-E"
 		 SO_CFLAGS="-fpic"
 		 AS_IF([test "$use_libtool" = "yes"],[
@@ -2707,12 +2707,6 @@ AS_IF([test "$with_dlopen" = "yes"],
 			 SO_LDFLAGS="-shared"
 			 SO_LD="${CC}"
 		       ])
-	       ],
-	       [*-netbsd*],[
-		 SO_CFLAGS="-fpic"
-		 SO_LDFLAGS="-Bshareable -x"
-		 SO_LD="ld"
-		 SO_STRIP="sed -e s/-Wl,//g"
 	       ],
 	       [*-solaris*],[
 		 SO_CFLAGS="-KPIC"
