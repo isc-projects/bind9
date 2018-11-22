@@ -235,12 +235,6 @@
 	  configuration options cannot exceed 90 seconds.
 	</para>
       </listitem>
-      <listitem>
-	<para>
-	  The configuration option <command>max-ncache-ttl</command> was
-	  silently capped to 7 days, and the upper limit is now enforced.
-	</para>
-      </listitem>
     </itemizedlist>
   </section>
 
@@ -471,13 +465,6 @@
       </listitem>
       <listitem>
 	<para>
-	  <command>dig +noidnin</command> can be used to disable IDN
-	  processing on the input domain name, when BIND is compiled
-	  with IDN support.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
 	  Up to 64 <command>response-policy</command> zones are now
 	  supported by default; previously the limit was 32. [GL #123]
 	</para>
@@ -523,12 +510,29 @@
       </listitem>
       <listitem>
 	<para>
-	  When compiled with IDN support, the <command>dig</command> and the
-	  <command>nslookup</command> commands now disable IDN processing when
-	  the standard output is not a tty (e.g. not used by human).  The command
-	  line options +idnin and +idnout need to be used to enable IDN
-	  processing when <command>dig</command> or <command>nslookup</command>
-	  is used from the shell scripts.
+	  When compiled with IDN support, the <command>dig</command> and
+	  <command>nslookup</command> commands now disable IDN processing
+	  when the standard output is not a TTY (i.e., when the output
+	  is not being read by a human). When running from a shell
+	  script, the command line options <command>+idnin</command> and
+	  <command>+idnout</command> may be used to enable IDN
+	  processing of input and output domain names, respectively.
+	  When running on a TTY, the <command>+noidnin</command> and
+	  <command>+noidnout</command> options may be used to disable
+	  IDN processing of input and output domain names.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The configuration option <command>max-ncache-ttl</command> cannot
+	  exceed seven days. Previously, larger values than this were silently
+	  lowered; now, they trigger a configuration error.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The new <command>dig -r</command> command line option
+	  disables reading of the file <filename>$HOME/.digrc</filename>.
 	</para>
       </listitem>
     </itemizedlist>

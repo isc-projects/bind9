@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.13.3
+Release Notes for BIND Version 9.13.4
 
 Introduction
 
@@ -81,6 +81,11 @@ Security Fixes
 
 New Features
 
+  * Task manager and socket code have been substantially modified. The
+    manager uses per-cpu queues for tasks and network stack runs multiple
+    event loops in CPU-affinitive threads. This greatly improves
+    performance on large systems, especially when using multi-queue NICs.
+
   * A new secondary zone option, mirror, enables named to serve a
     transferred copy of a zone's contents without acting as an authority
     for the zone. A zone must be fully validated against an active trust
@@ -119,6 +124,24 @@ New Features
   * The validate-except option specifies a list of domains beneath which
     DNSSEC validation should not be performed, regardless of whether a
     trust anchor has been configured above them. [GL #237]
+
+  * Two new update policy rule types have been added krb5-selfsub and
+    ms-selfsub which allow machines with Kerberos principals to update the
+    name space at or below the machine names identified in the respective
+    principals.
+
+  * The new configure option --enable-fips-mode can be used to make BIND
+    enable and enforce FIPS mode in the OpenSSL library. When compiled
+    with such option the BIND will refuse to run if FIPS mode can't be
+    enabled, thus this option must be only enabled for the systems where
+    FIPS mode is available.
+
+  * Two new configuration options min-cache-ttl and min-ncache-ttl has
+    been added to allow the BIND 9 administrator to override the minimum
+    TTL in the received DNS records (positive caching) and for storing the
+    information about non-existent records (negative caching). The
+    configured minimum TTL for both configuration options cannot exceed 90
+    seconds.
 
 Removed Features
 
@@ -223,6 +246,10 @@ Removed Features
     and they are neither developed nor supported by their respective
     vendors.
 
+    Support for DSA and DSA-NSEC3-SHA1 algorithms has been removed from
+    BIND as the DSA key length is limited to 1024 bits and this is not
+    considered secure enough.
+
 Feature Changes
 
   * BIND will now always use the best CSPRNG (cryptographically-secure
@@ -251,9 +278,6 @@ Feature Changes
   * dig +nssearch will now list name servers that have timed out, in
     addition to those that respond. [GL #64]
 
-  * dig +noidnin can be used to disable IDN processing on the input domain
-    name, when BIND is compiled with IDN support.
-
   * Up to 64 response-policy zones are now supported by default;
     previously the limit was 32. [GL #123]
 
@@ -265,6 +289,30 @@ Feature Changes
 
   * NSID logging (enabled by the request-nsid option) now has its own nsid
     category, instead of using the resolver category.
+
+  * The rndc nta command could not differentiate between views of the same
+    name but different class; this has been corrected with the addition of
+    a -class option. [GL #105]
+
+  * allow-recursion-on and allow-query-cache-on each now default to the
+    other if only one of them is set, in order to be consistent with the
+    way allow-recursion and allow-query-cache work. [GL #319]
+
+  * When compiled with IDN support, the dig and nslookup commands now
+    disable IDN processing when the standard output is not a TTY (i.e.,
+    when the output is not being read by a human). When running from a
+    shell script, the command line options +idnin and +idnout may be used
+    to enable IDN processing of input and output domain names,
+    respectively. When running on a TTY, the +noidnin and +noidnout
+    options may be used to disable IDN processing of input and output
+    domain names.
+
+  * The configuration option max-ncache-ttl cannot exceed seven days.
+    Previously, larger values than this were silently lowered; now, they
+    trigger a configuration error.
+
+  * The new dig -r command line option disables reading of the file $HOME
+    /.digrc.
 
 Bug Fixes
 
@@ -280,6 +328,14 @@ Bug Fixes
   * A referral response with a non-empty ANSWER section was incorrectly
     treated as an error; this caused certain domains to be non-resolvable.
     [GL #390]
+
+  * When a negative trust anchor was added to multiple views using rndc
+    nta, the text returned via rndc was incorrectly truncated after the
+    first line, making it appear that only one NTA had been added. This
+    has been fixed. [GL #105]
+
+  * The view name is now included in the output of rndc nta -dump, for
+    consistency with other options. [GL !816]
 
   * named now rejects excessively large incremental (IXFR) zone transfers
     in order to prevent possible corruption of journal files which could

@@ -122,6 +122,7 @@ BIND 9.13 is the newest development branch of BIND 9. It includes a
 number of changes from BIND 9.12 and earlier releases.  New features
 include:
 
+* Socket and task code has been refactored to improve performance.
 * QNAME minimization, as described in RFC 7816, is now supported.
 * "Root key sentinel" support, enabling validating resolvers to indicate
   via a special query which trust anchors are configured for the root zone.
