@@ -343,9 +343,9 @@ get_hooktab(query_ctx_t *qctx) {
  * 8. The answer was not found in the database (query_notfound().
  *    Set up a referral and go to 9.
  *
- * 9. Handle a delegation response (query_delegation()). If we are
- *    allowed to recurse, go to 5, otherwise go to 15 to clean up and
- *    return the delegation to the client.
+ * 9. Handle a delegation response (query_delegation()). If we need
+ *    to and are allowed to recurse (query_delegation_recurse()), go to 5,
+ *    otherwise go to 15 to clean up and return the delegation to the client.
  *
  * 10. No such domain (query_nxdomain()). Attempt redirection; if
  *     unsuccessful, add authority section records (query_addsoa(),
@@ -433,6 +433,9 @@ query_zone_delegation(query_ctx_t *qctx);
 static isc_result_t
 query_delegation(query_ctx_t *qctx);
 
+static isc_result_t
+query_delegation_recurse(query_ctx_t *qctx);
+
 static void
 query_addds(query_ctx_t *qctx);
 
@@ -456,6 +459,9 @@ query_ncache(query_ctx_t *qctx, isc_result_t result);
 
 static isc_result_t
 query_coveringnsec(query_ctx_t *qctx);
+
+static isc_result_t
+query_zerottl_refetch(query_ctx_t *qctx);
 
 static isc_result_t
 query_cname(query_ctx_t *qctx);
@@ -5840,6 +5846,8 @@ query_resume(query_ctx_t *qctx) {
 		qctx->type = qctx->qtype;
 	}
 
+	CALL_HOOK(NS_QUERY_RESUME_RESTORED, qctx);
+
 	if (DNS64(qctx->client)) {
 		qctx->client->query.attributes &= ~NS_QUERYATTR_DNS64;
 		qctx->dns64 = true;
@@ -7008,41 +7016,72 @@ query_getexpire(query_ctx_t *qctx) {
 }
 
 /*%
+ * Fill the ANSWER section of a positive response.
+ */
+static isc_result_t
+query_addanswer(query_ctx_t *qctx) {
+	dns_rdataset_t **sigrdatasetp = NULL;
+	isc_result_t result;
+
+	CALL_HOOK(NS_QUERY_ADDANSWER_BEGIN, qctx);
+
+	if (qctx->dns64) {
+		result = query_dns64(qctx);
+		qctx->noqname = NULL;
+		dns_rdataset_disassociate(qctx->rdataset);
+		dns_message_puttemprdataset(qctx->client->message,
+					    &qctx->rdataset);
+		if (result == ISC_R_NOMORE) {
+#ifndef dns64_bis_return_excluded_addresses
+			if (qctx->dns64_exclude) {
+				if (!qctx->is_zone)
+					return (ns_query_done(qctx));
+				/*
+				 * Add a fake SOA record.
+				 */
+				(void)query_addsoa(qctx, 600,
+						   DNS_SECTION_AUTHORITY);
+				return (ns_query_done(qctx));
+			}
+#endif
+			if (qctx->is_zone) {
+				return (query_nodata(qctx, DNS_R_NXDOMAIN));
+			} else {
+				return (query_ncache(qctx, DNS_R_NXDOMAIN));
+			}
+		} else if (result != ISC_R_SUCCESS) {
+			qctx->result = result;
+			return (ns_query_done(qctx));
+		}
+	} else if (qctx->client->query.dns64_aaaaok != NULL) {
+		query_filter64(qctx);
+		ns_client_putrdataset(qctx->client, &qctx->rdataset);
+	} else {
+		if (!qctx->is_zone && RECURSIONOK(qctx->client)) {
+			query_prefetch(qctx->client, qctx->fname,
+				       qctx->rdataset);
+		}
+		if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
+			sigrdatasetp = &qctx->sigrdataset;
+		}
+		query_addrrset(qctx, &qctx->fname,
+			       &qctx->rdataset, sigrdatasetp,
+			       qctx->dbuf, DNS_SECTION_ANSWER);
+	}
+
+	return (ISC_R_COMPLETE);
+
+ cleanup:
+	return (result);
+}
+
+/*%
  * Build a repsonse for a "normal" query, for a type other than ANY,
  * for which we have an answer (either positive or negative).
  */
 static isc_result_t
 query_respond(query_ctx_t *qctx) {
-	dns_rdataset_t **sigrdatasetp = NULL;
 	isc_result_t result;
-
-	/*
-	 * If we have a zero ttl from the cache, refetch.
-	 */
-	if (!qctx->is_zone && !qctx->resuming && !STALE(qctx->rdataset) &&
-	    qctx->rdataset->ttl == 0 && RECURSIONOK(qctx->client))
-	{
-		qctx_clean(qctx);
-
-		INSIST(!REDIRECT(qctx->client));
-		result = ns_query_recurse(qctx->client, qctx->qtype,
-					  qctx->client->query.qname,
-					  NULL, NULL, qctx->resuming);
-		if (result == ISC_R_SUCCESS) {
-			qctx->client->query.attributes |=
-				NS_QUERYATTR_RECURSING;
-			if (qctx->dns64)
-				qctx->client->query.attributes |=
-					NS_QUERYATTR_DNS64;
-			if (qctx->dns64_exclude)
-				qctx->client->query.attributes |=
-				      NS_QUERYATTR_DNS64EXCLUDE;
-		} else {
-			QUERY_ERROR(qctx, result);
-		}
-
-		return (ns_query_done(qctx));
-	}
 
 	/*
 	 * Check to see if the AAAA RRset has non-excluded addresses
@@ -7079,10 +7118,6 @@ query_respond(query_ctx_t *qctx) {
 	 */
 	CALL_HOOK(NS_QUERY_RESPOND_BEGIN, qctx);
 
-	if (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL) {
-		sigrdatasetp = &qctx->sigrdataset;
-	}
-
 	if (NOQNAME(qctx->rdataset) && WANTDNSSEC(qctx->client)) {
 		qctx->noqname = qctx->rdataset;
 	} else {
@@ -7117,44 +7152,9 @@ query_respond(query_ctx_t *qctx) {
 	 */
 	query_getexpire(qctx);
 
-	if (qctx->dns64) {
-		result = query_dns64(qctx);
-		qctx->noqname = NULL;
-		dns_rdataset_disassociate(qctx->rdataset);
-		dns_message_puttemprdataset(qctx->client->message,
-					    &qctx->rdataset);
-		if (result == ISC_R_NOMORE) {
-#ifndef dns64_bis_return_excluded_addresses
-			if (qctx->dns64_exclude) {
-				if (!qctx->is_zone)
-					return (ns_query_done(qctx));
-				/*
-				 * Add a fake SOA record.
-				 */
-				(void)query_addsoa(qctx, 600,
-						   DNS_SECTION_AUTHORITY);
-				return (ns_query_done(qctx));
-			}
-#endif
-			if (qctx->is_zone) {
-				return (query_nodata(qctx, DNS_R_NXDOMAIN));
-			} else {
-				return (query_ncache(qctx, DNS_R_NXDOMAIN));
-			}
-		} else if (result != ISC_R_SUCCESS) {
-			qctx->result = result;
-			return (ns_query_done(qctx));
-		}
-	} else if (qctx->client->query.dns64_aaaaok != NULL) {
-		query_filter64(qctx);
-		ns_client_putrdataset(qctx->client, &qctx->rdataset);
-	} else {
-		if (!qctx->is_zone && RECURSIONOK(qctx->client))
-			query_prefetch(qctx->client, qctx->fname,
-				       qctx->rdataset);
-		query_addrrset(qctx, &qctx->fname,
-			       &qctx->rdataset, sigrdatasetp,
-			       qctx->dbuf, DNS_SECTION_ANSWER);
+	result = query_addanswer(qctx);
+	if (result != ISC_R_COMPLETE) {
+		return (result);
 	}
 
 	query_addnoqnameproof(qctx);
@@ -7441,7 +7441,8 @@ query_filter64(query_ctx_t *qctx) {
 	i = 0;
 	for (result = dns_rdataset_first(qctx->rdataset);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(qctx->rdataset)) {
+	     result = dns_rdataset_next(qctx->rdataset))
+	{
 		if (!client->query.dns64_aaaaok[i++])
 			continue;
 		dns_rdataset_current(qctx->rdataset, &rdata);
@@ -7565,14 +7566,18 @@ query_notfound(query_ctx_t *qctx) {
 						  qctx->client->query.qname,
 						  NULL, NULL, qctx->resuming);
 			if (result == ISC_R_SUCCESS) {
+				CALL_HOOK(NS_QUERY_NOTFOUND_RECURSE, qctx);
 				qctx->client->query.attributes |=
 						NS_QUERYATTR_RECURSING;
-				if (qctx->dns64)
+
+				if (qctx->dns64) {
 					qctx->client->query.attributes |=
 						NS_QUERYATTR_DNS64;
-				if (qctx->dns64_exclude)
+				}
+				if (qctx->dns64_exclude) {
 					qctx->client->query.attributes |=
 						NS_QUERYATTR_DNS64EXCLUDE;
+				}
 			} else {
 				QUERY_ERROR(qctx, result);
 			}
@@ -7808,63 +7813,77 @@ query_delegation(query_ctx_t *qctx) {
 		RESTORE(qctx->sigrdataset, qctx->zsigrdataset);
 	}
 
-	if (RECURSIONOK(qctx->client)) {
-		/*
-		 * We have a delegation and recursion is allowed,
-		 * so we call ns_query_recurse() to follow it.
-		 * This phase of the query processing is done;
-		 * we'll resume via fetch_callback() and
-		 * query_resume() when the recursion is complete.
-		 */
-		dns_name_t *qname = qctx->client->query.qname;
-
-		INSIST(!REDIRECT(qctx->client));
-
-		if (dns_rdatatype_atparent(qctx->type)) {
-			/*
-			 * Parent is recursive for this rdata
-			 * type (i.e., DS).
-			 */
-			result = ns_query_recurse(qctx->client,
-						  qctx->qtype, qname,
-						  NULL, NULL,
-						  qctx->resuming);
-		} else if (qctx->dns64) {
-			/*
-			 * Look up an A record so we can
-			 * synthesize DNS64.
-			 */
-			result = ns_query_recurse(qctx->client,
-						  dns_rdatatype_a, qname,
-						  NULL, NULL,
-						  qctx->resuming);
-		} else {
-			/*
-			 * Any other recursion.
-			 */
-			result = ns_query_recurse(qctx->client,
-						  qctx->qtype, qname,
-						  qctx->fname,
-						  qctx->rdataset,
-						  qctx->resuming);
-		}
-		if (result == ISC_R_SUCCESS) {
-			qctx->client->query.attributes |=
-				NS_QUERYATTR_RECURSING;
-			if (qctx->dns64)
-				qctx->client->query.attributes |=
-					NS_QUERYATTR_DNS64;
-			if (qctx->dns64_exclude)
-				qctx->client->query.attributes |=
-				      NS_QUERYATTR_DNS64EXCLUDE;
-		} else {
-			QUERY_ERROR(qctx, result);
-		}
-
-		return (ns_query_done(qctx));
+	result = query_delegation_recurse(qctx);
+	if (result != ISC_R_COMPLETE) {
+		return (result);
 	}
 
 	return (query_prepare_delegation_response(qctx));
+
+ cleanup:
+	return (result);
+}
+
+/*%
+ * Handle recursive queries that are triggered as part of the
+ * delegation process.
+ */
+static isc_result_t
+query_delegation_recurse(query_ctx_t *qctx) {
+	isc_result_t result;
+	dns_name_t *qname = qctx->client->query.qname;
+
+	if (!RECURSIONOK(qctx->client)) {
+		return (ISC_R_COMPLETE);
+	}
+
+	CALL_HOOK(NS_QUERY_DELEGATION_RECURSE_BEGIN, qctx);
+
+	/*
+	 * We have a delegation and recursion is allowed,
+	 * so we call ns_query_recurse() to follow it.
+	 * This phase of the query processing is done;
+	 * we'll resume via fetch_callback() and
+	 * query_resume() when the recursion is complete.
+	 */
+
+	INSIST(!REDIRECT(qctx->client));
+
+	if (dns_rdatatype_atparent(qctx->type)) {
+		/*
+		 * Parent is authoritative for this RDATA type (i.e. DS).
+		 */
+		result = ns_query_recurse(qctx->client, qctx->qtype, qname,
+					  NULL, NULL, qctx->resuming);
+	} else if (qctx->dns64) {
+		/*
+		 * Look up an A record so we can synthesize DNS64.
+		 */
+		result = ns_query_recurse(qctx->client, dns_rdatatype_a, qname,
+					  NULL, NULL, qctx->resuming);
+	} else {
+		/*
+		 * Any other recursion.
+		 */
+		result = ns_query_recurse(qctx->client, qctx->qtype, qname,
+					  qctx->fname, qctx->rdataset,
+					  qctx->resuming);
+	}
+
+	if (result == ISC_R_SUCCESS) {
+		qctx->client->query.attributes |= NS_QUERYATTR_RECURSING;
+		if (qctx->dns64) {
+			qctx->client->query.attributes |= NS_QUERYATTR_DNS64;
+		}
+		if (qctx->dns64_exclude) {
+			qctx->client->query.attributes |=
+			      NS_QUERYATTR_DNS64EXCLUDE;
+		}
+	} else {
+		QUERY_ERROR(qctx, result);
+	}
+
+	return (ns_query_done(qctx));
 
  cleanup:
 	return (result);
@@ -9029,9 +9048,9 @@ query_coveringnsec(query_ctx_t *qctx) {
 	/*
 	 * Zero TTL handling of wildcard record.
 	 *
-	 * We don't yet have code to handle synthesis and type ANY,
-	 * AAAA filtering or dns64 processing so we abort the
-	 * synthesis here if there would be a interaction.
+	 * We don't yet have code to handle synthesis and type ANY or dns64
+	 * processing so we abort the synthesis here if there would be a
+	 * interaction.
 	 */
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -9189,6 +9208,8 @@ query_ncache(query_ctx_t *qctx, isc_result_t result) {
 	       result == DNS_R_NCACHENXRRSET ||
 	       result == DNS_R_NXDOMAIN);
 
+	CALL_HOOK(NS_QUERY_NCACHE_BEGIN, qctx);
+
 	qctx->authoritative = false;
 
 	if (result == DNS_R_NCACHENXDOMAIN) {
@@ -9210,6 +9231,52 @@ query_ncache(query_ctx_t *qctx, isc_result_t result) {
 	}
 
 	return (query_nodata(qctx, result));
+
+ cleanup:
+	return (result);
+}
+
+/*
+ * If we have a zero ttl from the cache, refetch.
+ */
+static isc_result_t
+query_zerottl_refetch(query_ctx_t *qctx) {
+	isc_result_t result;
+
+	if (qctx->is_zone || qctx->resuming || STALE(qctx->rdataset) ||
+	    qctx->rdataset->ttl != 0 || !RECURSIONOK(qctx->client))
+	{
+		return (ISC_R_COMPLETE);
+	}
+
+	qctx_clean(qctx);
+
+	INSIST(!REDIRECT(qctx->client));
+
+	result = ns_query_recurse(qctx->client, qctx->qtype,
+				  qctx->client->query.qname,
+				  NULL, NULL, qctx->resuming);
+	if (result == ISC_R_SUCCESS) {
+		CALL_HOOK(NS_QUERY_ZEROTTL_RECURSE, qctx);
+		qctx->client->query.attributes |=
+			NS_QUERYATTR_RECURSING;
+
+		if (qctx->dns64) {
+			qctx->client->query.attributes |=
+				NS_QUERYATTR_DNS64;
+		}
+		if (qctx->dns64_exclude) {
+			qctx->client->query.attributes |=
+				NS_QUERYATTR_DNS64EXCLUDE;
+		}
+	} else {
+		QUERY_ERROR(qctx, result);
+	}
+
+	return (ns_query_done(qctx));
+
+ cleanup:
+	return (result);
 }
 
 /*
@@ -9226,33 +9293,9 @@ query_cname(query_ctx_t *qctx) {
 
 	CALL_HOOK(NS_QUERY_CNAME_BEGIN, qctx);
 
-	/*
-	 * If we have a zero ttl from the cache refetch it.
-	 */
-	if (!qctx->is_zone && !qctx->resuming && !STALE(qctx->rdataset) &&
-	    qctx->rdataset->ttl == 0 && RECURSIONOK(qctx->client))
-	{
-		qctx_clean(qctx);
-
-		INSIST(!REDIRECT(qctx->client));
-
-		result = ns_query_recurse(qctx->client, qctx->qtype,
-					  qctx->client->query.qname,
-					  NULL, NULL, qctx->resuming);
-		if (result == ISC_R_SUCCESS) {
-			qctx->client->query.attributes |=
-				NS_QUERYATTR_RECURSING;
-			if (qctx->dns64)
-				qctx->client->query.attributes |=
-					NS_QUERYATTR_DNS64;
-			if (qctx->dns64_exclude)
-				qctx->client->query.attributes |=
-					NS_QUERYATTR_DNS64EXCLUDE;
-		} else {
-			QUERY_ERROR(qctx, result);
-		}
-
-		return (ns_query_done(qctx));
+	result = query_zerottl_refetch(qctx);
+	if (result != ISC_R_COMPLETE) {
+		return (result);
 	}
 
 	/*
@@ -9585,6 +9628,11 @@ query_prepresponse(query_ctx_t *qctx) {
 
 	if (qctx->type == dns_rdatatype_any) {
 		return (query_respond_any(qctx));
+	}
+
+	result = query_zerottl_refetch(qctx);
+	if (result != ISC_R_COMPLETE) {
+		return (result);
 	}
 
 	return (query_respond(qctx));
