@@ -36,6 +36,7 @@ typedef enum {
 
 struct isc_rwlock {
 	pthread_rwlock_t	rwlock;
+	atomic_bool             downgrade;
 };
 
 #else /* HAVE_PTHREAD_RWLOCK_RDLOCK */
