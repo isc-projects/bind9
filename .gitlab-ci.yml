@@ -115,7 +115,7 @@ stages:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
     - autoreconf -fi
   script:
-    - ./configure --enable-developer --with-randomdev=/dev/urandom --with-libtool --disable-static --with-cmocka --with-libidn2 --prefix=$HOME/.local --without-make-clean "${EXTRA_CONFIGURE}" || cat config.log
+    - ./configure --enable-developer --with-randomdev=/dev/urandom --with-libtool --disable-static --with-cmocka --with-libidn2 --prefix=$HOME/.local --without-make-clean ${EXTRA_CONFIGURE} || cat config.log
     - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
   artifacts:
     paths:
@@ -246,7 +246,16 @@ build:debian:sid:amd64:
     EXTRA_CONFIGURE: "--without-eddsa"
   <<: *debian_sid_amd64_image
   <<: *build_job
-    
+
+build:asan:debian:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=address,undefined"
+    EXTRA_CONFIGURE: "--with-libidn2 --with-dlopen=no"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
 build:debian:sid:i386:
   variables:
     EXTRA_CONFIGURE: "--without-eddsa"
@@ -270,7 +279,13 @@ unittest:debian:sid:amd64:
   <<: *unit_test_job
   dependencies:
     - build:debian:sid:amd64
-    
+
+unittest:asan:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - build:asan:debian:sid:amd64
+
 unittest:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *unit_test_job
@@ -294,7 +309,13 @@ systemtest:debian:sid:amd64:
   <<: *system_test_job
   dependencies:
     - build:debian:sid:amd64
-    
+
+systemtest:asan:debian:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - build:asan:debian:sid:amd64
+
 systemtest:debian:sid:i386:
   <<: *debian_sid_i386_image
   <<: *system_test_job
