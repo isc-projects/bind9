@@ -54,16 +54,10 @@ initialize(void) {
 	if (result != ISC_R_SUCCESS)
 		return;
 
-	result = isc_mutex_init(&reflock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mctx;
+	isc_mutex_init(&reflock);
 
 	initialize_done = true;
 	return;
-
-  cleanup_mctx:
-	if (ns_g_mctx != NULL)
-		isc_mem_detach(&ns_g_mctx);
 }
 
 isc_result_t

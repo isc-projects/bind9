@@ -35,7 +35,7 @@
 
 /*
  * Copyright (C) 1999-2001, 2016  Internet Systems Consortium, Inc. ("ISC")
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -364,13 +364,7 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 	isc_mem_attach(mctx, &db->mctx);
 
 	/* initialize the reference count mutex */
-	result = isc_mutex_init(&db->instance_lock);
-	if (result != ISC_R_SUCCESS) {
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "isc_mutex_init() failed: %s",
-				 isc_result_totext(result));
-		goto cleanup;
-	}
+	isc_mutex_init(&db->instance_lock);
 
 	/* build the all nodes query list */
 	result = build_querylist(mctx, allnodes_str, &db->zone,

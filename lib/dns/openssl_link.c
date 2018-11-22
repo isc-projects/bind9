@@ -117,9 +117,7 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 	locks = isc_mem_allocate(dst__mctx, sizeof(isc_mutex_t) * nlocks);
 	if (locks == NULL)
 		return (ISC_R_NOMEMORY);
-	result = isc_mutexblock_init(locks, nlocks);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mutexalloc;
+	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(lock_callback);
 # if defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_id_callback(id_callback);
@@ -181,8 +179,7 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 #endif
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	CRYPTO_set_locking_callback(NULL);
-	DESTROYMUTEXBLOCK(locks, nlocks);
- cleanup_mutexalloc:
+	isc_mutexblock_destroy(locks, nlocks);
 	isc_mem_free(dst__mctx, locks);
 	locks = NULL;
 #endif
@@ -219,7 +216,7 @@ dst__openssl_destroy(void) {
 
 	if (locks != NULL) {
 		CRYPTO_set_locking_callback(NULL);
-		DESTROYMUTEXBLOCK(locks, nlocks);
+		isc_mutexblock_destroy(locks, nlocks);
 		isc_mem_free(dst__mctx, locks);
 		locks = NULL;
 	}

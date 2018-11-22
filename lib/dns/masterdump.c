@@ -1266,7 +1266,7 @@ static void
 dumpctx_destroy(dns_dumpctx_t *dctx) {
 
 	dctx->magic = 0;
-	DESTROYLOCK(&dctx->lock);
+	isc_mutex_destroy(&dctx->lock);
 	dns_dbiterator_destroy(&dctx->dbiter);
 	if (dctx->version != NULL)
 		dns_db_closeversion(dctx->db, &dctx->version, false);
@@ -1527,9 +1527,8 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = isc_mutex_init(&dctx->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	isc_mutex_init(&dctx->lock);
+
 	if (version != NULL)
 		dns_db_attachversion(dctx->db, version, &dctx->version);
 	else if (!dns_db_iscache(db))

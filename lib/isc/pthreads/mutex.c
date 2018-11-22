@@ -83,15 +83,15 @@ static bool stats_init = false;
 static pthread_mutex_t statslock = PTHREAD_MUTEX_INITIALIZER;
 
 
-isc_result_t
+void
 isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line) {
 	int i, err;
 
 	err = pthread_mutex_init(&mp->mutex, NULL);
-	if (err == ENOMEM)
-		return (ISC_R_NOMEMORY);
-	if (err != 0)
-		return (ISC_R_UNEXPECTED);
+	if (err != 0) {
+		strerror_r(err, strbuf, sizeof(strbuf));
+		isc_error_fatal(file, line, "pthread_mutex_init failed: %s", strbuf);
+	}
 
 	RUNTIME_CHECK(pthread_mutex_lock(&statslock) == 0);
 
@@ -123,8 +123,6 @@ isc_mutex_init_profile(isc_mutex_t *mp, const char *file, int line) {
 		timevalclear(&mp->stats->lockers[i].locked_total);
 		timevalclear(&mp->stats->lockers[i].wait_total);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -235,7 +233,7 @@ initialize_errcheck(void) {
 	errcheck_initialized = true;
 }
 
-isc_result_t
+void
 isc_mutex_init_errcheck(isc_mutex_t *mp) {
 	isc_result_t result;
 	int err;
@@ -244,9 +242,10 @@ isc_mutex_init_errcheck(isc_mutex_t *mp) {
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	err = pthread_mutex_init(mp, &errcheck);
-	if (err == ENOMEM)
-		return (ISC_R_NOMEMORY);
-	return ((err == 0) ? ISC_R_SUCCESS : ISC_R_UNEXPECTED);
+	if (err != 0) {
+		strerror_r(err, strbuf, sizeof(strbuf));
+		isc_error_fatal(file, line, "pthread_mutex_init failed: %s", strbuf);
+	}
 }
 #endif
 
@@ -275,13 +274,12 @@ initialize_attr(void) {
 }
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 
-isc_result_t
+void
 isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
-	char strbuf[ISC_STRERRORSIZE];
-	isc_result_t result = ISC_R_SUCCESS;
 	int err;
 
 #ifdef HAVE_PTHREAD_MUTEX_ADAPTIVE_NP
+	isc_result_t result = ISC_R_SUCCESS;
 	result = isc_once_do(&once_attr, initialize_attr);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -289,15 +287,10 @@ isc__mutex_init(isc_mutex_t *mp, const char *file, unsigned int line) {
 #else /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
 	err = pthread_mutex_init(mp, ISC__MUTEX_ATTRS);
 #endif /* HAVE_PTHREAD_MUTEX_ADAPTIVE_NP */
-
-	if (err == ENOMEM)
-		return (ISC_R_NOMEMORY);
 	if (err != 0) {
+		char strbuf[ISC_STRERRORSIZE];
 		strerror_r(err, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(file, line, "isc_mutex_init() failed: %s",
-				 strbuf);
-		result = ISC_R_UNEXPECTED;
+		isc_error_fatal(file, line, "pthread_mutex_init failed: %s", strbuf);
 	}
-	return (result);
 }
 #endif

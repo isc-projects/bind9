@@ -410,9 +410,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 	lookup->task = NULL;
 	isc_task_attach(task, &lookup->task);
 
-	result = isc_mutex_init(&lookup->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_event;
+	isc_mutex_init(&lookup->lock);
 
 	dns_fixedname_init(&lookup->name);
 
@@ -437,9 +435,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 	return (ISC_R_SUCCESS);
 
  cleanup_lock:
-	DESTROYLOCK(&lookup->lock);
-
- cleanup_event:
+	isc_mutex_destroy(&lookup->lock);
 	ievent = (isc_event_t *)lookup->event;
 	isc_event_free(&ievent);
 	lookup->event = NULL;
@@ -484,7 +480,7 @@ dns_lookup_destroy(dns_lookup_t **lookupp) {
 	if (dns_rdataset_isassociated(&lookup->sigrdataset))
 		dns_rdataset_disassociate(&lookup->sigrdataset);
 
-	DESTROYLOCK(&lookup->lock);
+	isc_mutex_destroy(&lookup->lock);
 	lookup->magic = 0;
 	isc_mem_putanddetach(&lookup->mctx, lookup, sizeof(*lookup));
 

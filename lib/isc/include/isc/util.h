@@ -106,9 +106,6 @@
 					      ISC_MSG_UNLOCKED, "UNLOCKED"), \
 			       (lp), __FILE__, __LINE__)); \
 	} while (0)
-#define DESTROYLOCK(lp) \
-	RUNTIME_CHECK(isc_mutex_destroy((lp)) == ISC_R_SUCCESS)
-
 
 #define BROADCAST(cvp) do { \
 	ISC_UTIL_TRACE(fprintf(stderr, "%s %p %s %d\n", \
@@ -170,9 +167,6 @@
 			       (lp), (t), __FILE__, __LINE__)); \
 	RUNTIME_CHECK(isc_rwlock_unlock((lp), (t)) == ISC_R_SUCCESS); \
 	} while (0)
-
-#define DESTROYMUTEXBLOCK(bp, n) \
-	RUNTIME_CHECK(isc_mutexblock_destroy((bp), (n)) == ISC_R_SUCCESS)
 
 /*
  * List Macros.

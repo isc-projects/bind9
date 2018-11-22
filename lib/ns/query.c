@@ -923,9 +923,8 @@ ns_query_init(ns_client_t *client) {
 	 * This mutex is destroyed when the client is destroyed in
 	 * exit_check().
 	 */
-	result = isc_mutex_init(&client->query.fetchlock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mutex_init(&client->query.fetchlock);
+
 	client->query.fetch = NULL;
 	client->query.prefetch = NULL;
 	client->query.authdb = NULL;
@@ -950,13 +949,13 @@ ns_query_init(ns_client_t *client) {
 	query_reset(client, false);
 	result = query_newdbversion(client, 3);
 	if (result != ISC_R_SUCCESS) {
-		DESTROYLOCK(&client->query.fetchlock);
+		isc_mutex_destroy(&client->query.fetchlock);
 		return (result);
 	}
 	result = query_newnamebuf(client);
 	if (result != ISC_R_SUCCESS) {
 		query_freefreeversions(client, true);
-		DESTROYLOCK(&client->query.fetchlock);
+		isc_mutex_destroy(&client->query.fetchlock);
 	}
 
 	return (result);

@@ -277,11 +277,7 @@ isc_log_create(isc_mem_t *mctx, isc_log_t **lctxp, isc_logconfig_t **lcfgp) {
 
 		ISC_LIST_INIT(lctx->messages);
 
-		result = isc_mutex_init(&lctx->lock);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_putanddetach(&mctx, lctx, sizeof(*lctx));
-			return (result);
-		}
+		isc_mutex_init(&lctx->lock);
 
 		/*
 		 * Normally setting the magic number is the last step done
@@ -470,7 +466,7 @@ isc_log_destroy(isc_log_t **lctxp) {
 		isc_logconfig_destroy(&lcfg);
 	}
 
-	DESTROYLOCK(&lctx->lock);
+	isc_mutex_destroy(&lctx->lock);
 
 	while ((message = ISC_LIST_HEAD(lctx->messages)) != NULL) {
 		ISC_LIST_UNLINK(lctx->messages, message, link);

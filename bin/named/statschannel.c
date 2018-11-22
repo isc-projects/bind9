@@ -3226,7 +3226,7 @@ destroy_listener(void *arg) {
 	/* We don't have to acquire the lock here since it's already unlinked */
 	dns_acl_detach(&listener->acl);
 
-	DESTROYLOCK(&listener->lock);
+	isc_mutex_destroy(&listener->lock);
 	isc_mem_putanddetach(&listener->mctx, listener, sizeof(*listener));
 }
 
@@ -3253,11 +3253,7 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	listener->mctx = NULL;
 	ISC_LINK_INIT(listener, link);
 
-	result = isc_mutex_init(&listener->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(server->mctx, listener, sizeof(*listener));
-		return (ISC_R_FAILURE);
-	}
+	isc_mutex_init(&listener->lock);
 
 	isc_mem_attach(server->mctx, &listener->mctx);
 
@@ -3352,7 +3348,7 @@ cleanup:
 	if (result != ISC_R_SUCCESS) {
 		if (listener->acl != NULL)
 			dns_acl_detach(&listener->acl);
-		DESTROYLOCK(&listener->lock);
+		isc_mutex_destroy(&listener->lock);
 		isc_mem_putanddetach(&listener->mctx, listener,
 				     sizeof(*listener));
 	}

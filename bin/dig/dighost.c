@@ -1390,8 +1390,7 @@ setup_libs(void) {
 	isc_mempool_setfreemax(commctx, 6);
 	isc_mempool_setfillcount(commctx, 2);
 
-	result = isc_mutex_init(&lookup_lock);
-	check_result(result, "isc_mutex_init");
+	isc_mutex_init(&lookup_lock);
 }
 
 typedef struct dig_ednsoptname {
@@ -4199,7 +4198,7 @@ destroy_libs(void) {
 	}
 
 	UNLOCK_LOOKUP;
-	DESTROYLOCK(&lookup_lock);
+	isc_mutex_destroy(&lookup_lock);
 	debug("Removing log context");
 	isc_log_destroy(&lctx);
 

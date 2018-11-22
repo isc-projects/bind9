@@ -253,9 +253,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	triedload = true;
 
 	/* Initialize the lock */
-	result = isc_mutex_init(&cd->lock);
-	if (result != ISC_R_SUCCESS)
-		goto failed;
+	isc_mutex_init(&cd->lock);
 
 	/* Open the library */
 	cd->dl_handle = LoadLibraryA(cd->dl_path);
@@ -349,17 +347,21 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	return (ISC_R_SUCCESS);
 
 cleanup_lock:
-	DESTROYLOCK(&cd->lock);
+	isc_mutex_destroy(&cd->lock);
 failed:
 	dlopen_log(ISC_LOG_ERROR, "dlz_dlopen of '%s' failed", dlzname);
-	if (cd->dl_path)
+	if (cd->dl_path) {
 		isc_mem_free(mctx, cd->dl_path);
-	if (cd->dlzname)
+	}
+	if (cd->dlzname) {
 		isc_mem_free(mctx, cd->dlzname);
-	if (triedload)
-		(void) isc_mutex_destroy(&cd->lock);
-	if (cd->dl_handle)
+	}
+	if (triedload) {
+		isc_mutex_destroy(&cd->lock);
+	}
+	if (cd->dl_handle) {
 		FreeLibrary(cd->dl_handle);
+	}
 	isc_mem_put(mctx, cd, sizeof(*cd));
 	isc_mem_destroy(&mctx);
 	return (result);
@@ -390,7 +392,7 @@ dlopen_dlz_destroy(void *driverarg, void *dbdata) {
 	if (cd->dl_handle)
 		FreeLibrary(cd->dl_handle);
 
-	DESTROYLOCK(&cd->lock);
+	isc_mutex_destroy(&cd->lock);
 
 	mctx = cd->mctx;
 	isc_mem_put(mctx, cd, sizeof(*cd));

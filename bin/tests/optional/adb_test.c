@@ -290,8 +290,8 @@ main(int argc, char **argv) {
 
 	isc_stdtime_get(&now);
 
-	result = isc_mutex_init(&client_lock);
-	check_result(result, "isc_mutex_init(&client_lock)");
+	isc_mutex_init(&client_lock);
+
 	ISC_LIST_INIT(clients);
 
 	/*

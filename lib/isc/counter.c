@@ -35,7 +35,6 @@ struct isc_counter {
 
 isc_result_t
 isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
-	isc_result_t result;
 	isc_counter_t *counter;
 
 	REQUIRE(counterp != NULL && *counterp == NULL);
@@ -44,11 +43,7 @@ isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
 	if (counter == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&counter->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, counter, sizeof(*counter));
-		return (result);
-	}
+	isc_mutex_init(&counter->lock);
 
 	counter->mctx = NULL;
 	isc_mem_attach(mctx, &counter->mctx);

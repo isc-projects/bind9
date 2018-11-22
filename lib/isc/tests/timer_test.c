@@ -105,11 +105,9 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	isc_time_settoepoch(&endtime);
 	eventcnt = 0;
 
-	result = isc_mutex_init(&mx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&mx);
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	LOCK(&mx);
 
@@ -138,7 +136,7 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	UNLOCK(&mx);
 
 	isc_task_detach(&task);
-	DESTROYLOCK(&mx);
+	isc_mutex_destroy(&mx);
 	(void) isc_condition_destroy(&cv);
 }
 
@@ -503,11 +501,9 @@ purge(void **state) {
 	seconds = 1;
 	nanoseconds = 0;
 
-	result = isc_mutex_init(&mx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&mx);
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	result = isc_task_create(taskmgr, 0, &task1);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -562,7 +558,7 @@ purge(void **state) {
 	isc_timer_detach(&oncetimer);
 	isc_task_destroy(&task1);
 	isc_task_destroy(&task2);
-	DESTROYLOCK(&mx);
+	isc_mutex_destroy(&mx);
 }
 
 int

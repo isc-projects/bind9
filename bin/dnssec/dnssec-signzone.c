@@ -3874,9 +3874,11 @@ main(int argc, char *argv[]) {
 			      isc_result_totext(result));
 	}
 
-	RUNTIME_CHECK(isc_mutex_init(&namelock) == ISC_R_SUCCESS);
-	if (printstats)
-		RUNTIME_CHECK(isc_mutex_init(&statslock) == ISC_R_SUCCESS);
+	isc_mutex_init(&namelock);
+
+	if (printstats) {
+		isc_mutex_init(&statslock);
+	}
 
 	presign();
 	TIME_NOW(&sign_start);
@@ -3934,9 +3936,9 @@ main(int argc, char *argv[]) {
 		check_result(result, "dns_master_dumptostream3");
 	}
 
-	DESTROYLOCK(&namelock);
+	isc_mutex_destroy(&namelock);
 	if (printstats)
-		DESTROYLOCK(&statslock);
+		isc_mutex_destroy(&statslock);
 
 	if (!output_stdout) {
 		result = isc_stdio_close(outfp);

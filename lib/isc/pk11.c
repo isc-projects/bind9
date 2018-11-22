@@ -137,8 +137,8 @@ static void
 initialize(void) {
 	char *pk11_provider;
 
-	RUNTIME_CHECK(isc_mutex_init(&alloclock) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(isc_mutex_init(&sessionlock) == ISC_R_SUCCESS);
+	isc_mutex_init(&alloclock);
+	isc_mutex_init(&sessionlock);
 
 	pk11_provider = getenv("PKCS11_PROVIDER");
 	if (pk11_provider != NULL)

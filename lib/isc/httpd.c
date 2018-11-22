@@ -268,11 +268,7 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	if (httpdmgr == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&httpdmgr->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, httpdmgr, sizeof(isc_httpdmgr_t));
-		return (result);
-	}
+	isc_mutex_init(&httpdmgr->lock);
 	httpdmgr->mctx = NULL;
 	isc_mem_attach(mctx, &httpdmgr->mctx);
 	httpdmgr->sock = NULL;
@@ -313,7 +309,7 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	isc_task_detach(&httpdmgr->task);
 	isc_socket_detach(&httpdmgr->sock);
 	isc_mem_detach(&httpdmgr->mctx);
-	(void)isc_mutex_destroy(&httpdmgr->lock);
+	isc_mutex_destroy(&httpdmgr->lock);
 	isc_mem_put(mctx, httpdmgr, sizeof(isc_httpdmgr_t));
 	return (result);
 }
@@ -361,7 +357,7 @@ httpdmgr_destroy(isc_httpdmgr_t *httpdmgr) {
 	}
 
 	UNLOCK(&httpdmgr->lock);
-	(void)isc_mutex_destroy(&httpdmgr->lock);
+	isc_mutex_destroy(&httpdmgr->lock);
 
 	if (httpdmgr->ondestroy != NULL)
 		(httpdmgr->ondestroy)(httpdmgr->cb_arg);

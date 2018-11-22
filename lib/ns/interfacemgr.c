@@ -201,9 +201,7 @@ ns_interfacemgr_create(isc_mem_t *mctx,
 	mgr->sctx = NULL;
 	ns_server_attach(sctx, &mgr->sctx);
 
-	result = isc_mutex_init(&mgr->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_ctx;
+	isc_mutex_init(&mgr->lock);
 
 	mgr->excl = NULL;
 	result = isc_taskmgr_excltask(taskmgr, &mgr->excl);
@@ -308,7 +306,7 @@ ns_interfacemgr_destroy(ns_interfacemgr_t *mgr) {
 	ns_listenlist_detach(&mgr->listenon4);
 	ns_listenlist_detach(&mgr->listenon6);
 	clearlistenon(mgr);
-	DESTROYLOCK(&mgr->lock);
+	isc_mutex_destroy(&mgr->lock);
 	if (mgr->sctx != NULL)
 		ns_server_detach(&mgr->sctx);
 	if (mgr->excl != NULL)
@@ -404,9 +402,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	strlcpy(ifp->name, name, sizeof(ifp->name));
 	ifp->clientmgr = NULL;
 
-	result = isc_mutex_init(&ifp->lock);
-	if (result != ISC_R_SUCCESS)
-		goto lock_create_failure;
+	isc_mutex_init(&ifp->lock);
 
 	result = ns_clientmgr_create(mgr->mctx, mgr->sctx,
 				     mgr->taskmgr, mgr->timermgr,
@@ -447,9 +443,8 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	return (ISC_R_SUCCESS);
 
  clientmgr_create_failure:
-	DESTROYLOCK(&ifp->lock);
+	isc_mutex_destroy(&ifp->lock);
 
- lock_create_failure:
 	ifp->magic = 0;
 	isc_mem_put(mgr->mctx, ifp, sizeof(*ifp));
 
@@ -661,7 +656,7 @@ ns_interface_destroy(ns_interface_t *ifp) {
 	if (ifp->tcpsocket != NULL)
 		isc_socket_detach(&ifp->tcpsocket);
 
-	DESTROYLOCK(&ifp->lock);
+	isc_mutex_destroy(&ifp->lock);
 
 	ns_interfacemgr_detach(&ifp->mgr);
 

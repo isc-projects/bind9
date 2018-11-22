@@ -652,7 +652,7 @@ exit_check(ns_client_t *client) {
 		 * Destroy the fetchlock mutex that was created in
 		 * ns_query_init().
 		 */
-		DESTROYLOCK(&client->query.fetchlock);
+		isc_mutex_destroy(&client->query.fetchlock);
 
 		if (client->sctx != NULL)
 			ns_server_detach(&client->sctx);
@@ -3394,9 +3394,9 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 
 	ISC_QUEUE_DESTROY(manager->inactive);
 
-	DESTROYLOCK(&manager->lock);
-	DESTROYLOCK(&manager->listlock);
-	DESTROYLOCK(&manager->reclock);
+	isc_mutex_destroy(&manager->lock);
+	isc_mutex_destroy(&manager->listlock);
+	isc_mutex_destroy(&manager->reclock);
 
 	if (manager->excl != NULL)
 		isc_task_detach(&manager->excl);
@@ -3421,17 +3421,9 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	if (manager == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&manager->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_manager;
-
-	result = isc_mutex_init(&manager->listlock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
-
-	result = isc_mutex_init(&manager->reclock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_listlock;
+	isc_mutex_init(&manager->lock);
+	isc_mutex_init(&manager->listlock);
+	isc_mutex_init(&manager->reclock);
 
 	manager->excl = NULL;
 	result = isc_taskmgr_excltask(taskmgr, &manager->excl);
@@ -3464,15 +3456,10 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 	return (ISC_R_SUCCESS);
 
  cleanup_reclock:
-	(void) isc_mutex_destroy(&manager->reclock);
+	isc_mutex_destroy(&manager->reclock);
+	isc_mutex_destroy(&manager->listlock);
+	isc_mutex_destroy(&manager->lock);
 
- cleanup_listlock:
-	(void) isc_mutex_destroy(&manager->listlock);
-
- cleanup_lock:
-	(void) isc_mutex_destroy(&manager->lock);
-
- cleanup_manager:
 	isc_mem_put(manager->mctx, manager, sizeof(*manager));
 
 	return (result);

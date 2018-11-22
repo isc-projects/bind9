@@ -206,7 +206,7 @@ main(int argc, char *argv[]) {
 
 	RUNTIME_CHECK(isc_app_start() == ISC_R_SUCCESS);
 
-	RUNTIME_CHECK(isc_mutex_init(&lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
 	mctx = NULL;
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
@@ -282,7 +282,7 @@ main(int argc, char *argv[]) {
 		isc_mem_stats(mctx, stdout);
 	isc_mem_destroy(&mctx);
 
-	DESTROYLOCK(&lock);
+	isc_mutex_destroy(&lock);
 
 	isc_app_finish();
 

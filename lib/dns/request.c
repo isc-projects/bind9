@@ -141,7 +141,6 @@ dns_requestmgr_create(isc_mem_t *mctx,
 {
 	dns_requestmgr_t *requestmgr;
 	isc_socket_t *sock;
-	isc_result_t result;
 	int i;
 	unsigned int dispattr;
 
@@ -166,20 +165,10 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	if (requestmgr == NULL)
 		return (ISC_R_NOMEMORY);
 
-	result = isc_mutex_init(&requestmgr->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
-		return (result);
-	}
+	isc_mutex_init(&requestmgr->lock);
+
 	for (i = 0; i < DNS_REQUEST_NLOCKS; i++) {
-		result = isc_mutex_init(&requestmgr->locks[i]);
-		if (result != ISC_R_SUCCESS) {
-			while (--i >= 0)
-				DESTROYLOCK(&requestmgr->locks[i]);
-			DESTROYLOCK(&requestmgr->lock);
-			isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
-			return (result);
-		}
+		isc_mutex_init(&requestmgr->locks[i]);
 	}
 	requestmgr->timermgr = timermgr;
 	requestmgr->socketmgr = socketmgr;
@@ -396,9 +385,9 @@ mgr_destroy(dns_requestmgr_t *requestmgr) {
 	REQUIRE(requestmgr->eref == 0);
 	REQUIRE(requestmgr->iref == 0);
 
-	DESTROYLOCK(&requestmgr->lock);
+	isc_mutex_destroy(&requestmgr->lock);
 	for (i = 0; i < DNS_REQUEST_NLOCKS; i++)
-		DESTROYLOCK(&requestmgr->locks[i]);
+		isc_mutex_destroy(&requestmgr->locks[i]);
 	if (requestmgr->dispatchv4 != NULL)
 		dns_dispatch_detach(&requestmgr->dispatchv4);
 	if (requestmgr->dispatchv6 != NULL)

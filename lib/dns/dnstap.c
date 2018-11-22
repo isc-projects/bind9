@@ -142,7 +142,7 @@ static unsigned int generation;
 
 static void
 mutex_init(void) {
-	RUNTIME_CHECK(isc_mutex_init(&dt_mutex) == ISC_R_SUCCESS);
+	isc_mutex_init(&dt_mutex);
 }
 
 static void

@@ -212,13 +212,8 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		}
 	}
 
-	result = isc_mutex_init(&cache->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_mem;
-
-	result = isc_mutex_init(&cache->filelock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
+	isc_mutex_init(&cache->lock);
+	isc_mutex_init(&cache->filelock);
 
 	cache->references = 1;
 	cache->live_tasks = 0;
@@ -313,26 +308,26 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	*cachep = cache;
 	return (ISC_R_SUCCESS);
 
- cleanup_db:
+cleanup_db:
 	dns_db_detach(&cache->db);
- cleanup_dbargv:
+cleanup_dbargv:
 	for (i = extra; i < cache->db_argc; i++)
 		if (cache->db_argv[i] != NULL)
 			isc_mem_free(cmctx, cache->db_argv[i]);
 	if (cache->db_argv != NULL)
 		isc_mem_put(cmctx, cache->db_argv,
 			    cache->db_argc * sizeof(char *));
- cleanup_dbtype:
+cleanup_dbtype:
 	isc_mem_free(cmctx, cache->db_type);
- cleanup_filelock:
-	DESTROYLOCK(&cache->filelock);
- cleanup_stats:
+cleanup_filelock:
+	isc_mutex_destroy(&cache->filelock);
+cleanup_stats:
 	isc_stats_detach(&cache->stats);
- cleanup_lock:
-	DESTROYLOCK(&cache->lock);
- cleanup_mem:
-	if (cache->name != NULL)
+	isc_mutex_destroy(&cache->lock);
+cleanup_mem:
+	if (cache->name != NULL) {
 		isc_mem_free(cmctx, cache->name);
+	}
 	isc_mem_detach(&cache->hmctx);
 	isc_mem_putanddetach(&cache->mctx, cache, sizeof(*cache));
 	return (result);
@@ -359,7 +354,7 @@ cache_free(dns_cache_t *cache) {
 	if (cache->cleaner.iterator != NULL)
 		dns_dbiterator_destroy(&cache->cleaner.iterator);
 
-	DESTROYLOCK(&cache->cleaner.lock);
+	isc_mutex_destroy(&cache->cleaner.lock);
 
 	if (cache->filename) {
 		isc_mem_free(cache->mctx, cache->filename);
@@ -393,8 +388,8 @@ cache_free(dns_cache_t *cache) {
 	if (cache->stats != NULL)
 		isc_stats_detach(&cache->stats);
 
-	DESTROYLOCK(&cache->lock);
-	DESTROYLOCK(&cache->filelock);
+	isc_mutex_destroy(&cache->lock);
+	isc_mutex_destroy(&cache->filelock);
 
 	cache->magic = 0;
 	isc_mem_detach(&cache->hmctx);
@@ -596,9 +591,7 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 {
 	isc_result_t result;
 
-	result = isc_mutex_init(&cleaner->lock);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
+	isc_mutex_init(&cleaner->lock);
 
 	cleaner->increment = DNS_CACHE_CLEANERINCREMENT;
 	cleaner->state = cleaner_s_idle;
@@ -686,8 +679,8 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		isc_task_detach(&cleaner->task);
 	if (cleaner->iterator != NULL)
 		dns_dbiterator_destroy(&cleaner->iterator);
-	DESTROYLOCK(&cleaner->lock);
- fail:
+	isc_mutex_destroy(&cleaner->lock);
+
 	return (result);
 }
 

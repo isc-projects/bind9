@@ -1935,7 +1935,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	/*
 	 * Initialize the lock.
 	 */
-	RUNTIME_CHECK(isc_mutex_init(&sock->lock) == ISC_R_SUCCESS);
+	isc_mutex_init(&sock->lock);
 
 	sock->common.magic = ISCAPI_SOCKET_MAGIC;
 	sock->common.impmagic = SOCKET_MAGIC;
@@ -1967,7 +1967,7 @@ free_socket(isc__socket_t **socketp) {
 	sock->common.magic = 0;
 	sock->common.impmagic = 0;
 
-	DESTROYLOCK(&sock->lock);
+	isc_mutex_destroy(&sock->lock);
 
 	isc_mem_put(sock->manager->mctx, sock, sizeof(*sock));
 
@@ -3682,10 +3682,7 @@ setup_thread(isc__socketthread_t *thread) {
 				     FDLOCK_COUNT * sizeof(isc_mutex_t));
 
 	for (i = 0; i < FDLOCK_COUNT; i++) {
-		result = isc_mutex_init(&thread->fdlock[i]);
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
+		isc_mutex_init(&thread->fdlock[i]);
 	}
 
 	if (pipe(thread->pipe_fds) != 0) {
@@ -3893,7 +3890,7 @@ cleanup_thread(isc_mem_t *mctx, isc__socketthread_t *thread) {
 
 	if (thread->fdlock != NULL) {
 		for (i = 0; i < FDLOCK_COUNT; i++) {
-			DESTROYLOCK(&thread->fdlock[i]);
+			isc_mutex_destroy(&thread->fdlock[i]);
 		}
 		isc_mem_put(thread->manager->mctx, thread->fdlock,
 			    FDLOCK_COUNT * sizeof(isc_mutex_t));
@@ -3932,10 +3929,8 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->common.impmagic = SOCKET_MANAGER_MAGIC;
 	manager->mctx = NULL;
 	ISC_LIST_INIT(manager->socklist);
-	RUNTIME_CHECK(isc_mutex_init(&manager->lock) == ISC_R_SUCCESS);
-
-	RUNTIME_CHECK(isc_condition_init(&manager->shutdown_ok)
-		      == ISC_R_SUCCESS);
+	isc_mutex_init(&manager->lock);
+	isc_condition_init(&manager->shutdown_ok);
 
 	/*
 	 * Start up the select/poll thread.
@@ -4050,7 +4045,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	if (manager->stats != NULL) {
 		isc_stats_detach(&manager->stats);
 	}
-	DESTROYLOCK(&manager->lock);
+	isc_mutex_destroy(&manager->lock);
 	manager->common.magic = 0;
 	manager->common.impmagic = 0;
 	mctx= manager->mctx;

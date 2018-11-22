@@ -1263,7 +1263,7 @@ dns_rrl_view_destroy(dns_view_t *view) {
 	if (rrl->exempt != NULL)
 		dns_acl_detach(&rrl->exempt);
 
-	DESTROYLOCK(&rrl->lock);
+	isc_mutex_destroy(&rrl->lock);
 
 	while (!ISC_LIST_EMPTY(rrl->blocks)) {
 		b = ISC_LIST_HEAD(rrl->blocks);
@@ -1296,11 +1296,7 @@ dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries) {
 		return (ISC_R_NOMEMORY);
 	memset(rrl, 0, sizeof(*rrl));
 	isc_mem_attach(view->mctx, &rrl->mctx);
-	result = isc_mutex_init(&rrl->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_putanddetach(&rrl->mctx, rrl, sizeof(*rrl));
-		return (result);
-	}
+	isc_mutex_init(&rrl->lock);
 	isc_stdtime_get(&rrl->ts_bases[0]);
 
 	view->rrl = rrl;

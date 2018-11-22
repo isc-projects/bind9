@@ -56,11 +56,9 @@ _setup(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mutex_init(&lock);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	result = isc_test_begin(NULL, true, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -74,11 +72,9 @@ _setup2(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mutex_init(&lock);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	/* Two worker threads */
 	result = isc_test_begin(NULL, true, 2);
@@ -93,11 +89,9 @@ _setup4(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mutex_init(&lock);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mutex_init(&lock);
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	/* Four worker threads */
 	result = isc_test_begin(NULL, true, 4);
@@ -712,8 +706,7 @@ manytasks(void **state) {
 			      (unsigned long)ntasks);
 	}
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 	result = isc_mem_create(0, 0, &mctx);
@@ -914,8 +907,7 @@ post_shutdown(void **state) {
 	done = false;
 	event_type = 4;
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	LOCK(&lock);
 
@@ -1056,8 +1048,7 @@ test_purge(int sender, int type, int tag, int exp_purged) {
 	done = false;
 	eventcnt = 0;
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -1356,8 +1347,7 @@ try_purgeevent(bool purgeable) {
 	done = false;
 	eventcnt = 0;
 
-	result = isc_condition_init(&cv);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_condition_init(&cv);
 
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);

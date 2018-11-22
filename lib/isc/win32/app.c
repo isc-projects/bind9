@@ -99,9 +99,7 @@ isc_app_ctxstart(isc_appctx_t *ctx0) {
 
 	main_thread = GetCurrentThread();
 
-	result = isc_mutex_init(&ctx->lock);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mutex_init(&ctx->lock);
 
 	ctx->shutdown_requested = false;
 	ctx->running = false;
@@ -330,7 +328,7 @@ isc_app_ctxfinish(isc_appctx_t *ctx0) {
 
 	REQUIRE(VALID_APPCTX(ctx));
 
-	DESTROYLOCK(&ctx->lock);
+	isc_mutex_destroy(&ctx->lock);
 }
 
 void

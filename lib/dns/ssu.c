@@ -61,7 +61,6 @@ struct dns_ssutable {
 
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
-	isc_result_t result;
 	dns_ssutable_t *table;
 
 	REQUIRE(tablep != NULL && *tablep == NULL);
@@ -70,11 +69,7 @@ dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **tablep) {
 	table = isc_mem_get(mctx, sizeof(dns_ssutable_t));
 	if (table == NULL)
 		return (ISC_R_NOMEMORY);
-	result = isc_mutex_init(&table->lock);
-	if (result != ISC_R_SUCCESS) {
-		isc_mem_put(mctx, table, sizeof(dns_ssutable_t));
-		return (result);
-	}
+	isc_mutex_init(&table->lock);
 	table->references = 1;
 	table->mctx = NULL;
 	isc_mem_attach(mctx, &table->mctx);
@@ -108,7 +103,7 @@ destroy(dns_ssutable_t *table) {
 		rule->magic = 0;
 		isc_mem_put(mctx, rule, sizeof(dns_ssurule_t));
 	}
-	DESTROYLOCK(&table->lock);
+	isc_mutex_destroy(&table->lock);
 	table->magic = 0;
 	isc_mem_putanddetach(&table->mctx, table, sizeof(dns_ssutable_t));
 }
