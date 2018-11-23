@@ -24,7 +24,6 @@
 #include <isc/app.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
-#include <isc/msgs.h>
 #include <isc/mutex.h>
 #include <isc/event.h>
 #include <isc/platform.h>

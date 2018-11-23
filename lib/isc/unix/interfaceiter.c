@@ -30,7 +30,6 @@
 #include <isc/log.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
-#include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/print.h>
 #include <isc/result.h>

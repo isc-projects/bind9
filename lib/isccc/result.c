@@ -32,7 +32,6 @@
 #include <isc/util.h>
 
 #include <isccc/result.h>
-#include <isccc/lib.h>
 
 static const char *text[ISCCC_R_NRESULTS] = {
 	"unknown version",			/* 1 */
@@ -61,15 +60,13 @@ initialize_action(void) {
 	isc_result_t result;
 
 	result = isc_result_register(ISC_RESULTCLASS_ISCCC, ISCCC_R_NRESULTS,
-				     text, isccc_msgcat,
-				     ISCCC_RESULT_RESULTSET);
+				     text, ISCCC_RESULT_RESULTSET);
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_register() failed: %u", result);
 
 	result = isc_result_registerids(ISC_RESULTCLASS_ISCCC, ISCCC_R_NRESULTS,
-					ids, isccc_msgcat,
-					ISCCC_RESULT_RESULTSET);
+					ids, ISCCC_RESULT_RESULTSET);
 	if (result != ISC_R_SUCCESS)
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_result_registerids() failed: %u", result);
@@ -77,7 +74,6 @@ initialize_action(void) {
 
 static void
 initialize(void) {
-	isccc_lib_initmsgcat();
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 }
 

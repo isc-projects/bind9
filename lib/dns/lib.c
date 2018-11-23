@@ -18,7 +18,6 @@
 
 #include <isc/hash.h>
 #include <isc/mem.h>
-#include <isc/msgcat.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/util.h>
@@ -36,35 +35,11 @@
  ***/
 
 LIBDNS_EXTERNAL_DATA unsigned int			dns_pps = 0U;
-LIBDNS_EXTERNAL_DATA isc_msgcat_t *			dns_msgcat = NULL;
-
-
-/***
- *** Private
- ***/
-
-static isc_once_t		msgcat_once = ISC_ONCE_INIT;
 
 
 /***
  *** Functions
  ***/
-
-static void
-open_msgcat(void) {
-	isc_msgcat_open("libdns.cat", &dns_msgcat);
-}
-
-void
-dns_lib_initmsgcat(void) {
-
-	/*
-	 * Initialize the DNS library's message catalog, dns_msgcat, if it
-	 * has not already been initialized.
-	 */
-
-	RUNTIME_CHECK(isc_once_do(&msgcat_once, open_msgcat) == ISC_R_SUCCESS);
-}
 
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_mem_t *dns_g_mctx = NULL;

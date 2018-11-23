@@ -20,7 +20,6 @@
 
 #include <isc/atomic.h>
 #include <isc/magic.h>
-#include <isc/msgs.h>
 #include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/rwlock.h>
@@ -72,18 +71,12 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type);
 static void
 print_lock(const char *operation, isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	fprintf(stderr,
-		isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-			       ISC_MSG_PRINTLOCK2,
-			       "rwlock %p thread %lu %s(%s): "
-			       "write_requests=%u, write_completions=%u, "
-			       "cnt_and_flag=0x%x, readers_waiting=%u, "
-			       "write_granted=%u, write_quota=%u\n"),
+		"rwlock %p thread %lu %s(%s): "
+		"write_requests=%u, write_completions=%u, "
+		"cnt_and_flag=0x%x, readers_waiting=%u, "
+		"write_granted=%u, write_quota=%u\n",
 		rwl, isc_thread_self(), operation,
-		(type == isc_rwlocktype_read ?
-		 isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-				ISC_MSG_READ, "read") :
-		 isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-				ISC_MSG_WRITE, "write")),
+		(type == isc_rwlocktype_read ? "read" : "write"),
 		atomic_load_explicit(&rwl->write_requests, memory_order_relaxed),
 		atomic_load_explicit(&rwl->write_completions, memory_order_relaxed),
 		atomic_load_explicit(&rwl->cnt_and_flag, memory_order_relaxed),
@@ -214,8 +207,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	REQUIRE(VALID_RWLOCK(rwl));
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-				  ISC_MSG_PRELOCK, "prelock"), rwl, type);
+	print_lock("prelock", rwl, type);
 #endif
 
 	if (type == isc_rwlocktype_read) {
@@ -321,8 +313,7 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	}
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-				  ISC_MSG_POSTLOCK, "postlock"), rwl, type);
+	print_lock("postlock", rwl, type);
 #endif
 
 	return (ISC_R_SUCCESS);
@@ -357,8 +348,7 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	REQUIRE(VALID_RWLOCK(rwl));
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-				  ISC_MSG_PRELOCK, "prelock"), rwl, type);
+	print_lock("prelock", rwl, type);
 #endif
 
 	if (type == isc_rwlocktype_read) {
@@ -414,8 +404,7 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	}
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-				  ISC_MSG_POSTLOCK, "postlock"), rwl, type);
+	print_lock("postlock", rwl, type);
 #endif
 
 	return (ISC_R_SUCCESS);
@@ -489,8 +478,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	REQUIRE(VALID_RWLOCK(rwl));
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-				  ISC_MSG_PREUNLOCK, "preunlock"), rwl, type);
+	print_lock("preunlock", rwl, type);
 #endif
 
 	if (type == isc_rwlocktype_read) {
@@ -551,8 +539,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	}
 
 #ifdef ISC_RWLOCK_TRACE
-	print_lock(isc_msgcat_get(isc_msgcat, ISC_MSGSET_RWLOCK,
-				  ISC_MSG_POSTUNLOCK, "postunlock"),
+	print_lock("postunlock",
 		   rwl, type);
 #endif
 

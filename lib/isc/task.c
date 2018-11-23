@@ -27,7 +27,6 @@
 #include <isc/json.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
-#include <isc/msgs.h>
 #include <isc/once.h>
 #include <isc/platform.h>
 #include <isc/print.h>
@@ -356,8 +355,7 @@ task_shutdown(isc__task_t *task) {
 	XTRACE("task_shutdown");
 
 	if (! TASK_SHUTTINGDOWN(task)) {
-		XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-				      ISC_MSG_SHUTTINGDOWN, "shutting down"));
+		XTRACE("shutting down");
 		task->flags |= TASK_F_SHUTTINGDOWN;
 		if (task->state == task_state_idle) {
 			INSIST(EMPTY(task->events));
@@ -1035,32 +1033,22 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			!manager->exclusive_requested) &&
 		       !FINISHED(manager))
 		{
-			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
-						    ISC_MSGSET_GENERAL,
-						    ISC_MSG_WAIT, "wait"));
-			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
-						    ISC_MSGSET_GENERAL,
-						    ISC_MSG_WAIT,
-						    manager->pause_requested
-						     ? "paused" : "notpaused"));
-			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
-						    ISC_MSGSET_GENERAL,
-						    ISC_MSG_WAIT,
-						    manager->exclusive_requested
-						     ? "excreq" : "notexcreq"));
+			XTHREADTRACE("wait");
+			XTHREADTRACE(manager->pause_requested
+				     ? "paused"
+				     : "notpaused");
+			XTHREADTRACE(manager->exclusive_requested
+				     ? "excreq"
+				     : "notexcreq");
 			WAIT(&manager->queues[threadid].work_available,
 			     &manager->queues[threadid].lock);
-			XTHREADTRACE(isc_msgcat_get(isc_msgcat,
-						    ISC_MSGSET_TASK,
-						    ISC_MSG_AWAKE, "awake"));
+			XTHREADTRACE("awake");
 		}
-		XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TASK,
-					    ISC_MSG_WORKING, "working"));
+		XTHREADTRACE("working");
 
 		if (manager->pause_requested || manager->exclusive_requested) {
 			UNLOCK(&manager->queues[threadid].lock);
-			XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_TASK,
-					    ISC_MSG_WORKING, "halting"));
+			XTHREADTRACE("halting");
 
 			/*
 			 * Switching to exclusive mode is done as a
@@ -1117,8 +1105,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			LOCK(&task->lock);
 			INSIST(task->state == task_state_ready);
 			task->state = task_state_running;
-			XTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-					      ISC_MSG_RUNNING, "running"));
+			XTRACE("running");
 			XTRACE(task->name);
 			TIME_NOW(&task->tnow);
 			task->now = isc_time_seconds(&task->tnow);
@@ -1131,10 +1118,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					/*
 					 * Execute the event action.
 					 */
-					XTRACE(isc_msgcat_get(isc_msgcat,
-							    ISC_MSGSET_TASK,
-							    ISC_MSG_EXECUTE,
-							    "execute action"));
+					XTRACE("execute action");
 					XTRACE(task->name);
 					if (event->ev_action != NULL) {
 						UNLOCK(&task->lock);
@@ -1182,20 +1166,13 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					 * Nothing else to do for this task
 					 * right now.
 					 */
-					XTRACE(isc_msgcat_get(isc_msgcat,
-							      ISC_MSGSET_TASK,
-							      ISC_MSG_EMPTY,
-							      "empty"));
+					XTRACE("empty");
 					if (task->references == 0 &&
 					    TASK_SHUTTINGDOWN(task)) {
 						/*
 						 * The task is done.
 						 */
-						XTRACE(isc_msgcat_get(
-							       isc_msgcat,
-							       ISC_MSGSET_TASK,
-							       ISC_MSG_DONE,
-							       "done"));
+						XTRACE("done");
 						finished = true;
 						task->state = task_state_done;
 					} else
@@ -1212,10 +1189,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					 * dispatching at least one event,
 					 * so the minimum quantum is one.
 					 */
-					XTRACE(isc_msgcat_get(isc_msgcat,
-							      ISC_MSGSET_TASK,
-							      ISC_MSG_QUANTUM,
-							      "quantum"));
+					XTRACE("quantum");
 					task->state = task_state_ready;
 					requeue = true;
 					done = true;
@@ -1312,13 +1286,11 @@ run(void *queuep) {
 	int threadid = tq->threadid;
 	isc_thread_setaffinity(threadid);
 
-	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-				    ISC_MSG_STARTING, "starting"));
+	XTHREADTRACE("starting");
 
 	dispatch(manager, threadid);
 
-	XTHREADTRACE(isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-				    ISC_MSG_EXITING, "exiting"));
+	XTHREADTRACE("exiting");
 
 #ifdef OPENSSL_LEAKS
 	ERR_remove_state(0);
