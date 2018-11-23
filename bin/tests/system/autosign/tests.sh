@@ -1370,5 +1370,59 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking for out-of-zone NSEC3 records after ZSK removal ($n)"
+ret=0
+# Switch the zone over to NSEC3 and wait until the transition is complete.
+$RNDCCMD 10.53.0.3 signing -nsec3param 1 1 10 12345678 delzsk.example. > signing.out.1.test$n 2>&1 || ret=1
+for i in 0 1 2 3 4 5 6 7 8 9; do
+	_ret=1
+	$DIG $DIGOPTS delzsk.example NSEC3PARAM @10.53.0.3 > dig.out.ns3.1.test$n 2>&1 || ret=1
+	grep "NSEC3PARAM.*12345678" dig.out.ns3.1.test$n > /dev/null 2>&1
+	if [ $? -eq 0 ]; then
+		_ret=0
+		break
+	fi
+	sleep 1
+done
+if [ $_ret -ne 0 ]; then
+	echo_i "timed out waiting for NSEC3 chain creation"
+	ret=1
+fi
+# Mark the inactive ZSK as pending removal.
+file="ns3/`cat delzsk.key`.key"
+$SETTIME -D now-1h $file > settime.out.test$n 2>&1 || ret=1
+# Trigger removal of the inactive ZSK and wait until its completion.
+$RNDCCMD 10.53.0.3 loadkeys delzsk.example 2>&1 | sed 's/^/ns3 /' | cat_i
+for i in 0 1 2 3 4 5 6 7 8 9; do
+	_ret=1
+	$RNDCCMD 10.53.0.3 signing -list delzsk.example > signing.out.2.test$n 2>&1
+	grep "Signing " signing.out.2.test$n > /dev/null 2>&1
+	if [ $? -ne 0 ]; then
+		if [ `cat signing.out.2.test$n | wc -l` -eq 2 ]; then
+			_ret=0
+			break
+		fi
+	fi
+	sleep 1
+done
+if [ $_ret -ne 0 ]; then
+	echo_i "timed out waiting for key removal"
+	ret=1
+fi
+# Check whether key removal caused NSEC3 records to be erroneously created for
+# glue records due to a secure delegation already being signed by the active key
+# (i.e. a key other than the one being removed but using the same algorithm).
+#
+# For reference:
+#
+#     $ nsec3hash 12345678 1 10 ns.sub.delzsk.example.
+#     589R358VSPJUFVAJU949JPVF74D9PTGH (salt=12345678, hash=1, iterations=10)
+#
+$DIG $DIGOPTS delzsk.example AXFR @10.53.0.3 > dig.out.ns3.3.test$n || ret=1
+grep "589R358VSPJUFVAJU949JPVF74D9PTGH" dig.out.ns3.3.test$n > /dev/null 2>&1 && ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
