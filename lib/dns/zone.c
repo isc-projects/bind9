@@ -6809,12 +6809,63 @@ add_nsec(dns_db_t *db, dns_dbversion_t *version, dns_name_t *name,
 }
 
 static isc_result_t
+check_if_bottom_of_zone(dns_db_t *db, dns_dbnode_t *node,
+			dns_dbversion_t *version, bool *is_bottom_of_zone)
+{
+	isc_result_t result;
+	dns_rdatasetiter_t *iterator = NULL;
+	dns_rdataset_t rdataset;
+	bool seen_soa = false, seen_ns = false, seen_dname = false;
+
+	REQUIRE(is_bottom_of_zone != NULL);
+
+	result = dns_db_allrdatasets(db, node, version, 0, &iterator);
+	if (result != ISC_R_SUCCESS) {
+		if (result == ISC_R_NOTFOUND) {
+			result = ISC_R_SUCCESS;
+		}
+		return (result);
+	}
+
+	dns_rdataset_init(&rdataset);
+	for (result = dns_rdatasetiter_first(iterator);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdatasetiter_next(iterator)) {
+		dns_rdatasetiter_current(iterator, &rdataset);
+		switch (rdataset.type) {
+		case dns_rdatatype_soa:
+			seen_soa = true;
+			break;
+		case dns_rdatatype_ns:
+			seen_ns = true;
+			break;
+		case dns_rdatatype_dname:
+			seen_dname = true;
+			break;
+		}
+		dns_rdataset_disassociate(&rdataset);
+	}
+	if (result != ISC_R_NOMORE) {
+		goto failure;
+	}
+	if ((seen_ns && !seen_soa) || seen_dname) {
+		*is_bottom_of_zone = true;
+	}
+	result = ISC_R_SUCCESS;
+
+ failure:
+	dns_rdatasetiter_destroy(&iterator);
+
+	return (result);
+}
+
+static isc_result_t
 sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	    dns_dbversion_t *version, bool build_nsec3,
 	    bool build_nsec, dst_key_t *key,
 	    isc_stdtime_t inception, isc_stdtime_t expire,
 	    unsigned int minimum, bool is_ksk,
-	    bool keyset_kskonly, bool *delegation,
+	    bool keyset_kskonly, bool is_bottom_of_zone,
 	    dns_diff_t *diff, int32_t *signatures, isc_mem_t *mctx)
 {
 	isc_result_t result;
@@ -6825,7 +6876,6 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	unsigned char data[1024];
 	bool seen_soa, seen_ns, seen_rr, seen_dname, seen_nsec,
 		      seen_nsec3, seen_ds;
-	bool bottom;
 
 	result = dns_db_allrdatasets(db, node, version, 0, &iterator);
 	if (result != ISC_R_SUCCESS) {
@@ -6860,8 +6910,6 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	}
 	if (result != ISC_R_NOMORE)
 		goto failure;
-	if (seen_ns && !seen_soa)
-		*delegation = true;
 	/*
 	 * Going from insecure to NSEC3.
 	 * Don't generate NSEC3 records for NSEC3 records.
@@ -6877,14 +6925,12 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	 * Don't generate NSEC records for NSEC3 records.
 	 */
 	if (build_nsec && !seen_nsec3 && !seen_nsec && seen_rr) {
-		/* Build and add NSEC. */
-		bottom = (seen_ns && !seen_soa) || seen_dname;
 		/*
 		 * Build a NSEC record except at the origin.
 		 */
 		if (!dns_name_equal(name, dns_db_origin(db))) {
 			CHECK(add_nsec(db, version, name, node, minimum,
-				       bottom, diff));
+				       is_bottom_of_zone, diff));
 			/* Count a NSEC generation as a signature generation. */
 			(*signatures)--;
 		}
@@ -6906,7 +6952,7 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 			    rdataset.type != dns_rdatatype_cdnskey)
 				goto next_rdataset;
 		}
-		if (*delegation &&
+		if (seen_ns && !seen_soa &&
 		    rdataset.type != dns_rdatatype_ds &&
 		    rdataset.type != dns_rdatatype_nsec)
 			goto next_rdataset;
@@ -6928,8 +6974,6 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	}
 	if (result == ISC_R_NOMORE)
 		result = ISC_R_SUCCESS;
-	if (seen_dname)
-		*delegation = true;
  failure:
 	if (dns_rdataset_isassociated(&rdataset))
 		dns_rdataset_disassociate(&rdataset);
@@ -8410,7 +8454,7 @@ zone_sign(dns_zone_t *zone) {
 	bool check_ksk, keyset_kskonly, is_ksk;
 	bool with_ksk, with_zsk;
 	bool commit = false;
-	bool delegation;
+	bool is_bottom_of_zone;
 	bool build_nsec = false;
 	bool build_nsec3 = false;
 	bool first;
@@ -8536,7 +8580,7 @@ zone_sign(dns_zone_t *zone) {
 		if (signing->db != db)
 			goto next_signing;
 
-		delegation = false;
+		is_bottom_of_zone = false;
 
 		if (first && signing->deleteit) {
 			/*
@@ -8591,7 +8635,7 @@ zone_sign(dns_zone_t *zone) {
 				 * we skip all obscured names.
 				 */
 				dns_name_copy(found, name, NULL);
-				delegation = true;
+				is_bottom_of_zone = true;
 				goto next_node;
 			}
 		}
@@ -8602,6 +8646,10 @@ zone_sign(dns_zone_t *zone) {
 		with_ksk = false;
 		with_zsk = false;
 		dns_dbiterator_pause(signing->dbiterator);
+
+		CHECK(check_if_bottom_of_zone(db, node, version,
+					      &is_bottom_of_zone));
+
 		for (i = 0; !has_alg && i < nkeys; i++) {
 			bool both = false;
 
@@ -8689,7 +8737,7 @@ zone_sign(dns_zone_t *zone) {
 					  build_nsec, zone_keys[i], inception,
 					  expire, zone->minimum, is_ksk,
 					  (both && keyset_kskonly),
-					  &delegation, zonediff.diff,
+					  is_bottom_of_zone, zonediff.diff,
 					  &signatures, zone->mctx));
 			/*
 			 * If we are adding we are done.  Look for other keys
@@ -8758,7 +8806,7 @@ zone_sign(dns_zone_t *zone) {
 					"zone_sign:dns_dbiterator_next -> %s",
 					     dns_result_totext(result));
 				goto failure;
-			} else if (delegation) {
+			} else if (is_bottom_of_zone) {
 				dns_dbiterator_current(signing->dbiterator,
 						       &node, nextname);
 				dns_db_detachnode(db, &node);
