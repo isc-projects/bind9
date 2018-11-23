@@ -982,8 +982,8 @@ rpz_log_rewrite(ns_client_t *client, bool disabled,
 	char cname_buf[DNS_NAME_FORMATSIZE] = { 0 };
 	char p_name_buf[DNS_NAME_FORMATSIZE];
 	char qname_buf[DNS_NAME_FORMATSIZE];
-	char classname[DNS_RDATACLASS_FORMATSIZE];
-	char typename[DNS_RDATATYPE_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 	const char *s1 = cname_buf, *s2 = cname_buf;
 	dns_rdataset_t *rdataset;
 	dns_rpz_st_t *st;
@@ -1025,8 +1025,8 @@ rpz_log_rewrite(ns_client_t *client, bool disabled,
 	 */
 	rdataset = ISC_LIST_HEAD(client->query.origqname->list);
 	INSIST(rdataset != NULL);
-	dns_rdataclass_format(rdataset->rdclass, classname, sizeof(classname));
-	dns_rdatatype_format(rdataset->type, typename, sizeof(typename));
+	dns_rdataclass_format(rdataset->rdclass, classbuf, sizeof(classbuf));
+	dns_rdatatype_format(rdataset->type, typebuf, sizeof(typebuf));
 
 	ns_client_log(client, DNS_LOGCATEGORY_RPZ, NS_LOGMODULE_QUERY,
 		      DNS_RPZ_INFO_LEVEL,
@@ -1039,7 +1039,7 @@ rpz_log_rewrite(ns_client_t *client, bool disabled,
 		      dns_rpz_type2str(type), dns_rpz_policy2str(policy),
 		      qname_buf,
 #ifdef RPZ_LOG_QTYPE_QCLASS
-		      typename, classname,
+		      typebuf, classbuf,
 #endif /* RPZ_LOG_QTYPE_QCLASS */
 		      p_name_buf, s1, cname_buf, s2);
 }
