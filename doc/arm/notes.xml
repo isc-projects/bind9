@@ -459,6 +459,16 @@
 	  is considered harmful.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The incomplete support for internationalization message catalogs has
+	  been removed from BIND. Since the internationalization was never
+	  completed, and no localized message catalogs were ever made available
+	  for the portions of BIND in which they could have been used, this
+	  change will have no effect except to simplify the source code. BIND's
+	  log messages and other output were already only available in English.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
