@@ -189,6 +189,14 @@ main(int argc, char **argv) {
 #endif
 	}
 
+	if (strcmp(argv[1], "--rpz-log-qtype-qclass") == 0) {
+#ifdef RPZ_LOG_QTYPE_QCLASS
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
 	fprintf(stderr, "unknown arg: %s\n", argv[1]);
 	usage();
 	return (1);
