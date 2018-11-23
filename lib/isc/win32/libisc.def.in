@@ -566,6 +566,7 @@ isc_syslog_facilityfromstring
 isc_task_attach
 isc_task_beginexclusive
 isc_task_create
+isc_task_create_bound
 isc_task_destroy
 isc_task_detach
 isc_task_endexclusive

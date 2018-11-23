@@ -136,6 +136,10 @@ struct isc_task {
 isc_result_t
 isc_task_create(isc_taskmgr_t *manager, unsigned int quantum,
 		isc_task_t **taskp);
+
+isc_result_t
+isc_task_create_bound(isc_taskmgr_t *manager, unsigned int quantum,
+		      isc_task_t **taskp, int threadid);
 /*%<
  * Create a task.
  *

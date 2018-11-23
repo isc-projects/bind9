@@ -1,4 +1,6 @@
-5099.   [func]          Failed mutex and conditional creations are always
+5100.	[func]		Pin resolver tasks to specific task queues. [GL !1117]
+
+5099.	[func]		Failed mutex and conditional creations are always
 			fatal. [GL #674]
 
 	--- 9.13.4 released ---
