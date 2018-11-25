@@ -796,8 +796,10 @@ static isc_result_t
 cname_compatibility_action(void *data, dns_rdataset_t *rrset) {
 	UNUSED(data);
 	if (rrset->type != dns_rdatatype_cname &&
-	    ! dns_rdatatype_isdnssec(rrset->type))
+	    ! dns_rdatatype_atcname(rrset->type))
+	{
 		return (ISC_R_EXISTS);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -2844,7 +2846,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 						   dns_rdatatype_cname, 0,
 						   &flag));
 				if (flag &&
-				    ! dns_rdatatype_isdnssec(rdata.type))
+				    ! dns_rdatatype_atcname(rdata.type))
 				{
 					update_log(client, zone,
 						   LOGLEVEL_PROTOCOL,
