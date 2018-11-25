@@ -2284,6 +2284,14 @@ dns_rdatatype_questiononly(dns_rdatatype_t type) {
 }
 
 bool
+dns_rdatatype_atcname(dns_rdatatype_t type) {
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATCNAME) != 0) {
+		return (true);
+	}
+	return (false);
+}
+
+bool
 dns_rdatatype_atparent(dns_rdatatype_t type) {
 	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ATPARENT) != 0)
 		return (true);
@@ -2310,10 +2318,11 @@ dns_rdatatype_isdnssec(dns_rdatatype_t type) {
 
 bool
 dns_rdatatype_iszonecutauth(dns_rdatatype_t type) {
-	if ((dns_rdatatype_attributes(type)
-	     & (DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_ZONECUTAUTH))
+	if ((dns_rdatatype_attributes(type) & DNS_RDATATYPEATTR_ZONECUTAUTH)
 	    != 0)
+	{
 		return (true);
+	}
 	return (false);
 }
 

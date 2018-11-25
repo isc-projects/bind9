@@ -18,7 +18,9 @@
  * The attributes do not include DNS_RDATATYPEATTR_SINGLETON
  * because we must be able to handle a parent/child NSEC pair.
  */
-#define RRTYPE_NSEC_ATTRIBUTES (DNS_RDATATYPEATTR_DNSSEC)
+#define RRTYPE_NSEC_ATTRIBUTES \
+	( DNS_RDATATYPEATTR_DNSSEC | DNS_RDATATYPEATTR_ZONECUTAUTH | \
+	  DNS_RDATATYPEATTR_ATCNAME )
 
 static inline isc_result_t
 fromtext_nsec(ARGS_FROMTEXT) {
