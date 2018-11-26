@@ -3569,6 +3569,14 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "check that DNAME at apex with NSEC3 is correctly signed (dnssec-signzone) ($n)"
+ret=0
+$DIG $DIGOPTS txt dname-at-apex-nsec3.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+grep "RRSIG.NSEC3 8 3 3600" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 # Note: after this check, ns4 will not be validating any more; do not add any
 # further validation tests employing ns4 below this check.
 echo_i "check that validation defaults to off when dnssec-enable is off ($n)"

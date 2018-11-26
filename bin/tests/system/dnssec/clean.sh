@@ -11,9 +11,9 @@
 
 rm -f */K* */keyset-* */dsset-* */dlvset-* */signedkey-* */*.signed
 rm -f */example.bk
+rm -f */named.conf
 rm -f */named.memstats
 rm -f */named.run
-rm -f */named.conf
 rm -f */named.secroots
 rm -f */tmp* */*.jnl */*.bk */*.jbk
 rm -f */trusted.conf */managed.conf */revoked.conf
@@ -27,6 +27,7 @@ rm -f keygen.err
 rm -f named.secroots.test*
 rm -f nosign.before
 rm -f ns*/*.nta
+rm -f ns*/managed-keys.bind* ns*/*.mkeys*
 rm -f ns*/named.lock
 rm -f ns1/managed.key.id
 rm -f ns1/root.db ns2/example.db ns3/secure.example.db
@@ -47,6 +48,7 @@ rm -f ns2/private.secure.example.db
 rm -f ns2/single-nsec3.db
 rm -f ns3/auto-nsec.example.db ns3/auto-nsec3.example.db
 rm -f ns3/badds.example.db
+rm -f ns3/dname-at-apex-nsec3.example.db
 rm -f ns3/dnskey-nsec3-unknown.example.db
 rm -f ns3/dnskey-nsec3-unknown.example.db.tmp
 rm -f ns3/dnskey-unknown.example.db
@@ -84,17 +86,16 @@ rm -f ns6/optout-tld.db
 rm -f ns7/multiple.example.bk ns7/nsec3.example.bk ns7/optout.example.bk
 rm -f ns7/split-rrsig.db ns7/split-rrsig.db.unsplit
 rm -f nsupdate.out*
+rm -f python.out.*
 rm -f rndc.out.*
 rm -f signer/*.db
 rm -f signer/*.signed.post*
 rm -f signer/*.signed.pre*
 rm -f signer/example.db.after signer/example.db.before
 rm -f signer/example.db.changed
-rm -f signer/nsec3param.out
-rm -f signer/signer.out.*
+rm -f signer/general/dsset*
 rm -f signer/general/signed.zone
 rm -f signer/general/signer.out.*
-rm -f signer/general/dsset*
+rm -f signer/nsec3param.out
+rm -f signer/signer.out.*
 rm -f signing.out*
-rm -f python.out.*
-rm -f ns*/managed-keys.bind* ns*/*.mkeys*

@@ -543,3 +543,14 @@ zsk1=`$KEYGEN -q -a RSASHA1 -3 $zone`
 cat $infile ${ksk1}.key ${ksk2}.key ${zsk1}.key >$zonefile
 
 $SIGNER -P -o $zone $zonefile > /dev/null 2>&1
+
+#
+# Check that NSEC3 are correctly signed and returned from below a DNAME
+#
+zone=dname-at-apex-nsec3.example
+infile=dname-at-apex-nsec3.example.db.in
+zonefile=dname-at-apex-nsec3.example.db
+kskname=`$KEYGEN -q -a RSASHA256 -3fk $zone`
+zskname=`$KEYGEN -q -a RSASHA256 -3 $zone`
+cat $infile $kskname.key $zskname.key >$zonefile
+$SIGNER -P -3 - -o $zone $zonefile > /dev/null 2>&1
