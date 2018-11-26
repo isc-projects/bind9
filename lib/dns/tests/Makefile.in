@@ -16,7 +16,7 @@ VERSION=@BIND9_VERSION@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I. -Iinclude ${DNS_INCLUDES} ${ISC_INCLUDES} \
-		@OPENSSL_INCLUDES@
+		@OPENSSL_INCLUDES@ @CMOCKA_CFLAGS@
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
 ISCLIBS =	../../isc/libisc.@A@ @OPENSSL_LIBS@
@@ -25,7 +25,6 @@ DNSLIBS =	../libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../libdns.@A@
 
 LIBS =		@LIBS@ @CMOCKA_LIBS@
-CFLAGS =	@CFLAGS@ @CMOCKA_CFLAGS@
 
 OBJS =		dnstest.@O@
 SRCS =		acl_test.c \

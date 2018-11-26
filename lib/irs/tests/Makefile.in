@@ -15,7 +15,7 @@ VERSION=@BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	-I. -Iinclude -I../include ${ISC_INCLUDES} ${IRS_INCLUDES}
+CINCLUDES =	-I. -Iinclude -I../include ${ISC_INCLUDES} ${IRS_INCLUDES} @CMOCKA_CFLAGS@
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/irs/tests/\""
 
 CFGLIBS =	../../isccfg/libisccfg.@A@
@@ -27,7 +27,6 @@ ISCDEPLIBS =	../../isc/libisc.@A@
 IRSLIBS =	../libirs.@A@
 IRSDEPLIBS =	../libirs.@A@
 
-CFLAGS =	@CFLAGS@ @CMOCKA_CFLAGS@
 LIBS =		${IRSLIBS} ${CFGLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@ @CMOCKA_LIBS@
 
 OBJS =
