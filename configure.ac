@@ -190,7 +190,7 @@ AC_ARG_WITH(python-install-dir,
 			   [installation directory for Python modules]),
 	    use_python_install_dir="$withval", use_python_install_dir="unspec")
 
-python="python python3 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
+python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
 
 testargparse='try: import argparse
 except: exit(1)'
