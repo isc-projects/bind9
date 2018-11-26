@@ -1,6 +1,6 @@
 args=
-warn=1
-error=0
-ok=0
-retcode=0
+warn=4
+error=1
+ok=1
+retcode=1
 match=0
