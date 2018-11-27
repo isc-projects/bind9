@@ -1778,7 +1778,7 @@ Optional Packages:
   --with-gnu-ld           assume the C compiler uses GNU ld [default=no]
   --with-sysroot[=DIR]    Search for dependent libraries within DIR (or the
                           compiler's sysroot if not specified).
-  --with-python=PATH      specify path to python interpreter
+  --with-python=PATH      specify path to Python interpreter
   --with-python-install-dir=PATH
                           installation directory for Python modules
   --with-geoip=PATH       Build with GeoIP support (yes|no|path)
@@ -12511,54 +12511,53 @@ done
 
 
 #
-# Python is also optional; it is used by the tools in bin/python.
-# If python is unavailable, we simply don't build those.
+# Python is also optional but required by default so that dnssec-keymgr gets
+# installed unless explicitly prevented by the user using --without-python.
 #
+testminvers='import sys
+if (sys.version_info < (2,7)) or (sys.version_info < (3,2) and sys.version_info >= (3,0)):
+   exit(1)'
+
+testargparse='try: import argparse
+except: exit(1)'
+
+testply='try: import ply
+except: exit(1)'
+
 
 # Check whether --with-python was given.
 if test "${with_python+set}" = set; then :
-  withval=$with_python; use_python="$withval"
+  withval=$with_python;
 else
-  use_python="yes"
+  with_python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
 fi
 
 
 # Check whether --with-python-install-dir was given.
 if test "${with_python_install_dir+set}" = set; then :
-  withval=$with_python_install_dir; use_python_install_dir="$withval"
+  withval=$with_python_install_dir;
 else
-  use_python_install_dir="unspec"
+  with_python_install_dir=""
 fi
 
 
-python="python python3 python3.7 python3.6 python3.5 python3.4 python3.3 python3.2 python2 python2.7"
-
-testargparse='try: import argparse
-except: exit(1)'
-
-testply='try: from ply import *
-except: exit(1)'
-
-testminvers='import sys
-if (sys.version_info < (2,7)) or (sys.version_info < (3,2) and sys.version_info >= (3,0)):
-   exit(1)'
-
-case "$use_python" in
-	no)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
-$as_echo_n "checking for python support... " >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
+if test "$with_python" = "no"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Python support" >&5
+$as_echo_n "checking for Python support... " >&6; }
+       { $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
 $as_echo "disabled" >&6; }
-		;;
-	yes|*)
-		case "$use_python" in
-		yes|'')
-			for p in $python
-			do
-				for ac_prog in $p
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
+else
+  for p in $with_python
+       do
+	 case $p in #(
+  /*) :
+    PYTHON="$p" ;; #(
+  *) :
+     ;;
+esac
+
+	 # Extract the first word of "$p", so it can be a program name with args.
+set dummy $p; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_path_PYTHON+:} false; then :
@@ -12597,153 +12596,80 @@ $as_echo "no" >&6; }
 fi
 
 
-  test -n "$PYTHON" && break
-done
+	 # Do not cache the result of the check from the previous line.  If the
+	 # first found Python interpreter has missing module dependencies and
+	 # the result of the above check is cached, subsequent module checks
+	 # will erroneously keep on using the cached path to the first found
+	 # Python interpreter instead of different ones.
+	 unset ac_cv_path_PYTHON
 
-				if test "X$PYTHON" = "X"; then
-					continue;
-				fi
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python2 version >= 2.7 or python3 version >= 3.2" >&5
-$as_echo_n "checking python2 version >= 2.7 or python3 version >= 3.2... " >&6; }
-				if ${PYTHON:-false} -c "$testminvers"; then
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
-				else
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
-$as_echo "not found" >&6; }
-					unset ac_cv_path_PYTHON
-					unset PYTHON
-					continue
-				fi
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
-$as_echo_n "checking python module 'argparse'... " >&6; }
-				if ${PYTHON:-false} -c "$testargparse"; then
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
-				else
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
-$as_echo "not found" >&6; }
-					unset ac_cv_path_PYTHON
-					unset PYTHON
-					continue
-				fi
+	 if test -z "$PYTHON"; then :
+  continue
+fi
 
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'ply'" >&5
-$as_echo_n "checking python module 'ply'... " >&6; }
-				if ${PYTHON:-false} -c "$testply"; then
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
-					break
-				else
-					{ $as_echo "$as_me:${as_lineno-$LINENO}: result: not found" >&5
-$as_echo "not found" >&6; }
-					unset ac_cv_path_PYTHON
-					unset PYTHON
-				fi
-			done
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for python support" >&5
-$as_echo_n "checking for python support... " >&6; }
-			if test "X$PYTHON" != "X"
-			then
-				PYTHON_INSTALL_DIR="$use_python_install_dir"
-				PYTHON_INSTALL_LIB="--install-lib=$use_python_install_dir"
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking if $PYTHON is python2 version >= 2.7 or python3 version >= 3.2" >&5
+$as_echo_n "checking if $PYTHON is python2 version >= 2.7 or python3 version >= 3.2... " >&6; }
+	 if "$PYTHON" -c "$testminvers" 2>/dev/null; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-			else
-				as_fn_error $? "no; python required for dnssec-keymgr" "$LINENO" 5
-			fi
-			;;
-		*)
-			case "$use_python" in
-			/*)
-				PYTHON="$use_python"
-				;;
-			*)
-				for ac_prog in $use_python
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_PYTHON+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $PYTHON in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PYTHON="$PYTHON" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PYTHON="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-PYTHON=$ac_cv_path_PYTHON
-if test -n "$PYTHON"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PYTHON" >&5
-$as_echo "$PYTHON" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
+		unset PYTHON
+		continue
 fi
 
+	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking Python module 'argparse'" >&5
+$as_echo_n "checking Python module 'argparse'... " >&6; }
+	 if "$PYTHON" -c "$testargparse" 2>/dev/null; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		unset PYTHON
+		continue
+fi
 
-  test -n "$PYTHON" && break
-done
+	 { $as_echo "$as_me:${as_lineno-$LINENO}: checking Python module 'ply'" >&5
+$as_echo_n "checking Python module 'ply'... " >&6; }
+	 if "$PYTHON" -c "$testply" 2>/dev/null; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+		unset PYTHON
+		continue
+fi
 
-				;;
-			esac
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python2 version >= 2.7 or python3 version >= 3.2" >&5
-$as_echo_n "checking python2 version >= 2.7 or python3 version >= 3.2... " >&6; }
-			if ${PYTHON:-false} -c "$testminvers"; then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found" >&5
-$as_echo "found" >&6; }
-			else
-				as_fn_error $? "not found" "$LINENO" 5
-			fi
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'argparse'" >&5
-$as_echo_n "checking python module 'argparse'... " >&6; }
-			if ${PYTHON:-false} -c "$testargparse"; then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
-$as_echo "found, using $PYTHON" >&6; }
-			else
-				as_fn_error $? "not found" "$LINENO" 5
-			fi
-			{ $as_echo "$as_me:${as_lineno-$LINENO}: checking python module 'ply'" >&5
-$as_echo_n "checking python module 'ply'... " >&6; }
-			if ${PYTHON:-false} -c "$testply"; then
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: found, using $PYTHON" >&5
-$as_echo "found, using $PYTHON" >&6; }
-			else
-				as_fn_error $? "not found" "$LINENO" 5
-			fi
-			;;
-		esac
-		;;
-esac
+	 # Stop looking any further once we find a Python interpreter
+	 # satisfying all requirements.
+	 break
+       done
+
+       if test "X$PYTHON" = "X"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Python support" >&5
+$as_echo_n "checking for Python support... " >&6; }
+	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	      as_fn_error $? "Python required for dnssec-keymgr" "$LINENO" 5
+fi
+fi
 
 PYTHON_TOOLS=''
 CHECKDS=''
 COVERAGE=''
 KEYMGR=''
-if test "X$PYTHON" != "X"; then
-	PYTHON_TOOLS=python
-	CHECKDS=checkds
-	COVERAGE=coverage
-	KEYMGR=keymgr
+if test "X$PYTHON" != "X"; then :
+  PYTHON_TOOLS=python
+       CHECKDS=checkds
+       COVERAGE=coverage
+       KEYMGR=keymgr
+       PYTHON_INSTALL_DIR="$with_python_install_dir"
+       if test -n "$with_python_install_dir"; then :
+  PYTHON_INSTALL_LIB="--install-lib=$with_python_install_dir"
+fi
 fi
 
 
