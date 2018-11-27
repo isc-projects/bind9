@@ -1,3 +1,6 @@
+5101.	[bug]		Fix default installation path for Python modules.
+			[GL #730]
+
 5097.	[cleanup]	Remove embedded ATF unit testing framework
 			from BIND source distribution.  [GL !875]
 
