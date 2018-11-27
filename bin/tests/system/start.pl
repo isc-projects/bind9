@@ -306,6 +306,36 @@ sub verify_server {
 	$tcp = "" if (-e "$testdir/$server/named.notcp");
 
 	my $tries = 0;
+
+	my $runfile = "$testdir/$server/named.run";
+
+	while (1) {
+		# the shell *ought* to have created the file immediately, but this
+		# logic allows the creation to be delayed without issues
+		if (open(my $fh, "<", $runfile)) {
+			# the two non-whitespace blobs should be the date and time
+			# but we don't care about them really, only that they are there
+			if (grep /^\S+ \S+ running$/, <$fh>) {
+				last;
+			}
+		}
+
+		$tries++;
+
+		if ($tries >= 30) {
+			print "I:server $server seems to have not started\n";
+			print "I:failed\n";
+
+			system("$PERL $topdir/stop.pl $testdir");
+
+			exit 1;
+		}
+
+		sleep 2;
+	}
+
+	$tries = 0;
+
 	while (1) {
 		my $return = system("$DIG $tcp +noadd +nosea +nostat +noquest +nocomm +nocmd +noedns -p $port version.bind. chaos txt \@10.53.0.$n > dig.out");
 		last if ($return == 0);
