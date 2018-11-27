@@ -1,3 +1,7 @@
+5101.	[bug]		Fix default installation path for Python modules and
+			remove the dnspython dependency accidentally introduced
+			by change 4970. [GL #730]
+
 5100.	[func]		Pin resolver tasks to specific task queues. [GL !1117]
 
 5099.	[func]		Failed mutex and conditional creations are always
