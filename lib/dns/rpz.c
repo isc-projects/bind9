@@ -1794,7 +1794,7 @@ finish_update(dns_rpz_zone_t *rpz) {
 	     result = isc_ht_iter_delcurrent_next(iter))
 	{
 		isc_region_t region;
-		unsigned char *key;
+		unsigned char *key = NULL;
 		size_t keysize;
 
 		isc_ht_iter_currentkey(iter, &key, &keysize);

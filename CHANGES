@@ -1,3 +1,6 @@
+5103.	[bug]		Add missing design by contract tests to dns_catz*.
+			[GL #748]
+
 5101.	[bug]		Fix default installation path for Python modules.
 			[GL #730]
 
