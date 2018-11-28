@@ -262,6 +262,13 @@
 	  configuration options cannot exceed 90 seconds.
 	</para>
       </listitem>
+      <listitem>
+        <para>
+          <command>rndc status</command> output now includes a
+          <command>reconfig/reload in progress</command> status line if named
+          configuration is being reloaded.
+        </para>
+      </listitem>
     </itemizedlist>
   </section>
 
