@@ -1457,5 +1457,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking that DNAME is not treated as a delegation when signing ($n)"
+ret=0
+$DIG $DIGOPTS dname-and-txt.secure.example. DNAME @10.53.0.3 > dig.out.ns3.1.test$n || ret=1
+grep "dname-and-txt.secure.example.*RRSIG.*DNAME" dig.out.ns3.1.test$n > /dev/null 2>&1 || ret=1
+$DIG $DIGOPTS dname-and-txt.secure.example. TXT @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
+grep "dname-and-txt.secure.example.*RRSIG.*TXT" dig.out.ns3.2.test$n > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
