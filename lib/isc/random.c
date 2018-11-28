@@ -80,7 +80,13 @@ static isc_once_t isc_random_once = ISC_ONCE_INIT;
 static void
 isc_random_initialize(void) {
 #if FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/*
+	 * Set a constant seed to help in problem reproduction should fuzzing
+	 * find a crash or a hang.  The seed array must be non-zero else
+	 * xoshiro128starstar will generate an infinite series of zeroes.
+	 */
 	memset(seed, 0, sizeof(seed));
+	seed[0] = 1;
 #else
 	int useed[4] = {0,0,0,0};
 	isc_entropy_get(useed, sizeof(useed));
