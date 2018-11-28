@@ -55,6 +55,7 @@ while (<CHANGES>) {
 	       \.zone$ |        # zone files
 	       \.conf$ |        # configuration files
 	       \.conf\.in$ |    # configuration files
+	       \.dir-locals\.el | # emacs local variables
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
 	       doc/(draft|expired|rfc)/		# imported
 	     %x);
