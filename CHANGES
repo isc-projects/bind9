@@ -1,3 +1,6 @@
+5103.	[bug]		Add missing design by contract tests to dns_catz*.
+			[GL #748]
+
 5102.	[bug]		dnssec-coverage failed to use the default TTL when
 			checking KSK deletion times leading to a exception.
 			[GL #585]
