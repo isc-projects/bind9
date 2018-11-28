@@ -126,7 +126,6 @@ dnsrps_log_fnc(librpz_log_level_t level, void *ctxt, const char *buf) {
 isc_result_t
 dns_dnsrps_server_create(void) {
 	librpz_emsg_t emsg;
-	isc_result_t result;
 
 	INSIST(clist == NULL);
 	INSIST(librpz == NULL);
