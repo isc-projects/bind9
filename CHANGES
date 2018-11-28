@@ -1,3 +1,7 @@
+5102.	[bug]		dnssec-coverage failed to use the default TTL when
+			checking KSK deletion times leading to a exception.
+			[GL #585]
+
 5101.	[bug]		Fix default installation path for Python modules and
 			remove the dnspython dependency accidentally introduced
 			by change 4970. [GL #730]
