@@ -511,6 +511,7 @@
 ./bin/tests/system/autosign/ns3/autonsec3.example.db.in	ZONE	2011,2016,2018
 ./bin/tests/system/autosign/ns3/delay.example.db	ZONE	2011,2016,2018
 ./bin/tests/system/autosign/ns3/delzsk.example.db.in	ZONE	2018
+./bin/tests/system/autosign/ns3/dname-at-apex-nsec3.example.db.in	ZONE	2018
 ./bin/tests/system/autosign/ns3/inacksk2.example.db.in	ZONE	2017,2018
 ./bin/tests/system/autosign/ns3/inacksk3.example.db.in	ZONE	2017,2018
 ./bin/tests/system/autosign/ns3/inaczsk.example.db.in	ZONE	2011,2016,2018
