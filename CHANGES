@@ -1,3 +1,6 @@
+5105.	[bug]		Fix a race between process_fd and socketclose in
+			unix socket code. [GL #744]
+
 5104.	[cleanup]	Log clearer informational message when a catz zone
 			is overridden by a zone in named.conf.
 			Thanks to Tony Finch. [GL !1157]

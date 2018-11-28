@@ -473,8 +473,6 @@ static void setdscp(isc__socket_t *sock, isc_dscp_t dscp);
 #define SELECT_POKE_CONNECT		(-4) /*%< Same as _WRITE */
 #define SELECT_POKE_CLOSE		(-5)
 
-#define SOCK_DEAD(s)			(isc_refcount_current(&((s)->references)) == 0)
-
 /*%
  * Shortcut index arrays to get access to statistics counters.
  */
@@ -3253,11 +3251,15 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 		UNLOCK(&thread->fdlock[lockid]);
 		return;
 	}
-	if (SOCK_DEAD(sock)) { /* Sock is being closed, bail */
-		goto unlock_fd;
-	}
 
-	isc_refcount_increment(&sock->references);
+	if (isc_refcount_increment(&sock->references) == 0) {
+		/*
+		 * Sock is being closed, it will be destroyed, bail.
+		 */
+		isc_refcount_decrement(&sock->references);
+		UNLOCK(&thread->fdlock[lockid]);
+		return;
+	}
 
 	if (readable) {
 		if (sock->listener) {
@@ -3275,12 +3277,9 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 		}
 	}
 
- unlock_fd:
 	UNLOCK(&thread->fdlock[lockid]);
-	if (sock != NULL) {
-		if (isc_refcount_decrement(&sock->references) == 1) {
-			destroy(&sock);
-		}
+	if (isc_refcount_decrement(&sock->references) == 1) {
+		destroy(&sock);
 	}
 }
 
