@@ -162,6 +162,7 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(key != NULL && keysize > 0);
+	REQUIRE(valuep == NULL || *valuep == NULL);
 
 	hash = isc_hash_function(key, keysize, true, NULL);
 	node = ht->table[hash & ht->mask];
@@ -327,6 +328,8 @@ void
 isc_ht_iter_current(isc_ht_iter_t *it, void **valuep) {
 	REQUIRE(it != NULL);
 	REQUIRE(it->cur != NULL);
+	REQUIRE(valuep != NULL && *valuep == NULL);
+
 	*valuep = it->cur->value;
 }
 
@@ -335,6 +338,8 @@ isc_ht_iter_currentkey(isc_ht_iter_t *it, unsigned char **key, size_t *keysize)
 {
 	REQUIRE(it != NULL);
 	REQUIRE(it->cur != NULL);
+	REQUIRE(key != NULL && *key == NULL);
+
 	*key = it->cur->key;
 	*keysize = it->cur->keysize;
 }
