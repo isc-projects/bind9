@@ -5078,6 +5078,7 @@ if test "yes" = "$dlopen"; then
 	case $host in
 		*-linux*|*-gnu*)
 			SO_CFLAGS="-fPIC"
+                        LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 			SO_LDFLAGS=""
 			if test "yes" = "$have_dl"
 			then
