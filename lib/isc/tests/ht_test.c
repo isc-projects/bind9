@@ -203,11 +203,9 @@ test_ht_iterator() {
 	isc_mem_t *mctx = NULL;
 	isc_ht_iter_t * iter = NULL;
 	uintptr_t i;
-	void *v;
 	uintptr_t count = 10000;
 	uint32_t walked;
 	unsigned char key[16];
-	unsigned char *tkey;
 	size_t tksize;
 
 	result = isc_mem_createx2(0, 0, default_memalloc, default_memfree,
@@ -236,6 +234,9 @@ test_ht_iterator() {
 	     result == ISC_R_SUCCESS;
 	     result = isc_ht_iter_next(iter))
 	{
+		unsigned char *tkey = NULL;
+		void *v = NULL;
+
 		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		assert_int_equal(tksize, 16);
@@ -252,6 +253,9 @@ test_ht_iterator() {
 	walked = 0;
 	result = isc_ht_iter_first(iter);
 	while (result == ISC_R_SUCCESS) {
+		unsigned char *tkey = NULL;
+		void *v = NULL;
+
 		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		assert_int_equal(tksize, 16);
@@ -273,6 +277,9 @@ test_ht_iterator() {
 	walked = 0;
 	result = isc_ht_iter_first(iter);
 	while (result == ISC_R_SUCCESS) {
+		unsigned char *tkey = NULL;
+		void *v = NULL;
+
 		isc_ht_iter_current(iter, &v);
 		isc_ht_iter_currentkey(iter, &tkey, &tksize);
 		assert_int_equal(tksize, 16);
