@@ -223,27 +223,27 @@ typedef ns_hooklist_t ns_hooktable_t[NS_HOOKPOINTS_COUNT];
 LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
 
 /*
- * API version
+ * Plugin API version
  *
- * When the API changes, increment NS_HOOK_VERSION. If the
+ * When the API changes, increment NS_PLUGIN_VERSION. If the
  * change is backward-compatible (e.g., adding a new function call
- * but not changing or removing an old one), increment NS_HOOK_AGE
- * as well; if not, set NS_HOOK_AGE to 0.
+ * but not changing or removing an old one), increment NS_PLUGIN_AGE
+ * as well; if not, set NS_PLUGIN_AGE to 0.
  */
-#ifndef NS_HOOK_VERSION
-#define NS_HOOK_VERSION 1
-#define NS_HOOK_AGE 0
+#ifndef NS_PLUGIN_VERSION
+#define NS_PLUGIN_VERSION 1
+#define NS_PLUGIN_AGE 0
 #endif
 
 typedef isc_result_t
-ns_hook_register_t(const char *parameters,
-		   const void *cfg, const char *file, unsigned long line,
-		   isc_mem_t *mctx, isc_log_t *lctx, void *actx,
-		   ns_hooktable_t *hooktable, void **instp);
+ns_plugin_register_t(const char *parameters,
+		     const void *cfg, const char *file, unsigned long line,
+		     isc_mem_t *mctx, isc_log_t *lctx, void *actx,
+		     ns_hooktable_t *hooktable, void **instp);
 /*%<
- * Called when registering a new module.
+ * Called when registering a new plugin.
  *
- * 'parameters' contains the module configuration text.
+ * 'parameters' contains the plugin configuration text.
  *
  * '*instp' will be set to the module instance handle if the function
  * is successful.
@@ -255,79 +255,80 @@ ns_hook_register_t(const char *parameters,
  */
 
 typedef void
-ns_hook_destroy_t(void **instp);
+ns_plugin_destroy_t(void **instp);
 /*%<
- * Destroy a module instance.
+ * Destroy a plugin instance.
  *
  * '*instp' must be set to NULL by the function before it returns.
  */
 
 typedef isc_result_t
-ns_hook_check_t(const char *parameters,
-		const void *cfg, const char *file, unsigned long line,
-		isc_mem_t *mctx, isc_log_t *lctx, void *actx);
+ns_plugin_check_t(const char *parameters,
+		  const void *cfg, const char *file, unsigned long line,
+		  isc_mem_t *mctx, isc_log_t *lctx, void *actx);
 /*%<
  * Check the validity of 'parameters'.
  */
 
 typedef int
-ns_hook_version_t(void);
+ns_plugin_version_t(void);
 /*%<
- * Return the API version number a hook module was compiled with.
+ * Return the API version number a plugin was compiled with.
  *
  * If the returned version number is no greater than
- * NS_HOOK_VERSION, and no less than NS_HOOK_VERSION - NS_HOOK_AGE,
+ * NS_PLUGIN_VERSION, and no less than NS_PLUGIN_VERSION - NS_PLUGIN_AGE,
  * then the module is API-compatible with named.
  */
 
 /*%
  * Prototypes for API functions to be defined in each module.
  */
-ns_hook_check_t hook_check;
-ns_hook_destroy_t hook_destroy;
-ns_hook_register_t hook_register;
-ns_hook_version_t hook_version;
+ns_plugin_check_t plugin_check;
+ns_plugin_destroy_t plugin_destroy;
+ns_plugin_register_t plugin_register;
+ns_plugin_version_t plugin_version;
 
 isc_result_t
-ns_module_load(const char *modpath, const char *parameters,
-	       const void *cfg, const char *cfg_file, unsigned long cfg_line,
-	       isc_mem_t *mctx, isc_log_t *lctx, void *actx,
-	       dns_view_t *view);
+ns_plugin_register(const char *modpath, const char *parameters,
+		   const void *cfg, const char *cfg_file,
+		   unsigned long cfg_line,
+		   isc_mem_t *mctx, isc_log_t *lctx, void *actx,
+		   dns_view_t *view);
 /*%<
- * Load the module specified from the file 'modpath', and
+ * Load the plugin module specified from the file 'modpath', and
  * register an instance using 'parameters'.
  *
- * 'cfg_file' and 'cfg_line' specify the location of the hook module
+ * 'cfg_file' and 'cfg_line' specify the location of the plugin
  * declaration in the configuration file.
  *
  * 'cfg' and 'actx' are the configuration context and ACL configuration
  * context, respectively; they are passed as void * here in order to
  * prevent this library from having a dependency on libisccfg).
  *
- * 'instp' will be left pointing to the instance of the module
- * created by the module's hook_register function.
+ * 'instp' will be left pointing to the instance of the plugin
+ * created by the module's plugin_register function.
  */
 
 isc_result_t
-ns_module_check(const char *modpath, const char *parameters,
+ns_plugin_check(const char *modpath, const char *parameters,
 		const void *cfg, const char *cfg_file, unsigned long cfg_line,
 		isc_mem_t *mctx, isc_log_t *lctx, void *actx);
 /*%<
- * Open the module at 'modpath' and check the validity of
+ * Open the plugin module at 'modpath' and check the validity of
  * 'parameters', logging any errors or warnings found, then
  * close it without configuring it.
  */
 
 void
-ns_modlist_create(isc_mem_t *mctx, ns_modlist_t **listp);
+ns_plugins_create(isc_mem_t *mctx, ns_plugins_t **listp);
 /*%<
- * Create and initialize a module list.
+ * Create and initialize a plugin list.
  */
 
 void
-ns_modlist_free(isc_mem_t *mctx, void **listp);
+ns_plugins_free(isc_mem_t *mctx, void **listp);
 /*%<
- * Close each module in a module list, then free the list object.
+ * Close each plugin module in a plugin list, then free the list object.
  */
 
 void

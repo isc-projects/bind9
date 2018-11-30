@@ -38,14 +38,14 @@
 
   <refsynopsisdiv>
     <cmdsynopsis sepchar=" ">
-      <command>hook query "filter-aaaa.so"</command>
+      <command>plugin query "filter-aaaa.so"</command>
       <arg choice="opt" rep="norepeat"><replaceable class="parameter">{ parameters }</replaceable></arg>;
     </cmdsynopsis>
   </refsynopsisdiv>
 
   <refsection><info><title>DESCRIPTION</title></info>
     <para>
-      <command>filter-aaaa.so</command> is a query hook module for
+      <command>filter-aaaa.so</command> is a query plugin module for
       <command>named</command>, enabling <command>named</command>
       to omit some IPv6 addresses when responding to clients.
     </para>
@@ -57,10 +57,10 @@
       <command>filter-aaaa-on-v6</command> options. These options are
       now deprecated in <filename>named.conf</filename>, but can be
       passed as parameters to the <command>filter-aaaa.so</command>
-      hook module, for example:
+      plugin, for example:
     </para>
     <programlisting>
-hook query "/usr/local/lib/filter-aaaa.so" {
+plugin query "/usr/local/lib/filter-aaaa.so" {
         filter-aaaa-on-v4 yes;
         filter-aaaa-on-v6 yes;
         filter-aaaa { 192.0.2.1; 2001:db8:2::1; };

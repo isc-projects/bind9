@@ -3351,7 +3351,7 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
-	       isc_symtab_t *files, bool checkhooks, isc_symtab_t *inview,
+	       isc_symtab_t *files, bool check_plugins, isc_symtab_t *inview,
 	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *zones = NULL;
@@ -3367,7 +3367,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *obj;
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *opts = NULL;
-	const cfg_obj_t *hook_list = NULL;
+	const cfg_obj_t *plugin_list = NULL;
 	bool enablednssec, enablevalidation;
 	const char *valstr = "no";
 	unsigned int tflags, mflags;
@@ -3666,44 +3666,44 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		result = tresult;
 
 	/*
-	 * Load hook modules.
+	 * Load plugins.
 	 */
-	if (checkhooks) {
+	if (check_plugins) {
 		if (voptions != NULL) {
-			(void)cfg_map_get(voptions, "hook", &hook_list);
+			(void)cfg_map_get(voptions, "plugin", &plugin_list);
 		} else {
-			(void)cfg_map_get(config, "hook", &hook_list);
+			(void)cfg_map_get(config, "plugin", &plugin_list);
 		}
 	}
 
 #ifdef HAVE_DLOPEN
-	for (element = cfg_list_first(hook_list);
+	for (element = cfg_list_first(plugin_list);
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		const cfg_obj_t *hook = cfg_listelt_value(element);
+		const cfg_obj_t *plugin = cfg_listelt_value(element);
 
 		const char *type, *library;
 		const char *parameters = NULL;
 
-		/* Get the path to the hook module. */
-		obj = cfg_tuple_get(hook, "type");
+		/* Get the path to the plugin module. */
+		obj = cfg_tuple_get(plugin, "type");
 		type = cfg_obj_asstring(obj);
 
-		/* Only query hooks are supported currently. */
+		/* Only query plugins are supported currently. */
 		if (strcasecmp(type, "query") != 0) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "unsupported hook type");
+				    "unsupported plugin type");
 			return (ISC_R_FAILURE);
 		}
 
-		library = cfg_obj_asstring(cfg_tuple_get(hook, "library"));
+		library = cfg_obj_asstring(cfg_tuple_get(plugin, "library"));
 
-		obj = cfg_tuple_get(hook, "parameters");
+		obj = cfg_tuple_get(plugin, "parameters");
 		if (obj != NULL && cfg_obj_isstring(obj)) {
 			parameters = cfg_obj_asstring(obj);
 		}
-		tresult = ns_module_check(library, parameters, config,
+		tresult = ns_plugin_check(library, parameters, config,
 					  cfg_obj_file(obj), cfg_obj_line(obj),
 					  mctx, logctx, actx);
 		if (tresult != ISC_R_SUCCESS) {
@@ -3969,7 +3969,7 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 }
 
 isc_result_t
-bind9_check_namedconf(const cfg_obj_t *config, bool hooks,
+bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
 		      isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *options = NULL;
@@ -4028,13 +4028,13 @@ bind9_check_namedconf(const cfg_obj_t *config, bool hooks,
 	if (views == NULL) {
 		tresult = check_viewconf(config, NULL, NULL,
 					 dns_rdataclass_in, files,
-					 hooks, inview, logctx, mctx);
+					 check_plugins, inview, logctx, mctx);
 		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
 	} else {
 		const cfg_obj_t *zones = NULL;
-		const cfg_obj_t *hooks = NULL;
+		const cfg_obj_t *plugins = NULL;
 
 		(void)cfg_map_get(config, "zone", &zones);
 		if (zones != NULL) {
@@ -4044,11 +4044,11 @@ bind9_check_namedconf(const cfg_obj_t *config, bool hooks,
 			result = ISC_R_FAILURE;
 		}
 
-		(void)cfg_map_get(config, "hook", &hooks);
-		if (hooks != NULL) {
-			cfg_obj_log(hooks, logctx, ISC_LOG_ERROR,
+		(void)cfg_map_get(config, "plugin", &plugins);
+		if (plugins != NULL) {
+			cfg_obj_log(plugins, logctx, ISC_LOG_ERROR,
 				    "when using 'view' statements, "
-				    "all hooks must be defined in views");
+				    "all plugins must be defined in views");
 			result = ISC_R_FAILURE;
 		}
 	}
@@ -4115,7 +4115,7 @@ bind9_check_namedconf(const cfg_obj_t *config, bool hooks,
 		}
 		if (tresult == ISC_R_SUCCESS)
 			tresult = check_viewconf(config, voptions, key,
-						 vclass, files, hooks,
+						 vclass, files, check_plugins,
 						 inview, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;

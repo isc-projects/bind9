@@ -75,11 +75,11 @@ ns_listenlist_default
 ns_listenlist_detach
 ns_log_init
 ns_log_setcontext
-ns_modlist_create
-ns_modlist_free
-ns_module_check
-ns_module_load
 ns_notify_start
+ns_plugin_check
+ns_plugin_register
+ns_plugins_create
+ns_plugins_free
 ns_query_cancel
 ns_query_done
 ns_query_free

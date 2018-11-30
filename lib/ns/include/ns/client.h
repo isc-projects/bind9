@@ -434,7 +434,7 @@ void
 ns_client_putrdataset(ns_client_t *client, dns_rdataset_t **rdatasetp);
 /*%<
  * Get and release temporary rdatasets in the client message;
- * used in query.c and in hook modules.
+ * used in query.c and in plugins.
  */
 
 isc_result_t

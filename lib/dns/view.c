@@ -256,8 +256,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dtenv = NULL;
 	view->dttypes = 0;
 
-	view->modlist = NULL;
-	view->modlist_free = NULL;
+	view->plugins = NULL;
+	view->plugins_free = NULL;
 	view->hooktable = NULL;
 	view->hooktable_free = NULL;
 
@@ -553,8 +553,8 @@ destroy(dns_view_t *view) {
 	if (view->hooktable != NULL && view->hooktable_free != NULL) {
 		view->hooktable_free(view->mctx, &view->hooktable);
 	}
-	if (view->modlist != NULL && view->modlist_free != NULL) {
-		view->modlist_free(view->mctx, &view->modlist);
+	if (view->plugins != NULL && view->plugins_free != NULL) {
+		view->plugins_free(view->mctx, &view->plugins);
 	}
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 }

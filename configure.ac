@@ -2957,11 +2957,11 @@ AC_CONFIG_FILES([
 	bin/delv/Makefile
 	bin/dig/Makefile
 	bin/dnssec/Makefile
-	bin/hooks/Makefile
 	bin/named/Makefile
 	bin/named/unix/Makefile
 	bin/nsupdate/Makefile
 	bin/pkcs11/Makefile
+	bin/plugins/Makefile
 	bin/python/Makefile
 	bin/python/isc/Makefile
 	bin/python/isc/utils.py

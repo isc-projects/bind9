@@ -371,7 +371,7 @@ get_hooktab(query_ctx_t *qctx) {
  *
  * (XXX: This description omits several special cases including
  * DNS64, RPZ, RRL, and the SERVFAIL cache. It also doesn't discuss
- * query hook modules.)
+ * plugins.)
  */
 
 static void
@@ -7112,9 +7112,9 @@ query_respond(query_ctx_t *qctx) {
 	 * XXX: This hook is meant to be at the top of this function,
 	 * but is postponed until after DNS64 in order to avoid an
 	 * assertion if the hook causes recursion. (When DNS64 also
-	 * becomes a hook module, it will be necessary to find some
+	 * becomes a plugin, it will be necessary to find some
 	 * other way to prevent that assertion, since the order in
-	 * which hook modules are configured can't be enforced.)
+	 * which plugins are configured can't be enforced.)
 	 */
 	CALL_HOOK(NS_QUERY_RESPOND_BEGIN, qctx);
 

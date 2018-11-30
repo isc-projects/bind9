@@ -237,8 +237,8 @@ struct dns_view {
 							   to log */
 
 	/* Registered module instances */
-	void				*modlist;
-	void				(*modlist_free)(isc_mem_t *, void **);
+	void				*plugins;
+	void				(*plugins_free)(isc_mem_t *, void **);
 
 	/* Hook table */
 	void				*hooktable;	/* ns_hooktable */

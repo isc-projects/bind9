@@ -46,7 +46,7 @@
 
 static const char *program = "named-checkconf";
 
-static bool loadhooks = true;
+static bool loadplugins = true;
 
 isc_log_t *logc = NULL;
 
@@ -590,7 +590,7 @@ main(int argc, char **argv) {
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != EOF) {
 		switch (c) {
 		case 'c':
-			loadhooks = false;
+			loadplugins = false;
 			break;
 
 		case 'd':
@@ -683,7 +683,7 @@ main(int argc, char **argv) {
 	    ISC_R_SUCCESS)
 		exit(1);
 
-	result = bind9_check_namedconf(config, loadhooks, logc, mctx);
+	result = bind9_check_namedconf(config, loadplugins, logc, mctx);
 	if (result != ISC_R_SUCCESS) {
 		exit_status = 1;
 	}

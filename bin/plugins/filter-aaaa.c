@@ -78,7 +78,7 @@ typedef struct filter_data {
 } filter_data_t;
 
 typedef struct filter_instance {
-	ns_module_t *module;
+	ns_plugin_t *module;
 	isc_mem_t *mctx;
 
 	/*
@@ -337,22 +337,23 @@ parse_parameters(filter_instance_t *inst, const char *parameters,
 }
 
 /**
- ** Mandatory hook API functions:
+ ** Mandatory plugin API functions:
  **
- ** - hook_destroy
- ** - hook_register
- ** - hook_version
+ ** - plugin_destroy
+ ** - plugin_register
+ ** - plugin_version
+ ** - plugin_check
  **/
 
 /*
- * Called by ns_module_load() to register hook functions into
- * a hook table.
+ * Called by ns_plugin_register() to initialize the plugin and
+ * register hook functions into the view hook table.
  */
 isc_result_t
-hook_register(const char *parameters,
-	      const void *cfg, const char *cfg_file, unsigned long cfg_line,
-	      isc_mem_t *mctx, isc_log_t *lctx, void *actx,
-	      ns_hooktable_t *hooktable, void **instp)
+plugin_register(const char *parameters,
+		const void *cfg, const char *cfg_file, unsigned long cfg_line,
+		isc_mem_t *mctx, isc_log_t *lctx, void *actx,
+		ns_hooktable_t *hooktable, void **instp)
 {
 	filter_instance_t *inst = NULL;
 	isc_result_t result;
@@ -399,16 +400,16 @@ hook_register(const char *parameters,
 
  cleanup:
 	if (result != ISC_R_SUCCESS && inst != NULL) {
-		hook_destroy((void **) &inst);
+		plugin_destroy((void **) &inst);
 	}
 
 	return (result);
 }
 
 isc_result_t
-hook_check(const char *parameters,
-	   const void *cfg, const char *cfg_file, unsigned long cfg_line,
-	   isc_mem_t *mctx, isc_log_t *lctx, void *actx)
+plugin_check(const char *parameters,
+	     const void *cfg, const char *cfg_file, unsigned long cfg_line,
+	     isc_mem_t *mctx, isc_log_t *lctx, void *actx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_parser_t *parser = NULL;
@@ -435,11 +436,11 @@ hook_check(const char *parameters,
 }
 
 /*
- * Called by ns_module_unload(); frees memory allocated by
+ * Called by ns_plugins_free(); frees memory allocated by
  * the module when it was registered.
  */
 void
-hook_destroy(void **instp) {
+plugin_destroy(void **instp) {
 	filter_instance_t *inst = (filter_instance_t *) *instp;
 
 	if (inst->ht != NULL) {
@@ -462,8 +463,8 @@ hook_destroy(void **instp) {
  * Returns hook module API version for compatibility checks.
  */
 int
-hook_version(void) {
-	return (NS_HOOK_VERSION);
+plugin_version(void) {
+	return (NS_PLUGIN_VERSION);
 }
 
 /**

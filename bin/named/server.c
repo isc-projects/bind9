@@ -1537,35 +1537,35 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 }
 
 static isc_result_t
-configure_hook(dns_view_t *view, const cfg_obj_t *hook,
-	       const cfg_obj_t *config)
+configure_plugin(dns_view_t *view, const cfg_obj_t *plugin,
+		 const cfg_obj_t *config)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *obj;
 	const char *type, *library;
 	const char *parameters = NULL;
 
-	/* Get the path to the hook module. */
-	obj = cfg_tuple_get(hook, "type");
+	/* Get the path to the plugin module. */
+	obj = cfg_tuple_get(plugin, "type");
 	type = cfg_obj_asstring(obj);
 
-	/* Only query hooks are supported currently. */
+	/* Only query plugins are supported currently. */
 	if (strcasecmp(type, "query") != 0) {
 		cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
-			    "unsupported hook type");
+			    "unsupported plugin type");
 		return (ISC_R_FAILURE);
 	}
 
-	library = cfg_obj_asstring(cfg_tuple_get(hook, "library"));
+	library = cfg_obj_asstring(cfg_tuple_get(plugin, "library"));
 
-	obj = cfg_tuple_get(hook, "parameters");
+	obj = cfg_tuple_get(plugin, "parameters");
 	if (obj != NULL && cfg_obj_isstring(obj)) {
 		parameters = cfg_obj_asstring(obj);
 	}
-	result = ns_module_load(library, parameters,
-				config, cfg_obj_file(obj), cfg_obj_line(obj),
-				named_g_mctx, named_g_lctx, named_g_aclconfctx,
-				view);
+	result = ns_plugin_register(library, parameters, config,
+				    cfg_obj_file(obj), cfg_obj_line(obj),
+				    named_g_mctx, named_g_lctx,
+				    named_g_aclconfctx, view);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -3714,7 +3714,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	const cfg_obj_t *dlvobj = NULL;
 	unsigned int dlzargc;
 	char **dlzargv;
-	const cfg_obj_t *dyndb_list, *hook_list;
+	const cfg_obj_t *dyndb_list, *plugin_list;
 	const cfg_obj_t *disabled;
 	const cfg_obj_t *obj, *obj2;
 	const cfg_listelt_t *element;
@@ -5296,33 +5296,33 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 #endif
 
 	/*
-	 * Load hook modules.
+	 * Load plugins.
 	 */
-	hook_list = NULL;
+	plugin_list = NULL;
 	if (voptions != NULL) {
-		(void)cfg_map_get(voptions, "hook", &hook_list);
+		(void)cfg_map_get(voptions, "plugin", &plugin_list);
 	} else {
-		(void)cfg_map_get(config, "hook", &hook_list);
+		(void)cfg_map_get(config, "plugin", &plugin_list);
 	}
 
 #ifdef HAVE_DLOPEN
-	if (hook_list != NULL) {
+	if (plugin_list != NULL) {
 		INSIST(view->hooktable == NULL);
 		CHECK(ns_hooktable_create(view->mctx,
 				  (ns_hooktable_t **) &view->hooktable));
 		view->hooktable_free = ns_hooktable_free;
 
-		ns_modlist_create(view->mctx, (ns_modlist_t **)&view->modlist);
-		view->modlist_free = ns_modlist_free;
+		ns_plugins_create(view->mctx, (ns_plugins_t **)&view->plugins);
+		view->plugins_free = ns_plugins_free;
 	}
 
-	for (element = cfg_list_first(hook_list);
+	for (element = cfg_list_first(plugin_list);
 	     element != NULL;
 	     element = cfg_list_next(element))
 	{
-		const cfg_obj_t *hook = cfg_listelt_value(element);
+		const cfg_obj_t *plugin = cfg_listelt_value(element);
 
-		CHECK(configure_hook(view, hook, config));
+		CHECK(configure_plugin(view, plugin, config));
 	}
 #endif
 
@@ -8097,7 +8097,7 @@ load_configuration(const char *filename, named_server_t *server,
 	/*
 	 * Check the validity of the configuration.
 	 *
-	 * (Ignore hook module parameters for now; they will be
+	 * (Ignore plugin parameters for now; they will be
 	 * checked later when the modules are actually loaded and
 	 * registered.)
 	 */

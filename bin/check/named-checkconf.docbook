@@ -119,8 +119,8 @@
         <listitem>
           <para>
 	    Check "core" configuration only. This suppresses the loading
-	    of hook modules, and causes all parameters to
-	    <command>hook</command> statements to be ignored.
+	    of plugin modules, and causes all parameters to
+	    <command>plugin</command> statements to be ignored.
           </para>
         </listitem>
       </varlistentry>
