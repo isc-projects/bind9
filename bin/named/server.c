@@ -1538,7 +1538,7 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 
 static isc_result_t
 configure_hook(dns_view_t *view, const cfg_obj_t *hook,
-	       const cfg_obj_t *config, ns_hookctx_t *hctx)
+	       const cfg_obj_t *config)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_obj_t *obj;
@@ -1563,9 +1563,9 @@ configure_hook(dns_view_t *view, const cfg_obj_t *hook,
 		parameters = cfg_obj_asstring(obj);
 	}
 	result = ns_module_load(library, parameters,
-				cfg_obj_file(obj), cfg_obj_line(obj),
-				config, named_g_aclconfctx,
-				hctx, view->modlist, view->hooktable);
+				config, cfg_obj_file(obj), cfg_obj_line(obj),
+				named_g_mctx, named_g_lctx, named_g_aclconfctx,
+				view);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -3755,7 +3755,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	bool old_rpz_ok = false;
 	isc_dscp_t dscp4 = -1, dscp6 = -1;
 	dns_dyndbctx_t *dctx = NULL;
-	ns_hookctx_t *hctx = NULL;
 	unsigned int resolver_param;
 	dns_ntatable_t *ntatable = NULL;
 	const char *qminmode = NULL;
@@ -5308,8 +5307,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 #ifdef HAVE_DLOPEN
 	if (hook_list != NULL) {
-		CHECK(ns_hook_createctx(mctx, view, &hctx));
-
 		INSIST(view->hooktable == NULL);
 		CHECK(ns_hooktable_create(view->mctx,
 				  (ns_hooktable_t **) &view->hooktable));
@@ -5325,7 +5322,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	{
 		const cfg_obj_t *hook = cfg_listelt_value(element);
 
-		CHECK(configure_hook(view, hook, config, hctx));
+		CHECK(configure_hook(view, hook, config));
 	}
 #endif
 
@@ -5579,9 +5576,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 	if (dctx != NULL) {
 		dns_dyndb_destroyctx(&dctx);
-	}
-	if (hctx != NULL) {
-		ns_hook_destroyctx(&hctx);
 	}
 
 	return (result);

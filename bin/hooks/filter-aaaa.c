@@ -294,8 +294,8 @@ check_syntax(cfg_obj_t *fmap, const void *cfg,
 
 static isc_result_t
 parse_parameters(filter_instance_t *inst, const char *parameters,
-		 const char *cfg_file, unsigned long cfg_line,
-		 const void *cfg, void *actx, ns_hookctx_t *hctx)
+		 const void *cfg, const char *cfg_file, unsigned long cfg_line,
+		 isc_mem_t *mctx, isc_log_t *lctx, void *actx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_parser_t *parser = NULL;
@@ -303,14 +303,14 @@ parse_parameters(filter_instance_t *inst, const char *parameters,
 	const cfg_obj_t *obj = NULL;
 	isc_buffer_t b;
 
-	CHECK(cfg_parser_create(hctx->mctx, hctx->lctx, &parser));
+	CHECK(cfg_parser_create(mctx, lctx, &parser));
 
 	isc_buffer_constinit(&b, parameters, strlen(parameters));
 	isc_buffer_add(&b, strlen(parameters));
 	CHECK(cfg_parse_buffer4(parser, &b, cfg_file, cfg_line,
 				&cfg_type_parameters, 0, &param_obj));
 
-	CHECK(check_syntax(param_obj, cfg, hctx->mctx, hctx->lctx, actx));
+	CHECK(check_syntax(param_obj, cfg, mctx, lctx, actx));
 
 	CHECK(parse_filter_aaaa_on(param_obj, "filter-aaaa-on-v4",
 				   &inst->v4_aaaa));
@@ -320,10 +320,10 @@ parse_parameters(filter_instance_t *inst, const char *parameters,
 	result = cfg_map_get(param_obj, "filter-aaaa", &obj);
 	if (result == ISC_R_SUCCESS) {
 		CHECK(cfg_acl_fromconfig(obj, (const cfg_obj_t *) cfg,
-					 hctx->lctx, (cfg_aclconfctx_t *) actx,
-					 hctx->mctx, 0, &inst->aaaa_acl));
+					 lctx, (cfg_aclconfctx_t *) actx,
+					 mctx, 0, &inst->aaaa_acl));
 	} else {
-		CHECK(dns_acl_any(hctx->mctx, &inst->aaaa_acl));
+		CHECK(dns_acl_any(mctx, &inst->aaaa_acl));
 	}
 
  cleanup:
@@ -350,33 +350,32 @@ parse_parameters(filter_instance_t *inst, const char *parameters,
  */
 isc_result_t
 hook_register(const char *parameters,
-	      const char *cfg_file, unsigned long cfg_line,
-	      const void *cfg, void *actx, ns_hookctx_t *hctx,
+	      const void *cfg, const char *cfg_file, unsigned long cfg_line,
+	      isc_mem_t *mctx, isc_log_t *lctx, void *actx,
 	      ns_hooktable_t *hooktable, void **instp)
 {
 	filter_instance_t *inst = NULL;
 	isc_result_t result;
 
 
-	isc_log_write(hctx->lctx, NS_LOGCATEGORY_GENERAL,
+	isc_log_write(lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 		      "registering 'filter-aaaa' "
 		      "module from %s:%lu, %s parameters",
 		      cfg_file, cfg_line, parameters != NULL ? "with" : "no");
 
-	inst = isc_mem_get(hctx->mctx, sizeof(*inst));
+	inst = isc_mem_get(mctx, sizeof(*inst));
 	memset(inst, 0, sizeof(*inst));
-	isc_mem_attach(hctx->mctx, &inst->mctx);
+	isc_mem_attach(mctx, &inst->mctx);
 
 	if (parameters != NULL) {
-		CHECK(parse_parameters(inst, parameters,
-				       cfg_file, cfg_line,
-				       cfg, actx, hctx));
+		CHECK(parse_parameters(inst, parameters, cfg, cfg_file,
+				       cfg_line, mctx, lctx, actx));
 	}
 
-	CHECK(isc_mempool_create(hctx->mctx, sizeof(filter_data_t),
+	CHECK(isc_mempool_create(mctx, sizeof(filter_data_t),
 				 &inst->datapool));
-	CHECK(isc_ht_init(&inst->ht, hctx->mctx, 16));
+	CHECK(isc_ht_init(&inst->ht, mctx, 16));
 
 	/*
 	 * Fill the mempool with 1K filter_aaaa state objects at
@@ -394,7 +393,7 @@ hook_register(const char *parameters,
 	/*
 	 * Set hook points in the view's hooktable.
 	 */
-	install_hooks(hooktable, hctx->mctx, inst);
+	install_hooks(hooktable, mctx, inst);
 
 	*instp = inst;
 
@@ -407,8 +406,9 @@ hook_register(const char *parameters,
 }
 
 isc_result_t
-hook_check(const char *parameters, const char *cfg_file, unsigned long cfg_line,
-	   const void *cfg, isc_mem_t *mctx, isc_log_t *lctx, void *actx)
+hook_check(const char *parameters,
+	   const void *cfg, const char *cfg_file, unsigned long cfg_line,
+	   isc_mem_t *mctx, isc_log_t *lctx, void *actx)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	cfg_parser_t *parser = NULL;

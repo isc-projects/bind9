@@ -348,32 +348,32 @@ unload_library(ns_module_t **hmodp) {
 #endif	/* HAVE_DLFCN_H */
 
 isc_result_t
-ns_module_load(const char *modpath, const char *parameters,
-	       const char *cfg_file, unsigned long cfg_line,
-	       const void *cfg, void *actx, ns_hookctx_t *hctx,
-	       ns_modlist_t *modlist, ns_hooktable_t *hooktable)
+ns_module_load(const char *modpath, const char *parameters, const void *cfg,
+	       const char *cfg_file, unsigned long cfg_line, isc_mem_t *mctx,
+	       isc_log_t *lctx, void *actx, dns_view_t *view)
 {
 	isc_result_t result;
 	ns_module_t *hmod = NULL;
 
-	REQUIRE(NS_HOOKCTX_VALID(hctx));
-	REQUIRE(modlist != NULL);
-	REQUIRE(hooktable != NULL);
+	REQUIRE(mctx != NULL);
+	REQUIRE(lctx != NULL);
+	REQUIRE(view != NULL);
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 		      "loading module '%s'", modpath);
 
-	CHECK(load_library(hctx->mctx, modpath, &hmod));
+	CHECK(load_library(mctx, modpath, &hmod));
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
 		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
 		      "registering module '%s'", modpath);
 
-	CHECK(hmod->register_func(parameters, cfg_file, cfg_line,
-				  cfg, actx, hctx, hooktable, &hmod->inst));
+	CHECK(hmod->register_func(parameters, cfg, cfg_file, cfg_line,
+				  mctx, lctx, actx, view->hooktable,
+				  &hmod->inst));
 
-	ISC_LIST_APPEND(*modlist, hmod, link);
+	ISC_LIST_APPEND(*(ns_modlist_t *)view->modlist, hmod, link);
 
 cleanup:
 	if (result != ISC_R_SUCCESS && hmod != NULL) {
@@ -385,16 +385,16 @@ cleanup:
 
 isc_result_t
 ns_module_check(const char *modpath, const char *parameters,
-		const char *cfg_file, unsigned long cfg_line,
-		const void *cfg, isc_mem_t *mctx, isc_log_t *lctx, void *actx)
+		const void *cfg, const char *cfg_file, unsigned long cfg_line,
+		isc_mem_t *mctx, isc_log_t *lctx, void *actx)
 {
 	isc_result_t result;
 	ns_module_t *hmod = NULL;
 
 	CHECK(load_library(mctx, modpath, &hmod));
 
-	result = hmod->check_func(parameters, cfg_file, cfg_line,
-				  cfg, mctx, lctx, actx);
+	result = hmod->check_func(parameters, cfg, cfg_file, cfg_line,
+				  mctx, lctx, actx);
 
 cleanup:
 	if (hmod != NULL) {
@@ -402,41 +402,6 @@ cleanup:
 	}
 
 	return (result);
-}
-
-isc_result_t
-ns_hook_createctx(isc_mem_t *mctx, dns_view_t *view, ns_hookctx_t **hctxp) {
-	ns_hookctx_t *hctx = NULL;
-
-	REQUIRE(hctxp != NULL && *hctxp == NULL);
-
-	hctx = isc_mem_get(mctx, sizeof(*hctx));
-	memset(hctx, 0, sizeof(*hctx));
-	hctx->lctx = ns_lctx;
-
-	dns_view_attach(view, &hctx->view);
-
-	isc_mem_attach(mctx, &hctx->mctx);
-	hctx->magic = NS_HOOKCTX_MAGIC;
-
-	*hctxp = hctx;
-
-	return (ISC_R_SUCCESS);
-}
-
-void
-ns_hook_destroyctx(ns_hookctx_t **hctxp) {
-	ns_hookctx_t *hctx = NULL;
-
-	REQUIRE(hctxp != NULL && NS_HOOKCTX_VALID(*hctxp));
-
-	hctx = *hctxp;
-	*hctxp = NULL;
-
-	hctx->magic = 0;
-
-	dns_view_detach(&hctx->view);
-	isc_mem_putanddetach(&hctx->mctx, hctx, sizeof(*hctx));
 }
 
 void

@@ -3703,9 +3703,9 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		if (obj != NULL && cfg_obj_isstring(obj)) {
 			parameters = cfg_obj_asstring(obj);
 		}
-		tresult = ns_module_check(library, parameters,
+		tresult = ns_module_check(library, parameters, config,
 					  cfg_obj_file(obj), cfg_obj_line(obj),
-					  config, mctx, logctx, actx);
+					  mctx, logctx, actx);
 		if (tresult != ISC_R_SUCCESS) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "%s: module check failed: %s",

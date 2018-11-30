@@ -222,25 +222,6 @@ typedef ns_hooklist_t ns_hooktable_t[NS_HOOKPOINTS_COUNT];
  */
 LIBNS_EXTERNAL_DATA extern ns_hooktable_t *ns__hook_table;
 
-/*!
- * Context for initializing a hook module.
- *
- * This structure passes data to which a hook module will need
- * access -- server memory context, hash initializer, log context, etc.
- * The structure doesn't persist beyond configuring the hook module.
- * The module's register function should attach to all reference-counted
- * variables and its destroy function should detach from them.
- */
-typedef struct ns_hookctx {
-	unsigned int		magic;
-	dns_view_t		*view;
-	isc_mem_t		*mctx;
-	isc_log_t		*lctx;
-} ns_hookctx_t;
-
-#define NS_HOOKCTX_MAGIC	ISC_MAGIC('H', 'k', 'c', 'x')
-#define NS_HOOKCTX_VALID(h)	ISC_MAGIC_VALID(h, NS_HOOKCTX_MAGIC)
-
 /*
  * API version
  *
@@ -256,8 +237,8 @@ typedef struct ns_hookctx {
 
 typedef isc_result_t
 ns_hook_register_t(const char *parameters,
-		   const char *file, unsigned long line,
-		   const void *cfg, void *actx, ns_hookctx_t *hctx,
+		   const void *cfg, const char *file, unsigned long line,
+		   isc_mem_t *mctx, isc_log_t *lctx, void *actx,
 		   ns_hooktable_t *hooktable, void **instp);
 /*%<
  * Called when registering a new module.
@@ -282,8 +263,9 @@ ns_hook_destroy_t(void **instp);
  */
 
 typedef isc_result_t
-ns_hook_check_t(const char *parameters, const char *file, unsigned long line,
-		const void *cfg, isc_mem_t *mctx, isc_log_t *lctx, void *actx);
+ns_hook_check_t(const char *parameters,
+		const void *cfg, const char *file, unsigned long line,
+		isc_mem_t *mctx, isc_log_t *lctx, void *actx);
 /*%<
  * Check the validity of 'parameters'.
  */
@@ -307,18 +289,10 @@ ns_hook_register_t hook_register;
 ns_hook_version_t hook_version;
 
 isc_result_t
-ns_hook_createctx(isc_mem_t *mctx, dns_view_t *view, ns_hookctx_t **hctxp);
-void
-ns_hook_destroyctx(ns_hookctx_t **hctxp);
-/*%<
- * Create/destroy a hook module context.
- */
-
-isc_result_t
 ns_module_load(const char *modpath, const char *parameters,
-	       const char *cfg_file, unsigned long cfg_line,
-	       const void *cfg, void *actx, ns_hookctx_t *hctx,
-	       ns_modlist_t *modlist, ns_hooktable_t *hooktable);
+	       const void *cfg, const char *cfg_file, unsigned long cfg_line,
+	       isc_mem_t *mctx, isc_log_t *lctx, void *actx,
+	       dns_view_t *view);
 /*%<
  * Load the module specified from the file 'modpath', and
  * register an instance using 'parameters'.
@@ -330,17 +304,14 @@ ns_module_load(const char *modpath, const char *parameters,
  * context, respectively; they are passed as void * here in order to
  * prevent this library from having a dependency on libisccfg).
  *
- * 'hctx' is the hook context and 'hooktable' is the hook table
- * into which hook points should be registered.
- *
  * 'instp' will be left pointing to the instance of the module
  * created by the module's hook_register function.
  */
 
 isc_result_t
 ns_module_check(const char *modpath, const char *parameters,
-		const char *cfg_file, unsigned long cfg_line,
-		const void *cfg, isc_mem_t *mctx, isc_log_t *lctx, void *actx);
+		const void *cfg, const char *cfg_file, unsigned long cfg_line,
+		isc_mem_t *mctx, isc_log_t *lctx, void *actx);
 /*%<
  * Open the module at 'modpath' and check the validity of
  * 'parameters', logging any errors or warnings found, then
