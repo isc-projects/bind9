@@ -864,6 +864,7 @@
 ./bin/tests/system/coverage/10-check-ksk/expect	X	2014,2018
 ./bin/tests/system/coverage/11-cutoff/README	X	2014,2018
 ./bin/tests/system/coverage/11-cutoff/expect	X	2014,2018
+./bin/tests/system/coverage/12-ksk-deletion/expect	X	2018
 ./bin/tests/system/coverage/clean.sh		SH	2013,2014,2016,2018
 ./bin/tests/system/coverage/prereq.sh		SH	2014,2016,2018
 ./bin/tests/system/coverage/setup.sh		SH	2013,2014,2016,2017,2018
