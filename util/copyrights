@@ -1510,6 +1510,7 @@
 ./doc/arm/options.grammar.xml			SGML	2018
 ./doc/arm/pkcs11.xml				SGML	2010,2012,2013,2014,2015,2016,2018
 ./doc/arm/pkgversion.xml.in			SGML	2015,2016,2018
+./doc/arm/plugins.xml				SGML	2018
 ./doc/arm/redirect.zoneopt.xml			SGML	2018
 ./doc/arm/releaseinfo.xml.in			SGML	2015,2016,2018
 ./doc/arm/server.grammar.xml			SGML	2018

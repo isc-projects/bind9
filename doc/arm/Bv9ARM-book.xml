@@ -1325,6 +1325,9 @@ controls {
 	</informaltable>
       </section>
     </section>
+
+    <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="plugins.xml"/>
+
   </chapter>
 
   <chapter xml:id="Bv9ARM.ch04"><info><title>Advanced DNS Features</title></info>
