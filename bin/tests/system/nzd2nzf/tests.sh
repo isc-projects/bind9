@@ -57,7 +57,7 @@ echo_i "deleting _default.nzd database"
 rm -f ns1/_default.nzd
 
 echo_i "starting ns1 which should migrate the .nzf to .nzd"
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns1
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} nzd2nzf ns1
 
 n=`expr $n + 1`
 echo_i "querying for zone data from migrated zone config ($n)"

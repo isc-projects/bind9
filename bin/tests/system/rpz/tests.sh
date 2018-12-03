@@ -118,7 +118,7 @@ restart () {
 	    cp -f ns$1/base.db $NM
 	done
     fi
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns$1
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz ns$1
     load_db
 }
 

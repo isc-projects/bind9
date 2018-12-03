@@ -26,7 +26,7 @@ run_server() {
 
     echo_i "starting resolver using named.$TESTNAME.conf"
     cp -f ns2/named.$TESTNAME.conf ns2/named.conf
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpzrecurse ns2
 }
 
 run_query() {
@@ -122,7 +122,7 @@ expect_recurse 3f 2
 # Group 4
 testlist="aa ap bf"
 values="1 16 32"
-# Uncomment the following to test every skip value instead of 
+# Uncomment the following to test every skip value instead of
 # only a sample of values
 #
 #testlist="aa ab ac ad ae af ag ah ai aj ak al am an ao ap \

@@ -34,7 +34,7 @@ status=`expr $status + $ret`
 
 echo "I:using resolv.conf"
 ret=0
-for i in 0 1 2 3 4 5 6 7 8 9 
+for i in 0 1 2 3 4 5 6 7 8 9
 do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
@@ -49,11 +49,11 @@ $PERL $SYSTEMTESTTOP/stop.pl . lwresd1
 
 mv lwresd1/lwresd.run lwresd1/lwresd.run.resolv
 
-$PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-X lwresd.lock -m record,size,mctx -c lwresd.conf -d 99 -g"
+$PERL $SYSTEMTESTTOP/start.pl lwresd lwresd1 -- "-X lwresd.lock -m record,size,mctx -c lwresd.conf -d 99 -g"
 
 echo "I:using lwresd.conf"
 ret=0
-for i in 0 1 2 3 4 5 6 7 8 9 
+for i in 0 1 2 3 4 5 6 7 8 9
 do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
@@ -68,11 +68,11 @@ $PERL $SYSTEMTESTTOP/stop.pl . lwresd1
 
 mv lwresd1/lwresd.run lwresd1/lwresd.run.lwresd
 
-$PERL $SYSTEMTESTTOP/start.pl . lwresd1 -- "-X lwresd.lock -m record,size,mctx -c nosearch.conf -d 99 -g"
+$PERL $SYSTEMTESTTOP/start.pl lwresd lwresd1 -- "-X lwresd.lock -m record,size,mctx -c nosearch.conf -d 99 -g"
 
 echo "I:using nosearch.conf"
 ret=0
-for i in 0 1 2 3 4 5 6 7 8 9 
+for i in 0 1 2 3 4 5 6 7 8 9
 do
 	grep ' running$' lwresd1/lwresd.run > /dev/null && break
 	sleep 1
