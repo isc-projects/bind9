@@ -1989,7 +1989,7 @@ echo_i "waiting till 14s have passed since NTAs were added before restarting ns4
 $PERL -e 'my $delay = '$start' + 14 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 
 if
-        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns4
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} dnssec ns4
 then
         echo_i "restarted server ns4"
 else
@@ -2057,7 +2057,7 @@ echo "secure.example. regular $future" > ns4/_default.nta
 start=`$PERL -e 'print time()."\n";'`
 
 if
-        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns4
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} dnssec ns4
 then
         echo_i "restarted server ns4"
 else
@@ -2114,7 +2114,7 @@ echo "secure.example. forced $future" > ns4/_default.nta
 start=`$PERL -e 'print time()."\n";'`
 
 if
-        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns4
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} dnssec ns4
 then
         echo_i "restarted server ns4"
 else
@@ -2163,7 +2163,7 @@ echo "secure.example. forced $future" > ns4/_default.nta
 added=`$PERL -e 'print time()."\n";'`
 
 if
-        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns4
+        $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} dnssec ns4
 then
         echo_i "restarted server ns4"
 else
