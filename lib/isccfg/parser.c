@@ -3457,3 +3457,51 @@ cfg_parser_mapadd(cfg_parser_t *pctx, cfg_obj_t *mapobj,
 
 	return (result);
 }
+
+isc_result_t
+cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
+		       isc_log_t *lctx, pluginlist_cb_t *callback,
+		       void *callback_data)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_listelt_t *element;
+
+	REQUIRE(config != NULL);
+	REQUIRE(callback != NULL);
+
+	for (element = cfg_list_first(list);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const cfg_obj_t *plugin = cfg_listelt_value(element);
+		const cfg_obj_t *obj;
+		const char *type, *library;
+		const char *parameters = NULL;
+
+		/* Get the path to the plugin module. */
+		obj = cfg_tuple_get(plugin, "type");
+		type = cfg_obj_asstring(obj);
+
+		/* Only query plugins are supported currently. */
+		if (strcasecmp(type, "query") != 0) {
+			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
+				    "unsupported plugin type");
+			return (ISC_R_FAILURE);
+		}
+
+		library = cfg_obj_asstring(cfg_tuple_get(plugin, "library"));
+
+		obj = cfg_tuple_get(plugin, "parameters");
+		if (obj != NULL && cfg_obj_isstring(obj)) {
+			parameters = cfg_obj_asstring(obj);
+		}
+
+		result = callback(config, obj, library, parameters,
+				  callback_data);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+	}
+
+	return (result);
+}

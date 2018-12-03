@@ -1535,45 +1535,6 @@ configure_dyndb(const cfg_obj_t *dyndb, isc_mem_t *mctx,
 			      name, isc_result_totext(result));
 	return (result);
 }
-
-static isc_result_t
-configure_plugin(dns_view_t *view, const cfg_obj_t *plugin,
-		 const cfg_obj_t *config)
-{
-	isc_result_t result = ISC_R_SUCCESS;
-	const cfg_obj_t *obj;
-	const char *type, *library;
-	const char *parameters = NULL;
-
-	/* Get the path to the plugin module. */
-	obj = cfg_tuple_get(plugin, "type");
-	type = cfg_obj_asstring(obj);
-
-	/* Only query plugins are supported currently. */
-	if (strcasecmp(type, "query") != 0) {
-		cfg_obj_log(obj, named_g_lctx, ISC_LOG_ERROR,
-			    "unsupported plugin type");
-		return (ISC_R_FAILURE);
-	}
-
-	library = cfg_obj_asstring(cfg_tuple_get(plugin, "library"));
-
-	obj = cfg_tuple_get(plugin, "parameters");
-	if (obj != NULL && cfg_obj_isstring(obj)) {
-		parameters = cfg_obj_asstring(obj);
-	}
-	result = ns_plugin_register(library, parameters, config,
-				    cfg_obj_file(obj), cfg_obj_line(obj),
-				    named_g_mctx, named_g_lctx,
-				    named_g_aclconfctx, view);
-	if (result != ISC_R_SUCCESS) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			      "%s: module configuration failed: %s",
-			      library, isc_result_totext(result));
-	}
-	return (result);
-}
 #endif
 
 
@@ -3686,6 +3647,35 @@ create_mapped_acl(void) {
 	return (result);
 }
 
+#ifdef HAVE_DLOPEN
+/*%
+ * A callback for the cfg_pluginlist_foreach() call in configure_view() below.
+ * If registering any plugin fails, registering subsequent ones is not
+ * attempted.
+ */
+static isc_result_t
+register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
+		    const char *plugin_path, const char *parameters,
+		    void *callback_data)
+{
+	dns_view_t *view = callback_data;
+	isc_result_t result;
+
+	result = ns_plugin_register(plugin_path, parameters, config,
+				    cfg_obj_file(obj), cfg_obj_line(obj),
+				    named_g_mctx, named_g_lctx,
+				    named_g_aclconfctx, view);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "%s: plugin configuration failed: %s",
+			      plugin_path, isc_result_totext(result));
+	}
+
+	return (result);
+}
+#endif
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -5314,15 +5304,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 		ns_plugins_create(view->mctx, (ns_plugins_t **)&view->plugins);
 		view->plugins_free = ns_plugins_free;
-	}
 
-	for (element = cfg_list_first(plugin_list);
-	     element != NULL;
-	     element = cfg_list_next(element))
-	{
-		const cfg_obj_t *plugin = cfg_listelt_value(element);
-
-		CHECK(configure_plugin(view, plugin, config));
+		CHECK(cfg_pluginlist_foreach(config, plugin_list, named_g_lctx,
+					     register_one_plugin, view));
 	}
 #endif
 

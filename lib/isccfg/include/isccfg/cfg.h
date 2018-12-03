@@ -555,6 +555,47 @@ const char *
 cfg_map_nextclause(const cfg_type_t *map, const void **clauses,
 		   unsigned int *idx);
 
+typedef isc_result_t
+(pluginlist_cb_t)(const cfg_obj_t *config, const cfg_obj_t *obj,
+		  const char *plugin_path, const char *parameters,
+		  void *callback_data);
+/*%<
+ * Function prototype for the callback used with cfg_pluginlist_foreach().
+ * Called once for each element of the list passed to cfg_pluginlist_foreach().
+ * If this callback returns anything else than #ISC_R_SUCCESS, no further list
+ * elements will be processed.
+ *
+ * \li 'config' - the 'config' object passed to cfg_pluginlist_foreach()
+ * \li 'obj' - object representing the specific "plugin" stanza to be processed
+ * \li 'plugin_path' - path to the shared object with plugin code
+ * \li 'parameters' - configuration text for the plugin
+ * \li 'callback_data' - the pointer passed to cfg_pluginlist_foreach()
+ */
+
+isc_result_t
+cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
+		       isc_log_t *lctx, pluginlist_cb_t callback,
+		       void *callback_data);
+/*%<
+ * For every "plugin" stanza present in 'list' (which in turn is a part of
+ * 'config'), invoke the given 'callback', passing 'callback_data' to it along
+ * with a fixed set of arguments (see the definition of the #pluginlist_cb_t
+ * type).  Use logging context 'lctx' for logging error messages.  Interrupt
+ * processing if 'callback' returns something else than #ISC_R_SUCCESS for any
+ * element of 'list'.
+ *
+ * Requires:
+ *
+ * \li 'config' is not NULL
+ * \li 'callback' is not NULL
+ *
+ * Returns:
+ *
+ * \li #ISC_R_SUCCESS if 'callback' returned #ISC_R_SUCCESS for all elements of
+ *     'list'
+ * \li first 'callback' return value which was not #ISC_R_SUCCESS otherwise
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISCCFG_CFG_H */

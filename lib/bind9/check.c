@@ -3348,6 +3348,46 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	return (result);
 }
 
+#ifdef HAVE_DLOPEN
+/*%
+ * Data structure used for the 'callback_data' argument to check_one_plugin().
+ */
+struct check_one_plugin_data {
+	isc_mem_t *mctx;
+	isc_log_t *lctx;
+	cfg_aclconfctx_t *actx;
+	isc_result_t *check_result;
+};
+
+/*%
+ * A callback for the cfg_pluginlist_foreach() call in check_viewconf() below.
+ * Since the point is to check configuration of all plugins even when
+ * processing some of them fails, always return ISC_R_SUCCESS and indicate any
+ * check failures through the 'check_result' variable passed in via the
+ * 'callback_data' structure.
+ */
+static isc_result_t
+check_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
+		 const char *plugin_path, const char *parameters,
+		 void *callback_data)
+{
+	struct check_one_plugin_data *data = callback_data;
+	isc_result_t result;
+
+	result = ns_plugin_check(plugin_path, parameters, config,
+				 cfg_obj_file(obj), cfg_obj_line(obj),
+				 data->mctx, data->lctx, data->actx);
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, data->lctx, ISC_LOG_ERROR,
+			    "%s: plugin check failed: %s",
+			    plugin_path, isc_result_totext(result));
+		*data->check_result = result;
+	}
+
+	return (ISC_R_SUCCESS);
+}
+#endif
+
 static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
@@ -3677,39 +3717,18 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	}
 
 #ifdef HAVE_DLOPEN
-	for (element = cfg_list_first(plugin_list);
-	     element != NULL;
-	     element = cfg_list_next(element))
 	{
-		const cfg_obj_t *plugin = cfg_listelt_value(element);
+		struct check_one_plugin_data check_one_plugin_data = {
+			.mctx = mctx,
+			.lctx = logctx,
+			.actx = actx,
+			.check_result = &tresult,
+		};
 
-		const char *type, *library;
-		const char *parameters = NULL;
-
-		/* Get the path to the plugin module. */
-		obj = cfg_tuple_get(plugin, "type");
-		type = cfg_obj_asstring(obj);
-
-		/* Only query plugins are supported currently. */
-		if (strcasecmp(type, "query") != 0) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "unsupported plugin type");
-			return (ISC_R_FAILURE);
-		}
-
-		library = cfg_obj_asstring(cfg_tuple_get(plugin, "library"));
-
-		obj = cfg_tuple_get(plugin, "parameters");
-		if (obj != NULL && cfg_obj_isstring(obj)) {
-			parameters = cfg_obj_asstring(obj);
-		}
-		tresult = ns_plugin_check(library, parameters, config,
-					  cfg_obj_file(obj), cfg_obj_line(obj),
-					  mctx, logctx, actx);
+		(void)cfg_pluginlist_foreach(config, plugin_list, logctx,
+					     check_one_plugin,
+					     &check_one_plugin_data);
 		if (tresult != ISC_R_SUCCESS) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "%s: module check failed: %s",
-				    library, isc_result_totext(tresult));
 			result = tresult;
 		}
 	}
