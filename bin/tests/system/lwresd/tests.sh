@@ -14,6 +14,8 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+common_options="-D lwresd-lwresd1 -X lwresd.lock -m record,size,mctx -T clienttest -d 99 -g -U 4 -i lwresd.pid -P 9210 -p 5300"
+
 status=0
 echo "I:waiting for nameserver to load"
 for i in 0 1 2 3 4 5 6 7 8 9
@@ -49,7 +51,7 @@ $PERL $SYSTEMTESTTOP/stop.pl lwresd lwresd1
 
 mv lwresd1/lwresd.run lwresd1/lwresd.run.resolv
 
-$PERL $SYSTEMTESTTOP/start.pl lwresd lwresd1 -- "-X lwresd.lock -m record,size,mctx -c lwresd.conf -d 99 -g"
+$PERL $SYSTEMTESTTOP/start.pl --restart lwresd lwresd1 -- "-c lwresd.conf $common_options"
 
 echo "I:using lwresd.conf"
 ret=0
@@ -68,7 +70,7 @@ $PERL $SYSTEMTESTTOP/stop.pl lwresd lwresd1
 
 mv lwresd1/lwresd.run lwresd1/lwresd.run.lwresd
 
-$PERL $SYSTEMTESTTOP/start.pl lwresd lwresd1 -- "-X lwresd.lock -m record,size,mctx -c nosearch.conf -d 99 -g"
+$PERL $SYSTEMTESTTOP/start.pl --restart lwresd lwresd1 -- "-c nosearch.conf $common_options"
 
 echo "I:using nosearch.conf"
 ret=0

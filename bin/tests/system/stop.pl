@@ -69,12 +69,15 @@ my $RNDC = $ENV{RNDC};
 
 my @ns;
 my @ans;
+my @lwresd;
 
 if ($server_arg) {
 	if ($server_arg =~ /^ns/) {
 		push(@ns, $server_arg);
 	} elsif ($server_arg =~ /^ans/) {
 		push(@ans, $server_arg);
+	} elsif ($server_arg =~ /^lwresd/) {
+		push(@lwresd, $server_arg);
 	} else {
 		print "$0: ns or ans directory expected";
 		print "I:$test:failed";
@@ -87,6 +90,7 @@ if ($server_arg) {
 
 	@ns = grep /^ns[0-9]*$/, @files;
 	@ans = grep /^ans[0-9]*$/, @files;
+	@lwresd = grep /^lwresd[0-9]*$/, @files;
 }
 
 # Stop the server(s), pass 1: rndc.
@@ -111,8 +115,14 @@ foreach my $name(@ans) {
 
 @ans = wait_for_servers(60, @ans);
 
+foreach my $name(@lwresd) {
+	stop_signal($name, "TERM");
+}
+
+@lwresd = wait_for_servers(60, @lwresd);
+
 # Pass 3: SIGABRT
-foreach my $name (@ns, @ans) {
+foreach my $name (@ns, @ans, @lwresd) {
 	print "I:$test:$name didn't die when sent a SIGTERM\n";
 	stop_signal($name, "ABRT");
 	$errors = 1;
@@ -128,6 +138,7 @@ sub server_pid_file {
 
 	return $testdir . "/" . $server . "/named.pid" if ($server =~ /^ns/);
 	return $testdir . "/" . $server . "/ans.pid" if ($server =~ /^ans/);
+	return $testdir . "/" . $server . "/lwresd.pid" if ($server =~ /^lwresd/);
 
 	die "Unknown server type $server\n";
 }

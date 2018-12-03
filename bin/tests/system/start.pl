@@ -87,6 +87,7 @@ if ($server_arg && ! -d "$testdir/$server_arg") {
 }
 
 my $NAMED = $ENV{'NAMED'};
+my $LWRESD = $ENV{'LWRESD'};
 my $DIG = $ENV{'DIG'};
 my $PERL = $ENV{'PERL'};
 my $PYTHON = $ENV{'PYTHON'};
@@ -95,12 +96,15 @@ my $PYTHON = $ENV{'PYTHON'};
 
 my @ns;
 my @ans;
+my @lwresd;
 
 if ($server_arg) {
 	if ($server_arg =~ /^ns/) {
 		push(@ns, $server_arg);
 	} elsif ($server_arg =~ /^ans/) {
 		push(@ans, $server_arg);
+	} elsif ($server_arg =~ /^lwresd/) {
+		push(@lwresd, $server_arg);
 	} else {
 		print "$0: ns or ans directory expected";
 		print "I:$test:failed";
@@ -113,6 +117,7 @@ if ($server_arg) {
 
 	@ns = grep /^ns[0-9]*$/, @files;
 	@ans = grep /^ans[0-9]*$/, @files;
+	@lwresd = grep /^lwresd[0-9]*$/, @files;
 }
 
 # Start the servers we found.
@@ -125,6 +130,10 @@ foreach my $name(@ns) {
 
 foreach my $name(@ans) {
 	&start_ans_server($name);
+}
+
+foreach my $name(@lwresd) {
+	&start_lwresd_server($name, $options_arg);
 }
 
 # Subroutines
@@ -352,6 +361,83 @@ sub start_ans_server {
 	$cleanup_files = "{./ans.run}";
 	$command = construct_ans_command($server, $options);
 	$pid_file = "ans.pid";
+
+	if ($clean) {
+		unlink glob $cleanup_files;
+	}
+
+	start_server($server, $command, $pid_file);
+}
+
+sub construct_lwresd_command {
+	my ( $server, $options ) = @_;
+
+	my $command;
+
+	if ($ENV{'USE_VALGRIND'}) {
+		$command = "valgrind -q --gen-suppressions=all --num-callers=48 --fullpath-after= --log-file=lwresd-$server-valgrind-%p.log ";
+
+		if ($ENV{'USE_VALGRIND'} eq 'helgrind') {
+			$command .= "--tool=helgrind ";
+		} else {
+			$command .= "--tool=memcheck --track-origins=yes --leak-check=full ";
+		}
+
+		$command .= "$LWRESD -m none -M external ";
+	} else {
+		$command = "$LWRESD ";
+	}
+
+	my $args_file = $testdir . "/" . $server . "/" . "lwresd.args";
+
+	if ($options) {
+		$command .= $options;
+	} elsif (-e $args_file) {
+		open(my $fh, "<", $args_file) or die "unable to read args_file \"$args_file\" ($OS_ERROR)\n";
+
+		while(my $line=<$fh>) {
+			next if ($line =~ /^\s*$/); #discard blank lines
+			next if ($line =~ /^\s*#/); #discard comment lines
+
+			chomp $line;
+
+			$line =~ s/#.*$//;
+
+			$command .= $line;
+
+			last;
+		}
+	} else {
+		$command .= "-C resolv.conf ";
+		$command .= "-D $test-$server ";
+		$command .= "-X lwresd.lock ";
+		$command .= "-m record,size,mctx ";
+		$command .= "-T clienttest ";
+		$command .= "-d 99 -g -U 4 ";
+		$command .= "-i lwresd.pid -P 9210 -p 5300";
+	}
+	if ($restart) {
+		$command .= " >>lwresd.run 2>&1 &";
+	} else {
+		$command .= " >lwresd.run 2>&1 &";
+	}
+
+	# get the shell to report the pid of the server ($!)
+	$command .= " echo \$!";
+
+	return $command;
+}
+
+sub start_lwresd_server {
+	my ( $server, $options ) = @_;
+
+	my $cleanup_files;
+	my $command;
+	my $pid_file;
+
+	$cleanup_files = "{lwresd.run}";
+	$command = construct_lwresd_command($server, $options);
+	$pid_file = "lwresd.pid";
 
 	if ($clean) {
 		unlink glob $cleanup_files;
