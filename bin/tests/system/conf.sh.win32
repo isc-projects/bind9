@@ -31,6 +31,11 @@ DEFAULT_ALGORITHM=ECDSAP256SHA256
 DEFAULT_ALGORITHM_NUMBER=13
 DEFAULT_BITS=256
 
+# must be different from DEFAULT_ALGORITHM
+ALTERNATIVE_ALGORITHM=RSASHA256
+ALTERNATIVE_ALGORITHM_NUMBER=8
+ALTERNATIVE_BITS=1280
+
 ARPANAME=$TOP/Build/$VSCONF/arpaname@EXEEXT@
 CHECKCONF=$TOP/Build/$VSCONF/named-checkconf@EXEEXT@
 CHECKDS="$PYTHON `cygpath -w $TOP/bin/python/dnssec-checkds.py`"
@@ -367,10 +372,10 @@ copy_setports() {
         -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
         -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
         -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
-	-e "s/${atsign}DEFAULT_ALGORITM${atsign}/${DEFAULT_ALGORITHM}/g" \
+	-e "s/${atsign}DEFAULT_ALGORITHM${atsign}/${DEFAULT_ALGORITHM}/g" \
 	-e "s/${atsign}DEFAULT_ALGORITHM_NUMBER${atsign}/${DEFAULT_ALGORITHM_NUMBER}/g" \
 	-e "s/${atsign}DEFAULT_BITS${atsign}/${DEFAULT_BITS}/g" \
-	-e "s/${atsign}ALTERNATIVE_ALGORITM${atsign}/${ALTERNATIVE_ALGORITHM}/g" \
+	-e "s/${atsign}ALTERNATIVE_ALGORITHM${atsign}/${ALTERNATIVE_ALGORITHM}/g" \
 	-e "s/${atsign}ALTERNATIVE_ALGORITHM_NUMBER${atsign}/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
 	-e "s/${atsign}ALTERNATIVE_BITS${atsign}/${ALTERNATIVE_BITS}/g" \
 	$1 > $2
