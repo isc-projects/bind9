@@ -454,7 +454,7 @@ rm -f ns1/root.db.signed.jnl
 mkeys_reconfig_on 1
 
 echo_i "reinitialize trust anchors"
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns2
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns2
 rm -f ns2/managed-keys.bind*
 nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns2
@@ -553,7 +553,7 @@ ret=0
 mkeys_refresh_on 2
 mkeys_status_on 2 > rndc.out.$n 2>&1
 t1=`grep 'next refresh:' rndc.out.$n`
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns1
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns1
 rm -f ns1/root.db.signed.jnl
 cp ns1/root.db ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
@@ -587,7 +587,7 @@ ret=0
 mkeys_refresh_on 2
 mkeys_status_on 2 > rndc.out.$n 2>&1
 t1=`grep 'next refresh:' rndc.out.$n`
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns1
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns1
 rm -f ns1/root.db.signed.jnl
 cat ns1/K*.key >> ns1/root.db.signed
 nextpart ns1/named.run > /dev/null
@@ -667,7 +667,7 @@ ret=0
 # ensure key refresh retry will be scheduled to one actual hour after the first
 # key refresh failure instead of just a few seconds, in order to prevent races
 # between the next scheduled key refresh time and startup time of restarted ns5.
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns5
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns5
 nextpart ns5/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns5
 wait_for_log "Returned from key fetch in keyfetch_done()" ns5/named.run
@@ -681,7 +681,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "check key refreshes are resumed after root servers become available ($n)"
 ret=0
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns5
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns5
 # Prevent previous check from affecting this one
 rm -f ns5/managed-keys.bind*
 # named2.args adds "-T mkeytimers=2/20/40" to named1.args as we need to wait for

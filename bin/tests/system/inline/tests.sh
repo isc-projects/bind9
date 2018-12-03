@@ -455,7 +455,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "stop bump in the wire signer server ($n)"
 ret=0
-$PERL ../stop.pl . ns3 || ret=1
+$PERL ../stop.pl inline ns3 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -870,7 +870,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "stop bump in the wire signer server ($n)"
 ret=0
-$PERL ../stop.pl . ns3 || ret=1
+$PERL ../stop.pl inline ns3 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1328,7 +1328,7 @@ done
 if [ $ans != 0 ]; then ret=1; fi
 # Halt rather than stopping the server to prevent the master file from being
 # flushed upon shutdown since we specifically want to avoid it.
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} inline ns3
 # At this point, the raw zone journal will not have a source serial set.  Upon
@@ -1337,7 +1337,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} inline ns3
 # return delayedkeys/SOA as the next node to resign, so we restart the server
 # once again; with the raw zone journal now having a source serial set,
 # receive_secure_serial() should refrain from introducing any zone changes.
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} inline ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} inline ns3
 # We can now test whether the secure zone journal was correctly processed:

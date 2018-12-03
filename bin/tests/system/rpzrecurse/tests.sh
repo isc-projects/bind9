@@ -20,7 +20,7 @@ run_server() {
     TESTNAME=$1
 
     echo_i "stopping resolver"
-    $PERL $SYSTEMTESTTOP/stop.pl . ns2
+    $PERL $SYSTEMTESTTOP/stop.pl rpzrecurse ns2
 
     sleep 1
 

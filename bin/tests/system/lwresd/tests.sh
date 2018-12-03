@@ -45,7 +45,7 @@ if [ $ret != 0 ]; then
 fi
 status=`expr $status + $ret`
 
-$PERL $SYSTEMTESTTOP/stop.pl . lwresd1
+$PERL $SYSTEMTESTTOP/stop.pl lwresd lwresd1
 
 mv lwresd1/lwresd.run lwresd1/lwresd.run.resolv
 
@@ -64,7 +64,7 @@ if [ $ret != 0 ]; then
 fi
 status=`expr $status + $ret`
 
-$PERL $SYSTEMTESTTOP/stop.pl . lwresd1
+$PERL $SYSTEMTESTTOP/stop.pl lwresd lwresd1
 
 mv lwresd1/lwresd.run lwresd1/lwresd.run.lwresd
 

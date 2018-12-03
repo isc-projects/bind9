@@ -39,7 +39,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "stopping ns1"
-$PERL $SYSTEMTESTTOP/stop.pl . ns1
+$PERL $SYSTEMTESTTOP/stop.pl nzd2nzf ns1
 
 n=`expr $n + 1`
 echo_i "dumping _default.nzd to _default.nzf ($n)"

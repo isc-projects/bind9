@@ -590,7 +590,7 @@ fi
 
 # restart the main test RPZ server to see if that creates a core file
 if test -z "$HAVE_CORE"; then
-    $PERL $SYSTEMTESTTOP/stop.pl . ns3
+    $PERL $SYSTEMTESTTOP/stop.pl rpz ns3
     restart 3
     HAVE_CORE=`find ns* -name '*core*' -print`
     test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"

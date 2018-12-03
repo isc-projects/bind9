@@ -9,6 +9,9 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-. ./conf.sh
-$PERL ./stop.pl "$@"
+SYSTEMTESTTOP="$(realpath "$(dirname "$0")")"
+# shellcheck source=conf.sh
+. "$SYSTEMTESTTOP/conf.sh"
+export SYSTEMTESTTOP
 
+$PERL "$SYSTEMTESTTOP/stop.pl" "$@"
