@@ -148,7 +148,7 @@ then
 
     copy_setports ns1/named2.conf.in ns1/named.conf
 
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns1
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} legacy ns1
 
     n=`expr $n + 1`
     echo_i "checking recursive lookup to edns 512 + no tcp + trust anchor fails ($n)"
@@ -160,7 +160,7 @@ then
     status=`expr $status + $ret`
 else
     echo_i "skipping checking recursive lookup to edns 512 + no tcp + trust anchor fails as crypto not enabled"
-fi 
+fi
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

@@ -137,7 +137,7 @@ status=`expr $status + $ret`
 
 echo_i "stop and restart slave"
 $PERL $SYSTEMTESTTOP/stop.pl . ns2
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} unknown ns2
 
 echo_i "checking large unknown record loading on slave"
 ret=0
@@ -155,7 +155,7 @@ status=`expr $status + $ret`
 
 echo_i "stop and restart inline slave"
 $PERL $SYSTEMTESTTOP/stop.pl . ns3
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} unknown ns3
 
 echo_i "checking large unknown record loading on inline slave"
 ret=0

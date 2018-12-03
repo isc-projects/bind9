@@ -206,7 +206,7 @@ restart () {
 	    cp -f ns$1/base.db $NM
 	done
     fi
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns$1
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz ns$1
     load_db
     dnsrps_loaded
 }
@@ -445,7 +445,7 @@ for mode in native dnsrps; do
       continue
     else
       echo_i "running DNSRPS sub-test"
-      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
+      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz
     fi
     ;;
   esac
