@@ -248,7 +248,7 @@ fi
 
 echo_i "Re-starting slave"
 
-(cd ..; $PERL start.pl --noclean --port ${PORT} rrsetorder ns2 )
+$PERL $SYSTEMTESTTOP/start.pl --noclean --port ${PORT} rrsetorder ns2
 
 #
 #
