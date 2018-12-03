@@ -120,7 +120,7 @@ $PERL $SYSTEMTESTTOP/stop.pl . ns2
 rm -f ns2/example.db
 cp -f ns2/example4.db ns2/example.db
 
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} notify ns2
 
 try=0
 while test $try -lt 45

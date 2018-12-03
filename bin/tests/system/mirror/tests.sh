@@ -168,7 +168,7 @@ ret=0
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns3
 cat ns2/verify-load.db.good.signed > ns3/verify-load.db.mirror
 nextpart ns3/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-load ${UPDATED_SERIAL_GOOD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-load SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
@@ -182,7 +182,7 @@ $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns3
 cp ns3/verify-journal.db.mirror ns3/verify-ixfr.db.mirror
 cp ns3/verify-journal.db.bad.mirror.jnl ns3/verify-ixfr.db.mirror.jnl
 nextpart ns3/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-ixfr ${UPDATED_SERIAL_BAD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
@@ -197,7 +197,7 @@ $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns3
 cp ns3/verify-journal.db.mirror ns3/verify-ixfr.db.mirror
 cp ns3/verify-journal.db.good.mirror.jnl ns3/verify-ixfr.db.mirror.jnl
 nextpart ns3/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-ixfr ${UPDATED_SERIAL_GOOD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
@@ -332,7 +332,7 @@ $RNDCCMD 10.53.0.2 reconfig > /dev/null 2>&1
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} . ns3
 touch -t 200001010000 ns3/initially-unavailable.db.mirror
 nextpart ns3/named.run > /dev/null
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
 # Ensure named attempts to retransfer the zone due to its expiry.
 wait_for_transfer initially-unavailable
 nextpart ns3/named.run | grep "initially-unavailable.*expired" > /dev/null || ret=1

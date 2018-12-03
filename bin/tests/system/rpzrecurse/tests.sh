@@ -52,7 +52,7 @@ run_server() {
 
     echo_i "starting resolver using named.$TESTNAME.conf"
     cp -f ns2/named.$TESTNAME.conf ns2/named.conf
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns2
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpzrecurse ns2
     sleep 3
 }
 
@@ -134,7 +134,7 @@ for mode in native dnsrps; do
       continue
     else
       echo_i "running DNSRPS sub-test"
-      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
+      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpzrecurse
     fi
     ;;
   esac

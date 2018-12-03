@@ -438,7 +438,7 @@ EOF
 [ -f ns3/dynamic.db.jnl ] || { ret=1 ; echo_i "journal does not exist (posttest)" ; }
 
 for i in 1 2 3 4 5 6 7 8 9 10
-do 
+do
 	ans=0
 	$DIG $DIGOPTS @10.53.0.3 e.dynamic > dig.out.ns3.test$n
 	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ans=1
@@ -462,7 +462,7 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "restart bump in the wire signer server ($n)"
 ret=0
-$PERL ../start.pl --noclean --restart --port ${PORT} . ns3 || ret=1
+$PERL ../start.pl --noclean --restart --port ${PORT} inline ns3 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -880,7 +880,7 @@ rm ns3/master.db.jnl
 n=`expr $n + 1`
 echo_i "restart bump in the wire signer server ($n)"
 ret=0
-$PERL ../start.pl --noclean --restart --port ${PORT} . ns3 || ret=1
+$PERL ../start.pl --noclean --restart --port ${PORT} inline ns3 || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -1325,7 +1325,7 @@ if [ $ans != 0 ]; then ret=1; fi
 # flushed upon shutdown since we specifically want to avoid it.
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} inline ns3
 # At this point, the raw zone journal will not have a source serial set.  Upon
 # server startup, receive_secure_serial() will rectify that, update SOA, resign
 # it, and schedule its future resign.  This will cause "rndc zonestatus" to
@@ -1334,7 +1334,7 @@ $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
 # receive_secure_serial() should refrain from introducing any zone changes.
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} . ns3
 ensure_sigs_only_in_journal delayedkeys ns3/delayedkeys.db.signed
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns3
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} inline ns3
 # We can now test whether the secure zone journal was correctly processed:
 # unless the records contained in it were scheduled for resigning, no resigning
 # event will be scheduled at all since the secure zone master file contains no

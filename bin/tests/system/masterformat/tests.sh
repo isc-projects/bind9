@@ -42,7 +42,7 @@ rawversion () {
              read(STDIN, $input, 8);
              if (length($input) < 8) { print "not raw\n"; exit 0; };
              ($style, $version) = unpack("NN", $input);
-             print ($style == 2 || $style == 3 ? "$version\n" : 
+             print ($style == 2 || $style == 3 ? "$version\n" :
 		"not raw or map\n");' < $1
 }
 
@@ -50,7 +50,7 @@ sourceserial () {
     $PERL -e 'binmode STDIN;
              read(STDIN, $input, 20);
              if (length($input) < 20) { print "UNSET\n"; exit; };
-             ($format, $version, $dumptime, $flags, $sourceserial) = 
+             ($format, $version, $dumptime, $flags, $sourceserial) =
                      unpack("NNNNN", $input);
              if ($format != 2 || $version <  1) { print "UNSET\n"; exit; };
              if ($flags & 02) {
@@ -72,7 +72,7 @@ stomp () {
 
 restart () {
     sleep 1
-    (cd ..; $PERL start.pl --noclean --restart --port ${PORT} masterformat ns3)
+    $PERL "$SYSTEMTESTTOP/start.pl" --noclean --restart --port ${PORT} masterformat ns3
 }
 
 DIGOPTS="+tcp +noauth +noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT}"
