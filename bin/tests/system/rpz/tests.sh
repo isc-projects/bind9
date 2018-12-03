@@ -206,7 +206,7 @@ restart () {
 	    cp -f ns$1/base.db $NM
 	done
     fi
-    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns$1
+    $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz ns$1
     load_db
     dnsrps_loaded
 }
@@ -430,7 +430,7 @@ for mode in native dnsrps; do
       continue
     fi
     echo_i "attempting to configure servers with DNSRPS..."
-    $PERL $SYSTEMTESTTOP/stop.pl .
+    $PERL $SYSTEMTESTTOP/stop.pl rpz
     $SHELL ./setup.sh -N -D $DEBUG
     for server in ns*; do
       resetstats $server
@@ -445,7 +445,7 @@ for mode in native dnsrps; do
       continue
     else
       echo_i "running DNSRPS sub-test"
-      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} .
+      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz
     fi
     ;;
   esac
@@ -741,7 +741,7 @@ EOF
 
   # restart the main test RPZ server to see if that creates a core file
   if test -z "$HAVE_CORE"; then
-    $PERL $SYSTEMTESTTOP/stop.pl . ns3
+    $PERL $SYSTEMTESTTOP/stop.pl rpz ns3
     restart 3
     HAVE_CORE=`find ns* -name '*core*' -print`
     test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"
