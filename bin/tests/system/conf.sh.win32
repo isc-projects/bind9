@@ -370,6 +370,9 @@ copy_setports() {
 	-e "s/${atsign}DEFAULT_ALGORITM${atsign}/${DEFAULT_ALGORITHM}/g" \
 	-e "s/${atsign}DEFAULT_ALGORITHM_NUMBER${atsign}/${DEFAULT_ALGORITHM_NUMBER}/g" \
 	-e "s/${atsign}DEFAULT_BITS${atsign}/${DEFAULT_BITS}/g" \
+	-e "s/${atsign}ALTERNATIVE_ALGORITM${atsign}/${ALTERNATIVE_ALGORITHM}/g" \
+	-e "s/${atsign}ALTERNATIVE_ALGORITHM_NUMBER${atsign}/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
+	-e "s/${atsign}ALTERNATIVE_BITS${atsign}/${ALTERNATIVE_BITS}/g" \
 	$1 > $2
 }
 
