@@ -2551,7 +2551,15 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 		}
 
 	} else {
-		if (result != ISC_R_NOTFOUND && result != DNS_R_PARTIALMATCH) {
+		if (result == ISC_R_SUCCESS) {
+			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+				      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
+				      "catz: zone \"%s\" is overridden "
+				      "by explicitly configured zone",
+				      nameb);
+			goto cleanup;
+		} else if (result != ISC_R_NOTFOUND &&
+			   result != DNS_R_PARTIALMATCH) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_WARNING,
 				      "catz: error \"%s\" while trying to "
