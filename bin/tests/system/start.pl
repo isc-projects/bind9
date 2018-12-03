@@ -130,7 +130,7 @@ foreach my $name(@ans) {
 # Subroutines
 
 sub read_ns_port {
-	my $server = shift;
+	my ( $server ) = @_;
 	my $port = $queryport;
 	my $options = "";
 
@@ -152,7 +152,7 @@ sub read_ns_port {
 }
 
 sub check_ns_port {
-	my $server = shift;
+	my ( $server ) = @_;
 	my $options = "";
 	my $port = read_ns_port($server);
 
@@ -176,7 +176,7 @@ sub check_ns_port {
 			print "I:$test:server sockets not available\n";
 			print "I:$test:failed\n";
 
-			system("$PERL $topdir/stop.pl $testdir"); # Is this the correct behavior?
+			system("$PERL $topdir/stop.pl $test"); # Is this the correct behavior?
 
 			exit 1;
 		}
@@ -187,9 +187,7 @@ sub check_ns_port {
 }
 
 sub start_server {
-	my $server = shift;
-	my $command = shift;
-	my $pid_file = shift;
+	my ( $server, $command, $pid_file ) = @_;
 
 	chdir "$testdir/$server" or die "unable to chdir \"$testdir/$server\" ($OS_ERROR)\n";
 
@@ -206,7 +204,7 @@ sub start_server {
 			print "I:$test:Couldn't start server $command (pid=$child)\n";
 			print "I:$test:failed\n";
 			system "kill -9 $child" if ("$child" ne "");
-			system "$PERL $topdir/stop.pl $testdir";
+			system "$PERL $topdir/stop.pl $test";
 			exit 1;
 		}
 		sleep 0.1;
@@ -217,8 +215,7 @@ sub start_server {
 }
 
 sub construct_ns_command {
-	my $server = shift;
-	my $options = shift;
+	my ( $server, $options ) = @_;
 
 	my $command;
 
@@ -290,8 +287,7 @@ sub construct_ns_command {
 }
 
 sub start_ns_server {
-	my $server = shift;
-	my $options = shift;
+	my ( $server, $options ) = @_;
 
 	my $cleanup_files;
 	my $command;
@@ -311,8 +307,7 @@ sub start_ns_server {
 }
 
 sub construct_ans_command {
-	my $server = shift;
-	my $options = shift;
+	my ( $server, $options ) = @_;
 
 	my $command;
 	my $n;
@@ -348,8 +343,7 @@ sub construct_ans_command {
 }
 
 sub start_ans_server {
-	my $server = shift;   # masks the global variable
-	my $options = shift;  # masks the global variable
+	my ( $server, $options ) = @_;
 
 	my $cleanup_files;
 	my $command;
@@ -367,7 +361,7 @@ sub start_ans_server {
 }
 
 sub verify_ns_server {
-	my $server = shift;
+	my ( $server ) = @_;
 
 	my $tries = 0;
 
@@ -390,7 +384,7 @@ sub verify_ns_server {
 			print "I:$test:server $server seems to have not started\n";
 			print "I:$test:failed\n";
 
-			system("$PERL $topdir/stop.pl $testdir");
+			system("$PERL $topdir/stop.pl $test");
 
 			exit 1;
 		}
@@ -425,7 +419,7 @@ sub verify_ns_server {
 			print "I:$test:no response from $server\n";
 			print "I:$test:failed\n";
 
-			system("$PERL $topdir/stop.pl $testdir");
+			system("$PERL $topdir/stop.pl $test");
 
 			exit 1;
 		}
