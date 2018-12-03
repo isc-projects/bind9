@@ -115,7 +115,7 @@ digcomp dig.out.ns2.test$n dig.out.ns3.test$n || ret=1
 status=`expr $ret + $status`
 
 echo_i "stopping master and restarting with example4 then waiting up to 45 seconds"
-$PERL $SYSTEMTESTTOP/stop.pl . ns2
+$PERL $SYSTEMTESTTOP/stop.pl notify ns2
 
 rm -f ns2/example.db
 cp -f ns2/example4.db ns2/example.db

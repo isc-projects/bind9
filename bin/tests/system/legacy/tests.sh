@@ -144,7 +144,7 @@ status=`expr $status + $ret`
 
 if $SHELL ../testcrypto.sh > /dev/null 2>&1
 then
-    $PERL $SYSTEMTESTTOP/stop.pl . ns1
+    $PERL $SYSTEMTESTTOP/stop.pl legacy ns1
 
     copy_setports ns1/named2.conf.in ns1/named.conf
 
