@@ -13,7 +13,7 @@
 # Run a system test.
 #
 
-SYSTEMTESTTOP=$(realpath .)
+SYSTEMTESTTOP="$(cd -P -- "$(dirname -- "$0")" && pwd -P)"
 . $SYSTEMTESTTOP/conf.sh
 
 export SYSTEMTESTTOP
