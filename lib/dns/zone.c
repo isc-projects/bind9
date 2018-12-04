@@ -8474,11 +8474,11 @@ zone_sign(dns_zone_t *zone) {
 	ISC_LIST_INIT(cleanup);
 
 	/*
-	 * Updates are disabled.  Pause for 5 minutes.
+	 * Updates are disabled.  Pause for 1 minute.
 	 */
 	if (zone->update_disabled) {
 		result = ISC_R_FAILURE;
-		goto failure;
+		goto cleanup;
 	}
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
@@ -8487,7 +8487,7 @@ zone_sign(dns_zone_t *zone) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 	if (db == NULL) {
 		result = ISC_R_FAILURE;
-		goto failure;
+		goto cleanup;
 	}
 
 	result = dns_db_newversion(db, &version);
@@ -8495,7 +8495,7 @@ zone_sign(dns_zone_t *zone) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_sign:dns_db_newversion -> %s",
 			     dns_result_totext(result));
-		goto failure;
+		goto cleanup;
 	}
 
 	isc_stdtime_get(&now);
@@ -8506,7 +8506,7 @@ zone_sign(dns_zone_t *zone) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_sign:dns__zone_findkeys -> %s",
 			     dns_result_totext(result));
-		goto failure;
+		goto cleanup;
 	}
 
 	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
@@ -8783,7 +8783,7 @@ zone_sign(dns_zone_t *zone) {
 							     ISC_LOG_ERROR,
 						    "updatesecure -> %s",
 						    dns_result_totext(result));
-						goto failure;
+						goto cleanup;
 					}
 				}
 				result = updatesignwithkey(zone, signing,
@@ -8795,7 +8795,7 @@ zone_sign(dns_zone_t *zone) {
 					dns_zone_log(zone, ISC_LOG_ERROR,
 						     "updatesignwithkey -> %s",
 						     dns_result_totext(result));
-					goto failure;
+					goto cleanup;
 				}
 				build_nsec = false;
 				goto next_signing;
@@ -8803,7 +8803,7 @@ zone_sign(dns_zone_t *zone) {
 				dns_zone_log(zone, ISC_LOG_ERROR,
 					"zone_sign:dns_dbiterator_next -> %s",
 					     dns_result_totext(result));
-				goto failure;
+				goto cleanup;
 			} else if (is_bottom_of_zone) {
 				dns_dbiterator_current(signing->dbiterator,
 						       &node, nextname);
@@ -8831,7 +8831,7 @@ zone_sign(dns_zone_t *zone) {
 			dns_zone_log(zone, ISC_LOG_ERROR, "zone_sign:"
 				     "dns__zone_updatesigs -> %s",
 				     dns_result_totext(result));
-			goto failure;
+			goto cleanup;
 		}
 	}
 
@@ -8853,7 +8853,7 @@ zone_sign(dns_zone_t *zone) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_sign:del_sigs -> %s",
 			     dns_result_totext(result));
-		goto failure;
+		goto cleanup;
 	}
 
 	result = update_soa_serial(db, version, zonediff.diff, zone->mctx,
@@ -8862,7 +8862,7 @@ zone_sign(dns_zone_t *zone) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_sign:update_soa_serial -> %s",
 			     dns_result_totext(result));
-		goto failure;
+		goto cleanup;
 	}
 
 	/*
@@ -8876,7 +8876,7 @@ zone_sign(dns_zone_t *zone) {
 		dns_zone_log(zone, ISC_LOG_ERROR,
 			     "zone_sign:add_sigs -> %s",
 			     dns_result_totext(result));
-		goto failure;
+		goto cleanup;
 	}
 
 	/*
@@ -8925,6 +8925,12 @@ zone_sign(dns_zone_t *zone) {
 	}
 
  failure:
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, ISC_LOG_ERROR, "zone_sign: failed: %s",
+			     dns_result_totext(result));
+	}
+
+ cleanup:
 	/*
 	 * Pause all dbiterators.
 	 */
