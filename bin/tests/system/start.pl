@@ -193,7 +193,7 @@ sub start_server {
 
 	# start the server
 	my $child = `$command`;
-	$child =~ s/\s+$//;
+	chomp($child);
 
 	# wait up to 14 seconds for the server to start and to write the
 	# pid file otherwise kill this server and any others that have
@@ -373,7 +373,7 @@ sub verify_ns_server {
 		if (open(my $fh, "<", $runfile)) {
 			# the two non-whitespace blobs should be the date and time
 			# but we don't care about them really, only that they are there
-			if (grep /^\S+ \S+ running$/, <$fh>) {
+			if (grep /^\S+ \S+ running\R/, <$fh>) {
 				last;
 			}
 		}
