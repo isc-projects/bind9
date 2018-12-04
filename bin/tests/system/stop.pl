@@ -145,21 +145,20 @@ sub server_pid_file {
 
 # Read a PID.
 sub read_pid {
-	my ( $server ) = @_;
-
-	my $pid_file = server_pid_file($server);
+	my ( $pid_file ) = @_;
 
 	return unless -f $pid_file;
-
-	local *FH;
-	my $result = open FH, "< $pid_file";
-	if (!$result) {
+	# we don't really care about the race condition here
+	my $result = open(my $fh, "<", $pid_file);
+	if (!defined($result)) {
 		print "I:$test:$pid_file: $!\n";
 		unlink $pid_file;
 		return;
 	}
 
-	my $pid = <FH>;
+	my $pid = <$fh>;
+	return unless defined($pid);
+
 	chomp($pid);
 	return $pid;
 }
@@ -183,37 +182,72 @@ sub stop_rndc {
 	return;
 }
 
-# Stop a server by sending a signal to it.
-sub stop_signal {
-	my($server, $signal) = @_;
+sub server_died {
+	my ( $server, $signal ) = @_;
 	
-	my $pid = read_pid($server);
-	return unless defined($pid);
+	print "I:$test:$server died before a SIG$signal was sent\n";
+	$errors = 1;
 
-	my $result;
 	my $pid_file = server_pid_file($server);
+	unlink($pid_file);
+
+	return;
+}
+
+sub send_signal {
+	my ( $signal, $pid ) = @_;
+
+	my $result = 0;
 
 	if ($^O eq 'cygwin') {
-		$result = !system("/bin/kill -f -$signal $pid");
+		my $killout = `/bin/kill -f -$signal $pid 2>&1`;
+		chomp($killout);
+		$result = 1 if ($killout eq '');
 	} else {
 		$result = kill $signal, $pid;
 	}
+	return $result;
+}
 
-	if (!$result) {
-		print "I:$test:$server died before a SIG$signal was sent\n";
-		$errors = 1;
-		unlink $pid_file;
+# Stop a server by sending a signal to it.
+sub stop_signal {
+	my ( $server, $signal ) = @_;
+
+	my $pid_file = server_pid_file($server);
+	my $pid = read_pid($pid_file);
+
+	return unless defined($pid);
+
+	# Send signal to the server, and bail out if signal can't be sent
+	if (send_signal($signal, $pid) != 1) {
+		server_died($server, $signal);
+		return;
 	}
 
 	return;
 }
 
+sub clean_pid_file {
+	my ( $server ) = @_;
+
+	my $pid_file = server_pid_file($server);
+	my $pid = read_pid($pid_file);
+
+	return unless defined($pid);
+
+	return if (send_signal(0, $pid) == 0);
+
+	return $server;
+}
+
 sub wait_for_servers {
-	my($timeout, @servers) = @_;
+	my ( $timeout, @servers ) = @_;
 
 	while ($timeout > 0 && @servers > 0) {
-		@servers = grep { -f server_pid_file($_) } @servers;
 		sleep 1 if (@servers > 0);
+		@servers =
+			grep { defined($_) }
+			map  { clean_pid_file($_) } @servers;
 		$timeout--;
 	}
 
