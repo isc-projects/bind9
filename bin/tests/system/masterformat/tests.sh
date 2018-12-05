@@ -99,7 +99,7 @@ set -- 1 2 3
 for zone in example example-explicit example-compat; do
     for server in "$@"; do
 	for name in ns mx a aaaa cname dname txt rrsig nsec \
-		       dnskey ds cdnskey cds; do
+		       dnskey ds cdnskey cds private-dnskey private-cdnskey; do
 	    dig_with_opts "$name.$zone." "$name" "@10.53.0.$server"
 	    echo
 	done > "dig.out.$zone.$server.test$n"
