@@ -25,141 +25,149 @@
 #include <ns/client.h>
 #include <ns/query.h>
 /*
- * Hooks provide a way of running a callback function once a certain place in
- * code is reached.  Current use is limited to libns unit tests and thus:
+ * "Hooks" are a mechanism to call a defined function or set of functions once
+ * a certain place in code is reached.  Hook actions can inspect and alter the
+ * state of an ongoing process, allowing processing to continue afterward or
+ * triggering an early return.
  *
- *   - hook-related types and macros are not placed in libns header files,
- *   - hook-related code is compiled away unless --with-atf is used,
- *   - hook-related macro names are prefixed with "NS_".
+ * Currently hooks are used in two ways: in plugins, which use them to
+ * add functionality to query processing, and in the unit tests for libns,
+ * where they are used to inspect state before and after certain functions have
+ * run.
  *
- * However, the implementation is pretty generic and could be repurposed for
- * general use, e.g. as part of libisc, after some further customization.
+ * Both of these uses are limited to libns, so hooks are currently defined in
+ * the ns/hooks.h header file, and hook-related macro and function names are
+ * prefixed with `NS_` and `ns_`.  However, the design is fairly generic and
+ * could be repurposed for general use, e.g. as part of libisc, after some
+ * further customization.
  *
- * Hooks are created by inserting a macro into any function returning
- * isc_result_t (NS_PROCESS_HOOK()) or void (NS_PROCESS_HOOK_VOID()).  As both
- * of these macros contain a return statement which is inlined into the
- * function into which the hook is inserted, a hook callback is able to cause
- * that function to return at hook insertion point.  For functions returning
- * isc_result_t, if a hook callback intends to cause a return at hook insertion
- * point, it also has to set the value to be returned by the function.
+ * Hooks are created by defining a hook point identifier in the ns_hookpoint_t
+ * enum below, and placing a special call at a corresponding location in the
+ * code which invokes the action(s) for that hook; there are two such special
+ * calls currently implemented, namely the CALL_HOOK() and CALL_HOOK_NORETURN()
+ * macros in query.c.  The former macro contains a "goto cleanup" statement
+ * which is inlined into the function into which the hook has been inserted;
+ * this enables the hook action to cause the calling function to return from
+ * the hook insertion point.  For functions returning isc_result_t, if a hook
+ * action intends to cause a return at hook insertion point, it also has to set
+ * the value to be returned by the calling function.
  *
- * Hook callbacks are functions which:
+ * A hook table is an array (indexed by the value of the hook point identifier)
+ * in which each cell contains a linked list of structures, each of which
+ * contains a function pointer to a hook action and a pointer to data which is
+ * to be passed to the action function when it is called.
  *
- *   - return a boolean value; if true is returned by the callback, the
- *     function into which the hook is inserted will return at hook insertion
- *     point; if false is returned by the callback, execution of the
- *     function into which the hook is inserted continues normally,
+ * Each view has its own separate hook table, populated by loading plugin
+ * modules specified in the "plugin" statements in named.conf.  There is also a
+ * special, global hook table (ns__hook_table) that is only used by libns unit
+ * tests and whose existence can be safely ignored by plugin modules.
+ *
+ * Hook actions are functions which:
+ *
+ *   - return a boolean value: if true is returned by the hook action, the
+ *     function into which the hook is inserted will return and no further hook
+ *     actions at the same hook point will be invoked; if false is returned by
+ *     the hook action and there are further hook actions set up at the same
+ *     hook point, they will be processed; if false is returned and there are
+ *     no further hook actions set up at the same hook point, execution of the
+ *     function into which the hook has been inserted will be resumed,
  *
  *   - accept three pointers as arguments:
+ *       - a pointer specified by the special call at the hook insertion point,
+ *       - a pointer specified upon inserting the action into the hook table,
+ *       - a pointer to an isc_result_t value which will be returned by the
+ *         function into which the hook is inserted if the action returns true.
  *
- *       - a pointer specified by the hook itself,
- *       - a pointer specified upon inserting the callback into the hook table,
- *       - a pointer to isc_result_t which will be returned by the function
- *         into which the hook is inserted if the callback returns true.
+ * In order for a hook action to be called for a given hook, a pointer to that
+ * action function (along with an optional pointer to action-specific data) has
+ * to be inserted into the relevant hook table entry for that hook using an
+ * ns_hook_add() call.  If multiple actions are set up at a single hook point,
+ * they are processed in FIFO order.
  *
- * Hook tables are arrays which consist of a number of tuples (one tuple per
- * hook identifier), each of which determines the callback to be invoked when a
- * given hook is processed and the data to be passed to that callback.  In an
- * attempt to keep things as simple as possible, current implementation uses
- * hook tables which are statically-sized arrays only allowing a single
- * callback to be invoked for each hook identifier.
- *
- * In order for a hook callback to be called for a given hook, a pointer to
- * that callback (along with an optional pointer to callback-specific data) has
- * to be inserted into the relevant hook table entry for that hook.  Replacing
- * whole hook tables is also possible.
- *
- * Consider the following sample code:
+ * As an example, consider the following hypothetical function in query.c:
  *
  * ----------------------------------------------------------------------------
- * ns_hook_t *foo_hook_table = NULL;
+ * static isc_result_t
+ * query_foo(query_ctx_t *qctx) {
+ *     isc_result_t result;
  *
- * isc_result_t
- * foo_bar(void) {
- *     int val = 42;
+ *     CALL_HOOK(NS_QUERY_FOO_BEGIN, qctx);
  *
- *     ...
+ *     ns_client_log(qctx->client, NS_LOGCATEGORY_CLIENT, NS_LOGMODULE_QUERY,
+ *                   ISC_LOG_DEBUG(99), "Lorem ipsum dolor sit amet...");
  *
- *     NS_PROCESS_HOOK(foo_hook_table, FOO_EXTRACT_VAL, &val);
+ *     result = ISC_R_COMPLETE;
  *
- *     ...
- *
- *     printf("This message may not be printed due to use of hooks.");
- *
- *     return (ISC_R_SUCCESS);
+ *  cleanup:
+ *     return (result);
  * }
+ * ----------------------------------------------------------------------------
  *
- * bool
- * cause_failure(void *hook_data, void *callback_data, isc_result_t *resultp) {
- *     int *valp = (int *)hook_data;
- *     bool *calledp = (bool *)callback_data;
+ * and the following hook action:
  *
- *     ...
+ * ----------------------------------------------------------------------------
+ * static bool
+ * cause_failure(void *hook_data, void *action_data, isc_result_t *resultp) {
+ *     UNUSED(hook_data);
+ *     UNUSED(action_data);
  *
  *     *resultp = ISC_R_FAILURE;
  *
  *     return (true);
  * }
+ * ----------------------------------------------------------------------------
  *
- * bool
- * examine_val(void *hook_data, void *callback_data, isc_result_t *resultp) {
- *     int *valp = (int *)hook_data;
- *     int *valcopyp = (int *)callback_data;
+ * If this hook action was installed in the hook table using:
+ *
+ * ----------------------------------------------------------------------------
+ * const ns_hook_t foo_fail = {
+ *     .action = cause_failure,
+ * };
+ *
+ * ns_hook_add(..., NS_QUERY_FOO_BEGIN, &foo_fail);
+ * ----------------------------------------------------------------------------
+ *
+ * then query_foo() would return ISC_R_FAILURE every time it is called due to
+ * the cause_failure() hook action returning true and setting '*resultp' to
+ * ISC_R_FAILURE.  query_foo() would also never log the "Lorem ipsum dolor sit
+ * amet..." message.
+ *
+ * Consider a different hook action:
+ *
+ * ----------------------------------------------------------------------------
+ * static bool
+ * log_qtype(void *hook_data, void *action_data, isc_result_t *resultp) {
+ *     query_ctx_t *qctx = (query_ctx_t *)hook_data;
+ *     FILE *stream = (FILE *)action_data;
  *
  *     UNUSED(resultp);
  *
- *     ...
+ *     fprintf(stream, "QTYPE=%u\n", qctx->qtype);
  *
  *     return (false);
  * }
- *
- * void
- * test_foo_bar(void) {
- *     bool called = false;
- *     int valcopy;
- *
- *     ns_hook_t my_hooks[FOO_HOOKS_COUNT] = {
- *         [FOO_EXTRACT_VAL] = {
- *             .callback = cause_failure,
- *             .callback_data = &called,
- *         },
- *     };
- *
- *     foo_hook_table = my_hooks;
- *     foo_bar();
- *
- *     {
- *         const ns_hook_t examine_hook = {
- *             .callback = examine_val,
- *             .callback_data = &valcopy,
- *         };
- *
- *         my_hooks[FOO_EXTRACT_VAL] = examine_hook;
- *     }
- *     foo_bar();
- *
- * }
  * ----------------------------------------------------------------------------
  *
- * When test_foo_bar() is called, "foo_hook_table" is set to "my_hooks".  Then
- * foo_bar() gets invoked.  Once execution reaches the insertion point for hook
- * FOO_EXTRACT_VAL, cause_failure() will be called with &val as "hook_data" and
- * &called as "callback_data".  It can do whatever it pleases with these two
- * values.  Eventually, cause_failure() sets *resultp to ISC_R_FAILURE and
- * returns true, which causes foo_bar() to return ISC_R_FAILURE and never
- * execute the printf() call below hook insertion point.
+ * If this hook action was installed in the hook table instead of
+ * cause_failure(), using:
  *
- * Execution then returns to test_foo_bar().  Unlike before the first call to
- * foo_bar(), this time only a single hook ("examine_hook") is defined instead
- * of a complete hook table.  This hook is then subsequently inserted at index
- * FOO_EXTRACT_VAL into the "my_hook" hook table.  This causes the hook
- * previously set at that index (the one calling cause_failure()) to be
- * replaced with "examine_hook".  Thus, when the second call to foo_bar() is
- * subsequently made, examine_val() will be called with &val as "hook_data" and
- * &valcopy as "callback_data".  Contrary to cause_failure(), extract_val()
- * returns false, which means it does not access "resultp" and does not
- * cause foo_bar() to return at hook insertion point.  Thus, printf() will be
- * called this time and foo_bar() will return ISC_R_SUCCESS.
+ * ----------------------------------------------------------------------------
+ * const ns_hook_t foo_log_qtype = {
+ *     .action = log_qtype,
+ *     .action_data = stderr,
+ * };
+ *
+ * ns_hook_add(..., NS_QUERY_FOO_BEGIN, &foo_log_qtype);
+ * ----------------------------------------------------------------------------
+ *
+ * then the QTYPE stored in the query context passed to query_foo() would be
+ * logged to stderr upon each call to that function; 'qctx' would be passed to
+ * the hook action in 'hook_data' since it is specified in the CALL_HOOK() call
+ * inside query_foo() while stderr would be passed to the hook action in
+ * 'action_data' since it is specified in the ns_hook_t structure passed to
+ * ns_hook_add().  As the hook action returns false, query_foo() would also be
+ * logging the "Lorem ipsum dolor sit amet..." message before returning
+ * ISC_R_COMPLETE.
  */
 
 /*!
@@ -342,7 +350,7 @@ ns_hook_add(ns_hooktable_t *hooktable, isc_mem_t *mctx,
 	    ns_hookpoint_t hookpoint, const ns_hook_t *hook);
 /*%<
  * Allocate (using memory context 'mctx') a copy of the 'hook' structure
- * describing a hook callback and append it to the list of hooks at 'hookpoint'
+ * describing a hook action and append it to the list of hooks at 'hookpoint'
  * in 'hooktable'.
  *
  * Requires:
