@@ -69,7 +69,7 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  *  \returns previous value of reference counter.
  */
 #define isc_refcount_increment0(target)				\
-	atomic_fetch_add_explicit(target, 1, memory_order_relaxed)
+	isc_refcount_increment(target)
 
 /** \def isc_refcount_increment(ref)
  *  \brief increases reference counter by 1.
