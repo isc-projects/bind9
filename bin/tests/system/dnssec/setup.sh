@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+set -e
+
 $SHELL clean.sh
 
 copy_setports ns1/named.conf.in ns1/named.conf

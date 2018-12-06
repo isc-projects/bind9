@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+set -e
+
 zone=secure.example.
 infile=secure.example.db.in
 zonefile=secure.example.db
@@ -400,7 +402,7 @@ cp "$infile" "$zonefile"
 # shellcheck disable=SC2016
 echo "\$INCLUDE \"$signedfile\"" >> "$zonefile"
 : > "$signedfile"
-"$SIGNER" -P -S -D -o "$zone" "$zonefile" > /dev/null
+"$SIGNER" -P -S -D -o "$zone" "$zonefile" > /dev/null 2>&1
 
 #
 # Zone with signatures about to expire, but no private key to replace them
@@ -427,7 +429,7 @@ signedfile="upper.example.db.signed"
 kskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 zskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -f KSK "$zone")
 cp "$infile" "$zonefile"
-"$SIGNER" -P -S -o "$zone" -f $lower "$zonefile" > /dev/null 2>/dev/null
+"$SIGNER" -P -S -o "$zone" -f $lower "$zonefile" > /dev/null 2>&1
 $CHECKZONE -D upper.example $lower 2>/dev/null | \
 	sed '/RRSIG/s/ upper.example. / UPPER.EXAMPLE. /' > $signedfile
 

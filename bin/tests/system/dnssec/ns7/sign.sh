@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+set -e
+
 zone=split-rrsig
 infile=split-rrsig.db.in
 zonefile=split-rrsig.db
@@ -21,7 +23,7 @@ k2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 
 cat "$infile" "$k1.key" "$k2.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -A -o "$zone" -O full -f "$zonefile.unsplit" -e now-3600 -s now-7200 "$zonefile" > /dev/null
+"$SIGNER" -P -3 - -A -o "$zone" -O full -f "$zonefile.unsplit" -e now-3600 -s now-7200 "$zonefile" > /dev/null 2>&1
 awk 'BEGIN { r = ""; }
      $4 == "RRSIG" && $5 == "SOA" && r == "" { r = $0; next; }
      { print }

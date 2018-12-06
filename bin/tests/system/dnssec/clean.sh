@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 rm -f ./*/K* ./*/keyset-* ./*/dsset-* ./*/dlvset-* ./*/signedkey-* ./*/*.signed
 rm -f ./*/example.bk
 rm -f ./*/named.conf

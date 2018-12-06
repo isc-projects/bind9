@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+set -e
+
 status=0
 n=1
 
@@ -1696,7 +1698,7 @@ ret=0
 rndccmd 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 keyid=$(cat ns1/managed.key.id)
 cp ns4/named.secroots named.secroots.test$n
-linecount=$(grep -c "./${DEFAULT_ALGORITHM}/$keyid ; trusted" named.secroots.test$n)
+linecount=$(grep -c "./${DEFAULT_ALGORITHM}/$keyid ; trusted" named.secroots.test$n || true)
 [ "$linecount" -eq 1 ] || ret=1
 linecount=$(< named.secroots.test$n wc -l)
 [ "$linecount" -eq 10 ] || ret=1
@@ -1893,7 +1895,7 @@ ret=0
 $PERL -e 'my $delay = '"$start"' + 13 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 # check nta table
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n._11
-lines=$(grep -c " expiry " rndc.out.ns4.test$n._11)
+lines=$(grep -c " expiry " rndc.out.ns4.test$n._11 || true)
 [ "$lines" -le 2 ] || ret=1
 grep "bogus.example/_default: expiry" rndc.out.ns4.test$n._11 > /dev/null || ret=1
 grep "badds.example/_default: expiry" rndc.out.ns4.test$n._11 > /dev/null && ret=1
@@ -1923,7 +1925,7 @@ dig_with_opts c.bogus.example. a @10.53.0.4 > dig.out.ns4.test$n.15 || ret=1
 grep "status: SERVFAIL" dig.out.ns4.test$n.15 > /dev/null || ret=1
 # check nta table has been cleaned up now
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.3
-lines=$(grep -c " expiry " rndc.out.ns4.test$n.3)
+lines=$(grep -c " expiry " rndc.out.ns4.test$n.3 || true)
 [ "$lines" -eq 0 ] || ret=1
 n=$((n+1))
 if [ "$ret" -ne 0 ]; then echo_i "failed - checking that all nta's have been lifted"; fi
@@ -1959,21 +1961,21 @@ ret=0
 n=$((n+1))
 echo_i "testing NTA with bogus lifetimes ($n)"
 echo_i "check with no nta lifetime specified"
-rndccmd 10.53.0.4 nta -l "" foo > rndc.out.ns4.test$n.1 2>&1
+rndccmd 10.53.0.4 nta -l "" foo > rndc.out.ns4.test$n.1 2>&1 || true
 grep "'nta' failed: bad ttl" rndc.out.ns4.test$n.1 > /dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 ret=0
 
 echo_i "check with bad nta lifetime"
-rndccmd 10.53.0.4 nta -l garbage foo > rndc.out.ns4.test$n.2 2>&1
+rndccmd 10.53.0.4 nta -l garbage foo > rndc.out.ns4.test$n.2 2>&1 || true
 grep "'nta' failed: bad ttl" rndc.out.ns4.test$n.2 > /dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 ret=0
 
 echo_i "check with too long nta lifetime"
-rndccmd 10.53.0.4 nta -l 7d1h foo > rndc.out.ns4.test$n.3 2>&1
+rndccmd 10.53.0.4 nta -l 7d1h foo > rndc.out.ns4.test$n.3 2>&1 || true
 grep "'nta' failed: out of range" rndc.out.ns4.test$n.3 > /dev/null || ret=1
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1985,12 +1987,12 @@ ret=0
 n=$((n+1))
 echo_i "testing NTA persistence across restarts ($n)"
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.1
-lines=$(grep -c " expiry " rndc.out.ns4.test$n.1)
+lines=$(grep -c " expiry " rndc.out.ns4.test$n.1 || true)
 [ "$lines" -eq 0 ] || ret=1
 rndccmd 10.53.0.4 nta -f -l 30s bogus.example 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 nta -f -l 10s badds.example 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.2
-lines=$(grep -c " expiry " rndc.out.ns4.test$n.2)
+lines=$(grep -c " expiry " rndc.out.ns4.test$n.2 || true)
 [ "$lines" -eq 2 ] || ret=1
 # shellcheck disable=SC2016
 start=$($PERL -e 'print time()."\n";')
@@ -2961,7 +2963,7 @@ status=$((status+ret))
 
 echo_i "check that named doesn't loop when all private keys are not available ($n)"
 ret=0
-lines=$(grep -c "reading private key file expiring.example" ns3/named.run)
+lines=$(grep -c "reading private key file expiring.example" ns3/named.run || true)
 test "${lines:-1000}" -lt 15 || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
@@ -2970,11 +2972,11 @@ status=$((status+ret))
 echo_i "check against against missing nearest provable proof ($n)"
 dig_with_opts +norec b.c.d.optout-tld. \
 	@10.53.0.6 ds > dig.out.ds.ns6.test$n || ret=1
-nsec3=$(grep -c "IN.NSEC3" dig.out.ds.ns6.test$n)
+nsec3=$(grep -c "IN.NSEC3" dig.out.ds.ns6.test$n || true)
 [ "$nsec3" -eq 2 ] || ret=1
 dig_with_opts +norec b.c.d.optout-tld. \
 	@10.53.0.6 A > dig.out.ns6.test$n || ret=1
-nsec3=$(grep -c "IN.NSEC3" dig.out.ns6.test$n)
+nsec3=$(grep -c "IN.NSEC3" dig.out.ns6.test$n || true)
 [ "$nsec3" -eq 1 ] || ret=1
 dig_with_opts optout-tld. \
 	@10.53.0.4 SOA > dig.out.soa.ns4.test$n || ret=1
@@ -3041,7 +3043,7 @@ test "$cnt" -gt 120 && break
 sleep 1
 done
 test "$keys" -gt 2 || ret=1
-sigs=$(grep -c RRSIG dig.out.ns3.test$n)
+sigs=$(grep -c RRSIG dig.out.ns3.test$n || true)
 n=$((n+1))
 test "$sigs" -eq 2 || ret=1
 if test "$ret" -ne 0 ; then echo_i "failed"; fi
@@ -3161,10 +3163,10 @@ do
 	    alg=$((alg+1))
 	    continue;;
 	1|5|7|8|10) # RSA algorithms
-	    key1=$($KEYGEN -a "$alg" -b "1024" -n zone example 2> keygen.err)
+	    key1=$($KEYGEN -a "$alg" -b "1024" -n zone example 2> keygen.err || true)
 	    ;;
 	*)
-	    key1=$($KEYGEN -a "$alg" -n zone example 2> keygen.err)
+	    key1=$($KEYGEN -a "$alg" -n zone example 2> keygen.err || true)
     esac
     if grep "unsupported algorithm" keygen.err > /dev/null
     then
@@ -3241,7 +3243,7 @@ grep "DNSKEY.257" | sed 's/DNSKEY.257/DNSKEY 258/' |
 $DSFROMKEY -C -A -f - -T 1 cds-update.secure |
 sed "s/^/update add /"
 echo send
-) | $NSUPDATE > nsupdate.out.test$n 2>&1
+) | $NSUPDATE > nsupdate.out.test$n 2>&1 || true
 grep "update failed: REFUSED" nsupdate.out.test$n > /dev/null || ret=1
 dig_with_opts +noall +answer @10.53.0.2 cds cds-update.secure > dig.out.test$n
 lines=$(awk '$4 == "CDS" {print}' dig.out.test$n | wc -l)
@@ -3401,7 +3403,7 @@ echo send
 dig_with_opts +noall +answer @10.53.0.2 dnskey cdnskey-update.secure |
 sed -n -e "s/^/update add /" -e 's/DNSKEY.257/CDNSKEY 258/p'
 echo send
-) | $NSUPDATE > nsupdate.out.test$n 2>&1
+) | $NSUPDATE > nsupdate.out.test$n 2>&1 || true
 grep "update failed: REFUSED" nsupdate.out.test$n > /dev/null || ret=1
 dig_with_opts +noall +answer @10.53.0.2 cdnskey cdnskey-update.secure > dig.out.test$n
 lines=$(awk '$4 == "CDNSKEY" {print}' dig.out.test$n | wc -l)
