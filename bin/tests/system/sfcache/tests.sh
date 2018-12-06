@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+set -e
+
 status=0
 n=0
 

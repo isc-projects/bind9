@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+set -e
+
 zone=example.
 infile=example.db.in
 zonefile=example.db

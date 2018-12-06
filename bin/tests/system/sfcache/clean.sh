@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 rm -f ./*/K*.key ./*/K*.private ./*/*.signed ./*/*.db ./*/dsset-*
 rm -f ./*/managed.conf ./*/trusted.conf
 rm -f ./*/named.memstats
