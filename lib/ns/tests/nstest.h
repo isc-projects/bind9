@@ -30,6 +30,7 @@
 
 #include <ns/interfacemgr.h>
 #include <ns/client.h>
+#include <ns/hooks.h>
 
 typedef struct ns_test_id {
 	const char *description;
@@ -150,5 +151,5 @@ ns_test_qctx_destroy(query_ctx_t **qctxp);
 /*%
  * A hook callback interrupting execution at given hook's insertion point.
  */
-bool
+ns_hookresult_t
 ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp);

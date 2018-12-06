@@ -255,16 +255,16 @@ get_hooktab(query_ctx_t *qctx) {
 }
 
 /*
- * Call the specified hook function in every configured module that
- * implements that function. If any hook function returns 'true', we set
- * 'result' and terminate processing by jumping to the 'cleanup' tag.
+ * Call the specified hook function in every configured module that implements
+ * that function. If any hook function returns NS_HOOK_RETURN, we
+ * set 'result' and terminate processing by jumping to the 'cleanup' tag.
  *
  * (Note that a hook function may set the 'result' to ISC_R_SUCCESS but
  * still terminate processing within the calling function. That's why this
  * is a macro instead of an inline function; it needs to be able to use
  * 'goto cleanup' regardless of the return value.)
  */
-#define CALL_HOOK(_id, _qctx)					\
+#define CALL_HOOK(_id, _qctx)						\
 	do {								\
 		isc_result_t _res;					\
 		ns_hooktable_t *_tab = get_hooktab(_qctx);		\
@@ -274,11 +274,15 @@ get_hooktab(query_ctx_t *qctx) {
 			ns_hook_action_t _func = _hook->action;		\
 			void *_data = _hook->action_data;		\
 			INSIST(_func != NULL);				\
-			if (_func(_qctx, _data, &_res)) {		\
+			switch (_func(_qctx, _data, &_res)) {		\
+			case NS_HOOK_CONTINUE:				\
+				_hook = ISC_LIST_NEXT(_hook, link);	\
+				break;					\
+			case NS_HOOK_RETURN:				\
 				result = _res;				\
 				goto cleanup;				\
-			} else {					\
-				_hook = ISC_LIST_NEXT(_hook, link);	\
+			default:					\
+				INSIST(0);				\
 			}						\
 		}							\
 	} while (false)

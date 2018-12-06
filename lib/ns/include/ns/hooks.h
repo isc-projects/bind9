@@ -64,19 +64,23 @@
  *
  * Hook actions are functions which:
  *
- *   - return a boolean value: if true is returned by the hook action, the
- *     function into which the hook is inserted will return and no further hook
- *     actions at the same hook point will be invoked; if false is returned by
- *     the hook action and there are further hook actions set up at the same
- *     hook point, they will be processed; if false is returned and there are
- *     no further hook actions set up at the same hook point, execution of the
- *     function into which the hook has been inserted will be resumed,
+ *   - return an ns_hookresult_t value:
+ *       - if NS_HOOK_RETURN is returned by the hook action, the function
+ *         into which the hook is inserted will return and no further hook
+ *         actions at the same hook point will be invoked,
+ *       - if NS_HOOK_CONTINUE is returned by the hook action and there are
+ *         further hook actions set up at the same hook point, they will be
+ *         processed; if NS_HOOK_CONTINUE is returned and there are no
+ *         further hook actions set up at the same hook point, execution of
+ *         the function into which the hook has been inserted will be
+ *         resumed.
  *
  *   - accept three pointers as arguments:
  *       - a pointer specified by the special call at the hook insertion point,
  *       - a pointer specified upon inserting the action into the hook table,
  *       - a pointer to an isc_result_t value which will be returned by the
- *         function into which the hook is inserted if the action returns true.
+ *         function into which the hook is inserted if the action returns
+ *         NS_HOOK_RETURN.
  *
  * In order for a hook action to be called for a given hook, a pointer to that
  * action function (along with an optional pointer to action-specific data) has
@@ -106,14 +110,14 @@
  * and the following hook action:
  *
  * ----------------------------------------------------------------------------
- * static bool
+ * static ns_hookresult_t
  * cause_failure(void *hook_data, void *action_data, isc_result_t *resultp) {
  *     UNUSED(hook_data);
  *     UNUSED(action_data);
  *
  *     *resultp = ISC_R_FAILURE;
  *
- *     return (true);
+ *     return (NS_HOOK_RETURN);
  * }
  * ----------------------------------------------------------------------------
  *
@@ -127,15 +131,15 @@
  * ns_hook_add(..., NS_QUERY_FOO_BEGIN, &foo_fail);
  * ----------------------------------------------------------------------------
  *
- * then query_foo() would return ISC_R_FAILURE every time it is called due to
- * the cause_failure() hook action returning true and setting '*resultp' to
- * ISC_R_FAILURE.  query_foo() would also never log the "Lorem ipsum dolor sit
- * amet..." message.
+ * then query_foo() would return ISC_R_FAILURE every time it is called due
+ * to the cause_failure() hook action returning NS_HOOK_RETURN and setting
+ * '*resultp' to ISC_R_FAILURE.  query_foo() would also never log the
+ * "Lorem ipsum dolor sit amet..." message.
  *
  * Consider a different hook action:
  *
  * ----------------------------------------------------------------------------
- * static bool
+ * static ns_hookresult_t
  * log_qtype(void *hook_data, void *action_data, isc_result_t *resultp) {
  *     query_ctx_t *qctx = (query_ctx_t *)hook_data;
  *     FILE *stream = (FILE *)action_data;
@@ -144,7 +148,7 @@
  *
  *     fprintf(stream, "QTYPE=%u\n", qctx->qtype);
  *
- *     return (false);
+ *     return (NS_HOOK_CONTINUE);
  * }
  * ----------------------------------------------------------------------------
  *
@@ -165,9 +169,9 @@
  * the hook action in 'hook_data' since it is specified in the CALL_HOOK() call
  * inside query_foo() while stderr would be passed to the hook action in
  * 'action_data' since it is specified in the ns_hook_t structure passed to
- * ns_hook_add().  As the hook action returns false, query_foo() would also be
- * logging the "Lorem ipsum dolor sit amet..." message before returning
- * ISC_R_COMPLETE.
+ * ns_hook_add().  As the hook action returns NS_HOOK_CONTINUE,
+ * query_foo() would also be logging the "Lorem ipsum dolor sit amet..."
+ * message before returning ISC_R_COMPLETE.
  */
 
 /*!
@@ -211,7 +215,16 @@ typedef enum {
 	NS_HOOKPOINTS_COUNT	/* MUST BE LAST */
 } ns_hookpoint_t;
 
-typedef bool
+/*
+ * Returned by a hook action to indicate how to proceed after it has
+ * been called: continue processing, or return immediately.
+ */
+typedef enum {
+	NS_HOOK_CONTINUE,
+	NS_HOOK_RETURN,
+} ns_hookresult_t;
+
+typedef ns_hookresult_t
 (*ns_hook_action_t)(void *arg, void *data, isc_result_t *resultp);
 
 typedef struct ns_hook {

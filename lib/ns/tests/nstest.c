@@ -633,7 +633,7 @@ destroy_message:
  * "data".  Causes execution to be interrupted at hook insertion
  * point.
  */
-static bool
+static ns_hookresult_t
 extract_qctx(void *arg, void *data, isc_result_t *resultp) {
 	query_ctx_t **qctxp;
 	query_ctx_t *qctx;
@@ -660,7 +660,7 @@ extract_qctx(void *arg, void *data, isc_result_t *resultp) {
 	*qctxp = qctx;
 	*resultp = ISC_R_UNSET;
 
-	return (true);
+	return (NS_HOOK_RETURN);
 }
 
 /*%
@@ -801,7 +801,7 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 	*qctxp = NULL;
 }
 
-bool
+ns_hookresult_t
 ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp)
 {
 	UNUSED(arg);
@@ -809,7 +809,7 @@ ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp)
 
 	*resultp = ISC_R_UNSET;
 
-	return (true);
+	return (NS_HOOK_RETURN);
 }
 
 /*

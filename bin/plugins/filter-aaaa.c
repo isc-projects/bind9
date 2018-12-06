@@ -115,17 +115,17 @@ typedef struct filter_instance {
 /*
  * Forward declarations of functions referenced in install_hooks().
  */
-static bool
+static ns_hookresult_t
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp);
-static bool
+static ns_hookresult_t
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp);
-static bool
+static ns_hookresult_t
 filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp);
-static bool
+static ns_hookresult_t
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp);
-static bool
+static ns_hookresult_t
 filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp);
-static bool
+static ns_hookresult_t
 filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp);
 
 /*%
@@ -673,7 +673,7 @@ process_section(const section_filter_t *filter) {
  * retrieve persistent data related to a client query for as long as the
  * object persists.
  */
-static bool
+static ns_hookresult_t
 filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	filter_instance_t *inst = (filter_instance_t *) cbdata;
@@ -686,7 +686,7 @@ filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
 		client_state_create(qctx, inst);
 	}
 
-	return (false);
+	return (NS_HOOK_CONTINUE);
 }
 
 /*
@@ -694,7 +694,7 @@ filter_qctx_initialize(void *arg, void *cbdata, isc_result_t *resp) {
  * the client address family and the settings of filter-aaaa-on-v4 and
  * filter-aaaa-on-v6.
  */
-static bool
+static ns_hookresult_t
 filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	filter_instance_t *inst = (filter_instance_t *) cbdata;
@@ -704,7 +704,7 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	*resp = ISC_R_UNSET;
 
 	if (client_state == NULL) {
-		return (false);
+		return (NS_HOOK_CONTINUE);
 	}
 
 	if (inst->v4_aaaa != NONE || inst->v6_aaaa != NONE) {
@@ -723,7 +723,7 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
 		}
 	}
 
-	return (false);
+	return (NS_HOOK_CONTINUE);
 }
 
 /*
@@ -733,7 +733,7 @@ filter_prep_response_begin(void *arg, void *cbdata, isc_result_t *resp) {
  * (This version is for processing answers to explicit AAAA queries; ANY
  * queries are handled in filter_respond_any_found().)
  */
-static bool
+static ns_hookresult_t
 filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	filter_instance_t *inst = (filter_instance_t *) cbdata;
@@ -743,7 +743,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	*resp = ISC_R_UNSET;
 
 	if (client_state == NULL) {
-		return (false);
+		return (NS_HOOK_CONTINUE);
 	}
 
 	if (client_state->mode != BREAK_DNSSEC &&
@@ -751,7 +751,7 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 	     (WANTDNSSEC(qctx->client) && qctx->sigrdataset != NULL &&
 	      dns_rdataset_isassociated(qctx->sigrdataset))))
 	{
-		return (false);
+		return (NS_HOOK_CONTINUE);
 	}
 
 	if (qctx->qtype == dns_rdatatype_aaaa) {
@@ -827,17 +827,17 @@ filter_respond_begin(void *arg, void *cbdata, isc_result_t *resp) {
 
 		*resp = result;
 
-		return (true);
+		return (NS_HOOK_RETURN);
 	}
 
 	*resp = result;
-	return (false);
+	return (NS_HOOK_CONTINUE);
 }
 
 /*
  * When answering an ANY query, remove AAAA if A is present.
  */
-static bool
+static ns_hookresult_t
 filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	filter_instance_t *inst = (filter_instance_t *) cbdata;
@@ -864,7 +864,7 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
 		process_section(&filter_answer);
 	}
 
-	return (false);
+	return (NS_HOOK_CONTINUE);
 }
 
 /*
@@ -872,7 +872,7 @@ filter_respond_any_found(void *arg, void *cbdata, isc_result_t *resp) {
  * hide NS in the authority section if AAAA was filtered in the answer
  * section.
  */
-static bool
+static ns_hookresult_t
 filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	filter_instance_t *inst = (filter_instance_t *) cbdata;
@@ -901,14 +901,14 @@ filter_query_done_send(void *arg, void *cbdata, isc_result_t *resp) {
 		}
 	}
 
-	return (false);
+	return (NS_HOOK_CONTINUE);
 }
 
 /*
  * If the client is being detached, then we can delete our persistent data
  * from hash table and return it to the memory pool.
  */
-static bool
+static ns_hookresult_t
 filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
 	query_ctx_t *qctx = (query_ctx_t *) arg;
 	filter_instance_t *inst = (filter_instance_t *) cbdata;
@@ -916,10 +916,10 @@ filter_qctx_destroy(void *arg, void *cbdata, isc_result_t *resp) {
 	*resp = ISC_R_UNSET;
 
 	if (!qctx->detach_client) {
-		return (false);
+		return (NS_HOOK_CONTINUE);
 	}
 
 	client_state_destroy(qctx, inst);
 
-	return (false);
+	return (NS_HOOK_CONTINUE);
 }
