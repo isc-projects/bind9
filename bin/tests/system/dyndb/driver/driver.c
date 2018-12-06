@@ -91,21 +91,38 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 	}
 
 	result = isc_commandline_strtoargv(mctx, s, &argc, &argv, 0);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "dyndb_init: isc_commandline_strtoargv -> %s\n",
+			  isc_result_totext(result));
 		goto cleanup;
+	}
 
 	log_write(ISC_LOG_DEBUG(9),
 		  "loading params for dyndb '%s' from %s:%lu",
 		  name, file, line);
 
 	/* Finally, create the instance. */
-	CHECK(new_sample_instance(mctx, name, argc, argv, dctx, &sample_inst));
+	result = new_sample_instance(mctx, name, argc, argv, dctx,
+				     &sample_inst);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "dyndb_init: new_sample_instance -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
 
 	/*
 	 * This is an example so we create and load zones
 	 * right now.  This step can be arbitrarily postponed.
 	 */
-	CHECK(load_sample_instance_zones(sample_inst));
+	result = load_sample_instance_zones(sample_inst);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "dyndb_init: load_sample_instance_zones -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
 
 	*instp = sample_inst;
 
