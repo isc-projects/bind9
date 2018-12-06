@@ -605,22 +605,22 @@
   <refsection><info><title>EXAMPLE</title></info>
 
     <para>
-      To generate a 768-bit DSA key for the domain
+      To generate an ECDSAP256SHA256 key for the domain
       <userinput>example.com</userinput>, the following command would be
       issued:
     </para>
-    <para><userinput>dnssec-keygen -a DSA -b 768 -n ZONE example.com</userinput>
+    <para><userinput>dnssec-keygen -a ECDSAP256SHA256 -n ZONE example.com</userinput>
     </para>
     <para>
       The command would print a string of the form:
     </para>
-    <para><userinput>Kexample.com.+003+26160</userinput>
+    <para><userinput>Kexample.com.+013+26160</userinput>
     </para>
     <para>
       In this example, <command>dnssec-keygen</command> creates
-      the files <filename>Kexample.com.+003+26160.key</filename>
+      the files <filename>Kexample.com.+013+26160.key</filename>
       and
-      <filename>Kexample.com.+003+26160.private</filename>.
+      <filename>Kexample.com.+013+26160.private</filename>.
     </para>
   </refsection>
 
