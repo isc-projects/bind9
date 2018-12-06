@@ -330,7 +330,7 @@ usage(void) {
 	fprintf(stderr, "    -K <directory>: directory in which to find "
 			"key file or keyset file\n");
 	fprintf(stderr, "    -a algorithm: digest algorithm "
-			"(SHA-1, SHA-256, GOST or SHA-384)\n");
+			"(SHA-1, SHA-256 or SHA-384)\n");
 	fprintf(stderr, "    -1: use SHA-1\n");
 	fprintf(stderr, "    -2: use SHA-256\n");
 	fprintf(stderr, "    -C: print CDS record\n");
