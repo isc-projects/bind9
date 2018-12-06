@@ -158,6 +158,7 @@ show_usage(void) {
 "       -s a SERVFAIL response should stop query\n"
 "       -t specifies the query type\n"
 "       -T enables TCP/IP mode\n"
+"       -U enables UDP mode\n"
 "       -v enables verbose output\n"
 "       -V print version number and exit\n"
 "       -w specifies to wait forever for a reply\n"
@@ -635,28 +636,29 @@ pre_parse_args(int argc, char **argv) {
 			break;
 		case 'a': break;
 		case 'c': break;
+		case 'C': break;
 		case 'd': break;
+		case 'D':
+			if (debugging)
+				debugtiming = true;
+			debugging = true;
+			break;
 		case 'i': break;
 		case 'l': break;
 		case 'n': break;
+		case 'N': break;
 		case 'r': break;
+		case 'R': break;
 		case 's': break;
 		case 't': break;
+		case 'T': break;
+		case 'U': break;
 		case 'v': break;
 		case 'V':
 			  version();
 			  exit(0);
 			  break;
 		case 'w': break;
-		case 'C': break;
-		case 'D':
-			if (debugging)
-				debugtiming = true;
-			debugging = true;
-			break;
-		case 'N': break;
-		case 'R': break;
-		case 'T': break;
 		case 'W': break;
 		default:
 			show_usage();
