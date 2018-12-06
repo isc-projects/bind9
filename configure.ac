@@ -2660,6 +2660,15 @@ AS_IF([test "$with_dlopen" = "yes"],
 			 SO_LD="${CC}"
 		       ])
 	       ],
+	       [*-darwin*],[
+		 SO_CFLAGS="-fPIC"
+                 SO_LD="${CC}"
+		 AS_IF([test "$use_libtool" = "yes"],[
+			 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
+		       ],[
+			 SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
+		       ])
+	       ],
 	       [*-solaris*],[
 		 SO_CFLAGS="-KPIC"
 		 SO_LDFLAGS="-G -z text"
@@ -2947,8 +2956,8 @@ AC_CONFIG_COMMANDS(
 #
 
 AC_CONFIG_FILES([
-  make/Makefile
-  make/mkdep
+	make/Makefile
+	make/mkdep
 	Makefile
 	bin/Makefile
 	bin/check/Makefile
