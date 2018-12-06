@@ -20271,6 +20271,20 @@ else
 
 fi
 	        ;; #(
+  *-darwin*) :
+
+		 SO_CFLAGS="-fPIC"
+                 SO_LD="${CC}"
+		 if test "$use_libtool" = "yes"; then :
+
+			 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
+
+else
+
+			 SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
+
+fi
+	        ;; #(
   *-solaris*) :
 
 		 SO_CFLAGS="-KPIC"
