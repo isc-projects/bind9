@@ -43,15 +43,45 @@ create_zone(sample_instance_t * const inst, dns_name_t * const name,
 
 	zone_argv[0] = inst->db_name;
 
-	CHECK(dns_zone_create(&raw, inst->mctx));
-	CHECK(dns_zone_setorigin(raw, name));
+	result = dns_zone_create(&raw, inst->mctx);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "create_zone: dns_zone_create -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
+	result = dns_zone_setorigin(raw, name);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "create_zone: dns_zone_setorigin -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
 	dns_zone_setclass(raw, dns_rdataclass_in);
 	dns_zone_settype(raw, dns_zone_master);
-	CHECK(dns_zone_setdbtype(raw, 1, zone_argv));
-	CHECK(dns_zonemgr_managezone(inst->zmgr, raw));
+	result = dns_zone_setdbtype(raw, 1, zone_argv);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "create_zone: dns_zone_setdbtype -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
+	result = dns_zonemgr_managezone(inst->zmgr, raw);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "create_zone: dns_zonemgr_managezone -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
 
 	/* This is completely insecure - use some sensible values instead! */
-	CHECK(dns_acl_any(inst->mctx, &acl_any));
+	result = dns_acl_any(inst->mctx, &acl_any);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "create_zone: dns_acl_any -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
 	dns_zone_setupdateacl(raw, acl_any);
 	dns_zone_setqueryacl(raw, acl_any);
 	dns_zone_setxfracl(raw, acl_any);
@@ -129,7 +159,13 @@ publish_zone(sample_instance_t *inst, dns_zone_t *zone) {
 	}
 
 	dns_zone_setview(zone, inst->view);
-	CHECK(dns_view_addzone(inst->view, zone));
+	result = dns_view_addzone(inst->view, zone);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "publish_zone: dns_view_addzone -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
 
 cleanup:
 	if (zone_in_view != NULL)
@@ -157,7 +193,13 @@ load_zone(dns_zone_t *zone) {
 		goto cleanup;
 	zone_dynamic = (result == DNS_R_DYNAMIC);
 
-	CHECK(dns_zone_getserial2(zone, &serial));
+	result = dns_zone_getserial2(zone, &serial);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "load_zone: dns_zone_getserial2 -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
 	dns_zone_log(zone, ISC_LOG_INFO, "loaded serial %u", serial);
 
 	if (zone_dynamic)
@@ -187,7 +229,13 @@ activate_zone(sample_instance_t *inst, dns_zone_t *raw) {
 		goto cleanup;
 	}
 
-	CHECK(load_zone(raw));
+	result = load_zone(raw);
+	if (result != ISC_R_SUCCESS) {
+		log_write(ISC_LOG_ERROR,
+			  "activate_zone: load_zone -> %s\n",
+			  isc_result_totext(result));
+		goto cleanup;
+	}
 
 cleanup:
 	return (result);
