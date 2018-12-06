@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+set -e
+
 keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "dnskey.example.")
 
 cp example.db.in example.db

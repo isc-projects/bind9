@@ -12,6 +12,8 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
+set -e
+
 status=0
 n=0
 
@@ -505,8 +507,8 @@ if [ -x "$DIG" ] ; then
   n=$((n+1))
   echo_i "check that dig gracefully handles bad escape in domain name ($n)"
   ret=0
-  dig_with_opts @10.53.0.3 '\0.' > dig.out.test$n 2>&1
-  digstatus=$?
+  digstatus=0
+  dig_with_opts @10.53.0.3 '\0.' > dig.out.test$n 2>&1 || digstatus=$?
   echo digstatus=$digstatus >> dig.out.test$n
   test $digstatus -eq 10 || ret=1
   grep REQUIRE dig.out.test$n > /dev/null && ret=1
@@ -579,7 +581,7 @@ if [ -x "$DELV" ] ; then
     # following should fail because @IPv4 overrides earlier @IPv6 above
     # and -6 forces IPv6 so this should fail, with a message
     # "Use of IPv4 disabled by -6"
-    delv_with_opts @fd92:7065:b8e:ffff::3 @10.53.0.3 -6 -t txt foo.example > delv.out.test$n 2>&1
+    delv_with_opts @fd92:7065:b8e:ffff::3 @10.53.0.3 -6 -t txt foo.example > delv.out.test$n 2>&1 && ret=1
     # it should have no results but error output
     grep "testing" < delv.out.test$n > /dev/null && ret=1
     grep "Use of IPv4 disabled by -6" delv.out.test$n > /dev/null || ret=1
@@ -597,7 +599,7 @@ if [ -x "$DELV" ] ; then
     # following should fail because @IPv6 overrides earlier @IPv4 above
     # and -4 forces IPv4 so this should fail, with a message
     # "Use of IPv6 disabled by -4"
-    delv_with_opts @10.53.0.3 @fd92:7065:b8e:ffff::3 -4 -t txt foo.example > delv.out.test$n 2>&1
+    delv_with_opts @10.53.0.3 @fd92:7065:b8e:ffff::3 -4 -t txt foo.example > delv.out.test$n 2>&1 && ret=1
     # it should have no results but error output
     grep "testing" delv.out.test$n > /dev/null && ret=1
     grep "Use of IPv6 disabled by -4" delv.out.test$n > /dev/null || ret=1

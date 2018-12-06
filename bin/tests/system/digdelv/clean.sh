@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 rm -f ./*/named.memstats
 rm -f ./*/named.run
 rm -f ./*/named.conf
