@@ -1,3 +1,5 @@
+5107.	[bug]		'host -U' did not work.	[GL #769]
+
 5106.	[experimental]	A new "plugin" mechanism has been added to allow
 			extension of query processing functionality through
 			the use of dynamically loadable libraries. A
