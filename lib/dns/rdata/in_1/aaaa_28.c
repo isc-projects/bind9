@@ -50,12 +50,29 @@ static inline isc_result_t
 totext_in_aaaa(ARGS_TOTEXT) {
 	isc_region_t region;
 
-	UNUSED(tctx);
-
 	REQUIRE(rdata->type == dns_rdatatype_aaaa);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length == 16);
 
+	if ((tctx->flags & DNS_STYLEFLAG_EXPANDAAAA) != 0) {
+		char buf[5*8];
+		const char *sep = "";
+		int i, n;
+		unsigned int len = 0;
+
+		for (i = 0; i < 16; i += 2) {
+			INSIST(len < sizeof(buf));
+			n = snprintf(buf + len, sizeof(buf) - len,
+				     "%s%02x%02x", sep,
+				     rdata->data[i], rdata->data[i + 1]);
+			if (n < 0) {
+				return (ISC_R_FAILURE);
+			}
+			len += n;
+			sep = ":";
+		}
+		return (str_totext(buf, target));
+	}
 	dns_rdata_toregion(rdata, &region);
 	return (inet_totext(AF_INET6, &region, target));
 }

@@ -748,6 +748,16 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]expandaaaa</option></term>
+	  <listitem>
+	    <para>
+	      When printing AAAA record print all zero nibbles rather
+	      than the default RFC 5952 preferred presentation format.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]fail</option></term>
 	  <listitem>
 	    <para>

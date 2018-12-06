@@ -621,6 +621,7 @@ make_empty_lookup(void) {
 	looknew->nocrypto = false;
 	looknew->ttlunits = false;
 	looknew->ttlunits = false;
+	looknew->expandaaaa = false;
 	looknew->qr = false;
 #ifdef HAVE_LIBIDN2
 	looknew->idnin = isatty(1)?(getenv("IDN_DISABLE") == NULL):false;
@@ -769,6 +770,7 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->use_usec = lookold->use_usec;
 	looknew->nocrypto = lookold->nocrypto;
 	looknew->ttlunits = lookold->ttlunits;
+	looknew->expandaaaa = lookold->expandaaaa;
 	looknew->qr = lookold->qr;
 	looknew->idnin = lookold->idnin;
 	looknew->idnout = lookold->idnout;
