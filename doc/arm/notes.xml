@@ -155,6 +155,19 @@
       </listitem>
       <listitem>
 	<para>
+	  A new <command>plugin</command> mechanism has been added to allow
+	  extension of query processing functionality through the use of
+	  external libraries. The new <filename>filter-aaaa.so</filename>
+	  plugin replaces the <command>filter-aaaa</command> feature that
+	  was formerly implemented as a native part of BIND.
+	</para>
+	<para>
+	  The plugin API is a work in progress and is likely to evolve
+	  as further plugins are implemented. [GL #15]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  BIND now can be compiled against the <command>libidn2</command>
 	  library to add IDNA2008 support.  Previously, BIND supported
 	  IDNA2003 using the (now obsolete and unsupported)
@@ -287,6 +300,18 @@
 	  for old architectures and systems without threads support.
 	  BIND now requires threading support (either POSIX or Windows) from
 	  the operating system, and it cannot be built without threads.
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The <command>filter-aaaa</command>,
+	  <command>filter-aaaa-on-v4</command>, and
+	  <command>filter-aaaa-on-v6</command> options have been removed
+	  from <command>named</command>, and can no longer be
+	  configured using native <filename>named.conf</filename> syntax.
+	  However, loading the new <filename>filter-aaaa.so</filename>
+	  plugin and setting its parameters provides identical
+	  functionality.
 	</para>
       </listitem>
       <listitem>

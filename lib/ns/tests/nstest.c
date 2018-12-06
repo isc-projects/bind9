@@ -13,8 +13,6 @@
 
 #include <config.h>
 
-#ifdef NS_HOOKS_ENABLE
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -47,10 +45,9 @@
 #include <dns/zone.h>
 
 #include <ns/client.h>
+#include <ns/hooks.h>
 #include <ns/interfacemgr.h>
 #include <ns/server.h>
-
-#include "../hooks.h"
 
 #include "nstest.h"
 
@@ -286,8 +283,6 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 	if (chdir(TESTS) == -1) {
 		CHECK(ISC_R_FAILURE);
 	}
-
-	ns__hook_table = NULL;
 
 	return (ISC_R_SUCCESS);
 
@@ -634,17 +629,17 @@ destroy_message:
 }
 
 /*%
- * A hook callback which stores the query context pointed to by "hook_data" at
- * "callback_data".  Causes execution to be interrupted at hook insertion
+ * A hook action which stores the query context pointed to by "arg" at
+ * "data".  Causes execution to be interrupted at hook insertion
  * point.
  */
-static bool
-extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
+static ns_hookresult_t
+extract_qctx(void *arg, void *data, isc_result_t *resultp) {
 	query_ctx_t **qctxp;
 	query_ctx_t *qctx;
 
-	REQUIRE(hook_data != NULL);
-	REQUIRE(callback_data != NULL);
+	REQUIRE(arg != NULL);
+	REQUIRE(data != NULL);
 	REQUIRE(resultp != NULL);
 
 	/*
@@ -654,10 +649,10 @@ extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
 	 */
 	qctx = isc_mem_get(mctx, sizeof(*qctx));
 	if (qctx != NULL) {
-		memmove(qctx, (query_ctx_t *)hook_data, sizeof(*qctx));
+		memmove(qctx, (query_ctx_t *)arg, sizeof(*qctx));
 	}
 
-	qctxp = (query_ctx_t **)callback_data;
+	qctxp = (query_ctx_t **)data;
 	/*
 	 * If memory allocation failed, the supplied pointer will simply be set
 	 * to NULL.  We rely on the user of this hook to react properly.
@@ -665,7 +660,7 @@ extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
 	*qctxp = qctx;
 	*resultp = ISC_R_UNSET;
 
-	return (true);
+	return (NS_HOOK_RETURN);
 }
 
 /*%
@@ -677,12 +672,10 @@ extract_qctx(void *hook_data, void *callback_data, isc_result_t *resultp) {
  */
 static isc_result_t
 create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
-	ns_hook_t *saved_hook_table;
-	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
-		[NS_QUERY_SETUP_QCTX_INITIALIZED] = {
-			.callback = extract_qctx,
-			.callback_data = qctxp,
-		},
+	ns_hooktable_t *saved_hook_table = NULL, *query_hooks = NULL;
+	const ns_hook_t hook = {
+		.action = extract_qctx,
+		.action_data = qctxp,
 	};
 
 	REQUIRE(client != NULL);
@@ -696,10 +689,17 @@ create_qctx_for_client(ns_client_t *client, query_ctx_t **qctxp) {
 	 * further processing.  Make sure we do not overwrite any previously
 	 * set hooks.
 	 */
+
+	ns_hooktable_create(mctx, &query_hooks);
+	ns_hook_add(query_hooks, mctx, NS_QUERY_SETUP, &hook);
+
 	saved_hook_table = ns__hook_table;
 	ns__hook_table = query_hooks;
+
 	ns_query_start(client);
+
 	ns__hook_table = saved_hook_table;
+	ns_hooktable_free(mctx, (void **)&query_hooks);
 
 	if (*qctxp == NULL) {
 		return (ISC_R_NOMEMORY);
@@ -801,16 +801,15 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 	*qctxp = NULL;
 }
 
-bool
-ns_test_hook_catch_call(void *hook_data, void *callback_data,
-			isc_result_t *resultp)
+ns_hookresult_t
+ns_test_hook_catch_call(void *arg, void *data, isc_result_t *resultp)
 {
-	UNUSED(hook_data);
-	UNUSED(callback_data);
+	UNUSED(arg);
+	UNUSED(data);
 
 	*resultp = ISC_R_UNSET;
 
-	return (true);
+	return (NS_HOOK_RETURN);
 }
 
 /*
@@ -927,4 +926,3 @@ ns_test_getdata(const char *file, unsigned char *buf,
 	isc_stdio_close(f);
 	return (result);
 }
-#endif

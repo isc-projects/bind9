@@ -102,6 +102,7 @@
 #include <dst/result.h>
 
 #include <ns/client.h>
+#include <ns/hooks.h>
 #include <ns/listenlist.h>
 #include <ns/interfacemgr.h>
 
@@ -3646,6 +3647,35 @@ create_mapped_acl(void) {
 	return (result);
 }
 
+#ifdef HAVE_DLOPEN
+/*%
+ * A callback for the cfg_pluginlist_foreach() call in configure_view() below.
+ * If registering any plugin fails, registering subsequent ones is not
+ * attempted.
+ */
+static isc_result_t
+register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
+		    const char *plugin_path, const char *parameters,
+		    void *callback_data)
+{
+	dns_view_t *view = callback_data;
+	isc_result_t result;
+
+	result = ns_plugin_register(plugin_path, parameters, config,
+				    cfg_obj_file(obj), cfg_obj_line(obj),
+				    named_g_mctx, named_g_lctx,
+				    named_g_aclconfctx, view);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "%s: plugin configuration failed: %s",
+			      plugin_path, isc_result_totext(result));
+	}
+
+	return (result);
+}
+#endif
+
 /*
  * Configure 'view' according to 'vconfig', taking defaults from 'config'
  * where values are missing in 'vconfig'.
@@ -3674,7 +3704,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	const cfg_obj_t *dlvobj = NULL;
 	unsigned int dlzargc;
 	char **dlzargv;
-	const cfg_obj_t *dyndb_list;
+	const cfg_obj_t *dyndb_list, *plugin_list;
 	const cfg_obj_t *disabled;
 	const cfg_obj_t *obj, *obj2;
 	const cfg_listelt_t *element;
@@ -5089,46 +5119,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	obj = NULL;
-	result = named_config_get(maps, "filter-aaaa-on-v4", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_isboolean(obj)) {
-		if (cfg_obj_asboolean(obj))
-			view->v4_aaaa = dns_aaaa_filter;
-		else
-			view->v4_aaaa = dns_aaaa_ok;
-	} else {
-		const char *v4_aaaastr = cfg_obj_asstring(obj);
-		if (strcasecmp(v4_aaaastr, "break-dnssec") == 0) {
-			view->v4_aaaa = dns_aaaa_break_dnssec;
-		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
-		}
-	}
-
-	obj = NULL;
-	result = named_config_get(maps, "filter-aaaa-on-v6", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	if (cfg_obj_isboolean(obj)) {
-		if (cfg_obj_asboolean(obj))
-			view->v6_aaaa = dns_aaaa_filter;
-		else
-			view->v6_aaaa = dns_aaaa_ok;
-	} else {
-		const char *v6_aaaastr = cfg_obj_asstring(obj);
-		if (strcasecmp(v6_aaaastr, "break-dnssec") == 0) {
-			view->v6_aaaa = dns_aaaa_break_dnssec;
-		} else {
-			INSIST(0);
-			ISC_UNREACHABLE();
-		}
-	}
-
-	CHECK(configure_view_acl(vconfig, config, named_g_config,
-				 "filter-aaaa", NULL, actx,
-				 named_g_mctx, &view->aaaa_acl));
-
-	obj = NULL;
 	result = named_config_get(maps, "prefetch", &obj);
 	if (result == ISC_R_SUCCESS) {
 		const cfg_obj_t *trigger, *eligible;
@@ -5269,10 +5259,11 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * Load DynDB modules.
 	 */
 	dyndb_list = NULL;
-	if (voptions != NULL)
+	if (voptions != NULL) {
 		(void)cfg_map_get(voptions, "dyndb", &dyndb_list);
-	else
+	} else {
 		(void)cfg_map_get(config, "dyndb", &dyndb_list);
+	}
 
 #ifdef HAVE_DLOPEN
 	for (element = cfg_list_first(dyndb_list);
@@ -5291,6 +5282,31 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		}
 
 		CHECK(configure_dyndb(dyndb, mctx, dctx));
+	}
+#endif
+
+	/*
+	 * Load plugins.
+	 */
+	plugin_list = NULL;
+	if (voptions != NULL) {
+		(void)cfg_map_get(voptions, "plugin", &plugin_list);
+	} else {
+		(void)cfg_map_get(config, "plugin", &plugin_list);
+	}
+
+#ifdef HAVE_DLOPEN
+	if (plugin_list != NULL) {
+		INSIST(view->hooktable == NULL);
+		CHECK(ns_hooktable_create(view->mctx,
+				  (ns_hooktable_t **) &view->hooktable));
+		view->hooktable_free = ns_hooktable_free;
+
+		ns_plugins_create(view->mctx, (ns_plugins_t **)&view->plugins);
+		view->plugins_free = ns_plugins_free;
+
+		CHECK(cfg_pluginlist_foreach(config, plugin_list, named_g_lctx,
+					     register_one_plugin, view));
 	}
 #endif
 
@@ -8064,8 +8080,12 @@ load_configuration(const char *filename, named_server_t *server,
 
 	/*
 	 * Check the validity of the configuration.
+	 *
+	 * (Ignore plugin parameters for now; they will be
+	 * checked later when the modules are actually loaded and
+	 * registered.)
 	 */
-	CHECK(bind9_check_namedconf(config, named_g_lctx, named_g_mctx));
+	CHECK(bind9_check_namedconf(config, false, named_g_lctx, named_g_mctx));
 
 	/*
 	 * Fill in the maps array, used for resolving defaults.
@@ -9510,6 +9530,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 			dns_view_detach(&view);
 	}
 
+	/*
+	 * Shut down all dyndb instances.
+	 */
 	dns_dyndb_cleanup(true);
 
 	while ((nsc = ISC_LIST_HEAD(server->cachelist)) != NULL) {

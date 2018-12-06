@@ -301,7 +301,10 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_qstring;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_astring;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_ustring;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_sstring;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_bracketed_aml;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_bracketed_text;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_optional_bracketed_text;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_keyref;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_sockaddr;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_sockaddrdscp;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_netaddr;
@@ -431,6 +434,14 @@ cfg_parse_enum(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
 void
 cfg_doc_enum(cfg_printer_t *pctx, const cfg_type_t *type);
+
+isc_result_t
+cfg_parse_enum_or_other(cfg_parser_t *pctx, const cfg_type_t *enumtype,
+			const cfg_type_t *othertype, cfg_obj_t **ret);
+
+void
+cfg_doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *enumtype,
+		      const cfg_type_t *othertype);
 
 void
 cfg_print_chars(cfg_printer_t *pctx, const char *text, int len);

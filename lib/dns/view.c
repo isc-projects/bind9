@@ -225,9 +225,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->padding = 0;
 	view->pad_acl = NULL;
 	view->maxbits = 0;
-	view->v4_aaaa = dns_aaaa_ok;
-	view->v6_aaaa = dns_aaaa_ok;
-	view->aaaa_acl = NULL;
 	view->rpzs = NULL;
 	view->catzs = NULL;
 	dns_fixedname_init(&view->dlv_fixed);
@@ -258,6 +255,11 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->v6bias = 0;
 	view->dtenv = NULL;
 	view->dttypes = 0;
+
+	view->plugins = NULL;
+	view->plugins_free = NULL;
+	view->hooktable = NULL;
+	view->hooktable_free = NULL;
 
 	isc_mutex_init(&view->new_zone_lock);
 
@@ -454,8 +456,6 @@ destroy(dns_view_t *view) {
 		dns_acl_detach(&view->upfwdacl);
 	if (view->denyansweracl != NULL)
 		dns_acl_detach(&view->denyansweracl);
-	if (view->aaaa_acl != NULL)
-		dns_acl_detach(&view->aaaa_acl);
 	if (view->pad_acl != NULL)
 		dns_acl_detach(&view->pad_acl);
 	if (view->answeracl_exclude != NULL)
@@ -550,6 +550,12 @@ destroy(dns_view_t *view) {
 	isc_mutex_destroy(&view->lock);
 	isc_mem_free(view->mctx, view->nta_file);
 	isc_mem_free(view->mctx, view->name);
+	if (view->hooktable != NULL && view->hooktable_free != NULL) {
+		view->hooktable_free(view->mctx, &view->hooktable);
+	}
+	if (view->plugins != NULL && view->plugins_free != NULL) {
+		view->plugins_free(view->mctx, &view->plugins);
+	}
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 }
 

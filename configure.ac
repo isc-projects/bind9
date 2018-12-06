@@ -76,7 +76,7 @@ AC_ARG_ENABLE(developer,
 XTARGETS=
 case "$enable_developer" in
 yes)
-	STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1 -DNS_HOOKS_ENABLE=1"
+	STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
 	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
 	test "${enable_querytrace+set}" = set || enable_querytrace=yes
 	test "${with_cmocka+set}" = set || with_cmocka=yes
@@ -2638,8 +2638,8 @@ AS_CASE([$with_dlopen],
 AS_IF([test "$with_dlopen" = "yes"],
       [AS_CASE([$host],
 	       [*-linux*|*-gnu*],[
+		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_CFLAGS="-fPIC"
-                 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
 		 SO_LDFLAGS=""
 		 AS_IF([test "$use_libtool" = "yes"],[
 			 SO_LDFLAGS="-Xcompiler -shared"
@@ -2961,6 +2961,7 @@ AC_CONFIG_FILES([
 	bin/named/unix/Makefile
 	bin/nsupdate/Makefile
 	bin/pkcs11/Makefile
+	bin/plugins/Makefile
 	bin/python/Makefile
 	bin/python/isc/Makefile
 	bin/python/isc/utils.py

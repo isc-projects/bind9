@@ -50,6 +50,7 @@ LIBNS_EXTERNAL_DATA isc_logmodule_t ns_modules[] = {
 	{ "ns/xfer-in",	 		0 },
 	{ "ns/xfer-out", 		0 },
 	{ "ns/notify",	 		0 },
+	{ "ns/hooks",	 		0 },
 	{ NULL, 			0 }
 };
 

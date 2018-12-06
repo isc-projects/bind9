@@ -20,8 +20,6 @@
 
 #include <isc/util.h>
 
-#ifdef NS_HOOKS_ENABLE
-
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -126,18 +124,6 @@ main(void) {
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
-#else
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: libns hooks not enabled\n");
-	return (0);
-}
-
-#endif /* NS_HOOKS_ENABLE */
-
 #else /* HAVE_CMOCKA */
 
 #include <stdio.h>

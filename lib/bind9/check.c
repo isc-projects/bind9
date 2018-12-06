@@ -54,6 +54,8 @@
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>
 
+#include <ns/hooks.h>
+
 #include <bind9/check.h>
 
 static unsigned char dlviscorg_ndata[] = "\003dlv\003isc\003org";
@@ -471,7 +473,7 @@ check_viewacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 	static const char *acls[] = { "allow-query", "allow-query-on",
 		"allow-query-cache", "allow-query-cache-on",
 		"blackhole", "keep-response-order", "match-clients",
-		"match-destinations", "sortlist", "filter-aaaa", NULL };
+		"match-destinations", "sortlist", NULL };
 
 	while (acls[i] != NULL) {
 		tresult = checkacl(acls[i++], actx, NULL, voptions, config,
@@ -785,102 +787,6 @@ check_recursionacls(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 		if (acl != NULL)
 			dns_acl_detach(&acl);
 	}
-
-	return (result);
-}
-
-static isc_result_t
-check_filteraaaa(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
-		 const char *viewname, const cfg_obj_t *config,
-		 isc_log_t *logctx, isc_mem_t *mctx)
-{
-	const cfg_obj_t *options, *aclobj, *obj;
-	dns_acl_t *acl = NULL;
-	isc_result_t result = ISC_R_SUCCESS;
-	dns_aaaa_t filter4, filter6;
-	const char *forview = " for view ";
-
-	if (viewname == NULL) {
-		viewname = "";
-		forview = "";
-	}
-
-	aclobj = options = NULL;
-	acl = NULL;
-
-	if (voptions != NULL)
-		cfg_map_get(voptions, "filter-aaaa", &aclobj);
-	if (config != NULL && aclobj == NULL) {
-		options = NULL;
-		cfg_map_get(config, "options", &options);
-		if (options != NULL)
-			cfg_map_get(options, "filter-aaaa", &aclobj);
-	}
-	if (aclobj == NULL)
-		return (result);
-
-	result = cfg_acl_fromconfig(aclobj, config, logctx,
-				    actx, mctx, 0, &acl);
-	if (result != ISC_R_SUCCESS)
-		goto failure;
-
-	obj = NULL;
-	if (voptions != NULL)
-		cfg_map_get(voptions, "filter-aaaa-on-v4", &obj);
-	if (obj == NULL && config != NULL) {
-		options = NULL;
-		cfg_map_get(config, "options", &options);
-		if (options != NULL)
-			cfg_map_get(options, "filter-aaaa-on-v4", &obj);
-	}
-
-	if (obj == NULL)
-		filter4 = dns_aaaa_ok;		/* default */
-	else if (cfg_obj_isboolean(obj))
-		filter4 = cfg_obj_asboolean(obj) ? dns_aaaa_filter :
-						  dns_aaaa_ok;
-	else
-		filter4 = dns_aaaa_break_dnssec; 	/* break-dnssec */
-
-	obj = NULL;
-	if (voptions != NULL)
-		cfg_map_get(voptions, "filter-aaaa-on-v6", &obj);
-	if (obj == NULL && config != NULL) {
-		options = NULL;
-		cfg_map_get(config, "options", &options);
-		if (options != NULL)
-			cfg_map_get(options, "filter-aaaa-on-v6", &obj);
-	}
-
-	if (obj == NULL)
-		filter6 = dns_aaaa_ok;		/* default */
-	else if (cfg_obj_isboolean(obj))
-		filter6 = cfg_obj_asboolean(obj) ? dns_aaaa_filter :
-						  dns_aaaa_ok;
-	else
-		filter6 = dns_aaaa_break_dnssec; 	/* break-dnssec */
-
-	if ((filter4 != dns_aaaa_ok || filter6 != dns_aaaa_ok) &&
-	    dns_acl_isnone(acl))
-	{
-		cfg_obj_log(aclobj, logctx, ISC_LOG_WARNING,
-			    "\"filter-aaaa\" is 'none;' but "
-			    "either filter-aaaa-on-v4 or filter-aaaa-on-v6 "
-			    "is enabled%s%s", forview, viewname);
-		result = ISC_R_FAILURE;
-	} else if (filter4 == dns_aaaa_ok && filter6 == dns_aaaa_ok &&
-		   !dns_acl_isnone(acl))
-	{
-		cfg_obj_log(aclobj, logctx, ISC_LOG_WARNING,
-			    "\"filter-aaaa\" is set but "
-			    "neither filter-aaaa-on-v4 or filter-aaaa-on-v6 "
-			    "is enabled%s%s", forview, viewname);
-		result = ISC_R_FAILURE;
-	}
-
- failure:
-	if (acl != NULL)
-		dns_acl_detach(&acl);
 
 	return (result);
 }
@@ -3442,10 +3348,50 @@ check_rpz_catz(const char *rpz_catz, const cfg_obj_t *rpz_obj,
 	return (result);
 }
 
+#ifdef HAVE_DLOPEN
+/*%
+ * Data structure used for the 'callback_data' argument to check_one_plugin().
+ */
+struct check_one_plugin_data {
+	isc_mem_t *mctx;
+	isc_log_t *lctx;
+	cfg_aclconfctx_t *actx;
+	isc_result_t *check_result;
+};
+
+/*%
+ * A callback for the cfg_pluginlist_foreach() call in check_viewconf() below.
+ * Since the point is to check configuration of all plugins even when
+ * processing some of them fails, always return ISC_R_SUCCESS and indicate any
+ * check failures through the 'check_result' variable passed in via the
+ * 'callback_data' structure.
+ */
+static isc_result_t
+check_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
+		 const char *plugin_path, const char *parameters,
+		 void *callback_data)
+{
+	struct check_one_plugin_data *data = callback_data;
+	isc_result_t result;
+
+	result = ns_plugin_check(plugin_path, parameters, config,
+				 cfg_obj_file(obj), cfg_obj_line(obj),
+				 data->mctx, data->lctx, data->actx);
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, data->lctx, ISC_LOG_ERROR,
+			    "%s: plugin check failed: %s",
+			    plugin_path, isc_result_totext(result));
+		*data->check_result = result;
+	}
+
+	return (ISC_R_SUCCESS);
+}
+#endif
+
 static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
-	       isc_symtab_t *files, isc_symtab_t *inview,
+	       isc_symtab_t *files, bool check_plugins, isc_symtab_t *inview,
 	       isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *zones = NULL;
@@ -3461,6 +3407,7 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *obj;
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *opts = NULL;
+	const cfg_obj_t *plugin_list = NULL;
 	bool enablednssec, enablevalidation;
 	const char *valstr = "no";
 	unsigned int tflags, mflags;
@@ -3750,11 +3697,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
 
-	tresult = check_filteraaaa(actx, voptions, viewname, config,
-				   logctx, mctx);
-	if (tresult != ISC_R_SUCCESS)
-		result = tresult;
-
 	tresult = check_dns64(actx, voptions, config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
@@ -3762,6 +3704,35 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	tresult = check_ratelimit(actx, voptions, config, logctx, mctx);
 	if (tresult != ISC_R_SUCCESS)
 		result = tresult;
+
+	/*
+	 * Load plugins.
+	 */
+	if (check_plugins) {
+		if (voptions != NULL) {
+			(void)cfg_map_get(voptions, "plugin", &plugin_list);
+		} else {
+			(void)cfg_map_get(config, "plugin", &plugin_list);
+		}
+	}
+
+#ifdef HAVE_DLOPEN
+	{
+		struct check_one_plugin_data check_one_plugin_data = {
+			.mctx = mctx,
+			.lctx = logctx,
+			.actx = actx,
+			.check_result = &tresult,
+		};
+
+		(void)cfg_pluginlist_foreach(config, plugin_list, logctx,
+					     check_one_plugin,
+					     &check_one_plugin_data);
+		if (tresult != ISC_R_SUCCESS) {
+			result = tresult;
+		}
+	}
+#endif /* HAVE_DLOPEN */
 
  cleanup:
 	if (symtab != NULL)
@@ -4017,8 +3988,8 @@ bind9_check_controls(const cfg_obj_t *config, isc_log_t *logctx,
 }
 
 isc_result_t
-bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
-		      isc_mem_t *mctx)
+bind9_check_namedconf(const cfg_obj_t *config, bool check_plugins,
+		      isc_log_t *logctx, isc_mem_t *mctx)
 {
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *views = NULL;
@@ -4074,19 +4045,29 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 	}
 
 	if (views == NULL) {
-		tresult = check_viewconf(config, NULL, NULL, dns_rdataclass_in,
-					 files, inview, logctx, mctx);
+		tresult = check_viewconf(config, NULL, NULL,
+					 dns_rdataclass_in, files,
+					 check_plugins, inview, logctx, mctx);
 		if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS) {
 			result = ISC_R_FAILURE;
 		}
 	} else {
 		const cfg_obj_t *zones = NULL;
+		const cfg_obj_t *plugins = NULL;
 
 		(void)cfg_map_get(config, "zone", &zones);
 		if (zones != NULL) {
 			cfg_obj_log(zones, logctx, ISC_LOG_ERROR,
 				    "when using 'view' statements, "
 				    "all zones must be in views");
+			result = ISC_R_FAILURE;
+		}
+
+		(void)cfg_map_get(config, "plugin", &plugins);
+		if (plugins != NULL) {
+			cfg_obj_log(plugins, logctx, ISC_LOG_ERROR,
+				    "when using 'view' statements, "
+				    "all plugins must be defined in views");
 			result = ISC_R_FAILURE;
 		}
 	}
@@ -4152,8 +4133,9 @@ bind9_check_namedconf(const cfg_obj_t *config, isc_log_t *logctx,
 			}
 		}
 		if (tresult == ISC_R_SUCCESS)
-			tresult = check_viewconf(config, voptions, key, vclass,
-						 files, inview, logctx, mctx);
+			tresult = check_viewconf(config, voptions, key,
+						 vclass, files, check_plugins,
+						 inview, logctx, mctx);
 		if (tresult != ISC_R_SUCCESS)
 			result = ISC_R_FAILURE;
 	}

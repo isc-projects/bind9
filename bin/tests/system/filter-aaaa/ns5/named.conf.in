@@ -25,9 +25,12 @@ options {
 			    exclude { any; };
 			    mapped { any; };
 	};
+	minimal-responses no;
+};
+
+plugin query "../../../../plugins/lib/filter-aaaa.so" {
 	filter-aaaa-on-v4 break-dnssec;
 	filter-aaaa { any; };
-	minimal-responses no;
 };
 
 key rndc_key {
@@ -40,3 +43,5 @@ controls {
 };
 
 zone "." { type hint; file "hints"; };
+
+include "trusted.conf";

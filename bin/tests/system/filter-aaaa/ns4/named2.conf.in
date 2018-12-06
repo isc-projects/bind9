@@ -20,9 +20,12 @@ options {
 	recursion no;
 	dnssec-validation no;
 	notify yes;
+	minimal-responses no;
+};
+
+plugin query "../../../../plugins/lib/filter-aaaa.so" {
 	filter-aaaa-on-v6 break-dnssec;
 	filter-aaaa { fd92:7065:b8e:ffff::4; };
-	minimal-responses no;
 };
 
 key rndc_key {

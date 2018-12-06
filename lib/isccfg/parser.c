@@ -1134,7 +1134,6 @@ doc_btext(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "{ <unspecified-text> }");
 }
 
-
 bool
 cfg_is_enum(const char *s, const char *const *enums) {
 	const char * const *p;
@@ -1191,6 +1190,58 @@ cfg_doc_enum(cfg_printer_t *pctx, const cfg_type_t *type) {
 			cfg_print_cstr(pctx, " | ");
 	}
 	cfg_print_cstr(pctx, " )");
+}
+
+isc_result_t
+cfg_parse_enum_or_other(cfg_parser_t *pctx, const cfg_type_t *enumtype,
+			const cfg_type_t *othertype, cfg_obj_t **ret)
+{
+	isc_result_t result;
+	CHECK(cfg_peektoken(pctx, 0));
+	if (pctx->token.type == isc_tokentype_string &&
+	    cfg_is_enum(TOKEN_STRING(pctx), enumtype->of))
+	{
+		CHECK(cfg_parse_enum(pctx, enumtype, ret));
+	} else {
+		CHECK(cfg_parse_obj(pctx, othertype, ret));
+	}
+ cleanup:
+	return (result);
+}
+
+void
+cfg_doc_enum_or_other(cfg_printer_t *pctx, const cfg_type_t *enumtype,
+		      const cfg_type_t *othertype)
+{
+	const char * const *p;
+	bool first = true;
+
+	/*
+	 * If othertype is cfg_type_void, it means that enumtype is
+	 * optional.
+	 */
+
+	if (othertype == &cfg_type_void) {
+		cfg_print_cstr(pctx, "[ ");
+	}
+	cfg_print_cstr(pctx, "( ");
+	for (p = enumtype->of; *p != NULL; p++) {
+		if (!first) {
+			cfg_print_cstr(pctx, " | ");
+		}
+		first = false;
+		cfg_print_cstr(pctx, *p);
+	}
+	if (othertype != &cfg_type_void) {
+		if (!first) {
+			cfg_print_cstr(pctx, " | ");
+		}
+		cfg_doc_terminal(pctx, othertype);
+	}
+	cfg_print_cstr(pctx, " )");
+	if (othertype == &cfg_type_void) {
+		cfg_print_cstr(pctx, " ]");
+	}
 }
 
 void
@@ -1273,6 +1324,145 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_sstring = {
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bracketed_text = {
 	"bracketed_text", parse_btext, print_btext, doc_btext,
 	&cfg_rep_string, NULL
+};
+
+static cfg_type_t cfg_type_addrmatchelt;
+static cfg_type_t cfg_type_negated;
+
+static isc_result_t
+parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type,
+		   cfg_obj_t **ret)
+{
+	isc_result_t result;
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, CFG_LEXOPT_QSTRING));
+
+	if (pctx->token.type == isc_tokentype_string ||
+	    pctx->token.type == isc_tokentype_qstring) {
+		if (pctx->token.type == isc_tokentype_string &&
+		    (strcasecmp(TOKEN_STRING(pctx), "key") == 0)) {
+			CHECK(cfg_parse_obj(pctx, &cfg_type_keyref, ret));
+		} else if (pctx->token.type == isc_tokentype_string &&
+			   (strcasecmp(TOKEN_STRING(pctx), "geoip") == 0)) {
+#ifdef HAVE_GEOIP
+			CHECK(cfg_gettoken(pctx, 0));
+			CHECK(cfg_parse_obj(pctx, &cfg_type_geoip, ret));
+#else
+			cfg_parser_error(pctx, CFG_LOG_NEAR, "'geoip' "
+					 "not supported in this build");
+			return (ISC_R_UNEXPECTEDTOKEN);
+#endif
+		} else {
+			if (cfg_lookingat_netaddr(pctx, CFG_ADDR_V4OK |
+						  CFG_ADDR_V4PREFIXOK |
+						  CFG_ADDR_V6OK))
+			{
+				CHECK(cfg_parse_netprefix(pctx, NULL, ret));
+			} else {
+				CHECK(cfg_parse_astring(pctx, NULL, ret));
+			}
+		}
+	} else if (pctx->token.type == isc_tokentype_special) {
+		if (pctx->token.value.as_char == '{') {
+			/* Nested match list. */
+			CHECK(cfg_parse_obj(pctx,
+					    &cfg_type_bracketed_aml, ret));
+		} else if (pctx->token.value.as_char == '!') {
+			CHECK(cfg_gettoken(pctx, 0)); /* read "!" */
+			CHECK(cfg_parse_obj(pctx, &cfg_type_negated, ret));
+		} else {
+			goto bad;
+		}
+	} else {
+	bad:
+		cfg_parser_error(pctx, CFG_LOG_NEAR,
+			     "expected IP match list element");
+		return (ISC_R_UNEXPECTEDTOKEN);
+	}
+ cleanup:
+	return (result);
+}
+
+/*%
+ * A negated address match list element (like "! 10.0.0.1").
+ * Somewhat sneakily, the caller is expected to parse the
+ * "!", but not to print it.
+ */
+static cfg_tuplefielddef_t negated_fields[] = {
+	{ "negated", &cfg_type_addrmatchelt, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static void
+print_negated(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	cfg_print_cstr(pctx, "!");
+	cfg_print_tuple(pctx, obj);
+}
+
+static cfg_type_t cfg_type_negated = {
+	"negated", cfg_parse_tuple, print_negated, NULL, &cfg_rep_tuple,
+	&negated_fields
+};
+
+/*% An address match list element */
+
+static cfg_type_t cfg_type_addrmatchelt = {
+	"address_match_element", parse_addrmatchelt, NULL, cfg_doc_terminal,
+	NULL, NULL
+};
+
+/*%
+ * A bracketed address match list
+ */
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bracketed_aml = {
+	"bracketed_aml", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_addrmatchelt
+};
+
+/*
+ * Optional bracketed text
+ */
+static isc_result_t
+parse_optional_btext(cfg_parser_t *pctx, const cfg_type_t *type,
+		     cfg_obj_t **ret)
+{
+	isc_result_t result;
+
+	UNUSED(type);
+
+	CHECK(cfg_peektoken(pctx, ISC_LEXOPT_BTEXT));
+	if (pctx->token.type == isc_tokentype_btext) {
+		CHECK(cfg_parse_obj(pctx, &cfg_type_bracketed_text, ret));
+	} else {
+		CHECK(cfg_parse_obj(pctx, &cfg_type_void, ret));
+	}
+ cleanup:
+	return (result);
+}
+
+static void
+print_optional_btext(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	if (obj->type == &cfg_type_void) {
+		return;
+	}
+
+	pctx->indent++;
+	cfg_print_cstr(pctx, "{");
+	cfg_print_chars(pctx, obj->value.string.base, obj->value.string.length);
+	print_close(pctx);
+}
+
+static void
+doc_optional_btext(cfg_printer_t *pctx, const cfg_type_t *type) {
+	UNUSED(type);
+
+	cfg_print_cstr(pctx, "[ { <unspecified-text> } ]");
+}
+
+cfg_type_t cfg_type_optional_bracketed_text = {
+	"optional_btext", parse_optional_btext, print_optional_btext,
+	doc_optional_btext, NULL, NULL
 };
 
 /*
@@ -1485,7 +1675,7 @@ print_list(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 
 isc_result_t
 cfg_parse_bracketed_list(cfg_parser_t *pctx, const cfg_type_t *type,
-		     cfg_obj_t **ret)
+			 cfg_obj_t **ret)
 {
 	isc_result_t result;
 
@@ -2001,6 +2191,7 @@ static struct flagtext {
 	{ CFG_CLAUSEFLAG_MULTI, "may occur multiple times" },
 	{ CFG_CLAUSEFLAG_EXPERIMENTAL, "experimental" },
 	{ CFG_CLAUSEFLAG_NOOP, "non-operational" },
+	{ CFG_CLAUSEFLAG_DEPRECATED, "deprecated" },
 	{ 0, NULL }
 };
 
@@ -3263,6 +3454,54 @@ cfg_parser_mapadd(cfg_parser_t *pctx, cfg_obj_t *mapobj,
 	if (elt != NULL)
 		free_listelt(pctx, elt);
 	CLEANUP_OBJ(destobj);
+
+	return (result);
+}
+
+isc_result_t
+cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
+		       isc_log_t *lctx, pluginlist_cb_t *callback,
+		       void *callback_data)
+{
+	isc_result_t result = ISC_R_SUCCESS;
+	const cfg_listelt_t *element;
+
+	REQUIRE(config != NULL);
+	REQUIRE(callback != NULL);
+
+	for (element = cfg_list_first(list);
+	     element != NULL;
+	     element = cfg_list_next(element))
+	{
+		const cfg_obj_t *plugin = cfg_listelt_value(element);
+		const cfg_obj_t *obj;
+		const char *type, *library;
+		const char *parameters = NULL;
+
+		/* Get the path to the plugin module. */
+		obj = cfg_tuple_get(plugin, "type");
+		type = cfg_obj_asstring(obj);
+
+		/* Only query plugins are supported currently. */
+		if (strcasecmp(type, "query") != 0) {
+			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
+				    "unsupported plugin type");
+			return (ISC_R_FAILURE);
+		}
+
+		library = cfg_obj_asstring(cfg_tuple_get(plugin, "library"));
+
+		obj = cfg_tuple_get(plugin, "parameters");
+		if (obj != NULL && cfg_obj_isstring(obj)) {
+			parameters = cfg_obj_asstring(obj);
+		}
+
+		result = callback(config, obj, library, parameters,
+				  callback_data);
+		if (result != ISC_R_SUCCESS) {
+			break;
+		}
+	}
 
 	return (result);
 }

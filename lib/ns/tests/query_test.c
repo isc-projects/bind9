@@ -19,8 +19,6 @@
 
 #include <isc/util.h>
 
-#ifdef NS_HOOKS_ENABLE
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -31,11 +29,11 @@
 
 #include <dns/badcache.h>
 #include <dns/view.h>
+
 #include <ns/client.h>
+#include <ns/hooks.h>
 #include <ns/query.h>
 #include <isc/util.h>
-
-#include "../hooks.h"
 
 #include "nstest.h"
 
@@ -84,8 +82,12 @@ typedef struct {
  */
 static void
 run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
+	ns_hooktable_t *query_hooks = NULL;
 	query_ctx_t *qctx = NULL;
 	isc_result_t result;
+	const ns_hook_t hook = {
+		.action = ns_test_hook_catch_call,
+	};
 
 	REQUIRE(test != NULL);
 	REQUIRE(test->id.description != NULL);
@@ -93,14 +95,11 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 		test->cache_entry_flags == 0);
 
 	/*
-	 * Interrupt execution if query_done() is called.
+	 * Interrupt execution if ns_query_done() is called.
 	 */
-	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
-		[NS_QUERY_DONE_BEGIN] = {
-			.callback = ns_test_hook_catch_call,
-			.callback_data = NULL,
-		},
-	};
+
+	ns_hooktable_create(mctx, &query_hooks);
+	ns_hook_add(query_hooks, mctx, NS_QUERY_DONE_BEGIN, &hook);
 	ns__hook_table = query_hooks;
 
 	/*
@@ -160,6 +159,7 @@ run_sfcache_test(const ns__query_sfcache_test_params_t *test) {
 	 * Clean up.
 	 */
 	ns_test_qctx_destroy(&qctx);
+	ns_hooktable_free(mctx, (void **)&query_hooks);
 }
 
 /* test ns__query_sfcache() */
@@ -282,8 +282,12 @@ typedef struct {
  */
 static void
 run_start_test(const ns__query_start_test_params_t *test) {
+	ns_hooktable_t *query_hooks = NULL;
 	query_ctx_t *qctx = NULL;
 	isc_result_t result;
+	const ns_hook_t hook = {
+		.action = ns_test_hook_catch_call,
+	};
 
 	REQUIRE(test != NULL);
 	REQUIRE(test->id.description != NULL);
@@ -293,18 +297,11 @@ run_start_test(const ns__query_start_test_params_t *test) {
 		 test->auth_zone_path != NULL));
 
 	/*
-	 * Interrupt execution if query_lookup() or query_done() is called.
+	 * Interrupt execution if query_lookup() or ns_query_done() is called.
 	 */
-	ns_hook_t query_hooks[NS_QUERY_HOOKS_COUNT + 1] = {
-		[NS_QUERY_LOOKUP_BEGIN] = {
-			.callback = ns_test_hook_catch_call,
-			.callback_data = NULL,
-		},
-		[NS_QUERY_DONE_BEGIN] = {
-			.callback = ns_test_hook_catch_call,
-			.callback_data = NULL,
-		},
-	};
+	ns_hooktable_create(mctx, &query_hooks);
+	ns_hook_add(query_hooks, mctx, NS_QUERY_LOOKUP_BEGIN, &hook);
+	ns_hook_add(query_hooks, mctx, NS_QUERY_DONE_BEGIN, &hook);
 	ns__hook_table = query_hooks;
 
 	/*
@@ -421,6 +418,7 @@ run_start_test(const ns__query_start_test_params_t *test) {
 		ns_test_cleanup_zone();
 	}
 	ns_test_qctx_destroy(&qctx);
+	ns_hooktable_free(mctx, (void **)&query_hooks);
 }
 
 /* test ns__query_start() */
@@ -604,18 +602,6 @@ main(void) {
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
-#else
-
-#include <stdio.h>
-
-int
-main(void) {
-	printf("1..0 # Skipped: libns hooks not enabled\n");
-	return (0);
-}
-
-#endif /* NS_HOOKS_ENABLE */
-
 #else /* HAVE_CMOCKA */
 
 #include <stdio.h>

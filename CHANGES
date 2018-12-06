@@ -1,3 +1,20 @@
+5106.	[experimental]	A new "plugin" mechanism has been added to allow
+			extension of query processing functionality through
+			the use of dynamically loadable libraries. A
+			"filter-aaaa.so" plugin has been implemented,
+			replacing the filter-aaaa feature that was formerly
+			implemented as a native part of BIND.
+
+			The "filter-aaaa", "filter-aaaa-on-v4" and
+			"filter-aaaa-on-v6" options can no longer be
+			configured using native named.conf syntax. However,
+			loading the filter-aaaa.so plugin and setting its
+			parameters provides identical functionality.
+
+			Note that the plugin API is a work in progress and
+			is likely to evolve as further plugins are
+			implemented. [GL #15]
+
 5105.	[bug]		Fix a race between process_fd and socketclose in
 			unix socket code. [GL #744]
 

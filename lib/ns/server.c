@@ -22,6 +22,7 @@
 #include <dns/tkey.h>
 #include <dns/stats.h>
 
+#include <ns/query.h>
 #include <ns/server.h>
 #include <ns/stats.h>
 

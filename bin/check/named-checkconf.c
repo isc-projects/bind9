@@ -46,6 +46,8 @@
 
 static const char *program = "named-checkconf";
 
+static bool loadplugins = true;
+
 isc_log_t *logc = NULL;
 
 #define CHECK(r)\
@@ -562,7 +564,7 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS "dhjlm:t:pvxz"
+#define CMDLINE_FLAGS "cdhjlm:t:pvxz"
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (c) {
 		case 'm':
@@ -587,6 +589,10 @@ main(int argc, char **argv) {
 
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != EOF) {
 		switch (c) {
+		case 'c':
+			loadplugins = false;
+			break;
+
 		case 'd':
 			debug++;
 			break;
@@ -677,9 +683,10 @@ main(int argc, char **argv) {
 	    ISC_R_SUCCESS)
 		exit(1);
 
-	result = bind9_check_namedconf(config, logc, mctx);
-	if (result != ISC_R_SUCCESS)
+	result = bind9_check_namedconf(config, loadplugins, logc, mctx);
+	if (result != ISC_R_SUCCESS) {
 		exit_status = 1;
+	}
 
 	if (result == ISC_R_SUCCESS && (load_zones || list_zones)) {
 		result = load_zones_fromconfig(config, mctx, list_zones);
