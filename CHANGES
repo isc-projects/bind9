@@ -1,3 +1,5 @@
+5107.	[bug]		'host -U' did not work.	[GL #769]
+
 5104.	[cleanup]	Log clearer informational message when a catz zone
 			is overridden by a zone in named.conf.
 			Thanks to Tony Finch. [GL !1157]
