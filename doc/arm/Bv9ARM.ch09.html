@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.5</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.5-P1</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -54,7 +54,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.5</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.5-P1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -137,6 +137,20 @@
 	  should be limited to local networks, but they were inadvertently set
 	  to match the default <span class="command"><strong>allow-query</strong></span>, thus allowing
 	  remote queries. This flaw is disclosed in CVE-2018-5738. [GL #309]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Code change #4964, intended to prevent double signatures
+	  when deleting an inactive zone DNSKEY in some situations,
+	  introduced a new problem during zone processing in which
+	  some delegation glue RRsets are incorrectly identified
+	  as needing RRSIGs, which are then created for them using
+	  the current active ZSK for the zone. In some, but not all
+	  cases, the newly-signed RRsets are added to the zone's
+	  NSEC/NSEC3 chain, but incompletely -- this can result in
+	  a broken chain, affecting validation of proof of nonexistence
+	  for records in the zone. [GL #771]
 	</p>
       </li>
 </ul></div>
@@ -306,6 +320,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.5 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.5-P1 (Extended Support Version)</p>
 </body>
 </html>
