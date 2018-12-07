@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.13.4
+Release Notes for BIND Version 9.13.5
 
 Introduction
 
@@ -79,6 +79,16 @@ Security Fixes
     deny-answer-aliases was in use. This flaw is disclosed in
     CVE-2018-5740. [GL #387]
 
+  * Code change #4964, intended to prevent double signatures when deleting
+    an inactive zone DNSKEY in some situations, introduced a new problem
+    during zone processing in which some delegation glue RRsets are
+    incorrectly identified as needing RRSIGs, which are then created for
+    them using the current active ZSK for the zone. In some, but not all
+    cases, the newly-signed RRsets are added to the zone's NSEC/NSEC3
+    chain, but incompletely -- this can result in a broken chain,
+    affecting validation of proof of nonexistence for records in the zone.
+    [GL #771]
+
 New Features
 
   * Task manager and socket code have been substantially modified. The
@@ -94,6 +104,14 @@ New Features
     set the AD bit ("authenticated data"). This feature is meant to
     facilitate deployment of a local copy of the root zone, as described
     in RFC 7706. [GL #33]
+
+  * A new plugin mechanism has been added to allow extension of query
+    processing functionality through the use of external libraries. The
+    new filter-aaaa.so plugin replaces the filter-aaaa feature that was
+    formerly implemented as a native part of BIND.
+
+    The plugin API is a work in progress and is likely to evolve as
+    further plugins are implemented. [GL #15]
 
   * BIND now can be compiled against the libidn2 library to add IDNA2008
     support. Previously, BIND supported IDNA2003 using the (now obsolete
@@ -178,6 +196,11 @@ Removed Features
     old architectures and systems without threads support. BIND now
     requires threading support (either POSIX or Windows) from the
     operating system, and it cannot be built without threads.
+
+  * The filter-aaaa, filter-aaaa-on-v4, and filter-aaaa-on-v6 options have
+    been removed from named, and can no longer be configured using native
+    named.conf syntax. However, loading the new filter-aaaa.so plugin and
+    setting its parameters provides identical functionality.
 
   * named can no longer use the EDNS CLIENT-SUBNET option for view
     selection. In its existing form, the authoritative ECS feature was not
