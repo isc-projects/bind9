@@ -274,4 +274,11 @@ zone "inaczsk3.example" {
 	auto-dnssec maintain;
 };
 
+zone "delzsk.example." {
+	type master;
+	file "delzsk.example.db";
+	allow-update { any; };
+	auto-dnssec maintain;
+};
+
 include "trusted.conf";
