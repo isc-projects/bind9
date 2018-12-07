@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.5
+Release Notes for BIND Version 9.11.5-P1
 
 Introduction
 
@@ -50,6 +50,16 @@ Security Fixes
     local networks, but they were inadvertently set to match the default
     allow-query, thus allowing remote queries. This flaw is disclosed in
     CVE-2018-5738. [GL #309]
+
+  * Code change #4964, intended to prevent double signatures when deleting
+    an inactive zone DNSKEY in some situations, introduced a new problem
+    during zone processing in which some delegation glue RRsets are
+    incorrectly identified as needing RRSIGs, which are then created for
+    them using the current active ZSK for the zone. In some, but not all
+    cases, the newly-signed RRsets are added to the zone's NSEC/NSEC3
+    chain, but incompletely -- this can result in a broken chain,
+    affecting validation of proof of nonexistence for records in the zone.
+    [GL #771]
 
 New Features
 
