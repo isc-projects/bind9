@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.12.3</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.12.3-P1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -76,6 +76,20 @@
 	  when multiple versions of a slave zone were transferred from a
 	  master in close succession. This flaw is disclosed in
 	  CVE-2018-5736. [GL #134]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Code change #4964, intended to prevent double signatures
+	  when deleting an inactive zone DNSKEY in some situations,
+	  introduced a new problem during zone processing in which
+	  some delegation glue RRsets are incorrectly identified
+	  as needing RRSIGs, which are then created for them using
+	  the current active ZSK for the zone. In some, but not all
+	  cases, the newly-signed RRsets are added to the zone's
+	  NSEC/NSEC3 chain, but incompletely -- this can result in
+	  a broken chain, affecting validation of proof of nonexistence
+	  for records in the zone. [GL #771]
 	</p>
       </li>
 </ul></div>

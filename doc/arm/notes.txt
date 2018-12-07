@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.12.3
+Release Notes for BIND Version 9.12.3-P1
 
 Introduction
 
@@ -34,6 +34,16 @@ Security Fixes
   * A bug in zone database reference counting could lead to a crash when
     multiple versions of a slave zone were transferred from a master in
     close succession. This flaw is disclosed in CVE-2018-5736. [GL #134]
+
+  * Code change #4964, intended to prevent double signatures when deleting
+    an inactive zone DNSKEY in some situations, introduced a new problem
+    during zone processing in which some delegation glue RRsets are
+    incorrectly identified as needing RRSIGs, which are then created for
+    them using the current active ZSK for the zone. In some, but not all
+    cases, the newly-signed RRsets are added to the zone's NSEC/NSEC3
+    chain, but incompletely -- this can result in a broken chain,
+    affecting validation of proof of nonexistence for records in the zone.
+    [GL #771]
 
 New Features
 

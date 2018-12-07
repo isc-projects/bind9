@@ -168,6 +168,12 @@ feature:
   statements allow updating of subdomains based on a Kerberos or
   Active Directory machine principal.
 
+#### BIND 9.12.3-P1
+
+BIND 9.12.3-P1 addresses a potentially serious flaw which could
+cause faulty NSEC3 chains to be regenerated after a change to the
+DNSSEC signing key of a zone.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
