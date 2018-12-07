@@ -94,6 +94,7 @@ do
     test -z "$dirs" && continue;
     pat=$lib
     test $lib = dns && pat='\(dns\|dst\)'
+    test $lib = isccfg && pat='cfg'
     pat="^${pat}_[a-z0-9_]*("
     list=`git ls-files -c $dirs | grep '\.h$' |
 	  xargs grep "$pat" |
