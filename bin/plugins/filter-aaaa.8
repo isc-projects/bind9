@@ -9,7 +9,7 @@
 '\" t
 .\"     Title: filter-aaaa.so
 .\"    Author: 
-.\" Generator: DocBook XSL Stylesheets v1.79.1 <http://docbook.sf.net/>
+.\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
 .\"      Date: 2018-08-13
 .\"    Manual: BIND9
 .\"    Source: ISC
@@ -38,12 +38,12 @@
 .SH "NAME"
 filter-aaaa.so \- filter AAAA in DNS responses when A is present
 .SH "SYNOPSIS"
-.HP 28
-\fBhook query "filter\-aaaa\&.so"\fR [\fI{\ parameters\ }\fR];
+.HP \w'\fBplugin\ query\ "filter\-aaaa\&.so"\fR\ 'u
+\fBplugin query "filter\-aaaa\&.so"\fR [\fI{\ parameters\ }\fR];
 .SH "DESCRIPTION"
 .PP
 \fBfilter\-aaaa\&.so\fR
-is a query hook module for
+is a query plugin module for
 \fBnamed\fR, enabling
 \fBnamed\fR
 to omit some IPv6 addresses when responding to clients\&.
@@ -59,13 +59,13 @@ and
 options\&. These options are now deprecated in
 named\&.conf, but can be passed as parameters to the
 \fBfilter\-aaaa\&.so\fR
-hook module, for example:
+plugin, for example:
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-hook query "/usr/local/lib/filter\-aaaa\&.so" {
+plugin query "/usr/local/lib/filter\-aaaa\&.so" {
         filter\-aaaa\-on\-v4 yes;
         filter\-aaaa\-on\-v6 yes;
         filter\-aaaa { 192\&.0\&.2\&.1; 2001:db8:2::1; };

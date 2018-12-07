@@ -498,22 +498,22 @@
 <a name="id-1.11"></a><h2>EXAMPLE</h2>
 
     <p>
-      To generate a 768-bit DSA key for the domain
+      To generate an ECDSAP256SHA256 key for the domain
       <strong class="userinput"><code>example.com</code></strong>, the following command would be
       issued:
     </p>
-    <p><strong class="userinput"><code>dnssec-keygen -a DSA -b 768 -n ZONE example.com</code></strong>
+    <p><strong class="userinput"><code>dnssec-keygen -a ECDSAP256SHA256 -n ZONE example.com</code></strong>
     </p>
     <p>
       The command would print a string of the form:
     </p>
-    <p><strong class="userinput"><code>Kexample.com.+003+26160</code></strong>
+    <p><strong class="userinput"><code>Kexample.com.+013+26160</code></strong>
     </p>
     <p>
       In this example, <span class="command"><strong>dnssec-keygen</strong></span> creates
-      the files <code class="filename">Kexample.com.+003+26160.key</code>
+      the files <code class="filename">Kexample.com.+013+26160.key</code>
       and
-      <code class="filename">Kexample.com.+003+26160.private</code>.
+      <code class="filename">Kexample.com.+013+26160.private</code>.
     </p>
   </div>
 

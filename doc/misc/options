@@ -24,9 +24,6 @@ dlz <string> {
 dyndb <string> <quoted_string> {
     <unspecified-text> }; // may occur multiple times
 
-hook ( query ) <string> [ { <unspecified-text> }
-    ]; // may occur multiple times
-
 key <string> {
         algorithm <string>;
         secret <string>;
@@ -391,6 +388,9 @@ options {
         zone-statistics ( full | terse | none | <boolean> );
 };
 
+plugin ( query ) <string> [ { <unspecified-text>
+    } ]; // may occur multiple times
+
 server <netprefix> {
         bogus <boolean>;
         edns <boolean>;
@@ -543,8 +543,6 @@ view <string> [ <class> ] {
         forwarders [ port <integer> ] [ dscp <integer> ] { ( <ipv4_address>
             | <ipv6_address> ) [ port <integer> ] [ dscp <integer> ]; ... };
         glue-cache <boolean>;
-        hook ( query ) <string> [ {
-            <unspecified-text> } ]; // may occur multiple times
         inline-signing <boolean>;
         ixfr-from-differences ( primary | master | secondary | slave |
             <boolean> );
@@ -607,6 +605,8 @@ view <string> [ <class> ] {
         nta-lifetime <ttlval>;
         nta-recheck <ttlval>;
         nxdomain-redirect <string>;
+        plugin ( query ) <string> [ {
+            <unspecified-text> } ]; // may occur multiple times
         preferred-glue <string>;
         prefetch <integer> [ <integer> ];
         provide-ixfr <boolean>;

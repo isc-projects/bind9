@@ -327,21 +327,21 @@ and
 files are generated for symmetric cryptography algorithms such as HMAC\-MD5, even though the public and private key are equivalent\&.
 .SH "EXAMPLE"
 .PP
-To generate a 768\-bit DSA key for the domain
+To generate an ECDSAP256SHA256 key for the domain
 \fBexample\&.com\fR, the following command would be issued:
 .PP
-\fBdnssec\-keygen \-a DSA \-b 768 \-n ZONE example\&.com\fR
+\fBdnssec\-keygen \-a ECDSAP256SHA256 \-n ZONE example\&.com\fR
 .PP
 The command would print a string of the form:
 .PP
-\fBKexample\&.com\&.+003+26160\fR
+\fBKexample\&.com\&.+013+26160\fR
 .PP
 In this example,
 \fBdnssec\-keygen\fR
 creates the files
-Kexample\&.com\&.+003+26160\&.key
+Kexample\&.com\&.+013+26160\&.key
 and
-Kexample\&.com\&.+003+26160\&.private\&.
+Kexample\&.com\&.+013+26160\&.private\&.
 .SH "SEE ALSO"
 .PP
 \fBdnssec-signzone\fR(8),

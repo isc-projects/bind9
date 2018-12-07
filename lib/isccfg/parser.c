@@ -1567,7 +1567,7 @@ doc_optional_btext(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, "[ { <unspecified-text> } ]");
 }
 
-cfg_type_t cfg_type_optional_bracketed_text = {
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_optional_bracketed_text = {
 	"optional_btext", parse_optional_btext, print_optional_btext,
 	doc_optional_btext, NULL, NULL
 };

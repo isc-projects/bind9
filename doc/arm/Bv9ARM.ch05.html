@@ -4626,63 +4626,6 @@ options {
                   internally.  The use of this option is discouraged.
                 </p>
               </dd>
-<dt><span class="term"><span class="command"><strong>filter-aaaa-on-v4</strong></span></span></dt>
-<dd>
-                <p>
-                  This option is intended to help the
-                  transition from IPv4 to IPv6 by not giving IPv6 addresses
-                  to DNS clients unless they have connections to the IPv6
-                  Internet.  This is not recommended unless absolutely
-                  necessary.  The default is <strong class="userinput"><code>no</code></strong>.
-                  The <span class="command"><strong>filter-aaaa-on-v4</strong></span> option
-                  may also be specified in <span class="command"><strong>view</strong></span> statements
-                  to override the global <span class="command"><strong>filter-aaaa-on-v4</strong></span>
-                  option.
-                </p>
-                <p>
-                  If <strong class="userinput"><code>yes</code></strong>,
-                  the DNS client is at an IPv4 address, in <span class="command"><strong>filter-aaaa</strong></span>,
-                  and if the response does not include DNSSEC signatures,
-                  then all AAAA records are deleted from the response.
-                  This filtering applies to all responses and not only
-                  authoritative responses.
-                </p>
-                <p>
-                  If <strong class="userinput"><code>break-dnssec</code></strong>,
-                  then AAAA records are deleted even when DNSSEC is enabled.
-                  As suggested by the name, this makes the response not verify,
-                  because the DNSSEC protocol is designed detect deletions.
-                </p>
-                <p>
-                  This mechanism can erroneously cause other servers to
-                  not give AAAA records to their clients.
-                  A recursing server with both IPv6 and IPv4 network connections
-                  that queries an authoritative server using this mechanism
-                  via IPv4 will be denied AAAA records even if its client is
-                  using IPv6.
-                </p>
-                <p>
-                  This mechanism is applied to authoritative as well as
-                  non-authoritative records.
-                  A client using IPv4 that is not allowed recursion can
-                  erroneously be given AAAA records because the server is not
-                  allowed to check for A records.
-                </p>
-                <p>
-                  Some AAAA records are given to IPv4 clients in glue records.
-                  IPv4 clients that are servers can then erroneously
-                  answer requests for AAAA records received via IPv4.
-                </p>
-              </dd>
-<dt><span class="term"><span class="command"><strong>filter-aaaa-on-v6</strong></span></span></dt>
-<dd>
-                <p>
-                  Identical to <span class="command"><strong>filter-aaaa-on-v4</strong></span>,
-                  except it filters AAAA responses to queries from IPv6
-                  clients instead of IPv4 clients.  To filter all
-                  responses, set both options to <strong class="userinput"><code>yes</code></strong>.
-                </p>
-              </dd>
 <dt><span class="term"><span class="command"><strong>ixfr-from-differences</strong></span></span></dt>
 <dd>
                 <p>
@@ -5428,15 +5371,6 @@ options {
                   query. Queries
                   from these addresses will not be responded to. The default
                   is <strong class="userinput"><code>none</code></strong>.
-                </p>
-              </dd>
-<dt><span class="term"><span class="command"><strong>filter-aaaa</strong></span></span></dt>
-<dd>
-                <p>
-                  Specifies a list of addresses to which
-                  <span class="command"><strong>filter-aaaa-on-v4</strong></span>
-                  and <span class="command"><strong>filter-aaaa-on-v6</strong></span>
-                  apply.  The default is <strong class="userinput"><code>any</code></strong>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>keep-response-order</strong></span></span></dt>
@@ -15044,6 +14978,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.4 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.5 (Development Release)</p>
 </body>
 </html>

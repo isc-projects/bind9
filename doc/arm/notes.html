@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.13.4</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.13.5</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -134,6 +134,20 @@
 	  in use. This flaw is disclosed in CVE-2018-5740. [GL #387]
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  Code change #4964, intended to prevent double signatures
+	  when deleting an inactive zone DNSKEY in some situations,
+	  introduced a new problem during zone processing in which
+	  some delegation glue RRsets are incorrectly identified
+	  as needing RRSIGs, which are then created for them using
+	  the current active ZSK for the zone. In some, but not all
+	  cases, the newly-signed RRsets are added to the zone's
+	  NSEC/NSEC3 chain, but incompletely -- this can result in
+	  a broken chain, affecting validation of proof of nonexistence
+	  for records in the zone. [GL #771]
+	</p>
+      </li>
 </ul></div>
   </div>
 
@@ -161,6 +175,19 @@
 	  but do set the AD bit ("authenticated data"). This feature is
 	  meant to facilitate deployment of a local copy of the root zone,
 	  as described in RFC 7706. [GL #33]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  A new <span class="command"><strong>plugin</strong></span> mechanism has been added to allow
+	  extension of query processing functionality through the use of
+	  external libraries. The new <code class="filename">filter-aaaa.so</code>
+	  plugin replaces the <span class="command"><strong>filter-aaaa</strong></span> feature that
+	  was formerly implemented as a native part of BIND.
+	</p>
+	<p>
+	  The plugin API is a work in progress and is likely to evolve
+	  as further plugins are implemented. [GL #15]
 	</p>
       </li>
 <li class="listitem">
@@ -298,6 +325,18 @@
 	  for old architectures and systems without threads support.
 	  BIND now requires threading support (either POSIX or Windows) from
 	  the operating system, and it cannot be built without threads.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>filter-aaaa</strong></span>,
+	  <span class="command"><strong>filter-aaaa-on-v4</strong></span>, and
+	  <span class="command"><strong>filter-aaaa-on-v6</strong></span> options have been removed
+	  from <span class="command"><strong>named</strong></span>, and can no longer be
+	  configured using native <code class="filename">named.conf</code> syntax.
+	  However, loading the new <code class="filename">filter-aaaa.so</code>
+	  plugin and setting its parameters provides identical
+	  functionality.
 	</p>
       </li>
 <li class="listitem">

@@ -154,6 +154,7 @@ cfg_ungettoken
 ;cfg_type_netaddr6
 ;cfg_type_netaddr6wild
 ;cfg_type_netprefix
+;cfg_type_optional_bracketed_text
 ;cfg_type_percentage
 ;cfg_type_qstring
 ;cfg_type_rndcconf

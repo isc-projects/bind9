@@ -460,7 +460,7 @@ plugin_destroy(void **instp) {
 }
 
 /*
- * Returns hook module API version for compatibility checks.
+ * Returns plugin API version for compatibility checks.
  */
 int
 plugin_version(void) {
