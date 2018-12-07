@@ -102,6 +102,7 @@ cfg_parser_reset
 cfg_parser_setcallback
 cfg_parser_warning
 cfg_peektoken
+cfg_pluginlist_foreach
 cfg_print
 cfg_print_boolean
 cfg_print_bracketed_list
