@@ -110,6 +110,7 @@
   <ItemGroup>
     <ClCompile Include="..\client.c" />
     <ClCompile Include="..\interfacemgr.c" />
+    <ClCompile Include="..\hooks.c" />
     <ClCompile Include="..\lib.c" />
     <ClCompile Include="..\listenlist.c" />
     <ClCompile Include="..\log.c" />
@@ -126,6 +127,7 @@
   <ItemGroup>
     <ClInclude Include="..\include\ns\client.h" />
     <ClInclude Include="..\include\ns\interfacemgr.h" />
+    <ClInclude Include="..\include\ns\hooks.h" />
     <ClInclude Include="..\include\ns\lib.h" />
     <ClInclude Include="..\include\ns\listenlist.h" />
     <ClInclude Include="..\include\ns\log.h" />
