@@ -36,15 +36,10 @@
 #define NS_PER_MS	1000000		/*%< Nanoseconds per millisecond. */
 #define US_PER_S	1000000		/*%< Microseconds per second. */
 
-/*
- * All of the INSIST()s checks of nanoseconds < NS_PER_S are for
- * consistency checking of the type. In lieu of magic numbers, it
- * is the best we've got.  The check is only performed on functions which
- * need an initialized type.
- */
-
-#ifndef ISC_FIX_TV_USEC
-#define ISC_FIX_TV_USEC 1
+#ifdef CLOCK_REALTIME_COARSE
+#define CLOCKSOURCE CLOCK_REALTIME_COARSE
+#else
+#define CLOCKSOURCE CLOCK_REALTIME
 #endif
 
 /*%
@@ -53,32 +48,6 @@
 
 static const isc_interval_t zero_interval = { 0, 0 };
 const isc_interval_t * const isc_interval_zero = &zero_interval;
-
-#if ISC_FIX_TV_USEC
-static inline void
-fix_tv_usec(struct timeval *tv) {
-	bool fixed = false;
-
-	if (tv->tv_usec < 0) {
-		fixed = true;
-		do {
-			tv->tv_sec -= 1;
-			tv->tv_usec += US_PER_S;
-		} while (tv->tv_usec < 0);
-	} else if (tv->tv_usec >= US_PER_S) {
-		fixed = true;
-		do {
-			tv->tv_sec += 1;
-			tv->tv_usec -= US_PER_S;
-		} while (tv->tv_usec >=US_PER_S);
-	}
-	/*
-	 * Call syslog directly as was are called from the logging functions.
-	 */
-	if (fixed)
-		(void)syslog(LOG_ERR, "gettimeofday returned bad tv_usec: corrected");
-}
-#endif
 
 void
 isc_interval_set(isc_interval_t *i,
@@ -141,76 +110,52 @@ isc_time_isepoch(const isc_time_t *t) {
 
 isc_result_t
 isc_time_now(isc_time_t *t) {
-	struct timeval tv;
+	struct timespec ts;
 	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(t != NULL);
 
-	if (gettimeofday(&tv, NULL) == -1) {
+	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 
-	/*
-	 * Does POSIX guarantee the signedness of tv_sec and tv_usec?  If not,
-	 * then this test will generate warnings for platforms on which it is
-	 * unsigned.  In any event, the chances of any of these problems
-	 * happening are pretty much zero, but since the libisc library ensures
-	 * certain things to be true ...
-	 */
-#if ISC_FIX_TV_USEC
-	fix_tv_usec(&tv);
-	if (tv.tv_sec < 0)
+	if (ts.tv_sec < 0 || ts.tv_nsec < 0 || ts.tv_nsec >= NS_PER_S) {
 		return (ISC_R_UNEXPECTED);
-#else
-	if (tv.tv_sec < 0 || tv.tv_usec < 0 || tv.tv_usec >= US_PER_S)
-		return (ISC_R_UNEXPECTED);
-#endif
+	}
 
 	/*
 	 * Ensure the tv_sec value fits in t->seconds.
 	 */
-	if (sizeof(tv.tv_sec) > sizeof(t->seconds) &&
-	    ((tv.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) != 0U)
+	if (sizeof(ts.tv_sec) > sizeof(t->seconds) &&
+	    ((ts.tv_sec | (unsigned int)-1) ^ (unsigned int)-1) != 0U)
 		return (ISC_R_RANGE);
 
-	t->seconds = tv.tv_sec;
-	t->nanoseconds = tv.tv_usec * NS_PER_US;
+	t->seconds = ts.tv_sec;
+	t->nanoseconds = ts.tv_nsec;
 
 	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
 isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
-	struct timeval tv;
+	struct timespec ts;
 	char strbuf[ISC_STRERRORSIZE];
 
 	REQUIRE(t != NULL);
 	REQUIRE(i != NULL);
 	INSIST(i->nanoseconds < NS_PER_S);
 
-	if (gettimeofday(&tv, NULL) == -1) {
+	if (clock_gettime(CLOCKSOURCE, &ts) == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s", strbuf);
 		return (ISC_R_UNEXPECTED);
 	}
 
-	/*
-	 * Does POSIX guarantee the signedness of tv_sec and tv_usec?  If not,
-	 * then this test will generate warnings for platforms on which it is
-	 * unsigned.  In any event, the chances of any of these problems
-	 * happening are pretty much zero, but since the libisc library ensures
-	 * certain things to be true ...
-	 */
-#if ISC_FIX_TV_USEC
-	fix_tv_usec(&tv);
-	if (tv.tv_sec < 0)
+	if (ts.tv_sec < 0 || ts.tv_nsec < 0 || ts.tv_nsec >= NS_PER_S) {
 		return (ISC_R_UNEXPECTED);
-#else
-	if (tv.tv_sec < 0 || tv.tv_usec < 0 || tv.tv_usec >= US_PER_S)
-		return (ISC_R_UNEXPECTED);
-#endif
+	}
 
 	/*
 	 * Ensure the resulting seconds value fits in the size of an
@@ -218,12 +163,12 @@ isc_time_nowplusinterval(isc_time_t *t, const isc_interval_t *i) {
 	 * note that even if both values == INT_MAX, then when added
 	 * and getting another 1 added below the result is UINT_MAX.)
 	 */
-	if ((tv.tv_sec > INT_MAX || i->seconds > INT_MAX) &&
-	    ((long long)tv.tv_sec + i->seconds > UINT_MAX))
+	if ((ts.tv_sec > INT_MAX || i->seconds > INT_MAX) &&
+	    ((long long)ts.tv_sec + i->seconds > UINT_MAX))
 		return (ISC_R_RANGE);
 
-	t->seconds = tv.tv_sec + i->seconds;
-	t->nanoseconds = tv.tv_usec * NS_PER_US + i->nanoseconds;
+	t->seconds = ts.tv_sec + i->seconds;
+	t->nanoseconds = ts.tv_nsec + i->nanoseconds;
 	if (t->nanoseconds >= NS_PER_S) {
 		t->seconds++;
 		t->nanoseconds -= NS_PER_S;
