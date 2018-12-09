@@ -101,6 +101,9 @@
 5111.	[bug]		Occluded DNSKEY records could make it into the
 			delegating NSEC/NSEC3 bitmap. [GL #742]
 
+5110.	[security]	Named leaked memory if there were multiple Key Tag
+			EDNS options present. (CVE-2018-5744) [GL #772]
+
 5108.	[bug]		Named could fail to determine bottom of zone when
 			removing out of date keys leading to invalid NSEC
 			and NSEC3 records being added to the zone. [GL #771]
