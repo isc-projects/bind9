@@ -3,6 +3,9 @@
 			the key to an unsupported algorithm. (CVE-2018-5745)
 			[GL #780]
 
+5110.	[security]	Named leaked memory if there were multiple Key Tag
+			EDNS options present. (CVE-2018-5744) [GL #772]
+
 	--- 9.12.3-P1 released ---
 
 5108.	[bug]		Named could fail to determine bottom of zone when
