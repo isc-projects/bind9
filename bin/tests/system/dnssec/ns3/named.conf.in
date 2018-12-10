@@ -294,6 +294,11 @@ zone "revkey.example" {
 	file "revkey.example.db.signed";
 };
 
+zone "dname-at-apex-nsec3.example" {
+	type master;
+	file "dname-at-apex-nsec3.example.db.signed";
+};
+
 include "siginterval.conf";
 
 include "trusted.conf";
