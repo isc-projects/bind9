@@ -2,7 +2,7 @@
 			removing out of date keys leading to invalid NSEC
 			and NSEC3 records being added to the zone. [GL #771]
 
-5107.	[bug]		'host -U' did not work.	[GL #769]
+5107.	[bug]		'host -U' did not work. [GL #769]
 
 5104.	[cleanup]	Log clearer informational message when a catz zone
 			is overridden by a zone in named.conf.
@@ -40,7 +40,7 @@
 
 5087.	[test]		Check that result tables are complete. [GL #676]
 
-5086.   [func]          Log of RPZ now includes the QTYPE and QCLASS. [GL #623]
+5086.	[func]		Log of RPZ now includes the QTYPE and QCLASS. [GL #623]
 
 5084.	[func]		Add configure time detection of Utimaco HSM
 			and disable runtime md5/sha1 detection when it
@@ -619,7 +619,7 @@
 			required by POSIX.  Supply a alternative in
 			isc_file_isdirwritable. [RT #46394]
 
-4803.   [bug]		Backport parts of RT #45293 and RT #46267, specifically
+4803.	[bug]		Backport parts of RT #45293 and RT #46267, specifically
 			the fix for RT #46055 and mkeys system test
 			improvements. [RT #46430]
 
@@ -939,7 +939,7 @@
 4660.	[bug]		Remove spurious "peer" from Windows socket log
 			messages. [RT #45617]
 
-4659.   [bug]           Remove spurious log message about lmdb-mapsize
+4659.	[bug]		Remove spurious log message about lmdb-mapsize
 			not being supported when parsing builtin
 			configuration file. [RT #45618]
 
