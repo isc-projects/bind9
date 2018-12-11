@@ -1960,7 +1960,7 @@ check_dnssec(ns_client_t *client, dns_zone_t *zone, dns_db_t *db,
 		if (tuple->rdata.type == dns_rdatatype_dnskey) {
 			uint8_t alg;
 			alg = tuple->rdata.data[3];
-			if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1) {
+			if (alg == DST_ALG_RSASHA1) {
 				nseconly = true;
 				break;
 			}
@@ -2443,7 +2443,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 		dns_rdata_toregion(&tuple->rdata, &r);
 
-		keyid = dst_region_computeid(&r, dnskey.algorithm);
+		keyid = dst_region_computeid(&r);
 
 		buf[0] = dnskey.algorithm;
 		buf[1] = (keyid & 0xff00) >> 8;
@@ -3283,7 +3283,7 @@ update_action(isc_task_t *task, isc_event_t *event) {
 
 			dns_rdata_toregion(&tuple->rdata, &r);
 			algorithm = dnskey.algorithm;
-			keyid = dst_region_computeid(&r, algorithm);
+			keyid = dst_region_computeid(&r);
 
 			result = dns_zone_signwithkey(zone, algorithm, keyid,
 					(tuple->op == DNS_DIFFOP_DEL));

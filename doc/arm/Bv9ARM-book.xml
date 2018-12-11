@@ -2101,41 +2101,36 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para>
-	  A secure zone must contain one or more zone keys.  The
-	  zone keys will sign all other records in the zone, as well as
-	  the zone keys of any secure delegated zones.  Zone keys must
-	  have the same name as the zone, a name type of
-	  <command>ZONE</command>, and must be usable for
-	  authentication.
-	  It is recommended that zone keys use a cryptographic algorithm
-	  designated as "mandatory to implement" by the IETF; currently
-	  the only one is RSASHA1.
+	  A secure zone must contain one or more zone keys.  The zone keys will
+	  sign all other records in the zone, as well as the zone keys of any
+	  secure delegated zones.  Zone keys must have the same name as the
+	  zone, a name type of <command>ZONE</command>, and must be usable for
+	  authentication.  It is recommended that zone keys use a cryptographic
+	  algorithm designated as "mandatory to implement" by the IETF;
+	  currently the are two algorithms: RSASHA256 and ECDSAP256SHA256.
+	  ECDSAP256SHA256 is recommended for current and future deployments.
 	</para>
 
 	<para>
-	  The following command will generate a 768-bit RSASHA1 key for
+	  The following command will generate a ECDSAP256SHA256 key for
 	  the <filename>child.example</filename> zone:
 	</para>
 
 	<para>
-	  <userinput>dnssec-keygen -a RSASHA1 -b 768 -n ZONE child.example.</userinput>
+	  <userinput>dnssec-keygen -a ECDSAP256SHA256 -n ZONE child.example.</userinput>
 	</para>
 
 	<para>
 	  Two output files will be produced:
-	  <filename>Kchild.example.+005+12345.key</filename> and
-	  <filename>Kchild.example.+005+12345.private</filename>
-	  (where
-	  12345 is an example of a key tag).  The key filenames contain
-	  the key name (<filename>child.example.</filename>),
-	  algorithm (3
-	  is DSA, 1 is RSAMD5, 5 is RSASHA1, etc.), and the key tag (12345 in
-	  this case).
-	  The private key (in the <filename>.private</filename>
-	  file) is
-	  used to generate signatures, and the public key (in the
-	  <filename>.key</filename> file) is used for signature
-	  verification.
+	  <filename>Kchild.example.+013+12345.key</filename> and
+	  <filename>Kchild.example.+013+12345.private</filename> (where 12345 is
+	  an example of a key tag).  The key filenames contain the key name
+	  (<filename>child.example.</filename>), algorithm (5 is RSASHA1, 8 is
+	  RSASHA256, 13 is ECDSAP256SHA256, 15 is ED25519 etc.), and the key tag
+	  (12345 in this case).  The private key (in the
+	  <filename>.private</filename> file) is used to generate signatures,
+	  and the public key (in the <filename>.key</filename> file) is used for
+	  signature verification.
 	</para>
 
 	<para>

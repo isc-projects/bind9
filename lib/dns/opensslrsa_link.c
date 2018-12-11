@@ -191,8 +191,7 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	const EVP_MD *type = NULL;
 
 	UNUSED(key);
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_RSASHA256 ||
 		dctx->key->key_alg == DST_ALG_RSASHA512);
@@ -201,7 +200,6 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 	 * Reject incorrect RSA key lengths.
 	 */
 	switch (dctx->key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */
@@ -230,9 +228,6 @@ opensslrsa_createctx(dst_key_t *key, dst_context_t *dctx) {
 		return (ISC_R_NOMEMORY);
 
 	switch (dctx->key->key_alg) {
-	case DST_ALG_RSAMD5:
-		type = EVP_md5();	/* MD5 + RSA */
-		break;
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		type = EVP_sha1();	/* SHA1 + RSA */
@@ -263,8 +258,7 @@ static void
 opensslrsa_destroyctx(dst_context_t *dctx) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_RSASHA256 ||
 		dctx->key->key_alg == DST_ALG_RSASHA512);
@@ -279,8 +273,7 @@ static isc_result_t
 opensslrsa_adddata(dst_context_t *dctx, const isc_region_t *data) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_RSASHA256 ||
 		dctx->key->key_alg == DST_ALG_RSASHA512);
@@ -301,8 +294,7 @@ opensslrsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	EVP_MD_CTX *evp_md_ctx = dctx->ctxdata.evp_md_ctx;
 	EVP_PKEY *pkey = key->keydata.pkey;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_RSASHA256 ||
 		dctx->key->key_alg == DST_ALG_RSASHA512);
@@ -333,8 +325,7 @@ opensslrsa_verify2(dst_context_t *dctx, int maxbits, const isc_region_t *sig) {
 	RSA *rsa;
 	int bits;
 
-	REQUIRE(dctx->key->key_alg == DST_ALG_RSAMD5 ||
-		dctx->key->key_alg == DST_ALG_RSASHA1 ||
+	REQUIRE(dctx->key->key_alg == DST_ALG_RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_NSEC3RSASHA1 ||
 		dctx->key->key_alg == DST_ALG_RSASHA256 ||
 		dctx->key->key_alg == DST_ALG_RSASHA512);
@@ -462,7 +453,6 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	 * Reject incorrect RSA key lengths.
 	 */
 	switch (key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 		/* From RFC 3110 */

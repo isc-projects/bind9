@@ -1,3 +1,5 @@
+5109.	[cleanup]	Remove support for RSAMD5 algorithm. [GL #628]
+
 	--- 9.13.5 released ---
 
 5108.	[bug]		Named could fail to determine bottom of zone when

@@ -143,8 +143,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 	RETERR(dst__openssl_init(mctx, engine));
 	RETERR(dst__openssldh_init(&dst_t_func[DST_ALG_DH]));
 #if USE_OPENSSL
-	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSAMD5],
-				    DST_ALG_RSAMD5));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_RSASHA1],
 				    DST_ALG_RSASHA1));
 	RETERR(dst__opensslrsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1],
@@ -165,7 +163,6 @@ dst_lib_init(isc_mem_t *mctx, const char *engine) {
 
 #if USE_PKCS11
 	RETERR(dst__pkcs11_init(mctx, engine));
-	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSAMD5]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA1]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_NSEC3RSASHA1]));
 	RETERR(dst__pkcs11rsa_init(&dst_t_func[DST_ALG_RSASHA256]));
@@ -643,8 +640,8 @@ dst_key_fromdns(const dns_name_t *name, dns_rdataclass_t rdclass,
 	proto = isc_buffer_getuint8(source);
 	alg = isc_buffer_getuint8(source);
 
-	id = dst_region_computeid(&r, alg);
-	rid = dst_region_computerid(&r, alg);
+	id = dst_region_computeid(&r);
+	rid = dst_region_computerid(&r);
 
 	if ((flags & DNS_KEYFLAG_EXTENDED) != 0) {
 		if (isc_buffer_remaininglength(source) < 2)
@@ -986,8 +983,6 @@ comparekeys(const dst_key_t *key1, const dst_key_t *key2,
 	if (key1->key_id != key2->key_id) {
 		if (!match_revoked_key)
 			return (false);
-		if (key1->key_alg == DST_ALG_RSAMD5)
-			return (false);
 		if ((key1->key_flags & DNS_KEYFLAG_REVOKE) ==
 		    (key2->key_flags & DNS_KEYFLAG_REVOKE))
 			return (false);
@@ -1143,7 +1138,6 @@ dst_key_sigsize(const dst_key_t *key, unsigned int *n) {
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
@@ -1473,7 +1467,6 @@ issymmetric(const dst_key_t *key) {
 
 	/* XXXVIX this switch statement is too sparse to gen a jump table. */
 	switch (key->key_alg) {
-	case DST_ALG_RSAMD5:
 	case DST_ALG_RSASHA1:
 	case DST_ALG_NSEC3RSASHA1:
 	case DST_ALG_RSASHA256:
@@ -1697,8 +1690,8 @@ computeid(dst_key_t *key) {
 		return (ret);
 
 	isc_buffer_usedregion(&dnsbuf, &r);
-	key->key_id = dst_region_computeid(&r, key->key_alg);
-	key->key_rid = dst_region_computerid(&r, key->key_alg);
+	key->key_id = dst_region_computeid(&r);
+	key->key_rid = dst_region_computerid(&r);
 	return (ISC_R_SUCCESS);
 }
 

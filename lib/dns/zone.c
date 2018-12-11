@@ -3189,7 +3189,7 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdataset_t rdataset;
 	isc_result_t result;
-	bool logit, foundrsa = false, foundmd5 = false;
+	bool logit, foundrsa = false;
 	const char *algorithm;
 
 	result = dns_db_findnode(db, &zone->origin, false, &node);
@@ -3211,27 +3211,37 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 		result = dns_rdata_tostruct(&rdata, &dnskey, NULL);
 		INSIST(result == ISC_R_SUCCESS);
 
-		if ((dnskey.algorithm == DST_ALG_RSASHA1 ||
-		     dnskey.algorithm == DST_ALG_RSAMD5) &&
-		     dnskey.datalen > 1 && dnskey.data[0] == 1 &&
-		     dnskey.data[1] == 3)
+		/* RFC 3110, section 4: Performance Considerations:
+		 *
+		 * A public exponent of 3 minimizes the effort needed to verify
+		 * a signature.  Use of 3 as the public exponent is weak for
+		 * confidentiality uses since, if the same data can be collected
+		 * encrypted under three different keys with an exponent of 3
+		 * then, using the Chinese Remainder Theorem [NETSEC], the
+		 * original plain text can be easily recovered.  If a key is
+		 * known to be used only for authentication, as is the case with
+		 * DNSSEC, then an exponent of 3 is acceptable.  However other
+		 * applications in the future may wish to leverage DNS
+		 * distributed keys for applications that do require
+		 * confidentiality.  For keys which might have such other uses,
+		 * a more conservative choice would be 65537 (F4, the fourth
+		 * fermat number).
+		 */
+		if (dnskey.algorithm == DST_ALG_RSASHA1 &&
+		    dnskey.datalen > 1 && dnskey.data[0] == 1 &&
+		    dnskey.data[1] == 3)
 		{
 			if (dnskey.algorithm == DST_ALG_RSASHA1) {
 				logit = !foundrsa;
 				foundrsa = true;
 				algorithm = "RSASHA1";
-			} else {
-				logit = !foundmd5;
-				foundmd5 = true;
-				algorithm = "RSAMD5";
 			}
-			if (logit)
+			if (logit) {
 				dns_zone_log(zone, ISC_LOG_WARNING,
 					     "weak %s (%u) key found "
 					     "(exponent=3)", algorithm,
 					     dnskey.algorithm);
-			if (foundrsa && foundmd5)
-				break;
+			}
 		}
 		dns_rdata_reset(&rdata);
 	}
@@ -17763,7 +17773,7 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 		dns_rdata_toregion(&tuple->rdata, &r);
 
-		keyid = dst_region_computeid(&r, dnskey.algorithm);
+		keyid = dst_region_computeid(&r);
 
 		buf[0] = dnskey.algorithm;
 		buf[1] = (keyid & 0xff00) >> 8;
@@ -17910,7 +17920,7 @@ dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 			continue;
 
 		alg = tuple->rdata.data[3];
-		if (alg == DST_ALG_RSAMD5 || alg == DST_ALG_RSASHA1) {
+		if (alg == DST_ALG_RSASHA1) {
 			nseconly = true;
 			break;
 		}

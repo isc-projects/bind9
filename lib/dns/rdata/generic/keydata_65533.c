@@ -80,10 +80,6 @@ fromtext_keydata(ARGS_FROMTEXT) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	/* Ensure there's at least enough data to compute a key ID for MD5 */
-	if (alg == DST_ALG_RSAMD5 && isc_buffer_usedlength(target) < 19)
-		return (ISC_R_UNEXPECTEDEND);
-
 	return (ISC_R_SUCCESS);
 }
 
@@ -190,7 +186,7 @@ totext_keydata(ARGS_TOTEXT) {
 		/* Skip over refresh, addhd, and removehd */
 		isc_region_consume(&tmpr, 12);
 		snprintf(buf, sizeof(buf), "%u",
-			 dst_region_computeid(&tmpr, algorithm));
+			 dst_region_computeid(&tmpr));
 		RETERR(str_totext(buf, target));
 
 		if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {

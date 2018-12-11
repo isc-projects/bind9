@@ -445,6 +445,12 @@
 	  removed from BIND as the DSA key length is limited to 1024
 	  bits and this is not considered secure enough.
 	</para>
+	<para>
+	  Support for RSAMD5 algorithm has been removed freom BIND as the usage
+	  of the RSAMD5 algorithm for DNSSEC has been deprecated in RFC6725 and
+	  the security of MD5 algorithm has been compromised and the its usage
+	  is considered harmful.
+	</para>
       </listitem>
     </itemizedlist>
   </section>

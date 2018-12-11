@@ -3132,7 +3132,7 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 	} else {
 		isc_buffer_usedregion(&b, &r);
 
-		if ((alg == DST_ALG_RSASHA1 || alg == DST_ALG_RSAMD5) &&
+		if ((alg == DST_ALG_RSASHA1) &&
 		    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
 			cfg_obj_log(key, logctx, ISC_LOG_WARNING,
 				    "%s key '%s' has a weak exponent",
