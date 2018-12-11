@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -14,10 +14,11 @@
 
 set -e
 
-if $PERL -e 'use Net::DNS;' 2>/dev/null
-then
-    :
-else
-    echo "I:This test requires the Net::DNS library." >&2
-    exit 1
-fi
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "dnskey.example.")
+
+cp example.db.in example.db
+
+cat "$keyname.key" >> example.db
+
+echo "$keyname" | sed -e 's/.*[+]//' -e 's/^0*//' > keyid
+< "$keyname.key" grep -Ev '^;' | cut -f 7- -d ' ' > keydata
