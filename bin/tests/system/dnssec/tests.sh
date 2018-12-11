@@ -1825,7 +1825,7 @@ lines=$(wc -l < rndc.out.ns4.test$n.1)
 rndccmd 10.53.0.4 nta secure.example 2>&1 | sed 's/^/ns4 /' | cat_i
 rndccmd 10.53.0.4 nta fakenode.secure.example 2>&1 | sed 's/^/ns4 /' | cat_i
 # reload should maintain NTAs
-rndccmd 10.53.0.4 reload 2>&1 | sed 's/^/ns4 /' | cat_i
+rndc_reload ns4 10.53.0.4
 rndccmd 10.53.0.4 nta -d > rndc.out.ns4.test$n.2
 lines=$(wc -l < rndc.out.ns4.test$n.2)
 [ "$lines" -eq 4 ] || ret=1
@@ -2788,7 +2788,7 @@ for file in K*.moved; do
 done
 $SIGNER -S -N increment -e now+1mi -o expiring.example expiring.example.db > /dev/null 2>&1
 ) || ret=1
-rndccmd 10.53.0.3 reload expiring.example 2>&1 | sed 's/^/ns3 /' | cat_i
+rndc_reload ns3 10.53.0.3 expiring.example
 
 rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
 dig_with_answeropts +cd expiring.example soa @10.53.0.4 > dig.out.ns4.1.$n

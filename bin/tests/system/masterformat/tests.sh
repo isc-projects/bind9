@@ -319,7 +319,7 @@ echo_i "checking map format zone is scheduled for resigning (signzone) ($n)"
 ret=0
 rndccmd 10.53.0.1 freeze signed > rndc.out 2>&1 || ret=1
 (cd ns1 || exit 1; $SIGNER -S -O map -f signed.db.map -o signed signed.db > /dev/null 2>&1)
-rndccmd 10.53.0.1 reload signed > rndc.out 2>&1 || ret=1
+rndc_reload ns1 10.53.0.1 signed
 rndccmd 10.53.0.1 zonestatus signed > rndc.out 2>&1 || ret=1
 grep 'next resign' rndc.out > /dev/null 2>&1 || ret=1
 n=$((n+1))

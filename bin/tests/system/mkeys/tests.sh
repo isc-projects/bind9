@@ -35,7 +35,7 @@ mkeys_reconfig_on() {
 mkeys_reload_on() {
 	nsidx=$1
 	nextpart ns${nsidx}/named.run > /dev/null
-	$RNDCCMD 10.53.0.${nsidx} reload . | sed "s/^/ns${nsidx} /" | cat_i
+	rndc_reload ns${nsidx} 10.53.0.${nsidx}
 	wait_for_log "loaded serial" ns${nsidx}/named.run
 }
 

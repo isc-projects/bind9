@@ -45,7 +45,7 @@ wait_for_load() {
 reload_zone() {
 	zone=$1
 	serial=$2
-	$RNDCCMD 10.53.0.2 reload > /dev/null 2>&1
+	rndc_reload ns2 10.53.0.2
 	wait_for_load $zone $serial ns2/named.run
 }
 
@@ -303,7 +303,7 @@ nextpart ns2/named.run | grep "query 'foo.initially-unavailable/A/IN'" > /dev/nu
 # Reconfigure ns2 so that the zone can be mirrored on ns3.
 sed "s/10.53.0.254/10.53.0.3/;" ns2/named.conf > ns2/named.conf.modified
 mv ns2/named.conf.modified ns2/named.conf
-$RNDCCMD 10.53.0.2 reconfig > /dev/null 2>&1
+rndc_reconfig ns2 10.53.0.2
 # Flush the cache on ns3 and retransfer the mirror zone.
 $RNDCCMD 10.53.0.3 flush > /dev/null 2>&1
 nextpart ns3/named.run > /dev/null
@@ -326,7 +326,7 @@ ret=0
 # mirrored on ns3.
 sed "s/10.53.0.3/10.53.0.254/;" ns2/named.conf > ns2/named.conf.modified
 mv ns2/named.conf.modified ns2/named.conf
-$RNDCCMD 10.53.0.2 reconfig > /dev/null 2>&1
+rndc_reconfig ns2 10.53.0.2
 # Stop ns3, update the timestamp of the zone file to one far in the past, then
 # restart ns3.
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mirror ns3
@@ -394,7 +394,7 @@ sed '/^zone "verify-reconfig" {$/,/^};$/ {
 }' ns3/named.conf > ns3/named.conf.modified
 mv ns3/named.conf.modified ns3/named.conf
 nextpart ns3/named.run > /dev/null
-$RNDCCMD 10.53.0.3 reconfig > /dev/null 2>&1
+rndc_reconfig ns3 10.53.0.3
 # Zones whose type was changed should not be reusable, which means the tested
 # zone should have been reloaded from disk.
 wait_for_load verify-reconfig ${ORIGINAL_SERIAL} ns3/named.run
@@ -418,7 +418,7 @@ sed '/^zone "verify-reconfig" {$/,/^};$/ {
 	s/type slave;/type mirror;/
 }' ns3/named.conf > ns3/named.conf.modified
 mv ns3/named.conf.modified ns3/named.conf
-$RNDCCMD 10.53.0.3 reconfig > /dev/null 2>&1
+rndc_reconfig ns3 10.53.0.3
 # The reconfigured zone should fail verification.
 wait_for_load verify-reconfig ${UPDATED_SERIAL_BAD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-reconfig SOA > dig.out.ns3.test$n 2>&1 || ret=1

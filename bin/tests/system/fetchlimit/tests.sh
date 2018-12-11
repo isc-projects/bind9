@@ -116,7 +116,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 copy_setports ns3/named2.conf.in ns3/named.conf
-$RNDCCMD reconfig 2>&1 | sed 's/^/ns3 /' | cat_i
+rndc_reconfig ns3 10.53.0.3
 
 echo_i "checking lame server clients are dropped at the per-domain limit"
 ret=0
@@ -155,7 +155,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 copy_setports ns3/named3.conf.in ns3/named.conf
-$RNDCCMD reconfig 2>&1 | sed 's/^/ns3 /' | cat_i
+rndc_reconfig ns3 10.53.0.3
 
 echo_i "checking lame server clients are dropped near the soft limit"
 ret=0

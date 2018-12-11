@@ -145,7 +145,7 @@ grep "loading params for dyndb 'sample2' from .*named.conf:" ns1/named.run > /de
 status=`expr $status + $ret`
 
 echo_i "checking dyndb still works after reload"
-$RNDCCMD 10.53.0.1 reload 2>&1 | sed 's/^/ns1 /' | cat_i
+rndc_reload ns1 10.53.0.1
 
 test_add test5.ipv4.example.nil. A "10.53.0.10" || ret=1
 status=`expr $status + $ret`
