@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/sh -e
 #
 # Copyright (C) Internet Systems Consortium, Inc. ("ISC")
 #
@@ -9,13 +9,11 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-SYSTEMTESTTOP=..
-. $SYSTEMTESTTOP/conf.sh
+# shellcheck source=conf.sh
+. "$SYSTEMTESTTOP/conf.sh"
 
-if $KEYGEN -q -a RSAMD5 -b 1024 -n zone foo > /dev/null 2>&1
-then
-    rm -f Kfoo*
-else
-    echo "I:This test requires that --with-openssl was used." >&2
-    exit 255
-fi
+set -e
+
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone ".")
+
+keyfile_to_trusted_keys "$keyname" > trusted.conf
