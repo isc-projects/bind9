@@ -312,7 +312,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup delzsk.example
 cp $infile $zonefile
-ksk=`$KEYGEN -a NSEC3RSASHA1 -b 1024 -3 -q -fk $zone 2> kg.out` || dumpit kg.out
-$KEYGEN -a NSEC3RSASHA1 -b 1024 -3 -q $zone > kg.out 2>&1 || dumpit kg.out
-zsk=`$KEYGEN -a NSEC3RSASHA1 -b 1024 -3 -q -I now-1w $zone 2>kg.out` || dumpit kg.out
+ksk=`$KEYGEN -a NSEC3RSASHA1 -b 1024 -3 -q -r $RANDFILE -fk $zone 2> kg.out` || dumpit kg.out
+$KEYGEN -a NSEC3RSASHA1 -b 1024 -3 -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
+zsk=`$KEYGEN -a NSEC3RSASHA1 -b 1024 -3 -q -r $RANDFILE -I now-1w $zone 2>kg.out` || dumpit kg.out
 echo $zsk > ../delzsk.key
