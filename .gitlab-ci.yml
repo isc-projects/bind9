@@ -4,6 +4,7 @@ variables:
   DOCKER_DRIVER: overlay2
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
   CCACHE_DIR: "/ccache"
+  SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
 
 stages:
   - precheck
@@ -113,9 +114,9 @@ stages:
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
-    - autoreconf -fi
+#    - ./autogen.sh
   script:
-    - ./configure --enable-developer --with-randomdev=/dev/urandom --with-libtool --disable-static --with-cmocka --with-libidn2 --prefix=$HOME/.local --without-make-clean "${EXTRA_CONFIGURE}" || cat config.log
+    - ./configure --enable-developer --with-randomdev=/dev/urandom --with-libtool --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean ${EXTRA_CONFIGURE} || cat config.log
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
   artifacts:
     paths:
@@ -135,6 +136,7 @@ stages:
   before_script:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
+    - bash -x util/prepare-softhsm2.sh
   script:
     - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
@@ -147,6 +149,7 @@ stages:
   stage: test
   before_script:
     - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
+    - bash -x util/prepare-softhsm2.sh
   script:
     - make unit
   after_script:
@@ -159,7 +162,7 @@ stages:
     expire_in: '1 week'
     when: on_failure
 
-precheck:debian:sid:amd64:
+sid:amd64:precheck:
   <<: *debian_sid_amd64_image
   stage: precheck
   script:
@@ -182,11 +185,16 @@ precheck:debian:sid:amd64:
     expire_in: '1 week'
     when: on_failure
 
-docs:debian:sid:amd64:
+🐞:sid:amd64:precheck:
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script: util/check-cocci
+
+docs:sid:amd64:
   <<: *debian_sid_amd64_image
   stage: test
   dependencies:
-    - build:debian:sid:amd64
+    - sid:amd64:build
   script:
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
@@ -195,7 +203,7 @@ docs:debian:sid:amd64:
     - doc/arm/
     expire_in: '1 month'
 
-push:docs:
+docs:push:
   <<: *debian_sid_amd64_image
   stage: push
   dependencies: []
@@ -205,15 +213,15 @@ push:docs:
     - master@isc-projects/bind9
     - /^v9_.*$/@isc-projects/bind9
 
-#build:debian:jessie:amd64:
+#jessie:amd64:build:
 #  <<: *debian_jessie_amd64_image
 #  <<: *build_job
 #
-#build:debian:jessie:i386:
+#build:jessie:i386:
 #  <<: *debian_jessie_i386_image
 #  <<: *build_job
 #
-#build:debian:stretch:amd64:
+#build:stretch:amd64:
 #  <<: *debian_stretch_amd64_image
 #  <<: *build_job
 #
@@ -229,28 +237,53 @@ push:docs:
 #  <<: *ubuntu_xenial_i386_image
 #  <<: *build_job
 
-build:centos:centos6:amd64:
+centos6:amd64:build:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--disable-warn-error"
+    EXTRA_CONFIGURE: "--with-libidn2 --disable-warn-error"
   <<: *centos_centos6_amd64_image
   <<: *build_job
 
-build:centos:centos7:amd64:
+centos7:amd64:build:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
-build:debian:sid:amd64:
+clang:stretch:amd64:build:
   variables:
-    EXTRA_CONFIGURE: "--without-eddsa"
+    CC: clang
+    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+  <<: *debian_stretch_amd64_image
+  <<: *build_job
+
+jessie:amd64:build:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: --without-cmocka
+  <<: *debian_jessie_amd64_image
+  <<: *build_job
+
+stretch:amd64:build:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *debian_stretch_amd64_image
+  <<: *build_job
+
+sid:amd64:build:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-build:asan:debian:sid:amd64:
+asan:sid:amd64:build:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
@@ -259,79 +292,138 @@ build:asan:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-build:debian:sid:i386:
+clang:stretch:i386:build:
   variables:
-    EXTRA_CONFIGURE: "--without-eddsa"
+    CC: clang
+    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+  <<: *debian_stretch_i386_image
+  <<: *build_job
+
+sid:i386:build:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_i386_image
   <<: *build_job
 
-unittest:centos:centos6:amd64:
+unit:centos6:amd64:
   <<: *centos_centos6_amd64_image
   <<: *unit_test_job
   dependencies:
-    - build:centos:centos6:amd64
+    - centos6:amd64:build
 
-unittest:centos:centos7:amd64:
+unit:centos7:amd64:
   <<: *centos_centos7_amd64_image
   <<: *unit_test_job
   dependencies:
-    - build:centos:centos7:amd64
+    - centos7:amd64:build
 
-unittest:debian:sid:amd64:
+unit:jessie:amd64:
+  <<: *debian_jessie_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - jessie:amd64:build
+
+unit:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - stretch:amd64:build
+
+unit:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
-    - build:debian:sid:amd64
+    - sid:amd64:build
 
-unittest:asan:debian:sid:amd64:
+unit:asan:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
-    - build:asan:debian:sid:amd64
+    - asan:sid:amd64:build
 
-unittest:debian:sid:i386:
+unit:clang:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - clang:stretch:amd64:build
+
+unit:sid:i386:
   <<: *debian_sid_i386_image
   <<: *unit_test_job
   dependencies:
-    - build:debian:sid:i386
+    - sid:i386:build
 
-systemtest:centos:centos6:amd64:
+system:centos6:amd64:
   <<: *centos_centos6_amd64_image
   <<: *system_test_job
   dependencies:
-    - build:centos:centos6:amd64
+    - centos6:amd64:build
 
-systemtest:centos:centos7:amd64:
+system:centos7:amd64:
   <<: *centos_centos7_amd64_image
   <<: *system_test_job
   dependencies:
-    - build:centos:centos7:amd64
+    - centos7:amd64:build
 
-systemtest:debian:sid:amd64:
+system:jessie:amd64:
+  <<: *debian_jessie_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - jessie:amd64:build
+
+system:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - stretch:amd64:build
+
+system:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
-    - build:debian:sid:amd64
+    - sid:amd64:build
 
-systemtest:asan:debian:sid:amd64:
+system:asan:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
-    - build:asan:debian:sid:amd64
+    - asan:sid:amd64:build
 
-systemtest:debian:sid:i386:
+system:sid:i386:
   <<: *debian_sid_i386_image
   <<: *system_test_job
   dependencies:
-    - build:debian:sid:i386
+    - sid:i386:build
 
-install:debian:sid:amd64:
+install:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *install_test_job
   dependencies:
-    - build:debian:sid:amd64
+    - sid:amd64:build
 
-noassert:build:debian:sid:amd64:
+pkcs11:sid:amd64:build:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+pkcs11:unit:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - pkcs11:sid:amd64:build
+
+pkcs11:system:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - pkcs11:sid:amd64:build
+
+noassert:sid:amd64:build:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g -DISC_CHECK_NONE=1"
@@ -339,14 +431,14 @@ noassert:build:debian:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-noassert:unittest:debian:sid:amd64:
+noassert:unit:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
-    - noassert:build:debian:sid:amd64
+    - noassert:sid:amd64:build
 
-noassert:systemtest:debian:sid:amd64:
+noassert:system:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
-    - noassert:build:debian:sid:amd64
+    - noassert:sid:amd64:build
