@@ -82,20 +82,6 @@ stages:
     - docker
     - i386
 
-.ubuntu-trusty-amd64: &ubuntu_trusty_amd64_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-trusty-amd64"
-  tags:
-    - linux
-    - docker
-    - amd64
-
-.ubuntu-trusty-i386: &ubuntu_trusty_i386_image
-  image: "$CI_REGISTRY_IMAGE:ubuntu-trusty-i386"
-  tags:
-    - linux
-    - docker
-    - i386
-
 .ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
   tags:
@@ -105,6 +91,20 @@ stages:
 
 .ubuntu-xenial-i386: &ubuntu_xenial_i386_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-i386"
+  tags:
+    - linux
+    - docker
+    - i386
+
+.ubuntu-bionic-amd64: &ubuntu_bionic_amd64_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-amd64"
+  tags:
+    - linux
+    - docker
+    - amd64
+
+.ubuntu-bionic-i386: &ubuntu_bionic_i386_image
+  image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
   tags:
     - linux
     - docker
@@ -226,8 +226,8 @@ docs:push:
 #  <<: *debian_buster_i386_image
 #  <<: *build_job
 #
-#build:ubuntu:trusty:amd64:
-#  <<: *ubuntu_trusty_amd64_image
+#build:ubuntu:bionic:amd64:
+#  <<: *ubuntu_bionic_amd64_image
 #  <<: *build_job
 #
 #build:ubuntu:xenial:i386:
@@ -439,3 +439,42 @@ noassert:system:sid:amd64:
   <<: *system_test_job
   dependencies:
     - noassert:sid:amd64:build
+
+xenial:amd64:build:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *ubuntu_xenial_amd64_image
+  <<: *build_job
+
+unit:xenial:amd64:
+  <<: *ubuntu_xenial_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - xenial:amd64:build
+
+system:xenial:amd64:
+  <<: *ubuntu_xenial_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - xenial:amd64:build
+
+bionic:amd64:build:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *ubuntu_bionic_amd64_image
+  <<: *build_job
+
+unit:bionic:amd64:
+  <<: *ubuntu_bionic_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - bionic:amd64:build
+
+system:bionic:amd64:
+  <<: *ubuntu_bionic_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - bionic:amd64:build
