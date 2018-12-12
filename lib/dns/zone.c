@@ -3929,9 +3929,10 @@ compute_tag(dns_name_t *name, dns_rdata_dnskey_t *dnskey, isc_mem_t *mctx,
 			     dns_rdatatype_dnskey, dnskey, &buffer);
 
 	result = dns_dnssec_keyfromrdata(name, &rdata, mctx, &dstkey);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		*tag = dst_key_id(dstkey);
-	dst_key_free(&dstkey);
+		dst_key_free(&dstkey);
+	}
 
 	return (result);
 }
