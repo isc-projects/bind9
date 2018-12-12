@@ -554,3 +554,18 @@ kskname=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -3fk $zone`
 zskname=`$KEYGEN -q -r $RANDFILE -a RSASHA256 -b 1024 -3 $zone`
 cat $infile $kskname.key $zskname.key >$zonefile
 $SIGNER -P -r $RANDFILE -3 - -o $zone $zonefile > /dev/null 2>&1
+
+#
+# A NSEC zone with occuded data at the delegation
+#
+zone=occluded.example
+infile=occluded.example.db.in
+zonefile=occluded.example.db
+kskname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA256 -b 1024 -fk "$zone"`
+zskname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA256 -b 1024 "$zone"`
+keyname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA1 -b 1024 -n ENTITY -T KEY "delegation.$zone"`
+dnskeyname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA256 -b 1024 -fk "delegation.$zone"`
+$DSFROMKEY "$dnskeyname.key" > "dsset-delegation.${zone}$TP"
+cat "$infile" "${kskname}.key" "${zskname}.key" "${keyname}.key" \
+    "${dnskeyname}.key" "dsset-delegation.${zone}$TP" >"$zonefile"
+"$SIGNER" -P -r $RANDFILE -o "$zone" "$zonefile" > /dev/null 2>&1

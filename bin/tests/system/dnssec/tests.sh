@@ -3521,5 +3521,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "check that DNSKEY and other occluded data are excluded from the delegating bitmap ($n)"
+ret=0
+$DIG $DIGOPTS axfr occluded.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+grep "^delegation.occluded.example..*NSEC.*NS KEY DS RRSIG NSEC$" dig.out.ns3.test$n > /dev/null || ret=1
+grep "^delegation.occluded.example..*DNSKEY.*" dig.out.ns3.test$n > /dev/null || ret=1
+grep "^delegation.occluded.example..*AAAA.*" dig.out.ns3.test$n > /dev/null || ret=1
+n=`expr $n + 1`
+test "$ret" -eq 0 || echo_i "failed"
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

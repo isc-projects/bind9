@@ -1114,6 +1114,7 @@
 ./bin/tests/system/dnssec/ns3/nsec3.example.db.in	ZONE	2006,2008,2016,2018
 ./bin/tests/system/dnssec/ns3/nsec3.nsec3.example.db.in	ZONE	2008,2016,2018
 ./bin/tests/system/dnssec/ns3/nsec3.optout.example.db.in	ZONE	2008,2016,2018
+./bin/tests/system/dnssec/ns3/occluded.example.db.in	ZONE	2018
 ./bin/tests/system/dnssec/ns3/optout-unknown.example.db.in	ZONE	2006,2008,2016,2018
 ./bin/tests/system/dnssec/ns3/optout.example.db.in	ZONE	2006,2008,2016,2018
 ./bin/tests/system/dnssec/ns3/optout.nsec3.example.db.in	ZONE	2008,2016,2018
