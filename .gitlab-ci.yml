@@ -116,7 +116,7 @@ stages:
     - autoreconf -fi
   script:
     - ./configure --enable-developer --with-randomdev=/dev/urandom --with-libtool --disable-static --with-cmocka --with-libidn2 --prefix=$HOME/.local --without-make-clean "${EXTRA_CONFIGURE}" || cat config.log
-    - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
   artifacts:
     paths:
     - doc/
