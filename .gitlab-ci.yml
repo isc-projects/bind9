@@ -117,7 +117,7 @@ stages:
 #    - ./autogen.sh
   script:
     - ./configure --enable-developer --with-libtool --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean $EXTRA_CONFIGURE || cat config.log
-    - make -j${PARALLEL_JOBS_BUILD:-1} -k all V=1
+    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
   artifacts:
     paths:
     - doc/
