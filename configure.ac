@@ -3935,7 +3935,11 @@ AC_TRY_COMPILE([
 #include <stdatomic.h>
 ],
 [
-atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
+  #if ATOMIC_INT_LOCK_FREE == 2 && ATOMIC_LONG_LOCK_FREE == 2
+  atomic_int_fast32_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
+  #else
+  #error stdatomic not lock free
+  #endif
 ],
         [AC_MSG_RESULT(yes)
 	 have_stdatomic=yes
