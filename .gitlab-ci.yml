@@ -167,6 +167,9 @@ sid:amd64:precheck:
   stage: precheck
   script:
     - sh util/checklibs.sh > checklibs.out
+    - sh util/tabify-changes < CHANGES > CHANGES.tmp
+    - diff -urNap CHANGES CHANGES.tmp
+    - rm CHANGES.tmp
     - perl util/check-changes CHANGES
     - perl -w util/merge_copyrights
     - diff -urNap util/copyrights util/newcopyrights
