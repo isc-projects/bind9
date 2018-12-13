@@ -39,18 +39,19 @@
 #define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
 /*%
- * Local macro confirming prescence of 64-bit
+ * Local macro confirming presence of 64-bit
  * increment and store operations, just to make
  * the later macros simpler
  */
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_LONG_LOCK_FREE == 2) || \
-	(defined(ISC_PLATFORM_HAVEXADDQ) && defined(ISC_PLATFORM_HAVEATOMICSTOREQ))
-#define ISC_STATS_HAVEATOMICQ 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_LONG_LOCK_FREE == 2)
-#define ISC_STATS_HAVESTDATOMICQ 1
-#endif
-#else
-#define ISC_STATS_HAVEATOMICQ 0
+#if defined(ISC_PLATFORM_HAVESTDATOMIC)
+# define ISC_STATS_HAVEATOMICQ 1
+# define ISC_STATS_HAVESTDATOMICQ 1
+#else /* defined(ISC_PLATFORM_HAVESTDATOMIC) */
+# if defined(ISC_PLATFORM_HAVEXADDQ) && defined(ISC_PLATFORM_HAVEATOMICSTOREQ)
+#  define ISC_STATS_HAVEATOMICQ 1
+# else
+#  define ISC_STATS_HAVEATOMICQ 0
+# endif
 #endif
 
 /*%
@@ -76,16 +77,22 @@
  * Otherwise, just rely on standard 64-bit data types
  * and operations
  */
-#if !ISC_STATS_HAVEATOMICQ && \
-	((defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2) || \
-	 defined(ISC_PLATFORM_HAVEXADD))
-#define ISC_STATS_USEMULTIFIELDS 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2)
-#define ISC_STATS_HAVESTDATOMIC 1
-#endif
-#else
+#if !ISC_STATS_HAVEATOMICQ
+
+# if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#  define ISC_STATS_USEMULTIFIELDS 1
+#  define ISC_STATS_HAVESTDATOMIC 1
+# else /* defined(ISC_PLATFORM_HAVESTDATOMIC) */
+#  if ISC_PLATFORM_HAVEXADD
+#   define ISC_STATS_USEMULTIFIELDS 1
+#  else
+#   define ISC_STATS_USEMULTIFIELDS 0
+#  endif
+# endif
+
+#else /* !ISC_STATS_HAVEATOMICQ */
 #define ISC_STATS_USEMULTIFIELDS 0
-#endif
+#endif /* !ISC_STATS_HAVEATOMICQ */
 
 #if ISC_STATS_USEMULTIFIELDS
 typedef struct {

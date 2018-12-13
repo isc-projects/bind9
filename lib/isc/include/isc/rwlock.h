@@ -39,13 +39,14 @@ typedef enum {
 } isc_rwlocktype_t;
 
 #ifdef ISC_PLATFORM_USETHREADS
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2) || \
-	(defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG))
-#define ISC_RWLOCK_USEATOMIC 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2)
-#define ISC_RWLOCK_USESTDATOMIC 1
-#endif
-#endif
+# if defined(ISC_PLATFORM_HAVESTDATOMIC)
+#  define ISC_RWLOCK_USEATOMIC 1
+#  define ISC_RWLOCK_USESTDATOMIC 1
+# else /* defined(ISC_PLATFORM_HAVESTDATOMIC) */
+#  if defined(ISC_PLATFORM_HAVEXADD) && defined(ISC_PLATFORM_HAVECMPXCHG)
+#   define ISC_RWLOCK_USEATOMIC 1
+#  endif
+# endif /* defined(ISC_PLATFORM_HAVESTDATOMIC) */
 
 struct isc_rwlock {
 	/* Unlocked. */
