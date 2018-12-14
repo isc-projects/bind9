@@ -25,7 +25,7 @@ for subdomain in secure badds bogus dynamic keyless nsec3 optout \
 	kskonly update-nsec3 auto-nsec auto-nsec3 secure.below-cname \
 	ttlpatch split-dnssec split-smart expired expiring upper lower \
 	dnskey-unknown dnskey-nsec3-unknown managed-future revkey \
-	dname-at-apex-nsec3
+	dname-at-apex-nsec3 occluded
 do
 	cp ../ns3/dsset-$subdomain.example$TP .
 done

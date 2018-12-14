@@ -1486,6 +1486,90 @@ wks(void **state) {
 		    dns_rdatatype_wks, sizeof(dns_rdata_in_wks_t));
 }
 
+static void
+atcname(void **state) {
+	unsigned int i;
+	UNUSED(state);
+#define UNR "# Unexpected result from dns_rdatatype_atcname for type %u\n"
+	for (i = 0; i < 0xffffU; i++) {
+		bool tf = dns_rdatatype_atcname((dns_rdatatype_t)i);
+		switch (i) {
+		case dns_rdatatype_nsec:
+		case dns_rdatatype_key:
+		case dns_rdatatype_rrsig:
+			if (!tf) {
+				print_message(UNR, i);
+			}
+			assert_true(tf);
+			break;
+		default:
+			if (tf) {
+				print_message(UNR, i);
+			}
+			assert_false(tf);
+			break;
+		}
+
+	}
+#undef UNR
+}
+
+static void
+atparent(void **state) {
+	unsigned int i;
+	UNUSED(state);
+#define UNR "# Unexpected result from dns_rdatatype_atparent for type %u\n"
+	for (i = 0; i < 0xffffU; i++) {
+		bool tf = dns_rdatatype_atparent((dns_rdatatype_t)i);
+		switch (i) {
+		case dns_rdatatype_ds:
+			if (!tf) {
+				print_message(UNR, i);
+			}
+			assert_true(tf);
+			break;
+		default:
+			if (tf) {
+				print_message(UNR, i);
+			}
+			assert_false(tf);
+			break;
+		}
+
+	}
+#undef UNR
+}
+
+static void
+iszonecutauth(void **state) {
+	unsigned int i;
+	UNUSED(state);
+#define UNR "# Unexpected result from dns_rdatatype_iszonecutauth for type %u\n"
+	for (i = 0; i < 0xffffU; i++) {
+		bool tf = dns_rdatatype_iszonecutauth((dns_rdatatype_t)i);
+		switch (i) {
+		case dns_rdatatype_ns:
+		case dns_rdatatype_ds:
+		case dns_rdatatype_nsec:
+		case dns_rdatatype_key:
+		case dns_rdatatype_rrsig:
+			if (!tf) {
+				print_message(UNR, i);
+			}
+			assert_true(tf);
+			break;
+		default:
+			if (tf) {
+				print_message(UNR, i);
+			}
+			assert_false(tf);
+			break;
+		}
+
+	}
+#undef UNR
+}
+
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
@@ -1503,6 +1587,9 @@ main(void) {
 		cmocka_unit_test_setup_teardown(nsec3, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(nxt, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(wks, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(atcname, NULL, NULL),
+		cmocka_unit_test_setup_teardown(atparent, NULL, NULL),
+		cmocka_unit_test_setup_teardown(iszonecutauth, NULL, NULL),
 	};
 
 	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
