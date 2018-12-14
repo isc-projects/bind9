@@ -2276,10 +2276,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	if (ztype == CFG_ZONE_MASTER || ztype == CFG_ZONE_SLAVE ||
 	    ztype == CFG_ZONE_STUB)
 	{
-		const cfg_obj_t *dialup = NULL;
-		(void)cfg_map_get(zoptions, "dialup", &dialup);
-		if (dialup != NULL && cfg_obj_isstring(dialup)) {
-			const char *str = cfg_obj_asstring(dialup);
+		obj = NULL;
+		(void)cfg_map_get(zoptions, "dialup", &obj);
+		if (obj != NULL && cfg_obj_isstring(obj)) {
+			const char *str = cfg_obj_asstring(obj);
 			for (i = 0;
 			     i < sizeof(dialups) / sizeof(dialups[0]);
 			     i++)

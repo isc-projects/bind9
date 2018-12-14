@@ -1,3 +1,7 @@
+5112.	[bug]		Named/named-checkconf could dump core if there was
+			a missing masters clause and a bad notify clause.
+			[GL #779]
+
 5111.	[bug]		Occluded DNSKEY records could make it into the
 			delegating NSEC/NSEC3 bitmap. [GL #742]
 
