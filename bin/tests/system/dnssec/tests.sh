@@ -3595,6 +3595,16 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "check that DNSKEY and other occluded data are excluded from the delegating bitmap ($n)"
+ret=0
+dig_with_opts axfr occluded.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+grep "^delegation.occluded.example..*NSEC.*NS KEY DS RRSIG NSEC$" dig.out.ns3.test$n > /dev/null || ret=1
+grep "^delegation.occluded.example..*DNSKEY.*" dig.out.ns3.test$n > /dev/null || ret=1
+grep "^delegation.occluded.example..*AAAA.*" dig.out.ns3.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 # Note: after this check, ns4 will not be validating any more; do not add any
 # further validation tests employing ns4 below this check.
 echo_i "check that validation defaults to off when dnssec-enable is off ($n)"

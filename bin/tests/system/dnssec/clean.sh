@@ -66,6 +66,7 @@ rm -f ./ns3/managed-future.example.db
 rm -f ./ns3/multiple.example.db ./ns3/nsec3-unknown.example.db ./ns3/nsec3.example.db
 rm -f ./ns3/nsec3.nsec3.example.db
 rm -f ./ns3/nsec3.optout.example.db
+rm -f ./ns3/occluded.example.db
 rm -f ./ns3/optout-unknown.example.db ./ns3/optout.example.db
 rm -f ./ns3/optout.nsec3.example.db
 rm -f ./ns3/optout.optout.example.db

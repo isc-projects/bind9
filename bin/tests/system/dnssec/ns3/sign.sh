@@ -558,3 +558,18 @@ kskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -3fk "$zone")
 zskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -3 "$zone")
 cat "$infile" "${kskname}.key" "${zskname}.key" >"$zonefile"
 "$SIGNER" -P -3 - -o "$zone" "$zonefile" > /dev/null 2>&1
+
+#
+# A NSEC zone with occuded data at the delegation
+#
+zone=occluded.example
+infile=occluded.example.db.in
+zonefile=occluded.example.db
+kskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -fk "$zone")
+zskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" "$zone")
+keyname=$("$KEYGEN" -q -a RSASHA1 -n ENTITY -T KEY "delegation.$zone")
+dnskeyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -fk "delegation.$zone")
+$DSFROMKEY "$dnskeyname.key" > "dsset-delegation.${zone}$TP"
+cat "$infile" "${kskname}.key" "${zskname}.key" "${keyname}.key" \
+    "${dnskeyname}.key" "dsset-delegation.${zone}$TP" >"$zonefile"
+"$SIGNER" -P -o "$zone" "$zonefile" > /dev/null 2>&1

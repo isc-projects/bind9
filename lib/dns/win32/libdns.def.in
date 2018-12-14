@@ -826,6 +826,7 @@ dns_rdataslab_fromrdataset
 dns_rdataslab_merge
 dns_rdataslab_size
 dns_rdataslab_subtract
+dns_rdatatype_atcname
 dns_rdatatype_atparent
 dns_rdatatype_attributes
 dns_rdatatype_format

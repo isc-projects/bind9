@@ -299,6 +299,11 @@ zone "dname-at-apex-nsec3.example" {
 	file "dname-at-apex-nsec3.example.db.signed";
 };
 
+zone "occluded.example" {
+	type master;
+	file "occluded.example.db.signed";
+};
+
 include "siginterval.conf";
 
 include "trusted.conf";

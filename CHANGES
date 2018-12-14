@@ -1,3 +1,6 @@
+5111.	[bug]		Occluded DNSKEY records could make it into the
+			delegating NSEC/NSEC3 bitmap. [GL #742]
+
 5110.	[placeholder]
 
 5109.	[cleanup]	Remove support for RSAMD5 algorithm. [GL #628]
