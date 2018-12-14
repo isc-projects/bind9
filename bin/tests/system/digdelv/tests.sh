@@ -481,7 +481,7 @@ if [ -x ${DIG} ] ; then
   echo_i "check that dig -q -m works ($n)"
   ret=0
   $DIG $DIGOPTS @10.53.0.3 -q -m > dig.out.test$n 2>&1
-  grep '^;-m\..*IN.*A$' dig.out.test$n > /dev/null || ret=1
+  tr -d '\r' < dig.out.test$n | grep '^;-m\..*IN.*A$' > /dev/null || ret=1
   grep "Dump of all outstanding memory allocations" dig.out.test$n > /dev/null && ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
