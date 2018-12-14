@@ -95,12 +95,17 @@ ISC_LANG_BEGINDECLS
  * Sample implementations
  */
 #ifdef ISC_PLATFORM_USETHREADS
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2) || \
-	defined(ISC_PLATFORM_HAVEXADD)
-#define ISC_REFCOUNT_HAVEATOMIC 1
-#if (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2)
-#define ISC_REFCOUNT_HAVESTDATOMIC 1
-#endif
+
+#if defined(ISC_PLATFORM_HAVESTDATOMIC)
+# define ISC_REFCOUNT_HAVEATOMIC 1
+# define ISC_REFCOUNT_HAVESTDATOMIC 1
+#else /* defined(ISC_PLATFORM_HAVESTDATOMIC) */
+# if defined(ISC_PLATFORM_HAVEXADD)
+#  define ISC_REFCOUNT_HAVEATOMIC 1
+# endif /* defined(ISC_PLATFORM_HAVEXADD */
+#endif /* !defined(ISC_REFCOUNT_HAVEATOMIC) */
+
+#if defined(ISC_REFCOUNT_HAVEATOMIC)
 
 typedef struct isc_refcount {
 #if defined(ISC_REFCOUNT_HAVESTDATOMIC)
@@ -149,7 +154,7 @@ typedef struct isc_refcount {
 			*_tmp = prev - 1;			\
 	} while (0)
 
-#else /* ISC_REFCOUNT_HAVESTDATOMIC */
+#else /* defined(ISC_REFCOUNT_STDATOMIC) */
 
 #define isc_refcount_current(rp)				\
 	((unsigned int)(isc_atomic_xadd(&(rp)->refs, 0)))
@@ -184,9 +189,9 @@ typedef struct isc_refcount {
 			*_tmp = prev - 1;			\
 	} while (0)
 
-#endif /* ISC_REFCOUNT_HAVESTDATOMIC */
+#endif /* defined(ISC_REFCOUNT_HAVESTDATOMIC) */
 
-#else  /* ISC_PLATFORM_HAVEXADD */
+#else /* defined(ISC_REFCOUNT_HAVEATOMIC) */
 
 typedef struct isc_refcount {
 	int refs;
@@ -253,7 +258,8 @@ typedef struct isc_refcount {
 		ISC_ERROR_RUNTIMECHECK(_result == ISC_R_SUCCESS);	\
 	} while (0)
 
-#endif /* (defined(ISC_PLATFORM_HAVESTDATOMIC) && ATOMIC_INT_LOCK_FREE == 2) || defined(ISC_PLATFORM_HAVEXADD) */
+#endif /* defined(ISC_REFCOUNT_ATOMIC) */
+
 #else  /* ISC_PLATFORM_USETHREADS */
 
 typedef struct isc_refcount {

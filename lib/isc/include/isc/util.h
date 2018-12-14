@@ -69,7 +69,7 @@
  * Use this in translation units that would otherwise be empty, to
  * suppress compiler warnings.
  */
-#define EMPTY_TRANSLATION_UNIT static void isc__empty(void) { isc__empty(); }
+#define EMPTY_TRANSLATION_UNIT extern int isc__empty;
 
 /*%
  * We use macros instead of calling the routines directly because
