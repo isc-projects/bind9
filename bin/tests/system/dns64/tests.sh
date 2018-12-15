@@ -1278,7 +1278,7 @@ status=`expr $status + $ret`
 echo_i "checking reverse mapping ($n)"
 ret=0
 $DIG $DIGOPTS -x 2001:aaaa::10.0.0.1 @10.53.0.2 > dig.out.ns2.test$n || ret=1
-grep -i "CNAME.1.0.0.10.IN-ADDR.ARPA.$" dig.out.ns2.test$n > /dev/null || ret=1
+tr -d '\r' < dig.out.ns2.test$n | grep -i "CNAME.1.0.0.10.IN-ADDR.ARPA.$" > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
