@@ -462,7 +462,7 @@ for mode in native dnsrps; do
   echo_i "testing for invalid prefix length error (${t})"
   add_test_marker 10.53.0.2
   run_server invalidprefixlength
-  grep "invalid rpz IP address \"1000.4.0.53.10.rpz-client-ip.invalidprefixlength\"; invalid prefix length of 1000$" ns2/named.run > /dev/null || {
+  tr -d '\r' < ns2/named.run | grep "invalid rpz IP address \"1000.4.0.53.10.rpz-client-ip.invalidprefixlength\"; invalid prefix length of 1000$" > /dev/null || {
     echo_i " failed: expected that invalid prefix length error would be logged"
     status=1
   }

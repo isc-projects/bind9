@@ -229,7 +229,7 @@ do
 done
 serial=`awk '$3 == "serial" {print $1}' ns2/other.db`
 newserial=`expr $serial + 1`
-sed s/$serial/$newserial/ ns2/other.db > ns2/other.db.new
+sed "s/$serial/$newserial/" ns2/other.db > ns2/other.db.new
 echo 'frozen TXT "frozen addition"' >> ns2/other.db.new
 mv -f ns2/other.db.new ns2/other.db
 $RNDCCMD 10.53.0.2 thaw 2>&1 | sed 's/^/ns2 /' | cat_i
@@ -272,7 +272,7 @@ do
 done
 serial=`awk '$3 == "serial" {print $1}' ns2/nil.db`
 newserial=`expr $serial + 1`
-sed s/$serial/$newserial/ ns2/nil.db > ns2/nil.db.new
+sed "s/$serial/$newserial/" ns2/nil.db > ns2/nil.db.new
 echo 'frozen TXT "frozen addition"' >> ns2/nil.db.new
 mv -f ns2/nil.db.new ns2/nil.db
 $RNDCCMD 10.53.0.2 thaw 2>&1 | sed 's/^/ns2 /' | cat_i
@@ -452,7 +452,7 @@ $RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf querylog on >/dev/null 2>&1
 grep "query logging is now on" ns4/named.run > /dev/null || ret=1
 # query for builtin and check if query was logged (without +subnet)
 $DIG @10.53.0.4 -p ${PORT} -c ch -t txt foo12345.bind > /dev/null || ret=1
-grep "query: foo12345.bind CH TXT.*(.*)$" ns4/named.run > /dev/null || ret=1
+tr -d '\r' < ns4/named.run | grep "query: foo12345.bind CH TXT.*(.*)$" > /dev/null || ret=1
 # query for another builtin zone and check if query was logged (with +subnet=127.0.0.1)
 $DIG +subnet=127.0.0.1 @10.53.0.4 -p ${PORT} -c ch -t txt foo12346.bind > /dev/null || ret=1
 grep "query: foo12346.bind CH TXT.*\[ECS 127\.0\.0\.1\/32\/0]" ns4/named.run > /dev/null || ret=1
@@ -467,7 +467,7 @@ $RNDC -s 10.53.0.4 -p ${EXTRAPORT6} -c ns4/key6.conf querylog > /dev/null 2>&1 |
 grep "query logging is now off" ns4/named.run > /dev/null || ret=1
 # query for another builtin zone and check if query was logged (without +subnet)
 $DIG @10.53.0.4 -p ${PORT} -c ch -t txt foo9876.bind > /dev/null || ret=1
-grep "query: foo9876.bind CH TXT.*(.*)$" ns4/named.run > /dev/null && ret=1
+tr -d '\r' < ns4/named.run | grep "query: foo9876.bind CH TXT.*(.*)$" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
