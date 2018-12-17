@@ -1,3 +1,5 @@
+5113.	[port]		Fixed a Windows build error.
+
 5112.	[bug]		Named/named-checkconf could dump core if there was
 			a missing masters clause and a bad notify clause.
 			[GL #779]
