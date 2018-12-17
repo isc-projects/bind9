@@ -178,28 +178,28 @@ n=`expr $n + 1`
 ret=0
 echo_i "Checking that default version works for query ($n)"
 $DIG $DIGOPTS +short version.bind txt ch @10.53.0.1 > dig.out.ns1.$n
-tr -d '\r' < dig.out.ns1.$n | grep "^\"$VERSION\"$" > /dev/null || ret=1
+grep "^\"$VERSION\"$" dig.out.ns1.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo_i "Checking that custom version works for query ($n)"
 $DIG $DIGOPTS +short version.bind txt ch @10.53.0.3 > dig.out.ns3.$n
-tr -d '\r' < dig.out.ns3.$n | grep "^\"this is a test of version\"$" > /dev/null || ret=1
+grep "^\"this is a test of version\"$" dig.out.ns3.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo_i "Checking that default hostname works for query ($n)"
 $DIG $DIGOPTS +short hostname.bind txt ch @10.53.0.1 > dig.out.ns1.$n
-tr -d '\r' < dig.out.ns1.$n | grep "^\"$HOSTNAME\"$" > /dev/null || ret=1
+grep "^\"$HOSTNAME\"$" dig.out.ns1.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo_i "Checking that custom hostname works for query ($n)"
 $DIG $DIGOPTS +short hostname.bind txt ch @10.53.0.3 > dig.out.ns3.$n
-tr -d '\r' < dig.out.ns3.$n | grep "^\"this.is.a.test.of.hostname\"$" > /dev/null || ret=1
+grep "^\"this.is.a.test.of.hostname\"$" dig.out.ns3.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
@@ -214,28 +214,28 @@ n=`expr $n + 1`
 ret=0
 echo_i "Checking that server-id hostname works for query ($n)"
 $DIG $DIGOPTS +short id.server txt ch @10.53.0.2 > dig.out.ns2.$n
-tr -d '\r' < dig.out.ns2.$n | grep "^\"$HOSTNAME\"$" > /dev/null || ret=1
+grep "^\"$HOSTNAME\"$" dig.out.ns2.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo_i "Checking that server-id hostname works for EDNS name server ID request ($n)"
 $DIG $DIGOPTS +norec +nsid foo @10.53.0.2 > dig.out.ns2.$n
-tr -d '\r' < dig.out.ns2.$n | grep "^; NSID: .* (\"$HOSTNAME\")$" > /dev/null || ret=1
+grep "^; NSID: .* (\"$HOSTNAME\")$" dig.out.ns2.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo_i "Checking that custom server-id works for query ($n)"
 $DIG $DIGOPTS +short id.server txt ch @10.53.0.3 > dig.out.ns3.$n
-tr -d '\r' < dig.out.ns3.$n | grep "^\"this.is.a.test.of.server-id\"$" > /dev/null || ret=1
+grep "^\"this.is.a.test.of.server-id\"$" dig.out.ns3.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 n=`expr $n + 1`
 ret=0
 echo_i "Checking that custom server-id works for EDNS name server ID request ($n)"
 $DIG $DIGOPTS +norec +nsid foo @10.53.0.3 > dig.out.ns3.$n
-tr -d '\r' < dig.out.ns3.$n | grep "^; NSID: .* (\"this.is.a.test.of.server-id\")$" > /dev/null || ret=1
+grep "^; NSID: .* (\"this.is.a.test.of.server-id\")$" dig.out.ns3.$n > /dev/null || ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
 echo_i "exit status: $status"
