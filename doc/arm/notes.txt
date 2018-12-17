@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.13.5
+Release Notes for BIND Version 9.13.5-W1
 
 Introduction
 
@@ -7,6 +7,11 @@ summarizes new features and functional changes that have been introduced
 on this branch. With each development release leading up to the stable
 BIND 9.14 release, this document will be updated with additional features
 added and bugs fixed.
+
+BIND 9.13.5-W1 is a minimal patch release, addressing a build error on
+Windows systems that caused some files to be omitted from the ZIP files
+originally published for BIND 9.13.5. There is no need to use BIND
+9.13.5-W1 on any operating system other than Windows.
 
 Note on Version Numbering
 

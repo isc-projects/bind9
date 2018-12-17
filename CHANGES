@@ -1,3 +1,7 @@
+	--- 9.13.5-W1 released ---
+
+5113.	[port]		Fixed a Windows build error.
+
 	--- 9.13.5 released ---
 
 5108.	[bug]		Named could fail to determine bottom of zone when
