@@ -229,7 +229,7 @@ do
 done
 serial=`awk '$3 == "serial" {print $1}' ns2/other.db`
 newserial=`expr $serial + 1`
-sed "s/$serial/$newserial/" ns2/other.db > ns2/other.db.new
+sed s/$serial/$newserial/ ns2/other.db > ns2/other.db.new
 echo 'frozen TXT "frozen addition"' >> ns2/other.db.new
 mv -f ns2/other.db.new ns2/other.db
 $RNDCCMD 10.53.0.2 thaw 2>&1 | sed 's/^/ns2 /' | cat_i
@@ -272,7 +272,7 @@ do
 done
 serial=`awk '$3 == "serial" {print $1}' ns2/nil.db`
 newserial=`expr $serial + 1`
-sed "s/$serial/$newserial/" ns2/nil.db > ns2/nil.db.new
+sed s/$serial/$newserial/ ns2/nil.db > ns2/nil.db.new
 echo 'frozen TXT "frozen addition"' >> ns2/nil.db.new
 mv -f ns2/nil.db.new ns2/nil.db
 $RNDCCMD 10.53.0.2 thaw 2>&1 | sed 's/^/ns2 /' | cat_i
