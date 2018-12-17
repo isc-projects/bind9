@@ -27,6 +27,12 @@
       leading up to the stable BIND 9.14 release, this document will be
       updated with additional features added and bugs fixed.
     </para>
+    <para>
+      BIND 9.13.5-W1 is a minimal patch release, addressing a build error
+      on Windows systems that caused some files to be omitted from the ZIP
+      files originally published for BIND 9.13.5. There is no need to use
+      BIND 9.13.5-W1 on any operating system other than Windows.
+    </para>
   </section>
 
   <section xml:id="relnotes_versions"><info><title>Note on Version Numbering</title></info>
