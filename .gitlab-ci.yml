@@ -133,6 +133,7 @@ stages:
 
 .system_test: &system_test_job
   stage: test
+  retry: 2
   before_script:
     - rm -rf .ccache
     - bash -x bin/tests/system/ifconfig.sh up
