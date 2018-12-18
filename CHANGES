@@ -1,3 +1,6 @@
+5115.	[bug]		Allow unsupported algorithms in zone when not used for
+			signing with dnssec-signzone. [GL #783]
+
 5112.	[bug]		Named/named-checkconf could dump core if there was
 			a missing masters clause and a bad notify clause.
 			[GL #779]
