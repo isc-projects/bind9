@@ -1811,8 +1811,17 @@ dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdataset_next(&rdataset)) {
 		dns_rdata_t rdata = DNS_RDATA_INIT;
-
 		dns_rdataset_current(&rdataset, &rdata);
+
+		/* Skip unsupported algorithms when
+		 * calculating the maximum iterations.
+		 */
+		REQUIRE(rdata.type == dns_rdatatype_key ||
+			rdata.type == dns_rdatatype_dnskey);
+		REQUIRE(rdata.length > 3);
+		if (!dst_algorithm_supported(rdata.data[3]))
+			continue;
+
 		isc_buffer_init(&buffer, rdata.data, rdata.length);
 		isc_buffer_add(&buffer, rdata.length);
 		CHECK(dst_key_fromdns(dns_db_origin(db), rdataset.rdclass,
