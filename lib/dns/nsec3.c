@@ -1806,12 +1806,13 @@ dns_nsec3_maxiterations(dns_db_t *db, dns_dbversion_t *version,
 		dns_rdata_t rdata = DNS_RDATA_INIT;
 		dns_rdataset_current(&rdataset, &rdata);
 
-		/* Skip unsupported algorithms when
-		 * calculating the maximum iterations.
-		 */
 		REQUIRE(rdata.type == dns_rdatatype_key ||
 			rdata.type == dns_rdatatype_dnskey);
 		REQUIRE(rdata.length > 3);
+
+		/* Skip unsupported algorithms when
+		 * calculating the maximum iterations.
+		 */
 		if (!dst_algorithm_supported(rdata.data[3]))
 			continue;
 
