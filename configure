@@ -11699,7 +11699,7 @@ else
   /*) :
 
 				      if "$ac_cv_prog_shell" -c "$ac_test_shell_script" 2>/dev/null; then :
-  ac_cv_path_shell=$SHELL
+  break
 fi
 				     ;; #(
   *) :
