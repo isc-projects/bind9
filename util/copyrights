@@ -1095,6 +1095,9 @@
 ./bin/tests/system/dnssec/ns3/dname-at-apex-nsec3.example.db.in	ZONE	2018
 ./bin/tests/system/dnssec/ns3/dnskey-nsec3-unknown.example.db.in	ZONE	2014,2016,2018
 ./bin/tests/system/dnssec/ns3/dnskey-unknown.example.db.in	ZONE	2014,2016,2018
+./bin/tests/system/dnssec/ns3/dnskey-unsupported-2.example.db.in	ZONE	2018
+./bin/tests/system/dnssec/ns3/dnskey-unsupported.example.db.in	ZONE	2018
+./bin/tests/system/dnssec/ns3/dsa.key		X	2018
 ./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002,2004,2007,2016,2018
 ./bin/tests/system/dnssec/ns3/expired.example.db.in	ZONE	2011,2012,2016,2018
 ./bin/tests/system/dnssec/ns3/expiring.example.db.in	ZONE	2011,2012,2016,2018
