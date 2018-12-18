@@ -55,6 +55,10 @@ rm -f ./ns3/dnskey-nsec3-unknown.example.db
 rm -f ./ns3/dnskey-nsec3-unknown.example.db.tmp
 rm -f ./ns3/dnskey-unknown.example.db
 rm -f ./ns3/dnskey-unknown.example.db.tmp
+rm -f ./ns3/dnskey-unsupported.example.db
+rm -f ./ns3/dnskey-unsupported.example.db.tmp
+rm -f ./ns3/dnskey-unsupported-2.example.db
+rm -f ./ns3/dnskey-unsupported-2.example.db.tmp
 rm -f ./ns3/dynamic.example.db ./ns3/dynamic.example.db.signed.jnl
 rm -f ./ns3/expired.example.db ./ns3/update-nsec3.example.db
 rm -f ./ns3/expiring.example.db ./ns3/nosign.example.db
