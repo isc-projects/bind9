@@ -188,7 +188,7 @@ sub send_signal {
 
 	my $result = 0;
 
-	if ($^O eq 'cygwin') {
+	if ($^O eq 'cygwin' || $^O eq 'msys') {
 		my $killout = `/bin/kill -f -$signal $pid 2>&1`;
 		chomp($killout);
 		$result = 1 if ($killout eq '');
