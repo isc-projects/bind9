@@ -1,3 +1,6 @@
+5115.	[bug]		Allow unsupported algorithms in zone when not used for signing
+			with dnssec-signzone. [GL #783]
+
 5114.	[func]		Include a 'reconfig/reload in progress' status line
 			in rndc status, use it in tests.
 
