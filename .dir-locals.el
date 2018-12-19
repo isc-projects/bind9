@@ -59,6 +59,6 @@
 	 )
 
    (eval setq flycheck-clang-include-path include-directories)
-   (eval setq flycheck-cpp-include-path include-directories)
+   (eval setq flycheck-cppcheck-include-path include-directories)
    )
   ))
