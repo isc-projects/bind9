@@ -196,7 +196,7 @@ cat "$infile" "$keyname.key" > "$zonefile"
 "$SIGNER" -P -3 - -U -A -o "$zone" "$zonefile" > /dev/null 2>&1
 
 #
-# A zone with a unknown DNSKEY algorithm.
+# A zone that is signed with an unknown DNSKEY algorithm.
 # Algorithm 7 is replaced by 100 in the zone and dsset.
 #
 zone=dnskey-unknown.example.
@@ -213,6 +213,41 @@ awk '$4 == "DNSKEY" { $7 = 100; print } $4 == "RRSIG" { $6 = 100; print } { prin
 
 DSFILE="dsset-$(echo ${zone} |sed -e "s/\\.$//g")$TP"
 $DSFROMKEY -A -f ${zonefile}.signed "$zone" > "$DSFILE"
+
+#
+# A zone that is signed with an unsupported DNSKEY algorithm (3).
+# Algorithm 7 is replaced by 255 in the zone and dsset.
+#
+zone=dnskey-unsupported.example.
+infile=dnskey-unsupported.example.db.in
+zonefile=dnskey-unsupported.example.db
+
+keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+
+cat "$infile" "$keyname.key" > "$zonefile"
+
+"$SIGNER" -P -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null 2>&1
+
+awk '$4 == "DNSKEY" { $7 = 255; print } $4 == "RRSIG" { $6 = 255; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
+
+DSFILE="dsset-$(echo ${zone} |sed -e "s/\\.$//g")$TP"
+$DSFROMKEY -A -f ${zonefile}.signed "$zone" > "$DSFILE"
+
+#
+# A zone with a published unsupported DNSKEY algorithm (Reserved).
+# Different from above because this key is not intended for signing.
+#
+zone=dnskey-unsupported-2.example.
+infile=dnskey-unsupported-2.example.db.in
+zonefile=dnskey-unsupported-2.example.db
+
+ksk=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+
+cat "$infile" "$ksk.key" "$zsk.key" unsupported-algorithm.key > "$zonefile"
+
+# "$SIGNER" -P -3 - -o "$zone" -f ${zonefile}.signed "$zonefile" > /dev/null 2>&1
+"$SIGNER" -P -3 - -o "$zone" -f ${zonefile}.signed "$zonefile"
 
 #
 # A zone with a unknown DNSKEY algorithm + unknown NSEC3 hash algorithm (-U).

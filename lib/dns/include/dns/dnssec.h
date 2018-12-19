@@ -274,7 +274,7 @@ dns_dnssec_findmatchingkeys(const dns_name_t *origin, const char *directory,
 /*%<
  * Search 'directory' for K* key files matching the name in 'origin'.
  * Append all such keys, along with use hints gleaned from their
- * metadata, onto 'keylist'.
+ * metadata, onto 'keylist'.  Skip any unsupported algorithms.
  *
  *	Requires:
  *\li		'keylist' is not NULL
