@@ -206,6 +206,11 @@
 #define __has_feature(x) 0
 #endif
 
+/* GCC defines __ADDRESS_SANITIZER__, so reuse the macro for clang */
+#if __has_feature(address_sanitizer)
+#define __ADDRESS_SANITIZER__
+#endif
+
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6)
 #define STATIC_ASSERT(cond, msg) _Static_assert(cond, msg)
 #elif __has_feature(c_static_assert)

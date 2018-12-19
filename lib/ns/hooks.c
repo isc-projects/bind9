@@ -109,7 +109,7 @@ load_plugin(isc_mem_t *mctx, const char *modpath, ns_plugin_t **pluginp) {
 	REQUIRE(pluginp != NULL && *pluginp == NULL);
 
 	flags = RTLD_LAZY | RTLD_LOCAL;
-#ifdef RTLD_DEEPBIND
+#if defined(RTLD_DEEPBIND) && !__ADDRESS_SANITIZER__
 	flags |= RTLD_DEEPBIND;
 #endif
 
