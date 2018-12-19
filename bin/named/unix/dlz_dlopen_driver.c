@@ -257,7 +257,7 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* Open the library */
 	dlopen_flags = RTLD_NOW|RTLD_GLOBAL;
 
-#ifdef RTLD_DEEPBIND
+#if defined(RTLD_DEEPBIND) && !__ADDRESS_SANITIZER__
 	/*
 	 * If RTLD_DEEPBIND is available then use it. This can avoid
 	 * issues with a module using a different version of a system
