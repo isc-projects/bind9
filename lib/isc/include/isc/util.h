@@ -208,6 +208,15 @@
 #define ISC_UNREACHABLE()
 #endif
 
+#if !defined(__has_feature)
+#define __has_feature(x) 0
+#endif
+
+/* GCC defines __ADDRESS_SANITIZER__, so reuse the macro for clang */
+#if __has_feature(address_sanitizer)
+#define __ADDRESS_SANITIZER__
+#endif
+
 #ifdef UNIT_TESTING
 extern void mock_assert(const int result, const char* const expression,
 			const char * const file, const int line);
