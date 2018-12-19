@@ -3361,7 +3361,7 @@ echo_i "checking that unsupported DNSKEY algorithm is in DNSKEY RRset ($n)"
 ret=0
 dig_with_opts +noauth +noadd +nodnssec +adflag @10.53.0.3 dnskey-unsupported-2.example DNSKEY > dig.out.test$n
 grep "status: NOERROR," dig.out.test$n > /dev/null || ret=1
-grep "dnskey-unsupported-2\.example\..*IN.*DNSKEY.*257 3 3" dig.out.test$n > /dev/null || ret=1
+grep "dnskey-unsupported-2\.example\..*IN.*DNSKEY.*257 3 255" dig.out.test$n > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))

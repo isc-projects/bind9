@@ -1097,7 +1097,6 @@
 ./bin/tests/system/dnssec/ns3/dnskey-unknown.example.db.in	ZONE	2014,2016,2018
 ./bin/tests/system/dnssec/ns3/dnskey-unsupported-2.example.db.in	ZONE	2018
 ./bin/tests/system/dnssec/ns3/dnskey-unsupported.example.db.in	ZONE	2018
-./bin/tests/system/dnssec/ns3/dsa.key		X	2018
 ./bin/tests/system/dnssec/ns3/dynamic.example.db.in	ZONE	2002,2004,2007,2016,2018
 ./bin/tests/system/dnssec/ns3/expired.example.db.in	ZONE	2011,2012,2016,2018
 ./bin/tests/system/dnssec/ns3/expiring.example.db.in	ZONE	2011,2012,2016,2018
@@ -1137,6 +1136,7 @@
 ./bin/tests/system/dnssec/ns3/split-dnssec.example.db.in	ZONE	2011,2016,2018
 ./bin/tests/system/dnssec/ns3/split-smart.example.db.in	ZONE	2011,2016,2018
 ./bin/tests/system/dnssec/ns3/ttlpatch.example.db.in	ZONE	2011,2016,2018
+./bin/tests/system/dnssec/ns3/unsupported-algorithm.key	X	2018
 ./bin/tests/system/dnssec/ns3/update-nsec3.example.db.in	ZONE	2011,2016,2018
 ./bin/tests/system/dnssec/ns3/upper.example.db.in	ZONE	2012,2016,2018
 ./bin/tests/system/dnssec/ns4/named1.conf.in	CONF-C	2018
