@@ -133,7 +133,7 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 		      instname, filename);
 
 	flags = RTLD_NOW|RTLD_LOCAL;
-#ifdef RTLD_DEEPBIND
+#if defined(RTLD_DEEPBIND) && !__ADDRESS_SANITIZER__
 	flags |= RTLD_DEEPBIND;
 #endif
 
