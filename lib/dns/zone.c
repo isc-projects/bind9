@@ -9501,6 +9501,17 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 		dns_keydata_todnskey(&keydata, &dnskey, NULL);
 		result = compute_tag(keyname, &dnskey, mctx, &keytag);
+		if (result != ISC_R_SUCCESS) {
+			/*
+			 * Skip if we cannot compute the key tag.
+			 * This may happen if the algorithm is unsupported
+			 */
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				"Cannot compute tag for key in zone %s: %s "
+				"(skipping)",
+				namebuf, dns_result_totext(result));
+			continue;
+		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		/*
@@ -9613,6 +9624,17 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		}
 
 		result = compute_tag(keyname, &dnskey, mctx, &keytag);
+		if (result != ISC_R_SUCCESS) {
+			/*
+			 * Skip if we cannot compute the key tag.
+			 * This may happen if the algorithm is unsupported
+			 */
+			dns_zone_log(zone, ISC_LOG_ERROR,
+				"Cannot compute tag for key in zone %s: %s "
+				"(skipping)",
+				namebuf, dns_result_totext(result));
+			continue;
+		}
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 		revoked = ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0);
