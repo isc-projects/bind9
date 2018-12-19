@@ -214,7 +214,7 @@
 
 /* GCC defines __SANITIZE_ADDRESS__, so reuse the macro for clang */
 #if __has_feature(address_sanitizer)
-#define __SANITIZE_ADDRESS__
+#define __SANITIZE_ADDRESS__ 1
 #endif
 
 #ifdef UNIT_TESTING
