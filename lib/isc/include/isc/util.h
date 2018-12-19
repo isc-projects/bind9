@@ -208,7 +208,7 @@
 
 /* GCC defines __SANITIZE_ADDRESS__, so reuse the macro for clang */
 #if __has_feature(address_sanitizer)
-#define __SANITIZE_ADDRESS__
+#define __SANITIZE_ADDRESS__ 1
 #endif
 
 #if __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR >= 6)
