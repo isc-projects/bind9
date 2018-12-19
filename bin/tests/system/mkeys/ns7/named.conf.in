@@ -9,21 +9,21 @@
  * information regarding copyright ownership.
  */
 
-// NS6
+// NS7
 
 options {
-	query-source address 10.53.0.6;
-	notify-source 10.53.0.6;
-	transfer-source 10.53.0.6;
+	query-source address 10.53.0.7;
+	notify-source 10.53.0.7;
+	transfer-source 10.53.0.7;
 	port @PORT@;
 	pid-file "named.pid";
-	listen-on { 10.53.0.6; };
+	listen-on { 10.53.0.7; };
 	listen-on-v6 { none; };
 	recursion yes;
 	notify no;
 	dnssec-enable yes;
-	dnssec-validation yes;
-	trust-anchor-telemetry no;
+	dnssec-validation auto;
+	bindkeys-file "managed.conf";
 };
 
 key rndc_key {
@@ -32,12 +32,19 @@ key rndc_key {
 };
 
 controls {
-	inet 10.53.0.6 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+	inet 10.53.0.7 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-zone "." {
-	type hint;
-	file "../../common/root.hint";
+view view1 {
+	zone "." {
+		type hint;
+		file "../../common/root.hint";
+	};
 };
 
-include "managed.conf";
+view view2 {
+	zone "." {
+		type hint;
+		file "../../common/root.hint";
+	};
+};

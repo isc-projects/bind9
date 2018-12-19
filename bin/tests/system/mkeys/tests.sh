@@ -701,6 +701,8 @@ rm -f ns1/root.db.signed.jnl
 nextpart ns5/named.run > /dev/null
 mkeys_reconfig_on 1
 wait_for_log "Returned from key fetch in keyfetch_done() for '.': success" ns5/named.run
+#mkeys_secroots_on 5
+#grep '; managed' ns5/named.secroots > /dev/null || ret=1
 # ns1 should not longer REFUSE queries from ns5, so managed keys should be
 # correctly refreshed and resolving should succeed
 $DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.b.test$n || ret=1
@@ -711,16 +713,69 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "reinitialize trust anchors, add unsupported algorithm ($n)"
+ret=0
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns6
+rm -f ns6/managed-keys.bind*
+nextpart ns6/named.run > /dev/null
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns6
+# log when an unsupported algorithm is encountered during startup
+wait_for_log "skipping managed key for 'unsupported\.': algorithm is unsupported" ns6/named.run
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "skipping unsupported algorithm in managed-keys ($n)"
+ret=0
+mkeys_status_on 6 > rndc.out.$n 2>&1
+# there should still be only two keys listed (for . and rsasha256.)
+count=`grep -c "keyid: " rndc.out.$n`
+[ "$count" -eq 2 ] || ret=1
+# two lines indicating trust status
+count=`grep -c "trust" rndc.out.$n`
+[ "$count" -eq 2 ] || ret=1
+
+n=`expr $n + 1`
+echo_i "introduce unsupported algorithm rollover in authoritative zone ($n)"
+ret=0
+cp ns1/root.db ns1/root.db.orig
+ksk=`cat ns1/managed.key`
+zsk=`cat ns1/zone.key`
+cat "ns1/${ksk}.key" "ns1/${zsk}.key" ns1/unsupported.key >> ns1/root.db
+grep "\..*IN.*DNSKEY.*257 3 255" ns1/root.db > /dev/null || ret=1
+$SIGNER -K ns1 -N unixtime -o . ns1/root.db $ksk $zsk > /dev/null 2>/dev/null || ret=1
+grep "DNSKEY.*257 3 255" ns1/root.db.signed > /dev/null || ret=1
+cp ns1/root.db.orig ns1/root.db
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "skipping unsupported algorithm in rollover ($n)"
+ret=0
+mkeys_reload_on 1
+mkeys_refresh_on 6
+mkeys_status_on 6 > rndc.out.$n 2>&1
+# there should still be only two keys listed (for . and rsasha256.)
+count=`grep -c "keyid: " rndc.out.$n`
+[ "$count" -eq 2 ] || ret=1
+# two lines indicating trust status
+count=`grep -c "trust" rndc.out.$n`
+[ "$count" -eq 2 ] || ret=1
+# log when an unsupported algorithm is encountered during rollover
+wait_for_log "Cannot compute tag for key in zone \.: algorithm is unsupported" ns6/named.run
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "check 'rndc managed-keys' and views ($n)"
 ret=0
-$RNDCCMD 10.53.0.6 managed-keys refresh in view1 > rndc.out.ns6.view1.test$n || ret=1
-grep "refreshing managed keys for 'view1'" rndc.out.ns6.view1.test$n > /dev/null || ret=1
-lines=`wc -l < rndc.out.ns6.view1.test$n`
+$RNDCCMD 10.53.0.7 managed-keys refresh in view1 > rndc.out.ns7.view1.test$n || ret=1
+grep "refreshing managed keys for 'view1'" rndc.out.ns7.view1.test$n > /dev/null || ret=1
+lines=`wc -l < rndc.out.ns7.view1.test$n`
 [ $lines -eq 1 ] || ret=1
-$RNDCCMD 10.53.0.6 managed-keys refresh > rndc.out.ns6.view2.test$n || ret=1
-lines=`wc -l < rndc.out.ns6.view2.test$n`
-grep "refreshing managed keys for 'view1'" rndc.out.ns6.view2.test$n > /dev/null || ret=1
-grep "refreshing managed keys for 'view2'" rndc.out.ns6.view2.test$n > /dev/null || ret=1
+$RNDCCMD 10.53.0.7 managed-keys refresh > rndc.out.ns7.view2.test$n || ret=1
+lines=`wc -l < rndc.out.ns7.view2.test$n`
+grep "refreshing managed keys for 'view1'" rndc.out.ns7.view2.test$n > /dev/null || ret=1
+grep "refreshing managed keys for 'view2'" rndc.out.ns7.view2.test$n > /dev/null || ret=1
 [ $lines -eq 2 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
