@@ -320,7 +320,7 @@ for mode in native dnsrps; do
     sleep 1
     echo_i "removing the policy zone"
     cp ns2/named.default.conf ns2/named.conf
-    $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reconfig 2>&1 | sed 's/^/I:ns2 /' | cat_i
+    rndc_reconfig ns2 10.53.0.2
     test -f dnsrpzd.pid && $KILL -USR1 `cat dnsrpzd.pid`
     sleep 1
     echo_i "resuming authority server"

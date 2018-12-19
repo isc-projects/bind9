@@ -1,3 +1,6 @@
+5114.	[func]		Include a 'reconfig/reload in progress' status line
+			in rndc status, use it in tests.
+
 5113.	[port]		Fixed a Windows build error.
 
 5112.	[bug]		Named/named-checkconf could dump core if there was

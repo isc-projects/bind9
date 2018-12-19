@@ -94,7 +94,7 @@ if [ ! "$CYGWIN" ]; then
     $KILL -HUP `cat ns2/named.pid`
 else
     echo_i "reloading with example2 using rndc and waiting up to 45 seconds"
-    $RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/I:ns2 /'
+    rndc_reload ns2 10.53.0.2
 fi
 
 try=0

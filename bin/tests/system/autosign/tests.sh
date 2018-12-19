@@ -1227,7 +1227,7 @@ rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`
 [ "$rekey_calls" -eq 0 ] || ret=1
 # ...then we add auto-dnssec and reconfigure
 $RNDCCMD 10.53.0.3 modzone reconf.example '{ type master; file "reconf.example.db"; allow-update { any; }; auto-dnssec maintain; };' 2>&1 | sed 's/^/ns3 /' | cat_i
-$RNDCCMD 10.53.0.3 reconfig 2>&1 | sed 's/^/ns3 /' | cat_i
+rndc_reconfig ns3 10.53.0.3
 for i in 0 1 2 3 4 5 6 7 8 9; do
     lret=0
     rekey_calls=`grep "zone reconf.example.*next key event" ns3/named.run | wc -l`

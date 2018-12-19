@@ -68,11 +68,11 @@ digcomp dig.out.ns2 dig.out.ns3 || status=1
 
 echo_i "reload servers for in preparation for ixfr-from-differences tests"
 
-$RNDCCMD 10.53.0.1 reload 2>&1 | sed 's/^/ns1 /' | cat_i
-$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
-$RNDCCMD 10.53.0.3 reload 2>&1 | sed 's/^/ns3 /' | cat_i
-$RNDCCMD 10.53.0.6 reload 2>&1 | sed 's/^/ns6 /' | cat_i
-$RNDCCMD 10.53.0.7 reload 2>&1 | sed 's/^/ns7 /' | cat_i
+rndc_reload ns1 10.53.0.1
+rndc_reload ns2 10.53.0.2
+rndc_reload ns3 10.53.0.3
+rndc_reload ns6 10.53.0.6
+rndc_reload ns7 10.53.0.7
 
 sleep 2
 
@@ -83,28 +83,28 @@ $PERL -i -p -e '
 	s/1397051952/1397051953/
 ' ns1/slave.db
 
-$RNDCCMD 10.53.0.1 reload 2>&1 | sed 's/^/ns1 /' | cat_i
+rndc_reload ns1 10.53.0.1
 
 $PERL -i -p -e '
 	s/0\.0\.0\.0/0.0.0.1/;
 	s/1397051952/1397051953/
 ' ns2/example.db
 
-$RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
+rndc_reload ns2 10.53.0.2
 
 $PERL -i -p -e '
 	s/0\.0\.0\.0/0.0.0.1/;
 	s/1397051952/1397051953/
 ' ns6/master.db
 
-$RNDCCMD 10.53.0.6 reload 2>&1 | sed 's/^/ns6 /' | cat_i
+rndc_reload ns6 10.53.0.6
 
 $PERL -i -p -e '
 	s/0\.0\.0\.0/0.0.0.1/;
 	s/1397051952/1397051953/
 ' ns7/master2.db
 
-$RNDCCMD 10.53.0.7 reload 2>&1 | sed 's/^/ns7 /' | cat_i
+rndc_reload ns7 10.53.0.7
 
 sleep 3
 
@@ -272,7 +272,7 @@ EOF
 
 cur=`awk 'END {print NR}' ns4/named.run`
 
-$RNDCCMD 10.53.0.4 reload | sed 's/^/ns4 /' | cat_i
+rndc_reload ns4 10.53.0.4
 
 for i in 0 1 2 3 4 5 6 7 8 9
 do

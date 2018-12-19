@@ -9325,6 +9325,7 @@ view_loaded(void *arg) {
 			      "FIPS mode is %s",
 			      FIPS_mode() ? "enabled" : "disabled");
 #endif
+		server->reload_in_progress = false;
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
@@ -9660,6 +9661,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	CHECKFATAL(server->reload_event == NULL ?
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
+	server->reload_in_progress = true;
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
@@ -9970,6 +9972,7 @@ loadconfig(named_server_t *server) {
 static isc_result_t
 reload(named_server_t *server) {
 	isc_result_t result;
+	server->reload_in_progress = true;
 	CHECK(loadconfig(server));
 
 	result = load_zones(server, false, false);
@@ -10316,6 +10319,7 @@ named_server_reloadcommand(named_server_t *server, isc_lex_t *lex,
 isc_result_t
 named_server_reconfigcommand(named_server_t *server) {
 	isc_result_t result;
+	server->reload_in_progress = true;
 
 	CHECK(loadconfig(server));
 
@@ -11460,6 +11464,10 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	snprintf(line, sizeof(line), "tcp clients: %d/%d\n",
 		     server->sctx->tcpquota.used, server->sctx->tcpquota.max);
 	CHECK(putstr(text, line));
+
+	if (server->reload_in_progress) {
+		CHECK(putstr(text, "reload/reconfig in progress"));
+	}
 
 	CHECK(putstr(text, "server is up and running"));
 	CHECK(putnull(text));

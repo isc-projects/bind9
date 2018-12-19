@@ -353,8 +353,7 @@ ret=0
 sleep 1 # ensure file mtime will have changed
 sed -e 's/0 0 0 0 0/1 0 0 0 0/' < ns2/example.db.in > ns2/example.db
 sed -e 's/0 0 0 0 0/1 0 0 0 0/' -e 's/\.1$/.2/' < ns2/redirect.db.in > ns2/redirect.db
-$RNDCCMD 10.53.0.2 reload > rndc.out || ret=1
-sed 's/^/ns2 /' rndc.out | cat_i
+rndc_reload ns2 10.53.0.2
 for i in 1 2 3 4 5 6 7 8 9; do
     tmp=0
     $DIG $DIGOPTS +short @10.53.0.2 soa example.nil > dig.out.ns1.test$n || tmp=1

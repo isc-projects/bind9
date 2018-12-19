@@ -78,6 +78,7 @@ struct named_server {
 
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;
+	bool			reload_in_progress;
 
 	bool		flushonshutdown;
 
