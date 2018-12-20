@@ -846,6 +846,17 @@ mem_putstats(isc__mem_t *ctx, void *ptr, size_t size) {
 
 static void *
 default_memalloc(void *arg, size_t size) {
+	UNUSED(arg);
+
+	if (size == 0U) {
+		size = 1;
+	}
+
+	return (malloc(size));
+}
+
+static void *
+internal_memalloc(void *arg, size_t size) {
 	void *ptr;
 	UNUSED(arg);
 
@@ -2783,7 +2794,7 @@ isc_mem_create(size_t init_max_size, size_t target_size, isc_mem_t **mctxp) {
 
 	if (isc_bind9)
 		return (isc_mem_createx2(init_max_size, target_size,
-					 default_memalloc, default_memfree,
+					 internal_memalloc, default_memfree,
 					 NULL, mctxp, isc_mem_defaultflags));
 	LOCK(&createlock);
 
@@ -2802,7 +2813,7 @@ isc_mem_create2(size_t init_max_size, size_t target_size, isc_mem_t **mctxp,
 {
 	if (isc_bind9)
 		return (isc_mem_createx2(init_max_size, target_size,
-					 default_memalloc, default_memfree,
+					 internal_memalloc, default_memfree,
 					 NULL, mctxp, flags));
 
 	return (isc_mem_createx2(init_max_size, target_size,
