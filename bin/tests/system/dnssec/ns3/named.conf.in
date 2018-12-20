@@ -150,6 +150,16 @@ zone "dnskey-unknown.example" {
 	file "dnskey-unknown.example.db.signed";
 };
 
+zone "dnskey-unsupported.example" {
+	type master;
+	file "dnskey-unsupported.example.db.signed";
+};
+
+zone "dnskey-unsupported-2.example" {
+	type master;
+	file "dnskey-unsupported-2.example.db.signed";
+};
+
 zone "dnskey-nsec3-unknown.example" {
 	type master;
 	nsec3-test-zone yes;

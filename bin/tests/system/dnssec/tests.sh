@@ -3346,6 +3346,26 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking that unsupported DNSKEY algorithm validates as insecure ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag @10.53.0.3 dnskey-unsupported.example A > dig.out.ns3.test$n
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag @10.53.0.4 dnskey-unsupported.example A > dig.out.ns4.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns4.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that unsupported DNSKEY algorithm is in DNSKEY RRset ($n)"
+ret=0
+$DIG $DIGOPTS +noauth +noadd +nodnssec +adflag @10.53.0.3 dnskey-unsupported-2.example DNSKEY > dig.out.test$n
+grep "status: NOERROR," dig.out.test$n > /dev/null || ret=1
+grep "dnskey-unsupported-2\.example\..*IN.*DNSKEY.*257 3 255" dig.out.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "check that a lone non matching CDNSKEY record is rejected ($n)"
 ret=0
 (
