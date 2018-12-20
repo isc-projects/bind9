@@ -1685,6 +1685,15 @@ dns_dnssec_keylistfromrdataset(const dns_name_t *origin,
 	     result = dns_rdataset_next(&keys)) {
 		dns_rdata_reset(&rdata);
 		dns_rdataset_current(&keys, &rdata);
+
+		REQUIRE(rdata.type == dns_rdatatype_key ||
+			rdata.type == dns_rdatatype_dnskey);
+		REQUIRE(rdata.length > 3);
+
+		/* Skip unsupported algorithms */
+		if (!dst_algorithm_supported(rdata.data[3]))
+			goto skip;
+
 		RETERR(dns_dnssec_keyfromrdata(origin, &rdata, mctx, &pubkey));
 		dst_key_setttl(pubkey, keys.ttl);
 
