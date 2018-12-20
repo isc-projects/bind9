@@ -1,3 +1,6 @@
+5116.	[bug]		Named/named-checkconf triggered a assertion when
+			a mirror zone's name is bad. [GL #778]
+
 5115.	[bug]		Allow unsupported algorithms in zone when not used for
 			signing with dnssec-signzone. [GL #783]
 

@@ -1958,7 +1958,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	unsigned int i;
 	dns_rdataclass_t zclass;
 	dns_fixedname_t fixedname;
-	dns_name_t *zname = NULL;
+	dns_name_t *zname = NULL; /* NULL if parsing of zone name fails. */
 	isc_buffer_t b;
 	bool root = false;
 	bool rfc1918 = false;
@@ -1977,10 +1977,10 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	};
 
 	static optionstable dialups[] = {
-	{ "notify", CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
-	{ "notify-passive", CFG_ZONE_SLAVE },
-	{ "passive", CFG_ZONE_SLAVE | CFG_ZONE_STUB },
-	{ "refresh", CFG_ZONE_SLAVE | CFG_ZONE_STUB },
+		{ "notify", CFG_ZONE_MASTER | CFG_ZONE_SLAVE },
+		{ "notify-passive", CFG_ZONE_SLAVE },
+		{ "passive", CFG_ZONE_SLAVE | CFG_ZONE_STUB },
+		{ "refresh", CFG_ZONE_SLAVE | CFG_ZONE_STUB },
 	};
 
 	znamestr = cfg_obj_asstring(cfg_tuple_get(zconfig, "name"));
@@ -2273,7 +2273,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	 * server list is used in the absence of one explicitly specified.
 	 */
 	if (ztype == CFG_ZONE_SLAVE || ztype == CFG_ZONE_STUB ||
-	    (ztype == CFG_ZONE_MIRROR && !dns_name_equal(zname, dns_rootname)))
+	    (ztype == CFG_ZONE_MIRROR && zname != NULL &&
+	     !dns_name_equal(zname, dns_rootname)))
 	{
 		obj = NULL;
 		if (cfg_map_get(zoptions, "masters", &obj) != ISC_R_SUCCESS) {
@@ -2566,7 +2567,6 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			}
 		}
 	}
-
 
 	/*
 	 * Check that max-zone-ttl isn't used with masterfile-format map
