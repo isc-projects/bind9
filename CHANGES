@@ -86,6 +86,11 @@
 5121.	[contrib]	dlz_stub_driver.c fails to return ISC_R_NOTFOUND on none
 			matching zone names. [GL !1299]
 
+5118.	[security]	Named could crash if it is managing a key with
+			`managed-keys` and the authoritative zone is rolling
+			the key to an unsupported algorithm. (CVE-2018-5745)
+			[GL #780]
+
 5115.	[bug]		Allow unsupported algorithms in zone when not used for
 			signing with dnssec-signzone. [GL #783]
 
