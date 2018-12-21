@@ -126,6 +126,7 @@
 #include <lwres/netdb.h>	/* XXX #include <netdb.h> */
 
 #include "assert_p.h"
+#include "unreachable_p.h"
 
 #ifndef INADDRSZ
 #define INADDRSZ 4
@@ -1023,6 +1024,7 @@ hostfromaddr(lwres_gnbaresponse_t *addr, int af, const void *src) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	/*
@@ -1100,6 +1102,7 @@ hostfromname(lwres_gabnresponse_t *name, int af) {
 		break;
 	default:
 		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	/*

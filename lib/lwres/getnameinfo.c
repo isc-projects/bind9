@@ -117,6 +117,7 @@
 #include "print_p.h"
 
 #include "assert_p.h"
+#include "unreachable_p.h"
 
 #define SUCCESS 0
 
@@ -299,6 +300,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 			break;
 		default:
 			INSIST(0);
+			ISC_UNREACHABLE();
 		}
 
 		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
