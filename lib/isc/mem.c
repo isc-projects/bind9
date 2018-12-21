@@ -898,7 +898,7 @@ internal_memalloc(void *arg, size_t size) {
 
 	if (ptr == NULL && size != 0) {
 		char strbuf[ISC_STRERRORSIZE];
-		strerror_r(errno, strbuf, sizeof(strbuf));
+		isc__strerror(errno, strbuf, sizeof(strbuf));
 		isc_error_fatal(__FILE__, __LINE__, "malloc failed: %s", strbuf);
 	}
 
