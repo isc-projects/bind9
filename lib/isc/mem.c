@@ -14,6 +14,7 @@
 #include <config.h>
 
 #include <inttypes.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -29,6 +30,7 @@
 #include <isc/once.h>
 #include <isc/ondestroy.h>
 #include <isc/string.h>
+#include <isc/strerror.h>
 #include <isc/mutex.h>
 #include <isc/print.h>
 #include <isc/util.h>
@@ -845,9 +847,46 @@ mem_putstats(isc__mem_t *ctx, void *ptr, size_t size) {
 static void *
 default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
-	if (size == 0U)
+
+	if (size == 0U) {
 		size = 1;
+	}
+
 	return (malloc(size));
+}
+
+static void *
+internal_memalloc(void *arg, size_t size) {
+	void *ptr;
+	UNUSED(arg);
+
+	if (size == 0U) {
+		size = 1;
+	}
+
+	ptr = malloc(size);
+
+	/*
+	 * If the space cannot be allocated, a null pointer is returned. If the
+	 * size of the space requested is zero, the behavior is
+	 * implementation-defined: either a null pointer is returned, or the
+	 * behavior is as if the size were some nonzero value, except that the
+	 * returned pointer shall not be used to access an object.
+	 * [ISO9899 § 7.22.3]
+	 *
+	 * [ISO9899]
+	 *   ISO/IEC WG 9899:2011: Programming languages - C.
+	 *   International Organization for Standardization, Geneva, Switzerland.
+	 *   http://www.open-std.org/JTC1/SC22/WG14/www/docs/n1570.pdf
+	 */
+
+	if (ptr == NULL && size != 0) {
+		char strbuf[ISC_STRERRORSIZE];
+		isc__strerror(errno, strbuf, sizeof(strbuf));
+		isc_error_fatal(__FILE__, __LINE__, "malloc failed: %s", strbuf);
+	}
+
+	return (ptr);
 }
 
 static void
@@ -2755,7 +2794,7 @@ isc_mem_create(size_t init_max_size, size_t target_size, isc_mem_t **mctxp) {
 
 	if (isc_bind9)
 		return (isc_mem_createx2(init_max_size, target_size,
-					 default_memalloc, default_memfree,
+					 internal_memalloc, default_memfree,
 					 NULL, mctxp, isc_mem_defaultflags));
 	LOCK(&createlock);
 
@@ -2774,7 +2813,7 @@ isc_mem_create2(size_t init_max_size, size_t target_size, isc_mem_t **mctxp,
 {
 	if (isc_bind9)
 		return (isc_mem_createx2(init_max_size, target_size,
-					 default_memalloc, default_memfree,
+					 internal_memalloc, default_memfree,
 					 NULL, mctxp, flags));
 
 	return (isc_mem_createx2(init_max_size, target_size,
