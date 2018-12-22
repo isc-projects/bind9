@@ -29,7 +29,7 @@ cp managed.conf ../ns5/managed.conf
 keyfile_to_trusted_keys $keyname > trusted.conf
 
 # Prepare an unsupported algorithm key.
-unsupportedkey=K.+003+28683
+unsupportedkey=Kunknown.+255+00000
 cp unsupported.key "${unsupportedkey}.key"
 
 #
