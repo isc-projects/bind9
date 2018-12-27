@@ -9852,6 +9852,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 	isc_stdtime_t now;
 	bool commit = false;
 	bool fetching = false, fetch_err = false;
+	bool timerset = false;
 
 	ENTER;
 	REQUIRE(zone->db != NULL);
@@ -9917,6 +9918,9 @@ zone_refreshkeys(dns_zone_t *zone) {
 			/* Or do we just need to refresh the keyset? */
 			if (timer > kd.refresh)
 				timer = kd.refresh;
+
+			set_refreshkeytimer(zone, &kd, now, false);
+			timerset = true;
 		}
 
 		if (timer > now)
@@ -10021,6 +10025,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
 		dns_zone_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
 			     timebuf);
+	} else if (!timerset) {
+		isc_time_settoepoch(&zone->refreshkeytime);
 	}
 
 	if (!fetching)
