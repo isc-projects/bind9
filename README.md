@@ -147,7 +147,7 @@ for more details.
 Cryptographic support has been modernized. BIND now uses the
 best available pseudo-random number generator for the platform on which
 it's built. Very old versions of OpenSSL are no longer supported.
-Cryptography is now mandatory: building BIND without DNSSEC is now
+Cryptography is now mandatory: building BIND without DNSSEC is no
 longer supported.
 
 Special code to support certain legacy operating systems has also
