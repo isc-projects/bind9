@@ -1,3 +1,6 @@
+5129.	[contrib]	sdlz_helper.c:build_querylist was not properly
+			splitting the query string. [GL #798]
+
 5128.	[bug]		Refreshkeytime was not being updated for managed
 			keys zones. [GL #784]
 
