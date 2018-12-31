@@ -1,3 +1,5 @@
+5131.	[cleanup]	Address Coverity warnings. [GL #801]
+
 5130.	[cleanup]	Remove support for l10n message catalogs. [GL #709]
 
 5129.	[contrib]	sdlz_helper.c:build_querylist was not properly
