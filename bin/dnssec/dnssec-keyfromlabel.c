@@ -674,10 +674,10 @@ main(int argc, char **argv) {
 
 		if (setdel)
 			dst_key_settime(key, DST_TIME_DELETE, deltime);
-	if (setsyncadd)
-		dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncadd);
-	if (setsyncdel)
-		dst_key_settime(key, DST_TIME_SYNCDELETE, syncdel);
+		if (setsyncadd)
+			dst_key_settime(key, DST_TIME_SYNCPUBLISH, syncadd);
+		if (setsyncdel)
+			dst_key_settime(key, DST_TIME_SYNCDELETE, syncdel);
 
 	} else {
 		if (setpub || setact || setrev || setinact ||
