@@ -133,11 +133,17 @@ dns_dlzallowzonexfr(dns_view_t *view, const dns_name_t *name,
 					 view->rdclass, name, clientaddr, dbp);
 
 		/*
-		 * if ISC_R_NOPERM, we found the right database but
-		 * the zone may not transfer.
+		 * In these cases, we found the right database. Non-success
+		 * result codes indicate the zone might not transfer.
 		 */
-		if (result == ISC_R_SUCCESS || result == ISC_R_NOPERM)
+		switch (result) {
+		case ISC_R_SUCCESS:
+		case ISC_R_NOPERM:
+		case ISC_R_DEFAULT:
 			return (result);
+		default:
+			break;
+		}
 	}
 
 	if (result == ISC_R_NOTIMPLEMENTED)

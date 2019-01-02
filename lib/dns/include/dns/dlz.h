@@ -107,10 +107,11 @@ typedef isc_result_t
  * the DNS server is performing a zone transfer query.  The driver's
  * method should return ISC_R_SUCCESS and a database pointer to the
  * name server if the zone is supported by the database, and zone
- * transfer is allowed.  Otherwise it will return ISC_R_NOTFOUND if
- * the zone is not supported by the database, or ISC_R_NOPERM if zone
- * transfers are not allowed.  If an error occurs it should return a
- * result code indicating the type of error.
+ * transfer is allowed.  If the view's transfer acl should be used,
+ * then the driver's method should return ISC_R_DEFAULT.  Otherwise,
+ * it should return ISC_R_NOTFOUND if the zone is not supported by
+ * the database, or ISC_R_NOPERM if zone transfers are not allowed.
+ * If an error occurs, the result code should indicate the type of error.
  */
 
 typedef isc_result_t

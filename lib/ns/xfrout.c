@@ -763,6 +763,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	bool is_poll = false;
 	bool is_dlz = false;
 	bool is_ixfr = false;
+	bool useviewacl = false;
 	uint32_t begin_serial = 0, current_serial;
 
 	switch (reqtype) {
@@ -826,7 +827,10 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 						     question_name,
 						     &client->peeraddr,
 						     &db);
-
+			if (result == ISC_R_DEFAULT) {
+				useviewacl = true;
+				result = ISC_R_SUCCESS;
+			}
 			if (result == ISC_R_NOPERM) {
 				char _buf1[DNS_NAME_FORMATSIZE];
 				char _buf2[DNS_RDATACLASS_FORMATSIZE];
@@ -843,9 +847,10 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 					      _buf1, _buf2);
 				goto failure;
 			}
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
 				FAILQ(DNS_R_NOTAUTH, "non-authoritative zone",
 				      question_name, question_class);
+			}
 			is_dlz = true;
 		} else {
 			/*
@@ -926,14 +931,21 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 		    "%s authority section OK", mnemonic);
 
 	/*
-	 * If not a DLZ zone, decide whether to allow this transfer.
+	 * If not a DLZ zone or we are falling back to the view's transfer
+	 * ACL, decide whether to allow this transfer.
 	 */
-	if (!is_dlz) {
+	if (!is_dlz || useviewacl) {
+		dns_acl_t *acl;
+
 		ns_client_aclmsg("zone transfer", question_name, reqtype,
 				 client->view->rdclass, msg, sizeof(msg));
-		CHECK(ns_client_checkacl(client, NULL, msg,
-					 dns_zone_getxfracl(zone),
-					 true, ISC_LOG_ERROR));
+		if (useviewacl) {
+			acl = client->view->transferacl;
+		} else {
+			acl = dns_zone_getxfracl(zone);
+		}
+		CHECK(ns_client_checkacl(client, NULL, msg, acl, true,
+					 ISC_LOG_ERROR));
 	}
 
 	/*
@@ -958,8 +970,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	/*
 	 * Get a dynamically allocated copy of the current SOA.
 	 */
-	if (is_dlz)
+	if (is_dlz) {
 		dns_db_currentversion(db, &ver);
+	}
 
 	CHECK(dns_db_createsoatuple(db, ver, mctx, DNS_DIFFOP_EXISTS,
 				    &current_soa_tuple));

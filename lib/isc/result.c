@@ -99,6 +99,7 @@ static const char *description[ISC_R_NRESULTS] = {
 	"crypto failure",			/*%< 65 */
 	"disc quota",				/*%< 66 */
 	"disc full",				/*%< 67 */
+	"default",				/*%< 68 */
 };
 
 static const char *identifier[ISC_R_NRESULTS] = {
@@ -170,6 +171,7 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	"ISC_R_CRYPTOFAILURE",
 	"ISC_R_DISCQUOTA",
 	"ISC_R_DISCFULL",
+	"ISC_R_DEFAULT",
 };
 
 #define ISC_RESULT_RESULTSET			2
