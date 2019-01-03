@@ -28,7 +28,7 @@
 #include <dns/rdataset.h>
 #include <dns/rdatastruct.h>
 
-#define DNS_NCACHE_RDATA 20U
+#define DNS_NCACHE_RDATA 100U
 
 /*
  * The format of an ncache rdata is a sequence of zero or more records of
@@ -129,7 +129,7 @@ addoptout(dns_message_t *message, dns_db_t *cache, dns_dbnode_t *node,
 	dns_rdata_t rdata[DNS_NCACHE_RDATA];
 	dns_rdataset_t ncrdataset;
 	dns_rdatalist_t ncrdatalist;
-	unsigned char data[4096];
+	unsigned char data[65536];
 	unsigned int next = 0;
 
 	/*
