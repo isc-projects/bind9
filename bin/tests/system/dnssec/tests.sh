@@ -3604,8 +3604,8 @@ ret=0
 dig_with_opts . dnskey +ednsopt=KEY-TAG:fffe +ednsopt=KEY-TAG:fffd @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep "trust-anchor-telemetry './IN' from .* 65534" ns1/named.run > /dev/null || ret=1
 grep "trust-anchor-telemetry './IN' from .* 65533" ns1/named.run > /dev/null && ret=1
-$PERL $SYSTEMTESTTOP/stop.pl . ns1 || ret=1
-$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} . ns1 || ret=1
+$PERL $SYSTEMTESTTOP/stop.pl dnssec ns1 || ret=1
+$PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} dnssec ns1 || ret=1
 n=$(($n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
