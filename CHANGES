@@ -1,3 +1,9 @@
+5139.	[bug]		If possible, don't use forwarders when priming.
+			This ensures we can get root server IP addresses
+			from priming query response glue, which may not
+			be present if the forwarding server is returning
+			minimal responses. [GL #752]
+
 5134.	[bug]		win32: WSAStartup was not called before getservbyname
 			was called. [GL #590]
 

@@ -91,23 +91,25 @@ typedef enum {
 /*
  * Options that modify how a 'fetch' is done.
  */
-#define DNS_FETCHOPT_TCP		0x0001	     /*%< Use TCP. */
-#define DNS_FETCHOPT_UNSHARED		0x0002	     /*%< See below. */
-#define DNS_FETCHOPT_RECURSIVE		0x0004	     /*%< Set RD? */
-#define DNS_FETCHOPT_NOEDNS0		0x0008	     /*%< Do not use EDNS. */
-#define DNS_FETCHOPT_FORWARDONLY	0x0010	     /*%< Only use forwarders. */
-#define DNS_FETCHOPT_NOVALIDATE		0x0020	     /*%< Disable validation. */
-#define DNS_FETCHOPT_EDNS512		0x0040	     /*%< Advertise a 512 byte
-							  UDP buffer. */
-#define DNS_FETCHOPT_WANTNSID		0x0080	     /*%< Request NSID */
-#define DNS_FETCHOPT_PREFETCH		0x0100	     /*%< Do prefetch */
-#define DNS_FETCHOPT_NOCDFLAG		0x0200	     /*%< Don't set CD flag. */
-#define DNS_FETCHOPT_NONTA		0x0400	     /*%< Ignore NTA table. */
-/* RESERVED ECS				0x0000 */
-/* RESERVED ECS				0x1000 */
-/* RESERVED ECS				0x2000 */
-/* RESERVED TCPCLIENT			0x4000 */
-#define DNS_FETCHOPT_NOCACHED		0x8000	     /*%< Force cache update. */
+#define DNS_FETCHOPT_TCP		0x00001	     /*%< Use TCP. */
+#define DNS_FETCHOPT_UNSHARED		0x00002	     /*%< See below. */
+#define DNS_FETCHOPT_RECURSIVE		0x00004	     /*%< Set RD? */
+#define DNS_FETCHOPT_NOEDNS0		0x00008	     /*%< Do not use EDNS. */
+#define DNS_FETCHOPT_FORWARDONLY	0x00010	     /*%< Only use forwarders. */
+#define DNS_FETCHOPT_NOVALIDATE		0x00020	     /*%< Disable validation. */
+#define DNS_FETCHOPT_EDNS512		0x00040	     /*%< Advertise a 512 byte
+					0		  UDP buffer. */
+#define DNS_FETCHOPT_WANTNSID		0x00080	     /*%< Request NSID */
+#define DNS_FETCHOPT_PREFETCH		0x00100	     /*%< Do prefetch */
+#define DNS_FETCHOPT_NOCDFLAG		0x00200	     /*%< Don't set CD flag. */
+#define DNS_FETCHOPT_NONTA		0x00400	     /*%< Ignore NTA table. */
+/* RESERVED ECS				0x00000 */
+/* RESERVED ECS				0x01000 */
+/* RESERVED ECS				0x02000 */
+/* RESERVED TCPCLIENT			0x04000 */
+#define DNS_FETCHOPT_NOCACHED		0x08000	     /*%< Force cache update. */
+#define DNS_FETCHOPT_NOFORWARD		0x80000 /*%< Do not use forwarders
+							if possible. */
 
 /* Reserved in use by adb.c		0x00400000 */
 #define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000
