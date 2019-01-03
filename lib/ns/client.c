@@ -441,8 +441,19 @@ exit_check(ns_client_t *client) {
 			isc_socket_detach(&client->tcpsocket);
 		}
 
-		if (client->tcpquota != NULL)
+		if (client->tcpquota != NULL) {
 			isc_quota_detach(&client->tcpquota);
+		} else {
+			/*
+			 * We went over quota with this client, we don't
+			 * want to restart listening unless this is the
+			 * last client on this interface, which is
+			 * checked later.
+			 */
+			if (TCP_CLIENT(client)) {
+				client->mortal = true;
+			}
+		}
 
 		if (client->timerset) {
 			(void)isc_timer_reset(client->timer,
