@@ -247,7 +247,7 @@ zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 cat "$infile" "$ksk.key" "$zsk.key" unsupported-algorithm.key > "$zonefile"
 
 # "$SIGNER" -P -3 - -o "$zone" -f ${zonefile}.signed "$zonefile" > /dev/null 2>&1
-"$SIGNER" -P -3 - -o "$zone" -f ${zonefile}.signed "$zonefile"
+"$SIGNER" -P -3 - -o "$zone" -f ${zonefile}.signed "$zonefile" > /dev/null 2>&1
 
 #
 # A zone with a unknown DNSKEY algorithm + unknown NSEC3 hash algorithm (-U).
