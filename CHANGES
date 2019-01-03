@@ -1,3 +1,7 @@
+5138.	[bug]		Under some circumstances named could hit an assertion
+			failure when doing qname minimization when using
+			forwarders. [GL #797]
+
 5137.	[func]		named now logs messages whenever a mirror zone becomes
 			usable or unusable for resolution purposes. [GL #818]
 

@@ -4040,9 +4040,11 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 		options &= ~DNS_FETCHOPT_QMINIMIZE;
 		fctx_increference(fctx);
 		task = res->buckets[bucketnum].task;
+		fctx_stoptimer(fctx);
 		result = dns_resolver_createfetch(fctx->res, &fctx->qminname,
 						  fctx->qmintype, &fctx->domain,
-						  &fctx->nameservers, NULL, NULL, 0,
+						  &fctx->nameservers,
+						  NULL, NULL, 0,
 						  options, 0, fctx->qc, task,
 						  resume_qmin, fctx,
 						  &fctx->qminrrset, NULL,
@@ -4371,13 +4373,12 @@ fctx_timeout(isc_task_t *task, isc_event_t *event) {
 		 * timer.
 		 */
 		result = fctx_starttimer(fctx);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fctx_done(fctx, result, __LINE__);
-		else
-			/*
-			 * Keep trying.
-			 */
+		} else {
+			/* Keep trying */
 			fctx_try(fctx, true, false);
+		}
 	}
 
 	isc_event_free(&event);
