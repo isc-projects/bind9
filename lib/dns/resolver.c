@@ -3511,6 +3511,18 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 	INSIST(ISC_LIST_EMPTY(fctx->altaddrs));
 
 	/*
+	 * If we have DNS_FETCHOPT_NOFORWARD set and forwarding policy
+	 * allows us to not forward - skip forwarders and go straight
+	 * to NSes. This is currently used to make sure that priming query
+	 * gets root servers' IP addresses in ADDITIONAL section.
+	 */
+	if ((fctx->options & DNS_FETCHOPT_NOFORWARD) != 0 &&
+	    (fctx->fwdpolicy != dns_fwdpolicy_only))
+	{
+		goto normal_nses;
+	}
+
+	/*
 	 * If this fctx has forwarders, use them; otherwise use any
 	 * selective forwarders specified in the view; otherwise use the
 	 * resolver's forwarders (if any).
@@ -3595,7 +3607,7 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 	/*
 	 * Normal nameservers.
 	 */
-
+ normal_nses:
 	stdoptions = DNS_ADBFIND_WANTEVENT | DNS_ADBFIND_EMPTYEVENT;
 	if (fctx->restarts == 1) {
 		/*
@@ -10202,12 +10214,11 @@ dns_resolver_prime(dns_resolver_t *res) {
 		LOCK(&res->primelock);
 		result = dns_resolver_createfetch(res, dns_rootname,
 						  dns_rdatatype_ns,
-						  NULL, NULL, NULL, NULL, 0, 0,
-						  0, NULL,
-						  res->buckets[0].task,
-						  prime_done,
-						  res, rdataset, NULL,
-						  &res->primefetch);
+						  NULL, NULL, NULL, NULL, 0,
+						  DNS_FETCHOPT_NOFORWARD, 0,
+						  NULL, res->buckets[0].task,
+						  prime_done, res, rdataset,
+						  NULL, &res->primefetch);
 		UNLOCK(&res->primelock);
 		if (result != ISC_R_SUCCESS) {
 			isc_mem_put(res->mctx, rdataset, sizeof(*rdataset));
