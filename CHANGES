@@ -53,7 +53,9 @@
 
 5201.	[bug]		Fix a possible deadlock in RPZ update code. [GL #973]
 
-5200.	[placeholder]
+5200.	[security]	tcp-clients settings could be exceeded in some cases,
+			which could lead to exhaustion of file descriptors.
+			(CVE-2018-5743) [GL #615]
 
 5199.	[security]	In certain configurations, named could crash
 			if nxdomain-redirect was in use and a redirected
