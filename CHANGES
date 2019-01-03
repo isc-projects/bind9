@@ -1,3 +1,6 @@
+5125.	[bug]		Allow for up to 100 records or 64k of data when caching
+			a negative response. [GL #804]
+
 5124.	[bug]		Named could incorrectly return FORMERR rather than
 			SERVFAIL. [GL #804]
 
