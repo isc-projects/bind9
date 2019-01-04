@@ -425,8 +425,8 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	 * connections will be handled in parallel even though there is
 	 * only one client initially.
 	 */
-	ifp->ntcptarget = 1;
-	ifp->ntcpcurrent = 0;
+	ifp->ntcpaccepting = 0;
+	ifp->ntcpactive = 0;
 	ifp->nudpdispatch = 0;
 
 	ifp->dscp = -1;
@@ -561,9 +561,7 @@ ns_interface_accepttcp(ns_interface_t *ifp) {
 	 */
 	(void)isc_socket_filter(ifp->tcpsocket, "dataready");
 
-	result = ns_clientmgr_createclients(ifp->clientmgr,
-					    ifp->ntcptarget, ifp,
-					    true);
+	result = ns_clientmgr_createclients(ifp->clientmgr, 1, ifp, true);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "TCP ns_clientmgr_createclients(): %s",
