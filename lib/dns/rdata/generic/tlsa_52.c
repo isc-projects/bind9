@@ -56,7 +56,7 @@ generic_fromtext_tlsa(ARGS_FROMTEXT) {
 	/*
 	 * Certificate Association Data.
 	 */
-	return (isc_hex_tobuffer(lexer, target, -1));
+	return (isc_hex_tobuffer(lexer, target, -2));
 }
 
 static inline isc_result_t

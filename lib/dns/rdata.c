@@ -887,13 +887,16 @@ unknown_fromtext(dns_rdataclass_t rdclass, dns_rdatatype_t type,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = isc_hex_tobuffer(lexer, buf,
-				  (unsigned int)token.value.as_ulong);
-	if (result != ISC_R_SUCCESS)
-	       goto failure;
-	if (isc_buffer_usedlength(buf) != token.value.as_ulong) {
-		result = ISC_R_UNEXPECTEDEND;
-		goto failure;
+	if (token.value.as_ulong != 0U) {
+		result = isc_hex_tobuffer(lexer, buf,
+					  (unsigned int)token.value.as_ulong);
+		if (result != ISC_R_SUCCESS) {
+		       goto failure;
+		}
+		if (isc_buffer_usedlength(buf) != token.value.as_ulong) {
+			result = ISC_R_UNEXPECTEDEND;
+			goto failure;
+		}
 	}
 
 	if (dns_rdatatype_isknown(type)) {
