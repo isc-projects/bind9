@@ -778,8 +778,11 @@
 ./bin/tests/system/checkzone/zones/.gitattributes	X	2015,2018,2019
 ./bin/tests/system/checkzone/zones/bad-badclass.raw	X	2015,2018,2019
 ./bin/tests/system/checkzone/zones/bad-caa-rr.db	ZONE	2015,2016,2018,2019
+./bin/tests/system/checkzone/zones/bad-dhcid.db	ZONE	2019
 ./bin/tests/system/checkzone/zones/bad-dns-sd-reverse.db	ZONE	2015,2016,2018,2019
+./bin/tests/system/checkzone/zones/bad-eid.db	ZONE	2019
 ./bin/tests/system/checkzone/zones/bad-generate-tkey.db	ZONE	2018,2019
+./bin/tests/system/checkzone/zones/bad-nimloc.db	ZONE	2019
 ./bin/tests/system/checkzone/zones/bad-nsap-empty.db	ZONE	2015,2016,2018,2019
 ./bin/tests/system/checkzone/zones/bad-nsap-odd-nibble.db	ZONE	2015,2016,2018,2019
 ./bin/tests/system/checkzone/zones/bad-nsec3-padded.db	ZONE	2014,2016,2018,2019

@@ -173,31 +173,43 @@ base64_decode_finish(base64_decode_ctx_t *ctx) {
 
 isc_result_t
 isc_base64_tobuffer(isc_lex_t *lexer, isc_buffer_t *target, int length) {
+	unsigned int before, after;
 	base64_decode_ctx_t ctx;
 	isc_textregion_t *tr;
 	isc_token_t token;
 	bool eol;
 
+	REQUIRE(length >= -2);
+
 	base64_decode_init(&ctx, length, target);
 
+	before = isc_buffer_usedlength(target);
 	while (!ctx.seen_end && (ctx.length != 0)) {
 		unsigned int i;
 
-		if (length > 0)
+		if (length > 0) {
 			eol = false;
-		else
+		} else {
 			eol = true;
+		}
 		RETERR(isc_lex_getmastertoken(lexer, &token,
 					      isc_tokentype_string, eol));
-		if (token.type != isc_tokentype_string)
+		if (token.type != isc_tokentype_string) {
 			break;
+		}
 		tr = &token.value.as_textregion;
-		for (i = 0; i < tr->length; i++)
+		for (i = 0; i < tr->length; i++) {
 			RETERR(base64_decode_char(&ctx, tr->base[i]));
+		}
 	}
-	if (ctx.length < 0 && !ctx.seen_end)
+	after = isc_buffer_usedlength(target);
+	if (ctx.length < 0 && !ctx.seen_end) {
 		isc_lex_ungettoken(lexer, &token);
+	}
 	RETERR(base64_decode_finish(&ctx));
+	if (length == -2 && before == after) {
+		return (ISC_R_UNEXPECTEDEND);
+	}
 	return (ISC_R_SUCCESS);
 }
 

@@ -55,7 +55,7 @@ fromtext_cert(ARGS_FROMTEXT) {
 	RETTOK(dns_secalg_fromtext(&secalg, &token.value.as_textregion));
 	RETERR(mem_tobuffer(target, &secalg, 1));
 
-	return (isc_base64_tobuffer(lexer, target, -1));
+	return (isc_base64_tobuffer(lexer, target, -2));
 }
 
 static inline isc_result_t
