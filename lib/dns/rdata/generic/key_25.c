@@ -21,7 +21,6 @@
 
 static inline isc_result_t
 generic_fromtext_key(ARGS_FROMTEXT) {
-	isc_result_t result;
 	isc_token_t token;
 	dns_secalg_t alg;
 	dns_secproto_t proto;
@@ -55,11 +54,7 @@ generic_fromtext_key(ARGS_FROMTEXT) {
 	if ((flags & 0xc000) == 0xc000)
 		return (ISC_R_SUCCESS);
 
-	result = isc_base64_tobuffer(lexer, target, -1);
-	if (result != ISC_R_SUCCESS)
-		return (result);
-
-	return (ISC_R_SUCCESS);
+	return (isc_base64_tobuffer(lexer, target, -2));
 }
 
 static inline isc_result_t

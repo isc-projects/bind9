@@ -50,7 +50,7 @@ fromtext_sshfp(ARGS_FROMTEXT) {
 	/*
 	 * Digest.
 	 */
-	return (isc_hex_tobuffer(lexer, target, -1));
+	return (isc_hex_tobuffer(lexer, target, -2));
 }
 
 static inline isc_result_t
