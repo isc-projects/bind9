@@ -246,28 +246,36 @@ maybe_numeric(unsigned int *valuep, isc_textregion_t *source,
 	isc_result_t result;
 	uint32_t n;
 	char buffer[NUMBERSIZE];
+	int v;
 
 	if (! isdigit(source->base[0] & 0xff) ||
 	    source->length > NUMBERSIZE - 1)
+	{
 		return (ISC_R_BADNUMBER);
+	}
 
 	/*
 	 * We have a potential number.	Try to parse it with
 	 * isc_parse_uint32().	isc_parse_uint32() requires
 	 * null termination, so we must make a copy.
 	 */
-	snprintf(buffer, sizeof(buffer), "%.*s",
-		 (int)source->length, source->base);
-
+	v = snprintf(buffer, sizeof(buffer), "%.*s",
+		     (int)source->length, source->base);
+	if (v < 0 || (unsigned)v != source->length) {
+		return (ISC_R_BADNUMBER);
+	}
 	INSIST(buffer[source->length] == '\0');
 
 	result = isc_parse_uint32(&n, buffer, 10);
-	if (result == ISC_R_BADNUMBER && hex_allowed)
+	if (result == ISC_R_BADNUMBER && hex_allowed) {
 		result = isc_parse_uint32(&n, buffer, 16);
-	if (result != ISC_R_SUCCESS)
+	}
+	if (result != ISC_R_SUCCESS) {
 		return (result);
-	if (n > max)
+	}
+	if (n > max) {
 		return (ISC_R_RANGE);
+	}
 	*valuep = n;
 	return (ISC_R_SUCCESS);
 }
