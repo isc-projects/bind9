@@ -838,6 +838,7 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 
 	attr->type = CKA_EC_PARAMS;
 	pubattr = pk11_attribute_bytype(pubec, CKA_EC_PARAMS);
+	INSIST(pubattr != NULL);
 	attr->pValue = isc_mem_get(key->mctx, pubattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
@@ -847,6 +848,7 @@ pkcs11ecdsa_fetch(dst_key_t *key, const char *engine, const char *label,
 
 	attr->type = CKA_EC_POINT;
 	pubattr = pk11_attribute_bytype(pubec, CKA_EC_POINT);
+	INSIST(pubattr != NULL);
 	attr->pValue = isc_mem_get(key->mctx, pubattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
