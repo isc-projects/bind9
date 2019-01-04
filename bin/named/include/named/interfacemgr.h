@@ -77,9 +77,14 @@ struct ns_interface {
 						/*%< UDP dispatchers. */
 	isc_socket_t *		tcpsocket;	/*%< TCP socket. */
 	isc_dscp_t		dscp;		/*%< "listen-on" DSCP value */
-	int			ntcptarget;	/*%< Desired number of concurrent
-						     TCP accepts */
-	int			ntcpcurrent;	/*%< Current ditto, locked */
+	int			ntcpaccepting;	/*%< Number of clients
+						     ready to accept new
+						     TCP connections on this
+						     interface */
+	int			ntcpactive;	/*%< Number of clients
+						     servicing TCP queries
+						     (whether accepting or
+						     connected) */
 	int			nudpdispatch;	/*%< Number of UDP dispatches */
 	ns_clientmgr_t *	clientmgr;	/*%< Client manager. */
 	ISC_LINK(ns_interface_t) link;
