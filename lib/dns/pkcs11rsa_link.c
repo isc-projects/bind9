@@ -1673,6 +1673,7 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 
 	attr->type = CKA_MODULUS;
 	pubattr = pk11_attribute_bytype(pubrsa, CKA_MODULUS);
+	INSIST(pubattr != NULL);
 	attr->pValue = isc_mem_get(key->mctx, pubattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
@@ -1682,6 +1683,7 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 
 	attr->type = CKA_PUBLIC_EXPONENT;
 	pubattr = pk11_attribute_bytype(pubrsa, CKA_PUBLIC_EXPONENT);
+	INSIST(pubattr != NULL);
 	attr->pValue = isc_mem_get(key->mctx, pubattr->ulValueLen);
 	if (attr->pValue == NULL)
 		DST_RET(ISC_R_NOMEMORY);
