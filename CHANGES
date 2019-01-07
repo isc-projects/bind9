@@ -1,3 +1,6 @@
+5121.	[contrib]	dlz_stub_driver.c fails to return ISC_R_NOTFOUND on none
+			matching zone names. [GL !1299]
+
 5120.	[placeholder]
 
 5119.	[placeholder]
