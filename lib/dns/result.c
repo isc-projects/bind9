@@ -407,7 +407,6 @@ dns_result_torcode(isc_result_t result) {
 		rcode = dns_rcode_noerror;
 		break;
 	case ISC_R_BADBASE64:
-	case ISC_R_NOSPACE:
 	case ISC_R_RANGE:
 	case ISC_R_UNEXPECTEDEND:
 	case DNS_R_BADAAAA:
