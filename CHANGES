@@ -1,3 +1,6 @@
+5121.	[contrib]	dlz_stub_driver.c fails to return ISC_R_NOTFOUND on none
+			matching zone names. [GL !1299]
+
 5112.	[bug]		Named/named-checkconf could dump core if there was
 			a missing masters clause and a bad notify clause.
 			[GL #779]
