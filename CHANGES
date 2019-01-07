@@ -1,3 +1,6 @@
+5121.	[contrib]	dlz_stub_driver.c fails to return ISC_R_NOTFOUND on none
+			matching zone names. [GL !1299]
+
 5115.	[bug]		Allow unsupported algorithms in zone when not used for
 			signing with dnssec-signzone. [GL #783]
 
