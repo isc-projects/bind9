@@ -105,6 +105,14 @@
 	  [GL #772]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Zone transfer controls for writable DLZ zones were not
+	  effective as the <command>allowzonexfr</command> method was
+	  not being called for such zones. This flaw is disclosed in
+	  CVE-2019-6465. [GL #790]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
