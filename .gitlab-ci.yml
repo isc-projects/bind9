@@ -123,6 +123,8 @@ stages:
     - doc/
     expire_in: '1 hour'
     untracked: true
+  only:
+  - merge_requests
 
 .install_test: &install_test_job
   stage: test
@@ -145,6 +147,8 @@ stages:
     untracked: true
     expire_in: '1 week'
     when: on_failure
+  only:
+  - merge_requests
 
 .unit_test: &unit_test_job
   stage: test
@@ -162,6 +166,8 @@ stages:
     - kyua_html/
     expire_in: '1 week'
     when: on_failure
+  only:
+  - merge_requests
 
 sid:amd64:precheck:
   <<: *debian_sid_amd64_image
@@ -185,11 +191,15 @@ sid:amd64:precheck:
     - checklibs.out
     expire_in: '1 week'
     when: on_failure
+  only:
+  - merge_requests
 
 🐞:sid:amd64:precheck:
   <<: *debian_sid_amd64_image
   stage: precheck
   script: util/check-cocci
+  only:
+  - merge_requests
 
 docs:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -203,6 +213,10 @@ docs:sid:amd64:
     paths:
     - doc/arm/
     expire_in: '1 month'
+  only:
+  - merge_requests
+  - master@isc-projects/bind9
+  - /^v9_.*$/@isc-projects/bind9
 
 docs:push:
   <<: *debian_sid_amd64_image
@@ -211,8 +225,8 @@ docs:push:
   script:
     - curl -X POST -F token=$GITLAB_PAGES_DOCS_TRIGGER_TOKEN -F ref=master $GITLAB_PAGES_DOCS_TRIGGER_URL
   only:
-    - master@isc-projects/bind9
-    - /^v9_.*$/@isc-projects/bind9
+  - master@isc-projects/bind9
+  - /^v9_.*$/@isc-projects/bind9
 
 #jessie:amd64:build:
 #  <<: *debian_jessie_amd64_image
@@ -283,6 +297,10 @@ sid:amd64:build:
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_amd64_image
   <<: *build_job
+  only:
+  - merge_requests
+  - master@isc-projects/bind9
+  - /^v9_.*$/@isc-projects/bind9
 
 asan:sid:amd64:build:
   variables:
@@ -337,6 +355,10 @@ unit:sid:amd64:
   <<: *unit_test_job
   dependencies:
     - sid:amd64:build
+  only:
+  - merge_requests
+  - master@isc-projects/bind9
+  - /^v9_.*$/@isc-projects/bind9
 
 unit:asan:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -385,6 +407,10 @@ system:sid:amd64:
   <<: *system_test_job
   dependencies:
     - sid:amd64:build
+  only:
+  - merge_requests
+  - master@isc-projects/bind9
+  - /^v9_.*$/@isc-projects/bind9
 
 system:asan:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -403,6 +429,10 @@ install:sid:amd64:
   <<: *install_test_job
   dependencies:
     - sid:amd64:build
+  only:
+  - merge_requests
+  - master@isc-projects/bind9
+  - /^v9_.*$/@isc-projects/bind9
 
 pkcs11:sid:amd64:build:
   variables:
