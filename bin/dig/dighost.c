@@ -3000,6 +3000,8 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			if (query->sock != NULL) {
 				isc_socket_cancel(query->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
+			} else {
+				clear_query(query);
 			}
 		}
 		UNLOCK_LOOKUP;
