@@ -253,7 +253,8 @@ typedef enum {
 typedef enum {
 	badns_unreachable = 0,
 	badns_response,
-	badns_validation
+	badns_validation,
+	badns_forwarder,
 } badnstype_t;
 
 struct fetchctx {
@@ -1177,6 +1178,18 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 					       query->udpsize);
 			else
 				dns_adb_timeout(fctx->adb, query->addrinfo);
+
+			/*
+			 * If "forward first;" is used and a forwarder timed
+			 * out, do not attempt to query it again in this fetch
+			 * context.
+			 */
+			if (fctx->fwdpolicy == dns_fwdpolicy_first &&
+			    ISFORWARDER(query->addrinfo))
+			{
+				add_bad(fctx, query->addrinfo, ISC_R_TIMEDOUT,
+					badns_forwarder);
+			}
 
 			/*
 			 * We don't have an RTT for this query.  Maybe the
@@ -3205,6 +3218,12 @@ add_bad(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo, isc_result_t reason,
 			break;
 		case badns_validation:
 			break;	/* counted as 'valfail' */
+		case badns_forwarder:
+			/*
+			 * We were called to prevent the given forwarder from
+			 * being used again for this fetch context.
+			 */
+			break;
 		}
 	}
 
