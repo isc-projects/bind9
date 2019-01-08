@@ -2777,27 +2777,6 @@ send_tcp_connect(dig_query_t *query) {
 		return;
 	}
 
-	if (specified_source &&
-	    (isc_sockaddr_pf(&query->sockaddr) !=
-	     isc_sockaddr_pf(&bind_address))) {
-		printf(";; Skipping server %s, incompatible "
-		       "address family\n", query->servname);
-		query->waiting_connect = false;
-		if (ISC_LINK_LINKED(query, link))
-			next = ISC_LIST_NEXT(query, link);
-		else
-			next = NULL;
-		l = query->lookup;
-		clear_query(query);
-		if (next == NULL) {
-			printf(";; No acceptable nameservers\n");
-			check_next_lookup(l);
-			return;
-		}
-		send_tcp_connect(next);
-		return;
-	}
-
 	INSIST(query->sock == NULL);
 
 	if (keep != NULL && isc_sockaddr_equal(&keepaddr, &query->sockaddr)) {
