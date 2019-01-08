@@ -1,3 +1,6 @@
+5123.	[bug]		dig could hang indefinitely after encountering an error
+			before creating a TCP socket. [GL #692]
+
 5122.	[bug]		In a "forward first;" configuration, a forwarder
 			timeout did not prevent that forwarder from being
 			queried again after falling back to full recursive
