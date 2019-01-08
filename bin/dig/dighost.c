@@ -3036,27 +3036,6 @@ send_tcp_connect(dig_query_t *query) {
 		return;
 	}
 
-	if (specified_source &&
-	    (isc_sockaddr_pf(&query->sockaddr) !=
-	     isc_sockaddr_pf(&bind_address))) {
-		printf(";; Skipping server %s, incompatible "
-		       "address family\n", query->servname);
-		query->waiting_connect = false;
-		if (ISC_LINK_LINKED(query, link))
-			next = ISC_LIST_NEXT(query, link);
-		else
-			next = NULL;
-		l = query->lookup;
-		clear_query(query);
-		if (next == NULL) {
-			printf(";; No acceptable nameservers\n");
-			check_next_lookup(l);
-			return;
-		}
-		send_tcp_connect(next);
-		return;
-	}
-
 	INSIST(query->sock == NULL);
 
 	if (keep != NULL && isc_sockaddr_equal(&keepaddr, &query->sockaddr)) {
@@ -3219,6 +3198,36 @@ send_udp(dig_query_t *query) {
 }
 
 /*%
+ * If there are more servers available for querying within 'lookup', initiate a
+ * TCP or UDP query to the next available server and return true; otherwise,
+ * return false.
+ */
+static bool
+try_next_server(dig_lookup_t *lookup) {
+	dig_query_t *current_query, *next_query;
+
+	current_query = lookup->current_query;
+	if (current_query == NULL || !ISC_LINK_LINKED(current_query, link)) {
+		return (false);
+	}
+
+	next_query = ISC_LIST_NEXT(current_query, link);
+	if (next_query == NULL) {
+		return (false);
+	}
+
+	debug("trying next server...");
+
+	if (lookup->tcp_mode) {
+		send_tcp_connect(next_query);
+	} else {
+		send_udp(next_query);
+	}
+
+	return (true);
+}
+
+/*%
  * IO timeout handler, used for both connect and recv timeouts.  If
  * retries are still allowed, either resend the UDP packet or queue a
  * new TCP lookup.  Otherwise, cancel the lookup.
@@ -3226,7 +3235,7 @@ send_udp(dig_query_t *query) {
 static void
 connect_timeout(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *l = NULL;
-	dig_query_t *query = NULL, *cq;
+	dig_query_t *query = NULL;
 
 	UNUSED(task);
 	REQUIRE(event->ev_type == ISC_TIMEREVENT_IDLE);
@@ -3245,18 +3254,14 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 		return;
 	}
 
-	if ((query != NULL) && (query->lookup->current_query != NULL) &&
-	    ISC_LINK_LINKED(query->lookup->current_query, link) &&
-	    (ISC_LIST_NEXT(query->lookup->current_query, link) != NULL)) {
-		debug("trying next server...");
-		cq = query->lookup->current_query;
-		if (!l->tcp_mode)
-			send_udp(ISC_LIST_NEXT(cq, link));
-		else {
-			if (query->sock != NULL)
+	if (try_next_server(l)) {
+		if (l->tcp_mode) {
+			if (query->sock != NULL) {
 				isc_socket_cancel(query->sock, NULL,
 						  ISC_SOCKCANCEL_ALL);
-			send_tcp_connect(ISC_LIST_NEXT(cq, link));
+			} else {
+				clear_query(query);
+			}
 		}
 		UNLOCK_LOOKUP;
 		return;
