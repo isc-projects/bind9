@@ -357,6 +357,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\rwlock.h" />
     <ClInclude Include="..\include\isc\safe.h" />
     <ClInclude Include="..\include\isc\serial.h" />
+    <ClInclude Include="..\include\isc\siphash.h" />
     <ClInclude Include="..\include\isc\sockaddr.h" />
     <ClInclude Include="..\include\isc\socket.h" />
     <ClInclude Include="..\include\isc\stats.h" />
@@ -459,6 +460,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\result.c" />
     <ClCompile Include="..\rwlock.c" />
     <ClCompile Include="..\serial.c" />
+    <ClCompile Include="..\siphash.c" />
     <ClCompile Include="..\sockaddr.c" />
     <ClCompile Include="..\stats.c" />
     <ClCompile Include="..\string.c" />
