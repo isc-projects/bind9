@@ -1,3 +1,6 @@
+5127.	[bug]		rcode.c:maybe_numeric failed to handle NUL in text
+			regions. [GL #807]
+
 5126.	[bug]		Named incorrectly accepted empty base64 and hex encoded
 			fields when reading master files. [GL #807]
 
