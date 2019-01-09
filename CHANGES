@@ -1,3 +1,6 @@
+5124.	[bug]		Named could incorrectly return FORMERR rather than
+			SERVFAIL. [GL #804]
+
 5123.	[bug]		dig could hang indefinitely after encountering an error
 			before creating a TCP socket. [GL #692]
 
