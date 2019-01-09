@@ -82,7 +82,7 @@ generic_fromtext_ds(ARGS_FROMTEXT) {
 		length = ISC_SHA384_DIGESTLENGTH;
 		break;
 	default:
-		length = -1;
+		length = -2;
 		break;
 	}
 	return (isc_hex_tobuffer(lexer, target, length));

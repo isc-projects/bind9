@@ -76,7 +76,7 @@ fromtext_keydata(ARGS_FROMTEXT) {
 	if ((flags & 0xc000) == 0xc000)
 		return (ISC_R_SUCCESS);
 
-	result = isc_base64_tobuffer(lexer, target, -1);
+	result = isc_base64_tobuffer(lexer, target, -2);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
