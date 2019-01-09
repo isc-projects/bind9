@@ -42,7 +42,7 @@ LIBS =		@LIBS@
 # Alphabetically
 
 DSTOBJS =	@DST_EXTRA_OBJS@ \
-		dst_api.@O@ dst_lib.@O@ dst_parse.@O@ dst_result.@O@ \
+		dst_api.@O@ dst_parse.@O@ dst_result.@O@ \
 		gssapi_link.@O@ gssapictx.@O@ hmac_link.@O@ \
 		openssl_link.@O@ openssldh_link.@O@ \
 		opensslecdsa_link.@O@ openssleddsa_link.@O@ opensslrsa_link.@O@ \
@@ -80,7 +80,7 @@ OBJS=		@DNSTAPOBJS@ ${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} \
 		${PORTDNSOBJS} @GEOIPLINKOBJS@
 
 DSTSRCS =	@DST_EXTRA_SRCS@ @PKCS11LINKSRCS@ \
-		dst_api.c dst_lib.c dst_parse.c \
+		dst_api.c dst_parse.c \
 		dst_result.c gssapi_link.c gssapictx.c hmac_link.c \
 		openssl_link.c openssldh_link.c \
 		opensslecdsa_link.c openssleddsa_link.c opensslrsa_link.c \

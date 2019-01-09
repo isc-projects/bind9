@@ -106,11 +106,11 @@ isc_result_toid(isc_result_t);
 
 isc_result_t
 isc_result_register(unsigned int base, unsigned int nresults,
-		    const char **text, isc_msgcat_t *msgcat, int set);
+		    const char **text, int set);
 
 isc_result_t
 isc_result_registerids(unsigned int base, unsigned int nresults,
-		       const char **ids, isc_msgcat_t *msgcat, int set);
+		       const char **ids, int set);
 
 ISC_LANG_ENDDECLS
 

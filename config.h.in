@@ -60,9 +60,6 @@
 /* define if the compiler supports __builtin_unreachable(). */
 #undef HAVE_BUILTIN_UNREACHABLE
 
-/* Define to 1 if you have the `catgets' function. */
-#undef HAVE_CATGETS
-
 /* Define to 1 if you have the `chroot' function. */
 #undef HAVE_CHROOT
 

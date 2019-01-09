@@ -30,8 +30,6 @@
 #include <isc/log.h>
 #include <isc/lib.h>
 #include <isc/mem.h>
-#include <isc/msgs.h>
-#include <isc/msgcat.h>
 #include <isc/region.h>
 #include <isc/result.h>
 #include <isc/types.h>
@@ -65,32 +63,25 @@ bdb_create(const char *zone, int argc, char **argv,
 		return ISC_R_FAILURE;	/* database path must be given */
 
 	if (db_create((DB **)dbdata, NULL, 0) != 0) {
-		/*
-		 * XXX Should use dns_msgcat et al
-		 * but seems to be unavailable.
-		 */
-		isc_log_iwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			       DNS_LOGMODULE_SDB, ISC_LOG_CRITICAL, isc_msgcat,
-			       ISC_MSGSET_GENERAL, ISC_MSG_FATALERROR,
-			       "db_create");
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_SDB, ISC_LOG_CRITICAL,
+			      "db_create");
 		return ISC_R_FAILURE;
 	}
 
 	if (isc_file_exists(*argv) != true) {
-		isc_log_iwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			       DNS_LOGMODULE_SDB, ISC_LOG_CRITICAL, isc_msgcat,
-			       ISC_MSGSET_GENERAL, ISC_MSG_FATALERROR,
-			       "isc_file_exists: %s", *argv);
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_SDB, ISC_LOG_CRITICAL,
+			      "isc_file_exists: %s", *argv);
 		return ISC_R_FAILURE;
 	}
 
 	if ((ret = (*(DB **)dbdata)->open(*(DB **)dbdata, *argv, NULL, DB_HASH,
 	    DB_RDONLY, 0)) != 0) {
-			isc_log_iwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				       DNS_LOGMODULE_SDB, ISC_LOG_CRITICAL,
-				       isc_msgcat, ISC_MSGSET_GENERAL,
-				       ISC_MSG_FATALERROR, "DB->open: %s",
-				       db_strerror(ret));
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+				      DNS_LOGMODULE_SDB, ISC_LOG_CRITICAL,
+				      "DB->open: %s",
+				      db_strerror(ret));
 			return ISC_R_FAILURE;
 	}
 	return ISC_R_SUCCESS;
@@ -121,11 +112,10 @@ bdb_lookup(const char *zone, const char *name, void *dbdata,
 #endif /* DNS_CLIENTINFO_VERSION */
 
 	if ((ret = ((DB *)dbdata)->cursor((DB *)dbdata, NULL, &c, 0)) != 0) {
-		isc_log_iwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			       DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
-			       isc_msgcat, ISC_MSGSET_GENERAL,
-			       ISC_MSG_FAILED, "DB->cursor: %s",
-			       db_strerror(ret));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
+			      "DB->cursor: %s",
+			      db_strerror(ret));
 		return ISC_R_FAILURE;
 	}
 
@@ -146,11 +136,10 @@ bdb_lookup(const char *zone, const char *name, void *dbdata,
 		rdata = type + strlen(type) + 1;
 
 		if (dns_sdb_putrr(l, type, ttl, rdata) != ISC_R_SUCCESS) {
-			isc_log_iwrite(dns_lctx,
-				       DNS_LOGCATEGORY_DATABASE,
-				       DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
-				       isc_msgcat, ISC_MSGSET_GENERAL,
-				       ISC_MSG_FAILED, "dns_sdb_putrr");
+			isc_log_write(dns_lctx,
+				      DNS_LOGCATEGORY_DATABASE,
+				      DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
+				      "dns_sdb_putrr");
 			return ISC_R_FAILURE;
 		}
 		ret = c->c_get(c, &key, &data, DB_NEXT_DUP);
@@ -173,11 +162,10 @@ bdb_allnodes(const char *zone, void *dbdata, dns_sdballnodes_t *n)
 	UNUSED(zone);
 
 	if ((ret = ((DB *)dbdata)->cursor((DB *)dbdata, NULL, &c, 0)) != 0) {
-		isc_log_iwrite(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			       DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
-			       isc_msgcat, ISC_MSGSET_GENERAL,
-			       ISC_MSG_FAILED, "DB->cursor: %s",
-			       db_strerror(ret));
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
+			      DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
+			      "DB->cursor: %s",
+			      db_strerror(ret));
 		return ISC_R_FAILURE;
 	}
 
@@ -196,11 +184,10 @@ bdb_allnodes(const char *zone, void *dbdata, dns_sdballnodes_t *n)
 
 		if (dns_sdb_putnamedrr(n, key.data, type, ttl, rdata) !=
 		    ISC_R_SUCCESS) {
-			isc_log_iwrite(dns_lctx,
-				       DNS_LOGCATEGORY_DATABASE,
-				       DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
-				       isc_msgcat, ISC_MSGSET_GENERAL,
-				       ISC_MSG_FAILED, "dns_sdb_putnamedrr");
+			isc_log_write(dns_lctx,
+				      DNS_LOGCATEGORY_DATABASE,
+				      DNS_LOGMODULE_SDB, ISC_LOG_ERROR,
+				      "dns_sdb_putnamedrr");
 			return ISC_R_FAILURE;
 		}
 

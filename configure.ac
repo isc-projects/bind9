@@ -1527,11 +1527,6 @@ AC_SUBST(MKDEPCFLAGS)
 AC_SUBST(MKDEPPROG)
 
 #
-# NLS
-#
-AC_CHECK_FUNCS([catgets])
-
-#
 # -lxnet buys us one big porting headache...  standards, gotta love 'em.
 #
 # AC_CHECK_LIB(xnet, socket, ,
@@ -3062,7 +3057,6 @@ AC_CONFIG_FILES([
 	lib/isc/include/pk11/Makefile
 	lib/isc/include/pkcs11/Makefile
 	lib/isc/tests/Makefile
-	lib/isc/nls/Makefile
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile

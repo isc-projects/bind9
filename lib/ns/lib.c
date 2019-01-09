@@ -17,7 +17,6 @@
 #include <stddef.h>
 
 #include <isc/mem.h>
-#include <isc/msgcat.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/util.h>

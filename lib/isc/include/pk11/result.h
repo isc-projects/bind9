@@ -35,11 +35,6 @@
 
 ISC_LANG_BEGINDECLS
 
-LIBISC_EXTERNAL_DATA extern isc_msgcat_t *pk11_msgcat;
-
-void
-pk11_initmsgcat(void);
-
 const char *
 pk11_result_totext(isc_result_t);
 

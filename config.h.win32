@@ -73,9 +73,6 @@
 /* define on Solaris to get sigwait() to work using pthreads semantics */
 /* #undef _POSIX_PTHREAD_SEMANTICS */
 
-/* define if catgets() is available */
-/* #undef HAVE_CATGETS */
-
 /* define if you need to #define _XPG4_2 before including sys/socket.h */
 /* #undef NEED_XPG4_2_BEFORE_SOCKET_H */
 

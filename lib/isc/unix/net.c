@@ -28,7 +28,6 @@
 #include <fcntl.h>
 
 #include <isc/log.h>
-#include <isc/msgs.h>
 #include <isc/net.h>
 #include <isc/netdb.h>
 #include <isc/once.h>
@@ -139,11 +138,7 @@ try_proto(int domain) {
 		default:
 			strerror_r(errno, strbuf, sizeof(strbuf));
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "socket() %s: %s",
-					 isc_msgcat_get(isc_msgcat,
-							ISC_MSGSET_GENERAL,
-							ISC_MSG_FAILED,
-							"failed"),
+					 "socket() failed: %s",
 					 strbuf);
 			return (ISC_R_UNEXPECTED);
 		}
@@ -247,11 +242,7 @@ try_ipv6only(void) {
 	if (s == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "socket() %s: %s",
-				 isc_msgcat_get(isc_msgcat,
-						ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED,
-						"failed"),
+				 "socket() failed: %s",
 				 strbuf);
 		ipv6only_result = ISC_R_UNEXPECTED;
 		return;
@@ -270,11 +261,7 @@ try_ipv6only(void) {
 	if (s == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "socket() %s: %s",
-				 isc_msgcat_get(isc_msgcat,
-						ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED,
-						"failed"),
+				 "socket() failed: %s",
 				 strbuf);
 		ipv6only_result = ISC_R_UNEXPECTED;
 		return;
@@ -318,11 +305,7 @@ try_ipv6pktinfo(void) {
 	if (s == -1) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "socket() %s: %s",
-				 isc_msgcat_get(isc_msgcat,
-						ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED,
-						"failed"),
+				 "socket() failed: %s",
 				 strbuf);
 		ipv6pktinfo_result = ISC_R_UNEXPECTED;
 		return;
@@ -519,7 +502,6 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 	if (sendmsg(s, &msg, 0) < 0) {
 		int debug = ISC_LOG_DEBUG(10);
 		const char *typestr;
-		const char *msgstr;
 		switch (errno) {
 #ifdef ENOPROTOOPT
 		case ENOPROTOOPT:
@@ -540,11 +522,9 @@ cmsgsend(int s, int level, int type, struct addrinfo *res) {
 				      "sendmsg: %s", strbuf);
 		} else {
 			typestr = (type == IP_TOS) ? "IP_TOS" : "IPV6_TCLASS";
-			msgstr = isc_msgcat_get(isc_msgcat, ISC_MSGSET_GENERAL,
-						ISC_MSG_FAILED, "failed");
 			UNEXPECTED_ERROR(__FILE__, __LINE__, "probing "
-					 "sendmsg() with %s=%02x %s: %s",
-					 typestr, dscp, msgstr, strbuf);
+					 "sendmsg() with %s=%02x failed: %s",
+					 typestr, dscp, strbuf);
 		}
 		return (false);
 	}

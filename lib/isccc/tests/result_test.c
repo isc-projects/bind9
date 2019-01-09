@@ -24,7 +24,6 @@
 #include <isc/result.h>
 #include <isc/util.h>
 
-#include <isccc/lib.h>
 #include <isccc/result.h>
 
 /*
