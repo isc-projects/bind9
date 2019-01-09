@@ -28,7 +28,7 @@ fromtext_in_eid(ARGS_FROMTEXT) {
 	UNUSED(rdclass);
 	UNUSED(callbacks);
 
-	return (isc_hex_tobuffer(lexer, target, -1));
+	return (isc_hex_tobuffer(lexer, target, -2));
 }
 
 static inline isc_result_t
