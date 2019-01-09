@@ -67,6 +67,9 @@
     <ClInclude Include="..\include\isc\crc64.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\endian.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\entropy.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -233,6 +236,7 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\sha2.h">
+    <ClInclude Include="..\include\isc\siphash.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\sockaddr.h">
@@ -637,6 +641,7 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\sha2.c">
+    <ClCompile Include="..\siphash.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\sockaddr.c">
