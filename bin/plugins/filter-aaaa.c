@@ -592,8 +592,9 @@ process_name(query_ctx_t *qctx, filter_aaaa_t mode, const dns_name_t *name,
 		CHECK(dns_message_findtype(name, dns_rdatatype_a, 0, NULL));
 	}
 
-	dns_message_findtype(name, type, 0, &rdataset);
-	dns_message_findtype(name, dns_rdatatype_rrsig, type, &sigrdataset);
+	(void)dns_message_findtype(name, type, 0, &rdataset);
+	(void)dns_message_findtype(name, dns_rdatatype_rrsig, type,
+				   &sigrdataset);
 
 	if (rdataset != NULL &&
 	    (sigrdataset == NULL || !WANTDNSSEC(qctx->client) ||

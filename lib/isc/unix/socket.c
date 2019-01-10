@@ -3177,7 +3177,7 @@ process_fd(isc__socketthread_t *thread, int fd, bool readable,
 		/*
 		 * Sock is being closed, it will be destroyed, bail.
 		 */
-		isc_refcount_decrement(&sock->references);
+		(void)isc_refcount_decrement(&sock->references);
 		UNLOCK(&thread->fdlock[lockid]);
 		return;
 	}

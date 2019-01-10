@@ -1920,6 +1920,7 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	rbtdb_nodelock_t *nodelock;
 	int bucket = node->locknum;
 	bool no_reference = true;
+	uint_fast32_t refs;
 
 	nodelock = &rbtdb->node_locks[bucket];
 
@@ -1930,7 +1931,8 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	/* Handle easy and typical case first. */
 	if (!node->dirty && KEEP_NODE(node, rbtdb)) {
 		if (isc_refcount_decrement(&node->references) == 1) {
-			isc_refcount_decrement(&nodelock->references);
+			refs = isc_refcount_decrement(&nodelock->references);
+			INSIST(refs > 0);
 			return (true);
 		} else {
 			return (false);
@@ -1991,7 +1993,8 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 	} else
 		write_locked = true;
 
-	INSIST(isc_refcount_decrement(&nodelock->references) > 0);
+	refs = isc_refcount_decrement(&nodelock->references);
+	INSIST(refs > 0);
 
 	if (KEEP_NODE(node, rbtdb))
 		goto restore_locks;
