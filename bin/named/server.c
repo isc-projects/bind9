@@ -15049,29 +15049,17 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 	/* Look for the optional class name. */
 	classtxt = next_token(lex, text);
 	if (classtxt != NULL) {
-		/* Look for the optional view name. */
-		viewtxt = next_token(lex, text);
-	}
-
-	if (classtxt == NULL) {
-		rdclass = dns_rdataclass_in;
-	} else {
 		isc_textregion_t r;
 		r.base = classtxt;
 		r.length = strlen(classtxt);
 		result = dns_rdataclass_fromtext(&rdclass, &r);
 		if (result != ISC_R_SUCCESS) {
-			if (viewtxt == NULL) {
-				rdclass = dns_rdataclass_in;
-				viewtxt = classtxt;
-				result = ISC_R_SUCCESS;
-			} else {
-				snprintf(msg, sizeof(msg),
-					 "unknown class '%s'", classtxt);
-				(void) putstr(text, msg);
-				goto cleanup;
-			}
+			snprintf(msg, sizeof(msg),
+				 "unknown class '%s'", classtxt);
+			(void) putstr(text, msg);
+			goto cleanup;
 		}
+		viewtxt = next_token(lex, text);
 	}
 
 	for (view = ISC_LIST_HEAD(server->viewlist);
@@ -15100,6 +15088,9 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 
 		switch (opt) {
 		case REFRESH:
+			if (!first) {
+				CHECK(putstr(text, "\n"));
+			}
 			CHECK(mkey_refresh(view, text));
 			break;
 		case STATUS:
@@ -15107,12 +15098,14 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 				CHECK(putstr(text, "\n\n"));
 			}
 			CHECK(mkey_status(view, text));
-			first = false;
 			break;
 		case SYNC:
 			CHECK(dns_zone_flush(view->managed_keys));
 			break;
 		case DESTROY:
+			if (!first) {
+				CHECK(putstr(text, "\n"));
+			}
 			CHECK(mkey_destroy(server, view, text));
 			break;
 		default:
@@ -15123,6 +15116,7 @@ named_server_mkeys(named_server_t *server, isc_lex_t *lex,
 		if (viewtxt != NULL) {
 			break;
 		}
+		first = false;
 	}
 
 	if (!found) {
