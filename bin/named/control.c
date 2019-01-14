@@ -150,16 +150,11 @@ ns_control_docommand(isccc_sexpr_t *message, bool readonly,
 		      "received control channel command '%s'",
 		      cmdline);
 
-	if (command_compare(command, NS_COMMAND_RELOAD)) {
-		result = ns_server_reloadcommand(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_RECONFIG)) {
-		result = ns_server_reconfigcommand(ns_g_server);
-	} else if (command_compare(command, NS_COMMAND_REFRESH)) {
-		result = ns_server_refreshcommand(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_RETRANSFER)) {
-		result = ns_server_retransfercommand(ns_g_server,
-						     lex, text);
-	} else if (command_compare(command, NS_COMMAND_HALT)) {
+	/*
+	 * After the lengthy "halt" and "stop", the commands are
+	 * handled in alphabetical order of the NS_COMMAND_ macros.
+	 */
+	if (command_compare(command, NS_COMMAND_HALT)) {
 #ifdef HAVE_LIBSCF
 		/*
 		 * If we are managed by smf(5), AND in chroot, then
@@ -204,79 +199,88 @@ ns_control_docommand(isccc_sexpr_t *message, bool readonly,
 		ns_os_shutdownmsg(cmdline, *text);
 		isc_app_shutdown();
 		result = ISC_R_SUCCESS;
-	} else if (command_compare(command, NS_COMMAND_DUMPSTATS)) {
-		result = ns_server_dumpstats(ns_g_server);
-	} else if (command_compare(command, NS_COMMAND_QUERYLOG)) {
-		result = ns_server_togglequerylog(ns_g_server, lex);
+	} else if (command_compare(command, NS_COMMAND_ADDZONE) ||
+		   command_compare(command, NS_COMMAND_MODZONE)) {
+		result = ns_server_changezone(ns_g_server, cmdline, text);
+	} else if (command_compare(command, NS_COMMAND_DELZONE)) {
+		result = ns_server_delzone(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_DNSTAP) ||
+		   command_compare(command, NS_COMMAND_DNSTAPREOPEN)) {
+		result = ns_server_dnstap(ns_g_server, lex, text);
 	} else if (command_compare(command, NS_COMMAND_DUMPDB)) {
 		ns_server_dumpdb(ns_g_server, lex, text);
 		result = ISC_R_SUCCESS;
-	} else if (command_compare(command, NS_COMMAND_SECROOTS)) {
-		result = ns_server_dumpsecroots(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_TRACE)) {
-		result = ns_server_setdebuglevel(ns_g_server, lex);
-	} else if (command_compare(command, NS_COMMAND_NOTRACE)) {
-		ns_g_debuglevel = 0;
-		isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
-		result = ISC_R_SUCCESS;
+	} else if (command_compare(command, NS_COMMAND_DUMPSTATS)) {
+		result = ns_server_dumpstats(ns_g_server);
 	} else if (command_compare(command, NS_COMMAND_FLUSH)) {
 		result = ns_server_flushcache(ns_g_server, lex);
 	} else if (command_compare(command, NS_COMMAND_FLUSHNAME)) {
 		result = ns_server_flushnode(ns_g_server, lex, false);
 	} else if (command_compare(command, NS_COMMAND_FLUSHTREE)) {
 		result = ns_server_flushnode(ns_g_server, lex, true);
-	} else if (command_compare(command, NS_COMMAND_STATUS)) {
-		result = ns_server_status(ns_g_server, text);
-	} else if (command_compare(command, NS_COMMAND_TSIGLIST)) {
-		result = ns_server_tsiglist(ns_g_server, text);
-	} else if (command_compare(command, NS_COMMAND_TSIGDELETE)) {
-		result = ns_server_tsigdelete(ns_g_server, lex, text);
 	} else if (command_compare(command, NS_COMMAND_FREEZE)) {
 		result = ns_server_freeze(ns_g_server, true, lex,
 					  text);
-	} else if (command_compare(command, NS_COMMAND_UNFREEZE) ||
-		   command_compare(command, NS_COMMAND_THAW)) {
-		result = ns_server_freeze(ns_g_server, false, lex,
-					  text);
+	} else if (command_compare(command, NS_COMMAND_LOADKEYS) ||
+		   command_compare(command, NS_COMMAND_SIGN)) {
+		result = ns_server_rekey(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_MKEYS)) {
+		result = ns_server_mkeys(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_NOTIFY)) {
+		result = ns_server_notifycommand(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_NOTRACE)) {
+		ns_g_debuglevel = 0;
+		isc_log_setdebuglevel(ns_g_lctx, ns_g_debuglevel);
+		result = ISC_R_SUCCESS;
+	} else if (command_compare(command, NS_COMMAND_NTA)) {
+		result = ns_server_nta(ns_g_server, lex, readonly, text);
+	} else if (command_compare(command, NS_COMMAND_NULL)) {
+		result = ISC_R_SUCCESS;
+	} else if (command_compare(command, NS_COMMAND_QUERYLOG)) {
+		result = ns_server_togglequerylog(ns_g_server, lex);
+	} else if (command_compare(command, NS_COMMAND_RECONFIG)) {
+		result = ns_server_reconfigcommand(ns_g_server);
+	} else if (command_compare(command, NS_COMMAND_RECURSING)) {
+		result = ns_server_dumprecursing(ns_g_server);
+	} else if (command_compare(command, NS_COMMAND_REFRESH)) {
+		result = ns_server_refreshcommand(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_RELOAD)) {
+		result = ns_server_reloadcommand(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_RETRANSFER)) {
+		result = ns_server_retransfercommand(ns_g_server,
+						     lex, text);
 	} else if (command_compare(command, NS_COMMAND_SCAN)) {
 		result = ISC_R_SUCCESS;
 		ns_server_scan_interfaces(ns_g_server);
+	} else if (command_compare(command, NS_COMMAND_SECROOTS)) {
+		result = ns_server_dumpsecroots(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_SIGNING)) {
+		result = ns_server_signing(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_SHOWZONE)) {
+		result = ns_server_showzone(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_STATUS)) {
+		result = ns_server_status(ns_g_server, text);
 	} else if (command_compare(command, NS_COMMAND_SYNC)) {
 		result = ns_server_sync(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_RECURSING)) {
-		result = ns_server_dumprecursing(ns_g_server);
+	} else if (command_compare(command, NS_COMMAND_THAW) ||
+		   command_compare(command, NS_COMMAND_UNFREEZE)) {
+		result = ns_server_freeze(ns_g_server, false, lex,
+					  text);
+	} else if (command_compare(command, NS_COMMAND_TESTGEN)) {
+		result = ns_server_testgen(lex, text);
 	} else if (command_compare(command, NS_COMMAND_TIMERPOKE)) {
 		result = ISC_R_SUCCESS;
 		isc_timermgr_poke(ns_g_timermgr);
-	} else if (command_compare(command, NS_COMMAND_NULL)) {
-		result = ISC_R_SUCCESS;
-	} else if (command_compare(command, NS_COMMAND_NOTIFY)) {
-		result = ns_server_notifycommand(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_TRACE)) {
+		result = ns_server_setdebuglevel(ns_g_server, lex);
+	} else if (command_compare(command, NS_COMMAND_TSIGDELETE)) {
+		result = ns_server_tsigdelete(ns_g_server, lex, text);
+	} else if (command_compare(command, NS_COMMAND_TSIGLIST)) {
+		result = ns_server_tsiglist(ns_g_server, text);
 	} else if (command_compare(command, NS_COMMAND_VALIDATION)) {
 		result = ns_server_validation(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_SIGN) ||
-		   command_compare(command, NS_COMMAND_LOADKEYS)) {
-		result = ns_server_rekey(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_ADDZONE) ||
-		   command_compare(command, NS_COMMAND_MODZONE)) {
-		result = ns_server_changezone(ns_g_server, cmdline, text);
-	} else if (command_compare(command, NS_COMMAND_DELZONE)) {
-		result = ns_server_delzone(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_SHOWZONE)) {
-		result = ns_server_showzone(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_SIGNING)) {
-		result = ns_server_signing(ns_g_server, lex, text);
 	} else if (command_compare(command, NS_COMMAND_ZONESTATUS)) {
 		result = ns_server_zonestatus(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_NTA)) {
-		result = ns_server_nta(ns_g_server, lex, readonly, text);
-	} else if (command_compare(command, NS_COMMAND_TESTGEN)) {
-		result = ns_server_testgen(lex, text);
-	} else if (command_compare(command, NS_COMMAND_MKEYS)) {
-		result = ns_server_mkeys(ns_g_server, lex, text);
-	} else if (command_compare(command, NS_COMMAND_DNSTAP) ||
-		   command_compare(command, NS_COMMAND_DNSTAPREOPEN)) {
-		result = ns_server_dnstap(ns_g_server, lex, text);
 	} else {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_CONTROL, ISC_LOG_WARNING,
