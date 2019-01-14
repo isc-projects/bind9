@@ -57,18 +57,14 @@ showprivate () {
 }
 
 # check that signing records are marked as complete
-checkprivate () { (
+checkprivate () {
     for i in 1 2 3 4 5 6 7 8 9 10; do
-        ret=0
-        showprivate "$@" | grep incomplete >/dev/null 2>&1 && { ret=1; sleep 1; continue; }
-        break
+        showprivate "$@" | grep -q incomplete || return 0
+	sleep 1
     done
-    [ $ret -eq 1 ] && {
-        echo_d "$1 signing incomplete"
-        return 1
-    }
-    return 0
-) }
+    echo_d "$1 signing incomplete"
+    return 1
+}
 
 # check that a zone file is raw format, version 0
 israw0 () {
