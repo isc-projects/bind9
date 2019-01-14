@@ -297,7 +297,7 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "reinitialize trust anchors"
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc mkeys ns2
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns2
 rm -f ns2/managed-keys.bind*
 nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns2
@@ -707,6 +707,21 @@ $DIG $DIGOPTS +noauth example. @10.53.0.5 txt > dig.out.ns5.b.test$n || ret=1
 grep "flags:.*ad.*QUERY" dig.out.ns5.b.test$n > /dev/null || ret=1
 grep "example..*.RRSIG..*TXT" dig.out.ns5.b.test$n > /dev/null || ret=1
 grep "status: NOERROR" dig.out.ns5.b.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check 'rndc managed-keys' and views ($n)"
+ret=0
+$RNDCCMD 10.53.0.6 managed-keys refresh in view1 > rndc.out.ns6.view1.test$n || ret=1
+grep "refreshing managed keys for 'view1'" rndc.out.ns6.view1.test$n > /dev/null || ret=1
+lines=`wc -l < rndc.out.ns6.view1.test$n`
+[ $lines -eq 1 ] || ret=1
+$RNDCCMD 10.53.0.6 managed-keys refresh > rndc.out.ns6.view2.test$n || ret=1
+lines=`wc -l < rndc.out.ns6.view2.test$n`
+grep "refreshing managed keys for 'view1'" rndc.out.ns6.view2.test$n > /dev/null || ret=1
+grep "refreshing managed keys for 'view2'" rndc.out.ns6.view2.test$n > /dev/null || ret=1
+[ $lines -eq 2 ] || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
