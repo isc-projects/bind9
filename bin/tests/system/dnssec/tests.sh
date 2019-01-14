@@ -1399,6 +1399,41 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "checking that a key using an unsupported algorithm cannot be generated ($n)"
+ret=0
+zone=example
+$KEYGEN -a 255 example > dnssectools.out.test$n 2>&1 && ret=0
+grep "unsupported algorithm: 255" dnssectools.out.test$n || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a DS record cannot be generated for a key using an unsupported algorithm ($n)"
+ret=0
+zone=example
+# Fake an unsupported algorithm key
+unsupportedkey=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+awk '$3 == "DNSKEY" { $6 = 255; print } { print }' ${unsupportedkey}.key > ${unsupportedkey}.tmp
+mv ${unsupportedkey}.tmp ${unsupportedkey}.key
+$DSFROMKEY ${unsupportedkey} > dnssectools.out.test$n 2>&1 && ret=0
+grep "algorithm is unsupported" dnssectools.out.test$n || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a zone cannot be signed with a key using an unsupported algorithm ($n)"
+ret=0
+cp ${unsupportedkey}.* signer/
+(
+cd signer || exit 1
+cat example.db.in "${unsupportedkey}.key" > example.db
+$SIGNER -o example example.db ${unsupportedkey} > ../dnssectools.out.test$n 2>&1 && ret=0
+) && ret=0
+grep "algorithm is unsupported" dnssectools.out.test$n || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 echo_i "checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
 zone=example
