@@ -28,6 +28,13 @@ do
 done
 
 n=`expr $n + 1`
+echo_i "checking that an unsupported algorithm is not used for signing ($n)"
+ret=0
+grep -q "algorithm is unsupported" ns3/named.run || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking that rrsigs are replaced with ksk only ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 axfr nsec3. |
