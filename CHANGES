@@ -1,3 +1,6 @@
+5132.	[bug]		Fix race condition in cleanup part of dns_dt_create().
+			[GL !1323]
+
 5131.	[cleanup]	Address Coverity warnings. [GL #801]
 
 5130.	[cleanup]	Remove support for l10n message catalogs. [GL #709]
