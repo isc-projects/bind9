@@ -157,7 +157,10 @@
 
 5119.	[placeholder]
 
-5118.	[placeholder]
+5118.	[security]	Named could crash if it is managing a key with
+			`managed-keys` and the authoritative zone is rolling
+			the key to an unsupported algorithm. (CVE-2018-5745)
+			[GL #780]
 
 5117.	[placeholder]
 
