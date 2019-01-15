@@ -27,6 +27,7 @@ copy_setports ns6/named.conf.in ns6/named.conf
 cp ns5/named1.args ns5/named.args
 
 ( cd ns1 && $SHELL sign.sh )
+( cd ns6 && $SHELL setup.sh )
 
 cp ns2/managed.conf ns2/managed1.conf
 
