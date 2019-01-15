@@ -1597,6 +1597,7 @@
 ./bin/tests/system/mkeys/ns5/named.conf.in	CONF-C	2017,2018,2019
 ./bin/tests/system/mkeys/ns5/named1.args	X	2017,2018,2019
 ./bin/tests/system/mkeys/ns5/named2.args	X	2017,2018,2019
+./bin/tests/system/mkeys/ns6/named.conf.in	CONF-C	2019
 ./bin/tests/system/mkeys/prereq.sh		SH	2015,2016,2018,2019
 ./bin/tests/system/mkeys/setup.sh		SH	2015,2016,2017,2018,2019
 ./bin/tests/system/mkeys/tests.sh		SH	2015,2016,2017,2018,2019
