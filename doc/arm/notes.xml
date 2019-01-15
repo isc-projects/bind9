@@ -106,6 +106,14 @@
 	  for records in the zone. [GL #771]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> could crash if it managed a DNSSEC
+	  security root with <command>managed-keys</command> and the
+	  authoritative zone rolled the key to an algorithm not supported
+	  by BIND 9.  This flaw is disclosed in CVE-2018-5745. [GL #780]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
