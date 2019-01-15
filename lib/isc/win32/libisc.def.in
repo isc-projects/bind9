@@ -507,6 +507,7 @@ isc_sockaddr_fromin
 isc_sockaddr_fromin6
 isc_sockaddr_fromnetaddr
 isc_sockaddr_frompath
+isc_sockaddr_fromsockaddr
 isc_sockaddr_getport
 isc_sockaddr_hash
 isc_sockaddr_isexperimental
