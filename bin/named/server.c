@@ -163,23 +163,23 @@
  * using it has a 'result' variable and a 'cleanup' label.
  */
 #define CHECK(op) \
-	do { result = (op);					 \
-	       if (result != ISC_R_SUCCESS) goto cleanup;	 \
+	do { result = (op);					  \
+	       if (result != ISC_R_SUCCESS) goto cleanup;	  \
 	} while (0)
 
 #define TCHECK(op) \
-	do { tresult = (op);					 \
-		if (tresult != ISC_R_SUCCESS) {			 \
-			isc_buffer_clear(*text);		 \
-			goto cleanup;	 			 \
-		}						 \
+	do { tresult = (op);					  \
+		if (tresult != ISC_R_SUCCESS) {			  \
+			isc_buffer_clear(*text);		  \
+			goto cleanup;	 			  \
+		}						  \
 	} while (0)
 
 #define CHECKM(op, msg) \
 	do { result = (op);					  \
 	       if (result != ISC_R_SUCCESS) {			  \
 			isc_log_write(named_g_lctx,		  \
-				      NAMED_LOGCATEGORY_GENERAL,	  \
+				      NAMED_LOGCATEGORY_GENERAL,  \
 				      NAMED_LOGMODULE_SERVER,	  \
 				      ISC_LOG_ERROR,		  \
 				      "%s: %s", msg,		  \
@@ -192,7 +192,7 @@
 	do { result = (op);					  \
 	       if (result != ISC_R_SUCCESS) {			  \
 			isc_log_write(named_g_lctx,		  \
-				      NAMED_LOGCATEGORY_GENERAL,	  \
+				      NAMED_LOGCATEGORY_GENERAL,  \
 				      NAMED_LOGMODULE_SERVER,	  \
 				      ISC_LOG_ERROR,		  \
 				      "%s '%s': %s", msg, file,	  \
@@ -759,6 +759,8 @@ dstkey_fromconfig(dns_view_t *view, const cfg_obj_t *vconfig,
 
 	if (flags > 0xffff)
 		CHECKM(ISC_R_RANGE, "key flags");
+	if (flags & DNS_KEYFLAG_REVOKE)
+		CHECKM(DST_R_BADKEYTYPE, "key flags revoke bit set");
 	if (proto > 0xff)
 		CHECKM(ISC_R_RANGE, "key protocol");
 	if (alg > 0xff)
@@ -811,7 +813,8 @@ dstkey_fromconfig(dns_view_t *view, const cfg_obj_t *vconfig,
 			    "ignoring %s key for '%s': no crypto support",
 			    managed ? "managed" : "trusted",
 			    keynamestr);
-	} else if (result == DST_R_UNSUPPORTEDALG) {
+	} else if (result == DST_R_UNSUPPORTEDALG ||
+		   result == DST_R_BADKEYTYPE) {
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "skipping %s key for '%s': %s",
 			    managed ? "managed" : "trusted",
@@ -861,7 +864,8 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			key = cfg_listelt_value(elt2);
 			result = dstkey_fromconfig(view, vconfig, key, managed,
 						   &dstkey, mctx);
-			if (result == DST_R_UNSUPPORTEDALG) {
+			if (result == DST_R_UNSUPPORTEDALG ||
+			    result == DST_R_BADKEYTYPE) {
 				result = ISC_R_SUCCESS;
 				continue;
 			}
