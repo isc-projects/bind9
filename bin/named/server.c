@@ -14214,21 +14214,23 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 
 	/* Skip rndc command name */
 	cmd = next_token(lex, text);
-	if (cmd == NULL)
+	if (cmd == NULL) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
 	/* Get managed-keys subcommand */
 	cmd = next_token(lex, text);
-	if (cmd == NULL)
+	if (cmd == NULL) {
 		return (ISC_R_UNEXPECTEDEND);
+	}
 
-	if (strcasecmp(cmd, "status") == 0)
+	if (strcasecmp(cmd, "status") == 0) {
 		opt = STATUS;
-	else if (strcasecmp(cmd, "refresh") == 0)
+	} else if (strcasecmp(cmd, "refresh") == 0) {
 		opt = REFRESH;
-	else if (strcasecmp(cmd, "sync") == 0)
+	} else if (strcasecmp(cmd, "sync") == 0) {
 		opt = SYNC;
-	else {
+	} else {
 		snprintf(msg, sizeof(msg), "unknown command '%s'", cmd);
 		(void) putstr(text, msg);
 		result = ISC_R_UNEXPECTED;
@@ -14238,29 +14240,17 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 	/* Look for the optional class name. */
 	classtxt = next_token(lex, text);
 	if (classtxt != NULL) {
-		/* Look for the optional view name. */
-		viewtxt = next_token(lex, text);
-	}
-
-	if (classtxt == NULL) {
-		rdclass = dns_rdataclass_in;
-	} else {
 		isc_textregion_t r;
 		r.base = classtxt;
 		r.length = strlen(classtxt);
 		result = dns_rdataclass_fromtext(&rdclass, &r);
 		if (result != ISC_R_SUCCESS) {
-			if (viewtxt == NULL) {
-				rdclass = dns_rdataclass_in;
-				viewtxt = classtxt;
-				result = ISC_R_SUCCESS;
-			} else {
-				snprintf(msg, sizeof(msg),
-					 "unknown class '%s'", classtxt);
-				(void) putstr(text, msg);
-				goto cleanup;
-			}
+			snprintf(msg, sizeof(msg),
+				 "unknown class '%s'", classtxt);
+			(void) putstr(text, msg);
+			goto cleanup;
 		}
+		viewtxt = next_token(lex, text);
 	}
 
 	for (view = ISC_LIST_HEAD(server->viewlist);
@@ -14270,7 +14260,9 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 		if (viewtxt != NULL &&
 		    (rdclass != view->rdclass ||
 		     strcmp(view->name, viewtxt) != 0))
+		{
 			continue;
+		}
 
 		if (view->managed_keys == NULL) {
 			if (viewtxt != NULL) {
@@ -14278,21 +14270,25 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 					 "view '%s': no managed keys", viewtxt);
 				CHECK(putstr(text, msg));
 				goto cleanup;
-			} else
+			} else {
 				continue;
+			}
 		}
 
 		found = true;
 
 		switch (opt) {
 		case REFRESH:
+			if (!first) {
+				CHECK(putstr(text, "\n"));
+			}
 			CHECK(mkey_refresh(view, text));
 			break;
 		case STATUS:
-			if (!first)
+			if (!first) {
 				CHECK(putstr(text, "\n\n"));
+			}
 			CHECK(mkey_status(view, text));
-			first = false;
 			break;
 		case SYNC:
 			CHECK(dns_zone_flush(view->managed_keys));
@@ -14302,12 +14298,16 @@ ns_server_mkeys(ns_server_t *server, isc_lex_t *lex, isc_buffer_t **text) {
 			ISC_UNREACHABLE();
 		}
 
-		if (viewtxt != NULL)
+		if (viewtxt != NULL) {
 			break;
+		}
+
+		first = false;
 	}
 
-	if (!found)
+	if (!found) {
 		CHECK(putstr(text, "no views with managed keys"));
+	}
 
  cleanup:
 	if (isc_buffer_usedlength(*text) > 0)
