@@ -22,6 +22,8 @@ zonefile=root.db
 (cd ../ns6 && $SHELL sign.sh )
 (cd ../ns7 && $SHELL sign.sh )
 
+echo_i "ns1/sign.sh"
+
 cp "../ns2/dsset-example$TP" .
 cp "../ns2/dsset-dlv$TP" .
 cp "../ns2/dsset-in-addr.arpa$TP" .

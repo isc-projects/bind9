@@ -33,7 +33,7 @@ rm -f ./ns*/*.nta
 rm -f ./ns*/managed-keys.bind* ./ns*/*.mkeys*
 rm -f ./ns*/named.lock
 rm -f ./ns1/managed.key.id
-rm -f ./ns1/root.db ./ns2/example.db ./ns3/secure.example.db
+rm -f ./ns1/root.db ./ns2/example.db ./ns2/managed.db ./ns2/trusted.db
 rm -f ./ns2/algroll.db
 rm -f ./ns2/badparam.db ./ns2/badparam.db.bad
 rm -f ./ns2/cdnskey-kskonly.secure.db
@@ -49,6 +49,8 @@ rm -f ./ns2/in-addr.arpa.db
 rm -f ./ns2/nsec3chain-test.db
 rm -f ./ns2/private.secure.example.db
 rm -f ./ns2/single-nsec3.db
+rm -f ./ns3/secure.example.db ./ns3/*.managed.db ./ns3/*.trusted.db
+rm -f ./ns3/unsupported.managed.db.tmp ./ns3/unsupported.trusted.db.tmp
 rm -f ./ns3/auto-nsec.example.db ./ns3/auto-nsec3.example.db
 rm -f ./ns3/badds.example.db
 rm -f ./ns3/dname-at-apex-nsec3.example.db

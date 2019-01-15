@@ -1402,8 +1402,11 @@ status=$((status+ret))
 echo_i "checking that a key using an unsupported algorithm cannot be generated ($n)"
 ret=0
 zone=example
-$KEYGEN -a 255 example > dnssectools.out.test$n 2>&1 && ret=0
-grep "unsupported algorithm: 255" dnssectools.out.test$n || ret=1
+# If dnssec-keygen fails, the test script will exit immediately.  Prevent that
+# from happening, and also trigger a test failure if dnssec-keygen unexpectedly
+# succeeds, by using "&& ret=1".
+$KEYGEN -a 255 $zone > dnssectools.out.test$n 2>&1 && ret=1
+grep -q "unsupported algorithm: 255" dnssectools.out.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1413,23 +1416,26 @@ ret=0
 zone=example
 # Fake an unsupported algorithm key
 unsupportedkey=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
-awk '$3 == "DNSKEY" { $6 = 255; print } { print }' ${unsupportedkey}.key > ${unsupportedkey}.tmp
+awk '$3 == "DNSKEY" { $6 = 255 } { print }' ${unsupportedkey}.key > ${unsupportedkey}.tmp
 mv ${unsupportedkey}.tmp ${unsupportedkey}.key
-$DSFROMKEY ${unsupportedkey} > dnssectools.out.test$n 2>&1 && ret=0
-grep "algorithm is unsupported" dnssectools.out.test$n || ret=1
+# If dnssec-dsfromkey fails, the test script will exit immediately.  Prevent
+# that from happening, and also trigger a test failure if dnssec-dsfromkey
+# unexpectedly succeeds, by using "&& ret=1".
+$DSFROMKEY ${unsupportedkey} > dnssectools.out.test$n 2>&1 && ret=1
+grep -q "algorithm is unsupported" dnssectools.out.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "checking that a zone cannot be signed with a key using an unsupported algorithm ($n)"
 ret=0
-cp ${unsupportedkey}.* signer/
-(
-cd signer || exit 1
-cat example.db.in "${unsupportedkey}.key" > example.db
-$SIGNER -o example example.db ${unsupportedkey} > ../dnssectools.out.test$n 2>&1 && ret=0
-) && ret=0
-grep "algorithm is unsupported" dnssectools.out.test$n || ret=1
+ret=0
+cat signer/example.db.in "${unsupportedkey}.key" > signer/example.db
+# If dnssec-signzone fails, the test script will exit immediately.  Prevent that
+# from happening, and also trigger a test failure if dnssec-signzone
+# unexpectedly succeeds, by using "&& ret=1".
+$SIGNER -o example signer/example.db ${unsupportedkey} > dnssectools.out.test$n 2>&1 && ret=1
+grep -q "algorithm is unsupported" dnssectools.out.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3679,6 +3685,173 @@ dig_with_opts any zz.secure.example. @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
 grep "status: NOERROR" dig.out.ns3.2.test$n > /dev/null || ret=1
 # DNSKEY+RRSIG, NSEC+RRSIG
 grep "ANSWER: 4," dig.out.ns3.2.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+#
+# DNSSEC tests related to unsupported, disabled and revoked trust anchors.
+#
+
+# This nameserver (ns8) is loaded with a bunch of trust anchors.  Some of them
+# are good (enabled.managed, enabled.trusted, secure.managed, secure.trusted),
+# and some of them are bad (disabled.managed, revoked.managed, unsupported.managed,
+# disabled.trusted, revoked.trusted, unsupported.trusted).  Make sure that the bad
+# trust anchors are ignored.  This is tested by looking for the corresponding
+# lines in the logfile.
+echo_i "checking that keys with unsupported algorithms and disabled algorithms are ignored ($n)"
+ret=0
+grep -q "ignoring trusted key for 'disabled\.trusted\.': algorithm is disabled" ns8/named.run || ret=1
+grep -q "ignoring trusted key for 'unsupported\.trusted\.': algorithm is unsupported" ns8/named.run || ret=1
+grep -q "ignoring managed key for 'disabled\.managed\.': algorithm is disabled" ns8/named.run || ret=1
+grep -q "ignoring managed key for 'unsupported\.managed\.': algorithm is unsupported" ns8/named.run || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# The next two tests are fairly normal DNSSEC queries to signed zones with a
+# default algorithm.  First, a query is made against the server that is
+# authoritative for the given zone (ns3).  Second, a query is made against a
+# resolver with trust anchors for the given zone (ns8).  Both are expected to
+# return an authentic data positive response.
+echo_i "checking that a trusted key using a supported algorithm validates as secure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.secure.trusted A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.secure.trusted A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a managed key using a supported algorithm validates as secure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.secure.managed A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.secure.managed A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# The next two queries ensure that a zone signed with a DNSKEY with an unsupported
+# algorithm will yield insecure positive responses.  These trust anchors in ns8 are
+# ignored and so this domain is treated as insecure.  The AD bit should not be set
+# in the response.
+echo_i "checking that a trusted key using an unsupported algorithm validates as insecure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.unsupported.trusted A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.unsupported.trusted A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a managed key using an unsupported algorithm validates as insecure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.unsupported.managed A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.unsupported.managed A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# The next two queries ensure that a zone signed with a DNSKEY that the nameserver
+# has a disabled algorithm match for will yield insecure positive responses.
+# These trust anchors in ns8 are ignored and so this domain is treated as insecure.
+# The AD bit should not be set in the response.
+echo_i "checking that a trusted key using a disabled algorithm validates as insecure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.disabled.trusted A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.disabled.trusted A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a managed key using a disabled algorithm validates as insecure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.disabled.managed A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.disabled.managed A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# The next two queries ensure that a zone signed with a DNSKEY that the
+# nameserver has a disabled algorithm for, but for a different domain, will
+# yield secure positive responses.  Since "enabled.trusted." and
+# "enabled.managed." do not match the "disable-algorithms" option, no
+# special rules apply and these zones should validate as secure, with the AD
+# bit set.
+echo_i "checking that a trusted key using an algorithm disabled for another domain validates as secure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.enabled.trusted A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.enabled.trusted A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a managed key using an algorithm disabled for another domain validates as secure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.enabled.managed A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.enabled.managed A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# A configured revoked trust anchor is ignored and thus the two queries below
+# should result in insecure responses, since no trust points for the
+# "revoked.trusted." and "revoked.managed." zones are created.
+echo_i "checking that a trusted key that is revoked validates as insecure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.revoked.trusted A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.revoked.trusted A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a managed key that is revoked validates as insecure ($n)"
+ret=0
+dig_with_opts @10.53.0.3 a.revoked.managed A > dig.out.ns3.test$n
+dig_with_opts @10.53.0.8 a.revoked.managed A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Note: after this check, ns4 will not be validating any more; do not add any
+# further validation tests employing ns4 below this check.
+echo_i "check that validation defaults to off when dnssec-enable is off ($n)"
+ret=0
+# Sanity check - validation should be enabled.
+rndccmd 10.53.0.4 validation status | grep "enabled" > /dev/null || ret=1
+# Set "dnssec-enable" to "no" and reconfigure.
+copy_setports ns4/named5.conf.in ns4/named.conf
+rndccmd 10.53.0.4 reconfig 2>&1 | sed 's/^/ns4 /' | cat_i
+# Check validation status again.
+rndccmd 10.53.0.4 validation status | grep "disabled" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
