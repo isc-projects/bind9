@@ -18,6 +18,10 @@
 #include <stddef.h>
 #include <inttypes.h>
 
+#if defined(sun) && (defined(__sparc) || defined(__sparc__))
+#include <synch.h> /* for smt_pause(3c) */
+#endif
+
 #include <isc/atomic.h>
 #include <isc/magic.h>
 #include <isc/platform.h>
@@ -52,6 +56,8 @@
 # define isc_rwlock_pause() __asm__ __volatile__ ("hint @pause")
 #elif defined(__arm__)
 # define isc_rwlock_pause() __asm__ __volatile__ ("yield")
+#elif defined(sun) && (defined(__sparc) || defined(__sparc__))
+# define isc_rwlock_pause() smt_pause()
 #elif defined(__sparc) || defined(__sparc__)
 # define isc_rwlock_pause() __asm__ __volatile__ ("pause")
 #elif defined(__ppc__) || defined(_ARCH_PPC)  ||			\
