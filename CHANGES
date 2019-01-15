@@ -1,3 +1,6 @@
+5134.	[bug]		win32: WSAStartup was not called before getservbyname
+			was called. [GL #590]
+
 5133.	[bug]		'rndc managed-keys' didn't handle class and view
 			correctly and failed to add new lines between each
 			view. [GL !1327]
