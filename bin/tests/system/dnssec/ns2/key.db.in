@@ -38,3 +38,6 @@ ns3.disabled		A	10.53.0.3
 enabled			NS	ns3.enabled
 ns3.enabled		A	10.53.0.3
 
+; A secure subdomain with a revoked trust anchor
+revoked			NS	ns3.revoked
+ns3.revoked		A	10.53.0.3

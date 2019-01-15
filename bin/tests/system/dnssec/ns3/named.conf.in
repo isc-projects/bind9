@@ -334,6 +334,11 @@ zone "unsupported.managed" {
 	file "unsupported.managed.db.signed";
 };
 
+zone "revoked.managed" {
+	type master;
+	file "revoked.managed.db.signed";
+};
+
 zone "secure.trusted" {
 	type master;
 	file "secure.trusted.db.signed";
@@ -352,6 +357,11 @@ zone "enabled.trusted" {
 zone "unsupported.trusted" {
 	type master;
 	file "unsupported.trusted.db.signed";
+};
+
+zone "revoked.trusted" {
+	type master;
+	file "revoked.trusted.db.signed";
 };
 
 include "siginterval.conf";
