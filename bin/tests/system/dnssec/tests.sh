@@ -168,7 +168,7 @@ if [ -x ${DELV} ] ; then
    echo_i "checking postive validation NSEC using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.example > delv.out$n || ret=1
    grep "a.example..*10.0.0.1" delv.out$n > /dev/null || ret=1
-   grep "a.example..*.RRSIG.A 3 2 300 .*" delv.out$n > /dev/null || ret=1
+   grep "a.example..*.RRSIG.A [0-9][0-9]* 2 300 .*" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -191,7 +191,7 @@ if [ -x ${DELV} ] ; then
    echo_i "checking positive validation NSEC3 using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.nsec3.example > delv.out$n || ret=1
    grep "a.nsec3.example..*10.0.0.1" delv.out$n > /dev/null || ret=1
-   grep "a.nsec3.example..*RRSIG.A 7 3 300.*" delv.out$n > /dev/null || ret=1
+   grep "a.nsec3.example..*RRSIG.A [0-9][0-9]* 3 300.*" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -214,7 +214,7 @@ if [ -x ${DELV} ] ; then
    echo_i "checking positive validation OPTOUT using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.optout.example > delv.out$n || ret=1
    grep "a.optout.example..*10.0.0.1" delv.out$n > /dev/null || ret=1
-   grep "a.optout.example..*RRSIG.A 7 3 300.*" delv.out$n > /dev/null || ret=1
+   grep "a.optout.example..*RRSIG.A [0-9][0-9]* 3 300.*" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -240,7 +240,7 @@ if [ -x ${DELV} ] ; then
    echo_i "checking positive wildcard validation NSEC using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.wild.example > delv.out$n || ret=1
    grep "a.wild.example..*10.0.0.27" delv.out$n > /dev/null || ret=1
-   grep "a.wild.example..*RRSIG.A 3 2 300.*" delv.out$n > /dev/null || ret=1
+   grep "a.wild.example..*RRSIG.A [0-9][0-9]* 2 300.*" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -282,7 +282,7 @@ if [ -x ${DELV} ] ; then
    echo_i "checking positive wildcard validation NSEC3 using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.wild.nsec3.example > delv.out$n || ret=1
    grep "a.wild.nsec3.example..*10.0.0.6" delv.out$n > /dev/null || ret=1
-   grep "a.wild.nsec3.example..*RRSIG.A 7 3 300.*" delv.out$n > /dev/null || ret=1
+   grep "a.wild.nsec3.example..*RRSIG.A [0-9][0-9]* 3 300.*" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -308,7 +308,7 @@ if [ -x ${DELV} ] ; then
    echo_i "checking positive wildcard validation OPTOUT using dns_client ($n)"
    $DELV $DELVOPTS @10.53.0.4 a a.wild.optout.example > delv.out$n || ret=1
    grep "a.wild.optout.example..*10.0.0.6" delv.out$n > /dev/null || ret=1
-   grep "a.wild.optout.example..*RRSIG.A 7 3 300.*" delv.out$n > /dev/null || ret=1
+   grep "a.wild.optout.example..*RRSIG.A [0-9][0-9]* 3 300.*" delv.out$n > /dev/null || ret=1
    n=`expr $n + 1`
    if [ $ret != 0 ]; then echo_i "failed"; fi
    status=`expr $status + $ret`
@@ -1417,8 +1417,11 @@ get_rsasha1_key_ids_from_sigs() {
 echo_i "checking that a key using an unsupported algorithm cannot be generated ($n)"
 ret=0
 zone=example
-$KEYGEN -a 255 example > dnssectools.out.test$n 2>&1 && ret=0
-grep "unsupported algorithm: 255" dnssectools.out.test$n || ret=1
+# If dnssec-keygen fails, the test script will exit immediately.  Prevent that
+# from happening, and also trigger a test failure if dnssec-keygen unexpectedly
+# succeeds, by using "&& ret=1".
+$KEYGEN -a 255 $zone > dnssectools.out.test$n 2>&1 && ret=1
+grep -q "unsupported algorithm: 255" dnssectools.out.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1427,24 +1430,27 @@ echo_i "checking that a DS record cannot be generated for a key using an unsuppo
 ret=0
 zone=example
 # Fake an unsupported algorithm key
-unsupportedkey=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
-awk '$3 == "DNSKEY" { $6 = 255; print } { print }' ${unsupportedkey}.key > ${unsupportedkey}.tmp
+unsupportedkey=`$KEYGEN -q -r $RANDFILE -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone $zone`
+awk '$3 == "DNSKEY" { $6 = 255 } { print }' ${unsupportedkey}.key > ${unsupportedkey}.tmp
 mv ${unsupportedkey}.tmp ${unsupportedkey}.key
-$DSFROMKEY ${unsupportedkey} > dnssectools.out.test$n 2>&1 && ret=0
-grep "algorithm is unsupported" dnssectools.out.test$n || ret=1
+# If dnssec-dsfromkey fails, the test script will exit immediately.  Prevent
+# that from happening, and also trigger a test failure if dnssec-dsfromkey
+# unexpectedly succeeds, by using "&& ret=1".
+$DSFROMKEY ${unsupportedkey} > dnssectools.out.test$n 2>&1 && ret=1
+grep -q "algorithm is unsupported" dnssectools.out.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 echo_i "checking that a zone cannot be signed with a key using an unsupported algorithm ($n)"
 ret=0
-cp ${unsupportedkey}.* signer/
-(
-cd signer || exit 1
-cat example.db.in "${unsupportedkey}.key" > example.db
-$SIGNER -o example example.db ${unsupportedkey} > ../dnssectools.out.test$n 2>&1 && ret=0
-) && ret=0
-grep "algorithm is unsupported" dnssectools.out.test$n || ret=1
+ret=0
+cat signer/example.db.in "${unsupportedkey}.key" > signer/example.db
+# If dnssec-signzone fails, the test script will exit immediately.  Prevent that
+# from happening, and also trigger a test failure if dnssec-signzone
+# unexpectedly succeeds, by using "&& ret=1".
+$SIGNER -o example signer/example.db ${unsupportedkey} > dnssectools.out.test$n 2>&1 && ret=1
+grep -q "algorithm is unsupported" dnssectools.out.test$n || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1756,7 +1762,7 @@ ret=0
 $RNDCCMD 10.53.0.4 secroots 2>&1 | sed 's/^/ns4 /' | cat_i
 keyid=`cat ns1/managed.key.id`
 cp ns4/named.secroots named.secroots.test$n
-linecount=`grep "./RSAMD5/$keyid ; trusted" named.secroots.test$n | wc -l`
+linecount=`grep "./$DEFAULT_ALGORITHM/$keyid ; trusted" named.secroots.test$n | wc -l`
 [ "$linecount" -eq 1 ] || ret=1
 linecount=`cat named.secroots.test$n | wc -l`
 [ "$linecount" -eq 10 ] || ret=1
@@ -3084,11 +3090,11 @@ echo_i "check dig's +nocrypto flag ($n)"
 ret=0
 $DIG $DIGOPTS +norec +nocrypto DNSKEY . \
 	@10.53.0.1 > dig.out.dnskey.ns1.test$n || ret=1
-grep '256 3 1 \[key id = [1-9][0-9]*]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
+grep '256 3 [0-9][0-9]* \[key id = [1-9][0-9]*]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
 grep 'RRSIG.* \[omitted]' dig.out.dnskey.ns1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +norec +nocrypto DS example \
 	@10.53.0.1 > dig.out.ds.ns1.test$n || ret=1
-grep 'DS.* 3 [12] \[omitted]' dig.out.ds.ns1.test$n > /dev/null || ret=1
+grep 'DS.* [0-9][0-9]* [12] \[omitted]' dig.out.ds.ns1.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -3806,6 +3812,76 @@ grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
 grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
 grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
 grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+#
+# DNSSEC tests related to unsupported trust anchors.
+#
+
+# This nameserver (ns8) is loaded with a bunch of trust anchors.  Some of them
+# are good (enabled.managed, enabled.trusted, secure.managed, secure.trusted),
+# and some of them are bad (unsupported.managed, unsupported.trusted).  Make
+# sure that the bad trust anchors are ignored.  This is tested by looking for
+# the corresponding lines in the logfile.
+echo_i "checking that keys with unsupported algorithms are ignored ($n)"
+ret=0
+grep "skipping trusted key for 'unsupported\.trusted\.': algorithm is unsupported" ns8/named.run > /dev/null || ret=1
+grep "skipping managed key for 'unsupported\.managed\.': algorithm is unsupported" ns8/named.run > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# The next two tests are fairly normal DNSSEC queries to signed zones with a
+# default algorithm.  First, a query is made against the server that is
+# authoritative for the given zone (ns3).  Second, a query is made against a
+# resolver with trust anchors for the given zone (ns8).  Both are expected to
+# return an authentic data positive response.
+echo_i "checking that a trusted key using a supported algorithm validates as secure ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 a.secure.trusted A > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.8 a.secure.trusted A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a managed key using a supported algorithm validates as secure ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 a.secure.managed A > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.8 a.secure.managed A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# The next two queries ensure that a zone signed with a DNSKEY with an unsupported
+# algorithm will yield insecure positive responses.  These trust anchors in ns8 are
+# ignored and so this domain is treated as insecure.  The AD bit should not be set
+# in the response.
+echo_i "checking that a trusted key using an unsupported algorithm validates as insecure ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 a.unsupported.trusted A > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.8 a.unsupported.trusted A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking that a managed key using an unsupported algorithm validates as insecure ($n)"
+ret=0
+$DIG $DIGOPTS @10.53.0.3 a.unsupported.managed A > dig.out.ns3.test$n
+$DIG $DIGOPTS @10.53.0.8 a.unsupported.managed A > dig.out.ns8.test$n
+grep "status: NOERROR," dig.out.ns3.test$n > /dev/null || ret=1
+grep "status: NOERROR," dig.out.ns8.test$n > /dev/null || ret=1
+grep "flags:.*ad.*QUERY" dig.out.ns8.test$n > /dev/null && ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))

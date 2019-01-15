@@ -698,8 +698,9 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 }
 
 static isc_result_t
-dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
-		  bool managed, dst_key_t **target, isc_mem_t *mctx)
+dstkey_fromconfig(dns_view_t *view, const cfg_obj_t *vconfig,
+		  const cfg_obj_t *key, bool managed, dst_key_t **target,
+		  isc_mem_t *mctx)
 {
 	dns_rdataclass_t viewclass;
 	dns_rdata_dnskey_t keystruct;
@@ -792,6 +793,14 @@ dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
 	CHECK(dst_key_fromdns(keyname, viewclass, &rrdatabuf,
 			      mctx, &dstkey));
 
+	if (!dns_resolver_algorithm_supported(view->resolver, keyname, alg)) {
+		cfg_obj_log(key, ns_g_lctx, ISC_LOG_WARNING,
+			    "%s key for '%s': algorithm is disabled",
+			    managed ? "managed" : "trusted", keynamestr);
+		result = DST_R_UNSUPPORTEDALG;
+		goto cleanup;
+	}
+
 	*target = dstkey;
 	return (ISC_R_SUCCESS);
 
@@ -842,9 +851,9 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 		     elt2 != NULL;
 		     elt2 = cfg_list_next(elt2)) {
 			key = cfg_listelt_value(elt2);
-			result = dstkey_fromconfig(vconfig, key, managed,
+			result = dstkey_fromconfig(view, vconfig, key, managed,
 						   &dstkey, mctx);
-			if (result ==  DST_R_UNSUPPORTEDALG) {
+			if (result == DST_R_UNSUPPORTEDALG) {
 				result = ISC_R_SUCCESS;
 				continue;
 			}
@@ -9962,7 +9971,7 @@ add_zone_tolist(dns_zone_t *zone, void *uap) {
 	struct zonelistentry *zle;
 
 	zle = isc_mem_get(dctx->mctx, sizeof *zle);
-	if (zle ==  NULL)
+	if (zle == NULL)
 		return (ISC_R_NOMEMORY);
 	zle->zone = NULL;
 	dns_zone_attach(zone, &zle->zone);
