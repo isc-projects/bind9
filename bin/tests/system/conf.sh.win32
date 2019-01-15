@@ -158,42 +158,5 @@ HAVEJSONSTATS=@JSONSTATS@
 ZLIB=@ZLIB@
 NZD=@NZD_TOOLS@
 
-# copy_setports - Copy Configuration File and Replace Ports
-# Unfortunately it has to be different on Windows.
-#
-# Convenience function to copy a configuration file, replacing the tokens
-# QUERYPORT, CONTROLPORT and EXTRAPORT[1-8] with the values of the equivalent
-# environment variables. (These values are set by "run.sh", which calls the
-# scripts invoking this function.)
-#
-# Usage:
-#   copy_setports infile outfile
-
-copy_setports() {
-    # The indirect method of handling the substitution of the PORT variables
-    # (defining "atsign" then substituting for it in the "sed" statement) is
-    # required because to prevent the "Configure" script (in the the
-    # bin9/win32utils directory) replacing the the <at>PORT<at> substitution
-    # tokens when it processes this file and produces conf.sh.
-    atsign="@"
-    sed -e "s/${atsign}PORT${atsign}/${PORT}/g" \
-        -e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
-        -e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
-        -e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
-        -e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
-        -e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
-        -e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
-        -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
-        -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
-        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
-	-e "s/${atsign}DEFAULT_ALGORITHM${atsign}/${DEFAULT_ALGORITHM}/g" \
-	-e "s/${atsign}DEFAULT_ALGORITHM_NUMBER${atsign}/${DEFAULT_ALGORITHM_NUMBER}/g" \
-	-e "s/${atsign}DEFAULT_BITS${atsign}/${DEFAULT_BITS}/g" \
-	-e "s/${atsign}ALTERNATIVE_ALGORITHM${atsign}/${ALTERNATIVE_ALGORITHM}/g" \
-	-e "s/${atsign}ALTERNATIVE_ALGORITHM_NUMBER${atsign}/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
-	-e "s/${atsign}ALTERNATIVE_BITS${atsign}/${ALTERNATIVE_BITS}/g" \
-	$1 > $2
-}
-
 # The rest is shared between Windows and Unices
 . $TOP/bin/tests/system/conf.sh.common
