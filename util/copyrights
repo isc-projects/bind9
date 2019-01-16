@@ -3151,6 +3151,7 @@
 ./doc/design/resolver				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019
 ./doc/design/search				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019
 ./doc/design/tasks				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019
+./doc/design/unsupported-algorithms-in-bind9	TXT.BRIEF	2019
 ./doc/design/verify				TXT.BRIEF	2012,2016,2018,2019
 ./doc/design/windows-nt				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019
 ./doc/design/zone				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019

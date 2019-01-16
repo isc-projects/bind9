@@ -17,7 +17,7 @@ rm -f K.+*+*.key
 rm -f K.+*+*.private
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
-$SIGNER -S -x -T 1200 -o ${zone} root.db > signer.out 2>&1
+$SIGNER -r $RANDFILE -S -x -T 1200 -o ${zone} root.db > signer.out 2>&1
 [ $? = 0 ] || cat signer.out
 
 keyfile_to_trusted_keys $keyname > trusted.conf
