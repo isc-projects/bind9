@@ -1,3 +1,9 @@
+5139.	[bug]		If possible, don't use forwarders when priming.
+			This ensures we can get root server IP addresses
+			from priming query response glue, which may not
+			be present if the forwarding server is returning
+			minimal responses. [GL #752]
+
 5138.	[bug]		Under some circumstances named could hit an assertion
 			failure when doing qname minimization when using
 			forwarders. [GL #797]

@@ -118,6 +118,8 @@ typedef enum {
 							when doing qname
 							minimization on
 							ip6.arpa. */
+#define DNS_FETCHOPT_NOFORWARD		0x00080000 /*%< Do not use forwarders
+							if possible. */
 
 /* Reserved in use by adb.c		0x00400000 */
 #define	DNS_FETCHOPT_EDNSVERSIONSET	0x00800000

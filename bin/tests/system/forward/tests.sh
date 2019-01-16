@@ -147,5 +147,17 @@ if [ $sent -ne 1 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking that priming queries are not forwarded"
+ret=0
+$DIG $DIGOPTS +noadd +noauth txt.example1. txt @10.53.0.7 > dig.out.f7 || ret=1
+sent=`sed -n '/sending packet to 10.53.0.1/,/^$/p' ns7/named.run | grep ";.*IN.*NS" | wc -l`
+[ $sent -eq 1 ] || ret=1
+sent=`grep "10.53.0.7#.* (.): query '\./NS/IN' approved" ns4/named.run | wc -l`
+[ $sent -eq 0 ] || ret=1
+sent=`grep "10.53.0.7#.* (.): query '\./NS/IN' approved" ns1/named.run | wc -l`
+[ $sent -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
