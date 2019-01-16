@@ -1,3 +1,7 @@
+5136.	[cleanup]	Check in named-checkconf that allow-update and
+			allow-update-forwarding are not set at the
+			view/options level; fix documentation. [GL #512]
+
 5135.	[port]		sparc: Use smt_pause() instead of pause. [GL #816]
 
 5134.	[bug]		win32: WSAStartup was not called before getservbyname
