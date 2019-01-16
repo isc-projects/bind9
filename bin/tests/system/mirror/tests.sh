@@ -62,7 +62,8 @@ ret=0
 wait_for_transfer verify-unsigned
 $DIG $DIGOPTS @10.53.0.3 +norec verify-unsigned SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
-nextpart ns3/named.run | grep "verify-unsigned.*Zone contains no DNSSEC keys" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "verify-unsigned.*Zone contains no DNSSEC keys" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "verify-unsigned.*mirror zone is now in use" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -73,7 +74,8 @@ nextpartreset ns3/named.run
 wait_for_transfer verify-untrusted
 $DIG $DIGOPTS @10.53.0.3 +norec verify-untrusted SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
-nextpart ns3/named.run | grep "verify-untrusted.*No trusted KSK DNSKEY found" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "verify-untrusted.*No trusted KSK DNSKEY found" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "verify-untrusted.*mirror zone is now in use" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -84,7 +86,8 @@ nextpartreset ns3/named.run
 wait_for_transfer verify-axfr
 $DIG $DIGOPTS @10.53.0.3 +norec verify-axfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
-nextpart ns3/named.run | grep "No correct RSASHA256 signature for verify-axfr SOA" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "No correct RSASHA256 signature for verify-axfr SOA" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "verify-axfr.*mirror zone is now in use" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -98,6 +101,7 @@ $RNDCCMD 10.53.0.3 retransfer verify-axfr > /dev/null 2>&1
 wait_for_transfer verify-axfr
 $DIG $DIGOPTS @10.53.0.3 +norec verify-axfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "verify-axfr.*mirror zone is now in use" > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -106,12 +110,23 @@ echo_i "checking that an IXFR of an incorrectly signed mirror zone is rejected (
 nextpartreset ns3/named.run
 ret=0
 wait_for_transfer verify-ixfr
-nextpart ns3/named.run > /dev/null
 # Make a copy of the original zone file for reuse in journal tests below.
 cp ns2/verify-ixfr.db.signed ns3/verify-journal.db.mirror
 # Wait 1 second so that the zone file timestamp changes and the subsequent
-# invocation of "rndc reload" triggers a zone reload.
+# invocation of "rndc reload" triggers a zone reload.  This should also be way
+# more than enough for the log message announcing the mirror zone coming into
+# effect to appear in the log (see below).
 sleep 1
+# Sanity check: the initial, properly signed version of the zone should have
+# been announced as coming into effect.  Note that we cannot check that
+# immediately after wait_for_transfer() as the latter might return before the
+# log message we are looking for here appears; we also cannot call nextpart()
+# after we update the zone on ns2 since there is a possibility of periodic
+# refreshes triggering an IXFR of the "verify-ixfr" zone before the "rndc
+# refresh" call below and that possibility needs to be handled as proper
+# behavior.  Thus, we need to look for the log message now.
+nextpart ns3/named.run | grep "verify-ixfr.*mirror zone is now in use" > /dev/null || ret=1
+# Update the "verify-ixfr" zone on ns2.
 cat ns2/verify-ixfr.db.bad.signed > ns2/verify-ixfr.db.signed
 reload_zone verify-ixfr ${UPDATED_SERIAL_BAD}
 # Make a copy of the bad zone journal for reuse in journal tests below.
@@ -148,6 +163,10 @@ wait_for_transfer verify-ixfr
 # Ensure the new, good version of the zone was accepted.
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
+# The log message announcing the mirror zone coming into effect should not have
+# been logged this time since the mirror zone in question is expected to
+# already be in effect before this test case is checked.
+nextpartpeek ns3/named.run | grep "verify-ixfr.*mirror zone is now in use" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
