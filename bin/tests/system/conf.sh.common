@@ -302,6 +302,7 @@ get_named_xfer_stats() {
 	echo "messages=`grep "${PEER}" "${LOGFILE}" | sed -n "s/.*${ZONE}.* \([0-9][0-9]*\) messages.*/\1/p" | tail -1`"
 	echo "records=`grep "${PEER}" "${LOGFILE}" | sed -n "s/.*${ZONE}.* \([0-9][0-9]*\) records.*/\1/p" | tail -1`"
 	echo "bytes=`grep "${PEER}" "${LOGFILE}" | sed -n "s/.*${ZONE}.* \([0-9][0-9]*\) bytes.*/\1/p" | tail -1`"
+}
 
 # copy_setports - Copy Configuration File and Replace Ports
 #
