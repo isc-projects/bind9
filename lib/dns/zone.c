@@ -4440,6 +4440,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 	bool needdump = false;
 	bool hasinclude = DNS_ZONE_FLAG(zone, DNS_ZONEFLG_HASINCLUDE);
 	bool nomaster = false;
+	bool had_db = false;
 	unsigned int options;
 	dns_include_t *inc;
 
@@ -4804,6 +4805,7 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
 	ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_write);
 	if (zone->db != NULL) {
+		had_db = true;
 		result = zone_replacedb(zone, db, false);
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 		if (result != ISC_R_SUCCESS)
@@ -4913,6 +4915,11 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
 			      ISC_LOG_INFO, "loaded serial %u%s", serial,
 			      dns_db_issecure(db) ? " (DNSSEC signed)" : "");
+	}
+
+	if (!had_db && zone->type == dns_zone_mirror) {
+		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_INFO,
+			      "mirror zone is now in use");
 	}
 
 	zone->loadtime = loadtime;
