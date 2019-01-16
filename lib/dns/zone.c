@@ -10845,6 +10845,12 @@ zone_unload(dns_zone_t *zone) {
 	ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_write);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_LOADED);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_NEEDDUMP);
+
+	if (zone->type == dns_zone_mirror) {
+		dns_zone_log(zone, ISC_LOG_INFO,
+			     "mirror zone is no longer in use; "
+			     "reverting to normal recursion");
+	}
 }
 
 void

@@ -142,7 +142,10 @@ fi
 # Ensure the new, bad version of the zone was not accepted.
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
-nextpart ns3/named.run | grep "No correct RSASHA256 signature for verify-ixfr SOA" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "No correct RSASHA256 signature for verify-ixfr SOA" > /dev/null || ret=1
+# Despite the verification failure for this IXFR, this mirror zone should still
+# be in use as its previous version should have been verified successfully.
+nextpartpeek ns3/named.run | grep "verify-ixfr.*mirror zone is no longer in use" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -165,7 +168,7 @@ $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 # The log message announcing the mirror zone coming into effect should not have
 # been logged this time since the mirror zone in question is expected to
-# already be in effect before this test case is checked.
+# already be in use before this test case is checked.
 nextpartpeek ns3/named.run | grep "verify-ixfr.*mirror zone is now in use" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -380,7 +383,9 @@ nextpart ns3/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
 # Ensure named attempts to retransfer the zone due to its expiry.
 wait_for_transfer initially-unavailable
-nextpart ns3/named.run | grep "initially-unavailable.*expired" > /dev/null || ret=1
+# Ensure the expected messages were logged.
+nextpartpeek ns3/named.run | grep "initially-unavailable.*expired" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "initially-unavailable.*mirror zone is no longer in use" > /dev/null || ret=1
 # Query for a record in the expired zone.  Resolution should still succeed.
 $DIG $DIGOPTS @10.53.0.3 foo.initially-unavailable. A > dig.out.ns3.test$n 2>&1 || ret=1
 # Check response code and flags in the answer.
