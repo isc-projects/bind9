@@ -1,3 +1,6 @@
+5137.	[func]		named now logs messages whenever a mirror zone becomes
+			usable or unusable for resolution purposes. [GL #818]
+
 5136.	[cleanup]	Check in named-checkconf that allow-update and
 			allow-update-forwarding are not set at the
 			view/options level; fix documentation. [GL #512]
