@@ -135,6 +135,7 @@ struct ns_client {
 	dns_name_t		*signer;      /*%< NULL if not valid sig */
 	bool			mortal;	      /*%< Die after handling request */
 	bool			pipelined;   /*%< TCP queries not in sequence */
+	isc_refcount_t		*pipeline_refs;
 	isc_quota_t		*tcpquota;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;
@@ -167,7 +168,6 @@ struct ns_client {
 
 	ISC_LINK(ns_client_t)	link;
 	ISC_LINK(ns_client_t)	rlink;
-	ISC_LINK(ns_client_t)	glink;
 	ISC_QLINK(ns_client_t)	ilink;
 	unsigned char		cookie[8];
 	uint32_t		expire;
