@@ -1,3 +1,5 @@
 *.sln.in eol=crlf
 *.vcxproj.in eol=crlf
 *.vcxproj.filters.in eol=crlf
+*.dsw eol=crlf
+win32utils/**.txt eol=crlf
