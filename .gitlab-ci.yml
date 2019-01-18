@@ -69,6 +69,10 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
   <<: *linux_i386
 
+.precheck: &precheck_job
+  <<: *debian_sid_amd64_image
+  stage: precheck
+
 .build: &build_job
   stage: build
   before_script:
@@ -118,8 +122,7 @@ stages:
   - merge_requests
 
 sid:amd64:precheck:
-  <<: *debian_sid_amd64_image
-  stage: precheck
+  <<: *precheck_job
   script:
     - sh util/checklibs.sh > checklibs.out
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
@@ -143,8 +146,7 @@ sid:amd64:precheck:
   - merge_requests
 
 🐞:sid:amd64:precheck:
-  <<: *debian_sid_amd64_image
-  stage: precheck
+  <<: *precheck_job
   script: util/check-cocci
   only:
   - merge_requests
