@@ -69,11 +69,19 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
   <<: *linux_i386
 
+.default-triggering-rules: &default_triggering_rules
+  only:
+    - merge_requests
+    - tags
+    - web
+
 .precheck: &precheck_job
+  <<: *default_triggering_rules
   <<: *debian_sid_amd64_image
   stage: precheck
 
 .build: &build_job
+  <<: *default_triggering_rules
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
@@ -83,10 +91,9 @@ stages:
   artifacts:
     untracked: true
     expire_in: '1 hour'
-  only:
-  - merge_requests
 
 .system_test: &system_test_job
+  <<: *default_triggering_rules
   stage: test
   retry: 2
   before_script:
@@ -99,10 +106,9 @@ stages:
     untracked: true
     expire_in: '1 week'
     when: on_failure
-  only:
-  - merge_requests
 
 .unit_test: &unit_test_job
+  <<: *default_triggering_rules
   stage: test
   before_script:
     - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
@@ -118,8 +124,6 @@ stages:
     - kyua_html/
     expire_in: '1 week'
     when: on_failure
-  only:
-  - merge_requests
 
 misc:sid:amd64:
   <<: *precheck_job
@@ -142,14 +146,10 @@ misc:sid:amd64:
     - checklibs.out
     expire_in: '1 week'
     when: on_failure
-  only:
-  - merge_requests
 
 🐞:sid:amd64:
   <<: *precheck_job
   script: util/check-cocci
-  only:
-  - merge_requests
 
 docs:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -164,8 +164,10 @@ docs:sid:amd64:
     expire_in: '1 month'
   only:
   - merge_requests
+  - tags
+  - web
   - master@isc-projects/bind9
-  - /^v9_.*$/@isc-projects/bind9
+  - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
 push:docs:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -175,7 +177,7 @@ push:docs:sid:amd64:
     - curl -X POST -F token=$GITLAB_PAGES_DOCS_TRIGGER_TOKEN -F ref=master $GITLAB_PAGES_DOCS_TRIGGER_URL
   only:
   - master@isc-projects/bind9
-  - /^v9_.*$/@isc-projects/bind9
+  - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
 gcc:centos6:amd64:
   variables:
@@ -263,42 +265,27 @@ gcc:sid:amd64:
     EXTRA_CONFIGURE: "--with-libidn2"
   <<: *debian_sid_amd64_image
   <<: *build_job
-  only:
-  - merge_requests
-  - master@isc-projects/bind9
-  - /^v9_.*$/@isc-projects/bind9
 
 install:gcc:sid:amd64:
+  <<: *default_triggering_rules
   <<: *debian_sid_amd64_image
   stage: test
   script:
     - make install
   dependencies:
     - gcc:sid:amd64
-  only:
-  - merge_requests
-  - master@isc-projects/bind9
-  - /^v9_.*$/@isc-projects/bind9
 
 system:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
     - gcc:sid:amd64
-  only:
-  - merge_requests
-  - master@isc-projects/bind9
-  - /^v9_.*$/@isc-projects/bind9
 
 unit:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:sid:amd64
-  only:
-  - merge_requests
-  - master@isc-projects/bind9
-  - /^v9_.*$/@isc-projects/bind9
 
 gcc:sid:i386:
   variables:
