@@ -90,7 +90,7 @@ stages:
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
   artifacts:
     untracked: true
-    expire_in: '1 hour'
+    expire_in: "1 hour"
 
 .system_test: &system_test_job
   <<: *default_triggering_rules
@@ -103,7 +103,7 @@ stages:
     - test -s bin/tests/system/systests.output
   artifacts:
     untracked: true
-    expire_in: '1 week'
+    expire_in: "1 week"
     when: on_failure
 
 .unit_test: &unit_test_job
@@ -118,10 +118,10 @@ stages:
     - kyua report-html --force --results-file kyua.results --results-filter "" --output kyua_html
   artifacts:
     paths:
-    - kyua.log
-    - kyua.results
-    - kyua_html/
-    expire_in: '1 week'
+      - kyua.log
+      - kyua.results
+      - kyua_html/
+    expire_in: "1 week"
     when: on_failure
 
 misc:sid:amd64:
@@ -141,9 +141,9 @@ misc:sid:amd64:
     - xmllint --noout --nonet --html `git ls-files '*.html'`
   artifacts:
     paths:
-    - util/newcopyrights
-    - checklibs.out
-    expire_in: '1 week'
+      - util/newcopyrights
+      - checklibs.out
+    expire_in: "1 week"
     when: on_failure
 
 🐞:sid:amd64:
@@ -159,14 +159,14 @@ docs:sid:amd64:
     - make -C doc/arm Bv9ARM.html
   artifacts:
     paths:
-    - doc/arm/
-    expire_in: '1 month'
+      - doc/arm/
+    expire_in: "1 month"
   only:
-  - merge_requests
-  - tags
-  - web
-  - master@isc-projects/bind9
-  - /^v9_[1-9][0-9]$/@isc-projects/bind9
+    - merge_requests
+    - tags
+    - web
+    - master@isc-projects/bind9
+    - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
 push:docs:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -175,8 +175,8 @@ push:docs:sid:amd64:
   script:
     - curl -X POST -F token=$GITLAB_PAGES_DOCS_TRIGGER_TOKEN -F ref=master $GITLAB_PAGES_DOCS_TRIGGER_URL
   only:
-  - master@isc-projects/bind9
-  - /^v9_[1-9][0-9]$/@isc-projects/bind9
+    - master@isc-projects/bind9
+    - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
 gcc:centos6:amd64:
   variables:
