@@ -1,6 +1,9 @@
 variables:
+  # Not normally needed, but may be if some script uses `apt-get install`.
   DEBIAN_FRONTEND: noninteractive
+  # Locale settings do not affect the build, but might affect tests.
   LC_ALL: C
+
   CI_REGISTRY_IMAGE: registry.gitlab.isc.org/isc-projects/images/bind9
   CCACHE_DIR: "/ccache"
   SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
@@ -10,6 +13,8 @@ stages:
   - build
   - test
   - push
+
+### Runner Tag Templates
 
 .linux-amd64: &linux_amd64
   tags:
@@ -21,6 +26,10 @@ stages:
     - linux
     - i386
 
+### Docker Image Templates
+
+# CentOS
+
 .centos-centos6-amd64: &centos_centos6_amd64_image
   image: "$CI_REGISTRY_IMAGE:centos-centos6-amd64"
   <<: *linux_amd64
@@ -28,6 +37,8 @@ stages:
 .centos-centos7-amd64: &centos_centos7_amd64_image
   image: "$CI_REGISTRY_IMAGE:centos-centos7-amd64"
   <<: *linux_amd64
+
+# Debian
 
 .debian-jessie-amd64: &debian_jessie_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
@@ -53,6 +64,8 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
   <<: *linux_i386
 
+# Ubuntu
+
 .ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
   <<: *linux_amd64
@@ -68,6 +81,8 @@ stages:
 .ubuntu-bionic-i386: &ubuntu_bionic_i386_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
   <<: *linux_i386
+
+### Job Templates
 
 .default-triggering-rules: &default_triggering_rules
   only:
@@ -125,6 +140,10 @@ stages:
     expire_in: "1 week"
     when: on_failure
 
+### Job Definitions
+
+# Jobs in the precheck stage
+
 misc:sid:amd64:
   <<: *precheck_job
   script:
@@ -150,6 +169,8 @@ misc:sid:amd64:
 🐞:sid:amd64:
   <<: *precheck_job
   script: util/check-cocci
+
+# Jobs for doc builds on Debian Sid (amd64)
 
 docs:sid:amd64:
   <<: *debian_sid_amd64_image
@@ -179,6 +200,8 @@ push:docs:sid:amd64:
     - master@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
+# Jobs for regular GCC builds on CentOS 6 (amd64)
+
 gcc:centos6:amd64:
   variables:
     CC: gcc
@@ -198,6 +221,8 @@ unit:gcc:centos6:amd64:
   <<: *unit_test_job
   dependencies:
     - gcc:centos6:amd64
+
+# Jobs for regular GCC builds on CentOS 7 (amd64)
 
 gcc:centos7:amd64:
   variables:
@@ -219,6 +244,8 @@ unit:gcc:centos7:amd64:
   dependencies:
     - gcc:centos7:amd64
 
+# Jobs for regular GCC builds on Debian 8 Jessie (amd64)
+
 gcc:jessie:amd64:
   variables:
     CC: gcc
@@ -239,6 +266,8 @@ unit:gcc:jessie:amd64:
   dependencies:
     - gcc:jessie:amd64
 
+# Jobs for regular GCC builds on Debian 9 Stretch (amd64)
+
 gcc:stretch:amd64:
   variables:
     CC: gcc
@@ -257,6 +286,8 @@ unit:gcc:stretch:amd64:
   <<: *unit_test_job
   dependencies:
     - gcc:stretch:amd64
+
+# Jobs for regular GCC builds on Debian Sid (amd64)
 
 gcc:sid:amd64:
   variables:
@@ -287,6 +318,8 @@ unit:gcc:sid:amd64:
   dependencies:
     - gcc:sid:amd64
 
+# Jobs for regular GCC builds on Debian Sid (i386)
+
 gcc:sid:i386:
   variables:
     CC: gcc
@@ -307,6 +340,8 @@ unit:gcc:sid:i386:
   dependencies:
     - gcc:sid:i386
 
+# Jobs for regular GCC builds on Ubuntu 16.04 Xenial Xerus (amd64)
+
 gcc:xenial:amd64:
   variables:
     CC: gcc
@@ -325,6 +360,8 @@ unit:gcc:xenial:amd64:
   <<: *unit_test_job
   dependencies:
     - gcc:xenial:amd64
+
+# Jobs for regular GCC builds on Ubuntu 18.04 Bionic Beaver (amd64)
 
 gcc:bionic:amd64:
   variables:
@@ -345,6 +382,8 @@ unit:gcc:bionic:amd64:
   <<: *unit_test_job
   dependencies:
     - gcc:bionic:amd64
+
+# Jobs for GCC builds with ASAN enabled on Debian Sid (amd64)
 
 asan:sid:amd64:
   variables:
@@ -367,6 +406,8 @@ unit:asan:sid:amd64:
   dependencies:
     - asan:sid:amd64
 
+# Jobs for Clang builds on Debian Stretch (amd64)
+
 clang:stretch:amd64:
   variables:
     CC: clang
@@ -381,6 +422,8 @@ unit:clang:stretch:amd64:
   dependencies:
     - clang:stretch:amd64
 
+# Jobs for Clang builds on Debian Stretch (i386)
+
 clang:stretch:i386:
   variables:
     CC: clang
@@ -388,6 +431,8 @@ clang:stretch:i386:
     EXTRA_CONFIGURE: "--with-python=python2"
   <<: *debian_stretch_i386_image
   <<: *build_job
+
+# Jobs for PKCS#11-enabled GCC builds on Debian Sid (amd64)
 
 pkcs11:sid:amd64:
   variables:
@@ -408,6 +453,8 @@ unit:pkcs11:sid:amd64:
   <<: *unit_test_job
   dependencies:
     - pkcs11:sid:amd64
+
+# Jobs for GCC builds with assertions compiled away on Debian Sid (amd64)
 
 noassert:sid:amd64:
   variables:
