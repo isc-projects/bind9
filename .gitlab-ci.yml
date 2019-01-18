@@ -82,11 +82,6 @@ stages:
   only:
   - merge_requests
 
-.install_test: &install_test_job
-  stage: test
-  script:
-    - make install
-
 .system_test: &system_test_job
   stage: test
   before_script:
@@ -355,7 +350,9 @@ system:sid:i386:
 
 install:sid:amd64:
   <<: *debian_sid_amd64_image
-  <<: *install_test_job
+  stage: test
+  script:
+    - make install
   dependencies:
     - sid:amd64:build
   only:
