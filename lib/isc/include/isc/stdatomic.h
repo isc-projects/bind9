@@ -12,6 +12,7 @@
 #pragma once
 
 #include <inttypes.h>
+#include <stdbool.h>
 
 #if !defined(__has_feature)
 #define __has_feature(x) 0
@@ -75,6 +76,7 @@ typedef int_fast32_t	atomic_int_fast32_t;
 typedef uint_fast32_t	atomic_uint_fast32_t;
 typedef int_fast64_t	atomic_int_fast64_t;
 typedef uint_fast64_t	atomic_uint_fast64_t;
+typedef bool		atomic_bool;
 
 #if defined(__CLANG_ATOMICS) /* __c11_atomic builtins */
 #define atomic_init(obj, desired)		\
