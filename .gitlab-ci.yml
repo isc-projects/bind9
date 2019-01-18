@@ -184,6 +184,18 @@ gcc:centos6:amd64:
   <<: *centos_centos6_amd64_image
   <<: *build_job
 
+system:gcc:centos6:amd64:
+  <<: *centos_centos6_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:centos6:amd64
+
+unit:gcc:centos6:amd64:
+  <<: *centos_centos6_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:centos6:amd64
+
 gcc:centos7:amd64:
   variables:
     CC: gcc
@@ -192,13 +204,17 @@ gcc:centos7:amd64:
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
-clang:stretch:amd64:
-  variables:
-    CC: clang
-    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
-    EXTRA_CONFIGURE: "--with-python=python3"
-  <<: *debian_stretch_amd64_image
-  <<: *build_job
+system:gcc:centos7:amd64:
+  <<: *centos_centos7_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:centos7:amd64
+
+unit:gcc:centos7:amd64:
+  <<: *centos_centos7_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:centos7:amd64
 
 gcc:jessie:amd64:
   variables:
@@ -208,12 +224,36 @@ gcc:jessie:amd64:
   <<: *debian_jessie_amd64_image
   <<: *build_job
 
+system:gcc:jessie:amd64:
+  <<: *debian_jessie_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:jessie:amd64
+
+unit:gcc:jessie:amd64:
+  <<: *debian_jessie_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:jessie:amd64
+
 gcc:stretch:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
   <<: *debian_stretch_amd64_image
   <<: *build_job
+
+system:gcc:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:stretch:amd64
+
+unit:gcc:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:stretch:amd64
 
 gcc:sid:amd64:
   variables:
@@ -227,129 +267,6 @@ gcc:sid:amd64:
   - master@isc-projects/bind9
   - /^v9_.*$/@isc-projects/bind9
 
-asan:sid:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
-    LDFLAGS: "-fsanitize=address,undefined"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
-clang:stretch:i386:
-  variables:
-    CC: clang
-    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
-    EXTRA_CONFIGURE: "--with-python=python2"
-  <<: *debian_stretch_i386_image
-  <<: *build_job
-
-gcc:sid:i386:
-  variables:
-    CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-python"
-  <<: *debian_sid_i386_image
-  <<: *build_job
-
-unit:gcc:centos6:amd64:
-  <<: *centos_centos6_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - gcc:centos6:amd64
-
-unit:gcc:centos7:amd64:
-  <<: *centos_centos7_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - gcc:centos7:amd64
-
-unit:gcc:jessie:amd64:
-  <<: *debian_jessie_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - gcc:jessie:amd64
-
-unit:gcc:stretch:amd64:
-  <<: *debian_stretch_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - gcc:stretch:amd64
-
-unit:gcc:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - gcc:sid:amd64
-  only:
-  - merge_requests
-  - master@isc-projects/bind9
-  - /^v9_.*$/@isc-projects/bind9
-
-unit:asan:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - asan:sid:amd64
-
-unit:clang:stretch:amd64:
-  <<: *debian_stretch_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - clang:stretch:amd64
-
-unit:gcc:sid:i386:
-  <<: *debian_sid_i386_image
-  <<: *unit_test_job
-  dependencies:
-    - gcc:sid:i386
-
-system:gcc:centos6:amd64:
-  <<: *centos_centos6_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - gcc:centos6:amd64
-
-system:gcc:centos7:amd64:
-  <<: *centos_centos7_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - gcc:centos7:amd64
-
-system:gcc:jessie:amd64:
-  <<: *debian_jessie_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - gcc:jessie:amd64
-
-system:gcc:stretch:amd64:
-  <<: *debian_stretch_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - gcc:stretch:amd64
-
-system:gcc:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - gcc:sid:amd64
-  only:
-  - merge_requests
-  - master@isc-projects/bind9
-  - /^v9_.*$/@isc-projects/bind9
-
-system:asan:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - asan:sid:amd64
-
-system:gcc:sid:i386:
-  <<: *debian_sid_i386_image
-  <<: *system_test_job
-  dependencies:
-    - gcc:sid:i386
-
 install:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   stage: test
@@ -362,45 +279,45 @@ install:gcc:sid:amd64:
   - master@isc-projects/bind9
   - /^v9_.*$/@isc-projects/bind9
 
-pkcs11:sid:amd64:
+system:gcc:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:sid:amd64
+  only:
+  - merge_requests
+  - master@isc-projects/bind9
+  - /^v9_.*$/@isc-projects/bind9
+
+unit:gcc:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:sid:amd64
+  only:
+  - merge_requests
+  - master@isc-projects/bind9
+  - /^v9_.*$/@isc-projects/bind9
+
+gcc:sid:i386:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
-  <<: *debian_sid_amd64_image
+    EXTRA_CONFIGURE: "--with-libidn2 --without-python"
+  <<: *debian_sid_i386_image
   <<: *build_job
 
-unit:pkcs11:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - pkcs11:sid:amd64
-
-system:pkcs11:sid:amd64:
-  <<: *debian_sid_amd64_image
+system:gcc:sid:i386:
+  <<: *debian_sid_i386_image
   <<: *system_test_job
   dependencies:
-    - pkcs11:sid:amd64
+    - gcc:sid:i386
 
-noassert:sid:amd64:
-  variables:
-    CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g -DISC_CHECK_NONE=1"
-    EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *debian_sid_amd64_image
-  <<: *build_job
-
-unit:noassert:sid:amd64:
-  <<: *debian_sid_amd64_image
+unit:gcc:sid:i386:
+  <<: *debian_sid_i386_image
   <<: *unit_test_job
   dependencies:
-    - noassert:sid:amd64
-
-system:noassert:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - noassert:sid:amd64
+    - gcc:sid:i386
 
 gcc:xenial:amd64:
   variables:
@@ -409,15 +326,15 @@ gcc:xenial:amd64:
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 
-unit:gcc:xenial:amd64:
-  <<: *ubuntu_xenial_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - gcc:xenial:amd64
-
 system:gcc:xenial:amd64:
   <<: *ubuntu_xenial_amd64_image
   <<: *system_test_job
+  dependencies:
+    - gcc:xenial:amd64
+
+unit:gcc:xenial:amd64:
+  <<: *ubuntu_xenial_amd64_image
+  <<: *unit_test_job
   dependencies:
     - gcc:xenial:amd64
 
@@ -429,14 +346,97 @@ gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
 
+system:gcc:bionic:amd64:
+  <<: *ubuntu_bionic_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:bionic:amd64
+
 unit:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:bionic:amd64
 
-system:gcc:bionic:amd64:
-  <<: *ubuntu_bionic_amd64_image
+asan:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=address,undefined"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+system:asan:sid:amd64:
+  <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
-    - gcc:bionic:amd64
+    - asan:sid:amd64
+
+unit:asan:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - asan:sid:amd64
+
+clang:stretch:amd64:
+  variables:
+    CC: clang
+    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+    EXTRA_CONFIGURE: "--with-python=python3"
+  <<: *debian_stretch_amd64_image
+  <<: *build_job
+
+unit:clang:stretch:amd64:
+  <<: *debian_stretch_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - clang:stretch:amd64
+
+clang:stretch:i386:
+  variables:
+    CC: clang
+    CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
+    EXTRA_CONFIGURE: "--with-python=python2"
+  <<: *debian_stretch_i386_image
+  <<: *build_job
+
+pkcs11:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--enable-native-pkcs11 --with-pkcs11=/usr/lib/softhsm/libsofthsm2.so"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+system:pkcs11:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - pkcs11:sid:amd64
+
+unit:pkcs11:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - pkcs11:sid:amd64
+
+noassert:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g -DISC_CHECK_NONE=1"
+    EXTRA_CONFIGURE: "--with-libidn2"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+system:noassert:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - noassert:sid:amd64
+
+unit:noassert:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - noassert:sid:amd64
