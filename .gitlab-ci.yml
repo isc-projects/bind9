@@ -103,10 +103,8 @@ stages:
     - ./configure --enable-developer --with-randomdev=/dev/urandom --with-libtool --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean ${EXTRA_CONFIGURE} || cat config.log
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
   artifacts:
-    paths:
-    - doc/
-    expire_in: '1 hour'
     untracked: true
+    expire_in: '1 hour'
   only:
   - merge_requests
 
@@ -184,10 +182,9 @@ sid:amd64:precheck:
 
 docs:sid:amd64:
   <<: *debian_sid_amd64_image
-  stage: test
-  dependencies:
-    - sid:amd64:build
+  stage: build
   script:
+    - ./configure || cat config.log
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
   artifacts:
