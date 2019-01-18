@@ -18,7 +18,7 @@ status=0
 n=0
 
 sendcmd() {
-    "$PERL" "$SYSTEMTESTTOP/send.pl" 10.53.0.4 "$EXTRAPORT1"
+    "$PERL" "$SYSTEMTESTTOP/send.pl" "${1}" "$EXTRAPORT1"
 }
 
 dig_with_opts() {
@@ -247,7 +247,7 @@ if [ -x "$DIG" ] ; then
   echo_i "checking dig preserves origin on TCP retries ($n)"
   ret=0
   # Ask ans4 to still accept TCP connections, but not respond to queries
-  echo "//" | sendcmd
+  echo "//" | sendcmd 10.53.0.4
   dig_with_opts -d +tcp @10.53.0.4 +retry=1 +time=1 +domain=bar foo > dig.out.test$n 2>&1 && ret=1
   test "$(grep -c "trying origin bar" dig.out.test$n)" -eq 2 || ret=1
   grep "using root origin" < dig.out.test$n > /dev/null && ret=1
@@ -522,6 +522,66 @@ if [ -x "$DIG" ] ; then
   dig_with_opts @10.53.0.3 -q -m > dig.out.test$n 2>&1
   grep '^;-m\..*IN.*A$' dig.out.test$n > /dev/null || ret=1
   grep "Dump of all outstanding memory allocations" dig.out.test$n > /dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking exit code for a retry upon TCP EOF (immediate -> immediate) ($n)"
+  ret=0
+  echo "no_response no_response" | sendcmd 10.53.0.5
+  dig_with_opts @10.53.0.5 example AXFR +tries=1 > dig.out.test$n 2>&1 && ret=1
+  # Sanity check: ensure ans5 behaves as expected.
+  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 2 ] || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking exit code for a retry upon TCP EOF (partial AXFR -> partial AXFR) ($n)"
+  ret=0
+  echo "partial_axfr partial_axfr" | sendcmd 10.53.0.5
+  dig_with_opts @10.53.0.5 example AXFR +tries=1 > dig.out.test$n 2>&1 && ret=1
+  # Sanity check: ensure ans5 behaves as expected.
+  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 2 ] || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking exit code for a retry upon TCP EOF (immediate -> partial AXFR) ($n)"
+  ret=0
+  echo "no_response partial_axfr" | sendcmd 10.53.0.5
+  dig_with_opts @10.53.0.5 example AXFR +tries=1 > dig.out.test$n 2>&1 && ret=1
+  # Sanity check: ensure ans5 behaves as expected.
+  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 2 ] || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking exit code for a retry upon TCP EOF (partial AXFR -> immediate) ($n)"
+  ret=0
+  echo "partial_axfr no_response" | sendcmd 10.53.0.5
+  dig_with_opts @10.53.0.5 example AXFR +tries=1 > dig.out.test$n 2>&1 && ret=1
+  # Sanity check: ensure ans5 behaves as expected.
+  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 2 ] || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking exit code for a retry upon TCP EOF (immediate -> complete AXFR) ($n)"
+  ret=0
+  echo "no_response complete_axfr" | sendcmd 10.53.0.5
+  dig_with_opts @10.53.0.5 example AXFR +tries=1 > dig.out.test$n 2>&1 || ret=1
+  # Sanity check: ensure ans5 behaves as expected.
+  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 1 ] || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "checking exit code for a retry upon TCP EOF (partial AXFR -> complete AXFR) ($n)"
+  ret=0
+  echo "partial_axfr complete_axfr" | sendcmd 10.53.0.5
+  dig_with_opts @10.53.0.5 example AXFR +tries=1 > dig.out.test$n 2>&1 || ret=1
+  # Sanity check: ensure ans5 behaves as expected.
+  [ `grep "communications error.*end of file" dig.out.test$n | wc -l` -eq 1 ] || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 else
