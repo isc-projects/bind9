@@ -11,89 +11,63 @@ stages:
   - test
   - push
 
-.centos-centos6-amd64: &centos_centos6_amd64_image
-  image: "$CI_REGISTRY_IMAGE:centos-centos6-amd64"
+.linux-amd64: &linux_amd64
   tags:
     - linux
-    - docker
     - amd64
+
+.linux-i386: &linux_i386
+  tags:
+    - linux
+    - i386
+
+.centos-centos6-amd64: &centos_centos6_amd64_image
+  image: "$CI_REGISTRY_IMAGE:centos-centos6-amd64"
+  <<: *linux_amd64
 
 .centos-centos7-amd64: &centos_centos7_amd64_image
   image: "$CI_REGISTRY_IMAGE:centos-centos7-amd64"
-  tags:
-    - linux
-    - docker
-    - amd64
+  <<: *linux_amd64
 
 .debian-jessie-amd64: &debian_jessie_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
-  tags:
-    - linux
-    - docker
-    - amd64
+  <<: *linux_amd64
 
 .debian-jessie-i386: &debian_jessie_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-jessie-i386"
-  tags:
-    - linux
-    - docker
-    - i386
+  <<: *linux_i386
 
 .debian-stretch-amd64: &debian_stretch_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
-  tags:
-    - linux
-    - docker
-    - amd64
+  <<: *linux_amd64
 
 .debian-stretch-i386: &debian_stretch_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-stretch-i386"
-  tags:
-    - linux
-    - docker
-    - i386
+  <<: *linux_i386
 
 .debian-sid-amd64: &debian_sid_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
-  tags:
-    - linux
-    - docker
-    - amd64
+  <<: *linux_amd64
 
 .debian-sid-i386: &debian_sid_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-i386"
-  tags:
-    - linux
-    - docker
-    - i386
+  <<: *linux_i386
 
 .ubuntu-xenial-amd64: &ubuntu_xenial_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-amd64"
-  tags:
-    - linux
-    - docker
-    - amd64
+  <<: *linux_amd64
 
 .ubuntu-xenial-i386: &ubuntu_xenial_i386_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-xenial-i386"
-  tags:
-    - linux
-    - docker
-    - i386
+  <<: *linux_i386
 
 .ubuntu-bionic-amd64: &ubuntu_bionic_amd64_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-amd64"
-  tags:
-    - linux
-    - docker
-    - amd64
+  <<: *linux_amd64
 
 .ubuntu-bionic-i386: &ubuntu_bionic_i386_image
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
-  tags:
-    - linux
-    - docker
-    - i386
+  <<: *linux_i386
 
 .build: &build_job
   stage: build
