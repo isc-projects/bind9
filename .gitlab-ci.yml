@@ -121,7 +121,7 @@ stages:
   only:
   - merge_requests
 
-sid:amd64:precheck:
+misc:sid:amd64:
   <<: *precheck_job
   script:
     - sh util/checklibs.sh > checklibs.out
@@ -145,7 +145,7 @@ sid:amd64:precheck:
   only:
   - merge_requests
 
-🐞:sid:amd64:precheck:
+🐞:sid:amd64:
   <<: *precheck_job
   script: util/check-cocci
   only:
@@ -167,7 +167,7 @@ docs:sid:amd64:
   - master@isc-projects/bind9
   - /^v9_.*$/@isc-projects/bind9
 
-docs:push:
+push:docs:sid:amd64:
   <<: *debian_sid_amd64_image
   stage: push
   dependencies: []
@@ -177,7 +177,7 @@ docs:push:
   - master@isc-projects/bind9
   - /^v9_.*$/@isc-projects/bind9
 
-centos6:amd64:build:
+gcc:centos6:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
@@ -185,7 +185,7 @@ centos6:amd64:build:
   <<: *centos_centos6_amd64_image
   <<: *build_job
 
-centos7:amd64:build:
+gcc:centos7:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
@@ -193,7 +193,7 @@ centos7:amd64:build:
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
-clang:stretch:amd64:build:
+clang:stretch:amd64:
   variables:
     CC: clang
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
@@ -201,7 +201,7 @@ clang:stretch:amd64:build:
   <<: *debian_stretch_amd64_image
   <<: *build_job
 
-jessie:amd64:build:
+gcc:jessie:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
@@ -209,14 +209,14 @@ jessie:amd64:build:
   <<: *debian_jessie_amd64_image
   <<: *build_job
 
-stretch:amd64:build:
+gcc:stretch:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
   <<: *debian_stretch_amd64_image
   <<: *build_job
 
-sid:amd64:build:
+gcc:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
@@ -228,7 +228,7 @@ sid:amd64:build:
   - master@isc-projects/bind9
   - /^v9_.*$/@isc-projects/bind9
 
-asan:sid:amd64:build:
+asan:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
@@ -237,7 +237,7 @@ asan:sid:amd64:build:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-clang:stretch:i386:build:
+clang:stretch:i386:
   variables:
     CC: clang
     CFLAGS: "-Wall -Wextra -Wenum-conversion -O2 -g"
@@ -245,7 +245,7 @@ clang:stretch:i386:build:
   <<: *debian_stretch_i386_image
   <<: *build_job
 
-sid:i386:build:
+gcc:sid:i386:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
@@ -253,35 +253,35 @@ sid:i386:build:
   <<: *debian_sid_i386_image
   <<: *build_job
 
-unit:centos6:amd64:
+unit:gcc:centos6:amd64:
   <<: *centos_centos6_amd64_image
   <<: *unit_test_job
   dependencies:
-    - centos6:amd64:build
+    - gcc:centos6:amd64
 
-unit:centos7:amd64:
+unit:gcc:centos7:amd64:
   <<: *centos_centos7_amd64_image
   <<: *unit_test_job
   dependencies:
-    - centos7:amd64:build
+    - gcc:centos7:amd64
 
-unit:jessie:amd64:
+unit:gcc:jessie:amd64:
   <<: *debian_jessie_amd64_image
   <<: *unit_test_job
   dependencies:
-    - jessie:amd64:build
+    - gcc:jessie:amd64
 
-unit:stretch:amd64:
+unit:gcc:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *unit_test_job
   dependencies:
-    - stretch:amd64:build
+    - gcc:stretch:amd64
 
-unit:sid:amd64:
+unit:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
-    - sid:amd64:build
+    - gcc:sid:amd64
   only:
   - merge_requests
   - master@isc-projects/bind9
@@ -291,49 +291,49 @@ unit:asan:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
-    - asan:sid:amd64:build
+    - asan:sid:amd64
 
 unit:clang:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *unit_test_job
   dependencies:
-    - clang:stretch:amd64:build
+    - clang:stretch:amd64
 
-unit:sid:i386:
+unit:gcc:sid:i386:
   <<: *debian_sid_i386_image
   <<: *unit_test_job
   dependencies:
-    - sid:i386:build
+    - gcc:sid:i386
 
-system:centos6:amd64:
+system:gcc:centos6:amd64:
   <<: *centos_centos6_amd64_image
   <<: *system_test_job
   dependencies:
-    - centos6:amd64:build
+    - gcc:centos6:amd64
 
-system:centos7:amd64:
+system:gcc:centos7:amd64:
   <<: *centos_centos7_amd64_image
   <<: *system_test_job
   dependencies:
-    - centos7:amd64:build
+    - gcc:centos7:amd64
 
-system:jessie:amd64:
+system:gcc:jessie:amd64:
   <<: *debian_jessie_amd64_image
   <<: *system_test_job
   dependencies:
-    - jessie:amd64:build
+    - gcc:jessie:amd64
 
-system:stretch:amd64:
+system:gcc:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *system_test_job
   dependencies:
-    - stretch:amd64:build
+    - gcc:stretch:amd64
 
-system:sid:amd64:
+system:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
-    - sid:amd64:build
+    - gcc:sid:amd64
   only:
   - merge_requests
   - master@isc-projects/bind9
@@ -343,27 +343,27 @@ system:asan:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
-    - asan:sid:amd64:build
+    - asan:sid:amd64
 
-system:sid:i386:
+system:gcc:sid:i386:
   <<: *debian_sid_i386_image
   <<: *system_test_job
   dependencies:
-    - sid:i386:build
+    - gcc:sid:i386
 
-install:sid:amd64:
+install:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   stage: test
   script:
     - make install
   dependencies:
-    - sid:amd64:build
+    - gcc:sid:amd64
   only:
   - merge_requests
   - master@isc-projects/bind9
   - /^v9_.*$/@isc-projects/bind9
 
-pkcs11:sid:amd64:build:
+pkcs11:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
@@ -371,19 +371,19 @@ pkcs11:sid:amd64:build:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-pkcs11:unit:sid:amd64:
+unit:pkcs11:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
-    - pkcs11:sid:amd64:build
+    - pkcs11:sid:amd64
 
-pkcs11:system:sid:amd64:
+system:pkcs11:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
-    - pkcs11:sid:amd64:build
+    - pkcs11:sid:amd64
 
-noassert:sid:amd64:build:
+noassert:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g -DISC_CHECK_NONE=1"
@@ -391,38 +391,38 @@ noassert:sid:amd64:build:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-noassert:unit:sid:amd64:
+unit:noassert:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
-    - noassert:sid:amd64:build
+    - noassert:sid:amd64
 
-noassert:system:sid:amd64:
+system:noassert:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *system_test_job
   dependencies:
-    - noassert:sid:amd64:build
+    - noassert:sid:amd64
 
-xenial:amd64:build:
+gcc:xenial:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 
-unit:xenial:amd64:
+unit:gcc:xenial:amd64:
   <<: *ubuntu_xenial_amd64_image
   <<: *unit_test_job
   dependencies:
-    - xenial:amd64:build
+    - gcc:xenial:amd64
 
-system:xenial:amd64:
+system:gcc:xenial:amd64:
   <<: *ubuntu_xenial_amd64_image
   <<: *system_test_job
   dependencies:
-    - xenial:amd64:build
+    - gcc:xenial:amd64
 
-bionic:amd64:build:
+gcc:bionic:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
@@ -430,14 +430,14 @@ bionic:amd64:build:
   <<: *ubuntu_bionic_amd64_image
   <<: *build_job
 
-unit:bionic:amd64:
+unit:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *unit_test_job
   dependencies:
-    - bionic:amd64:build
+    - gcc:bionic:amd64
 
-system:bionic:amd64:
+system:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *system_test_job
   dependencies:
-    - bionic:amd64:build
+    - gcc:bionic:amd64
