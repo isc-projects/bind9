@@ -46,7 +46,7 @@ stages:
     - docker
     - amd64
 
-.debian-stretch-i386:: &debian_stretch_i386_image
+.debian-stretch-i386: &debian_stretch_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-stretch-i386"
   tags:
     - linux
