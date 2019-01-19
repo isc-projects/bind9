@@ -98,16 +98,21 @@ ret=0
 set -- 1 2 3
 for zone in example example-explicit example-compat; do
     for server in "$@"; do
-	for name in ns mx a aaaa cname dname txt rrsig nsec \
-		       dnskey ds cdnskey cds private-dnskey private-cdnskey; do
-	    dig_with_opts "$name.$zone." "$name" "@10.53.0.$server"
+	for qname in ns mx a aaaa cname dname txt rrsig nsec \
+                dnskey ds cdnskey cds; do
+            qtype="$qname"
+	    dig_with_opts  @10.53.0.${server} -q ${qname}.${zone}. -t ${qtype}
 	    echo
-	done > "dig.out.$zone.$server.test$n"
+	done > dig.out.${zone}.${server}.test${n}
+        for qname in private-dnskey private-cdnskey; do
+            qtype=$(expr "$qname" : '.*-\(.*\)')
+	    dig_with_opts  @10.53.0.${server} -q ${qname}.${zone}. -t ${qtype}
+	done >> dig.out.${zone}.${server}.test${n}
     done
-    digcomp "dig.out.$zone.1.test$n" "dig.out.$zone.2.test$n" || ret=1
+    digcomp dig.out.${zone}.1.test${n} dig.out.${zone}.2.test${n} || ret=1
     if [ "$zone" = "example" ]; then
         set -- 1 2
-        digcomp "dig.out.$zone.1.test$n" "dig.out.$zone.3.test$n" || ret=1
+        digcomp dig.out.${zone}.1.test${n} dig.out.${zone}.3.test${n} || ret=1
     fi
 done
 n=$((n+1))
