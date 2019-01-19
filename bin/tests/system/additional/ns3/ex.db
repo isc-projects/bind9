@@ -10,10 +10,5 @@
 $TTL 86400
 @ IN SOA ns1 hostmaster ( 2 8H 2H 4W 1D );
     NS ns1
+    NS ns1.ex2.
 ns1 A 10.53.0.1
-
-ns1 NID 2 0:0:0:0
-ns1 L64 2 0:0:0:0
-ns1 L32 2 0.0.0.0
-nid2 NID 2 0:0:0:1
-nid2 LP 2 ns1
