@@ -736,6 +736,8 @@ static void zone_debuglog(dns_zone_t *zone, const char *, int debuglevel,
 			  const char *msg, ...) ISC_FORMAT_PRINTF(4, 5);
 static void notify_log(dns_zone_t *zone, int level, const char *fmt, ...)
      ISC_FORMAT_PRINTF(3, 4);
+static void dnssec_log(dns_zone_t *zone, int level, const char *fmt, ...)
+     ISC_FORMAT_PRINTF(3, 4);
 static void queue_xfrin(dns_zone_t *zone);
 static isc_result_t update_one_rr(dns_db_t *db, dns_dbversion_t *ver,
 				  dns_diff_t *diff, dns_diffop_t op,
@@ -3239,10 +3241,10 @@ zone_check_dnskeys(dns_zone_t *zone, dns_db_t *db) {
 				algorithm = "RSASHA1";
 			}
 			if (logit) {
-				dns_zone_log(zone, ISC_LOG_WARNING,
-					     "weak %s (%u) key found "
-					     "(exponent=3)", algorithm,
-					     dnskey.algorithm);
+				dnssec_log(zone, ISC_LOG_WARNING,
+					   "weak %s (%u) key found "
+					   "(exponent=3)", algorithm,
+					   dnskey.algorithm);
 			}
 		}
 		dns_rdata_reset(&rdata);
@@ -3308,9 +3310,9 @@ resume_signingwithkey(dns_zone_t *zone) {
 					  (rdata.data[1] << 8) | rdata.data[2],
 					  rdata.data[3]);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "zone_signwithkey failed: %s",
-				     dns_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_signwithkey failed: %s",
+				   dns_result_totext(result));
 		}
 		dns_rdata_reset(&rdata);
 	}
@@ -3440,10 +3442,8 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	result = dns_nsec3param_salttotext(nsec3param, saltbuf,
 					   sizeof(saltbuf));
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	dns_zone_log(zone, ISC_LOG_INFO,
-		     "zone_addnsec3chain(%u,%s,%u,%s)",
-		      nsec3param->hash, flags, nsec3param->iterations,
-		      saltbuf);
+	dnssec_log(zone, ISC_LOG_INFO, "zone_addnsec3chain(%u,%s,%u,%s)",
+		   nsec3param->hash, flags, nsec3param->iterations, saltbuf);
 
 	/*
 	 * If the NSEC3 chain defined by the supplied NSEC3PARAM RDATA is
@@ -3608,9 +3608,9 @@ resume_addnsec3chain(dns_zone_t *zone) {
 			 */
 			result = zone_addnsec3chain(zone, &nsec3param);
 			if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_addnsec3chain failed: %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_addnsec3chain failed: %s",
+					   dns_result_totext(result));
 			}
 		}
 	}
@@ -4057,13 +4057,13 @@ load_secroots(dns_zone_t *zone, dns_name_t *name, dns_rdataset_t *rdataset) {
 	if (trusted == 0 && pending != 0) {
 		char namebuf[DNS_NAME_FORMATSIZE];
 		dns_name_format(name, namebuf, sizeof namebuf);
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "No valid trust anchors for '%s'!", namebuf);
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "%d key(s) revoked, %d still pending",
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "No valid trust anchors for '%s'!", namebuf);
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "%d key(s) revoked, %d still pending",
 			     revoked, pending);
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "All queries to '%s' will fail", namebuf);
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "All queries to '%s' will fail", namebuf);
 		fail_secure(zone, name);
 	}
 }
@@ -4307,9 +4307,9 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 
 	result = dns_db_newversion(db, &ver);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sync_keyzone:dns_db_newversion -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "sync_keyzone:dns_db_newversion -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -4384,9 +4384,9 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	if (result != ISC_R_SUCCESS &&
 	    !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED))
 	{
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "unable to synchronize managed keys: %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "unable to synchronize managed keys: %s",
+			   dns_result_totext(result));
 		isc_time_settoepoch(&zone->refreshkeytime);
 	}
 	if (keynode != NULL) {
@@ -4946,18 +4946,16 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 				dns_name_format(name, namebuf, sizeof(namebuf));
 				dns_rdatatype_format(next.covers,
 						     typebuf, sizeof(typebuf));
-				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
-					      ISC_LOG_DEBUG(3),
-					      "next resign: %s/%s "
-					      "in %d seconds", namebuf, typebuf,
-					      next.resign - timenow -
-					       zone->sigresigninginterval);
+				dnssec_log(zone, ISC_LOG_DEBUG(3),
+					   "next resign: %s/%s "
+					   "in %d seconds", namebuf, typebuf,
+					   next.resign - timenow -
+					    zone->sigresigninginterval);
 				dns_rdataset_disassociate(&next);
 			} else {
-				dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD,
-					      ISC_LOG_WARNING,
-					      "signed dynamic zone has no "
-					      "resign event scheduled");
+				dnssec_log(zone, ISC_LOG_WARNING,
+					   "signed dynamic zone has no "
+					   "resign event scheduled");
 			}
 		}
 
@@ -5005,10 +5003,10 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 
  cleanup:
 	if (zone->type == dns_zone_key && result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "failed to initialize managed-keys (%s): "
-			     "DNSSEC validation is at risk",
-			     isc_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "failed to initialize managed-keys (%s): "
+			   "DNSSEC validation is at risk",
+			   isc_result_totext(result));
 	}
 
 	for (inc = ISC_LIST_HEAD(zone->newincludes);
@@ -7685,9 +7683,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_nsec3chain:dns_db_newversion -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_nsec3chain:dns_db_newversion -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -7696,9 +7694,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 	result = dns__zone_findkeys(zone, db, version, now, zone->mctx,
 				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_nsec3chain:dns__zone_findkeys -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_nsec3chain:dns__zone_findkeys -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -7876,9 +7874,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 					    zone->minimum, unsecure,
 					    &nsec3_diff);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-				     "dns_nsec3_addnsec3 -> %s",
-				     dns_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
+				   "dns_nsec3_addnsec3 -> %s",
+				   dns_result_totext(result));
 			goto failure;
 		}
 
@@ -7934,10 +7932,10 @@ zone_nsec3chain(dns_zone_t *zone) {
 				ISC_LIST_APPEND(cleanup, nsec3chain, link);
 				goto next_addchain;
 			} else if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_nsec3chain:"
-					     "dns_dbiterator_next -> %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_nsec3chain:"
+					   "dns_dbiterator_next -> %s",
+					   dns_result_totext(result));
 				goto failure;
 			} else if (delegation) {
 				dns_dbiterator_current(nsec3chain->dbiterator,
@@ -8011,17 +8009,18 @@ zone_nsec3chain(dns_zone_t *zone) {
 						 &nsec3chain->nsec3param,
 						 &buildnsecchain);
 			if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_nsec3chain:"
-					     "need_nsec_chain -> %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_nsec3chain:"
+					   "need_nsec_chain -> %s",
+					   dns_result_totext(result));
 				goto failure;
 			}
 		}
 
 		if (first) {
-			dns_zone_log(zone, ISC_LOG_DEBUG(3), "zone_nsec3chain:"
-				     "buildnsecchain = %u\n", buildnsecchain);
+			dnssec_log(zone, ISC_LOG_DEBUG(3),
+				   "zone_nsec3chain:buildnsecchain = %u\n",
+				   buildnsecchain);
 		}
 
 		dns_dbiterator_current(nsec3chain->dbiterator, &node, name);
@@ -8037,10 +8036,10 @@ zone_nsec3chain(dns_zone_t *zone) {
 							  true, privatetype,
 							  &param_diff);
 				if (result != ISC_R_SUCCESS) {
-					dns_zone_log(zone, ISC_LOG_ERROR,
-						     "zone_nsec3chain:"
-						     "fixup_nsec3param -> %s",
-						     dns_result_totext(result));
+					dnssec_log(zone, ISC_LOG_ERROR,
+						   "zone_nsec3chain:"
+						   "fixup_nsec3param -> %s",
+						   dns_result_totext(result));
 					goto failure;
 				}
 			}
@@ -8052,10 +8051,10 @@ zone_nsec3chain(dns_zone_t *zone) {
 						     &nsec3chain->nsec3param,
 						     &nsec3_diff);
 			if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_nsec3chain:"
-					     "deletematchingnsec3 -> %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_nsec3chain:"
+					   "deletematchingnsec3 -> %s",
+					   dns_result_totext(result));
 				goto failure;
 			}
 			goto next_removenode;
@@ -8161,27 +8160,26 @@ zone_nsec3chain(dns_zone_t *zone) {
 							  privatetype,
 							  &param_diff);
 				if (result != ISC_R_SUCCESS) {
-					dns_zone_log(zone, ISC_LOG_ERROR,
-						     "zone_nsec3chain:"
-						     "fixup_nsec3param -> %s",
-						     dns_result_totext(result));
+					dnssec_log(zone, ISC_LOG_ERROR,
+						   "zone_nsec3chain:"
+						   "fixup_nsec3param -> %s",
+						   dns_result_totext(result));
 					goto failure;
 				}
 				goto next_removechain;
 			} else if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_nsec3chain:"
-					     "dns_dbiterator_next -> %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_nsec3chain:"
+					   "dns_dbiterator_next -> %s",
+					   dns_result_totext(result));
 				goto failure;
 			} else if (delegation) {
 				dns_dbiterator_current(nsec3chain->dbiterator,
 						       &node, nextname);
 				dns_db_detachnode(db, &node);
-				if (!dns_name_issubdomain(nextname, name))
-					{
+				if (!dns_name_issubdomain(nextname, name)) {
 					break;
-					}
+				}
 			} else {
 				break;
 			}
@@ -8211,9 +8209,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		result = dns_db_allrdatasets(db, node, version, 0, &iterator);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-				     "dns_db_allrdatasets -> %s",
-				     dns_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_nsec3chain:dns_db_allrdatasets -> %s",
+				   dns_result_totext(result));
 			goto failure;
 		}
 		for (result = dns_rdatasetiter_first(iterator);
@@ -8240,10 +8238,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 					      zone->minimum, true,
 					      &nsec_diff);
 			if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_nsec3chain:"
-					     "updatesecure -> %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_nsec3chain:updatesecure -> %s",
+					   dns_result_totext(result));
 				goto failure;
 			}
 		}
@@ -8258,10 +8255,10 @@ zone_nsec3chain(dns_zone_t *zone) {
 						     zone->minimum, false,
 						     &nsec3_diff);
 			if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_nsec3chain:"
-					     "dns_nsec3_addnsec3s -> %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_nsec3chain:"
+					   "dns_nsec3_addnsec3s -> %s",
+					   dns_result_totext(result));
 				goto failure;
 			}
 		}
@@ -8277,9 +8274,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 				      nkeys, zone, inception, expire, 0, now,
 				      check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "dns__zone_updatesigs -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_nsec3chain:dns__zone_updatesigs -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -8291,9 +8288,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 				      nkeys, zone, inception, expire, 0, now,
 				      check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "dns__zone_updatesigs -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_nsec3chain:dns__zone_updatesigs -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -8301,9 +8298,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 		result = updatesecure(db, version, &zone->origin,
 				      zone->minimum, false, &nsec_diff);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-				     "updatesecure -> %s",
-				     dns_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_nsec3chain:updatesecure -> %s",
+				   dns_result_totext(result));
 			goto failure;
 		}
 	}
@@ -8312,9 +8309,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 				      nkeys, zone, inception, expire, 0, now,
 				      check_ksk, keyset_kskonly, &zonediff);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "dns__zone_updatesigs -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_nsec3chain:dns__zone_updatesigs -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -8333,17 +8330,18 @@ zone_nsec3chain(dns_zone_t *zone) {
 	result = del_sigs(zone, db, version, &zone->origin, dns_rdatatype_soa,
 			  &zonediff, zone_keys, nkeys, now, false);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "del_sigs -> %s", dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_nsec3chain:del_sigs -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
 	result = update_soa_serial(db, version, zonediff.diff, zone->mctx,
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "update_soa_serial -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_nsec3chain:update_soa_serial -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -8351,8 +8349,9 @@ zone_nsec3chain(dns_zone_t *zone) {
 			  zonediff.diff, zone_keys, nkeys, zone->mctx,
 			  inception, soaexpire, check_ksk, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain:"
-			     "add_sigs -> %s", dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_nsec3chain:add_sigs -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -8399,8 +8398,8 @@ zone_nsec3chain(dns_zone_t *zone) {
 
  failure:
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_nsec3chain: %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR, "zone_nsec3chain: %s",
+			   dns_result_totext(result));
 	}
 
 	/*
@@ -8657,9 +8656,9 @@ zone_sign(dns_zone_t *zone) {
 
 	result = dns_db_newversion(db, &version);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:dns_db_newversion -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_sign:dns_db_newversion -> %s",
+			   dns_result_totext(result));
 		goto cleanup;
 	}
 
@@ -8668,9 +8667,9 @@ zone_sign(dns_zone_t *zone) {
 	result = dns__zone_findkeys(zone, db, version, now, zone->mctx,
 				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:dns__zone_findkeys -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_sign:dns__zone_findkeys -> %s",
+			   dns_result_totext(result));
 		goto cleanup;
 	}
 
@@ -8960,9 +8959,8 @@ zone_sign(dns_zone_t *zone) {
 							      false,
 							      &post_diff);
 					if (result != ISC_R_SUCCESS) {
-						dns_zone_log(zone,
-							     ISC_LOG_ERROR,
-						    "updatesecure -> %s",
+						dnssec_log(zone, ISC_LOG_ERROR,
+						   "updatesecure -> %s",
 						    dns_result_totext(result));
 						goto cleanup;
 					}
@@ -8973,17 +8971,18 @@ zone_sign(dns_zone_t *zone) {
 							   zone->minimum,
 							   &post_diff);
 				if (result != ISC_R_SUCCESS) {
-					dns_zone_log(zone, ISC_LOG_ERROR,
-						     "updatesignwithkey -> %s",
-						     dns_result_totext(result));
+					dnssec_log(zone, ISC_LOG_ERROR,
+						   "updatesignwithkey -> %s",
+						   dns_result_totext(result));
 					goto cleanup;
 				}
 				build_nsec = false;
 				goto next_signing;
 			} else if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					"zone_sign:dns_dbiterator_next -> %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_sign:"
+					   "dns_dbiterator_next -> %s",
+					   dns_result_totext(result));
 				goto cleanup;
 			} else if (is_bottom_of_zone) {
 				dns_dbiterator_current(signing->dbiterator,
@@ -9011,9 +9010,9 @@ zone_sign(dns_zone_t *zone) {
 					      check_ksk, keyset_kskonly,
 					      &zonediff);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR, "zone_sign:"
-				     "dns__zone_updatesigs -> %s",
-				     dns_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_sign:dns__zone_updatesigs -> %s",
+				   dns_result_totext(result));
 			goto cleanup;
 		}
 	}
@@ -9034,18 +9033,17 @@ zone_sign(dns_zone_t *zone) {
 	result = del_sigs(zone, db, version, &zone->origin, dns_rdatatype_soa,
 			  &zonediff, zone_keys, nkeys, now, false);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:del_sigs -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR, "zone_sign:del_sigs -> %s",
+			   dns_result_totext(result));
 		goto cleanup;
 	}
 
 	result = update_soa_serial(db, version, zonediff.diff, zone->mctx,
 				   zone->updatemethod);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:update_soa_serial -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "zone_sign:update_soa_serial -> %s",
+			   dns_result_totext(result));
 		goto cleanup;
 	}
 
@@ -9057,9 +9055,8 @@ zone_sign(dns_zone_t *zone) {
 			  zonediff.diff, zone_keys, nkeys, zone->mctx,
 			  inception, soaexpire, check_ksk, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "zone_sign:add_sigs -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR, "zone_sign:add_sigs -> %s",
+			   dns_result_totext(result));
 		goto cleanup;
 	}
 
@@ -9114,8 +9111,8 @@ zone_sign(dns_zone_t *zone) {
 
  failure:
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR, "zone_sign: failed: %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR, "zone_sign: failed: %s",
+			   dns_result_totext(result));
 	}
 
  cleanup:
@@ -9426,9 +9423,9 @@ revocable(dns_keyfetch_t *kfetch, dns_rdata_keydata_t *keydata) {
 						   &sigrr,
 						   dns_fixedname_name(&fixed));
 
-			dns_zone_log(kfetch->zone, ISC_LOG_DEBUG(3),
-				     "Confirm revoked DNSKEY is self-signed: "
-				     "%s", dns_result_totext(result));
+			dnssec_log(kfetch->zone, ISC_LOG_DEBUG(3),
+				   "Confirm revoked DNSKEY is self-signed: %s",
+				   dns_result_totext(result));
 
 			if (result == ISC_R_SUCCESS) {
 				answer = true;
@@ -9519,26 +9516,26 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESHING);
 	}
 
-	dns_zone_log(zone, ISC_LOG_DEBUG(3),
-		     "Returned from key fetch in keyfetch_done() for "
-		     "'%s': %s", namebuf, dns_result_totext(eresult));
+	dnssec_log(zone, ISC_LOG_DEBUG(3),
+		   "Returned from key fetch in keyfetch_done() for '%s': %s",
+		   namebuf, dns_result_totext(eresult));
 
 	/* Fetch failed */
 	if (eresult != ISC_R_SUCCESS ||
 	    !dns_rdataset_isassociated(&kfetch->dnskeyset))
 	{
-		dns_zone_log(zone, ISC_LOG_WARNING,
-			     "Unable to fetch DNSKEY set "
-			     "'%s': %s", namebuf, dns_result_totext(eresult));
+		dnssec_log(zone, ISC_LOG_WARNING,
+			   "Unable to fetch DNSKEY set '%s': %s",
+			   namebuf, dns_result_totext(eresult));
 		CHECK(minimal_update(kfetch, ver, &diff));
 		goto done;
 	}
 
 	/* No RRSIGs found */
 	if (!dns_rdataset_isassociated(&kfetch->dnskeysigset)) {
-		dns_zone_log(zone, ISC_LOG_WARNING,
-			     "No DNSKEY RRSIGs found for "
-			     "'%s': %s", namebuf, dns_result_totext(eresult));
+		dnssec_log(zone, ISC_LOG_WARNING,
+			   "No DNSKEY RRSIGs found for '%s': %s",
+			   namebuf, dns_result_totext(eresult));
 		CHECK(minimal_update(kfetch, ver, &diff));
 		goto done;
 	}
@@ -9587,11 +9584,11 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 							   dns_fixedname_name(
 							   &fixed));
 
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "Verifying DNSKEY set for zone "
-					     "'%s' using key %d/%d: %s",
-					     namebuf, sig.keyid, sig.algorithm,
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_DEBUG(3),
+					   "Verifying DNSKEY set for zone "
+					   "'%s' using key %d/%d: %s",
+					   namebuf, sig.keyid, sig.algorithm,
+					   dns_result_totext(result));
 
 				if (result == ISC_R_SUCCESS) {
 					kfetch->dnskeyset.trust =
@@ -9625,9 +9622,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 * trusted keys then all we can do is look at any revoked keys.
 	 */
 	if (!secure) {
-		dns_zone_log(zone, ISC_LOG_DEBUG(3),
-			     "DNSKEY set for zone '%s' could not be verified "
-			     "with current keys", namebuf);
+		dnssec_log(zone, ISC_LOG_DEBUG(3),
+			   "DNSKEY set for zone '%s' could not be verified "
+			   "with current keys", namebuf);
 	}
 
 	/*
@@ -9679,29 +9676,29 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			} else if (keydata.addhd == 0) {
 				deletekey = true;
 			} else if (keydata.addhd > now) {
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "Pending key %d for zone %s "
-					     "unexpectedly missing "
-					     "restarting 30-day acceptance "
-					     "timer", keytag, namebuf);
+				dnssec_log(zone, ISC_LOG_DEBUG(3),
+					   "Pending key %d for zone %s "
+					   "unexpectedly missing "
+					   "restarting 30-day acceptance "
+					   "timer", keytag, namebuf);
 				if (keydata.addhd < now + dns_zone_mkey_month) {
 					keydata.addhd =
 						now + dns_zone_mkey_month;
 				}
 				keydata.refresh = refresh_time(kfetch, false);
 			} else if (keydata.removehd == 0) {
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "Active key %d for zone %s "
-					     "unexpectedly missing",
-					     keytag, namebuf);
+				dnssec_log(zone, ISC_LOG_DEBUG(3),
+					   "Active key %d for zone %s "
+					   "unexpectedly missing",
+					   keytag, namebuf);
 				keydata.refresh = now + dns_zone_mkey_hour;
 			} else if (keydata.removehd <= now) {
 				deletekey = true;
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "Revoked key %d for zone %s "
-					     "missing: deleting from "
-					     "managed keys database",
-					     keytag, namebuf);
+				dnssec_log(zone, ISC_LOG_DEBUG(3),
+					   "Revoked key %d for zone %s "
+					   "missing: deleting from "
+					   "managed keys database",
+					   keytag, namebuf);
 			} else {
 				keydata.refresh = refresh_time(kfetch, false);
 			}
@@ -9787,13 +9784,12 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					 * it's been revoked?  Just remove it
 					 */
 					deletekey = true;
-					dns_zone_log(zone, ISC_LOG_DEBUG(3),
-						     "Pending key %d "
-						     "for zone %s is now "
-						     "revoked: "
-						     "deleting from the "
-						     "managed keys database",
-						     keytag, namebuf);
+					dnssec_log(zone, ISC_LOG_DEBUG(3),
+						   "Pending key %d for "
+						   "zone %s is now revoked: "
+						   "deleting from the "
+						   "managed keys database",
+						   keytag, namebuf);
 				} else if (keydata.removehd == 0) {
 					/*
 					 * Remove key from secroots.
@@ -9811,30 +9807,28 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 							DNS_KEYFLAG_REVOKE;
 					}
 
-					dns_zone_log(zone, ISC_LOG_INFO,
-						     "Trusted key %d "
-						     "for zone %s is now "
-						     "revoked",
-						     keytag, namebuf);
+					dnssec_log(zone, ISC_LOG_INFO,
+						   "Trusted key %d for "
+						   "zone %s is now revoked",
+						   keytag, namebuf);
 				} else if (keydata.removehd < now) {
 					/* Scheduled for removal */
 					deletekey = true;
 
-					dns_zone_log(zone, ISC_LOG_INFO,
-						     "Revoked key %d "
-						     "for zone %s removal "
-						     "timer complete: "
-						     "deleting from the "
-						     "managed keys database",
-						     keytag, namebuf);
+					dnssec_log(zone, ISC_LOG_INFO,
+						   "Revoked key %d for "
+						   "zone %s removal timer "
+						   "complete: deleting from "
+						   "the managed keys database",
+						   keytag, namebuf);
 				}
 			} else if (revoked && keydata.removehd == 0) {
-				dns_zone_log(zone, ISC_LOG_WARNING,
-					     "Active key %d for zone "
-					     "%s is revoked but "
-					     "did not self-sign; "
-					     "ignoring", keytag, namebuf);
-					continue;
+				dnssec_log(zone, ISC_LOG_WARNING,
+					   "Active key %d for zone "
+					   "%s is revoked but "
+					   "did not self-sign; "
+					   "ignoring", keytag, namebuf);
+				continue;
 			} else if (secure) {
 				if (keydata.removehd != 0) {
 					/*
@@ -9850,12 +9844,12 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					keydata.addhd =
 						now + dns_zone_mkey_month;
 
-					dns_zone_log(zone, ISC_LOG_DEBUG(3),
-						     "Revoked key %d "
-						     "for zone %s "
-						     "has returned: starting "
-						     "30-day acceptance timer",
-						     keytag, namebuf);
+					dnssec_log(zone, ISC_LOG_DEBUG(3),
+						   "Revoked key %d for "
+						   "zone %s has returned: "
+						   "starting 30-day "
+						   "acceptance timer",
+						   keytag, namebuf);
 				} else if (keydata.addhd > now) {
 					pending++;
 				} else if (keydata.addhd == 0) {
@@ -9864,15 +9858,15 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 				if (keydata.addhd <= now) {
 					trustkey = true;
-					dns_zone_log(zone, ISC_LOG_INFO,
-						     "Key %d for zone %s "
-						     "is now trusted (%s)",
-						     keytag, namebuf,
-						     initial
-						      ? "initializing key "
-							"verified"
-						      : "acceptance timer "
-							"complete");
+					dnssec_log(zone, ISC_LOG_INFO,
+						   "Key %d for zone %s "
+						   "is now trusted (%s)",
+						   keytag, namebuf,
+						   initial
+						    ? "initializing key "
+						       "verified"
+						    : "acceptance timer "
+						       "complete");
 				}
 			} else if (keydata.addhd > now) {
 				/*
@@ -9881,12 +9875,12 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				 */
 				pending++;
 				keydata.addhd = now + dns_zone_mkey_month;
-				dns_zone_log(zone, ISC_LOG_DEBUG(3),
-					     "Pending key %d "
-					     "for zone %s was "
-					     "not validated: restarting "
-					     "30-day acceptance timer",
-					     keytag, namebuf);
+				dnssec_log(zone, ISC_LOG_DEBUG(3),
+					   "Pending key %d "
+					   "for zone %s was "
+					   "not validated: restarting "
+					   "30-day acceptance timer",
+					   keytag, namebuf);
 			}
 
 			if (!deletekey && !newkey) {
@@ -9905,21 +9899,21 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			newkey = true;
 
 			if (initializing) {
-				dns_zone_log(zone, ISC_LOG_WARNING,
-					     "Initializing automatic trust "
-					     "anchor management for zone '%s'; "
-					     "DNSKEY ID %d is now trusted, "
-					     "waiving the normal 30-day "
-					     "waiting period.",
-					     namebuf, keytag);
+				dnssec_log(zone, ISC_LOG_WARNING,
+					   "Initializing automatic trust "
+					   "anchor management for zone '%s'; "
+					   "DNSKEY ID %d is now trusted, "
+					   "waiving the normal 30-day "
+					   "waiting period.",
+					   namebuf, keytag);
 				trustkey = true;
 			} else {
-				dns_zone_log(zone, ISC_LOG_INFO,
-					     "New key %d observed "
-					     "for zone '%s': "
-					     "starting 30-day "
-					     "acceptance timer",
-					     keytag, namebuf);
+				dnssec_log(zone, ISC_LOG_INFO,
+					   "New key %d observed "
+					   "for zone '%s': "
+					   "starting 30-day "
+					   "acceptance timer",
+					   keytag, namebuf);
 			}
 		} else {
 			/*
@@ -10021,10 +10015,10 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
  failure:
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "error during managed-keys processing (%s): "
-			     "DNSSEC validation may be at risk",
-			     isc_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "error during managed-keys processing (%s): "
+			   "DNSSEC validation may be at risk",
+			   isc_result_totext(result));
 	}
 	dns_diff_clear(&diff);
 	if (ver != NULL) {
@@ -10187,10 +10181,10 @@ zone_refreshkeys(dns_zone_t *zone) {
 			char namebuf[DNS_NAME_FORMATSIZE];
 			dns_name_format(kname, namebuf,
 					sizeof(namebuf));
-			dns_zone_log(zone, ISC_LOG_DEBUG(3),
-				     "Creating key fetch in "
-				     "zone_refreshkeys() for '%s'",
-				     namebuf);
+			dnssec_log(zone, ISC_LOG_DEBUG(3),
+				   "Creating key fetch in "
+				   "zone_refreshkeys() for '%s'",
+				   namebuf);
 		}
 
 		/*
@@ -10231,9 +10225,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 			dns_rdataset_disassociate(&kfetch->keydataset);
 			dns_name_free(kname, zone->mctx);
 			isc_mem_put(zone->mctx, kfetch, sizeof(dns_keyfetch_t));
-			dns_zone_log(zone, ISC_LOG_WARNING,
-				     "Failed to create fetch for "
-				     "DNSKEY update");
+			dnssec_log(zone, ISC_LOG_WARNING,
+				   "Failed to create fetch for DNSKEY update");
 			fetch_err = true;
 		}
 	}
@@ -10260,8 +10253,8 @@ zone_refreshkeys(dns_zone_t *zone) {
 		zone_settimer(zone, &timenow);
 
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
-		dns_zone_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
-			     timebuf);
+		dnssec_log(zone, ISC_LOG_DEBUG(1), "retry key refresh: %s",
+			   timebuf);
 	} else if (!timerset) {
 		isc_time_settoepoch(&zone->refreshkeytime);
 	}
@@ -14194,6 +14187,15 @@ zone_debuglog(dns_zone_t *zone, const char *me, int debuglevel,
 	va_end(ap);
 }
 
+static void
+dnssec_log(dns_zone_t *zone, int level, const char *fmt, ...) {
+	va_list ap;
+
+	va_start(ap, fmt);
+	dns_zone_logv(zone, DNS_LOGCATEGORY_DNSSEC, level, NULL, fmt, ap);
+	va_end(ap);
+}
+
 static int
 message_count(dns_message_t *msg, dns_section_t section, dns_rdatatype_t type)
 {
@@ -17702,9 +17704,9 @@ dns_zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm,
 	isc_result_t result;
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	dns_zone_log(zone, ISC_LOG_NOTICE,
-		     "dns_zone_signwithkey(algorithm=%u, keyid=%u)",
-		     algorithm, keyid);
+	dnssec_log(zone, ISC_LOG_NOTICE,
+		   "dns_zone_signwithkey(algorithm=%u, keyid=%u)",
+		   algorithm, keyid);
 	LOCK_ZONE(zone);
 	result = zone_signwithkey(zone, algorithm, keyid, deleteit);
 	UNLOCK_ZONE(zone);
@@ -17727,10 +17729,9 @@ dns_zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 
 	result = dns_nsec3param_salttotext(nsec3param, salt, sizeof(salt));
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
-	dns_zone_log(zone, ISC_LOG_NOTICE,
-		     "dns_zone_addnsec3chain(hash=%u, iterations=%u, salt=%s)",
-		     nsec3param->hash, nsec3param->iterations,
-		     salt);
+	dnssec_log(zone, ISC_LOG_NOTICE,
+		   "dns_zone_addnsec3chain(hash=%u, iterations=%u, salt=%s)",
+		   nsec3param->hash, nsec3param->iterations, salt);
 	LOCK_ZONE(zone);
 	result = zone_addnsec3chain(zone, nsec3param);
 	UNLOCK_ZONE(zone);
@@ -17856,15 +17857,6 @@ zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
 	if (db != NULL)
 		dns_db_detach(&db);
 	return (result);
-}
-
-static void
-logmsg(const char *format, ...) {
-	va_list args;
-	va_start(args, format);
-	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_GENERAL, DNS_LOGMODULE_ZONE,
-		       ISC_LOG_DEBUG(1), format, args);
-	va_end(args);
 }
 
 static void
@@ -18030,9 +18022,9 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	result = dns__zone_findkeys(zone, db, ver, now, zone->mctx,
 				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_apex:dns__zone_findkeys -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "sign_apex:dns__zone_findkeys -> %s",
+			   dns_result_totext(result));
 		return (result);
 	}
 
@@ -18069,9 +18061,9 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				  dns_rdatatype_dnskey, zonediff,
 				  zone_keys, nkeys, now, false);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "sign_apex:del_sigs -> %s",
-				     dns_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "sign_apex:del_sigs -> %s",
+				   dns_result_totext(result));
 			goto failure;
 		}
 		result = add_sigs(db, ver, &zone->origin, dns_rdatatype_dnskey,
@@ -18079,9 +18071,9 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				  inception, keyexpire, check_ksk,
 				  keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR,
-				     "sign_apex:add_sigs -> %s",
-				     dns_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "sign_apex:add_sigs -> %s",
+				   dns_result_totext(result));
 			goto failure;
 		}
 	}
@@ -18091,9 +18083,9 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				      check_ksk, keyset_kskonly, zonediff);
 
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "sign_apex:dns__zone_updatesigs -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "sign_apex:dns__zone_updatesigs -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -18154,7 +18146,7 @@ dnskey_sane(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 	/* Refuse to allow NSEC3 with NSEC-only keys */
 	if (nseconly && nsec3) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
+		dnssec_log(zone, ISC_LOG_ERROR,
 			   "NSEC only DNSKEYs and NSEC3 chains not allowed");
 		goto failure;
 	}
@@ -18242,6 +18234,15 @@ add_chains(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 }
 
 static void
+dnssec_report(const char *format, ...) {
+	va_list args;
+	va_start(args, format);
+	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_ZONE,
+		       ISC_LOG_DEBUG(1), format, args);
+	va_end(args);
+}
+
+static void
 zone_rekey(dns_zone_t *zone) {
 	isc_result_t result;
 	dns_db_t *db = NULL;
@@ -18287,7 +18288,7 @@ zone_rekey(dns_zone_t *zone) {
 	TIME_NOW(&timenow);
 	now = isc_time_seconds(&timenow);
 
-	dns_zone_log(zone, ISC_LOG_INFO, "reconfiguring zone keys");
+	dnssec_log(zone, ISC_LOG_INFO, "reconfiguring zone keys");
 
 	/* Get the SOA record's TTL */
 	CHECK(dns_db_findrdataset(db, node, ver, dns_rdatatype_soa,
@@ -18338,16 +18339,16 @@ zone_rekey(dns_zone_t *zone) {
 
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
 					       &zone->origin, ttl, &diff,
-					       !check_ksk,
-					       mctx, logmsg);
+					       !check_ksk, mctx,
+					       dnssec_report);
 		/*
 		 * Keys couldn't be updated for some reason;
 		 * try again later.
 		 */
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:"
-				     "couldn't update zone keys: %s",
-				     isc_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_rekey:couldn't update zone keys: %s",
+				   isc_result_totext(result));
 			goto failure;
 		}
 
@@ -18358,9 +18359,9 @@ zone_rekey(dns_zone_t *zone) {
 					       &cdnskeyset, now, ttl,
 					       &diff, mctx);
 		if (result != ISC_R_SUCCESS) {
-			dns_zone_log(zone, ISC_LOG_ERROR, "zone_rekey:"
-				     "couldn't update CDS/CDNSKEY: %s",
-				     isc_result_totext(result));
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "zone_rekey:couldn't update CDS/CDNSKEY: %s",
+				   isc_result_totext(result));
 			goto failure;
 		}
 
@@ -18440,9 +18441,9 @@ zone_rekey(dns_zone_t *zone) {
 							  dst_key_id(key->key),
 							  true);
 				if (result != ISC_R_SUCCESS) {
-					dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_signwithkey failed: %s",
-					     dns_result_totext(result));
+					dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_signwithkey failed: %s",
+					   dns_result_totext(result));
 				}
 			}
 		}
@@ -18465,9 +18466,9 @@ zone_rekey(dns_zone_t *zone) {
 							  dst_key_id(key->key),
 							  false);
 				if (result != ISC_R_SUCCESS) {
-					dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_signwithkey failed: %s",
-					     dns_result_totext(result));
+					dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_signwithkey failed: %s",
+					   dns_result_totext(result));
 				}
 			}
 		} else if (newalg) {
@@ -18490,9 +18491,9 @@ zone_rekey(dns_zone_t *zone) {
 							  dst_key_id(key->key),
 							  false);
 				if (result != ISC_R_SUCCESS) {
-					dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_signwithkey failed: %s",
-					     dns_result_totext(result));
+					dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_signwithkey failed: %s",
+					   dns_result_totext(result));
 				}
 			}
 		}
@@ -18535,9 +18536,9 @@ zone_rekey(dns_zone_t *zone) {
 
 			result = zone_addnsec3chain(zone, &nsec3param);
 			if (result != ISC_R_SUCCESS) {
-				dns_zone_log(zone, ISC_LOG_ERROR,
-					     "zone_addnsec3chain failed: %s",
-					     dns_result_totext(result));
+				dnssec_log(zone, ISC_LOG_ERROR,
+					   "zone_addnsec3chain failed: %s",
+					   dns_result_totext(result));
 			}
 		}
 
@@ -18596,7 +18597,7 @@ zone_rekey(dns_zone_t *zone) {
 		zone_settimer(zone, &timenow);
 
 		isc_time_formattimestamp(&zone->refreshkeytime, timebuf, 80);
-		dns_zone_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
+		dnssec_log(zone, ISC_LOG_INFO, "next key event: %s", timebuf);
 	}
 
 	result = ISC_R_SUCCESS;
@@ -19063,9 +19064,9 @@ keydone(isc_task_t *task, isc_event_t *event) {
 	dns_db_currentversion(db, &oldver);
 	result = dns_db_newversion(db, &newver);
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "keydone:dns_db_newversion -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "keydone:dns_db_newversion -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -19286,9 +19287,9 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 	result = dns_db_newversion(db, &newver);
 	if (result != ISC_R_SUCCESS) {
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
-		dns_zone_log(zone, ISC_LOG_ERROR,
-			     "setnsec3param:dns_db_newversion -> %s",
-			     dns_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR,
+			   "setnsec3param:dns_db_newversion -> %s",
+			   dns_result_totext(result));
 		goto failure;
 	}
 
@@ -19825,9 +19826,8 @@ dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver) {
 	}
 
 	if (result != ISC_R_SUCCESS) {
-		dns_zone_logc(zone, DNS_LOGCATEGORY_ZONELOAD, ISC_LOG_ERROR,
-			     "zone verification failed: %s",
-			     isc_result_totext(result));
+		dnssec_log(zone, ISC_LOG_ERROR, "zone verification failed: %s",
+			   isc_result_totext(result));
 		result = DNS_R_VERIFYFAILURE;
 	}
 
