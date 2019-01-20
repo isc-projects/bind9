@@ -18,6 +18,7 @@
 1. [BIND 9.13 features](#features)
 1. [Building BIND](#build)
 1. [macOS](#macos)
+1. [Dependencies](#dependencies)
 1. [Compile-time options](#opts)
 1. [Automated testing](#testing)
 1. [Documentation](#doc)
@@ -207,30 +208,20 @@ or if you have Xcode already installed you can run "xcode-select --install".
 This will add /usr/include to the system and install the compiler and other
 tools so that they can be easily found.
 
+### <a name="dependencies"/> Dependencies
+
+Portions of BIND that are written in Python, including
+`dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
+system tests, require the 'argparse' and 'ply' modules to be available.
+'argparse' is a standard module as of Python 2.7 and Python 3.2.
+'ply' is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
 
 #### <a name="opts"/> Compile-time options
 
 To see a full list of configuration options, run `configure --help`.
 
-On most platforms, BIND 9 is built with multithreading support, allowing it
-to take advantage of multiple CPUs.  You can configure this by specifying
-`--enable-threads` or `--disable-threads` on the `configure` command line.
-The default is to enable threads, except on some older operating systems on
-which threads are known to have had problems in the past.  (Note: Prior to
-BIND 9.10, the default was to disable threads on Linux systems; this has
-now been reversed.  On Linux systems, the threaded build is known to change
-BIND's behavior with respect to file permissions; it may be necessary to
-specify a user with the -u option when running `named`.)
-
 To build shared libraries, specify `--with-libtool` on the `configure`
 command line.
-
-Certain compiled-in constants and default settings can be increased to
-values better suited to large servers with abundant memory resources (e.g,
-64-bit servers with 12G or more of memory) by specifying
-`--with-tuning=large` on the `configure` command line. This can improve
-performance on big servers, but will consume more memory and may degrade
-performance on smaller systems.
 
 For the server to support DNSSEC, you need to build it with crypto support.
 To use OpenSSL, you should have OpenSSL 1.0.2e or newer installed.  If the
@@ -266,16 +257,17 @@ and libprotobuf-c
 [https://developers.google.com/protocol-buffers](https://developers.google.com/protocol-buffers),
 and BIND must be configured with `--enable-dnstap`.
 
+Certain compiled-in constants and default settings can be increased to
+values better suited to large servers with abundant memory resources (e.g,
+64-bit servers with 12G or more of memory) by specifying
+`--with-tuning=large` on the `configure` command line. This can improve
+performance on big servers, but will consume more memory and may degrade
+performance on smaller systems.
+
 On Linux, process capabilities are managed in user space using
 the `libcap` library, which can be installed on most Linux systems via
 the `libcap-dev` or `libcap-devel` module. Process capability support can
 also be disabled by configuring with `--disable-linux-caps`.
-
-Portions of BIND that are written in Python, including
-`dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
-system tests, require the 'argparse' and 'ply' modules to be available.
-'argparse' is a standard module as of Python 2.7 and Python 3.2.
-'ply' is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
 
 On some platforms it is necessary to explicitly request large file support
 to handle files bigger than 2GB.  This can be done by using
@@ -285,6 +277,10 @@ Support for the "fixed" rrset-order option can be enabled or disabled by
 specifying `--enable-fixed-rrset` or `--disable-fixed-rrset` on the
 configure command line.  By default, fixed rrset-order is disabled to
 reduce memory footprint.
+
+The `--enable-querytrace` option causes `named` to log every step of
+processing every query. This should only be enabled when debugging, because
+it has a significant negative impact on query performance.
 
 `make install` will install `named` and the various BIND 9 libraries.  By
 default, installation is into /usr/local, but this can be changed with the
