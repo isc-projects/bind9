@@ -2048,9 +2048,11 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 	 */
 	for (key = ISC_LIST_HEAD(*keys);
 	     key != NULL;
-	     key = ISC_LIST_NEXT(key, link)) {
+	     key = ISC_LIST_NEXT(key, link))
+	{
 		if (key->source == dns_keysource_user &&
-		    (key->hint_publish || key->force_publish)) {
+		    (key->hint_publish || key->force_publish))
+		{
 			RETERR(publish_key(diff, key, origin, ttl,
 					   mctx, allzsk, report));
 		}
@@ -2069,15 +2071,19 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 
 		for (key = ISC_LIST_HEAD(*newkeys);
 		     key != NULL;
-		     key = ISC_LIST_NEXT(key, link)) {
+		     key = ISC_LIST_NEXT(key, link))
+		{
 			dns_ttl_t thisttl = dst_key_getttl(key->key);
 			if (thisttl != 0 &&
 			    (shortest == 0 || thisttl < shortest))
+			{
 				shortest = thisttl;
+			}
 		}
 
-		if (shortest != 0)
+		if (shortest != 0) {
 			ttl = shortest;
+		}
 	}
 
 	/*
@@ -2091,15 +2097,16 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 
 		for (key2 = ISC_LIST_HEAD(*keys);
 		     key2 != NULL;
-		     key2 = ISC_LIST_NEXT(key2, link)) {
+		     key2 = ISC_LIST_NEXT(key2, link))
+		{
 			int f1 = dst_key_flags(key1->key);
 			int f2 = dst_key_flags(key2->key);
 			int nr1 = f1 & ~DNS_KEYFLAG_REVOKE;
 			int nr2 = f2 & ~DNS_KEYFLAG_REVOKE;
 			if (nr1 == nr2 &&
 			    dst_key_alg(key1->key) == dst_key_alg(key2->key) &&
-			    dst_key_pubcompare(key1->key, key2->key,
-					       true)) {
+			    dst_key_pubcompare(key1->key, key2->key, true))
+			{
 				int r1, r2;
 				r1 = dst_key_flags(key1->key) &
 					DNS_KEYFLAG_REVOKE;
@@ -2116,11 +2123,13 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			ISC_LIST_APPEND(*keys, key1, link);
 
 			if (key1->source != dns_keysource_zoneapex &&
-			    (key1->hint_publish || key1->force_publish)) {
+			    (key1->hint_publish || key1->force_publish))
+			{
 				RETERR(publish_key(diff, key1, origin, ttl,
 						   mctx, allzsk, report));
-				if (key1->hint_sign || key1->force_sign)
+				if (key1->hint_sign || key1->force_sign) {
 					key1->first_sign = true;
+				}
 			}
 
 			continue;
@@ -2131,12 +2140,14 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			RETERR(remove_key(diff, key2, origin, ttl, mctx,
 					  "expired", report));
 			ISC_LIST_UNLINK(*keys, key2, link);
-			if (removed != NULL)
+			if (removed != NULL) {
 				ISC_LIST_APPEND(*removed, key2, link);
-			else
+			} else {
 				dns_dnsseckey_destroy(mctx, &key2);
+			}
 		} else if (key_revoked &&
-			 (dst_key_flags(key1->key) & DNS_KEYFLAG_REVOKE) != 0) {
+			   (dst_key_flags(key1->key) & DNS_KEYFLAG_REVOKE) != 0)
+		{
 
 			/*
 			 * A previously valid key has been revoked.
@@ -2146,10 +2157,11 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			RETERR(remove_key(diff, key2, origin, ttl, mctx,
 					  "revoked", report));
 			ISC_LIST_UNLINK(*keys, key2, link);
-			if (removed != NULL)
+			if (removed != NULL) {
 				ISC_LIST_APPEND(*removed, key2, link);
-			else
+			} else {
 				dns_dnsseckey_destroy(mctx, &key2);
+			}
 
 			RETERR(publish_key(diff, key1, origin, ttl,
 					   mctx, allzsk, report));
@@ -2169,7 +2181,9 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 		} else {
 			if (!key2->is_active &&
 			    (key1->hint_sign || key1->force_sign))
+			{
 				key2->first_sign = true;
+			}
 			key2->hint_sign = key1->hint_sign;
 			key2->hint_publish = key1->hint_publish;
 		}
