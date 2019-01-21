@@ -1826,7 +1826,7 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	dst_key_format(key->key, keystr, sizeof(keystr));
 
 	report("Fetching %s (%s) from key %s.",
-	       keystr, key->ksk ?  (allzsk ?  "KSK/ZSK" : "KSK") : "ZSK",
+	       keystr, key->ksk ? (allzsk ? "KSK/ZSK" : "KSK") : "ZSK",
 	       key->source == dns_keysource_user ?  "file" : "repository");
 
 	if (key->prepublish && ttl > key->prepublish) {
@@ -2089,6 +2089,8 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 	 */
 	for (key1 = ISC_LIST_HEAD(*newkeys); key1 != NULL; key1 = next) {
 		bool key_revoked = false;
+		char keystr1[DST_KEY_FORMATSIZE];
+		char keystr2[DST_KEY_FORMATSIZE];
 
 		next = ISC_LIST_NEXT(key1, link);
 
@@ -2114,6 +2116,9 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			}
 		}
 
+		/* Printable version of key1 (the newly aquired key) */
+		dst_key_format(key1->key, keystr1, sizeof(keystr1));
+
 		/* No match found in keys; add the new key. */
 		if (key2 == NULL) {
 			ISC_LIST_UNLINK(*newkeys, key1, link);
@@ -2124,21 +2129,49 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			{
 				RETERR(publish_key(diff, key1, origin, ttl,
 						   mctx, allzsk, report));
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_DNSSEC,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_INFO,
+					      "DNSKEY %s (%s) is now published",
+					      keystr1, key1->ksk ?
+					      (allzsk ? "KSK/ZSK" : "KSK") :
+					      "ZSK");
 				if (key1->hint_sign || key1->force_sign) {
 					key1->first_sign = true;
+					isc_log_write(dns_lctx,
+						      DNS_LOGCATEGORY_DNSSEC,
+						      DNS_LOGMODULE_DNSSEC,
+						      ISC_LOG_INFO,
+						      "DNSKEY %s (%s) is now "
+						      "active",
+						      keystr1, key1->ksk ?
+						      (allzsk ? "KSK/ZSK" :
+						       "KSK") : "ZSK");
 				}
 			}
 
 			continue;
 		}
 
+		/* Printable version of key2 (the old key, if any) */
+		dst_key_format(key2->key, keystr2, sizeof(keystr2));
+
 		/* Match found: remove or update it as needed */
 		if (key1->hint_remove) {
 			RETERR(remove_key(diff, key2, origin, ttl, mctx,
 					  "expired", report));
 			ISC_LIST_UNLINK(*keys, key2, link);
+
 			if (removed != NULL) {
 				ISC_LIST_APPEND(*removed, key2, link);
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_DNSSEC,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_INFO,
+					      "DNSKEY %s (%s) is now deleted",
+					      keystr2, key2->ksk ? (allzsk ?
+					      "KSK/ZSK" : "KSK") : "ZSK");
 			} else {
 				dns_dnsseckey_destroy(mctx, &key2);
 			}
@@ -2156,6 +2189,15 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			ISC_LIST_UNLINK(*keys, key2, link);
 			if (removed != NULL) {
 				ISC_LIST_APPEND(*removed, key2, link);
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_DNSSEC,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_INFO,
+					      "DNSKEY %s (%s) is now revoked; "
+					      "new ID is %05d",
+					      keystr2, key2->ksk ? (allzsk ?
+					      "KSK/ZSK" : "KSK") : "ZSK",
+					      dst_key_id(key1->key));
 			} else {
 				dns_dnsseckey_destroy(mctx, &key2);
 			}
@@ -2180,7 +2222,25 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 			    (key1->hint_sign || key1->force_sign))
 			{
 				key2->first_sign = true;
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_DNSSEC,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_INFO,
+					      "DNSKEY %s (%s) is now active",
+					      keystr1, key1->ksk ? (allzsk ?
+					      "KSK/ZSK" : "KSK") : "ZSK");
+			} else if (key2->is_active &&
+				   !key1->hint_sign && !key1->force_sign)
+			{
+				isc_log_write(dns_lctx,
+					      DNS_LOGCATEGORY_DNSSEC,
+					      DNS_LOGMODULE_DNSSEC,
+					      ISC_LOG_INFO,
+					      "DNSKEY %s (%s) is now inactive",
+					      keystr1, key1->ksk ? (allzsk ?
+					      "KSK/ZSK" : "KSK") : "ZSK");
 			}
+
 			key2->hint_sign = key1->hint_sign;
 			key2->hint_publish = key1->hint_publish;
 		}
