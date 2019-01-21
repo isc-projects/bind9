@@ -9622,7 +9622,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 * trusted keys then all we can do is look at any revoked keys.
 	 */
 	if (!secure) {
-		dnssec_log(zone, ISC_LOG_DEBUG(3),
+		dnssec_log(zone, ISC_LOG_INFO,
 			   "DNSKEY set for zone '%s' could not be verified "
 			   "with current keys", namebuf);
 	}
@@ -9676,7 +9676,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			} else if (keydata.addhd == 0) {
 				deletekey = true;
 			} else if (keydata.addhd > now) {
-				dnssec_log(zone, ISC_LOG_DEBUG(3),
+				dnssec_log(zone, ISC_LOG_INFO,
 					   "Pending key %d for zone %s "
 					   "unexpectedly missing "
 					   "restarting 30-day acceptance "
@@ -9687,14 +9687,14 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				}
 				keydata.refresh = refresh_time(kfetch, false);
 			} else if (keydata.removehd == 0) {
-				dnssec_log(zone, ISC_LOG_DEBUG(3),
+				dnssec_log(zone, ISC_LOG_INFO,
 					   "Active key %d for zone %s "
 					   "unexpectedly missing",
 					   keytag, namebuf);
 				keydata.refresh = now + dns_zone_mkey_hour;
 			} else if (keydata.removehd <= now) {
 				deletekey = true;
-				dnssec_log(zone, ISC_LOG_DEBUG(3),
+				dnssec_log(zone, ISC_LOG_INFO,
 					   "Revoked key %d for zone %s "
 					   "missing: deleting from "
 					   "managed keys database",
@@ -9784,7 +9784,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					 * it's been revoked?  Just remove it
 					 */
 					deletekey = true;
-					dnssec_log(zone, ISC_LOG_DEBUG(3),
+					dnssec_log(zone, ISC_LOG_INFO,
 						   "Pending key %d for "
 						   "zone %s is now revoked: "
 						   "deleting from the "
@@ -9844,7 +9844,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 					keydata.addhd =
 						now + dns_zone_mkey_month;
 
-					dnssec_log(zone, ISC_LOG_DEBUG(3),
+					dnssec_log(zone, ISC_LOG_INFO,
 						   "Revoked key %d for "
 						   "zone %s has returned: "
 						   "starting 30-day "
@@ -9875,7 +9875,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				 */
 				pending++;
 				keydata.addhd = now + dns_zone_mkey_month;
-				dnssec_log(zone, ISC_LOG_DEBUG(3),
+				dnssec_log(zone, ISC_LOG_INFO,
 					   "Pending key %d "
 					   "for zone %s was "
 					   "not validated: restarting "
@@ -18238,7 +18238,7 @@ dnssec_report(const char *format, ...) {
 	va_list args;
 	va_start(args, format);
 	isc_log_vwrite(dns_lctx, DNS_LOGCATEGORY_DNSSEC, DNS_LOGMODULE_ZONE,
-		       ISC_LOG_DEBUG(1), format, args);
+		       ISC_LOG_INFO, format, args);
 	va_end(args);
 }
 
