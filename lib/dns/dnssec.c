@@ -1818,23 +1818,20 @@ publish_key(dns_diff_t *diff, dns_dnsseckey_t *key, const dns_name_t *origin,
 	isc_result_t result;
 	dns_difftuple_t *tuple = NULL;
 	unsigned char buf[DST_KEY_MAXSIZE];
+	char keystr[DST_KEY_FORMATSIZE];
 	dns_rdata_t dnskey = DNS_RDATA_INIT;
-	char alg[80];
 
 	dns_rdata_reset(&dnskey);
 	RETERR(make_dnskey(key->key, buf, sizeof(buf), &dnskey));
+	dst_key_format(key->key, keystr, sizeof(keystr));
 
-	dns_secalg_format(dst_key_alg(key->key), alg, sizeof(alg));
-	report("Fetching %s %d/%s from key %s.",
-	       key->ksk ?  (allzsk ?  "KSK/ZSK" : "KSK") : "ZSK",
-	       dst_key_id(key->key), alg,
+	report("Fetching %s (%s) from key %s.",
+	       keystr, key->ksk ?  (allzsk ?  "KSK/ZSK" : "KSK") : "ZSK",
 	       key->source == dns_keysource_user ?  "file" : "repository");
 
 	if (key->prepublish && ttl > key->prepublish) {
-		char keystr[DST_KEY_FORMATSIZE];
 		isc_stdtime_t now;
 
-		dst_key_format(key->key, keystr, sizeof(keystr));
 		report("Key %s: Delaying activation to match the DNSKEY TTL.\n",
 		       keystr, ttl);
 
