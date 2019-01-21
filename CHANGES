@@ -1,3 +1,7 @@
+5151.	[func]		Options that have been been marked as obsolete in
+			named.conf for a very long time are now fatal
+			configuration errors. [GL #358]
+
 5150.	[cleanup]	Remove the ability to compile BIND with assertions
 			disabled. [GL #735]
 
