@@ -1992,24 +1992,37 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 
 		/* Clause is known. */
 
+		/* Issue fatal errors if appropriate */
+		if ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) {
+			cfg_parser_error(pctx, 0,
+					 "option '%s' no longer exists",
+					 clause->name);
+			CHECK(ISC_R_FAILURE);
+		}
+
 		/* Issue warnings if appropriate */
 		if ((pctx->flags & CFG_PCTX_NODEPRECATED) == 0 &&
 		    (clause->flags & CFG_CLAUSEFLAG_DEPRECATED) != 0)
 		{
-			cfg_parser_warning(pctx, 0, "option '%s' is deprecated",
+			cfg_parser_warning(pctx, 0,
+					   "option '%s' is deprecated",
 					   clause->name);
 		}
 		if ((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) {
-			cfg_parser_warning(pctx, 0, "option '%s' is obsolete",
+			cfg_parser_warning(pctx, 0,
+					   "option '%s' is obsolete and "
+					   "should be removed ",
 					   clause->name);
 		}
 		if ((clause->flags & CFG_CLAUSEFLAG_NOTIMP) != 0) {
-			cfg_parser_warning(pctx, 0, "option '%s' is "
-					   "not implemented", clause->name);
+			cfg_parser_warning(pctx, 0,
+					   "option '%s' is not implemented",
+					   clause->name);
 		}
 		if ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) {
-			cfg_parser_warning(pctx, 0, "option '%s' is "
-					   "not implemented", clause->name);
+			cfg_parser_warning(pctx, 0,
+					   "option '%s' is not implemented",
+					   clause->name);
 		}
 		if ((clause->flags & CFG_CLAUSEFLAG_NOOP) != 0) {
 			cfg_parser_warning(pctx, 0, "option '%s' was not "
@@ -2018,11 +2031,10 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 		}
 
 		if ((clause->flags & CFG_CLAUSEFLAG_NOTCONFIGURED) != 0) {
-			cfg_parser_warning(pctx, 0, "option '%s' was not "
+			cfg_parser_error(pctx, 0, "option '%s' was not "
 					   "enabled at compile time",
 					   clause->name);
-			result = ISC_R_FAILURE;
-			goto cleanup;
+			CHECK(ISC_R_FAILURE);
 		}
 
 		/*
@@ -2078,8 +2090,9 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 						       callback));
 				CHECK(parse_semicolon(pctx));
 			} else if (result == ISC_R_SUCCESS) {
-				cfg_parser_error(pctx, CFG_LOG_NEAR, "'%s' redefined",
-					     clause->name);
+				cfg_parser_error(pctx, CFG_LOG_NEAR,
+						 "'%s' redefined",
+						 clause->name);
 				result = ISC_R_EXISTS;
 				goto cleanup;
 			} else {
@@ -2276,6 +2289,7 @@ static struct flagtext {
 	{ CFG_CLAUSEFLAG_EXPERIMENTAL, "experimental" },
 	{ CFG_CLAUSEFLAG_NOOP, "non-operational" },
 	{ CFG_CLAUSEFLAG_DEPRECATED, "deprecated" },
+	{ CFG_CLAUSEFLAG_ANCIENT, "ancient" },
 	{ 0, NULL }
 };
 
