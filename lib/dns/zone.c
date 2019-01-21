@@ -14457,7 +14457,6 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 		if (rjournal != NULL)
 			dns_journal_destroy(&rjournal);
 		isc_task_send(task, &event);
-		fprintf(stderr, "looping on dns_update_signaturesinc\n");
 		return;
 	}
 	/*
