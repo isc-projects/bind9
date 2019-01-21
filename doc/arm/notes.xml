@@ -597,6 +597,13 @@
 	  disables reading of the file <filename>$HOME/.digrc</filename>.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Zone signing and key maintenance events are now logged to the
+	  <command>dnssec</command> category rather than
+	  <command>zone</command>.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
