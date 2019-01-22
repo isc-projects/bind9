@@ -743,8 +743,8 @@ setup_dnsseckeys(dns_client_t *client) {
 
 		isc_buffer_init(&b, anchortext, sizeof(anchortext) - 1);
 		isc_buffer_add(&b, sizeof(anchortext) - 1);
-		result = cfg_parse_buffer(parser, &b, &cfg_type_bindkeys,
-					  &bindkeys);
+		result = cfg_parse_buffer(parser, &b, NULL, 0,
+					  &cfg_type_bindkeys, 0, &bindkeys);
 		if (result != ISC_R_SUCCESS)
 			fatal("Unable to parse built-in keys");
 	}
