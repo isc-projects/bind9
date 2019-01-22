@@ -77,15 +77,39 @@ class keyseries:
         a = key.activate()
         if not p or p > now:
             key.setpublish(now)
+            p = now
         if not a or a > now:
             key.setactivate(now)
+            a = now
 
+        i = key.inactive()
         if not rp:
             key.setinactive(None, **kwargs)
             key.setdelete(None, **kwargs)
+        elif not i or a + rp != i:
+            if not i and a + rp > now + prepub:
+                key.setinactive(a + rp, **kwargs)
+                key.setdelete(a + rp + postpub, **kwargs)
+            elif not i:
+                key.setinactive(now + prepub, **kwargs)
+                key.setdelete(now + prepub + postpub, **kwargs)
+            elif a + rp > i:
+                key.setinactive(a + rp, **kwargs)
+                key.setdelete(a + rp + postpub, **kwargs)
+            elif a + rp > now + prepub:
+                key.setinactive(a + rp, **kwargs)
+                key.setdelete(a + rp + postpub, **kwargs)
+            else:
+                key.setinactive(now + prepub, **kwargs)
+                key.setdelete(now + prepub + postpub, **kwargs)
         else:
-            key.setinactive(a + rp, **kwargs)
-            key.setdelete(a + rp + postpub, **kwargs)
+            d = key.delete()
+            if not d or i + postpub > now:
+                key.setdelete(i + postpub, **kwargs)
+            elif not d:
+                key.setdelete(now + postpub, **kwargs)
+            elif d < i + postpub:
+                key.setdelete(i + postpub, **kwargs)
 
         if policy.keyttl != key.ttl:
             key.setttl(policy.keyttl)
