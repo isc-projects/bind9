@@ -842,6 +842,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -917,8 +918,6 @@ enable_isc_spnego
 enable_chroot
 enable_linux_caps
 enable_fixed_rrset
-enable_rpz_nsip
-enable_rpz_nsdname
 enable_dnstap
 with_protobuf_c
 with_libfstrm
@@ -1001,6 +1000,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1253,6 +1253,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1390,7 +1399,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1543,6 +1552,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1605,8 +1615,6 @@ Optional Features:
   --disable-chroot        disable chroot
   --disable-linux-caps    disable Linux capabilities
   --enable-fixed-rrset    enable fixed rrset ordering [default=no]
-  --disable-rpz-nsip      disable rpz nsip rules [default=enabled]
-  --disable-rpz-nsdname   disable rpz nsdname rules [default=enabled]
   --enable-dnstap         enable dnstap support (requires fstrm, protobuf-c)
   --enable-querytrace     enable very verbose query trace logging [default=no]
   --enable-auto-validation
@@ -18171,50 +18179,6 @@ case "$enable_fixed" in
 	yes)
 
 $as_echo "#define DNS_RDATASET_FIXED 1" >>confdefs.h
-
-		;;
-	no)
-		;;
-	*)
-		;;
-esac
-
-#
-# Enable response policy rewriting using NS IP addresses
-#
-# Check whether --enable-rpz-nsip was given.
-if test "${enable_rpz_nsip+set}" = set; then :
-  enableval=$enable_rpz_nsip; enable_nsip="$enableval"
-else
-  enable_nsip="yes"
-fi
-
-case "$enable_nsip" in
-	yes)
-
-$as_echo "#define ENABLE_RPZ_NSIP 1" >>confdefs.h
-
-		;;
-	no)
-		;;
-	*)
-		;;
-esac
-
-#
-# Enable response policy rewriting using NS name
-#
-# Check whether --enable-rpz-nsdname was given.
-if test "${enable_rpz_nsdname+set}" = set; then :
-  enableval=$enable_rpz_nsdname; enable_nsdname="$enableval"
-else
-  enable_nsdname="yes"
-fi
-
-case "$enable_nsdname" in
-	yes)
-
-$as_echo "#define ENABLE_RPZ_NSDNAME 1" >>confdefs.h
 
 		;;
 	no)

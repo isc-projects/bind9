@@ -45,8 +45,6 @@ usage() {
 	fprintf(stderr, "	--have-geoip\n");
 	fprintf(stderr, "	--have-libxml2\n");
 	fprintf(stderr, "	--ipv6only=no\n");
-	fprintf(stderr, "	--rpz-nsdname\n");
-	fprintf(stderr, "	--rpz-nsip\n");
 	fprintf(stderr, "	--with-idn\n");
 	fprintf(stderr, "	--with-lmdb\n");
 }
@@ -130,22 +128,6 @@ main(int argc, char **argv) {
 
 	if (strcmp(argv[1], "--have-libxml2") == 0) {
 #ifdef HAVE_LIBXML2
-		return (0);
-#else
-		return (1);
-#endif
-	}
-
-	if (strcmp(argv[1], "--rpz-nsip") == 0) {
-#ifdef ENABLE_RPZ_NSIP
-		return (0);
-#else
-		return (1);
-#endif
-	}
-
-	if (strcmp(argv[1], "--rpz-nsdname") == 0) {
-#ifdef ENABLE_RPZ_NSDNAME
 		return (0);
 #else
 		return (1);

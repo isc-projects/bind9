@@ -2289,21 +2289,18 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	if (zone_element == NULL)
 		return (ISC_R_SUCCESS);
 
-#ifdef ENABLE_RPZ_NSIP
 	nsip_enabled = true;
-	nsdname_enabled = true;
-#else
-	nsip_enabled = false;
-	nsdname_enabled = false;
-#endif
 	sub_obj = cfg_tuple_get(rpz_obj, "nsip-enable");
-	if (!cfg_obj_isvoid(sub_obj))
+	if (!cfg_obj_isvoid(sub_obj)) {
 		nsip_enabled = cfg_obj_asboolean(sub_obj);
+	}
 	nsip_on = nsip_enabled ? DNS_RPZ_ALL_ZBITS : 0;
 
+	nsdname_enabled = true;
 	sub_obj = cfg_tuple_get(rpz_obj, "nsdname-enable");
-	if (!cfg_obj_isvoid(sub_obj))
+	if (!cfg_obj_isvoid(sub_obj)) {
 		nsdname_enabled = cfg_obj_asboolean(sub_obj);
+	}
 	nsdname_on = nsdname_enabled ? DNS_RPZ_ALL_ZBITS : 0;
 
 	/*
