@@ -1,3 +1,7 @@
+5140.	[bug]		Don't immediately mark existing keys as inactive and
+			deleted when running dnssec-keymgr for the first
+			time. [GL #117]
+
 5139.	[bug]		If possible, don't use forwarders when priming.
 			This ensures we can get root server IP addresses
 			from priming query response glue, which may not
