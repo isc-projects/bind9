@@ -1553,6 +1553,10 @@
 ./bin/tests/system/keymgr/18-nonstd-prepub/README	TXT.BRIEF	2016,2018,2019
 ./bin/tests/system/keymgr/18-nonstd-prepub/expect	X	2016,2018,2019
 ./bin/tests/system/keymgr/18-nonstd-prepub/policy.conf	CONF-C	2016,2018,2019
+./bin/tests/system/keymgr/19-old-keys/README	TXT.BRIEF	2019
+./bin/tests/system/keymgr/19-old-keys/expect	X	2019
+./bin/tests/system/keymgr/19-old-keys/extra.sh	SH	2019
+./bin/tests/system/keymgr/19-old-keys/policy.conf	CONF-C	2019
 ./bin/tests/system/keymgr/clean.sh		SH	2016,2018,2019
 ./bin/tests/system/keymgr/policy.conf		CONF-C	2016,2018,2019
 ./bin/tests/system/keymgr/policy.good		X	2016,2018,2019
