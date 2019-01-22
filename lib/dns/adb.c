@@ -3388,7 +3388,6 @@ dump_ttl(FILE *f, const char *legend, isc_stdtime_t value, isc_stdtime_t now) {
 
 static void
 dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
-	unsigned int i;
 	dns_adbname_t *name;
 	dns_adbentry_t *entry;
 
@@ -3401,28 +3400,46 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 			adb, adb->erefcnt, adb->irefcnt,
 			isc_mempool_getallocated(adb->nhmp));
 
-	for (i = 0; i < adb->nnames; i++)
+/*
+ * In TSAN mode we need to lock the locks individually, as TSAN
+ * can't handle more than 64 locks locked by one thread.
+ * In regular mode we want a consistent dump so we need to
+ * lock everything.
+ */
+#ifndef __SANITIZE_THREAD__
+	for (size_t i = 0; i < adb->nnames; i++) {
 		LOCK(&adb->namelocks[i]);
-	for (i = 0; i < adb->nentries; i++)
+	}
+	for (size_t i = 0; i < adb->nentries; i++) {
 		LOCK(&adb->entrylocks[i]);
+	}
+#endif
 
 	/*
 	 * Dump the names
 	 */
-	for (i = 0; i < adb->nnames; i++) {
+	for (size_t i = 0; i < adb->nnames; i++) {
+#ifdef __SANITIZE_THREAD__
+		LOCK(&adb->namelocks[i]);
+#endif
 		name = ISC_LIST_HEAD(adb->names[i]);
-		if (name == NULL)
+		if (name == NULL) {
+#ifdef __SANITIZE_THREAD__
+			UNLOCK(&adb->namelocks[i]);
+#endif
 			continue;
-		if (debug)
-			fprintf(f, "; bucket %u\n", i);
+		}
+		if (debug) {
+			fprintf(f, "; bucket %zu\n", i);
+		}
 		for (;
 		     name != NULL;
 		     name = ISC_LIST_NEXT(name, plink))
 		{
-			if (debug)
+			if (debug) {
 				fprintf(f, "; name %p (flags %08x)\n",
 					name, name->flags);
-
+			}
 			fprintf(f, "; ");
 			print_dns_name(f, &name->name);
 			if (dns_name_countlabels(&name->target) > 0) {
@@ -3450,26 +3467,39 @@ dump_adb(dns_adb_t *adb, FILE *f, bool debug, isc_stdtime_t now) {
 				print_find_list(f, name);
 			}
 		}
+#ifdef __SANITIZE_THREAD__
+		UNLOCK(&adb->namelocks[i]);
+#endif
 	}
 
 	fprintf(f, ";\n; Unassociated entries\n;\n");
 
-	for (i = 0; i < adb->nentries; i++) {
+	for (size_t i = 0; i < adb->nentries; i++) {
+#ifdef __SANITIZE_THREAD__
+		LOCK(&adb->entrylocks[i]);
+#endif
 		entry = ISC_LIST_HEAD(adb->entries[i]);
 		while (entry != NULL) {
 			if (entry->nh == 0)
 				dump_entry(f, adb, entry, debug, now);
 			entry = ISC_LIST_NEXT(entry, plink);
 		}
+#ifdef __SANITIZE_THREAD__
+		UNLOCK(&adb->entrylocks[i]);
+#endif
 	}
 
+#ifndef __SANITIZE_THREAD__
 	/*
 	 * Unlock everything
 	 */
-	for (i = 0; i < adb->nentries; i++)
+	for (ssize_t i = adb->nentries-1; i >= 0; i--) {
 		UNLOCK(&adb->entrylocks[i]);
-	for (i = 0; i < adb->nnames; i++)
+	}
+	for (ssize_t i = adb->nnames-1; i >= 0; i--) {
 		UNLOCK(&adb->namelocks[i]);
+	}
+#endif
 }
 
 static void
