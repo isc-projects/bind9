@@ -16,13 +16,19 @@ status=0
 n=1
 
 matchall () {
+    match_result=ok
     file=$1
-    echo "$2" | while read matchline; do
-        grep "$matchline" $file > /dev/null 2>&1 || {
-            echo "FAIL"
-            return
+    while IFS="," read expect matchline; do
+        [ -z "$matchline" ] && continue
+        matches=`grep "$matchline" $file | wc -l`
+        [ "$matches" -ne "$expect" ] && {
+            echo "'$matchline': expected $expect found $matches"
+            return 1
         }
-    done
+    done << EOF
+    $2
+EOF
+    return 0
 }
 
 echo_i "checking for DNSSEC key coverage issues"
@@ -51,11 +57,8 @@ for dir in [0-9][0-9]-*; do
             ret=1
         fi
 
-        found=`matchall keymgr.$n "$kmatch"`
-        if [ "$found" = "FAIL" ]; then
-            echo "no match on '$kmatch'"
-            ret=1
-        fi
+        # check for matches in keymgr output
+        matchall keymgr.$n "$kmatch" || ret=1
 
         # now check coverage
         $COVERAGE -K $dir $cargs > coverage.$n 2>&1
@@ -87,10 +90,13 @@ for dir in [0-9][0-9]-*; do
             ret=1
         fi
 
-        found=`matchall coverage.$n "$cmatch"`
-        if [ "$found" = "FAIL" ]; then
-            echo "no match on '$cmatch'"
-            ret=1
+        # check for matches in coverage output
+        matchall coverage.$n "$cmatch" || ret=1
+
+        if [ -f $dir/extra.sh ]; then
+           cd $dir
+           . ./extra.sh
+           cd ..
         fi
 
         n=`expr $n + 1`
