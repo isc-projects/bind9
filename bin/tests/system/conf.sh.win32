@@ -104,31 +104,38 @@ RANDOMSIZE=4096
 #
 # List of tests that use ports 5300 and 9953.  For this reason, these must
 # be run sequentially.
-SEQUENTIALDIRS="acl additional addzone autosign builtin \
-	 cacheclean case \
-	 checkconf @CHECKDS@ checknames checkzone cookie @COVERAGE@ \
-	 database digdelv dlv dlvauto dlz dlzexternal \
-	 dns64 dnssec @DNSTAP@ dscp dsdigest dyndb ecdsa eddsa \
-	 ednscompliance emptyzones \
-	 fetchlimit filter-aaaa formerr forward geoip glue gost idna inline ixfr \
-	 @KEYMGR@ legacy limits logfileconfig lwresd masterfile masterformat \
-	 metadata mkeys names notify nslookup nsupdate nzd2nzf pending \
-	 @PKCS11_TEST@ pipelined reclimit redirect resolver rndc rpz \
-	 rrchecker rrl rrsetorder rsabigexponent runtime sfcache \
-	 smartsign sortlist spf staticstub statistics statschannel stub tcp \
-	 tkey tsig tsiggss unknown upforwd verify views wildcard xfer \
-	 xferquota zero zonechecks"
+SEQUENTIALDIRS="ecdsa eddsa gost lwresd @PKCS11_TEST@ tkey"
 
 # List of tests that use unique ports (other than 5300 and 9953). These
 # tests can be run in parallel.
 #
-# This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="allow_query catz rpzrecurse"
+# XXX: Note that tests are not currently run in parallel on Windows, so it
+# isn't strictly necessary to maintain these as separate lists in this file,
+# but using the same variable names as in conf.sh.in may simplify keeping the
+# lists in sync.
+#
+# XXX: removed logfileconfig as it doesn't currently work on windows.
+PARALLELDIRS="acl additional addzone allow-query autosign \
+	builtin cacheclean case catz chain \
+	checkconf checknames checkzone \
+	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
+	cookie database digdelv dlv dlz dlzexternal \
+	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
+	ednscompliance emptyzones \
+	fetchlimit filter-aaaa formerr forward \
+	geoip glue idna inline integrity ixfr \
+	legacy limits lwresd masterfile masterformat metadata mkeys \
+        names notify nslookup nsupdate nzd2nzf \
+        pending pipelined \
+        reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
+        rrchecker rrl rrsetorder rsabigexponent runtime \
+        sfcache smartsign sortlist \
+        spf staticstub statistics statschannel stub \
+        tcp tools tsig tsiggss \
+        unknown upforwd verify views wildcard \
+        xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
-
-# missing: chain integrity
-# extra: dname ednscompliance forward
 
 #Things that are different on Windows
 KILL="/bin/kill -f"
