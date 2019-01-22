@@ -37,7 +37,7 @@ ALTERNATIVE_ALGORITHM_NUMBER=8
 ALTERNATIVE_BITS=1280
 
 ARPANAME=$TOP/Build/$VSCONF/arpaname@EXEEXT@
-CDS=
+CDS=$TOP/Build/$VSCONF/dnssec-cds@EXEEXT@
 CHECKCONF=$TOP/Build/$VSCONF/named-checkconf@EXEEXT@
 CHECKDS="$PYTHON `cygpath -w $TOP/bin/python/dnssec-checkds.py`"
 CHECKZONE=$TOP/Build/$VSCONF/named-checkzone@EXEEXT@
@@ -56,7 +56,7 @@ KEYGEN=$TOP/Build/$VSCONF/dnssec-keygen@EXEEXT@
 KEYMGR="$PYTHON `cygpath -w $TOP/bin/python/dnssec-keymgr.py`"
 MDIG=$TOP/Build/$VSCONF/mdig@EXEEXT@
 NAMED=$TOP/Build/$VSCONF/named@EXEEXT@
-NSEC3HASH=
+NSEC3HASH=$TOP/Build/$VSCONF/nsec3hash@EXEEXT@
 NSLOOKUP=$TOP/Build/$VSCONF/nslookup@EXEEXT@
 NSUPDATE=$TOP/Build/$VSCONF/nsupdate@EXEEXT@
 NZD2NZF=$TOP/Build/$VSCONF/named-nzd2nzf@EXEEXT@
