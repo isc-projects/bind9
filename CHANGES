@@ -1,3 +1,5 @@
+5141.	[placeholder]
+
 5140.	[bug]		Don't immediately mark existing keys as inactive and
 			deleted when running dnssec-keymgr for the first
 			time. [GL #117]
