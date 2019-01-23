@@ -104,6 +104,8 @@ SEQUENTIALDIRS="ecdsa eddsa @PKCS11_TEST@ tkey"
 # isn't strictly necessary to maintain these as separate lists in this file,
 # but using the same variable names as in conf.sh.in may simplify keeping the
 # lists in sync.
+#
+# XXX: removed logfileconfig as it doesn't currently work on windows.
 PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	builtin cacheclean case catz cds chain \
 	checkconf checknames checkzone \
@@ -113,8 +115,7 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue idna inline integrity ixfr keepalive \
-	legacy limits logfileconfig \
-	masterfile masterformat metadata mirror mkeys \
+	legacy limits masterfile masterformat metadata mirror mkeys \
 	names notify nslookup nsupdate nzd2nzf \
 	padding pending pipelined qmin \
 	reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
