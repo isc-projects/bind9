@@ -21,7 +21,7 @@ n=0
 getcookie() {
 	awk '$2 == "COOKIE:" {
 		print $3;
-	}' < $1
+	}' < $1 | tr -d '\r'
 }
 
 fullcookie() {
@@ -37,21 +37,21 @@ havetc() {
 for bad in bad*.conf
 do
 	n=`expr $n + 1`
-        echo_i "checking that named-checkconf detects error in $bad ($n)"
-        ret=0
-        $CHECKCONF $bad > /dev/null 2>&1 && ret=1
-        if [ $ret != 0 ]; then echo_i "failed"; fi
-        status=`expr $status + $ret`
+	echo_i "checking that named-checkconf detects error in $bad ($n)"
+	ret=0
+	$CHECKCONF $bad > /dev/null 2>&1 && ret=1
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=`expr $status + $ret`
 done
 
 for good in good*.conf
 do
 	n=`expr $n + 1`
-        echo_i "checking that named-checkconf detects accepts $good ($n)"
-        ret=0
-        $CHECKCONF $good > /dev/null 2>&1 || ret=1
-        if [ $ret != 0 ]; then echo_i "failed"; fi
-        status=`expr $status + $ret`
+	echo_i "checking that named-checkconf detects accepts $good ($n)"
+	ret=0
+	$CHECKCONF $good > /dev/null 2>&1 || ret=1
+	if [ $ret != 0 ]; then echo_i "failed"; fi
+	status=`expr $status + $ret`
 done
 
 n=`expr $n + 1`
