@@ -218,9 +218,6 @@ dns_dt_create2(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	env = isc_mem_get(mctx, sizeof(dns_dtenv_t));
 
 	memset(env, 0, sizeof(dns_dtenv_t));
-
-	env->magic = DTENV_MAGIC;
-	isc_mem_attach(mctx, &env->mctx);
 	env->reopen_task = reopen_task;
 	isc_mutex_init(&env->reopen_lock);
 	env->reopen_queued = false;
@@ -276,6 +273,9 @@ dns_dt_create2(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	env->fopt = *foptp;
 	*foptp = NULL;
 
+	isc_mem_attach(mctx, &env->mctx);
+
+	env->magic = DTENV_MAGIC;
 	*envp = env;
 
  cleanup:
