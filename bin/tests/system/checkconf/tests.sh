@@ -341,7 +341,7 @@ ret=0
 $CHECKCONF -l good.conf |
 grep -v "is not implemented" |
 grep -v "is obsolete" > checkconf.out$n || ret=1
-diff good.zonelist checkconf.out$n  > diff.out$n || ret=1
+$DIFF good.zonelist checkconf.out$n  > diff.out$n || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 

@@ -2651,7 +2651,7 @@ awk '{
 	for (i=7;i<=NF;i++) printf("%s", $i);
 	printf("\n");
 }' < ns1/dsset-algroll$TP > canonical2.$n || ret=1
-diff -b canonical1.$n canonical2.$n > /dev/null 2>&1 || ret=1
+$DIFF -b canonical1.$n canonical2.$n > /dev/null 2>&1 || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
