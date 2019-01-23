@@ -9,8 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 status=0
 n=1
