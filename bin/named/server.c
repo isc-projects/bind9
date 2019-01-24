@@ -8022,6 +8022,7 @@ load_configuration(const char *filename, named_server_t *server,
 	ns_altsecretlist_t altsecrets, tmpaltsecrets;
 	unsigned int maxsocks;
 	uint32_t softquota = 0;
+	uint32_t max;
 	unsigned int initial, idle, keepalive, advertised;
 	dns_aclenv_t *env =
 		ns_interfacemgr_getaclenv(named_g_server->interfacemgr);
@@ -8214,20 +8215,20 @@ load_configuration(const char *filename, named_server_t *server,
 	configure_server_quota(maps, "recursive-clients",
 			       &server->sctx->recursionquota);
 
-	if (server->sctx->recursionquota.max > 1000) {
-		int margin = ISC_MAX(100, named_g_cpus + 1);
-		if (margin > server->sctx->recursionquota.max - 100) {
+	max = isc_quota_getmax(&server->sctx->recursionquota);
+	if (max > 1000) {
+		unsigned margin = ISC_MAX(100, named_g_cpus + 1);
+		if (margin + 100 > max) {
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 				      "'recursive-clients %d' too low when "
 				      "running with %d worker threads",
-				      server->sctx->recursionquota.max,
-				      named_g_cpus);
+				      max, named_g_cpus);
 			CHECK(ISC_R_RANGE);
 		}
-		softquota = server->sctx->recursionquota.max - margin;
+		softquota = max - margin;
 	} else {
-		softquota = (server->sctx->recursionquota.max * 90) / 100;
+		softquota = (max * 90) / 100;
 	}
 
 	isc_quota_soft(&server->sctx->recursionquota, softquota);
@@ -11452,13 +11453,14 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "recursive clients: %d/%d/%d\n",
-		     server->sctx->recursionquota.used,
-		     server->sctx->recursionquota.soft,
-		     server->sctx->recursionquota.max);
+		     isc_quota_getused(&server->sctx->recursionquota),
+		     isc_quota_getsoft(&server->sctx->recursionquota),
+		     isc_quota_getmax(&server->sctx->recursionquota));
 	CHECK(putstr(text, line));
 
 	snprintf(line, sizeof(line), "tcp clients: %d/%d\n",
-		     server->sctx->tcpquota.used, server->sctx->tcpquota.max);
+		     isc_quota_getused(&server->sctx->tcpquota),
+		     isc_quota_getmax(&server->sctx->tcpquota));
 	CHECK(putstr(text, line));
 
 	if (server->reload_in_progress) {

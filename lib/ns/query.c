@@ -5589,38 +5589,37 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 				   ns_statscounter_recursclients);
 
 		if  (result == ISC_R_SOFTQUOTA) {
-			static isc_stdtime_t last = 0;
+			static atomic_uint_fast32_t last = 0;
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
-			if (now != last) {
-				last = now;
+			if (now != atomic_load_relaxed(&last)) {
+				atomic_store_relaxed(&last, now);
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-					      NS_LOGMODULE_QUERY,
-					      ISC_LOG_WARNING,
-					      "recursive-clients soft limit "
-					      "exceeded (%d/%d/%d), "
-					      "aborting oldest query",
-					      client->recursionquota->used,
-					      client->recursionquota->soft,
-					      client->recursionquota->max);
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "recursive-clients soft limit "
+				      "exceeded (%u/%u/%u), "
+				      "aborting oldest query",
+				      isc_quota_getused(client->recursionquota),
+				      isc_quota_getsoft(client->recursionquota),
+				      isc_quota_getmax(client->recursionquota));
 			}
 			ns_client_killoldestquery(client);
 			result = ISC_R_SUCCESS;
 		} else if (result == ISC_R_QUOTA) {
-			static isc_stdtime_t last = 0;
+			static atomic_uint_fast32_t last = 0;
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
-			if (now != last) {
-				last = now;
+			if (now != atomic_load_relaxed(&last)) {
+				ns_server_t *sctx = client->sctx;
+				atomic_store_relaxed(&last, now);
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
-					      NS_LOGMODULE_QUERY,
-					      ISC_LOG_WARNING,
-					      "no more recursive clients "
-					      "(%d/%d/%d): %s",
-					      client->sctx->recursionquota.used,
-					      client->sctx->recursionquota.soft,
-					      client->sctx->recursionquota.max,
-					      isc_result_totext(result));
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "no more recursive clients "
+				      "(%u/%u/%u): %s",
+				      isc_quota_getused(&sctx->recursionquota),
+				      isc_quota_getsoft(&sctx->recursionquota),
+				      isc_quota_getmax(&sctx->recursionquota),
+				      isc_result_totext(result));
 			}
 			ns_client_killoldestquery(client);
 		}
