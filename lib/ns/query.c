@@ -3668,40 +3668,7 @@ rpz_rewrite_name(ns_client_t *client, dns_name_t *trig_name,
 			     (st->m.type == rpz_type &&
 			      0 >= dns_name_compare(p_name, st->p_name))))
 				continue;
-#if 0
-			/*
-			 * This code would block a customer reported information
-			 * leak of rpz rules by rewriting requests in the
-			 * rpz-ip, rpz-nsip, rpz-nsdname,and rpz-passthru TLDs.
-			 * Without this code, a bad guy could request
-			 * 24.0.3.2.10.rpz-ip. to find the policy rule for
-			 * 10.2.3.0/14.  It is an insignificant leak and this
-			 * code is not worth its cost, because the bad guy
-			 * could publish "evil.com A 10.2.3.4" and request
-			 * evil.com to get the same information.
-			 * Keep code with "#if 0" in case customer demand
-			 * is irresistible.
-			 *
-			 * We have the less frequent case of a triggered
-			 * policy.  Check that we have not trigger on one
-			 * of the pretend RPZ TLDs.
-			 * This test would make it impossible to rewrite
-			 * names in TLDs that start with "rpz-" should
-			 * ICANN ever allow such TLDs.
-			 */
-			unsigned int labels;
-			labels = dns_name_countlabels(trig_name);
-			if (labels >= 2) {
-				dns_label_t label;
 
-				dns_name_getlabel(trig_name, labels-2, &label);
-				if (label.length >= sizeof(DNS_RPZ_PREFIX)-1 &&
-				    strncasecmp((const char *)label.base+1,
-						DNS_RPZ_PREFIX,
-						sizeof(DNS_RPZ_PREFIX)-1) == 0)
-					continue;
-			}
-#endif
 			if (rpz->policy != DNS_RPZ_POLICY_DISABLED) {
 				CTRACE(ISC_LOG_DEBUG(3),
 				       "rpz_rewrite_name: rpz_save_p");
