@@ -5381,7 +5381,7 @@ child_of_zone(dns_name_t * name, dns_name_t * zone_name,
 
 	name_reln = dns_name_fullcompare(name, zone_name, &orderp, &nlabelsp);
 	if (name_reln != dns_namereln_subdomain ||
-	    dns_name_countlabels(name) <= dns_name_countlabels(zone_name) + 1) {
+	    dns_name_countlabels(name) < dns_name_countlabels(zone_name) + 1) {
 		printf("\n;; ERROR : ");
 		dns_name_print(name, stdout);
 		printf(" is not a subdomain of: ");
@@ -5973,6 +5973,8 @@ sigchase_td(dns_message_t *msg)
 			dns_name_init(&tmp_name, NULL);
 			result = child_of_zone(&chase_name, &chase_current_name,
 					       &tmp_name);
+			if (result != ISC_R_SUCCESS)
+				goto cleanandgo;
 			if (dns_name_dynamic(&chase_authority_name))
 				free_name(&chase_authority_name);
 			dup_name(&tmp_name, &chase_authority_name);
