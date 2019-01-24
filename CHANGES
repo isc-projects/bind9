@@ -1,3 +1,8 @@
+5142.	[cleanup]	Removed "configure --disable-rpz-nsip" and
+			"--disable-rpz-nsdname" options. "nsip-enable"
+			and "nsdname-enable" both now default to yes,
+			regardless of compile-time settings. [GL #824]
+
 5141.	[placeholder]
 
 5140.	[bug]		Don't immediately mark existing keys as inactive and

@@ -325,12 +325,6 @@ typedef __int64 off_t;
 /* Define if zlib was found */
 @HAVE_ZLIB@
 
-/* Define to enable rpz-nsdname rules. */
-@ENABLE_RPZ_NSDNAME@
-
-/* Define to enable rpz-nsip rules. */
-@ENABLE_RPZ_NSIP@
-
 /* From enable developer */
 @ISC_LIST_CHECKINIT@
 

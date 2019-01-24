@@ -21,12 +21,6 @@
 /* Define to enable American Fuzzy Lop test harness */
 #undef ENABLE_AFL
 
-/* Define to enable rpz nsdname rules. */
-#undef ENABLE_RPZ_NSDNAME
-
-/* Define to enable rpz nsip rules. */
-#undef ENABLE_RPZ_NSIP
-
 /* define if you want TCP_FASTOPEN enabled if available */
 #undef ENABLE_TCP_FASTOPEN
 

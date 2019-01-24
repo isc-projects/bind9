@@ -2035,42 +2035,6 @@ case "$enable_fixed" in
 esac
 
 #
-# Enable response policy rewriting using NS IP addresses
-#
-AC_ARG_ENABLE(rpz-nsip,
-	      AS_HELP_STRING([--disable-rpz-nsip],
-			     [disable rpz nsip rules [default=enabled]]),
-	      enable_nsip="$enableval", enable_nsip="yes")
-case "$enable_nsip" in
-	yes)
-		AC_DEFINE(ENABLE_RPZ_NSIP, 1,
-			  [Define to enable rpz nsip rules.])
-		;;
-	no)
-		;;
-	*)
-		;;
-esac
-
-#
-# Enable response policy rewriting using NS name
-#
-AC_ARG_ENABLE(rpz-nsdname,
-	      AS_HELP_STRING([--disable-rpz-nsdname],
-			     [disable rpz nsdname rules [default=enabled]]),
-	      enable_nsdname="$enableval", enable_nsdname="yes")
-case "$enable_nsdname" in
-	yes)
-		AC_DEFINE(ENABLE_RPZ_NSDNAME, 1,
-			  [Define to enable rpz nsdname rules.])
-		;;
-	no)
-		;;
-	*)
-		;;
-esac
-
-#
 # Activate dnstap?
 #
 AC_ARG_ENABLE(dnstap,
