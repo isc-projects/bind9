@@ -149,7 +149,7 @@ do { \
 #define NOQNAME(r)		(((r)->attributes & \
 				  DNS_RDATASETATTR_NOQNAME) != 0)
 
-/*% Does the rdataset 'r' contains a stale answer? */
+/*% Does the rdataset 'r' contain a stale answer? */
 #define STALE(r)		(((r)->attributes & \
 				  DNS_RDATASETATTR_STALE) != 0)
 
