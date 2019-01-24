@@ -1044,7 +1044,8 @@ dump_rdatasets_text(isc_mem_t *mctx, const dns_name_t *name,
 		} else {
 			isc_result_t result;
 			if (STALE(rds)) {
-				fprintf(f, "; stale (for %u more seconds)\n",
+				fprintf(f, "; stale (will be retained for "
+					"%u more seconds)\n",
 					(rds->stale_ttl -
 					 ctx->serve_stale_ttl));
 			}
