@@ -9,9 +9,7 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f */K*.key
-rm -f */K*.private
-rm -f Kexample.com.*.key
-rm -f Kexample.com.*.private
-rm -f coverage.* keymgr.*
+rm -f K*.key */K*.key
+rm -f K*.private */K*.private
+rm -f coverage.* keymgr.* settime.*
 rm -f policy.out
