@@ -82,7 +82,10 @@ burst () {
         DOMS="$DOMS $BURST_DOM"
     done
     ARGS="+nocookie +continue +time=1 +tries=1 -p ${PORT} $* @$ns2 $DOMS"
-    $MDIG $ARGS 2>&1 | tee -a full-$FILENAME | sed -n -e '/^;; AUTHORITY/,/^$/d'			\
+    $MDIG $ARGS 2>&1 |                                                  \
+        tr -d '\r' |                                                    \
+        tee -a full-$FILENAME |                                         \
+        sed -n -e '/^;; AUTHORITY/,/^$/d'			        \
 		-e '/^;; ADDITIONAL/,/^$/d'				\
 		-e 's/^[^;].*	\([^	 ]\{1,\}\)$/\1/p'		\
 		-e 's/;; flags.* tc .*/TC/p'				\
@@ -146,8 +149,9 @@ ckstats () {
     LABEL="$1"; shift
     TYPE="$1"; shift
     EXPECTED="$1"; shift
-    C=`sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p"  \
-	    ns2/named.stats | tail -1`
+    C=`tr -d '\r' < ns2/named.stats |
+        sed -n -e "s/[	 ]*\([0-9]*\).responses $TYPE for rate limits.*/\1/p" |
+        tail -1`
     C=`expr 0$C + 0`
     
     range "$C" $EXPECTED 1 ||
