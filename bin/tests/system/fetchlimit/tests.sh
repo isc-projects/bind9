@@ -12,7 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-DIGCMD="$DIG @10.53.0.3 -p ${PORT} +tries=1 +time=1"
+DIGCMD="$DIG @10.53.0.3 -p ${PORT} +tcp +tries=1 +time=1"
 RNDCCMD="$RNDC -p ${CONTROLPORT} -s 10.53.0.3 -c ../common/rndc.conf"
 
 burst() {
@@ -112,9 +112,6 @@ quota=$5
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
 copy_setports ns3/named2.conf.in ns3/named.conf
 rndc_reconfig ns3 10.53.0.3
 
@@ -165,7 +162,7 @@ success=0
 touch ans4/norespond
 for try in 1 2 3 4 5; do
     burst b $try 400
-    $DIG @10.53.0.3 -p ${PORT}  a ${try}.example > dig.out.ns3.$try
+    $DIGCMD a ${try}.example > dig.out.ns3.$try
     stat 380 || exceeded=`expr $exceeded + 1`
     grep "status: NOERROR" dig.out.ns3.$try > /dev/null 2>&1 && \
             success=`expr $success + 1`
