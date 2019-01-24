@@ -169,7 +169,11 @@ else
         TESTSOCK6=false
 fi
 
-
+#
+# PsSuspend is part of PSTools and can be downloaded from
+# https://download.sysinternals.com/files/PSTools.zip
+#
+PSSUSPEND=@PSSUSPEND@
 PYTHON=@PYTHON@
 
 #
@@ -367,6 +371,7 @@ export PIPEQUERIES
 export PK11DEL
 export PK11GEN
 export PK11LIST
+export PSSUSPEND
 export PYTHON
 export RANDFILE
 export RESOLVE
