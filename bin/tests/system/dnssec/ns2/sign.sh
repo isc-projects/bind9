@@ -46,6 +46,7 @@ cat "$infile" "$keyname1.key" "$keyname2.key" > "$zonefile"
 
 zonefiletmp=$(mktemp "$zonefile.XXXXXX") || exit 1
 "$CHECKZONE" -D -q -i local "$zone" "$zonefile.signed" |
+tr -d '\r' |
 awk '
 tolower($1) == "bad-cname.example." && $4 == "RRSIG" && $5 == "CNAME" {
 	for (i = 1; i <= NF; i++ ) {

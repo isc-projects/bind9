@@ -1669,10 +1669,10 @@ echo_i "checking dnssec-signzone -N date ($n)"
 ret=0
 (
 cd signer || exit 1
-$SIGNER -O full -f signer.out.9 -S -N date -o example example2.db > /dev/null 2>&1
+TZ=UTC $SIGNER -O full -f signer.out.9 -S -N date -o example example2.db > /dev/null 2>&1
 ) || ret=1
 # shellcheck disable=SC2016
-now=$($PERL -e '@lt=localtime(); printf "%.4d%0.2d%0.2d00\n",$lt[5]+1900,$lt[4]+1,$lt[3];')
+now=$(TZ=UTC $PERL -e '@lt=localtime(); printf "%.4d%0.2d%0.2d00\n",$lt[5]+1900,$lt[4]+1,$lt[3];')
 serial=$(awk '/^;/ { next; } $4 == "SOA" { print $7 }' signer/signer.out.9)
 [ "$now" -eq "$serial" ] || ret=1
 n=$((n+1))
@@ -2736,7 +2736,7 @@ ret=0
 dig_with_answeropts +nottlid nosign.example ns @10.53.0.3 | \
         grep RRSIG | sed 's/[ 	][ 	]*/ /g' > dig.out.ns3.test$n 2>&1
 # the NS RRSIG should not be changed
-cmp -s nosign.before dig.out.ns3.test$n || ret=1
+$DIFF nosign.before dig.out.ns3.test$n > /dev/null|| ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
