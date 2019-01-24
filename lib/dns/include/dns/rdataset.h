@@ -109,6 +109,7 @@ struct dns_rdataset {
 	unsigned int			magic;		/* XXX ? */
 	dns_rdatasetmethods_t *		methods;
 	ISC_LINK(dns_rdataset_t)	link;
+
 	/*
 	 * XXX do we need these, or should they be retrieved by methods?
 	 * Leaning towards the latter, since they are not frequently required
@@ -117,12 +118,19 @@ struct dns_rdataset {
 	dns_rdataclass_t		rdclass;
 	dns_rdatatype_t			type;
 	dns_ttl_t			ttl;
+	/*
+	 * Stale ttl is used to see how long this RRset can still be used
+	 * to serve to clients, after the TTL has expired.
+	 */
+	dns_ttl_t			stale_ttl;
 	dns_trust_t			trust;
 	dns_rdatatype_t			covers;
+
 	/*
 	 * attributes
 	 */
 	unsigned int			attributes;
+
 	/*%
 	 * the counter provides the starting point in the "cyclic" order.
 	 * The value UINT32_MAX has a special meaning of "picking up a
@@ -130,11 +138,13 @@ struct dns_rdataset {
 	 * increment the counter.
 	 */
 	uint32_t			count;
+
 	/*
 	 * This RRSIG RRset should be re-generated around this time.
 	 * Only valid if DNS_RDATASETATTR_RESIGN is set in attributes.
 	 */
 	isc_stdtime_t			resign;
+
 	/*@{*/
 	/*%
 	 * These are for use by the rdataset implementation, and MUST NOT
