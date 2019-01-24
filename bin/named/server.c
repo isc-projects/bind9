@@ -2575,8 +2575,8 @@ catz_addmodzone_taskaction(isc_task_t *task, isc_event_t *event0) {
 	result = dns_catz_generate_zonecfg(ev->origin, ev->entry, &confbuf);
 	if (result == ISC_R_SUCCESS) {
 		cfg_parser_reset(cfg->add_parser);
-		result = cfg_parse_buffer3(cfg->add_parser, confbuf, "catz", 0,
-					   &cfg_type_addzoneconf, &zoneconf);
+		result = cfg_parse_buffer(cfg->add_parser, confbuf, "catz", 0,
+					  &cfg_type_addzoneconf, 0, &zoneconf);
 		isc_buffer_free(&confbuf);
 	}
 	/*
@@ -7642,8 +7642,8 @@ data_to_cfg(dns_view_t *view, MDB_val *key, MDB_val *data,
 	CHECK(putstr(text, ";\n"));
 
 	cfg_parser_reset(named_g_addparser);
-	result = cfg_parse_buffer3(named_g_addparser, *text, zone_name, 0,
-				   &cfg_type_addzoneconf, &zoneconf);
+	result = cfg_parse_buffer(named_g_addparser, *text, zone_name, 0,
+				  &cfg_type_addzoneconf, 0, &zoneconf);
 	if (result != ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -12727,8 +12727,8 @@ newzone_parse(named_server_t *server, char *command, dns_view_t **viewp,
 	isc_buffer_forward(&argbuf, 3);
 
 	cfg_parser_reset(named_g_addparser);
-	CHECK(cfg_parse_buffer3(named_g_addparser, &argbuf, bn, 0,
-				&cfg_type_addzoneconf, &zoneconf));
+	CHECK(cfg_parse_buffer(named_g_addparser, &argbuf, bn, 0,
+			       &cfg_type_addzoneconf, 0, &zoneconf));
 	CHECK(cfg_map_get(zoneconf, "zone", &zlist));
 	if (!cfg_obj_islist(zlist))
 		CHECK(ISC_R_FAILURE);

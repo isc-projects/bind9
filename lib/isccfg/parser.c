@@ -622,32 +622,9 @@ cfg_parse_file(cfg_parser_t *pctx, const char *filename,
 
 isc_result_t
 cfg_parse_buffer(cfg_parser_t *pctx, isc_buffer_t *buffer,
-	const cfg_type_t *type, cfg_obj_t **ret)
-{
-	return (cfg_parse_buffer4(pctx, buffer, NULL, 0, type, 0, ret));
-}
-
-isc_result_t
-cfg_parse_buffer2(cfg_parser_t *pctx, isc_buffer_t *buffer,
-		  const char *file, const cfg_type_t *type,
-		  cfg_obj_t **ret)
-{
-	return (cfg_parse_buffer4(pctx, buffer, file, 0, type, 0, ret));
-}
-
-isc_result_t
-cfg_parse_buffer3(cfg_parser_t *pctx, isc_buffer_t *buffer,
-		  const char *file, unsigned int line,
-		  const cfg_type_t *type, cfg_obj_t **ret)
-{
-	return (cfg_parse_buffer4(pctx, buffer, file, line, type, 0, ret));
-}
-
-isc_result_t
-cfg_parse_buffer4(cfg_parser_t *pctx, isc_buffer_t *buffer,
-		  const char *file, unsigned int line,
-		  const cfg_type_t *type, unsigned int flags,
-		  cfg_obj_t **ret)
+		 const char *file, unsigned int line,
+		 const cfg_type_t *type, unsigned int flags,
+		 cfg_obj_t **ret)
 {
 	isc_result_t result;
 
