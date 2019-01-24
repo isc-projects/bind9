@@ -700,8 +700,8 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 }
 
 static isc_result_t
-dstkey_fromconfig(dns_view_t *view, const cfg_obj_t *vconfig,
-		  const cfg_obj_t *key, bool managed, dst_key_t **target,
+dstkey_fromconfig(const cfg_obj_t *vconfig, const cfg_obj_t *key,
+		  bool managed, dst_key_t **target, const char **keynamestrp,
 		  isc_mem_t *mctx)
 {
 	dns_rdataclass_t viewclass;
@@ -720,12 +720,14 @@ dstkey_fromconfig(dns_view_t *view, const cfg_obj_t *vconfig,
 	dst_key_t *dstkey = NULL;
 
 	INSIST(target != NULL && *target == NULL);
+	INSIST(keynamestrp != NULL && *keynamestrp == NULL);
 
 	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
 	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
 	alg = cfg_obj_asuint32(cfg_tuple_get(key, "algorithm"));
 	keyname = dns_fixedname_name(&fkeyname);
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
+	*keynamestrp = keynamestr;
 
 	if (managed) {
 		const char *initmethod;
@@ -796,39 +798,122 @@ dstkey_fromconfig(dns_view_t *view, const cfg_obj_t *vconfig,
 	CHECK(dst_key_fromdns(keyname, viewclass, &rrdatabuf,
 			      mctx, &dstkey));
 
-	if (!dns_resolver_algorithm_supported(view->resolver, keyname, alg)) {
-		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
-			    "%s key for '%s': algorithm is disabled",
-			    managed ? "managed" : "trusted", keynamestr);
-		result = DST_R_UNSUPPORTEDALG;
-		goto cleanup;
-	}
-
 	*target = dstkey;
 	return (ISC_R_SUCCESS);
 
  cleanup:
-	if (result == DST_R_NOCRYPTO) {
+	if (dstkey != NULL) {
+		dst_key_free(&dstkey);
+	}
+
+	return (result);
+}
+
+/*%
+ * Parse 'key' in the context of view configuration 'vconfig'.  If successful,
+ * add the key to 'secroots' if both of the following conditions are true:
+ *
+ *   - 'keyname_match' is NULL or it matches the owner name of 'key',
+ *   - support for the algorithm used by 'key' is not disabled by 'resolver'
+ *     for the owner name of 'key'.
+ *
+ * 'managed' is true for managed keys and false for trusted keys.  'mctx' is
+ * the memory context to use for allocating memory.
+ */
+static isc_result_t
+process_key(const cfg_obj_t *key, const cfg_obj_t *vconfig,
+	    dns_keytable_t *secroots, const dns_name_t *keyname_match,
+	    dns_resolver_t *resolver, bool managed, isc_mem_t *mctx)
+{
+	const dns_name_t *keyname = NULL;
+	const char *keynamestr = NULL;
+	dst_key_t *dstkey = NULL;
+	unsigned int keyalg;
+	isc_result_t result;
+
+	result = dstkey_fromconfig(vconfig, key, managed, &dstkey, &keynamestr,
+				   mctx);
+
+	switch (result) {
+	case ISC_R_SUCCESS:
+		/*
+		 * Key was parsed correctly, its algorithm is supported by the
+		 * crypto library, and it is not revoked.
+		 */
+		keyname = dst_key_name(dstkey);
+		keyalg = dst_key_alg(dstkey);
+		break;
+	case DST_R_UNSUPPORTEDALG:
+	case DST_R_BADKEYTYPE:
+		/*
+		 * Key was parsed correctly, but it cannot be used; this is not
+		 * a fatal error - log a warning about this key being ignored,
+		 * but do not prevent any further ones from being processed.
+		 */
+		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
+			    "ignoring %s key for '%s': %s",
+			    managed ? "managed" : "trusted",
+			    keynamestr, isc_result_totext(result));
+		return (ISC_R_SUCCESS);
+	case DST_R_NOCRYPTO:
+		/*
+		 * Crypto support is not available.
+		 */
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 			    "ignoring %s key for '%s': no crypto support",
 			    managed ? "managed" : "trusted",
 			    keynamestr);
-	} else if (result == DST_R_UNSUPPORTEDALG ||
-		   result == DST_R_BADKEYTYPE) {
-		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
-			    "skipping %s key for '%s': %s",
-			    managed ? "managed" : "trusted",
-			    keynamestr, isc_result_totext(result));
-	} else {
+		return (result);
+	default:
+		/*
+		 * Something unexpected happened; we have no choice but to
+		 * indicate an error so that the configuration loading process
+		 * is interrupted.
+		 */
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 			    "configuring %s key for '%s': %s",
 			    managed ? "managed" : "trusted",
 			    keynamestr, isc_result_totext(result));
-		result = ISC_R_FAILURE;
+		return (ISC_R_FAILURE);
 	}
 
-	if (dstkey != NULL)
+	/*
+	 * If the caller requested to only load keys for a specific name and
+	 * the owner name of this key does not match the requested name, do not
+	 * load it.
+	 */
+	if (keyname_match != NULL && !dns_name_equal(keyname_match, keyname)) {
+		goto done;
+	}
+
+	/*
+	 * Ensure that 'resolver' allows using the algorithm of this key for
+	 * its owner name.  If it does not, do not load the key and log a
+	 * warning, but do not prevent further keys from being processed.
+	 */
+	if (!dns_resolver_algorithm_supported(resolver, keyname, keyalg)) {
+		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
+			    "ignoring %s key for '%s': algorithm is disabled",
+			    managed ? "managed" : "trusted", keynamestr);
+		goto done;
+	}
+
+	/*
+	 * Add the key to 'secroots'.  This key is taken from the
+	 * configuration, so if it's a managed key then it's an initializing
+	 * key; that's why 'managed' is duplicated below.
+	 */
+	result = dns_keytable_add(secroots, managed, managed, &dstkey);
+
+ done:
+	/*
+	 * Ensure 'dstkey' does not leak.  Note that if dns_keytable_add()
+	 * succeeds, ownership of the key structure is transferred to the key
+	 * table, i.e. 'dstkey' is set to NULL.
+	 */
+	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
+	}
 
 	return (result);
 }
@@ -844,8 +929,7 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 	       const dns_name_t *keyname, isc_mem_t *mctx)
 {
 	const cfg_listelt_t *elt, *elt2;
-	const cfg_obj_t *key, *keylist;
-	dst_key_t *dstkey = NULL;
+	const cfg_obj_t *keylist;
 	isc_result_t result;
 	dns_keytable_t *secroots = NULL;
 
@@ -861,43 +945,13 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 		     elt2 != NULL;
 		     elt2 = cfg_list_next(elt2))
 		{
-			key = cfg_listelt_value(elt2);
-			result = dstkey_fromconfig(view, vconfig, key, managed,
-						   &dstkey, mctx);
-			if (result == DST_R_UNSUPPORTEDALG ||
-			    result == DST_R_BADKEYTYPE) {
-				result = ISC_R_SUCCESS;
-				continue;
-			}
-			if (result != ISC_R_SUCCESS) {
-				goto cleanup;
-			}
-
-			/*
-			 * If keyname was specified, we only add that key.
-			 */
-			if (keyname != NULL &&
-			    !dns_name_equal(keyname, dst_key_name(dstkey)))
-			{
-				dst_key_free(&dstkey);
-				continue;
-			}
-
-			/*
-			 * This key is taken from the configuration, so
-			 * if it's a managed key then it's an
-			 * initializing key; that's why 'managed'
-			 * is duplicated below.
-			 */
-			CHECK(dns_keytable_add(secroots, managed,
-					       managed, &dstkey));
+			CHECK(process_key(cfg_listelt_value(elt2), vconfig,
+					  secroots, keyname, view->resolver,
+					  managed, mctx));
 		}
 	}
 
  cleanup:
-	if (dstkey != NULL) {
-		dst_key_free(&dstkey);
-	}
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
 	}
