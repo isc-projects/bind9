@@ -104,6 +104,23 @@ for dir in [0-9][0-9]-*; do
         status=`expr $status + $ret`
 done
 
+echo_i "checking domains ending in . ($n)"
+ret=0
+$KEYMGR -g $KEYGEN -s $SETTIME . > keymgr.1.$n 2>&1
+nkeys=`grep dnssec-keygen keymgr.1.$n | wc -l`
+[ "$nkeys" -eq 2 ] || ret=1
+$KEYMGR -g $KEYGEN -s $SETTIME . > keymgr.2.$n 2>&1
+nkeys=`grep dnssec-keygen keymgr.2.$n | wc -l`
+[ "$nkeys" -eq 0 ] || ret=1
+$KEYMGR -g $KEYGEN -s $SETTIME example.com. > keymgr.3.$n 2>&1
+nkeys=`grep dnssec-keygen keymgr.3.$n | wc -l`
+[ "$nkeys" -eq 2 ] || ret=1
+$KEYMGR -g $KEYGEN -s $SETTIME example.com. > keymgr.4.$n 2>&1
+nkeys=`grep dnssec-keygen keymgr.4.$n | wc -l`
+[ "$nkeys" -eq 0 ] || ret=1
+status=`expr $status + $ret`
+n=`expr $n + 1`
+
 echo_i "checking policy.conf parser ($n)"
 ret=0
 ${PYTHON} testpolicy.py policy.sample > policy.out

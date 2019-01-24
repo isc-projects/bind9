@@ -1,3 +1,6 @@
+5143.	[bug]		dnssec-keymgr and dnssec-coverage failed to find
+			key files for zone names ending in ".". [GL #560]
+
 5142.	[cleanup]	Removed "configure --disable-rpz-nsip" and
 			"--disable-rpz-nsdname" options. "nsip-enable"
 			and "nsdname-enable" both now default to yes,
