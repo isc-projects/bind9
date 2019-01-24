@@ -220,7 +220,7 @@ dir=19-old-keys
 echo_i "set up $dir"
 rm -f $dir/K*.key
 rm -f $dir/K*.private
-ksk1=`$KEYGEN -K $dir -a rsasha1 -3fk example.com`
-zsk1=`$KEYGEN -K $dir -a rsasha1 -3 example.com`
+ksk1=`$KEYGEN -K $dir -3fk example.com`
+zsk1=`$KEYGEN -K $dir -3 example.com`
 $SETTIME -K $dir -P now-2y -A now-2y $ksk1 > /dev/null
 $SETTIME -K $dir -P now-2y -A now-2y $zsk1 > /dev/null
