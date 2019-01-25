@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include <inttypes.h>
+
 #if !defined(__has_feature)
 #define __has_feature(x) 0
 #endif
@@ -134,11 +136,11 @@ typedef uint_fast64_t	atomic_uint_fast64_t;
 
 #define atomic_load(obj) \
 	atomic_load_explicit(obj, memory_order_seq_cst)
-#define atomic_store(obj) \
-	atomic_store_explicit(obj, memory_order_seq_cst)
-#define atomic_fetch_add(obj) \
+#define atomic_store(obj, arg) \
+	atomic_store_explicit(obj, arg, memory_order_seq_cst)
+#define atomic_fetch_add(obj, arg) \
 	atomic_fetch_add_explicit(obj, arg, memory_order_seq_cst)
-#define atomic_fetch_sub(obj) \
+#define atomic_fetch_sub(obj, arg) \
 	atomic_fetch_sub_explicit(obj, arg, memory_order_seq_cst)
 #define atomic_compare_exchange_strong(obj, expected, desired)	\
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, memory_order_seq_cst, memory_order_seq_cst)

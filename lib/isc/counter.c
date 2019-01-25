@@ -16,6 +16,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 
+#include <isc/atomic.h>
 #include <isc/counter.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
@@ -27,10 +28,9 @@
 struct isc_counter {
 	unsigned int	magic;
 	isc_mem_t	*mctx;
-	isc_mutex_t	lock;
-	unsigned int	references;
-	unsigned int	limit;
-	unsigned int	used;
+	atomic_uint_fast32_t	references;
+	atomic_uint_fast32_t	limit;
+	atomic_uint_fast32_t	used;
 };
 
 isc_result_t
@@ -43,14 +43,12 @@ isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
 	if (counter == NULL)
 		return (ISC_R_NOMEMORY);
 
-	isc_mutex_init(&counter->lock);
-
 	counter->mctx = NULL;
 	isc_mem_attach(mctx, &counter->mctx);
 
-	counter->references = 1;
-	counter->limit = limit;
-	counter->used = 0;
+	atomic_store(&counter->references, 1);
+	atomic_store(&counter->limit, limit);
+	atomic_store(&counter->used, 0);
 
 	counter->magic = COUNTER_MAGIC;
 	*counterp = counter;
@@ -61,11 +59,11 @@ isc_result_t
 isc_counter_increment(isc_counter_t *counter) {
 	isc_result_t result = ISC_R_SUCCESS;
 
-	LOCK(&counter->lock);
-	counter->used++;
-	if (counter->limit != 0 && counter->used >= counter->limit)
+	uint32_t used = atomic_fetch_add(&counter->used, 1) + 1;
+	if (atomic_load(&counter->limit) != 0 &&
+	    used >= atomic_load(&counter->limit)) {
 		result = ISC_R_QUOTA;
-	UNLOCK(&counter->lock);
+	}
 
 	return (result);
 }
@@ -74,16 +72,14 @@ unsigned int
 isc_counter_used(isc_counter_t *counter) {
 	REQUIRE(VALID_COUNTER(counter));
 
-	return (counter->used);
+	return (atomic_load(&counter->used));
 }
 
 void
 isc_counter_setlimit(isc_counter_t *counter, int limit) {
 	REQUIRE(VALID_COUNTER(counter));
 
-	LOCK(&counter->lock);
-	counter->limit = limit;
-	UNLOCK(&counter->lock);
+	atomic_store(&counter->limit, limit);
 }
 
 void
@@ -91,10 +87,7 @@ isc_counter_attach(isc_counter_t *source, isc_counter_t **targetp) {
 	REQUIRE(VALID_COUNTER(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	LOCK(&source->lock);
-	source->references++;
-	INSIST(source->references > 0);
-	UNLOCK(&source->lock);
+	INSIST(atomic_fetch_add(&source->references, 1) > 0);
 
 	*targetp = source;
 }
@@ -102,14 +95,13 @@ isc_counter_attach(isc_counter_t *source, isc_counter_t **targetp) {
 static void
 destroy(isc_counter_t *counter) {
 	counter->magic = 0;
-	isc_mutex_destroy(&counter->lock);
 	isc_mem_putanddetach(&counter->mctx, counter, sizeof(*counter));
 }
 
 void
 isc_counter_detach(isc_counter_t **counterp) {
 	isc_counter_t *counter;
-	bool want_destroy = false;
+	uint32_t oldrefs;
 
 	REQUIRE(counterp != NULL && *counterp != NULL);
 	counter = *counterp;
@@ -117,13 +109,10 @@ isc_counter_detach(isc_counter_t **counterp) {
 
 	*counterp = NULL;
 
-	LOCK(&counter->lock);
-	INSIST(counter->references > 0);
-	counter->references--;
-	if (counter->references == 0)
-		want_destroy = true;
-	UNLOCK(&counter->lock);
+	oldrefs = atomic_fetch_sub(&counter->references, 1);
+	INSIST(oldrefs > 0);
 
-	if (want_destroy)
+	if (oldrefs == 1) {
 		destroy(counter);
+	}
 }

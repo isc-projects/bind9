@@ -30,6 +30,7 @@
  *** Imports.
  ***/
 
+#include <isc/atomic.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/types.h>
@@ -42,14 +43,14 @@ ISC_LANG_BEGINDECLS
 
 /*% isc_quota structure */
 struct isc_quota {
-	isc_mutex_t	lock; /*%< Locked by lock. */
-	int 		max;
-	int 		used;
-	int		soft;
+	atomic_uint_fast32_t 		__max;
+	atomic_uint_fast32_t 		__used;
+	atomic_uint_fast32_t		__soft;
 };
 
+
 void
-isc_quota_init(isc_quota_t *quota, int max);
+isc_quota_init(isc_quota_t *quota, unsigned int max);
 /*%<
  * Initialize a quota object.
  */
@@ -61,15 +62,33 @@ isc_quota_destroy(isc_quota_t *quota);
  */
 
 void
-isc_quota_soft(isc_quota_t *quota, int soft);
+isc_quota_soft(isc_quota_t *quota, unsigned int soft);
 /*%<
  * Set a soft quota.
  */
 
 void
-isc_quota_max(isc_quota_t *quota, int max);
+isc_quota_max(isc_quota_t *quota, unsigned int max);
 /*%<
  * Re-set a maximum quota.
+ */
+
+unsigned int
+isc_quota_getmax(isc_quota_t *quota);
+/*%<
+ * Get the maximum quota.
+ */
+
+unsigned int
+isc_quota_getsoft(isc_quota_t *quota);
+/*%<
+ * Get the soft quota.
+ */
+
+unsigned int
+isc_quota_getused(isc_quota_t *quota);
+/*%<
+ * Get the current usage of quota.
  */
 
 isc_result_t
