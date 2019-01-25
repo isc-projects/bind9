@@ -1,3 +1,7 @@
+5146.	[bug]		Removed an unnecessary assert that could be
+			triggered from PKCS#11 modules during
+			deconstruction. [GL #841]
+
 5143.	[bug]		dnssec-keymgr and dnssec-coverage failed to find
 			key files for zone names ending in ".". [GL #560]
 
