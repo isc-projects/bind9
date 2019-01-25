@@ -50,26 +50,27 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "disabling server to force non-dnssec SERVFAIL"
-$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} sfcache ns2
+echo_i "switching to non-dnssec SERVFAIL tests"
+ret=0
+$RNDCCMD 10.53.0.5 flush 2>&1 | sed 's/^/I:ns5 /'
+$RNDCCMD 10.53.0.5 dumpdb -all 2>&1 | sed 's/^/I:ns5 /'
 awk '/SERVFAIL/ { next; out=1 } /Zone/ { out=0 } { if (out) print }' ns5/named_dump.db
 echo_i "checking SERVFAIL is cached ($n)"
-ret=0
-$DIG $DIGOPTS bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
-$RNDCCMD 10.53.0.5 dumpdb -all 2>&1 | sed 's/^/I:ns5 /'
+$DIG $DIGOPTS bar.example2. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 for i in 1 2 3 4 5 6 7 8 9 10; do
+    $RNDCCMD 10.53.0.5 dumpdb -all 2>&1 | sed 's/^/I:ns5 /'
+    sleep 1
     awk '/Zone/{out=0} { if (out) print } /SERVFAIL/{out=1}' ns5/named_dump.db > sfcache.$n
     [ -s "sfcache.$n" ] && break
-    sleep 1
 done
-grep "^; bar.example/A" sfcache.$n > /dev/null || ret=1
+grep "^; bar.example2/A" sfcache.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 echo_i "checking SERVFAIL is returned from cache ($n)"
 ret=0
-$DIG $DIGOPTS bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
+$DIG $DIGOPTS bar.example2. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -77,7 +78,7 @@ status=`expr $status + $ret`
 
 echo_i "checking with +cd query ($n)"
 ret=0
-$DIG $DIGOPTS +cd bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
+$DIG $DIGOPTS +cd bar.example2. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -85,7 +86,7 @@ status=`expr $status + $ret`
 
 echo_i "checking with +dnssec query ($n)"
 ret=0
-$DIG $DIGOPTS +cd bar.example. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
+$DIG $DIGOPTS +cd bar.example2. a @10.53.0.5 > dig.out.ns5.test$n || ret=1
 grep "SERVFAIL" dig.out.ns5.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
