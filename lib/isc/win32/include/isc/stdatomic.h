@@ -91,7 +91,7 @@ atomic_store_abort() {
 	    : atomic_store_abort()))
 
 #define atomic_store(obj, desired) \
-	atomic_store(obj, desider, memory_order_seq_cst)
+	atomic_store_explicit(obj, desired, memory_order_seq_cst)
 
 #define atomic_load_explicit32(obj, order)			\
 	(order == memory_order_relaxed			\
