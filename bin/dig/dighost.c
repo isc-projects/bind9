@@ -2992,6 +2992,27 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 }
 
 /*%
+ * Called when a peer closes a TCP socket prematurely.
+ */
+static void
+requeue_or_update_exitcode(dig_lookup_t *lookup) {
+	if (lookup->eoferr == 0U) {
+		/*
+		 * Peer closed the connection prematurely for the first time
+		 * for this lookup.  Try again, keeping track of this failure.
+		 */
+		dig_lookup_t *requeued_lookup = requeue_lookup(lookup, true);
+		requeued_lookup->eoferr++;
+	} else {
+		/*
+		 * Peer closed the connection prematurely and it happened
+		 * previously for this lookup.  Indicate an error.
+		 */
+		exitcode = 9;
+	}
+}
+
+/*%
  * Event handler for the TCP recv which gets the length header of TCP
  * packets.  Start the next recv of length bytes.
  */
@@ -3002,7 +3023,7 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 	isc_region_t r;
 	isc_result_t result;
 	dig_query_t *query = NULL;
-	dig_lookup_t *l, *n;
+	dig_lookup_t *l;
 	uint16_t length;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_RECVDONE);
@@ -3041,9 +3062,8 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		sockcount--;
 		debug("sockcount=%d", sockcount);
 		INSIST(sockcount >= 0);
-		if (sevent->result == ISC_R_EOF && l->eoferr == 0U) {
-			n = requeue_lookup(l, true);
-			n->eoferr++;
+		if (sevent->result == ISC_R_EOF) {
+			requeue_or_update_exitcode(l);
 		}
 		isc_event_free(&event);
 		clear_query(query);
@@ -3544,9 +3564,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			debug("sockcount=%d", sockcount);
 			INSIST(sockcount >= 0);
 		}
-		if (sevent->result == ISC_R_EOF && l->eoferr == 0U) {
-			n = requeue_lookup(l, true);
-			n->eoferr++;
+		if (sevent->result == ISC_R_EOF) {
+			requeue_or_update_exitcode(l);
 		}
 		isc_event_free(&event);
 		clear_query(query);
