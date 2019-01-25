@@ -63,6 +63,8 @@ awk '/x[0-9].*sending notify to/ {
 	if (last) {
 		delta = this - last;
 		print delta;
+
+		total += delta;
 		if (!maxdelta || delta > maxdelta) {
 			maxdelta = delta;
 		}
@@ -75,10 +77,12 @@ awk '/x[0-9].*sending notify to/ {
 	count++;
 }
 END {
-	print "mindelta:", mindelta
-	print "maxdelta:" maxdelta
+	average = total / count;
+	print "mindelta:", mindelta;
+	print "maxdelta:" maxdelta;
 	print "count:", count;
-	if (mindelta < 0.180) exit(1);
+	print "average:", average;
+	if (average < 0.180) exit(1);
 	if (count < 20) exit(1);
 }' ns2/named.run > awk.out.ns2.test$n || ret=1
 [ $ret = 0 ] || echo_i "failed"
@@ -221,7 +225,7 @@ do
 		txt > dig.out.c.ns5.test$n || ret=1
 	grep "test string" dig.out.b.ns5.test$n > /dev/null &&
 	grep "test string" dig.out.c.ns5.test$n > /dev/null &&
-        break
+	break
 	sleep 1
 done
 grep "test string" dig.out.b.ns5.test$n > /dev/null || ret=1

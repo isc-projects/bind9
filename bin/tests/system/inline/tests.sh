@@ -635,7 +635,7 @@ echo_i "checking rndc freeze/thaw of dynamic inline zone ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 freeze dynamic > freeze.test$n 2>&1 || ret=1
 sleep 1
-awk '$2 == ";" && $3 == "serial" { printf("%d %s %s\n", $1 + 1, $2, $3); next; }
+awk '$2 == ";" && $3 ~ /serial/ { printf("%d %s %s\n", $1 + 1, $2, $3); next; }
      { print; }
      END { print "freeze1.dynamic. 0 TXT freeze1"; } ' ns3/dynamic.db > ns3/dynamic.db.new
 mv ns3/dynamic.db.new ns3/dynamic.db
@@ -665,7 +665,7 @@ echo_i "checking rndc freeze/thaw of server ($n)"
 ret=0
 $RNDCCMD 10.53.0.3 freeze > freeze.test$n 2>&1 || ret=1
 sleep 1
-awk '$2 == ";" && $3 == "serial" { printf("%d %s %s\n", $1 + 1, $2, $3); next; }
+awk '$2 == ";" && $3 ~ /serial/ { printf("%d %s %s\n", $1 + 1, $2, $3); next; }
      { print; }
      END { print "freeze2.dynamic. 0 TXT freeze2"; } ' ns3/dynamic.db > ns3/dynamic.db.new
 mv ns3/dynamic.db.new ns3/dynamic.db

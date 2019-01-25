@@ -40,7 +40,7 @@ id2=$id2
 EOF
 
 tac() {
-	perl -e 'print reverse <>' "$@"
+	$PERL -e 'print reverse <>' "$@"
 }
 
 convert() {
