@@ -1,3 +1,6 @@
+5145.	[func]		Use atomics instead of locked variables for isc_quota
+			and isc_counter. [GL !1389]
+
 5144.	[bug]		dig now returns a non-zero exit code when a TCP
 			connection is prematurely closed by a peer more than
 			once for the same lookup.  [GL #820]
