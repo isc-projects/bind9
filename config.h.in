@@ -556,6 +556,9 @@
 /* define if PKCS11 is used for Public-Key Cryptography */
 #undef USE_PKCS11
 
+/* Define if you want to use pthread rwlock implementation */
+#undef USE_PTHREAD_RWLOCK
+
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
 # undef _ALL_SOURCE

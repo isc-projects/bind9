@@ -32,14 +32,14 @@ typedef enum {
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
 
-#if HAVE_PTHREAD_RWLOCK_RDLOCK
+#if USE_PTHREAD_RWLOCK
 
 struct isc_rwlock {
 	pthread_rwlock_t	rwlock;
 	atomic_bool             downgrade;
 };
 
-#else /* HAVE_PTHREAD_RWLOCK_RDLOCK */
+#else /* USE_PTHREAD_RWLOCK */
 
 struct isc_rwlock {
 	/* Unlocked. */
@@ -78,7 +78,7 @@ struct isc_rwlock {
 
 };
 
-#endif /* HAVE_PTHREAD_RWLOCK_RDLOCK */
+#endif /* USE_PTHREAD_RWLOCK */
 
 isc_result_t
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,

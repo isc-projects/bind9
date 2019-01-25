@@ -27,7 +27,7 @@
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
-#if HAVE_PTHREAD_RWLOCK_RDLOCK
+#if USE_PTHREAD_RWLOCK
 
 #include <errno.h>
 #include <pthread.h>
@@ -645,4 +645,4 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	return (ISC_R_SUCCESS);
 }
 
-#endif /* HAVE_PTHREAD_RWLOCK_RDLOCK */
+#endif /* USE_PTHREAD_RWLOCK */
