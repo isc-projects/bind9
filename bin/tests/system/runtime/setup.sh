@@ -25,11 +25,13 @@ mkdir ns2/nope
 if [ 1 = "${CYGWIN:-0}" ]
 then
     setfacl -s user::r-x,group::r-x,other::r-x ns2/nope
+    cwd=`cygpath -aw .`
 else
     chmod 555 ns2/nope
+    cwd=`pwd`
 fi
 
-echo "directory \"`pwd`/ns2\";" > ns2/dir
-echo "directory \"`pwd`/ns2/nope\";" > ns2/nopedir
-echo "managed-keys-directory \"`pwd`/ns2\";" > ns2/mkd
-echo "managed-keys-directory \"`pwd`/ns2/nope\";" > ns2/nopemkd
+echo "directory \"$cwd/ns2\";" > ns2/dir
+echo "directory \"$cwd/ns2/nope\";" > ns2/nopedir
+echo "managed-keys-directory \"$cwd/ns2\";" > ns2/mkd
+echo "managed-keys-directory \"$cwd/ns2/nope\";" > ns2/nopemkd
