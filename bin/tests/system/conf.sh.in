@@ -79,13 +79,16 @@ SEQUENTIALDIRS="ecdsa eddsa @PKCS11_TEST@ tkey"
 # and 9953). Because separate blocks of ports can be used for teach
 # test, these tests can be run in parallel.
 #
-# This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="acl additional addzone allow-query auth autosign \
+# Note: some of the longer-running tests such as serve-stale and
+# rpzrecurse are scheduled first, in order to get more benefit from
+# parallelism.
+PARALLELDIRS="dnssec rpzrecurse serve-stale \
+        acl additional addzone allow-query auth autosign \
 	builtin cacheclean case catz cds chain \
 	checkconf checknames checkzone \
 	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	cookie database digdelv dlv dlz dlzexternal \
-	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
+	dns64 @DNSTAP@ dscp dsdigest dyndb \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue idna inline integrity ixfr keepalive \
@@ -93,9 +96,9 @@ PARALLELDIRS="acl additional addzone allow-query auth autosign \
 	masterfile masterformat metadata mirror mkeys \
 	names notify nslookup nsupdate nzd2nzf \
 	padding pending pipelined qmin \
-	reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
+	reclimit redirect resolver rndc rootkeysentinel rpz \
 	rrchecker rrl rrsetorder rsabigexponent runtime \
-	serve-stale sfcache smartsign sortlist \
+	sfcache smartsign sortlist \
 	spf staticstub statistics statschannel stub synthfromdnssec \
 	tcp tools tsig tsiggss ttl \
 	unknown upforwd verify views wildcard \

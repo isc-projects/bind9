@@ -100,27 +100,27 @@ SEQUENTIALDIRS="ecdsa eddsa @PKCS11_TEST@ tkey"
 # List of tests that use unique ports (other than 5300 and 9953). These
 # tests can be run in parallel.
 #
-# XXX: Note that tests are not currently run in parallel on Windows, so it
-# isn't strictly necessary to maintain these as separate lists in this file,
-# but using the same variable names as in conf.sh.in may simplify keeping the
-# lists in sync.
+# Note: some of the longer-running tests such as serve-stale and
+# rpzrecurse are scheduled first, in order to get more benefit from
+# parallelism.
 #
 # XXX: removed logfileconfig as it doesn't currently work on windows.
-PARALLELDIRS="acl additional addzone allow-query auth autosign \
+PARALLELDIRS="dnssec rpzrecurse serve-stale \
+        acl additional addzone allow-query auth autosign \
 	builtin cacheclean case catz cds chain \
 	checkconf checknames checkzone \
 	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	cookie database digdelv dlv dlz dlzexternal \
-	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
+	dns64 @DNSTAP@ dscp dsdigest dyndb \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue idna inline integrity ixfr keepalive \
 	legacy limits masterfile masterformat metadata mirror mkeys \
 	names notify nslookup nsupdate nzd2nzf \
 	padding pending pipelined qmin \
-	reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
+	reclimit redirect resolver rndc rootkeysentinel rpz \
 	rrchecker rrl rrsetorder rsabigexponent runtime \
-	serve-stale sfcache smartsign sortlist \
+	sfcache smartsign sortlist \
 	spf staticstub statistics statschannel stub synthfromdnssec \
 	tcp tools tsig tsiggss ttl \
 	unknown upforwd verify views wildcard \
