@@ -116,7 +116,8 @@ ns_control_docommand(isccc_sexpr_t *message, bool readonly,
 	/*
 	 * Compare the 'command' parameter against all known control commands.
 	 */
-	if (command_compare(command, NS_COMMAND_NULL) ||
+	if ((command_compare(command, NS_COMMAND_NULL) &&
+	     strlen(cmdline) == 4) ||
 	    command_compare(command, NS_COMMAND_STATUS))
 	{
 		log_level = ISC_LOG_DEBUG(1);

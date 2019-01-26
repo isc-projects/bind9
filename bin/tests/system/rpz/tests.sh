@@ -262,7 +262,7 @@ addr () {
     digcmd $2 >$DIGNM
     #ckalive "$2" "server crashed by 'dig $2'" || return 1
     ADDR_ESC=`echo "$ADDR" | sed -e 's/\./\\\\./g'`
-    ADDR_TTL=`sed -n -e "s/^[-.a-z0-9]\{1,\}	*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p" $DIGNM`
+    ADDR_TTL=`tr -d '\r' < $DIGNM | sed -n -e "s/^[-.a-z0-9]\{1,\}	*\([0-9]*\)	IN	AA*	${ADDR_ESC}\$/\1/p"`
     if test -z "$ADDR_TTL"; then
 	setret "'dig $2' wrong; no address $ADDR record in $DIGNM"
 	return 1
@@ -590,7 +590,7 @@ fi
 
 # restart the main test RPZ server to see if that creates a core file
 if test -z "$HAVE_CORE"; then
-    $PERL $SYSTEMTESTTOP/stop.pl rpz ns3
+    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
     restart 3
     HAVE_CORE=`find ns* -name '*core*' -print`
     test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"

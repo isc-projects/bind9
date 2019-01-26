@@ -149,6 +149,9 @@
 5039.	[bug]		Named could fail to preserve owner name case of new
 			RRset. [GL #420]
 
+4887.	[test]		Enable the rpzrecurse test to run on Windows.
+			[RT #47093]
+
 	--- 9.11.5 released ---
 
 	--- 9.11.5rc1 released ---

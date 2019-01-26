@@ -110,7 +110,7 @@ foreach my $name (@ns) {
 @ns = wait_for_servers(60, @ns);
 
 foreach my $name(@ans) {
-	stop_signal($name, "TERM");
+	stop_signal($name, "TERM", 1);
 }
 
 @ans = wait_for_servers(60, @ans);
@@ -122,9 +122,14 @@ foreach my $name(@lwresd) {
 @lwresd = wait_for_servers(60, @lwresd);
 
 # Pass 3: SIGABRT
-foreach my $name (@ns, @ans, @lwresd) {
+foreach my $name (@ns, @lwresd) {
 	print "I:$test:$name didn't die when sent a SIGTERM\n";
 	stop_signal($name, "ABRT");
+	$errors = 1;
+}
+foreach my $name (@ans) {
+	print "I:$test:$name didn't die when sent a SIGTERM\n";
+	stop_signal($name, "ABRT", 1);
 	$errors = 1;
 }
 
@@ -195,11 +200,15 @@ sub server_died {
 }
 
 sub send_signal {
-	my ( $signal, $pid ) = @_;
+	my ( $signal, $pid, $ans ) = @_;
+
+	if (! defined $ans) {
+		$ans = 0;
+	}
 
 	my $result = 0;
 
-	if ($^O eq 'cygwin' || $^O eq 'msys') {
+	if (!$ans && ($^O eq 'cygwin' || $^O eq 'msys')) {
 		my $killout = `/bin/kill -f -$signal $pid 2>&1`;
 		chomp($killout);
 		$result = 1 if ($killout eq '');
@@ -211,7 +220,10 @@ sub send_signal {
 
 # Stop a server by sending a signal to it.
 sub stop_signal {
-	my ( $server, $signal ) = @_;
+	my ( $server, $signal, $ans ) = @_;
+	if (! defined $ans) {
+		$ans = 0;
+	}
 
 	my $pid_file = server_pid_file($server);
 	my $pid = read_pid($pid_file);
@@ -219,7 +231,7 @@ sub stop_signal {
 	return unless defined($pid);
 
 	# Send signal to the server, and bail out if signal can't be sent
-	if (send_signal($signal, $pid) != 1) {
+	if (send_signal($signal, $pid, $ans) != 1) {
 		server_died($server, $signal);
 		return;
 	}

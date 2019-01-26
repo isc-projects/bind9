@@ -9,8 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# shellcheck source=conf.sh
-. "$SYSTEMTESTTOP/conf.sh"
+SYSTEMTESTTOP=..
+. $SYSTEMTESTTOP/conf.sh
 
 status=0
 n=1
@@ -229,7 +229,7 @@ grep "added text" "dig.out.dynamic1.ns3.test$n" > /dev/null 2>&1 || ret=1
 dig_with_opts +comm @10.53.0.3 added.dynamic txt > "dig.out.dynamic2.ns3.test$n"
 grep "NXDOMAIN" "dig.out.dynamic2.ns3.test$n" > /dev/null 2>&1 || ret=1
 # using "rndc halt" ensures that we don't dump the zone file
-rndccmd 10.53.0.3 halt 2>&1 | sed 's/^/ns3 /' | cat_i
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --halt --port ${CONTROLPORT} rndc ns3
 restart
 for i in 0 1 2 3 4 5 6 7 8 9; do
     lret=0
@@ -255,7 +255,7 @@ END
 dig_with_opts @10.53.0.3 moretext.dynamic txt > "dig.out.dynamic1.ns3.test$n"
 grep "more text" "dig.out.dynamic1.ns3.test$n" > /dev/null 2>&1 || ret=1
 # using "rndc stop" will cause the zone file to flush before shutdown
-rndccmd 10.53.0.3 stop 2>&1 | sed 's/^/ns3 /' | cat_i
+$PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rndc ns3
 rm ns3/*.jnl
 restart
 #shellcheck disable=SC2034

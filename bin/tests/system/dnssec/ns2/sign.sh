@@ -42,6 +42,7 @@ $SIGNER -P -g -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
 # changing the last 4 characters will lead to a bad base64 encoding.
 #
 $CHECKZONE -D -q -i local $zone $zonefile.signed |
+tr -d '\r' |
 awk '
 tolower($1) == "bad-cname.example." && $4 == "RRSIG" && $5 == "CNAME" {
 	for (i = 1; i <= NF; i++ ) {

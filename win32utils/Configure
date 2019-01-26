@@ -469,6 +469,7 @@ my @substvar = ("BIND9_VERSION",
                 "PLATFORM",
                 "PKCS11_TOOLS",
                 "prefix",
+                "PSSUSPEND",
                 "PYTHON",
                 "PYTHON_INSTALL_DIR",
                 "VCREDIST_PATH"),
@@ -536,6 +537,7 @@ my @withlist = ("aes",
                 "openssl",
                 "libxml2",
                 "pkcs11",
+                "pssuspend",
                 "python",
                 "readline",
                 "samples",
@@ -594,6 +596,7 @@ my @help = (
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
 "  with-libxml2[=PATH]   build with libxml2 library yes|no|path\n",
 "  with-geoip[=PATH]     build with GeoIP support yes|no|path\n",
+"  with-pssuspend[=COMMAND] specify pssuspend command\n",
 "  with-python[=COMMAND] specify python interpreter python|command\n",
 "  with-readline[=PATH]  build with readline library support yes|no|path\n",
 "  with-idn[=PATH]       build with IDN kit support yes|no|path\n",
@@ -644,6 +647,8 @@ my $use_geoip = "no";
 my $geoip_path = "";
 my $use_libxml2 = "auto";
 my $libxml2_path = "..\\..\\";
+my $with_pssuspend = "no";
+my $pssuspend_command = "pssuspend.exe";
 my $use_python = "auto";
 my $python_command = "python.exe";
 my $use_readline = "no";
@@ -1000,6 +1005,14 @@ sub mywith {
                 $zlib_path = $val;
             }
         }
+    } elsif ($key =~ /^pssuspend$/i) {
+	if ($val =~ /^no$/i) {
+	    $with_pssuspend = "no";
+	} else {
+	    if ($val !~ /^yes$/i) {
+	        $pssuspend_command = $val;
+	    }
+        }
     } elsif ($key =~ /^python$/i) {
         if ($val =~ /^no$/i) {
             $use_python = "no";
@@ -1227,6 +1240,11 @@ if ($verbose) {
         print "zlib: disabled\n";
     } else {
         print "zlib-path: $zlib_path\n";
+    }
+    if ($with_pssuspend eq "no") {
+        print "pssuspend: disabled\n";
+    } else {
+        print "pssuspend-command: $pssuspend_command\n";
     }
     if ($use_python eq "no") {
         print "python: disabled\n";
@@ -2609,6 +2627,10 @@ if ($use_zlib eq "no") {
     $configlib{"ZLIB_LIB"} = "$zlib_lib";
     my $zlib_dll = File::Spec->catfile($zlib_path, "zlib1.dll");
     $configdll{"ZLIB_DLL"} = "$zlib_dll";
+}
+
+if ($with_pssuspend ne "no") {
+    $configvar{"PSSUSPEND"} = "$pssuspend_command";
 }
 
 # with-python

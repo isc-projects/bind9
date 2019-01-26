@@ -188,7 +188,7 @@ $CURL -D regular.headers $URL 2>/dev/null | \
 	sed -e "s#<current-time>.*</current-time>##g" > regular.out
 $CURL -D compressed.headers --compressed $URL 2>/dev/null | \
 	sed -e "s#<current-time>.*</current-time>##g" > compressed.out
-diff regular.out compressed.out >/dev/null || ret=1
+$DIFF regular.out compressed.out >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 n=`expr $n + 1`
