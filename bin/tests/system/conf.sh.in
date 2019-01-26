@@ -104,30 +104,31 @@ SEQUENTIALDIRS="ecdsa eddsa gost lwresd @PKCS11_TEST@ tkey"
 # and 9953). Because separate blocks of ports can be used for teach
 # test, these tests can be run in parallel.
 #
-# This symbol must be kept in step with the PARALLEL macro in Makefile.in
-PARALLELDIRS="acl additional addzone allow-query autosign \
+# Note: some of the longer-running tests are scheduled first,
+# in order to get more benefit from parallelism.
+PARALLELDIRS="dnssec rpzrecurse \
+	acl additional addzone allow-query autosign \
 	builtin cacheclean case catz chain \
 	checkconf checknames checkzone \
 	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	cookie database digdelv dlv dlz dlzexternal \
-	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
+	dns64 @DNSTAP@ dscp dsdigest dyndb \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue idna inline integrity ixfr \
-	legacy limits logfileconfig lwresd \
-        masterfile masterformat metadata mkeys \
-        names notify nslookup nsupdate nzd2nzf \
-        pending pipelined \
-        reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
-        rrchecker rrl rrsetorder rsabigexponent runtime \
-        sfcache smartsign sortlist \
-        spf staticstub statistics statschannel stub \
-        tcp tools tsig tsiggss \
-        unknown upforwd verify views wildcard \
-        xfer xferquota zero zonechecks"
+	legacy limits logfileconfig \
+	masterfile masterformat metadata mkeys \
+	names notify nslookup nsupdate nzd2nzf \
+	pending pipelined \
+	reclimit redirect resolver rndc rootkeysentinel rpz \
+	rrchecker rrl rrsetorder rsabigexponent runtime \
+	sfcache smartsign sortlist \
+	spf staticstub statistics statschannel stub \
+	tcp tsig tsiggss \
+	unknown upforwd verify views wildcard \
+	xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
-
 
 # Things that are different on Windows
 KILL=kill
@@ -161,9 +162,9 @@ else
 fi
 
 if grep "^#define WANT_IPV6 1" $TOP/config.h > /dev/null 2>&1 ; then
-        TESTSOCK6="$TESTSOCK6"
+	TESTSOCK6="$TESTSOCK6"
 else
-        TESTSOCK6=false
+	TESTSOCK6=false
 fi
 
 # Windows process management leave empty
@@ -299,13 +300,13 @@ keyfile_to_keys_section() {
     shift
     echo "$section_name {"
     for keyname in $*; do
-        awk '!/^; /{
-            printf "\t\""$1"\" "
-            printf "'"$key_prefix"'"
-            printf $4 " " $5 " " $6 " \""
-            for (i=7; i<=NF; i++) printf $i
-            printf "\";\n"
-        }' $keyname.key
+	awk '!/^; /{
+	    printf "\t\""$1"\" "
+	    printf "'"$key_prefix"'"
+	    printf $4 " " $5 " " $6 " \""
+	    for (i=7; i<=NF; i++) printf $i
+	    printf "\";\n"
+	}' $keyname.key
     done
     echo "};"
 }
@@ -330,7 +331,7 @@ nextpart () {
     [ -f $1.prev ] || echo "0" > $1.prev
     prev=`cat $1.prev`
     awk "NR > $prev "'{ print }
-         END          { print NR > "/dev/stderr" }' $1 2> $1.prev
+	 END          { print NR > "/dev/stderr" }' $1 2> $1.prev
 }
 
 # copy_setports - Copy Configuration File and Replace Ports
@@ -345,15 +346,15 @@ nextpart () {
 
 copy_setports() {
     sed -e "s/@PORT@/${PORT}/g" \
-        -e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
-        -e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
-        -e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
-        -e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
-        -e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
-        -e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
-        -e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
-        -e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
-        -e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
+	-e "s/@EXTRAPORT1@/${EXTRAPORT1}/g" \
+	-e "s/@EXTRAPORT2@/${EXTRAPORT2}/g" \
+	-e "s/@EXTRAPORT3@/${EXTRAPORT3}/g" \
+	-e "s/@EXTRAPORT4@/${EXTRAPORT4}/g" \
+	-e "s/@EXTRAPORT5@/${EXTRAPORT5}/g" \
+	-e "s/@EXTRAPORT6@/${EXTRAPORT6}/g" \
+	-e "s/@EXTRAPORT7@/${EXTRAPORT7}/g" \
+	-e "s/@EXTRAPORT8@/${EXTRAPORT8}/g" \
+	-e "s/@CONTROLPORT@/${CONTROLPORT}/g" \
 	-e "s/@DEFAULT_ALGORITHM@/${DEFAULT_ALGORITHM}/g" \
 	-e "s/@DEFAULT_ALGORITHM_NUMBER@/${DEFAULT_ALGORITHM_NUMBER}/g" \
 	-e "s/@DEFAULT_BITS@/${DEFAULT_BITS}/g" \
