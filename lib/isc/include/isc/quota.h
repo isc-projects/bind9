@@ -43,9 +43,9 @@ ISC_LANG_BEGINDECLS
 
 /*% isc_quota structure */
 struct isc_quota {
-	atomic_uint_fast32_t 		__max;
-	atomic_uint_fast32_t 		__used;
-	atomic_uint_fast32_t		__soft;
+	atomic_uint_fast32_t 		max;
+	atomic_uint_fast32_t 		used;
+	atomic_uint_fast32_t		soft;
 };
 
 
