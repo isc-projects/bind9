@@ -59,21 +59,21 @@ typedef uint_fast64_t volatile	atomic_uint_fast64_t;
 
 #define atomic_store_explicit32(obj, desired, order)		\
 	(order == memory_order_relaxed				\
-	 ? InterlockedExchangeNoFence((atomic_int_fast32_t *)obj, desired)	\
+	 ? (void)InterlockedExchangeNoFence((atomic_int_fast32_t *)obj, desired) \
 	 : (order == memory_order_acquire			\
-	    ? InterlockedExchangeAcquire((atomic_int_fast32_t *)obj, desired) \
-	    : InterlockedExchange((atomic_int_fast32_t *)obj, desired)))
+	    ? (void)InterlockedExchangeAcquire((atomic_int_fast32_t *)obj, desired) \
+	    : (void)InterlockedExchange((atomic_int_fast32_t *)obj, desired)))
 
 #ifdef _WIN64
 #define atomic_store_explicit64(obj, desired, order)		\
 	(order == memory_order_relaxed				\
-	 ? InterlockedExchangeNoFence64((atomic_int_fast64_t *)obj, desired) \
+	 ? (void)InterlockedExchangeNoFence64((atomic_int_fast64_t *)obj, desired) \
 	 : (order == memory_order_acquire			\
-	    ? InterlockedExchangeAcquire64((atomic_int_fast64_t *)obj, desired) \
-	    : InterlockedExchange64((atomic_int_fast64_t *)obj, desired)))
+	    ? (void)InterlockedExchangeAcquire64((atomic_int_fast64_t *)obj, desired) \
+	    : (void)InterlockedExchange64((atomic_int_fast64_t *)obj, desired)))
 #else
 #define atomic_store_explicit64(obj, desired, order)		\
-	InterlockedExchange64((atomic_int_fast64_t *)obj, desired)
+	(void)InterlockedExchange64((atomic_int_fast64_t *)obj, desired)
 #endif
 
 static inline
@@ -84,9 +84,9 @@ atomic_store_abort() {
 }
 
 #define atomic_store_explicit(obj, desired, order) 		\
-	(sizeof(*obj) == 8					\
+	(sizeof(*(obj)) == 8					\
 	 ? atomic_store_explicit64(obj, desired, order)		\
-	 : (sizeof(*obj) == 4					\
+	 : (sizeof(*(obj)) == 4					\
 	    ? atomic_store_explicit32(obj, desired, order)	\
 	    : atomic_store_abort()))
 
@@ -124,7 +124,7 @@ atomic_load_abort() {
 }
 
 #define atomic_load_explicit(obj, order)			\
-	(sizeof(*obj) == 8					\
+	(sizeof(*(obj)) == 8					\
 	 ? atomic_load_explicit64(obj, order)			\
 	 : (sizeof(*obj == 4)					\
 	    ? atomic_load_explicit32(obj, order)		\
@@ -140,7 +140,7 @@ atomic_load_abort() {
 	    ? InterlockedExchangeAddAcquire((atomic_int_fast32_t *)obj, arg) \
 	    : (order == memory_order_release			\
 	       ? InterlockedExchangeAddRelease((atomic_int_fast32_t *)obj, arg) \
-	       : InterlockedExchange((atomic_int_fast32_t *)obj, arg))))
+	       : InterlockedExchangeAdd((atomic_int_fast32_t *)obj, arg))))
 
 #ifdef _WIN64
 #define atomic_fetch_add_explicit64(obj, arg, order)		\
@@ -150,7 +150,7 @@ atomic_load_abort() {
 	    ? InterlockedExchangeAddAcquire64((atomic_int_fast64_t *)obj, arg) \
 	    : (order == memory_order_release			\
 	       ? InterlockedExchangeAddRelease64((atomic_int_fast64_t *)obj, arg) \
-	       : InterlockedExchange64((atomic_int_fast64_t *)obj, arg))))
+	       : InterlockedExchangeAdd64((atomic_int_fast64_t *)obj, arg))))
 #else
 #define atomic_fetch_add_explicit64(obj, arg, order)	\
 	InterlockedExchange64((atomic_int_fast64_t *)obj, arg)
@@ -164,9 +164,9 @@ atomic_add_abort() {
 }
 
 #define atomic_fetch_add_explicit(obj, arg, order)		\
-	(sizeof(*obj) == 8					\
+	(sizeof(*(obj)) == 8					\
 	 ? atomic_fetch_add_explicit64(obj, arg, order)		\
-	 : (sizeof(*obj) == 4					\
+	 : (sizeof(*(obj)) == 4					\
 	    ? atomic_fetch_add_explicit32(obj, arg, order)	\
 	    : atomic_add_abort()))
 
@@ -252,11 +252,11 @@ atomic_compare_exchange_abort() {
 
 #define atomic_compare_exchange_strong_explicit(obj, expected, desired, \
 						succ, fail)		\
-	(sizeof(*obj) == 8						\
+	(sizeof(*(obj)) == 8						\
 	 ? atomic_compare_exchange_strong_explicit64(obj, expected,	\
 						     desired,		\
 						     succ, fail)	\
-	 : (sizeof(*obj) == 4						\
+	 : (sizeof(*(obj)) == 4						\
 	    ? atomic_compare_exchange_strong_explicit32(obj, expected,	\
 							desired,	\
 							succ, fail)	\
