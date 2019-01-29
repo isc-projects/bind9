@@ -315,8 +315,8 @@ atomic_compare_exchange_abort() {
 #define atomic_compare_exchange_strong(obj, expected, desired,		\
 				       succ, fail)			\
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, \
-						memory_order_cst_seq,	\
-						memory_order_cst_seq)
+						memory_order_seq_cst,	\
+						memory_order_seq_cst)
 
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired,	\
 					      succ, fail)		\
@@ -325,5 +325,5 @@ atomic_compare_exchange_abort() {
 
 #define atomic_compare_exchange_weak(obj, expected, desired)		\
 	atomic_compare_exchange_weak_explicit(obj, expected, desired,	\
-					      memory_order_cst_seq,	\
-					      memory_order_cst_seq)
+					      memory_order_seq_cst,	\
+					      memory_order_seq_cst)
