@@ -18,6 +18,7 @@
 1. [BIND 9.12 features](#features)
 1. [Building BIND](#build)
 1. [macOS](#macos)
+1. [Dependencies](#dependencies)
 1. [Compile-time options](#opts)
 1. [Automated testing](#testing)
 1. [Documentation](#doc)
@@ -212,6 +213,13 @@ or if you have Xcode already installed you can run "xcode-select --install".
 This will add /usr/include to the system and install the compiler and other
 tools so that they can be easily found.
 
+### <a name="dependencies"/> Dependencies
+
+Portions of BIND that are written in Python, including
+`dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
+system tests, require the 'argparse' and 'ply' modules to be available.
+'argparse' is a standard module as of Python 2.7 and Python 3.2.
+'ply' is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
 
 #### <a name="opts"/> Compile-time options
 
@@ -229,13 +237,6 @@ specify a user with the -u option when running `named`.)
 
 To build shared libraries, specify `--with-libtool` on the `configure`
 command line.
-
-Certain compiled-in constants and default settings can be increased to
-values better suited to large servers with abundant memory resources (e.g,
-64-bit servers with 12G or more of memory) by specifying
-`--with-tuning=large` on the `configure` command line. This can improve
-performance on big servers, but will consume more memory and may degrade
-performance on smaller systems.
 
 For the server to support DNSSEC, you need to build it with crypto support.
 To use OpenSSL, you should have OpenSSL 1.0.2e or newer installed.  If the
@@ -269,13 +270,14 @@ For DNSTAP packet logging, you must have installed libfstrm
 [https://github.com/farsightsec/fstrm](https://github.com/farsightsec/fstrm)
 and libprotobuf-c
 [https://developers.google.com/protocol-buffers](https://developers.google.com/protocol-buffers),
-and BIND must be configured with "--enable-dnstap".
+and BIND must be configured with `--enable-dnstap`.
 
-Portions of BIND that are written in Python, including
-`dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
-system tests, require the 'argparse' and 'ply' modules to be available.
-'argparse' is a standard module as of Python 2.7 and Python 3.2.
-'ply' is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
+Certain compiled-in constants and default settings can be increased to
+values better suited to large servers with abundant memory resources (e.g,
+64-bit servers with 12G or more of memory) by specifying
+`--with-tuning=large` on the `configure` command line. This can improve
+performance on big servers, but will consume more memory and may degrade
+performance on smaller systems.
 
 On some platforms it is necessary to explicitly request large file support
 to handle files bigger than 2GB.  This can be done by using
@@ -289,6 +291,10 @@ reduce memory footprint.
 If your operating system has integrated support for IPv6, it will be used
 automatically.  If you have installed KAME IPv6 separately, use
 `--with-kame[=PATH]` to specify its location.
+
+The `--enable-querytrace` option causes `named` to log every step of
+processing every query. This should only be enabled when debugging, because
+it has a significant negative impact on query performance.
 
 `make install` will install `named` and the various BIND 9 libraries.  By
 default, installation is into /usr/local, but this can be changed with the
