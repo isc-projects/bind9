@@ -23,50 +23,50 @@
 
 void
 isc_quota_init(isc_quota_t *quota, unsigned int max) {
-	atomic_store(&quota->__max, max);
-	atomic_store(&quota->__used, 0);
-	atomic_store(&quota->__soft, 0);
+	atomic_store(&quota->max, max);
+	atomic_store(&quota->used, 0);
+	atomic_store(&quota->soft, 0);
 }
 
 void
 isc_quota_destroy(isc_quota_t *quota) {
-	INSIST(atomic_load(&quota->__used) == 0);
-	atomic_store(&quota->__max, 0);
-	atomic_store(&quota->__used, 0);
-	atomic_store(&quota->__soft, 0);
+	INSIST(atomic_load(&quota->used) == 0);
+	atomic_store(&quota->max, 0);
+	atomic_store(&quota->used, 0);
+	atomic_store(&quota->soft, 0);
 }
 
 void
 isc_quota_soft(isc_quota_t *quota, unsigned int soft) {
-	atomic_store(&quota->__soft, soft);
+	atomic_store(&quota->soft, soft);
 }
 
 void
 isc_quota_max(isc_quota_t *quota, unsigned int max) {
-	atomic_store(&quota->__max, max);
+	atomic_store(&quota->max, max);
 }
 
 unsigned int
 isc_quota_getmax(isc_quota_t *quota) {
-	return (atomic_load_relaxed(&quota->__max));
+	return (atomic_load_relaxed(&quota->max));
 }
 
 unsigned int
 isc_quota_getsoft(isc_quota_t *quota) {
-	return (atomic_load_relaxed(&quota->__soft));
+	return (atomic_load_relaxed(&quota->soft));
 }
 
 unsigned int
 isc_quota_getused(isc_quota_t *quota) {
-	return (atomic_load_relaxed(&quota->__used));
+	return (atomic_load_relaxed(&quota->used));
 }
 
 isc_result_t
 isc_quota_reserve(isc_quota_t *quota) {
 	isc_result_t result;
-	uint32_t max = atomic_load(&quota->__max);
-	uint32_t soft = atomic_load(&quota->__soft);
-	uint32_t used = atomic_fetch_add(&quota->__used, 1);
+	uint32_t max = atomic_load(&quota->max);
+	uint32_t soft = atomic_load(&quota->soft);
+	uint32_t used = atomic_fetch_add(&quota->used, 1);
 	if (max == 0 || used < max) {
 		if (soft == 0 || used < soft) {
 			result = ISC_R_SUCCESS;
@@ -74,7 +74,7 @@ isc_quota_reserve(isc_quota_t *quota) {
 			result = ISC_R_SOFTQUOTA;
 		}
 	} else {
-		INSIST(atomic_fetch_sub(&quota->__used, 1) > 0);
+		INSIST(atomic_fetch_sub(&quota->used, 1) > 0);
 		result = ISC_R_QUOTA;
 	}
 	return (result);
@@ -82,7 +82,7 @@ isc_quota_reserve(isc_quota_t *quota) {
 
 void
 isc_quota_release(isc_quota_t *quota) {
-	INSIST(atomic_fetch_sub(&quota->__used, 1) > 0);
+	INSIST(atomic_fetch_sub(&quota->used, 1) > 0);
 }
 
 isc_result_t
