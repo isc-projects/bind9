@@ -4865,9 +4865,17 @@ idn_ace_to_locale(const char *from, char *to, size_t tolen) {
 	 */
 	res = idn2_to_unicode_8zlz(utf8_src, &tmp_str, 0);
 	if (res != IDN2_OK) {
-		fatal("Cannot represent '%s' in the current locale (%s), "
-		      "use +noidnout or a different locale",
-		      from, idn2_strerror(res));
+		/*
+		 * Cannot represent in current locale.
+		 * Output ACE form undecoded.
+		 */
+		res = idn2_to_ascii_8z(utf8_src, &tmp_str, 0);
+		if (res != IDN2_OK) {
+			fatal("Cannot represent '%s' "
+			      "in the current locale nor ascii (%s), "
+			      "use +noidnout or a different locale",
+			      from, idn2_strerror(res));
+		}
 	}
 
 	/*
