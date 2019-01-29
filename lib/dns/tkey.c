@@ -631,11 +631,6 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	 */
 
 	if (tsigkey != NULL) {
-		/*
-		 * First, we have to set the message to accept a new
-		 * TSIG key; normally they can only be set during parsing.
-		 */
-		msg->new_tsigkey = 1;
 		dns_message_settsigkey(msg, tsigkey);
 	}
 

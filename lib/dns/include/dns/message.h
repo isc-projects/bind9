@@ -224,7 +224,6 @@ struct dns_message {
 	unsigned int			cc_bad : 1;
 	unsigned int			tkey : 1;
 	unsigned int			rdclass_set : 1;
-	unsigned int			new_tsigkey : 1;
 
 	unsigned int			opt_reserved;
 	unsigned int			sig_reserved;
