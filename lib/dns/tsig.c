@@ -838,15 +838,15 @@ dns_tsigkey_setdeleted(dns_tsigkey_t *key) {
 
 isc_result_t
 dns_tsig_sign(dns_message_t *msg) {
-	dns_tsigkey_t *key;
+	dns_tsigkey_t *key = NULL;
 	dns_rdata_any_tsig_t tsig, querytsig;
 	unsigned char data[128];
 	isc_buffer_t databuf, sigbuf;
-	isc_buffer_t *dynbuf;
+	isc_buffer_t *dynbuf = NULL;
 	dns_name_t *owner;
 	dns_rdata_t *rdata = NULL;
-	dns_rdatalist_t *datalist;
-	dns_rdataset_t *dataset;
+	dns_rdatalist_t *datalist = NULL;
+	dns_rdataset_t *dataset = NULL;
 	isc_region_t r;
 	isc_stdtime_t now;
 	isc_mem_t *mctx;
@@ -861,13 +861,15 @@ dns_tsig_sign(dns_message_t *msg) {
 	REQUIRE(VALID_TSIG_KEY(key));
 
 	/*
-	 * If this is a response, there should be a query tsig.
+	 * If this is a response, there should be a TSIG in the query with the
+	 * the exception if this is a TKEY request (see RFC 3645, Section 2.2).
 	 */
 	response = is_response(msg);
-	if (response && msg->querytsig == NULL)
-		return (DNS_R_EXPECTEDTSIG);
-
-	dynbuf = NULL;
+	if (response && msg->querytsig == NULL) {
+		if (msg->tkey != 1) {
+			return (DNS_R_EXPECTEDTSIG);
+		}
+	}
 
 	mctx = msg->mctx;
 
@@ -923,9 +925,15 @@ dns_tsig_sign(dns_message_t *msg) {
 			return (ret);
 
 		/*
-		 * If this is a response, digest the request's MAC.
+		 * If this is a response, and if there was a TSIG in
+		 * the query, digest the request's MAC.
+		 *
+		 * (Note: querytsig should be non-NULL for all
+		 * responses except TKEY responses. Those may be signed
+		 * with the newly-negotiated TSIG key even if the query
+		 * wasn't signed.)
 		 */
-		if (response) {
+		if (response && msg->querytsig != NULL) {
 			dns_rdata_t querytsigrdata = DNS_RDATA_INIT;
 
 			INSIST(msg->verified_sig);
