@@ -40,7 +40,7 @@ EOF
     }
 
     # Weak verification that TKEY response is signed.
-    grep "flags: qr; QUESTION: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" nsupdate.out${num} > /dev/null || {
+    grep "TSIG PSEUDOSECTION" nsupdate.out${num} > /dev/null || {
 	echo "I:bad tkey response (not tsig signed)"
 	return 1
     }
