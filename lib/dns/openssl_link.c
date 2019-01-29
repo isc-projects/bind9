@@ -163,9 +163,11 @@ mem_alloc(size_t size FLARG) {
 
 static void
 mem_free(void *ptr FLARG) {
-	INSIST(dst__memory_pool != NULL);
-	if (ptr != NULL)
+	if (ptr != NULL) {
+		INSIST(dst__memory_pool != NULL);
+
 		isc__mem_free(dst__memory_pool, ptr FLARG_PASS);
+	}
 }
 
 static void *
