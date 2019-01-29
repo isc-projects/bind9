@@ -19,6 +19,7 @@
 
 #include <intrin.h>
 
+#define InterlockedExchangeAdd8 _InterlockedExchangeAdd8
 #define InterlockedCompareExchange8 _InterlockedCompareExchange8
 
 #include <isc/util.h>
