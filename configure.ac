@@ -414,7 +414,7 @@ AS_CASE([$host],
 	       [[__asm__ __volatile__ ("yield")]]
 	     )],
 	    [AC_MSG_RESULT([yes])],
-	    [AC_MSG_ERROR([no, try adding -march=native or -march=armv7-a to CFLAGS (see PLATFORM.md for more information)])])])
+	    [AC_MSG_ERROR([no, try adding -march=native or -march=armv7-a to CFLAGS (see PLATFORMS.md for more information)])])])
 
 AC_CHECK_FUNCS([sysctlbyname])
 
