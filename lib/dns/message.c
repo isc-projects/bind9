@@ -432,6 +432,7 @@ msginit(dns_message_t *m) {
 	m->tkey = 0;
 	m->rdclass_set = 0;
 	m->querytsig = NULL;
+	m->new_tsigkey = 0;
 }
 
 static inline void
@@ -2801,7 +2802,7 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
 	 */
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(msg->state == DNS_SECTION_ANY);
+	REQUIRE(msg->state == DNS_SECTION_ANY || msg->new_tsigkey == 1);
 
 	if (key == NULL && msg->tsigkey != NULL) {
 		if (msg->sig_reserved != 0) {

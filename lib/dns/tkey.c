@@ -625,27 +625,19 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	tkey_log("process_gsstkey(): dns_tsigerror_noerror");   /* XXXSRA */
 
 	/*
-	 * [#821] WMM: So we found a TKEY to respond with.  We don't know if
-	 * the request is TSIG signed, but if it is not we need to make an
-	 * effort so that the response is signed, as described in the except
-	 * case in RFC 2845 Section 2.2:
-	 *
-	 *   The server MUST not generate a signed response to an unsigned
-	 *   request, except in case of response to client's unsigned TKEY
-	 *   query if secret key is established on server side after server
-	 *   processed client's query.  Signing responses to unsigned TKEY
-	 *   queries MUST be explicitly specified in the description of an
-	 *   individual secret key establishment algorithm.
-	 *
-	 * In dns_message_reply() it is checked whether to TSIG sign the
-	 * response by checking if msg->tsigkey is non-NULL.  A first naive
-	 * attempt to set the tsigkey here with:
-	 *
-         *      RETERR(dns_message_settsigkey(msg, tsigkey));
-	 *
-	 * is not the right approach, but captures the idea of what needs
-	 * to be done: signal that the msg needs to be TSIG signed.
+	 * We found a TKEY to respond with.  We don't know if
+	 * the request is TSIG signed, but if it is not we need to make
+	 * sure the response is signed (RFC 2845 secton 2.2).
 	 */
+
+	if (tsigkey != NULL) {
+		/*
+		 * First, we have to set the message to accept a new
+		 * TSIG key; normally they can only be set during parsing.
+		 */
+		msg->new_tsigkey = 1;
+		dns_message_settsigkey(msg, tsigkey);
+	}
 
 	return (ISC_R_SUCCESS);
 

@@ -178,9 +178,9 @@ typedef int dns_messagetextflag_t;
 #define DNS_MESSAGERENDER_PARTIAL	0x0002	/*%< allow a partial rdataset */
 #define DNS_MESSAGERENDER_OMITDNSSEC	0x0004	/*%< omit DNSSEC records */
 #define DNS_MESSAGERENDER_PREFER_A	0x0008	/*%< prefer A records in
-						      additional section. */
+						     additional section. */
 #define DNS_MESSAGERENDER_PREFER_AAAA	0x0010	/*%< prefer AAAA records in
-						  additional section. */
+						     additional section. */
 /* Obsolete: DNS_MESSAGERENDER_FILTER_AAAA	0x0020	*/
 
 typedef struct dns_msgblock dns_msgblock_t;
@@ -224,6 +224,7 @@ struct dns_message {
 	unsigned int			cc_bad : 1;
 	unsigned int			tkey : 1;
 	unsigned int			rdclass_set : 1;
+	unsigned int			new_tsigkey : 1;
 
 	unsigned int			opt_reserved;
 	unsigned int			sig_reserved;

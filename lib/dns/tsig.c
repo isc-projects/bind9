@@ -782,8 +782,9 @@ dns_tsig_sign(dns_message_t *msg) {
 	 * If this is a response, there should be a query tsig.
 	 */
 	response = is_response(msg);
-	if (response && msg->querytsig == NULL)
+	if (response && (msg->querytsig == NULL && msg->new_tsigkey == 0)) {
 		return (DNS_R_EXPECTEDTSIG);
+	}
 
 	dynbuf = NULL;
 
@@ -804,7 +805,7 @@ dns_tsig_sign(dns_message_t *msg) {
 
 	isc_buffer_init(&databuf, data, sizeof(data));
 
-	if (response)
+	if (response && msg->new_tsigkey == 0)
 		tsig.error = msg->querytsigstatus;
 	else
 		tsig.error = dns_rcode_noerror;
@@ -843,7 +844,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		/*
 		 * If this is a response, digest the request's MAC.
 		 */
-		if (response) {
+		if (response && msg->new_tsigkey == 0) {
 			dns_rdata_t querytsigrdata = DNS_RDATA_INIT;
 
 			INSIST(msg->verified_sig);
