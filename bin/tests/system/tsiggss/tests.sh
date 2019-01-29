@@ -45,6 +45,12 @@ EOF
 	return 1
     }
 
+    # Weak verification that TKEY response is signed.
+    grep -q "flags: qr; QUESTION: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1" nsupdate.out${num} || {
+	echo "I:bad tkey response (not tsig signed)"
+	return 1
+    }
+
     out=`$DIG $DIGOPTS -t $type -q $host | egrep "^${host}"`
     lines=`echo "$out" | grep "$digout" | wc -l`
     [ $lines -eq 1 ] || {
