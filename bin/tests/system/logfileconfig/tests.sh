@@ -63,6 +63,7 @@ status=0
 n=0
 
 cd $CONFDIR
+export SYSTEMTESTTOP=../..
 
 echo_i "testing log file validity (named -g + only plain files allowed)"
 
