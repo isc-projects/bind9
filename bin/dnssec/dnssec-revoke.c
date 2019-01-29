@@ -37,7 +37,6 @@
 #include "dnssectool.h"
 
 const char *program = "dnssec-revoke";
-int verbose;
 
 static isc_mem_t	*mctx = NULL;
 

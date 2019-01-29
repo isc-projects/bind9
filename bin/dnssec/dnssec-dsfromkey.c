@@ -47,12 +47,7 @@
 
 #include "dnssectool.h"
 
-#ifndef PATH_MAX
-#define PATH_MAX 1024   /* WIN32, and others don't define this. */
-#endif
-
 const char *program = "dnssec-dsfromkey";
-int verbose;
 
 static dns_rdataclass_t rdclass;
 static dns_fixedname_t	fixed;

@@ -57,8 +57,7 @@
 
 #include "dnssectool.h"
 
-extern int verbose;
-extern const char *program;
+int verbose;
 
 static fatalcallback_t *fatalcallback = NULL;
 

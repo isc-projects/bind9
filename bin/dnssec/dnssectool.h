@@ -21,6 +21,16 @@
 #include <dns/rdatastruct.h>
 #include <dst/dst.h>
 
+#ifndef PATH_MAX
+#define PATH_MAX 1024   /* WIN32, and others don't define this. */
+#endif
+
+/*! verbosity: set by -v option in each program, defined in dnssectool.c */
+extern int verbose;
+
+/*! program name, statically initialized in each program */
+extern const char *program;
+
 typedef void (fatalcallback_t)(void);
 
 ISC_PLATFORM_NORETURN_PRE void

@@ -61,7 +61,6 @@
 #define MAX_RSA 4096 /* should be long enough... */
 
 const char *program = "dnssec-keygen";
-int verbose;
 
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;

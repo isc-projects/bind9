@@ -86,12 +86,7 @@
 
 #include "dnssectool.h"
 
-#ifndef PATH_MAX
-#define PATH_MAX 1024   /* WIN32, and others don't define this. */
-#endif
-
 const char *program = "dnssec-signzone";
-int verbose;
 
 typedef struct hashlist hashlist_t;
 
