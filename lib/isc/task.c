@@ -1400,6 +1400,7 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	isc__taskmgr_t *manager;
 	isc__task_t *task;
 	unsigned int i;
+	bool exiting;
 
 	/*
 	 * Destroy '*managerp'.
@@ -1440,8 +1441,10 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	/*
 	 * Make sure we only get called once.
 	 */
-	INSIST(!atomic_load(&manager->exiting));
-	atomic_store(&manager->exiting, true);
+	exiting = false;
+
+	INSIST(!!atomic_compare_exchange_strong(&manager->exiting,
+						&exiting, true));
 
 	/*
 	 * If privileged mode was on, turn it off.
