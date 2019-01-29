@@ -22,6 +22,8 @@
 #define InterlockedExchangeAdd8 _InterlockedExchangeAdd8
 #define InterlockedCompareExchange8 _InterlockedCompareExchange8
 
+#pragma intrinsic(_InterlockedCompareExchange8, _InterlockedExchangeAdd8)
+
 #include <isc/util.h>
 
 #ifndef __ATOMIC_RELAXED
