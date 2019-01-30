@@ -1,3 +1,6 @@
+5230.	[protocol]	The SHA-1 hash algorithm is no longer used when
+			generating DS and CDS records. [GL #1015]
+
 5229.	[protocol]	Enforce known SSHFP fingerprint lengths. [GL #852]
 
 5228.	[func]		If trusted-keys and managed-keys were configured
