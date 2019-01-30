@@ -1,7 +1,7 @@
-kargs="-c policy.conf example.com"
+kargs="example.com"
 kmatch=""
 kret=0
-cargs="-d 1w -m 2w example.com"
+cargs="-d 1h -m 1w example.com"
 cmatch="4,Publish
 4,Activate
 2,Inactive
