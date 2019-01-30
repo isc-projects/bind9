@@ -39,8 +39,10 @@ EOF
 	return 1
     }
 
-    # Weak verification that TKEY response is signed.
-    grep "TSIG PSEUDOSECTION" nsupdate.out${num} > /dev/null || {
+    # Verify that TKEY response is signed.
+    tkeyout=`awk '/recvmsg reply from GSS-TSIG query/,/Sending update to/' nsupdate.out${num}`
+    pattern="recvmsg reply from GSS-TSIG query .* opcode: QUERY, status: NOERROR, id: .* flags: qr; QUESTION: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1 ;; QUESTION SECTION: ;.* ANY TKEY ;; ANSWER SECTION: .* 0 ANY TKEY gss-tsig\. .* ;; TSIG PSEUDOSECTION: .* 0 ANY TSIG gss-tsig\. .* NOERROR 0"
+    echo $tkeyout | grep "$pattern" > /dev/null || {
 	echo "I:bad tkey response (not tsig signed)"
 	return 1
     }
