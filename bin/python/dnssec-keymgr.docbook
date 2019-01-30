@@ -101,6 +101,12 @@
       all the zones represented in the directory.
     </para>
     <para>
+      Key times that are in the past will not be updated unless
+      the <option>-f</option> is used (see below).  Key inactivation
+      and deletion times that are less than five minutes in the future
+      will be delayed by five minutes.
+    </para>
+    <para>
       It is expected that this tool will be run automatically and
       unattended (for example, by <command>cron</command>).
     </para>
