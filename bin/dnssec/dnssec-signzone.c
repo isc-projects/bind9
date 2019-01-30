@@ -987,16 +987,6 @@ loadds(dns_name_t *name, uint32_t ttl, dns_rdataset_t *dsset) {
 		dns_rdata_init(&key);
 		dns_rdata_init(&ds);
 		dns_rdataset_current(&keyset, &key);
-		result = dns_ds_buildrdata(name, &key, DNS_DSDIGEST_SHA1,
-					   dsbuf, &ds);
-		check_result(result, "dns_ds_buildrdata");
-
-		result = dns_difftuple_create(mctx, DNS_DIFFOP_ADDRESIGN, name,
-					      ttl, &ds, &tuple);
-		check_result(result, "dns_difftuple_create");
-		dns_diff_append(&diff, &tuple);
-
-		dns_rdata_reset(&ds);
 		result = dns_ds_buildrdata(name, &key, DNS_DSDIGEST_SHA256,
 					   dsbuf, &ds);
 		check_result(result, "dns_ds_buildrdata");
@@ -2996,19 +2986,6 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 		dns_rdata_fromregion(&rdata, gclass, dns_rdatatype_dnskey, &r);
 		if (type != dns_rdatatype_dnskey) {
 			result = dns_ds_buildrdata(gorigin, &rdata,
-						   DNS_DSDIGEST_SHA1,
-						   dsbuf, &ds);
-			check_result(result, "dns_ds_buildrdata");
-			if (type == dns_rdatatype_dlv)
-				ds.type = dns_rdatatype_dlv;
-			result = dns_difftuple_create(mctx,
-						      DNS_DIFFOP_ADDRESIGN,
-						      name, 0, &ds, &tuple);
-			check_result(result, "dns_difftuple_create");
-			dns_diff_append(&diff, &tuple);
-
-			dns_rdata_reset(&ds);
-			result = dns_ds_buildrdata(gorigin, &rdata,
 						   DNS_DSDIGEST_SHA256,
 						   dsbuf, &ds);
 			check_result(result, "dns_ds_buildrdata");
@@ -3018,11 +2995,12 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 						      DNS_DIFFOP_ADDRESIGN,
 						      name, 0, &ds, &tuple);
 
-		} else
+		} else {
 			result = dns_difftuple_create(mctx,
 						      DNS_DIFFOP_ADDRESIGN,
 						      gorigin, zone_soa_min_ttl,
 						      &rdata, &tuple);
+		}
 		check_result(result, "dns_difftuple_create");
 		dns_diff_append(&diff, &tuple);
 	}
