@@ -1,3 +1,6 @@
+5147.	[bug]		dnssec-keymgr: Add a five-minute margin to better
+			handle key events close to 'now'. [GL #848]
+
 5146.	[placeholder]
 
 5145.	[func]		Use atomics instead of locked variables for isc_quota
