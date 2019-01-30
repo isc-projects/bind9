@@ -127,8 +127,10 @@ typedef bool		atomic_bool;
 	({									\
 		__typeof__(obj) __v;						\
 		_Bool __r;							\
-		__v = __sync_val_compare_and_swap(obj, *(expected), desired);	\
-		__r = *(expected) == __v;					\
+		__v = (__typeof__(obj))__sync_val_compare_and_swap(obj, 	\
+								   *(expected), \
+								   desired);	\
+		__r = ((__typeof__(obj))*(expected) == __v);            	\
 		*(expected) = __v;						\
 		__r;								\
 	})
