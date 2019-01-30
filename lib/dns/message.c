@@ -2858,7 +2858,6 @@ dns_message_settsigkey(dns_message_t *msg, dns_tsigkey_t *key) {
 	 */
 
 	REQUIRE(DNS_MESSAGE_VALID(msg));
-	REQUIRE(msg->state == DNS_SECTION_ANY);
 
 	if (key == NULL && msg->tsigkey != NULL) {
 		if (msg->sig_reserved != 0) {
