@@ -146,14 +146,18 @@ atomic_load_abort() {
 	ISC_UNREACHABLE();
 }
 
-#define atomic_load_explicit(obj, order)			\
-	(sizeof(*(obj)) == 8					\
-	 ? atomic_load_explicit64(obj, order)			\
-	 : (sizeof(*(obj) == 4)					\
-	    ? atomic_load_explicit32(obj, order)		\
-	    : (sizeof(*(obj) == 1)				\
-	       ? atomic_load_explicit8(obj, order)		\
-	       : atomic_load_abort())))
+#define atomic_load_explicit(obj, order)		\
+	((sizeof(*(obj)) == 8				\
+	 ? atomic_load_explicit64(obj, order)		\
+	 : (sizeof(*(obj) == 4)				\
+	    ? atomic_load_explicit32(obj, order)	\
+	    : (sizeof(*(obj) == 1)			\
+	       ? atomic_load_explicit8(obj, order)	\
+	       : atomic_load_abort()))) & 		\
+	 (sizeof(*(obj)) == 8 ? 0xffffffffffffffffULL : \
+	  (sizeof(*(obj)) == 4 ? 0xffffffffULL :	\
+	   (sizeof(*(obj)) == 1 ? 0xffULL : atomic_load_abort()))))
+
 
 #define atomic_load(obj)					\
 	atomic_load_explicit(obj, memory_order_seq_cst)
