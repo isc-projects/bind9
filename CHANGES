@@ -1,3 +1,6 @@
+5147.	[bug]		dnssec-keymgr: Add a five-minute margin to better
+			handle key events close to 'now'. [GL #848]
+
 5146.	[bug]		Removed an unnecessary assert that could be
 			triggered from PKCS#11 modules during
 			deconstruction. [GL #841]
