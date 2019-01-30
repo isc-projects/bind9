@@ -2949,7 +2949,6 @@ AC_CONFIG_FILES([
 	bin/tests/pkcs11/benchmarks/Makefile
 	bin/tests/system/Makefile
 	bin/tests/system/conf.sh
-	bin/tests/system/dlz/prereq.sh
 	bin/tests/system/dlzexternal/Makefile
 	bin/tests/system/dlzexternal/ns1/dlzs.conf
 	bin/tests/system/dyndb/Makefile
