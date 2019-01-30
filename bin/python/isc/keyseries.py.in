@@ -83,31 +83,36 @@ class keyseries:
             a = now
 
         i = key.inactive()
+        fudge = 300
         if not rp:
             key.setinactive(None, **kwargs)
             key.setdelete(None, **kwargs)
         elif not i or a + rp != i:
-            if not i and a + rp > now + prepub:
+            if not i and a + rp > now + prepub + fudge:
                 key.setinactive(a + rp, **kwargs)
                 key.setdelete(a + rp + postpub, **kwargs)
             elif not i:
-                key.setinactive(now + prepub, **kwargs)
-                key.setdelete(now + prepub + postpub, **kwargs)
+                key.setinactive(now + prepub + fudge, **kwargs)
+                key.setdelete(now + prepub + postpub + fudge, **kwargs)
+            elif i < now:
+                pass
             elif a + rp > i:
                 key.setinactive(a + rp, **kwargs)
                 key.setdelete(a + rp + postpub, **kwargs)
-            elif a + rp > now + prepub:
+            elif a + rp > now + prepub + fudge:
                 key.setinactive(a + rp, **kwargs)
                 key.setdelete(a + rp + postpub, **kwargs)
             else:
-                key.setinactive(now + prepub, **kwargs)
-                key.setdelete(now + prepub + postpub, **kwargs)
+                key.setinactive(now + prepub + fudge, **kwargs)
+                key.setdelete(now + prepub + postpub + fudge, **kwargs)
         else:
             d = key.delete()
-            if not d or i + postpub > now:
+            if not d or i + postpub > now + fudge:
                 key.setdelete(i + postpub, **kwargs)
             elif not d:
-                key.setdelete(now + postpub, **kwargs)
+                key.setdelete(now + postpub + fudge, **kwargs)
+            elif d < now + fudge:
+                pass
             elif d < i + postpub:
                 key.setdelete(i + postpub, **kwargs)
 
