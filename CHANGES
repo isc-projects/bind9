@@ -1,3 +1,7 @@
+5149.	[func]		"rndc dumpdb" now prints a line above a stale RRset
+			indicating how long the data will be retained in the
+			cache for emergency use. [GL #101]
+
 5148.	[bug]		named did not sign the TKEY response. [GL #821]
 
 5147.	[bug]		dnssec-keymgr: Add a five-minute margin to better
