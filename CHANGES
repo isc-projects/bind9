@@ -1,3 +1,5 @@
+5148.	[bug]		named did not sign the TKEY response. [GL #821]
+
 5147.	[bug]		dnssec-keymgr: Add a five-minute margin to better
 			handle key events close to 'now'. [GL #848]
 
