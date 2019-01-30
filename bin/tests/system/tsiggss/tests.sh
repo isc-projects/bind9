@@ -17,7 +17,7 @@ SYSTEMTESTTOP=..
 status=0
 n=1
 
-DIGOPTS="@10.53.0.1 -p ${PORT} +question"
+DIGOPTS="@10.53.0.1 -p ${PORT}"
 
 test_update () {
     num="$1"
