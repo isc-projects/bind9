@@ -625,12 +625,11 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	tkey_log("process_gsstkey(): dns_tsigerror_noerror");   /* XXXSRA */
 
 	/*
-	 * We found a TKEY to respond with.  We don't know if
-	 * the request is TSIG signed, but if it is not we need to make
-	 * sure the response is signed (RFC 2845 secton 2.2).
+	 * We found a TKEY to respond with.  If the request is not TSIG signed,
+	 * we need to make sure the response is signed (see RFC 3645, Section
+	 * 2.2).
 	 */
-
-	if (tsigkey != NULL) {
+	if (tsigkey != NULL && msg->tsigkey == NULL && msg->sig0key == NULL) {
 		dns_message_settsigkey(msg, tsigkey);
 	}
 

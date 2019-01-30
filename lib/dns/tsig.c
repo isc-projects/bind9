@@ -778,7 +778,16 @@ dns_tsig_sign(dns_message_t *msg) {
 	key = dns_message_gettsigkey(msg);
 	REQUIRE(VALID_TSIG_KEY(key));
 
+	/*
+	 * If this is a response, there should be a TSIG in the query with the
+	 * the exception if this is a TKEY request (see RFC 3645, Section 2.2).
+	 */
 	response = is_response(msg);
+	if (response && msg->querytsig == NULL) {
+		if (msg->tkey != 1) {
+			return (DNS_R_EXPECTEDTSIG);
+		}
+	}
 
 	mctx = msg->mctx;
 
