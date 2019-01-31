@@ -662,7 +662,8 @@ typedef struct {
 	dns_dbversion_t 	*ver;
 	isc_quota_t		*quota;
 	rrstream_t 		*stream;	/* The XFR RR stream */
-	bool		end_of_stream;	/* EOS has been reached */
+	bool			question_added;	/* QUESTION section sent? */
+	bool			end_of_stream;	/* EOS has been reached */
 	isc_buffer_t 		buf;		/* Buffer for message owner
 						   names and rdatas */
 	isc_buffer_t 		txlenbuf;	/* Transmit length buffer */
@@ -672,10 +673,10 @@ typedef struct {
 	unsigned int		nmsg;		/* Number of messages sent */
 	dns_tsigkey_t		*tsigkey;	/* Key used to create TSIG */
 	isc_buffer_t		*lasttsig;	/* the last TSIG */
-	bool		verified_tsig;	/* verified request MAC */
-	bool		many_answers;
+	bool			verified_tsig;	/* verified request MAC */
+	bool			many_answers;
 	int			sends;		/* Send in progress */
-	bool		shuttingdown;
+	bool			shuttingdown;
 	const char		*mnemonic;	/* Style of transfer */
 } xfrout_ctx_t;
 
@@ -1180,6 +1181,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 		dns_zone_attach(zone, &xfr->zone);
 	dns_db_attach(db, &xfr->db);
 	dns_db_attachversion(db, ver, &xfr->ver);
+	xfr->question_added = false;
 	xfr->end_of_stream = false;
 	xfr->tsigkey = tsigkey;
 	xfr->lasttsig = lasttsig;
@@ -1344,7 +1346,7 @@ sendstream(xfrout_ctx_t *xfr) {
 		 * BIND 8.2.1 will not recognize an IXFR if it does not
 		 * have a question section.
 		 */
-		if (xfr->nmsg == 0) {
+		if (!xfr->question_added) {
 			dns_name_t *qname = NULL;
 			isc_region_t r;
 
@@ -1376,6 +1378,7 @@ sendstream(xfrout_ctx_t *xfr) {
 			ISC_LIST_APPEND(qname->list, qrdataset, link);
 
 			dns_message_addname(msg, qname, DNS_SECTION_QUESTION);
+			xfr->question_added = true;
 		} else {
 			/*
 			 * Reserve space for the 12-byte message header
