@@ -598,8 +598,8 @@ infile=occluded.example.db.in
 zonefile=occluded.example.db
 kskname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA256 -fk "$zone"`
 zskname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA256 "$zone"`
-keyname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA1 -n ENTITY -T KEY "delegation.$zone"`
 dnskeyname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA256 -fk "delegation.$zone"`
+keyname=`"$KEYGEN" -q -r $RANDFILE -a RSASHA1 -n ENTITY -T KEY "delegation.$zone"`
 $DSFROMKEY "$dnskeyname.key" > "dsset-delegation.${zone}$TP"
 cat "$infile" "${kskname}.key" "${zskname}.key" "${keyname}.key" \
     "${dnskeyname}.key" "dsset-delegation.${zone}$TP" >"$zonefile"
