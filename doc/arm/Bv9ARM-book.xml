@@ -1085,15 +1085,8 @@ zone "eng.example.com" {
 		  (<command>rndc</command>) program allows the
 		  system
 		  administrator to control the operation of a name server.
-		  Since <acronym>BIND</acronym> 9.2, <command>rndc</command>
-		  supports all the commands of the BIND 8 <command>ndc</command>
-		  utility except <command>ndc start</command> and
-		  <command>ndc restart</command>, which were also
-		  not supported in <command>ndc</command>'s
-		  channel mode.
 		  If you run <command>rndc</command> without any
-		  options
-		  it will display a usage message as follows:
+		  options, it will display a usage message as follows:
 		</para>
 		<cmdsynopsis label="Usage" sepchar=" ">
 		  <command>rndc</command>
@@ -3601,12 +3594,9 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 </programlisting>
 
 	<para>
-	  In <acronym>BIND</acronym> 9, the logging configuration
-	  is only established when
-	  the entire configuration file has been parsed.  In <acronym>BIND</acronym> 8, it was
-	  established as soon as the <command>logging</command>
-	  statement
-	  was parsed. When the server is starting up, all logging messages
+	  The logging configuration is only established when
+	  the entire configuration file has been parsed.
+	  When the server is starting up, all logging messages
 	  regarding syntax errors in the configuration file go to the default
 	  channels, or to standard error if the <option>-g</option> option
 	  was specified.
@@ -4665,20 +4655,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	  </varlistentry>
 
 	  <varlistentry>
-	    <term><command>named-xfer</command></term>
-	    <listitem>
-	      <para>
-		<emphasis>This option is obsolete.</emphasis> It
-		was used in <acronym>BIND</acronym> 8 to specify
-		the pathname to the <command>named-xfer</command>
-		program.  In <acronym>BIND</acronym> 9, no separate
-		<command>named-xfer</command> program is needed;
-		its functionality is built into the name server.
-	      </para>
-	    </listitem>
-	  </varlistentry>
-
-	  <varlistentry>
 	    <term><command>qname-minimization</command></term>
 	    <listitem>
 	      <para>
@@ -5532,13 +5508,11 @@ options {
 	      <term><command>auth-nxdomain</command></term>
 	      <listitem>
 		<para>
-		  If <userinput>yes</userinput>, then the <command>AA</command> bit
-		  is always set on NXDOMAIN responses, even if the server is
-		  not actually
-		  authoritative. The default is <userinput>no</userinput>;
-		  this is
-		  a change from <acronym>BIND</acronym> 8. If you
-		  are using very old DNS software, you
+		  If <userinput>yes</userinput>, then the
+		  <command>AA</command> bit is always set on NXDOMAIN
+		  responses, even if the server is not actually
+		  authoritative. The default is <userinput>no</userinput>.
+		  If you are using very old DNS software, you
 		  may need to set it to <userinput>yes</userinput>.
 		</para>
 	      </listitem>
@@ -5794,34 +5768,6 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>fake-iquery</command></term>
-	      <listitem>
-		<para>
-		  In <acronym>BIND</acronym> 8, this option
-		  enabled simulating the obsolete DNS query type
-		  IQUERY. <acronym>BIND</acronym> 9 never does
-		  IQUERY simulation.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>fetch-glue</command></term>
-	      <listitem>
-		<para>
-		  <emphasis>This option is obsolete</emphasis>.
-		  In BIND 8, <userinput>fetch-glue yes</userinput>
-		  caused the server to attempt to fetch glue resource records
-		  it
-		  didn't have when constructing the additional
-		  data section of a response.  This is now considered a bad
-		  idea
-		  and BIND 9 never does it.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
 	      <term><command>flush-zones-on-shutdown</command></term>
 	      <listitem>
 		<para>
@@ -5845,54 +5791,12 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>has-old-clients</command></term>
-	      <listitem>
-		<para>
-		  This option was incorrectly implemented
-		  in <acronym>BIND</acronym> 8, and is ignored by <acronym>BIND</acronym> 9.
-		  To achieve the intended effect
-		  of
-		  <command>has-old-clients</command> <userinput>yes</userinput>, specify
-		  the two separate options <command>auth-nxdomain</command> <userinput>yes</userinput>
-		  and <command>rfc2308-type1</command> <userinput>no</userinput> instead.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>host-statistics</command></term>
-	      <listitem>
-		<para>
-		  In BIND 8, this enabled keeping of
-		  statistics for every host that the name server interacts
-		  with.
-		  Not implemented in BIND 9.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
 	      <term><command>root-key-sentinel</command></term>
 	      <listitem>
 		<para>
 		  Respond to root key sentinel probes as described in
 		  draft-ietf-dnsop-kskroll-sentinel-08. The default is
 		  <userinput>yes</userinput>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>maintain-ixfr-base</command></term>
-	      <listitem>
-		<para>
-		  <emphasis>This option is obsolete</emphasis>.
-		  It was used in <acronym>BIND</acronym> 8 to
-		  determine whether a transaction log was
-		  kept for Incremental Zone Transfer. <acronym>BIND</acronym> 9 maintains a transaction
-		  log whenever possible.  If you need to disable outgoing
-		  incremental zone
-		  transfers, use <command>provide-ixfr</command> <userinput>no</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -5985,19 +5889,6 @@ options {
 		  turned on for these queries, so no unnecessary records
 		  will be added to the authority or additional sections.
 		  The default is <userinput>no</userinput>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>multiple-cnames</command></term>
-	      <listitem>
-		<para>
-		  This option was used in <acronym>BIND</acronym> 8 to allow
-		  a domain name to have multiple CNAME records in violation of
-		  the DNS standards.  <acronym>BIND</acronym> 9.2 onwards
-		  always strictly enforces the CNAME rules both in master
-		  files and dynamic updates.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6287,24 +6178,6 @@ options {
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>rfc2308-type1</command></term>
-	      <listitem>
-		<para>
-		  Setting this to <userinput>yes</userinput> will
-		  cause the server to send NS records along with the SOA
-		  record for negative
-		  answers. The default is <userinput>no</userinput>.
-		</para>
-		<note>
-		  <simpara>
-		    Not yet implemented in <acronym>BIND</acronym>
-		    9.
-		  </simpara>
-		</note>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
 	      <term><command>trust-anchor-telemetry</command></term>
 	      <listitem>
 		<para>
@@ -6330,17 +6203,6 @@ options {
 		</para>
 		<para>
 		  The default is <userinput>yes</userinput>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>use-id-pool</command></term>
-	      <listitem>
-		<para>
-		  <emphasis>This option is obsolete</emphasis>.
-		  <acronym>BIND</acronym> 9 always allocates query
-		  IDs from a pool.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6389,24 +6251,6 @@ options {
 		  See the description of
 		  <command>request-expire</command> in
 		  <xref linkend="server_statement_definition_and_usage"/>.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>treat-cr-as-space</command></term>
-	      <listitem>
-		<para>
-		  This option was used in <acronym>BIND</acronym>
-		  8 to make
-		  the server treat carriage return ("<command>\r</command>") characters the same way
-		  as a space or tab character,
-		  to facilitate loading of zone files on a UNIX system that
-		  were generated
-		  on an NT or DOS machine. In <acronym>BIND</acronym> 9, both UNIX "<command>\n</command>"
-		  and NT/DOS "<command>\r\n</command>" newlines
-		  are always accepted,
-		  and the option is ignored.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6889,8 +6733,7 @@ options {
 	      <listitem>
 		<para>
 		  Try to refresh the zone using TCP if UDP queries fail.
-		  For BIND 8 compatibility, the default is
-		  <command>yes</command>.
+		  The default is <command>yes</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7773,22 +7616,6 @@ avoid-v6-udp-ports {};
 	    </varlistentry>
 
 	    <varlistentry>
-	      <term><command>serial-queries</command></term>
-	      <listitem>
-		<para>
-		  In BIND 8, the <command>serial-queries</command>
-		  option
-		  set the maximum number of concurrent serial number queries
-		  allowed to be outstanding at any given time.
-		  BIND 9 does not limit the number of outstanding
-		  serial queries and ignores the <command>serial-queries</command> option.
-		  Instead, it limits the rate at which the queries are sent
-		  as defined using the <command>serial-query-rate</command> option.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
 	      <term><command>transfer-format</command></term>
 	      <listitem>
 
@@ -7973,10 +7800,9 @@ avoid-v6-udp-ports {};
 	      <listitem>
 		<para>
 		  Use the alternate transfer sources or not.  If views are
-		  specified this defaults to <command>no</command>
+		  specified this defaults to <command>no</command>,
 		  otherwise it defaults to
-		  <command>yes</command> (for BIND 8
-		  compatibility).
+		  <command>yes</command>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8160,18 +7986,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	  <variablelist>
 
 	    <varlistentry>
-	      <term><command>max-ixfr-log-size</command></term>
-	      <listitem>
-		<para>
-		  This option is obsolete; it is accepted
-		  and ignored for BIND 8 compatibility.  The option
-		  <command>max-journal-size</command> performs a
-		  similar function in BIND 9.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
 	      <term><command>max-journal-size</command></term>
 	      <listitem>
 		<para>
@@ -8203,17 +8017,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		<para>
 		  The maximum number of records permitted in a zone.
 		  The default is zero which means unlimited.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>host-statistics-max</command></term>
-	      <listitem>
-		<para>
-		  In BIND 8, specifies the maximum number of host statistics
-		  entries to be kept.
-		  Not implemented in BIND 9.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8636,36 +8439,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	      </listitem>
 	    </varlistentry>
 
-	    <varlistentry>
-	      <term><command>statistics-interval</command></term>
-	      <listitem>
-		<para>
-		  Name server statistics will be logged
-		  every <command>statistics-interval</command>
-		  minutes. The default is
-		  60. The maximum value is 28 days (40320 minutes).
-		  If set to 0, no statistics will be logged.
-		  </para><note>
-		  <simpara>
-		    Not yet implemented in
-		    <acronym>BIND</acronym> 9.
-		  </simpara>
-		</note>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>topology</command></term>
-	      <listitem>
-		<para>
-		  In BIND 8, this option indicated network topology
-		  so that preferential treatment could be given to
-		  the topologicaly closest name servers when sending
-		  queries. It is not implemented in BIND 9.
-		</para>
-	      </listitem>
-	    </varlistentry>
-
 	  </variablelist>
 
 	</section>
@@ -9021,23 +8794,6 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  <command>stale-answer-enable</command> or via
 		  <command>rndc serve-stale on</command>.
 		</para>
-	      </listitem>
-	    </varlistentry>
-
-	    <varlistentry>
-	      <term><command>min-roots</command></term>
-	      <listitem>
-		<para>
-		  The minimum number of root servers that
-		  is required for a request for the root servers to be
-		  accepted. The default
-		  is <userinput>2</userinput>.
-		</para>
-		<note>
-		  <simpara>
-		    Not implemented in <acronym>BIND</acronym> 9.
-		  </simpara>
-		</note>
 	      </listitem>
 	    </varlistentry>
 
@@ -12164,33 +11920,6 @@ view "external" {
 	      </varlistentry>
 
 	      <varlistentry>
-		<term><command>ixfr-base</command></term>
-		<listitem>
-		  <para>
-		    Was used in <acronym>BIND</acronym> 8 to
-		    specify the name
-		    of the transaction log (journal) file for dynamic update
-		    and IXFR.
-		    <acronym>BIND</acronym> 9 ignores the option
-		    and constructs the name of the journal
-		    file by appending "<filename>.jnl</filename>"
-		    to the name of the
-		    zone file.
-		  </para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term><command>ixfr-tmp-file</command></term>
-		<listitem>
-		  <para>
-		    Was an undocumented option in <acronym>BIND</acronym> 8.
-		    Ignored in <acronym>BIND</acronym> 9.
-		  </para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
 		<term><command>journal</command></term>
 		<listitem>
 		  <para>
@@ -12288,20 +12017,6 @@ view "external" {
 		    See the description of
 		    <command>notify-to-soa</command> in
 		    <xref linkend="boolean_options"/>.
-		  </para>
-		</listitem>
-	      </varlistentry>
-
-	      <varlistentry>
-		<term><command>pubkey</command></term>
-		<listitem>
-		  <para>
-		    In <acronym>BIND</acronym> 8, this option was
-		    intended for specifying
-		    a public zone key for verification of signatures in DNSSEC
-		    signed
-		    zones when they are loaded from disk. <acronym>BIND</acronym> 9 does not verify signatures
-		    on load and ignores the option.
 		  </para>
 		</listitem>
 	      </varlistentry>
@@ -15251,9 +14966,6 @@ HOST-127.EXAMPLE. MX 0 .
 	  <para>
 	    The <command>$GENERATE</command> directive is a <acronym>BIND</acronym> extension
 	    and not part of the standard zone file format.
-	  </para>
-	  <para>
-	    BIND 8 did not support the optional TTL and CLASS fields.
 	  </para>
 	</section>
 
