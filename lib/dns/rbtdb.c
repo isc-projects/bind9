@@ -2979,6 +2979,8 @@ bind_rdataset(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 		rdataset->attributes |= DNS_RDATASETATTR_PREFETCH;
 	if (STALE(header)) {
 		rdataset->attributes |= DNS_RDATASETATTR_STALE;
+		rdataset->stale_ttl =
+			(rbtdb->serve_stale_ttl + header->rdh_ttl) - now;
 		rdataset->ttl = 0;
 	}
 	rdataset->private1 = rbtdb;
