@@ -12,7 +12,7 @@
 <!-- Converted by db4-upgrade version 1.0 -->
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.dnssec-dsfromkey">
   <info>
-    <date>2012-05-02</date>
+    <date>2019-05-08</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -150,7 +150,9 @@
 	<term>-1</term>
 	<listitem>
 	  <para>
-	    An abbreviation for <option>-a SHA1</option>
+	    An abbreviation for <option>-a SHA-1</option>.
+	    (Note: The SHA-1 algorithm is no longer recommended for use
+	    when generating new DS and CDS records.)
 	  </para>
 	</listitem>
       </varlistentry>
@@ -159,7 +161,7 @@
 	<term>-2</term>
 	<listitem>
 	  <para>
-	    An abbreviation for <option>-a SHA-256</option>
+	    An abbreviation for <option>-a SHA-256</option>.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -178,6 +180,8 @@
 	    SHA-1, SHA-256, or SHA-384.  These values are case insensitive,
 	    and the hyphen may be omitted.  If no algorithm is specified,
 	    the default is SHA-256.
+	    (Note: The SHA-1 algorithm is no longer recommended for use
+	    when generating new DS and CDS records.)
 	  </para>
 	</listitem>
       </varlistentry>

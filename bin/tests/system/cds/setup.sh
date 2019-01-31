@@ -44,7 +44,7 @@ tac() {
 convert() {
 	key=$1
 	n=$2
-	$DSFROMKEY $key >DS.$n
+	$DSFROMKEY -12 $key >DS.$n
 	grep ' 8 1 ' DS.$n >DS.$n-1
 	grep ' 8 2 ' DS.$n >DS.$n-2
 	sed 's/ IN DS / IN CDS /' <DS.$n >>CDS.$n

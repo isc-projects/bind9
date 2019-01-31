@@ -31,6 +31,15 @@ extern int verbose;
 /*! program name, statically initialized in each program */
 extern const char *program;
 
+/*!
+ * List of DS digest types used by dnssec-cds and dnssec-dsfromkey,
+ * defined in dnssectool.c. Filled in by add_dtype() from -a
+ * arguments, sorted (so that DS records are in a canonical order) and
+ * terminated by a zero. The size of the array is an arbitrary limit
+ * which should be greater than the number of known digest types.
+ */
+extern uint8_t dtype[8];
+
 typedef void (fatalcallback_t)(void);
 
 ISC_PLATFORM_NORETURN_PRE void
@@ -65,11 +74,14 @@ isc_stdtime_t
 strtotime(const char *str, int64_t now, int64_t base,
 	  bool *setp);
 
+dns_rdataclass_t
+strtoclass(const char *str);
+
 unsigned int
 strtodsdigest(const char *str);
 
-dns_rdataclass_t
-strtoclass(const char *str);
+void
+add_dtype(unsigned int dt);
 
 isc_result_t
 try_dir(const char *dirname);

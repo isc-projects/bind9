@@ -115,7 +115,7 @@ def check(zone, args):
     klist = []
 
     if args.masterfile:
-        cmd = [args.dsfromkey, "-f", args.masterfile]
+        cmd = [args.dsfromkey, "-12f", args.masterfile]
         if args.lookaside:
             cmd += ["-l", args.lookaside]
         cmd.append(zone)
@@ -123,7 +123,7 @@ def check(zone, args):
     else:
         intods, _ = Popen([args.dig, "+noall", "+answer", "-t", "dnskey",
                            "-q", zone], stdout=PIPE).communicate()
-        cmd = [args.dsfromkey, "-f", "-"]
+        cmd = [args.dsfromkey, "-12f", "-"]
         if args.lookaside:
             cmd += ["-l", args.lookaside]
         cmd.append(zone)

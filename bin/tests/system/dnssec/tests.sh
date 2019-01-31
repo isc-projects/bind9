@@ -2752,7 +2752,7 @@ status=$((status+ret))
 echo_i "check dnssec-dsfromkey from stdin ($n)"
 ret=0
 dig_with_opts dnskey algroll. @10.53.0.2 | \
-        $DSFROMKEY -f - algroll. > dig.out.ns2.test$n || ret=1
+        $DSFROMKEY -12 -f - algroll. > dig.out.ns2.test$n || ret=1
 NF=$(awk '{print NF}' dig.out.ns2.test$n | sort -u)
 [ "${NF}" = 7 ] || ret=1
 # make canonical
@@ -3337,7 +3337,7 @@ echo update delete cds-update.secure CDS
 echo send
 dig_with_opts +noall +answer @10.53.0.2 dnskey cds-update.secure |
 grep "DNSKEY.257" |
-$DSFROMKEY -C -f - -T 1 cds-update.secure |
+$DSFROMKEY -12 -C -f - -T 1 cds-update.secure |
 sed "s/^/update add /"
 echo send
 ) | $NSUPDATE
@@ -3360,7 +3360,7 @@ echo update delete cds-kskonly.secure CDS
 echo send
 dig_with_opts +noall +answer @10.53.0.2 dnskey cds-kskonly.secure |
 grep "DNSKEY.257" |
-$DSFROMKEY -C -f - -T 1 cds-kskonly.secure |
+$DSFROMKEY -12 -C -f - -T 1 cds-kskonly.secure |
 sed "s/^/update add /"
 echo send
 ) | $NSUPDATE
@@ -3394,11 +3394,11 @@ echo update delete cds-update.secure CDS
 echo send
 dig_with_opts +noall +answer @10.53.0.2 dnskey cds-update.secure |
 grep "DNSKEY.257" |
-$DSFROMKEY -C -f - -T 1 cds-update.secure |
+$DSFROMKEY -12 -C -f - -T 1 cds-update.secure |
 sed "s/^/update add /"
 dig_with_opts +noall +answer @10.53.0.2 dnskey cds-update.secure |
 grep "DNSKEY.257" | sed 's/DNSKEY.257/DNSKEY 258/' |
-$DSFROMKEY -C -A -f - -T 1 cds-update.secure |
+$DSFROMKEY -12 -C -A -f - -T 1 cds-update.secure |
 sed "s/^/update add /"
 echo send
 ) | $NSUPDATE

@@ -228,7 +228,7 @@ logkey(dns_rdata_t *rdata)
 }
 
 static void
-emit(dns_dsdigest_t dtype, bool showall, char *lookaside,
+emit(dns_dsdigest_t dt, bool showall, char *lookaside,
      bool cds, dns_rdata_t *rdata)
 {
 	isc_result_t result;
@@ -254,7 +254,7 @@ emit(dns_dsdigest_t dtype, bool showall, char *lookaside,
 	if ((dnskey.flags & DNS_KEYFLAG_KSK) == 0 && !showall)
 		return;
 
-	result = dns_ds_buildrdata(name, rdata, dtype, buf, &ds);
+	result = dns_ds_buildrdata(name, rdata, dt, buf, &ds);
 	if (result != ISC_R_SUCCESS)
 		fatal("can't build record");
 
@@ -305,6 +305,18 @@ emit(dns_dsdigest_t dtype, bool showall, char *lookaside,
 	printf("%.*s\n", (int)r.length, r.base);
 }
 
+static void
+emits(bool showall, char *lookaside, bool cds, dns_rdata_t *rdata) {
+	unsigned i, n;
+
+	n = sizeof(dtype)/sizeof(dtype[0]);
+	for (i = 0; i < n; i++) {
+		if (dtype[i] != 0) {
+			emit(dtype[i], showall, lookaside, cds, rdata);
+		}
+	}
+}
+
 ISC_PLATFORM_NORETURN_PRE static void
 usage(void) ISC_PLATFORM_NORETURN_POST;
 
@@ -343,11 +355,9 @@ main(int argc, char **argv) {
 	char		*lookaside = NULL;
 	char		*endp;
 	int		ch;
-	dns_dsdigest_t	dtype = DNS_DSDIGEST_SHA1;
-	bool	cds = false;
-	bool	both = true;
-	bool	usekeyset = false;
-	bool	showall = false;
+	bool		cds = false;
+	bool		usekeyset = false;
+	bool		showall = false;
 	isc_result_t	result;
 	isc_log_t	*log = NULL;
 	dns_rdataset_t	rdataset;
@@ -355,12 +365,14 @@ main(int argc, char **argv) {
 
 	dns_rdata_init(&rdata);
 
-	if (argc == 1)
+	if (argc == 1) {
 		usage();
+	}
 
 	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("out of memory");
+	}
 
 #if USE_PKCS11
 	pk11_result_register();
@@ -373,19 +385,16 @@ main(int argc, char **argv) {
 	while ((ch = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
 		switch (ch) {
 		case '1':
-			dtype = DNS_DSDIGEST_SHA1;
-			both = false;
+			add_dtype(DNS_DSDIGEST_SHA1);
 			break;
 		case '2':
-			dtype = DNS_DSDIGEST_SHA256;
-			both = false;
+			add_dtype(DNS_DSDIGEST_SHA256);
 			break;
 		case 'A':
 			showall = true;
 			break;
 		case 'a':
-			dtype = strtodsdigest(isc_commandline_argument);
-			both = false;
+			add_dtype(strtodsdigest(isc_commandline_argument));
 			break;
 		case 'C':
 			if (lookaside != NULL)
@@ -453,22 +462,32 @@ main(int argc, char **argv) {
 
 	rdclass = strtoclass(classname);
 
-	if (usekeyset && filename != NULL)
+	if (usekeyset && filename != NULL) {
 		fatal("cannot use both -s and -f");
+	}
 
 	/* When not using -f, -A is implicit */
-	if (filename == NULL)
+	if (filename == NULL) {
 		showall = true;
+	}
 
-	if (argc < isc_commandline_index + 1 && filename == NULL)
+	/* Default digest type if none specified. */
+	if (dtype[0] == 0) {
+		dtype[0] = DNS_DSDIGEST_SHA256;
+	}
+
+	if (argc < isc_commandline_index + 1 && filename == NULL) {
 		fatal("the key file name was not specified");
-	if (argc > isc_commandline_index + 1)
+	}
+	if (argc > isc_commandline_index + 1) {
 		fatal("extraneous arguments");
+	}
 
 	result = dst_lib_init(mctx, NULL);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		fatal("could not initialize dst: %s",
 		      isc_result_totext(result));
+	}
 
 	setup_logging(mctx, &log);
 
@@ -478,38 +497,38 @@ main(int argc, char **argv) {
 		if (argc < isc_commandline_index + 1 && filename != NULL) {
 			/* using zone name as the zone file name */
 			namestr = filename;
-		} else
+		} else {
 			namestr = argv[isc_commandline_index];
+		}
 
 		result = initname(namestr);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("could not initialize name %s", namestr);
+		}
 
-		if (usekeyset)
+		if (usekeyset) {
 			result = loadkeyset(dir, &rdataset);
-		else
+		} else {
 			result = loadset(filename, &rdataset);
+		}
 
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("could not load DNSKEY set: %s\n",
 			      isc_result_totext(result));
+		}
 
 		for (result = dns_rdataset_first(&rdataset);
 		     result == ISC_R_SUCCESS;
-		     result = dns_rdataset_next(&rdataset)) {
+		     result = dns_rdataset_next(&rdataset))
+		{
 			dns_rdata_init(&rdata);
 			dns_rdataset_current(&rdataset, &rdata);
 
-			if (verbose > 2)
+			if (verbose > 2) {
 				logkey(&rdata);
+			}
 
-			if (both) {
-				emit(DNS_DSDIGEST_SHA1, showall, lookaside,
-				     cds, &rdata);
-				emit(DNS_DSDIGEST_SHA256, showall, lookaside,
-				     cds, &rdata);
-			} else
-				emit(dtype, showall, lookaside, cds, &rdata);
+			emits(showall, lookaside, cds, &rdata);
 		}
 	} else {
 		unsigned char key_buf[DST_KEY_MAXSIZE];
@@ -517,28 +536,25 @@ main(int argc, char **argv) {
 		loadkey(argv[isc_commandline_index], key_buf,
 			DST_KEY_MAXSIZE, &rdata);
 
-		if (both) {
-			emit(DNS_DSDIGEST_SHA1, showall, lookaside, cds,
-			     &rdata);
-			emit(DNS_DSDIGEST_SHA256, showall, lookaside, cds,
-			     &rdata);
-		} else
-			emit(dtype, showall, lookaside, cds, &rdata);
+		emits(showall, lookaside, cds, &rdata);
 	}
 
-	if (dns_rdataset_isassociated(&rdataset))
+	if (dns_rdataset_isassociated(&rdataset)) {
 		dns_rdataset_disassociate(&rdataset);
+	}
 	cleanup_logging(&log);
 	dst_lib_destroy();
 	dns_name_destroy();
-	if (verbose > 10)
+	if (verbose > 10) {
 		isc_mem_stats(mctx, stdout);
+	}
 	isc_mem_destroy(&mctx);
 
 	fflush(stdout);
 	if (ferror(stdout)) {
 		fprintf(stderr, "write error\n");
 		return (1);
-	} else
+	} else {
 		return (0);
+	}
 }
