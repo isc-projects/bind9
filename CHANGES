@@ -1,3 +1,7 @@
+5153.	[func]		Zone transfer statistics (size, number of records, and
+			number of messages) are now logged for outgoing
+			transfers as well as incoming ones. [GL #513]
+
 5152.	[func]		Improved logging of DNSSEC key events:
 			- Zone signing and DNSKEY maintenance events are
 			  now logged to the "dnssec" category
