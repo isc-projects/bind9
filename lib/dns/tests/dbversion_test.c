@@ -43,7 +43,6 @@ static char tempname[11] = "dtXXXXXXXX";
 static dns_db_t *db1 = NULL, *db2 = NULL;
 static dns_dbversion_t *v1 = NULL, *v2 = NULL;
 
-#ifndef ISC_CHECK_NONE
 /*
  * The code below enables us to trap assertion failures for testing
  * purposes. local_callback() is set as the callback function for
@@ -72,9 +71,6 @@ local_callback(const char *file, int line, isc_assertiontype_t type,
 	mock_assert(1, cond, file, line);
 	longjmp(assertion, 1);
 }
-#else
-#define check_assertion(function_call)
-#endif /* ISC_CHECK_NONE */
 
 static int
 _setup(void **state) {
@@ -82,9 +78,7 @@ _setup(void **state) {
 
 	UNUSED(state);
 
-#ifndef ISC_CHECK_NONE
 	isc_assertion_setcallback(local_callback);
-#endif
 
 	res = dns_test_begin(NULL, false);
 	assert_int_equal(res, ISC_R_SUCCESS);

@@ -1,3 +1,6 @@
+5150.	[cleanup]	Remove the ability to compile BIND with assertions
+			disabled. [GL #735]
+
 5149.	[func]		"rndc dumpdb" now prints a line above a stale RRset
 			indicating how long the data will be retained in the
 			cache for emergency use. [GL #101]
