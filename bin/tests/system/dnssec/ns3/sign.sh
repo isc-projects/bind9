@@ -602,8 +602,8 @@ infile=occluded.example.db.in
 zonefile=occluded.example.db
 kskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -fk "$zone")
 zskname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" "$zone")
-keyname=$("$KEYGEN" -q -a RSASHA1 -n ENTITY -T KEY "delegation.$zone")
 dnskeyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -fk "delegation.$zone")
+keyname=$("$KEYGEN" -q -a DH -b 1024 -n HOST -T KEY "delegation.$zone")
 $DSFROMKEY "$dnskeyname.key" > "dsset-delegation.${zone}$TP"
 cat "$infile" "${kskname}.key" "${zskname}.key" "${keyname}.key" \
     "${dnskeyname}.key" "dsset-delegation.${zone}$TP" >"$zonefile"
