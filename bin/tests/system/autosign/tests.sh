@@ -1467,5 +1467,20 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking key maintenance events were logged correctly ($n)"
+ret=0
+pub=`grep "DNSKEY .* is now published" ns1/named.run | wc -l`
+[ "$pub" -eq 6 ] || ret=1
+act=`grep "DNSKEY .* is now active" ns1/named.run | wc -l`
+[ "$act" -eq 5 ] || ret=1
+rev=`grep "DNSKEY .* is now revoked" ns1/named.run | wc -l`
+[ "$rev" -eq 1 ] || ret=1
+inac=`grep "DNSKEY .* is now inactive" ns1/named.run | wc -l`
+[ "$inac" -eq 1 ] || ret=1
+del=`grep "DNSKEY .* is now deleted" ns1/named.run | wc -l`
+[ "$del" -eq 1 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

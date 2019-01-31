@@ -1,3 +1,11 @@
+5152.	[func]		Improved logging of DNSSEC key events:
+			- Zone signing and DNSKEY maintenance events are
+			  now logged to the "dnssec" category
+			- Messages are now logged when DNSSEC keys are
+			  pubished, activated, inactivated, deleted,
+			  or revoked.
+			[GL #714]
+
 5151.	[func]		Options that have been been marked as obsolete in
 			named.conf for a very long time are now fatal
 			configuration errors. [GL #358]
