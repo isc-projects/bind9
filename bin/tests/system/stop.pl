@@ -249,8 +249,12 @@ sub clean_pid_file {
 
 	# If we're here, the PID file hasn't been cleaned up yet
 	if (send_signal(0, $pid) == 0) {
-		print "I:$test:$server crashed on shutdown\n";
-		$errors = 1;
+		# XXX: on windows this is likely to result in a
+		# false positive, so don't bother reporting the error.
+		if ($ENV{'CYGWIN'} eq "") {
+			print "I:$test:$server crashed on shutdown\n";
+			$errors = 1;
+		}
 		return;
 	}
 
