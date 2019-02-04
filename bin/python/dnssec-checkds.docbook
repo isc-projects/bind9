@@ -67,8 +67,26 @@
 
   <refsection><info><title>OPTIONS</title></info>
 
-
     <variablelist>
+
+      <varlistentry>
+	<term>-a <replaceable class="parameter">algorithm</replaceable></term>
+	<listitem>
+	  <para>
+	    Specify a digest algorithm to use when converting the
+	    zone's DNSKEY records to expected DS or DLV records. This
+	    option can be repeated, so that multiple records are
+	    checked for each DNSKEY record.
+          </para>
+          <para>
+            The <replaceable>algorithm</replaceable> must be one of
+            SHA-1, SHA-256, or SHA-384.  These values are case insensitive,
+            and the hyphen may be omitted.  If no algorithm is specified,
+            the default is SHA-256.
+	  </para>
+	</listitem>
+      </varlistentry>
+
       <varlistentry>
         <term>-f <replaceable class="parameter">file</replaceable></term>
         <listitem>
