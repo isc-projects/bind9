@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.11.5-P1</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.11.5-P4</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -112,6 +112,31 @@
 	  NSEC/NSEC3 chain, but incompletely -- this can result in
 	  a broken chain, affecting validation of proof of nonexistence
 	  for records in the zone. [GL #771]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> could crash if it managed a DNSSEC
+	  security root with <span class="command"><strong>managed-keys</strong></span> and the
+	  authoritative zone rolled the key to an algorithm not supported
+	  by BIND 9.  This flaw is disclosed in CVE-2018-5745. [GL #780]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named</strong></span> leaked memory when processing a
+	  request with multiple Key Tag EDNS options present. ISC
+	  would like to thank Toshifumi Sakaguchi for bringing this
+	  to our attention.  This flaw is disclosed in CVE-2018-5744.
+	  [GL #772]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Zone transfer controls for writable DLZ zones were not
+	  effective as the <span class="command"><strong>allowzonexfr</strong></span> method was
+	  not being called for such zones. This flaw is disclosed in
+	  CVE-2019-6465. [GL #790]
 	</p>
       </li>
 </ul></div>

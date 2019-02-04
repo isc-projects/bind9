@@ -282,6 +282,15 @@ BIND 9.11.5-P1 addresses a potentially serious flaw which could
 cause faulty NSEC3 chains to be regenerated after a change to the
 DNSSEC signing key of a zone.
 
+#### BIND 9.11.5-P2, 9.11.5-P3
+
+These were both withdrawn prior to release.
+
+#### BIND 9.11.5-P4
+
+BIND 9.11.5-P4 addresses the security flaws disclosed in CVE-2018-5744,
+CVE-2018-5745 and CVE-2019-6465.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX

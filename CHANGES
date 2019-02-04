@@ -1,3 +1,7 @@
+	--- 9.11.5-P4 released ---
+
+	--- 9.11.5-P3 released (withdrawn) ---
+
 5141.	[security]	Zone transfer controls for writable DLZ zones were
 			not effective as the allowzonexfr method was not being
 			called for such zones. (CVE-2019-6465) [GL #790]
