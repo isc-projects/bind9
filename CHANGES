@@ -1,3 +1,8 @@
+5118.	[security]	Named could crash if it is managing a key with
+			`managed-keys` and the authoritative zone is rolling
+			the key to an unsupported algorithm. (CVE-2018-5745)
+			[GL #780]
+
 	--- 9.12.3-P1 released ---
 
 5108.	[bug]		Named could fail to determine bottom of zone when
