@@ -108,12 +108,20 @@ test_update testdc1.alternate.nil. A "86400 A 10.53.0.10" "10.53.0.10" || ret=1
 status=`expr $status + $ret`
 
 newtest "testing AXFR from DLZ drivers"
-$DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.ns1.test$n
-lines=`cat dig.out.ns1.test$n | wc -l`
+$DIG $DIGOPTS +noall +answer axfr example.nil > dig.out.example.ns1.test$n
+lines=`cat dig.out.example.ns1.test$n | wc -l`
 [ ${lines:-0} -eq 4 ] || ret=1
-$DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.ns1.test$n
-lines=`cat dig.out.ns1.test$n | wc -l`
+$DIG $DIGOPTS +noall +answer axfr alternate.nil > dig.out.alternate.ns1.test$n
+lines=`cat dig.out.alternate.ns1.test$n | wc -l`
 [ ${lines:-0} -eq 5 ] || ret=1
+[ "$ret" -eq 0 ] || echo_i "failed"
+status=`expr $status + $ret`
+
+newtest "testing AXFR denied from DLZ drivers"
+$DIG $DIGOPTS -b 10.53.0.5 +noall +answer axfr example.nil > dig.out.example.ns1.test$n
+grep "; Transfer failed" dig.out.example.ns1.test$n > /dev/null || ret=1
+$DIG $DIGOPTS -b 10.53.0.5 +noall +answer axfr alternate.nil > dig.out.alternate.ns1.test$n
+grep "; Transfer failed" dig.out.alternate.ns1.test$n > /dev/null || ret=1
 [ "$ret" -eq 0 ] || echo_i "failed"
 status=`expr $status + $ret`
 
