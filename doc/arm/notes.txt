@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.12.3-P1
+Release Notes for BIND Version 9.12.3-P4
 
 Introduction
 
@@ -44,6 +44,20 @@ Security Fixes
     chain, but incompletely -- this can result in a broken chain,
     affecting validation of proof of nonexistence for records in the zone.
     [GL #771]
+
+  * named could crash if it managed a DNSSEC security root with
+    managed-keys and the authoritative zone rolled the key to an algorithm
+    not supported by BIND 9. This flaw is disclosed in CVE-2018-5745. [GL
+    #780]
+
+  * named leaked memory when processing a request with multiple Key Tag
+    EDNS options present. ISC would like to thank Toshifumi Sakaguchi for
+    bringing this to our attention. This flaw is disclosed in
+    CVE-2018-5744. [GL #772]
+
+  * Zone transfer controls for writable DLZ zones were not effective as
+    the allowzonexfr method was not being called for such zones. This flaw
+    is disclosed in CVE-2019-6465. [GL #790]
 
 New Features
 
