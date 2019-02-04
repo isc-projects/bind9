@@ -544,10 +544,16 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
  */
 isc_result_t
 dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
-	UNUSED(client);
+	isc_result_t result;
 
-	/* Just say yes for all our zones */
-	return (dlz_findzonedb(dbdata, name, NULL, NULL));
+	result = dlz_findzonedb(dbdata, name, NULL, NULL);
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+	if (strcmp(client, "10.53.0.5") == 0) {
+		return (ISC_R_NOPERM);
+	}
+	return (ISC_R_SUCCESS);
 }
 
 /*
