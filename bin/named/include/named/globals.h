@@ -90,7 +90,7 @@ EXTERN cfg_obj_t *		named_g_config		INIT(NULL);
 EXTERN const cfg_obj_t *	named_g_defaults	INIT(NULL);
 EXTERN const char *		named_g_conffile	INIT(NAMED_SYSCONFDIR
 							     "/named.conf");
-EXTERN cfg_obj_t *		named_g_defaultbindkeys	INIT(NAMED_SYSCONFDIR
+EXTERN const char *		named_g_defaultbindkeys	INIT(NAMED_SYSCONFDIR
 							     "/bind.keys");
 EXTERN const char *		named_g_keyfile		INIT(NAMED_SYSCONFDIR
 							     "/rndc.key");
