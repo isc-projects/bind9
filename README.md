@@ -255,11 +255,8 @@ default, installation is into /usr/local, but this can be changed with the
 
 You may specify the option `--sysconfdir` to set the directory where
 configuration files like `named.conf` go by default, and `--localstatedir`
-to set the default parent directory of `run/named.pid`.   For backwards
-compatibility with BIND 8, `--sysconfdir` defaults to `/etc` and
-`--localstatedir` defaults to `/var` if no `--prefix` option is given.  If
-there is a `--prefix` option, sysconfdir defaults to `$prefix/etc` and
-localstatedir defaults to `$prefix/var`.
+to set the default parent directory of `run/named.pid`.   `--sysconfdir`
+defaults to `$prefix/etc` and `--localstatedir` defaults to `$prefix/var`.
 
 ### <a name="testing"/> Automated testing
 
