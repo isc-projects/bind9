@@ -162,7 +162,7 @@ These were both withdrawn prior to release.
 
 BIND 9.12.3-P4
 
-BIND 9.12.3-P3 addresses the security flaws disclosed in CVE-2018-5744,
+BIND 9.12.3-P4 addresses the security flaws disclosed in CVE-2018-5744,
 CVE-2018-5745 and CVE-2019-6465.
 
 Building BIND
