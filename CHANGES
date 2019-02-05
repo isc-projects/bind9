@@ -1,3 +1,10 @@
+5155.	[func]		"named -V" now outputs the default paths to
+			named.conf, rndc.conf, bind.keys, and other
+			files used or created by named and other tools, so
+			that the correct paths to these files can quickly be
+			determined regardless of the configure settings
+			used when BIND was built. [GL #859]
+
 5154.	[bug]		dig: process_opt could be called twice on the same
 			message leading to a assertion failure. [GL #860]
 
