@@ -61,13 +61,13 @@ usage(void) {
 #else
 	fprintf(stderr, "    -E engine:    specify OpenSSL engine\n");
 #endif
-	fprintf(stderr, "    -f:	   force overwrite\n");
+	fprintf(stderr, "    -f:           force overwrite\n");
+	fprintf(stderr, "    -h:           help\n");
 	fprintf(stderr, "    -K directory: use directory for key files\n");
-	fprintf(stderr, "    -h:	   help\n");
-	fprintf(stderr, "    -r:	   remove old keyfiles after "
+	fprintf(stderr, "    -r:           remove old keyfiles after "
 					   "creating revoked version\n");
-	fprintf(stderr, "    -v level:	   set level of verbosity\n");
-	fprintf(stderr, "    -V: print version information\n");
+	fprintf(stderr, "    -v level:     set level of verbosity\n");
+	fprintf(stderr, "    -V:           print version information\n");
 	fprintf(stderr, "Output:\n");
 	fprintf(stderr, "     K<name>+<alg>+<new id>.key, "
 			     "K<name>+<alg>+<new id>.private\n");
