@@ -80,6 +80,13 @@
  *** Types
  ***/
 
+/*% reference-counted TCP connection object */
+typedef struct ns_tcpconn {
+	isc_refcount_t		refs;
+	isc_quota_t		*tcpquota;
+	bool			pipelined;
+} ns_tcpconn_t;
+
 /*% nameserver client structure */
 struct ns_client {
 	unsigned int		magic;
@@ -134,10 +141,7 @@ struct ns_client {
 	dns_name_t		signername;   /*%< [T]SIG key name */
 	dns_name_t		*signer;      /*%< NULL if not valid sig */
 	bool			mortal;	      /*%< Die after handling request */
-	bool			pipelined;   /*%< TCP queries not in sequence */
-	isc_refcount_t		*pipeline_refs;
-	isc_quota_t		*tcpquota;
-	bool			tcpattached;
+	ns_tcpconn_t		*tcpconn;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;
 
