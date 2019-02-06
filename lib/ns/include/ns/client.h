@@ -137,6 +137,7 @@ struct ns_client {
 	bool			pipelined;   /*%< TCP queries not in sequence */
 	isc_refcount_t		*pipeline_refs;
 	isc_quota_t		*tcpquota;
+	bool			tcpattached;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;
 

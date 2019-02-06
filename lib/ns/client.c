@@ -241,7 +241,8 @@ static void ns_client_endrequest(ns_client_t *client);
 static void client_start(isc_task_t *task, isc_event_t *event);
 static void ns_client_dumpmessage(ns_client_t *client, const char *reason);
 static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
-			       dns_dispatch_t *disp, bool tcp);
+			       dns_dispatch_t *disp, ns_client_t *oldclient,
+			       bool tcp);
 static isc_result_t get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp,
 			       isc_socket_t *sock, ns_client_t *oldclient);
 static void compute_cookie(ns_client_t *client, uint32_t when,
@@ -387,6 +388,33 @@ pipeline_detach(ns_client_t *client) {
 	return (false);
 }
 
+/*
+ * Detach a client from the TCP client quota if appropriate, and set
+ * the quota pointer to NULL.
+ *
+ * Sometimes when the TCP client quota is exhausted but there are no other
+ * clients servicing the interface, a client will be allowed to continue
+ * running despite not having been attached to the quota. In this event,
+ * the TCP quota was never attached to the client, so when the client (or
+ * associated pipeline group) shuts down, the quota must NOT be detached.
+ *
+ * Otherwise, if the quota pointer is set, it should be detached. If not
+ * set at all, we just return without doing anything.
+ */
+static void
+tcpquota_disconnect(ns_client_t *client) {
+	if (client->tcpquota == NULL) {
+		return;
+	}
+
+	if (client->tcpattached) {
+		isc_quota_detach(&client->tcpquota);
+		client->tcpattached = false;
+	} else {
+		client->tcpquota = NULL;
+	}
+}
+
 /*%
  * Check for a deactivation or shutdown request and take appropriate
  * action.  Returns true if either is in progress; in this case
@@ -509,38 +537,31 @@ exit_check(ns_client_t *client) {
 			client->tcpmsg_valid = false;
 		}
 
-		if (client->tcpquota != NULL) {
-			if (client->pipeline_refs == NULL ||
-			    pipeline_detach(client))
-			{
-				/*
-				 * Only detach from the TCP client quota if
-				 * there are no more client structures using
-				 * this TCP connection.
-				 *
-				 * Note that we check 'pipeline_refs' and not
-				 * 'pipelined' because in some cases (e.g.
-				 * after receiving a request with an opcode
-				 * different than QUERY) 'pipelined' is set to
-				 * false after the reference counter gets
-				 * allocated in pipeline_init() and we must
-				 * still drop our reference as failing to do so
-				 * would prevent the reference counter itself
-				 * from being freed.
-				 */
-				isc_quota_detach(&client->tcpquota);
-			} else {
-				/*
-				 * There are other client structures using this
-				 * TCP connection, so we cannot detach from the
-				 * TCP client quota to prevent excess TCP
-				 * connections from being accepted.  However,
-				 * this client structure might later be reused
-				 * for accepting new connections and thus must
-				 * have its 'tcpquota' field set to NULL.
-				 */
-				client->tcpquota = NULL;
-			}
+		/*
+		 * Detach from pipeline group and from TCP client quota,
+		 * if appropriate.
+		 *
+		 * - If no pipeline group is active, attempt to
+		 *   detach from the TCP client quota.
+		 *
+		 * - If a pipeline group is active, detach from it;
+		 *   if the return code indicates that there no more
+		 *   clients left if this pipeline group, we also detach
+		 *   from the TCP client quota.
+		 *
+		 * - Otherwise we don't try to detach, we just set the
+		 *   TCP quota pointer to NULL if it wasn't NULL already.
+		 *
+		 * tcpquota_disconnect() will set tcpquota to NULL, either
+		 * by detaching it or by assignment, depending on the
+		 * needs of the client. See the comments on that function
+		 * for further information.
+		 */
+		if (client->pipeline_refs == NULL || pipeline_detach(client)) {
+			tcpquota_disconnect(client);
+		} else {
+			client->tcpquota = NULL;
+			client->tcpattached = false;
 		}
 
 		if (client->tcpsocket != NULL) {
@@ -563,8 +584,6 @@ exit_check(ns_client_t *client) {
 			client->timerset = false;
 		}
 
-		client->pipelined = false;
-
 		client->peeraddr_valid = false;
 
 		client->state = NS_CLIENTSTATE_READY;
@@ -577,19 +596,28 @@ exit_check(ns_client_t *client) {
 		 * active and force it to go inactive if not.
 		 *
 		 * UDP clients go inactive at this point, but a TCP client
-		 * will needs to remain active if no other clients are
-		 * listening for TCP requests on this interface, to
-		 * prevent this interface from going nonresponsive.
+		 * may need to remain active and go into ready state if
+		 * no other clients are available to listen for TCP
+		 * requests on this interface or (in the case of pipelined
+		 * clients) to read for additional messages on the current
+		 * connection.
 		 */
 		if (client->mortal && TCP_CLIENT(client) &&
 		    ((client->sctx->options & NS_SERVER_CLIENTTEST) == 0))
 		{
 			LOCK(&client->interface->lock);
-			if (client->interface->ntcpaccepting == 0) {
+			if ((client->interface->ntcpaccepting == 0 ||
+			    (client->pipelined &&
+			     client->interface->ntcpactive < 2)) &&
+			    client->newstate != NS_CLIENTSTATE_FREED)
+			{
 				client->mortal = false;
+				client->newstate = NS_CLIENTSTATE_READY;
 			}
 			UNLOCK(&client->interface->lock);
 		}
+
+		client->pipelined = false;
 
 		/*
 		 * We don't need the client; send it to the inactive
@@ -2606,6 +2634,18 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		client->pipelined = false;
 	}
 	if (TCP_CLIENT(client) && client->pipelined) {
+		/*
+		 * We're pipelining. Replace the client; the
+		 * the replacement can read the TCP socket looking
+		 * for new messages and this client can process the
+		 * current message asynchronously.
+		 *
+		 * There are now at least three clients using this
+		 * TCP socket - one accepting new connections,
+		 * one reading an existing connection to get new
+		 * messages, and one answering the message already
+		 * received.
+		 */
 		result = ns_client_replace(client);
 		if (result != ISC_R_SUCCESS) {
 			client->pipelined = false;
@@ -3163,6 +3203,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->pipelined = false;
 	client->pipeline_refs = NULL;
 	client->tcpquota = NULL;
+	client->tcpattached = false;
 	client->recursionquota = NULL;
 	client->interface = NULL;
 	client->peeraddr_valid = false;
@@ -3325,9 +3366,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 			      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 			      "accept failed: %s",
 			      isc_result_totext(nevent->result));
-		if (client->tcpquota != NULL) {
-			isc_quota_detach(&client->tcpquota);
-		}
+		tcpquota_disconnect(client);
 	}
 
 	if (exit_check(client))
@@ -3411,27 +3450,27 @@ client_accept(ns_client_t *client) {
 			 * interface to be starved, with no clients able
 			 * to accept new connections.
 			 *
-			 * So, we check here to see if any other client
-			 * is already servicing TCP queries on this
+			 * So, we check here to see if any other clients
+			 * are already servicing TCP queries on this
 			 * interface (whether accepting, reading, or
-			 * processing).
+			 * processing). If there are at least two
+			 * (one reading and one processing a request)
+			 * then it's okay *not* to call accept - we
+			 * can let this client go inactive and another
+			 * one will resume accepting when it's done.
 			 *
-			 * If so, then it's okay *not* to call
-			 * accept - we can let this client to go inactive
-			 * and the other one handle the next connection
-			 * when it's ready.
+			 * If there aren't enough active clients on the
+			 * interface, then we can be a little bit
+			 * flexible about the quota. We'll allow *one*
+			 * extra client through to ensure we're listening
+			 * on every interface.
 			 *
-			 * But if not, then we need to be a little bit
-			 * flexible about the quota. We allow *one* extra
-			 * TCP client through, to ensure we're listening on
-			 * every interface.
-			 *
-			 * (Note: In practice this means that the *real*
-			 * TCP client quota is tcp-clients plus the number
-			 * of interfaces.)
+			 * (Note: In practice this means that the real
+			 * TCP client quota is tcp-clients plus the
+			 * number of listening interfaces plus 2.)
 			 */
 			LOCK(&client->interface->lock);
-			exit = (client->interface->ntcpactive > 0);
+			exit = (client->interface->ntcpactive > 1);
 			UNLOCK(&client->interface->lock);
 
 			if (exit) {
@@ -3439,6 +3478,9 @@ client_accept(ns_client_t *client) {
 				(void)exit_check(client);
 				return;
 			}
+
+	} else {
+		client->tcpattached = true;
 	}
 
 	/*
@@ -3471,9 +3513,16 @@ client_accept(ns_client_t *client) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_socket_accept() failed: %s",
 				 isc_result_totext(result));
-		if (client->tcpquota != NULL) {
-			isc_quota_detach(&client->tcpquota);
+
+		tcpquota_disconnect(client);
+
+		if (client->tcpactive) {
+			LOCK(&client->interface->lock);
+			client->interface->ntcpactive--;
+			UNLOCK(&client->interface->lock);
+			client->tcpactive = false;
 		}
+
 		return;
 	}
 
@@ -3491,13 +3540,12 @@ client_accept(ns_client_t *client) {
 	 * once the connection is established.
 	 *
 	 * When the client object is shutting down after handling a TCP
-	 * request (see exit_check()), it looks to see whether this value is
-	 * non-zero. If so, that means another client has already called
-	 * accept() and is waiting to establish the next connection, which
-	 * means the first client is free to go inactive. Otherwise,
-	 * the first client must come back and call accept() again; this
-	 * guarantees there will always be at least one client listening
-	 * for new TCP connections on each interface.
+	 * request (see exit_check()), if this value is at least one, that
+	 * means another client has called accept() and is waiting to
+	 * establish the next connection. That means the client may be
+	 * be free to become inactive; otherwise it may need to start
+	 * listening for connections itself to prevent the interface
+	 * going dead.
 	 */
 	LOCK(&client->interface->lock);
 	client->interface->ntcpaccepting++;
@@ -3577,18 +3625,18 @@ ns_client_replace(ns_client_t *client) {
 				    client->tcpsocket, client);
 	} else {
 		result = get_client(client->manager, client->interface,
-				    client->dispatch, tcp);
+				    client->dispatch, client, tcp);
+
+		/*
+		 * The responsibility for listening for new requests is hereby
+		 * transferred to the new client.  Therefore, the old client
+		 * should refrain from listening for any more requests.
+		 */
+		client->mortal = true;
 	}
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-
-	/*
-	 * The responsibility for listening for new requests is hereby
-	 * transferred to the new client.  Therefore, the old client
-	 * should refrain from listening for any more requests.
-	 */
-	client->mortal = true;
 
 	return (ISC_R_SUCCESS);
 }
@@ -3730,7 +3778,7 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 
 static isc_result_t
 get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
-	   dns_dispatch_t *disp, bool tcp)
+	   dns_dispatch_t *disp, ns_client_t *oldclient, bool tcp)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc_event_t *ev;
@@ -3775,6 +3823,16 @@ get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	client->dscp = ifp->dscp;
 
 	if (tcp) {
+		client->tcpattached = false;
+		if (oldclient != NULL) {
+			client->tcpattached = oldclient->tcpattached;
+		}
+
+		LOCK(&client->interface->lock);
+		client->interface->ntcpactive++;
+		UNLOCK(&client->interface->lock);
+		client->tcpactive = true;
+
 		client->attributes |= NS_CLIENTATTR_TCP;
 		isc_socket_attach(ifp->tcpsocket,
 				  &client->tcplistener);
@@ -3840,6 +3898,7 @@ get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *sock,
 	INSIST(client->recursionquota == NULL);
 	client->sctx = manager->sctx;
 	client->tcpquota = &client->sctx->tcpquota;
+	client->tcpattached = oldclient->tcpattached;
 
 	client->dscp = ifp->dscp;
 
@@ -3859,7 +3918,6 @@ get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp, isc_socket_t *sock,
 	LOCK(&client->interface->lock);
 	client->interface->ntcpactive++;
 	UNLOCK(&client->interface->lock);
-
 	client->tcpactive = true;
 
 	INSIST(client->tcpmsg_valid == false);
@@ -3936,7 +3994,8 @@ ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
 	MTRACE("createclients");
 
 	for (disp = 0; disp < n; disp++) {
-		result = get_client(manager, ifp, ifp->udpdispatch[disp], tcp);
+		result = get_client(manager, ifp, ifp->udpdispatch[disp],
+				    NULL, tcp);
 		if (result != ISC_R_SUCCESS)
 			break;
 	}
