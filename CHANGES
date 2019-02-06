@@ -85,7 +85,9 @@
 			and "nsdname-enable" both now default to yes,
 			regardless of compile-time settings. [GL #824]
 
-5141.	[placeholder]
+5141.	[security]	Zone transfer controls for writable DLZ zones were
+			not effective as the allowzonexfr method was not being
+			called for such zones. (CVE-2019-6465) [GL #790]
 
 5140.	[bug]		Don't immediately mark existing keys as inactive and
 			deleted when running dnssec-keymgr for the first
