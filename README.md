@@ -139,6 +139,8 @@ include:
   DNSSEC validation should not be performed.
 * The default value of "dnssec-validation" is now "auto".
 * IDNA2008 is now supported when linking with `libidn2`.
+* "named -V" now outputs the default paths for files used by named
+  and other tools.
 
 In addition, workarounds that were formerly in place to enable resolution
 of domains whose authoritative servers did not respond to EDNS queries

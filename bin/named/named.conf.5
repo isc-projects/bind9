@@ -1,4 +1,4 @@
-.\" Copyright (C) 2004-2018 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2004-2019 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2018-10-23
+.\"      Date: 2018-12-07
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2018\-10\-23" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2018\-12\-07" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -209,9 +209,9 @@ options {
 	bindkeys\-file \fIquoted_string\fR;
 	blackhole { \fIaddress_match_element\fR; \&.\&.\&. };
 	cache\-file \fIquoted_string\fR;
-	catalog\-zones { zone \fIquoted_string\fR [ default\-masters [ port
-	    \fIinteger\fR ] [ dscp \fIinteger\fR ] { ( \fImasters\fR | \fIipv4_address\fR [
-	    port \fIinteger\fR ] | \fIipv6_address\fR [ port \fIinteger\fR ] ) [ key
+	catalog\-zones { zone \fIstring\fR [ default\-masters [ port \fIinteger\fR ]
+	    [ dscp \fIinteger\fR ] { ( \fImasters\fR | \fIipv4_address\fR [ port
+	    \fIinteger\fR ] | \fIipv6_address\fR [ port \fIinteger\fR ] ) [ key
 	    \fIstring\fR ]; \&.\&.\&. } ] [ zone\-directory \fIquoted_string\fR ] [
 	    in\-memory \fIboolean\fR ] [ min\-update\-interval \fIttlval\fR ]; \&.\&.\&. };
 	check\-dup\-records ( fail | warn | ignore );
@@ -265,12 +265,15 @@ options {
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
 	dnssec\-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver | update ) [
-	    ( query | response ) ]; \&.\&.\&. };
-	dnstap\-identity ( \fIquoted_string\fR | none | hostname );
-	dnstap\-output ( file | unix ) \fIquoted_string\fR [ size ( unlimited |
-	    \fIsize\fR ) ] [ versions ( unlimited | \fIinteger\fR ) ] [ suffix (
-	    increment | timestamp ) ];
+	dnstap { ( all | auth | client | forwarder |
+	    resolver | update ) [ ( query | response ) ];
+	    \&.\&.\&. };
+	dnstap\-identity ( \fIquoted_string\fR | none |
+	    hostname );
+	dnstap\-output ( file | unix ) \fIquoted_string\fR [
+	    size ( unlimited | \fIsize\fR ) ] [ versions (
+	    unlimited | \fIinteger\fR ) ] [ suffix ( increment
+	    | timestamp ) ];
 	dnstap\-version ( \fIquoted_string\fR | none );
 	dscp \fIinteger\fR;
 	dual\-stack\-servers [ port \fIinteger\fR ] { ( \fIquoted_string\fR [ port
@@ -286,9 +289,6 @@ options {
 	fetches\-per\-server \fIinteger\fR [ ( drop | fail ) ];
 	fetches\-per\-zone \fIinteger\fR [ ( drop | fail ) ];
 	files ( default | unlimited | \fIsizeval\fR );
-	filter\-aaaa { \fIaddress_match_element\fR; \&.\&.\&. };
-	filter\-aaaa\-on\-v4 ( break\-dnssec | \fIboolean\fR );
-	filter\-aaaa\-on\-v6 ( break\-dnssec | \fIboolean\fR );
 	flush\-zones\-on\-shutdown \fIboolean\fR;
 	forward ( first | only );
 	forwarders [ port \fIinteger\fR ] [ dscp \fIinteger\fR ] { ( \fIipv4_address\fR
@@ -409,18 +409,17 @@ options {
 	resolver\-retry\-interval \fIinteger\fR;
 	response\-padding { \fIaddress_match_element\fR; \&.\&.\&. } block\-size
 	    \fIinteger\fR;
-	response\-policy { zone \fIquoted_string\fR [ log \fIboolean\fR ] [
-	    max\-policy\-ttl \fIttlval\fR ] [ min\-update\-interval \fIttlval\fR ] [
-	    policy ( cname | disabled | drop | given | no\-op | nodata |
-	    nxdomain | passthru | tcp\-only \fIquoted_string\fR ) ] [
-	    recursive\-only \fIboolean\fR ] [ nsip\-enable \fIboolean\fR ] [
-	    nsdname\-enable \fIboolean\fR ]; \&.\&.\&. } [ break\-dnssec \fIboolean\fR ] [
-	    max\-policy\-ttl \fIttlval\fR ] [ min\-update\-interval \fIttlval\fR ] [
-	    min\-ns\-dots \fIinteger\fR ] [ nsip\-wait\-recurse \fIboolean\fR ] [
-	    qname\-wait\-recurse \fIboolean\fR ] [ recursive\-only \fIboolean\fR ] [
-	    nsip\-enable \fIboolean\fR ] [ nsdname\-enable \fIboolean\fR ] [
-	    dnsrps\-enable \fIboolean\fR ] [ dnsrps\-options { \fIunspecified\-text\fR
-	    } ];
+	response\-policy { zone \fIstring\fR [ log \fIboolean\fR ] [ max\-policy\-ttl
+	    \fIttlval\fR ] [ min\-update\-interval \fIttlval\fR ] [ policy ( cname |
+	    disabled | drop | given | no\-op | nodata | nxdomain | passthru
+	    | tcp\-only \fIquoted_string\fR ) ] [ recursive\-only \fIboolean\fR ] [
+	    nsip\-enable \fIboolean\fR ] [ nsdname\-enable \fIboolean\fR ]; \&.\&.\&. } [
+	    break\-dnssec \fIboolean\fR ] [ max\-policy\-ttl \fIttlval\fR ] [
+	    min\-update\-interval \fIttlval\fR ] [ min\-ns\-dots \fIinteger\fR ] [
+	    nsip\-wait\-recurse \fIboolean\fR ] [ qname\-wait\-recurse \fIboolean\fR ]
+	    [ recursive\-only \fIboolean\fR ] [ nsip\-enable \fIboolean\fR ] [
+	    nsdname\-enable \fIboolean\fR ] [ dnsrps\-enable \fIboolean\fR ] [
+	    dnsrps\-options { \fIunspecified\-text\fR } ];
 	root\-delegation\-only [ exclude { \fIstring\fR; \&.\&.\&. } ];
 	root\-key\-sentinel \fIboolean\fR;
 	rrset\-order { [ class \fIstring\fR ] [ type \fIstring\fR ] [ name
@@ -477,6 +476,18 @@ options {
 	zero\-no\-soa\-ttl\-cache \fIboolean\fR;
 	zone\-statistics ( full | terse | none | \fIboolean\fR );
 };
+.fi
+.if n \{\
+.RE
+.\}
+.SH "PLUGIN"
+.sp
+.if n \{\
+.RS 4
+.\}
+.nf
+plugin ( query ) \fIstring\fR [ { \fIunspecified\-text\fR
+    } ];
 .fi
 .if n \{\
 .RE
@@ -580,9 +591,9 @@ view \fIstring\fR [ \fIclass\fR ] {
 	auth\-nxdomain \fIboolean\fR; // default changed
 	auto\-dnssec ( allow | maintain | off );
 	cache\-file \fIquoted_string\fR;
-	catalog\-zones { zone \fIquoted_string\fR [ default\-masters [ port
-	    \fIinteger\fR ] [ dscp \fIinteger\fR ] { ( \fImasters\fR | \fIipv4_address\fR [
-	    port \fIinteger\fR ] | \fIipv6_address\fR [ port \fIinteger\fR ] ) [ key
+	catalog\-zones { zone \fIstring\fR [ default\-masters [ port \fIinteger\fR ]
+	    [ dscp \fIinteger\fR ] { ( \fImasters\fR | \fIipv4_address\fR [ port
+	    \fIinteger\fR ] | \fIipv6_address\fR [ port \fIinteger\fR ] ) [ key
 	    \fIstring\fR ]; \&.\&.\&. } ] [ zone\-directory \fIquoted_string\fR ] [
 	    in\-memory \fIboolean\fR ] [ min\-update\-interval \fIttlval\fR ]; \&.\&.\&. };
 	check\-dup\-records ( fail | warn | ignore );
@@ -635,8 +646,9 @@ view \fIstring\fR [ \fIclass\fR ] {
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
 	dnssec\-validation ( yes | no | auto );
-	dnstap { ( all | auth | client | forwarder | resolver | update ) [
-	    ( query | response ) ]; \&.\&.\&. };
+	dnstap { ( all | auth | client | forwarder |
+	    resolver | update ) [ ( query | response ) ];
+	    \&.\&.\&. };
 	dual\-stack\-servers [ port \fIinteger\fR ] { ( \fIquoted_string\fR [ port
 	    \fIinteger\fR ] [ dscp \fIinteger\fR ] | \fIipv4_address\fR [ port
 	    \fIinteger\fR ] [ dscp \fIinteger\fR ] | \fIipv6_address\fR [ port
@@ -650,9 +662,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 	fetch\-quota\-params \fIinteger\fR \fIfixedpoint\fR \fIfixedpoint\fR \fIfixedpoint\fR;
 	fetches\-per\-server \fIinteger\fR [ ( drop | fail ) ];
 	fetches\-per\-zone \fIinteger\fR [ ( drop | fail ) ];
-	filter\-aaaa { \fIaddress_match_element\fR; \&.\&.\&. };
-	filter\-aaaa\-on\-v4 ( break\-dnssec | \fIboolean\fR );
-	filter\-aaaa\-on\-v6 ( break\-dnssec | \fIboolean\fR );
 	forward ( first | only );
 	forwarders [ port \fIinteger\fR ] [ dscp \fIinteger\fR ] { ( \fIipv4_address\fR
 	    | \fIipv6_address\fR ) [ port \fIinteger\fR ] [ dscp \fIinteger\fR ]; \&.\&.\&. };
@@ -693,6 +702,8 @@ view \fIstring\fR [ \fIclass\fR ] {
 	max\-udp\-size \fIinteger\fR;
 	max\-zone\-ttl ( unlimited | \fIttlval\fR );
 	message\-compression \fIboolean\fR;
+	min\-cache\-ttl \fIttlval\fR;
+	min\-ncache\-ttl \fIttlval\fR;
 	min\-refresh\-time \fIinteger\fR;
 	min\-retry\-time \fIinteger\fR;
 	minimal\-any \fIboolean\fR;
@@ -711,6 +722,8 @@ view \fIstring\fR [ \fIclass\fR ] {
 	nta\-lifetime \fIttlval\fR;
 	nta\-recheck \fIttlval\fR;
 	nxdomain\-redirect \fIstring\fR;
+	plugin ( query ) \fIstring\fR [ {
+	    \fIunspecified\-text\fR } ];
 	preferred\-glue \fIstring\fR;
 	prefetch \fIinteger\fR [ \fIinteger\fR ];
 	provide\-ixfr \fIboolean\fR;
@@ -748,18 +761,17 @@ view \fIstring\fR [ \fIclass\fR ] {
 	resolver\-retry\-interval \fIinteger\fR;
 	response\-padding { \fIaddress_match_element\fR; \&.\&.\&. } block\-size
 	    \fIinteger\fR;
-	response\-policy { zone \fIquoted_string\fR [ log \fIboolean\fR ] [
-	    max\-policy\-ttl \fIttlval\fR ] [ min\-update\-interval \fIttlval\fR ] [
-	    policy ( cname | disabled | drop | given | no\-op | nodata |
-	    nxdomain | passthru | tcp\-only \fIquoted_string\fR ) ] [
-	    recursive\-only \fIboolean\fR ] [ nsip\-enable \fIboolean\fR ] [
-	    nsdname\-enable \fIboolean\fR ]; \&.\&.\&. } [ break\-dnssec \fIboolean\fR ] [
-	    max\-policy\-ttl \fIttlval\fR ] [ min\-update\-interval \fIttlval\fR ] [
-	    min\-ns\-dots \fIinteger\fR ] [ nsip\-wait\-recurse \fIboolean\fR ] [
-	    qname\-wait\-recurse \fIboolean\fR ] [ recursive\-only \fIboolean\fR ] [
-	    nsip\-enable \fIboolean\fR ] [ nsdname\-enable \fIboolean\fR ] [
-	    dnsrps\-enable \fIboolean\fR ] [ dnsrps\-options { \fIunspecified\-text\fR
-	    } ];
+	response\-policy { zone \fIstring\fR [ log \fIboolean\fR ] [ max\-policy\-ttl
+	    \fIttlval\fR ] [ min\-update\-interval \fIttlval\fR ] [ policy ( cname |
+	    disabled | drop | given | no\-op | nodata | nxdomain | passthru
+	    | tcp\-only \fIquoted_string\fR ) ] [ recursive\-only \fIboolean\fR ] [
+	    nsip\-enable \fIboolean\fR ] [ nsdname\-enable \fIboolean\fR ]; \&.\&.\&. } [
+	    break\-dnssec \fIboolean\fR ] [ max\-policy\-ttl \fIttlval\fR ] [
+	    min\-update\-interval \fIttlval\fR ] [ min\-ns\-dots \fIinteger\fR ] [
+	    nsip\-wait\-recurse \fIboolean\fR ] [ qname\-wait\-recurse \fIboolean\fR ]
+	    [ recursive\-only \fIboolean\fR ] [ nsip\-enable \fIboolean\fR ] [
+	    nsdname\-enable \fIboolean\fR ] [ dnsrps\-enable \fIboolean\fR ] [
+	    dnsrps\-options { \fIunspecified\-text\fR } ];
 	root\-delegation\-only [ exclude { \fIstring\fR; \&.\&.\&. } ];
 	root\-key\-sentinel \fIboolean\fR;
 	rrset\-order { [ class \fIstring\fR ] [ type \fIstring\fR ] [ name
@@ -895,9 +907,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 		notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR
 		    | * ) ] [ dscp \fIinteger\fR ];
 		notify\-to\-soa \fIboolean\fR;
-		pubkey \fIinteger\fR
-		    \fIinteger\fR
-		    \fIinteger\fR
+		pubkey \fIinteger\fR \fIinteger\fR \fIinteger\fR
 		request\-expire \fIboolean\fR;
 		request\-ixfr \fIboolean\fR;
 		serial\-update\-method ( date | increment | unixtime );
@@ -1003,7 +1013,6 @@ zone \fIstring\fR [ \fIclass\fR ] {
 	notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR | * ) ]
 	    [ dscp \fIinteger\fR ];
 	notify\-to\-soa \fIboolean\fR;
-	pubkey \fIinteger\fR \fIinteger\fR
 	request\-expire \fIboolean\fR;
 	request\-ixfr \fIboolean\fR;
 	serial\-update\-method ( date | increment | unixtime );
@@ -1051,5 +1060,5 @@ BIND 9 Administrator Reference Manual\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2004-2018 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2004-2019 Internet Systems Consortium, Inc. ("ISC")
 .br

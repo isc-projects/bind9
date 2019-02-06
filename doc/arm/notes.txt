@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.13.5
+Release Notes for BIND Version 9.13.6
 
 Introduction
 
@@ -161,6 +161,9 @@ New Features
     configured minimum TTL for both configuration options cannot exceed 90
     seconds.
 
+  * rndc status output now includes a reconfig/reload in progress status
+    line if named configuration is being reloaded.
+
 Removed Features
 
   * Workarounds for servers that misbehave when queried with EDNS have
@@ -273,6 +276,18 @@ Removed Features
     BIND as the DSA key length is limited to 1024 bits and this is not
     considered secure enough.
 
+    Support for RSAMD5 algorithm has been removed freom BIND as the usage
+    of the RSAMD5 algorithm for DNSSEC has been deprecated in RFC6725 and
+    the security of MD5 algorithm has been compromised and the its usage
+    is considered harmful.
+
+  * The incomplete support for internationalization message catalogs has
+    been removed from BIND. Since the internationalization was never
+    completed, and no localized message catalogs were ever made available
+    for the portions of BIND in which they could have been used, this
+    change will have no effect except to simplify the source code. BIND's
+    log messages and other output were already only available in English.
+
 Feature Changes
 
   * BIND will now always use the best CSPRNG (cryptographically-secure
@@ -336,6 +351,9 @@ Feature Changes
 
   * The new dig -r command line option disables reading of the file $HOME
     /.digrc.
+
+  * Zone signing and key maintenance events are now logged to the dnssec
+    category rather than zone.
 
 Bug Fixes
 
