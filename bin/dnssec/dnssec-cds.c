@@ -484,7 +484,6 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness)
 		dns_rdata_ds_t ds;
 		dns_rdata_t dsrdata = DNS_RDATA_INIT;
 		dns_rdata_t newdsrdata = DNS_RDATA_INIT;
-		dns_rdatatype_t keytype;
 		bool c;
 
 		dns_rdataset_current(dsset, &dsrdata);
@@ -495,12 +494,8 @@ match_key_dsset(keyinfo_t *ki, dns_rdataset_t *dsset, strictness_t strictness)
 			continue;
 		}
 
-		/* allow for both DNSKEY and CDNSKEY */
-		keytype = ki->rdata.type;
-		ki->rdata.type = dns_rdatatype_dnskey;
 		result = dns_ds_buildrdata(name, &ki->rdata, ds.digest_type,
 					   dsbuf, &newdsrdata);
-		ki->rdata.type = keytype;
 		if (result != ISC_R_SUCCESS) {
 			vbprintf(3, "dns_ds_buildrdata("
 				 "keytag=%d, algo=%d, digest=%d): %s\n",
@@ -825,7 +820,6 @@ ds_from_cdnskey(dns_rdatalist_t *dslist, isc_buffer_t *buf,
 				return (ISC_R_NOSPACE);
 			}
 
-			cdnskey->type = dns_rdatatype_dnskey;
 			rdata = rdata_get();
 			result = dns_ds_buildrdata(name, cdnskey, dtype[i],
 						   r.base, rdata);

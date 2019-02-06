@@ -37,7 +37,7 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
  * Build the rdata of a DS record.
  *
  * Requires:
- *\li	key	Points to a valid DNS KEY record.
+ *\li	key	Points to a valid DNSKEY or CDNSKEY record.
  *\li	buffer	Points to a temporary buffer of at least
  * 		#DNS_DS_BUFFERSIZE bytes.
  *\li	rdata	Points to an initialized dns_rdata_t.

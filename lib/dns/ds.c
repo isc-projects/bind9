@@ -54,7 +54,8 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 #endif
 
 	REQUIRE(key != NULL);
-	REQUIRE(key->type == dns_rdatatype_dnskey);
+	REQUIRE(key->type == dns_rdatatype_dnskey ||
+		key->type == dns_rdatatype_cdnskey);
 
 	if (!dst_ds_digest_supported(digest_type))
 		return (ISC_R_NOTIMPLEMENTED);
