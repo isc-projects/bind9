@@ -1651,7 +1651,7 @@ Optional Packages:
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
   --with-libidn2=PATH     enable IDN support using GNU libidn2
                           [yes|no(default)|path]
-  --with-cmocka=detect    enable cmocka based tests (default is detect)
+  --with-cmocka=detect    enable CMocka based tests (default is detect)
   --with-tuning=ARG       Specify server tuning (large or default)
   --with-dlopen=ARG       support dynamically loadable DLZ and DYNDB drivers
   --with-dnsrps-libname   DNSRPS provider library name (librpz.so)
@@ -19597,31 +19597,11 @@ fi
 	# Put the nasty error message in config.log where it belongs
 	echo "$CMOCKA_PKG_ERRORS" >&5
 
-	as_fn_error $? "Package requirements (cmocka >= 1.0.0) were not met:
-
-$CMOCKA_PKG_ERRORS
-
-Consider adjusting the PKG_CONFIG_PATH environment variable if you
-installed software in a non-standard prefix.
-
-Alternatively, you may set the environment variables CMOCKA_CFLAGS
-and CMOCKA_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details." "$LINENO" 5
+	with_cmocka=no
 elif test $pkg_failed = untried; then
         { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
-$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
-is in your PATH or set the PKG_CONFIG environment variable to the full
-path to pkg-config.
-
-Alternatively, you may set the environment variables CMOCKA_CFLAGS
-and CMOCKA_LIBS to avoid the need to call pkg-config.
-See the pkg-config man page for more details.
-
-To get pkg-config, see <http://pkg-config.freedesktop.org/>.
-See \`config.log' for more details" "$LINENO" 5; }
+	with_cmocka=no
 else
 	CMOCKA_CFLAGS=$pkg_cv_CMOCKA_CFLAGS
 	CMOCKA_LIBS=$pkg_cv_CMOCKA_LIBS
@@ -19726,9 +19706,9 @@ $as_echo "yes" >&6; }
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
 fi
-	       UNITTESTS=tests ;; #(
+	                          UNITTESTS=tests ;; #(
   *) :
-    as_fn_error $? "Use PKG_CONFIG_PATH to specify path to json-c library" "$LINENO" 5
+    as_fn_error $? "Use PKG_CONFIG_PATH to specify path to CMocka library" "$LINENO" 5
         ;;
 esac
 
