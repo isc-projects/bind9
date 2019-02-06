@@ -39,6 +39,7 @@ static char sys_conf_dir[MAX_PATH];
 static char rndc_keyFile[MAX_PATH];
 static char session_keyFile[MAX_PATH];
 static char resolv_confFile[MAX_PATH];
+static char bind_keysFile[MAX_PATH];
 
 static DWORD baseLen = MAX_PATH;
 static BOOL Initialized = FALSE;
@@ -98,6 +99,9 @@ isc_ntpaths_init(void) {
 	strlcat(resolv_confFile, "\\etc\\resolv.conf",
 		sizeof(resolv_confFile));
 
+	strlcpy(bind_keysFile, namedBase, sizeof(bind_keysFile));
+	strlcat(bind_keysFile, "\\etc\\bind.keys", sizeof(bind_keysFile));
+
 	Initialized = TRUE;
 }
 
@@ -133,6 +137,9 @@ isc_ntpaths_get(int ind) {
 		break;
 	case SESSION_KEY_PATH:
 		return (session_keyFile);
+		break;
+	case BIND_KEYS_PATH:
+		return (bind_keysFile);
 		break;
 	default:
 		return (NULL);

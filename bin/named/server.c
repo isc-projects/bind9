@@ -9714,7 +9714,8 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	CHECKFATAL(server->statsfile == NULL ? ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "isc_mem_strdup");
 
-	server->bindkeysfile = isc_mem_strdup(server->mctx, "bind.keys");
+	server->bindkeysfile = isc_mem_strdup(server->mctx,
+					      named_g_defaultbindkeys);
 	CHECKFATAL(server->bindkeysfile == NULL ? ISC_R_NOMEMORY :
 						  ISC_R_SUCCESS,
 		   "isc_mem_strdup");
