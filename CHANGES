@@ -184,7 +184,8 @@
 5111.	[bug]		Occluded DNSKEY records could make it into the
 			delegating NSEC/NSEC3 bitmap. [GL #742]
 
-5110.	[placeholder]
+5110.	[security]	Named leaked memory if there were multiple Key Tag
+			EDNS options present. (CVE-2018-5744) [GL #772]
 
 5109.	[cleanup]	Remove support for RSAMD5 algorithm. [GL #628]
 
