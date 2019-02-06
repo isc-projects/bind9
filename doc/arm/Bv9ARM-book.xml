@@ -6389,8 +6389,8 @@ options {
 	      </listitem>
 	    </varlistentry>
 
-	    <varlistentry>
-	      <term><command>dnssec-validation</command></term>
+	    <varlistentry xml:id="dnssec_validation">
+	      <term xml:id="dnssec_validation_term"><command>dnssec-validation</command></term>
 	      <listitem>
 		<para>
 		  This enables DNSSEC validation in <command>named</command>.
@@ -11291,86 +11291,125 @@ view "external" {
 		    </entry>
 		    <entry colname="2">
 		      <para>
+		        <emphasis role="bold">Note:</emphasis> using
+		        this zone type with any zone other than the root
+		        zone should be considered
+		        <emphasis>experimental</emphasis> and may cause
+		        performance issues, especially for zones which
+		        are large and/or frequently updated.
 		      </para>
 		      <para>
-			A mirror zone acts like a zone of type
-			<userinput>secondary</userinput> whose data is
-			subject to DNSSEC validation before being used
-			in answers.  Validation is performed during the
-			zone transfer process, and again when the zone
-			file is loaded from disk when
-			<command>named</command> is restarted.  If
-			validation fails, a retransfer of the zone is
-			scheduled; if the mirror zone had not previously
-			been loaded or if the previous version has
-			expired, traditional DNS recursion will be used
-			to look up the answers instead.
+		        A mirror zone acts like a zone of type
+		        <userinput>secondary</userinput> whose data is
+		        subject to DNSSEC validation before being used
+		        in answers.  Validation is performed during the
+		        zone transfer process (for both AXFR and IXFR),
+		        and again when the zone file is loaded from disk
+		        when <command>named</command> is restarted.  If
+		        validation of a new version of a mirror zone
+		        fails, a retransfer is scheduled and the most
+		        recent correctly validated version of that zone
+		        is used until it expires; if a newer version of
+		        that zone is later correctly validated, it
+		        replaces the previously used version.  If no
+		        usable zone data is available for a mirror zone
+		        (either because it was never loaded from disk
+		        and has not yet been transferred from a primary
+		        server or because its most recent correctly
+		        validated version expired), traditional DNS
+		        recursion will be used to look up the answers
+		        instead.
 		      </para>
 		      <para>
-			For validation to succeed, a key-signing key
-			(KSK) for the zone must be configured as a trust
-			anchor in <filename>named.conf</filename>: that
-			is, a key for the zone must either be specified
-			in <command>managed-keys</command> or
-			<command>trusted-keys</command>, or in the case
-			of the root zone,
-			<command>dnssec-validation</command> must be set
-			to <userinput>auto</userinput>.  Answers coming
-			from a mirror zone look almost exactly like
-			answers from a zone of type
-			<userinput>secondary</userinput>, with the
-			notable exceptions that the AA bit
-			("authoritative answer") is not set, and the AD
-			bit ("authenticated data") is.
+		        While any zone may be configured with this type,
+		        it is intended to be used to set up a fast local
+		        copy of the root zone, similar to the one
+		        described in RFC 7706.  Note, however, that
+		        mirror zones are not supposed to augment the
+		        example configuration provided by RFC 7706 but
+		        rather to replace it altogether.
 		      </para>
 		      <para>
-			Since mirror zones are intended to be used by
-			recursive resolvers, adding one to a view with
-			recursion disabled is considered to be a
-			configuration error.
-		      </para>
-		      <para>
-			When configuring NOTIFY for a mirror zone, only
-			<userinput>notify no;</userinput> and
-			<userinput>notify explicit;</userinput> can be
-			used.  Using any other
-			<userinput>notify</userinput> setting at the
-			zone level is a configuration error.  Using any
-			other <userinput>notify</userinput> setting at
-			the <userinput>options</userinput> or
-			<userinput>view</userinput> level will cause
-			that setting to be overridden with
-			<userinput>notify explicit;</userinput> for the
-			mirror zone in question.
-		      </para>
-		      <para>
-			Outgoing transfers of mirror zones are disabled
-			by default but may be enabled using
-			<xref endterm="allow_transfer_term" linkend="allow_transfer"/>.
-		      </para>
-		      <para>
-			While any zone may be configured with this type,
-			it is intended to be used to set up a fast local
-			copy of the root zone, similar to the one
-			described in RFC 7706.  Note, however, that
-			mirror zones are not supposed to augment the
-			example configuration provided by RFC 7706 but
-			rather to replace it altogether.
-		      </para>
-		      <para>
-			A default list of primary servers for the root
-			zone is built into <command>named</command> and
-			thus IANA root zone mirroring can be enabled
-			using the following configuration:
+		        A default list of primary servers for the IANA
+		        root zone is built into <command>named</command>
+		        and thus its mirroring can be enabled using the
+		        following configuration:
 		      </para>
 <programlisting>zone "." {
 	type mirror;
 };</programlisting>
 		      <para>
-			To make mirror zone contents persist between
-			<command>named</command> restarts, use the
-			<xref endterm="file_option_term" linkend="file_option"/>
-			option.
+		        In order to set up mirroring of any other zone,
+		        an explicit list of primary servers needs to be
+		        provided using the <command>masters</command>
+		        option (see <xref linkend="masters_grammar"/>
+		        for details).
+		      </para>
+		      <para>
+		        To make mirror zone contents persist between
+		        <command>named</command> restarts, use the
+		        <xref endterm="file_option_term" linkend="file_option"/>
+		        option.
+		      </para>
+		      <para>
+		        Mirror zone validation always happens for the
+		        entire zone contents, i.e. no "incremental
+		        validation" takes place, even for IXFRs.  This
+		        is required to ensure that each version of the
+		        zone used by the resolver is fully
+		        self-consistent with respect to DNSSEC.  Other,
+		        more efficient zone verification methods may be
+		        added in the future.
+		      </para>
+		      <para>
+		        For validation to succeed, a key-signing key
+		        (KSK) for the zone must be configured as a trust
+		        anchor in <filename>named.conf</filename>: that
+		        is, a key for the zone must either be specified
+		        in <command>managed-keys</command> or
+		        <command>trusted-keys</command>.  In the case
+		        of the root zone, you may also rely on the
+		        built-in root trust anchor, which is enabled
+			when <xref endterm="dnssec_validation_term"
+			  linkend="dnssec_validation"/> is set to the
+			default value <userinput>auto</userinput>.
+		      </para>
+		      <para>
+			Answers coming from a mirror zone look almost
+			exactly like answers from a zone of type
+		        <userinput>secondary</userinput>, with the
+		        notable exceptions that the AA bit
+		        ("authoritative answer") is not set, and the AD
+		        bit ("authenticated data") is.
+		      </para>
+		      <para>
+		        Since mirror zones are intended to be used by
+		        recursive resolvers, adding one to a view with
+		        recursion disabled is considered to be a
+		        configuration error.
+		      </para>
+		      <para>
+		        When configuring NOTIFY for a mirror zone, only
+		        <userinput>notify no;</userinput> and
+		        <userinput>notify explicit;</userinput> can be
+		        used.  Using any other <command>notify</command>
+		        setting at the zone level is a configuration
+		        error.  Using any other
+		        <command>notify</command> setting at the
+		        <command>options</command> or
+		        <command>view</command> level will cause
+		        that setting to be overridden with
+		        <userinput>notify explicit;</userinput> for the
+		        mirror zone in question.  Since the global
+		        default for the <command>notify</command> option
+		        is <userinput>yes</userinput>, mirror zones are
+		        by default configured with
+		        <userinput>notify explicit;</userinput>.
+		      </para>
+		      <para>
+		        Outgoing transfers of mirror zones are disabled
+		        by default but may be enabled using
+		        <xref endterm="allow_transfer_term" linkend="allow_transfer"/>.
 		      </para>
 		    </entry>
 		  </row>
