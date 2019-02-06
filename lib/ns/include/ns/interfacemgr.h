@@ -76,11 +76,11 @@ struct ns_interface {
 						/*%< UDP dispatchers. */
 	isc_socket_t *		tcpsocket;	/*%< TCP socket. */
 	isc_dscp_t		dscp;		/*%< "listen-on" DSCP value */
-	int			ntcpaccepting;	/*%< Number of clients
+	int32_t			ntcpaccepting;	/*%< Number of clients
 						     ready to accept new
 						     TCP connections on this
 						     interface */
-	int			ntcpactive;	/*%< Number of clients
+	int32_t			ntcpactive;	/*%< Number of clients
 						     servicing TCP queries
 						     (whether accepting or
 						     connected) */

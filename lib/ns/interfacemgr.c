@@ -431,6 +431,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	 */
 	ifp->ntcpaccepting = 0;
 	ifp->ntcpactive = 0;
+
 	ifp->nudpdispatch = 0;
 
 	ifp->dscp = -1;
