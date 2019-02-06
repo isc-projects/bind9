@@ -1651,7 +1651,7 @@ Optional Packages:
   --with-docbook-xsl=PATH specify path for Docbook-XSL stylesheets
   --with-libidn2=PATH     enable IDN support using GNU libidn2
                           [yes|no(default)|path]
-  --with-cmocka=no        enable cmocka based tests (default is no)
+  --with-cmocka=detect    enable cmocka based tests (default is detect)
   --with-tuning=ARG       Specify server tuning (large or default)
   --with-dlopen=ARG       support dynamically loadable DLZ and DYNDB drivers
   --with-dnsrps-libname   DNSRPS provider library name (librpz.so)
@@ -19528,17 +19528,111 @@ esac
 
 # Check whether --with-cmocka was given.
 if test "${with_cmocka+set}" = set; then :
-  withval=$with_cmocka; :
+  withval=$with_cmocka;
 else
-  with_cmocka=no
+  with_cmocka=detect
 fi
 
 
 case $with_cmocka in #(
   no) :
-    : ;; #(
-  yes) :
+     ;; #(
+  detect) :
 
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
+$as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
+
+if test -n "$CMOCKA_CFLAGS"; then
+    pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.0.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.0.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_CMOCKA_CFLAGS=`$PKG_CONFIG --cflags "cmocka >= 1.0.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$CMOCKA_LIBS"; then
+    pkg_cv_CMOCKA_LIBS="$CMOCKA_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cmocka >= 1.0.0\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "cmocka >= 1.0.0") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_CMOCKA_LIBS=`$PKG_CONFIG --libs "cmocka >= 1.0.0" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "cmocka >= 1.0.0" 2>&1`
+        else
+	        CMOCKA_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "cmocka >= 1.0.0" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$CMOCKA_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (cmocka >= 1.0.0) were not met:
+
+$CMOCKA_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables CMOCKA_CFLAGS
+and CMOCKA_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables CMOCKA_CFLAGS
+and CMOCKA_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	CMOCKA_CFLAGS=$pkg_cv_CMOCKA_CFLAGS
+	CMOCKA_LIBS=$pkg_cv_CMOCKA_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
+
+				     UNITTESTS=tests
+fi ;; #(
+  yes) :
 
 pkg_failed=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
@@ -19632,100 +19726,10 @@ $as_echo "yes" >&6; }
 $as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
 
 fi
-            UNITTESTS=tests
-             ;; #(
+	       UNITTESTS=tests ;; #(
   *) :
-
-	    save_CFLAGS="$CFLAGS"
-	    save_LIBS="$LIBS"
-	    CFLAGS="$CFLAGS -I$with_cmocka/include"
-	    LIBS="$LIBS -L$with_cmocka/lib"
-	    for ac_header in cmocka.h
-do :
-  ac_fn_c_check_header_compile "$LINENO" "cmocka.h" "ac_cv_header_cmocka_h" "#include <stdarg.h>
-			      #include <stddef.h>
-			      #include <setjmp.h>
-
-"
-if test "x$ac_cv_header_cmocka_h" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_CMOCKA_H 1
-_ACEOF
- :
-else
-  as_fn_error $? "cmocka.h not found" "$LINENO" 5
-fi
-
-done
-
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cmocka_set_message_output" >&5
-$as_echo_n "checking for library containing cmocka_set_message_output... " >&6; }
-if ${ac_cv_search_cmocka_set_message_output+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char cmocka_set_message_output ();
-int
-main ()
-{
-return cmocka_set_message_output ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' cmocka; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_cmocka_set_message_output=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_cmocka_set_message_output+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_cmocka_set_message_output+:} false; then :
-
-else
-  ac_cv_search_cmocka_set_message_output=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_cmocka_set_message_output" >&5
-$as_echo "$ac_cv_search_cmocka_set_message_output" >&6; }
-ac_res=$ac_cv_search_cmocka_set_message_output
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-			       CMOCKA_CFLAGS="-I$with_cmocka/include"
-			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
-                               UNITTESTS=tests
-
-$as_echo "#define HAVE_CMOCKA 1" >>confdefs.h
-
-
-else
-  as_fn_error $? "cmocka unit testing framework not found in $with_cmocka path" "$LINENO" 5
-fi
-
-	     ;; #(
-  *) :
-     ;;
+    as_fn_error $? "Use PKG_CONFIG_PATH to specify path to json-c library" "$LINENO" 5
+        ;;
 esac
 
 
@@ -23922,7 +23926,7 @@ report() {
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
     test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
-    test "no" = "$with_cmocka" && echo "    CMocka Unit Testng Framework (--with-cmocka)"
+    test "no" = "$with_cmocka" && echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"
