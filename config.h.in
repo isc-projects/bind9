@@ -222,10 +222,7 @@
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
-/* Define if libjson was found */
-#undef HAVE_JSON
-
-/* Define if json-c was found */
+/* Use json-c library */
 #undef HAVE_JSON_C
 
 /* Define to 1 if you have the <kerberosv5/krb5.h> header file. */

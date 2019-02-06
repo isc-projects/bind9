@@ -473,13 +473,13 @@ isc_mem_renderxml(xmlTextWriterPtr writer);
  */
 #endif /* HAVE_LIBXML2 */
 
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 isc_result_t
 isc_mem_renderjson(json_object *memobj);
 /*%<
  * Render all contexts' statistics and status in JSON.
  */
-#endif /* HAVE_JSON */
+#endif /* HAVE_JSON_C */
 
 
 /*

@@ -2955,7 +2955,7 @@ exit 0;
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows
 #  --with-lmdb no supported on WIN32 (port is not reliable)
 #  --with-libxml2 supported
-#  --with-libjson not supported on WIN32 (package not available on WIN32)
+#  --with-json-c not supported on WIN32 (package not available on WIN32)
 #  --with-zlib supported
 #  --with-purify not supported (package available on WIN32 but for free?)
 #  --with-gperftools-profiler not supported (package not available on WIN32)

@@ -339,13 +339,13 @@ dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);
  */
 #endif /* HAVE_LIBXML2 */
 
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 isc_result_t
 dns_cache_renderjson(dns_cache_t *cache, json_object *cstats);
 /*
  * Render cache statistics and status in JSON
  */
-#endif /* HAVE_JSON */
+#endif /* HAVE_JSON_C */
 
 ISC_LANG_ENDDECLS
 

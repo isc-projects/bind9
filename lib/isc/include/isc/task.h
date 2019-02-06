@@ -766,10 +766,10 @@ int
 isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer);
 #endif
 
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 isc_result_t
 isc_taskmgr_renderjson(isc_taskmgr_t *mgr, json_object *tasksobj);
-#endif
+#endif /* HAVE_JSON_C */
 
 ISC_LANG_ENDDECLS
 
