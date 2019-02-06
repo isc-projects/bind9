@@ -2318,38 +2318,19 @@ AC_SUBST([LIBIDN2_LIBS])
 #
 
 AC_ARG_WITH([cmocka],
-	    [AS_HELP_STRING([--with-cmocka=no],[enable cmocka based tests (default is no)])],
-	    [:],[with_cmocka=no])
+	    [AS_HELP_STRING([--with-cmocka=detect],[enable cmocka based tests (default is detect)])],
+	    [],[with_cmocka=detect])
 
 AS_CASE([$with_cmocka],
-	[no],[:],
-	[yes],[
-            PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
-			      [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])])
-            UNITTESTS=tests
-            ],
-	[*],[
-	    save_CFLAGS="$CFLAGS"
-	    save_LIBS="$LIBS"
-	    CFLAGS="$CFLAGS -I$with_cmocka/include"
-	    LIBS="$LIBS -L$with_cmocka/lib"
-	    AC_CHECK_HEADERS([cmocka.h],
-			     [:],
-			     [AC_MSG_ERROR([cmocka.h not found])],
-			     [#include <stdarg.h>
-			      #include <stddef.h>
-			      #include <setjmp.h>
-			     ])
-	    AC_SEARCH_LIBS([cmocka_set_message_output],
-			   [cmocka],
-			   [
-			       CMOCKA_CFLAGS="-I$with_cmocka/include"
-			       CMOCKA_LIBS="-L$with_cmocka/lib -lcmocka"
-                               UNITTESTS=tests
-			       AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])
-			   ],
-			   [AC_MSG_ERROR([cmocka unit testing framework not found in $with_cmocka path])])
-	    ])
+	[no],[],
+	[detect],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
+				    [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])
+				     UNITTESTS=tests],[])],
+	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
+				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])])
+	       UNITTESTS=tests],
+	[AC_MSG_ERROR([Use PKG_CONFIG_PATH to specify path to json-c library])]
+       )
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
 AC_SUBST(UNITTESTS)
