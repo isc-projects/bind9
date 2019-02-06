@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2018 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2019 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.13.5</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.13.6</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
@@ -55,7 +55,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.13.5</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.13.6</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -312,6 +312,13 @@
 	  configuration options cannot exceed 90 seconds.
 	</p>
       </li>
+<li class="listitem">
+        <p>
+          <span class="command"><strong>rndc status</strong></span> output now includes a
+          <span class="command"><strong>reconfig/reload in progress</strong></span> status line if named
+          configuration is being reloaded.
+        </p>
+      </li>
 </ul></div>
   </div>
 
@@ -496,6 +503,22 @@
 	  removed from BIND as the DSA key length is limited to 1024
 	  bits and this is not considered secure enough.
 	</p>
+	<p>
+	  Support for RSAMD5 algorithm has been removed freom BIND as the usage
+	  of the RSAMD5 algorithm for DNSSEC has been deprecated in RFC6725 and
+	  the security of MD5 algorithm has been compromised and the its usage
+	  is considered harmful.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The incomplete support for internationalization message catalogs has
+	  been removed from BIND. Since the internationalization was never
+	  completed, and no localized message catalogs were ever made available
+	  for the portions of BIND in which they could have been used, this
+	  change will have no effect except to simplify the source code. BIND's
+	  log messages and other output were already only available in English.
+	</p>
       </li>
 </ul></div>
   </div>
@@ -625,6 +648,13 @@
 	<p>
 	  The new <span class="command"><strong>dig -r</strong></span> command line option
 	  disables reading of the file <code class="filename">$HOME/.digrc</code>.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Zone signing and key maintenance events are now logged to the
+	  <span class="command"><strong>dnssec</strong></span> category rather than
+	  <span class="command"><strong>zone</strong></span>.
 	</p>
       </li>
 </ul></div>
@@ -760,6 +790,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.5 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.6 (Development Release)</p>
 </body>
 </html>
