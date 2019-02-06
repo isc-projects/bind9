@@ -69,7 +69,10 @@ for NM in '' -2 -given -disabled -passthru -no-op -nodata -nxdomain -cname -wild
     sed -e "/SOA/s/blx/bl$NM/g" ns3/base.db >ns3/bl$NM.db
 done
 
-# $1=directory, $2=domain name, $3=input zone file, $4=output file
+# $1=directory
+# $2=domain name
+# $3=input zone file
+# $4=output file
 signzone () {
     KEYNAME=`$KEYGEN -q -a rsasha256 -K $1 $2`
     cat $1/$3 $1/$KEYNAME.key > $1/tmp
