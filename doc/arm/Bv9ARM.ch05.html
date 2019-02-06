@@ -9695,20 +9695,75 @@ view "external" {
                     </td>
 <td>
                       <p>
+                        <span class="bold"><strong>Note:</strong></span> using
+                        this zone type with any zone other than the root
+                        zone should be considered
+                        <span class="emphasis"><em>experimental</em></span> and may cause
+                        performance issues, especially for zones which
+                        are large and/or frequently updated.
                       </p>
                       <p>
                         A mirror zone acts like a zone of type
                         <strong class="userinput"><code>secondary</code></strong> whose data is
                         subject to DNSSEC validation before being used
                         in answers.  Validation is performed during the
-                        zone transfer process, and again when the zone
-                        file is loaded from disk when
-                        <span class="command"><strong>named</strong></span> is restarted.  If
-                        validation fails, a retransfer of the zone is
-                        scheduled; if the mirror zone had not previously
-                        been loaded or if the previous version has
-                        expired, traditional DNS recursion will be used
-                        to look up the answers instead.
+                        zone transfer process (for both AXFR and IXFR),
+                        and again when the zone file is loaded from disk
+                        when <span class="command"><strong>named</strong></span> is restarted.  If
+                        validation of a new version of a mirror zone
+                        fails, a retransfer is scheduled and the most
+                        recent correctly validated version of that zone
+                        is used until it expires; if a newer version of
+                        that zone is later correctly validated, it
+                        replaces the previously used version.  If no
+                        usable zone data is available for a mirror zone
+                        (either because it was never loaded from disk
+                        and has not yet been transferred from a primary
+                        server or because its most recent correctly
+                        validated version expired), traditional DNS
+                        recursion will be used to look up the answers
+                        instead.
+                      </p>
+                      <p>
+                        While any zone may be configured with this type,
+                        it is intended to be used to set up a fast local
+                        copy of the root zone, similar to the one
+                        described in RFC 7706.  Note, however, that
+                        mirror zones are not supposed to augment the
+                        example configuration provided by RFC 7706 but
+                        rather to replace it altogether.
+                      </p>
+                      <p>
+                        A default list of primary servers for the IANA
+                        root zone is built into <span class="command"><strong>named</strong></span>
+                        and thus its mirroring can be enabled using the
+                        following configuration:
+                      </p>
+<pre class="programlisting">zone "." {
+        type mirror;
+};</pre>
+                      <p>
+                        In order to set up mirroring of any other zone,
+                        an explicit list of primary servers needs to be
+                        provided using the <span class="command"><strong>masters</strong></span>
+                        option (see <a class="xref" href="Bv9ARM.ch05.html#masters_grammar" title="masters Statement Grammar">the section called &#8220;<span class="command"><strong>masters</strong></span> Statement Grammar&#8221;</a>
+                        for details).
+                      </p>
+                      <p>
+                        To make mirror zone contents persist between
+                        <span class="command"><strong>named</strong></span> restarts, use the
+                        <a class="xref" href="Bv9ARM.ch05.html#file_option"><span class="command"><strong>file</strong></span></a>
+                        option.
+                      </p>
+                      <p>
+                        Mirror zone validation always happens for the
+                        entire zone contents, i.e. no "incremental
+                        validation" takes place, even for IXFRs.  This
+                        is required to ensure that each version of the
+                        zone used by the resolver is fully
+                        self-consistent with respect to DNSSEC.  Other,
+                        more efficient zone verification methods may be
+                        added in the future.
                       </p>
                       <p>
                         For validation to succeed, a key-signing key
@@ -9716,9 +9771,10 @@ view "external" {
                         anchor in <code class="filename">named.conf</code>: that
                         is, a key for the zone must either be specified
                         in <span class="command"><strong>managed-keys</strong></span> or
-                        <span class="command"><strong>trusted-keys</strong></span>, or in the case
-                        of the root zone,
-                        <span class="command"><strong>dnssec-validation</strong></span> must be set
+                        <span class="command"><strong>trusted-keys</strong></span>.  In the case
+                        of the root zone, you may also rely on the
+                        built-in root trust anchor, which can be enabled
+                        by setting <span class="command"><strong>dnssec-validation</strong></span>
                         to <strong class="userinput"><code>auto</code></strong>.  Answers coming
                         from a mirror zone look almost exactly like
                         answers from a zone of type
@@ -9737,44 +9793,24 @@ view "external" {
                         When configuring NOTIFY for a mirror zone, only
                         <strong class="userinput"><code>notify no;</code></strong> and
                         <strong class="userinput"><code>notify explicit;</code></strong> can be
-                        used.  Using any other
-                        <strong class="userinput"><code>notify</code></strong> setting at the
-                        zone level is a configuration error.  Using any
-                        other <strong class="userinput"><code>notify</code></strong> setting at
-                        the <strong class="userinput"><code>options</code></strong> or
-                        <strong class="userinput"><code>view</code></strong> level will cause
+                        used.  Using any other <span class="command"><strong>notify</strong></span>
+                        setting at the zone level is a configuration
+                        error.  Using any other
+                        <span class="command"><strong>notify</strong></span> setting at the
+                        <span class="command"><strong>options</strong></span> or
+                        <span class="command"><strong>view</strong></span> level will cause
                         that setting to be overridden with
                         <strong class="userinput"><code>notify explicit;</code></strong> for the
-                        mirror zone in question.
+                        mirror zone in question.  Since the global
+                        default for the <span class="command"><strong>notify</strong></span> option
+                        is <strong class="userinput"><code>yes</code></strong>, mirror zones are
+                        by default configured with
+                        <strong class="userinput"><code>notify explicit;</code></strong>.
                       </p>
                       <p>
                         Outgoing transfers of mirror zones are disabled
                         by default but may be enabled using
                         <a class="xref" href="Bv9ARM.ch05.html#allow_transfer"><span class="command"><strong>allow-transfer</strong></span></a>.
-                      </p>
-                      <p>
-                        While any zone may be configured with this type,
-                        it is intended to be used to set up a fast local
-                        copy of the root zone, similar to the one
-                        described in RFC 7706.  Note, however, that
-                        mirror zones are not supposed to augment the
-                        example configuration provided by RFC 7706 but
-                        rather to replace it altogether.
-                      </p>
-                      <p>
-                        A default list of primary servers for the root
-                        zone is built into <span class="command"><strong>named</strong></span> and
-                        thus IANA root zone mirroring can be enabled
-                        using the following configuration:
-                      </p>
-<pre class="programlisting">zone "." {
-        type mirror;
-};</pre>
-                      <p>
-                        To make mirror zone contents persist between
-                        <span class="command"><strong>named</strong></span> restarts, use the
-                        <a class="xref" href="Bv9ARM.ch05.html#file_option"><span class="command"><strong>file</strong></span></a>
-                        option.
                       </p>
                     </td>
 </tr>
