@@ -3155,7 +3155,7 @@ report() {
 	echo "    Very verbose query trace logging (--enable-querytrace)"
 
     test "yes" = "$use_libtool" || echo "    Use GNU libtool (--with-libtool)"
-    test "no" = "$with_cmocka" && echo "    CMocka Unit Testng Framework (--with-cmocka)"
+    test "no" = "$with_cmocka" && echo "    CMocka Unit Testing Framework (--with-cmocka)"
 
     test "X$PYTHON" = "X" && echo "    Python tools (--with-python)"
     test "X$XMLSTATS" = "X" && echo "    XML statistics (--with-libxml2)"
