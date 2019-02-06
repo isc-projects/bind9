@@ -1,3 +1,6 @@
+5154.	[bug]		dig: process_opt could be called twice on the same
+			message leading to a assertion failure. [GL #860]
+
 5153.	[func]		Zone transfer statistics (size, number of records, and
 			number of messages) are now logged for outgoing
 			transfers as well as incoming ones. [GL #513]
