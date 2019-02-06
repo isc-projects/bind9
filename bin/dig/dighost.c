@@ -3457,7 +3457,7 @@ process_cookie(dig_lookup_t *l, dns_message_t *msg,
 	}
 
 	INSIST(msg->cc_ok == 0 && msg->cc_bad == 0);
-	if (optlen >= len && optlen >= 8U) {
+	if (len >= 8 && optlen >= 8U) {
 		if (isc_safe_memequal(isc_buffer_current(optbuf), sent, 8)) {
 			msg->cc_ok = 1;
 		} else {
@@ -3543,6 +3543,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 	dig_lookup_t *n, *l;
 	bool docancel = false;
 	bool match = true;
+	bool done_process_opt = false;
 	unsigned int parseflags;
 	dns_messageid_t id;
 	unsigned int msgflags;
@@ -3838,6 +3839,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			UNLOCK_LOOKUP;
 			return;
 		}
+		done_process_opt = true;
 	}
 	if ((msg->rcode == dns_rcode_servfail && !l->servfail_stops) ||
 	    (check_ra && (msg->flags & DNS_MESSAGEFLAG_RA) == 0 && l->recurse))
@@ -3927,13 +3929,17 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-	if (l->cookie != NULL) {
-		if (msg->opt == NULL)
-			printf(";; expected opt record in response\n");
-		else
+	if (!done_process_opt) {
+		if (l->cookie != NULL) {
+			if (msg->opt == NULL) {
+				printf(";; expected opt record in response\n");
+			} else {
+				process_opt(l, msg);
+			}
+		} else if (l->sendcookie && msg->opt != NULL) {
 			process_opt(l, msg);
-	} else if (l->sendcookie && msg->opt != NULL)
-		process_opt(l, msg);
+		}
+	}
 	if (!l->doing_xfr || l->xfr_q == query) {
 		if (msg->rcode == dns_rcode_nxdomain &&
 		    (l->origin != NULL || l->need_search)) {
