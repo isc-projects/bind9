@@ -1,3 +1,6 @@
+5154.	[bug]		dig: process_opt could be called twice on the same
+			message leading to a assertion failure. [GL #860]
+
 5148.	[bug]		named did not sign the TKEY response. [GL #821]
 
 5147.	[bug]		dnssec-keymgr: Add a five-minute margin to better

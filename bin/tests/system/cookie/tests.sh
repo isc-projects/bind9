@@ -184,6 +184,30 @@ if [ $linecount != 2 ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "send undersized cookie ($n)"
+ret=0
+$DIG $DIGOPTS +qr +cookie=000000 soa @10.53.0.1 > dig.out.test$n || ret=1
+grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "send oversized for named cookie ($n)"
+ret=0
+$DIG $DIGOPTS +qr +cookie=${cookie}00 soa @10.53.0.1 > dig.out.test$n || ret=1
+grep "COOKIE: [a-f0-9]* (good)" dig.out.test$n > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "send oversized for named cookie with server requiring a good cookie ($n)"
+ret=0
+$DIG $DIGOPTS +qr +cookie=${cookie}00 soa @10.53.0.3 > dig.out.test$n || ret=1
+grep "COOKIE: [a-f0-9]* (good)" dig.out.test$n > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 #
 # Test shared cookie-secret support.
 #
