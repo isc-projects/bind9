@@ -1,3 +1,6 @@
+5156.	[doc]		Extended and refined the section of the ARM describing
+			mirror zones. [GL #774]
+
 5155.	[func]		"named -V" now outputs the default paths to
 			named.conf, rndc.conf, bind.keys, and other
 			files used or created by named and other tools, so
