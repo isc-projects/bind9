@@ -2318,18 +2318,18 @@ AC_SUBST([LIBIDN2_LIBS])
 #
 
 AC_ARG_WITH([cmocka],
-	    [AS_HELP_STRING([--with-cmocka=detect],[enable cmocka based tests (default is detect)])],
+	    [AS_HELP_STRING([--with-cmocka=detect],[enable CMocka based tests (default is detect)])],
 	    [],[with_cmocka=detect])
 
 AS_CASE([$with_cmocka],
 	[no],[],
 	[detect],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
-				    [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])
-				     UNITTESTS=tests],[])],
+				    [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])
+				     UNITTESTS=tests],[with_cmocka=no])],
 	[yes],[PKG_CHECK_MODULES([CMOCKA], [cmocka >= 1.0.0],
-				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use cmocka])])
-	       UNITTESTS=tests],
-	[AC_MSG_ERROR([Use PKG_CONFIG_PATH to specify path to json-c library])]
+				 [AC_DEFINE([HAVE_CMOCKA], [1], [Use CMocka])])
+	                          UNITTESTS=tests],
+	[AC_MSG_ERROR([Use PKG_CONFIG_PATH to specify path to CMocka library])]
        )
 AC_SUBST([CMOCKA_CFLAGS])
 AC_SUBST([CMOCKA_LIBS])
