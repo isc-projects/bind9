@@ -148,6 +148,15 @@
 	  by BIND 9.  This flaw is disclosed in CVE-2018-5745. [GL #780]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>named</command> leaked memory when processing a
+	  request with multiple Key Tag EDNS options present. ISC
+	  would like to thank Toshifumi Sakaguchi for bringing this
+	  to our attention.  This flaw is disclosed in CVE-2018-5744.
+	  [GL #772]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
