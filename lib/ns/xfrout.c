@@ -805,12 +805,12 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	result = dns_zt_find(client->view->zonetable, question_name, 0, NULL,
 			     &zone);
 
-	if (result != ISC_R_SUCCESS) {
+	if (result != ISC_R_SUCCESS || dns_zone_gettype(zone) == dns_zone_dlz) {
 		/*
-		 * Normal zone table does not have a match.
-		 * Try the DLZ database
+		 * The normal zone table does not have a match, or this is
+		 * marked in the zone table as a DLZ zone. Check the DLZ
+		 * databases for a match.
 		 */
-		// Temporary: only searching the first DLZ database
 		if (! ISC_LIST_EMPTY(client->view->dlz_searched)) {
 			result = dns_dlzallowzonexfr(client->view,
 						     question_name,
