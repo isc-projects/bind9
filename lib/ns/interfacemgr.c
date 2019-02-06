@@ -423,8 +423,9 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	 * connections will be handled in parallel even though there is
 	 * only one client initially.
 	 */
-	ifp->ntcpaccepting = 0;
-	ifp->ntcpactive = 0;
+	atomic_init(&ifp->ntcpaccepting, 0);
+	atomic_init(&ifp->ntcpactive, 0);
+
 	ifp->nudpdispatch = 0;
 
 	ifp->dscp = -1;
