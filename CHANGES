@@ -36,6 +36,10 @@
 5143.	[bug]		dnssec-keymgr and dnssec-coverage failed to find
 			key files for zone names ending in ".". [GL #560]
 
+5141.	[security]	Zone transfer controls for writable DLZ zones were
+			not effective as the allowzonexfr method was not being
+			called for such zones. (CVE-2019-6465) [GL #790]
+
 5140.	[bug]		Don't immediately mark existing keys as inactive and
 			deleted when running dnssec-keymgr for the first
 			time. [GL #117]
