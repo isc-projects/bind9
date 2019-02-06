@@ -85,20 +85,36 @@ isc_quota_release(isc_quota_t *quota) {
 	INSIST(atomic_fetch_sub(&quota->used, 1) > 0);
 }
 
-isc_result_t
-isc_quota_attach(isc_quota_t *quota, isc_quota_t **p)
-{
+static isc_result_t
+doattach(isc_quota_t *quota, isc_quota_t **p, bool force) {
 	isc_result_t result;
-	INSIST(p != NULL && *p == NULL);
+	REQUIRE(p != NULL && *p == NULL);
+
 	result = isc_quota_reserve(quota);
-	if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA)
+	if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA) {
 		*p = quota;
+	} else if (result == ISC_R_QUOTA && force) {
+		/* attach anyway */
+		atomic_fetch_add(&quota->used, 1);
+		*p = quota;
+		result = ISC_R_SUCCESS;
+	}
+
 	return (result);
 }
 
+isc_result_t
+isc_quota_attach(isc_quota_t *quota, isc_quota_t **p) {
+	return (doattach(quota, p, false));
+}
+
+isc_result_t
+isc_quota_force(isc_quota_t *quota, isc_quota_t **p) {
+	return (doattach(quota, p, true));
+}
+
 void
-isc_quota_detach(isc_quota_t **p)
-{
+isc_quota_detach(isc_quota_t **p) {
 	INSIST(p != NULL && *p != NULL);
 	isc_quota_release(*p);
 	*p = NULL;
