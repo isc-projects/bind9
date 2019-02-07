@@ -455,7 +455,15 @@ doa01			DOA	( 1234567890 1234567890 1 "image/gif"
 				  hmsBich1awPAjkY1SZR8bJWrz382SGqIBQQFQd4IsUTaX+ceuudPEQA7 )
 doa02			DOA	0 1 2 "" aHR0cHM6Ly93d3cuaXNjLm9yZy8=
 
-; type 260 -- 32767 (unassigned)
+; type 260
+atmrelay01		ATMRELAY 0 0 0
+atmrelay02		ATMRELAY 0 1 0
+atmrelay03		ATMRELAY 0 0 1 0.0.0.0
+atmrelay04		ATMRELAY 0 0 2 ::
+atmrelay05		ATMRELAY 0 0 3 example.net.
+atmrelay06		ATMRELAY \# 2 0004
+
+; type 261 -- 32767 (unassigned)
 
 ; type 32768
 ta			TA	30795 1 1 (
