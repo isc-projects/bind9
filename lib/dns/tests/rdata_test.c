@@ -563,6 +563,99 @@ atma(void **state) {
 		    dns_rdatatype_atma, sizeof(dns_rdata_in_atma_t));
 }
 
+/* ATMRELAY RDATA manipulations */
+static void
+atmrelay(void **state) {
+	text_ok_t text_ok[] = {
+		TEXT_INVALID(""),
+		TEXT_INVALID("0"),
+		TEXT_INVALID("0 0"),
+		/* gatway type 0 */
+		TEXT_VALID("0 0 0"),
+		TEXT_VALID("0 1 0"),
+		TEXT_INVALID("0 2 0"),		/* discovery out of range */
+		TEXT_VALID("255 1 0"),		/* max precendence */
+		TEXT_INVALID("256 1 0"),	/* precedence out of range */
+
+		/* IPv4 gateway */
+		TEXT_INVALID("0 0 1"),		/* no addresss */
+		TEXT_VALID("0 0 1 0.0.0.0"),
+		TEXT_INVALID("0 0 1 0.0.0.0 x"), /* extra */
+		TEXT_INVALID("0 0 1 0.0.0.0.0"), /* bad addresss */
+		TEXT_INVALID("0 0 1 ::"),	/* bad addresss */
+		TEXT_INVALID("0 0 1 ."),	/* bad addresss */
+
+		/* IPv6 gateway */
+		TEXT_INVALID("0 0 2"),		/* no addresss */
+		TEXT_VALID("0 0 2 ::"),
+		TEXT_INVALID("0 0 2 :: xx"),	/* extra */
+		TEXT_INVALID("0 0 2 0.0.0.0"),	/* bad addresss */
+		TEXT_INVALID("0 0 2 ."),	/* bad addresss */
+
+		/* hostname gateway */
+		TEXT_INVALID("0 0 3"),		/* no name */
+		/* IPv4 is a valid name */
+		TEXT_VALID_CHANGED("0 0 3 0.0.0.0", "0 0 3 0.0.0.0."),
+		/* IPv6 is a valid name */
+		TEXT_VALID_CHANGED("0 0 3 ::", "0 0 3 ::."),
+		TEXT_VALID_CHANGED("0 0 3 example", "0 0 3 example."),
+		TEXT_VALID("0 0 3 example."),
+		TEXT_INVALID("0 0 3 example. x"), /* extra */
+
+		/* unknown gateway */
+		TEXT_VALID("\\# 2 0004"),
+		TEXT_VALID("\\# 2 0084"),
+		TEXT_VALID("\\# 2 007F"),
+		TEXT_VALID("\\# 3 000400"),
+		TEXT_VALID("\\# 3 008400"),
+		TEXT_VALID("\\# 3 00FF00"),
+
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		WIRE_INVALID(0x00),
+		WIRE_VALID(0x00, 0x00),
+		WIRE_VALID(0x00, 0x80),
+		WIRE_INVALID(0x00, 0x00, 0x00),
+		WIRE_INVALID(0x00, 0x80, 0x00),
+
+		WIRE_INVALID(0x00, 0x01),
+		WIRE_INVALID(0x00, 0x01, 0x00),
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00),
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x00),
+		WIRE_VALID(0x00, 0x01, 0x00, 0x00, 0x00, 0x00),
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00),
+
+		WIRE_INVALID(0x00, 0x02),
+		WIRE_INVALID(0x00, 0x02, 0x00),
+		WIRE_VALID(0x00, 0x02, 0x00, 0x01, 0x02, 0x03, 0x04,
+			   0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11,
+			   0x12, 0x13, 0x14, 0x15),
+		WIRE_INVALID(0x00, 0x02, 0x00, 0x01, 0x02, 0x03, 0x04,
+			     0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11,
+			     0x12, 0x13, 0x14, 0x15, 0x16),
+
+		WIRE_INVALID(0x00, 0x03),
+		WIRE_VALID(0x00, 0x03, 0x00),
+		WIRE_INVALID(0x00, 0x03, 0x00, 0x00),	/* extra */
+
+		WIRE_VALID(0x00, 0x04),
+		WIRE_VALID(0x00, 0x04, 0x00),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(state);
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_atmrelay, sizeof(dns_rdata_atmrelay_t));
+}
+
 /*
  * CSYNC tests.
  *
@@ -1500,6 +1593,129 @@ wks(void **state) {
 		    dns_rdatatype_wks, sizeof(dns_rdata_in_wks_t));
 }
 
+/*
+ * ZONEMD tests.
+ *
+ * Excerpted from draft-wessels-dns-zone-digest:
+ *
+ * The ZONEMD RDATA wire format is encoded as follows:
+ *
+ *                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+ *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |                             Serial                            |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |  Digest Type  |   Reserved    |                               |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+                               |
+ *    |                             Digest                            |
+ *    /                                                               /
+ *    /                                                               /
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
+ * 2.1.1.  The Serial Field
+ *
+ *    The Serial field is a 32-bit unsigned integer in network order.  It
+ *    is equal to the serial number from the zone's SOA record
+ *
+ * 2.1.2.  The Digest Type Field
+ *
+ *    The Digest Type field is an 8-bit unsigned integer that identifies
+ *    the algorithm used to construct the digest.
+ *
+ *    At the time of this writing, SHA384, with value 1, is the only Digest
+ *    Type defined for ZONEMD records.
+ *
+ * 2.1.3.  The Reserved Field
+ *
+ *    The Reserved field is an 8-bit unsigned integer, which is always set
+ *    to zero.
+ *
+ * 2.1.4.  The Digest Field
+ *
+ *    The Digest field is a variable-length sequence of octets containing
+ *    the message digest.
+ */
+
+static void
+zonemd(void **state) {
+	text_ok_t text_ok[] = {
+		TEXT_INVALID(""),
+		TEXT_INVALID("0"),
+		TEXT_INVALID("0 0"),
+		TEXT_INVALID("0 0 0"),
+		TEXT_INVALID("99999999 0 0"),
+		TEXT_INVALID("2019020700 0 0 "),
+		TEXT_INVALID("2019020700 1 0 DEADBEEF"),
+		TEXT_VALID("2019020700 2 0 DEADBEEF"),
+		TEXT_VALID("2019020700 1 0 7162D2BB75C047A53DE98767C9192BEB"
+					  "14DB01E7E2267135DAF0230A 19BA4A31"
+					  "6AF6BF64AA5C7BAE24B2992850300509"),
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Short.
+		 */
+		WIRE_INVALID(0x00),
+		/*
+		 * Short.
+		 */
+		WIRE_INVALID(0x00, 0x00),
+		/*
+		 * Short.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00),
+		/*
+		 * Short.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x00),
+		/*
+		 * Short.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x00, 0x00),
+		/*
+		 * Serial + type + reserved only - digest type
+		 * undefined, so we accept the missing digest.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0x00, 0x00),
+		/*
+		 * SHA-384 is defined, so we insist there be a digest.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x00, 0x01, 0x00),
+		/*
+		 * Four octets, too short for SHA-384.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x00, 0x01, 0x00,
+			     0xde, 0xad, 0xbe, 0xef),
+		/*
+		 * Digest type undefined, so accept the short digest.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0xff, 0x00,
+			   0xde, 0xad, 0xbe, 0xef),
+		/*
+		 * 48 octets, valid for SHA-384.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0x01, 0x00,
+			   0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce,
+			   0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce,
+			   0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce,
+			   0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce,
+			   0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce,
+			   0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce,
+			   0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce,
+			   0xde, 0xad, 0xbe, 0xef, 0xfa, 0xce),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(state);
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_zonemd, sizeof(dns_rdata_zonemd_t));
+}
+
 static void
 atcname(void **state) {
 	unsigned int i;
@@ -1589,6 +1805,7 @@ main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(apl, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(atma, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(atmrelay, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(csync, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(doa, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(eid, _setup, _teardown),
@@ -1601,6 +1818,7 @@ main(void) {
 		cmocka_unit_test_setup_teardown(nsec3, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(nxt, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(wks, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(zonemd, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(atcname, NULL, NULL),
 		cmocka_unit_test_setup_teardown(atparent, NULL, NULL),
 		cmocka_unit_test_setup_teardown(iszonecutauth, NULL, NULL),
