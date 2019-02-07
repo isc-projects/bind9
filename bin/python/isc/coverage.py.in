@@ -189,7 +189,8 @@ def parse_args():
         fatal("ERROR: -f can only be used with one zone.")
 
     # strip trailing dots
-    args.zone = [x[:-1] for x in args.zone if len(x) > 1 and x[-1] == '.']
+    args.zone = [x[:-1] if len(x) > 1 and x[-1] == '.' else x
+                 for x in args.zone]
 
     # convert from time arguments to seconds
     try:
