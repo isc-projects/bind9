@@ -1,3 +1,6 @@
+5157.	[bug]		Nslookup now errors out if there are extra command
+			line arguments. [GL #207]
+
 5154.	[bug]		dig: process_opt could be called twice on the same
 			message leading to a assertion failure. [GL #860]
 
