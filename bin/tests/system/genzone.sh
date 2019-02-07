@@ -368,7 +368,14 @@ openpgpkey		OPENPGPKEY	( AQMFD5raczCJHViKtLYhWGz8hMY
 csync01			CSYNC	0 0 A NS AAAA
 csync02			CSYNC	0 0
 
-; type 63 -- 98 (unassigned)
+;type	63
+zonemd01		ZONEMD	2019020700 1 0 (
+                                C220B8A6ED5728A971902F7E3D4FD93A
+                                DEEA88B0453C2E8E8C863D465AB06CF3
+                                4EB95B266398C98B59124FA239CB7EEB
+				)
+
+; type 64 -- 98 (unassigned)
 
 ; type 99
 spf01			SPF	"v=spf1 -all"
