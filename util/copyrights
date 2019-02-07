@@ -777,6 +777,8 @@
 ./bin/tests/system/checkconf/good-acl.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/checkconf/good-class.conf	CONF-C	2015,2016,2018,2019
 ./bin/tests/system/checkconf/good-dlv-dlv.example.com.conf	CONF-C	2017,2018,2019
+./bin/tests/system/checkconf/good-dup-managed-key.conf	CONF-C	2019
+./bin/tests/system/checkconf/good-dup-trusted-key.conf	CONF-C	2019
 ./bin/tests/system/checkconf/good-lmdb-mapsize-largest.conf	CONF-C	2017,2018,2019
 ./bin/tests/system/checkconf/good-lmdb-mapsize-smallest.conf	CONF-C	2017,2018,2019
 ./bin/tests/system/checkconf/good-nested.conf	CONF-C	2015,2016,2018,2019
@@ -818,7 +820,10 @@
 ./bin/tests/system/checkconf/view-class-in2.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/checkconf/warn-dlv-auto.conf	CONF-C	2017,2018,2019
 ./bin/tests/system/checkconf/warn-dlv-dlv.isc.org.conf	CONF-C	2017,2018,2019
+./bin/tests/system/checkconf/warn-duplicate-key.conf	CONF-C	2019
+./bin/tests/system/checkconf/warn-duplicate-root-key.conf	CONF-C	2019
 ./bin/tests/system/checkconf/warn-keydir.conf	CONF-C	2013,2016,2018,2019
+./bin/tests/system/checkconf/warn-validation-auto-key.conf	CONF-C	2019
 ./bin/tests/system/checkds/clean.sh		SH	2012,2013,2014,2016,2018,2019
 ./bin/tests/system/checkds/dig.bat		BAT	2016,2018,2019
 ./bin/tests/system/checkds/dig.pl		PERL	2014,2016,2018,2019

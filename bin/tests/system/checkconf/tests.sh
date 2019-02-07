@@ -197,6 +197,16 @@ l=`$CHECKCONF warn-keydir.conf 2>&1 | grep "key-directory" | wc -l`
 [ $l -eq 0 ] || ret=1
 rm -rf test.keydir
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking for trusted-key/managed-key collision warning ($n)"
+ret=0
+$CHECKCONF warn-duplicate-key.conf 2>&1 | grep "ROLLOVERS WILL FAIL" > /dev/null 2>&1 || ret=1
+$CHECKCONF warn-duplicate-root-key.conf 2>&1 | grep "ROLLOVERS WILL FAIL" > /dev/null 2>&1 || ret=1
+$CHECKCONF warn-validation-auto-key.conf 2>&1 | grep "ROLLOVERS WILL FAIL" > /dev/null 2>&1 || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 n=`expr $n + 1`
 echo_i "checking that named-checkconf -z catches conflicting ttl with max-ttl ($n)"
@@ -368,7 +378,8 @@ grep "trusted-key for root from 2010 without updated" checkconf.out$n > /dev/nul
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
-echo_i "check that the 2010 ICANN ROOT KSK with the 2017 ICANN ROOT KSK does not warning ($n)"
+n=`expr $n + 1`
+echo_i "check that the 2010 ICANN ROOT KSK with the 2017 ICANN ROOT KSK does not generate a warning ($n)"
 ret=0
 $CHECKCONF check-root-ksk-both.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] && ret=1
