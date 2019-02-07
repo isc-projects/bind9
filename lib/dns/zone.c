@@ -2120,7 +2120,7 @@ zone_load(dns_zone_t *zone, unsigned int flags, bool locked) {
 		}
 	}
 
-	if (! dns_db_ispersistent(db)) {
+	if (!dns_db_ispersistent(db)) {
 		if (zone->masterfile != NULL) {
 			result = zone_startload(db, zone, loadtime);
 		} else {

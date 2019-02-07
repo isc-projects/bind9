@@ -1586,7 +1586,6 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	LOCK(&zone->rpzs->maint_lock);
 	REQUIRE(zone->db_registered);
 
-
 	/* New zone came as AXFR */
 	if (zone->db != NULL && zone->db != db) {
 		/* We need to clean up the old DB */
@@ -2097,14 +2096,14 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 	if (dns_name_dynamic(&rpz->cname)) {
 		dns_name_free(&rpz->cname, rpzs->mctx);
 	}
-	if (rpz->db_registered) {
-		dns_db_updatenotify_unregister(rpz->db,
-					       dns_rpz_dbupdate_callback, rpz);
-	}
 	if (rpz->dbversion != NULL) {
 		dns_db_closeversion(rpz->db, &rpz->dbversion, false);
 	}
 	if (rpz->db != NULL) {
+		if (rpz->db_registered) {
+			dns_db_updatenotify_unregister(
+				rpz->db, dns_rpz_dbupdate_callback, rpz);
+		}
 		dns_db_detach(&rpz->db);
 	}
 	if (rpz->updaterunning) {
