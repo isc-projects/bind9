@@ -17,6 +17,12 @@ atma01.example.		3600	IN	ATMA	+61200000000
 atma02.example.		3600	IN	ATMA	+61200000000
 atma03.example.		3600	IN	ATMA	1234567890abcdef
 atma04.example.		3600	IN	ATMA	fedcba0987654321
+atmrelay01.example.	3600	IN	ATMRELAY 0 0 0
+atmrelay02.example.	3600	IN	ATMRELAY 0 1 0
+atmrelay03.example.	3600	IN	ATMRELAY 0 0 1 0.0.0.0
+atmrelay04.example.	3600	IN	ATMRELAY 0 0 2 ::
+atmrelay05.example.	3600	IN	ATMRELAY 0 0 3 example.net.
+atmrelay06.example.	3600	IN	ATMRELAY \# 2 0004
 avc.example.		3600	IN	AVC	"foo:bar"
 caa01.example.		3600	IN	CAA	0 issue "ca.example.net; policy=ev"
 caa02.example.		3600	IN	CAA	128 tbs "Unknown"

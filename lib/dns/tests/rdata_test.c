@@ -563,6 +563,99 @@ atma(void **state) {
 		    dns_rdatatype_atma, sizeof(dns_rdata_in_atma_t));
 }
 
+/* ATMRELAY RDATA manipulations */
+static void
+atmrelay(void **state) {
+	text_ok_t text_ok[] = {
+		TEXT_INVALID(""),
+		TEXT_INVALID("0"),
+		TEXT_INVALID("0 0"),
+		/* gatway type 0 */
+		TEXT_VALID("0 0 0"),
+		TEXT_VALID("0 1 0"),
+		TEXT_INVALID("0 2 0"),		/* discovery out of range */
+		TEXT_VALID("255 1 0"),		/* max precendence */
+		TEXT_INVALID("256 1 0"),	/* precedence out of range */
+
+		/* IPv4 gateway */
+		TEXT_INVALID("0 0 1"),		/* no addresss */
+		TEXT_VALID("0 0 1 0.0.0.0"),
+		TEXT_INVALID("0 0 1 0.0.0.0 x"), /* extra */
+		TEXT_INVALID("0 0 1 0.0.0.0.0"), /* bad addresss */
+		TEXT_INVALID("0 0 1 ::"),	/* bad addresss */
+		TEXT_INVALID("0 0 1 ."),	/* bad addresss */
+
+		/* IPv6 gateway */
+		TEXT_INVALID("0 0 2"),		/* no addresss */
+		TEXT_VALID("0 0 2 ::"),
+		TEXT_INVALID("0 0 2 :: xx"),	/* extra */
+		TEXT_INVALID("0 0 2 0.0.0.0"),	/* bad addresss */
+		TEXT_INVALID("0 0 2 ."),	/* bad addresss */
+
+		/* hostname gateway */
+		TEXT_INVALID("0 0 3"),		/* no name */
+		/* IPv4 is a valid name */
+		TEXT_VALID_CHANGED("0 0 3 0.0.0.0", "0 0 3 0.0.0.0."),
+		/* IPv6 is a valid name */
+		TEXT_VALID_CHANGED("0 0 3 ::", "0 0 3 ::."),
+		TEXT_VALID_CHANGED("0 0 3 example", "0 0 3 example."),
+		TEXT_VALID("0 0 3 example."),
+		TEXT_INVALID("0 0 3 example. x"), /* extra */
+
+		/* unknown gateway */
+		TEXT_VALID("\\# 2 0004"),
+		TEXT_VALID("\\# 2 0084"),
+		TEXT_VALID("\\# 2 007F"),
+		TEXT_VALID("\\# 3 000400"),
+		TEXT_VALID("\\# 3 008400"),
+		TEXT_VALID("\\# 3 00FF00"),
+
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		WIRE_INVALID(0x00),
+		WIRE_VALID(0x00, 0x00),
+		WIRE_VALID(0x00, 0x80),
+		WIRE_INVALID(0x00, 0x00, 0x00),
+		WIRE_INVALID(0x00, 0x80, 0x00),
+
+		WIRE_INVALID(0x00, 0x01),
+		WIRE_INVALID(0x00, 0x01, 0x00),
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00),
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x00),
+		WIRE_VALID(0x00, 0x01, 0x00, 0x00, 0x00, 0x00),
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00),
+
+		WIRE_INVALID(0x00, 0x02),
+		WIRE_INVALID(0x00, 0x02, 0x00),
+		WIRE_VALID(0x00, 0x02, 0x00, 0x01, 0x02, 0x03, 0x04,
+			   0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11,
+			   0x12, 0x13, 0x14, 0x15),
+		WIRE_INVALID(0x00, 0x02, 0x00, 0x01, 0x02, 0x03, 0x04,
+			     0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11,
+			     0x12, 0x13, 0x14, 0x15, 0x16),
+
+		WIRE_INVALID(0x00, 0x03),
+		WIRE_VALID(0x00, 0x03, 0x00),
+		WIRE_INVALID(0x00, 0x03, 0x00, 0x00),	/* extra */
+
+		WIRE_VALID(0x00, 0x04),
+		WIRE_VALID(0x00, 0x04, 0x00),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(state);
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_atmrelay, sizeof(dns_rdata_atmrelay_t));
+}
+
 /*
  * CSYNC tests.
  *
@@ -1589,6 +1682,7 @@ main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(apl, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(atma, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(atmrelay, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(csync, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(doa, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(eid, _setup, _teardown),
