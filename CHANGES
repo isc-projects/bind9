@@ -1,3 +1,5 @@
+5158.	[protocol]	Add support for ATMRELAY and ZONEMD. [GL #867]
+
 5157.	[bug]		Nslookup now errors out if there are extra command
 			line arguments. [GL #207]
 
