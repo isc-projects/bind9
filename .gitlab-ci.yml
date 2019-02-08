@@ -154,6 +154,7 @@ stages:
 misc:sid:amd64:
   <<: *precheck_job
   script:
+    - sh util/check-ans-prereq.sh
     - sh util/checklibs.sh > checklibs.out
     - sh util/tabify-changes < CHANGES > CHANGES.tmp
     - diff -urNap CHANGES CHANGES.tmp
