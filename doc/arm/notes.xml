@@ -123,7 +123,19 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  When <command>trusted-keys</command> and
+	  <command>managed-keys</command> are both configured for the
+	  same name, or when <command>trusted-keys</command> is used to
+	  configure a trust anchor for the root zone and
+	  <command>dnssec-validation</command> is set to the default
+	  value of <literal>auto</literal>, automatic RFC 5011 key
+	  rollovers will fail.
+	</para>
+	<para>
+	  This combination of settings was never intended to work,
+	  but there was no check for it in the parser. This has been
+	  corrected; a warning is now logged. (In BIND 9.15 and
+	  higher this error will be fatal.) [GL #868]
 	</para>
       </listitem>
     </itemizedlist>
