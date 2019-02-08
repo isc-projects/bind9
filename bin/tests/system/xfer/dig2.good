@@ -11,18 +11,18 @@ aaaa01.example.		3600	IN	AAAA	::1
 aaaa02.example.		3600	IN	AAAA	fd92:7065:b8e:ffff::5
 afsdb01.example.	3600	IN	AFSDB	0 hostname.example.
 afsdb02.example.	3600	IN	AFSDB	65535 .
+amtrelay01.example.	3600	IN	AMTRELAY 0 0 0
+amtrelay02.example.	3600	IN	AMTRELAY 0 1 0
+amtrelay03.example.	3600	IN	AMTRELAY 0 0 1 0.0.0.1
+amtrelay04.example.	3600	IN	AMTRELAY 0 0 2 ::
+amtrelay05.example.	3600	IN	AMTRELAY 0 0 3 example.net.
+amtrelay06.example.	3600	IN	AMTRELAY \# 2 0004
 apl01.example.		3600	IN	APL	!1:10.0.0.1/32 1:10.0.0.1/24
 apl02.example.		3600	IN	APL
 atma01.example.		3600	IN	ATMA	+61200000000
 atma02.example.		3600	IN	ATMA	+61200000000
 atma03.example.		3600	IN	ATMA	1234567890abcdef
 atma04.example.		3600	IN	ATMA	fedcba0987654321
-atmrelay01.example.	3600	IN	ATMRELAY 0 0 0
-atmrelay02.example.	3600	IN	ATMRELAY 0 1 0
-atmrelay03.example.	3600	IN	ATMRELAY 0 0 1 0.0.0.1
-atmrelay04.example.	3600	IN	ATMRELAY 0 0 2 ::
-atmrelay05.example.	3600	IN	ATMRELAY 0 0 3 example.net.
-atmrelay06.example.	3600	IN	ATMRELAY \# 2 0004
 avc.example.		3600	IN	AVC	"foo:bar"
 caa01.example.		3600	IN	CAA	0 issue "ca.example.net; policy=ev"
 caa02.example.		3600	IN	CAA	128 tbs "Unknown"
