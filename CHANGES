@@ -1,3 +1,7 @@
+5179.	[cleanup]	Replace some vague type declarations with the more
+			specific dns_secalg_t and dns_dsdigest_t.
+			Thanks to Tony Finch. [GL !1498]
+
 5178.	[bug]		Handle EDQUOT (disk quota) and ENOSPC (disk full)
 			errors when writing files. [GL #902]
 
