@@ -1822,8 +1822,8 @@
 ./lib/dns/rdata/ch_3/a_1.h			C	2005,2007,2016,2018,2019
 ./lib/dns/rdata/generic/afsdb_18.c		C	1999,2000,2001,2003,2004,2005,2007,2009,2014,2015,2016,2017,2018,2019
 ./lib/dns/rdata/generic/afsdb_18.h		C	1999,2000,2001,2004,2005,2007,2016,2018,2019
-./lib/dns/rdata/generic/atmrelay_260.c		C	2019
-./lib/dns/rdata/generic/atmrelay_260.h		C	2019
+./lib/dns/rdata/generic/amtrelay_260.c		C	2019
+./lib/dns/rdata/generic/amtrelay_260.h		C	2019
 ./lib/dns/rdata/generic/avc_258.c		C	2016,2018,2019
 ./lib/dns/rdata/generic/avc_258.h		C	2016,2018,2019
 ./lib/dns/rdata/generic/caa_257.c		C	2014,2015,2016,2017,2018,2019
