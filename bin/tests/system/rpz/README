@@ -5,7 +5,6 @@ See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
 The test setup for the RPZ tests prepares a query perf tool and sets up
 policy zones.
 
-
 Name servers
 ------------
 
@@ -18,7 +17,6 @@ ns3 is the main rewriting resolver.
 ns5 and ns7 are additional rewriting resolvers.
 
 ns6 is a forwarding server.
-
 
 Updating the response policy zones
 ----------------------------------

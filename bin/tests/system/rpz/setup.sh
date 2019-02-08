@@ -35,6 +35,8 @@ copy_setports ns7/named.conf.in ns7/named.conf
 for NM in '' -2 -given -disabled -passthru -no-op -nodata -nxdomain -cname -wildcname -garden -drop -tcp-only; do
     sed -e "/SOA/s/blx/bl$NM/g" ns3/base.db >ns3/bl$NM.db
 done
+#  bl zones are dynamically updated.  Add one zone that is updated manually.
+cp ns3/manual-update-rpz.db.in ns3/manual-update-rpz.db
 
 # $1=directory
 # $2=domain name
