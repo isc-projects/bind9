@@ -563,9 +563,9 @@ atma(void **state) {
 		    dns_rdatatype_atma, sizeof(dns_rdata_in_atma_t));
 }
 
-/* ATMRELAY RDATA manipulations */
+/* AMTRELAY RDATA manipulations */
 static void
-atmrelay(void **state) {
+amtrelay(void **state) {
 	text_ok_t text_ok[] = {
 		TEXT_INVALID(""),
 		TEXT_INVALID("0"),
@@ -653,7 +653,7 @@ atmrelay(void **state) {
 	UNUSED(state);
 
 	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
-		    dns_rdatatype_atmrelay, sizeof(dns_rdata_atmrelay_t));
+		    dns_rdatatype_amtrelay, sizeof(dns_rdata_amtrelay_t));
 }
 
 /*
@@ -1793,9 +1793,9 @@ iszonecutauth(void **state) {
 int
 main(void) {
 	const struct CMUnitTest tests[] = {
+		cmocka_unit_test_setup_teardown(amtrelay, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(apl, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(atma, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(atmrelay, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(csync, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(doa, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(eid, _setup, _teardown),

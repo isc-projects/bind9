@@ -10,17 +10,17 @@
  */
 
 
-#ifndef RDATA_GENERIC_ATMRELAY_260_C
-#define RDATA_GENERIC_ATMRELAY_260_C
+#ifndef RDATA_GENERIC_AMTRELAY_260_C
+#define RDATA_GENERIC_AMTRELAY_260_C
 
 #include <string.h>
 
 #include <isc/net.h>
 
-#define RRTYPE_ATMRELAY_ATTRIBUTES (0)
+#define RRTYPE_AMTRELAY_ATTRIBUTES (0)
 
 static inline isc_result_t
-fromtext_atmrelay(ARGS_FROMTEXT) {
+fromtext_amtrelay(ARGS_FROMTEXT) {
 	isc_token_t token;
 	dns_name_t name;
 	isc_buffer_t buffer;
@@ -30,7 +30,7 @@ fromtext_atmrelay(ARGS_FROMTEXT) {
 	unsigned char addr6[16];
 	isc_region_t region;
 
-	REQUIRE(type == dns_rdatatype_atmrelay);
+	REQUIRE(type == dns_rdatatype_amtrelay);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -120,7 +120,7 @@ fromtext_atmrelay(ARGS_FROMTEXT) {
 }
 
 static inline isc_result_t
-totext_atmrelay(ARGS_TOTEXT) {
+totext_amtrelay(ARGS_TOTEXT) {
 	isc_region_t region;
 	dns_name_t name;
 	char buf[sizeof("0 255 ")];
@@ -131,7 +131,7 @@ totext_atmrelay(ARGS_TOTEXT) {
 
 	UNUSED(tctx);
 
-	REQUIRE(rdata->type == dns_rdatatype_atmrelay);
+	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 	REQUIRE(rdata->length >= 2);
 
 	if ((rdata->data[1] & 0x7f) > 3U)
@@ -182,11 +182,11 @@ totext_atmrelay(ARGS_TOTEXT) {
 }
 
 static inline isc_result_t
-fromwire_atmrelay(ARGS_FROMWIRE) {
+fromwire_amtrelay(ARGS_FROMWIRE) {
 	dns_name_t name;
 	isc_region_t region;
 
-	REQUIRE(type == dns_rdatatype_atmrelay);
+	REQUIRE(type == dns_rdatatype_amtrelay);
 
 	UNUSED(type);
 	UNUSED(rdclass);
@@ -233,10 +233,10 @@ fromwire_atmrelay(ARGS_FROMWIRE) {
 }
 
 static inline isc_result_t
-towire_atmrelay(ARGS_TOWIRE) {
+towire_amtrelay(ARGS_TOWIRE) {
 	isc_region_t region;
 
-	REQUIRE(rdata->type == dns_rdatatype_atmrelay);
+	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 	REQUIRE(rdata->length != 0);
 
 	UNUSED(cctx);
@@ -246,13 +246,13 @@ towire_atmrelay(ARGS_TOWIRE) {
 }
 
 static inline int
-compare_atmrelay(ARGS_COMPARE) {
+compare_amtrelay(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == dns_rdatatype_atmrelay);
+	REQUIRE(rdata1->type == dns_rdatatype_amtrelay);
 	REQUIRE(rdata1->length >= 2);
 	REQUIRE(rdata2->length >= 2);
 
@@ -263,132 +263,132 @@ compare_atmrelay(ARGS_COMPARE) {
 }
 
 static inline isc_result_t
-fromstruct_atmrelay(ARGS_FROMSTRUCT) {
-	dns_rdata_atmrelay_t *atmrelay = source;
+fromstruct_amtrelay(ARGS_FROMSTRUCT) {
+	dns_rdata_amtrelay_t *amtrelay = source;
 	isc_region_t region;
 	uint32_t n;
 
-	REQUIRE(type == dns_rdatatype_atmrelay);
+	REQUIRE(type == dns_rdatatype_amtrelay);
 	REQUIRE(source != NULL);
-	REQUIRE(atmrelay->common.rdtype == type);
-	REQUIRE(atmrelay->common.rdclass == rdclass);
+	REQUIRE(amtrelay->common.rdtype == type);
+	REQUIRE(amtrelay->common.rdclass == rdclass);
 
 	UNUSED(type);
 	UNUSED(rdclass);
 
-	RETERR(uint8_tobuffer(atmrelay->precedence, target));
-	n = (atmrelay->discovery ? 0x80 : 0) | atmrelay->gateway_type;
+	RETERR(uint8_tobuffer(amtrelay->precedence, target));
+	n = (amtrelay->discovery ? 0x80 : 0) | amtrelay->gateway_type;
 	RETERR(uint8_tobuffer(n, target));
 
-	switch  (atmrelay->gateway_type) {
+	switch  (amtrelay->gateway_type) {
 	case 0:
 		return (ISC_R_SUCCESS);
 
 	case 1:
-		n = ntohl(atmrelay->in_addr.s_addr);
+		n = ntohl(amtrelay->in_addr.s_addr);
 		return (uint32_tobuffer(n, target));
 
 	case 2:
-		return (mem_tobuffer(target, atmrelay->in6_addr.s6_addr, 16));
+		return (mem_tobuffer(target, amtrelay->in6_addr.s6_addr, 16));
 		break;
 
 	case 3:
-		dns_name_toregion(&atmrelay->gateway, &region);
+		dns_name_toregion(&amtrelay->gateway, &region);
 		return (isc_buffer_copyregion(target, &region));
 		break;
 
 	default:
-		return (mem_tobuffer(target, atmrelay->data, atmrelay->length));
+		return (mem_tobuffer(target, amtrelay->data, amtrelay->length));
 	}
 }
 
 static inline isc_result_t
-tostruct_atmrelay(ARGS_TOSTRUCT) {
+tostruct_amtrelay(ARGS_TOSTRUCT) {
 	isc_region_t region;
-	dns_rdata_atmrelay_t *atmrelay = target;
+	dns_rdata_amtrelay_t *amtrelay = target;
 	dns_name_t name;
 	uint32_t n;
 
-	REQUIRE(rdata->type == dns_rdatatype_atmrelay);
+	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 	REQUIRE(target != NULL);
 	REQUIRE(rdata->length >= 2);
 
-	atmrelay->common.rdclass = rdata->rdclass;
-	atmrelay->common.rdtype = rdata->type;
-	ISC_LINK_INIT(&atmrelay->common, link);
+	amtrelay->common.rdclass = rdata->rdclass;
+	amtrelay->common.rdtype = rdata->type;
+	ISC_LINK_INIT(&amtrelay->common, link);
 
-	dns_name_init(&atmrelay->gateway, NULL);
-	atmrelay->data = NULL;
+	dns_name_init(&amtrelay->gateway, NULL);
+	amtrelay->data = NULL;
 
 	dns_name_init(&name, NULL);
 	dns_rdata_toregion(rdata, &region);
 
-	atmrelay->precedence = uint8_fromregion(&region);
+	amtrelay->precedence = uint8_fromregion(&region);
 	isc_region_consume(&region, 1);
 
-	atmrelay->gateway_type = uint8_fromregion(&region);
-	atmrelay->discovery = (atmrelay->gateway_type & 0x80) != 0;
-	atmrelay->gateway_type &= 0x7f;
+	amtrelay->gateway_type = uint8_fromregion(&region);
+	amtrelay->discovery = (amtrelay->gateway_type & 0x80) != 0;
+	amtrelay->gateway_type &= 0x7f;
 	isc_region_consume(&region, 1);
 
-	switch (atmrelay->gateway_type) {
+	switch (amtrelay->gateway_type) {
 	case 0:
 		break;
 
 	case 1:
 		n = uint32_fromregion(&region);
-		atmrelay->in_addr.s_addr = htonl(n);
+		amtrelay->in_addr.s_addr = htonl(n);
 		isc_region_consume(&region, 4);
 		break;
 
 	case 2:
-		memmove(atmrelay->in6_addr.s6_addr, region.base, 16);
+		memmove(amtrelay->in6_addr.s6_addr, region.base, 16);
 		isc_region_consume(&region, 16);
 		break;
 
 	case 3:
 		dns_name_fromregion(&name, &region);
-		RETERR(name_duporclone(&name, mctx, &atmrelay->gateway));
+		RETERR(name_duporclone(&name, mctx, &amtrelay->gateway));
 		isc_region_consume(&region, name_length(&name));
 		break;
 
 	default:
 		if (region.length != 0) {
-			atmrelay->data = mem_maybedup(mctx, region.base,
+			amtrelay->data = mem_maybedup(mctx, region.base,
 						      region.length);
-			if (atmrelay->data == NULL) {
+			if (amtrelay->data == NULL) {
 				return (ISC_R_NOMEMORY);
 			}
 		}
-		atmrelay->length = region.length;
+		amtrelay->length = region.length;
 	}
-	atmrelay->mctx = mctx;
+	amtrelay->mctx = mctx;
 	return (ISC_R_SUCCESS);
 }
 
 static inline void
-freestruct_atmrelay(ARGS_FREESTRUCT) {
-	dns_rdata_atmrelay_t *atmrelay = source;
+freestruct_amtrelay(ARGS_FREESTRUCT) {
+	dns_rdata_amtrelay_t *amtrelay = source;
 
 	REQUIRE(source != NULL);
-	REQUIRE(atmrelay->common.rdtype == dns_rdatatype_atmrelay);
+	REQUIRE(amtrelay->common.rdtype == dns_rdatatype_amtrelay);
 
-	if (atmrelay->mctx == NULL)
+	if (amtrelay->mctx == NULL)
 		return;
 
-	if (atmrelay->gateway_type == 3)
-		dns_name_free(&atmrelay->gateway, atmrelay->mctx);
+	if (amtrelay->gateway_type == 3)
+		dns_name_free(&amtrelay->gateway, amtrelay->mctx);
 
-	if (atmrelay->data != NULL)
-		isc_mem_free(atmrelay->mctx, atmrelay->data);
+	if (amtrelay->data != NULL)
+		isc_mem_free(amtrelay->mctx, amtrelay->data);
 
-	atmrelay->mctx = NULL;
+	amtrelay->mctx = NULL;
 }
 
 static inline isc_result_t
-additionaldata_atmrelay(ARGS_ADDLDATA) {
+additionaldata_amtrelay(ARGS_ADDLDATA) {
 
-	REQUIRE(rdata->type == dns_rdatatype_atmrelay);
+	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 
 	UNUSED(rdata);
 	UNUSED(add);
@@ -398,19 +398,19 @@ additionaldata_atmrelay(ARGS_ADDLDATA) {
 }
 
 static inline isc_result_t
-digest_atmrelay(ARGS_DIGEST) {
+digest_amtrelay(ARGS_DIGEST) {
 	isc_region_t region;
 
-	REQUIRE(rdata->type == dns_rdatatype_atmrelay);
+	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 
 	dns_rdata_toregion(rdata, &region);
 	return ((digest)(arg, &region));
 }
 
 static inline bool
-checkowner_atmrelay(ARGS_CHECKOWNER) {
+checkowner_amtrelay(ARGS_CHECKOWNER) {
 
-	REQUIRE(type == dns_rdatatype_atmrelay);
+	REQUIRE(type == dns_rdatatype_amtrelay);
 
 	UNUSED(name);
 	UNUSED(type);
@@ -421,9 +421,9 @@ checkowner_atmrelay(ARGS_CHECKOWNER) {
 }
 
 static inline bool
-checknames_atmrelay(ARGS_CHECKNAMES) {
+checknames_amtrelay(ARGS_CHECKNAMES) {
 
-	REQUIRE(rdata->type == dns_rdatatype_atmrelay);
+	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 
 	UNUSED(rdata);
 	UNUSED(owner);
@@ -433,7 +433,7 @@ checknames_atmrelay(ARGS_CHECKNAMES) {
 }
 
 static inline int
-casecompare_atmrelay(ARGS_COMPARE) {
+casecompare_amtrelay(ARGS_COMPARE) {
 	isc_region_t region1;
 	isc_region_t region2;
 	dns_name_t name1;
@@ -441,7 +441,7 @@ casecompare_atmrelay(ARGS_COMPARE) {
 
 	REQUIRE(rdata1->type == rdata2->type);
 	REQUIRE(rdata1->rdclass == rdata2->rdclass);
-	REQUIRE(rdata1->type == dns_rdatatype_atmrelay);
+	REQUIRE(rdata1->type == dns_rdatatype_amtrelay);
 	REQUIRE(rdata1->length >= 2);
 	REQUIRE(rdata2->length >= 2);
 
@@ -464,4 +464,4 @@ casecompare_atmrelay(ARGS_COMPARE) {
 	return (dns_name_rdatacompare(&name1, &name2));
 }
 
-#endif	/* RDATA_GENERIC_ATMRELAY_260_C */
+#endif	/* RDATA_GENERIC_AMTRELAY_260_C */
