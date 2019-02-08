@@ -2494,9 +2494,11 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 
 	dns_zone_rpz_enable_db(zone, db);
 	dns_zone_catz_enable_db(zone, db);
+
 	options = get_master_options(zone);
-	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS))
+	if (DNS_ZONE_OPTION(zone, DNS_ZONEOPT_MANYERRORS)) {
 		options |= DNS_MASTER_MANYERRORS;
+	}
 
 	if (zone->zmgr != NULL && zone->db != NULL && zone->loadtask != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
@@ -2516,8 +2518,9 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 		load->callbacks.rawdata = zone_setrawdata;
 		zone_iattach(zone, &load->callbacks.zone);
 		result = dns_db_beginload(db, &load->callbacks);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
+		}
 		result = zonemgr_getio(zone->zmgr, true, zone->loadtask,
 				       zone_gotreadhandle, load,
 				       &zone->readio);
@@ -2528,8 +2531,9 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 			 */
 			(void)dns_db_endload(load->db, &load->callbacks);
 			goto cleanup;
-		} else
+		} else {
 			result = DNS_R_CONTINUE;
+		}
 	} else {
 		dns_rdatacallbacks_t callbacks;
 
@@ -2550,8 +2554,9 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 					     zone->masterformat,
 					     zone->maxttl);
 		tresult = dns_db_endload(db, &callbacks);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			result = tresult;
+		}
 		zone_idetach(&callbacks.zone);
 	}
 
