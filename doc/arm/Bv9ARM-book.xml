@@ -14108,7 +14108,7 @@ view external {
 		    </entry>
 		    <entry colname="2">
 		      <para>
-			Zone Meta Data.
+			Zone Message Digest.
 			Work in progress draft-wessels-dns-zone-digest.
 		      </para>
 		    </entry>
