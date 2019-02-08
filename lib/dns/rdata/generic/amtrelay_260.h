@@ -10,10 +10,10 @@
  */
 
 
-#ifndef GENERIC_ATMRELAY_260_H
-#define GENERIC_ATMRELAY_260_H 1
+#ifndef GENERIC_AMTRELAY_260_H
+#define GENERIC_AMTRELAY_260_H 1
 
-typedef struct dns_rdata_atmrelay {
+typedef struct dns_rdata_amtrelay {
 	dns_rdatacommon_t	common;
 	isc_mem_t		*mctx;
 	uint8_t			precedence;
@@ -24,6 +24,6 @@ typedef struct dns_rdata_atmrelay {
 	dns_name_t		gateway;	/* gateway type 3 */
 	unsigned char		*data;		/* gateway type > 3 */
 	uint16_t		length;
-} dns_rdata_atmrelay_t;
+} dns_rdata_amtrelay_t;
 
-#endif /* GENERIC_ATMRELAY_260_H */
+#endif /* GENERIC_AMTRELAY_260_H */
