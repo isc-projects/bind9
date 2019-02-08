@@ -1549,7 +1549,6 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	zone->updbversion = NULL;
 	zone->updbit = NULL;
 	zone->rpzs = rpzs;
-	zone->db_registered = false;
 	ISC_EVENT_INIT(&zone->updateevent, sizeof(zone->updateevent),
 		       0, NULL, 0, NULL, NULL, NULL, NULL, NULL);
 
@@ -1584,7 +1583,6 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 	REQUIRE(zone != NULL);
 
 	LOCK(&zone->rpzs->maint_lock);
-	REQUIRE(zone->db_registered);
 
 	/* New zone came as AXFR */
 	if (zone->db != NULL && zone->db != db) {
@@ -2100,10 +2098,8 @@ rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs) {
 		dns_db_closeversion(rpz->db, &rpz->dbversion, false);
 	}
 	if (rpz->db != NULL) {
-		if (rpz->db_registered) {
-			dns_db_updatenotify_unregister(
-				rpz->db, dns_rpz_dbupdate_callback, rpz);
-		}
+		dns_db_updatenotify_unregister(
+			rpz->db, dns_rpz_dbupdate_callback, rpz);
 		dns_db_detach(&rpz->db);
 	}
 	if (rpz->updaterunning) {
