@@ -1757,7 +1757,7 @@ checkkey(dns_validator_t *val, dns_rdata_t *keyrdata, uint16_t keyid,
  */
 static isc_result_t
 keyfromds(dns_validator_t *val, dns_rdataset_t *rdataset, dns_rdata_t *dsrdata,
-	  uint8_t digest, uint16_t keyid, dns_secalg_t algorithm,
+	  dns_dsdigest_t digest, uint16_t keyid, dns_secalg_t algorithm,
 	  dns_rdata_t *keyrdata)
 {
 	dns_keytag_t keytag;
