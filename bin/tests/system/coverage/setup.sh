@@ -134,3 +134,8 @@ ksk1=`$KEYGEN -q -K $dir -a rsasha1 -3fk example.com`
 dir=12-ksk-deletion
 ksk1=`$KEYGEN -q -K $dir -f KSK -a 8 -b 2048 -I +40d -D +40d example.com`
 ksk2=`$KEYGEN -q -K $dir -S $ksk1.key example.com`
+
+# Test 13: check names with/without dots at the end
+dir=13-dotted-dotless
+zsk1=`$KEYGEN -q -K $dir -a rsasha256 one.example`
+zsk2=`$KEYGEN -q -K $dir -a rsasha256 two.example`

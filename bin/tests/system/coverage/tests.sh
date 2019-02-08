@@ -32,9 +32,9 @@ ret=0
 for dir in [0-9][0-9]-*; do
         ret=0
         echo_i "$dir"
-        args= warn= error= ok= retcode= match=
+        args= warn= error= ok= retcode= match= zones=
         . $dir/expect
-        $COVERAGE $args -K $dir example.com > coverage.$n 2>&1
+        $COVERAGE $args -K $dir ${zones:-example.com} > coverage.$n 2>&1
 
         # check that return code matches expectations
         found=$?
@@ -80,18 +80,6 @@ for dir in [0-9][0-9]-*; do
         if [ $ret != 0 ]; then echo_i "failed"; fi
         status=`expr $status + $ret`
 done
-
-dir=dotted-dotless
-[ -d $dir ] || mkdir $dir
-echo_i "$dir"
-zsk1=`$KEYGEN -q -K $dir -a rsasha256 one.example`
-zsk2=`$KEYGEN -q -K $dir -a rsasha256 two.example`
-$COVERAGE -K $dir one.example. two.example > coverage.$n 2>&1
-grep one.example coverage.$n >/dev/null 2>&1 || ret=1
-grep two.example coverage.$n >/dev/null 2>&1 || ret=1
-n=`expr $n + 1`
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
