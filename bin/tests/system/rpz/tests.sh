@@ -190,6 +190,9 @@ load_db () {
     fi
 }
 
+# restart name server
+# $1 ns number
+# $2 rebuild bl rpz zones if "rebuild-bl-rpz"
 restart () {
     # try to ensure that the server really has stopped
     # and won't mess with ns$1/name.pid
@@ -205,10 +208,12 @@ restart () {
 	fi
     fi
     rm -f ns$1/*.jnl
-    if test -f ns$1/base.db; then
-	for NM in ns$1/bl*.db; do
-	    cp -f ns$1/base.db $NM
-	done
+    if [ "$2" == "rebuild-bl-rpz" ]; then
+        if test -f ns$1/base.db; then
+	    for NM in ns$1/bl*.db; do
+	        cp -f ns$1/base.db $NM
+            done
+        fi
     fi
     $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz ns$1
     load_db
@@ -227,7 +232,7 @@ ckalive () {
     HAVE_CORE=yes
     setret "$2"
     # restart the server to avoid stalling waiting for it to stop
-    restart $CKALIVE_NS
+    restart $CKALIVE_NS "rebuild-bl-rpz"
     return 1
 }
 
@@ -681,7 +686,6 @@ EOF
   end_group
   ckstats $ns3 bugs ns3 8
 
-
   # superficial test for major performance bugs
   QPERF=`sh qperf.sh`
   if test -n "$QPERF"; then
@@ -757,7 +761,7 @@ EOF
   # restart the main test RPZ server to see if that creates a core file
   if test -z "$HAVE_CORE"; then
     $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
-    restart 3
+    restart 3 "rebuild-bl-rpz"
     HAVE_CORE=`find ns* -name '*core*' -print`
     test -z "$HAVE_CORE" || setret "found $HAVE_CORE; memory leak?"
   fi
@@ -771,6 +775,28 @@ EOF
               sed -e '10,$d' -e 's/^//' | cat_i
     fi
   done
+
+  # restart the main test RPZ server with a bad zone.
+  t=`expr $t + 1`
+  echo_i "checking that ns3 with broken rpz does not crash (${t})"
+  $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+  cp ns3/broken.db.in ns3/bl.db
+  restart 3 # do not rebuild rpz zones
+  nocrash a3-1.tld2 -tA
+  $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+  restart 3 "rebuild-bl-rpz"
+
+  # reload a RPZ zone that is now deliberately broken.
+  t=`expr $t + 1`
+  echo_i "checking rpz failed update will keep previous rpz rules (${t})"
+  $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.before
+  grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.before > /dev/null || setret "failed"
+  cp ns3/broken.db.in ns3/manual-update-rpz.db
+  rndc_reload ns3 $ns3 manual-update-rpz
+  sleep 1
+  # ensure previous RPZ rules still apply.
+  $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.after
+  grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after > /dev/null || setret "failed"
 
   t=`expr $t + 1`
   echo_i "checking that ttl values are not zeroed when qtype is '*' (${t})"
