@@ -13201,6 +13201,20 @@ view external {
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
+			AMTRELAY
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Automatic Multicast Tunneling Relay
+			discovery record.
+			Work in progress draft-ietf-mboned-driad-amt-discovery.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
 			APL
 		      </para>
 		    </entry>
@@ -14152,6 +14166,19 @@ view external {
 		      <para>
 			Representation of X.25 network addresses.
 			Experimental.  Described in RFC 1183.
+		      </para>
+		    </entry>
+		  </row>
+		  <row rowsep="0">
+		    <entry colname="1">
+		      <para>
+			ZONEMD
+		      </para>
+		    </entry>
+		    <entry colname="2">
+		      <para>
+			Zone Meta Data.
+			Work in progress draft-wessels-dns-zone-digest.
 		      </para>
 		    </entry>
 		  </row>
