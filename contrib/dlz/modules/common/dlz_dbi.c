@@ -100,6 +100,7 @@ build_querylist(const char *query_str, char **zone, char **record,
 	bool foundclient = false;
 	char *temp_str = NULL;
 	char *right_str = NULL;
+	char *token = NULL;
 	query_list_t *tql;
 	query_segment_t *tseg = NULL;
 
