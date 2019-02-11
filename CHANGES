@@ -1,3 +1,7 @@
+5168.	[bug]		Do not crash on shutdown when RPZ fails to load.  Also,
+			keep previous version of the database if RPZ fails to
+			load. [GL #813]
+
 5167.	[bug]		nxdomain-redirect could sometimes lookup the wrong
 			redirect name. [GL #892]
 
