@@ -934,6 +934,7 @@
 ./bin/tests/system/rootkeysentinel/ns2/sign.sh	SH	2018,2019
 ./bin/tests/system/rootkeysentinel/setup.sh	SH	2018,2019
 ./bin/tests/system/rootkeysentinel/tests.sh	SH	2018,2019
+./bin/tests/system/rpz/README			TXT.BRIEF	2019
 ./bin/tests/system/rpz/ckdnsrps.sh		SH	2017,2018,2019
 ./bin/tests/system/rpz/clean.sh			SH	2011,2012,2013,2014,2016,2017,2018,2019
 ./bin/tests/system/rpz/dnsrps.c			C	2017,2018,2019
