@@ -1783,8 +1783,9 @@ dns_zone_get_rpz_num(dns_zone_t *zone) {
 void
 dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db) {
 	isc_result_t result;
-	if (zone->rpz_num == DNS_RPZ_INVALID_NUM)
+	if (zone->rpz_num == DNS_RPZ_INVALID_NUM) {
 		return;
+	}
 	REQUIRE(zone->rpzs != NULL);
 	result = dns_db_updatenotify_register(db,
 					      dns_rpz_dbupdate_callback,
@@ -1794,14 +1795,13 @@ dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db) {
 
 static void
 dns_zone_rpz_disable_db(dns_zone_t *zone, dns_db_t *db) {
-	isc_result_t result;
-	if (zone->rpz_num == DNS_RPZ_INVALID_NUM)
+	if (zone->rpz_num == DNS_RPZ_INVALID_NUM) {
 		return;
+	}
 	REQUIRE(zone->rpzs != NULL);
-	result = dns_db_updatenotify_unregister(db,
-					        dns_rpz_dbupdate_callback,
-					        zone->rpzs->zones[zone->rpz_num]);
-	REQUIRE(result == ISC_R_SUCCESS);
+	(void) dns_db_updatenotify_unregister(db,
+					      dns_rpz_dbupdate_callback,
+					      zone->rpzs->zones[zone->rpz_num]);
 }
 
 void
@@ -1812,8 +1812,9 @@ dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
 	LOCK_ZONE(zone);
 	INSIST(zone->catzs == NULL || zone->catzs == catzs);
 	dns_catz_catzs_set_view(catzs, zone->view);
-	if (zone->catzs == NULL)
+	if (zone->catzs == NULL) {
 		dns_catz_catzs_attach(catzs, &zone->catzs);
+	}
 	UNLOCK_ZONE(zone);
 }
 
