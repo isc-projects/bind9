@@ -1792,6 +1792,18 @@ dns_zone_rpz_enable_db(dns_zone_t *zone, dns_db_t *db) {
 	REQUIRE(result == ISC_R_SUCCESS);
 }
 
+static void
+dns_zone_rpz_disable_db(dns_zone_t *zone, dns_db_t *db) {
+	isc_result_t result;
+	if (zone->rpz_num == DNS_RPZ_INVALID_NUM)
+		return;
+	REQUIRE(zone->rpzs != NULL);
+	result = dns_db_updatenotify_unregister(db,
+					        dns_rpz_dbupdate_callback,
+					        zone->rpzs->zones[zone->rpz_num]);
+	REQUIRE(result == ISC_R_SUCCESS);
+}
+
 void
 dns_zone_catz_enable(dns_zone_t *zone, dns_catz_zones_t *catzs) {
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1816,6 +1828,17 @@ dns_zone_catz_enable_db(dns_zone_t *zone, dns_db_t *db) {
 	if (zone->catzs != NULL) {
 		dns_db_updatenotify_register(db, dns_catz_dbupdate_callback,
 					     zone->catzs);
+	}
+}
+
+static void
+dns_zone_catz_disable_db(dns_zone_t *zone, dns_db_t *db) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	REQUIRE(db != NULL);
+
+	if (zone->catzs != NULL) {
+		dns_db_updatenotify_unregister(db, dns_catz_dbupdate_callback,
+					       zone->catzs);
 	}
 }
 
@@ -2486,10 +2509,13 @@ dns_zone_setrawdata(dns_zone_t *zone, dns_masterrawheader_t *header) {
 
 static isc_result_t
 zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
+	const char me[] = "zone_startload";
 	dns_load_t *load;
 	isc_result_t result;
 	isc_result_t tresult;
 	unsigned int options;
+
+	ENTER;
 
 	dns_zone_rpz_enable_db(zone, db);
 	dns_zone_catz_enable_db(zone, db);
@@ -15804,6 +15830,15 @@ zone_loaddone(void *arg, isc_result_t result) {
 	zone = load->zone;
 
 	ENTER;
+
+	/*
+	 * If zone loading failed, remove the update db callbacks prior
+	 * to calling the list of callbacks in the zone load structure.
+	 */
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_rpz_disable_db(zone, load->db);
+		dns_zone_catz_disable_db(zone, load->db);
+	}
 
 	tresult = dns_db_endload(load->db, &load->callbacks);
 	if (tresult != ISC_R_SUCCESS &&
