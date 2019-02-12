@@ -59,14 +59,14 @@ clean distclean::
 	rm -f ${TARGETS} ${OBJS}
 
 installdirs:
-	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${libdir}
+	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${plugindir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man8
 
 install:: filter-aaaa.@SO@ installdirs
 	${LIBTOOL_MODE_INSTALL} ${INSTALL_LIBRARY} filter-aaaa.@SO@ \
-		${DESTDIR}${libdir}
+		${DESTDIR}${plugindir}
 	${INSTALL_DATA} ${srcdir}/filter-aaaa.8 ${DESTDIR}${mandir}/man8
 
 uninstall::
-	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${libdir}/filter-aaaa.@SO@
+	${LIBTOOL_MODE_UNINSTALL} rm -f ${DESTDIR}${plugindir}/filter-aaaa.@SO@
 	rm -f ${DESTDIR}${mandir}/man8/filter-aaaa.8
