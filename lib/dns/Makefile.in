@@ -219,7 +219,7 @@ ${OBJS}: include
 dnstap.@O@: dnstap.c dnstap.pb-c.c
 
 dnstap.pb-c.c dnstap.pb-c.h include/dns/dnstap.pb-c.h: dnstap.proto
-	$(PROTOC_C) --c_out=. dnstap.proto
+	$(PROTOC_C) --c_out=. --proto_path ${srcdir} dnstap.proto
 	cp -f dnstap.pb-c.h include/dns
 
 dnstap.pb-c.@O@: dnstap.pb-c.c
