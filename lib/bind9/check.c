@@ -3409,15 +3409,26 @@ check_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 		 void *callback_data)
 {
 	struct check_one_plugin_data *data = callback_data;
+	char full_path[PATH_MAX];
 	isc_result_t result;
 
-	result = ns_plugin_check(plugin_path, parameters, config,
+	result = ns_plugin_expandpath(plugin_path,
+				      full_path, sizeof(full_path));
+	if (result != ISC_R_SUCCESS) {
+		cfg_obj_log(obj, data->lctx, ISC_LOG_ERROR,
+			    "%s: plugin check failed: "
+			    "unable to get full plugin path: %s",
+			    plugin_path, isc_result_totext(result));
+		return (result);
+	}
+
+	result = ns_plugin_check(full_path, parameters, config,
 				 cfg_obj_file(obj), cfg_obj_line(obj),
 				 data->mctx, data->lctx, data->actx);
 	if (result != ISC_R_SUCCESS) {
 		cfg_obj_log(obj, data->lctx, ISC_LOG_ERROR,
 			    "%s: plugin check failed: %s",
-			    plugin_path, isc_result_totext(result));
+			    full_path, isc_result_totext(result));
 		*data->check_result = result;
 	}
 

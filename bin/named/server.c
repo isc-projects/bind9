@@ -3655,9 +3655,21 @@ register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 		    void *callback_data)
 {
 	dns_view_t *view = callback_data;
+	char full_path[PATH_MAX];
 	isc_result_t result;
 
-	result = ns_plugin_register(plugin_path, parameters, config,
+	result = ns_plugin_expandpath(plugin_path,
+				      full_path, sizeof(full_path));
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
+			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
+			      "%s: plugin configuration failed: "
+			      "unable to get full plugin path: %s",
+			      plugin_path, isc_result_totext(result));
+		return (result);
+	}
+
+	result = ns_plugin_register(full_path, parameters, config,
 				    cfg_obj_file(obj), cfg_obj_line(obj),
 				    named_g_mctx, named_g_lctx,
 				    named_g_aclconfctx, view);
@@ -3665,7 +3677,7 @@ register_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "%s: plugin configuration failed: %s",
-			      plugin_path, isc_result_totext(result));
+			      full_path, isc_result_totext(result));
 	}
 
 	return (result);
