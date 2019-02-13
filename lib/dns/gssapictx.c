@@ -481,7 +481,6 @@ dst_gssapi_identitymatchesrealmms(const dns_name_t *signer,
 	 */
 	rname++;
 	*sname = '\0';
-	sname = sbuf;
 
 	if (strcmp(rname, rbuf) != 0) {
 		return (false);
