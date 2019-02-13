@@ -14712,7 +14712,7 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 		CHECK(ISC_R_NOTFOUND);
 	}
 
-	CHECK(putnull(text));
+	(void) putnull(text);
 
  cleanup:
 	if (msg != NULL) {
