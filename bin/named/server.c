@@ -13980,7 +13980,7 @@ ns_server_nta(ns_server_t *server, isc_lex_t *lex, bool readonly,
 		}
 	}
 
-	CHECK(putnull(text));
+	(void) putnull(text);
 
  cleanup:
 	if (msg != NULL) {
