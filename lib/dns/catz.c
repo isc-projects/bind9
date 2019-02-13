@@ -837,8 +837,9 @@ dns_catz_zone_detach(dns_catz_zone_t **zonep) {
 
 void
 dns_catz_catzs_detach(dns_catz_zones_t **catzsp) {
+	dns_catz_zones_t *catzs;
+
 	REQUIRE(catzsp != NULL && *catzsp != NULL);
-	dns_catz_zones_t *catzs = *catzsp;
 
 	catzs = *catzsp;
 	*catzsp = NULL;
