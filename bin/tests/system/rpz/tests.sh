@@ -25,6 +25,7 @@ ns4=$ns.4		# another authoritative server that is rewritten
 ns5=$ns.5		# another rewriting resolver
 ns6=$ns.6		# a forwarding server
 ns7=$ns.7		# another rewriting resolver
+ns8=$ns.8		# another rewriting resolver
 
 HAVE_CORE=
 
@@ -824,6 +825,25 @@ EOF
   rndc_reload ns7 $ns7 policy2
   $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.${t}
   grep NXDOMAIN dig.out.${t} > /dev/null || setret "failed"
+
+  t=`expr $t + 1`
+  echo_i "checking that "add-soa no" at rpz zone level works (${t})"
+  $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.${t}
+  grep SOA dig.out.${t} > /dev/null && setret "failed"
+
+  if [ "$mode" = native ]; then
+    t=`expr $t + 1`
+    echo_i "checking that "add-soa yes" at response-policy level works (${t})"
+    $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 > dig.out.${t}
+    grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null || setret "failed"
+  fi
+
+  if [ "$mode" = native ]; then
+    t=`expr $t + 1`
+    echo_i "checking that "add-soa unset" works (${t})"
+    $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 > dig.out.${t}
+    grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null || setret "failed"
+  fi
 
   # dnsrps does not allow NS RRs in policy zones, so this check
   # with dnsrps results in no rewriting.

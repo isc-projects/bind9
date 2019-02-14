@@ -6227,12 +6227,15 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		/*
 		 * Add SOA record to additional section
 		 */
-		rresult = query_addsoa(qctx,
-			       dns_rdataset_isassociated(qctx->rdataset),
-			       DNS_SECTION_ADDITIONAL);
-		if (rresult != ISC_R_SUCCESS) {
-			QUERY_ERROR(qctx, result);
-			return (ISC_R_COMPLETE);
+		if (qctx->rpz_st->m.rpz->addsoa) {
+			bool override_ttl =
+				 dns_rdataset_isassociated(qctx->rdataset);
+			rresult = query_addsoa(qctx, override_ttl,
+					       DNS_SECTION_ADDITIONAL);
+			if (rresult != ISC_R_SUCCESS) {
+				QUERY_ERROR(qctx, result);
+				return (ISC_R_COMPLETE);
+			}
 		}
 
 		switch (qctx->rpz_st->m.policy) {
@@ -8375,10 +8378,12 @@ query_nxdomain(query_ctx_t *qctx, bool empty_wild) {
 	{
 		ttl = 0;
 	}
-	result = query_addsoa(qctx, ttl, section);
-	if (result != ISC_R_SUCCESS) {
-		QUERY_ERROR(qctx, result);
-		return (ns_query_done(qctx));
+	if (!qctx->nxrewrite || qctx->rpz_st->m.rpz->addsoa) {
+		result = query_addsoa(qctx, ttl, section);
+		if (result != ISC_R_SUCCESS) {
+			QUERY_ERROR(qctx, result);
+			return (ns_query_done(qctx));
+		}
 	}
 
 	if (WANTDNSSEC(qctx->client)) {
