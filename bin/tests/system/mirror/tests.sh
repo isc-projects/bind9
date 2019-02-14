@@ -61,6 +61,7 @@ echo_i "checking that an unsigned mirror zone is rejected ($n)"
 ret=0
 wait_for_transfer verify-unsigned
 $DIG $DIGOPTS @10.53.0.3 +norec verify-unsigned SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
 grep "${ORIGINAL_SERIAL}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpartpeek ns3/named.run | grep "verify-unsigned.*Zone contains no DNSSEC keys" > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-unsigned.*mirror zone is now in use" > /dev/null && ret=1
@@ -73,6 +74,7 @@ ret=0
 nextpartreset ns3/named.run
 wait_for_transfer verify-untrusted
 $DIG $DIGOPTS @10.53.0.3 +norec verify-untrusted SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
 grep "${ORIGINAL_SERIAL}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpartpeek ns3/named.run | grep "verify-untrusted.*No trusted KSK DNSKEY found" > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-untrusted.*mirror zone is now in use" > /dev/null && ret=1
@@ -85,6 +87,7 @@ ret=0
 nextpartreset ns3/named.run
 wait_for_transfer verify-axfr
 $DIG $DIGOPTS @10.53.0.3 +norec verify-axfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpartpeek ns3/named.run | grep "No correct RSASHA256 signature for verify-axfr SOA" > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-axfr.*mirror zone is now in use" > /dev/null && ret=1
@@ -100,6 +103,7 @@ reload_zone verify-axfr ${UPDATED_SERIAL_GOOD}
 $RNDCCMD 10.53.0.3 retransfer verify-axfr > /dev/null 2>&1
 wait_for_transfer verify-axfr
 $DIG $DIGOPTS @10.53.0.3 +norec verify-axfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-axfr.*mirror zone is now in use" > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -141,6 +145,9 @@ if [ `nextpartpeek ns3/named.run | grep "verify-ixfr.*got incremental response" 
 fi
 # Ensure the new, bad version of the zone was not accepted.
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+# A positive answer is expected as the original version of the "verify-ixfr"
+# zone should have been successfully verified.
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpartpeek ns3/named.run | grep "No correct RSASHA256 signature for verify-ixfr SOA" > /dev/null || ret=1
 # Despite the verification failure for this IXFR, this mirror zone should still
@@ -165,6 +172,7 @@ $RNDCCMD 10.53.0.3 refresh verify-ixfr > /dev/null 2>&1
 wait_for_transfer verify-ixfr
 # Ensure the new, good version of the zone was accepted.
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 # The log message announcing the mirror zone coming into effect should not have
 # been logged this time since the mirror zone in question is expected to
@@ -179,6 +187,7 @@ ret=0
 nextpartreset ns3/named.run
 wait_for_load verify-load ${UPDATED_SERIAL_BAD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-load SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpartpeek ns3/named.run | grep "No correct RSASHA256 signature for verify-load SOA" > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-load.*mirror zone is now in use" > /dev/null && ret=1
@@ -194,6 +203,7 @@ nextpart ns3/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-load ${UPDATED_SERIAL_GOOD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-load SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-load.*mirror zone is now in use" > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -220,6 +230,7 @@ nextpart ns3/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-ixfr ${UPDATED_SERIAL_BAD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
 grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpartpeek ns3/named.run | grep "No correct RSASHA256 signature for verify-ixfr SOA" > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-ixfr.*mirror zone is now in use" > /dev/null && ret=1
@@ -243,6 +254,7 @@ nextpart ns3/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mirror ns3
 wait_for_load verify-ixfr ${UPDATED_SERIAL_GOOD} ns3/named.run
 $DIG $DIGOPTS @10.53.0.3 +norec verify-ixfr SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
 grep "${UPDATED_SERIAL_GOOD}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-ixfr.*mirror zone is now in use" > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
