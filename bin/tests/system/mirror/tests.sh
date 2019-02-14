@@ -61,7 +61,7 @@ echo_i "checking that an unsigned mirror zone is rejected ($n)"
 ret=0
 wait_for_transfer verify-unsigned
 $DIG $DIGOPTS @10.53.0.3 +norec verify-unsigned SOA > dig.out.ns3.test$n 2>&1 || ret=1
-grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+grep "${ORIGINAL_SERIAL}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpartpeek ns3/named.run | grep "verify-unsigned.*Zone contains no DNSSEC keys" > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-unsigned.*mirror zone is now in use" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -73,7 +73,7 @@ ret=0
 nextpartreset ns3/named.run
 wait_for_transfer verify-untrusted
 $DIG $DIGOPTS @10.53.0.3 +norec verify-untrusted SOA > dig.out.ns3.test$n 2>&1 || ret=1
-grep "${UPDATED_SERIAL_BAD}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
+grep "${ORIGINAL_SERIAL}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
 nextpartpeek ns3/named.run | grep "verify-untrusted.*No trusted KSK DNSKEY found" > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-untrusted.*mirror zone is now in use" > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
