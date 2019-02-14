@@ -19816,7 +19816,7 @@ dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver) {
 
 	origin = dns_db_origin(db);
 	result = dns_zoneverify_dnssec(zone, db, version, origin, secroots,
-				       zone->mctx, false, false);
+				       zone->mctx, true, false);
 
  done:
 	if (secroots != NULL) {

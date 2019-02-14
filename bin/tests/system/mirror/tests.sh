@@ -92,8 +92,20 @@ wait_for_transfer verify-untrusted
 $DIG $DIGOPTS @10.53.0.3 +norec verify-untrusted SOA > dig.out.ns3.test$n 2>&1 || ret=1
 grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null || ret=1
 grep "${ORIGINAL_SERIAL}.*; serial" dig.out.ns3.test$n > /dev/null && ret=1
-nextpartpeek ns3/named.run | grep "verify-untrusted.*No trusted KSK DNSKEY found" > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "verify-untrusted.*No trusted DNSKEY found" > /dev/null || ret=1
 nextpartpeek ns3/named.run | grep "verify-untrusted.*mirror zone is now in use" > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that a mirror zone signed using a CSK without the SEP bit set is accepted ($n)"
+ret=0
+nextpartreset ns3/named.run
+wait_for_transfer verify-csk
+$DIG $DIGOPTS @10.53.0.3 +norec verify-csk SOA > dig.out.ns3.test$n 2>&1 || ret=1
+grep "ANSWER: 0" dig.out.ns3.test$n > /dev/null && ret=1
+grep "${ORIGINAL_SERIAL}.*; serial" dig.out.ns3.test$n > /dev/null || ret=1
+nextpartpeek ns3/named.run | grep "verify-csk.*mirror zone is now in use" > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

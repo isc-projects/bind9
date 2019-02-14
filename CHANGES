@@ -1,3 +1,6 @@
+5161.	[bug]		Do not require the SEP bit to be set for mirror zone
+			trust anchors. [GL #873]
+
 5160.	[contrib]	Added DNAME support to the DLZ LDAP schema. Also
 			fixed a compilation bug affecting several DLZ
 			modules. [GL #872]
