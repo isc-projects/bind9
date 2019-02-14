@@ -17,10 +17,20 @@ RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 # Wait until the transfer of the given zone to ns3 either completes successfully
 # or is aborted by a verification failure or a REFUSED response from the master.
+# Note that matching on any transfer status is deliberately avoided because some
+# checks performed by this test cause transfer attempts to end with the "IXFR
+# failed" status, which is followed by an AXFR retry and this test needs to
+# check what the result of the latter transfer attempt is.
 wait_for_transfer() {
 	zone=$1
 	for i in 1 2 3 4 5 6 7 8 9 10; do
-		nextpartpeek ns3/named.run | egrep "'$zone/IN'.*Transfer status: (success|verify failure|REFUSED)" > /dev/null && return
+		# Wait until a "freeing transfer context" message is logged
+		# after one of the transfer results we are looking for is
+		# logged.  This is needed to prevent races when checking for
+		# "mirror zone is now in use" messages.
+		nextpartpeek ns3/named.run | \
+			awk "matched; /'$zone\/IN'.*Transfer status: (success|verify failure|REFUSED)/ {matched=1}" | \
+			grep "'$zone/IN'.*freeing transfer context" > /dev/null && return
 		sleep 1
 	done
 	echo_i "exceeded time limit waiting for proof of '$zone' being transferred to appear in ns3/named.run"
@@ -34,7 +44,13 @@ wait_for_load() {
 	serial=$2
 	log=$3
 	for i in 1 2 3 4 5 6 7 8 9 10; do
-		nextpartpeek $log | egrep "$zone.*(loaded serial $serial|unable to load)" > /dev/null && return
+		# Wait until a "zone_postload: (...): done" message is logged
+		# after one of the loading-related messages we are looking for
+		# is logged.  This is needed to prevent races when checking for
+		# "mirror zone is now in use" messages.
+		nextpartpeek $log | \
+			awk "matched; /$zone.*(loaded serial $serial|unable to load)/ {matched=1}" | \
+			grep "zone_postload: zone $zone/IN: done" > /dev/null && return
 		sleep 1
 	done
 	echo_i "exceeded time limit waiting for proof of '$zone' being loaded to appear in $log"
@@ -114,23 +130,14 @@ echo_i "checking that an IXFR of an incorrectly signed mirror zone is rejected (
 nextpartreset ns3/named.run
 ret=0
 wait_for_transfer verify-ixfr
+# Sanity check: the initial, properly signed version of the zone should have
+# been announced as coming into effect.
+nextpart ns3/named.run | grep "verify-ixfr.*mirror zone is now in use" > /dev/null || ret=1
 # Make a copy of the original zone file for reuse in journal tests below.
 cp ns2/verify-ixfr.db.signed ns3/verify-journal.db.mirror
 # Wait 1 second so that the zone file timestamp changes and the subsequent
-# invocation of "rndc reload" triggers a zone reload.  This should also be way
-# more than enough for the log message announcing the mirror zone coming into
-# effect to appear in the log (see below).
+# invocation of "rndc reload" triggers a zone reload.
 sleep 1
-# Sanity check: the initial, properly signed version of the zone should have
-# been announced as coming into effect.  Note that we cannot check that
-# immediately after wait_for_transfer() as the latter might return before the
-# log message we are looking for here appears; we also cannot call nextpart()
-# after we update the zone on ns2 since there is a possibility of periodic
-# refreshes triggering an IXFR of the "verify-ixfr" zone before the "rndc
-# refresh" call below and that possibility needs to be handled as proper
-# behavior.  Thus, we need to look for the log message now.
-nextpart ns3/named.run | grep "verify-ixfr.*mirror zone is now in use" > /dev/null || ret=1
-# Update the "verify-ixfr" zone on ns2.
 cat ns2/verify-ixfr.db.bad.signed > ns2/verify-ixfr.db.signed
 reload_zone verify-ixfr ${UPDATED_SERIAL_BAD}
 # Make a copy of the bad zone journal for reuse in journal tests below.
