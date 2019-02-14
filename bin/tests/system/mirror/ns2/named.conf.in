@@ -55,6 +55,11 @@ zone "verify-axfr" {
 	file "verify-axfr.db.signed";
 };
 
+zone "verify-csk" {
+	type master;
+	file "verify-csk.db.signed";
+};
+
 zone "verify-ixfr" {
 	type master;
 	file "verify-ixfr.db.signed";
