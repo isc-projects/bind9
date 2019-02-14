@@ -1534,6 +1534,10 @@ maybe_free(dns_xfrin_ctx_t *xfr) {
 			dns_zone_log(xfr->zone, ISC_LOG_INFO,
 				     "mirror zone is now in use");
 		}
+		xfrin_log(xfr, ISC_LOG_DEBUG(99), "freeing transfer context");
+		/*
+		 * xfr->zone must not be detached before xfrin_log() is called.
+		 */
 		dns_zone_idetach(&xfr->zone);
 	}
 

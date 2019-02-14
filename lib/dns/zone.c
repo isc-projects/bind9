@@ -5069,6 +5069,8 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 		DNS_ZONE_CLRFLAG(zone->secure, DNS_ZONEFLG_LOADPENDING);
 	}
 
+	zone_debuglog(zone, "zone_postload", 99, "done");
+
 	return (result);
 }
 
