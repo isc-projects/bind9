@@ -10134,6 +10134,14 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 
 	  <para>
+	    The <command>add-soa</command> option controls whether the RPZ's
+	    SOA record is added to the additional section for traceback
+	    of changes from this zone or not.  This can be set at the
+	    individual policy zone level or at the response-policy level.
+	    The default is <literal>yes</literal>.
+	  </para>
+
+	  <para>
 	    Updates to RPZ zones are processed asynchronously; if there
 	    is more than one update pending they are bundled together.
 	    If an update to a RPZ zone (for example, via IXFR) happens less

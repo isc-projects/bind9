@@ -7,13 +7,5 @@
 ; See the COPYRIGHT file distributed with this work for additional
 ; information regarding copyright ownership.
 
-; RPZ test
-;   This basic file is copied to several zone files before being used.
-;   Its contents are also changed with nsupdate
-
-
-$TTL 300
-@					SOA	manual-update-rpz.  hostmaster.ns.manual-rpz-update. ( 1 3600 1200 604800 60 )
-					NS	ns.tld3.
-
-walled.tld2.manual-update-rpz.	 300	A	10.0.0.1
+.	120	NS	ns.
+ns.	120	A	10.53.0.1
