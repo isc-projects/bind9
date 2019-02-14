@@ -403,6 +403,14 @@ struct isc__socket {
 				active : 1,         /* currently active */
 				pktdscp : 1;	    /* per packet dscp */
 
+	/*
+	 * These two have to be in a separate int as we might access the
+	 * whole structure without a lock in isc_socket_open, and
+	 * we don't want accesses to other flags mess with that.
+	 */
+	unsigned int 		ignore_pending_recv : 1,
+				ignore_pending_send : 1;
+
 #ifdef ISC_PLATFORM_RECVOVERFLOW
 	unsigned char		overflow; /* used for MSG_TRUNC fake */
 #endif
@@ -2354,6 +2362,8 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	ISC_LIST_INIT(sock->connect_list);
 	sock->pending_recv = 0;
 	sock->pending_send = 0;
+	sock->ignore_pending_recv = 0;
+	sock->ignore_pending_send = 0;
 	sock->pending_accept = 0;
 	sock->listener = 0;
 	sock->connected = 0;
@@ -2375,10 +2385,10 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	 * Initialize readable and writable events.
 	 */
 	ISC_EVENT_INIT(&sock->readable_ev, sizeof(intev_t),
-		       ISC_EVENTATTR_NOPURGE, NULL, ISC_SOCKEVENT_INTR,
+		       0, NULL, ISC_SOCKEVENT_INTR,
 		       NULL, sock, sock, NULL, NULL);
 	ISC_EVENT_INIT(&sock->writable_ev, sizeof(intev_t),
-		       ISC_EVENTATTR_NOPURGE, NULL, ISC_SOCKEVENT_INTW,
+		       0, NULL, ISC_SOCKEVENT_INTW,
 		       NULL, sock, sock, NULL, NULL);
 
 	sock->common.magic = ISCAPI_SOCKET_MAGIC;
@@ -2409,6 +2419,8 @@ free_socket(isc__socket_t **socketp) {
 	INSIST(!sock->connecting);
 	INSIST(!sock->pending_recv);
 	INSIST(!sock->pending_send);
+	INSIST(!sock->ignore_pending_recv);
+	INSIST(!sock->ignore_pending_send);
 	INSIST(!sock->pending_accept);
 	INSIST(ISC_LIST_EMPTY(sock->recv_list));
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
@@ -3052,12 +3064,18 @@ isc__socket_open(isc_socket_t *sock0) {
 	REQUIRE(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
-	REQUIRE(sock->references == 1);
+	/*
+	 * Even though there should be only one reference to this socket
+	 * we might have a leftover internal_recv or internal_send task.
+	 * It won't do anything but reset ignore_pending_recv/send flags.
+	 */
+	REQUIRE(sock->references == 1U + sock->ignore_pending_recv +
+		sock->ignore_pending_send);
 	REQUIRE(sock->type != isc_sockettype_fdwatch);
 	UNLOCK(&sock->lock);
 	/*
-	 * We don't need to retain the lock hereafter, since no one else has
-	 * this socket.
+	 * We don't need to retain the lock hereafter, since no one (except
+	 * for the leftover internal_recv/internal_send) has this socket.
 	 */
 	REQUIRE(sock->fd == -1);
 
@@ -3255,7 +3273,9 @@ isc__socket_close(isc_socket_t *sock0) {
 
 	LOCK(&sock->lock);
 
-	REQUIRE(sock->references == 1);
+	/* There might be leftover events, we have to take it into account */
+	REQUIRE(sock->references == 1U + sock->ignore_pending_recv +
+		sock->ignore_pending_send);
 	REQUIRE(sock->type != isc_sockettype_fdwatch);
 	REQUIRE(sock->fd >= 0 && sock->fd < (int)sock->manager->maxsocks);
 
@@ -3772,9 +3792,6 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALRECV,
 		   "internal_recv: task %p got event %p", me, ev);
 
-	INSIST(sock->pending_recv == 1);
-	sock->pending_recv = 0;
-
 	INSIST(sock->references > 0);
 	sock->references--;  /* the internal event is done with this socket */
 	if (sock->references == 0) {
@@ -3782,6 +3799,15 @@ internal_recv(isc_task_t *me, isc_event_t *ev) {
 		destroy(&sock);
 		return;
 	}
+
+	if (sock->ignore_pending_recv == 1) { /* Socket was closed, bail */
+		sock->ignore_pending_recv = 0;
+		UNLOCK(&sock->lock);
+		return;
+	}
+
+	INSIST(sock->pending_recv == 1);
+	sock->pending_recv = 0;
 
 	/*
 	 * Try to do as much I/O as possible on this socket.  There are no
@@ -3836,12 +3862,6 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
-	socket_log(sock, NULL, IOEVENT,
-		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
-		   "internal_send: task %p got event %p", me, ev);
-
-	INSIST(sock->pending_send == 1);
-	sock->pending_send = 0;
 
 	INSIST(sock->references > 0);
 	sock->references--;  /* the internal event is done with this socket */
@@ -3850,6 +3870,19 @@ internal_send(isc_task_t *me, isc_event_t *ev) {
 		destroy(&sock);
 		return;
 	}
+
+	if (sock->ignore_pending_send == 1) { /* Socket was closed, bail */
+		sock->ignore_pending_send = 0;
+		UNLOCK(&sock->lock);
+		return;
+	}
+
+	socket_log(sock, NULL, IOEVENT,
+		   isc_msgcat, ISC_MSGSET_SOCKET, ISC_MSG_INTERNALSEND,
+		   "internal_send: task %p got event %p", me, ev);
+
+	INSIST(sock->pending_send == 1);
+	sock->pending_send = 0;
 
 	/*
 	 * Try to do as much I/O as possible on this socket.  There are no
@@ -6188,6 +6221,42 @@ isc__socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 		isc_task_t	       *current_task;
 
 		dev = ISC_LIST_HEAD(sock->recv_list);
+		if (dev != NULL && sock->pending_recv == 1) {
+			/*
+			 * We got an event from network event loop
+			 * and launched a task to do internal_recv.
+			 * We need to either kill it or make sure
+			 * it doesn't do anything.
+			 */
+			isc_task_t *sender;
+			isc_event_t *iev;
+
+			sender = dev->ev_sender;
+			iev = &sock->readable_ev;
+			sock->pending_recv = 0;
+			if (isc_task_purgeevent(sender, iev) == true) {
+				/*
+				 * Event was sent but the task was not yet
+				 * launched, we purged it. We increase
+				 * reference counter when sending the event,
+				 * now we need to decrease it. Since someone
+				 * called isc_socket_cancel we can be sure
+				 * that it's not the last reference to that
+				 * socket and we don't need to handle
+				 * destroy-on-last-reference here.
+				 */
+				INSIST(sock->references > 1);
+				sock->references--;
+			} else {
+				/*
+				 * internal_recv was already launched but it
+				 * didn't started the processing yet, probably
+				 * waiting on sock->lock. We have to tell it
+				 * to bail.
+				 */
+				sock->ignore_pending_recv = 1;
+			}
+		}
 
 		while (dev != NULL) {
 			current_task = dev->ev_sender;
@@ -6208,6 +6277,21 @@ isc__socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 		isc_task_t	       *current_task;
 
 		dev = ISC_LIST_HEAD(sock->send_list);
+		if (dev != NULL && sock->pending_send == 1) {
+			/* Same situation as with pending_recv above */
+			isc_task_t *sender;
+			isc_event_t *iev;
+
+			sender = dev->ev_sender;
+			iev = &sock->writable_ev;
+			sock->pending_send = 0;
+			if (isc_task_purgeevent(sender, iev) == true) {
+				INSIST(sock->references > 1);
+				sock->references--;
+			} else {
+				sock->ignore_pending_send = 1;
+			}
+		}
 
 		while (dev != NULL) {
 			current_task = dev->ev_sender;
