@@ -1,3 +1,6 @@
+5162.	[cleanup]	Improve dnssec-keymgr manual. Thanks to Tony Finch.
+			[GL !1518]
+
 5160.	[contrib]	Added DNAME support to the DLZ LDAP schema. Also
 			fixed a compilation bug affecting several DLZ
 			modules. [GL #872]
