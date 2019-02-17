@@ -765,6 +765,7 @@ ns_client_endrequest(ns_client_t *client) {
 	client->udpsize = 512;
 	client->extflags = 0;
 	client->ednsversion = -1;
+	dns_ecs_init(&client->ecs);
 	dns_message_reset(client->message, DNS_MESSAGE_INTENTPARSE);
 
 	if (client->recursionquota != NULL) {
