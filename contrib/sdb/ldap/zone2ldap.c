@@ -524,7 +524,7 @@ add_to_rr_list (char *dn, char *name, char *type,
       if (tmp->attrs[3]->mod_values == (char **)NULL)
 	 fatal("calloc");
 
-      sprintf (charttl, "%d", ttl);
+      sprintf (charttl, "%u", ttl);
       tmp->attrs[3]->mod_values[0] = strdup (charttl);
       tmp->attrs[3]->mod_values[1] = NULL;
 
@@ -687,7 +687,7 @@ build_dn_from_dc_list (char **dc_list, unsigned int ttl, int flag)
     if (flag == WI_SPEC)
     {
       if (x == (size - 2) && (strncmp (dc_list[x], "@", 1) == 0) && (ttl))
-	sprintf (tmp, "relativeDomainName=%s + dNSTTL=%d,", dc_list[x], ttl);
+	sprintf (tmp, "relativeDomainName=%s + dNSTTL=%u,", dc_list[x], ttl);
       else if (x == (size - 2))
 	      sprintf(tmp, "relativeDomainName=%s,",dc_list[x]);
       else
