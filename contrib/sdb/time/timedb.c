@@ -70,22 +70,30 @@ timedb_lookup(const char *zone, const char *name, void *dbdata,
 		 * remove the trailing newline.
 		 */
 		n = snprintf(buf, sizeof(buf), "\"%s", ctime(&now));
-		if (n < 0)
+		if (n <= 0) {
 			return (ISC_R_FAILURE);
+		}
+		if (n >= sizeof(buf) || buf[n - 1] != '\n') {
+			return (ISC_R_FAILURE);
+		}
 		buf[n - 1] = '\"';
 		result = dns_sdb_putrr(lookup, "txt", 1, buf);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (ISC_R_FAILURE);
+		}
 	} else if (strcmp(name, "clock") == 0) {
 		result = dns_sdb_putrr(lookup, "cname", 1, "time");
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (ISC_R_FAILURE);
+		}
 	} else if (strcmp(name, "current") == 0) {
 		result = dns_sdb_putrr(lookup, "dname", 1, "@");
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			return (ISC_R_FAILURE);
-	} else
+		}
+	} else {
 		return (ISC_R_NOTFOUND);
+	}
 
 	return (ISC_R_SUCCESS);
 }
