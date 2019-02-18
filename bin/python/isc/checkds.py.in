@@ -37,7 +37,11 @@ class SECRR:
         if not rrtext:
             raise Exception
 
-        fields = rrtext.decode('ascii').split()
+        # 'str' does not have decode method in python3
+        if type(rrtext) is not str:
+            fields = rrtext.decode('ascii').split()
+        else:
+            fields = rrtext.split()
         if len(fields) < 7:
             raise Exception
 
@@ -99,6 +103,8 @@ def check(zone, args, masterfile=None, lookaside=None):
     fp, _ = Popen(cmd, stdout=PIPE).communicate()
 
     for line in fp.splitlines():
+        if type(line) is not str:
+            line = line.decode('ascii')
         rrlist.append(SECRR(line, lookaside))
     rrlist = sorted(rrlist, key=lambda rr: (rr.keyid, rr.keyalg, rr.hashalg))
 
@@ -120,6 +126,8 @@ def check(zone, args, masterfile=None, lookaside=None):
         fp, _ = Popen(cmd, stdin=PIPE, stdout=PIPE).communicate(intods)
 
     for line in fp.splitlines():
+        if type(line) is not str:
+            line = line.decode('ascii')
         klist.append(SECRR(line, lookaside))
 
     if len(klist) < 1:
