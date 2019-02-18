@@ -621,17 +621,20 @@ getnodedata(dns_db_t *db, dns_name_t *name, bool create,
 			dns_name_t *wild;
 
 			dns_fixedname_init(&fixed);
-			if (i == dlabels)
+			if (i == dlabels - 1) {
 				wild = dns_wildcardname;
-			else {
-				wild = dns_fixedname_name(&fixed);
+			} else {
+				dns_name_t *fname;
+				fname = dns_fixedname_name(&fixed);
 				dns_name_getlabelsequence(name, i + 1,
 							  dlabels - i - 1,
-							  wild);
+							  fname);
 				result = dns_name_concatenate(dns_wildcardname,
-							      wild, wild, NULL);
+							      fname, fname,
+							      NULL);
 				if (result != ISC_R_SUCCESS)
 					return (result);
+				wild = fname;
 			}
 
 			isc_buffer_init(&b, wildstr, sizeof(wildstr));
