@@ -1635,6 +1635,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	INSIST(event->ev_type == ISC_SOCKEVENT_SENDDONE);
+	INSIST((xfr->client->attributes & NS_CLIENTATTR_TCP) != 0);
 
 	xfr->sends--;
 	INSIST(xfr->sends == 0);
