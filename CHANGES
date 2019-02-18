@@ -1,3 +1,6 @@
+5162.	[cleanup]	Improve dnssec-keymgr manual. Thanks to Tony Finch.
+			[GL !1518]
+
 5161.	[bug]		Do not require the SEP bit to be set for mirror zone
 			trust anchors. [GL #873]
 
