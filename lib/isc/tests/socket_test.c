@@ -838,6 +838,7 @@ udp_trunc_test(void **state) {
 	completion_init(&completion);
 	recv_trunc = false;
 	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
 	assert_true(completion.done);
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
