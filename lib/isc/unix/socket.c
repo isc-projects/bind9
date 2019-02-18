@@ -1219,9 +1219,6 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 		msg->msg_namelen = 0;
 	}
 
-	write_count = 0;
-	iovcount = 0;
-
 	write_count = dev->region.length - dev->n;
 	iov[0].iov_base = (void *)(dev->region.base + dev->n);
 	iov[0].iov_len = write_count;
@@ -1386,8 +1383,6 @@ build_msghdr_recv(isc__socket_t *sock, char *cmsgbuf, isc_socketevent_t *dev,
 		msg->msg_namelen = 0;
 		dev->address = sock->peer_address;
 	}
-
-	read_count = 0;
 
 	read_count = dev->region.length - dev->n;
 	iov[0].iov_base = (void *)(dev->region.base + dev->n);
