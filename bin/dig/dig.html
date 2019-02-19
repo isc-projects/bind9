@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2011, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2011, 2013-2019 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -106,9 +106,10 @@
 
     <p>
       It is possible to set per-user defaults for <span class="command"><strong>dig</strong></span> via
-      <code class="filename">${HOME}/.digrc</code>.  This file is read and
-      any options in it
-      are applied before the command line arguments.
+      <code class="filename">${HOME}/.digrc</code>. This file is read and any
+      options in it are applied before the command line arguments.
+      The <code class="option">-r</code> option disables this feature, for
+      scripts that need predictable behaviour.
     </p>
 
     <p>
@@ -272,6 +273,13 @@
 	  <p>
 	    The domain name to query. This is useful to distinguish
 	    the <em class="parameter"><code>name</code></em> from other arguments.
+	  </p>
+	</dd>
+<dt><span class="term">-r</span></dt>
+<dd>
+	  <p>
+	    Do not read options from <code class="filename">${HOME}/.digrc</code>.
+	    This is useful for scripts that need predictable behaviour.
 	  </p>
 	</dd>
 <dt><span class="term">-t <em class="replaceable"><code>type</code></em></span></dt>
@@ -631,7 +639,13 @@
 	    <p>
 	      Process [do not process] IDN domain names on input.
 	      This requires IDN SUPPORT to have been enabled at
-	      compile time.  The default is to process IDN input.
+	      compile time.
+	    </p>
+	    <p>
+	      The default is to process IDN input when standard output
+	      is a tty.  The IDN processing on input is disabled when
+	      dig output is redirected to files, pipes, and other
+	      non-tty file descriptors.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]idnout</code></span></dt>
@@ -639,7 +653,13 @@
 	    <p>
 	      Convert [do not convert] puny code on output.
 	      This requires IDN SUPPORT to have been enabled at
-	      compile time.  The default is to convert output.
+	      compile time.
+	    </p>
+	    <p>
+	      The default is to process puny code on output when
+	      standard output is a tty.  The puny code processing on
+	      output is disabled when dig output is redirected to
+	      files, pipes, and other non-tty file descriptors.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]ignore</code></span></dt>

@@ -169,6 +169,12 @@ feature:
   statements allow updating of subdomains based on a Kerberos or
   Active Directory machine principal.
 
+#### BIND 9.12.4
+
+BIND 9.12.4 is a maintenance release, and addresses the security
+vulnerabilities disclosed in CVE-2018-5744, CVE-2018-5745, and
+CVE-2019-6465.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX

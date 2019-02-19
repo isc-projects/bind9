@@ -1,3 +1,5 @@
+	--- 9.12.4rc1 released ---
+
 5166.	[port]		openbsd: Threads are now enabled by default. [GL !1548]
 
 5164.	[bug]		Correct errno to result translation in dlz filesystem
