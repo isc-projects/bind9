@@ -913,7 +913,7 @@ parse_args(int argc, char **argv) {
 	bool have_lookup = false;
 
 	usesearch = true;
-	for (argc--, argv++; argc > 0; argc--, argv++) {
+	for (argc--, argv++; argc > 0 && argv[0] != NULL; argc--, argv++) {
 		debug("main parsing %s", argv[0]);
 		if (argv[0][0] == '-') {
 			if (strncasecmp(argv[0], "-ver", 4) == 0) {
