@@ -19,7 +19,7 @@ rm -f dsset-. ns1/dsset-.
 rm -f ns1/zone.key
 rm -f ns*/managed-keys.bind*
 rm -f ns*/named.lock
-rm -f ns1/named.secroots ns1/root.db.signed* ns1/root.db.tmp
+rm -f ns1/named.secroots ns1/root.db.signed* ns1/root.db.tmp ns1/root.db.orig
 rm -f ns5/named.args
 rm -f ns7/view1.mkeys ns7/view2.mkeys
 rm -rf ns4/nope
