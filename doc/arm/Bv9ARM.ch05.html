@@ -1,6 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
 <!--
- - Copyright (C) 2000-2018 Internet Systems Consortium, Inc. ("ISC")
+ - Copyright (C) 2000-2019 Internet Systems Consortium, Inc. ("ISC")
  - 
  - This Source Code Form is subject to the terms of the Mozilla Public
  - License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8861,17 +8861,6 @@ example.com                 CNAME   rpz-tcp-only.
         </p>
 
         <p>
-          Applications that depend on a particular XML schema
-          can request
-          <a class="link" href="http://127.0.0.1:8888/xml/v2" target="_top">http://127.0.0.1:8888/xml/v2</a> for version 2
-          of the statistics XML schema or
-          <a class="link" href="http://127.0.0.1:8888/xml/v3" target="_top">http://127.0.0.1:8888/xml/v3</a> for version 3.
-          If the requested schema is supported by the server, then
-          it will respond; if not, it will return a "page not found"
-          error.
-        </p>
-
-        <p>
           Broken-out subsets of the statistics can be viewed at
           <a class="link" href="http://127.0.0.1:8888/xml/v3/status" target="_top">http://127.0.0.1:8888/xml/v3/status</a>
           (server uptime and last reconfiguration time),
@@ -11201,6 +11190,20 @@ view external {
 <tr>
 <td>
                       <p>
+                        AMTRELAY
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        Automatic Multicast Tunneling Relay
+                        discovery record.
+                        Work in progress draft-ietf-mboned-driad-amt-discovery.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
                         APL
                       </p>
                     </td>
@@ -12152,6 +12155,19 @@ view external {
                       <p>
                         Representation of X.25 network addresses.
                         Experimental.  Described in RFC 1183.
+                      </p>
+                    </td>
+</tr>
+<tr>
+<td>
+                      <p>
+                        ZONEMD
+                      </p>
+                    </td>
+<td>
+                      <p>
+                        Zone Message Digest.
+                        Work in progress draft-wessels-dns-zone-digest.
                       </p>
                     </td>
 </tr>
@@ -14787,6 +14803,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.12.3</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.12.4rc1</p>
 </body>
 </html>

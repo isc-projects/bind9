@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.12.3
+Release Notes for BIND Version 9.12.4rc1
 
 Introduction
 
@@ -35,6 +35,30 @@ Security Fixes
     multiple versions of a slave zone were transferred from a master in
     close succession. This flaw is disclosed in CVE-2018-5736. [GL #134]
 
+  * Code change #4964, intended to prevent double signatures when deleting
+    an inactive zone DNSKEY in some situations, introduced a new problem
+    during zone processing in which some delegation glue RRsets are
+    incorrectly identified as needing RRSIGs, which are then created for
+    them using the current active ZSK for the zone. In some, but not all
+    cases, the newly-signed RRsets are added to the zone's NSEC/NSEC3
+    chain, but incompletely -- this can result in a broken chain,
+    affecting validation of proof of nonexistence for records in the zone.
+    [GL #771]
+
+  * named could crash if it managed a DNSSEC security root with
+    managed-keys and the authoritative zone rolled the key to an algorithm
+    not supported by BIND 9. This flaw is disclosed in CVE-2018-5745. [GL
+    #780]
+
+  * named leaked memory when processing a request with multiple Key Tag
+    EDNS options present. ISC would like to thank Toshifumi Sakaguchi for
+    bringing this to our attention. This flaw is disclosed in
+    CVE-2018-5744. [GL #772]
+
+  * Zone transfer controls for writable DLZ zones were not effective as
+    the allowzonexfr method was not being called for such zones. This flaw
+    is disclosed in CVE-2019-6465. [GL #790]
+
 New Features
 
   * update-policy rules that otherwise ignore the name field now require
@@ -67,6 +91,12 @@ New Features
     name space at or below the machine names identified in the respective
     principals.
 
+  * The new configure option --enable-fips-mode can be used to make BIND
+    enable and enforce FIPS mode in the OpenSSL library. When compiled
+    with such option the BIND will refuse to run if FIPS mode can't be
+    enabled, thus this option must be only enabled for the systems where
+    FIPS mode is available.
+
 Feature Changes
 
   * BIND now can be compiled against libidn2 library to add IDNA2008
@@ -79,6 +109,12 @@ Feature Changes
   * The rndc nta command could not differentiate between views of the same
     name but different class; this has been corrected with the addition of
     a -class option. [GL #105]
+
+  * When compiled with IDN support, the dig and the nslookup commands now
+    disable IDN processing when the standard output is not a tty (e.g. not
+    used by human). The command line options +idnin and +idnout need to be
+    used to enable IDN processing when dig or nslookup is used from the
+    shell scripts.
 
 Bug Fixes
 

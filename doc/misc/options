@@ -89,9 +89,9 @@ options {
         bindkeys-file <quoted_string>;
         blackhole { <address_match_element>; ... };
         cache-file <quoted_string>;
-        catalog-zones { zone <quoted_string> [ default-masters [ port
-            <integer> ] [ dscp <integer> ] { ( <masters> | <ipv4_address> [
-            port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+        catalog-zones { zone <string> [ default-masters [ port <integer> ]
+            [ dscp <integer> ] { ( <masters> | <ipv4_address> [ port
+            <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
             <string> ]; ... } ] [ zone-directory <quoted_string> ] [
             in-memory <boolean> ] [ min-update-interval <integer> ]; ... };
         check-dup-records ( fail | warn | ignore );
@@ -303,14 +303,14 @@ options {
         resolver-retry-interval <integer>;
         response-padding { <address_match_element>; ... } block-size
             <integer>;
-        response-policy { zone <quoted_string> [ log <boolean> ] [
-            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
-            policy ( cname | disabled | drop | given | no-op | nodata |
-            nxdomain | passthru | tcp-only <quoted_string> ) ] [
-            recursive-only <boolean> ] [ nsip-enable <boolean> ] [
-            nsdname-enable <boolean> ]; ... } [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
-            min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
+        response-policy { zone <string> [ log <boolean> ] [ max-policy-ttl
+            <integer> ] [ min-update-interval <integer> ] [ policy ( cname
+            | disabled | drop | given | no-op | nodata | nxdomain |
+            passthru | tcp-only <quoted_string> ) ] [ recursive-only
+            <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable
+            <boolean> ]; ... } [ break-dnssec <boolean> ] [ max-policy-ttl
+            <integer> ] [ min-update-interval <integer> ] [ min-ns-dots
+            <integer> ] [ nsip-wait-recurse <boolean> ] [
             qname-wait-recurse <boolean> ] [ recursive-only <boolean> ] [
             nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [
             dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text>
@@ -454,9 +454,9 @@ view <string> [ <class> ] {
         auth-nxdomain <boolean>; // default changed
         auto-dnssec ( allow | maintain | off );
         cache-file <quoted_string>;
-        catalog-zones { zone <quoted_string> [ default-masters [ port
-            <integer> ] [ dscp <integer> ] { ( <masters> | <ipv4_address> [
-            port <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
+        catalog-zones { zone <string> [ default-masters [ port <integer> ]
+            [ dscp <integer> ] { ( <masters> | <ipv4_address> [ port
+            <integer> ] | <ipv6_address> [ port <integer> ] ) [ key
             <string> ]; ... } ] [ zone-directory <quoted_string> ] [
             in-memory <boolean> ] [ min-update-interval <integer> ]; ... };
         check-dup-records ( fail | warn | ignore );
@@ -628,14 +628,14 @@ view <string> [ <class> ] {
         resolver-retry-interval <integer>;
         response-padding { <address_match_element>; ... } block-size
             <integer>;
-        response-policy { zone <quoted_string> [ log <boolean> ] [
-            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
-            policy ( cname | disabled | drop | given | no-op | nodata |
-            nxdomain | passthru | tcp-only <quoted_string> ) ] [
-            recursive-only <boolean> ] [ nsip-enable <boolean> ] [
-            nsdname-enable <boolean> ]; ... } [ break-dnssec <boolean> ] [
-            max-policy-ttl <integer> ] [ min-update-interval <integer> ] [
-            min-ns-dots <integer> ] [ nsip-wait-recurse <boolean> ] [
+        response-policy { zone <string> [ log <boolean> ] [ max-policy-ttl
+            <integer> ] [ min-update-interval <integer> ] [ policy ( cname
+            | disabled | drop | given | no-op | nodata | nxdomain |
+            passthru | tcp-only <quoted_string> ) ] [ recursive-only
+            <boolean> ] [ nsip-enable <boolean> ] [ nsdname-enable
+            <boolean> ]; ... } [ break-dnssec <boolean> ] [ max-policy-ttl
+            <integer> ] [ min-update-interval <integer> ] [ min-ns-dots
+            <integer> ] [ nsip-wait-recurse <boolean> ] [
             qname-wait-recurse <boolean> ] [ recursive-only <boolean> ] [
             nsip-enable <boolean> ] [ nsdname-enable <boolean> ] [
             dnsrps-enable <boolean> ] [ dnsrps-options { <unspecified-text>
