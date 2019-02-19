@@ -1,3 +1,6 @@
+5164.	[bug]		Correct errno to result translation in dlz filesystem
+			modules. [GL #884]
+
 5163.	[cleanup]	Out-of-tree builds failed --enable-dnstap. [GL #836]
 
 5162.	[cleanup]	Improve dnssec-keymgr manual. Thanks to Tony Finch.

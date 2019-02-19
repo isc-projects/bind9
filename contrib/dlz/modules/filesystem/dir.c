@@ -57,15 +57,20 @@ dir_open(dir_t *dir, const char *dirname) {
 		case ENAMETOOLONG:
 		case EBADF:
 			result = ISC_R_INVALIDFILE;
+			break;
 		case ENOENT:
 			result = ISC_R_FILENOTFOUND;
+			break;
 		case EACCES:
 		case EPERM:
 			result = ISC_R_NOPERM;
+			break;
 		case ENOMEM:
 			result = ISC_R_NOMEMORY;
+			break;
 		default:
 			result = ISC_R_UNEXPECTED;
+			break;
 		}
 	}
 
