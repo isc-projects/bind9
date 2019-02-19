@@ -17,7 +17,7 @@ rm -f */managed-keys.bind* */named.secroots
 rm -f */managed.conf ns1/managed.key ns1/managed.key.id
 rm -f */named.memstats */named.run */named.run.prev
 rm -f dig.out* delv.out* rndc.out* signer.out*
-rm -f ns1/root.db.signed* ns1/root.db.tmp
+rm -f ns1/root.db.signed* ns1/root.db.tmp ns1/root.db.orig
 rm -f */named.conf
 rm -f ns5/named.args
 rm -f ns7/view1.mkeys ns7/view2.mkeys
