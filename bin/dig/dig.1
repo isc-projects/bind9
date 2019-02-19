@@ -1,4 +1,4 @@
-.\" Copyright (C) 2000-2011, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
+.\" Copyright (C) 2000-2011, 2013-2019 Internet Systems Consortium, Inc. ("ISC")
 .\" 
 .\" This Source Code Form is subject to the terms of the Mozilla Public
 .\" License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -74,7 +74,9 @@ will perform an NS query for "\&." (the root)\&.
 It is possible to set per\-user defaults for
 \fBdig\fR
 via
-${HOME}/\&.digrc\&. This file is read and any options in it are applied before the command line arguments\&.
+${HOME}/\&.digrc\&. This file is read and any options in it are applied before the command line arguments\&. The
+\fB\-r\fR
+option disables this feature, for scripts that need predictable behaviour\&.
 .PP
 The IN and CH class names overlap with the IN and CH top level domain names\&. Either use the
 \fB\-t\fR
@@ -206,6 +208,12 @@ Send the query to a non\-standard port on the server, instead of the default por
 The domain name to query\&. This is useful to distinguish the
 \fIname\fR
 from other arguments\&.
+.RE
+.PP
+\-r
+.RS 4
+Do not read options from
+${HOME}/\&.digrc\&. This is useful for scripts that need predictable behaviour\&.
 .RE
 .PP
 \-t \fItype\fR
@@ -468,12 +476,16 @@ option is enabled\&. If short form answers are requested, the default is not to 
 .PP
 \fB+[no]idnin\fR
 .RS 4
-Process [do not process] IDN domain names on input\&. This requires IDN SUPPORT to have been enabled at compile time\&. The default is to process IDN input\&.
+Process [do not process] IDN domain names on input\&. This requires IDN SUPPORT to have been enabled at compile time\&.
+.sp
+The default is to process IDN input when standard output is a tty\&. The IDN processing on input is disabled when dig output is redirected to files, pipes, and other non\-tty file descriptors\&.
 .RE
 .PP
 \fB+[no]idnout\fR
 .RS 4
-Convert [do not convert] puny code on output\&. This requires IDN SUPPORT to have been enabled at compile time\&. The default is to convert output\&.
+Convert [do not convert] puny code on output\&. This requires IDN SUPPORT to have been enabled at compile time\&.
+.sp
+The default is to process puny code on output when standard output is a tty\&. The puny code processing on output is disabled when dig output is redirected to files, pipes, and other non\-tty file descriptors\&.
 .RE
 .PP
 \fB+[no]ignore\fR
@@ -799,5 +811,5 @@ There are probably too many query options\&.
 \fBInternet Systems Consortium, Inc\&.\fR
 .SH "COPYRIGHT"
 .br
-Copyright \(co 2000-2011, 2013-2018 Internet Systems Consortium, Inc. ("ISC")
+Copyright \(co 2000-2011, 2013-2019 Internet Systems Consortium, Inc. ("ISC")
 .br
