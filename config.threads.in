@@ -39,10 +39,12 @@ case $host in
 	use_threads=false ;;
 *-netbsd*)
 	use_threads=true ;;
-*-openbsd*)
-	# OpenBSD users have reported that named dumps core on
+[*-openbsd[12345].*]|[*-openbsd6.[01]])
+	# OpenBSD users reported that named dumps core on
 	# startup when built with threads.
 	use_threads=false ;;
+*-openbsd*)
+	use_threads=true ;;
 [*-freebsd[1234567].*])
 	# Threads are broken at least up to FreeBSD 4.11.
 	# FreeBSD 5, 6 and 7 we have never officially supported threads
