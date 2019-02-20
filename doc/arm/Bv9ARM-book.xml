@@ -11379,9 +11379,9 @@ view "external" {
 	      <tgroup cols="2" colsep="0" rowsep="0" tgroupstyle="3Level-table">
 		<!--colspec colname="1" colnum="1" colsep="0" colwidth="1.108in"/-->
 		<!--colspec colname="2" colnum="2" colsep="0" colwidth="4.017in"/-->
-		<colspec colname="1" colnum="1" colsep="0"/>
-		<colspec colname="2" colnum="2" colsep="0" colwidth="4.017in"/>
-		<tbody>
+		<colspec colname="1" colnum="1" colsep="0" colwidth="*"/>
+		<colspec colname="2" colnum="2" colsep="0" colwidth="4*"/>
+		<tbody valign="top">
 		  <row rowsep="0">
 		    <entry colname="1">
 		      <para>
