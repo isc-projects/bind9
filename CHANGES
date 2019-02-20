@@ -1,3 +1,6 @@
+5165.	[contrib]	Removed SDB drivers from contrib; they're obsolete.
+			[GL #428]
+
 5164.	[bug]		Correct errno to result translation in dlz filesystem
 			modules. [GL #884]
 
