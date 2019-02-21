@@ -27,8 +27,6 @@
 5157.	[bug]		Nslookup now errors out if there are extra command
 			line arguments. [GL #207]
 
-	--- 9.13.6 released ---
-
 5156.	[doc]		Extended and refined the section of the ARM describing
 			mirror zones. [GL #774]
 
