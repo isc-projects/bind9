@@ -6568,6 +6568,7 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_dbversion_t *version = NULL;
 	dns_zone_t *zone = NULL;
 	bool is_zone;
+	unsigned int labels;
 	unsigned int options;
 
 	CTRACE(ISC_LOG_DEBUG(3), "redirect2");
@@ -6610,12 +6611,13 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	}
 
 	redirectname = dns_fixedname_initname(&fixedredirect);
-	if (dns_name_countlabels(name) > 1U) {
+	labels = dns_name_countlabels(client->query.qname);
+	if (labels > 1U) {
 		dns_name_t prefix;
-		unsigned int labels = dns_name_countlabels(name) - 1;
 
 		dns_name_init(&prefix, NULL);
-		dns_name_getlabelsequence(name, 0, labels, &prefix);
+		dns_name_getlabelsequence(client->query.qname, 0, labels - 1,
+					  &prefix);
 		result = dns_name_concatenate(&prefix,
 					      client->view->redirectzone,
 					      redirectname, NULL);
