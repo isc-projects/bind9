@@ -2,7 +2,7 @@
 # configure.
 #
 PRODUCT=BIND
-DESCRIPTION="(Development Release)"
+DESCRIPTION="(Stable Release)"
 MAJORVER=9
 MINORVER=13
 PATCHVER=6
