@@ -36,13 +36,13 @@
 
 #include "isctest.h"
 
+/* Set to true (or use -v option) for verbose output */
+static bool verbose = false;
+
 /*
  * This entire test requires threads.
  */
 #ifdef ISC_PLATFORM_USETHREADS
-
-/* Set to true (or use -v option) for verbose output */
-static bool verbose = false;
 
 #define	FUDGE_SECONDS	0	     /* in absence of clock_getres() */
 #define	FUDGE_NANOSECONDS	500000000    /* in absence of clock_getres() */
@@ -569,6 +569,7 @@ purge(void **state) {
 	isc_task_destroy(&task2);
 	DESTROYLOCK(&mx);
 }
+#endif
 
 int
 main(int argc, char **argv) {
@@ -595,7 +596,6 @@ main(int argc, char **argv) {
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
-#endif
 
 #else /* HAVE_CMOCKA */
 
