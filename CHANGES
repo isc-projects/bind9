@@ -1,3 +1,5 @@
+	--- 9.13.7 released ---
+
 5165.	[contrib]	Removed SDB drivers from contrib; they're obsolete.
 			[GL #428]
 
@@ -24,6 +26,18 @@
 
 5157.	[bug]		Nslookup now errors out if there are extra command
 			line arguments. [GL #207]
+
+5141.	[security]	Zone transfer controls for writable DLZ zones were
+			not effective as the allowzonexfr method was not being
+			called for such zones. (CVE-2019-6465) [GL #790]
+
+5118.	[security]	Named could crash if it is managing a key with
+			`managed-keys` and the authoritative zone is rolling
+			the key to an unsupported algorithm. (CVE-2018-5745)
+			[GL #780]
+
+5110.	[security]	Named leaked memory if there were multiple Key Tag
+			EDNS options present. (CVE-2018-5744) [GL #772]
 
 	--- 9.13.6 released ---
 
@@ -84,10 +98,6 @@
 			"--disable-rpz-nsdname" options. "nsip-enable"
 			and "nsdname-enable" both now default to yes,
 			regardless of compile-time settings. [GL #824]
-
-5141.	[security]	Zone transfer controls for writable DLZ zones were
-			not effective as the allowzonexfr method was not being
-			called for such zones. (CVE-2019-6465) [GL #790]
 
 5140.	[bug]		Don't immediately mark existing keys as inactive and
 			deleted when running dnssec-keymgr for the first
@@ -159,11 +169,6 @@
 
 5119.	[placeholder]
 
-5118.	[security]	Named could crash if it is managing a key with
-			`managed-keys` and the authoritative zone is rolling
-			the key to an unsupported algorithm. (CVE-2018-5745)
-			[GL #780]
-
 5117.	[placeholder]
 
 5116.	[bug]		Named/named-checkconf triggered a assertion when
@@ -183,9 +188,6 @@
 
 5111.	[bug]		Occluded DNSKEY records could make it into the
 			delegating NSEC/NSEC3 bitmap. [GL #742]
-
-5110.	[security]	Named leaked memory if there were multiple Key Tag
-			EDNS options present. (CVE-2018-5744) [GL #772]
 
 5109.	[cleanup]	Remove support for RSAMD5 algorithm. [GL #628]
 
