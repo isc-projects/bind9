@@ -58,11 +58,10 @@
   <refsynopsisdiv>
     <cmdsynopsis sepchar=" ">
       <command>dnssec-keygen</command>
-      <arg choice="opt" rep="norepeat"><option>-a <replaceable class="parameter">algorithm</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-b <replaceable class="parameter">keysize</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-n <replaceable class="parameter">nametype</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-3</option></arg>
       <arg choice="opt" rep="norepeat"><option>-A <replaceable class="parameter">date/offset</replaceable></option></arg>
+      <arg rep="norepeat"><option>-a <replaceable class="parameter">algorithm</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-b <replaceable class="parameter">keysize</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-C</option></arg>
       <arg choice="opt" rep="norepeat"><option>-c <replaceable class="parameter">class</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-D <replaceable class="parameter">date/offset</replaceable></option></arg>
@@ -77,6 +76,7 @@
       <arg choice="opt" rep="norepeat"><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-k</option></arg>
       <arg choice="opt" rep="norepeat"><option>-L <replaceable class="parameter">ttl</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-n <replaceable class="parameter">nametype</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P sync <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-p <replaceable class="parameter">protocol</replaceable></option></arg>
@@ -88,7 +88,6 @@
       <arg choice="opt" rep="norepeat"><option>-t <replaceable class="parameter">type</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-V</option></arg>
       <arg choice="opt" rep="norepeat"><option>-v <replaceable class="parameter">level</replaceable></option></arg>
-      <arg choice="opt" rep="norepeat"><option>-z</option></arg>
       <arg choice="req" rep="norepeat">name</arg>
     </cmdsynopsis>
   </refsynopsisdiv>
@@ -112,6 +111,20 @@
 
 
     <variablelist>
+
+      <varlistentry>
+	<term>-3</term>
+	<listitem>
+	  <para>
+	    Use an NSEC3-capable algorithm to generate a DNSSEC key.
+	    If this option is used with an algorithm that has both
+	    NSEC and NSEC3 versions, then the NSEC3 version will be
+	    used; for example, <command>dnssec-keygen -3a RSASHA1</command>
+	    specifies the NSEC3RSASHA1 algorithm.
+	  </para>
+	</listitem>
+      </varlistentry>
+
       <varlistentry>
 	<term>-a <replaceable class="parameter">algorithm</replaceable></term>
 	<listitem>
@@ -169,44 +182,15 @@
       </varlistentry>
 
       <varlistentry>
-	<term>-n <replaceable class="parameter">nametype</replaceable></term>
-	<listitem>
-	  <para>
-	    Specifies the owner type of the key.  The value of
-	    <option>nametype</option> must either be ZONE (for a DNSSEC
-	    zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated with
-	    a host (KEY)),
-	    USER (for a key associated with a user(KEY)) or OTHER (DNSKEY).
-	    These values are case insensitive.  Defaults to ZONE for DNSKEY
-	    generation.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>-3</term>
-	<listitem>
-	  <para>
-	    Use an NSEC3-capable algorithm to generate a DNSSEC key.
-	    If this option is used and no algorithm is explicitly
-	    set on the command line, NSEC3RSASHA1 will be used by
-	    default. Note that RSASHA256, RSASHA512, ECCGOST,
-	    ECDSAP256SHA256, ECDSAP384SHA384, ED25519 and ED448
-	    algorithms are NSEC3-capable.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
 	<term>-C</term>
 	<listitem>
 	  <para>
-	    Compatibility mode:  generates an old-style key, without
-	    any metadata.  By default, <command>dnssec-keygen</command>
-	    will include the key's creation date in the metadata stored
-	    with the private key, and other dates may be set there as well
-	    (publication date, activation date, etc).  Keys that include
-	    this data may be incompatible with older versions of BIND; the
+	    Compatibility mode: generates an old-style key, without any
+	    timing metadata. By default, <command>dnssec-keygen</command>
+	    will include the key's creation date in the metadata stored with
+	    the private key, and other dates may be set there as well
+	    (publication date, activation date, etc). Keys that include this
+	    data may be incompatible with older versions of BIND; the
 	    <option>-C</option> option suppresses them.
 	  </para>
 	</listitem>
@@ -316,13 +300,27 @@
       </varlistentry>
 
       <varlistentry>
+	<term>-n <replaceable class="parameter">nametype</replaceable></term>
+	<listitem>
+	  <para>
+	    Specifies the owner type of the key.  The value of
+	    <option>nametype</option> must either be ZONE (for a DNSSEC
+	    zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated
+	    with a host (KEY)), USER (for a key associated with a
+	    user(KEY)) or OTHER (DNSKEY).  These values are case
+	    insensitive.  Defaults to ZONE for DNSKEY generation.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
 	<term>-p <replaceable class="parameter">protocol</replaceable></term>
 	<listitem>
 	  <para>
-	    Sets the protocol value for the generated key.  The protocol
-	    is a number between 0 and 255.  The default is 3 (DNSSEC).
-	    Other possible values for this argument are listed in
-	    RFC 2535 and its successors.
+	    Sets the protocol value for the generated key, for use
+	    with <option>-T KEY</option>. The protocol is a number between 0
+	    and 255. The default is 3 (DNSSEC). Other possible values for
+	    this argument are listed in RFC 2535 and its successors.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -409,19 +407,11 @@
 	<term>-t <replaceable class="parameter">type</replaceable></term>
 	<listitem>
 	  <para>
-	    Indicates the use of the key.  <option>type</option> must be
-	    one of AUTHCONF, NOAUTHCONF, NOAUTH, or NOCONF.  The default
-	    is AUTHCONF.  AUTH refers to the ability to authenticate
-	    data, and CONF the ability to encrypt data.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>-v <replaceable class="parameter">level</replaceable></term>
-	<listitem>
-	  <para>
-	    Sets the debugging level.
+	    Indicates the use of the key, for use with <option>-T
+	    KEY</option>. <option>type</option> must be one of AUTHCONF,
+	    NOAUTHCONF, NOAUTH, or NOCONF. The default is AUTHCONF. AUTH
+	    refers to the ability to authenticate data, and CONF the ability
+	    to encrypt data.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -431,6 +421,15 @@
 	<listitem>
 	  <para>
 	    Prints version information.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-v <replaceable class="parameter">level</replaceable></term>
+	<listitem>
+	  <para>
+	    Sets the debugging level.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -636,6 +635,12 @@
       the files <filename>Kexample.com.+003+26160.key</filename>
       and
       <filename>Kexample.com.+003+26160.private</filename>.
+    </para>
+    <para>
+      To generate a matching key-signing key, issue the command:
+    </para>
+    <para>
+      <userinput>dnssec-keygen -a DSA -b 768 -n ZONE -f KSK example.com</userinput>
     </para>
   </refsection>
 
