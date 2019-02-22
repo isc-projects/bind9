@@ -23,7 +23,7 @@ offer support on a "best effort" basis for some.
 
 ### Regularly tested platforms
 
-As of Jan 2019, BIND 9.13 is fully supported and regularly tested on the
+As of Feb 2019, BIND 9.15 is fully supported and regularly tested on the
 following systems:
 
 * Debian 8, 9, 10
@@ -60,7 +60,7 @@ Server 2012 R2, none of these are tested regularly by ISC.
 
 ## Unsupported platforms
 
-These are platforms on which BIND 9.13 is known *not* to build or run:
+These are platforms on which BIND 9.15 is known *not* to build or run:
 
 * Platforms without at least OpenSSL 1.0.2
 * Windows 10 / x86
