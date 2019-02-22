@@ -12,6 +12,11 @@
 			response-policy zone's SOA record should be added
 			to the additional section (add-soa yes/no). [GL #865]
 
+5167.	[bug]		nxdomain-redirect could sometimes lookup the wrong
+			redirect name. [GL #892]
+
+	--- 9.14.0rc2 released ---
+
 5176.	[tests]		Remove a dependency on libxml in statschannel system
 			test. [GL #926]
 
