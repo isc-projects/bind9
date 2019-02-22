@@ -144,15 +144,14 @@ struct dns_rpz_zone {
 	isc_ht_t	 *nodes;	/* entries in zone */
 	dns_rpz_zones_t	 *rpzs;		/* owner */
 	isc_time_t	 lastupdated;	/* last time the zone was processed */
-	bool	 updatepending;	/* there is an update pending/waiting */
-	bool	 updaterunning;	/* there is an update running */
+	bool	 	 updatepending;	/* there is an update pending/waiting */
+	bool	 	 updaterunning;	/* there is an update running */
 	dns_db_t	 *db;		/* zones database */
 	dns_dbversion_t	 *dbversion;	/* version we will be updating to */
 	dns_db_t	 *updb;		/* zones database we're working on */
 	dns_dbversion_t	 *updbversion;	/* version we're currently working on */
 	dns_dbiterator_t *updbit;	/* iterator to use when updating */
 	isc_ht_t	 *newnodes;	/* entries in zone being updated */
-	bool	 db_registered;	/* is the notify event registered? */
 	isc_timer_t	 *updatetimer;
 	isc_event_t	 updateevent;
 };
