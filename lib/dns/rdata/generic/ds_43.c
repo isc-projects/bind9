@@ -174,7 +174,7 @@ generic_fromwire_ds(ARGS_FROMWIRE) {
 	/*
 	 * Check digest lengths if we know them.
 	 */
-	if (sr.length < 4 ||
+	if (sr.length < 5 ||
 	    (sr.base[3] == DNS_DSDIGEST_SHA1 &&
 	     sr.length < 4 + ISC_SHA1_DIGESTLENGTH) ||
 	    (sr.base[3] == DNS_DSDIGEST_SHA256 &&
