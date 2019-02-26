@@ -232,6 +232,12 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
 	result = dns_rdata_totext(&rdata, NULL, &target);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	/*
+	 * Ensure buf_totext is properly NUL terminated as dns_rdata_totext()
+	 * may attempt different output formats writing into the apparently
+	 * unused part of the buffer.
+	 */
+	isc_buffer_putuint8(&target, 0);
 	assert_string_equal(buf_totext, text_ok->text_out);
 
 	/*
@@ -248,6 +254,49 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 * type-specific struct.
 	 */
 	check_struct_conversions(&rdata, structsize);
+}
+
+/*
+ * Test whether converting rdata to text form and then parsing the result of
+ * that conversion again results in the same uncompressed wire form.  This
+ * checks whether totext_*() output is parsable by fromtext_*() for given RR
+ * class and type.
+ *
+ * This function is called for every input RDATA which is successfully parsed
+ * by check_wire_ok_single() and whose type is not a meta-type.
+ */
+static void
+check_text_conversions(dns_rdata_t *rdata) {
+	char buf_totext[1024] = { 0 };
+	unsigned char buf_fromtext[1024];
+	isc_result_t result;
+	isc_buffer_t target;
+	dns_rdata_t rdata2 = DNS_RDATA_INIT;
+
+	/*
+	 * Convert uncompressed wire form RDATA into text form.  This
+	 * conversion must succeed since input RDATA was successfully
+	 * parsed by check_wire_ok_single().
+	 */
+	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
+	result = dns_rdata_totext(rdata, NULL, &target);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	/*
+	 * Ensure buf_totext is properly NUL terminated as dns_rdata_totext()
+	 * may attempt different output formats writing into the apparently
+	 * unused part of the buffer.
+	 */
+	isc_buffer_putuint8(&target, 0);
+
+	/*
+	 * Try parsing text form RDATA output by dns_rdata_totext() again.
+	 */
+	result = dns_test_rdatafromstring(&rdata2, rdata->rdclass, rdata->type,
+					  buf_fromtext, sizeof(buf_fromtext),
+					  buf_totext, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(rdata2.length, rdata->length);
+	assert_memory_equal(buf_fromtext, rdata->data, rdata->length);
 }
 
 /*
@@ -278,9 +327,15 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 	/*
 	 * If data was parsed correctly, perform two-way conversion checks
 	 * between uncompressed wire form and type-specific struct.
+	 *
+	 * If the RR type is not a meta-type, additionally perform two-way
+	 * conversion checks between uncompressed wire form and text form.
 	 */
 	if (result == ISC_R_SUCCESS) {
 		check_struct_conversions(&rdata, structsize);
+		if (!dns_rdatatype_ismeta(rdata.type)) {
+			check_text_conversions(&rdata);
+		}
 	}
 }
 
