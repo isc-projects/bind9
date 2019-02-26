@@ -55,6 +55,12 @@ isc___errno2result(int posixerrno, bool dolog,
 	case ENFILE:
 	case EMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
+#ifdef EDQUOT
+	case EDQUOT:
+		return (ISC_R_DISCQUOTA);
+#endif
+	case ENOSPC:
+		return (ISC_R_DISCFULL);
 #ifdef EOVERFLOW
 	case EOVERFLOW:
 		return (ISC_R_RANGE);
