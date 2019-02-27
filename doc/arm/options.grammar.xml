@@ -41,9 +41,9 @@
 	<command>bindkeys-file</command> <replaceable>quoted_string</replaceable>;
 	<command>blackhole</command> { <replaceable>address_match_element</replaceable>; ... };
 	<command>cache-file</command> <replaceable>quoted_string</replaceable>;
-	<command>catalog-zones</command> { zone <replaceable>quoted_string</replaceable> [ default-masters [ port
-	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [
-	    <command>port</command> <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key
+	<command>catalog-zones</command> { zone <replaceable>string</replaceable> [ default-masters [ port <replaceable>integer</replaceable> ]
+	    [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key
 	    <replaceable>string</replaceable> ]; ... } ] [ zone-directory <replaceable>quoted_string</replaceable> ] [
 	    <command>in-memory</command> <replaceable>boolean</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ]; ... };
 	<command>check-dup-records</command> ( fail | warn | ignore );
@@ -238,14 +238,14 @@
 	<command>resolver-retry-interval</command> <replaceable>integer</replaceable>;
 	<command>response-padding</command> { <replaceable>address_match_element</replaceable>; ... } block-size
 	    <replaceable>integer</replaceable>;
-	<command>response-policy</command> { zone <replaceable>quoted_string</replaceable> [ log <replaceable>boolean</replaceable> ] [
-	    <command>max-policy-ttl</command> <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
-	    <command>policy</command> ( cname | disabled | drop | given | no-op | nodata |
-	    <command>nxdomain</command> | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
-	    <command>recursive-only</command> <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
-	    <command>nsdname-enable</command> <replaceable>boolean</replaceable> ]; ... } [ break-dnssec <replaceable>boolean</replaceable> ] [
-	    <command>max-policy-ttl</command> <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
-	    <command>min-ns-dots</command> <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
+	<command>response-policy</command> { zone <replaceable>string</replaceable> [ log <replaceable>boolean</replaceable> ] [ max-policy-ttl
+	    <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [ policy ( cname
+	    | disabled | drop | given | no-op | nodata | nxdomain |
+	    <command>passthru</command> | tcp-only <replaceable>quoted_string</replaceable> ) ] [ recursive-only
+	    <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable
+	    <replaceable>boolean</replaceable> ]; ... } [ break-dnssec <replaceable>boolean</replaceable> ] [ max-policy-ttl
+	    <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [ min-ns-dots
+	    <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
 	    <command>qname-wait-recurse</command> <replaceable>boolean</replaceable> ] [ recursive-only <replaceable>boolean</replaceable> ] [
 	    <command>nsip-enable</command> <replaceable>boolean</replaceable> ] [ nsdname-enable <replaceable>boolean</replaceable> ] [
 	    <command>dnsrps-enable</command> <replaceable>boolean</replaceable> ] [ dnsrps-options { <replaceable>unspecified-text</replaceable>

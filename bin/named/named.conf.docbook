@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2018-06-21</date>
+    <date>2019-02-20</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -203,9 +203,9 @@ options {
 	bindkeys-file <replaceable>quoted_string</replaceable>;
 	blackhole { <replaceable>address_match_element</replaceable>; ... };
 	cache-file <replaceable>quoted_string</replaceable>;
-	catalog-zones { zone <replaceable>quoted_string</replaceable> [ default-masters [ port
-	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [
-	    port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key
+	catalog-zones { zone <replaceable>string</replaceable> [ default-masters [ port <replaceable>integer</replaceable> ]
+	    [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key
 	    <replaceable>string</replaceable> ]; ... } ] [ zone-directory <replaceable>quoted_string</replaceable> ] [
 	    in-memory <replaceable>boolean</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ]; ... };
 	check-dup-records ( fail | warn | ignore );
@@ -400,14 +400,14 @@ options {
 	resolver-retry-interval <replaceable>integer</replaceable>;
 	response-padding { <replaceable>address_match_element</replaceable>; ... } block-size
 	    <replaceable>integer</replaceable>;
-	response-policy { zone <replaceable>quoted_string</replaceable> [ log <replaceable>boolean</replaceable> ] [
-	    max-policy-ttl <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
-	    policy ( cname | disabled | drop | given | no-op | nodata |
-	    nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
-	    recursive-only <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
-	    nsdname-enable <replaceable>boolean</replaceable> ]; ... } [ break-dnssec <replaceable>boolean</replaceable> ] [
-	    max-policy-ttl <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
-	    min-ns-dots <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
+	response-policy { zone <replaceable>string</replaceable> [ log <replaceable>boolean</replaceable> ] [ max-policy-ttl
+	    <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [ policy ( cname
+	    | disabled | drop | given | no-op | nodata | nxdomain |
+	    passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [ recursive-only
+	    <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable
+	    <replaceable>boolean</replaceable> ]; ... } [ break-dnssec <replaceable>boolean</replaceable> ] [ max-policy-ttl
+	    <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [ min-ns-dots
+	    <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
 	    qname-wait-recurse <replaceable>boolean</replaceable> ] [ recursive-only <replaceable>boolean</replaceable> ] [
 	    nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable <replaceable>boolean</replaceable> ] [
 	    dnsrps-enable <replaceable>boolean</replaceable> ] [ dnsrps-options { <replaceable>unspecified-text</replaceable>
@@ -554,9 +554,9 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	auth-nxdomain <replaceable>boolean</replaceable>; // default changed
 	auto-dnssec ( allow | maintain | off );
 	cache-file <replaceable>quoted_string</replaceable>;
-	catalog-zones { zone <replaceable>quoted_string</replaceable> [ default-masters [ port
-	    <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [
-	    port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key
+	catalog-zones { zone <replaceable>string</replaceable> [ default-masters [ port <replaceable>integer</replaceable> ]
+	    [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [ port
+	    <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [ port <replaceable>integer</replaceable> ] ) [ key
 	    <replaceable>string</replaceable> ]; ... } ] [ zone-directory <replaceable>quoted_string</replaceable> ] [
 	    in-memory <replaceable>boolean</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ]; ... };
 	check-dup-records ( fail | warn | ignore );
@@ -718,14 +718,14 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	resolver-retry-interval <replaceable>integer</replaceable>;
 	response-padding { <replaceable>address_match_element</replaceable>; ... } block-size
 	    <replaceable>integer</replaceable>;
-	response-policy { zone <replaceable>quoted_string</replaceable> [ log <replaceable>boolean</replaceable> ] [
-	    max-policy-ttl <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
-	    policy ( cname | disabled | drop | given | no-op | nodata |
-	    nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
-	    recursive-only <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
-	    nsdname-enable <replaceable>boolean</replaceable> ]; ... } [ break-dnssec <replaceable>boolean</replaceable> ] [
-	    max-policy-ttl <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [
-	    min-ns-dots <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
+	response-policy { zone <replaceable>string</replaceable> [ log <replaceable>boolean</replaceable> ] [ max-policy-ttl
+	    <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [ policy ( cname
+	    | disabled | drop | given | no-op | nodata | nxdomain |
+	    passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [ recursive-only
+	    <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable
+	    <replaceable>boolean</replaceable> ]; ... } [ break-dnssec <replaceable>boolean</replaceable> ] [ max-policy-ttl
+	    <replaceable>integer</replaceable> ] [ min-update-interval <replaceable>integer</replaceable> ] [ min-ns-dots
+	    <replaceable>integer</replaceable> ] [ nsip-wait-recurse <replaceable>boolean</replaceable> ] [
 	    qname-wait-recurse <replaceable>boolean</replaceable> ] [ recursive-only <replaceable>boolean</replaceable> ] [
 	    nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable <replaceable>boolean</replaceable> ] [
 	    dnsrps-enable <replaceable>boolean</replaceable> ] [ dnsrps-options { <replaceable>unspecified-text</replaceable>
