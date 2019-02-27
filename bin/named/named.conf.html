@@ -209,9 +209,9 @@ options {<br>
 	bindkeys-file <em class="replaceable"><code>quoted_string</code></em>;<br>
 	blackhole { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
 	cache-file <em class="replaceable"><code>quoted_string</code></em>;<br>
-	catalog-zones { zone <em class="replaceable"><code>quoted_string</code></em> [ default-masters [ port<br>
-	    <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<br>
-	    port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key<br>
+	catalog-zones { zone <em class="replaceable"><code>string</code></em> [ default-masters [ port <em class="replaceable"><code>integer</code></em> ]<br>
+	    [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port<br>
+	    <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key<br>
 	    <em class="replaceable"><code>string</code></em> ]; ... } ] [ zone-directory <em class="replaceable"><code>quoted_string</code></em> ] [<br>
 	    in-memory <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ]; ... };<br>
 	check-dup-records ( fail | warn | ignore );<br>
@@ -395,13 +395,13 @@ options {<br>
 	require-server-cookie <em class="replaceable"><code>boolean</code></em>;<br>
 	reserved-sockets <em class="replaceable"><code>integer</code></em>;<br>
 	resolver-query-timeout <em class="replaceable"><code>integer</code></em>;<br>
-	response-policy { zone <em class="replaceable"><code>quoted_string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [<br>
-	    max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [ policy ( cname | disabled | drop |<br>
-	    given | no-op | nodata | nxdomain | passthru | tcp-only<br>
-	    <em class="replaceable"><code>quoted_string</code></em> ) ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ]; ... } [<br>
-	    break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [<br>
-	    min-ns-dots <em class="replaceable"><code>integer</code></em> ] [ nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [<br>
-	    qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ];<br>
+	response-policy { zone <em class="replaceable"><code>string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl<br>
+	    <em class="replaceable"><code>integer</code></em> ] [ policy ( cname | disabled | drop | given | no-op<br>
+	    | nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [<br>
+	    recursive-only <em class="replaceable"><code>boolean</code></em> ]; ... } [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [<br>
+	    max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [<br>
+	    nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ]<br>
+	    [ recursive-only <em class="replaceable"><code>boolean</code></em> ];<br>
 	root-delegation-only [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];<br>
 	root-key-sentinel <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name<br>
@@ -543,9 +543,9 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	auth-nxdomain <em class="replaceable"><code>boolean</code></em>; // default changed<br>
 	auto-dnssec ( allow | maintain | off );<br>
 	cache-file <em class="replaceable"><code>quoted_string</code></em>;<br>
-	catalog-zones { zone <em class="replaceable"><code>quoted_string</code></em> [ default-masters [ port<br>
-	    <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [<br>
-	    port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key<br>
+	catalog-zones { zone <em class="replaceable"><code>string</code></em> [ default-masters [ port <em class="replaceable"><code>integer</code></em> ]<br>
+	    [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port<br>
+	    <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key<br>
 	    <em class="replaceable"><code>string</code></em> ]; ... } ] [ zone-directory <em class="replaceable"><code>quoted_string</code></em> ] [<br>
 	    in-memory <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ]; ... };<br>
 	check-dup-records ( fail | warn | ignore );<br>
@@ -699,13 +699,13 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	request-nsid <em class="replaceable"><code>boolean</code></em>;<br>
 	require-server-cookie <em class="replaceable"><code>boolean</code></em>;<br>
 	resolver-query-timeout <em class="replaceable"><code>integer</code></em>;<br>
-	response-policy { zone <em class="replaceable"><code>quoted_string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [<br>
-	    max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [ policy ( cname | disabled | drop |<br>
-	    given | no-op | nodata | nxdomain | passthru | tcp-only<br>
-	    <em class="replaceable"><code>quoted_string</code></em> ) ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ]; ... } [<br>
-	    break-dnssec <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [<br>
-	    min-ns-dots <em class="replaceable"><code>integer</code></em> ] [ nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [<br>
-	    qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ];<br>
+	response-policy { zone <em class="replaceable"><code>string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl<br>
+	    <em class="replaceable"><code>integer</code></em> ] [ policy ( cname | disabled | drop | given | no-op<br>
+	    | nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [<br>
+	    recursive-only <em class="replaceable"><code>boolean</code></em> ]; ... } [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [<br>
+	    max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [<br>
+	    nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ]<br>
+	    [ recursive-only <em class="replaceable"><code>boolean</code></em> ];<br>
 	root-delegation-only [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];<br>
 	root-key-sentinel <em class="replaceable"><code>boolean</code></em>;<br>
 	rrset-order { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name<br>
