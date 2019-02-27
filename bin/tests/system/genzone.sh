@@ -390,7 +390,8 @@ uid01			UID	\# 1 02
 ; type 102 (GID - not implemented by BIND - unknown record format only)
 gid01			GID	\# 1 03
 
-; type 103 (UNSPEC - XXXMUKS TODO - this has some weird encoding - see btoa_totext())
+; type 103 (UNSPEC - not implemented by BIND - unknown record format only)
+unspec01		UNSPEC	\# 1 04
 
 ; type 104
 nid			NID	10 0014:4fff:ff20:ee64
