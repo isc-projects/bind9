@@ -1078,6 +1078,274 @@ doa(void **state) {
 }
 
 /*
+ * DS tests.
+ *
+ * RFC 4034:
+ *
+ * 5.1.  DS RDATA Wire Format
+ *
+ *    The RDATA for a DS RR consists of a 2 octet Key Tag field, a 1 octet
+ *    Algorithm field, a 1 octet Digest Type field, and a Digest field.
+ *
+ *                         1 1 1 1 1 1 1 1 1 1 2 2 2 2 2 2 2 2 2 2 3 3
+ *     0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    |           Key Tag             |  Algorithm    |  Digest Type  |
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *    /                                                               /
+ *    /                            Digest                             /
+ *    /                                                               /
+ *    +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+ *
+ * 5.1.1.  The Key Tag Field
+ *
+ *    The Key Tag field lists the key tag of the DNSKEY RR referred to by
+ *    the DS record, in network byte order.
+ *
+ *    The Key Tag used by the DS RR is identical to the Key Tag used by
+ *    RRSIG RRs.  Appendix B describes how to compute a Key Tag.
+ *
+ * 5.1.2.  The Algorithm Field
+ *
+ *    The Algorithm field lists the algorithm number of the DNSKEY RR
+ *    referred to by the DS record.
+ *
+ *    The algorithm number used by the DS RR is identical to the algorithm
+ *    number used by RRSIG and DNSKEY RRs.  Appendix A.1 lists the
+ *    algorithm number types.
+ *
+ * 5.1.3.  The Digest Type Field
+ *
+ *    The DS RR refers to a DNSKEY RR by including a digest of that DNSKEY
+ *    RR.  The Digest Type field identifies the algorithm used to construct
+ *    the digest.  Appendix A.2 lists the possible digest algorithm types.
+ *
+ * 5.1.4.  The Digest Field
+ *
+ *    The DS record refers to a DNSKEY RR by including a digest of that
+ *    DNSKEY RR.
+ *
+ *    The digest is calculated by concatenating the canonical form of the
+ *    fully qualified owner name of the DNSKEY RR with the DNSKEY RDATA,
+ *    and then applying the digest algorithm.
+ *
+ *      digest = digest_algorithm( DNSKEY owner name | DNSKEY RDATA);
+ *
+ *       "|" denotes concatenation
+ *
+ *      DNSKEY RDATA = Flags | Protocol | Algorithm | Public Key.
+ *
+ *    The size of the digest may vary depending on the digest algorithm and
+ *    DNSKEY RR size.  As of the time of this writing, the only defined
+ *    digest algorithm is SHA-1, which produces a 20 octet digest.
+ */
+static void
+ds(void **state) {
+	text_ok_t text_ok[] = {
+		/*
+		 * Invalid, empty record.
+		 */
+		TEXT_INVALID(""),
+		/*
+		 * Invalid, no algorithm.
+		 */
+		TEXT_INVALID("0"),
+		/*
+		 * Invalid, no digest type.
+		 */
+		TEXT_INVALID("0 0"),
+		/*
+		 * Invalid, no digest.
+		 */
+		TEXT_INVALID("0 0 0"),
+		/*
+		 * Valid, 1-octet digest for a reserved digest type.
+		 */
+		TEXT_VALID("0 0 0 00"),
+		/*
+		 * Invalid, short SHA-1 digest.
+		 */
+		TEXT_INVALID("0 0 1 00"),
+		TEXT_INVALID("0 0 1 4FDCE83016EDD29077621FE568F8DADDB5809B"),
+		/*
+		 * Valid, 20-octet SHA-1 digest.
+		 */
+		TEXT_VALID("0 0 1 4FDCE83016EDD29077621FE568F8DADDB5809B6A"),
+		/*
+		 * Invalid, excessively long SHA-1 digest.
+		 */
+		TEXT_INVALID("0 0 1 4FDCE83016EDD29077621FE568F8DADDB5809B"
+			     "6A00"),
+		/*
+		 * Invalid, short SHA-256 digest.
+		 */
+		TEXT_INVALID("0 0 2 00"),
+		TEXT_INVALID("0 0 2 D001BD422FFDA9B745425B71DC17D007E69186"
+			     "9BD59C5F237D9BF85434C313"),
+		/*
+		 * Valid, 32-octet SHA-256 digest.
+		 */
+		TEXT_VALID_CHANGED(
+			   "0 0 2 D001BD422FFDA9B745425B71DC17D007E691869B"
+			   "D59C5F237D9BF85434C3133F",
+			   "0 0 2 D001BD422FFDA9B745425B71DC17D007E691869B"
+			   "D59C5F237D9BF854 34C3133F"),
+		/*
+		 * Invalid, excessively long SHA-256 digest.
+		 */
+		TEXT_INVALID("0 0 2 D001BD422FFDA9B745425B71DC17D007E69186"
+			     "9BD59C5F237D9BF85434C3133F00"),
+		/*
+		 * Valid, GOST is no longer supported, hence no length checks.
+		 */
+		TEXT_VALID("0 0 3 00"),
+		/*
+		 * Invalid, short SHA-384 digest.
+		 */
+		TEXT_INVALID("0 0 4 00"),
+		TEXT_INVALID("0 0 4 AC748D6C5AA652904A8763D64B7DFFFFA98152"
+			     "BE12128D238BEBB4814B648F5A841E15CAA2DE348891"
+			     "A37A699F65E5"),
+		/*
+		 * Valid, 48-octet SHA-384 digest.
+		 */
+		TEXT_VALID_CHANGED(
+			   "0 0 4 AC748D6C5AA652904A8763D64B7DFFFFA98152BE"
+			   "12128D238BEBB4814B648F5A841E15CAA2DE348891A37A"
+			   "699F65E54D",
+			   "0 0 4 AC748D6C5AA652904A8763D64B7DFFFFA98152BE"
+			   "12128D238BEBB481 4B648F5A841E15CAA2DE348891A37A"
+			   "699F65E54D"),
+		/*
+		 * Invalid, excessively long SHA-384 digest.
+		 */
+		TEXT_INVALID("0 0 4 AC748D6C5AA652904A8763D64B7DFFFFA98152"
+			     "BE12128D238BEBB4814B648F5A841E15CAA2DE348891"
+			     "A37A699F65E54D00"),
+		/*
+		 * Valid, 1-octet digest for an unassigned digest type.
+		 */
+		TEXT_VALID("0 0 5 00"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Invalid, truncated key tag.
+		 */
+		WIRE_INVALID(0x00),
+		/*
+		 * Invalid, no algorithm.
+		 */
+		WIRE_INVALID(0x00, 0x00),
+		/*
+		 * Invalid, no digest type.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00),
+		/*
+		 * Invalid, no digest.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x00),
+		/*
+		 * Valid, 1-octet digest for a reserved digest type.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0x00),
+		/*
+		 * Invalid, short SHA-1 digest.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x01, 0x00),
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x01, 0x4F, 0xDC, 0xE8, 0x30,
+			     0x16, 0xED, 0xD2, 0x90, 0x77, 0x62, 0x1F, 0xE5,
+			     0x68, 0xF8, 0xDA, 0xDD, 0xB5, 0x80, 0x9B),
+		/*
+		 * Valid, 20-octet SHA-1 digest.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x01, 0x4F, 0xDC, 0xE8, 0x30,
+			   0x16, 0xED, 0xD2, 0x90, 0x77, 0x62, 0x1F, 0xE5,
+			   0x68, 0xF8, 0xDA, 0xDD, 0xB5, 0x80, 0x9B, 0x6A),
+		/*
+		 * Invalid, excessively long SHA-1 digest.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x01, 0x4F, 0xDC, 0xE8, 0x30,
+			     0x16, 0xED, 0xD2, 0x90, 0x77, 0x62, 0x1F, 0xE5,
+			     0x68, 0xF8, 0xDA, 0xDD, 0xB5, 0x80, 0x9B, 0x6A,
+			     0x00),
+		/*
+		 * Invalid, short SHA-256 digest.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x02, 0x00),
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x02, 0xD0, 0x01, 0xBD, 0x42,
+			     0x2F, 0xFD, 0xA9, 0xB7, 0x45, 0x42, 0x5B, 0x71,
+			     0xDC, 0x17, 0xD0, 0x07, 0xE6, 0x91, 0x86, 0x9B,
+			     0xD5, 0x9C, 0x5F, 0x23, 0x7D, 0x9B, 0xF8, 0x54,
+			     0x34, 0xC3, 0x13),
+		/*
+		 * Valid, 32-octet SHA-256 digest.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x02, 0xD0, 0x01, 0xBD, 0x42,
+			   0x2F, 0xFD, 0xA9, 0xB7, 0x45, 0x42, 0x5B, 0x71,
+			   0xDC, 0x17, 0xD0, 0x07, 0xE6, 0x91, 0x86, 0x9B,
+			   0xD5, 0x9C, 0x5F, 0x23, 0x7D, 0x9B, 0xF8, 0x54,
+			   0x34, 0xC3, 0x13, 0x3F),
+		/*
+		 * Invalid, excessively long SHA-256 digest.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x02, 0xD0, 0x01, 0xBD, 0x42,
+			     0x2F, 0xFD, 0xA9, 0xB7, 0x45, 0x42, 0x5B, 0x71,
+			     0xDC, 0x17, 0xD0, 0x07, 0xE6, 0x91, 0x86, 0x9B,
+			     0xD5, 0x9C, 0x5F, 0x23, 0x7D, 0x9B, 0xF8, 0x54,
+			     0x34, 0xC3, 0x13, 0x3F, 0x00),
+		/*
+		 * Valid, GOST is no longer supported, hence no length checks.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x03, 0x00),
+		/*
+		 * Invalid, short SHA-384 digest.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x04, 0x00),
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x04, 0xAC, 0x74, 0x8D, 0x6C,
+			     0x5A, 0xA6, 0x52, 0x90, 0x4A, 0x87, 0x63, 0xD6,
+			     0x4B, 0x7D, 0xFF, 0xFF, 0xA9, 0x81, 0x52, 0xBE,
+			     0x12, 0x12, 0x8D, 0x23, 0x8B, 0xEB, 0xB4, 0x81,
+			     0x4B, 0x64, 0x8F, 0x5A, 0x84, 0x1E, 0x15, 0xCA,
+			     0xA2, 0xDE, 0x34, 0x88, 0x91, 0xA3, 0x7A, 0x69,
+			     0x9F, 0x65, 0xE5),
+		/*
+		 * Valid, 48-octet SHA-384 digest.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x04, 0xAC, 0x74, 0x8D, 0x6C,
+			   0x5A, 0xA6, 0x52, 0x90, 0x4A, 0x87, 0x63, 0xD6,
+			   0x4B, 0x7D, 0xFF, 0xFF, 0xA9, 0x81, 0x52, 0xBE,
+			   0x12, 0x12, 0x8D, 0x23, 0x8B, 0xEB, 0xB4, 0x81,
+			   0x4B, 0x64, 0x8F, 0x5A, 0x84, 0x1E, 0x15, 0xCA,
+			   0xA2, 0xDE, 0x34, 0x88, 0x91, 0xA3, 0x7A, 0x69,
+			   0x9F, 0x65, 0xE5, 0x4D),
+		/*
+		 * Invalid, excessively long SHA-384 digest.
+		 */
+		WIRE_INVALID(0x00, 0x00, 0x00, 0x04, 0xAC, 0x74, 0x8D, 0x6C,
+			     0x5A, 0xA6, 0x52, 0x90, 0x4A, 0x87, 0x63, 0xD6,
+			     0x4B, 0x7D, 0xFF, 0xFF, 0xA9, 0x81, 0x52, 0xBE,
+			     0x12, 0x12, 0x8D, 0x23, 0x8B, 0xEB, 0xB4, 0x81,
+			     0x4B, 0x64, 0x8F, 0x5A, 0x84, 0x1E, 0x15, 0xCA,
+			     0xA2, 0xDE, 0x34, 0x88, 0x91, 0xA3, 0x7A, 0x69,
+			     0x9F, 0x65, 0xE5, 0x4D, 0x00),
+		WIRE_VALID(0x00, 0x00, 0x04, 0x00, 0x00),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
+
+	UNUSED(state);
+
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_ds, sizeof(dns_rdata_ds_t));
+}
+
+/*
  * EDNS Client Subnet tests.
  *
  * RFC 7871:
@@ -1974,6 +2242,7 @@ main(void) {
 		cmocka_unit_test_setup_teardown(csync, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(doa, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(dnskey, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(ds, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(eid, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(edns_client_subnet,
 						_setup, _teardown),
