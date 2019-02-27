@@ -2456,9 +2456,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>bindkeys-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
 	<span class="command"><strong>blackhole</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... };
 	<span class="command"><strong>cache-file</strong></span> <em class="replaceable"><code>quoted_string</code></em>;
-	<span class="command"><strong>catalog-zones</strong></span> { zone <em class="replaceable"><code>quoted_string</code></em> [ default-masters [ port
-	    <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [
-	    <span class="command"><strong>port</strong></span> <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key
+	<span class="command"><strong>catalog-zones</strong></span> { zone <em class="replaceable"><code>string</code></em> [ default-masters [ port <em class="replaceable"><code>integer</code></em> ]
+	    [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em> | <em class="replaceable"><code>ipv4_address</code></em> [ port
+	    <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] ) [ key
 	    <em class="replaceable"><code>string</code></em> ]; ... } ] [ zone-directory <em class="replaceable"><code>quoted_string</code></em> ] [
 	    <span class="command"><strong>in-memory</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ min-update-interval <em class="replaceable"><code>integer</code></em> ]; ... };
 	<span class="command"><strong>check-dup-records</strong></span> ( fail | warn | ignore );
@@ -2642,13 +2642,13 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>require-server-cookie</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>reserved-sockets</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>resolver-query-timeout</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>quoted_string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [
-	    <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>integer</code></em> ] [ policy ( cname | disabled | drop |
-	    <span class="command"><strong>given</strong></span> | no-op | nodata | nxdomain | passthru | tcp-only
-	    <em class="replaceable"><code>quoted_string</code></em> ) ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ]; ... } [
-	    <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>integer</code></em> ] [
-	    <span class="command"><strong>min-ns-dots</strong></span> <em class="replaceable"><code>integer</code></em> ] [ nsip-wait-recurse <em class="replaceable"><code>boolean</code></em> ] [
-	    <span class="command"><strong>qname-wait-recurse</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ];
+	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl
+	    <em class="replaceable"><code>integer</code></em> ] [ policy ( cname | disabled | drop | given | no-op
+	    | nodata | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [
+	    <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>boolean</code></em> ]; ... } [ break-dnssec <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>max-policy-ttl</strong></span> <em class="replaceable"><code>integer</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [
+	    <span class="command"><strong>nsip-wait-recurse</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ]
+	    [ recursive-only <em class="replaceable"><code>boolean</code></em> ];
 	<span class="command"><strong>root-delegation-only</strong></span> [ exclude { <em class="replaceable"><code>quoted_string</code></em>; ... } ];
 	<span class="command"><strong>root-key-sentinel</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>rrset-order</strong></span> { [ class <em class="replaceable"><code>string</code></em> ] [ type <em class="replaceable"><code>string</code></em> ] [ name
@@ -14676,6 +14676,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.6rc1 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.6 (Extended Support Version)</p>
 </body>
 </html>
