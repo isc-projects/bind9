@@ -52,6 +52,7 @@ eid01.example.		3600	IN	EID	1289AB
 eui48.example.		3600	IN	EUI48   01-23-45-67-89-ab
 eui64.example.		3600	IN	EUI64	01-23-45-67-89-ab-cd-ef
 gid01.example.		3600	IN	GID	\# 1 03
+unspec01.example.	3600	IN	UNSPEC	\# 1 04
 gpos01.example.		3600	IN	GPOS	"-22.6882" "116.8652" "250.0"
 gpos02.example.		3600	IN	GPOS	"" "" ""
 hinfo01.example.	3600	IN	HINFO	"Generic PC clone" "NetBSD-1.4"
