@@ -14,8 +14,6 @@ SYSTEMTESTTOP=..
 
 $SHELL clean.sh
 
-rm -f ns1/*.db ns1/*.jnl ns3/*.jnl ns4/*.db ns4/*.jnl
-
 cat <<EOF >ns1/named.conf
 options {
 	query-source address 10.53.0.1;
