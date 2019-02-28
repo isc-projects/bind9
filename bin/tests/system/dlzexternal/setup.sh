@@ -12,6 +12,8 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+$SHELL clean.sh
+
 test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 $DDNSCONFGEN -q -r $RANDFILE -z example.nil > ns1/ddns.key
