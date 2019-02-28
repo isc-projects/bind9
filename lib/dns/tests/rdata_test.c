@@ -38,6 +38,8 @@
 
 #include "dnstest.h"
 
+static bool debug = false;
+
 /*
  * An array of these structures is passed to compare_ok().
  */
@@ -223,8 +225,14 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 * Check whether result is as expected.
 	 */
 	if (text_ok->text_out != NULL) {
+		if (debug && result != ISC_R_SUCCESS) {
+			fprintf(stdout, "#'%s'\n", text_ok->text_in);
+		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 	} else {
+		if (debug && result == ISC_R_SUCCESS) {
+			fprintf(stdout, "#'%s'\n", text_ok->text_in);
+		}
 		assert_int_not_equal(result, ISC_R_SUCCESS);
 	}
 
@@ -249,6 +257,10 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 * unused part of the buffer.
 	 */
 	isc_buffer_putuint8(&target, 0);
+	if (debug && strcmp(buf_totext, text_ok->text_out) != 0) {
+		fprintf(stdout, "# '%s' != '%s'\n",
+			buf_totext, text_ok->text_out);
+	}
 	assert_string_equal(buf_totext, text_ok->text_out);
 
 	/*
@@ -298,6 +310,9 @@ check_text_conversions(dns_rdata_t *rdata) {
 	 * unused part of the buffer.
 	 */
 	isc_buffer_putuint8(&target, 0);
+	if (debug) {
+		fprintf(stdout, "#'%s'\n", buf_totext);
+	}
 
 	/*
 	 * Try parsing text form RDATA output by dns_rdata_totext() again.
@@ -344,6 +359,9 @@ check_multiline_text_conversions(dns_rdata_t *rdata) {
 	 * writing into the apparently unused part of the buffer.
 	 */
 	isc_buffer_putuint8(&target, 0);
+	if (debug) {
+		fprintf(stdout, "#'%s'\n", buf_totext);
+	}
 
 	/*
 	 * Try parsing multi-line text form RDATA output by
@@ -2374,7 +2392,7 @@ iszonecutauth(void **state) {
 }
 
 int
-main(void) {
+main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(amtrelay, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(apl, _setup, _teardown),
@@ -2401,6 +2419,12 @@ main(void) {
 		cmocka_unit_test_setup_teardown(atparent, NULL, NULL),
 		cmocka_unit_test_setup_teardown(iszonecutauth, NULL, NULL),
 	};
+
+	UNUSED(argv);
+
+	if (argc > 1) {
+		debug = true;
+	}
 
 	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
 }
