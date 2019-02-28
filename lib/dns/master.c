@@ -574,6 +574,10 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_inc;
 		lctx->keep_lex = false;
+		/*
+		 * If specials change update dns_test_rdatafromstring()
+		 * in lib/dns/tests/dnstest.c.
+		 */
 		memset(specials, 0, sizeof(specials));
 		specials[0] = 1;
 		specials['('] = 1;
