@@ -12,6 +12,8 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+$SHELL clean.sh
+
 test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 copy_setports ns1/named.conf.in ns1/named.conf

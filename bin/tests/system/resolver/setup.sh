@@ -12,6 +12,8 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
+$SHELL clean.sh
+
 test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 cp ns4/tld1.db ns4/tld.db
