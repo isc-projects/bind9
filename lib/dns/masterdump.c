@@ -86,14 +86,14 @@ struct dns_master_style {
  */
 typedef struct dns_totext_ctx {
 	dns_master_style_t	style;
-	bool 		class_printed;
+	bool 			class_printed;
 	char *			linebreak;
 	char 			linebreak_buf[DNS_TOTEXT_LINEBREAK_MAXLEN];
 	dns_name_t *		origin;
 	dns_name_t *		neworigin;
 	dns_fixedname_t		origin_fixname;
 	uint32_t 		current_ttl;
-	bool 		current_ttl_valid;
+	bool 			current_ttl_valid;
 } dns_totext_ctx_t;
 
 LIBDNS_EXTERNAL_DATA const dns_master_style_t
