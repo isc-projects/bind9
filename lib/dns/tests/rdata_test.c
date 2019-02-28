@@ -101,7 +101,14 @@ typedef struct wire_ok {
 					ok				      \
 				}
 #define WIRE_VALID(...)		WIRE_TEST(true, __VA_ARGS__)
-#define WIRE_INVALID(...)	WIRE_TEST(false, __VA_ARGS__)
+/*
+ * WIRE_INVALID() test cases must always have at least one octet specified to
+ * distinguish them from WIRE_SENTINEL().  Use the 'empty_ok' parameter passed
+ * to check_wire_ok() for indicating whether empty RDATA is allowed for a given
+ * RR type or not.
+ */
+#define WIRE_INVALID(FIRST, ...) \
+				WIRE_TEST(false, FIRST, __VA_ARGS__)
 #define WIRE_SENTINEL()		WIRE_TEST(false)
 
 /*
@@ -1634,11 +1641,8 @@ eid(void **state) {
 		TEXT_SENTINEL()
 	};
 	wire_ok_t wire_ok[] = {
-		/*
-		 * Too short.
-		 */
-		WIRE_INVALID(),
 		WIRE_VALID(0x00),
+		WIRE_VALID(0xAA, 0xBB, 0xCC),
 		/*
 		 * Sentinel.
 		 */
@@ -1827,11 +1831,8 @@ nimloc(void **state) {
 		TEXT_SENTINEL()
 	};
 	wire_ok_t wire_ok[] = {
-		/*
-		 * Too short.
-		 */
-		WIRE_INVALID(),
 		WIRE_VALID(0x00),
+		WIRE_VALID(0xAA, 0xBB, 0xCC),
 		/*
 		 * Sentinel.
 		 */
@@ -1923,7 +1924,7 @@ nsec(void **state) {
 		WIRE_INVALID(0x00, 0x00),
 		WIRE_INVALID(0x00, 0x00, 0x00),
 		WIRE_VALID(0x00, 0x00, 0x01, 0x02),
-		WIRE_INVALID()
+		WIRE_SENTINEL()
 	};
 
 	UNUSED(state);
