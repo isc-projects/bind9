@@ -41,12 +41,19 @@ totext_in_nimloc(ARGS_TOTEXT) {
 
 	dns_rdata_toregion(rdata, &region);
 
-	if (tctx->width == 0) {
-		return (isc_hex_totext(&region, 60, "", target));
-	} else {
-		return (isc_hex_totext(&region, tctx->width - 2,
-				       tctx->linebreak, target));
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
+		RETERR(str_totext("( ", target));
 	}
+	if (tctx->width == 0) {
+		RETERR(isc_hex_totext(&region, 60, "", target));
+	} else {
+		RETERR(isc_hex_totext(&region, tctx->width - 2,
+				      tctx->linebreak, target));
+	}
+	if ((tctx->flags & DNS_STYLEFLAG_MULTILINE) != 0) {
+		RETERR(str_totext(" )", target));
+	}
+	return (ISC_R_SUCCESS);
 }
 
 static inline isc_result_t
