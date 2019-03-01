@@ -3635,6 +3635,19 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
+echo_i "checking DNSSEC records are occluded from ANY in an insecure zone ($n)"
+ret=0
+dig_with_opts any x.insecure.example. @10.53.0.3 > dig.out.ns3.1.test$n || ret=1
+grep "status: NOERROR" dig.out.ns3.1.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.ns3.1.test$n > /dev/null || ret=1
+dig_with_opts any zz.secure.example. @10.53.0.3 > dig.out.ns3.2.test$n || ret=1
+grep "status: NOERROR" dig.out.ns3.2.test$n > /dev/null || ret=1
+# DNSKEY+RRSIG, NSEC+RRSIG
+grep "ANSWER: 4," dig.out.ns3.2.test$n > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 # Note: after this check, ns4 will not be validating any more; do not add any
 # further validation tests employing ns4 below this check.
 echo_i "check that validation defaults to off when dnssec-enable is off ($n)"

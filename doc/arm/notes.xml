@@ -127,7 +127,9 @@
     <itemizedlist>
       <listitem>
         <para>
-          None.
+	  The presence of certain record types in an otherwise empty
+	  node of a zone could trigger an assertion failure while processing
+	  a query of type ANY. [GL #901]
 	</para>
       </listitem>
     </itemizedlist>

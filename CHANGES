@@ -1,3 +1,7 @@
+5169.	[bug]		The presence of certain types in an otherwise
+			empty node could cause a crash while processing a
+			type ANY query. [GL #901]
+
 5168.	[bug]		Do not crash on shutdown when RPZ fails to load.  Also,
 			keep previous version of the database if RPZ fails to
 			load. [GL #813]
