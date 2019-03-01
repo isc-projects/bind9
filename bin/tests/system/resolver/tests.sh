@@ -765,7 +765,7 @@ ret=0
 $DIG $DIGOPTS @10.53.0.5 truncated.no-questions. a > dig.ns5.out.${n} || ret=1
 grep "status: NOERROR" dig.ns5.out.${n} > /dev/null || ret=1
 grep "ANSWER: 1," dig.ns5.out.${n} > /dev/null || ret=1
-grep "1.2.3.4" dig.ns5.out.${n} > /dev/null || ret=1
+grep "1\.2\.3\.4" dig.ns5.out.${n} > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -775,7 +775,7 @@ ret=0
 $DIG $DIGOPTS @10.53.0.5 not-truncated.no-questions. a > dig.ns5.out.${n} || ret=1
 grep "status: NOERROR" dig.ns5.out.${n} > /dev/null && ret=1
 grep "ANSWER: 1," dig.ns5.out.${n} > /dev/null && ret=1
-grep "1.2.3.4" dig.ns5.out.${n} > /dev/null && ret=1
+grep "1\.2\.3\.4" dig.ns5.out.${n} > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
