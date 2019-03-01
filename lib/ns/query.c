@@ -6725,7 +6725,7 @@ query_addnoqnameproof(query_ctx_t *qctx) {
  */
 static isc_result_t
 query_respond_any(query_ctx_t *qctx) {
-	bool found = false;
+	bool found = false, hidden = false;
 	dns_rdatasetiter_t *rdsiter = NULL;
 	isc_result_t result;
 	dns_rdatatype_t onetype = 0; 	/* type to use for minimal-any */
@@ -6780,11 +6780,11 @@ query_respond_any(query_ctx_t *qctx) {
 		    dns_rdatatype_isdnssec(qctx->rdataset->type))
 		{
 			/*
-			 * The zone is transitioning from insecure
-			 * to secure. Hide the dnssec records from
-			 * ANY queries.
+			 * The zone may be transitioning from insecure
+			 * to secure. Hide DNSSEC records from ANY queries.
 			 */
 			dns_rdataset_disassociate(qctx->rdataset);
+			hidden = true;
 		} else if (qctx->view->minimal_any &&
 			   !TCP(qctx->client) && !WANTDNSSEC(qctx->client) &&
 			   qctx->qtype == dns_rdatatype_any &&
@@ -6806,7 +6806,8 @@ query_respond_any(query_ctx_t *qctx) {
 			    qctx->rdataset->type == qctx->qtype) &&
 			   qctx->rdataset->type != 0)
 		{
-			if (NOQNAME(qctx->rdataset) && WANTDNSSEC(qctx->client))
+			if (NOQNAME(qctx->rdataset) &&
+			    WANTDNSSEC(qctx->client))
 			{
 				qctx->noqname = qctx->rdataset;
 			} else {
@@ -6862,8 +6863,9 @@ query_respond_any(query_ctx_t *qctx) {
 			}
 
 			qctx->rdataset = ns_client_newrdataset(qctx->client);
-			if (qctx->rdataset == NULL)
+			if (qctx->rdataset == NULL) {
 				break;
+			}
 		} else {
 			/*
 			 * We're not interested in this rdataset.
@@ -6884,48 +6886,59 @@ query_respond_any(query_ctx_t *qctx) {
 	}
 
 	if (found) {
+		/*
+		 * Call hook if any answers were found.
+		 * Do this before releasing qctx->fname, in case
+		 * the hook function needs it.
+		 */
 		CALL_HOOK(NS_QUERY_RESPOND_ANY_FOUND, qctx);
-
-		if (qctx->fname != NULL) {
-			dns_message_puttempname(qctx->client->message,
-						&qctx->fname);
-		}
-
-		query_addauth(qctx);
-		return (ns_query_done(qctx));
 	}
-
-	/*
-	 * If we're here, no matching rdatasets were found.  If we were
-	 * searching for RRSIG/SIG, that may be okay, but otherwise
-	 * something's gone wrong.
-	 */
-	INSIST(qctx->qtype == dns_rdatatype_rrsig ||
-	       qctx->qtype == dns_rdatatype_sig);
 
 	if (qctx->fname != NULL) {
-		dns_message_puttempname(qctx->client->message,
-					&qctx->fname);
+		dns_message_puttempname(qctx->client->message, &qctx->fname);
 	}
 
-	if (!qctx->is_zone) {
-		qctx->authoritative = false;
-		qctx->client->attributes &= ~NS_CLIENTATTR_RA;
+	if (found) {
+		/*
+		 * At least one matching rdataset was found
+		 */
 		query_addauth(qctx);
-		return (ns_query_done(qctx));
+	} else if (qctx->qtype == dns_rdatatype_rrsig ||
+		   qctx->qtype == dns_rdatatype_sig)
+	{
+		/*
+		 * No matching rdatasets were found, but we got
+		 * here on a search for RRSIG/SIG, so that's okay.
+		 */
+		if (!qctx->is_zone) {
+			qctx->authoritative = false;
+			qctx->client->attributes &= ~NS_CLIENTATTR_RA;
+			query_addauth(qctx);
+			return (ns_query_done(qctx));
+		}
+
+		if (qctx->qtype == dns_rdatatype_rrsig &&
+		    dns_db_issecure(qctx->db))
+		{
+			char namebuf[DNS_NAME_FORMATSIZE];
+			dns_name_format(qctx->client->query.qname,
+					namebuf, sizeof(namebuf));
+			ns_client_log(qctx->client, DNS_LOGCATEGORY_DNSSEC,
+				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
+				      "missing signature for %s", namebuf);
+		}
+
+		qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
+		return (query_sign_nodata(qctx));
+	} else if (!hidden) {
+		/*
+		 * No matching rdatasets were found and nothing was
+		 * deliberately hidden: something must have gone wrong.
+		 */
+		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
 	}
 
-	if (qctx->qtype == dns_rdatatype_rrsig && dns_db_issecure(qctx->db)) {
-		char namebuf[DNS_NAME_FORMATSIZE];
-		dns_name_format(qctx->client->query.qname,
-				namebuf, sizeof(namebuf));
-		ns_client_log(qctx->client, DNS_LOGCATEGORY_DNSSEC,
-			      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
-			      "missing signature for %s", namebuf);
-	}
-
-	qctx->fname = ns_client_newname(qctx->client, qctx->dbuf, &b);
-	return (query_sign_nodata(qctx));
+	return (ns_query_done(qctx));
 
  cleanup:
 	return (result);
