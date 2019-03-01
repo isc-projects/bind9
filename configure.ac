@@ -1939,11 +1939,20 @@ AC_CHECK_HEADERS(
 	   [[atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);]]
 	 )],
 	[AC_MSG_RESULT([no])],
-	[AC_MSG_RESULT([yes])
-	 ISC_ATOMIC_LIBS="-latomic"
+	[ISC_ATOMIC_LIBS="-latomic"
+	 save_LIBS="$LIBS"
+	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
+	 AC_LINK_IFELSE(
+	   [AC_LANG_PROGRAM(
+	      [[#include <stdatomic.h>]],
+	      [[atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);]]
+	    )],
+	   [AC_MSG_RESULT([yes])],
+	   [AC_MSG_FAILURE([libatomic needed, but linking with -latomic failed, please fix your toolchain.])])
+	 LIBS="$save_LIBS"
 	])
      ],
-     [AC_MSG_FAILURE([stdatomic.h header found, but compilation failed, fix your toolchaing.])]
+     [AC_MSG_FAILURE([stdatomic.h header found, but compilation failed, please fix your toolchain.])]
    )],
   [AC_MSG_CHECKING([for memory model aware atomic operations])
    AC_COMPILE_IFELSE(
@@ -1960,8 +1969,17 @@ AC_CHECK_HEADERS(
 	   [[int64_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);]]
 	 )],
 	[AC_MSG_RESULT([no])],
-	[AC_MSG_RESULT([yes])
-	 ISC_ATOMIC_LIBS="-latomic"
+	[ISC_ATOMIC_LIBS="-latomic"
+	 save_LIBS="$LIBS"
+	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
+	 AC_LINK_IFELSE(
+	   [AC_LANG_PROGRAM(
+	      [[#include <inttypes.h>]],
+	      [[int64_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);]]
+	    )],
+	   [AC_MSG_RESULT([yes])],
+	   [AC_MSG_FAILURE([libatomic needed, but linking with -latomic failed, please fix your toolchain.])])
+	 LIBS="$save_LIBS"
 	])
      ],
      [AC_MSG_RESULT([__sync builtins])
