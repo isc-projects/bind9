@@ -60,7 +60,7 @@
 /* Define if clock_gettime is available. */
 #undef HAVE_CLOCK_GETTIME
 
-/* Use cmocka */
+/* Use CMocka */
 #undef HAVE_CMOCKA
 
 /* Define to 1 if you have the `cpuset_setaffinity' function. */
