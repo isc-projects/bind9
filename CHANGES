@@ -1,3 +1,5 @@
+5170.	[test]		Added --with-dlz-filesystem to feature-test. [GL !1587]
+
 5169.	[bug]		The presence of certain types in an otherwise
 			empty node could cause a crash while processing a
 			type ANY query. [GL #901]
