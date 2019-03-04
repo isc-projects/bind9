@@ -12,7 +12,7 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-if [ "@DLZ_SYSTEM_TEST@" != "filesystem" ]; then
+if ! $FEATURETEST --with-dlz-filesystem; then
         echo_i "DLZ filesystem driver not supported"
         exit 255
 fi
