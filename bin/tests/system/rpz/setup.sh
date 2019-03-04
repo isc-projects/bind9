@@ -157,9 +157,6 @@ $PERL -e 'for ($cnt = $val = 1; $cnt <= 3000; ++$cnt) {
 cp ns2/bl.tld2.db.in ns2/bl.tld2.db
 cp ns5/empty.db.in ns5/empty.db
 cp ns5/empty.db.in ns5/policy2.db
-rm -f ns2/bl.tld2.db.jnl
-rm -f ns5/empty.db.jnl
-rm -f cp ns5/policy2.db.jnl
 
 # Run dnsrpzd to get the license and prime the static policy zones
 if test -n "$TEST_DNSRPS"; then
