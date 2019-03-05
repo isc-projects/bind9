@@ -44,7 +44,6 @@ my @filelist = ("..\\bin\\python\\dnssec-checkds.py",
                 "..\\bin\\python\\isc\\tests\\dnskey_test.py",
                 "..\\bin\\python\\isc\\tests\\policy_test.py",
                 "..\\bin\\python\\isc\\utils.py",
-                "..\\bin\\tests\\system\\dlz\\prereq.sh",
                 "..\\lib\\dns\\win32\\libdns.def",
                 "..\\lib\\isc\\win32\\libisc.def");
 
