@@ -95,8 +95,18 @@ armhf documentation):
   the processors to support here, therefore the recommended build option is
   `-mfpu=vfpv3-d16`.
 
-The configure command should look like this:
+The `configure` command should look like this:
 
 ```
 CFLAGS="-march=armv7-a -mfpu=vfpv3-d16 -Os -g" ./configure
+```
+
+### NetBSD 6 i386
+
+The i386 build of NetBSD requires the `libatomic` library, available from
+the `gcc5-libs` package.  Because this library is in a non-standard path,
+its location must be specified in the `configure` command line:
+
+```
+LDFLAGS="-L/usr/pkg/gcc5/i486--netbsdelf/lib/ -Wl,-R/usr/pkg/gcc5/i486--netbsdelf/lib/" ./configure
 ```
