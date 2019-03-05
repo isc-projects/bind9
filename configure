@@ -17958,9 +17958,33 @@ if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 else
+  ISC_ATOMIC_LIBS="-latomic"
+	 save_LIBS="$LIBS"
+	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
+	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <stdatomic.h>
+int
+main ()
+{
+atomic_int_fast64_t val = 0; atomic_fetch_add_explicit(&val, 1, memory_order_relaxed);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	 ISC_ATOMIC_LIBS="-latomic"
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "libatomic needed, but linking with -latomic failed, please fix your toolchain.
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+	 LIBS="$save_LIBS"
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
@@ -17969,7 +17993,7 @@ rm -f core conftest.err conftest.$ac_objext \
 else
   { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
-as_fn_error $? "stdatomic.h header found, but compilation failed, fix your toolchaing.
+as_fn_error $? "stdatomic.h header found, but compilation failed, please fix your toolchain.
 See \`config.log' for more details" "$LINENO" 5; }
 
 fi
@@ -18013,9 +18037,33 @@ if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 else
+  ISC_ATOMIC_LIBS="-latomic"
+	 save_LIBS="$LIBS"
+	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
+	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <inttypes.h>
+int
+main ()
+{
+int64_t val = 0; __atomic_fetch_add(&val, 1, __ATOMIC_RELAXED);
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"; then :
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
-	 ISC_ATOMIC_LIBS="-latomic"
+else
+  { { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "libatomic needed, but linking with -latomic failed, please fix your toolchain.
+See \`config.log' for more details" "$LINENO" 5; }
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+	 LIBS="$save_LIBS"
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
