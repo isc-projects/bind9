@@ -1,0 +1,32 @@
+# Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# See the COPYRIGHT file distributed with this work for additional
+# information regarding copyright ownership.
+
+status=0
+find */*/win32 win32utils -name \*.in |
+sed -e '/\/Makefile.in$/d' \
+    -e 's/\//\\\\\\\\/g' \
+    -e 's/.in$/"/' \
+    -e 's/^/"..\\\\\\\\/' \
+    -e 's/"..\\\\\\\\win32utils\\\\\\\\/"/' |
+while read f
+do
+	if grep -F "$f" win32utils/Configure > /dev/null
+	then
+		:
+	else
+		echo "missing $f from win32utils/Configure"
+		status=1
+	fi
+done
+if test -f win32utils/Configure
+then
+	cd win32utils
+	perl Configure checkfiles 2> /dev/null || status=1
+fi
+exit $status
