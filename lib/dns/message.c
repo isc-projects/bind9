@@ -1236,7 +1236,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 	dns_namelist_t *section;
 	bool free_name = false, free_rdataset = false;
 	bool preserve_order, best_effort, seen_problem;
-	bool issigzero;
+	bool isedns, issigzero, istsig;
 
 	preserve_order = ((options & DNS_MESSAGEPARSE_PRESERVEORDER) != 0);
 	best_effort = ((options & DNS_MESSAGEPARSE_BESTEFFORT) != 0);
@@ -1251,6 +1251,9 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		skip_name_search = false;
 		skip_type_search = false;
 		free_rdataset = false;
+		isedns = false;
+		issigzero = false;
+		istsig = false;
 
 		name = isc_mempool_get(msg->namepool);
 		if (name == NULL)
@@ -1332,11 +1335,13 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 */
 			if (sectionid != DNS_SECTION_ADDITIONAL ||
 			    rdclass != dns_rdataclass_any ||
-			    count != msg->counts[sectionid]  - 1)
+			    count != msg->counts[sectionid]  - 1) {
 				DO_ERROR(DNS_R_BADTSIG);
-			msg->sigstart = recstart;
-			skip_name_search = true;
-			skip_type_search = true;
+			} else {
+				skip_name_search = true;
+				skip_type_search = true;
+				istsig = true;
+			}
 		} else if (rdtype == dns_rdatatype_opt) {
 			/*
 			 * The name of an OPT record must be ".", it
@@ -1345,10 +1350,13 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			 */
 			if (!dns_name_equal(dns_rootname, name) ||
 			    sectionid != DNS_SECTION_ADDITIONAL ||
-			    msg->opt != NULL)
+			    msg->opt != NULL) {
 				DO_ERROR(DNS_R_FORMERR);
-			skip_name_search = true;
-			skip_type_search = true;
+			} else {
+				skip_name_search = true;
+				skip_type_search = true;
+				isedns = true;
+			}
 		} else if (rdtype == dns_rdatatype_tkey) {
 			/*
 			 * A TKEY must be in the additional section if this
@@ -1420,7 +1428,6 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
 		rdata->rdclass = rdclass;
-		issigzero = false;
 		if (rdtype == dns_rdatatype_rrsig &&
 		    rdata->flags == 0) {
 			covers = dns_rdata_covers(rdata);
@@ -1431,12 +1438,13 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			covers = dns_rdata_covers(rdata);
 			if (covers == 0) {
 				if (sectionid != DNS_SECTION_ADDITIONAL ||
-				    count != msg->counts[sectionid]  - 1)
+				    count != msg->counts[sectionid]  - 1) {
 					DO_ERROR(DNS_R_BADSIG0);
-				msg->sigstart = recstart;
-				skip_name_search = true;
-				skip_type_search = true;
-				issigzero = true;
+				} else {
+					skip_name_search = true;
+					skip_type_search = true;
+					issigzero = true;
+				}
 			} else {
 				if (msg->rdclass != dns_rdataclass_any &&
 				    msg->rdclass != rdclass)
@@ -1462,10 +1470,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 */
 		if (preserve_order || msg->opcode == dns_opcode_update ||
 		    skip_name_search) {
-			if (rdtype != dns_rdatatype_opt &&
-			    rdtype != dns_rdatatype_tsig &&
-			    !issigzero)
-			{
+			if (!isedns && !istsig && !issigzero) {
 				ISC_LIST_APPEND(*section, name, link);
 				free_name = false;
 			}
@@ -1558,10 +1563,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 				      == ISC_R_SUCCESS);
 			dns_rdataset_setownercase(rdataset, name);
 
-			if (rdtype != dns_rdatatype_opt &&
-			    rdtype != dns_rdatatype_tsig &&
-			    !issigzero)
-			{
+			if (!isedns && !istsig && !issigzero) {
 				ISC_LIST_APPEND(name->list, rdataset, link);
 				free_rdataset = false;
 			}
@@ -1593,7 +1595,7 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 		 * already set if best-effort parsing is enabled otherwise
 		 * there will only be at most one of each.
 		 */
-		if (rdtype == dns_rdatatype_opt && msg->opt == NULL) {
+		if (isedns) {
 			dns_rcode_t ercode;
 
 			msg->opt = rdataset;
@@ -1605,16 +1607,20 @@ getsection(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			msg->rcode |= ercode;
 			isc_mempool_put(msg->namepool, name);
 			free_name = false;
-		} else if (issigzero && msg->sig0 == NULL) {
+		} else if (issigzero) {
 			msg->sig0 = rdataset;
 			msg->sig0name = name;
+			msg->sigstart = recstart;
 			rdataset = NULL;
 			free_rdataset = false;
 			free_name = false;
-		} else if (rdtype == dns_rdatatype_tsig && msg->tsig == NULL) {
+		} else if (istsig) {
 			msg->tsig = rdataset;
 			msg->tsigname = name;
-			/* Windows doesn't like TSIG names to be compressed. */
+			msg->sigstart = recstart;
+			/*
+			 * Windows doesn't like TSIG names to be compressed.
+			 */
 			msg->tsigname->attributes |= DNS_NAMEATTR_NOCOMPRESS;
 			rdataset = NULL;
 			free_rdataset = false;
