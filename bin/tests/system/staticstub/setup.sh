@@ -21,8 +21,6 @@ sed 's/SERVER_CONFIG_PLACEHOLDER/server-names { "ns.example.net"; };/' tmp > ns2
 copy_setports ns3/named.conf.in tmp
 sed 's/EXAMPLE_ZONE_PLACEHOLDER/zone "example" { type master; file "example.db.signed"; };/' tmp > ns3/named.conf
 
-rm -f tmp
-
 copy_setports ns4/named.conf.in ns4/named.conf
 
 test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE

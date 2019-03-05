@@ -9,13 +9,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f ns1/*.db ns1/*.jnl
-rm -f ns3/*.jnl ns3/mytest.db ns3/subtest.db
-rm -f ns4/*.jnl ns4/*.db
-rm -f */named.memstats
-rm -f */named.conf
-rm -f */named.run
-rm -f */ans.run
-rm -f dig.out dig.out1 dig.out2 dig.out3
-rm -f ns3/large.db
-rm -f ns*/named.lock
+rm -f ns2/example.bk
+rm -f ns3/example.bk
+rm -f */named.memstats */named.run

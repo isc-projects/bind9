@@ -10,7 +10,6 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-rm -f named-compilezone
 ln -s $CHECKZONE named-compilezone
 
 ./named-compilezone -D -F raw -o good1.db.raw example \

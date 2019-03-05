@@ -15,7 +15,6 @@ $SHELL clean.sh
 test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
 
 cp ns1/root.db.in ns1/root.db
-rm -f ns1/root.db.signed
 
 touch ns2/trusted.conf
 cp ns2/nsec3-loop.db.in ns2/nsec3-loop.db
@@ -26,7 +25,6 @@ cp ns2/bits.db.in ns2/nokeys.db
 cp ns2/bits.db.in ns2/removedkeys-secondary.db
 cp ns2/bits.db.in ns2/retransfer.db
 cp ns2/bits.db.in ns2/retransfer3.db
-rm -f ns2/bits.db.jnl
 
 cp ns3/master.db.in ns3/master.db
 cp ns3/master.db.in ns3/dynamic.db
@@ -41,7 +39,6 @@ mkdir ns3/removedkeys
 
 touch ns4/trusted.conf
 cp ns4/noixfr.db.in ns4/noixfr.db
-rm -f ns4/noixfr.db.jnl
 
 copy_setports ns1/named.conf.in ns1/named.conf
 copy_setports ns2/named.conf.in ns2/named.conf
