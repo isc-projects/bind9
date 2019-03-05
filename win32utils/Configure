@@ -95,7 +95,6 @@ my @filelist = ("..\\bin\\check\\win32\\checktool.dsp",
                 "..\\bin\\rndc\\win32\\rndc.dsp",
                 "..\\bin\\rndc\\win32\\rndc.mak",
                 "..\\bin\\rndc\\win32\\rndcutil.dsp",
-                "..\\bin\\tests\\system\\dlz\\prereq.sh",
                 "..\\bin\\tools\\win32\\arpaname.dsp",
                 "..\\bin\\tools\\win32\\arpaname.mak",
                 "..\\bin\\tools\\win32\\genrandom.dsp",
@@ -719,19 +718,26 @@ if ($legacy_only && ($want_x64 ne "yes")) {
 }
 
 if ($want_checkfiles eq "yes") {
+        my $status=0;
         foreach (@filelist) {
+                my $name = $_;
+                $name =~ s/\\/\\\\/g;
                 next if -r $_ . ".in";
                 s/\\/\//g;
                 next if -r $_ . ".in";
-                print "missing $_.in from filelist\n";
+                print "remove '$name' from filelist in win32utils/Configure or add to repository\n";
+                $status = 1;
         }
         foreach (@projectlist) {
+                my $name = $_;
+                $name =~ s/\\/\\\\/g;
                 next if -r $_ . ".in";
                 s/\\/\//g;
                 next if -r $_ . ".in";
-                print "missing $_.in from projectlist\n";
+                print "remove '$name' from projectlist in win32utils/Configure or add to repository\n";
+                $status = 1;
         }
-        exit(0);
+        exit($status);
 }
 
 # configure the platform
@@ -1006,12 +1012,12 @@ sub mywith {
             }
         }
     } elsif ($key =~ /^pssuspend$/i) {
-	if ($val =~ /^no$/i) {
-	    $with_pssuspend = "no";
-	} else {
-	    if ($val !~ /^yes$/i) {
-	        $pssuspend_command = $val;
-	    }
+        if ($val =~ /^no$/i) {
+            $with_pssuspend = "no";
+        } else {
+            if ($val !~ /^yes$/i) {
+                $pssuspend_command = $val;
+            }
         }
     } elsif ($key =~ /^python$/i) {
         if ($val =~ /^no$/i) {

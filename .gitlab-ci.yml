@@ -167,6 +167,7 @@ misc:sid:amd64:
     - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
     - xmllint --noout --nonet `git ls-files '*.xml' '*.docbook'`
     - xmllint --noout --nonet --html `git ls-files '*.html'`
+    - sh util/check-win32util-configure
   artifacts:
     paths:
       - util/newcopyrights
