@@ -1,3 +1,9 @@
+5171.	[func]		named plugins are now installed into a separate
+			directory.  Supplying a filename (a string without path
+			separators) in a "plugin" configuration stanza now
+			causes named to look for that plugin in that directory.
+			[GL #878]
+
 5170.	[test]		Added --with-dlz-filesystem to feature-test. [GL !1587]
 
 5169.	[bug]		The presence of certain types in an otherwise
