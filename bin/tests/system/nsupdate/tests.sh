@@ -693,6 +693,34 @@ grep "TXT.*everywhere" dig.out.2.test$n > /dev/null || ret=1
 
 n=`expr $n + 1`
 ret=0
+echo_i "check 'grant' in deny name + grant subdomain ($n)"
+$NSUPDATE << EOF > nsupdate.out-$n 2>&1 || ret=1
+key hmac-sha256:subkey 1234abcd8765
+server 10.53.0.9 ${PORT}
+zone denyname.example
+update add foo.denyname.example 3600 IN TXT added
+send
+EOF
+$DIG $DIGOPTS +tcp @10.53.0.9 foo.denyname.example TXT > dig.out.ns9.test$n
+grep "added" dig.out.ns9.test$n > /dev/null || ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=`expr $n + 1`
+ret=0
+echo_i "check 'deny' in deny name + grant subdomain ($n)"
+$NSUPDATE << EOF > nsupdate.out-$n 2>&1 && ret=1
+key hmac-sha256:subkey 1234abcd8765
+server 10.53.0.9 ${PORT}
+zone denyname.example
+update add denyname.example 3600 IN TXT added
+send
+EOF
+$DIG $DIGOPTS +tcp @10.53.0.9 denyname.example TXT > dig.out.ns9.test$n
+grep "added" dig.out.ns9.test$n > /dev/null && ret=1
+[ $ret = 0 ] || { echo_i "failed"; status=1; }
+
+n=`expr $n + 1`
+ret=0
 echo_i "check that changes to the DNSKEY RRset TTL do not have side effects ($n)"
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocomm +nocmd dnskey.test. \
         @10.53.0.3 dnskey | \
