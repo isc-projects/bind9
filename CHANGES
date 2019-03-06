@@ -1,3 +1,6 @@
+5172.	[bug]		nsupdate now honors the operating system's preferred
+			ephemeral port range. [GL #905]
+
 5170.	[test]		Added --with-dlz-filesystem to feature-test. [GL !1587]
 
 	--- 9.11.6 released ---
