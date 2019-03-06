@@ -1,3 +1,6 @@
+5172.	[bug]		nsupdate now honors the operating system's preferred
+			ephemeral port range. [GL #905]
+
 5171.	[func]		named plugins are now installed into a separate
 			directory.  Supplying a filename (a string without path
 			separators) in a "plugin" configuration stanza now
