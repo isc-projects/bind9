@@ -181,13 +181,15 @@ echo_i "checking consistency between regular and compressed output ($n)"
 if [ "$HAVEXMLSTATS" ];
 then
 	URL=http://10.53.0.2:${EXTRAPORT1}/xml/v3/server
+	filter_str='s#<current-time>.*</current-time>##g'
 else
 	URL=http://10.53.0.2:${EXTRAPORT1}/json/v1/server
+	filter_str='s#"current-time.*",##g'
 fi
 $CURL -D regular.headers $URL 2>/dev/null | \
-	sed -e "s#<current-time>.*</current-time>##g" > regular.out
+	sed -e "$filter_str" > regular.out
 $CURL -D compressed.headers --compressed $URL 2>/dev/null | \
-	sed -e "s#<current-time>.*</current-time>##g" > compressed.out
+	sed -e "$filter_str" > compressed.out
 $DIFF regular.out compressed.out >/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
