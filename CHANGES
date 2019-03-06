@@ -1,3 +1,7 @@
+5175.	[bug]		Fixed a problem with file input in dnssec-keymgr,
+			dnssec-coverage and dnssec-checkds when using
+			python3. [GL #882]
+
 5174.	[doc]		Tidy dnssec-keygen manual. [GL !1557]
 
 5173.	[bug]		Fixed a race in socket code that could occur when
