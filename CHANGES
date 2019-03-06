@@ -1,3 +1,8 @@
+5173.	[bug]		Fixed a race in socket code that could occur when
+			accept, send, or recv were called from an event
+			loop but the socket had been closed by another
+			thread. [RT #874]
+
 5172.	[bug]		nsupdate now honors the operating system's preferred
 			ephemeral port range. [GL #905]
 

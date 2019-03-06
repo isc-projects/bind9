@@ -2816,6 +2816,11 @@ internal_accept(isc__socket_t *sock) {
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
+	if (sock->fd < 0) {
+		/* Socket is gone */
+		UNLOCK(&sock->lock);
+		return;
+	}
 	socket_log(sock, NULL, TRACE,
 		   "internal_accept called, locked socket");
 
@@ -3051,6 +3056,11 @@ internal_recv(isc__socket_t *sock) {
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
+	if (sock->fd < 0) {
+		/* Socket is gone */
+		UNLOCK(&sock->lock);
+		return;
+	}
 	dev = ISC_LIST_HEAD(sock->recv_list);
 	if (dev == NULL) {
 		goto finish;
@@ -3105,6 +3115,11 @@ internal_send(isc__socket_t *sock) {
 	INSIST(VALID_SOCKET(sock));
 
 	LOCK(&sock->lock);
+	if (sock->fd < 0) {
+		/* Socket is gone */
+		UNLOCK(&sock->lock);
+		return;
+	}
 	dev = ISC_LIST_HEAD(sock->send_list);
 	if (dev == NULL) {
 		goto finish;
