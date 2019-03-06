@@ -231,7 +231,7 @@ unload_plugin(ns_plugin_t **pluginp) {
 	*pluginp = NULL;
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+		      NS_LOGMODULE_HOOKS, ISC_LOG_DEBUG(1),
 		      "unloading plugin '%s'", plugin->modpath);
 
 	if (plugin->inst != NULL) {
@@ -352,7 +352,7 @@ unload_plugin(ns_plugin_t **pluginp) {
 	*pluginp = NULL;
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_GENERAL,
-		      NS_LOGMODULE_HOOKS, ISC_LOG_INFO,
+		      NS_LOGMODULE_HOOKS, ISC_LOG_DEBUG(1),
 		      "unloading plugin '%s'", plugin->modpath);
 
 	if (plugin->inst != NULL) {
