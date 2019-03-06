@@ -1,3 +1,6 @@
+5176.	[tests]		Remove a dependency on libxml in statschannel system
+			test. [GL #926]
+
 5172.	[bug]		nsupdate now honors the operating system's preferred
 			ephemeral port range. [GL #905]
 
@@ -142,8 +145,8 @@
 5092.	[bug]		Address memory leak on SIGTERM in nsupdate when using
 			GSS-TSIG. [GL #558]
 
-5090.	[bug]		dig and mdig failed to properly preparse dash value
-			pairs when value was a seperate argument and started
+5090.	[bug]		dig and mdig failed to properly pre-parse dash value
+			pairs when value was a separate argument and started
 			with a dash. [GL #584]
 
 5088.	[bug]		dig/host/nslookup could crash when interrupted close to
@@ -169,7 +172,7 @@
 5072.	[bug]		Add unit tests for isc_buffer_copyregion() and fix its
 			behavior for auto-reallocated buffers. [GL #644]
 
-5071.	[bug]		Comparision of NXT records was broken. [GL #631]
+5071.	[bug]		Comparison of NXT records was broken. [GL #631]
 
 5070.	[bug]		Record types which support a empty rdata field were
 			not handling the empty rdata field case. [GL #638]
@@ -179,7 +182,7 @@
 
 5065.	[bug]		Only set IPV6_USE_MIN_MTU on IPv6. [GL #553]
 
-5064.	[test]		Initalize TZ environment variable before calling
+5064.	[test]		Initialize TZ environment variable before calling
 			dns_test_begin in dnstap_test. [GL #624]
 
 5061.	[protocol]	Add support for EID and NIMLOC. [GL #626]
