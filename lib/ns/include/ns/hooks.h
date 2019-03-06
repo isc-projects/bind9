@@ -316,6 +316,30 @@ ns_plugin_register_t plugin_register;
 ns_plugin_version_t plugin_version;
 
 isc_result_t
+ns_plugin_expandpath(const char *src, char *dst, size_t dstsize);
+/*%<
+ * Prepare the plugin location to be passed to dlopen() based on the plugin
+ * path or filename found in the configuration file ('src').  Store the result
+ * in 'dst', which is 'dstsize' bytes large.
+ *
+ * On Unix systems, two classes of 'src' are recognized:
+ *
+ *   - If 'src' is an absolute or relative path, it will be copied to 'dst'
+ *     verbatim.
+ *
+ *   - If 'src' is a filename (i.e. does not contain a path separator), the
+ *     path to the directory into which named plugins are installed will be
+ *     prepended to it and the result will be stored in 'dst'.
+ *
+ * On Windows, 'src' is always copied to 'dst' verbatim.
+ *
+ * Returns:
+ *\li	#ISC_R_SUCCESS	Success
+ *\li	#ISC_R_NOSPACE	'dst' is not large enough to hold the output string
+ *\li	Other result	snprintf() returned a negative value
+ */
+
+isc_result_t
 ns_plugin_register(const char *modpath, const char *parameters,
 		   const void *cfg, const char *cfg_file,
 		   unsigned long cfg_line,
