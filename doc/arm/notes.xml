@@ -19,10 +19,13 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="noteversion.xml"/>
   <section xml:id="relnotes_intro"><info><title>Introduction</title></info>
     <para>
-      This document summarizes changes since the last production
-      release on the BIND 9.11 (Extended Support Version) branch.
-      Please see the <filename>CHANGES</filename> file for a further
-      list of bug fixes and other changes.
+      BIND 9.11 (Extended Support Version) is a stable branch of BIND.
+      This document summarizes significant changes since the last
+      production release on that branch.
+    </para>
+    <para>
+      Please see the file <filename>CHANGES</filename> for a more
+      detailed list of changes and bug fixes.
     </para>
   </section>
 
@@ -66,69 +69,11 @@
     </para>
   </section>
 
-  <section xml:id="win_support"><info><title>Legacy Windows No Longer Supported</title></info>
-    <para>
-      As of BIND 9.11.2, Windows XP and Windows 2003 are no longer supported
-      platforms for BIND; "XP" binaries are no longer available for download
-      from ISC.
-    </para>
-  </section>
-
   <section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
     <itemizedlist>
       <listitem>
 	<para>
-	  <command>named</command> could crash during recursive processing
-	  of DNAME records when <command>deny-answer-aliases</command> was
-	  in use. This flaw is disclosed in CVE-2018-5740. [GL #387]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When recursion is enabled but the <command>allow-recursion</command>
-	  and <command>allow-query-cache</command> ACLs are not specified, they
-	  should be limited to local networks, but they were inadvertently set
-	  to match the default <command>allow-query</command>, thus allowing
-	  remote queries. This flaw is disclosed in CVE-2018-5738. [GL #309]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Code change #4964, intended to prevent double signatures
-	  when deleting an inactive zone DNSKEY in some situations,
-	  introduced a new problem during zone processing in which
-	  some delegation glue RRsets are incorrectly identified
-	  as needing RRSIGs, which are then created for them using
-	  the current active ZSK for the zone. In some, but not all
-	  cases, the newly-signed RRsets are added to the zone's
-	  NSEC/NSEC3 chain, but incompletely -- this can result in
-	  a broken chain, affecting validation of proof of nonexistence
-	  for records in the zone. [GL #771]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> could crash if it managed a DNSSEC
-	  security root with <command>managed-keys</command> and the
-	  authoritative zone rolled the key to an algorithm not supported
-	  by BIND 9.  This flaw is disclosed in CVE-2018-5745. [GL #780]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> leaked memory when processing a
-	  request with multiple Key Tag EDNS options present. ISC
-	  would like to thank Toshifumi Sakaguchi for bringing this
-	  to our attention.  This flaw is disclosed in CVE-2018-5744.
-	  [GL #772]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Zone transfer controls for writable DLZ zones were not
-	  effective as the <command>allowzonexfr</command> method was
-	  not being called for such zones. This flaw is disclosed in
-	  CVE-2019-6465. [GL #790]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -138,55 +83,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  <command>named</command> now supports the "root key sentinel"
-	  mechanism. This enables validating resolvers to indicate
-	  which trust anchors are configured for the root, so that
-	  information about root key rollover status can be gathered.
-	  To disable this feature, add
-	  <command>root-key-sentinel no;</command> to
-	  <filename>named.conf</filename>.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Added the ability not to return a DNS COOKIE option when one
-	  is present in the request.  To prevent a cookie being returned,
-	  add <command>answer-cookie no;</command> to
-	  <filename>named.conf</filename>. [GL #173]
-	</para>
-	<para>
-	  <command>answer-cookie no</command> is only intended as a
-	  temporary measure, for use when <command>named</command>
-	  shares an IP address with other servers that do not yet
-	  support DNS COOKIE.  A mismatch between servers on the
-	  same address is not expected to cause operational problems,
-	  but the option to disable COOKIE responses so that all
-	  servers have the same behavior is provided out of an
-	  abundance of caution. DNS COOKIE is an important security
-	  mechanism, and should not be disabled unless absolutely
-	  necessary.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Two new update policy rule types have been added
-	  <command>krb5-selfsub</command> and <command>ms-selfsub</command>
-	  which allow machines with Kerberos principals to update
-	  the name space at or below the machine names identified
-	  in the respective principals.
-	</para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
-  <section xml:id="relnotes_removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-	<para>
-	  <command>named</command> will now log a warning if the old
-	  BIND now can be compiled against libidn2 library to add
-	  IDNA2008 support.  Previously BIND only supported IDNA2003
-	  using (now obsolete) idnkit-1 library.
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -196,37 +93,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  <command>dig +noidnin</command> can be used to disable IDN
-	  processing on the input domain name, when BIND is compiled
-	  with IDN support.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  Multiple <command>cookie-secret</command> clause are now
-	  supported.  The first <command>cookie-secret</command> in
-	  <filename>named.conf</filename> is used to generate new
-	  server cookies.  Any others are used to accept old server
-	  cookies or those generated by other servers using the
-	  matching <command>cookie-secret</command>.
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  The <command>rndc nta</command> command could not differentiate
-	  between views of the same name but different class; this
-	  has been corrected with the addition of a <command>-class</command>
-	  option. [GL #105]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  When compiled with IDN support, the <command>dig</command> and the
-	  <command>nslookup</command> commands now disable IDN processing when
-	  the standard output is not a tty (e.g. not used by human).  The command
-	  line options +idnin and +idnout need to be used to enable IDN
-	  processing when <command>dig</command> or <command>nslookup</command>
-	  is used from the shell scripts.
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
@@ -236,27 +103,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  When a negative trust anchor was added to multiple views
-	  using <command>rndc nta</command>, the text returned via
-	  <command>rndc</command> was incorrectly truncated after the
-	  first line, making it appear that only one NTA had been
-	  added. This has been fixed. [GL #105]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>named</command> now rejects excessively large
-	  incremental (IXFR) zone transfers in order to prevent
-	  possible corruption of journal files which could cause
-	  <command>named</command> to abort when loading zones. [GL #339]
-	</para>
-      </listitem>
-      <listitem>
-	<para>
-	  <command>rndc reload</command> could cause <command>named</command>
-	  to leak memory if it was invoked before the zone loading actions
-	  from a previous <command>rndc reload</command> command were
-	  completed. [RT #47076]
+	  None.
 	</para>
       </listitem>
     </itemizedlist>
