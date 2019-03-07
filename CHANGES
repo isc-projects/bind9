@@ -1,6 +1,8 @@
 5176.	[tests]		Remove a dependency on libxml in statschannel system
 			test. [GL #926]
 
+5174.	[doc]		Tidy dnssec-keygen manual. [GL !1557]
+
 5173.	[bug]		Fixed a race in socket code that could occur when
 			accept, send, or recv were called from an event
 			loop but the socket had been closed by another
