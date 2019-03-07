@@ -431,7 +431,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			if (source->is_file) {
 				stream = source->input;
 
-#if defined(HAVE_FLOCKFILE) && defined(HAVE_GETCUNLOCKED)
+#if defined(HAVE_FLOCKFILE) && defined(HAVE_GETC_UNLOCKED)
 				c = getc_unlocked(stream);
 #else
 				c = getc(stream);
