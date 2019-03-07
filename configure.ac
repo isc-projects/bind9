@@ -14,7 +14,17 @@ AC_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
 AC_CANONICAL_HOST
+
+#
+# Enable system extensions to C and POSIX
+#
 AC_USE_SYSTEM_EXTENSIONS
+
+#
+# Enable large file support
+#
+AC_SYS_LARGEFILE
+AC_FUNC_FSEEKO
 
 # Enable RFC 3542 APIs on macOS
 AC_DEFINE([__APPLE_USE_RFC_3542], [1], [Select RFC3542 IPv6 API on macOS])
@@ -1463,20 +1473,6 @@ AC_SUBST(ZLIB)
 # In solaris 10, SMF can manage named service
 #
 AC_CHECK_LIB(scf, smf_enable_instance)
-
-#
-# Large File
-#
-AC_ARG_ENABLE(largefile,
-	      AS_HELP_STRING([--enable-largefile], [64-bit file support]),
-	      want_largefile="yes", want_largefile="no")
-case $want_largefile in
-	yes)
-		ALWAYS_DEFINES="$ALWAYS_DEFINES -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64"
-		;;
-	*)
-		;;
-esac
 
 #
 # Additional compiler settings.
