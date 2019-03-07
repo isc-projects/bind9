@@ -1549,6 +1549,8 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	zone->updbversion = NULL;
 	zone->updbit = NULL;
 	zone->rpzs = rpzs;
+	zone->db_registered = false;
+	zone->addsoa = true;
 	ISC_EVENT_INIT(&zone->updateevent, sizeof(zone->updateevent),
 		       0, NULL, 0, NULL, NULL, NULL, NULL, NULL);
 

@@ -97,7 +97,10 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  The new <command>add-soa</command> option specifies whether
+	  or not the <command>response-policy</command> zone's SOA record
+	  should be included in the additional section of RPZ responses.
+	  [GL #865]
         </para>
       </listitem>
     </itemizedlist>
