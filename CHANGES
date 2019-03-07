@@ -1,3 +1,5 @@
+	--- 9.14.0rc2 released ---
+
 5176.	[tests]		Remove a dependency on libxml in statschannel system
 			test. [GL #926]
 
