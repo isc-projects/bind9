@@ -50,6 +50,7 @@ copy_setports ns4/named.conf.in ns4/named.conf
 copy_setports ns5/named.conf.in ns5/named.conf
 copy_setports ns6/named.conf.in ns6/named.conf
 copy_setports ns7/named.conf.in ns7/named.conf
+copy_setports ns8/named.conf.in ns8/named.conf
 
 copy_setports dnsrpzd.conf.in dnsrpzd.conf
 
@@ -70,6 +71,7 @@ for NM in '' -2 -given -disabled -passthru -no-op -nodata -nxdomain -cname -wild
 done
 #  bl zones are dynamically updated.  Add one zone that is updated manually.
 cp ns3/manual-update-rpz.db.in ns3/manual-update-rpz.db
+cp ns8/manual-update-rpz.db.in ns8/manual-update-rpz.db
 
 # $1=directory
 # $2=domain name
