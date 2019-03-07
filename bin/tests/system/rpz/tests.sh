@@ -777,27 +777,29 @@ EOF
     fi
   done
 
-  # restart the main test RPZ server with a bad zone.
-  t=`expr $t + 1`
-  echo_i "checking that ns3 with broken rpz does not crash (${t})"
-  $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
-  cp ns3/broken.db.in ns3/bl.db
-  restart 3 # do not rebuild rpz zones
-  nocrash a3-1.tld2 -tA
-  $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
-  restart 3 "rebuild-bl-rpz"
+  if [ native = "$mode" ]; then
+    # restart the main test RPZ server with a bad zone.
+    t=`expr $t + 1`
+    echo_i "checking that ns3 with broken rpz does not crash (${t})"
+    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+    cp ns3/broken.db.in ns3/bl.db
+    restart 3 # do not rebuild rpz zones
+    nocrash a3-1.tld2 -tA
+    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz ns3
+    restart 3 "rebuild-bl-rpz"
 
-  # reload a RPZ zone that is now deliberately broken.
-  t=`expr $t + 1`
-  echo_i "checking rpz failed update will keep previous rpz rules (${t})"
-  $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.before
-  grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.before > /dev/null || setret "failed"
-  cp ns3/broken.db.in ns3/manual-update-rpz.db
-  rndc_reload ns3 $ns3 manual-update-rpz
-  sleep 1
-  # ensure previous RPZ rules still apply.
-  $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.after
-  grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after > /dev/null || setret "failed"
+    # reload a RPZ zone that is now deliberately broken.
+    t=`expr $t + 1`
+    echo_i "checking rpz failed update will keep previous rpz rules (${t})"
+    $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.before
+    grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.before > /dev/null || setret "failed"
+    cp ns3/broken.db.in ns3/manual-update-rpz.db
+    rndc_reload ns3 $ns3 manual-update-rpz
+    sleep 1
+    # ensure previous RPZ rules still apply.
+    $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.after
+    grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.after > /dev/null || setret "failed"
+  fi
 
   t=`expr $t + 1`
   echo_i "checking that ttl values are not zeroed when qtype is '*' (${t})"
@@ -831,14 +833,14 @@ EOF
   $DIG z.x.servfail -p ${PORT} @$ns7 > dig.out.${t}
   grep SOA dig.out.${t} > /dev/null && setret "failed"
 
-  if [ "$mode" = native ]; then
+  if [ native = "$mode" ]; then
     t=`expr $t + 1`
     echo_i "checking that "add-soa yes" at response-policy level works (${t})"
     $DIG walled.tld2 -p ${PORT} +noall +add @$ns3 > dig.out.${t}
     grep "^manual-update-rpz\..*SOA" dig.out.${t} > /dev/null || setret "failed"
   fi
 
-  if [ "$mode" = native ]; then
+  if [ native = "$mode" ]; then
     t=`expr $t + 1`
     echo_i "checking that "add-soa unset" works (${t})"
     $DIG walled.tld2 -p ${PORT} +noall +add @$ns8 > dig.out.${t}
@@ -847,7 +849,7 @@ EOF
 
   # dnsrps does not allow NS RRs in policy zones, so this check
   # with dnsrps results in no rewriting.
-  if [ "$mode" = native ]; then
+  if [ native = "$mode" ]; then
     t=`expr $t + 1`
     echo_i "checking rpz with delegation fails correctly (${t})"
     $DIG -p ${PORT} @$ns3 ns example.com > dig.out.$t
