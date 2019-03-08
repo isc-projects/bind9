@@ -11,8 +11,6 @@
 
 #pragma once
 
-#include <config.h>
-
 #include <openssl/opensslv.h>
 #include <openssl/crypto.h>
 #include <openssl/engine.h>
