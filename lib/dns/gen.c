@@ -27,6 +27,7 @@
 #include <sys/types.h>
 
 #include <ctype.h>
+#include <limits.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -134,6 +135,10 @@ static const char copyright[] =
 #define TYPECLASSBUF (TYPECLASSLEN + 1)
 #define TYPECLASSFMT "%" STR(TYPECLASSLEN) "[-0-9a-z]_%d"
 #define ATTRIBUTESIZE 256
+
+#ifndef PATH_MAX
+#define PATH_MAX 1024
+#endif
 
 static struct cc {
 	struct cc *next;
