@@ -236,7 +236,7 @@ logkey(dns_rdata_t *rdata)
 }
 
 static void
-emit(unsigned int dtype, bool showall, char *lookaside,
+emit(dns_dsdigest_t dtype, bool showall, char *lookaside,
      bool cds, dns_rdata_t *rdata)
 {
 	isc_result_t result;
@@ -351,7 +351,7 @@ main(int argc, char **argv) {
 	char		*lookaside = NULL;
 	char		*endp;
 	int		ch;
-	unsigned int	dtype = DNS_DSDIGEST_SHA1;
+	dns_dsdigest_t	dtype = DNS_DSDIGEST_SHA1;
 	bool	cds = false;
 	bool	both = true;
 	bool	usekeyset = false;

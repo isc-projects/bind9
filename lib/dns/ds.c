@@ -37,7 +37,7 @@
 
 isc_result_t
 dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
-		  unsigned int digest_type, unsigned char *buffer,
+		  dns_dsdigest_t digest_type, unsigned char *buffer,
 		  dns_rdata_t *rdata)
 {
 	dns_fixedname_t fname;
@@ -107,7 +107,6 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		break;
 
 	case DNS_DSDIGEST_SHA256:
-	default:
 		isc_sha256_init(&sha256);
 		dns_name_toregion(name, &r);
 		isc_sha256_update(&sha256, r.base, r.length);
@@ -116,6 +115,10 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 		isc_sha256_update(&sha256, r.base, r.length);
 		isc_sha256_final(digest, &sha256);
 		break;
+
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
 
 	ds.mctx = NULL;

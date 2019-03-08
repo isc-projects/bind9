@@ -31,7 +31,7 @@ ISC_LANG_BEGINDECLS
 
 isc_result_t
 dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
-		  unsigned int digest_type, unsigned char *buffer,
+		  dns_dsdigest_t digest_type, unsigned char *buffer,
 		  dns_rdata_t *rdata);
 /*%<
  * Build the rdata of a DS record.
