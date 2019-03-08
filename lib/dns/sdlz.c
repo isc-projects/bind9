@@ -613,9 +613,9 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 			const dns_name_t *wild;
 
 			dns_fixedname_init(&fixed);
-			if (i == dlabels)
+			if (i == dlabels - 1) {
 				wild = dns_wildcardname;
-			else {
+			} else {
 				dns_name_t *fname;
 				fname = dns_fixedname_name(&fixed);
 				dns_name_getlabelsequence(name, i + 1,
