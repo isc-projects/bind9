@@ -14,8 +14,6 @@
 
 /* missing code for WIN32 */
 
-#include <config.h>
-
 #include <string.h>
 #include <windows.h>
 

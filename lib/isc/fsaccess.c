@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 /*! \file
  * \brief
  * This file contains the OS-independent functionality of the API.

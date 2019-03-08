@@ -16,8 +16,6 @@
  *** Imports
  ***/
 
-#include <config.h>
-
 #include <inttypes.h>
 
 #include <isc/string.h>

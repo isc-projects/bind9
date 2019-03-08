@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <sys/param.h>
 #include <sys/select.h>
 #include <sys/types.h>

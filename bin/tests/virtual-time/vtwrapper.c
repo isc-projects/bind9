@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #define _GNU_SOURCE
 #include <sys/syscall.h>
 #include <sys/time.h>

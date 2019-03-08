@@ -14,8 +14,6 @@
  * driver, with update support.
  */
 
-#include <config.h>
-
 #include <stdbool.h>
 #include <stdio.h>
 #include <inttypes.h>

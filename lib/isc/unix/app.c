@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/types.h>
 

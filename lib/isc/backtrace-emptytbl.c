@@ -20,8 +20,6 @@
  * (e.g. libisc-nosymbol.a).
  */
 
-#include <config.h>
-
 #include <isc/backtrace.h>
 
 LIBISC_EXTERNAL_DATA const int isc__backtrace_nsymbols = 0;

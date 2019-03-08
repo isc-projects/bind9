@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <isc/nonce.h>
 
 #include "entropy_private.h"

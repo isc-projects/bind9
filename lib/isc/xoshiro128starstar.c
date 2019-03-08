@@ -20,8 +20,6 @@
  * See <http://creativecommons.org/publicdomain/zero/1.0/>.
 */
 
-#include <config.h>
-
 #include <inttypes.h>
 
 /*

@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <dns/fixedname.h>
 
 void

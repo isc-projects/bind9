@@ -18,8 +18,6 @@
  * file locations are stored in the registry.
  */
 
-#include <config.h>
-
 #include <isc/bind_registry.h>
 #include <isc/ntpaths.h>
 #include <isc/string.h>

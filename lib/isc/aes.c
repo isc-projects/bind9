@@ -12,8 +12,6 @@
 
 /*! \file isc/aes.c */
 
-#include <config.h>
-
 #include <isc/assertions.h>
 #include <isc/aes.h>
 #include <isc/platform.h>

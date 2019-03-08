@@ -28,8 +28,6 @@
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <config.h>
-
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>

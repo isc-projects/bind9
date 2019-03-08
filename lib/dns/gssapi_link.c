@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #ifdef GSSAPI
 
 #include <stdbool.h>

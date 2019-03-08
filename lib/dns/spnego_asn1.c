@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 /*! \file
  * \brief Method routines generated from SPNEGO ASN.1 module.
  * See spnego_asn1.pl for details.  Do not edit.

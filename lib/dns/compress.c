@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 /*! \file */
 
 #define DNS_NAME_USEINLINE 1

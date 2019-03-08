@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #if defined(HAVE_SCHED_H)
 #include <sched.h>
 #endif

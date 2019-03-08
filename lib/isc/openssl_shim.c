@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <openssl/opensslv.h>
 
 #include <stdlib.h>

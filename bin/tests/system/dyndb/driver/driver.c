@@ -15,8 +15,6 @@
  * Copyright (C) 2009-2015  Red Hat ; see COPYRIGHT for license
  */
 
-#include <config.h>
-
 #include <isc/commandline.h>
 #include <isc/hash.h>
 #include <isc/mem.h>

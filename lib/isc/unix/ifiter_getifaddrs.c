@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 /*! \file
  * \brief
  * Obtain the list of network interfaces using the getifaddrs(3) library.

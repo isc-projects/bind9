@@ -9,9 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
-#include <config.h>
-
 #undef rename
 #include <errno.h>
 #include <limits.h>

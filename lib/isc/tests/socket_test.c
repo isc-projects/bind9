@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #if HAVE_CMOCKA
 #include <stdarg.h>
 #include <stddef.h>

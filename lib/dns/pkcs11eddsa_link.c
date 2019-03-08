@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #if USE_PKCS11 && \
 	(HAVE_PKCS11_ED25519 || HAVE_PKCS11_ED448)
 

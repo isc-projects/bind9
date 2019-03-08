@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <isc/errno.h>
 #include <isc/util.h>
 

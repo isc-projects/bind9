@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <isc/meminfo.h>
 #include <inttypes.h>
 #include <unistd.h>

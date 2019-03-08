@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 /*! \file
  * \brief
  * Portable SPNEGO implementation.

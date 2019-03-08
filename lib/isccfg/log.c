@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <isc/util.h>
 
 #include <isccfg/log.h>

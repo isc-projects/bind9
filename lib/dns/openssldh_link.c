@@ -25,8 +25,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <pk11/site.h>
 
 #include <ctype.h>

@@ -15,8 +15,6 @@
  * Id: prefix.c,v 1.37.2.9 2000/03/10 02:53:19 labovit Exp
  */
 
-#include <config.h>
-
 #include <inttypes.h>
 
 #include <isc/mem.h>

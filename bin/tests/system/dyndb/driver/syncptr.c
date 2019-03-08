@@ -4,8 +4,6 @@
  * Copyright (C) 2009-2015  Red Hat ; see COPYRIGHT for license
  */
 
-#include <config.h>
-
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/netaddr.h>

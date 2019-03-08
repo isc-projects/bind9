@@ -11,7 +11,6 @@
 
 
 /*! \file */
-#include <config.h>
 
 #include <isccfg/version.h>
 

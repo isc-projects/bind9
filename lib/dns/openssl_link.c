@@ -23,8 +23,6 @@
  * IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <config.h>
-
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/mutexblock.h>

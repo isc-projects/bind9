@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <isc/mem.h>
 #include <isc/util.h>
 

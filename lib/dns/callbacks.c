@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <isc/print.h>
 #include <isc/util.h>
 

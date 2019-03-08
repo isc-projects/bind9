@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <confgen/os.h>
 
 #include <fcntl.h>
