@@ -1,3 +1,6 @@
+5180.	[bug]		delv now honors the operating system's preferred
+			ephemeral port range. [GL #925]
+
 5179.	[cleanup]	Replace some vague type declarations with the more
 			specific dns_secalg_t and dns_dsdigest_t.
 			Thanks to Tony Finch. [GL !1498]
