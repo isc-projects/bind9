@@ -16,8 +16,6 @@
  * for changing states.
  */
 
-#include <config.h>
-
 #include <stdbool.h>
 
 #include <isc/app.h>

@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <isc/util.h>
 #include <isc/types.h>
 

@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 /* #define inline */
 
 #include <inttypes.h>

@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <isc/log.h>
 #include <isc/print.h>
 

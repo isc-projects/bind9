@@ -14,8 +14,6 @@
  * \file
  */
 
-#include <config.h>
-
 #include <isc/event.h>
 #include <isc/mem.h>
 #include <isc/util.h>

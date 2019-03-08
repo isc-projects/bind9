@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <ctype.h>
 #include <inttypes.h>
 #include <stdbool.h>

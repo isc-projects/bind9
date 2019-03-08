@@ -9,9 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
-#include <config.h>
-
 #include <sys/types.h>
 
 #include <stdbool.h>

@@ -119,7 +119,7 @@ BUILD_LIBS = @BUILD_LIBS@
 .SUFFIXES:
 .SUFFIXES: .c .@O@
 
-ALWAYS_INCLUDES = -I${top_builddir} -I${top_srcdir}
+ALWAYS_INCLUDES = -include ${top_builddir}/config.h -I${top_builddir} -I${top_srcdir}
 ALWAYS_DEFINES = @ALWAYS_DEFINES@
 ALWAYS_WARNINGS =
 

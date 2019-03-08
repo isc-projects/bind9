@@ -125,6 +125,10 @@ The following lint and lint-like comments should be used where appropriate:
 should prevent multiple inclusion.  The OS is assumed to prevent multiple
 inclusion of its .h files.
 
+The `#pragma once` directive should be used instead of `#ifdef/#define`
+combo, and the `#include <config.h>` should not be used anywhere, the
+build system ensures that it's the first included file.
+
 A header file defining a public interface is generally placed in the source
 tree two levels below the C file that implements the interface.  For
 example, the include file defining the interface for `lib/dns/zone.c` is in
@@ -155,8 +159,7 @@ or for public files that do not declare any functions.
 	 * file, You can obtain one at http://mozilla.org/MPL/2.0/.
          */
     
-        #ifndef ISC_WHATEVER_H
-        #define ISC_WHATEVER_H 1
+        #pragma once
     
         /*****
          ***** Module Info

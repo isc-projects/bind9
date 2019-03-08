@@ -9,9 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
-#include <config.h>
-
 #include <stdbool.h>
 #include <winsock2.h>
 

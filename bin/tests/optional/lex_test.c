@@ -10,7 +10,6 @@
  */
 
 /*! \file */
-#include <config.h>
 
 #include <isc/commandline.h>
 #include <isc/lex.h>

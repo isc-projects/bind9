@@ -10,8 +10,6 @@
  */
 
 /*! \file */
-
-#include <config.h>
 #include <stdarg.h>
 #include <stdbool.h>
 

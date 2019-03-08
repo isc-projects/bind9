@@ -52,8 +52,6 @@
  * 4 Unable to allocate memory for, or create lexer.
  * 5 unable to perform BDB cursor operation
  */
-
-#include <config.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>

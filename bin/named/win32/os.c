@@ -9,7 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
 #include <stdarg.h>
 
 #include <sys/types.h>

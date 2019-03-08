@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <isccfg/cfg.h>
 #include <isccfg/grammar.h>
 

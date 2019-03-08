@@ -11,7 +11,6 @@
 
 
 /*! \file */
-#include <config.h>
 
 #include <dns/version.h>
 

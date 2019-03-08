@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <errno.h>
 #include <stdbool.h>
 #include <stdlib.h>

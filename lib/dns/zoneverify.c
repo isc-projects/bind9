@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <inttypes.h>
 #include <stdarg.h>
 #include <stdbool.h>

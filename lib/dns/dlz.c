@@ -51,8 +51,6 @@
  *** Imports
  ***/
 
-#include <config.h>
-
 #include <stdbool.h>
 
 #include <dns/db.h>

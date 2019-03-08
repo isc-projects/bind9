@@ -15,8 +15,6 @@
  * The built-in "version", "hostname", "id", "authors" and "empty" databases.
  */
 
-#include <config.h>
-
 #include <string.h>
 #include <stdio.h>
 

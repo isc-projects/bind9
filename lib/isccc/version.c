@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <isccc/version.h>
 
 const char isccc_version[] = VERSION;

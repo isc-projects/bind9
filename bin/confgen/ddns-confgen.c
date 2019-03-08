@@ -17,8 +17,6 @@
  * and the corresponding key and update-policy statements in named.conf.
  */
 
-#include <config.h>
-
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stdlib.h>

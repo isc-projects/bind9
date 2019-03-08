@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #if !USE_PKCS11
 
 #if HAVE_OPENSSL_ED25519 || HAVE_OPENSSL_ED448

@@ -40,8 +40,6 @@
 
 /*! \file */
 
-#include <config.h>      // IWYU pragma: keep
-
 #ifdef _GNU_SOURCE
 #undef _GNU_SOURCE
 #endif

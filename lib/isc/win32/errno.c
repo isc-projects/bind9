@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include "errno2result.h"
 
 isc_result_t

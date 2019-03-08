@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 /*! \file */
 
 #include <irs/version.h>

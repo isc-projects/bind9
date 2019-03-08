@@ -9,9 +9,6 @@
  * information regarding copyright ownership.
  */
 
-
-#include <config.h>
-
 #if HAVE_DLFCN_H
 #include <dlfcn.h>
 #elif _WIN32

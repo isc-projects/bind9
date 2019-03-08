@@ -118,8 +118,6 @@
  *    sendto(2), sendmsg(2), socket(2).
  */
 
-#include <config.h>
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>

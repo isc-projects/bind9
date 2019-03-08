@@ -20,8 +20,6 @@
  * -w sec.ond	wait for seconds, because `sleep 0.1` is not portable
  */
 
-#include <config.h>
-
 #include <inttypes.h>
 
 #include <errno.h>

@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>

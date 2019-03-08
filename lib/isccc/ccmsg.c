@@ -26,8 +26,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <inttypes.h>
 
 #include <isc/mem.h>

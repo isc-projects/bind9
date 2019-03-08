@@ -27,8 +27,6 @@
  * limitations under the License.
  */
 
-#include <config.h>
-
 #include <inttypes.h>
 #include <stdbool.h>
 #include <stdlib.h>

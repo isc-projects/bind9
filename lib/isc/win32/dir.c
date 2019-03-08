@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <string.h>
 #include <direct.h>
 #include <process.h>

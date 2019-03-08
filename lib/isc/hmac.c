@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-#include <config.h>
-
 #include <isc/assertions.h>
 #include <isc/hmac.h>
 #include <isc/md.h>

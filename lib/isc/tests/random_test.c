@@ -16,8 +16,6 @@
  * random. The test is expected to fail on occasion by random happenstance.
  */
 
-#include <config.h>
-
 #if HAVE_CMOCKA
 
 #include <stdarg.h>

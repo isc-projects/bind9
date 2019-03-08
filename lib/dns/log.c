@@ -11,8 +11,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <isc/util.h>
 
 #include <dns/log.h>

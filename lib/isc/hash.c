@@ -13,8 +13,6 @@
  * 32 bit Fowler/Noll/Vo FNV-1a hash code with modification for BIND
  */
 
-#include <config.h> // IWYU pragma: keep
-
 #include <stdbool.h>
 #include <stddef.h>
 #include <inttypes.h>

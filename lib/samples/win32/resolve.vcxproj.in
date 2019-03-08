@@ -60,7 +60,8 @@
       <ObjectFileName>.\$(Configuration)\</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\isc\win32;..\..\isc\win32\include;..\..\isc\include;..\..\dns\win32\include;..\..\dns\include;..\..\irs\win32\include;..\..\irs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>..\..\..\config.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\isc\win32;..\..\isc\win32\include;..\..\isc\include;..\..\dns\win32\include;..\..\dns\include;..\..\irs\win32\include;..\..\irs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>
@@ -87,7 +88,8 @@
       <AssemblerListingLocation>.\$(Configuration)\</AssemblerListingLocation>
       <ObjectFileName>.\$(Configuration)\</ObjectFileName>
       <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\isc\win32;..\..\isc\win32\include;..\..\isc\include;..\..\dns\win32\include;..\..\dns\include;..\..\irs\win32\include;..\..\irs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>..\..\..\config.h</ForcedIncludeFiles>
+      <AdditionalIncludeDirectories>.\;..\..\..\;@LIBXML2_INC@@OPENSSL_INC@..\..\isc\win32;..\..\isc\win32\include;..\..\isc\include;..\..\dns\win32\include;..\..\dns\include;..\..\irs\win32\include;..\..\irs\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsC</CompileAs>
     </ClCompile>
     <Link>

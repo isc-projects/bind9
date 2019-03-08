@@ -54,21 +54,6 @@ list=`git grep -l uintptr_t lib bin |
     echo "$list"
 }
 
-#
-# Check for missing #include <config.h>
-#
-list=`git ls-files -c bin lib | grep '\.c$' |
-      xargs grep -L '#include ["<]config.h[">]' |
-      grep -vE -e '(/win32/|bin/pkcs11/|lib/dns/rdata|lib/bind/)' \
-	       -e '(ifiter_|lib/dns/gen.c|lib/dns/spnego_asn1.c)' \
-	       -e '(lib/isc/entropy.c|lib/isc/fsaccess.c)' \
-	       -e '(bin/tests/virtual-time/vtwrapper.c|symtbl.c|version.c)'`
-[ -n "$list" ] && {
-    status=1
-    echo 'Missing #include "config.h":'
-    echo "$list"
-}
-
 list=`git ls-files -c lib bin | grep '\.vcxproj\.in$' |
       xargs grep -L '<ProjectGuid>' |
       awk '{a[$2]++;} END { for (g in a) if (a[g] != 1) print g;}'`

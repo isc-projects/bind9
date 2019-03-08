@@ -17,8 +17,6 @@
 
 /* #define ISC_LIST_CHECKINIT */
 
-#include <config.h>
-
 #include <inttypes.h>
 #include <stdbool.h>
 

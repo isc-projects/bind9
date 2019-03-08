@@ -12,8 +12,6 @@
 
 /*! \file */
 
-#include <config.h>
-
 #include <stdbool.h>
 #include <stddef.h>	/* NULL */
 #include <stdlib.h>	/* NULL */
