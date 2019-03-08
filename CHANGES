@@ -1,3 +1,7 @@
+5181.	[func]		Add a mechanism for a DLZ module to signal that
+			the view's allow-transfer ACL should be used to
+			determine whether transfers are allowed. [GL #803]
+
 5180.	[bug]		delv now honors the operating system's preferred
 			ephemeral port range. [GL #925]
 
