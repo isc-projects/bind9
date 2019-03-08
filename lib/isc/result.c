@@ -99,6 +99,8 @@ static const char *description[ISC_R_NRESULTS] = {
 	"would block",				/*%< 63 */
 	"complete",				/*%< 64 */
 	"crypto failure",			/*%< 65 */
+	"disc quota",				/*%< 66 */
+	"disc full",				/*%< 67 */
 };
 
 static const char *identifier[ISC_R_NRESULTS] = {
@@ -168,6 +170,8 @@ static const char *identifier[ISC_R_NRESULTS] = {
 	"ISC_R_WOULDBLOCK",
 	"ISC_R_COMPLETE",
 	"ISC_R_CRYPTOFAILURE",
+	"ISC_R_DISCQUOTA",
+	"ISC_R_DISCFULL",
 };
 
 #define ISC_RESULT_RESULTSET			2
