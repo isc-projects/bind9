@@ -27,6 +27,7 @@
 #include <sys/types.h>
 
 #include <ctype.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -133,7 +134,6 @@ static const char copyright[] =
 #define TYPECLASSBUF (TYPECLASSLEN + 1)
 #define TYPECLASSFMT "%" STR(TYPECLASSLEN) "[-0-9a-z]_%d"
 #define ATTRIBUTESIZE 256
-#define DIRNAMESIZE 256
 
 static struct cc {
 	struct cc *next;
@@ -143,11 +143,11 @@ static struct cc {
 
 static struct tt {
 	struct tt *next;
-	int rdclass;
-	int type;
+	uint16_t rdclass;
+	uint16_t type;
 	char classbuf[TYPECLASSBUF];
 	char typebuf[TYPECLASSBUF];
-	char dirbuf[DIRNAMESIZE];	/* XXX Should be max path length */
+	char dirbuf[PATH_MAX-30];
 } *types;
 
 static struct ttnam {
@@ -155,7 +155,7 @@ static struct ttnam {
 	char macroname[TYPECLASSBUF];
 	char attr[ATTRIBUTESIZE];
 	unsigned int sorted;
-	int type;
+	uint16_t type;
 } typenames[TYPENAMES];
 
 static int maxtype = -1;
@@ -383,7 +383,7 @@ add(int rdclass, const char *classbuf, int type, const char *typebuf,
 
 	INSIST(strlen(typebuf) < TYPECLASSBUF);
 	INSIST(strlen(classbuf) < TYPECLASSBUF);
-	INSIST(strlen(dirbuf) < DIRNAMESIZE);
+	INSIST(strlen(dirbuf) < PATH_MAX);
 
 	insert_into_typenames(type, typebuf, NULL);
 
@@ -520,8 +520,8 @@ HASH(char *string) {
 
 int
 main(int argc, char **argv) {
-	char buf[DIRNAMESIZE];		/* XXX Should be max path length */
-	char srcdir[DIRNAMESIZE];	/* XXX Should be max path length */
+	char buf[PATH_MAX];
+	char srcdir[PATH_MAX];
 	int rdclass;
 	char classbuf[TYPECLASSBUF];
 	struct tt *tt;
@@ -586,7 +586,7 @@ main(int argc, char **argv) {
 			break;
 		case 's':
 			if (strlen(isc_commandline_argument) >
-			    DIRNAMESIZE - 2 * TYPECLASSLEN  -
+			    PATH_MAX - 2 * TYPECLASSLEN  -
 			    sizeof("/rdata/_65535_65535"))
 			{
 				fprintf(stderr, "\"%s\" too long\n",
