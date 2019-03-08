@@ -1,3 +1,6 @@
+5178.	[bug]		Handle EDQUOT (disk quota) and ENOSPC (disk full)
+			errors when writing files. [GL #902]
+
 5176.	[tests]		Remove a dependency on libxml in statschannel system
 			test. [GL #926]
 

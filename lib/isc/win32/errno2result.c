@@ -62,6 +62,8 @@ isc__errno2resultx(int posixerrno, bool dolog,
 	case EMFILE:
 	case WSAEMFILE:
 		return (ISC_R_TOOMANYOPENFILES);
+	case ENOSPC:
+		return (ISC_R_DISCFULL);
 	case ERROR_CANCELLED:
 		return (ISC_R_CANCELED);
 	case ERROR_CONNECTION_REFUSED:

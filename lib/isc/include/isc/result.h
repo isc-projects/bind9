@@ -83,9 +83,13 @@
 #define ISC_R_UNSET			61	/*%< unset */
 #define ISC_R_MULTIPLE			62	/*%< multiple */
 #define ISC_R_WOULDBLOCK		63	/*%< would block */
+#define ISC_R_COMPLETE			64	/*%< complete */
+#define ISC_R_CRYPTOFAILURE		65	/*%< cryptography library failure */
+#define ISC_R_DISCQUOTA			66	/*%< disc quota */
+#define ISC_R_DISCFULL			67	/*%< disc full */
 
 /*% Not a result code: the number of results. */
-#define ISC_R_NRESULTS 			64
+#define ISC_R_NRESULTS 			68
 
 ISC_LANG_BEGINDECLS
 
