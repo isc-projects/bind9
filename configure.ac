@@ -666,6 +666,11 @@ AC_CHECK_FUNCS([pthread_setname_np pthread_set_name_np])
 AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 
 #
+# flockfile is usually provided by pthreads
+#
+AC_CHECK_FUNCS([flockfile getc_unlocked])
+
+#
 # Look for sysconf to allow detection of the number of processors.
 #
 AC_CHECK_FUNCS([sysconf])
