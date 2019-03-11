@@ -47,11 +47,6 @@
 			keep previous version of the database if RPZ fails to
 			load. [GL #813]
 
-5167.	[bug]		nxdomain-redirect could sometimes lookup the wrong
-			redirect name. [GL #892]
-
-5166.	[placeholder]
-
 5165.	[contrib]	Removed SDB drivers from contrib; they're obsolete.
 			[GL #428]
 
