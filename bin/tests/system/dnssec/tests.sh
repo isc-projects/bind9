@@ -1845,8 +1845,8 @@ echo_i "waiting for NTA rechecks/expirations"
 
 #
 # secure.example and badds.example used default nta-duration
-# (configured as 10s in ns4/named1.conf), but nta recheck interval
-# is configured to 7s, so at t=8 the NTAs for secure.example and
+# (configured as 12s in ns4/named1.conf), but nta recheck interval
+# is configured to 9s, so at t=10 the NTAs for secure.example and
 # fakenode.secure.example should both be lifted, but badds.example
 # should still be going.
 #
@@ -1866,9 +1866,9 @@ status=`expr $status + $ret`
 ret=0
 
 #
-# bogus.example was set to expire in 20s, so at t=11
+# bogus.example was set to expire in 20s, so at t=13
 # it should still be NTA'd, but badds.example used the default
-# lifetime of 10s, so it should revert to SERVFAIL now.
+# lifetime of 12s, so it should revert to SERVFAIL now.
 #
 $PERL -e 'my $delay = '$start' + 13 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 # check nta table
@@ -2067,10 +2067,10 @@ else
         exit 1
 fi
 
-# nta-recheck is configured as 7s, so at t=10 the NTAs for
+# nta-recheck is configured as 9s, so at t=12 the NTAs for
 # secure.example. should be lifted as it is not a forced NTA.
-echo_i "waiting till 10s have passed after ns4 was restarted"
-$PERL -e 'my $delay = '$start' + 10 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
+echo_i "waiting till 12s have passed after ns4 was restarted"
+$PERL -e 'my $delay = '$start' + 12 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 
 # secure.example. should now return an AD=1 answer (still validates) as
 # the NTA has been lifted.
@@ -2124,10 +2124,10 @@ else
         exit 1
 fi
 
-# nta-recheck is configured as 7s, but even at t=10 the NTAs for
+# nta-recheck is configured as 9s, but even at t=12 the NTAs for
 # secure.example. should not be lifted as it is a forced NTA.
-echo_i "waiting till 10s have passed after ns4 was restarted"
-$PERL -e 'my $delay = '$start' + 10 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
+echo_i "waiting till 12s have passed after ns4 was restarted"
+$PERL -e 'my $delay = '$start' + 12 - time(); select(undef, undef, undef, $delay) if ($delay > 0);'
 
 # secure.example. should now return an AD=0 answer (non-authenticated)
 # as the NTA is still there.
