@@ -2788,7 +2788,7 @@ $DIG $ADDITIONALOPTS expiring.example ns @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
 for ttl in ${ttls:-300}; do
-    [ ${ttl:-0} -eq 300 ] || ret=1
+    [ "$ttl" -le 300 ] && [ "$ttl" -gt 240 ] || ret=1
 done
 for ttl in ${ttls2:-0}; do
     [ ${ttl:-0} -le 60 ] || ret=1
@@ -2806,7 +2806,7 @@ $DIG $ADDITIONALOPTS expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
 for ttl in ${ttls:-300}; do
-    [ ${ttl:-0} -eq 300 ] || ret=1
+    [ "$ttl" -le 300 ] && [ "$ttl" -gt 240 ] || ret=1
 done
 for ttl in ${ttls2:-0}; do
     [ ${ttl:-0} -le 60 ] || ret=1
@@ -2864,7 +2864,7 @@ $DIG $ADDITIONALOPTS  expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
 for ttl in ${ttls:-300}; do
-    [ $ttl -eq 300 ] || ret=1
+    [ "$ttl" -le 300 ] && [ "$ttl" -gt 240 ] || ret=1
 done
 for ttl in ${ttls2:-0}; do
     [ $ttl -le 120  -a $ttl -gt 60 ] || ret=1
@@ -2881,7 +2881,7 @@ $DIG $ADDITIONALOPTS expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=`awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n`
 ttls2=`awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n`
 for ttl in ${ttls:-300}; do
-    [ $ttl -eq 300 ] || ret=1
+    [ "$ttl" -le 300 ] && [ "$ttl" -gt 240 ] || ret=1
 done
 for ttl in ${ttls2:-0}; do
     [ $ttl -le 120  -a $ttl -gt 60 ] || ret=1
