@@ -2830,7 +2830,7 @@ for ttl in ${ttls:-0}; do
     [ $ttl -eq 300 ] || ret=1
 done
 for ttl in ${ttls2:-0}; do
-    [ $ttl -le 120 -a $ttl -gt 60 ] || ret=1
+    [ "$ttl" -eq 120 ] || ret=1
 done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -2846,7 +2846,7 @@ for ttl in ${ttls:-0}; do
     [ $ttl -eq 300 ] || ret=1
 done
 for ttl in ${ttls2:-0}; do
-    [ $ttl -le 120 -a $ttl -gt 60 ] || ret=1
+    [ "$ttl" -eq 120 ] || ret=1
 done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
