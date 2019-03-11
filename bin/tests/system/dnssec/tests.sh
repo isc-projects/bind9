@@ -2880,8 +2880,8 @@ status=$((status+ret))
 echo_i "testing TTL is capped at RRSIG expiry time for records in the additional section with dnssec-accept-expired yes; ($n)"
 ret=0
 rndccmd 10.53.0.4 flush 2>&1 | sed 's/^/ns4 /' | cat_i
-dig_with_answeropts +cd expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
-dig_with_answeropts expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
+dig_with_additionalopts +cd expiring.example mx @10.53.0.4 > dig.out.ns4.1.$n
+dig_with_additionalopts expiring.example mx @10.53.0.4 > dig.out.ns4.2.$n
 ttls=$(awk '$1 != ";;" {print $2}' dig.out.ns4.1.$n)
 ttls2=$(awk '$1 != ";;" {print $2}' dig.out.ns4.2.$n)
 for ttl in ${ttls:-300}; do
