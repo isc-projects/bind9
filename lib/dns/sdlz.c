@@ -1610,17 +1610,23 @@ dns_sdlzallowzonexfr(void *driverarg, void *dbdata, isc_mem_t *mctx,
 
 	/* Call SDLZ driver's find zone method */
 	if (imp->methods->allowzonexfr != NULL) {
+		isc_result_t rresult = ISC_R_SUCCESS;
+
 		MAYBE_LOCK(imp);
 		result = imp->methods->allowzonexfr(imp->driverarg, dbdata,
 						    namestr, clientstr);
 		MAYBE_UNLOCK(imp);
 		/*
-		 * if zone is supported and transfers allowed build a 'bind'
-		 * database driver
+		 * if zone is supported and transfers are (or might be)
+		 * allowed, build a 'bind' database driver
 		 */
-		if (result == ISC_R_SUCCESS)
-			result = dns_sdlzcreateDBP(mctx, driverarg, dbdata,
-						   name, rdclass, dbp);
+		if (result == ISC_R_SUCCESS || result == ISC_R_DEFAULT) {
+			rresult = dns_sdlzcreateDBP(mctx, driverarg, dbdata,
+						    name, rdclass, dbp);
+		}
+		if (rresult != ISC_R_SUCCESS) {
+			result = rresult;
+		}
 		return (result);
 	}
 

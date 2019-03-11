@@ -534,11 +534,36 @@ dlz_lookup(const char *zone, const char *name, void *dbdata,
  */
 isc_result_t
 dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
+	struct dlz_example_data *state = (struct dlz_example_data *)dbdata;
 	isc_result_t result;
+
+	if (state->log != NULL) {
+		state->log(ISC_LOG_INFO,
+			   "dlz_example: dlz_allowzonexfr called for %s",
+			   name);
+	}
 
 	result = dlz_findzonedb(dbdata, name, NULL, NULL);
 	if (result != ISC_R_SUCCESS) {
+		if (state->log != NULL) {
+			state->log(ISC_LOG_INFO,
+				   "dlz_example: findzonedb returned %s",
+				   isc_result_totext(result));
+		}
 		return (result);
+	}
+
+	/*
+	 * Exception for "example.org" so we can test the use of
+	 * the view ACL.
+	 */
+	if (strcmp(name, "example.org") == 0) {
+		if (state->log != NULL) {
+			state->log(ISC_LOG_INFO,
+				   "dlz_example: use view ACL "
+				   "for example.org");
+		}
+		return (ISC_R_DEFAULT);
 	}
 
 	/*
@@ -546,7 +571,17 @@ dlz_allowzonexfr(void *dbdata, const char *name, const char *client) {
 	 * is effective.
 	 */
 	if (strcmp(client, "10.53.0.5") == 0) {
+		if (state->log != NULL) {
+			state->log(ISC_LOG_INFO,
+				   "dlz_example: disallow transfer "
+				   "to 10.53.0.5");
+		}
 		return (ISC_R_NOPERM);
+	}
+
+	if (state->log != NULL) {
+		state->log(ISC_LOG_INFO,
+			   "dlz_example: transfer allowed for %s", name);
 	}
 
 	return (ISC_R_SUCCESS);

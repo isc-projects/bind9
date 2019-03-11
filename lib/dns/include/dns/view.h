@@ -100,7 +100,7 @@ struct dns_view {
 	dns_ntatable_t *		ntatable_priv;
 
 	isc_mutex_t			lock;
-	bool			frozen;
+	bool				frozen;
 	isc_task_t *			task;
 	isc_event_t			resevent;
 	isc_event_t			adbevent;
@@ -108,7 +108,7 @@ struct dns_view {
 	isc_stats_t *			adbstats;
 	isc_stats_t *			resstats;
 	dns_stats_t *			resquerystats;
-	bool			cacheshared;
+	bool				cacheshared;
 
 	/* Configurable data. */
 	dns_tsig_keyring_t *		statickeys;
@@ -144,14 +144,14 @@ struct dns_view {
 	dns_acl_t *			upfwdacl;
 	dns_acl_t *			denyansweracl;
 	dns_acl_t *			nocasecompress;
-	bool			msgcompression;
+	bool				msgcompression;
 	dns_rbt_t *			answeracl_exclude;
 	dns_rbt_t *			denyanswernames;
 	dns_rbt_t *			answernames_exclude;
 	dns_rrl_t *			rrl;
-	bool			provideixfr;
-	bool			requestnsid;
-	bool			sendcookie;
+	bool				provideixfr;
+	bool				requestnsid;
+	bool				sendcookie;
 	dns_ttl_t			maxcachettl;
 	dns_ttl_t			maxncachettl;
 	dns_ttl_t			mincachettl;
@@ -164,17 +164,17 @@ struct dns_view {
 	in_port_t			dstport;
 	dns_aclenv_t			aclenv;
 	dns_rdatatype_t			preferred_glue;
-	bool			flush;
+	bool				flush;
 	dns_namelist_t *		delonly;
-	bool			rootdelonly;
+	bool				rootdelonly;
 	dns_namelist_t *		rootexclude;
-	bool			checknames;
+	bool				checknames;
 	dns_name_t *			dlv;
 	dns_fixedname_t			dlv_fixed;
 	uint16_t			maxudp;
 	dns_ttl_t			staleanswerttl;
 	dns_stale_answer_t		staleanswersok;		/* rndc setting */
-	bool			staleanswersenable;	/* named.conf setting */
+	bool				staleanswersenable;	/* named.conf setting */
 	uint16_t			nocookieudp;
 	uint16_t			padding;
 	dns_acl_t *			pad_acl;
@@ -194,7 +194,7 @@ struct dns_view {
 	 */
 	dns_acl_t *			matchclients;
 	dns_acl_t *			matchdestinations;
-	bool			matchrecursiveonly;
+	bool				matchrecursiveonly;
 
 	/* Locked by themselves. */
 	isc_refcount_t			references;
