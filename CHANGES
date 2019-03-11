@@ -22,6 +22,9 @@
 
 5170.	[test]		Added --with-dlz-filesystem to feature-test. [GL !1587]
 
+5167.	[bug]		nxdomain-redirect could sometimes lookup the wrong
+			redirect name. [GL #892]
+
 	--- 9.11.6 released ---
 
 	--- 9.11.6rc1 released ---
