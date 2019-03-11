@@ -17,7 +17,7 @@ n=0
 
 rm -f dig.out.*
 
-DIGOPTS="+tcp +noadd +nosea +nostat +nocmd +dnssec -p 5300"
+DIGOPTS="+tcp +noadd +noauth +nosea +nostat +nocmd +dnssec -p 5300"
 
 # Check the example. domain
 
