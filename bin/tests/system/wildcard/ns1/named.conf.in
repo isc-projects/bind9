@@ -20,7 +20,6 @@ options {
 	recursion no;
 	dnssec-validation no;
 	notify yes;
-	dnssec-enable yes;
 };
 
 zone "." { type master; file "root.db.signed"; };
