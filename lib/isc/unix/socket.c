@@ -5418,22 +5418,34 @@ isc__socket_cleanunix(isc_sockaddr_t *sockaddr, bool active) {
 #define S_ISSOCK(mode) 0
 #endif
 
-	if (active) {
-		if (stat(sockaddr->type.sunix.sun_path, &sb) < 0) {
+	if (stat(sockaddr->type.sunix.sun_path, &sb) < 0) {
+		switch (errno) {
+		case ENOENT:
+			if (active) { /* We exited cleanly last time */
+				break;
+			}
+			/* intentional fallthrough */
+		default:
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				      ISC_LOGMODULE_SOCKET,
+				      active ? ISC_LOG_ERROR : ISC_LOG_WARNING,
 				      "isc_socket_cleanunix: stat(%s): %s",
 				      sockaddr->type.sunix.sun_path, strbuf);
 			return;
 		}
+	} else {
 		if (!(S_ISSOCK(sb.st_mode) || S_ISFIFO(sb.st_mode))) {
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_ERROR,
+				      ISC_LOGMODULE_SOCKET,
+				      active ? ISC_LOG_ERROR : ISC_LOG_WARNING,
 				      "isc_socket_cleanunix: %s: not a socket",
 				      sockaddr->type.sunix.sun_path);
 			return;
 		}
+	}
+
+	if (active) {
 		if (unlink(sockaddr->type.sunix.sun_path) < 0) {
 			isc__strerror(errno, strbuf, sizeof(strbuf));
 			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
@@ -5454,31 +5466,9 @@ isc__socket_cleanunix(isc_sockaddr_t *sockaddr, bool active) {
 		return;
 	}
 
-	if (stat(sockaddr->type.sunix.sun_path, &sb) < 0) {
-		switch (errno) {
-		case ENOENT:    /* We exited cleanly last time */
-			break;
-		default:
-			isc__strerror(errno, strbuf, sizeof(strbuf));
-			isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-				      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
-				      "isc_socket_cleanunix: stat(%s): %s",
-				      sockaddr->type.sunix.sun_path, strbuf);
-			break;
-		}
-		goto cleanup;
-	}
-
-	if (!(S_ISSOCK(sb.st_mode) || S_ISFIFO(sb.st_mode))) {
-		isc_log_write(isc_lctx, ISC_LOGCATEGORY_GENERAL,
-			      ISC_LOGMODULE_SOCKET, ISC_LOG_WARNING,
-			      "isc_socket_cleanunix: %s: not a socket",
-			      sockaddr->type.sunix.sun_path);
-		goto cleanup;
-	}
-
-	if (connect(s, (struct sockaddr *)&sockaddr->type.sunix,
-		    sizeof(sockaddr->type.sunix)) < 0) {
+	if (connect(s, (const struct sockaddr *)&sockaddr->type.sunix,
+		    sizeof(sockaddr->type.sunix)) < 0)
+	{
 		switch (errno) {
 		case ECONNREFUSED:
 		case ECONNRESET:
@@ -5502,7 +5492,6 @@ isc__socket_cleanunix(isc_sockaddr_t *sockaddr, bool active) {
 			break;
 		}
 	}
- cleanup:
 	close(s);
 #else
 	UNUSED(sockaddr);
