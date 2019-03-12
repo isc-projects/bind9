@@ -110,7 +110,9 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  The <command>dnssec-enable</command> option has been deprecated and
+	  no longer has any effect. DNSSEC responses are always enabled
+	  if signatures and other DNSSEC data are present. [GL #866]
 	</para>
       </listitem>
     </itemizedlist>
