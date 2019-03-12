@@ -1,3 +1,8 @@
+5199.	[security]	In certain configurations, named could crash
+			if nxdomain-redirect was in use and a redirected
+			query resulted in an NXDOMAIN from the cache.
+			(CVE-2019-6467) [GL #880]
+
 5192.	[bug]		configure --fips-mode failed. [GL #946]
 
 5167.	[bug]		nxdomain-redirect could sometimes lookup the wrong
