@@ -1321,7 +1321,8 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 				isc_socket_cancel(sock, NULL,
 						  ISC_SOCKCANCEL_CONNECT);
 		}
-	} else if (RESQUERY_SENDING(query)) {
+	}
+	if (RESQUERY_SENDING(query)) {
 		/*
 		 * Cancel the pending send.
 		 */

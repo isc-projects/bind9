@@ -1,3 +1,6 @@
+5182.	[bug]		Fix a high-load race/crash in handling of
+			isc_socket_close() in resolver. [GL #834]
+
 5181.	[func]		Add a mechanism for a DLZ module to signal that
 			the view's allow-transfer ACL should be used to
 			determine whether transfers are allowed. [GL #803]
