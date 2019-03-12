@@ -1,3 +1,6 @@
+5182.	[bug]		Fix a high-load race/crash in handling of
+			isc_socket_close() in resolver. [GL #834]
+
 	--- 9.14.0rc2 released ---
 
 5176.	[tests]		Remove a dependency on libxml in statschannel system
