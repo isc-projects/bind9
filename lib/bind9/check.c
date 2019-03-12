@@ -3454,8 +3454,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	const cfg_obj_t *options = NULL;
 	const cfg_obj_t *opts = NULL;
 	const cfg_obj_t *plugin_list = NULL;
-	bool enablednssec, enablevalidation;
-	const char *valstr = "no";
 	unsigned int tflags, mflags;
 
 	/*
@@ -3605,40 +3603,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		result = ISC_R_FAILURE;
 
 	isc_symtab_destroy(&symtab);
-
-	/*
-	 * Check that dnssec-enable/dnssec-validation are sensible.
-	 */
-	obj = NULL;
-	if (voptions != NULL)
-		(void)cfg_map_get(voptions, "dnssec-enable", &obj);
-	if (obj == NULL && options != NULL)
-		(void)cfg_map_get(options, "dnssec-enable", &obj);
-	if (obj == NULL)
-		enablednssec = true;
-	else
-		enablednssec = cfg_obj_asboolean(obj);
-
-	obj = NULL;
-	if (voptions != NULL)
-		(void)cfg_map_get(voptions, "dnssec-validation", &obj);
-	if (obj == NULL && options != NULL)
-		(void)cfg_map_get(options, "dnssec-validation", &obj);
-	if (obj == NULL) {
-		enablevalidation = enablednssec;
-		valstr = "yes";
-	} else if (cfg_obj_isboolean(obj)) {
-		enablevalidation = cfg_obj_asboolean(obj);
-		valstr = enablevalidation ? "yes" : "no";
-	} else {
-		enablevalidation = true;
-		valstr = "auto";
-	}
-
-	if (enablevalidation && !enablednssec)
-		cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-			    "'dnssec-validation %s;' and 'dnssec-enable no;'",
-			    valstr);
 
 	/*
 	 * Check trusted-keys and managed-keys.
