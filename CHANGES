@@ -1,3 +1,6 @@
+5182.	[bug]		Fix a high-load race/crash in handling of
+			isc_socket_close() in resolver. [GL #834]
+
 5180.	[bug]		delv now honors the operating system's preferred
 			ephemeral port range. [GL #925]
 
