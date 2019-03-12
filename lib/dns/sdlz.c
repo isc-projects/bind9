@@ -622,15 +622,19 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 				result = dns_name_concatenate(dns_wildcardname,
 							      fname, fname,
 							      NULL);
-				if (result != ISC_R_SUCCESS)
+				if (result != ISC_R_SUCCESS) {
+					MAYBE_UNLOCK(sdlz->dlzimp);
 					return (result);
+				}
 				wild = fname;
 			}
 
 			isc_buffer_init(&b, wildstr, sizeof(wildstr));
 			result = dns_name_totext(wild, true, &b);
-			if (result != ISC_R_SUCCESS)
+			if (result != ISC_R_SUCCESS) {
+				MAYBE_UNLOCK(sdlz->dlzimp);
 				return (result);
+			}
 			isc_buffer_putuint8(&b, 0);
 
 			result = sdlz->dlzimp->methods->lookup(zonestr, wildstr,
