@@ -251,7 +251,7 @@ sub clean_pid_file {
 	if (send_signal(0, $pid) == 0) {
 		# XXX: on windows this is likely to result in a
 		# false positive, so don't bother reporting the error.
-		if ($ENV{'CYGWIN'} eq "") {
+		if (!defined($ENV{'CYGWIN'})) {
 			print "I:$test:$server crashed on shutdown\n";
 			$errors = 1;
 		}
