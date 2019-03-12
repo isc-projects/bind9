@@ -87,7 +87,10 @@
     <itemizedlist>
       <listitem>
         <para>
-	  None.
+	  In certain configurations, <command>named</command> could crash
+	  with an assertion failure if <command>nxdomain-redirect</command>
+	  was in use and a redirected query resulted in an NXDOMAIN from the
+	  cache. This flaw is disclosed in CVE-2019-6467. [GL #880]
 	</para>
       </listitem>
     </itemizedlist>
