@@ -1,3 +1,5 @@
+5186.	[cleanup]	More dnssec-keygen manual tidying. [GL !1678]
+
 5184.	[bug]		Missing unlocks in sdlz.c. [GL #936]
 
 5183.	[bug]		Reinitialize ECS data before reusing client
