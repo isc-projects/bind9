@@ -1,3 +1,5 @@
+5184.	[bug]		Missing unlocks in sdlz.c. [GL #936]
+
 5182.	[bug]		Fix a high-load race/crash in handling of
 			isc_socket_close() in resolver. [GL #834]
 
