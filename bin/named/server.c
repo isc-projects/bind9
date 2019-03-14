@@ -11481,13 +11481,13 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		   ? "ON" : "OFF");
 	CHECK(putstr(text, line));
 
-	snprintf(line, sizeof(line), "recursive clients: %d/%d/%d\n",
+	snprintf(line, sizeof(line), "recursive clients: %u/%u/%u\n",
 		     isc_quota_getused(&server->sctx->recursionquota),
 		     isc_quota_getsoft(&server->sctx->recursionquota),
 		     isc_quota_getmax(&server->sctx->recursionquota));
 	CHECK(putstr(text, line));
 
-	snprintf(line, sizeof(line), "tcp clients: %d/%d\n",
+	snprintf(line, sizeof(line), "tcp clients: %u/%u\n",
 		     isc_quota_getused(&server->sctx->tcpquota),
 		     isc_quota_getmax(&server->sctx->tcpquota));
 	CHECK(putstr(text, line));
