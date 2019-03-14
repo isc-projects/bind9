@@ -15,7 +15,7 @@ rm -f ./*/K* ./*/keyset-* ./*/dsset-* ./*/dlvset-* ./*/signedkey-* ./*/*.signed
 rm -f ./*/example.bk
 rm -f ./*/named.conf
 rm -f ./*/named.memstats
-rm -f ./*/named.run
+rm -f ./*/named.run ./*/named.run.prev
 rm -f ./*/named.secroots
 rm -f ./*/tmp* ./*/*.jnl ./*/*.bk ./*/*.jbk
 rm -f ./*/trusted.conf ./*/managed.conf ./*/revoked.conf
@@ -48,6 +48,9 @@ rm -f ./ns2/in-addr.arpa.db
 rm -f ./ns2/nsec3chain-test.db
 rm -f ./ns2/private.secure.example.db
 rm -f ./ns2/single-nsec3.db
+rm -f ./ns2/updatecheck-kskonly.secure.*
+rm -f ./ns3/secure.example.db ./ns3/*.managed.db ./ns3/*.trusted.db
+rm -f ./ns3/unsupported.managed.db.tmp ./ns3/unsupported.trusted.db.tmp
 rm -f ./ns3/auto-nsec.example.db ./ns3/auto-nsec3.example.db
 rm -f ./ns3/badds.example.db
 rm -f ./ns3/dname-at-apex-nsec3.example.db
