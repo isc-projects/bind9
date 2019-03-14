@@ -573,14 +573,13 @@ purge(void **state) {
 
 int
 main(int argc, char **argv) {
-	const struct CMUnitTest tests[] = {
 #ifdef ISC_PLATFORM_USETHREADS
+	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(ticker, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(once_life, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(once_idle, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(reset, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(purge, _setup, _teardown),
-#endif
 	};
 	int c;
 
@@ -595,6 +594,14 @@ main(int argc, char **argv) {
 	}
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
+#else
+	UNUSED(argc);
+	UNUSED(argv);
+	UNUSED(verbose);
+
+	printf("1..0 # Skipped: timer test requires threads\n");
+	return (0);
+#endif
 }
 
 #else /* HAVE_CMOCKA */
