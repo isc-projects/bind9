@@ -14,8 +14,10 @@
 
 #include <inttypes.h>
 
+#include <isc/lang.h>
 #include <isc/netaddr.h>
 #include <isc/types.h>
+
 #include <dns/types.h>
 
 struct dns_ecs {
