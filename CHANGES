@@ -1,3 +1,6 @@
+5220.	[cleanup]	Refactor the isc_stat structure to take advantage
+			of stdatomic. [MR !1493]
+
 5219.	[bug]		Fixed a race in the filter-aaaa plugin that could
 			trigger a crash when returning an instance object
 			to the memory pool. [GL #982]
