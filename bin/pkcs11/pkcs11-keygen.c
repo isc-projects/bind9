@@ -373,10 +373,12 @@ main(int argc, char *argv[]) {
 	switch (keyclass) {
 	case key_rsa:
 		op_type = OP_RSA;
-		if (expsize == 0)
+		if (expsize == 0) {
 			expsize = 3;
-		if (bits == 0)
+		}
+		if (bits == 0) {
 			usage();
+		}
 
 		mech.mechanism = CKM_RSA_PKCS_KEY_PAIR_GEN;
 		mech.pParameter = NULL;
@@ -389,9 +391,9 @@ main(int argc, char *argv[]) {
 		/* Set public exponent to F4 or F5 */
 		exponent[0] = 0x01;
 		exponent[1] = 0x00;
-		if (expsize == 3)
+		if (expsize == 3) {
 			exponent[2] = 0x01;
-		else {
+		} else {
 			exponent[2] = 0x00;
 			exponent[3] = 0x00;
 			exponent[4] = 0x01;
@@ -403,10 +405,15 @@ main(int argc, char *argv[]) {
 		public_template[RSA_PUBLIC_EXPONENT].ulValueLen = expsize;
 		break;
 	case key_ecc:
+#if !defined(HAVE_PKCS11_ECDSA)
+		fprintf(stderr,
+			"prime256v1 and secp3841r1 are not supported\n");
+		usage();
+#else
 		op_type = OP_EC;
-		if (bits == 0)
+		if (bits == 0) {
 			bits = 256;
-		else if (bits != 256 && bits != 384) {
+		} else if (bits != 256 && bits != 384) {
 			fprintf(stderr, "ECC keys only support bit sizes of "
 					"256 and 384\n");
 			exit(2);
@@ -429,7 +436,7 @@ main(int argc, char *argv[]) {
 			public_template[4].ulValueLen =
 				sizeof(pk11_ecc_secp384r1);
 		}
-
+#endif
 		break;
 	case key_ecx:
 #if !defined(CKM_EDDSA_KEY_PAIR_GEN)
@@ -437,9 +444,9 @@ main(int argc, char *argv[]) {
 		usage();
 #else
 		op_type = OP_EC;
-		if (bits == 0)
+		if (bits == 0) {
 			bits = 256;
-		else if (bits != 256 && bits != 456) {
+		} else if (bits != 256 && bits != 456) {
 			fprintf(stderr, "ECX keys only support bit sizes of "
 					"256 and 456\n");
 			exit(2);
@@ -570,8 +577,9 @@ main(int argc, char *argv[]) {
 	pk11_result_register();
 
 	/* Initialize the CRYPTOKI library */
-	if (lib_name != NULL)
+	if (lib_name != NULL) {
 		pk11_set_lib_name(lib_name);
+	}
 
 	if (pin == NULL)
 		pin = getpassphrase("Enter Pin: ");
@@ -729,8 +737,9 @@ main(int argc, char *argv[]) {
 	if (rv != CKR_OK) {
 		fprintf(stderr, "C_GenerateKeyPair: Error = 0x%.8lX\n", rv);
 		error = 1;
-	 } else if (!quiet)
+	} else if (!quiet) {
 		printf("Key pair generation complete.\n");
+	}
 
  exit_params:
 	/* Free parameter attributes */
