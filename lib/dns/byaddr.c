@@ -79,10 +79,10 @@ dns_byaddr_createptrname2(isc_netaddr_t *address, unsigned int options,
 	if (address->family == AF_INET) {
 		(void)snprintf(textname, sizeof(textname),
 			       "%u.%u.%u.%u.in-addr.arpa.",
-			       (bytes[3] & 0xffU),
-			       (bytes[2] & 0xffU),
-			       (bytes[1] & 0xffU),
-			       (bytes[0] & 0xffU));
+			       ((unsigned int)bytes[3] & 0xffU),
+			       ((unsigned int)bytes[2] & 0xffU),
+			       ((unsigned int)bytes[1] & 0xffU),
+			       ((unsigned int)bytes[0] & 0xffU));
 	} else if (address->family == AF_INET6) {
 		size_t remaining;
 
