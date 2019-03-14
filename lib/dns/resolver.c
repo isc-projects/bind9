@@ -5704,6 +5704,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 		/*
 		 * Negative results must be indicated in event->result.
 		 */
+		INSIST(hevent->rdataset != NULL);
 		if (dns_rdataset_isassociated(hevent->rdataset) &&
 		    NEGATIVE(hevent->rdataset)) {
 			INSIST(eresult == DNS_R_NCACHENXDOMAIN ||
