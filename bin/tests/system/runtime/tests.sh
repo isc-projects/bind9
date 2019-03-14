@@ -113,5 +113,51 @@ cd ..
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that named logs control characters in octal notation ($n)"
+ret=0
+SPEC_DIR=`cat ctrl-char-dir-name`
+mkdir "ns2/${SPEC_DIR}"
+copy_setports ns2/named-alt7.conf.in "ns2/${SPEC_DIR}/named.conf"
+cd ns2
+$NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named6.run 2>&1 &
+sleep 2
+grep 'running as.*\\177\\033' named6.run > /dev/null || ret=1
+pid=`cat named7.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
+cd ..
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that named escapes special characters in the logs ($n)"
+ret=0
+SPEC_DIR="$;"
+mkdir "ns2/${SPEC_DIR}"
+copy_setports ns2/named-alt7.conf.in "ns2/${SPEC_DIR}/named.conf"
+cd ns2
+$NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named7.run 2>&1 &
+sleep 2
+grep 'running as.*\\$\\;' named7.run > /dev/null || ret=1
+pid=`cat named7.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
+cd ..
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "checking that named logs an ellipsis when the command line is larger than 8k bytes ($n)"
+ret=0
+SPEC_DIR=`yes | head -10000 | tr -d '\n'`
+cd ns2
+$NAMED -c "${SPEC_DIR}/named.conf" -d 99 -g > named8.run 2>&1 &
+sleep 2
+grep "running as.*\.\.\.$" named8.run > /dev/null || ret=1
+pid=`cat named7.pid 2>/dev/null`
+test "${pid:+set}" = set && $KILL -15 ${pid} >/dev/null 2>&1
+cd ..
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

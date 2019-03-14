@@ -110,7 +110,8 @@ LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_month;
 static bool	want_stats = false;
 static char		program_name[NAME_MAX] = "named";
 static char		absolute_conffile[PATH_MAX];
-static char		saved_command_line[512];
+static char		saved_command_line[8192] =  { 0 };
+static char		ellipsis[5] = { 0 };
 static char		version[512];
 static unsigned int	maxsocks = 0;
 static int		maxudp = 0;
@@ -335,44 +336,76 @@ usage(void) {
 static void
 save_command_line(int argc, char *argv[]) {
 	int i;
-	char *src;
-	char *dst;
-	char *eob;
-	const char truncated[] = "...";
-	bool quoted = false;
-
-	dst = saved_command_line;
-	eob = saved_command_line + sizeof(saved_command_line);
+	char *dst = saved_command_line;
+	char *eob = saved_command_line + sizeof(saved_command_line) - 1;
+	char *rollback;
 
 	for (i = 1; i < argc && dst < eob; i++) {
+		char *src = argv[i];
+		bool quoted = false;
+
+		rollback = dst;
 		*dst++ = ' ';
 
-		src = argv[i];
 		while (*src != '\0' && dst < eob) {
-			/*
-			 * This won't perfectly produce a shell-independent
-			 * pastable command line in all circumstances, but
-			 * comes close, and for practical purposes will
-			 * nearly always be fine.
-			 */
-			if (quoted || isalnum(*src & 0xff) ||
+			if (isalnum(*src) ||
 			    *src == '-' || *src == '_' ||
-			    *src == '.' || *src == '/') {
+			    *src == '.' || *src == '/')
+			{
 				*dst++ = *src++;
-				quoted = false;
-			} else {
+			} else if (isprint(*src)) {
+				if (dst + 2 >= eob) {
+					goto add_ellipsis;
+				}
 				*dst++ = '\\';
-				quoted = true;
+				*dst++ = *src++;
+			} else {
+				/*
+				 * Control character found in the input,
+				 * quote the whole arg and restart
+				 */
+				if (!quoted) {
+					dst = rollback;
+					src = argv[i];
+
+					if (dst + 3 >= eob) {
+						goto add_ellipsis;
+					}
+
+					*dst++ = ' ';
+					*dst++ = '$';
+					*dst++ = '\'';
+
+					quoted = true;
+					continue;
+				} else {
+					char tmp[5];
+					int c = snprintf(tmp, sizeof(tmp),
+							 "\\%03o", *src++);
+					if (dst + c >= eob) {
+						goto add_ellipsis;
+					}
+					memmove(dst, tmp, c);
+					dst += c;
+				}
 			}
 		}
+		if (quoted) {
+			if (dst == eob) {
+				goto add_ellipsis;
+			}
+			*dst++ = '\'';
+		}
+
 	}
 
-	INSIST(sizeof(saved_command_line) >= sizeof(truncated));
-
-	if (dst == eob)
-		strcpy(eob - sizeof(truncated), truncated);
-	else
-		*dst = '\0';
+	if (dst < eob) {
+		return;
+	}
+add_ellipsis:
+	dst = rollback;
+	*dst = '\0';
+	strlcpy(ellipsis, " ...", sizeof(ellipsis));
 }
 
 static int
@@ -1005,8 +1038,8 @@ setup(void) {
 
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "running as: %s%s",
-		      program_name, saved_command_line);
+		      "running as: %s%s%s",
+		      program_name, saved_command_line, ellipsis);
 #ifdef __clang__
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
