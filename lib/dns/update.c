@@ -1105,10 +1105,13 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	for (i = 0; i < nkeys; i++) {
 		bool both = false;
 
-		if (!dst_key_isprivate(keys[i]))
+		/* Don't add signatures for offline or inactive keys */
+		if (!dst_key_isprivate(keys[i])) {
 			continue;
-		if (dst_key_inactive(keys[i]))	/* Should be redundant. */
+		}
+		if (dst_key_inactive(keys[i])) {
 			continue;
+		}
 
 		if (check_ksk && !REVOKE(keys[i])) {
 			bool have_ksk, have_nonksk;
@@ -1120,21 +1123,31 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 				have_nonksk = true;
 			}
 			for (j = 0; j < nkeys; j++) {
-				if (j == i || ALG(keys[i]) != ALG(keys[j]))
+				if (j == i || ALG(keys[i]) != ALG(keys[j])) {
 					continue;
-				if (!dst_key_isprivate(keys[j]))
+				}
+
+				/* Don't consider inactive keys, however
+				 * the key may be temporary offline, so do
+				 * consider keys which private key files are
+				 * unavailable.
+				 */
+				if (dst_key_inactive(keys[j])) {
 					continue;
-				if (dst_key_inactive(keys[j]))	/* SBR */
+				}
+
+				if (REVOKE(keys[j])) {
 					continue;
-				if (REVOKE(keys[j]))
-					continue;
-				if (KSK(keys[j]))
+				}
+				if (KSK(keys[j])) {
 					have_ksk = true;
-				else
+				} else {
 					have_nonksk = true;
+				}
 				both = have_ksk && have_nonksk;
-				if (both)
+				if (both) {
 					break;
+				}
 			}
 		}
 
