@@ -1,3 +1,5 @@
+5189.	[placeholder]
+
 5188.	[func]		The "dnssec-enable" option is deprecated and no
 			longer has any effect; DNSSEC responses are
 			always enabled. [GL #866]
