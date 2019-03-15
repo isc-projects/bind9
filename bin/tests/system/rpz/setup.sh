@@ -35,11 +35,13 @@ copy_setports ns7/named.conf.in ns7/named.conf
 for NM in '' -2 -given -disabled -passthru -no-op -nodata -nxdomain -cname -wildcname -garden -drop -tcp-only; do
     sed -e "/SOA/s/blx/bl$NM/g" ns3/base.db >ns3/bl$NM.db
 done
+#  bl zones are dynamically updated.  Add one zone that is updated manually.
+cp ns3/manual-update-rpz.db.in ns3/manual-update-rpz.db
 
-# sign the root and a zone in ns2
-test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
-
-# $1=directory, $2=domain name, $3=input zone file, $4=output file
+# $1=directory
+# $2=domain name
+# $3=input zone file
+# $4=output file
 signzone () {
     KEYNAME=`$KEYGEN -q -r $RANDFILE -b 512 -K $1 $2`
     cat $1/$3 $1/$KEYNAME.key > $1/tmp
@@ -48,8 +50,10 @@ signzone () {
     DSFILENAME=dsset-`echo $2 |sed -e "s/\.$//g"`$TP
     rm $DSFILENAME $1/tmp
 }
-signzone ns2 tld2s. base-tld2s.db tld2s.db
 
+# sign the root and a zone in ns2
+test -r $RANDFILE || $GENRANDOM $RANDOMSIZE $RANDFILE
+signzone ns2 tld2s. base-tld2s.db tld2s.db
 
 # Performance and a few other checks.
 cat <<EOF >ns5/rpz-switch
