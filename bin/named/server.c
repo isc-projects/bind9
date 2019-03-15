@@ -14690,13 +14690,13 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 				      "added NTA '%s' (%d sec) in view '%s'",
 				      namebuf, ntattl, view->name);
 		} else {
-			bool removed;
+			bool wasremoved;
 
 			result = dns_ntatable_delete(ntatable, ntaname);
 			if (result == ISC_R_SUCCESS) {
-				removed = true;
+				wasremoved = true;
 			} else if (result == ISC_R_NOTFOUND) {
-				removed = false;
+				wasremoved = false;
 			} else {
 				goto cleanup;
 			}
@@ -14707,13 +14707,13 @@ named_server_nta(named_server_t *server, isc_lex_t *lex,
 			first = false;
 
 			CHECK(putstr(text, "Negative trust anchor "));
-			CHECK(putstr(text, removed ? "removed: "
-						   : "not found: "));
+			CHECK(putstr(text, wasremoved ? "removed: "
+						      : "not found: "));
 			CHECK(putstr(text, namebuf));
 			CHECK(putstr(text, "/"));
 			CHECK(putstr(text, view->name));
 
-			if (removed) {
+			if (wasremoved) {
 				isc_log_write(named_g_lctx,
 					      NAMED_LOGCATEGORY_GENERAL,
 					      NAMED_LOGMODULE_SERVER,
