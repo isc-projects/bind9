@@ -312,9 +312,6 @@ totext_test(void **state) {
 
 	UNUSED(state);
 
-	/* make sure text conversion gets the right local time */
-	setenv("TZ", "PST8", 1);
-
 	result = dns_dt_open(TAPSAVED, dns_dtmode_file, mctx, &handle);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -380,6 +377,9 @@ main(void) {
 		cmocka_unit_test_setup_teardown(send_test, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(totext_test, _setup, _teardown),
 	};
+
+	/* make sure text conversion gets the right local time */
+	setenv("TZ", "PST8", 1);
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 #else
