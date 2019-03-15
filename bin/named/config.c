@@ -143,7 +143,6 @@ options {\n\
 	cleaning-interval 0;  /* now meaningless */\n\
 	clients-per-query 10;\n\
 	dnssec-accept-expired no;\n\
-	dnssec-enable yes;\n\
 	dnssec-validation " VALIDATION_DEFAULT "; \n"
 #ifdef HAVE_DNSTAP
 "	dnstap-identity hostname;\n"

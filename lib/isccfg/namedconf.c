@@ -1867,7 +1867,7 @@ view_clauses[] = {
 		CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
-	{ "dnssec-enable", &cfg_type_boolean, 0 },
+	{ "dnssec-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "dnssec-lookaside", &cfg_type_lookaside, CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
 	  CFG_CLAUSEFLAG_MULTI },

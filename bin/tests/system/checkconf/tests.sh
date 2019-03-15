@@ -111,11 +111,11 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking named-checkconf dnssec warnings ($n)"
 ret=0
-$CHECKCONF dnssec.1 2>&1 | grep 'validation yes.*enable no' > /dev/null || ret=1
+# dnssec.1: dnssec-enable is obsolete
+$CHECKCONF dnssec.1 2>&1 | grep "'dnssec-enable' is obsolete and should be removed" > /dev/null || ret=1
+# dnssec.2: auto-dnssec warning
 $CHECKCONF dnssec.2 2>&1 | grep 'auto-dnssec may only be ' > /dev/null || ret=1
-$CHECKCONF dnssec.2 2>&1 | grep 'validation auto.*enable no' > /dev/null || ret=1
-$CHECKCONF dnssec.2 2>&1 | grep 'validation yes.*enable no' > /dev/null || ret=1
-# this one should have no warnings
+# dnssec.3: should have no warnings
 $CHECKCONF dnssec.3 2>&1 | grep '.*' && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

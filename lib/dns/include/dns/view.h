@@ -123,7 +123,6 @@ struct dns_view {
 	bool				use_glue_cache;
 	bool				minimal_any;
 	dns_minimaltype_t		minimalresponses;
-	bool				enablednssec;
 	bool				enablevalidation;
 	bool				acceptexpired;
 	bool				requireservercookie;

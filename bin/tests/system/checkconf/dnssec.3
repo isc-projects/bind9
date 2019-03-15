@@ -9,18 +9,12 @@
  * information regarding copyright ownership.
  */
 
-options {
-	dnssec-validation no;
-};
-
 view view1 {
 	match-clients { any; };
-	dnssec-enable no;
 };
 
 view view2 {
 	match-clients { none; };
-	dnssec-enable yes;
 };
 
 view view3 {
