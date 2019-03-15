@@ -1,3 +1,6 @@
+5187.	[test]		Set time zone before running any tests in dnstap_test.
+			[GL #940]
+
 5185.	[bug]		PKCS11 build could fail if ECDSA is not supported.
 			[GL #935]
 
