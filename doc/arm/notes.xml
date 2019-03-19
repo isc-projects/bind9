@@ -87,6 +87,25 @@
     </para>
   </section>
 
+  <section xml:id="relnotes_issues"><info><title>Known Issues</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  A recent change in the <filename>named.conf</filename> parser
+	  resulted in <command>allow-update</command> being treated as a
+	  configuration error when set at the <command>options</command> or
+	  <command>view</command> level. This is not a secure configuration
+	  and the use of the option in this manner is ill-advised. However,
+	  in this release it should have been treated as a warning rather
+	  than a fatal error. This flaw was discovered too late to be
+	  fixed in 9.14.0, but it will be corrected in the 9.14.1
+	  maintenance release: global <command>allow-update</command> will
+	  again be permitted, but a warning will be logged.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes_features"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
