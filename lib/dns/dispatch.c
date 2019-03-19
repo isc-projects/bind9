@@ -126,7 +126,7 @@ struct dns_dispentry {
 	isc_task_t		       *task;
 	isc_taskaction_t		action;
 	void			       *arg;
-	bool			item_out;
+	bool				item_out;
 	dispsocket_t			*dispsocket;
 	ISC_LIST(dns_dispatchevent_t)	items;
 	ISC_LINK(dns_dispentry_t)	link;
@@ -3271,13 +3271,14 @@ dns_dispatch_getnext(dns_dispentry_t *resp, dns_dispatchevent_t **sockevent) {
 	disp = resp->disp;
 	REQUIRE(VALID_DISPATCH(disp));
 
-	REQUIRE(resp->item_out == true);
-	resp->item_out = false;
-
 	ev = *sockevent;
 	*sockevent = NULL;
 
 	LOCK(&disp->lock);
+
+	REQUIRE(resp->item_out == true);
+	resp->item_out = false;
+
 	if (ev->buffer.base != NULL)
 		free_buffer(disp, ev->buffer.base, ev->buffer.length);
 	free_devent(disp, ev);
@@ -3422,6 +3423,9 @@ dns_dispatch_removeresponse(dns_dispentry_t **resp,
 		isc_task_send(disp->task[0], &disp->ctlevent);
 }
 
+/*
+ * disp must be locked.
+ */
 static void
 do_cancel(dns_dispatch_t *disp) {
 	dns_dispatchevent_t *ev;
