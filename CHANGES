@@ -1,3 +1,5 @@
+5189.	[cleanup]	Remove revoked root DNSKEY from bind.keys. [GL #945]
+
 5187.	[test]		Set time zone before running any tests in dnstap_test.
 			[GL #940]
 
