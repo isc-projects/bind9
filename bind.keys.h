@@ -8,7 +8,7 @@
 # recognized or used by named.\n\
 #\n\
 # To use the built-in root key, set \"dnssec-validation auto;\" in the\n\
-# named.conf options or else leave \"dnssec-validation\" unset.  If\n\
+# named.conf options, or else leave \"dnssec-validation\" unset.  If\n\
 # \"dnssec-validation\" is set to \"yes\", then the keys in this file are\n\
 # ignored; keys will need to be explicitly configured in named.conf for\n\
 # validation to work.  \"auto\" is the default setting, unless named is\n\
@@ -17,22 +17,20 @@
 #\n\
 # This file is NOT expected to be user-configured.\n\
 #\n\
-# These keys are current as of May 2018.  If any key fails to\n\
-# initialize correctly, it may have expired.  In that event you should\n\
-# replace this file with a current version.  The latest version of\n\
-# bind.keys can always be obtained from ISC at https://www.isc.org/bind-keys.\n\
+# Servers being set up for the first time can use the contents of this file\n\
+# as initializing keys; thereafter, the keys in the managed key database\n\
+# will be trusted and maintained automatically.\n\
 #\n\
-# See https://data.iana.org/root-anchors/root-anchors.xml\n\
-# for current trust anchor information for the root zone.\n\
+# These keys are current as of Mar 2019.  If any key fails to initialize\n\
+# correctly, it may have expired.  In that event you should replace this\n\
+# file with a current version.  The latest version of bind.keys can always\n\
+# be obtained from ISC at https://www.isc.org/bind-keys.\n\
+#\n\
+# See https://data.iana.org/root-anchors/root-anchors.xml for current trust\n\
+# anchor information for the root zone.\n\
 \n\
 trusted-keys {\n\
         # This key (20326) was published in the root zone in 2017.\n\
-        # Servers which were already using the old key (19036) should\n\
-        # roll seamlessly to this new one via RFC 5011 rollover. Servers\n\
-        # being set up for the first time can use the contents of this\n\
-        # file as initializing keys; thereafter, the keys in the\n\
-        # managed key database will be trusted and maintained\n\
-        # automatically.\n\
         . 257 3 8 \"AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3\n\
                 +/4RgWOq7HrxRixHlFlExOLAJr5emLvN7SWXgnLh4+B5xQlNVz8Og8kv\n\
                 ArMtNROxVQuCaSnIDdD5LKyWbRd2n9WGe2R8PzgCmr3EgVLrjyBxWezF\n\
@@ -51,7 +49,7 @@ trusted-keys {\n\
 # recognized or used by named.\n\
 #\n\
 # To use the built-in root key, set \"dnssec-validation auto;\" in the\n\
-# named.conf options or else leave \"dnssec-validation\" unset.  If\n\
+# named.conf options, or else leave \"dnssec-validation\" unset.  If\n\
 # \"dnssec-validation\" is set to \"yes\", then the keys in this file are\n\
 # ignored; keys will need to be explicitly configured in named.conf for\n\
 # validation to work.  \"auto\" is the default setting, unless named is\n\
@@ -60,22 +58,20 @@ trusted-keys {\n\
 #\n\
 # This file is NOT expected to be user-configured.\n\
 #\n\
-# These keys are current as of May 2018.  If any key fails to\n\
-# initialize correctly, it may have expired.  In that event you should\n\
-# replace this file with a current version.  The latest version of\n\
-# bind.keys can always be obtained from ISC at https://www.isc.org/bind-keys.\n\
+# Servers being set up for the first time can use the contents of this file\n\
+# as initializing keys; thereafter, the keys in the managed key database\n\
+# will be trusted and maintained automatically.\n\
 #\n\
-# See https://data.iana.org/root-anchors/root-anchors.xml\n\
-# for current trust anchor information for the root zone.\n\
+# These keys are current as of Mar 2019.  If any key fails to initialize\n\
+# correctly, it may have expired.  In that event you should replace this\n\
+# file with a current version.  The latest version of bind.keys can always\n\
+# be obtained from ISC at https://www.isc.org/bind-keys.\n\
+#\n\
+# See https://data.iana.org/root-anchors/root-anchors.xml for current trust\n\
+# anchor information for the root zone.\n\
 \n\
 managed-keys {\n\
         # This key (20326) was published in the root zone in 2017.\n\
-        # Servers which were already using the old key (19036) should\n\
-        # roll seamlessly to this new one via RFC 5011 rollover. Servers\n\
-        # being set up for the first time can use the contents of this\n\
-        # file as initializing keys; thereafter, the keys in the\n\
-        # managed key database will be trusted and maintained\n\
-        # automatically.\n\
         . initial-key 257 3 8 \"AwEAAaz/tAm8yTn4Mfeh5eyI96WSVexTBAvkMgJzkKTOiW1vkIbzxeF3\n\
                 +/4RgWOq7HrxRixHlFlExOLAJr5emLvN7SWXgnLh4+B5xQlNVz8Og8kv\n\
                 ArMtNROxVQuCaSnIDdD5LKyWbRd2n9WGe2R8PzgCmr3EgVLrjyBxWezF\n\
