@@ -132,9 +132,12 @@
     <itemizedlist>
       <listitem>
         <para>
-	  The presence of certain record types in an otherwise empty
-	  node of a zone could trigger an assertion failure while processing
-	  a query of type ANY. [GL #901]
+	  The <command>allow-update</command> and
+	  <command>allow-update-forwarding</command> options were
+	  inadvertently treated as configuration errors when used at the
+	  <command>options</command> or <command>view</command> level.
+	  This has now been corrected.
+	  [GL #913]
 	</para>
       </listitem>
     </itemizedlist>
