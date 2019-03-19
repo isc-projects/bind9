@@ -26,18 +26,6 @@
 # for current trust anchor information for the root zone.\n\
 \n\
 trusted-keys {\n\
-        # This key (19036) is to be phased out starting in 2017. It will\n\
-        # remain in the root zone for some time after its successor key\n\
-        # has been added. It will remain this file until it is removed from\n\
-        # the root zone.\n\
-        . 257 3 8 \"AwEAAagAIKlVZrpC6Ia7gEzahOR+9W29euxhJhVVLOyQbSEW0O8gcCjF\n\
-                FVQUTf6v58fLjwBd0YI0EzrAcQqBGCzh/RStIoO8g0NfnfL2MTJRkxoX\n\
-                bfDaUeVPQuYEhg37NZWAJQ9VnMVDxP/VHL496M/QZxkjf5/Efucp2gaD\n\
-                X6RS6CXpoY68LsvPVjR0ZSwzz1apAzvN9dlzEheX7ICJBBtuA6G3LQpz\n\
-                W5hOA2hzCTMjJPJ8LbqF6dsV6DoBQzgul0sGIcGOYl7OyQdXfZ57relS\n\
-                Qageu+ipAdTTJ25AsRTAoub8ONGcLmqrAmRLKBP1dfwhYB4N7knNnulq\n\
-                QxA+Uk1ihz0=\";\n\
-\n\
         # This key (20326) was published in the root zone in 2017.\n\
         # Servers which were already using the old key (19036) should\n\
         # roll seamlessly to this new one via RFC 5011 rollover. Servers\n\
@@ -81,18 +69,6 @@ trusted-keys {\n\
 # for current trust anchor information for the root zone.\n\
 \n\
 managed-keys {\n\
-        # This key (19036) is to be phased out starting in 2017. It will\n\
-        # remain in the root zone for some time after its successor key\n\
-        # has been added. It will remain this file until it is removed from\n\
-        # the root zone.\n\
-        . initial-key 257 3 8 \"AwEAAagAIKlVZrpC6Ia7gEzahOR+9W29euxhJhVVLOyQbSEW0O8gcCjF\n\
-                FVQUTf6v58fLjwBd0YI0EzrAcQqBGCzh/RStIoO8g0NfnfL2MTJRkxoX\n\
-                bfDaUeVPQuYEhg37NZWAJQ9VnMVDxP/VHL496M/QZxkjf5/Efucp2gaD\n\
-                X6RS6CXpoY68LsvPVjR0ZSwzz1apAzvN9dlzEheX7ICJBBtuA6G3LQpz\n\
-                W5hOA2hzCTMjJPJ8LbqF6dsV6DoBQzgul0sGIcGOYl7OyQdXfZ57relS\n\
-                Qageu+ipAdTTJ25AsRTAoub8ONGcLmqrAmRLKBP1dfwhYB4N7knNnulq\n\
-                QxA+Uk1ihz0=\";\n\
-\n\
         # This key (20326) was published in the root zone in 2017.\n\
         # Servers which were already using the old key (19036) should\n\
         # roll seamlessly to this new one via RFC 5011 rollover. Servers\n\
