@@ -1,3 +1,7 @@
+5195.	[bug]		"allow-update" and "allow-update-forwarding" were
+			treated as configuration errors if used at the
+			options or view level. [GL #913]
+
 5194.	[bug]		Enforce non empty ZOMEMD hash. [GL #899]
 
 5193.	[bug]		EID and NIMLOC failed to do multi-line output
