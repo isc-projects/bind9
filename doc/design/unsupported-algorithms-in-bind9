@@ -1,0 +1,139 @@
+Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+# Unsupported algorithms in BIND 9
+
+Following RFC 6944 and jumping ahead to draft-ietf-dnsop-algorithm-update-04,
+BIND 9 takes preparations to remove support for deprecated DNSSEC algorithms.
+These include RSAMD5, DSA, and ECC-GOST.
+
+How does this impact BIND 9 behavior?  In order to determine this, we first
+need to establish in what contexts can DNSSEC algorithms be used.  Two logical
+categories of such contexts can be identified: signing and validation.
+
+## DNSSEC signing
+
+### DNSSEC tools
+
+BIND 9 DNSSEC tools do not allow generating new keys using unsupported
+algorithms:
+
+    $ dnssec-keygen -a RSAMD5 example.
+    dnssec-keygen: fatal: unsupported algorithm: 1
+
+The tools also refuse to work with previously generated keys using unsupported
+algorithms:
+
+    $ dnssec-dsfromkey Kexample.+001+53634
+    dnssec-dsfromkey: fatal: can't load Kexample.+001+53634.key: algorithm is unsupported
+
+    $ dnssec-signzone example.db Kexample.+001+53634
+    dnssec-signzone: fatal: cannot load dnskey Kexample.+001+53634: algorithm is unsupported
+
+A DNSKEY RR with an unsupported algorithm may be *included* in a zone, as long
+as it is not used for *signing* that zone.
+
+BIND 9 also does not allow unsupported algorithms to be used with `auto-dnssec`:
+
+    zone "example" IN {
+        type master;
+        file "db/example.db";
+        key-directory "keys/example";
+        inline-signing yes;
+        auto-dnssec maintain;
+    }
+    ...
+    dns_dnssec_findmatchingkeys: error reading key file Kexample.+001+53634.private: algorithm is unsupported
+
+(DISCUSS: We might want to fail hard for such configurations.)
+
+## DNSSEC validation
+
+A validator has more possible interactions with unsupported algorithms:
+
+  * a key using one of these algorithms may be configured as a trust anchor,
+  * a DLV record for such a key may be placed in a DLV zone.
+  * upstream answers may contain signatures using such algorithms,
+
+### Disabled algorithms
+
+The `disable-algorithms` clause in `named.conf` can be used to prevent the
+specified algorithms from being used when validating responses at and below a
+certain name.  For example, the following configuration:
+
+    disable-algorithms "example." { RSASHA512; };
+
+will mark RSASHA512 as disabled at and below `example.`.  This effectively
+means that for this domain and all domains below it, the RSASHA512 algorithm is
+treated as unsupported.
+
+### Trust anchors
+
+In BIND 9, trust anchors can be configured using two clauses:
+
+  * `trusted-keys`, which contains hardcoded (static) trust anchors,
+  * `managed-keys`, which will be kept up to date automatically, following the
+     zone's key rollovers (according to the algorithm specified in RFC 5011).
+
+When put into the above clauses, keys using unsupported algorithms will be
+ignored:
+
+    trusted.conf:3: skipping trusted key for 't.example.': algorithm is unsupported
+    managed.conf:3: skipping managed key for 'm.example.': algorithm is unsupported
+
+BIND 9 also ignores any configured trust anchor whose owner name and algorithm
+match any `disable-algorithms` clause present in `named.conf`.
+
+If a given trust point is left with no trust anchors using supported
+algorithms, BIND 9 will act as if the trust point was not configured at all and
+if there are no trust points configured higher up the tree, names at the trust
+point and below it will be treated as insecure.
+
+Note that prior to BIND 9.13.6, configured trust anchors that matched disabled
+algorithms were not ignored and that lead to SERVFAILs for associated domains.
+This behavior has changed to be more consistent with unsupported algorithms:
+BIND 9 will ignore such trust anchors, and responses for those domains will
+now be treated as insecure.
+
+### DLV
+
+If a DLV record in a DLV zone points to a DNSKEY using an unsupported algorithm
+or an algorithm which has been disabled for the relevant part of the tree using
+a `disable-algorithms` clause in `named.conf`, the corresponding zone will be
+treated as insecure.
+
+However, if the trust anchor specified for the DLV zone itself uses an
+unsupported or disabled algorithm, no DLV record in that DLV zone can be
+treated as secure and thus attempts to resolve names in the domains pointed to
+by the records in that DLV zone will yield SERVFAIL responses.  Consider the
+following example:
+
+    trusted-keys {
+        "dlv.example." 257 3 1 ...;
+    };
+
+    options {
+        ...
+        dnssec-lookaside "foo." trust-anchor "dlv.example";
+    };
+
+The example above specifies a DLV trust anchor using the RSAMD5 algorithm
+(algorithm number 1), which effectively prevents resolution of data in any zone
+at and below `foo.` that is listed in `dlv.example` (and does not have a valid,
+non-DLV chain of trust established otherwise).  This outcome is different than
+for a trust anchor which uses an unsupported or disabled algorithm and is not
+associated with a `dnssec-lookaside` clause; the reason for this is that in the
+case of a DLV-referenced, unusable key, the trust point is still defined, but
+has no keys associated with it, whereas non-DLV-referenced, unusable keys are
+ignored altogether and do not cause an associated trust point to be defined.
+
+### Algorithm rollover
+
+A zone for which BIND 9 has a trust anchor configured may decide to do an
+algorithm rollover to an unsupported algorithm.  If configured with
+`managed-keys`, BIND 9 will ignore the newly introduced DNSKEY if it does
+not support the algorithm.  That means that the moment the predecessor DNSKEY
+gets revoked, BIND 9 will no longer have any trust anchors for the given zone
+and it will treat the trust point as if it does not exist, meaning that
+the corresponding zone will now validate as insecure.

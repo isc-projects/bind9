@@ -128,6 +128,29 @@ digcomp() {
 }
 
 #
+# Useful variables in test scripts
+#
+
+# Default algorithm for testing.
+DEFAULT_ALGORITHM=ECDSAP256SHA256
+DEFAULT_ALGORITHM_NUMBER=13
+DEFAULT_BITS=256
+
+# This is an alternative algorithm for test cases that require more than
+# one algorithm (for example algorithm rollover).  Must be different from
+# DEFAULT_ALGORITHM.
+ALTERNATIVE_ALGORITHM=RSASHA256
+ALTERNATIVE_ALGORITHM_NUMBER=8
+ALTERNATIVE_BITS=1280
+
+# This is an algorithm that is used for tests against the
+# "disable-algorithms" configuration option.  Must be different from above
+# algorithms.
+DISABLED_ALGORITHM=ECDSAP384SHA384
+DISABLED_ALGORITHM_NUMBER=14
+DISABLED_BITS=384
+
+#
 # Useful functions in test scripts
 #
 
@@ -279,6 +302,45 @@ get_named_xfer_stats() {
 	echo "messages=`grep "${PEER}" "${LOGFILE}" | sed -n "s/.*${ZONE}.* \([0-9][0-9]*\) messages.*/\1/p" | tail -1`"
 	echo "records=`grep "${PEER}" "${LOGFILE}" | sed -n "s/.*${ZONE}.* \([0-9][0-9]*\) records.*/\1/p" | tail -1`"
 	echo "bytes=`grep "${PEER}" "${LOGFILE}" | sed -n "s/.*${ZONE}.* \([0-9][0-9]*\) bytes.*/\1/p" | tail -1`"
+}
+
+# copy_setports - Copy Configuration File and Replace Ports
+#
+# Convenience function to copy a configuration file, replacing the tokens
+# QUERYPORT, CONTROLPORT and EXTRAPORT[1-8] with the values of the equivalent
+# environment variables. (These values are set by "run.sh", which calls the
+# scripts invoking this function.)
+#
+# Usage:
+#   copy_setports infile outfile
+#
+copy_setports() {
+    # The indirect method of handling the substitution of the PORT variables
+    # (defining "atsign" then substituting for it in the "sed" statement) is
+    # required to prevent the "Configure" script (in the win32utils/ directory)
+    # from replacing the <at>PORT<at> substitution tokens when it processes
+    # this file and produces conf.sh.
+    atsign="@"
+    sed -e "s/${atsign}PORT${atsign}/${PORT}/g" \
+        -e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
+        -e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
+        -e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
+        -e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
+        -e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
+        -e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
+        -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
+        -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
+        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
+        -e "s/${atsign}DEFAULT_ALGORITHM${atsign}/${DEFAULT_ALGORITHM}/g" \
+        -e "s/${atsign}DEFAULT_ALGORITHM_NUMBER${atsign}/${DEFAULT_ALGORITHM_NUMBER}/g" \
+        -e "s/${atsign}DEFAULT_BITS${atsign}/${DEFAULT_BITS}/g" \
+        -e "s/${atsign}ALTERNATIVE_ALGORITHM${atsign}/${ALTERNATIVE_ALGORITHM}/g" \
+        -e "s/${atsign}ALTERNATIVE_ALGORITHM_NUMBER${atsign}/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
+        -e "s/${atsign}ALTERNATIVE_BITS${atsign}/${ALTERNATIVE_BITS}/g" \
+        -e "s/${atsign}DISABLED_ALGORITHM${atsign}/${DISABLED_ALGORITHM}/g" \
+        -e "s/${atsign}DISABLED_ALGORITHM_NUMBER${atsign}/${DISABLED_ALGORITHM_NUMBER}/g" \
+        -e "s/${atsign}DISABLED_BITS${atsign}/${DISABLED_BITS}/g" \
+        $1 > $2
 }
 
 #

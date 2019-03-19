@@ -1,3 +1,6 @@
+5190.	[bug]		Ignore trust anchors using disabled algorithms.
+			[GL #806]
+
 5189.	[cleanup]	Remove revoked root DNSKEY from bind.keys. [GL #945]
 
 5188.	[func]		The "dnssec-enable" option is deprecated and no
