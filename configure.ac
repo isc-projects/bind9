@@ -2977,8 +2977,6 @@ AC_CONFIG_FILES([
 	bin/tests/system/rpz/Makefile
 	bin/tests/system/rsabigexponent/Makefile
 	bin/tests/system/tkey/Makefile
-	bin/tests/virtual-time/Makefile
-	bin/tests/virtual-time/conf.sh
 	bin/tools/Makefile
 	contrib/scripts/check-secure-delegation.pl
 	contrib/scripts/zone-edit.sh
