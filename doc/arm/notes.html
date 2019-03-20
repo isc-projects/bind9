@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.14.0rc3</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.14.0</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -93,6 +93,25 @@
       source code, and pre-compiled versions for Microsoft Windows
       operating systems.
     </p>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_issues"></a>Known Issues</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+	<p>
+	  A recent change in the <code class="filename">named.conf</code> parser
+	  resulted in <span class="command"><strong>allow-update</strong></span> being treated as a
+	  configuration error when set at the <span class="command"><strong>options</strong></span> or
+	  <span class="command"><strong>view</strong></span> level. This is not a secure configuration
+	  and the use of the option in this manner is ill-advised. However,
+	  in this release it should have been treated as a warning rather
+	  than a fatal error. This flaw was discovered too late to be
+	  fixed in 9.14.0, but it will be corrected in the 9.14.1
+	  maintenance release: global <span class="command"><strong>allow-update</strong></span> will
+	  again be permitted, but a warning will be logged.
+	</p>
+      </li></ul></div>
   </div>
 
   <div class="section">
