@@ -5,6 +5,9 @@
 
 5192.	[bug]		configure --fips-mode failed. [GL #946]
 
+5191.	[port]		Darwin: dlzexternal/driver.so was not building.
+			[GL #948]
+
 5189.	[cleanup]	Remove revoked root DNSKEY from bind.keys. [GL #945]
 
 5187.	[test]		Set time zone before running any tests in dnstap_test.
