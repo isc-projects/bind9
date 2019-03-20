@@ -24,10 +24,9 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/util.h>
-
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>
@@ -580,7 +579,6 @@ algallocated_test(void **state) {
 #ifndef PK11_MD5_DISABLE
 	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACMD5_NAME));
 #endif
-	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACMD5_NAME));
 	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA1_NAME));
 	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA224_NAME));
 	assert_false(dns__tsig_algallocated(DNS_TSIG_HMACSHA256_NAME));

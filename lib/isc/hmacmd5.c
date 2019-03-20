@@ -406,5 +406,9 @@ isc_hmacmd5_check(int testing) {
 }
 
 #else /* !PK11_MD5_DISABLE */
+
+#include <isc/util.h>
+
 EMPTY_TRANSLATION_UNIT
+
 #endif /* PK11_MD5_DISABLE */
