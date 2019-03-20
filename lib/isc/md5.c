@@ -41,13 +41,12 @@
 #include <isc/safe.h>
 #include <isc/string.h>
 #include <isc/types.h>
+#include <isc/util.h>
 
 #if PKCS11CRYPTO
 #include <pk11/internal.h>
 #include <pk11/pk11.h>
 #endif
-
-#include <isc/util.h>
 
 #ifdef ISC_PLATFORM_OPENSSLHASH
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
@@ -382,5 +381,9 @@ isc_md5_check(bool testing) {
 }
 
 #else /* !PK11_MD5_DISABLE */
+
+#include <isc/util.h>
+
 EMPTY_TRANSLATION_UNIT
+
 #endif /* PK11_MD5_DISABLE */
