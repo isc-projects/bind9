@@ -1381,6 +1381,19 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+get_rsasha1_key_ids_from_sigs() {
+	awk '
+		NF < 8 { next }
+		$(NF-5) != "RRSIG" { next }
+		$(NF-3) != "5" { next }
+		$NF != "(" { next }
+		{
+			getline;
+			print $3;
+		}
+	' signer/example.db.signed | sort -u
+}
+
 echo_i "checking that we can sign a zone with out-of-zone records ($n)"
 ret=0
 zone=example
@@ -1481,8 +1494,8 @@ cat example.db.in $key1.key $key3.key > example.db
 echo '$INCLUDE "example.db.signed"' >> example.db
 $SIGNER -D -o example example.db > /dev/null 2>&1
 ) || ret=1
-grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 || ret=1
-grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+get_rsasha1_key_ids_from_sigs | grep "^$keyid2$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs | grep "^$keyid3$" > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1493,8 +1506,8 @@ ret=0
 cd signer
 $SIGNER -RD -o example example.db > /dev/null 2>&1
 ) || ret=1
-grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 && ret=1
-grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+get_rsasha1_key_ids_from_sigs | grep "^$keyid2$" > /dev/null && ret=1
+get_rsasha1_key_ids_from_sigs | grep "^$keyid3$" > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1511,8 +1524,8 @@ echo '$INCLUDE "example.db.signed"' >> example.db
 $SETTIME -I now $key2 > /dev/null 2>&1
 $SIGNER -SD -o example example.db > /dev/null 2>&1
 ) || ret=1
-grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 || ret=1
-grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+get_rsasha1_key_ids_from_sigs | grep "^$keyid2$" > /dev/null || ret=1
+get_rsasha1_key_ids_from_sigs | grep "^$keyid3$" > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
@@ -1523,8 +1536,8 @@ ret=0
 cd signer
 $SIGNER -SDQ -o example example.db > /dev/null 2>&1
 ) || ret=1
-grep " $keyid2 " signer/example.db.signed > /dev/null 2>&1 && ret=1
-grep " $keyid3 " signer/example.db.signed > /dev/null 2>&1 || ret=1
+get_rsasha1_key_ids_from_sigs | grep "^$keyid2$" > /dev/null && ret=1
+get_rsasha1_key_ids_from_sigs | grep "^$keyid3$" > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
