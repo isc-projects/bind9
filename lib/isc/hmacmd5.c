@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: hmacmd5.c,v 1.16 2009/02/06 23:47:42 tbox Exp $ */
-
 /*! \file
  * This code implements the HMAC-MD5 keyed hash algorithm
  * described in RFC2104.
@@ -408,5 +406,9 @@ isc_hmacmd5_check(int testing) {
 }
 
 #else /* !PK11_MD5_DISABLE */
+
+#include <isc/util.h>
+
 EMPTY_TRANSLATION_UNIT
+
 #endif /* PK11_MD5_DISABLE */
