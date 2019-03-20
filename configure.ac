@@ -5062,107 +5062,94 @@ SO_LD=""
 SO_TARGETS=""
 SO_STRIP="cat"
 
-AC_ARG_WITH(dlopen,
+AC_ARG_WITH([dlopen],
 	    AS_HELP_STRING([--with-dlopen=ARG],
 			   [support dynamically loadable DLZ drivers]),
-	    dlopen="$withval", dlopen="yes")
+	    [], [with_dlopen="auto"])
 
-case $host in
-	*-sunos*) dlopen="no"
-		;;
-esac
+#
+# Disable for SunOS
+#
+AS_CASE([$host],[*-sunos*],[with_dlopen="no"])
 
-if test "yes" = "$dlopen"; then
-	AC_CHECK_LIB(dl, dlopen, have_dl=yes, have_dl=no)
-	if test "yes" = "$have_dl"; then
-		LIBS="-ldl $LIBS"
-	fi
-	AC_CHECK_FUNCS(dlopen dlclose dlsym,,dlopen=no)
-fi
+#
+# If PIC is disabled, dlopen must also be
+#
+AS_IF([test "$pic_mode" = "no"],
+      [AS_CASE([$with_dlopen],
+	       [auto],[with_dlopen="no"],
+	       [yes],[AC_MSG_ERROR([--with-dlopen requires PIC])])])
 
-if test "yes" = "$dlopen"; then
-	case $host in
-		*-linux*|*-gnu*)
-			SO_CFLAGS="-fPIC"
-                        LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
-			SO_LDFLAGS=""
-			if test "yes" = "$have_dl"
-			then
-				if test "yes" = "$use_libtool"; then
-					SO_LDFLAGS="-Xcompiler -shared"
-					SO_LD="${CC}"
-				else
-					SO_LDFLAGS="-shared"
-					SO_LD="${CC}"
-				fi
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="ld"
-			fi
-			;;
-		*-freebsd*|*-openbsd*)
-			LDFLAGS="${LDFLAGS} -Wl,-E"
-			SO_CFLAGS="-fpic"
-			if test "yes" = "$use_libtool"; then
-				SO_LDFLAGS="-Xcompiler -shared"
-				SO_LD="${CC}"
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="${CC}"
-			fi
-			;;
-               *-darwin*)
-			SO_CFLAGS="-fPIC"
-			SO_LD="${CC}"
-			if test "yes" = "$use_libtool"; then
-				SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
-			else
-				SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
-			fi
-			;;
-		*-netbsd*)
-			SO_CFLAGS="-fpic"
-			SO_LDFLAGS="-Bshareable -x"
-			SO_LD="ld"
-			SO_STRIP="sed -e s/-Wl,//g"
-			;;
-		*-solaris*)
-			SO_CFLAGS="-KPIC"
-			SO_LDFLAGS="-G -z text"
-			SO_LD="ld"
-			;;
-		*-hp-hpux*)
-			SO=sl
-			SO_CFLAGS="+z"
-			SO_LDFLAGS="-b +vnocompatwarnings"
-			SO_LD="ld"
-			;;
-		*)
-			SO_CFLAGS="-fPIC"
-			;;
-	esac
+AS_CASE([$with_dlopen],
+	[auto|yes],[
+	  AC_SEARCH_LIBS([dlopen],[dl])
+	  AC_CHECK_FUNCS([dlopen dlclose dlsym],
+			 [with_dlopen="yes"],
+			 [with_dlopen="no"])
+	])
 
-	if test "X$GCC" = "Xyes"; then
-		SO_CFLAGS="-fPIC"
-		if test -z "$SO_LD"
-		then
-			if test "yes" = "$use_libtool"; then
-				SO_LDFLAGS="-Xcompiler -shared"
-				SO_LD="${CC}"
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="${CC}"
-			fi
-		fi
-	fi
+AS_IF([test "$with_dlopen" = "yes"],
+      [AS_CASE([$host],
+	       [*-linux*|*-gnu*],[
+		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
+		 SO_CFLAGS="-fPIC"
+		 SO_LDFLAGS=""
+		 AS_IF([test "$use_libtool" = "yes"],[
+			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LD="${CC}"
+		       ],[
+			 SO_LDFLAGS="-shared"
+			 SO_LD="${CC}"
+		       ])
+	       ],
+	       [*-freebsd*|*-openbsd*|*-netbsd*],[
+		 LDFLAGS="${LDFLAGS} -Wl,-E"
+		 SO_CFLAGS="-fpic"
+		 AS_IF([test "$use_libtool" = "yes"],[
+			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LD="${CC}"
+		       ],[
+			 SO_LDFLAGS="-shared"
+			 SO_LD="${CC}"
+		       ])
+	       ],
+	       [*-darwin*],[
+		 SO_CFLAGS="-fPIC"
+                 SO_LD="${CC}"
+		 AS_IF([test "$use_libtool" = "yes"],[
+			 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
+		       ],[
+			 SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
+		       ])
+	       ],
+	       [*-solaris*],[
+		 SO_CFLAGS="-KPIC"
+		 SO_LDFLAGS="-G -z text"
+		 SO_LD="ld"
+	       ],
+	       [
+		 SO_CFLAGS="-fPIC"
+	       ])
+       AS_IF([test "$GCC" = "yes"],[
+	       SO_CFLAGS="-fPIC"
+	       AS_IF([test -z "$SO_LD"],
+		     [AS_IF([test "$use_libtool" = "yes"],[
+			      SO_LDFLAGS="-Xcompiler -shared"
+			      SO_LD="${CC}"
+			    ],[
+			      SO_LDFLAGS="-shared"
+			      SO_LD="${CC}"
+			    ])
+		     ])
+	     ])
+       # If we still don't know how to make shared objects, don't make any.
+       AS_IF([test -n "$SO_LD"],
+	     [SO_TARGETS="\${SO_TARGETS}"
+	      AC_DEFINE([ISC_DLZ_DLOPEN], [1],
+			[Define to allow building of objects for dlopen().])
+	     ])
+      ])
 
-	# If we still don't know how to make shared objects, don't make any.
-	if test -n "$SO_LD"; then
-		SO_TARGETS="\${SO_TARGETS}"
-		AC_DEFINE(ISC_DLZ_DLOPEN, 1,
-			  [Define to allow building of objects for dlopen().])
-	fi
-fi
 CFLAGS="$CFLAGS $SO_CFLAGS"
 
 AC_SUBST(SO)
@@ -5171,7 +5158,6 @@ AC_SUBST(SO_LDFLAGS)
 AC_SUBST(SO_LD)
 AC_SUBST(SO_STRIP)
 AC_SUBST(SO_TARGETS)
-
 sinclude(contrib/dlz/config.dlz.in)
 AC_MSG_CHECKING(contributed DLZ drivers)
 
