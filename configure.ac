@@ -5111,6 +5111,15 @@ if test "yes" = "$dlopen"; then
 				SO_LD="${CC}"
 			fi
 			;;
+               *-darwin*)
+			SO_CFLAGS="-fPIC"
+			SO_LD="${CC}"
+			if test "yes" = "$use_libtool"; then
+				SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
+			else
+				SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
+			fi
+			;;
 		*-netbsd*)
 			SO_CFLAGS="-fpic"
 			SO_LDFLAGS="-Bshareable -x"
