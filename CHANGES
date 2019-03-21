@@ -1,3 +1,6 @@
+5193.	[bug]		EID and NIMLOC failed to do multi-line output
+			correctly. [GL #899]
+
 5192.	[placeholder]
 
 5191.	[placeholder]
