@@ -1,3 +1,5 @@
+5194.	[bug]		Enforce non empty ZOMEMD hash. [GL #899]
+
 5193.	[bug]		EID and NIMLOC failed to do multi-line output
 			correctly. [GL #899]
 
