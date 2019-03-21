@@ -1,3 +1,7 @@
+5208.	[test]		Run valid rdata wire encodings through totext+fromtext
+			and tofmttext+fromtext methods to check these methods.
+			[GL #899]
+
 5207.	[test]		Check delv and dig TTL values. [GL #965]
 
 5205.	[bug]		Enforce that a DS hash exists. [GL #899]
