@@ -1,3 +1,6 @@
+5193.	[bug]		EID and NIMLOC failed to do multi-line output
+			correctly. [GL #899]
+
 5189.	[cleanup]	Remove revoked root DNSKEY from bind.keys. [GL #945]
 
 5187.	[test]		Set time zone before running any tests in dnstap_test.
