@@ -7051,14 +7051,20 @@ options {
 		  When set in the <command>zone</command> statement for
 		  a master zone, specifies which hosts are allowed to
 		  submit Dynamic DNS updates to that zone.  The default
-		  is to deny updates from all hosts.  This can only
-		  be set at the <command>zone</command> level, not in
-		  <command>options</command> or <command>view</command>.
+		  is to deny updates from all hosts.
 		</para>
 		<para>
 		  Note that allowing updates based on the
 		  requestor's IP address is insecure; see
 		  <xref linkend="dynamic_update_security"/> for details.
+		</para>
+		<para>
+		  In general this option should only be set at the
+		  <command>zone</command> level. While a default
+		  value can be set at the <command>options</command> or
+		  <command>view</command> level and inherited by zones,
+		  this could lead to some zones unintentionally allowing
+		  updates.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -7072,9 +7078,7 @@ options {
 		  submit Dynamic DNS updates and have them be forwarded
 		  to the master.  The default is
 		  <userinput>{ none; }</userinput>, which means that no
-		  update forwarding will be performed.  This can only be
-		  set at the <command>zone</command> level, not in
-		  <command>options</command> or <command>view</command>.
+		  update forwarding will be performed.
 		</para>
 		<para>
 		  To enable update forwarding, specify
@@ -7091,6 +7095,14 @@ options {
 		  server may expose master servers to attacks if they rely
 		  on insecure IP-address-based access control; see
 		  <xref linkend="dynamic_update_security"/> for more details.
+		</para>
+		<para>
+		  In general this option should only be set at the
+		  <command>zone</command> level. While a default
+		  value can be set at the <command>options</command> or
+		  <command>view</command> level and inherited by zones,
+		  this can lead to some zones unintentionally forwarding
+		  updates.
 		</para>
 	      </listitem>
 	    </varlistentry>

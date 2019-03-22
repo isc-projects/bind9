@@ -5021,8 +5021,9 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 
 	/*
 	 * Configure default allow-update and allow-update-forwarding ACLs,
-	 * so they can be inherited by zones.  (Note these cannot be set at
-	 * options/view level.)
+	 * so they can be inherited by zones. (XXX: These are not
+	 * read from the options/view level here. However, they may be
+	 * read from there in zoneconf.c:configure_zone_acl() later.)
 	 */
 	if (view->updateacl == NULL) {
 		CHECK(configure_view_acl(NULL, NULL, named_g_config,

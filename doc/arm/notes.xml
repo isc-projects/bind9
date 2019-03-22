@@ -112,8 +112,13 @@
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
-	<para>
-	  None.
+        <para>
+	  The <command>allow-update</command> and
+	  <command>allow-update-forwarding</command> options were
+	  inadvertently treated as configuration errors when used at the
+	  <command>options</command> or <command>view</command> level.
+	  This has now been corrected.
+	  [GL #913]
 	</para>
       </listitem>
     </itemizedlist>
