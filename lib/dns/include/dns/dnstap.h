@@ -29,7 +29,6 @@
 #ifdef HAVE_DNSTAP
 #include <fstrm.h>
 #include <protobuf-c/protobuf-c.h>
-#include <dns/dnstap.pb-c.h>
 #else
 struct fstrm_iothr_options;
 #endif /* HAVE_DNSTAP */
@@ -93,7 +92,7 @@ typedef struct dns_dthandle dns_dthandle_t;
 struct dns_dtdata {
 	isc_mem_t *mctx;
 
-	Dnstap__Dnstap *frame;
+	void *frame;
 
 	bool query;
 	bool tcp;
