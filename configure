@@ -697,7 +697,6 @@ W3M
 DBLATEX
 PDFLATEX
 LATEX
-DNSTAP_PB_C_H
 DNSTAPTARGETS
 DNSTAPOBJS
 DNSTAPSRCS
@@ -18258,7 +18257,6 @@ DNSTAP=
 DNSTAPSRCS=
 DNSTAPOBJS=
 DNSTAPTARGETS=
-DNSTAP_PB_C_H=
 if test "x$use_dnstap" != "xno"; then
 
 # Check whether --with-protobuf-c was given.
@@ -18591,9 +18589,7 @@ $as_echo "#define HAVE_DNSTAP 1" >>confdefs.h
 	DNSTAPSRCS='${DNSTAPSRCS}'
 	DNSTAPOBJS='${DNSTAPOBJS}'
 	DNSTAPTARGETS='${DNSTAPTARGETS}'
-	DNSTAP_PB_C_H="dnstap.pb-c.h"
 fi
-
 
 
 

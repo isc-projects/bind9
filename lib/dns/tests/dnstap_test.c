@@ -38,7 +38,7 @@
 #include "dnstest.h"
 
 #ifdef HAVE_DNSTAP
-#include <dns/dnstap.pb-c.h>
+
 #include <protobuf-c/protobuf-c.h>
 
 #define TAPFILE "testdata/dnstap/dnstap.file"
