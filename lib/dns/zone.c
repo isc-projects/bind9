@@ -8867,9 +8867,6 @@ zone_sign(dns_zone_t *zone) {
 			if (!dst_key_isprivate(zone_keys[i])) {
 				continue;
 			}
-			/*
-			 * Should be redundant.
-			 */
 			if (dst_key_inactive(zone_keys[i])) {
 				continue;
 			}
@@ -8913,11 +8910,10 @@ zone_sign(dns_zone_t *zone) {
 					{
 						continue;
 					}
-					if (!dst_key_isprivate(zone_keys[j])) {
-						continue;
-					}
-					/*
-					 * Should be redundant.
+					/* Don't consider inactive keys, however
+					 * the key may be temporary offline, so do
+					 * consider keys which private key files are
+					 * unavailable.
 					 */
 					if (dst_key_inactive(zone_keys[j])) {
 						continue;
