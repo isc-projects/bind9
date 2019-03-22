@@ -47,6 +47,9 @@
 #include <dns/name.h>
 #include <dns/result.h>
 
+#include <protobuf-c/protobuf-c.h>
+#include "lib/dns/dnstap.pb-c.h"
+
 isc_mem_t *mctx = NULL;
 bool memrecord = false;
 bool printmessage = false;

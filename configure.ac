@@ -4443,7 +4443,6 @@ DNSTAP=
 DNSTAPSRCS=
 DNSTAPOBJS=
 DNSTAPTARGETS=
-DNSTAP_PB_C_H=
 if test "x$use_dnstap" != "xno"; then
 	if ! $use_threads; then
 		AC_MSG_ERROR([Dnstap requires threads.])
@@ -4500,13 +4499,11 @@ if test "x$use_dnstap" != "xno"; then
 	DNSTAPSRCS='${DNSTAPSRCS}'
 	DNSTAPOBJS='${DNSTAPOBJS}'
 	DNSTAPTARGETS='${DNSTAPTARGETS}'
-	DNSTAP_PB_C_H="dnstap.pb-c.h"
 fi
 AC_SUBST(DNSTAP)
 AC_SUBST(DNSTAPSRCS)
 AC_SUBST(DNSTAPOBJS)
 AC_SUBST(DNSTAPTARGETS)
-AC_SUBST(DNSTAP_PB_C_H)
 
 #
 #  The following sets up how non-blocking i/o is established.
