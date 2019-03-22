@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.14.0rc1
+Release Notes for BIND Version 9.14.0
 
 Introduction
 
@@ -51,6 +51,17 @@ The latest versions of BIND 9 software can always be found at http://
 www.isc.org/downloads/. There you will find additional information about
 each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
+
+Known Issues
+
+  * A recent change in the named.conf parser resulted in allow-update
+    being treated as a configuration error when set at the options or view
+    level. This is not a secure configuration and the use of the option in
+    this manner is ill-advised. However, in this release it should have
+    been treated as a warning rather than a fatal error. This flaw was
+    discovered too late to be fixed in 9.14.0, but it will be corrected in
+    the 9.14.1 maintenance release: global allow-update will again be
+    permitted, but a warning will be logged.
 
 New Features
 
