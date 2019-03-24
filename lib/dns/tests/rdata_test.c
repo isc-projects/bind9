@@ -1593,7 +1593,39 @@ nxt(void **state) {
 
 static void
 rkey(void **state) {
+	text_ok_t text_ok[] = {
+		/*
+		 * Valid, flags set to 0 and a key is present.
+		 */
+		TEXT_VALID("0 0 0 aaaa"),
+		/*
+		 * Invalid, non-zero flags.
+		 */
+		TEXT_INVALID("1 0 0 aaaa"),
+		TEXT_INVALID("65535 0 0 aaaa"),
+		/*
+		 * Sentinel.
+		 */
+		TEXT_SENTINEL()
+	};
+	wire_ok_t wire_ok[] = {
+		/*
+		 * Valid, flags set to 0 and a key is present.
+		 */
+		WIRE_VALID(0x00, 0x00, 0x00, 0x00, 0x00),
+		/*
+		 * Invalid, non-zero flags.
+		 */
+		WIRE_INVALID(0x00, 0x01, 0x00, 0x00, 0x00),
+		WIRE_INVALID(0xff, 0xff, 0x00, 0x00, 0x00),
+		/*
+		 * Sentinel.
+		 */
+		WIRE_SENTINEL()
+	};
 	key_required(state, dns_rdatatype_rkey, sizeof(dns_rdata_rkey_t));
+	check_rdata(text_ok, wire_ok, NULL, false, dns_rdataclass_in,
+		    dns_rdatatype_rkey, sizeof(dns_rdata_rkey_t));
 }
 
 /*
