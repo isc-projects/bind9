@@ -27,11 +27,7 @@
 #include <isc/timer.h>
 #include <isc/util.h>
 
-#ifdef AES_CC
 #include <isc/aes.h>
-#else
-#include <isc/hmac.h>
-#endif
 
 #include <dns/acl.h>
 #include <dns/adb.h>
@@ -2277,7 +2273,6 @@ add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
 
 static void
 compute_cc(resquery_t *query, unsigned char *cookie, size_t len) {
-#ifdef AES_CC
 	unsigned char digest[ISC_AES_BLOCK_LENGTH];
 	unsigned char input[16];
 	isc_netaddr_t netaddr;
@@ -2299,40 +2294,6 @@ compute_cc(resquery_t *query, unsigned char *cookie, size_t len) {
 	for (i = 0; i < 8; i++)
 		digest[i] ^= digest[i + 8];
 	memmove(cookie, digest, 8);
-#endif
-#if defined(HMAC_SHA1_CC) || defined(HMAC_SHA256_CC)
-	unsigned char digest[ISC_MAX_MD_SIZE];
-	unsigned char *input = NULL;
-	unsigned int length = 0;
-	isc_netaddr_t netaddr;
-#if defined(HMAC_SHA1_CC)
-	isc_md_type_t type = ISC_MD_SHA1;
-	unsigned int secret_len = ISC_SHA1_DIGESTLENGTH;
-#elif defined(HMAC_SHA256_CC)
-	isc_md_type_t type = ISC_MD_SHA256;
-	unsigned int secret_len = ISC_SHA256_DIGESTLENGTH;
-#endif
-
-	INSIST(len >= 8U);
-
-	isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
-	switch (netaddr.family) {
-	case AF_INET:
-		input = (unsigned char *)&netaddr.type.in;
-		length = 4;
-		break;
-	case AF_INET6:
-		input = (unsigned char *)&netaddr.type.in6;
-		length = 16;
-		break;
-	}
-
-	RUNTIME_CHECK(isc_hmac(type,
-			       query->fctx->res->view->secret, secret_len,
-			       input, length,
-			       digest, NULL) == ISC_R_SUCCESS);
-	memmove(cookie, digest, 8);
-#endif
 }
 
 static isc_result_t

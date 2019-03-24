@@ -3,9 +3,6 @@
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Use AES for Client Cookie generation */
-#undef AES_CC
-
 /* Define if you cannot bind() before connect() for TCP sockets. */
 #undef BROKEN_TCP_BIND_BEFORE_CONNECT
 
@@ -467,12 +464,6 @@
 
 /* Define if __thread keyword is available */
 #undef HAVE___THREAD
-
-/* Use HMAC-SHA1 for Client Cookie generation */
-#undef HMAC_SHA1_CC
-
-/* Use HMAC-SHA256 for Client Cookie generation */
-#undef HMAC_SHA256_CC
 
 /* Define if you want to use inline buffers */
 #undef ISC_BUFFER_USEINLINE

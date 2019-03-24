@@ -1355,22 +1355,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_RANGE;
 			}
-			if (strcasecmp(ccalg, "sha1") == 0 &&
-			    usedlength != ISC_SHA1_DIGESTLENGTH) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "SHA1 cookie-secret must be "
-					    "160 bits");
-				if (result == ISC_R_SUCCESS)
-					result = ISC_R_RANGE;
-			}
-			if (strcasecmp(ccalg, "sha256") == 0 &&
-			    usedlength != ISC_SHA256_DIGESTLENGTH) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "SHA256 cookie-secret must be "
-					    "256 bits");
-				if (result == ISC_R_SUCCESS)
-					result = ISC_R_RANGE;
-			}
 		}
 	}
 

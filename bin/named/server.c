@@ -9131,10 +9131,6 @@ load_configuration(const char *filename, named_server_t *server,
 	INSIST(result == ISC_R_SUCCESS);
 	if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {
 		server->sctx->cookiealg = ns_cookiealg_aes;
-	} else if (strcasecmp(cfg_obj_asstring(obj), "sha1") == 0) {
-		server->sctx->cookiealg = ns_cookiealg_sha1;
-	} else if (strcasecmp(cfg_obj_asstring(obj), "sha256") == 0) {
-		server->sctx->cookiealg = ns_cookiealg_sha256;
 	} else {
 		INSIST(0);
 		ISC_UNREACHABLE();
@@ -9198,24 +9194,6 @@ load_configuration(const char *filename, named_server_t *server,
 					CHECKM(ISC_R_RANGE,
 					       "AES cookie-secret must be "
 					       "128 bits");
-				}
-				break;
-			case ns_cookiealg_sha1:
-				expectedlength =
-					isc_md_type_get_size(ISC_MD_SHA1);
-				if (usedlength != expectedlength) {
-					CHECKM(ISC_R_RANGE,
-					       "SHA1 cookie-secret must be "
-					       "160 bits");
-				}
-				break;
-			case ns_cookiealg_sha256:
-				expectedlength =
-					isc_md_type_get_size(ISC_MD_SHA256);
-				if (usedlength != expectedlength) {
-					CHECKM(ISC_R_RANGE,
-					       "SHA256 cookie-secret must be "
-					       "256 bits");
 				}
 				break;
 			}

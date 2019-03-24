@@ -192,8 +192,7 @@ my @projectlist = ("..\\bin\\check\\win32\\checkconf.vcxproj",
 
 my %configdefh;
 
-my @substdefh = ("AES_CC",
-                 "CONFIGARGS",
+my @substdefh = ("CONFIGARGS",
                  "DNS_RDATASET_FIXED",
                  "HAVE_GEOIP2",
                  "HAVE_LIBXML2",
@@ -209,8 +208,6 @@ my @substdefh = ("AES_CC",
                  "HAVE_PKCS11_ED448",
                  "HAVE_READLINE",
                  "HAVE_ZLIB",
-                 "HMAC_SHA1_CC",
-                 "HMAC_SHA256_CC",
                  "ISC_LIST_CHECKINIT",
                  "TUNE_LARGE",
                  "WANT_QUERYTRACE",
@@ -1597,18 +1594,6 @@ if ($use_openssl eq "no") {
     if ($use_aes ne "pkcs11") {
         $use_aes = "no";
     }
-}
-
-# with-cc-alg
-if ($cookie_algorithm eq "aes") {
-    $configdefh{"AES_CC"} = 1;
-}
-if ($cookie_algorithm eq "sha1") {
-    $configdefh{"HMAC_SHA1_CC"} = 1;
-} elsif ($cookie_algorithm eq "sha256") {
-    $configdefh{"HMAC_SHA256_CC"} = 1;
-} elsif ($cookie_algorithm ne "aes") {
-    die "Unrecognized cookie algorithm: $cookie_algorithm\n";
 }
 
 if ($cryptolib ne "") {

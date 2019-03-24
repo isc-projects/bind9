@@ -1960,53 +1960,6 @@ compute_cookie(ns_client_t *client, uint32_t when, uint32_t nonce,
 		break;
 	}
 
-	case ns_cookiealg_sha1:
-	case ns_cookiealg_sha256: {
-		unsigned char digest[ISC_MAX_MD_SIZE];
-		unsigned char input[8 + 4 + 4 + 16];
-		isc_netaddr_t netaddr;
-		unsigned char *cp;
-		unsigned int length = 0;
-		isc_md_type_t md_type =
-			(client->sctx->cookiealg == ns_cookiealg_sha1)
-			? ISC_MD_SHA1
-			: ISC_MD_SHA256;
-		unsigned int secret_len = isc_md_type_get_size(md_type);
-
-		cp = isc_buffer_used(buf);
-		isc_buffer_putmem(buf, client->cookie, 8);
-		isc_buffer_putuint32(buf, nonce);
-		isc_buffer_putuint32(buf, when);
-		memmove(input, cp, 16);
-
-		isc_netaddr_fromsockaddr(&netaddr, &client->peeraddr);
-		switch (netaddr.family) {
-		case AF_INET:
-			memmove(input + 16,
-				(unsigned char *)&netaddr.type.in, 4);
-			length = 16 + 4;
-			break;
-		case AF_INET6:
-			memmove(input + 16,
-				(unsigned char *)&netaddr.type.in6, 16);
-			length = 16 + 16;
-			break;
-		default:
-			INSIST(0);
-			ISC_UNREACHABLE();
-		}
-
-		/*
-		 * XXXOND: Feels wrong to assert on cookie calculation failure
-		 */
-		RUNTIME_CHECK(isc_hmac(md_type, secret, secret_len,
-				       input, length,
-				       digest, NULL) == ISC_R_SUCCESS);
-
-		isc_buffer_putmem(buf, digest, 8);
-		break;
-	}
-
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
