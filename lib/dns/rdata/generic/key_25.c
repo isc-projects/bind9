@@ -58,6 +58,9 @@ generic_fromtext_key(ARGS_FROMTEXT) {
 	RETERR(isc_lex_getmastertoken(lexer, &token, isc_tokentype_string,
 				      false));
 	RETTOK(dns_keyflags_fromtext(&flags, &token.value.as_textregion));
+	if (type == dns_rdatatype_rkey && flags != 0U) {
+		RETTOK(DNS_R_FORMERR);
+	}
 	RETERR(uint16_tobuffer(flags, target));
 
 	/* protocol */
@@ -197,6 +200,10 @@ generic_fromwire_key(ARGS_FROMWIRE) {
 	}
 	flags = (sr.base[0] << 8) | sr.base[1];
 
+	if (type == dns_rdatatype_rkey && flags != 0U) {
+		return (DNS_R_FORMERR);
+	}
+
 	algorithm = sr.base[3];
 	RETERR(mem_tobuffer(target, sr.base, 4));
 	isc_region_consume(&sr, 4);
@@ -290,6 +297,10 @@ generic_fromstruct_key(ARGS_FROMSTRUCT) {
 
 	UNUSED(type);
 	UNUSED(rdclass);
+
+	if (type == dns_rdatatype_rkey) {
+		INSIST(key->flags == 0U);
+	}
 
 	/* Flags */
 	RETERR(uint16_tobuffer(key->flags, target));
