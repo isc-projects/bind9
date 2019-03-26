@@ -16,7 +16,7 @@ zone=.
 zonefile=root.db
 
 # an RSA key
-rsakey=`$KEYGEN -a rsasha256 -b 2048 -qfk rsasha256.`
+rsakey=`$KEYGEN -a rsasha256 -b 2048 -r $RANDFILE -qfk rsasha256.`
 
 # a key with unsupported algorithm
 unsupportedkey=Kunknown.+255+00000
