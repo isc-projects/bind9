@@ -1,3 +1,7 @@
+5197.	[bug]		dig could die in best effort mode on multiple SIG(0)
+			records. Similarly on multiple OPT and multiple TSIG
+			records. [GL #920]
+
 5196.	[bug]		make install failed with --with-dlopen=no. [GL #955]
 
 5195.	[bug]		"allow-update" and "allow-update-forwarding" were
