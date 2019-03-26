@@ -23668,25 +23668,45 @@ SO_STRIP="cat"
 
 # Check whether --with-dlopen was given.
 if test "${with_dlopen+set}" = set; then :
-  withval=$with_dlopen; dlopen="$withval"
+  withval=$with_dlopen;
 else
-  dlopen="yes"
+  with_dlopen="auto"
 fi
 
 
-case $host in
-	*-sunos*) dlopen="no"
-		;;
+#
+# Disable for SunOS
+#
+case $host in #(
+  *-sunos*) :
+    with_dlopen="no" ;; #(
+  *) :
+     ;;
 esac
 
-if test "yes" = "$dlopen"; then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for dlopen in -ldl" >&5
-$as_echo_n "checking for dlopen in -ldl... " >&6; }
-if ${ac_cv_lib_dl_dlopen+:} false; then :
+#
+# If PIC is disabled, dlopen must also be
+#
+if test "$pic_mode" = "no"; then :
+  case $with_dlopen in #(
+  auto) :
+    with_dlopen="no" ;; #(
+  yes) :
+    as_fn_error $? "--with-dlopen requires PIC" "$LINENO" 5 ;; #(
+  *) :
+     ;;
+esac
+fi
+
+case $with_dlopen in #(
+  auto|yes) :
+
+	  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing dlopen" >&5
+$as_echo_n "checking for library containing dlopen... " >&6; }
+if ${ac_cv_search_dlopen+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  ac_check_lib_save_LIBS=$LIBS
-LIBS="-ldl  $LIBS"
+  ac_func_search_save_LIBS=$LIBS
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
@@ -23705,27 +23725,39 @@ return dlopen ();
   return 0;
 }
 _ACEOF
-if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_lib_dl_dlopen=yes
-else
-  ac_cv_lib_dl_dlopen=no
+for ac_lib in '' dl; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_dlopen=$ac_res
 fi
 rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-LIBS=$ac_check_lib_save_LIBS
+    conftest$ac_exeext
+  if ${ac_cv_search_dlopen+:} false; then :
+  break
 fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_dl_dlopen" >&5
-$as_echo "$ac_cv_lib_dl_dlopen" >&6; }
-if test "x$ac_cv_lib_dl_dlopen" = xyes; then :
-  have_dl=yes
+done
+if ${ac_cv_search_dlopen+:} false; then :
+
 else
-  have_dl=no
+  ac_cv_search_dlopen=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_dlopen" >&5
+$as_echo "$ac_cv_search_dlopen" >&6; }
+ac_res=$ac_cv_search_dlopen
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
 fi
 
-	if test "yes" = "$have_dl"; then
-		LIBS="-ldl $LIBS"
-	fi
-	for ac_func in dlopen dlclose dlsym
+	  for ac_func in dlopen dlclose dlsym
 do :
   as_ac_var=`$as_echo "ac_cv_func_$ac_func" | $as_tr_sh`
 ac_fn_c_check_func "$LINENO" "$ac_func" "$as_ac_var"
@@ -23733,91 +23765,108 @@ if eval test \"x\$"$as_ac_var"\" = x"yes"; then :
   cat >>confdefs.h <<_ACEOF
 #define `$as_echo "HAVE_$ac_func" | $as_tr_cpp` 1
 _ACEOF
-
+ with_dlopen="yes"
 else
-  dlopen=no
+  with_dlopen="no"
 fi
 done
 
+	 ;; #(
+  *) :
+     ;;
+esac
+
+if test "$with_dlopen" = "yes"; then :
+  case $host in #(
+  *-linux*|*-gnu*) :
+
+		 LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
+		 SO_CFLAGS="-fPIC"
+		 SO_LDFLAGS=""
+		 if test "$use_libtool" = "yes"; then :
+
+			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LD="${CC}"
+
+else
+
+			 SO_LDFLAGS="-shared"
+			 SO_LD="${CC}"
+
+fi
+	        ;; #(
+  *-freebsd*|*-openbsd*|*-netbsd*) :
+
+		 LDFLAGS="${LDFLAGS} -Wl,-E"
+		 SO_CFLAGS="-fpic"
+		 if test "$use_libtool" = "yes"; then :
+
+			 SO_LDFLAGS="-Xcompiler -shared"
+			 SO_LD="${CC}"
+
+else
+
+			 SO_LDFLAGS="-shared"
+			 SO_LD="${CC}"
+
+fi
+	        ;; #(
+  *-darwin*) :
+
+		 SO_CFLAGS="-fPIC"
+                 SO_LD="${CC}"
+		 if test "$use_libtool" = "yes"; then :
+
+			 SO_LDFLAGS="-Xcompiler -dynamiclib -undefined dynamic_lookup"
+
+else
+
+			 SO_LDFLAGS="-dynamiclib -undefined dynamic_lookup"
+
+fi
+	        ;; #(
+  *-solaris*) :
+
+		 SO_CFLAGS="-KPIC"
+		 SO_LDFLAGS="-G -z text"
+		 SO_LD="ld"
+	        ;; #(
+  *) :
+
+		 SO_CFLAGS="-fPIC"
+	        ;;
+esac
+       if test "$GCC" = "yes"; then :
+
+	       SO_CFLAGS="-fPIC"
+	       if test -z "$SO_LD"; then :
+  if test "$use_libtool" = "yes"; then :
+
+			      SO_LDFLAGS="-Xcompiler -shared"
+			      SO_LD="${CC}"
+
+else
+
+			      SO_LDFLAGS="-shared"
+			      SO_LD="${CC}"
+
 fi
 
-if test "yes" = "$dlopen"; then
-	case $host in
-		*-linux*|*-gnu*)
-			SO_CFLAGS="-fPIC"
-                        LDFLAGS="${LDFLAGS} -Wl,--export-dynamic"
-			SO_LDFLAGS=""
-			if test "yes" = "$have_dl"
-			then
-				if test "yes" = "$use_libtool"; then
-					SO_LDFLAGS="-Xcompiler -shared"
-					SO_LD="${CC}"
-				else
-					SO_LDFLAGS="-shared"
-					SO_LD="${CC}"
-				fi
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="ld"
-			fi
-			;;
-		*-freebsd*|*-openbsd*)
-			LDFLAGS="${LDFLAGS} -Wl,-E"
-			SO_CFLAGS="-fpic"
-			if test "yes" = "$use_libtool"; then
-				SO_LDFLAGS="-Xcompiler -shared"
-				SO_LD="${CC}"
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="${CC}"
-			fi
-			;;
-		*-netbsd*)
-			SO_CFLAGS="-fpic"
-			SO_LDFLAGS="-Bshareable -x"
-			SO_LD="ld"
-			SO_STRIP="sed -e s/-Wl,//g"
-			;;
-		*-solaris*)
-			SO_CFLAGS="-KPIC"
-			SO_LDFLAGS="-G -z text"
-			SO_LD="ld"
-			;;
-		*-hp-hpux*)
-			SO=sl
-			SO_CFLAGS="+z"
-			SO_LDFLAGS="-b +vnocompatwarnings"
-			SO_LD="ld"
-			;;
-		*)
-			SO_CFLAGS="-fPIC"
-			;;
-	esac
+fi
 
-	if test "X$GCC" = "Xyes"; then
-		SO_CFLAGS="-fPIC"
-		if test -z "$SO_LD"
-		then
-			if test "yes" = "$use_libtool"; then
-				SO_LDFLAGS="-Xcompiler -shared"
-				SO_LD="${CC}"
-			else
-				SO_LDFLAGS="-shared"
-				SO_LD="${CC}"
-			fi
-		fi
-	fi
-
-	# If we still don't know how to make shared objects, don't make any.
-	if test -n "$SO_LD"; then
-		SO_TARGETS="\${SO_TARGETS}"
+fi
+       # If we still don't know how to make shared objects, don't make any.
+       if test -n "$SO_LD"; then :
+  SO_TARGETS="\${SO_TARGETS}"
 
 $as_echo "#define ISC_DLZ_DLOPEN 1" >>confdefs.h
 
-	fi
-fi
-CFLAGS="$CFLAGS $SO_CFLAGS"
 
+fi
+
+fi
+
+CFLAGS="$CFLAGS $SO_CFLAGS"
 
 
 
