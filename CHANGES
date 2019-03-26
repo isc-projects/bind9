@@ -1,3 +1,7 @@
+5197.	[bug]		dig could die in best effort mode on multiple SIG(0)
+			records. Similarly on multiple OPT and multiple TSIG
+			records. [GL #920]
+
 5194.	[bug]		Enforce non empty ZOMEMD hash. [GL #899]
 
 5193.	[bug]		EID and NIMLOC failed to do multi-line output
