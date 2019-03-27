@@ -1,3 +1,6 @@
+5231.	[protocol]	Add support for displaying CLIENT-TAG and SERVER-TAG.
+			[GL #960]
+
 5229.	[protocol]	Enforce known SSHFP fingerprint lengths. [GL #852]
 
 5228.	[cleanup]	If trusted-keys and managed-keys are configured
