@@ -549,6 +549,54 @@ if [ -x "$DIG" ] ; then
   status=$((status+ret))
 
   n=$((n+1))
+  echo_i "check that dig processes +ednsopt=client-tag:value ($n)"
+  dig_with_opts @10.53.0.3 +ednsopt=client-tag:0001 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; CLIENT-TAG: 1$" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that FORMERR is returned for a too short client-tag ($n)"
+  dig_with_opts @10.53.0.3 +ednsopt=client-tag:01 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; CLIENT-TAG" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that FORMERR is returned for a too long client-tag ($n)"
+  dig_with_opts @10.53.0.3 +ednsopt=client-tag:000001 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; CLIENT-TAG" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig processes +ednsopt=server-tag:value ($n)"
+  dig_with_opts @10.53.0.3 +ednsopt=server-tag:0001 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; SERVER-TAG: 1$" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that FORMERR is returned for a too short server-tag ($n)"
+  dig_with_opts @10.53.0.3 +ednsopt=server-tag:01 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; SERVER-TAG" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that FORMERR is returned for a too long server-tag ($n)"
+  dig_with_opts @10.53.0.3 +ednsopt=server-tag:000001 a.example +qr > dig.out.test$n 2>&1 || ret=1
+  grep "; SERVER-TAG" dig.out.test$n > /dev/null || ret=1
+  grep "status: FORMERR" dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
   echo_i "check that dig handles malformed option '+ednsopt=:' gracefully ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +ednsopt=: a.example > dig.out.test$n 2>&1 && ret=1
