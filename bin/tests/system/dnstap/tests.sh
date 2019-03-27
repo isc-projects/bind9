@@ -131,16 +131,16 @@ status=`expr $status + $ret`
 
 echo_i "checking AUTH_QUERY message counts"
 ret=0
-[ $aq1 -eq 2 ] || {
-	echo_i "ns1 $aq1 exepcted 2"
+[ $aq1 -eq 3 ] || {
+	echo_i "ns1 $aq1 exepcted 3"
 	ret=1
 }
-[ $aq2 -eq 1 ] || {
-	echo_i "ns2 $aq2 expected 1"
+[ $aq2 -eq 2 ] || {
+	echo_i "ns2 $aq2 expected 2"
 	ret=1
 }
-[ $aq3 -eq 0 ] || {
-	echo_i "ns3 $aq3 expected 0"
+[ $aq3 -eq 1 ] || {
+	echo_i "ns3 $aq3 expected 1"
 	ret=1
 }
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -165,16 +165,16 @@ status=`expr $status + $ret`
 
 echo_i "checking CLIENT_QUERY message counts"
 ret=0
-[ $cq1 -eq 1 ] || {
-	echo_i "ns1 $cq1 expected 1"
+[ $cq1 -eq 0 ] || {
+	echo_i "ns1 $cq1 expected 0"
 	ret=1
 }
-[ $cq2 -eq 1 ] || {
-	echo_i "ns2 $cq2 expected 1"
+[ $cq2 -eq 0 ] || {
+	echo_i "ns2 $cq2 expected 0"
 	ret=1
 }
-[ $cq3 -eq 2 ] || {
-	echo_i "ns3 $cq3 expected 2"
+[ $cq3 -eq 1 ] || {
+	echo_i "ns3 $cq3 expected 1"
 	ret=1
 }
 if [ $ret != 0 ]; then echo_i "failed"; fi
