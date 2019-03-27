@@ -8723,12 +8723,14 @@ rctx_answer_none(respctx_t *rctx) {
 		rctx->negative = true;
 	}
 
-	/*
-	 * Process DNSSEC records in the authority section.
-	 */
-	result = rctx_authority_dnssec(rctx);
-	if (result == ISC_R_COMPLETE) {
-		return (rctx->result);
+	if (!rctx->ns_in_answer && !rctx->glue_in_answer) {
+		/*
+		 * Process DNSSEC records in the authority section.
+		 */
+		result = rctx_authority_dnssec(rctx);
+		if (result == ISC_R_COMPLETE) {
+			return (rctx->result);
+		}
 	}
 
 	/*
@@ -8981,18 +8983,12 @@ static isc_result_t
 rctx_authority_dnssec(respctx_t *rctx) {
 	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
-	dns_section_t section;
 	dns_rdataset_t *rdataset = NULL;
 	bool finished = false;
 
-	if (rctx->ns_in_answer) {
-		INSIST(fctx->type == dns_rdatatype_ns);
-		section = DNS_SECTION_ANSWER;
-	} else {
-		section = DNS_SECTION_AUTHORITY;
-	}
+	REQUIRE(!rctx->ns_in_answer && !rctx->glue_in_answer);
 
-	result = dns_message_firstname(fctx->rmessage, section);
+	result = dns_message_firstname(fctx->rmessage, DNS_SECTION_AUTHORITY);
 	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_SUCCESS);
 	}
@@ -9000,8 +8996,10 @@ rctx_authority_dnssec(respctx_t *rctx) {
 	while (!finished) {
 		dns_name_t *name = NULL;
 
-		dns_message_currentname(fctx->rmessage, section, &name);
-		result = dns_message_nextname(fctx->rmessage, section);
+		dns_message_currentname(fctx->rmessage, DNS_SECTION_AUTHORITY,
+					&name);
+		result = dns_message_nextname(fctx->rmessage,
+					      DNS_SECTION_AUTHORITY);
 		if (result != ISC_R_SUCCESS) {
 			finished = true;
 		}
@@ -9017,7 +9015,10 @@ rctx_authority_dnssec(respctx_t *rctx) {
 		     rdataset != NULL;
 		     rdataset = ISC_LIST_NEXT(rdataset, link))
 		{
+			bool checknta = true;
+			bool secure_domain = false;
 			dns_rdatatype_t type = rdataset->type;
+
 			if (type == dns_rdatatype_rrsig) {
 				type = rdataset->covers;
 			}
@@ -9077,7 +9078,25 @@ rctx_authority_dnssec(respctx_t *rctx) {
 
 				name->attributes |= DNS_NAMEATTR_CACHE;
 				rdataset->attributes |= DNS_RDATASETATTR_CACHE;
-				if (rctx->aa) {
+
+				if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
+					checknta = false;
+				}
+				if (fctx->res->view->enablevalidation) {
+					result = issecuredomain(fctx->res->view,
+							      name,
+							      dns_rdatatype_ds,
+							      fctx->now,
+							      checknta, NULL,
+							      &secure_domain);
+					if (result != ISC_R_SUCCESS) {
+						return (result);
+					}
+				}
+				if (secure_domain) {
+					rdataset->trust =
+						 dns_trust_pending_answer;
+				} else if (rctx->aa) {
 					rdataset->trust =
 					    dns_trust_authauthority;
 				} else if (ISFORWARDER(fctx->addrinfo)) {
