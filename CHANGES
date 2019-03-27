@@ -1,3 +1,6 @@
+5231.	[protocol]	Add support for displaying CLIENT-TAG and SERVER-TAG.
+			[GL #960]
+
 5230.	[protocol]	The SHA-1 hash algorithm is no longer used when
 			generating DS and CDS records. [GL #1015]
 

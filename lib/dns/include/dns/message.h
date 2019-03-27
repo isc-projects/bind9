@@ -106,6 +106,8 @@
 #define DNS_OPT_TCP_KEEPALIVE	11		/*%< TCP keepalive opt code */
 #define DNS_OPT_PAD		12		/*%< PAD opt code */
 #define DNS_OPT_KEY_TAG		14		/*%< Key tag opt code */
+#define DNS_OPT_CLIENT_TAG	16		/*%< Client tag opt code */
+#define DNS_OPT_SERVER_TAG	17		/*%< Server tag opt code */
 
 /*%< Experimental options [65001...65534] as per RFC6891 */
 
