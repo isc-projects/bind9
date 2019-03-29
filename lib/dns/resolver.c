@@ -4102,7 +4102,6 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	fetchctx_t *fctx;
 	isc_result_t result;
 	bool bucket_empty;
-	bool locked = false;
 	unsigned int bucketnum;
 	unsigned int findoptions = 0;
 	dns_name_t *fname, *dcname;
@@ -4134,6 +4133,11 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	dns_resolver_destroyfetch(&fctx->qminfetch);
+
+	if (SHUTTINGDOWN(fctx)) {
+		maybe_destroy(fctx, false);
+		goto cleanup;
+	}
 
 	/*
 	 * Note: fevent->rdataset must be disassociated and
@@ -4217,8 +4221,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
  cleanup:
 	INSIST(event == NULL);
 	INSIST(fevent == NULL);
-	if (!locked)
-		LOCK(&res->buckets[bucketnum].lock);
+	LOCK(&res->buckets[bucketnum].lock);
 	bucket_empty = fctx_decreference(fctx);
 	UNLOCK(&res->buckets[bucketnum].lock);
 	if (bucket_empty)
