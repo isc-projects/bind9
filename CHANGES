@@ -1,3 +1,7 @@
+5198.	[bug]		If a fetch context was being shut down and, at the same
+			time, we returned from qname minimization, an INSIST
+			could be hit. [GL #966]
+
 5197.	[bug]		dig could die in best effort mode on multiple SIG(0)
 			records. Similarly on multiple OPT and multiple TSIG
 			records. [GL #920]
