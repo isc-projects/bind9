@@ -178,6 +178,7 @@ foreach $file (keys %file_types) {
         $sgml_comment = 0;
         $mkd_comment = 0;
         $man_comment = 0;
+	$rst_comment = 0;
         $python_comment = 0;
         $python_bin_comment = 0;
         $start_comment = "";
@@ -218,7 +219,12 @@ foreach $file (keys %file_types) {
                 $prefix = " - ";
                 $end_comment = "-->";
         } elsif ($type eq "TXT") {
-                $prefix = "";
+		$prefix = "";
+	} elsif ($type eq "RST") {
+		$rst_comment = 1;
+		$start_comment = ".. \n";
+		$prefix = "   ";
+		$end_comment = "";
         } else {
                 print "$file: type '$type' not supported yet; skipping\n";
 		$ret++;
@@ -334,7 +340,7 @@ foreach $file (keys %file_types) {
 			if (/^<!DOCTYPE.*\[$/) {
 				while (!eof(SOURCE)) {
 					$_ = <SOURCE>;
-					next if (eof(SOURCE));
+ 					next if (eof(SOURCE));
 					$before_copyright =
 						 "$before_copyright$_";
 					if (/]>$/) {
@@ -406,6 +412,22 @@ foreach $file (keys %file_types) {
                 } else {
                         $first = $_;
                 }
+        } elsif ($rst_comment) {
+		if ($_ =~ /\.\. \n/) {
+			$_ = <SOURCE>;
+			if ($_ !~ /[Cc]opyright/) {
+				print "$file: non-copyright comment\n";
+				close(SOURCE);
+				$ret++;
+				next;
+			}
+			while (<SOURCE>) {
+				if ($_ !~ /^   /) {
+					last;
+				}
+			}
+		}
+		$first = $_;
         } elsif ($type eq "TXT") {
                 if ($_ =~ /[Cc]opyright/) {
                         $/ = "";            # paragraph at a time
@@ -496,7 +518,11 @@ foreach $file (keys %file_types) {
         foreach $_ (@lines) {
 		next if (/\@SYSYEARS\@/ && $sysyears eq "");
 		s:modify, and distribute:modify, and/or distribute: if ($andor);
-                print TARGET (/^$/ ? $nonspaceprefix : $prefix);
+		if ($type eq "RST") {
+			print TARGET $prefix;
+		} else {
+			print TARGET (/^$/ ? $nonspaceprefix : $prefix);
+		}
 		s/\@SYSYEARS\@/$sysyears/;
 		s/\@NOMYEARS\@/$nomyears/;
                 print TARGET "$_";

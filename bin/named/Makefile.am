@@ -106,3 +106,6 @@ if HAVE_JSON_C
 named_LDADD +=					\
 	$(JSON_C_LIBS)
 endif HAVE_JSON_C
+
+MAINTAINERCLEANFILES =				\
+	named.conf.rst

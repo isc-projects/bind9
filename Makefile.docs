@@ -1,0 +1,51 @@
+SPHINX_V = $(SPHINX_V_@AM_V@)
+SPHINX_V_ = $(SPHINX_V_@AM_DEFAULT_V@)
+SPHINX_V_0 = -q
+SPHINX_V_1 = -n
+
+AM_V_SPHINX = $(AM_V_SPHINX_@AM_V@)
+AM_V_SPHINX_ = $(AM_V_SPHINX_@AM_DEFAULT_V@)
+AM_V_SPHINX_0 = @echo "  SPHINX   $@";
+
+SPHINXBUILDDIR = $(builddir)/_build
+
+common_SPHINXOPTS =			\
+	-c $(srcdir)			\
+	-a				\
+	$(SPHINX_V)
+
+ALLSPHINXOPTS =				\
+	$(common_SPHINXOPTS)		\
+	-D version="$(PACKAGE_VERSION)"	\
+	-D today="$(RELEASE_DATE)"	\
+	-D release="$(PACKAGE_VERSION)"	\
+	$(SPHINXOPTS)			\
+	$(srcdir)
+
+man_SPHINXOPTS =			\
+	$(common_SPHINXOPTS)		\
+	-D version="@""PACKAGE_VERSION@"\
+	-D today="@""RELEASE_DATE@"	\
+	-D release="@""PACKAGE_VERSION@"\
+	$(SPHINXOPTS)			\
+	$(srcdir)
+
+AM_V_SED = $(AM_V_SED_@AM_V@)
+AM_V_SED_ = $(AM_V_SED_@AM_DEFAULT_V@)
+AM_V_SED_0 = @echo "  SED $@";
+
+AM_V_CFG_TEST = $(AM_V_CFG_TEST_@AM_V@)
+AM_V_CFG_TEST_ = $(AM_V_CFG_TEST_@AM_DEFAULT_V@)
+AM_V_CFG_TEST_0 = @echo "  CFG_GEN $@";
+
+AM_V_RST_OPTIONS = $(AM_V_CFG_TEST_@AM_V@)
+AM_V_RST_OPTIONS_ = $(AM_V_RST_OPTIONS_@AM_DEFAULT_V@)
+AM_V_RST_OPTIONS_0 = @echo "  RST_OPTIONS $@";
+
+AM_V_RST_ZONEOPT = $(AM_V_CFG_TEST_@AM_V@)
+AM_V_RST_ZONEOPT_ = $(AM_V_RST_ZONEOPT_@AM_DEFAULT_V@)
+AM_V_RST_ZONEOPT_0 = @echo "  RST_ZONEOPT $@";
+
+AM_V_RST_GRAMMARS = $(AM_V_CFG_TEST_@AM_V@)
+AM_V_RST_GRAMMARS_ = $(AM_V_RST_GRAMMARS_@AM_DEFAULT_V@)
+AM_V_RST_GRAMMARS_0 = @echo "  RST_GRAMMARS $@";
