@@ -690,13 +690,14 @@ XSLT_DOCBOOK_STYLE_XHTML
 XSLT_DOCBOOK_STYLE_HTML
 CURL
 DOXYGEN
-XMLLINT
-XSLTPROC
-PANDOC
-W3M
-DBLATEX
-PDFLATEX
-LATEX
+RELEASE_DATE
+HAVE_XELATEX_FALSE
+HAVE_XELATEX_TRUE
+LATEXMK
+XELATEX
+HAVE_SPHINX_BUILD_FALSE
+HAVE_SPHINX_BUILD_TRUE
+SPHINX_BUILD
 FSTRM_LIBS
 FSTRM_CFLAGS
 PROTOBUF_C_LIBS
@@ -793,6 +794,7 @@ CCOPT
 STD_CWARNINGS
 STD_CDEFINES
 STD_CINCLUDES
+MKDIR_P
 INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
@@ -862,6 +864,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -992,6 +995,7 @@ JSON_C_CFLAGS
 JSON_C_LIBS
 ZLIB_CFLAGS
 ZLIB_LIBS
+SPHINX_BUILD
 LIBIDN2_CFLAGS
 LIBIDN2_LIBS
 CMOCKA_CFLAGS
@@ -1035,6 +1039,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1287,6 +1292,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1424,7 +1438,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1577,6 +1591,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1760,6 +1775,8 @@ Some influential environment variables:
   JSON_C_LIBS linker flags for JSON_C, overriding pkg-config
   ZLIB_CFLAGS C compiler flags for ZLIB, overriding pkg-config
   ZLIB_LIBS   linker flags for ZLIB, overriding pkg-config
+  SPHINX_BUILD
+              path to sphinx-build binary used to build the documentation
   LIBIDN2_CFLAGS
               C compiler flags for LIBIDN2, overriding pkg-config
   LIBIDN2_LIBS
@@ -4021,7 +4038,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4067,7 +4084,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4091,7 +4108,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4136,7 +4153,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4160,7 +4177,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -12093,6 +12110,48 @@ else
 
 fi
 
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for a thread-safe mkdir -p" >&5
+$as_echo_n "checking for a thread-safe mkdir -p... " >&6; }
+if test -z "$MKDIR_P"; then
+  if ${ac_cv_path_mkdir+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
+for as_dir in $PATH$PATH_SEPARATOR/opt/sfw/bin
+do
+  IFS=$as_save_IFS
+  test -z "$as_dir" && as_dir=.
+    for ac_prog in mkdir gmkdir; do
+	 for ac_exec_ext in '' $ac_executable_extensions; do
+	   as_fn_executable_p "$as_dir/$ac_prog$ac_exec_ext" || continue
+	   case `"$as_dir/$ac_prog$ac_exec_ext" --version 2>&1` in #(
+	     'mkdir (GNU coreutils) '* | \
+	     'mkdir (coreutils) '* | \
+	     'mkdir (fileutils) '4.1*)
+	       ac_cv_path_mkdir=$as_dir/$ac_prog$ac_exec_ext
+	       break 3;;
+	   esac
+	 done
+       done
+  done
+IFS=$as_save_IFS
+
+fi
+
+  test -d ./--version && rmdir ./--version
+  if test "${ac_cv_path_mkdir+set}" = set; then
+    MKDIR_P="$ac_cv_path_mkdir -p"
+  else
+    # As a last resort, use the slow shell script.  Don't cache a
+    # value for MKDIR_P within a source directory, because that will
+    # break other packages using the cache if that directory is
+    # removed, or if the value is a relative name.
+    MKDIR_P="$ac_install_sh -d"
+  fi
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $MKDIR_P" >&5
+$as_echo "$MKDIR_P" >&6; }
 
 
 
@@ -20852,21 +20911,25 @@ esac
 #
 
 #
-# Look for TeX.
+# The following sections deal with tools used for formatting
+# the documentation.  They are all optional, unless you are
+# a developer editing the documentation source.
 #
 
-for ac_prog in latex
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
+#
+# Look for sphinx-build
+#
+
+# Extract the first word of "sphinx-build", so it can be a program name with args.
+set dummy sphinx-build; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_LATEX+:} false; then :
+if ${ac_cv_path_SPHINX_BUILD+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $LATEX in
+  case $SPHINX_BUILD in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_LATEX="$LATEX" # Let the user override the test with a path.
+  ac_cv_path_SPHINX_BUILD="$SPHINX_BUILD" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -20876,7 +20939,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_LATEX="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_SPHINX_BUILD="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -20884,37 +20947,39 @@ done
   done
 IFS=$as_save_IFS
 
+  test -z "$ac_cv_path_SPHINX_BUILD" && ac_cv_path_SPHINX_BUILD=":"
   ;;
 esac
 fi
-LATEX=$ac_cv_path_LATEX
-if test -n "$LATEX"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LATEX" >&5
-$as_echo "$LATEX" >&6; }
+SPHINX_BUILD=$ac_cv_path_SPHINX_BUILD
+if test -n "$SPHINX_BUILD"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $SPHINX_BUILD" >&5
+$as_echo "$SPHINX_BUILD" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-  test -n "$LATEX" && break
-done
-test -n "$LATEX" || LATEX="latex"
+ if test "$SPHINX_BUILD" != ":"; then
+  HAVE_SPHINX_BUILD_TRUE=
+  HAVE_SPHINX_BUILD_FALSE='#'
+else
+  HAVE_SPHINX_BUILD_TRUE='#'
+  HAVE_SPHINX_BUILD_FALSE=
+fi
 
 
-
-for ac_prog in pdflatex
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
+# Extract the first word of "xelatex", so it can be a program name with args.
+set dummy xelatex; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_PDFLATEX+:} false; then :
+if ${ac_cv_path_XELATEX+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $PDFLATEX in
+  case $XELATEX in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_PDFLATEX="$PDFLATEX" # Let the user override the test with a path.
+  ac_cv_path_XELATEX="$XELATEX" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -20924,7 +20989,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PDFLATEX="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_XELATEX="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -20932,37 +20997,30 @@ done
   done
 IFS=$as_save_IFS
 
+  test -z "$ac_cv_path_XELATEX" && ac_cv_path_XELATEX=":"
   ;;
 esac
 fi
-PDFLATEX=$ac_cv_path_PDFLATEX
-if test -n "$PDFLATEX"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PDFLATEX" >&5
-$as_echo "$PDFLATEX" >&6; }
+XELATEX=$ac_cv_path_XELATEX
+if test -n "$XELATEX"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $XELATEX" >&5
+$as_echo "$XELATEX" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-  test -n "$PDFLATEX" && break
-done
-test -n "$PDFLATEX" || PDFLATEX="pdflatex"
-
-
-
-for ac_prog in dblatex
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
+# Extract the first word of "latexmk", so it can be a program name with args.
+set dummy latexmk; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_DBLATEX+:} false; then :
+if ${ac_cv_path_LATEXMK+:} false; then :
   $as_echo_n "(cached) " >&6
 else
-  case $DBLATEX in
+  case $LATEXMK in
   [\\/]* | ?:[\\/]*)
-  ac_cv_path_DBLATEX="$DBLATEX" # Let the user override the test with a path.
+  ac_cv_path_LATEXMK="$LATEXMK" # Let the user override the test with a path.
   ;;
   *)
   as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
@@ -20972,7 +21030,7 @@ do
   test -z "$as_dir" && as_dir=.
     for ac_exec_ext in '' $ac_executable_extensions; do
   if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_DBLATEX="$as_dir/$ac_word$ac_exec_ext"
+    ac_cv_path_LATEXMK="$as_dir/$ac_word$ac_exec_ext"
     $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
     break 2
   fi
@@ -20980,224 +21038,44 @@ done
   done
 IFS=$as_save_IFS
 
+  test -z "$ac_cv_path_LATEXMK" && ac_cv_path_LATEXMK=":"
   ;;
 esac
 fi
-DBLATEX=$ac_cv_path_DBLATEX
-if test -n "$DBLATEX"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $DBLATEX" >&5
-$as_echo "$DBLATEX" >&6; }
+LATEXMK=$ac_cv_path_LATEXMK
+if test -n "$LATEXMK"; then
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $LATEXMK" >&5
+$as_echo "$LATEXMK" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
 
 
-  test -n "$DBLATEX" && break
-done
-test -n "$DBLATEX" || DBLATEX="dblatex"
-
-
-
-#
-# Look for w3m
-#
-
-for ac_prog in w3m
-do
-  # Extract the first word of "$ac_prog", so it can be a program name with args.
-set dummy $ac_prog; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_W3M+:} false; then :
-  $as_echo_n "(cached) " >&6
+ if test "$XELATEX" != ":" && test "$LATEXMK" != ":"; then
+  HAVE_XELATEX_TRUE=
+  HAVE_XELATEX_FALSE='#'
 else
-  case $W3M in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_W3M="$W3M" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_W3M="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  ;;
-esac
-fi
-W3M=$ac_cv_path_W3M
-if test -n "$W3M"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $W3M" >&5
-$as_echo "$W3M" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
+  HAVE_XELATEX_TRUE='#'
+  HAVE_XELATEX_FALSE=
 fi
 
 
-  test -n "$W3M" && break
-done
-test -n "$W3M" || W3M="w3m"
-
-
-
 #
-# Look for pandoc
+# Pull release date from CHANGES file last modification date
+# for reproducible builds
 #
-# Extract the first word of "pandoc", so it can be a program name with args.
-set dummy pandoc; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_PANDOC+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $PANDOC in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_PANDOC="$PANDOC" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_PANDOC="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_PANDOC" && ac_cv_path_PANDOC="pandoc"
-  ;;
-esac
-fi
-PANDOC=$ac_cv_path_PANDOC
-if test -n "$PANDOC"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $PANDOC" >&5
-$as_echo "$PANDOC" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-
-
-
-#
-# Look for xsltproc (libxslt)
-#
-
-# Extract the first word of "xsltproc", so it can be a program name with args.
-set dummy xsltproc; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_XSLTPROC+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $XSLTPROC in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_XSLTPROC="$XSLTPROC" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_XSLTPROC="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_XSLTPROC" && ac_cv_path_XSLTPROC="xsltproc"
-  ;;
-esac
-fi
-XSLTPROC=$ac_cv_path_XSLTPROC
-if test -n "$XSLTPROC"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $XSLTPROC" >&5
-$as_echo "$XSLTPROC" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
-
-
-#
-# Look for xmllint (libxml2)
-#
-
-# Extract the first word of "xmllint", so it can be a program name with args.
-set dummy xmllint; ac_word=$2
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
-$as_echo_n "checking for $ac_word... " >&6; }
-if ${ac_cv_path_XMLLINT+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  case $XMLLINT in
-  [\\/]* | ?:[\\/]*)
-  ac_cv_path_XMLLINT="$XMLLINT" # Let the user override the test with a path.
-  ;;
-  *)
-  as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-for as_dir in $PATH
-do
-  IFS=$as_save_IFS
-  test -z "$as_dir" && as_dir=.
-    for ac_exec_ext in '' $ac_executable_extensions; do
-  if as_fn_executable_p "$as_dir/$ac_word$ac_exec_ext"; then
-    ac_cv_path_XMLLINT="$as_dir/$ac_word$ac_exec_ext"
-    $as_echo "$as_me:${as_lineno-$LINENO}: found $as_dir/$ac_word$ac_exec_ext" >&5
-    break 2
-  fi
-done
-  done
-IFS=$as_save_IFS
-
-  test -z "$ac_cv_path_XMLLINT" && ac_cv_path_XMLLINT="xmllint"
-  ;;
-esac
-fi
-XMLLINT=$ac_cv_path_XMLLINT
-if test -n "$XMLLINT"; then
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: $XMLLINT" >&5
-$as_echo "$XMLLINT" >&6; }
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-fi
-
-
+release_date=`date -r CHANGES +%Y-%m-%d`
+RELEASE_DATE=$release_date
 
 
 #
 # Look for Doxygen
 #
-
-# Extract the first word of "doxygen", so it can be a program name with args.
-set dummy doxygen; ac_word=$2
+for ac_prog in doxygen
+do
+  # Extract the first word of "$ac_prog", so it can be a program name with args.
+set dummy $ac_prog; ac_word=$2
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for $ac_word" >&5
 $as_echo_n "checking for $ac_word... " >&6; }
 if ${ac_cv_path_DOXYGEN+:} false; then :
@@ -21223,7 +21101,6 @@ done
   done
 IFS=$as_save_IFS
 
-  test -z "$ac_cv_path_DOXYGEN" && ac_cv_path_DOXYGEN="doxygen"
   ;;
 esac
 fi
@@ -21236,6 +21113,9 @@ else
 $as_echo "no" >&6; }
 fi
 
+
+  test -n "$DOXYGEN" && break
+done
 
 
 
@@ -24228,6 +24108,14 @@ if test -z "${MAINTAINER_MODE_TRUE}" && test -z "${MAINTAINER_MODE_FALSE}"; then
 Usually this means the macro was only invoked conditionally." "$LINENO" 5
 fi
 
+if test -z "${HAVE_SPHINX_BUILD_TRUE}" && test -z "${HAVE_SPHINX_BUILD_FALSE}"; then
+  as_fn_error $? "conditional \"HAVE_SPHINX_BUILD\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
+if test -z "${HAVE_XELATEX_TRUE}" && test -z "${HAVE_XELATEX_FALSE}"; then
+  as_fn_error $? "conditional \"HAVE_XELATEX\" was never defined.
+Usually this means the macro was only invoked conditionally." "$LINENO" 5
+fi
 
 : "${CONFIG_STATUS=./config.status}"
 ac_write_fail=0
@@ -24703,6 +24591,7 @@ gives unlimited permission to copy, distribute and modify it."
 ac_pwd='$ac_pwd'
 srcdir='$srcdir'
 INSTALL='$INSTALL'
+MKDIR_P='$MKDIR_P'
 AWK='$AWK'
 test -n "\$AWK" || AWK=awk
 _ACEOF
@@ -25711,6 +25600,11 @@ ac_abs_srcdir=$ac_abs_top_srcdir$ac_dir_suffix
   [\\/$]* | ?:[\\/]* ) ac_INSTALL=$INSTALL ;;
   *) ac_INSTALL=$ac_top_build_prefix$INSTALL ;;
   esac
+  ac_MKDIR_P=$MKDIR_P
+  case $MKDIR_P in
+  [\\/$]* | ?:[\\/]* ) ;;
+  */*) ac_MKDIR_P=$ac_top_build_prefix$MKDIR_P ;;
+  esac
 _ACEOF
 
 cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -25765,6 +25659,7 @@ s&@builddir@&$ac_builddir&;t t
 s&@abs_builddir@&$ac_abs_builddir&;t t
 s&@abs_top_builddir@&$ac_abs_top_builddir&;t t
 s&@INSTALL@&$ac_INSTALL&;t t
+s&@MKDIR_P@&$ac_MKDIR_P&;t t
 $ac_datarootdir_hack
 "
 eval sed \"\$ac_sed_extra\" "$ac_file_inputs" |

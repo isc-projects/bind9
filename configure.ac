@@ -48,6 +48,7 @@ AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_LN_S
 AX_POSIX_SHELL
+AC_PROG_MKDIR_P
 
 AC_SUBST(STD_CINCLUDES)
 AC_SUBST(STD_CDEFINES)
@@ -2049,51 +2050,33 @@ esac
 #
 
 #
-# Look for TeX.
+# The following sections deal with tools used for formatting
+# the documentation.  They are all optional, unless you are
+# a developer editing the documentation source.
 #
 
-AC_PATH_PROGS(LATEX, latex, latex)
-AC_SUBST(LATEX)
+#
+# Look for sphinx-build
+#
+AC_ARG_VAR([SPHINX_BUILD], [path to sphinx-build binary used to build the documentation])
+AC_PATH_PROG([SPHINX_BUILD], [sphinx-build], [:])
+AM_CONDITIONAL([HAVE_SPHINX_BUILD], [test "$SPHINX_BUILD" != ":"])
 
-AC_PATH_PROGS(PDFLATEX, pdflatex, pdflatex)
-AC_SUBST(PDFLATEX)
-
-AC_PATH_PROGS(DBLATEX, dblatex, dblatex)
-AC_SUBST(DBLATEX)
+AC_PATH_PROG([XELATEX], [xelatex], [:])
+AC_PATH_PROG([LATEXMK], [latexmk], [:])
+AM_CONDITIONAL([HAVE_XELATEX], [test "$XELATEX" != ":" && test "$LATEXMK" != ":"])
 
 #
-# Look for w3m
+# Pull release date from CHANGES file last modification date
+# for reproducible builds
 #
-
-AC_PATH_PROGS(W3M, w3m, w3m)
-AC_SUBST(W3M)
-
-#
-# Look for pandoc
-#
-AC_PATH_PROG(PANDOC, pandoc, pandoc)
-AC_SUBST(PANDOC)
-
-
-#
-# Look for xsltproc (libxslt)
-#
-
-AC_PATH_PROG(XSLTPROC, xsltproc, xsltproc)
-AC_SUBST(XSLTPROC)
-
-#
-# Look for xmllint (libxml2)
-#
-
-AC_PATH_PROG(XMLLINT, xmllint, xmllint)
-AC_SUBST(XMLLINT)
+release_date=`date -r CHANGES +%Y-%m-%d`
+AC_SUBST([RELEASE_DATE], $release_date)
 
 #
 # Look for Doxygen
 #
-
-AC_PATH_PROG(DOXYGEN, doxygen, doxygen)
+AC_PATH_PROGS([DOXYGEN], [doxygen])
 AC_SUBST(DOXYGEN)
 
 #
