@@ -15,7 +15,30 @@ n=0
 DIGOPTS="-p ${PORT}"
 SENDCMD="$PERL $SYSTEMTESTTOP/send.pl 10.53.0.4 ${EXTRAPORT1}"
 
-if [ -x ${DIG} ] ; then
+# Check if response in file $1 has the correct TTL range.
+# The response record must have RRtype $2 and class IN (CLASS1).
+# Maximum TTL is given by $3.  This works in most cases where TTL is
+# the second word on the line.  TTL position can be adjusted with
+# setting the position $4, but that requires updating this function.
+check_ttl_range() {
+    file=$1
+    pos=$4
+
+    case "$pos" in
+    "3")
+    awk -v rrtype="$2" -v ttl="$3" '($4 == "IN" || $4 == "CLASS1" ) && $5 == rrtype { if ($3 <= ttl) { ok=1 } } END { exit(ok?0:1) }' < $file
+    ;;
+    *)
+    awk -v rrtype="$2" -v ttl="$3" '($3 == "IN" || $3 == "CLASS1" ) && $4 == rrtype { if ($2 <= ttl) { ok=1 } } END { exit(ok?0:1) }' < $file
+    ;;
+    esac
+
+   result=$?
+   [ $result -eq 0 ] || echo_i "ttl check failed"
+   return $result
+}
+
+if [ -x "$DIG" ] ; then
   n=`expr $n + 1`
   echo_i "checking dig short form works ($n)"
   ret=0
@@ -488,6 +511,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS @10.53.0.3 +split=4 -t sshfp foo.example > delv.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n "SSHFP" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -496,6 +520,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS @10.53.0.3 +unknownformat a a.example > delv.out.test$n || ret=1
   grep "CLASS1[ 	][ 	]*TYPE1[ 	][ 	]*\\\\# 4 0A000001" < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n "TYPE1" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -549,6 +574,7 @@ if [ -x ${DELV} ] ; then
   $DELV $DELVOPTS @10.53.0.3 -x 127.0.0.1 > delv.out.test$n 2>&1 || ret=1
   # doesn't matter if has answer
   grep -i "127\.in-addr\.arpa\." < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n '\\-ANY' 10800 3 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -557,6 +583,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 a a.example > delv.out.test$n || ret=1
   grep "10\.0\.0\.1$" < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -565,6 +592,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
+  check_ttl_range delv.out.test$n "DNSKEY" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -573,6 +601,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > delv.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
+  check_ttl_range delv.out.test$n "SOA" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -581,6 +610,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +rrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n "DNSKEY" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -627,6 +657,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS @10.53.0.3 +sp=4 -t sshfp foo.example > delv.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n "SSHFP" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -643,6 +674,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS @10.53.0.3 -c IN -t a a.example > delv.out.test$n || ret=1
   grep "a.example." < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -651,6 +683,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS @10.53.0.3 -c CH -t a a.example > delv.out.test$n || ret=1
   grep "a.example." < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -659,6 +692,7 @@ if [ -x ${DELV} ] ; then
   ret=0
   $DELV $DELVOPTS @10.53.0.3 -c CH -t a a.example > delv.out.test$n || ret=1
   grep "a.example." < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -669,6 +703,7 @@ if [ -x ${DELV} ] ; then
   grep '^; -m\..*[0-9]*.*IN.*ANY.*;' delv.out.test$n > /dev/null || ret=1
   grep "^add " delv.out.test$n > /dev/null && ret=1
   grep "^del " delv.out.test$n > /dev/null && ret=1
+  check_ttl_range delv.out.test$n '\\-ANY' 300 3 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 else
