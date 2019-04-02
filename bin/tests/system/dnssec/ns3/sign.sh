@@ -219,11 +219,11 @@ zone=dnskey-unsupported.example.
 infile=dnskey-unsupported.example.db.in
 zonefile=dnskey-unsupported.example.db
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+keyname=$("$KEYGEN" -q -r $RANDFILE -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 
 cat "$infile" "$keyname.key" > "$zonefile"
 
-"$SIGNER" -P -3 - -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null 2>&1
+"$SIGNER" -P -3 - -r $RANDFILE -o "$zone" -O full -f ${zonefile}.tmp "$zonefile" > /dev/null 2>&1
 
 awk '$4 == "DNSKEY" { $7 = 255; print } $4 == "RRSIG" { $6 = 255; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
@@ -238,13 +238,12 @@ zone=dnskey-unsupported-2.example.
 infile=dnskey-unsupported-2.example.db.in
 zonefile=dnskey-unsupported-2.example.db
 
-ksk=$("$KEYGEN" -f KSK -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
-zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+ksk=$("$KEYGEN" -f KSK -q -r $RANDFILE -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+zsk=$("$KEYGEN" -q -r $RANDFILE -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 
 cat "$infile" "$ksk.key" "$zsk.key" unsupported-algorithm.key > "$zonefile"
 
-# "$SIGNER" -P -3 - -o "$zone" -f ${zonefile}.signed "$zonefile" > /dev/null 2>&1
-"$SIGNER" -P -3 - -o "$zone" -f ${zonefile}.signed "$zonefile"
+"$SIGNER" -P -3 - -r $RANDFILE -o "$zone" -f ${zonefile}.signed "$zonefile" > /dev/null 2>&1
 
 #
 # A zone with a unknown DNSKEY algorithm + unknown NSEC3 hash algorithm (-U).

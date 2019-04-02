@@ -22,6 +22,8 @@ timetodnssec() {
 }
 
 KEYDIR=keys/signing.test
+KEYGEN="$KEYGEN -r $RANDFILE"
+
 KSK=`$KEYGEN -a RSASHA256 -b 1024 -K $KEYDIR -q -f KSK $zone`
 
 ZSK0=`$KEYGEN -a RSASHA256 -b 1024 -K $KEYDIR -q $zone`
