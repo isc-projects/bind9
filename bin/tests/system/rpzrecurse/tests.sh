@@ -181,7 +181,7 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.
 sleep 1
 t=`expr $t + 1`
 echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
-$DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A > dig.out.${t} &
+$DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A +time=5 > dig.out.${t} &
 sleep 1
 echo_i "removing the NSDNAME policy"
 cp ns2/db.6c.00.policy.local ns2/db.6a.00.policy.local
@@ -225,7 +225,7 @@ $RNDC -c ../common/rndc.conf -s 10.53.0.2 -p ${CONTROLPORT} reload 6a.00.policy.
 sleep 1
 t=`expr $t + 1`
 echo_i "running dig to follow CNAME (blocks, so runs in the background) (${t})"
-$DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A > dig.out.${t} &
+$DIG $DIGOPTS @10.53.0.2 -p ${PORT} www.test.example.org A +time=5 > dig.out.${t} &
 sleep 1
 echo_i "removing the policy zone"
 cp ns2/named.default.conf ns2/named.conf
