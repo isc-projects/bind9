@@ -235,7 +235,6 @@ isc_fsaccess_changeowner
 isc_fsaccess_remove
 isc_fsaccess_set
 isc_hash_function
-isc_hash_function_reverse
 isc_hash_get_initializer
 isc_hash_set_initializer
 isc_heap_create

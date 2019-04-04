@@ -130,7 +130,7 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key,
 	REQUIRE(ISC_HT_VALID(ht));
 	REQUIRE(key != NULL && keysize > 0);
 
-	hash = isc_hash_function(key, keysize, true, NULL);
+	hash = isc_hash_function(key, keysize, true);
 	node = ht->table[hash & ht->mask];
 	while (node != NULL) {
 		if (keysize == node->keysize &&
@@ -165,7 +165,7 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 	REQUIRE(key != NULL && keysize > 0);
 	REQUIRE(valuep == NULL || *valuep == NULL);
 
-	hash = isc_hash_function(key, keysize, true, NULL);
+	hash = isc_hash_function(key, keysize, true);
 	node = ht->table[hash & ht->mask];
 	while (node != NULL) {
 		if (keysize == node->keysize &&
@@ -190,7 +190,7 @@ isc_ht_delete(isc_ht_t *ht, const unsigned char *key, uint32_t keysize) {
 	REQUIRE(key != NULL && keysize > 0);
 
 	prev = NULL;
-	hash = isc_hash_function(key, keysize, true, NULL);
+	hash = isc_hash_function(key, keysize, true);
 	node = ht->table[hash & ht->mask];
 	while (node != NULL) {
 		if (keysize == node->keysize &&
@@ -305,8 +305,7 @@ isc_ht_iter_delcurrent_next(isc_ht_iter_t *it) {
 			it->cur = ht->table[it->i];
 	}
 
-	hash = isc_hash_function(to_delete->key, to_delete->keysize, true,
-				 NULL);
+	hash = isc_hash_function(to_delete->key, to_delete->keysize, true);
 	node = ht->table[hash & ht->mask];
 	while (node != to_delete) {
 		prev = node;

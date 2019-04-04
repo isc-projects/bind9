@@ -466,7 +466,7 @@ dns_name_hash(const dns_name_t *name, bool case_sensitive) {
 		length = 16;
 
 	return (isc_hash_function_reverse(name->ndata, length,
-					  case_sensitive, NULL));
+					  case_sensitive));
 }
 
 unsigned int
@@ -480,7 +480,7 @@ dns_name_fullhash(const dns_name_t *name, bool case_sensitive) {
 		return (0);
 
 	return (isc_hash_function_reverse(name->ndata, name->length,
-					  case_sensitive, NULL));
+					  case_sensitive));
 }
 
 dns_namereln_t
