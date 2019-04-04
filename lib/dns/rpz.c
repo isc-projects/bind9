@@ -1732,6 +1732,16 @@ setup_update(dns_rpz_zone_t *rpz) {
 		goto cleanup;
 	}
 
+	result = dns_dbiterator_pause(rpz->updbit);
+	if (result != ISC_R_SUCCESS) {
+		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
+			      DNS_LOGMODULE_MASTER, ISC_LOG_ERROR,
+			      "rpz: %s: failed to pause db iterator - %s",
+			      domain, isc_result_totext(result));
+		goto cleanup;
+	}
+
+
  cleanup:
 	if (result != ISC_R_SUCCESS) {
 		if (rpz->updbit != NULL)
