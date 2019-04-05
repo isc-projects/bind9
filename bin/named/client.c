@@ -3462,8 +3462,9 @@ client_accept(ns_client_t *client) {
 		 *
 		 * So, we check here to see if any other clients are
 		 * already servicing TCP queries on this interface (whether
-		 * accepting, reading, or processing). If we find at least
-		 * one, then it's okay *not* to call accept - we can let this
+		 * accepting, reading, or processing). If we find that at
+		 * least one client other than this one is active, then
+		 * it's okay *not* to call accept - we can let this
 		 * client go inactive and another will take over when it's
 		 * done.
 		 *
@@ -3477,7 +3478,8 @@ client_accept(ns_client_t *client) {
 		 * quota is tcp-clients plus the number of listening
 		 * interfaces plus 1.)
 		 */
-		exit = (isc_atomic_xadd(&client->interface->ntcpactive, 0) > 0);
+		exit = (isc_atomic_xadd(&client->interface->ntcpactive, 0) >
+			(client->tcpactive ? 1 : 0));
 		if (exit) {
 			client->newstate = NS_CLIENTSTATE_INACTIVE;
 			(void)exit_check(client);
