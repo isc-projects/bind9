@@ -51,10 +51,6 @@
 5203.	[bug]		Enforce whether key rdata exists or not in KEY,
 			DNSKEY, CDNSKEY and RKEY. [GL #899]
 
-5200.	[security]	tcp-clients settings could be exceeded in some cases,
-			which could lead to exhaustion of file descriptors.
-			(CVE-2018-5743) [GL #615]
-
 5197.	[bug]		dig could die in best effort mode on multiple SIG(0)
 			records. Similarly on multiple OPT and multiple TSIG
 			records. [GL #920]
@@ -112,6 +108,12 @@
 
 5167.	[bug]		nxdomain-redirect could sometimes lookup the wrong
 			redirect name. [GL #892]
+
+	--- 9.11.6-P1 released ---
+
+5200.	[security]	tcp-clients settings could be exceeded in some cases,
+			which could lead to exhaustion of file descriptors.
+			(CVE-2018-5743) [GL #615]
 
 	--- 9.11.6 released ---
 
