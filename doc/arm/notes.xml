@@ -131,6 +131,13 @@
 	  CVE-2019-6465. [GL #790]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The TCP client quota set using the <command>tcp-clients</command>
+	  option could be exceeded in some cases. This could lead to
+	  exhaustion of file descriptors. (CVE-2018-5743) [GL #615]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
