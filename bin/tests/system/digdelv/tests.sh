@@ -52,6 +52,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +split=4 -t sshfp foo.example > dig.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "SSHFP" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -60,6 +61,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +unknownformat a a.example > dig.out.test$n || ret=1
   grep "CLASS1[ 	][ 	]*TYPE1[ 	][ 	]*\\\\# 4 0A000001" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "TYPE1" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -68,7 +70,8 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS @10.53.0.3 -x 127.0.0.1 > dig.out.test$n 2>&1 || ret=1
   # doesn't matter if has answer
-  grep -i "127\.in-addr\.arpa\." < dig.out.test$n > /dev/null || ret=1
+  grep -i "127\\.in-addr\\.arpa\\." < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "SOA" 86400 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -76,7 +79,8 @@ if [ -x "$DIG" ] ; then
   echo_i "checking dig over TCP works ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 a a.example > dig.out.test$n || ret=1
-  grep "10\.0\.0\.1$" < dig.out.test$n > /dev/null || ret=1
+  grep "10\\.0\\.0\\.1$" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -85,6 +89,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
+  check_ttl_range dig.out.test$n "DNSKEY" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -93,6 +98,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > dig.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
+  check_ttl_range dig.out.test$n "SOA" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -101,6 +107,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +rrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
   grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "DNSKEY" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -133,6 +140,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.3 +noheader-only A example > dig.out.test$n || ret=1
   grep "Got answer:" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "SOA" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -167,6 +175,7 @@ if [ -x "$DIG" ] ; then
   $DIG $DIGOPTS +tcp @10.53.0.3 +zflag +qr A example > dig.out.test$n || ret=1
   sed -n '/Sending:/,/Got answer:/p' dig.out.test$n | grep "^;; flags: rd ad; MBZ: 0x4;" > /dev/null || ret=1
   sed -n '/Got answer:/,/AUTHORITY SECTION:/p' dig.out.test$n | grep "^;; flags: qr rd ra; QUERY: 1" > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "SOA" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -179,6 +188,7 @@ if [ -x "$DIG" ] ; then
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
+  n=`expr $n + 1`
   echo_i "checking dig +ttlunits works ($n)"
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 +ttlunits A weeks.example > dig.out.test$n || ret=1
@@ -286,6 +296,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=127.0.0.1 A a.example > dig.out.test$n 2>&1 || ret=1
   grep "CLIENT-SUBNET: 127.0.0.1/32/0" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -294,6 +305,7 @@ if [ -x "$DIG" ] ; then
   ret=0
   $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=127.0.0.0 +subnet=127.0.0.1 A a.example > dig.out.test$n 2>&1 || ret=1
   grep "CLIENT-SUBNET: 127.0.0.1/32/0" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -319,6 +331,7 @@ if [ -x "$DIG" ] ; then
       esac
       grep "FORMERR" < dig.out.$i.test$n > /dev/null && ret=1
       grep "CLIENT-SUBNET: $addr/$i/0" < dig.out.$i.test$n > /dev/null || ret=1
+      check_ttl_range dig.out.$i.test$n "A" 300 || ret=1
   done
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
@@ -330,6 +343,7 @@ if [ -x "$DIG" ] ; then
   grep "status: NOERROR" < dig.out.test$n > /dev/null || ret=1
   grep "CLIENT-SUBNET: 0.0.0.0/0/0" < dig.out.test$n > /dev/null || ret=1
   grep "10.0.0.1" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -340,6 +354,7 @@ if [ -x "$DIG" ] ; then
   grep "status: NOERROR" < dig.out.test$n > /dev/null || ret=1
   grep "CLIENT-SUBNET: 0.0.0.0/0/0" < dig.out.test$n > /dev/null || ret=1
   grep "10.0.0.1" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -350,6 +365,7 @@ if [ -x "$DIG" ] ; then
   grep "status: NOERROR" < dig.out.test$n > /dev/null || ret=1
   grep "CLIENT-SUBNET: ::/0/0" < dig.out.test$n > /dev/null || ret=1
   grep "10.0.0.1" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -360,6 +376,7 @@ if [ -x "$DIG" ] ; then
   grep "status: NOERROR" < dig.out.test$n > /dev/null || ret=1
   grep "CLIENT-SUBNET: 0/0/0" < dig.out.test$n > /dev/null || ret=1
   grep "10.0.0.1" < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -381,6 +398,7 @@ ret=0
     $DIG $DIGOPTS +tcp @10.53.0.2 +subnet=10.53/$p A a.example > dig.out.test.$p.$n 2>&1 || ret=1
     grep "FORMERR" < dig.out.test.$p.$n > /dev/null && ret=1
     grep "CLIENT-SUBNET.*/$p/0" < dig.out.test.$p.$n > /dev/null || ret=1
+    check_ttl_range dig.out.test.$p.$n "A" 300 || ret=1
   done
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
@@ -390,6 +408,7 @@ ret=0
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +sp=4 -t sshfp foo.example > dig.out.test$n || ret=1
   grep " 9ABC DEF6 7890 " < dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "SSHFP" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -417,6 +436,7 @@ ret=0
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +ednsopt=3 a.example > dig.out.test$n 2>&1 || ret=1
   grep 'NSID: .* ("ns3")' dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -425,6 +445,7 @@ ret=0
   ret=0
   $DIG $DIGOPTS @10.53.0.3 +ednsopt=nsid a.example > dig.out.test$n 2>&1 || ret=1
   grep 'NSID: .* ("ns3")' dig.out.test$n > /dev/null || ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
@@ -449,6 +470,7 @@ ret=0
   $DIG $DIGOPTS @10.53.0.3 +ednsopt=key-tag:00010002 a.example +qr > dig.out.test$n 2>&1 || ret=1
   grep "; KEY-TAG: 1, 2$" dig.out.test$n > /dev/null || ret=1
   grep "status: FORMERR" dig.out.test$n > /dev/null && ret=1
+  check_ttl_range dig.out.test$n "A" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
