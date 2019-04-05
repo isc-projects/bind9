@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: client.h,v 1.96 2012/01/31 23:47:31 tbox Exp $ */
-
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
 
@@ -136,6 +134,7 @@ struct ns_client {
 	bool			pipelined;   /*%< TCP queries not in sequence */
 	isc_refcount_t		*pipeline_refs;
 	isc_quota_t		*tcpquota;
+	bool			tcpattached;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;
 
