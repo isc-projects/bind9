@@ -100,6 +100,13 @@ isc_quota_attach(isc_quota_t *quota, isc_quota_t **p);
  * quota if successful (ISC_R_SUCCESS or ISC_R_SOFTQUOTA).
  */
 
+isc_result_t
+isc_quota_force(isc_quota_t *quota, isc_quota_t **p);
+/*%<
+ * Like isc_quota_attach, but will attach '*p' to the quota
+ * even if the hard quota has been exceeded.
+ */
+
 void
 isc_quota_detach(isc_quota_t **p);
 /*%<

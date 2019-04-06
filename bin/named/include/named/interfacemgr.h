@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: interfacemgr.h,v 1.35 2011/07/28 23:47:58 tbox Exp $ */
-
 #ifndef NAMED_INTERFACEMGR_H
 #define NAMED_INTERFACEMGR_H 1
 
@@ -77,9 +75,14 @@ struct ns_interface {
 						/*%< UDP dispatchers. */
 	isc_socket_t *		tcpsocket;	/*%< TCP socket. */
 	isc_dscp_t		dscp;		/*%< "listen-on" DSCP value */
-	int			ntcptarget;	/*%< Desired number of concurrent
-						     TCP accepts */
-	int			ntcpcurrent;	/*%< Current ditto, locked */
+	int32_t			ntcpaccepting;	/*%< Number of clients
+						     ready to accept new
+						     TCP connections on this
+						     interface */
+	int32_t			ntcpactive;	/*%< Number of clients
+						     servicing TCP queries
+						     (whether accepting or
+						     connected) */
 	int			nudpdispatch;	/*%< Number of UDP dispatches */
 	ns_clientmgr_t *	clientmgr;	/*%< Client manager. */
 	ISC_LINK(ns_interface_t) link;

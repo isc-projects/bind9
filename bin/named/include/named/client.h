@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: client.h,v 1.96 2012/01/31 23:47:31 tbox Exp $ */
-
 #ifndef NAMED_CLIENT_H
 #define NAMED_CLIENT_H 1
 
@@ -80,6 +78,13 @@
  *** Types
  ***/
 
+/*% reference-counted TCP connection object */
+typedef struct ns_tcpconn {
+	isc_refcount_t		refs;
+	isc_quota_t		*tcpquota;
+	bool			pipelined;
+} ns_tcpconn_t;
+
 /*% nameserver client structure */
 struct ns_client {
 	unsigned int		magic;
@@ -94,7 +99,8 @@ struct ns_client {
 	int			nupdates;
 	int			nctls;
 	int			references;
-	bool		needshutdown; 	/*
+	bool			tcpactive;
+	bool			needshutdown; 	/*
 						 * Used by clienttest to get
 						 * the client to go from
 						 * inactive to free state
@@ -130,10 +136,9 @@ struct ns_client {
 	isc_stdtime_t		now;
 	isc_time_t		tnow;
 	dns_name_t		signername;   /*%< [T]SIG key name */
-	dns_name_t *		signer;	      /*%< NULL if not valid sig */
-	bool		mortal;	      /*%< Die after handling request */
-	bool		pipelined;   /*%< TCP queries not in sequence */
-	isc_quota_t		*tcpquota;
+	dns_name_t		*signer;      /*%< NULL if not valid sig */
+	bool			mortal;	      /*%< Die after handling request */
+	ns_tcpconn_t		*tcpconn;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;
 
@@ -143,8 +148,8 @@ struct ns_client {
 	isc_sockaddr_t		destsockaddr;
 
 	isc_netaddr_t		ecs_addr;	/*%< EDNS client subnet */
-	uint8_t		ecs_addrlen;
-	uint8_t		ecs_scope;
+	uint8_t			ecs_addrlen;
+	uint8_t			ecs_scope;
 
 	struct in6_pktinfo	pktinfo;
 	isc_dscp_t		dscp;

@@ -8487,7 +8487,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		<para>
 		  The number of file descriptors reserved for TCP, stdio,
 		  etc.  This needs to be big enough to cover the number of
-		  interfaces <command>named</command> listens on, <command>tcp-clients</command> as well as
+		  interfaces <command>named</command> listens on plus
+		  <command>tcp-clients</command>, as well as
 		  to provide room for outgoing TCP queries and incoming zone
 		  transfers.  The default is <literal>512</literal>.
 		  The minimum value is <literal>128</literal> and the
