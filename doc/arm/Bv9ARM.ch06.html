@@ -6364,7 +6364,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
                 <p>
                   The number of file descriptors reserved for TCP, stdio,
                   etc.  This needs to be big enough to cover the number of
-                  interfaces <span class="command"><strong>named</strong></span> listens on, <span class="command"><strong>tcp-clients</strong></span> as well as
+                  interfaces <span class="command"><strong>named</strong></span> listens on plus
+                  <span class="command"><strong>tcp-clients</strong></span>, as well as
                   to provide room for outgoing TCP queries and incoming zone
                   transfers.  The default is <code class="literal">512</code>.
                   The minimum value is <code class="literal">128</code> and the
@@ -14676,6 +14677,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.6 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.6-P1 (Extended Support Version)</p>
 </body>
 </html>
