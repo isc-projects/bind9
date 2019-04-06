@@ -282,6 +282,11 @@ feature:
 BIND 9.11.6 is a maintenance release, and also addresses the security
 flaws disclosed in CVE-2018-5744, CVE-2018-5745, and CVE-2019-6465.
 
+#### BIND 9.11.6-P1
+
+BIND 9.11.6-P1 addresses the security vulnerability disclosed in
+CVE-2018-5743.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
