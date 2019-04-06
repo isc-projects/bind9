@@ -1,3 +1,7 @@
+5200.	[placeholder]
+
+5199.	[placeholder]
+
 5198.	[bug]		If a fetch context was being shut down and, at the same
 			time, we returned from qname minimization, an INSIST
 			could be hit. [GL #966]
