@@ -462,21 +462,18 @@
       key.
     </p>
     <p>
-      The <code class="filename">.key</code> file contains a DNS KEY record
-      that
-      can be inserted into a zone file (directly or with a $INCLUDE
-      statement).
+      The <code class="filename">.key</code> file contains a DNSKEY or KEY record.
+      When a zone is being signed by <span class="command"><strong>named</strong></span>
+      or <span class="command"><strong>dnssec-signzone</strong></span> <code class="option">-S</code>, DNSKEY
+      records are included automatically. In other cases,
+      the <code class="filename">.key</code> file can be inserted into a zone file
+      manually or with a <strong class="userinput"><code>$INCLUDE</code></strong> statement.
     </p>
     <p>
       The <code class="filename">.private</code> file contains
       algorithm-specific
       fields.  For obvious security reasons, this file does not have
       general read permission.
-    </p>
-    <p>
-      Both <code class="filename">.key</code> and <code class="filename">.private</code>
-      files are generated for symmetric cryptography algorithms such as
-      HMAC-MD5, even though the public and private key are equivalent.
     </p>
   </div>
 
