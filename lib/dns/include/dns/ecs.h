@@ -50,4 +50,6 @@ dns_ecs_format(dns_ecs_t *ecs, char *buf, size_t size);
  * \li  'size' is at least DNS_ECS_FORMATSIZE
  */
 
+ISC_LANG_ENDDECLS
+
 #endif /* DNS_ECS_H */
