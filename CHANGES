@@ -1,3 +1,6 @@
+5203.	[bug]		Enforce whether key rdata exists or not in KEY,
+			DNSKEY, CDNSKEY and RKEY. [GL #899]
+
 5197.	[bug]		dig could die in best effort mode on multiple SIG(0)
 			records. Similarly on multiple OPT and multiple TSIG
 			records. [GL #920]
