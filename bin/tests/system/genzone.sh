@@ -337,7 +337,7 @@ ninfo14			NINFO	"foo\;"
 ninfo15			NINFO	"bar\\;"
 
 ; type 57
-rkey01			RKEY	512 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
+rkey01			RKEY	0 ( 255 1 AQMFD5raczCJHViKtLYhWGz8hMY
 				9UGRuniJDBzC7w0aRyzWZriO6i2odGWWQVucZqKV
 				sENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esg
 				a60zyGW6LFe9r8n6paHrlG5ojqf0BaqHT+8= )

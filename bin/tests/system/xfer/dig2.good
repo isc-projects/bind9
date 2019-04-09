@@ -121,7 +121,7 @@ openpgpkey.example.	3600	IN	OPENPGPKEY  AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7
 ptr01.example.		3600	IN	PTR	example.
 px01.example.		3600	IN	PX	65535 foo. bar.
 px02.example.		3600	IN	PX	65535 . .
-rkey01.example.		3600	IN	RKEY	512 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aRyzWZriO6i2od GWWQVucZqKVsENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esga60z yGW6LFe9r8n6paHrlG5ojqf0BaqHT+8=
+rkey01.example.		3600	IN	RKEY	0 255 1 AQMFD5raczCJHViKtLYhWGz8hMY9UGRuniJDBzC7w0aRyzWZriO6i2od GWWQVucZqKVsENW91IOW4vqudngPZsY3GvQ/xVA8/7pyFj6b7Esga60z yGW6LFe9r8n6paHrlG5ojqf0BaqHT+8=
 rp01.example.		3600	IN	RP	mbox-dname.example. txt-dname.example.
 rp02.example.		3600	IN	RP	. .
 rt01.example.		3600	IN	RT	0 intermediate-host.example.
