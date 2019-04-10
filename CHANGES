@@ -1,3 +1,5 @@
+5205.	[bug]		Enforce that a DS hash exists. [GL #899]
+
 5204.	[test]		Check that dns_rdata_fromtext() produces a record that
 			will be accepted by dns_rdata_fromwire(). [GL #852]
 
