@@ -1,3 +1,6 @@
+5204.	[test]		Check that dns_rdata_fromtext() produces a record that
+			will be accepted by dns_rdata_fromwire(). [GL #852]
+
 5203.	[bug]		Enforce whether key rdata exists or not in KEY,
 			DNSKEY, CDNSKEY and RKEY. [GL #899]
 

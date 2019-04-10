@@ -105,6 +105,44 @@ typedef struct wire_ok {
 #define WIRE_SENTINEL()		WIRE_TEST(false)
 
 /*
+ * Call dns_rdata_fromwire() for data in 'src', which is 'srclen' octets in
+ * size and represents RDATA of given 'type' and 'class'.  Store the resulting
+ * uncompressed wire form in 'dst', which is 'dstlen' octets in size, and make
+ * 'rdata' refer to that uncompressed wire form.
+ */
+static isc_result_t
+wire_to_rdata(const unsigned char *src, size_t srclen,
+	      dns_rdataclass_t rdclass, dns_rdatatype_t type,
+	      unsigned char *dst, size_t dstlen, dns_rdata_t *rdata)
+{
+	isc_buffer_t source, target;
+	dns_decompress_t dctx;
+	isc_result_t result;
+
+	/*
+	 * Set up len-octet buffer pointing at data.
+	 */
+	isc_buffer_constinit(&source, src, srclen);
+	isc_buffer_add(&source, srclen);
+	isc_buffer_setactive(&source, srclen);
+
+	/*
+	 * Initialize target buffer.
+	 */
+	isc_buffer_init(&target, dst, dstlen);
+
+	/*
+	 * Try converting input data into uncompressed wire form.
+	 */
+	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
+	result = dns_rdata_fromwire(rdata, rdclass, type, &source, &dctx, 0,
+				    &target);
+	dns_decompress_invalidate(&dctx);
+
+	return (result);
+}
+
+/*
  * Test whether converting rdata to a type-specific struct and then back to
  * rdata results in the same uncompressed wire form.  This checks whether
  * tostruct_*() and fromstruct_*() routines for given RR class and type behave
@@ -158,8 +196,8 @@ static void
 check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, size_t structsize)
 {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	unsigned char buf_fromtext[1024];
+	unsigned char buf_fromtext[1024], buf_fromwire[1024];
+	dns_rdata_t rdata = DNS_RDATA_INIT, rdata2 = DNS_RDATA_INIT;
 	char buf_totext[1024] = { 0 };
 	isc_buffer_t target;
 	isc_result_t result;
@@ -186,6 +224,7 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
+
 	/*
 	 * Try converting uncompressed wire form RDATA back into text form and
 	 * check whether the resulting text is the same as the original one.
@@ -194,6 +233,15 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	result = dns_rdata_totext(&rdata, NULL, &target);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_string_equal(buf_totext, text_ok->text_out);
+
+	/*
+	 * Ensure that fromtext_*() output is valid input for fromwire_*().
+	 */
+	result = wire_to_rdata(rdata.data, rdata.length, rdclass, type,
+			       buf_fromwire, sizeof(buf_fromwire), &rdata2);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(rdata.length, rdata2.length);
+	assert_memory_equal(rdata.data, buf_fromwire, rdata.length);
 
 	/*
 	 * Perform two-way conversion checks between uncompressed wire form and
@@ -210,30 +258,15 @@ static void
 check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 		     dns_rdatatype_t type, size_t structsize)
 {
-	isc_buffer_t source, target;
 	unsigned char buf[1024];
-	dns_decompress_t dctx;
 	isc_result_t result;
-	dns_rdata_t rdata;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 
-	/*
-	 * Set up len-octet buffer pointing at data.
-	 */
-	isc_buffer_constinit(&source, wire_ok->data, wire_ok->len);
-	isc_buffer_add(&source, wire_ok->len);
-	isc_buffer_setactive(&source, wire_ok->len);
-	/*
-	 * Initialize target structures.
-	 */
-	isc_buffer_init(&target, buf, sizeof(buf));
-	dns_rdata_init(&rdata);
 	/*
 	 * Try converting wire data into uncompressed wire form.
 	 */
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
-	result = dns_rdata_fromwire(&rdata, rdclass, type, &source, &dctx, 0,
-				    &target);
-	dns_decompress_invalidate(&dctx);
+	result = wire_to_rdata(wire_ok->data, wire_ok->len, rdclass, type,
+			       buf, sizeof(buf), &rdata);
 	/*
 	 * Check whether result is as expected.
 	 */
@@ -1253,9 +1286,7 @@ hip(void **state) {
 				    0x01, 0x00, 0x00, 0x01, 0x00, 0x00,
 				    0x04, 0x41, 0x42, 0x43, 0x44, 0x00 };
 	unsigned char buf[1024*1024];
-	isc_buffer_t source, target;
-	dns_rdata_t rdata;
-	dns_decompress_t dctx;
+	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	size_t i;
 
@@ -1269,16 +1300,8 @@ hip(void **state) {
 		hipwire[i+1] = 0x06;
 	}
 
-	isc_buffer_init(&source, hipwire, sizeof(hipwire));
-	isc_buffer_add(&source, sizeof(hipwire));
-	isc_buffer_setactive(&source, i);
-	isc_buffer_init(&target, buf, sizeof(buf));
-	dns_rdata_init(&rdata);
-	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_ANY);
-	result = dns_rdata_fromwire(&rdata, dns_rdataclass_in,
-				    dns_rdatatype_hip, &source, &dctx,
-				    0, &target);
-	dns_decompress_invalidate(&dctx);
+	result = wire_to_rdata(hipwire, sizeof(hipwire), dns_rdataclass_in,
+			       dns_rdatatype_hip, buf, sizeof(buf), &rdata);
 	assert_int_equal(result, DNS_R_FORMERR);
 }
 
