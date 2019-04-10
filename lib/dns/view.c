@@ -209,6 +209,8 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->provideixfr = true;
 	view->maxcachettl = 7 * 24 * 3600;
 	view->maxncachettl = 3 * 3600;
+	view->mincachettl = 0;
+	view->minncachettl = 0;
 	view->nta_lifetime = 0;
 	view->nta_recheck = 0;
 	view->prefetch_eligible = 0;
