@@ -1,3 +1,9 @@
+5210.	[bug]		When dnstap is enabled and recursion is not
+			available, incoming queries are now logged
+			as "auth". Previously, this depended on whether
+			recursion was requested by the client, not on
+			whether recursion was available. [GL #963]
+
 5208.	[test]		Run valid rdata wire encodings through totext+fromtext
 			and tofmttext+fromtext methods to check these methods.
 			[GL #899]
