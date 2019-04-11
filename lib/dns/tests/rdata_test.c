@@ -38,6 +38,8 @@
 
 #include "dnstest.h"
 
+static bool debug = false;
+
 /*
  * An array of these structures is passed to compare_ok().
  */
@@ -105,7 +107,14 @@ typedef struct wire_ok {
 					ok				      \
 				}
 #define WIRE_VALID(...)		WIRE_TEST(true, __VA_ARGS__)
-#define WIRE_INVALID(...)	WIRE_TEST(false, __VA_ARGS__)
+/*
+ * WIRE_INVALID() test cases must always have at least one octet specified to
+ * distinguish them from WIRE_SENTINEL().  Use the 'empty_ok' parameter passed
+ * to check_wire_ok() for indicating whether empty RDATA is allowed for a given
+ * RR type or not.
+ */
+#define WIRE_INVALID(FIRST, ...) \
+				WIRE_TEST(false, FIRST, __VA_ARGS__)
 #define WIRE_SENTINEL()		WIRE_TEST(false)
 
 /*
@@ -216,8 +225,14 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 * Check whether result is as expected.
 	 */
 	if (text_ok->text_out != NULL) {
+		if (debug && result != ISC_R_SUCCESS) {
+			fprintf(stdout, "#'%s'\n", text_ok->text_in);
+		}
 		assert_int_equal(result, ISC_R_SUCCESS);
 	} else {
+		if (debug && result == ISC_R_SUCCESS) {
+			fprintf(stdout, "#'%s'\n", text_ok->text_in);
+		}
 		assert_int_not_equal(result, ISC_R_SUCCESS);
 	}
 
@@ -236,6 +251,16 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
 	result = dns_rdata_totext(&rdata, NULL, &target);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	/*
+	 * Ensure buf_totext is properly NUL terminated as dns_rdata_totext()
+	 * may attempt different output formats writing into the apparently
+	 * unused part of the buffer.
+	 */
+	isc_buffer_putuint8(&target, 0);
+	if (debug && strcmp(buf_totext, text_ok->text_out) != 0) {
+		fprintf(stdout, "# '%s' != '%s'\n",
+			buf_totext, text_ok->text_out);
+	}
 	assert_string_equal(buf_totext, text_ok->text_out);
 
 	/*
@@ -252,6 +277,102 @@ check_text_ok_single(const text_ok_t *text_ok, dns_rdataclass_t rdclass,
 	 * type-specific struct.
 	 */
 	check_struct_conversions(&rdata, structsize);
+}
+
+/*
+ * Test whether converting rdata to text form and then parsing the result of
+ * that conversion again results in the same uncompressed wire form.  This
+ * checks whether totext_*() output is parsable by fromtext_*() for given RR
+ * class and type.
+ *
+ * This function is called for every input RDATA which is successfully parsed
+ * by check_wire_ok_single() and whose type is not a meta-type.
+ */
+static void
+check_text_conversions(dns_rdata_t *rdata) {
+	char buf_totext[1024] = { 0 };
+	unsigned char buf_fromtext[1024];
+	isc_result_t result;
+	isc_buffer_t target;
+	dns_rdata_t rdata2 = DNS_RDATA_INIT;
+
+	/*
+	 * Convert uncompressed wire form RDATA into text form.  This
+	 * conversion must succeed since input RDATA was successfully
+	 * parsed by check_wire_ok_single().
+	 */
+	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
+	result = dns_rdata_totext(rdata, NULL, &target);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	/*
+	 * Ensure buf_totext is properly NUL terminated as dns_rdata_totext()
+	 * may attempt different output formats writing into the apparently
+	 * unused part of the buffer.
+	 */
+	isc_buffer_putuint8(&target, 0);
+	if (debug) {
+		fprintf(stdout, "#'%s'\n", buf_totext);
+	}
+
+	/*
+	 * Try parsing text form RDATA output by dns_rdata_totext() again.
+	 */
+	result = dns_test_rdatafromstring(&rdata2, rdata->rdclass, rdata->type,
+					  buf_fromtext, sizeof(buf_fromtext),
+					  buf_totext, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(rdata2.length, rdata->length);
+	assert_memory_equal(buf_fromtext, rdata->data, rdata->length);
+}
+
+/*
+ * Test whether converting rdata to multi-line text form and then parsing the
+ * result of that conversion again results in the same uncompressed wire form.
+ * This checks whether multi-line totext_*() output is parsable by fromtext_*()
+ * for given RR class and type.
+ *
+ * This function is called for every input RDATA which is successfully parsed
+ * by check_wire_ok_single() and whose type is not a meta-type.
+ */
+static void
+check_multiline_text_conversions(dns_rdata_t *rdata) {
+	char buf_totext[1024] = { 0 };
+	unsigned char buf_fromtext[1024];
+	isc_result_t result;
+	isc_buffer_t target;
+	dns_rdata_t rdata2 = DNS_RDATA_INIT;
+	unsigned int flags;
+
+	/*
+	 * Convert uncompressed wire form RDATA into multi-line text form.
+	 * This conversion must succeed since input RDATA was successfully
+	 * parsed by check_wire_ok_single().
+	 */
+	isc_buffer_init(&target, buf_totext, sizeof(buf_totext));
+	flags = dns_master_styleflags(&dns_master_style_default);
+	result = dns_rdata_tofmttext(rdata, dns_rootname, flags, 80 - 32, 4,
+				     "\n", &target);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	/*
+	 * Ensure buf_totext is properly NUL terminated as
+	 * dns_rdata_tofmttext() may attempt different output formats
+	 * writing into the apparently unused part of the buffer.
+	 */
+	isc_buffer_putuint8(&target, 0);
+	if (debug) {
+		fprintf(stdout, "#'%s'\n", buf_totext);
+	}
+
+	/*
+	 * Try parsing multi-line text form RDATA output by
+	 * dns_rdata_tofmttext() again.
+	 */
+	result = dns_test_rdatafromstring(&rdata2, rdata->rdclass, rdata->type,
+					  buf_fromtext, sizeof(buf_fromtext),
+					  buf_totext, false);
+	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_int_equal(rdata2.length, rdata->length);
+	assert_memory_equal(buf_fromtext, rdata->data, rdata->length);
 }
 
 /*
@@ -282,9 +403,19 @@ check_wire_ok_single(const wire_ok_t *wire_ok, dns_rdataclass_t rdclass,
 	/*
 	 * If data was parsed correctly, perform two-way conversion checks
 	 * between uncompressed wire form and type-specific struct.
+	 *
+	 * If the RR type is not a meta-type, additionally perform two-way
+	 * conversion checks between:
+	 *
+	 *   - uncompressed wire form and text form,
+	 *   - uncompressed wire form and multi-line text form.
 	 */
 	if (result == ISC_R_SUCCESS) {
 		check_struct_conversions(&rdata, structsize);
+		if (!dns_rdatatype_ismeta(rdata.type)) {
+			check_text_conversions(&rdata);
+			check_multiline_text_conversions(&rdata);
+		}
 	}
 }
 
@@ -1576,11 +1707,8 @@ eid(void **state) {
 		TEXT_SENTINEL()
 	};
 	wire_ok_t wire_ok[] = {
-		/*
-		 * Too short.
-		 */
-		WIRE_INVALID(),
 		WIRE_VALID(0x00),
+		WIRE_VALID(0xAA, 0xBB, 0xCC),
 		/*
 		 * Sentinel.
 		 */
@@ -1769,11 +1897,8 @@ nimloc(void **state) {
 		TEXT_SENTINEL()
 	};
 	wire_ok_t wire_ok[] = {
-		/*
-		 * Too short.
-		 */
-		WIRE_INVALID(),
 		WIRE_VALID(0x00),
+		WIRE_VALID(0xAA, 0xBB, 0xCC),
 		/*
 		 * Sentinel.
 		 */
@@ -1865,7 +1990,7 @@ nsec(void **state) {
 		WIRE_INVALID(0x00, 0x00),
 		WIRE_INVALID(0x00, 0x00, 0x00),
 		WIRE_VALID(0x00, 0x00, 0x01, 0x02),
-		WIRE_INVALID()
+		WIRE_SENTINEL()
 	};
 
 	UNUSED(state);
@@ -1886,8 +2011,8 @@ nsec3(void **state) {
 		TEXT_INVALID("."),
 		TEXT_INVALID(". RRSIG"),
 		TEXT_INVALID("1 0 10 76931F"),
-		TEXT_INVALID("1 0 10 76931F IMQ912BREQP1POLAH3RMONG;UED541AS"),
-		TEXT_INVALID("1 0 10 76931F IMQ912BREQP1POLAH3RMONG;UED541AS A RRSIG"),
+		TEXT_INVALID("1 0 10 76931F IMQ912BREQP1POLAH3RMONG&UED541AS"),
+		TEXT_INVALID("1 0 10 76931F IMQ912BREQP1POLAH3RMONGAUED541AS A RRSIG BADTYPE"),
 		TEXT_VALID("1 0 10 76931F AJHVGTICN6K0VDA53GCHFMT219SRRQLM A RRSIG"),
 		TEXT_VALID("1 0 10 76931F AJHVGTICN6K0VDA53GCHFMT219SRRQLM"),
 		TEXT_VALID("1 0 10 - AJHVGTICN6K0VDA53GCHFMT219SRRQLM"),
@@ -2267,7 +2392,7 @@ iszonecutauth(void **state) {
 }
 
 int
-main(void) {
+main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(amtrelay, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(apl, _setup, _teardown),
@@ -2294,6 +2419,12 @@ main(void) {
 		cmocka_unit_test_setup_teardown(atparent, NULL, NULL),
 		cmocka_unit_test_setup_teardown(iszonecutauth, NULL, NULL),
 	};
+
+	UNUSED(argv);
+
+	if (argc > 1) {
+		debug = true;
+	}
 
 	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
 }
