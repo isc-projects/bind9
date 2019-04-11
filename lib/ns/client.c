@@ -2787,8 +2787,9 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 				     true) == ISC_R_SUCCESS)
 		ra = true;
 
-	if (ra == true)
+	if (ra == true) {
 		client->attributes |= NS_CLIENTATTR_RA;
+	}
 
 	ns_client_log(client, DNS_LOGCATEGORY_SECURITY, NS_LOGMODULE_CLIENT,
 		      ISC_LOG_DEBUG(3), ra ? "recursion available" :
@@ -2815,10 +2816,11 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	case dns_opcode_query:
 		CTRACE("query");
 #ifdef HAVE_DNSTAP
-		if ((client->message->flags & DNS_MESSAGEFLAG_RD) != 0)
+		if (ra && (client->message->flags & DNS_MESSAGEFLAG_RD) != 0) {
 			dtmsgtype = DNS_DTTYPE_CQ;
-		else
+		} else {
 			dtmsgtype = DNS_DTTYPE_AQ;
+		}
 
 		dns_dt_send(client->view, dtmsgtype, &client->peeraddr,
 			    &client->destsockaddr, TCP_CLIENT(client), NULL,

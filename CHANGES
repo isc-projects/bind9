@@ -1,3 +1,9 @@
+5210.	[bug]		When dnstap is enabled and recursion is not
+			available, incoming queries are now logged
+			as "auth". Previously, this depended on whether
+			recursion was requested by the client, not on
+			whether recursion was available. [GL #963]
+
 5209.	[bug]		When update-check-ksk is true, add_sigs was not
 			considering offline keys, leaving record sets signed
 			with the incorrect type key. [GL #763]
