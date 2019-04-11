@@ -546,6 +546,11 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	isc_lex_setspecials(lex, specials);
 
 	/*
+	 * Expect DNS masterfile comments.
+	 */
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+
+	/*
 	 * Point lexer at source.
 	 */
 	result = isc_lex_openbuffer(lex, &source);
