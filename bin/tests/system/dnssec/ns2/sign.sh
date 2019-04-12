@@ -279,3 +279,20 @@ key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$
 key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 sed 's/DNSKEY/CDNSKEY/' "$key1.key" > "$key1.cds"
 cat "$infile" "$key1.cds" > "$zonefile.signed"
+
+zone=updatecheck-kskonly.secure
+infile=template.secure.db.in
+zonefile=${zone}.db
+key1=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone -f KSK "$zone")
+key2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+# Save key id's for checking active key usage
+echo "$key1" | sed -e 's/.*[+]//' -e 's/^0*//' > $zone.ksk.id
+echo "$key2" | sed -e 's/.*[+]//' -e 's/^0*//' > $zone.zsk.id
+echo "${key1}" > $zone.ksk.key
+echo "${key2}" > $zone.zsk.key
+# Add CDS and CDNSKEY records
+sed 's/DNSKEY/CDNSKEY/' "$key1.key" > "$key1.cdnskey"
+"$DSFROMKEY" -C "$key1.key" > "$key1.cds"
+cat "$infile" "$key1.key" "$key2.key" "$key1.cdnskey" "$key1.cds" > "$zonefile"
+# Don't sign, let auto-dnssec maintain do it.
+mv $zonefile "$zonefile.signed"
