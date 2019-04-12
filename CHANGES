@@ -4,6 +4,10 @@
 			recursion was requested by the client, not on
 			whether recursion was available. [GL #963]
 
+5209.	[bug]		When update-check-ksk is true, add_sigs was not
+			considering offline keys, leaving record sets signed
+			with the incorrect type key. [GL #763]
+
 5208.	[test]		Run valid rdata wire encodings through totext+fromtext
 			and tofmttext+fromtext methods to check these methods.
 			[GL #899]

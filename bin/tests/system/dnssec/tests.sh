@@ -23,6 +23,26 @@ ANSWEROPTS="+noall +answer +dnssec -p ${PORT}"
 DELVOPTS="-a ns1/trusted.conf -p ${PORT}"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
+# TODO: Move wait_for_log and loadkeys_on to conf.sh.common
+wait_for_log() {
+        msg=$1
+        file=$2
+        for i in 1 2 3 4 5 6 7 8 9 10; do
+                nextpart "$file" | grep "$msg" > /dev/null && return
+                sleep 1
+        done
+        echo_i "exceeded time limit waiting for '$msg' in $file"
+        ret=1
+}
+
+dnssec_loadkeys_on() {
+	nsidx=$1
+	zone=$2
+	nextpart ns${nsidx}/named.run > /dev/null
+	$RNDCCMD 10.53.0.${nsidx} loadkeys ${zone} | sed "s/^/ns${nsidx} /" | cat_i
+	wait_for_log "next key event" ns${nsidx}/named.run
+}
+
 # convert private-type records to readable form
 showprivate () {
     echo "-- $@ --"
@@ -2586,7 +2606,7 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "checking dnskey query with no data still gets put in cache ($n)"
+echo_i "checking DNSKEY query with no data still gets put in cache ($n)"
 ret=0
 myDIGOPTS="+noadd +nosea +nostat +noquest +nocomm +nocmd -p ${PORT} @10.53.0.4"
 firstVal=`$DIG $myDIGOPTS insecure.example. dnskey| awk '$1 != ";;" { print $2 }'`
@@ -2643,7 +2663,7 @@ do
 	fi
 	echo_i "sleeping ...."
 	sleep 3
-done;
+done
 grep "ANSWER: 3," dig.out.ns2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "nsec3 chain generation not complete"; fi
 $DIG $DIGOPTS +noauth +nodnssec soa nsec3chain-test @10.53.0.2 > dig.out.ns2.test$n || ret=1
@@ -3572,6 +3592,188 @@ grep "^delegation.occluded.example..*AAAA.*" dig.out.ns3.test$n > /dev/null || r
 n=`expr $n + 1`
 test "$ret" -eq 0 || echo_i "failed"
 status=`expr $status + $ret`
+
+###
+### Additional checks for when the KSK is offline.
+###
+
+# Save some useful information
+zone="updatecheck-kskonly.secure"
+KSK=`cat ns2/${zone}.ksk.key`
+ZSK=`cat ns2/${zone}.zsk.key`
+KSK_ID=`cat ns2/${zone}.ksk.id`
+ZSK_ID=`cat ns2/${zone}.zsk.id`
+SECTIONS="+answer +noauthority +noadditional"
+echo_i "testing zone $zone KSK=$KSK_ID ZSK=$ZSK_ID"
+
+# Basic checks to make sure everything is fine before the KSK is made offline.
+echo_i "checking DNSKEY RRset is signed with KSK only (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+grep $KSK_ID dig.out.test$n > /dev/null || ret=1
+grep $ZSK_ID dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking SOA RRset is signed with ZSK only (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 soa $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "SOA" {print}' dig.out.test$n | wc -l)
+grep $KSK_ID dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID dig.out.test$n > /dev/null || ret=1
+test "$lines" -eq 1 || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Roll the ZSK.
+echo_i "roll ZSK for zone $zone"
+sleep 1
+zsk2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -K ns2 -n zone $zone`
+echo_i "new ZSK $zsk2 created for zone $zone"
+echo "$zsk2" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id2
+ZSK_ID2=`cat ns2/$zone.zsk.id2`
+dnssec_loadkeys_on 2 $zone
+
+# Wait until new ZSK becomes active.
+sleep 1
+echo_i "make ZSK $ZSK inactive and make new ZSK $zsk2 active for zone $zone"
+$SETTIME -I now -K ns2 $ZSK > /dev/null
+$SETTIME -A now -K ns2 $zsk2 > /dev/null
+dnssec_loadkeys_on 2 $zone
+
+# Remove the KSK from disk.
+sleep 1
+echo_i "remove the KSK $KSK for zone $zone from disk"
+mv ns2/$KSK.key ns2/$KSK.key.bak
+mv ns2/$KSK.private ns2/$KSK.private.bak
+
+# Update the zone that requires a resign of the SOA RRset.
+sleep 1
+echo_i "update the zone with $zone IN TXT nsupdate added me"
+(
+echo zone $zone
+echo server 10.53.0.2 "$PORT"
+echo update add $zone. 300 in txt "nsupdate added me"
+echo send
+) | $NSUPDATE
+
+# Redo the tests now that the zone is updated and the KSK is offline.
+echo_i "checking DNSKEY RRset is signed with KSK only, KSK offline (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
+grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+for qtype in "SOA" "TXT"
+do
+  echo_i "checking $qtype RRset is signed with ZSK only, KSK offline (update-check-ksk and dnssec-ksk-only) ($n)"
+  ret=0
+  $DIG $DIGOPTS $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
+  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
+  grep $KSK_ID  dig.out.test$n > /dev/null && ret=1
+  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
+  grep $ZSK_ID2 dig.out.test$n > /dev/null || ret=1
+  test "$lines" -eq 1 || ret=1
+  n=$((n+1))
+  test "$ret" -eq 0 || echo_i "failed"
+  status=$((status+ret))
+done
+
+# Put back the KSK.
+sleep 1
+echo_i "put back the KSK $KSK for zone $zone from disk"
+mv ns2/$KSK.key.bak ns2/$KSK.key
+mv ns2/$KSK.private.bak ns2/$KSK.private
+
+# Roll the ZSK again.
+sleep 1
+zsk3=`$KEYGEN -q  -r $RANDFILE -a RSASHA1 -b 1024 -K ns2 -n zone $zone`
+echo_i "new ZSK $zsk3 created for zone $zone"
+echo "$zsk3" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id3
+ZSK_ID3=`cat ns2/$zone.zsk.id3`
+dnssec_loadkeys_on 2 $zone
+
+# Wait until new ZSK becomes active.
+sleep 1
+echo_i "delete old ZSK $ZSK make ZSK $ZSK2 inactive and make new ZSK $zsk3 active for zone $zone"
+$SETTIME -D now -K ns2 $ZSK > /dev/null
+$SETTIME -I +5 -K ns2 $zsk2 > /dev/null
+$SETTIME -A +5 -K ns2 $zsk3 > /dev/null
+dnssec_loadkeys_on 2 $zone
+
+# Remove the KSK from disk.
+sleep 1
+echo_i "remove the KSK $KSK for zone $zone from disk"
+mv ns2/$KSK.key ns2/$KSK.key.bak
+mv ns2/$KSK.private ns2/$KSK.private.bak
+
+# Update the zone that requires a resign of the SOA RRset.
+sleep 1
+echo_i "update the zone with $zone IN TXT nsupdate added me again"
+(
+echo zone $zone
+echo server 10.53.0.2 "$PORT"
+echo update add $zone. 300 in txt "nsupdate added me again"
+echo send
+) | $NSUPDATE
+
+# Redo the tests now that the ZSK roll has deleted the old key.
+echo_i "checking DNSKEY RRset is signed with KSK only, old ZSK deleted (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
+grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+for qtype in "SOA" "TXT"
+do
+  echo_i "checking $qtype RRset is signed with ZSK only, old ZSK deleted (update-check-ksk and dnssec-ksk-only) ($n)"
+  ret=0
+  $DIG $DIGOPTS $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
+  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
+  grep $KSK_ID  dig.out.test$n > /dev/null && ret=1
+  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
+  grep $ZSK_ID2 dig.out.test$n > /dev/null || ret=1
+  grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+  test "$lines" -eq 1 || ret=1
+  n=$((n+1))
+  test "$ret" -eq 0 || echo_i "failed"
+  status=$((status+ret))
+done
+
+# Wait for newest ZSK to become active.
+echo_i "sleep 6 to make new ZSK $zsk3 active and ZSK $zsk2 inactive"
+sleep 6
+
+# Redo the tests one more time.
+echo_i "checking DNSKEY RRset is signed with KSK only, new ZSK active (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
+grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

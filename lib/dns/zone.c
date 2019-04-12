@@ -6365,10 +6365,11 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		 * If there is not a matching DNSKEY then
 		 * delete the RRSIG.
 		 */
-		if (!found)
+		if (!found) {
 			result = update_one_rr(db, ver, zonediff->diff,
 					       DNS_DIFFOP_DELRESIGN, name,
 					       rdataset.ttl, &rdata);
+		}
 		if (result != ISC_R_SUCCESS)
 			break;
 	}
@@ -6433,10 +6434,13 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 	for (i = 0; i < nkeys; i++) {
 		bool both = false;
 
-		if (!dst_key_isprivate(keys[i]))
+		/* Don't add signatures for offline or inactive keys */
+		if (!dst_key_isprivate(keys[i])) {
 			continue;
-		if (dst_key_inactive(keys[i]))	/* Should be redundant. */
+		}
+		if (dst_key_inactive(keys[i])) {
 			continue;
+		}
 
 		if (check_ksk && !REVOKE(keys[i])) {
 			bool have_ksk, have_nonksk;
@@ -6447,24 +6451,36 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 				have_ksk = false;
 				have_nonksk = true;
 			}
+
 			for (j = 0; j < nkeys; j++) {
-				if (j == i || ALG(keys[i]) != ALG(keys[j]))
+				if (j == i || ALG(keys[i]) != ALG(keys[j])) {
 					continue;
-				if (!dst_key_isprivate(keys[j]))
+				}
+
+				/* Don't consider inactive keys, however
+				 * the key may be temporary offline, so do
+				 * consider keys which private key files are
+				 * unavailable.
+				 */
+				if (dst_key_inactive(keys[j])) {
 					continue;
-				if (dst_key_inactive(keys[j]))	/* SBR */
+				}
+
+				if (REVOKE(keys[j])) {
 					continue;
-				if (REVOKE(keys[j]))
-					continue;
-				if (KSK(keys[j]))
+				}
+				if (KSK(keys[j])) {
 					have_ksk = true;
-				else
+				} else {
 					have_nonksk = true;
+				}
 				both = have_ksk && have_nonksk;
-				if (both)
+				if (both) {
 					break;
+				}
 			}
 		}
+
 		if (both) {
 			if (type == dns_rdatatype_dnskey) {
 				if (!KSK(keys[i]) && keyset_kskonly)
@@ -8653,9 +8669,6 @@ zone_sign(dns_zone_t *zone) {
 			 */
 			if (!dst_key_isprivate(zone_keys[i]))
 				continue;
-			/*
-			 * Should be redundant.
-			 */
 			if (dst_key_inactive(zone_keys[i]))
 				continue;
 
@@ -8694,11 +8707,11 @@ zone_sign(dns_zone_t *zone) {
 						continue;
 					if (!dst_key_isprivate(zone_keys[j]))
 						continue;
-					/*
-					 * Should be redundant.
+					/* Don't consider inactive keys, however
+					 * the key may be temporary offline, so do
+					 * consider keys which private key files are
+					 * unavailable.
 					 */
-					if (dst_key_inactive(zone_keys[j]))
-						continue;
 					if (REVOKE(zone_keys[j]))
 						continue;
 					if (KSK(zone_keys[j]))
@@ -10220,14 +10233,17 @@ zone_maintenance(dns_zone_t *zone) {
 		if (zone->rss_event != NULL)
 			break;
 		if (!isc_time_isepoch(&zone->signingtime) &&
-		    isc_time_compare(&now, &zone->signingtime) >= 0)
+		    isc_time_compare(&now, &zone->signingtime) >= 0) {
 			zone_sign(zone);
+		}
 		else if (!isc_time_isepoch(&zone->resigntime) &&
-		    isc_time_compare(&now, &zone->resigntime) >= 0)
+		    isc_time_compare(&now, &zone->resigntime) >= 0) {
 			zone_resigninc(zone);
+		}
 		else if (!isc_time_isepoch(&zone->nsec3chaintime) &&
-			isc_time_compare(&now, &zone->nsec3chaintime) >= 0)
+			isc_time_compare(&now, &zone->nsec3chaintime) >= 0) {
 			zone_nsec3chain(zone);
+		}
 		/*
 		 * Do we need to issue a key expiry warning?
 		 */
@@ -17770,15 +17786,18 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	for (tuple = ISC_LIST_HEAD(diff->tuples);
 	     tuple != NULL;
 	     tuple = ISC_LIST_NEXT(tuple, link)) {
-		if (tuple->rdata.type != dns_rdatatype_dnskey)
+		if (tuple->rdata.type != dns_rdatatype_dnskey) {
 			continue;
+		}
 
 		result = dns_rdata_tostruct(&tuple->rdata, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		if ((dnskey.flags &
 		     (DNS_KEYFLAG_OWNERMASK|DNS_KEYTYPE_NOAUTH))
 			 != DNS_KEYOWNER_ZONE)
+		{
 			continue;
+		}
 
 		dns_rdata_toregion(&tuple->rdata, &r);
 
@@ -17796,8 +17815,10 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 
 		if (sign_all || tuple->op == DNS_DIFFOP_DEL) {
 			CHECK(rr_exists(db, ver, name, &rdata, &flag));
-			if (flag)
+			if (flag) {
 				continue;
+			}
+
 			CHECK(dns_difftuple_create(diff->mctx, DNS_DIFFOP_ADD,
 						   name, 0, &rdata, &newtuple));
 			CHECK(do_one_tuple(&newtuple, db, ver, diff));
@@ -18097,7 +18118,6 @@ zone_rekey(dns_zone_t *zone) {
 	} else if (result != ISC_R_NOTFOUND)
 		goto failure;
 
-
 	/* Get the CDS rdataset */
 	result = dns_db_findrdataset(db, node, ver, dns_rdatatype_cds,
 				     dns_rdatatype_none, 0, &cdsset, NULL);
@@ -18121,7 +18141,6 @@ zone_rekey(dns_zone_t *zone) {
 	if (result == ISC_R_SUCCESS) {
 		bool check_ksk;
 		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
-
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
 					       &zone->origin, ttl, &diff,
 					       !check_ksk,

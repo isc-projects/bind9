@@ -998,7 +998,7 @@ $RNDCCMD 10.53.0.2 loadkeys bar. 2>&1 | sed 's/^/ns2 /' | cat_i
 echo_i "waiting for changes to take effect"
 sleep 5
 
-echo_i "checking former standby key is now active ($n)"
+echo_i "checking former standby key $newid is now active ($n)"
 ret=0
 $DIG $DIGOPTS dnskey . @10.53.0.1 > dig.out.ns1.test$n || ret=1
 grep 'RRSIG.*'" $newid "'\. ' dig.out.ns1.test$n > /dev/null || ret=1
