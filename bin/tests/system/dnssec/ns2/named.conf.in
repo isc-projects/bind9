@@ -149,7 +149,6 @@ zone "updatecheck-kskonly.secure" {
 	dnssec-dnskey-kskonly yes;
 	update-check-ksk yes;
 	sig-validity-interval 10;
-	dnskey-sig-validity 40;
 	file "updatecheck-kskonly.secure.db.signed";
 	allow-update { any; };
 };

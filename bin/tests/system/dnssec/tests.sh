@@ -39,7 +39,7 @@ dnssec_loadkeys_on() {
 	nsidx=$1
 	zone=$2
 	nextpart ns${nsidx}/named.run > /dev/null
-	rndccmd 10.53.0.${nsidx} loadkeys ${zone} | sed "s/^/ns${nsidx} /" | cat_i
+	$RNDCCMD 10.53.0.${nsidx} loadkeys ${zone} | sed "s/^/ns${nsidx} /" | cat_i
 	wait_for_log "next key event" ns${nsidx}/named.run
 }
 
@@ -3607,23 +3607,20 @@ SECTIONS="+answer +noauthority +noadditional"
 echo_i "testing zone $zone KSK=$KSK_ID ZSK=$ZSK_ID"
 
 # Basic checks to make sure everything is fine before the KSK is made offline.
-for qtype in "DNSKEY" "CDNSKEY" "CDS"
-do
-  echo_i "checking $qtype RRset is signed with KSK only (update-check-ksk, dnssec-ksk-only) ($n)"
-  ret=0
-  dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
-  test "$lines" -eq 1 || ret=1
-  grep $KSK_ID dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID dig.out.test$n > /dev/null && ret=1
-  n=$((n+1))
-  test "$ret" -eq 0 || echo_i "failed"
-  status=$((status+ret))
-done
-
-echo_i "checking SOA RRset is signed with ZSK only (update-check-ksk and dnssec-ksk-only) ($n)"
+echo_i "checking DNSKEY RRset is signed with KSK only (update-check-ksk, dnssec-ksk-only) ($n)"
 ret=0
-dig_with_opts $SECTIONS @10.53.0.2 soa $zone > dig.out.test$n
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+grep $KSK_ID dig.out.test$n > /dev/null || ret=1
+grep $ZSK_ID dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+echo_i "checking SOA RRset is signed with ZSK only (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 soa $zone > dig.out.test$n
 lines=$(awk '$4 == "RRSIG" && $5 == "SOA" {print}' dig.out.test$n | wc -l)
 grep $KSK_ID dig.out.test$n > /dev/null && ret=1
 grep $ZSK_ID dig.out.test$n > /dev/null || ret=1
@@ -3633,8 +3630,9 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 # Roll the ZSK.
+echo_i "roll ZSK for zone $zone"
 sleep 1
-zsk2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
+zsk2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -K ns2 -n zone $zone`
 echo_i "new ZSK $zsk2 created for zone $zone"
 echo "$zsk2" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id2
 ZSK_ID2=`cat ns2/$zone.zsk.id2`
@@ -3664,26 +3662,23 @@ echo send
 ) | $NSUPDATE
 
 # Redo the tests now that the zone is updated and the KSK is offline.
-for qtype in "DNSKEY" "CDNSKEY" "CDS"
-do
-  echo_i "checking $qtype RRset is signed with KSK only, KSK offline (update-check-ksk, dnssec-ksk-only) ($n)"
-  ret=0
-  dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
-  test "$lines" -eq 1 || ret=1
-  grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
-  n=$((n+1))
-  test "$ret" -eq 0 || echo_i "failed"
-  status=$((status+ret))
-done
+echo_i "checking DNSKEY RRset is signed with KSK only, KSK offline (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
+grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 for qtype in "SOA" "TXT"
 do
   echo_i "checking $qtype RRset is signed with ZSK only, KSK offline (update-check-ksk and dnssec-ksk-only) ($n)"
   ret=0
-  dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
+  $DIG $DIGOPTS $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
   grep $KSK_ID  dig.out.test$n > /dev/null && ret=1
   grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
@@ -3702,7 +3697,7 @@ mv ns2/$KSK.private.bak ns2/$KSK.private
 
 # Roll the ZSK again.
 sleep 1
-zsk3=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
+zsk3=`$KEYGEN -q  -r $RANDFILE -a RSASHA1 -b 1024 -K ns2 -n zone $zone`
 echo_i "new ZSK $zsk3 created for zone $zone"
 echo "$zsk3" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id3
 ZSK_ID3=`cat ns2/$zone.zsk.id3`
@@ -3733,27 +3728,24 @@ echo send
 ) | $NSUPDATE
 
 # Redo the tests now that the ZSK roll has deleted the old key.
-for qtype in "DNSKEY" "CDNSKEY" "CDS"
-do
-  echo_i "checking $qtype RRset is signed with KSK only, old ZSK deleted (update-check-ksk, dnssec-ksk-only) ($n)"
-  ret=0
-  dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
-  test "$lines" -eq 1 || ret=1
-  grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
-  n=$((n+1))
-  test "$ret" -eq 0 || echo_i "failed"
-  status=$((status+ret))
-done
+echo_i "checking DNSKEY RRset is signed with KSK only, old ZSK deleted (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
+grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 for qtype in "SOA" "TXT"
 do
   echo_i "checking $qtype RRset is signed with ZSK only, old ZSK deleted (update-check-ksk and dnssec-ksk-only) ($n)"
   ret=0
-  dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
+  $DIG $DIGOPTS $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
   lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
   grep $KSK_ID  dig.out.test$n > /dev/null && ret=1
   grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
@@ -3770,21 +3762,18 @@ echo_i "sleep 6 to make new ZSK $zsk3 active and ZSK $zsk2 inactive"
 sleep 6
 
 # Redo the tests one more time.
-for qtype in "DNSKEY" "CDNSKEY" "CDS"
-do
-  echo_i "checking $qtype RRset is signed with KSK only, new ZSK active (update-check-ksk, dnssec-ksk-only) ($n)"
-  ret=0
-  dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
-  test "$lines" -eq 1 || ret=1
-  grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
-  n=$((n+1))
-  test "$ret" -eq 0 || echo_i "failed"
-  status=$((status+ret))
-done
+echo_i "checking DNSKEY RRset is signed with KSK only, new ZSK active (update-check-ksk, dnssec-ksk-only) ($n)"
+ret=0
+$DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
+lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+test "$lines" -eq 1 || ret=1
+grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
+grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
+grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
