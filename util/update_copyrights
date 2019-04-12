@@ -231,7 +231,7 @@ foreach $file (keys %file_types) {
 
         ($nonspaceprefix = $prefix) =~ s/\s+$//;
 
-        open(SOURCE, "<$file") || die "can't open $file: $!";
+        open(SOURCE, "<:crlf", $file) || die "can't open $file: $!";
         $_ = <SOURCE>;
         if ($type eq "YACC") {
                 unless ($_ eq "%{\n") {
