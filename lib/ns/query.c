@@ -1442,6 +1442,175 @@ query_isduplicate(ns_client_t *client, dns_name_t *name,
 	return (false);
 }
 
+/*
+ * Look up data for given 'name' and 'type' in given 'version' of 'db' for
+ * 'client'. Called from query_additionalauth().
+ *
+ * If the lookup is successful:
+ *
+ *   - store the node containing the result at 'nodep',
+ *
+ *   - store the owner name of the returned node in 'fname',
+ *
+ *   - if 'type' is not ANY, dns_db_findext() will put the exact rdataset being
+ *     looked for in 'rdataset' and its signatures (if any) in 'sigrdataset',
+ *
+ *   - if 'type' is ANY, dns_db_findext() will leave 'rdataset' and
+ *     'sigrdataset' disassociated and the returned node will be iterated in
+ *     query_additional_cb().
+ *
+ * If the lookup is not successful:
+ *
+ *   - 'nodep' will not be written to,
+ *   - 'fname' may still be modified as it is passed to dns_db_findext(),
+ *   - 'rdataset' and 'sigrdataset' will remain disassociated.
+ */
+static isc_result_t
+query_additionalauthfind(dns_db_t *db, dns_dbversion_t *version,
+			 const dns_name_t *name, dns_rdatatype_t type,
+			 ns_client_t *client, dns_dbnode_t **nodep,
+			 dns_name_t *fname, dns_rdataset_t *rdataset,
+			 dns_rdataset_t *sigrdataset)
+{
+	dns_clientinfomethods_t cm;
+	dns_dbnode_t *node = NULL;
+	dns_clientinfo_t ci;
+	isc_result_t result;
+
+	dns_clientinfomethods_init(&cm, ns_client_sourceip);
+	dns_clientinfo_init(&ci, client, NULL);
+
+	/*
+	 * Since we are looking for authoritative data, we do not set
+	 * the GLUEOK flag.  Glue will be looked for later, but not
+	 * necessarily in the same database.
+	 */
+	result = dns_db_findext(db, name, version, type,
+				client->query.dboptions, client->now, &node,
+				fname, &cm, &ci, rdataset, sigrdataset);
+	if (result != ISC_R_SUCCESS) {
+		if (dns_rdataset_isassociated(rdataset)) {
+			dns_rdataset_disassociate(rdataset);
+		}
+
+		if (sigrdataset != NULL &&
+		    dns_rdataset_isassociated(sigrdataset))
+		{
+			dns_rdataset_disassociate(sigrdataset);
+		}
+
+		if (node != NULL) {
+			dns_db_detachnode(db, &node);
+		}
+
+		return (result);
+	}
+
+	/*
+	 * Do not return signatures if the zone is not fully signed.
+	 */
+	if (sigrdataset != NULL && !dns_db_issecure(db) &&
+	    dns_rdataset_isassociated(sigrdataset))
+	{
+		dns_rdataset_disassociate(sigrdataset);
+	}
+
+	*nodep = node;
+
+	return (ISC_R_SUCCESS);
+}
+
+/*
+ * For query context 'qctx', try finding authoritative additional data for
+ * given 'name' and 'type'. Called from query_additional_cb().
+ *
+ * If successful:
+ *
+ *   - store pointers to the database and node which contain the result in
+ *     'dbp' and 'nodep', respectively,
+ *
+ *   - store the owner name of the returned node in 'fname',
+ *
+ *   - potentially bind 'rdataset' and 'sigrdataset', as explained in the
+ *     comment for query_additionalauthfind().
+ *
+ * If unsuccessful:
+ *
+ *   - 'dbp' and 'nodep' will not be written to,
+ *   - 'fname' may still be modified as it is passed to dns_db_findext(),
+ *   - 'rdataset' and 'sigrdataset' will remain disassociated.
+ */
+static isc_result_t
+query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
+		     dns_rdatatype_t type, dns_db_t **dbp,
+		     dns_dbnode_t **nodep, dns_name_t *fname,
+		     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	ns_client_t *client = qctx->client;
+	ns_dbversion_t *dbversion = NULL;
+	dns_dbversion_t *version = NULL;
+	dns_dbnode_t *node = NULL;
+	dns_zone_t *zone = NULL;
+	dns_db_t *db = NULL;
+	isc_result_t result;
+
+	/*
+	 * First, look within the same zone database for authoritative
+	 * additional data.
+	 */
+	if (!client->query.authdbset || client->query.authdb == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	dbversion = ns_client_findversion(client, client->query.authdb);
+	if (dbversion == NULL) {
+		return (ISC_R_NOTFOUND);
+	}
+
+	dns_db_attach(client->query.authdb, &db);
+	version = dbversion->version;
+
+	CTRACE(ISC_LOG_DEBUG(3), "query_additionalauth: same zone");
+
+	result = query_additionalauthfind(db, version, name, type, client,
+					  &node, fname, rdataset, sigrdataset);
+	if (result != ISC_R_SUCCESS &&
+	    qctx->view->minimalresponses == dns_minimal_no &&
+	    RECURSIONOK(client))
+	{
+		/*
+		 * If we aren't doing response minimization and recursion is
+		 * allowed, we can try and see if any other zone matches.
+		 */
+		version = NULL;
+		dns_db_detach(&db);
+		result = query_getzonedb(client, name, type, DNS_GETDB_NOLOG,
+					 &zone, &db, &version);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		dns_zone_detach(&zone);
+
+		CTRACE(ISC_LOG_DEBUG(3), "query_additionalauth: other zone");
+
+		result = query_additionalauthfind(db, version, name, type,
+						  client, &node, fname,
+						  rdataset, sigrdataset);
+	}
+
+	if (result != ISC_R_SUCCESS) {
+		dns_db_detach(&db);
+	} else {
+		*nodep = node;
+		node = NULL;
+
+		*dbp = db;
+		db = NULL;
+	}
+
+	return (result);
+}
+
 static isc_result_t
 query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	query_ctx_t *qctx = arg;
@@ -1515,58 +1684,17 @@ query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	}
 
 	/*
-	 * Look within the same zone database for authoritative
-	 * additional data.
+	 * First, look for authoritative additional data.
 	 */
-	if (!client->query.authdbset || client->query.authdb == NULL) {
-		goto try_cache;
-	}
-
-	dbversion = ns_client_findversion(client, client->query.authdb);
-	if (dbversion == NULL) {
-		goto try_cache;
-	}
-
-	dns_db_attach(client->query.authdb, &db);
-	version = dbversion->version;
-
-	CTRACE(ISC_LOG_DEBUG(3), "query_additional_cb: db_find");
-
-	/*
-	 * Since we are looking for authoritative data, we do not set
-	 * the GLUEOK flag.  Glue will be looked for later, but not
-	 * necessarily in the same database.
-	 */
-	result = dns_db_findext(db, name, version, type,
-				client->query.dboptions,
-				client->now, &node, fname, &cm, &ci,
-				rdataset, sigrdataset);
+	result = query_additionalauth(qctx, name, type, &db, &node, fname,
+				      rdataset, sigrdataset);
 	if (result == ISC_R_SUCCESS) {
-		if (sigrdataset != NULL && !dns_db_issecure(db) &&
-		    dns_rdataset_isassociated(sigrdataset))
-		{
-			dns_rdataset_disassociate(sigrdataset);
-		}
 		goto found;
 	}
-
-	if (dns_rdataset_isassociated(rdataset)) {
-		dns_rdataset_disassociate(rdataset);
-	}
-	if (sigrdataset != NULL && dns_rdataset_isassociated(sigrdataset)) {
-		dns_rdataset_disassociate(sigrdataset);
-	}
-	if (node != NULL) {
-		dns_db_detachnode(db, &node);
-	}
-	version = NULL;
-	dns_db_detach(&db);
 
 	/*
 	 * No authoritative data was found.  The cache is our next best bet.
 	 */
-
- try_cache:
 	if (!qctx->view->recursion) {
 		goto try_glue;
 	}

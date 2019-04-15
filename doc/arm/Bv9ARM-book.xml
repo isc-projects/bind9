@@ -5809,30 +5809,55 @@ options {
 	      <term><command>minimal-responses</command></term>
 	      <listitem>
 		<para>
-		  If set to <userinput>yes</userinput>, then when generating
-		  responses the server will only add records to the authority
-		  and additional data sections when they are required (e.g.
-		  delegations, negative responses).  This may improve the
-		  performance of the server.
+		  This option controls the addition of records to the
+		  authority and additional sections of responses. Such
+		  records may be included in responses to be helpful
+		  to clients; for example, NS or MX records may
+		  have associated address records included in the additional
+		  section, obviating the need for a separate address lookup.
+		  However, adding these records to responses is not mandatory
+		  and requires additional database lookups, causing extra
+		  latency when marshalling responses.
+		  <command>minimal-responses</command> takes one of
+		  four values:
+		</para>
+		<itemizedlist>
+		  <listitem>
+		    <userinput>no</userinput>: the server will be
+		    as complete as possible when generating responses.
+		  </listitem>
+		  <listitem>
+		    <userinput>yes</userinput>: the server will only add
+		    records to the authority and additional sections when
+		    such records are required by the DNS protocol (for
+		    example, when returning delegations or negative
+		    responses). This provides the best server performance
+		    but may result in more client queries.
+		  </listitem>
+		  <listitem>
+		    <userinput>no-auth</userinput>: the server
+		    will omit records from the authority section except
+		    when they are required, but it may still add records
+		    to the additional section.
+		  </listitem>
+		  <listitem>
+		    <userinput>no-auth-recursive</userinput>: the same
+		    as <userinput>no-auth</userinput> when recursion is
+		    requested in the query (RD=1), or the same as
+		    <userinput>no</userinput> if recursion is not
+		    requested.
+		  </listitem>
+		</itemizedlist>
+		<para>
+		  <userinput>no-auth</userinput> and
+		  <userinput>no-auth-recursive</userinput> are useful when
+		  answering stub clients, which usually ignore the
+		  authority section.  <userinput>no-auth-recursive</userinput>
+		  is meant for use in mixed-mode servers that handle both
+		  authoritative and recursive queries.
 		</para>
 		<para>
-		  When set to <userinput>no-auth</userinput>, the
-		  server will omit records from the authority section
-		  unless they are required, but it may still add
-		  records to the additional section.  When set to
-		  <userinput>no-auth-recursive</userinput>, this
-		  is only done if the query is recursive.  When the
-		  query is not recursive, the effect is same as if
-		  <userinput>no</userinput> was specified. These
-		  settings are useful when answering stub clients,
-		  which usually ignore the authority section.
-		  <userinput>no-auth-recursive</userinput> is
-		  designed for mixed-mode servers which handle
-		  both authoritative and recursive queries.
-		</para>
-		<para>
-		  The default is
-		  <userinput>no-auth-recursive</userinput>.
+		  The default is <userinput>no-auth-recursive</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
