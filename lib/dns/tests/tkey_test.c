@@ -16,11 +16,13 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include <setjmp.h>
 #include <cmocka.h>
 
 #include <isc/mem.h>
 #include <isc/result.h>
+#include <isc/util.h>
 
 #include <dns/tkey.h>
 
@@ -31,33 +33,76 @@ static isc_mem_t mock_mctx = {
 	.methods = NULL
 };
 
-static void *
-__wrap_isc__mem_get(isc_mem_t *mctx __attribute__ ((unused)),
-		   size_t size)
+void *
+__wrap_isc__mem_get(isc_mem_t *mctx, size_t size);
+void
+__wrap_isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size);
+void
+__wrap_isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp);
+void
+__wrap_isc_mem_detach(isc_mem_t **ctxp);
+
+void *
+__wrap_isc__mem_get(isc_mem_t *mctx, size_t size)
 {
 	bool has_enough_memory = mock_type(bool);
+
+	UNUSED(mctx);
+
 	if (!has_enough_memory) {
 		return (NULL);
 	}
 	return (malloc(size));
 }
 
-static void
-__wrap_isc__mem_put(isc_mem_t *ctx0 __attribute__ ((unused)),
-		   void *ptr,
-		   size_t size __attribute__ ((unused)))
-{
+void
+__wrap_isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size) {
+	UNUSED(ctx0);
+	UNUSED(size);
+
 	free(ptr);
 }
 
-static void
+void
 __wrap_isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 	*targetp = source0;
 }
 
-static void
+void
 __wrap_isc_mem_detach(isc_mem_t **ctxp) {
 	*ctxp = NULL;
+}
+
+#if ISC_MEM_TRACKLINES
+#define FLARG		, const char *file, unsigned int line
+#else
+#define FLARG
+#endif
+
+__attribute__((weak)) void *
+isc__mem_get(isc_mem_t *mctx, size_t size FLARG)
+{
+	UNUSED(file);
+	UNUSED(line);
+	return (__wrap_isc__mem_get(mctx, size));
+}
+
+__attribute__((weak)) void
+isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG)
+{
+	UNUSED(file);
+	UNUSED(line);
+	__wrap_isc__mem_put(ctx0, ptr, size);
+}
+
+__attribute__((weak)) void
+isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
+	__wrap_isc_mem_attach(source0, targetp);
+}
+
+__attribute__((weak)) void
+isc_mem_detach(isc_mem_t **ctxp) {
+	__wrap_isc_mem_detach(ctxp);
 }
 
 static int
@@ -101,7 +146,6 @@ dns_tkeyctx_destroy_test(void **state) {
 	assert_non_null(tctx);
 	dns_tkeyctx_destroy(&tctx);
 }
-
 #endif /* LD_WRAP */
 
 int
@@ -122,12 +166,12 @@ main(void) {
 #endif
 	};
 	return (cmocka_run_group_tests(tkey_tests, NULL, NULL));
-#else
+#else /* LD_WRAP */
 	print_message("1..0 # Skip tkey_test requires LD_WRAP\n");
 #endif /* LD_WRAP */
 }
 
-#else
+#else /* CMOCKA */
 
 #include <stdio.h>
 
@@ -137,4 +181,4 @@ main(void) {
 	return (0);
 }
 
-#endif
+#endif /* CMOCKA */
