@@ -1,3 +1,8 @@
+5211.	[bug]		Allow out-of-zone additional data to be included
+			in authoritative responses if recursion is allowed
+			and "minimal-responses" is disabled.  This behavior
+			was inadvertently removed in change #4605. [GL #817]
+
 5210.	[bug]		When dnstap is enabled and recursion is not
 			available, incoming queries are now logged
 			as "auth". Previously, this depended on whether
