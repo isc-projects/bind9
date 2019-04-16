@@ -38,7 +38,8 @@ while (<CHANGES>) {
 	       util/newcopyrights | # our output
 	       \.bak$ |		# created by update_copyrights
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
-	       doc/(draft|expired|rfc)/		# imported
+	       doc/(draft|expired|rfc)/ |	# imported
+	       \.txt$		# text files don't really need copyright
 	     %x);
 
     if (!$file_types{$_}) {
