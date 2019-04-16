@@ -242,6 +242,10 @@ extern void mock_assert(const int result, const char* const expression,
 	(mock_assert(0, #expression, __FILE__, __LINE__), abort()) : (void)0)
 #define _assert_true(c, e, f, l) \
 	((c) ? (void)0 : (_assert_true(0, e, f, l), abort()))
+#define _assert_int_equal(a, b, f, l) \
+	(((a) == (b)) ? (void)0 : (_assert_int_equal(a, b, f, l), abort()))
+#define _assert_int_not_equal(a, b, f, l) \
+	(((a) != (b)) ? (void)0 : (_assert_int_not_equal(a, b, f, l), abort()))
 #else /* UNIT_TESTING */
 /*
  * Assertions
