@@ -1094,6 +1094,12 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 					}
 				}
 			}
+			if (rctx->rdataset != NULL) {
+				putrdataset(mctx, &rctx->rdataset);
+			}
+			if (rctx->sigrdataset != NULL) {
+				putrdataset(mctx, &rctx->sigrdataset);
+			}
 			if (n == 0) {
 				/*
 				 * We didn't match any rdatasets (which means
