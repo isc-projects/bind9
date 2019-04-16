@@ -13,9 +13,10 @@
 
 #if HAVE_CMOCKA
 
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
+#include <stdlib.h>
 
 #include <stdio.h>
 #include <string.h>
