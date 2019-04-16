@@ -1,3 +1,5 @@
+5212.	[placeholder]
+
 5211.	[bug]		Allow out-of-zone additional data to be included
 			in authoritative responses if recursion is allowed
 			and "minimal-responses" is disabled.  This behavior
