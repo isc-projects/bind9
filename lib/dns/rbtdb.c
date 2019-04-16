@@ -1002,6 +1002,17 @@ hexdump(const char *desc, unsigned char *data, size_t size) {
 }
 #endif
 
+/* Fixed RRSet helper macros */
+
+#define DNS_RDATASET_LENGTH 2;
+
+#if DNS_RDATASET_FIXED
+#define DNS_RDATASET_ORDER 2
+#define DNS_RDATASET_COUNT (count * 4)
+#else /* !DNS_RDATASET_FIXED */
+#define DNS_RDATASET_ORDER 0
+#define DNS_RDATASET_COUNT 0
+#endif /* DNS_RDATASET_FIXED */
 
 /*
  * DB Routines
@@ -2586,18 +2597,10 @@ setnsec3parameters(dns_db_t *db, rbtdb_version_t *version) {
 			 */
 			raw = (unsigned char *)header + sizeof(*header);
 			count = raw[0] * 256 + raw[1]; /* count */
-#if DNS_RDATASET_FIXED
-			raw += count * 4 + 2;
-#else
-			raw += 2;
-#endif
+			raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
 			while (count-- > 0U) {
 				length = raw[0] * 256 + raw[1];
-#if DNS_RDATASET_FIXED
-				raw += 4;
-#else
-				raw += 2;
-#endif
+				raw += DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
 				region.base = raw;
 				region.length = length;
 				raw += length;
@@ -3429,20 +3432,12 @@ valid_glue(rbtdb_search_t *search, dns_name_t *name, rbtdb_rdatatype_t type,
 	header = search->zonecut_rdataset;
 	raw = (unsigned char *)header + sizeof(*header);
 	count = raw[0] * 256 + raw[1];
-#if DNS_RDATASET_FIXED
-	raw += 2 + (4 * count);
-#else
-	raw += 2;
-#endif
+	raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
 
 	while (count > 0) {
 		count--;
 		size = raw[0] * 256 + raw[1];
-#if DNS_RDATASET_FIXED
-		raw += 4;
-#else
-		raw += 2;
-#endif
+		raw += DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
 		region.base = raw;
 		region.length = size;
 		raw += size;
@@ -3792,18 +3787,11 @@ matchparams(rdatasetheader_t *header, rbtdb_search_t *search)
 
 	raw = (unsigned char *)header + sizeof(*header);
 	count = raw[0] * 256 + raw[1]; /* count */
-#if DNS_RDATASET_FIXED
-	raw += count * 4 + 2;
-#else
-	raw += 2;
-#endif
+	raw += DNS_RDATASET_COUNT + DNS_RDATASET_LENGTH;
+
 	while (count-- > 0) {
 		rdlen = raw[0] * 256 + raw[1];
-#if DNS_RDATASET_FIXED
-		raw += 4;
-#else
-		raw += 2;
-#endif
+		raw += DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
 		region.base = raw;
 		region.length = rdlen;
 		dns_rdata_fromregion(&rdata, search->rbtdb->common.rdclass,
@@ -8790,12 +8778,11 @@ rdataset_first(dns_rdataset_t *rdataset) {
 		return (ISC_R_NOMORE);
 	}
 
-#if DNS_RDATASET_FIXED
-	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0)
-		raw += 2 + (4 * count);
-	else
-#endif
-		raw += 2;
+	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0) {
+		raw += DNS_RDATASET_COUNT;
+	}
+
+	raw += DNS_RDATASET_LENGTH;
 
 	/*
 	 * The privateuint4 field is the number of rdata beyond the
@@ -8830,16 +8817,14 @@ rdataset_next(dns_rdataset_t *rdataset) {
 	 */
 	raw = rdataset->private5;
 #if DNS_RDATASET_FIXED
-	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0) {
-#endif
+	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) == 0)
+#endif /* DNS_RDATASET_FIXED */
+	{
 		length = raw[0] * 256 + raw[1];
 		raw += length;
-#if DNS_RDATASET_FIXED
 	}
-	rdataset->private5 = raw + 4;           /* length(2) + order(2) */
-#else
-	rdataset->private5 = raw + 2;           /* length(2) */
-#endif
+
+	rdataset->private5 = raw + DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
 
 	return (ISC_R_SUCCESS);
 }
@@ -8847,9 +8832,6 @@ rdataset_next(dns_rdataset_t *rdataset) {
 static void
 rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	unsigned char *raw = rdataset->private5;        /* RDATASLAB */
-#if DNS_RDATASET_FIXED
-	unsigned int offset;
-#endif
 	unsigned int length;
 	isc_region_t r;
 	unsigned int flags = 0;
@@ -8862,18 +8844,18 @@ rdataset_current(dns_rdataset_t *rdataset, dns_rdata_t *rdata) {
 	 */
 #if DNS_RDATASET_FIXED
 	if ((rdataset->attributes & DNS_RDATASETATTR_LOADORDER) != 0) {
+		unsigned int offset;
 		offset = (raw[0] << 24) + (raw[1] << 16) +
 			 (raw[2] << 8) + raw[3];
 		raw = rdataset->private3;
 		raw += offset;
 	}
 #endif
+
 	length = raw[0] * 256 + raw[1];
-#if DNS_RDATASET_FIXED
-	raw += 4;
-#else
-	raw += 2;
-#endif
+
+	raw += DNS_RDATASET_ORDER + DNS_RDATASET_LENGTH;
+
 	if (rdataset->type == dns_rdatatype_rrsig) {
 		if (*raw & DNS_RDATASLAB_OFFLINE)
 			flags |= DNS_RDATA_OFFLINE;
