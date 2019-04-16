@@ -6480,10 +6480,14 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
  */
 static isc_result_t
 query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
-	ns_client_t *client = qctx->client;
+	ns_client_t *client;
 	dns_fixedname_t prefix, suffix;
 	unsigned int labels;
 	isc_result_t result;
+
+	REQUIRE(qctx != NULL && qctx->client != NULL);
+
+	client = qctx->client;
 
 	CTRACE(ISC_LOG_DEBUG(3), "query_rpzcname");
 
