@@ -46,6 +46,16 @@ zone "dlv" {
 	file "dlv.db.signed";
 };
 
+zone "trusted" {
+	type master;
+	file "trusted.db.signed";
+};
+
+zone "managed" {
+	type master;
+	file "managed.db.signed";
+};
+
 zone "example" {
 	type master;
 	file "example.db.signed";

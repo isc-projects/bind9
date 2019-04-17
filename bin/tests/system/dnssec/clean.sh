@@ -26,13 +26,14 @@ rm -f ./delve.out*
 rm -f ./dig.out.*
 rm -f ./dsfromkey.out.*
 rm -f ./keygen.err
+rm -f ./dnssectools.out*
 rm -f ./named.secroots.test*
 rm -f ./nosign.before
 rm -f ./ns*/*.nta
 rm -f ./ns*/managed-keys.bind* ./ns*/*.mkeys*
 rm -f ./ns*/named.lock
 rm -f ./ns1/managed.key.id
-rm -f ./ns1/root.db ./ns2/example.db ./ns3/secure.example.db
+rm -f ./ns1/root.db ./ns2/example.db ./ns2/managed.db ./ns2/trusted.db
 rm -f ./ns2/algroll.db
 rm -f ./ns2/badparam.db ./ns2/badparam.db.bad
 rm -f ./ns2/cdnskey-kskonly.secure.db

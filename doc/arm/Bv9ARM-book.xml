@@ -5051,6 +5051,12 @@ options {
 		by the <command>disable-algorithms</command> will be treated
 		as insecure.
 	      </para>
+	      <para>
+		Configured trust anchors in <command>trusted-keys</command>
+		or <command>managed-keys</command> that match a disabled
+		algorithm will be ignored and treated as if they were not
+		configured at all.
+	      </para>
 	    </listitem>
 	  </varlistentry>
 

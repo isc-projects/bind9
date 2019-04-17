@@ -14,24 +14,59 @@
 
 set -e
 
+# Sign child zones (served by ns3).
+( cd ../ns3 && $SHELL sign.sh )
+
+echo_i "ns2/sign.sh"
+
+# Get the DS records for the "trusted." and "managed." zones.
+for subdomain in secure unsupported disabled enabled
+do
+	cp "../ns3/dsset-$subdomain.managed$TP" .
+	cp "../ns3/dsset-$subdomain.trusted$TP" .
+done
+
+# Sign the "trusted." and "managed." zones.
+zone=managed.
+infile=key.db.in
+zonefile=managed.db
+
+keyname1=$("$KEYGEN" -q -a "$ALTERNATIVE_ALGORITHM" -b "$ALTERNATIVE_BITS" -n zone -f KSK "$zone")
+keyname2=$("$KEYGEN" -q -a "$ALTERNATIVE_ALGORITHM" -b "$ALTERNATIVE_BITS" -n zone "$zone")
+
+cat "$infile" "$keyname1.key" "$keyname2.key" > "$zonefile"
+
+"$SIGNER" -P -g -o "$zone" -k "$keyname1" "$zonefile" "$keyname2" > /dev/null 2>&1
+
+zone=trusted.
+infile=key.db.in
+zonefile=trusted.db
+
+keyname1=$("$KEYGEN" -q -a "$ALTERNATIVE_ALGORITHM" -b "$ALTERNATIVE_BITS" -n zone -f KSK "$zone")
+keyname2=$("$KEYGEN" -q -a "$ALTERNATIVE_ALGORITHM" -b "$ALTERNATIVE_BITS" -n zone "$zone")
+
+cat "$infile" "$keyname1.key" "$keyname2.key" > "$zonefile"
+
+"$SIGNER" -P -g -o "$zone" -k "$keyname1" "$zonefile" "$keyname2" > /dev/null 2>&1
+
+# The "example." zone.
 zone=example.
 infile=example.db.in
 zonefile=example.db
 
-# Have the child generate a zone key and pass it to us.
-
-( cd ../ns3 && $SHELL sign.sh )
-
+# Get the DS records for the "example." zone.
 for subdomain in secure badds bogus dynamic keyless nsec3 optout \
 	nsec3-unknown optout-unknown multiple rsasha256 rsasha512 \
 	kskonly update-nsec3 auto-nsec auto-nsec3 secure.below-cname \
 	ttlpatch split-dnssec split-smart expired expiring upper lower \
-	dnskey-unknown dnskey-nsec3-unknown managed-future revkey \
+	dnskey-unknown dnskey-unsupported dnskey-unsupported-2 \
+	dnskey-nsec3-unknown managed-future revkey \
 	dname-at-apex-nsec3 occluded
 do
 	cp "../ns3/dsset-$subdomain.example$TP" .
 done
 
+# Sign the "example." zone.
 keyname1=$("$KEYGEN" -q -a "$ALTERNATIVE_ALGORITHM" -b "$ALTERNATIVE_BITS" -n zone -f KSK "$zone")
 keyname2=$("$KEYGEN" -q -a "$ALTERNATIVE_ALGORITHM" -b "$ALTERNATIVE_BITS" -n zone "$zone")
 
