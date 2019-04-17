@@ -1,3 +1,5 @@
+5222.	[bug]		'delve -t ANY' could leak memory. [GL #983]
+
 5221.	[test]		Enable parallel execution of system tests on
 			Windows. [GL !4101]
 
