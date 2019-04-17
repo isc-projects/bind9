@@ -45,6 +45,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/socket.h>
+#include <isc/refcount.h>
 
 #include <dns/result.h>
 
@@ -75,11 +76,11 @@ struct ns_interface {
 						/*%< UDP dispatchers. */
 	isc_socket_t *		tcpsocket;	/*%< TCP socket. */
 	isc_dscp_t		dscp;		/*%< "listen-on" DSCP value */
-	int32_t			ntcpaccepting;	/*%< Number of clients
+	isc_refcount_t		ntcpaccepting;	/*%< Number of clients
 						     ready to accept new
 						     TCP connections on this
 						     interface */
-	int32_t			ntcpactive;	/*%< Number of clients
+	isc_refcount_t		ntcpactive;	/*%< Number of clients
 						     servicing TCP queries
 						     (whether accepting or
 						     connected) */

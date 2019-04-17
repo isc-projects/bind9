@@ -402,12 +402,10 @@ tcpconn_detach(ns_client_t *client) {
 static void
 mark_tcp_active(ns_client_t *client, bool active) {
 	if (active && !client->tcpactive) {
-		isc_atomic_xadd(&client->interface->ntcpactive, 1);
+		isc_refcount_increment0(&client->interface->ntcpactive, NULL);
 		client->tcpactive = active;
 	} else if (!active && client->tcpactive) {
-		uint32_t old =
-			isc_atomic_xadd(&client->interface->ntcpactive, -1);
-		INSIST(old > 0);
+		isc_refcount_decrement(&client->interface->ntcpactive, NULL);
 		client->tcpactive = active;
 	}
 }
@@ -554,7 +552,7 @@ exit_check(ns_client_t *client) {
 		if (client->mortal && TCP_CLIENT(client) &&
 		    client->newstate != NS_CLIENTSTATE_FREED &&
 		    !ns_g_clienttest &&
-		    isc_atomic_xadd(&client->interface->ntcpaccepting, 0) == 0)
+		    isc_refcount_current(&client->interface->ntcpaccepting) == 0)
 		{
 			/* Nobody else is accepting */
 			client->mortal = false;
@@ -3328,7 +3326,6 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	ns_client_t *client = event->ev_arg;
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
-	uint32_t old;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_NEWCONN);
 	REQUIRE(NS_CLIENT_VALID(client));
@@ -3348,8 +3345,7 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	INSIST(client->naccepts == 1);
 	client->naccepts--;
 
-	old = isc_atomic_xadd(&client->interface->ntcpaccepting, -1);
-	INSIST(old > 0);
+	isc_refcount_decrement(&client->interface->ntcpaccepting, NULL);
 
 	/*
 	 * We must take ownership of the new socket before the exit
@@ -3480,8 +3476,8 @@ client_accept(ns_client_t *client) {
 		 * quota is tcp-clients plus the number of listening
 		 * interfaces plus 1.)
 		 */
-		exit = (isc_atomic_xadd(&client->interface->ntcpactive, 0) >
-			(client->tcpactive ? 1 : 0));
+		exit = (isc_refcount_current(&client->interface->ntcpactive) >
+			(client->tcpactive ? 1U : 0U));
 		if (exit) {
 			client->newstate = NS_CLIENTSTATE_INACTIVE;
 			(void)exit_check(client);
@@ -3539,7 +3535,7 @@ client_accept(ns_client_t *client) {
 	 * listening for connections itself to prevent the interface
 	 * going dead.
 	 */
-	isc_atomic_xadd(&client->interface->ntcpaccepting, 1);
+	isc_refcount_increment0(&client->interface->ntcpaccepting, NULL);
 }
 
 static void
