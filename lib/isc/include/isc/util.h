@@ -12,6 +12,8 @@
 #ifndef ISC_UTIL_H
 #define ISC_UTIL_H 1
 
+#include <inttypes.h>
+
 /*! \file isc/util.h
  * NOTE:
  *
@@ -287,7 +289,11 @@ extern void mock_assert(const int result, const char* const expression,
 /*%
  * Alignment
  */
-#define ISC_ALIGN(x, a) (((x) + (a) - 1) & ~((typeof(x))(a)-1))
+#ifdef __GNUC__
+#define ISC_ALIGN(x, a) (((x) + (a) - 1) & ~((typeof(x))(a) - 1))
+#else
+#define ISC_ALIGN(x, a) (((x) + (a) - 1) & ~((uintmax_t)(a) - 1))
+#endif
 
 /*%
  * Misc
