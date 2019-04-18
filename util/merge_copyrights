@@ -57,7 +57,8 @@ while (<CHANGES>) {
 	       \.conf\.in$ |    # configuration files
 	       \.dir-locals\.el | # emacs local variables
 	       /(dnssafe|openssl)/.*\.[ch]$ |	# imported
-	       doc/(draft|expired|rfc)/		# imported
+	       doc/(draft|expired|rfc)/ |	# imported
+	       \.txt$		# text files don't really need copyright
 	     %x);
 
     if (!$file_types{$_}) {
