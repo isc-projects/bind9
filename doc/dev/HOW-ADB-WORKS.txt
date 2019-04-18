@@ -1,7 +1,3 @@
-Copyright (C) Internet Systems Consortium, Inc. ("ISC")
-
-See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
-
 Recently, several groups have expressed concern over potential
 denial of service attacks within BIND 9, specifically within the ADB
 (address database.)  This document hopes to provide a more clear
