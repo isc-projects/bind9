@@ -168,13 +168,13 @@ compress_test(dns_name_t *name1, dns_name_t *name2, dns_name_t *name3,
 	isc_buffer_setactive(&source, source.used);
 
 	dns_name_init(&name, NULL);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, false,
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0,
 					&target) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, false,
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0,
 					&target) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, false,
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0,
 					&target) == ISC_R_SUCCESS);
-	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, false,
+	RUNTIME_CHECK(dns_name_fromwire(&name, &source, dctx, 0,
 					&target) == ISC_R_SUCCESS);
 	dns_decompress_invalidate(dctx);
 
