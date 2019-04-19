@@ -1420,6 +1420,7 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 get_rsasha1_key_ids_from_sigs() {
+	tr -d '\r' < signer/example.db.signed | \
 	awk '
 		NF < 8 { next }
 		$(NF-5) != "RRSIG" { next }
@@ -1429,7 +1430,8 @@ get_rsasha1_key_ids_from_sigs() {
 			getline;
 			print $3;
 		}
-	' signer/example.db.signed | sort -u
+	' | \
+	sort -u
 }
 
 echo_i "checking that a key using an unsupported algorithm cannot be generated ($n)"
