@@ -27,6 +27,7 @@ RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 wait_for_log() {
         msg=$1
         file=$2
+
         for i in 1 2 3 4 5 6 7 8 9 10; do
                 nextpart "$file" | grep "$msg" > /dev/null && return
                 sleep 1
@@ -3673,29 +3674,33 @@ test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 # Roll the ZSK.
-echo_i "roll ZSK for zone $zone"
-sleep 1
 zsk2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -K ns2 -n zone $zone`
-echo_i "new ZSK $zsk2 created for zone $zone"
 echo "$zsk2" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id2
 ZSK_ID2=`cat ns2/$zone.zsk.id2`
-dnssec_loadkeys_on 2 $zone
+
+echo_i "load new ZSK $ZSK_ID2 for $zone ($n)"
+ret=0
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Wait until new ZSK becomes active.
-sleep 1
-echo_i "make ZSK $ZSK inactive and make new ZSK $zsk2 active for zone $zone"
+echo_i "make ZSK $ZSK_ID inactive and make new ZSK $ZSK_ID2 active for zone $zone ($n)"
+ret=0
 $SETTIME -I now -K ns2 $ZSK > /dev/null
 $SETTIME -A now -K ns2 $zsk2 > /dev/null
-dnssec_loadkeys_on 2 $zone
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Remove the KSK from disk.
-sleep 1
-echo_i "remove the KSK $KSK for zone $zone from disk"
+echo_i "remove the KSK $KSK_ID for zone $zone from disk"
 mv ns2/$KSK.key ns2/$KSK.key.bak
 mv ns2/$KSK.private ns2/$KSK.private.bak
 
 # Update the zone that requires a resign of the SOA RRset.
-sleep 1
 echo_i "update the zone with $zone IN TXT nsupdate added me"
 (
 echo zone $zone
@@ -3733,35 +3738,38 @@ do
 done
 
 # Put back the KSK.
-sleep 1
-echo_i "put back the KSK $KSK for zone $zone from disk"
+echo_i "put back the KSK $KSK_ID for zone $zone from disk"
 mv ns2/$KSK.key.bak ns2/$KSK.key
 mv ns2/$KSK.private.bak ns2/$KSK.private
 
 # Roll the ZSK again.
-sleep 1
 zsk3=`$KEYGEN -q  -r $RANDFILE -a RSASHA1 -b 1024 -K ns2 -n zone $zone`
-echo_i "new ZSK $zsk3 created for zone $zone"
 echo "$zsk3" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id3
 ZSK_ID3=`cat ns2/$zone.zsk.id3`
-dnssec_loadkeys_on 2 $zone
+
+echo_i "load new ZSK $ZSK_ID3 for $zone ($n)"
+ret=0
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Wait until new ZSK becomes active.
-sleep 1
-echo_i "delete old ZSK $ZSK make ZSK $ZSK2 inactive and make new ZSK $zsk3 active for zone $zone"
+echo_i "delete old ZSK $ZSK_ID make ZSK $ZSK_ID2 inactive and make new ZSK $ZSK_ID3 active for zone $zone ($n)"
 $SETTIME -D now -K ns2 $ZSK > /dev/null
 $SETTIME -I +5 -K ns2 $zsk2 > /dev/null
 $SETTIME -A +5 -K ns2 $zsk3 > /dev/null
-dnssec_loadkeys_on 2 $zone
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Remove the KSK from disk.
-sleep 1
-echo_i "remove the KSK $KSK for zone $zone from disk"
+echo_i "remove the KSK $KSK_ID for zone $zone from disk"
 mv ns2/$KSK.key ns2/$KSK.key.bak
 mv ns2/$KSK.private ns2/$KSK.private.bak
 
 # Update the zone that requires a resign of the SOA RRset.
-sleep 1
 echo_i "update the zone with $zone IN TXT nsupdate added me again"
 (
 echo zone $zone
@@ -3801,8 +3809,17 @@ do
 done
 
 # Wait for newest ZSK to become active.
-echo_i "sleep 6 to make new ZSK $zsk3 active and ZSK $zsk2 inactive"
-sleep 6
+echo_i "wait until new ZSK $ZSK_ID3 active and ZSK $ZSK_ID2 inactive"
+for i in 1 2 3 4 5 6 7 8 9 10; do
+    ret=0
+    grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID3 (ZSK) is now active" ns2/named.run > /dev/null || ret=1
+    grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID2 (ZSK) is now inactive" ns2/named.run > /dev/null || ret=1
+    [ "$ret" -eq 0 ] && break
+    sleep 1
+done
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Redo the tests one more time.
 echo_i "checking DNSKEY RRset is signed with KSK only, new ZSK active (update-check-ksk, dnssec-ksk-only) ($n)"
