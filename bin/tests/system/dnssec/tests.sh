@@ -3650,14 +3650,23 @@ ZSK_ID=`cat ns2/${zone}.zsk.id`
 SECTIONS="+answer +noauthority +noadditional"
 echo_i "testing zone $zone KSK=$KSK_ID ZSK=$ZSK_ID"
 
+# Print IDs of keys used for generating RRSIG records for RRsets of type $1
+# found in dig output file $2.
+get_keys_which_signed() {
+	qtype=$1
+	output=$2
+	# The key ID is the 11th column of the RRSIG record line.
+	awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print $11}' < "$output"
+}
+
 # Basic checks to make sure everything is fine before the KSK is made offline.
 echo_i "checking DNSKEY RRset is signed with KSK only (update-check-ksk, dnssec-ksk-only) ($n)"
 ret=0
 $DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+lines=$(get_keys_which_signed "DNSKEY" dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
-grep $KSK_ID dig.out.test$n > /dev/null || ret=1
-grep $ZSK_ID dig.out.test$n > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$KSK_ID$" > /dev/null || ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3665,10 +3674,10 @@ status=$((status+ret))
 echo_i "checking SOA RRset is signed with ZSK only (update-check-ksk, dnssec-ksk-only) ($n)"
 ret=0
 $DIG $DIGOPTS $SECTIONS @10.53.0.2 soa $zone > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "SOA" {print}' dig.out.test$n | wc -l)
-grep $KSK_ID dig.out.test$n > /dev/null && ret=1
-grep $ZSK_ID dig.out.test$n > /dev/null || ret=1
+lines=$(get_keys_which_signed "SOA" dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
+get_keys_which_signed "SOA" dig.out.test$n | grep "^$KSK_ID$" > /dev/null && ret=1
+get_keys_which_signed "SOA" dig.out.test$n | grep "^$ZSK_ID$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3713,11 +3722,11 @@ echo send
 echo_i "checking DNSKEY RRset is signed with KSK only, KSK offline (update-check-ksk, dnssec-ksk-only) ($n)"
 ret=0
 $DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+lines=$(get_keys_which_signed "DNSKEY" dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
-grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$KSK_ID$" > /dev/null || ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null && ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3727,11 +3736,11 @@ do
   echo_i "checking $qtype RRset is signed with ZSK only, KSK offline (update-check-ksk and dnssec-ksk-only) ($n)"
   ret=0
   $DIG $DIGOPTS $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
-  grep $KSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null || ret=1
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
   test "$lines" -eq 1 || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null || ret=1
   n=$((n+1))
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
@@ -3782,12 +3791,12 @@ echo send
 echo_i "checking DNSKEY RRset is signed with KSK only, old ZSK deleted (update-check-ksk, dnssec-ksk-only) ($n)"
 ret=0
 $DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+lines=$(get_keys_which_signed "DNSKEY" dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
-grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
-grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$KSK_ID$" > /dev/null || ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID3$" > /dev/null && ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -3797,12 +3806,12 @@ do
   echo_i "checking $qtype RRset is signed with ZSK only, old ZSK deleted (update-check-ksk and dnssec-ksk-only) ($n)"
   ret=0
   $DIG $DIGOPTS $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
-  grep $KSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
   test "$lines" -eq 1 || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID3$" > /dev/null && ret=1
   n=$((n+1))
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
@@ -3825,12 +3834,12 @@ status=$((status+ret))
 echo_i "checking DNSKEY RRset is signed with KSK only, new ZSK active (update-check-ksk, dnssec-ksk-only) ($n)"
 ret=0
 $DIG $DIGOPTS $SECTIONS @10.53.0.2 DNSKEY $zone > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "DNSKEY" {print}' dig.out.test$n | wc -l)
+lines=$(get_keys_which_signed "DNSKEY" dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
-grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
-grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$KSK_ID$" > /dev/null || ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null && ret=1
+get_keys_which_signed "DNSKEY" dig.out.test$n | grep "^$ZSK_ID3$" > /dev/null && ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
