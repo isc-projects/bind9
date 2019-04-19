@@ -350,9 +350,9 @@ ns_os_shutdown(void) {
 	if (lockfilefd != -1) {
 		(void) UnlockFile((HANDLE) _get_osfhandle(lockfilefd),
 				  0, 0, 0, 1);
-		close(lockfilefd);
-		lockfilefd = -1;
 	}
+	cleanup_lockfile();
+
 	ntservice_shutdown();	/* This MUST be the last thing done */
 }
 
