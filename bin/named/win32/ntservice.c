@@ -82,7 +82,7 @@ ServiceControl(DWORD dwCtrlCode) {
 	case SERVICE_CONTROL_STOP:
 		ns_server_flushonshutdown(ns_g_server, true);
 		isc_app_shutdown();
-		UpdateSCM(SERVICE_STOPPED);
+		UpdateSCM(SERVICE_STOP_PENDING);
 		break;
 	default:
 		break;

@@ -1,3 +1,7 @@
+5213.	[bug]		win32: Eliminated a race which allowed named.exe running
+			as a service to be killed prematurely during shutdown.
+			[GL #978]
+
 5210.	[bug]		When dnstap is enabled and recursion is not
 			available, incoming queries are now logged
 			as "auth". Previously, this depended on whether
