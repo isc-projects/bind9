@@ -1,3 +1,7 @@
+5213.	[bug]		win32: Eliminated a race which allowed named.exe running
+			as a service to be killed prematurely during shutdown.
+			[GL #978]
+
 5211.	[bug]		Allow out-of-zone additional data to be included
 			in authoritative responses if recursion is allowed
 			and "minimal-responses" is disabled.  This behavior
