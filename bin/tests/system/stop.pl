@@ -141,6 +141,8 @@ exit($errors);
 sub server_lock_file {
 	my ( $server ) = @_;
 
+	return if (defined($ENV{'CYGWIN'}));
+
 	return $testdir . "/" . $server . "/named.lock" if ($server =~ /^ns/);
 	return if ($server =~ /^ans/);
 	return $testdir . "/" . $server . "/lwresd.lock" if ($server =~ /^lwresd/);
