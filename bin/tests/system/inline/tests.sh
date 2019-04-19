@@ -13,6 +13,7 @@ SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
 DIGOPTS="+tcp +dnssec -p ${PORT}"
+DIGUDPOPTS="+dnssec -p ${PORT}"
 RNDCCMD="$RNDC -c $SYSTEMTESTTOP/common/rndc.conf -p ${CONTROLPORT} -s"
 
 status=0
@@ -28,6 +29,13 @@ do
 done
 
 n=`expr $n + 1`
+echo_i "checking that an unsupported algorithm is not used for signing ($n)"
+ret=0
+grep -q "algorithm is unsupported" ns3/named.run || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "checking that rrsigs are replaced with ksk only ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 axfr nsec3. |
@@ -41,8 +49,8 @@ ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$RNDCCMD 10.53.0.3 signing -list bits > signing.out.test$n 2>&1
-	keys=`grep '^Done signing' signing.out.test$n | wc -l`
+	$RNDCCMD 10.53.0.3 signing -list bits > signing.out.test$n.$i 2>&1
+	keys=`grep '^Done signing' signing.out.test$n.$i | wc -l`
 	[ $keys = 2 ] || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
@@ -72,8 +80,8 @@ done 2>&1 |sed 's/^/ns3 /' | cat_i
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ans=0
-	$RNDCCMD 10.53.0.3 signing -list bits > signing.out.test$n 2>&1
-        num=`grep "Done signing with" signing.out.test$n | wc -l`
+	$RNDCCMD 10.53.0.3 signing -list bits > signing.out.test$n.$i 2>&1
+        num=`grep "Done signing with" signing.out.test$n.$i | wc -l`
 	[ $num = 1 ] && break
 	sleep 1
 done
@@ -100,8 +108,8 @@ $RNDCCMD 10.53.0.3 signing -clear all bits > /dev/null || ret=1
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ans=0
-	$RNDCCMD 10.53.0.3 signing -list bits > signing.out.test$n 2>&1
-	grep "No signing records found" signing.out.test$n > /dev/null || ans=1
+	$RNDCCMD 10.53.0.3 signing -list bits > signing.out.test$n.$i 2>&1
+	grep "No signing records found" signing.out.test$n.$i > /dev/null || ans=1
 	[ $ans = 1 ] || break
 	sleep 1
 done
@@ -144,9 +152,9 @@ ret=0
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$DIG $DIGOPTS @10.53.0.3 added.bits A > dig.out.ns3.test$n
-	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
+	$DIG $DIGOPTS @10.53.0.3 added.bits A > dig.out.ns3.test$n.$i
+	grep "status: NOERROR" dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
@@ -175,10 +183,10 @@ echo_i "checking YYYYMMDDVV (2011072400) serial in signed zone ($n)"
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$DIG $DIGOPTS @10.53.0.3 bits SOA > dig.out.ns3.test$n
-	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
-	grep "2011072400" dig.out.ns3.test$n > /dev/null || ret=1
+	$DIG $DIGOPTS @10.53.0.3 bits SOA > dig.out.ns3.test$n.$i
+	grep "status: NOERROR" dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "2011072400" dig.out.ns3.test$n.$i > /dev/null || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
@@ -191,8 +199,8 @@ ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$RNDCCMD 10.53.0.3 signing -list noixfr > signing.out.test$n 2>&1
-	keys=`grep '^Done signing' signing.out.test$n | wc -l`
+	$RNDCCMD 10.53.0.3 signing -list noixfr > signing.out.test$n.$i 2>&1
+	keys=`grep '^Done signing' signing.out.test$n.$i | wc -l`
 	[ $keys = 2 ] || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
@@ -222,9 +230,9 @@ ret=0
 for i in 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$DIG $DIGOPTS @10.53.0.3 added.noixfr A > dig.out.ns3.test$n
-	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
+	$DIG $DIGOPTS @10.53.0.3 added.noixfr A > dig.out.ns3.test$n.$i
+	grep "status: NOERROR" dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
@@ -253,10 +261,10 @@ echo_i "checking YYYYMMDDVV (2011072400) serial in signed zone, noixfr ($n)"
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$DIG $DIGOPTS @10.53.0.3 noixfr SOA > dig.out.ns3.test$n
-	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
-	grep "2011072400" dig.out.ns3.test$n > /dev/null || ret=1
+	$DIG $DIGOPTS @10.53.0.3 noixfr SOA > dig.out.ns3.test$n.$i
+	grep "status: NOERROR" dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "2011072400" dig.out.ns3.test$n.$i > /dev/null || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
@@ -269,8 +277,8 @@ ret=0
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$RNDCCMD 10.53.0.3 signing -list master  > signing.out.test$n 2>&1
-	keys=`grep '^Done signing' signing.out.test$n | wc -l`
+	$RNDCCMD 10.53.0.3 signing -list master  > signing.out.test$n.$i 2>&1
+	keys=`grep '^Done signing' signing.out.test$n.$i | wc -l`
 	[ $keys = 2 ] || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
@@ -291,8 +299,8 @@ done 2>&1 |sed 's/^/ns3 /' | cat_i
 for i in 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$RNDCCMD 10.53.0.3 signing -list master > signing.out.test$n 2>&1
-        num=`grep "Done signing with" signing.out.test$n | wc -l`
+	$RNDCCMD 10.53.0.3 signing -list master > signing.out.test$n.$i 2>&1
+        num=`grep "Done signing with" signing.out.test$n.$i | wc -l`
 	[ $num = 1 ] && break
 	sleep 1
 done
@@ -318,8 +326,8 @@ $RNDCCMD 10.53.0.3 signing -clear all master > /dev/null || ret=1
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ans=0
-	$RNDCCMD 10.53.0.3 signing -list master > signing.out.test$n 2>&1
-	grep "No signing records found" signing.out.test$n > /dev/null || ans=1
+	$RNDCCMD 10.53.0.3 signing -list master > signing.out.test$n.$i 2>&1
+	grep "No signing records found" signing.out.test$n.$i > /dev/null || ans=1
 	[ $ans = 1 ] || break
 	sleep 1
 done
@@ -336,9 +344,9 @@ $RNDCCMD 10.53.0.3 reload master 2>&1 | sed 's/^/ns3 /' | cat_i
 for i in 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$DIG $DIGOPTS @10.53.0.3 e.master A > dig.out.ns3.test$n
-	grep "10.0.0.5" dig.out.ns3.test$n > /dev/null || ans=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
+	$DIG $DIGOPTS @10.53.0.3 e.master A > dig.out.ns3.test$n.$i
+	grep "10.0.0.5" dig.out.ns3.test$n.$i > /dev/null || ans=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ans=1
 	[ $ans = 1 ] || break
 	sleep 1
 done
@@ -365,9 +373,9 @@ $RNDCCMD 10.53.0.3 reload master 2>&1 | sed 's/^/ns3 /' | cat_i
 for i in 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$DIG $DIGOPTS @10.53.0.3 c.master A > dig.out.ns3.test$n
-	grep "10.0.0.3" dig.out.ns3.test$n > /dev/null || ans=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
+	$DIG $DIGOPTS @10.53.0.3 c.master A > dig.out.ns3.test$n.$i
+	grep "10.0.0.3" dig.out.ns3.test$n.$i > /dev/null || ans=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ans=1
 	[ $ans = 1 ] || break
 	sleep 1
 done
@@ -392,8 +400,8 @@ ret=0
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$RNDCCMD 10.53.0.3 signing -list dynamic > signing.out.test$n 2>&1
-	keys=`grep '^Done signing' signing.out.test$n | wc -l`
+	$RNDCCMD 10.53.0.3 signing -list dynamic > signing.out.test$n.$i 2>&1
+	keys=`grep '^Done signing' signing.out.test$n.$i | wc -l`
 	[ $keys = 2 ] || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
@@ -440,10 +448,10 @@ EOF
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ans=0
-	$DIG $DIGOPTS @10.53.0.3 e.dynamic > dig.out.ns3.test$n
-	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ans=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ans=1
-	grep "1.2.3.4" dig.out.ns3.test$n > /dev/null || ans=1
+	$DIG $DIGOPTS @10.53.0.3 e.dynamic > dig.out.ns3.test$n.$i
+	grep "status: NOERROR" dig.out.ns3.test$n.$i > /dev/null || ans=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ans=1
+	grep "1.2.3.4" dig.out.ns3.test$n.$i > /dev/null || ans=1
 	[ $ans = 0 ] && break
 	sleep 1
 done
@@ -488,10 +496,10 @@ echo_i "checking YYYYMMDDVV (2011072450) serial in signed zone ($n)"
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$DIG $DIGOPTS @10.53.0.3 bits SOA > dig.out.ns3.test$n
-	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
-	grep "2011072450" dig.out.ns3.test$n > /dev/null || ret=1
+	$DIG $DIGOPTS @10.53.0.3 bits SOA > dig.out.ns3.test$n.$i
+	grep "status: NOERROR" dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "2011072450" dig.out.ns3.test$n.$i > /dev/null || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
@@ -520,10 +528,10 @@ echo_i "checking YYYYMMDDVV (2011072450) serial in signed zone, noixfr ($n)"
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$DIG $DIGOPTS @10.53.0.3 noixfr SOA > dig.out.ns3.test$n
-	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
-	grep "2011072450" dig.out.ns3.test$n > /dev/null || ret=1
+	$DIG $DIGOPTS @10.53.0.3 noixfr SOA > dig.out.ns3.test$n.$i
+	grep "status: NOERROR" dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "2011072450" dig.out.ns3.test$n.$i > /dev/null || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
@@ -552,10 +560,10 @@ echo_i "checking forwarded update on signed zone ($n)"
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	ret=0
-	$DIG $DIGOPTS @10.53.0.3 bits SOA > dig.out.ns3.test$n
-	grep "status: NOERROR" dig.out.ns3.test$n > /dev/null || ret=1
-	grep "ANSWER: 2," dig.out.ns3.test$n > /dev/null || ret=1
-	grep "2011072460" dig.out.ns3.test$n > /dev/null || ret=1
+	$DIG $DIGOPTS @10.53.0.3 bits SOA > dig.out.ns3.test$n.$i
+	grep "status: NOERROR" dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "ANSWER: 2," dig.out.ns3.test$n.$i > /dev/null || ret=1
+	grep "2011072460" dig.out.ns3.test$n.$i > /dev/null || ret=1
 	if [ $ret = 0 ]; then break; fi
 	sleep 1
 done
@@ -800,9 +808,9 @@ $RNDCCMD 10.53.0.3 signing -nsec3param 1 0 0 - retransfer3 > /dev/null 2>&1 || r
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$DIG $DIGOPTS @10.53.0.3 nonexist.retransfer3 A > dig.out.ns3.pre.test$n
-	grep "status: NXDOMAIN" dig.out.ns3.pre.test$n > /dev/null || ans=1
-	grep "NSEC3" dig.out.ns3.pre.test$n > /dev/null || ans=1
+	$DIG $DIGOPTS @10.53.0.3 nonexist.retransfer3 A > dig.out.ns3.pre.test$n.$i
+	grep "status: NXDOMAIN" dig.out.ns3.pre.test$n.$i > /dev/null || ans=1
+	grep "NSEC3" dig.out.ns3.pre.test$n.$i > /dev/null || ans=1
 	[ $ans = 0 ] && break
 	sleep 1
 done
@@ -810,9 +818,9 @@ $RNDCCMD 10.53.0.3 retransfer retransfer3 2>&1 || ret=1
 for i in 0 1 2 3 4 5 6 7 8 9
 do
 	ans=0
-	$DIG $DIGOPTS @10.53.0.3 nonexist.retransfer3 A > dig.out.ns3.post.test$n
-	grep "status: NXDOMAIN" dig.out.ns3.post.test$n > /dev/null || ans=1
-	grep "NSEC3" dig.out.ns3.post.test$n > /dev/null || ans=1
+	$DIG $DIGOPTS @10.53.0.3 nonexist.retransfer3 A > dig.out.ns3.post.test$n.$i
+	grep "status: NXDOMAIN" dig.out.ns3.post.test$n.$i > /dev/null || ans=1
+	grep "NSEC3" dig.out.ns3.post.test$n.$i > /dev/null || ans=1
 	[ $ans = 0 ] && break
 	sleep 1
 done
@@ -1087,8 +1095,8 @@ EOF
 
 for i in 1 2 3 4 5 6 7 8 9 10
 do
-    $DIG $DIGOPTS @10.53.0.3 soa inactivezsk  > dig.out.ns3.post.test$n || ret=1
-    soa2=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.post.test$n`
+    $DIG $DIGOPTS @10.53.0.3 soa inactivezsk  > dig.out.ns3.post.test$n.$i || ret=1
+    soa2=`awk '$4 == "SOA" { print $7 }' dig.out.ns3.post.test$n.$i`
     test ${soa1:-0} -ne ${soa2:-0} && break
     sleep 1
 done
@@ -1317,8 +1325,8 @@ $RNDCCMD 10.53.0.3 loadkeys delayedkeys > rndc.out.ns3.pre.test$n 2>&1 || ret=1
 ans=1
 for i in 1 2 3 4 5 6 7 8 9 10
 do
-	$RNDCCMD 10.53.0.3 signing -list delayedkeys > signing.out.test$n 2>&1
-	num=`grep "Done signing with" signing.out.test$n | wc -l`
+	$RNDCCMD 10.53.0.3 signing -list delayedkeys > signing.out.test$n.$i 2>&1
+	num=`grep "Done signing with" signing.out.test$n.$i | wc -l`
 	if [ $num -eq 2 ]; then
 		ans=0
 		break

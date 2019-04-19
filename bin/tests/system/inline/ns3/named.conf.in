@@ -23,6 +23,7 @@ options {
 	transfer-source 10.53.0.3;
 	port @PORT@;
 	pid-file "named.pid";
+	session-keyfile "session.key";
 	listen-on { 10.53.0.3; };
 	listen-on-v6 { none; };
 	recursion no;
@@ -167,4 +168,11 @@ zone "removedkeys-secondary" {
 	inline-signing yes;
 	auto-dnssec maintain;
 	file "removedkeys-secondary.bk";
+};
+
+zone "unsupported" {
+	type master;
+	file "unsupported.db";
+	inline-signing yes;
+	auto-dnssec maintain;
 };

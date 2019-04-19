@@ -12,6 +12,11 @@
 SYSTEMTESTTOP=../..
 . $SYSTEMTESTTOP/conf.sh
 
+# Fake an unsupported key
+unsupportedkey=`$KEYGEN -q -r $RANDFILE -a $DEFAULT_ALGORITHM -b $DEFAULT_BITS -n zone unsupported`
+awk '$3 == "DNSKEY" { $6 = 255 } { print }' ${unsupportedkey}.key > ${unsupportedkey}.tmp
+mv ${unsupportedkey}.tmp ${unsupportedkey}.key
+
 zone=bits
 rm -f K${zone}.+*+*.key
 rm -f K${zone}.+*+*.private
@@ -46,7 +51,7 @@ rm -f K${zone}.+*+*.private
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
 $DSFROMKEY -T 1200 $keyname >> ../ns1/root.db
-$SIGNER -S -O raw -L 2000042407 -o ${zone} ${zone}.db > /dev/null 2>&1
+$SIGNER -r $RANDFILE -S -O raw -L 2000042407 -o ${zone} ${zone}.db > /dev/null 2>&1
 cp master2.db.in updated.db
 
 # signatures are expired and should be regenerated on startup
@@ -56,7 +61,7 @@ rm -f K${zone}.+*+*.private
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 768 -n zone $zone`
 keyname=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -f KSK $zone`
 $DSFROMKEY -T 1200 $keyname >> ../ns1/root.db
-$SIGNER -PS -s 20100101000000 -e 20110101000000 -O raw -L 2000042407 -o ${zone} ${zone}.db > /dev/null 2>&1
+$SIGNER -r $RANDFILE -PS -s 20100101000000 -e 20110101000000 -O raw -L 2000042407 -o ${zone} ${zone}.db > /dev/null 2>&1
 
 zone=retransfer
 rm -f K${zone}.+*+*.key

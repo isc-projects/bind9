@@ -36,6 +36,13 @@ ALTERNATIVE_ALGORITHM=RSASHA1
 ALTERNATIVE_ALGORITHM_NUMBER=5
 ALTERNATIVE_BITS=1280
 
+# This is an algorithm that is used for tests against the
+# "disable-algorithms" configuration option.  Must be different from above
+# algorithms.
+DISABLED_ALGORITHM=ECDSAP384SHA384
+DISABLED_ALGORITHM_NUMBER=14
+DISABLED_BITS=384
+
 ARPANAME=$TOP/Build/$VSCONF/arpaname@EXEEXT@
 CHECKCONF=$TOP/Build/$VSCONF/named-checkconf@EXEEXT@
 CHECKDS="$PYTHON `cygpath -w $TOP/bin/python/dnssec-checkds.py`"
@@ -336,6 +343,9 @@ copy_setports() {
 	-e "s/${atsign}ALTERNATIVE_ALGORITHM${atsign}/${ALTERNATIVE_ALGORITHM}/g" \
 	-e "s/${atsign}ALTERNATIVE_ALGORITHM_NUMBER${atsign}/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
 	-e "s/${atsign}ALTERNATIVE_BITS${atsign}/${ALTERNATIVE_BITS}/g" \
+	-e "s/${atsign}DISABLED_ALGORITHM${atsign}/${DISABLED_ALGORITHM}/g" \
+	-e "s/${atsign}DISABLED_ALGORITHM_NUMBER${atsign}/${DISABLED_ALGORITHM_NUMBER}/g" \
+	-e "s/${atsign}DISABLED_BITS${atsign}/${DISABLED_BITS}/g" \
 	$1 > $2
 }
 

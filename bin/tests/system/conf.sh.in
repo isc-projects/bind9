@@ -27,6 +27,13 @@ ALTERNATIVE_ALGORITHM=RSASHA1
 ALTERNATIVE_ALGORITHM_NUMBER=5
 ALTERNATIVE_BITS=1280
 
+# This is an algorithm that is used for tests against the
+# "disable-algorithms" configuration option.  Must be different from above
+# algorithms.
+DISABLED_ALGORITHM=ECDSAP384SHA384
+DISABLED_ALGORITHM_NUMBER=14
+DISABLED_BITS=384
+
 NAMED=$TOP/bin/named/named
 # We must use "named -l" instead of "lwresd" because argv[0] is lost
 # if the program is libtoolized.
@@ -353,6 +360,9 @@ copy_setports() {
 	-e "s/@ALTERNATIVE_ALGORITHM@/${ALTERNATIVE_ALGORITHM}/g" \
 	-e "s/@ALTERNATIVE_ALGORITHM_NUMBER@/${ALTERNATIVE_ALGORITHM_NUMBER}/g" \
 	-e "s/@ALTERNATIVE_BITS@/${ALTERNATIVE_BITS}/g" \
+	-e "s/@DISABLED_ALGORITHM@/${DISABLED_ALGORITHM}/g" \
+	-e "s/@DISABLED_ALGORITHM_NUMBER@/${DISABLED_ALGORITHM_NUMBER}/g" \
+	-e "s/@DISABLED_BITS@/${DISABLED_BITS}/g" \
 	$1 > $2
 }
 

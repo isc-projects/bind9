@@ -844,7 +844,7 @@ load_view_keys(const cfg_obj_t *keys, const cfg_obj_t *vconfig,
 			key = cfg_listelt_value(elt2);
 			result = dstkey_fromconfig(vconfig, key, managed,
 						   &dstkey, mctx);
-			if (result ==  DST_R_UNSUPPORTEDALG) {
+			if (result == DST_R_UNSUPPORTEDALG) {
 				result = ISC_R_SUCCESS;
 				continue;
 			}
