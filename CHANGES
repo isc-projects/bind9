@@ -1,3 +1,6 @@
+5214.	[bug]		win32: named now removes its lock file upon shutdown.
+			[GL #979]
+
 5213.	[bug]		win32: Eliminated a race which allowed named.exe running
 			as a service to be killed prematurely during shutdown.
 			[GL #978]
