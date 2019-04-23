@@ -6751,10 +6751,6 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
 	case DNS_R_DNAME:
 		return (query_dname(qctx));
 
-	case DNS_R_FORMERR:
-		QUERY_ERROR(qctx, DNS_R_SERVFAIL);
-		return (ns_query_done(qctx));
-
 	default:
 		/*
 		 * Something has gone wrong.
@@ -6770,6 +6766,13 @@ query_gotanswer(query_ctx_t *qctx, isc_result_t res) {
 			 */
 			return (query_lookup(qctx));
 		}
+
+		/*
+		 * Regardless of the triggering result, we definitely
+		 * want to return SERVFAIL from here.
+		 */
+		qctx->client->rcode_override = dns_rcode_servfail;
+
 		QUERY_ERROR(qctx, result);
 		return (ns_query_done(qctx));
 	}
