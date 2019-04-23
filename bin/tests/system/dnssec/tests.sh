@@ -44,6 +44,7 @@ rndccmd() {
 wait_for_log() {
         msg=$1
         file=$2
+
         for i in 1 2 3 4 5 6 7 8 9 10; do
                 nextpart "$file" | grep "$msg" > /dev/null && return
                 sleep 1
@@ -3891,16 +3892,25 @@ ZSK_ID=`cat ns2/${zone}.zsk.id`
 SECTIONS="+answer +noauthority +noadditional"
 echo_i "testing zone $zone KSK=$KSK_ID ZSK=$ZSK_ID"
 
+# Print IDs of keys used for generating RRSIG records for RRsets of type $1
+# found in dig output file $2.
+get_keys_which_signed() {
+	qtype=$1
+	output=$2
+	# The key ID is the 11th column of the RRSIG record line.
+	awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print $11}' < "$output"
+}
+
 # Basic checks to make sure everything is fine before the KSK is made offline.
 for qtype in "DNSKEY" "CDNSKEY" "CDS"
 do
   echo_i "checking $qtype RRset is signed with KSK only (update-check-ksk, dnssec-ksk-only) ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
   test "$lines" -eq 1 || ret=1
-  grep $KSK_ID dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID dig.out.test$n > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
   n=$((n+1))
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
@@ -3909,37 +3919,42 @@ done
 echo_i "checking SOA RRset is signed with ZSK only (update-check-ksk and dnssec-ksk-only) ($n)"
 ret=0
 dig_with_opts $SECTIONS @10.53.0.2 soa $zone > dig.out.test$n
-lines=$(awk '$4 == "RRSIG" && $5 == "SOA" {print}' dig.out.test$n | wc -l)
-grep $KSK_ID dig.out.test$n > /dev/null && ret=1
-grep $ZSK_ID dig.out.test$n > /dev/null || ret=1
+lines=$(get_keys_which_signed "SOA" dig.out.test$n | wc -l)
 test "$lines" -eq 1 || ret=1
+get_keys_which_signed "SOA" dig.out.test$n | grep "^$KSK_ID$" > /dev/null && ret=1
+get_keys_which_signed "SOA" dig.out.test$n | grep "^$ZSK_ID$" > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
 # Roll the ZSK.
-sleep 1
 zsk2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
-echo_i "new ZSK $zsk2 created for zone $zone"
 echo "$zsk2" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id2
 ZSK_ID2=`cat ns2/$zone.zsk.id2`
-dnssec_loadkeys_on 2 $zone
+
+echo_i "load new ZSK $ZSK_ID2 for $zone ($n)"
+ret=0
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Wait until new ZSK becomes active.
-sleep 1
-echo_i "make ZSK $ZSK inactive and make new ZSK $zsk2 active for zone $zone"
+echo_i "make ZSK $ZSK_ID inactive and make new ZSK $ZSK_ID2 active for zone $zone ($n)"
+ret=0
 $SETTIME -I now -K ns2 $ZSK > /dev/null
 $SETTIME -A now -K ns2 $zsk2 > /dev/null
-dnssec_loadkeys_on 2 $zone
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Remove the KSK from disk.
-sleep 1
-echo_i "remove the KSK $KSK for zone $zone from disk"
+echo_i "remove the KSK $KSK_ID for zone $zone from disk"
 mv ns2/$KSK.key ns2/$KSK.key.bak
 mv ns2/$KSK.private ns2/$KSK.private.bak
 
 # Update the zone that requires a resign of the SOA RRset.
-sleep 1
 echo_i "update the zone with $zone IN TXT nsupdate added me"
 (
 echo zone $zone
@@ -3954,11 +3969,11 @@ do
   echo_i "checking $qtype RRset is signed with KSK only, KSK offline (update-check-ksk, dnssec-ksk-only) ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
   test "$lines" -eq 1 || ret=1
-  grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null && ret=1
   n=$((n+1))
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
@@ -3969,46 +3984,49 @@ do
   echo_i "checking $qtype RRset is signed with ZSK only, KSK offline (update-check-ksk and dnssec-ksk-only) ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
-  grep $KSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null || ret=1
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
   test "$lines" -eq 1 || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null || ret=1
   n=$((n+1))
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
 done
 
 # Put back the KSK.
-sleep 1
-echo_i "put back the KSK $KSK for zone $zone from disk"
+echo_i "put back the KSK $KSK_ID for zone $zone from disk"
 mv ns2/$KSK.key.bak ns2/$KSK.key
 mv ns2/$KSK.private.bak ns2/$KSK.private
 
 # Roll the ZSK again.
-sleep 1
 zsk3=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -K ns2 -n zone "$zone")
-echo_i "new ZSK $zsk3 created for zone $zone"
 echo "$zsk3" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id3
 ZSK_ID3=`cat ns2/$zone.zsk.id3`
-dnssec_loadkeys_on 2 $zone
+
+echo_i "load new ZSK $ZSK_ID3 for $zone ($n)"
+ret=0
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Wait until new ZSK becomes active.
-sleep 1
-echo_i "delete old ZSK $ZSK make ZSK $ZSK2 inactive and make new ZSK $zsk3 active for zone $zone"
+echo_i "delete old ZSK $ZSK_ID make ZSK $ZSK_ID2 inactive and make new ZSK $ZSK_ID3 active for zone $zone ($n)"
 $SETTIME -D now -K ns2 $ZSK > /dev/null
 $SETTIME -I +5 -K ns2 $zsk2 > /dev/null
 $SETTIME -A +5 -K ns2 $zsk3 > /dev/null
-dnssec_loadkeys_on 2 $zone
+dnssec_loadkeys_on 2 $zone || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Remove the KSK from disk.
-sleep 1
-echo_i "remove the KSK $KSK for zone $zone from disk"
+echo_i "remove the KSK $KSK_ID for zone $zone from disk"
 mv ns2/$KSK.key ns2/$KSK.key.bak
 mv ns2/$KSK.private ns2/$KSK.private.bak
 
 # Update the zone that requires a resign of the SOA RRset.
-sleep 1
 echo_i "update the zone with $zone IN TXT nsupdate added me again"
 (
 echo zone $zone
@@ -4023,12 +4041,12 @@ do
   echo_i "checking $qtype RRset is signed with KSK only, old ZSK deleted (update-check-ksk, dnssec-ksk-only) ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
   test "$lines" -eq 1 || ret=1
-  grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID3$" > /dev/null && ret=1
   n=$((n+1))
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
@@ -4039,20 +4057,29 @@ do
   echo_i "checking $qtype RRset is signed with ZSK only, old ZSK deleted (update-check-ksk and dnssec-ksk-only) ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
-  grep $KSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
   test "$lines" -eq 1 || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID3$" > /dev/null && ret=1
   n=$((n+1))
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
 done
 
 # Wait for newest ZSK to become active.
-echo_i "sleep 6 to make new ZSK $zsk3 active and ZSK $zsk2 inactive"
-sleep 6
+echo_i "wait until new ZSK $ZSK_ID3 active and ZSK $ZSK_ID2 inactive"
+for i in 1 2 3 4 5 6 7 8 9 10; do
+    ret=0
+    grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID3 (ZSK) is now active" ns2/named.run > /dev/null || ret=1
+    grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID2 (ZSK) is now inactive" ns2/named.run > /dev/null || ret=1
+    [ "$ret" -eq 0 ] && break
+    sleep 1
+done
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 # Redo the tests one more time.
 for qtype in "DNSKEY" "CDNSKEY" "CDS"
@@ -4060,12 +4087,12 @@ do
   echo_i "checking $qtype RRset is signed with KSK only, new ZSK active (update-check-ksk, dnssec-ksk-only) ($n)"
   ret=0
   dig_with_opts $SECTIONS @10.53.0.2 $qtype $zone > dig.out.test$n
-  lines=$(awk -v qt="$qtype" '$4 == "RRSIG" && $5 == qt {print}' dig.out.test$n | wc -l)
+  lines=$(get_keys_which_signed $qtype dig.out.test$n | wc -l)
   test "$lines" -eq 1 || ret=1
-  grep $KSK_ID  dig.out.test$n > /dev/null || ret=1
-  grep $ZSK_ID  dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID2 dig.out.test$n > /dev/null && ret=1
-  grep $ZSK_ID3 dig.out.test$n > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$KSK_ID$" > /dev/null || ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID2$" > /dev/null && ret=1
+  get_keys_which_signed $qtype dig.out.test$n | grep "^$ZSK_ID3$" > /dev/null && ret=1
   n=$((n+1))
   test "$ret" -eq 0 || echo_i "failed"
   status=$((status+ret))
