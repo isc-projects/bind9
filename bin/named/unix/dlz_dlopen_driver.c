@@ -14,7 +14,9 @@
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
+#if HAVE_DLFCN_H
 #include <dlfcn.h>
+#endif
 
 #include <dns/log.h>
 #include <dns/result.h>
