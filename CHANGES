@@ -1,3 +1,5 @@
+5217.	[bug]		Restore key id calculation for RSAMD5. [GL #996]
+
 5215.	[bug]		Change #5124 was incomplete; named could still
 			return FORMERR instead of SERVFAIL in some cases.
 			[GL #990]
