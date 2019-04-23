@@ -1,3 +1,5 @@
+5218.	[bug]		Conditionally include <dlfcn.h>. [GL #995]
+
 5217.	[bug]		Restore key id calculation for RSAMD5. [GL #996]
 
 5216.	[bug]		Fetches-per-zone counter wasn't updated correctly
