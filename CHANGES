@@ -1,3 +1,7 @@
+5215.	[bug]		Change #5124 was incomplete; named could still
+			return FORMERR instead of SERVFAIL in some cases.
+			[GL #990]
+
 5214.	[bug]		win32: named now removes its lock file upon shutdown.
 			[GL #979]
 
