@@ -2522,7 +2522,7 @@ socket_create(isc_socketmgr_t *manager0, int pf, isc_sockettype_t type,
 		abort();
 	}
 	sock->threadid = gen_threadid(sock);
-	isc_refcount_init(&sock->references, 1);
+	isc_refcount_increment(&sock->references);
 	thread = &manager->threads[sock->threadid];
 	*socketp = (isc_socket_t *)sock;
 
@@ -3025,7 +3025,7 @@ internal_accept(isc__socket_t *sock) {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPT]);
 	} else {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
-		NEWCONNSOCK(dev)->references--;
+		isc_refcount_decrement(&NEWCONNSOCK(dev)->references);
 		free_socket((isc__socket_t **)&dev->newsocket);
 	}
 
@@ -5139,13 +5139,15 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 				ISC_LIST_UNLINK(sock->accept_list, dev,
 						ev_link);
 
-				NEWCONNSOCK(dev)->references--;
+				isc_refcount_decrement(
+						&NEWCONNSOCK(dev)->references);
 				free_socket((isc__socket_t **)&dev->newsocket);
 
 				dev->result = ISC_R_CANCELED;
 				dev->ev_sender = sock;
 				isc_task_sendtoanddetach(&current_task,
-						       ISC_EVENT_PTR(&dev), sock->threadid);
+							 ISC_EVENT_PTR(&dev),
+							 sock->threadid);
 			}
 
 			dev = next;
