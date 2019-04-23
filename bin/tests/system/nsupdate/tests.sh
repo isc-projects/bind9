@@ -424,8 +424,6 @@ update add example 3600 nsec3param 1 0 0 -
 send
 EOF
 
-sleep 1
-
 # the zone is not signed.  The nsec3param records should be removed.
 # this also proves that the server is still running.
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocmd +norec example.\
@@ -442,8 +440,6 @@ server 10.53.0.3 ${PORT}
 update add nsec3param.test 3600 NSEC3PARAM 1 0 1 -
 send
 EOF
-
-sleep 1
 
 $DIG $DIGOPTS +tcp +noadd +nosea +nostat +noquest +nocmd +norec nsec3param.test.\
         @10.53.0.3 nsec3param > dig.out.ns3.$n || ret=1
