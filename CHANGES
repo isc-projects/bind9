@@ -1,3 +1,6 @@
+5216.	[bug]		Fetches-per-zone counter wasn't updated correctly
+			when doing qname minimization. [GL #992]
+
 5215.	[bug]		Change #5124 was incomplete; named could still
 			return FORMERR instead of SERVFAIL in some cases.
 			[GL #990]
