@@ -804,8 +804,8 @@ AC_MSG_CHECKING(for GSSAPI library)
 AC_ARG_WITH(gssapi,
 	    AS_HELP_STRING([--with-gssapi=[PATH|[/path/]krb5-config]],
 			   [Specify path for system-supplied GSSAPI
-				[default=yes]]),
-	    use_gssapi="$withval", use_gssapi="yes")
+				[default=auto]]),
+	    use_gssapi="$withval", use_gssapi="auto")
 
 # first try using krb5-config, if that does not work then fall back to "yes" method.
 
@@ -859,7 +859,7 @@ esac
 
 case "$host" in
 *darwin*)
-	if test "yes" = "$use_gssapi"
+	if test "yes" = "$use_gssapi" -o "auto" = "$use_gssapi"
 	then
 		use_gssapi=framework
 	fi
@@ -872,7 +872,7 @@ esac
 # for the specification of gssapi and krb5 headers in different locations,
 # which probably ought to be fixed although fixing might raise the issue of
 # trying to build with incompatible versions of gssapi and krb5.
-if test "yes" = "$use_gssapi"
+if test "yes" = "$use_gssapi" -o "auto" = "$use_gssapi"
 then
 	# first, deal with the obvious
 	if test \( -f /usr/include/kerberosv5/krb5.h -o \
@@ -896,8 +896,11 @@ then
 				break
 			fi
 		fi
-		use_gssapi="no"
 	    done
+	    if test "auto" = "$use_gssapi"
+	    then
+		use_gssapi="no"
+	    fi
 	fi
 fi
 
