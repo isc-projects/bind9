@@ -1,3 +1,5 @@
+5217.	[bug]		Restore key id calculation for RSAMD5. [GL #996]
+
 5216.	[bug]		Fetches-per-zone counter wasn't updated correctly
 			when doing qname minimization. [GL #992]
 
