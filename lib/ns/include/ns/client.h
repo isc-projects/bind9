@@ -170,6 +170,14 @@ struct ns_client {
 	uint32_t		expire;
 	unsigned char		*keytag;
 	uint16_t		keytag_len;
+
+	/*%
+	 * Used to override the DNS response code in ns_client_error().
+	 * If set to -1, the rcode is determined from the result code,
+	 * but if set to any other value, the least significant 12
+	 * bits will be used as the rcode in the response message.
+	 */
+	int32_t			rcode_override;
 };
 
 typedef ISC_QUEUE(ns_client_t) client_queue_t;
