@@ -3821,8 +3821,7 @@ done
 echo_i "wait until new ZSK $ZSK_ID3 active and ZSK $ZSK_ID2 inactive"
 for i in 1 2 3 4 5 6 7 8 9 10; do
     ret=0
-    grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID3 (ZSK) is now active" ns2/named.run > /dev/null || ret=1
-    grep "DNSKEY $zone/$DEFAULT_ALGORITHM/$ZSK_ID2 (ZSK) is now inactive" ns2/named.run > /dev/null || ret=1
+    grep "add re-sign updatecheck-kskonly\.secure\..*RRSIG.*SOA.*$ZSK_ID3.*$zone.*" ns2/named.run > /dev/null || ret=1
     [ "$ret" -eq 0 ] && break
     sleep 1
 done
