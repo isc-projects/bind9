@@ -42,6 +42,7 @@ cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
 cp trusted.conf ../ns6/trusted.conf
 cp trusted.conf ../ns7/trusted.conf
+cp trusted.conf ../ns9/trusted.conf
 
 # ...or with a managed key.
 keyfile_to_managed_keys $keyname > managed.conf
