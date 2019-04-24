@@ -1,3 +1,6 @@
+5233.	[bug]		Negative trust anchors did not work with "forward only;"
+			to validating resolvers. [GL #997]
+
 5232.	[bug]		Fix a high-load race/crash in isc_socket_cancel().
 			[GL #834]
 
