@@ -4192,6 +4192,13 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 		fctx_done(fctx, result, __LINE__);
 		goto cleanup;
 	}
+
+	result = fcount_incr(fctx, false);
+	if (result != ISC_R_SUCCESS) {
+		fctx_done(fctx, result, __LINE__);
+		goto cleanup;
+	}
+
 	dns_name_free(&fctx->qmindcname, fctx->mctx);
 	dns_name_init(&fctx->qmindcname, NULL);
 	result = dns_name_dup(dcname, fctx->mctx, &fctx->qmindcname);
