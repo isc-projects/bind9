@@ -1,3 +1,5 @@
+5218.	[bug]		Conditionally include <dlfcn.h>. [GL #995]
+
 5214.	[bug]		win32: named now removes its lock file upon shutdown.
 			[GL #979]
 
