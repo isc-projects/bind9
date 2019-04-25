@@ -1,5 +1,8 @@
 5192.	[bug]		configure --fips-mode failed. [GL #946]
 
+5167.	[bug]		nxdomain-redirect could sometimes lookup the wrong
+			redirect name. [GL #892]
+
 	--- 9.12.4 released ---
 
 	--- 9.12.4rc1 released ---
