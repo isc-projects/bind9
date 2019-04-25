@@ -308,17 +308,18 @@ contains the private key\&.
 .PP
 The
 \&.key
-file contains a DNS KEY record that can be inserted into a zone file (directly or with a $INCLUDE statement)\&.
+file contains a DNSKEY or KEY record\&. When a zone is being signed by
+\fBnamed\fR
+or
+\fBdnssec\-signzone\fR\fB\-S\fR, DNSKEY records are included automatically\&. In other cases, the
+\&.key
+file can be inserted into a zone file manually or with a
+\fB$INCLUDE\fR
+statement\&.
 .PP
 The
 \&.private
 file contains algorithm\-specific fields\&. For obvious security reasons, this file does not have general read permission\&.
-.PP
-Both
-\&.key
-and
-\&.private
-files are generated for symmetric cryptography algorithms such as HMAC\-MD5, even though the public and private key are equivalent\&.
 .SH "EXAMPLE"
 .PP
 To generate an ECDSAP256SHA256 zone\-signing key for the zone

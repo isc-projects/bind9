@@ -49,6 +49,8 @@
 
 5202.	[bug]		<dns/ecs.h> was missing ISC_LANG_ENDDECLS. [GL #976]
 
+	--- 9.14.1 released ---
+
 5201.	[bug]		Fix a possible deadlock in RPZ update code. [GL #973]
 
 5200.	[security]	tcp-clients settings could be exceeded in some cases,

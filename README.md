@@ -160,6 +160,11 @@ of supported platforms. In addition to OpenSSL, BIND now requires
 support for IPv6, threads, and standard atomic operations provided
 by the C compiler. Non-threaded builds are no longer supported.
 
+#### BIND 9.14.1
+
+BIND 9.14.1 is a maintenance release, and addresses security
+vulnerabilities disclosed in CVE-2018-5743 and CVE-2019-6467.
+
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
