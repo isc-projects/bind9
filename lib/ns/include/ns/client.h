@@ -80,6 +80,13 @@
  *** Types
  ***/
 
+/*% reference-counted TCP connection object */
+typedef struct ns_tcpconn {
+	isc_refcount_t		refs;
+	isc_quota_t		*tcpquota;
+	bool			pipelined;
+} ns_tcpconn_t;
+
 /*% nameserver client structure */
 struct ns_client {
 	unsigned int		magic;
@@ -95,7 +102,8 @@ struct ns_client {
 	int			nupdates;
 	int			nctls;
 	int			references;
-	bool		needshutdown; 	/*
+	bool			tcpactive;
+	bool			needshutdown; 	/*
 						 * Used by clienttest to get
 						 * the client to go from
 						 * inactive to free state
@@ -131,10 +139,9 @@ struct ns_client {
 	isc_stdtime_t		now;
 	isc_time_t		tnow;
 	dns_name_t		signername;   /*%< [T]SIG key name */
-	dns_name_t *		signer;	      /*%< NULL if not valid sig */
-	bool		mortal;	      /*%< Die after handling request */
-	bool		pipelined;   /*%< TCP queries not in sequence */
-	isc_quota_t		*tcpquota;
+	dns_name_t		*signer;      /*%< NULL if not valid sig */
+	bool			mortal;	      /*%< Die after handling request */
+	ns_tcpconn_t		*tcpconn;
 	isc_quota_t		*recursionquota;
 	ns_interface_t		*interface;
 
