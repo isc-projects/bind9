@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.6</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.6-P1</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
@@ -44,7 +44,6 @@
 <dt><span class="section"><a href="Bv9ARM.ch09.html#win_support">Legacy Windows No Longer Supported</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_features">New Features</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_removed">Removed Features</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_bugs">Bug Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#end_of_life">End of Life</a></span></dt>
@@ -54,7 +53,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.6</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.6-P1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -122,121 +121,22 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  <span class="command"><strong>named</strong></span> could crash during recursive processing
-	  of DNAME records when <span class="command"><strong>deny-answer-aliases</strong></span> was
-	  in use. This flaw is disclosed in CVE-2018-5740. [GL #387]
+	  The TCP client quota set using the <span class="command"><strong>tcp-clients</strong></span>
+	  option could be exceeded in some cases. This could lead to
+	  exhaustion of file descriptors. This flaw is disclosed in
+	  CVE-2018-5743. [GL #615]
 	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  When recursion is enabled but the <span class="command"><strong>allow-recursion</strong></span>
-	  and <span class="command"><strong>allow-query-cache</strong></span> ACLs are not specified, they
-	  should be limited to local networks, but they were inadvertently set
-	  to match the default <span class="command"><strong>allow-query</strong></span>, thus allowing
-	  remote queries. This flaw is disclosed in CVE-2018-5738. [GL #309]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Code change #4964, intended to prevent double signatures
-	  when deleting an inactive zone DNSKEY in some situations,
-	  introduced a new problem during zone processing in which
-	  some delegation glue RRsets are incorrectly identified
-	  as needing RRSIGs, which are then created for them using
-	  the current active ZSK for the zone. In some, but not all
-	  cases, the newly-signed RRsets are added to the zone's
-	  NSEC/NSEC3 chain, but incompletely -- this can result in
-	  a broken chain, affecting validation of proof of nonexistence
-	  for records in the zone. [GL #771]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> could crash if it managed a DNSSEC
-	  security root with <span class="command"><strong>managed-keys</strong></span> and the
-	  authoritative zone rolled the key to an algorithm not supported
-	  by BIND 9.  This flaw is disclosed in CVE-2018-5745. [GL #780]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> leaked memory when processing a
-	  request with multiple Key Tag EDNS options present. ISC
-	  would like to thank Toshifumi Sakaguchi for bringing this
-	  to our attention.  This flaw is disclosed in CVE-2018-5744.
-	  [GL #772]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Zone transfer controls for writable DLZ zones were not
-	  effective as the <span class="command"><strong>allowzonexfr</strong></span> method was
-	  not being called for such zones. This flaw is disclosed in
-	  CVE-2019-6465. [GL #790]
-	</p>
-      </li>
-</ul></div>
+      </li></ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> now supports the "root key sentinel"
-	  mechanism. This enables validating resolvers to indicate
-	  which trust anchors are configured for the root, so that
-	  information about root key rollover status can be gathered.
-	  To disable this feature, add
-	  <span class="command"><strong>root-key-sentinel no;</strong></span> to
-	  <code class="filename">named.conf</code>.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Added the ability not to return a DNS COOKIE option when one
-	  is present in the request.  To prevent a cookie being returned,
-	  add <span class="command"><strong>answer-cookie no;</strong></span> to
-	  <code class="filename">named.conf</code>. [GL #173]
-	</p>
-	<p>
-	  <span class="command"><strong>answer-cookie no</strong></span> is only intended as a
-	  temporary measure, for use when <span class="command"><strong>named</strong></span>
-	  shares an IP address with other servers that do not yet
-	  support DNS COOKIE.  A mismatch between servers on the
-	  same address is not expected to cause operational problems,
-	  but the option to disable COOKIE responses so that all
-	  servers have the same behavior is provided out of an
-	  abundance of caution. DNS COOKIE is an important security
-	  mechanism, and should not be disabled unless absolutely
-	  necessary.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Two new update policy rule types have been added
-	  <span class="command"><strong>krb5-selfsub</strong></span> and <span class="command"><strong>ms-selfsub</strong></span>
-	  which allow machines with Kerberos principals to update
-	  the name space at or below the machine names identified
-	  in the respective principals.
-	</p>
-      </li>
-</ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_removed"></a>Removed Features</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  <span class="command"><strong>named</strong></span> will now log a warning if the old
-	  BIND now can be compiled against libidn2 library to add
-	  IDNA2008 support.  Previously BIND only supported IDNA2003
-	  using (now obsolete) idnkit-1 library.
+	  None.
 	</p>
       </li></ul></div>
   </div>
@@ -244,75 +144,21 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  <span class="command"><strong>dig +noidnin</strong></span> can be used to disable IDN
-	  processing on the input domain name, when BIND is compiled
-	  with IDN support.
+	  None.
 	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  Multiple <span class="command"><strong>cookie-secret</strong></span> clause are now
-	  supported.  The first <span class="command"><strong>cookie-secret</strong></span> in
-	  <code class="filename">named.conf</code> is used to generate new
-	  server cookies.  Any others are used to accept old server
-	  cookies or those generated by other servers using the
-	  matching <span class="command"><strong>cookie-secret</strong></span>.
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  The <span class="command"><strong>rndc nta</strong></span> command could not differentiate
-	  between views of the same name but different class; this
-	  has been corrected with the addition of a <span class="command"><strong>-class</strong></span>
-	  option. [GL #105]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  When compiled with IDN support, the <span class="command"><strong>dig</strong></span> and the
-	  <span class="command"><strong>nslookup</strong></span> commands now disable IDN processing when
-	  the standard output is not a tty (e.g. not used by human).  The command
-	  line options +idnin and +idnout need to be used to enable IDN
-	  processing when <span class="command"><strong>dig</strong></span> or <span class="command"><strong>nslookup</strong></span>
-	  is used from the shell scripts.
-	</p>
-      </li>
-</ul></div>
+      </li></ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
-<li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  When a negative trust anchor was added to multiple views
-	  using <span class="command"><strong>rndc nta</strong></span>, the text returned via
-	  <span class="command"><strong>rndc</strong></span> was incorrectly truncated after the
-	  first line, making it appear that only one NTA had been
-	  added. This has been fixed. [GL #105]
+	  None.
 	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>named</strong></span> now rejects excessively large
-	  incremental (IXFR) zone transfers in order to prevent
-	  possible corruption of journal files which could cause
-	  <span class="command"><strong>named</strong></span> to abort when loading zones. [GL #339]
-	</p>
-      </li>
-<li class="listitem">
-	<p>
-	  <span class="command"><strong>rndc reload</strong></span> could cause <span class="command"><strong>named</strong></span>
-	  to leak memory if it was invoked before the zone loading actions
-	  from a previous <span class="command"><strong>rndc reload</strong></span> command were
-	  completed. [RT #47076]
-	</p>
-      </li>
-</ul></div>
+      </li></ul></div>
   </div>
 
   <div class="section">
@@ -355,6 +201,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.6 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.6-P1 (Extended Support Version)</p>
 </body>
 </html>
