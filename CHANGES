@@ -51,6 +51,11 @@
 
 5201.	[bug]		Fix a possible deadlock in RPZ update code. [GL #973]
 
+5199.	[security]	In certain configurations, named could crash
+			if nxdomain-redirect was in use and a redirected
+			query resulted in an NXDOMAIN from the cache.
+			(CVE-2019-6467) [GL #880]
+
 5198.	[bug]		If a fetch context was being shut down and, at the same
 			time, we returned from qname minimization, an INSIST
 			could be hit. [GL #966]

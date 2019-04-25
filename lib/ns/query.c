@@ -1312,7 +1312,6 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 	    dns_dbversion_t **versionp, bool *is_zonep)
 {
 	isc_result_t result;
-
 	isc_result_t tresult;
 	unsigned int namelabels;
 	unsigned int zonelabels;
@@ -1329,8 +1328,9 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 				 dbp, versionp);
 
 	/* See how many labels are in the zone's name.	  */
-	if (result == ISC_R_SUCCESS && zone != NULL)
+	if (result == ISC_R_SUCCESS && zone != NULL) {
 		zonelabels = dns_name_countlabels(dns_zone_getorigin(zone));
+	}
 
 	/*
 	 * If # zone labels < # name labels, try to find an even better match
@@ -1397,8 +1397,11 @@ query_getdb(ns_client_t *client, dns_name_t *name, dns_rdatatype_t qtype,
 		 * If neither attempt above succeeded, return the cache instead
 		 */
 		*is_zonep = true;
-	} else if (result == ISC_R_NOTFOUND) {
-		result = query_getcachedb(client, name, qtype, dbp, options);
+	} else {
+		if (result == ISC_R_NOTFOUND) {
+			result = query_getcachedb(client, name, qtype, dbp,
+						  options);
+		}
 		*is_zonep = false;
 	}
 	return (result);
@@ -4805,11 +4808,13 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 
 	CTRACE(ISC_LOG_DEBUG(3), "redirect2");
 
-	if (client->view->redirectzone == NULL)
+	if (client->view->redirectzone == NULL) {
 		return (ISC_R_NOTFOUND);
+	}
 
-	if (dns_name_issubdomain(name, client->view->redirectzone))
+	if (dns_name_issubdomain(name, client->view->redirectzone)) {
 		return (ISC_R_NOTFOUND);
+	}
 
 	found = dns_fixedname_initname(&fixed);
 	dns_rdataset_init(&trdataset);
@@ -4817,8 +4822,9 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 	dns_clientinfomethods_init(&cm, ns_client_sourceip);
 	dns_clientinfo_init(&ci, client, NULL);
 
-	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp))
+	if (WANTDNSSEC(client) && dns_db_iszone(*dbp) && dns_db_issecure(*dbp)) {
 		return (ISC_R_NOTFOUND);
+	}
 
 	if (WANTDNSSEC(client) && dns_rdataset_isassociated(rdataset)) {
 		if (rdataset->trust == dns_trust_secure)
@@ -4855,16 +4861,19 @@ redirect2(ns_client_t *client, dns_name_t *name, dns_rdataset_t *rdataset,
 					      redirectname, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (ISC_R_NOTFOUND);
-	} else
+	} else {
 		dns_name_copy(redirectname, client->view->redirectzone, NULL);
+	}
 
 	options = 0;
 	result = query_getdb(client, redirectname, qtype, options, &zone,
 			     &db, &version, &is_zone);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (ISC_R_NOTFOUND);
-	if (zone != NULL)
+	}
+	if (zone != NULL) {
 		dns_zone_detach(&zone);
+	}
 
 	/*
 	 * Lookup the requested data in the redirect zone.
@@ -5522,7 +5531,6 @@ query_lookup(query_ctx_t *qctx) {
 			return (ns_query_done(qctx));
 		}
 	}
-
 	return (query_gotanswer(qctx, result));
 
  cleanup:
@@ -5914,7 +5922,6 @@ query_resume(query_ctx_t *qctx) {
 		RESTORE(qctx->zone, qctx->client->query.redirect.zone);
 		qctx->authoritative =
 			qctx->client->query.redirect.authoritative;
-		qctx->is_zone = qctx->client->query.redirect.is_zone;
 
 		/*
 		 * Free resources used while recursing.
@@ -6023,7 +6030,6 @@ query_resume(query_ctx_t *qctx) {
 			    ISC_EVENT_PTR(&qctx->event), &qctx->event);
 	} else if (REDIRECT(qctx->client)) {
 		result = qctx->client->query.redirect.result;
-		qctx->is_zone = qctx->client->query.redirect.is_zone;
 	} else {
 		result = qctx->event->result;
 	}
