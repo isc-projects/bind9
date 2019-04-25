@@ -386,8 +386,8 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	 * connections will be handled in parallel even though there is
 	 * only one client initially.
 	 */
-	ifp->ntcpaccepting = 0;
-	ifp->ntcpactive = 0;
+	isc_refcount_init(&ifp->ntcpaccepting, 0);
+	isc_refcount_init(&ifp->ntcpactive, 0);
 
 	ifp->nudpdispatch = 0;
 
@@ -617,6 +617,9 @@ ns_interface_destroy(ns_interface_t *ifp) {
 	DESTROYLOCK(&ifp->lock);
 
 	ns_interfacemgr_detach(&ifp->mgr);
+
+	isc_refcount_destroy(&ifp->ntcpactive);
+	isc_refcount_destroy(&ifp->ntcpaccepting);
 
 	ifp->magic = 0;
 	isc_mem_put(mctx, ifp, sizeof(*ifp));
