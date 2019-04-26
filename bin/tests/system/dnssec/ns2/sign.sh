@@ -138,7 +138,7 @@ cat "$infile" "$keyname1.key" "$keyname2.key" > "$zonefile"
 
 # Sign the privately secure file
 
-privzone=private.secure.example.
+privzone=private.secure.example
 privinfile=private.secure.example.db.in
 privzonefile=private.secure.example.db
 
@@ -153,7 +153,7 @@ cat "$privinfile" "$privkeyname.key" > "$privzonefile"
 dlvzone=dlv.
 dlvinfile=dlv.db.in
 dlvzonefile=dlv.db
-dlvsetfile="dlvset-$(echo "$privzone" |sed -e "s/\\.$//g")$TP"
+dlvsetfile="dlvset-${privzone}${TP}"
 
 dlvkeyname=$("$KEYGEN" -q -a "${DEFAULT_ALGORITHM}" -b "${DEFAULT_BITS}" -n zone "$dlvzone")
 
