@@ -134,7 +134,7 @@ $SIGNER -P -g -r $RANDFILE -o $zone -k $keyname1 $zonefile $keyname2 > /dev/null
 
 # Sign the privately secure file
 
-privzone=private.secure.example.
+privzone=private.secure.example
 privinfile=private.secure.example.db.in
 privzonefile=private.secure.example.db
 
@@ -150,7 +150,7 @@ $SIGNER -P -g -r $RANDFILE -o $privzone -l dlv $privzonefile > /dev/null
 dlvzone=dlv.
 dlvinfile=dlv.db.in
 dlvzonefile=dlv.db
-dlvsetfile=dlvset-`echo $privzone |sed -e "s/\.$//g"`$TP
+dlvsetfile=dlvset-${privzone}${TP}
 
 dlvkeyname=`$KEYGEN -q -r $RANDFILE -a RSAMD5 -b 768 -n zone $dlvzone`
 

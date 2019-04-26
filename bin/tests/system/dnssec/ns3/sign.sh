@@ -238,7 +238,7 @@ $SIGNER -P -3 - -U -A -r $RANDFILE -o $zone $zonefile > /dev/null 2>&1
 # A zone that is signed with an unknown DNSKEY algorithm.
 # Algorithm 7 is replaced by 100 in the zone and dsset.
 #
-zone=dnskey-unknown.example.
+zone=dnskey-unknown.example
 infile=dnskey-unknown.example.db.in
 zonefile=dnskey-unknown.example.db
 
@@ -250,14 +250,14 @@ $SIGNER -P -3 - -r $RANDFILE -o $zone -O full -f ${zonefile}.tmp $zonefile > /de
 
 awk '$4 == "DNSKEY" { $7 = 100 } $4 == "RRSIG" { $6 = 100 } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
-DSFILE=dsset-`echo ${zone} |sed -e "s/\.$//g"`$TP
+DSFILE=dsset-${zone}${TP}
 $DSFROMKEY -A -f ${zonefile}.signed $zone > $DSFILE
 
 #
 # A zone that is signed with an unsupported DNSKEY algorithm (3).
 # Algorithm 7 is replaced by 255 in the zone and dsset.
 #
-zone=dnskey-unsupported.example.
+zone=dnskey-unsupported.example
 infile=dnskey-unsupported.example.db.in
 zonefile=dnskey-unsupported.example.db
 
@@ -269,14 +269,14 @@ $SIGNER -P -3 - -r $RANDFILE -o $zone -O full -f ${zonefile}.tmp $zonefile > /de
 
 awk '$4 == "DNSKEY" { $7 = 255 } $4 == "RRSIG" { $6 = 255 } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
-DSFILE="dsset-$(echo ${zone} |sed -e "s/\\.$//g")$TP"
+DSFILE="dsset-${zone}${TP}"
 $DSFROMKEY -A -f ${zonefile}.signed $zone > $DSFILE
 
 #
 # A zone with a published unsupported DNSKEY algorithm (Reserved).
 # Different from above because this key is not intended for signing.
 #
-zone=dnskey-unsupported-2.example.
+zone=dnskey-unsupported-2.example
 infile=dnskey-unsupported-2.example.db.in
 zonefile=dnskey-unsupported-2.example.db
 
@@ -291,7 +291,7 @@ $SIGNER -P -3 - -r $RANDFILE -o $zone -f ${zonefile}.signed $zonefile > /dev/nul
 # A zone with a unknown DNSKEY algorithm + unknown NSEC3 hash algorithm (-U).
 # Algorithm 7 is replaced by 100 in the zone and dsset.
 #
-zone=dnskey-nsec3-unknown.example.
+zone=dnskey-nsec3-unknown.example
 infile=dnskey-nsec3-unknown.example.db.in
 zonefile=dnskey-nsec3-unknown.example.db
 
@@ -303,7 +303,7 @@ $SIGNER -P -3 - -r $RANDFILE -o $zone -U -O full -f ${zonefile}.tmp $zonefile > 
 
 awk '$4 == "DNSKEY" { $7 = 100; print } $4 == "RRSIG" { $6 = 100; print } { print }' ${zonefile}.tmp > ${zonefile}.signed
 
-DSFILE=dsset-`echo ${zone} |sed -e "s/\.$//g"`$TP
+DSFILE=dsset-${zone}${TP}
 $DSFROMKEY -A -f ${zonefile}.signed $zone > $DSFILE
 
 #
