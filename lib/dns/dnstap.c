@@ -209,12 +209,13 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	env = isc_mem_get(mctx, sizeof(dns_dtenv_t));
 
 	memset(env, 0, sizeof(dns_dtenv_t));
+	isc_mem_attach(mctx, &env->mctx);
 	env->reopen_task = reopen_task;
 	isc_mutex_init(&env->reopen_lock);
 	env->reopen_queued = false;
-	env->path = isc_mem_strdup(mctx, path);
+	env->path = isc_mem_strdup(env->mctx, path);
 	isc_refcount_init(&env->refcount, 1);
-	CHECK(isc_stats_create(mctx, &env->stats, dns_dnstapcounter_max));
+	CHECK(isc_stats_create(env->mctx, &env->stats, dns_dnstapcounter_max));
 
 	fwopt = fstrm_writer_options_init();
 	if (fwopt == NULL) {
@@ -263,8 +264,6 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 	env->fopt = *foptp;
 	*foptp = NULL;
 
-	isc_mem_attach(mctx, &env->mctx);
-
 	env->magic = DTENV_MAGIC;
 	*envp = env;
 
@@ -280,7 +279,7 @@ dns_dt_create(isc_mem_t *mctx, dns_dtmode_t mode, const char *path,
 
 	if (result != ISC_R_SUCCESS) {
 		isc_mutex_destroy(&env->reopen_lock);
-		isc_mem_free(mctx, env->path);
+		isc_mem_free(env->mctx, env->path);
 		if (env->stats != NULL) {
 			isc_stats_detach(&env->stats);
 		}
