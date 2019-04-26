@@ -1,3 +1,7 @@
+5219.	[bug]		Fixed a race in the filter-aaaa plugin that could
+			trigger a crash when returning an instance object
+			to the memory pool. [GL #982]
+
 5218.	[bug]		Conditionally include <dlfcn.h>. [GL #995]
 
 5217.	[bug]		Restore key id calculation for RSAMD5. [GL #996]
