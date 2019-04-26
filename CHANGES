@@ -1,3 +1,5 @@
+5239.	[func]		Change the json-c detection to pkg-config. [GL #855]
+
 5238.	[bug]		Fix a possible deadlock in TCP code. [GL #1046]
 
 5237.	[bug]		Recurse to find the root server list with 'dig +trace'.
