@@ -208,5 +208,21 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+key=`$KEYGEN -q -a RSASHA1 $czone`
+
+echo_i "checking -p output time is accepted ($n)"
+t=`$SETTIME -pA $key | sed 's/.*: //'`
+$SETTIME -Psync "$t" $key > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+echo_i "checking -up output time is accepted ($n)"
+t=`$SETTIME -upA $key | sed 's/.*: //'`
+$SETTIME -Dsync "$t" $key > /dev/null 2>&1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
