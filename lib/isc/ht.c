@@ -95,6 +95,8 @@ isc_ht_destroy(isc_ht_t **htp) {
 	REQUIRE(htp != NULL);
 
 	ht = *htp;
+	*htp = NULL;
+
 	REQUIRE(ISC_HT_VALID(ht));
 
 	ht->magic = 0;
@@ -116,7 +118,6 @@ isc_ht_destroy(isc_ht_t **htp) {
 	isc_mem_put(ht->mctx, ht->table, ht->size * sizeof(isc_ht_node_t*));
 	isc_mem_putanddetach(&ht->mctx, ht, sizeof(struct isc_ht));
 
-	*htp = NULL;
 }
 
 isc_result_t
