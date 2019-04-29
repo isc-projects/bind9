@@ -7,6 +7,10 @@
 5888.	[bug]		Only write key files if the dnssec-policy keymgr has
 			changed the metadata. [GL #3302]
 
+5837.	[func]		Key timing options for `dnssec-keygen` and
+			`dnssec-settime` now accept times as printed by
+			`dnssec-settime -p`. [GL !2947]
+
 	--- 9.18.3 released ---
 
 5886.	[security]	Fix a crash in DNS-over-HTTPS (DoH) code caused by
