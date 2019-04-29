@@ -53,6 +53,9 @@
 
 5202.	[bug]		<dns/ecs.h> was missing ISC_LANG_ENDDECLS. [GL #976]
 
+5190.	[bug]		Ignore trust anchors using disabled algorithms.
+			[GL #806]
+
 	--- 9.14.1 released ---
 
 5201.	[bug]		Fix a possible deadlock in RPZ update code. [GL #973]
@@ -84,9 +87,6 @@
 
 5193.	[bug]		EID and NIMLOC failed to do multi-line output
 			correctly. [GL #899]
-
-5190.	[bug]		Ignore trust anchors using disabled algorithms.
-			[GL #806]
 
 5189.	[cleanup]	Remove revoked root DNSKEY from bind.keys. [GL #945]
 
