@@ -4477,6 +4477,13 @@ isc_socket_bind(isc_socket_t *sock0, const isc_sockaddr_t *sockaddr,
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d) failed", sock->fd);
 		}
+#if defined(__FreeBSD_kernel__) && defined(SO_REUSEPORT_LB)
+		if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEPORT_LB,
+			       (void *)&on, sizeof(on)) < 0)
+		{
+			UNEXPECTED_ERROR(__FILE__, __LINE__,
+					 "setsockopt(%d) failed", sock->fd);
+		}
 #elif defined(__linux__) && defined(SO_REUSEPORT)
 		if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEPORT,
 			       (void *)&on, sizeof(on)) < 0)
@@ -5336,7 +5343,8 @@ init_hasreuseport() {
  * We only want to use it on Linux, if it's available. On BSD we want to dup()
  * sockets instead of re-binding them.
  */
-#if defined(SO_REUSEPORT) && defined(__linux__)
+#if (defined(SO_REUSEPORT) && defined(__linux__)) || \
+    (defined(SO_REUSEPORT_LB) && defined(__FreeBSD_kernel__))
 	int sock, yes = 1;
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
 	if (sock < 0) {
@@ -5350,8 +5358,13 @@ init_hasreuseport() {
 	{
 		close(sock);
 		return;
+#if defined(__FreeBSD_kernel__)
+	} else if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT_LB,
+			      (void *)&yes, sizeof(yes)) < 0)
+#else
 	} else if (setsockopt(sock, SOL_SOCKET, SO_REUSEPORT,
 			      (void *)&yes, sizeof(yes)) < 0)
+#endif
 	{
 		close(sock);
 		return;
