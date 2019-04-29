@@ -4475,12 +4475,14 @@ isc_socket_bind(isc_socket_t *sock0, const isc_sockaddr_t *sockaddr,
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d) failed", sock->fd);
 		}
+#elif defined(__linux__) && defined(SO_REUSEPORT)
 		if (setsockopt(sock->fd, SOL_SOCKET, SO_REUSEPORT,
 			       (void *)&on, sizeof(on)) < 0)
 		{
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "setsockopt(%d) failed", sock->fd);
 		}
+#endif
 		/* Press on... */
 	}
 #ifdef AF_UNIX
