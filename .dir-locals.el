@@ -60,5 +60,12 @@
 
    (eval setq flycheck-clang-include-path include-directories)
    (eval setq flycheck-cppcheck-include-path include-directories)
+   (eval setq flycheck-clang-args
+	 (list
+	  "-include"
+	  (expand-file-name
+	   (concat directory-of-current-dir-locals-file "config.h"))
+	  )
+	 )
    )
   ))
