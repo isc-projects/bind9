@@ -414,15 +414,15 @@ AC_C_FLEXIBLE_ARRAY_MEMBER
 # Check for yield support on ARM processors
 #
 AS_CASE([$host],
-	[arm*],[
-	  AC_MSG_CHECKING([for yield instruction support])
-	  AC_COMPILE_IFELSE(
-	    [AC_LANG_PROGRAM(
-	       [[]],
-	       [[__asm__ __volatile__ ("yield")]]
-	     )],
-	    [AC_MSG_RESULT([yes])],
-	    [AC_MSG_ERROR([no, try adding -march=native or -march=armv7-a to CFLAGS (see PLATFORMS.md for more information)])])])
+	[arm*],
+	[AC_MSG_CHECKING([for yield instruction support])
+	 AC_COMPILE_IFELSE(
+	     [AC_LANG_PROGRAM([[]],
+			     [[__asm__ __volatile__ ("yield")]])],
+	     [AC_MSG_RESULT([yes])
+	      AC_DEFINE([HAVE_ARM_YIELD], [1],
+			[define if the ARM yield instruction is available])],
+	     [AC_MSG_RESULT([no])])])
 
 AC_CHECK_FUNCS([sysctlbyname])
 
