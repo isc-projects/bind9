@@ -26,6 +26,56 @@ TESTSOCK6="$TESTSOCK6"
 . ${TOP}/version
 
 #
+# Common lists of system tests to run.
+#
+# The "stress" test is not run by default since it creates enough
+# load on the machine to make it unusable to other users.
+# The "dialup", "delzone", and "dupsigs" tests are also not run by
+# default because they take a very long time to complete.
+#
+# The following tests are hard-coded to use ports 5300 and 9953. For
+# this reason, these must be run sequentially.
+#
+# Sequential tests that only run on unix/linux should be added to
+# SEQUENTIAL_UNIX in conf.sh.in; those that only run on windows should
+# be added to SEQUENTIAL_WINDOWS in conf.sh.win32.
+#
+SEQUENTIAL_COMMON="ecdsa eddsa @PKCS11_TEST@ tkey"
+
+#
+# These tests can use ports assigned by the caller (other than 5300
+# and 9953). Because separate blocks of ports can be used for teach
+# test, these tests can be run in parallel.
+#
+# Parallel tests that only run on unix/linux should be added to
+# PARALLEL_UNIX in conf.sh.in; those that only run on windows should
+# be added to PARALLEL_WINDOWS in conf.sh.win32.
+#
+# Note: some of the longer-running tests such as serve-stale and
+# rpzrecurse are scheduled first, in order to get more benefit from
+# parallelism.
+#
+PARALLEL_COMMON="dnssec rpzrecurse serve-stale \
+	acl additional addzone allow-query auth autosign \
+	builtin cacheclean case catz cds chain \
+	checkconf checknames checkzone \
+	cookie database digdelv dlv dlz dlzexternal \
+	dns64 dscp dsdigest dyndb \
+	ednscompliance emptyzones \
+	fetchlimit filter-aaaa formerr forward \
+	geoip glue idna inline integrity ixfr keepalive legacy limits \
+	masterfile masterformat metadata mirror mkeys \
+	names notify nslookup nsupdate nzd2nzf \
+	padding pending pipelined qmin \
+	reclimit redirect resolver rndc rootkeysentinel rpz \
+	rrchecker rrl rrsetorder rsabigexponent runtime \
+	sfcache smartsign sortlist \
+	spf staticstub statistics statschannel stub synthfromdnssec \
+	tcp tools tsig tsiggss ttl \
+	unknown upforwd verify views wildcard \
+	xfer xferquota zero zonechecks"
+
+#
 # Set up color-coded test output
 #
 if [ ${SYSTEMTEST_FORCE_COLOR:-0} -eq 1 ] || test -t 1 && type tput > /dev/null 2>&1 && tput setaf 7 > /dev/null 2>&1 ; then
@@ -164,13 +214,13 @@ keyfile_to_keys_section() {
     shift
     echo "$section_name {"
     for keyname in $*; do
-        awk '!/^; /{
-            printf "\t\""$1"\" "
-            printf "'"$key_prefix"'"
-            printf $4 " " $5 " " $6 " \""
-            for (i=7; i<=NF; i++) printf $i
-            printf "\";\n"
-        }' $keyname.key
+	awk '!/^; /{
+	    printf "\t\""$1"\" "
+	    printf "'"$key_prefix"'"
+	    printf $4 " " $5 " " $6 " \""
+	    for (i=7; i<=NF; i++) printf $i
+	    printf "\";\n"
+	}' $keyname.key
     done
     echo "};"
 }
@@ -247,7 +297,7 @@ nextpartread() {
     [ -f $1.prev ] || nextpartreset $1
     prev=`cat $1.prev`
     awk "NR > $prev "'{ print }
-         END          { print NR > "/dev/stderr" }' $1
+	 END          { print NR > "/dev/stderr" }' $1
 }
 
 # nextpart: read everything that's been appended to a file since the
@@ -269,7 +319,7 @@ rndc_reload() {
     # we need to wait for reload to finish
     if [ -z "$3" ]; then
 	for __try in 0 1 2 3 4 5 6 7 8 9; do
-	    $RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} status | grep "reload/reconfig in progress" > /dev/null || break; 
+	    $RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} status | grep "reload/reconfig in progress" > /dev/null || break
 	    sleep 1
 	done
     fi
@@ -278,7 +328,7 @@ rndc_reload() {
 rndc_reconfig() {
     echo_i "`$RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} reconfig 2>&1 | sed 's/^/'$1' /'`"
     for __try in 0 1 2 3 4 5 6 7 8 9; do
-        $RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} status | grep "reload/reconfig in progress" > /dev/null || break; 
+	$RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} status | grep "reload/reconfig in progress" > /dev/null || break
 	sleep 1
     done
 }
