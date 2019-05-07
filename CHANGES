@@ -1,5 +1,8 @@
 5222.	[bug]		'delve -t ANY' could leak memory. [GL #983]
 
+5221.	[test]		Enable parallel execution of system tests on
+			Windows. [GL !4101]
+
 5218.	[bug]		Conditionally include <dlfcn.h>. [GL #995]
 
 5214.	[bug]		win32: named now removes its lock file upon shutdown.

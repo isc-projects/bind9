@@ -116,31 +116,30 @@ SEQUENTIALDIRS="ecdsa eddsa gost lwresd @PKCS11_TEST@ tkey"
 # List of tests that use unique ports (other than 5300 and 9953). These
 # tests can be run in parallel.
 #
-# XXX: Note that tests are not currently run in parallel on Windows, so it
-# isn't strictly necessary to maintain these as separate lists in this file,
-# but using the same variable names as in conf.sh.in may simplify keeping the
-# lists in sync.
+# Note: some of the longer-running tests are scheduled first, in
+# order to get more benefit from parallelism.
 #
 # XXX: removed logfileconfig as it doesn't currently work on windows.
-PARALLELDIRS="acl additional addzone allow-query autosign \
+PARALLELDIRS="dnssec rpzrecurse \
+	acl additional addzone allow-query autosign \
 	builtin cacheclean case catz chain \
 	checkconf checknames checkzone \
 	@CHECKDS@ @COVERAGE@ @KEYMGR@ \
 	cookie database digdelv dlv dlz dlzexternal \
-	dns64 dnssec @DNSTAP@ dscp dsdigest dyndb \
+	dns64 @DNSTAP@ dscp dsdigest dyndb \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \
 	geoip glue idna inline integrity ixfr \
 	legacy limits lwresd masterfile masterformat metadata mkeys \
-        names notify nslookup nsupdate nzd2nzf \
-        pending pipelined \
-        reclimit redirect resolver rndc rootkeysentinel rpz rpzrecurse \
-        rrchecker rrl rrsetorder rsabigexponent runtime \
-        sfcache smartsign sortlist \
-        spf staticstub statistics statschannel stub \
-        tcp tools tsig tsiggss \
-        unknown upforwd verify views wildcard \
-        xfer xferquota zero zonechecks"
+	names notify nslookup nsupdate nzd2nzf \
+	pending pipelined \
+	reclimit redirect resolver rndc rootkeysentinel rpz \
+	rrchecker rrl rrsetorder rsabigexponent runtime \
+	sfcache smartsign sortlist \
+	spf staticstub statistics statschannel stub \
+	tcp tsig tsiggss \
+	unknown upforwd verify views wildcard \
+	xfer xferquota zero zonechecks"
 
 SUBDIRS="$SEQUENTIALDIRS $PARALLELDIRS"
 
@@ -171,9 +170,9 @@ else
 fi
 
 if grep "^#define WANT_IPV6 1" $TOP/config.h > /dev/null 2>&1 ; then
-        TESTSOCK6="$TESTSOCK6"
+	TESTSOCK6="$TESTSOCK6"
 else
-        TESTSOCK6=false
+	TESTSOCK6=false
 fi
 
 #
@@ -217,22 +216,22 @@ else
 fi
 
 echofail () {
-        printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_FAIL}%s${COLOR_NONE}\n" "$*"
 }
 echowarn () {
-        printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_WARN}%s${COLOR_NONE}\n" "$*"
 }
 echopass () {
-        printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_PASS}%s${COLOR_NONE}\n" "$*"
 }
 echoinfo () {
-        printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_INFO}%s${COLOR_NONE}\n" "$*"
 }
 echostart () {
-        printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_START}%s${COLOR_NONE}\n" "$*"
 }
 echoend () {
-        printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
+	printf "${COLOR_END}%s${COLOR_NONE}\n" "$*"
 }
 
 SYSTESTDIR="`basename $PWD`"
@@ -276,13 +275,13 @@ keyfile_to_keys_section() {
     shift
     echo "$section_name {"
     for keyname in $*; do
-        awk '!/^; /{
-            printf "\t\""$1"\" "
-            printf "'"$key_prefix"'"
-            printf $4 " " $5 " " $6 " \""
-            for (i=7; i<=NF; i++) printf $i
-            printf "\";\n"
-        }' $keyname.key
+	awk '!/^; /{
+	    printf "\t\""$1"\" "
+	    printf "'"$key_prefix"'"
+	    printf $4 " " $5 " " $6 " \""
+	    for (i=7; i<=NF; i++) printf $i
+	    printf "\";\n"
+	}' $keyname.key
     done
     echo "};"
 }
@@ -307,7 +306,7 @@ nextpart () {
     [ -f $1.prev ] || echo "0" > $1.prev
     prev=`cat $1.prev`
     awk "NR > $prev "'{ print }
-         END          { print NR > "/dev/stderr" }' $1 2> $1.prev
+	 END          { print NR > "/dev/stderr" }' $1 2> $1.prev
 }
 
 # copy_setports - Copy Configuration File and Replace Ports
@@ -328,15 +327,15 @@ copy_setports() {
     # tokens when it processes this file and produces conf.sh.
     atsign="@"
     sed -e "s/${atsign}PORT${atsign}/${PORT}/g" \
-        -e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
-        -e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
-        -e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
-        -e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
-        -e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
-        -e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
-        -e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
-        -e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
-        -e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
+	-e "s/${atsign}EXTRAPORT1${atsign}/${EXTRAPORT1}/g" \
+	-e "s/${atsign}EXTRAPORT2${atsign}/${EXTRAPORT2}/g" \
+	-e "s/${atsign}EXTRAPORT3${atsign}/${EXTRAPORT3}/g" \
+	-e "s/${atsign}EXTRAPORT4${atsign}/${EXTRAPORT4}/g" \
+	-e "s/${atsign}EXTRAPORT5${atsign}/${EXTRAPORT5}/g" \
+	-e "s/${atsign}EXTRAPORT6${atsign}/${EXTRAPORT6}/g" \
+	-e "s/${atsign}EXTRAPORT7${atsign}/${EXTRAPORT7}/g" \
+	-e "s/${atsign}EXTRAPORT8${atsign}/${EXTRAPORT8}/g" \
+	-e "s/${atsign}CONTROLPORT${atsign}/${CONTROLPORT}/g" \
 	-e "s/${atsign}DEFAULT_ALGORITHM${atsign}/${DEFAULT_ALGORITHM}/g" \
 	-e "s/${atsign}DEFAULT_ALGORITHM_NUMBER${atsign}/${DEFAULT_ALGORITHM_NUMBER}/g" \
 	-e "s/${atsign}DEFAULT_BITS${atsign}/${DEFAULT_BITS}/g" \

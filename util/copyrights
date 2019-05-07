@@ -1791,6 +1791,7 @@
 ./bin/tests/system/org.isc.bind.system		SH	2010,2012,2013,2016,2018,2019
 ./bin/tests/system/org.isc.bind.system.plist	X	2010,2018,2019
 ./bin/tests/system/packet.pl			PERL	2011,2012,2016,2018,2019
+./bin/tests/system/parallel.sh			SH	2019
 ./bin/tests/system/pending/clean.sh		SH	2009,2012,2014,2016,2018,2019
 ./bin/tests/system/pending/ns1/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/pending/ns1/root.db.in	ZONE	2009,2010,2016,2018,2019
