@@ -1,4 +1,6 @@
-5222.	[bug]		'delve -t ANY' could leak memory. [GL #983]
+5224.	[bug]		Only test provide-ixfr on TCP streams. [GL #991]
+
+5222.	[bug]		'delv -t ANY' could leak memory. [GL #983]
 
 5221.	[test]		Enable parallel execution of system tests on
 			Windows. [GL !4101]
