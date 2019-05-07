@@ -95,41 +95,6 @@ get_sn() {
     exit 1
 }
 
-get_sn_fast () {
-    RSN=`$DNSRPSCMD -n "$1"`
-    #echo "dnsrps serial for $1 is $RSN"
-    if test -z "$RSN"; then
-	echo_i "dnsrps failed to get SOA serial number for $1"
-	exit 1
-    fi
-}
-
-# check that dnsrpzd has loaded its zones
-# $1=domain
-# $2=DNS server IP address
-FZONES=`sed -n -e 's/^zone "\(.*\)".*\(10.53.0..\).*/Z=\1;M=\2/p' dnsrpzd.conf`
-dnsrps_loaded() {
-    test "$mode" = dnsrps || return
-    n=0
-    for V in $FZONES; do
-	eval "$V"
-	get_sn $Z $M
-	while true; do
-	    get_sn_fast "$Z"
-	    if test "$SN" -eq "0$RSN"; then
-		#echo "$Z @$M serial=$SN"
-		break
-	    fi
-	    n=`expr $n + 1`
-	    if test "$n" -gt $TEN_SECS; then
-		echo_i "dnsrps serial for $Z is $RSN instead of $SN"
-		exit 1
-	    fi
-	    $WAIT_CMD
-	done
-    done
-}
-
 # check the serial number in an SOA to ensure that a policy zone has
 #   been (re)loaded
 # $1=serial number
@@ -138,13 +103,8 @@ dnsrps_loaded() {
 ck_soa() {
     n=0
     while true; do
-	if test "$mode" = dnsrps; then
-	    get_sn_fast "$2"
-	    test "$RSN" -eq "$1" && return
-	else
-	    get_sn "$2" "$3"
-	    test "$SN" -eq "$1" && return
-	fi
+	get_sn "$2" "$3"
+	test "$SN" -eq "$1" && return
 	n=`expr $n + 1`
 	if test "$n" -gt $TEN_SECS; then
 	    echo_i "got serial number \"$SN\" instead of \"$1\" from $2 @$3"
@@ -402,43 +362,9 @@ EOF
   sleep 2
 }
 
-for mode in native dnsrps; do
-  status=0
-  case ${mode} in
-  native)
-    if [ -e dnsrps-only ] ; then
-      echo_i "'dnsrps-only' found: skipping native RPZ sub-test"
-      continue
-    else
-      echo_i "running native RPZ sub-test"
-    fi
-    ;;
-  dnsrps)
-    if [ -e dnsrps-off ] ; then
-      echo_i "'dnsrps-off' found: skipping DNSRPS sub-test"
-      continue
-    fi
-    echo_i "attempting to configure servers with DNSRPS..."
-    $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} rpz
-    $SHELL ./setup.sh -N -D $DEBUG
-    for server in ns*; do
-      resetstats $server
-    done
-    sed -n 's/^## //p' dnsrps.conf | cat_i
-    if grep '^#fail' dnsrps.conf >/dev/null; then
-      echo_i "exit status: 1"
-      exit 1
-    fi
-    if grep '^#skip' dnsrps.conf > /dev/null; then
-      echo_i "DNSRPS sub-test skipped"
-      continue
-    else
-      echo_i "running DNSRPS sub-test"
-      $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpz
-    fi
-    ;;
-  esac
-
+# this for loop is not necessary; it's here to make it easier
+# to backport changes from later versions, where it is.
+for mode in native; do
   # make prototype files to check against rewritten results
   digcmd nonexistent @$ns2 >proto.nxdomain
   digcmd txt-only.tld2 @$ns2 >proto.nodata
@@ -745,7 +671,7 @@ EOF
   $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.before
   grep "walled\.tld2\..*IN.*A.*10\.0\.0\.1" dig.out.$t.before > /dev/null || setret "failed"
   cp ns3/broken.db.in ns3/manual-update-rpz.db
-  rndc_reload ns3 $ns3 manual-update-rpz
+  $RNDCCMD $ns3 reload
   sleep 1
   # ensure previous RPZ rules still apply.
   $DIG -p ${PORT} @$ns3 walled.tld2 > dig.out.$t.after
@@ -781,7 +707,6 @@ EOF
   $DIG -p ${PORT} @$ns3 ns example.com > dig.out.delegation
   grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
 done
-status=`expr ${native:-0} + ${dnsrps:-0}`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
