@@ -91,6 +91,7 @@ typedef struct filter_instance {
 	 * Hash table associating a client object with its persistent data.
 	 */
 	isc_ht_t *ht;
+	isc_mutex_t hlock;
 
 	/*
 	 * Values configured when the module is loaded.
@@ -378,6 +379,7 @@ plugin_register(const char *parameters,
 	CHECK(isc_mempool_create(mctx, sizeof(filter_data_t),
 				 &inst->datapool));
 	CHECK(isc_ht_init(&inst->ht, mctx, 16));
+	isc_mutex_init(&inst->hlock);
 
 	/*
 	 * Fill the mempool with 1K filter_aaaa state objects at
@@ -448,6 +450,7 @@ plugin_destroy(void **instp) {
 
 	if (inst->ht != NULL) {
 		isc_ht_destroy(&inst->ht);
+		isc_mutex_destroy(&inst->hlock);
 	}
 	if (inst->datapool != NULL) {
 		isc_mempool_destroy(&inst->datapool);
@@ -521,8 +524,10 @@ client_state_get(const query_ctx_t *qctx, filter_instance_t *inst) {
 	filter_data_t *client_state = NULL;
 	isc_result_t result;
 
+	LOCK(&inst->hlock);
 	result = isc_ht_find(inst->ht, (const unsigned char *)&qctx->client,
 			     sizeof(qctx->client), (void **)&client_state);
+	UNLOCK(&inst->hlock);
 
 	return (result == ISC_R_SUCCESS ? client_state : NULL);
 }
@@ -540,8 +545,10 @@ client_state_create(const query_ctx_t *qctx, filter_instance_t *inst) {
 	client_state->mode = NONE;
 	client_state->flags = 0;
 
+	LOCK(&inst->hlock);
 	result = isc_ht_add(inst->ht, (const unsigned char *)&qctx->client,
 			    sizeof(qctx->client), client_state);
+	UNLOCK(&inst->hlock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 }
 
@@ -554,8 +561,10 @@ client_state_destroy(const query_ctx_t *qctx, filter_instance_t *inst) {
 		return;
 	}
 
+	LOCK(&inst->hlock);
 	result = isc_ht_delete(inst->ht, (const unsigned char *)&qctx->client,
 			       sizeof(qctx->client));
+	UNLOCK(&inst->hlock);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	isc_mempool_put(inst->datapool, client_state);
