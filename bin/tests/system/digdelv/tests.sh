@@ -55,7 +55,7 @@ check_ttl_range() {
 
 # using delv insecure mode as not testing dnssec here
 delv_with_opts() {
-    "$DELV" -i -p "$PORT" "$@"
+    "$DELV" +noroot +nodlv -p "$PORT" "$@"
 }
 
 KEYID="$(cat ns2/keyid)"
@@ -852,11 +852,21 @@ if [ -x "$DELV" ] ; then
   n=$((n+1))
   echo_i "check that delv -q -m works ($n)"
   ret=0
-  delv_with_opts @10.53.0.3 -q -m > delv.out.test$n 2>&1
+  delv_with_opts @10.53.0.3 -q -m > delv.out.test$n 2>&1 || ret=1
   grep '^; -m\..*[0-9]*.*IN.*ANY.*;' delv.out.test$n > /dev/null || ret=1
   grep "^add " delv.out.test$n > /dev/null && ret=1
   grep "^del " delv.out.test$n > /dev/null && ret=1
   check_ttl_range delv.out.test$n '\\-ANY' 300 3 || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that delv -t ANY works ($n)"
+  ret=0
+  delv_with_opts @10.53.0.3 -t ANY example > delv.out.test$n 2>&1 || ret=1
+  grep "^example." < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n NS 300 || ret=1
+  check_ttl_range delv.out.test$n SOA 300 || ret=1
   if [ $ret -ne 0 ]; then echo_i "failed"; fi
   status=$((status+ret))
 else
