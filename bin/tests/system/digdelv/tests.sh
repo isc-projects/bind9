@@ -517,7 +517,7 @@ else
 fi
 
 # using delv insecure mode as not testing dnssec here
-DELVOPTS="-i -p ${PORT}"
+DELVOPTS="+noroot +nodlv -p ${PORT}"
 
 if [ -x ${DELV} ] ; then
   n=`expr $n + 1`
@@ -721,11 +721,21 @@ if [ -x ${DELV} ] ; then
   n=`expr $n + 1`
   echo_i "check that delv -q -m works ($n)"
   ret=0
-  $DELV $DELVOPTS @10.53.0.3 -q -m > delv.out.test$n 2>&1
+  $DELV $DELVOPTS @10.53.0.3 -q -m > delv.out.test$n 2>&1 || ret=1
   grep '^; -m\..*[0-9]*.*IN.*ANY.*;' delv.out.test$n > /dev/null || ret=1
   grep "^add " delv.out.test$n > /dev/null && ret=1
   grep "^del " delv.out.test$n > /dev/null && ret=1
   check_ttl_range delv.out.test$n '\\-ANY' 300 3 || ret=1
+  if [ $ret != 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "check that delv -t ANY works ($n)"
+  ret=0
+  $DELV $DELVOPTS @10.53.0.3 -t ANY example > delv.out.test$n 2>&1 || ret=1
+  grep "^example." < delv.out.test$n > /dev/null || ret=1
+  check_ttl_range delv.out.test$n NS 300 || ret=1
+  check_ttl_range delv.out.test$n SOA 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 else
