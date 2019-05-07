@@ -140,6 +140,7 @@ struct dig_lookup {
 		ttlunits,
 		idnin,
 		idnout,
+		expandaaaa,
 		qr;
 	char textname[MXNAME]; /*% Name we're going to be looking up */
 	char cmdline[MXNAME];
