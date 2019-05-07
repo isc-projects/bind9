@@ -1,7 +1,9 @@
+5224.	[bug]		Only test provide-ixfr on TCP streams. [GL #991]
+
 5223.	[bug]		Fixed a race in the filter-aaaa plugin accessing
 			the hash table. [GL #1005]
 
-5222.	[bug]		'delve -t ANY' could leak memory. [GL #983]
+5222.	[bug]		'delv -t ANY' could leak memory. [GL #983]
 
 5221.	[test]		Enable parallel execution of system tests on
 			Windows. [GL !4101]
