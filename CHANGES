@@ -1,3 +1,5 @@
+5226.	[placeholder]
+
 5225.	[func]		Allow dig to print out AAAA record fully expanded.
 			with +[no]expandaaaa. [GL #765]
 
