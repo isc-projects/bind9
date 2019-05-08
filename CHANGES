@@ -1,3 +1,5 @@
+5229.	[protocol]	Enforce known SSHFP fingerprint lengths. [GL #852]
+
 5224.	[bug]		Only test provide-ixfr on TCP streams. [GL #991]
 
 5222.	[bug]		'delv -t ANY' could leak memory. [GL #983]
