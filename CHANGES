@@ -1,3 +1,5 @@
+5229.	[protocol]	Enforce known SSHFP fingerprint lengths. [GL #852]
+
 5228.	[func]		If trusted-keys and managed-keys were configured
 			simultaneously for the same name, the key could
 			not be be rolled automatically. This is now
