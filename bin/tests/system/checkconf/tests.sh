@@ -387,7 +387,8 @@ grep "trusted-key for root from 2010 without updated" checkconf.out$n > /dev/nul
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
-echo_i "check that the 2010 ICANN ROOT KSK with the 2017 ICANN ROOT KSK does not warning ($n)"
+n=`expr $n + 1`
+echo_i "check that the 2010 ICANN ROOT KSK with the 2017 ICANN ROOT KSK does not generate a warning ($n)"
 ret=0
 $CHECKCONF check-root-ksk-both.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] && ret=1

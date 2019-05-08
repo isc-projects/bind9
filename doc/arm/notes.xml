@@ -132,7 +132,16 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  None.
+	  When <command>trusted-keys</command> and
+	  <command>managed-keys</command> were both configured for the
+	  same name, or when <command>trusted-keys</command> was used to
+	  configure a trust anchor for the root zone and
+	  <command>dnssec-validation</command> was set to the default
+	  value of <literal>auto</literal>, automatic RFC 5011 key
+	  rollovers would be disabled. This combination of settings was
+	  never intended to work, but there was no check for it in the
+	  parser. This has been corrected, and it is now a fatal
+	  configuration error. [GL #868]
 	</para>
       </listitem>
     </itemizedlist>
