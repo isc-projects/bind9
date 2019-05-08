@@ -10,6 +10,7 @@
 *.rej
 *.so
 *_test
+*.ipch # vscode/intellisense precompiled header
 *~
 .ccache/
 .cproject
