@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.12.4
+Release Notes for BIND Version 9.12.4-P1
 
 Introduction
 
@@ -15,117 +15,26 @@ operating systems.
 
 Security Fixes
 
-  * named could crash during recursive processing of DNAME records when
-    deny-answer-aliases was in use. This flaw is disclosed in
-    CVE-2018-5740. [GL #387]
+  * In certain configurations, named could crash with an assertion failure
+    if nxdomain-redirect was in use and a redirected query resulted in an
+    NXDOMAIN from the cache. This flaw is disclosed in CVE-2019-6467. [GL
+    #880]
 
-  * When recursion is enabled but the allow-recursion and
-    allow-query-cache ACLs are not specified, they should be limited to
-    local networks, but they were inadvertently set to match the default
-    allow-query, thus allowing remote queries. This flaw is disclosed in
-    CVE-2018-5738. [GL #309]
-
-  * The serve-stale feature could cause an assertion failure in rbtdb.c
-    even when stale-answer-enable was false. The simultaneous use of stale
-    cache records and NSEC aggressive negative caching could trigger a
-    recursion loop in the named process. This flaw is disclosed in
-    CVE-2018-5737. [GL #185]
-
-  * A bug in zone database reference counting could lead to a crash when
-    multiple versions of a slave zone were transferred from a master in
-    close succession. This flaw is disclosed in CVE-2018-5736. [GL #134]
-
-  * Code change #4964, intended to prevent double signatures when deleting
-    an inactive zone DNSKEY in some situations, introduced a new problem
-    during zone processing in which some delegation glue RRsets are
-    incorrectly identified as needing RRSIGs, which are then created for
-    them using the current active ZSK for the zone. In some, but not all
-    cases, the newly-signed RRsets are added to the zone's NSEC/NSEC3
-    chain, but incompletely -- this can result in a broken chain,
-    affecting validation of proof of nonexistence for records in the zone.
-    [GL #771]
-
-  * named could crash if it managed a DNSSEC security root with
-    managed-keys and the authoritative zone rolled the key to an algorithm
-    not supported by BIND 9. This flaw is disclosed in CVE-2018-5745. [GL
-    #780]
-
-  * named leaked memory when processing a request with multiple Key Tag
-    EDNS options present. ISC would like to thank Toshifumi Sakaguchi for
-    bringing this to our attention. This flaw is disclosed in
-    CVE-2018-5744. [GL #772]
-
-  * Zone transfer controls for writable DLZ zones were not effective as
-    the allowzonexfr method was not being called for such zones. This flaw
-    is disclosed in CVE-2019-6465. [GL #790]
+  * The TCP client quota set using the tcp-clients option could be
+    exceeded in some cases. This could lead to exhaustion of file
+    descriptors. This flaw is disclosed in CVE-2018-5743. [GL #615]
 
 New Features
 
-  * update-policy rules that otherwise ignore the name field now require
-    that it be set to "." to ensure that any type list present is properly
-    interpreted. Previously, if the name field was omitted from the rule
-    declaration but a type list was present, it wouldn't be interpreted as
-    expected.
-
-  * named now supports the "root key sentinel" mechanism. This enables
-    validating resolvers to indicate which trust anchors are configured
-    for the root, so that information about root key rollover status can
-    be gathered. To disable this feature, add root-key-sentinel no; to
-    named.conf. [GL #37]
-
-  * Add the ability to not return a DNS COOKIE option when one is present
-    in the request. To prevent a cookie being returned add answer-cookie
-    no; to named.conf. [GL #173]
-
-    answer-cookie no is only intended as a temporary measure, for use when
-    named shares an IP address with other servers that do not yet support
-    DNS COOKIE. A mismatch between servers on the same address is not
-    expected to cause operational problems, but the option to disable
-    COOKIE responses so that all servers have the same behavior is
-    provided out of an abundance of caution. DNS COOKIE is an important
-    security mechanism, and should not be disabled unless absolutely
-    necessary.
-
-  * Two new update policy rule types have been added krb5-selfsub and
-    ms-selfsub which allow machines with Kerberos principals to update the
-    name space at or below the machine names identified in the respective
-    principals.
-
-  * The new configure option --enable-fips-mode can be used to make BIND
-    enable and enforce FIPS mode in the OpenSSL library. When compiled
-    with such option the BIND will refuse to run if FIPS mode can't be
-    enabled, thus this option must be only enabled for the systems where
-    FIPS mode is available.
+  * None.
 
 Feature Changes
 
-  * BIND now can be compiled against libidn2 library to add IDNA2008
-    support. Previously BIND only supported IDNA2003 using (now obsolete)
-    idnkit-1 library.
-
-  * dig +noidnin can be used to disable IDN processing on the input domain
-    name, when BIND is compiled with IDN support.
-
-  * The rndc nta command could not differentiate between views of the same
-    name but different class; this has been corrected with the addition of
-    a -class option. [GL #105]
-
-  * When compiled with IDN support, the dig and the nslookup commands now
-    disable IDN processing when the standard output is not a tty (e.g. not
-    used by human). The command line options +idnin and +idnout need to be
-    used to enable IDN processing when dig or nslookup is used from the
-    shell scripts.
+  * None.
 
 Bug Fixes
 
-  * When a negative trust anchor was added to multiple views using rndc
-    nta, the text returned via rndc was incorrectly truncated after the
-    first line, making it appear that only one NTA had been added. This
-    has been fixed. [GL #105]
-
-  * named now rejects excessively large incremental (IXFR) zone transfers
-    in order to prevent possible corruption of journal files which could
-    cause named to abort when loading zones. [GL #339]
+  * None.
 
 License
 
