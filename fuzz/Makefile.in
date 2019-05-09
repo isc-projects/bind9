@@ -17,16 +17,21 @@ DNSDEPLIBS =	../lib/dns/libdns.@A@
 LIBS =		@LIBS@
 
 OBJS =		main.@O@
-SRCS =		main.c dns_name_fromtext_target.c
+SRCS =		main.c dns_name_fromtext_target.c dns_rdata_fromwire_text.c
 
 SUBDIRS =
-TARGETS =	dns_name_fromtext_target@EXEEXT@
+TARGETS =	dns_name_fromtext_target@EXEEXT@ \
+		dns_rdata_fromwire_text@EXEEXT@
 
 @BIND9_MAKE_RULES@
 
 dns_name_fromtext_target@EXEEXT@: dns_name_fromtext_target.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
 		dns_name_fromtext_target.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
+
+dns_rdata_fromwire_text@EXEEXT@: dns_rdata_fromwire_text.@O@ main.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} ${LDFLAGS} -o $@ \
+		dns_rdata_fromwire_text.@O@ main.@O@ ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 check: ${TARGETS}
 	for fuzzer in ${TARGETS}; do \
