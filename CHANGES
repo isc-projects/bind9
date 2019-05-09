@@ -1,5 +1,10 @@
 5229.	[protocol]	Enforce known SSHFP fingerprint lengths. [GL #852]
 
+5228.	[cleanup]	If trusted-keys and managed-keys are configured
+			simultaneously for the same name, the key cannot
+			be rolled automatically. This configuration now
+			logs a warning. [GL #868]
+
 5224.	[bug]		Only test provide-ixfr on TCP streams. [GL #991]
 
 5223.	[bug]		Fixed a race in the filter-aaaa plugin accessing
