@@ -1,3 +1,6 @@
+5232.	[bug]		Fix a high-load race/crash in isc_socket_cancel().
+			[GL #834]
+
 5231.	[protocol]	Add support for displaying CLIENT-TAG and SERVER-TAG.
 			[GL #960]
 
