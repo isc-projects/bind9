@@ -3337,7 +3337,7 @@ echo update delete cds-update.secure CDS
 echo send
 dig_with_opts +noall +answer @10.53.0.2 dnskey cds-update.secure |
 grep "DNSKEY.257" |
-$DSFROMKEY -C -f - -T 1 cds-update.secure |
+$DSFROMKEY -12 -C -f - -T 1 cds-update.secure |
 sed "s/^/update add /"
 echo send
 ) | $NSUPDATE
@@ -3360,7 +3360,7 @@ echo update delete cds-kskonly.secure CDS
 echo send
 dig_with_opts +noall +answer @10.53.0.2 dnskey cds-kskonly.secure |
 grep "DNSKEY.257" |
-$DSFROMKEY -C -f - -T 1 cds-kskonly.secure |
+$DSFROMKEY -12 -C -f - -T 1 cds-kskonly.secure |
 sed "s/^/update add /"
 echo send
 ) | $NSUPDATE
@@ -3394,11 +3394,11 @@ echo update delete cds-update.secure CDS
 echo send
 dig_with_opts +noall +answer @10.53.0.2 dnskey cds-update.secure |
 grep "DNSKEY.257" |
-$DSFROMKEY -C -f - -T 1 cds-update.secure |
+$DSFROMKEY -12 -C -f - -T 1 cds-update.secure |
 sed "s/^/update add /"
 dig_with_opts +noall +answer @10.53.0.2 dnskey cds-update.secure |
 grep "DNSKEY.257" | sed 's/DNSKEY.257/DNSKEY 258/' |
-$DSFROMKEY -C -A -f - -T 1 cds-update.secure |
+$DSFROMKEY -12 -C -A -f - -T 1 cds-update.secure |
 sed "s/^/update add /"
 echo send
 ) | $NSUPDATE

@@ -67,7 +67,6 @@
 #include "dnssectool.h"
 
 const char *program = "dnssec-verify";
-int verbose;
 
 static isc_stdtime_t now;
 static isc_mem_t *mctx = NULL;

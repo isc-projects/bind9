@@ -59,12 +59,7 @@
 
 #include "dnssectool.h"
 
-#ifndef PATH_MAX
-#define PATH_MAX 1024   /* WIN32, and others don't define this. */
-#endif
-
 const char *program = "dnssec-cds";
-int verbose;
 
 /*
  * Infrastructure
@@ -79,12 +74,6 @@ static const char *namestr = NULL;
 static dns_fixedname_t fixed;
 static dns_name_t *name = NULL;
 static dns_rdataclass_t rdclass = dns_rdataclass_in;
-
-/*
- * List of digest types used by ds_from_cdnskey(), filled in by add_dtype()
- * from -a arguments. The size of the array is an arbitrary limit.
- */
-static dns_dsdigest_t dtype[8];
 
 static const char *startstr  = NULL;	/* from which we derive notbefore */
 static isc_stdtime_t notbefore = 0;	/* restrict sig inception times */
@@ -836,34 +825,6 @@ ds_from_cdnskey(dns_rdatalist_t *dslist, isc_buffer_t *buf,
 	return (ISC_R_SUCCESS);
 }
 
-/*
- * For sorting the digest types so that DS records generated
- * from CDNSKEY records are in canonical order.
- */
-static int
-cmp_dtype(const void *ap, const void *bp) {
-	int a = *(const dns_dsdigest_t *)ap;
-	int b = *(const dns_dsdigest_t *)bp;
-	return (a - b);
-}
-
-static void
-add_dtype(const char *dn) {
-	dns_dsdigest_t dt;
-	unsigned i, n;
-
-	dt = strtodsdigest(dn);
-	n = sizeof(dtype)/sizeof(dtype[0]);
-	for (i = 0; i < n; i++) {
-		if (dtype[i] == 0 || dtype[i] == dt) {
-			dtype[i] = dt;
-			qsort(dtype, i+1, 1, cmp_dtype);
-			return;
-		}
-	}
-	fatal("too many -a digest type arguments");
-}
-
 static void
 make_new_ds_set(ds_maker_func_t *ds_from_rdata,
 		uint32_t ttl, dns_rdataset_t *rdset)
@@ -1152,7 +1113,7 @@ main(int argc, char *argv[]) {
 	while ((ch = isc_commandline_parse(argc, argv, OPTIONS)) != -1) {
 		switch (ch) {
 		case 'a':
-			add_dtype(isc_commandline_argument);
+			add_dtype(strtodsdigest(isc_commandline_argument));
 			break;
 		case 'c':
 			rdclass = strtoclass(isc_commandline_argument);

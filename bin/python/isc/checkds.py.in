@@ -114,19 +114,19 @@ def check(zone, args):
 
     klist = []
 
+    cmd = [args.dsfromkey]
+    for algo in args.algo:
+        cmd += ['-a', algo]
+    if args.lookaside:
+        cmd += ["-l", args.lookaside]
+
     if args.masterfile:
-        cmd = [args.dsfromkey, "-f", args.masterfile]
-        if args.lookaside:
-            cmd += ["-l", args.lookaside]
-        cmd.append(zone)
+        cmd += ["-f", args.masterfile, zone]
         fp, _ = Popen(cmd, stdout=PIPE).communicate()
     else:
         intods, _ = Popen([args.dig, "+noall", "+answer", "-t", "dnskey",
                            "-q", zone], stdout=PIPE).communicate()
-        cmd = [args.dsfromkey, "-f", "-"]
-        if args.lookaside:
-            cmd += ["-l", args.lookaside]
-        cmd.append(zone)
+        cmd += ["-f", "-", zone]
         fp, _ = Popen(cmd, stdin=PIPE, stdout=PIPE).communicate(intods)
 
     for line in fp.splitlines():
@@ -138,23 +138,27 @@ def check(zone, args):
         print("No DNSKEY records found in zone apex")
         return False
 
-    found = False
+    match = True
+    for rr in rrlist:
+        if rr not in klist:
+            print("KSK for %s %s/%03d/%05d (%s) missing from child" %
+                  (rr.rrtype, rr.rrname.strip('.'), rr.keyalg,
+                   rr.keyid, SECRR.hashalgs[rr.hashalg]))
+            match = False
+    for rr in klist:
+        if rr not in rrlist:
+            print("%s for KSK %s/%03d/%05d (%s) missing from parent" %
+                  (rr.rrtype, rr.rrname.strip('.'), rr.keyalg,
+                   rr.keyid, SECRR.hashalgs[rr.hashalg]))
+            match = False
     for rr in klist:
         if rr in rrlist:
             print("%s for KSK %s/%03d/%05d (%s) found in parent" %
                   (rr.rrtype, rr.rrname.strip('.'), rr.keyalg,
                    rr.keyid, SECRR.hashalgs[rr.hashalg]))
-            found = True
-        else:
-            print("%s for KSK %s/%03d/%05d (%s) missing from parent" %
-                  (rr.rrtype, rr.rrname.strip('.'), rr.keyalg,
-                   rr.keyid, SECRR.hashalgs[rr.hashalg]))
 
-    if not found:
-        print("No %s records were found for any DNSKEY" %
-                ("DLV" if args.lookaside else "DS"))
+    return match
 
-    return found
 
 ############################################################################
 # parse_args:
@@ -167,6 +171,8 @@ def parse_args():
     sbindir = 'bin' if os.name == 'nt' else 'sbin'
 
     parser.add_argument('zone', type=str, help='zone to check')
+    parser.add_argument('-a', '--algo', dest='algo', action='append',
+                        default=[], type=str, help='DS digest algorithm')
     parser.add_argument('-d', '--dig', dest='dig',
                         default=os.path.join(prefix(bindir), 'dig'),
                         type=str, help='path to \'dig\'')
@@ -196,5 +202,5 @@ def parse_args():
 ############################################################################
 def main():
     args = parse_args()
-    found = check(args.zone, args)
-    exit(0 if found else 1)
+    match = check(args.zone, args)
+    exit(0 if match else 1)
