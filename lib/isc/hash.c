@@ -117,7 +117,8 @@ isc_hash_set_initializer(const void *initializer) {
 }
 
 uint64_t
-isc_hash_function(const void *data, const size_t length,
+isc_hash_function(const void *data,
+		  const size_t length,
 		  const bool case_sensitive)
 {
 	uint64_t hval;
@@ -138,36 +139,5 @@ isc_hash_function(const void *data, const size_t length,
 		isc_siphash24(isc_hash_key, input, length, (uint8_t *)&hval);
 	}
 
-	return (hval);
-}
-
-uint64_t
-isc_hash_function_reverse(const void *data, const size_t length,
-			  const bool case_sensitive)
-{
-	uint64_t hval;
-#if defined(WIN32) || defined(WIN64)
-	uint8_t *input = _alloca(length);
-	INSIST(buf != NULL);
-#else
-	uint8_t input[length];
-#endif
-
-	REQUIRE(length == 0 || data != NULL);
-
-	RUNTIME_CHECK(isc_once_do(&isc_hash_once,
-				  isc_hash_initialize) == ISC_R_SUCCESS);
-
-	if (case_sensitive) {
-		for (unsigned int i = 0, j = length - 1; i < length; i++, j--) {
-			input[i] = ((const uint8_t *)data)[j];
-		}
-	} else {
-		for (unsigned int i = 0, j = length - 1; i < length; i++, j--) {
-			input[i] = maptolower[((const uint8_t *)data)[j]];
-		}
-	}
-
-	isc_siphash24(isc_hash_key, input, length, (uint8_t *)&hval);
 	return (hval);
 }

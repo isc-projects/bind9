@@ -72,39 +72,6 @@ isc_hash_function_test(void **state) {
 	assert_int_not_equal(h1, h2);
 }
 
-/* Reverse hash function test */
-static void
-isc_hash_function_reverse_test(void **state) {
-	unsigned int h1;
-	unsigned int h2;
-
-	UNUSED(state);
-
-	/* Immutability of hash function */
-	h1 = isc_hash_function_reverse(NULL, 0, true);
-	h2 = isc_hash_function_reverse(NULL, 0, true);
-
-	assert_int_equal(h1, h2);
-
-	/* Hash function characteristics */
-	h1 = isc_hash_function_reverse("Hello world", 12, true);
-	h2 = isc_hash_function_reverse("Hello world", 12, true);
-
-	assert_int_equal(h1, h2);
-
-	/* Case */
-	h1 = isc_hash_function_reverse("Hello world", 12, false);
-	h2 = isc_hash_function_reverse("heLLo WorLd", 12, false);
-
-	assert_int_equal(h1, h2);
-
-	/* Unequal */
-	h1 = isc_hash_function_reverse("Hello world", 12, true);
-	h2 = isc_hash_function_reverse("heLLo WorLd", 12, true);
-
-	assert_true(h1 != h2);
-}
-
 /* Hash function initializer test */
 static void
 isc_hash_initializer_test(void **state) {
@@ -130,7 +97,6 @@ int
 main(void) {
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test(isc_hash_function_test),
-		cmocka_unit_test(isc_hash_function_reverse_test),
 		cmocka_unit_test(isc_hash_initializer_test),
 	};
 

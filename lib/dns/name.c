@@ -458,15 +458,16 @@ dns_name_hash(const dns_name_t *name, bool case_sensitive) {
 	 */
 	REQUIRE(VALID_NAME(name));
 
-	if (name->labels == 0)
+	if (name->labels == 0) {
 		return (0);
+	}
 
 	length = name->length;
-	if (length > 16)
+	if (length > 16) {
 		length = 16;
+	}
 
-	return (isc_hash_function_reverse(name->ndata, length,
-					  case_sensitive));
+	return (isc_hash_function(name->ndata, length, case_sensitive));
 }
 
 unsigned int
@@ -476,11 +477,11 @@ dns_name_fullhash(const dns_name_t *name, bool case_sensitive) {
 	 */
 	REQUIRE(VALID_NAME(name));
 
-	if (name->labels == 0)
+	if (name->labels == 0) {
 		return (0);
+	}
 
-	return (isc_hash_function_reverse(name->ndata, name->length,
-					  case_sensitive));
+	return (isc_hash_function(name->ndata, name->length, case_sensitive));
 }
 
 dns_namereln_t
