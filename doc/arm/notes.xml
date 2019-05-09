@@ -79,6 +79,13 @@
 	  CVE-2018-5743. [GL #615]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  A race condition could trigger an assertion failure when
+	  a large number of incoming packets were being rejected.
+	  This flaw is disclosed in CVE-2019-6471. [GL #942]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

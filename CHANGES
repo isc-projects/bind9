@@ -1,3 +1,8 @@
+5244.	[security]	Fixed a race condition in dns_dispatch_getnext()
+			that could cause an assertion failure if a
+			significant number of incoming packets were
+			rejected. (CVE-2019-6471) [GL #942]
+
 5241.	[bug]		Fix Ed448 private and public key ASN.1 prefix blobs.
 			[GL #225]
 
