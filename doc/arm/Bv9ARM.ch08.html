@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.14.1</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.14.2</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
@@ -54,7 +54,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.14.1</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.14.2</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -173,7 +173,19 @@
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  None.
+	  When <span class="command"><strong>trusted-keys</strong></span> and
+	  <span class="command"><strong>managed-keys</strong></span> are both configured for the
+	  same name, or when <span class="command"><strong>trusted-keys</strong></span> is used to
+	  configure a trust anchor for the root zone and
+	  <span class="command"><strong>dnssec-validation</strong></span> is set to the default
+	  value of <code class="literal">auto</code>, automatic RFC 5011 key
+	  rollovers will fail.
+	</p>
+	<p>
+	  This combination of settings was never intended to work,
+	  but there was no check for it in the parser. This has been
+	  corrected; a warning is now logged. (In BIND 9.15 and
+	  higher this error will be fatal.) [GL #868]
 	</p>
       </li></ul></div>
   </div>
@@ -260,6 +272,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.1 (Stable Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.2 (Stable Release)</p>
 </body>
 </html>

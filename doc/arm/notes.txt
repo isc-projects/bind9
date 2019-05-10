@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.14.1
+Release Notes for BIND Version 9.14.2
 
 Introduction
 
@@ -69,7 +69,15 @@ New Features
 
 Feature Changes
 
-  * None.
+  * When trusted-keys and managed-keys are both configured for the same
+    name, or when trusted-keys is used to configure a trust anchor for the
+    root zone and dnssec-validation is set to the default value of auto,
+    automatic RFC 5011 key rollovers will fail.
+
+    This combination of settings was never intended to work, but there was
+    no check for it in the parser. This has been corrected; a warning is
+    now logged. (In BIND 9.15 and higher this error will be fatal.) [GL #
+    868]
 
 Bug Fixes
 
