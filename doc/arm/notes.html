@@ -15,16 +15,19 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.11.6-P1</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.11.7</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_intro"></a>Introduction</h3></div></div></div>
     <p>
-      This document summarizes changes since the last production
-      release on the BIND 9.11 (Extended Support Version) branch.
-      Please see the <code class="filename">CHANGES</code> file for a further
-      list of bug fixes and other changes.
+      BIND 9.11 (Extended Support Version) is a stable branch of BIND.
+      This document summarizes significant changes since the last
+      production release on that branch.
+    </p>
+    <p>
+      Please see the file <code class="filename">CHANGES</code> for a more
+      detailed list of changes and bug fixes.
     </p>
   </div>
 
@@ -72,16 +75,6 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="win_support"></a>Legacy Windows No Longer Supported</h3></div></div></div>
-    <p>
-      As of BIND 9.11.2, Windows XP and Windows 2003 are no longer supported
-      platforms for BIND; "XP" binaries are no longer available for download
-      from ISC.
-    </p>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
@@ -108,7 +101,19 @@
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  None.
+	  When <span class="command"><strong>trusted-keys</strong></span> and
+	  <span class="command"><strong>managed-keys</strong></span> are both configured for the
+	  same name, or when <span class="command"><strong>trusted-keys</strong></span> is used to
+	  configure a trust anchor for the root zone and
+	  <span class="command"><strong>dnssec-validation</strong></span> is set to
+	  <code class="literal">auto</code>, automatic RFC 5011 key
+	  rollovers will fail.
+	</p>
+	<p>
+	  This combination of settings was never intended to work,
+	  but there was no check for it in the parser. This has been
+	  corrected; a warning is now logged. (In BIND 9.15 and
+	  higher this error will be fatal.) [GL #868]
 	</p>
       </li></ul></div>
   </div>

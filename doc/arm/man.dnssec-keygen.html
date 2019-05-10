@@ -51,11 +51,10 @@
 <h2>Synopsis</h2>
     <div class="cmdsynopsis"><p>
       <code class="command">dnssec-keygen</code> 
-       [<code class="option">-a <em class="replaceable"><code>algorithm</code></em></code>]
-       [<code class="option">-b <em class="replaceable"><code>keysize</code></em></code>]
-       [<code class="option">-n <em class="replaceable"><code>nametype</code></em></code>]
        [<code class="option">-3</code>]
        [<code class="option">-A <em class="replaceable"><code>date/offset</code></em></code>]
+       [<code class="option">-a <em class="replaceable"><code>algorithm</code></em></code>]
+       [<code class="option">-b <em class="replaceable"><code>keysize</code></em></code>]
        [<code class="option">-C</code>]
        [<code class="option">-c <em class="replaceable"><code>class</code></em></code>]
        [<code class="option">-D <em class="replaceable"><code>date/offset</code></em></code>]
@@ -70,6 +69,7 @@
        [<code class="option">-K <em class="replaceable"><code>directory</code></em></code>]
        [<code class="option">-k</code>]
        [<code class="option">-L <em class="replaceable"><code>ttl</code></em></code>]
+       [<code class="option">-n <em class="replaceable"><code>nametype</code></em></code>]
        [<code class="option">-P <em class="replaceable"><code>date/offset</code></em></code>]
        [<code class="option">-P sync <em class="replaceable"><code>date/offset</code></em></code>]
        [<code class="option">-p <em class="replaceable"><code>protocol</code></em></code>]
@@ -81,7 +81,6 @@
        [<code class="option">-t <em class="replaceable"><code>type</code></em></code>]
        [<code class="option">-V</code>]
        [<code class="option">-v <em class="replaceable"><code>level</code></em></code>]
-       [<code class="option">-z</code>]
        {name}
     </p></div>
   </div>
@@ -107,6 +106,16 @@
 
 
     <div class="variablelist"><dl class="variablelist">
+<dt><span class="term">-3</span></dt>
+<dd>
+	  <p>
+	    Use an NSEC3-capable algorithm to generate a DNSSEC key.
+	    If this option is used with an algorithm that has both
+	    NSEC and NSEC3 versions, then the NSEC3 version will be
+	    used; for example, <span class="command"><strong>dnssec-keygen -3a RSASHA1</strong></span>
+	    specifies the NSEC3RSASHA1 algorithm.
+	  </p>
+	</dd>
 <dt><span class="term">-a <em class="replaceable"><code>algorithm</code></em></span></dt>
 <dd>
 	  <p>
@@ -157,38 +166,15 @@
 	    must be used.
 	  </p>
 	</dd>
-<dt><span class="term">-n <em class="replaceable"><code>nametype</code></em></span></dt>
-<dd>
-	  <p>
-	    Specifies the owner type of the key.  The value of
-	    <code class="option">nametype</code> must either be ZONE (for a DNSSEC
-	    zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated with
-	    a host (KEY)),
-	    USER (for a key associated with a user(KEY)) or OTHER (DNSKEY).
-	    These values are case insensitive.  Defaults to ZONE for DNSKEY
-	    generation.
-	  </p>
-	</dd>
-<dt><span class="term">-3</span></dt>
-<dd>
-	  <p>
-	    Use an NSEC3-capable algorithm to generate a DNSSEC key.
-	    If this option is used and no algorithm is explicitly
-	    set on the command line, NSEC3RSASHA1 will be used by
-	    default. Note that RSASHA256, RSASHA512, ECCGOST,
-	    ECDSAP256SHA256, ECDSAP384SHA384, ED25519 and ED448
-	    algorithms are NSEC3-capable.
-	  </p>
-	</dd>
 <dt><span class="term">-C</span></dt>
 <dd>
 	  <p>
-	    Compatibility mode:  generates an old-style key, without
-	    any metadata.  By default, <span class="command"><strong>dnssec-keygen</strong></span>
-	    will include the key's creation date in the metadata stored
-	    with the private key, and other dates may be set there as well
-	    (publication date, activation date, etc).  Keys that include
-	    this data may be incompatible with older versions of BIND; the
+	    Compatibility mode: generates an old-style key, without any
+	    timing metadata. By default, <span class="command"><strong>dnssec-keygen</strong></span>
+	    will include the key's creation date in the metadata stored with
+	    the private key, and other dates may be set there as well
+	    (publication date, activation date, etc). Keys that include this
+	    data may be incompatible with older versions of BIND; the
 	    <code class="option">-C</code> option suppresses them.
 	  </p>
 	</dd>
@@ -268,13 +254,24 @@
 	    or <code class="literal">none</code> is the same as leaving it unset.
 	  </p>
 	</dd>
+<dt><span class="term">-n <em class="replaceable"><code>nametype</code></em></span></dt>
+<dd>
+	  <p>
+	    Specifies the owner type of the key.  The value of
+	    <code class="option">nametype</code> must either be ZONE (for a DNSSEC
+	    zone key (KEY/DNSKEY)), HOST or ENTITY (for a key associated
+	    with a host (KEY)), USER (for a key associated with a
+	    user(KEY)) or OTHER (DNSKEY).  These values are case
+	    insensitive.  Defaults to ZONE for DNSKEY generation.
+	  </p>
+	</dd>
 <dt><span class="term">-p <em class="replaceable"><code>protocol</code></em></span></dt>
 <dd>
 	  <p>
-	    Sets the protocol value for the generated key.  The protocol
-	    is a number between 0 and 255.  The default is 3 (DNSSEC).
-	    Other possible values for this argument are listed in
-	    RFC 2535 and its successors.
+	    Sets the protocol value for the generated key, for use
+	    with <code class="option">-T KEY</code>. The protocol is a number between 0
+	    and 255. The default is 3 (DNSSEC). Other possible values for
+	    this argument are listed in RFC 2535 and its successors.
 	  </p>
 	</dd>
 <dt><span class="term">-q</span></dt>
@@ -345,22 +342,23 @@
 <dt><span class="term">-t <em class="replaceable"><code>type</code></em></span></dt>
 <dd>
 	  <p>
-	    Indicates the use of the key.  <code class="option">type</code> must be
-	    one of AUTHCONF, NOAUTHCONF, NOAUTH, or NOCONF.  The default
-	    is AUTHCONF.  AUTH refers to the ability to authenticate
-	    data, and CONF the ability to encrypt data.
-	  </p>
-	</dd>
-<dt><span class="term">-v <em class="replaceable"><code>level</code></em></span></dt>
-<dd>
-	  <p>
-	    Sets the debugging level.
+	    Indicates the use of the key, for use with <code class="option">-T
+	    KEY</code>. <code class="option">type</code> must be one of AUTHCONF,
+	    NOAUTHCONF, NOAUTH, or NOCONF. The default is AUTHCONF. AUTH
+	    refers to the ability to authenticate data, and CONF the ability
+	    to encrypt data.
 	  </p>
 	</dd>
 <dt><span class="term">-V</span></dt>
 <dd>
 	  <p>
 	    Prints version information.
+	  </p>
+	</dd>
+<dt><span class="term">-v <em class="replaceable"><code>level</code></em></span></dt>
+<dd>
+	  <p>
+	    Sets the debugging level.
 	  </p>
 	</dd>
 </dl></div>
@@ -544,6 +542,12 @@
       and
       <code class="filename">Kexample.com.+003+26160.private</code>.
     </p>
+    <p>
+      To generate a matching key-signing key, issue the command:
+    </p>
+    <p>
+      <strong class="userinput"><code>dnssec-keygen -a DSA -b 768 -n ZONE -f KSK example.com</code></strong>
+    </p>
   </div>
 
   <div class="refsection">
@@ -579,6 +583,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.6-P1 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.7 (Extended Support Version)</p>
 </body>
 </html>
