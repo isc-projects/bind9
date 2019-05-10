@@ -12310,7 +12310,7 @@ fi
 $as_echo_n "checking for Python support... " >&6; }
 	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-	      as_fn_error $? "Python required for dnssec-keymgr" "$LINENO" 5
+	      as_fn_error $? "Python >= 2.7 or >= 3.2 and the PLY package are required for dnssec-keymgr and other Python-based tools. PLY may be available from your OS package manager as python-ply or python3-ply; it can also be installed via pip. To build without Python/PLY, use --disable-python." "$LINENO" 5
 fi
 fi
 
