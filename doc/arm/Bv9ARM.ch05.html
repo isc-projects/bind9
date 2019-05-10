@@ -2590,11 +2590,12 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>resolver-retry-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>response-padding</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... } block-size
 	    <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl
-	    <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval <em class="replaceable"><code>ttlval</code></em> ] [ policy ( cname |
-	    <span class="command"><strong>disabled</strong></span> | drop | given | no-op | nodata | nxdomain | passthru
-	    | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [
-	    <span class="command"><strong>nsip-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsdname-enable <em class="replaceable"><code>boolean</code></em> ]; ... } [
+	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>string</code></em> [ add-soa <em class="replaceable"><code>boolean</code></em> ] [ log
+	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval
+	    <em class="replaceable"><code>ttlval</code></em> ] [ policy ( cname | disabled | drop | given | no-op |
+	    <span class="command"><strong>nodata</strong></span> | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [
+	    <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>nsdname-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ]; ... } [ add-soa <em class="replaceable"><code>boolean</code></em> ] [
 	    <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [
 	    <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>ttlval</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [
 	    <span class="command"><strong>nsip-wait-recurse</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ]
@@ -3409,6 +3410,12 @@ options {
                 by the <span class="command"><strong>disable-algorithms</strong></span> will be treated
                 as insecure.
               </p>
+              <p>
+                Configured trust anchors in <span class="command"><strong>trusted-keys</strong></span>
+                or <span class="command"><strong>managed-keys</strong></span> that match a disabled
+                algorithm will be ignored and treated as if they were not
+                configured at all.
+              </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>disable-ds-digests</strong></span></span></dt>
 <dd>
@@ -4115,30 +4122,55 @@ options {
 <dt><span class="term"><span class="command"><strong>minimal-responses</strong></span></span></dt>
 <dd>
                 <p>
-                  If set to <strong class="userinput"><code>yes</code></strong>, then when generating
-                  responses the server will only add records to the authority
-                  and additional data sections when they are required (e.g.
-                  delegations, negative responses).  This may improve the
-                  performance of the server.
+                  This option controls the addition of records to the
+                  authority and additional sections of responses. Such
+                  records may be included in responses to be helpful
+                  to clients; for example, NS or MX records may
+                  have associated address records included in the additional
+                  section, obviating the need for a separate address lookup.
+                  However, adding these records to responses is not mandatory
+                  and requires additional database lookups, causing extra
+                  latency when marshalling responses.
+                  <span class="command"><strong>minimal-responses</strong></span> takes one of
+                  four values:
+                </p>
+                <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+                    <strong class="userinput"><code>no</code></strong>: the server will be
+                    as complete as possible when generating responses.
+                  </li>
+<li class="listitem">
+                    <strong class="userinput"><code>yes</code></strong>: the server will only add
+                    records to the authority and additional sections when
+                    such records are required by the DNS protocol (for
+                    example, when returning delegations or negative
+                    responses). This provides the best server performance
+                    but may result in more client queries.
+                  </li>
+<li class="listitem">
+                    <strong class="userinput"><code>no-auth</code></strong>: the server
+                    will omit records from the authority section except
+                    when they are required, but it may still add records
+                    to the additional section.
+                  </li>
+<li class="listitem">
+                    <strong class="userinput"><code>no-auth-recursive</code></strong>: the same
+                    as <strong class="userinput"><code>no-auth</code></strong> when recursion is
+                    requested in the query (RD=1), or the same as
+                    <strong class="userinput"><code>no</code></strong> if recursion is not
+                    requested.
+                  </li>
+</ul></div>
+                <p>
+                  <strong class="userinput"><code>no-auth</code></strong> and
+                  <strong class="userinput"><code>no-auth-recursive</code></strong> are useful when
+                  answering stub clients, which usually ignore the
+                  authority section.  <strong class="userinput"><code>no-auth-recursive</code></strong>
+                  is meant for use in mixed-mode servers that handle both
+                  authoritative and recursive queries.
                 </p>
                 <p>
-                  When set to <strong class="userinput"><code>no-auth</code></strong>, the
-                  server will omit records from the authority section
-                  unless they are required, but it may still add
-                  records to the additional section.  When set to
-                  <strong class="userinput"><code>no-auth-recursive</code></strong>, this
-                  is only done if the query is recursive.  When the
-                  query is not recursive, the effect is same as if
-                  <strong class="userinput"><code>no</code></strong> was specified. These
-                  settings are useful when answering stub clients,
-                  which usually ignore the authority section.
-                  <strong class="userinput"><code>no-auth-recursive</code></strong> is
-                  designed for mixed-mode servers which handle
-                  both authoritative and recursive queries.
-                </p>
-                <p>
-                  The default is
-                  <strong class="userinput"><code>no-auth-recursive</code></strong>.
+                  The default is <strong class="userinput"><code>no-auth-recursive</code></strong>.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>glue-cache</strong></span></span></dt>
@@ -7810,7 +7842,7 @@ deny-answer-aliases { "example.net"; };
                     The empty set of resource records is specified by
                     CNAME whose target is the wildcard top-level
                     domain (*.).
-                    It rewrites the response to NODATA or ANCOUNT=1.
+                    It rewrites the response to NODATA or ANCOUNT=0.
                   </p>
                 </dd>
 <dt><span class="term"><span class="command"><strong>Local Data</strong></span></span></dt>
@@ -14852,6 +14884,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.1 (Stable Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.2 (Stable Release)</p>
 </body>
 </html>
