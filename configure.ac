@@ -262,7 +262,15 @@ AS_IF([test "$with_python" = "no"],
        AS_IF([test "X$PYTHON" = "X"],
 	     [AC_MSG_CHECKING([for Python support])
 	      AC_MSG_RESULT([no])
-	      AC_MSG_ERROR([Python required for dnssec-keymgr])])])
+	      AC_MSG_ERROR([m4_normalize(
+				[Python >= 2.7 or >= 3.2 and the PLY package
+                                 are required for dnssec-keymgr and other
+                                 Python-based tools. PLY may be
+                                 available from your OS package manager
+                                 as python-ply or python3-ply; it can also
+                                 be installed via pip. To build without
+                                 Python/PLY, use --disable-python.]
+			    )])])])
 
 PYTHON_TOOLS=''
 CHECKDS=''
