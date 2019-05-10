@@ -1,10 +1,13 @@
-Release Notes for BIND Version 9.11.6-P1
+Release Notes for BIND Version 9.11.7
 
 Introduction
 
-This document summarizes changes since the last production release on the
-BIND 9.11 (Extended Support Version) branch. Please see the CHANGES file
-for a further list of bug fixes and other changes.
+BIND 9.11 (Extended Support Version) is a stable branch of BIND. This
+document summarizes significant changes since the last production release
+on that branch.
+
+Please see the file CHANGES for a more detailed list of changes and bug
+fixes.
 
 Download
 
@@ -33,12 +36,6 @@ Those unsure whether or not the license change affects their use of BIND,
 or who wish to discuss how to comply with the license may contact ISC at
 https://www.isc.org/mission/contact/.
 
-Legacy Windows No Longer Supported
-
-As of BIND 9.11.2, Windows XP and Windows 2003 are no longer supported
-platforms for BIND; "XP" binaries are no longer available for download
-from ISC.
-
 Security Fixes
 
   * The TCP client quota set using the tcp-clients option could be
@@ -51,7 +48,15 @@ New Features
 
 Feature Changes
 
-  * None.
+  * When trusted-keys and managed-keys are both configured for the same
+    name, or when trusted-keys is used to configure a trust anchor for the
+    root zone and dnssec-validation is set to auto, automatic RFC 5011 key
+    rollovers will fail.
+
+    This combination of settings was never intended to work, but there was
+    no check for it in the parser. This has been corrected; a warning is
+    now logged. (In BIND 9.15 and higher this error will be fatal.) [GL #
+    868]
 
 Bug Fixes
 

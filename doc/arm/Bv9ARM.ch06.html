@@ -3401,6 +3401,12 @@ options {
                 by the <span class="command"><strong>disable-algorithms</strong></span> will be treated
                 as insecure.
               </p>
+              <p>
+                Configured trust anchors in <span class="command"><strong>trusted-keys</strong></span>
+                or <span class="command"><strong>managed-keys</strong></span> that match a disabled
+                algorithm will be ignored and treated as if they were not
+                configured at all.
+              </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>disable-ds-digests</strong></span></span></dt>
 <dd>
@@ -7870,7 +7876,7 @@ deny-answer-aliases { "example.net"; };
                     The empty set of resource records is specified by
                     CNAME whose target is the wildcard top-level
                     domain (*.).
-                    It rewrites the response to NODATA or ANCOUNT=1.
+                    It rewrites the response to NODATA or ANCOUNT=0.
                   </p>
                 </dd>
 <dt><span class="term"><span class="command"><strong>Local Data</strong></span></span></dt>
@@ -14677,6 +14683,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.6-P1 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.7 (Extended Support Version)</p>
 </body>
 </html>
