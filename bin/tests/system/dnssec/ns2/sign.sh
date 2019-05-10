@@ -18,7 +18,7 @@ SYSTEMTESTTOP=../..
 echo_i "ns2/sign.sh"
 
 # Get the DS records for the "trusted." and "managed." zones.
-for subdomain in secure unsupported disabled enabled
+for subdomain in secure unsupported
 do
 	cp ../ns3/dsset-$subdomain.managed$TP .
 	cp ../ns3/dsset-$subdomain.trusted$TP .

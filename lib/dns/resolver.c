@@ -2086,8 +2086,7 @@ compute_cc(resquery_t *query, unsigned char *cookie, size_t len) {
 
 static isc_result_t
 issecuredomain(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
-	       isc_stdtime_t now, bool checknta,
-	       bool *issecure)
+	       isc_stdtime_t now, bool checknta, bool *ntap, bool *issecure)
 {
 	dns_name_t suffix;
 	unsigned int labels;
@@ -2105,7 +2104,8 @@ issecuredomain(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 		name = &suffix;
 	}
 
-	return (dns_view_issecuredomain(view, name, now, checknta, issecure));
+	return (dns_view_issecuredomain(view, name, now, checknta,
+					ntap, issecure));
 }
 
 static bool
@@ -2114,17 +2114,20 @@ wouldvalidate(fetchctx_t *fctx) {
 	isc_result_t result;
 	isc_stdtime_t now;
 
-	if (!fctx->res->view->enablevalidation)
+	if (!fctx->res->view->enablevalidation) {
 		return (false);
+	}
 
-	if (fctx->res->view->dlv != NULL)
+	if (fctx->res->view->dlv != NULL) {
 		return (true);
+	}
 
 	isc_stdtime_get(&now);
 	result = dns_view_issecuredomain(fctx->res->view, &fctx->name,
-					 now, true, &secure_domain);
-	if (result != ISC_R_SUCCESS)
+					 now, true, NULL, &secure_domain);
+	if (result != ISC_R_SUCCESS) {
 		return (false);
+	}
 	return (secure_domain);
 }
 
@@ -2229,24 +2232,30 @@ resquery_send(resquery_t *query) {
 	 * question is under a secure entry point and this is a
 	 * recursive/forward query -- unless the client said not to.
 	 */
-	if ((query->options & DNS_FETCHOPT_NOCDFLAG) != 0)
+	if ((query->options & DNS_FETCHOPT_NOCDFLAG) != 0) {
 		/* Do nothing */
-		;
-	else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0)
+	} else if ((query->options & DNS_FETCHOPT_NOVALIDATE) != 0) {
 		fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
-	else if (res->view->enablevalidation &&
-		 ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0))
+	} else if (res->view->enablevalidation &&
+		   ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0))
 	{
 		bool checknta = ((query->options & DNS_FETCHOPT_NONTA) == 0);
+		bool ntacovered = false;
 		result = issecuredomain(res->view, &fctx->name, fctx->type,
 					isc_time_seconds(&query->start),
-					checknta, &secure_domain);
-		if (result != ISC_R_SUCCESS)
+					checknta, &ntacovered, &secure_domain);
+		if (result != ISC_R_SUCCESS) {
 			secure_domain = false;
-		if (res->view->dlv != NULL)
+		}
+		if (res->view->dlv != NULL) {
 			secure_domain = true;
-		if (secure_domain)
+		}
+
+		if (secure_domain ||
+		    (ISFORWARDER(query->addrinfo) && ntacovered))
+		{
 			fctx->qmessage->flags |= DNS_MESSAGEFLAG_CD;
+		}
 	}
 
 	/*
@@ -5419,7 +5428,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 
 	if (res->view->enablevalidation) {
 		result = issecuredomain(res->view, name, fctx->type,
-					now, checknta, &secure_domain);
+					now, checknta, NULL, &secure_domain);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -6006,7 +6015,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 
 	if (fctx->res->view->enablevalidation) {
 		result = issecuredomain(res->view, name, fctx->type,
-					now, checknta, &secure_domain);
+					now, checknta, NULL, &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
 

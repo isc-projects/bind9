@@ -554,15 +554,17 @@ nta_test(void **state) {
 	/* Should be secure */
 	result = dns_view_issecuredomain(myview,
 					 str2name("test.secure.example"),
-					 now, true, &issecure);
+					 now, true, &covered, &issecure);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(covered);
 	assert_true(issecure);
 
 	/* Should not be secure */
 	result = dns_view_issecuredomain(myview,
 					 str2name("test.insecure.example"),
-					 now, true, &issecure);
+					 now, true, &covered, &issecure);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(covered);
 	assert_false(issecure);
 
 	/* NTA covered */
@@ -578,14 +580,16 @@ nta_test(void **state) {
 	/* As of now + 2, the NTA should be clear */
 	result = dns_view_issecuredomain(myview,
 					 str2name("test.insecure.example"),
-					 now + 2, true, &issecure);
+					 now + 2, true, &covered, &issecure);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(covered);
 	assert_true(issecure);
 
 	/* Now check deletion */
 	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
-					 now, true, &issecure);
+					 now, true, &covered, &issecure);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(covered);
 	assert_true(issecure);
 
 	result = dns_ntatable_add(ntatable, str2name("new.example"),
@@ -593,16 +597,18 @@ nta_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
-					 now, true, &issecure);
+					 now, true, &covered, &issecure);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_true(covered);
 	assert_false(issecure);
 
 	result = dns_ntatable_delete(ntatable, str2name("new.example"));
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_view_issecuredomain(myview, str2name("test.new.example"),
-					 now, true, &issecure);
+					 now, true, &covered, &issecure);
 	assert_int_equal(result, ISC_R_SUCCESS);
+	assert_false(covered);
 	assert_true(issecure);
 
 	/* Clean up */
