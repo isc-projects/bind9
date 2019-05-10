@@ -1,5 +1,7 @@
-5232.	[bug]		Negative trust anchors did not work with "forward only;"
+5233.	[bug]		Negative trust anchors did not work with "forward only;"
 			to validating resolvers. [GL #997]
+
+5232.	[placeholder]
 
 5231.	[protocol]	Add support for displaying CLIENT-TAG and SERVER-TAG.
 			[GL #960]
