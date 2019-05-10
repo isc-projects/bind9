@@ -24,10 +24,14 @@
 
 #include <isc/file.h>
 #include <isc/mem.h>
+#include <isc/mutex.h>
+#include <isc/os.h>
 #include <isc/print.h>
 #include <isc/result.h>
 #include <isc/stdio.h>
 #include <isc/util.h>
+#include <isc/thread.h>
+#include <isc/time.h>
 
 #include "../mem_p.h"
 
@@ -422,6 +426,129 @@ isc_mem_traceflag_test(void **state) {
 }
 #endif
 
+#define ITERS 512
+#define NUM_ITEMS 1024 //768
+#define ITEM_SIZE 65534
+
+static void *
+mem_thread(void *arg) {
+	void *items[NUM_ITEMS];
+	size_t size = *((size_t *)arg);
+
+	for (int i = 0; i < ITERS; i++) {
+		for (int j = 0; j < NUM_ITEMS; j++) {
+			items[j] = isc_mem_get(mctx, size);
+		}
+		for (int j = 0; j < NUM_ITEMS; j++) {
+			isc_mem_put(mctx, items[j], size);
+		}
+	}
+
+	return (NULL);
+}
+
+static void
+isc_mem_benchmark(void **state) {
+	int nthreads = ISC_MAX(ISC_MIN(isc_os_ncpus(), 32), 1);
+	isc_thread_t threads[32];
+	isc_time_t ts1, ts2;
+	double t;
+	isc_result_t result;
+	size_t size = ITEM_SIZE;
+
+	UNUSED(state);
+
+	result = isc_time_now(&ts1);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	for (int i = 0; i < nthreads; i++) {
+		result = isc_thread_create(mem_thread, &size, &threads[i]);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		size = size / 2;
+	}
+	for (int i = 0; i < nthreads; i++) {
+		result = isc_thread_join(threads[i], NULL);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	result = isc_time_now(&ts2);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	t = isc_time_microdiff(&ts2, &ts1);
+
+	printf("[ TIME     ] isc_mem_benchmark: "
+	       "%d isc_mem_{get,put} calls, %f seconds, %f calls/second\n",
+	       nthreads * ITERS * NUM_ITEMS, t / 1000000.0,
+	       (nthreads * ITERS * NUM_ITEMS) / (t / 1000000.0));
+}
+
+static void *
+mempool_thread(void *arg) {
+	isc_mempool_t *mp = (isc_mempool_t *)arg;
+	void *items[NUM_ITEMS];
+
+	for (int i = 0; i < ITERS; i++) {
+		for (int j = 0; j < NUM_ITEMS; j++) {
+			items[j] = isc_mempool_get(mp);
+		}
+		for (int j = 0; j < NUM_ITEMS; j++) {
+			isc_mempool_put(mp, items[j]);
+		}
+	}
+
+	return (NULL);
+}
+
+static void
+isc_mempool_benchmark(void **state) {
+	int nthreads = ISC_MAX(ISC_MIN(isc_os_ncpus(), 32), 1);
+	isc_thread_t threads[32];
+	isc_time_t ts1, ts2;
+	double t;
+	isc_result_t result;
+	size_t size = ITEM_SIZE;
+	isc_mempool_t *mp = NULL;
+	isc_mutex_t mplock;
+
+	isc_mutex_init(&mplock);
+
+	result = isc_mempool_create(mctx, ITEM_SIZE, &mp);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	isc_mempool_associatelock(mp, &mplock);
+
+	isc_mempool_setfreemax(mp, 32768);
+	isc_mempool_setfillcount(mp, ISC_MAX(NUM_ITEMS / nthreads, 1));
+
+	UNUSED(state);
+
+	result = isc_time_now(&ts1);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	for (int i = 0; i < nthreads; i++) {
+		result = isc_thread_create(mempool_thread, mp, &threads[i]);
+		assert_int_equal(result, ISC_R_SUCCESS);
+		size = size / 2;
+	}
+	for (int i = 0; i < nthreads; i++) {
+		result = isc_thread_join(threads[i], NULL);
+		assert_int_equal(result, ISC_R_SUCCESS);
+	}
+
+	result = isc_time_now(&ts2);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	t = isc_time_microdiff(&ts2, &ts1);
+
+	printf("[ TIME     ] isc_mempool_benchmark: "
+	       "%d isc_mempool_{get,put} calls, %f seconds, %f calls/second\n",
+	       nthreads * ITERS * NUM_ITEMS, t / 1000000.0,
+	       (nthreads * ITERS * NUM_ITEMS) / (t / 1000000.0));
+
+	isc_mempool_destroy(&mp);
+	isc_mutex_destroy(&mplock);
+}
+
 /*
  * Main
  */
@@ -444,6 +571,10 @@ main(void) {
 		cmocka_unit_test_setup_teardown(isc_mem_traceflag_test,
 				_setup, _teardown),
 #endif
+		cmocka_unit_test_setup_teardown(isc_mem_benchmark,
+						_setup, _teardown),
+		cmocka_unit_test_setup_teardown(isc_mempool_benchmark,
+						_setup, _teardown),
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
