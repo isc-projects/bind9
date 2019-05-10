@@ -2300,9 +2300,31 @@ fi
 # cleanup
 rndccmd 10.53.0.4 nta -remove secure.example > rndc.out.ns4.test$n.3 2>/dev/null
 
+n=$((n+1))
 if [ "$ret" -ne 0 ]; then echo_i "failed - NTA lifetime clamping failed"; fi
 status=$((status+ret))
+
+echo_i "checking that NTAs work with 'forward only;' to a validating resolver ($n)"
 ret=0
+# Sanity check behavior without an NTA in place.
+dig_with_opts @10.53.0.9 badds.example. SOA > dig.out.ns9.test$n.1 || ret=1
+grep "SERVFAIL" dig.out.ns9.test$n.1 > /dev/null || ret=1
+grep "ANSWER: 0" dig.out.ns9.test$n.1 > /dev/null || ret=1
+grep "flags:[^;]* ad[ ;].*QUERY" dig.out.ns9.test$n.1 > /dev/null && ret=1
+# Add an NTA, expecting that to cause resolution to succeed.
+rndccmd 10.53.0.9 nta badds.example > rndc.out.ns9.test$n.1 2>&1 || ret=1
+dig_with_opts @10.53.0.9 badds.example. SOA > dig.out.ns9.test$n.2 || ret=1
+grep "NOERROR" dig.out.ns9.test$n.2 > /dev/null || ret=1
+grep "ANSWER: 2" dig.out.ns9.test$n.2 > /dev/null || ret=1
+grep "flags:[^;]* ad[ ;].*QUERY" dig.out.ns9.test$n.2 > /dev/null && ret=1
+# Remove the NTA, expecting that to cause resolution to fail again.
+rndccmd 10.53.0.9 nta -remove badds.example > rndc.out.ns9.test$n.2 2>&1 || ret=1
+dig_with_opts @10.53.0.9 badds.example. SOA > dig.out.ns9.test$n.3 || ret=1
+grep "SERVFAIL" dig.out.ns9.test$n.3 > /dev/null || ret=1
+grep "ANSWER: 0" dig.out.ns9.test$n.3 > /dev/null || ret=1
+grep "flags:[^;]* ad[ ;].*QUERY" dig.out.ns9.test$n.3 > /dev/null && ret=1
+if [ "$ret" -ne 0 ]; then echo_i "failed"; fi
+status=$((status+ret))
 
 echo_i "completed NTA tests"
 
