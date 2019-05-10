@@ -46,6 +46,15 @@ dnssec-checkds \- DNSSEC delegation consistency checking tool
 verifies the correctness of Delegation Signer (DS) or DNSSEC Lookaside Validation (DLV) resource records for keys in a specified zone\&.
 .SH "OPTIONS"
 .PP
+\-a \fIalgorithm\fR
+.RS 4
+Specify a digest algorithm to use when converting the zone\*(Aqs DNSKEY records to expected DS or DLV records\&. This option can be repeated, so that multiple records are checked for each DNSKEY record\&.
+.sp
+The
+\fIalgorithm\fR
+must be one of SHA\-1, SHA\-256, or SHA\-384\&. These values are case insensitive, and the hyphen may be omitted\&. If no algorithm is specified, the default is SHA\-256\&.
+.RE
+.PP
 \-f \fIfile\fR
 .RS 4
 If a

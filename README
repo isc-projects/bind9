@@ -103,9 +103,7 @@ format-patch.
 BIND 9.15 features
 
 BIND 9.15 is the newest development branch of BIND 9. It includes a number
-of changes from BIND 9.14 and earlier releases. New features include:
-
-  * TBD
+of changes from BIND 9.14 and earlier releases.
 
 Building BIND
 

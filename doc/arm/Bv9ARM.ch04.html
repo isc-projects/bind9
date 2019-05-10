@@ -1025,12 +1025,6 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 <div class="titlepage"><div><div><h3 class="title">
 <a name="dnssec_config"></a>Configuring Servers for DNSSEC</h3></div></div></div>
         <p>
-          To enable <span class="command"><strong>named</strong></span> to respond appropriately
-          to DNS requests from DNSSEC-aware clients,
-          <span class="command"><strong>dnssec-enable</strong></span> must be set to
-          <strong class="userinput"><code>yes</code></strong>. This is the default setting.
-        </p>
-        <p>
           To enable <span class="command"><strong>named</strong></span> to validate answers
           received from other servers, the
           <span class="command"><strong>dnssec-validation</strong></span> option must be set to
@@ -1059,17 +1053,6 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
           The default is <strong class="userinput"><code>auto</code></strong> unless BIND is
           built with <span class="command"><strong>configure --disable-auto-validation</strong></span>,
           in which case the default is <strong class="userinput"><code>yes</code></strong>.
-        </p>
-        <p>
-          If <span class="command"><strong>dnssec-enable</strong></span> is set to
-          <strong class="userinput"><code>no</code></strong>, then the default for
-          <span class="command"><strong>dnssec-validation</strong></span> is also changed to
-          <strong class="userinput"><code>no</code></strong>. If
-          <span class="command"><strong>dnssec-validation</strong></span> is set to
-          <strong class="userinput"><code>yes</code></strong>, the server will
-          perform DNSSEC validation internally, but will not return
-          signatures when queried - but it will not be turned on
-          automatically.
         </p>
 
         <p>
@@ -1159,7 +1142,6 @@ trusted-keys {
 
 options {
         ...
-        dnssec-enable yes;
         dnssec-validation yes;
 };
 </pre>
@@ -2863,6 +2845,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.13.6 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.0 (Development Release)</p>
 </body>
 </html>

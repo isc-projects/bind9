@@ -702,14 +702,7 @@ in each view\&. The list both statically configured keys and dynamic TKEY\-negot
 .PP
 \fBvalidation ( on | off | status ) \fR\fB[\fIview \&.\&.\&.\fR]\fR\fB \fR
 .RS 4
-Enable, disable, or check the current status of DNSSEC validation\&. By default, validation is enabled\&. (Note that
-\fBdnssec\-enable\fR
-must also be
-\fByes\fR
-(the default value) for signatures to be returned along with validated data\&. If validation is enabled while
-\fBdnssec\-enable\fR
-is set to
-\fBno\fR, the server will validate internally, but will not supply clients with the necessary records to allow validity to be confirmed\&.)
+Enable, disable, or check the current status of DNSSEC validation\&. By default, validation is enabled\&.
 .RE
 .PP
 \fBzonestatus \fR\fB\fIzone\fR\fR\fB \fR\fB[\fIclass\fR [\fIview\fR]]\fR

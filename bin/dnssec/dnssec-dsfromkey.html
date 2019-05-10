@@ -135,13 +135,15 @@
 <dt><span class="term">-1</span></dt>
 <dd>
 	  <p>
-	    An abbreviation for <code class="option">-a SHA1</code>
+	    An abbreviation for <code class="option">-a SHA-1</code>.
+	    (Note: The SHA-1 algorithm is no longer recommended for use
+	    when generating new DS and CDS records.)
 	  </p>
 	</dd>
 <dt><span class="term">-2</span></dt>
 <dd>
 	  <p>
-	    An abbreviation for <code class="option">-a SHA-256</code>
+	    An abbreviation for <code class="option">-a SHA-256</code>.
 	  </p>
 	</dd>
 <dt><span class="term">-a <em class="replaceable"><code>algorithm</code></em></span></dt>
@@ -157,6 +159,8 @@
 	    SHA-1, SHA-256, or SHA-384.  These values are case insensitive,
 	    and the hyphen may be omitted.  If no algorithm is specified,
 	    the default is SHA-256.
+	    (Note: The SHA-1 algorithm is no longer recommended for use
+	    when generating new DS and CDS records.)
 	  </p>
 	</dd>
 <dt><span class="term">-A</span></dt>

@@ -1,3 +1,5 @@
+	--- 9.15.0 released ---
+
 5233.	[bug]		Negative trust anchors did not work with "forward only;"
 			to validating resolvers. [GL #997]
 
