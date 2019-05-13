@@ -1622,9 +1622,9 @@ main(int argc, char *argv[]) {
 		fatal("failed to create mctx");
 
 	CHECK(isc_appctx_create(mctx, &actx));
-	CHECK(isc_taskmgr_createinctx(mctx, actx, 1, 0, &taskmgr));
-	CHECK(isc_socketmgr_createinctx(mctx, actx, &socketmgr));
-	CHECK(isc_timermgr_createinctx(mctx, actx, &timermgr));
+	CHECK(isc_taskmgr_createinctx(mctx, 1, 0, &taskmgr));
+	CHECK(isc_socketmgr_createinctx(mctx, &socketmgr));
+	CHECK(isc_timermgr_createinctx(mctx, &timermgr));
 
 	parse_args(argc, argv);
 

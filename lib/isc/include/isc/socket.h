@@ -805,8 +805,7 @@ isc_socket_sendto2(isc_socket_t *sock, isc_region_t *region,
 /*@}*/
 
 isc_result_t
-isc_socketmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
-			  isc_socketmgr_t **managerp);
+isc_socketmgr_createinctx(isc_mem_t *mctx, isc_socketmgr_t **managerp);
 
 isc_result_t
 isc_socketmgr_create(isc_mem_t *mctx, isc_socketmgr_t **managerp);

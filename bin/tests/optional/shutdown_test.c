@@ -98,7 +98,7 @@ tick(isc_task_t *task, isc_event_t *event) {
 	info->ticks++;
 	if (strcmp(info->name, "1") == 0) {
 		if (info->ticks == 10) {
-			RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
+			isc_app_shutdown();
 		} else if (info->ticks >= 15 && info->exiting) {
 			isc_timer_detach(&info->timer);
 			isc_task_detach(&info->task);

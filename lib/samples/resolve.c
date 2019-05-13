@@ -379,13 +379,13 @@ main(int argc, char *argv[]) {
 	result = isc_app_ctxstart(actx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = isc_taskmgr_createinctx(mctx, actx, 1, 0, &taskmgr);
+	result = isc_taskmgr_createinctx(mctx, 1, 0, &taskmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = isc_socketmgr_createinctx(mctx, actx, &socketmgr);
+	result = isc_socketmgr_createinctx(mctx, &socketmgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
-	result = isc_timermgr_createinctx(mctx, actx, &timermgr);
+	result = isc_timermgr_createinctx(mctx, &timermgr);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 

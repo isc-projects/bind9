@@ -635,10 +635,7 @@ LIBS="$PTHREAD_LIBS $LIBS"
 CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 CC="$PTHREAD_CC"
 
-#
-# We'd like to use sigwait() too
-#
-AC_CHECK_FUNCS([sigwait pthread_attr_getstacksize pthread_attr_setstacksize])
+AC_CHECK_FUNCS([pthread_attr_getstacksize pthread_attr_setstacksize])
 
 AC_ARG_WITH([locktype],
 	    AS_HELP_STRING([--with-locktype=ARG],

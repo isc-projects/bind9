@@ -27,6 +27,7 @@
 #endif
 
 #include <isc/platform.h>
+#include <isc/atomic.h>
 #include <isc/app.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
@@ -48,7 +49,7 @@
  * as an event loop dispatching various events.
  */
 static pthread_t		blockedthread;
-static bool			is_running;
+static atomic_bool		is_running;
 
 /*
  * The application context of this module.  This implementation actually
@@ -57,72 +58,41 @@ static bool			is_running;
 #define APPCTX_MAGIC		ISC_MAGIC('A', 'p', 'c', 'x')
 #define VALID_APPCTX(c)		ISC_MAGIC_VALID(c, APPCTX_MAGIC)
 
-typedef struct isc__appctx {
-	isc_appctx_t		common;
+struct isc_appctx {
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	isc_mutex_t		lock;
-	isc_eventlist_t		on_run;
-	bool		shutdown_requested;
-	bool		running;
-
-	/*!
-	 * We assume that 'want_shutdown' can be read and written atomically.
-	 */
-	bool		want_shutdown;
-	/*
-	 * We assume that 'want_reload' can be read and written atomically.
-	 */
-	bool		want_reload;
-
-	bool		blocked;
-
-	isc_taskmgr_t		*taskmgr;
-	isc_socketmgr_t		*socketmgr;
-	isc_timermgr_t		*timermgr;
+	isc_eventlist_t	on_run;
+	atomic_bool		shutdown_requested;
+	atomic_bool		running;
+	atomic_bool		want_shutdown;
+	atomic_bool		want_reload;
+	atomic_bool		blocked;
 	isc_mutex_t		readylock;
-	isc_condition_t		ready;
-} isc__appctx_t;
+	isc_condition_t	ready;
+};
 
-static isc__appctx_t isc_g_appctx;
-
-#ifndef HAVE_SIGWAIT
-static void
-exit_action(int arg) {
-	UNUSED(arg);
-	isc_g_appctx.want_shutdown = true;
-}
+static isc_appctx_t isc_g_appctx;
 
 static void
-reload_action(int arg) {
-	UNUSED(arg);
-	isc_g_appctx.want_reload = true;
-}
-#endif
-
-static isc_result_t
 handle_signal(int sig, void (*handler)(int)) {
 	struct sigaction sa;
-	char strbuf[ISC_STRERRORSIZE];
 
 	memset(&sa, 0, sizeof(sa));
 	sa.sa_handler = handler;
 
 	if (sigfillset(&sa.sa_mask) != 0 ||
 	    sigaction(sig, &sa, NULL) < 0) {
+		char strbuf[ISC_STRERRORSIZE];
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_error_fatal(__FILE__, __LINE__,
 				 "handle_signal() %d setup: %s",
 				 sig, strbuf);
-		return (ISC_R_UNEXPECTED);
 	}
-
-	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-isc_app_ctxstart(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-	isc_result_t result;
+isc_app_ctxstart(isc_appctx_t *ctx) {
 	int presult;
 	sigset_t sset;
 	char strbuf[ISC_STRERRORSIZE];
@@ -133,64 +103,27 @@ isc_app_ctxstart(isc_appctx_t *ctx0) {
 	 * Start an ISC library application.
 	 */
 
-	isc_mutex_init(&ctx->readylock);
-
-	isc_condition_init(&ctx->ready);
-
 	isc_mutex_init(&ctx->lock);
+
+	isc_mutex_init(&ctx->readylock);
+	isc_condition_init(&ctx->ready);
 
 	ISC_LIST_INIT(ctx->on_run);
 
-	ctx->shutdown_requested = false;
-	ctx->running = false;
-	ctx->want_shutdown = false;
-	ctx->want_reload = false;
-	ctx->blocked = false;
-
-#ifndef HAVE_SIGWAIT
-	/*
-	 * Install do-nothing handlers for SIGINT and SIGTERM.
-	 *
-	 * We install them now because BSDI 3.1 won't block
-	 * the default actions, regardless of what we do with
-	 * pthread_sigmask().
-	 */
-	result = handle_signal(SIGINT, exit_action);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = handle_signal(SIGTERM, exit_action);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-#endif
+	atomic_init(&ctx->shutdown_requested, false);
+	atomic_init(&ctx->running, false);
+	atomic_init(&ctx->want_shutdown, false);
+	atomic_init(&ctx->want_reload, false);
+	atomic_init(&ctx->blocked, false);
 
 	/*
 	 * Always ignore SIGPIPE.
 	 */
-	result = handle_signal(SIGPIPE, SIG_IGN);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	handle_signal(SIGPIPE, SIG_IGN);
 
-	/*
-	 * On Solaris 2, delivery of a signal whose action is SIG_IGN
-	 * will not cause sigwait() to return. We may have inherited
-	 * unexpected actions for SIGHUP, SIGINT, and SIGTERM from our parent
-	 * process (e.g, Solaris cron).  Set an action of SIG_DFL to make
-	 * sure sigwait() works as expected.  Only do this for SIGTERM and
-	 * SIGINT if we don't have sigwait(), since a different handler is
-	 * installed above.
-	 */
-	result = handle_signal(SIGHUP, SIG_DFL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-#ifdef HAVE_SIGWAIT
-	result = handle_signal(SIGTERM, SIG_DFL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-	result = handle_signal(SIGINT, SIG_DFL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-#endif
+	handle_signal(SIGHUP, SIG_DFL);
+	handle_signal(SIGTERM, SIG_DFL);
+	handle_signal(SIGINT, SIG_DFL);
 
 	/*
 	 * Block SIGHUP, SIGINT, SIGTERM.
@@ -206,61 +139,45 @@ isc_app_ctxstart(isc_appctx_t *ctx0) {
 	    sigaddset(&sset, SIGINT) != 0 ||
 	    sigaddset(&sset, SIGTERM) != 0) {
 		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_error_fatal(__FILE__, __LINE__,
 				 "isc_app_start() sigsetops: %s", strbuf);
-		result = ISC_R_UNEXPECTED;
-		goto cleanup;
 	}
 	presult = pthread_sigmask(SIG_BLOCK, &sset, NULL);
 	if (presult != 0) {
 		strerror_r(presult, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
+		isc_error_fatal(__FILE__, __LINE__,
 				 "isc_app_start() pthread_sigmask: %s",
 				 strbuf);
-		result = ISC_R_UNEXPECTED;
-		goto cleanup;
 	}
 
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	(void)isc_condition_destroy(&ctx->ready);
-	(void)isc_mutex_destroy(&ctx->readylock);
-	return (result);
 }
 
 isc_result_t
 isc_app_start(void) {
-	isc_g_appctx.common.impmagic = APPCTX_MAGIC;
-	isc_g_appctx.common.magic = ISCAPI_APPCTX_MAGIC;
+	isc_g_appctx.magic = APPCTX_MAGIC;
 	isc_g_appctx.mctx = NULL;
 	/* The remaining members will be initialized in ctxstart() */
 
-	return (isc_app_ctxstart((isc_appctx_t *)&isc_g_appctx));
+	return (isc_app_ctxstart(&isc_g_appctx));
 }
 
 isc_result_t
 isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	      void *arg)
 {
-	return (isc_app_ctxonrun((isc_appctx_t *)&isc_g_appctx, mctx,
-				  task, action, arg));
+	return (isc_app_ctxonrun(&isc_g_appctx, mctx, task, action, arg));
 }
 
 isc_result_t
-isc_app_ctxonrun(isc_appctx_t *ctx0, isc_mem_t *mctx, isc_task_t *task,
+isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 		  isc_taskaction_t action, void *arg)
 {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
 	isc_event_t *event;
 	isc_task_t *cloned_task = NULL;
-	isc_result_t result;
 
-	LOCK(&ctx->lock);
-
-	if (ctx->running) {
-		result = ISC_R_ALREADYRUNNING;
-		goto unlock;
+	if (atomic_load_acquire(&ctx->running)) {
+		return (ISC_R_ALREADYRUNNING);
 	}
 
 	/*
@@ -272,42 +189,34 @@ isc_app_ctxonrun(isc_appctx_t *ctx0, isc_mem_t *mctx, isc_task_t *task,
 				   action, arg, sizeof(*event));
 	if (event == NULL) {
 		isc_task_detach(&cloned_task);
-		result = ISC_R_NOMEMORY;
-		goto unlock;
+		return (ISC_R_NOMEMORY);
 	}
 
+	LOCK(&ctx->lock);
 	ISC_LIST_APPEND(ctx->on_run, event, ev_link);
-
-	result = ISC_R_SUCCESS;
-
- unlock:
 	UNLOCK(&ctx->lock);
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
-isc_app_ctxrun(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-	int result;
+isc_app_ctxrun(isc_appctx_t *ctx) {
 	isc_event_t *event, *next_event;
 	isc_task_t *task;
 	sigset_t sset;
-	char strbuf[ISC_STRERRORSIZE];
-#ifdef HAVE_SIGWAIT
 	int sig;
-#endif /* HAVE_SIGWAIT */
+	bool exp_false = false;
+	bool exp_true = true;
 
 	REQUIRE(VALID_APPCTX(ctx));
 
-	LOCK(&ctx->lock);
-
-	if (!ctx->running) {
-		ctx->running = true;
-
+	if (atomic_compare_exchange_weak_acq_rel(
+		    &ctx->running, &exp_false, true) == true)
+	{
 		/*
 		 * Post any on-run events (in FIFO order).
 		 */
+		LOCK(&ctx->lock);
 		for (event = ISC_LIST_HEAD(ctx->on_run);
 		     event != NULL;
 		     event = next_event) {
@@ -317,17 +226,15 @@ isc_app_ctxrun(isc_appctx_t *ctx0) {
 			event->ev_sender = NULL;
 			isc_task_sendanddetach(&task, &event);
 		}
-
+		UNLOCK(&ctx->lock);
 	}
-
-	UNLOCK(&ctx->lock);
 
 	/*
 	 * BIND9 internal tools using multiple contexts do not
-	 * rely on signal.
-	 */
-	if (isc_bind9 && ctx != &isc_g_appctx)
+	 * rely on signal. */
+	if (isc_bind9 && ctx != &isc_g_appctx) {
 		return (ISC_R_SUCCESS);
+	}
 
 	/*
 	 * There is no danger if isc_app_shutdown() is called before we
@@ -335,8 +242,7 @@ isc_app_ctxrun(isc_appctx_t *ctx0) {
 	 * simply be made pending and we will get it when we call
 	 * sigwait().
 	 */
-	while (!ctx->want_shutdown) {
-#ifdef HAVE_SIGWAIT
+	while (atomic_load_acquire(&ctx->want_shutdown) == false) {
 		if (isc_bind9) {
 			/*
 			 * BIND9 internal; single context:
@@ -346,88 +252,56 @@ isc_app_ctxrun(isc_appctx_t *ctx0) {
 			    sigaddset(&sset, SIGHUP) != 0 ||
 			    sigaddset(&sset, SIGINT) != 0 ||
 			    sigaddset(&sset, SIGTERM) != 0) {
+				char strbuf[ISC_STRERRORSIZE];
 				strerror_r(errno, strbuf, sizeof(strbuf));
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "isc_app_run() sigsetops: %s",
-						 strbuf);
-				return (ISC_R_UNEXPECTED);
+				isc_error_fatal(__FILE__, __LINE__,
+						"isc_app_run() sigsetops: %s",
+						strbuf);
 			}
 
-			result = sigwait(&sset, &sig);
-			if (result == 0) {
-				if (sig == SIGINT || sig == SIGTERM)
-					ctx->want_shutdown = true;
-				else if (sig == SIGHUP)
-					ctx->want_reload = true;
+			if (sigwait(&sset, &sig) == 0) {
+				switch (sig) {
+				case SIGINT:
+				case SIGTERM:
+					atomic_store_release(
+						&ctx->want_shutdown, true);
+					break;
+				case SIGHUP:
+					atomic_store_release(
+						&ctx->want_reload, true);
+					break;
+				default:
+					INSIST(0);
+					ISC_UNREACHABLE();
+				}
 			}
-
 		} else {
 			/*
 			 * External, or BIND9 using multiple contexts:
 			 * wait until woken up.
 			 */
-			LOCK(&ctx->readylock);
-			if (ctx->want_shutdown) {
-				/* shutdown() won the race. */
-				UNLOCK(&ctx->readylock);
+			if (atomic_load_acquire(&ctx->want_shutdown)) {
 				break;
 			}
-			if (!ctx->want_reload)
+			if (!atomic_load_acquire(&ctx->want_reload)) {
+				LOCK(&ctx->readylock);
 				WAIT(&ctx->ready, &ctx->readylock);
-			UNLOCK(&ctx->readylock);
-		}
-#else  /* Don't have sigwait(). */
-		if (isc_bind9) {
-			/*
-			 * BIND9 internal; single context:
-			 * Install a signal handler for SIGHUP, then wait for
-			 * all signals.
-			 */
-			result = handle_signal(SIGHUP, reload_action);
-			if (result != ISC_R_SUCCESS)
-				return (ISC_R_SUCCESS);
-
-			if (sigemptyset(&sset) != 0) {
-				strerror_r(errno, strbuf, sizeof(strbuf));
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "isc_app_run() sigsetops: %s",
-						 strbuf);
-				return (ISC_R_UNEXPECTED);
-			}
-#ifdef HAVE_GPERFTOOLS_PROFILER
-			if (sigaddset(&sset, SIGALRM) != 0) {
-				strerror_r(errno, strbuf, sizeof(strbuf));
-				UNEXPECTED_ERROR(__FILE__, __LINE__,
-						 "isc_app_run() sigsetops: %s",
-						 strbuf);
-				return (ISC_R_UNEXPECTED);
-			}
-#endif
-			(void)sigsuspend(&sset);
-		} else {
-			/*
-			 * External, or BIND9 using multiple contexts:
-			 * wait until woken up.
-			 */
-			LOCK(&ctx->readylock);
-			if (ctx->want_shutdown) {
-				/* shutdown() won the race. */
 				UNLOCK(&ctx->readylock);
-				break;
 			}
-			if (!ctx->want_reload)
-				WAIT(&ctx->ready, &ctx->readylock);
-			UNLOCK(&ctx->readylock);
 		}
-#endif /* HAVE_SIGWAIT */
 
-		if (ctx->want_reload) {
-			ctx->want_reload = false;
+		exp_true = true;
+		if (atomic_compare_exchange_weak_acq_rel(&ctx->want_reload,
+							 &exp_true,
+							 false))
+		{
 			return (ISC_R_RELOAD);
 		}
 
-		if (ctx->want_shutdown && ctx->blocked)
+		if (atomic_load_acquire(&ctx->want_shutdown) &&
+		    atomic_load_acquire(&ctx->blocked)) {
 			exit(1);
+		}
 	}
 
 	return (ISC_R_SUCCESS);
@@ -436,139 +310,113 @@ isc_app_ctxrun(isc_appctx_t *ctx0) {
 isc_result_t
 isc_app_run(void) {
 	isc_result_t result;
+	bool exp_false = false;
 
-	is_running = true;
-	result = isc_app_ctxrun((isc_appctx_t *)&isc_g_appctx);
-	is_running = false;
+	REQUIRE(atomic_compare_exchange_weak_acq_rel(
+			&is_running, &exp_false, true) == true);
+	result = isc_app_ctxrun(&isc_g_appctx);
+	atomic_store_release(&is_running, false);
 
 	return (result);
 }
 
 bool
 isc_app_isrunning() {
-	return (is_running);
+	return (atomic_load_acquire(&is_running));
 }
 
-isc_result_t
-isc_app_ctxshutdown(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-	bool want_kill = true;
-	char strbuf[ISC_STRERRORSIZE];
+void
+isc_app_ctxshutdown(isc_appctx_t *ctx) {
+	bool exp_false = false;
 
 	REQUIRE(VALID_APPCTX(ctx));
 
-	LOCK(&ctx->lock);
+	REQUIRE(atomic_load_acquire(&ctx->running));
 
-	REQUIRE(ctx->running);
-
-	if (ctx->shutdown_requested)
-		want_kill = false;
-	else
-		ctx->shutdown_requested = true;
-
-	UNLOCK(&ctx->lock);
-
-	if (want_kill) {
-		if (isc_bind9 && ctx != &isc_g_appctx)
+	/* If ctx->shutdown_requested == true, we are already shutting
+	 * down and we want to just bail out.
+	 */
+	if (atomic_compare_exchange_weak_acq_rel(
+		    &ctx->shutdown_requested,
+		    &exp_false,
+		    true))
+	{
+		if (isc_bind9 && ctx != &isc_g_appctx) {
 			/* BIND9 internal, but using multiple contexts */
-			ctx->want_shutdown = true;
-		else {
-			if (isc_bind9) {
-				/* BIND9 internal, single context */
-				if (kill(getpid(), SIGTERM) < 0) {
-					strerror_r(errno,
-						      strbuf, sizeof(strbuf));
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "isc_app_shutdown() "
-							 "kill: %s", strbuf);
-					return (ISC_R_UNEXPECTED);
-				}
+			atomic_store_release(&ctx->want_shutdown, true);
+		} else if (isc_bind9) {
+			/* BIND9 internal, single context */
+			if (kill(getpid(), SIGTERM) < 0) {
+				char strbuf[ISC_STRERRORSIZE];
+				strerror_r(errno,
+					   strbuf, sizeof(strbuf));
+				isc_error_fatal(__FILE__, __LINE__,
+						"isc_app_shutdown() "
+						"kill: %s", strbuf);
 			}
-			else {
-				/* External, multiple contexts */
-				LOCK(&ctx->readylock);
-				ctx->want_shutdown = true;
-				UNLOCK(&ctx->readylock);
-				SIGNAL(&ctx->ready);
-			}
+		} else {
+			/* External, multiple contexts */
+			atomic_store_release(&ctx->want_shutdown, true);
+			SIGNAL(&ctx->ready);
 		}
 	}
 
-	return (ISC_R_SUCCESS);
 }
 
-isc_result_t
+void
 isc_app_shutdown(void) {
-	return (isc_app_ctxshutdown((isc_appctx_t *)&isc_g_appctx));
+	isc_app_ctxshutdown(&isc_g_appctx);
 }
 
-isc_result_t
-isc_app_ctxsuspend(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-	bool want_kill = true;
-	char strbuf[ISC_STRERRORSIZE];
-
+void
+isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	REQUIRE(VALID_APPCTX(ctx));
 
-	LOCK(&ctx->lock);
-
-	REQUIRE(ctx->running);
+	REQUIRE(atomic_load(&ctx->running));
 
 	/*
 	 * Don't send the reload signal if we're shutting down.
 	 */
-	if (ctx->shutdown_requested)
-		want_kill = false;
-
-	UNLOCK(&ctx->lock);
-
-	if (want_kill) {
-		if (isc_bind9 && ctx != &isc_g_appctx)
+	if (atomic_load_acquire(&ctx->shutdown_requested) == false) {
+		if (isc_bind9 && ctx != &isc_g_appctx) {
 			/* BIND9 internal, but using multiple contexts */
-			ctx->want_reload = true;
-		else {
-			ctx->want_reload = true;
-			if (isc_bind9) {
-				/* BIND9 internal, single context */
-				if (kill(getpid(), SIGHUP) < 0) {
-					strerror_r(errno,
-						      strbuf, sizeof(strbuf));
-					UNEXPECTED_ERROR(__FILE__, __LINE__,
-							 "isc_app_reload() "
-							 "kill: %s", strbuf);
-					return (ISC_R_UNEXPECTED);
-				}
+			atomic_store_release(&ctx->want_reload, true);
+		} else if (isc_bind9) {
+			/* BIND9 internal, single context */
+			if (kill(getpid(), SIGHUP) < 0) {
+				char strbuf[ISC_STRERRORSIZE];
+				strerror_r(errno,
+					   strbuf, sizeof(strbuf));
+				isc_error_fatal(__FILE__, __LINE__,
+						"isc_app_reload() "
+						"kill: %s", strbuf);
 			}
-			else {
-				/* External, multiple contexts */
-				LOCK(&ctx->readylock);
-				ctx->want_reload = true;
-				UNLOCK(&ctx->readylock);
-				SIGNAL(&ctx->ready);
-			}
+		} else {
+			/* External, multiple contexts */
+			atomic_store_release(&ctx->want_reload, true);
+			SIGNAL(&ctx->ready);
 		}
+
 	}
-
-	return (ISC_R_SUCCESS);
-}
-
-isc_result_t
-isc_app_reload(void) {
-	return (isc_app_ctxsuspend((isc_appctx_t *)&isc_g_appctx));
 }
 
 void
-isc_app_ctxfinish(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
+isc_app_reload(void) {
+	return (isc_app_ctxsuspend(&isc_g_appctx));
+}
 
+void
+isc_app_ctxfinish(isc_appctx_t *ctx) {
 	REQUIRE(VALID_APPCTX(ctx));
 
 	isc_mutex_destroy(&ctx->lock);
+	isc_mutex_destroy(&ctx->readylock);
+	isc_condition_destroy(&ctx->ready);
 }
 
 void
 isc_app_finish(void) {
-	isc_app_ctxfinish((isc_appctx_t *)&isc_g_appctx);
+	isc_app_ctxfinish(&isc_g_appctx);
 }
 
 void
@@ -577,7 +425,7 @@ isc_app_block(void) {
 	REQUIRE(isc_g_appctx.running);
 	REQUIRE(!isc_g_appctx.blocked);
 
-	isc_g_appctx.blocked = true;
+	atomic_store_release(&isc_g_appctx.blocked, true);
 	blockedthread = pthread_self();
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
 		      sigaddset(&sset, SIGINT) == 0 &&
@@ -588,11 +436,13 @@ isc_app_block(void) {
 void
 isc_app_unblock(void) {
 	sigset_t sset;
+	bool exp_true = true;
 
-	REQUIRE(isc_g_appctx.running);
-	REQUIRE(isc_g_appctx.blocked);
-
-	isc_g_appctx.blocked = false;
+	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
+	REQUIRE(atomic_compare_exchange_weak_acq_rel(
+			&isc_g_appctx.blocked,
+			&exp_true,
+			false));
 
 	REQUIRE(blockedthread == pthread_self());
 
@@ -604,7 +454,7 @@ isc_app_unblock(void) {
 
 isc_result_t
 isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
-	isc__appctx_t *ctx;
+	isc_appctx_t *ctx;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
@@ -613,57 +463,26 @@ isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 	if (ctx == NULL)
 		return (ISC_R_NOMEMORY);
 
-	ctx->common.impmagic = APPCTX_MAGIC;
-	ctx->common.magic = ISCAPI_APPCTX_MAGIC;
+	ctx->magic = APPCTX_MAGIC;
 
 	ctx->mctx = NULL;
 	isc_mem_attach(mctx, &ctx->mctx);
 
-	ctx->taskmgr = NULL;
-	ctx->socketmgr = NULL;
-	ctx->timermgr = NULL;
-
-	*ctxp = (isc_appctx_t *)ctx;
+	*ctxp = ctx;
 
 	return (ISC_R_SUCCESS);
 }
 
 void
 isc_appctx_destroy(isc_appctx_t **ctxp) {
-	isc__appctx_t *ctx;
+	isc_appctx_t *ctx;
 
 	REQUIRE(ctxp != NULL);
-	ctx = (isc__appctx_t *)*ctxp;
+	ctx = *ctxp;
 	REQUIRE(VALID_APPCTX(ctx));
+	*ctxp = NULL;
+
+	ctx->magic = 0;
 
 	isc_mem_putanddetach(&ctx->mctx, ctx, sizeof(*ctx));
-
-	*ctxp = NULL;
-}
-
-void
-isc_appctx_settaskmgr(isc_appctx_t *ctx0, isc_taskmgr_t *taskmgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-
-	REQUIRE(VALID_APPCTX(ctx));
-
-	ctx->taskmgr = taskmgr;
-}
-
-void
-isc_appctx_setsocketmgr(isc_appctx_t *ctx0, isc_socketmgr_t *socketmgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-
-	REQUIRE(VALID_APPCTX(ctx));
-
-	ctx->socketmgr = socketmgr;
-}
-
-void
-isc_appctx_settimermgr(isc_appctx_t *ctx0, isc_timermgr_t *timermgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-
-	REQUIRE(VALID_APPCTX(ctx));
-
-	ctx->timermgr = timermgr;
 }

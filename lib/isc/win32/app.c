@@ -50,7 +50,7 @@ enum {
 	SHUTDOWN_EVENT
 };
 
-typedef struct isc__appctx {
+struct isc_appctx {
 	isc_appctx_t		common;
 	isc_mem_t		*mctx;
 	isc_eventlist_t		on_run;
@@ -69,13 +69,9 @@ typedef struct isc__appctx {
 	bool		blocked;
 
 	HANDLE			hEvents[NUM_EVENTS];
+};
 
-	isc_taskmgr_t		*taskmgr;
-	isc_socketmgr_t		*socketmgr;
-	isc_timermgr_t		*timermgr;
-} isc__appctx_t;
-
-static isc__appctx_t isc_g_appctx;
+static isc_appctx_t isc_g_appctx;
 
 /*
  * We need to remember which thread is the main thread...
@@ -83,8 +79,7 @@ static isc__appctx_t isc_g_appctx;
 static isc_thread_t	main_thread;
 
 isc_result_t
-isc_app_ctxstart(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
+isc_app_ctxstart(isc_appctx_t *ctx) {
 	isc_result_t result;
 
 	REQUIRE(VALID_APPCTX(ctx));
@@ -115,27 +110,24 @@ isc_app_ctxstart(isc_appctx_t *ctx0) {
 
 isc_result_t
 isc_app_start(void) {
-	isc_g_appctx.common.impmagic = APPCTX_MAGIC;
-	isc_g_appctx.common.magic = ISCAPI_APPCTX_MAGIC;
+	isc_g_appctx.magic = APPCTX_MAGIC;
 	isc_g_appctx.mctx = NULL;
 	/* The remaining members will be initialized in ctxstart() */
 
-	return (isc_app_ctxstart((isc_appctx_t *)&isc_g_appctx));
+	return (isc_app_ctxstart(&isc_g_appctx));
 }
 
 isc_result_t
 isc_app_onrun(isc_mem_t *mctx, isc_task_t *task, isc_taskaction_t action,
 	       void *arg)
 {
-	return (isc_app_ctxonrun((isc_appctx_t *)&isc_g_appctx, mctx,
-				  task, action, arg));
+	return (isc_app_ctxonrun(&isc_g_appctx, mctx, task, action, arg));
 }
 
 isc_result_t
-isc_app_ctxonrun(isc_appctx_t *ctx0, isc_mem_t *mctx, isc_task_t *task,
+isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 		  isc_taskaction_t action, void *arg)
 {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
 	isc_event_t *event;
 	isc_task_t *cloned_task = NULL;
 	isc_result_t result;
@@ -171,8 +163,7 @@ isc_app_ctxonrun(isc_appctx_t *ctx0, isc_mem_t *mctx, isc_task_t *task,
 }
 
 isc_result_t
-isc_app_ctxrun(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
+isc_app_ctxrun(isc_appctx_t *ctx) {
 	isc_event_t *event, *next_event;
 	isc_task_t *task;
 	HANDLE *pHandles = NULL;
@@ -248,7 +239,7 @@ isc_app_run(void) {
 	isc_result_t result;
 
 	is_running = true;
-	result = isc_app_ctxrun((isc_appctx_t *)&isc_g_appctx);
+	result = isc_app_ctxrun(&isc_g_appctx);
 	is_running = false;
 
 	return (result);
@@ -260,8 +251,7 @@ isc_app_isrunning() {
 }
 
 isc_result_t
-isc_app_ctxshutdown(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
+isc_app_ctxshutdown(isc_appctx_t *ctx) {
 	bool want_kill = true;
 
 	REQUIRE(VALID_APPCTX(ctx));
@@ -285,12 +275,11 @@ isc_app_ctxshutdown(isc_appctx_t *ctx0) {
 
 isc_result_t
 isc_app_shutdown(void) {
-	return (isc_app_ctxshutdown((isc_appctx_t *)&isc_g_appctx));
+	return (isc_app_ctxshutdown(&isc_g_appctx));
 }
 
 isc_result_t
-isc_app_ctxsuspend(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
+isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	bool want_kill = true;
 
 	REQUIRE(VALID_APPCTX(ctx));
@@ -315,13 +304,11 @@ isc_app_ctxsuspend(isc_appctx_t *ctx0) {
 
 isc_result_t
 isc_app_reload(void) {
-	return (isc_app_ctxsuspend((isc_appctx_t *)&isc_g_appctx));
+	return (isc_app_ctxsuspend(&isc_g_appctx));
 }
 
 void
-isc_app_ctxfinish(isc_appctx_t *ctx0) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-
+isc_app_ctxfinish(isc_appctx_t *ctx) {
 	REQUIRE(VALID_APPCTX(ctx));
 
 	isc_mutex_destroy(&ctx->lock);
@@ -329,7 +316,7 @@ isc_app_ctxfinish(isc_appctx_t *ctx0) {
 
 void
 isc_app_finish(void) {
-	isc_app_ctxfinish((isc_appctx_t *)&isc_g_appctx);
+	isc_app_ctxfinish(&isc_g_appctx);
 }
 
 void
@@ -352,33 +339,26 @@ isc_app_unblock(void) {
 
 isc_result_t
 isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
-	isc__appctx_t *ctx;
+	isc_appctx_t *ctx;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
 	ctx = isc_mem_get(mctx, sizeof(*ctx));
-	if (ctx == NULL)
-		return (ISC_R_NOMEMORY);
 
-	ctx->common.impmagic = APPCTX_MAGIC;
-	ctx->common.magic = ISCAPI_APPCTX_MAGIC;
+	ctx->magic = APPCTX_MAGIC;
 
 	ctx->mctx = NULL;
 	isc_mem_attach(mctx, &ctx->mctx);
 
-	ctx->taskmgr = NULL;
-	ctx->socketmgr = NULL;
-	ctx->timermgr = NULL;
-
-	*ctxp = (isc_appctx_t *)ctx;
+	*ctxp = ctx;
 
 	return (ISC_R_SUCCESS);
 }
 
 void
 isc_appctx_destroy(isc_appctx_t **ctxp) {
-	isc__appctx_t *ctx;
+	isc_appctx_t *ctx;
 
 	REQUIRE(ctxp != NULL);
 	ctx = (isc__appctx_t *)*ctxp;
@@ -387,31 +367,4 @@ isc_appctx_destroy(isc_appctx_t **ctxp) {
 	isc_mem_putanddetach(&ctx->mctx, ctx, sizeof(*ctx));
 
 	*ctxp = NULL;
-}
-
-void
-isc_appctx_settaskmgr(isc_appctx_t *ctx0, isc_taskmgr_t *taskmgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-
-	REQUIRE(VALID_APPCTX(ctx));
-
-	ctx->taskmgr = taskmgr;
-}
-
-void
-isc_appctx_setsocketmgr(isc_appctx_t *ctx0, isc_socketmgr_t *socketmgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-
-	REQUIRE(VALID_APPCTX(ctx));
-
-	ctx->socketmgr = socketmgr;
-}
-
-void
-isc_appctx_settimermgr(isc_appctx_t *ctx0, isc_timermgr_t *timermgr) {
-	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-
-	REQUIRE(VALID_APPCTX(ctx));
-
-	ctx->timermgr = timermgr;
 }
