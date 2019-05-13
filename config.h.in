@@ -45,6 +45,9 @@
 /* Define to 1 if you have the `arc4random_uniform' function. */
 #undef HAVE_ARC4RANDOM_UNIFORM
 
+/* define if the ARM yield instruction is available */
+#undef HAVE_ARM_YIELD
+
 /* Define to 1 if the compiler supports __builtin_clz. */
 #undef HAVE_BUILTIN_CLZ
 
