@@ -108,21 +108,31 @@ isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
 	 */
 	rwl->magic = 0;
 
-	rwl->spins = 0;
 #if defined(ISC_RWLOCK_USEATOMIC)
+#if defined(ISC_RWLOCK_USESTDATOMIC)
+	atomic_init(&rwl->spins, 0);
+	atomic_init(&rwl->write_requests, 0);
+	atomic_init(&rwl->write_completions, 0);
+	atomic_init(&rwl->cnt_and_flag, 0);
+	atomic_init(&rwl->write_granted, 0);
+#else
+	rwl->spins = 0;
 	rwl->write_requests = 0;
 	rwl->write_completions = 0;
 	rwl->cnt_and_flag = 0;
-	rwl->readers_waiting = 0;
 	rwl->write_granted = 0;
+#endif
+	rwl->readers_waiting = 0;
 	if (read_quota != 0) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "read quota is not supported");
 	}
-	if (write_quota == 0)
+	if (write_quota == 0) {
 		write_quota = RWLOCK_DEFAULT_WRITE_QUOTA;
+	}
 	rwl->write_quota = write_quota;
 #else
+	rwl->spins = 0;
 	rwl->type = isc_rwlocktype_read;
 	rwl->original = isc_rwlocktype_none;
 	rwl->active = 0;
@@ -336,7 +346,11 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		 * quota, reset the condition (race among readers doesn't
 		 * matter).
 		 */
-		rwl->write_granted = 0;
+#if defined(ISC_RWLOCK_USESTDATOMIC)
+		atomic_store(&rwl->write_granted, 0);
+#else
+		isc_atomic_store(&rwl->write_granted, 0);
+#endif
 	} else {
 		int32_t prev_writer;
 
@@ -381,7 +395,11 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		}
 
 		INSIST((rwl->cnt_and_flag & WRITER_ACTIVE) != 0);
-		rwl->write_granted++;
+#if defined(ISC_RWLOCK_USESTDATOMIC)
+		(void)atomic_fetch_add(&rwl->write_granted, 1);
+#else
+		(void)isc_atomic_xadd(&rwl->write_granted, 1);
+#endif
 	}
 
 #ifdef ISC_RWLOCK_TRACE
@@ -395,7 +413,12 @@ isc__rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t cnt = 0;
-	int32_t max_cnt = rwl->spins * 2 + 10;
+#if defined(ISC_RWLOCK_USESTDATOMIC)
+	int32_t spins = atomic_load(&rwl->spins);
+#else
+	int32_t spins = rwl->spins;
+#endif
+	int32_t max_cnt = spins * 2 + 10;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (max_cnt > RWLOCK_MAX_ADAPTIVE_COUNT)
@@ -411,7 +434,11 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #endif
 	} while (isc_rwlock_trylock(rwl, type) != ISC_R_SUCCESS);
 
-	rwl->spins += (cnt - rwl->spins) / 8;
+#if defined(ISC_RWLOCK_USESTDATOMIC)
+	atomic_fetch_add(&rwl->spins, (cnt - spins) / 8);
+#else
+	rwl->spins += (cnt - spins) / 8;
+#endif
 
 	return (result);
 }
@@ -488,11 +515,12 @@ isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #if defined(ISC_RWLOCK_USESTDATOMIC)
 		(void)atomic_fetch_sub_explicit(&rwl->write_completions, 1,
 						memory_order_relaxed);
+		(void)atomic_fetch_add(&rwl->write_granted, 1);
 #else
 		(void)isc_atomic_xadd(&rwl->write_completions, -1);
+		(void)isc_atomic_xadd(&rwl->write_granted, 1);
 #endif
 
-		rwl->write_granted++;
 	}
 
 #ifdef ISC_RWLOCK_TRACE
@@ -635,6 +663,7 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 		}
 	} else {
 		bool wakeup_writers = true;
+		uint32_t write_granted;
 
 		/*
 		 * Reset the flag, and (implicitly) tell other writers
@@ -646,12 +675,14 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 						memory_order_relaxed);
 		(void)atomic_fetch_add_explicit(&rwl->write_completions, 1,
 						memory_order_relaxed);
+		write_granted = (uint32_t)atomic_load(&rwl->write_granted);
 #else
 		(void)isc_atomic_xadd(&rwl->cnt_and_flag, -WRITER_ACTIVE);
 		(void)isc_atomic_xadd(&rwl->write_completions, 1);
+		write_granted = isc_atomic_xadd(&rwl->write_granted, 0);
 #endif
 
-		if (rwl->write_granted >= rwl->write_quota ||
+		if (write_granted >= rwl->write_quota ||
 		    rwl->write_requests == rwl->write_completions ||
 		    (rwl->cnt_and_flag & ~WRITER_ACTIVE) != 0) {
 			/*
@@ -762,7 +793,12 @@ doit(isc_rwlock_t *rwl, isc_rwlocktype_t type, bool nonblock) {
 isc_result_t
 isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 	int32_t cnt = 0;
-	int32_t max_cnt = rwl->spins * 2 + 10;
+#if defined(ISC_RWLOCK_USESTDATOMIC)
+	int32_t spins = atomic_load(&rwl->spins);
+#else
+	int32_t spins = rwl->spins;
+#endif
+	int32_t max_cnt = spins * 2 + 10;
 	isc_result_t result = ISC_R_SUCCESS;
 
 	if (max_cnt > RWLOCK_MAX_ADAPTIVE_COUNT)
@@ -778,7 +814,11 @@ isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 #endif
 	} while (doit(rwl, type, true) != ISC_R_SUCCESS);
 
-	rwl->spins += (cnt - rwl->spins) / 8;
+#if defined(ISC_RWLOCK_USESTDATOMIC)
+	atomic_fetch_add(&rwl->spins, (cnt - spins) / 8)
+#else
+	rwl->spins += (cnt - spins) / 8;
+#endif
 
 	return (result);
 }
