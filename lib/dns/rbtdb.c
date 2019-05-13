@@ -702,7 +702,7 @@ static char FILE_VERSION[32] = "\0";
  *      that indicates that the database does not implement cyclic
  *      processing.
  */
-static unsigned int init_count;
+static atomic_uint_fast32_t init_count;
 
 /*
  * Locking
@@ -6486,7 +6486,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 		newheader->attributes |= RDATASET_ATTR_ZEROTTL;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = init_count++;
+	newheader->count = atomic_fetch_add(&init_count, 1);
 	newheader->trust = rdataset->trust;
 	newheader->last_used = now;
 	newheader->node = rbtnode;
@@ -6673,7 +6673,7 @@ subtractrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	newheader->trust = 0;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = init_count++;
+	newheader->count = atomic_fetch_add(&init_count, 1);
 	newheader->last_used = 0;
 	newheader->node = rbtnode;
 	if ((rdataset->attributes & DNS_RDATASETATTR_RESIGN) != 0) {
@@ -7057,7 +7057,7 @@ loading_addrdataset(void *arg, const dns_name_t *name,
 	newheader->serial = 1;
 	newheader->noqname = NULL;
 	newheader->closest = NULL;
-	newheader->count = init_count++;
+	newheader->count = atomic_fetch_add(&init_count, 1);
 	newheader->last_used = 0;
 	newheader->node = node;
 	setownercase(newheader, name);
