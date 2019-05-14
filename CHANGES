@@ -1,3 +1,6 @@
+5237.	[bug]		Recurse to find the root server list with 'dig +trace'.
+			[GL #1028]
+
 5234.	[port]		arm: just use the compiler's default support for
 			yield. [GL #981]
 

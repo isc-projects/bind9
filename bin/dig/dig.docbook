@@ -1000,8 +1000,10 @@
 	      in the query.  This bit is set by default, which means
 	      <command>dig</command> normally sends recursive
 	      queries.  Recursion is automatically disabled when
-	      the <parameter>+nssearch</parameter> or
-	      <parameter>+trace</parameter> query options are used.
+	      using the <parameter>+nssearch</parameter> option, and
+	      when using <parameter>+trace</parameter> except for
+	      an initial recursive query to get the list of root
+	      servers.
 	    </para>
 	  </listitem>
 	</varlistentry>
