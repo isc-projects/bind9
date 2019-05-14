@@ -2191,12 +2191,14 @@ setup_lookup(dig_lookup_t *lookup) {
 	lookup->sendmsg->id = (dns_messageid_t)isc_random16();
 	lookup->sendmsg->opcode = lookup->opcode;
 	lookup->msgcounter = 0;
+
 	/*
-	 * If this is a trace request, completely disallow recursion, since
-	 * it's meaningless for traces.
+	 * If this is a trace request, completely disallow recursion after
+	 * looking up the root name servers, since it's meaningless for traces.
 	 */
-	if (lookup->trace || (lookup->ns_search_only && !lookup->trace_root))
+	if ((lookup->trace || lookup->ns_search_only) && !lookup->trace_root) {
 		lookup->recurse = false;
+	}
 
 	if (lookup->recurse &&
 	    lookup->rdtype != dns_rdatatype_axfr &&
