@@ -23,9 +23,12 @@
               $('table.zones').css('min-width', wid );
               $("h2+table,h3+table,h4+table,h2+div,h3+div").prev().append(' <a class="tabletoggle" href="#" style="font-size:small">Show/Hide</a>');
               $(".tabletoggle").click(function(){
-	         if ($(this).closest("h2,h3").next().is("div")) { $(this).closest("h2,h3").next().next().toggleClass("hidden"); };
-		 $(this).closest("h2,h3,h4").next().toggleClass("hidden");
-		 return false;});
+		 var n = $(this).closest("h2,h3,h4").next();
+		 if (n.is("script")) { n = n.next(); }
+	         if (n.is("div")) { n.toggleClass("hidden"); n = n.next(); }
+		 if (n.is("table")) { n.toggleClass("hidden"); }
+		 return false;
+	      });
           });
         </script>
 
@@ -426,7 +429,7 @@
         <xsl:if test="views/view[count(counters[@type=&quot;resqtype&quot;]/counter) &gt; 0]">
           <h2>Outgoing Queries per view</h2>
           <xsl:for-each select="views/view[count(counters[@type=&quot;resqtype&quot;]/counter) &gt; 0]">
-            <h3>View <xsl:value-of select="@name"/></h3>
+            <h3>View <xsl:value-of select="@name"/> <a class="tabletoggle" href="#" style="font-size:small">Show/Hide</a></h3>
             <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
               <!-- Non Mozilla specific markup -->
               <script type="text/javascript">
@@ -465,7 +468,7 @@
           </xsl:for-each>
         </xsl:if>
         <xsl:if test="server/counters[@type=&quot;nsstat&quot;]/counter[.&gt;0]">
-          <h2>Server Statistics</h2>
+          <h2>Server Statistics <a class="tabletoggle" href="#" style="font-size:small">Show/Hide</a></h2>
           <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
             <!-- Non Mozilla specific markup -->
             <script type="text/javascript">
@@ -501,7 +504,7 @@
         </xsl:if>
         <xsl:if test="server/counters[@type=&quot;zonestat&quot;]/counter[.&gt;0]">
           <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
-            <h2>Zone Maintenance Statistics</h2>
+            <h2>Zone Maintenance Statistics <a class="tabletoggle" href="#" style="font-size:small">Show/Hide</a></h2>
             <script type="text/javascript">
 		  graphs.push({
 				'title' : "Zone Maintenance Stats",
