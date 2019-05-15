@@ -10319,22 +10319,6 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 
 	  <para>
-	    Rate limiters for different name spaces maintain
-	    separate counters: If, for example, there is a
-	    <command>rate-limit</command> statement for "com" and
-	    another for "example.com", queries matching "example.com"
-	    will not be debited against the rate limiter for "com".
-	  </para>
-
-	  <para>
-	    If a <command>rate-limit</command> statement does not specify a
-	    <command>domain</command>, then it applies to the root domain
-	    (".") and thus affects the entire DNS namespace, except those
-	    portions covered by other <command>rate-limit</command>
-	    statements.
-	  </para>
-
-	  <para>
 	    Communities of DNS clients can be given their own parameters or no
 	    rate limiting by putting
 	    <command>rate-limit</command> statements in <command>view</command>
