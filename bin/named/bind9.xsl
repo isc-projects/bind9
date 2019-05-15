@@ -21,8 +21,11 @@
               var wid=0;
               $('table.zones').each(function(i) { if( $(this).width() > wid ) wid = $(this).width(); return true; });
               $('table.zones').css('min-width', wid );
-              $("h2+table,h3+table,h4+table").prev().append(' <a class="tabletoggle" href="#" style="font-size:small">Show/Hide</a>');
-              $(".tabletoggle").click(function(){ $(this).closest("h2,h3,h4").next().toggleClass("hidden"); return false;});
+              $("h2+table,h3+table,h4+table,h2+div,h3+div").prev().append(' <a class="tabletoggle" href="#" style="font-size:small">Show/Hide</a>');
+              $(".tabletoggle").click(function(){
+	         if ($(this).closest("h2,h3").next().is("div")) { $(this).closest("h2,h3").next().next().toggleClass("hidden"); };
+		 $(this).closest("h2,h3,h4").next().toggleClass("hidden");
+		 return false;});
           });
         </script>
 
