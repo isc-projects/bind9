@@ -68,7 +68,7 @@ struct ns_interface {
 	unsigned int		magic;		/*%< Magic number. */
 	ns_interfacemgr_t *	mgr;		/*%< Interface manager. */
 	isc_mutex_t		lock;
-	int			references;	/*%< Locked */
+	isc_refcount_t		references;
 	unsigned int		generation;     /*%< Generation number. */
 	isc_sockaddr_t		addr;           /*%< Address and port. */
 	unsigned int		flags;		/*%< Interface characteristics */
