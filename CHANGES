@@ -1,3 +1,6 @@
+5267.	[func]		Allow statistics groups display to be toggleable.
+			[GL #1030]
+
 5266.	[bug]		named-checkconf failed to report dnstap-output
 			missing from named.conf when dnstap was specified.
 			[GL #1136]
