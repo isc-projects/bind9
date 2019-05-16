@@ -174,7 +174,7 @@ struct dispsocket {
  */
 struct dispportentry {
 	in_port_t			port;
-	unsigned int			refs;
+	isc_refcount_t			refs;
 	ISC_LINK(struct dispportentry)	link;
 };
 
@@ -578,7 +578,7 @@ new_portentry(dns_dispatch_t *disp, in_port_t port) {
 		return (portentry);
 
 	portentry->port = port;
-	portentry->refs = 1;
+	isc_refcount_init(&portentry->refs, 1);
 	ISC_LINK_INIT(portentry, link);
 	qid = DNS_QID(disp);
 	LOCK(&qid->lock);
@@ -598,26 +598,25 @@ deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	dns_qid_t *qid;
 
 	REQUIRE(disp->port_table != NULL);
-	REQUIRE(portentry != NULL && portentry->refs > 0);
+	REQUIRE(portentry != NULL && isc_refcount_current(&portentry->refs) > 0);
 
-	qid = DNS_QID(disp);
-	LOCK(&qid->lock);
-	portentry->refs--;
-
-	if (portentry->refs == 0) {
+	if (isc_refcount_decrement(&portentry->refs) == 1) {
+		qid = DNS_QID(disp);
+		LOCK(&qid->lock);
 		ISC_LIST_UNLINK(disp->port_table[portentry->port %
 						 DNS_DISPATCH_PORTTABLESIZE],
 				portentry, link);
 		isc_mempool_put(disp->portpool, portentry);
+		UNLOCK(&qid->lock);
 	}
 
 	/*
+	 * XXXWPK TODO: is it really necessary?
 	 * Set '*portentryp' to NULL inside the lock so that
 	 * dispsock->portentry does not change in socket_search.
 	 */
 	*portentryp = NULL;
 
-	UNLOCK(&qid->lock);
 }
 
 /*%
@@ -736,9 +735,7 @@ get_dispsocket(dns_dispatch_t *disp, const isc_sockaddr_t *dest,
 					break;
 				}
 			} else {
-				LOCK(&qid->lock);
-				portentry->refs++;
-				UNLOCK(&qid->lock);
+				isc_refcount_increment(&portentry->refs);
 			}
 			break;
 		} else if (result == ISC_R_NOPERM) {
