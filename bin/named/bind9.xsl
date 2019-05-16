@@ -344,30 +344,6 @@
           </tr>
         </table>
         <br/>
-        <xsl:if test="views/view/zones/zone">
-          <h2>Configured zones</h2>
-          <xsl:for-each select="views/view">
-            <h3>View <xsl:value-of select="@name"/></h3>
-            <table class="zones">
-              <thead><tr><th>Zone</th><th>Class</th><th>Type</th><th>Serial</th></tr></thead>
-              <tbody>
-                <xsl:for-each select="zones/zone">
-                  <xsl:variable name="css-class15">
-                    <xsl:choose>
-                      <xsl:when test="position() mod 2 = 0">even</xsl:when>
-                      <xsl:otherwise>odd</xsl:otherwise>
-                    </xsl:choose>
-                  </xsl:variable>
-                  <tr class="{$css-class15}">
-                      <td><xsl:value-of select="@name"/></td>
-                      <td><xsl:value-of select="@rdataclass"/></td>
-                      <td><xsl:value-of select="type"/></td>
-                      <td><xsl:value-of select="serial"/></td></tr>
-                </xsl:for-each>
-              </tbody>
-            </table>
-          </xsl:for-each>
-        </xsl:if>
         <xsl:if test="server/counters[@type=&quot;opcode&quot;]/counter[. &gt; 0]">
           <xsl:if test="system-property('xsl:vendor')!='Transformiix'">
             <h2>Incoming Requests by DNS Opcode</h2>
@@ -777,35 +753,29 @@
           </table>
           <br/>
         </xsl:if>
-        <xsl:for-each select="views/view">
-	  <xsl:if test="zones/zone">
+        <xsl:if test="views/view/zones/zone">
+          <xsl:for-each select="views/view">
             <h3>Zones for View <xsl:value-of select="@name"/></h3>
             <table class="zones">
-              <tr>
-                <th>Name</th>
-                <th>Class</th>
-                <th>Type</th>
-                <th>Serial</th>
-              </tr>
-              <xsl:for-each select="zones/zone">
-                <tr>
-                  <td>
-                    <xsl:value-of select="@name"/>
-                  </td>
-                  <td>
-                    <xsl:value-of select="@rdataclass"/>
-                  </td>
-                  <td>
-                    <xsl:value-of select="type"/>
-                  </td>
-                  <td>
-                    <xsl:value-of select="serial"/>
-                  </td>
-                </tr>
-              </xsl:for-each>
+              <thead><tr><th>Name</th><th>Class</th><th>Type</th><th>Serial</th></tr></thead>
+              <tbody>
+                <xsl:for-each select="zones/zone">
+                  <xsl:variable name="css-class15">
+                    <xsl:choose>
+                      <xsl:when test="position() mod 2 = 0">even</xsl:when>
+                      <xsl:otherwise>odd</xsl:otherwise>
+                    </xsl:choose>
+                  </xsl:variable>
+                  <tr class="{$css-class15}">
+                      <td><xsl:value-of select="@name"/></td>
+                      <td><xsl:value-of select="@rdataclass"/></td>
+                      <td><xsl:value-of select="type"/></td>
+                      <td><xsl:value-of select="serial"/></td></tr>
+                </xsl:for-each>
+              </tbody>
             </table>
-	  </xsl:if>
-        </xsl:for-each>
+          </xsl:for-each>
+        </xsl:if>
         <xsl:if test="views/view[zones/zone/counters[@type=&quot;qtype&quot;]/counter &gt;0]">
           <h2>Received QTYPES per view/zone</h2>
           <xsl:for-each select="views/view[zones/zone/counters[@type=&quot;qtype&quot;]/counter &gt;0]">
