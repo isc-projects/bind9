@@ -29,6 +29,7 @@
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/random.h>
+#include <isc/refcount.h>
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/time.h>
@@ -99,9 +100,9 @@ struct isc__task {
 	isc_task_t			common;
 	isc__taskmgr_t *		manager;
 	isc_mutex_t			lock;
+	isc_refcount_t			references;
 	/* Locked by task lock. */
 	task_state_t			state;
-	unsigned int			references;
 	isc_eventlist_t			events;
 	isc_eventlist_t			on_shutdown;
 	unsigned int			nevents;
@@ -228,7 +229,7 @@ task_finished(isc__task_t *task) {
 	REQUIRE(EMPTY(task->events));
 	REQUIRE(task->nevents == 0);
 	REQUIRE(EMPTY(task->on_shutdown));
-	REQUIRE(task->references == 0);
+	REQUIRE(isc_refcount_current(&task->references) == 0);
 	REQUIRE(task->state == task_state_done);
 
 	XTRACE("task_finished");
@@ -295,7 +296,7 @@ isc_task_create_bound(isc_taskmgr_t *manager0, unsigned int quantum,
 
 	isc_mutex_init(&task->lock);
 	task->state = task_state_idle;
-	task->references = 1;
+	isc_refcount_init(&task->references, 1);
 	INIT_LIST(task->events);
 	INIT_LIST(task->on_shutdown);
 	task->nevents = 0;
@@ -345,9 +346,7 @@ isc_task_attach(isc_task_t *source0, isc_task_t **targetp) {
 
 	XTTRACE(source, "isc_task_attach");
 
-	LOCK(&source->lock);
-	source->references++;
-	UNLOCK(&source->lock);
+	isc_refcount_increment(&source->references);
 
 	*targetp = (isc_task_t *)source;
 }
@@ -420,12 +419,12 @@ task_detach(isc__task_t *task) {
 	 * Caller must be holding the task lock.
 	 */
 
-	REQUIRE(task->references > 0);
+	REQUIRE(isc_refcount_current(&task->references) > 0);
 
 	XTRACE("detach");
 
-	task->references--;
-	if (task->references == 0 && task->state == task_state_idle) {
+	if (isc_refcount_decrement(&task->references) == 1 &&
+	    task->state == task_state_idle) {
 		INSIST(EMPTY(task->events));
 		/*
 		 * There are no references to this task, and no
@@ -1140,7 +1139,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					dispatch_count++;
 				}
 
-				if (task->references == 0 &&
+				if (isc_refcount_current(&task->references) == 0 &&
 				    EMPTY(task->events) &&
 				    !TASK_SHUTTINGDOWN(task)) {
 					bool was_idle;
@@ -1177,7 +1176,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					 * right now.
 					 */
 					XTRACE("empty");
-					if (task->references == 0 &&
+					if (isc_refcount_current(&task->references) == 0 &&
 					    TASK_SHUTTINGDOWN(task)) {
 						/*
 						 * The task is done.
@@ -1733,7 +1732,7 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, void *writer0) {
 		TRY0(xmlTextWriterStartElement(writer,
 					       ISC_XMLCHAR "references"));
 		TRY0(xmlTextWriterWriteFormatString(writer, "%d",
-						    task->references));
+						    isc_refcount_current(&task->references)));
 		TRY0(xmlTextWriterEndElement(writer)); /* references */
 
 		TRY0(xmlTextWriterStartElement(writer, ISC_XMLCHAR "id"));
@@ -1843,7 +1842,7 @@ isc_taskmgr_renderjson(isc_taskmgr_t *mgr0, void *tasks0) {
 			json_object_object_add(taskobj, "name", obj);
 		}
 
-		obj = json_object_new_int(task->references);
+		obj = json_object_new_int(isc_refcount_current(&task->references));
 		CHECKMEM(obj);
 		json_object_object_add(taskobj, "references", obj);
 
