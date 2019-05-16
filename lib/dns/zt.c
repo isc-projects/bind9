@@ -45,9 +45,9 @@ struct dns_zt {
 	dns_zt_allloaded_t	loaddone;
 	void *			loaddone_arg;
 	struct zt_load_params 	*loadparams;
+	isc_refcount_t		references;
 	/* Locked by lock. */
 	bool		flush;
-	uint32_t		references;
 	unsigned int		loads_pending;
 	dns_rbt_t		*table;
 };
@@ -93,7 +93,7 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 
 	zt->mctx = NULL;
 	isc_mem_attach(mctx, &zt->mctx);
-	zt->references = 1;
+	isc_refcount_init(&zt->references, 1);
 	zt->flush = false;
 	zt->rdclass = rdclass;
 	zt->magic = ZTMAGIC;
@@ -209,13 +209,7 @@ dns_zt_attach(dns_zt_t *zt, dns_zt_t **ztp) {
 	REQUIRE(VALID_ZT(zt));
 	REQUIRE(ztp != NULL && *ztp == NULL);
 
-	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
-
-	INSIST(zt->references > 0);
-	zt->references++;
-	INSIST(zt->references != 0);
-
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
+	isc_refcount_increment(&zt->references);
 
 	*ztp = zt;
 }
@@ -238,26 +232,17 @@ zt_destroy(dns_zt_t *zt) {
 
 static void
 zt_flushanddetach(dns_zt_t **ztp, bool need_flush) {
-	bool destroy = false;
 	dns_zt_t *zt;
 
 	REQUIRE(ztp != NULL && VALID_ZT(*ztp));
 
 	zt = *ztp;
-
-	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
-
-	INSIST(zt->references > 0);
-	zt->references--;
-	if (zt->references == 0)
-		destroy = true;
-	if (need_flush)
+	if (need_flush) {
 		zt->flush = true;
-
-	RWUNLOCK(&zt->rwlock, isc_rwlocktype_write);
-
-	if (destroy)
+	}
+	if (isc_refcount_decrement(&zt->references) == 1) {
 		zt_destroy(zt);
+	}
 
 	*ztp = NULL;
 }
@@ -340,15 +325,13 @@ asyncload(dns_zone_t *zone, void *zt_) {
 	isc_result_t result;
 	struct dns_zt *zt = (dns_zt_t*) zt_;
 	REQUIRE(zone != NULL);
-	INSIST(zt->references > 0);
-	zt->references++;
+	INSIST(isc_refcount_increment(&zt->references) > 0);
 	zt->loads_pending++;
 
 	result = dns_zone_asyncload(zone, zt->loadparams->newonly, *zt->loadparams->dl, zt);
 	if (result != ISC_R_SUCCESS) {
-		zt->references--;
+		INSIST(isc_refcount_decrement(&zt->references) > 1);
 		zt->loads_pending--;
-		INSIST(zt->references > 0);
 	}
 	return (ISC_R_SUCCESS);
 }
@@ -548,10 +531,9 @@ doneloading(dns_zt_t *zt, dns_zone_t *zone, isc_task_t *task) {
 
 	RWLOCK(&zt->rwlock, isc_rwlocktype_write);
 	INSIST(zt->loads_pending != 0);
-	INSIST(zt->references != 0);
-	zt->references--;
-	if (zt->references == 0)
+	if (isc_refcount_decrement(&zt->references) == 1) {
 		destroy = true;
+	}
 	zt->loads_pending--;
 	if (zt->loads_pending == 0) {
 		alldone = zt->loaddone;
