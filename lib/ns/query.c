@@ -25,6 +25,7 @@
 #include <isc/string.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/once.h>
 
 #include <dns/adb.h>
 #include <dns/badcache.h>
@@ -5738,7 +5739,12 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		}
 
 		if  (result == ISC_R_SOFTQUOTA) {
-			static atomic_uint_fast32_t last = 0;
+			static atomic_uint_fast32_t last;
+			static isc_once_t once = ISC_ONCE_INIT;
+			void __ain() {
+				atomic_init(&last, 0);
+			}
+			isc_once_do(&once, __ain);
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
 			if (now != atomic_load_relaxed(&last)) {
@@ -5755,7 +5761,12 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 			ns_client_killoldestquery(client);
 			result = ISC_R_SUCCESS;
 		} else if (result == ISC_R_QUOTA) {
-			static atomic_uint_fast32_t last = 0;
+			static atomic_uint_fast32_t last;
+			static isc_once_t once = ISC_ONCE_INIT;
+			void __ain() {
+				atomic_init(&last, 0);
+			}
+			isc_once_do(&once, __ain);
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
 			if (now != atomic_load_relaxed(&last)) {

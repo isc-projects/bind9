@@ -45,13 +45,16 @@ struct isc_stats {
 static isc_result_t
 create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	isc_stats_t *stats;
+	int i;
 
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
 	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
 	isc_refcount_init(&stats->refs, 1);
-	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
+	for (i = 0; i < ncounters; i++) {
+		atomic_init(&stats->counters[i], 0);
+	}
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
 	stats->ncounters = ncounters;

@@ -44,9 +44,9 @@ isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
 	counter->mctx = NULL;
 	isc_mem_attach(mctx, &counter->mctx);
 
-	atomic_store(&counter->references, 1);
-	atomic_store(&counter->limit, limit);
-	atomic_store(&counter->used, 0);
+	atomic_init(&counter->references, 1);
+	atomic_init(&counter->limit, limit);
+	atomic_init(&counter->used, 0);
 
 	counter->magic = COUNTER_MAGIC;
 	*counterp = counter;
