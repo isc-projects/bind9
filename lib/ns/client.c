@@ -489,7 +489,7 @@ exit_check(ns_client_t *client) {
 		}
 
 		if (! (client->nsends == 0 && client->nrecvs == 0 &&
-		       client->references == 0))
+		       isc_refcount_current(&client->references) == 0))
 		{
 			/*
 			 * Still waiting for I/O cancel completion.
@@ -3175,7 +3175,7 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	client->nrecvs = 0;
 	client->nupdates = 0;
 	client->nctls = 0;
-	client->references = 0;
+	isc_refcount_init(&client->references, 0);
 	client->attributes = 0;
 	client->view = NULL;
 	client->dispatch = NULL;
@@ -3546,26 +3546,28 @@ client_udprecv(ns_client_t *client) {
 
 void
 ns_client_attach(ns_client_t *source, ns_client_t **targetp) {
+	uint32_t oldrefs;
 	REQUIRE(NS_CLIENT_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	source->references++;
+	oldrefs = isc_refcount_increment(&source->references);
 	ns_client_log(source, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
-		      "ns_client_attach: ref = %d", source->references);
+		      "ns_client_attach: ref = %d", oldrefs+1);
 	*targetp = source;
 }
 
 void
 ns_client_detach(ns_client_t **clientp) {
+	int32_t oldrefs;
 	ns_client_t *client = *clientp;
+	oldrefs = isc_refcount_decrement(&client->references);
+	INSIST(oldrefs > 0);
 
-	client->references--;
-	INSIST(client->references >= 0);
 	*clientp = NULL;
 	ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(10),
-		      "ns_client_detach: ref = %d", client->references);
+		      "ns_client_detach: ref = %d", oldrefs-1);
 	(void)exit_check(client);
 }
 
@@ -3924,7 +3926,7 @@ ns__clientmgr_getclient(ns_clientmgr_t *manager, ns_interface_t *ifp,
 	INSIST(client->recursionquota == NULL);
 
 	client->dscp = ifp->dscp;
-	client->references++;
+	isc_refcount_increment(&client->references);
 
 	if (tcp) {
 		client->attributes |= NS_CLIENTATTR_TCP;

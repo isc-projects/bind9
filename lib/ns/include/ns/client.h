@@ -101,7 +101,7 @@ struct ns_client {
 	int			nrecvs;
 	int			nupdates;
 	int			nctls;
-	int			references;
+	isc_refcount_t		references;
 	bool			tcpactive;
 	bool			needshutdown; 	/*
 						 * Used by clienttest to get
