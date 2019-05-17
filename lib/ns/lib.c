@@ -17,6 +17,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
+#include <isc/refcount.h>
 #include <isc/util.h>
 
 #include <dns/name.h>
@@ -38,8 +39,7 @@ LIBNS_EXTERNAL_DATA unsigned int			ns_pps = 0U;
 static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_mem_t *ns_g_mctx = NULL;
 static bool initialize_done = false;
-static isc_mutex_t reflock;
-static unsigned int references = 0;
+static isc_refcount_t references;
 
 static void
 initialize(void) {
@@ -51,8 +51,7 @@ initialize(void) {
 	if (result != ISC_R_SUCCESS)
 		return;
 
-	isc_mutex_init(&reflock);
-
+	isc_refcount_init(&references, 0);
 	initialize_done = true;
 	return;
 }
@@ -73,25 +72,16 @@ ns_lib_init(void) {
 	if (!initialize_done)
 		return (ISC_R_FAILURE);
 
-	LOCK(&reflock);
-	references++;
-	UNLOCK(&reflock);
+	isc_refcount_increment(&references);
 
 	return (ISC_R_SUCCESS);
 }
 
 void
 ns_lib_shutdown(void) {
-	bool cleanup_ok = false;
-
-	LOCK(&reflock);
-	if (--references == 0)
-		cleanup_ok = true;
-	UNLOCK(&reflock);
-
-	if (!cleanup_ok)
-		return;
-
-	if (ns_g_mctx != NULL)
-		isc_mem_detach(&ns_g_mctx);
+	if (isc_refcount_decrement(&references) == 1) {
+		if (ns_g_mctx != NULL) {
+			isc_mem_detach(&ns_g_mctx);
+		}
+	}
 }
