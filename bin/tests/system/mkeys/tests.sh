@@ -766,6 +766,7 @@ wait_for_log "Cannot compute tag for key in zone \.: algorithm is unsupported" n
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo_i "check 'rndc managed-keys' and views ($n)"
 ret=0
 $RNDCCMD 10.53.0.7 managed-keys refresh in view1 > rndc.out.ns7.view1.test$n || ret=1
