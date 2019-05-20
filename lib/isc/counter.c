@@ -18,6 +18,7 @@
 #include <isc/counter.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/refcount.h>
 #include <isc/util.h>
 
 #define COUNTER_MAGIC			ISC_MAGIC('C', 'n', 't', 'r')
@@ -26,7 +27,7 @@
 struct isc_counter {
 	unsigned int	magic;
 	isc_mem_t	*mctx;
-	atomic_uint_fast32_t	references;
+	isc_refcount_t		references;
 	atomic_uint_fast32_t	limit;
 	atomic_uint_fast32_t	used;
 };
@@ -44,7 +45,7 @@ isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
 	counter->mctx = NULL;
 	isc_mem_attach(mctx, &counter->mctx);
 
-	atomic_init(&counter->references, 1);
+	isc_refcount_init(&counter->references, 1);
 	atomic_init(&counter->limit, limit);
 	atomic_init(&counter->used, 0);
 
@@ -55,22 +56,21 @@ isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
 
 isc_result_t
 isc_counter_increment(isc_counter_t *counter) {
-	isc_result_t result = ISC_R_SUCCESS;
+	uint32_t used = atomic_fetch_add_relaxed(&counter->used, 1) + 1;
+	uint32_t limit = atomic_load_acquire(&counter->limit);
 
-	uint32_t used = atomic_fetch_add(&counter->used, 1) + 1;
-	if (atomic_load(&counter->limit) != 0 &&
-	    used >= atomic_load(&counter->limit)) {
-		result = ISC_R_QUOTA;
+	if (limit != 0 && used >= limit) {
+		return (ISC_R_QUOTA);
 	}
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 unsigned int
 isc_counter_used(isc_counter_t *counter) {
 	REQUIRE(VALID_COUNTER(counter));
 
-	return (atomic_load(&counter->used));
+	return (atomic_load_acquire(&counter->used));
 }
 
 void
@@ -85,7 +85,7 @@ isc_counter_attach(isc_counter_t *source, isc_counter_t **targetp) {
 	REQUIRE(VALID_COUNTER(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	INSIST(atomic_fetch_add(&source->references, 1) > 0);
+	isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
@@ -99,7 +99,6 @@ destroy(isc_counter_t *counter) {
 void
 isc_counter_detach(isc_counter_t **counterp) {
 	isc_counter_t *counter;
-	uint32_t oldrefs;
 
 	REQUIRE(counterp != NULL && *counterp != NULL);
 	counter = *counterp;
@@ -107,10 +106,7 @@ isc_counter_detach(isc_counter_t **counterp) {
 
 	*counterp = NULL;
 
-	oldrefs = atomic_fetch_sub(&counter->references, 1);
-	INSIST(oldrefs > 0);
-
-	if (oldrefs == 1) {
+	if (isc_refcount_decrement(&counter->references) == 1) {
 		destroy(counter);
 	}
 }
