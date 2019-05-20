@@ -15,11 +15,13 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+#include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/event.h>
 #include <isc/file.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/refcount.h>
 #include <isc/print.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
@@ -221,10 +223,10 @@ struct dns_dumpctx {
 	unsigned int		magic;
 	isc_mem_t		*mctx;
 	isc_mutex_t		lock;
-	unsigned int		references;
-	bool		canceled;
-	bool		first;
-	bool		do_date;
+	isc_refcount_t		references;
+	atomic_bool		canceled;
+	bool			first;
+	bool			do_date;
 	isc_stdtime_t		now;
 	FILE			*f;
 	dns_db_t		*db;
@@ -1291,11 +1293,7 @@ dns_dumpctx_attach(dns_dumpctx_t *source, dns_dumpctx_t **target) {
 	REQUIRE(DNS_DCTX_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
 
-	LOCK(&source->lock);
-	INSIST(source->references > 0);
-	source->references++;
-	INSIST(source->references != 0);	/* Overflow? */
-	UNLOCK(&source->lock);
+	isc_refcount_increment(&source->references);
 
 	*target = source;
 }
@@ -1303,7 +1301,6 @@ dns_dumpctx_attach(dns_dumpctx_t *source, dns_dumpctx_t **target) {
 void
 dns_dumpctx_detach(dns_dumpctx_t **dctxp) {
 	dns_dumpctx_t *dctx;
-	bool need_destroy = false;
 
 	REQUIRE(dctxp != NULL);
 	dctx = *dctxp;
@@ -1311,14 +1308,9 @@ dns_dumpctx_detach(dns_dumpctx_t **dctxp) {
 
 	*dctxp = NULL;
 
-	LOCK(&dctx->lock);
-	INSIST(dctx->references != 0);
-	dctx->references--;
-	if (dctx->references == 0)
-		need_destroy = true;
-	UNLOCK(&dctx->lock);
-	if (need_destroy)
+	if (isc_refcount_decrement(&dctx->references) == 1) {
 		dumpctx_destroy(dctx);
+	}
 }
 
 dns_dbversion_t *
@@ -1337,9 +1329,7 @@ void
 dns_dumpctx_cancel(dns_dumpctx_t *dctx) {
 	REQUIRE(DNS_DCTX_VALID(dctx));
 
-	LOCK(&dctx->lock);
-	dctx->canceled = true;
-	UNLOCK(&dctx->lock);
+	atomic_store_release(&dctx->canceled, true);
 }
 
 static isc_result_t
@@ -1421,10 +1411,11 @@ dump_quantum(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event != NULL);
 	dctx = event->ev_arg;
 	REQUIRE(DNS_DCTX_VALID(dctx));
-	if (dctx->canceled)
+	if (atomic_load_acquire(&dctx->canceled)) {
 		result = ISC_R_CANCELED;
-	else
+	} else {
 		result = dumptostreaminc(dctx);
+	}
 	if (result == DNS_R_CONTINUE) {
 		event->ev_arg = dctx;
 		isc_task_send(task, &event);
@@ -1478,7 +1469,7 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dctx->task = NULL;
 	dctx->nodes = 0;
 	dctx->first = true;
-	dctx->canceled = false;
+	atomic_init(&dctx->canceled, false);
 	dctx->file = NULL;
 	dctx->tmpfile = NULL;
 	dctx->format = format;
@@ -1540,7 +1531,8 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	else if (!dns_db_iscache(db))
 		dns_db_currentversion(dctx->db, &dctx->version);
 	isc_mem_attach(mctx, &dctx->mctx);
-	dctx->references = 1;
+
+	isc_refcount_init(&dctx->references, 1);
 	dctx->magic = DNS_DCTX_MAGIC;
 	*dctxp = dctx;
 	return (ISC_R_SUCCESS);
