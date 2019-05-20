@@ -611,21 +611,15 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 	dns_rbtnode_t *node;
 	dns_tsigkey_t *tkey;
 	dns_tsig_keyring_t *ring;
-	unsigned int references;
 
 	REQUIRE(ringp != NULL && *ringp != NULL);
 
 	ring = *ringp;
 	*ringp = NULL;
 
-	RWLOCK(&ring->lock, isc_rwlocktype_write);
-	INSIST(ring->references > 0);
-	ring->references--;
-	references = ring->references;
-	RWUNLOCK(&ring->lock, isc_rwlocktype_write);
-
-	if (references != 0)
+	if (isc_refcount_decrement(&ring->references) > 1) {
 		return (DNS_R_CONTINUE);
+	}
 
 	isc_stdtime_get(&now);
 	dns_name_init(&foundname, NULL);
@@ -1804,7 +1798,7 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	ring->maxgenerated = DNS_TSIG_MAXGENERATEDKEYS;
 	ISC_LIST_INIT(ring->lru);
 	isc_mem_attach(mctx, &ring->mctx);
-	ring->references = 1;
+	isc_refcount_init(&ring->references, 1);
 
 	*ringp = ring;
 	return (ISC_R_SUCCESS);
@@ -1829,18 +1823,14 @@ dns_tsigkeyring_attach(dns_tsig_keyring_t *source, dns_tsig_keyring_t **target)
 	REQUIRE(source != NULL);
 	REQUIRE(target != NULL && *target == NULL);
 
-	RWLOCK(&source->lock, isc_rwlocktype_write);
-	INSIST(source->references > 0);
-	source->references++;
-	INSIST(source->references > 0);
+	isc_refcount_increment(&source->references);
+
 	*target = source;
-	RWUNLOCK(&source->lock, isc_rwlocktype_write);
 }
 
 void
 dns_tsigkeyring_detach(dns_tsig_keyring_t **ringp) {
 	dns_tsig_keyring_t *ring;
-	unsigned int references;
 
 	REQUIRE(ringp != NULL);
 	REQUIRE(*ringp != NULL);
@@ -1848,14 +1838,9 @@ dns_tsigkeyring_detach(dns_tsig_keyring_t **ringp) {
 	ring = *ringp;
 	*ringp = NULL;
 
-	RWLOCK(&ring->lock, isc_rwlocktype_write);
-	INSIST(ring->references > 0);
-	ring->references--;
-	references = ring->references;
-	RWUNLOCK(&ring->lock, isc_rwlocktype_write);
-
-	if (references == 0)
+	if (isc_refcount_decrement(&ring->references) == 1) {
 		destroyring(ring);
+	}
 }
 
 void
