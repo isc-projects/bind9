@@ -24,3 +24,4 @@ rm -f dig.out*
 rm -f curl.out.*
 rm -f ns*/named.lock
 rm -f stats*out
+rm -f xsltproc.out.*
