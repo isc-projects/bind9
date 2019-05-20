@@ -98,9 +98,11 @@ struct dns_sdlz_db {
 	dns_db_t			common;
 	void				*dbdata;
 	dns_sdlzimplementation_t	*dlzimp;
-	isc_mutex_t			refcnt_lock;
+
+	/* Atomic */
+	isc_refcount_t			references;
+
 	/* Locked */
-	unsigned int			references;
 	dns_dbversion_t			*future_version;
 	int				dummy_version;
 };
@@ -113,10 +115,10 @@ struct dns_sdlzlookup {
 	ISC_LIST(isc_buffer_t)		buffers;
 	dns_name_t			*name;
 	ISC_LINK(dns_sdlzlookup_t)	link;
-	isc_mutex_t			lock;
 	dns_rdatacallbacks_t		callbacks;
-	/* Locked */
-	unsigned int			references;
+
+	/* Atomic */
+	isc_refcount_t			references;
 };
 
 typedef struct dns_sdlzlookup dns_sdlznode_t;
@@ -318,47 +320,33 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 
 	REQUIRE(VALID_SDLZDB(sdlz));
 
-	LOCK(&sdlz->refcnt_lock);
-	REQUIRE(sdlz->references > 0);
-	sdlz->references++;
-	UNLOCK(&sdlz->refcnt_lock);
+	isc_refcount_increment(&sdlz->references);
 
 	*targetp = source;
 }
 
 static void
 destroy(dns_sdlz_db_t *sdlz) {
-	isc_mem_t *mctx;
-	mctx = sdlz->common.mctx;
-
 	sdlz->common.magic = 0;
 	sdlz->common.impmagic = 0;
 
-	isc_mutex_destroy(&sdlz->refcnt_lock);
+	dns_name_free(&sdlz->common.origin, sdlz->common.mctx);
 
-	dns_name_free(&sdlz->common.origin, mctx);
-
-	isc_mem_put(mctx, sdlz, sizeof(dns_sdlz_db_t));
-	isc_mem_detach(&mctx);
+	isc_refcount_destroy(&sdlz->references);
+	isc_mem_putanddetach(&sdlz->common.mctx, sdlz, sizeof(dns_sdlz_db_t));
 }
 
 static void
 detach(dns_db_t **dbp) {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)(*dbp);
-	bool need_destroy = false;
 
 	REQUIRE(VALID_SDLZDB(sdlz));
-	LOCK(&sdlz->refcnt_lock);
-	REQUIRE(sdlz->references > 0);
-	sdlz->references--;
-	if (sdlz->references == 0)
-		need_destroy = true;
-	UNLOCK(&sdlz->refcnt_lock);
-
-	if (need_destroy)
-		destroy(sdlz);
 
 	*dbp = NULL;
+
+	if (isc_refcount_decrement(&sdlz->references) == 1) {
+		destroy(sdlz);
+	}
 }
 
 static isc_result_t
@@ -476,9 +464,9 @@ createnode(dns_sdlz_db_t *sdlz, dns_sdlznode_t **nodep) {
 	ISC_LIST_INIT(node->buffers);
 	ISC_LINK_INIT(node, link);
 	node->name = NULL;
-	isc_mutex_init(&node->lock);
 	dns_rdatacallbacks_init(&node->callbacks);
-	node->references = 1;
+
+	isc_refcount_init(&node->references, 1);
 	node->magic = SDLZLOOKUP_MAGIC;
 
 	*nodep = node;
@@ -518,7 +506,8 @@ destroynode(dns_sdlznode_t *node) {
 		dns_name_free(node->name, mctx);
 		isc_mem_put(mctx, node->name, sizeof(dns_name_t));
 	}
-	isc_mutex_destroy(&node->lock);
+	isc_refcount_destroy(&node->references);
+
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(dns_sdlznode_t));
 	db = &sdlz->common;
@@ -652,6 +641,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 		result = ISC_R_SUCCESS;
 
 	if (result != ISC_R_SUCCESS) {
+		isc_refcount_decrement(&node->references);
 		destroynode(node);
 		return (result);
 	}
@@ -665,6 +655,7 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 		if (result != ISC_R_SUCCESS &&
 		    result != ISC_R_NOTIMPLEMENTED)
 		{
+			isc_refcount_decrement(&node->references);
 			destroynode(node);
 			return (result);
 		}
@@ -673,18 +664,9 @@ getnodedata(dns_db_t *db, const dns_name_t *name, bool create,
 	if (node->name == NULL) {
 		node->name = isc_mem_get(sdlz->common.mctx,
 					 sizeof(dns_name_t));
-		if (node->name == NULL) {
-			destroynode(node);
-			return (ISC_R_NOMEMORY);
-		}
 		dns_name_init(node->name, NULL);
 		result = dns_name_dup(name, sdlz->common.mctx, node->name);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(sdlz->common.mctx, node->name,
-				    sizeof(dns_name_t));
-			destroynode(node);
-			return (result);
-		}
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 
 	*nodep = node;
@@ -734,11 +716,7 @@ attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 
 	UNUSED(sdlz);
 
-	LOCK(&node->lock);
-	INSIST(node->references > 0);
-	node->references++;
-	INSIST(node->references != 0);		/* Catch overflow. */
-	UNLOCK(&node->lock);
+	isc_refcount_increment(&node->references);
 
 	*targetp = source;
 }
@@ -747,7 +725,6 @@ static void
 detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	dns_sdlz_db_t *sdlz = (dns_sdlz_db_t *)db;
 	dns_sdlznode_t *node;
-	bool need_destroy = false;
 
 	REQUIRE(VALID_SDLZDB(sdlz));
 	REQUIRE(targetp != NULL && *targetp != NULL);
@@ -755,18 +732,11 @@ detachnode(dns_db_t *db, dns_dbnode_t **targetp) {
 	UNUSED(sdlz);
 
 	node = (dns_sdlznode_t *)(*targetp);
-
-	LOCK(&node->lock);
-	INSIST(node->references > 0);
-	node->references--;
-	if (node->references == 0)
-		need_destroy = true;
-	UNLOCK(&node->lock);
-
-	if (need_destroy)
-		destroynode(node);
-
 	*targetp = NULL;
+
+	if (isc_refcount_decrement(&node->references) == 1) {
+		destroynode(node);
+	}
 }
 
 static isc_result_t
@@ -989,7 +959,7 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		 * and try again.
 		 */
 		if (i < nlabels) {
-			destroynode(node);
+			detachnode(db, &node);
 			node = NULL;
 			continue;
 		}
@@ -1035,10 +1005,12 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 
 		xresult = dns_name_copy(xname, foundname, NULL);
 		if (xresult != ISC_R_SUCCESS) {
-			if (node != NULL)
-				destroynode(node);
-			if (dns_rdataset_isassociated(rdataset))
+			if (node != NULL) {
+				detachnode(db, &node);
+			}
+			if (dns_rdataset_isassociated(rdataset)) {
 				dns_rdataset_disassociate(rdataset);
+			}
 			return (DNS_R_BADDB);
 		}
 	}
@@ -1349,6 +1321,7 @@ dbiterator_destroy(dns_dbiterator_t **iteratorp) {
 		dns_sdlznode_t *node;
 		node = ISC_LIST_HEAD(sdlziter->nodelist);
 		ISC_LIST_UNLINK(sdlziter->nodelist, node, link);
+		isc_refcount_decrement(&node->references);
 		destroynode(node);
 	}
 
@@ -1543,9 +1516,6 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 	if (result != ISC_R_SUCCESS)
 		goto mem_cleanup;
 
-	/* initialize the reference count mutex */
-	isc_mutex_init(&sdlzdb->refcnt_lock);
-
 	/* set the rest of the database structure attributes */
 	sdlzdb->dlzimp = imp;
 	sdlzdb->common.methods = &sdlzdb_methods;
@@ -1553,7 +1523,7 @@ dns_sdlzcreateDBP(isc_mem_t *mctx, void *driverarg, void *dbdata,
 	sdlzdb->common.rdclass = rdclass;
 	sdlzdb->common.mctx = NULL;
 	sdlzdb->dbdata = dbdata;
-	sdlzdb->references = 1;
+	isc_refcount_init(&sdlzdb->references, 1);
 
 	/* attach to the memory context */
 	isc_mem_attach(mctx, &sdlzdb->common.mctx);
@@ -1999,17 +1969,9 @@ dns_sdlz_putnamedrr(dns_sdlzallnodes_t *allnodes, const char *name,
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		sdlznode->name = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (sdlznode->name == NULL) {
-			destroynode(sdlznode);
-			return (ISC_R_NOMEMORY);
-		}
 		dns_name_init(sdlznode->name, NULL);
 		result = dns_name_dup(newname, mctx, sdlznode->name);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, sdlznode->name, sizeof(dns_name_t));
-			destroynode(sdlznode);
-			return (result);
-		}
+		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 		ISC_LIST_PREPEND(allnodes->nodelist, sdlznode, link);
 		if (allnodes->origin == NULL &&
 		    dns_name_equal(newname, &sdlz->common.origin))
