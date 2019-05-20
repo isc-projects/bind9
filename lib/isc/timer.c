@@ -784,15 +784,11 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 }
 
 isc_result_t
-isc_timermgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
-			 isc_timermgr_t **managerp)
+isc_timermgr_createinctx(isc_mem_t *mctx, isc_timermgr_t **managerp)
 {
 	isc_result_t result;
 
 	result = isc_timermgr_create(mctx, managerp);
-
-	if (result == ISC_R_SUCCESS)
-		isc_appctx_settimermgr(actx, *managerp);
 
 	return (result);
 }

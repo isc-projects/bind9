@@ -278,7 +278,7 @@ rndc_senddone(isc_task_t *task, isc_event_t *event) {
 	if (sends == 0 && recvs == 0) {
 		isc_socket_detach(&sock);
 		isc_task_shutdown(task);
-		RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
+		isc_app_shutdown();
 	}
 }
 
@@ -347,7 +347,7 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	if (sends == 0 && recvs == 0) {
 		isc_socket_detach(&sock);
 		isc_task_shutdown(task);
-		RUNTIME_CHECK(isc_app_shutdown() == ISC_R_SUCCESS);
+		isc_app_shutdown();
 	}
 }
 

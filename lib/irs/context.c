@@ -101,15 +101,15 @@ ctxs_init(isc_mem_t **mctxp, isc_appctx_t **actxp,
 	if (result != ISC_R_SUCCESS)
 		goto fail;
 
-	result = isc_taskmgr_createinctx(*mctxp, *actxp, 1, 0, taskmgrp);
+	result = isc_taskmgr_createinctx(*mctxp, 1, 0, taskmgrp);
 	if (result != ISC_R_SUCCESS)
 		goto fail;
 
-	result = isc_socketmgr_createinctx(*mctxp, *actxp, socketmgrp);
+	result = isc_socketmgr_createinctx(*mctxp, socketmgrp);
 	if (result != ISC_R_SUCCESS)
 		goto fail;
 
-	result = isc_timermgr_createinctx(*mctxp, *actxp, timermgrp);
+	result = isc_timermgr_createinctx(*mctxp, timermgrp);
 	if (result != ISC_R_SUCCESS)
 		goto fail;
 

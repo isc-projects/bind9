@@ -630,7 +630,7 @@ isc_task_privilege(isc_task_t *task);
  *****/
 
 isc_result_t
-isc_taskmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
+isc_taskmgr_createinctx(isc_mem_t *mctx,
 			unsigned int workers, unsigned int default_quantum,
 			isc_taskmgr_t **managerp);
 isc_result_t
