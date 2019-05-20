@@ -1,3 +1,7 @@
+5236.	[func]		Add SipHash 2-4 implementation in lib/isc/siphash.c
+			and switch isc_hash_function() to use SipHash 2-4.
+			[GL #605]
+
 	--- 9.14.4 released ---
 
 5260.	[bug]		dnstap-read was producing malformed output for large
