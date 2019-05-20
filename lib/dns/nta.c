@@ -133,7 +133,7 @@ dns_ntatable_create(dns_view_t *view,
 	ntatable->taskmgr = taskmgr;
 
 	ntatable->view = view;
-	ntatable->references = 1;
+	isc_refcount_init(&ntatable->references, 1);
 
 	ntatable->magic = NTATABLE_MAGIC;
 	*ntatablep = ntatable;
@@ -157,20 +157,13 @@ dns_ntatable_attach(dns_ntatable_t *source, dns_ntatable_t **targetp) {
 	REQUIRE(VALID_NTATABLE(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	RWLOCK(&source->rwlock, isc_rwlocktype_write);
-
-	INSIST(source->references > 0);
-	source->references++;
-	INSIST(source->references != 0);
-
-	RWUNLOCK(&source->rwlock, isc_rwlocktype_write);
+	isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
 
 void
 dns_ntatable_detach(dns_ntatable_t **ntatablep) {
-	bool destroy = false;
 	dns_ntatable_t *ntatable;
 
 	REQUIRE(ntatablep != NULL && VALID_NTATABLE(*ntatablep));
@@ -178,16 +171,10 @@ dns_ntatable_detach(dns_ntatable_t **ntatablep) {
 	ntatable = *ntatablep;
 	*ntatablep = NULL;
 
-	RWLOCK(&ntatable->rwlock, isc_rwlocktype_write);
-	INSIST(ntatable->references > 0);
-	ntatable->references--;
-	if (ntatable->references == 0)
-		destroy = true;
-	RWUNLOCK(&ntatable->rwlock, isc_rwlocktype_write);
-
-	if (destroy) {
+	if (isc_refcount_decrement(&ntatable->references) == 1) {
 		dns_rbt_destroy(&ntatable->table);
 		isc_rwlock_destroy(&ntatable->rwlock);
+		isc_refcount_destroy(&ntatable->references);
 		if (ntatable->task != NULL)
 			isc_task_detach(&ntatable->task);
 		ntatable->timermgr = NULL;
