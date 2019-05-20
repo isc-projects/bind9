@@ -23,6 +23,7 @@
 #define NS_STATS_VALID(x)		ISC_MAGIC_VALID(x, NS_STATS_MAGIC)
 
 struct ns_stats {
+	/*% Unlocked */
 	unsigned int	magic;
 	isc_mem_t	*mctx;
 	isc_stats_t	*counters;
@@ -50,6 +51,7 @@ ns_stats_detach(ns_stats_t **statsp) {
 
 	if (isc_refcount_decrement(&stats->references) == 1) {
 		isc_stats_detach(&stats->counters);
+		isc_refcount_destroy(&stats->references);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 	}
 }
@@ -62,15 +64,14 @@ ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
-		return (ISC_R_NOMEMORY);
-
 	stats->counters = NULL;
-	atomic_init(&stats->references, 1);
+
+	isc_refcount_init(&stats->references, 1);
 
 	result = isc_stats_create(mctx, &stats->counters, ncounters);
-	if (result != ISC_R_SUCCESS)
-		goto clean_mutex;
+	if (result != ISC_R_SUCCESS) {
+		goto clean_mem;
+	}
 
 	stats->magic = NS_STATS_MAGIC;
 	stats->mctx = NULL;
@@ -79,7 +80,7 @@ ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 
 	return (ISC_R_SUCCESS);
 
-  clean_mutex:
+  clean_mem:
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
 	return (result);
