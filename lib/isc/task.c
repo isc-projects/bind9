@@ -100,9 +100,9 @@ struct isc__task {
 	isc_task_t			common;
 	isc__taskmgr_t *		manager;
 	isc_mutex_t			lock;
-	isc_refcount_t			references;
 	/* Locked by task lock. */
 	task_state_t			state;
+	isc_refcount_t			references;
 	isc_eventlist_t			events;
 	isc_eventlist_t			on_shutdown;
 	unsigned int			nevents;
@@ -229,7 +229,7 @@ task_finished(isc__task_t *task) {
 	REQUIRE(EMPTY(task->events));
 	REQUIRE(task->nevents == 0);
 	REQUIRE(EMPTY(task->on_shutdown));
-	REQUIRE(isc_refcount_current(&task->references) == 0);
+	REQUIRE(task->references == 0);
 	REQUIRE(task->state == task_state_done);
 
 	XTRACE("task_finished");
@@ -296,6 +296,7 @@ isc_task_create_bound(isc_taskmgr_t *manager0, unsigned int quantum,
 
 	isc_mutex_init(&task->lock);
 	task->state = task_state_idle;
+
 	isc_refcount_init(&task->references, 1);
 	INIT_LIST(task->events);
 	INIT_LIST(task->on_shutdown);
@@ -419,12 +420,11 @@ task_detach(isc__task_t *task) {
 	 * Caller must be holding the task lock.
 	 */
 
-	REQUIRE(isc_refcount_current(&task->references) > 0);
-
 	XTRACE("detach");
 
 	if (isc_refcount_decrement(&task->references) == 1 &&
-	    task->state == task_state_idle) {
+	    task->state == task_state_idle)
+	{
 		INSIST(EMPTY(task->events));
 		/*
 		 * There are no references to this task, and no
@@ -1243,7 +1243,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 		 * we're stuck.  Automatically drop privileges at that
 		 * point and continue with the regular ready queue.
 		 */
-		if (atomic_load_relaxed(&manager->mode) != isc_taskmgrmode_normal &&
+		if (manager->mode != isc_taskmgrmode_normal &&
 		    atomic_load_explicit(&manager->tasks_running,
 					 memory_order_acquire) == 0)
 		{
@@ -1256,7 +1256,7 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 			 * we'll end up in a deadlock over queue locks.
 			 *
 			 */
-			if (atomic_load_relaxed(&manager->mode) != isc_taskmgrmode_normal &&
+			if (manager->mode != isc_taskmgrmode_normal &&
 			    atomic_load_explicit(&manager->tasks_running,
 						 memory_order_acquire) == 0)
 			{
@@ -1341,7 +1341,7 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	RUNTIME_CHECK(manager != NULL);
 	manager->common.impmagic = TASK_MANAGER_MAGIC;
 	manager->common.magic = ISCAPI_TASKMGR_MAGIC;
-	atomic_init(&manager->mode, isc_taskmgrmode_normal);
+	atomic_store(&manager->mode, isc_taskmgrmode_normal);
 	manager->mctx = NULL;
 	isc_mutex_init(&manager->lock);
 	isc_mutex_init(&manager->excl_lock);
@@ -1356,18 +1356,18 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	}
 	manager->default_quantum = default_quantum;
 	INIT_LIST(manager->tasks);
-	atomic_init(&manager->tasks_count, 0);
+	atomic_store(&manager->tasks_count, 0);
 	manager->queues = isc_mem_get(mctx, workers * sizeof(isc__taskqueue_t));
 	RUNTIME_CHECK(manager->queues != NULL);
 
-	atomic_init(&manager->tasks_running, 0);
-	atomic_init(&manager->tasks_ready, 0);
-	atomic_init(&manager->curq, 0);
-	atomic_init(&manager->exiting, false);
+	manager->tasks_running = 0;
+	manager->tasks_ready = 0;
+	manager->curq = 0;
+	manager->exiting = false;
 	manager->excl = NULL;
 	manager->halted = 0;
-	atomic_init(&manager->exclusive_req, false);
-	atomic_init(&manager->pause_req, false);
+	atomic_store_relaxed(&manager->exclusive_req, false);
+	atomic_store_relaxed(&manager->pause_req, false);
 
 	isc_mem_attach(mctx, &manager->mctx);
 
@@ -1529,8 +1529,8 @@ void
 isc__taskmgr_resume(isc_taskmgr_t *manager0) {
 	isc__taskmgr_t *manager = (isc__taskmgr_t *)manager0;
 	LOCK(&manager->halt_lock);
-	if (atomic_load_relaxed(&manager->pause_req)) {
-		atomic_store_relaxed(&manager->pause_req, false);
+	if (manager->pause_req) {
+		manager->pause_req = false;
 		while (manager->halted > 0) {
 			BROADCAST(&manager->halt_cond);
 			WAIT(&manager->halt_cond, &manager->halt_lock);
@@ -1731,7 +1731,7 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, void *writer0) {
 
 		TRY0(xmlTextWriterStartElement(writer,
 					       ISC_XMLCHAR "references"));
-		TRY0(xmlTextWriterWriteFormatString(writer, "%d",
+		TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIuFAST32,
 						    isc_refcount_current(&task->references)));
 		TRY0(xmlTextWriterEndElement(writer)); /* references */
 
