@@ -14,11 +14,13 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/atomic.h>
 #include <isc/event.h>
 #include <isc/lex.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/serial.h>
 #include <isc/stdio.h>
 #include <isc/stdtime.h>
@@ -136,11 +138,13 @@ struct dns_loadctx {
 	/* Which fixed buffers we are using? */
 	unsigned int		loop_cnt;		/*% records per quantum,
 							 * 0 => all. */
-	bool		canceled;
-	isc_mutex_t		lock;
 	isc_result_t		result;
+
+	/* Atomic */
+	isc_refcount_t		references;
+	atomic_bool		canceled;
+
 	/* locked by lock */
-	uint32_t		references;
 	dns_incctx_t		*inc;
 	uint32_t		resign;
 	isc_stdtime_t		now;
@@ -389,11 +393,7 @@ dns_loadctx_attach(dns_loadctx_t *source, dns_loadctx_t **target) {
 	REQUIRE(target != NULL && *target == NULL);
 	REQUIRE(DNS_LCTX_VALID(source));
 
-	LOCK(&source->lock);
-	INSIST(source->references > 0);
-	source->references++;
-	INSIST(source->references != 0);	/* Overflow? */
-	UNLOCK(&source->lock);
+	isc_refcount_increment(&source->references);
 
 	*target = source;
 }
@@ -401,22 +401,16 @@ dns_loadctx_attach(dns_loadctx_t *source, dns_loadctx_t **target) {
 void
 dns_loadctx_detach(dns_loadctx_t **lctxp) {
 	dns_loadctx_t *lctx;
-	bool need_destroy = false;
 
 	REQUIRE(lctxp != NULL);
 	lctx = *lctxp;
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
-	LOCK(&lctx->lock);
-	INSIST(lctx->references > 0);
-	lctx->references--;
-	if (lctx->references == 0)
-		need_destroy = true;
-	UNLOCK(&lctx->lock);
-
-	if (need_destroy)
-		loadctx_destroy(lctx);
 	*lctxp = NULL;
+
+	if (isc_refcount_decrement(&lctx->references) == 1) {
+		loadctx_destroy(lctx);
+	}
 }
 
 static void
@@ -461,7 +455,6 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 
 	if (lctx->task != NULL)
 		isc_task_detach(&lctx->task);
-	isc_mutex_destroy(&lctx->lock);
 	mctx = NULL;
 	isc_mem_attach(lctx->mctx, &mctx);
 	isc_mem_detach(&lctx->mctx);
@@ -532,7 +525,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 	lctx = isc_mem_get(mctx, sizeof(*lctx));
 	if (lctx == NULL)
 		return (ISC_R_NOMEMORY);
-	isc_mutex_init(&lctx->lock);
 
 	lctx->inc = NULL;
 	result = incctx_create(mctx, origin, &lctx->inc);
@@ -613,10 +605,12 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		isc_task_attach(task, &lctx->task);
 	lctx->done = done;
 	lctx->done_arg = done_arg;
-	lctx->canceled = false;
+	atomic_init(&lctx->canceled, false);
 	lctx->mctx = NULL;
 	isc_mem_attach(mctx, &lctx->mctx);
-	lctx->references = 1;			/* Implicit attach. */
+
+	isc_refcount_init(&lctx->references, 1); /* Implicit attach. */
+
 	lctx->magic = DNS_LCTX_MAGIC;
 	*lctxp = lctx;
 	return (ISC_R_SUCCESS);
@@ -3099,10 +3093,11 @@ load_quantum(isc_task_t *task, isc_event_t *event) {
 	lctx = event->ev_arg;
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
-	if (lctx->canceled)
+	if (atomic_load_acquire(&lctx->canceled)) {
 		result = ISC_R_CANCELED;
-	else
+	} else {
 		result = (lctx->load)(lctx);
+	}
 	if (result == DNS_R_CONTINUE) {
 		event->ev_arg = lctx;
 		isc_task_send(task, &event);
@@ -3130,9 +3125,7 @@ void
 dns_loadctx_cancel(dns_loadctx_t *lctx) {
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
-	LOCK(&lctx->lock);
-	lctx->canceled = true;
-	UNLOCK(&lctx->lock);
+	atomic_store_release(&lctx->canceled, true);
 }
 
 void
