@@ -14825,7 +14825,7 @@ static isc_result_t
 restore_nsec3param(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *version,
 		   nsec3paramlist_t *nsec3list)
 {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	dns_diff_t diff;
 	dns_rdata_t rdata;
 	nsec3param_t *nsec3p = NULL;
