@@ -261,7 +261,7 @@ add_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size FLARG) {
 	if (mctx->debuglist == NULL)
 		return;
 
-	hash = isc_hash_function(&ptr, sizeof(ptr), true, NULL);
+	hash = isc_hash_function(&ptr, sizeof(ptr), true);
 	idx = hash % DEBUG_TABLE_COUNT;
 
 	dl = malloc(sizeof(debuglink_t));
@@ -296,7 +296,7 @@ delete_trace_entry(isc__mem_t *mctx, const void *ptr, size_t size,
 	if (mctx->debuglist == NULL)
 		return;
 
-	hash = isc_hash_function(&ptr, sizeof(ptr), true, NULL);
+	hash = isc_hash_function(&ptr, sizeof(ptr), true);
 	idx = hash % DEBUG_TABLE_COUNT;
 
 	dl = ISC_LIST_HEAD(mctx->debuglist[idx]);

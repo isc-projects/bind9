@@ -1,3 +1,7 @@
+5236.	[func]		Add SipHash 2-4 implementation in lib/isc/siphash.c
+			and switch isc_hash_function() to use SipHash 2-4.
+			[GL #605]
+
 5235.	[cleanup]	Refactor lib/isc/app.c to be thread-safe, unused
 			parts of the API has been removed and the
 			isc_appctx_t data type has been changed to be
