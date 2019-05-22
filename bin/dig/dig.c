@@ -1445,7 +1445,7 @@ plus_option(char *option, bool is_batchfile,
 				lookup->trace = state;
 				lookup->trace_root = state;
 				if (state) {
-					lookup->recurse = false;
+					lookup->recurse = true;
 					lookup->identify = true;
 					lookup->comments = false;
 					lookup->rrcomments = 0;
