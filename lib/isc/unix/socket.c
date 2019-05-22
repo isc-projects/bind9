@@ -2980,6 +2980,13 @@ internal_accept(isc__socket_t *sock) {
 		nthread = &manager->threads[NEWCONNSOCK(dev)->threadid];
 
 		/*
+		 * We already hold a lock on one fdlock in accepting thread,
+		 * we need to make sure that we don't double lock.
+		 */
+		bool same_bucket = (sock->threadid == NEWCONNSOCK(dev)->threadid) &&
+				   (FDLOCK_ID(sock->fd) == lockid);
+
+		/*
 		 * Use minimum mtu if possible.
 		 */
 		use_min_mtu(NEWCONNSOCK(dev));
@@ -3001,13 +3008,17 @@ internal_accept(isc__socket_t *sock) {
 			NEWCONNSOCK(dev)->active = 1;
 		}
 
-		LOCK(&nthread->fdlock[lockid]);
+		if (!same_bucket) {
+			LOCK(&nthread->fdlock[lockid]);
+		}
 		nthread->fds[fd] = NEWCONNSOCK(dev);
 		nthread->fdstate[fd] = MANAGED;
 #if defined(USE_EPOLL)
 		nthread->epoll_events[fd] = 0;
 #endif
-		UNLOCK(&nthread->fdlock[lockid]);
+		if (!same_bucket) {
+			UNLOCK(&nthread->fdlock[lockid]);
+		}
 
 		LOCK(&manager->lock);
 
