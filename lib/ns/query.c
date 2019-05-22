@@ -365,7 +365,7 @@ static void
 query_trace(query_ctx_t *qctx);
 
 static void
-qctx_init(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype,
+qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
 	  query_ctx_t *qctx);
 
 static isc_result_t
@@ -5058,7 +5058,7 @@ nxrrset:
  * when leaving the scope or freeing the qctx.
  */
 static void
-qctx_init(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype,
+qctx_init(ns_client_t *client, dns_fetchevent_t **eventp, dns_rdatatype_t qtype,
 	  query_ctx_t *qctx) {
 	REQUIRE(qctx != NULL);
 	REQUIRE(client != NULL);
@@ -5072,7 +5072,12 @@ qctx_init(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype,
 
 	CCTRACE(ISC_LOG_DEBUG(3), "qctx_init");
 
-	qctx->event = event;
+	if (eventp != NULL) {
+		qctx->event = *eventp;
+		*eventp = NULL;
+	} else {
+		qctx->event = NULL;
+	}
 	qctx->qtype = qctx->type = qtype;
 	qctx->result = ISC_R_SUCCESS;
 	qctx->findcoveringnsec = qctx->view->synthfromdnssec;
@@ -5635,6 +5640,7 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	isc_logcategory_t *logcategory = NS_LOGCATEGORY_QUERY_ERRORS;
 	int errorloglevel;
+	query_ctx_t qctx;
 
 	UNUSED(task);
 
@@ -5700,26 +5706,42 @@ fetch_callback(isc_task_t *task, isc_event_t *event) {
 	client->state = NS_CLIENTSTATE_WORKING;
 
 	/*
-	 * If this client is shutting down, or this transaction
-	 * has timed out, do not resume the find.
+	 * Initialize a new qctx and use it to either resume from
+	 * recursion or clean up after cancelation.  Transfer
+	 * ownership of devent to the new qctx in the process.
 	 */
+	qctx_init(client, &devent, 0, &qctx);
+
 	client_shuttingdown = ns_client_shuttingdown(client);
 	if (fetch_canceled || client_shuttingdown) {
-		free_devent(client, &event, &devent);
+		/*
+		 * We've timed out or are shutting down. We can now
+		 * free the event and other resources held by qctx, but
+		 * don't call qctx_destroy() yet: it might destroy the
+		 * client, which we still need for a moment.
+		 */
+		qctx_freedata(&qctx);
+
+		/*
+		 * Return an error to the client, or just drop.
+		 */
 		if (fetch_canceled) {
 			CTRACE(ISC_LOG_ERROR, "fetch cancelled");
 			query_error(client, DNS_R_SERVFAIL, __LINE__);
 		} else {
 			query_next(client, ISC_R_CANCELED);
 		}
-	} else {
-		query_ctx_t qctx;
 
 		/*
-		 * Initialize a new qctx and use it to resume
-		 * from recursion.
+		 * Free any persistent plugin data that was allocated to
+		 * service the client, then detach the client object.
 		 */
-		qctx_init(client, devent, 0, &qctx);
+		qctx.detach_client = true;
+		qctx_destroy(&qctx);
+	} else {
+		/*
+		 * Resume the find process.
+		 */
 		query_trace(&qctx);
 
 		result = query_resume(&qctx);
