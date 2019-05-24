@@ -118,9 +118,6 @@ isc_app_start
 isc_app_unblock
 isc_appctx_create
 isc_appctx_destroy
-isc_appctx_setsocketmgr
-isc_appctx_settaskmgr
-isc_appctx_settimermgr
 isc_assertion_failed
 isc_assertion_setcallback
 isc_assertion_typetotext

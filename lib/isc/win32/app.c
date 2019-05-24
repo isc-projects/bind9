@@ -19,6 +19,7 @@
 #include <process.h>
 
 #include <isc/app.h>
+#include <isc/atomic.h>
 #include <isc/condition.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -36,7 +37,7 @@
  */
 
 static isc_thread_t	blockedthread;
-static bool	is_running;
+static atomic_bool	is_running;
 
 #define APPCTX_MAGIC		ISC_MAGIC('A', 'p', 'c', 'x')
 #define VALID_APPCTX(c)		ISC_MAGIC_VALID(c, APPCTX_MAGIC)
@@ -51,22 +52,22 @@ enum {
 };
 
 struct isc_appctx {
-	isc_appctx_t		common;
+	unsigned int		magic;
 	isc_mem_t		*mctx;
 	isc_eventlist_t		on_run;
 	isc_mutex_t		lock;
-	bool		shutdown_requested;
-	bool		running;
+	atomic_bool		shutdown_requested;
+	atomic_bool		running;
 	/*
 	 * We assume that 'want_shutdown' can be read and written atomically.
 	 */
-	bool		want_shutdown;
+	atomic_bool		want_shutdown;
 	/*
 	 * We assume that 'want_reload' can be read and written atomically.
 	 */
-	bool		want_reload;
+	atomic_bool		want_reload;
 
-	bool		blocked;
+	atomic_bool		blocked;
 
 	HANDLE			hEvents[NUM_EVENTS];
 };
@@ -80,7 +81,6 @@ static isc_thread_t	main_thread;
 
 isc_result_t
 isc_app_ctxstart(isc_appctx_t *ctx) {
-	isc_result_t result;
 
 	REQUIRE(VALID_APPCTX(ctx));
 
@@ -92,11 +92,11 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 
 	isc_mutex_init(&ctx->lock);
 
-	ctx->shutdown_requested = false;
-	ctx->running = false;
-	ctx->want_shutdown = false;
-	ctx->want_reload = false;
-	ctx->blocked  = false;
+	atomic_init(&ctx->shutdown_requested, false);
+	atomic_init(&ctx->running, false);
+	atomic_init(&ctx->want_shutdown, false);
+	atomic_init(&ctx->want_reload, false);
+	atomic_init(&ctx->blocked, false);
 
 	/* Create the reload event in a non-signaled state */
 	ctx->hEvents[RELOAD_EVENT] = CreateEvent(NULL, FALSE, FALSE, NULL);
@@ -132,11 +132,8 @@ isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 	isc_task_t *cloned_task = NULL;
 	isc_result_t result;
 
-	LOCK(&ctx->lock);
-
-	if (ctx->running) {
-		result = ISC_R_ALREADYRUNNING;
-		goto unlock;
+	if (atomic_load_acquire(&ctx->running)) {
+		return (ISC_R_ALREADYRUNNING);
 	}
 
 	/*
@@ -147,23 +144,21 @@ isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 	event = isc_event_allocate(mctx, cloned_task, ISC_APPEVENT_SHUTDOWN,
 				   action, arg, sizeof(*event));
 	if (event == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto unlock;
+		return (ISC_R_NOMEMORY);
 	}
 
+	LOCK(&ctx->lock);
 	ISC_LINK_INIT(event, ev_link);
 	ISC_LIST_APPEND(ctx->on_run, event, ev_link);
-
-	result = ISC_R_SUCCESS;
-
- unlock:
 	UNLOCK(&ctx->lock);
 
-	return (result);
+	return (ISC_R_SUCCESS);
 }
 
 isc_result_t
 isc_app_ctxrun(isc_appctx_t *ctx) {
+	bool exp_true = true;
+	bool exp_false = false;
 	isc_event_t *event, *next_event;
 	isc_task_t *task;
 	HANDLE *pHandles = NULL;
@@ -174,10 +169,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	REQUIRE(main_thread == GetCurrentThread());
 
 	LOCK(&ctx->lock);
-
-	if (!ctx->running) {
-		ctx->running = true;
-
+	if (atomic_compare_exchange_weak(&ctx->running, &exp_false, true)) {
 		/*
 		 * Post any on-run events (in FIFO order).
 		 */
@@ -190,9 +182,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 			event->ev_sender = NULL;
 			isc_task_sendanddetach(&task, &event);
 		}
-
 	}
-
 	UNLOCK(&ctx->lock);
 
 	/*
@@ -200,7 +190,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	 * for events.
 	 */
 
-	while (!ctx->want_shutdown) {
+	while (atomic_load_acquire(&ctx->want_shutdown) == false) {
 		dwWaitResult = WaitForMultipleObjects(NUM_EVENTS, ctx->hEvents,
 						      FALSE, INFINITE);
 
@@ -213,22 +203,27 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 			 */
 			switch (WaitSucceededIndex(dwWaitResult)) {
 			case RELOAD_EVENT:
-				ctx->want_reload = true;
+				atomic_store_release(&ctx->want_reload, true);
+
 				break;
 
 			case SHUTDOWN_EVENT:
-				ctx->want_shutdown = true;
+				atomic_store_release(&ctx->want_shutdown, true);
 				break;
 			}
 		}
 
-		if (ctx->want_reload) {
-			ctx->want_reload = false;
+		exp_true = true;
+		if (atomic_compare_exchange_weak(&ctx->want_reload,
+						 &exp_true, false))
+		{
 			return (ISC_R_RELOAD);
 		}
 
-		if (ctx->want_shutdown && ctx->blocked)
+		if (atomic_load_acquire(&ctx->want_shutdown) &&
+		    atomic_load_acquire(&ctx->blocked)) {
 			exit(-1);
+		}
 	}
 
 	return (ISC_R_SUCCESS);
@@ -236,11 +231,12 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 
 isc_result_t
 isc_app_run(void) {
+	bool exp_false = false;
 	isc_result_t result;
 
-	is_running = true;
+	REQUIRE(atomic_compare_exchange_weak(&is_running, &exp_false, true));
 	result = isc_app_ctxrun(&isc_g_appctx);
-	is_running = false;
+	atomic_store_release(&is_running, false);
 
 	return (result);
 }
@@ -250,61 +246,46 @@ isc_app_isrunning() {
 	return (is_running);
 }
 
-isc_result_t
+void
 isc_app_ctxshutdown(isc_appctx_t *ctx) {
-	bool want_kill = true;
+	bool exp_false = false;
 
 	REQUIRE(VALID_APPCTX(ctx));
+	REQUIRE(atomic_load_acquire(&ctx->running));
 
-	LOCK(&ctx->lock);
-
-	REQUIRE(ctx->running);
-
-	if (ctx->shutdown_requested)
-		want_kill = false;		/* We're only signaling once */
-	else
-		ctx->shutdown_requested = true;
-
-	UNLOCK(&ctx->lock);
-
-	if (want_kill)
+	/*
+	 * If ctx->shutdown_requested == true, we are already shutting
+	 * down and we want to just bail out.
+	 */
+	if (atomic_compare_exchange_weak(&ctx->shutdown_requested,
+					 &exp_false, true))
+	{
 		SetEvent(ctx->hEvents[SHUTDOWN_EVENT]);
-
-	return (ISC_R_SUCCESS);
+	}
 }
 
-isc_result_t
+void
 isc_app_shutdown(void) {
-	return (isc_app_ctxshutdown(&isc_g_appctx));
+	isc_app_ctxshutdown(&isc_g_appctx);
 }
 
-isc_result_t
+void
 isc_app_ctxsuspend(isc_appctx_t *ctx) {
-	bool want_kill = true;
 
 	REQUIRE(VALID_APPCTX(ctx));
-
-	LOCK(&ctx->lock);
-
-	REQUIRE(ctx->running);
+	REQUIRE(atomic_load(&ctx->running));
 
 	/*
 	 * Don't send the reload signal if we're shutting down.
 	 */
-	if (ctx->shutdown_requested)
-		want_kill = false;
-
-	UNLOCK(&ctx->lock);
-
-	if (want_kill)
+	if (atomic_load_acquire(&ctx->shutdown_requested) == false) {
 		SetEvent(ctx->hEvents[RELOAD_EVENT]);
-
-	return (ISC_R_SUCCESS);
+	}
 }
 
-isc_result_t
+void
 isc_app_reload(void) {
-	return (isc_app_ctxsuspend(&isc_g_appctx));
+	isc_app_ctxsuspend(&isc_g_appctx);
 }
 
 void
@@ -321,19 +302,22 @@ isc_app_finish(void) {
 
 void
 isc_app_block(void) {
-	REQUIRE(isc_g_appctx.running);
-	REQUIRE(!isc_g_appctx.blocked);
+	bool exp_false = false;
 
-	isc_g_appctx.blocked = true;
+	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
+	REQUIRE(atomic_compare_exchange_weak(&isc_g_appctx.blocked,
+					     &exp_false, true));
+
 	blockedthread = GetCurrentThread();
 }
 
 void
 isc_app_unblock(void) {
-	REQUIRE(isc_g_appctx.running);
-	REQUIRE(isc_g_appctx.blocked);
+	bool exp_true = true;
 
-	isc_g_appctx.blocked = false;
+	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
+	REQUIRE(atomic_compare_exchange_weak(&isc_g_appctx.blocked,
+					     &exp_true, false));
 	REQUIRE(blockedthread == GetCurrentThread());
 }
 
@@ -361,10 +345,9 @@ isc_appctx_destroy(isc_appctx_t **ctxp) {
 	isc_appctx_t *ctx;
 
 	REQUIRE(ctxp != NULL);
-	ctx = (isc__appctx_t *)*ctxp;
+	ctx = *ctxp;
+	*ctxp = NULL;
 	REQUIRE(VALID_APPCTX(ctx));
 
 	isc_mem_putanddetach(&ctx->mctx, ctx, sizeof(*ctx));
-
-	*ctxp = NULL;
 }

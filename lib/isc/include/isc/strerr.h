@@ -13,7 +13,7 @@
 
 /*! \file isc/strerr.h */
 
-#include <string.h>
+#include <isc/string.h>
 
 #if defined(strerror_r)
 #undef strerror_r
