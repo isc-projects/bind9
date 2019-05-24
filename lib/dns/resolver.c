@@ -4158,7 +4158,7 @@ resume_qmin(isc_task_t *task, isc_event_t *event) {
 	}
 
 	if (NXDOMAIN_RESULT(result) || result == DNS_R_FORMERR ||
-	    result == DNS_R_REMOTEFORMERR)
+	    result == DNS_R_REMOTEFORMERR || result == ISC_R_FAILURE)
 	{
 		if ((fctx->options & DNS_FETCHOPT_QMIN_STRICT) == 0) {
 			fctx->qmin_labels = DNS_MAX_LABELS + 1;
