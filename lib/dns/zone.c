@@ -11474,9 +11474,17 @@ notify_send_toaddr(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
-	/* XXX: should we log the tsig key too? */
-	notify_log(notify->zone, ISC_LOG_DEBUG(3), "sending notify to %s",
-		   addrbuf);
+	if (key != NULL) {
+		char namebuf[DNS_NAME_FORMATSIZE];
+
+		dns_name_format(&key->name, namebuf, sizeof(namebuf));
+		notify_log(notify->zone, ISC_LOG_DEBUG(3),
+			   "sending notify to %s : TSIG (%s)",
+			   addrbuf, namebuf);
+	} else {
+		notify_log(notify->zone, ISC_LOG_DEBUG(3),
+			   "sending notify to %s", addrbuf);
+	}
 	options = 0;
 	if (notify->zone->view->peers != NULL) {
 		dns_peer_t *peer = NULL;
