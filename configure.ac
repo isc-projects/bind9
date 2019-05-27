@@ -259,7 +259,7 @@ AS_IF([test "$with_python" = "no"],
                                  available from your OS package manager
                                  as python-ply or python3-ply; it can also
                                  be installed via pip. To build without
-                                 Python/PLY, use --disable-python.]
+                                 Python/PLY, use --without-python.]
 			    )])])])
 
 PYTHON_TOOLS=''
