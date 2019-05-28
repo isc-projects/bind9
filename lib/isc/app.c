@@ -11,20 +11,19 @@
 
 /*! \file */
 
-#include <sys/param.h>	/* Openserver 5.0.6A and FD_SETSIZE */
 #include <sys/types.h>
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <inttypes.h>
 #include <stdlib.h>
 #include <errno.h>
 #include <unistd.h>
+
+#ifndef WIN32
+#include <inttypes.h>
 #include <signal.h>
 #include <sys/time.h>
-#ifdef HAVE_EPOLL
-#include <sys/epoll.h>
-#endif
+#endif /* WIN32 */
 
 #include <isc/platform.h>
 #include <isc/atomic.h>
@@ -38,25 +37,44 @@
 #include <isc/string.h>
 #include <isc/task.h>
 #include <isc/time.h>
+#include <isc/thread.h>
 #include <isc/util.h>
 
+#ifdef WIN32
+#include <process.h>
+#else /* WIN32 */
 #include <pthread.h>
+#endif /* WIN32 */
 
 /*%
  * For BIND9 internal applications built with threads, we use a single app
  * context and let multiple worker, I/O, timer threads do actual jobs.
- * For other cases (including BIND9 built without threads) an app context acts
- * as an event loop dispatching various events.
  */
-static pthread_t		blockedthread;
+
+static isc_thread_t		blockedthread;
 static atomic_bool		is_running;
 
+#ifdef WIN32
 /*
- * The application context of this module.  This implementation actually
- * doesn't use it. (This may change in the future).
+ * We need to remember which thread is the main thread...
+ */
+static isc_thread_t		main_thread;
+#endif
+
+/*
+ * The application context of this module.
  */
 #define APPCTX_MAGIC		ISC_MAGIC('A', 'p', 'c', 'x')
 #define VALID_APPCTX(c)		ISC_MAGIC_VALID(c, APPCTX_MAGIC)
+
+#ifdef WIN32
+#define NUM_EVENTS 2
+
+enum {
+	RELOAD_EVENT,
+	SHUTDOWN_EVENT
+};
+#endif /* WIN32 */
 
 struct isc_appctx {
 	unsigned int		magic;
@@ -68,12 +86,17 @@ struct isc_appctx {
 	atomic_bool		want_shutdown;
 	atomic_bool		want_reload;
 	atomic_bool		blocked;
+#ifdef WIN32
+	HANDLE			hEvents[NUM_EVENTS];
+#else /* WIN32 */
 	isc_mutex_t		readylock;
 	isc_condition_t	ready;
+#endif /* WIN32 */
 };
 
 static isc_appctx_t isc_g_appctx;
 
+#ifndef WIN32
 static void
 handle_signal(int sig, void (*handler)(int)) {
 	struct sigaction sa;
@@ -90,13 +113,10 @@ handle_signal(int sig, void (*handler)(int)) {
 				 sig, strbuf);
 	}
 }
+#endif
 
 isc_result_t
 isc_app_ctxstart(isc_appctx_t *ctx) {
-	int presult;
-	sigset_t sset;
-	char strbuf[ISC_STRERRORSIZE];
-
 	REQUIRE(VALID_APPCTX(ctx));
 
 	/*
@@ -105,8 +125,10 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 
 	isc_mutex_init(&ctx->lock);
 
+#ifndef WIN32
 	isc_mutex_init(&ctx->readylock);
 	isc_condition_init(&ctx->ready);
+#endif /* WIN32 */
 
 	ISC_LIST_INIT(ctx->on_run);
 
@@ -115,6 +137,19 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 	atomic_init(&ctx->want_shutdown, false);
 	atomic_init(&ctx->want_reload, false);
 	atomic_init(&ctx->blocked, false);
+
+#ifdef WIN32
+	main_thread = GetCurrentThread();
+
+	/* Create the reload event in a non-signaled state */
+	ctx->hEvents[RELOAD_EVENT] = CreateEvent(NULL, FALSE, FALSE, NULL);
+
+	/* Create the shutdown event in a non-signaled state */
+	ctx->hEvents[SHUTDOWN_EVENT] = CreateEvent(NULL, FALSE, FALSE, NULL);
+#else /* WIN32 */
+	int presult;
+	sigset_t sset;
+	char strbuf[ISC_STRERRORSIZE];
 
 	/*
 	 * Always ignore SIGPIPE.
@@ -149,6 +184,8 @@ isc_app_ctxstart(isc_appctx_t *ctx) {
 				 "isc_app_start() pthread_sigmask: %s",
 				 strbuf);
 	}
+
+#endif /* WIN32 */
 
 	return (ISC_R_SUCCESS);
 }
@@ -193,6 +230,7 @@ isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 	}
 
 	LOCK(&ctx->lock);
+	ISC_LINK_INIT(event, ev_link);
 	ISC_LIST_APPEND(ctx->on_run, event, ev_link);
 	UNLOCK(&ctx->lock);
 
@@ -203,12 +241,14 @@ isc_result_t
 isc_app_ctxrun(isc_appctx_t *ctx) {
 	isc_event_t *event, *next_event;
 	isc_task_t *task;
-	sigset_t sset;
-	int sig;
 	bool exp_false = false;
 	bool exp_true = true;
 
 	REQUIRE(VALID_APPCTX(ctx));
+
+#ifdef WIN32
+	REQUIRE(main_thread == GetCurrentThread());
+#endif
 
 	if (atomic_compare_exchange_weak_acq_rel(
 		    &ctx->running, &exp_false, true) == true)
@@ -229,12 +269,14 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 		UNLOCK(&ctx->lock);
 	}
 
+#ifndef WIN32
 	/*
 	 * BIND9 internal tools using multiple contexts do not
 	 * rely on signal. */
 	if (isc_bind9 && ctx != &isc_g_appctx) {
 		return (ISC_R_SUCCESS);
 	}
+#endif /* WIN32 */
 
 	/*
 	 * There is no danger if isc_app_shutdown() is called before we
@@ -243,7 +285,33 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 	 * sigwait().
 	 */
 	while (atomic_load_acquire(&ctx->want_shutdown) == false) {
+#ifdef WIN32
+		DWORD  dwWaitResult = \
+			WaitForMultipleObjects(NUM_EVENTS, ctx->hEvents,
+					       FALSE, INFINITE);
+
+		/* See why we returned */
+
+		if (WaitSucceeded(dwWaitResult, NUM_EVENTS)) {
+			/*
+			 * The return was due to one of the events
+			 * being signaled
+			 */
+			switch (WaitSucceededIndex(dwWaitResult)) {
+			case RELOAD_EVENT:
+				atomic_store_release(&ctx->want_reload, true);
+
+				break;
+
+			case SHUTDOWN_EVENT:
+				atomic_store_release(&ctx->want_shutdown, true);
+				break;
+			}
+		}
+#else /* WIN32 */
 		if (isc_bind9) {
+			sigset_t sset;
+			int sig;
 			/*
 			 * BIND9 internal; single context:
 			 * Wait for SIGHUP, SIGINT, or SIGTERM.
@@ -289,7 +357,7 @@ isc_app_ctxrun(isc_appctx_t *ctx) {
 				UNLOCK(&ctx->readylock);
 			}
 		}
-
+#endif /* WIN32 */
 		exp_true = true;
 		if (atomic_compare_exchange_weak_acq_rel(&ctx->want_reload,
 							 &exp_true,
@@ -341,6 +409,9 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 		    &exp_false,
 		    true))
 	{
+#ifdef WIN32
+		SetEvent(ctx->hEvents[SHUTDOWN_EVENT]);
+#else /* WIN32 */
 		if (isc_bind9 && ctx != &isc_g_appctx) {
 			/* BIND9 internal, but using multiple contexts */
 			atomic_store_release(&ctx->want_shutdown, true);
@@ -359,6 +430,7 @@ isc_app_ctxshutdown(isc_appctx_t *ctx) {
 			atomic_store_release(&ctx->want_shutdown, true);
 			SIGNAL(&ctx->ready);
 		}
+#endif /* WIN32 */
 	}
 
 }
@@ -378,6 +450,9 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 	 * Don't send the reload signal if we're shutting down.
 	 */
 	if (atomic_load_acquire(&ctx->shutdown_requested) == false) {
+#ifdef WIN32
+				SetEvent(ctx->hEvents[RELOAD_EVENT]);
+#else /* WIN32 */
 		if (isc_bind9 && ctx != &isc_g_appctx) {
 			/* BIND9 internal, but using multiple contexts */
 			atomic_store_release(&ctx->want_reload, true);
@@ -396,7 +471,7 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 			atomic_store_release(&ctx->want_reload, true);
 			SIGNAL(&ctx->ready);
 		}
-
+#endif /* WIN32 */
 	}
 }
 
@@ -410,8 +485,10 @@ isc_app_ctxfinish(isc_appctx_t *ctx) {
 	REQUIRE(VALID_APPCTX(ctx));
 
 	isc_mutex_destroy(&ctx->lock);
+#ifndef WIN32
 	isc_mutex_destroy(&ctx->readylock);
 	isc_condition_destroy(&ctx->ready);
+#endif /* WIN32 */
 }
 
 void
@@ -421,21 +498,25 @@ isc_app_finish(void) {
 
 void
 isc_app_block(void) {
-	sigset_t sset;
-	REQUIRE(isc_g_appctx.running);
-	REQUIRE(!isc_g_appctx.blocked);
+	bool exp_false = false;
+	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
+	REQUIRE(atomic_compare_exchange_weak_acq_rel(&isc_g_appctx.blocked,
+						     &exp_false, true));
 
-	atomic_store_release(&isc_g_appctx.blocked, true);
+#ifdef WIN32
+	blockedthread = GetCurrentThread();
+#else /* WIN32 */
+	sigset_t sset;
 	blockedthread = pthread_self();
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
 		      sigaddset(&sset, SIGINT) == 0 &&
 		      sigaddset(&sset, SIGTERM) == 0);
 	RUNTIME_CHECK(pthread_sigmask(SIG_UNBLOCK, &sset, NULL) == 0);
+#endif /* WIN32 */
 }
 
 void
 isc_app_unblock(void) {
-	sigset_t sset;
 	bool exp_true = true;
 
 	REQUIRE(atomic_load_acquire(&isc_g_appctx.running));
@@ -444,12 +525,17 @@ isc_app_unblock(void) {
 			&exp_true,
 			false));
 
+#ifdef WIN32
+	REQUIRE(blockedthread == GetCurrentThread());
+#else /* WIN32 */
 	REQUIRE(blockedthread == pthread_self());
 
+	sigset_t sset;
 	RUNTIME_CHECK(sigemptyset(&sset) == 0 &&
 		      sigaddset(&sset, SIGINT) == 0 &&
 		      sigaddset(&sset, SIGTERM) == 0);
 	RUNTIME_CHECK(pthread_sigmask(SIG_BLOCK, &sset, NULL) == 0);
+#endif /* WIN32 */
 }
 
 isc_result_t
@@ -460,8 +546,6 @@ isc_appctx_create(isc_mem_t *mctx, isc_appctx_t **ctxp) {
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
 
 	ctx = isc_mem_get(mctx, sizeof(*ctx));
-	if (ctx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ctx->magic = APPCTX_MAGIC;
 
@@ -479,8 +563,8 @@ isc_appctx_destroy(isc_appctx_t **ctxp) {
 
 	REQUIRE(ctxp != NULL);
 	ctx = *ctxp;
-	REQUIRE(VALID_APPCTX(ctx));
 	*ctxp = NULL;
+	REQUIRE(VALID_APPCTX(ctx));
 
 	ctx->magic = 0;
 
