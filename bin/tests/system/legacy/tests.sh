@@ -101,7 +101,7 @@ ret=0
 $DIG $DIGOPTS +edns @10.53.0.3 dropedns-notcp soa > dig.out.1.test$n
 grep "connection timed out; no servers could be reached" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noedns +tcp @10.53.0.3 dropedns-notcp soa > dig.out.2.test$n
-grep "connection timed out; no servers could be reached" dig.out.2.test$n > /dev/null
+grep "connection refused" dig.out.2.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noedns @10.53.0.3 dropedns-notcp soa > dig.out.3.test$n || ret=1
 grep "status: NOERROR" dig.out.3.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.3.test$n > /dev/null && ret=1
@@ -140,7 +140,7 @@ $DIG $DIGOPTS +edns @10.53.0.5 plain-notcp soa > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.1.test$n > /dev/null && ret=1
 $DIG $DIGOPTS +edns +tcp @10.53.0.5 plain-notcp soa > dig.out.2.test$n
-grep "connection timed out; no servers could be reached" dig.out.2.test$n > /dev/null
+grep "connection refused" dig.out.2.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -180,7 +180,7 @@ ret=0
 $DIG $DIGOPTS +noedns @10.53.0.7 edns512-notcp soa > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +noedns +tcp @10.53.0.7 edns512-notcp soa > dig.out.2.test$n
-grep "connection timed out; no servers could be reached" dig.out.2.test$n > /dev/null
+grep "connection refused" dig.out.2.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +edns @10.53.0.7 edns512-notcp soa > dig.out.3.test$n
 grep "connection timed out; no servers could be reached" dig.out.3.test$n > /dev/null
 $DIG $DIGOPTS +edns +bufsize=512 +ignor @10.53.0.7 edns512-notcp soa > dig.out.4.test$n
