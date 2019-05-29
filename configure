@@ -15714,15 +15714,29 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for Ed448 support" >&5
 $as_echo_n "checking for Ed448 support... " >&6; }
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: broken" >&5
-$as_echo "broken" >&6; }
-#AC_COMPILE_IFELSE(
-#    [AC_LANG_PROGRAM([[#include <openssl/evp.h>
-#		       #include <openssl/ec.h>]],
-#		     [[EC_KEY *key = EC_KEY_new_by_curve_name(NID_ED448);]])],
-#    [AC_DEFINE([HAVE_OPENSSL_ED448], [1], [define if OpenSSL supports Ed448])
-#     AC_MSG_RESULT([yes])],
-#    [AC_MSG_RESULT([no])])
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#include <openssl/evp.h>
+		       #include <openssl/ec.h>
+int
+main ()
+{
+EC_KEY *key = EC_KEY_new_by_curve_name(NID_ED448);
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+
+$as_echo "#define HAVE_OPENSSL_ED448 1" >>confdefs.h
+
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+else
+  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
 
 #
 # Check for OpenSSL SHA-1 support
