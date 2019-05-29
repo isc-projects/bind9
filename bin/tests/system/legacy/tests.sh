@@ -150,6 +150,9 @@ ret=0
 $DIG $DIGOPTS +edns @10.53.0.4 plain soa > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 grep "EDNS: version:" dig.out.1.test$n > /dev/null && ret=1
+$DIG $DIGOPTS +edns +tcp @10.53.0.4 plain soa > dig.out.2.test$n
+grep "status: NOERROR" dig.out.2.test$n > /dev/null || ret=1
+grep "EDNS: version:" dig.out.2.test$n > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
