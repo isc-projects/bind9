@@ -1,3 +1,5 @@
+5240.	[bug]		Remove key id calculation for RSAMD5. [GL #996]
+
 5238.	[bug]		Fix a possible deadlock in TCP code. [GL #1046]
 
 5237.	[bug]		Recurse to find the root server list with 'dig +trace'.
