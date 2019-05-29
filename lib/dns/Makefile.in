@@ -167,9 +167,14 @@ include/dns/rdatastruct.h: gen \
 code.h:	gen
 	./gen -s ${srcdir} > code.h || { rm -f $@ ; exit 1; }
 
+gen: LFS_CFLAGS  = `getconf LFS_CFLAGS 2>/dev/null`
+gen: LFS_LDFLAGS = `getconf LFS_LDFLAGS 2>/dev/null`
+gen: LFS_LIBS    = `getconf LFS_LIBS 2>/dev/null`
 gen: gen.c
 	${BUILD_CC} ${BUILD_CFLAGS} -I${top_srcdir}/lib/isc/include \
-	${BUILD_CPPFLAGS} ${BUILD_LDFLAGS} -o $@ ${srcdir}/gen.c ${BUILD_LIBS}
+	${LFS_CFLAGS} ${LFS_LDFLAGS} \
+	${BUILD_CPPFLAGS} ${BUILD_LDFLAGS} -o $@ ${srcdir}/gen.c \
+	${BUILD_LIBS} ${LFS_LIBS}
 
 timestamp: include libdns.@A@
 	touch timestamp
