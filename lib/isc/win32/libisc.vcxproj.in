@@ -394,8 +394,6 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\pk11\pk11.h" />
     <ClInclude Include="..\include\pk11\result.h" />
     <ClInclude Include="..\include\pkcs11\pkcs11.h" />
-    <ClInclude Include="..\include\pkcs11\pkcs11f.h" />
-    <ClInclude Include="..\include\pkcs11\pkcs11t.h" />
 @END PKCS11
 @IF ATOMIC
     <ClInclude Include="include\isc\atomic.h" />
