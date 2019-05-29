@@ -159,6 +159,18 @@
 	  <command>dnssec-checkds</command>.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  JSON-C is now the only supported library for enabling JSON
+	  support for BIND statistics. The <command>configure</command>
+	  option has been renamed from <command>--with-libjson</command>
+	  to <command>--with-json-c</command>.  Use
+	  <command>PKG_CONFIG_PATH</command> to specify a custom path to
+	  the <command>json-c</command> library as the new
+	  <command>configure</command> option does not take the library
+	  installation path as an optional argument.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

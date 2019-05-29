@@ -12,29 +12,20 @@
 #ifndef ISC_JSON_H
 #define ISC_JSON_H 1
 
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 /*
- * This file is here mostly to make it easy to add additional libjson header
+ * This file is here mostly to make it easy to add additional json-c header
  * files as needed across all the users of this file.  Rather than place
- * these libjson includes in each file, one include makes it easy to handle
+ * these json-c includes in each file, one include makes it easy to handle
  * the ifdef as well as adding the ability to add additional functions
  * which may be useful.
  */
-#ifdef HAVE_JSON_C
-/*
- * We don't include <json-c/json.h> as the subsequent includes do not
- * prefix the header file names with "json-c/" and using
- * -I <prefix>/include/json-c results in too many filename collisions.
- */
-#include <json-c/linkhash.h>
-#include <json-c/json_util.h>
-#include <json-c/json_object.h>
-#include <json-c/json_tokener.h>
-#include <json-c/json_object_iterator.h>
-#include <json-c/json_c_version.h>
-#else
-#include <json/json.h>
-#endif
+#include <json_c_version.h>
+#include <json_object.h>
+#include <json_object_iterator.h>
+#include <json_tokener.h>
+#include <json_util.h>
+#include <linkhash.h>
 #endif
 
 #define ISC_JSON_RENDERCONFIG		0x00000001 /* render config data */

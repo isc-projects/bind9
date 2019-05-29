@@ -5391,7 +5391,7 @@ isc_socket_hasreuseport() {
 }
 
 
-#if defined(HAVE_LIBXML2) || defined(HAVE_JSON)
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 static const char *
 _socktype(isc_sockettype_t type)
 {
@@ -5501,7 +5501,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
 }
 #endif /* HAVE_LIBXML2 */
 
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 #define CHECKMEM(m) do { \
 	if (m == NULL) { \
 		result = ISC_R_NOMEMORY;\
@@ -5616,7 +5616,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats) {
 
 	return (result);
 }
-#endif /* HAVE_JSON */
+#endif /* HAVE_JSON_C */
 
 isc_result_t
 isc_socketmgr_createinctx(isc_mem_t *mctx, isc_socketmgr_t **managerp)

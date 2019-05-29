@@ -526,10 +526,10 @@ OPENSSL_VERSION_NUMBER >= 0x10100000L /* 1.1.0 or higher */
 	printf("linked to libxml2 version: %s\n",
 	       xmlParserVersion);
 #endif
-#if defined(HAVE_JSON) && defined(JSON_C_VERSION)
-	printf("compiled with libjson-c version: %s\n",
+#if defined(HAVE_JSON_C)
+	printf("compiled with json-c version: %s\n",
 	       JSON_C_VERSION);
-	printf("linked to libjson-c version: %s\n",
+	printf("linked to json-c version: %s\n",
 	       json_c_version());
 #endif
 #if defined(HAVE_ZLIB) && defined(ZLIB_VERSION)
@@ -1092,13 +1092,13 @@ setup(void) {
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
 		      "linked to libxml2 version: %s", xmlParserVersion);
 #endif
-#if defined(HAVE_JSON) && defined(JSON_C_VERSION)
+#if defined(HAVE_JSON_C)
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "compiled with libjson-c version: %s", JSON_C_VERSION);
+		      "compiled with json-c version: %s", JSON_C_VERSION);
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 		      NAMED_LOGMODULE_MAIN, ISC_LOG_NOTICE,
-		      "linked to libjson-c version: %s", json_c_version());
+		      "linked to json-c version: %s", json_c_version());
 #endif
 #if defined(HAVE_ZLIB) && defined(ZLIB_VERSION)
 	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,

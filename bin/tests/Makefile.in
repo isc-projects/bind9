@@ -14,7 +14,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		@OPENSSL_INCLUDES@
+		@OPENSSL_INCLUDES@ @JSON_C_CFLAGS@
 
 CDEFINES =
 CWARNINGS =
@@ -30,7 +30,7 @@ ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCDEPNOSYMLIBS = ../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
-LIBS =		@LIBS@
+LIBS =		@JSON_C_LIBS@ @LIBS@
 
 SUBDIRS =	system @PKCS11_TOOLS@
 TESTDIRS =	system

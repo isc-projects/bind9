@@ -14,7 +14,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		@OPENSSL_INCLUDES@ @DST_GSSAPI_INC@
+		@OPENSSL_INCLUDES@ @DST_GSSAPI_INC@ @JSON_C_CFLAGS@
 
 CDEFINES =	@USE_GSSAPI@
 
@@ -32,7 +32,7 @@ ISCDEPLIBS =	../../../lib/isc/libisc.@A@
 ISCDEPNOSYMLIBS = ../../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGDEPLIBS = ../../../lib/isccfg/libisccfg.@A@
 
-LIBS =		@LIBS@
+LIBS =		@JSON_C_LIBS@ @LIBS@
 
 SUBDIRS =
 

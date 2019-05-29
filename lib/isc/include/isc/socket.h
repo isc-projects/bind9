@@ -1023,13 +1023,13 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
  */
 #endif /* HAVE_LIBXML2 */
 
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 isc_result_t
 isc_socketmgr_renderjson(isc_socketmgr_t *mgr, json_object *stats);
 /*%<
  * Render internal statistics and other state into JSON format.
  */
-#endif /* HAVE_JSON */
+#endif /* HAVE_JSON_C */
 
 /*%<
  * See isc_socketmgr_create() above.

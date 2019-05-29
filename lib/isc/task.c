@@ -74,7 +74,7 @@ typedef enum {
 	task_state_done
 } task_state_t;
 
-#if defined(HAVE_LIBXML2) || defined(HAVE_JSON)
+#if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
 static const char *statenames[] = {
 	"idle", "ready", "running", "done",
 };
@@ -1763,7 +1763,7 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, xmlTextWriterPtr writer) {
 }
 #endif /* HAVE_LIBXML2 */
 
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 #define CHECKMEM(m) do { \
 	if (m == NULL) { \
 		result = ISC_R_NOMEMORY;\

@@ -15,7 +15,7 @@ top_srcdir =	@top_srcdir@
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
 		${NS_INCLUDES} ${DNS_INCLUDES} \
-		${ISCCFG_INCLUDES} ${ISC_INCLUDES}
+		${ISCCFG_INCLUDES} ${ISC_INCLUDES} @JSON_C_CFLAGS@
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@

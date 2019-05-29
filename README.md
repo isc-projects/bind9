@@ -200,8 +200,10 @@ To support the HTTP statistics channel, the server must be linked with at
 least one of the following: libxml2
 [http://xmlsoft.org](http://xmlsoft.org) or json-c
 [https://github.com/json-c](https://github.com/json-c).  If these are
-installed at a nonstandard location, specify the prefix using
-`--with-libxml2=/prefix` or `--with-libjson=/prefix`.
+installed at a nonstandard location, then:
+
+* for libxml2, specify the prefix using `--with-libxml2=/prefix`,
+* for json-c, adjust `PKG_CONFIG_PATH`.
 
 To support compression on the HTTP statistics channel, the server must be
 linked against libzlib.  If this is installed in a nonstandard location,
