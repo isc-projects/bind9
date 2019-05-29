@@ -804,6 +804,9 @@ FGREP
 SED
 LIBTOOL
 SET_MAKE
+LFS_LIBS
+LFS_LDFLAGS
+LFS_CFLAGS
 EGREP
 GREP
 CPP
@@ -3892,6 +3895,14 @@ $as_echo "$ac_cv_safe_to_define___extensions__" >&6; }
   $as_echo "#define _POSIX_PTHREAD_SEMANTICS 1" >>confdefs.h
 
   $as_echo "#define _TANDEM_SOURCE 1" >>confdefs.h
+
+
+
+LFS_CFLAGS=`getconf LFS_CFLAGS 2>/dev/null`
+LFS_LDFLAGS=`getconf LFS_LDFLAGS 2>/dev/null`
+LFS_LIBS=`getconf LFS_LIBS 2>/dev/null`
+
+
 
 
 
