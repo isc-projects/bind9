@@ -1113,6 +1113,7 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	}
 	xfr->poll = is_poll;
 	if (is_poll) {
+		xfr->mnemonic = "IXFR poll response";
 		xfrout_log1(client, question_name, question_class,
 			    ISC_LOG_DEBUG(1), "IXFR poll up to date%s%s",
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
