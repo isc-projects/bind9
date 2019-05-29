@@ -477,7 +477,7 @@ isc_app_ctxsuspend(isc_appctx_t *ctx) {
 
 void
 isc_app_reload(void) {
-	return (isc_app_ctxsuspend(&isc_g_appctx));
+	isc_app_ctxsuspend(&isc_g_appctx);
 }
 
 void
