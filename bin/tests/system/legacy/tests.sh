@@ -12,13 +12,13 @@
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
-DIGOPTS="-p ${PORT} +tries=3 +time=5"
+DIGOPTS="-p ${PORT} +tries=1 +time=2"
 
 # Check whether the SOA record for the name provided in $1 can be resolved by
 # ns1.  Return 0 if resolution succeeds as expected; return 1 otherwise.
 resolution_succeeds() {
 	_ret=0
-	$DIG $DIGOPTS +tcp @10.53.0.1 ${1} SOA > dig.out.test$n || _ret=1
+	$DIG $DIGOPTS +tcp +tries=3 +time=5 @10.53.0.1 ${1} SOA > dig.out.test$n || _ret=1
 	grep "status: NOERROR" dig.out.test$n > /dev/null || _ret=1
 	return $_ret
 }
@@ -31,7 +31,7 @@ resolution_succeeds() {
 resolution_fails() {
 	_servfail=0
 	_timeout=0
-	$DIG $DIGOPTS +tcp @10.53.0.1 ${1} SOA > dig.out.test$n
+	$DIG $DIGOPTS +tcp +tries=3 +time=5 @10.53.0.1 ${1} SOA > dig.out.test$n
 	grep "status: SERVFAIL" dig.out.test$n > /dev/null && _servfail=1
 	grep "connection timed out" dig.out.test$n > /dev/null && _timeout=1
 	if [ $_servfail -eq 1 ] || [ $_timeout -eq 1 ]; then
