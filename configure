@@ -804,6 +804,9 @@ FGREP
 SED
 LIBTOOL
 SET_MAKE
+LFS_LIBS
+LFS_LDFLAGS
+LFS_CFLAGS
 EGREP
 GREP
 CPP
@@ -4169,6 +4172,14 @@ if test $ac_cv_sys_largefile_source != unknown; then
 $as_echo "#define HAVE_FSEEKO 1" >>confdefs.h
 
 fi
+
+
+LFS_CFLAGS=`getconf LFS_CFLAGS 2>/dev/null`
+LFS_LDFLAGS=`getconf LFS_LDFLAGS 2>/dev/null`
+LFS_LIBS=`getconf LFS_LIBS 2>/dev/null`
+
+
+
 
 
 # Enable RFC 3542 APIs on macOS

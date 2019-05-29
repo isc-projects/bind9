@@ -363,9 +363,6 @@
 /* Define to 1 if you have the `setresuid' function. */
 #undef HAVE_SETRESUID
 
-/* Define to 1 if you have the `sigwait' function. */
-#undef HAVE_SIGWAIT
-
 /* define if struct stat has st_mtim.tv_nsec field */
 #undef HAVE_STAT_NSEC
 
