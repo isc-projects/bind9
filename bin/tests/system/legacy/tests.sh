@@ -158,7 +158,7 @@ ret=0
 $DIG $DIGOPTS +edns @10.53.0.6 edns512 soa > dig.out.1.test$n || ret=1
 grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +edns +tcp @10.53.0.6 edns512 soa > dig.out.2.test$n || ret=1
-grep "status: NOERROR" dig.out.1.test$n > /dev/null || ret=1
+grep "status: NOERROR" dig.out.2.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +edns @10.53.0.6 txt500.edns512 txt > dig.out.3.test$n
 grep "connection timed out; no servers could be reached" dig.out.3.test$n > /dev/null || ret=1
 $DIG $DIGOPTS +edns +bufsize=512 +ignor @10.53.0.6 txt500.edns512 txt > dig.out.4.test$n
