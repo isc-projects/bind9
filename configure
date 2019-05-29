@@ -943,6 +943,9 @@ LDFLAGS
 CFLAGS
 CC
 LIBTOOL
+LFS_LIBS
+LFS_LDFLAGS
+LFS_CFLAGS
 SET_MAKE
 host_os
 host_vendor
@@ -3016,6 +3019,14 @@ sunos*)
     lt_cv_sys_max_cmd_len=4096;
     ;;
 esac
+
+LFS_CFLAGS=`getconf LFS_CFLAGS 2>/dev/null`
+LFS_LDFLAGS=`getconf LFS_LDFLAGS 2>/dev/null`
+LFS_LIBS=`getconf LFS_LIBS 2>/dev/null`
+
+
+
+
 
 case `pwd` in
   *\ * | *\	*)
