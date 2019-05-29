@@ -34,6 +34,14 @@ sunos*)
     ;;
 esac
 
+LFS_CFLAGS=`getconf LFS_CFLAGS 2>/dev/null`
+LFS_LDFLAGS=`getconf LFS_LDFLAGS 2>/dev/null`
+LFS_LIBS=`getconf LFS_LIBS 2>/dev/null`
+
+AC_SUBST([LFS_CFLAGS])
+AC_SUBST([LFS_LDFLAGS])
+AC_SUBST([LFS_LIBS])
+
 AC_PROG_LIBTOOL
 AC_PROG_INSTALL
 AC_PROG_LN_S
