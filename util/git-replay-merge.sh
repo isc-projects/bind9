@@ -14,7 +14,6 @@ set -e
 SELF="$(basename $0)"
 SELF="${SELF/-/ }"
 
-STATE_FILE=".git/REPLAY_MERGE"
 DONT_PUSH=${DONT_PUSH:=false}
 DONT_ACCEPT=${DONT_ACCEPT:=false}
 
@@ -40,13 +39,6 @@ die_with_usage() {
 	    "	${SELF} --abort"
 }
 
-verify_gitlab_cli() {
-	which gitlab >/dev/null 2>&1 || \
-		die "You need to have gitlab cli installed and configured: "\
-		    "" \
-		    "$ gem install --user-install gitlab"
-}
-
 die_with_continue_instructions() {
 	die ""								\
 	    "Replay interrupted.  Conflicts need to be fixed manually."	\
@@ -62,7 +54,7 @@ die_before_push() {
 }
 
 die_if_wrong_dir() {
-	if [[ ! -d ".git" ]]; then
+	if [[ ! -d "$WORKDIR" ]]; then
 		die "You need to run this command from the toplevel of the working tree."
 	fi
 }
@@ -88,6 +80,21 @@ die_if_local_behind_target() {
 		    "Update or remove the local branch, then run \"${SELF} --continue\"."		\
 		    "Use \"${SELF} --abort\" to abort the replay."
 	fi
+}
+
+get_workdir() {
+	DOTGIT="$(git rev-parse --show-toplevel)/.git"
+	if [[ -f "${WORKDIR}" ]]; then
+		sed -n 's/^gitdir: //p' "${DOTGIT}"
+	fi
+	echo "${DOTGIT}"
+}
+
+verify_gitlab_cli() {
+	which gitlab >/dev/null 2>&1 || \
+		die "You need to have gitlab cli installed and configured: "\
+		    "" \
+		    "$ gem install --user-install gitlab"
 }
 
 branch_exists() {
@@ -211,7 +218,7 @@ cleanup() {
 	rm -f "${STATE_FILE}"
 }
 
-cd $(git rev-parse --show-toplevel)
+STATE_FILE="$(get_workdir)/REPLAY_MERGE"
 
 next_action="go"
 while [[ $# -ge 1 ]]; do
