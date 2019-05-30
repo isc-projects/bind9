@@ -798,14 +798,13 @@ AC_COMPILE_IFELSE(
     [AC_MSG_RESULT([no])])
 
 AC_MSG_CHECKING([for Ed448 support])
-AC_MSG_RESULT([broken])
-#AC_COMPILE_IFELSE(
-#    [AC_LANG_PROGRAM([[#include <openssl/evp.h>
-#		       #include <openssl/ec.h>]],
-#		     [[EC_KEY *key = EC_KEY_new_by_curve_name(NID_ED448);]])],
-#    [AC_DEFINE([HAVE_OPENSSL_ED448], [1], [define if OpenSSL supports Ed448])
-#     AC_MSG_RESULT([yes])],
-#    [AC_MSG_RESULT([no])])
+AC_COMPILE_IFELSE(
+    [AC_LANG_PROGRAM([[#include <openssl/evp.h>
+		       #include <openssl/ec.h>]],
+		     [[EC_KEY *key = EC_KEY_new_by_curve_name(NID_ED448);]])],
+    [AC_DEFINE([HAVE_OPENSSL_ED448], [1], [define if OpenSSL supports Ed448])
+     AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])])
 
 #
 # Check for OpenSSL SHA-1 support
