@@ -27,6 +27,101 @@
 #include <isc/rwlock.h>
 #include <isc/util.h>
 
+#if USE_PTHREAD_RWLOCK
+
+#include <errno.h>
+#include <pthread.h>
+
+isc_result_t
+isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,
+		unsigned int write_quota)
+{
+	UNUSED(read_quota);
+	UNUSED(write_quota);
+	REQUIRE(pthread_rwlock_init(&rwl->rwlock, NULL) == 0);
+	atomic_init(&rwl->downgrade, false);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_lock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	switch (type) {
+	case isc_rwlocktype_read:
+		REQUIRE(pthread_rwlock_rdlock(&rwl->rwlock) == 0);
+		break;
+	case isc_rwlocktype_write:
+		while (true) {
+			REQUIRE(pthread_rwlock_wrlock(&rwl->rwlock) == 0);
+			/* Unlock if in middle of downgrade operation */
+			if (atomic_load_release(&rwl->downgrade)) {
+				REQUIRE(pthread_rwlock_unlock(&rwl->rwlock)
+					== 0);
+				while (atomic_load(&rwl->downgrade));
+				continue;
+			}
+			break;
+		}
+		break;
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_trylock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	int ret = 0;
+	switch (type) {
+	case isc_rwlocktype_read:
+		ret = pthread_rwlock_tryrdlock(&rwl->rwlock);
+		break;
+	case isc_rwlocktype_write:
+		ret = pthread_rwlock_trywrlock(&rwl->rwlock);
+		if ((ret == 0) && atomic_load(&rwl->downgrade)) {
+			isc_rwlock_unlock(rwl, type);
+			return (ISC_R_LOCKBUSY);
+		}
+		break;
+	default: INSIST(0);
+	}
+
+	switch (ret) {
+	case 0: return (ISC_R_SUCCESS);
+	case EBUSY: return (ISC_R_LOCKBUSY);
+	case EAGAIN: return (ISC_R_LOCKBUSY);
+	default: INSIST(0); ISC_UNREACHABLE();
+	}
+}
+
+
+isc_result_t
+isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
+	UNUSED(type);
+	REQUIRE(pthread_rwlock_unlock(&rwl->rwlock) == 0);
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+isc_rwlock_tryupgrade(isc_rwlock_t *rwl) {
+	return (ISC_R_LOCKBUSY);
+}
+
+void
+isc_rwlock_downgrade(isc_rwlock_t *rwl) {
+	atomic_store_acquire(&rwl->downgrade, true);
+	isc_rwlock_unlock(rwl, isc_rwlocktype_write);
+	isc_rwlock_lock(rwl, isc_rwlocktype_read);
+	atomic_store_acquire(&rwl->downgrade, false);
+}
+
+void
+isc_rwlock_destroy(isc_rwlock_t *rwl) {
+	pthread_rwlock_destroy(&rwl->rwlock);
+}
+
+#else
+
 #define RWLOCK_MAGIC		ISC_MAGIC('R', 'W', 'L', 'k')
 #define VALID_RWLOCK(rwl)	ISC_MAGIC_VALID(rwl, RWLOCK_MAGIC)
 
@@ -549,3 +644,5 @@ isc_rwlock_unlock(isc_rwlock_t *rwl, isc_rwlocktype_t type) {
 
 	return (ISC_R_SUCCESS);
 }
+
+#endif /* USE_PTHREAD_RWLOCK */

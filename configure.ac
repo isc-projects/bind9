@@ -734,10 +734,18 @@ esac
 AC_SUBST(INSTALL_LIBRARY)
 
 #
-# If PIC is disabled, shared libraries must also be
+# Do we want to use pthread rwlock? (useful for ThreadSanitizer)
 #
-AS_IF([test "$pic_mode" = "no"],
-      [enable_shared="no"])
+AC_ARG_ENABLE([pthread_rwlock],
+	      [AS_HELP_STRING([--enable-pthread-rwlock],
+			      [use pthread rwlock instead of internal rwlock implementation (EXPERIMENTAL)])],
+	      [], [enable_pthread_rwlock=no])
+
+AS_IF([test "$enable_pthread_rwlock" = "yes"],
+      [AC_CHECK_FUNCS([pthread_rwlock_rdlock], [],
+		      [AC_MSG_ERROR([pthread_rwlock_rdlock requested but not found])])
+       AC_DEFINE([USE_PTHREAD_RWLOCK],[1],[Define if you want to use pthread rwlock implementation])
+      ])
 
 CRYPTO=OpenSSL
 

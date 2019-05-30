@@ -14,6 +14,7 @@
 #define ISC_RWLOCK_H 1
 
 #include <inttypes.h>
+#include <pthread.h>
 
 /*! \file isc/rwlock.h */
 
@@ -30,6 +31,15 @@ typedef enum {
 	isc_rwlocktype_read,
 	isc_rwlocktype_write
 } isc_rwlocktype_t;
+
+#if USE_PTHREAD_RWLOCK
+
+struct isc_rwlock {
+	pthread_rwlock_t	rwlock;
+	atomic_bool             downgrade;
+};
+
+#else /* USE_PTHREAD_RWLOCK */
 
 struct isc_rwlock {
 	/* Unlocked. */
@@ -67,6 +77,8 @@ struct isc_rwlock {
 	unsigned int		write_quota;
 
 };
+
+#endif /* USE_PTHREAD_RWLOCK */
 
 isc_result_t
 isc_rwlock_init(isc_rwlock_t *rwl, unsigned int read_quota,

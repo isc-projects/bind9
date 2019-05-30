@@ -900,6 +900,7 @@ enable_devpoll
 with_geoip
 with_locktype
 with_libtool
+enable_pthread_rwlock
 with_openssl
 enable_fips_mode
 with_cc_alg
@@ -1599,6 +1600,8 @@ Optional Features:
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
   --enable-devpoll        use /dev/poll when available [default=yes]
+  --enable-pthread-rwlock use pthread rwlock instead of internal rwlock
+                          implementation (EXPERIMENTAL)
   --enable-fips-mode      enable FIPS mode in OpenSSL library [default=no]
   --enable-native-pkcs11  use native PKCS11 for public-key crypto [default=no]
   --enable-backtrace      log stack backtrace on abort [default=yes]
@@ -15616,10 +15619,34 @@ esac
 
 
 #
-# If PIC is disabled, shared libraries must also be
+# Do we want to use pthread rwlock? (useful for ThreadSanitizer)
 #
-if test "$pic_mode" = "no"; then :
-  enable_shared="no"
+# Check whether --enable-pthread_rwlock was given.
+if test "${enable_pthread_rwlock+set}" = set; then :
+  enableval=$enable_pthread_rwlock;
+else
+  enable_pthread_rwlock=no
+fi
+
+
+if test "$enable_pthread_rwlock" = "yes"; then :
+  for ac_func in pthread_rwlock_rdlock
+do :
+  ac_fn_c_check_func "$LINENO" "pthread_rwlock_rdlock" "ac_cv_func_pthread_rwlock_rdlock"
+if test "x$ac_cv_func_pthread_rwlock_rdlock" = xyes; then :
+  cat >>confdefs.h <<_ACEOF
+#define HAVE_PTHREAD_RWLOCK_RDLOCK 1
+_ACEOF
+
+else
+  as_fn_error $? "pthread_rwlock_rdlock requested but not found" "$LINENO" 5
+fi
+done
+
+
+$as_echo "#define USE_PTHREAD_RWLOCK 1" >>confdefs.h
+
+
 fi
 
 CRYPTO=OpenSSL

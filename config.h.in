@@ -309,6 +309,9 @@
 /* Have PTHREAD_PRIO_INHERIT. */
 #undef HAVE_PTHREAD_PRIO_INHERIT
 
+/* Define to 1 if you have the `pthread_rwlock_rdlock' function. */
+#undef HAVE_PTHREAD_RWLOCK_RDLOCK
+
 /* Define to 1 if you have the `pthread_setaffinity_np' function. */
 #undef HAVE_PTHREAD_SETAFFINITY_NP
 
@@ -552,6 +555,9 @@
 
 /* define if PKCS11 is used for Public-Key Cryptography */
 #undef USE_PKCS11
+
+/* Define if you want to use pthread rwlock implementation */
+#undef USE_PTHREAD_RWLOCK
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
