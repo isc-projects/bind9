@@ -338,7 +338,7 @@ save_command_line(int argc, char *argv[]) {
 	int i;
 	char *dst = saved_command_line;
 	char *eob = saved_command_line + sizeof(saved_command_line) - 1;
-	char *rollback;
+	char *rollback = dst;
 
 	for (i = 1; i < argc && dst < eob; i++) {
 		char *src = argv[i];
