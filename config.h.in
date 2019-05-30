@@ -285,6 +285,9 @@
 /* define if OpenSSL supports Ed25519 */
 #undef HAVE_OPENSSL_ED25519
 
+/* define if OpenSSL supports Ed448 */
+#undef HAVE_OPENSSL_ED448
+
 /* Define to 1 if you have the `processor_bind' function. */
 #undef HAVE_PROCESSOR_BIND
 
