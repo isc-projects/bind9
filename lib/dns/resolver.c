@@ -10498,30 +10498,27 @@ fctx_minimize_qname(fetchctx_t *fctx) {
 		 * We want to query for qmin_labels from fctx->name
 		 */
 		dns_fixedname_t fname;
-		dns_fixedname_init(&fname);
-		dns_name_split(&fctx->name,
-			       fctx->qmin_labels,
+		dns_name_t *name = dns_fixedname_initname(&fname);
+		dns_name_split(&fctx->name, fctx->qmin_labels,
 			       NULL, dns_fixedname_name(&fname));
 		if ((fctx->options & DNS_FETCHOPT_QMIN_USE_A) != 0) {
 			isc_buffer_t dbuf;
 			dns_fixedname_t tmpname;
+			dns_name_t *tname = dns_fixedname_initname(&tmpname);
 			char ndata[DNS_NAME_MAXWIRE];
+
 			isc_buffer_init(&dbuf, ndata, DNS_NAME_MAXWIRE);
 			dns_fixedname_init(&tmpname);
 			result = dns_name_concatenate(&underscore_name,
-						      dns_fixedname_name(&fname),
-						      dns_fixedname_name(&tmpname),
-						      &dbuf);
+						      name, tname, &dbuf);
 			if (result == ISC_R_SUCCESS) {
-				result = dns_name_dup(dns_fixedname_name(&tmpname),
-						      fctx->mctx,
+				result = dns_name_dup(tname, fctx->mctx,
 						      &fctx->qminname);
 			}
 			fctx->qmintype = dns_rdatatype_a;
 		} else {
 			result = dns_name_dup(dns_fixedname_name(&fname),
-					      fctx->mctx,
-					      &fctx->qminname);
+					      fctx->mctx, &fctx->qminname);
 			fctx->qmintype = dns_rdatatype_ns;
 		}
 		fctx->minimized = true;
