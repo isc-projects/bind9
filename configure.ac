@@ -2662,6 +2662,11 @@ AS_IF([test "$with_dlopen" = "yes"],
 		 SO_LDFLAGS="-G -z text"
 		 SO_LD="ld"
 	       ],
+	       [ia64-hp-hpux*],[
+		 SO_CFLAGS="+z"
+	         SO_LDFLAGS="-b"
+		 SO_LD="${CC}"
+	       ],
 	       [
 		 SO_CFLAGS="-fPIC"
 	       ])
