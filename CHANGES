@@ -1,3 +1,6 @@
+5241.	[bug]		Fix Ed448 private and public key ASN.1 prefix blobs.
+			[GL #225]
+
 5237.	[bug]		Recurse to find the root server list with 'dig +trace'.
 			[GL #1028]
 
