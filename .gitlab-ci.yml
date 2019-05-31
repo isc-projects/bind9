@@ -301,7 +301,7 @@ unit:gcc:stretch:amd64:
 gcc:sid:amd64:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "-Wall -Wextra -O3 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
     RUN_MAKE_INSTALL: 1
   <<: *debian_sid_amd64_image
@@ -324,7 +324,7 @@ unit:gcc:sid:amd64:
 gcc:sid:i386:
   variables:
     CC: gcc
-    CFLAGS: "-Wall -Wextra -O2 -g"
+    CFLAGS: "-Wall -Wextra -O3 -g"
     EXTRA_CONFIGURE: "--with-libidn2 --without-python"
   <<: *debian_sid_i386_image
   <<: *build_job
