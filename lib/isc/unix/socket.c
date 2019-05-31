@@ -2598,15 +2598,16 @@ isc_socket_open(isc_socket_t *sock0) {
 
 	REQUIRE(VALID_SOCKET(sock));
 
-	REQUIRE(isc_refcount_current(&sock->references) == 1);
-	/*
-	 * We don't need to retain the lock hereafter, since no one else has
-	 * this socket.
-	 */
+	LOCK(&sock->lock);
+
+	REQUIRE(isc_refcount_current(&sock->references) >= 1);
 	REQUIRE(sock->fd == -1);
 	REQUIRE(sock->threadid == -1);
 
 	result = opensocket(sock->manager, sock, NULL);
+
+	UNLOCK(&sock->lock);
+
 	if (result != ISC_R_SUCCESS) {
 		sock->fd = -1;
 	} else {
