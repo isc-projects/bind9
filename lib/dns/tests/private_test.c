@@ -107,7 +107,7 @@ make_nsec3(nsec3_testcase_t *testcase, dns_rdata_t *private,
 	/* for simplicity, we're using a maximum salt length of 4 */
 	salt = htonl(testcase->salt);
 	sp = (unsigned char *) &salt;
-	while (*sp == '\0' && slen > 0) {
+	while (slen > 0 && *sp == '\0') {
 		slen--;
 		sp++;
 	}
