@@ -176,7 +176,7 @@ is accepted but not returned in responses.
 
 [17] Not applicable to DNS server implementations.
 
-[18] Loading and serving of A6 records only.  A6 records where moved
+[18] Loading and serving of A6 records only.  A6 records were moved
 to the experimental category by RFC3363.
 
 [19] RSAMD5 support has been removed. See RFC 6944.
