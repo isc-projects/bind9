@@ -2697,12 +2697,38 @@ client_request(isc_task_t *task, isc_event_t *event) {
 
 	if (opt != NULL) {
 		/*
+		 * Are returning FORMERR to all EDNS queries?
+		 * Simulate a STD13 compliant server.
+		 */
+		if (ns_g_ednsformerr) {
+			ns_client_error(client, DNS_R_FORMERR);
+			return;
+		}
+
+		/*
+		 * Are returning NOTIMP to all EDNS queries?
+		 */
+		if (ns_g_ednsnotimp) {
+			ns_client_error(client, DNS_R_NOTIMP);
+			return;
+		}
+
+		/*
+		 * Are returning REFUSED to all EDNS queries?
+		 */
+		if (ns_g_ednsrefused) {
+			ns_client_error(client, DNS_R_REFUSED);
+			return;
+		}
+
+		/*
 		 * Are we dropping all EDNS queries?
 		 */
 		if (ns_g_dropedns) {
 			ns_client_next(client, ISC_R_SUCCESS);
 			goto cleanup;
 		}
+
 		result = process_opt(client, opt);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
