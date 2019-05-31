@@ -479,6 +479,12 @@ parse_T_opt(char *option) {
 		ns_g_dropedns = true;
 	} else if (!strncmp(option, "dscp=", 5)) {
 		isc_dscp_check_value = atoi(option + 5);
+	} else if (!strcmp(option, "ednsformerr")) {
+		ns_g_ednsformerr = true;
+	} else if (!strcmp(option, "ednsnotimp")) {
+		ns_g_ednsnotimp = true;
+	} else if (!strcmp(option, "ednsrefused")) {
+		ns_g_ednsrefused = true;
 	} else if (!strcmp(option, "fixedlocal")) {
 		ns_g_fixedlocal = true;
 	} else if (!strcmp(option, "keepstderr")) {
@@ -538,7 +544,7 @@ parse_T_opt(char *option) {
 	} else if (!strncmp(option, "tat=", 4)) {
 		ns_g_tat_interval = atoi(option + 4);
 	} else {
-		fprintf(stderr, "unknown -T flag '%s\n", option);
+		fprintf(stderr, "unknown -T flag '%s'\n", option);
 	}
 }
 

@@ -77,7 +77,7 @@ EXTERN in_port_t		lwresd_g_listenport	INIT(0);
 
 EXTERN ns_server_t *		ns_g_server		INIT(NULL);
 
-EXTERN bool		ns_g_lwresdonly		INIT(false);
+EXTERN bool			ns_g_lwresdonly		INIT(false);
 
 /*
  * Logging.
@@ -105,9 +105,9 @@ EXTERN const char *		lwresd_g_conffile	INIT(NS_SYSCONFDIR
 							     "/lwresd.conf");
 EXTERN const char *		lwresd_g_resolvconffile	INIT("/etc"
 							     "/resolv.conf");
-EXTERN bool		ns_g_conffileset	INIT(false);
-EXTERN bool		lwresd_g_useresolvconf	INIT(false);
-EXTERN uint16_t		ns_g_udpsize		INIT(4096);
+EXTERN bool			ns_g_conffileset	INIT(false);
+EXTERN bool			lwresd_g_useresolvconf	INIT(false);
+EXTERN uint16_t			ns_g_udpsize		INIT(4096);
 EXTERN cfg_aclconfctx_t *	ns_g_aclconfctx		INIT(NULL);
 
 /*
@@ -121,11 +121,11 @@ EXTERN isc_resourcevalue_t	ns_g_initopenfiles	INIT(0);
 /*
  * Misc.
  */
-EXTERN bool		ns_g_coreok		INIT(true);
+EXTERN bool			ns_g_coreok		INIT(true);
 EXTERN const char *		ns_g_chrootdir		INIT(NULL);
-EXTERN bool		ns_g_foreground		INIT(false);
-EXTERN bool		ns_g_logstderr		INIT(false);
-EXTERN bool		ns_g_nosyslog		INIT(false);
+EXTERN bool			ns_g_foreground		INIT(false);
+EXTERN bool			ns_g_logstderr		INIT(false);
+EXTERN bool			ns_g_nosyslog		INIT(false);
 EXTERN const char *		ns_g_logfile		INIT(NULL);
 
 EXTERN const char *		ns_g_defaultsessionkeyfile
@@ -134,7 +134,7 @@ EXTERN const char *		ns_g_defaultsessionkeyfile
 EXTERN const char *		ns_g_defaultlockfile	INIT(NS_LOCALSTATEDIR
 							     "/run/named/"
 							     "named.lock");
-EXTERN bool		ns_g_forcelock		INIT(false);
+EXTERN bool			ns_g_forcelock		INIT(false);
 
 #if NS_RUN_PID_DIR
 EXTERN const char *		ns_g_defaultpidfile 	INIT(NS_LOCALSTATEDIR
@@ -169,21 +169,24 @@ EXTERN const char *		ns_g_engine		INIT(NULL);
 EXTERN int			ns_g_listen		INIT(3);
 EXTERN isc_time_t		ns_g_boottime;
 EXTERN isc_time_t		ns_g_configtime;
-EXTERN bool		ns_g_memstatistics	INIT(false);
-EXTERN bool		ns_g_clienttest		INIT(false);
-EXTERN bool		ns_g_dropedns		INIT(false);
-EXTERN bool		ns_g_noedns		INIT(false);
-EXTERN bool		ns_g_nosoa		INIT(false);
-EXTERN bool		ns_g_noaa		INIT(false);
-EXTERN bool		ns_g_keepstderr		INIT(false);
+EXTERN bool			ns_g_memstatistics	INIT(false);
+EXTERN bool			ns_g_clienttest		INIT(false);
+EXTERN bool			ns_g_dropedns		INIT(false);
+EXTERN bool			ns_g_ednsformerr	INIT(false);
+EXTERN bool			ns_g_ednsnotimp		INIT(false);
+EXTERN bool			ns_g_ednsrefused	INIT(false);
+EXTERN bool			ns_g_noedns		INIT(false);
+EXTERN bool			ns_g_nosoa		INIT(false);
+EXTERN bool			ns_g_noaa		INIT(false);
+EXTERN bool			ns_g_keepstderr		INIT(false);
 EXTERN unsigned int		ns_g_delay		INIT(0);
-EXTERN bool		ns_g_nonearest		INIT(false);
-EXTERN bool		ns_g_notcp		INIT(false);
-EXTERN bool		ns_g_disable6		INIT(false);
-EXTERN bool		ns_g_disable4		INIT(false);
+EXTERN bool			ns_g_nonearest		INIT(false);
+EXTERN bool			ns_g_notcp		INIT(false);
+EXTERN bool			ns_g_disable6		INIT(false);
+EXTERN bool			ns_g_disable4		INIT(false);
 EXTERN unsigned int		ns_g_tat_interval	INIT(24*3600);
-EXTERN bool		ns_g_fixedlocal		INIT(false);
-EXTERN bool		ns_g_sigvalinsecs	INIT(false);
+EXTERN bool			ns_g_fixedlocal		INIT(false);
+EXTERN bool			ns_g_sigvalinsecs	INIT(false);
 
 #ifdef HAVE_GEOIP
 EXTERN dns_geoip_databases_t	*ns_g_geoip		INIT(NULL);
