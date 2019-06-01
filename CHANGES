@@ -1,3 +1,5 @@
+5244.	[placeholder]
+
 5243.	[bug]		Fix a possible race between dispatcher and socket
 			code in a high-load cold-cache resolver scenario.
 			[GL #943]
