@@ -83,6 +83,19 @@
 # define __LITTLE_ENDIAN LITTLE_ENDIAN
 # define __PDP_ENDIAN    PDP_ENDIAN
 
+#elif defined(sun) || defined(__sun) || defined(__SVR4)
+
+/*
+ * For Solaris, rely on the fallback definitions below, though use
+ * Solaris-specific versions of bswap_{16,32,64}().
+ */
+
+# include <sys/byteorder.h>
+
+# define bswap_16(x) BSWAP_16(x)
+# define bswap_32(x) BSWAP_32(x)
+# define bswap_64(x) BSWAP_64(x)
+
 #else
 
 #endif /* Specific platform support */
