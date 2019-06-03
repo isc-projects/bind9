@@ -1,10 +1,12 @@
+OPTIONS
+
 Setting the STD_CDEFINES environment variable before running configure can
 be used to enable certain compile-time options that are not explicitly
 defined in configure.
 
 Some of these settings are:
 
-Setting                   Description
+         Setting                            Description
                           Don't ovewrite memory when allocating or freeing
 -DISC_MEM_FILL=0          it; this improves performance but makes
                           debugging more difficult.

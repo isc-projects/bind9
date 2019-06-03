@@ -36,15 +36,12 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.7</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch09.html#id-1.10.2">Release Notes for BIND Version 9.11.8</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_download">Download</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_license">License Change</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_security">Security Fixes</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_features">New Features</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_changes">Feature Changes</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_bugs">Bug Fixes</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#end_of_life">End of Life</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch09.html#relnotes_thanks">Thank You</a></span></dt>
 </dl></dd>
@@ -52,7 +49,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.7</h2></div></div></div>
+<a name="id-1.10.2"></a>Release Notes for BIND Version 9.11.8</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -115,52 +112,9 @@
 <a name="relnotes_security"></a>Security Fixes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
 	<p>
-	  The TCP client quota set using the <span class="command"><strong>tcp-clients</strong></span>
-	  option could be exceeded in some cases. This could lead to
-	  exhaustion of file descriptors. This flaw is disclosed in
-	  CVE-2018-5743. [GL #615]
-	</p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_features"></a>New Features</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-	<p>
-	  None.
-	</p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-	<p>
-	  When <span class="command"><strong>trusted-keys</strong></span> and
-	  <span class="command"><strong>managed-keys</strong></span> are both configured for the
-	  same name, or when <span class="command"><strong>trusted-keys</strong></span> is used to
-	  configure a trust anchor for the root zone and
-	  <span class="command"><strong>dnssec-validation</strong></span> is set to
-	  <code class="literal">auto</code>, automatic RFC 5011 key
-	  rollovers will fail.
-	</p>
-	<p>
-	  This combination of settings was never intended to work,
-	  but there was no check for it in the parser. This has been
-	  corrected; a warning is now logged. (In BIND 9.15 and
-	  higher this error will be fatal.) [GL #868]
-	</p>
-      </li></ul></div>
-  </div>
-
-  <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
-	<p>
-	  None.
+	  A race condition could trigger an assertion failure when
+	  a large number of incoming packets were being rejected.
+	  This flaw is disclosed in CVE-2019-6471. [GL #942]
 	</p>
       </li></ul></div>
   </div>
@@ -205,6 +159,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.7 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.8 (Extended Support Version)</p>
 </body>
 </html>
