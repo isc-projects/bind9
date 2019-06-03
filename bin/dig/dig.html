@@ -797,8 +797,10 @@
 	      in the query.  This bit is set by default, which means
 	      <span class="command"><strong>dig</strong></span> normally sends recursive
 	      queries.  Recursion is automatically disabled when
-	      the <em class="parameter"><code>+nssearch</code></em> or
-	      <em class="parameter"><code>+trace</code></em> query options are used.
+	      using the <em class="parameter"><code>+nssearch</code></em> option, and
+	      when using <em class="parameter"><code>+trace</code></em> except for
+	      an initial recursive query to get the list of root
+	      servers.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+retry=T</code></span></dt>
