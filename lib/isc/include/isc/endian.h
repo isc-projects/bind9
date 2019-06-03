@@ -39,18 +39,24 @@
 # define __LITTLE_ENDIAN LITTLE_ENDIAN
 # define __PDP_ENDIAN    PDP_ENDIAN
 
-#elif defined(__NetBSD__) || defined(__FreeBSD__) || defined(__DragonFly__)
+#elif defined(__DragonFly__) || defined(__FreeBSD__) || \
+      defined(__NetBSD__) || defined (__OpenBSD__) || defined(__bsdi__)
 
 # include <sys/endian.h>
 
-# define be16toh(x) betoh16(x)
-# define le16toh(x) letoh16(x)
-
-# define be32toh(x) betoh32(x)
-# define le32toh(x) letoh32(x)
-
-# define be64toh(x) betoh64(x)
-# define le64toh(x) letoh64(x)
+/*
+ * Recent BSDs should have [bl]e{16,32,64}toh() defined in <sys/endian.h>.
+ * Older ones might not, but these should have the alternatively named
+ * [bl]etoh{16,32,64}() functions defined.
+ */
+# ifndef be16toh
+#  define be16toh(x) betoh16(x)
+#  define le16toh(x) letoh16(x)
+#  define be32toh(x) betoh32(x)
+#  define le32toh(x) letoh32(x)
+#  define be64toh(x) betoh64(x)
+#  define le64toh(x) letoh64(x)
+# endif /* !be16toh */
 
 #elif defined(_WIN32)
 /* Windows is always little endian */
