@@ -31,9 +31,13 @@
 # endif /* !be16toh */
 
 #elif defined(_WIN32)
-/* Windows is always little endian */
 
-#include <stdlib.h>
+/*
+ * Windows is always little-endian and has its own byte-swapping routines, so
+ * use these.
+ */
+
+# include <stdlib.h>
 
 # define htobe16(x) _byteswap_ushort(x)
 # define htole16(x) (x)
@@ -49,11 +53,6 @@
 # define htole64(x) (x)
 # define be64toh(x) _byteswap_uint64(x)
 # define le64toh(x) (x)
-
-# define __BYTE_ORDER    BYTE_ORDER
-# define __BIG_ENDIAN    BIG_ENDIAN
-# define __LITTLE_ENDIAN LITTLE_ENDIAN
-# define __PDP_ENDIAN    PDP_ENDIAN
 
 #elif defined __APPLE__
 
