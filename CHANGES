@@ -1,3 +1,6 @@
+5246.	[func]		Log TSIG if appropriate in 'sending notify to' message.
+			[GL #1058]
+
 5245.	[cleanup]	Reduce logging level for IXFR up-to-date poll
 			responses. [GL #1009]
 
