@@ -92,13 +92,7 @@ case "$1" in
 				[ "$ipv6" ] && ifconfig lo0 inet6 \
 					fd92:7065:b8e:${ipv6}ff::$ns alias
 				;;
-			    *-unknown-netbsd*)
-				ifconfig lo0 10.53.$i.$ns alias \
-					netmask 255.255.255.0
-				[ "$ipv6" ] && ifconfig lo0 inet6 \
-					fd92:7065:b8e:${ipv6}ff::$ns alias
-				;;
-			    *-unknown-openbsd*)
+			    *-unknown-dragonfly*|*-unknown-netbsd*|*-unknown-openbsd*)
 				ifconfig lo0 10.53.$i.$ns alias \
 					netmask 255.255.255.0
 				[ "$ipv6" ] && ifconfig lo0 inet6 \
