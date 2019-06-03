@@ -685,6 +685,7 @@ typedef struct {
 	bool			many_answers;
 	int			sends;		/* Send in progress */
 	bool			shuttingdown;
+	bool			poll;
 	const char		*mnemonic;	/* Style of transfer */
 	struct xfr_stats	stats;		/*%< Transfer statistics */
 } xfrout_ctx_t;
@@ -1110,7 +1111,9 @@ ns_xfr_start(ns_client_t *client, dns_rdatatype_t reqtype) {
 	} else {
 		keyname[0] = '\0';
 	}
+	xfr->poll = is_poll;
 	if (is_poll) {
+		xfr->mnemonic = "IXFR poll response";
 		xfrout_log1(client, question_name, question_class,
 			    ISC_LOG_DEBUG(1), "IXFR poll up to date%s%s",
 			    (xfr->tsigkey != NULL) ? ": TSIG " : "", keyname);
@@ -1239,6 +1242,7 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	xfr->many_answers = many_answers;
 	xfr->sends = 0;
 	xfr->shuttingdown = false;
+	xfr->poll = false;
 	xfr->mnemonic = NULL;
 	xfr->buf.base = NULL;
 	xfr->buf.length = 0;
@@ -1709,7 +1713,7 @@ xfrout_senddone(isc_task_t *task, isc_event_t *event) {
 			msecs = 1;
 		}
 		persec = (xfr->stats.nbytes * 1000) / msecs;
-		xfrout_log(xfr, ISC_LOG_INFO,
+		xfrout_log(xfr, xfr->poll ? ISC_LOG_DEBUG(1) : ISC_LOG_INFO,
 			   "%s ended: "
 			   "%" PRIu64 " messages, %" PRIu64 " records, "
 			   "%" PRIu64 " bytes, "

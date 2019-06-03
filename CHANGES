@@ -1,3 +1,6 @@
+5245.	[cleanup]	Reduce logging level for IXFR up-to-date poll
+			responses. [GL #1009]
+
 5244.	[placeholder]
 
 5243.	[bug]		Fix a possible race between dispatcher and socket
