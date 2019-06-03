@@ -66,12 +66,15 @@
             Usage</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#statschannels"><span class="command"><strong>statistics-channels</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#statistics_channels"><span class="command"><strong>statistics-channels</strong></span> Statement Definition and
-            Usage</a></span></dt>
+              Usage</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec_keys"><span class="command"><strong>dnssec-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#dnssec-keys"><span class="command"><strong>dnssec-keys</strong></span> Statement Definition
+            and Usage</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#managed-keys"><span class="command"><strong>managed-keys</strong></span> Statement Grammar</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch05.html#managed_keys"><span class="command"><strong>managed-keys</strong></span> Statement Definition
+            and Usage</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#trusted-keys"><span class="command"><strong>trusted-keys</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#trusted_keys"><span class="command"><strong>trusted-keys</strong></span> Statement Definition
-            and Usage</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch05.html#managed_keys"><span class="command"><strong>managed-keys</strong></span> Statement Grammar</a></span></dt>
-<dt><span class="section"><a href="Bv9ARM.ch05.html#managed-keys"><span class="command"><strong>managed-keys</strong></span> Statement Definition
             and Usage</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#view_statement_grammar"><span class="command"><strong>view</strong></span> Statement Grammar</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch05.html#view_statement"><span class="command"><strong>view</strong></span> Statement Definition and Usage</a></span></dt>
@@ -882,11 +885,17 @@
 </tr>
 <tr>
 <td>
-                <p><span class="command"><strong>trusted-keys</strong></span></p>
+                <p><span class="command"><strong>dnssec-keys</strong></span></p>
               </td>
 <td>
                 <p>
-                  defines trusted DNSSEC keys.
+                  defines DNSSEC keys: if used with the
+                  <span class="command"><strong>initial-key</strong></span> keyword,
+                  keys are kept up to date using RFC 5011
+                  trust anchor maintenance, and if used with
+                  <span class="command"><strong>static-key</strong></span>, keys are permanent.
+                  Identical to <span class="command"><strong>managed-keys</strong></span>,
+                  but has been added for improved clarity.
                 </p>
               </td>
 </tr>
@@ -896,8 +905,22 @@
               </td>
 <td>
                 <p>
-                  lists DNSSEC keys to be kept up to date
-                  using RFC 5011 trust anchor maintenance.
+                  is identical to <span class="command"><strong>dnssec-keys</strong></span>,
+                  and is retained for backward compatibility.
+                </p>
+              </td>
+</tr>
+<tr>
+<td>
+                <p><span class="command"><strong>trusted-keys</strong></span></p>
+              </td>
+<td>
+                <p>
+                  defines permanent trusted DNSSEC keys;
+                  this option is deprecated in favor
+                  of <span class="command"><strong>dnssec-keys</strong></span> with
+                  the <span class="command"><strong>static-key</strong></span> keyword,
+                  and may be removed in a future release.
                 </p>
               </td>
 </tr>
@@ -2438,7 +2461,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>dnsrps-options</strong></span> { <em class="replaceable"><code>unspecified-text</code></em> };
 	<span class="command"><strong>dnssec-accept-expired</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
-	<span class="command"><strong>dnssec-enable</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>dnssec-lookaside</strong></span> ( <em class="replaceable"><code>string</code></em> trust-anchor
 	    <em class="replaceable"><code>string</code></em> | auto | no );
@@ -2590,11 +2612,12 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>resolver-retry-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>response-padding</strong></span> { <em class="replaceable"><code>address_match_element</code></em>; ... } block-size
 	    <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>string</code></em> [ log <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl
-	    <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval <em class="replaceable"><code>ttlval</code></em> ] [ policy ( cname |
-	    <span class="command"><strong>disabled</strong></span> | drop | given | no-op | nodata | nxdomain | passthru
-	    | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [ recursive-only <em class="replaceable"><code>boolean</code></em> ] [
-	    <span class="command"><strong>nsip-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsdname-enable <em class="replaceable"><code>boolean</code></em> ]; ... } [
+	<span class="command"><strong>response-policy</strong></span> { zone <em class="replaceable"><code>string</code></em> [ add-soa <em class="replaceable"><code>boolean</code></em> ] [ log
+	    <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [ min-update-interval
+	    <em class="replaceable"><code>ttlval</code></em> ] [ policy ( cname | disabled | drop | given | no-op |
+	    <span class="command"><strong>nodata</strong></span> | nxdomain | passthru | tcp-only <em class="replaceable"><code>quoted_string</code></em> ) ] [
+	    <span class="command"><strong>recursive-only</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ nsip-enable <em class="replaceable"><code>boolean</code></em> ] [
+	    <span class="command"><strong>nsdname-enable</strong></span> <em class="replaceable"><code>boolean</code></em> ]; ... } [ add-soa <em class="replaceable"><code>boolean</code></em> ] [
 	    <span class="command"><strong>break-dnssec</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ max-policy-ttl <em class="replaceable"><code>ttlval</code></em> ] [
 	    <span class="command"><strong>min-update-interval</strong></span> <em class="replaceable"><code>ttlval</code></em> ] [ min-ns-dots <em class="replaceable"><code>integer</code></em> ] [
 	    <span class="command"><strong>nsip-wait-recurse</strong></span> <em class="replaceable"><code>boolean</code></em> ] [ qname-wait-recurse <em class="replaceable"><code>boolean</code></em> ]
@@ -2746,7 +2769,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
                   configurable options be consistent among these
                   views:
                   <span class="command"><strong>check-names</strong></span>,
-                  <span class="command"><strong>cleaning-interval</strong></span>,
                   <span class="command"><strong>dnssec-accept-expired</strong></span>,
                   <span class="command"><strong>dnssec-validation</strong></span>,
                   <span class="command"><strong>max-cache-ttl</strong></span>,
@@ -3042,10 +3064,12 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 <dd>
               <p>
                 Specifies the directory in which to store the files that
-                track managed DNSSEC keys.  By default, this is the working
-                directory.  The directory <span class="emphasis"><em>must</em></span>
-                be writable by the effective user ID of the
-                <span class="command"><strong>named</strong></span> process.
+                track managed DNSSEC keys (i.e., those configured using
+                the <span class="command"><strong>initial-key</strong></span> keyword in a
+                <span class="command"><strong>dnssec-keys</strong></span> statement).  By default,
+                this is the working directory.  The directory
+                <span class="emphasis"><em>must</em></span> be writable by the effective
+                user ID of the <span class="command"><strong>named</strong></span> process.
               </p>
               <p>
                 If <span class="command"><strong>named</strong></span> is not configured to use views,
@@ -3468,10 +3492,10 @@ options {
                 then <span class="command"><strong>named</strong></span> will only accept answers if
                 they are secure.  If <strong class="userinput"><code>no</code></strong>, then normal
                 DNSSEC validation applies allowing for insecure answers to
-                be accepted.  The specified domain must be under a
-                <span class="command"><strong>trusted-keys</strong></span> or
-                <span class="command"><strong>managed-keys</strong></span> statement, or
-                <span class="command"><strong>dnssec-validation auto</strong></span> must be active.
+                be accepted.  The specified domain must be defined as a
+                trust anchor, for instance in a <span class="command"><strong>dnssec-keys</strong></span>
+                statement, or <span class="command"><strong>dnssec-validation auto</strong></span> must
+                be active.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>dns64</strong></span></span></dt>
@@ -4459,8 +4483,8 @@ options {
                 <p>
                   Causes <span class="command"><strong>named</strong></span> to send specially-formed
                   queries once per day to domains for which trust anchors
-                  have been configured via <span class="command"><strong>trusted-keys</strong></span>,
-                  <span class="command"><strong>managed-keys</strong></span>, or
+                  have been configured via, e.g.,
+                  <span class="command"><strong>dnssec-keys</strong></span> or
                   <span class="command"><strong>dnssec-validation auto</strong></span>.
                 </p>
                 <p>
@@ -4651,10 +4675,11 @@ options {
                 <p>
                   If set to <strong class="userinput"><code>yes</code></strong>, DNSSEC validation is
                   enabled, but a trust anchor must be manually configured
-                  using a <span class="command"><strong>trusted-keys</strong></span>
-                  or <span class="command"><strong>managed-keys</strong></span> statement; if there
-                  is no configured trust anchor, validation will not take
-                  place.
+                  using a <span class="command"><strong>dnssec-keys</strong></span> statement (or
+                  the synonymous <span class="command"><strong>managed-keys</strong></span>, or the
+                  deprecated <span class="command"><strong>trusted-keys</strong></span> statements).
+                  If there is no configured trust anchor, validation will
+                  not take place.
                 </p>
                 <p>
                   If set to <strong class="userinput"><code>no</code></strong>, DNSSEC validation
@@ -6441,14 +6466,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 <dt><span class="term"><span class="command"><strong>cleaning-interval</strong></span></span></dt>
 <dd>
                 <p>
-                  This interval is effectively obsolete.  Previously,
-                  the server would remove expired resource records
-                  from the cache every <span class="command"><strong>cleaning-interval</strong></span> minutes.
-                  <acronym class="acronym">BIND</acronym> 9 now manages cache
-                  memory in a more sophisticated manner and does not
-                  rely on the periodic cleaning any more.
-                  Specifying this option therefore has no effect on
-                  the server's behavior.
+                  This option is obsolete.
                 </p>
               </dd>
 <dt><span class="term"><span class="command"><strong>heartbeat-interval</strong></span></span></dt>
@@ -8691,10 +8709,10 @@ example.com                 CNAME   rpz-tcp-only.
           </p>
         </div>
 
-      <div class="section">
+        <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="statschannels"></a><span class="command"><strong>statistics-channels</strong></span> Statement Grammar</h3></div></div></div>
-        <pre class="programlisting">
+          <pre class="programlisting">
 <span class="command"><strong>statistics-channels</strong></span> {
 	<span class="command"><strong>inet</strong></span> ( <em class="replaceable"><code>ipv4_address</code></em> | <em class="replaceable"><code>ipv6_address</code></em> |
 	    * ) [ port ( <em class="replaceable"><code>integer</code></em> | * ) ] [
@@ -8702,260 +8720,244 @@ example.com                 CNAME   rpz-tcp-only.
 	    } ];
 };
 </pre>
-      </div>
-
-      <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="statistics_channels"></a><span class="command"><strong>statistics-channels</strong></span> Statement Definition and
-            Usage</h3></div></div></div>
-
-        <p>
-          The <span class="command"><strong>statistics-channels</strong></span> statement
-          declares communication channels to be used by system
-          administrators to get access to statistics information of
-          the name server.
-        </p>
-
-        <p>
-          This statement intends to be flexible to support multiple
-          communication protocols in the future, but currently only
-          HTTP access is supported.
-          It requires that BIND 9 be compiled with libxml2 and/or
-          json-c (also known as libjson0); the
-          <span class="command"><strong>statistics-channels</strong></span> statement is
-          still accepted even if it is built without the library,
-          but any HTTP access will fail with an error.
-        </p>
-
-        <p>
-          An <span class="command"><strong>inet</strong></span> control channel is a TCP socket
-          listening at the specified <span class="command"><strong>ip_port</strong></span> on the
-          specified <span class="command"><strong>ip_addr</strong></span>, which can be an IPv4 or IPv6
-          address.  An <span class="command"><strong>ip_addr</strong></span> of <code class="literal">*</code>
-          (asterisk) is
-          interpreted as the IPv4 wildcard address; connections will be
-          accepted on any of the system's IPv4 addresses.
-          To listen on the IPv6 wildcard address,
-          use an <span class="command"><strong>ip_addr</strong></span> of <code class="literal">::</code>.
-        </p>
-
-        <p>
-          If no port is specified, port 80 is used for HTTP channels.
-          The asterisk "<code class="literal">*</code>" cannot be used for
-          <span class="command"><strong>ip_port</strong></span>.
-        </p>
-
-        <p>
-          The attempt of opening a statistics channel is
-          restricted by the optional <span class="command"><strong>allow</strong></span> clause.
-          Connections to the statistics channel are permitted based on the
-          <span class="command"><strong>address_match_list</strong></span>.
-          If no <span class="command"><strong>allow</strong></span> clause is present,
-          <span class="command"><strong>named</strong></span> accepts connection
-          attempts from any address; since the statistics may
-          contain sensitive internal information, it is highly
-          recommended to restrict the source of connection requests
-          appropriately.
-        </p>
-
-        <p>
-          If no <span class="command"><strong>statistics-channels</strong></span> statement is present,
-          <span class="command"><strong>named</strong></span> will not open any communication channels.
-        </p>
-
-        <p>
-          The statistics are available in various formats and views
-          depending on the URI used to access them.  For example, if
-          the statistics channel is configured to listen on 127.0.0.1
-          port 8888, then the statistics are accessible in XML format at
-          <a class="link" href="http://127.0.0.1:8888/" target="_top">http://127.0.0.1:8888/</a> or
-          <a class="link" href="http://127.0.0.1:8888/xml" target="_top">http://127.0.0.1:8888/xml</a>. A CSS file is
-          included which can format the XML statistics into tables
-          when viewed with a stylesheet-capable browser, and into
-          charts and graphs using the Google Charts API when using a
-          javascript-capable browser.
-        </p>
-
-        <p>
-          Broken-out subsets of the statistics can be viewed at
-          <a class="link" href="http://127.0.0.1:8888/xml/v3/status" target="_top">http://127.0.0.1:8888/xml/v3/status</a>
-          (server uptime and last reconfiguration time),
-          <a class="link" href="http://127.0.0.1:8888/xml/v3/server" target="_top">http://127.0.0.1:8888/xml/v3/server</a>
-          (server and resolver statistics),
-          <a class="link" href="http://127.0.0.1:8888/xml/v3/zones" target="_top">http://127.0.0.1:8888/xml/v3/zones</a>
-          (zone statistics),
-          <a class="link" href="http://127.0.0.1:8888/xml/v3/net" target="_top">http://127.0.0.1:8888/xml/v3/net</a>
-          (network status and socket statistics),
-          <a class="link" href="http://127.0.0.1:8888/xml/v3/mem" target="_top">http://127.0.0.1:8888/xml/v3/mem</a>
-          (memory manager statistics),
-          <a class="link" href="http://127.0.0.1:8888/xml/v3/tasks" target="_top">http://127.0.0.1:8888/xml/v3/tasks</a>
-          (task manager statistics), and
-          <a class="link" href="http://127.0.0.1:8888/xml/v3/traffic" target="_top">http://127.0.0.1:8888/xml/v3/traffic</a>
-          (traffic sizes).
-        </p>
-
-        <p>
-          The full set of statistics can also be read in JSON format at
-          <a class="link" href="http://127.0.0.1:8888/json" target="_top">http://127.0.0.1:8888/json</a>,
-          with the broken-out subsets at
-          <a class="link" href="http://127.0.0.1:8888/json/v1/status" target="_top">http://127.0.0.1:8888/json/v1/status</a>
-          (server uptime and last reconfiguration time),
-          <a class="link" href="http://127.0.0.1:8888/json/v1/server" target="_top">http://127.0.0.1:8888/json/v1/server</a>
-          (server and resolver statistics),
-          <a class="link" href="http://127.0.0.1:8888/json/v1/zones" target="_top">http://127.0.0.1:8888/json/v1/zones</a>
-          (zone statistics),
-          <a class="link" href="http://127.0.0.1:8888/json/v1/net" target="_top">http://127.0.0.1:8888/json/v1/net</a>
-          (network status and socket statistics),
-          <a class="link" href="http://127.0.0.1:8888/json/v1/mem" target="_top">http://127.0.0.1:8888/json/v1/mem</a>
-          (memory manager statistics),
-          <a class="link" href="http://127.0.0.1:8888/json/v1/tasks" target="_top">http://127.0.0.1:8888/json/v1/tasks</a>
-          (task manager statistics), and
-          <a class="link" href="http://127.0.0.1:8888/json/v1/traffic" target="_top">http://127.0.0.1:8888/json/v1/traffic</a>
-          (traffic sizes).
-        </p>
-      </div>
+        </div>
 
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="trusted-keys"></a><span class="command"><strong>trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+<a name="statistics_channels"></a><span class="command"><strong>statistics-channels</strong></span> Statement Definition and
+              Usage</h3></div></div></div>
+
+          <p>
+            The <span class="command"><strong>statistics-channels</strong></span> statement
+            declares communication channels to be used by system
+            administrators to get access to statistics information of
+            the name server.
+          </p>
+
+          <p>
+            This statement intends to be flexible to support multiple
+            communication protocols in the future, but currently only
+            HTTP access is supported.
+            It requires that BIND 9 be compiled with libxml2 and/or
+            json-c (also known as libjson0); the
+            <span class="command"><strong>statistics-channels</strong></span> statement is
+            still accepted even if it is built without the library,
+            but any HTTP access will fail with an error.
+          </p>
+
+          <p>
+            An <span class="command"><strong>inet</strong></span> control channel is a TCP socket
+            listening at the specified <span class="command"><strong>ip_port</strong></span> on the
+            specified <span class="command"><strong>ip_addr</strong></span>, which can be an IPv4 or IPv6
+            address.  An <span class="command"><strong>ip_addr</strong></span> of <code class="literal">*</code>
+            (asterisk) is
+            interpreted as the IPv4 wildcard address; connections will be
+            accepted on any of the system's IPv4 addresses.
+            To listen on the IPv6 wildcard address,
+            use an <span class="command"><strong>ip_addr</strong></span> of <code class="literal">::</code>.
+          </p>
+
+          <p>
+            If no port is specified, port 80 is used for HTTP channels.
+            The asterisk "<code class="literal">*</code>" cannot be used for
+            <span class="command"><strong>ip_port</strong></span>.
+          </p>
+
+          <p>
+            The attempt of opening a statistics channel is
+            restricted by the optional <span class="command"><strong>allow</strong></span> clause.
+            Connections to the statistics channel are permitted based on the
+            <span class="command"><strong>address_match_list</strong></span>.
+            If no <span class="command"><strong>allow</strong></span> clause is present,
+            <span class="command"><strong>named</strong></span> accepts connection
+            attempts from any address; since the statistics may
+            contain sensitive internal information, it is highly
+            recommended to restrict the source of connection requests
+            appropriately.
+          </p>
+
+          <p>
+            If no <span class="command"><strong>statistics-channels</strong></span> statement is present,
+            <span class="command"><strong>named</strong></span> will not open any communication channels.
+          </p>
+
+          <p>
+            The statistics are available in various formats and views
+            depending on the URI used to access them.  For example, if
+            the statistics channel is configured to listen on 127.0.0.1
+            port 8888, then the statistics are accessible in XML format at
+            <a class="link" href="http://127.0.0.1:8888/" target="_top">http://127.0.0.1:8888/</a> or
+            <a class="link" href="http://127.0.0.1:8888/xml" target="_top">http://127.0.0.1:8888/xml</a>. A CSS file is
+            included which can format the XML statistics into tables
+            when viewed with a stylesheet-capable browser, and into
+            charts and graphs using the Google Charts API when using a
+            javascript-capable browser.
+          </p>
+
+          <p>
+            Broken-out subsets of the statistics can be viewed at
+            <a class="link" href="http://127.0.0.1:8888/xml/v3/status" target="_top">http://127.0.0.1:8888/xml/v3/status</a>
+            (server uptime and last reconfiguration time),
+            <a class="link" href="http://127.0.0.1:8888/xml/v3/server" target="_top">http://127.0.0.1:8888/xml/v3/server</a>
+            (server and resolver statistics),
+            <a class="link" href="http://127.0.0.1:8888/xml/v3/zones" target="_top">http://127.0.0.1:8888/xml/v3/zones</a>
+            (zone statistics),
+            <a class="link" href="http://127.0.0.1:8888/xml/v3/net" target="_top">http://127.0.0.1:8888/xml/v3/net</a>
+            (network status and socket statistics),
+            <a class="link" href="http://127.0.0.1:8888/xml/v3/mem" target="_top">http://127.0.0.1:8888/xml/v3/mem</a>
+            (memory manager statistics),
+            <a class="link" href="http://127.0.0.1:8888/xml/v3/tasks" target="_top">http://127.0.0.1:8888/xml/v3/tasks</a>
+            (task manager statistics), and
+            <a class="link" href="http://127.0.0.1:8888/xml/v3/traffic" target="_top">http://127.0.0.1:8888/xml/v3/traffic</a>
+            (traffic sizes).
+          </p>
+
+          <p>
+            The full set of statistics can also be read in JSON format at
+            <a class="link" href="http://127.0.0.1:8888/json" target="_top">http://127.0.0.1:8888/json</a>,
+            with the broken-out subsets at
+            <a class="link" href="http://127.0.0.1:8888/json/v1/status" target="_top">http://127.0.0.1:8888/json/v1/status</a>
+            (server uptime and last reconfiguration time),
+            <a class="link" href="http://127.0.0.1:8888/json/v1/server" target="_top">http://127.0.0.1:8888/json/v1/server</a>
+            (server and resolver statistics),
+            <a class="link" href="http://127.0.0.1:8888/json/v1/zones" target="_top">http://127.0.0.1:8888/json/v1/zones</a>
+            (zone statistics),
+            <a class="link" href="http://127.0.0.1:8888/json/v1/net" target="_top">http://127.0.0.1:8888/json/v1/net</a>
+            (network status and socket statistics),
+            <a class="link" href="http://127.0.0.1:8888/json/v1/mem" target="_top">http://127.0.0.1:8888/json/v1/mem</a>
+            (memory manager statistics),
+            <a class="link" href="http://127.0.0.1:8888/json/v1/tasks" target="_top">http://127.0.0.1:8888/json/v1/tasks</a>
+            (task manager statistics), and
+            <a class="link" href="http://127.0.0.1:8888/json/v1/traffic" target="_top">http://127.0.0.1:8888/json/v1/traffic</a>
+            (traffic sizes).
+          </p>
+        </div>
+
+        <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="dnssec_keys"></a><span class="command"><strong>dnssec-keys</strong></span> Statement Grammar</h3></div></div></div>
         <pre class="programlisting">
-<span class="command"><strong>trusted-keys</strong></span> { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
-    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };
+<span class="command"><strong>dnssec-keys</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key |
+    <span class="command"><strong>initial-key</strong></span> ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>quoted_string</code></em>; ... };
 </pre>
         </div>
         <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="trusted_keys"></a><span class="command"><strong>trusted-keys</strong></span> Statement Definition
+<a name="dnssec-keys"></a><span class="command"><strong>dnssec-keys</strong></span> Statement Definition
             and Usage</h3></div></div></div>
 
           <p>
-            The <span class="command"><strong>trusted-keys</strong></span> statement defines
-            DNSSEC security roots. DNSSEC is described in <a class="xref" href="Bv9ARM.ch04.html#DNSSEC" title="DNSSEC">the section called &#8220;DNSSEC&#8221;</a>. A security root is defined when the
-            public key for a non-authoritative zone is known, but
-            cannot be securely obtained through DNS, either because
-            it is the DNS root zone or because its parent zone is
-            unsigned.  Once a key has been configured as a trusted
-            key, it is treated as if it had been validated and
-            proven secure. The resolver attempts DNSSEC validation
-            on all DNS data in subdomains of a security root.
+            The <span class="command"><strong>dnssec-keys</strong></span> statement defines DNSSEC
+            trust anchors.  DNSSEC is described in <a class="xref" href="Bv9ARM.ch04.html#DNSSEC" title="DNSSEC">the section called &#8220;DNSSEC&#8221;</a>.
           </p>
           <p>
-            All keys (and corresponding zones) listed in
-            <span class="command"><strong>trusted-keys</strong></span> are deemed to exist regardless
-            of what parent zones say.  Similarly for all keys listed in
-            <span class="command"><strong>trusted-keys</strong></span> only those keys are
-            used to validate the DNSKEY RRset.  The parent's DS RRset
-            will not be used.
+            A trust anchor is defined when the public key for
+            a non-authoritative zone is known, but cannot be securely
+            obtained through DNS, either because it is the DNS root zone
+            or because its parent zone is unsigned.  Once a key has been
+            configured as a trust anchor, it is treated as if it had
+            been validated and proven secure.
           </p>
           <p>
-            The <span class="command"><strong>trusted-keys</strong></span> statement can contain
+            The resolver attempts DNSSEC validation on all DNS data
+            in subdomains of configured trust anchors.  (Validation below
+            specified names can be temporarily disabled by using
+            <span class="command"><strong>rndc nta</strong></span>, or permanently disabled with
+            the <span class="command"><strong>validate-except</strong></span> option).
+          </p>
+          <p>
+            All keys listed in <span class="command"><strong>dnssec-keys</strong></span>, and
+            their corresponding zones, are deemed to exist regardless
+            of what parent zones say.   Only keys configured as trust anchors
+            are used to validate the DNSKEY RRset for the corresponding
+            name.  The parent's DS RRset will not be used.
+          </p>
+          <p>
+            The <span class="command"><strong>dnssec-keys</strong></span> statement can contain
             multiple key entries, each consisting of the key's
-            domain name, flags, protocol, algorithm, and the Base64
-            representation of the key data.
-            Spaces, tabs, newlines and carriage returns are ignored
+            domain name, followed by the <span class="command"><strong>static-key</strong></span> or
+            <span class="command"><strong>initial-key</strong></span> keyword, then the key's flags,
+            protocol, algorithm, and the Base64 representation of the key
+            data.  Spaces, tabs, newlines and carriage returns are ignored
             in the key data, so the configuration may be split up into
             multiple lines.
           </p>
           <p>
-            <span class="command"><strong>trusted-keys</strong></span> may be set at the top level
+            <span class="command"><strong>dnssec-keys</strong></span> may be set at the top level
             of <code class="filename">named.conf</code> or within a view.  If it is
-            set in both places, they are additive: keys defined at the top
-            level are inherited by all views, but keys defined in a view
-            are only used within that view.
+            set in both places, the configurations are additive: keys
+            defined at the top level are inherited by all views, but keys
+            defined in a view are only used within that view.
           </p>
           <p>
-            Validation below specified names can be temporarily disabled
-            by using <span class="command"><strong>rndc nta</strong></span>.
-          </p>
-        </div>
-
-        <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="managed_keys"></a><span class="command"><strong>managed-keys</strong></span> Statement Grammar</h3></div></div></div>
-        <pre class="programlisting">
-<span class="command"><strong>managed-keys</strong></span> { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em>
-    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };
-</pre>
-        </div>
-        <div class="section">
-<div class="titlepage"><div><div><h3 class="title">
-<a name="managed-keys"></a><span class="command"><strong>managed-keys</strong></span> Statement Definition
-            and Usage</h3></div></div></div>
-
-          <p>
-            The <span class="command"><strong>managed-keys</strong></span> statement, like
-            <span class="command"><strong>trusted-keys</strong></span>, defines DNSSEC
-            security roots.  The difference is that
-            <span class="command"><strong>managed-keys</strong></span> can be kept up to date
-            automatically, without intervention from the resolver
-            operator.
+            <span class="command"><strong>dnssec-keys</strong></span> entries can be configured with
+            two keywords: <span class="command"><strong>static-key</strong></span> or
+            <span class="command"><strong>initial-key</strong></span>.  Keys configured with
+            <span class="command"><strong>static-key</strong></span> are immutable,
+            while keys configured with <span class="command"><strong>initial-key</strong></span>
+            can be kept up to date automatically, without intervention
+            from the resolver operator. (<span class="command"><strong>static-key</strong></span>
+            keys are identical to keys configured using the deprecated
+            <span class="command"><strong>trusted-keys</strong></span> statement.)
           </p>
           <p>
             Suppose, for example, that a zone's key-signing
             key was compromised, and the zone owner had to revoke and
-            replace the key.  A resolver which had the old key in a
-            <span class="command"><strong>trusted-keys</strong></span> statement would be
+            replace the key.  A resolver which had the original key
+            configured as a <span class="command"><strong>static-key</strong></span> would be
             unable to validate this zone any longer; it would
             reply with a SERVFAIL response code.  This would
             continue until the resolver operator had updated the
-            <span class="command"><strong>trusted-keys</strong></span> statement with the new key.
+            <span class="command"><strong>dnssec-keys</strong></span> statement with the new key.
           </p>
           <p>
-            If, however, the zone were listed in a
-            <span class="command"><strong>managed-keys</strong></span> statement instead, then the
-            zone owner could add a "stand-by" key to the zone in advance.
+            If, however, the trust anchor had been configured with
+            <span class="command"><strong>initial-key</strong></span> instead, then the
+            zone owner could add a "stand-by" key to their zone in advance.
             <span class="command"><strong>named</strong></span> would store the stand-by key, and
             when the original key was revoked, <span class="command"><strong>named</strong></span>
             would be able to transition smoothly to the new key.  It would
             also recognize that the old key had been revoked, and cease
             using that key to validate answers, minimizing the damage that
-            the compromised key could do.
+            the compromised key could do. This is the process used to
+            keep the ICANN root DNSSEC key up to date.
           </p>
           <p>
-            A <span class="command"><strong>managed-keys</strong></span> statement contains a list of
-            the keys to be managed, along with information about how the
-            keys are to be initialized for the first time.  The only
-            initialization method currently supported is
-            <code class="literal">initial-key</code>.
-            This means the <span class="command"><strong>managed-keys</strong></span> statement must
-            contain a copy of the initializing key.  (Future releases may
-            allow keys to be initialized by other methods, eliminating this
-            requirement.)
+            Whereas <span class="command"><strong>static-key</strong></span>
+            keys continue to be trusted until they are removed from
+            <code class="filename">named.conf</code>, an
+            <span class="command"><strong>initial-key</strong></span> is only trusted
+            <span class="emphasis"><em>once</em></span>: for as long as it
+            takes to load the managed key database and start the RFC 5011
+            key maintenance process.
           </p>
           <p>
-            Consequently, a <span class="command"><strong>managed-keys</strong></span> statement
-            appears similar to a <span class="command"><strong>trusted-keys</strong></span>, differing
-            in the presence of the second field, containing the keyword
-            <code class="literal">initial-key</code>.  The difference is, whereas the
-            keys listed in a <span class="command"><strong>trusted-keys</strong></span> continue to be
-            trusted until they are removed from
-            <code class="filename">named.conf</code>, an initializing key listed
-            in a <span class="command"><strong>managed-keys</strong></span> statement is only trusted
-            <span class="emphasis"><em>once</em></span>: for as long as it takes to load the
-            managed key database and start the RFC 5011 key maintenance
-            process.
-          </p>
-          <p>
-            The first time <span class="command"><strong>named</strong></span> runs with a managed key
-            configured in <code class="filename">named.conf</code>, it fetches the
+            The first time <span class="command"><strong>named</strong></span> runs with an
+            <span class="command"><strong>initial-key</strong></span> configured in
+            <code class="filename">named.conf</code>, it fetches the
             DNSKEY RRset directly from the zone apex, and validates it
-            using the key specified in the <span class="command"><strong>managed-keys</strong></span>
-            statement.  If the DNSKEY RRset is validly signed, then it is
+            using the key specified in <span class="command"><strong>dnssec-keys</strong></span>.
+            If the DNSKEY RRset is validly signed, then it is
             used as the basis for a new managed keys database.
           </p>
           <p>
             From that point on, whenever <span class="command"><strong>named</strong></span> runs, it
-            sees the <span class="command"><strong>managed-keys</strong></span> statement, checks to
+            sees the <span class="command"><strong>initial-key</strong></span> listed in
+            <span class="command"><strong>dnssec-keys</strong></span>, checks to
             make sure RFC 5011 key maintenance has already been initialized
             for the specified domain, and if so, it simply moves on.  The
-            key specified in the <span class="command"><strong>managed-keys</strong></span>
-            statement is not used to validate answers; it has been
-            superseded by the key or keys stored in the managed keys database.
+            key specified in the <span class="command"><strong>dnssec-keys</strong></span>
+            statement is not used to validate answers; it is
+            superseded by the key or keys stored in the managed keys
+            database.
           </p>
           <p>
-            The next time <span class="command"><strong>named</strong></span> runs after a name
-            has been <span class="emphasis"><em>removed</em></span> from the
-            <span class="command"><strong>managed-keys</strong></span> statement, the corresponding
+            The next time <span class="command"><strong>named</strong></span> runs after an
+            <span class="command"><strong>initial-key</strong></span> has been
+            <span class="emphasis"><em>removed</em></span> from the
+            <span class="command"><strong>dnssec-keys</strong></span> statement (or changed to
+            a <span class="command"><strong>static-key</strong></span>), the corresponding
             zone will be removed from the managed keys database,
             and RFC 5011 key maintenance will no longer be used for that
             domain.
@@ -8990,14 +8992,56 @@ example.com                 CNAME   rpz-tcp-only.
           <p>
             If the <span class="command"><strong>dnssec-validation</strong></span> option is
             set to <strong class="userinput"><code>auto</code></strong>, <span class="command"><strong>named</strong></span>
-            will automatically initialize a managed key for the
-            root zone.  The key that is used to initialize the key
+            will automatically initialize an <span class="command"><strong>initial-key</strong></span>
+            for the root zone.  The key that is used to initialize the key
             maintenance process is stored in <code class="filename">bind.keys</code>;
             the location of this file can be overridden with the
             <span class="command"><strong>bindkeys-file</strong></span> option. As a fallback
             in the event no <code class="filename">bind.keys</code> can be
             found, the initializing key is also compiled directly
             into <span class="command"><strong>named</strong></span>.
+          </p>
+        </div>
+
+        <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="managed-keys"></a><span class="command"><strong>managed-keys</strong></span> Statement Grammar</h3></div></div></div>
+        <pre class="programlisting">
+<span class="command"><strong>managed-keys</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key |
+    <span class="command"><strong>initial-key</strong></span> ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>quoted_string</code></em>; ... };
+</pre>
+        </div>
+        <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="managed_keys"></a><span class="command"><strong>managed-keys</strong></span> Statement Definition
+            and Usage</h3></div></div></div>
+
+          <p>
+            The <span class="command"><strong>managed-keys</strong></span> statement is
+            identical to the <span class="command"><strong>dnssec-keys</strong></span>, and is
+            retained for backward compatibility.
+          </p>
+        </div>
+
+        <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="trusted-keys"></a><span class="command"><strong>trusted-keys</strong></span> Statement Grammar</h3></div></div></div>
+        <pre class="programlisting">
+<span class="command"><strong>trusted-keys</strong></span> { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>quoted_string</code></em>; ... };, deprecated
+</pre>
+        </div>
+        <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
+<a name="trusted_keys"></a><span class="command"><strong>trusted-keys</strong></span> Statement Definition
+            and Usage</h3></div></div></div>
+
+          <p>
+            The <span class="command"><strong>trusted-keys</strong></span> statement has been
+            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#dnssec_keys" title="dnssec-keys Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Grammar&#8221;</a>
+            with the <span class="command"><strong>static</strong></span> keyword.
           </p>
         </div>
 
@@ -14869,6 +14913,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.0 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.1 (Development Release)</p>
 </body>
 </html>

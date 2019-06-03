@@ -200,14 +200,17 @@
 	  </p>
 	  <p>
 	    Note: When reading the trust anchor file,
-	    <span class="command"><strong>delv</strong></span> treats <code class="option">managed-keys</code>
-	    statements and <code class="option">trusted-keys</code> statements
-	    identically.  That is, for a managed key, it is the
-	    <span class="emphasis"><em>initial</em></span> key that is trusted; RFC 5011
-	    key management is not supported. <span class="command"><strong>delv</strong></span>
-	    will not consult the managed-keys database maintained by
-	    <span class="command"><strong>named</strong></span>. This means that if either of the
-	    keys in <code class="filename">/etc/bind.keys</code> is revoked
+	    <span class="command"><strong>delv</strong></span> treats <code class="option">dnssec-keys</code>
+	    <code class="option">initial-key</code> and <code class="option">static-key</code>
+	    entries identically.  That is, even if a key is configured
+	    with <span class="command"><strong>initial-key</strong></span>, indicating that it is
+	    meant to be used only as an initializing key for RFC 5011
+	    key maintenance, it is still treated by <span class="command"><strong>delv</strong></span>
+	    as if it had been configured as a <span class="command"><strong>static-key</strong></span>.
+	    <span class="command"><strong>delv</strong></span> does not consult the managed keys
+	    database maintained by <span class="command"><strong>named</strong></span>. This means
+	    that if either of the keys in
+	    <code class="filename">/etc/bind.keys</code> is revoked
 	    and rolled over, it will be necessary to update
 	    <code class="filename">/etc/bind.keys</code> to use DNSSEC
 	    validation in <span class="command"><strong>delv</strong></span>.

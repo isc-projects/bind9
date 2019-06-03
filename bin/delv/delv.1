@@ -146,14 +146,16 @@ to specify the name of a zone containing DLV records\&.
 Note: When reading the trust anchor file,
 \fBdelv\fR
 treats
-\fBmanaged\-keys\fR
-statements and
-\fBtrusted\-keys\fR
-statements identically\&. That is, for a managed key, it is the
-\fIinitial\fR
-key that is trusted; RFC 5011 key management is not supported\&.
+\fBdnssec\-keys\fR\fBinitial\-key\fR
+and
+\fBstatic\-key\fR
+entries identically\&. That is, even if a key is configured with
+\fBinitial\-key\fR, indicating that it is meant to be used only as an initializing key for RFC 5011 key maintenance, it is still treated by
 \fBdelv\fR
-will not consult the managed\-keys database maintained by
+as if it had been configured as a
+\fBstatic\-key\fR\&.
+\fBdelv\fR
+does not consult the managed keys database maintained by
 \fBnamed\fR\&. This means that if either of the keys in
 /etc/bind\&.keys
 is revoked and rolled over, it will be necessary to update

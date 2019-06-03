@@ -2,6 +2,8 @@
 			statistics when hitting recursive clients
 			soft quota. [GL #1067]
 
+	--- 9.15.1 released ---
+
 5248.	[func]		To clarify the configuration of DNSSEC keys,
 			the "managed-keys" and "trusted-keys" options
 			have both been deprecated.  The new "dnssec-keys"
