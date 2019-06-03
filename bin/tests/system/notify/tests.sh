@@ -230,6 +230,8 @@ do
 done
 grep "test string" dig.out.b.ns5.test$n > /dev/null || ret=1
 grep "test string" dig.out.c.ns5.test$n > /dev/null || ret=1
+grep "sending notify to 10.53.0.5#[0-9]* : TSIG (b)" ns5/named.run > /dev/null || ret=1
+grep "sending notify to 10.53.0.5#[0-9]* : TSIG (c)" ns5/named.run > /dev/null || ret=1
 
 [ $ret = 0 ] || echo_i "failed"
 status=`expr $ret + $status`
