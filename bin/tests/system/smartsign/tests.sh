@@ -343,8 +343,8 @@ status=`expr $status + $ret`
 
 echo_i "checking sync record publication"
 ret=0
-grep -w CDNSKEY $cfile.signed > /dev/null || ret=1
-grep -w CDS $cfile.signed > /dev/null || ret=1
+awk 'BEGIN { r=1 } $2 == "CDNSKEY" { r=0 } END { exit r }' $cfile.signed || ret=1
+awk 'BEGIN { r=1 } $2 == "CDS" { r=0 } END { exit r }' $cfile.signed || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -353,8 +353,8 @@ ret=0
 $SETTIME -P now -A now -Dsync now ${cksk5} > /dev/null
 $SIGNER -Sg -o $czone -f $cfile.new $cfile.signed > /dev/null 2>&1
 mv $cfile.new $cfile.signed
-grep -w CDNSKEY $cfile.signed > /dev/null && ret=1
-grep -w CDS $cfile.signed > /dev/null && ret=1
+awk 'BEGIN { r=1 } $2 == "CDNSKEY" { r=0 } END { exit r }' $cfile.signed && ret=1
+awk 'BEGIN { r=1 } $2 == "CDS" { r=0 } END { exit r }' $cfile.signed && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
