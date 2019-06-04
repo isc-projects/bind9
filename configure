@@ -15347,7 +15347,7 @@ CRYPTO=OpenSSL
 #
 
     found=false
-    default_ssldirs="/usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/local/opt/openssl /usr/local/opt/libressl /usr"
+    default_ssldirs="/usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /opt/local /usr/local/opt/openssl /usr/local/opt/libressl /usr"
 
 # Check whether --with-openssl was given.
 if test "${with_openssl+set}" = set; then :
