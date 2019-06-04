@@ -15656,7 +15656,7 @@ CRYPTO=OpenSSL
 #
 
     found=false
-    default_ssldirs="/usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /usr/local/opt/openssl /usr/local/opt/libressl /usr"
+    default_ssldirs="/usr/local/ssl /usr/lib/ssl /usr/ssl /usr/pkg /usr/local /opt/local /usr/local/opt/openssl /usr/local/opt/libressl /usr"
 
 # Check whether --with-openssl was given.
 if test "${with_openssl+set}" = set; then :
@@ -17024,10 +17024,7 @@ fi
 
 case $with_json_c in #(
   no) :
-    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for JSON_C" >&5
-$as_echo_n "checking for JSON_C... " >&6; }
-	      { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; } ;; #(
+     ;; #(
   detect) :
 
 pkg_failed=no
