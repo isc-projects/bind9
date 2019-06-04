@@ -8246,22 +8246,6 @@ example.com                 CNAME   rpz-tcp-only.
           </p>
 
           <p>
-            Rate limiters for different name spaces maintain
-            separate counters: If, for example, there is a
-            <span class="command"><strong>rate-limit</strong></span> statement for "com" and
-            another for "example.com", queries matching "example.com"
-            will not be debited against the rate limiter for "com".
-          </p>
-
-          <p>
-            If a <span class="command"><strong>rate-limit</strong></span> statement does not specify a
-            <span class="command"><strong>domain</strong></span>, then it applies to the root domain
-            (".") and thus affects the entire DNS namespace, except those
-            portions covered by other <span class="command"><strong>rate-limit</strong></span>
-            statements.
-          </p>
-
-          <p>
             Communities of DNS clients can be given their own parameters or no
             rate limiting by putting
             <span class="command"><strong>rate-limit</strong></span> statements in <span class="command"><strong>view</strong></span>
@@ -14683,6 +14667,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.7 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.8 (Extended Support Version)</p>
 </body>
 </html>

@@ -287,6 +287,11 @@ flaws disclosed in CVE-2018-5744, CVE-2018-5745, and CVE-2019-6465.
 BIND 9.11.7 is a maintenance release, and also addresses the security
 flaw disclosed in CVE-2018-5743.
 
+#### BIND 9.11.8
+
+BIND 9.11.8 is a maintenance release, and also addresses the security
+flaw disclosed in CVE-2019-6471.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
