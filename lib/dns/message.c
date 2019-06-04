@@ -3594,6 +3594,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 						 id);
 					ADD_STRING(target, buf);
 					optlen -= 2;
+					POST(optlen);
 					continue;
 				}
 			} else if (optcode == DNS_OPT_SERVER_TAG) {
@@ -3606,6 +3607,7 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 						 id);
 					ADD_STRING(target, buf);
 					optlen -= 2;
+					POST(optlen);
 					continue;
 				}
 			} else {
@@ -3886,6 +3888,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 						 id);
 					ADD_STRING(target, buf);
 					optlen -= 2;
+					POST(optlen);
 					continue;
 				}
 			} else if (optcode == DNS_OPT_SERVER_TAG) {
@@ -3897,6 +3900,7 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 						 id);
 					ADD_STRING(target, buf);
 					optlen -= 2;
+					POST(optlen);
 					continue;
 				}
 			} else {
