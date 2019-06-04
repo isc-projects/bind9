@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.14.2
+Release Notes for BIND Version 9.14.3
 
 Introduction
 
@@ -52,38 +52,18 @@ operating systems.
 
 Security Fixes
 
-  * In certain configurations, named could crash with an assertion failure
-    if nxdomain-redirect was in use and a redirected query resulted in an
-    NXDOMAIN from the cache. This flaw is disclosed in CVE-2019-6467. [GL
-    #880]
-
-  * The TCP client quota set using the tcp-clients option could be
-    exceeded in some cases. This could lead to exhaustion of file
-    descriptors. (CVE-2018-5743) [GL #615]
-
-New Features
-
-  * The new add-soa option specifies whether or not the response-policy
-    zone's SOA record should be included in the additional section of RPZ
-    responses. [GL #865]
-
-Feature Changes
-
-  * When trusted-keys and managed-keys are both configured for the same
-    name, or when trusted-keys is used to configure a trust anchor for the
-    root zone and dnssec-validation is set to the default value of auto,
-    automatic RFC 5011 key rollovers will fail.
-
-    This combination of settings was never intended to work, but there was
-    no check for it in the parser. This has been corrected; a warning is
-    now logged. (In BIND 9.15 and higher this error will be fatal.) [GL #
-    868]
+  * A race condition could trigger an assertion failure when a large
+    number of incoming packets were being rejected. This flaw is disclosed
+    in CVE-2019-6471. [GL #942]
 
 Bug Fixes
 
-  * The allow-update and allow-update-forwarding options were
-    inadvertently treated as configuration errors when used at the options
-    or view level. This has now been corrected. [GL #913]
+  * When qname-minimization was set to relaxed, some improperly configured
+    domains would fail to resolve, but would have succeeded if
+    minimization were disabled. named will now fall back to normal
+    resolution in such cases, and also uses type A rather than NS for
+    minimal queries in order to reduce the likelihood of encountering the
+    problem. [GL #1055]
 
 License
 

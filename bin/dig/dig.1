@@ -584,11 +584,11 @@ A synonym for
 .RS 4
 Toggle the setting of the RD (recursion desired) bit in the query\&. This bit is set by default, which means
 \fBdig\fR
-normally sends recursive queries\&. Recursion is automatically disabled when the
+normally sends recursive queries\&. Recursion is automatically disabled when using the
 \fI+nssearch\fR
-or
+option, and when using
 \fI+trace\fR
-query options are used\&.
+except for an initial recursive query to get the list of root servers\&.
 .RE
 .PP
 \fB+retry=T\fR
