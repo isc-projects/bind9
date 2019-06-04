@@ -40,7 +40,7 @@ export LANG=C
 # SEQUENTIAL_UNIX in conf.sh.in; those that only run on windows should
 # be added to SEQUENTIAL_WINDOWS in conf.sh.win32.
 #
-SEQUENTIAL_COMMON="ecdsa eddsa @PKCS11_TEST@ tkey"
+SEQUENTIAL_COMMON="ecdsa eddsa tkey"
 
 #
 # These tests can use ports assigned by the caller (other than 5300

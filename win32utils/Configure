@@ -248,7 +248,6 @@ my @substtest = ("CHECKDS",
                  "JSONSTATS",
                  "KEYMGR",
                  "NZD_TOOLS",
-                 "PKCS11_TEST",
                  "XMLSTATS",
                  "ZLIB"),
 
