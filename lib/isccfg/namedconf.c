@@ -434,6 +434,7 @@ static cfg_type_t cfg_type_category = {
  */
 static cfg_tuplefielddef_t dnsseckey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
+	{ "init", &cfg_type_void, 0 },
 	{ "flags", &cfg_type_uint32, 0 },
 	{ "protocol", &cfg_type_uint32, 0 },
 	{ "algorithm", &cfg_type_uint32, 0 },
@@ -446,12 +447,18 @@ static cfg_type_t cfg_type_dnsseckey = {
 };
 
 /*%
- * A managed key initialization specifier, as used in the
- * "managed-keys" statement.
+ * A key initialization specifier, as used in the
+ * "dnssec-keys" (or synonymous "managed-keys") statement.
  */
+static const char *init_enums[] = { "static-key", "initial-key", NULL };
+static cfg_type_t cfg_type_keyinit = {
+	"keyinit", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &init_enums
+};
+
 static cfg_tuplefielddef_t managedkey_fields[] = {
 	{ "name", &cfg_type_astring, 0 },
-	{ "init", &cfg_type_ustring, 0 },   /* must be literal "initial-key" */
+	{ "init", &cfg_type_keyinit, 0 },
 	{ "flags", &cfg_type_uint32, 0 },
 	{ "protocol", &cfg_type_uint32, 0 },
 	{ "algorithm", &cfg_type_uint32, 0 },
@@ -618,22 +625,20 @@ static cfg_type_t cfg_type_keylist = {
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_astring
 };
 
-/*% A list of dnssec keys, as in "trusted-keys" */
-static cfg_type_t cfg_type_dnsseckeys = {
-	"dnsseckeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+/*% A list of dnssec keys, as in "trusted-keys". Deprecated. */
+static cfg_type_t cfg_type_trustedkeys = {
+	"trustedkeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_dnsseckey
 };
 
 /*%
- * A list of managed key entries, as in "trusted-keys".  Currently
- * (9.7.0) this has a format similar to dnssec keys, except the keyname
- * is followed by the keyword "initial-key".  In future releases, this
- * keyword may take other values indicating different methods for the
- * key to be initialized.
+ * A list of key entries, as in "trusted-keys".  This has a format similar
+ * to dnssec keys, except the keyname is followed by keyword, either
+ * "initial-key" or "static-key". If "initial-key", then the key is
+ * RFC 5011 managed; if "static-key", then the key never changes.
  */
-
-static cfg_type_t cfg_type_managedkeys = {
-	"managedkeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+static cfg_type_t cfg_type_dnsseckeys = {
+	"dnsseckeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_managedkey
 };
 
@@ -982,10 +987,13 @@ namedconf_or_view_clauses[] = {
 	{ "dlz", &cfg_type_dlz, CFG_CLAUSEFLAG_MULTI },
 	{ "dyndb", &cfg_type_dyndb, CFG_CLAUSEFLAG_MULTI },
 	{ "key", &cfg_type_key, CFG_CLAUSEFLAG_MULTI },
-	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
+	{ "dnssec-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "managed-keys", &cfg_type_dnsseckeys,
+	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
 	{ "plugin", &cfg_type_plugin, CFG_CLAUSEFLAG_MULTI },
 	{ "server", &cfg_type_server, CFG_CLAUSEFLAG_MULTI },
-	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "trusted-keys", &cfg_type_trustedkeys,
+	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
 	{ "zone", &cfg_type_zone, CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
@@ -995,8 +1003,11 @@ namedconf_or_view_clauses[] = {
  */
 static cfg_clausedef_t
 bindkeys_clauses[] = {
-	{ "managed-keys", &cfg_type_managedkeys, CFG_CLAUSEFLAG_MULTI },
-	{ "trusted-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "dnssec-keys", &cfg_type_dnsseckeys, CFG_CLAUSEFLAG_MULTI },
+	{ "managed-keys", &cfg_type_dnsseckeys,
+	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
+	{ "trusted-keys", &cfg_type_trustedkeys,
+	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
 	{ NULL, NULL, 0 }
 };
 
@@ -2285,7 +2296,7 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_namedconf = {
 	&cfg_rep_map, namedconf_clausesets
 };
 
-/*% The bind.keys syntax (trusted-keys/managed-keys only). */
+/*% The bind.keys syntax (dnssec-keys/managed-keys/trusted-keys only). */
 static cfg_clausedef_t *
 bindkeys_clausesets[] = {
 	bindkeys_clauses,

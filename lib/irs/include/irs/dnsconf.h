@@ -22,9 +22,12 @@
  *
  * Notes:
  * This module is very experimental and the configuration syntax or library
- * interfaces may change in future versions.  Currently, only the
- * 'trusted-keys' statement is supported, whose syntax is the same as the
- * same name of statement for named.conf.
+ * interfaces may change in future versions.  Currently, only static
+ * key configuration is supported; "trusted-keys" and "dnssec-keys"/
+ * "managed-keys" statements will be parsed exactly as they are in
+ * named.conf, except that "dnssec-keys" and "managed-keys" entries will
+ * be treated as if they were configured with "static-key", even if they
+ * were actually configured with "initial-key".
  */
 
 #include <irs/types.h>

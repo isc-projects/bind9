@@ -57,7 +57,7 @@ cat $infile $keyname1.key $keyname2.key > $zonefile
 $SIGNER -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo_i "signed $zone"
 
-keyfile_to_trusted_keys $keyname2 > private.nsec.conf
+keyfile_to_static_keys $keyname2 > private.nsec.conf
 
 zone=nsec3
 infile=nsec3.db.in
@@ -86,7 +86,7 @@ cat $infile $keyname1.key $keyname2.key > $zonefile
 $SIGNER -3 - -H 10 -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo_i "signed $zone"
 
-keyfile_to_trusted_keys $keyname2 > private.nsec3.conf
+keyfile_to_static_keys $keyname2 > private.nsec3.conf
 
 zone=.
 infile=root.db.in
@@ -101,4 +101,4 @@ cat $infile $keyname1.key $keyname2.key $dssets >$zonefile
 $SIGNER -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
 echo_i "signed $zone"
 
-keyfile_to_trusted_keys $keyname2 > trusted.conf
+keyfile_to_static_keys $keyname2 > trusted.conf

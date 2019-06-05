@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2018-12-07</date>
+    <date>2019-05-10</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -80,14 +80,12 @@
   </refsection>
 
   <refsection><info><title>ACL</title></info>
-
     <literallayout class="normal">
 acl <replaceable>string</replaceable> { <replaceable>address_match_element</replaceable>; ... };
 </literallayout>
   </refsection>
 
   <refsection><info><title>CONTROLS</title></info>
-
     <literallayout class="normal">
 controls {
 	inet ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> |
@@ -104,7 +102,6 @@ controls {
   </refsection>
 
   <refsection><info><title>DLZ</title></info>
-
     <literallayout class="normal">
 dlz <replaceable>string</replaceable> {
 	database <replaceable>string</replaceable>;
@@ -113,8 +110,15 @@ dlz <replaceable>string</replaceable> {
 </literallayout>
   </refsection>
 
-  <refsection><info><title>DYNDB</title></info>
+  <refsection><info><title>DNSSEC-KEYS</title></info>
+    <literallayout class="normal">
+dnssec-keys { <replaceable>string</replaceable> ( static-key |
+    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>quoted_string</replaceable>; ... };
+</literallayout>
+  </refsection>
 
+  <refsection><info><title>DYNDB</title></info>
     <literallayout class="normal">
 dyndb <replaceable>string</replaceable> <replaceable>quoted_string</replaceable> {
     <replaceable>unspecified-text</replaceable> };
@@ -122,7 +126,6 @@ dyndb <replaceable>string</replaceable> <replaceable>quoted_string</replaceable>
   </refsection>
 
   <refsection><info><title>KEY</title></info>
-
     <literallayout class="normal">
 key <replaceable>string</replaceable> {
 	algorithm <replaceable>string</replaceable>;
@@ -132,7 +135,6 @@ key <replaceable>string</replaceable> {
   </refsection>
 
   <refsection><info><title>LOGGING</title></info>
-
     <literallayout class="normal">
 logging {
 	category <replaceable>string</replaceable> { <replaceable>string</replaceable>; ... };
@@ -154,15 +156,15 @@ logging {
 
 
   <refsection><info><title>MANAGED-KEYS</title></info>
-
+  <para>See DNSSEC-KEYS.</para>
     <literallayout class="normal">
-managed-keys { <replaceable>string</replaceable> <replaceable>string</replaceable> <replaceable>integer</replaceable>
-    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
+managed-keys { <replaceable>string</replaceable> ( static-key |
+    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>quoted_string</replaceable>; ... };
 </literallayout>
   </refsection>
 
   <refsection><info><title>MASTERS</title></info>
-
     <literallayout class="normal">
 masters <replaceable>string</replaceable> [ port <replaceable>integer</replaceable> ] [ dscp
     <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable> | <replaceable>ipv4_address</replaceable> [
@@ -172,7 +174,6 @@ masters <replaceable>string</replaceable> [ port <replaceable>integer</replaceab
   </refsection>
 
   <refsection><info><title>OPTIONS</title></info>
-
     <literallayout class="normal">
 options {
 	allow-new-zones <replaceable>boolean</replaceable>;
@@ -251,7 +252,6 @@ options {
 	dnsrps-options { <replaceable>unspecified-text</replaceable> };
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
-	dnssec-enable <replaceable>boolean</replaceable>;
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-lookaside ( <replaceable>string</replaceable> trust-anchor
 	    <replaceable>string</replaceable> | auto | no );
@@ -403,11 +403,12 @@ options {
 	resolver-retry-interval <replaceable>integer</replaceable>;
 	response-padding { <replaceable>address_match_element</replaceable>; ... } block-size
 	    <replaceable>integer</replaceable>;
-	response-policy { zone <replaceable>string</replaceable> [ log <replaceable>boolean</replaceable> ] [ max-policy-ttl
-	    <replaceable>ttlval</replaceable> ] [ min-update-interval <replaceable>ttlval</replaceable> ] [ policy ( cname |
-	    disabled | drop | given | no-op | nodata | nxdomain | passthru
-	    | tcp-only <replaceable>quoted_string</replaceable> ) ] [ recursive-only <replaceable>boolean</replaceable> ] [
-	    nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable <replaceable>boolean</replaceable> ]; ... } [
+	response-policy { zone <replaceable>string</replaceable> [ add-soa <replaceable>boolean</replaceable> ] [ log
+	    <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>ttlval</replaceable> ] [ min-update-interval
+	    <replaceable>ttlval</replaceable> ] [ policy ( cname | disabled | drop | given | no-op |
+	    nodata | nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
+	    recursive-only <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
+	    nsdname-enable <replaceable>boolean</replaceable> ]; ... } [ add-soa <replaceable>boolean</replaceable> ] [
 	    break-dnssec <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>ttlval</replaceable> ] [
 	    min-update-interval <replaceable>ttlval</replaceable> ] [ min-ns-dots <replaceable>integer</replaceable> ] [
 	    nsip-wait-recurse <replaceable>boolean</replaceable> ] [ qname-wait-recurse <replaceable>boolean</replaceable> ]
@@ -474,7 +475,6 @@ options {
   </refsection>
 
   <refsection><info><title>PLUGIN</title></info>
-
     <literallayout class="normal">
 plugin ( query ) <replaceable>string</replaceable> [ { <replaceable>unspecified-text</replaceable>
     } ];
@@ -482,7 +482,6 @@ plugin ( query ) <replaceable>string</replaceable> [ { <replaceable>unspecified-
   </refsection>
 
   <refsection><info><title>SERVER</title></info>
-
     <literallayout class="normal">
 server <replaceable>netprefix</replaceable> {
 	bogus <replaceable>boolean</replaceable>;
@@ -520,7 +519,6 @@ server <replaceable>netprefix</replaceable> {
   </refsection>
 
   <refsection><info><title>STATISTICS-CHANNELS</title></info>
-
     <literallayout class="normal">
 statistics-channels {
 	inet ( <replaceable>ipv4_address</replaceable> | <replaceable>ipv6_address</replaceable> |
@@ -532,15 +530,15 @@ statistics-channels {
   </refsection>
 
   <refsection><info><title>TRUSTED-KEYS</title></info>
-
+  <para>Deprecated - see DNSSEC-KEYS.</para>
     <literallayout class="normal">
-trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
+trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
+    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>quoted_string</replaceable>; ... };, deprecated
 </literallayout>
   </refsection>
 
   <refsection><info><title>VIEW</title></info>
-
     <literallayout class="normal">
 view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	allow-new-zones <replaceable>boolean</replaceable>;
@@ -612,7 +610,9 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	dnsrps-options { <replaceable>unspecified-text</replaceable> };
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
-	dnssec-enable <replaceable>boolean</replaceable>;
+	dnssec-keys { <replaceable>string</replaceable> ( static-key |
+	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-lookaside ( <replaceable>string</replaceable> trust-anchor
 	    <replaceable>string</replaceable> | auto | no );
@@ -650,9 +650,9 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	key-directory <replaceable>quoted_string</replaceable>;
 	lame-ttl <replaceable>ttlval</replaceable>;
 	lmdb-mapsize <replaceable>sizeval</replaceable>;
-	managed-keys { <replaceable>string</replaceable> <replaceable>string</replaceable>
-	    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-	    <replaceable>quoted_string</replaceable>; ... };
+	managed-keys { <replaceable>string</replaceable> ( static-key |
+	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
 	masterfile-format ( map | raw | text );
 	masterfile-style ( full | relative );
 	match-clients { <replaceable>address_match_element</replaceable>; ... };
@@ -735,11 +735,12 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	resolver-retry-interval <replaceable>integer</replaceable>;
 	response-padding { <replaceable>address_match_element</replaceable>; ... } block-size
 	    <replaceable>integer</replaceable>;
-	response-policy { zone <replaceable>string</replaceable> [ log <replaceable>boolean</replaceable> ] [ max-policy-ttl
-	    <replaceable>ttlval</replaceable> ] [ min-update-interval <replaceable>ttlval</replaceable> ] [ policy ( cname |
-	    disabled | drop | given | no-op | nodata | nxdomain | passthru
-	    | tcp-only <replaceable>quoted_string</replaceable> ) ] [ recursive-only <replaceable>boolean</replaceable> ] [
-	    nsip-enable <replaceable>boolean</replaceable> ] [ nsdname-enable <replaceable>boolean</replaceable> ]; ... } [
+	response-policy { zone <replaceable>string</replaceable> [ add-soa <replaceable>boolean</replaceable> ] [ log
+	    <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>ttlval</replaceable> ] [ min-update-interval
+	    <replaceable>ttlval</replaceable> ] [ policy ( cname | disabled | drop | given | no-op |
+	    nodata | nxdomain | passthru | tcp-only <replaceable>quoted_string</replaceable> ) ] [
+	    recursive-only <replaceable>boolean</replaceable> ] [ nsip-enable <replaceable>boolean</replaceable> ] [
+	    nsdname-enable <replaceable>boolean</replaceable> ]; ... } [ add-soa <replaceable>boolean</replaceable> ] [
 	    break-dnssec <replaceable>boolean</replaceable> ] [ max-policy-ttl <replaceable>ttlval</replaceable> ] [
 	    min-update-interval <replaceable>ttlval</replaceable> ] [ min-ns-dots <replaceable>integer</replaceable> ] [
 	    nsip-wait-recurse <replaceable>boolean</replaceable> ] [ qname-wait-recurse <replaceable>boolean</replaceable> ]
@@ -801,9 +802,10 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	transfer-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * )
 	    ] [ dscp <replaceable>integer</replaceable> ];
 	trust-anchor-telemetry <replaceable>boolean</replaceable>; // experimental
-	trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
-	    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>;
-	    ... };
+	trusted-keys { <replaceable>string</replaceable>
+	    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>integer</replaceable>
+	    <replaceable>quoted_string</replaceable>; ... };, deprecated
 	try-tcp-refresh <replaceable>boolean</replaceable>;
 	update-check-ksk <replaceable>boolean</replaceable>;
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
@@ -915,7 +917,6 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
   </refsection>
 
   <refsection><info><title>ZONE</title></info>
-
     <literallayout class="normal">
 zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	allow-notify { <replaceable>address_match_element</replaceable>; ... };

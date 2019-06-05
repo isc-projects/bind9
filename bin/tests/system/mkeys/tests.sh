@@ -301,7 +301,7 @@ status=`expr $status + $ret`
 echo_i "reinitialize trust anchors, add second key to bind.keys"
 $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} mkeys ns2
 rm -f ns2/managed-keys.bind*
-keyfile_to_managed_keys ns1/$original ns1/$standby1 > ns2/managed.conf
+keyfile_to_initial_keys ns1/$original ns1/$standby1 > ns2/managed.conf
 nextpart ns2/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns2
 
@@ -763,7 +763,7 @@ rm -f ns6/managed-keys.bind*
 nextpart ns6/named.run > /dev/null
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} mkeys ns6
 # log when an unsupported algorithm is encountered during startup
-wait_for_log "ignoring managed key for 'unsupported\.': algorithm is unsupported" ns6/named.run
+wait_for_log "ignoring initial-key for 'unsupported\.': algorithm is unsupported" ns6/named.run
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

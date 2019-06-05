@@ -371,7 +371,7 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' doesn't generates a warning ($n)"
+echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' does not generate a warning ($n)"
 ret=0
 $CHECKCONF good-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] && ret=1
@@ -383,7 +383,7 @@ echo_i "check that the 2010 ICANN ROOT KSK without the 2017 ICANN ROOT KSK gener
 ret=0
 $CHECKCONF check-root-ksk-2010.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
-grep "trusted-key for root from 2010 without updated" checkconf.out$n > /dev/null || ret=1
+grep "key without the updated" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
@@ -395,10 +395,31 @@ $CHECKCONF check-root-ksk-both.conf > checkconf.out$n 2>/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
-echo_i "check that the 2017 ICANN ROOT KSK alone does not warning ($n)"
+echo_i "check that the 2017 ICANN ROOT KSK alone does not generate a warning ($n)"
 ret=0
 $CHECKCONF check-root-ksk-2017.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo_i "check that a static root key generates a warning ($n)"
+ret=0
+$CHECKCONF check-root-static-key.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "static-key entry for the root zone WILL FAIL" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo_i "check that a trusted-keys entry for root generates a warning ($n)"
+ret=0
+$CHECKCONF check-root-trusted-key.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "trusted-keys entry for the root zone WILL FAIL" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+echo_i "check that using dnssec-keys and managed-keys generates an error ($n)"
+ret=0
+$CHECKCONF check-mixed-keys.conf > checkconf.out$n 2>/dev/null && ret=1
+grep "use of managed-keys is not allowed" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
@@ -406,7 +427,7 @@ echo_i "check that the dlv.isc.org KSK generates a warning ($n)"
 ret=0
 $CHECKCONF check-dlv-ksk-key.conf > checkconf.out$n 2>/dev/null || ret=1
 [ -s checkconf.out$n ] || ret=1
-grep "trusted-key for dlv.isc.org still present" checkconf.out$n > /dev/null || ret=1
+grep "trust anchor for dlv.isc.org is present" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 

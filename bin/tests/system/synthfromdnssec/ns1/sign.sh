@@ -39,5 +39,5 @@ cat "$infile" "$keyname.key" > "$zonefile"
 
 $SIGNER -P -g -o $zone $zonefile > /dev/null 2>&1
 
-# Configure the resolving server with a trusted key.
-keyfile_to_trusted_keys "$keyname" > trusted.conf
+# Configure the resolving server with a static key.
+keyfile_to_static_keys "$keyname" > trusted.conf

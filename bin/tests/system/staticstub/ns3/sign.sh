@@ -27,7 +27,7 @@ cat $infile $keyname1.key $keyname2.key > $zonefile
 $SIGNER -g -o $zone $zonefile > /dev/null 2>&1
 
 # Configure the resolving server with a trusted key.
-keyfile_to_trusted_keys $keyname2 > trusted.conf
+keyfile_to_static_keys $keyname2 > trusted.conf
 
 zone=undelegated
 infile=undelegated.db.in
@@ -38,5 +38,5 @@ cat $infile $keyname1.key $keyname2.key > $zonefile
 
 $SIGNER -g -o $zone $zonefile > /dev/null 2>&1
 
-keyfile_to_trusted_keys $keyname2 >> trusted.conf
+keyfile_to_static_keys $keyname2 >> trusted.conf
 cp trusted.conf ../ns2/trusted.conf
