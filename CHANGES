@@ -1,3 +1,6 @@
+5247.	[cleanup]	The 'cleaning-interval' option has been removed.
+			[GL !1731]
+
 5246.	[func]		Log TSIG if appropriate in 'sending notify to' message.
 			[GL #1058]
 

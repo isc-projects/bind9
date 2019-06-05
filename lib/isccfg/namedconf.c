@@ -1846,7 +1846,7 @@ view_clauses[] = {
 	{ "cache-file", &cfg_type_qstring, 0 },
 	{ "catalog-zones", &cfg_type_catz, 0 },
 	{ "check-names", &cfg_type_checknames, CFG_CLAUSEFLAG_MULTI },
-	{ "cleaning-interval", &cfg_type_uint32, 0 },
+	{ "cleaning-interval", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "clients-per-query", &cfg_type_uint32, 0 },
 	{ "deny-answer-addresses", &cfg_type_denyaddresses, 0 },
 	{ "deny-answer-aliases", &cfg_type_denyaliases, 0 },

@@ -140,7 +140,6 @@ options {\n\
 	check-names response ignore;\n\
 	check-names slave warn;\n\
 	check-spf warn;\n\
-	cleaning-interval 0;  /* now meaningless */\n\
 	clients-per-query 10;\n\
 	dnssec-accept-expired no;\n\
 	dnssec-validation " VALIDATION_DEFAULT "; \n"

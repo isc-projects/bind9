@@ -1804,7 +1804,6 @@ cache_reusable(dns_view_t *originview, dns_view_t *view,
 static bool
 cache_sharable(dns_view_t *originview, dns_view_t *view,
 	       bool new_zero_no_soattl,
-	       unsigned int new_cleaning_interval,
 	       uint64_t new_max_cache_size,
 	       uint32_t new_stale_ttl)
 {
@@ -1819,9 +1818,7 @@ cache_sharable(dns_view_t *originview, dns_view_t *view,
 	 * Check other cache related parameters that must be consistent among
 	 * the sharing views.
 	 */
-	if (dns_cache_getcleaninginterval(originview->cache) !=
-	    new_cleaning_interval ||
-	    dns_cache_getservestalettl(originview->cache) != new_stale_ttl ||
+	if (dns_cache_getservestalettl(originview->cache) != new_stale_ttl ||
 	    dns_cache_getcachesize(originview->cache) != new_max_cache_size) {
 		return (false);
 	}
@@ -3800,7 +3797,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	in_port_t port;
 	dns_cache_t *cache = NULL;
 	isc_result_t result;
-	unsigned int cleaning_interval;
 	size_t max_cache_size;
 	uint32_t max_cache_size_percent = 0;
 	size_t max_adb_size;
@@ -4014,11 +4010,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	 * Obtain configuration parameters that affect the decision of whether
 	 * we can reuse/share an existing cache.
 	 */
-	obj = NULL;
-	result = named_config_get(maps, "cleaning-interval", &obj);
-	INSIST(result == ISC_R_SUCCESS);
-	cleaning_interval = cfg_obj_asuint32(obj) * 60;
-
 	obj = NULL;
 	result = named_config_get(maps, "max-cache-size", &obj);
 	INSIST(result == ISC_R_SUCCESS);
@@ -4306,8 +4297,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	nsc = cachelist_find(cachelist, cachename, view->rdclass);
 	if (nsc != NULL) {
 		if (!cache_sharable(nsc->primaryview, view, zero_no_soattl,
-				    cleaning_interval, max_cache_size,
-				    max_stale_ttl))
+				    max_cache_size, max_stale_ttl))
 		{
 			isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 				      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
@@ -4405,7 +4395,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			CHECK(dns_cache_load(cache));
 	}
 
-	dns_cache_setcleaninginterval(cache, cleaning_interval);
 	dns_cache_setcachesize(cache, max_cache_size);
 	dns_cache_setservestalettl(cache, max_stale_ttl);
 

@@ -82,7 +82,6 @@ dns_cache_flush
 dns_cache_flushname
 dns_cache_flushnode
 dns_cache_getcachesize
-dns_cache_getcleaninginterval
 dns_cache_getname
 dns_cache_getservestalettl
 dns_cache_getstats
@@ -94,7 +93,6 @@ dns_cache_renderjson
 dns_cache_renderxml
 @END LIBXML2
 dns_cache_setcachesize
-dns_cache_setcleaninginterval
 dns_cache_setfilename
 dns_cache_setservestalettl
 dns_cache_updatestats

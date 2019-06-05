@@ -99,9 +99,6 @@ struct cache_cleaner {
 
 	dns_cache_t	*cache;
 	isc_task_t	*task;
-	unsigned int	cleaning_interval; /*% The cleaning-interval from
-					      named.conf, in seconds. */
-	isc_timer_t	*cleaning_timer;
 	isc_event_t	*resched_event;	/*% Sent by cleaner task to
 					   itself to reschedule */
 	isc_event_t	*overmem_event;
@@ -152,9 +149,6 @@ struct dns_cache {
 static isc_result_t
 cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		   isc_timermgr_t *timermgr, cache_cleaner_t *cleaner);
-
-static void
-cleaning_timer_action(isc_task_t *task, isc_event_t *event);
 
 static void
 incremental_cleaning_action(isc_task_t *task, isc_event_t *event);
@@ -521,56 +515,6 @@ dns_cache_dump(dns_cache_t *cache) {
 
 }
 
-void
-dns_cache_setcleaninginterval(dns_cache_t *cache, unsigned int t) {
-	isc_interval_t interval;
-	isc_result_t result;
-
-	LOCK(&cache->lock);
-
-	/*
-	 * It may be the case that the cache has already shut down.
-	 * If so, it has no timer.
-	 */
-	if (cache->cleaner.cleaning_timer == NULL)
-		goto unlock;
-
-	cache->cleaner.cleaning_interval = t;
-
-	if (t == 0) {
-		result = isc_timer_reset(cache->cleaner.cleaning_timer,
-					 isc_timertype_inactive,
-					 NULL, NULL, true);
-	} else {
-		isc_interval_set(&interval, cache->cleaner.cleaning_interval,
-				 0);
-		result = isc_timer_reset(cache->cleaner.cleaning_timer,
-					 isc_timertype_ticker,
-					 NULL, &interval, false);
-	}
-	if (result != ISC_R_SUCCESS)
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
-			      "could not set cache cleaning interval: %s",
-			      isc_result_totext(result));
-
- unlock:
-	UNLOCK(&cache->lock);
-}
-
-unsigned int
-dns_cache_getcleaninginterval(dns_cache_t *cache) {
-	unsigned int t;
-
-	REQUIRE(VALID_CACHE(cache));
-
-	LOCK(&cache->lock);
-	t = cache->cleaner.cleaning_interval;
-	UNLOCK(&cache->lock);
-
-	return (t);
-}
-
 const char *
 dns_cache_getname(dns_cache_t *cache) {
 	REQUIRE(VALID_CACHE(cache));
@@ -599,10 +543,8 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 	cleaner->replaceiterator = false;
 
 	cleaner->task = NULL;
-	cleaner->cleaning_timer = NULL;
 	cleaner->resched_event = NULL;
 	cleaner->overmem_event = NULL;
-	cleaner->cleaning_interval = 0; /* Initially turned off. */
 
 	result = dns_db_createiterator(cleaner->cache->db, false,
 				       &cleaner->iterator);
@@ -628,18 +570,6 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 					 "cache cleaner: "
 					 "isc_task_onshutdown() failed: %s",
 					 dns_result_totext(result));
-			goto cleanup;
-		}
-
-		result = isc_timer_create(timermgr, isc_timertype_inactive,
-					   NULL, NULL, cleaner->task,
-					   cleaning_timer_action, cleaner,
-					   &cleaner->cleaning_timer);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_timer_create() failed: %s",
-					 dns_result_totext(result));
-			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
 
@@ -671,8 +601,6 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 		isc_event_free(&cleaner->overmem_event);
 	if (cleaner->resched_event != NULL)
 		isc_event_free(&cleaner->resched_event);
-	if (cleaner->cleaning_timer != NULL)
-		isc_timer_detach(&cleaner->cleaning_timer);
 	if (cleaner->task != NULL)
 		isc_task_detach(&cleaner->task);
 	if (cleaner->iterator != NULL)
@@ -748,37 +676,12 @@ end_cleaning(cache_cleaner_t *cleaner, isc_event_t *event) {
 	if (result != ISC_R_SUCCESS)
 		dns_dbiterator_destroy(&cleaner->iterator);
 
-	dns_cache_setcleaninginterval(cleaner->cache,
-				      cleaner->cleaning_interval);
-
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
 		      ISC_LOG_DEBUG(1), "end cache cleaning, mem inuse %lu",
 		      (unsigned long)isc_mem_inuse(cleaner->cache->mctx));
 
 	cleaner->state = cleaner_s_idle;
 	cleaner->resched_event = event;
-}
-
-/*
- * This is run once for every cache-cleaning-interval as defined in named.conf.
- */
-static void
-cleaning_timer_action(isc_task_t *task, isc_event_t *event) {
-	cache_cleaner_t *cleaner = event->ev_arg;
-
-	UNUSED(task);
-
-	INSIST(task == cleaner->task);
-	INSIST(event->ev_type == ISC_TIMEREVENT_TICK);
-
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE, DNS_LOGMODULE_CACHE,
-		      ISC_LOG_DEBUG(1), "cache cleaning timer fired, "
-		      "cleaner state = %d", cleaner->state);
-
-	if (cleaner->state == cleaner_s_idle)
-		begin_cleaning(cleaner);
-
-	isc_event_free(&event);
 }
 
 /*
@@ -1122,14 +1025,6 @@ cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 
 	if (cache->references == 0)
 		should_free = true;
-
-	/*
-	 * By detaching the timer in the context of its task,
-	 * we are guaranteed that there will be no further timer
-	 * events.
-	 */
-	if (cache->cleaner.cleaning_timer != NULL)
-		isc_timer_detach(&cache->cleaner.cleaning_timer);
 
 	/* Make sure we don't reschedule anymore. */
 	(void)isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
