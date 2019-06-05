@@ -378,18 +378,18 @@ do
 	case $zone in
 	"dlv.utld")
 		$SIGNER -O full -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-	        keyfile_to_trusted_keys $keyname2 > ../ns5/trusted-dlv.conf
+	        keyfile_to_static_keys $keyname2 > ../ns5/trusted-dlv.conf
 		;;
 	"disabled-algorithm-dlv.utld")
 		$SIGNER -O full -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signer.err
-		keyfile_to_trusted_keys $keyname2 > ../ns8/trusted-dlv-disabled.conf
+		keyfile_to_static_keys $keyname2 > ../ns8/trusted-dlv-disabled.conf
 		;;
 	"unsupported-algorithm-dlv.utld")
 		cp ${keyname2}.key ${keyname2}.tmp
 		$SIGNER -O full -o $zone -f ${outfile}.tmp $zonefile > /dev/null 2> signer.err || cat signer.err
 		awk '$4 == "DNSKEY" { $7 = 255 } $4 == "RRSIG" { $6 = 255 } { print }' ${outfile}.tmp > $outfile
 		awk '$3 == "DNSKEY" { $6 = 255 } { print }' ${keyname2}.tmp > ${keyname2}.key
-		keyfile_to_trusted_keys $keyname2 > ../ns7/trusted-dlv-unsupported.conf
+		keyfile_to_static_keys $keyname2 > ../ns7/trusted-dlv-unsupported.conf
 		;;
 	esac
 

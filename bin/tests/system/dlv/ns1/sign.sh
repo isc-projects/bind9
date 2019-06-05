@@ -32,7 +32,7 @@ $SIGNER -g -o $zone -f $outfile $zonefile > /dev/null 2> signer.err || cat signe
 
 echo_i "signed $zone"
 
-keyfile_to_trusted_keys $keyname2 > trusted.conf
+keyfile_to_static_keys $keyname2 > trusted.conf
 cp trusted.conf ../ns5
 cp trusted.conf ../ns7
 cp trusted.conf ../ns8

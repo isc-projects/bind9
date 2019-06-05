@@ -66,10 +66,10 @@ do
 
 	case $tld in
 	"managed")
-		keyfile_to_managed_keys $keyname1 $keyname2 $keyname3 $keyname4 $keyname5 > ../ns8/managed.conf
+		keyfile_to_initial_keys $keyname1 $keyname2 $keyname3 $keyname4 $keyname5 > ../ns8/managed.conf
 		;;
 	"trusted")
-		keyfile_to_trusted_keys $keyname1 $keyname2 $keyname3 $keyname4 $keyname5 > ../ns8/trusted.conf
+		keyfile_to_static_keys $keyname1 $keyname2 $keyname3 $keyname4 $keyname5 > ../ns8/trusted.conf
 		;;
 	esac
 done

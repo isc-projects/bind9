@@ -30,5 +30,5 @@ zsk=`$KEYGEN -q -a rsasha256 $zone`
 cat $ksk.key $zsk.key dsset-ds.example.net$TP >> $zonefile
 $SIGNER -P -o $zone $zonefile > /dev/null 2>&1
 
-# Configure a trusted key statement (used by delv)
-keyfile_to_trusted_keys $ksk > ../ns5/trusted.conf
+# Configure a static key to be used by delv
+keyfile_to_static_keys $ksk > ../ns5/trusted.conf
