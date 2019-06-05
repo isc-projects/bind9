@@ -14,7 +14,6 @@
 #define ISC_RWLOCK_H 1
 
 #include <inttypes.h>
-#include <pthread.h>
 
 /*! \file isc/rwlock.h */
 
@@ -33,6 +32,7 @@ typedef enum {
 } isc_rwlocktype_t;
 
 #if USE_PTHREAD_RWLOCK
+#include <pthread.h>
 
 struct isc_rwlock {
 	pthread_rwlock_t	rwlock;
