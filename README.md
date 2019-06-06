@@ -48,9 +48,9 @@ versions 4 and 8.  Internet Systems Consortium
 corporation dedicated to providing software and services in support of the
 Internet infrastructure, developed BIND 9 and is responsible for its
 ongoing maintenance and improvement.  BIND is open source software
-licenced under the terms of ISC License for all versions up to and
+licensed under the terms of ISC License for all versions up to and
 including BIND 9.10, and the Mozilla Public License version 2.0 for all
-subsequent verisons.
+subsequent versions.
 
 For a summary of features introduced in past major releases of BIND,
 see the file [HISTORY](HISTORY.md).
@@ -146,7 +146,7 @@ releases.  New features include:
       `fetches-per-server`, this value is not self-tuning.)
     * New stats counters have been added to count queries spilled due to
       these quotas.
-* Added a new `dnssec-keymgr` key mainenance utility, which can generate or
+* Added a new `dnssec-keymgr` key maintenance utility, which can generate or
   update keys as needed to ensure that a zone's keys match a defined DNSSEC
   policy.
 * The experimental "SIT" feature in BIND 9.10 has been renamed "COOKIE" and
@@ -499,7 +499,7 @@ issue number. Prior to 2018, these were usually of the form `[RT #NNN]`
 and referred to entries in the "bind9-bugs" RT database, which was not open
 to the public. More recent entries use the form `[GL #NNN]` or, less often,
 `[GL !NNN]`, which, respectively, refer to issues or merge requests in the
-Gitlab database. Most of these are publically readable, unless they include
+Gitlab database. Most of these are publicly readable, unless they include
 information which is confidential or security senstive.
 
 To look up a Gitlab issue by its number, use the URL
