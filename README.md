@@ -265,7 +265,9 @@ disclosed in CVE-2017-3145.
 #### BIND 9.11.4
 
 BIND 9.11.4 is a maintenance release, and addresses the security flaw
-disclosed in CVE-2018-5738.
+disclosed in CVE-2018-5738. It also introduces "root key sentinel" support,
+enabling validating resolvers to indicate via a special query which trust
+anchors are configured for the root zone.
 
 #### BIND 9.11.5
 
@@ -280,7 +282,8 @@ feature:
 #### BIND 9.11.6
 
 BIND 9.11.6 is a maintenance release, and also addresses the security
-flaws disclosed in CVE-2018-5744, CVE-2018-5745, and CVE-2019-6465.
+flaws disclosed in CVE-2018-5743, CVE-2018-5745, CVE-2018-5744,
+and CVE-2019-6465.
 
 #### BIND 9.11.7
 
