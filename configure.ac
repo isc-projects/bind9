@@ -1478,7 +1478,7 @@ fi
 
 AC_MSG_CHECKING(for OpenSSL library)
 OPENSSL_WARNING=
-openssldirs="/usr /usr/local /usr/local/ssl /usr/pkg /usr/sfw"
+openssldirs="/usr /usr/local /usr/local/ssl /opt/local /usr/pkg /usr/sfw"
 if test "yes" = "$want_native_pkcs11"
 then
 	use_openssl="native_pkcs11"
