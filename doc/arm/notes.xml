@@ -244,7 +244,7 @@
 
   <section xml:id="relnotes_license"><info><title>License</title></info>
     <para>
-      BIND is open source software licenced under the terms of the Mozilla
+      BIND is open source software licensed under the terms of the Mozilla
       Public License, version 2.0 (see the <filename>LICENSE</filename>
       file for the full text).
     </para>
