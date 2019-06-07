@@ -1,3 +1,6 @@
+5251.	[bug]		Statistics were broken in x86 Windows builds.
+			[GL #1081]
+
 	--- 9.14.3 released ---
 
 5244.	[security]	Fixed a race condition in dns_dispatch_getnext()
