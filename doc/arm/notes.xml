@@ -44,12 +44,11 @@
   <section xml:id="relnotes_platforms"><info><title>Supported Platforms</title></info>
     <para>
       Since 9.12, BIND has undergone substantial code refactoring and
-      cleanup, and some very old code has been removed that was needed
-      to support legacy platforms which are no longer supported by their
-      vendors and for which ISC is no longer able to perform quality
-      assurance testing.  Specifically, workarounds for old versions of
-      UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster and IRIX have been
-      removed.
+      cleanup, and some very old code has been removed that supported
+      obsolete operating systems and operating systems for which ISC is
+      no longer able to perform quality assurance testing. Specifically,
+      workarounds for UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster
+      and IRIX have been removed.
     </para>
     <para>
       On UNIX-like systems, BIND now requires support for POSIX.1c
@@ -158,7 +157,7 @@
 
   <section xml:id="relnotes_license"><info><title>License</title></info>
     <para>
-      BIND is open source software licenced under the terms of the Mozilla
+      BIND is open source software licensed under the terms of the Mozilla
       Public License, version 2.0 (see the <filename>LICENSE</filename>
       file for the full text).
     </para>
