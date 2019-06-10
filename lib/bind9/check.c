@@ -3248,14 +3248,15 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 }
 
 static isc_result_t
-record_static_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
-		   isc_log_t *logctx, bool autovalidation)
+record_static_keys(isc_symtab_t *symtab, isc_mem_t *mctx,
+		   const cfg_obj_t *keylist, isc_log_t *logctx,
+		   bool autovalidation)
 {
 	isc_result_t result, ret = ISC_R_SUCCESS;
 	const cfg_listelt_t *elt;
 	dns_fixedname_t fixed;
 	dns_name_t *name;
-	char namebuf[DNS_NAME_FORMATSIZE];
+	char namebuf[DNS_NAME_FORMATSIZE], *p = NULL;
 
 	name = dns_fixedname_initname(&fixed);
 
@@ -3285,9 +3286,14 @@ record_static_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
 
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		symvalue.as_cpointer = obj;
-		result = isc_symtab_define(symtab, namebuf, 1, symvalue,
+		p = isc_mem_strdup(mctx, namebuf);
+		result = isc_symtab_define(symtab, p, 1, symvalue,
 					   isc_symexists_reject);
-		if (result != ISC_R_SUCCESS && result != ISC_R_EXISTS) {
+		if (result == ISC_R_EXISTS) {
+			isc_mem_free(mctx, p);
+		} else if (result != ISC_R_SUCCESS) {
+			isc_mem_free(mctx, p);
+			ret = result;
 			continue;
 		}
 
@@ -3374,7 +3380,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	const cfg_obj_t *keylist = NULL;
 	isc_symtab_t *symtab = NULL;
 
-	result = isc_symtab_create(mctx, 100, NULL, NULL, false, &symtab);
+	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
@@ -3388,7 +3394,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, keylist,
+		tresult = record_static_keys(symtab, mctx, keylist,
 					     logctx, autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
@@ -3400,7 +3406,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, keylist,
+		tresult = record_static_keys(symtab, mctx, keylist,
 					     logctx, autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
@@ -3412,7 +3418,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, keylist,
+		tresult = record_static_keys(symtab, mctx, keylist,
 					     logctx, autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
@@ -3424,7 +3430,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, keylist,
+		tresult = record_static_keys(symtab, mctx, keylist,
 					     logctx, autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
