@@ -21,7 +21,7 @@ CDEFINES =	@CRYPTO@ -DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
 ISCLIBS =	../../isc/libisc.@A@
 ISCDEPLIBS =	../../isc/libisc.@A@
-DNSLIBS =	../libdns.@A@ @DNS_CRYPTO_LIBS@
+DNSLIBS =	../libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../libdns.@A@
 
 LIBS =		@LIBS@ @CMOCKA_LIBS@

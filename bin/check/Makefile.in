@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: Makefile.in,v 1.36 2009/12/05 23:31:40 each Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -23,7 +21,7 @@ CINCLUDES =	${BIND9_INCLUDES} ${DNS_INCLUDES} ${ISCCFG_INCLUDES} \
 CDEFINES = 	@CRYPTO@ -DNAMED_CONFFILE=\"${sysconfdir}/named.conf\"
 CWARNINGS =
 
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
