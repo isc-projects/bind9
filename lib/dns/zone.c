@@ -501,7 +501,7 @@ struct dns_zone {
 #define DNS_ZONELOADFLAG_THAW  0x00000002U     /* Thaw the zone on successful
 						  load. */
 
-#define UNREACH_CHACHE_SIZE	10U
+#define UNREACH_CACHE_SIZE	10U
 #define UNREACH_HOLD_TIME	600	/* 10 minutes */
 
 #define CHECK(op) \
@@ -512,9 +512,9 @@ struct dns_zone {
 struct dns_unreachable {
 	isc_sockaddr_t	remote;
 	isc_sockaddr_t	local;
-	uint32_t	expire;
-	uint32_t	last;
-	uint32_t	count;
+	atomic_uint_fast32_t	expire;
+	atomic_uint_fast32_t	last;
+	uint32_t		count;
 };
 
 struct dns_zonemgr {
@@ -557,7 +557,7 @@ struct dns_zonemgr {
 
 	/* Locked by urlock. */
 	/* LRU cache */
-	struct dns_unreachable	unreachable[UNREACH_CHACHE_SIZE];
+	struct dns_unreachable	unreachable[UNREACH_CACHE_SIZE];
 };
 
 /*%
@@ -17339,30 +17339,24 @@ dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 			isc_sockaddr_t *local, isc_time_t *now)
 {
 	unsigned int i;
-	isc_rwlocktype_t locktype;
-	isc_result_t result;
 	uint32_t seconds = isc_time_seconds(now);
 	uint32_t count = 0;
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
-	locktype = isc_rwlocktype_read;
-	RWLOCK(&zmgr->urlock, locktype);
-	for (i = 0; i < UNREACH_CHACHE_SIZE; i++) {
+	RWLOCK(&zmgr->urlock, isc_rwlocktype_read);
+	for (i = 0; i < UNREACH_CACHE_SIZE; i++) {
 		if (zmgr->unreachable[i].expire >= seconds &&
 		    isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
 		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local)) {
-			result = isc_rwlock_tryupgrade(&zmgr->urlock);
-			if (result == ISC_R_SUCCESS) {
-				locktype = isc_rwlocktype_write;
-				zmgr->unreachable[i].last = seconds;
-				count = zmgr->unreachable[i].count;
-			}
+			atomic_store_relaxed(&zmgr->unreachable[i].last,
+					     seconds);
+			count = zmgr->unreachable[i].count;
 			break;
 		}
 	}
-	RWUNLOCK(&zmgr->urlock, locktype);
-	return (i < UNREACH_CHACHE_SIZE && count > 1U);
+	RWUNLOCK(&zmgr->urlock, isc_rwlocktype_read);
+	return (i < UNREACH_CACHE_SIZE && count > 1U);
 }
 
 void
@@ -17370,9 +17364,6 @@ dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 			   isc_sockaddr_t *local)
 {
 	unsigned int i;
-	isc_rwlocktype_t locktype;
-	isc_result_t result;
-
 	char master[ISC_SOCKADDR_FORMATSIZE];
 	char source[ISC_SOCKADDR_FORMATSIZE];
 
@@ -17381,27 +17372,15 @@ dns_zonemgr_unreachabledel(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
-	locktype = isc_rwlocktype_read;
-	RWLOCK(&zmgr->urlock, locktype);
-	for (i = 0; i < UNREACH_CHACHE_SIZE; i++) {
+	RWLOCK(&zmgr->urlock, isc_rwlocktype_read);
+	for (i = 0; i < UNREACH_CACHE_SIZE; i++) {
 		if (isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
 		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local)) {
-			if (zmgr->unreachable[i].expire == 0)
-				break;
-			result = isc_rwlock_tryupgrade(&zmgr->urlock);
-			if (result == ISC_R_SUCCESS) {
-				locktype = isc_rwlocktype_write;
-				zmgr->unreachable[i].expire = 0;
-				isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
-					      DNS_LOGMODULE_ZONE, ISC_LOG_INFO,
-					      "master %s (source %s) deleted "
-					      "from unreachable cache",
-					      master, source);
-			}
+			atomic_store_relaxed(&zmgr->unreachable[i].expire, 0);
 			break;
 		}
 	}
-	RWUNLOCK(&zmgr->urlock, locktype);
+	RWUNLOCK(&zmgr->urlock, isc_rwlocktype_read);
 }
 
 void
@@ -17409,56 +17388,53 @@ dns_zonemgr_unreachableadd(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 			   isc_sockaddr_t *local, isc_time_t *now)
 {
 	uint32_t seconds = isc_time_seconds(now);
-	uint32_t last = seconds;
-	unsigned int i, slot = UNREACH_CHACHE_SIZE, oldest = 0;
-
+	uint32_t expire = 0, last = seconds;
+	unsigned int slot = UNREACH_CACHE_SIZE, oldest = 0;
+	bool update_entry = true;
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
 	RWLOCK(&zmgr->urlock, isc_rwlocktype_write);
-	for (i = 0; i < UNREACH_CHACHE_SIZE; i++) {
+	for (unsigned int i = 0; i < UNREACH_CACHE_SIZE; i++) {
 		/* Existing entry? */
 		if (isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
 		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local))
-			break;
-		/* Empty slot? */
-		if (zmgr->unreachable[i].expire < seconds)
+		{
+			update_entry = false;
 			slot = i;
-		/* Least recently used slot? */
-		if (zmgr->unreachable[i].last < last) {
-			last = zmgr->unreachable[i].last;
+			expire = atomic_load_relaxed(&zmgr->unreachable[i].expire);
+			break;
+		}
+		/* Pick first empty slot? */
+		if (atomic_load_relaxed(&zmgr->unreachable[i].expire) < seconds) {
+			slot = i;
+			break;
+		}
+		/* The worst case, least recently used slot? */
+		if (atomic_load_relaxed(&zmgr->unreachable[i].last) < last) {
+			last = atomic_load_relaxed(&zmgr->unreachable[i].last);
 			oldest = i;
 		}
 	}
-	if (i < UNREACH_CHACHE_SIZE) {
-		/*
-		 * Found a existing entry.  Update the expire timer and
-		 * last usage timestamps.
-		 */
-		zmgr->unreachable[i].expire = seconds + UNREACH_HOLD_TIME;
-		zmgr->unreachable[i].last = seconds;
-		if (zmgr->unreachable[i].expire < seconds)
-			zmgr->unreachable[i].count = 1;
-		else
-			zmgr->unreachable[i].count++;
-	} else if (slot != UNREACH_CHACHE_SIZE) {
-		/*
-		 * Found a empty slot. Add a new entry to the cache.
-		 */
-		zmgr->unreachable[slot].expire = seconds + UNREACH_HOLD_TIME;
-		zmgr->unreachable[slot].last = seconds;
-		zmgr->unreachable[slot].remote = *remote;
-		zmgr->unreachable[slot].local = *local;
+
+	/* We haven't found any existing or free slots, use the oldest */
+	if (slot == UNREACH_CACHE_SIZE) {
+		slot = oldest;
+	}
+
+	if (expire < seconds) {
+		/* Expired or new entry, reset count to 1 */
 		zmgr->unreachable[slot].count = 1;
 	} else {
-		/*
-		 * Replace the least recently used entry in the cache.
-		 */
-		zmgr->unreachable[oldest].expire = seconds + UNREACH_HOLD_TIME;
-		zmgr->unreachable[oldest].last = seconds;
-		zmgr->unreachable[oldest].remote = *remote;
-		zmgr->unreachable[oldest].local = *local;
-		zmgr->unreachable[oldest].count = 1;
+		zmgr->unreachable[slot].count++;
 	}
+	atomic_store_relaxed(&zmgr->unreachable[slot].expire,
+			     seconds + UNREACH_HOLD_TIME);
+	atomic_store_relaxed(&zmgr->unreachable[slot].last, seconds);
+	if (update_entry) {
+		zmgr->unreachable[slot].remote = *remote;
+		zmgr->unreachable[slot].local = *local;
+	}
+
 	RWUNLOCK(&zmgr->urlock, isc_rwlocktype_write);
 }
 
