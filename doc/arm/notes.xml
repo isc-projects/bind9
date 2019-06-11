@@ -115,6 +115,28 @@
     <itemizedlist>
       <listitem>
 	<para>
+	  In order to clarify the configuration of DNSSEC keys,
+	  the <command>trusted-keys</command> and
+	  <command>managed-keys</command> statements have been
+	  deprecated, and the new <command>dnssec-keys</command>
+	  statement should now be used for both types of key.
+	</para>
+	<para>
+	  When used with the keyword <command>initial-key</command>,
+	  <command>dnssec-keys</command> has the same behavior as
+	  <command>managed-keys</command>, i.e., it configures
+	  a trust anchor that is to be maintained via RFC 5011.
+	</para>
+	<para>
+	  When used with the new keyword <command>static-key</command>, it
+	  has the same behavior as <command>trusted-keys</command>,
+	  configuring a permanent trust anchor that will not automatically
+	  be updated.  (This usage is not recommended for the root key.)
+	  [GL #6]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
 	  The new <command>add-soa</command> option specifies whether
 	  or not the <command>response-policy</command> zone's SOA record
 	  should be included in the additional section of RPZ responses.
@@ -144,19 +166,6 @@
 
   <section xml:id="relnotes_changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
-      <listitem>
-	<para>
-	  The new <command>dnssec-keys</command> statement can now be
-	  used to configure all DNSSEC trust anchors.  The older
-	  <command>managed-keys</command> statement is a synonym for
-	  <command>dnssec-keys</command>, retained for backward
-	  compatibility. Both statements can now use the
-	  keyword <command>static-key</command> in place of
-	  <command>initial-key</command> if it is necessary to
-	  configure trusted keys for which RFC 5011 trust anchor
-	  maintenance is not to be used. [GL #6]
- 	</para>
-      </listitem>
       <listitem>
  	<para>
  	  <command>named</command> will now log a warning if
@@ -208,33 +217,6 @@
     </itemizedlist>
   </section>
 
-  <section xml:id="relnotes_removed"><info><title>Removed Features</title></info>
-    <itemizedlist>
-      <listitem>
-	<para>
-	  In order to clarify the configuration of DNSSEC keys,
-	  the <command>trusted-keys</command> and
-	  <command>managed-keys</command> statement has been
-	  deprecated.  The new <command>dnssec-keys</command> should
-	  be used for both types of keys.
-	</para>
-	<para>
-	  When used with the keyword <command>initial-key</command>,
-	  <command>dnssec-keys</command> has the same behavior as
-	  <command>managed-keys</command>, i.e., it configures
-	  a trust anchor that is to be maintained via RFC 5011.
-	</para>
-	<para>
-	  When used with the new keyword <command>static-key</command>, it
-	  has the same behavior as <command>trusted-keys</command>,
-	  configuring a permanent trust anchor that will not automatically
-	  be updated.  This usage is not recommended for the root key.
-	  [GL #6]
-	</para>
-      </listitem>
-    </itemizedlist>
-  </section>
-
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
@@ -245,6 +227,17 @@
 	  <command>options</command> or <command>view</command> level.
 	  This has now been corrected.
 	  [GL #913]
+	</para>
+      </listitem>
+      <listitem>
+        <para>
+	  When <command>qname-minimization</command> was set to
+          <command>relaxed</command>, some improperly configured domains
+          would fail to resolve, but would have succeeded when minimization
+          was disabled. <command>named</command> will now fall back to normal
+          resolution in such cases, and also uses type A rather than NS for
+          minimal queries in order to reduce the likelihood of encountering
+          the problem. [GL #1055]
 	</para>
       </listitem>
     </itemizedlist>

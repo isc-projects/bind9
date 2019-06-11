@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.0</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.1</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
@@ -55,7 +55,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.0</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.1</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -145,7 +145,15 @@
 	<p>
 	  The TCP client quota set using the <span class="command"><strong>tcp-clients</strong></span>
 	  option could be exceeded in some cases. This could lead to
-	  exhaustion of file descriptors. (CVE-2018-5743) [GL #615]
+	  exhaustion of file descriptors. This flaw is disclosed in
+	  CVE-2018-5743. [GL #615]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  A race condition could trigger an assertion failure when
+	  a large number of incoming packets were being rejected.
+	  This flaw is disclosed in CVE-2019-6471. [GL #942]
 	</p>
       </li>
 </ul></div>
@@ -154,26 +162,58 @@
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_features"></a>New Features</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  In order to clarify the configuration of DNSSEC keys,
+	  the <span class="command"><strong>trusted-keys</strong></span> and
+	  <span class="command"><strong>managed-keys</strong></span> statements have been
+	  deprecated, and the new <span class="command"><strong>dnssec-keys</strong></span>
+	  statement should now be used for both types of key.
+	</p>
+	<p>
+	  When used with the keyword <span class="command"><strong>initial-key</strong></span>,
+	  <span class="command"><strong>dnssec-keys</strong></span> has the same behavior as
+	  <span class="command"><strong>managed-keys</strong></span>, i.e., it configures
+	  a trust anchor that is to be maintained via RFC 5011.
+	</p>
+	<p>
+	  When used with the new keyword <span class="command"><strong>static-key</strong></span>, it
+	  has the same behavior as <span class="command"><strong>trusted-keys</strong></span>,
+	  configuring a permanent trust anchor that will not automatically
+	  be updated.  (This usage is not recommended for the root key.)
+	  [GL #6]
+	</p>
+      </li>
+<li class="listitem">
 	<p>
 	  The new <span class="command"><strong>add-soa</strong></span> option specifies whether
 	  or not the <span class="command"><strong>response-policy</strong></span> zone's SOA record
 	  should be included in the additional section of RPZ responses.
 	  [GL #865]
         </p>
-      </li></ul></div>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_removed"></a>Removed Features</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
 	<p>
 	  The <span class="command"><strong>dnssec-enable</strong></span> option has been deprecated and
 	  no longer has any effect. DNSSEC responses are always enabled
 	  if signatures and other DNSSEC data are present. [GL #866]
 	</p>
-      </li></ul></div>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>cleaning-interval</strong></span> option has been
+	  removed.  [GL !1731]
+	</p>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
@@ -181,10 +221,17 @@
 <a name="relnotes_changes"></a>Feature Changes</h3></div></div></div>
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
+ 	<p>
+ 	  <span class="command"><strong>named</strong></span> will now log a warning if
+	  a static key is configured for the root zone, or if
+	  any key is configured for "dlv.isc.org", which has been shut
+	  down. [GL #6]
+	</p>
+      </li>
+<li class="listitem">
 	<p>
-	  When <span class="command"><strong>trusted-keys</strong></span> and
-	  <span class="command"><strong>managed-keys</strong></span> were both configured for the
-	  same name, or when <span class="command"><strong>trusted-keys</strong></span> was used to
+	  When static and managed DNSSEC keys were both configured for the
+	  same name, or when a static key was used to
 	  configure a trust anchor for the root zone and
 	  <span class="command"><strong>dnssec-validation</strong></span> was set to the default
 	  value of <code class="literal">auto</code>, automatic RFC 5011 key
@@ -209,13 +256,26 @@
 	  <span class="command"><strong>dnssec-checkds</strong></span>.
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	  JSON-C is now the only supported library for enabling JSON
+	  support for BIND statistics. The <span class="command"><strong>configure</strong></span>
+	  option has been renamed from <span class="command"><strong>--with-libjson</strong></span>
+	  to <span class="command"><strong>--with-json-c</strong></span>.  Use
+	  <span class="command"><strong>PKG_CONFIG_PATH</strong></span> to specify a custom path to
+	  the <span class="command"><strong>json-c</strong></span> library as the new
+	  <span class="command"><strong>configure</strong></span> option does not take the library
+	  installation path as an optional argument.
+	</p>
+      </li>
 </ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
         <p>
 	  The <span class="command"><strong>allow-update</strong></span> and
 	  <span class="command"><strong>allow-update-forwarding</strong></span> options were
@@ -224,14 +284,26 @@
 	  This has now been corrected.
 	  [GL #913]
 	</p>
-      </li></ul></div>
+      </li>
+<li class="listitem">
+        <p>
+	  When <span class="command"><strong>qname-minimization</strong></span> was set to
+          <span class="command"><strong>relaxed</strong></span>, some improperly configured domains
+          would fail to resolve, but would have succeeded when minimization
+          was disabled. <span class="command"><strong>named</strong></span> will now fall back to normal
+          resolution in such cases, and also uses type A rather than NS for
+          minimal queries in order to reduce the likelihood of encountering
+          the problem. [GL #1055]
+	</p>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_license"></a>License</h3></div></div></div>
     <p>
-      BIND is open source software licenced under the terms of the Mozilla
+      BIND is open source software licensed under the terms of the Mozilla
       Public License, version 2.0 (see the <code class="filename">LICENSE</code>
       file for the full text).
     </p>
@@ -299,6 +371,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.0 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.1 (Development Release)</p>
 </body>
 </html>
