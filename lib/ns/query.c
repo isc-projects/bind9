@@ -2489,12 +2489,18 @@ query_prefetch(ns_client_t *client, dns_name_t *qname,
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
 					  &client->recursionquota);
-		if (result == ISC_R_SUCCESS && !client->mortal && !TCP(client))
+		if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA) {
+			ns_stats_increment(client->sctx->nsstats,
+					   ns_statscounter_recursclients);
+		}
+		if (result == ISC_R_SUCCESS && !client->mortal &&
+		    !TCP(client))
+		{
 			result = ns_client_replace(client);
-		if (result != ISC_R_SUCCESS)
+		}
+		if (result != ISC_R_SUCCESS) {
 			return;
-		ns_stats_increment(client->sctx->nsstats,
-				   ns_statscounter_recursclients);
+		}
 	}
 
 	tmprdataset = ns_client_newrdataset(client);
@@ -2696,12 +2702,18 @@ query_rpzfetch(ns_client_t *client, dns_name_t *qname, dns_rdatatype_t type) {
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
 					  &client->recursionquota);
-		if (result == ISC_R_SUCCESS && !client->mortal && !TCP(client))
+		if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA) {
+			ns_stats_increment(client->sctx->nsstats,
+					   ns_statscounter_recursclients);
+		}
+		if (result == ISC_R_SUCCESS && !client->mortal &&
+		    !TCP(client))
+		{
 			result = ns_client_replace(client);
-		if (result != ISC_R_SUCCESS)
+		}
+		if (result != ISC_R_SUCCESS) {
 			return;
-		ns_stats_increment(client->sctx->nsstats,
-				   ns_statscounter_recursclients);
+		}
 	}
 
 	tmprdataset = ns_client_newrdataset(client);
@@ -5722,9 +5734,10 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 	if (client->recursionquota == NULL) {
 		result = isc_quota_attach(&client->sctx->recursionquota,
 					  &client->recursionquota);
-
-		ns_stats_increment(client->sctx->nsstats,
-				   ns_statscounter_recursclients);
+		if (result == ISC_R_SUCCESS || result == ISC_R_SOFTQUOTA) {
+			ns_stats_increment(client->sctx->nsstats,
+					   ns_statscounter_recursclients);
+		}
 
 		if  (result == ISC_R_SOFTQUOTA) {
 			static atomic_uint_fast32_t last = 0;
