@@ -105,9 +105,9 @@
 #include <named/client.h>
 #include <named/config.h>
 #include <named/control.h>
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 #include <named/geoip.h>
-#endif /* HAVE_GEOIP */
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 #include <named/interfacemgr.h>
 #include <named/log.h>
 #include <named/logconf.h>
@@ -7631,7 +7631,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	}
 	isc__socketmgr_setreserved(ns_g_socketmgr, reserved);
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	/*
 	 * Initialize GeoIP databases from the configured location.
 	 * This should happen before configuring any ACLs, so that we
@@ -7653,7 +7653,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	result = ns_config_get(maps, "geoip-use-ecs", &obj);
 	INSIST(result == ISC_R_SUCCESS);
 	ns_g_server->aclenv.geoip_use_ecs = cfg_obj_asboolean(obj);
-#endif /* HAVE_GEOIP */
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
 	/*
 	 * Configure various server options.
@@ -8960,9 +8960,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 #ifdef HAVE_DNSTAP
 	dns_dt_shutdown();
 #endif
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	dns_geoip_shutdown();
-#endif
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
 	dns_db_detach(&server->in_roothints);
 
@@ -8995,7 +8995,7 @@ ns_server_create(isc_mem_t *mctx, ns_server_t **serverp) {
 	result = dns_aclenv_init(mctx, &server->aclenv);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	/* Initialize GeoIP before using ACL environment */
 	ns_geoip_init();
 	server->aclenv.geoip = ns_g_geoip;

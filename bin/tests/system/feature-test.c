@@ -129,6 +129,14 @@ main(int argc, char **argv) {
 #endif
 	}
 
+	if (strcmp(argv[1], "--have-geoip2") == 0) {
+#ifdef HAVE_GEOIP2
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
 	if (strcmp(argv[1], "--have-libxml2") == 0) {
 #ifdef HAVE_LIBXML2
 		return (0);

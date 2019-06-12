@@ -35,12 +35,6 @@
 #include <dns/types.h>
 #include <dns/iptable.h>
 
-#ifdef HAVE_GEOIP
-#include <GeoIP.h>
-#else
-typedef void GeoIP;
-#endif
-
 /***
  *** Types
  ***/
@@ -77,7 +71,7 @@ typedef enum {
 
 typedef struct dns_geoip_elem {
 	dns_geoip_subtype_t subtype;
-	GeoIP *db;
+	void *db;
 	union {
 		char as_string[256];
 		int as_int;
@@ -85,16 +79,24 @@ typedef struct dns_geoip_elem {
 } dns_geoip_elem_t;
 
 typedef struct dns_geoip_databases {
-	GeoIP *country_v4;			/* DB 1        */
-	GeoIP *city_v4;				/* DB 2 or 6   */
-	GeoIP *region;				/* DB 3 or 7   */
-	GeoIP *isp;				/* DB 4        */
-	GeoIP *org;				/* DB 5        */
-	GeoIP *as;				/* DB 9        */
-	GeoIP *netspeed;			/* DB 10       */
-	GeoIP *domain;				/* DB 11       */
-	GeoIP *country_v6;			/* DB 12       */
-	GeoIP *city_v6;				/* DB 30 or 31 */
+#if defined(HAVE_GEOIP2)
+	void *country;		/* GeoIP2-Country or GeoLite2-Country */
+	void *city;		/* GeoIP2-CIty or GeoLite2-City */
+	void *domain;		/* GeoIP2-Domain */
+	void *isp;		/* GeoIP2-ISP */
+	void *as;		/* GeoIP2-ASN or GeoLite2-ASN */
+#elif defined(HAVE_GEOIP)
+	void *country_v4;	/* DB 1        */
+	void *city_v4;		/* DB 2 or 6   */
+	void *region;		/* DB 3 or 7   */
+	void *isp;		/* DB 4        */
+	void *org;		/* DB 5        */
+	void *as;		/* DB 9        */
+	void *netspeed;		/* DB 10       */
+	void *domain;		/* DB 11       */
+	void *country_v6;	/* DB 12       */
+	void *city_v6;		/* DB 30 or 31 */
+#endif
 } dns_geoip_databases_t;
 
 /***

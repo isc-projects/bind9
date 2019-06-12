@@ -389,7 +389,7 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 				return result;
 		}
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 		/* Duplicate GeoIP data */
 		if (source->elements[i].type == dns_aclelementtype_geoip) {
 			dest->elements[nelem + i].geoip_elem =
@@ -485,7 +485,7 @@ dns_aclelement_match2(const isc_netaddr_t *reqaddr,
 		inner = env->localnets;
 		break;
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	case dns_aclelementtype_geoip:
 		if (env == NULL || env->geoip == NULL)
 			return (false);
@@ -665,7 +665,7 @@ dns_acl_isinsecure(const dns_acl_t *a) {
 				return (true);
 			continue;
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 		case dns_aclelementtype_geoip:
 #endif
 		case dns_aclelementtype_localnets:
@@ -697,7 +697,7 @@ dns_aclenv_init(isc_mem_t *mctx, dns_aclenv_t *env) {
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_localhost;
 	env->match_mapped = false;
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	env->geoip = NULL;
 	env->geoip_use_ecs = false;
 #endif
@@ -716,8 +716,9 @@ dns_aclenv_copy(dns_aclenv_t *t, dns_aclenv_t *s) {
 	dns_acl_detach(&t->localnets);
 	dns_acl_attach(s->localnets, &t->localnets);
 	t->match_mapped = s->match_mapped;
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	t->geoip_use_ecs = s->geoip_use_ecs;
+	t->geoip = s->geoip;
 #endif
 }
 

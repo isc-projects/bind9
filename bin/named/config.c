@@ -170,7 +170,7 @@ options {\n\
 	filter-aaaa-on-v6 no;\n\
 	filter-aaaa { any; };\n"
 #endif
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 "	geoip-use-ecs yes;\n"
 #endif
 "	lame-ttl 600;\n"
