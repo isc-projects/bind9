@@ -39,7 +39,7 @@
 
 /* TODO GEOIP2 */
 #define TEST_GEOIP_DATA ""
-#elif defined(HAVE_GEOI2)
+#elif defined(HAVE_GEOIP)
 #include <GeoIP.h>
 
 /* We use GeoIP databases from the 'geoip' system test */
@@ -67,6 +67,8 @@ _teardown(void **state) {
 
 	return (0);
 }
+
+static dns_geoip_databases_t geoip = DNS_GEOIP_DATABASE_INIT;
 #endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
 #ifdef HAVE_GEOIP
@@ -74,9 +76,7 @@ _teardown(void **state) {
  * Helper functions
  * (Mostly copied from bin/named/geoip.c)
  */
-static dns_geoip_databases_t geoip = {
-	NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL
-};
+static dns_geoip_databases_t geoip = { NULL };
 
 static void
 init_geoip_db(void **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
