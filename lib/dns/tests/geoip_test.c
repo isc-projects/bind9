@@ -34,12 +34,19 @@
 
 #include "dnstest.h"
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP2)
+#include <maxminddb.h>
+
+/* TODO GEOIP2 */
+#define TEST_GEOIP_DATA ""
+#elif defined(HAVE_GEOI2)
 #include <GeoIP.h>
 
 /* We use GeoIP databases from the 'geoip' system test */
 #define TEST_GEOIP_DATA "../../../bin/tests/system/geoip/data"
+#endif
 
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 static int
 _setup(void **state) {
 	isc_result_t result;
@@ -60,7 +67,9 @@ _teardown(void **state) {
 
 	return (0);
 }
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
+#ifdef HAVE_GEOIP
 /*
  * Helper functions
  * (Mostly copied from bin/named/geoip.c)
@@ -70,14 +79,14 @@ static dns_geoip_databases_t geoip = {
 };
 
 static void
-init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
+init_geoip_db(void **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 	      GeoIPOptions method, const char *name)
 {
 	GeoIP *db;
 
 	REQUIRE(dbp != NULL);
 
-	db = *dbp;
+	db = (GeoIP *)*dbp;
 
 	if (db != NULL) {
 		GeoIP_delete(db);
@@ -565,7 +574,10 @@ netspeed(void **state) {
 
 int
 main(void) {
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP2)
+	/* TODO GEOIP2 */
+	print_message("1..0 # Skip geoip2 tests not complete\n");
+#elif defined(HAVE_GEOIP)
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(country, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(country_v6, _setup, _teardown),
@@ -583,7 +595,7 @@ main(void) {
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 #else
 	print_message("1..0 # Skip geoip not enabled\n");
-#endif /* HAVE_GEOIP */
+#endif
 }
 
 #else /* HAVE_CMOCKA */
