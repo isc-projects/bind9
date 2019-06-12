@@ -24,7 +24,7 @@ static dns_geoip_databases_t geoip_table = {
 };
 
 static void
-init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
+init_geoip_db(void **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 	      GeoIPOptions method, const char *name)
 {
 	char *info;
@@ -32,7 +32,7 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 
 	REQUIRE(dbp != NULL);
 
-	db = *dbp;
+	db = (GeoIP *)*dbp;
 
 	if (db != NULL) {
 		GeoIP_delete(db);
@@ -79,23 +79,22 @@ init_geoip_db(GeoIP **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
 
 void
 named_geoip_init(void) {
-#ifndef HAVE_GEOIP
-	return;
-#else
+#if defined(HAVE_GEOIP2)
+	/* TODO GEOIP2 */
+#elif defined(HAVE_GEOIP)
 	GeoIP_cleanup();
 	if (named_g_geoip == NULL)
 		named_g_geoip = &geoip_table;
+#else
+	return;
 #endif
 }
 
 void
 named_geoip_load(char *dir) {
-#ifndef HAVE_GEOIP
-
-	UNUSED(dir);
-
-	return;
-#else
+#if defined(HAVE_GEOIP2)
+	/* TODO GEOIP2 */
+#elif defined(HAVE_GEOIP)
 	GeoIPOptions method;
 
 #ifdef _WIN32
@@ -139,5 +138,9 @@ named_geoip_load(char *dir) {
 		      method, "Domain");
 	init_geoip_db(&named_g_geoip->netspeed, GEOIP_NETSPEED_EDITION, 0,
 		      method, "NetSpeed");
-#endif /* HAVE_GEOIP */
+#else
+	UNUSED(dir);
+
+	return;
+#endif
 }
