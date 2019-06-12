@@ -44,11 +44,15 @@ typedef enum {
 	dns_geoip_countrycode,
 	dns_geoip_countrycode3,
 	dns_geoip_countryname,
+	dns_geoip_continentcode,
+	dns_geoip_continent,
 	dns_geoip_region,
 	dns_geoip_regionname,
 	dns_geoip_country_code,
 	dns_geoip_country_code3,
 	dns_geoip_country_name,
+	dns_geoip_country_continentcode,
+	dns_geoip_country_continent,
 	dns_geoip_region_countrycode,
 	dns_geoip_region_code,
 	dns_geoip_region_name,
@@ -62,6 +66,7 @@ typedef enum {
 	dns_geoip_city_metrocode,
 	dns_geoip_city_areacode,
 	dns_geoip_city_continentcode,
+	dns_geoip_city_continent,
 	dns_geoip_city_timezonecode,
 	dns_geoip_isp_name,
 	dns_geoip_org_name,
@@ -86,6 +91,8 @@ typedef struct dns_geoip_databases {
 	void *domain;		/* GeoIP2-Domain */
 	void *isp;		/* GeoIP2-ISP */
 	void *as;		/* GeoIP2-ASN or GeoLite2-ASN */
+#define DNS_GEOIP_DATABASE_INIT \
+	{ NULL, NULL, NULL, NULL, NULL }
 #elif defined(HAVE_GEOIP)
 	void *country_v4;	/* DB 1        */
 	void *city_v4;		/* DB 2 or 6   */
@@ -97,6 +104,8 @@ typedef struct dns_geoip_databases {
 	void *domain;		/* DB 11       */
 	void *country_v6;	/* DB 12       */
 	void *city_v6;		/* DB 30 or 31 */
+#define DNS_GEOIP_DATABASE_INIT \
+	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 #endif
 } dns_geoip_databases_t;
 

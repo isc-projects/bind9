@@ -1328,18 +1328,9 @@ static cfg_type_t cfg_type_geoiptype = {
 	cfg_doc_enum, &cfg_rep_string, &geoiptype_enums
 };
 
-static const char *geoipdb_enums[] = {
-	"asnum", "city", "country", "domain", "isp", "netspeed",
-	"org", "region", NULL
-};
-static cfg_type_t cfg_type_geoipdb = {
-	"geoipdb", cfg_parse_enum, cfg_print_ustring,
-	cfg_doc_enum, &cfg_rep_string, &geoipdb_enums
-};
-
 static cfg_tuplefielddef_t geoip_fields[] = {
 	{ "negated", &cfg_type_void, 0 },
-	{ "db", &cfg_type_geoipdb, 0 },
+	{ "db", &cfg_type_astring, 0 },
 	{ "subtype", &cfg_type_geoiptype, 0 },
 	{ "search", &cfg_type_astring, 0 },
 	{ NULL, NULL, 0 }
@@ -1399,12 +1390,12 @@ static void
 doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type) {
 	UNUSED(type);
 	cfg_print_cstr(pctx, "[ db ");
-	cfg_doc_enum(pctx, &cfg_type_geoipdb);
+	cfg_doc_obj(pctx, &cfg_type_astring);
 	cfg_print_cstr(pctx, " ]");
 	cfg_print_cstr(pctx, " ");
 	cfg_doc_enum(pctx, &cfg_type_geoiptype);
 	cfg_print_cstr(pctx, " ");
-	cfg_print_cstr(pctx, "<quoted_string>");
+	cfg_doc_obj(pctx, &cfg_type_astring);
 }
 #endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
