@@ -1,3 +1,7 @@
+5249.	[bug]		Fix a possible underflow in recursion clients
+			statistics when hitting recursive clients
+			soft quota. [GL #1067]
+
 5248.	[func]		To clarify the configuration of DNSSEC keys,
 			the "managed-keys" and "trusted-keys" options
 			have both been deprecated.  The new "dnssec-keys"
