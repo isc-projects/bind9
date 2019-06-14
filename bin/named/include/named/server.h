@@ -56,9 +56,9 @@ struct named_server {
 	char *			secrootsfile;	/*%< Secroots file name */
 	char *			bindkeysfile;	/*%< bind.keys file name */
 	char *			recfile;	/*%< Recursive file name */
-	bool		version_set;	/*%< User has set version */
+	bool			version_set;	/*%< User has set version */
 	char *			version;	/*%< User-specified version */
-	bool		hostname_set;	/*%< User has set hostname */
+	bool			hostname_set;	/*%< User has set hostname */
 	char *			hostname;	/*%< User-specified hostname */
 
 	/* Server data structures. */
@@ -78,9 +78,9 @@ struct named_server {
 
 	isc_mutex_t		reload_event_lock;
 	isc_event_t *		reload_event;
-	bool			reload_in_progress;
+	named_reload_t		reload_status;
 
-	bool		flushonshutdown;
+	bool			flushonshutdown;
 
 	named_cachelist_t	cachelist;	/*%< Possibly shared caches */
 	isc_stats_t *		zonestats;	/*% Zone management stats */
@@ -98,7 +98,7 @@ struct named_server {
 	dns_name_t		*session_keyname;
 	unsigned int		session_keyalg;
 	uint16_t		session_keybits;
-	bool		interface_auto;
+	bool			interface_auto;
 	unsigned char		secret[32];	/*%< Server Cookie Secret */
 	ns_cookiealg_t		cookiealg;
 
