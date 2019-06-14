@@ -3037,7 +3037,7 @@ internal_accept(isc__socket_t *sock) {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPT]);
 	} else {
 		inc_stats(manager->stats, sock->statsindex[STATID_ACCEPTFAIL]);
-		isc_refcount_decrement(&NEWCONNSOCK(dev)->references);
+		(void)isc_refcount_decrement(&NEWCONNSOCK(dev)->references);
 		free_socket((isc__socket_t **)&dev->newsocket);
 	}
 
@@ -5160,7 +5160,7 @@ isc_socket_cancel(isc_socket_t *sock0, isc_task_t *task, unsigned int how) {
 				ISC_LIST_UNLINK(sock->accept_list, dev,
 						ev_link);
 
-				isc_refcount_decrement(
+				(void)isc_refcount_decrement(
 						&NEWCONNSOCK(dev)->references);
 				free_socket((isc__socket_t **)&dev->newsocket);
 
