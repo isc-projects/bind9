@@ -124,7 +124,7 @@ compare_tuples(const zonediff_t *expected, dns_difftuple_t *found,
 	 * Check owner name.
 	 */
 	expected_name = dns_fixedname_initname(&expected_fname);
-	result = dns_name_fromstring(expected_name, expected->owner, 0, mctx);
+	result = dns_name_fromstring(expected_name, expected->owner, 0, dt_mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_name_format(&found->name, found_name, sizeof(found_name));
 	assert_true(dns_name_equal(expected_name, &found->name));
@@ -233,7 +233,7 @@ updatesigs_test(const updatesigs_test_params_t *test, dns_zone_t *zone,
 	/*
 	 * Initialize the structure dns__zone_updatesigs() will modify.
 	 */
-	dns_diff_init(mctx, &zone_diff);
+	dns_diff_init(dt_mctx, &zone_diff);
 
 	/*
 	 * Check whether dns__zone_updatesigs() behaves as expected.
@@ -314,7 +314,8 @@ updatesigs_next_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_stdtime_get(&now);
-	result = dns__zone_findkeys(zone, db, NULL, now, mctx, DNS_MAXZONEKEYS,
+	result = dns__zone_findkeys(zone, db, NULL, now, dt_mctx,
+				    DNS_MAXZONEKEYS,
 				    zone_keys, &nkeys);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(nkeys, 2);

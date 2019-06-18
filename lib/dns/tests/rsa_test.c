@@ -182,12 +182,12 @@ isc_rsa_verify_test(void **state) {
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	ret = dst_key_fromfile(name, 29235, DST_ALG_RSASHA1,
-			       DST_TYPE_PUBLIC, "./", mctx, &key);
+			       DST_TYPE_PUBLIC, "./", dt_mctx, &key);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
 	/* RSASHA1 */
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+	ret = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_DNSSEC,
 				 false, 0, &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
@@ -207,7 +207,7 @@ isc_rsa_verify_test(void **state) {
 
 	key->key_alg = DST_ALG_RSASHA256;
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+	ret = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_DNSSEC,
 				 false, 0, &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 
@@ -227,7 +227,7 @@ isc_rsa_verify_test(void **state) {
 
 	key->key_alg = DST_ALG_RSASHA512;
 
-	ret = dst_context_create(key, mctx, DNS_LOGCATEGORY_DNSSEC,
+	ret = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_DNSSEC,
 				 false, 0, &ctx);
 	assert_int_equal(ret, ISC_R_SUCCESS);
 

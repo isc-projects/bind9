@@ -63,15 +63,15 @@ static void
 getoriginnode_test(void **state) {
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
-	isc_mem_t *mymctx = NULL;
+	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 
 	UNUSED(state);
 
-	result = isc_mem_create(0, 0, &mymctx);
+	result = isc_mem_create(0, 0, &mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_create(mymctx, "rbt", dns_rootname, dns_dbtype_zone,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -84,23 +84,23 @@ getoriginnode_test(void **state) {
 	dns_db_detachnode(db, &node);
 
 	dns_db_detach(&db);
-	isc_mem_detach(&mymctx);
+	isc_mem_detach(&mctx);
 }
 
 /* test getservestalettl and setservestalettl */
 static void
 getsetservestalettl_test(void **state) {
 	dns_db_t *db = NULL;
-	isc_mem_t *mymctx = NULL;
+	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	dns_ttl_t ttl;
 
 	UNUSED(state);
 
-	result = isc_mem_create(0, 0, &mymctx);
+	result = isc_mem_create(0, 0, &mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_create(mymctx, "rbt", dns_rootname, dns_dbtype_cache,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -119,7 +119,7 @@ getsetservestalettl_test(void **state) {
 	assert_int_equal(ttl, 6 * 3600);
 
 	dns_db_detach(&db);
-	isc_mem_detach(&mymctx);
+	isc_mem_detach(&mctx);
 }
 
 /* check DNS_DBFIND_STALEOK works */
@@ -135,16 +135,16 @@ dns_dbfind_staleok_test(void **state) {
 	dns_rdataset_t rdataset;
 	int count;
 	int pass;
-	isc_mem_t *mymctx = NULL;
+	isc_mem_t *mctx = NULL;
 	isc_result_t result;
 	unsigned char data[] = { 0x0a, 0x00, 0x00, 0x01 };
 
 	UNUSED(state);
 
-	result = isc_mem_create(0, 0, &mymctx);
+	result = isc_mem_create(0, 0, &mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_create(mymctx, "rbt", dns_rootname, dns_dbtype_cache,
+	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -275,7 +275,7 @@ dns_dbfind_staleok_test(void **state) {
 	}
 
 	dns_db_detach(&db);
-	isc_mem_detach(&mymctx);
+	isc_mem_detach(&mctx);
 }
 
 /* database class */
@@ -286,7 +286,7 @@ class_test(void **state) {
 
 	UNUSED(state);
 
-	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
+	result = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -308,7 +308,7 @@ dbtype_test(void **state) {
 	UNUSED(state);
 
 	/* DB has zone semantics */
-	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
+	result = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_db_load(db, "testdata/db/data.db",
@@ -319,7 +319,7 @@ dbtype_test(void **state) {
 	dns_db_detach(&db);
 
 	/* DB has cache semantics */
-	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
+	result = dns_db_create(dt_mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_db_load(db, "testdata/db/data.db",

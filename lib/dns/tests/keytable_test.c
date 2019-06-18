@@ -134,7 +134,7 @@ create_key(uint16_t flags, uint8_t proto, uint8_t alg,
 			 ISC_R_SUCCESS);
 
 	assert_int_equal(dst_key_fromdns(str2name(keynamestr), rdclass,
-					 &rrdatabuf, mctx, target),
+					 &rrdatabuf, dt_mctx, target),
 			 ISC_R_SUCCESS);
 }
 
@@ -148,7 +148,7 @@ create_tables() {
 	result = dns_test_makeview("view", &view);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	assert_int_equal(dns_keytable_create(mctx, &keytable), ISC_R_SUCCESS);
+	assert_int_equal(dns_keytable_create(dt_mctx, &keytable), ISC_R_SUCCESS);
 	assert_int_equal(dns_ntatable_create(view, taskmgr, timermgr,
 					     &ntatable), ISC_R_SUCCESS);
 
@@ -651,7 +651,7 @@ nta_test(void **state) {
 	result = isc_task_create(taskmgr, 0, &myview->task);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_view_initsecroots(myview, mctx);
+	result = dns_view_initsecroots(myview, dt_mctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dns_view_getsecroots(myview, &keytable);
 	assert_int_equal(result, ISC_R_SUCCESS);

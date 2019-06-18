@@ -81,7 +81,7 @@ diffx_same(void **state) {
 	test_create("testdata/diff/zone1.data", &olddb,
 		    "testdata/diff/zone1.data", &newdb);
 
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(dt_mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -107,7 +107,7 @@ diffx_add(void **state) {
 	test_create("testdata/diff/zone1.data", &olddb,
 		    "testdata/diff/zone2.data", &newdb);
 
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(dt_mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -139,7 +139,7 @@ diffx_remove(void **state) {
 	test_create("testdata/diff/zone1.data", &olddb,
 		    "testdata/diff/zone3.data", &newdb);
 
-	dns_diff_init(mctx, &diff);
+	dns_diff_init(dt_mctx, &diff);
 
 	result = dns_db_diffx(&diff, newdb, NULL, olddb, NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);

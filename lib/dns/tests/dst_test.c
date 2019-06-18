@@ -74,7 +74,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 	result = isc_file_getsizefd(fileno(fp), &size);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	data = isc_mem_get(mctx, (size + 1));
+	data = isc_mem_get(dt_mctx, (size + 1));
 	assert_non_null(data);
 
 	len = (size_t)size;
@@ -124,7 +124,7 @@ sig_fromfile(const char *path, isc_buffer_t *buf) {
 	result = ISC_R_SUCCESS;
 
  err:
-	isc_mem_put(mctx, data, size + 1);
+	isc_mem_put(dt_mctx, data, size + 1);
 	return (result);
 }
 
@@ -156,7 +156,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	result = isc_file_getsizefd(fileno(fp), &size);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	data = isc_mem_get(mctx, (size + 1));
+	data = isc_mem_get(dt_mctx, (size + 1));
 	assert_non_null(data);
 
 	p = data;
@@ -178,7 +178,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	result = dns_name_fromtext(name, &b, dns_rootname, 0, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	result = dst_key_fromfile(name, id, alg, type, "testdata/dst",
-				  mctx, &key);
+				  dt_mctx, &key);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_init(&databuf, data, (unsigned int)size);
@@ -199,7 +199,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	 */
 	isc_buffer_remainingregion(&sigbuf, &sigreg);
 
-	result = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL,
+	result = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_GENERAL,
 				    false, 0, &ctx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -209,7 +209,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 
 	if (expect && result != ISC_R_SUCCESS) {
 		isc_result_t result2;
-		result2 = dst_context_create(key, mctx, DNS_LOGCATEGORY_GENERAL,
+		result2 = dst_context_create(key, dt_mctx, DNS_LOGCATEGORY_GENERAL,
 					    false, 0, &ctx);
 		assert_int_equal(result2, ISC_R_SUCCESS);
 
@@ -240,7 +240,7 @@ check_sig(const char *datapath, const char *sigpath, const char *keyname,
 	assert_true((expect && (result == ISC_R_SUCCESS)) ||
 		    (!expect && (result != ISC_R_SUCCESS)));
 
-	isc_mem_put(mctx, data, size + 1);
+	isc_mem_put(dt_mctx, data, size + 1);
 	dst_context_destroy(&ctx);
 	dst_key_free(&key);
 

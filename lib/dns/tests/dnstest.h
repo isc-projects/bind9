@@ -37,7 +37,7 @@ typedef struct {
 
 #define ZONECHANGE_SENTINEL { 0, NULL, 0, NULL, NULL }
 
-extern isc_mem_t *mctx;
+extern isc_mem_t *dt_mctx;
 extern isc_log_t *lctx;
 extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *maintask;

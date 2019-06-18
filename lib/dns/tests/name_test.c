@@ -215,7 +215,7 @@ compression_test(void **state) {
 
 	/* Test 1: NONE */
 	allowed = DNS_COMPRESS_NONE;
-	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 	dns_decompress_setmethods(&dctx, allowed);
@@ -228,7 +228,7 @@ compression_test(void **state) {
 
 	/* Test2: GLOBAL14 */
 	allowed = DNS_COMPRESS_GLOBAL14;
-	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 	dns_decompress_setmethods(&dctx, allowed);
@@ -241,7 +241,7 @@ compression_test(void **state) {
 
 	/* Test3: ALL */
 	allowed = DNS_COMPRESS_ALL;
-	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
 	dns_decompress_setmethods(&dctx, allowed);
@@ -254,7 +254,7 @@ compression_test(void **state) {
 
 	/* Test4: NONE disabled */
 	allowed = DNS_COMPRESS_NONE;
-	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_compress_disable(&cctx);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
@@ -268,7 +268,7 @@ compression_test(void **state) {
 
 	/* Test5: GLOBAL14 disabled */
 	allowed = DNS_COMPRESS_GLOBAL14;
-	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_compress_disable(&cctx);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);
@@ -282,7 +282,7 @@ compression_test(void **state) {
 
 	/* Test6: ALL disabled */
 	allowed = DNS_COMPRESS_ALL;
-	assert_int_equal(dns_compress_init(&cctx, -1, mctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_compress_init(&cctx, -1, dt_mctx), ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, allowed);
 	dns_compress_disable(&cctx);
 	dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_STRICT);

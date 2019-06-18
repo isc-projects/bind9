@@ -171,14 +171,14 @@ test_master(const char *testfile, dns_masterformat_t format,
 
 	result = dns_master_loadfile(testfile, &dns_origin, &dns_origin,
 				     dns_rdataclass_in, true, 0,
-				     &callbacks, NULL, NULL, mctx, format, 0);
+				     &callbacks, NULL, NULL, dt_mctx, format, 0);
 	return (result);
 }
 
 static void
 include_callback(const char *filename, void *arg) {
 	char **argp = (char **) arg;
-	*argp = isc_mem_strdup(mctx, filename);
+	*argp = isc_mem_strdup(dt_mctx, filename);
 }
 
 /*
@@ -356,12 +356,12 @@ master_includelist_test(void **state) {
 				     &dns_origin, &dns_origin,
 				     dns_rdataclass_in, 0, true,
 				     &callbacks, include_callback,
-				     &filename, mctx, dns_masterformat_text, 0);
+				     &filename, dt_mctx, dns_masterformat_text, 0);
 	assert_int_equal(result, DNS_R_SEENINCLUDE);
 	assert_non_null(filename);
 	if (filename != NULL) {
 		assert_string_equal(filename, "testdata/master/master6.data");
-		isc_mem_free(mctx, filename);
+		isc_mem_free(dt_mctx, filename);
 	}
 }
 
@@ -507,7 +507,7 @@ dumpraw_test(void **state) {
 				   0, &target);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_db_create(mctx, "rbt", &dnsorigin, dns_dbtype_zone,
+	result = dns_db_create(dt_mctx, "rbt", &dnsorigin, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -517,7 +517,7 @@ dumpraw_test(void **state) {
 
 	dns_db_currentversion(db, &version);
 
-	result = dns_master_dump(mctx, db, version,
+	result = dns_master_dump(dt_mctx, db, version,
 				 &dns_master_style_default, "test.dump",
 				 dns_masterformat_raw, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -533,7 +533,7 @@ dumpraw_test(void **state) {
 	header.flags |= DNS_MASTERRAW_SOURCESERIALSET;
 
 	unlink("test.dump");
-	result = dns_master_dump(mctx, db, version,
+	result = dns_master_dump(dt_mctx, db, version,
 				 &dns_master_style_default, "test.dump",
 				 dns_masterformat_raw, &header);
 	assert_int_equal(result, ISC_R_SUCCESS);

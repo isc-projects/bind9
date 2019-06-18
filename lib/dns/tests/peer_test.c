@@ -65,7 +65,7 @@ dscp(void **state) {
 	 */
 	ina.s_addr = INADDR_LOOPBACK;
 	isc_netaddr_fromin(&netaddr, &ina);
-	result = dns_peer_new(mctx, &netaddr, &peer);
+	result = dns_peer_new(dt_mctx, &netaddr, &peer);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/*

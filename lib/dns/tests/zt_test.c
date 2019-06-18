@@ -197,7 +197,7 @@ asyncload_zone(void **state) {
 	args.arg1 = zone;
 	args.arg2 = &done;
 	args.arg3 = false;
-	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
+	isc_app_onrun(dt_mctx, maintask, start_zone_asyncload, &args);
 
 	isc_app_run();
 	while (dns__zone_loadpending(zone) && i++ < 5000)
@@ -218,7 +218,7 @@ asyncload_zone(void **state) {
 	args.arg1 = zone;
 	args.arg2 = &done;
 	args.arg3 = true;
-	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
+	isc_app_onrun(dt_mctx, maintask, start_zone_asyncload, &args);
 
 	isc_app_run();
 
@@ -234,7 +234,7 @@ asyncload_zone(void **state) {
 	args.arg1 = zone;
 	args.arg2 = &done;
 	args.arg3 = false;
-	isc_app_onrun(mctx, maintask, start_zone_asyncload, &args);
+	isc_app_onrun(dt_mctx, maintask, start_zone_asyncload, &args);
 
 	isc_app_run();
 
@@ -305,7 +305,7 @@ asyncload_zt(void **state) {
 
 	args.arg1 = zt;
 	args.arg2 = &done;
-	isc_app_onrun(mctx, maintask, start_zt_asyncload, &args);
+	isc_app_onrun(dt_mctx, maintask, start_zt_asyncload, &args);
 
 	isc_app_run();
 	while (!done && i++ < 5000)

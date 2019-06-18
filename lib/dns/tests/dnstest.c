@@ -61,7 +61,7 @@
 		}				\
 	} while (0)
 
-isc_mem_t *mctx = NULL;
+isc_mem_t *dt_mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *maintask = NULL;
@@ -115,9 +115,9 @@ create_managers(void) {
 	isc_result_t result;
 	ncpus = isc_os_ncpus();
 
-	CHECK(isc_taskmgr_create(mctx, ncpus, 0, &taskmgr));
-	CHECK(isc_timermgr_create(mctx, &timermgr));
-	CHECK(isc_socketmgr_create(mctx, &socketmgr));
+	CHECK(isc_taskmgr_create(dt_mctx, ncpus, 0, &taskmgr));
+	CHECK(isc_timermgr_create(dt_mctx, &timermgr));
+	CHECK(isc_socketmgr_create(dt_mctx, &socketmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	return (ISC_R_SUCCESS);
 
@@ -140,14 +140,14 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 		isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 	}
 
-	INSIST(mctx == NULL);
-	CHECK(isc_mem_create(0, 0, &mctx));
+	INSIST(dt_mctx == NULL);
+	CHECK(isc_mem_create(0, 0, &dt_mctx));
 
 	/* Don't check the memory leaks as they hide the assertions */
-	isc_mem_setdestroycheck(mctx, false);
+	isc_mem_setdestroycheck(dt_mctx, false);
 
 	INSIST(!dst_active);
-	CHECK(dst_lib_init(mctx, NULL));
+	CHECK(dst_lib_init(dt_mctx, NULL));
 	dst_active = true;
 
 	if (logfile != NULL) {
@@ -155,7 +155,7 @@ dns_test_begin(FILE *logfile, bool start_managers) {
 		isc_logconfig_t *logconfig = NULL;
 
 		INSIST(lctx == NULL);
-		CHECK(isc_log_create(mctx, &lctx, &logconfig));
+		CHECK(isc_log_create(dt_mctx, &lctx, &logconfig));
 
 		isc_log_registercategories(lctx, categories);
 		isc_log_setcontext(lctx);
@@ -206,8 +206,8 @@ dns_test_end(void) {
 		isc_log_destroy(&lctx);
 	}
 
-	if (mctx != NULL) {
-		isc_mem_destroy(&mctx);
+	if (dt_mctx != NULL) {
+		isc_mem_destroy(&dt_mctx);
 	}
 
 	test_running = false;
@@ -221,7 +221,7 @@ dns_test_makeview(const char *name, dns_view_t **viewp) {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 
-	CHECK(dns_view_create(mctx, dns_rdataclass_in, name, &view));
+	CHECK(dns_view_create(dt_mctx, dns_rdataclass_in, name, &view));
 	*viewp = view;
 
 	return (ISC_R_SUCCESS);
@@ -246,7 +246,7 @@ dns_test_makezone(const char *name, dns_zone_t **zonep, dns_view_t *view,
 	/*
 	 * Create the zone structure.
 	 */
-	result = dns_zone_create(&zone, mctx);
+	result = dns_zone_create(&zone, dt_mctx);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -302,7 +302,7 @@ dns_test_setupzonemgr(void) {
 	isc_result_t result;
 	REQUIRE(zonemgr == NULL);
 
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, socketmgr,
 				    &zonemgr);
 	return (result);
 }
@@ -370,7 +370,7 @@ dns_test_loaddb(dns_db_t **db, dns_dbtype_t dbtype, const char *origin,
 	if (result != ISC_R_SUCCESS)
 		return(result);
 
-	result = dns_db_create(mctx, "rbt", name, dbtype, dns_rdataclass_in,
+	result = dns_db_create(dt_mctx, "rbt", name, dbtype, dns_rdataclass_in,
 			       0, NULL, db);
 	if (result != ISC_R_SUCCESS)
 		return (result);
@@ -508,7 +508,7 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	/*
 	 * Create a lexer as one is required by dns_rdata_fromtext().
 	 */
-	result = isc_lex_create(mctx, 64, &lex);
+	result = isc_lex_create(dt_mctx, 64, &lex);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -554,7 +554,7 @@ dns_test_rdatafromstring(dns_rdata_t *rdata, dns_rdataclass_t rdclass,
 	 * Parse input string, determining result.
 	 */
 	result = dns_rdata_fromtext(rdata, rdclass, rdtype, lex, dns_rootname,
-				    0, mctx, &target, &callbacks);
+				    0, dt_mctx, &target, &callbacks);
 
  destroy_lexer:
 	isc_lex_destroy(&lex);
@@ -573,7 +573,7 @@ dns_test_namefromstring(const char *namestr, dns_fixedname_t *fname) {
 
 	name = dns_fixedname_initname(fname);
 
-	result = isc_buffer_allocate(mctx, &b, length);
+	result = isc_buffer_allocate(dt_mctx, &b, length);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_buffer_putmem(b, (const unsigned char *) namestr, length);
@@ -600,14 +600,14 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
 	REQUIRE(diff != NULL);
 	REQUIRE(changes != NULL);
 
-	dns_diff_init(mctx, diff);
+	dns_diff_init(dt_mctx, diff);
 
 	for (i = 0; changes[i].owner != NULL; i++) {
 		/*
 		 * Parse owner name.
 		 */
 		name = dns_fixedname_initname(&fixedname);
-		result = dns_name_fromstring(name, changes[i].owner, 0, mctx);
+		result = dns_name_fromstring(name, changes[i].owner, 0, dt_mctx);
 		if (result != ISC_R_SUCCESS) {
 			break;
 		}
@@ -640,7 +640,7 @@ dns_test_difffromchanges(dns_diff_t *diff, const zonechange_t *changes,
 		 * Create a diff tuple for the parsed change and append it to
 		 * the diff.
 		 */
-		result = dns_difftuple_create(mctx, changes[i].op, name,
+		result = dns_difftuple_create(dt_mctx, changes[i].op, name,
 					      changes[i].ttl, &rdata, &tuple);
 		if (result != ISC_R_SUCCESS) {
 			break;
