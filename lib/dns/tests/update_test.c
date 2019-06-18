@@ -32,6 +32,13 @@
 
 #include "dnstest.h"
 
+/*
+ * Fix the linking order problem for overridden isc_stdtime_get() by making
+ * everything local.  This also allows static functions from update.c to be
+ * tested.
+ */
+#include "../update.c"
+
 static int
 _setup(void **state) {
 	isc_result_t result;
