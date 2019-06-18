@@ -53,6 +53,14 @@
 
 #include "dnstest.h"
 
+#define CHECK(r)				\
+	do {					\
+		result = (r);			\
+		if (result != ISC_R_SUCCESS) {	\
+			goto cleanup;		\
+		}				\
+	} while (0)
+
 isc_mem_t *mctx = NULL;
 isc_log_t *lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;

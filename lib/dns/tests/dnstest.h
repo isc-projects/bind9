@@ -27,13 +27,6 @@
 #include <dns/result.h>
 #include <dns/zone.h>
 
-#define CHECK(r) \
-	do { \
-		result = (r); \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup; \
-	} while (0)
-
 typedef struct {
 	dns_diffop_t op;
 	const char *owner;

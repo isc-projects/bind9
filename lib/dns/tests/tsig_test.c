@@ -35,6 +35,14 @@
 
 #include "dnstest.h"
 
+#define CHECK(r)				\
+	do {					\
+		result = (r);			\
+		if (result != ISC_R_SUCCESS) {	\
+			goto cleanup;		\
+		}				\
+	} while (0)
+
 #define TEST_ORIGIN	"test"
 
 static int
