@@ -81,6 +81,17 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Glue address records were not being returned in responses
+	  to root priming queries; this has been corrected. [GL #1092]
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="end_of_life"><info><title>End of Life</title></info>
     <para>
       BIND 9.11 (Extended Support Version) will be supported until at
