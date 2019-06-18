@@ -110,6 +110,12 @@
 	  the problem. [GL #1055]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Glue address records were not being returned in responses
+	  to root priming queries; this has been corrected. [GL #1092]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
