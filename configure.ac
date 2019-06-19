@@ -356,6 +356,17 @@ AC_PROG_CC
 AC_PROG_CC_C99
 
 #
+# Using Solaris linker with gcc on Solaris breaks Thread Local Storage
+#
+AS_CASE([$host],
+	[*-solaris*],[
+	    AS_IF([test "$GCC" = "yes"],
+		  [LDFLAGS="$LDFLAGS -zrelax=transtls"
+		   AC_MSG_WARN([When using GNU C Compiler on Solaris, -zrelax=transtls linker flag is used to fix bug in Thread Local Storage])
+		  ])
+	])
+
+#
 # CCNOOPT defaults to -O0 on gcc and disables optimization when is last
 #
 if test "X$CCNOOPT" = "X" -a "X$GCC" = "Xyes"; then
