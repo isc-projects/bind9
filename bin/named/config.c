@@ -96,10 +96,12 @@ options {\n\
 #endif
 			    "\
 	prefetch 2 9;\n\
+#	querylog <boolean>;\n\
 	recursing-file \"named.recursing\";\n\
 	recursive-clients 1000;\n\
 	request-nsid false;\n\
 	resolver-query-timeout 10;\n\
+#	responselog <boolean>;\n\
 	rrset-order { order random; };\n\
 	secroots-file \"named.secroots\";\n\
 	send-cookie true;\n\

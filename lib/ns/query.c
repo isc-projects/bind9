@@ -48,6 +48,7 @@
 #include <dns/nsec3.h>
 #include <dns/order.h>
 #include <dns/rbt.h>
+#include <dns/rcode.h>
 #include <dns/rdata.h>
 #include <dns/rdataclass.h>
 #include <dns/rdatalist.h>
@@ -547,6 +548,30 @@ inc_stats(ns_client_t *client, isc_statscounter_t counter) {
 	}
 }
 
+static inline void
+log_response(ns_client_t *client, dns_rcode_t rcode) {
+	char namebuf[DNS_NAME_FORMATSIZE];
+	char typebuf[DNS_RDATATYPE_FORMATSIZE];
+	char classbuf[DNS_RDATACLASS_FORMATSIZE];
+	char rcodebuf[20];
+	isc_buffer_t b;
+	int level = ISC_LOG_INFO;
+
+	if (!isc_log_wouldlog(ns_lctx, level))
+		return;
+
+	dns_name_format(client->query.origqname, namebuf, sizeof(namebuf));
+	dns_rdataclass_format(client->message->rdclass, classbuf,
+			      sizeof(classbuf));
+	dns_rdatatype_format(client->query.qtype, typebuf, sizeof(typebuf));
+	isc_buffer_init(&b, rcodebuf, sizeof(rcodebuf));
+	dns_rcode_totext(rcode, &b);
+
+	ns_client_log(client, NS_LOGCATEGORY_QUERIES, NS_LOGMODULE_QUERY, level,
+		      "response: %s %s %s %.*s", namebuf, classbuf, typebuf,
+		      (int)isc_buffer_usedlength(&b), rcodebuf);
+}
+
 static void
 query_send(ns_client_t *client) {
 	isc_statscounter_t counter;
@@ -576,6 +601,10 @@ query_send(ns_client_t *client) {
 		counter = ns_statscounter_failure;
 	}
 
+	if ((client->manager->sctx->options & NS_SERVER_LOGRESPONSES) != 0) {
+		log_response(client, client->message->rcode);
+	}
+
 	inc_stats(client, counter);
 	ns_client_send(client);
 
@@ -587,8 +616,10 @@ query_send(ns_client_t *client) {
 static void
 query_error(ns_client_t *client, isc_result_t result, int line) {
 	int loglevel = ISC_LOG_DEBUG(3);
+	dns_rcode_t rcode;
 
-	switch (dns_result_torcode(result)) {
+	rcode = dns_result_torcode(result);
+	switch (rcode) {
 	case dns_rcode_servfail:
 		loglevel = ISC_LOG_DEBUG(1);
 		inc_stats(client, ns_statscounter_servfail);
@@ -606,6 +637,12 @@ query_error(ns_client_t *client, isc_result_t result, int line) {
 	}
 
 	log_queryerror(client, result, line, loglevel);
+
+	if (client->query.origqname != NULL &&
+	    (client->manager->sctx->options & NS_SERVER_LOGRESPONSES) != 0)
+	{
+		log_response(client, rcode);
+	}
 
 	ns_client_error(client, result);
 

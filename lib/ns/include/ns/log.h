@@ -30,6 +30,7 @@ extern isc_logmodule_t	 ns_modules[];
 #define NS_LOGCATEGORY_QUERY_ERRORS    (&ns_categories[5])
 #define NS_LOGCATEGORY_TAT	       (&ns_categories[6])
 #define NS_LOGCATEGORY_SERVE_STALE     (&ns_categories[7])
+#define NS_LOGCATEGORY_RESPONSES       (&ns_categories[8])
 
 /*
  * Backwards compatibility.

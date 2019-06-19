@@ -1420,6 +1420,7 @@ static cfg_clausedef_t options_clauses[] = {
 	{ "recursive-clients", &cfg_type_uint32, 0 },
 	{ "reuseport", &cfg_type_boolean, 0 },
 	{ "reserved-sockets", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
+	{ "responselog", &cfg_type_boolean, 0 },
 	{ "secroots-file", &cfg_type_qstring, 0 },
 	{ "serial-queries", NULL, CFG_CLAUSEFLAG_ANCIENT },
 	{ "serial-query-rate", &cfg_type_uint32, 0 },
