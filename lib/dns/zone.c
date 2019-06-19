@@ -323,9 +323,10 @@ struct dns_zone {
 	 * module.
 	 */
 	dns_zonestat_level_t	statlevel;
-	bool		requeststats_on;
+	bool			requeststats_on;
 	isc_stats_t		*requeststats;
 	dns_stats_t		*rcvquerystats;
+	dns_stats_t		*dnssecsignstats;
 	uint32_t		notifydelay;
 	dns_isselffunc_t	isself;
 	void			*isselfarg;
@@ -1022,6 +1023,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->statlevel = dns_zonestat_none;
 	zone->requeststats = NULL;
 	zone->rcvquerystats = NULL;
+	zone->dnssecsignstats = NULL;
 	zone->notifydelay = 5;
 	zone->isself = NULL;
 	zone->isselfarg = NULL;
@@ -1194,6 +1196,9 @@ zone_free(dns_zone_t *zone) {
 	}
 	if (zone->rcvquerystats != NULL){
 		dns_stats_detach(&zone->rcvquerystats);
+	}
+	if (zone->dnssecsignstats != NULL){
+		dns_stats_detach(&zone->dnssecsignstats);
 	}
 	if (zone->db != NULL) {
 		zone_detachdb(zone);
@@ -6623,6 +6628,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		/* XXX inefficient - will cause dataset merging */
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADDRESIGN,
 				    name, rdataset.ttl, &sig_rdata));
+
 		dns_rdata_reset(&sig_rdata);
 		isc_buffer_init(&buffer, data, sizeof(data));
 	}
@@ -17521,6 +17527,24 @@ dns_zone_setrcvquerystats(dns_zone_t *zone, dns_stats_t *stats) {
 	UNLOCK_ZONE(zone);
 }
 
+void
+dns_zone_setdnssecsignstats(dns_zone_t *zone, dns_stats_t *stats) {
+
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (stats != NULL && zone->dnssecsignstats == NULL) {
+		dns_stats_attach(stats, &zone->dnssecsignstats);
+	}
+	UNLOCK_ZONE(zone);
+}
+
+dns_stats_t*
+dns_zone_getdnssecsignstats(dns_zone_t *zone) {
+	REQUIRE(DNS_ZONE_VALID(zone));
+	return (zone->dnssecsignstats);
+}
+
 isc_stats_t *
 dns_zone_getrequeststats(dns_zone_t *zone) {
 	/*
@@ -18019,8 +18043,7 @@ rr_exists(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
  */
 static isc_result_t
 add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
-		    dns_dbversion_t *ver, dns_diff_t *diff,
-		    bool sign_all)
+		    dns_dbversion_t *ver, dns_diff_t *diff, bool sign_all)
 {
 	dns_difftuple_t *tuple, *newtuple = NULL;
 	dns_rdata_dnskey_t dnskey;
@@ -18486,9 +18509,8 @@ zone_rekey(dns_zone_t *zone) {
 		{
 			CHECK(dns_diff_apply(&diff, db, ver));
 			CHECK(clean_nsec3param(zone, db, ver, &diff));
-			CHECK(add_signing_records(db, zone->privatetype,
-						  ver, &diff,
-						  (newalg || fullsign)));
+			CHECK(add_signing_records(db, zone->privatetype, ver,
+						  &diff, (newalg || fullsign)));
 			CHECK(update_soa_serial(db, ver, &diff, mctx,
 						zone->updatemethod));
 			CHECK(add_chains(zone, db, ver, &diff));
