@@ -12195,21 +12195,21 @@ if test "${enable_developer+set}" = set; then :
   enableval=$enable_developer;
 fi
 
+
 XTARGETS=
-case "$enable_developer" in
-yes)
-	STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
-	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
-	test "${enable_querytrace+set}" = set || enable_querytrace=yes
-	test "${with_cmocka+set}" = set || with_cmocka=yes
-	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
-	test "${enable_symtable+set}" = set || enable_symtable=all
-	test "${enable_warn_error+set}" = set || enable_warn_error=yes
-	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
-	test "${with_zlib+set}" = set || with_zlib=yes
-	XTARGETS='${XTARGETS}'
-	;;
-esac
+if test "$enable_developer" = "yes"; then :
+  STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
+       test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
+       test "${enable_querytrace+set}" = set || enable_querytrace=yes
+       test "${with_cmocka+set}" = set || with_cmocka=yes
+       test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
+       test "${enable_symtable+set}" = set || enable_symtable=all
+       test "${enable_warn_error+set}" = set || enable_warn_error=yes
+       test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
+       test "${with_zlib+set}" = set || with_zlib=yes
+       XTARGETS='${XTARGETS}'
+
+fi
 
 
 # Check whether --enable-fuzzing was given.
@@ -15841,9 +15841,77 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 
-save_CFLAGS="$CFLAGS"
-save_LIBS="$LIBS"
-save_LDFLAGS="$LDFLAGS"
+
+
+  CCASFLAGS_openssl_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_openssl_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_openssl_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_openssl_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_openssl_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_openssl_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_openssl_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_openssl_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_openssl_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_openssl_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_openssl_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_openssl_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_openssl_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_openssl_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_openssl_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_openssl_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_openssl_ax_save_flags=$VALAFLAGS
+
+
+
+
 CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 LIBS="$LIBS $OPENSSL_LIBS"
 LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
@@ -16169,9 +16237,59 @@ $as_echo "no" >&6; } ;; #(
      ;;
 esac
 
-CFLAGS="$save_CFLAGS"
-LIBS="$save_LIBS"
-LDFLAGS="$save_LDFLAGS"
+
+  CCASFLAGS=$CCASFLAGS_openssl_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_openssl_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_openssl_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_openssl_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_openssl_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_openssl_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_openssl_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_openssl_ax_save_flags
+
+
+  FLIBS=$FLIBS_openssl_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_openssl_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_openssl_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_openssl_ax_save_flags
+
+
+  LIBS=$LIBS_openssl_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_openssl_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_openssl_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_openssl_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_openssl_ax_save_flags
+
+
+
 
 
 
@@ -17386,15 +17504,32 @@ fi
 # Additional compiler settings.
 #
 MKDEPCC="$CC"
+
 MKDEPCFLAGS="-M"
+case $host in #(
+  *-solaris*) :
 
-if test "X$GCC" = "Xyes"; then
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if \"$CC\" supports -fno-strict-aliasing" >&5
-$as_echo_n "checking if \"$CC\" supports -fno-strict-aliasing... " >&6; }
-	SAVE_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -Werror -fno-strict-aliasing"
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+	    if test "$GCC" != "yes"; then :
+  MKDEPCFLAGS="-xM"
+fi ;; #(
+  *) :
+     ;;
+esac
+
+if test "$GCC" = "yes"; then :
+  STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
+
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -fno-strict-aliasing" >&5
+$as_echo_n "checking whether C compiler accepts -fno-strict-aliasing... " >&6; }
+if ${ax_cv_check_cflags___fno_strict_aliasing+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  -fno-strict-aliasing"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -17406,28 +17541,30 @@ main ()
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  FNOSTRICTALIASING=yes
+  ax_cv_check_cflags___fno_strict_aliasing=yes
 else
-  FNOSTRICTALIASING=no
+  ax_cv_check_cflags___fno_strict_aliasing=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	CFLAGS="$SAVE_CFLAGS"
-	if test "yes" = "$FNOSTRICTALIASING"; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-		STD_CWARNINGS="$STD_CWARNINGS -fno-strict-aliasing"
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	fi
-	#
-	# turn off delete null pointer checks
-	#
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking if \"$CC\" supports -fno-delete-null-pointer-checks" >&5
-$as_echo_n "checking if \"$CC\" supports -fno-delete-null-pointer-checks... " >&6; }
-	SAVE_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -Werror -fno-delete-null-pointer-checks"
-	cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  CFLAGS=$ax_check_save_flags
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___fno_strict_aliasing" >&5
+$as_echo "$ax_cv_check_cflags___fno_strict_aliasing" >&6; }
+if test "x$ax_cv_check_cflags___fno_strict_aliasing" = xyes; then :
+  STD_CWARNINGS="$STD_CWARNINGS -fno-strict-aliasing"
+else
+  :
+fi
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -fno-delete-null-pointer-checks" >&5
+$as_echo_n "checking whether C compiler accepts -fno-delete-null-pointer-checks... " >&6; }
+if ${ax_cv_check_cflags___fno_delete_null_pointer_checks+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  -fno-delete-null-pointer-checks"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
 
 int
@@ -17439,32 +17576,94 @@ main ()
 }
 _ACEOF
 if ac_fn_c_try_compile "$LINENO"; then :
-  FNODELETENULLPOINTERCHECKS=yes
+  ax_cv_check_cflags___fno_delete_null_pointer_checks=yes
 else
-  FNODELETENULLPOINTERCHECKS=no
+  ax_cv_check_cflags___fno_delete_null_pointer_checks=no
 fi
 rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-	CFLAGS="$SAVE_CFLAGS"
-	if test "yes" = "$FNODELETENULLPOINTERCHECKS"; then
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-		STD_CWARNINGS="$STD_CWARNINGS -fno-delete-null-pointer-checks"
-	else
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-	fi
-	if test "X$enable_warn_shadow" = Xyes; then
-		STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
-	fi
-	if test "X$enable_warn_error" = Xyes; then
-		STD_CWARNINGS="$STD_CWARNINGS -Werror"
-	fi
+  CFLAGS=$ax_check_save_flags
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___fno_delete_null_pointer_checks" >&5
+$as_echo "$ax_cv_check_cflags___fno_delete_null_pointer_checks" >&6; }
+if test "x$ax_cv_check_cflags___fno_delete_null_pointer_checks" = xyes; then :
+  STC_CWARNINGS="$STD_CWARNINGS -fno-delete-null-pointer-checks"
 else
-	case $host in
-	*-solaris*)
-		MKDEPCFLAGS="-xM"
-		;;
-	esac
+  :
+fi
+
+if test "$enable_warn_shadow" = "yes"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Wshadow" >&5
+$as_echo_n "checking whether C compiler accepts -Wshadow... " >&6; }
+if ${ax_cv_check_cflags___Wshadow+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  -Wshadow"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ax_cv_check_cflags___Wshadow=yes
+else
+  ax_cv_check_cflags___Wshadow=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS=$ax_check_save_flags
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Wshadow" >&5
+$as_echo "$ax_cv_check_cflags___Wshadow" >&6; }
+if test "x$ax_cv_check_cflags___Wshadow" = xyes; then :
+  STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
+else
+  :
+fi
+
+fi
+if test "$enable_warn_error" = "yes"; then :
+  { $as_echo "$as_me:${as_lineno-$LINENO}: checking whether C compiler accepts -Werror" >&5
+$as_echo_n "checking whether C compiler accepts -Werror... " >&6; }
+if ${ax_cv_check_cflags___Werror+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+
+  ax_check_save_flags=$CFLAGS
+  CFLAGS="$CFLAGS  -Werror"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+int
+main ()
+{
+
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ax_cv_check_cflags___Werror=yes
+else
+  ax_cv_check_cflags___Werror=no
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  CFLAGS=$ax_check_save_flags
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_cflags___Werror" >&5
+$as_echo "$ax_cv_check_cflags___Werror" >&6; }
+if test "x$ax_cv_check_cflags___Werror" = xyes; then :
+  STD_CWARNINGS="$STD_CWARNINGS -Werror"
+else
+  :
+fi
+
 fi
 
 
@@ -18123,7 +18322,76 @@ fi
 
 done
 
-       save_LIBS="$LIBS"
+
+
+  CCASFLAGS_cap_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_cap_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_cap_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_cap_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_cap_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_cap_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_cap_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_cap_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_cap_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_cap_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_cap_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_cap_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_cap_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_cap_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_cap_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_cap_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_cap_ax_save_flags=$VALAFLAGS
+
+
+
        { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing cap_set_proc" >&5
 $as_echo_n "checking for library containing cap_set_proc... " >&6; }
 if ${ac_cv_search_cap_set_proc+:} false; then :
@@ -18182,7 +18450,59 @@ else
   as_fn_error $? "libcap is required for Linux capabilities support. Either install libcap or use --disable-linux-caps." "$LINENO" 5
 fi
 
-       LIBS="$save_LIBS"
+
+  CCASFLAGS=$CCASFLAGS_cap_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_cap_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_cap_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_cap_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_cap_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_cap_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_cap_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_cap_ax_save_flags
+
+
+  FLIBS=$FLIBS_cap_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_cap_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_cap_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_cap_ax_save_flags
+
+
+  LIBS=$LIBS_cap_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_cap_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_cap_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_cap_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_cap_ax_save_flags
+
+
+
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
@@ -18355,7 +18675,76 @@ if ac_fn_c_try_link "$LINENO"; then :
 $as_echo "no" >&6; }
 else
   ISC_ATOMIC_LIBS="-latomic"
-	 save_LIBS="$LIBS"
+
+
+  CCASFLAGS_atomic_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_atomic_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_atomic_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_atomic_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_atomic_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_atomic_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_atomic_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_atomic_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_atomic_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_atomic_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_atomic_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_atomic_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_atomic_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_atomic_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_atomic_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_atomic_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_atomic_ax_save_flags=$VALAFLAGS
+
+
+
 	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
 	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -18380,7 +18769,59 @@ See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	 LIBS="$save_LIBS"
+
+  CCASFLAGS=$CCASFLAGS_atomic_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_atomic_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_atomic_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_atomic_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_atomic_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_atomic_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_atomic_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_atomic_ax_save_flags
+
+
+  FLIBS=$FLIBS_atomic_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_atomic_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_atomic_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_atomic_ax_save_flags
+
+
+  LIBS=$LIBS_atomic_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_atomic_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_atomic_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_atomic_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_atomic_ax_save_flags
+
+
+
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
@@ -18434,7 +18875,76 @@ if ac_fn_c_try_link "$LINENO"; then :
 $as_echo "no" >&6; }
 else
   ISC_ATOMIC_LIBS="-latomic"
-	 save_LIBS="$LIBS"
+
+
+  CCASFLAGS_atomic_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_atomic_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_atomic_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_atomic_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_atomic_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_atomic_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_atomic_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_atomic_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_atomic_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_atomic_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_atomic_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_atomic_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_atomic_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_atomic_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_atomic_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_atomic_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_atomic_ax_save_flags=$VALAFLAGS
+
+
+
 	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
 	 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
@@ -18459,7 +18969,59 @@ See \`config.log' for more details" "$LINENO" 5; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-	 LIBS="$save_LIBS"
+
+  CCASFLAGS=$CCASFLAGS_atomic_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_atomic_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_atomic_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_atomic_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_atomic_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_atomic_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_atomic_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_atomic_ax_save_flags
+
+
+  FLIBS=$FLIBS_atomic_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_atomic_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_atomic_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_atomic_ax_save_flags
+
+
+  LIBS=$LIBS_atomic_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_atomic_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_atomic_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_atomic_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_atomic_ax_save_flags
+
+
+
 
 fi
 rm -f core conftest.err conftest.$ac_objext \
@@ -19867,10 +20429,76 @@ fi ;; #(
   no) :
      ;; #(
   *) :
-    save_CFLAGS="$CFLAGS"
-		 save_CPPFLAGS="$CPPFLAGS"
-		 save_LDFLAGS="$LDFLAGS"
-		 save_LIBS="$LIBS"
+
+
+  CCASFLAGS_libidn2_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_libidn2_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_libidn2_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_libidn2_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_libidn2_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_libidn2_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_libidn2_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_libidn2_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_libidn2_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_libidn2_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_libidn2_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_libidn2_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_libidn2_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_libidn2_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_libidn2_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_libidn2_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_libidn2_ax_save_flags=$VALAFLAGS
+
+
+
 		 LIBIDN2_CFLAGS="-I$with_libidn2/include"
 		 LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
 		 CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
@@ -19951,10 +20579,59 @@ else
   as_fn_error $? "libidn2 requested, but not found" "$LINENO" 5
 fi
 
-		 CFLAGS="$save_CFLAGS"
-		 CPPFLAGS="$save_CPPFLAGS"
-		 LDFLAGS="$save_LDFLAGS"
-		 LIBS="$save_LIBS" ;; #(
+
+  CCASFLAGS=$CCASFLAGS_libidn2_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_libidn2_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_libidn2_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_libidn2_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_libidn2_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_libidn2_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_libidn2_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_libidn2_ax_save_flags
+
+
+  FLIBS=$FLIBS_libidn2_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_libidn2_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_libidn2_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_libidn2_ax_save_flags
+
+
+  LIBS=$LIBS_libidn2_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_libidn2_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_libidn2_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_libidn2_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_libidn2_ax_save_flags
+
+
+ ;; #(
   *) :
      ;;
 esac
@@ -20219,42 +20896,51 @@ fi
 # Check for -Wl,--wrap= support
 #
 
-save_LDFLAGS=$LDFLAGS
-LDFLAGS="--wrap=printf"
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the linker accepts --wrap" >&5
+$as_echo_n "checking whether the linker accepts --wrap... " >&6; }
+if ${ax_cv_check_ldflags____wrap+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
 
-LD_WRAP_TESTS=false
-enable_ld_wrap=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker support for --wrap option" >&5
-$as_echo_n "checking for linker support for --wrap option... " >&6; }
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+  ax_check_save_flags=$LDFLAGS
+  LDFLAGS="$LDFLAGS  --wrap"
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <stdio.h>
+
 int
 main ()
 {
-__wrap_printf("success"); return (0);
+
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
+  ax_cv_check_ldflags____wrap=yes
+else
+  ax_cv_check_ldflags____wrap=no
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
+  LDFLAGS=$ax_check_save_flags
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_ldflags____wrap" >&5
+$as_echo "$ax_cv_check_ldflags____wrap" >&6; }
+if test "x$ax_cv_check_ldflags____wrap" = xyes; then :
   enable_ld_wrap=yes
-     LD_WRAP_TESTS=true
+		    LD_WRAP_TESTS=true
 
 $as_echo "#define LD_WRAP 1" >>confdefs.h
 
-     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+		    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
+
 # AM_CONDITIONAL([LD_WRAP], [test $enable_ld_wrap = yes])
 
-
-LDFLAGS=$save_LDFLAGS
 
 #
 # Check for i18n
