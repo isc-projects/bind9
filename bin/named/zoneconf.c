@@ -906,6 +906,7 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	const dns_master_style_t *masterstyle = &dns_master_style_default;
 	isc_stats_t *zoneqrystats;
 	dns_stats_t *rcvquerystats;
+	dns_stats_t *dnssecsignstats;
 	dns_zonestat_level_t statlevel = dns_zonestat_none;
 	int seconds;
 	dns_zone_t *mayberaw = (raw != NULL) ? raw : zone;
@@ -1190,20 +1191,26 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 	zoneqrystats  = NULL;
 	rcvquerystats = NULL;
+	dnssecsignstats = NULL;
 	if (statlevel == dns_zonestat_full) {
 		RETERR(isc_stats_create(mctx, &zoneqrystats,
 					ns_statscounter_max));
-		RETERR(dns_rdatatypestats_create(mctx,
-					&rcvquerystats));
+		RETERR(dns_rdatatypestats_create(mctx, &rcvquerystats));
+		RETERR(dns_dnssecsignstats_create(mctx, &dnssecsignstats));
 	}
 	dns_zone_setrequeststats(zone,  zoneqrystats);
 	dns_zone_setrcvquerystats(zone, rcvquerystats);
+	dns_zone_setdnssecsignstats(zone, dnssecsignstats);
 
 	if (zoneqrystats != NULL)
 		isc_stats_detach(&zoneqrystats);
 
 	if(rcvquerystats != NULL)
 		dns_stats_detach(&rcvquerystats);
+
+	if(dnssecsignstats != NULL) {
+		dns_stats_detach(&dnssecsignstats);
+	}
 
 	/*
 	 * Configure master functionality.  This applies

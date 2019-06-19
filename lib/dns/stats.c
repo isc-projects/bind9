@@ -37,7 +37,8 @@ typedef enum {
 	dns_statstype_rdtype = 1,
 	dns_statstype_rdataset = 2,
 	dns_statstype_opcode = 3,
-	dns_statstype_rcode = 4
+	dns_statstype_rcode = 4,
+	dns_statstype_dnssec = 5
 } dns_statstype_t;
 
 /*%
@@ -60,7 +61,8 @@ enum {
 	rdtypecounter_nxdomain = rdtypenxcounter_max,
 	/* stale counters offset */
 	rdtypecounter_stale = rdtypecounter_nxdomain + 1,
-	rdatasettypecounter_max = rdtypecounter_stale * 2
+	rdatasettypecounter_max = rdtypecounter_stale * 2,
+	dnssec_keyid_max = 65535
 };
 
 struct dns_stats {
@@ -86,9 +88,13 @@ typedef struct opcodedumparg {
 } opcodedumparg_t;
 
 typedef struct rcodedumparg {
-	dns_rcodestats_dumper_t	fn;
+	dns_rcodestats_dumper_t		fn;
 	void				*arg;
 } rcodedumparg_t;
+typedef struct dnssecsigndumparg {
+	dns_dnssecsignstats_dumper_t	fn;
+	void				*arg;
+} dnssecsigndumparg_t;
 
 void
 dns_stats_attach(dns_stats_t *stats, dns_stats_t **statsp) {
@@ -198,6 +204,14 @@ dns_rcodestats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
 			     dns_rcode_badcookie + 1, statsp));
 }
 
+isc_result_t
+dns_dnssecsignstats_create(isc_mem_t *mctx, dns_stats_t **statsp) {
+	REQUIRE(statsp != NULL && *statsp == NULL);
+
+	return (create_stats(mctx, dns_statstype_dnssec,
+			     dnssec_keyid_max, statsp));
+}
+
 /*%
  * Increment/Decrement methods
  */
@@ -294,6 +308,13 @@ dns_rcodestats_increment(dns_stats_t *stats, dns_rcode_t code) {
 
 	if (code <= dns_rcode_badcookie)
 		isc_stats_increment(stats->counters, (isc_statscounter_t)code);
+}
+
+void
+dns_dnssecsignstats_increment(dns_stats_t *stats, dns_keytag_t id) {
+	REQUIRE(DNS_STATS_VALID(stats) && stats->type == dns_statstype_dnssec);
+
+	isc_stats_increment(stats->counters, (isc_statscounter_t)id);
 }
 
 /*%
@@ -395,6 +416,28 @@ dns_rdatasetstats_dump(dns_stats_t *stats, dns_rdatatypestats_dumper_t dump_fn,
 	arg.fn = dump_fn;
 	arg.arg = arg0;
 	isc_stats_dump(stats->counters, rdataset_dumpcb, &arg, options);
+}
+
+static void
+dnssec_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
+	dnssecsigndumparg_t *dnssecarg = arg;
+
+	dnssecarg->fn((dns_keytag_t)counter, value, dnssecarg->arg);
+}
+
+void
+dns_dnssecsignstats_dump(dns_stats_t *stats,
+			 dns_dnssecsignstats_dumper_t dump_fn,
+			 void *arg0, unsigned int options)
+{
+	dnssecsigndumparg_t arg;
+
+	REQUIRE(DNS_STATS_VALID(stats) &&
+		stats->type == dns_statstype_dnssec);
+
+	arg.fn = dump_fn;
+	arg.arg = arg0;
+	isc_stats_dump(stats->counters, dnssec_dumpcb, &arg, options);
 }
 
 static void
