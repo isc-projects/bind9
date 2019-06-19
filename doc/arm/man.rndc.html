@@ -394,7 +394,7 @@
 <dt><span class="term"><strong class="userinput"><code>managed-keys <em class="replaceable"><code>(status | refresh | sync | destroy)</code></em> [<span class="optional"><em class="replaceable"><code>class</code></em> [<span class="optional"><em class="replaceable"><code>view</code></em></span>]</span>]</code></strong></span></dt>
 <dd>
 	  <p>
-            Inspect and control the "managed-keys" database which
+            Inspect and control the "managed keys" database which
             handles RFC 5011 DNSSEC trust anchor maintenance. If a view
             is specified, these commands are applied to that view;
             otherwise they are applied to all views.
@@ -403,14 +403,14 @@
 <li class="listitem">
               <p>
                 When run with the <code class="literal">status</code> keyword, prints
-                the current status of the managed-keys database.
+                the current status of the managed keys database.
               </p>
             </li>
 <li class="listitem">
               <p>
                 When run with the <code class="literal">refresh</code> keyword,
                 forces an immediate refresh query to be sent for all
-                the managed keys, updating the managed-keys database
+                the managed keys, updating the managed keys database
                 if any new keys are found, without waiting the normal
                 refresh interval.
               </p>
@@ -418,7 +418,7 @@
 <li class="listitem">
               <p>
                 When run with the <code class="literal">sync</code> keyword, forces an
-                immediate dump of the managed-keys database to disk
+                immediate dump of the managed keys database to disk
                 (in the file <code class="filename">managed-keys.bind</code> or
                 (<code class="filename"><em class="replaceable"><code>viewname</code></em>.mkeys</code>).
                 This synchronizes the database with its journal file, so
@@ -429,7 +429,7 @@
 <li class="listitem">
               <p>
                 When run with the <code class="literal">destroy</code> keyword, the
-                managed-keys database is shut down and deleted, and all key
+                managed keys database is shut down and deleted, and all key
                 maintenance is terminated.  This command should be used only
                 with extreme caution.
               </p>
@@ -669,9 +669,10 @@
 <dd>
 	  <p>
 	    Dump the security roots (i.e., trust anchors
-	    configured via <span class="command"><strong>trusted-keys</strong></span>,
-	    <span class="command"><strong>managed-keys</strong></span>, or
-	    <span class="command"><strong>dnssec-validation auto</strong></span>) and negative trust
+	    configured via <span class="command"><strong>dnssec-keys</strong></span> statements,
+	    or the synonymous <span class="command"><strong>managed-keys</strong></span> or
+	    the deprecated <span class="command"><strong>trusted-keys</strong></span> statements, or
+	    via <span class="command"><strong>dnssec-validation auto</strong></span>) and negative trust
 	    anchors for the specified views.  If no view is specified, all
 	    views are dumped.  Security roots will indicate whether
 	    they are configured as trusted keys, managed keys, or
@@ -921,7 +922,7 @@
 	  <p>
 	    List the names of all TSIG keys currently configured
 	    for use by <span class="command"><strong>named</strong></span> in each view.  The
-	    list both statically configured keys and dynamic
+	    list includes both statically configured keys and dynamic
 	    TKEY-negotiated keys.
 	  </p>
 	</dd>
@@ -1017,6 +1018,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.0 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.1 (Development Release)</p>
 </body>
 </html>

@@ -54,7 +54,7 @@
 <dt><span class="section"><a href="Bv9ARM.ch04.html#sig0">SIG(0)</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#DNSSEC">DNSSEC</a></span></dt>
 <dd><dl>
-<dt><span class="section"><a href="Bv9ARM.ch04.html#dnssec_keys">Generating Keys</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch04.html#generating_dnssec_keys">Generating Keys</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#dnssec_signing">Signing the Zone</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch04.html#dnssec_config">Configuring Servers for DNSSEC</a></span></dt>
 </dl></dd>
@@ -913,7 +913,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 
       <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
-<a name="dnssec_keys"></a>Generating Keys</h3></div></div></div>
+<a name="generating_dnssec_keys"></a>Generating Keys</h3></div></div></div>
 
         <p>
           The <span class="command"><strong>dnssec-keygen</strong></span> program is used to
@@ -1042,8 +1042,9 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
           <strong class="userinput"><code>yes</code></strong>, DNSSEC validation will only occur
           if at least one trust anchor has been explicitly configured
           in <code class="filename">named.conf</code>
-          using a <span class="command"><strong>trusted-keys</strong></span> or
-          <span class="command"><strong>managed-keys</strong></span> statement.
+          using a <span class="command"><strong>dnssec-keys</strong></span> statement (or the
+          synonymous <span class="command"><strong>managed-keys</strong></span> or the deprecated
+          <span class="command"><strong>trusted-keys</strong></span> statements).
         </p>
         <p>
           When <span class="command"><strong>dnssec-validation</strong></span> is set to
@@ -1056,23 +1057,20 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
         </p>
 
         <p>
-          <span class="command"><strong>trusted-keys</strong></span> are copies of DNSKEY RRs
-          for zones that are used to form the first link in the
-          cryptographic chain of trust.  All keys listed in
-          <span class="command"><strong>trusted-keys</strong></span> (and corresponding zones)
-          are deemed to exist and only the listed keys will be used
-          to validated the DNSKEY RRset that they are from.
+          The keys specified in <span class="command"><strong>dnssec-keys</strong></span>
+          copies of DNSKEY RRs for zones that are used to form the
+          first link in the cryptographic chain of trust.  Keys configured
+          with the keyword <span class="command"><strong>static-key</strong></span> are loaded directly
+          into the table of trust anchors, and can only be changed by
+          altering the configuration. Keys configured with
+          <span class="command"><strong>initial-key</strong></span> are used to initialize
+          RFC 5011 trust anchor maintenance, and will be kept up to
+          date automatically after the first time <span class="command"><strong>named</strong></span>
+          runs.
         </p>
 
         <p>
-          <span class="command"><strong>managed-keys</strong></span> are trusted keys which are
-          automatically kept up to date via RFC 5011 trust anchor
-          maintenance.
-        </p>
-
-        <p>
-          <span class="command"><strong>trusted-keys</strong></span> and
-          <span class="command"><strong>managed-keys</strong></span> are described in more detail
+          <span class="command"><strong>dnssec-keys</strong></span> is described in more detail
           later in this document.
         </p>
 
@@ -1095,7 +1093,7 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
         </p>
 
 <pre class="programlisting">
-managed-keys {
+dnssec-keys {
         /* Root Key */
         "." initial-key 257 3 3 "BNY4wrWM1nCfJ+CXd0rVXyYmobt7sEEfK3clRbGaTwS
                                  JxrGkxJWoZu6I7PzJu/E9gx4UC1zGAHlXKdE4zYIpRh
@@ -1107,11 +1105,8 @@ managed-keys {
                                  66gKodQj+MiA21AfUVe7u99WzTLzY3qlxDhxYQQ20FQ
                                  97S+LKUTpQcq27R7AT3/V5hRQxScINqwcz4jYqZD2fQ
                                  dgxbcDTClU0CRBdiieyLMNzXG3";
-};
-
-trusted-keys {
         /* Key for our organization's forward zone */
-        example.com. 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
+        example.com. static-key 257 3 5 "AwEAAaxPMcR2x0HbQV4WeZB6oEDX+r0QM6
                               5KbhTjrW1ZaARmPhEZZe3Y9ifgEuq7vZ/z
                               GZUdEGNWy+JZzus0lUptwgjGwhUS1558Hb
                               4JKUbbOTcM8pwXlj0EiX3oDFVmjHO444gL
@@ -1124,7 +1119,7 @@ trusted-keys {
                               1OTQ09A0=";
 
         /* Key for our reverse zone. */
-        2.0.192.IN-ADDRPA.NET. 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
+        2.0.192.IN-ADDRPA.NET. static-key 257 3 5 "AQOnS4xn/IgOUpBPJ3bogzwc
                                        xOdNax071L18QqZnQQQAVVr+i
                                        LhGTnNGp3HoWQLUIzKrJVZ3zg
                                        gy3WwNT6kZo6c0tszYqbtvchm
@@ -1516,11 +1511,11 @@ options {
     
     <p>To configure a validating resolver to use RFC 5011 to
     maintain a trust anchor, configure the trust anchor using a
-    <span class="command"><strong>managed-keys</strong></span> statement. Information about
+    <span class="command"><strong>dnssec-keys</strong></span> statement and the
+    <span class="command"><strong>initial-key</strong></span> keyword. Information about
     this can be found in
-    <a class="xref" href="Bv9ARM.ch05.html#managed-keys" title="managed-keys Statement Definition and Usage">the section called &#8220;<span class="command"><strong>managed-keys</strong></span> Statement Definition
+    <a class="xref" href="Bv9ARM.ch05.html#dnssec-keys" title="dnssec-keys Statement Definition and Usage">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Definition
             and Usage&#8221;</a>.</p>
-    
   </div>
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -2845,6 +2840,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.0 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.1 (Development Release)</p>
 </body>
 </html>

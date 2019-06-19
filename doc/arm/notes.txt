@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.15.0
+Release Notes for BIND Version 9.15.1
 
 Introduction
 
@@ -57,9 +57,26 @@ Security Fixes
 
   * The TCP client quota set using the tcp-clients option could be
     exceeded in some cases. This could lead to exhaustion of file
-    descriptors. (CVE-2018-5743) [GL #615]
+    descriptors. This flaw is disclosed in CVE-2018-5743. [GL #615]
+
+  * A race condition could trigger an assertion failure when a large
+    number of incoming packets were being rejected. This flaw is disclosed
+    in CVE-2019-6471. [GL #942]
 
 New Features
+
+  * In order to clarify the configuration of DNSSEC keys, the trusted-keys
+    and managed-keys statements have been deprecated, and the new
+    dnssec-keys statement should now be used for both types of key.
+
+    When used with the keyword initial-key, dnssec-keys has the same
+    behavior as managed-keys, i.e., it configures a trust anchor that is
+    to be maintained via RFC 5011.
+
+    When used with the new keyword static-key, it has the same behavior as
+    trusted-keys, configuring a permanent trust anchor that will not
+    automatically be updated. (This usage is not recommended for the root
+    key.) [GL #6]
 
   * The new add-soa option specifies whether or not the response-policy
     zone's SOA record should be included in the additional section of RPZ
@@ -71,10 +88,16 @@ Removed Features
     effect. DNSSEC responses are always enabled if signatures and other
     DNSSEC data are present. [GL #866]
 
+  * The cleaning-interval option has been removed. [GL !1731]
+
 Feature Changes
 
-  * When trusted-keys and managed-keys were both configured for the same
-    name, or when trusted-keys was used to configure a trust anchor for
+  * named will now log a warning if a static key is configured for the
+    root zone, or if any key is configured for "dlv.isc.org", which has
+    been shut down. [GL #6]
+
+  * When static and managed DNSSEC keys were both configured for the same
+    name, or when a static key was used to configure a trust anchor for
     the root zone and dnssec-validation was set to the default value of
     auto, automatic RFC 5011 key rollovers would be disabled. This
     combination of settings was never intended to work, but there was no
@@ -89,15 +112,28 @@ Feature Changes
     "sync" timing parameters in key files, and the checks performed by
     dnssec-checkds.
 
+  * JSON-C is now the only supported library for enabling JSON support for
+    BIND statistics. The configure option has been renamed from
+    --with-libjson to --with-json-c. Use PKG_CONFIG_PATH to specify a
+    custom path to the json-c library as the new configure option does not
+    take the library installation path as an optional argument.
+
 Bug Fixes
 
   * The allow-update and allow-update-forwarding options were
     inadvertently treated as configuration errors when used at the options
     or view level. This has now been corrected. [GL #913]
 
+  * When qname-minimization was set to relaxed, some improperly configured
+    domains would fail to resolve, but would have succeeded when
+    minimization was disabled. named will now fall back to normal
+    resolution in such cases, and also uses type A rather than NS for
+    minimal queries in order to reduce the likelihood of encountering the
+    problem. [GL #1055]
+
 License
 
-BIND is open source software licenced under the terms of the Mozilla
+BIND is open source software licensed under the terms of the Mozilla
 Public License, version 2.0 (see the LICENSE file for the full text).
 
 The license requires that if you make changes to BIND and distribute them

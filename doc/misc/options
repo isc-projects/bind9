@@ -51,9 +51,10 @@ logging {
 
 lwres { <unspecified-text> }; // obsolete, may occur multiple times
 
-managed-keys { <string> ( static-key |
-    initial-key ) <integer> <integer> <integer>
-    <quoted_string>; ... }; // may occur multiple times
+managed-keys { <string> ( static-key
+    | initial-key ) <integer>
+    <integer> <integer>
+    <quoted_string>; ... }; // may occur multiple times, deprecated
 
 masters <string> [ port <integer> ] [ dscp
     <integer> ] { ( <masters> | <ipv4_address> [
@@ -110,7 +111,7 @@ options {
         check-spf ( warn | ignore );
         check-srv-cname ( fail | warn | ignore );
         check-wildcard <boolean>;
-        cleaning-interval <integer>;
+        cleaning-interval <integer>; // obsolete
         clients-per-query <integer>;
         cookie-algorithm ( aes | sha1 | sha256 );
         cookie-secret <string>; // may occur multiple times
@@ -212,7 +213,7 @@ options {
         listen-on-v6 [ port <integer> ] [ dscp
             <integer> ] {
             <address_match_element>; ... }; // may occur multiple times
-        lmdb-mapsize <sizeval>;
+        lmdb-mapsize <sizeval>; // non-operational
         lock-file ( <quoted_string> | none );
         maintain-ixfr-base <boolean>; // ancient
         managed-keys-directory <quoted_string>;
@@ -487,7 +488,7 @@ view <string> [ <class> ] {
         check-spf ( warn | ignore );
         check-srv-cname ( fail | warn | ignore );
         check-wildcard <boolean>;
-        cleaning-interval <integer>;
+        cleaning-interval <integer>; // obsolete
         clients-per-query <integer>;
         deny-answer-addresses { <address_match_element>; ... } [
             except-from { <string>; ... } ];
@@ -562,11 +563,13 @@ view <string> [ <class> ] {
         }; // may occur multiple times
         key-directory <quoted_string>;
         lame-ttl <ttlval>;
-        lmdb-mapsize <sizeval>;
+        lmdb-mapsize <sizeval>; // non-operational
         maintain-ixfr-base <boolean>; // ancient
-        managed-keys { <string> ( static-key |
-            initial-key ) <integer> <integer>
-            <integer> <quoted_string>; ... }; // may occur multiple times
+        managed-keys { <string> (
+            static-key | initial-key
+            ) <integer> <integer>
+            <integer>
+            <quoted_string>; ... }; // may occur multiple times, deprecated
         masterfile-format ( map | raw | text );
         masterfile-style ( full | relative );
         match-clients { <address_match_element>; ... };
