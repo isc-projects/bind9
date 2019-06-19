@@ -256,6 +256,8 @@ named_control_docommand(isccc_sexpr_t *message, bool readonly,
 		result = named_server_refreshcommand(named_g_server, lex, text);
 	} else if (command_compare(command, NAMED_COMMAND_RELOAD)) {
 		result = named_server_reloadcommand(named_g_server, lex, text);
+	} else if (command_compare(command, NAMED_COMMAND_RESPONSELOG)) {
+		result = named_server_toggleresponselog(named_g_server, lex);
 	} else if (command_compare(command, NAMED_COMMAND_RETRANSFER)) {
 		result = named_server_retransfercommand(named_g_server, lex,
 							text);

@@ -187,6 +187,13 @@ named_server_togglequerylog(named_server_t *server, isc_lex_t *lex);
  * but can also be used as a toggle for backward comptibility.)
  */
 
+isc_result_t
+named_server_toggleresponselog(named_server_t *server, isc_lex_t *lex);
+/*%<
+ * Enable/disable logging of responses.  (Takes "yes" or "no" argument,
+ * but can also be used as a toggle for backward comptibility.)
+ */
+
 /*%
  * Save the current NTAs for all views to files.
  */

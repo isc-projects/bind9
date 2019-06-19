@@ -56,7 +56,7 @@
     NSID options received from upstream servers.
 
 ``queries``
-    A location where queries should be logged.
+    The locations where queries should be logged.
 
     At startup, specifying the category ``queries`` also enables query logging unless the :any:`querylog` option has been specified.
 
@@ -79,6 +79,9 @@
 
 ``resolver``
     DNS resolution, such as the recursive lookups performed on behalf of clients by a caching name server.
+
+``responses``
+    The locations where query response summaries should be logged.
 
 ``rpz``
     Information about errors in response policy zone files, rewritten responses, and, at the highest ``debug`` levels, mere rewriting attempts.

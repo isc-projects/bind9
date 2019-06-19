@@ -197,6 +197,7 @@ static const char *categories_description[] = {
 	[NS_LOGCATEGORY_QUERY_ERRORS] = "query-errors",
 	[NS_LOGCATEGORY_TAT] = "trust-anchor-telemetry",
 	[NS_LOGCATEGORY_SERVE_STALE] = "serve-stale",
+	[NS_LOGCATEGORY_RESPONSES] = "responses",
 	/* cfg categories */
 	[CFG_LOGCATEGORY_CONFIG] = "config",
 	/* named categories */

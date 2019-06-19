@@ -49,6 +49,7 @@
 #define NS_SERVER_TRANSFERINSECS 0x00008000U /*%< -T transferinsecs */
 #define NS_SERVER_TRANSFERSLOWLY 0x00010000U /*%< -T transferslowly */
 #define NS_SERVER_TRANSFERSTUCK	 0x00020000U /*%< -T transferstuck */
+#define NS_SERVER_LOGRESPONSES	 0x00040000U /*%< log responses */
 
 /*%
  * Type for callback function to get hostname.
