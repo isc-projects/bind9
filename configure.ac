@@ -10,6 +10,11 @@
 AC_INIT(BIND, [9.15], [info@isc.org], [], [https://www.isc.org/downloads/BIND/])
 AC_PREREQ([2.60])
 
+#
+# Enable maintainer mode by default, but allow to disable it in the CI
+#
+AM_MAINTAINER_MODE([enable])
+
 AC_CONFIG_HEADER(config.h)
 AC_CONFIG_MACRO_DIR([m4])
 
