@@ -80,33 +80,32 @@ AC_ARG_ENABLE(buffer_useinline,
 	      fi,
 	      AC_DEFINE([ISC_BUFFER_USEINLINE], [1]))
 
-AC_ARG_ENABLE(warn_shadow,
-	      AS_HELP_STRING([--enable-warn-shadow],
-			     [turn on -Wshadow when compiling]))
+AC_ARG_ENABLE([warn_shadow],
+	      [AS_HELP_STRING([--enable-warn-shadow],
+			      [turn on -Wshadow when compiling])])
 
-AC_ARG_ENABLE(warn_error,
-	      AS_HELP_STRING([--enable-warn-error],
-			    [turn on -Werror when compiling]))
+AC_ARG_ENABLE([warn_error],
+	      [AS_HELP_STRING([--enable-warn-error],
+			      [turn on -Werror when compiling])])
 
-AC_ARG_ENABLE(developer,
-	      AS_HELP_STRING([--enable-developer],
-			     [enable developer build settings]))
+AC_ARG_ENABLE([developer],
+	      [AS_HELP_STRING([--enable-developer],
+			      [enable developer build settings])])
+
 XTARGETS=
-case "$enable_developer" in
-yes)
-	STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
-	test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
-	test "${enable_querytrace+set}" = set || enable_querytrace=yes
-	test "${with_cmocka+set}" = set || with_cmocka=yes
-	test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
-	test "${enable_symtable+set}" = set || enable_symtable=all
-	test "${enable_warn_error+set}" = set || enable_warn_error=yes
-	test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
-	test "${with_zlib+set}" = set || with_zlib=yes
-	XTARGETS='${XTARGETS}'
-	;;
-esac
-AC_SUBST(XTARGETS)
+AS_IF([test "$enable_developer" = "yes"],
+      [STD_CDEFINES="$STD_CDEFINES -DISC_MEM_DEFAULTFILL=1 -DISC_LIST_CHECKINIT=1"
+       test "${enable_fixed_rrset+set}" = set || enable_fixed_rrset=yes
+       test "${enable_querytrace+set}" = set || enable_querytrace=yes
+       test "${with_cmocka+set}" = set || with_cmocka=yes
+       test "${with_dlz_filesystem+set}" = set || with_dlz_filesystem=yes
+       test "${enable_symtable+set}" = set || enable_symtable=all
+       test "${enable_warn_error+set}" = set || enable_warn_error=yes
+       test "${enable_warn_shadow+set}" = set || enable_warn_shadow=yes
+       test "${with_zlib+set}" = set || with_zlib=yes
+       XTARGETS='${XTARGETS}'
+       ])
+AC_SUBST([XTARGETS])
 
 AC_ARG_ENABLE([fuzzing],
 	      [AS_HELP_STRING([--enable-fuzzing=<afl|libfuzzer>],
@@ -757,9 +756,8 @@ CRYPTO=OpenSSL
 #
 AX_CHECK_OPENSSL([:],[AC_MSG_FAILURE([OpenSSL/LibreSSL not found])])
 
-save_CFLAGS="$CFLAGS"
-save_LIBS="$LIBS"
-save_LDFLAGS="$LDFLAGS"
+AX_SAVE_FLAGS([openssl])
+
 CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
 LIBS="$LIBS $OPENSSL_LIBS"
 LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
@@ -862,9 +860,7 @@ AS_CASE([$enable_fips_mode],
 			       [], [AC_MSG_FAILURE([OpenSSL FIPS mode requested but not available.])])],
 	[no], [AC_MSG_RESULT([no])])
 
-CFLAGS="$save_CFLAGS"
-LIBS="$save_LIBS"
-LDFLAGS="$save_LDFLAGS"
+AX_RESTORE_FLAGS([openssl])
 
 AC_SUBST([OPENSSL_INCLUDES])
 AC_SUBST([OPENSSL_LIBS])
@@ -1458,53 +1454,31 @@ AC_CHECK_LIB(scf, smf_enable_instance)
 # Additional compiler settings.
 #
 MKDEPCC="$CC"
+
 MKDEPCFLAGS="-M"
+AS_CASE([$host],
+	[*-solaris*],[
+	    AS_IF([test "$GCC" != "yes"],
+		  [MKDEPCFLAGS="-xM"])])
 
-if test "X$GCC" = "Xyes"; then
-	STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"
-	AC_MSG_CHECKING(if "$CC" supports -fno-strict-aliasing)
-	SAVE_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -Werror -fno-strict-aliasing"
-	AC_TRY_COMPILE(,, [FNOSTRICTALIASING=yes],[FNOSTRICTALIASING=no])
-	CFLAGS="$SAVE_CFLAGS"
-	if test "yes" = "$FNOSTRICTALIASING"; then
-		AC_MSG_RESULT(yes)
-		STD_CWARNINGS="$STD_CWARNINGS -fno-strict-aliasing"
-	else
-		AC_MSG_RESULT(no)
-	fi
-	#
-	# turn off delete null pointer checks
-	#
-	AC_MSG_CHECKING(if "$CC" supports -fno-delete-null-pointer-checks)
-	SAVE_CFLAGS="$CFLAGS"
-	CFLAGS="$CFLAGS -Werror -fno-delete-null-pointer-checks"
-	AC_TRY_COMPILE(,, [FNODELETENULLPOINTERCHECKS=yes],
-			  [FNODELETENULLPOINTERCHECKS=no])
-	CFLAGS="$SAVE_CFLAGS"
-	if test "yes" = "$FNODELETENULLPOINTERCHECKS"; then
-		AC_MSG_RESULT(yes)
-		STD_CWARNINGS="$STD_CWARNINGS -fno-delete-null-pointer-checks"
-	else
-		AC_MSG_RESULT(no)
-	fi
-	if test "X$enable_warn_shadow" = Xyes; then
-		STD_CWARNINGS="$STD_CWARNINGS -Wshadow"
-	fi
-	if test "X$enable_warn_error" = Xyes; then
-		STD_CWARNINGS="$STD_CWARNINGS -Werror"
-	fi
-else
-	case $host in
-	*-solaris*)
-		MKDEPCFLAGS="-xM"
-		;;
-	esac
-fi
+AS_IF([test "$GCC" = "yes"],
+      [STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"]
+      )
 
-AC_SUBST(MKDEPCC)
-AC_SUBST(MKDEPCFLAGS)
-AC_SUBST(MKDEPPROG)
+AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
+		      [STD_CWARNINGS="$STD_CWARNINGS -fno-strict-aliasing"])
+AX_CHECK_COMPILE_FLAG([-fno-delete-null-pointer-checks],
+		      [STC_CWARNINGS="$STD_CWARNINGS -fno-delete-null-pointer-checks"])
+AS_IF([test "$enable_warn_shadow" = "yes"],
+      [AX_CHECK_COMPILE_FLAG([-Wshadow],
+			     [STD_CWARNINGS="$STD_CWARNINGS -Wshadow"])])
+AS_IF([test "$enable_warn_error" = "yes"],
+      [AX_CHECK_COMPILE_FLAG([-Werror],
+			     [STD_CWARNINGS="$STD_CWARNINGS -Werror"])])
+
+AC_SUBST([MKDEPCC])
+AC_SUBST([MKDEPCFLAGS])
+AC_SUBST([MKDEPPROG])
 
 #
 # -lxnet buys us one big porting headache...  standards, gotta love 'em.
@@ -1841,12 +1815,12 @@ AS_IF([test "$enable_linux_caps" = "yes"],
 			[],
 			[AC_MSG_ERROR(m4_normalize([sys/capability.h header is required for Linux capabilities support.
 						    Either install libcap or use --disable-linux-caps.]))])
-       save_LIBS="$LIBS"
+       AX_SAVE_FLAGS([cap])
        AC_SEARCH_LIBS([cap_set_proc], [cap],
 		      [LIBCAP_LIBS="$ac_cv_search_cap_set_proc"],
 		      [AC_MSG_ERROR(m4_normalize([libcap is required for Linux capabilities support.
 						  Either install libcap or use --disable-linux-caps.]))])
-       LIBS="$save_LIBS"],
+       AX_RESTORE_FLAGS([cap])],
       [AC_MSG_RESULT([no])])
 AC_SUBST([LIBCAP_LIBS])
 
@@ -1916,7 +1890,7 @@ AC_CHECK_HEADERS(
 	 )],
 	[AC_MSG_RESULT([no])],
 	[ISC_ATOMIC_LIBS="-latomic"
-	 save_LIBS="$LIBS"
+	 AX_SAVE_FLAGS([atomic])
 	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
 	 AC_LINK_IFELSE(
 	   [AC_LANG_PROGRAM(
@@ -1925,7 +1899,7 @@ AC_CHECK_HEADERS(
 	    )],
 	   [AC_MSG_RESULT([yes])],
 	   [AC_MSG_FAILURE([libatomic needed, but linking with -latomic failed, please fix your toolchain.])])
-	 LIBS="$save_LIBS"
+	 AX_RESTORE_FLAGS([atomic])
 	])
      ],
      [AC_MSG_FAILURE([stdatomic.h header found, but compilation failed, please fix your toolchain.])]
@@ -1946,7 +1920,7 @@ AC_CHECK_HEADERS(
 	 )],
 	[AC_MSG_RESULT([no])],
 	[ISC_ATOMIC_LIBS="-latomic"
-	 save_LIBS="$LIBS"
+	 AX_SAVE_FLAGS([atomic])
 	 LIBS="$LIBS $ISC_ATOMIC_LIBS"
 	 AC_LINK_IFELSE(
 	   [AC_LANG_PROGRAM(
@@ -1955,7 +1929,7 @@ AC_CHECK_HEADERS(
 	    )],
 	   [AC_MSG_RESULT([yes])],
 	   [AC_MSG_FAILURE([libatomic needed, but linking with -latomic failed, please fix your toolchain.])])
-	 LIBS="$save_LIBS"
+	 AX_RESTORE_FLAGS([atomic])
 	])
      ],
      [AC_MSG_RESULT([__sync builtins])
@@ -2280,10 +2254,7 @@ AS_CASE([$with_libidn2],
 	[yes],	[PKG_CHECK_MODULES([LIBIDN2], [libidn2],
 				   [AC_DEFINE([HAVE_LIBIDN2], [1], [Define if libidn2 was found])])],
 	[no],	[],
-	[*],	[save_CFLAGS="$CFLAGS"
-		 save_CPPFLAGS="$CPPFLAGS"
-		 save_LDFLAGS="$LDFLAGS"
-		 save_LIBS="$LIBS"
+	[*],	[AX_SAVE_FLAGS([libidn2])
 		 LIBIDN2_CFLAGS="-I$with_libidn2/include"
 		 LIBIDN2_LDFLAGS="-L$with_libidn2/lib"
 		 CFLAGS="$LIBIDN2_CFLAGS $CFLAGS"
@@ -2296,10 +2267,7 @@ AS_CASE([$with_libidn2],
 				[LIBIDN2_LIBS="$ac_cv_search_idn2_to_ascii_lz"
 				 AC_DEFINE([HAVE_LIBIDN2], [1], [Define if libidn2 was found])],
 				[AC_MSG_ERROR([libidn2 requested, but not found])])
-		 CFLAGS="$save_CFLAGS"
-		 CPPFLAGS="$save_CPPFLAGS"
-		 LDFLAGS="$save_LDFLAGS"
-		 LIBS="$save_LIBS"])
+		AX_RESTORE_FLAGS([libidn2])])
 AC_SUBST([LIBIDN2_CFLAGS])
 AC_SUBST([LIBIDN2_LDFLAGS])
 AC_SUBST([LIBIDN2_LIBS])
@@ -2342,23 +2310,14 @@ AC_SUBST([KYUA])
 # Check for -Wl,--wrap= support
 #
 
-save_LDFLAGS=$LDFLAGS
-LDFLAGS="--wrap=printf"
-
-LD_WRAP_TESTS=false
-enable_ld_wrap=no
-AC_MSG_CHECKING([for linker support for --wrap option])
-AC_LINK_IFELSE(
-    [AC_LANG_PROGRAM([#include <stdio.h>], [__wrap_printf("success"); return (0);])],
-    [enable_ld_wrap=yes
-     LD_WRAP_TESTS=true
-     AC_DEFINE([LD_WRAP], [1], [define if the linker supports --wrap option])
-     AC_MSG_RESULT([yes])],
-    [AC_MSG_RESULT([no])])
+AX_CHECK_LINK_FLAG([--wrap],
+		   [enable_ld_wrap=yes
+		    LD_WRAP_TESTS=true
+		    AC_DEFINE([LD_WRAP], [1], [define if the linker supports --wrap option])
+		    AC_MSG_RESULT([yes])],
+		   [AC_MSG_RESULT([no])])
 # AM_CONDITIONAL([LD_WRAP], [test $enable_ld_wrap = yes])
 AC_SUBST([LD_WRAP_TESTS])
-
-LDFLAGS=$save_LDFLAGS
 
 #
 # Check for i18n
