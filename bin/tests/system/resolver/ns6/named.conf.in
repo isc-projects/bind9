@@ -26,6 +26,7 @@ options {
 	querylog yes;
 	statistics-file "named.stats";
 	max-udp-size 4096;
+	responselog no;
 };
 
 zone "." {
