@@ -154,7 +154,7 @@ rdatasetstats(void **state) {
 
 	UNUSED(state);
 
-	result = dns_rdatasetstats_create(mctx, &stats);
+	result = dns_rdatasetstats_create(dt_mctx, &stats);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	/* First 256 types. */

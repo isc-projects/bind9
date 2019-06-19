@@ -27,13 +27,6 @@
 #include <dns/result.h>
 #include <dns/zone.h>
 
-#define CHECK(r) \
-	do { \
-		result = (r); \
-		if (result != ISC_R_SUCCESS) \
-			goto cleanup; \
-	} while (0)
-
 typedef struct {
 	dns_diffop_t op;
 	const char *owner;
@@ -44,7 +37,7 @@ typedef struct {
 
 #define ZONECHANGE_SENTINEL { 0, NULL, 0, NULL, NULL }
 
-extern isc_mem_t *mctx;
+extern isc_mem_t *dt_mctx;
 extern isc_log_t *lctx;
 extern isc_taskmgr_t *taskmgr;
 extern isc_task_t *maintask;

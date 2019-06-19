@@ -51,7 +51,7 @@ _setup(void **state) {
 	result = dns_test_begin(NULL, true);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+	result = dns_dispatchmgr_create(dt_mctx, &dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = dns_test_makeview("view", &view);

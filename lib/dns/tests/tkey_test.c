@@ -30,7 +30,7 @@ static isc_mem_t mock_mctx = {
 };
 
 static void *
-__wrap_isc__mem_get(isc_mem_t *mctx __attribute__ ((unused)),
+__wrap_isc__mem_get(isc_mem_t *dt_mctx __attribute__ ((unused)),
 		   size_t size)
 {
 	bool has_enough_memory = mock_type(bool);
@@ -84,11 +84,13 @@ dns_tkeyctx_create_test(void **state) {
 
 	tctx = NULL;
 	will_return(__wrap_isc__mem_get, false);
-	assert_int_equal(dns_tkeyctx_create(&mock_mctx, &tctx), ISC_R_NOMEMORY);
+	assert_int_equal(dns_tkeyctx_create(&mock_mctx, &tctx),
+			 ISC_R_NOMEMORY);
 
 	tctx = NULL;
 	will_return(__wrap_isc__mem_get, true);
-	assert_int_equal(dns_tkeyctx_create(&mock_mctx, &tctx), ISC_R_SUCCESS);
+	assert_int_equal(dns_tkeyctx_create(&mock_mctx, &tctx),
+			 ISC_R_SUCCESS);
 	*state = tctx;
 }
 

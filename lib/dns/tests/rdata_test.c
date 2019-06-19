@@ -169,7 +169,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize) {
 	void *rdata_struct;
 	char buf[1024];
 
-	rdata_struct = isc_mem_allocate(mctx, structsize);
+	rdata_struct = isc_mem_allocate(dt_mctx, structsize);
 	assert_non_null(rdata_struct);
 
 	/*
@@ -193,7 +193,7 @@ check_struct_conversions(dns_rdata_t *rdata, size_t structsize) {
 
 	assert_memory_equal(buf, rdata->data, rdata->length);
 
-	isc_mem_free(mctx, rdata_struct);
+	isc_mem_free(dt_mctx, rdata_struct);
 }
 
 /*

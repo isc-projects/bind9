@@ -60,7 +60,7 @@ iteration_test(const char *file, unsigned int expected) {
 	result = dns_test_loaddb(&db, dns_dbtype_zone, "test", file);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_nsec3_maxiterations(db, NULL, mctx, &iterations);
+	result = dns_nsec3_maxiterations(db, NULL, dt_mctx, &iterations);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	assert_int_equal(iterations, expected);

@@ -211,7 +211,7 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc) {
  * Load test data into the RBT.
  */
 static void
-add_test_data(isc_mem_t *mymctx, dns_rbt_t *rbt) {
+add_test_data(isc_mem_t *mctx, dns_rbt_t *rbt) {
 	char buffer[1024];
 	isc_buffer_t b;
 	isc_result_t result;
@@ -220,7 +220,7 @@ add_test_data(isc_mem_t *mymctx, dns_rbt_t *rbt) {
 	dns_compress_t cctx;
 	rbt_testdata_t *testdatap = testdata;
 
-	dns_compress_init(&cctx, -1, mymctx);
+	dns_compress_init(&cctx, -1, mctx);
 
 	while (testdatap->name != NULL && testdatap->data.data != NULL) {
 		memmove(buffer, testdatap->name, testdatap->name_len);
@@ -307,10 +307,10 @@ serialize_test(void **state) {
 
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = dns_rbt_create(mctx, delete_data, NULL, &rbt);
+	result = dns_rbt_create(dt_mctx, delete_data, NULL, &rbt);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	add_test_data(mctx, rbt);
+	add_test_data(dt_mctx, rbt);
 
 	if (verbose) {
 		dns_rbt_printtext(rbt, data_printer, stdout);
@@ -337,7 +337,7 @@ serialize_test(void **state) {
 	assert_true(base != NULL && base != MAP_FAILED);
 	close(fd);
 
-	result = dns_rbt_deserialize_tree(base, filesize, 0, mctx,
+	result = dns_rbt_deserialize_tree(base, filesize, 0, dt_mctx,
 					  delete_data, NULL, fix_data, NULL,
 					  NULL, &rbt_deserialized);
 
@@ -375,10 +375,10 @@ deserialize_corrupt_test(void **state) {
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
 	/* Set up map file */
-	result = dns_rbt_create(mctx, delete_data, NULL, &rbt);
+	result = dns_rbt_create(dt_mctx, delete_data, NULL, &rbt);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	add_test_data(mctx, rbt);
+	add_test_data(dt_mctx, rbt);
 	rbtfile = fopen("./zone.bin", "w+b");
 	assert_non_null(rbtfile);
 	result = dns_rbt_serialize_tree(rbtfile, rbt, write_data, NULL,
@@ -405,7 +405,7 @@ deserialize_corrupt_test(void **state) {
 			*p = isc_random8();
 		}
 
-		result = dns_rbt_deserialize_tree(base, filesize, 0, mctx,
+		result = dns_rbt_deserialize_tree(base, filesize, 0, dt_mctx,
 						  delete_data, NULL,
 						  fix_data, NULL,
 						  NULL, &rbt_deserialized);

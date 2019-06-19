@@ -68,7 +68,7 @@ make_dispatchset(unsigned int ndisps) {
 	unsigned int attrs;
 	dns_dispatch_t *disp = NULL;
 
-	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+	result = dns_dispatchmgr_create(dt_mctx, &dispatchmgr);
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
@@ -80,7 +80,7 @@ make_dispatchset(unsigned int ndisps) {
 	if (result != ISC_R_SUCCESS)
 		return (result);
 
-	result = dns_dispatchset_create(mctx, socketmgr, taskmgr, disp,
+	result = dns_dispatchset_create(dt_mctx, socketmgr, taskmgr, disp,
 					&dset, ndisps);
 	dns_dispatch_detach(&disp);
 
@@ -271,7 +271,7 @@ dispatch_getnext(void **state) {
 	result = isc_task_create(taskmgr, 0, &task);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
+	result = dns_dispatchmgr_create(dt_mctx, &dispatchmgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	ina.s_addr = htonl(INADDR_LOOPBACK);
@@ -313,7 +313,7 @@ dispatch_getnext(void **state) {
 
 	region.base = message;
 	region.length = sizeof(message);
-	result = isc_app_onrun(mctx, task, startit, &region);
+	result = isc_app_onrun(dt_mctx, task, startit, &region);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_app_run();

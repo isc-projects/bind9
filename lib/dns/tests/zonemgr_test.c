@@ -62,7 +62,7 @@ zonemgr_create(void **state) {
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, socketmgr,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -80,7 +80,7 @@ zonemgr_managezone(void **state) {
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, socketmgr,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -121,7 +121,7 @@ zonemgr_createzone(void **state) {
 
 	UNUSED(state);
 
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, socketmgr,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -159,7 +159,7 @@ zonemgr_unreachable(void **state) {
 
 	TIME_NOW(&now);
 
-	result = dns_zonemgr_create(mctx, taskmgr, timermgr, socketmgr,
+	result = dns_zonemgr_create(dt_mctx, taskmgr, timermgr, socketmgr,
 				    &myzonemgr);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
