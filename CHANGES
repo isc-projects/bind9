@@ -1,3 +1,6 @@
+5250.	[func]		The default size for RSA keys is now 2048 bits,
+			for both ZSKs and KSKs. [GL #1097]
+
 5249.	[bug]		Fix a possible underflow in recursion clients
 			statistics when hitting recursive clients
 			soft quota. [GL #1067]

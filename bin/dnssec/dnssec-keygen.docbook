@@ -176,10 +176,8 @@
 	  </para>
 	  <para>
 	    If the key size is not specified, some algorithms have
-	    pre-defined defaults.  For example, RSA keys for use as
-	    DNSSEC zone signing keys have a default size of 1024 bits;
-	    RSA keys for use as key signing keys (KSKs, generated with
-	    <option>-f KSK</option>) default to 2048 bits.
+	    pre-defined defaults.  For instance, RSA keys have a default
+	    size of 2048 bits.
 	  </para>
 	</listitem>
       </varlistentry>

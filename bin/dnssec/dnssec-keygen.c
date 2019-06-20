@@ -554,11 +554,7 @@ main(int argc, char **argv) {
 			case DST_ALG_NSEC3RSASHA1:
 			case DST_ALG_RSASHA256:
 			case DST_ALG_RSASHA512:
-				if ((kskflag & DNS_KEYFLAG_KSK) != 0) {
-					size = 2048;
-				} else {
-					size = 1024;
-				}
+				size = 2048;
 				if (verbose > 0) {
 					fprintf(stderr, "key size not "
 							"specified; defaulting"
