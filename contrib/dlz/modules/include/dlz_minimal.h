@@ -121,12 +121,13 @@ typedef isc_result_t (*dns_clientinfo_sourceip_t)(dns_clientinfo_t *client,
 typedef isc_result_t (*dns_clientinfo_version_t)(dns_clientinfo_t *client,
 						  void **addrp);
 
-#define DNS_CLIENTINFOMETHODS_VERSION 1
-#define DNS_CLIENTINFOMETHODS_AGE 0
+#define DNS_CLIENTINFOMETHODS_VERSION 2
+#define DNS_CLIENTINFOMETHODS_AGE 1
 typedef struct dns_clientinfomethods {
 	uint16_t version;
 	uint16_t age;
 	dns_clientinfo_sourceip_t sourceip;
+	dns_clientinfo_version_t dbversion;
 } dns_clientinfomethods_t;
 #endif /* DLZ_DLOPEN_VERSION > 1 */
 
