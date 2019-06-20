@@ -15358,6 +15358,15 @@ HOST-127.EXAMPLE. MX 0 .
 	    <acronym>BIND</acronym> 8 statistics, if applicable.
 	  </para>
 
+	  <para>
+	    Note: BIND statistics counters are signed 64-bit values on
+	    all platforms except one: 32-bit Windows, where they are
+	    signed 32-bit values.  Given that 32-bit values have a
+	    vastly smaller range than 64-bit values, BIND statistics
+	    counters in 32-bit Windows builds overflow significantly
+	    more quickly than on all other platforms.
+	  </para>
+
 	  <section xml:id="stats_counters"><info><title>Name Server Statistics Counters</title></info>
 
 	    <informaltable colsep="0" rowsep="0">
