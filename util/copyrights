@@ -1063,6 +1063,7 @@
 ./bin/tests/system/statschannel/clean.sh	SH	2015,2016,2017,2018,2019
 ./bin/tests/system/statschannel/fetch.pl	PERL	2015,2016,2018,2019
 ./bin/tests/system/statschannel/mem-xml.pl	PERL	2017,2018,2019
+./bin/tests/system/statschannel/ns2/sign.sh	SH	2019
 ./bin/tests/system/statschannel/prereq.sh	SH	2015,2016,2018,2019
 ./bin/tests/system/statschannel/server-json.pl	PERL	2015,2016,2017,2018,2019
 ./bin/tests/system/statschannel/server-xml.pl	PERL	2015,2016,2017,2018,2019
@@ -1075,6 +1076,8 @@
 ./bin/tests/system/statschannel/traffic.expect.4	X	2015,2018,2019
 ./bin/tests/system/statschannel/traffic.expect.5	X	2015,2016,2018,2019
 ./bin/tests/system/statschannel/traffic.expect.6	X	2015,2016,2018,2019
+./bin/tests/system/statschannel/zones-json.pl	PERL	2019
+./bin/tests/system/statschannel/zones-xml.pl	PERL	2019
 ./bin/tests/system/stop.pl			SH	2001,2004,2005,2006,2007,2012,2016,2017,2018,2019
 ./bin/tests/system/stop.sh			SH	2000,2001,2004,2007,2012,2016,2018,2019
 ./bin/tests/system/stopall.sh			SH	2018,2019
