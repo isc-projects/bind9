@@ -1,3 +1,6 @@
+5251.	[bug]		Statistics were broken in x86 Windows builds.
+			[GL #1081]
+
 5250.	[func]		The default size for RSA keys is now 2048 bits,
 			for both ZSKs and KSKs. [GL #1097]
 
