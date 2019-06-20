@@ -6516,13 +6516,14 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 
 static isc_result_t
 add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
-	 dns_rdatatype_t type, dns_diff_t *diff, dst_key_t **keys,
-	 unsigned int nkeys, isc_mem_t *mctx, isc_stdtime_t inception,
-	 isc_stdtime_t expire, bool check_ksk,
-	 bool keyset_kskonly)
+	 dns_zone_t* zone, dns_rdatatype_t type, dns_diff_t *diff,
+	 dst_key_t **keys, unsigned int nkeys, isc_mem_t *mctx,
+	 isc_stdtime_t inception, isc_stdtime_t expire,
+	 bool check_ksk, bool keyset_kskonly)
 {
 	isc_result_t result;
 	dns_dbnode_t *node = NULL;
+	dns_stats_t* dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
 	unsigned char data[1024]; /* XXX */
@@ -6624,13 +6625,19 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		CHECK(dns_dnssec_sign(name, &rdataset, keys[i],
 				      &inception, &expire,
 				      mctx, &buffer, &sig_rdata));
+
 		/* Update the database and journal with the RRSIG. */
 		/* XXX inefficient - will cause dataset merging */
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADDRESIGN,
 				    name, rdataset.ttl, &sig_rdata));
-
 		dns_rdata_reset(&sig_rdata);
 		isc_buffer_init(&buffer, data, sizeof(data));
+
+		/* Update DNSSEC sign statistics. */
+		if (dnssecsignstats != NULL) {
+			dns_dnssecsignstats_increment(dnssecsignstats,
+						      dst_key_id(keys[i]));
+		}
 	}
 
  failure:
@@ -6757,9 +6764,9 @@ zone_resigninc(dns_zone_t *zone) {
 			break;
 		}
 
-		result = add_sigs(db, version, name, covers, zonediff.diff,
-				  zone_keys, nkeys, zone->mctx, inception,
-				  expire, check_ksk, keyset_kskonly);
+		result = add_sigs(db, version, name, zone, covers,
+				  zonediff.diff, zone_keys, nkeys, zone->mctx,
+				  inception, expire, check_ksk, keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "zone_resigninc:add_sigs -> %s",
@@ -6815,7 +6822,7 @@ zone_resigninc(dns_zone_t *zone) {
 	 * Generate maximum life time signatures so that the above loop
 	 * termination is sensible.
 	 */
-	result = add_sigs(db, version, &zone->origin, dns_rdatatype_soa,
+	result = add_sigs(db, version, &zone->origin, zone, dns_rdatatype_soa,
 			  zonediff.diff, zone_keys, nkeys, zone->mctx,
 			  inception, soaexpire, check_ksk, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
@@ -7004,9 +7011,9 @@ check_if_bottom_of_zone(dns_db_t *db, dns_dbnode_t *node,
 }
 
 static isc_result_t
-sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
-	    dns_dbversion_t *version, bool build_nsec3,
-	    bool build_nsec, dst_key_t *key,
+sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
+	    dns_dbnode_t *node, dns_dbversion_t *version,
+	    bool build_nsec3, bool build_nsec, dst_key_t *key,
 	    isc_stdtime_t inception, isc_stdtime_t expire,
 	    unsigned int minimum, bool is_ksk,
 	    bool keyset_kskonly, bool is_bottom_of_zone,
@@ -7016,6 +7023,8 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 	dns_rdatasetiter_t *iterator = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
+	dns_stats_t* dnssecsignstats = dns_zone_getdnssecsignstats(zone);
+
 	isc_buffer_t buffer;
 	unsigned char data[1024];
 	bool seen_soa, seen_ns, seen_rr, seen_nsec, seen_nsec3, seen_ds;
@@ -7117,6 +7126,13 @@ sign_a_node(dns_db_t *db, dns_name_t *name, dns_dbnode_t *node,
 		CHECK(update_one_rr(db, version, diff, DNS_DIFFOP_ADDRESIGN,
 				    name, rdataset.ttl, &rdata));
 		dns_rdata_reset(&rdata);
+
+		/* Update DNSSEC sign statistics. */
+		if (dnssecsignstats != NULL) {
+			dns_dnssecsignstats_increment(dnssecsignstats,
+						      dst_key_id(key));
+		}
+
 		(*signatures)--;
  next_rdataset:
 		dns_rdataset_disassociate(&rdataset);
@@ -7650,7 +7666,7 @@ dns__zone_updatesigs(dns_diff_t *diff, dns_db_t *db, dns_dbversion_t *version,
 				     dns_result_totext(result));
 			return (result);
 		}
-		result = add_sigs(db, version, &tuple->name,
+		result = add_sigs(db, version, &tuple->name, zone,
 				  tuple->rdata.type, zonediff->diff,
 				  zone_keys, nkeys, zone->mctx, inception,
 				  exp, check_ksk, keyset_kskonly);
@@ -8415,7 +8431,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 		goto failure;
 	}
 
-	result = add_sigs(db, version, &zone->origin, dns_rdatatype_soa,
+	result = add_sigs(db, version, &zone->origin, zone, dns_rdatatype_soa,
 			  zonediff.diff, zone_keys, nkeys, zone->mctx,
 			  inception, soaexpire, check_ksk, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
@@ -8977,9 +8993,10 @@ zone_sign(dns_zone_t *zone) {
 				continue;
 			}
 
-			CHECK(sign_a_node(db, name, node, version, build_nsec3,
-					  build_nsec, zone_keys[i], inception,
-					  expire, zone->minimum, is_ksk,
+			CHECK(sign_a_node(db, zone, name, node, version,
+					  build_nsec3, build_nsec,
+					  zone_keys[i], inception, expire,
+					  zone->minimum, is_ksk,
 					  (both && keyset_kskonly),
 					  is_bottom_of_zone, zonediff.diff,
 					  &signatures, zone->mctx));
@@ -9117,7 +9134,7 @@ zone_sign(dns_zone_t *zone) {
 	 * Generate maximum life time signatures so that the above loop
 	 * termination is sensible.
 	 */
-	result = add_sigs(db, version, &zone->origin, dns_rdatatype_soa,
+	result = add_sigs(db, version, &zone->origin, zone, dns_rdatatype_soa,
 			  zonediff.diff, zone_keys, nkeys, zone->mctx,
 			  inception, soaexpire, check_ksk, keyset_kskonly);
 	if (result != ISC_R_SUCCESS) {
@@ -18172,10 +18189,10 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 				   dns_result_totext(result));
 			goto failure;
 		}
-		result = add_sigs(db, ver, &zone->origin, dns_rdatatype_dnskey,
-				  zonediff->diff, zone_keys, nkeys, zone->mctx,
-				  inception, keyexpire, check_ksk,
-				  keyset_kskonly);
+		result = add_sigs(db, ver, &zone->origin, zone,
+				  dns_rdatatype_dnskey, zonediff->diff,
+				  zone_keys, nkeys, zone->mctx, inception,
+				  keyexpire, check_ksk, keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dnssec_log(zone, ISC_LOG_ERROR,
 				   "sign_apex:add_sigs -> %s",
