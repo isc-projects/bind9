@@ -62,18 +62,6 @@ AC_SUBST(BACKTRACECFLAGS)
 
 PKG_PROG_PKG_CONFIG
 
-# Warn if the user specified libbind, which is now deprecated
-AC_ARG_ENABLE(libbind, AS_HELP_STRING([--enable-libbind], [deprecated]))
-
-case "$enable_libbind" in
-	yes)
-		AC_MSG_ERROR(['libbind' is no longer part of the BIND 9 distribution.
-It is available from http://www.isc.org as a separate download.])
-		;;
-	no|'')
-		;;
-esac
-
 AC_ARG_ENABLE(buffer_useinline,
 	      AS_HELP_STRING([--enable-buffer-useinline],
 		             [define ISC_BUFFER_USEINLINE when compiling
