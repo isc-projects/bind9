@@ -304,39 +304,8 @@ AC_SUBST(PYTHON_INSTALL_DIR)
 AC_SUBST(PYTHON_INSTALL_LIB)
 
 #
-# Special processing of paths depending on whether --prefix,
-# --sysconfdir or --localstatedir arguments were given.  What's
-# desired is some compatibility with the way previous versions
-# of BIND built; they defaulted to /usr/local for most parts of
-# the installation, but named.boot/named.conf was in /etc
-# and named.pid was in /var/run.
+# expanded_sysconfdir is needed for replacement in the python utilities
 #
-# So ... if none of --prefix, --sysconfdir or --localstatedir are
-# specified, set things up that way.  If --prefix is given, use
-# it for sysconfdir and localstatedir the way configure normally
-# would.  To change the prefix for everything but leave named.conf
-# in /etc or named.pid in /var/run, then do this the usual configure way:
-# ./configure --prefix=/somewhere --sysconfdir=/etc
-# ./configure --prefix=/somewhere --localstatedir=/var
-#
-# To put named.conf and named.pid in /usr/local with everything else,
-# set the prefix explicitly to /usr/local even though that's the default:
-# ./configure --prefix=/usr/local
-#
-case "$prefix" in
-	NONE)
-		case "$sysconfdir" in
-			'${prefix}/etc')
-				sysconfdir=/etc
-				;;
-		esac
-		case "$localstatedir" in
-			'${prefix}/var')
-				localstatedir=/var
-				;;
-		esac
-		;;
-esac
 expanded_sysconfdir=`eval echo $sysconfdir`
 AC_SUBST(expanded_sysconfdir)
 

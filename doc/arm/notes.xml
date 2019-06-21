@@ -240,6 +240,17 @@
           the problem. [GL #1055]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  <command>./configure</command> no longer sets
+	  <command>--sysconfdir</command> to <command>/etc</command> or
+	  <command>--localstatedir</command> to <command>/var</command>
+	  when <command>--prefix</command> is not specified and the
+	  aforementioned options are not specified explicitly. Instead,
+	  Autoconf's defaults of <command>$prefix/etc</command> and
+	  <command>$prefix/var</command> are respected.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
