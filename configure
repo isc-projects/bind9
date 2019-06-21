@@ -890,7 +890,6 @@ with_aix_soname
 with_gnu_ld
 with_sysroot
 enable_libtool_lock
-enable_libbind
 enable_buffer_useinline
 enable_warn_shadow
 enable_warn_error
@@ -1594,7 +1593,6 @@ Optional Features:
   --enable-fast-install[=PKGS]
                           optimize for fast installation [default=yes]
   --disable-libtool-lock  avoid locking (might break parallel builds)
-  --enable-libbind        deprecated
   --enable-buffer-useinline
                           define ISC_BUFFER_USEINLINE when compiling
                           [default=yes]
@@ -12181,22 +12179,6 @@ $as_echo "no" >&6; }
 		PKG_CONFIG=""
 	fi
 fi
-
-# Warn if the user specified libbind, which is now deprecated
-# Check whether --enable-libbind was given.
-if test "${enable_libbind+set}" = set; then :
-  enableval=$enable_libbind;
-fi
-
-
-case "$enable_libbind" in
-	yes)
-		as_fn_error $? "'libbind' is no longer part of the BIND 9 distribution.
-It is available from http://www.isc.org as a separate download." "$LINENO" 5
-		;;
-	no|'')
-		;;
-esac
 
 # Check whether --enable-buffer_useinline was given.
 if test "${enable_buffer_useinline+set}" = set; then :
