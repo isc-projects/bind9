@@ -281,7 +281,8 @@ n=`expr $n + 1`
 
 # Test dnssec sign statistics.
 zone="dnssec"
-stat_prefix="dnskey sign operations"
+sign_prefix="dnssec-sign operations"
+refresh_prefix="dnssec-refresh operations"
 ksk_id=`cat ns2/$zone.ksk.id`
 zsk_id=`cat ns2/$zone.zsk.id`
 
@@ -297,8 +298,10 @@ ret=0
 # the SOA RRset before a competing RRset. This happens here and so the
 # SOA RRset is updated and resigned twice at startup, that explains the
 # additional zsk sign operation (11 instead of 10).
-echo "${stat_prefix} ${zsk_id}: 11" > zones.expect
-echo "${stat_prefix} ${ksk_id}: 1" >> zones.expect
+echo "${refresh_prefix} ${zsk_id}: 11" > zones.expect
+echo "${refresh_prefix} ${ksk_id}: 1" >> zones.expect
+echo "${sign_prefix} ${zsk_id}: 11" >> zones.expect
+echo "${sign_prefix} ${ksk_id}: 1" >> zones.expect
 cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
@@ -325,8 +328,10 @@ echo update add $zone. 300 in txt "nsupdate added me"
 echo send
 ) | $NSUPDATE
 # This should trigger the resign of SOA, TXT and NSEC (+3 zsk).
-echo "${stat_prefix} ${zsk_id}: 14" > zones.expect
-echo "${stat_prefix} ${ksk_id}: 1" >> zones.expect
+echo "${refresh_prefix} ${zsk_id}: 11" > zones.expect
+echo "${refresh_prefix} ${ksk_id}: 1" >> zones.expect
+echo "${sign_prefix} ${zsk_id}: 14" >> zones.expect
+echo "${sign_prefix} ${ksk_id}: 1" >> zones.expect
 cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
 # Fetch and check the dnssec sign statistics.
@@ -345,13 +350,16 @@ n=`expr $n + 1`
 
 # 3. Test sign operations of KSK.
 ret=0
+echo_i "fetch zone stats data after updating DNSKEY RRset ($n)"
 # Add a standby DNSKEY, this triggers resigning the DNSKEY RRset.
 zsk=$("$KEYGEN" -K ns2 -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 $SETTIME -K ns2 -P now -A never $zsk.key > /dev/null
 loadkeys_on 2 $zone || ret=1
 # This should trigger the resign of SOA (+1 zsk) and DNSKEY (+1 ksk).
-echo "${stat_prefix} ${zsk_id}: 15" > zones.expect
-echo "${stat_prefix} ${ksk_id}: 2" >> zones.expect
+echo "${refresh_prefix} ${zsk_id}: 12" > zones.expect
+echo "${refresh_prefix} ${ksk_id}: 2" >> zones.expect
+echo "${sign_prefix} ${zsk_id}: 15" >> zones.expect
+echo "${sign_prefix} ${ksk_id}: 2" >> zones.expect
 cat zones.expect | sort > zones.expect.$n
 rm -f zones.expect
 # Fetch and check the dnssec sign statistics.

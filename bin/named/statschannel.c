@@ -1453,7 +1453,7 @@ dnssecsignstat_dump(dns_keytag_t tag, uint64_t val, void *arg) {
 	xmlTextWriterPtr writer;
 	int xmlrc;
 #endif
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 	json_object *zoneobj, *obj;
 #endif
 
@@ -1477,7 +1477,7 @@ dnssecsignstat_dump(dns_keytag_t tag, uint64_t val, void *arg) {
 #endif
 		break;
 	case isc_statsformat_json:
-#ifdef HAVE_JSON
+#ifdef HAVE_JSON_C
 		zoneobj = (json_object *) dumparg->arg;
 		obj = json_object_new_int64(val);
 		if (obj == NULL) {
@@ -1561,6 +1561,7 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 		isc_stats_t *gluecachestats;
 		dns_stats_t *rcvquerystats;
 		dns_stats_t *dnssecsignstats;
+		dns_stats_t *dnssecrefreshstats;
 		uint64_t nsstat_values[ns_statscounter_max];
 		uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
@@ -1588,8 +1589,8 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
 			TRY0(xmlTextWriterWriteAttribute(writer,
-							 ISC_XMLCHAR "type",
-							 ISC_XMLCHAR "gluecache"));
+						      ISC_XMLCHAR "type",
+						      ISC_XMLCHAR "gluecache"));
 
 			result = dump_counters(gluecachestats,
 					       isc_statsformat_xml,
@@ -1628,8 +1629,8 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 			TRY0(xmlTextWriterStartElement(writer,
 						       ISC_XMLCHAR "counters"));
 			TRY0(xmlTextWriterWriteAttribute(writer,
-							 ISC_XMLCHAR "type",
-							 ISC_XMLCHAR "dnssec"));
+						    ISC_XMLCHAR "type",
+						    ISC_XMLCHAR "dnssec-sign"));
 
 			dumparg.result = ISC_R_SUCCESS;
 			dns_dnssecsignstats_dump(dnssecsignstats,
@@ -1639,7 +1640,27 @@ zone_xmlrender(dns_zone_t *zone, void *arg) {
 				goto error;
 			}
 
-			/* counters type="dnssec"*/
+			/* counters type="dnssec-sign"*/
+			TRY0(xmlTextWriterEndElement(writer));
+		}
+
+		dnssecrefreshstats = dns_zone_getdnssecrefreshstats(zone);
+		if (dnssecrefreshstats != NULL) {
+			TRY0(xmlTextWriterStartElement(writer,
+						       ISC_XMLCHAR "counters"));
+			TRY0(xmlTextWriterWriteAttribute(writer,
+						 ISC_XMLCHAR "type",
+						 ISC_XMLCHAR "dnssec-refresh"));
+
+			dumparg.result = ISC_R_SUCCESS;
+			dns_dnssecsignstats_dump(dnssecrefreshstats,
+						 dnssecsignstat_dump,
+						 &dumparg, 0);
+			if(dumparg.result != ISC_R_SUCCESS) {
+				goto error;
+			}
+
+			/* counters type="dnssec-refresh"*/
 			TRY0(xmlTextWriterEndElement(writer));
 		}
 	}
@@ -2363,6 +2384,7 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 		isc_stats_t *gluecachestats;
 		dns_stats_t *rcvquerystats;
 		dns_stats_t *dnssecsignstats;
+		dns_stats_t *dnssecrefreshstats;
 		uint64_t nsstat_values[ns_statscounter_max];
 		uint64_t gluecachestats_values[dns_gluecachestatscounter_max];
 
@@ -2458,11 +2480,39 @@ zone_jsonrender(dns_zone_t *zone, void *arg) {
 				goto error;
 			}
 
-			if (json_object_get_object(counters)->count != 0)
+			if (json_object_get_object(counters)->count != 0) {
 				json_object_object_add(zoneobj,
-						       "dnssec", counters);
-			else
+						       "dnssec-sign",
+						       counters);
+			} else {
 				json_object_put(counters);
+			}
+		}
+
+		dnssecrefreshstats = dns_zone_getdnssecrefreshstats(zone);
+		if (dnssecrefreshstats != NULL) {
+			stats_dumparg_t dumparg;
+			json_object *counters = json_object_new_object();
+			CHECKMEM(counters);
+
+			dumparg.type = isc_statsformat_json;
+			dumparg.arg = counters;
+			dumparg.result = ISC_R_SUCCESS;
+			dns_dnssecsignstats_dump(dnssecrefreshstats,
+						 dnssecsignstat_dump,
+						 &dumparg, 0);
+			if (dumparg.result != ISC_R_SUCCESS) {
+				json_object_put(counters);
+				goto error;
+			}
+
+			if (json_object_get_object(counters)->count != 0) {
+				json_object_object_add(zoneobj,
+						       "dnssec-refresh",
+						       counters);
+			} else {
+				json_object_put(counters);
+			}
 		}
 	}
 
