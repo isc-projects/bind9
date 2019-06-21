@@ -1928,6 +1928,9 @@ dns_zone_setrcvquerystats(dns_zone_t *zone, dns_stats_t *stats);
 
 void
 dns_zone_setdnssecsignstats(dns_zone_t *zone, dns_stats_t *stats);
+
+void
+dns_zone_setdnssecrefreshstats(dns_zone_t *zone, dns_stats_t *stats);
 /*%<
  * Set additional statistics sets to zone.  These are attached to the zone
  * but are not counted in the zone module; only the caller updates the
@@ -1947,6 +1950,9 @@ dns_zone_getrcvquerystats(dns_zone_t *zone);
 
 dns_stats_t *
 dns_zone_getdnssecsignstats(dns_zone_t *zone);
+
+dns_stats_t *
+dns_zone_getdnssecrefreshstats(dns_zone_t *zone);
 /*%<
  * Get the additional statistics for zone, if one is installed.
  *

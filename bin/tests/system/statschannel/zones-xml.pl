@@ -25,13 +25,12 @@ foreach $group (@$counters) {
 
     my $type = $group->{type};
 
-    if ($type eq "dnssec") {
-        my $prefix = "dnskey sign operations ";
+    if ($type eq "dnssec-sign" || $type eq "dnssec-refresh") {
         if (exists $group->{counter}->{name}) {
-            print $prefix . $group->{counter}->{name} . ": " . $group->{counter}->{content} . "\n";
+            print $type . " operations " . $group->{counter}->{name} . ": " . $group->{counter}->{content} . "\n";
 	} else {
             foreach $key (keys %{$group->{counter}}) {
-                print $prefix . $key . ": ". $group->{counter}->{$key}->{content} ."\n";
+                print $type . " operations " . $key . ": ". $group->{counter}->{$key}->{content} ."\n";
             }
         }
     }

@@ -23,8 +23,13 @@ close(INPUT);
 my $ref = decode_json($text);
 
 
-my $dnssecsign = $ref->{views}->{_default}->{zones}[0]->{"dnssec"};
-my $type = "dnskey sign operations ";
+my $dnssecsign = $ref->{views}->{_default}->{zones}[0]->{"dnssec-sign"};
+my $type = "dnssec-sign operations ";
 foreach $key (keys %{$dnssecsign}) {
     print $type . $key . ": ". $dnssecsign->{$key} ."\n";
+}
+my $dnssecrefresh = $ref->{views}->{_default}->{zones}[0]->{"dnssec-refresh"};
+my $type = "dnssec-refresh operations ";
+foreach $key (keys %{$dnssecrefresh}) {
+    print $type . $key . ": ". $dnssecrefresh->{$key} ."\n";
 }
