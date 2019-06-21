@@ -1455,7 +1455,7 @@ dnssecsignstat_dump(dns_keytag_t tag, uint64_t val, void *arg) {
 	xmlTextWriterPtr writer;
 	int xmlrc;
 #endif
-#ifdef HAVE_JSON_C
+#ifdef HAVE_JSON
 	json_object *zoneobj, *obj;
 #endif
 
@@ -1479,7 +1479,7 @@ dnssecsignstat_dump(dns_keytag_t tag, uint64_t val, void *arg) {
 #endif
 		break;
 	case isc_statsformat_json:
-#ifdef HAVE_JSON_C
+#ifdef HAVE_JSON
 		zoneobj = (json_object *) dumparg->arg;
 		obj = json_object_new_int64(val);
 		if (obj == NULL) {

@@ -5427,6 +5427,8 @@ options {
 		<command>zone-statistics terse</command> or
 		<command>zone-statistics none</command>
 		in the <command>zone</command> statement).
+		These include, for example, DNSSEC signing operations
+	        and the number of authoritative answers per query type.
 		The default is <userinput>terse</userinput>, providing
 		minimal statistics on zones (including name and
 		current serial number, but not query type
