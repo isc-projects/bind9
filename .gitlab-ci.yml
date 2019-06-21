@@ -101,15 +101,27 @@ stages:
   <<: *debian_sid_amd64_image
   stage: precheck
 
+autoconf: &autoconf_job
+  <<: *default_triggering_rules
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script:
+    - autoreconf -fi
+  artifacts:
+    untracked: true
+    expire_in: "1 hour"
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
   script:
-    - ./configure --enable-developer --with-libtool --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean $EXTRA_CONFIGURE || cat config.log
+    - ./configure --disable-maintainer-mode --enable-developer --with-libtool --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean $EXTRA_CONFIGURE || cat config.log
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
+  dependencies:
+    - autoreconf:sid:amd64
   artifacts:
     untracked: true
     expire_in: "1 hour"
@@ -151,6 +163,9 @@ stages:
 
 # Jobs in the precheck stage
 
+autoreconf:sid:amd64:
+  <<: *autoconf_job
+
 misc:sid:amd64:
   <<: *precheck_job
   script:
@@ -188,6 +203,8 @@ docs:sid:amd64:
     - ./configure || cat config.log
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
+  dependencies:
+    - autoreconf:sid:amd64
   artifacts:
     paths:
       - doc/arm/
