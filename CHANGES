@@ -1,3 +1,8 @@
+5254.	[func]		Collect metrics to report to the statistics-channel
+			DNSSEC signing operations (dnssec-sign) and refresh
+			operations (dnssec-refresh) per zone and per keytag.
+			[GL #513]
+
 5253.	[port]		Support platforms that don't define ULLONG_MAX.
 			[GL #1098]
 
