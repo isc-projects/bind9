@@ -26,7 +26,7 @@ CWARNINGS =
 
 # Alphabetically
 UNIXOBJS =	unix/pk11_api.@O@ \
-		unix/app.@O@ unix/dir.@O@ unix/errno.@O@ \
+		unix/dir.@O@ unix/errno.@O@ \
 		unix/errno2result.@O@ unix/file.@O@ unix/fsaccess.@O@ \
 		unix/interfaceiter.@O@ unix/meminfo.@O@ \
 		unix/net.@O@ unix/os.@O@ unix/resource.@O@ unix/socket.@O@ \
@@ -42,7 +42,8 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/errno.@O@ \
 
 # Alphabetically
 OBJS =		pk11.@O@ pk11_result.@O@ \
-		aes.@O@ assertions.@O@ backtrace.@O@ base32.@O@ base64.@O@ \
+		aes.@O@ app.@O@ assertions.@O@ \
+		backtrace.@O@ base32.@O@ base64.@O@ \
 		bind9.@O@ buffer.@O@ bufferlist.@O@ \
 		commandline.@O@ counter.@O@ crc64.@O@ error.@O@ entropy.@O@ \
 		event.@O@ hash.@O@ ht.@O@ heap.@O@ hex.@O@ hmac.@O@ \
@@ -61,7 +62,8 @@ SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
 SRCS =		pk11.c pk11_result.c \
-		aes.c assertions.c backtrace.c base32.c base64.c bind9.c \
+		aes.c app.c assertions.c \
+		backtrace.c base32.c base64.c bind9.c \
 		buffer.c bufferlist.c commandline.c counter.c crc64.c \
 		entropy.c error.c event.c hash.c ht.c heap.c hex.c hmac.c \
 		httpd.c iterated_hash.c \

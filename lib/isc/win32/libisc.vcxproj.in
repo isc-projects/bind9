@@ -416,6 +416,7 @@ copy InstallFiles ..\Build\Release\
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\aes.c" />
+    <ClCompile Include="..\app.c" />
     <ClCompile Include="..\assertions.c" />
     <ClCompile Include="..\backtrace-emptytbl.c" />
     <ClCompile Include="..\backtrace.c" />
@@ -473,7 +474,6 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\pk11.c" />
     <ClCompile Include="..\pk11_result.c" />
 @END PKCS11
-    <ClCompile Include="app.c" />
     <ClCompile Include="condition.c" />
     <ClCompile Include="dir.c" />
     <ClCompile Include="DLLMain.c" />

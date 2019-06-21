@@ -377,9 +377,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="app.c">
-      <Filter>Win32 Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="condition.c">
       <Filter>Win32 Source Files</Filter>
     </ClCompile>
@@ -455,6 +452,9 @@
     </ClCompile>
 @END PKCS11
     <ClCompile Include="..\aes.c">
+      <Filter>Win32 Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\app.c">
       <Filter>Win32 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\assertions.c">
