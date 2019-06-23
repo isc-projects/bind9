@@ -4557,13 +4557,17 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    <term><command>geoip-directory</command></term>
 	    <listitem>
 	      <para>
-		Specifies the directory containing GeoIP
-		<filename>.dat</filename> database files for GeoIP
-		initialization.  By default, this option is unset
-		and the GeoIP support will use libGeoIP's
-		built-in directory.
-		(For details, see <xref linkend="acl"/> about the
-		<command>geoip</command> ACL.)
+		When <command>named</command> is compiled using the
+		MaxMind GeoIP2 geolocation API, or the legacy GeoIP API,
+		this specifies the directory containing GeoIP
+		database files.  By default, the option is set based on
+		the prefix used to build the <command>libmaxminddb</command>
+		module: for example, if the library is installed in
+		<filename>/usr/local/lib</filename>, then the default
+		<command>geoip-directory</command> will be
+		<filename>/usr/local/share/GeoIP</filename>.
+		See <xref linkend="acl"/> for details about
+		<command>geoip</command> ACLs.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -16832,46 +16836,47 @@ zone "example.com" {
 	  to search for a match.  Available fields are "country",
 	  "region", "city", "continent", "postal" (postal code),
 	  "metro" (metro code), "area" (area code), "tz" (timezone),
-	  "isp", "org", "asnum", "domain" and "netspeed".
+	  "isp", "asnum", and "domain".
 	</para>
 	<para>
 	  <replaceable>value</replaceable> is the value to search
 	  for within the database.  A string may be quoted if it
-	  contains spaces or other special characters.  If this is
-	  an "asnum" search, then the leading "ASNNNN" string can be
-	  used, otherwise the full description must be used (e.g.
-	  "ASNNNN Example Company Name").  If this is a "country"
-	  search and the string is two characters long, then it must
-	  be a standard ISO-3166-1 two-letter country code, and if it
-	  is three characters long then it must be an ISO-3166-1
-	  three-letter country code; otherwise it is the full name
-	  of the country.  Similarly, if this is a "region" search
-	  and the string is two characters long, then it must be a
-	  standard two-letter state or province abbreviation;
-	  otherwise it is the full name of the state or province.
+	  contains spaces or other special characters.  An "asnum"
+	  search for autonomous system number can be specified using
+	  the string "ASNNNN" or the integer NNNN.
+	  When "country" search is specified with a string is two
+	  characters long, then it must be a standard ISO-3166-1
+	  two-letter country code; otherwise it is interpreted as
+	  the full name of the country.  Similarly, if this is a
+	  "region" search and the string is two characters long,
+	  then it treated as a standard two-letter state or province
+	  abbreviation; otherwise it treated as the full name of the
+	  state or province.
 	</para>
 	<para>
 	  The <replaceable>database</replaceable> field indicates which
 	  GeoIP database to search for a match.  In most cases this is
 	  unnecessary, because most search fields can only be found in
-	  a single database.  However, searches for country can be
-	  answered from the "city", "region", or "country" databases,
-	  and searches for region (i.e., state or province) can be
-	  answered from the "city" or "region" databases.  For these
-	  search types, specifying a <replaceable>database</replaceable>
+	  a single database.  However, searches for "continent" or "country"
+	  can be answered from either the "city" or "country" databases,
+	  so for these search types, specifying a
+	  <replaceable>database</replaceable>
 	  will force the query to be answered from that database and no
 	  other.  If <replaceable>database</replaceable> is not
 	  specified, then these queries will be answered from the "city",
-	  database if it is installed, or the "region" database if it is
-	  installed, or the "country" database, in that order.
+	  database if it is installed, or the "country" database if it
+	  is installed, in that order. Valid database names are
+	  "country", "city", "asnum", "isp", and "domain". (If using
+	  the legacy GeoIP API, "netspeed" and "org" databases are also
+	  available.)
 	</para>
 	<para>
 	  Some example GeoIP ACLs:
 	</para>
 	<programlisting>geoip country US;
-geoip country JAP;
+geoip country JP;
 geoip db country country Canada;
-geoip db region region WA;
+geoip region WA;
 geoip city "San Francisco";
 geoip region Oklahoma;
 geoip postal 95062;
