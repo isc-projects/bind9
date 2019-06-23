@@ -159,6 +159,11 @@ BIND 9.14.3
 BIND 9.14.3 is a maintenance release, and addresses the security
 vulnerability disclosed in CVE-2019-6471.
 
+BIND 9.14.4
+
+BIND 9.14.4 is a maintenance release, and also adds support for the new
+MaxMind GeoIP2 geolocation API when built with configure --with-geoip2.
+
 Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
@@ -188,7 +193,7 @@ make depend. If you're using Emacs, you might find make tags helpful.
 Several environment variables that can be set before running configure
 will affect compilation:
 
-   Variable                            Description
+Variable       Description
 CC             The C compiler to use. configure tries to figure out the
                right one for supported systems.
                C compiler flags. Defaults to include -g and/or -O2 as
@@ -340,7 +345,7 @@ development BIND 9 is included in the file CHANGES, with the most recent
 changes listed first. Change notes include tags indicating the category of
 the change that was made; these categories are:
 
-   Category                            Description
+Category       Description
 [func]         New feature
 [bug]          General bug fix
 [security]     Fix for a significant security flaw
@@ -391,23 +396,21 @@ Acknowledgments
   * The original development of BIND 9 was underwritten by the following
     organizations:
 
-      Sun Microsystems, Inc.
-      Hewlett Packard
-      Compaq Computer Corporation
-      IBM
-      Process Software Corporation
-      Silicon Graphics, Inc.
-      Network Associates, Inc.
-      U.S. Defense Information Systems Agency
-      USENIX Association
-      Stichting NLnet - NLnet Foundation
-      Nominum, Inc.
+    Sun Microsystems, Inc.
+    Hewlett Packard
+    Compaq Computer Corporation
+    IBM
+    Process Software Corporation
+    Silicon Graphics, Inc.
+    Network Associates, Inc.
+    U.S. Defense Information Systems Agency
+    USENIX Association
+    Stichting NLnet - NLnet Foundation
+    Nominum, Inc.
 
   * This product includes software developed by the OpenSSL Project for
     use in the OpenSSL Toolkit. http://www.OpenSSL.org/
-
   * This product includes cryptographic software written by Eric Young
     (eay@cryptsoft.com)
-
   * This product includes software written by Tim Hudson
     (tjh@cryptsoft.com)
