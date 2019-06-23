@@ -37,12 +37,12 @@
 #if defined(HAVE_GEOIP2)
 #include <maxminddb.h>
 
-/* TODO GEOIP2 */
-#define TEST_GEOIP_DATA ""
-#elif defined(HAVE_GEOI2)
+/* Use GeoIP2 databases from the 'geoip2' system test */
+#define TEST_GEOIP_DATA "../../../bin/tests/system/geoip2/data"
+#elif defined(HAVE_GEOIP)
 #include <GeoIP.h>
 
-/* We use GeoIP databases from the 'geoip' system test */
+/* Use GeoIP databases from the 'geoip' system test */
 #define TEST_GEOIP_DATA "../../../bin/tests/system/geoip/data"
 #endif
 
@@ -71,12 +71,36 @@ _teardown(void **state) {
 static dns_geoip_databases_t geoip = DNS_GEOIP_DATABASE_INIT;
 #endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP2)
+static MMDB_s geoip_country, geoip_city, geoip_as, geoip_isp, geoip_domain;
+
+static MMDB_s *
+open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
+	char pathbuf[PATH_MAX];
+	int ret;
+
+	snprintf(pathbuf, sizeof(pathbuf), "%s/%s", dir, dbfile);
+	ret = MMDB_open(pathbuf, MMDB_MODE_MMAP, mmdb);
+	if (ret == MMDB_SUCCESS) {
+		return (mmdb);
+	}
+
+	return (NULL);
+}
+
+static void
+load_geoip(const char *dir) {
+	geoip.country = open_geoip2(dir, "GeoIP2-Country.mmdb",
+				     &geoip_country);
+	geoip.city = open_geoip2(dir, "GeoIP2-City.mmdb", &geoip_city);
+	geoip.as = open_geoip2(dir, "GeoLite2-ASN.mmdb", &geoip_as);
+	geoip.isp = open_geoip2(dir, "GeoIP2-ISP.mmdb", &geoip_isp);
+	geoip.domain = open_geoip2(dir, "GeoIP2-Domain.mmdb", &geoip_domain);
+}
+#elif defined(HAVE_GEOIP)
 /*
- * Helper functions
- * (Mostly copied from bin/named/geoip.c)
+ * Helper functions (mostly copied from bin/named/geoip.c)
  */
-static dns_geoip_databases_t geoip = { NULL };
 
 static void
 init_geoip_db(void **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
@@ -156,6 +180,26 @@ load_geoip(const char *dir) {
 }
 
 static bool
+do_lookup_int(const char *addr, uint8_t *scope,
+	      dns_geoip_subtype_t subtype, int id)
+{
+	dns_geoip_elem_t elt;
+	struct in_addr in4;
+	isc_netaddr_t na;
+
+	inet_pton(AF_INET, addr, &in4);
+	isc_netaddr_fromin(&na, &in4);
+
+	elt.subtype = subtype;
+	elt.as_int = id;
+
+	return (dns_geoip_match(&na, scope, &geoip, &elt));
+}
+
+#endif /* HAVE_GEOIP */
+
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+static bool
 do_lookup_string(const char *addr, uint8_t *scope,
 		 dns_geoip_subtype_t subtype, const char *string)
 {
@@ -189,23 +233,6 @@ do_lookup_string_v6(const char *addr, uint8_t *scope,
 	return (dns_geoip_match(&na, scope, &geoip, &elt));
 }
 
-static bool
-do_lookup_int(const char *addr, uint8_t *scope,
-	      dns_geoip_subtype_t subtype, int id)
-{
-	dns_geoip_elem_t elt;
-	struct in_addr in4;
-	isc_netaddr_t na;
-
-	inet_pton(AF_INET, addr, &in4);
-	isc_netaddr_fromin(&na, &in4);
-
-	elt.subtype = subtype;
-	elt.as_int = id;
-
-	return (dns_geoip_match(&na, scope, &geoip, &elt));
-}
-
 /* GeoIP country matching */
 static void
 country(void **state) {
@@ -217,17 +244,18 @@ country(void **state) {
 	/* Use databases from the geoip system test */
 	load_geoip(TEST_GEOIP_DATA);
 
+#ifdef HAVE_GEOIP2
+	if (geoip.country == NULL) {
+		skip();
+	}
+#else /* HAVE_GEOIP */
 	if (geoip.country_v4 == NULL) {
 		skip();
 	}
+#endif /* HAVE_GEOIP */
 
 	match = do_lookup_string("10.53.0.1", &scope,
 				 dns_geoip_country_code, "AU");
-	assert_true(match);
-	assert_int_equal(scope, 32);
-
-	match = do_lookup_string("10.53.0.1", &scope,
-				 dns_geoip_country_code3, "AUS");
 	assert_true(match);
 	assert_int_equal(scope, 32);
 
@@ -258,17 +286,18 @@ country_v6(void **state) {
 	/* Use databases from the geoip system test */
 	load_geoip(TEST_GEOIP_DATA);
 
+#ifdef HAVE_GEOIP2
+	if (geoip.country == NULL) {
+		skip();
+	}
+#else /* HAVE_GEOIP */
 	if (geoip.country_v6 == NULL) {
 		skip();
 	}
+#endif /* HAVE_GEOIP */
 
 	match = do_lookup_string_v6("fd92:7065:b8e:ffff::1", &scope,
 				    dns_geoip_country_code, "AU");
-	assert_true(match);
-	assert_int_equal(scope, 128);
-
-	match = do_lookup_string_v6("fd92:7065:b8e:ffff::1", &scope,
-				    dns_geoip_country_code3, "AUS");
 	assert_true(match);
 	assert_int_equal(scope, 128);
 
@@ -288,9 +317,15 @@ city(void **state) {
 	/* Use databases from the geoip system test */
 	load_geoip(TEST_GEOIP_DATA);
 
+#ifdef HAVE_GEOIP2
+	if (geoip.city == NULL) {
+		skip();
+	}
+#else /* HAVE_GEOIP */
 	if (geoip.city_v4 == NULL) {
 		skip();
 	}
+#endif /* HAVE_GEOIP */
 
 	match = do_lookup_string("10.53.0.1", NULL,
 				 dns_geoip_city_continentcode, "NA");
@@ -298,10 +333,6 @@ city(void **state) {
 
 	match = do_lookup_string("10.53.0.1", NULL,
 				 dns_geoip_city_countrycode, "US");
-	assert_true(match);
-
-	match = do_lookup_string("10.53.0.1", NULL,
-				 dns_geoip_city_countrycode3, "USA");
 	assert_true(match);
 
 	match = do_lookup_string("10.53.0.1", NULL,
@@ -324,11 +355,13 @@ city(void **state) {
 				 dns_geoip_city_postalcode, "94063");
 	assert_true(match);
 
+#ifdef HAVE_GEOIP
 	match = do_lookup_int("10.53.0.1", NULL, dns_geoip_city_areacode, 650);
 	assert_true(match);
 
 	match = do_lookup_int("10.53.0.1", NULL, dns_geoip_city_metrocode, 807);
 	assert_true(match);
+#endif
 }
 
 /* GeoIP city (ipv6) matching */
@@ -341,9 +374,15 @@ city_v6(void **state) {
 	/* Use databases from the geoip system test */
 	load_geoip(TEST_GEOIP_DATA);
 
+#ifdef HAVE_GEOIP2
+	if (geoip.city == NULL) {
+		skip();
+	}
+#else /* HAVE_GEOIP */
 	if (geoip.city_v6 == NULL) {
 		skip();
 	}
+#endif /* HAVE_GEOIP */
 
 	match = do_lookup_string_v6("fd92:7065:b8e:ffff::1", NULL,
 				    dns_geoip_city_continentcode, "NA");
@@ -351,10 +390,6 @@ city_v6(void **state) {
 
 	match = do_lookup_string_v6("fd92:7065:b8e:ffff::1", NULL,
 				    dns_geoip_city_countrycode, "US");
-	assert_true(match);
-
-	match = do_lookup_string_v6("fd92:7065:b8e:ffff::1", NULL,
-				    dns_geoip_city_countrycode3, "USA");
 	assert_true(match);
 
 	match = do_lookup_string_v6("fd92:7065:b8e:ffff::1", NULL,
@@ -379,7 +414,91 @@ city_v6(void **state) {
 	assert_true(match);
 }
 
+/* GeoIP asnum matching */
+static void
+asnum(void **state) {
+	bool match;
 
+	UNUSED(state);
+
+	/* Use databases from the geoip system test */
+	load_geoip(TEST_GEOIP_DATA);
+
+	if (geoip.as == NULL) {
+		skip();
+	}
+
+
+	match = do_lookup_string("10.53.0.3", NULL,
+				 dns_geoip_as_asnum, "AS100003");
+	assert_true(match);
+}
+
+/* GeoIP isp matching */
+static void
+isp(void **state) {
+	bool match;
+
+	UNUSED(state);
+
+	/* Use databases from the geoip system test */
+	load_geoip(TEST_GEOIP_DATA);
+
+	if (geoip.isp == NULL) {
+		skip();
+	}
+
+	match = do_lookup_string("10.53.0.1", NULL, dns_geoip_isp_name,
+				 "One Systems, Inc.");
+	assert_true(match);
+}
+
+/* GeoIP org matching */
+static void
+org(void **state) {
+	bool match;
+
+	UNUSED(state);
+
+	/* Use databases from the geoip system test */
+	load_geoip(TEST_GEOIP_DATA);
+
+#ifdef HAVE_GEOIP2
+	if (geoip.as == NULL) {
+		skip();
+	}
+#else /* HAVE_GEOIP */
+	if (geoip.org == NULL) {
+		skip();
+	}
+#endif /* HAVE_GEOIP */
+
+	match = do_lookup_string("10.53.0.2", NULL, dns_geoip_org_name,
+				 "Two Technology Ltd.");
+	assert_true(match);
+}
+
+/* GeoIP domain matching */
+static void
+domain(void **state) {
+	bool match;
+
+	UNUSED(state);
+
+	/* Use databases from the geoip system test */
+	load_geoip(TEST_GEOIP_DATA);
+
+	if (geoip.domain == NULL) {
+		skip();
+	}
+
+	match = do_lookup_string("10.53.0.5", NULL,
+				 dns_geoip_domain_name, "five.es");
+	assert_true(match);
+}
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
+
+#ifdef HAVE_GEOIP
 /* GeoIP region matching */
 static void
 region(void **state) {
@@ -404,6 +523,33 @@ region(void **state) {
 
 	match = do_lookup_string("10.53.0.1", NULL,
 				 dns_geoip_region_countrycode, "US");
+	assert_true(match);
+}
+
+/* GeoIP netspeed matching */
+static void
+netspeed(void **state) {
+	bool match;
+
+	UNUSED(state);
+
+	/* Use databases from the geoip system test */
+	load_geoip(TEST_GEOIP_DATA);
+
+	if (geoip.netspeed == NULL) {
+		skip();
+	}
+
+	match = do_lookup_int("10.53.0.1", NULL, dns_geoip_netspeed_id, 0);
+	assert_true(match);
+
+	match = do_lookup_int("10.53.0.2", NULL, dns_geoip_netspeed_id, 1);
+	assert_true(match);
+
+	match = do_lookup_int("10.53.0.3", NULL, dns_geoip_netspeed_id, 2);
+	assert_true(match);
+
+	match = do_lookup_int("10.53.0.4", NULL, dns_geoip_netspeed_id, 3);
 	assert_true(match);
 }
 
@@ -480,136 +626,30 @@ best(void **state) {
 				 dns_geoip_countryname, "Canada");
 	assert_true(match);
 }
-
-
-/* GeoIP asnum matching */
-static void
-asnum(void **state) {
-	bool match;
-
-	UNUSED(state);
-
-	/* Use databases from the geoip system test */
-	load_geoip(TEST_GEOIP_DATA);
-
-	if (geoip.as == NULL) {
-		skip();
-	}
-
-
-	match = do_lookup_string("10.53.0.3", NULL, dns_geoip_as_asnum,
-				 "AS100003 Three Network Labs");
-	assert_true(match);
-}
-
-/* GeoIP isp matching */
-static void
-isp(void **state) {
-	bool match;
-
-	UNUSED(state);
-
-	/* Use databases from the geoip system test */
-	load_geoip(TEST_GEOIP_DATA);
-
-	if (geoip.isp == NULL) {
-		skip();
-	}
-
-	match = do_lookup_string("10.53.0.1", NULL, dns_geoip_isp_name,
-				 "One Systems, Inc.");
-	assert_true(match);
-}
-
-/* GeoIP org matching */
-static void
-org(void **state) {
-	bool match;
-
-	UNUSED(state);
-
-	/* Use databases from the geoip system test */
-	load_geoip(TEST_GEOIP_DATA);
-
-	if (geoip.org == NULL) {
-		skip();
-	}
-
-	match = do_lookup_string("10.53.0.2", NULL, dns_geoip_org_name,
-				 "Two Technology Ltd.");
-	assert_true(match);
-}
-
-/* GeoIP domain matching */
-static void
-domain(void **state) {
-	bool match;
-
-	UNUSED(state);
-
-	/* Use databases from the geoip system test */
-	load_geoip(TEST_GEOIP_DATA);
-
-	if (geoip.domain == NULL) {
-		skip();
-	}
-
-	match = do_lookup_string("10.53.0.4", NULL,
-				 dns_geoip_domain_name, "four.com");
-	assert_true(match);
-}
-
-/* GeoIP netspeed matching */
-static void
-netspeed(void **state) {
-	bool match;
-
-	UNUSED(state);
-
-	/* Use databases from the geoip system test */
-	load_geoip(TEST_GEOIP_DATA);
-
-	if (geoip.netspeed == NULL) {
-		skip();
-	}
-
-	match = do_lookup_int("10.53.0.1", NULL, dns_geoip_netspeed_id, 0);
-	assert_true(match);
-
-	match = do_lookup_int("10.53.0.2", NULL, dns_geoip_netspeed_id, 1);
-	assert_true(match);
-
-	match = do_lookup_int("10.53.0.3", NULL, dns_geoip_netspeed_id, 2);
-	assert_true(match);
-
-	match = do_lookup_int("10.53.0.4", NULL, dns_geoip_netspeed_id, 3);
-	assert_true(match);
-}
 #endif /* HAVE_GEOIP */
 
 int
 main(void) {
-#if defined(HAVE_GEOIP2)
-	/* TODO GEOIP2 */
-	print_message("1..0 # Skip geoip2 tests not complete\n");
-#elif defined(HAVE_GEOIP)
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	const struct CMUnitTest tests[] = {
 		cmocka_unit_test_setup_teardown(country, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(country_v6, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(city, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(city_v6, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(region, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(best, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(asnum, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(isp, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(org, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(domain, _setup, _teardown),
+#ifdef HAVE_GEOIP
+		cmocka_unit_test_setup_teardown(region, _setup, _teardown),
 		cmocka_unit_test_setup_teardown(netspeed, _setup, _teardown),
+		cmocka_unit_test_setup_teardown(best, _setup, _teardown),
+#endif /* HAVE_GEOIP */
 	};
 
 	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
 #else
-	print_message("1..0 # Skip geoip not enabled\n");
+	print_message("1..0 # Skip GeoIP not enabled\n");
 #endif
 }
 
