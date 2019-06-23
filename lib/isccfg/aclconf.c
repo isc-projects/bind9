@@ -522,7 +522,7 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 		}
 		if (geoip_dbnames[i] == NULL) {
 			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
-				    "database '%s' is not defined for GeoIP",
+				    "database '%s' is not defined for GeoIP2",
 				    dbname);
 			return (ISC_R_UNEXPECTED);
 		}
@@ -866,6 +866,7 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
 				    "database '%s' is not defined for GeoIP",
 				    dbname);
+			return (ISC_R_UNEXPECTED);
 		}
 	}
 
