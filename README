@@ -251,9 +251,9 @@ disclosed in CVE-2017-3145.
 BIND 9.11.4
 
 BIND 9.11.4 is a maintenance release, and addresses the security flaw
-disclosed in CVE-2018-5738. It also introduces "root key sentinel" support,
-enabling validating resolvers to indicate via a special query which trust
-anchors are configured for the root zone.
+disclosed in CVE-2018-5738. It also introduces "root key sentinel"
+support, enabling validating resolvers to indicate via a special query
+which trust anchors are configured for the root zone.
 
 BIND 9.11.5
 
@@ -267,7 +267,7 @@ correcting faulty documentation and introducing the following new feature:
 BIND 9.11.6
 
 BIND 9.11.6 is a maintenance release, and also addresses the security
-flaws disclosed in CVE-2018-5744, CVE-2018-5745, CVE-2018-5744, and
+flaws disclosed in CVE-2018-5743, CVE-2018-5745, CVE-2018-5744, and
 CVE-2019-6465.
 
 BIND 9.11.7
@@ -279,6 +279,11 @@ BIND 9.11.8
 
 BIND 9.11.8 is a maintenance release, and also addresses the security flaw
 disclosed in CVE-2019-6471.
+
+BIND 9.11.9
+
+BIND 9.11.9 is a maintenance release, and also adds support for the new
+MaxMind GeoIP2 geolocation API when built with configure --with-geoip2.
 
 Building BIND
 
@@ -302,7 +307,7 @@ make depend. If you're using Emacs, you might find make tags helpful.
 Several environment variables that can be set before running configure
 will affect compilation:
 
-   Variable                            Description
+Variable       Description
 CC             The C compiler to use. configure tries to figure out the
                right one for supported systems.
                C compiler flags. Defaults to include -g and/or -O2 as
@@ -464,7 +469,7 @@ development BIND 9 is included in the file CHANGES, with the most recent
 changes listed first. Change notes include tags indicating the category of
 the change that was made; these categories are:
 
-   Category                            Description
+Category       Description
 [func]         New feature
 [bug]          General bug fix
 [security]     Fix for a significant security flaw
@@ -499,8 +504,8 @@ issue number. Prior to 2018, these were usually of the form [RT #NNN] and
 referred to entries in the "bind9-bugs" RT database, which was not open to
 the public. More recent entries use the form [GL #NNN] or, less often, [GL
 !NNN], which, respectively, refer to issues or merge requests in the
-Gitlab database. Most of these are publicly readable, unless they
-include information which is confidential or security senstive.
+Gitlab database. Most of these are publicly readable, unless they include
+information which is confidential or security senstive.
 
 To look up a Gitlab issue by its number, use the URL https://
 gitlab.isc.org/isc-projects/bind9/issues/NNN. To look up a merge request,
@@ -515,23 +520,21 @@ Acknowledgments
   * The original development of BIND 9 was underwritten by the following
     organizations:
 
-      Sun Microsystems, Inc.
-      Hewlett Packard
-      Compaq Computer Corporation
-      IBM
-      Process Software Corporation
-      Silicon Graphics, Inc.
-      Network Associates, Inc.
-      U.S. Defense Information Systems Agency
-      USENIX Association
-      Stichting NLnet - NLnet Foundation
-      Nominum, Inc.
+    Sun Microsystems, Inc.
+    Hewlett Packard
+    Compaq Computer Corporation
+    IBM
+    Process Software Corporation
+    Silicon Graphics, Inc.
+    Network Associates, Inc.
+    U.S. Defense Information Systems Agency
+    USENIX Association
+    Stichting NLnet - NLnet Foundation
+    Nominum, Inc.
 
   * This product includes software developed by the OpenSSL Project for
     use in the OpenSSL Toolkit. http://www.OpenSSL.org/
-
   * This product includes cryptographic software written by Eric Young
     (eay@cryptsoft.com)
-
   * This product includes software written by Tim Hudson
     (tjh@cryptsoft.com)

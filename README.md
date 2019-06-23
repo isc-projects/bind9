@@ -295,6 +295,12 @@ flaw disclosed in CVE-2018-5743.
 BIND 9.11.8 is a maintenance release, and also addresses the security
 flaw disclosed in CVE-2019-6471.
 
+#### BIND 9.11.9
+
+BIND 9.11.9 is a maintenance release, and also adds support for
+the new MaxMind GeoIP2 geolocation API when built with
+`configure --with-geoip2`.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
