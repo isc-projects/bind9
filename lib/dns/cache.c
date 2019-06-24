@@ -25,7 +25,6 @@
 #include <isc/time.h>
 #include <isc/timer.h>
 #include <isc/util.h>
-#include <isc/xml.h>
 
 #include <dns/cache.h>
 #include <dns/db.h>
@@ -39,6 +38,11 @@
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
 #include <dns/stats.h>
+
+#ifdef HAVE_LIBXML2
+#include <libxml/xmlwriter.h>
+#define ISC_XMLCHAR (const xmlChar *)
+#endif /* HAVE_LIBXML2 */
 
 #include "rbtdb.h"
 
@@ -1355,10 +1359,11 @@ error:
 }
 
 int
-dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer) {
+dns_cache_renderxml(dns_cache_t *cache, void *writer0) {
 	int indices[dns_cachestatscounter_max];
 	uint64_t values[dns_cachestatscounter_max];
 	int xmlrc;
+	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	REQUIRE(VALID_CACHE(cache));
 

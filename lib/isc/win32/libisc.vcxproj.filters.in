@@ -260,9 +260,6 @@
     <ClInclude Include="..\include\isc\version.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\include\isc\xml.h">
-      <Filter>Library Header Files</Filter>
-    </ClInclude>
 @IF PKCS11
     <ClInclude Include="..\include\pk11\constants.h">
       <Filter>Library Header Files</Filter>

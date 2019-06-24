@@ -80,7 +80,6 @@
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
-#include <isc/xml.h>
 
 #define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
 #define ISC_TASKEVENT_SHUTDOWN		(ISC_EVENTCLASS_TASK + 1)
@@ -763,7 +762,7 @@ isc_taskmgr_excltask(isc_taskmgr_t *mgr, isc_task_t **taskp);
 
 #ifdef HAVE_LIBXML2
 int
-isc_taskmgr_renderxml(isc_taskmgr_t *mgr, xmlTextWriterPtr writer);
+isc_taskmgr_renderxml(isc_taskmgr_t *mgr, void *writer0);
 #endif
 
 #ifdef HAVE_JSON_C

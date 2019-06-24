@@ -23,7 +23,7 @@ CDEFINES =	@USE_GSSAPI@ @CONTRIB_DLZ@
 CWARNINGS =
 
 DNSLIBS =
-ISCLIBS =	../../../lib/isc/libisc.@A@ @OPENSSL_LIBS@
+ISCLIBS =	../../../lib/isc/libisc.@A@ @OPENSSL_LIBS@ ${LIBXML2_LIBS}
 
 DNSDEPLIBS =
 ISCDEPLIBS =

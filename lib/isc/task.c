@@ -34,7 +34,11 @@
 #include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/util.h>
-#include <isc/xml.h>
+
+#ifdef HAVE_LIBXML2
+#include <libxml/xmlwriter.h>
+#define ISC_XMLCHAR (const xmlChar *)
+#endif /* HAVE_LIBXML2 */
 
 #ifdef OPENSSL_LEAKS
 #include <openssl/err.h>
@@ -1666,10 +1670,11 @@ isc_task_exiting(isc_task_t *t) {
 #ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 int
-isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, xmlTextWriterPtr writer) {
+isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, void *writer0) {
 	isc__taskmgr_t *mgr = (isc__taskmgr_t *)mgr0;
 	isc__task_t *task = NULL;
 	int xmlrc;
+	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	LOCK(&mgr->lock);
 

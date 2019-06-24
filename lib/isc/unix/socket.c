@@ -58,7 +58,6 @@
 #include <isc/task.h>
 #include <isc/thread.h>
 #include <isc/util.h>
-#include <isc/xml.h>
 
 #ifdef ISC_PLATFORM_HAVESYSUNH
 #include <sys/un.h>
@@ -86,6 +85,11 @@
 #ifdef ENABLE_TCP_FASTOPEN
 #include <netinet/tcp.h>
 #endif
+
+#ifdef HAVE_LIBXML2
+#include <libxml/xmlwriter.h>
+#define ISC_XMLCHAR (const xmlChar *)
+#endif /* HAVE_LIBXML2 */
 
 /*%
  * Choose the most preferable multiplex method.
@@ -5412,13 +5416,14 @@ _socktype(isc_sockettype_t type)
 #ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 int
-isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, xmlTextWriterPtr writer) {
+isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, void *writer0) {
 	isc__socketmgr_t *mgr = (isc__socketmgr_t *)mgr0;
 	isc__socket_t *sock = NULL;
 	char peerbuf[ISC_SOCKADDR_FORMATSIZE];
 	isc_sockaddr_t addr;
 	socklen_t len;
 	int xmlrc;
+	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	LOCK(&mgr->lock);
 

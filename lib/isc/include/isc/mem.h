@@ -22,7 +22,6 @@
 #include <isc/mutex.h>
 #include <isc/platform.h>
 #include <isc/types.h>
-#include <isc/xml.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -467,7 +466,7 @@ isc_mem_gettag(isc_mem_t *ctx);
 
 #ifdef HAVE_LIBXML2
 int
-isc_mem_renderxml(xmlTextWriterPtr writer);
+isc_mem_renderxml(void *writer0);
 /*%<
  * Render all contexts' statistics and status in XML for writer.
  */

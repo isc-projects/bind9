@@ -79,6 +79,7 @@
 #include <openssl/crypto.h>
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlversion.h>
+#include <libxml/parser.h>
 #endif
 #ifdef HAVE_ZLIB
 #include <zlib.h>

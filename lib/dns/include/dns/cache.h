@@ -321,7 +321,7 @@ dns_cache_updatestats(dns_cache_t *cache, isc_result_t result);
 
 #ifdef HAVE_LIBXML2
 int
-dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);
+dns_cache_renderxml(dns_cache_t *cache, void *writer0);
 /*
  * Render cache statistics and status in XML for 'writer'.
  */

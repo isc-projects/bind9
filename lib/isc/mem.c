@@ -31,7 +31,11 @@
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/util.h>
-#include <isc/xml.h>
+
+#ifdef HAVE_LIBXML2
+#include <libxml/xmlwriter.h>
+#define ISC_XMLCHAR (const xmlChar *)
+#endif /* HAVE_LIBXML2 */
 
 #include "mem_p.h"
 
@@ -2141,11 +2145,12 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 }
 
 int
-isc_mem_renderxml(xmlTextWriterPtr writer) {
+isc_mem_renderxml(void *writer0) {
 	isc__mem_t *ctx;
 	summarystat_t summary;
 	uint64_t lost;
 	int xmlrc;
+	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	memset(&summary, 0, sizeof(summary));
 

@@ -27,7 +27,6 @@
 
 #include <isc/print.h>
 #include <isc/string.h>
-#include <isc/xml.h>
 
 #include <dns/cache.h>
 #include <dns/callbacks.h>

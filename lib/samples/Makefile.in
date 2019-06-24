@@ -24,7 +24,7 @@ CDEFINES =	-DVERSION=\"${VERSION}\" \
 		-DSYSCONFDIR=\"${sysconfdir}\"
 CWARNINGS =
 
-ISCLIBS =	../isc/libisc.@A@ @OPENSSL_LIBS@
+ISCLIBS =	../isc/libisc.@A@ @OPENSSL_LIBS@ ${LIBXML2_LIBS}
 DNSLIBS =	../dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../isccfg/libisccfg.@A@
 IRSLIBS =	../irs/libirs.@A@

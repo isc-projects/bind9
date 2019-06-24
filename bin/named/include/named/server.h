@@ -22,7 +22,6 @@
 #include <isc/quota.h>
 #include <isc/sockaddr.h>
 #include <isc/types.h>
-#include <isc/xml.h>
 
 #include <dns/acl.h>
 #include <dns/dnstap.h>
