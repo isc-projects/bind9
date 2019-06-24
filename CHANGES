@@ -1,3 +1,6 @@
+5253.	[port]		Support platforms that don't define ULLONG_MAX.
+			[GL #1098]
+
 5251.	[bug]		Statistics were broken in x86 Windows builds.
 			[GL #1081]
 
