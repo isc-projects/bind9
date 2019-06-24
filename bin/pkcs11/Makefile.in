@@ -13,18 +13,18 @@ top_srcdir =	@top_srcdir@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	${ISC_INCLUDES} @JSON_C_CFLAGS@
+CINCLUDES =	${ISC_INCLUDES}
 
 CDEFINES =
 
-ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LIBS@ ${LIBXML2_LIBS}
+ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
 DEPLIBS =	${ISCDEPLIBS}
 
 # if FORCE_STATIC_PROVIDER: LIBS += ${PROVIDER}
-LIBS =		${ISCLIBS} @JSON_C_LIBS@ @LIBS@
+LIBS =		${ISCLIBS} @LIBS@
 
 SUBDIRS =	benchmarks
 

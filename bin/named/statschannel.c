@@ -16,7 +16,6 @@
 
 #include <isc/buffer.h>
 #include <isc/httpd.h>
-#include <isc/json.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/print.h>
@@ -42,6 +41,11 @@
 #include <named/log.h>
 #include <named/server.h>
 #include <named/statschannel.h>
+
+#if HAVE_JSON_C
+#include <json_object.h>
+#include <linkhash.h>
+#endif /* HAVE_JSON_C */
 
 #if HAVE_LIBXML2
 #include <libxml/xmlwriter.h>

@@ -76,7 +76,6 @@
 #include <stdbool.h>
 
 #include <isc/eventclass.h>
-#include <isc/json.h>
 #include <isc/lang.h>
 #include <isc/stdtime.h>
 #include <isc/types.h>
@@ -767,7 +766,7 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr, void *writer0);
 
 #ifdef HAVE_JSON_C
 isc_result_t
-isc_taskmgr_renderjson(isc_taskmgr_t *mgr, json_object *tasksobj);
+isc_taskmgr_renderjson(isc_taskmgr_t *mgr, void *tasksobj0);
 #endif /* HAVE_JSON_C */
 
 ISC_LANG_ENDDECLS

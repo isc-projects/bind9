@@ -54,6 +54,9 @@
 #include <gperftools/profiler.h>
 #endif
 
+#ifdef HAVE_JSON_C
+#include <json_c_version.h>
+#endif /* HAVE_JSON_C */
 
 /*
  * Defining NAMED_MAIN provides storage declarations (rather than extern)

@@ -39,7 +39,6 @@
 #include <isc/buffer.h>
 #include <isc/condition.h>
 #include <isc/formatcheck.h>
-#include <isc/json.h>
 #include <isc/list.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -85,6 +84,10 @@
 #ifdef ENABLE_TCP_FASTOPEN
 #include <netinet/tcp.h>
 #endif
+
+#ifdef HAVE_JSON_C
+#include <json_object.h>
+#endif /* HAVE_JSON_C */
 
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlwriter.h>
@@ -5516,7 +5519,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr0, void *writer0) {
 } while(0)
 
 isc_result_t
-isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats) {
+isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, void *stats0) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc__socketmgr_t *mgr = (isc__socketmgr_t *)mgr0;
 	isc__socket_t *sock = NULL;
@@ -5524,6 +5527,7 @@ isc_socketmgr_renderjson(isc_socketmgr_t *mgr0, json_object *stats) {
 	isc_sockaddr_t addr;
 	socklen_t len;
 	json_object *obj, *array = json_object_new_array();
+	json_object *stats = (json_object *)stats0;
 
 	CHECKMEM(array);
 

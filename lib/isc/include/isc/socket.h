@@ -55,7 +55,6 @@
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/lang.h>
-#include <isc/json.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/time.h>
@@ -1024,7 +1023,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr, void *writer0);
 
 #ifdef HAVE_JSON_C
 isc_result_t
-isc_socketmgr_renderjson(isc_socketmgr_t *mgr, json_object *stats);
+isc_socketmgr_renderjson(isc_socketmgr_t *mgr, void *stats0);
 /*%<
  * Render internal statistics and other state into JSON format.
  */

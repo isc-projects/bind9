@@ -16,7 +16,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <isc/json.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/string.h>
@@ -38,6 +37,10 @@
 #include <dns/rdatasetiter.h>
 #include <dns/result.h>
 #include <dns/stats.h>
+
+#ifdef HAVE_JSON_C
+#include <json_object.h>
+#endif /* HAVE_JSON_C */
 
 #ifdef HAVE_LIBXML2
 #include <libxml/xmlwriter.h>
@@ -1406,11 +1409,12 @@ error:
 } while(0)
 
 isc_result_t
-dns_cache_renderjson(dns_cache_t *cache, json_object *cstats) {
+dns_cache_renderjson(dns_cache_t *cache, void *cstats0) {
 	isc_result_t result = ISC_R_SUCCESS;
 	int indices[dns_cachestatscounter_max];
 	uint64_t values[dns_cachestatscounter_max];
 	json_object *obj;
+	json_object *cstats = (json_object *)cstats0;
 
 	REQUIRE(VALID_CACHE(cache));
 

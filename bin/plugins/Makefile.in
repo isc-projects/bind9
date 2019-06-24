@@ -15,11 +15,11 @@ top_srcdir =	@top_srcdir@
 
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
 		${NS_INCLUDES} ${DNS_INCLUDES} \
-		${ISCCFG_INCLUDES} ${ISC_INCLUDES} @JSON_C_CFLAGS@
+		${ISCCFG_INCLUDES} ${ISC_INCLUDES}
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
-ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LIBS@ ${LIBXML2_LIBS}
+ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
 NSLIBS =	../../lib/ns/libns.@A@
 
 LIBS =
