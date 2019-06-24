@@ -27,4 +27,13 @@ typedef ISC_LIST(named_dispatch_t)	named_dispatchlist_t;
 typedef struct named_statschannel	named_statschannel_t;
 typedef ISC_LIST(named_statschannel_t)	named_statschannellist_t;
 
+/*%
+ * Used for server->reload_status as printed by `rndc status`
+ */
+typedef enum {
+	NAMED_RELOAD_DONE,
+	NAMED_RELOAD_IN_PROGRESS,
+	NAMED_RELOAD_FAILED,
+} named_reload_t;
+
 #endif /* NAMED_TYPES_H */

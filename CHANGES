@@ -1,3 +1,6 @@
+5252.	[func]		Report if the last 'rndc reload/reconfig' failed in
+			rndc status. [GL !2040]
+
 5251.	[bug]		Statistics were broken in x86 Windows builds.
 			[GL #1081]
 

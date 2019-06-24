@@ -9397,7 +9397,7 @@ view_loaded(void *arg) {
 			      "FIPS mode is %s",
 			      FIPS_mode() ? "enabled" : "disabled");
 #endif
-		server->reload_in_progress = false;
+		server->reload_status = NAMED_RELOAD_DONE;
 
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_NOTICE,
@@ -9733,7 +9733,7 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 	CHECKFATAL(server->reload_event == NULL ?
 		   ISC_R_NOMEMORY : ISC_R_SUCCESS,
 		   "allocating reload event");
-	server->reload_in_progress = true;
+	server->reload_status = NAMED_RELOAD_IN_PROGRESS;
 
 	/*
 	 * Setup the server task, which is responsible for coordinating
@@ -10037,6 +10037,7 @@ loadconfig(named_server_t *server) {
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading configuration failed: %s",
 			      isc_result_totext(result));
+		server->reload_status = NAMED_RELOAD_FAILED;
 	}
 
 	return (result);
@@ -10045,20 +10046,21 @@ loadconfig(named_server_t *server) {
 static isc_result_t
 reload(named_server_t *server) {
 	isc_result_t result;
-	server->reload_in_progress = true;
+	server->reload_status = NAMED_RELOAD_IN_PROGRESS;
 	CHECK(loadconfig(server));
 
 	result = load_zones(server, false, false);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "reloading zones succeeded");
-	else
+	} else {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "reloading zones failed: %s",
 			      isc_result_totext(result));
-
+		server->reload_status = NAMED_RELOAD_FAILED;
+	}
  cleanup:
 	return (result);
 }
@@ -10392,20 +10394,22 @@ named_server_reloadcommand(named_server_t *server, isc_lex_t *lex,
 isc_result_t
 named_server_reconfigcommand(named_server_t *server) {
 	isc_result_t result;
-	server->reload_in_progress = true;
+	server->reload_status = NAMED_RELOAD_IN_PROGRESS;
 
 	CHECK(loadconfig(server));
 
 	result = load_zones(server, false, true);
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
 			      "scheduled loading new zones");
-	else
+	} else {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
 			      NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "loading new zones failed: %s",
 			      isc_result_totext(result));
+		server->reload_status = NAMED_RELOAD_FAILED;
+	}
 cleanup:
 	return (result);
 }
@@ -11539,8 +11543,11 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		     isc_quota_getmax(&server->sctx->tcpquota));
 	CHECK(putstr(text, line));
 
-	if (server->reload_in_progress) {
-		CHECK(putstr(text, "reload/reconfig in progress"));
+	if (server->reload_status != NAMED_RELOAD_DONE) {
+		snprintf(line, sizeof(line), "reload/reconfig %s\n",
+			 server->reload_status == NAMED_RELOAD_FAILED
+			 ? "failed" : "in progress");
+		CHECK(putstr(text, line));
 	}
 
 	CHECK(putstr(text, "server is up and running"));
