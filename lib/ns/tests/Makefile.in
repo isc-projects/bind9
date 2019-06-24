@@ -16,10 +16,11 @@ VERSION=@BIND9_VERSION@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	-I. -Iinclude ${NS_INCLUDES} ${DNS_INCLUDES} ${ISC_INCLUDES} \
-		@OPENSSL_INCLUDES@ @CMOCKA_CFLAGS@
+		${OPENSSL_CFLAGS} \
+		@CMOCKA_CFLAGS@
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/ns/tests/\"" -DNAMED_PLUGINDIR=\"${plugindir}\"
 
-ISCLIBS =	../../isc/libisc.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
+ISCLIBS =	../../isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS}
 ISCDEPLIBS =	../../isc/libisc.@A@
 DNSLIBS =	../../dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../../dns/libdns.@A@

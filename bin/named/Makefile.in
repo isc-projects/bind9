@@ -46,7 +46,8 @@ CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
 		${NS_INCLUDES} ${DNS_INCLUDES} \
 		${BIND9_INCLUDES} ${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} \
 		${ISC_INCLUDES} ${DLZDRIVER_INCLUDES} \
-		${DBDRIVER_INCLUDES} @OPENSSL_INCLUDES@ \
+		${DBDRIVER_INCLUDES} \
+		${OPENSSL_CFLAGS} \
 		${JSON_C_CFLAGS} \
 		${LIBXML2_CFLAGS}
 
@@ -57,8 +58,8 @@ CWARNINGS =
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
-ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
+ISCLIBS =	../../lib/isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS}
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS}
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
 NSLIBS =	../../lib/ns/libns.@A@
 

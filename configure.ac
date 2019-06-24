@@ -714,15 +714,15 @@ AS_IF([test "$enable_pthread_rwlock" = "yes" -a "$enable_developer" != "yes"],
 CRYPTO=OpenSSL
 
 #
-# was --with-openssl specified?
+# OpenSSL/LibreSSL is mandatory
 #
-AX_CHECK_OPENSSL([:],[AC_MSG_FAILURE([OpenSSL/LibreSSL not found])])
+PKG_CHECK_MODULES([OPENSSL], [libcrypto], [],
+		  [AX_CHECK_OPENSSL([:],[AC_MSG_FAILURE([OpenSSL/LibreSSL not found])])])
 
 AX_SAVE_FLAGS([openssl])
 
-CFLAGS="$CFLAGS $OPENSSL_INCLUDES"
+CFLAGS="$CFLAGS $OPENSSL_CFLAGS"
 LIBS="$LIBS $OPENSSL_LIBS"
-LDFLAGS="$LDFLAGS $OPENSSL_LDFLAGS"
 
 AC_MSG_CHECKING([for OpenSSL >= 1.0.0 or LibreSSL])
 AC_COMPILE_IFELSE(
@@ -824,9 +824,8 @@ AS_CASE([$enable_fips_mode],
 
 AX_RESTORE_FLAGS([openssl])
 
-AC_SUBST([OPENSSL_INCLUDES])
+AC_SUBST([OPENSSL_CFLAGS])
 AC_SUBST([OPENSSL_LIBS])
-AC_SUBST([OPENSSL_LDFLAGS])
 
 #
 # Client Cookie algorithm choice
