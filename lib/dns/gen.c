@@ -43,6 +43,10 @@
 #include "gen-unix.h"
 #endif
 
+#ifndef ULLONG_MAX
+#define ULLONG_MAX (~0ULL)
+#endif
+
 #define INSIST(cond) \
 	if (!(cond)) { \
 		fprintf(stderr, "%s:%d: INSIST(%s)\n", \
