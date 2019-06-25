@@ -127,6 +127,20 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "checking named-checkconf deprecate warnings ($n)"
+ret=0
+$CHECKCONF deprecated.conf > checkconf.out$n.1 2>&1
+grep "option 'managed-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+grep "option 'trusted-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+# set -i to ignore deprecate warnings
+$CHECKCONF -i deprecated.conf > checkconf.out$n.2 2>&1
+grep '.*' < checkconf.out$n.2 > /dev/null && ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "range checking fields that do not allow zero ($n)"
 ret=0
 for field in max-retry-time min-retry-time max-refresh-time min-refresh-time; do

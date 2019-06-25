@@ -127,6 +127,15 @@
       </varlistentry>
 
       <varlistentry>
+        <term>-i</term>
+        <listitem>
+          <para>
+	    Ignore warnings on deprecated options.
+          </para>
+        </listitem>
+      </varlistentry>
+
+      <varlistentry>
         <term>-p</term>
         <listitem>
           <para>

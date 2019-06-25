@@ -96,6 +96,17 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret);
  */
 
 void
+cfg_parser_setflags(cfg_parser_t *pctx, unsigned int flags, bool turn_on);
+/*%<
+ * Set parser context flags. The flags are not checked for sensibility.
+ * If 'turn_on' is 'true' the flags will be set, otherwise the flags will
+ * be cleared.
+ *
+ * Requires:
+ *\li 	"pctx" is not NULL.
+ */
+
+void
 cfg_parser_setcallback(cfg_parser_t *pctx,
 		       cfg_parsecallback_t callback,
 		       void *arg);

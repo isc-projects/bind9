@@ -507,6 +507,18 @@ cfg_parser_create(isc_mem_t *mctx, isc_log_t *lctx, cfg_parser_t **ret) {
 	return (result);
 }
 
+void
+cfg_parser_setflags(cfg_parser_t *pctx, unsigned int flags, bool turn_on)
+{
+	REQUIRE(pctx != NULL);
+
+	if (turn_on) {
+		pctx->flags |= flags;
+	} else {
+		pctx->flags &= ~flags;
+	}
+}
+
 static isc_result_t
 parser_openfile(cfg_parser_t *pctx, const char *filename) {
 	isc_result_t result;

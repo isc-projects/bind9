@@ -1,3 +1,6 @@
+5259.	[func]		New option '-i' for 'named-checkconf' to ignore
+			warnings about deprecated options. [GL #1101]
+
 5258.	[func]		Added support for the GeoIP2 API from MaxMind. This
 			will be compiled in by default if the "libmaxminddb"
 			library is found at compile time, but can be
