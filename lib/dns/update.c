@@ -48,6 +48,7 @@
 #include <dns/result.h>
 #include <dns/soa.h>
 #include <dns/ssu.h>
+#include <dns/stats.h>
 #include <dns/tsig.h>
 #include <dns/update.h>
 #include <dns/view.h>
@@ -1076,6 +1077,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t sig_rdata = DNS_RDATA_INIT;
+	dns_stats_t* dnssecsignstats = dns_zone_getdnssecsignstats(zone);
 	isc_buffer_t buffer;
 	unsigned char data[1024]; /* XXX */
 	unsigned int i, j;
@@ -1181,6 +1183,11 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 		dns_rdata_reset(&sig_rdata);
 		isc_buffer_init(&buffer, data, sizeof(data));
 		added_sig = true;
+		/* Update DNSSEC sign statistics. */
+		if (dnssecsignstats != NULL) {
+			dns_dnssecsignstats_increment(dnssecsignstats,
+						      dst_key_id(keys[i]));
+		}
 	}
 	if (!added_sig) {
 		update_log(log, zone, ISC_LOG_ERROR,
