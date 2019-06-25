@@ -364,9 +364,15 @@ status=$((status+ret))
 
 n=$((n+1))
 echo_i "checking whether named calculates outgoing IXFR statistics correctly ($n)"
-ret=0
-get_named_xfer_stats ns4/named.run 10.53.0.4 test "IXFR ended" > stats.outgoing
-diff ixfr-stats.good stats.outgoing || ret=1
+ret=1
+for i in 0 1 2 3 4 5 6 7 8 9; do
+	get_named_xfer_stats ns4/named.run 10.53.0.4 test "IXFR ended" > stats.outgoing
+	if diff ixfr-stats.good stats.outgoing > /dev/null; then
+		ret=0
+		break
+	fi
+	sleep 1
+done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=$((status+ret))
 
