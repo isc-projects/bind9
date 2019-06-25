@@ -55,12 +55,10 @@
 #include <isc/event.h>
 #include <isc/eventclass.h>
 #include <isc/lang.h>
-#include <isc/json.h>
 #include <isc/region.h>
 #include <isc/sockaddr.h>
 #include <isc/time.h>
 #include <isc/types.h>
-#include <isc/xml.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -1017,7 +1015,7 @@ isc_socket_hasreuseport(void);
 
 #ifdef HAVE_LIBXML2
 int
-isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
+isc_socketmgr_renderxml(isc_socketmgr_t *mgr, void *writer0);
 /*%<
  * Render internal statistics and other state into the XML document.
  */
@@ -1025,7 +1023,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr, xmlTextWriterPtr writer);
 
 #ifdef HAVE_JSON_C
 isc_result_t
-isc_socketmgr_renderjson(isc_socketmgr_t *mgr, json_object *stats);
+isc_socketmgr_renderjson(isc_socketmgr_t *mgr, void *stats0);
 /*%<
  * Render internal statistics and other state into JSON format.
  */

@@ -16,7 +16,6 @@
 
 #include <isc/buffer.h>
 #include <isc/httpd.h>
-#include <isc/json.h>
 #include <isc/mem.h>
 #include <isc/once.h>
 #include <isc/print.h>
@@ -42,6 +41,16 @@
 #include <named/log.h>
 #include <named/server.h>
 #include <named/statschannel.h>
+
+#if HAVE_JSON_C
+#include <json_object.h>
+#include <linkhash.h>
+#endif /* HAVE_JSON_C */
+
+#if HAVE_LIBXML2
+#include <libxml/xmlwriter.h>
+#define ISC_XMLCHAR (const xmlChar *)
+#endif /* HAVE_LIBXML2 */
 
 #include "bind9.xsl.h"
 
@@ -1067,7 +1076,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 	stats_dumparg_t dumparg;
 	FILE *fp;
 #ifdef HAVE_LIBXML2
-	xmlTextWriterPtr writer;
+	void *writer;
 	int xmlrc;
 #endif
 #ifdef HAVE_JSON_C
@@ -1113,7 +1122,7 @@ dump_counters(isc_stats_t *stats, isc_statsformat_t type, void *arg,
 			break;
 		case isc_statsformat_xml:
 #ifdef HAVE_LIBXML2
-			writer = (xmlTextWriterPtr) arg;
+			writer = arg;
 
 			if (category != NULL) {
 				/* <NameOfCategory> */
@@ -1187,7 +1196,7 @@ rdtypestat_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 	stats_dumparg_t *dumparg = arg;
 	FILE *fp;
 #ifdef HAVE_LIBXML2
-	xmlTextWriterPtr writer;
+	void *writer;
 	int xmlrc;
 #endif
 #ifdef HAVE_JSON_C
@@ -1253,7 +1262,7 @@ rdatasetstats_dump(dns_rdatastatstype_t type, uint64_t val, void *arg) {
 	bool nxrrset = false;
 	bool stale = false;
 #ifdef HAVE_LIBXML2
-	xmlTextWriterPtr writer;
+	void *writer;
 	int xmlrc;
 #endif
 #ifdef HAVE_JSON_C
@@ -1337,7 +1346,7 @@ opcodestat_dump(dns_opcode_t code, uint64_t val, void *arg) {
 	char codebuf[64];
 	stats_dumparg_t *dumparg = arg;
 #ifdef HAVE_LIBXML2
-	xmlTextWriterPtr writer;
+	void *writer;
 	int xmlrc;
 #endif
 #ifdef HAVE_JSON_C
@@ -1394,7 +1403,7 @@ rcodestat_dump(dns_rcode_t code, uint64_t val, void *arg) {
 	char codebuf[64];
 	stats_dumparg_t *dumparg = arg;
 #ifdef HAVE_LIBXML2
-	xmlTextWriterPtr writer;
+	void *writer;
 	int xmlrc;
 #endif
 #ifdef HAVE_JSON_C

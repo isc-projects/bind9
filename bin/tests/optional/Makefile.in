@@ -14,7 +14,7 @@ top_srcdir =	@top_srcdir@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		@OPENSSL_INCLUDES@ @DST_GSSAPI_INC@ @JSON_C_CFLAGS@
+		@OPENSSL_INCLUDES@ @DST_GSSAPI_INC@
 
 CDEFINES =	@USE_GSSAPI@
 
@@ -23,8 +23,8 @@ BACKTRACECFLAGS = @BACKTRACECFLAGS@
 PTHREAD_CFLAGS = @PTHREAD_CFLAGS@
 
 DNSLIBS =	../../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
-ISCLIBS =	../../../lib/isc/libisc.@A@ @OPENSSL_LIBS@
-ISCNOSYMLIBS =	../../../lib/isc/libisc-nosymtbl.@A@ @OPENSSL_LIBS@
+ISCLIBS =	../../../lib/isc/libisc.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
+ISCNOSYMLIBS =	../../../lib/isc/libisc-nosymtbl.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
 ISCCFGLIBS = 	../../../lib/isccfg/libisccfg.@A@
 
 DNSDEPLIBS =	../../../lib/dns/libdns.@A@
@@ -32,7 +32,7 @@ ISCDEPLIBS =	../../../lib/isc/libisc.@A@
 ISCDEPNOSYMLIBS = ../../../lib/isc/libisc-nosymtbl.@A@
 ISCCFGDEPLIBS = ../../../lib/isccfg/libisccfg.@A@
 
-LIBS =		@JSON_C_LIBS@ @LIBS@
+LIBS =		@LIBS@
 
 SUBDIRS =
 

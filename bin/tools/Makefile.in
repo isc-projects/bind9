@@ -16,15 +16,15 @@ VERSION=@BIND9_VERSION@
 @BIND9_MAKE_INCLUDES@
 
 CINCLUDES =	${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		${BIND9_INCLUDES} @OPENSSL_INCLUDES@ @JSON_C_CFLAGS@
+		${BIND9_INCLUDES} @OPENSSL_INCLUDES@
 
 CDEFINES =	-DVERSION=\"${VERSION}\"
 CWARNINGS =
 
 DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
-ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LIBS@
-ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @OPENSSL_LIBS@
+ISCLIBS =	../../lib/isc/libisc.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
+ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@
 
 DNSDEPLIBS =	../../lib/dns/libdns.@A@
@@ -32,8 +32,8 @@ BIND9DEPLIBS =	../../lib/bind9/libbind9.@A@
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 ISCCFGDEPLIBS = ../../lib/isccfg/libisccfg.@A@
 
-LIBS =		${ISCLIBS} @JSON_C_LIBS@ @LIBS@
-NOSYMLIBS =	${ISCNOSYMLIBS} @JSON_C_LIBS@ @LIBS@
+LIBS =		${ISCLIBS} @LIBS@
+NOSYMLIBS =	${ISCNOSYMLIBS} @LIBS@
 
 SUBDIRS =
 

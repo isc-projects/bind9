@@ -47,7 +47,6 @@
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
-#include <isc/xml.h>
 
 #include <isccfg/grammar.h>
 #include <isccfg/namedconf.h>

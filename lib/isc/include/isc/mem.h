@@ -17,12 +17,10 @@
 #include <stdbool.h>
 #include <stdio.h>
 
-#include <isc/json.h>
 #include <isc/lang.h>
 #include <isc/mutex.h>
 #include <isc/platform.h>
 #include <isc/types.h>
-#include <isc/xml.h>
 
 ISC_LANG_BEGINDECLS
 
@@ -467,7 +465,7 @@ isc_mem_gettag(isc_mem_t *ctx);
 
 #ifdef HAVE_LIBXML2
 int
-isc_mem_renderxml(xmlTextWriterPtr writer);
+isc_mem_renderxml(void *writer0);
 /*%<
  * Render all contexts' statistics and status in XML for writer.
  */
@@ -475,7 +473,7 @@ isc_mem_renderxml(xmlTextWriterPtr writer);
 
 #ifdef HAVE_JSON_C
 isc_result_t
-isc_mem_renderjson(json_object *memobj);
+isc_mem_renderjson(void *memobj0);
 /*%<
  * Render all contexts' statistics and status in JSON.
  */

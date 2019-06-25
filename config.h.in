@@ -252,7 +252,7 @@
 /* Define to 1 if you have the `socket' library (-lsocket). */
 #undef HAVE_LIBSOCKET
 
-/* Define if libxml2 was found */
+/* Use libxml2 library */
 #undef HAVE_LIBXML2
 
 /* Define to 1 if you have the <linux/netlink.h> header file. */

@@ -20,7 +20,9 @@ VERSION=@BIND9_VERSION@
 CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/pthreads/include \
 		-I./include \
-		-I${srcdir}/include ${DNS_INCLUDES} @OPENSSL_INCLUDES@ @JSON_C_CFLAGS@
+		-I${srcdir}/include ${DNS_INCLUDES} @OPENSSL_INCLUDES@ \
+		${JSON_C_CFLAGS} \
+		${LIBXML2_CFLAGS}
 CDEFINES =
 CWARNINGS =
 
@@ -76,7 +78,7 @@ SRCS =		pk11.c pk11_result.c \
 		symtab.c task.c taskpool.c timer.c \
 		tm.c version.c
 
-LIBS =		@OPENSSL_LIBS@ @JSON_C_LIBS@ @LIBS@
+LIBS =		@OPENSSL_LIBS@ @LIBS@
 
 # Note: the order of SUBDIRS is important.
 # Attempt to disable parallel processing.

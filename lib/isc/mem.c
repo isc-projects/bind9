@@ -21,7 +21,6 @@
 
 #include <isc/bind9.h>
 #include <isc/hash.h>
-#include <isc/json.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
@@ -31,7 +30,15 @@
 #include <isc/strerr.h>
 #include <isc/string.h>
 #include <isc/util.h>
-#include <isc/xml.h>
+
+#ifdef HAVE_LIBXML2
+#include <libxml/xmlwriter.h>
+#define ISC_XMLCHAR (const xmlChar *)
+#endif /* HAVE_LIBXML2 */
+
+#ifdef HAVE_JSON_C
+#include <json_object.h>
+#endif /* HAVE_JSON_C */
 
 #include "mem_p.h"
 
@@ -2141,11 +2148,12 @@ xml_renderctx(isc__mem_t *ctx, summarystat_t *summary,
 }
 
 int
-isc_mem_renderxml(xmlTextWriterPtr writer) {
+isc_mem_renderxml(void *writer0) {
 	isc__mem_t *ctx;
 	summarystat_t summary;
 	uint64_t lost;
 	int xmlrc;
+	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	memset(&summary, 0, sizeof(summary));
 
@@ -2312,12 +2320,13 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 }
 
 isc_result_t
-isc_mem_renderjson(json_object *memobj) {
+isc_mem_renderjson(void *memobj0) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc__mem_t *ctx;
 	summarystat_t summary;
 	uint64_t lost;
 	json_object *ctxarray, *obj;
+	json_object *memobj = (json_object *)memobj0;
 
 	memset(&summary, 0, sizeof(summary));
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);

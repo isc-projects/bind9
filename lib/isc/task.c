@@ -22,7 +22,6 @@
 #include <isc/atomic.h>
 #include <isc/condition.h>
 #include <isc/event.h>
-#include <isc/json.h>
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/once.h>
@@ -34,7 +33,15 @@
 #include <isc/thread.h>
 #include <isc/time.h>
 #include <isc/util.h>
-#include <isc/xml.h>
+
+#ifdef HAVE_LIBXML2
+#include <libxml/xmlwriter.h>
+#define ISC_XMLCHAR (const xmlChar *)
+#endif /* HAVE_LIBXML2 */
+
+#ifdef HAVE_JSON_C
+#include <json_object.h>
+#endif /* HAVE_JSON_C */
 
 #ifdef OPENSSL_LEAKS
 #include <openssl/err.h>
@@ -1666,10 +1673,11 @@ isc_task_exiting(isc_task_t *t) {
 #ifdef HAVE_LIBXML2
 #define TRY0(a) do { xmlrc = (a); if (xmlrc < 0) goto error; } while(0)
 int
-isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, xmlTextWriterPtr writer) {
+isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, void *writer0) {
 	isc__taskmgr_t *mgr = (isc__taskmgr_t *)mgr0;
 	isc__task_t *task = NULL;
 	int xmlrc;
+	xmlTextWriterPtr writer = (xmlTextWriterPtr)writer0;
 
 	LOCK(&mgr->lock);
 
@@ -1772,11 +1780,12 @@ isc_taskmgr_renderxml(isc_taskmgr_t *mgr0, xmlTextWriterPtr writer) {
 } while(0)
 
 isc_result_t
-isc_taskmgr_renderjson(isc_taskmgr_t *mgr0, json_object *tasks) {
+isc_taskmgr_renderjson(isc_taskmgr_t *mgr0, void *tasks0) {
 	isc_result_t result = ISC_R_SUCCESS;
 	isc__taskmgr_t *mgr = (isc__taskmgr_t *)mgr0;
 	isc__task_t *task = NULL;
 	json_object *obj = NULL, *array = NULL, *taskobj = NULL;
+	json_object *tasks = (json_object *)tasks0;
 
 	LOCK(&mgr->lock);
 

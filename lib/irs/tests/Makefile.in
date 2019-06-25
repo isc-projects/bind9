@@ -15,19 +15,19 @@ VERSION=@BIND9_VERSION@
 
 @BIND9_MAKE_INCLUDES@
 
-CINCLUDES =	-I. -Iinclude -I../include ${ISC_INCLUDES} ${IRS_INCLUDES} @CMOCKA_CFLAGS@ @JSON_C_CFLAGS@
+CINCLUDES =	-I. -Iinclude -I../include ${ISC_INCLUDES} ${IRS_INCLUDES} @CMOCKA_CFLAGS@
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/irs/tests/\""
 
 CFGLIBS =	../../isccfg/libisccfg.@A@
 CFGDEPLIBS =	../../isccfg/libisccfg.@A@
 DNSLIBS =	../../dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../../dns/libdns.@A@
-ISCLIBS =	../../isc/libisc.@A@ @OPENSSL_LIBS@
+ISCLIBS =	../../isc/libisc.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
 ISCDEPLIBS =	../../isc/libisc.@A@
 IRSLIBS =	../libirs.@A@
 IRSDEPLIBS =	../libirs.@A@
 
-LIBS =		${IRSLIBS} ${CFGLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@ @CMOCKA_LIBS@ @JSON_C_LIBS@
+LIBS =		${IRSLIBS} ${CFGLIBS} ${DNSLIBS} ${ISCLIBS} @LIBS@ @CMOCKA_LIBS@
 
 OBJS =
 SRCS =		resconf_test.c

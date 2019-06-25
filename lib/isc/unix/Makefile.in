@@ -15,7 +15,9 @@ CINCLUDES =	-I${srcdir}/include \
 		-I${srcdir}/../pthreads/include \
 		-I../include \
 		-I${srcdir}/../include \
-		-I${srcdir}/.. @OPENSSL_INCLUDES@ @JSON_C_CFLAGS@
+		-I${srcdir}/.. @OPENSSL_INCLUDES@ \
+		${JSON_C_CFLAGS} \
+		${LIBXML2_CFLAGS}
 
 CDEFINES =
 CWARNINGS =

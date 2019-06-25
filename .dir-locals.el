@@ -53,6 +53,7 @@
 
 	       (expand-file-name "/usr/local/opt/openssl@1.1/include")
 	       (expand-file-name "/usr/local/opt/libxml2/include/libxml2")
+	       (expand-file-name "/usr/local/opt/json-c/include/json-c/")
 	       (expand-file-name "/usr/local/include")
 	       )
 	      )

@@ -44,7 +44,6 @@
 
 #include <stdbool.h>
 
-#include <isc/json.h>
 #include <isc/lang.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
@@ -321,7 +320,7 @@ dns_cache_updatestats(dns_cache_t *cache, isc_result_t result);
 
 #ifdef HAVE_LIBXML2
 int
-dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);
+dns_cache_renderxml(dns_cache_t *cache, void *writer0);
 /*
  * Render cache statistics and status in XML for 'writer'.
  */
@@ -329,7 +328,7 @@ dns_cache_renderxml(dns_cache_t *cache, xmlTextWriterPtr writer);
 
 #ifdef HAVE_JSON_C
 isc_result_t
-dns_cache_renderjson(dns_cache_t *cache, json_object *cstats);
+dns_cache_renderjson(dns_cache_t *cache, void *cstats0);
 /*
  * Render cache statistics and status in JSON
  */

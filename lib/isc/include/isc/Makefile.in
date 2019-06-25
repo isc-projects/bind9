@@ -25,7 +25,7 @@ HEADERS =	aes.h app.h assertions.h atomic.h backtrace.h \
 		file.h formatcheck.h fsaccess.h fuzz.h \
 		hash.h heap.h hex.h hmac.h ht.h httpd.h \
 		interfaceiter.h iterated_hash.h \
-		json.h lang.h lex.h lfsr.h lib.h likely.h list.h log.h \
+		lang.h lex.h lfsr.h lib.h likely.h list.h log.h \
 		magic.h md.h mem.h meminfo.h mutexblock.h \
 		netaddr.h netscope.h nonce.h os.h parseint.h \
 		pool.h portset.h print.h queue.h quota.h \
@@ -33,8 +33,7 @@ HEADERS =	aes.h app.h assertions.h atomic.h backtrace.h \
 		region.h resource.h result.h resultclass.h rwlock.h \
 		safe.h serial.h siphash.h sockaddr.h socket.h \
 		stats.h stdio.h strerr.h string.h symtab.h \
-	        task.h taskpool.h timer.h tm.h types.h util.h version.h \
-		xml.h
+		task.h taskpool.h timer.h tm.h types.h util.h version.h
 
 SUBDIRS =
 TARGETS =
