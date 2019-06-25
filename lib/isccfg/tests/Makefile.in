@@ -17,10 +17,10 @@ VERSION=@BIND9_VERSION@
 
 CINCLUDES =	-I. -Iinclude \
 		${DNS_INCLUDES} ${ISC_INCLUDES} ${ISCCFG_INCLUDES} \
-		@OPENSSL_INCLUDES@ @CMOCKA_CFLAGS@
+		${OPENSSL_CFLAGS} @CMOCKA_CFLAGS@
 CDEFINES =	-DTESTS="\"${top_builddir}/lib/dns/tests/\""
 
-ISCLIBS =	../../isc/libisc.@A@ @OPENSSL_LIBS@ ${JSON_C_LIBS} ${LIBXML2_LIBS}
+ISCLIBS =	../../isc/libisc.@A@ ${OPENSSL_LIBS} ${JSON_C_LIBS} ${LIBXML2_LIBS}
 ISCDEPLIBS =	../../isc/libisc.@A@
 DNSLIBS =	../../dns/libdns.@A@ @DNS_CRYPTO_LIBS@
 DNSDEPLIBS =	../../dns/libdns.@A@
