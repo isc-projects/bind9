@@ -210,6 +210,38 @@ dotests() {
     if [ $ret -eq 1 ] ; then
             echo_i " failed"; status=1
     fi
+
+    n=`expr $n + 1`
+    echo_i "test with NS, root zone ($n)"
+    ret=0
+    $DIG $DIGOPTS -t NS . @10.53.0.1 > dig.out.$n || ret=1
+    # Always expect glue for root priming queries, regardless $minimal
+    grep 'ADDITIONAL: 3' dig.out.$n > /dev/null || ret=1
+    if [ $ret -eq 1 ] ; then
+            echo_i " failed"; status=1
+    fi
+
+    n=`expr $n + 1`
+    echo_i "test with NS, non-root zone ($n)"
+    ret=0
+    $DIG $DIGOPTS -t NS rt.example @10.53.0.1 > dig.out.$n || ret=1
+    case $minimal in
+    yes)
+      grep 'ADDITIONAL: 1' dig.out.$n > /dev/null || ret=1
+      ;;
+    no)
+      grep 'ADDITIONAL: 2' dig.out.$n > /dev/null || ret=1
+      ;;
+    no-auth)
+      grep 'ADDITIONAL: 2' dig.out.$n > /dev/null || ret=1
+      ;;
+    no-auth-recursive)
+      grep 'ADDITIONAL: 2' dig.out.$n > /dev/null || ret=1
+      ;;
+    esac
+    if [ $ret -eq 1 ] ; then
+            echo_i " failed"; status=1
+    fi
 }
 
 echo_i "testing with 'minimal-responses yes;'"

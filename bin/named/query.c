@@ -9028,11 +9028,13 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 			}
 
 			/*
-			 * BIND 8 priming queries need the additional section.
+			 * Always add glue for root priming queries, regardless
+			 * of "minimal-responses" setting.
 			 */
 			if (dns_name_equal(client->query.qname, dns_rootname)) {
 				client->query.attributes &=
 					~NS_QUERYATTR_NOADDITIONAL;
+				dns_db_attach(db, &client->query.gluedb);
 			}
 		}
 
@@ -9182,6 +9184,10 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	}
 	if (event != NULL) {
 		free_devent(client, ISC_EVENT_PTR(&event), &event);
+	}
+
+	if (client->query.gluedb != NULL) {
+		dns_db_detach(&client->query.gluedb);
 	}
 
 	/*
