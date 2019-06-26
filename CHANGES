@@ -1,3 +1,8 @@
+5255.	[bug]		Errors encountered while reloading inline-signing
+			zones could be ignored, causing the zone content to
+			be left in an incompletely updated state rather than
+			reverted. [GL #1109]
+
 5253.	[port]		Support platforms that don't define ULLONG_MAX.
 			[GL #1098]
 
