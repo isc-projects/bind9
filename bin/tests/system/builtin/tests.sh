@@ -157,7 +157,6 @@ sleep 1
 grep "zone serial (0) unchanged." ns1/named.run > /dev/null && ret=1
 if [ $ret != 0 ] ; then echo_i "failed"; status=`expr $status + $ret`; fi
 
-VERSION=`../../../../isc-config.sh  --version | cut -d = -f 2`
 HOSTNAME=`$FEATURETEST --gethostname`
 BIND_VERSION_STRING=$($NAMED -V | head -1)
 BIND_VERSION=$($NAMED -V | sed -ne 's/^BIND \([^ ]*\).*/\1/p')
