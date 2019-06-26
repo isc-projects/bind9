@@ -1,6 +1,10 @@
 5253.	[port]		Support platforms that don't define ULLONG_MAX.
 			[GL #1098]
 
+5249.	[bug]		Fix a possible underflow in recursion clients
+			statistics when hitting recursive clients
+			soft quota. [GL #1067]
+
 	--- 9.11.8 released ---
 
 5244.	[security]	Fixed a race condition in dns_dispatch_getnext()
