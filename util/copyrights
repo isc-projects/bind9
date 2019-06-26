@@ -524,6 +524,7 @@
 ./bin/tests/system/additional/ns1/naptr.db	ZONE	2013,2016,2018,2019
 ./bin/tests/system/additional/ns1/naptr2.db	ZONE	2013,2016,2018,2019
 ./bin/tests/system/additional/ns1/nid.db	ZONE	2013,2016,2018,2019
+./bin/tests/system/additional/ns1/root.db	ZONE	2019
 ./bin/tests/system/additional/ns1/rt.db		ZONE	2013,2016,2018,2019
 ./bin/tests/system/additional/ns1/rt2.db	ZONE	2013,2016,2018,2019
 ./bin/tests/system/additional/ns1/srv.db	ZONE	2016,2018,2019

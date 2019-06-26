@@ -31,8 +31,8 @@ controls {
 };
 
 zone "." {
-        type master;
-        file "root.db";
+	type master;
+	file "root.db";
 };
 
 zone "rt.example" {
