@@ -1505,6 +1505,7 @@
 ./bin/tests/system/inline/ns3/master3.db.in	ZONE	2012,2016,2018,2019
 ./bin/tests/system/inline/ns3/master4.db.in	ZONE	2012,2016,2018,2019
 ./bin/tests/system/inline/ns3/master5.db.in	ZONE	2018,2019
+./bin/tests/system/inline/ns3/master6.db.in	ZONE	2019
 ./bin/tests/system/inline/ns3/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/inline/ns3/sign.sh		SH	2011,2012,2013,2014,2016,2017,2018,2019
 ./bin/tests/system/inline/ns4/named.conf.in	CONF-C	2018,2019
