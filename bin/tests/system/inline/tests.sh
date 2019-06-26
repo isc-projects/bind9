@@ -933,6 +933,29 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check that reloading errors prevent synchronization ($n)"
+ret=0
+$DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.1 || ret=1
+sleep 1
+nextpart ns3/named.run > /dev/null
+cp ns3/master5.db.in ns3/master.db
+rndc_reload ns3 10.53.0.3
+for i in 1 2 3 4 5 6 7 8 9 10
+do
+	if nextpart ns3/named.run |
+           grep "not loaded due to errors" > /dev/null
+        then
+		break
+	fi
+	sleep 1
+done
+# Sanity check: the SOA record should be unchanged
+$DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.2 || ret=1
+$DIFF dig.out.ns3.test$n.1  dig.out.ns3.test$n.2 > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "test add/del zone combinations ($n)"
 ret=0
 for zone in a b c d e f g h i j k l m n o p q r s t u v w x y z

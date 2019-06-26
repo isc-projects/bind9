@@ -1,3 +1,8 @@
+5255.	[bug]		Errors encountered while reloading inline-signing
+			zones could be ignored, causing the zone content to
+			be left in an incompletely updated state rather than
+			reverted. [GL #1109]
+
 5254.	[func]		Collect metrics to report to the statistics-channel
 			DNSSEC signing operations (dnssec-sign) and refresh
 			operations (dnssec-refresh) per zone and per keytag.
