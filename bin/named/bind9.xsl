@@ -318,25 +318,25 @@
         <hr/>
         <h2>Server Status</h2>
         <table class="info">
-          <tr>
+          <tr class="odd">
             <th>Boot time:</th>
             <td>
               <xsl:value-of select="server/boot-time"/>
             </td>
           </tr>
-          <tr>
+          <tr class="even">
             <th>Last reconfigured:</th>
             <td>
               <xsl:value-of select="server/config-time"/>
             </td>
           </tr>
-          <tr>
+          <tr class="odd">
             <th>Current time:</th>
             <td>
               <xsl:value-of select="server/current-time"/>
             </td>
           </tr>
-          <tr>
+          <tr class="even">
             <th>Server version:</th>
             <td>
               <xsl:value-of select="server/version"/>
@@ -355,7 +355,13 @@
           <table class="counters">
             <xsl:for-each select="server/counters[@type=&quot;opcode&quot;]/counter[. &gt; 0 or substring(@name,1,3) != 'RES']">
               <xsl:sort select="." data-type="number" order="descending"/>
-              <tr>
+                <xsl:variable name="css-class0">
+                  <xsl:choose>
+                    <xsl:when test="position() mod 2 = 0">even</xsl:when>
+                    <xsl:otherwise>odd</xsl:otherwise>
+                  </xsl:choose>
+                </xsl:variable>
+                <tr class="{$css-class0}">
                 <th>
                   <xsl:value-of select="@name"/>
                 </th>
