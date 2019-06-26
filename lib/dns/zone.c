@@ -15871,8 +15871,8 @@ zone_loaddone(void *arg, isc_result_t result) {
 		LOCK_ZONE(zone->raw);
 	else if (inline_raw(zone)) {
 		secure = zone->secure;
-		TRYLOCK_ZONE(result, secure);
-		if (result != ISC_R_SUCCESS) {
+		TRYLOCK_ZONE(tresult, secure);
+		if (tresult != ISC_R_SUCCESS) {
 			UNLOCK_ZONE(zone);
 			secure = NULL;
 			isc_thread_yield();
