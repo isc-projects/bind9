@@ -7281,11 +7281,13 @@ query_respond(query_ctx_t *qctx) {
 		}
 
 		/*
-		 * BIND 8 priming queries need the additional section.
+		 * Always add glue for root priming queries, regardless
+		 * of "minimal-responses" setting.
 		 */
 		if (dns_name_equal(qctx->client->query.qname, dns_rootname)) {
 			qctx->client->query.attributes &=
 				~NS_QUERYATTR_NOADDITIONAL;
+			dns_db_attach(qctx->db, &qctx->client->query.gluedb);
 		}
 	}
 
@@ -10672,6 +10674,10 @@ ns_query_done(query_ctx_t *qctx) {
 
 	qctx_clean(qctx);
 	qctx_freedata(qctx);
+
+	if (qctx->client->query.gluedb != NULL) {
+		dns_db_detach(&qctx->client->query.gluedb);
+	}
 
 	/*
 	 * Clear the AA bit if we're not authoritative.
