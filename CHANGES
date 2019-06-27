@@ -1,3 +1,15 @@
+5258.	[func]		Added support for the GeoIP2 API from MaxMind. This
+			will be compiled in by default if the "libmaxminddb"
+			library is found at compile time, but can be
+			suppressed using "configure --without-geoip2".
+			The legacy GeoIP API can be enabled by using
+			"configure --with-geoip". This cannot be used
+			together with GeoIP2.
+
+			Certain geoip ACL settings that were available with
+			legacy GeoIP are not available when using GeoIP2.
+			[GL #182]
+
 5257.	[bug]		Some statistics data was not being displayed.
 			Add shading to the zone tables. [GL #1030]
 

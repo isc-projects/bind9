@@ -1075,7 +1075,7 @@ options_clauses[] = {
 	{ "fstrm-set-reopen-interval", &cfg_type_ttlval,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_DNSTAP */
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	{ "geoip-directory", &cfg_type_qstringornone, 0 },
 #else
 	{ "geoip-directory", &cfg_type_qstringornone,
