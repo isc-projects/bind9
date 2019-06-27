@@ -1,3 +1,6 @@
+5257.	[bug]		Some statistics data was not being displayed.
+			Add shading to the zone tables. [GL #1030]
+
 5256.	[bug]		Ensure that glue records are included in root
 			priming responses if "minimal-responses" is not
 			set to "yes". [GL #1092]
