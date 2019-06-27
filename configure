@@ -13406,6 +13406,23 @@ fi
 
 
 #
+# Using Solaris linker with gcc on Solaris breaks Thread Local Storage
+#
+case $host in #(
+  *-solaris*) :
+
+	    if test "$GCC" = "yes"; then :
+  LDFLAGS="$LDFLAGS -zrelax=transtls"
+		   { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: When using GNU C Compiler on Solaris, -zrelax=transtls linker flag is used to fix bug in Thread Local Storage" >&5
+$as_echo "$as_me: WARNING: When using GNU C Compiler on Solaris, -zrelax=transtls linker flag is used to fix bug in Thread Local Storage" >&2;}
+
+fi
+	 ;; #(
+  *) :
+     ;;
+esac
+
+#
 # CCNOOPT defaults to -O0 on gcc and disables optimization when is last
 #
 if test "X$CCNOOPT" = "X" -a "X$GCC" = "Xyes"; then
