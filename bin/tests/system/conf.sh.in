@@ -100,6 +100,9 @@ CURL=@CURL@
 # XMLLINT will be empty if no program was found by configure
 XMLLINT=@XMLLINT@
 
+# XSLTPROC will be empty if no program was found by configure
+XSLTPROC=@XSLTPROC@
+
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
 
