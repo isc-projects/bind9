@@ -20,6 +20,7 @@ options {
 	listen-on-v6 { none; };
 	recursion yes;
 	notify yes;
+	zone-statistics yes;
 };
 
 statistics-channels {
@@ -44,4 +45,10 @@ zone "example" {
 	type master;
 	allow-update { any; };
 	file "internal.db";
+};
+
+zone "a-slave" {
+	type slave;
+	file "slave.bk";
+	masters { 10.53.0.1; };
 };
