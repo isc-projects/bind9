@@ -1,3 +1,13 @@
+5258.	[func]		Added support for the GeoIP2 API from MaxMind,
+			when BIND is compiled using "configure --with-geoip2".
+			The legacy GeoIP API can be enabled by using
+			"configure --with-geoip" instead. These options
+			cannot be used together.
+
+			Certain geoip ACL settings that were available with
+			legacy GeoIP are not available when using GeoIP2.
+			See the ARM for details. [GL #182]
+
 5257.	[bug]		Some statistics data was not being displayed.
 			Add shading to the zone tables. [GL #1030]
 

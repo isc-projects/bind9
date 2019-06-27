@@ -154,7 +154,7 @@ EXTERN bool		named_g_keepstderr	INIT(false);
 
 EXTERN unsigned int		named_g_tat_interval	INIT(24*3600);
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 EXTERN dns_geoip_databases_t	*named_g_geoip		INIT(NULL);
 #endif
 

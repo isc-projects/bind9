@@ -108,9 +108,9 @@
 
 #include <named/config.h>
 #include <named/control.h>
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 #include <named/geoip.h>
-#endif /* HAVE_GEOIP */
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 #include <named/log.h>
 #include <named/logconf.h>
 #include <named/main.h>
@@ -8283,7 +8283,7 @@ load_configuration(const char *filename, named_server_t *server,
 	}
 	isc_socketmgr_setreserved(named_g_socketmgr, reserved);
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	/*
 	 * Initialize GeoIP databases from the configured location.
 	 * This should happen before configuring any ACLs, so that we
@@ -8300,7 +8300,7 @@ load_configuration(const char *filename, named_server_t *server,
 		named_geoip_load(NULL);
 	}
 	named_g_aclconfctx->geoip = named_g_geoip;
-#endif /* HAVE_GEOIP */
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
 	/*
 	 * Configure various server options.
@@ -9513,25 +9513,18 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
 
-#ifdef HAVE_GEOIP
 	CHECKFATAL(ns_interfacemgr_create(named_g_mctx, server->sctx,
 					  named_g_taskmgr, named_g_timermgr,
 					  named_g_socketmgr,
 					  named_g_dispatchmgr,
 					  server->task, named_g_udpdisp,
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 					  named_g_geoip,
-					  &server->interfacemgr),
-		   "creating interface manager");
 #else
-	CHECKFATAL(ns_interfacemgr_create(named_g_mctx, server->sctx,
-					  named_g_taskmgr, named_g_timermgr,
-					  named_g_socketmgr,
-					  named_g_dispatchmgr,
-					  server->task, named_g_udpdisp,
 					  NULL,
+#endif
 					  &server->interfacemgr),
 		   "creating interface manager");
-#endif
 
 	CHECKFATAL(isc_timer_create(named_g_timermgr, isc_timertype_inactive,
 				    NULL, NULL, server->task,
@@ -9653,9 +9646,9 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 #ifdef HAVE_DNSTAP
 	dns_dt_shutdown();
 #endif
-#ifdef HAVE_GEOIP
-	dns_geoip_shutdown();
-#endif
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+	named_geoip_shutdown();
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
 	dns_db_detach(&server->in_roothints);
 
@@ -9771,14 +9764,14 @@ named_server_create(isc_mem_t *mctx, named_server_t **serverp) {
 				    &server->sctx),
 		   "creating server context");
 
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	/*
 	 * GeoIP must be initialized before the interface
 	 * manager (which includes the ACL environment)
 	 * is created
 	 */
 	named_geoip_init();
-#endif
+#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
 #ifdef ENABLE_AFL
 	server->sctx->fuzztype = named_g_fuzz_type;

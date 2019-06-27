@@ -174,6 +174,12 @@ BIND 9.14.2 is a maintenance release.
 BIND 9.14.3 is a maintenance release, and addresses the security
 vulnerability disclosed in CVE-2019-6471.
 
+#### BIND 9.14.4
+
+BIND 9.14.4 is a maintenance release, and also adds support for
+the new MaxMind GeoIP2 geolocation API when built with
+`configure --with-geoip2`.
+
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
