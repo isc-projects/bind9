@@ -97,6 +97,25 @@
     </itemizedlist>
   </section>
 
+  <section xml:id="relnotes_features"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+	  Two new metrics have been added to the
+	  <command>statistics-channel</command> to report DNSSEC
+	  signing operations.  For each key in each zone, the
+	  <command>dnssec-sign</command> counter indicates the total
+	  number of signatures <command>named</command> has generated
+	  using that key since server startup, and the
+	  <command>dnssec-refresh</command> counter indicates how
+	  many of those signatures were refreshed during zone
+	  maintenance, as opposed to having been generated
+	  as a result of a zone update.  [GL #513]
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes_bugs"><info><title>Bug Fixes</title></info>
     <itemizedlist>
       <listitem>
