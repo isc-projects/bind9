@@ -41,6 +41,7 @@ static const char *geoip_dbnames[] = {
 static const char *geoip_dbnames[] = {
 	"country",
 	"city",
+	"region",
 	"asnum",
 	"isp",
 	"domain",
