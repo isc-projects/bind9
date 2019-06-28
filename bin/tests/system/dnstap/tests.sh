@@ -587,5 +587,14 @@ if [ -n "$FSTRM_CAPTURE" ] ; then
 	}
 fi
 
+echo_i "checking large packet printing"
+ret=0
+# Expect one occurrence of "opcode: QUERY" below "reponse_message_data" and
+# another one below "response_message".
+lines=`$DNSTAPREAD -y large-answer.fstrm | grep -c "opcode: QUERY"`
+[ $lines -eq 2 ] || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

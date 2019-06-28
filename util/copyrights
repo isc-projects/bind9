@@ -1197,6 +1197,7 @@
 ./bin/tests/system/dnssec/signer/remove.db.in	ZONE	2016,2018,2019
 ./bin/tests/system/dnssec/signer/remove2.db.in	ZONE	2016,2018,2019
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019
+./bin/tests/system/dnstap/README		TXT.BRIEF	2019
 ./bin/tests/system/dnstap/bad-fstrm-set-buffer-hint-max.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/dnstap/bad-fstrm-set-buffer-hint-min.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/dnstap/bad-fstrm-set-flush-timeout-max.conf	CONF-C	2016,2018,2019
@@ -1218,6 +1219,7 @@
 ./bin/tests/system/dnstap/good-fstrm-set-output-queue-model-spsc.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/dnstap/good-fstrm-set-output-queue-size.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/dnstap/good-fstrm-set-reopen-interval.conf	CONF-C	2016,2018,2019
+./bin/tests/system/dnstap/large-answer.fstrm	X	2019
 ./bin/tests/system/dnstap/ns1/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/dnstap/ns1/root.db		ZONE	2015,2016,2018,2019
 ./bin/tests/system/dnstap/ns2/example.db	ZONE	2015,2016,2018,2019
