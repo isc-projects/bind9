@@ -4555,7 +4555,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	    <listitem>
 	      <para>
 		When <command>named</command> is compiled using the
-		MaxMind GeoIP2 geolocation API, or the legacy GeoIP API,
+		MaxMind GeoIP2 geolocation API,
 		this specifies the directory containing GeoIP
 		database files.  By default, the option is set based on
 		the prefix used to build the <command>libmaxminddb</command>
@@ -16864,9 +16864,7 @@ zone "example.com" {
 	  specified, then these queries will be answered from the "city",
 	  database if it is installed, or the "country" database if it
 	  is installed, in that order. Valid database names are
-	  "country", "city", "asnum", "isp", and "domain". (If using
-	  the legacy GeoIP API, "netspeed" and "org" databases are also
-	  available.)
+	  "country", "city", "asnum", "isp", and "domain".
 	</para>
 	<para>
 	  Some example GeoIP ACLs:

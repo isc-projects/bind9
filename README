@@ -205,10 +205,11 @@ To support storing configuration data for runtime-added zones in an LMDB
 database, the server must be linked with liblmdb. If this is installed in
 a nonstandard location, specify the prefix using with-lmdb=/prefix.
 
-To support GeoIP location-based ACLs, the server must be linked with
-libGeoIP. This is not turned on by default; BIND must be configured with
---with-geoip. If the library is installed in a nonstandard location,
-specify the prefix using --with-geoip=/prefix.
+To support MaxMind GeoIP2 location-based ACLs, the server must be linked
+with libmaxminddb. This is turned on by default if the library is found;
+if the library is installed in a nonstandard location, specify the prefix
+using --with-maxminddb=/prefix. GeoIP2 support can be switched off with
+--disable-geoip.
 
 For DNSTAP packet logging, you must have installed libfstrm https://
 github.com/farsightsec/fstrm and libprotobuf-c https://
