@@ -155,6 +155,7 @@ print_packet(dns_dtdata_t *dt, const dns_master_style_t *style) {
 
 			result = dns_message_totext(dt->msg, style, 0, b);
 			if (result == ISC_R_NOSPACE) {
+				isc_buffer_clear(b);
 				textlen *= 2;
 				continue;
 			} else if (result == ISC_R_SUCCESS) {
