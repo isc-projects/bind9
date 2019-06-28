@@ -168,17 +168,8 @@
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
 
-/* Build with GeoIP support */
-#undef HAVE_GEOIP
-
 /* Build with GeoIP2 support */
 #undef HAVE_GEOIP2
-
-/* Build with GeoIP City IPv6 support */
-#undef HAVE_GEOIP_CITY_V6
-
-/* Build with GeoIP Country IPv6 support */
-#undef HAVE_GEOIP_V6
 
 /* Define to 1 if you have the `getc_unlocked' function. */
 #undef HAVE_GETC_UNLOCKED

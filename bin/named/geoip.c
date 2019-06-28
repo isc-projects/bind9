@@ -13,9 +13,6 @@
 
 #if defined(HAVE_GEOIP2)
 #include <maxminddb.h>
-#elif defined(HAVE_GEOIP)
-#include <GeoIP.h>
-#include <GeoIPCity.h>
 #endif
 
 #include <isc/print.h>
@@ -29,62 +26,7 @@
 
 static dns_geoip_databases_t geoip_table = DNS_GEOIP_DATABASE_INIT;
 
-#if defined(HAVE_GEOIP)
-static void
-init_geoip_db(void **dbp, GeoIPDBTypes edition, GeoIPDBTypes fallback,
-	      GeoIPOptions method, const char *name)
-{
-	char *info;
-	GeoIP *db;
-
-	REQUIRE(dbp != NULL);
-
-	db = (GeoIP *)*dbp;
-
-	if (db != NULL) {
-		GeoIP_delete(db);
-		db = *dbp = NULL;
-	}
-
-	if (! GeoIP_db_avail(edition)) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			"GeoIP %s (type %d) DB not available", name, edition);
-		goto fail;
-	}
-
-	isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-		NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-		"initializing GeoIP %s (type %d) DB", name, edition);
-
-	db = GeoIP_open_type(edition, method);
-	if (db == NULL) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			NAMED_LOGMODULE_SERVER, ISC_LOG_ERROR,
-			"failed to initialize GeoIP %s (type %d) DB%s",
-			name, edition, fallback == 0
-			 ? "geoip matches using this database will fail" : "");
-		goto fail;
-	}
-
-	info = GeoIP_database_info(db);
-	if (info != NULL) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "%s", info);
-		free(info);
-	}
-
-	*dbp = db;
-	return;
-
- fail:
-	if (fallback != 0) {
-		init_geoip_db(dbp, fallback, 0, method, name);
-	}
-
-}
-#elif defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 static MMDB_s geoip_country, geoip_city, geoip_as, geoip_isp, geoip_domain;
 
 static MMDB_s *
@@ -122,13 +64,10 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 
 void
 named_geoip_init(void) {
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 	if (named_g_geoip == NULL) {
 		named_g_geoip = &geoip_table;
 	}
-#if defined(HAVE_GEOIP)
-	GeoIP_cleanup();
-#endif
 #else
 	return;
 #endif
@@ -163,50 +102,6 @@ named_geoip_load(char *dir) {
 	named_g_geoip->isp = open_geoip2(dir, "GeoIP2-ISP.mmdb", &geoip_isp);
 	named_g_geoip->domain = open_geoip2(dir, "GeoIP2-Domain.mmdb",
 					    &geoip_domain);
-#elif defined(HAVE_GEOIP)
-	GeoIPOptions method;
-
-#ifdef _WIN32
-	method = GEOIP_STANDARD;
-#else
-	method = GEOIP_MMAP_CACHE;
-#endif
-
-	named_geoip_init();
-	if (dir != NULL) {
-		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
-			      NAMED_LOGMODULE_SERVER, ISC_LOG_INFO,
-			      "using \"%s\" as GeoIP directory", dir);
-		GeoIP_setup_custom_directory(dir);
-	}
-
-	init_geoip_db(&named_g_geoip->country_v4, GEOIP_COUNTRY_EDITION, 0,
-		      method, "Country (IPv4)");
-#ifdef HAVE_GEOIP_V6
-	init_geoip_db(&named_g_geoip->country_v6, GEOIP_COUNTRY_EDITION_V6, 0,
-		      method, "Country (IPv6)");
-#endif
-
-	init_geoip_db(&named_g_geoip->city_v4, GEOIP_CITY_EDITION_REV1,
-		      GEOIP_CITY_EDITION_REV0, method, "City (IPv4)");
-#if defined(HAVE_GEOIP_V6) && defined(HAVE_GEOIP_CITY_V6)
-	init_geoip_db(&named_g_geoip->city_v6, GEOIP_CITY_EDITION_REV1_V6,
-		      GEOIP_CITY_EDITION_REV0_V6, method, "City (IPv6)");
-#endif
-
-	init_geoip_db(&named_g_geoip->region, GEOIP_REGION_EDITION_REV1,
-		      GEOIP_REGION_EDITION_REV0, method, "Region");
-
-	init_geoip_db(&named_g_geoip->isp, GEOIP_ISP_EDITION, 0,
-		      method, "ISP");
-	init_geoip_db(&named_g_geoip->org, GEOIP_ORG_EDITION, 0,
-		      method, "Org");
-	init_geoip_db(&named_g_geoip->as, GEOIP_ASNUM_EDITION, 0,
-		      method, "AS");
-	init_geoip_db(&named_g_geoip->domain, GEOIP_DOMAIN_EDITION, 0,
-		      method, "Domain");
-	init_geoip_db(&named_g_geoip->netspeed, GEOIP_NETSPEED_EDITION, 0,
-		      method, "NetSpeed");
 #else
 	UNUSED(dir);
 

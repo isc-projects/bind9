@@ -230,7 +230,7 @@ ns_interfacemgr_create(isc_mem_t *mctx,
 	result = dns_aclenv_init(mctx, &mgr->aclenv);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_listenon;
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 	mgr->aclenv.geoip = geoip;
 #else
 	UNUSED(geoip);

@@ -510,29 +510,12 @@ AC_C_BIGENDIAN
 #
 # GeoIP support?
 #
-geoip2_default="auto"
-AC_ARG_WITH(geoip,
-	    AS_HELP_STRING([--with-geoip=PATH],
-			   [Build with legacy GeoIP support (yes|no|path)]),
-                           [
-                            use_geoip="$withval"
-                            geoip2_default="no"
-                           ],
-                           [use_geoip="no"])
 AC_ARG_WITH([geoip2],
 	    [AS_HELP_STRING([--with-geoip2=PATH],
-			    [Build with MaxMind GeoIP2 support (auto|yes|no|path) [default=$geoip2_default]])],
-	    [], with_geoip2="$geoip2_default")
+			    [Build with MaxMind GeoIP2 support (auto|yes|no|path) [default=auto]])],
+	    [], with_geoip2="auto")
 
 # --with-geoip2 should be turned on by default if the library exists.
-#
-# --with-geoip is not on by default, but can be turned on if the library
-# exists. if it is turned on, --with-geoip2 is suppressed.
-#
-# specifying both --with-geoip and --with-geoip2 is an error.
-AS_IF([test "no" != "$with_geoip2" && test "no" != "$use_geoip"],
-      [AC_MSG_ERROR([--with-geoip and --with-geoip2 are incompatible])])
-
 GEOIP2LINKSRCS=
 GEOIP2LINKOBJS=
 AS_CASE([$with_geoip2],
@@ -571,92 +554,6 @@ AC_SUBST([MAXMINDDB_LIBS])
 AC_SUBST([GEOIP2LINKSRCS])
 AC_SUBST([GEOIP2LINKOBJS])
 
-GEOIPLINKSRCS=
-GEOIPLINKOBJS=
-if test "yes" = "$use_geoip"
-then
-	for d in /usr /usr/local /opt/local
-	do
-		if test -f $d/include/GeoIP.h
-		then
-			use_geoip=$d
-			break
-		fi
-	done
-fi
-
-case "$use_geoip" in
-	no|'')
-		;;
-	*)
-		if test -d "$use_geoip" -o -L "$use_geoip"
-		then
-			CFLAGS="$CFLAGS -I$use_geoip/include"
-			CPPFLAGS="$CPPFLAGS -I$use_geoip/include"
-			LIBS="$LIBS -L$use_geoip/lib"
-			case "$host_os" in
-				netbsd*|openbsd*|solaris*)
-					LIBS="$LIBS -Wl,-rpath=$use_geoip/lib"
-					;;
-			esac
-		elif test "yes" = "$use_geoip"
-		then
-			AC_MSG_ERROR([GeoIP path not found])
-		else
-			AC_MSG_ERROR([GeoIP path $use_geoip does not exist])
-		fi
-		AC_CHECK_HEADER(GeoIP.h, [],
-			[AC_MSG_ERROR([GeoIP header file not found])]
-		)
-		AC_SEARCH_LIBS(GeoIP_id_by_addr_gl, GeoIP, [],
-			[AC_MSG_ERROR([suitable GeoIP library not found])]
-		)
-		AC_SEARCH_LIBS(fabsf, m, [],
-			[AC_MSG_ERROR([Math library not found])]
-		)
-		AC_DEFINE(HAVE_GEOIP, 1, Build with GeoIP support)
-		GEOIPLINKSRCS='${GEOIPLINKSRCS}'
-		GEOIPLINKOBJS='${GEOIPLINKOBJS}'
-		AC_MSG_CHECKING([for GeoIP support])
-		AC_MSG_RESULT([yes])
-
-		AC_MSG_CHECKING([for GeoIP Country IPv6 support])
-		AC_COMPILE_IFELSE(
-			[AC_LANG_PROGRAM([
-				#include <GeoIP.h>
-				#include <netinet/in.h>
-			], [
-				struct in6_addr in6;
-				GeoIP_country_name_by_ipnum_v6(NULL, in6);
-			])],
-			[
-				AC_MSG_RESULT([yes])
-				AC_DEFINE(HAVE_GEOIP_V6, 1, Build with GeoIP Country IPv6 support)
-			],
-			[AC_MSG_RESULT([no])]
-		)
-
-		AC_MSG_CHECKING([for GeoIP City IPv6 support])
-		AC_COMPILE_IFELSE(
-			[AC_LANG_PROGRAM([
-				#include <GeoIP.h>
-				#include <GeoIPCity.h>
-				#include <netinet/in.h>
-			], [
-				struct in6_addr in6;
-				int i = GEOIP_CITY_EDITION_REV0_V6;
-				GeoIP_record_by_ipnum_v6(NULL, in6);
-			])],
-			[
-				AC_MSG_RESULT([yes])
-				AC_DEFINE(HAVE_GEOIP_CITY_V6, 1, Build with GeoIP City IPv6 support)
-			],
-			[AC_MSG_RESULT([no])]
-		)
-		;;
-esac
-AC_SUBST(GEOIPLINKSRCS)
-AC_SUBST(GEOIPLINKOBJS)
 
 #
 # Do we have arc4random(), etc ?
@@ -3010,7 +2907,6 @@ report() {
     test "no" = "$use_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
     test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--with-geoip2)"
-    test "no" = "$use_geoip" || echo "    Legacy GeoIP access control (--with-geoip)"
     test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
     if test "yes" = "$enable_full_report" -o "aes" != "$with_cc_alg"; then
 	echo "        Algorithm: $with_cc_alg"
