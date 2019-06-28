@@ -820,6 +820,7 @@ geoip_can_answer(dns_aclelement_t *elt, cfg_aclconfctx_t *ctx) {
 	case dns_geoip_netspeed_id:
 		if (ctx->geoip->netspeed != NULL)
 			return (true);
+		/* FALLTHROUGH */
 	/*
 	 * The following enums are only valid with GeoIP2,
 	 * not legacy GeoIP.
