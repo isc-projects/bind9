@@ -39,12 +39,6 @@
 #include <dns/types.h>
 #include <dns/iptable.h>
 
-#if defined(HAVE_GEOIP2)
-#include <maxminddb.h>
-#elif defined(HAVE_GEOIP)
-#include <GeoIP.h>
-#endif
-
 /***
  *** Types
  ***/

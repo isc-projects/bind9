@@ -8961,7 +8961,7 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	dns_dt_shutdown();
 #endif
 #if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
-	dns_geoip_shutdown();
+	ns_geoip_shutdown();
 #endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
 	dns_db_detach(&server->in_roothints);

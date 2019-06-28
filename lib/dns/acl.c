@@ -453,7 +453,7 @@ dns_aclelement_match2(const isc_netaddr_t *reqaddr,
 	dns_acl_t *inner = NULL;
 	int indirectmatch;
 	isc_result_t result;
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	const isc_netaddr_t *addr = NULL;
 #endif
 
