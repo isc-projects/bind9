@@ -473,7 +473,7 @@ n=`expr $n + 1`
 echo_i "revoke key with bad signature, check revocation is ignored ($n)"
 ret=0
 revoked=`$REVOKE -K ns1 $original`
-rkeyid=`expr $revoked : 'ns1/K\.+00.+0*\([1-9]*[0-9]*[0-9]\)'`
+rkeyid=`keyfile_to_key_id $revoked`
 rm -f ns1/root.db.signed.jnl
 # We need to activate at least one valid DNSKEY to prevent dnssec-signzone from
 # failing.  Alternatively, we could use -P to disable post-sign verification,

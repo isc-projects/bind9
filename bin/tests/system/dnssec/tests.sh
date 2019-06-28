@@ -1545,9 +1545,9 @@ ret=0
 zone=example
 key1=`$KEYGEN -K signer -q -r $RANDFILE -f KSK -a RSASHA1 -b 1024 -n zone $zone`
 key2=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-keyid2=`echo $key2 | sed 's/^Kexample.+005+0*\([0-9]\)/\1/'`
+keyid2=`keyfile_to_key_id $key2`
 key3=`$KEYGEN -K signer -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-keyid3=`echo $key3 | sed 's/^Kexample.+005+0*\([0-9]\)/\1/'`
+keyid3=`keyfile_to_key_id $key3`
 (
 cd signer
 cat example.db.in $key1.key $key2.key > example.db
@@ -3706,7 +3706,7 @@ status=$((status+ret))
 
 # Roll the ZSK.
 zsk2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -K ns2 -n zone $zone`
-echo "$zsk2" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id2
+keyfile_to_key_id "$zsk2" > ns2/$zone.zsk.id2
 ZSK_ID2=`cat ns2/$zone.zsk.id2`
 
 echo_i "load new ZSK $ZSK_ID2 for $zone ($n)"
@@ -3775,7 +3775,7 @@ mv ns2/$KSK.private.bak ns2/$KSK.private
 
 # Roll the ZSK again.
 zsk3=`$KEYGEN -q  -r $RANDFILE -a RSASHA1 -b 1024 -K ns2 -n zone $zone`
-echo "$zsk3" | sed -e 's/.*[+]//' -e 's/^0*//' > ns2/$zone.zsk.id3
+keyfile_to_key_id "$zsk3" > ns2/$zone.zsk.id3
 ZSK_ID3=`cat ns2/$zone.zsk.id3`
 
 echo_i "load new ZSK $ZSK_ID3 for $zone ($n)"

@@ -66,19 +66,19 @@ czoneout=`$SIGNER -Sg -e now+1d -X now+2d -r $RANDFILE -o $czone $cfile 2>&1`
 echo_i "signing parent zone"
 pzoneout=`$SIGNER -Sg -r $RANDFILE -o $pzone $pfile 2>&1`
 
-czactive=`echo $czsk1 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-czgenerated=`echo $czsk2 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-czpublished=`echo $czsk3 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-czinactive=`echo $czsk4 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-czpredecessor=`echo $czsk5 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-czsuccessor=`echo $czsk6 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-ckactive=`echo $cksk1 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-ckpublished=`echo $cksk2 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-ckprerevoke=`echo $cksk3 | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-ckrevoked=`echo $cksk4 | sed 's/.*+005+0*\([0-9]*\)$/\1/'`
+czactive=`keyfile_to_key_id $czsk1`
+czgenerated=`keyfile_to_key_id $czsk2`
+czpublished=`keyfile_to_key_id $czsk3`
+czinactive=`keyfile_to_key_id $czsk4`
+czpredecessor=`keyfile_to_key_id $czsk5`
+czsuccessor=`keyfile_to_key_id $czsk6`
+ckactive=`keyfile_to_key_id $cksk1`
+ckpublished=`keyfile_to_key_id $cksk2`
+ckprerevoke=`keyfile_to_key_id $cksk3`
+ckrevoked=`keyfile_to_key_id $cksk4`
 
-pzid=`echo $pzsk | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
-pkid=`echo $pksk | sed 's/^K.*+005+0*\([0-9]\)/\1/'`
+pzid=`keyfile_to_key_id $pzsk`
+pkid=`keyfile_to_key_id $pksk`
 
 echo_i "checking dnssec-signzone output matches expectations"
 ret=0
