@@ -1,3 +1,6 @@
+5260.	[bug]		dnstap-read was producing malformed output for large
+			packets. [GL #1093]
+
 5257.	[bug]		Some statistics data was not being displayed.
 			Add shading to the zone tables. [GL #1030]
 
