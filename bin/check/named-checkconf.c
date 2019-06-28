@@ -28,6 +28,7 @@
 #include <isc/util.h>
 
 #include <isccfg/namedconf.h>
+#include <isccfg/grammar.h>
 
 #include <bind9/check.h>
 
@@ -61,7 +62,7 @@ usage(void) ISC_PLATFORM_NORETURN_POST;
 
 static void
 usage(void) {
-	fprintf(stderr, "usage: %s [-chjlvz] [-p [-x]] [-t directory] "
+	fprintf(stderr, "usage: %s [-chijlvz] [-p [-x]] [-t directory] "
 		"[named.conf]\n", program);
 	exit(1);
 }
@@ -555,6 +556,7 @@ main(int argc, char **argv) {
 	bool load_zones = false;
 	bool list_zones = false;
 	bool print = false;
+	bool nodeprecate = false;
 	unsigned int flags = 0;
 
 	isc_commandline_errprint = false;
@@ -562,7 +564,7 @@ main(int argc, char **argv) {
 	/*
 	 * Process memory debugging argument first.
 	 */
-#define CMDLINE_FLAGS "cdhjlm:t:pvxz"
+#define CMDLINE_FLAGS "cdhijlm:t:pvxz"
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (c) {
 		case 'm':
@@ -593,6 +595,10 @@ main(int argc, char **argv) {
 
 		case 'd':
 			debug++;
+			break;
+
+		case 'i':
+			nodeprecate = true;
 			break;
 
 		case 'j':
@@ -675,11 +681,16 @@ main(int argc, char **argv) {
 
 	RUNTIME_CHECK(cfg_parser_create(mctx, logc, &parser) == ISC_R_SUCCESS);
 
+	if (nodeprecate) {
+		cfg_parser_setflags(parser, CFG_PCTX_NODEPRECATED, true);
+	}
 	cfg_parser_setcallback(parser, directory_callback, NULL);
 
 	if (cfg_parse_file(parser, conffile, &cfg_type_namedconf, &config) !=
 	    ISC_R_SUCCESS)
+	{
 		exit(1);
+	}
 
 	result = bind9_check_namedconf(config, loadplugins, logc, mctx);
 	if (result != ISC_R_SUCCESS) {

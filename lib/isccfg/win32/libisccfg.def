@@ -97,6 +97,7 @@ cfg_parser_error
 cfg_parser_mapadd
 cfg_parser_reset
 cfg_parser_setcallback
+cfg_parser_setflags
 cfg_parser_warning
 cfg_peektoken
 cfg_pluginlist_foreach
