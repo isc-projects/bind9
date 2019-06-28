@@ -156,7 +156,7 @@ logging {
 
 
   <refsection><info><title>MANAGED-KEYS</title></info>
-  <para>See DNSSEC-KEYS.</para>
+  <para>Deprecated - see DNSSEC-KEYS.</para>
     <literallayout class="normal">
 managed-keys { <replaceable>string</replaceable> ( static-key |
     initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
@@ -652,7 +652,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	lmdb-mapsize <replaceable>sizeval</replaceable>;
 	managed-keys { <replaceable>string</replaceable> ( static-key |
 	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
+	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };, deprecated
 	masterfile-format ( map | raw | text );
 	masterfile-style ( full | relative );
 	match-clients { <replaceable>address_match_element</replaceable>; ... };

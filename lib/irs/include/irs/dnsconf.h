@@ -17,7 +17,7 @@
  *
  * \brief
  * The IRS dnsconf module parses an "advanced" configuration file related to
- * the DNS library, such as trusted keys for DNSSEC validation, and creates
+ * the DNS library, such as trust anchors for DNSSEC validation, and creates
  * the corresponding configuration objects for the DNS library modules.
  *
  * Notes:
