@@ -23,6 +23,6 @@ zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" "$zone")
 # Sign deliberately with a very short expiration date.
 "$SIGNER" -S -x -O full -e "now"+1s -o "$zone" -f "$zonefile" "$infile" > /dev/null 2>&1
 
-echo "$ksk" | sed -e 's/.*[+]//' -e 's/^0*//' > dnssec.ksk.id
-echo "$zsk" | sed -e 's/.*[+]//' -e 's/^0*//' > dnssec.zsk.id
+keyfile_to_key_id "$ksk" > dnssec.ksk.id
+keyfile_to_key_id "$zsk" > dnssec.zsk.id
 
