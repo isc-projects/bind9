@@ -300,6 +300,15 @@ keyfile_to_managed_keys() {
     keyfile_to_keys_section "managed-keys" "initial-key " $*
 }
 
+# keyfile_to_key_id: convert a key file name to a key ID
+#
+# For a given key file name (e.g. "Kexample.+013+06160") provided as $1,
+# print the key ID with leading zeros stripped ("6160" for the
+# aforementioned example).
+keyfile_to_key_id() {
+	echo "$1" | sed "s/.*+0\{0,4\}//"
+}
+
 # nextpart: read everything that's been appended to a file since the
 # last time 'nextpart' was called.
 nextpart () {

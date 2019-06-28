@@ -281,8 +281,8 @@ zonefile=${zone}.db
 key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
 key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
 # Save key id's for checking active key usage
-echo $key1 | sed -e 's/.*[+]//' -e 's/^0*//' > $zone.ksk.id
-echo $key2 | sed -e 's/.*[+]//' -e 's/^0*//' > $zone.zsk.id
+keyfile_to_key_id "$key1" > $zone.ksk.id
+keyfile_to_key_id "$key2" > $zone.zsk.id
 echo ${key1} > $zone.ksk.key
 echo ${key2} > $zone.zsk.key
 # Add CDS and CDNSKEY records
