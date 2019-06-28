@@ -11,7 +11,7 @@
 5258.	[func]		Added support for the GeoIP2 API from MaxMind. This
 			will be compiled in by default if the "libmaxminddb"
 			library is found at compile time, but can be
-			suppressed using "configure --without-geoip2".
+			suppressed using "configure --disable-geoip".
 
 			Certain geoip ACL settings that were available with
 			legacy GeoIP are not available when using GeoIP2.

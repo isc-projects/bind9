@@ -510,50 +510,64 @@ AC_C_BIGENDIAN
 #
 # GeoIP support?
 #
+# Should be on by default if libmaxminddb exists.
+#
 AC_ARG_WITH([geoip2],
-	    [AS_HELP_STRING([--with-geoip2=PATH],
-			    [Build with MaxMind GeoIP2 support (auto|yes|no|path) [default=auto]])],
-	    [], with_geoip2="auto")
+	    [AS_HELP_STRING([--with-geoip2],
+			    [deprecated, use --with-maxminddb])],
+	    [AC_MSG_WARN([--with-geoip2 is DEPRECATED and will be removed in a future release, use --with-maxminddb instead])],
+	    [with_geoip2="auto"])
 
-# --with-geoip2 should be turned on by default if the library exists.
+AC_ARG_ENABLE([geoip],
+	      [AS_HELP_STRING([--disable-geoip],
+			      [support GeoIP2 geolocation ACLs if available [default=yes]])],
+	      [], [enable_geoip="yes"])
+
+AC_ARG_WITH([maxminddb],
+	    [AS_HELP_STRING([--with-maxminddb=PATH],
+			    [Build with MaxMind GeoIP2 support (auto|yes|no|path) [default=auto]])],
+	    [], [with_maxminddb="$with_geoip2"])
+
 GEOIP2LINKSRCS=
 GEOIP2LINKOBJS=
-AS_CASE([$with_geoip2],
-	[no],[],
-	[auto],[PKG_CHECK_MODULES([MAXMINDDB], [libmaxminddb],
-				      [AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
-				       PKG_CHECK_VAR([MAXMINDDB_PREFIX], [libmaxminddb], [prefix], [], [AC_MSG_ERROR([libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment])])
-				       GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-				       GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
-				      ],[:])],
-	[yes],[PKG_CHECK_MODULES([MAXMINDDB], [libmaxminddb],
-				      [AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
-				       PKG_CHECK_VAR([MAXMINDDB_PREFIX], [libmaxminddb], [prefix], [], [AC_MSG_ERROR([libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment])])
-				       GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-				       GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
-				      ])],
-	[ # default
-	    AX_SAVE_FLAGS([geoip2])
-	    MAXMINDDB_CFLAGS="-I$with_geoip2/include"
-	    MAXMINDDB_LIBS="-L$with_geoip2/libs"
-	    CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
-	    LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
-	    AC_SEARCH_LIBS([MMDB_open], [maxminddb],
-			   [AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
-			    GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-			    GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
-			    MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_mmdb_open"
-			    AC_MSG_NOTICE([GeoIP2 default database path set to $with_geoip2/share/GeoIP])
-			    AS_VAR_COPY([MAXMINDDB_PREFIX], [$with_geoip2])
-			   ],
-			   [AC_MSG_ERROR([GeoIP2 requested, but libmaxminddb not found])])
-	])
-AC_ARG_VAR([MAXMINDDB_PREFIX], [value of prefix for MAXMINDDB, overriding pkg-config])
+AS_IF([test "$enable_geoip" = "yes"],
+      [AS_CASE([$with_maxminddb],
+	       [no],[AC_MSG_ERROR([Use '--disable-geoip' to disable the GeoIP])],
+	       [auto],[PKG_CHECK_MODULES([MAXMINDDB], [libmaxminddb],
+					 [AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
+					  PKG_CHECK_VAR([MAXMINDDB_PREFIX], [libmaxminddb], [prefix], [], [AC_MSG_ERROR([libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment])])
+					  GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+					  GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+					 ],[:])],
+	       [yes],[PKG_CHECK_MODULES([MAXMINDDB], [libmaxminddb],
+					[AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
+					 PKG_CHECK_VAR([MAXMINDDB_PREFIX], [libmaxminddb], [prefix], [], [AC_MSG_ERROR([libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment])])
+					 GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+					 GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+					])],
+	       [ # default
+		   AX_SAVE_FLAGS([maxminddb])
+		   MAXMINDDB_CFLAGS="-I$with_maxminddb/include"
+		   MAXMINDDB_LIBS="-L$with_maxminddb/libs"
+		   CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
+		   LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
+		   AC_SEARCH_LIBS([MMDB_open], [maxminddb],
+				  [AC_DEFINE([HAVE_GEOIP2], [1], [Build with GeoIP2 support])
+				   GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+				   GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+				   MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_mmdb_open"
+				   AC_MSG_NOTICE([GeoIP2 default database path set to $with_maxminddb/share/GeoIP])
+				   AS_VAR_COPY([MAXMINDDB_PREFIX], [$with_maxminddb])
+				  ],
+				  [AC_MSG_ERROR([GeoIP2 requested, but libmaxminddb not found])])
+	       ])
+       AC_ARG_VAR([MAXMINDDB_PREFIX], [value of prefix for MAXMINDDB, overriding pkg-config])
+])
+
 AC_SUBST([MAXMINDDB_CFLAGS])
 AC_SUBST([MAXMINDDB_LIBS])
 AC_SUBST([GEOIP2LINKSRCS])
 AC_SUBST([GEOIP2LINKOBJS])
-
 
 #
 # Do we have arc4random(), etc ?
@@ -2906,7 +2920,7 @@ report() {
     test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
-    test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--with-geoip2)"
+    test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--enable-geoip)"
     test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
     if test "yes" = "$enable_full_report" -o "aes" != "$with_cc_alg"; then
 	echo "        Algorithm: $with_cc_alg"
@@ -2970,7 +2984,7 @@ report() {
 
     test "no" = "$use_dnstap" && \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
-    test -z "$MAXMINDDB_LIBS" && echo "    GeoIP2 access control (--with-geoip2)"
+    test -z "$MAXMINDDB_LIBS" && echo "    GeoIP2 access control (--enable-geoip)"
     test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
 
     test "no" = "$enable_dnsrps" && \
