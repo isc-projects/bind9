@@ -1,3 +1,6 @@
+5260.	[bug]		dnstap-read was producing malformed output for large
+			packets. [GL #1093]
+
 5259.	[func]		New option '-i' for 'named-checkconf' to ignore
 			warnings about deprecated options. [GL #1101]
 
