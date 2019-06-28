@@ -54,4 +54,4 @@ cp managed.conf ../ns4/managed.conf
 #  Save keyid for managed key id test.
 #
 
-echo "$keyname" | sed -e 's/.*[+]//' -e 's/^0*//' > managed.key.id
+keyfile_to_key_id "$keyname" > managed.key.id
