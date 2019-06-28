@@ -5104,6 +5104,9 @@ options {
 		is not used.
 	      </para>
 	      <para>
+		This option is deprecated and its use is discouraged.
+	      </para>
+	      <para>
 		NOTE: The ISC-provided DLV service at
 		<literal>dlv.isc.org</literal>, has been shut down.
 		The <command>dnssec-lookaside auto;</command>

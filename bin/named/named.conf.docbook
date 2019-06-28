@@ -254,7 +254,7 @@ options {
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-lookaside ( <replaceable>string</replaceable> trust-anchor
-	    <replaceable>string</replaceable> | auto | no );
+	    <replaceable>string</replaceable> | auto | no );, deprecated
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
@@ -615,7 +615,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-lookaside ( <replaceable>string</replaceable> trust-anchor
-	    <replaceable>string</replaceable> | auto | no );
+	    <replaceable>string</replaceable> | auto | no );, deprecated
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
