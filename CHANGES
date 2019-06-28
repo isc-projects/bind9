@@ -1,3 +1,6 @@
+5260.	[bug]		dnstap-read was producing malformed output for large
+			packets. [GL #1093]
+
 5258.	[func]		Added support for the GeoIP2 API from MaxMind,
 			when BIND is compiled using "configure --with-geoip2".
 			The legacy GeoIP API can be enabled by using

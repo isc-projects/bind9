@@ -558,7 +558,9 @@
 ./bin/tests/system/dnssec/signer/general/bogus-ksk.key	X	2018,2019
 ./bin/tests/system/dnssec/signer/general/bogus-zsk.key	X	2018,2019
 ./bin/tests/system/dnssec/tests.sh		SH	2000,2001,2002,2004,2005,2006,2007,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019
+./bin/tests/system/dnstap/README		TXT.BRIEF	2019
 ./bin/tests/system/dnstap/clean.sh		SH	2015,2016,2017,2018,2019
+./bin/tests/system/dnstap/large-answer.fstrm	X	2019
 ./bin/tests/system/dnstap/setup.sh		SH	2018,2019
 ./bin/tests/system/dnstap/tests.sh		SH	2015,2016,2017,2018,2019
 ./bin/tests/system/dnstap/ydump.py		PYTHON	2016,2017,2018,2019
