@@ -25,6 +25,7 @@ HAVE_CORE=
 SAVE_RESULTS=
 
 status=0
+t=0
 
 USAGE="$0: [-x]"
 while getopts "x" c; do
@@ -706,6 +707,33 @@ EOF
   echo_i "checking rpz with delegation fails correctly"
   $DIG -p ${PORT} @$ns3 ns example.com > dig.out.delegation
   grep "status: SERVFAIL" dig.out.delegation > /dev/null || setret "I:failed"
+
+  # RPZ 'CNAME *.' (NODATA) trumps DNS64.  Test against various DNS64 senarios.
+  for label in a-only no-a-no-aaaa a-plus-aaaa
+  do
+    for type in AAAA A
+    do
+      t=`expr $t + 1`
+      case $label in
+      a-only)
+	echo_i "checking rpz 'CNAME *.' (NODATA) with dns64, $type lookup with A-only (${t})"
+	;;
+      no-a-no-aaaa)
+	echo_i "checking rpz 'CNAME *.' (NODATA) with dns64, $type lookup with no A or AAAA (${t})"
+	;;
+      a-plus-aaaa)
+	echo_i "checking rpz 'CNAME *.' (NODATA) with dns64, $type lookup with A and AAAA (${t})"
+	;;
+      esac
+      ret=0
+      $DIG ${label}.example -p ${PORT} $type @10.53.0.9 > dig.out.${t}
+      grep "status: NOERROR" dig.out.$t > /dev/null || ret=1
+      grep "ANSWER: 0, AUTHORITY: 0, ADDITIONAL: 2$" dig.out.$t > /dev/null || ret=1
+      grep "^rpz"  dig.out.$t > /dev/null || ret=1
+      [ $ret -eq 0 ] || echo_i "failed"
+      status=`expr $status + $ret`
+    done
+  done
 done
 
 echo_i "exit status: $status"

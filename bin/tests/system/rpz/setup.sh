@@ -25,6 +25,7 @@ copy_setports ns4/named.conf.in ns4/named.conf
 copy_setports ns5/named.conf.in ns5/named.conf
 copy_setports ns6/named.conf.in ns6/named.conf
 copy_setports ns7/named.conf.in ns7/named.conf
+copy_setports ns9/named.conf.in ns9/named.conf
 
 # set up test policy zones.
 #   bl is the main test zone
