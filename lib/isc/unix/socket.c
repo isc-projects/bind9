@@ -345,8 +345,8 @@ struct isc__socket {
 	int			fd;
 	int			pf;
 	int			threadid;
-	char				name[16];
-	void *				tag;
+	char			name[16];
+	void *			tag;
 
 	ISC_LIST(isc_socketevent_t)		send_list;
 	ISC_LIST(isc_socketevent_t)		recv_list;
@@ -355,13 +355,13 @@ struct isc__socket {
 
 	isc_sockaddr_t		peer_address;       /* remote address */
 
-	unsigned int		listener : 1,       /* listener socket */
-				connected : 1,
-				connecting : 1,     /* connect pending */
-				bound : 1,          /* bound to local addr */
-				dupped : 1,
-				active : 1,         /* currently active */
-				pktdscp : 1;	    /* per packet dscp */
+	unsigned int	listener : 1,       /* listener socket */
+			connected : 1,
+			connecting : 1,     /* connect pending */
+			bound : 1,          /* bound to local addr */
+			dupped : 1,
+			active : 1,         /* currently active */
+			pktdscp : 1;        /* per packet dscp */
 
 #ifdef ISC_PLATFORM_RECVOVERFLOW
 	unsigned char		overflow; /* used for MSG_TRUNC fake */
@@ -573,7 +573,7 @@ gen_threadid(isc__socket_t *sock);
 
 static int
 gen_threadid(isc__socket_t *sock) {
-	return sock->fd % sock->manager->nthreads;
+	return (sock->fd % sock->manager->nthreads);
 }
 
 static void
@@ -878,9 +878,10 @@ wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
 	INSIST(fd >= 0 && fd < (int)thread->manager->maxsocks);
 
 	if (msg == SELECT_POKE_CLOSE) {
-		/* No one should be updating fdstate, so no need to lock it */
+		LOCK(&thread->fdlock[lockid]);
 		INSIST(thread->fdstate[fd] == CLOSE_PENDING);
 		thread->fdstate[fd] = CLOSED;
+		UNLOCK(&thread->fdlock[lockid]);
 		(void)unwatch_fd(thread, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(thread, fd, SELECT_POKE_WRITE);
 		(void)close(fd);
@@ -1310,8 +1311,9 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 						 " failed: %s",
 						 sock->fd, dscp >> 2,
 						 strbuf);
-			} else
+			} else {
 				sock->dscp = dscp;
+			}
 		}
 #endif
 #if defined(IPPROTO_IPV6) && defined(IPV6_TCLASS)
@@ -1336,8 +1338,9 @@ build_msghdr_send(isc__socket_t *sock, char* cmsgbuf, isc_socketevent_t *dev,
 						 "%.02x) failed: %s",
 						 sock->fd, dscp >> 2,
 						 strbuf);
-			} else
+			} else {
 				sock->dscp = dscp;
+			}
 		}
 #endif
 		if (msg->msg_controllen != 0 &&
@@ -1518,7 +1521,7 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 		if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
 			strerror_r(recv_errno, strbuf, sizeof(strbuf));
 			socket_log(sock, NULL, IOEVENT,
-				  "doio_recv: recvmsg(%d) %d bytes, err %d/%s",
+				   "doio_recv: recvmsg(%d) %d bytes, err %d/%s",
 				   sock->fd, cc, recv_errno, strbuf);
 		}
 
@@ -1784,11 +1787,14 @@ socketclose(isc__socketthread_t *thread, isc__socket_t *sock, int fd) {
 	select_poke(thread->manager, thread->threadid, fd, SELECT_POKE_CLOSE);
 
 	inc_stats(thread->manager->stats, sock->statsindex[STATID_CLOSE]);
+
+	LOCK(&sock->lock);
 	if (sock->active == 1) {
 		dec_stats(thread->manager->stats,
 			  sock->statsindex[STATID_ACTIVE]);
 		sock->active = 0;
 	}
+	UNLOCK(&sock->lock);
 
 	/*
 	 * update manager->maxfd here (XXX: this should be implemented more
@@ -1822,10 +1828,10 @@ socketclose(isc__socketthread_t *thread, isc__socket_t *sock, int fd) {
 
 static void
 destroy(isc__socket_t **sockp) {
-	int fd;
+	int fd = 0;
 	isc__socket_t *sock = *sockp;
 	isc__socketmgr_t *manager = sock->manager;
-	isc__socketthread_t *thread;
+	isc__socketthread_t *thread = NULL;
 
 	socket_log(sock, NULL, CREATION, "destroying");
 
@@ -1835,11 +1841,16 @@ destroy(isc__socket_t **sockp) {
 	INSIST(ISC_LIST_EMPTY(sock->send_list));
 	INSIST(sock->fd >= -1 && sock->fd < (int)manager->maxsocks);
 
+	LOCK(&sock->lock);
 	if (sock->fd >= 0) {
 		fd = sock->fd;
 		thread = &manager->threads[sock->threadid];
 		sock->fd = -1;
 		sock->threadid = -1;
+	}
+	UNLOCK(&sock->lock);
+
+	if (fd > 0) {
 		socketclose(thread, sock, fd);
 	}
 
@@ -1847,8 +1858,9 @@ destroy(isc__socket_t **sockp) {
 
 	ISC_LIST_UNLINK(manager->socklist, sock, link);
 
-	if (ISC_LIST_EMPTY(manager->socklist))
+	if (ISC_LIST_EMPTY(manager->socklist)) {
 		SIGNAL(&manager->shutdown_ok);
+	}
 
 	/* can't unlock manager as its memory context is still used */
 	free_socket(sockp);
@@ -1872,7 +1884,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	sock->type = type;
 	sock->fd = -1;
 	sock->threadid = -1;
-	sock->dscp = 0;		/* TOS/TCLASS is zero until set. */
+	sock->dscp = 0;         /* TOS/TCLASS is zero until set. */
 	sock->dupped = 0;
 	sock->statsindex = NULL;
 	sock->active = 0;
@@ -1889,6 +1901,7 @@ allocate_socket(isc__socketmgr_t *manager, isc_sockettype_t type,
 	ISC_LIST_INIT(sock->send_list);
 	ISC_LIST_INIT(sock->accept_list);
 	ISC_LIST_INIT(sock->connect_list);
+
 	sock->listener = 0;
 	sock->connected = 0;
 	sock->connecting = 0;
@@ -2156,8 +2169,9 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		sock->dupped = 1;
 		sock->bound = dup_socket->bound;
 	}
-	if (sock->fd == -1 && errno == EINTR && tries++ < 42)
+	if (sock->fd == -1 && errno == EINTR && tries++ < 42) {
 		goto again;
+	}
 
 #ifdef F_DUPFD
 	/*
@@ -4124,6 +4138,10 @@ socket_send(isc__socket_t *sock, isc_socketevent_t *dev, isc_task_t *task,
 
 	case DOIO_HARD:
 	case DOIO_SUCCESS:
+		if (!have_lock) {
+			LOCK(&sock->lock);
+			have_lock = true;
+		}
 		if ((flags & ISC_SOCKFLAG_IMMEDIATE) == 0) {
 			send_senddone_event(sock, &dev);
 		}
