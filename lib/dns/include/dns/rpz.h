@@ -71,6 +71,7 @@ typedef enum {
 	DNS_RPZ_POLICY_NXDOMAIN = 5,	/* 'nxdomain': answer with NXDOMAIN */
 	DNS_RPZ_POLICY_NODATA = 6,	/* 'nodata': answer with ANCOUNT=0 */
 	DNS_RPZ_POLICY_CNAME = 7,	/* 'cname x': answer with x's rrsets */
+	DNS_RPZ_POLICY_DNS64,		/* Apply DN64 to the A rewrite */
 	DNS_RPZ_POLICY_RECORD,
 	DNS_RPZ_POLICY_WILDCNAME,
 	DNS_RPZ_POLICY_MISS,
