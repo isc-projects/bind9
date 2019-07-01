@@ -1,3 +1,5 @@
+5261.	[cleanup]	Remove SO_BSDCOMPAT socket option usage.
+
 5260.	[bug]		dnstap-read was producing malformed output for large
 			packets. [GL #1093]
 
