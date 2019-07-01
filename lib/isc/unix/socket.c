@@ -77,10 +77,6 @@
 
 #include "errno2result.h"
 
-#if defined(SO_BSDCOMPAT) && defined(__linux__)
-#include <sys/utsname.h>
-#endif
-
 #ifdef ENABLE_TCP_FASTOPEN
 #include <netinet/tcp.h>
 #endif
@@ -2054,44 +2050,6 @@ set_sndbuf(void) {
 }
 #endif
 
-#ifdef SO_BSDCOMPAT
-/*
- * This really should not be necessary to do.  Having to workout
- * which kernel version we are on at run time so that we don't cause
- * the kernel to issue a warning about us using a deprecated socket option.
- * Such warnings should *never* be on by default in production kernels.
- *
- * We can't do this a build time because executables are moved between
- * machines and hence kernels.
- *
- * We can't just not set SO_BSDCOMAT because some kernels require it.
- */
-
-static isc_once_t         bsdcompat_once = ISC_ONCE_INIT;
-bool bsdcompat = true;
-
-static void
-clear_bsdcompat(void) {
-#ifdef __linux__
-	 struct utsname buf;
-	 char *endp;
-	 long int major;
-	 long int minor;
-
-	 uname(&buf);    /* Can only fail if buf is bad in Linux. */
-
-	 /* Paranoia in parsing can be increased, but we trust uname(). */
-	 major = strtol(buf.release, &endp, 10);
-	 if (*endp == '.') {
-		minor = strtol(endp+1, &endp, 10);
-		if ((major > 2) || ((major == 2) && (minor >= 4))) {
-			bsdcompat = false;
-		}
-	 }
-#endif /* __linux __ */
-}
-#endif
-
 static void
 use_min_mtu(isc__socket_t *sock) {
 #if !defined(IPV6_USE_MIN_MTU) && !defined(IPV6_MTU)
@@ -2134,7 +2092,7 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 	char strbuf[ISC_STRERRORSIZE];
 	const char *err = "socket";
 	int tries = 0;
-#if defined(USE_CMSG) || defined(SO_BSDCOMPAT) || defined(SO_NOSIGPIPE)
+#if defined(USE_CMSG) || defined(SO_NOSIGPIPE)
 	int on = 1;
 #endif
 #if defined(SO_RCVBUF) || defined(SO_SNDBUF)
@@ -2281,21 +2239,6 @@ opensocket(isc__socketmgr_t *manager, isc__socket_t *sock,
 		inc_stats(manager->stats, sock->statsindex[STATID_OPENFAIL]);
 		return (result);
 	}
-
-#ifdef SO_BSDCOMPAT
-	RUNTIME_CHECK(isc_once_do(&bsdcompat_once,
-				  clear_bsdcompat) == ISC_R_SUCCESS);
-	if (sock->type != isc_sockettype_unix && bsdcompat &&
-	    setsockopt(sock->fd, SOL_SOCKET, SO_BSDCOMPAT,
-		       (void *)&on, sizeof(on)) < 0) {
-		strerror_r(errno, strbuf, sizeof(strbuf));
-		UNEXPECTED_ERROR(__FILE__, __LINE__,
-				 "setsockopt(%d, SO_BSDCOMPAT) failed: %s",
-				 sock->fd,
-				 strbuf);
-		/* Press on... */
-	}
-#endif
 
 #ifdef SO_NOSIGPIPE
 	if (setsockopt(sock->fd, SOL_SOCKET, SO_NOSIGPIPE,
