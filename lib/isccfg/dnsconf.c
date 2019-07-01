@@ -43,7 +43,8 @@ static cfg_type_t cfg_type_trustedkeys = {
  */
 static cfg_clausedef_t
 dnsconf_clauses[] = {
-	{ "trusted-keys", &cfg_type_trustedkeys, CFG_CLAUSEFLAG_MULTI },
+	{ "trusted-keys", &cfg_type_trustedkeys,
+	  CFG_CLAUSEFLAG_MULTI },
 	{ NULL, NULL, 0 }
 };
 

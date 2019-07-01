@@ -2213,8 +2213,8 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	  if at least one trust anchor has been explicitly configured
 	  in <filename>named.conf</filename>
 	  using a <command>dnssec-keys</command> statement (or the
-	  synonymous <command>managed-keys</command> or the deprecated
-	  <command>trusted-keys</command> statements).
+	  <command>managed-keys</command> and <command>trusted-keys</command>
+	  statements, both deprecated).
 	</para>
 	<para>
 	  When <command>dnssec-validation</command> is set to
@@ -3209,8 +3209,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 		  keys are kept up to date using RFC 5011
 		  trust anchor maintenance, and if used with
 		  <command>static-key</command>, keys are permanent.
-		  Identical to <command>managed-keys</command>,
-		  but has been added for improved clarity.
 		</para>
 	      </entry>
 	    </row>
@@ -3220,8 +3218,11 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	      </entry>
 	      <entry colname="2">
 		<para>
-		  is identical to <command>dnssec-keys</command>,
-		  and is retained for backward compatibility.
+		  is identical to <command>dnssec-keys</command>;
+		  this option is deprecated in favor
+		  of <command>dnssec-keys</command> with
+		  the <command>initial-key</command> keyword,
+		  and may be removed in a future release.
 		</para>
 	      </entry>
 	    </row>
@@ -5054,10 +5055,11 @@ options {
 		as insecure.
 	      </para>
 	      <para>
-		Configured trust anchors in <command>trusted-keys</command>
-		or <command>managed-keys</command> that match a disabled
-		algorithm will be ignored and treated as if they were not
-		configured at all.
+		Configured trust anchors in <command>dnssec-keys</command>
+		(or <command>managed-keys</command> or
+		<command>trusted-keys</command>, both deprecated)
+		that match a disabled algorithm will be ignored and treated
+		as if they were not configured at all.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -6435,8 +6437,8 @@ options {
 		  If set to <userinput>yes</userinput>, DNSSEC validation is
 		  enabled, but a trust anchor must be manually configured
 		  using a <command>dnssec-keys</command> statement (or
-		  the synonymous <command>managed-keys</command>, or the
-		  deprecated <command>trusted-keys</command> statements).
+		  the <command>managed-keys</command> or the
+		  <command>trusted-keys</command> statements, both deprecated).
 		  If there is no configured trust anchor, validation will
 		  not take place.
 		</para>
@@ -11015,9 +11017,9 @@ example.com                 CNAME   rpz-tcp-only.
 	    and Usage</title></info>
 
 	  <para>
-	    The <command>managed-keys</command> statement is
-	    identical to the <command>dnssec-keys</command>, and is
-	    retained for backward compatibility.
+	    The <command>managed-keys</command> statement has been
+	    deprecated in favor of <xref linkend="dnssec_keys"/>
+	    with the <command>initial-key</command> keyword.
 	  </para>
 	</section>
 
@@ -11030,7 +11032,7 @@ example.com                 CNAME   rpz-tcp-only.
 	  <para>
 	    The <command>trusted-keys</command> statement has been
 	    deprecated in favor of <xref linkend="dnssec_keys"/>
-	    with the <command>static</command> keyword.
+	    with the <command>static-key</command> keyword.
 	  </para>
 	</section>
 
@@ -11417,9 +11419,8 @@ view "external" {
 		        For validation to succeed, a key-signing key
 		        (KSK) for the zone must be configured as a trust
 		        anchor in <filename>named.conf</filename>: that
-		        is, a key for the zone must either be specified
-		        in <command>managed-keys</command> or
-		        <command>trusted-keys</command>.  In the case
+		        is, a key for the zone must be specified in
+		        <command>dnssec-keys</command>.  In the case
 		        of the root zone, you may also rely on the
 		        built-in root trust anchor, which is enabled
 			when <xref endterm="dnssec_validation_term"
