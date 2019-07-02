@@ -151,7 +151,7 @@ stages:
   <<: *default_triggering_rules
   stage: test
   before_script:
-    - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
+    - KYUA_RESULT="$(pwd)/kyua.results"
     - bash -x util/prepare-softhsm2.sh
   script:
     - make unit
