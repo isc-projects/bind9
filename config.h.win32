@@ -310,9 +310,6 @@ typedef __int64 off_t;
 /* Define to 1 if you have the `readline' function. */
 @HAVE_READLINE@
 
-/* Build with GeoIP support */
-@HAVE_GEOIP@
-
 /* Build with GeoIP2 support */
 @HAVE_GEOIP2@
 

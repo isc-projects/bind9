@@ -139,7 +139,7 @@
     <ClCompile Include="..\fixedname.c" />
     <ClCompile Include="..\forward.c" />
 @IF GEOIP
-    <ClCompile Include="..\geoip.c" />
+    <ClCompile Include="..\geoip2.c" />
 @END GEOIP
     <ClCompile Include="..\gssapictx.c" />
     <ClCompile Include="..\gssapi_link.c" />

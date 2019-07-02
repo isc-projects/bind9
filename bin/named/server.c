@@ -8270,12 +8270,11 @@ load_configuration(const char *filename, named_server_t *server,
 	 */
 	obj = NULL;
 	result = named_config_get(maps, "geoip-directory", &obj);
-	if (result == ISC_R_SUCCESS && cfg_obj_isstring(obj)) {
+	INSIST(result == ISC_R_SUCCESS);
+	if (cfg_obj_isstring(obj)) {
 		char *dir;
 		DE_CONST(cfg_obj_asstring(obj), dir);
 		named_geoip_load(dir);
-	} else {
-		named_geoip_load(NULL);
 	}
 	named_g_aclconfctx->geoip = named_g_geoip;
 #endif /* HAVE_GEOIP2 */
