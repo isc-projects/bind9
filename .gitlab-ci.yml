@@ -109,7 +109,7 @@ stages:
   <<: *debian_sid_amd64_image
   stage: precheck
 
-autoconf: &autoconf_job
+.autoconf: &autoconf_job
   <<: *default_triggering_rules
   <<: *debian_sid_amd64_image
   stage: precheck
