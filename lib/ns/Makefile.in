@@ -11,10 +11,6 @@ srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
 
-# Attempt to disable parallel processing.
-.NOTPARALLEL:
-.NO_PARALLEL:
-
 VERSION=@BIND9_VERSION@
 @BIND9_MAJOR@
 
