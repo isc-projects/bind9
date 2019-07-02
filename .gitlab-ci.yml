@@ -119,13 +119,28 @@ stages:
     untracked: true
     expire_in: "1 hour"
 
+.configure: &configure |
+    ./configure \
+    --disable-maintainer-mode \
+    --enable-developer \
+    --with-libtool \
+    --disable-static \
+    --with-cmocka \
+    --with-libxml2 \
+    --with-json-c \
+    --with-geoip2 \
+    --prefix=$HOME/.local \
+    --without-make-clean \
+    $EXTRA_CONFIGURE \
+    || cat config.log
+    
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
   script:
-    - ./configure --disable-maintainer-mode --enable-developer --with-libtool --disable-static --with-cmocka  --with-libxml2 --with-json-c --prefix=$HOME/.local --without-make-clean $EXTRA_CONFIGURE || cat config.log
+    - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
   dependencies:
@@ -294,7 +309,7 @@ gcc:jessie:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--without-cmocka --with-python"
+    EXTRA_CONFIGURE: "--without-cmocka --with-python --without-geoip2 --with-geoip"
   <<: *debian_jessie_amd64_image
   <<: *build_job
 
@@ -337,7 +352,7 @@ gcc:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O3 -g"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--with-libidn22"
     RUN_MAKE_INSTALL: 1
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -404,6 +419,7 @@ gcc:xenial:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip"
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 
