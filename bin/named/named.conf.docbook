@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2019-05-10</date>
+    <date>2019-06-28</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -158,9 +158,10 @@ logging {
   <refsection><info><title>MANAGED-KEYS</title></info>
   <para>Deprecated - see DNSSEC-KEYS.</para>
     <literallayout class="normal">
-managed-keys { <replaceable>string</replaceable> ( static-key |
-    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-    <replaceable>quoted_string</replaceable>; ... };
+managed-keys { <replaceable>string</replaceable> ( static-key
+    | initial-key ) <replaceable>integer</replaceable>
+    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>quoted_string</replaceable>; ... }; deprecated
 </literallayout>
   </refsection>
 
@@ -220,7 +221,6 @@ options {
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
 	check-wildcard <replaceable>boolean</replaceable>;
-	cleaning-interval <replaceable>integer</replaceable>;
 	clients-per-query <replaceable>integer</replaceable>;
 	cookie-algorithm ( aes | sha1 | sha256 );
 	cookie-secret <replaceable>string</replaceable>;
@@ -253,8 +253,9 @@ options {
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
-	dnssec-lookaside ( <replaceable>string</replaceable> trust-anchor
-	    <replaceable>string</replaceable> | auto | no );, deprecated
+	dnssec-lookaside ( <replaceable>string</replaceable>
+	    trust-anchor <replaceable>string</replaceable> |
+	    auto | no ); deprecated
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
@@ -534,7 +535,7 @@ statistics-channels {
     <literallayout class="normal">
 trusted-keys { <replaceable>string</replaceable> <replaceable>integer</replaceable>
     <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-    <replaceable>quoted_string</replaceable>; ... };, deprecated
+    <replaceable>quoted_string</replaceable>; ... }; deprecated
 </literallayout>
   </refsection>
 
@@ -579,7 +580,6 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	check-spf ( warn | ignore );
 	check-srv-cname ( fail | warn | ignore );
 	check-wildcard <replaceable>boolean</replaceable>;
-	cleaning-interval <replaceable>integer</replaceable>;
 	clients-per-query <replaceable>integer</replaceable>;
 	deny-answer-addresses { <replaceable>address_match_element</replaceable>; ... } [
 	    except-from { <replaceable>string</replaceable>; ... } ];
@@ -614,8 +614,9 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
 	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
-	dnssec-lookaside ( <replaceable>string</replaceable> trust-anchor
-	    <replaceable>string</replaceable> | auto | no );, deprecated
+	dnssec-lookaside ( <replaceable>string</replaceable>
+	    trust-anchor <replaceable>string</replaceable> |
+	    auto | no ); deprecated
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
@@ -650,9 +651,11 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	key-directory <replaceable>quoted_string</replaceable>;
 	lame-ttl <replaceable>ttlval</replaceable>;
 	lmdb-mapsize <replaceable>sizeval</replaceable>;
-	managed-keys { <replaceable>string</replaceable> ( static-key |
-	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };, deprecated
+	managed-keys { <replaceable>string</replaceable> (
+	    static-key | initial-key
+	    ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>integer</replaceable>
+	    <replaceable>quoted_string</replaceable>; ... }; deprecated
 	masterfile-format ( map | raw | text );
 	masterfile-style ( full | relative );
 	match-clients { <replaceable>address_match_element</replaceable>; ... };
@@ -805,7 +808,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	trusted-keys { <replaceable>string</replaceable>
 	    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
 	    <replaceable>integer</replaceable>
-	    <replaceable>quoted_string</replaceable>; ... };, deprecated
+	    <replaceable>quoted_string</replaceable>; ... }; deprecated
 	try-tcp-refresh <replaceable>boolean</replaceable>;
 	update-check-ksk <replaceable>boolean</replaceable>;
 	use-alt-transfer-source <replaceable>boolean</replaceable>;
