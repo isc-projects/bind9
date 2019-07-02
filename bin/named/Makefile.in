@@ -45,13 +45,14 @@ DLZDRIVER_LIBS =	@DLZ_DRIVER_LIBS@
 CINCLUDES =	-I${srcdir}/include -I${srcdir}/unix/include -I. \
 		${LWRES_INCLUDES} ${DNS_INCLUDES} ${BIND9_INCLUDES} \
 		${ISCCFG_INCLUDES} ${ISCCC_INCLUDES} ${ISC_INCLUDES} \
-		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES} @DST_OPENSSL_INC@
+		${DLZDRIVER_INCLUDES} ${DBDRIVER_INCLUDES} ${MAXMINDDB_CFLAGS} \
+		@DST_OPENSSL_INC@
 
 CDEFINES =      @CONTRIB_DLZ@ @USE_PKCS11@ @PKCS11_ENGINE@ @CRYPTO@
 
 CWARNINGS =
 
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
@@ -82,10 +83,13 @@ SUBDIRS =	unix
 TARGETS =	named@EXEEXT@ lwresd@EXEEXT@
 
 GEOIPLINKOBJS = geoip.@O@
+GEOIP2LINKOBJS = geoip.@O@
 
 OBJS =		builtin.@O@ client.@O@ config.@O@ control.@O@ \
-		controlconf.@O@ fuzz.@O@ @GEOIPLINKOBJS@ interfacemgr.@O@ \
-		listenlist.@O@ log.@O@ logconf.@O@ main.@O@ notify.@O@ \
+		controlconf.@O@ fuzz.@O@ \
+		@GEOIPLINKOBJS@ @GEOIP2LINKOBJS@ \
+		interfacemgr.@O@ listenlist.@O@ log.@O@ logconf.@O@ \
+		main.@O@ notify.@O@ \
 		query.@O@ server.@O@ sortlist.@O@ statschannel.@O@ \
 		tkeyconf.@O@ tsigconf.@O@ update.@O@ xfrout.@O@ \
 		zoneconf.@O@ \
@@ -98,10 +102,13 @@ UOBJS =		unix/os.@O@ unix/dlz_dlopen_driver.@O@
 SYMOBJS =	symtbl.@O@
 
 GEOIPLINKSRCS = geoip.c
+GEOIP2LINKSRCS = geoip.c
 
 SRCS =		builtin.c client.c config.c control.c \
-		controlconf.c fuzz.c @GEOIPLINKSRCS@ interfacemgr.c \
-		listenlist.c log.c logconf.c main.c notify.c \
+		controlconf.c fuzz.c \
+		@GEOIPLINKSRCS@ @GEOIP2LINKSRCS@ \
+		interfacemgr.c \ listenlist.c log.c logconf.c \
+		main.c notify.c \
 		query.c server.c sortlist.c statschannel.c \
 		tkeyconf.c tsigconf.c update.c xfrout.c \
 		zoneconf.c \
@@ -135,6 +142,7 @@ config.@O@: config.c
 		-DDYNDB_LIBDIR=\"@libdir@/bind\" \
 		-DNS_LOCALSTATEDIR=\"${localstatedir}\" \
 		-DNS_SYSCONFDIR=\"${sysconfdir}\" \
+		-DMAXMINDDB_PREFIX=\"@MAXMINDDB_PREFIX@\" \
 		-c ${srcdir}/config.c
 
 server.@O@: server.c

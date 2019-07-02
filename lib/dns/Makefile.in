@@ -27,7 +27,8 @@ VERSION=@BIND9_VERSION@
 USE_ISC_SPNEGO = @USE_ISC_SPNEGO@
 
 CINCLUDES =	-I. -I${top_srcdir}/lib/dns -Iinclude ${DNS_INCLUDES} \
-		${ISC_INCLUDES} @DST_OPENSSL_INC@ @DST_GSSAPI_INC@
+		${ISC_INCLUDES} ${MAXMINDDB_CFLAGS} \
+		@DST_OPENSSL_INC@ @DST_GSSAPI_INC@
 
 CDEFINES =	-DUSE_MD5 @CRYPTO@ @USE_GSSAPI@ ${USE_ISC_SPNEGO}
 
@@ -37,7 +38,7 @@ ISCLIBS =	../../lib/isc/libisc.@A@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@
 
-LIBS =		@LIBS@
+LIBS =		${MAXMINDDB_LIBS} @LIBS@
 
 # Alphabetically
 
@@ -57,6 +58,7 @@ DSTOBJS =	@DST_EXTRA_OBJS@ @OPENSSLLINKOBJS@ @PKCS11LINKOBJS@ \
 		gssapi_link.@O@ gssapictx.@O@ hmac_link.@O@ key.@O@
 
 GEOIPLINKOBJS = geoip.@O@
+GEOIP2LINKOBJS = geoip2.@O@
 
 DNSTAPOBJS = dnstap.@O@ dnstap.pb-c.@O@
 
@@ -82,7 +84,7 @@ DNSOBJS =	acache.@O@ acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 PORTDNSOBJS =	client.@O@ ecdb.@O@
 
 OBJS=		@DNSTAPOBJS@ ${DNSOBJS} ${OTHEROBJS} ${DSTOBJS} \
-		${PORTDNSOBJS} @GEOIPLINKOBJS@
+		${PORTDNSOBJS} @GEOIPLINKOBJS@ @GEOIP2LINKOBJS@
 
 
 # Alphabetically
@@ -103,6 +105,7 @@ DSTSRCS =	@DST_EXTRA_SRCS@ @OPENSSLLINKSRCS@ @PKCS11LINKSRCS@ \
 		hmac_link.c key.c
 
 GEOIPLINKSRCS = geoip.c
+GEOIPL2INKSRCS = geoip2.c
 
 DNSTAPSRCS = dnstap.c dnstap.pb-c.c
 
@@ -123,7 +126,8 @@ DNSSRCS =	acache.c acl.c adb.c badcache. byaddr.c \
 		version.c view.c xfrin.c zone.c zonekey.c zt.c ${OTHERSRCS}
 PORTDNSSRCS =	client.c ecdb.c
 
-SRCS = ${DSTSRCS} ${DNSSRCS} ${PORTDNSSRCS} @DNSTAPSRCS@ @GEOIPLINKSRCS@
+SRCS = ${DSTSRCS} ${DNSSRCS} \
+	${PORTDNSSRCS} @DNSTAPSRCS@ @GEOIPLINKSRCS@ @GEOIP2LINKSRCS@
 
 SUBDIRS =	include
 TARGETS =	timestamp

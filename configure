@@ -876,6 +876,11 @@ ISC_PLATFORM_HAVEGSSAPI
 KRB5_CONFIG
 GEOIPLINKOBJS
 GEOIPLINKSRCS
+GEOIP2LINKOBJS
+GEOIP2LINKSRCS
+MAXMINDDB_PREFIX
+MAXMINDDB_LIBS
+MAXMINDDB_CFLAGS
 LWRES_PLATFORM_NEEDSYSSELECTH
 ISC_PLATFORM_NEEDSYSSELECTH
 ISC_PLATFORM_HAVEDEVPOLL
@@ -974,6 +979,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1027,6 +1033,7 @@ enable_kqueue
 enable_epoll
 enable_devpoll
 with_geoip
+with_geoip2
 with_gssapi
 with_randomdev
 enable_threads
@@ -1100,6 +1107,9 @@ CPP
 PKG_CONFIG
 PKG_CONFIG_PATH
 PKG_CONFIG_LIBDIR
+MAXMINDDB_CFLAGS
+MAXMINDDB_LIBS
+MAXMINDDB_PREFIX
 CMOCKA_CFLAGS
 CMOCKA_LIBS
 KYUA'
@@ -1141,6 +1151,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1393,6 +1404,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1530,7 +1550,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1683,6 +1703,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -1771,7 +1792,9 @@ Optional Packages:
   --with-python=PATH      specify path to Python interpreter
   --with-python-install-dir=PATH
                           installation directory for Python modules
-  --with-geoip=PATH       Build with GeoIP support (yes|no|path)
+  --with-geoip=PATH       Build with legacy GeoIP support (yes|no|path)
+  --with-geoip2=PATH      Build with MaxMind GeoIP2 support (auto|yes|no|path)
+                          [default=no]
   --with-gssapi=PATH|/path/krb5-config
                           Specify path for system-supplied GSSAPI
                           [default=auto]
@@ -1843,6 +1866,12 @@ Some influential environment variables:
               directories to add to pkg-config's search path
   PKG_CONFIG_LIBDIR
               path overriding pkg-config's built-in search path
+  MAXMINDDB_CFLAGS
+              C compiler flags for MAXMINDDB, overriding pkg-config
+  MAXMINDDB_LIBS
+              linker flags for MAXMINDDB, overriding pkg-config
+  MAXMINDDB_PREFIX
+              value of prefix for libmaxminddb, overriding pkg-config
   CMOCKA_CFLAGS
               C compiler flags for CMOCKA, overriding pkg-config
   CMOCKA_LIBS linker flags for CMOCKA, overriding pkg-config
@@ -14616,17 +14645,410 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 #
 # GeoIP support?
 #
-GEOIPLINKSRCS=
-GEOIPLINKOBJS=
+geoip2_default="no"
 
 # Check whether --with-geoip was given.
 if test "${with_geoip+set}" = set; then :
-  withval=$with_geoip; use_geoip="$withval"
+  withval=$with_geoip;
+                            use_geoip="$withval"
+                            geoip2_default="no"
+
 else
   use_geoip="no"
 fi
 
 
+# Check whether --with-geoip2 was given.
+if test "${with_geoip2+set}" = set; then :
+  withval=$with_geoip2;
+else
+  with_geoip2="$geoip2_default"
+fi
+
+
+# specifying both --with-geoip and --with-geoip2 is an error.
+if test "no" != "$with_geoip2" && test "no" != "$use_geoip"; then :
+  as_fn_error $? "--with-geoip and --with-geoip2 are incompatible" "$LINENO" 5
+fi
+
+GEOIP2LINKSRCS=
+GEOIP2LINKOBJS=
+case $with_geoip2 in #(
+  no) :
+     ;; #(
+  auto) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmaxminddb" >&5
+$as_echo_n "checking for libmaxminddb... " >&6; }
+
+if test -n "$MAXMINDDB_CFLAGS"; then
+    pkg_cv_MAXMINDDB_CFLAGS="$MAXMINDDB_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libmaxminddb\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libmaxminddb") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MAXMINDDB_CFLAGS=`$PKG_CONFIG --cflags "libmaxminddb" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$MAXMINDDB_LIBS"; then
+    pkg_cv_MAXMINDDB_LIBS="$MAXMINDDB_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libmaxminddb\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libmaxminddb") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MAXMINDDB_LIBS=`$PKG_CONFIG --libs "libmaxminddb" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        MAXMINDDB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libmaxminddb" 2>&1`
+        else
+	        MAXMINDDB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libmaxminddb" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$MAXMINDDB_PKG_ERRORS" >&5
+
+	:
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	:
+else
+	MAXMINDDB_CFLAGS=$pkg_cv_MAXMINDDB_CFLAGS
+	MAXMINDDB_LIBS=$pkg_cv_MAXMINDDB_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_GEOIP2 1" >>confdefs.h
+
+
+if test -n "$MAXMINDDB_PREFIX"; then
+    pkg_cv_MAXMINDDB_PREFIX="$MAXMINDDB_PREFIX"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libmaxminddb\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libmaxminddb") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MAXMINDDB_PREFIX=`$PKG_CONFIG --variable="prefix" "libmaxminddb" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+MAXMINDDB_PREFIX=$pkg_cv_MAXMINDDB_PREFIX
+
+if test "x$MAXMINDDB_PREFIX" = x""; then :
+  as_fn_error $? "libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment" "$LINENO" 5
+fi
+				       GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+				       GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+
+fi ;; #(
+  yes) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmaxminddb" >&5
+$as_echo_n "checking for libmaxminddb... " >&6; }
+
+if test -n "$MAXMINDDB_CFLAGS"; then
+    pkg_cv_MAXMINDDB_CFLAGS="$MAXMINDDB_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libmaxminddb\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libmaxminddb") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MAXMINDDB_CFLAGS=`$PKG_CONFIG --cflags "libmaxminddb" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$MAXMINDDB_LIBS"; then
+    pkg_cv_MAXMINDDB_LIBS="$MAXMINDDB_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libmaxminddb\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libmaxminddb") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MAXMINDDB_LIBS=`$PKG_CONFIG --libs "libmaxminddb" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        MAXMINDDB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "libmaxminddb" 2>&1`
+        else
+	        MAXMINDDB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "libmaxminddb" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$MAXMINDDB_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (libmaxminddb) were not met:
+
+$MAXMINDDB_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables MAXMINDDB_CFLAGS
+and MAXMINDDB_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables MAXMINDDB_CFLAGS
+and MAXMINDDB_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	MAXMINDDB_CFLAGS=$pkg_cv_MAXMINDDB_CFLAGS
+	MAXMINDDB_LIBS=$pkg_cv_MAXMINDDB_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_GEOIP2 1" >>confdefs.h
+
+
+if test -n "$MAXMINDDB_PREFIX"; then
+    pkg_cv_MAXMINDDB_PREFIX="$MAXMINDDB_PREFIX"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"libmaxminddb\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "libmaxminddb") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_MAXMINDDB_PREFIX=`$PKG_CONFIG --variable="prefix" "libmaxminddb" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+MAXMINDDB_PREFIX=$pkg_cv_MAXMINDDB_PREFIX
+
+if test "x$MAXMINDDB_PREFIX" = x""; then :
+  as_fn_error $? "libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment" "$LINENO" 5
+fi
+				       GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+				       GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+
+fi ;; #(
+  *) :
+     # default
+
+
+  CCASFLAGS_geoip2_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_geoip2_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_geoip2_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_geoip2_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_geoip2_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_geoip2_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_geoip2_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_geoip2_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_geoip2_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_geoip2_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_geoip2_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_geoip2_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_geoip2_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_geoip2_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_geoip2_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_geoip2_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_geoip2_ax_save_flags=$VALAFLAGS
+
+
+
+	    MAXMINDDB_CFLAGS="-I$with_geoip2/include"
+	    MAXMINDDB_LIBS="-L$with_geoip2/libs"
+	    CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
+	    LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
+	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing MMDB_open" >&5
+$as_echo_n "checking for library containing MMDB_open... " >&6; }
+if ${ac_cv_search_MMDB_open+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_func_search_save_LIBS=$LIBS
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+
+/* Override any GCC internal prototype to avoid an error.
+   Use char because int might match the return type of a GCC
+   builtin and then its argument prototype would still apply.  */
+#ifdef __cplusplus
+extern "C"
+#endif
+char MMDB_open ();
+int
+main ()
+{
+return MMDB_open ();
+  ;
+  return 0;
+}
+_ACEOF
+for ac_lib in '' maxminddb; do
+  if test -z "$ac_lib"; then
+    ac_res="none required"
+  else
+    ac_res=-l$ac_lib
+    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
+  fi
+  if ac_fn_c_try_link "$LINENO"; then :
+  ac_cv_search_MMDB_open=$ac_res
+fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext
+  if ${ac_cv_search_MMDB_open+:} false; then :
+  break
+fi
+done
+if ${ac_cv_search_MMDB_open+:} false; then :
+
+else
+  ac_cv_search_MMDB_open=no
+fi
+rm conftest.$ac_ext
+LIBS=$ac_func_search_save_LIBS
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_MMDB_open" >&5
+$as_echo "$ac_cv_search_MMDB_open" >&6; }
+ac_res=$ac_cv_search_MMDB_open
+if test "$ac_res" != no; then :
+  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
+
+$as_echo "#define HAVE_GEOIP2 1" >>confdefs.h
+
+			    GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+			    GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+			    MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_mmdb_open"
+			    { $as_echo "$as_me:${as_lineno-$LINENO}: GeoIP2 default database path set to $with_geoip2/share/GeoIP" >&5
+$as_echo "$as_me: GeoIP2 default database path set to $with_geoip2/share/GeoIP" >&6;}
+			    eval MAXMINDDB_PREFIX=\$$with_geoip2
+
+else
+  as_fn_error $? "GeoIP2 requested, but libmaxminddb not found" "$LINENO" 5
+fi
+
+	 ;;
+esac
+
+
+
+
+
+
+GEOIPLINKSRCS=
+GEOIPLINKOBJS=
 if test "yes" = "$use_geoip"
 then
 	for d in /usr /usr/local /opt/local
@@ -14641,10 +15063,6 @@ fi
 
 case "$use_geoip" in
 	no|'')
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP support" >&5
-$as_echo_n "checking for GeoIP support... " >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: disabled" >&5
-$as_echo "disabled" >&6; }
 		;;
 	*)
 		if test -d "$use_geoip" -o -L "$use_geoip"
@@ -27300,7 +27718,8 @@ report() {
     test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
-    test "no" = "$use_geoip" || echo "    GeoIP access control (--with-geoip)"
+    test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--with-geoip2)"
+    test "no" = "$use_geoip" || echo "    Legacy GeoIP access control (--with-geoip)"
     test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
     if test "yes" = "$enable_full_report" -o "aes" != "$with_cc_alg"; then
 	echo "        Algorithm: $with_cc_alg"
@@ -27379,7 +27798,7 @@ report() {
 
     test "no" = "$use_dnstap" && \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
-    test "no" = "$use_geoip" && echo "    GeoIP access control (--with-geoip)"
+    test -z "$MAXMINDDB_LIBS" && echo "    GeoIP2 access control (--with-geoip2)"
     test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
 
     test "yes" = "$enable_fixed" || \

@@ -12,15 +12,14 @@
 #ifndef _GEOIP_H
 #define _GEOIP_H
 
-#ifdef HAVE_GEOIP
-#include <GeoIP.h>
-#include <GeoIPCity.h>
-#endif /* HAVE_GEOIP */
-
-void ns_geoip_init(void);
-void ns_geoip_load(char *dir);
-
-#ifdef HAVE_GEOIP
 extern dns_geoip_databases_t *ns_g_geoip;
-#endif /* HAVE_GEOIP */
+
+void
+ns_geoip_init(void);
+
+void
+ns_geoip_load(char *dir);
+
+void
+ns_geoip_shutdown(void);
 #endif

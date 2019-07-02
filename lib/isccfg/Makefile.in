@@ -23,7 +23,7 @@ CDEFINES =
 CWARNINGS =
 
 ISCLIBS =	../../lib/isc/libisc.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@
+DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 ISCCFGLIBS =	../../lib/cfg/libisccfg.@A@
 
 ISCDEPLIBS =	../../lib/isc/libisc.@A@

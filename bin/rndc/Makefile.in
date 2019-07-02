@@ -7,8 +7,6 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-# $Id: Makefile.in,v 1.49 2009/12/05 23:31:40 each Exp $
-
 srcdir =	@srcdir@
 VPATH =		@srcdir@
 top_srcdir =	@top_srcdir@
@@ -27,7 +25,7 @@ ISCCFGLIBS =	../../lib/isccfg/libisccfg.@A@
 ISCCCLIBS =	../../lib/isccc/libisccc.@A@
 ISCLIBS =	../../lib/isc/libisc.@A@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 BIND9LIBS =	../../lib/bind9/libbind9.@A@
 
 ISCCFGDEPLIBS =	../../lib/isccfg/libisccfg.@A@

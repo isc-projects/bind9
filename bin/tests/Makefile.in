@@ -20,7 +20,7 @@ CDEFINES =	@CRYPTO@
 CWARNINGS =
 BACKTRACECFLAGS = @BACKTRACECFLAGS@
 
-DNSLIBS =	../../lib/dns/libdns.@A@ @DNS_CRYPTO_LIBS@
+DNSLIBS =	../../lib/dns/libdns.@A@ ${MAXMINDDB_LIBS} @DNS_CRYPTO_LIBS@
 ISCLIBS =	../../lib/isc/libisc.@A@ @ISC_OPENSSL_LIBS@
 ISCNOSYMLIBS =	../../lib/isc/libisc-nosymtbl.@A@ @ISC_OPENSSL_LIBS@
 ISCCFGLIBS = 	../../lib/isccfg/libisccfg.@A@

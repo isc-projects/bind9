@@ -270,6 +270,9 @@ int sigwait(const unsigned int *set, int *sig);
 /* Build with GeoIP support */
 #undef HAVE_GEOIP
 
+/* Build with GeoIP2 support */
+#undef HAVE_GEOIP2
+
 /* Build with GeoIP City IPv6 support */
 #undef HAVE_GEOIP_CITY_V6
 

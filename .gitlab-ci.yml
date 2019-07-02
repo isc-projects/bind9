@@ -107,7 +107,7 @@ stages:
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
   script:
-    - ./configure --enable-developer --with-randomdev=/dev/urandom --with-libtool --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean ${EXTRA_CONFIGURE} || cat config.log
+    - ./configure --enable-developer --with-randomdev=/dev/urandom --with-libtool --with-geoip2=auto --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean ${EXTRA_CONFIGURE} || cat config.log
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
   artifacts:
