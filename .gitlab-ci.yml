@@ -88,6 +88,14 @@ stages:
   image: "$CI_REGISTRY_IMAGE:ubuntu-bionic-i386"
   <<: *linux_i386
 
+# FreeBSD
+
+.freebsd-12-amd64: &freebsd_12_amd64_image
+  tags:
+    - freebsd12
+    - amd64
+  allow_failure: true
+
 ### Job Templates
 
 .default-triggering-rules: &default_triggering_rules
@@ -126,13 +134,23 @@ autoconf: &autoconf_job
     untracked: true
     expire_in: "1 hour"
 
+.setup_interfaces: &setup_interfaces |
+    if [ "$(id -u)" -eq "0" ]; then
+      bash -x bin/tests/system/ifconfig.sh up;
+    else
+      sudo bash -x bin/tests/system/ifconfig.sh up;
+    fi
+
+.setup_softhsm: &setup_softhsm |
+    bash -x util/prepare-softhsm2.sh
+
 .system_test: &system_test_job
   <<: *default_triggering_rules
   stage: test
   retry: 2
   before_script:
-    - bash -x bin/tests/system/ifconfig.sh up
-    - bash -x util/prepare-softhsm2.sh
+    - *setup_interfaces
+    - *setup_softhsm
   script:
     - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
@@ -145,7 +163,7 @@ autoconf: &autoconf_job
   <<: *default_triggering_rules
   stage: test
   before_script:
-    - export KYUA_RESULT="$CI_PROJECT_DIR/kyua.results"
+    - KYUA_RESULT="$(pwd)/kyua.results"
     - bash -x util/prepare-softhsm2.sh
   script:
     - make unit
@@ -422,6 +440,24 @@ unit:gcc:bionic:amd64:
   <<: *unit_test_job
   dependencies:
     - gcc:bionic:amd64
+
+# Jobs for default CC builds on FreeBSD 12 (amd64)
+
+clang:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
+  <<: *build_job
+
+system:clang:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - clang:freebsd12:amd64
+
+unit:clang:freebsd12:amd64:
+  <<: *freebsd_12_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - clang:freebsd12:amd64
 
 # Jobs for GCC builds with ASAN enabled on Debian Sid (amd64)
 
