@@ -8,6 +8,9 @@ variables:
   CCACHE_DIR: "/ccache"
   SOFTHSM2_CONF: "/var/tmp/softhsm2/softhsm2.conf"
 
+  # VirtualBox driver needs to set build_dir to "/builds" in gitlab-runner.toml
+  KYUA_RESULT: "$CI_PROJECT_DIR/kyua.results"
+
 stages:
   - precheck
   - build
@@ -174,16 +177,22 @@ stages:
     expire_in: "1 week"
     when: on_failure
 
+.kyua_report: &kyua_report_html |
+  kyua report-html \
+       --force \
+       --results-file "$KYUA_RESULT" \
+       --results-filter "" \
+       --output kyua_html
+
 .unit_test: &unit_test_job
   <<: *default_triggering_rules
   stage: test
   before_script:
-    - KYUA_RESULT="$(pwd)/kyua.results"
-    - bash -x util/prepare-softhsm2.sh
+    - *setup_softhsm
   script:
     - make unit
   after_script:
-    - kyua report-html --force --results-file kyua.results --results-filter "" --output kyua_html
+    - *kyua_report_html
   artifacts:
     paths:
       - kyua.log
