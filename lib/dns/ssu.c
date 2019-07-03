@@ -39,8 +39,7 @@
 struct dns_ssurule {
 	unsigned int magic;
 	bool grant;		      /*%< is this a grant or a deny? */
-	dns_ssumatchtype_t matchtype; /*%< which type of pattern match?
-				       * */
+	dns_ssumatchtype_t matchtype; /*%< which type of pattern match? */
 	dns_name_t *identity;	      /*%< the identity to match */
 	dns_name_t *name;	      /*%< the name being updated */
 	unsigned int ntypes;	      /*%< number of data types covered */
@@ -284,15 +283,15 @@ bool
 dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			const dns_name_t *name, const isc_netaddr_t *addr,
 			bool tcp, const dns_aclenv_t *env, dns_rdatatype_t type,
-			const dst_key_t *key) {
-	dns_ssurule_t *rule;
-	unsigned int i;
+			const dst_key_t *key, const dns_ssurule_t **rulep) {
 	dns_fixedname_t fixed;
-	dns_name_t *wildcard;
-	dns_name_t *tcpself;
 	dns_name_t *stfself;
-	isc_result_t result;
+	dns_name_t *tcpself;
+	dns_name_t *wildcard;
+	dns_ssurule_t *rule;
 	int match;
+	isc_result_t result;
+	unsigned int i;
 
 	REQUIRE(VALID_SSUTABLE(table));
 	REQUIRE(signer == NULL || dns_name_isabsolute(signer));
@@ -521,6 +520,9 @@ dns_ssutable_checkrules(dns_ssutable_t *table, const dns_name_t *signer,
 			if (i == rule->ntypes) {
 				continue;
 			}
+		}
+		if (rule->grant && rulep != NULL) {
+			*rulep = rule;
 		}
 		return (rule->grant);
 	}
