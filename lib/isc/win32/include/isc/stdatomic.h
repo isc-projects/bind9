@@ -26,6 +26,8 @@
 
 #include <isc/util.h>
 
+#define ATOMIC_VAR_INIT(x)	x
+
 #ifndef __ATOMIC_RELAXED
 #define __ATOMIC_RELAXED        0
 #endif
