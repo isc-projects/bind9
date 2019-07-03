@@ -47,6 +47,11 @@ typedef enum {
 	dns_ssumatchtype_dlz = 16 /* intentionally higher than _max */
 } dns_ssumatchtype_t;
 
+typedef struct dns_ssuruletype {
+	dns_rdatatype_t type; /* type allowed */
+	unsigned int	max;  /* maximum number of records allowed. */
+} dns_ssuruletype_t;
+
 isc_result_t
 dns_ssutable_create(isc_mem_t *mctx, dns_ssutable_t **table);
 /*%<
@@ -103,7 +108,7 @@ isc_result_t
 dns_ssutable_addrule(dns_ssutable_t *table, bool grant,
 		     const dns_name_t *identity, dns_ssumatchtype_t matchtype,
 		     const dns_name_t *name, unsigned int ntypes,
-		     dns_rdatatype_t *types);
+		     dns_ssuruletype_t *types);
 /*%<
  *	Adds a new rule to a simple-secure-update rule table.  The rule
  *	either grants or denies update privileges of an identity (or set of
@@ -191,7 +196,7 @@ dns_name_t *
 dns_ssurule_name(const dns_ssurule_t *rule);
 /*% Accessor functions to extract rule components */
 unsigned int
-dns_ssurule_types(const dns_ssurule_t *rule, dns_rdatatype_t **types);
+dns_ssurule_types(const dns_ssurule_t *rule, dns_ssuruletype_t **types);
 
 isc_result_t
 dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule);
