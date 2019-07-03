@@ -37,6 +37,10 @@
 	atomic_compare_exchange_weak_explicit((o), (e), (d),		\
 					      memory_order_relaxed,	\
 					      memory_order_relaxed)
+#define atomic_compare_exchange_strong_relaxed(o, e, d)		\
+	atomic_compare_exchange_strong_explicit((o), (e), (d),		\
+					      memory_order_relaxed,	\
+					      memory_order_relaxed)
 
 /* Acquire-Release Memory Ordering */
 
