@@ -11,6 +11,9 @@ variables:
   # VirtualBox driver needs to set build_dir to "/builds" in gitlab-runner.toml
   KYUA_RESULT: "$CI_PROJECT_DIR/kyua.results"
 
+  BUILD_PARALLEL_JOBS: 6
+  TEST_PARALLEL_JOBS: 6
+
 stages:
   - precheck
   - build
