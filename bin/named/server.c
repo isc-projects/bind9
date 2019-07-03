@@ -9481,6 +9481,7 @@ static void
 run_server(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	named_server_t *server = (named_server_t *)event->ev_arg;
+	dns_geoip_databases_t *geoip;
 
 	INSIST(task == server->task);
 
@@ -9491,16 +9492,17 @@ run_server(isc_task_t *task, isc_event_t *event) {
 
 	dns_dispatchmgr_setstats(named_g_dispatchmgr, server->resolverstats);
 
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+	geoip = named_g_geoip;
+#else
+	geoip = NULL;
+#endif
+
 	CHECKFATAL(ns_interfacemgr_create(named_g_mctx, server->sctx,
 					  named_g_taskmgr, named_g_timermgr,
 					  named_g_socketmgr,
 					  named_g_dispatchmgr,
-					  server->task, named_g_udpdisp,
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
-					  named_g_geoip,
-#else
-					  NULL,
-#endif
+					  server->task, named_g_udpdisp, geoip,
 					  &server->interfacemgr),
 		   "creating interface manager");
 
