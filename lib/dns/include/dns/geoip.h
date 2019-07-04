@@ -92,8 +92,6 @@ struct dns_geoip_databases {
 	void *domain;		/* GeoIP2-Domain */
 	void *isp;		/* GeoIP2-ISP */
 	void *as;		/* GeoIP2-ASN or GeoLite2-ASN */
-#define DNS_GEOIP_DATABASE_INIT \
-	{ NULL, NULL, NULL, NULL, NULL }
 #else /* HAVE_GEOIP */
 	void *country_v4;	/* GeoIP DB 1 */
 	void *city_v4;		/* GeoIP DB 2 or 6 */
@@ -105,8 +103,6 @@ struct dns_geoip_databases {
 	void *domain;		/* GeoIP DB 11 */
 	void *country_v6;	/* GeoIP DB 12 */
 	void *city_v6;		/* GeoIP DB 30 or 31 */
-#define DNS_GEOIP_DATABASE_INIT \
-	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
 #endif /* HAVE_GEOIP */
 };
 

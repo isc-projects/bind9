@@ -29,7 +29,7 @@
 #include <named/log.h>
 #include <named/geoip.h>
 
-static dns_geoip_databases_t geoip_table = DNS_GEOIP_DATABASE_INIT;
+static dns_geoip_databases_t geoip_table;
 
 #if defined(HAVE_GEOIP)
 static void
@@ -100,7 +100,7 @@ open_geoip2(const char *dir, const char *dbfile, MMDB_s *mmdb) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
 			      NS_LOGMODULE_SERVER, ISC_LOG_ERROR,
 			      "GeoIP2 database '%s/%s': path too long",
-			      (dir != NULL) ? dir : ".", dbfile);
+			      dir, dbfile);
 		return (NULL);
 	}
 
@@ -140,6 +140,10 @@ void
 ns_geoip_load(char *dir) {
 #if defined(HAVE_GEOIP2)
 	REQUIRE(dir != NULL);
+
+	isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
+		      NS_LOGMODULE_SERVER, ISC_LOG_INFO,
+		      "looking for GeoIP2 databases in '%s'", dir);
 
 	ns_g_geoip->country = open_geoip2(dir, "GeoIP2-Country.mmdb",
 					  &geoip_country);
