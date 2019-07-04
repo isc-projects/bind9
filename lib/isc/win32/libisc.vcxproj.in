@@ -109,11 +109,11 @@ copy @K5SPRT_DLL@ ..\Build\Debug\
 copy @WSHELP_DLL@ ..\Build\Debug\
 @END GSSAPI
 
-@IF GEOIP
+@IF GEOIPLEGACY
 echo Copying the GeoIP DLL.
 
 copy @GEOIP_DLL@ ..\Build\Debug\
-@END GEOIP
+@END GEOIPLEGACY
 
 @IF IDNKIT
 echo Copying the IDN kit DLL.
@@ -261,11 +261,11 @@ copy @K5SPRT_DLL@ ..\Build\Release\
 copy @WSHELP_DLL@ ..\Build\Release\
 @END GSSAPI
 
-@IF GEOIP
+@IF GEOIPLEGACY
 echo Copying the GeoIP DLL.
 
 copy @GEOIP_DLL@ ..\Build\Release\
-@END GEOIP
+@END GEOIPLEGACY
 
 @IF IDNKIT
 echo Copying the IDN kit DLL.

@@ -110,6 +110,9 @@
 @IF GEOIP
     <ClCompile Include="..\geoip.c" />
 @END GEOIP
+@IF GEOIPLEGACY
+    <ClCompile Include="..\geoip.c" />
+@END GEOIPLEGACY
     <ClCompile Include="..\interfacemgr.c" />
     <ClCompile Include="..\listenlist.c" />
     <ClCompile Include="..\log.c" />
@@ -146,6 +149,9 @@
 @IF GEOIP
     <ClInclude Include="..\include\named\geoip.h" />
 @END GEOIP
+@IF GEOIPLEGACY
+    <ClInclude Include="..\include\named\geoip.h" />
+@END GEOIPLEGACY
     <ClInclude Include="..\include\named\globals.h" />
     <ClInclude Include="..\include\named\interfacemgr.h" />
     <ClInclude Include="..\include\named\listenlist.h" />

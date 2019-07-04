@@ -7644,8 +7644,6 @@ load_configuration(const char *filename, ns_server_t *server,
 		char *dir;
 		DE_CONST(cfg_obj_asstring(obj), dir);
 		ns_geoip_load(dir);
-	} else {
-		ns_geoip_load(NULL);
 	}
 	ns_g_aclconfctx->geoip = ns_g_geoip;
 
