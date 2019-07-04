@@ -195,7 +195,7 @@
     <itemizedlist>
       <listitem>
 	<para>
-	  The <command>dnssec-enable</command> option has been deprecated and
+	  The <command>dnssec-enable</command> option has been obsoleted and
 	  no longer has any effect. DNSSEC responses are always enabled
 	  if signatures and other DNSSEC data are present. [GL #866]
 	</para>
@@ -204,6 +204,12 @@
 	<para>
 	  The <command>cleaning-interval</command> option has been
 	  removed.  [GL !1731]
+	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  The <command>dnssec-lookaside</command> option has been deprecated.
+	  The feature still works, but it is discouraged to use it. [GL #7]
 	</para>
       </listitem>
     </itemizedlist>

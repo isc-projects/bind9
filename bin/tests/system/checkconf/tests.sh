@@ -130,6 +130,7 @@ n=`expr $n + 1`
 echo_i "checking named-checkconf deprecate warnings ($n)"
 ret=0
 $CHECKCONF deprecated.conf > checkconf.out$n.1 2>&1
+grep "option 'dnssec-lookaside' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 grep "option 'managed-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 grep "option 'trusted-keys' is deprecated" < checkconf.out$n.1 > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
@@ -401,10 +402,12 @@ if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
-echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' does not generate a warning ($n)"
+echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' generates only a deprecate warning ($n)"
 ret=0
 $CHECKCONF good-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
-[ -s checkconf.out$n ] && ret=1
+lines=$(wc -l < checkconf.out$n)
+if [ $lines != 1 ]; then ret=1; fi
+grep "option 'dnssec-lookaside' is deprecated" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
