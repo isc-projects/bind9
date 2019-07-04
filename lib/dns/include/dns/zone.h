@@ -2498,7 +2498,7 @@ dns_zone_getgluecachestats(dns_zone_t *zone);
  */
 
 bool
-dns_zone_isloaded(const dns_zone_t *zone);
+dns_zone_isloaded(dns_zone_t *zone);
 /*%<
  * Return true if 'zone' was loaded and has not expired yet, return
  * false otherwise.
