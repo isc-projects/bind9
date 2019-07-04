@@ -24,7 +24,7 @@
 #include <named/log.h>
 #include <named/geoip.h>
 
-static dns_geoip_databases_t geoip_table = DNS_GEOIP_DATABASE_INIT;
+static dns_geoip_databases_t geoip_table;
 
 #if defined(HAVE_GEOIP2)
 static MMDB_s geoip_country, geoip_city, geoip_as, geoip_isp, geoip_domain;

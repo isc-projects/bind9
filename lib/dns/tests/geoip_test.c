@@ -38,7 +38,7 @@
 /* Use GeoIP2 databases from the 'geoip2' system test */
 #define TEST_GEOIP_DATA "../../../bin/tests/system/geoip2/data"
 
-static dns_geoip_databases_t geoip = DNS_GEOIP_DATABASE_INIT;
+static dns_geoip_databases_t geoip;
 
 static MMDB_s geoip_country, geoip_city, geoip_as, geoip_isp, geoip_domain;
 

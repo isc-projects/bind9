@@ -92,8 +92,6 @@ struct dns_geoip_databases {
 	void *domain;		/* GeoIP2-Domain */
 	void *isp;		/* GeoIP2-ISP */
 	void *as;		/* GeoIP2-ASN or GeoLite2-ASN */
-#define DNS_GEOIP_DATABASE_INIT \
-	{ NULL, NULL, NULL, NULL, NULL }
 };
 
 /***
