@@ -562,6 +562,24 @@ dns_ssurule_types(const dns_ssurule_t *rule, dns_ssuruletype_t **types) {
 	return (rule->ntypes);
 }
 
+unsigned int
+dns_ssurule_max(const dns_ssurule_t *rule, dns_rdatatype_t type) {
+	unsigned int i;
+	unsigned int max = 0;
+
+	REQUIRE(VALID_SSURULE(rule));
+
+	for (i = 0; i < rule->ntypes; i++) {
+		if (rule->types[i].type == dns_rdatatype_any) {
+			max = rule->types[i].max;
+		}
+		if (rule->types[i].type == type) {
+			return (rule->types[i].max);
+		}
+	}
+	return (max);
+}
+
 isc_result_t
 dns_ssutable_firstrule(const dns_ssutable_t *table, dns_ssurule_t **rule) {
 	REQUIRE(VALID_SSUTABLE(table));

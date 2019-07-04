@@ -1019,9 +1019,10 @@ dns_soa_setretry
 dns_soa_setserial
 dns_ssu_external_match
 dns_ssu_mtypefromstring
-dns_ssurule_isgrant
 dns_ssurule_identity
+dns_ssurule_isgrant
 dns_ssurule_matchtype
+dns_ssurule_max
 dns_ssurule_name
 dns_ssurule_types
 dns_ssutable_firstrule
