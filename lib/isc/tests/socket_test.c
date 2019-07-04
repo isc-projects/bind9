@@ -25,6 +25,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/atomic.h>
 #include <isc/platform.h>
 #include <isc/socket.h>
 #include <isc/task.h>
@@ -63,14 +64,14 @@ _teardown(void **state) {
 }
 
 typedef struct {
-	bool done;
+	atomic_bool done;
 	isc_result_t result;
 	isc_socket_t *socket;
 } completion_t;
 
 static void
 completion_init(completion_t *completion) {
-	completion->done = false;
+	atomic_store(&completion->done, false);
 	completion->socket = NULL;
 }
 
@@ -82,7 +83,7 @@ accept_done(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
 	completion->result = nevent->result;
-	completion->done = true;
+	atomic_store(&completion->done, true);
 	if (completion->result == ISC_R_SUCCESS) {
 		completion->socket = nevent->newsocket;
 	}
@@ -117,17 +118,17 @@ event_done(isc_task_t *task, isc_event_t *event) {
 	default:
 		assert_false(true);
 	}
-	completion->done = true;
+	atomic_store(&completion->done, true);
 	isc_event_free(&event);
 }
 
 static isc_result_t
 waitfor(completion_t *completion) {
 	int i = 0;
-	while (!completion->done && i++ < 5000) {
+	while (!atomic_load(&completion->done) && i++ < 5000) {
 		isc_test_nap(1000);
 	}
-	if (completion->done) {
+	if (atomic_load(&completion->done)) {
 		return (ISC_R_SUCCESS);
 	}
 	return (ISC_R_FAILURE);
@@ -142,10 +143,13 @@ static isc_result_t
 waitfor2(completion_t *c1, completion_t *c2) {
 	int i = 0;
 
-	while (!(c1->done && c2->done) && i++ < 5000) {
+	while (!(atomic_load(&c1->done) &&
+		 atomic_load(&c2->done)) &&
+	       i++ < 5000)
+	{
 		waitbody();
 	}
-	if (c1->done && c2->done) {
+	if (atomic_load(&c1->done) && atomic_load(&c2->done)) {
 		return (ISC_R_SUCCESS);
 	}
 	return (ISC_R_FAILURE);
@@ -201,7 +205,7 @@ udp_sendto_test(void **state)  {
 				   &addr2, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	r.base = (void *) recvbuf;
@@ -210,7 +214,7 @@ udp_sendto_test(void **state)  {
 	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 
@@ -270,7 +274,7 @@ udp_dup_test(void **state) {
 				   &addr2, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	snprintf(sendbuf, sizeof(sendbuf), "World");
@@ -282,7 +286,7 @@ udp_dup_test(void **state) {
 				   &addr2, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	r.base = (void *) recvbuf;
@@ -291,7 +295,7 @@ udp_dup_test(void **state) {
 	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 
@@ -301,7 +305,7 @@ udp_dup_test(void **state) {
 	result = isc_socket_recv(s3, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "World");
 
@@ -377,7 +381,7 @@ udp_dscp_v4_test(void **state) {
 	result = isc_socket_sendto2(s1, &r, task, &addr2, NULL, socketevent, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	r.base = (void *) recvbuf;
@@ -386,7 +390,7 @@ udp_dscp_v4_test(void **state) {
 	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 
@@ -469,7 +473,7 @@ udp_dscp_v6_test(void **state) {
 	result = isc_socket_sendto2(s1, &r, task, &addr2, NULL, socketevent, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	r.base = (void *) recvbuf;
@@ -478,7 +482,7 @@ udp_dscp_v6_test(void **state) {
 	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 	if ((isc_net_probedscp() & ISC_NET_DSCPRECVV6) != 0) {
@@ -539,9 +543,9 @@ tcp_dscp_v4_test(void **state) {
 	result = isc_socket_connect(s2, &addr1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor2(&completion, &completion2);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
-	assert_true(completion2.done);
+	assert_true(atomic_load(&completion2.done));
 	assert_int_equal(completion2.result, ISC_R_SUCCESS);
 	s3 = completion2.socket;
 
@@ -559,7 +563,7 @@ tcp_dscp_v4_test(void **state) {
 				   NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	r.base = (void *) recvbuf;
@@ -568,7 +572,7 @@ tcp_dscp_v4_test(void **state) {
 	result = isc_socket_recv(s3, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 
@@ -636,9 +640,9 @@ tcp_dscp_v6_test(void **state) {
 	result = isc_socket_connect(s2, &addr1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor2(&completion, &completion2);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
-	assert_true(completion2.done);
+	assert_true(atomic_load(&completion2.done));
 	assert_int_equal(completion2.result, ISC_R_SUCCESS);
 	s3 = completion2.socket;
 
@@ -656,7 +660,7 @@ tcp_dscp_v6_test(void **state) {
 				   NULL, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	r.base = (void *) recvbuf;
@@ -665,7 +669,7 @@ tcp_dscp_v6_test(void **state) {
 	result = isc_socket_recv(s3, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 
@@ -776,7 +780,7 @@ udp_trunc_test(void **state) {
 	result = isc_socket_sendto2(s1, &r, task, &addr2, NULL, socketevent, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	r.base = (void *) recvbuf;
@@ -786,7 +790,7 @@ udp_trunc_test(void **state) {
 	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 	assert_false(recv_trunc);
@@ -808,7 +812,7 @@ udp_trunc_test(void **state) {
 	result = isc_socket_sendto2(s1, &r, task, &addr2, NULL, socketevent, 0);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 
 	r.base = (void *) recvbuf;
@@ -818,7 +822,7 @@ udp_trunc_test(void **state) {
 	result = isc_socket_recv(s2, &r, 1, task, event_done, &completion);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	waitfor(&completion);
-	assert_true(completion.done);
+	assert_true(atomic_load(&completion.done));
 	assert_int_equal(completion.result, ISC_R_SUCCESS);
 	assert_string_equal(recvbuf, "Hello");
 	assert_true(recv_trunc);
