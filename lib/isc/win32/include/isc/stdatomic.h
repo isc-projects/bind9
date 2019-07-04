@@ -187,7 +187,7 @@ atomic_load_abort() {
 	       : InterlockedExchangeAdd64((atomic_int_fast64_t *)obj, arg))))
 #else
 #define atomic_fetch_add_explicit64(obj, arg, order)	\
-	InterlockedExchange64((atomic_int_fast64_t *)obj, arg)
+	InterlockedExchangeAdd64((atomic_int_fast64_t *)obj, arg)
 #endif
 
 static inline
