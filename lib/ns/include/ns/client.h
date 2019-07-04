@@ -57,6 +57,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/magic.h>
 #include <isc/netmgr.h>
@@ -294,7 +295,11 @@ struct ns_client {
  */
 #define NS_FAILCACHE_CD		0x01
 
-LIBNS_EXTERNAL_DATA extern unsigned int ns_client_requests;
+#if defined(_WIN32) && !defined(_WIN64)
+LIBNS_EXTERNAL_DATA extern atomic_uint_fast32_t ns_client_requests;
+#else
+LIBNS_EXTERNAL_DATA extern atomic_uint_fast64_t ns_client_requests;
+#endif
 
 /***
  *** Functions

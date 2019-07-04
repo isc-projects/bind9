@@ -13,6 +13,7 @@
 #include <stdbool.h>
 
 #include <isc/aes.h>
+#include <isc/atomic.h>
 #include <isc/formatcheck.h>
 #include <isc/fuzz.h>
 #include <isc/hmac.h>
@@ -115,7 +116,11 @@
 #define NS_CLIENT_DROPPORT 1
 #endif
 
-LIBNS_EXTERNAL_DATA unsigned int ns_client_requests;
+#if defined(_WIN32) && !defined(_WIN64)
+LIBNS_EXTERNAL_DATA atomic_uint_fast32_t ns_client_requests;
+#else
+LIBNS_EXTERNAL_DATA atomic_uint_fast64_t ns_client_requests;
+#endif
 
 static void clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp);
 static void clientmgr_detach(ns_clientmgr_t **mp);
@@ -1658,7 +1663,7 @@ ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg) {
 
 	INSIST(client->state == NS_CLIENTSTATE_READY);
 
-	ns_client_requests++;
+	(void)atomic_fetch_add_relaxed(&ns_client_requests, 1);
 
 	isc_buffer_init(&tbuffer, region->base, region->length);
 	isc_buffer_add(&tbuffer, region->length);
