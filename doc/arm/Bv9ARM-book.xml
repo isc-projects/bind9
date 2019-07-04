@@ -4565,8 +4565,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		module: for example, if the library is installed in
 		<filename>/usr/local/lib</filename>, then the default
 		<command>geoip-directory</command> will be
-		<filename>/usr/local/share/GeoIP</filename>.
-		See <xref linkend="acl"/> for details about
+		<filename>/usr/local/share/GeoIP</filename>. On Windows,
+		the default is the <command>named</command> working
+		directory.  See <xref linkend="acl"/> for details about
 		<command>geoip</command> ACLs.
 	      </para>
 	    </listitem>

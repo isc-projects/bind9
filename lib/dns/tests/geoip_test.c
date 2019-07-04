@@ -68,7 +68,7 @@ _teardown(void **state) {
 	return (0);
 }
 
-static dns_geoip_databases_t geoip = DNS_GEOIP_DATABASE_INIT;
+static dns_geoip_databases_t geoip;
 #endif /* HAVE_GEOIP || HAVE_GEOIP2 */
 
 #if defined(HAVE_GEOIP2)

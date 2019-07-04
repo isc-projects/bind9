@@ -43,6 +43,7 @@ usage() {
 	fprintf(stderr, "	--gssapi\n");
 	fprintf(stderr, "	--have-dlopen\n");
 	fprintf(stderr, "	--have-geoip\n");
+	fprintf(stderr, "	--have-geoip2\n");
 	fprintf(stderr, "	--have-libxml2\n");
 	fprintf(stderr, "	--ipv6only=no\n");
 	fprintf(stderr, "	--with-idn\n");
