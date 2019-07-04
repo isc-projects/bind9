@@ -35,6 +35,10 @@
 	atomic_fetch_add_explicit((o), (v), memory_order_relaxed)
 #define atomic_fetch_sub_relaxed(o, v)					\
 	atomic_fetch_sub_explicit((o), (v), memory_order_relaxed)
+#define atomic_fetch_or_relaxed(o, v)					\
+	atomic_fetch_or_explicit((o), (v), memory_order_relaxed)
+#define atomic_fetch_and_relaxed(o, v)					\
+	atomic_fetch_and_explicit((o), (v), memory_order_relaxed)
 #define atomic_exchange_relaxed(o, v)					\
 	atomic_exchange_explicit((o), (v), memory_order_relaxed)
 #define atomic_compare_exchange_weak_relaxed(o, e, d)			\

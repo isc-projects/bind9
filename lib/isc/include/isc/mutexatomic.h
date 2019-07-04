@@ -93,7 +93,6 @@ typedef struct atomic_uint_fast64 {
 	uint64_t v;
 } atomic_uint_fast64_t;
 
-
 typedef struct atomic_bool_s {
 	isc_mutex_t m;
 	bool v;
@@ -103,15 +102,13 @@ typedef struct atomic_bool_s {
 #define atomic_init(obj, desired)					\
 	{								\
 		isc_mutex_init(&(obj)->m);				\
-		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
 		(obj)->v = desired;					\
-		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
 	}
 #define atomic_load_explicit(obj, order)				\
 	({								\
 		typeof((obj)->v) ___v;					\
 		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v= (obj)->v;						\
+		___v = (obj)->v;					\
 		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
 		___v;							\
 	})
@@ -125,7 +122,7 @@ typedef struct atomic_bool_s {
 	({								\
 		typeof((obj)->v) ___v;					\
 		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		___v= (obj)->v;						\
+		___v = (obj)->v;					\
 		(obj)->v += arg;					\
 		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
 		___v;\
@@ -133,8 +130,26 @@ typedef struct atomic_bool_s {
 #define atomic_fetch_sub_explicit(obj, arg, order)			\
 	({ typeof((obj)->v) ___v;					\
 		 REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
-		 ___v= (obj)->v;					\
+		 ___v = (obj)->v;					\
 		 (obj)->v -= arg;					\
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
+		___v;\
+	})
+#define atomic_fetch_and_explicit(obj, arg, order)			\
+	({								\
+		typeof((obj)->v) ___v;					\
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
+		___v = (obj)->v;					\
+		(obj)->v &= arg;					\
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
+		___v;\
+	})
+#define atomic_fetch_or_explicit(obj, arg, order)			\
+	({								\
+		typeof((obj)->v) ___v;					\
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
+		___v = (obj)->v;					\
+		(obj)->v |= arg;					\
 		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
 		___v;\
 	})
@@ -169,6 +184,10 @@ typedef struct atomic_bool_s {
 	atomic_fetch_add_explicit(obj, arg, memory_order_seq_cst)
 #define atomic_fetch_sub(obj, arg) \
 	atomic_fetch_sub_explicit(obj, arg, memory_order_seq_cst)
+#define atomic_fetch_and(obj, arg) \
+	atomic_fetch_and_explicit(obj, arg, memory_order_seq_cst)
+#define atomic_fetch_or(obj, arg) \
+	atomic_fetch_or_explicit(obj, arg, memory_order_seq_cst)
 #define atomic_compare_exchange_strong(obj, expected, desired)		\
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, \
 						memory_order_seq_cst,	\

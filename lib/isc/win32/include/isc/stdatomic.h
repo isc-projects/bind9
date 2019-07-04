@@ -215,6 +215,96 @@ atomic_add_abort() {
 #define atomic_fetch_sub(obj, arg)				\
 	atomic_fetch_sub_explicit(obj, arg, memory_order_seq_cst)
 
+#define atomic_fetch_and_explicit8(obj, arg, order)		\
+	InterlockedAnd8((atomic_int_fast8_t)obj, arg)
+
+#define atomic_fetch_and_explicit32(obj, arg, order)			\
+	(order == memory_order_relaxed					\
+	 ? InterlockedAndNoFence((atomic_int_fast32_t *)obj, arg)	\
+	 : (order == memory_order_acquire				\
+	    ? InterlockedAndAcquire((atomic_int_fast32_t *)obj, arg)	\
+	    : (order == memory_order_release				\
+	       ? InterlockedAndRelease((atomic_int_fast32_t *)obj, arg)	\
+	       : InterlockedAnd((atomic_int_fast32_t *)obj, arg))))
+
+#ifdef _WIN64
+#define atomic_fetch_and_explicit64(obj, arg, order)				\
+	(order == memory_order_relaxed						\
+	 ? InterlockedAnd64NoFence((atomic_int_fast64_t *)obj, arg)		\
+	 : (order == memory_order_acquire					\
+	    ? InterlockedAnd64Acquire((atomic_int_fast64_t *)obj, arg)		\
+	    : (order == memory_order_release					\
+	       ? InterlockedAnd64Release((atomic_int_fast64_t *)obj, arg)	\
+	       : InterlockedAnd64((atomic_int_fast64_t *)obj, arg))))
+#else
+#define atomic_fetch_and_explicit64(obj, arg, order)	\
+	InterlockedAnd64((atomic_int_fast64_t *)obj, arg)
+#endif
+
+static inline
+int8_t
+atomic_and_abort() {
+	INSIST(0);
+	ISC_UNREACHABLE();
+}
+
+#define atomic_fetch_and_explicit(obj, arg, order)		\
+	(sizeof(*(obj)) == 8					\
+	 ? atomic_fetch_and_explicit64(obj, arg, order)		\
+	 : (sizeof(*(obj)) == 4					\
+	    ? atomic_fetch_and_explicit32(obj, arg, order)	\
+	    : (sizeof(*(obj)) == 1				\
+	       ? atomic_fetch_and_explicit8(obj, arg, order)	\
+	       : atomic_and_abort())))
+
+#define atomic_fetch_and(obj, arg)				\
+	atomic_fetch_and_explicit(obj, arg, memory_order_seq_cst)
+
+#define atomic_fetch_or_explicit8(obj, arg, order)		\
+	InterlockedOr8((atomic_int_fast8_t)obj, arg)
+
+#define atomic_fetch_or_explicit32(obj, arg, order)			\
+	(order == memory_order_relaxed					\
+	 ? InterlockedOrNoFence((atomic_int_fast32_t *)obj, arg)	\
+	 : (order == memory_order_acquire				\
+	    ? InterlockedOrAcquire((atomic_int_fast32_t *)obj, arg)	\
+	    : (order == memory_order_release				\
+	       ? InterlockedOrRelease((atomic_int_fast32_t *)obj, arg)	\
+	       : InterlockedOr((atomic_int_fast32_t *)obj, arg))))
+
+#ifdef _WIN64
+#define atomic_fetch_or_explicit64(obj, arg, order)				\
+	(order == memory_order_relaxed						\
+	 ? InterlockedOr64NoFence((atomic_int_fast64_t *)obj, arg)		\
+	 : (order == memory_order_acquire					\
+	    ? InterlockedOr64Acquire((atomic_int_fast64_t *)obj, arg)		\
+	    : (order == memory_order_release					\
+	       ? InterlockedOr64Release((atomic_int_fast64_t *)obj, arg)	\
+	       : InterlockedOr64((atomic_int_fast64_t *)obj, arg))))
+#else
+#define atomic_fetch_or_explicit64(obj, arg, order)	\
+	InterlockedOr64((atomic_int_fast64_t *)obj, arg)
+#endif
+
+static inline
+int8_t
+atomic_or_abort() {
+	INSIST(0);
+	ISC_UNREACHABLE();
+}
+
+#define atomic_fetch_or_explicit(obj, arg, order)		\
+	(sizeof(*(obj)) == 8					\
+	 ? atomic_fetch_or_explicit64(obj, arg, order)		\
+	 : (sizeof(*(obj)) == 4					\
+	    ? atomic_fetch_or_explicit32(obj, arg, order)	\
+	    : (sizeof(*(obj)) == 1				\
+	       ? atomic_fetch_or_explicit8(obj, arg, order)	\
+	       : atomic_or_abort())))
+
+#define atomic_fetch_or(obj, arg)				\
+	atomic_fetch_or_explicit(obj, arg, memory_order_seq_cst)
+
 static inline bool
 atomic_compare_exchange_strong_explicit8(atomic_int_fast8_t *obj,
 					 int8_t *expected,
