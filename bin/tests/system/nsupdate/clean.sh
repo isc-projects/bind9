@@ -60,3 +60,5 @@ rm -f update.out.*
 rm -f check.out.*
 rm -f update.out.*
 rm -f ns*/managed-keys.bind* ns*/*.mkeys*
+rm -f nextpart.out.*
+rm -f */named.run.prev

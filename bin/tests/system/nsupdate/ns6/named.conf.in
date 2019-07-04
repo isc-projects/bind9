@@ -34,5 +34,5 @@ controls {
 zone "in-addr.arpa" {
 	type master;
 	file "in-addr.db";
-	update-policy {	grant * tcp-self . PTR; };
+	update-policy {	grant * tcp-self . PTR(1) ANY(2) A; };
 };
