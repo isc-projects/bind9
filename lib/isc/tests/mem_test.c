@@ -384,6 +384,8 @@ isc_mem_traceflag_test(void **state) {
 }
 #endif
 
+#if !defined(__SANITIZE_THREAD__)
+
 #define ITERS 512
 #define NUM_ITEMS 1024 //768
 #define ITEM_SIZE 65534
@@ -503,6 +505,8 @@ isc_mempool_benchmark(void **state) {
 	isc_mutex_destroy(&mplock);
 }
 
+#endif /* __SANITIZE_THREAD */
+
 /*
  * Main
  */
@@ -525,10 +529,12 @@ main(void) {
 		cmocka_unit_test_setup_teardown(isc_mem_traceflag_test,
 				_setup, _teardown),
 #endif
+#if !defined(__SANITIZE_THREAD__)
 		cmocka_unit_test_setup_teardown(isc_mem_benchmark,
 						_setup, _teardown),
 		cmocka_unit_test_setup_teardown(isc_mempool_benchmark,
 						_setup, _teardown),
+#endif /* __SANITIZE_THREAD__ */
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
