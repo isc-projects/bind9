@@ -66,8 +66,10 @@ options {\n\
 #ifndef WIN32
 "	files unlimited;\n"
 #endif
-#ifdef HAVE_GEOIP2
+#if defined(HAVE_GEOIP2) && !defined(WIN32)
 "	geoip-directory \"" MAXMINDDB_PREFIX "/share/GeoIP2\";\n"
+#elif defined(HAVE_GEOIP2)
+"	geoip-directory \".\";\n"
 #endif
 "\
 #	has-old-clients <obsolete>;\n\
