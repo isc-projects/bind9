@@ -752,8 +752,6 @@ PTHREAD_CFLAGS
 PTHREAD_LIBS
 PTHREAD_CC
 ax_pthread_config
-GEOIPLINKOBJS
-GEOIPLINKSRCS
 GEOIP2LINKOBJS
 GEOIP2LINKSRCS
 MAXMINDDB_PREFIX
@@ -904,8 +902,9 @@ with_python_install_dir
 enable_kqueue
 enable_epoll
 enable_devpoll
-with_geoip
 with_geoip2
+enable_geoip
+with_maxminddb
 with_locktype
 with_libtool
 enable_pthread_rwlock
@@ -1615,6 +1614,8 @@ Optional Features:
   --enable-kqueue         use BSD kqueue when available [default=yes]
   --enable-epoll          use Linux epoll when available [default=auto]
   --enable-devpoll        use /dev/poll when available [default=yes]
+  --disable-geoip         support GeoIP2 geolocation ACLs if available
+                          [default=yes]
   --enable-pthread-rwlock use pthread rwlock instead of internal rwlock
                           implementation (EXPERIMENTAL)
   --enable-fips-mode      enable FIPS mode in OpenSSL library [default=no]
@@ -1651,9 +1652,9 @@ Optional Packages:
   --with-python=PATH      specify path to Python interpreter
   --with-python-install-dir=PATH
                           installation directory for Python modules
-  --with-geoip=PATH       Build with legacy GeoIP support (yes|no|path)
-  --with-geoip2=PATH      Build with MaxMind GeoIP2 support (auto|yes|no|path)
-                          [default=$geoip2_default]
+  --with-geoip2           deprecated, use --with-maxminddb
+  --with-maxminddb=PATH   Build with MaxMind GeoIP2 support (auto|yes|no|path)
+                          [default=auto]
   --with-locktype=ARG     Specify mutex lock type (adaptive or standard)
   --with-libtool          use GNU libtool
   --with-openssl=DIR      root of the OpenSSL directory
@@ -14436,42 +14437,41 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
 #
 # GeoIP support?
 #
-geoip2_default="auto"
-
-# Check whether --with-geoip was given.
-if test "${with_geoip+set}" = set; then :
-  withval=$with_geoip;
-                            use_geoip="$withval"
-                            geoip2_default="no"
-
-else
-  use_geoip="no"
-fi
-
+# Should be on by default if libmaxminddb exists.
+#
 
 # Check whether --with-geoip2 was given.
 if test "${with_geoip2+set}" = set; then :
-  withval=$with_geoip2;
+  withval=$with_geoip2; { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: --with-geoip2 is DEPRECATED and will be removed in a future release, use --with-maxminddb instead" >&5
+$as_echo "$as_me: WARNING: --with-geoip2 is DEPRECATED and will be removed in a future release, use --with-maxminddb instead" >&2;}
 else
-  with_geoip2="$geoip2_default"
+  with_geoip2="auto"
 fi
 
 
-# --with-geoip2 should be turned on by default if the library exists.
-#
-# --with-geoip is not on by default, but can be turned on if the library
-# exists. if it is turned on, --with-geoip2 is suppressed.
-#
-# specifying both --with-geoip and --with-geoip2 is an error.
-if test "no" != "$with_geoip2" && test "no" != "$use_geoip"; then :
-  as_fn_error $? "--with-geoip and --with-geoip2 are incompatible" "$LINENO" 5
+# Check whether --enable-geoip was given.
+if test "${enable_geoip+set}" = set; then :
+  enableval=$enable_geoip;
+else
+  enable_geoip="yes"
 fi
+
+
+
+# Check whether --with-maxminddb was given.
+if test "${with_maxminddb+set}" = set; then :
+  withval=$with_maxminddb;
+else
+  with_maxminddb="$with_geoip2"
+fi
+
 
 GEOIP2LINKSRCS=
 GEOIP2LINKOBJS=
-case $with_geoip2 in #(
+if test "$enable_geoip" = "yes"; then :
+  case $with_maxminddb in #(
   no) :
-     ;; #(
+    as_fn_error $? "Use '--disable-geoip' to disable the GeoIP" "$LINENO" 5 ;; #(
   auto) :
 
 pkg_failed=no
@@ -14568,8 +14568,8 @@ MAXMINDDB_PREFIX=$pkg_cv_MAXMINDDB_PREFIX
 if test "x$MAXMINDDB_PREFIX" = x""; then :
   as_fn_error $? "libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment" "$LINENO" 5
 fi
-				       GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-				       GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+					  GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+					  GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
 
 fi ;; #(
   yes) :
@@ -14688,87 +14688,87 @@ MAXMINDDB_PREFIX=$pkg_cv_MAXMINDDB_PREFIX
 if test "x$MAXMINDDB_PREFIX" = x""; then :
   as_fn_error $? "libmaxminddb prefix not found in pkg-config; set MAXMINDDB_PREFIX in the environment" "$LINENO" 5
 fi
-				       GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-				       GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+					 GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+					 GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
 
 fi ;; #(
   *) :
      # default
 
 
-  CCASFLAGS_geoip2_ax_save_flags=$CCASFLAGS
+  CCASFLAGS_maxminddb_ax_save_flags=$CCASFLAGS
 
 
 
-  CFLAGS_geoip2_ax_save_flags=$CFLAGS
+  CFLAGS_maxminddb_ax_save_flags=$CFLAGS
 
 
 
-  CPPFLAGS_geoip2_ax_save_flags=$CPPFLAGS
+  CPPFLAGS_maxminddb_ax_save_flags=$CPPFLAGS
 
 
 
-  CXXFLAGS_geoip2_ax_save_flags=$CXXFLAGS
+  CXXFLAGS_maxminddb_ax_save_flags=$CXXFLAGS
 
 
 
-  ERLCFLAGS_geoip2_ax_save_flags=$ERLCFLAGS
+  ERLCFLAGS_maxminddb_ax_save_flags=$ERLCFLAGS
 
 
 
-  FCFLAGS_geoip2_ax_save_flags=$FCFLAGS
+  FCFLAGS_maxminddb_ax_save_flags=$FCFLAGS
 
 
 
-  FCLIBS_geoip2_ax_save_flags=$FCLIBS
+  FCLIBS_maxminddb_ax_save_flags=$FCLIBS
 
 
 
-  FFLAGS_geoip2_ax_save_flags=$FFLAGS
+  FFLAGS_maxminddb_ax_save_flags=$FFLAGS
 
 
 
-  FLIBS_geoip2_ax_save_flags=$FLIBS
+  FLIBS_maxminddb_ax_save_flags=$FLIBS
 
 
 
-  GCJFLAGS_geoip2_ax_save_flags=$GCJFLAGS
+  GCJFLAGS_maxminddb_ax_save_flags=$GCJFLAGS
 
 
 
-  JAVACFLAGS_geoip2_ax_save_flags=$JAVACFLAGS
+  JAVACFLAGS_maxminddb_ax_save_flags=$JAVACFLAGS
 
 
 
-  LDFLAGS_geoip2_ax_save_flags=$LDFLAGS
+  LDFLAGS_maxminddb_ax_save_flags=$LDFLAGS
 
 
 
-  LIBS_geoip2_ax_save_flags=$LIBS
+  LIBS_maxminddb_ax_save_flags=$LIBS
 
 
 
-  OBJCFLAGS_geoip2_ax_save_flags=$OBJCFLAGS
+  OBJCFLAGS_maxminddb_ax_save_flags=$OBJCFLAGS
 
 
 
-  OBJCXXFLAGS_geoip2_ax_save_flags=$OBJCXXFLAGS
+  OBJCXXFLAGS_maxminddb_ax_save_flags=$OBJCXXFLAGS
 
 
 
-  UPCFLAGS_geoip2_ax_save_flags=$UPCFLAGS
+  UPCFLAGS_maxminddb_ax_save_flags=$UPCFLAGS
 
 
 
-  VALAFLAGS_geoip2_ax_save_flags=$VALAFLAGS
+  VALAFLAGS_maxminddb_ax_save_flags=$VALAFLAGS
 
 
 
-	    MAXMINDDB_CFLAGS="-I$with_geoip2/include"
-	    MAXMINDDB_LIBS="-L$with_geoip2/libs"
-	    CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
-	    LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
-	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing MMDB_open" >&5
+		   MAXMINDDB_CFLAGS="-I$with_maxminddb/include"
+		   MAXMINDDB_LIBS="-L$with_maxminddb/libs"
+		   CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
+		   LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
+		   { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing MMDB_open" >&5
 $as_echo_n "checking for library containing MMDB_open... " >&6; }
 if ${ac_cv_search_MMDB_open+:} false; then :
   $as_echo_n "(cached) " >&6
@@ -14824,267 +14824,25 @@ if test "$ac_res" != no; then :
 
 $as_echo "#define HAVE_GEOIP2 1" >>confdefs.h
 
-			    GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
-			    GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
-			    MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_mmdb_open"
-			    { $as_echo "$as_me:${as_lineno-$LINENO}: GeoIP2 default database path set to $with_geoip2/share/GeoIP" >&5
-$as_echo "$as_me: GeoIP2 default database path set to $with_geoip2/share/GeoIP" >&6;}
-			    eval MAXMINDDB_PREFIX=\$$with_geoip2
+				   GEOIP2LINKSRCS='${GEOIP2LINKSRCS}'
+				   GEOIP2LINKOBJS='${GEOIP2LINKOBJS}'
+				   MAXMINDDB_LIBS="$MAXMINDDB_LIBS $ac_cv_search_mmdb_open"
+				   { $as_echo "$as_me:${as_lineno-$LINENO}: GeoIP2 default database path set to $with_maxminddb/share/GeoIP" >&5
+$as_echo "$as_me: GeoIP2 default database path set to $with_maxminddb/share/GeoIP" >&6;}
+				   eval MAXMINDDB_PREFIX=\$$with_maxminddb
 
 else
   as_fn_error $? "GeoIP2 requested, but libmaxminddb not found" "$LINENO" 5
 fi
 
-	 ;;
+	        ;;
 esac
 
 
-
-
-
-
-GEOIPLINKSRCS=
-GEOIPLINKOBJS=
-if test "yes" = "$use_geoip"
-then
-	for d in /usr /usr/local /opt/local
-	do
-		if test -f $d/include/GeoIP.h
-		then
-			use_geoip=$d
-			break
-		fi
-	done
-fi
-
-case "$use_geoip" in
-	no|'')
-		;;
-	*)
-		if test -d "$use_geoip" -o -L "$use_geoip"
-		then
-			CFLAGS="$CFLAGS -I$use_geoip/include"
-			CPPFLAGS="$CPPFLAGS -I$use_geoip/include"
-			LIBS="$LIBS -L$use_geoip/lib"
-			case "$host_os" in
-				netbsd*|openbsd*|solaris*)
-					LIBS="$LIBS -Wl,-rpath=$use_geoip/lib"
-					;;
-			esac
-		elif test "yes" = "$use_geoip"
-		then
-			as_fn_error $? "GeoIP path not found" "$LINENO" 5
-		else
-			as_fn_error $? "GeoIP path $use_geoip does not exist" "$LINENO" 5
-		fi
-		ac_fn_c_check_header_mongrel "$LINENO" "GeoIP.h" "ac_cv_header_GeoIP_h" "$ac_includes_default"
-if test "x$ac_cv_header_GeoIP_h" = xyes; then :
-
-else
-  as_fn_error $? "GeoIP header file not found" "$LINENO" 5
-
 fi
 
 
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing GeoIP_id_by_addr_gl" >&5
-$as_echo_n "checking for library containing GeoIP_id_by_addr_gl... " >&6; }
-if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
 
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char GeoIP_id_by_addr_gl ();
-int
-main ()
-{
-return GeoIP_id_by_addr_gl ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' GeoIP; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_GeoIP_id_by_addr_gl=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_GeoIP_id_by_addr_gl+:} false; then :
-
-else
-  ac_cv_search_GeoIP_id_by_addr_gl=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_GeoIP_id_by_addr_gl" >&5
-$as_echo "$ac_cv_search_GeoIP_id_by_addr_gl" >&6; }
-ac_res=$ac_cv_search_GeoIP_id_by_addr_gl
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  as_fn_error $? "suitable GeoIP library not found" "$LINENO" 5
-
-fi
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing fabsf" >&5
-$as_echo_n "checking for library containing fabsf... " >&6; }
-if ${ac_cv_search_fabsf+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char fabsf ();
-int
-main ()
-{
-return fabsf ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' m; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_fabsf=$ac_res
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_fabsf+:} false; then :
-  break
-fi
-done
-if ${ac_cv_search_fabsf+:} false; then :
-
-else
-  ac_cv_search_fabsf=no
-fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_fabsf" >&5
-$as_echo "$ac_cv_search_fabsf" >&6; }
-ac_res=$ac_cv_search_fabsf
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  as_fn_error $? "Math library not found" "$LINENO" 5
-
-fi
-
-
-$as_echo "#define HAVE_GEOIP 1" >>confdefs.h
-
-		GEOIPLINKSRCS='${GEOIPLINKSRCS}'
-		GEOIPLINKOBJS='${GEOIPLINKOBJS}'
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP support" >&5
-$as_echo_n "checking for GeoIP support... " >&6; }
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP Country IPv6 support" >&5
-$as_echo_n "checking for GeoIP Country IPv6 support... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-				#include <GeoIP.h>
-				#include <netinet/in.h>
-
-int
-main ()
-{
-
-				struct in6_addr in6;
-				GeoIP_country_name_by_ipnum_v6(NULL, in6);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-$as_echo "#define HAVE_GEOIP_V6 1" >>confdefs.h
-
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for GeoIP City IPv6 support" >&5
-$as_echo_n "checking for GeoIP City IPv6 support... " >&6; }
-		cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-				#include <GeoIP.h>
-				#include <GeoIPCity.h>
-				#include <netinet/in.h>
-
-int
-main ()
-{
-
-				struct in6_addr in6;
-				int i = GEOIP_CITY_EDITION_REV0_V6;
-				GeoIP_record_by_ipnum_v6(NULL, in6);
-
-  ;
-  return 0;
-}
-_ACEOF
-if ac_fn_c_try_compile "$LINENO"; then :
-
-				{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-
-$as_echo "#define HAVE_GEOIP_CITY_V6 1" >>confdefs.h
-
-
-else
-  { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
-$as_echo "no" >&6; }
-
-fi
-rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
-		;;
-esac
 
 
 
@@ -25730,8 +25488,7 @@ report() {
     test "large" = "$use_tuning" && echo "    Large-system tuning (--with-tuning)"
     test "no" = "$use_dnstap" || \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
-    test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--with-geoip2)"
-    test "no" = "$use_geoip" || echo "    Legacy GeoIP access control (--with-geoip)"
+    test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--enable-geoip)"
     test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
     if test "yes" = "$enable_full_report" -o "aes" != "$with_cc_alg"; then
 	echo "        Algorithm: $with_cc_alg"
@@ -25795,7 +25552,7 @@ report() {
 
     test "no" = "$use_dnstap" && \
 	    echo "    Allow 'dnstap' packet logging (--enable-dnstap)"
-    test -z "$MAXMINDDB_LIBS" && echo "    GeoIP2 access control (--with-geoip2)"
+    test -z "$MAXMINDDB_LIBS" && echo "    GeoIP2 access control (--enable-geoip)"
     test "no" = "$use_gssapi" && echo "    GSS-API (--with-gssapi)"
 
     test "no" = "$enable_dnsrps" && \

@@ -1,3 +1,5 @@
+5262.	[func]		Removed support for the legacy GeoIP API. [GL #1112]
+
 5261.	[cleanup]	Remove SO_BSDCOMPAT socket option usage.
 
 5260.	[bug]		dnstap-read was producing malformed output for large
@@ -9,10 +11,7 @@
 5258.	[func]		Added support for the GeoIP2 API from MaxMind. This
 			will be compiled in by default if the "libmaxminddb"
 			library is found at compile time, but can be
-			suppressed using "configure --without-geoip2".
-			The legacy GeoIP API can be enabled by using
-			"configure --with-geoip". This cannot be used
-			together with GeoIP2.
+			suppressed using "configure --disable-geoip".
 
 			Certain geoip ACL settings that were available with
 			legacy GeoIP are not available when using GeoIP2.

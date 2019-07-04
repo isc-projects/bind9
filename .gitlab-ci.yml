@@ -134,7 +134,6 @@ stages:
     --with-cmocka \
     --with-libxml2 \
     --with-json-c \
-    --with-geoip2 \
     --prefix=$HOME/.local \
     --without-make-clean \
     $EXTRA_CONFIGURE \
@@ -321,7 +320,7 @@ gcc:jessie:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--without-cmocka --with-python --without-geoip2 --with-geoip"
+    EXTRA_CONFIGURE: "--without-cmocka --with-python --disable-geoip"
   <<: *debian_jessie_amd64_image
   <<: *build_job
 
@@ -431,7 +430,7 @@ gcc:xenial:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--without-geoip2 --with-geoip"
+    EXTRA_CONFIGURE: "--disable-geoip"
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 

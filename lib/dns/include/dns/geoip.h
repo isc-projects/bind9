@@ -21,7 +21,7 @@
  * GeoIP/GeoIP2 data types and function prototypes.
  */
 
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 
 /***
  *** Imports
@@ -87,28 +87,11 @@ typedef struct dns_geoip_elem {
 } dns_geoip_elem_t;
 
 struct dns_geoip_databases {
-#ifdef HAVE_GEOIP2
 	void *country;		/* GeoIP2-Country or GeoLite2-Country */
 	void *city;		/* GeoIP2-CIty or GeoLite2-City */
 	void *domain;		/* GeoIP2-Domain */
 	void *isp;		/* GeoIP2-ISP */
 	void *as;		/* GeoIP2-ASN or GeoLite2-ASN */
-#define DNS_GEOIP_DATABASE_INIT \
-	{ NULL, NULL, NULL, NULL, NULL }
-#else /* HAVE_GEOIP */
-	void *country_v4;	/* GeoIP DB 1 */
-	void *city_v4;		/* GeoIP DB 2 or 6 */
-	void *region;		/* GeoIP DB 3 or 7 */
-	void *isp;		/* GeoIP DB 4 */
-	void *org;		/* GeoIP DB 5 */
-	void *as;		/* GeoIP DB 9 */
-	void *netspeed;		/* GeoIP DB 10 */
-	void *domain;		/* GeoIP DB 11 */
-	void *country_v6;	/* GeoIP DB 12 */
-	void *city_v6;		/* GeoIP DB 30 or 31 */
-#define DNS_GEOIP_DATABASE_INIT \
-	{ NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL }
-#endif /* HAVE_GEOIP */
 };
 
 /***
@@ -127,6 +110,6 @@ dns_geoip_shutdown(void);
 
 ISC_LANG_ENDDECLS
 
-#endif /* HAVE_GEOIP | HAVE_GEOIP2 */
+#endif /* HAVE_GEOIP2 */
 
 #endif /* DNS_GEOIP_H */

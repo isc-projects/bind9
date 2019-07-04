@@ -64,11 +64,11 @@ dns_acl_isinsecure_test(void **state) {
 	dns_acl_t *none = NULL;
 	dns_acl_t *notnone = NULL;
 	dns_acl_t *notany = NULL;
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 	dns_acl_t *geoip = NULL;
 	dns_acl_t *notgeoip = NULL;
 	dns_aclelement_t *de;
-#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
+#endif /* HAVE_GEOIP2 */
 
 	UNUSED(state);
 
@@ -90,7 +90,7 @@ dns_acl_isinsecure_test(void **state) {
 	result = dns_acl_merge(notany, any, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 	result = dns_acl_create(dt_mctx, 1, &geoip);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
@@ -111,26 +111,26 @@ dns_acl_isinsecure_test(void **state) {
 
 	result = dns_acl_merge(notgeoip, geoip, false);
 	assert_int_equal(result, ISC_R_SUCCESS);
-#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
+#endif /* HAVE_GEOIP2 */
 
 	assert_true(dns_acl_isinsecure(any));		/* any; */
 	assert_false(dns_acl_isinsecure(none));		/* none; */
 	assert_false(dns_acl_isinsecure(notany));	/* !any; */
 	assert_false(dns_acl_isinsecure(notnone));	/* !none; */
 
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 	assert_true(dns_acl_isinsecure(geoip));		/* geoip; */
 	assert_false(dns_acl_isinsecure(notgeoip));	/* !geoip; */
-#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
+#endif /* HAVE_GEOIP2 */
 
 	dns_acl_detach(&any);
 	dns_acl_detach(&none);
 	dns_acl_detach(&notany);
 	dns_acl_detach(&notnone);
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 	dns_acl_detach(&geoip);
 	dns_acl_detach(&notgeoip);
-#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
+#endif /* HAVE_GEOIP2 */
 }
 
 int

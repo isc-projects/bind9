@@ -118,11 +118,7 @@
 	  The GeoIP2 API from MaxMind is now supported. Geolocation support
 	  will be compiled in by default if the <command>libmaxminddb</command>
 	  library is found at compile time, but can be turned off by using
-	  <command>configure --without-geoip2</command>, or by using
-	  <command>configure --with-geoip</command>, which will cause
-	  the legacy GeoIP API to be used instead.  (Note that the
-	  databases for the legacy API are no longer maintained by
-	  MaxMind.)
+	  <command>configure --disable-geoip</command>.
 	</para>
 	<para>
 	  The default path to the GeoIP2 databases will be set based
@@ -141,7 +137,7 @@
 	  types are <command>country</command>, <command>city</command>,
 	  <command>domain</command>, <command>isp</command>, and
 	  <command>as</command>. All of these databases support both IPv4
-	  and IPv6 lookups. [GL #182]
+	  and IPv6 lookups. [GL #182] [GL #1112]
 	</para>
       </listitem>
       <listitem>

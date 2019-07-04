@@ -310,17 +310,11 @@ typedef __int64 off_t;
 /* Define to 1 if you have the `readline' function. */
 @HAVE_READLINE@
 
-/* Build with GeoIP support */
-@HAVE_GEOIP@
+/* Build with GeoIP2 support */
+@HAVE_GEOIP2@
 
 /* define if idnkit support is to be included. */
 @WITH_IDN@
-
-/* Build with GeoIP City IPv6 support */
-@HAVE_GEOIP_CITY_V6@
-
-/* Build with GeoIP Country IPv6 support */
-@HAVE_GEOIP_V6@
 
 /* Define if zlib was found */
 @HAVE_ZLIB@

@@ -100,7 +100,7 @@ static void
 parser_complain(cfg_parser_t *pctx, bool is_warning,
 		unsigned int flags, const char *format, va_list args);
 
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 static isc_result_t
 parse_geoip(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);
 
@@ -109,7 +109,7 @@ print_geoip(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 static void
 doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type);
-#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
+#endif /* HAVE_GEOIP2 */
 
 /*
  * Data representations.  These correspond to members of the
@@ -1324,7 +1324,7 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_bracketed_text = {
 	&cfg_rep_string, NULL
 };
 
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 /*
  * "geoip" ACL element:
  * geoip [ db <database> ] search-type <string>
@@ -1409,7 +1409,7 @@ doc_geoip(cfg_printer_t *pctx, const cfg_type_t *type) {
 	cfg_print_cstr(pctx, " ");
 	cfg_doc_obj(pctx, &cfg_type_astring);
 }
-#endif /* HAVE_GEOIP || HAVE_GEOIP2 */
+#endif /* HAVE_GEOIP2 */
 
 static cfg_type_t cfg_type_addrmatchelt;
 static cfg_type_t cfg_type_negated;
@@ -1430,7 +1430,7 @@ parse_addrmatchelt(cfg_parser_t *pctx, const cfg_type_t *type,
 			CHECK(cfg_parse_obj(pctx, &cfg_type_keyref, ret));
 		} else if (pctx->token.type == isc_tokentype_string &&
 			   (strcasecmp(TOKEN_STRING(pctx), "geoip") == 0)) {
-#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
+#if defined(HAVE_GEOIP2)
 			CHECK(cfg_gettoken(pctx, 0));
 			CHECK(cfg_parse_obj(pctx, &cfg_type_geoip, ret));
 #else

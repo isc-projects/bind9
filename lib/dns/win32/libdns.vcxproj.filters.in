@@ -103,7 +103,7 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
 @IF GEOIP
-    <ClCompile Include="..\geoip.c">
+    <ClCompile Include="..\geoip2.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
 @END GEOIP
