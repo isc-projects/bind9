@@ -601,6 +601,8 @@ additionaldata_naptr(ARGS_ADDLDATA) {
 
 	REQUIRE(rdata->type == dns_rdatatype_naptr);
 
+	UNUSED(owner);
+
 	/*
 	 * Order, preference.
 	 */
@@ -642,7 +644,7 @@ additionaldata_naptr(ARGS_ADDLDATA) {
 	dns_name_fromregion(&name, &sr);
 
 	if (atype != 0) {
-		return ((add)(arg, &name, atype));
+		return ((add)(arg, &name, atype, NULL));
 	}
 
 	return (ISC_R_SUCCESS);

@@ -95,6 +95,7 @@ additionaldata_ninfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ninfo);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

@@ -102,6 +102,7 @@ additionaldata_smimea(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_smimea);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

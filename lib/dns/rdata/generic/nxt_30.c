@@ -292,6 +292,7 @@ additionaldata_nxt(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_nxt);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

@@ -195,6 +195,7 @@ struct ns_client {
 	uint16_t	udpsize;
 	uint16_t	extflags;
 	int16_t		ednsversion; /* -1 noedns */
+	uint16_t	additionaldepth;
 	void (*cleanup)(ns_client_t *);
 	void (*shutdown)(void *arg, isc_result_t result);
 	void *	      shutdown_arg;

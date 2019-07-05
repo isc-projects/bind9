@@ -213,6 +213,7 @@ additionaldata_nsec(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_nsec);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

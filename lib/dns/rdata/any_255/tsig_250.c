@@ -567,6 +567,7 @@ additionaldata_any_tsig(ARGS_ADDLDATA) {
 	REQUIRE(rdata->rdclass == dns_rdataclass_any);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

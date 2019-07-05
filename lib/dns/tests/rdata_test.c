@@ -207,10 +207,12 @@ rdata_towire(dns_rdata_t *rdata, unsigned char *dst, size_t dstlen,
 }
 
 static isc_result_t
-additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
+additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
+		  dns_rdataset_t *found) {
 	UNUSED(arg);
 	UNUSED(name);
 	UNUSED(qtype);
+	UNUSED(found);
 	return (ISC_R_SUCCESS);
 }
 
@@ -219,7 +221,8 @@ additionaldata_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
  */
 static isc_result_t
 rdata_additionadata(dns_rdata_t *rdata) {
-	return (dns_rdata_additionaldata(rdata, additionaldata_cb, NULL));
+	return (dns_rdata_additionaldata(rdata, dns_rootname, additionaldata_cb,
+					 NULL));
 }
 
 /*

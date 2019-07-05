@@ -116,6 +116,7 @@ additionaldata_cds(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_cds);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

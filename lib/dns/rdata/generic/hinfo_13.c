@@ -169,9 +169,10 @@ static inline isc_result_t
 additionaldata_hinfo(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_hinfo);
 
+	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-	UNUSED(rdata);
 
 	return (ISC_R_SUCCESS);
 }

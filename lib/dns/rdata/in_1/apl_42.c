@@ -428,8 +428,10 @@ additionaldata_in_apl(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_apl);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 
-	(void)add;
-	(void)arg;
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

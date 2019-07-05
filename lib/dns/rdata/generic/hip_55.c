@@ -379,11 +379,12 @@ freestruct_hip(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_hip(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_hip);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_hip);
 
 	return (ISC_R_SUCCESS);
 }

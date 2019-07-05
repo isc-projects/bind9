@@ -439,6 +439,7 @@ dns_rdataset_towirepartial(dns_rdataset_t *  rdataset,
 
 isc_result_t
 dns_rdataset_additionaldata(dns_rdataset_t *	     rdataset,
+			    const dns_name_t *	     owner_name,
 			    dns_additionaldatafunc_t add, void *arg);
 /*%<
  * For each rdata in rdataset, call 'add' for each name and type in the

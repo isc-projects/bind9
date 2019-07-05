@@ -175,6 +175,7 @@ freestruct_cname(ARGS_FREESTRUCT) {
 static inline isc_result_t
 additionaldata_cname(ARGS_ADDLDATA) {
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

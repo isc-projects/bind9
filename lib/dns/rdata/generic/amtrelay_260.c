@@ -395,6 +395,7 @@ additionaldata_amtrelay(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_amtrelay);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

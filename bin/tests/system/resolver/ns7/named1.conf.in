@@ -29,6 +29,7 @@ options {
 	 */
 	prefetch 0;
 	querylog yes;
+	edns-udp-size 4096;
 };
 
 key rndc_key {

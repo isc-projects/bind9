@@ -594,8 +594,8 @@ dns_rdatatype_isknown(dns_rdatatype_t type);
  */
 
 isc_result_t
-dns_rdata_additionaldata(dns_rdata_t *rdata, dns_additionaldatafunc_t add,
-			 void *arg);
+dns_rdata_additionaldata(dns_rdata_t *rdata, const dns_name_t *owner,
+			 dns_additionaldatafunc_t add, void *arg);
 /*%<
  * Call 'add' for each name and type from 'rdata' which is subject to
  * additional section processing.

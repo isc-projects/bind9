@@ -178,6 +178,7 @@ additionaldata_l32(ARGS_ADDLDATA) {
 	REQUIRE(rdata->length == 6);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

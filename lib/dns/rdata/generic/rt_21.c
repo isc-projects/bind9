@@ -241,20 +241,22 @@ additionaldata_rt(ARGS_ADDLDATA) {
 
 	REQUIRE(rdata->type == dns_rdatatype_rt);
 
+	UNUSED(owner);
+
 	dns_name_init(&name, offsets);
 	dns_rdata_toregion(rdata, &region);
 	isc_region_consume(&region, 2);
 	dns_name_fromregion(&name, &region);
 
-	result = (add)(arg, &name, dns_rdatatype_x25);
+	result = (add)(arg, &name, dns_rdatatype_x25, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	result = (add)(arg, &name, dns_rdatatype_isdn);
+	result = (add)(arg, &name, dns_rdatatype_isdn, NULL);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
-	return ((add)(arg, &name, dns_rdatatype_a));
+	return ((add)(arg, &name, dns_rdatatype_a, NULL));
 }
 
 static inline isc_result_t

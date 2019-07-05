@@ -28,6 +28,7 @@ options {
 	 * has a exclude list.
 	 */
 	root-delegation-only exclude { "a"; };
+	max-udp-size 4096;
 };
 
 zone "." {

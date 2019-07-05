@@ -109,6 +109,7 @@ additionaldata_dnskey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_dnskey);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

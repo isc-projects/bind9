@@ -359,6 +359,7 @@ additionaldata_opt(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_opt);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

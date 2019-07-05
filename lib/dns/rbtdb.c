@@ -10084,7 +10084,8 @@ maybe_rehash_gluetable(rbtdb_version_t *version) {
 }
 
 static isc_result_t
-glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
+glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
+		dns_rdataset_t *unused) {
 	rbtdb_glue_additionaldata_ctx_t *ctx;
 	isc_result_t result;
 	dns_fixedname_t fixedname_a;
@@ -10097,6 +10098,8 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 	dns_rbtnode_t *node_aaaa = NULL;
 	rbtdb_glue_t *glue = NULL;
 	dns_name_t *gluename = NULL;
+
+	UNUSED(unused);
 
 	/*
 	 * NS records want addresses in additional records.
@@ -10397,7 +10400,8 @@ no_glue:
 	maybe_rehash_gluetable(rbtversion);
 	idx = hash_32(hash, rbtversion->glue_table_bits);
 
-	(void)dns_rdataset_additionaldata(rdataset, glue_nsdname_cb, &ctx);
+	(void)dns_rdataset_additionaldata(rdataset, dns_rootname,
+					  glue_nsdname_cb, &ctx);
 
 	cur = isc_mem_get(rbtdb->common.mctx, sizeof(*cur));
 

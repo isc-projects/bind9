@@ -396,7 +396,8 @@ typedef isc_result_t (*dns_addrdatasetfunc_t)(void *, const dns_name_t *,
 					      dns_rdataset_t *);
 
 typedef isc_result_t (*dns_additionaldatafunc_t)(void *, const dns_name_t *,
-						 dns_rdatatype_t);
+						 dns_rdatatype_t,
+						 dns_rdataset_t *);
 
 typedef isc_result_t (*dns_digestfunc_t)(void *, isc_region_t *);
 

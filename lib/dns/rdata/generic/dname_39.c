@@ -175,11 +175,12 @@ freestruct_dname(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_dname(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_dname);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_dname);
 
 	return (ISC_R_SUCCESS);
 }

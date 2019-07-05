@@ -412,6 +412,7 @@ additionaldata_keydata(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_keydata);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

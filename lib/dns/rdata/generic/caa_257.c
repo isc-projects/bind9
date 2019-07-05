@@ -572,6 +572,7 @@ additionaldata_caa(ARGS_ADDLDATA) {
 	REQUIRE(rdata->length >= 3U);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

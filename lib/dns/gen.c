@@ -78,7 +78,7 @@
 #define COMPARETYPE  "rdata1->type"
 #define COMPAREDEF   "use_default = true"
 
-#define ADDITIONALDATAARGS  "rdata, add, arg"
+#define ADDITIONALDATAARGS  "rdata, owner, add, arg"
 #define ADDITIONALDATACLASS "rdata->rdclass"
 #define ADDITIONALDATATYPE  "rdata->type"
 #define ADDITIONALDATADEF   "use_default = true"

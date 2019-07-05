@@ -1649,7 +1649,8 @@ query_additionalauth(query_ctx_t *qctx, const dns_name_t *name,
 }
 
 static isc_result_t
-query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
+query_additional_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype,
+		    dns_rdataset_t *found) {
 	query_ctx_t *qctx = arg;
 	ns_client_t *client = qctx->client;
 	isc_result_t result, eresult = ISC_R_SUCCESS;
@@ -1832,6 +1833,13 @@ found:
 	 * at least a node to iterate over.
 	 */
 	ns_client_keepname(client, fname, dbuf);
+
+	/*
+	 * Does the caller want the found rdataset?
+	 */
+	if (found != NULL && dns_rdataset_isassociated(rdataset)) {
+		dns_rdataset_clone(rdataset, found);
+	}
 
 	/*
 	 * If we have an rdataset, add it to the additional data
@@ -2038,7 +2046,6 @@ addname:
 		dns_message_addname(client->message, fname,
 				    DNS_SECTION_ADDITIONAL);
 	}
-	fname = NULL;
 
 	/*
 	 * In some cases, a record that has been added as additional
@@ -2046,9 +2053,17 @@ addname:
 	 * This cannot go more than MAX_RESTARTS levels deep.
 	 */
 	if (trdataset != NULL && dns_rdatatype_followadditional(type)) {
-		eresult = dns_rdataset_additionaldata(
-			trdataset, query_additional_cb, qctx);
+		if (client->additionaldepth++ < MAX_RESTARTS) {
+			eresult = dns_rdataset_additionaldata(
+				trdataset, fname, query_additional_cb, qctx);
+		}
+		client->additionaldepth--;
 	}
+
+	/*
+	 * Don't release fname.
+	 */
+	fname = NULL;
 
 cleanup:
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional_cb: cleanup");
@@ -2101,7 +2116,8 @@ query_setorder(query_ctx_t *qctx, dns_name_t *name, dns_rdataset_t *rdataset) {
  * Handle glue and fetch any other needed additional data for 'rdataset'.
  */
 static void
-query_additional(query_ctx_t *qctx, dns_rdataset_t *rdataset) {
+query_additional(query_ctx_t *qctx, dns_name_t *name,
+		 dns_rdataset_t *rdataset) {
 	ns_client_t *client = qctx->client;
 	isc_result_t result;
 
@@ -2138,7 +2154,8 @@ regular:
 	 * Add other additional data if needed.
 	 * We don't care if dns_rdataset_additionaldata() fails.
 	 */
-	(void)dns_rdataset_additionaldata(rdataset, query_additional_cb, qctx);
+	(void)dns_rdataset_additionaldata(rdataset, name, query_additional_cb,
+					  qctx);
 	CTRACE(ISC_LOG_DEBUG(3), "query_additional: done");
 }
 
@@ -2219,7 +2236,7 @@ query_addrrset(query_ctx_t *qctx, dns_name_t **namep,
 	 */
 	query_addtoname(mname, rdataset);
 	query_setorder(qctx, mname, rdataset);
-	query_additional(qctx, rdataset);
+	query_additional(qctx, mname, rdataset);
 
 	/*
 	 * Note: we only add SIGs if we've added the type they cover, so

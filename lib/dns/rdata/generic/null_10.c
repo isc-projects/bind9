@@ -133,11 +133,12 @@ freestruct_null(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_null(ARGS_ADDLDATA) {
+	REQUIRE(rdata->type == dns_rdatatype_null);
+
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
-
-	REQUIRE(rdata->type == dns_rdatatype_null);
 
 	return (ISC_R_SUCCESS);
 }

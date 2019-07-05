@@ -112,6 +112,7 @@ additionaldata_ta(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ta);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

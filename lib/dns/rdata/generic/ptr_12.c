@@ -190,6 +190,7 @@ additionaldata_ptr(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_ptr);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 

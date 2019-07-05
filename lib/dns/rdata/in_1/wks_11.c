@@ -360,12 +360,13 @@ freestruct_in_wks(ARGS_FREESTRUCT) {
 
 static inline isc_result_t
 additionaldata_in_wks(ARGS_ADDLDATA) {
-	UNUSED(rdata);
-	UNUSED(add);
-	UNUSED(arg);
-
 	REQUIRE(rdata->type == dns_rdatatype_wks);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
+
+	UNUSED(rdata);
+	UNUSED(owner);
+	UNUSED(add);
+	UNUSED(arg);
 
 	return (ISC_R_SUCCESS);
 }

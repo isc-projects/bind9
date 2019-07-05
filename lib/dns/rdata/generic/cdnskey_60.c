@@ -108,6 +108,7 @@ additionaldata_cdnskey(ARGS_ADDLDATA) {
 	REQUIRE(rdata->type == dns_rdatatype_cdnskey);
 
 	UNUSED(rdata);
+	UNUSED(owner);
 	UNUSED(add);
 	UNUSED(arg);
 
