@@ -1,3 +1,6 @@
+5263.	[cleanup]	Use atomics and isc_refcount_t wherever possible.
+			[GL #1038]
+
 5262.	[func]		Removed support for the legacy GeoIP API. [GL #1112]
 
 5261.	[cleanup]	Remove SO_BSDCOMPAT socket option usage.
