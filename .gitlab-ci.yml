@@ -503,6 +503,28 @@ clang:stretch:i386:
   <<: *debian_stretch_i386_image
   <<: *build_job
 
+# Jobs for nocrypt builds on Debian Sid (amd64)
+
+nocrypto:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--with-openssl=no"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+system:nocrypto:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - nocrypto:sid:amd64
+
+unit:nocrypto:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - nocrypto:sid:amd64
+
 # Jobs for PKCS#11-enabled GCC builds on Debian Sid (amd64)
 
 pkcs11:sid:amd64:

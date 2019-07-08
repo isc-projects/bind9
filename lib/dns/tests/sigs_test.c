@@ -13,9 +13,10 @@
 
 #if HAVE_CMOCKA
 
+#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <setjmp.h>
+#include <stdio.h>
 
 #if defined(OPENSSL) || defined(PKCS11CRYPTO)
 #include <string.h>
@@ -456,7 +457,7 @@ main(void) {
 
 	return (cmocka_run_group_tests(tests, dns_test_init, dns_test_final));
 #else
-	print_message("1..0 # Skipped: sigs test requires crypto\n");
+	printf("1..0 # Skipped: sigs test requires crypto\n");
 #endif
 }
 
