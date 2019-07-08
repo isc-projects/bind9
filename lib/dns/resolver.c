@@ -9814,7 +9814,7 @@ destroy(dns_resolver_t *res) {
 	unsigned int i;
 	alternate_t *a;
 
-	REQUIRE(res->references == 0);
+	REQUIRE(atomic_load(&res->references) == 0);
 	REQUIRE(!res->priming);
 	REQUIRE(res->primefetch == NULL);
 
@@ -10039,7 +10039,7 @@ dns_resolver_create(dns_view_t *view,
 		isc_mem_setname(res->buckets[i].mctx, name, NULL);
 		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);
-		atomic_store_release(&res->buckets[i].exiting, false);
+		atomic_init(&res->buckets[i].exiting, false);
 		buckets_created++;
 	}
 
@@ -10362,7 +10362,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 				dns_dispatchset_cancelall(res->dispatches6,
 							  res->buckets[i].task);
 			}
-			res->buckets[i].exiting = true;
+			atomic_store(&res->buckets[i].exiting, true);
 			if (ISC_LIST_EMPTY(res->buckets[i].fctxs)) {
 				INSIST(res->activebuckets > 0);
 				res->activebuckets--;
@@ -10583,7 +10583,7 @@ dns_resolver_createfetch(dns_resolver_t *res, const dns_name_t *name,
 	UNLOCK(&res->lock);
 	LOCK(&res->buckets[bucketnum].lock);
 
-	if (res->buckets[bucketnum].exiting) {
+	if (atomic_load(&res->buckets[bucketnum].exiting)) {
 		result = ISC_R_SHUTTINGDOWN;
 		goto unlock;
 	}

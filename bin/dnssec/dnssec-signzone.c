@@ -156,8 +156,8 @@ static unsigned char *gsalt = saltbuf;
 static size_t salt_length = 0;
 static isc_task_t *master = NULL;
 static unsigned int ntasks = 0;
-static atomic_bool shuttingdown = ATOMIC_VAR_INIT(false);
-static atomic_bool finished = ATOMIC_VAR_INIT(false);
+static atomic_bool shuttingdown;
+static atomic_bool finished;
 static bool nokeys = false;
 static bool removefile = false;
 static bool generateds = false;
@@ -3215,6 +3215,9 @@ main(int argc, char *argv[]) {
 	bool set_optout = false;
 	bool set_iter = false;
 	bool nonsecify = false;
+
+	atomic_init(&shuttingdown, false);
+	atomic_init(&finished, false);
 
 	/* Unused letters: Bb G J q Yy (and F is reserved). */
 #define CMDLINE_FLAGS \

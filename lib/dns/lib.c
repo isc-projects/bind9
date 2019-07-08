@@ -44,13 +44,15 @@ static isc_once_t init_once = ISC_ONCE_INIT;
 static isc_mem_t *dns_g_mctx = NULL;
 static dns_dbimplementation_t *dbimp = NULL;
 static bool initialize_done = false;
-static isc_refcount_t references = 0;
+static isc_refcount_t references;
 
 static void
 initialize(void) {
 	isc_result_t result;
 
 	REQUIRE(initialize_done == false);
+
+	isc_refcount_init(&references, 0);
 
 	result = isc_mem_create(0, 0, &dns_g_mctx);
 	if (result != ISC_R_SUCCESS)
