@@ -503,6 +503,29 @@ unit:rwlock:sid:amd64:
   dependencies:
     - rwlock:sid:amd64
 
+# Jobs for mutex-based atomics on Debian SID (amd64)
+mutexatomics:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-mutex-atomics"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+system:mutexatomics:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - mutexatomics:sid:amd64
+  allow_failure: true
+
+unit:mutexatomics:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - mutexatomics:sid:amd64
+  allow_failure: true
+
 # Jobs for Clang builds on Debian Stretch (amd64)
 
 clang:stretch:amd64:
