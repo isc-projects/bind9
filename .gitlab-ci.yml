@@ -18,6 +18,8 @@ variables:
   MAKE: make
   CONFIGURE: ./configure
   SCAN_BUILD: scan-build-9
+  SYMBOLIZER: /usr/lib/llvm-9/bin/llvm-symbolizer
+  ASAN_SYMBOLIZER_PATH: "$SYMBOLIZER"
 
   CFLAGS_COMMON: -fno-omit-frame-pointer -fno-optimize-sibling-calls -O1 -g -Wall -Wextra 
 
@@ -180,7 +182,7 @@ stages:
     --without-make-clean \
     $EXTRA_CONFIGURE \
     || cat config.log
-    
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
@@ -815,6 +817,63 @@ unit:asan:sid:amd64:
   dependencies:
     - asan:sid:amd64
   needs: ["asan:sid:amd64"]
+
+# Jobs for GCC builds with TSAN enabled on Debian Sid (amd64)
+
+tsan:buster:amd64:
+  <<: *debian_buster_amd64_image
+  <<: *build_job
+  variables:
+    CC: clang-9
+    CFLAGS: "${CFLAGS_COMMON} -fsanitize=thread -DISC_MEM_USE_INTERNAL_MALLOC=0"
+    LDFLAGS: "-fsanitize=thread"
+    EXTRA_CONFIGURE: "--with-libidn2 --enable-pthread-rwlock"
+
+system:tsan:buster:amd64:
+  variables:
+    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER exitcode=0"
+  before_script:
+    - *setup_interfaces
+    - echo $TSAN_OPTIONS
+  <<: *debian_buster_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - tsan:buster:amd64
+  needs: ["tsan:buster:amd64"]
+  allow_failure: true
+  after_script:
+    - find bin -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 week"
+    paths:
+      - bin/tests/system/*/tsan.*
+      - bin/tests/system/*/*/tsan.*
+      - tsan/
+    when: on_failure
+
+unit:tsan:buster:amd64:
+  variables:
+    TSAN_OPTIONS: "second_deadlock_stack=1 history_size=7 log_exe_name=true log_path=tsan external_symbolizer_path=$SYMBOLIZER"
+  before_script:
+    - echo $TSAN_OPTIONS
+    - lib/isc/tests/result_test
+  <<: *debian_buster_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - tsan:buster:amd64
+  needs: ["tsan:buster:amd64"]
+  allow_failure: true
+  after_script:
+    - find lib -name 'tsan.*' -exec python3 util/parse_tsan.py {} \;
+  artifacts:
+    expire_in: "1 week"
+    paths:
+      - lib/*/tests/tsan.*
+      - tsan/
+      - kyua.log
+      - kyua.results
+      - kyua_html/
+    when: on_failure
 
 rwlock:sid:amd64:
   variables:

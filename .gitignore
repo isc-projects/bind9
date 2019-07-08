@@ -60,3 +60,4 @@ timestamp
 /compile_commands.json
 /cppcheck_html/
 /cppcheck.results
+/tsan
