@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.8
+Release Notes for BIND Version 9.11.9
 
 Introduction
 
@@ -41,6 +41,30 @@ Security Fixes
   * A race condition could trigger an assertion failure when a large
     number of incoming packets were being rejected. This flaw is disclosed
     in CVE-2019-6471. [GL #942]
+
+New Features
+
+  * The new GeoIP2 API from MaxMind is now supported when BIND is compiled
+    using configure --with-geoip2. The legacy GeoIP API can be used by
+    compiling with configure --with-geoip instead. (Note that the
+    databases for the legacy API are no longer maintained by MaxMind.)
+
+    The default path to the GeoIP2 databases will be set based on the
+    location of the libmaxminddb library; for example, if it is in /usr/
+    local/lib, then the default path will be /usr/local/share/GeoIP. This
+    value can be overridden in named.conf using the geoip-directory
+    option.
+
+    Some geoip ACL settings that were available with legacy GeoIP,
+    including searches for netspeed, org, and three-letter ISO country
+    codes, will no longer work when using GeoIP2. Supported GeoIP2
+    database types are country, city, domain, isp, and as. All of the
+    databases support both IPv4 and IPv6 lookups. [GL #182]
+
+Bug Fixes
+
+  * Glue address records were not being returned in responses to root
+    priming queries; this has been corrected. [GL #1092]
 
 End of Life
 

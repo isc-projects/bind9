@@ -3011,14 +3011,19 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 <dt><span class="term"><span class="command"><strong>geoip-directory</strong></span></span></dt>
 <dd>
               <p>
-                Specifies the directory containing GeoIP
-                <code class="filename">.dat</code> database files for GeoIP
-                initialization.  By default, this option is unset
-                and the GeoIP support will use libGeoIP's
-                built-in directory.
-                (For details, see <a class="xref" href="Bv9ARM.ch06.html#acl" title="acl Statement Definition and Usage">the section called &#8220;<span class="command"><strong>acl</strong></span> Statement Definition and
-          Usage&#8221;</a> about the
-                <span class="command"><strong>geoip</strong></span> ACL.)
+                When <span class="command"><strong>named</strong></span> is compiled using the
+                MaxMind GeoIP2 geolocation API, or the legacy GeoIP API,
+                this specifies the directory containing GeoIP
+                database files.  By default, the option is set based on
+                the prefix used to build the <span class="command"><strong>libmaxminddb</strong></span>
+                module: for example, if the library is installed in
+                <code class="filename">/usr/local/lib</code>, then the default
+                <span class="command"><strong>geoip-directory</strong></span> will be
+                <code class="filename">/usr/local/share/GeoIP</code>. On Windows,
+                the default is the <span class="command"><strong>named</strong></span> working
+                directory.  See <a class="xref" href="Bv9ARM.ch06.html#acl" title="acl Statement Definition and Usage">the section called &#8220;<span class="command"><strong>acl</strong></span> Statement Definition and
+          Usage&#8221;</a> for details about
+                <span class="command"><strong>geoip</strong></span> ACLs.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>key-directory</strong></span></span></dt>
@@ -14667,6 +14672,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.8 (Extended Support Version)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.11.9 (Extended Support Version)</p>
 </body>
 </html>
