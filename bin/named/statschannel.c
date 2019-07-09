@@ -1453,6 +1453,7 @@ rcodestat_dump(dns_rcode_t code, uint64_t val, void *arg) {
 #endif
 }
 
+#if defined(EXTENDED_STATS)
 static void
 dnssecsignstat_dump(dns_keytag_t tag, uint64_t val, void *arg) {
 	FILE *fp;
@@ -1506,6 +1507,7 @@ dnssecsignstat_dump(dns_keytag_t tag, uint64_t val, void *arg) {
 	return;
 #endif
 }
+#endif /* defined(EXTENDED_STATS) */
 
 #ifdef HAVE_LIBXML2
 /*
