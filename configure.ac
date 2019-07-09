@@ -588,6 +588,7 @@ AS_CASE([$with_geoip2],
 			    AS_VAR_COPY([MAXMINDDB_PREFIX], [$with_geoip2])
 			   ],
 			   [AC_MSG_ERROR([GeoIP2 requested, but libmaxminddb not found])])
+	    AX_RESTORE_FLAGS([maxminddb])
 	])
 AC_ARG_VAR([MAXMINDDB_PREFIX], [value of prefix for MAXMINDDB, overriding pkg-config])
 AC_SUBST([MAXMINDDB_CFLAGS])
