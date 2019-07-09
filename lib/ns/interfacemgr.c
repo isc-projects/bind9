@@ -64,7 +64,7 @@
 /*% nameserver interface manager structure */
 struct ns_interfacemgr {
 	unsigned int		magic;		/*%< Magic number. */
-	int			references;
+	isc_refcount_t		references;
 	isc_mutex_t		lock;
 	isc_mem_t *		mctx;		/*%< Memory context. */
 	ns_server_t *		sctx;		/*%< Server context. */
@@ -253,9 +253,9 @@ ns_interfacemgr_create(isc_mem_t *mctx,
 	mgr->task = NULL;
 	if (mgr->route != NULL)
 		isc_task_attach(task, &mgr->task);
-	mgr->references = (mgr->route != NULL) ? 2 : 1;
+	isc_refcount_init(&mgr->references, (mgr->route != NULL) ? 2 : 1);
 #else
-	mgr->references = 1;
+	isc_refcount_init(&mgr->references, 1);
 #endif
 	mgr->magic = IFMGR_MAGIC;
 	*mgrp = mgr;
@@ -332,27 +332,18 @@ ns_interfacemgr_getaclenv(ns_interfacemgr_t *mgr) {
 void
 ns_interfacemgr_attach(ns_interfacemgr_t *source, ns_interfacemgr_t **target) {
 	REQUIRE(NS_INTERFACEMGR_VALID(source));
-	LOCK(&source->lock);
-	INSIST(source->references > 0);
-	source->references++;
-	UNLOCK(&source->lock);
+	INSIST(isc_refcount_increment(&source->references) > 0);
 	*target = source;
 }
 
 void
 ns_interfacemgr_detach(ns_interfacemgr_t **targetp) {
-	isc_result_t need_destroy = false;
 	ns_interfacemgr_t *target = *targetp;
 	REQUIRE(target != NULL);
 	REQUIRE(NS_INTERFACEMGR_VALID(target));
-	LOCK(&target->lock);
-	REQUIRE(target->references > 0);
-	target->references--;
-	if (target->references == 0)
-		need_destroy = true;
-	UNLOCK(&target->lock);
-	if (need_destroy)
+	if (isc_refcount_decrement(&target->references) == 1) {
 		ns_interfacemgr_destroy(target);
+	}
 	*targetp = NULL;
 }
 
@@ -435,7 +426,7 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	ns_interfacemgr_attach(mgr, &ifp->mgr);
 	ISC_LIST_APPEND(mgr->interfaces, ifp, link);
 
-	ifp->references = 1;
+	isc_refcount_init(&ifp->references, 1);
 	ifp->magic = IFACE_MAGIC;
 	*ifpret = ifp;
 
@@ -667,27 +658,18 @@ ns_interface_destroy(ns_interface_t *ifp) {
 void
 ns_interface_attach(ns_interface_t *source, ns_interface_t **target) {
 	REQUIRE(NS_INTERFACE_VALID(source));
-	LOCK(&source->lock);
-	INSIST(source->references > 0);
-	source->references++;
-	UNLOCK(&source->lock);
+	isc_refcount_increment(&source->references);
 	*target = source;
 }
 
 void
 ns_interface_detach(ns_interface_t **targetp) {
-	isc_result_t need_destroy = false;
 	ns_interface_t *target = *targetp;
 	REQUIRE(target != NULL);
 	REQUIRE(NS_INTERFACE_VALID(target));
-	LOCK(&target->lock);
-	REQUIRE(target->references > 0);
-	target->references--;
-	if (target->references == 0)
-		need_destroy = true;
-	UNLOCK(&target->lock);
-	if (need_destroy)
+	if (isc_refcount_decrement(&target->references) == 1) {
 		ns_interface_destroy(target);
+	}
 	*targetp = NULL;
 }
 

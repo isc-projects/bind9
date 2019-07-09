@@ -50,8 +50,9 @@ struct dns_ntatable {
 	isc_taskmgr_t		*taskmgr;
 	isc_timermgr_t		*timermgr;
 	isc_task_t		*task;
+	/* Protected by atomics */
+	isc_refcount_t		references;
 	/* Locked by rwlock. */
-	uint32_t		references;
 	dns_rbt_t		*table;
 };
 

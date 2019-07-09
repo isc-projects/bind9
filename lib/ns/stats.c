@@ -13,6 +13,7 @@
 
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/refcount.h>
 #include <isc/stats.h>
 #include <isc/util.h>
 
@@ -25,11 +26,8 @@ struct ns_stats {
 	/*% Unlocked */
 	unsigned int	magic;
 	isc_mem_t	*mctx;
-	isc_mutex_t	lock;
 	isc_stats_t	*counters;
-
-	/*%  Locked by lock */
-	unsigned int	references;
+	isc_refcount_t	references;
 };
 
 void
@@ -37,9 +35,7 @@ ns_stats_attach(ns_stats_t *stats, ns_stats_t **statsp) {
 	REQUIRE(NS_STATS_VALID(stats));
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
-	LOCK(&stats->lock);
-	stats->references++;
-	UNLOCK(&stats->lock);
+	isc_refcount_increment(&stats->references);
 
 	*statsp = stats;
 }
@@ -53,13 +49,9 @@ ns_stats_detach(ns_stats_t **statsp) {
 	stats = *statsp;
 	*statsp = NULL;
 
-	LOCK(&stats->lock);
-	stats->references--;
-	UNLOCK(&stats->lock);
-
-	if (stats->references == 0) {
+	if (isc_refcount_decrement(&stats->references) == 1) {
 		isc_stats_detach(&stats->counters);
-		isc_mutex_destroy(&stats->lock);
+		isc_refcount_destroy(&stats->references);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 	}
 }
@@ -72,17 +64,14 @@ ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
-		return (ISC_R_NOMEMORY);
-
 	stats->counters = NULL;
-	stats->references = 1;
 
-	isc_mutex_init(&stats->lock);
+	isc_refcount_init(&stats->references, 1);
 
 	result = isc_stats_create(mctx, &stats->counters, ncounters);
-	if (result != ISC_R_SUCCESS)
-		goto clean_mutex;
+	if (result != ISC_R_SUCCESS) {
+		goto clean_mem;
+	}
 
 	stats->magic = NS_STATS_MAGIC;
 	stats->mctx = NULL;
@@ -91,8 +80,7 @@ ns_stats_create(isc_mem_t *mctx, int ncounters, ns_stats_t **statsp) {
 
 	return (ISC_R_SUCCESS);
 
-  clean_mutex:
-	isc_mutex_destroy(&stats->lock);
+  clean_mem:
 	isc_mem_put(mctx, stats, sizeof(*stats));
 
 	return (result);

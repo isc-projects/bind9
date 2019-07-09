@@ -25,6 +25,7 @@
 #include <isc/string.h>
 #include <isc/thread.h>
 #include <isc/util.h>
+#include <isc/once.h>
 
 #include <dns/adb.h>
 #include <dns/badcache.h>
@@ -5691,6 +5692,15 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
 }
+static atomic_uint_fast32_t last_soft, last_hard;
+#ifdef ISC_MUTEX_ATOMICS
+static isc_once_t last_once = ISC_ONCE_INIT;
+static void last_init() {
+	atomic_init(&last_soft, 0);
+	atomic_init(&last_hard, 0);
+}
+#endif
+
 
 isc_result_t
 ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
@@ -5738,11 +5748,13 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 		}
 
 		if  (result == ISC_R_SOFTQUOTA) {
-			static atomic_uint_fast32_t last = 0;
+#ifdef ISC_MUTEX_ATOMICS
+			isc_once_do(&last_once, last_init);
+#endif
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
-			if (now != atomic_load_relaxed(&last)) {
-				atomic_store_relaxed(&last, now);
+			if (now != atomic_load_relaxed(&last_soft)) {
+				atomic_store_relaxed(&last_soft, now);
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
 				      "recursive-clients soft limit "
@@ -5755,12 +5767,14 @@ ns_query_recurse(ns_client_t *client, dns_rdatatype_t qtype, dns_name_t *qname,
 			ns_client_killoldestquery(client);
 			result = ISC_R_SUCCESS;
 		} else if (result == ISC_R_QUOTA) {
-			static atomic_uint_fast32_t last = 0;
+#ifdef ISC_MUTEX_ATOMICS
+			isc_once_do(&last_once, last_init);
+#endif
 			isc_stdtime_t now;
 			isc_stdtime_get(&now);
-			if (now != atomic_load_relaxed(&last)) {
+			if (now != atomic_load_relaxed(&last_hard)) {
 				ns_server_t *sctx = client->sctx;
-				atomic_store_relaxed(&last, now);
+				atomic_store_relaxed(&last_hard, now);
 				ns_client_log(client, NS_LOGCATEGORY_CLIENT,
 				      NS_LOGMODULE_QUERY, ISC_LOG_WARNING,
 				      "no more recursive clients "

@@ -17392,7 +17392,7 @@ dns_zonemgr_unreachable(dns_zonemgr_t *zmgr, isc_sockaddr_t *remote,
 
 	RWLOCK(&zmgr->urlock, isc_rwlocktype_read);
 	for (i = 0; i < UNREACH_CACHE_SIZE; i++) {
-		if (zmgr->unreachable[i].expire >= seconds &&
+		if (atomic_load(&zmgr->unreachable[i].expire) >= seconds &&
 		    isc_sockaddr_equal(&zmgr->unreachable[i].remote, remote) &&
 		    isc_sockaddr_equal(&zmgr->unreachable[i].local, local)) {
 			atomic_store_relaxed(&zmgr->unreachable[i].last,

@@ -21,27 +21,27 @@
 
 void
 isc_quota_init(isc_quota_t *quota, unsigned int max) {
-	atomic_store(&quota->max, max);
-	atomic_store(&quota->used, 0);
-	atomic_store(&quota->soft, 0);
+	atomic_init(&quota->max, max);
+	atomic_init(&quota->used, 0);
+	atomic_init(&quota->soft, 0);
 }
 
 void
 isc_quota_destroy(isc_quota_t *quota) {
 	INSIST(atomic_load(&quota->used) == 0);
-	atomic_store(&quota->max, 0);
-	atomic_store(&quota->used, 0);
-	atomic_store(&quota->soft, 0);
+	atomic_store_release(&quota->max, 0);
+	atomic_store_release(&quota->used, 0);
+	atomic_store_release(&quota->soft, 0);
 }
 
 void
 isc_quota_soft(isc_quota_t *quota, unsigned int soft) {
-	atomic_store(&quota->soft, soft);
+	atomic_store_release(&quota->soft, soft);
 }
 
 void
 isc_quota_max(isc_quota_t *quota, unsigned int max) {
-	atomic_store(&quota->max, max);
+	atomic_store_release(&quota->max, max);
 }
 
 unsigned int
@@ -62,9 +62,9 @@ isc_quota_getused(isc_quota_t *quota) {
 isc_result_t
 isc_quota_reserve(isc_quota_t *quota) {
 	isc_result_t result;
-	uint32_t max = atomic_load(&quota->max);
-	uint32_t soft = atomic_load(&quota->soft);
-	uint32_t used = atomic_fetch_add(&quota->used, 1);
+	uint32_t max = atomic_load_acquire(&quota->max);
+	uint32_t soft = atomic_load_acquire(&quota->soft);
+	uint32_t used = atomic_fetch_add_relaxed(&quota->used, 1);
 	if (max == 0 || used < max) {
 		if (soft == 0 || used < soft) {
 			result = ISC_R_SUCCESS;
@@ -72,7 +72,7 @@ isc_quota_reserve(isc_quota_t *quota) {
 			result = ISC_R_SOFTQUOTA;
 		}
 	} else {
-		INSIST(atomic_fetch_sub(&quota->used, 1) > 0);
+		INSIST(atomic_fetch_sub_release(&quota->used, 1) > 0);
 		result = ISC_R_QUOTA;
 	}
 	return (result);
@@ -80,7 +80,7 @@ isc_quota_reserve(isc_quota_t *quota) {
 
 void
 isc_quota_release(isc_quota_t *quota) {
-	INSIST(atomic_fetch_sub(&quota->used, 1) > 0);
+	INSIST(atomic_fetch_sub_release(&quota->used, 1) > 0);
 }
 
 static isc_result_t
@@ -93,7 +93,7 @@ doattach(isc_quota_t *quota, isc_quota_t **p, bool force) {
 		*p = quota;
 	} else if (result == ISC_R_QUOTA && force) {
 		/* attach anyway */
-		atomic_fetch_add(&quota->used, 1);
+		atomic_fetch_add_relaxed(&quota->used, 1);
 		*p = quota;
 		result = ISC_R_SUCCESS;
 	}

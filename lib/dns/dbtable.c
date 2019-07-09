@@ -25,10 +25,9 @@ struct dns_dbtable {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
 	dns_rdataclass_t	rdclass;
-	isc_mutex_t		lock;
 	isc_rwlock_t		tree_lock;
-	/* Locked by lock. */
-	unsigned int		references;
+	/* Protected by atomics */
+	isc_refcount_t		references;
 	/* Locked by tree_lock. */
 	dns_rbt_t *		rbt;
 	dns_db_t *		default_db;
@@ -65,8 +64,6 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		goto clean1;
 
-	isc_mutex_init(&dbtable->lock);
-
 	result = isc_rwlock_init(&dbtable->tree_lock, 0, 0);
 	if (result != ISC_R_SUCCESS)
 		goto clean3;
@@ -76,15 +73,13 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	isc_mem_attach(mctx, &dbtable->mctx);
 	dbtable->rdclass = rdclass;
 	dbtable->magic = DBTABLE_MAGIC;
-	dbtable->references = 1;
+	isc_refcount_init(&dbtable->references, 1);
 
 	*dbtablep = dbtable;
 
 	return (ISC_R_SUCCESS);
 
  clean3:
-	isc_mutex_destroy(&dbtable->lock);
-
 	dns_rbt_destroy(&dbtable->rbt);
 
  clean1:
@@ -120,13 +115,7 @@ dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp) {
 	REQUIRE(VALID_DBTABLE(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	LOCK(&source->lock);
-
-	INSIST(source->references > 0);
-	source->references++;
-	INSIST(source->references != 0);
-
-	UNLOCK(&source->lock);
+	isc_refcount_increment(&source->references);
 
 	*targetp = source;
 }
@@ -134,25 +123,15 @@ dns_dbtable_attach(dns_dbtable_t *source, dns_dbtable_t **targetp) {
 void
 dns_dbtable_detach(dns_dbtable_t **dbtablep) {
 	dns_dbtable_t *dbtable;
-	bool free_dbtable = false;
 
 	REQUIRE(dbtablep != NULL);
 	dbtable = *dbtablep;
 	REQUIRE(VALID_DBTABLE(dbtable));
-
-	LOCK(&dbtable->lock);
-
-	INSIST(dbtable->references > 0);
-	dbtable->references--;
-	if (dbtable->references == 0)
-		free_dbtable = true;
-
-	UNLOCK(&dbtable->lock);
-
-	if (free_dbtable)
-		dbtable_free(dbtable);
-
 	*dbtablep = NULL;
+
+	if (isc_refcount_decrement(&dbtable->references) == 1) {
+		dbtable_free(dbtable);
+	}
 }
 
 isc_result_t
