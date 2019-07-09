@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.14.3
+Release Notes for BIND Version 9.14.4
 
 Introduction
 
@@ -19,11 +19,10 @@ unstable 9.15 branch, and so forth.
 Supported Platforms
 
 Since 9.12, BIND has undergone substantial code refactoring and cleanup,
-and some very old code has been removed that was needed to support legacy
-platforms which are no longer supported by their vendors and for which ISC
-is no longer able to perform quality assurance testing. Specifically,
-workarounds for old versions of UnixWare, BSD/OS, AIX, Tru64, SunOS,
-TruCluster and IRIX have been removed.
+and some very old code has been removed that supported obsolete operating
+systems and operating systems for which ISC is no longer able to perform
+quality assurance testing. Specifically, workarounds for UnixWare, BSD/OS,
+AIX, Tru64, SunOS, TruCluster and IRIX have been removed.
 
 On UNIX-like systems, BIND now requires support for POSIX.1c threads (IEEE
 Std 1003.1c-1995), the Advanced Sockets API for IPv6 (RFC 3542), and
@@ -56,6 +55,33 @@ Security Fixes
     number of incoming packets were being rejected. This flaw is disclosed
     in CVE-2019-6471. [GL #942]
 
+New Features
+
+  * The new GeoIP2 API from MaxMind is now supported when BIND is compiled
+    using configure --with-geoip2. The legacy GeoIP API can be used by
+    compiling with configure --with-geoip instead. (Note that the
+    databases for the legacy API are no longer maintained by MaxMind.)
+
+    The default path to the GeoIP2 databases will be set based on the
+    location of the libmaxminddb library; for example, if it is in /usr/
+    local/lib, then the default path will be /usr/local/share/GeoIP. This
+    value can be overridden in named.conf using the geoip-directory
+    option.
+
+    Some geoip ACL settings that were available with legacy GeoIP,
+    including searches for netspeed, org, and three-letter ISO country
+    codes, will no longer work when using GeoIP2. Supported GeoIP2
+    database types are country, city, domain, isp, and as. All of the
+    databases support both IPv4 and IPv6 lookups. [GL #182]
+
+  * Two new metrics have been added to the statistics-channel to report
+    DNSSEC signing operations. For each key in each zone, the dnssec-sign
+    counter indicates the total number of signatures named has generated
+    using that key since server startup, and the dnssec-refresh counter
+    indicates how many of those signatures were refreshed during zone
+    maintenance, as opposed to having been generated as a result of a zone
+    update. [GL #513]
+
 Bug Fixes
 
   * When qname-minimization was set to relaxed, some improperly configured
@@ -65,9 +91,12 @@ Bug Fixes
     minimal queries in order to reduce the likelihood of encountering the
     problem. [GL #1055]
 
+  * Glue address records were not being returned in responses to root
+    priming queries; this has been corrected. [GL #1092]
+
 License
 
-BIND is open source software licenced under the terms of the Mozilla
+BIND is open source software licensed under the terms of the Mozilla
 Public License, version 2.0 (see the LICENSE file for the full text).
 
 The license requires that if you make changes to BIND and distribute them

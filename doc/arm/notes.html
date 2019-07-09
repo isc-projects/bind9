@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.14.3</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.14.4</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -50,12 +50,11 @@
 <a name="relnotes_platforms"></a>Supported Platforms</h3></div></div></div>
     <p>
       Since 9.12, BIND has undergone substantial code refactoring and
-      cleanup, and some very old code has been removed that was needed
-      to support legacy platforms which are no longer supported by their
-      vendors and for which ISC is no longer able to perform quality
-      assurance testing.  Specifically, workarounds for old versions of
-      UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster and IRIX have been
-      removed.
+      cleanup, and some very old code has been removed that supported
+      obsolete operating systems and operating systems for which ISC is
+      no longer able to perform quality assurance testing. Specifically,
+      workarounds for UnixWare, BSD/OS, AIX, Tru64, SunOS, TruCluster
+      and IRIX have been removed.
     </p>
     <p>
       On UNIX-like systems, BIND now requires support for POSIX.1c
@@ -108,8 +107,59 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
+<a name="relnotes_features"></a>New Features</h3></div></div></div>
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
+	<p>
+	  The new GeoIP2 API from MaxMind is now supported when BIND
+	  is compiled using <span class="command"><strong>configure --with-geoip2</strong></span>.
+	  The legacy GeoIP API can be used by compiling with
+	  <span class="command"><strong>configure --with-geoip</strong></span> instead.  (Note that
+	  the databases for the legacy API are no longer maintained by
+	  MaxMind.)
+	</p>
+	<p>
+	  The default path to the GeoIP2 databases will be set based
+	  on the location of the <span class="command"><strong>libmaxminddb</strong></span> library;
+	  for example, if it is in <code class="filename">/usr/local/lib</code>,
+	  then the default path will be
+	  <code class="filename">/usr/local/share/GeoIP</code>.
+	  This value can be overridden in <code class="filename">named.conf</code>
+	  using the <span class="command"><strong>geoip-directory</strong></span> option.
+	</p>
+	<p>
+	  Some <span class="command"><strong>geoip</strong></span> ACL settings that were available with
+	  legacy GeoIP, including searches for <span class="command"><strong>netspeed</strong></span>,
+	  <span class="command"><strong>org</strong></span>, and three-letter ISO country codes, will
+	  no longer work when using GeoIP2. Supported GeoIP2 database
+	  types are <span class="command"><strong>country</strong></span>, <span class="command"><strong>city</strong></span>,
+	  <span class="command"><strong>domain</strong></span>, <span class="command"><strong>isp</strong></span>, and
+	  <span class="command"><strong>as</strong></span>. All of the databases support both IPv4
+	  and IPv6 lookups. [GL #182]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Two new metrics have been added to the
+	  <span class="command"><strong>statistics-channel</strong></span> to report DNSSEC
+	  signing operations.  For each key in each zone, the
+	  <span class="command"><strong>dnssec-sign</strong></span> counter indicates the total
+	  number of signatures <span class="command"><strong>named</strong></span> has generated
+	  using that key since server startup, and the
+	  <span class="command"><strong>dnssec-refresh</strong></span> counter indicates how
+	  many of those signatures were refreshed during zone
+	  maintenance, as opposed to having been generated
+	  as a result of a zone update.  [GL #513]
+	</p>
+      </li>
+</ul></div>
+  </div>
+
+  <div class="section">
+<div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_bugs"></a>Bug Fixes</h3></div></div></div>
-    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; "><li class="listitem">
+    <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
+<li class="listitem">
         <p>
 	  When <span class="command"><strong>qname-minimization</strong></span> was set to
 	  <span class="command"><strong>relaxed</strong></span>, some improperly configured domains
@@ -119,14 +169,21 @@
 	  minimal queries in order to reduce the likelihood of encountering
 	  the problem. [GL #1055]
 	</p>
-      </li></ul></div>
+      </li>
+<li class="listitem">
+	<p>
+	  Glue address records were not being returned in responses
+	  to root priming queries; this has been corrected. [GL #1092]
+	</p>
+      </li>
+</ul></div>
   </div>
 
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
 <a name="relnotes_license"></a>License</h3></div></div></div>
     <p>
-      BIND is open source software licenced under the terms of the Mozilla
+      BIND is open source software licensed under the terms of the Mozilla
       Public License, version 2.0 (see the <code class="filename">LICENSE</code>
       file for the full text).
     </p>
