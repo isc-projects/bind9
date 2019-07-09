@@ -14835,6 +14835,59 @@ else
   as_fn_error $? "GeoIP2 requested, but libmaxminddb not found" "$LINENO" 5
 fi
 
+
+  CCASFLAGS=$CCASFLAGS_maxminddb_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_maxminddb_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_maxminddb_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_maxminddb_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_maxminddb_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_maxminddb_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_maxminddb_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_maxminddb_ax_save_flags
+
+
+  FLIBS=$FLIBS_maxminddb_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_maxminddb_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_maxminddb_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_maxminddb_ax_save_flags
+
+
+  LIBS=$LIBS_maxminddb_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_maxminddb_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_maxminddb_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_maxminddb_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_maxminddb_ax_save_flags
+
+
+
 	        ;;
 esac
 
