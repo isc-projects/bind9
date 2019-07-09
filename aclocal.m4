@@ -288,8 +288,7 @@ AS_VAR_COPY([$1], [pkg_cv_][$1])
 AS_VAR_IF([$1], [""], [$5], [$4])dnl
 ])dnl PKG_CHECK_VAR
 
-m4_include([m4/ax_restore_flags.m4])
-m4_include([m4/ax_save_flags.m4])
+m4_include([libtool.m4/ax_save_flags.m4])
 m4_include([libtool.m4/libtool.m4])
 m4_include([libtool.m4/ltoptions.m4])
 m4_include([libtool.m4/ltsugar.m4])
