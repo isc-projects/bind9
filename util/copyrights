@@ -4487,14 +4487,14 @@
 ./lib/win32/bindevt/bindevt.vcxproj.filters.in	X	2013,2015,2018,2019
 ./lib/win32/bindevt/bindevt.vcxproj.in		X	2013,2014,2015,2016,2018,2019
 ./lib/win32/bindevt/bindevt.vcxproj.user	X	2013,2018,2019
+./libtool.m4/ax_restore_flags.m4		X	2019
+./libtool.m4/ax_save_flags.m4			X	2019
 ./libtool.m4/libtool.m4				X	2012,2018,2019
 ./libtool.m4/ltoptions.m4			X	2012,2018,2019
 ./libtool.m4/ltsugar.m4				X	2012,2018,2019
 ./libtool.m4/ltversion.m4			X	2012,2018,2019
 ./libtool.m4/lt~obsolete.m4			X	2012,2018,2019
 ./ltmain.sh					X	1999,2000,2001,2003,2004,2006,2009,2012,2018,2019
-./m4/ax_restore_flags.m4			X	2019
-./m4/ax_save_flags.m4				X	2019
 ./make/Makefile.in				MAKE	1998,1999,2000,2001,2004,2007,2012,2016,2018,2019
 ./make/includes.in				MAKE	1999,2000,2001,2004,2005,2007,2012,2014,2016,2018,2019
 ./make/mkdep.in					X	1999,2000,2001,2006,2011,2014,2018,2019
