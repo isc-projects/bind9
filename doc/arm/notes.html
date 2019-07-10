@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.15.1</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.15.2</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -125,6 +125,33 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+	  The GeoIP2 API from MaxMind is now supported. Geolocation support
+	  will be compiled in by default if the <span class="command"><strong>libmaxminddb</strong></span>
+	  library is found at compile time, but can be turned off by using
+	  <span class="command"><strong>configure --disable-geoip</strong></span>.
+	</p>
+	<p>
+	  The default path to the GeoIP2 databases will be set based
+	  on the location of the <span class="command"><strong>libmaxminddb</strong></span> library;
+	  for example, if it is in <code class="filename">/usr/local/lib</code>,
+	  then the default path will be
+	  <code class="filename">/usr/local/share/GeoIP</code>.
+	  This value can be overridden in <code class="filename">named.conf</code>
+	  using the <span class="command"><strong>geoip-directory</strong></span> option.
+	</p>
+	<p>
+	  Some <span class="command"><strong>geoip</strong></span> ACL settings that were available with
+	  legacy GeoIP, including searches for <span class="command"><strong>netspeed</strong></span>,
+	  <span class="command"><strong>org</strong></span>, and three-letter ISO country codes, will
+	  no longer work when using GeoIP2. Supported GeoIP2 database
+	  types are <span class="command"><strong>country</strong></span>, <span class="command"><strong>city</strong></span>,
+	  <span class="command"><strong>domain</strong></span>, <span class="command"><strong>isp</strong></span>, and
+	  <span class="command"><strong>as</strong></span>. All of these databases support both IPv4
+	  and IPv6 lookups. [GL #182] [GL #1112]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
 	  In order to clarify the configuration of DNSSEC keys,
 	  the <span class="command"><strong>trusted-keys</strong></span> and
 	  <span class="command"><strong>managed-keys</strong></span> statements have been
@@ -153,6 +180,20 @@
 	  [GL #865]
         </p>
       </li>
+<li class="listitem">
+	<p>
+	  Two new metrics have been added to the
+	  <span class="command"><strong>statistics-channel</strong></span> to report DNSSEC
+	  signing operations.  For each key in each zone, the
+	  <span class="command"><strong>dnssec-sign</strong></span> counter indicates the total
+	  number of signatures <span class="command"><strong>named</strong></span> has generated
+	  using that key since server startup, and the
+	  <span class="command"><strong>dnssec-refresh</strong></span> counter indicates how
+	  many of those signatures were refreshed during zone
+	  maintenance, as opposed to having been generated
+	  as a result of a zone update.  [GL #513]
+	</p>
+      </li>
 </ul></div>
   </div>
 
@@ -162,7 +203,7 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
-	  The <span class="command"><strong>dnssec-enable</strong></span> option has been deprecated and
+	  The <span class="command"><strong>dnssec-enable</strong></span> option has been obsoleted and
 	  no longer has any effect. DNSSEC responses are always enabled
 	  if signatures and other DNSSEC data are present. [GL #866]
 	</p>
@@ -171,6 +212,12 @@
 	<p>
 	  The <span class="command"><strong>cleaning-interval</strong></span> option has been
 	  removed.  [GL !1731]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The <span class="command"><strong>dnssec-lookaside</strong></span> option has been deprecated.
+	  The feature still works, but it is discouraged to use it. [GL #7]
 	</p>
       </li>
 </ul></div>
@@ -254,6 +301,23 @@
           resolution in such cases, and also uses type A rather than NS for
           minimal queries in order to reduce the likelihood of encountering
           the problem. [GL #1055]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>./configure</strong></span> no longer sets
+	  <span class="command"><strong>--sysconfdir</strong></span> to <span class="command"><strong>/etc</strong></span> or
+	  <span class="command"><strong>--localstatedir</strong></span> to <span class="command"><strong>/var</strong></span>
+	  when <span class="command"><strong>--prefix</strong></span> is not specified and the
+	  aforementioned options are not specified explicitly. Instead,
+	  Autoconf's defaults of <span class="command"><strong>$prefix/etc</strong></span> and
+	  <span class="command"><strong>$prefix/var</strong></span> are respected.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Glue address records were not being returned in responses
+	  to root priming queries; this has been corrected. [GL #1092]
 	</p>
       </li>
 </ul></div>

@@ -92,8 +92,7 @@ to generate TSIG keys\&.
 .RS 4
 Specifies the number of bits in the key\&. The choice of key size depends on the algorithm used\&. RSA keys must be between 1024 and 4096 bits\&. Diffie Hellman keys must be between 128 and 4096 bits\&. Elliptic curve algorithms don\*(Aqt need this parameter\&.
 .sp
-If the key size is not specified, some algorithms have pre\-defined defaults\&. For example, RSA keys for use as DNSSEC zone signing keys have a default size of 1024 bits; RSA keys for use as key signing keys (KSKs, generated with
-\fB\-f KSK\fR) default to 2048 bits\&.
+If the key size is not specified, some algorithms have pre\-defined defaults\&. For instance, RSA keys have a default size of 2048 bits\&.
 .RE
 .PP
 \-C

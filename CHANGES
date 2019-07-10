@@ -1,3 +1,5 @@
+	--- 9.15.2 released ---
+
 5263.	[cleanup]	Use atomics and isc_refcount_t wherever possible.
 			[GL #1038]
 

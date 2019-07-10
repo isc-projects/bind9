@@ -142,11 +142,12 @@ logging {<br>
 
   <div class="refsection">
 <a name="id-1.15"></a><h2>MANAGED-KEYS</h2>
-  <p>See DNSSEC-KEYS.</p>
+  <p>Deprecated - see DNSSEC-KEYS.</p>
     <div class="literallayout"><p><br>
-managed-keys { <em class="replaceable"><code>string</code></em> ( static-key |<br>
-    initial-key ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
-    <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
+managed-keys { <em class="replaceable"><code>string</code></em> ( static-key<br>
+    | initial-key ) <em class="replaceable"><code>integer</code></em><br>
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
+    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated<br>
 </p></div>
   </div>
 
@@ -208,7 +209,6 @@ options {<br>
 	check-spf ( warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
 	check-wildcard <em class="replaceable"><code>boolean</code></em>;<br>
-	cleaning-interval <em class="replaceable"><code>integer</code></em>;<br>
 	clients-per-query <em class="replaceable"><code>integer</code></em>;<br>
 	cookie-algorithm ( aes | sha1 | sha256 );<br>
 	cookie-secret <em class="replaceable"><code>string</code></em>;<br>
@@ -241,8 +241,9 @@ options {<br>
 	dnssec-accept-expired <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-dnskey-kskonly <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
-	dnssec-lookaside ( <em class="replaceable"><code>string</code></em> trust-anchor<br>
-	    <em class="replaceable"><code>string</code></em> | auto | no );<br>
+	dnssec-lookaside ( <em class="replaceable"><code>string</code></em><br>
+	    trust-anchor <em class="replaceable"><code>string</code></em> |<br>
+	    auto | no ); deprecated<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-update-mode ( maintain | no-resign );<br>
@@ -526,7 +527,7 @@ statistics-channels {<br>
     <div class="literallayout"><p><br>
 trusted-keys { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em><br>
     <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
-    <em class="replaceable"><code>quoted_string</code></em>; ... };, deprecated<br>
+    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated<br>
 </p></div>
   </div>
 
@@ -572,7 +573,6 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	check-spf ( warn | ignore );<br>
 	check-srv-cname ( fail | warn | ignore );<br>
 	check-wildcard <em class="replaceable"><code>boolean</code></em>;<br>
-	cleaning-interval <em class="replaceable"><code>integer</code></em>;<br>
 	clients-per-query <em class="replaceable"><code>integer</code></em>;<br>
 	deny-answer-addresses { <em class="replaceable"><code>address_match_element</code></em>; ... } [<br>
 	    except-from { <em class="replaceable"><code>string</code></em>; ... } ];<br>
@@ -607,8 +607,9 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    initial-key ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
 	    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
 	dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
-	dnssec-lookaside ( <em class="replaceable"><code>string</code></em> trust-anchor<br>
-	    <em class="replaceable"><code>string</code></em> | auto | no );<br>
+	dnssec-lookaside ( <em class="replaceable"><code>string</code></em><br>
+	    trust-anchor <em class="replaceable"><code>string</code></em> |<br>
+	    auto | no ); deprecated<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-update-mode ( maintain | no-resign );<br>
@@ -643,9 +644,11 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	key-directory <em class="replaceable"><code>quoted_string</code></em>;<br>
 	lame-ttl <em class="replaceable"><code>ttlval</code></em>;<br>
 	lmdb-mapsize <em class="replaceable"><code>sizeval</code></em>;<br>
-	managed-keys { <em class="replaceable"><code>string</code></em> ( static-key |<br>
-	    initial-key ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
-	    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
+	managed-keys { <em class="replaceable"><code>string</code></em> (<br>
+	    static-key | initial-key<br>
+	    ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
+	    <em class="replaceable"><code>integer</code></em><br>
+	    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated<br>
 	masterfile-format ( map | raw | text );<br>
 	masterfile-style ( full | relative );<br>
 	match-clients { <em class="replaceable"><code>address_match_element</code></em>; ... };<br>
@@ -798,7 +801,7 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	trusted-keys { <em class="replaceable"><code>string</code></em><br>
 	    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
 	    <em class="replaceable"><code>integer</code></em><br>
-	    <em class="replaceable"><code>quoted_string</code></em>; ... };, deprecated<br>
+	    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated<br>
 	try-tcp-refresh <em class="replaceable"><code>boolean</code></em>;<br>
 	update-check-ksk <em class="replaceable"><code>boolean</code></em>;<br>
 	use-alt-transfer-source <em class="replaceable"><code>boolean</code></em>;<br>

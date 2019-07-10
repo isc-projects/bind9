@@ -894,8 +894,6 @@
                   keys are kept up to date using RFC 5011
                   trust anchor maintenance, and if used with
                   <span class="command"><strong>static-key</strong></span>, keys are permanent.
-                  Identical to <span class="command"><strong>managed-keys</strong></span>,
-                  but has been added for improved clarity.
                 </p>
               </td>
 </tr>
@@ -905,8 +903,11 @@
               </td>
 <td>
                 <p>
-                  is identical to <span class="command"><strong>dnssec-keys</strong></span>,
-                  and is retained for backward compatibility.
+                  is identical to <span class="command"><strong>dnssec-keys</strong></span>;
+                  this option is deprecated in favor
+                  of <span class="command"><strong>dnssec-keys</strong></span> with
+                  the <span class="command"><strong>initial-key</strong></span> keyword,
+                  and may be removed in a future release.
                 </p>
               </td>
 </tr>
@@ -2429,7 +2430,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>check-spf</strong></span> ( warn | ignore );
 	<span class="command"><strong>check-srv-cname</strong></span> ( fail | warn | ignore );
 	<span class="command"><strong>check-wildcard</strong></span> <em class="replaceable"><code>boolean</code></em>;
-	<span class="command"><strong>cleaning-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>clients-per-query</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>cookie-algorithm</strong></span> ( aes | sha1 | sha256 );
 	<span class="command"><strong>cookie-secret</strong></span> <em class="replaceable"><code>string</code></em>;
@@ -2462,8 +2462,9 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>dnssec-accept-expired</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>dnssec-lookaside</strong></span> ( <em class="replaceable"><code>string</code></em> trust-anchor
-	    <em class="replaceable"><code>string</code></em> | auto | no );
+	<span class="command"><strong>dnssec-lookaside</strong></span> ( <em class="replaceable"><code>string</code></em>
+	    <span class="command"><strong>trust-anchor</strong></span> <em class="replaceable"><code>string</code></em> |
+	    <span class="command"><strong>auto</strong></span> | no ); deprecated
 	<span class="command"><strong>dnssec-must-be-secure</strong></span> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
@@ -3015,14 +3016,19 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 <dt><span class="term"><span class="command"><strong>geoip-directory</strong></span></span></dt>
 <dd>
               <p>
-                Specifies the directory containing GeoIP
-                <code class="filename">.dat</code> database files for GeoIP
-                initialization.  By default, this option is unset
-                and the GeoIP support will use libGeoIP's
-                built-in directory.
-                (For details, see <a class="xref" href="Bv9ARM.ch05.html#acl" title="acl Statement Definition and Usage">the section called &#8220;<span class="command"><strong>acl</strong></span> Statement Definition and
-          Usage&#8221;</a> about the
-                <span class="command"><strong>geoip</strong></span> ACL.)
+                When <span class="command"><strong>named</strong></span> is compiled using the
+                MaxMind GeoIP2 geolocation API,
+                this specifies the directory containing GeoIP
+                database files.  By default, the option is set based on
+                the prefix used to build the <span class="command"><strong>libmaxminddb</strong></span>
+                module: for example, if the library is installed in
+                <code class="filename">/usr/local/lib</code>, then the default
+                <span class="command"><strong>geoip-directory</strong></span> will be
+                <code class="filename">/usr/local/share/GeoIP</code>. On Windows,
+                the default is the <span class="command"><strong>named</strong></span> working
+                directory.  See <a class="xref" href="Bv9ARM.ch05.html#acl" title="acl Statement Definition and Usage">the section called &#8220;<span class="command"><strong>acl</strong></span> Statement Definition and
+          Usage&#8221;</a> for details about
+                <span class="command"><strong>geoip</strong></span> ACLs.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>key-directory</strong></span></span></dt>
@@ -3434,10 +3440,11 @@ options {
                 as insecure.
               </p>
               <p>
-                Configured trust anchors in <span class="command"><strong>trusted-keys</strong></span>
-                or <span class="command"><strong>managed-keys</strong></span> that match a disabled
-                algorithm will be ignored and treated as if they were not
-                configured at all.
+                Configured trust anchors in <span class="command"><strong>dnssec-keys</strong></span>
+                (or <span class="command"><strong>managed-keys</strong></span> or
+                <span class="command"><strong>trusted-keys</strong></span>, both deprecated)
+                that match a disabled algorithm will be ignored and treated
+                as if they were not configured at all.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>disable-ds-digests</strong></span></span></dt>
@@ -3474,6 +3481,9 @@ options {
                 If <span class="command"><strong>dnssec-lookaside</strong></span> is set to
                 <strong class="userinput"><code>no</code></strong>, then dnssec-lookaside
                 is not used.
+              </p>
+              <p>
+                This option is deprecated and its use is discouraged.
               </p>
               <p>
                 NOTE: The ISC-provided DLV service at
@@ -3773,6 +3783,8 @@ options {
                 <span class="command"><strong>zone-statistics terse</strong></span> or
                 <span class="command"><strong>zone-statistics none</strong></span>
                 in the <span class="command"><strong>zone</strong></span> statement).
+                These include, for example, DNSSEC signing operations
+                and the number of authoritative answers per query type.
                 The default is <strong class="userinput"><code>terse</code></strong>, providing
                 minimal statistics on zones (including name and
                 current serial number, but not query type
@@ -4676,8 +4688,8 @@ options {
                   If set to <strong class="userinput"><code>yes</code></strong>, DNSSEC validation is
                   enabled, but a trust anchor must be manually configured
                   using a <span class="command"><strong>dnssec-keys</strong></span> statement (or
-                  the synonymous <span class="command"><strong>managed-keys</strong></span>, or the
-                  deprecated <span class="command"><strong>trusted-keys</strong></span> statements).
+                  the <span class="command"><strong>managed-keys</strong></span> or the
+                  <span class="command"><strong>trusted-keys</strong></span> statements, both deprecated).
                   If there is no configured trust anchor, validation will
                   not take place.
                 </p>
@@ -9007,9 +9019,10 @@ example.com                 CNAME   rpz-tcp-only.
 <div class="titlepage"><div><div><h3 class="title">
 <a name="managed-keys"></a><span class="command"><strong>managed-keys</strong></span> Statement Grammar</h3></div></div></div>
         <pre class="programlisting">
-<span class="command"><strong>managed-keys</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key |
-    <span class="command"><strong>initial-key</strong></span> ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
-    <em class="replaceable"><code>quoted_string</code></em>; ... };
+<span class="command"><strong>managed-keys</strong></span> { <em class="replaceable"><code>string</code></em> ( static-key
+    | initial-key ) <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
+    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated
 </pre>
         </div>
         <div class="section">
@@ -9018,9 +9031,9 @@ example.com                 CNAME   rpz-tcp-only.
             and Usage</h3></div></div></div>
 
           <p>
-            The <span class="command"><strong>managed-keys</strong></span> statement is
-            identical to the <span class="command"><strong>dnssec-keys</strong></span>, and is
-            retained for backward compatibility.
+            The <span class="command"><strong>managed-keys</strong></span> statement has been
+            deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#dnssec_keys" title="dnssec-keys Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Grammar&#8221;</a>
+            with the <span class="command"><strong>initial-key</strong></span> keyword.
           </p>
         </div>
 
@@ -9030,7 +9043,7 @@ example.com                 CNAME   rpz-tcp-only.
         <pre class="programlisting">
 <span class="command"><strong>trusted-keys</strong></span> { <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>integer</code></em>
     <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em>
-    <em class="replaceable"><code>quoted_string</code></em>; ... };, deprecated
+    <em class="replaceable"><code>quoted_string</code></em>; ... }; deprecated
 </pre>
         </div>
         <div class="section">
@@ -9041,7 +9054,7 @@ example.com                 CNAME   rpz-tcp-only.
           <p>
             The <span class="command"><strong>trusted-keys</strong></span> statement has been
             deprecated in favor of <a class="xref" href="Bv9ARM.ch05.html#dnssec_keys" title="dnssec-keys Statement Grammar">the section called &#8220;<span class="command"><strong>dnssec-keys</strong></span> Statement Grammar&#8221;</a>
-            with the <span class="command"><strong>static</strong></span> keyword.
+            with the <span class="command"><strong>static-key</strong></span> keyword.
           </p>
         </div>
 
@@ -9674,9 +9687,8 @@ view "external" {
                         For validation to succeed, a key-signing key
                         (KSK) for the zone must be configured as a trust
                         anchor in <code class="filename">named.conf</code>: that
-                        is, a key for the zone must either be specified
-                        in <span class="command"><strong>managed-keys</strong></span> or
-                        <span class="command"><strong>trusted-keys</strong></span>.  In the case
+                        is, a key for the zone must be specified in
+                        <span class="command"><strong>dnssec-keys</strong></span>.  In the case
                         of the root zone, you may also rely on the
                         built-in root trust anchor, which is enabled
                         when <a class="xref" href="Bv9ARM.ch05.html#dnssec_validation"><span class="command"><strong>dnssec-validation</strong></span></a> is set to the
@@ -13515,6 +13527,15 @@ HOST-127.EXAMPLE. MX 0 .
             <acronym class="acronym">BIND</acronym> 8 statistics, if applicable.
           </p>
 
+          <p>
+            Note: BIND statistics counters are signed 64-bit values on
+            all platforms except one: 32-bit Windows, where they are
+            signed 32-bit values.  Given that 32-bit values have a
+            vastly smaller range than 64-bit values, BIND statistics
+            counters in 32-bit Windows builds overflow significantly
+            more quickly than on all other platforms.
+          </p>
+
           <div class="section">
 <div class="titlepage"><div><div><h4 class="title">
 <a name="stats_counters"></a>Name Server Statistics Counters</h4></div></div></div>
@@ -14913,6 +14934,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.1 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.2 (Development Release)</p>
 </body>
 </html>

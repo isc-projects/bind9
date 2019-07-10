@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2019-05-10
+.\"      Date: 2019-06-28
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2019\-05\-10" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2019\-06\-28" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -163,15 +163,16 @@ logging {
 .\}
 .SH "MANAGED-KEYS"
 .PP
-See DNSSEC\-KEYS\&.
+Deprecated \- see DNSSEC\-KEYS\&.
 .sp
 .if n \{\
 .RS 4
 .\}
 .nf
-managed\-keys { \fIstring\fR ( static\-key |
-    initial\-key ) \fIinteger\fR \fIinteger\fR \fIinteger\fR
-    \fIquoted_string\fR; \&.\&.\&. };
+managed\-keys { \fIstring\fR ( static\-key
+    | initial\-key ) \fIinteger\fR
+    \fIinteger\fR \fIinteger\fR
+    \fIquoted_string\fR; \&.\&.\&. }; deprecated
 .fi
 .if n \{\
 .RE
@@ -241,7 +242,6 @@ options {
 	check\-spf ( warn | ignore );
 	check\-srv\-cname ( fail | warn | ignore );
 	check\-wildcard \fIboolean\fR;
-	cleaning\-interval \fIinteger\fR;
 	clients\-per\-query \fIinteger\fR;
 	cookie\-algorithm ( aes | sha1 | sha256 );
 	cookie\-secret \fIstring\fR;
@@ -274,8 +274,9 @@ options {
 	dnssec\-accept\-expired \fIboolean\fR;
 	dnssec\-dnskey\-kskonly \fIboolean\fR;
 	dnssec\-loadkeys\-interval \fIinteger\fR;
-	dnssec\-lookaside ( \fIstring\fR trust\-anchor
-	    \fIstring\fR | auto | no );
+	dnssec\-lookaside ( \fIstring\fR
+	    trust\-anchor \fIstring\fR |
+	    auto | no ); deprecated
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
@@ -576,7 +577,7 @@ Deprecated \- see DNSSEC\-KEYS\&.
 .nf
 trusted\-keys { \fIstring\fR \fIinteger\fR
     \fIinteger\fR \fIinteger\fR
-    \fIquoted_string\fR; \&.\&.\&. };, deprecated
+    \fIquoted_string\fR; \&.\&.\&. }; deprecated
 .fi
 .if n \{\
 .RE
@@ -626,7 +627,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 	check\-spf ( warn | ignore );
 	check\-srv\-cname ( fail | warn | ignore );
 	check\-wildcard \fIboolean\fR;
-	cleaning\-interval \fIinteger\fR;
 	clients\-per\-query \fIinteger\fR;
 	deny\-answer\-addresses { \fIaddress_match_element\fR; \&.\&.\&. } [
 	    except\-from { \fIstring\fR; \&.\&.\&. } ];
@@ -661,8 +661,9 @@ view \fIstring\fR [ \fIclass\fR ] {
 	    initial\-key ) \fIinteger\fR \fIinteger\fR
 	    \fIinteger\fR \fIquoted_string\fR; \&.\&.\&. };
 	dnssec\-loadkeys\-interval \fIinteger\fR;
-	dnssec\-lookaside ( \fIstring\fR trust\-anchor
-	    \fIstring\fR | auto | no );
+	dnssec\-lookaside ( \fIstring\fR
+	    trust\-anchor \fIstring\fR |
+	    auto | no ); deprecated
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
@@ -697,9 +698,11 @@ view \fIstring\fR [ \fIclass\fR ] {
 	key\-directory \fIquoted_string\fR;
 	lame\-ttl \fIttlval\fR;
 	lmdb\-mapsize \fIsizeval\fR;
-	managed\-keys { \fIstring\fR ( static\-key |
-	    initial\-key ) \fIinteger\fR \fIinteger\fR
-	    \fIinteger\fR \fIquoted_string\fR; \&.\&.\&. };
+	managed\-keys { \fIstring\fR (
+	    static\-key | initial\-key
+	    ) \fIinteger\fR \fIinteger\fR
+	    \fIinteger\fR
+	    \fIquoted_string\fR; \&.\&.\&. }; deprecated
 	masterfile\-format ( map | raw | text );
 	masterfile\-style ( full | relative );
 	match\-clients { \fIaddress_match_element\fR; \&.\&.\&. };
@@ -852,7 +855,7 @@ view \fIstring\fR [ \fIclass\fR ] {
 	trusted\-keys { \fIstring\fR
 	    \fIinteger\fR \fIinteger\fR
 	    \fIinteger\fR
-	    \fIquoted_string\fR; \&.\&.\&. };, deprecated
+	    \fIquoted_string\fR; \&.\&.\&. }; deprecated
 	try\-tcp\-refresh \fIboolean\fR;
 	update\-check\-ksk \fIboolean\fR;
 	use\-alt\-transfer\-source \fIboolean\fR;
