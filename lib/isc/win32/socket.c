@@ -55,6 +55,7 @@
 #include <isc/os.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/refcount.h>
 #include <isc/region.h>
 #include <isc/socket.h>
 #include <isc/stats.h>
@@ -393,7 +394,7 @@ sock_dump(isc_socket_t *sock) {
 	printf("\n\t\tSock Dump\n");
 	printf("\t\tfd: %Iu\n", sock->fd);
 	printf("\t\treferences: %" PRIuFAST32 "\n",
-	       isc_refcount_current(sock->references));
+	       isc_refcount_current(&sock->references));
 	printf("\t\tpending_accept: %u\n", sock->pending_accept);
 	printf("\t\tconnecting: %u\n", sock->pending_connect);
 	printf("\t\tconnected: %u\n", sock->connected);
@@ -1450,7 +1451,7 @@ maybe_free_socket(isc_socket_t **socketp, int lineno) {
 	    || sock->pending_recv > 0
 	    || sock->pending_send > 0
 	    || sock->pending_accept > 0
-	    || isc_refcount_current(sock->references) > 0
+	    || isc_refcount_current(&sock->references) > 0
 	    || sock->pending_connect == 1
 	    || !ISC_LIST_EMPTY(sock->recv_list)
 	    || !ISC_LIST_EMPTY(sock->send_list)
@@ -1543,7 +1544,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 					"con_reset_fix_failed",
 					sock->pending_recv,
 					sock->pending_send,
-					   isc_refcount_current(sock->references));
+					   isc_refcount_current(&sock->references));
 				closesocket(sock->fd);
 				_set_state(sock, SOCK_CLOSED);
 				sock->fd = INVALID_SOCKET;
@@ -1595,7 +1596,7 @@ socket_create(isc_socketmgr_t *manager, int pf, isc_sockettype_t type,
 		socket_log(__LINE__, sock, NULL, EVENT,
 			   "closed %d %d %" PRIuFAST32 " make_nonblock_failed",
 			   sock->pending_recv, sock->pending_send,
-			   isc_refcount_current(sock->references));
+			   isc_refcount_current(&sock->references));
 		closesocket(sock->fd);
 		sock->fd = INVALID_SOCKET;
 		free_socket(&sock, __LINE__);
@@ -1739,7 +1740,7 @@ isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp) {
 void
 isc_socket_detach(isc_socket_t **socketp) {
 	isc_socket_t *sock;
-	uint32_t refs;
+	uint32_t references;
 
 	REQUIRE(socketp != NULL);
 	sock = *socketp;
@@ -1748,12 +1749,12 @@ isc_socket_detach(isc_socket_t **socketp) {
 	LOCK(&sock->lock);
 	CONSISTENT(sock);
 
-	references = isc_refcount_decrement(&socket->references);
+	references = isc_refcount_decrement(&sock->references);
 
 	socket_log(__LINE__, sock, NULL, EVENT,
 		   "detach_socket %d %d %" PRIuFAST32,
 		   sock->pending_recv, sock->pending_send,
-		   isc_refcount_current(sock->references));
+		   isc_refcount_current(&sock->references));
 
 	if (references == 1 && sock->fd != INVALID_SOCKET) {
 		closesocket(sock->fd);
@@ -2488,7 +2489,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		      unsigned int maxsocks, int nthreads)
 {
 	isc_socketmgr_t *manager;
-	isc_result_t result;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
@@ -3675,7 +3675,7 @@ isc_socketmgr_renderxml(isc_socketmgr_t *mgr, void *writer0)
 		TRY0(xmlTextWriterStartElement(writer,
 					       ISC_XMLCHAR "references"));
 		TRY0(xmlTextWriterWriteFormatString(writer, "%" PRIuFAST32,
-						    isc_refcount_current(sock->references)));
+						    isc_refcount_current(&sock->references)));
 		TRY0(xmlTextWriterEndElement(writer));
 
 		TRY0(xmlTextWriterWriteElement(writer, ISC_XMLCHAR "type",
