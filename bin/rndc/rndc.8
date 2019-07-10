@@ -516,11 +516,7 @@ timer\&.
 .RS 4
 Dump the security roots (i\&.e\&., trust anchors configured via
 \fBdnssec\-keys\fR
-statements, or the synonymous
-\fBmanaged\-keys\fR
-or the deprecated
-\fBtrusted\-keys\fR
-statements, or via
+statements, or the managed\-keys or trusted\-keys statements (both deprecated), or via
 \fBdnssec\-validation auto\fR) and negative trust anchors for the specified views\&. If no view is specified, all views are dumped\&. Security roots will indicate whether they are configured as trusted keys, managed keys, or initializing managed keys (managed keys that have not yet been updated by a successful key refresh query)\&.
 .sp
 If the first argument is "\-", then the output is returned via the

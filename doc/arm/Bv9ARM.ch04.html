@@ -1043,8 +1043,8 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
           if at least one trust anchor has been explicitly configured
           in <code class="filename">named.conf</code>
           using a <span class="command"><strong>dnssec-keys</strong></span> statement (or the
-          synonymous <span class="command"><strong>managed-keys</strong></span> or the deprecated
-          <span class="command"><strong>trusted-keys</strong></span> statements).
+          <span class="command"><strong>managed-keys</strong></span> and <span class="command"><strong>trusted-keys</strong></span>
+          statements, both deprecated).
         </p>
         <p>
           When <span class="command"><strong>dnssec-validation</strong></span> is set to
@@ -2840,6 +2840,6 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.1 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.2 (Development Release)</p>
 </body>
 </html>
