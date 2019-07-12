@@ -512,19 +512,19 @@ mutexatomics:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *build_job
 
-system:mutexatomics:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *system_test_job
-  dependencies:
-    - mutexatomics:sid:amd64
-  allow_failure: true
+#system:mutexatomics:sid:amd64:
+#  <<: *debian_sid_amd64_image
+#  <<: *system_test_job
+#  dependencies:
+#    - mutexatomics:sid:amd64
+#  allow_failure: true
 
-unit:mutexatomics:sid:amd64:
-  <<: *debian_sid_amd64_image
-  <<: *unit_test_job
-  dependencies:
-    - mutexatomics:sid:amd64
-  allow_failure: true
+#unit:mutexatomics:sid:amd64:
+#  <<: *debian_sid_amd64_image
+#  <<: *unit_test_job
+#  dependencies:
+#    - mutexatomics:sid:amd64
+#  allow_failure: true
 
 # Jobs for Clang builds on Debian Stretch (amd64)
 
