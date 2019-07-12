@@ -1,3 +1,7 @@
+5266.	[bug]		named-checkconf failed to report dnstap-output
+			missing from named.conf when dnstap was specified.
+			[GL #1136]
+
 5265.	[bug]		DNS64 and RPZ nodata (CNAME *.) rules interacted badly
 			[GL #1106]
 
