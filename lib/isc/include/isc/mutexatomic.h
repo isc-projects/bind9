@@ -98,6 +98,8 @@ typedef struct atomic_bool_s {
 	bool v;
 } atomic_bool;
 
+#define ATOMIC_VAR_INIT(arg)				\
+	{ .m = PTHREAD_MUTEX_INITIALIZER, .v = arg }
 
 #define atomic_init(obj, desired)					\
 	{								\
