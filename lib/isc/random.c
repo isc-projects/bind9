@@ -87,7 +87,7 @@ isc_random_initialize(void) {
 #else
 	isc_entropy_get(useed, sizeof(useed));
 #endif
-	memcpy(seed, useed, sizeof(seed));
+	memmove(seed, useed, sizeof(seed));
 }
 
 uint8_t

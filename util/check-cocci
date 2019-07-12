@@ -1,15 +1,10 @@
 #!/bin/sh
+set -e
 
-ret=0
 for spatch in cocci/*.spatch; do
-    patch="$(dirname "$spatch")/$(basename "$spatch" .spatch).patch"
-    spatch --sp-file="$spatch" --use-gitgrep --dir bin --dir lib --dir fuzz --very-quiet > "$patch";
-    if [ "$(< "$patch" wc -l)" -gt "0" ]; then
-	cat "$patch"
-	ret=1
-    else
-	rm "$patch"
-    fi
+    for dir in bin lib fuzz; do
+	spatch --sp-file="$spatch" --use-gitgrep --dir "$dir" --in-place --quiet
+    done
 done
 
-exit $ret
+exit 0
