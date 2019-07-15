@@ -1,3 +1,6 @@
+5301.	[bug]		Detect partial prefixes / incomplete IPv4 address in
+			acls. [GL #1143]
+
 5296.	[bug]		Address various issues reported by cppcheck. [GL !2421]
 
 5294.	[func]		Fallback to ACE name on output in locale, which does not
