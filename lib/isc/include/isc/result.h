@@ -87,9 +87,11 @@
 #define ISC_R_CRYPTOFAILURE		65	/*%< cryptography library failure */
 #define ISC_R_DISCQUOTA			66	/*%< disc quota */
 #define ISC_R_DISCFULL			67	/*%< disc full */
+#define ISC_R_DEFAULT			68	/*%< default */
+#define ISC_R_IPV4PREFIX		69	/*%< IPv4 prefix */
 
 /*% Not a result code: the number of results. */
-#define ISC_R_NRESULTS 			68
+#define ISC_R_NRESULTS 			70
 
 ISC_LANG_BEGINDECLS
 
