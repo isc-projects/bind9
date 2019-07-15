@@ -1,3 +1,6 @@
+5301.	[bug]		Detect partial prefixes / incomplete IPv4 address in
+			acls. [GL #1143]
+
 5300.	[bug]		dig/mdig/delv: Add a colon after EDNS option names,
 			even when the option is empty, to improve
 			readability and allow correct parsing of YAML
