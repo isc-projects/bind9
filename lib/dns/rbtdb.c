@@ -8322,7 +8322,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	rbtdb->next_serial = 2;
 	rbtdb->current_version = allocate_version(mctx, 1, 1, false);
 	if (rbtdb->current_version == NULL) {
-		INSIST(isc_refcount_decrement(&rbtdb->references) > 0);
+		isc_refcount_decrement(&rbtdb->references);
 		free_rbtdb(rbtdb, false, NULL);
 		return (ISC_R_NOMEMORY);
 	}
@@ -8343,7 +8343,7 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		isc_mem_put(mctx, rbtdb->current_version,
 			    sizeof(*rbtdb->current_version));
 		rbtdb->current_version = NULL;
-		INSIST(isc_refcount_decrement(&rbtdb->references) > 0);
+		isc_refcount_decrement(&rbtdb->references);
 		free_rbtdb(rbtdb, false, NULL);
 		return (result);
 	}
