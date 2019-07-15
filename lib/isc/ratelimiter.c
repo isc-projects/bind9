@@ -17,6 +17,7 @@
 
 #include <isc/mem.h>
 #include <isc/ratelimiter.h>
+#include <isc/refcount.h>
 #include <isc/task.h>
 #include <isc/time.h>
 #include <isc/timer.h>
@@ -32,7 +33,7 @@ typedef enum {
 struct isc_ratelimiter {
 	isc_mem_t *		mctx;
 	isc_mutex_t		lock;
-	int			refs;
+	isc_refcount_t		references;
 	isc_task_t *		task;
 	isc_timer_t *		timer;
 	isc_interval_t		interval;
@@ -60,14 +61,15 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	INSIST(ratelimiterp != NULL && *ratelimiterp == NULL);
 
 	rl = isc_mem_get(mctx, sizeof(*rl));
-	rl->mctx = mctx;
-	rl->refs = 1;
-	rl->task = task;
+	*rl = (isc_ratelimiter_t){
+		.mctx = mctx,
+		.task = task,
+		.pertic = 1,
+		.state = isc_ratelimiter_idle,
+	};
+
+	isc_refcount_init(&rl->references, 1);
 	isc_interval_set(&rl->interval, 0, 0);
-	rl->timer = NULL;
-	rl->pertic = 1;
-	rl->pushpop = false;
-	rl->state = isc_ratelimiter_idle;
 	ISC_LIST_INIT(rl->pending);
 
 	isc_mutex_init(&rl->lock);
@@ -82,7 +84,7 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	 * Increment the reference count to indicate that we may
 	 * (soon) have events outstanding.
 	 */
-	rl->refs++;
+	isc_refcount_increment(&rl->references);
 
 	ISC_EVENT_INIT(&rl->shutdownevent,
 		       sizeof(isc_event_t),
@@ -213,14 +215,14 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 			 */
 			ISC_LIST_UNLINK(rl->pending, p, ev_ratelink);
 		} else {
-			isc_result_t result;
 			/*
 			 * No work left to do.  Stop the timer so that we don't
 			 * waste resources by having it fire periodically.
 			 */
-			result = isc_timer_reset(rl->timer,
-						 isc_timertype_inactive,
-						 NULL, NULL, false);
+			isc_result_t result =
+				isc_timer_reset(rl->timer,
+						isc_timertype_inactive,
+						NULL, NULL, false);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			rl->state = isc_ratelimiter_idle;
 			pertic = 0;	/* Force the loop to exit. */
@@ -237,7 +239,6 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 void
 isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	isc_event_t *ev;
-	isc_task_t *task;
 
 	REQUIRE(rl != NULL);
 
@@ -246,9 +247,9 @@ isc_ratelimiter_shutdown(isc_ratelimiter_t *rl) {
 	(void)isc_timer_reset(rl->timer, isc_timertype_inactive,
 			      NULL, NULL, false);
 	while ((ev = ISC_LIST_HEAD(rl->pending)) != NULL) {
+		isc_task_t *task = ev->ev_sender;
 		ISC_LIST_UNLINK(rl->pending, ev, ev_ratelink);
 		ev->ev_attributes |= ISC_EVENTATTR_CANCELED;
-		task = ev->ev_sender;
 		isc_task_send(task, &ev);
 	}
 	isc_timer_detach(&rl->timer);
@@ -280,36 +281,25 @@ ratelimiter_free(isc_ratelimiter_t *rl) {
 
 void
 isc_ratelimiter_attach(isc_ratelimiter_t *source, isc_ratelimiter_t **target) {
-
 	REQUIRE(source != NULL);
 	REQUIRE(target != NULL && *target == NULL);
 
-	LOCK(&source->lock);
-	REQUIRE(source->refs > 0);
-	source->refs++;
-	INSIST(source->refs > 0);
-	UNLOCK(&source->lock);
+	isc_refcount_increment(&source->references);
+
 	*target = source;
 }
 
 void
 isc_ratelimiter_detach(isc_ratelimiter_t **rlp) {
 	isc_ratelimiter_t *rl;
-	bool free_now = false;
 
 	REQUIRE(rlp != NULL && *rlp != NULL);
 
 	rl = *rlp;
 
-	LOCK(&rl->lock);
-	REQUIRE(rl->refs > 0);
-	rl->refs--;
-	if (rl->refs == 0)
-		free_now = true;
-	UNLOCK(&rl->lock);
-
-	if (free_now)
+	if (isc_refcount_decrement(&rl->references) == 1) {
 		ratelimiter_free(rl);
+	}
 
 	*rlp = NULL;
 }

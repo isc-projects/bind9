@@ -205,7 +205,7 @@ struct dns_zone {
 	dns_zonemgr_t		*zmgr;
 	ISC_LINK(dns_zone_t)	link;		/* Used by zmgr. */
 	isc_timer_t		*timer;
-	unsigned int		irefs;
+	isc_refcount_t		irefs;
 	dns_name_t		origin;
 	char			*masterfile;
 	ISC_LIST(dns_include_t)	includes;	/* Include files */
@@ -529,7 +529,7 @@ struct dns_unreachable {
 struct dns_zonemgr {
 	unsigned int		magic;
 	isc_mem_t *		mctx;
-	int			refs;		/* Locked by rwlock */
+	isc_refcount_t		refs;
 	isc_taskmgr_t *		taskmgr;
 	isc_timermgr_t *	timermgr;
 	isc_socketmgr_t *	socketmgr;
@@ -921,8 +921,8 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->db = NULL;
 	zone->zmgr = NULL;
 	ISC_LINK_INIT(zone, link);
-	isc_refcount_init(&zone->erefs, 1);	/* Implicit attach. */
-	zone->irefs = 0;
+	isc_refcount_init(&zone->erefs, 1);
+	isc_refcount_init(&zone->irefs, 0);
 	dns_name_init(&zone->origin, NULL);
 	zone->strnamerd = NULL;
 	zone->strname = NULL;
@@ -1073,7 +1073,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	result = isc_stats_create(mctx, &zone->gluecachestats,
 				  dns_gluecachestatscounter_max);
 	if (result != ISC_R_SUCCESS) {
-		goto free_erefs;
+		goto free_refs;
 	}
 
 	/* Must be after magic is set. */
@@ -1085,9 +1085,10 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	*zonep = zone;
 	return (ISC_R_SUCCESS);
 
- free_erefs:
+ free_refs:
 	INSIST(isc_refcount_decrement(&zone->erefs) > 0);
 	isc_refcount_destroy(&zone->erefs);
+	isc_refcount_destroy(&zone->irefs);
 
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 
@@ -1111,7 +1112,7 @@ zone_free(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(isc_refcount_current(&zone->erefs) == 0);
-	REQUIRE(zone->irefs == 0);
+	REQUIRE(isc_refcount_current(&zone->irefs) == 0);
 	REQUIRE(!LOCKED_ZONE(zone));
 	REQUIRE(zone->timer == NULL);
 	REQUIRE(zone->zmgr == NULL);
@@ -5110,7 +5111,9 @@ static bool
 exit_check(dns_zone_t *zone) {
 	REQUIRE(LOCKED_ZONE(zone));
 
-	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SHUTDOWN) && zone->irefs == 0) {
+	if (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_SHUTDOWN) &&
+	    isc_refcount_current(&zone->irefs) == 0)
+	{
 		/*
 		 * DNS_ZONEFLG_SHUTDOWN can only be set if erefs == 0.
 		 */
@@ -5483,9 +5486,8 @@ zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	REQUIRE(DNS_ZONE_VALID(source));
 	REQUIRE(LOCKED_ZONE(source));
 	REQUIRE(target != NULL && *target == NULL);
-	INSIST(source->irefs + isc_refcount_current(&source->erefs) > 0);
-	source->irefs++;
-	INSIST(source->irefs != 0);
+	INSIST(isc_refcount_increment0(&source->irefs) +
+	       isc_refcount_current(&source->erefs) > 0);
 	*target = source;
 }
 
@@ -5501,9 +5503,8 @@ zone_idetach(dns_zone_t **zonep) {
 	REQUIRE(LOCKED_ZONE(*zonep));
 	*zonep = NULL;
 
-	INSIST(zone->irefs > 0);
-	zone->irefs--;
-	INSIST(zone->irefs + isc_refcount_current(&zone->erefs) > 0);
+	INSIST(isc_refcount_decrement(&zone->irefs) - 1 +
+	       isc_refcount_current(&zone->erefs) > 0);
 }
 
 void
@@ -5515,13 +5516,14 @@ dns_zone_idetach(dns_zone_t **zonep) {
 	zone = *zonep;
 	*zonep = NULL;
 
-	LOCK_ZONE(zone);
-	INSIST(zone->irefs > 0);
-	zone->irefs--;
-	free_needed = exit_check(zone);
-	UNLOCK_ZONE(zone);
-	if (free_needed)
-		zone_free(zone);
+	if (isc_refcount_decrement(&zone->irefs) == 1) {
+		LOCK_ZONE(zone);
+		free_needed = exit_check(zone);
+		UNLOCK_ZONE(zone);
+		if (free_needed) {
+			zone_free(zone);
+		}
+	}
 }
 
 isc_mem_t *
@@ -10405,8 +10407,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
  cleanup:
 	dns_db_detach(&kfetch->db);
 
-	INSIST(zone->irefs > 0);
-	zone->irefs--;
+	isc_refcount_decrement(&zone->irefs);
+
 	kfetch->zone = NULL;
 
 	if (dns_rdataset_isassociated(keydataset)) {
@@ -10537,8 +10539,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 
 		zone->refreshkeycount++;
 		kfetch->zone = zone;
-		zone->irefs++;
-		INSIST(zone->irefs != 0);
+		isc_refcount_increment0(&zone->irefs);
 		kname = dns_fixedname_initname(&kfetch->name);
 		dns_name_dup(name, zone->mctx, kname);
 		dns_rdataset_init(&kfetch->dnskeyset);
@@ -10592,7 +10593,7 @@ zone_refreshkeys(dns_zone_t *zone) {
 			fetching = true;
 		} else {
 			zone->refreshkeycount--;
-			zone->irefs--;
+			isc_refcount_decrement(&zone->irefs);
 			dns_db_detach(&kfetch->db);
 			dns_rdataset_disassociate(&kfetch->keydataset);
 			dns_name_free(kname, zone->mctx);
@@ -13583,8 +13584,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 	LOCK_ZONE(zone);
 	INSIST(zone != zone->raw);
 	if (linked) {
-		INSIST(zone->irefs > 0);
-		zone->irefs--;
+		isc_refcount_decrement(&zone->irefs);
 	}
 	if (zone->request != NULL) {
 		dns_request_cancel(zone->request);
@@ -13611,8 +13611,7 @@ zone_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	if (zone->timer != NULL) {
 		isc_timer_detach(&zone->timer);
-		INSIST(zone->irefs > 0);
-		zone->irefs--;
+		isc_refcount_decrement(&zone->irefs);
 	}
 
 	/*
@@ -15208,8 +15207,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 
 	if (event != NULL) {
 		LOCK_ZONE(zone);
-		INSIST(zone->irefs > 1);
-		zone->irefs--;
+		isc_refcount_decrement(&zone->irefs);
 		ISC_LIST_UNLINK(zone->rss_events, event, ev_link);
 		goto nextevent;
 	}
@@ -16215,8 +16213,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 	if (again && !DNS_ZONE_FLAG(zone, DNS_ZONEFLG_EXITING))
 		queue_soa_query(zone);
 
-	INSIST(zone->irefs > 0);
-	zone->irefs--;
+	isc_refcount_decrement(&zone->irefs);
 	free_needed = exit_check(zone);
 	UNLOCK_ZONE(zone);
 	if (free_needed)
@@ -16380,9 +16377,7 @@ queue_xfrin(dns_zone_t *zone) {
 
 	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
 	ISC_LIST_APPEND(zmgr->waiting_for_xfrin, zone, statelink);
-	LOCK_ZONE(zone);
-	zone->irefs++;
-	UNLOCK_ZONE(zone);
+	isc_refcount_increment0(&zone->irefs);
 	zone->statelist = &zmgr->waiting_for_xfrin;
 	result = zmgr_start_xfrin_ifquota(zmgr, zone);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
@@ -16850,7 +16845,7 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
 	zmgr->mctx = NULL;
-	zmgr->refs = 1;
+	isc_refcount_init(&zmgr->refs, 1);
 	isc_mem_attach(mctx, &zmgr->mctx);
 	zmgr->taskmgr = taskmgr;
 	zmgr->timermgr = timermgr;
@@ -17012,12 +17007,11 @@ dns_zonemgr_managezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	/*
 	 * The timer "holds" a iref.
 	 */
-	zone->irefs++;
-	INSIST(zone->irefs != 0);
+	isc_refcount_increment0(&zone->irefs);
 
 	ISC_LIST_APPEND(zmgr->zones, zone, link);
 	zone->zmgr = zmgr;
-	zmgr->refs++;
+	isc_refcount_increment(&zmgr->refs);
 
 	goto unlock;
 
@@ -17044,9 +17038,10 @@ dns_zonemgr_releasezone(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 
 	ISC_LIST_UNLINK(zmgr->zones, zone, link);
 	zone->zmgr = NULL;
-	zmgr->refs--;
-	if (zmgr->refs == 0)
+
+	if (isc_refcount_decrement(&zmgr->refs) == 1) {
 		free_now = true;
+	}
 
 	UNLOCK_ZONE(zone);
 	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
@@ -17061,31 +17056,23 @@ dns_zonemgr_attach(dns_zonemgr_t *source, dns_zonemgr_t **target) {
 	REQUIRE(DNS_ZONEMGR_VALID(source));
 	REQUIRE(target != NULL && *target == NULL);
 
-	RWLOCK(&source->rwlock, isc_rwlocktype_write);
-	REQUIRE(source->refs > 0);
-	source->refs++;
-	INSIST(source->refs > 0);
-	RWUNLOCK(&source->rwlock, isc_rwlocktype_write);
+	isc_refcount_increment(&source->refs);
+
 	*target = source;
 }
 
 void
 dns_zonemgr_detach(dns_zonemgr_t **zmgrp) {
 	dns_zonemgr_t *zmgr;
-	bool free_now = false;
 
 	REQUIRE(zmgrp != NULL);
 	zmgr = *zmgrp;
 	REQUIRE(DNS_ZONEMGR_VALID(zmgr));
 
-	RWLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-	zmgr->refs--;
-	if (zmgr->refs == 0)
-		free_now = true;
-	RWUNLOCK(&zmgr->rwlock, isc_rwlocktype_write);
-
-	if (free_now)
+	if (isc_refcount_decrement(&zmgr->refs) == 1) {
 		zonemgr_free(zmgr);
+	}
+
 	*zmgrp = NULL;
 }
 
@@ -17256,11 +17243,11 @@ static void
 zonemgr_free(dns_zonemgr_t *zmgr) {
 	isc_mem_t *mctx;
 
-	INSIST(zmgr->refs == 0);
 	INSIST(ISC_LIST_EMPTY(zmgr->zones));
 
 	zmgr->magic = 0;
 
+	isc_refcount_destroy(&zmgr->refs);
 	isc_mutex_destroy(&zmgr->iolock);
 	isc_ratelimiter_detach(&zmgr->notifyrl);
 	isc_ratelimiter_detach(&zmgr->refreshrl);
@@ -19514,9 +19501,7 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 	/*
 	 * The timer "holds" a iref.
 	 */
-	raw->irefs++;
-	INSIST(raw->irefs != 0);
-
+	isc_refcount_increment0(&raw->irefs);
 
 	/* dns_zone_attach(raw, &zone->raw); */
 	isc_refcount_increment(&raw->erefs);
@@ -19530,7 +19515,7 @@ dns_zone_link(dns_zone_t *zone, dns_zone_t *raw) {
 
 	ISC_LIST_APPEND(zmgr->zones, raw, link);
 	raw->zmgr = zmgr;
-	zmgr->refs++;
+	isc_refcount_increment(&zmgr->refs);
 
  unlock:
 	UNLOCK_ZONE(raw);

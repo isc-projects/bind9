@@ -32,6 +32,7 @@
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/netaddr.h>
+#include <isc/refcount.h>
 
 #include <dns/types.h>
 
@@ -47,7 +48,7 @@
 
 struct dns_peerlist {
 	unsigned int		magic;
-	uint32_t		refs;
+	isc_refcount_t		refs;
 
 	isc_mem_t	       *mem;
 
@@ -56,7 +57,7 @@ struct dns_peerlist {
 
 struct dns_peer {
 	unsigned int		magic;
-	uint32_t		refs;
+	isc_refcount_t		refs;
 
 	isc_mem_t	       *mem;
 
