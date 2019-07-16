@@ -61,25 +61,18 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow);
 
 isc_result_t
 dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
-	isc_result_t result;
 	dns_badcache_t *bc = NULL;
 
 	REQUIRE(bcp != NULL && *bcp == NULL);
 	REQUIRE(mctx != NULL);
 
 	bc = isc_mem_get(mctx, sizeof(dns_badcache_t));
-	if (bc == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(bc, 0, sizeof(dns_badcache_t));
 
 	isc_mem_attach(mctx, &bc->mctx);
 	isc_mutex_init(&bc->lock);
 
 	bc->table = isc_mem_get(bc->mctx, sizeof(*bc->table) * size);
-	if (bc->table == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto destroy_lock;
-	}
 
 	bc->size = bc->minsize = size;
 	memset(bc->table, 0, bc->size * sizeof(dns_bcentry_t *));
@@ -90,11 +83,6 @@ dns_badcache_init(isc_mem_t *mctx, unsigned int size, dns_badcache_t **bcp) {
 
 	*bcp = bc;
 	return (ISC_R_SUCCESS);
-
- destroy_lock:
-	isc_mutex_destroy(&bc->lock);
-	isc_mem_putanddetach(&bc->mctx, bc, sizeof(dns_badcache_t));
-	return (result);
 }
 
 void
@@ -124,8 +112,6 @@ badcache_resize(dns_badcache_t *bc, isc_time_t *now, bool grow) {
 		newsize = (bc->size - 1) / 2;
 
 	newtable = isc_mem_get(bc->mctx, sizeof(dns_bcentry_t *) * newsize);
-	if (newtable == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(newtable, 0, sizeof(dns_bcentry_t *) * newsize);
 
 	for (i = 0; bc->count > 0 && i < bc->size; i++) {
@@ -197,8 +183,6 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 	if (bad == NULL) {
 		isc_buffer_t buffer;
 		bad = isc_mem_get(bc->mctx, sizeof(*bad) + name->length);
-		if (bad == NULL)
-			goto cleanup;
 		bad->type = type;
 		bad->hashval = hashval;
 		bad->expire = *expire;
@@ -216,7 +200,6 @@ dns_badcache_add(dns_badcache_t *bc, const dns_name_t *name,
 	} else
 		bad->expire = *expire;
 
- cleanup:
 	UNLOCK(&bc->lock);
 }
 

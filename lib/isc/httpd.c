@@ -263,8 +263,6 @@ isc_httpdmgr_create(isc_mem_t *mctx, isc_socket_t *sock, isc_task_t *task,
 	REQUIRE(httpdmgrp != NULL && *httpdmgrp == NULL);
 
 	httpdmgr = isc_mem_get(mctx, sizeof(isc_httpdmgr_t));
-	if (httpdmgr == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_mutex_init(&httpdmgr->lock);
 	httpdmgr->mctx = NULL;
@@ -635,12 +633,6 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev) {
 	}
 
 	httpd = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpd_t));
-	if (httpd == NULL) {
-		/* XXXMLG log failure */
-		NOTICE("accept failed to allocate memory, goto requeue");
-		isc_socket_detach(&nev->newsocket);
-		goto requeue;
-	}
 
 	httpd->mgr = httpdmgr;
 	ISC_LINK_INIT(httpd, link);
@@ -654,11 +646,6 @@ isc_httpd_accept(isc_task_t *task, isc_event_t *ev) {
 	 * Initialize the buffer for our headers.
 	 */
 	headerdata = isc_mem_get(httpdmgr->mctx, HTTP_SENDGROW);
-	if (headerdata == NULL) {
-		isc_mem_put(httpdmgr->mctx, httpd, sizeof(isc_httpd_t));
-		isc_socket_detach(&nev->newsocket);
-		goto requeue;
-	}
 	isc_buffer_init(&httpd->headerbuffer, headerdata, HTTP_SENDGROW);
 
 	isc_buffer_initnull(&httpd->compbuffer);
@@ -767,8 +754,6 @@ alloc_compspace(isc_httpd_t *httpd, unsigned int size) {
 	}
 
 	newspace = isc_mem_get(httpd->mgr->mctx, size);
-	if (newspace == NULL)
-		return (ISC_R_NOMEMORY);
 	isc_buffer_reinit(&httpd->compbuffer, newspace, size);
 
 	if (r.base != NULL) {
@@ -1021,8 +1006,6 @@ grow_headerspace(isc_httpd_t *httpd) {
 		return (ISC_R_NOSPACE);
 
 	newspace = isc_mem_get(httpd->mgr->mctx, newlen);
-	if (newspace == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_buffer_reinit(&httpd->headerbuffer, newspace, newlen);
 
@@ -1211,8 +1194,6 @@ isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 	}
 
 	item = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpdurl_t));
-	if (item == NULL)
-		return (ISC_R_NOMEMORY);
 
 	item->url = isc_mem_strdup(httpdmgr->mctx, url);
 	if (item->url == NULL) {

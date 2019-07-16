@@ -217,10 +217,6 @@ irs_context_create(irs_context_t **contextp) {
 	}
 
 	context = isc_mem_get(mctx, sizeof(*context));
-	if (context == NULL) {
-		ctxs_destroy(&mctx, &actx, &taskmgr, &socketmgr, &timermgr);
-		return (ISC_R_NOMEMORY);
-	}
 
 	context->mctx = mctx;
 	context->actx = actx;

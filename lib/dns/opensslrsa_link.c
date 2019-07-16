@@ -702,10 +702,6 @@ opensslrsa_tofile(const dst_key_t *key, const char *directory) {
 
 	for (i = 0; i < 8; i++) {
 		bufs[i] = isc_mem_get(key->mctx, BN_num_bytes(n));
-		if (bufs[i] == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
 	}
 
 	i = 0;

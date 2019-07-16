@@ -824,9 +824,8 @@ setup_system(void) {
 		default_servers = !local_only;
 
 		ns_total = ns_alloc = (have_ipv4 ? 1 : 0) + (have_ipv6 ? 1 : 0);
-		servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
-		if (servers == NULL)
-			fatal("out of memory");
+		servers = isc_mem_get(gmctx,
+				      ns_alloc * sizeof(isc_sockaddr_t));
 
 		if (have_ipv6) {
 			memset(&in6, 0, sizeof(in6));
@@ -869,9 +868,8 @@ setup_system(void) {
 		}
 
 		ns_alloc = ns_total;
-		servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
-		if (servers == NULL)
-			fatal("out of memory");
+		servers = isc_mem_get(gmctx,
+				      ns_alloc * sizeof(isc_sockaddr_t));
 
 		i = 0;
 		for (sa = ISC_LIST_HEAD(*nslist);
@@ -1497,8 +1495,6 @@ evaluate_server(char *cmdline) {
 	ns_alloc = MAX_SERVERADDRS;
 	ns_inuse = 0;
 	servers = isc_mem_get(gmctx, ns_alloc * sizeof(isc_sockaddr_t));
-	if (servers == NULL)
-		fatal("out of memory");
 
 	memset(servers, 0, ns_alloc * sizeof(isc_sockaddr_t));
 	ns_total = get_addresses(server, (in_port_t)port, servers, ns_alloc);
@@ -1541,15 +1537,13 @@ evaluate_local(char *cmdline) {
 
 	if (have_ipv6 && inet_pton(AF_INET6, local, &in6) == 1) {
 		if (localaddr6 == NULL)
-			localaddr6 = isc_mem_get(gmctx, sizeof(isc_sockaddr_t));
-		if (localaddr6 == NULL)
-			fatal("out of memory");
+			localaddr6 = isc_mem_get(gmctx,
+						 sizeof(isc_sockaddr_t));
 		isc_sockaddr_fromin6(localaddr6, &in6, (in_port_t)port);
 	} else if (have_ipv4 && inet_pton(AF_INET, local, &in4) == 1) {
 		if (localaddr4 == NULL)
-			localaddr4 = isc_mem_get(gmctx, sizeof(isc_sockaddr_t));
-		if (localaddr4 == NULL)
-			fatal("out of memory");
+			localaddr4 = isc_mem_get(gmctx,
+						 sizeof(isc_sockaddr_t));
 		isc_sockaddr_fromin(localaddr4, &in4, (in_port_t)port);
 	} else {
 		fprintf(stderr, "invalid address %s", local);
@@ -2520,8 +2514,6 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		ddebug("Destroying request [%p]", request);
 		dns_request_destroy(&request);
 		reqinfo = isc_mem_get(gmctx, sizeof(nsu_requestinfo_t));
-		if (reqinfo == NULL)
-			fatal("out of memory");
 		reqinfo->msg = soaquery;
 		reqinfo->addr = addr;
 		dns_message_renderreset(soaquery);
@@ -2659,8 +2651,6 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		master_alloc = MAX_SERVERADDRS;
 		size = master_alloc * sizeof(isc_sockaddr_t);
 		master_servers = isc_mem_get(gmctx, size);
-		if (master_servers == NULL)
-			fatal("out of memory");
 
 		memset(master_servers, 0, size);
 		master_total = get_addresses(serverstr, dnsport,
@@ -2724,8 +2714,6 @@ sendrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 	isc_sockaddr_t *srcaddr;
 
 	reqinfo = isc_mem_get(gmctx, sizeof(nsu_requestinfo_t));
-	if (reqinfo == NULL)
-		fatal("out of memory");
 	reqinfo->msg = msg;
 	reqinfo->addr = destaddr;
 
@@ -2835,8 +2823,6 @@ start_gssrequest(dns_name_t *master) {
 	dns_name_format(master, namestr, sizeof(namestr));
 	if (kserver == NULL) {
 		kserver = isc_mem_get(gmctx, sizeof(isc_sockaddr_t));
-		if (kserver == NULL)
-			fatal("out of memory");
 	}
 
 	memmove(kserver, &master_servers[master_inuse],
@@ -2920,8 +2906,6 @@ send_gssrequest(isc_sockaddr_t *destaddr, dns_message_t *msg,
 
 	debug("send_gssrequest");
 	reqinfo = isc_mem_get(gmctx, sizeof(nsu_gssinfo_t));
-	if (reqinfo == NULL)
-		fatal("out of memory");
 	reqinfo->msg = msg;
 	reqinfo->addr = destaddr;
 	reqinfo->context = context;

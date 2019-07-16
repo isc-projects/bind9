@@ -436,8 +436,6 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 
 	do {
 		t = isc_mem_get(mctx, len);
-		if (t == NULL)
-			return (ISC_R_NOMEMORY);
 
 		isc_buffer_init(&target, t, len);
 		if (short_form) {
@@ -819,8 +817,6 @@ addserver(dns_client_t *client) {
 			fatal("Use of IPv4 disabled by -6");
 		}
 		sa = isc_mem_get(mctx, sizeof(*sa));
-		if (sa == NULL)
-			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(sa, link);
 		isc_sockaddr_fromin(sa, &in4, destport);
 		ISC_LIST_APPEND(servers, sa, link);
@@ -829,8 +825,6 @@ addserver(dns_client_t *client) {
 			fatal("Use of IPv6 disabled by -4");
 		}
 		sa = isc_mem_get(mctx, sizeof(*sa));
-		if (sa == NULL)
-			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(sa, link);
 		isc_sockaddr_fromin6(sa, &in6, destport);
 		ISC_LIST_APPEND(servers, sa, link);
@@ -858,10 +852,6 @@ addserver(dns_client_t *client) {
 			    cur->ai_family != AF_INET6)
 				continue;
 			sa = isc_mem_get(mctx, sizeof(*sa));
-			if (sa == NULL) {
-				result = ISC_R_NOMEMORY;
-				break;
-			}
 			memset(sa, 0, sizeof(*sa));
 			ISC_LINK_INIT(sa, link);
 			memmove(&sa->type, cur->ai_addr, cur->ai_addrlen);
@@ -934,10 +924,6 @@ findserver(dns_client_t *client) {
 			struct in_addr localhost;
 			localhost.s_addr = htonl(INADDR_LOOPBACK);
 			sa = isc_mem_get(mctx, sizeof(*sa));
-			if (sa == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
 			isc_sockaddr_fromin(sa, &localhost, destport);
 
 			ISC_LINK_INIT(sa, link);
@@ -946,10 +932,6 @@ findserver(dns_client_t *client) {
 
 		if (use_ipv6) {
 			sa = isc_mem_get(mctx, sizeof(*sa));
-			if (sa == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
 			isc_sockaddr_fromin6(sa, &in6addr_loopback, destport);
 
 			ISC_LINK_INIT(sa, link);

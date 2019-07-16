@@ -57,8 +57,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	REQUIRE(*iterp == NULL);
 
 	iter = isc_mem_get(mctx, sizeof(*iter));
-	if (iter == NULL)
-		return (ISC_R_NOMEMORY);
 
 	iter->mctx = mctx;
 	iter->buf = NULL;

@@ -91,8 +91,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
 	view = isc_mem_get(mctx, sizeof(*view));
-	if (view == NULL)
-		return (ISC_R_NOMEMORY);
 
 	view->nta_file = NULL;
 	view->mctx = NULL;
@@ -1687,10 +1685,7 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 
 	if (view->delonly == NULL) {
 		view->delonly = isc_mem_get(view->mctx,
-					    sizeof(dns_namelist_t) *
-					    DNS_VIEW_DELONLYHASH);
-		if (view->delonly == NULL)
-			return (ISC_R_NOMEMORY);
+					    sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
 			ISC_LIST_INIT(view->delonly[hash]);
 	}
@@ -1701,8 +1696,6 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 	if (item != NULL)
 		return (ISC_R_SUCCESS);
 	item = isc_mem_get(view->mctx, sizeof(*item));
-	if (item == NULL)
-		return (ISC_R_NOMEMORY);
 	dns_name_init(item, NULL);
 	result = dns_name_dup(name, view->mctx, item);
 	if (result == ISC_R_SUCCESS)
@@ -1722,10 +1715,7 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 
 	if (view->rootexclude == NULL) {
 		view->rootexclude = isc_mem_get(view->mctx,
-					    sizeof(dns_namelist_t) *
-					    DNS_VIEW_DELONLYHASH);
-		if (view->rootexclude == NULL)
-			return (ISC_R_NOMEMORY);
+						sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
 			ISC_LIST_INIT(view->rootexclude[hash]);
 	}
@@ -1736,8 +1726,6 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 	if (item != NULL)
 		return (ISC_R_SUCCESS);
 	item = isc_mem_get(view->mctx, sizeof(*item));
-	if (item == NULL)
-		return (ISC_R_NOMEMORY);
 	dns_name_init(item, NULL);
 	result = dns_name_dup(name, view->mctx, item);
 	if (result == ISC_R_SUCCESS)

@@ -486,11 +486,8 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 				 * dir list
 				 */
 				if (dir_list != NULL) {
-					direntry =
-					    isc_mem_get(named_g_mctx,
-							sizeof(dir_entry_t));
-					if (direntry == NULL)
-						return (ISC_R_NOMEMORY);
+					direntry = isc_mem_get(named_g_mctx,
+							       sizeof(dir_entry_t));
 					strcpy(direntry->dirpath, tmp);
 					ISC_LINK_INIT(direntry, link);
 					ISC_LIST_APPEND(*dir_list, direntry,
@@ -645,10 +642,6 @@ fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 
 	/* allocate memory for list */
 	dir_list = isc_mem_get(named_g_mctx, sizeof(dlist_t));
-	if (dir_list == NULL) {
-		result = ISC_R_NOTFOUND;
-		goto complete_allnds;
-	}
 
 	/* initialize list */
 	ISC_LIST_INIT(*dir_list);
@@ -905,8 +898,6 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for our config data */
 	cd = isc_mem_get(named_g_mctx, sizeof(config_data_t));
-	if (cd == NULL)
-		goto no_mem;
 
 	/* zero the memory */
 	memset(cd, 0, sizeof(config_data_t));

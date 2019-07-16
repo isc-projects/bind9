@@ -801,21 +801,11 @@ push_attribute(pk11_object_t *obj, isc_mem_t *mctx, size_t len) {
 	CK_BYTE cnt = obj->attrcnt;
 
 	obj->repr = isc_mem_get(mctx, (cnt + 1) * sizeof(*attr));
-	if (obj->repr == NULL) {
-		obj->repr = old;
-		return (NULL);
-	}
 	memset(obj->repr, 0, (cnt + 1) * sizeof(*attr));
 	memmove(obj->repr, old, cnt * sizeof(*attr));
 	attr = obj->repr + cnt;
 	attr->ulValueLen = (CK_ULONG) len;
 	attr->pValue = isc_mem_get(mctx, len);
-	if (attr->pValue == NULL) {
-		memset(obj->repr, 0, (cnt + 1) * sizeof(*attr));
-		isc_mem_put(mctx, obj->repr, (cnt + 1) * sizeof(*attr));
-		obj->repr = old;
-		return (NULL);
-	}
 	memset(attr->pValue, 0, len);
 	if (old != NULL) {
 		memset(old, 0, cnt * sizeof(*attr));
@@ -843,8 +833,6 @@ pk11_parse_uri(pk11_object_t *obj, const char *label,
 	/* get values to work on */
 	len = strlen(label) + 1;
 	uri = isc_mem_get(mctx, len);
-	if (uri == NULL)
-		return (ISC_R_NOMEMORY);
 	memmove(uri, label, len);
 
 	/* get the URI scheme */

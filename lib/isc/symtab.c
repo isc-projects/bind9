@@ -60,18 +60,11 @@ isc_symtab_create(isc_mem_t *mctx, unsigned int size,
 	REQUIRE(symtabp != NULL && *symtabp == NULL);
 	REQUIRE(size > 0);	/* Should be prime. */
 
-	symtab = (isc_symtab_t *)isc_mem_get(mctx, sizeof(*symtab));
-	if (symtab == NULL)
-		return (ISC_R_NOMEMORY);
+	symtab = isc_mem_get(mctx, sizeof(*symtab));
 
 	symtab->mctx = NULL;
 	isc_mem_attach(mctx, &symtab->mctx);
-	symtab->table = (eltlist_t *)isc_mem_get(mctx,
-						 size * sizeof(eltlist_t));
-	if (symtab->table == NULL) {
-		isc_mem_putanddetach(&symtab->mctx, symtab, sizeof(*symtab));
-		return (ISC_R_NOMEMORY);
-	}
+	symtab->table = isc_mem_get(mctx, size * sizeof(eltlist_t));
 	for (i = 0; i < size; i++)
 		INIT_LIST(symtab->table[i]);
 	symtab->size = size;
@@ -191,8 +184,6 @@ grow_table(isc_symtab_t *symtab) {
 	INSIST(newsize > 0U && newmax > 0U);
 
 	newtable = isc_mem_get(symtab->mctx, newsize * sizeof(eltlist_t));
-	if (newtable == NULL)
-		return;
 
 	for (i = 0; i < newsize; i++)
 		INIT_LIST(newtable[i]);
@@ -242,9 +233,7 @@ isc_symtab_define(isc_symtab_t *symtab, const char *key, unsigned int type,
 						  elt->value,
 						  symtab->undefine_arg);
 	} else {
-		elt = (elt_t *)isc_mem_get(symtab->mctx, sizeof(*elt));
-		if (elt == NULL)
-			return (ISC_R_NOMEMORY);
+		elt = isc_mem_get(symtab->mctx, sizeof(*elt));
 		ISC_LINK_INIT(elt, link);
 		symtab->count++;
 	}

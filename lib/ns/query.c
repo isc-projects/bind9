@@ -3937,8 +3937,6 @@ rpz_rewrite(ns_client_t *client, dns_rdatatype_t qtype,
 
 	if (st == NULL) {
 		st = isc_mem_get(client->mctx, sizeof(*st));
-		if (st == NULL)
-			return (ISC_R_NOMEMORY);
 		st->state = 0;
 		st->rpsdb = NULL;
 	}

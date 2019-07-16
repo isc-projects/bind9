@@ -50,8 +50,6 @@ dns_tsec_create(isc_mem_t *mctx, dns_tsectype_t type, dst_key_t *key,
 	REQUIRE(tsecp != NULL && *tsecp == NULL);
 
 	tsec = isc_mem_get(mctx, sizeof(*tsec));
-	if (tsec == NULL)
-		return (ISC_R_NOMEMORY);
 
 	tsec->type = type;
 	tsec->mctx = mctx;

@@ -103,10 +103,6 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 			if (src->keys[i] != NULL) {
 				dst->keys[i] = isc_mem_get(mctx,
 							   sizeof(dns_name_t));
-				if (dst->keys[i] == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto cleanup_keys;
-				}
 				dns_name_init(dst->keys[i], NULL);
 				result = dns_name_dup(src->keys[i], mctx,
 						      dst->keys[i]);
@@ -122,11 +118,7 @@ dns_ipkeylist_copy(isc_mem_t *mctx, const dns_ipkeylist_t *src,
 		for (i = 0; i < src->count; i++) {
 			if (src->labels[i] != NULL) {
 				dst->labels[i] = isc_mem_get(mctx,
-							   sizeof(dns_name_t));
-				if (dst->labels[i] == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto cleanup_labels;
-				}
+							     sizeof(dns_name_t));
 				dns_name_init(dst->labels[i], NULL);
 				result = dns_name_dup(src->labels[i], mctx,
 						      dst->labels[i]);
@@ -177,17 +169,9 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 		return (ISC_R_SUCCESS);
 
 	addrs = isc_mem_get(mctx, n * sizeof(isc_sockaddr_t));
-	if (addrs == NULL)
-		goto nomemory;
 	dscps = isc_mem_get(mctx, n * sizeof(isc_dscp_t));
-	if (dscps == NULL)
-		goto nomemory;
 	keys = isc_mem_get(mctx, n * sizeof(dns_name_t *));
-	if (keys == NULL)
-		goto nomemory;
 	labels = isc_mem_get(mctx, n * sizeof(dns_name_t *));
-	if (labels == NULL)
-		goto nomemory;
 
 	if (ipkl->addrs != NULL) {
 		memmove(addrs, ipkl->addrs,
@@ -232,15 +216,10 @@ dns_ipkeylist_resize(isc_mem_t *mctx, dns_ipkeylist_t *ipkl, unsigned int n) {
 	ipkl->allocated = n;
 	return (ISC_R_SUCCESS);
 
-nomemory:
-	if (addrs != NULL)
-		isc_mem_put(mctx, addrs, n * sizeof(isc_sockaddr_t));
-	if (dscps != NULL)
-		isc_mem_put(mctx, dscps, n * sizeof(isc_dscp_t));
-	if (keys != NULL)
-		isc_mem_put(mctx, keys, n * sizeof(dns_name_t *));
-	if (labels != NULL)
-		isc_mem_put(mctx, labels, n * sizeof(dns_name_t *));
+	isc_mem_put(mctx, addrs, n * sizeof(isc_sockaddr_t));
+	isc_mem_put(mctx, dscps, n * sizeof(isc_dscp_t));
+	isc_mem_put(mctx, keys, n * sizeof(dns_name_t *));
+	isc_mem_put(mctx, labels, n * sizeof(dns_name_t *));
 
 	return (ISC_R_NOMEMORY);
 }

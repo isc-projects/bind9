@@ -112,8 +112,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 	REQUIRE(*iterp == NULL);
 
 	iter = isc_mem_get(mctx, sizeof(*iter));
-	if (iter == NULL)
-		return (ISC_R_NOMEMORY);
 
 	InitSockets();
 
@@ -155,10 +153,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 	for (;;) {
 		iter->buf4 = isc_mem_get(mctx, iter->buf4size);
-		if (iter->buf4 == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto alloc_failure;
-		}
 
 		if (WSAIoctl(iter->socket, SIO_GET_INTERFACE_LIST,
 			     0, 0, iter->buf4, iter->buf4size,
@@ -237,10 +231,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
 
 	for (;;) {
 		iter->buf6 = isc_mem_get(mctx, iter->buf6size);
-		if (iter->buf6 == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto ioctl_failure;
-		}
 
 		if (WSAIoctl(iter->socket, SIO_ADDRESS_LIST_QUERY,
 			     0, 0, iter->buf6, iter->buf6size,

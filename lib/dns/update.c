@@ -1417,8 +1417,6 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			state = &mystate;
 		} else {
 			state = isc_mem_get(diff->mctx, sizeof(*state));
-			if (state == NULL)
-				return (ISC_R_NOMEMORY);
 		}
 
 		dns_diff_init(diff->mctx, &state->diffnames);

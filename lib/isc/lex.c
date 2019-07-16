@@ -67,8 +67,6 @@ grow_data(isc_lex_t *lex, size_t *remainingp, char **currp, char **prevp) {
 	char *tmp;
 
 	tmp = isc_mem_get(lex->mctx, lex->max_token * 2 + 1);
-	if (tmp == NULL)
-		return (ISC_R_NOMEMORY);
 	memmove(tmp, lex->data, lex->max_token + 1);
 	*currp = tmp + (*currp - lex->data);
 	if (*prevp != NULL)
@@ -93,13 +91,7 @@ isc_lex_create(isc_mem_t *mctx, size_t max_token, isc_lex_t **lexp) {
 		max_token = 1;
 
 	lex = isc_mem_get(mctx, sizeof(*lex));
-	if (lex == NULL)
-		return (ISC_R_NOMEMORY);
 	lex->data = isc_mem_get(mctx, max_token + 1);
-	if (lex->data == NULL) {
-		isc_mem_put(mctx, lex, sizeof(*lex));
-		return (ISC_R_NOMEMORY);
-	}
 	lex->mctx = mctx;
 	lex->max_token = max_token;
 	lex->comments = 0;
@@ -192,8 +184,6 @@ new_source(isc_lex_t *lex, bool is_file, bool need_close,
 	isc_result_t result;
 
 	source = isc_mem_get(lex->mctx, sizeof(*source));
-	if (source == NULL)
-		return (ISC_R_NOMEMORY);
 	source->result = ISC_R_SUCCESS;
 	source->is_file = is_file;
 	source->need_close = need_close;

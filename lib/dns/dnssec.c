@@ -103,8 +103,6 @@ rdataset_to_sortedarray(dns_rdataset_t *set, isc_mem_t *mctx,
 	n = dns_rdataset_count(set);
 
 	data = isc_mem_get(mctx, n * sizeof(dns_rdata_t));
-	if (data == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dns_rdataset_init(&rdataset);
 	dns_rdataset_clone(set, &rdataset);
@@ -257,8 +255,6 @@ dns_dnssec_sign(const dns_name_t *name, dns_rdataset_t *set, dst_key_t *key,
 	 * they're not used in digest_sig().
 	 */
 	sig.signature = isc_mem_get(mctx, sig.siglen);
-	if (sig.signature == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ret = isc_buffer_allocate(mctx, &databuf, sigsize + 256 + 18);
 	if (ret != ISC_R_SUCCESS)
@@ -960,11 +956,7 @@ dns_dnssec_signmessage(dns_message_t *msg, dst_key_t *key) {
 
 	RETERR(dst_key_sigsize(key, &sigsize));
 	sig.siglen = sigsize;
-	sig.signature = (unsigned char *) isc_mem_get(mctx, sig.siglen);
-	if (sig.signature == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failure;
-	}
+	sig.signature = isc_mem_get(mctx, sig.siglen);
 
 	isc_buffer_init(&sigbuf, sig.signature, sig.siglen);
 	RETERR(dst_context_sign(ctx, &sigbuf));
@@ -1220,8 +1212,6 @@ dns_dnsseckey_create(isc_mem_t *mctx, dst_key_t **dstkey,
 
 	REQUIRE(dkp != NULL && *dkp == NULL);
 	dk = isc_mem_get(mctx, sizeof(dns_dnsseckey_t));
-	if (dk == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dk->key = *dstkey;
 	*dstkey = NULL;

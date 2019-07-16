@@ -41,8 +41,6 @@ alloc_pool(isc_mem_t *mctx, unsigned int count, isc_pool_t **poolp) {
 	isc_pool_t *pool;
 
 	pool = isc_mem_get(mctx, sizeof(*pool));
-	if (pool == NULL)
-		return (ISC_R_NOMEMORY);
 	pool->count = count;
 	pool->free = NULL;
 	pool->init = NULL;
@@ -50,10 +48,6 @@ alloc_pool(isc_mem_t *mctx, unsigned int count, isc_pool_t **poolp) {
 	pool->mctx = NULL;
 	isc_mem_attach(mctx, &pool->mctx);
 	pool->pool = isc_mem_get(mctx, count * sizeof(void *));
-	if (pool->pool == NULL) {
-		isc_mem_put(mctx, pool, sizeof(*pool));
-		return (ISC_R_NOMEMORY);
-	}
 	memset(pool->pool, 0, count * sizeof(void *));
 
 	*poolp = pool;

@@ -88,8 +88,6 @@ isc_heap_create(isc_mem_t *mctx, isc_heapcompare_t compare,
 	REQUIRE(compare != NULL);
 
 	heap = isc_mem_get(mctx, sizeof(*heap));
-	if (heap == NULL)
-		return (ISC_R_NOMEMORY);
 	heap->magic = HEAP_MAGIC;
 	heap->size = 0;
 	heap->mctx = NULL;
@@ -134,8 +132,6 @@ resize(isc_heap_t *heap) {
 
 	new_size = heap->size + heap->size_increment;
 	new_array = isc_mem_get(heap->mctx, new_size * sizeof(void *));
-	if (new_array == NULL)
-		return (false);
 	if (heap->array != NULL) {
 		memmove(new_array, heap->array, heap->size * sizeof(void *));
 		isc_mem_put(heap->mctx, heap->array,

@@ -60,8 +60,6 @@ isc_ratelimiter_create(isc_mem_t *mctx, isc_timermgr_t *timermgr,
 	INSIST(ratelimiterp != NULL && *ratelimiterp == NULL);
 
 	rl = isc_mem_get(mctx, sizeof(*rl));
-	if (rl == NULL)
-		return ISC_R_NOMEMORY;
 	rl->mctx = mctx;
 	rl->refs = 1;
 	rl->task = task;

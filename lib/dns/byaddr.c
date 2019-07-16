@@ -127,10 +127,6 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 		name = isc_mem_get(byaddr->mctx, sizeof(*name));
-		if (name == NULL) {
-			dns_rdata_freestruct(&ptr);
-			return (ISC_R_NOMEMORY);
-		}
 		dns_name_init(name, NULL);
 		result = dns_name_dup(&ptr.ptr, byaddr->mctx, name);
 		dns_rdata_freestruct(&ptr);
@@ -202,17 +198,11 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 	isc_event_t *ievent;
 
 	byaddr = isc_mem_get(mctx, sizeof(*byaddr));
-	if (byaddr == NULL)
-		return (ISC_R_NOMEMORY);
 	byaddr->mctx = NULL;
 	isc_mem_attach(mctx, &byaddr->mctx);
 	byaddr->options = options;
 
 	byaddr->event = isc_mem_get(mctx, sizeof(*byaddr->event));
-	if (byaddr->event == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_byaddr;
-	}
 	ISC_EVENT_INIT(byaddr->event, sizeof(*byaddr->event), 0, NULL,
 		       DNS_EVENT_BYADDRDONE, action, arg, byaddr,
 		       bevent_destroy, mctx);
@@ -254,7 +244,6 @@ dns_byaddr_create(isc_mem_t *mctx, const isc_netaddr_t *address,
 
 	isc_task_detach(&byaddr->task);
 
- cleanup_byaddr:
 	isc_mem_putanddetach(&mctx, byaddr, sizeof(*byaddr));
 
 	return (result);

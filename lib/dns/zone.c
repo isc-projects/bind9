@@ -895,9 +895,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 
 	TIME_NOW(&now);
 	zone = isc_mem_get(mctx, sizeof(*zone));
-	if (zone == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	zone->mctx = NULL;
 	isc_mem_attach(mctx, &zone->mctx);
@@ -1458,9 +1455,6 @@ dns_zone_setdbtype(dns_zone_t *zone,
 
 	/* Set up a new database argument list. */
 	argv = isc_mem_get(zone->mctx, dbargc * sizeof(*argv));
-	if (argv == NULL) {
-		goto nomem;
-	}
 	for (i = 0; i < dbargc; i++) {
 		argv[i] = NULL;
 	}
@@ -2242,9 +2236,7 @@ dns_zone_asyncload(dns_zone_t *zone, bool newonly,
 		return (ISC_R_ALREADYRUNNING);
 	}
 
-	asl = isc_mem_get(zone->mctx, sizeof (*asl));
-	if (asl == NULL)
-		CHECK(ISC_R_NOMEMORY);
+	asl = isc_mem_get(zone->mctx, sizeof(*asl));
 
 	asl->zone = NULL;
 	asl->flags = newonly ? DNS_ZONELOADFLAG_NOSTAT : 0;
@@ -2370,8 +2362,6 @@ zone_registerinclude(const char *filename, void *arg) {
 			return;
 
 	inc = isc_mem_get(zone->mctx, sizeof(dns_include_t));
-	if (inc == NULL)
-		return;
 	inc->name = isc_mem_strdup(zone->mctx, filename);
 	if (inc->name == NULL) {
 		isc_mem_put(zone->mctx, inc, sizeof(dns_include_t));
@@ -2536,8 +2526,6 @@ zone_startload(dns_db_t *db, dns_zone_t *zone, isc_time_t loadtime) {
 
 	if (zone->zmgr != NULL && zone->db != NULL && zone->loadtask != NULL) {
 		load = isc_mem_get(zone->mctx, sizeof(*load));
-		if (load == NULL)
-			return (ISC_R_NOMEMORY);
 
 		load->mctx = NULL;
 		load->zone = NULL;
@@ -3438,10 +3426,6 @@ zone_addnsec3chain(dns_zone_t *zone, dns_rdata_nsec3param_t *nsec3param) {
 	 * separate zone_nsec3chain() calls.
 	 */
 	nsec3chain = isc_mem_get(zone->mctx, sizeof *nsec3chain);
-	if (nsec3chain == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	nsec3chain->magic = 0;
 	nsec3chain->done = false;
@@ -5904,42 +5888,26 @@ set_addrkeylist(unsigned int count,
 	REQUIRE(newnamesp != NULL && *newnamesp == NULL);
 
 	newaddrs = isc_mem_get(mctx, count * sizeof(*newaddrs));
-	if (newaddrs == NULL)
-		return (ISC_R_NOMEMORY);
 	memmove(newaddrs, addrs, count * sizeof(*newaddrs));
 
 	if (dscp != NULL) {
 		newdscp = isc_mem_get(mctx, count * sizeof(*newdscp));
-		if (newdscp == NULL) {
-			isc_mem_put(mctx, newaddrs, count * sizeof(*newaddrs));
-			return (ISC_R_NOMEMORY);
-		}
 		memmove(newdscp, dscp, count * sizeof(*newdscp));
 	} else
 		newdscp = NULL;
 
 	if (names != NULL) {
 		newnames = isc_mem_get(mctx, count * sizeof(*newnames));
-		if (newnames == NULL) {
-			if (newdscp != NULL)
-				isc_mem_put(mctx, newdscp,
-					    count * sizeof(*newdscp));
-			isc_mem_put(mctx, newaddrs, count * sizeof(*newaddrs));
-			return (ISC_R_NOMEMORY);
-		}
 		for (i = 0; i < count; i++)
 			newnames[i] = NULL;
 		for (i = 0; i < count; i++) {
 			if (names[i] != NULL) {
 				newnames[i] = isc_mem_get(mctx,
-							 sizeof(dns_name_t));
-				if (newnames[i] == NULL)
-					goto allocfail;
+							  sizeof(dns_name_t));
 				dns_name_init(newnames[i], NULL);
 				result = dns_name_dup(names[i], mctx,
 						      newnames[i]);
 				if (result != ISC_R_SUCCESS) {
-				allocfail:
 					for (i = 0; i < count; i++)
 						if (newnames[i] != NULL)
 							dns_name_free(
@@ -6113,11 +6081,7 @@ dns_zone_setmasterswithkeys(dns_zone_t *zone,
 	 * mastersok must contain count elements
 	 */
 	newok = isc_mem_get(zone->mctx, count * sizeof(*newok));
-	if (newok == NULL) {
-		result = ISC_R_NOMEMORY;
-		isc_mem_put(zone->mctx, newaddrs, count * sizeof(*newaddrs));
-		goto unlock;
-	};
+	;
 	for (i = 0; i < count; i++)
 		newok[i] = false;
 
@@ -10286,10 +10250,6 @@ zone_refreshkeys(dns_zone_t *zone) {
 		}
 
 		kfetch = isc_mem_get(zone->mctx, sizeof(dns_keyfetch_t));
-		if (kfetch == NULL) {
-			fetch_err = true;
-			goto failure;
-		}
 
 		zone->refreshkeycount++;
 		kfetch->zone = zone;
@@ -11340,8 +11300,6 @@ notify_create(isc_mem_t *mctx, unsigned int flags, dns_notify_t **notifyp) {
 	REQUIRE(notifyp != NULL && *notifyp == NULL);
 
 	notify = isc_mem_get(mctx, sizeof(*notify));
-	if (notify == NULL)
-		return (ISC_R_NOMEMORY);
 
 	notify->mctx = NULL;
 	isc_mem_attach(mctx, &notify->mctx);
@@ -13060,8 +13018,6 @@ ns_query(dns_zone_t *zone, dns_rdataset_t *soardataset, dns_stub_t *stub) {
 
 	if (stub == NULL) {
 		stub = isc_mem_get(zone->mctx, sizeof(*stub));
-		if (stub == NULL)
-			goto cleanup;
 		stub->magic = STUB_MAGIC;
 		stub->mctx = zone->mctx;
 		stub->zone = NULL;
@@ -15070,8 +15026,6 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 			      DNS_LOGMODULE_ZONE, ISC_LOG_DEBUG(3),
 			      "looping through nsec3param data");
 		nsec3param = isc_mem_get(zone->mctx, sizeof(nsec3param_t));
-		if (nsec3param == NULL)
-			CHECK(ISC_R_NOMEMORY);
 		ISC_LINK_INIT(nsec3param, link);
 
 		/*
@@ -15143,8 +15097,6 @@ save_nsec3param(dns_zone_t *zone, nsec3paramlist_t *nsec3list) {
 		}
 
 		nsec3param = isc_mem_get(zone->mctx, sizeof(nsec3param_t));
-		if (nsec3param == NULL)
-			CHECK(ISC_R_NOMEMORY);
 		ISC_LINK_INIT(nsec3param, link);
 
 		/*
@@ -16451,8 +16403,6 @@ dns_zone_forwardupdate(dns_zone_t *zone, dns_message_t *msg,
 	REQUIRE(callback != NULL);
 
 	forward = isc_mem_get(zone->mctx, sizeof(*forward));
-	if (forward == NULL)
-		return (ISC_R_NOMEMORY);
 
 	forward->request = NULL;
 	forward->zone = NULL;
@@ -16532,8 +16482,6 @@ dns_zonemgr_create(isc_mem_t *mctx, isc_taskmgr_t *taskmgr,
 	isc_result_t result;
 
 	zmgr = isc_mem_get(mctx, sizeof(*zmgr));
-	if (zmgr == NULL)
-		return (ISC_R_NOMEMORY);
 	zmgr->mctx = NULL;
 	zmgr->refs = 1;
 	isc_mem_attach(mctx, &zmgr->mctx);
@@ -17174,8 +17122,6 @@ zonemgr_getio(dns_zonemgr_t *zmgr, bool high,
 	REQUIRE(iop != NULL && *iop == NULL);
 
 	io = isc_mem_get(zmgr->mctx, sizeof(*io));
-	if (io == NULL)
-		return (ISC_R_NOMEMORY);
 
 	io->event = isc_event_allocate(zmgr->mctx, task, DNS_EVENT_IOREADY,
 				       action, arg, sizeof(*io->event));
@@ -17281,8 +17227,6 @@ zone_saveunique(dns_zone_t *zone, const char *path, const char *templat) {
 	buflen = strlen(path) + strlen(templat) + 2;
 
 	buf = isc_mem_get(zone->mctx, buflen);
-	if (buf == NULL)
-		return;
 
 	result = isc_file_template(path, templat, buf, buflen);
 	if (result != ISC_R_SUCCESS)
@@ -17952,8 +17896,6 @@ zone_signwithkey(dns_zone_t *zone, dns_secalg_t algorithm, uint16_t keyid,
 	dns_db_t *db = NULL;
 
 	signing = isc_mem_get(zone->mctx, sizeof *signing);
-	if (signing == NULL)
-		return (ISC_R_NOMEMORY);
 
 	signing->magic = 0;
 	signing->db  = NULL;

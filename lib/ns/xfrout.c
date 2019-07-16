@@ -238,8 +238,6 @@ ixfr_rrstream_create(isc_mem_t *mctx,
 	INSIST(sp != NULL && *sp == NULL);
 
 	s = isc_mem_get(mctx, sizeof(*s));
-	if (s == NULL)
-		return (ISC_R_NOMEMORY);
 	s->common.mctx = NULL;
 	isc_mem_attach(mctx, &s->common.mctx);
 	s->common.methods = &ixfr_rrstream_methods;
@@ -327,8 +325,6 @@ axfr_rrstream_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
 	INSIST(sp != NULL && *sp == NULL);
 
 	s = isc_mem_get(mctx, sizeof(*s));
-	if (s == NULL)
-		return (ISC_R_NOMEMORY);
 	s->common.mctx = NULL;
 	isc_mem_attach(mctx, &s->common.mctx);
 	s->common.methods = &axfr_rrstream_methods;
@@ -448,8 +444,6 @@ soa_rrstream_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *ver,
 	INSIST(sp != NULL && *sp == NULL);
 
 	s = isc_mem_get(mctx, sizeof(*s));
-	if (s == NULL)
-		return (ISC_R_NOMEMORY);
 	s->common.mctx = NULL;
 	isc_mem_attach(mctx, &s->common.mctx);
 	s->common.methods = &soa_rrstream_methods;
@@ -555,8 +549,6 @@ compound_rrstream_create(isc_mem_t *mctx, rrstream_t **soa_stream,
 	INSIST(sp != NULL && *sp == NULL);
 
 	s = isc_mem_get(mctx, sizeof(*s));
-	if (s == NULL)
-		return (ISC_R_NOMEMORY);
 	s->common.mctx = NULL;
 	isc_mem_attach(mctx, &s->common.mctx);
 	s->common.methods = &compound_rrstream_methods;
@@ -1217,8 +1209,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 
 	INSIST(xfrp != NULL && *xfrp == NULL);
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
-	if (xfr == NULL)
-		return (ISC_R_NOMEMORY);
 	xfr->mctx = NULL;
 	isc_mem_attach(mctx, &xfr->mctx);
 	xfr->client = NULL;
@@ -1268,10 +1258,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	 */
 	len = 65535;
 	mem = isc_mem_get(mctx, len);
-	if (mem == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failure;
-	}
 	isc_buffer_init(&xfr->buf, mem, len);
 
 	/*
@@ -1280,10 +1266,6 @@ xfrout_ctx_create(isc_mem_t *mctx, ns_client_t *client, unsigned int id,
 	 */
 	len = 2 + 65535;
 	mem = isc_mem_get(mctx, len);
-	if (mem == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failure;
-	}
 	isc_buffer_init(&xfr->txlenbuf, mem, 2);
 	isc_buffer_init(&xfr->txbuf, (char *) mem + 2, len - 2);
 	xfr->txmem = mem;

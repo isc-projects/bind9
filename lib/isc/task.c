@@ -272,8 +272,6 @@ isc_task_create_bound(isc_taskmgr_t *manager0, unsigned int quantum,
 	REQUIRE(taskp != NULL && *taskp == NULL);
 
 	task = isc_mem_get(manager->mctx, sizeof(*task));
-	if (task == NULL)
-		return (ISC_R_NOMEMORY);
 	XTRACE("isc_task_create");
 	task->manager = manager;
 
@@ -1359,7 +1357,8 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	manager->default_quantum = default_quantum;
 	INIT_LIST(manager->tasks);
 	atomic_store(&manager->tasks_count, 0);
-	manager->queues = isc_mem_get(mctx, workers * sizeof(isc__taskqueue_t));
+	manager->queues = isc_mem_get(mctx,
+				      workers * sizeof(isc__taskqueue_t));
 	RUNTIME_CHECK(manager->queues != NULL);
 
 	atomic_init(&manager->tasks_running, 0);

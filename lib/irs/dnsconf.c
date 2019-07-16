@@ -130,10 +130,6 @@ configure_key(isc_mem_t *mctx, const cfg_obj_t *key, irs_dnsconf_t *conf,
 		return (result);
 	}
 	keyname = isc_mem_get(mctx, sizeof(*keyname));
-	if (keyname == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	dns_name_init(keyname, NULL);
 	result = dns_name_dup(keyname_base, mctx, keyname);
 	if (result != ISC_R_SUCCESS) {
@@ -142,11 +138,6 @@ configure_key(isc_mem_t *mctx, const cfg_obj_t *key, irs_dnsconf_t *conf,
 
 	/* Add the key data to the list */
 	keyent = isc_mem_get(mctx, sizeof(*keyent));
-	if (keyent == NULL) {
-		dns_name_free(keyname, mctx);
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	keyent->keyname = keyname;
 	keyent->keydatabuf = keydatabuf;
 
@@ -245,8 +236,6 @@ irs_dnsconf_load(isc_mem_t *mctx, const char *filename, irs_dnsconf_t **confp)
 	REQUIRE(confp != NULL && *confp == NULL);
 
 	conf = isc_mem_get(mctx, sizeof(*conf));
-	if (conf == NULL)
-		return (ISC_R_NOMEMORY);
 
 	conf->mctx = mctx;
 	ISC_LIST_INIT(conf->trusted_keylist);

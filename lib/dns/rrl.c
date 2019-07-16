@@ -228,13 +228,6 @@ expand_entries(dns_rrl_t *rrl, int newsize) {
 
 	bsize = sizeof(dns_rrl_block_t) + (newsize-1)*sizeof(dns_rrl_entry_t);
 	b = isc_mem_get(rrl->mctx, bsize);
-	if (b == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_FAIL,
-			      "isc_mem_get(%d) failed for RRL entries",
-			      bsize);
-		return (ISC_R_NOMEMORY);
-	}
 	memset(b, 0, bsize);
 	b->size = bsize;
 
@@ -299,14 +292,6 @@ expand_rrl_hash(dns_rrl_t *rrl, isc_stdtime_t now) {
 
 	hsize = sizeof(dns_rrl_hash_t) + (new_bins-1)*sizeof(hash->bins[0]);
 	hash = isc_mem_get(rrl->mctx, hsize);
-	if (hash == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_RRL,
-			      DNS_LOGMODULE_REQUEST, DNS_RRL_LOG_FAIL,
-			      "isc_mem_get(%d) failed for"
-			      " RRL hash table",
-			      hsize);
-		return (ISC_R_NOMEMORY);
-	}
 	memset(hash, 0, hsize);
 	hash->length = new_bins;
 	rrl->hash_gen ^= 1;
@@ -889,19 +874,11 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 				ISC_LIST_UNLINK(rrl->qname_free, qbuf, link);
 			} else if (rrl->num_qnames < DNS_RRL_QNAMES) {
 				qbuf = isc_mem_get(rrl->mctx, sizeof(*qbuf));
-				if (qbuf != NULL) {
+				{
 					memset(qbuf, 0, sizeof(*qbuf));
 					ISC_LINK_INIT(qbuf, link);
 					qbuf->index = rrl->num_qnames;
 					rrl->qnames[rrl->num_qnames++] = qbuf;
-				} else {
-					isc_log_write(dns_lctx,
-						      DNS_LOGCATEGORY_RRL,
-						      DNS_LOGMODULE_REQUEST,
-						      DNS_RRL_LOG_FAIL,
-						      "isc_mem_get(%d)"
-						      " failed for RRL qname",
-						      (int)sizeof(*qbuf));
 				}
 			}
 			if (qbuf != NULL) {
@@ -1290,8 +1267,6 @@ dns_rrl_init(dns_rrl_t **rrlp, dns_view_t *view, int min_entries) {
 	*rrlp = NULL;
 
 	rrl = isc_mem_get(view->mctx, sizeof(*rrl));
-	if (rrl == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(rrl, 0, sizeof(*rrl));
 	isc_mem_attach(view->mctx, &rrl->mctx);
 	isc_mutex_init(&rrl->lock);

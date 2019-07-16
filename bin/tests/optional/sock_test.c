@@ -104,11 +104,10 @@ my_recv(isc_task_t *task, isc_event_t *event) {
 		snprintf(buf, sizeof(buf), "\r\nReceived: %.*s\r\n\r\n",
 			 (int)dev->n, (char *)region.base);
 		region.base = isc_mem_get(mctx, strlen(buf) + 1);
-		if (region.base != NULL) {
+		{
 			region.length = strlen(buf) + 1;
 			strlcpy((char *)region.base, buf, region.length);
-		} else
-			region.length = 0;
+		}
 		isc_socket_send(sock, &region, task, my_send, event->ev_arg);
 	} else {
 		region = dev->region;
@@ -177,11 +176,9 @@ my_connect(isc_task_t *task, isc_event_t *event) {
 		 "GET / HTTP/1.1\r\nHost: www.flame.org\r\n"
 		 "Connection: Close\r\n\r\n");
 	region.base = isc_mem_get(mctx, strlen(buf) + 1);
-	if (region.base != NULL) {
+	{
 		region.length = strlen(buf) + 1;
 		strlcpy((char *)region.base, buf, region.length);
-	} else {
-		region.length = 0;
 	}
 
 	isc_socket_send(sock, &region, task, my_http_get, event->ev_arg);

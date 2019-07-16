@@ -47,8 +47,6 @@ cfg_aclconfctx_create(isc_mem_t *mctx, cfg_aclconfctx_t **ret) {
 	REQUIRE(ret != NULL && *ret == NULL);
 
 	actx = isc_mem_get(mctx, sizeof(*actx));
-	if (actx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_refcount_init(&actx->references, 1);
 

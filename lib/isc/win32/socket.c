@@ -1318,9 +1318,6 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 
 	sock = isc_mem_get(manager->mctx, sizeof(*sock));
 
-	if (sock == NULL)
-		return (ISC_R_NOMEMORY);
-
 	sock->magic = 0;
 	isc_refcount_init(&sock->references, 0);
 
@@ -1353,10 +1350,6 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	sock->recvbuf.consume_position = sock->recvbuf.base;
 	sock->recvbuf.remaining = 0;
 	sock->recvbuf.base = isc_mem_get(manager->mctx, sock->recvbuf.len); // max buffer size
-	if (sock->recvbuf.base == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto error;
-	}
 
 	/*
 	 * Initialize the lock.
@@ -2496,8 +2489,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		return (ISC_R_NOTIMPLEMENTED);
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	if (manager == NULL)
-		return (ISC_R_NOMEMORY);
 
 	InitSockets();
 

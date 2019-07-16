@@ -617,13 +617,6 @@ bdb_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate and zero memory for driver structure */
 	db = isc_mem_get(named_g_mctx, sizeof(bdb_instance_t));
-	if (db == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-			      "Could not allocate memory for "
-			      "database instance object.");
-		return (ISC_R_NOMEMORY);
-	}
 	memset(db, 0, sizeof(bdb_instance_t));
 
 	/* attach to the memory context */

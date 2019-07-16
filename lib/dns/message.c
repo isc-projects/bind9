@@ -189,8 +189,6 @@ msgblock_allocate(isc_mem_t *mctx, unsigned int sizeof_type,
 	length = sizeof(dns_msgblock_t) + (sizeof_type * count);
 
 	block = isc_mem_get(mctx, length);
-	if (block == NULL)
-		return (NULL);
 
 	block->count = count;
 	block->remaining = count;
@@ -713,8 +711,6 @@ dns_message_create(isc_mem_t *mctx, unsigned int intent, dns_message_t **msgp)
 		|| intent == DNS_MESSAGE_INTENTRENDER);
 
 	m = isc_mem_get(mctx, sizeof(dns_message_t));
-	if (m == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/*
 	 * No allocations until further notice.  Just initialize all lists
@@ -1768,8 +1764,6 @@ dns_message_parse(dns_message_t *msg, isc_buffer_t *source,
 	else {
 		msg->saved.length = isc_buffer_usedlength(&origsource);
 		msg->saved.base = isc_mem_get(msg->mctx, msg->saved.length);
-		if (msg->saved.base == NULL)
-			return (ISC_R_NOMEMORY);
 		memmove(msg->saved.base, isc_buffer_base(&origsource),
 			msg->saved.length);
 		msg->free_saved = 1;
@@ -4302,8 +4296,6 @@ logfmtpacket(dns_message_t *message, const char *description,
 
 	do {
 		buf = isc_mem_get(mctx, len);
-		if (buf == NULL)
-			break;
 		isc_buffer_init(&buffer, buf, len);
 		result = dns_message_totext(message, style, 0, &buffer);
 		if (result == ISC_R_NOSPACE) {

@@ -625,8 +625,6 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 	if (key->key_alg == DST_ALG_ED25519) {
 		len = DNS_KEY_ED25519SIZE;
 		buf = isc_mem_get(key->mctx, len);
-		if (buf == NULL)
-			return (ISC_R_NOMEMORY);
 		priv.elements[0].tag = TAG_EDDSA_PRIVATEKEY;
 		priv.elements[0].length = len;
 		ret = priv_ed25519_from_ossl(pkey, buf);
@@ -638,8 +636,6 @@ openssleddsa_tofile(const dst_key_t *key, const char *directory) {
 	} else {
 		len = DNS_KEY_ED448SIZE;
 		buf = isc_mem_get(key->mctx, len);
-		if (buf == NULL)
-			return (ISC_R_NOMEMORY);
 		priv.elements[0].tag = TAG_EDDSA_PRIVATEKEY;
 		priv.elements[0].length = len;
 		ret = priv_ed448_from_ossl(pkey, buf);

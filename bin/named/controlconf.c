@@ -369,9 +369,8 @@ control_recvmessage(isc_task_t *task, isc_event_t *event) {
 
 		ccregion.rstart = isc_buffer_base(&conn->ccmsg.buffer);
 		ccregion.rend = isc_buffer_used(&conn->ccmsg.buffer);
-		secret.rstart = isc_mem_get(listener->mctx, key->secret.length);
-		if (secret.rstart == NULL)
-			goto cleanup;
+		secret.rstart = isc_mem_get(listener->mctx,
+					    key->secret.length);
 		memmove(secret.rstart, key->secret.base, key->secret.length);
 		secret.rend = secret.rstart + key->secret.length;
 		algorithm = key->algorithm;
@@ -561,8 +560,6 @@ newconnection(controllistener_t *listener, isc_socket_t *sock) {
 	isc_result_t result;
 
 	conn = isc_mem_get(listener->mctx, sizeof(*conn));
-	if (conn == NULL)
-		return (ISC_R_NOMEMORY);
 
 	conn->sock = sock;
 	isccc_ccmsg_init(listener->mctx, sock, &conn->ccmsg);
@@ -729,8 +726,6 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		if (newstr == NULL)
 			goto cleanup;
 		key = isc_mem_get(mctx, sizeof(*key));
-		if (key == NULL)
-			goto cleanup;
 		key->keyname = newstr;
 		key->algorithm = DST_ALG_UNKNOWN;
 		key->secret.base = NULL;
@@ -819,15 +814,6 @@ register_keys(const cfg_obj_t *control, const cfg_obj_t *keylist,
 			keyid->secret.length = isc_buffer_usedlength(&b);
 			keyid->secret.base = isc_mem_get(mctx,
 							 keyid->secret.length);
-			if (keyid->secret.base == NULL) {
-				cfg_obj_log(keydef, named_g_lctx,
-					    ISC_LOG_WARNING,
-					   "couldn't register key '%s': "
-					   "out of memory", keyid->keyname);
-				ISC_LIST_UNLINK(*keyids, keyid, link);
-				free_controlkey(keyid, mctx);
-				break;
-			}
 			memmove(keyid->secret.base, isc_buffer_base(&b),
 				keyid->secret.length);
 		}
@@ -868,8 +854,6 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	CHECK(cfg_map_get(config, "key", &key));
 
 	keyid = isc_mem_get(mctx, sizeof(*keyid));
-	if (keyid == NULL)
-		CHECK(ISC_R_NOMEMORY);
 	keyid->keyname = isc_mem_strdup(mctx,
 					cfg_obj_asstring(cfg_map_getname(key)));
 	keyid->secret.base = NULL;
@@ -911,14 +895,7 @@ get_rndckey(isc_mem_t *mctx, controlkeylist_t *keyids) {
 	}
 
 	keyid->secret.length = isc_buffer_usedlength(&b);
-	keyid->secret.base = isc_mem_get(mctx,
-					 keyid->secret.length);
-	if (keyid->secret.base == NULL) {
-		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
-			   "couldn't register key '%s': "
-			   "out of memory", keyid->keyname);
-		CHECK(ISC_R_NOMEMORY);
-	}
+	keyid->secret.base = isc_mem_get(mctx, keyid->secret.length);
 	memmove(keyid->secret.base, isc_buffer_base(&b),
 		keyid->secret.length);
 	ISC_LIST_APPEND(*keyids, keyid, link);
@@ -1125,8 +1102,6 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 	isc_result_t result = ISC_R_SUCCESS;
 
 	listener = isc_mem_get(mctx, sizeof(*listener));
-	if (listener == NULL)
-		result = ISC_R_NOMEMORY;
 
 	if (result == ISC_R_SUCCESS) {
 		listener->mctx = NULL;

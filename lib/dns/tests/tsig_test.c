@@ -135,10 +135,7 @@ add_tsig(dst_context_t *tsigctx, dns_tsigkey_t *key, isc_buffer_t *target) {
 	CHECK(dst_context_adddata(tsigctx, &r));
 
 	CHECK(dst_key_sigsize(key->key, &sigsize));
-	tsig.signature = (unsigned char *) isc_mem_get(dt_mctx, sigsize);
-	if (tsig.signature == NULL) {
-		CHECK(ISC_R_NOMEMORY);
-	}
+	tsig.signature = isc_mem_get(dt_mctx, sigsize);
 	isc_buffer_init(&sigbuf, tsig.signature, sigsize);
 	CHECK(dst_context_sign(tsigctx, &sigbuf));
 	tsig.siglen = isc_buffer_usedlength(&sigbuf);

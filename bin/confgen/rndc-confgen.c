@@ -222,8 +222,6 @@ main(int argc, char **argv) {
 			char *buf;
 			len = strlen(chrootdir) + strlen(keyfile) + 2;
 			buf = isc_mem_get(mctx, len);
-			if (buf == NULL)
-				fatal("isc_mem_get(%d) failed\n", len);
 			snprintf(buf, len, "%s%s%s", chrootdir,
 				 (*keyfile != '/') ? "/" : "", keyfile);
 

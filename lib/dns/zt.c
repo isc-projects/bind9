@@ -83,8 +83,6 @@ dns_zt_create(isc_mem_t *mctx, dns_rdataclass_t rdclass, dns_zt_t **ztp) {
 	REQUIRE(ztp != NULL && *ztp == NULL);
 
 	zt = isc_mem_get(mctx, sizeof(*zt));
-	if (zt == NULL)
-		return (ISC_R_NOMEMORY);
 
 	zt->table = NULL;
 	result = dns_rbt_create(mctx, auto_detach, zt, &zt->table);
@@ -295,9 +293,6 @@ dns_zt_asyncload(dns_zt_t *zt, bool newonly,
 
 	REQUIRE(VALID_ZT(zt));
 	zt->loadparams = isc_mem_get(zt->mctx, sizeof(struct zt_load_params));
-	if (zt->loadparams == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 	zt->loadparams->dl = doneloading;
 	zt->loadparams->newonly = newonly;
 

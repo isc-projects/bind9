@@ -1087,8 +1087,6 @@ postgres_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for database connection list */
 	dblist = isc_mem_get(named_g_mctx, sizeof(db_list_t));
-	if (dblist == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/* initialize DB connection list */
 	ISC_LIST_INIT(*dblist);

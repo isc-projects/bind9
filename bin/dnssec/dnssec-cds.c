@@ -530,9 +530,6 @@ match_keyset_dsset(dns_rdataset_t *keyset, dns_rdataset_t *dsset,
 	nkey = dns_rdataset_count(keyset);
 
 	keytable = isc_mem_get(mctx, sizeof(keyinfo_t) * nkey);
-	if (keytable == NULL) {
-		fatal("out of memory");
-	}
 
 	for (result = dns_rdataset_first(keyset), i = 0;
 	     result == ISC_R_SUCCESS;
@@ -610,10 +607,6 @@ matching_sigs(keyinfo_t *keytbl, dns_rdataset_t *rdataset,
 	int i;
 
 	algo = isc_mem_get(mctx, nkey);
-	if (algo == NULL) {
-		fatal("allocating RRSIG/DNSKEY match list: %s",
-		      isc_result_totext(ISC_R_NOMEMORY));
-	}
 	memset(algo, 0, nkey);
 
 	for (result = dns_rdataset_first(sigset);
@@ -747,10 +740,6 @@ rdata_get(void) {
 	dns_rdata_t *rdata;
 
 	rdata = isc_mem_get(mctx, sizeof(*rdata));
-	if (rdata == NULL) {
-		fatal("allocating DS rdata: %s",
-		      isc_result_totext(ISC_R_NOMEMORY));
-	}
 	dns_rdata_init(rdata);
 
 	return (rdata);
@@ -835,10 +824,6 @@ make_new_ds_set(ds_maker_func_t *ds_from_rdata,
 		dns_rdatalist_t *dslist;
 
 		dslist = isc_mem_get(mctx, sizeof(*dslist));
-		if (dslist == NULL) {
-			fatal("allocating new DS list: %s",
-			      isc_result_totext(ISC_R_NOMEMORY));
-		}
 
 		dns_rdatalist_init(dslist);
 		dslist->rdclass = rdclass;
@@ -907,10 +892,6 @@ consistent_digests(dns_rdataset_t *dsset) {
 	n = dns_rdataset_count(dsset);
 
 	arrdata = isc_mem_get(mctx, n * sizeof(dns_rdata_t));
-	if (arrdata == NULL) {
-		fatal("allocating DS rdata array: %s",
-		      isc_result_totext(ISC_R_NOMEMORY));
-	}
 
 	for (result = dns_rdataset_first(dsset), i = 0;
 	     result == ISC_R_SUCCESS;
@@ -926,10 +907,6 @@ consistent_digests(dns_rdataset_t *dsset) {
 	 * Convert sorted arrdata to more accessible format
 	 */
 	ds = isc_mem_get(mctx, n * sizeof(dns_rdata_ds_t));
-	if (ds == NULL) {
-		fatal("allocating unpacked DS array: %s",
-		      isc_result_totext(ISC_R_NOMEMORY));
-	}
 
 	for (i = 0; i < n; i++) {
 		result = dns_rdata_tostruct(&arrdata[i], &ds[i], NULL);

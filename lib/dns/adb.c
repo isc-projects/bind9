@@ -2525,8 +2525,6 @@ dns_adb_create(isc_mem_t *mem, dns_view_t *view, isc_timermgr_t *timermgr,
 	UNUSED(timermgr);
 
 	adb = isc_mem_get(mem, sizeof(dns_adb_t));
-	if (adb == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/*
 	 * Initialize things here that cannot fail, and especially things
@@ -4488,8 +4486,7 @@ dns_adb_setcookie(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 
 	if (addr->entry->cookie == NULL && cookie != NULL && len != 0U) {
 		addr->entry->cookie = isc_mem_get(adb->mctx, len);
-		if (addr->entry->cookie != NULL)
-			addr->entry->cookielen = (uint16_t)len;
+		addr->entry->cookielen = (uint16_t)len;
 	}
 
 	if (addr->entry->cookie != NULL)

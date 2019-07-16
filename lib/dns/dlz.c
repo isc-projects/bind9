@@ -198,10 +198,6 @@ dns_dlzcreate(isc_mem_t *mctx, const char *dlzname, const char *drivername,
 
 	/* Allocate memory to hold the DLZ database driver */
 	db = isc_mem_get(mctx, sizeof(dns_dlzdb_t));
-	if (db == NULL) {
-		RWUNLOCK(&dlz_implock, isc_rwlocktype_read);
-		return (ISC_R_NOMEMORY);
-	}
 
 	/* Make sure memory region is set to all 0's */
 	memset(db, 0, sizeof(dns_dlzdb_t));
@@ -324,10 +320,6 @@ dns_dlzregister(const char *drivername, const dns_dlzmethods_t *methods,
 	 * we cannot.
 	 */
 	dlz_imp = isc_mem_get(mctx, sizeof(dns_dlzimplementation_t));
-	if (dlz_imp == NULL) {
-		RWUNLOCK(&dlz_implock, isc_rwlocktype_write);
-		return (ISC_R_NOMEMORY);
-	}
 
 	/* Make sure memory region is set to all 0's */
 	memset(dlz_imp, 0, sizeof(dns_dlzimplementation_t));

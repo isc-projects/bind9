@@ -408,8 +408,6 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 	dns_name_toregion(name, &r);
 	length = r.length;
 	tmp = isc_mem_get(cctx->mctx, length);
-	if (tmp == NULL)
-		return;
 	/*
 	 * Copy name data to 'tmp' and make 'r' use 'tmp'.
 	 */
@@ -442,8 +440,6 @@ dns_compress_add(dns_compress_t *cctx, const dns_name_t *name,
 		else {
 			node = isc_mem_get(cctx->mctx,
 					   sizeof(dns_compressnode_t));
-			if (node == NULL)
-				break;
 		}
 		node->count = cctx->count++;
 		/*

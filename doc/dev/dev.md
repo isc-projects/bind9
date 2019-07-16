@@ -529,8 +529,6 @@ memory context is freed before all references have been cleaned up.
                 REQUIRE(foop != NULL && *foop == NULL);
 
                 foo = isc_mem_get(mctx, sizeof(isc_foo_t))
-                if (foo == NULL)
-                        return (ISC_R_NOMEMORY);
 
                 /* Attach to memory context */
                 isc_mem_attach(mctx, &foo->mctx);
@@ -615,8 +613,6 @@ When creating an instance of this structure, initialize the link:
                 REQUIRE(foop != NULL && *foop == NULL);
 
                 foo = isc_mem_get(mctx, sizeof(isc_foo_t));
-                if (foo == NULL)
-                        return (ISC_R_NOMEMORY);
 
                 ISC_LINK_INIT(foo, link);
 

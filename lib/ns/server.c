@@ -42,8 +42,6 @@ ns_server_create(isc_mem_t *mctx, ns_matchview_t matchingview,
 	REQUIRE(sctxp != NULL && *sctxp == NULL);
 
 	sctx = isc_mem_get(mctx, sizeof(*sctx));
-	if (sctx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memset(sctx, 0, sizeof(*sctx));
 

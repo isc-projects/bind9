@@ -74,8 +74,6 @@ dns_dns64_create(isc_mem_t *mctx, const isc_netaddr_t *prefix,
 	}
 
 	dns64 = isc_mem_get(mctx, sizeof(dns_dns64_t));
-	if (dns64 == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(dns64->bits, 0, sizeof(dns64->bits));
 	memmove(dns64->bits, prefix->type.in6.s6_addr, prefixlen / 8);
 	if (suffix != NULL)

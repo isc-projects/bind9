@@ -196,8 +196,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	REQUIRE(cachename != NULL);
 
 	cache = isc_mem_get(cmctx, sizeof(*cache));
-	if (cache == NULL)
-		return (ISC_R_NOMEMORY);
 
 	cache->mctx = cache->hmctx = NULL;
 	isc_mem_attach(cmctx, &cache->mctx);
@@ -246,10 +244,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	if (cache->db_argc != 0) {
 		cache->db_argv = isc_mem_get(cmctx,
 					     cache->db_argc * sizeof(char *));
-		if (cache->db_argv == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_dbtype;
-		}
 
 		for (i = 0; i < cache->db_argc; i++)
 			cache->db_argv[i] = NULL;
@@ -317,7 +311,6 @@ cleanup_dbargv:
 	if (cache->db_argv != NULL)
 		isc_mem_put(cmctx, cache->db_argv,
 			    cache->db_argc * sizeof(char *));
-cleanup_dbtype:
 	isc_mem_free(cmctx, cache->db_type);
 cleanup_filelock:
 	isc_mutex_destroy(&cache->filelock);

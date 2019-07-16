@@ -469,8 +469,6 @@ incctx_create(isc_mem_t *mctx, dns_name_t *origin, dns_incctx_t **ictxp) {
 	int i;
 
 	ictx = isc_mem_get(mctx, sizeof(*ictx));
-	if (ictx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	for (i = 0; i < NBUFS; i++) {
 		dns_fixedname_init(&ictx->fixed[i]);
@@ -523,8 +521,6 @@ loadctx_create(dns_masterformat_t format, isc_mem_t *mctx,
 		(task != NULL && done != NULL));
 
 	lctx = isc_mem_get(mctx, sizeof(*lctx));
-	if (lctx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	lctx->inc = NULL;
 	result = incctx_create(mctx, origin, &lctx->inc);
@@ -1082,10 +1078,6 @@ load_text(dns_loadctx_t *lctx) {
 	 * the maximum individual RR data size.
 	 */
 	target_mem = isc_mem_get(mctx, target_size);
-	if (target_mem == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto log_and_cleanup;
-	}
 	isc_buffer_init(&target, target_mem, target_size);
 	target_save = target;
 
@@ -2331,10 +2323,6 @@ load_raw(dns_loadctx_t *lctx) {
 	 * the maximum individual RR data size.
 	 */
 	target_mem = isc_mem_get(mctx, target_size);
-	if (target_mem == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	isc_buffer_init(&target, target_mem, target_size);
 
 	name = dns_fixedname_initname(&fixed);

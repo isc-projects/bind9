@@ -1014,8 +1014,6 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for LDAP instance */
 	ldap_inst = isc_mem_get(named_g_mctx, sizeof(ldap_instance_t));
-	if (ldap_inst == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(ldap_inst, 0, sizeof(ldap_instance_t));
 
 	/* store info needed to automatically re-connect. */
@@ -1039,10 +1037,6 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for database connection list */
 	ldap_inst->db = isc_mem_get(named_g_mctx, sizeof(db_list_t));
-	if (ldap_inst->db == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	/* initialize DB connection list */
 	ISC_LIST_INIT(*(ldap_inst->db));

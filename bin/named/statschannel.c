@@ -3403,8 +3403,6 @@ add_listener(named_server_t *server, named_statschannel_t **listenerp,
 	dns_acl_t *new_acl = NULL;
 
 	listener = isc_mem_get(server->mctx, sizeof(*listener));
-	if (listener == NULL)
-		return (ISC_R_NOMEMORY);
 
 	listener->httpdmgr = NULL;
 	listener->address = *addr;

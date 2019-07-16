@@ -230,10 +230,6 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 		return (result);
 
 	cd = isc_mem_get(mctx, sizeof(*cd));
-	if (cd == NULL) {
-		isc_mem_destroy(&mctx);
-		return (ISC_R_NOMEMORY);
-	}
 	memset(cd, 0, sizeof(*cd));
 
 	cd->mctx = mctx;

@@ -323,7 +323,7 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 
 	lcfg = isc_mem_get(lctx->mctx, sizeof(*lcfg));
 
-	if (lcfg != NULL) {
+	{
 		lcfg->lctx = lctx;
 		lcfg->channellists = NULL;
 		lcfg->channellist_count = 0;
@@ -331,19 +331,9 @@ isc_logconfig_create(isc_log_t *lctx, isc_logconfig_t **lcfgp) {
 		lcfg->highest_level = level;
 		lcfg->tag = NULL;
 		lcfg->dynamic = false;
-
 		ISC_LIST_INIT(lcfg->channels);
-
-		/*
-		 * Normally the magic number is the last thing set in the
-		 * structure, but isc_log_createchannel() needs a valid
-		 * config.  If the channel creation fails, the lcfg is not
-		 * returned to the caller.
-		 */
 		lcfg->magic = LCFG_MAGIC;
-
-	} else
-		result = ISC_R_NOMEMORY;
+	}
 
 	/*
 	 * Create the default channels:
@@ -710,8 +700,6 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 	mctx = lcfg->lctx->mctx;
 
 	channel = isc_mem_get(mctx, sizeof(*channel));
-	if (channel == NULL)
-		return (ISC_R_NOMEMORY);
 
 	channel->name = isc_mem_strdup(mctx, name);
 	if (channel->name == NULL) {
@@ -1004,8 +992,6 @@ assignchannel(isc_logconfig_t *lcfg, unsigned int category_id,
 		return (result);
 
 	new_item = isc_mem_get(lctx->mctx, sizeof(*new_item));
-	if (new_item == NULL)
-		return (ISC_R_NOMEMORY);
 
 	new_item->channel = channel;
 	new_item->module = module;
@@ -1049,9 +1035,6 @@ sync_channellist(isc_logconfig_t *lcfg) {
 	bytes = lctx->category_count * sizeof(ISC_LIST(isc_logchannellist_t));
 
 	lists = isc_mem_get(lctx->mctx, bytes);
-
-	if (lists == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memset(lists, 0, bytes);
 
@@ -1735,18 +1718,12 @@ isc_log_doit(isc_log_t *lctx, isc_logcategory_t *category,
 				size = sizeof(isc_logmessage_t) +
 				       strlen(lctx->buffer) + 1;
 				message = isc_mem_get(lctx->mctx, size);
-				if (message != NULL) {
-					/*
-					 * Put the text immediately after
-					 * the struct.  The strcpy is safe.
-					 */
+				{
 					message->text = (char *)(message + 1);
 					size -= sizeof(isc_logmessage_t);
 					strlcpy(message->text, lctx->buffer,
 						size);
-
 					TIME_NOW(&message->time);
-
 					ISC_LINK_INIT(message, link);
 					ISC_LIST_APPEND(lctx->messages,
 							message, link);

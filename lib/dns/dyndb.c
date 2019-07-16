@@ -161,8 +161,6 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 			  (void **)&destroy_func));
 
 	imp = isc_mem_get(mctx, sizeof(dyndb_implementation_t));
-	if (imp == NULL)
-		CHECK(ISC_R_NOMEMORY);
 
 	imp->mctx = NULL;
 	isc_mem_attach(mctx, &imp->mctx);
@@ -277,8 +275,6 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 			  (void **)&destroy_func));
 
 	imp = isc_mem_get(mctx, sizeof(dyndb_implementation_t));
-	if (imp == NULL)
-		CHECK(ISC_R_NOMEMORY);
 
 	imp->mctx = NULL;
 	isc_mem_attach(mctx, &imp->mctx);
@@ -419,8 +415,6 @@ dns_dyndb_createctx(isc_mem_t *mctx, const void *hashinit, isc_log_t *lctx,
 	REQUIRE(dctxp != NULL && *dctxp == NULL);
 
 	dctx = isc_mem_get(mctx, sizeof(*dctx));
-	if (dctx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memset(dctx, 0, sizeof(*dctx));
 	if (view != NULL)

@@ -110,8 +110,6 @@ dns_ntatable_create(dns_view_t *view,
 	REQUIRE(ntatablep != NULL && *ntatablep == NULL);
 
 	ntatable = isc_mem_get(view->mctx, sizeof(*ntatable));
-	if (ntatable == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ntatable->task = NULL;
 	result = isc_task_create(taskmgr, 0, &ntatable->task);
@@ -301,8 +299,6 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 	view = ntatable->view;
 
 	nta = isc_mem_get(view->mctx, sizeof(dns_nta_t));
-	if (nta == NULL)
-		return (ISC_R_NOMEMORY);
 
 	nta->ntatable = ntatable;
 	nta->expiry = 0;

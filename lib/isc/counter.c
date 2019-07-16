@@ -39,8 +39,6 @@ isc_counter_create(isc_mem_t *mctx, int limit, isc_counter_t **counterp) {
 	REQUIRE(counterp != NULL && *counterp == NULL);
 
 	counter = isc_mem_get(mctx, sizeof(*counter));
-	if (counter == NULL)
-		return (ISC_R_NOMEMORY);
 
 	counter->mctx = NULL;
 	isc_mem_attach(mctx, &counter->mctx);

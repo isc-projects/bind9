@@ -102,10 +102,6 @@ build_event(dns_lookup_t *lookup) {
 	isc_result_t result;
 
 	name = isc_mem_get(lookup->mctx, sizeof(dns_name_t));
-	if (name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto fail;
-	}
 	dns_name_init(name, NULL);
 	result = dns_name_dup(dns_fixedname_name(&lookup->name),
 			      lookup->mctx, name);
@@ -114,10 +110,6 @@ build_event(dns_lookup_t *lookup) {
 
 	if (dns_rdataset_isassociated(&lookup->rdataset)) {
 		rdataset = isc_mem_get(lookup->mctx, sizeof(dns_rdataset_t));
-		if (rdataset == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
 		dns_rdataset_init(rdataset);
 		dns_rdataset_clone(&lookup->rdataset, rdataset);
 	}
@@ -125,10 +117,6 @@ build_event(dns_lookup_t *lookup) {
 	if (dns_rdataset_isassociated(&lookup->sigrdataset)) {
 		sigrdataset = isc_mem_get(lookup->mctx,
 					  sizeof(dns_rdataset_t));
-		if (sigrdataset == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
 		dns_rdataset_init(sigrdataset);
 		dns_rdataset_clone(&lookup->sigrdataset, sigrdataset);
 	}
@@ -383,8 +371,6 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 	isc_event_t *ievent;
 
 	lookup = isc_mem_get(mctx, sizeof(*lookup));
-	if (lookup == NULL)
-		return (ISC_R_NOMEMORY);
 	lookup->mctx = NULL;
 	isc_mem_attach(mctx, &lookup->mctx);
 	lookup->options = options;

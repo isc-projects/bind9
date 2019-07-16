@@ -72,9 +72,6 @@ dns_keytable_create(isc_mem_t *mctx, dns_keytable_t **keytablep) {
 	REQUIRE(keytablep != NULL && *keytablep == NULL);
 
 	keytable = isc_mem_get(mctx, sizeof(*keytable));
-	if (keytable == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	keytable->table = NULL;
 	result = dns_rbt_create(mctx, free_keynode, mctx, &keytable->table);
@@ -778,8 +775,6 @@ dns_keynode_create(isc_mem_t *mctx, dns_keynode_t **target) {
 	REQUIRE(target != NULL && *target == NULL);
 
 	knode = isc_mem_get(mctx, sizeof(dns_keynode_t));
-	if (knode == NULL)
-		return (ISC_R_NOMEMORY);
 
 	knode->magic = KEYNODE_MAGIC;
 	knode->managed = false;

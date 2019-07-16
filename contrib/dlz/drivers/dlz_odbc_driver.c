@@ -1219,8 +1219,6 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for odbc instance */
 	odbc_inst = isc_mem_get(named_g_mctx, sizeof(odbc_instance_t));
-	if (odbc_inst == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(odbc_inst, 0, sizeof(odbc_instance_t));
 
 	/* parse connection string and get paramters. */
@@ -1271,10 +1269,6 @@ odbc_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for database connection list */
 	odbc_inst->db = isc_mem_get(named_g_mctx, sizeof(db_list_t));
-	if (odbc_inst->db == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 
 	/* initialize DB connection list */

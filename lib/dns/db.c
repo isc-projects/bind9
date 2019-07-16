@@ -883,10 +883,6 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 	}
 
 	imp = isc_mem_get(mctx, sizeof(dns_dbimplementation_t));
-	if (imp == NULL) {
-		RWUNLOCK(&implock, isc_rwlocktype_write);
-		return (ISC_R_NOMEMORY);
-	}
 	imp->name = name;
 	imp->create = create;
 	imp->mctx = NULL;
@@ -1044,8 +1040,6 @@ dns_db_updatenotify_register(dns_db_t *db,
 	REQUIRE(fn != NULL);
 
 	listener = isc_mem_get(db->mctx, sizeof(dns_dbonupdatelistener_t));
-	if (listener == NULL)
-		return (ISC_R_NOMEMORY);
 
 	listener->onupdate = fn;
 	listener->onupdate_arg = fn_arg;

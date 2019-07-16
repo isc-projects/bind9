@@ -70,8 +70,6 @@ dns_portlist_create(isc_mem_t *mctx, dns_portlist_t **portlistp) {
 	REQUIRE(portlistp != NULL && *portlistp == NULL);
 
 	portlist = isc_mem_get(mctx, sizeof(*portlist));
-	if (portlist == NULL)
-		return (ISC_R_NOMEMORY);
 	isc_mutex_init(&portlist->lock);
 	isc_refcount_init(&portlist->refcount, 1);
 	portlist->list = NULL;
@@ -142,10 +140,6 @@ dns_portlist_add(dns_portlist_t *portlist, int af, in_port_t port) {
 		unsigned int allocated;
 		allocated = portlist->allocated + DNS_PL_ALLOCATE;
 		el = isc_mem_get(portlist->mctx, sizeof(*el) * allocated);
-		if (el == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto unlock;
-		}
 		if (portlist->list != NULL) {
 			memmove(el, portlist->list,
 				portlist->allocated * sizeof(*el));

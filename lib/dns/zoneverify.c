@@ -444,9 +444,6 @@ record_nsec3(const vctx_t *vctx, const unsigned char *rawhash,
 	len = sizeof(*element) + nsec3->next_length * 2 + nsec3->salt_length;
 
 	element = isc_mem_get(vctx->mctx, len);
-	if (element == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 	memset(element, 0, len);
 	element->hash = nsec3->hash;
 	element->salt_length = nsec3->salt_length;

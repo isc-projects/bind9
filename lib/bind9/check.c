@@ -1619,8 +1619,6 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 			newsize = newlen * sizeof(*stack);
 			oldsize = stackcount * sizeof(*stack);
 			newstack = isc_mem_get(mctx, newsize);
-			if (newstack == NULL)
-				goto cleanup;
 			if (stackcount != 0) {
 				void *ptr;
 
@@ -1638,7 +1636,6 @@ validate_masters(const cfg_obj_t *obj, const cfg_obj_t *config,
 		element = stack[--pushed];
 		goto resume;
 	}
- cleanup:
 	if (stack != NULL) {
 		void *ptr;
 

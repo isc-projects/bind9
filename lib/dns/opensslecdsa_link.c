@@ -488,8 +488,6 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 		DST_RET (ISC_R_FAILURE);
 
 	buf = isc_mem_get(key->mctx, BN_num_bytes(privkey));
-	if (buf == NULL)
-		DST_RET (ISC_R_NOMEMORY);
 
 	priv.elements[0].tag = TAG_ECDSA_PRIVATEKEY;
 	priv.elements[0].length = BN_num_bytes(privkey);
