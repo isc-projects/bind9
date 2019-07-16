@@ -228,7 +228,9 @@ misc:sid:amd64:
 
 🐞:sid:amd64:
   <<: *precheck_job
-  script: util/check-cocci
+  script:
+    - util/check-cocci
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
 # Jobs for doc builds on Debian Sid (amd64)
 
