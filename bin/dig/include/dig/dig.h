@@ -380,13 +380,22 @@ set_search_domain(char *domain);
  * then assigned to the appropriate function pointer
  */
 extern isc_result_t
-(*dighost_printmessage)(dig_query_t *query, dns_message_t *msg, bool headers);
+(*dighost_printmessage)(dig_query_t *query, const isc_buffer_t *msgbuf,
+			dns_message_t *msg, bool headers);
+
+/*
+ * Print an error message in the appropriate format.
+ */
+void
+(*dighost_error)(const char *format, ...);
+
 /*%<
  * Print the final result of the lookup.
  */
 
 extern void
-(*dighost_received)(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query);
+(*dighost_received)(unsigned int bytes, isc_sockaddr_t *from,
+		    dig_query_t *query);
 /*%<
  * Print a message about where and when the response
  * was received from, like the final comment in the

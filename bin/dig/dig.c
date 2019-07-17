@@ -64,7 +64,8 @@ static char hexcookie[81];
 
 static bool short_form = false, printcmd = true,
 	plusquest = false, pluscomm = false,
-	ipv4only = false, ipv6only = false, digrc = true;
+	ipv4only = false, ipv6only = false, digrc = true,
+	yaml = false;
 static uint32_t splitwidth = 0xffffffff;
 
 /*% opcode text */
@@ -262,7 +263,11 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 
 	isc_sockaddr_format(from, fromtext, sizeof(fromtext));
 
-	if (query->lookup->stats && !short_form) {
+	if (short_form || yaml) {
+		return;
+	}
+
+	if (query->lookup->stats) {
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		if (query->lookup->use_usec)
 			printf(";; Query time: %ld usec\n", (long) diff);
@@ -283,11 +288,15 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 		 */
 		if (wcsftime(time_str, sizeof(time_str)/sizeof(time_str[0]),
 			     L"%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
+		{
 			printf(";; WHEN: %ls\n", time_str);
+		}
 #else
 		if (strftime(time_str, sizeof(time_str),
 			     "%a %b %d %H:%M:%S %Z %Y", &tmnow) > 0U)
+		{
 			printf(";; WHEN: %s\n", time_str);
+		}
 #endif
 		if (query->lookup->doing_xfr) {
 			printf(";; XFR size: %u records (messages %u, "
@@ -298,30 +307,32 @@ received(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query) {
 			printf(";; MSG SIZE  rcvd: %u\n", bytes);
 		}
 		if (tsigkey != NULL) {
-			if (!validated)
+			if (!validated) {
 				puts(";; WARNING -- Some TSIG could not "
 				     "be validated");
+			}
 		}
 		if ((tsigkey == NULL) && (keysecret[0] != 0)) {
 			puts(";; WARNING -- TSIG key was not used.");
 		}
 		puts("");
-	} else if (query->lookup->identify && !short_form) {
+	} else if (query->lookup->identify) {
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
-		if (query->lookup->use_usec)
+		if (query->lookup->use_usec) {
 			printf(";; Received %" PRIu64 " bytes "
 			       "from %s(%s) in %ld us\n\n",
 			       query->lookup->doing_xfr
 				 ? query->byte_count
 				 : (uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff);
-		else
+		} else {
 			printf(";; Received %" PRIu64 " bytes "
 			       "from %s(%s) in %ld ms\n\n",
 			       query->lookup->doing_xfr
 				 ?  query->byte_count
 				 : (uint64_t)bytes,
 			       fromtext, query->userarg, (long) diff / 1000);
+		}
 	}
 }
 
@@ -364,18 +375,20 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		styleflags |= DNS_STYLEFLAG_EXPANDAAAA;
 	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0,
 				     splitwidth, " ", buf);
-	if (result == ISC_R_NOSPACE)
+	if (result == ISC_R_NOSPACE) {
 		return (result);
+	}
 	check_result(result, "dns_rdata_totext");
 	if (query->lookup->identify) {
-
 		diff = isc_time_microdiff(&query->time_recv, &query->time_sent);
 		ADD_STRING(buf, " from server ");
 		ADD_STRING(buf, query->servname);
 		if (query->lookup->use_usec) {
-			snprintf(store, sizeof(store), " in %" PRIu64 " us.", diff);
+			snprintf(store, sizeof(store),
+				 " in %" PRIu64 " us.", diff);
 		} else {
-			snprintf(store, sizeof(store), " in %" PRIu64 " ms.", diff / 1000);
+			snprintf(store, sizeof(store),
+				 " in %" PRIu64 " ms.", diff / 1000);
 		}
 		ADD_STRING(buf, store);
 	}
@@ -415,8 +428,7 @@ short_answer(dns_message_t *msg, dns_messagetextflag_t flags,
 			loopresult = dns_rdataset_first(rdataset);
 			while (loopresult == ISC_R_SUCCESS) {
 				dns_rdataset_current(rdataset, &rdata);
-				result = say_message(&rdata, query,
-						     buf);
+				result = say_message(&rdata, query, buf);
 				if (result == ISC_R_NOSPACE)
 					return (result);
 				check_result(result, "say_message");
@@ -458,63 +470,85 @@ isdotlocal(dns_message_t *msg) {
  * Callback from dighost.c to print the reply from a server
  */
 static isc_result_t
-printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
+printmessage(dig_query_t *query, const isc_buffer_t *msgbuf,
+	     dns_message_t *msg, bool headers)
+{
 	isc_result_t result;
 	dns_messagetextflag_t flags;
 	isc_buffer_t *buf = NULL;
 	unsigned int len = OUTPUTBUF;
 	dns_master_style_t *style = NULL;
 	unsigned int styleflags = 0;
+	bool isquery = (msg == query->lookup->sendmsg);
+
+	UNUSED(msgbuf);
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
-	if (query->lookup->comments)
-		styleflags |= DNS_STYLEFLAG_COMMENT;
-	if (query->lookup->print_unknown_format)
-		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
-	/* Turn on rrcomments if explicitly enabled */
-	if (query->lookup->rrcomments > 0)
-		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
-	if (query->lookup->ttlunits)
-		styleflags |= DNS_STYLEFLAG_TTL_UNITS;
-	if (query->lookup->nottl)
-		styleflags |= DNS_STYLEFLAG_NO_TTL;
-	if (query->lookup->noclass)
-		styleflags |= DNS_STYLEFLAG_NO_CLASS;
-	if (query->lookup->nocrypto)
-		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
-	if (query->lookup->expandaaaa)
-		styleflags |= DNS_STYLEFLAG_EXPANDAAAA;
-	if (query->lookup->multiline) {
-		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
-		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
-		styleflags |= DNS_STYLEFLAG_REL_DATA;
-		styleflags |= DNS_STYLEFLAG_OMIT_TTL;
-		styleflags |= DNS_STYLEFLAG_TTL;
-		styleflags |= DNS_STYLEFLAG_MULTILINE;
-		/* Turn on rrcomments unless explicitly disabled */
-		if (query->lookup->rrcomments >= 0)
+	if (yaml) {
+		dns_master_indentstr = "  ";
+		dns_master_indent = 3;
+		styleflags |= DNS_STYLEFLAG_YAML;
+	} else {
+		if (query->lookup->comments) {
+			styleflags |= DNS_STYLEFLAG_COMMENT;
+		}
+		if (query->lookup->print_unknown_format) {
+			styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
+		}
+		/* Turn on rrcomments if explicitly enabled */
+		if (query->lookup->rrcomments > 0) {
 			styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+		}
+		if (query->lookup->ttlunits) {
+			styleflags |= DNS_STYLEFLAG_TTL_UNITS;
+		}
+		if (query->lookup->nottl) {
+			styleflags |= DNS_STYLEFLAG_NO_TTL;
+		}
+		if (query->lookup->noclass) {
+			styleflags |= DNS_STYLEFLAG_NO_CLASS;
+		}
+		if (query->lookup->nocrypto) {
+			styleflags |= DNS_STYLEFLAG_NOCRYPTO;
+		}
+		if (query->lookup->expandaaaa) {
+			styleflags |= DNS_STYLEFLAG_EXPANDAAAA;
+		}
+		if (query->lookup->multiline) {
+			styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
+			styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
+			styleflags |= DNS_STYLEFLAG_REL_DATA;
+			styleflags |= DNS_STYLEFLAG_OMIT_TTL;
+			styleflags |= DNS_STYLEFLAG_TTL;
+			styleflags |= DNS_STYLEFLAG_MULTILINE;
+			/* Turn on rrcomments unless explicitly disabled */
+			if (query->lookup->rrcomments >= 0) {
+				styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+			}
+		}
 	}
 	if (query->lookup->multiline ||
 	    (query->lookup->nottl && query->lookup->noclass))
+	{
 		result = dns_master_stylecreate(&style, styleflags,
 						24, 24, 24, 32, 80, 8,
 						splitwidth, mctx);
-	else if (query->lookup->nottl || query->lookup->noclass)
+	} else if (query->lookup->nottl || query->lookup->noclass) {
 		result = dns_master_stylecreate(&style, styleflags,
 						24, 24, 32, 40, 80, 8,
 						splitwidth, mctx);
-	else
+	} else {
 		result = dns_master_stylecreate(&style, styleflags,
 						24, 32, 40, 48, 80, 8,
 						splitwidth, mctx);
+	}
 	check_result(result, "dns_master_stylecreate");
 
 	if (query->lookup->cmdline[0] != 0) {
 		if (!short_form && printcmd) {
 			fputs(query->lookup->cmdline, stdout);
 		}
-		query->lookup->cmdline[0]=0;
+		query->lookup->cmdline[0] = '\0';
 	}
 	debug("printmessage(%s %s %s)", headers ? "headers" : "noheaders",
 	      query->lookup->comments ? "comments" : "nocomments",
@@ -535,13 +569,110 @@ printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
 	result = isc_buffer_allocate(mctx, &buf, len);
 	check_result(result, "isc_buffer_allocate");
 
-	if (query->lookup->comments && !short_form) {
-		if (query->lookup->cmdline[0] != 0 && printcmd)
+	if (yaml) {
+		enum { Q = 0x1, R = 0x2 }; /* Q:query; R:ecursive */
+		unsigned int tflag = 0;
+		isc_sockaddr_t saddr;
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+		uint16_t sport;
+		char *hash;
+		int pf;
+
+		printf("-\n");
+		printf("  type: MESSAGE\n");
+		printf("  message:\n");
+
+		if (isquery) {
+			tflag |= Q;
+			if ((msg->flags & DNS_MESSAGEFLAG_RD) != 0) {
+				tflag |= R;
+			}
+		} else if (((msg->flags & DNS_MESSAGEFLAG_RD) != 0) &&
+			   ((msg->flags & DNS_MESSAGEFLAG_RA) != 0))
+		{
+			tflag |= R;
+		}
+
+		if (tflag == (Q|R)) {
+			printf("    type: RECURSIVE_QUERY\n");
+		} else if (tflag == Q) {
+			printf("    type: AUTH_QUERY\n");
+		} else if (tflag == R) {
+			printf("    type: RECURSIVE_RESPONSE\n");
+		} else {
+			printf("    type: AUTH_RESPONSE\n");
+		}
+
+		if (!isc_time_isepoch(&query->time_sent)) {
+			char tbuf[100];
+			isc_time_formatISO8601ms(&query->time_sent,
+						 tbuf, sizeof(tbuf));
+			printf("    query_time: !!timestamp %s\n", tbuf);
+		}
+
+		if (!isquery && !isc_time_isepoch(&query->time_recv)) {
+			char tbuf[100];
+			isc_time_formatISO8601ms(&query->time_recv,
+						 tbuf, sizeof(tbuf));
+			printf("    response_time: !!timestamp %s\n", tbuf);
+		}
+
+		printf("    message_size: %ub\n",
+		       isc_buffer_usedlength(msgbuf));
+
+		pf = isc_sockaddr_pf(&query->sockaddr);
+		if (pf == PF_INET || pf == PF_INET6) {
+			printf("    socket_family: %s\n",
+			       pf == PF_INET ? "INET" : "INET6");
+
+			printf("    socket_protocol: %s\n",
+			       query->lookup->tcp_mode ? "TCP" : "UDP");
+
+			sport = isc_sockaddr_getport(&query->sockaddr);
+			isc_sockaddr_format(&query->sockaddr,
+					    sockstr, sizeof(sockstr));
+			hash = strchr(sockstr, '#');
+			if (hash != NULL) {
+				*hash = '\0';
+			}
+			if (strcmp(sockstr, "::") == 0) {
+				strlcat(sockstr, "0", sizeof(sockstr));
+			}
+
+			printf("    response_address: %s\n", sockstr);
+			printf("    response_port: %u\n", sport);
+		}
+
+		if (query->sock != NULL &&
+		    isc_socket_getsockname(query->sock, &saddr)
+		      == ISC_R_SUCCESS)
+		{
+			sport = isc_sockaddr_getport(&saddr);
+			isc_sockaddr_format(&saddr, sockstr, sizeof(sockstr));
+			hash = strchr(sockstr, '#');
+			if (hash != NULL) {
+				*hash = '\0';
+			}
+			if (strcmp(sockstr, "::") == 0) {
+				strlcat(sockstr, "0", sizeof(sockstr));
+			}
+
+			printf("    query_address: %s\n", sockstr);
+			printf("    query_port: %u\n", sport);
+		}
+
+		printf("    %s:\n", isquery ? "query_message_data"
+					    : "response_message_data");
+		result = dns_message_headertotext(msg, style, flags, buf);
+	} else if (query->lookup->comments && !short_form) {
+		if (query->lookup->cmdline[0] != '\0' && printcmd) {
 			printf("; %s\n", query->lookup->cmdline);
-		if (msg == query->lookup->sendmsg)
+		}
+		if (msg == query->lookup->sendmsg) {
 			printf(";; Sending:\n");
-		else
+		} else {
 			printf(";; Got answer:\n");
+		}
 
 		if (headers) {
 			if (isdotlocal(msg)) {
@@ -686,8 +817,9 @@ buftoosmall:
 		}
 	}
 
-	if (headers && query->lookup->comments && !short_form)
+	if (headers && query->lookup->comments && !short_form && !yaml) {
 		printf("\n");
+	}
 
 	printf("%.*s", (int)isc_buffer_usedlength(buf),
 	       (char *)isc_buffer_base(buf));
@@ -1545,6 +1677,15 @@ plus_option(char *option, bool is_batchfile,
 			lookup->tcp_mode_set = true;
 		}
 		break;
+	case 'y': /* yaml */
+		FULLCHECK("yaml");
+		yaml = state;
+		if (state) {
+			printcmd = false;
+			lookup->stats = false;
+			lookup->rrcomments = -1;
+		}
+		break;
 	case 'z': /* zflag */
 		FULLCHECK("zflag");
 		lookup->zflag = state;
@@ -2257,8 +2398,37 @@ query_finished(void) {
 	}
 }
 
-void dig_setup(int argc, char **argv)
-{
+static void
+dig_error(const char *format, ...) {
+	va_list args;
+
+	if (yaml) {
+		printf("-\n");
+		printf("  type: DIG_ERROR\n");
+
+		/*
+		 * Print an indent before a literal block quote.
+		 * Note: this will break if used to print more than
+		 * one line of text as only the first line would be
+		 * indented.
+		 */
+		printf("  message: |\n");
+		printf("    ");
+	} else {
+		printf(";; ");
+	}
+
+	va_start(args, format);
+	vprintf(format, args);
+	va_end(args);
+
+	if (!yaml) {
+		printf("\n");
+	}
+}
+
+void
+dig_setup(int argc, char **argv) {
 	isc_result_t result;
 
 	ISC_LIST_INIT(lookup_list);
@@ -2272,6 +2442,7 @@ void dig_setup(int argc, char **argv)
 	dighost_received = received;
 	dighost_trying = trying;
 	dighost_shutdown = query_finished;
+	dighost_error = dig_error;
 
 	progname = argv[0];
 	preparse_args(argc, argv);
