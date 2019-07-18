@@ -1483,8 +1483,9 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	/*
 	 * Wait for all the worker threads to exit.
 	 */
-	for (i = 0; i < manager->workers; i++)
-		(void)isc_thread_join(manager->queues[i].thread, NULL);
+	for (i = 0; i < manager->workers; i++) {
+		isc_thread_join(manager->queues[i].thread, NULL);
+	}
 
 	manager_free(manager);
 

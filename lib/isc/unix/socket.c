@@ -3884,12 +3884,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * Wait for thread to exit.
 	 */
 	for (int i = 0; i < manager->nthreads; i++) {
-		isc_result_t result;
-		result = isc_thread_join(manager->threads[i].thread, NULL);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_thread_join() failed");
-		}
+		isc_thread_join(manager->threads[i].thread, NULL);
 		cleanup_thread(manager->mctx, &manager->threads[i]);
 	}
 	/*

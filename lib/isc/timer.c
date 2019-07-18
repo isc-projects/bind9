@@ -739,9 +739,7 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	/*
 	 * Wait for thread to exit.
 	 */
-	if (isc_thread_join(manager->thread, NULL) != ISC_R_SUCCESS)
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s",
-				 "isc_thread_join() failed");
+	isc_thread_join(manager->thread, NULL);
 
 	/*
 	 * Clean up.

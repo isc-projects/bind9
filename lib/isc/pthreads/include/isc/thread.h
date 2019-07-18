@@ -36,6 +36,9 @@ void
 isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *);
 
 void
+isc_thread_join(isc_thread_t thread, isc_threadresult_t *result);
+
+void
 isc_thread_setconcurrency(unsigned int level);
 
 void
@@ -46,12 +49,6 @@ isc_thread_setname(isc_thread_t thread, const char *name);
 
 isc_result_t
 isc_thread_setaffinity(int cpu);
-
-/* XXX We could do fancier error handling... */
-
-#define isc_thread_join(t, rp) \
-	((pthread_join((t), (rp)) == 0) ? \
-	 ISC_R_SUCCESS : ISC_R_UNEXPECTED)
 
 #define isc_thread_self \
 	(unsigned long)pthread_self

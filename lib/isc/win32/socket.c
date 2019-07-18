@@ -2569,10 +2569,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * Wait for threads to exit.
 	 */
 	for (int i = 0; i < manager->maxIOCPThreads; i++) {
-		if (isc_thread_join((isc_thread_t) manager->hIOCPThreads[i],
-			NULL) != ISC_R_SUCCESS)
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_thread_join() for Completion Port failed");
+		isc_thread_join((isc_thread_t) manager->hIOCPThreads[i], NULL);
 	}
 	/*
 	 * Clean up.

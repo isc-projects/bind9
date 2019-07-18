@@ -27,6 +27,7 @@
 #include <sys/procset.h>
 #endif
 
+#include <isc/strerr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
@@ -39,7 +40,7 @@
 		char strbuf[ISC_STRERRORSIZE];				\
 		strerror_r(r, strbuf, sizeof(strbuf));			\
 		isc_error_fatal(__FILE__, __LINE__,			\
-				f # " failed: %s", \
+				f " failed: %s", \
 				strbuf);				\
 	}
 
@@ -60,25 +61,34 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
     defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
 	ret = pthread_attr_getstacksize(&attr, &stacksize);
 	if (ret != 0) {
-		_FATAL(ret, "pthread_attr_getstacksize");
+		_FATAL(ret, "pthread_attr_getstacksize()");
 	}
 
 	if (stacksize < THREAD_MINSTACKSIZE) {
 		ret = pthread_attr_setstacksize(&attr, THREAD_MINSTACKSIZE);
 		if (ret != 0) {
-			_FATAL(ret, pthread_attr_setstacksize);
+			_FATAL(ret, "pthread_attr_setstacksize()");
 		}
 	}
 #endif
 
 	ret = pthread_create(thread, &attr, func, arg);
 	if (ret != 0) {
-		_FATAL(ret,"pthread_create");
+		_FATAL(ret, "pthread_create()");
 	}
 
 	pthread_attr_destroy(&attr);
 
 	return;
+}
+
+void
+isc_thread_join(isc_thread_t thread, isc_threadresult_t *result)
+{
+	int ret = pthread_join(thread, result);
+	if (ret != 0) {
+		_FATAL(ret, "pthread_join()");
+	}
 }
 
 #ifdef __NetBSD__

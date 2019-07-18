@@ -116,8 +116,9 @@ main(int argc, char *argv[]) {
 		}
 	}
 
-	for (i = 0; i < nworkers; i++)
-		(void)isc_thread_join(workers[i], NULL);
+	for (i = 0; i < nworkers; i++) {
+		isc_thread_join(workers[i], NULL);
+	}
 
 	isc_rwlock_destroy(&lock);
 

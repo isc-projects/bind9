@@ -747,8 +747,7 @@ benchmark_test(void **state) {
 	}
 
 	for (i = 0; i < nthreads; i++) {
-		result = isc_thread_join(threads[i], NULL);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		isc_thread_join(threads[i], NULL);
 	}
 
 	result = isc_time_now(&ts2);
