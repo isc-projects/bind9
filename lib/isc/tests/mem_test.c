@@ -463,8 +463,7 @@ isc_mem_benchmark(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (int i = 0; i < nthreads; i++) {
-		result = isc_thread_create(mem_thread, &size, &threads[i]);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		isc_thread_create(mem_thread, &size, &threads[i]);
 		size = size / 2;
 	}
 	for (int i = 0; i < nthreads; i++) {
@@ -527,8 +526,7 @@ isc_mempool_benchmark(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	for (int i = 0; i < nthreads; i++) {
-		result = isc_thread_create(mempool_thread, mp, &threads[i]);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		isc_thread_create(mempool_thread, mp, &threads[i]);
 		size = size / 2;
 	}
 	for (int i = 0; i < nthreads; i++) {

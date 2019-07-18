@@ -697,17 +697,7 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	isc_mutex_init(&manager->lock);
 	isc_mem_attach(mctx, &manager->mctx);
 	isc_condition_init(&manager->wakeup);
-	if (isc_thread_create(run, manager, &manager->thread) !=
-	    ISC_R_SUCCESS) {
-		isc_mem_detach(&manager->mctx);
-		(void)isc_condition_destroy(&manager->wakeup);
-		isc_mutex_destroy(&manager->lock);
-		isc_heap_destroy(&manager->heap);
-		isc_mem_put(mctx, manager, sizeof(*manager));
-		UNEXPECTED_ERROR(__FILE__, __LINE__, "%s",
-				 "isc_thread_create() failed");
-		return (ISC_R_UNEXPECTED);
-	}
+	isc_thread_create(run, manager, &manager->thread);
 	isc_thread_setname(manager->thread, "isc-timer");
 
 	*managerp = (isc_timermgr_t *)manager;

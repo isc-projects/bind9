@@ -32,7 +32,7 @@ typedef void * isc_threadarg_t;
 typedef isc_threadresult_t (*isc_threadfunc_t)(isc_threadarg_t);
 typedef pthread_key_t isc_thread_key_t;
 
-isc_result_t
+void
 isc_thread_create(isc_threadfunc_t, isc_threadarg_t, isc_thread_t *);
 
 void

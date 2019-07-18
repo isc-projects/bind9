@@ -3810,10 +3810,9 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		manager->threads[i].manager = manager;
 		manager->threads[i].threadid = i;
 		setup_thread(&manager->threads[i]);
-		RUNTIME_CHECK(isc_thread_create(netthread,
-						&manager->threads[i],
-						&manager->threads[i].thread)
-			      == ISC_R_SUCCESS);
+		isc_thread_create(netthread,
+				  &manager->threads[i],
+				  &manager->threads[i].thread);
 		char tname[1024];
 		sprintf(tname, "isc-socket-%d", i);
 		isc_thread_setname(manager->threads[i].thread, tname);

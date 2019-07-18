@@ -109,14 +109,11 @@ main(int argc, char *argv[]) {
 		snprintf(name, sizeof(name), "%02u", i);
 		dupname = strdup(name);
 		RUNTIME_CHECK(dupname != NULL);
-		if (i != 0 && i % 3 == 0)
-			RUNTIME_CHECK(isc_thread_create(run1, dupname,
-							&workers[i]) ==
-			       ISC_R_SUCCESS);
-		else
-			RUNTIME_CHECK(isc_thread_create(run2, dupname,
-							&workers[i]) ==
-			       ISC_R_SUCCESS);
+		if (i != 0 && i % 3 == 0) {
+			isc_thread_create(run1, dupname, &workers[i]);
+		} else {
+			isc_thread_create(run2, dupname, &workers[i]);
+		}
 	}
 
 	for (i = 0; i < nworkers; i++)
