@@ -476,15 +476,15 @@ struct dns_resolver {
 	isc_timermgr_t *		timermgr;
 	isc_taskmgr_t *			taskmgr;
 	dns_view_t *			view;
-	bool			frozen;
+	bool				frozen;
 	unsigned int			options;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatchset_t *		dispatches4;
-	bool			exclusivev4;
+	bool				exclusivev4;
 	dns_dispatchset_t *		dispatches6;
 	isc_dscp_t			querydscp4;
 	isc_dscp_t			querydscp6;
-	bool			exclusivev6;
+	bool				exclusivev6;
 	unsigned int			nbuckets;
 	fctxbucket_t *			buckets;
 	zonebucket_t *			dbuckets;
@@ -524,7 +524,7 @@ struct dns_resolver {
 	unsigned int			spillat;	/* clients-per-query */
 	unsigned int			zspill;		/* fetches-per-zone */
 
-	dns_badcache_t  * 		badcache;	 /* Bad cache. */
+	dns_badcache_t  *		badcache;	 /* Bad cache. */
 
 	/* Locked by primelock. */
 	dns_fetch_t *			primefetch;
@@ -10326,6 +10326,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 
 	RTRACE("shutdown");
 
+	LOCK(&res->lock);
 	if (atomic_compare_exchange_strong(&res->exiting, &is_false, true)) {
 		RTRACE("exiting");
 
@@ -10357,6 +10358,7 @@ dns_resolver_shutdown(dns_resolver_t *res) {
 					 NULL, true);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
+	UNLOCK(&res->lock);
 }
 
 void
@@ -10372,8 +10374,10 @@ dns_resolver_detach(dns_resolver_t **resp) {
 	*resp = NULL;
 
 	if (isc_refcount_decrement(&res->references) == 1) {
+		LOCK(&res->lock);
 		INSIST(atomic_load_acquire(&res->exiting));
 		INSIST(res->activebuckets == 0);
+		UNLOCK(&res->lock);
 		destroy(res);
 	}
 }
