@@ -50,16 +50,16 @@ stages:
   image: "$CI_REGISTRY_IMAGE:debian-jessie-amd64"
   <<: *linux_amd64
 
-.debian-jessie-i386: &debian_jessie_i386_image
-  image: "$CI_REGISTRY_IMAGE:debian-jessie-i386"
-  <<: *linux_i386
-
 .debian-stretch-amd64: &debian_stretch_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-stretch-amd64"
   <<: *linux_amd64
 
 .debian-stretch-i386: &debian_stretch_i386_image
   image: "$CI_REGISTRY_IMAGE:debian-stretch-i386"
+  <<: *linux_i386
+
+.debian-buster-amd64: &debian_buster_amd64_image
+  image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
   <<: *linux_i386
 
 .debian-sid-amd64: &debian_sid_amd64_image
@@ -348,6 +348,27 @@ unit:gcc:stretch:amd64:
   <<: *unit_test_job
   dependencies:
     - gcc:stretch:amd64
+
+# Jobs for regular GCC builds on Debian 10 Buster (amd64)
+
+gcc:buster:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *debian_buster_amd64_image
+  <<: *build_job
+
+system:gcc:buster:amd64:
+  <<: *debian_buster_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:buster:amd64
+
+unit:gcc:buster:amd64:
+  <<: *debian_buster_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:buster:amd64
 
 # Jobs for regular GCC builds on Debian Sid (amd64)
 
