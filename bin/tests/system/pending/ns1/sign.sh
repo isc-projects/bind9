@@ -25,7 +25,7 @@ keyname1=`$KEYGEN -q -a RSASHA256 -b 1024 -n zone $zone`
 keyname2=`$KEYGEN -q -a RSASHA256 -b 2048 -f KSK -n zone $zone`
 cat $infile $keyname1.key $keyname2.key > $zonefile
 
-$SIGNER -g -o $zone $zonefile > /dev/null 2>&1
+$SIGNER -g -o $zone $zonefile > /dev/null
 
 # Configure the resolving server with a static key.
 keyfile_to_static_keys $keyname2 > trusted.conf

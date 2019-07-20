@@ -39,7 +39,7 @@ ksk=`$KEYGEN -a RSASHA1 -3 -q -fk $zone`
 $KEYGEN -a RSASHA1 -3 -q $zone > /dev/null
 keyfile_to_static_keys $ksk > private.conf
 cp private.conf ../ns4/private.conf
-$SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > /dev/null 2>&1
+$SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > /dev/null
 
 # Extract saved keys for the revoke-to-duplicate-key test
 zone=bar
