@@ -316,6 +316,20 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
  *
  *\li	Any result that dns_message_parse() can return.
  */
+isc_buffer_t *
+dns_request_getanswer(dns_request_t *request);
+/*
+ * Get the response to 'request' as a buffer.
+ *
+ * Requires:
+ *
+ *\li	'request' is a valid request for which the caller has received the
+ *	completion event.
+ *
+ * Returns:
+ *
+ *\li	a pointer to the answer buffer.
+ */
 
 bool
 dns_request_usedtcp(dns_request_t *request);

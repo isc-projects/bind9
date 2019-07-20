@@ -848,6 +848,7 @@ dns_request_create
 dns_request_createraw
 dns_request_createvia
 dns_request_destroy
+dns_request_getanswer
 dns_request_getresponse
 dns_request_usedtcp
 dns_requestmgr_attach
