@@ -111,7 +111,8 @@ static bool
 	nottl = false,
 	multiline = false,
 	short_form = false,
-	print_unknown_format = false;
+	print_unknown_format = false,
+	yaml = false;
 
 static bool
 	resolve_trace = false,
@@ -353,52 +354,80 @@ setup_logging(FILE *errout) {
 
 static void
 print_status(dns_rdataset_t *rdataset) {
-	const char *astr = "", *tstr = "";
+	char buf[1024] = { 0 };
 
 	REQUIRE(rdataset != NULL);
 
-	if (!showtrust || !dns_rdataset_isassociated(rdataset))
+	if (!showtrust || !dns_rdataset_isassociated(rdataset)) {
 		return;
+	}
 
-	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
-		astr = "negative response, ";
+	buf[0] = '\0';
+
+	if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
+		strlcat(buf, "negative response", sizeof(buf));
+		strlcat(buf, (yaml ? "_" : ", "), sizeof(buf));
+	}
 
 	switch (rdataset->trust) {
 	case dns_trust_none:
-		tstr = "untrusted";
+		strlcat(buf, "untrusted", sizeof(buf));
 		break;
 	case dns_trust_pending_additional:
-		tstr = "signed additional data, pending validation";
+		strlcat(buf, "signed additional data", sizeof(buf));
+		if (!yaml) {
+			strlcat(buf, ", ", sizeof(buf));
+		}
+		strlcat(buf, "pending validation", sizeof(buf));
 		break;
 	case dns_trust_pending_answer:
-		tstr = "signed answer, pending validation";
+		strlcat(buf, "signed answer", sizeof(buf));
+		if (!yaml) {
+			strlcat(buf, ", ", sizeof(buf));
+		}
+		strlcat(buf, "pending validation", sizeof(buf));
 		break;
 	case dns_trust_additional:
-		tstr = "unsigned additional data";
+		strlcat(buf, "unsigned additional data", sizeof(buf));
 		break;
 	case dns_trust_glue:
-		tstr = "glue data";
+		strlcat(buf, "glue data", sizeof(buf));
 		break;
 	case dns_trust_answer:
 		if (root_validation) {
-			tstr = "unsigned answer";
+			strlcat(buf, "unsigned answer", sizeof(buf));
+		} else {
+			strlcat(buf, "answer not validated", sizeof(buf));
 		}
 		break;
 	case dns_trust_authauthority:
-		tstr = "authority data";
+		strlcat(buf, "authority data", sizeof(buf));
 		break;
 	case dns_trust_authanswer:
-		tstr = "authoritative";
+		strlcat(buf, "authoritative", sizeof(buf));
 		break;
 	case dns_trust_secure:
-		tstr = "fully validated";
+		strlcat(buf, "fully validated", sizeof(buf));
 		break;
 	case dns_trust_ultimate:
-		tstr = "ultimate trust";
+		strlcat(buf, "ultimate trust", sizeof(buf));
 		break;
 	}
 
-	printf("; %s%s\n", astr, tstr);
+	if (yaml) {
+		char *p;
+
+		/* Convert spaces to underscores for YAML */
+		for (p = buf; p != NULL && *p != '\0'; p++) {
+			if (*p == ' ') {
+				*p = '_';
+			}
+		}
+
+		printf("  - %s:\n", buf);
+	} else {
+		printf("; %s\n", buf);
+	}
 }
 
 static isc_result_t
@@ -425,8 +454,9 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 		return (ISC_R_SUCCESS);
 
 	if (first || rdataset->trust != trust) {
-		if (!first && showtrust && !short_form)
+		if (!first && showtrust && !short_form && !yaml) {
 			putchar('\n');
+		}
 		print_status(rdataset);
 		trust = rdataset->trust;
 		first = false;
@@ -465,9 +495,11 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 				dns_rdata_reset(&rdata);
 			}
 		} else {
-			if ((rdataset->attributes &
-			     DNS_RDATASETATTR_NEGATIVE) != 0)
+			if (!yaml && (rdataset->attributes &
+				      DNS_RDATASETATTR_NEGATIVE) != 0)
+			{
 				isc_buffer_putstr(&target, "; ");
+			}
 
 			result = dns_master_rdatasettotext(owner, rdataset,
 							   style, &target);
@@ -500,38 +532,52 @@ setup_style(dns_master_style_t **stylep) {
 	REQUIRE(stylep != NULL || *stylep == NULL);
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
-	if (showcomments)
-		styleflags |= DNS_STYLEFLAG_COMMENT;
-	if (print_unknown_format)
-		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
-	if (rrcomments)
-		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
-	if (nottl)
-		styleflags |= DNS_STYLEFLAG_NO_TTL;
-	if (noclass)
-		styleflags |= DNS_STYLEFLAG_NO_CLASS;
-	if (nocrypto)
-		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
-	if (multiline) {
-		styleflags |= DNS_STYLEFLAG_MULTILINE;
-		styleflags |= DNS_STYLEFLAG_COMMENT;
+	if (yaml) {
+		styleflags |= DNS_STYLEFLAG_YAML;
+		dns_master_indentstr = "  ";
+		dns_master_indent = 2;
+	} else {
+		if (showcomments) {
+			styleflags |= DNS_STYLEFLAG_COMMENT;
+		}
+		if (print_unknown_format) {
+			styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
+		}
+		if (rrcomments) {
+			styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+		}
+		if (nottl) {
+			styleflags |= DNS_STYLEFLAG_NO_TTL;
+		}
+		if (noclass) {
+			styleflags |= DNS_STYLEFLAG_NO_CLASS;
+		}
+		if (nocrypto) {
+			styleflags |= DNS_STYLEFLAG_NOCRYPTO;
+		}
+		if (multiline) {
+			styleflags |= DNS_STYLEFLAG_MULTILINE;
+			styleflags |= DNS_STYLEFLAG_COMMENT;
+		}
 	}
 
-	if (multiline || (nottl && noclass))
+	if (multiline || (nottl && noclass)) {
 		result = dns_master_stylecreate(&style, styleflags,
 						24, 24, 24, 32, 80, 8,
 						splitwidth, mctx);
-	else if (nottl || noclass)
+	} else if (nottl || noclass) {
 		result = dns_master_stylecreate(&style, styleflags,
 						24, 24, 32, 40, 80, 8,
 						splitwidth, mctx);
-	else
+	} else {
 		result = dns_master_stylecreate(&style, styleflags,
 						24, 32, 40, 48, 80, 8,
 						splitwidth, mctx);
+	}
 
-	if (result == ISC_R_SUCCESS)
+	if (result == ISC_R_SUCCESS) {
 		*stylep = style;
+	}
 	return (result);
 }
 
@@ -1139,6 +1185,13 @@ plus_option(char *option) {
 		if (state)
 			resolve_trace = state;
 		break;
+	case 'y': /* yaml */
+		FULLCHECK("yaml");
+		yaml = state;
+		if (state) {
+			rrcomments = false;
+		}
+		break;
 	default:
 	invalid_option:
 		/*
@@ -1565,6 +1618,7 @@ main(int argc, char *argv[]) {
 	isc_result_t result;
 	dns_fixedname_t qfn;
 	dns_name_t *query_name, *response_name;
+	char namestr[DNS_NAME_FORMATSIZE];
 	dns_rdataset_t *rdataset;
 	dns_namelist_t namelist;
 	unsigned int resopt, clopt;
@@ -1653,9 +1707,18 @@ main(int argc, char *argv[]) {
 	ISC_LIST_INIT(namelist);
 	result = dns_client_resolve(client, query_name, dns_rdataclass_in,
 				    qtype, resopt, &namelist);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS && !yaml) {
 		delv_log(ISC_LOG_ERROR, "resolution failed: %s",
 			  isc_result_totext(result));
+	}
+
+	if (yaml) {
+		printf("type: DELV_RESULT\n");
+		dns_name_format(query_name, namestr, sizeof(namestr));
+		printf("query_name: %s\n", namestr);
+		printf("status: %s\n", isc_result_totext(result));
+		printf("records:\n");
+	}
 
 	for (response_name = ISC_LIST_HEAD(namelist);
 	     response_name != NULL;

@@ -427,7 +427,7 @@ str_totext(const char *source, isc_buffer_t *target) {
 
 static isc_result_t
 ncache_summary(dns_rdataset_t *rdataset, bool omit_final_dot,
-	       isc_buffer_t *target)
+	       dns_totext_ctx_t *ctx, isc_buffer_t *target)
 {
 	isc_result_t result = ISC_R_SUCCESS;
 	dns_rdataset_t rds;
@@ -441,7 +441,22 @@ ncache_summary(dns_rdataset_t *rdataset, bool omit_final_dot,
 		for (result = dns_rdataset_first(&rds);
 		     result == ISC_R_SUCCESS;
 		     result = dns_rdataset_next(&rds)) {
-			CHECK(str_totext("; ", target));
+			if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
+			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
+			{
+				unsigned int i;
+				for (i = 0; i < dns_master_indent; i++) {
+					CHECK(str_totext(dns_master_indentstr,
+							 target));
+				}
+			}
+
+			if ((ctx->style.flags & DNS_STYLEFLAG_YAML) != 0) {
+				CHECK(str_totext("- ", target));
+			} else {
+				CHECK(str_totext("; ", target));
+			}
+
 			CHECK(dns_name_totext(&name, omit_final_dot, target));
 			CHECK(str_totext(" ", target));
 			CHECK(dns_rdatatype_totext(rds.type, target));
@@ -518,22 +533,21 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		 */
 		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
 		    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
+		{
 			for (i = 0; i < dns_master_indent; i++)
 				RETERR(str_totext(dns_master_indentstr,
 						  target));
-
-		/*
-		 * YAML enumerator?
-		 */
-		if ((ctx->style.flags & DNS_STYLEFLAG_YAML) != 0) {
-			RETERR(str_totext("- ", target));
 		}
 
 		/*
-		 * Comment?
+		 * YAML or comment prefix?
 		 */
-		if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0)
+		if ((ctx->style.flags & DNS_STYLEFLAG_YAML) != 0) {
+			RETERR(str_totext("- ", target));
+		} else if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0)
+		{
 			RETERR(str_totext(";", target));
+		}
 
 		/*
 		 * Owner name.
@@ -651,23 +665,17 @@ rdataset_totext(dns_rdataset_t *rdataset,
 		 */
 		INDENT_TO(rdata_column);
 		if ((rdataset->attributes & DNS_RDATASETATTR_NEGATIVE) != 0) {
-			if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
-			    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
-			{
-				for (i = 0; i < dns_master_indent; i++)
-					RETERR(str_totext(dns_master_indentstr,
-							  target));
-			}
-			if (NXDOMAIN(rdataset))
+			if (NXDOMAIN(rdataset)) {
 				RETERR(str_totext(";-$NXDOMAIN\n", target));
-			else
+			} else {
 				RETERR(str_totext(";-$NXRRSET\n", target));
+			}
 			/*
 			 * Print a summary of the cached records which make
 			 * up the negative response.
 			 */
 			RETERR(ncache_summary(rdataset, omit_final_dot,
-					      target));
+					      ctx, target));
 			break;
 		} else {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
