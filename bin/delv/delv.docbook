@@ -658,6 +658,16 @@
 	    </para>
 	  </listitem>
 	</varlistentry>
+
+	<varlistentry>
+	  <term><option>+[no]yaml</option></term>
+	  <listitem>
+	    <para>
+	      Print response data in YAML format.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
       </variablelist>
 
     </para>
