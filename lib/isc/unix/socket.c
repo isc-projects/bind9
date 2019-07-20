@@ -881,17 +881,15 @@ wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
 		LOCK(&thread->fdlock[lockid]);
 		INSIST(thread->fdstate[fd] == CLOSE_PENDING);
 		thread->fdstate[fd] = CLOSED;
-		UNLOCK(&thread->fdlock[lockid]);
 		(void)unwatch_fd(thread, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(thread, fd, SELECT_POKE_WRITE);
 		(void)close(fd);
+		UNLOCK(&thread->fdlock[lockid]);
 		return;
 	}
 
 	LOCK(&thread->fdlock[lockid]);
 	if (thread->fdstate[fd] == CLOSE_PENDING) {
-		UNLOCK(&thread->fdlock[lockid]);
-
 		/*
 		 * We accept (and ignore) any error from unwatch_fd() as we are
 		 * closing the socket, hoping it doesn't leave dangling state in
@@ -902,6 +900,7 @@ wakeup_socket(isc__socketthread_t *thread, int fd, int msg) {
 		 */
 		(void)unwatch_fd(thread, fd, SELECT_POKE_READ);
 		(void)unwatch_fd(thread, fd, SELECT_POKE_WRITE);
+		UNLOCK(&thread->fdlock[lockid]);
 		return;
 	}
 	if (thread->fdstate[fd] != MANAGED) {
