@@ -6573,16 +6573,18 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			INSIST(!loading);
 			INSIST(rbtversion == NULL ||
 			       rbtversion->serial >= topheader->serial);
-			if (topheader_prev != NULL)
+			if (topheader_prev != NULL) {
 				topheader_prev->next = newheader;
-			else
+			} else {
 				rbtnode->data = newheader;
+			}
 			newheader->next = topheader->next;
 			newheader->down = topheader;
 			topheader->next = newheader;
 			rbtnode->dirty = 1;
-			if (changed != NULL)
+			if (changed != NULL) {
 				changed->dirty = true;
+			}
 		} else {
 			/*
 			 * No rdatasets of the given type exist at the node.
@@ -7429,8 +7431,15 @@ loading_addrdataset(void *arg, dns_name_t *name, dns_rdataset_t *rdataset) {
 		newheader->resign_lsb = 0;
 	}
 
+	NODE_LOCK(&rbtdb->node_locks[node->locknum].lock,
+		  isc_rwlocktype_write);
+
 	result = add32(rbtdb, node, rbtdb->current_version, newheader,
 		       DNS_DBADD_MERGE, true, NULL, 0);
+
+	NODE_UNLOCK(&rbtdb->node_locks[node->locknum].lock,
+		    isc_rwlocktype_write);
+
 	if (result == ISC_R_SUCCESS &&
 	    delegating_type(rbtdb, node, rdataset->type))
 		node->find_callback = 1;
