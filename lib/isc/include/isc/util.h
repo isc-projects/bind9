@@ -42,6 +42,12 @@
  */
 #define UNUSED(x)      (void)(x)
 
+#if __GNUC__ >= 8 && !defined(__clang__)
+#define ISC_NONSTRING	__attribute__((nonstring))
+#else
+#define ISC_NONSTRING
+#endif /* __GNUC__ */
+
 /*%
  * The opposite: silent warnings about stored values which are never read.
  */
