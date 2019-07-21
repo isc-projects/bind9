@@ -112,6 +112,18 @@
 	  and IPv6 lookups. [GL #182]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added.
+	</para>
+	<para>
+	  If you are running multiple DNS Servers (different versions of BIND 9
+	  or DNS server from multiple vendors) responding from the same IP
+	  address (anycast or load-balancing scenarios), you'll have to make
+	  sure that all the servers are configured with the same DNS Cookie
+	  algorithm and same Server Secret for the best performance.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
