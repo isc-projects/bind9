@@ -1644,8 +1644,7 @@ Optional Packages:
   --with-locktype=ARG     Specify mutex lock type (adaptive or standard)
   --with-libtool          use GNU libtool
   --with-openssl=DIR      root of the OpenSSL directory
-  --with-cc-alg=ALG       choose the algorithm for Client Cookie
-                          [aes|sha1|sha256] (default is aes)
+  --with-cc-alg=ALG       deprecated
   --with-pkcs11=PATH      Build with PKCS11 support [no|path] (PATH is for the
                           PKCS11 provider)
   --with-gssapi=PATH|/path/krb5-config
@@ -16348,35 +16347,17 @@ LDFLAGS="$save_LDFLAGS"
 if test "${with_cc_alg+set}" = set; then :
   withval=$with_cc_alg; :
 else
-  with_cc_alg="aes"
+  with_cc_alg="siphash24"
 fi
 
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for the algorithm for Client Cookie" >&5
-$as_echo_n "checking for the algorithm for Client Cookie... " >&6; }
 case $with_cc_alg in #(
-  sha1|SHA1) :
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: sha1" >&5
-$as_echo "sha1" >&6; }
-
-$as_echo "#define HMAC_SHA1_CC 1" >>confdefs.h
- ;; #(
-  sha256|SHA256) :
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: sha256" >&5
-$as_echo "sha256" >&6; }
-
-$as_echo "#define HMAC_SHA256_CC 1" >>confdefs.h
- ;; #(
-  aes|AES|auto) :
-    { $as_echo "$as_me:${as_lineno-$LINENO}: result: aes" >&5
-$as_echo "aes" >&6; }
-
-$as_echo "#define AES_CC 1" >>confdefs.h
- ;; #(
+  siphash24) :
+    : ;; #(
   *) :
-    as_fn_error $? "Invalid $with_cc_alg algorithm for Client Cookie" "$LINENO" 5 ;;
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: The Client Cookie is always SipHash 2-4 based" >&5
+$as_echo "$as_me: WARNING: The Client Cookie is always SipHash 2-4 based" >&2;} ;;
 esac
-
 
 PKCS11_TOOLS=
 PKCS11_TEST=

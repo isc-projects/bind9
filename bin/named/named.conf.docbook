@@ -221,7 +221,7 @@ options {
 	check-wildcard <replaceable>boolean</replaceable>;
 	cleaning-interval <replaceable>integer</replaceable>;
 	clients-per-query <replaceable>integer</replaceable>;
-	cookie-algorithm ( aes | sha1 | sha256 );
+	cookie-algorithm ( aes | sha1 | sha256 | siphash24 );
 	cookie-secret <replaceable>string</replaceable>;
 	coresize ( default | unlimited | <replaceable>sizeval</replaceable> );
 	datasize ( default | unlimited | <replaceable>sizeval</replaceable> );

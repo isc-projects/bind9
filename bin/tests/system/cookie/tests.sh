@@ -211,12 +211,12 @@ status=`expr $status + $ret`
 #
 # Test shared cookie-secret support.
 #
-# NS4 has cookie-secret "569d36a6cc27d6bf55502183302ba352745255a2";
+# NS4 has cookie-secret "569d36a6cc27d6bf55502183302ba352";
 #
-# NS5 has cookie-secret "569d36a6cc27d6bf55502183302ba352745255a2";
-# NS5 has cookie-secret "6b300e27a0db46d4b046e4189790fa7db3c1ffb3"; (alternate)
+# NS5 has cookie-secret "569d36a6cc27d6bf55502183302ba352";
+# NS5 has cookie-secret "6b300e27a0db46d4b046e4189790fa7d"; (alternate)
 #
-# NS6 has cookie-secret "6b300e27a0db46d4b046e4189790fa7db3c1ffb3";
+# NS6 has cookie-secret "6b300e27a0db46d4b046e4189790fa7d";
 #
 # Server cookies from NS4 are accepted by NS5 and not NS6
 # Server cookies from NS5 are accepted by NS4 and not NS6

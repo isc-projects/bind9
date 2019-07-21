@@ -917,21 +917,12 @@ AC_SUBST([OPENSSL_LDFLAGS])
 # Client Cookie algorithm choice
 #
 AC_ARG_WITH([cc-alg],
-	    [AS_HELP_STRING([--with-cc-alg=ALG],
-			   [choose the algorithm for Client Cookie
-			    [aes|sha1|sha256] (default is aes)])],
-	    [:], [with_cc_alg="aes"])
+	    [AS_HELP_STRING([--with-cc-alg=ALG], [deprecated])],
+	    [:], [with_cc_alg="siphash24"])
 
-AC_MSG_CHECKING([for the algorithm for Client Cookie])
 AS_CASE([$with_cc_alg],
-	[sha1|SHA1],[AC_MSG_RESULT([sha1])
-		     AC_DEFINE([HMAC_SHA1_CC], [1], [Use HMAC-SHA1 for Client Cookie generation])],
-	[sha256|SHA256],[AC_MSG_RESULT([sha256])
-			 AC_DEFINE([HMAC_SHA256_CC], [1], [Use HMAC-SHA256 for Client Cookie generation])],
-	[aes|AES|auto],[AC_MSG_RESULT([aes])
-		       AC_DEFINE([AES_CC], [1], [Use AES for Client Cookie generation])],
-	[AC_MSG_ERROR([Invalid $with_cc_alg algorithm for Client Cookie])])
-
+	[siphash24],[:],
+	[AC_MSG_WARN([The Client Cookie is always SipHash 2-4 based])])
 
 PKCS11_TOOLS=
 PKCS11_TEST=
