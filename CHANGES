@@ -1,3 +1,7 @@
+5264.	[func]		New DNS Cookie algorithm - siphash24 - has been added to
+			BIND 9, and the old HMAC-SHA DNS Cookie algorithms have
+			been removed. [GL #605]
+
 	--- 9.15.2 released ---
 
 5263.	[cleanup]	Use atomics and isc_refcount_t wherever possible.
