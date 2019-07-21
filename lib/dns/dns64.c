@@ -146,7 +146,7 @@ dns_dns64_aaaafroma(const dns_dns64_t *dns64, const isc_netaddr_t *reqaddr,
 		return (DNS_R_DISALLOWED);
 	}
 
-	if (dns64->clients != NULL) {
+	if (dns64->clients != NULL && reqaddr != NULL) {
 		result = dns_acl_match(reqaddr, reqsigner, dns64->clients, env,
 				       &match, NULL);
 		if (result != ISC_R_SUCCESS) {
