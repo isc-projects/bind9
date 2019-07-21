@@ -78,6 +78,15 @@ static dns_name_t *gorigin;		/* The database origin */
 static bool ignore_kskflag = false;
 static bool keyset_kskonly = false;
 
+static void
+report(const char *format, ...) {
+	va_list args;
+	va_start(args, format);
+	vfprintf(stdout, format, args);
+	va_end(args);
+	putc('\n', stdout);
+}
+
 /*%
  * Load the zone file from disk
  */
@@ -304,7 +313,7 @@ main(int argc, char *argv[]) {
 	}
 
 	gdb = NULL;
-	fprintf(stderr, "Loading zone '%s' from file '%s'\n", origin, file);
+	report("Loading zone '%s' from file '%s'\n", origin, file);
 	loadzone(file, origin, rdclass, &gdb);
 	gorigin = dns_db_origin(gdb);
 	gclass = dns_db_class(gdb);
@@ -314,7 +323,8 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_db_newversion()");
 
 	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, NULL,
-				       mctx, ignore_kskflag, keyset_kskonly);
+				       mctx, ignore_kskflag, keyset_kskonly,
+				       report);
 
 	dns_db_closeversion(gdb, &gversion, false);
 	dns_db_detach(&gdb);

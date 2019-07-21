@@ -3883,7 +3883,7 @@ main(int argc, char *argv[]) {
 	} else {
 		vresult = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin,
 						NULL, mctx, ignore_kskflag,
-						keyset_kskonly);
+						keyset_kskonly, report);
 		if (vresult != ISC_R_SUCCESS) {
 			fprintf(output_stdout ? stderr : stdout,
 				"Zone verification failed (%s)\n",
