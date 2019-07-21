@@ -1797,8 +1797,7 @@ Optional Packages:
   --with-gost             Crypto GOST [yes|no|raw|asn1].
   --with-eddsa            Crypto EDDSA [yes|all|no].
   --with-aes              Crypto AES
-  --with-cc-alg=ALG       choose the algorithm for Client Cookie
-                          [aes|sha1|sha256]
+  --with-cc-alg=ALG       deprecated
   --with-lmdb=PATH        build with LMDB library [yes|no|path]
   --with-libxml2=PATH     build with libxml2 library [yes|no|path]
   --with-libjson=PATH     build with libjson0 library [yes|no|path]
@@ -17053,7 +17052,7 @@ fi
 if test "${with_aes+set}" = set; then :
   withval=$with_aes; with_aes="$withval"
 else
-  with_aes="checkcc"
+  with_aes="yes"
 fi
 
 
@@ -17067,44 +17066,6 @@ else
   want_openssl_hash="checkcc"
 fi
 
-
-#
-# Client Cookie algorithm choice
-#
-
-# Check whether --with-cc-alg was given.
-if test "${with_cc_alg+set}" = set; then :
-  withval=$with_cc_alg; with_cc_alg="$withval"
-else
-  with_cc_alg="auto"
-fi
-
-
-case $with_cc_alg in
-	*1)
-		with_cc_alg="sha1"
-		;;
-	*2*)
-		with_cc_alg="sha256"
-		;;
-	auto)
-		if test "no" != "$with_aes"
-		then
-			with_aes="yes"
-		fi
-		;;
-	*)
-		with_cc_alg="aes"
-		if test "no" != "$with_aes"
-		then
-			with_aes="yes"
-		fi
-		;;
-esac
-if test "checkcc" = "with_aes"
-then
-	with_aes="no"
-fi
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for OpenSSL library" >&5
 $as_echo_n "checking for OpenSSL library... " >&6; }
@@ -17822,58 +17783,22 @@ fi
 # Choose Client Cookie algorithm
 #
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for the Algorithm for Client Cookie" >&5
-$as_echo_n "checking for the Algorithm for Client Cookie... " >&6; }
-if test "auto" = "$with_cc_alg"
-then
-	if test "yes" = "$with_aes"
-	then
-		with_cc_alg="aes"
-	else
-		with_cc_alg="sha256"
-	fi
+# Check whether --with-cc-alg was given.
+if test "${with_cc_alg+set}" = set; then :
+  withval=$with_cc_alg; :
+else
+  with_cc_alg="siphash24"
 fi
-case $with_cc_alg in
-	sha1)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: sha1" >&5
-$as_echo "sha1" >&6; }
-		if test "X$CRYPTO" = "X-DOPENSSL"
-		then
-			if test "checkcc" = "$want_openssl_hash"
-			then
-				want_openssl_hash="yes"
-			fi
-		fi
 
-$as_echo "#define HMAC_SHA1_CC 1" >>confdefs.h
 
-		;;
-	sha256)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: sha256" >&5
-$as_echo "sha256" >&6; }
-		if test "X$CRYPTO" = "X-DOPENSSL"
-		then
-			if test "checkcc" = "$want_openssl_hash"
-			then
-				want_openssl_hash="yes"
-			fi
-		fi
-
-$as_echo "#define HMAC_SHA256_CC 1" >>confdefs.h
-
-		;;
-	aes)
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: aes" >&5
-$as_echo "aes" >&6; }
-		if test "yes" != "$with_aes"
-		then
-			as_fn_error $? "\"Client Cookie wants to use unavailable AES\"" "$LINENO" 5;
-		fi
-
-$as_echo "#define AES_CC 1" >>confdefs.h
-
-		;;
+case $with_cc_alg in #(
+  siphash24) :
+    : ;; #(
+  *) :
+    { $as_echo "$as_me:${as_lineno-$LINENO}: WARNING: The Client Cookie is always SipHash 2-4 based" >&5
+$as_echo "$as_me: WARNING: The Client Cookie is always SipHash 2-4 based" >&2;} ;;
 esac
+
 if test "checkcc" = "$want_openssl_hash"
 then
 	want_openssl_hash="no"

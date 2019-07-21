@@ -1481,7 +1481,7 @@ AC_ARG_WITH(gost,
 AC_ARG_WITH(eddsa, AS_HELP_STRING([--with-eddsa], [Crypto EDDSA [yes|all|no].]),
 	    with_eddsa="$withval", with_eddsa="auto")
 AC_ARG_WITH(aes, AS_HELP_STRING([--with-aes], [Crypto AES]),
-	    with_aes="$withval", with_aes="checkcc")
+	    with_aes="$withval", with_aes="yes")
 
 #
 # was --enable-openssl-hash specified?
@@ -1490,41 +1490,6 @@ AC_ARG_ENABLE(openssl-hash,
 	      AS_HELP_STRING([--enable-openssl-hash],
 			     [use OpenSSL for hash functions [default=no]]),
 	      want_openssl_hash="$enableval", want_openssl_hash="checkcc")
-
-#
-# Client Cookie algorithm choice
-#
-AC_ARG_WITH(cc-alg,
-	    AS_HELP_STRING([--with-cc-alg=ALG],
-			   [choose the algorithm for Client Cookie
-				[aes|sha1|sha256]]),
-	with_cc_alg="$withval", with_cc_alg="auto")
-
-case $with_cc_alg in
-	*1)
-		with_cc_alg="sha1"
-		;;
-	*2*)
-		with_cc_alg="sha256"
-		;;
-	auto)
-		if test "no" != "$with_aes"
-		then
-			with_aes="yes"
-		fi
-		;;
-	*)
-		with_cc_alg="aes"
-		if test "no" != "$with_aes"
-		then
-			with_aes="yes"
-		fi
-		;;
-esac
-if test "checkcc" = "with_aes"
-then
-	with_aes="no"
-fi
 
 AC_MSG_CHECKING(for OpenSSL library)
 OPENSSL_WARNING=
@@ -2055,52 +2020,14 @@ AC_SUBST(ISC_PLATFORM_WANTAES)
 #
 # Choose Client Cookie algorithm
 #
+AC_ARG_WITH([cc-alg],
+	    [AS_HELP_STRING([--with-cc-alg=ALG], [deprecated])],
+	    [:], [with_cc_alg="siphash24"])
 
-AC_MSG_CHECKING(for the Algorithm for Client Cookie)
-if test "auto" = "$with_cc_alg"
-then
-	if test "yes" = "$with_aes"
-	then
-		with_cc_alg="aes"
-	else
-		with_cc_alg="sha256"
-	fi
-fi
-case $with_cc_alg in
-	sha1)
-		AC_MSG_RESULT(sha1)
-		if test "X$CRYPTO" = "X-DOPENSSL"
-		then
-			if test "checkcc" = "$want_openssl_hash"
-			then
-				want_openssl_hash="yes"
-			fi
-		fi
-		AC_DEFINE(HMAC_SHA1_CC, 1,
-			  [Use HMAC-SHA1 for Client Cookie generation])
-		;;
-	sha256)
-		AC_MSG_RESULT(sha256)
-		if test "X$CRYPTO" = "X-DOPENSSL"
-		then
-			if test "checkcc" = "$want_openssl_hash"
-			then
-				want_openssl_hash="yes"
-			fi
-		fi
-		AC_DEFINE(HMAC_SHA256_CC, 1,
-			  [Use HMAC-SHA256 for Client Cookie generation])
-		;;
-	aes)
-		AC_MSG_RESULT(aes)
-		if test "yes" != "$with_aes"
-		then
-			AC_MSG_ERROR("Client Cookie wants to use unavailable AES");
-		fi
-		AC_DEFINE(AES_CC, 1,
-			  [Use AES for Client Cookie generation])
-		;;
-esac
+AS_CASE([$with_cc_alg],
+	[siphash24],[:],
+	[AC_MSG_WARN([The Client Cookie is always SipHash 2-4 based])])
+
 if test "checkcc" = "$want_openssl_hash"
 then
 	want_openssl_hash="no"

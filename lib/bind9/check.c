@@ -32,6 +32,7 @@
 #include <isc/result.h>
 #include <isc/sha1.h>
 #include <isc/sha2.h>
+#include <isc/siphash.h>
 #include <isc/sockaddr.h>
 #include <isc/string.h>
 #include <isc/symtab.h>
@@ -1417,8 +1418,14 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			if (strcasecmp(ccalg, "aes") == 0 &&
 			    usedlength != ISC_AES128_KEYLENGTH) {
 				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "AES cookie-secret must be "
-					    "128 bits");
+					    "AES cookie-secret must be 128 bits");
+				if (result == ISC_R_SUCCESS)
+					result = ISC_R_RANGE;
+			}
+			if (strcasecmp(ccalg, "siphash24") == 0 &&
+			    usedlength != ISC_SIPHASH24_KEY_LENGTH) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "SipHash-2-4 cookie-secret must be 128 bits");
 				if (result == ISC_R_SUCCESS)
 					result = ISC_R_RANGE;
 			}

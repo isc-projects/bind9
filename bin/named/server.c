@@ -42,6 +42,7 @@
 #include <isc/refcount.h>
 #include <isc/resource.h>
 #include <isc/sha2.h>
+#include <isc/siphash.h>
 #include <isc/socket.h>
 #include <isc/stat.h>
 #include <isc/stats.h>
@@ -8482,7 +8483,9 @@ load_configuration(const char *filename, ns_server_t *server,
 	obj = NULL;
 	result = ns_config_get(maps, "cookie-algorithm", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {
+	if (strcasecmp(cfg_obj_asstring(obj), "siphash24") == 0) {
+		server->cookiealg = ns_cookiealg_siphash24;
+	} else if (strcasecmp(cfg_obj_asstring(obj), "aes") == 0) {
 #if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 		server->cookiealg = ns_cookiealg_aes;
 #else
@@ -8545,11 +8548,16 @@ load_configuration(const char *filename, ns_server_t *server,
 
 			usedlength = isc_buffer_usedlength(&b);
 			switch (server->cookiealg) {
+			case ns_cookiealg_siphash24:
+				if (usedlength != ISC_SIPHASH24_KEY_LENGTH) {
+					CHECKM(ISC_R_RANGE,
+					       "SipHash-2-4 cookie-secret must be 128 bits");
+				}
+				break;
 			case ns_cookiealg_aes:
 				if (usedlength != ISC_AES128_KEYLENGTH) {
 					CHECKM(ISC_R_RANGE,
-					       "AES cookie-secret must be "
-					       "128 bits");
+					       "AES cookie-secret must be 128 bits");
 				}
 				break;
 			case ns_cookiealg_sha1:
