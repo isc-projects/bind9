@@ -2645,11 +2645,12 @@ loadexplicitkeys(char *keyfiles[], int n, bool setksk) {
 
 static void
 report(const char *format, ...) {
+	FILE *out = output_stdout ? stderr : stdout;
 	va_list args;
 	va_start(args, format);
-	vfprintf(stderr, format, args);
+	vfprintf(out, format, args);
 	va_end(args);
-	putc('\n', stderr);
+	putc('\n', out);
 }
 
 static void
