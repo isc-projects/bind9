@@ -1,3 +1,7 @@
+5271.	[func]		The normal (non-debugging) output of dnssec-signzone
+			and dnssec-verify tools now goes to stdout, instead of
+			the combination of stderr and stdout.
+
 5270.	[bug]		'dig +expandaaaa +short' did not work. [GL #1152]
 
 5269.	[port]		cygwin: can return ETIMEDOUT on connect() with a

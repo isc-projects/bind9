@@ -277,6 +277,17 @@
 	  algorithm and same Server Secret for the best performance.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  The information from the <command>dnssec-signzone</command> and
+	  <command>dnssec-verify</command> commands is now printed to standard
+	  output.  The standard error output is only used to print warnings and
+	  errors, and in case the user requests the signed zone to be printed to
+	  standard output with <command>-f -</command> option.  A new
+	  configuration option <command>-q</command> has been added to silence
+	  all output on standard output except for the name of the signed zone.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
