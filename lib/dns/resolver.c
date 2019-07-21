@@ -21,13 +21,12 @@
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/random.h>
+#include <isc/siphash.h>
 #include <isc/socket.h>
 #include <isc/stats.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
-
-#include <isc/aes.h>
 
 #include <dns/acl.h>
 #include <dns/adb.h>
@@ -201,7 +200,7 @@ typedef struct query {
 	isc_mem_t *			mctx;
 	dns_dispatchmgr_t *		dispatchmgr;
 	dns_dispatch_t *		dispatch;
-	bool			exclusivesocket;
+	bool				exclusivesocket;
 	dns_adbaddrinfo_t *		addrinfo;
 	isc_socket_t *			tcpsocket;
 	isc_time_t			start;
@@ -213,7 +212,7 @@ typedef struct query {
 	dns_tsigkey_t			*tsigkey;
 	isc_socketevent_t		sendevent;
 	isc_dscp_t			dscp;
-	int 				ednsversion;
+	int				ednsversion;
 	unsigned int			options;
 	isc_sockeventattr_t		attributes;
 	unsigned int			sends;
@@ -2271,29 +2270,56 @@ add_triededns512(fetchctx_t *fctx, isc_sockaddr_t *address) {
 	ISC_LIST_INITANDAPPEND(fctx->edns512, tried, link);
 }
 
-static void
-compute_cc(resquery_t *query, unsigned char *cookie, size_t len) {
-	unsigned char digest[ISC_AES_BLOCK_LENGTH];
-	unsigned char input[16];
+static inline size_t
+addr2buf(void *buf, const size_t bufsize, const isc_sockaddr_t *sockaddr) {
 	isc_netaddr_t netaddr;
-	unsigned int i;
-
-	INSIST(len >= 8U);
-
-	isc_netaddr_fromsockaddr(&netaddr, &query->addrinfo->sockaddr);
+	isc_netaddr_fromsockaddr(&netaddr, sockaddr);
 	switch (netaddr.family) {
 	case AF_INET:
-		memmove(input, (unsigned char *)&netaddr.type.in, 4);
-		memset(input + 4, 0, 12);
-		break;
+		INSIST(bufsize >= 4);
+		memmove(buf, &netaddr.type.in, 4);
+		return (4);
 	case AF_INET6:
-		memmove(input, (unsigned char *)&netaddr.type.in6, 16);
-		break;
+		INSIST(bufsize >= 16);
+		memmove(buf, &netaddr.type.in6, 16);
+		return (16);
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
 	}
-	isc_aes128_crypt(query->fctx->res->view->secret, input, digest);
-	for (i = 0; i < 8; i++)
-		digest[i] ^= digest[i + 8];
-	memmove(cookie, digest, 8);
+	return (0);
+}
+
+static inline isc_socket_t *
+query2sock(const resquery_t *query) {
+	if (query->exclusivesocket) {
+		return (dns_dispatch_getentrysocket(query->dispentry));
+	} else {
+		return (dns_dispatch_getsocket(query->dispatch));
+	}
+}
+
+static inline size_t
+add_serveraddr(uint8_t *buf, const size_t bufsize, const resquery_t *query)
+{
+	return (addr2buf(buf, bufsize, &query->addrinfo->sockaddr));
+}
+
+#define CLIENT_COOKIE_SIZE 8U
+
+static void
+compute_cc(const resquery_t *query, uint8_t *cookie, const size_t len) {
+	INSIST(len >= CLIENT_COOKIE_SIZE);
+	STATIC_ASSERT(sizeof(query->fctx->res->view->secret)
+		      >= ISC_SIPHASH24_KEY_LENGTH,
+		      "The view->secret size can't fit SipHash 2-4 key length");
+
+	uint8_t buf[16] ISC_NONSTRING = { 0 };
+	size_t buflen = add_serveraddr(buf, sizeof(buf), query);
+
+	uint8_t digest[ISC_SIPHASH24_TAG_LENGTH] ISC_NONSTRING = { 0 };
+	isc_siphash24(query->fctx->res->view->secret, buf, buflen, digest);
+	memmove(cookie, digest, CLIENT_COOKIE_SIZE);
 }
 
 static isc_result_t
@@ -2753,10 +2779,8 @@ resquery_send(resquery_t *query) {
 	 */
 	dns_message_reset(fctx->qmessage, DNS_MESSAGE_INTENTRENDER);
 
-	if (query->exclusivesocket)
-		sock = dns_dispatch_getentrysocket(query->dispentry);
-	else
-		sock = dns_dispatch_getsocket(query->dispatch);
+	sock = query2sock(query);
+
 	/*
 	 * Send the query!
 	 */
@@ -5334,9 +5358,9 @@ validated(isc_task_t *task, isc_event_t *event) {
 	REQUIRE(event->ev_type == DNS_EVENT_VALIDATORDONE);
 	valarg = event->ev_arg;
 	fctx = valarg->fctx;
+	REQUIRE(VALID_FCTX(fctx));
 	res = fctx->res;
 	addrinfo = valarg->addrinfo;
-	REQUIRE(VALID_FCTX(fctx));
 	REQUIRE(!ISC_LIST_EMPTY(fctx->validators));
 
 	vevent = (dns_validatorevent_t *)event;
@@ -9548,11 +9572,7 @@ rctx_logpacket(respctx_t *rctx) {
 		dtmsgtype = DNS_DTTYPE_RR;
 	}
 
-	if (rctx->query->exclusivesocket) {
-		sock = dns_dispatch_getentrysocket(rctx->query->dispentry);
-	} else {
-		sock = dns_dispatch_getsocket(rctx->query->dispatch);
-	}
+	sock = query2sock(rctx->query);
 
 	if (sock != NULL) {
 		result = isc_socket_getsockname(sock, &localaddr);

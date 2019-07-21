@@ -222,7 +222,7 @@ options {
 	check-srv-cname ( fail | warn | ignore );
 	check-wildcard <replaceable>boolean</replaceable>;
 	clients-per-query <replaceable>integer</replaceable>;
-	cookie-algorithm ( aes );
+	cookie-algorithm ( aes | siphash24 );
 	cookie-secret <replaceable>string</replaceable>;
 	coresize ( default | unlimited | <replaceable>sizeval</replaceable> );
 	datasize ( default | unlimited | <replaceable>sizeval</replaceable> );
