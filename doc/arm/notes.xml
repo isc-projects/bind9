@@ -186,8 +186,15 @@
       </listitem>
       <listitem>
 	<para>
-	Statistics channel groups are now toggleable. [GL #1030]
+	  Statistics channel groups are now toggleable. [GL #1030]
 	</para>
+      </listitem>
+      <listitem>
+	<para>
+	  <command>dig</command>, <command>mdig</command> and
+	  <command>delv</command> can all now take a <command>+yaml</command>
+	  option to print output in a a detailed YAML format. [RT #1145]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
@@ -274,7 +281,7 @@
 	  A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added and
 	  made default.  Old non-default HMAC-SHA based DNS Cookie algorithms
 	  have been removed, and only the default AES algorithm is being kept
-	  for legacy reasons.  This changes doesn't have any operational impact
+	  for legacy reasons.  This change doesn't have any operational impact
 	  in most common scenarios. [GL #605]
 	</para>
 	<para>
@@ -370,8 +377,8 @@
       </listitem>
       <listitem>
 	<para>
-	  <command>named-checkconf</command> now correctly reports missing
-	  <command>dnstap-output</command> option when
+	  <command>named-checkconf</command> now correctly reports
+	  a missing <command>dnstap-output</command> option when
 	  <command>dnstap</command> is set. [GL #1136]
 	</para>
       </listitem>
