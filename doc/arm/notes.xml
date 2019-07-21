@@ -261,6 +261,22 @@
 	  installation path as an optional argument.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added and
+	  made default.  Old non-default HMAC-SHA based DNS Cookie algorithms
+	  have been removed, and only the default AES algorithm is being kept
+	  for legacy reasons.  This changes doesn't have any operational impact
+	  in most common scenarios.
+	</para>
+	<para>
+	  If you are running multiple DNS Servers (different versions of BIND 9
+	  or DNS server from multiple vendors) responding from the same IP
+	  address (anycast or load-balancing scenarios), you'll have to make
+	  sure that all the servers are configured with the same DNS Cookie
+	  algorithm and same Server Secret for the best performance.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
