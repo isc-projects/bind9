@@ -20325,27 +20325,97 @@ fi
 # Check for -Wl,--wrap= support
 #
 
-save_LDFLAGS=$LDFLAGS
-LDFLAGS="--wrap=printf"
 
+
+  CCASFLAGS_wrap_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_wrap_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_wrap_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_wrap_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_wrap_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_wrap_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_wrap_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_wrap_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_wrap_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_wrap_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_wrap_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_wrap_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_wrap_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_wrap_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_wrap_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_wrap_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_wrap_ax_save_flags=$VALAFLAGS
+
+
+
+
+LDFLAGS="-Wl,-wrap,exit"
 LD_WRAP_TESTS=false
-enable_ld_wrap=no
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker support for --wrap option" >&5
 $as_echo_n "checking for linker support for --wrap option... " >&6; }
 cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
-#include <stdio.h>
+#include <stdlib.h>
+		       void __real_exit (int status);
+		       void __wrap_exit (int status) { __real_exit (status); }
+
 int
 main ()
 {
-__wrap_printf("success"); return (0);
+exit (1);
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  enable_ld_wrap=yes
-     LD_WRAP_TESTS=true
+  LD_WRAP_TESTS=true
 
 $as_echo "#define LD_WRAP 1" >>confdefs.h
 
@@ -20357,10 +20427,61 @@ $as_echo "no" >&6; }
 fi
 rm -f core conftest.err conftest.$ac_objext \
     conftest$ac_exeext conftest.$ac_ext
-# AM_CONDITIONAL([LD_WRAP], [test $enable_ld_wrap = yes])
 
 
-LDFLAGS=$save_LDFLAGS
+
+  CCASFLAGS=$CCASFLAGS_wrap_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_wrap_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_wrap_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_wrap_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_wrap_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_wrap_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_wrap_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_wrap_ax_save_flags
+
+
+  FLIBS=$FLIBS_wrap_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_wrap_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_wrap_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_wrap_ax_save_flags
+
+
+  LIBS=$LIBS_wrap_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_wrap_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_wrap_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_wrap_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_wrap_ax_save_flags
+
+
+
 
 #
 # Check for i18n
