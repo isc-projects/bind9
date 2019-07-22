@@ -21,3 +21,8 @@ copy_setports ns5/named.conf.in ns5/named.conf
 copy_setports ns6/named.conf.in ns6/named.conf
 copy_setports ns7/named.conf.in ns7/named.conf
 copy_setports ns8/named.conf.in ns8/named.conf
+
+if ../feature-test --have-aes; then
+    cp good-cookie-aes.conf.in good-cookie-aes.conf
+    cp bad-cookie-badaes.conf.in bad-cookie-badaes.conf
+fi
