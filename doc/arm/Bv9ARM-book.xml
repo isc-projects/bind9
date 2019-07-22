@@ -8685,8 +8685,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    appear, they are not combined — the last one applies.
 	  </para>
 	  <para>
-	    By default, records are returned in indeterminate but
-	    consistent order (see <command>none</command> above).
+	    By default, records are returned in <command>random</command> order.
 	  </para>
 
 	  <note>
