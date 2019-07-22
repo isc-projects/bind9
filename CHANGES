@@ -1,5 +1,8 @@
-5264.	[func]		New DNS Cookie algorithm - siphash24 - has been added to
-			BIND 9. [GL #605]
+5265.	[bug]		DNS64 and RPZ nodata (CNAME *.) rules interacted badly
+			[GL #1106]
+
+5264.	[func]		New DNS Cookie algorithm - siphash24 - has been added
+			to BIND 9. [GL #605]
 
 5236.	[func]		Add SipHash 2-4 implementation in lib/isc/siphash.c
 			and switch isc_hash_function() to use SipHash 2-4.
