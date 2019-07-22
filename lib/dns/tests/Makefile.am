@@ -24,6 +24,7 @@ check_PROGRAMS =		\
 	dbversion_test		\
 	dh_test			\
 	dispatch_test		\
+	dns64_test		\
 	dst_test		\
 	geoip_test		\
 	keytable_test		\
