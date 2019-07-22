@@ -25,8 +25,9 @@
 #define PATH_MAX 1024   /* WIN32, and others don't define this. */
 #endif
 
-/*! verbosity: set by -v option in each program, defined in dnssectool.c */
+/*! verbosity: set by -v and -q option in each program, defined in dnssectool.c */
 extern int verbose;
+extern bool quiet;
 
 /*! program name, statically initialized in each program */
 extern const char *program;

@@ -57,7 +57,8 @@
 
 #include "dnssectool.h"
 
-int verbose;
+int verbose = 0;
+bool quiet = false;
 uint8_t dtype[8];
 
 static fatalcallback_t *fatalcallback = NULL;

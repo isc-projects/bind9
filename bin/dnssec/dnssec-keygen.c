@@ -218,7 +218,6 @@ main(int argc, char **argv) {
 	bool	unsetrev = false, unsetinact = false;
 	bool	unsetdel = false;
 	bool	genonly = false;
-	bool	quiet = false;
 	bool	show_progress = false;
 	unsigned char	c;
 	isc_stdtime_t	syncadd = 0, syncdel = 0;

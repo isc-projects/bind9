@@ -2645,12 +2645,14 @@ loadexplicitkeys(char *keyfiles[], int n, bool setksk) {
 
 static void
 report(const char *format, ...) {
-	FILE *out = output_stdout ? stderr : stdout;
-	va_list args;
-	va_start(args, format);
-	vfprintf(out, format, args);
-	va_end(args);
-	putc('\n', out);
+	if (!quiet) {
+		FILE *out = output_stdout ? stderr : stdout;
+		va_list args;
+		va_start(args, format);
+		vfprintf(out, format, args);
+		va_end(args);
+		putc('\n', out);
+	}
 }
 
 static void
@@ -3086,6 +3088,7 @@ usage(void) {
 	fprintf(stderr, "\t-j jitter:\n");
 	fprintf(stderr, "\t\trandomize signature end time up to jitter seconds\n");
 	fprintf(stderr, "\t-v debuglevel (0)\n");
+	fprintf(stderr, "\t-q quiet\n");
 	fprintf(stderr, "\t-V:\tprint version information\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
@@ -3477,6 +3480,10 @@ main(int argc, char *argv[]) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("verbose level must be numeric");
+			break;
+
+		case 'q':
+			quiet = true;
 			break;
 
 		case 'X':
