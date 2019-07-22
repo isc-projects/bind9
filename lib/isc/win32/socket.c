@@ -3113,7 +3113,7 @@ isc_socket_accept(isc_socket_t *sock,
 		UNLOCK(&sock->lock);
 		return (ISC_R_SHUTTINGDOWN);
 	}
-	isc_refcount_decrement(&nsock->references);
+	isc_refcount_increment(&nsock->references);
 
 	adev->ev_sender = ntask;
 	adev->newsocket = nsock;
