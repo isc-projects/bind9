@@ -9384,7 +9384,9 @@ rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
 	}
 
 	fctx_done(fctx, result, __LINE__);
+	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 	bucket_empty = fctx_decreference(fctx);
+	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
 	if (bucket_empty) {
 		empty_bucket(fctx->res);
 	}
@@ -10278,8 +10280,10 @@ dns_resolver_attach(dns_resolver_t *source, dns_resolver_t **targetp) {
 
 	RRTRACE(source, "attach");
 
+	LOCK(&source->lock);
 	REQUIRE(!atomic_load_acquire(&source->exiting));
 	isc_refcount_increment(&source->references);
+	UNLOCK(&source->lock);
 
 	*targetp = source;
 }
@@ -10736,9 +10740,9 @@ dns_resolver_destroyfetch(dns_fetch_t **fetchp) {
 			RUNTIME_CHECK(event->fetch != fetch);
 		}
 	}
-	UNLOCK(&res->buckets[bucketnum].lock);
 
 	bucket_empty = fctx_decreference(fctx);
+	UNLOCK(&res->buckets[bucketnum].lock);
 
 	isc_mem_putanddetach(&fetch->mctx, fetch, sizeof(*fetch));
 	*fetchp = NULL;
