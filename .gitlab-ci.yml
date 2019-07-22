@@ -290,7 +290,7 @@ gcc:centos7:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--with-libidn2"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
   <<: *centos_centos7_amd64_image
   <<: *build_job
 
@@ -376,7 +376,7 @@ gcc:sid:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O3 -g"
-    EXTRA_CONFIGURE: "--with-libidn22"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
     RUN_MAKE_INSTALL: 1
   <<: *debian_sid_amd64_image
   <<: *build_job
@@ -399,7 +399,7 @@ gcc:sid:i386:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O3 -g"
-    EXTRA_CONFIGURE: "--with-libidn2 --without-python"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2 --without-python"
   <<: *debian_sid_i386_image
   <<: *build_job
 
