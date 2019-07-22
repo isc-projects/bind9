@@ -68,6 +68,9 @@
     <ClInclude Include="..\include\isc\crc64.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\endian.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\errno.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
