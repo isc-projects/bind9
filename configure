@@ -850,6 +850,7 @@ infodir
 docdir
 oldincludedir
 includedir
+runstatedir
 localstatedir
 sharedstatedir
 sysconfdir
@@ -1018,6 +1019,7 @@ datadir='${datarootdir}'
 sysconfdir='${prefix}/etc'
 sharedstatedir='${prefix}/com'
 localstatedir='${prefix}/var'
+runstatedir='${localstatedir}/run'
 includedir='${prefix}/include'
 oldincludedir='/usr/include'
 docdir='${datarootdir}/doc/${PACKAGE_TARNAME}'
@@ -1270,6 +1272,15 @@ do
   | -silent | --silent | --silen | --sile | --sil)
     silent=yes ;;
 
+  -runstatedir | --runstatedir | --runstatedi | --runstated \
+  | --runstate | --runstat | --runsta | --runst | --runs \
+  | --run | --ru | --r)
+    ac_prev=runstatedir ;;
+  -runstatedir=* | --runstatedir=* | --runstatedi=* | --runstated=* \
+  | --runstate=* | --runstat=* | --runsta=* | --runst=* | --runs=* \
+  | --run=* | --ru=* | --r=*)
+    runstatedir=$ac_optarg ;;
+
   -sbindir | --sbindir | --sbindi | --sbind | --sbin | --sbi | --sb)
     ac_prev=sbindir ;;
   -sbindir=* | --sbindir=* | --sbindi=* | --sbind=* | --sbin=* \
@@ -1407,7 +1418,7 @@ fi
 for ac_var in	exec_prefix prefix bindir sbindir libexecdir datarootdir \
 		datadir sysconfdir sharedstatedir localstatedir includedir \
 		oldincludedir docdir infodir htmldir dvidir pdfdir psdir \
-		libdir localedir mandir
+		libdir localedir mandir runstatedir
 do
   eval ac_val=\$$ac_var
   # Remove trailing slashes.
@@ -1560,6 +1571,7 @@ Fine tuning of the installation directories:
   --sysconfdir=DIR        read-only single-machine data [PREFIX/etc]
   --sharedstatedir=DIR    modifiable architecture-independent data [PREFIX/com]
   --localstatedir=DIR     modifiable single-machine data [PREFIX/var]
+  --runstatedir=DIR       modifiable per-process data [LOCALSTATEDIR/run]
   --libdir=DIR            object code libraries [EPREFIX/lib]
   --includedir=DIR        C header files [PREFIX/include]
   --oldincludedir=DIR     C header files for non-gcc [/usr/include]
@@ -3998,7 +4010,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4044,7 +4056,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4068,7 +4080,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4113,7 +4125,7 @@ else
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -4137,7 +4149,7 @@ rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
     We can't simply define LARGE_OFF_T to be 9223372036854775807,
     since some C++ compilers masquerading as C compilers
     incorrectly reject 9223372036854775807.  */
-#define LARGE_OFF_T (((off_t) 1 << 62) - 1 + ((off_t) 1 << 62))
+#define LARGE_OFF_T ((((off_t) 1 << 31) << 31) - 1 + (((off_t) 1 << 31) << 31))
   int off_t_is_large[(LARGE_OFF_T % 2147483629 == 721
 		       && LARGE_OFF_T % 2147483647 == 1)
 		      ? 1 : -1];
@@ -5395,7 +5407,7 @@ linux* | k*bsd*-gnu | kopensolaris*-gnu | gnu*)
   lt_cv_deplibs_check_method=pass_all
   ;;
 
-netbsd*)
+netbsd* | netbsdelf*-gnu)
   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
     lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
   else
@@ -6300,11 +6312,8 @@ _LT_EOF
   test $ac_status = 0; }; then
     # Now try to grab the symbols.
     nlist=conftest.nm
-    if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$NM conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist\""; } >&5
-  (eval $NM conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist) 2>&5
-  ac_status=$?
-  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
-  test $ac_status = 0; } && test -s "$nlist"; then
+    $ECHO "$as_me:$LINENO: $NM conftest.$ac_objext | $lt_cv_sys_global_symbol_pipe > $nlist" >&5
+    if eval "$NM" conftest.$ac_objext \| "$lt_cv_sys_global_symbol_pipe" \> $nlist 2>&5 && test -s "$nlist"; then
       # Try sorting and uniquifying the output.
       if sort "$nlist" | uniq > "$nlist"T; then
 	mv -f "$nlist"T "$nlist"
@@ -8862,6 +8871,9 @@ $as_echo_n "checking whether the $compiler linker ($LD) supports shared librarie
   openbsd* | bitrig*)
     with_gnu_ld=no
     ;;
+  linux* | k*bsd*-gnu | gnu*)
+    link_all_deplibs=no
+    ;;
   esac
 
   ld_shlibs=yes
@@ -9116,7 +9128,7 @@ _LT_EOF
       fi
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
 	wlarc=
@@ -9786,6 +9798,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
 	if test yes = "$lt_cv_irix_exported_symbol"; then
           archive_expsym_cmds='$CC -shared $pic_flag $libobjs $deplibs $compiler_flags $wl-soname $wl$soname `test -n "$verstring" && func_echo_all "$wl-set_version $wl$verstring"` $wl-update_registry $wl$output_objdir/so_locations $wl-exports_file $wl$export_symbols -o $lib'
 	fi
+	link_all_deplibs=no
       else
 	archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -o $lib'
 	archive_expsym_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && func_echo_all "-set_version $verstring"` -update_registry $output_objdir/so_locations -exports_file $export_symbols -o $lib'
@@ -9807,7 +9820,7 @@ $as_echo "$lt_cv_irix_exported_symbol" >&6; }
       esac
       ;;
 
-    netbsd*)
+    netbsd* | netbsdelf*-gnu)
       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
 	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
       else
@@ -10920,6 +10933,18 @@ fi
   # people can always --disable-shared, the test was removed, and we
   # assume the GNU/Linux dynamic linker is in use.
   dynamic_linker='GNU/Linux ld.so'
+  ;;
+
+netbsdelf*-gnu)
+  version_type=linux
+  need_lib_prefix=no
+  need_version=no
+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+  soname_spec='${libname}${release}${shared_ext}$major'
+  shlibpath_var=LD_LIBRARY_PATH
+  shlibpath_overrides_runpath=no
+  hardcode_into_libs=yes
+  dynamic_linker='NetBSD ld.elf_so'
   ;;
 
 netbsd*)
@@ -14502,8 +14527,8 @@ if test "$enable_geoip" = "yes"; then :
   auto) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmaxminddb" >&5
-$as_echo_n "checking for libmaxminddb... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MAXMINDDB" >&5
+$as_echo_n "checking for MAXMINDDB... " >&6; }
 
 if test -n "$MAXMINDDB_CFLAGS"; then
     pkg_cv_MAXMINDDB_CFLAGS="$MAXMINDDB_CFLAGS"
@@ -14543,7 +14568,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -14561,7 +14586,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -14602,8 +14627,8 @@ fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libmaxminddb" >&5
-$as_echo_n "checking for libmaxminddb... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for MAXMINDDB" >&5
+$as_echo_n "checking for MAXMINDDB... " >&6; }
 
 if test -n "$MAXMINDDB_CFLAGS"; then
     pkg_cv_MAXMINDDB_CFLAGS="$MAXMINDDB_CFLAGS"
@@ -14643,7 +14668,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -14670,7 +14695,7 @@ Alternatively, you may set the environment variables MAXMINDDB_CFLAGS
 and MAXMINDDB_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -15917,8 +15942,8 @@ CRYPTO=OpenSSL
 #
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libcrypto" >&5
-$as_echo_n "checking for libcrypto... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OPENSSL" >&5
+$as_echo_n "checking for OPENSSL... " >&6; }
 
 if test -n "$OPENSSL_CFLAGS"; then
     pkg_cv_OPENSSL_CFLAGS="$OPENSSL_CFLAGS"
@@ -15958,7 +15983,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -15999,8 +16024,8 @@ else
             # then use that information and don't search ssldirs
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for crypto" >&5
-$as_echo_n "checking for crypto... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OPENSSL" >&5
+$as_echo_n "checking for OPENSSL... " >&6; }
 
 if test -n "$OPENSSL_CFLAGS"; then
     pkg_cv_OPENSSL_CFLAGS="$OPENSSL_CFLAGS"
@@ -16040,7 +16065,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -16058,7 +16083,7 @@ fi
 
 	ssldirs="$default_ssldirs"
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	ssldirs="$default_ssldirs"
 else
@@ -16157,7 +16182,7 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
     found=false
@@ -16184,8 +16209,8 @@ else
             # then use that information and don't search ssldirs
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for crypto" >&5
-$as_echo_n "checking for crypto... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for OPENSSL" >&5
+$as_echo_n "checking for OPENSSL... " >&6; }
 
 if test -n "$OPENSSL_CFLAGS"; then
     pkg_cv_OPENSSL_CFLAGS="$OPENSSL_CFLAGS"
@@ -16225,7 +16250,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -16243,7 +16268,7 @@ fi
 
 	ssldirs="$default_ssldirs"
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	ssldirs="$default_ssldirs"
 else
@@ -17525,8 +17550,8 @@ case $with_libxml2 in #(
   auto) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
-$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBXML2" >&5
+$as_echo_n "checking for LIBXML2... " >&6; }
 
 if test -n "$LIBXML2_CFLAGS"; then
     pkg_cv_LIBXML2_CFLAGS="$LIBXML2_CFLAGS"
@@ -17566,7 +17591,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17584,7 +17609,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -17599,8 +17624,8 @@ fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libxml-2.0 >= 2.6.0" >&5
-$as_echo_n "checking for libxml-2.0 >= 2.6.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBXML2" >&5
+$as_echo_n "checking for LIBXML2... " >&6; }
 
 if test -n "$LIBXML2_CFLAGS"; then
     pkg_cv_LIBXML2_CFLAGS="$LIBXML2_CFLAGS"
@@ -17640,7 +17665,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17667,7 +17692,7 @@ Alternatively, you may set the environment variables LIBXML2_CFLAGS
 and LIBXML2_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -17725,8 +17750,8 @@ case $with_json_c in #(
   detect) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for json-c >= 0.11" >&5
-$as_echo_n "checking for json-c >= 0.11... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for JSON_C" >&5
+$as_echo_n "checking for JSON_C... " >&6; }
 
 if test -n "$JSON_C_CFLAGS"; then
     pkg_cv_JSON_C_CFLAGS="$JSON_C_CFLAGS"
@@ -17766,7 +17791,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17784,7 +17809,7 @@ fi
 
 	:
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	:
 else
@@ -17799,8 +17824,8 @@ fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for json-c >= 0.11" >&5
-$as_echo_n "checking for json-c >= 0.11... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for JSON_C" >&5
+$as_echo_n "checking for JSON_C... " >&6; }
 
 if test -n "$JSON_C_CFLAGS"; then
     pkg_cv_JSON_C_CFLAGS="$JSON_C_CFLAGS"
@@ -17840,7 +17865,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -17867,7 +17892,7 @@ Alternatively, you may set the environment variables JSON_C_CFLAGS
 and JSON_C_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -20910,8 +20935,8 @@ case $with_libidn2 in #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for libidn2" >&5
-$as_echo_n "checking for libidn2... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for LIBIDN2" >&5
+$as_echo_n "checking for LIBIDN2... " >&6; }
 
 if test -n "$LIBIDN2_CFLAGS"; then
     pkg_cv_LIBIDN2_CFLAGS="$LIBIDN2_CFLAGS"
@@ -20951,7 +20976,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -20978,7 +21003,7 @@ Alternatively, you may set the environment variables LIBIDN2_CFLAGS
 and LIBIDN2_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -21233,8 +21258,8 @@ case $with_cmocka in #(
   detect) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
-$as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CMOCKA" >&5
+$as_echo_n "checking for CMOCKA... " >&6; }
 
 if test -n "$CMOCKA_CFLAGS"; then
     pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
@@ -21274,7 +21299,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21292,7 +21317,7 @@ fi
 
 	with_cmocka=no
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	with_cmocka=no
 else
@@ -21308,8 +21333,8 @@ fi ;; #(
   yes) :
 
 pkg_failed=no
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for cmocka >= 1.0.0" >&5
-$as_echo_n "checking for cmocka >= 1.0.0... " >&6; }
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for CMOCKA" >&5
+$as_echo_n "checking for CMOCKA... " >&6; }
 
 if test -n "$CMOCKA_CFLAGS"; then
     pkg_cv_CMOCKA_CFLAGS="$CMOCKA_CFLAGS"
@@ -21349,7 +21374,7 @@ fi
 
 
 if test $pkg_failed = yes; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+   	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 
 if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
@@ -21376,7 +21401,7 @@ Alternatively, you may set the environment variables CMOCKA_CFLAGS
 and CMOCKA_LIBS to avoid the need to call pkg-config.
 See the pkg-config man page for more details." "$LINENO" 5
 elif test $pkg_failed = untried; then
-        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+     	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
 $as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
@@ -21471,50 +21496,162 @@ fi
 # Check for -Wl,--wrap= support
 #
 
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking whether the linker accepts --wrap" >&5
-$as_echo_n "checking whether the linker accepts --wrap... " >&6; }
-if ${ax_cv_check_ldflags____wrap+:} false; then :
-  $as_echo_n "(cached) " >&6
-else
 
-  ax_check_save_flags=$LDFLAGS
-  LDFLAGS="$LDFLAGS  --wrap"
-  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+
+  CCASFLAGS_wrap_ax_save_flags=$CCASFLAGS
+
+
+
+  CFLAGS_wrap_ax_save_flags=$CFLAGS
+
+
+
+  CPPFLAGS_wrap_ax_save_flags=$CPPFLAGS
+
+
+
+  CXXFLAGS_wrap_ax_save_flags=$CXXFLAGS
+
+
+
+  ERLCFLAGS_wrap_ax_save_flags=$ERLCFLAGS
+
+
+
+  FCFLAGS_wrap_ax_save_flags=$FCFLAGS
+
+
+
+  FCLIBS_wrap_ax_save_flags=$FCLIBS
+
+
+
+  FFLAGS_wrap_ax_save_flags=$FFLAGS
+
+
+
+  FLIBS_wrap_ax_save_flags=$FLIBS
+
+
+
+  GCJFLAGS_wrap_ax_save_flags=$GCJFLAGS
+
+
+
+  JAVACFLAGS_wrap_ax_save_flags=$JAVACFLAGS
+
+
+
+  LDFLAGS_wrap_ax_save_flags=$LDFLAGS
+
+
+
+  LIBS_wrap_ax_save_flags=$LIBS
+
+
+
+  OBJCFLAGS_wrap_ax_save_flags=$OBJCFLAGS
+
+
+
+  OBJCXXFLAGS_wrap_ax_save_flags=$OBJCXXFLAGS
+
+
+
+  UPCFLAGS_wrap_ax_save_flags=$UPCFLAGS
+
+
+
+  VALAFLAGS_wrap_ax_save_flags=$VALAFLAGS
+
+
+
+
+LDFLAGS="-Wl,-wrap,exit"
+LD_WRAP_TESTS=false
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for linker support for --wrap option" >&5
+$as_echo_n "checking for linker support for --wrap option... " >&6; }
+cat confdefs.h - <<_ACEOF >conftest.$ac_ext
 /* end confdefs.h.  */
+#include <stdlib.h>
+		       void __real_exit (int status);
+		       void __wrap_exit (int status) { __real_exit (status); }
 
 int
 main ()
 {
-
+exit (1);
   ;
   return 0;
 }
 _ACEOF
 if ac_fn_c_try_link "$LINENO"; then :
-  ax_cv_check_ldflags____wrap=yes
-else
-  ax_cv_check_ldflags____wrap=no
-fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext conftest.$ac_ext
-  LDFLAGS=$ax_check_save_flags
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ax_cv_check_ldflags____wrap" >&5
-$as_echo "$ax_cv_check_ldflags____wrap" >&6; }
-if test "x$ax_cv_check_ldflags____wrap" = xyes; then :
-  enable_ld_wrap=yes
-		    LD_WRAP_TESTS=true
+  LD_WRAP_TESTS=true
 
 $as_echo "#define LD_WRAP 1" >>confdefs.h
 
-		    { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+     { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
 $as_echo "yes" >&6; }
 else
   { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
 fi
+rm -f core conftest.err conftest.$ac_objext \
+    conftest$ac_exeext conftest.$ac_ext
 
-# AM_CONDITIONAL([LD_WRAP], [test $enable_ld_wrap = yes])
+
+
+  CCASFLAGS=$CCASFLAGS_wrap_ax_save_flags
+
+
+  CFLAGS=$CFLAGS_wrap_ax_save_flags
+
+
+  CPPFLAGS=$CPPFLAGS_wrap_ax_save_flags
+
+
+  CXXFLAGS=$CXXFLAGS_wrap_ax_save_flags
+
+
+  ERLCFLAGS=$ERLCFLAGS_wrap_ax_save_flags
+
+
+  FCFLAGS=$FCFLAGS_wrap_ax_save_flags
+
+
+  FCLIBS=$FCLIBS_wrap_ax_save_flags
+
+
+  FFLAGS=$FFLAGS_wrap_ax_save_flags
+
+
+  FLIBS=$FLIBS_wrap_ax_save_flags
+
+
+  GCJFLAGS=$GCJFLAGS_wrap_ax_save_flags
+
+
+  JAVACFLAGS=$JAVACFLAGS_wrap_ax_save_flags
+
+
+  LDFLAGS=$LDFLAGS_wrap_ax_save_flags
+
+
+  LIBS=$LIBS_wrap_ax_save_flags
+
+
+  OBJCFLAGS=$OBJCFLAGS_wrap_ax_save_flags
+
+
+  OBJCXXFLAGS=$OBJCXXFLAGS_wrap_ax_save_flags
+
+
+  UPCFLAGS=$UPCFLAGS_wrap_ax_save_flags
+
+
+  VALAFLAGS=$VALAFLAGS_wrap_ax_save_flags
+
+
 
 
 #
@@ -24920,7 +25057,6 @@ $as_echo "$as_me: executing $ac_file commands" >&6;}
     cat <<_LT_EOF >> "$cfgfile"
 #! $SHELL
 # Generated automatically by $as_me ($PACKAGE) $VERSION
-# Libtool was configured on host `(hostname || uname -n) 2>/dev/null | sed 1q`:
 # NOTE: Changes made to this file will be lost: look at ltmain.sh.
 
 # Provide generalized library-building support services.

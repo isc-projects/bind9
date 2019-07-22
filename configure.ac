@@ -2210,14 +2210,24 @@ AC_SUBST([KYUA])
 # Check for -Wl,--wrap= support
 #
 
-AX_CHECK_LINK_FLAG([--wrap],
-		   [enable_ld_wrap=yes
-		    LD_WRAP_TESTS=true
-		    AC_DEFINE([LD_WRAP], [1], [define if the linker supports --wrap option])
-		    AC_MSG_RESULT([yes])],
-		   [AC_MSG_RESULT([no])])
-# AM_CONDITIONAL([LD_WRAP], [test $enable_ld_wrap = yes])
+AX_SAVE_FLAGS([wrap])
+
+LDFLAGS="-Wl,-wrap,exit"
+LD_WRAP_TESTS=false
+AC_MSG_CHECKING([for linker support for --wrap option])
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[#include <stdlib.h>
+		       void __real_exit (int status);
+		       void __wrap_exit (int status) { __real_exit (status); }
+		      ]],
+		     [[exit (1);]])],
+    [LD_WRAP_TESTS=true
+     AC_DEFINE([LD_WRAP], [1], [define if the linker supports --wrap option])
+     AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])])
 AC_SUBST([LD_WRAP_TESTS])
+
+AX_RESTORE_FLAGS([wrap])
 
 #
 # Check for i18n
