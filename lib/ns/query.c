@@ -2950,6 +2950,7 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 	isc_result_t result;
 	dns_clientinfomethods_t cm;
 	dns_clientinfo_t ci;
+	bool found_a = false;
 
 	REQUIRE(nodep != NULL);
 
@@ -2992,6 +2993,18 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 			CTRACE(ISC_LOG_ERROR,
 			       "rpz_find_p: allrdatasets failed");
 			return (DNS_R_SERVFAIL);
+		}
+		if (qtype == dns_rdatatype_aaaa &&
+		    !ISC_LIST_EMPTY(client->view->dns64)) {
+			for (result = dns_rdatasetiter_first(rdsiter);
+			     result == ISC_R_SUCCESS;
+			     result = dns_rdatasetiter_next(rdsiter)) {
+				dns_rdatasetiter_current(rdsiter, *rdatasetp);
+				if ((*rdatasetp)->type == dns_rdatatype_a) {
+					found_a = true;
+				}
+				dns_rdataset_disassociate(*rdatasetp);
+			}
 		}
 		for (result = dns_rdatasetiter_first(rdsiter);
 		     result == ISC_R_SUCCESS;
@@ -3045,7 +3058,11 @@ rpz_find_p(ns_client_t *client, dns_name_t *self_name, dns_rdatatype_t qtype,
 		}
 		return (ISC_R_SUCCESS);
 	case DNS_R_NXRRSET:
-		*policyp = DNS_RPZ_POLICY_NODATA;
+		if (found_a) {
+			*policyp = DNS_RPZ_POLICY_DNS64;
+		} else {
+			*policyp = DNS_RPZ_POLICY_NODATA;
+		}
 		return (result);
 	case DNS_R_DNAME:
 		/*
@@ -6424,8 +6441,10 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 			qctx->rpz = true;
 			break;
 		case DNS_RPZ_POLICY_NODATA:
-			result = DNS_R_NXRRSET;
 			qctx->nxrewrite = true;
+			/* FALLTHROUGH */
+		case DNS_RPZ_POLICY_DNS64:
+			result = DNS_R_NXRRSET;
 			qctx->rpz = true;
 			break;
 		case DNS_RPZ_POLICY_RECORD:
@@ -8235,6 +8254,7 @@ query_nodata(query_ctx_t *qctx, isc_result_t res) {
 	} else if ((result == DNS_R_NXRRSET ||
 		    result == DNS_R_NCACHENXRRSET) &&
 		   !ISC_LIST_EMPTY(qctx->view->dns64) &&
+		   !qctx->nxrewrite &&
 		   qctx->client->message->rdclass == dns_rdataclass_in &&
 		   qctx->qtype == dns_rdatatype_aaaa)
 	{

@@ -265,6 +265,9 @@ dns_rpz_policy2str(dns_rpz_policy_t policy) {
 	case DNS_RPZ_POLICY_MISS:
 		str = "MISS";
 		break;
+	case DNS_RPZ_POLICY_DNS64:
+		str = "DNS64";
+		break;
 	default:
 		INSIST(0);
 		ISC_UNREACHABLE();
