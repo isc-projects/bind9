@@ -296,6 +296,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\commandline.h" />
     <ClInclude Include="..\include\isc\counter.h" />
     <ClInclude Include="..\include\isc\crc64.h" />
+    <ClInclude Include="..\include\isc\endian.h" />
     <ClInclude Include="..\include\isc\errno.h" />
     <ClInclude Include="..\include\isc\error.h" />
     <ClInclude Include="..\include\isc\event.h" />

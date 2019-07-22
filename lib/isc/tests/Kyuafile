@@ -21,6 +21,7 @@ tap_test_program{name='radix_test'}
 tap_test_program{name='regex_test'}
 tap_test_program{name='result_test'}
 tap_test_program{name='safe_test'}
+tap_test_program{name='siphash_test'}
 tap_test_program{name='sockaddr_test'}
 tap_test_program{name='socket_test'}
 tap_test_program{name='symtab_test'}
