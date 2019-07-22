@@ -41,6 +41,7 @@ usage() {
 	fprintf(stderr, "	--enable-filter-aaaa\n");
 	fprintf(stderr, "	--gethostname\n");
 	fprintf(stderr, "	--gssapi\n");
+	fprintf(stderr, "       --have-aes\n");
 	fprintf(stderr, "	--have-dlopen\n");
 	fprintf(stderr, "	--have-geoip\n");
 	fprintf(stderr, "	--have-geoip2\n");
@@ -108,6 +109,14 @@ main(int argc, char **argv) {
 
 	if (strcmp(argv[1], "--gssapi") == 0) {
 #if defined(GSSAPI)
+		return (0);
+#else
+		return (1);
+#endif
+	}
+
+	if (strcmp(argv[1], "--have-aes") == 0) {
+#if defined(HAVE_OPENSSL_AES) || defined(HAVE_OPENSSL_EVP_AES)
 		return (0);
 #else
 		return (1);

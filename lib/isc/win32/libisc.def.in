@@ -605,6 +605,7 @@ isc_sha512_final
 isc_sha512_init
 isc_sha512_invalidate
 isc_sha512_update
+isc_siphash24
 isc_sockaddr_any
 isc_sockaddr_any6
 isc_sockaddr_anyofpf

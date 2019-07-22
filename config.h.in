@@ -139,9 +139,6 @@ int sigwait(const unsigned int *set, int *sig);
 /* Define if building universal (internal helper macro) */
 #undef AC_APPLE_UNIVERSAL_BUILD
 
-/* Use AES for Client Cookie generation */
-#undef AES_CC
-
 /* Define to enable the "filter-aaaa-on-v4" and "filter-aaaa-on-v6" options.
    */
 #undef ALLOW_FILTER_AAAA
@@ -539,12 +536,6 @@ int sigwait(const unsigned int *set, int *sig);
 
 /* Define if zlib was found */
 #undef HAVE_ZLIB
-
-/* Use HMAC-SHA1 for Client Cookie generation */
-#undef HMAC_SHA1_CC
-
-/* Use HMAC-SHA256 for Client Cookie generation */
-#undef HMAC_SHA256_CC
 
 /* return type of gai_strerror */
 #undef IRS_GAISTRERROR_RETURN_T
