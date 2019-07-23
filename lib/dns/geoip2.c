@@ -145,8 +145,7 @@ set_state(const MMDB_s *db, const isc_netaddr_t *addr,
 
 	state = (geoip_state_t *) isc_thread_key_getspecific(state_key);
 	if (state == NULL) {
-		state = (geoip_state_t *) isc_mem_get(state_mctx,
-						      sizeof(geoip_state_t));
+		state = isc_mem_get(state_mctx, sizeof(geoip_state_t));
 		memset(state, 0, sizeof(*state));
 
 		result = isc_thread_key_setspecific(state_key, state);

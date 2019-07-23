@@ -2177,8 +2177,6 @@ dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
 	MAKE_EMPTY(target);
 
 	target->ndata = isc_mem_get(mctx, source->length);
-	if (target->ndata == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memmove(target->ndata, source->ndata, source->length);
 
@@ -2219,8 +2217,6 @@ dns_name_dupwithoffsets(const dns_name_t *source, isc_mem_t *mctx,
 	MAKE_EMPTY(target);
 
 	target->ndata = isc_mem_get(mctx, source->length + source->labels);
-	if (target->ndata == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memmove(target->ndata, source->ndata, source->length);
 
@@ -2353,8 +2349,6 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc) {
 	}
 
 	mem = isc_mem_get(thread_key_mctx, sizeof(*mem));
-	if (mem == NULL)
-		return (ISC_R_NOMEMORY);
 	*mem = proc;
 	if (isc_thread_key_setspecific(totext_filter_proc_key, mem) != 0) {
 		isc_mem_put(thread_key_mctx, mem, sizeof(*mem));
@@ -2408,8 +2402,6 @@ dns_name_tostring(const dns_name_t *name, char **target, isc_mem_t *mctx) {
 
 	isc_buffer_usedregion(&buf, &reg);
 	p = isc_mem_allocate(mctx, reg.length + 1);
-	if (p == NULL)
-		return (ISC_R_NOMEMORY);
 	memmove(p, (char *) reg.base, (int) reg.length);
 	p[reg.length] = '\0';
 

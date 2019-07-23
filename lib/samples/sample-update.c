@@ -495,10 +495,6 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
 	parse_name(&cmdline, name);
 
 	rdata = isc_mem_get(mctx, sizeof(*rdata));
-	if (rdata == NULL) {
-		fprintf(stderr, "memory allocation for rdata failed\n");
-		exit(1);
-	}
 	dns_rdata_init(rdata);
 
 	/*
@@ -609,10 +605,6 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
  doneparsing:
 
 	rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
-	if (rdatalist == NULL) {
-		fprintf(stderr, "memory allocation for rdatalist failed\n");
-		exit(1);
-	}
 	dns_rdatalist_init(rdatalist);
 	rdatalist->type = rdatatype;
 	rdatalist->rdclass = rdataclass;
@@ -622,10 +614,6 @@ update_addordelete(isc_mem_t *mctx, char *cmdline, bool isdelete,
 	ISC_LIST_APPEND(usedrdatalists, rdatalist, link);
 
 	rdataset = isc_mem_get(mctx, sizeof(*rdataset));
-	if (rdataset == NULL) {
-		fprintf(stderr, "memory allocation for rdataset failed\n");
-		exit(1);
-	}
 	dns_rdataset_init(rdataset);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 	dns_rdataset_setownercase(rdataset, name);
@@ -691,10 +679,6 @@ make_prereq(isc_mem_t *mctx, char *cmdline, bool ispositive,
 		rdatatype = dns_rdatatype_any;
 
 	rdata = isc_mem_get(mctx, sizeof(*rdata));
-	if (rdata == NULL) {
-		fprintf(stderr, "memory allocation for rdata failed\n");
-		exit(1);
-	}
 	dns_rdata_init(rdata);
 
 	if (isrrset && ispositive)
@@ -703,10 +687,6 @@ make_prereq(isc_mem_t *mctx, char *cmdline, bool ispositive,
 		rdata->flags = DNS_RDATA_UPDATE;
 
 	rdatalist = isc_mem_get(mctx, sizeof(*rdatalist));
-	if (rdatalist == NULL) {
-		fprintf(stderr, "memory allocation for rdatalist failed\n");
-		exit(1);
-	}
 	dns_rdatalist_init(rdatalist);
 	rdatalist->type = rdatatype;
 	if (ispositive) {
@@ -722,10 +702,6 @@ make_prereq(isc_mem_t *mctx, char *cmdline, bool ispositive,
 	ISC_LIST_APPEND(usedrdatalists, rdatalist, link);
 
 	rdataset = isc_mem_get(mctx, sizeof(*rdataset));
-	if (rdataset == NULL) {
-		fprintf(stderr, "memory allocation for rdataset failed\n");
-		exit(1);
-	}
 	dns_rdataset_init(rdataset);
 	dns_rdatalist_tordataset(rdatalist, rdataset);
 	dns_rdataset_setownercase(rdataset, name);

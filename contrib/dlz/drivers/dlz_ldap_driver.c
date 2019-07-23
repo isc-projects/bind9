@@ -363,14 +363,6 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
 
 		/* allocate memory for data string */
 		data = isc_mem_allocate(named_g_mctx, len + 1);
-		if (data == NULL) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-				      "LDAP driver unable to allocate memory "
-				      "while processing results");
-			result = ISC_R_FAILURE;
-			goto cleanup;
-		}
 
 		/*
 		 * Make sure data is null termed at the beginning so
@@ -570,28 +562,16 @@ ldap_get_results(const char *zone, const char *record,
 	/* set fields */
 	if (zone != NULL) {
 		dbi->zone = isc_mem_strdup(named_g_mctx, zone);
-		if (dbi->zone == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 	} else {
 		dbi->zone = NULL;
 	}
 	if (record != NULL) {
 		dbi->record = isc_mem_strdup(named_g_mctx, record);
-		if (dbi->record == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 	} else {
 		dbi->record = NULL;
 	}
 	if (client != NULL) {
 		dbi->client = isc_mem_strdup(named_g_mctx, client);
-		if (dbi->client == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 	} else {
 		dbi->client = NULL;
 	}
@@ -1014,35 +994,17 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for LDAP instance */
 	ldap_inst = isc_mem_get(named_g_mctx, sizeof(ldap_instance_t));
-	if (ldap_inst == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(ldap_inst, 0, sizeof(ldap_instance_t));
 
 	/* store info needed to automatically re-connect. */
 	ldap_inst->protocol = protocol;
 	ldap_inst->method = method;
 	ldap_inst->hosts = isc_mem_strdup(named_g_mctx, argv[6]);
-	if (ldap_inst->hosts == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	ldap_inst->user = isc_mem_strdup(named_g_mctx, argv[4]);
-	if (ldap_inst->user == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	ldap_inst->cred = isc_mem_strdup(named_g_mctx, argv[5]);
-	if (ldap_inst->cred == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	/* allocate memory for database connection list */
 	ldap_inst->db = isc_mem_get(named_g_mctx, sizeof(db_list_t));
-	if (ldap_inst->db == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	/* initialize DB connection list */
 	ISC_LIST_INIT(*(ldap_inst->db));

@@ -40,8 +40,6 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 		n = 1;
 
 	acl = isc_mem_get(mctx, sizeof(*acl));
-	if (acl == NULL)
-		return (ISC_R_NOMEMORY);
 
 	acl->mctx = NULL;
 	isc_mem_attach(mctx, &acl->mctx);
@@ -68,18 +66,10 @@ dns_acl_create(isc_mem_t *mctx, int n, dns_acl_t **target) {
 	acl->magic = DNS_ACL_MAGIC;
 
 	acl->elements = isc_mem_get(mctx, n * sizeof(dns_aclelement_t));
-	if (acl->elements == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	acl->alloc = n;
 	memset(acl->elements, 0, n * sizeof(dns_aclelement_t));
 	*target = acl;
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	dns_acl_detach(&acl);
-	return (result);
 }
 
 /*
@@ -277,8 +267,6 @@ dns_acl_merge(dns_acl_t *dest, dns_acl_t *source, bool pos)
 
 		newmem = isc_mem_get(dest->mctx,
 				     newalloc * sizeof(dns_aclelement_t));
-		if (newmem == NULL)
-			return (ISC_R_NOMEMORY);
 
 		/* Zero. */
 		memset(newmem, 0, newalloc * sizeof(dns_aclelement_t));

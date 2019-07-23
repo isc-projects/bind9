@@ -91,27 +91,17 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	REQUIRE(viewp != NULL && *viewp == NULL);
 
 	view = isc_mem_get(mctx, sizeof(*view));
-	if (view == NULL)
-		return (ISC_R_NOMEMORY);
 
 	view->nta_file = NULL;
 	view->mctx = NULL;
 	isc_mem_attach(mctx, &view->mctx);
 	view->name = isc_mem_strdup(mctx, name);
-	if (view->name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_view;
-	}
 
 	result = isc_file_sanitize(NULL, view->name, "nta",
 				   buffer, sizeof(buffer));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_name;
 	view->nta_file = isc_mem_strdup(mctx, buffer);
-	if (view->nta_file == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_name;
-	}
 
 	isc_mutex_init(&view->lock);
 
@@ -336,8 +326,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup_name:
 	isc_mem_free(mctx, view->name);
-
- cleanup_view:
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 
 	return (result);
@@ -1687,10 +1675,7 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 
 	if (view->delonly == NULL) {
 		view->delonly = isc_mem_get(view->mctx,
-					    sizeof(dns_namelist_t) *
-					    DNS_VIEW_DELONLYHASH);
-		if (view->delonly == NULL)
-			return (ISC_R_NOMEMORY);
+					    sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
 			ISC_LIST_INIT(view->delonly[hash]);
 	}
@@ -1701,8 +1686,6 @@ dns_view_adddelegationonly(dns_view_t *view, const dns_name_t *name) {
 	if (item != NULL)
 		return (ISC_R_SUCCESS);
 	item = isc_mem_get(view->mctx, sizeof(*item));
-	if (item == NULL)
-		return (ISC_R_NOMEMORY);
 	dns_name_init(item, NULL);
 	result = dns_name_dup(name, view->mctx, item);
 	if (result == ISC_R_SUCCESS)
@@ -1722,10 +1705,7 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 
 	if (view->rootexclude == NULL) {
 		view->rootexclude = isc_mem_get(view->mctx,
-					    sizeof(dns_namelist_t) *
-					    DNS_VIEW_DELONLYHASH);
-		if (view->rootexclude == NULL)
-			return (ISC_R_NOMEMORY);
+						sizeof(dns_namelist_t) * DNS_VIEW_DELONLYHASH);
 		for (hash = 0; hash < DNS_VIEW_DELONLYHASH; hash++)
 			ISC_LIST_INIT(view->rootexclude[hash]);
 	}
@@ -1736,8 +1716,6 @@ dns_view_excludedelegationonly(dns_view_t *view, const dns_name_t *name) {
 	if (item != NULL)
 		return (ISC_R_SUCCESS);
 	item = isc_mem_get(view->mctx, sizeof(*item));
-	if (item == NULL)
-		return (ISC_R_NOMEMORY);
 	dns_name_init(item, NULL);
 	result = dns_name_dup(name, view->mctx, item);
 	if (result == ISC_R_SUCCESS)
@@ -2096,18 +2074,12 @@ dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
 			buffer, sizeof(buffer)));
 
 	view->new_zone_file = isc_mem_strdup(view->mctx, buffer);
-	if (view->new_zone_file == NULL) {
-		CHECK(ISC_R_NOMEMORY);
-	}
 
 #ifdef HAVE_LMDB
 	CHECK(nz_legacy(view->new_zone_dir, view->name, "nzd",
 			buffer, sizeof(buffer)));
 
 	view->new_zone_db = isc_mem_strdup(view->mctx, buffer);
-	if (view->new_zone_db == NULL) {
-		CHECK(ISC_R_NOMEMORY);
-	}
 
 	status = mdb_env_create(&env);
 	if (status != MDB_SUCCESS) {

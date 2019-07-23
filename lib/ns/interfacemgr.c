@@ -190,8 +190,6 @@ ns_interfacemgr_create(isc_mem_t *mctx,
 	REQUIRE(*mgrp == NULL);
 
 	mgr = isc_mem_get(mctx, sizeof(*mgr));
-	if (mgr == NULL)
-		return (ISC_R_NOMEMORY);
 
 	mgr->mctx = NULL;
 	isc_mem_attach(mctx, &mgr->mctx);
@@ -381,8 +379,6 @@ ns_interface_create(ns_interfacemgr_t *mgr, isc_sockaddr_t *addr,
 	REQUIRE(NS_INTERFACEMGR_VALID(mgr));
 
 	ifp = isc_mem_get(mgr->mctx, sizeof(*ifp));
-	if (ifp == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ifp->mgr = NULL;
 	ifp->generation = mgr->generation;
@@ -785,8 +781,6 @@ setup_listenon(ns_interfacemgr_t *mgr, isc_interface_t *interface,
 	isc_sockaddr_t *old;
 
 	addr = isc_mem_get(mgr->mctx, sizeof(*addr));
-	if (addr == NULL)
-		return;
 
 	isc_sockaddr_fromnetaddr(addr, &interface->address, port);
 

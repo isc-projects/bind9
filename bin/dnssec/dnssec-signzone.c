@@ -1496,8 +1496,6 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	}
 
 	fname = isc_mem_get(mctx, sizeof(dns_fixedname_t));
-	if (fname == NULL)
-		fatal("out of memory");
 	name = dns_fixedname_initname(fname);
 	node = NULL;
 	found = false;
@@ -2930,8 +2928,6 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	if (dsdir != NULL)
 		filenamelen += strlen(dsdir) + 1;
 	filename = isc_mem_get(mctx, filenamelen);
-	if (filename == NULL)
-		fatal("out of memory");
 	if (dsdir != NULL)
 		snprintf(filename, filenamelen, "%s/", dsdir);
 	else
@@ -3581,8 +3577,6 @@ main(int argc, char *argv[]) {
 		free_output = true;
 		size = strlen(file) + strlen(".signed") + 1;
 		output = isc_mem_allocate(mctx, size);
-		if (output == NULL)
-			fatal("out of memory");
 		snprintf(output, size, "%s.signed", file);
 	}
 
@@ -3811,8 +3805,6 @@ main(int argc, char *argv[]) {
 	} else {
 		tempfilelen = strlen(output) + 20;
 		tempfile = isc_mem_get(mctx, tempfilelen);
-		if (tempfile == NULL)
-			fatal("out of memory");
 
 		result = isc_file_mktemplate(output, tempfile, tempfilelen);
 		check_result(result, "isc_file_mktemplate");
@@ -3842,8 +3834,6 @@ main(int argc, char *argv[]) {
 		fatal("failed to create task: %s", isc_result_totext(result));
 
 	tasks = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
-	if (tasks == NULL)
-		fatal("out of memory");
 	for (i = 0; i < (int)ntasks; i++) {
 		tasks[i] = NULL;
 		result = isc_task_create(taskmgr, 0, &tasks[i]);

@@ -488,8 +488,6 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
 	REQUIRE(clientp != NULL && *clientp == NULL);
 
 	client = isc_mem_get(mctx, sizeof(*client));
-	if (client == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_mutex_init(&client->lock);
 
@@ -753,8 +751,6 @@ getrdataset(isc_mem_t *mctx, dns_rdataset_t **rdatasetp) {
 	REQUIRE(rdatasetp != NULL && *rdatasetp == NULL);
 
 	rdataset = isc_mem_get(mctx, sizeof(*rdataset));
-	if (rdataset == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dns_rdataset_init(rdataset);
 
@@ -1285,8 +1281,6 @@ dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		actx = client->actx;
 
 	resarg = isc_mem_get(client->mctx, sizeof(*resarg));
-	if (resarg == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_mutex_init(&resarg->lock);
 
@@ -1688,8 +1682,6 @@ dns_client_request(dns_client_t *client, dns_message_t *qmessage,
 		actx = client->actx;
 
 	reqarg = isc_mem_get(client->mctx, sizeof(*reqarg));
-	if (reqarg == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_mutex_init(&reqarg->lock);
 
@@ -2156,14 +2148,6 @@ resolveaddr_done(isc_task_t *task, isc_event_t *event) {
 
 				sa = isc_mem_get(uctx->client->mctx,
 						 sizeof(*sa));
-				if (sa == NULL) {
-					/*
-					 * If we fail to get a sockaddr,
-					 we simply move forward with the
-					 * addresses we've got so far.
-					 */
-					goto done;
-				}
 
 				dns_rdata_init(&rdata);
 				switch (family) {
@@ -2739,8 +2723,6 @@ dns_client_update(dns_client_t *client, dns_rdataclass_t rdclass,
 		actx = client->actx;
 
 	uarg = isc_mem_get(client->mctx, sizeof(*uarg));
-	if (uarg == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_mutex_init(&uarg->lock);
 
@@ -2880,10 +2862,6 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	 */
 
 	uctx = isc_mem_get(client->mctx, sizeof(*uctx));
-	if (uctx == NULL) {
-		dns_view_detach(&view);
-		return (ISC_R_NOMEMORY);
-	}
 
 	isc_mutex_init(&uctx->lock);
 
@@ -2929,8 +2907,6 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		     server != NULL;
 		     server = ISC_LIST_NEXT(server, link)) {
 			sa = isc_mem_get(client->mctx, sizeof(*sa));
-			if (sa == NULL)
-				goto fail;
 			sa->type = server->type;
 			sa->length = server->length;
 			ISC_LINK_INIT(sa, link);
@@ -3150,8 +3126,6 @@ dns_client_updaterec(dns_client_updateop_t op, const dns_name_t *owner,
 
 	if (rdataset == NULL) {
 		updaterec = isc_mem_get(mctx, size);
-		if (updaterec == NULL)
-			return (ISC_R_NOMEMORY);
 		rdataset = &updaterec->rdataset;
 		rdatalist = &updaterec->rdatalist;
 		rdata = &updaterec->rdata;

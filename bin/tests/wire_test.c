@@ -80,10 +80,6 @@ printmessage(dns_message_t *msg) {
 
 	do {
 		buf = isc_mem_get(mctx, len);
-		if (buf == NULL) {
-			result = ISC_R_NOMEMORY;
-			break;
-		}
 
 		isc_buffer_init(&b, buf, len);
 		result = dns_message_totext(msg, &dns_master_style_debug,

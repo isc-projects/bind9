@@ -541,9 +541,7 @@ dst__privstruct_parse(dst_key_t *key, unsigned int alg, isc_lex_t *lex,
 
 		priv->elements[n].tag = tag;
 
-		data = (unsigned char *) isc_mem_get(mctx, MAXFIELDSIZE);
-		if (data == NULL)
-			goto fail;
+		data = isc_mem_get(mctx, MAXFIELDSIZE);
 
 		isc_buffer_init(&b, data, MAXFIELDSIZE);
 		ret = isc_base64_tobuffer(lex, &b, -1);

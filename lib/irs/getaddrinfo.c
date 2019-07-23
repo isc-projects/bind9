@@ -592,8 +592,6 @@ make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
 	bool need_v6 = false;
 
 	state = isc_mem_get(mctx, sizeof(*state));
-	if (state == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/* Construct base domain name */
 	namelen = strlen(domain);
@@ -626,10 +624,6 @@ make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
 	state->trans4 = NULL;
 	if (need_v4) {
 		state->trans4 = isc_mem_get(mctx, sizeof(gai_restrans_t));
-		if (state->trans4 == NULL) {
-			isc_mem_put(mctx, state, sizeof(*state));
-			return (ISC_R_NOMEMORY);
-		}
 		state->trans4->error = 0;
 		state->trans4->xid = NULL;
 		state->trans4->resstate = state;
@@ -638,13 +632,6 @@ make_resstate(isc_mem_t *mctx, gai_statehead_t *head, const char *hostname,
 	}
 	if (need_v6) {
 		state->trans6 = isc_mem_get(mctx, sizeof(gai_restrans_t));
-		if (state->trans6 == NULL) {
-			if (state->trans4 != NULL)
-				isc_mem_put(mctx, state->trans4,
-					    sizeof(*state->trans4));
-			isc_mem_put(mctx, state, sizeof(*state));
-			return (ISC_R_NOMEMORY);
-		}
 		state->trans6->error = 0;
 		state->trans6->xid = NULL;
 		state->trans6->resstate = state;

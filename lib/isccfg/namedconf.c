@@ -353,12 +353,8 @@ parse_updatepolicy(cfg_parser_t *pctx, const cfg_type_t *type,
 		cfg_obj_t *obj = NULL;
 		CHECK(cfg_create_obj(pctx, &cfg_type_ustring, &obj));
 		obj->value.string.length = strlen("local");
-		obj->value.string.base	= isc_mem_get(pctx->mctx,
-						obj->value.string.length + 1);
-		if (obj->value.string.base == NULL) {
-			isc_mem_put(pctx->mctx, obj, sizeof(*obj));
-			return (ISC_R_NOMEMORY);
-		}
+		obj->value.string.base = isc_mem_get(pctx->mctx,
+						     obj->value.string.length + 1);
 		memmove(obj->value.string.base, "local", 5);
 		obj->value.string.base[5] = '\0';
 		*ret = obj;

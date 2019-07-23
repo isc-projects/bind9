@@ -348,9 +348,6 @@ hmac_fromdns(isc_md_type_t type, dst_key_t *key, isc_buffer_t *data) {
 	}
 
 	hkey = isc_mem_get(key->mctx, sizeof(dst_hmac_key_t));
-	if (hkey == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	memset(hkey->key, 0, sizeof(hkey->key));
 

@@ -229,10 +229,6 @@ add_server(isc_mem_t *mctx, const char *address_str,
 	}
 
 	address = isc_mem_get(mctx, sizeof(*address));
-	if (address == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	if (res->ai_addrlen > sizeof(address->type)) {
 		isc_mem_put(mctx, address, sizeof(*address));
 		result = ISC_R_RANGE;
@@ -330,8 +326,6 @@ resconf_parsedomain(irs_resconf_t *conf,  FILE *fp) {
 	conf->searchnxt = 0;
 
 	conf->domainname = isc_mem_strdup(conf->mctx, word);
-	if (conf->domainname == NULL)
-		return (ISC_R_NOMEMORY);
 
 	return (ISC_R_SUCCESS);
 }
@@ -372,8 +366,6 @@ resconf_parsesearch(irs_resconf_t *conf,  FILE *fp) {
 
 		INSIST(idx < sizeof(conf->search)/sizeof(conf->search[0]));
 		conf->search[idx] = isc_mem_strdup(conf->mctx, word);
-		if (conf->search[idx] == NULL)
-			return (ISC_R_NOMEMORY);
 		idx++;
 		conf->searchnxt++;
 
@@ -473,8 +465,6 @@ add_search(irs_resconf_t *conf, char *domain) {
 	irs_resconf_search_t *entry;
 
 	entry = isc_mem_get(conf->mctx, sizeof(*entry));
-	if (entry == NULL)
-		return (ISC_R_NOMEMORY);
 
 	entry->domain = domain;
 	ISC_LINK_INIT(entry, link);
@@ -500,8 +490,6 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp)
 	REQUIRE(confp != NULL && *confp == NULL);
 
 	conf = isc_mem_get(mctx, sizeof(*conf));
-	if (conf == NULL)
-		return (ISC_R_NOMEMORY);
 
 	conf->mctx = mctx;
 	ISC_LIST_INIT(conf->nameservers);

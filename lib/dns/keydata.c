@@ -42,8 +42,6 @@ dns_keydata_todnskey(dns_rdata_keydata_t *keydata,
 		dnskey->data = keydata->data;
 	else {
 		dnskey->data = isc_mem_allocate(mctx, dnskey->datalen);
-		if (dnskey->data == NULL)
-			return (ISC_R_NOMEMORY);
 		memmove(dnskey->data, keydata->data, dnskey->datalen);
 	}
 
@@ -73,8 +71,6 @@ dns_keydata_fromdnskey(dns_rdata_keydata_t *keydata,
 		keydata->data = dnskey->data;
 	else {
 		keydata->data = isc_mem_allocate(mctx, keydata->datalen);
-		if (keydata->data == NULL)
-			return (ISC_R_NOMEMORY);
 		memmove(keydata->data, dnskey->data, keydata->datalen);
 	}
 

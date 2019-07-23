@@ -368,8 +368,6 @@ main(int argc, char **argv) {
 
 			len = strlen(label) + 8;
 			l = isc_mem_allocate(mctx, len);
-			if (l == NULL)
-				fatal("cannot allocate memory");
 			snprintf(l, len, "pkcs11:%s", label);
 			isc_mem_free(mctx, label);
 			label = l;

@@ -1904,7 +1904,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	dns_zone_setclass(zone, view->rdclass);
 	dns_zone_settype(zone, dns_zone_master);
 	dns_zone_setstats(zone, named_g_server->zonestats);
-	CHECK(dns_zone_setdbtype(zone, dns64_dbtypec, dns64_dbtype));
+	dns_zone_setdbtype(zone, dns64_dbtypec, dns64_dbtype);
 	if (view->queryacl != NULL)
 		dns_zone_setqueryacl(zone, view->queryacl);
 	if (view->queryonacl != NULL)
@@ -1945,10 +1945,6 @@ conf_dnsrps_sadd(conf_dnsrps_ctx_t *ctx, const char *p, ...) {
 
 	if (ctx->cstr == NULL) {
 		ctx->cstr = isc_mem_get(ctx->mctx, 256);
-		if (ctx->cstr == NULL) {
-			ctx->result = ISC_R_NOMEMORY;
-			return (false);
-		}
 		ctx->cstr[0] = '\0';
 		ctx->cstr_size = 256;
 	}
@@ -1964,10 +1960,6 @@ conf_dnsrps_sadd(conf_dnsrps_ctx_t *ctx, const char *p, ...) {
 
 	new_cstr_size = ((cur_len + new_len)/256 + 1) * 256;
 	new_cstr = isc_mem_get(ctx->mctx, new_cstr_size);
-	if (new_cstr == NULL) {
-		ctx->result = ISC_R_NOMEMORY;
-		return (false);
-	}
 
 	memmove(new_cstr, ctx->cstr, cur_len);
 	isc_mem_put(ctx->mctx, ctx->cstr, ctx->cstr_size);
@@ -3418,9 +3410,9 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		zone = myzone;
 		CHECK(dns_zone_setorigin(zone, name));
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
-		if (db == NULL)
-			CHECK(dns_zone_setdbtype(zone, empty_dbtypec,
-						 empty_dbtype));
+		if (db == NULL) {
+			dns_zone_setdbtype(zone, empty_dbtypec, empty_dbtype);
+		}
 		dns_zone_setclass(zone, view->rdclass);
 		dns_zone_settype(zone, dns_zone_master);
 		dns_zone_setstats(zone, named_g_server->zonestats);
@@ -4372,10 +4364,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 			isc_mem_detach(&hmctx);
 		}
 		nsc = isc_mem_get(mctx, sizeof(*nsc));
-		if (nsc == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		nsc->cache = NULL;
 		dns_cache_attach(cache, &nsc->cache);
 		nsc->primaryview = view;
@@ -5796,10 +5784,6 @@ configure_forward(const cfg_obj_t *config, dns_view_t *view,
 	{
 		const cfg_obj_t *forwarder = cfg_listelt_value(element);
 		fwd = isc_mem_get(view->mctx, sizeof(dns_forwarder_t));
-		if (fwd == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		fwd->addr = *cfg_obj_assockaddr(forwarder);
 		if (isc_sockaddr_getport(&fwd->addr) == 0)
 			isc_sockaddr_setport(&fwd->addr, port);
@@ -6857,9 +6841,6 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 		     view->name, namebuf);
 
 	tat = isc_mem_get(dotat_arg->view->mctx, sizeof(*tat));
-	if (tat == NULL) {
-		return;
-	}
 
 	tat->mctx = NULL;
 	tat->task = NULL;
@@ -6988,8 +6969,6 @@ setstring(named_server_t *server, char **field, const char *value) {
 
 	if (value != NULL) {
 		copy = isc_mem_strdup(server->mctx, value);
-		if (copy == NULL)
-			return (ISC_R_NOMEMORY);
 	} else {
 		copy = NULL;
 	}
@@ -7326,15 +7305,12 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 		INSIST(server->session_keyalg == DST_ALG_UNKNOWN);
 		INSIST(server->session_keybits == 0);
 
-		server->session_keyname = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (server->session_keyname == NULL)
-			goto cleanup;
+		server->session_keyname = isc_mem_get(mctx,
+						      sizeof(dns_name_t));
 		dns_name_init(server->session_keyname, NULL);
 		CHECK(dns_name_dup(keyname, mctx, server->session_keyname));
 
 		server->session_keyfile = isc_mem_strdup(mctx, keyfile);
-		if (server->session_keyfile == NULL)
-			goto cleanup;
 
 		server->session_keyalg = algtype;
 		server->session_keybits = bits;
@@ -7537,10 +7513,6 @@ setup_newzones(dns_view_t *view, cfg_obj_t *config, cfg_obj_t *vconfig,
 	}
 
 	nzcfg = isc_mem_get(view->mctx, sizeof(*nzcfg));
-	if (nzcfg == NULL) {
-		dns_view_setnewzones(view, false, NULL, NULL, 0ULL);
-		return (ISC_R_NOMEMORY);
-	}
 
 	/*
 	 * We attach the parser that was used for config as well
@@ -8029,7 +8001,7 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 				      "'lock-file' has no effect "
 				      "because the server was run with -X");
 			server->lockfile = isc_mem_strdup(server->mctx,
-						  named_g_defaultlockfile);
+							  named_g_defaultlockfile);
 		} else {
 			filename = cfg_obj_asstring(obj);
 			server->lockfile = isc_mem_strdup(server->mctx,
@@ -9170,10 +9142,6 @@ load_configuration(const char *filename, named_server_t *server,
 			} else {
 				altsecret = isc_mem_get(server->sctx->mctx,
 							sizeof(*altsecret));
-				if (altsecret == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto cleanup;
-				}
 				isc_buffer_init(&b, altsecret->secret,
 						sizeof(altsecret->secret));
 				result = isc_hex_decodestring(str, &b);
@@ -9398,9 +9366,7 @@ load_zones(named_server_t *server, bool init, bool reconfig) {
 	dns_view_t *view;
 	ns_zoneload_t *zl;
 
-	zl = isc_mem_get(server->mctx, sizeof (*zl));
-	if (zl == NULL)
-		return (ISC_R_NOMEMORY);
+	zl = isc_mem_get(server->mctx, sizeof(*zl));
 	zl->server = server;
 	zl->reconfig = reconfig;
 
@@ -9952,10 +9918,6 @@ named_add_reserved_dispatch(named_server_t *server,
 	}
 
 	dispatch = isc_mem_get(server->mctx, sizeof(*dispatch));
-	if (dispatch == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	dispatch->addr = *addr;
 	dispatch->dispatchgen = server->dispatchgen;
@@ -10629,8 +10591,6 @@ add_zone_tolist(dns_zone_t *zone, void *uap) {
 	struct zonelistentry *zle;
 
 	zle = isc_mem_get(dctx->mctx, sizeof *zle);
-	if (zle == NULL)
-		return (ISC_R_NOMEMORY);
 	zle->zone = NULL;
 	dns_zone_attach(zone, &zle->zone);
 	ISC_LINK_INIT(zle, link);
@@ -10653,8 +10613,6 @@ add_view_tolist(struct dumpcontext *dctx, dns_view_t *view) {
 			return (ISC_R_SUCCESS);
 
 	vle = isc_mem_get(dctx->mctx, sizeof *vle);
-	if (vle == NULL)
-		return (ISC_R_NOMEMORY);
 	vle->view = NULL;
 	dns_view_attach(view, &vle->view);
 	ISC_LINK_INIT(vle, link);
@@ -10847,8 +10805,6 @@ named_server_dumpdb(named_server_t *server, isc_lex_t *lex,
 		return (ISC_R_UNEXPECTEDEND);
 
 	dctx = isc_mem_get(server->mctx, sizeof(*dctx));
-	if (dctx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dctx->mctx = server->mctx;
 	dctx->dumpcache = true;
@@ -13655,8 +13611,6 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 
 	/* Send cleanup event */
 	dz = isc_mem_get(named_g_mctx, sizeof(*dz));
-	if (dz == NULL)
-		CHECK(ISC_R_NOMEMORY);
 
 	dz->cleanup = cleanup;
 	dz->zone = NULL;

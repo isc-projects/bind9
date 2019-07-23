@@ -79,8 +79,6 @@ dumpmessage(dns_message_t *msg) {
 
 	for (;;) {
 		output = isc_mem_get(msg->mctx, len);
-		if (output == NULL)
-			return;
 
 		isc_buffer_init(&outbuf, output, len);
 		result = dns_message_totext(msg, &dns_master_style_debug,
@@ -114,8 +112,6 @@ dns_tkeyctx_create(isc_mem_t *mctx, dns_tkeyctx_t **tctxp)
 	REQUIRE(tctxp != NULL && *tctxp == NULL);
 
 	tctx = isc_mem_get(mctx, sizeof(dns_tkeyctx_t));
-	if (tctx == NULL)
-		return (ISC_R_NOMEMORY);
 	tctx->mctx = NULL;
 	isc_mem_attach(mctx, &tctx->mctx);
 	tctx->dhkey = NULL;
@@ -456,8 +452,6 @@ process_dhtkey(dns_message_t *msg, dns_name_t *signer, dns_name_t *name,
 	isc_buffer_init(&secret, secretdata, sizeof(secretdata));
 
 	randomdata = isc_mem_get(tkeyout->mctx, TKEY_RANDOM_AMOUNT);
-	if (randomdata == NULL)
-		goto failure;
 
 	isc_nonce_buf(randomdata, TKEY_RANDOM_AMOUNT);
 
@@ -601,20 +595,12 @@ process_gsstkey(dns_message_t *msg, dns_name_t *name, dns_rdata_tkey_t *tkeyin,
 	if (outtoken) {
 		tkeyout->key = isc_mem_get(tkeyout->mctx,
 					   isc_buffer_usedlength(outtoken));
-		if (tkeyout->key == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto failure;
-		}
 		tkeyout->keylen = isc_buffer_usedlength(outtoken);
 		memmove(tkeyout->key, isc_buffer_base(outtoken),
 		       isc_buffer_usedlength(outtoken));
 		isc_buffer_free(&outtoken);
 	} else {
 		tkeyout->key = isc_mem_get(tkeyout->mctx, tkeyin->keylen);
-		if (tkeyout->key == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto failure;
-		}
 		tkeyout->keylen = tkeyin->keylen;
 		memmove(tkeyout->key, tkeyin->key, tkeyin->keylen);
 	}

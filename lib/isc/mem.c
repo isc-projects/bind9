@@ -347,14 +347,13 @@ quantize(size_t size) {
 	return ((size + ALIGNMENT_SIZE - 1) & (~(ALIGNMENT_SIZE - 1)));
 }
 
-static inline bool
+static inline void
 more_basic_blocks(isc__mem_t *ctx) {
 	void *tmp;
 	unsigned char *curr, *next;
 	unsigned char *first, *last;
 	unsigned char **table;
 	unsigned int table_size;
-	int i;
 
 	/* Require: we hold the context lock. */
 
@@ -385,12 +384,13 @@ more_basic_blocks(isc__mem_t *ctx) {
 	ctx->basic_table[ctx->basic_table_count] = tmp;
 	ctx->basic_table_count++;
 	ctx->malloced += NUM_BASIC_BLOCKS * ctx->mem_target;
-	if (ctx->malloced > ctx->maxmalloced)
-			ctx->maxmalloced = ctx->malloced;
+	if (ctx->malloced > ctx->maxmalloced) {
+		ctx->maxmalloced = ctx->malloced;
+	}
 
 	curr = tmp;
 	next = curr + ctx->mem_target;
-	for (i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
+	for (int i = 0; i < (NUM_BASIC_BLOCKS - 1); i++) {
 		((element *)curr)->next = (element *)next;
 		curr = next;
 		next += ctx->mem_target;
@@ -402,18 +402,18 @@ more_basic_blocks(isc__mem_t *ctx) {
 	((element *)curr)->next = NULL;
 	first = tmp;
 	last = first + NUM_BASIC_BLOCKS * ctx->mem_target - 1;
-	if (first < ctx->lowest || ctx->lowest == NULL)
+	if (first < ctx->lowest || ctx->lowest == NULL) {
 		ctx->lowest = first;
-	if (last > ctx->highest)
+	}
+	if (last > ctx->highest) {
 		ctx->highest = last;
+	}
 	ctx->basic_blocks = tmp;
-
-	return (true);
 }
 
-static inline bool
+static inline void
 more_frags(isc__mem_t *ctx, size_t new_size) {
-	int i, frags;
+	int frags;
 	size_t total_size;
 	void *tmp;
 	unsigned char *curr, *next;
@@ -423,16 +423,7 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	 */
 
 	if (ctx->basic_blocks == NULL) {
-		if (!more_basic_blocks(ctx)) {
-			/*
-			 * We can't get more memory from the OS, or we've
-			 * hit the quota for this context.
-			 */
-			/*
-			 * XXXRTH  "At quota" notification here.
-			 */
-			return (false);
-		}
+		more_basic_blocks(ctx);
 	}
 
 	total_size = ctx->mem_target;
@@ -448,7 +439,7 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	curr = tmp;
 	next = curr + new_size;
 	total_size -= new_size;
-	for (i = 0; i < (frags - 1); i++) {
+	for (int i = 0; i < (frags - 1); i++) {
 		((element *)curr)->next = (element *)next;
 		curr = next;
 		next += new_size;
@@ -469,8 +460,6 @@ more_frags(isc__mem_t *ctx, size_t new_size) {
 	 */
 	((element *)curr)->next = NULL;
 	ctx->freelists[new_size] = tmp;
-
-	return (true);
 }
 
 static inline void *
@@ -504,8 +493,9 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 	 * of memory and then break it up into "new_size"-sized blocks, adding
 	 * them to the free list.
 	 */
-	if (ctx->freelists[new_size] == NULL && !more_frags(ctx, new_size))
-		return (NULL);
+	if (ctx->freelists[new_size] == NULL) {
+		more_frags(ctx, new_size);
+	}
 
 	/*
 	 * The free list uses the "rounded-up" size "new_size".
@@ -513,7 +503,6 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 
 	ret = ctx->freelists[new_size];
 	ctx->freelists[new_size] = ctx->freelists[new_size]->next;
-
 
 	/*
 	 * The stats[] uses the _actual_ "size" requested by the
@@ -1245,13 +1234,12 @@ mem_allocateunlocked(isc_mem_t *ctx0, size_t size) {
 	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0))
 		size += ALIGNMENT_SIZE;
 
-	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0)
+	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
 		si = mem_getunlocked(ctx, size);
-	else
+	} else {
 		si = mem_get(ctx, size);
+	}
 
-	if (si == NULL)
-		return (NULL);
 	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGCTX) != 0)) {
 		si->u.ctx = ctx;
 		si++;
@@ -1270,8 +1258,9 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 
 	MCTXLOCK(ctx, &ctx->lock);
 	si = mem_allocateunlocked((isc_mem_t *)ctx, size);
-	if (((ctx->flags & ISC_MEMFLAG_INTERNAL) == 0) && (si != NULL))
+	if (((ctx->flags & ISC_MEMFLAG_INTERNAL) == 0)) {
 		mem_getstats(ctx, si[-1].u.size);
+	}
 
 	ADD_TRACE(ctx, si, si[-1].u.size, file, line);
 	if (ctx->hi_water != 0U && ctx->inuse > ctx->hi_water &&
@@ -1294,8 +1283,9 @@ isc___mem_allocate(isc_mem_t *ctx0, size_t size FLARG) {
 	}
 	MCTXUNLOCK(ctx, &ctx->lock);
 
-	if (call_water)
+	if (call_water) {
 		(ctx->water)(ctx->water_arg, ISC_MEM_HIWATER);
+	}
 
 	return (si);
 }

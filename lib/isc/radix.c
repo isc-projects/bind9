@@ -52,8 +52,6 @@ _new_prefix(isc_mem_t *mctx, isc_prefix_t **target, int family, void *dest,
 		return (ISC_R_NOTIMPLEMENTED);
 
 	prefix = isc_mem_get(mctx, sizeof(isc_prefix_t));
-	if (prefix == NULL)
-		return (ISC_R_NOMEMORY);
 
 	if (family == AF_INET6) {
 		prefix->bitlen = (bitlen >= 0) ? bitlen : 128;
@@ -136,8 +134,6 @@ isc_radix_create(isc_mem_t *mctx, isc_radix_tree_t **target, int maxbits) {
 	REQUIRE(target != NULL && *target == NULL);
 
 	radix = isc_mem_get(mctx, sizeof(isc_radix_tree_t));
-	if (radix == NULL)
-		return (ISC_R_NOMEMORY);
 
 	radix->mctx = NULL;
 	isc_mem_attach(mctx, &radix->mctx);
@@ -317,8 +313,6 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 
 	if (radix->head == NULL) {
 		node = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
-		if (node == NULL)
-			return (ISC_R_NOMEMORY);
 		node->bit = bitlen;
 		for (i = 0; i < RADIX_FAMILIES; i++) {
 			node->node_num[i] = -1;
@@ -492,15 +486,8 @@ isc_radix_insert(isc_radix_tree_t *radix, isc_radix_node_t **target,
 	}
 
 	new_node = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
-	if (new_node == NULL)
-		return (ISC_R_NOMEMORY);
 	if (node->bit != differ_bit && bitlen != differ_bit) {
 		glue = isc_mem_get(radix->mctx, sizeof(isc_radix_node_t));
-		if (glue == NULL) {
-			isc_mem_put(radix->mctx, new_node,
-				    sizeof(isc_radix_node_t));
-			return (ISC_R_NOMEMORY);
-		}
 	}
 	new_node->bit = bitlen;
 	new_node->prefix = NULL;

@@ -222,25 +222,10 @@ stub_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	memset(cd, 0, sizeof(config_data_t));
 
 	cd->myzone = isc_mem_strdup(named_g_mctx, argv[1]);
-	if (cd->myzone == NULL) {
-		isc_mem_put(named_g_mctx, cd, sizeof(config_data_t));
-		return (ISC_R_NOMEMORY);
-	}
 
 	cd->myname = isc_mem_strdup(named_g_mctx, argv[2]);
-	if (cd->myname == NULL) {
-		isc_mem_put(named_g_mctx, cd, sizeof(config_data_t));
-		isc_mem_free(named_g_mctx, cd->myzone);
-		return (ISC_R_NOMEMORY);
-	}
 
 	cd->myip = isc_mem_strdup(named_g_mctx, argv[3]);
-	if (cd->myip == NULL) {
-		isc_mem_put(named_g_mctx, cd, sizeof(config_data_t));
-		isc_mem_free(named_g_mctx, cd->myname);
-		isc_mem_free(named_g_mctx, cd->myzone);
-		return (ISC_R_NOMEMORY);
-	}
 
 	isc_mem_attach(named_g_mctx, &cd->mctx);
 

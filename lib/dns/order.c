@@ -51,8 +51,6 @@ dns_order_create(isc_mem_t *mctx, dns_order_t **orderp) {
 	REQUIRE(orderp != NULL && *orderp == NULL);
 
 	order = isc_mem_get(mctx, sizeof(*order));
-	if (order == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ISC_LIST_INIT(order->ents);
 
@@ -79,8 +77,6 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
 		mode == DNS_RDATASETATTR_CYCLIC);
 
 	ent = isc_mem_get(order->mctx, sizeof(*ent));
-	if (ent == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dns_fixedname_init(&ent->name);
 	RUNTIME_CHECK(dns_name_copy(name, dns_fixedname_name(&ent->name), NULL)

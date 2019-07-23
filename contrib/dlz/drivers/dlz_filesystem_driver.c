@@ -164,8 +164,6 @@ create_path_helper(char *out, const char *in, config_data_t *cd) {
 	int i;
 
 	tmpString = isc_mem_strdup(named_g_mctx, in);
-	if (tmpString == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/*
 	 * don't forget is_safe guarantees '.' will NOT be the
@@ -277,16 +275,7 @@ create_path(const char *zone, const char *host, const char *client,
 	if (cd->splitcnt > 0)
 		pathsize += len/cd->splitcnt;
 
-	tmpPath = isc_mem_allocate(named_g_mctx , pathsize * sizeof(char));
-	if (tmpPath == NULL) {
-		/* write error message */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-			      "Filesystem driver unable to "
-			      "allocate memory in create_path().");
-		result = ISC_R_NOMEMORY;
-		goto cleanup_mem;
-	}
+	tmpPath = isc_mem_allocate(named_g_mctx, pathsize * sizeof(char));
 
 	/*
 	 * build path string.
@@ -486,11 +475,8 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 				 * dir list
 				 */
 				if (dir_list != NULL) {
-					direntry =
-					    isc_mem_get(named_g_mctx,
-							sizeof(dir_entry_t));
-					if (direntry == NULL)
-						return (ISC_R_NOMEMORY);
+					direntry = isc_mem_get(named_g_mctx,
+							       sizeof(dir_entry_t));
 					strcpy(direntry->dirpath, tmp);
 					ISC_LINK_INIT(direntry, link);
 					ISC_LIST_APPEND(*dir_list, direntry,
@@ -645,10 +631,6 @@ fs_allnodes(const char *zone, void *driverarg, void *dbdata,
 
 	/* allocate memory for list */
 	dir_list = isc_mem_get(named_g_mctx, sizeof(dlist_t));
-	if (dir_list == NULL) {
-		result = ISC_R_NOTFOUND;
-		goto complete_allnds;
-	}
 
 	/* initialize list */
 	ISC_LIST_INIT(*dir_list);
@@ -905,8 +887,6 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* allocate memory for our config data */
 	cd = isc_mem_get(named_g_mctx, sizeof(config_data_t));
-	if (cd == NULL)
-		goto no_mem;
 
 	/* zero the memory */
 	memset(cd, 0, sizeof(config_data_t));
@@ -915,20 +895,14 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* get and store our base directory */
 	cd->basedir = isc_mem_strdup(named_g_mctx, argv[1]);
-	if (cd->basedir == NULL)
-		goto no_mem;
 	cd->basedirsize = strlen(cd->basedir);
 
 	/* get and store our data sub-dir */
 	cd->datadir = isc_mem_strdup(named_g_mctx, argv[2]);
-	if (cd->datadir == NULL)
-		goto no_mem;
 	cd->datadirsize = strlen(cd->datadir);
 
 	/* get and store our zone xfr sub-dir */
 	cd->xfrdir = isc_mem_strdup(named_g_mctx, argv[3]);
-	if (cd->xfrdir == NULL)
-		goto no_mem;
 	cd->xfrdirsize = strlen(cd->xfrdir);
 
 	/* get and store our directory split count */
@@ -951,22 +925,6 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* return success */
 	return (ISC_R_SUCCESS);
-
-	/* handle no memory error */
- no_mem:
-
-	/* if we allocated a config data object clean it up */
-	if (cd != NULL)
-		fs_destroy(NULL, cd);
-
-	/* write error message */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-		      "Filesystem driver unable to "
-		      "allocate memory for config data.");
-
-	/* return error */
-	return (ISC_R_NOMEMORY);
 }
 
 static void

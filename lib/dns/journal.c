@@ -514,11 +514,6 @@ journal_file_create(isc_mem_t *mctx, const char *filename) {
 		index_size * sizeof(journal_rawpos_t);
 
 	mem = isc_mem_get(mctx, size);
-	if (mem == NULL) {
-		(void)isc_stdio_close(fp);
-		(void)isc_file_remove(filename);
-		return (ISC_R_NOMEMORY);
-	}
 	memset(mem, 0, size);
 	memmove(mem, &rawheader, sizeof(rawheader));
 
@@ -557,8 +552,6 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable,
 
 	INSIST(journalp != NULL && *journalp == NULL);
 	j = isc_mem_get(mctx, sizeof(*j));
-	if (j == NULL)
-		return (ISC_R_NOMEMORY);
 
 	j->mctx = NULL;
 	isc_mem_attach(mctx, &j->mctx);
@@ -624,15 +617,11 @@ journal_open(isc_mem_t *mctx, const char *filename, bool writable,
 
 		rawbytes = j->header.index_size * sizeof(journal_rawpos_t);
 		j->rawindex = isc_mem_get(mctx, rawbytes);
-		if (j->rawindex == NULL)
-			FAIL(ISC_R_NOMEMORY);
 
 		CHECK(journal_read(j, j->rawindex, rawbytes));
 
-		j->index = isc_mem_get(mctx, j->header.index_size *
-				       sizeof(journal_pos_t));
-		if (j->index == NULL)
-			FAIL(ISC_R_NOMEMORY);
+		j->index = isc_mem_get(mctx,
+				       j->header.index_size * sizeof(journal_pos_t));
 
 		p = j->rawindex;
 		for (i = 0; i < j->header.index_size; i++) {
@@ -1047,8 +1036,6 @@ dns_journal_writediff(dns_journal_t *j, dns_diff_t *diff) {
 	}
 
 	mem = isc_mem_get(j->mctx, size);
-	if (mem == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_buffer_init(&buffer, mem, size);
 
@@ -2232,10 +2219,6 @@ dns_journal_compact(isc_mem_t *mctx, char *filename, uint32_t serial,
 		if (copy_length < size)
 			size = copy_length;
 		buf = isc_mem_get(mctx, size);
-		if (buf == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto failure;
-		}
 
 		CHECK(journal_seek(j1, best_guess.offset));
 		CHECK(journal_seek(j2, indexend));

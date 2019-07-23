@@ -1026,10 +1026,6 @@ client_allocsendbuf(ns_client_t *client, isc_buffer_t *buffer,
 			goto done;
 		}
 		client->tcpbuf = isc_mem_get(client->mctx, TCP_BUFFER_SIZE);
-		if (client->tcpbuf == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto done;
-		}
 		data = client->tcpbuf;
 		if (tcpbuffer != NULL) {
 			isc_buffer_init(tcpbuffer, data, TCP_BUFFER_SIZE);
@@ -2236,7 +2232,7 @@ process_keytag(ns_client_t *client, isc_buffer_t *buf, size_t optlen) {
 	}
 
 	client->keytag = isc_mem_get(client->mctx, optlen);
-	if (client->keytag != NULL) {
+	{
 		client->keytag_len = (uint16_t)optlen;
 		memmove(client->keytag, isc_buffer_current(buf), optlen);
 	}
@@ -3109,10 +3105,6 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 		return (result);
 
 	client = isc_mem_get(mctx, sizeof(*client));
-	if (client == NULL) {
-		isc_mem_detach(&mctx);
-		return (ISC_R_NOMEMORY);
-	}
 	client->mctx = mctx;
 
 	client->sctx = NULL;
@@ -3151,10 +3143,6 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
 	}
 
 	client->recvbuf = isc_mem_get(client->mctx, RECV_BUFFER_SIZE);
-	if  (client->recvbuf == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_sendevent;
-	}
 
 	client->recvevent = isc_socket_socketevent(client->mctx, client,
 						   ISC_SOCKEVENT_RECVDONE,
@@ -3249,7 +3237,6 @@ client_create(ns_clientmgr_t *manager, ns_client_t **clientp) {
  cleanup_recvbuf:
 	isc_mem_put(client->mctx, client->recvbuf, RECV_BUFFER_SIZE);
 
- cleanup_sendevent:
 	isc_event_free((isc_event_t **)&client->sendevent);
 
 	client->magic = 0;
@@ -3655,8 +3642,6 @@ ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
 #endif
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	if (manager == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_mutex_init(&manager->lock);
 	isc_mutex_init(&manager->listlock);
@@ -4132,8 +4117,6 @@ ns_client_dumpmessage(ns_client_t *client, const char *reason) {
 
 	do {
 		buf = isc_mem_get(client->mctx, len);
-		if (buf == NULL)
-			break;
 		isc_buffer_init(&buffer, buf, len);
 		result = dns_message_totext(client->message,
 					    &dns_master_style_debug,
@@ -4410,21 +4393,11 @@ ns_client_newdbversion(ns_client_t *client, unsigned int n) {
 
 	for (i = 0; i < n; i++) {
 		dbversion = isc_mem_get(client->mctx, sizeof(*dbversion));
-		if (dbversion != NULL) {
+		{
 			dbversion->db = NULL;
 			dbversion->version = NULL;
 			ISC_LIST_INITANDAPPEND(client->query.freeversions,
-					      dbversion, link);
-		} else {
-			/*
-			 * We only return ISC_R_NOMEMORY if we couldn't
-			 * allocate anything.
-			 */
-			if (i == 0) {
-				return (ISC_R_NOMEMORY);
-			} else {
-				return (ISC_R_SUCCESS);
-			}
+					       dbversion, link);
 		}
 	}
 

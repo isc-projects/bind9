@@ -483,7 +483,7 @@ dns_zone_setdb(dns_zone_t *zone, dns_db_t *db);
  *\li	zone doesn't have a database.
  */
 
-isc_result_t
+void
 dns_zone_setdbtype(dns_zone_t *zone,
 		   unsigned int dbargc, const char * const *dbargv);
 /*%<
@@ -496,10 +496,6 @@ dns_zone_setdbtype(dns_zone_t *zone,
  *\li	'database' to be non NULL.
  *\li	'dbargc' to be >= 1
  *\li	'dbargv' to point to dbargc NULL-terminated strings
- *
- * Returns:
- *\li	#ISC_R_NOMEMORY
- *\li	#ISC_R_SUCCESS
  */
 
 isc_result_t

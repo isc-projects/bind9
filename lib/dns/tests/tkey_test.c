@@ -47,9 +47,9 @@ __wrap_isc__mem_get(isc_mem_t *mctx, size_t size)
 
 	UNUSED(mctx);
 
-	if (!has_enough_memory) {
-		return (NULL);
-	}
+	mock_assert(has_enough_memory, "mock isc_mem_get failed",
+		    __FILE__, __LINE__);
+
 	return (malloc(size));
 }
 
@@ -129,8 +129,7 @@ dns_tkeyctx_create_test(void **state) {
 
 	tctx = NULL;
 	will_return(__wrap_isc__mem_get, false);
-	assert_int_equal(dns_tkeyctx_create(&mock_mctx, &tctx),
-			 ISC_R_NOMEMORY);
+	expect_assert_failure(dns_tkeyctx_create(&mock_mctx, &tctx));
 
 	tctx = NULL;
 	will_return(__wrap_isc__mem_get, true);

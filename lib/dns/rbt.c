@@ -955,9 +955,7 @@ dns_rbt_create(isc_mem_t *mctx, dns_rbtdeleter_t deleter,
 	REQUIRE(rbtp != NULL && *rbtp == NULL);
 	REQUIRE(deleter == NULL ? deleter_arg == NULL : 1);
 
-	rbt = (dns_rbt_t *)isc_mem_get(mctx, sizeof(*rbt));
-	if (rbt == NULL)
-		return (ISC_R_NOMEMORY);
+	rbt = isc_mem_get(mctx, sizeof(*rbt));
 
 	rbt->mctx = NULL;
 	isc_mem_attach(mctx, &rbt->mctx);
@@ -2188,9 +2186,7 @@ create_node(isc_mem_t *mctx, const dns_name_t *name, dns_rbtnode_t **nodep) {
 	 * Allocate space for the node structure, the name, and the offsets.
 	 */
 	nodelen = sizeof(dns_rbtnode_t) + region.length + labels + 1;
-	node = (dns_rbtnode_t *)isc_mem_get(mctx, nodelen);
-	if (node == NULL)
-		return (ISC_R_NOMEMORY);
+	node = isc_mem_get(mctx, nodelen);
 	memset(node, 0, nodelen);
 
 	node->is_root = 0;
@@ -2278,9 +2274,6 @@ inithash(dns_rbt_t *rbt) {
 	bytes = (unsigned int)rbt->hashsize * sizeof(dns_rbtnode_t *);
 	rbt->hashtable = isc_mem_get(rbt->mctx, bytes);
 
-	if (rbt->hashtable == NULL)
-		return (ISC_R_NOMEMORY);
-
 	memset(rbt->hashtable, 0, bytes);
 
 	return (ISC_R_SUCCESS);
@@ -2306,11 +2299,6 @@ rehash(dns_rbt_t *rbt, unsigned int newcount) {
 	} while (newcount >= (rbt->hashsize * 3));
 	rbt->hashtable = isc_mem_get(rbt->mctx,
 				     rbt->hashsize * sizeof(dns_rbtnode_t *));
-	if (rbt->hashtable == NULL) {
-		rbt->hashtable = oldtable;
-		rbt->hashsize = oldsize;
-		return;
-	}
 
 	for (i = 0; i < rbt->hashsize; i++)
 		rbt->hashtable[i] = NULL;

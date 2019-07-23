@@ -446,9 +446,6 @@ make_server(const char *servname, const char *userarg) {
 
 	debug("make_server(%s)", servname);
 	srv = isc_mem_allocate(mctx, sizeof(struct dig_server));
-	if (srv == NULL)
-		fatal("memory allocation failure in %s:%d",
-		      __FILE__, __LINE__);
 	strlcpy(srv->servername, servname, MXNAME);
 	strlcpy(srv->userarg, userarg, MXNAME);
 	ISC_LINK_INIT(srv, link);
@@ -576,9 +573,6 @@ make_empty_lookup(void) {
 	INSIST(!free_now);
 
 	looknew = isc_mem_allocate(mctx, sizeof(struct dig_lookup));
-	if (looknew == NULL)
-		fatal("memory allocation failure in %s:%d",
-		       __FILE__, __LINE__);
 	looknew->pending = true;
 	looknew->textname[0] = 0;
 	looknew->cmdline[0] = 0;
@@ -681,8 +675,6 @@ cloneopts(dig_lookup_t *looknew, dig_lookup_t *lookold) {
 	size_t len = sizeof(looknew->ednsopts[0]) * EDNSOPT_OPTIONS;
 	size_t i;
 	looknew->ednsopts = isc_mem_allocate(mctx, len);
-	if (looknew->ednsopts == NULL)
-		fatal("out of memory");
 	for (i = 0; i < EDNSOPT_OPTIONS; i++) {
 		looknew->ednsopts[i].code = 0;
 		looknew->ednsopts[i].length = 0;
@@ -696,10 +688,8 @@ cloneopts(dig_lookup_t *looknew, dig_lookup_t *lookold) {
 		len = lookold->ednsopts[i].length;
 		if (len != 0) {
 			INSIST(lookold->ednsopts[i].value != NULL);
-			looknew->ednsopts[i].value =
-				 isc_mem_allocate(mctx, len);
-			if (looknew->ednsopts[i].value == NULL)
-				fatal("out of memory");
+			looknew->ednsopts[i].value = isc_mem_allocate(mctx,
+								      len);
 			memmove(looknew->ednsopts[i].value,
 				lookold->ednsopts[i].value, len);
 		}
@@ -805,8 +795,6 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	if (lookold->ecs_addr != NULL) {
 		size_t len = sizeof(isc_sockaddr_t);
 		looknew->ecs_addr = isc_mem_allocate(mctx, len);
-		if (looknew->ecs_addr == NULL)
-			fatal("out of memory");
 		memmove(looknew->ecs_addr, lookold->ecs_addr, len);
 	}
 
@@ -865,9 +853,6 @@ setup_text_key(void) {
 	isc_buffer_putstr(namebuf, keynametext);
 	secretsize = (unsigned int) strlen(keysecret) * 3 / 4;
 	secretstore = isc_mem_allocate(mctx, secretsize);
-	if (secretstore == NULL)
-		fatal("memory allocation failure in %s:%d",
-		      __FILE__, __LINE__);
 	isc_buffer_init(&secretbuf, secretstore, secretsize);
 	result = isc_base64_decodestring(keysecret, &secretbuf);
 	if (result != ISC_R_SUCCESS)
@@ -957,8 +942,6 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 		fatal("invalid prefix '%s'\n", value);
 
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
-	if (sa == NULL)
-		fatal("out of memory");
 	memset(sa, 0, sizeof(*sa));
 
 	if (strcmp(buf, "0") == 0) {
@@ -1190,9 +1173,6 @@ static dig_searchlist_t *
 make_searchlist_entry(char *domain) {
 	dig_searchlist_t *search;
 	search = isc_mem_allocate(mctx, sizeof(*search));
-	if (search == NULL)
-		fatal("memory allocation failure in %s:%d",
-		      __FILE__, __LINE__);
 	strlcpy(search->origin, domain, MXNAME);
 	search->origin[MXNAME-1] = 0;
 	ISC_LINK_INIT(search, link);
@@ -1456,9 +1436,7 @@ save_opt(dig_lookup_t *lookup, char *code, char *value) {
 
 	if (value != NULL) {
 		char *buf;
-		buf = isc_mem_allocate(mctx, strlen(value)/2 + 1);
-		if (buf == NULL)
-			fatal("out of memory");
+		buf = isc_mem_allocate(mctx, strlen(value) / 2 + 1);
 		isc_buffer_init(&b, buf, (unsigned int) strlen(value)/2 + 1);
 		result = isc_hex_decodestring(value, &b);
 		check_result(result, "isc_hex_decodestring");
@@ -2489,10 +2467,6 @@ setup_lookup(dig_lookup_t *lookup) {
 	     serv = ISC_LIST_NEXT(serv, link))
 	{
 		query = isc_mem_allocate(mctx, sizeof(dig_query_t));
-		if (query == NULL) {
-			fatal("memory allocation failure in %s:%d",
-			      __FILE__, __LINE__);
-		}
 		debug("create query %p linked to lookup %p", query, lookup);
 		query->lookup = lookup;
 		query->timer = NULL;

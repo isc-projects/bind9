@@ -127,8 +127,6 @@ create_stats(isc_mem_t *mctx, dns_statstype_t type, int ncounters,
 	isc_result_t result;
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
-	if (stats == NULL)
-		return (ISC_R_NOMEMORY);
 
 	stats->counters = NULL;
 	isc_refcount_init(&stats->references, 1);

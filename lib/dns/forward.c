@@ -44,8 +44,6 @@ dns_fwdtable_create(isc_mem_t *mctx, dns_fwdtable_t **fwdtablep) {
 	REQUIRE(fwdtablep != NULL && *fwdtablep == NULL);
 
 	fwdtable = isc_mem_get(mctx, sizeof(dns_fwdtable_t));
-	if (fwdtable == NULL)
-		return (ISC_R_NOMEMORY);
 
 	fwdtable->table = NULL;
 	result = dns_rbt_create(mctx, auto_detach, fwdtable, &fwdtable->table);
@@ -83,8 +81,6 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	REQUIRE(VALID_FWDTABLE(fwdtable));
 
 	forwarders = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarders_t));
-	if (forwarders == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ISC_LIST_INIT(forwarders->fwdrs);
 	for (fwd = ISC_LIST_HEAD(*fwdrs);
@@ -92,10 +88,6 @@ dns_fwdtable_addfwd(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	     fwd = ISC_LIST_NEXT(fwd, link))
 	{
 		nfwd = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarder_t));
-		if (nfwd == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		*nfwd = *fwd;
 		ISC_LINK_INIT(nfwd, link);
 		ISC_LIST_APPEND(forwarders->fwdrs, nfwd, link);
@@ -133,8 +125,6 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	REQUIRE(VALID_FWDTABLE(fwdtable));
 
 	forwarders = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarders_t));
-	if (forwarders == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ISC_LIST_INIT(forwarders->fwdrs);
 	for (sa = ISC_LIST_HEAD(*addrs);
@@ -142,10 +132,6 @@ dns_fwdtable_add(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 	     sa = ISC_LIST_NEXT(sa, link))
 	{
 		fwd = isc_mem_get(fwdtable->mctx, sizeof(dns_forwarder_t));
-		if (fwd == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		fwd->addr = *sa;
 		fwd->dscp = -1;
 		ISC_LINK_INIT(fwd, link);

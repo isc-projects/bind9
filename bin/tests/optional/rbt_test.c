@@ -55,10 +55,6 @@ create_name(char *s) {
 	 * name structure.
 	 */
 	name = isc_mem_get(mctx, sizeof(*name) + DNSNAMELEN);
-	if (name == NULL) {
-		printf("out of memory!\n");
-		return (NULL);
-	}
 
 	dns_name_init(name, NULL);
 	isc_buffer_init(&target, name + 1, DNSNAMELEN);

@@ -281,8 +281,6 @@ isc_timer_create(isc_timermgr_t *manager0, isc_timertype_t type,
 
 
 	timer = isc_mem_get(manager->mctx, sizeof(*timer));
-	if (timer == NULL)
-		return (ISC_R_NOMEMORY);
 
 	timer->manager = manager;
 	isc_refcount_init(&timer->references, 1);
@@ -681,8 +679,6 @@ isc_timermgr_create(isc_mem_t *mctx, isc_timermgr_t **managerp) {
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	if (manager == NULL)
-		return (ISC_R_NOMEMORY);
 
 	manager->common.impmagic = TIMER_MANAGER_MAGIC;
 	manager->common.magic = ISCAPI_TIMERMGR_MAGIC;

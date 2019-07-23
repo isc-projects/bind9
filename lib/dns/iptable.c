@@ -29,8 +29,6 @@ dns_iptable_create(isc_mem_t *mctx, dns_iptable_t **target) {
 	dns_iptable_t *tab;
 
 	tab = isc_mem_get(mctx, sizeof(*tab));
-	if (tab == NULL)
-		return (ISC_R_NOMEMORY);
 	tab->mctx = NULL;
 	isc_mem_attach(mctx, &tab->mctx);
 	isc_refcount_init(&tab->refcount, 1);

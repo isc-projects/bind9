@@ -160,8 +160,6 @@ dns_requestmgr_create(isc_mem_t *mctx,
 	}
 
 	requestmgr = isc_mem_get(mctx, sizeof(*requestmgr));
-	if (requestmgr == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_mutex_init(&requestmgr->lock);
 
@@ -451,8 +449,6 @@ new_request(isc_mem_t *mctx, dns_request_t **requestp)
 	dns_request_t *request;
 
 	request = isc_mem_get(mctx, sizeof(*request));
-	if (request == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/*
 	 * Zero structure.

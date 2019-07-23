@@ -637,8 +637,6 @@ new_node(dns_rpz_zones_t *rpzs,
 	int i, words, wlen;
 
 	node = isc_mem_get(rpzs->mctx, sizeof(*node));
-	if (node == NULL)
-		return (NULL);
 	memset(node, 0, sizeof(*node));
 
 	if (child != NULL)
@@ -1361,8 +1359,6 @@ add_nm(dns_rpz_zones_t *rpzs, dns_name_t *trig_name,
 		nm_data = nmnode->data;
 		if (nm_data == NULL) {
 			nm_data = isc_mem_get(rpzs->mctx, sizeof(*nm_data));
-			if (nm_data == NULL)
-				return (ISC_R_NOMEMORY);
 			*nm_data = *new_data;
 			nmnode->data = nm_data;
 			return (ISC_R_SUCCESS);
@@ -1440,8 +1436,6 @@ dns_rpz_new_zones(dns_rpz_zones_t **rpzsp, char *rps_cstr,
 	REQUIRE(rpzsp != NULL && *rpzsp == NULL);
 
 	zones = isc_mem_get(mctx, sizeof(*zones));
-	if (zones == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(zones, 0, sizeof(*zones));
 
 	result = isc_rwlock_init(&zones->search_lock, 0, 0);
@@ -1508,9 +1502,6 @@ dns_rpz_new_zone(dns_rpz_zones_t *rpzs, dns_rpz_zone_t **rpzp) {
 	}
 
 	zone = isc_mem_get(rpzs->mctx, sizeof(*zone));
-	if (zone == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	memset(zone, 0, sizeof(*zone));
 	isc_refcount_init(&zone->refs, 1);

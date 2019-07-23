@@ -588,10 +588,6 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 	memset(bufs, 0, sizeof(bufs));
 	for (i = 0; i < 4; i++) {
 		bufs[i] = isc_mem_get(key->mctx, BN_num_bytes(p));
-		if (bufs[i] == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto fail;
-		}
 	}
 
 	i = 0;
@@ -622,7 +618,7 @@ openssldh_tofile(const dst_key_t *key, const char *directory) {
 
 	priv.nelements = i;
 	result = dst__privstruct_writefile(key, &priv, directory);
- fail:
+
 	for (i = 0; i < 4; i++) {
 		if (bufs[i] == NULL)
 			break;

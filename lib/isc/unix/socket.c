@@ -3548,8 +3548,7 @@ setup_thread(isc__socketthread_t *thread) {
 		thread->threadid < thread->manager->nthreads);
 
 	thread->fds = isc_mem_get(thread->manager->mctx,
-				  thread->manager->maxsocks *
-				   sizeof(isc__socket_t *));
+				  thread->manager->maxsocks * sizeof(isc__socket_t *));
 
 	memset(thread->fds, 0,
 	       thread->manager->maxsocks * sizeof(isc_socket_t *));
@@ -3603,15 +3602,13 @@ setup_thread(isc__socketthread_t *thread) {
 #elif defined(USE_EPOLL)
 	thread->nevents = ISC_SOCKET_MAXEVENTS;
 	thread->epoll_events = isc_mem_get(thread->manager->mctx,
-					   (thread->manager->maxsocks *
-					    sizeof(uint32_t)));
+					   (thread->manager->maxsocks * sizeof(uint32_t)));
 
 	memset(thread->epoll_events, 0,
 	       thread->manager->maxsocks * sizeof(uint32_t));
 
 	thread->events = isc_mem_get(thread->manager->mctx,
-				     sizeof(struct epoll_event) *
-				      thread->nevents);
+				     sizeof(struct epoll_event) * thread->nevents);
 
 	thread->epoll_fd = epoll_create(thread->nevents);
 	if (thread->epoll_fd == -1) {
@@ -3642,8 +3639,7 @@ setup_thread(isc__socketthread_t *thread) {
 	 * it must have maxsocks entries (not nevents).
 	 */
 	thread->fdpollinfo = isc_mem_get(thread->manager->mctx,
-					 sizeof(pollinfo_t) *
-					  thread->manager->maxsocks);
+					 sizeof(pollinfo_t) * thread->manager->maxsocks);
 	memset(thread->fdpollinfo, 0, sizeof(pollinfo_t) *
 	       thread->manager->maxsocks);
 	thread->devpoll_fd = open("/dev/poll", O_RDWR);
@@ -3806,8 +3802,8 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	/*
 	 * Start up the select/poll thread.
 	 */
-	manager->threads = isc_mem_get(mctx, sizeof(isc__socketthread_t)
-					      * manager->nthreads);
+	manager->threads = isc_mem_get(mctx,
+				       sizeof(isc__socketthread_t) * manager->nthreads);
 	isc_mem_attach(mctx, &manager->mctx);
 
 	for (i=0; i < manager->nthreads; i++) {

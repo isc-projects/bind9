@@ -227,25 +227,13 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	isc_mem_create(0, 0, &mctx);
 
 	cd = isc_mem_get(mctx, sizeof(*cd));
-	if (cd == NULL) {
-		isc_mem_destroy(&mctx);
-		return (ISC_R_NOMEMORY);
-	}
 	memset(cd, 0, sizeof(*cd));
 
 	cd->mctx = mctx;
 
 	cd->dl_path = isc_mem_strdup(cd->mctx, argv[1]);
-	if (cd->dl_path == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failed;
-	}
 
 	cd->dlzname = isc_mem_strdup(cd->mctx, dlzname);
-	if (cd->dlzname == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failed;
-	}
 
 	triedload = true;
 

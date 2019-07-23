@@ -777,13 +777,6 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 					continue;
 
 				server = isc_mem_get(mctx, sizeof(*server));
-				if (server == NULL) {
-					fprintf(stderr, "resolve_nsaddress: "
-						"mem_get failed");
-					result = ISC_R_NOMEMORY;
-					POST(result);
-					goto cleanup;
-				}
 				isc_sockaddr_fromin(&server->address,
 						    &rdata_a.in_addr, 53);
 				ISC_LINK_INIT(server, link);
@@ -794,7 +787,6 @@ resolve_nsaddress(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
- cleanup:
 	dns_client_freeresanswer(client, &rev->answerlist);
 	dns_client_destroyrestrans(&trans->resid);
 	isc_event_free(&event);
@@ -914,17 +906,6 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 					continue;
 
 				pns = isc_mem_get(mctx, sizeof(*pns));
-				if (pns == NULL) {
-					fprintf(stderr,
-						"resolve_ns: mem_get failed");
-					result = ISC_R_NOMEMORY;
-					POST(result);
-					/*
-					 * XXX: should we continue with the
-					 * available servers anyway?
-					 */
-					goto cleanup;
-				}
 
 				pns->name =
 				       dns_fixedname_initname(&pns->fixedname);
@@ -939,7 +920,6 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 		}
 	}
 
- cleanup:
 	dns_client_freeresanswer(client, &rev->answerlist);
 	dns_client_destroyrestrans(&trans->resid);
 	isc_event_free(&event);
@@ -976,11 +956,6 @@ probe_domain(struct probe_trans *trans) {
 	if ((cp = strchr(buf, '\n')) != NULL) /* zap NL if any */
 		*cp = '\0';
 	trans->domain = isc_mem_strdup(mctx, buf);
-	if (trans->domain == NULL) {
-		fprintf(stderr,
-			"failed to allocate memory for domain: %s", cp);
-		return (ISC_R_NOMEMORY);
-	}
 
 	/* Start getting NS for the domain */
 	domainlen = strlen(buf);

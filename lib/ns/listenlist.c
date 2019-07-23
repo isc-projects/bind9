@@ -30,8 +30,6 @@ ns_listenelt_create(isc_mem_t *mctx, in_port_t port, isc_dscp_t dscp,
 	ns_listenelt_t *elt = NULL;
 	REQUIRE(target != NULL && *target == NULL);
 	elt = isc_mem_get(mctx, sizeof(*elt));
-	if (elt == NULL)
-		return (ISC_R_NOMEMORY);
 	elt->mctx = mctx;
 	ISC_LINK_INIT(elt, link);
 	elt->port = port;
@@ -53,8 +51,6 @@ ns_listenlist_create(isc_mem_t *mctx, ns_listenlist_t **target) {
 	ns_listenlist_t *list = NULL;
 	REQUIRE(target != NULL && *target == NULL);
 	list = isc_mem_get(mctx, sizeof(*list));
-	if (list == NULL)
-		return (ISC_R_NOMEMORY);
 	list->mctx = mctx;
 	list->refcount = 1;
 	ISC_LIST_INIT(list->elts);

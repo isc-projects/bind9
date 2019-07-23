@@ -239,8 +239,6 @@ dst_context_create(dst_key_t *key, isc_mem_t *mctx,
 		return (DST_R_NULLKEY);
 
 	dctx = isc_mem_get(mctx, sizeof(dst_context_t));
-	if (dctx == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(dctx, 0, sizeof(*dctx));
 	dst_key_attach(key, &dctx->key);
 	isc_mem_attach(mctx, &dctx->mctx);
@@ -508,8 +506,6 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 	if (dirname != NULL)
 		newfilenamelen += strlen(dirname) + 1;
 	newfilename = isc_mem_get(mctx, newfilenamelen);
-	if (newfilename == NULL)
-		return (ISC_R_NOMEMORY);
 	result = addsuffix(newfilename, newfilenamelen,
 			   dirname, filename, ".key");
 	INSIST(result == ISC_R_SUCCESS);
@@ -552,8 +548,6 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 	if (dirname != NULL)
 		newfilenamelen += strlen(dirname) + 1;
 	newfilename = isc_mem_get(mctx, newfilenamelen);
-	if (newfilename == NULL)
-		RETERR(ISC_R_NOMEMORY);
 	result = addsuffix(newfilename, newfilenamelen,
 			   dirname, filename, ".private");
 	INSIST(result == ISC_R_SUCCESS);
@@ -1275,17 +1269,11 @@ get_key_struct(const dns_name_t *name, unsigned int alg,
 	isc_result_t result;
 	int i;
 
-	key = (dst_key_t *) isc_mem_get(mctx, sizeof(dst_key_t));
-	if (key == NULL)
-		return (NULL);
+	key = isc_mem_get(mctx, sizeof(dst_key_t));
 
 	memset(key, 0, sizeof(dst_key_t));
 
 	key->key_name = isc_mem_get(mctx, sizeof(dns_name_t));
-	if (key->key_name == NULL) {
-		isc_mem_put(mctx, key, sizeof(dst_key_t));
-		return (NULL);
-	}
 
 	dns_name_init(key->key_name, NULL);
 	result = dns_name_dup(name, mctx, key->key_name);

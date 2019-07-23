@@ -82,10 +82,6 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 	}
 
 	s = isc_mem_strdup(mctx, parameters);
-	if (s == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	result = isc_commandline_strtoargv(mctx, s, &argc, &argv, 0);
 	if (result != ISC_R_SUCCESS) {

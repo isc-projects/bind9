@@ -214,8 +214,6 @@ isc_commandline_strtoargv(isc_mem_t *mctx, char *s, unsigned int *argcp,
 		/* We have reached the end of the string. */
 		*argcp = n;
 		*argvp = isc_mem_get(mctx, n * sizeof(char *));
-		if (*argvp == NULL)
-			return (ISC_R_NOMEMORY);
 	} else {
 		char *p = s;
 		while (*p != ' ' && *p != '\t' && *p != '\0' && *p != '{') {

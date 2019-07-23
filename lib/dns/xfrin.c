@@ -797,8 +797,6 @@ xfrin_create(isc_mem_t *mctx,
 	isc_result_t result;
 
 	xfr = isc_mem_get(mctx, sizeof(*xfr));
-	if (xfr == NULL)
-		return (ISC_R_NOMEMORY);
 	xfr->mctx = NULL;
 	isc_mem_attach(mctx, &xfr->mctx);
 	xfr->refcount = 0;

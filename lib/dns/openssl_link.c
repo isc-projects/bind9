@@ -113,8 +113,6 @@ dst__openssl_init(isc_mem_t *mctx, const char *engine) {
 #if OPENSSL_VERSION_NUMBER < 0x10100000L || defined(LIBRESSL_VERSION_NUMBER)
 	nlocks = CRYPTO_num_locks();
 	locks = isc_mem_allocate(dst__mctx, sizeof(isc_mutex_t) * nlocks);
-	if (locks == NULL)
-		return (ISC_R_NOMEMORY);
 	isc_mutexblock_init(locks, nlocks);
 	CRYPTO_set_locking_callback(lock_callback);
 # if defined(LIBRESSL_VERSION_NUMBER)

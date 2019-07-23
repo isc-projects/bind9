@@ -231,8 +231,6 @@ load(const char *filename, const char *origintext, bool cache) {
 	unsigned int i;
 
 	dbi = isc_mem_get(mctx, sizeof(*dbi));
-	if (dbi == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dbi->db = NULL;
 	dbi->version = NULL;

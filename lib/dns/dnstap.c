@@ -440,9 +440,7 @@ toregion(dns_dtenv_t *env, isc_region_t *r, const char *str) {
 	REQUIRE(r != NULL);
 
 	if (str != NULL) {
-		p = (unsigned char *) isc_mem_strdup(env->mctx, str);
-		if (p == NULL)
-			return (ISC_R_NOMEMORY);
+		p = (unsigned char *)isc_mem_strdup(env->mctx, str);
 	}
 
 	if (r->base != NULL) {
@@ -1005,8 +1003,6 @@ dns_dt_open(const char *filename, dns_dtmode_t mode, isc_mem_t *mctx,
 	REQUIRE(handlep != NULL && *handlep == NULL);
 
 	handle = isc_mem_get(mctx, sizeof(*handle));
-	if (handle == NULL)
-		CHECK(ISC_R_NOMEMORY);
 
 	handle->mode = mode;
 	handle->mctx = NULL;
@@ -1107,8 +1103,6 @@ dns_dt_parse(isc_mem_t *mctx, isc_region_t *src, dns_dtdata_t **destp) {
 	REQUIRE(destp != NULL && *destp == NULL);
 
 	d = isc_mem_get(mctx, sizeof(*d));
-	if (d == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memset(d, 0, sizeof(*d));
 	isc_mem_attach(mctx, &d->mctx);

@@ -343,8 +343,6 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 
 	mctx = ecdb->common.mctx;
 	node = isc_mem_get(mctx, sizeof(*node));
-	if (node == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_mutex_init(&node->lock);
 
@@ -511,8 +509,6 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	mctx = ecdb->common.mctx;
 
 	iterator = isc_mem_get(mctx, sizeof(ecdb_rdatasetiter_t));
-	if (iterator == NULL)
-		return (ISC_R_NOMEMORY);
 
 	iterator->common.magic = DNS_RDATASETITER_MAGIC;
 	iterator->common.methods = &rdatasetiter_methods;
@@ -596,8 +592,6 @@ dns_ecdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	UNUSED(driverarg);
 
 	ecdb = isc_mem_get(mctx, sizeof(*ecdb));
-	if (ecdb == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ecdb->common.attributes = DNS_DBATTR_CACHE;
 	ecdb->common.rdclass = rdclass;

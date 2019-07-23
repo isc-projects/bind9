@@ -1591,8 +1591,6 @@ validate(dns_validator_t *val, bool resume) {
 		if (val->siginfo == NULL) {
 			val->siginfo = isc_mem_get(val->view->mctx,
 						   sizeof(*val->siginfo));
-			if (val->siginfo == NULL)
-				return (ISC_R_NOMEMORY);
 		}
 		result = dns_rdata_tostruct(&rdata, val->siginfo, NULL);
 		if (result != ISC_R_SUCCESS)
@@ -3735,8 +3733,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	REQUIRE(validatorp != NULL && *validatorp == NULL);
 
 	val = isc_mem_get(view->mctx, sizeof(*val));
-	if (val == NULL)
-		return (ISC_R_NOMEMORY);
 	val->view = NULL;
 	dns_view_weakattach(view, &val->view);
 

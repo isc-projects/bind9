@@ -263,9 +263,7 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 	REQUIRE(mctx != NULL);
 	REQUIRE(key != NULL || ring != NULL);
 
-	tkey = (dns_tsigkey_t *) isc_mem_get(mctx, sizeof(dns_tsigkey_t));
-	if (tkey == NULL)
-		return (ISC_R_NOMEMORY);
+	tkey = isc_mem_get(mctx, sizeof(dns_tsigkey_t));
 
 	dns_name_init(&tkey->name, NULL);
 	ret = dns_name_dup(name, mctx, &tkey->name);
@@ -292,10 +290,6 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 			goto cleanup_name;
 		}
 		tmpname = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (tmpname == NULL) {
-			ret = ISC_R_NOMEMORY;
-			goto cleanup_name;
-		}
 		dns_name_init(tmpname, NULL);
 		ret = dns_name_dup(algorithm, mctx, tmpname);
 		if (ret != ISC_R_SUCCESS) {
@@ -308,10 +302,6 @@ dns_tsigkey_createfromkey(const dns_name_t *name, const dns_name_t *algorithm,
 
 	if (creator != NULL) {
 		tkey->creator = isc_mem_get(mctx, sizeof(dns_name_t));
-		if (tkey->creator == NULL) {
-			ret = ISC_R_NOMEMORY;
-			goto cleanup_algorithm;
-		}
 		dns_name_init(tkey->creator, NULL);
 		ret = dns_name_dup(creator, mctx, tkey->creator);
 		if (ret != ISC_R_SUCCESS) {
@@ -955,11 +945,7 @@ dns_tsig_sign(dns_message_t *msg) {
 		ret = dst_key_sigsize(key->key, &sigsize);
 		if (ret != ISC_R_SUCCESS)
 			goto cleanup_context;
-		tsig.signature = (unsigned char *) isc_mem_get(mctx, sigsize);
-		if (tsig.signature == NULL) {
-			ret = ISC_R_NOMEMORY;
-			goto cleanup_context;
-		}
+		tsig.signature = isc_mem_get(mctx, sigsize);
 
 		isc_buffer_init(&sigbuf, tsig.signature, sigsize);
 		ret = dst_context_sign(ctx, &sigbuf);
@@ -1775,8 +1761,6 @@ dns_tsigkeyring_create(isc_mem_t *mctx, dns_tsig_keyring_t **ringp) {
 	REQUIRE(*ringp == NULL);
 
 	ring = isc_mem_get(mctx, sizeof(dns_tsig_keyring_t));
-	if (ring == NULL)
-		return (ISC_R_NOMEMORY);
 
 	result = isc_rwlock_init(&ring->lock, 0, 0);
 	if (result != ISC_R_SUCCESS) {

@@ -845,8 +845,6 @@ newopts(struct query *query) {
 	size_t i;
 
 	query->ednsopts = isc_mem_allocate(mctx, len);
-	if (query->ednsopts == NULL)
-		fatal("out of memory");
 
 	for (i = 0; i < EDNSOPTS; i++) {
 		query->ednsopts[i].code = 0;
@@ -880,10 +878,7 @@ save_opt(struct query *query, char *code, char *value) {
 
 	if (value != NULL) {
 		char *buf;
-		buf = isc_mem_allocate(mctx, strlen(value)/2 + 1);
-		if (buf == NULL) {
-			fatal("out of memory");
-		}
+		buf = isc_mem_allocate(mctx, strlen(value) / 2 + 1);
 		isc_buffer_init(&b, buf, strlen(value)/2 + 1);
 		result = isc_hex_decodestring(value, &b);
 		CHECK("isc_hex_decodestring", result);
@@ -923,8 +918,6 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 	}
 
 	sa = isc_mem_allocate(mctx, sizeof(*sa));
-	if (sa == NULL)
-		fatal("out of memory");
 	if (inet_pton(AF_INET6, buf, &in6) == 1) {
 		parsed = true;
 		isc_sockaddr_fromin6(sa, &in6, 0);
@@ -1690,17 +1683,11 @@ clone_default_query() {
 	struct query *query;
 
 	query = isc_mem_allocate(mctx, sizeof(struct query));
-	if (query == NULL)
-		fatal("memory allocation failure in %s:%d",
-		      __FILE__, __LINE__);
 	memmove(query, &default_query, sizeof(struct query));
 	if (default_query.ecs_addr != NULL) {
 		size_t len = sizeof(isc_sockaddr_t);
 
 		query->ecs_addr = isc_mem_allocate(mctx, len);
-		if (query->ecs_addr == NULL)
-			fatal("memory allocation failure in %s:%d",
-			      __FILE__, __LINE__);
 		memmove(query->ecs_addr, default_query.ecs_addr, len);
 	}
 

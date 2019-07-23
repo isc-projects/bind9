@@ -125,9 +125,6 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 
 	/* allocate memory for query list */
 	tql = isc_mem_get(mctx, sizeof(query_list_t));
-	/* couldn't allocate memory.  Problem!! */
-	if (tql == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/* initialize the query segment list */
 	ISC_LIST_INIT(*tql);
@@ -153,10 +150,6 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 
 		/* allocate memory for tseg */
 		tseg = isc_mem_get(mctx, sizeof(query_segment_t));
-		if (tseg  == NULL) {	/* no memory, clean everything up. */
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		tseg->sql = NULL;
 		tseg->direct = false;
 		/* initialize the query segment link */
@@ -165,11 +158,6 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 		ISC_LIST_APPEND(*tql, tseg, link);
 
 		tseg->sql = isc_mem_strdup(mctx, sql);
-		if (tseg->sql == NULL) {
-			/* no memory, clean everything up. */
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		/* tseg->sql points directly to a string. */
 		tseg->direct = true;
 		tseg->strlen = strlen(tseg->sql);
@@ -303,9 +291,6 @@ sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 
 	/* allocate memory for the string */
 	qs = isc_mem_allocate(mctx, length + 1);
-	/* couldn't allocate memory,  We need more ram! */
-	if (qs == NULL)
-		return NULL;
 
 	*qs = 0;
 	/* start at the top of the list again */
@@ -340,13 +325,6 @@ sdlzh_build_sqldbinstance(isc_mem_t *mctx, const char *allnodes_str,
 
 	/* allocate and zero memory for driver structure */
 	db = isc_mem_get(mctx, sizeof(dbinstance_t));
-	if (db == NULL) {
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-			      "Could not allocate memory for "
-			      "database instance object.");
-		return (ISC_R_NOMEMORY);
-	}
 	memset(db, 0, sizeof(dbinstance_t));
 	db->dbconn = NULL;
 	db->client = NULL;

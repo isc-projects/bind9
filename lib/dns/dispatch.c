@@ -1746,8 +1746,6 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
 	REQUIRE(mgrp != NULL && *mgrp == NULL);
 
 	mgr = isc_mem_get(mctx, sizeof(dns_dispatchmgr_t));
-	if (mgr == NULL)
-		return (ISC_R_NOMEMORY);
 
 	mgr->mctx = NULL;
 	isc_mem_attach(mctx, &mgr->mctx);
@@ -1901,20 +1899,10 @@ dns_dispatchmgr_setavailports(dns_dispatchmgr_t *mgr, isc_portset_t *v4portset,
 	v4ports = NULL;
 	if (nv4ports != 0) {
 		v4ports = isc_mem_get(mgr->mctx, sizeof(in_port_t) * nv4ports);
-		if (v4ports == NULL)
-			return (ISC_R_NOMEMORY);
 	}
 	v6ports = NULL;
 	if (nv6ports != 0) {
 		v6ports = isc_mem_get(mgr->mctx, sizeof(in_port_t) * nv6ports);
-		if (v6ports == NULL) {
-			if (v4ports != NULL) {
-				isc_mem_put(mgr->mctx, v4ports,
-					    sizeof(in_port_t) *
-					    isc_portset_nports(v4portset));
-			}
-			return (ISC_R_NOMEMORY);
-		}
 	}
 
 	p = 0;
@@ -2237,26 +2225,14 @@ qid_allocate(dns_dispatchmgr_t *mgr, unsigned int buckets,
 	REQUIRE(qidp != NULL && *qidp == NULL);
 
 	qid = isc_mem_get(mgr->mctx, sizeof(*qid));
-	if (qid == NULL)
-		return (ISC_R_NOMEMORY);
 
 	qid->qid_table = isc_mem_get(mgr->mctx,
 				     buckets * sizeof(dns_displist_t));
-	if (qid->qid_table == NULL) {
-		isc_mem_put(mgr->mctx, qid, sizeof(*qid));
-		return (ISC_R_NOMEMORY);
-	}
 
 	qid->sock_table = NULL;
 	if (needsocktable) {
-		qid->sock_table = isc_mem_get(mgr->mctx, buckets *
-					      sizeof(dispsocketlist_t));
-		if (qid->sock_table == NULL) {
-			isc_mem_put(mgr->mctx, qid->qid_table,
-				    buckets * sizeof(dns_displist_t));
-			isc_mem_put(mgr->mctx, qid, sizeof(*qid));
-			return (ISC_R_NOMEMORY);
-		}
+		qid->sock_table = isc_mem_get(mgr->mctx,
+					      buckets * sizeof(dispsocketlist_t));
 	}
 
 	isc_mutex_init(&qid->lock);
@@ -2886,11 +2862,7 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 		}
 
 		disp->port_table = isc_mem_get(mgr->mctx,
-					       sizeof(disp->port_table[0]) *
-					       DNS_DISPATCH_PORTTABLESIZE);
-		if (disp->port_table == NULL) {
-			goto deallocate_dispatch;
-		}
+					       sizeof(disp->port_table[0]) * DNS_DISPATCH_PORTTABLESIZE);
 		for (i = 0; i < DNS_DISPATCH_PORTTABLESIZE; i++) {
 			ISC_LIST_INIT(disp->port_table[i]);
 		}
@@ -3641,17 +3613,11 @@ dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
 	mgr = source->mgr;
 
 	dset = isc_mem_get(mctx, sizeof(dns_dispatchset_t));
-	if (dset == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(dset, 0, sizeof(*dset));
 
 	isc_mutex_init(&dset->lock);
 
 	dset->dispatches = isc_mem_get(mctx, sizeof(dns_dispatch_t *) * n);
-	if (dset->dispatches == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto fail_lock;
-	}
 
 	isc_mem_attach(mctx, &dset->mctx);
 	dset->ndisp = n;
@@ -3687,7 +3653,6 @@ dns_dispatchset_create(isc_mem_t *mctx, isc_socketmgr_t *sockmgr,
 	if (dset->mctx == mctx)
 		isc_mem_detach(&dset->mctx);
 
- fail_lock:
 	isc_mutex_destroy(&dset->lock);
 	isc_mem_put(mctx, dset, sizeof(dns_dispatchset_t));
 	return (result);

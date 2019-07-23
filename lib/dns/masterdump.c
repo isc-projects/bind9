@@ -914,8 +914,6 @@ dump_rdataset(isc_mem_t *mctx, const dns_name_t *name,
 
 		newlength = buffer->length * 2;
 		newmem = isc_mem_get(mctx, newlength);
-		if (newmem == NULL)
-			return (ISC_R_NOMEMORY);
 		isc_mem_put(mctx, buffer->base, buffer->length);
 		isc_buffer_init(buffer, newmem, newlength);
 	}
@@ -1158,8 +1156,6 @@ dump_rdataset_raw(isc_mem_t *mctx, const dns_name_t *name,
 
 			newlength = buffer->length * 2;
 			newmem = isc_mem_get(mctx, newlength);
-			if (newmem == NULL)
-				return (ISC_R_NOMEMORY);
 			isc_mem_put(mctx, buffer->base, buffer->length);
 			isc_buffer_init(buffer, newmem, newlength);
 			goto restart;
@@ -1456,8 +1452,6 @@ dumpctx_create(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	unsigned int options;
 
 	dctx = isc_mem_get(mctx, sizeof(*dctx));
-	if (dctx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dctx->mctx = NULL;
 	dctx->f = f;
@@ -1557,8 +1551,6 @@ writeheader(dns_dumpctx_t *dctx) {
 	uint32_t rawversion, now32;
 
 	bufmem = isc_mem_get(dctx->mctx, initial_buffer_length);
-	if (bufmem == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
 
@@ -1632,8 +1624,6 @@ dumptostreaminc(dns_dumpctx_t *dctx) {
 	isc_time_t start;
 
 	bufmem = isc_mem_get(dctx->mctx, initial_buffer_length);
-	if (bufmem == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
 
@@ -1814,8 +1804,6 @@ opentmp(isc_mem_t *mctx, dns_masterformat_t format, const char *file,
 
 	tempnamelen = strlen(file) + 20;
 	tempname = isc_mem_allocate(mctx, tempnamelen);
-	if (tempname == NULL)
-		return (ISC_R_NOMEMORY);
 
 	result = isc_file_mktemplate(file, tempname, tempnamelen);
 	if (result != ISC_R_SUCCESS)
@@ -1855,8 +1843,6 @@ dns_master_dumpinc(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dns_dumpctx_t *dctx = NULL;
 
 	file = isc_mem_strdup(mctx, filename);
-	if (file == NULL)
-		return (ISC_R_NOMEMORY);
 
 	result = opentmp(mctx, format, filename, &tempname, &f);
 	if (result != ISC_R_SUCCESS)
@@ -1953,8 +1939,6 @@ dns_master_dumpnodetostream(isc_mem_t *mctx, dns_db_t *db,
 	isc_stdtime_get(&now);
 
 	bufmem = isc_mem_get(mctx, initial_buffer_length);
-	if (bufmem == NULL)
-		return (ISC_R_NOMEMORY);
 
 	isc_buffer_init(&buffer, bufmem, initial_buffer_length);
 
@@ -2031,8 +2015,6 @@ dns_master_stylecreate(dns_master_style_t **stylep,
 
 	REQUIRE(stylep != NULL && *stylep == NULL);
 	style = isc_mem_get(mctx, sizeof(*style));
-	if (style == NULL)
-		return (ISC_R_NOMEMORY);
 
 	style->flags = flags;
 	style->ttl_column = ttl_column;

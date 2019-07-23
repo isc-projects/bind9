@@ -66,8 +66,6 @@ dns_difftuple_create(isc_mem_t *mctx,
 	 */
 	size = sizeof(*t) + name->length + rdata->length;
 	t = isc_mem_allocate(mctx, size);
-	if (t == NULL)
-		return (ISC_R_NOMEMORY);
 	t->mctx = NULL;
 	isc_mem_attach(mctx, &t->mctx);
 	t->op = op;
@@ -547,8 +545,6 @@ dns_diff_sort(dns_diff_t *diff, dns_diff_compare_func *compare) {
 	if (length == 0)
 		return (ISC_R_SUCCESS);
 	v = isc_mem_get(diff->mctx, length * sizeof(dns_difftuple_t *));
-	if (v == NULL)
-		return (ISC_R_NOMEMORY);
 	for (i = 0; i < length; i++) {
 		p = ISC_LIST_HEAD(diff->tuples);
 		v[i] = p;
@@ -600,8 +596,6 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 	REQUIRE(DNS_DIFF_VALID(diff));
 
 	mem = isc_mem_get(diff->mctx, size);
-	if (mem == NULL)
-		return (ISC_R_NOMEMORY);
 
 	for (t = ISC_LIST_HEAD(diff->tuples); t != NULL;
 	     t = ISC_LIST_NEXT(t, link))
@@ -630,10 +624,6 @@ dns_diff_print(dns_diff_t *diff, FILE *file) {
 			isc_mem_put(diff->mctx, mem, size);
 			size += 1024;
 			mem = isc_mem_get(diff->mctx, size);
-			if (mem == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
 			goto again;
 		}
 

@@ -97,10 +97,6 @@ add_initial_keys(const cfg_obj_t *list, dns_tsig_keyring_t *ring,
 		secretstr = cfg_obj_asstring(secretobj);
 		secretalloc = secretlen = strlen(secretstr) * 3 / 4;
 		secret = isc_mem_get(mctx, secretlen);
-		if (secret == NULL) {
-			ret = ISC_R_NOMEMORY;
-			goto failure;
-		}
 		isc_buffer_init(&secretbuf, secret, secretlen);
 		ret = isc_base64_decodestring(secretstr, &secretbuf);
 		if (ret != ISC_R_SUCCESS)

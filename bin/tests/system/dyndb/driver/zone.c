@@ -57,13 +57,8 @@ create_zone(sample_instance_t * const inst, dns_name_t * const name,
 	}
 	dns_zone_setclass(raw, dns_rdataclass_in);
 	dns_zone_settype(raw, dns_zone_master);
-	result = dns_zone_setdbtype(raw, 1, zone_argv);
-	if (result != ISC_R_SUCCESS) {
-		log_write(ISC_LOG_ERROR,
-			  "create_zone: dns_zone_setdbtype -> %s\n",
-			  isc_result_totext(result));
-		goto cleanup;
-	}
+	dns_zone_setdbtype(raw, 1, zone_argv);
+
 	result = dns_zonemgr_managezone(inst->zmgr, raw);
 	if (result != ISC_R_SUCCESS) {
 		log_write(ISC_LOG_ERROR,

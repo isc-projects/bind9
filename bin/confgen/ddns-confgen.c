@@ -222,8 +222,6 @@ main(int argc, char **argv) {
 		if (suffix != NULL) {
 			len = strlen(keyname) + strlen(suffix) + 2;
 			keybuf = isc_mem_get(mctx, len);
-			if (keybuf == NULL)
-				fatal("failed to allocate memory for keyname");
 			snprintf(keybuf, len, "%s.%s", keyname, suffix);
 			keyname = (const char *) keybuf;
 		}

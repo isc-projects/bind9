@@ -43,8 +43,6 @@ alloc_pool(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,
 	unsigned int i;
 
 	pool = isc_mem_get(mctx, sizeof(*pool));
-	if (pool == NULL)
-		return (ISC_R_NOMEMORY);
 
 	pool->mctx = NULL;
 	isc_mem_attach(mctx, &pool->mctx);
@@ -52,10 +50,6 @@ alloc_pool(isc_taskmgr_t *tmgr, isc_mem_t *mctx, unsigned int ntasks,
 	pool->quantum = quantum;
 	pool->tmgr = tmgr;
 	pool->tasks = isc_mem_get(mctx, ntasks * sizeof(isc_task_t *));
-	if (pool->tasks == NULL) {
-		isc_mem_putanddetach(&pool->mctx, pool, sizeof(*pool));
-		return (ISC_R_NOMEMORY);
-	}
 	for (i = 0; i < ntasks; i++)
 		pool->tasks[i] = NULL;
 

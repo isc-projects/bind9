@@ -206,8 +206,6 @@ dns_catz_entry_new(isc_mem_t *mctx, const dns_name_t *domain,
 	REQUIRE(nentryp != NULL && *nentryp == NULL);
 
 	nentry = isc_mem_get(mctx, sizeof(dns_catz_entry_t));
-	if (nentry == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dns_name_init(&nentry->name, NULL);
 	if (domain != NULL) {
@@ -593,8 +591,6 @@ dns_catz_new_zones(dns_catz_zones_t **catzsp, dns_catz_zonemodmethods_t *zmm,
 	REQUIRE(zmm != NULL);
 
 	new_zones = isc_mem_get(mctx, sizeof(*new_zones));
-	if (new_zones == NULL)
-		return (ISC_R_NOMEMORY);
 	memset(new_zones, 0, sizeof(*new_zones));
 
 	isc_mutex_init(&new_zones->lock);
@@ -650,8 +646,6 @@ dns_catz_new_zone(dns_catz_zones_t *catzs, dns_catz_zone_t **zonep,
 	REQUIRE(ISC_MAGIC_VALID(name, DNS_NAME_MAGIC));
 
 	new_zone = isc_mem_get(catzs->mctx, sizeof(*new_zone));
-	if (new_zone == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memset(new_zone, 0, sizeof(*new_zone));
 
@@ -1130,8 +1124,6 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 
 			/* rdatastr.length < DNS_NAME_MAXTEXT */
 			keyname = isc_mem_get(mctx, sizeof(dns_name_t));
-			if (keyname == NULL)
-				return (ISC_R_NOMEMORY);
 			dns_name_init(keyname, 0);
 			memmove(keycbuf, rdatastr.data, rdatastr.length);
 			keycbuf[rdatastr.length] = 0;
@@ -1171,15 +1163,8 @@ catz_process_masters(dns_catz_zone_t *zone, dns_ipkeylist_t *ipkl,
 				return (result);
 			}
 
-			ipkl->labels[i] = isc_mem_get(mctx, sizeof(dns_name_t));
-			if (ipkl->labels[i] == NULL)  {
-				if (keyname != NULL) {
-					dns_name_free(keyname, mctx);
-					isc_mem_put(mctx, keyname,
-						    sizeof(dns_name_t));
-				}
-				return (ISC_R_NOMEMORY);
-			}
+			ipkl->labels[i] = isc_mem_get(mctx,
+						      sizeof(dns_name_t));
 			dns_name_init(ipkl->labels[i], NULL);
 			result = dns_name_dup(name, mctx, ipkl->labels[i]);
 			if (result != ISC_R_SUCCESS) {

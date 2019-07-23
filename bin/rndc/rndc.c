@@ -968,8 +968,6 @@ main(int argc, char **argv) {
 		argslen += strlen(argv[i]) + 1;
 
 	args = isc_mem_get(rndc_mctx, argslen);
-	if (args == NULL)
-		DO("isc_mem_get", ISC_R_NOMEMORY);
 
 	p = args;
 	for (i = 0; i < argc; i++) {

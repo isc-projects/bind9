@@ -287,10 +287,6 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 			types = NULL;
 		else {
 			types = isc_mem_get(mctx, n * sizeof(dns_rdatatype_t));
-			if (types == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
 		}
 
 		i = 0;
@@ -433,8 +429,6 @@ configure_staticstub_serveraddrs(const cfg_obj_t *zconfig, dns_zone_t *zone,
 		}
 
 		rdata = isc_mem_get(mctx, sizeof(*rdata) + region.length);
-		if (rdata == NULL)
-			return (ISC_R_NOMEMORY);
 		region.base = (unsigned char *)(rdata + 1);
 		memmove(region.base, &na.type, region.length);
 		dns_rdata_init(rdata);
@@ -455,13 +449,6 @@ configure_staticstub_serveraddrs(const cfg_obj_t *zconfig, dns_zone_t *zone,
 	/* Add to the list an apex NS with the ns name being the origin name */
 	dns_name_toregion(dns_zone_getorigin(zone), &sregion);
 	rdata = isc_mem_get(mctx, sizeof(*rdata) + sregion.length);
-	if (rdata == NULL) {
-		/*
-		 * Already allocated data will be freed in the caller, so
-		 * we can simply return here.
-		 */
-		return (ISC_R_NOMEMORY);
-	}
 	region.length = sregion.length;
 	region.base = (unsigned char *)(rdata + 1);
 	memmove(region.base, sregion.base, region.length);
@@ -523,8 +510,6 @@ configure_staticstub_servernames(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		dns_name_toregion(nsname, &sregion);
 		rdata = isc_mem_get(mctx, sizeof(*rdata) + sregion.length);
-		if (rdata == NULL)
-			return (ISC_R_NOMEMORY);
 		region.length = sregion.length;
 		region.base = (unsigned char *)(rdata + 1);
 		memmove(region.base, sregion.base, region.length);
@@ -718,8 +703,6 @@ strtoargvsub(isc_mem_t *mctx, char *s, unsigned int *argcp,
 		/* We have reached the end of the string. */
 		*argcp = n;
 		*argvp = isc_mem_get(mctx, n * sizeof(char *));
-		if (*argvp == NULL)
-			return (ISC_R_NOMEMORY);
 	} else {
 		char *p = s;
 		while (*p != ' ' && *p != '\t' && *p != '\0')
@@ -980,8 +963,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 		len = strlen(dlzname) + 5;
 		cpval = isc_mem_allocate(mctx, len);
-		if (cpval == NULL)
-			return (ISC_R_NOMEMORY);
 		snprintf(cpval, len, "dlz %s", dlzname);
 	}
 
@@ -996,12 +977,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * cannot be promoted automatically to (const char * const *) by the
 	 * compiler w/o generating a warning.
 	 */
-	result = dns_zone_setdbtype(zone, dbargc, (const char * const *)dbargv);
+	dns_zone_setdbtype(zone, dbargc, (const char * const *)dbargv);
 	isc_mem_put(mctx, dbargv, dbargc * sizeof(*dbargv));
-	if (cpval != default_dbtype && cpval != dlz_dbtype)
+	if (cpval != default_dbtype && cpval != dlz_dbtype) {
 		isc_mem_free(mctx, cpval);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	}
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "file", &obj);
@@ -1098,8 +1078,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 		RETERR(dns_zone_setfile(raw, filename,
 					masterformat, masterstyle));
 		signedname = isc_mem_get(mctx, signedlen);
-		if (signedname == NULL)
-			return (ISC_R_NOMEMORY);
 
 		(void)snprintf(signedname, signedlen, "%s" SIGNED, filename);
 		result = dns_zone_setfile(zone, signedname,

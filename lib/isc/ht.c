@@ -58,9 +58,6 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits) {
 	REQUIRE(bits >= 1 && bits <= (sizeof(size_t)*8 - 1));
 
 	ht = isc_mem_get(mctx, sizeof(struct isc_ht));
-	if (ht == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
 
 	ht->mctx = NULL;
 	isc_mem_attach(mctx, &ht->mctx);
@@ -69,11 +66,7 @@ isc_ht_init(isc_ht_t **htp, isc_mem_t *mctx, uint8_t bits) {
 	ht->mask = ((size_t)1<<bits)-1;
 	ht->count = 0;
 
-	ht->table = isc_mem_get(ht->mctx, ht->size * sizeof(isc_ht_node_t*));
-	if (ht->table == NULL) {
-		isc_mem_putanddetach(&ht->mctx, ht, sizeof(struct isc_ht));
-		return (ISC_R_NOMEMORY);
-	}
+	ht->table = isc_mem_get(ht->mctx, ht->size * sizeof(isc_ht_node_t *));
 
 	for (i = 0; i < ht->size; i++) {
 		ht->table[i] = NULL;
@@ -139,8 +132,6 @@ isc_ht_add(isc_ht_t *ht, const unsigned char *key,
 	}
 
 	node = isc_mem_get(ht->mctx, offsetof(isc_ht_node_t, key) + keysize);
-	if (node == NULL)
-		return (ISC_R_NOMEMORY);
 
 	memmove(node->key, key, keysize);
 	node->keysize = keysize;
@@ -219,8 +210,6 @@ isc_ht_iter_create(isc_ht_t *ht, isc_ht_iter_t **itp) {
 	REQUIRE(itp != NULL && *itp == NULL);
 
 	it = isc_mem_get(ht->mctx, sizeof(isc_ht_iter_t));
-	if (it == NULL)
-		return (ISC_R_NOMEMORY);
 
 	it->ht = ht;
 	it->i = 0;

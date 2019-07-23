@@ -387,8 +387,7 @@ mem_maybedup(isc_mem_t *mctx, void *source, size_t length) {
 	if (mctx == NULL)
 		return (source);
 	copy = isc_mem_allocate(mctx, length);
-	if (copy != NULL)
-		memmove(copy, source, length);
+	memmove(copy, source, length);
 
 	return (copy);
 }

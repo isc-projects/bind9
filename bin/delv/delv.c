@@ -436,8 +436,6 @@ printdata(dns_rdataset_t *rdataset, dns_name_t *owner,
 
 	do {
 		t = isc_mem_get(mctx, len);
-		if (t == NULL)
-			return (ISC_R_NOMEMORY);
 
 		isc_buffer_init(&target, t, len);
 		if (short_form) {
@@ -716,9 +714,6 @@ setup_dnsseckeys(dns_client_t *client) {
 
 	if (trust_anchor == NULL) {
 		trust_anchor = isc_mem_strdup(mctx, ".");
-		if (trust_anchor == NULL) {
-			fatal("out of memory");
-		}
 	}
 
 	if (trust_anchor != NULL) {
@@ -819,8 +814,6 @@ addserver(dns_client_t *client) {
 			fatal("Use of IPv4 disabled by -6");
 		}
 		sa = isc_mem_get(mctx, sizeof(*sa));
-		if (sa == NULL)
-			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(sa, link);
 		isc_sockaddr_fromin(sa, &in4, destport);
 		ISC_LIST_APPEND(servers, sa, link);
@@ -829,8 +822,6 @@ addserver(dns_client_t *client) {
 			fatal("Use of IPv6 disabled by -4");
 		}
 		sa = isc_mem_get(mctx, sizeof(*sa));
-		if (sa == NULL)
-			return (ISC_R_NOMEMORY);
 		ISC_LINK_INIT(sa, link);
 		isc_sockaddr_fromin6(sa, &in6, destport);
 		ISC_LIST_APPEND(servers, sa, link);
@@ -858,10 +849,6 @@ addserver(dns_client_t *client) {
 			    cur->ai_family != AF_INET6)
 				continue;
 			sa = isc_mem_get(mctx, sizeof(*sa));
-			if (sa == NULL) {
-				result = ISC_R_NOMEMORY;
-				break;
-			}
 			memset(sa, 0, sizeof(*sa));
 			ISC_LINK_INIT(sa, link);
 			memmove(&sa->type, cur->ai_addr, cur->ai_addrlen);
@@ -934,10 +921,6 @@ findserver(dns_client_t *client) {
 			struct in_addr localhost;
 			localhost.s_addr = htonl(INADDR_LOOPBACK);
 			sa = isc_mem_get(mctx, sizeof(*sa));
-			if (sa == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
 			isc_sockaddr_fromin(sa, &localhost, destport);
 
 			ISC_LINK_INIT(sa, link);
@@ -946,10 +929,6 @@ findserver(dns_client_t *client) {
 
 		if (use_ipv6) {
 			sa = isc_mem_get(mctx, sizeof(*sa));
-			if (sa == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup;
-			}
 			isc_sockaddr_fromin6(sa, &in6addr_loopback, destport);
 
 			ISC_LINK_INIT(sa, link);
@@ -1050,8 +1029,6 @@ plus_option(char *option) {
 			dlv_validation = state;
 			if (value != NULL) {
 				dlv_anchor = isc_mem_strdup(mctx, value);
-				if (dlv_anchor == NULL)
-					fatal("out of memory");
 			}
 			break;
 		case 'n': /* dnssec */
@@ -1086,8 +1063,6 @@ plus_option(char *option) {
 			root_validation = state;
 			if (value != NULL) {
 				trust_anchor = isc_mem_strdup(mctx, value);
-				if (trust_anchor == NULL)
-					fatal("out of memory");
 			}
 			break;
 		case 'r': /* rrcomments */
@@ -1270,8 +1245,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 	switch (opt) {
 	case 'a':
 		anchorfile = isc_mem_strdup(mctx, value);
-		if (anchorfile == NULL)
-			fatal("out of memory");
 		return (value_from_next);
 	case 'b':
 		hash = strchr(value, '#');
@@ -1335,8 +1308,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			isc_mem_free(mctx, curqname);
 		}
 		curqname = isc_mem_strdup(mctx, value);
-		if (curqname == NULL)
-			fatal("out of memory");
 		return (value_from_next);
 	case 't':
 		*open_type_class = false;
@@ -1364,8 +1335,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 				warn("extra query name");
 			}
 			curqname = isc_mem_strdup(mctx, textname);
-			if (curqname == NULL)
-				fatal("out of memory");
 			if (typeset)
 				warn("extra query type");
 			qtype = dns_rdatatype_ptr;
@@ -1512,8 +1481,6 @@ parse_args(int argc, char **argv) {
 
 			if (curqname == NULL) {
 				curqname = isc_mem_strdup(mctx, argv[0]);
-				if (curqname == NULL)
-					fatal("out of memory");
 			}
 		}
 	}
@@ -1527,8 +1494,6 @@ parse_args(int argc, char **argv) {
 
 	if (curqname == NULL) {
 		qname = isc_mem_strdup(mctx, ".");
-		if (qname == NULL)
-			fatal("out of memory");
 
 		if (!typeset)
 			qtype = dns_rdatatype_ns;

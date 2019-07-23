@@ -59,8 +59,6 @@ dns_peerlist_new(isc_mem_t *mem, dns_peerlist_t **list) {
 	REQUIRE(list != NULL);
 
 	l = isc_mem_get(mem, sizeof(*l));
-	if (l == NULL)
-		return (ISC_R_NOMEMORY);
 
 	ISC_LIST_INIT(l->elements);
 	l->mem = mem;
@@ -223,8 +221,6 @@ dns_peer_newprefix(isc_mem_t *mem, const isc_netaddr_t *addr,
 	REQUIRE(peerptr != NULL);
 
 	peer = isc_mem_get(mem, sizeof(*peer));
-	if (peer == NULL)
-		return (ISC_R_NOMEMORY);
 
 	peer->magic = DNS_PEER_MAGIC;
 	peer->address = *addr;
@@ -653,8 +649,6 @@ dns_peer_setkeybycharp(dns_peer_t *peer, const char *keyval) {
 		return (result);
 
 	name = isc_mem_get(peer->mem, sizeof(dns_name_t));
-	if (name == NULL)
-		return (ISC_R_NOMEMORY);
 
 	dns_name_init(name, NULL);
 	result = dns_name_dup(dns_fixedname_name(&fname), peer->mem, name);
@@ -683,9 +677,7 @@ dns_peer_settransfersource(dns_peer_t *peer,
 	}
 	if (transfer_source != NULL) {
 		peer->transfer_source = isc_mem_get(peer->mem,
-						sizeof(*peer->transfer_source));
-		if (peer->transfer_source == NULL)
-			return (ISC_R_NOMEMORY);
+						    sizeof(*peer->transfer_source));
 
 		*peer->transfer_source = *transfer_source;
 	}
@@ -716,9 +708,7 @@ dns_peer_setnotifysource(dns_peer_t *peer,
 	}
 	if (notify_source != NULL) {
 		peer->notify_source = isc_mem_get(peer->mem,
-						sizeof(*peer->notify_source));
-		if (peer->notify_source == NULL)
-			return (ISC_R_NOMEMORY);
+						  sizeof(*peer->notify_source));
 
 		*peer->notify_source = *notify_source;
 	}
@@ -747,9 +737,7 @@ dns_peer_setquerysource(dns_peer_t *peer, const isc_sockaddr_t *query_source) {
 	}
 	if (query_source != NULL) {
 		peer->query_source = isc_mem_get(peer->mem,
-						sizeof(*peer->query_source));
-		if (peer->query_source == NULL)
-			return (ISC_R_NOMEMORY);
+						 sizeof(*peer->query_source));
 
 		*peer->query_source = *query_source;
 	}

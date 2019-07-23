@@ -546,14 +546,8 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	REQUIRE(*dynbuffer == NULL);
 
 	dbuf = isc_mem_get(mctx, sizeof(isc_buffer_t));
-	if (dbuf == NULL)
-		return (ISC_R_NOMEMORY);
 
 	bdata = isc_mem_get(mctx, length);
-	if (bdata == NULL) {
-		isc_mem_put(mctx, dbuf, sizeof(isc_buffer_t));
-		return (ISC_R_NOMEMORY);
-	}
 
 	isc_buffer_init(dbuf, bdata, length);
 	dbuf->mctx = mctx;
@@ -600,10 +594,7 @@ isc_buffer_reserve(isc_buffer_t **dynbuffer, unsigned int size) {
 	 * it doesn't remap pages, but does ordinary copy. So is
 	 * isc_mem_reallocate(), which has additional issues.
 	 */
-	bdata = isc_mem_get((*dynbuffer)->mctx, (unsigned int) len);
-	if (bdata == NULL) {
-		return (ISC_R_NOMEMORY);
-	}
+	bdata = isc_mem_get((*dynbuffer)->mctx, (unsigned int)len);
 
 	memmove(bdata, (*dynbuffer)->base, (*dynbuffer)->length);
 	isc_mem_put((*dynbuffer)->mctx, (*dynbuffer)->base,

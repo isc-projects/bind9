@@ -850,8 +850,6 @@ get_next_command(void) {
 
 	fflush(stdout);
 	buf = isc_mem_allocate(mctx, COMMSIZE);
-	if (buf == NULL)
-		fatal("memory allocation failure");
 	isc_app_block();
 	if (interactive) {
 #ifdef HAVE_READLINE

@@ -1224,8 +1224,6 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 	size_t i;
 
 	version = isc_mem_get(mctx, sizeof(*version));
-	if (version == NULL)
-		return (NULL);
 	version->serial = serial;
 
 	isc_refcount_init(&version->references, references);
@@ -1239,15 +1237,8 @@ allocate_version(isc_mem_t *mctx, rbtdb_serial_t serial,
 
 	version->glue_table_size = RBTDB_GLUE_TABLE_INIT_SIZE;
 	version->glue_table_nodecount = 0U;
-	version->glue_table = (rbtdb_glue_table_node_t **)
-		isc_mem_get(mctx, (version->glue_table_size *
-				   sizeof(*version->glue_table)));
-	if (version->glue_table == NULL) {
-		isc_rwlock_destroy(&version->glue_rwlock);
-		isc_refcount_destroy(&version->references);
-		isc_mem_put(mctx, version, sizeof(*version));
-		return (NULL);
-	}
+	version->glue_table = isc_mem_get(mctx,
+					  (version->glue_table_size * sizeof(*version->glue_table)));
 
 	version->writer = writer;
 	version->commit_ok = false;
@@ -1434,8 +1425,6 @@ new_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx) {
 	rdatasetheader_t *h;
 
 	h = isc_mem_get(mctx, sizeof(*h));
-	if (h == NULL)
-		return (NULL);
 
 #if TRACE_HEADER
 	if (IS_CACHE(rbtdb) && rbtdb->common.rdclass == dns_rdataclass_in)
@@ -5389,8 +5378,6 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	rbtdbiter = isc_mem_get(rbtdb->common.mctx, sizeof(*rbtdbiter));
-	if (rbtdbiter == NULL)
-		return (ISC_R_NOMEMORY);
 
 	rbtdbiter->common.methods = &dbiterator_methods;
 	rbtdbiter->common.db = NULL;
@@ -5615,8 +5602,6 @@ allrdatasets(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	iterator = isc_mem_get(rbtdb->common.mctx, sizeof(*iterator));
-	if (iterator == NULL)
-		return (ISC_R_NOMEMORY);
 
 	if ((db->attributes & DNS_DBATTR_CACHE) == 0) {
 		now = 0;
@@ -6343,10 +6328,6 @@ addnoqname(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	noqname = isc_mem_get(mctx, sizeof(*noqname));
-	if (noqname == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	dns_name_init(&noqname->name, NULL);
 	noqname->neg = NULL;
 	noqname->negsig = NULL;
@@ -6394,10 +6375,6 @@ addclosest(dns_rbtdb_t *rbtdb, rdatasetheader_t *newheader,
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
 	closest = isc_mem_get(mctx, sizeof(*closest));
-	if (closest == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	dns_name_init(&closest->name, NULL);
 	closest->neg = NULL;
 	closest->negsig = NULL;
@@ -7270,8 +7247,6 @@ beginload(dns_db_t *db, dns_rdatacallbacks_t *callbacks) {
 	REQUIRE(VALID_RBTDB(rbtdb));
 
 	loadctx = isc_mem_get(rbtdb->common.mctx, sizeof(*loadctx));
-	if (loadctx == NULL)
-		return (ISC_R_NOMEMORY);
 
 	loadctx->rbtdb = rbtdb;
 	if (IS_CACHE(rbtdb))
@@ -8087,8 +8062,6 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	UNUSED(driverarg);
 
 	rbtdb = isc_mem_get(mctx, sizeof(*rbtdb));
-	if (rbtdb == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/*
 	 * If argv[0] exists, it points to a memory context to use for heap
@@ -8136,12 +8109,8 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		goto cleanup_tree_lock;
 	}
 	INSIST(rbtdb->node_lock_count < (1 << DNS_RBT_LOCKLENGTH));
-	rbtdb->node_locks = isc_mem_get(mctx, rbtdb->node_lock_count *
-					sizeof(rbtdb_nodelock_t));
-	if (rbtdb->node_locks == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_tree_lock;
-	}
+	rbtdb->node_locks = isc_mem_get(mctx,
+					rbtdb->node_lock_count * sizeof(rbtdb_nodelock_t));
 
 	rbtdb->cachestats = NULL;
 	rbtdb->gluecachestats = NULL;
@@ -8151,12 +8120,8 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 		result = dns_rdatasetstats_create(mctx, &rbtdb->rrsetstats);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup_node_locks;
-		rbtdb->rdatasets = isc_mem_get(mctx, rbtdb->node_lock_count *
-					       sizeof(rdatasetheaderlist_t));
-		if (rbtdb->rdatasets == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_rrsetstats;
-		}
+		rbtdb->rdatasets = isc_mem_get(mctx,
+					       rbtdb->node_lock_count * sizeof(rdatasetheaderlist_t));
 		for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 			ISC_LIST_INIT(rbtdb->rdatasets[i]);
 	} else
@@ -8165,12 +8130,8 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Create the heaps.
 	 */
-	rbtdb->heaps = isc_mem_get(hmctx, rbtdb->node_lock_count *
-				   sizeof(isc_heap_t *));
-	if (rbtdb->heaps == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_rdatasets;
-	}
+	rbtdb->heaps = isc_mem_get(hmctx,
+				   rbtdb->node_lock_count * sizeof(isc_heap_t *));
 	for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 		rbtdb->heaps[i] = NULL;
 	sooner = IS_CACHE(rbtdb) ? ttl_sooner : resign_sooner;
@@ -8184,12 +8145,8 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	/*
 	 * Create deadnode lists.
 	 */
-	rbtdb->deadnodes = isc_mem_get(mctx, rbtdb->node_lock_count *
-				       sizeof(rbtnodelist_t));
-	if (rbtdb->deadnodes == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_heaps;
-	}
+	rbtdb->deadnodes = isc_mem_get(mctx,
+				       rbtdb->node_lock_count * sizeof(rbtnodelist_t));
 	for (i = 0; i < (int)rbtdb->node_lock_count; i++)
 		ISC_LIST_INIT(rbtdb->deadnodes[i]);
 
@@ -8376,11 +8333,9 @@ dns_rbtdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 			    rbtdb->node_lock_count * sizeof(isc_heap_t *));
 	}
 
- cleanup_rdatasets:
 	if (rbtdb->rdatasets != NULL)
 		isc_mem_put(mctx, rbtdb->rdatasets, rbtdb->node_lock_count *
 			    sizeof(rdatasetheaderlist_t));
- cleanup_rrsetstats:
 	if (rbtdb->rrsetstats != NULL)
 		dns_stats_detach(&rbtdb->rrsetstats);
 
@@ -9633,10 +9588,8 @@ rehash_gluetable(rbtdb_version_t *version) {
 	} while (version->glue_table_nodecount >=
 		 (version->glue_table_size * 3U));
 
-	version->glue_table = (rbtdb_glue_table_node_t **)
-		isc_mem_get(version->rbtdb->common.mctx,
-			    (version->glue_table_size *
-			     sizeof(*version->glue_table)));
+	version->glue_table = isc_mem_get(version->rbtdb->common.mctx,
+					  (version->glue_table_size * sizeof(*version->glue_table)));
 	if (ISC_UNLIKELY(version->glue_table == NULL)) {
 		version->glue_table = oldtable;
 		version->glue_table_size = oldsize;
@@ -9711,10 +9664,6 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			   &rdataset_a, &sigrdataset_a);
 	if (result == DNS_R_GLUE) {
 		glue = isc_mem_get(ctx->rbtdb->common.mctx, sizeof(*glue));
-		if (glue == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto out;
-		}
 
 		gluename = dns_fixedname_initname(&glue->fixedname);
 		dns_name_copy(name_a, gluename, NULL);
@@ -9739,10 +9688,6 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 		if (glue == NULL) {
 			glue = isc_mem_get(ctx->rbtdb->common.mctx,
 					   sizeof(*glue));
-			if (glue == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto out;
-			}
 
 			gluename = dns_fixedname_initname(&glue->fixedname);
 			dns_name_copy(name_aaaa, gluename, NULL);
@@ -9770,7 +9715,6 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 
 	result = ISC_R_SUCCESS;
 
-out:
 	if (dns_rdataset_isassociated(&rdataset_a))
 		rdataset_disassociate(&rdataset_a);
 	if (dns_rdataset_isassociated(&sigrdataset_a))
@@ -10004,10 +9948,6 @@ no_glue:
 	(void)dns_rdataset_additionaldata(rdataset, glue_nsdname_cb, &ctx);
 
 	cur = isc_mem_get(rbtdb->common.mctx, sizeof(*cur));
-	if (cur == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto out;
-	}
 
 	/*
 	 * XXXMUKS: it looks like the dns_dbversion is not destroyed
@@ -10040,17 +9980,12 @@ no_glue:
 	rbtversion->glue_table[idx] = cur;
 	rbtversion->glue_table_nodecount++;
 
-	result = ISC_R_SUCCESS;
-
- out:
 	RWUNLOCK(&rbtversion->glue_rwlock, isc_rwlocktype_write);
 
-	if (result == ISC_R_SUCCESS) {
-		restarted = true;
-		goto restart;
-	}
+	restarted = true;
+	goto restart;
 
-	return (result);
+	/* UNREACHABLE */
 }
 
 /*%

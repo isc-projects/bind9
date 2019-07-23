@@ -113,10 +113,6 @@ main(int argc, char **argv) {
 			 * simplify cleanup later
 			 */
 			dir = isc_mem_strdup(mctx, isc_commandline_argument);
-			if (dir == NULL) {
-				fatal("Failed to allocate memory for "
-				      "directory");
-			}
 			break;
 		    case 'r':
 			removefile = true;

@@ -55,9 +55,7 @@ dns_dbtable_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	REQUIRE(mctx != NULL);
 	REQUIRE(dbtablep != NULL && *dbtablep == NULL);
 
-	dbtable = (dns_dbtable_t *)isc_mem_get(mctx, sizeof(*dbtable));
-	if (dbtable == NULL)
-		return (ISC_R_NOMEMORY);
+	dbtable = isc_mem_get(mctx, sizeof(*dbtable));
 
 	dbtable->rbt = NULL;
 	result = dns_rbt_create(mctx, dbdetach, NULL, &dbtable->rbt);
