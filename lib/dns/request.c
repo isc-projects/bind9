@@ -374,7 +374,6 @@ send_shutdown_events(dns_requestmgr_t *requestmgr) {
 static void
 mgr_destroy(dns_requestmgr_t *requestmgr) {
 	int i;
-	isc_mem_t *mctx;
 
 	req_log(ISC_LOG_DEBUG(3), "mgr_destroy");
 
@@ -389,9 +388,7 @@ mgr_destroy(dns_requestmgr_t *requestmgr) {
 	if (requestmgr->dispatchv6 != NULL)
 		dns_dispatch_detach(&requestmgr->dispatchv6);
 	requestmgr->magic = 0;
-	mctx = requestmgr->mctx;
-	isc_mem_put(mctx, requestmgr, sizeof(*requestmgr));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&requestmgr->mctx, requestmgr, sizeof(*requestmgr));
 }
 
 static unsigned int
@@ -1420,8 +1417,6 @@ req_sendevent(dns_request_t *request, isc_result_t result) {
 
 static void
 req_destroy(dns_request_t *request) {
-	isc_mem_t *mctx;
-
 	REQUIRE(VALID_REQUEST(request));
 
 	req_log(ISC_LOG_DEBUG(3), "req_destroy: request %p", request);
@@ -1445,9 +1440,7 @@ req_destroy(dns_request_t *request) {
 		dns_tsigkey_detach(&request->tsigkey);
 	if (request->requestmgr != NULL)
 		requestmgr_detach(&request->requestmgr);
-	mctx = request->mctx;
-	isc_mem_put(mctx, request, sizeof(*request));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&request->mctx, request, sizeof(*request));
 }
 
 /*

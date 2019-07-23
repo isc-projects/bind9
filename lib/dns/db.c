@@ -900,7 +900,6 @@ dns_db_register(const char *name, dns_dbcreatefunc_t create, void *driverarg,
 void
 dns_db_unregister(dns_dbimplementation_t **dbimp) {
 	dns_dbimplementation_t *imp;
-	isc_mem_t *mctx;
 
 	REQUIRE(dbimp != NULL && *dbimp != NULL);
 
@@ -910,9 +909,7 @@ dns_db_unregister(dns_dbimplementation_t **dbimp) {
 	*dbimp = NULL;
 	RWLOCK(&implock, isc_rwlocktype_write);
 	ISC_LIST_UNLINK(implementations, imp, link);
-	mctx = imp->mctx;
-	isc_mem_put(mctx, imp, sizeof(dns_dbimplementation_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dns_dbimplementation_t));
 	RWUNLOCK(&implock, isc_rwlocktype_write);
 	ENSURE(*dbimp == NULL);
 }

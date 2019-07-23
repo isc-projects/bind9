@@ -820,10 +820,10 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	     isc_stdtime_t now, dns_rdataset_t *rdataset,
 	     dns_rdataset_t *sigrdataset)
 {
+	REQUIRE(VALID_SDLZNODE(node));
 	dns_rdatalist_t *list;
 	dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
 
-	REQUIRE(VALID_SDLZNODE(node));
 
 	UNUSED(db);
 	UNUSED(version);
@@ -2064,15 +2064,13 @@ dns_sdlzregister(const char *drivername, const dns_sdlzmethods_t *methods,
 	 * return the memory back to the available memory pool and
 	 * remove it from the memory context.
 	 */
-	isc_mem_put(mctx, imp, sizeof(dns_sdlzimplementation_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dns_sdlzimplementation_t));
 	return (result);
 }
 
 void
 dns_sdlzunregister(dns_sdlzimplementation_t **sdlzimp) {
 	dns_sdlzimplementation_t *imp;
-	isc_mem_t *mctx;
 
 	/* Write debugging message to log */
 	sdlz_log(ISC_LOG_DEBUG(2), "Unregistering SDLZ driver.");
@@ -2090,14 +2088,11 @@ dns_sdlzunregister(dns_sdlzimplementation_t **sdlzimp) {
 	/* destroy the driver lock, we don't need it anymore */
 	isc_mutex_destroy(&imp->driverlock);
 
-	mctx = imp->mctx;
-
 	/*
 	 * return the memory back to the available memory pool and
 	 * remove it from the memory context.
 	 */
-	isc_mem_put(mctx, imp, sizeof(dns_sdlzimplementation_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&imp->mctx, imp, sizeof(dns_sdlzimplementation_t));
 
 	*sdlzimp = NULL;
 }
