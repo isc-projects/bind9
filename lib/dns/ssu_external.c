@@ -190,10 +190,6 @@ dns_ssu_external_match(const dns_name_t *identity,
 
 	/* format the buffer */
 	data = isc_mem_allocate(mctx, req_len);
-	if (data == NULL) {
-		close(fd);
-		return (false);
-	}
 
 	isc_buffer_init(&buf, data, req_len);
 	isc_buffer_putuint32(&buf, SSU_EXTERNAL_VERSION);

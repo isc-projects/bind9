@@ -296,9 +296,6 @@ sdlzh_build_querystring(isc_mem_t *mctx, query_list_t *querylist)
 
 	/* allocate memory for the string */
 	qs = isc_mem_allocate(mctx, length + 1);
-	/* couldn't allocate memory,  We need more ram! */
-	if (qs == NULL)
-		return NULL;
 
 	*qs = 0;
 	/* start at the top of the list again */

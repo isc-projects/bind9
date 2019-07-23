@@ -3577,8 +3577,6 @@ main(int argc, char *argv[]) {
 		free_output = true;
 		size = strlen(file) + strlen(".signed") + 1;
 		output = isc_mem_allocate(mctx, size);
-		if (output == NULL)
-			fatal("out of memory");
 		snprintf(output, size, "%s.signed", file);
 	}
 

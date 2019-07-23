@@ -277,16 +277,7 @@ create_path(const char *zone, const char *host, const char *client,
 	if (cd->splitcnt > 0)
 		pathsize += len/cd->splitcnt;
 
-	tmpPath = isc_mem_allocate(named_g_mctx , pathsize * sizeof(char));
-	if (tmpPath == NULL) {
-		/* write error message */
-		isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-			      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-			      "Filesystem driver unable to "
-			      "allocate memory in create_path().");
-		result = ISC_R_NOMEMORY;
-		goto cleanup_mem;
-	}
+	tmpPath = isc_mem_allocate(named_g_mctx, pathsize * sizeof(char));
 
 	/*
 	 * build path string.

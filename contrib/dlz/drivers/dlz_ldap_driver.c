@@ -363,14 +363,6 @@ ldap_process_results(LDAP *dbc, LDAPMessage *msg, char ** attrs,
 
 		/* allocate memory for data string */
 		data = isc_mem_allocate(named_g_mctx, len + 1);
-		if (data == NULL) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-				      "LDAP driver unable to allocate memory "
-				      "while processing results");
-			result = ISC_R_FAILURE;
-			goto cleanup;
-		}
 
 		/*
 		 * Make sure data is null termed at the beginning so

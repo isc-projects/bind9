@@ -209,12 +209,6 @@ odbc_connect(odbc_instance_t *dbi, odbc_db_t **dbc) {
 		}
 	} else {
 		ndb = isc_mem_allocate(named_g_mctx, sizeof(odbc_db_t));
-		if (ndb == NULL) {
-			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-				      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-				      "Odbc driver unable to allocate memory");
-			return ISC_R_NOMEMORY;
-		}
 		memset(ndb, 0, sizeof(odbc_db_t));
 	}
 
@@ -335,9 +329,7 @@ odbc_escape_string(const char *instr) {
 
 	len = strlen(instr);
 
-	outstr = isc_mem_allocate(named_g_mctx ,(2 * len * sizeof(char)) + 1);
-	if (outstr == NULL)
-		return NULL;
+	outstr = isc_mem_allocate(named_g_mctx, (2 * len * sizeof(char)) + 1);
 
 	odbc_makesafe(outstr, instr, len);
 
@@ -715,8 +707,6 @@ odbc_getManyFields(SQLHSTMT *stmnt, SQLSMALLINT startField,
 
 	/* allow for a "\n" at the end of the string/ */
 	data = isc_mem_allocate(named_g_mctx, ++totSize);
-	if (data == NULL)
-		return ISC_R_NOMEMORY;
 
 	result = ISC_R_FAILURE;
 

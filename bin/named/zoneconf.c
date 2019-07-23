@@ -963,8 +963,6 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 
 		len = strlen(dlzname) + 5;
 		cpval = isc_mem_allocate(mctx, len);
-		if (cpval == NULL)
-			return (ISC_R_NOMEMORY);
 		snprintf(cpval, len, "dlz %s", dlzname);
 	}
 

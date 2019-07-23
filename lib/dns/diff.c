@@ -66,8 +66,6 @@ dns_difftuple_create(isc_mem_t *mctx,
 	 */
 	size = sizeof(*t) + name->length + rdata->length;
 	t = isc_mem_allocate(mctx, size);
-	if (t == NULL)
-		return (ISC_R_NOMEMORY);
 	t->mctx = NULL;
 	isc_mem_attach(mctx, &t->mctx);
 	t->op = op;

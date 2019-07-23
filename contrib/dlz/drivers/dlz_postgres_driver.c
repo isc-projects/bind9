@@ -240,9 +240,7 @@ postgres_escape_string(const char *instr) {
 
 	len = strlen(instr);
 
-	outstr = isc_mem_allocate(named_g_mctx ,(2 * len * sizeof(char)) + 1);
-	if (outstr == NULL)
-		return NULL;
+	outstr = isc_mem_allocate(named_g_mctx, (2 * len * sizeof(char)) + 1);
 
 	postgres_makesafe(outstr, instr, len);
 	/* PQescapeString(outstr, instr, len); */
@@ -676,17 +674,6 @@ postgres_process_rs(dns_sdlzlookup_t *lookup, PGresult *rs)
 			 * term string
 			 */
 			tmpString = isc_mem_allocate(named_g_mctx, len + 1);
-			if (tmpString == NULL) {
-				/* major bummer, need more ram */
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_DATABASE,
-					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-					      "Postgres driver unable to "
-					      "allocate memory for "
-					      "temporary string");
-				PQclear(rs);
-				return (ISC_R_FAILURE);	/* Yeah, I'd say! */
-			}
 			/* copy field to tmpString */
 			strcpy(tmpString, PQgetvalue(rs, i, 2));
 			/*
@@ -906,16 +893,6 @@ postgres_allnodes(const char *zone, void *driverarg, void *dbdata,
 			}
 			/* allocate memory, allow for NULL to term string */
 			tmpString = isc_mem_allocate(named_g_mctx, len + 1);
-			if (tmpString == NULL) {	/* we need more ram. */
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_DATABASE,
-					      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-					      "Postgres driver unable to "
-					      "allocate memory for "
-					      "temporary string");
-				PQclear(rs);
-				return (ISC_R_FAILURE);
-			}
 			/* copy this field to tmpString */
 			strcpy(tmpString, PQgetvalue(rs, i, 3));
 			/* concatonate the rest, with spaces between */

@@ -2402,8 +2402,6 @@ dns_name_tostring(const dns_name_t *name, char **target, isc_mem_t *mctx) {
 
 	isc_buffer_usedregion(&buf, &reg);
 	p = isc_mem_allocate(mctx, reg.length + 1);
-	if (p == NULL)
-		return (ISC_R_NOMEMORY);
 	memmove(p, (char *) reg.base, (int) reg.length);
 	p[reg.length] = '\0';
 

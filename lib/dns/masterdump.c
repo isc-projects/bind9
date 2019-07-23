@@ -1804,8 +1804,6 @@ opentmp(isc_mem_t *mctx, dns_masterformat_t format, const char *file,
 
 	tempnamelen = strlen(file) + 20;
 	tempname = isc_mem_allocate(mctx, tempnamelen);
-	if (tempname == NULL)
-		return (ISC_R_NOMEMORY);
 
 	result = isc_file_mktemplate(file, tempname, tempnamelen);
 	if (result != ISC_R_SUCCESS)

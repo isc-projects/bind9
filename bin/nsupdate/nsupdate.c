@@ -514,8 +514,6 @@ setup_keystr(void) {
 
 	secretlen = strlen(secretstr) * 3 / 4;
 	secret = isc_mem_allocate(gmctx, secretlen);
-	if (secret == NULL)
-		fatal("out of memory");
 
 	isc_buffer_init(&secretbuf, secret, secretlen);
 	result = isc_base64_decodestring(secretstr, &secretbuf);
@@ -584,8 +582,6 @@ read_sessionkey(isc_mem_t *mctx, isc_log_t *lctx) {
 
 	len = strlen(algorithm) + strlen(mykeyname) + strlen(secretstr) + 3;
 	keystr = isc_mem_allocate(mctx, len);
-	if (keystr == NULL)
-		fatal("out of memory");
 	snprintf(keystr, len, "%s:%s:%s", algorithm, mykeyname, secretstr);
 	setup_keystr();
 
@@ -1602,8 +1598,6 @@ evaluate_key(char *cmdline) {
 	}
 	secretlen = strlen(secretstr) * 3 / 4;
 	secret = isc_mem_allocate(gmctx, secretlen);
-	if (secret == NULL)
-		fatal("out of memory");
 
 	isc_buffer_init(&secretbuf, secret, secretlen);
 	result = isc_base64_decodestring(secretstr, &secretbuf);

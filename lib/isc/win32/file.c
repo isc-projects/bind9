@@ -714,8 +714,7 @@ isc_file_splitpath(isc_mem_t *mctx, const char *path, char **dirname,
 	} else if (slash != NULL) {
 		file = ++slash;
 		dir = isc_mem_allocate(mctx, slash - path);
-		if (dir != NULL)
-			strlcpy(dir, path, slash - path);
+		strlcpy(dir, path, slash - path);
 	} else {
 		file = path;
 		dir = isc_mem_strdup(mctx, ".");

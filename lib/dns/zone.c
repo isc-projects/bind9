@@ -1421,7 +1421,7 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 	for (i = 0; i < zone->db_argc; i++)
 		size += strlen(zone->db_argv[i]) + 1;
 	mem = isc_mem_allocate(mctx, size);
-	if (mem != NULL) {
+	{
 		tmp = mem;
 		tmp2 = mem;
 		base = mem;
@@ -1432,8 +1432,7 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 			tmp2 += strlen(tmp2) + 1;
 		}
 		*tmp = NULL;
-	} else
-		result = ISC_R_NOMEMORY;
+	}
 	UNLOCK_ZONE(zone);
 	*argv = mem;
 	return (result);
@@ -1671,8 +1670,6 @@ default_journal(dns_zone_t *zone) {
 		/* Calculate string length including '\0'. */
 		int len = strlen(zone->masterfile) + sizeof(".jnl");
 		journal = isc_mem_allocate(zone->mctx, len);
-		if (journal == NULL)
-			return (ISC_R_NOMEMORY);
 		strlcpy(journal, zone->masterfile, len);
 		strlcat(journal, ".jnl", len);
 	} else {
@@ -19701,8 +19698,6 @@ dns_zone_getincludes(dns_zone_t *zone, char ***includesp) {
 		goto done;
 
 	array = isc_mem_allocate(zone->mctx, sizeof(char *) * zone->nincludes);
-	if (array == NULL)
-		goto done;
 	for (include = ISC_LIST_HEAD(zone->includes);
 	     include != NULL;
 	     include = ISC_LIST_NEXT(include, link)) {
