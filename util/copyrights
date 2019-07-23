@@ -1059,6 +1059,8 @@
 ./bin/tests/system/dlzexternal/tests.sh		SH	2010,2011,2012,2013,2014,2015,2016,2018,2019
 ./bin/tests/system/dns64/clean.sh		SH	2010,2012,2014,2015,2016,2018,2019
 ./bin/tests/system/dns64/conf/bad1.conf		CONF-C	2010,2016,2018,2019
+./bin/tests/system/dns64/conf/bad18.conf	CONF-C	2019
+./bin/tests/system/dns64/conf/bad19.conf	CONF-C	2019
 ./bin/tests/system/dns64/conf/bad2.conf		CONF-C	2010,2016,2018,2019
 ./bin/tests/system/dns64/conf/bad3.conf		CONF-C	2010,2016,2018,2019
 ./bin/tests/system/dns64/conf/bad4.conf		CONF-C	2010,2016,2018,2019
@@ -1072,6 +1074,14 @@
 ./bin/tests/system/dns64/conf/good3.conf	CONF-C	2010,2016,2018,2019
 ./bin/tests/system/dns64/conf/good4.conf	CONF-C	2010,2016,2018,2019
 ./bin/tests/system/dns64/conf/good5.conf	CONF-C	2010,2016,2018,2019
+./bin/tests/system/dns64/conf/warn1.conf	CONF-C	2019
+./bin/tests/system/dns64/conf/warn2.conf	CONF-C	2019
+./bin/tests/system/dns64/conf/warn3.conf	CONF-C	2019
+./bin/tests/system/dns64/conf/warn4.conf	CONF-C	2019
+./bin/tests/system/dns64/conf/warn5.conf	CONF-C	2019
+./bin/tests/system/dns64/conf/warn6.conf	CONF-C	2019
+./bin/tests/system/dns64/conf/warn7.conf	CONF-C	2019
+./bin/tests/system/dns64/conf/warn8.conf	CONF-C	2019
 ./bin/tests/system/dns64/ns1/example.db		ZONE	2010,2011,2013,2016,2018,2019
 ./bin/tests/system/dns64/ns1/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/dns64/ns1/root.db		ZONE	2010,2016,2018,2019

@@ -9,11 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-rm -f ns*/named.conf
-rm -f ns1/K*
-rm -f ns1/signed.db*
-rm -f ns1/dsset-signed.
 rm -f */named.memstats
 rm -f */named.run
+rm -f checkconf.out*
 rm -f dig.out.*
 rm -f ns*/named.lock
