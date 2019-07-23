@@ -5145,7 +5145,9 @@ options {
 	      </para>
 	      <para>
 		Compatible IPv6 prefixes have lengths of 32, 40, 48, 56,
-		64 and 96 as per RFC 6052.
+		64 and 96 as per RFC 6052.  Bits 64..71 inclusive must
+		be zero with the most significate bit of the prefix in
+		position 0.
 	      </para>
 	      <para>
 		Additionally a reverse IP6.ARPA zone will be created for
