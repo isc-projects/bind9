@@ -1904,7 +1904,7 @@ dns64_reverse(dns_view_t *view, isc_mem_t *mctx, isc_netaddr_t *na,
 	dns_zone_setclass(zone, view->rdclass);
 	dns_zone_settype(zone, dns_zone_master);
 	dns_zone_setstats(zone, named_g_server->zonestats);
-	CHECK(dns_zone_setdbtype(zone, dns64_dbtypec, dns64_dbtype));
+	dns_zone_setdbtype(zone, dns64_dbtypec, dns64_dbtype);
 	if (view->queryacl != NULL)
 		dns_zone_setqueryacl(zone, view->queryacl);
 	if (view->queryonacl != NULL)
@@ -3410,9 +3410,9 @@ create_empty_zone(dns_zone_t *zone, dns_name_t *name, dns_view_t *view,
 		zone = myzone;
 		CHECK(dns_zone_setorigin(zone, name));
 		CHECK(dns_zonemgr_managezone(named_g_server->zonemgr, zone));
-		if (db == NULL)
-			CHECK(dns_zone_setdbtype(zone, empty_dbtypec,
-						 empty_dbtype));
+		if (db == NULL) {
+			dns_zone_setdbtype(zone, empty_dbtypec, empty_dbtype);
+		}
 		dns_zone_setclass(zone, view->rdclass);
 		dns_zone_settype(zone, dns_zone_master);
 		dns_zone_setstats(zone, named_g_server->zonestats);

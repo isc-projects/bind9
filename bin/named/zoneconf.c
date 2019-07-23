@@ -977,12 +977,11 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	 * cannot be promoted automatically to (const char * const *) by the
 	 * compiler w/o generating a warning.
 	 */
-	result = dns_zone_setdbtype(zone, dbargc, (const char * const *)dbargv);
+	dns_zone_setdbtype(zone, dbargc, (const char * const *)dbargv);
 	isc_mem_put(mctx, dbargv, dbargc * sizeof(*dbargv));
-	if (cpval != default_dbtype && cpval != dlz_dbtype)
+	if (cpval != default_dbtype && cpval != dlz_dbtype) {
 		isc_mem_free(mctx, cpval);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	}
 
 	obj = NULL;
 	result = cfg_map_get(zoptions, "file", &obj);

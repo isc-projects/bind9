@@ -1067,20 +1067,13 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	}
 
 	/* Must be after magic is set. */
-	result = dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
-	if (result != ISC_R_SUCCESS) {
-		goto free_stats;
-	}
+	dns_zone_setdbtype(zone, dbargc_default, dbargv_default);
 
 	ISC_EVENT_INIT(&zone->ctlevent, sizeof(zone->ctlevent), 0, NULL,
 		       DNS_EVENT_ZONECONTROL, zone_shutdown, zone, zone,
 		       NULL, NULL);
 	*zonep = zone;
 	return (ISC_R_SUCCESS);
-
- free_stats:
-	if (zone->gluecachestats != NULL)
-		isc_stats_detach(&zone->gluecachestats);
 
  free_erefs:
 	INSIST(isc_refcount_decrement(&zone->erefs) > 0);
@@ -1438,11 +1431,10 @@ dns_zone_getdbtype(dns_zone_t *zone, char ***argv, isc_mem_t *mctx) {
 	return (result);
 }
 
-isc_result_t
+void
 dns_zone_setdbtype(dns_zone_t *zone,
 		   unsigned int dbargc, const char * const *dbargv)
 {
-	isc_result_t result = ISC_R_SUCCESS;
 	char **argv = NULL;
 	unsigned int i;
 
@@ -1466,11 +1458,8 @@ dns_zone_setdbtype(dns_zone_t *zone,
 
 	zone->db_argc = dbargc;
 	zone->db_argv = argv;
-	result = ISC_R_SUCCESS;
 
 	UNLOCK_ZONE(zone);
-
-	return (result);
 }
 
 static void

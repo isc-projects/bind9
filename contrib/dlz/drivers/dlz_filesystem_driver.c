@@ -925,19 +925,6 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* return success */
 	return (ISC_R_SUCCESS);
-
-	/* if we allocated a config data object clean it up */
-	if (cd != NULL)
-		fs_destroy(NULL, cd);
-
-	/* write error message */
-	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
-		      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
-		      "Filesystem driver unable to "
-		      "allocate memory for config data.");
-
-	/* return error */
-	return (ISC_R_NOMEMORY);
 }
 
 static void

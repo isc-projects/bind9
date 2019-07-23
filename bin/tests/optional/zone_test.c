@@ -99,8 +99,7 @@ setup(const char *zonename, const char *filename, const char *classname) {
 	result = dns_zone_setorigin(zone, origin);
 	ERRRET(result, "dns_zone_setorigin");
 
-	result = dns_zone_setdbtype(zone, 1, &rbt);
-	ERRRET(result, "dns_zone_setdatabase");
+	dns_zone_setdbtype(zone, 1, &rbt);
 
 	result = dns_zone_setfile(zone, filename, dns_masterformat_text,
 				  &dns_master_style_default);

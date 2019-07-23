@@ -664,7 +664,7 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	origin = dns_fixedname_initname(&fixorigin);
 	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
 	CHECK(dns_zone_setorigin(zone, origin));
-	CHECK(dns_zone_setdbtype(zone, 1, (const char * const *) dbtype));
+	dns_zone_setdbtype(zone, 1, (const char * const *) dbtype);
 	CHECK(dns_zone_setfile(zone, filename, fileformat,
 			       &dns_master_style_default));
 	if (journal != NULL)

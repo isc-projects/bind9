@@ -385,7 +385,7 @@ more_basic_blocks(isc__mem_t *ctx) {
 	ctx->basic_table_count++;
 	ctx->malloced += NUM_BASIC_BLOCKS * ctx->mem_target;
 	if (ctx->malloced > ctx->maxmalloced) {
-			ctx->maxmalloced = ctx->malloced;
+		ctx->maxmalloced = ctx->malloced;
 	}
 
 	curr = tmp;

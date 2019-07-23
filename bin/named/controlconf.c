@@ -706,7 +706,7 @@ cfgkeylist_find(const cfg_obj_t *keylist, const char *keyname,
 	return (ISC_R_SUCCESS);
 }
 
-static isc_result_t
+static void
 controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		       controlkeylist_t *keyids)
 {
@@ -732,7 +732,6 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		ISC_LIST_APPEND(*keyids, key, link);
 		newstr = NULL;
 	}
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -986,14 +985,11 @@ update_listener(named_controls_t *cp, controllistener_t **listenerp,
 		INSIST(global_keylist != NULL);
 
 		ISC_LIST_INIT(keys);
-		result = controlkeylist_fromcfg(control_keylist,
-						listener->mctx, &keys);
-		if (result == ISC_R_SUCCESS) {
-			free_controlkeylist(&listener->keys, listener->mctx);
-			listener->keys = keys;
-			register_keys(control, global_keylist, &listener->keys,
-				      listener->mctx, socktext);
-		}
+		controlkeylist_fromcfg(control_keylist, listener->mctx, &keys);
+		free_controlkeylist(&listener->keys, listener->mctx);
+		listener->keys = keys;
+		register_keys(control, global_keylist, &listener->keys,
+			      listener->mctx, socktext);
 	} else {
 		free_controlkeylist(&listener->keys, listener->mctx);
 		result = get_rndckey(listener->mctx, &listener->keys);
@@ -1144,15 +1140,13 @@ add_listener(named_controls_t *cp, controllistener_t **listenerp,
 				     &control_keylist);
 
 		if (control_keylist != NULL) {
-			result = controlkeylist_fromcfg(control_keylist,
-							listener->mctx,
+			controlkeylist_fromcfg(control_keylist, listener->mctx,
 							&listener->keys);
-			if (result == ISC_R_SUCCESS)
-				register_keys(control, global_keylist,
-					      &listener->keys,
-					      listener->mctx, socktext);
-		} else
+			register_keys(control, global_keylist, &listener->keys,
+				      listener->mctx, socktext);
+		} else {
 			result = get_rndckey(mctx, &listener->keys);
+		}
 
 		if (result != ISC_R_SUCCESS && control != NULL)
 			cfg_obj_log(control, named_g_lctx, ISC_LOG_WARNING,
