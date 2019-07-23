@@ -440,16 +440,6 @@ dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl);
  *\li	'resolver' to be valid.
  */
 
-unsigned int
-dns_resolver_nrunning(dns_resolver_t *resolver);
-/*%<
- * Return the number of currently running resolutions in this
- * resolver.  This is may be less than the number of outstanding
- * fetches due to multiple identical fetches, or more than the
- * number of of outstanding fetches due to the fact that resolution
- * can continue even though a fetch has been canceled.
- */
-
 isc_result_t
 dns_resolver_addalternate(dns_resolver_t *resolver, const isc_sockaddr_t *alt,
 			  const dns_name_t *name, in_port_t port);

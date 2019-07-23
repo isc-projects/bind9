@@ -933,7 +933,6 @@ dns_resolver_gettimeout
 dns_resolver_getudpsize
 dns_resolver_getzeronosoattl
 dns_resolver_logfetch
-dns_resolver_nrunning
 dns_resolver_prime
 dns_resolver_printbadcache
 dns_resolver_reset_algorithms

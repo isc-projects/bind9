@@ -539,7 +539,7 @@ struct dns_resolver {
 	dns_fetch_t *			primefetch;
 
 	/* Atomic. */
-	isc_refcount_t			nfctx;
+	atomic_uint_fast32_t		nfctx;
 };
 
 #define RES_MAGIC			ISC_MAGIC('R', 'e', 's', '!')
@@ -4322,7 +4322,7 @@ fctx_unlink(fetchctx_t *fctx) {
 
 	ISC_LIST_UNLINK(res->buckets[bucketnum].fctxs, fctx, link);
 
-	isc_refcount_decrement(&res->nfctx);
+	REQUIRE(atomic_fetch_sub_release(&res->nfctx, 1) > 0);
 
 	dec_stats(res, dns_resstatscounter_nfetch);
 
@@ -4650,7 +4650,7 @@ fctx_start(isc_task_t *task, isc_event_t *event) {
 		else
 			fctx_try(fctx, false, false);
 	} else if (dodestroy) {
-			fctx_destroy(fctx);
+		fctx_destroy(fctx);
 		if (bucket_empty)
 			empty_bucket(res);
 	}
@@ -5015,7 +5015,7 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 
 	ISC_LIST_APPEND(res->buckets[bucketnum].fctxs, fctx, link);
 
-	isc_refcount_increment(&res->nfctx);
+	REQUIRE(atomic_fetch_add_relaxed(&res->nfctx, 1) < UINT32_MAX);
 
 	inc_stats(res, dns_resstatscounter_nfetch);
 
@@ -6986,7 +6986,7 @@ static void
 fctx_increference(fetchctx_t *fctx) {
 	REQUIRE(VALID_FCTX(fctx));
 
-	isc_refcount_increment(&fctx->references);
+	isc_refcount_increment0(&fctx->references);
 }
 
 /*
@@ -9799,7 +9799,7 @@ destroy(dns_resolver_t *res) {
 
 	RTRACE("destroy");
 
-	isc_refcount_destroy(&res->nfctx);
+	REQUIRE(atomic_load_acquire(&res->nfctx) == 0);
 
 	isc_mutex_destroy(&res->primelock);
 	isc_mutex_destroy(&res->lock);
@@ -10045,7 +10045,7 @@ dns_resolver_create(dns_view_t *view,
 	res->priming = false;
 	res->primefetch = NULL;
 
-	isc_refcount_init(&res->nfctx, 0);
+	atomic_init(&res->nfctx, 0);
 
 	isc_mutex_init(&res->lock);
 	isc_mutex_init(&res->primelock);
@@ -10803,11 +10803,6 @@ void
 dns_resolver_setlamettl(dns_resolver_t *resolver, uint32_t lame_ttl) {
 	REQUIRE(VALID_RESOLVER(resolver));
 	resolver->lame_ttl = lame_ttl;
-}
-
-unsigned int
-dns_resolver_nrunning(dns_resolver_t *resolver) {
-	return (isc_refcount_current(&resolver->nfctx));
 }
 
 isc_result_t
