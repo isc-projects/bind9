@@ -171,8 +171,6 @@ convert_named_acl(const cfg_obj_t *nameobj, const cfg_obj_t *cctx,
 	if (result != ISC_R_SUCCESS)
 		return (result);
 	dacl->name = isc_mem_strdup(dacl->mctx, aclname);
-	if (dacl->name == NULL)
-		return (ISC_R_NOMEMORY);
 	ISC_LIST_APPEND(ctx->named_acl_cache, dacl, nextincache);
 	dns_acl_attach(dacl, target);
 	return (ISC_R_SUCCESS);

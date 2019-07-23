@@ -140,8 +140,6 @@ add(char *key, int value) {
 	}
 
 	key = isc_mem_strdup(sym_mctx, key);
-	if (key == NULL)
-		return;
 
 	symvalue.as_pointer = NULL;
 	result = isc_symtab_define(symtab, key, value, symvalue,

@@ -232,16 +232,8 @@ dlopen_dlz_create(const char *dlzname, unsigned int argc, char *argv[],
 	cd->mctx = mctx;
 
 	cd->dl_path = isc_mem_strdup(cd->mctx, argv[1]);
-	if (cd->dl_path == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failed;
-	}
 
 	cd->dlzname = isc_mem_strdup(cd->mctx, dlzname);
-	if (cd->dlzname == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failed;
-	}
 
 	triedload = true;
 

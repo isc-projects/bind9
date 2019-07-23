@@ -105,10 +105,6 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 	if (result == ISC_R_SUCCESS) {
 		s = cfg_obj_asstring(obj);
 		tctx->gssapi_keytab = isc_mem_strdup(mctx, s);
-		if (tctx->gssapi_keytab == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto failure;
-		}
 	}
 
 	*tctxp = tctx;

@@ -95,10 +95,6 @@ new_sample_instance(isc_mem_t *mctx, const char *db_name,
 	isc_mem_attach(mctx, &inst->mctx);
 
 	inst->db_name = isc_mem_strdup(mctx, db_name);
-	if (inst->db_name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	inst->zone1_name = dns_fixedname_initname(&inst->zone1_fn);
 	inst->zone2_name = dns_fixedname_initname(&inst->zone2_fn);

@@ -440,9 +440,7 @@ toregion(dns_dtenv_t *env, isc_region_t *r, const char *str) {
 	REQUIRE(r != NULL);
 
 	if (str != NULL) {
-		p = (unsigned char *) isc_mem_strdup(env->mctx, str);
-		if (p == NULL)
-			return (ISC_R_NOMEMORY);
+		p = (unsigned char *)isc_mem_strdup(env->mctx, str);
 	}
 
 	if (r->base != NULL) {

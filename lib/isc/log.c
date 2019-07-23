@@ -702,10 +702,6 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 	channel = isc_mem_get(mctx, sizeof(*channel));
 
 	channel->name = isc_mem_strdup(mctx, name);
-	if (channel->name == NULL) {
-		isc_mem_put(mctx, channel, sizeof(*channel));
-		return (ISC_R_NOMEMORY);
-	}
 
 	channel->type = type;
 	channel->level = level;
@@ -723,8 +719,8 @@ isc_log_createchannel(isc_logconfig_t *lcfg, const char *name,
 		 * to scribble on it, so it needs to be definitely in
 		 * writable memory.
 		 */
-		FILE_NAME(channel) =
-			isc_mem_strdup(mctx, destination->file.name);
+		FILE_NAME(channel) = isc_mem_strdup(mctx,
+						    destination->file.name);
 		FILE_STREAM(channel) = NULL;
 		FILE_VERSIONS(channel) = destination->file.versions;
 		FILE_SUFFIX(channel) = destination->file.suffix;
@@ -920,8 +916,6 @@ isc_log_settag(isc_logconfig_t *lcfg, const char *tag) {
 		if (lcfg->tag != NULL)
 			isc_mem_free(lcfg->lctx->mctx, lcfg->tag);
 		lcfg->tag = isc_mem_strdup(lcfg->lctx->mctx, tag);
-		if (lcfg->tag == NULL)
-			return (ISC_R_NOMEMORY);
 
 	} else {
 		if (lcfg->tag != NULL)

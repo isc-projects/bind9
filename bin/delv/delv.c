@@ -714,9 +714,6 @@ setup_dnsseckeys(dns_client_t *client) {
 
 	if (trust_anchor == NULL) {
 		trust_anchor = isc_mem_strdup(mctx, ".");
-		if (trust_anchor == NULL) {
-			fatal("out of memory");
-		}
 	}
 
 	if (trust_anchor != NULL) {
@@ -1032,8 +1029,6 @@ plus_option(char *option) {
 			dlv_validation = state;
 			if (value != NULL) {
 				dlv_anchor = isc_mem_strdup(mctx, value);
-				if (dlv_anchor == NULL)
-					fatal("out of memory");
 			}
 			break;
 		case 'n': /* dnssec */
@@ -1068,8 +1063,6 @@ plus_option(char *option) {
 			root_validation = state;
 			if (value != NULL) {
 				trust_anchor = isc_mem_strdup(mctx, value);
-				if (trust_anchor == NULL)
-					fatal("out of memory");
 			}
 			break;
 		case 'r': /* rrcomments */
@@ -1252,8 +1245,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 	switch (opt) {
 	case 'a':
 		anchorfile = isc_mem_strdup(mctx, value);
-		if (anchorfile == NULL)
-			fatal("out of memory");
 		return (value_from_next);
 	case 'b':
 		hash = strchr(value, '#');
@@ -1317,8 +1308,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			isc_mem_free(mctx, curqname);
 		}
 		curqname = isc_mem_strdup(mctx, value);
-		if (curqname == NULL)
-			fatal("out of memory");
 		return (value_from_next);
 	case 't':
 		*open_type_class = false;
@@ -1346,8 +1335,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 				warn("extra query name");
 			}
 			curqname = isc_mem_strdup(mctx, textname);
-			if (curqname == NULL)
-				fatal("out of memory");
 			if (typeset)
 				warn("extra query type");
 			qtype = dns_rdatatype_ptr;
@@ -1494,8 +1481,6 @@ parse_args(int argc, char **argv) {
 
 			if (curqname == NULL) {
 				curqname = isc_mem_strdup(mctx, argv[0]);
-				if (curqname == NULL)
-					fatal("out of memory");
 			}
 		}
 	}
@@ -1509,8 +1494,6 @@ parse_args(int argc, char **argv) {
 
 	if (curqname == NULL) {
 		qname = isc_mem_strdup(mctx, ".");
-		if (qname == NULL)
-			fatal("out of memory");
 
 		if (!typeset)
 			qtype = dns_rdatatype_ns;

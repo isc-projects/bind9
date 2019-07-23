@@ -956,11 +956,6 @@ probe_domain(struct probe_trans *trans) {
 	if ((cp = strchr(buf, '\n')) != NULL) /* zap NL if any */
 		*cp = '\0';
 	trans->domain = isc_mem_strdup(mctx, buf);
-	if (trans->domain == NULL) {
-		fprintf(stderr,
-			"failed to allocate memory for domain: %s", cp);
-		return (ISC_R_NOMEMORY);
-	}
 
 	/* Start getting NS for the domain */
 	domainlen = strlen(buf);

@@ -168,8 +168,6 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 	imp->register_func = register_func;
 	imp->destroy_func = destroy_func;
 	imp->name = isc_mem_strdup(mctx, instname);
-	if (imp->name == NULL)
-		CHECK(ISC_R_NOMEMORY);
 
 	imp->inst = NULL;
 	INIT_LINK(imp, link);
@@ -282,8 +280,6 @@ load_library(isc_mem_t *mctx, const char *filename, const char *instname,
 	imp->register_func = register_func;
 	imp->destroy_func = destroy_func;
 	imp->name = isc_mem_strdup(mctx, instname);
-	if (imp->name == NULL)
-		CHECK(ISC_R_NOMEMORY);
 
 	imp->inst = NULL;
 	INIT_LINK(imp, link);

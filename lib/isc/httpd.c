@@ -1196,10 +1196,6 @@ isc_httpdmgr_addurl2(isc_httpdmgr_t *httpdmgr, const char *url,
 	item = isc_mem_get(httpdmgr->mctx, sizeof(isc_httpdurl_t));
 
 	item->url = isc_mem_strdup(httpdmgr->mctx, url);
-	if (item->url == NULL) {
-		isc_mem_put(httpdmgr->mctx, item, sizeof(isc_httpdurl_t));
-		return (ISC_R_NOMEMORY);
-	}
 
 	item->action = func;
 	item->action_arg = arg;

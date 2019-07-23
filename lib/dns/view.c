@@ -96,20 +96,12 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->mctx = NULL;
 	isc_mem_attach(mctx, &view->mctx);
 	view->name = isc_mem_strdup(mctx, name);
-	if (view->name == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_view;
-	}
 
 	result = isc_file_sanitize(NULL, view->name, "nta",
 				   buffer, sizeof(buffer));
 	if (result != ISC_R_SUCCESS)
 		goto cleanup_name;
 	view->nta_file = isc_mem_strdup(mctx, buffer);
-	if (view->nta_file == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_name;
-	}
 
 	isc_mutex_init(&view->lock);
 
@@ -2084,18 +2076,12 @@ dns_view_setnewzones(dns_view_t *view, bool allow, void *cfgctx,
 			buffer, sizeof(buffer)));
 
 	view->new_zone_file = isc_mem_strdup(view->mctx, buffer);
-	if (view->new_zone_file == NULL) {
-		CHECK(ISC_R_NOMEMORY);
-	}
 
 #ifdef HAVE_LMDB
 	CHECK(nz_legacy(view->new_zone_dir, view->name, "nzd",
 			buffer, sizeof(buffer)));
 
 	view->new_zone_db = isc_mem_strdup(view->mctx, buffer);
-	if (view->new_zone_db == NULL) {
-		CHECK(ISC_R_NOMEMORY);
-	}
 
 	status = mdb_env_create(&env);
 	if (status != MDB_SUCCESS) {

@@ -164,8 +164,6 @@ create_path_helper(char *out, const char *in, config_data_t *cd) {
 	int i;
 
 	tmpString = isc_mem_strdup(named_g_mctx, in);
-	if (tmpString == NULL)
-		return (ISC_R_NOMEMORY);
 
 	/*
 	 * don't forget is_safe guarantees '.' will NOT be the
@@ -897,20 +895,14 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 
 	/* get and store our base directory */
 	cd->basedir = isc_mem_strdup(named_g_mctx, argv[1]);
-	if (cd->basedir == NULL)
-		goto no_mem;
 	cd->basedirsize = strlen(cd->basedir);
 
 	/* get and store our data sub-dir */
 	cd->datadir = isc_mem_strdup(named_g_mctx, argv[2]);
-	if (cd->datadir == NULL)
-		goto no_mem;
 	cd->datadirsize = strlen(cd->datadir);
 
 	/* get and store our zone xfr sub-dir */
 	cd->xfrdir = isc_mem_strdup(named_g_mctx, argv[3]);
-	if (cd->xfrdir == NULL)
-		goto no_mem;
 	cd->xfrdirsize = strlen(cd->xfrdir);
 
 	/* get and store our directory split count */

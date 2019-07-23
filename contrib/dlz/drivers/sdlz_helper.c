@@ -158,11 +158,6 @@ build_querylist(isc_mem_t *mctx, const char *query_str, char **zone,
 		ISC_LIST_APPEND(*tql, tseg, link);
 
 		tseg->sql = isc_mem_strdup(mctx, sql);
-		if (tseg->sql == NULL) {
-			/* no memory, clean everything up. */
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 		/* tseg->sql points directly to a string. */
 		tseg->direct = true;
 		tseg->strlen = strlen(tseg->sql);

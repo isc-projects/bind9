@@ -6969,8 +6969,6 @@ setstring(named_server_t *server, char **field, const char *value) {
 
 	if (value != NULL) {
 		copy = isc_mem_strdup(server->mctx, value);
-		if (copy == NULL)
-			return (ISC_R_NOMEMORY);
 	} else {
 		copy = NULL;
 	}
@@ -7313,8 +7311,6 @@ configure_session_key(const cfg_obj_t **maps, named_server_t *server,
 		CHECK(dns_name_dup(keyname, mctx, server->session_keyname));
 
 		server->session_keyfile = isc_mem_strdup(mctx, keyfile);
-		if (server->session_keyfile == NULL)
-			goto cleanup;
 
 		server->session_keyalg = algtype;
 		server->session_keybits = bits;
@@ -8005,7 +8001,7 @@ check_lockfile(named_server_t *server, const cfg_obj_t *config,
 				      "'lock-file' has no effect "
 				      "because the server was run with -X");
 			server->lockfile = isc_mem_strdup(server->mctx,
-						  named_g_defaultlockfile);
+							  named_g_defaultlockfile);
 		} else {
 			filename = cfg_obj_asstring(obj);
 			server->lockfile = isc_mem_strdup(server->mctx,

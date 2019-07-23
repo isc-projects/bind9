@@ -253,10 +253,6 @@ main(int argc, char **argv) {
 			 */
 			directory = isc_mem_strdup(mctx,
 						   isc_commandline_argument);
-			if (directory == NULL) {
-				fatal("Failed to allocate memory for "
-				      "directory");
-			}
 			break;
 		case 'L':
 			ttl = strtottl(isc_commandline_argument);

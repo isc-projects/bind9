@@ -562,28 +562,16 @@ ldap_get_results(const char *zone, const char *record,
 	/* set fields */
 	if (zone != NULL) {
 		dbi->zone = isc_mem_strdup(named_g_mctx, zone);
-		if (dbi->zone == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 	} else {
 		dbi->zone = NULL;
 	}
 	if (record != NULL) {
 		dbi->record = isc_mem_strdup(named_g_mctx, record);
-		if (dbi->record == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 	} else {
 		dbi->record = NULL;
 	}
 	if (client != NULL) {
 		dbi->client = isc_mem_strdup(named_g_mctx, client);
-		if (dbi->client == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 	} else {
 		dbi->client = NULL;
 	}
@@ -1012,20 +1000,8 @@ dlz_ldap_create(const char *dlzname, unsigned int argc, char *argv[],
 	ldap_inst->protocol = protocol;
 	ldap_inst->method = method;
 	ldap_inst->hosts = isc_mem_strdup(named_g_mctx, argv[6]);
-	if (ldap_inst->hosts == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	ldap_inst->user = isc_mem_strdup(named_g_mctx, argv[4]);
-	if (ldap_inst->user == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	ldap_inst->cred = isc_mem_strdup(named_g_mctx, argv[5]);
-	if (ldap_inst->cred == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	/* allocate memory for database connection list */
 	ldap_inst->db = isc_mem_get(named_g_mctx, sizeof(db_list_t));

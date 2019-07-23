@@ -901,11 +901,7 @@ opensslrsa_parse(dst_key_t *key, isc_lex_t *lexer, dst_key_t *pub) {
 					"ENGINE_load_private_key",
 					ISC_R_NOTFOUND));
 		key->engine = isc_mem_strdup(key->mctx, engine);
-		if (key->engine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
 		key->label = isc_mem_strdup(key->mctx, label);
-		if (key->label == NULL)
-			DST_RET(ISC_R_NOMEMORY);
 		rsa = EVP_PKEY_get1_RSA(pkey);
 		if (rsa == NULL)
 			DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));
@@ -1038,8 +1034,6 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		if (strchr(label, ':') == NULL)
 			DST_RET(DST_R_NOENGINE);
 		tmpengine = isc_mem_strdup(key->mctx, label);
-		if (tmpengine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
 		colon = strchr(tmpengine, ':');
 		INSIST(colon != NULL);
 		*colon = '\0';
@@ -1063,12 +1057,8 @@ opensslrsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 		tmpengine = NULL;
 	} else {
 		key->engine = isc_mem_strdup(key->mctx, engine);
-		if (key->engine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
 	}
 	key->label = isc_mem_strdup(key->mctx, label);
-	if (key->label == NULL)
-		DST_RET(ISC_R_NOMEMORY);
 	rsa = EVP_PKEY_get1_RSA(pkey);
 	if (rsa == NULL)
 		DST_RET(dst__openssl_toresult(DST_R_OPENSSLFAILURE));

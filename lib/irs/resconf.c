@@ -326,8 +326,6 @@ resconf_parsedomain(irs_resconf_t *conf,  FILE *fp) {
 	conf->searchnxt = 0;
 
 	conf->domainname = isc_mem_strdup(conf->mctx, word);
-	if (conf->domainname == NULL)
-		return (ISC_R_NOMEMORY);
 
 	return (ISC_R_SUCCESS);
 }
@@ -368,8 +366,6 @@ resconf_parsesearch(irs_resconf_t *conf,  FILE *fp) {
 
 		INSIST(idx < sizeof(conf->search)/sizeof(conf->search[0]));
 		conf->search[idx] = isc_mem_strdup(conf->mctx, word);
-		if (conf->search[idx] == NULL)
-			return (ISC_R_NOMEMORY);
 		idx++;
 		conf->searchnxt++;
 

@@ -1459,8 +1459,6 @@ dns_zone_setdbtype(dns_zone_t *zone,
 	}
 	for (i = 0; i < dbargc; i++) {
 		argv[i] = isc_mem_strdup(zone->mctx, dbargv[i]);
-		if (argv[i] == NULL)
-			goto nomem;
 	}
 
 	/* Free the old list. */
@@ -1594,8 +1592,6 @@ dns_zone_setstring(dns_zone_t *zone, char **field, const char *value) {
 
 	if (value != NULL) {
 		copy = isc_mem_strdup(zone->mctx, value);
-		if (copy == NULL)
-			return (ISC_R_NOMEMORY);
 	} else {
 		copy = NULL;
 	}
@@ -2360,10 +2356,6 @@ zone_registerinclude(const char *filename, void *arg) {
 
 	inc = isc_mem_get(zone->mctx, sizeof(dns_include_t));
 	inc->name = isc_mem_strdup(zone->mctx, filename);
-	if (inc->name == NULL) {
-		isc_mem_put(zone->mctx, inc, sizeof(dns_include_t));
-		return;
-	}
 	ISC_LINK_INIT(inc, link);
 
 	result = isc_file_getmodtime(filename, &inc->filetime);

@@ -723,8 +723,6 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		obj = cfg_listelt_value(element);
 		str = cfg_obj_asstring(obj);
 		newstr = isc_mem_strdup(mctx, str);
-		if (newstr == NULL)
-			goto cleanup;
 		key = isc_mem_get(mctx, sizeof(*key));
 		key->keyname = newstr;
 		key->algorithm = DST_ALG_UNKNOWN;

@@ -204,10 +204,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	cache->name = NULL;
 	if (cachename != NULL) {
 		cache->name = isc_mem_strdup(cmctx, cachename);
-		if (cache->name == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup_mem;
-		}
 	}
 
 	isc_mutex_init(&cache->lock);
@@ -225,10 +221,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		goto cleanup_filelock;
 
 	cache->db_type = isc_mem_strdup(cmctx, db_type);
-	if (cache->db_type == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_stats;
-	}
 
 	/*
 	 * For databases of type "rbt" we pass hmctx to dns_db_create()
@@ -252,10 +244,6 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 		for (i = extra; i < cache->db_argc; i++) {
 			cache->db_argv[i] = isc_mem_strdup(cmctx,
 							   db_argv[i - extra]);
-			if (cache->db_argv[i] == NULL) {
-				result = ISC_R_NOMEMORY;
-				goto cleanup_dbargv;
-			}
 		}
 	}
 
@@ -462,8 +450,6 @@ dns_cache_setfilename(dns_cache_t *cache, const char *filename) {
 	REQUIRE(filename != NULL);
 
 	newname = isc_mem_strdup(cache->mctx, filename);
-	if (newname == NULL)
-		return (ISC_R_NOMEMORY);
 
 	LOCK(&cache->filelock);
 	if (cache->filename)

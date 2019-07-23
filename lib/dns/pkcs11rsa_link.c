@@ -1643,13 +1643,9 @@ pkcs11rsa_fetch(dst_key_t *key, const char *engine, const char *label,
 
 	if (engine != NULL) {
 		key->engine = isc_mem_strdup(key->mctx, engine);
-		if (key->engine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
 	}
 
 	key->label = isc_mem_strdup(key->mctx, label);
-	if (key->label == NULL)
-		DST_RET(ISC_R_NOMEMORY);
 
 	pk11_return_session(pk11_ctx);
 	isc_safe_memwipe(pk11_ctx, sizeof(*pk11_ctx));
@@ -1995,13 +1991,9 @@ pkcs11rsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 
 	if (engine != NULL) {
 		key->engine = isc_mem_strdup(key->mctx, engine);
-		if (key->engine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
 	}
 
 	key->label = isc_mem_strdup(key->mctx, label);
-	if (key->label == NULL)
-		DST_RET(ISC_R_NOMEMORY);
 
 	attr = pk11_attribute_bytype(rsa, CKA_PUBLIC_EXPONENT);
 	INSIST(attr != NULL);

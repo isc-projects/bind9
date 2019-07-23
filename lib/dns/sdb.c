@@ -1293,10 +1293,6 @@ dns_sdb_create(isc_mem_t *mctx, const dns_name_t *origin, dns_dbtype_t type,
 	isc_buffer_putuint8(&b, 0);
 
 	sdb->zone = isc_mem_strdup(mctx, zonestr);
-	if (sdb->zone == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_origin;
-	}
 
 	sdb->dbdata = NULL;
 	if (imp->methods->create != NULL) {

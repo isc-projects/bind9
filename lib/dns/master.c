@@ -959,8 +959,6 @@ check_ns(dns_loadctx_t *lctx, isc_token_t *token, const char *source,
 		struct in6_addr addr6;
 
 		tmp = isc_mem_strdup(lctx->mctx, DNS_AS_STR(*token));
-		if (tmp == NULL)
-			return (ISC_R_NOMEMORY);
 		/*
 		 * Catch both "1.2.3.4" and "1.2.3.4."
 		 */
@@ -1189,11 +1187,7 @@ load_text(dns_loadctx_t *lctx) {
 				if (include_file != NULL)
 					isc_mem_free(mctx, include_file);
 				include_file = isc_mem_strdup(mctx,
-							   DNS_AS_STR(token));
-				if (include_file == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto log_and_cleanup;
-				}
+							      DNS_AS_STR(token));
 				GETTOKEN(lctx->lex, 0, &token, true);
 
 				if (token.type == isc_tokentype_eol ||
@@ -1275,18 +1269,10 @@ load_text(dns_loadctx_t *lctx) {
 				/* RANGE */
 				GETTOKEN(lctx->lex, 0, &token, false);
 				range = isc_mem_strdup(mctx,
-						     DNS_AS_STR(token));
-				if (range == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto log_and_cleanup;
-				}
+						       DNS_AS_STR(token));
 				/* LHS */
 				GETTOKEN(lctx->lex, 0, &token, false);
 				lhs = isc_mem_strdup(mctx, DNS_AS_STR(token));
-				if (lhs == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto log_and_cleanup;
-				}
 				rdclass = 0;
 				explicit_ttl = false;
 				/* CLASS? */
@@ -1318,18 +1304,10 @@ load_text(dns_loadctx_t *lctx) {
 				/* TYPE */
 				gtype = isc_mem_strdup(mctx,
 						       DNS_AS_STR(token));
-				if (gtype == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto log_and_cleanup;
-				}
 				/* RHS */
 				GETTOKEN(lctx->lex, ISC_LEXOPT_QSTRING,
 					 &token, false);
 				rhs = isc_mem_strdup(mctx, DNS_AS_STR(token));
-				if (rhs == NULL) {
-					result = ISC_R_NOMEMORY;
-					goto log_and_cleanup;
-				}
 				if (!lctx->ttl_known &&
 				    !lctx->default_ttl_known) {
 					(*callbacks->error)(callbacks,

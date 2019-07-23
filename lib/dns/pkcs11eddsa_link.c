@@ -821,13 +821,9 @@ pkcs11eddsa_fetch(dst_key_t *key, const char *engine, const char *label,
 
 	if (engine != NULL) {
 		key->engine = isc_mem_strdup(key->mctx, engine);
-		if (key->engine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
 	}
 
 	key->label = isc_mem_strdup(key->mctx, label);
-	if (key->label == NULL)
-		DST_RET(ISC_R_NOMEMORY);
 
 	pk11_return_session(pk11_ctx);
 	memset(pk11_ctx, 0, sizeof(*pk11_ctx));
@@ -1043,13 +1039,9 @@ pkcs11eddsa_fromlabel(dst_key_t *key, const char *engine, const char *label,
 
 	if (engine != NULL) {
 		key->engine = isc_mem_strdup(key->mctx, engine);
-		if (key->engine == NULL)
-			DST_RET(ISC_R_NOMEMORY);
 	}
 
 	key->label = isc_mem_strdup(key->mctx, label);
-	if (key->label == NULL)
-		DST_RET(ISC_R_NOMEMORY);
 	if (key->key_alg == DST_ALG_ED25519)
 		key->key_size = DNS_KEY_ED25519SIZE;
 	else

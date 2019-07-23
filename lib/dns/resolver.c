@@ -4715,10 +4715,6 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 	strlcat(buf, "/", sizeof(buf));
 	strlcat(buf, typebuf, sizeof(buf));
 	fctx->info = isc_mem_strdup(mctx, buf);
-	if (fctx->info == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_counter;
-	}
 
 	FCTXTRACE("create");
 	dns_name_init(&fctx->name, NULL);

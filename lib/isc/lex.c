@@ -191,10 +191,6 @@ new_source(isc_lex_t *lex, bool is_file, bool need_close,
 	source->last_was_eol = lex->last_was_eol;
 	source->input = input;
 	source->name = isc_mem_strdup(lex->mctx, name);
-	if (source->name == NULL) {
-		isc_mem_put(lex->mctx, source, sizeof(*source));
-		return (ISC_R_NOMEMORY);
-	}
 	source->pushback = NULL;
 	result = isc_buffer_allocate(lex->mctx, &source->pushback,
 				     (unsigned int)lex->max_token);
@@ -1000,8 +996,6 @@ isc_lex_setsourcename(isc_lex_t *lex, const char *name) {
 	if (source == NULL)
 		return (ISC_R_NOTFOUND);
 	newname = isc_mem_strdup(lex->mctx, name);
-	if (newname == NULL)
-		return (ISC_R_NOMEMORY);
 	isc_mem_free(lex->mctx, source->name);
 	source->name = newname;
 	return (ISC_R_SUCCESS);

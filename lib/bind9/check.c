@@ -379,8 +379,6 @@ nameexist(const cfg_obj_t *obj, const char *name, int value,
 	isc_symvalue_t symvalue;
 
 	key = isc_mem_strdup(mctx, name);
-	if (key == NULL)
-		return (ISC_R_NOMEMORY);
 	symvalue.as_cpointer = obj;
 	result = isc_symtab_define(symtab, key, value, symvalue,
 				   isc_symexists_reject);
@@ -2127,20 +2125,17 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		case CFG_ZONE_STUB:
 		case CFG_ZONE_STATICSTUB:
 			tmp = isc_mem_strdup(mctx, namebuf);
-			if (tmp != NULL) {
+			{
 				isc_symvalue_t symvalue;
-
 				symvalue.as_cpointer = NULL;
 				tresult = isc_symtab_define(inview, tmp, 1,
-					   symvalue, isc_symexists_replace);
+							    symvalue,
+							    isc_symexists_replace);
 				if (tresult == ISC_R_NOMEMORY) {
 					isc_mem_free(mctx, tmp);
 				}
-				if (result == ISC_R_SUCCESS &&
-				    tresult != ISC_R_SUCCESS)
+				if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
 					result = tresult;
-			} else if (result != ISC_R_SUCCESS) {
-				result = ISC_R_NOMEMORY;
 			}
 			break;
 
@@ -2878,8 +2873,6 @@ check_keylist(const cfg_obj_t *keys, isc_symtab_t *symtab,
 
 		dns_name_format(name, namebuf, sizeof(namebuf));
 		keyname = isc_mem_strdup(mctx, namebuf);
-		if (keyname == NULL)
-			return (ISC_R_NOMEMORY);
 		symvalue.as_cpointer = key;
 		tresult = isc_symtab_define(symtab, keyname, 1, symvalue,
 					    isc_symexists_reject);

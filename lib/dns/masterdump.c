@@ -1843,8 +1843,6 @@ dns_master_dumpinc(isc_mem_t *mctx, dns_db_t *db, dns_dbversion_t *version,
 	dns_dumpctx_t *dctx = NULL;
 
 	file = isc_mem_strdup(mctx, filename);
-	if (file == NULL)
-		return (ISC_R_NOMEMORY);
 
 	result = opentmp(mctx, format, filename, &tempname, &f);
 	if (result != ISC_R_SUCCESS)

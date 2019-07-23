@@ -195,8 +195,6 @@ ns_server_setserverid(ns_server_t *sctx, const char *serverid) {
 
 	if (serverid != NULL) {
 		sctx->server_id = isc_mem_strdup(sctx->mctx, serverid);
-		if (sctx->server_id == NULL)
-			return (ISC_R_NOMEMORY);
 	}
 
 	return (ISC_R_SUCCESS);

@@ -1671,8 +1671,6 @@ evaluate_realm(char *cmdline) {
 		return (STATUS_SYNTAX);
 	}
 	realm = isc_mem_strdup(gmctx, buf);
-	if (realm == NULL)
-		fatal("out of memory");
 	return (STATUS_MORE);
 #else
 	UNUSED(cmdline);
