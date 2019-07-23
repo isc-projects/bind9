@@ -2347,7 +2347,7 @@ clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp) {
 	REQUIRE(VALID_MANAGER(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	oldrefs = isc_refcount_increment(&source->references);
+	oldrefs = isc_refcount_increment0(&source->references);
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
 		      "clientmgr @%p attach: %d", source, oldrefs + 1);
@@ -2478,7 +2478,6 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 	isc_result_t result;
 	ns_clientmgr_t *manager;
 	bool unlock = false;
-	int32_t oldrefs;
 
 	REQUIRE(managerp != NULL);
 	manager = *managerp;
@@ -2502,8 +2501,7 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp) {
 		isc_task_endexclusive(manager->excl);
 	}
 
-	oldrefs = isc_refcount_decrement(&manager->references);
-	if (oldrefs == 1) {
+	if (isc_refcount_decrement(&manager->references) == 1) {
 		clientmgr_destroy(manager);
 	}
 

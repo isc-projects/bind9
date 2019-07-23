@@ -1818,7 +1818,7 @@ delete_node(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 static inline void
 new_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node) {
 	INSIST(!ISC_LINK_LINKED(node, deadlink));
-	if (isc_refcount_increment(&node->references) == 0) {
+	if (isc_refcount_increment0(&node->references) == 0) {
 		/* this is the first reference to the node */
 		isc_refcount_increment0(&rbtdb->node_locks[node->locknum].references);
 	}

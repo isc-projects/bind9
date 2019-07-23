@@ -1736,7 +1736,7 @@ isc_socket_attach(isc_socket_t *sock, isc_socket_t **socketp) {
 	CONSISTENT(sock);
 	UNLOCK(&sock->lock);
 
-	isc_refcount_increment(&sock->references);
+	isc_refcount_increment0(&sock->references);
 
 	*socketp = sock;
 }
@@ -3114,7 +3114,7 @@ isc_socket_accept(isc_socket_t *sock,
 		UNLOCK(&sock->lock);
 		return (ISC_R_SHUTTINGDOWN);
 	}
-	isc_refcount_increment(&nsock->references);
+	isc_refcount_increment0(&nsock->references);
 
 	adev->ev_sender = ntask;
 	adev->newsocket = nsock;

@@ -68,7 +68,7 @@ ns_lib_init(void) {
 	if (!initialize_done)
 		return (ISC_R_FAILURE);
 
-	isc_refcount_increment(&references);
+	isc_refcount_increment0(&references);
 
 	return (ISC_R_SUCCESS);
 }
