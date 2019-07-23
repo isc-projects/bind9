@@ -7186,7 +7186,9 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 	if (dns_rdataset_isassociated(&nameservers)) {
 		dns_rdataset_disassociate(&nameservers);
 	}
+	LOCK(&res->buckets[fctx->bucketnum].lock);
 	bucket_empty = fctx_decreference(fctx);
+	UNLOCK(&res->buckets[fctx->bucketnum].lock);
 	if (bucket_empty) {
 		empty_bucket(res);
 	}
