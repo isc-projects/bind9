@@ -326,8 +326,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 
  cleanup_name:
 	isc_mem_free(mctx, view->name);
-
- cleanup_view:
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 
 	return (result);

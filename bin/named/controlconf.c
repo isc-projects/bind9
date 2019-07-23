@@ -733,12 +733,6 @@ controlkeylist_fromcfg(const cfg_obj_t *keylist, isc_mem_t *mctx,
 		newstr = NULL;
 	}
 	return (ISC_R_SUCCESS);
-
- cleanup:
-	if (newstr != NULL)
-		isc_mem_free(mctx, newstr);
-	free_controlkeylist(keyids, mctx);
-	return (ISC_R_NOMEMORY);
 }
 
 static void

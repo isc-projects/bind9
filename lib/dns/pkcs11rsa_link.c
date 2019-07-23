@@ -1379,33 +1379,6 @@ pkcs11rsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	key->keydata.pkey = rsa;
 
 	return (ISC_R_SUCCESS);
-
-    nomemory:
-	for (attr = pk11_attribute_first(rsa);
-	     attr != NULL;
-	     attr = pk11_attribute_next(rsa, attr))
-		switch (attr->type) {
-		case CKA_MODULUS:
-		case CKA_PUBLIC_EXPONENT:
-			if (attr->pValue != NULL) {
-				isc_safe_memwipe(attr->pValue,
-						 attr->ulValueLen);
-				isc_mem_put(key->mctx,
-					    attr->pValue,
-					    attr->ulValueLen);
-			}
-			break;
-		}
-	if (rsa->repr != NULL) {
-		isc_safe_memwipe(rsa->repr,
-				 rsa->attrcnt * sizeof(*attr));
-		isc_mem_put(key->mctx,
-			    rsa->repr,
-			    rsa->attrcnt * sizeof(*attr));
-	}
-	isc_safe_memwipe(rsa, sizeof(*rsa));
-	isc_mem_put(key->mctx, rsa, sizeof(*rsa));
-	return (ISC_R_NOMEMORY);
 }
 
 static isc_result_t
@@ -1549,7 +1522,6 @@ pkcs11rsa_tofile(const dst_key_t *key, const char *directory) {
 
 	priv.nelements = i;
 	result = dst__privstruct_writefile(key, &priv, directory);
- fail:
 	for (i = 0; i < 10; i++) {
 		if (bufs[i] == NULL)
 			break;

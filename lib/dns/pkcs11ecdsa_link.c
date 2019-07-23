@@ -682,27 +682,8 @@ pkcs11ecdsa_fromdns(dst_key_t *key, isc_buffer_t *data) {
 	isc_buffer_forward(data, len);
 	key->keydata.pkey = ec;
 	key->key_size = len * 4;
-	return (ISC_R_SUCCESS);
 
- nomemory:
-	for (attr = pk11_attribute_first(ec);
-	     attr != NULL;
-	     attr = pk11_attribute_next(ec, attr))
-		switch (attr->type) {
-		case CKA_EC_PARAMS:
-		case CKA_EC_POINT:
-			FREECURVE();
-			break;
-		}
-	if (ec->repr != NULL) {
-		memset(ec->repr, 0, ec->attrcnt * sizeof(*attr));
-		isc_mem_put(key->mctx,
-			    ec->repr,
-			    ec->attrcnt * sizeof(*attr));
-	}
-	memset(ec, 0, sizeof(*ec));
-	isc_mem_put(key->mctx, ec, sizeof(*ec));
-	return (ISC_R_NOMEMORY);
+	return (ISC_R_SUCCESS);
 }
 
 static isc_result_t

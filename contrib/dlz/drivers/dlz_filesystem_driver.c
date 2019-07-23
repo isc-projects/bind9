@@ -926,9 +926,6 @@ fs_create(const char *dlzname, unsigned int argc, char *argv[],
 	/* return success */
 	return (ISC_R_SUCCESS);
 
-	/* handle no memory error */
- no_mem:
-
 	/* if we allocated a config data object clean it up */
 	if (cd != NULL)
 		fs_destroy(NULL, cd);

@@ -1467,21 +1467,9 @@ dns_zone_setdbtype(dns_zone_t *zone,
 	zone->db_argc = dbargc;
 	zone->db_argv = argv;
 	result = ISC_R_SUCCESS;
-	goto unlock;
 
- nomem:
-	if (argv != NULL) {
-		for (i = 0; i < dbargc; i++) {
-			if (argv[i] != NULL) {
-				isc_mem_free(zone->mctx, argv[i]);
-			}
-		}
-		isc_mem_put(zone->mctx, argv, dbargc * sizeof(*argv));
-	}
-	result = ISC_R_NOMEMORY;
-
- unlock:
 	UNLOCK_ZONE(zone);
+
 	return (result);
 }
 

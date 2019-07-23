@@ -302,10 +302,8 @@ cleanup_dbargv:
 	isc_mem_free(cmctx, cache->db_type);
 cleanup_filelock:
 	isc_mutex_destroy(&cache->filelock);
-cleanup_stats:
 	isc_stats_detach(&cache->stats);
 	isc_mutex_destroy(&cache->lock);
-cleanup_mem:
 	if (cache->name != NULL) {
 		isc_mem_free(cmctx, cache->name);
 	}

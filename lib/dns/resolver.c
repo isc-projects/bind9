@@ -5028,8 +5028,6 @@ fctx_create(dns_resolver_t *res, const dns_name_t *name, dns_rdatatype_t type,
 
  cleanup_info:
 	isc_mem_free(mctx, fctx->info);
-
- cleanup_counter:
 	isc_counter_detach(&fctx->qc);
 
  cleanup_fetch:
