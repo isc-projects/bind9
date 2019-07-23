@@ -1487,6 +1487,21 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			}
 		}
 	}
+
+	obj = NULL;
+	(void) cfg_map_get(options, "dnstap", &obj);
+	if (obj != NULL) {
+		const cfg_obj_t *output = NULL;
+		(void) cfg_map_get(options, "dnstap-output", &output);
+		if (output == NULL) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'dnstap-output' must be set if 'dnstap' "
+				    "is set");
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+	}
 #endif
 
 	obj = NULL;

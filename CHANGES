@@ -1,3 +1,7 @@
+5266.	[bug]		named-checkconf failed to report dnstap-output
+			missing from named.conf when dnstap was specified.
+			[GL #1136]
+
 5264.	[func]		New DNS Cookie algorithm - siphash24 - has been added to
 			BIND 9. [GL #605]
 
