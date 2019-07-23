@@ -238,10 +238,11 @@ task_finished(isc__task_t *task) {
 	REQUIRE(EMPTY(task->events));
 	REQUIRE(task->nevents == 0);
 	REQUIRE(EMPTY(task->on_shutdown));
-	REQUIRE(atomic_load(&task->references) == 0);
 	REQUIRE(task->state == task_state_done);
 
 	XTRACE("task_finished");
+
+	isc_refcount_destroy(&task->references);
 
 	LOCK(&manager->lock);
 	UNLINK(manager->tasks, task, link);

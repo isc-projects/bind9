@@ -82,6 +82,7 @@ isc_stats_detach(isc_stats_t **statsp) {
 	*statsp = NULL;
 
 	if (isc_refcount_decrement(&stats->references) == 1) {
+		isc_refcount_destroy(&stats->references);
 		isc_mem_put(stats->mctx, stats->counters,
 			    sizeof(isc__atomic_statcounter_t) *
 				stats->ncounters);

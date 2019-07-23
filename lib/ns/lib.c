@@ -76,6 +76,7 @@ ns_lib_init(void) {
 void
 ns_lib_shutdown(void) {
 	if (isc_refcount_decrement(&references) == 1) {
+		isc_refcount_destroy(&references);
 		if (ns_g_mctx != NULL) {
 			isc_mem_detach(&ns_g_mctx);
 		}

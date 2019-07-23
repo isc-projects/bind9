@@ -234,7 +234,7 @@ struct dns_dumpctx {
 	unsigned int		nodes;
 	/* dns_master_dumpinc() */
 	char			*file;
-	char 			*tmpfile;
+	char			*tmpfile;
 	dns_masterformat_t	format;
 	dns_masterrawheader_t	header;
 	isc_result_t		(*dumpsets)(isc_mem_t *mctx,

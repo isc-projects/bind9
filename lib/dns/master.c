@@ -431,16 +431,17 @@ incctx_destroy(isc_mem_t *mctx, dns_incctx_t *ictx) {
 
 static void
 loadctx_destroy(dns_loadctx_t *lctx) {
-	isc_result_t result;
-
 	REQUIRE(DNS_LCTX_VALID(lctx));
 
+	isc_refcount_destroy(&lctx->references);
+
 	lctx->magic = 0;
-	if (lctx->inc != NULL)
+	if (lctx->inc != NULL) {
 		incctx_destroy(lctx->mctx, lctx->inc);
+	}
 
 	if (lctx->f != NULL) {
-		result = isc_stdio_close(lctx->f);
+		isc_result_t result = isc_stdio_close(lctx->f);
 		if (result != ISC_R_SUCCESS) {
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "isc_stdio_close() failed: %s",
@@ -449,8 +450,9 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 	}
 
 	/* isc_lex_destroy() will close all open streams */
-	if (lctx->lex != NULL && !lctx->keep_lex)
+	if (lctx->lex != NULL && !lctx->keep_lex) {
 		isc_lex_destroy(&lctx->lex);
+	}
 
 	if (lctx->task != NULL) {
 		isc_task_detach(&lctx->task);

@@ -2358,9 +2358,7 @@ clientmgr_attach(ns_clientmgr_t *source, ns_clientmgr_t **targetp) {
 static void
 clientmgr_detach(ns_clientmgr_t **mp) {
 	ns_clientmgr_t *mgr = *mp;
-	int32_t oldrefs;
-	oldrefs = isc_refcount_decrement(&mgr->references);
-	INSIST(oldrefs > 0);
+	int32_t oldrefs = isc_refcount_decrement(&mgr->references);
 
 	isc_log_write(ns_lctx, NS_LOGCATEGORY_CLIENT,
 		      NS_LOGMODULE_CLIENT, ISC_LOG_DEBUG(3),
@@ -2380,6 +2378,7 @@ clientmgr_destroy(ns_clientmgr_t *manager) {
 
 	MTRACE("clientmgr_destroy");
 
+	isc_refcount_destroy(&manager->references);
 	manager->magic = 0;
 
 #if CLIENT_NMCTXS > 0

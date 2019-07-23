@@ -517,6 +517,8 @@ static void
 destroy(dns_sdb_t *sdb) {
 	dns_sdbimplementation_t *imp = sdb->implementation;
 
+	isc_refcount_destroy(&sdb->references);
+
 	if (imp->methods->destroy != NULL) {
 		MAYBE_LOCK(sdb);
 		imp->methods->destroy(sdb->zone, imp->driverdata,
