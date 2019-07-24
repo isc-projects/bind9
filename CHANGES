@@ -2,6 +2,9 @@
 			missing from named.conf when dnstap was specified.
 			[GL #1136]
 
+5265.	[bug]		DNS64 and RPZ nodata (CNAME *.) rules interacted badly
+			[GL #1106]
+
 5264.	[func]		New DNS Cookie algorithm - siphash24 - has been added to
 			BIND 9. [GL #605]
 
