@@ -3602,7 +3602,9 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			sizeof(buf2));
 			printf(";; reply from unexpected source: %s,"
 			" expected %s\n", buf1, buf2);
-			match = false;
+			if (!l->accept_reply_unexpected_src) {
+				match = false;
+			}
 		}
 	}
 

@@ -235,6 +235,8 @@ help(void) {
 "                 +tries=###          (Set number of UDP attempts) [3]\n"
 "                 +[no]ttlid          (Control display of ttls in records)\n"
 "                 +[no]ttlunits       (Display TTLs in human-readable units)\n"
+"                 +[no]unexpected     (Print replies from unexpected sources\n"
+"                                      default=off)\n"
 "                 +[no]unknownformat  (Print RDATA in RFC 3597 \"unknown\" "
 					"format)\n"
 "                 +[no]vc             (TCP mode (+[no]tcp))\n"
@@ -1667,8 +1669,25 @@ plus_option(char *option, bool is_batchfile,
 		}
 		break;
 	case 'u':
-		FULLCHECK("unknownformat");
-		lookup->print_unknown_format = state;
+		switch (cmd[1]) {
+		case 'n':
+			switch (cmd[2]) {
+			case 'e':
+				FULLCHECK("unexpected");
+				lookup->accept_reply_unexpected_src = true;
+				break;
+			case 'k':
+				FULLCHECK("unknownformat");
+				lookup->print_unknown_format = state;
+				break;
+			default:
+				goto invalid_option;
+			}
+			break;
+		default:
+			goto invalid_option;
+		}
+
 		break;
 	case 'v':
 		FULLCHECK("vc");
