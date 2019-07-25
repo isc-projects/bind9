@@ -42,6 +42,8 @@ void
 __wrap_isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp);
 void
 __wrap_isc_mem_detach(isc_mem_t **ctxp);
+void
+__wrap_isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size);
 
 void *
 __wrap_isc__mem_get(isc_mem_t *mctx, size_t size)
@@ -74,6 +76,14 @@ __wrap_isc_mem_detach(isc_mem_t **ctxp) {
 	*ctxp = NULL;
 }
 
+void
+__wrap_isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size) {
+	isc_mem_t *ctx = *ctxp;
+	__wrap_isc__mem_put(ctx, ptr, size);
+	__wrap_isc_mem_detach(ctxp);
+}
+
+
 #if ISC_MEM_TRACKLINES
 #define FLARG		, const char *file, unsigned int line
 #else
@@ -104,6 +114,13 @@ isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 __attribute__((weak)) void
 isc_mem_detach(isc_mem_t **ctxp) {
 	__wrap_isc_mem_detach(ctxp);
+}
+
+__attribute__((weak)) void
+isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG){
+	UNUSED(file);
+	UNUSED(line);
+	__wrap_isc__mem_putanddetach(ctxp, ptr, size);
 }
 
 static int
