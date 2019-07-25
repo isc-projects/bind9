@@ -1399,5 +1399,35 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking 'dig +dns64prefix' ($n)"
+$DIG $DIGOPTS +dns64prefix @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep '^2001:bbbb::/96$' dig.out.ns1.test$n > /dev/null || ret=1
+test $(wc -l < dig.out.ns1.test$n) -eq 1 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+copy_setports ns1/named.conf2.in ns1/named.conf
+rndc_reload ns1 10.53.0.1
+
+echo_i "checking 'dig +dns64prefix' with multiple prefixes ($n)"
+$DIG $DIGOPTS +dns64prefix @10.53.0.1 > dig.out.ns1.test$n || ret=1
+grep '^2001:bbbb::/96$' dig.out.ns1.test$n > /dev/null || ret=1
+grep '2001:aaaa::/64' dig.out.ns1.test$n > /dev/null || ret=1
+test $(wc -l < dig.out.ns1.test$n) -eq 2 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+copy_setports ns1/named.conf3.in ns1/named.conf
+rndc_reload ns1 10.53.0.1
+
+echo_i "checking 'dig +dns64prefix' with no prefixes ($n)"
+$DIG $DIGOPTS +dns64prefix @10.53.0.1 > dig.out.ns1.test$n || ret=1
+test $(wc -l < dig.out.ns1.test$n) -eq 0 || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

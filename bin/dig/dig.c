@@ -30,6 +30,7 @@
 #include <pk11/site.h>
 
 #include <dns/byaddr.h>
+#include <dns/dns64.h>
 #include <dns/fixedname.h>
 #include <dns/masterdump.h>
 #include <dns/message.h>
@@ -206,6 +207,8 @@ help(void) {
 	       "                                      fields in records)\n"
 	       "                 +[no]defname        (Use search list "
 	       "(+[no]search))\n"
+	       "                 +[no]dns64prefix    (Get the DNS64 prefixes "
+	       "from ipv4only.arpa)\n"
 	       "                 +[no]dnssec         (Request DNSSEC records)\n"
 	       "                 +domain=###         (Set default domainname)\n"
 	       "                 +[no]dscp[=###]     (Set the DSCP value to "
@@ -477,6 +480,50 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
  * short_form message print handler.  Calls above say_message()
  */
 static isc_result_t
+dns64prefix_answer(dns_message_t *msg, isc_buffer_t *buf) {
+	dns_rdataset_t *rdataset = NULL;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	isc_result_t result;
+	isc_netprefix_t prefix[10];
+	size_t i, count = 10;
+
+	name = dns_fixedname_initname(&fixed);
+	result = dns_name_fromstring(name, "ipv4only.arpa", 0, NULL);
+	check_result(result, "dns_name_fromstring");
+
+	result = dns_message_findname(msg, DNS_SECTION_ANSWER, name,
+				      dns_rdatatype_aaaa, dns_rdatatype_none,
+				      NULL, &rdataset);
+	if (result == DNS_R_NXDOMAIN || result == DNS_R_NXRRSET) {
+		return (ISC_R_SUCCESS);
+	} else if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	result = dns_dns64_findprefix(rdataset, prefix, &count);
+	if (result == ISC_R_NOTFOUND)
+		return (ISC_R_SUCCESS);
+	if (count > 10)
+		count = 10;
+	for (i = 0; i < count; i++) {
+		result = isc_netaddr_totext(&prefix[i].addr, buf);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		result = isc_buffer_printf(buf, "/%u\n", prefix[i].prefixlen);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+/*%
+ * short_form message print handler.  Calls above say_message()
+ */
+static isc_result_t
 short_answer(dns_message_t *msg, dns_messagetextflag_t flags, isc_buffer_t *buf,
 	     dig_query_t *query) {
 	dns_name_t *name;
@@ -559,6 +606,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	dns_master_style_t *style = NULL;
 	unsigned int styleflags = 0;
 	bool isquery = (msg == query->lookup->sendmsg);
+	bool dns64prefix = query->lookup->dns64prefix;
 
 	UNUSED(msgbuf);
 
@@ -623,14 +671,15 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 	check_result(result, "dns_master_stylecreate");
 
 	if (query->lookup->cmdline[0] != 0) {
-		if (!short_form && printcmd) {
+		if (!short_form && !dns64prefix && printcmd) {
 			printf("%s", query->lookup->cmdline);
 		}
 		query->lookup->cmdline[0] = '\0';
 	}
 	debug("printmessage(%s %s %s)", headers ? "headers" : "noheaders",
 	      query->lookup->comments ? "comments" : "nocomments",
-	      short_form ? "short_form" : "long_form");
+	      short_form ? "short_form"
+			 : dns64prefix ? "dns64prefix_form" : "long_form");
 
 	flags = 0;
 	if (!headers) {
@@ -751,7 +800,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 		printf("    %s:\n", isquery ? "query_message_data"
 					    : "response_message_data");
 		result = dns_message_headertotext(msg, style, flags, buf);
-	} else if (query->lookup->comments && !short_form) {
+	} else if (query->lookup->comments && !short_form && !dns64prefix) {
 		if (query->lookup->cmdline[0] != '\0' && printcmd) {
 			printf("; %s\n", query->lookup->cmdline);
 		}
@@ -832,7 +881,7 @@ printmessage(dig_query_t *query, const isc_buffer_t *msgbuf, dns_message_t *msg,
 
 repopulate_buffer:
 
-	if (query->lookup->comments && headers && !short_form) {
+	if (query->lookup->comments && headers && !short_form && !dns64prefix) {
 		result = dns_message_pseudosectiontotext(
 			msg, DNS_PSEUDOSECTION_OPT, style, flags, buf);
 		if (result == ISC_R_NOSPACE) {
@@ -846,7 +895,7 @@ repopulate_buffer:
 	}
 
 	if (query->lookup->section_question && headers) {
-		if (!short_form) {
+		if (!short_form && !dns64prefix) {
 			result = dns_message_sectiontotext(
 				msg, DNS_SECTION_QUESTION, style, flags, buf);
 			if (result == ISC_R_NOSPACE) {
@@ -856,13 +905,18 @@ repopulate_buffer:
 		}
 	}
 	if (query->lookup->section_answer) {
-		if (!short_form) {
+		if (!short_form && !dns64prefix) {
 			result = dns_message_sectiontotext(
 				msg, DNS_SECTION_ANSWER, style, flags, buf);
 			if (result == ISC_R_NOSPACE) {
 				goto buftoosmall;
 			}
 			check_result(result, "dns_message_sectiontotext");
+		} else if (dns64prefix) {
+			result = dns64prefix_answer(msg, buf);
+			if (result == ISC_R_NOSPACE)
+				goto buftoosmall;
+			check_result(result, "dns64prefix_answer");
 		} else {
 			result = short_answer(msg, flags, buf, query);
 			if (result == ISC_R_NOSPACE) {
@@ -872,7 +926,7 @@ repopulate_buffer:
 		}
 	}
 	if (query->lookup->section_authority) {
-		if (!short_form) {
+		if (!short_form && !dns64prefix) {
 			result = dns_message_sectiontotext(
 				msg, DNS_SECTION_AUTHORITY, style, flags, buf);
 			if (result == ISC_R_NOSPACE) {
@@ -882,7 +936,7 @@ repopulate_buffer:
 		}
 	}
 	if (query->lookup->section_additional) {
-		if (!short_form) {
+		if (!short_form && !dns64prefix) {
 			result = dns_message_sectiontotext(
 				msg, DNS_SECTION_ADDITIONAL, style, flags, buf);
 			if (result == ISC_R_NOSPACE) {
@@ -976,8 +1030,9 @@ printgreeting(int argc, char **argv, dig_lookup_t *lookup) {
  * XXX doc options
  */
 
-static void
-plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
+static dig_lookup_t *
+plus_option(char *option, bool is_batchfile, bool *need_clone,
+	    dig_lookup_t *lookup) {
 	isc_result_t result;
 	char *cmd, *value, *last = NULL, *code, *extra;
 	uint32_t num;
@@ -988,7 +1043,7 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 
 	if ((cmd = strtok_r(option, "=", &last)) == NULL) {
 		printf(";; Invalid option %s\n", option);
-		return;
+		return (lookup);
 	}
 	if (strncasecmp(cmd, "no", 2) == 0) {
 		cmd += 2;
@@ -1155,13 +1210,57 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 				usesearch = state;
 			}
 			break;
-		case 'n': /* dnssec */
-			FULLCHECK("dnssec");
-		dnssec:
-			if (state && lookup->edns == -1) {
-				lookup->edns = DEFAULT_EDNS_VERSION;
+		case 'n':
+			switch (cmd[2]) {
+			case 's':
+				switch (cmd[3]) {
+				case '6': /* dns64prefix */
+					FULLCHECK("dns64prefix");
+					if (state) {
+						if (*need_clone) {
+							lookup = clone_lookup(
+								default_lookup,
+								true);
+						}
+						*need_clone = true;
+						lookup->dns64prefix = state;
+						strlcpy(lookup->textname,
+							"ipv4only.arpa",
+							sizeof(lookup->textname));
+						printcmd = false;
+						lookup->section_additional =
+							false;
+						lookup->section_answer = true;
+						lookup->section_authority =
+							false;
+						lookup->section_question =
+							false;
+						lookup->comments = false;
+						lookup->stats = false;
+						lookup->rrcomments = -1;
+						lookup->rdtype =
+							dns_rdatatype_aaaa;
+						lookup->rdtypeset = true;
+						ISC_LIST_APPEND(lookup_list,
+								lookup, link);
+					}
+					break;
+				case 's': /* dnssec */
+					FULLCHECK("dnssec");
+				dnssec:
+					if (state && lookup->edns == -1) {
+						lookup->edns =
+							DEFAULT_EDNS_VERSION;
+					}
+					lookup->dnssec = state;
+					break;
+				default:
+					goto invalid_option;
+				}
+				break;
+			default:
+				goto invalid_option;
 			}
-			lookup->dnssec = state;
 			break;
 		case 'o': /* domain ... but treat "do" as synonym for dnssec */
 			if (cmd[2] == '\0') {
@@ -1871,7 +1970,7 @@ plus_option(char *option, bool is_batchfile, dig_lookup_t *lookup) {
 		fprintf(stderr, "Invalid option: +%s\n", option);
 		usage();
 	}
-	return;
+	return (lookup);
 
 #if !TARGET_OS_IPHONE
 exit_or_usage:
@@ -2382,7 +2481,8 @@ parse_args(bool is_batchfile, bool config_only, int argc, char **argv) {
 				}
 			}
 		} else if (rv[0][0] == '+') {
-			plus_option(&rv[0][1], is_batchfile, lookup);
+			lookup = plus_option(&rv[0][1], is_batchfile,
+					     &need_clone, lookup);
 		} else if (rv[0][0] == '-') {
 			if (rc <= 1) {
 				if (dash_option(&rv[0][1], NULL, &lookup,
