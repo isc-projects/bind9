@@ -591,7 +591,7 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 				sizeof(de.geoip_elem.as_string));
 		} else {
 			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
-				    "geoiop postal code (%s) too long",
+				    "geoip postal code (%s) too long",
 				    search);
 			return (ISC_R_FAILURE);
 		}
@@ -820,7 +820,7 @@ geoip_can_answer(dns_aclelement_t *elt, cfg_aclconfctx_t *ctx) {
 	case dns_geoip_netspeed_id:
 		if (ctx->geoip->netspeed != NULL)
 			return (true);
-		/* FALLTHROUGH */
+		break;
 	/*
 	 * The following enums are only valid with GeoIP2,
 	 * not legacy GeoIP.
@@ -920,7 +920,7 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 				sizeof(de.geoip_elem.as_string));
 		} else {
 			cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
-				    "geoiop postal code (%s) too long",
+				    "geoip postal code (%s) too long",
 				    search);
 			return (ISC_R_FAILURE);
 		}
@@ -947,7 +947,7 @@ parse_geoip_element(const cfg_obj_t *obj, isc_log_t *lctx,
 			sizeof(de.geoip_elem.as_string));
 	} else if (strcasecmp(stype, "continent") == 0) {
 		cfg_obj_log(obj, lctx, ISC_LOG_ERROR,
-			    "geoiop continent code (%s) too long", search);
+			    "geoip continent code (%s) too long", search);
 		return (ISC_R_FAILURE);
 	} else if (strcasecmp(stype, "isp") == 0) {
 		subtype = dns_geoip_isp_name;
