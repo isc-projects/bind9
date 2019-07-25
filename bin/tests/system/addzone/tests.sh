@@ -371,6 +371,7 @@ grep "type: redirect" zonestatus.out.ns2.$n > /dev/null || ret=1
 grep "serial: 0" zonestatus.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "check that reloading a added 'master redirect' zone works ($n)"
 ret=0
@@ -382,12 +383,14 @@ grep "type: redirect" zonestatus.out.ns2.$n > /dev/null || ret=1
 grep "serial: 1" zonestatus.out.ns2.$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "check that retransfer of a added 'master redirect' zone fails ($n)"
 ret=0
 $RNDCCMD 10.53.0.2 retransfer -redirect > rndc.out.ns2.$n 2>&1 && ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "check that deleting a 'master redirect' zone works ($n)"
 ret=0
