@@ -1,3 +1,7 @@
+5268.	[bug]		named could crash during configuration if
+			configured to use "geoip continent" ACLs with
+			legacy GeoIP. [GL #1163]
+
 5266.	[bug]		named-checkconf failed to report dnstap-output
 			missing from named.conf when dnstap was specified.
 			[GL #1136]

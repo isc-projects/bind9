@@ -33,11 +33,11 @@ controls {
 	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
 
-view two {
-	match-clients { geoip country US; };
+view one {
+	match-clients { geoip continent EU; };
 	zone "example" {
 		type master;
-		file "example2.db";
+		file "example1.db";
 	};
 };
 
