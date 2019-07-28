@@ -1460,6 +1460,7 @@
 ./bin/tests/system/geoip/ns2/named13.conf.in	CONF-C	2018,2019
 ./bin/tests/system/geoip/ns2/named14.conf.in	CONF-C	2018,2019
 ./bin/tests/system/geoip/ns2/named15.conf.in	CONF-C	2018,2019
+./bin/tests/system/geoip/ns2/named16.conf.in	CONF-C	2019
 ./bin/tests/system/geoip/ns2/named2.conf.in	CONF-C	2018,2019
 ./bin/tests/system/geoip/ns2/named3.conf.in	CONF-C	2018,2019
 ./bin/tests/system/geoip/ns2/named4.conf.in	CONF-C	2018,2019
