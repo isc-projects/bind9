@@ -505,8 +505,9 @@ printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
 	check_result(result, "dns_master_stylecreate");
 
 	if (query->lookup->cmdline[0] != 0) {
-		if (!short_form)
+		if (!short_form && printcmd) {
 			fputs(query->lookup->cmdline, stdout);
+		}
 		query->lookup->cmdline[0]=0;
 	}
 	debug("printmessage(%s %s %s)", headers ? "headers" : "noheaders",
@@ -529,7 +530,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
 	check_result(result, "isc_buffer_allocate");
 
 	if (query->lookup->comments && !short_form) {
-		if (query->lookup->cmdline[0] != 0)
+		if (query->lookup->cmdline[0] != 0 && printcmd)
 			printf("; %s\n", query->lookup->cmdline);
 		if (msg == query->lookup->sendmsg)
 			printf(";; Sending:\n");
