@@ -18,11 +18,12 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <inttypes.h>
-#include <unistd.h>
+#include <sched.h> /* IWYU pragma: keep */
+#include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
+#include <unistd.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>

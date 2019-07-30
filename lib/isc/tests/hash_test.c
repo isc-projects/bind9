@@ -26,16 +26,15 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/hash.h>
-
 #include <isc/crc64.h>
+#include <isc/hash.h>
 #include <isc/hmacmd5.h>
 #include <isc/hmacsha.h>
 #include <isc/md5.h>
-#include <isc/sha1.h>
-#include <isc/util.h>
 #include <isc/print.h>
+#include <isc/sha1.h>
 #include <isc/string.h>
+#include <isc/util.h>
 
 #include <pk11/site.h>
 

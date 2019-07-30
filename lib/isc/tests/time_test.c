@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -38,7 +39,7 @@ isc_time_parsehttptimestamp_test(void **state) {
 
 	UNUSED(state);
 
-	setenv("TZ", "PST8PDT", 1);
+	setenv("TZ", "America/Los_Angeles", 1);
 	result = isc_time_now(&t);
 	assert_int_equal(result, ISC_R_SUCCESS);
 

@@ -13,13 +13,14 @@
 
 #if HAVE_CMOCKA
 
-#include <setjmp.h>
 #include <stdarg.h>
 #include <stddef.h>
-#include <stdlib.h>
+#include <setjmp.h>
 
+#include <sched.h>
+#include <errno.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/errno.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
