@@ -17,6 +17,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -27,7 +28,6 @@
 #include <isc/task.h>
 #include <isc/taskpool.h>
 #include <isc/util.h>
-
 
 #include "isctest.h"
 

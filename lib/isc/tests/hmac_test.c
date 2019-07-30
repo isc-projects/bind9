@@ -18,8 +18,9 @@
 #include <stdarg.h>
 #include <stddef.h>
 #include <setjmp.h>
-#include <stdlib.h>
 
+#include <sched.h> /* IWYU pragma: keep */
+#include <stdlib.h>
 #include <string.h>
 
 #define UNIT_TESTING

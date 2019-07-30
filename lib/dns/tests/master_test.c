@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -26,10 +27,9 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/util.h>
-
 #include <isc/print.h>
 #include <isc/string.h>
+#include <isc/util.h>
 #include <isc/xml.h>
 
 #include <dns/cache.h>
