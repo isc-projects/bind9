@@ -26,10 +26,11 @@
 #include <isc/util.h>
 #include <isc/string.h>
 
-#include <pk11/site.h>
-
 #include <dns/name.h>
+
 #include <dst/result.h>
+
+#include <pk11/site.h>
 
 #include "../dst_internal.h"
 

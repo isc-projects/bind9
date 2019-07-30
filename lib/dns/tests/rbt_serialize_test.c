@@ -25,12 +25,6 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <dns/rbt.h>
-#include <dns/fixedname.h>
-#include <dns/result.h>
-#include <dns/compress.h>
-#include "dnstest.h"
-
 #include <isc/app.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
@@ -40,18 +34,24 @@
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
-#include <isc/string.h>
 #include <isc/socket.h>
 #include <isc/stdio.h>
+#include <isc/string.h>
 #include <isc/task.h>
 #include <isc/timer.h>
 #include <isc/util.h>
 
+#include <dns/compress.h>
+#include <dns/fixedname.h>
 #include <dns/log.h>
 #include <dns/name.h>
+#include <dns/rbt.h>
+#include <dns/result.h>
 #include <dns/result.h>
 
 #include <dst/dst.h>
+
+#include "dnstest.h"
 
 #ifndef MAP_FILE
 #define MAP_FILE 0

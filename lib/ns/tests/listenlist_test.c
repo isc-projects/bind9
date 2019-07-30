@@ -16,11 +16,8 @@
 #include <setjmp.h>
 
 #include <sched.h> /* IWYU pragma: keep */
-#include <stdlib.h>
-
-#include <isc/util.h>
-
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 

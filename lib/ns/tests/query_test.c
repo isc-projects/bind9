@@ -15,8 +15,6 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-#include <isc/util.h>
-
 #include <inttypes.h>
 #include <sched.h> /* IWYU pragma: keep */
 #include <stdbool.h>
@@ -26,13 +24,14 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/util.h>
+
 #include <dns/badcache.h>
 #include <dns/view.h>
 
 #include <ns/client.h>
 #include <ns/hooks.h>
 #include <ns/query.h>
-#include <isc/util.h>
 
 #include "nstest.h"
 
