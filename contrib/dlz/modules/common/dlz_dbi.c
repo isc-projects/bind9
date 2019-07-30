@@ -41,14 +41,13 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+#include <errno.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
 #include <stdlib.h>
 #include <ctype.h>
-
-#include <sys/errno.h>
 
 #include <dlz_minimal.h>
 #include <dlz_list.h>
