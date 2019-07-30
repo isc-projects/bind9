@@ -59,8 +59,8 @@ delv_with_opts() {
 }
 
 KEYID="$(cat ns2/keyid)"
-KEYDATA="$(< ns2/keydata sed -e 's/\+/[+]/g')"
-NOSPLIT="$(< ns2/keydata sed -e 's/\+/[+]/g' -e 's/ //g')"
+KEYDATA="$(< ns2/keydata sed -e 's/+/[+]/g')"
+NOSPLIT="$(< ns2/keydata sed -e 's/+/[+]/g' -e 's/ //g')"
 
 if [ -x "$DIG" ] ; then
   n=$((n+1))
