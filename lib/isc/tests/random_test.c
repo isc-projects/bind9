@@ -26,6 +26,7 @@
 
 #include <inttypes.h>
 #include <math.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdbool.h>
 #include <stdlib.h>
 #include <string.h>

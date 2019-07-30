@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 
+#include <sched.h>
 #include <string.h>
 #include <sys/errno.h>
 

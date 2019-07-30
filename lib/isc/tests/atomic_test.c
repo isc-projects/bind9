@@ -21,6 +21,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <sched.h>
 #include <inttypes.h>
 #include <string.h>
 
