@@ -5090,7 +5090,7 @@ qctx_destroy(query_ctx_t *qctx) {
 static void
 query_trace(query_ctx_t *qctx) {
 #ifdef WANT_QUERYTRACE
-	char mbuf[BUFSIZ];
+	char mbuf[2 * DNS_NAME_FORMATSIZE];
 	char qbuf[DNS_NAME_FORMATSIZE];
 
 	if (qctx->client->query.origqname != NULL)
@@ -5882,7 +5882,7 @@ query_resume(query_ctx_t *qctx) {
 	dns_name_t *tname;
 	isc_buffer_t b;
 #ifdef WANT_QUERYTRACE
-	char mbuf[BUFSIZ];
+	char mbuf[4 * DNS_NAME_FORMATSIZE];
 	char qbuf[DNS_NAME_FORMATSIZE];
 	char tbuf[DNS_RDATATYPE_FORMATSIZE];
 #endif
