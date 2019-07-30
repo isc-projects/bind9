@@ -22,12 +22,12 @@
 #include <string.h>
 #include <unistd.h>
 
-#define UNIT_TESTING
-#include <cmocka.h>
-
 #ifdef HAVE_REGEX_H
 #include <regex.h>
 #endif
+
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/commandline.h>
 #include <isc/regex.h>

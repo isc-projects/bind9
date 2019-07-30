@@ -25,10 +25,9 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/util.h>
-
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>

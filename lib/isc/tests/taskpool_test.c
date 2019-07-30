@@ -29,7 +29,6 @@
 #include <isc/taskpool.h>
 #include <isc/util.h>
 
-
 #include "isctest.h"
 
 static int

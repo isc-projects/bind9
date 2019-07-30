@@ -17,15 +17,14 @@
 #include <stddef.h>
 #include <setjmp.h>
 
+#include <limits.h>
 #include <sched.h> /* IWYU pragma: keep */
+#include <stdbool.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
-
-#include <limits.h>
-#include <stdbool.h>
-#include <string.h>
 
 #include <isc/mem.h>
 #include <isc/platform.h>
