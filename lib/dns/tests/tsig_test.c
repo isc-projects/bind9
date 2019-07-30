@@ -15,17 +15,17 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-#include <stdlib.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdbool.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/util.h>
-
 #include <isc/mem.h>
 #include <isc/print.h>
+#include <isc/util.h>
 
 #include <dns/rdatalist.h>
 #include <dns/rdataset.h>

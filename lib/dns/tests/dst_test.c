@@ -15,20 +15,20 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-#include <stdlib.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdbool.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/util.h>
-
 #include <isc/file.h>
 #include <isc/hex.h>
-#include <isc/util.h>
 #include <isc/stdio.h>
 #include <isc/string.h>
+#include <isc/util.h>
+#include <isc/util.h>
 
 #include <dst/dst.h>
 #include <dst/result.h>

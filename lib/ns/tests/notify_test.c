@@ -13,12 +13,11 @@
 
 #include <stdarg.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <setjmp.h>
 
-#include <isc/util.h>
-
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 

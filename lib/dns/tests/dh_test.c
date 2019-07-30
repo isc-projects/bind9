@@ -15,6 +15,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
@@ -25,10 +26,11 @@
 #include <isc/util.h>
 #include <isc/string.h>
 
-#include <pk11/site.h>
-
 #include <dns/name.h>
+
 #include <dst/result.h>
+
+#include <pk11/site.h>
 
 #include "../dst_internal.h"
 

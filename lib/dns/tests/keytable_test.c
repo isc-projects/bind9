@@ -15,10 +15,11 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-#include <stdlib.h>
+#include <inttypes.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdbool.h>
 #include <stdio.h>
-#include <inttypes.h>
+#include <stdlib.h>
 #include <unistd.h>
 
 #define UNIT_TESTING

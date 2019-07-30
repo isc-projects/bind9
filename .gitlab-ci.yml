@@ -34,6 +34,12 @@ stages:
 
 ### Docker Image Templates
 
+# Alpine Linux
+
+.alpine-3.10-amd64: &alpine_3_10_amd64_image
+  image: "$CI_REGISTRY_IMAGE:alpine-3.10-amd64"
+  <<: *linux_amd64
+
 # CentOS
 
 .centos-centos6-amd64: &centos_centos6_amd64_image
@@ -148,13 +154,13 @@ stages:
 
 .setup_interfaces: &setup_interfaces |
     if [ "$(id -u)" -eq "0" ]; then
-      bash -x bin/tests/system/ifconfig.sh up;
+      sh -x bin/tests/system/ifconfig.sh up;
     else
-      sudo bash -x bin/tests/system/ifconfig.sh up;
+      sudo sh -x bin/tests/system/ifconfig.sh up;
     fi
 
 .setup_softhsm: &setup_softhsm |
-    bash -x util/prepare-softhsm2.sh
+    sh -x util/prepare-softhsm2.sh
 
 .system_test: &system_test_job
   <<: *default_triggering_rules
@@ -263,6 +269,28 @@ push:docs:sid:amd64:
   only:
     - master@isc-projects/bind9
     - /^v9_[1-9][0-9]$/@isc-projects/bind9
+
+# Jobs for regular GCC builds on Alpine Linux 3.10 (amd64)
+
+gcc:alpine3.10:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--enable-dnstap"
+  <<: *alpine_3_10_amd64_image
+  <<: *build_job
+
+system:gcc:alpine3.10:amd64:
+  <<: *alpine_3_10_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - gcc:alpine3.10:amd64
+
+unit:gcc:alpine3.10:amd64:
+  <<: *alpine_3_10_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - gcc:alpine3.10:amd64
 
 # Jobs for regular GCC builds on CentOS 6 (amd64)
 
