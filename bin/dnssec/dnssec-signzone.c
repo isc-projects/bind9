@@ -2651,7 +2651,6 @@ report(const char *format, ...) {
 		va_start(args, format);
 		vfprintf(out, format, args);
 		va_end(args);
-		putc('\n', out);
 	}
 }
 
@@ -3221,7 +3220,7 @@ main(int argc, char *argv[]) {
 
 	/* Unused letters: Bb G J q Yy (and F is reserved). */
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:L:l:m:M:n:N:o:O:PpQRr:s:ST:tuUv:VX:xzZ:"
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:VX:xzZ:"
 
 	/*
 	 * Process memory debugging argument first.

@@ -85,7 +85,6 @@ report(const char *format, ...) {
 		va_start(args, format);
 		vfprintf(stdout, format, args);
 		va_end(args);
-		putc('\n', stdout);
 	}
 }
 
@@ -184,7 +183,7 @@ main(int argc, char *argv[]) {
 	int ch;
 
 #define CMDLINE_FLAGS \
-	"hm:o:I:c:E:v:Vxz"
+	"c:E:hm:o:I:qv:Vxz"
 
 	/*
 	 * Process memory debugging argument first.

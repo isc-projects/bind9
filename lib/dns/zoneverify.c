@@ -1939,7 +1939,9 @@ check_bad_algorithms(const vctx_t *vctx, void (*report)(const char *, ...)) {
 }
 
 static void
-print_summary(const vctx_t *vctx, bool keyset_kskonly, void (*report)(const char *, ...)) {
+print_summary(const vctx_t *vctx, bool keyset_kskonly,
+	      void (*report)(const char *, ...))
+{
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	int i;
 
