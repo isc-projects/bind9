@@ -15,11 +15,12 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-#include <stdlib.h>
-#include <inttypes.h>
 #include <fcntl.h>
-#include <unistd.h>
+#include <inttypes.h>
+#include <sched.h> /* IWYU pragma: keep */
+#include <stdlib.h>
 #include <sys/mman.h>
+#include <unistd.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>

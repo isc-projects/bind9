@@ -15,8 +15,9 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-#include <unistd.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
+#include <unistd.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>

@@ -24,6 +24,7 @@
 
 #include <inttypes.h>
 #include <math.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdlib.h>
 #include <string.h>
 
