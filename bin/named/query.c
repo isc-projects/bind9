@@ -6789,7 +6789,7 @@ query_find(ns_client_t *client, dns_fetchevent_t *event, dns_rdatatype_t qtype)
 	bool failcache;
 	uint32_t flags;
 #ifdef WANT_QUERYTRACE
-	char mbuf[BUFSIZ];
+	char mbuf[4 * DNS_NAME_FORMATSIZE];
 	char qbuf[DNS_NAME_FORMATSIZE];
 	char tbuf[DNS_RDATATYPE_FORMATSIZE];
 #endif
