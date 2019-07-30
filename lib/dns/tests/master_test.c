@@ -18,6 +18,7 @@
 #include <stddef.h>
 #include <setjmp.h>
 
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>

@@ -14,10 +14,13 @@
 #if HAVE_CMOCKA
 
 #include <stdarg.h>
-#include <stdbool.h>
 #include <stddef.h>
-#include <stdlib.h>
 #include <setjmp.h>
+
+#include <sched.h> /* IWYU pragma: keep */
+#include <stdbool.h>
+#include <stdlib.h>
+
 #include <cmocka.h>
 
 #include <isc/mem.h>

@@ -17,11 +17,12 @@
 #include <stddef.h>
 #include <setjmp.h>
 
+#include <inttypes.h>
+#include <sched.h> /* IWYU pragma: keep */
 #include <stdbool.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <inttypes.h>
 #include <string.h>
+#include <unistd.h>
 
 #define UNIT_TESTING
 #include <cmocka.h>
