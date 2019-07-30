@@ -1168,7 +1168,7 @@ status=`expr $status + $ret`
 # event scheduled is within 10 seconds of expected interval.
 check_interval () {
         awk '/next key event/ {print $2 ":" $9}' $1/named.run |
-	sed 's/\.//g' |
+	sed -e 's/\.//g' -e 's/:0\{1,4\}/:/g' |
             awk -F: '
                      {
                        x = ($6+ $5*60000 + $4*3600000) - ($3+ $2*60000 + $1*3600000);
