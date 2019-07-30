@@ -17,7 +17,7 @@
 #ifdef ENABLE_AFL
 #include <named/globals.h>
 #include <named/server.h>
-#include <sys/errno.h>
+#include <errno.h>
 
 #include <isc/app.h>
 #include <isc/condition.h>
