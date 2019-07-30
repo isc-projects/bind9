@@ -27,7 +27,13 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
+#include <isc/buffer.h>
+#include <isc/list.h>
 #include <isc/print.h>
+#include <isc/region.h>
+#include <isc/result.h>
+#include <isc/stdtime.h>
+#include <isc/types.h>
 #include <isc/util.h>
 
 #include <dns/db.h>
@@ -43,13 +49,6 @@
 #include <dns/zone.h>
 
 #include <dst/dst.h>
-
-#include <isc/buffer.h>
-#include <isc/list.h>
-#include <isc/region.h>
-#include <isc/stdtime.h>
-#include <isc/result.h>
-#include <isc/types.h>
 
 #include "../zone_p.h"
 

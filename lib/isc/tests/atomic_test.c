@@ -18,12 +18,12 @@
 #include <stddef.h>
 #include <setjmp.h>
 
-#define UNIT_TESTING
-#include <cmocka.h>
-
 #include <sched.h>
 #include <inttypes.h>
 #include <string.h>
+
+#define UNIT_TESTING
+#include <cmocka.h>
 
 #include <isc/atomic.h>
 #include <isc/print.h>
