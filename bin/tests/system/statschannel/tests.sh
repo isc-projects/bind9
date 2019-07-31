@@ -263,7 +263,7 @@ n=`expr $n + 1`
 
 ret=0
 echo_i "checking if compressed output is really compressed ($n)"
-if [ "$ZLIB" ];
+if [ "$HAVEZLIB" ];
 then
     REGSIZE=`cat regular.headers | \
 	grep -i Content-Length | sed -e "s/.*: \([0-9]*\).*/\1/"`
