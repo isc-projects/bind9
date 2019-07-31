@@ -2762,7 +2762,7 @@ AC_SUBST(BUILD_LIBS)
 
 AC_CONFIG_COMMANDS(
 	[chmod],
-	[chmod a+x isc-config.sh doc/doxygen/doxygen-input-filter])
+	[chmod a+x doc/doxygen/doxygen-input-filter])
 
 #
 # Files to configure.  These are listed here because we used to
@@ -2843,7 +2843,6 @@ AC_CONFIG_FILES([
 	doc/xsl/isc-docbook-html.xsl
 	doc/xsl/isc-manpage.xsl
 	doc/xsl/isc-notes-html.xsl
-	isc-config.sh
 	lib/Makefile
 	lib/bind9/Makefile
 	lib/bind9/include/Makefile

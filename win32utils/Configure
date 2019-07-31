@@ -24,7 +24,6 @@ use Cwd;
 my $configfile = "..\\config.h";
 my $platformfile = "..\\lib\\isc\\win32\\include\\isc\\platform.h";
 my $confshfile = "..\\bin\\tests\\system\\conf.sh";
-my $icshfile = "..\\isc-config.sh";
 
 my @filelist = ("..\\bin\\python\\dnssec-checkds.py",
                 "..\\bin\\python\\dnssec-coverage.py",
@@ -863,7 +862,6 @@ if ($want_clean eq "yes") {
     unlink($configfile);
     unlink($platformfile);
     unlink($confshfile);
-    unlink($icshfile);
 
     foreach $file (@filelist) {
         unlink($file);
@@ -2160,44 +2158,6 @@ sub setupconfsh {
     close F;
 }
 
-# setup isc-config.sh with %configvar accepting undefined
-
-sub setupicsh {
-    my $line;
-    my @Lines;
-    my $val;
-
-    open F, $icshfile . ".in" || die $!;
-    @Lines = <F>;
-    close F;
-
-    foreach $line (@Lines) {
-        chomp $line;
-        while ($line =~ /@([^@]+)\@/) {
-            if ($1 ~~ @substvar) {
-                if (defined($configvar{$1})) {
-                    $val = kw($configvar{$1});
-                    $line = "$`$val$'";
-                } else {
-                    $line = "$`$'";
-                }
-            }  else {
-                $line = "$`__$1__$'";
-            }
-        }
-    }
-
-    open F, ">" . $icshfile || die $!;
-    if ($verbose) {
-        print "Setting up $icshfile\n";
-    }
-    binmode(F);
-    foreach $line (@Lines) {
-        print F $line . "\n";
-    }
-    close F;
-}
-
 # setup a file with %configcond stack and %config{var,defd,inc,lib,dll,test}
 
 sub setupfile {
@@ -2816,8 +2776,6 @@ if (($want_win32 eq "yes") || ($want_x64 eq "yes")) {
     setupplatformh();
 
     setupconfsh();
-
-    setupicsh();
 
     my $file;
     foreach $file (@filelist) {

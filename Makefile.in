@@ -18,10 +18,6 @@ SUBDIRS =	make lib fuzz bin doc
 TARGETS =
 PREREQS =	bind.keys.h
 
-MANPAGES =	isc-config.sh.1
-
-HTMLPAGES =	isc-config.sh.html
-
 MANOBJS =	README HISTORY OPTIONS CONTRIBUTING PLATFORMS \
 		${MANPAGES} ${HTMLPAGES}
 
@@ -35,7 +31,7 @@ bind.keys.h: ${top_srcdir}/bind.keys ${srcdir}/util/bindkeys.pl
 
 distclean::
 	rm -f config.cache config.h config.log config.status TAGS
-	rm -f libtool isc-config.sh configure.lineno
+	rm -f libtool configure.lineno
 	rm -f util/conf.sh docutil/docbook2man-wrapper.sh
 
 # XXX we should clean libtool stuff too.  Only do this after we add rules
@@ -54,21 +50,11 @@ installdirs:
 	${DESTDIR}${localstatedir}/run ${DESTDIR}${sysconfdir}
 	$(SHELL) ${top_srcdir}/mkinstalldirs ${DESTDIR}${mandir}/man1
 
-install:: isc-config.sh installdirs
-	${INSTALL_SCRIPT} isc-config.sh ${DESTDIR}${bindir}
-	rm -f ${DESTDIR}${bindir}/bind9-config
-	@LN@ ${DESTDIR}${bindir}/isc-config.sh ${DESTDIR}${bindir}/bind9-config
-	${INSTALL_DATA} ${top_srcdir}/isc-config.sh.1 ${DESTDIR}${mandir}/man1
-	rm -f ${DESTDIR}${mandir}/man1/bind9-config.1
-	@LN@ ${DESTDIR}${mandir}/man1/isc-config.sh.1 ${DESTDIR}${mandir}/man1/bind9-config.1
+install:: installdirs
 	${INSTALL_DATA} ${top_srcdir}/bind.keys ${DESTDIR}${sysconfdir}
 
 uninstall::
 	rm -f ${DESTDIR}${sysconfdir}/bind.keys
-	rm -f ${DESTDIR}${mandir}/man1/bind9-config.1
-	rm -f ${DESTDIR}${mandir}/man1/isc-config.sh.1
-	rm -f ${DESTDIR}${bindir}/bind9-config
-	rm -f ${DESTDIR}${bindir}/isc-config.sh
 
 tags:
 	rm -f TAGS
