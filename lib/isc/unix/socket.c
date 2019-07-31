@@ -3810,10 +3810,9 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		manager->threads[i].manager = manager;
 		manager->threads[i].threadid = i;
 		setup_thread(&manager->threads[i]);
-		RUNTIME_CHECK(isc_thread_create(netthread,
-						&manager->threads[i],
-						&manager->threads[i].thread)
-			      == ISC_R_SUCCESS);
+		isc_thread_create(netthread,
+				  &manager->threads[i],
+				  &manager->threads[i].thread);
 		char tname[1024];
 		sprintf(tname, "isc-socket-%d", i);
 		isc_thread_setname(manager->threads[i].thread, tname);
@@ -3885,12 +3884,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * Wait for thread to exit.
 	 */
 	for (int i = 0; i < manager->nthreads; i++) {
-		isc_result_t result;
-		result = isc_thread_join(manager->threads[i].thread, NULL);
-		if (result != ISC_R_SUCCESS) {
-			UNEXPECTED_ERROR(__FILE__, __LINE__,
-					 "isc_thread_join() failed");
-		}
+		isc_thread_join(manager->threads[i].thread, NULL);
 		cleanup_thread(manager->mctx, &manager->threads[i]);
 	}
 	/*

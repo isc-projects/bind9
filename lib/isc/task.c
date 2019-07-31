@@ -1384,9 +1384,8 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 
 		manager->queues[i].manager = manager;
 		manager->queues[i].threadid = i;
-		RUNTIME_CHECK(isc_thread_create(run, &manager->queues[i],
-						&manager->queues[i].thread)
-			      == ISC_R_SUCCESS);
+		isc_thread_create(run, &manager->queues[i],
+				  &manager->queues[i].thread);
 		char name[21];
 		snprintf(name, sizeof(name), "isc-worker%04u", i);
 		isc_thread_setname(manager->queues[i].thread, name);
@@ -1484,8 +1483,9 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 	/*
 	 * Wait for all the worker threads to exit.
 	 */
-	for (i = 0; i < manager->workers; i++)
-		(void)isc_thread_join(manager->queues[i].thread, NULL);
+	for (i = 0; i < manager->workers; i++) {
+		isc_thread_join(manager->queues[i].thread, NULL);
+	}
 
 	manager_free(manager);
 

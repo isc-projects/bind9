@@ -743,13 +743,11 @@ benchmark_test(void **state) {
 	nthreads = ISC_MIN(isc_os_ncpus(), 32);
 	nthreads = ISC_MAX(nthreads, 1);
 	for (i = 0; i < nthreads; i++) {
-		result = isc_thread_create(fromwire_thread, NULL, &threads[i]);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		isc_thread_create(fromwire_thread, NULL, &threads[i]);
 	}
 
 	for (i = 0; i < nthreads; i++) {
-		result = isc_thread_join(threads[i], NULL);
-		assert_int_equal(result, ISC_R_SUCCESS);
+		isc_thread_join(threads[i], NULL);
 	}
 
 	result = isc_time_now(&ts2);

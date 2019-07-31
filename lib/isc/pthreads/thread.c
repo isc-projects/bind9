@@ -27,6 +27,7 @@
 #include <sys/procset.h>
 #endif
 
+#include <isc/strerr.h>
 #include <isc/thread.h>
 #include <isc/util.h>
 
@@ -34,7 +35,16 @@
 #define THREAD_MINSTACKSIZE		(1024U * 1024)
 #endif
 
-isc_result_t
+#define _FATAL(r, f)							\
+	{								\
+		char strbuf[ISC_STRERRORSIZE];				\
+		strerror_r(r, strbuf, sizeof(strbuf));			\
+		isc_error_fatal(__FILE__, __LINE__,			\
+				f " failed: %s", \
+				strbuf);				\
+	}
+
+void
 isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 		  isc_thread_t *thread)
 {
@@ -50,23 +60,35 @@ isc_thread_create(isc_threadfunc_t func, isc_threadarg_t arg,
 #if defined(HAVE_PTHREAD_ATTR_GETSTACKSIZE) && \
     defined(HAVE_PTHREAD_ATTR_SETSTACKSIZE)
 	ret = pthread_attr_getstacksize(&attr, &stacksize);
-	if (ret != 0)
-		return (ISC_R_UNEXPECTED);
+	if (ret != 0) {
+		_FATAL(ret, "pthread_attr_getstacksize()");
+	}
 
 	if (stacksize < THREAD_MINSTACKSIZE) {
 		ret = pthread_attr_setstacksize(&attr, THREAD_MINSTACKSIZE);
-		if (ret != 0)
-			return (ISC_R_UNEXPECTED);
+		if (ret != 0) {
+			_FATAL(ret, "pthread_attr_setstacksize()");
+		}
 	}
 #endif
 
 	ret = pthread_create(thread, &attr, func, arg);
-	if (ret != 0)
-		return (ISC_R_UNEXPECTED);
+	if (ret != 0) {
+		_FATAL(ret, "pthread_create()");
+	}
 
 	pthread_attr_destroy(&attr);
 
-	return (ISC_R_SUCCESS);
+	return;
+}
+
+void
+isc_thread_join(isc_thread_t thread, isc_threadresult_t *result)
+{
+	int ret = pthread_join(thread, result);
+	if (ret != 0) {
+		_FATAL(ret, "pthread_join()");
+	}
 }
 
 #ifdef __NetBSD__
