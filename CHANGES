@@ -1,3 +1,5 @@
+5270.	[bug]		'dig +expandaaaa +short' did not work. [GL #1152]
+
 5269.	[port]		cygwin: can return ETIMEDOUT on connect() with a
 			non-blocking socket. [GL #1133]
 

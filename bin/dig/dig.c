@@ -354,6 +354,8 @@ say_message(dns_rdata_t *rdata, dig_query_t *query, isc_buffer_t *buf) {
 		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
 	if (query->lookup->print_unknown_format)
 		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
+	if (query->lookup->expandaaaa)
+		styleflags |= DNS_STYLEFLAG_EXPANDAAAA;
 	result = dns_rdata_tofmttext(rdata, NULL, styleflags, 0,
 				     splitwidth, " ", buf);
 	if (result == ISC_R_NOSPACE)
