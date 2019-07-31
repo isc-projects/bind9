@@ -21,4 +21,7 @@ options {
 	notify yes;
 };
 
-zone "." { type hint; file "hints"; };
+zone "." {
+	type hint;
+	file "../../common/root.hint";
+};
