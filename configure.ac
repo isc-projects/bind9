@@ -1281,69 +1281,20 @@ AS_CASE([$with_json_c],
 AC_SUBST([JSON_C_CFLAGS])
 AC_SUBST([JSON_C_LIBS])
 
-#
-# was --with-zlib specified?
-#
-AC_MSG_CHECKING(for zlib library)
-AC_ARG_WITH(zlib,
-	    AS_HELP_STRING([--with-zlib[=PATH]],
-			   [build with zlib for HTTP compression
-				[default=yes]]),
-	    with_zlib="$withval", with_zlib="auto")
+AC_ARG_WITH([zlib],
+           [AS_HELP_STRING([--with-zlib],
+                           [build with zlib for HTTP compression
+                            [default=yes]])],
+	   [], with_zlib="auto")
 
-have_zlib=""
-case "$with_zlib" in
-	no)
-		zlib_libs=""
-		;;
-	auto|yes)
-		for d in /usr /usr/local /opt/local
-		do
-			if test -f "${d}/include/zlib.h"
-			then
-				if test ${d} != /usr
-				then
-					zlib_cflags="-I ${d}/include"
-					LIBS="$LIBS -L${d}/lib"
-				fi
-				have_zlib="yes"
-			fi
-		done
-		;;
-	*)
-		if test -f "${with_zlib}/include/zlib.h"
-		then
-			zlib_cflags="-I${with_zlib}/include"
-			LIBS="$LIBS -L${with_zlib}/lib"
-			have_zlib="yes"
-		else
-			AC_MSG_ERROR([$with_zlib/include/zlib.h not found.])
-		fi
-		;;
-esac
-
-if test "X${have_zlib}" != "X"
-then
-	AC_MSG_RESULT(yes)
-	AC_SEARCH_LIBS([deflate], [z], [],
-		       [AC_MSG_ERROR([found zlib include but not library.])
-			have_zlib=""])
-elif test "X$with_zlib" = Xyes
-then
-	AC_MSG_ERROR([include/zlib.h not found.])
-else
-	AC_MSG_RESULT(no)
-fi
-
-ZLIB=
-if test "X${have_zlib}" != "X"
-then
-	CFLAGS="$CFLAGS $zlib_cflags"
-	AC_DEFINE(HAVE_ZLIB, 1, [Define if zlib was found])
-	ZLIB=1
-fi
-AC_SUBST(ZLIB)
-
+AS_CASE([$with_zlib],
+       [no],[],
+       [auto],[PKG_CHECK_MODULES([ZLIB], [zlib],
+                                 [AC_DEFINE([HAVE_ZLIB], [1], [Use zlib library])],
+                                 [:])],
+       [yes],[PKG_CHECK_MODULES([ZLIB], [zlib],
+                                [AC_DEFINE([HAVE_ZLIB], [1], [Use zlib library])])],
+       [AC_MSG_ERROR([Specifying zlib installation path is not supported, adjust PKG_CONFIG_PATH instead])])
 
 #
 # In solaris 10, SMF can manage named service

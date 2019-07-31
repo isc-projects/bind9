@@ -725,7 +725,8 @@ purify_path
 MKDEPPROG
 MKDEPCFLAGS
 MKDEPCC
-ZLIB
+ZLIB_LIBS
+ZLIB_CFLAGS
 JSON_C_LIBS
 JSON_C_CFLAGS
 LIBXML2_LIBS
@@ -975,6 +976,8 @@ LIBXML2_CFLAGS
 LIBXML2_LIBS
 JSON_C_CFLAGS
 JSON_C_LIBS
+ZLIB_CFLAGS
+ZLIB_LIBS
 LIBIDN2_CFLAGS
 LIBIDN2_LIBS
 CMOCKA_CFLAGS
@@ -1671,7 +1674,7 @@ Optional Packages:
   --with-libjson          deprecated, use --with-json-c
   --with-json-c           build with json-c library [yes|no|detect] (default
                           is detect)
-  --with-zlib=PATH        build with zlib for HTTP compression [default=yes]
+  --with-zlib             build with zlib for HTTP compression [default=yes]
   --with-purify=PATH      use Rational purify
   --with-gperftools-profiler
                           use gperftools CPU profiler
@@ -1737,6 +1740,8 @@ Some influential environment variables:
   JSON_C_CFLAGS
               C compiler flags for JSON_C, overriding pkg-config
   JSON_C_LIBS linker flags for JSON_C, overriding pkg-config
+  ZLIB_CFLAGS C compiler flags for ZLIB, overriding pkg-config
+  ZLIB_LIBS   linker flags for ZLIB, overriding pkg-config
   LIBIDN2_CFLAGS
               C compiler flags for LIBIDN2, overriding pkg-config
   LIBIDN2_LIBS
@@ -17898,133 +17903,189 @@ esac
 
 
 
-#
-# was --with-zlib specified?
-#
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for zlib library" >&5
-$as_echo_n "checking for zlib library... " >&6; }
 
 # Check whether --with-zlib was given.
 if test "${with_zlib+set}" = set; then :
-  withval=$with_zlib; with_zlib="$withval"
+  withval=$with_zlib;
 else
   with_zlib="auto"
 fi
 
 
-have_zlib=""
-case "$with_zlib" in
-	no)
-		zlib_libs=""
-		;;
-	auto|yes)
-		for d in /usr /usr/local /opt/local
-		do
-			if test -f "${d}/include/zlib.h"
-			then
-				if test ${d} != /usr
-				then
-					zlib_cflags="-I ${d}/include"
-					LIBS="$LIBS -L${d}/lib"
-				fi
-				have_zlib="yes"
-			fi
-		done
-		;;
-	*)
-		if test -f "${with_zlib}/include/zlib.h"
-		then
-			zlib_cflags="-I${with_zlib}/include"
-			LIBS="$LIBS -L${with_zlib}/lib"
-			have_zlib="yes"
-		else
-			as_fn_error $? "$with_zlib/include/zlib.h not found." "$LINENO" 5
-		fi
-		;;
-esac
+case $with_zlib in #(
+  no) :
+     ;; #(
+  auto) :
 
-if test "X${have_zlib}" != "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
-$as_echo "yes" >&6; }
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing deflate" >&5
-$as_echo_n "checking for library containing deflate... " >&6; }
-if ${ac_cv_search_deflate+:} false; then :
-  $as_echo_n "(cached) " >&6
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for zlib" >&5
+$as_echo_n "checking for zlib... " >&6; }
+
+if test -n "$ZLIB_CFLAGS"; then
+    pkg_cv_ZLIB_CFLAGS="$ZLIB_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"zlib\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "zlib") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ZLIB_CFLAGS=`$PKG_CONFIG --cflags "zlib" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  ac_func_search_save_LIBS=$LIBS
-cat confdefs.h - <<_ACEOF >conftest.$ac_ext
-/* end confdefs.h.  */
-
-/* Override any GCC internal prototype to avoid an error.
-   Use char because int might match the return type of a GCC
-   builtin and then its argument prototype would still apply.  */
-#ifdef __cplusplus
-extern "C"
-#endif
-char deflate ();
-int
-main ()
-{
-return deflate ();
-  ;
-  return 0;
-}
-_ACEOF
-for ac_lib in '' z; do
-  if test -z "$ac_lib"; then
-    ac_res="none required"
-  else
-    ac_res=-l$ac_lib
-    LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
-  fi
-  if ac_fn_c_try_link "$LINENO"; then :
-  ac_cv_search_deflate=$ac_res
+  pkg_failed=yes
 fi
-rm -f core conftest.err conftest.$ac_objext \
-    conftest$ac_exeext
-  if ${ac_cv_search_deflate+:} false; then :
-  break
+ else
+    pkg_failed=untried
 fi
-done
-if ${ac_cv_search_deflate+:} false; then :
-
+if test -n "$ZLIB_LIBS"; then
+    pkg_cv_ZLIB_LIBS="$ZLIB_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"zlib\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "zlib") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ZLIB_LIBS=`$PKG_CONFIG --libs "zlib" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
 else
-  ac_cv_search_deflate=no
+  pkg_failed=yes
 fi
-rm conftest.$ac_ext
-LIBS=$ac_func_search_save_LIBS
-fi
-{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_search_deflate" >&5
-$as_echo "$ac_cv_search_deflate" >&6; }
-ac_res=$ac_cv_search_deflate
-if test "$ac_res" != no; then :
-  test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
-
-else
-  as_fn_error $? "found zlib include but not library." "$LINENO" 5
-			have_zlib=""
+ else
+    pkg_failed=untried
 fi
 
-elif test "X$with_zlib" = Xyes
-then
-	as_fn_error $? "include/zlib.h not found." "$LINENO" 5
-else
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
 $as_echo "no" >&6; }
-fi
 
-ZLIB=
-if test "X${have_zlib}" != "X"
-then
-	CFLAGS="$CFLAGS $zlib_cflags"
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        ZLIB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "zlib" 2>&1`
+        else
+	        ZLIB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "zlib" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$ZLIB_PKG_ERRORS" >&5
+
+	:
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	:
+else
+	ZLIB_CFLAGS=$pkg_cv_ZLIB_CFLAGS
+	ZLIB_LIBS=$pkg_cv_ZLIB_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
 
 $as_echo "#define HAVE_ZLIB 1" >>confdefs.h
 
-	ZLIB=1
+fi ;; #(
+  yes) :
+
+pkg_failed=no
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for zlib" >&5
+$as_echo_n "checking for zlib... " >&6; }
+
+if test -n "$ZLIB_CFLAGS"; then
+    pkg_cv_ZLIB_CFLAGS="$ZLIB_CFLAGS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"zlib\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "zlib") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ZLIB_CFLAGS=`$PKG_CONFIG --cflags "zlib" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
+fi
+if test -n "$ZLIB_LIBS"; then
+    pkg_cv_ZLIB_LIBS="$ZLIB_LIBS"
+ elif test -n "$PKG_CONFIG"; then
+    if test -n "$PKG_CONFIG" && \
+    { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"zlib\""; } >&5
+  ($PKG_CONFIG --exists --print-errors "zlib") 2>&5
+  ac_status=$?
+  $as_echo "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; then
+  pkg_cv_ZLIB_LIBS=`$PKG_CONFIG --libs "zlib" 2>/dev/null`
+		      test "x$?" != "x0" && pkg_failed=yes
+else
+  pkg_failed=yes
+fi
+ else
+    pkg_failed=untried
 fi
 
 
+
+if test $pkg_failed = yes; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+
+if $PKG_CONFIG --atleast-pkgconfig-version 0.20; then
+        _pkg_short_errors_supported=yes
+else
+        _pkg_short_errors_supported=no
+fi
+        if test $_pkg_short_errors_supported = yes; then
+	        ZLIB_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors --cflags --libs "zlib" 2>&1`
+        else
+	        ZLIB_PKG_ERRORS=`$PKG_CONFIG --print-errors --cflags --libs "zlib" 2>&1`
+        fi
+	# Put the nasty error message in config.log where it belongs
+	echo "$ZLIB_PKG_ERRORS" >&5
+
+	as_fn_error $? "Package requirements (zlib) were not met:
+
+$ZLIB_PKG_ERRORS
+
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+
+Alternatively, you may set the environment variables ZLIB_CFLAGS
+and ZLIB_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details." "$LINENO" 5
+elif test $pkg_failed = untried; then
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: no" >&5
+$as_echo "no" >&6; }
+	{ { $as_echo "$as_me:${as_lineno-$LINENO}: error: in \`$ac_pwd':" >&5
+$as_echo "$as_me: error: in \`$ac_pwd':" >&2;}
+as_fn_error $? "The pkg-config script could not be found or is too old.  Make sure it
+is in your PATH or set the PKG_CONFIG environment variable to the full
+path to pkg-config.
+
+Alternatively, you may set the environment variables ZLIB_CFLAGS
+and ZLIB_LIBS to avoid the need to call pkg-config.
+See the pkg-config man page for more details.
+
+To get pkg-config, see <http://pkg-config.freedesktop.org/>.
+See \`config.log' for more details" "$LINENO" 5; }
+else
+	ZLIB_CFLAGS=$pkg_cv_ZLIB_CFLAGS
+	ZLIB_LIBS=$pkg_cv_ZLIB_LIBS
+        { $as_echo "$as_me:${as_lineno-$LINENO}: result: yes" >&5
+$as_echo "yes" >&6; }
+
+$as_echo "#define HAVE_ZLIB 1" >>confdefs.h
+
+fi ;; #(
+  *) :
+    as_fn_error $? "Specifying zlib installation path is not supported, adjust PKG_CONFIG_PATH instead" "$LINENO" 5 ;;
+esac
 
 #
 # In solaris 10, SMF can manage named service

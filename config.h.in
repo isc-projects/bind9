@@ -456,7 +456,7 @@
 /* Define to 1 if you have the `usleep' function. */
 #undef HAVE_USLEEP
 
-/* Define if zlib was found */
+/* Use zlib library */
 #undef HAVE_ZLIB
 
 /* define if __atomic builtins are not available */

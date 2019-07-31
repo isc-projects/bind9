@@ -23,7 +23,8 @@ CINCLUDES =	-I${srcdir}/unix/include \
 		-I${srcdir}/include ${DNS_INCLUDES} \
 		${OPENSSL_CFLAGS} \
 		${JSON_C_CFLAGS} \
-		${LIBXML2_CFLAGS}
+		${LIBXML2_CFLAGS} \
+		${ZLIB_CFLAGS}
 CDEFINES =
 CWARNINGS =
 
