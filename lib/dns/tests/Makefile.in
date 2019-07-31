@@ -244,7 +244,7 @@ WRAP_OPTIONS = \
 tkey_test@EXEEXT@: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	if test "${LD_WRAP_TESTS}" = true; then WRAP="${WRAP_OPTIONS}"; fi; \
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
-			${LDFLAGS} ${WRAP} -o $@ tkey_test.@O@ \
+			${LDFLAGS} $${WRAP} -o $@ tkey_test.@O@ \
 			${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 tsig_test@EXEEXT@: tsig_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
