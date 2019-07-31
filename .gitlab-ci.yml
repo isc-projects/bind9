@@ -78,8 +78,8 @@ stages:
 
 # Fedora
 
-.fedora-29-amd64: &fedora_29_amd64_image
-  image: "$CI_REGISTRY_IMAGE:fedora-29-amd64"
+.fedora-30-amd64: &fedora_30_amd64_image
+  image: "$CI_REGISTRY_IMAGE:fedora-30-amd64"
   <<: *linux_amd64
 
 # Ubuntu
@@ -445,27 +445,27 @@ unit:gcc:sid:i386:
   dependencies:
     - gcc:sid:i386
 
-# Jobs for regular GCC builds on Fedora 29 (amd64)
+# Jobs for regular GCC builds on Fedora 30 (amd64)
 
-gcc:fedora29:amd64:
+gcc:fedora30:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
     EXTRA_CONFIGURE: "--with-libidn2"
-  <<: *fedora_29_amd64_image
+  <<: *fedora_30_amd64_image
   <<: *build_job
 
-system:gcc:fedora29:amd64:
-  <<: *fedora_29_amd64_image
+system:gcc:fedora30:amd64:
+  <<: *fedora_30_amd64_image
   <<: *system_test_job
   dependencies:
-    - gcc:fedora29:amd64
+    - gcc:fedora30:amd64
 
-unit:gcc:fedora29:amd64:
-  <<: *fedora_29_amd64_image
+unit:gcc:fedora30:amd64:
+  <<: *fedora_30_amd64_image
   <<: *unit_test_job
   dependencies:
-    - gcc:fedora29:amd64
+    - gcc:fedora30:amd64
 
 # Jobs for regular GCC builds on Ubuntu 16.04 Xenial Xerus (amd64)
 
