@@ -2645,11 +2645,13 @@ loadexplicitkeys(char *keyfiles[], int n, bool setksk) {
 
 static void
 report(const char *format, ...) {
-	va_list args;
-	va_start(args, format);
-	vfprintf(stderr, format, args);
-	va_end(args);
-	putc('\n', stderr);
+	if (!quiet) {
+		FILE *out = output_stdout ? stderr : stdout;
+		va_list args;
+		va_start(args, format);
+		vfprintf(out, format, args);
+		va_end(args);
+	}
 }
 
 static void
@@ -3085,6 +3087,7 @@ usage(void) {
 	fprintf(stderr, "\t-j jitter:\n");
 	fprintf(stderr, "\t\trandomize signature end time up to jitter seconds\n");
 	fprintf(stderr, "\t-v debuglevel (0)\n");
+	fprintf(stderr, "\t-q quiet\n");
 	fprintf(stderr, "\t-V:\tprint version information\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
@@ -3217,7 +3220,7 @@ main(int argc, char *argv[]) {
 
 	/* Unused letters: Bb G J q Yy (and F is reserved). */
 #define CMDLINE_FLAGS \
-	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:L:l:m:M:n:N:o:O:PpQRr:s:ST:tuUv:VX:xzZ:"
+	"3:AaCc:Dd:E:e:f:FghH:i:I:j:K:k:L:l:m:M:n:N:o:O:PpQqRr:s:ST:tuUv:VX:xzZ:"
 
 	/*
 	 * Process memory debugging argument first.
@@ -3476,6 +3479,10 @@ main(int argc, char *argv[]) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("verbose level must be numeric");
+			break;
+
+		case 'q':
+			quiet = true;
 			break;
 
 		case 'X':
@@ -3882,7 +3889,7 @@ main(int argc, char *argv[]) {
 	} else {
 		vresult = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin,
 						NULL, mctx, ignore_kskflag,
-						keyset_kskonly);
+						keyset_kskonly, report);
 		if (vresult != ISC_R_SUCCESS) {
 			fprintf(output_stdout ? stderr : stdout,
 				"Zone verification failed (%s)\n",

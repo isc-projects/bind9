@@ -80,6 +80,7 @@
       <arg choice="opt" rep="norepeat"><option>-O <replaceable class="parameter">output-format</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P</option></arg>
       <arg choice="opt" rep="norepeat"><option>-Q</option></arg>
+      <arg choice="opt" rep="norepeat"><option>-q</option></arg>
       <arg choice="opt" rep="norepeat"><option>-R</option></arg>
       <arg choice="opt" rep="norepeat"><option>-S</option></arg>
       <arg choice="opt" rep="norepeat"><option>-s <replaceable class="parameter">start-time</replaceable></option></arg>
@@ -543,6 +544,22 @@
           </para>
         </listitem>
       </varlistentry>
+
+      <varlistentry>
+        <term>-q</term>
+        <listitem>
+          <para>
+	    Quiet mode: Suppresses unnecessary output.  Without this
+	    option, when <command>dnssec-signzone</command> is run it
+	    will print to standard output the number of keys in use,
+	    the algorithms used to verify the zone was signed correctly
+	    and other status information, and finally the filename
+	    containing the signed zone.  With it, that output is
+	    suppressed, leaving only the filename.
+          </para>
+        </listitem>
+      </varlistentry>
+
       <varlistentry>
         <term>-R</term>
         <listitem>

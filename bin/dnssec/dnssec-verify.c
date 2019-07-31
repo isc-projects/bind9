@@ -78,6 +78,16 @@ static dns_name_t *gorigin;		/* The database origin */
 static bool ignore_kskflag = false;
 static bool keyset_kskonly = false;
 
+static void
+report(const char *format, ...) {
+	if (!quiet) {
+		va_list args;
+		va_start(args, format);
+		vfprintf(stdout, format, args);
+		va_end(args);
+	}
+}
+
 /*%
  * Load the zone file from disk
  */
@@ -140,6 +150,7 @@ usage(void) {
 
 	fprintf(stderr, "Options: (default value in parenthesis) \n");
 	fprintf(stderr, "\t-v debuglevel (0)\n");
+	fprintf(stderr, "\t-q quiet\n");
 	fprintf(stderr, "\t-V:\tprint version information\n");
 	fprintf(stderr, "\t-o origin:\n");
 	fprintf(stderr, "\t\tzone origin (name of zonefile)\n");
@@ -172,7 +183,7 @@ main(int argc, char *argv[]) {
 	int ch;
 
 #define CMDLINE_FLAGS \
-	"hm:o:I:c:E:v:Vxz"
+	"c:E:hm:o:I:qv:Vxz"
 
 	/*
 	 * Process memory debugging argument first.
@@ -235,6 +246,10 @@ main(int argc, char *argv[]) {
 			verbose = strtol(isc_commandline_argument, &endp, 0);
 			if (*endp != '\0')
 				fatal("verbose level must be numeric");
+			break;
+
+		case 'q':
+			quiet = true;
 			break;
 
 		case 'x':
@@ -304,7 +319,7 @@ main(int argc, char *argv[]) {
 	}
 
 	gdb = NULL;
-	fprintf(stderr, "Loading zone '%s' from file '%s'\n", origin, file);
+	report("Loading zone '%s' from file '%s'\n", origin, file);
 	loadzone(file, origin, rdclass, &gdb);
 	gorigin = dns_db_origin(gdb);
 	gclass = dns_db_class(gdb);
@@ -314,7 +329,8 @@ main(int argc, char *argv[]) {
 	check_result(result, "dns_db_newversion()");
 
 	result = dns_zoneverify_dnssec(NULL, gdb, gversion, gorigin, NULL,
-				       mctx, ignore_kskflag, keyset_kskonly);
+				       mctx, ignore_kskflag, keyset_kskonly,
+				       report);
 
 	dns_db_closeversion(gdb, &gversion, false);
 	dns_db_detach(&gdb);

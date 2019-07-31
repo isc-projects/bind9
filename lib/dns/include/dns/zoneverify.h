@@ -43,6 +43,7 @@ isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, dns_keytable_t *secroots,
 		      isc_mem_t *mctx, bool ignore_kskflag,
-		      bool keyset_kskonly);
+		      bool keyset_kskonly,
+		      void (*report)(const char *, ...));
 
 ISC_LANG_ENDDECLS

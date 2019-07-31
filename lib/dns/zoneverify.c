@@ -116,23 +116,6 @@ zoneverify_log_error(const vctx_t *vctx, const char *fmt, ...) {
 	va_end(ap);
 }
 
-/*%
- * If invoked from a standalone tool, print a message described by 'fmt' and
- * the variable arguments following it to stderr.
- */
-static void
-zoneverify_print(const vctx_t *vctx, const char *fmt, ...) {
-	va_list ap;
-
-	if (vctx->zone != NULL) {
-		return;
-	}
-
-	va_start(ap, fmt);
-	vfprintf(stderr, fmt, ap);
-	va_end(ap);
-}
-
 static bool
 is_delegation(const vctx_t *vctx, const dns_name_t *name, dns_dbnode_t *node,
 	      uint32_t *ttlp)
@@ -1679,13 +1662,13 @@ check_dnskey(vctx_t *vctx) {
 
 static void
 determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
-			    bool keyset_kskonly)
+			    bool keyset_kskonly,
+			    void (*report)(const char *, ...))
 {
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	int i;
 
-	zoneverify_print(vctx,
-			 "Verifying the zone using the following algorithms:");
+	report("Verifying the zone using the following algorithms:");
 
 	for (i = 0; i < 256; i++) {
 		if (ignore_kskflag) {
@@ -1698,10 +1681,10 @@ determine_active_algorithms(vctx_t *vctx, bool ignore_kskflag,
 		}
 		if (vctx->act_algorithms[i] != 0) {
 			dns_secalg_format(i, algbuf, sizeof(algbuf));
-			zoneverify_print(vctx, " %s", algbuf);
+			report(" %s", algbuf);
 		}
 	}
-	zoneverify_print(vctx, ".\n");
+	report(".\n");
 
 	if (ignore_kskflag || keyset_kskonly) {
 		return;
@@ -1930,7 +1913,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 }
 
 static isc_result_t
-check_bad_algorithms(const vctx_t *vctx) {
+check_bad_algorithms(const vctx_t *vctx, void (*report)(const char *, ...)) {
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	bool first = true;
 	int i;
@@ -1940,28 +1923,29 @@ check_bad_algorithms(const vctx_t *vctx) {
 			continue;
 		}
 		if (first) {
-			zoneverify_print(vctx,
-					 "The zone is not fully signed for "
-					 "the following algorithms:");
+			report("The zone is not fully signed "
+			       "for the following algorithms:");
 		}
 		dns_secalg_format(i, algbuf, sizeof(algbuf));
-		zoneverify_print(vctx, " %s", algbuf);
+		report(" %s", algbuf);
 		first = false;
 	}
 
 	if (!first) {
-		zoneverify_print(vctx, ".\n");
+		report(".\n");
 	}
 
 	return (first ? ISC_R_SUCCESS : ISC_R_FAILURE);
 }
 
 static void
-print_summary(const vctx_t *vctx, bool keyset_kskonly) {
+print_summary(const vctx_t *vctx, bool keyset_kskonly,
+	      void (*report)(const char *, ...))
+{
 	char algbuf[DNS_SECALG_FORMATSIZE];
 	int i;
 
-	zoneverify_print(vctx, "Zone fully signed:\n");
+	report("Zone fully signed:\n");
 	for (i = 0; i < 256; i++) {
 		if ((vctx->ksk_algorithms[i] == 0) &&
 		    (vctx->standby_ksk[i] == 0) &&
@@ -1973,20 +1957,18 @@ print_summary(const vctx_t *vctx, bool keyset_kskonly) {
 			continue;
 		}
 		dns_secalg_format(i, algbuf, sizeof(algbuf));
-		zoneverify_print(vctx,
-				 "Algorithm: %s: KSKs: "
-				 "%u active, %u stand-by, %u revoked\n",
-				 algbuf, vctx->ksk_algorithms[i],
-				 vctx->standby_ksk[i],
-				 vctx->revoked_ksk[i]);
-		zoneverify_print(vctx,
-				 "%*sZSKs: "
-				 "%u active, %u %s, %u revoked\n",
-				 (int)strlen(algbuf) + 13, "",
-				 vctx->zsk_algorithms[i],
-				 vctx->standby_zsk[i],
-				 keyset_kskonly ? "present" : "stand-by",
-				 vctx->revoked_zsk[i]);
+		report("Algorithm: %s: KSKs: "
+		       "%u active, %u stand-by, %u revoked\n",
+		       algbuf, vctx->ksk_algorithms[i],
+		       vctx->standby_ksk[i],
+		       vctx->revoked_ksk[i]);
+		report("%*sZSKs: "
+		       "%u active, %u %s, %u revoked\n",
+		       (int)strlen(algbuf) + 13, "",
+		       vctx->zsk_algorithms[i],
+		       vctx->standby_zsk[i],
+		       keyset_kskonly ? "present" : "stand-by",
+		       vctx->revoked_zsk[i]);
 	}
 }
 
@@ -1994,7 +1976,8 @@ isc_result_t
 dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		      dns_name_t *origin, dns_keytable_t *secroots,
 		      isc_mem_t *mctx, bool ignore_kskflag,
-		      bool keyset_kskonly)
+		      bool keyset_kskonly,
+		      void (*report)(const char *, ...))
 {
 	const char *keydesc = (secroots == NULL ? "self-signed" : "trusted");
 	isc_result_t result, vresult = ISC_R_UNSET;
@@ -2028,7 +2011,8 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		goto done;
 	}
 
-	determine_active_algorithms(&vctx, ignore_kskflag, keyset_kskonly);
+	determine_active_algorithms(&vctx, ignore_kskflag, keyset_kskonly,
+				    report);
 
 	result = verify_nodes(&vctx, &vresult);
 	if (result != ISC_R_SUCCESS) {
@@ -2043,22 +2027,21 @@ dns_zoneverify_dnssec(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		vresult = result;
 	}
 
-	result = check_bad_algorithms(&vctx);
+	result = check_bad_algorithms(&vctx, report);
 	if (result != ISC_R_SUCCESS) {
-		zoneverify_print(&vctx, "DNSSEC completeness test failed.\n");
+		report("DNSSEC completeness test failed.\n");
 		goto done;
 	}
 
 	result = vresult;
 	if (result != ISC_R_SUCCESS) {
-		zoneverify_print(&vctx,
-				 "DNSSEC completeness test failed (%s).\n",
-				 dns_result_totext(result));
+		report("DNSSEC completeness test failed (%s).\n",
+		       dns_result_totext(result));
 		goto done;
 	}
 
 	if (vctx.goodksk || ignore_kskflag) {
-		print_summary(&vctx, keyset_kskonly);
+		print_summary(&vctx, keyset_kskonly, report);
 	}
 
  done:

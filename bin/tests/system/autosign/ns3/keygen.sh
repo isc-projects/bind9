@@ -152,7 +152,7 @@ setup oldsigs.example
 cp $infile $zonefile
 $KEYGEN -q -a RSASHA1 -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -q -a RSASHA1 $zone > kg.out 2>&1 || dumpit kg.out
-$SIGNER -PS -s now-1y -e now-6mo -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
+$SIGNER -PS -s now-1y -e now-6mo -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
 #
 # NSEC3->NSEC transition test zone.
@@ -160,7 +160,7 @@ $SIGNER -PS -s now-1y -e now-6mo -o $zone -f $zonefile $infile > s.out 2>&1 || d
 setup nsec3-to-nsec.example
 $KEYGEN -q -a RSASHA512 -b 2048 -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -q -a RSASHA512 -b 1024 $zone > kg.out 2>&1 || dumpit kg.out
-$SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
+$SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
 #
 # secure-to-insecure transition test zone; used to test removal of
@@ -169,7 +169,7 @@ $SIGNER -S -3 beef -A -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
 setup secure-to-insecure.example
 $KEYGEN -a RSASHA1 -q -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -a RSASHA1 -q $zone > kg.out 2>&1 || dumpit kg.out
-$SIGNER -S -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
+$SIGNER -S -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
 #
 # another secure-to-insecure transition test zone; used to test
@@ -180,7 +180,7 @@ ksk=`$KEYGEN -q -a RSASHA1 -3 -fk $zone 2> kg.out` || dumpit kg.out
 echo $ksk > ../del1.key
 zsk=`$KEYGEN -q -a RSASHA1 -3 $zone 2> kg.out` || dumpit kg.out
 echo $zsk > ../del2.key
-$SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
+$SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
 #
 # Introducing a pre-published key test.
@@ -189,7 +189,7 @@ setup prepub.example
 infile="secure-to-insecure2.example.db.in"
 $KEYGEN -a RSASHA1 -3 -q -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -a RSASHA1 -3 -q $zone > kg.out 2>&1 || dumpit kg.out
-$SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
+$SIGNER -S -3 beef -o $zone -f $zonefile $infile > s.out || dumpit s.out
 
 #
 # Key TTL tests.
@@ -235,7 +235,7 @@ echo $zsk > ../delayzsk.key
 setup nozsk.example
 $KEYGEN -q -a RSASHA1 -3 -fk $zone > kg.out 2>&1 || dumpit kg.out
 zsk=`$KEYGEN -q -a RSASHA1 -3 $zone`
-$SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out 2>&1 || dumpit s.out
+$SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out || dumpit s.out
 echo $zsk > ../missingzsk.key
 rm -f ${zsk}.private
 
@@ -246,7 +246,7 @@ rm -f ${zsk}.private
 setup inaczsk.example
 $KEYGEN -q -a RSASHA1 -3 -fk $zone > kg.out 2>&1 || dumpit kg.out
 zsk=`$KEYGEN -q -a RSASHA1 -3 $zone`
-$SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out 2>&1 || dumpit s.out
+$SIGNER -S -P -s now-1mo -e now-1mi -o $zone -f $zonefile ${zonefile}.in > s.out || dumpit s.out
 echo $zsk > ../inactivezsk.key
 $SETTIME -I now $zsk > st.out 2>&1 || dumpit st.out
 
