@@ -1,3 +1,6 @@
+5273.	[bug]		Check that bits [64..71] of a dns64 prefix are zero.
+			[GL #1159]
+
 5269.	[port]		cygwin: can return ETIMEDOUT on connect() with a
 			non-blocking socket. [GL #1133]
 
