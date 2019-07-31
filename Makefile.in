@@ -56,10 +56,6 @@ install:: installdirs
 uninstall::
 	rm -f ${DESTDIR}${sysconfdir}/bind.keys
 
-tags:
-	rm -f TAGS
-	find lib bin -name "*.[ch]" -print | @ETAGS@ -
-
 test check:
 	@if test -n "`${PERL} ${top_srcdir}/bin/tests/system/testsock.pl 2>/dev/null || echo fail`"; then \
 	echo I: NOTE: The tests were not run because they require that; \
