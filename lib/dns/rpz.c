@@ -171,6 +171,9 @@ struct dns_rpz_nm_data {
 	dns_rpz_nm_zbits_t	wild;
 };
 
+static void
+rpz_detach(dns_rpz_zone_t **rpzp, dns_rpz_zones_t *rpzs);
+
 #if 0
 /*
  * Catch a name while debugging.
@@ -1991,6 +1994,7 @@ update_quantum(isc_task_t *task, isc_event_t *event) {
 		isc_ht_destroy(&rpz->newnodes);
 	dns_db_closeversion(rpz->updb, &rpz->updbversion, false);
 	dns_db_detach(&rpz->updb);
+	rpz_detach(&rpz, rpz->rpzs);
 }
 
 static void
@@ -2005,6 +2009,7 @@ dns_rpz_update_from_db(dns_rpz_zone_t *rpz) {
 	REQUIRE(rpz->updbit == NULL);
 	REQUIRE(rpz->newnodes == NULL);
 
+	isc_refcount_increment(&rpz->refs);
 	dns_db_attach(rpz->db, &rpz->updb);
 	rpz->updbversion = rpz->dbversion;
 	rpz->dbversion = NULL;
@@ -2029,6 +2034,7 @@ dns_rpz_update_from_db(dns_rpz_zone_t *rpz) {
 		isc_ht_destroy(&rpz->newnodes);
 	dns_db_closeversion(rpz->updb, &rpz->updbversion, false);
 	dns_db_detach(&rpz->updb);
+	rpz_detach(&rpz, rpz->rpzs);
 }
 
 /*
