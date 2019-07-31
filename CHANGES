@@ -1,3 +1,6 @@
+5273.	[bug]		Check that bits [64..71] of a dns64 prefix are zero.
+			[GL #1159]
+
 5272.	[cleanup]	Remove isc-config.sh script as the BIND 9 libraries
 			are now purely internal. [GL #1123]
 

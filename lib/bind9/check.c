@@ -526,6 +526,13 @@ check_dns64(cfg_aclconfctx_t *actx, const cfg_obj_t *voptions,
 			continue;
 		}
 
+		if (na.type.in6.s6_addr[8] != 0) {
+			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
+				 "invalid prefix, bits [64..71] must be zero");
+			result = ISC_R_FAILURE;
+			continue;
+		}
+
 		if (prefixlen != 32 && prefixlen != 40 && prefixlen != 48 &&
 		    prefixlen != 56 && prefixlen != 64 && prefixlen != 96) {
 			cfg_obj_log(map, logctx, ISC_LOG_ERROR,
