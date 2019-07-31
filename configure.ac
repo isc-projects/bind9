@@ -181,26 +181,6 @@ which ar resides, or set AR in the environment with the full path to ar.
 esac
 
 #
-# Etags.
-#
-AC_PATH_PROGS(ETAGS, etags emacs-etags)
-
-#
-# Some systems, e.g. RH7, have the Exuberant Ctags etags instead of
-# GNU emacs etags, and it requires the -L flag.
-#
-if test "X$ETAGS" != "X"; then
-	AC_MSG_CHECKING(for Exuberant Ctags etags)
-	if $ETAGS --version 2>&1 | grep 'Exuberant Ctags' >/dev/null 2>&1; then
-		AC_MSG_RESULT(yes)
-		ETAGS="$ETAGS -L"
-	else
-		AC_MSG_RESULT(no)
-	fi
-fi
-AC_SUBST(ETAGS)
-
-#
 # Perl is optional; it is used only by some of the system test scripts.
 # Note: the backtrace feature (see below) uses perl to build the symbol table,
 # but it still compiles without perl, in which case an empty table will be used.
