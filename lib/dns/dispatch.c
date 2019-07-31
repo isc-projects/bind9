@@ -1610,16 +1610,12 @@ destroy_mgr_ok(dns_dispatchmgr_t *mgr) {
  */
 static void
 destroy_mgr(dns_dispatchmgr_t **mgrp) {
-	isc_mem_t *mctx;
 	dns_dispatchmgr_t *mgr;
 
 	mgr = *mgrp;
 	*mgrp = NULL;
 
-	mctx = mgr->mctx;
-
 	mgr->magic = 0;
-	mgr->mctx = NULL;
 	isc_mutex_destroy(&mgr->lock);
 	mgr->state = 0;
 
@@ -1637,27 +1633,29 @@ destroy_mgr(dns_dispatchmgr_t **mgrp) {
 	isc_mutex_destroy(&mgr->rpool_lock);
 	isc_mutex_destroy(&mgr->depool_lock);
 
-	if (mgr->qid != NULL)
-		qid_destroy(mctx, &mgr->qid);
+	if (mgr->qid != NULL) {
+		qid_destroy(mgr->mctx, &mgr->qid);
+	}
 
 	isc_mutex_destroy(&mgr->buffer_lock);
 
-	if (mgr->blackhole != NULL)
+	if (mgr->blackhole != NULL) {
 		dns_acl_detach(&mgr->blackhole);
+	}
 
-	if (mgr->stats != NULL)
+	if (mgr->stats != NULL) {
 		isc_stats_detach(&mgr->stats);
+	}
 
 	if (mgr->v4ports != NULL) {
-		isc_mem_put(mctx, mgr->v4ports,
+		isc_mem_put(mgr->mctx, mgr->v4ports,
 			    mgr->nv4ports * sizeof(in_port_t));
 	}
 	if (mgr->v6ports != NULL) {
-		isc_mem_put(mctx, mgr->v6ports,
+		isc_mem_put(mgr->mctx, mgr->v6ports,
 			    mgr->nv6ports * sizeof(in_port_t));
 	}
-	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&mgr->mctx, mgr, sizeof(dns_dispatchmgr_t));
 }
 
 static isc_result_t
@@ -1847,8 +1845,7 @@ dns_dispatchmgr_create(isc_mem_t *mctx, dns_dispatchmgr_t **mgrp)
 	isc_mutex_destroy(&mgr->depool_lock);
 	isc_mutex_destroy(&mgr->buffer_lock);
 	isc_mutex_destroy(&mgr->lock);
-	isc_mem_put(mctx, mgr, sizeof(dns_dispatchmgr_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&mctx, mgr, sizeof(dns_dispatchmgr_t));
 
 	return (result);
 }
@@ -2349,7 +2346,6 @@ static void
 dispatch_free(dns_dispatch_t **dispp) {
 	dns_dispatch_t *disp;
 	dns_dispatchmgr_t *mgr;
-	int i;
 
 	REQUIRE(VALID_DISPATCH(*dispp));
 	disp = *dispp;
@@ -2376,8 +2372,9 @@ dispatch_free(dns_dispatch_t **dispp) {
 		qid_destroy(mgr->mctx, &disp->qid);
 
 	if (disp->port_table != NULL) {
-		for (i = 0; i < DNS_DISPATCH_PORTTABLESIZE; i++)
+		for (int i = 0; i < DNS_DISPATCH_PORTTABLESIZE; i++) {
 			INSIST(ISC_LIST_EMPTY(disp->port_table[i]));
+		}
 		isc_mem_put(mgr->mctx, disp->port_table,
 			    sizeof(disp->port_table[0]) *
 			    DNS_DISPATCH_PORTTABLESIZE);

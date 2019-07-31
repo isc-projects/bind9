@@ -1094,7 +1094,6 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
  */
 static void
 zone_free(dns_zone_t *zone) {
-	isc_mem_t *mctx = NULL;
 	dns_signing_t *signing;
 	dns_nsec3chain_t *nsec3chain;
 	isc_event_t *setnsec3param_event;
@@ -1255,9 +1254,7 @@ zone_free(dns_zone_t *zone) {
 	ZONEDB_DESTROYLOCK(&zone->dblock);
 	isc_mutex_destroy(&zone->lock);
 	zone->magic = 0;
-	mctx = zone->mctx;
-	isc_mem_put(mctx, zone, sizeof(*zone));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&zone->mctx, zone, sizeof(*zone));
 }
 
 /*
@@ -10101,8 +10098,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	dns_name_free(keyname, mctx);
-	isc_mem_put(mctx, kfetch, sizeof(dns_keyfetch_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&mctx, kfetch, sizeof(dns_keyfetch_t));
 
 	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);

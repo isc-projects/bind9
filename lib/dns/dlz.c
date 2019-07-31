@@ -370,7 +370,6 @@ dns_dlzstrtoargv(isc_mem_t *mctx, char *s,
 void
 dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
 	dns_dlzimplementation_t *dlz_imp;
-	isc_mem_t *mctx;
 
 	/* Write debugging message to log */
 	isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
@@ -395,14 +394,12 @@ dns_dlzunregister(dns_dlzimplementation_t **dlzimp) {
 
 	/* remove the dlz_implementation object from the list */
 	ISC_LIST_UNLINK(dlz_implementations, dlz_imp, link);
-	mctx = dlz_imp->mctx;
 
 	/*
 	 * Return the memory back to the available memory pool and
 	 * remove it from the memory context.
 	 */
-	isc_mem_put(mctx, dlz_imp, sizeof(dns_dlzimplementation_t));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&dlz_imp->mctx, dlz_imp, sizeof(*dlz_imp));
 
 	/* Unlock the dlz_implementations list. */
 	RWUNLOCK(&dlz_implock, isc_rwlocktype_write);

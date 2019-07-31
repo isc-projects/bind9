@@ -431,7 +431,6 @@ incctx_destroy(isc_mem_t *mctx, dns_incctx_t *ictx) {
 
 static void
 loadctx_destroy(dns_loadctx_t *lctx) {
-	isc_mem_t *mctx;
 	isc_result_t result;
 
 	REQUIRE(DNS_LCTX_VALID(lctx));
@@ -453,13 +452,11 @@ loadctx_destroy(dns_loadctx_t *lctx) {
 	if (lctx->lex != NULL && !lctx->keep_lex)
 		isc_lex_destroy(&lctx->lex);
 
-	if (lctx->task != NULL)
+	if (lctx->task != NULL) {
 		isc_task_detach(&lctx->task);
-	mctx = NULL;
-	isc_mem_attach(lctx->mctx, &mctx);
-	isc_mem_detach(&lctx->mctx);
-	isc_mem_put(mctx, lctx, sizeof(*lctx));
-	isc_mem_detach(&mctx);
+	}
+
+	isc_mem_putanddetach(&lctx->mctx, lctx, sizeof(*lctx));
 }
 
 static isc_result_t

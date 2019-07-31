@@ -197,7 +197,6 @@ dns_fwdtable_find(dns_fwdtable_t *fwdtable, const dns_name_t *name,
 void
 dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep) {
 	dns_fwdtable_t *fwdtable;
-	isc_mem_t *mctx;
 
 	REQUIRE(fwdtablep != NULL && VALID_FWDTABLE(*fwdtablep));
 
@@ -206,9 +205,8 @@ dns_fwdtable_destroy(dns_fwdtable_t **fwdtablep) {
 	dns_rbt_destroy(&fwdtable->table);
 	isc_rwlock_destroy(&fwdtable->rwlock);
 	fwdtable->magic = 0;
-	mctx = fwdtable->mctx;
-	isc_mem_put(mctx, fwdtable, sizeof(dns_fwdtable_t));
-	isc_mem_detach(&mctx);
+
+	isc_mem_putanddetach(&fwdtable->mctx, fwdtable, sizeof(dns_fwdtable_t));
 
 	*fwdtablep = NULL;
 }

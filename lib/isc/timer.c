@@ -727,7 +727,6 @@ isc_timermgr_poke(isc_timermgr_t *manager0) {
 void
 isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	isc__timermgr_t *manager;
-	isc_mem_t *mctx;
 
 	/*
 	 * Destroy a timer manager.
@@ -762,9 +761,7 @@ isc_timermgr_destroy(isc_timermgr_t **managerp) {
 	isc_heap_destroy(&manager->heap);
 	manager->common.impmagic = 0;
 	manager->common.magic = 0;
-	mctx = manager->mctx;
-	isc_mem_put(mctx, manager, sizeof(*manager));
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 
 	*managerp = NULL;
 

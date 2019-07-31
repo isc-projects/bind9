@@ -2537,8 +2537,6 @@ isc_socketmgr_setstats(isc_socketmgr_t *manager, isc_stats_t *stats) {
 void
 isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	isc_socketmgr_t *manager;
-	int i;
-	isc_mem_t *mctx;
 
 	/*
 	 * Destroy a socket manager.
@@ -2570,7 +2568,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	/*
 	 * Wait for threads to exit.
 	 */
-	for (i = 0; i < manager->maxIOCPThreads; i++) {
+	for (int i = 0; i < manager->maxIOCPThreads; i++) {
 		if (isc_thread_join((isc_thread_t) manager->hIOCPThreads[i],
 			NULL) != ISC_R_SUCCESS)
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
@@ -2585,13 +2583,11 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	(void)isc_condition_destroy(&manager->shutdown_ok);
 
 	isc_mutex_destroy(&manager->lock);
-	if (manager->stats != NULL)
+	if (manager->stats != NULL) {
 		isc_stats_detach(&manager->stats);
+	}
 	manager->magic = 0;
-	mctx= manager->mctx;
-	isc_mem_put(mctx, manager, sizeof(*manager));
-
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 
 	*managerp = NULL;
 }

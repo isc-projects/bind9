@@ -3851,8 +3851,6 @@ isc_socketmgr_setstats(isc_socketmgr_t *manager0, isc_stats_t *stats) {
 void
 isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	isc__socketmgr_t *manager;
-	isc_mem_t *mctx;
-	int i;
 
 	/*
 	 * Destroy a socket manager.
@@ -3879,14 +3877,14 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	 * half of the pipe, which will send EOF to the read half.
 	 * This is currently a no-op in the non-threaded case.
 	 */
-	for (i = 0; i < manager->nthreads; i++) {
+	for (int i = 0; i < manager->nthreads; i++) {
 		select_poke(manager, i, 0, SELECT_POKE_SHUTDOWN);
 	}
 
 	/*
 	 * Wait for thread to exit.
 	 */
-	for (i = 0; i < manager->nthreads; i++) {
+	for (int i = 0; i < manager->nthreads; i++) {
 		isc_result_t result;
 		result = isc_thread_join(manager->threads[i].thread, NULL);
 		if (result != ISC_R_SUCCESS) {
@@ -3908,10 +3906,7 @@ isc_socketmgr_destroy(isc_socketmgr_t **managerp) {
 	isc_mutex_destroy(&manager->lock);
 	manager->common.magic = 0;
 	manager->common.impmagic = 0;
-	mctx= manager->mctx;
-	isc_mem_put(mctx, manager, sizeof(*manager));
-
-	isc_mem_detach(&mctx);
+	isc_mem_putanddetach(&manager->mctx, manager, sizeof(*manager));
 
 	*managerp = NULL;
 
