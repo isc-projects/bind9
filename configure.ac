@@ -2143,21 +2143,19 @@ AC_SUBST([KYUA])
 
 LD_WRAP_TESTS=false
 AC_MSG_CHECKING([for linker support for --wrap option])
-AS_IF([test "$use_libtool" = yes],
-      [AX_SAVE_FLAGS([wrap])
-       LDFLAGS="-Wl,-wrap,exit"
-       AC_LINK_IFELSE(
-	   [AC_LANG_PROGRAM([[#include <stdlib.h>
-			      void __real_exit (int status);
-			      void __wrap_exit (int status) { __real_exit (status); }
-			     ]],
-			    [[exit (1);]])],
-	   [LD_WRAP_TESTS=true
-	    AC_DEFINE([LD_WRAP], [1], [define if the linker supports --wrap option])
-	    AC_MSG_RESULT([yes])],
-	   [AC_MSG_RESULT([no])])
-       AX_RESTORE_FLAGS([wrap])],
-     [AC_MSG_RESULT([no, libtool required])])
+AX_SAVE_FLAGS([wrap])
+LDFLAGS="-Wl,-wrap,exit"
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([[#include <stdlib.h>
+		       void __real_exit (int status);
+		       void __wrap_exit (int status) { __real_exit (status); }
+		      ]],
+		     [[exit (1);]])],
+    [LD_WRAP_TESTS=true
+     AC_DEFINE([LD_WRAP], [1], [define if the linker supports --wrap option])
+     AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])])
+AX_RESTORE_FLAGS([wrap])
 
 AC_SUBST([LD_WRAP_TESTS])
 

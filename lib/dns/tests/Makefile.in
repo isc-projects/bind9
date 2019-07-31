@@ -234,16 +234,17 @@ time_test@EXEEXT@: time_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 		${LDFLAGS} -o $@ time_test.@O@ dnstest.@O@ \
 		${DNSLIBS} ${ISCLIBS} ${LIBS}
 
-tkey_test@EXEEXT@: WRAP_OPTIONS = \
+WRAP_OPTIONS = \
 	-Wl,--wrap=isc__mem_put \
 	-Wl,--wrap=isc__mem_get \
 	-Wl,--wrap=isc_mem_attach \
 	-Wl,--wrap=isc_mem_detach \
 	-Wl,--wrap=isc__mem_putanddetach
+
 tkey_test@EXEEXT@: tkey_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
 	if test "${LD_WRAP_TESTS}" = true; then WRAP="${WRAP_OPTIONS}"; fi; \
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
-			${LDFLAGS} ${WRAP} -o $@ tkey_test.@O@ \
+			${LDFLAGS} $${WRAP} -o $@ tkey_test.@O@ \
 			${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 tsig_test@EXEEXT@: tsig_test.@O@ dnstest.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS}
