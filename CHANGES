@@ -1,3 +1,8 @@
+5275.	[bug]		Mark DS records included in referral messages
+			with trust level "pending" so that they can be
+			validated and cached immediately, with no need to
+			re-query. [GL #964]
+
 5274.	[bug]		Address potential use after free race when shutting
 			down rpz. [GL #1175]
 

@@ -154,6 +154,13 @@
 	  algorithm and same Server Secret for the best performance.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  DS records included in DNS referral messages can now be validated
+	  and cached immediately, reducing the number of queries needed for
+	  a DNSSEC validation. [GL #964]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
