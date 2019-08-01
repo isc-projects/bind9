@@ -157,9 +157,13 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->frozen = false;
 	view->task = NULL;
 	result = isc_refcount_init(&view->references, 1);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		goto cleanup_fwdtable;
-	view->weakrefs = 0;
+	}
+	result = isc_refcount_init(&view->weakrefs, 0);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_references;
+	}
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN|
 			    DNS_VIEWATTR_REQSHUTDOWN);
 	view->statickeys = NULL;
@@ -169,7 +173,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->matchrecursiveonly = false;
 	result = dns_tsigkeyring_create(view->mctx, &view->dynamickeys);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup_references;
+		goto cleanup_weakrefs;
 	view->peers = NULL;
 	view->order = NULL;
 	view->delonly = NULL;
@@ -318,6 +322,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 		dns_tsigkeyring_detach(&view->dynamickeys);
 	}
 
+ cleanup_weakrefs:
+	isc_refcount_destroy(&view->weakrefs);
+
  cleanup_references:
 	isc_refcount_decrement(&view->references, NULL);
 	isc_refcount_destroy(&view->references);
@@ -354,11 +361,12 @@ destroy(dns_view_t *view) {
 	dns_dlzdb_t *dlzdb;
 
 	REQUIRE(!ISC_LINK_LINKED(view, link));
-	REQUIRE(isc_refcount_current(&view->references) == 0);
-	REQUIRE(view->weakrefs == 0);
 	REQUIRE(RESSHUTDOWN(view));
 	REQUIRE(ADBSHUTDOWN(view));
 	REQUIRE(REQSHUTDOWN(view));
+
+	isc_refcount_destroy(&view->references);
+	isc_refcount_destroy(&view->weakrefs);
 
 	if (view->order != NULL)
 		dns_order_detach(&view->order);
@@ -554,6 +562,7 @@ destroy(dns_view_t *view) {
 	DESTROYLOCK(&view->new_zone_lock);
 	DESTROYLOCK(&view->lock);
 	isc_refcount_destroy(&view->references);
+	isc_refcount_destroy(&view->weakrefs);
 	isc_mem_free(view->mctx, view->nta_file);
 	isc_mem_free(view->mctx, view->name);
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
@@ -567,9 +576,11 @@ static bool
 all_done(dns_view_t *view) {
 
 	if (isc_refcount_current(&view->references) == 0 &&
-	    view->weakrefs == 0 &&
+	    isc_refcount_current(&view->weakrefs) == 0 &&
 	    RESSHUTDOWN(view) && ADBSHUTDOWN(view) && REQSHUTDOWN(view))
+	{
 		return (true);
+	}
 
 	return (false);
 }
@@ -679,9 +690,7 @@ dns_view_weakattach(dns_view_t *source, dns_view_t **targetp) {
 	REQUIRE(DNS_VIEW_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	LOCK(&source->lock);
-	source->weakrefs++;
-	UNLOCK(&source->lock);
+	isc_refcount_increment0(&source->weakrefs, NULL);
 
 	*targetp = source;
 }
@@ -689,24 +698,23 @@ dns_view_weakattach(dns_view_t *source, dns_view_t **targetp) {
 void
 dns_view_weakdetach(dns_view_t **viewp) {
 	dns_view_t *view;
-	bool done = false;
+	unsigned int weakrefs;
 
 	REQUIRE(viewp != NULL);
 	view = *viewp;
 	REQUIRE(DNS_VIEW_VALID(view));
-
-	LOCK(&view->lock);
-
-	INSIST(view->weakrefs > 0);
-	view->weakrefs--;
-	done = all_done(view);
-
-	UNLOCK(&view->lock);
-
 	*viewp = NULL;
 
-	if (done)
-		destroy(view);
+	isc_refcount_decrement(&view->weakrefs, &weakrefs);
+	if (weakrefs == 0) {
+		bool done = false;
+		LOCK(&view->lock);
+		done = all_done(view);
+		UNLOCK(&view->lock);
+		if (done) {
+			destroy(view);
+		}
+	}
 }
 
 static void
