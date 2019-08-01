@@ -197,9 +197,9 @@ struct dns_view {
 
 	/* Locked by themselves. */
 	isc_refcount_t			references;
+	isc_refcount_t			weakrefs;
 
 	/* Locked by lock. */
-	unsigned int			weakrefs;
 	unsigned int			attributes;
 	/* Under owner's locking control. */
 	ISC_LINK(struct dns_view)	link;
