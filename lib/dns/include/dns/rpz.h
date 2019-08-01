@@ -247,6 +247,7 @@ struct dns_rpz_zones {
 	isc_timermgr_t		*timermgr;
 	isc_task_t		*updater;
 	isc_refcount_t		refs;
+	isc_refcount_t		irefs;
 	/*
 	 * One lock for short term read-only search that guarantees the
 	 * consistency of the pointers.
