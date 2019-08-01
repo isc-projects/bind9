@@ -1674,7 +1674,7 @@ plus_option(char *option, bool is_batchfile,
 			switch (cmd[2]) {
 			case 'e':
 				FULLCHECK("unexpected");
-				lookup->accept_reply_unexpected_src = true;
+				lookup->accept_reply_unexpected_src = state;
 				break;
 			case 'k':
 				FULLCHECK("unknownformat");

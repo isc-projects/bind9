@@ -67,7 +67,7 @@ for (;;) {
                 my $sendsock =
                         IO::Socket::INET->new(LocalAddr => "10.53.1.2",
                                               PeerAddr => $sock->peerhost,
-                                              PeerPort => "5300",
+                                              PeerPort => $sock->peerport,
                                               Proto => "udp") or die "$!";
                 print "**** response from ", $sendsock->sockhost, " to " ,
                       $sendsock->peerhost, " port ", $sendsock->peerport, "\n";

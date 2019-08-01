@@ -621,6 +621,7 @@ make_empty_lookup(void) {
 	looknew->ttlunits = false;
 	looknew->expandaaaa = false;
 	looknew->qr = false;
+	looknew->accept_reply_unexpected_src = false;
 #ifdef HAVE_LIBIDN2
 	looknew->idnin = isatty(1)?(getenv("IDN_DISABLE") == NULL):false;
 	looknew->idnout = looknew->idnin;
@@ -766,6 +767,8 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 	looknew->ttlunits = lookold->ttlunits;
 	looknew->expandaaaa = lookold->expandaaaa;
 	looknew->qr = lookold->qr;
+	looknew->accept_reply_unexpected_src =
+		lookold->accept_reply_unexpected_src;
 	looknew->idnin = lookold->idnin;
 	looknew->idnout = lookold->idnout;
 	looknew->udpsize = lookold->udpsize;
