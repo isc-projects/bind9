@@ -2173,10 +2173,7 @@ dns_rpz_detach_rpzs(dns_rpz_zones_t **rpzsp) {
 	*rpzsp = NULL;
 
 	if (isc_refcount_decrement(&rpzs->refs) == 1) {
-		/*
-		 * Destroy the task first, so that nothing runs
-		 * in the background that might race with us.
-		 */
+
 		isc_task_destroy(&rpzs->updater);
 
 		/*
