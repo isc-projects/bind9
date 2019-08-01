@@ -1,3 +1,6 @@
+5274.	[bug]		Address potential use after free race when shutting
+			down rpz. [GL #1175]
+
 5273.	[bug]		Check that bits [64..71] of a dns64 prefix are zero.
 			[GL #1159]
 
