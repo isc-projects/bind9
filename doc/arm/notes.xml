@@ -288,6 +288,13 @@
 	  all output on standard output except for the name of the signed zone.
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  DS records included in DNS referral messages can now be validated
+	  and cached immediately, reducing the number of queries needed for
+	  a DNSSEC validation. [GL #964]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
