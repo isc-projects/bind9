@@ -537,6 +537,7 @@ struct dns_resolver {
 #define BADCOOKIE(a)                    (((a)->flags & \
 					 FCTX_ADDRINFO_BADCOOKIE) != 0)
 
+#define NONTA(o)			(((o) & DNS_FETCHOPT_NONTA) != 0)
 
 #define NXDOMAIN(r) (((r)->attributes & DNS_RDATASETATTR_NXDOMAIN) != 0)
 #define NEGATIVE(r) (((r)->attributes & DNS_RDATASETATTR_NEGATIVE) != 0)
@@ -2201,7 +2202,7 @@ resquery_send(resquery_t *query) {
 	} else if (res->view->enablevalidation &&
 		   ((fctx->qmessage->flags & DNS_MESSAGEFLAG_RD) != 0))
 	{
-		bool checknta = ((query->options & DNS_FETCHOPT_NONTA) == 0);
+		bool checknta = !NONTA(query->options);
 		bool ntacovered = false;
 		result = issecuredomain(res->view, &fctx->name, fctx->type,
 					isc_time_seconds(&query->start),
@@ -5385,7 +5386,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
+	if (NONTA(fctx->options)) {
 		valoptions |= DNS_VALIDATOR_NONTA;
 		checknta = false;
 	}
@@ -5972,7 +5973,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 	/*
 	 * Is DNSSEC validation required for this name?
 	 */
-	if ((fctx->options & DNS_FETCHOPT_NONTA) != 0) {
+	if (NONTA(fctx->options)) {
 		valoptions |= DNS_VALIDATOR_NONTA;
 		checknta = false;
 	}
@@ -6693,6 +6694,10 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 					 * marked.
 					 */
 				} else if (type == dns_rdatatype_ds) {
+					bool checknta = true;
+					bool secure_domain = false;
+					isc_stdtime_t now;
+
 					/*
 					 * DS or SIG DS.
 					 *
@@ -6723,15 +6728,32 @@ noanswer_response(fetchctx_t *fctx, dns_name_t *oqname,
 						DNS_NAMEATTR_CACHE;
 					rdataset->attributes |=
 						DNS_RDATASETATTR_CACHE;
-					if (aa)
+
+					isc_stdtime_get(&now);
+					if (NONTA(fctx->options)) {
+						checknta = false;
+					}
+					result = issecuredomain(fctx->res->view,
+								name, type, now,
+								checknta, NULL,
+								&secure_domain);
+					if (result != ISC_R_SUCCESS) {
+						return (result);
+					}
+					if (secure_domain) {
+						rdataset->trust =
+						     dns_trust_pending_answer;
+					} else if (aa) {
 						rdataset->trust =
 						    dns_trust_authauthority;
-					else if (ISFORWARDER(fctx->addrinfo))
+					} else if (ISFORWARDER(fctx->addrinfo))
+					{
 						rdataset->trust =
 							dns_trust_answer;
-					else
+					} else {
 						rdataset->trust =
 							dns_trust_additional;
+					}
 				}
 			}
 		} else {

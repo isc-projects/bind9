@@ -164,6 +164,15 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+echo_i "checking that 'example/DS' from the referral was used in previous validation ($n)"
+ret=0
+grep "query 'example/DS/IN' approved" ns1/named.run > /dev/null && ret=1
+grep "fetch: example/DS" ns4/named.run > /dev/null && ret=1
+grep "validating example/DS: starting" ns4/named.run > /dev/null || ret=1
+n=$((n+1))
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
 if [ -x ${DELV} ] ; then
    ret=0
    echo_i "checking postive validation NSEC using dns_client ($n)"
