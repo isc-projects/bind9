@@ -474,16 +474,24 @@ LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
  *	attribute is set, the base type is of no use.
  *
  * _STALE
- *	RRset type counters only.  This indicates a record that marked for
- *	removal.
+ *	RRset type counters only.  This indicates a record that is stale
+ *	but may still be served.
  *
  *	Note: incrementing _STALE will decrement the corresponding non-stale
  *	counter.
+ *
+ * _ANCIENT
+ *	RRset type counters only.  This indicates a record that is marked for
+ *	removal.
+ *
+ *	Note: incrementing _ANCIENT will decrement the corresponding
+ *	non-ancient counter.
  */
 #define DNS_RDATASTATSTYPE_ATTR_OTHERTYPE	0x0001
 #define DNS_RDATASTATSTYPE_ATTR_NXRRSET		0x0002
 #define DNS_RDATASTATSTYPE_ATTR_NXDOMAIN	0x0004
 #define DNS_RDATASTATSTYPE_ATTR_STALE		0x0008
+#define DNS_RDATASTATSTYPE_ATTR_ANCIENT		0x0010
 
 /*%<
  * Conversion macros among dns_rdatatype_t, attributes and isc_statscounter_t.
