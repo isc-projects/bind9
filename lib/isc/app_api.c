@@ -24,6 +24,7 @@
 static isc_mutex_t createlock;
 static isc_once_t once = ISC_ONCE_INIT;
 static isc_appctxcreatefunc_t appctx_createfunc = NULL;
+static isc_mutex_t runninglock;
 static bool is_running = false;
 
 #define ISCAPI_APPMETHODS_VALID(m) ISC_MAGIC_VALID(m, ISCAPI_APPMETHODS_MAGIC)
@@ -31,6 +32,7 @@ static bool is_running = false;
 static void
 initialize(void) {
 	RUNTIME_CHECK(isc_mutex_init(&createlock) == ISC_R_SUCCESS);
+	RUNTIME_CHECK(isc_mutex_init(&runninglock) == ISC_R_SUCCESS);
 }
 
 isc_result_t
@@ -197,9 +199,15 @@ isc_app_run() {
 	if (isc_bind9) {
 		isc_result_t result;
 
+		RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+
+		LOCK(&runninglock);
 		is_running = true;
+		UNLOCK(&runninglock);
 		result = isc__app_run();
+		LOCK(&runninglock);
 		is_running = false;
+		UNLOCK(&runninglock);
 
 		return (result);
 	}
@@ -209,7 +217,15 @@ isc_app_run() {
 
 bool
 isc_app_isrunning() {
-	return (is_running);
+	bool running;
+
+	RUNTIME_CHECK(isc_once_do(&once, initialize) == ISC_R_SUCCESS);
+
+	LOCK(&runninglock);
+	running = is_running;
+	UNLOCK(&runninglock);
+
+	return (running);
 }
 
 isc_result_t
