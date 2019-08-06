@@ -151,7 +151,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->frozen = false;
 	view->task = NULL;
 	isc_refcount_init(&view->references, 1);
-	isc_refcount_init(&view->weakrefs, 0);
+	isc_refcount_init(&view->weakrefs, 1);
 	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN|
 			    DNS_VIEWATTR_REQSHUTDOWN);
 	view->statickeys = NULL;
@@ -318,6 +318,7 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	}
 
  cleanup_weakrefs:
+	isc_refcount_decrement(&view->weakrefs);
 	isc_refcount_destroy(&view->weakrefs);
 
 	isc_refcount_decrement(&view->references);
@@ -566,23 +567,6 @@ destroy(dns_view_t *view) {
 	isc_mem_putanddetach(&view->mctx, view, sizeof(*view));
 }
 
-/*
- * Return true iff 'view' may be freed.
- * The caller must be holding the view lock.
- */
-static bool
-all_done(dns_view_t *view) {
-
-	if (isc_refcount_current(&view->references) == 0 &&
-	    isc_refcount_current(&view->weakrefs) == 0 &&
-	    RESSHUTDOWN(view) && ADBSHUTDOWN(view) && REQSHUTDOWN(view))
-	{
-		return (true);
-	}
-
-	return (false);
-}
-
 void
 dns_view_attach(dns_view_t *source, dns_view_t **targetp) {
 
@@ -604,7 +588,6 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		view->flush = flush;
 	}
 
-	bool done = false;
 	if (isc_refcount_decrement(&view->references) == 1) {
 		dns_zone_t *mkzone = NULL, *rdzone = NULL;
 
@@ -642,7 +625,6 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		if (view->catzs != NULL) {
 			dns_catz_catzs_detach(&view->catzs);
 		}
-		done = all_done(view);
 		UNLOCK(&view->lock);
 
 		/* Need to detach zones outside view lock */
@@ -653,12 +635,8 @@ view_flushanddetach(dns_view_t **viewp, bool flush) {
 		if (rdzone != NULL) {
 			dns_zone_detach(&rdzone);
 		}
-	}
 
-	*viewp = NULL;
-
-	if (done) {
-		destroy(view);
+		dns_view_weakdetach(&view);
 	}
 }
 
@@ -693,7 +671,7 @@ dns_view_weakattach(dns_view_t *source, dns_view_t **targetp) {
 	REQUIRE(DNS_VIEW_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
-	isc_refcount_increment0(&source->weakrefs);
+	isc_refcount_increment(&source->weakrefs);
 
 	*targetp = source;
 }
@@ -708,20 +686,13 @@ dns_view_weakdetach(dns_view_t **viewp) {
 	*viewp = NULL;
 
 	if (isc_refcount_decrement(&view->weakrefs) == 1) {
-		bool done = false;
-		LOCK(&view->lock);
-		done = all_done(view);
-		UNLOCK(&view->lock);
-		if (done) {
-			destroy(view);
-		}
+		destroy(view);
 	}
 }
 
 static void
 resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
-	bool done;
 
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWRESSHUTDOWN);
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -732,20 +703,15 @@ resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	LOCK(&view->lock);
-
 	view->attributes |= DNS_VIEWATTR_RESSHUTDOWN;
-	done = all_done(view);
-
 	UNLOCK(&view->lock);
 
-	if (done)
-		destroy(view);
+	dns_view_weakdetach(&view);
 }
 
 static void
 adb_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
-	bool done;
 
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWADBSHUTDOWN);
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -756,20 +722,15 @@ adb_shutdown(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	LOCK(&view->lock);
-
 	view->attributes |= DNS_VIEWATTR_ADBSHUTDOWN;
-	done = all_done(view);
-
 	UNLOCK(&view->lock);
 
-	if (done)
-		destroy(view);
+	dns_view_weakdetach(&view);
 }
 
 static void
 req_shutdown(isc_task_t *task, isc_event_t *event) {
 	dns_view_t *view = event->ev_arg;
-	bool done;
 
 	REQUIRE(event->ev_type == DNS_EVENT_VIEWREQSHUTDOWN);
 	REQUIRE(DNS_VIEW_VALID(view));
@@ -780,14 +741,10 @@ req_shutdown(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&event);
 
 	LOCK(&view->lock);
-
 	view->attributes |= DNS_VIEWATTR_REQSHUTDOWN;
-	done = all_done(view);
-
 	UNLOCK(&view->lock);
 
-	if (done)
-		destroy(view);
+	dns_view_weakdetach(&view);
 }
 
 isc_result_t
@@ -836,6 +793,7 @@ dns_view_createresolver(dns_view_t *view,
 	event = &view->resevent;
 	dns_resolver_whenshutdown(view->resolver, view->task, &event);
 	view->attributes &= ~DNS_VIEWATTR_RESSHUTDOWN;
+	isc_refcount_increment(&view->weakrefs);
 
 	result = isc_mem_create(0, 0, &mctx);
 	if (result != ISC_R_SUCCESS) {
@@ -853,6 +811,7 @@ dns_view_createresolver(dns_view_t *view,
 	event = &view->adbevent;
 	dns_adb_whenshutdown(view->adb, view->task, &event);
 	view->attributes &= ~DNS_VIEWATTR_ADBSHUTDOWN;
+	isc_refcount_increment(&view->weakrefs);
 
 	result = dns_requestmgr_create(view->mctx, timermgr, socketmgr,
 				      dns_resolver_taskmgr(view->resolver),
@@ -867,6 +826,7 @@ dns_view_createresolver(dns_view_t *view,
 	event = &view->reqevent;
 	dns_requestmgr_whenshutdown(view->requestmgr, view->task, &event);
 	view->attributes &= ~DNS_VIEWATTR_REQSHUTDOWN;
+	isc_refcount_increment(&view->weakrefs);
 
 	return (ISC_R_SUCCESS);
 }
