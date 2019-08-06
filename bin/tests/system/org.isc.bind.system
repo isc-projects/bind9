@@ -27,3 +27,4 @@ do
 	ifup 1 99 $ns
 	ifup 2 00 $ns
 done
+/sbin/ifconfig lo0 inet6 fd92:7065:b8e:fffe::10.53.0.4 alias
