@@ -204,8 +204,13 @@
       </listitem>
       <listitem>
 	<para>
-	  The <command>dnssec-lookaside</command> option has been deprecated.
-	  The feature still works, but it is discouraged to use it. [GL #7]
+	  DNSSEC Lookaside Validation (DLV) is now obsolete.
+	  The <command>dnssec-lookaside</command> option has been
+	  marked as deprecated; when used in <filename>named.conf</filename>,
+	  it will generate a warning but will otherwise be ignored.
+	  All code enabling the use of lookaside validation has been removed
+	  from the validator, <command>delv</command>, and the DNSSEC tools.
+	  [GL #7]
 	</para>
       </listitem>
     </itemizedlist>
@@ -216,9 +221,7 @@
       <listitem>
  	<para>
  	  <command>named</command> will now log a warning if
-	  a static key is configured for the root zone, or if
-	  any key is configured for "dlv.isc.org", which has been shut
-	  down. [GL #6]
+	  a static key is configured for the root zone. [GL #6]
 	</para>
       </listitem>
       <listitem>
