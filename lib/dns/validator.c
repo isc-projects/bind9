@@ -160,10 +160,20 @@ disassociate_rdatasets(dns_validator_t *val) {
 }
 
 /*%
- * Mark the RRsets as a answer.
+ * Mark the rdatasets in val->event with trust level "answer",
+ * indicating that they did not validate, but could be cached as insecure.
+ *
+ * If we are validating a name that is marked as "must be secure", log a
+ * warning and return DNS_R_MUSTBESECURE instead.
  */
-static inline void
-markanswer(dns_validator_t *val, const char *where) {
+static inline isc_result_t
+markanswer(dns_validator_t *val, const char *where, const char *mbstext) {
+	if (val->mustbesecure && mbstext != NULL) {
+		validator_log(val, ISC_LOG_WARNING,
+			      "must be secure failure, %s", mbstext);
+		return (DNS_R_MUSTBESECURE);
+	}
+
 	validator_log(val, ISC_LOG_DEBUG(3), "marking as answer (%s)", where);
 	if (val->event->rdataset != NULL) {
 		dns_rdataset_settrust(val->event->rdataset, dns_trust_answer);
@@ -172,8 +182,13 @@ markanswer(dns_validator_t *val, const char *where) {
 		dns_rdataset_settrust(val->event->sigrdataset,
 				      dns_trust_answer);
 	}
+
+	return (ISC_R_SUCCESS);
 }
 
+/*%
+ * Mark the RRsets with trust level secure.
+ */
 static inline void
 marksecure(dns_validatorevent_t *event) {
 	dns_rdataset_settrust(event->rdataset, dns_trust_secure);
@@ -427,11 +442,14 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 			validator_done(val, DNS_R_BROKENCHAIN);
 		}
 	}
+
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
+
 	if (fetch != NULL) {
 		dns_resolver_destroyfetch(&fetch);
 	}
+
 	if (want_destroy) {
 		destroy(val);
 	}
@@ -511,11 +529,14 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 			validator_done(val, DNS_R_BROKENCHAIN);
 		}
 	}
+
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
+
 	if (fetch != NULL) {
 		dns_resolver_destroyfetch(&fetch);
 	}
+
 	if (want_destroy) {
 		destroy(val);
 	}
@@ -577,16 +598,11 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 		 */
 		tname = dns_fixedname_name(&devent->foundname);
 		if (eresult != DNS_R_CNAME &&
-		    isdelegation(tname, &val->frdataset, eresult)) {
-			if (val->mustbesecure) {
-				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure, no DS"
-					      " and this is a delegation");
-				validator_done(val, DNS_R_MUSTBESECURE);
-			} else {
-				markanswer(val, "dsfetched2");
-				validator_done(val, ISC_R_SUCCESS);
-			}
+		    isdelegation(tname, &val->frdataset, eresult))
+		{
+			result = markanswer(val, "dsfetched2",
+					    "no DS and this is a delegation");
+			validator_done(val, result);
 		} else {
 			result = proveunsecure(val, false, true);
 			if (result != DNS_R_WAIT) {
@@ -614,12 +630,15 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 			validator_done(val, DNS_R_NOVALIDDS);
 		}
 	}
+
 	isc_event_free(&event);
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
+
 	if (fetch != NULL) {
 		dns_resolver_destroyfetch(&fetch);
 	}
+
 	if (want_destroy) {
 		destroy(val);
 	}
@@ -690,6 +709,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
+
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
 	if (want_destroy) {
@@ -741,15 +761,8 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 		    NEGATIVE(&val->frdataset) &&
 		    isdelegation(name, &val->frdataset, DNS_R_NCACHENXRRSET))
 		{
-			if (val->mustbesecure) {
-				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure, no DS "
-					      "and this is a delegation");
-				result = DNS_R_MUSTBESECURE;
-			} else {
-				markanswer(val, "dsvalidated");
-				result = ISC_R_SUCCESS;
-			}
+			result = markanswer(val, "dsvalidated",
+					    "no DS and this is a delegation");
 		} else if ((val->attributes & VALATTR_INSECURITY) != 0) {
 			result = proveunsecure(val, have_dsset, true);
 		} else {
@@ -767,6 +780,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
+
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
 	if (want_destroy) {
@@ -820,6 +834,7 @@ cnamevalidated(isc_task_t *task, isc_event_t *event) {
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
+
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
 	if (want_destroy) {
@@ -933,6 +948,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 			validator_done(val, result);
 		}
 	}
+
 	want_destroy = exit_check(val);
 	UNLOCK(&val->lock);
 	if (want_destroy) {
@@ -1811,17 +1827,10 @@ validatezonekey(dns_validator_t *val) {
 							  found)
 							!= ISC_R_SUCCESS)
 			{
-				if (val->mustbesecure) {
-					validator_log(val, ISC_LOG_WARNING,
-						      "must be secure "
-						      "failure, not beneath "
-						      "secure root");
-					return (DNS_R_MUSTBESECURE);
-				}
 				validator_log(val, ISC_LOG_DEBUG(3),
-					     "not beneath secure root");
-				markanswer(val, "validatezonekey (1)");
-				return (ISC_R_SUCCESS);
+					      "not beneath secure root");
+				return (markanswer(val, "validatezonekey (1)",
+						   "not beneath secure root"));
 			}
 			if (result == DNS_R_PARTIALMATCH ||
 			    result == ISC_R_SUCCESS)
@@ -1964,14 +1973,7 @@ validatezonekey(dns_validator_t *val) {
 	INSIST(val->dsset != NULL);
 
 	if (val->dsset->trust < dns_trust_secure) {
-		if (val->mustbesecure) {
-			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure,"
-				      " insecure DS");
-			return (DNS_R_MUSTBESECURE);
-		}
-		markanswer(val, "validatezonekey (2)");
-		return (ISC_R_SUCCESS);
+		return (markanswer(val, "validatezonekey (2)", "insecure DS"));
 	}
 
 	/*
@@ -2083,16 +2085,10 @@ validatezonekey(dns_validator_t *val) {
 		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure (DS)");
 		return (result);
 	} else if (result == ISC_R_NOMORE && !supported_algorithm) {
-		if (val->mustbesecure) {
-			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure, "
-				      "no supported algorithm/digest (DS)");
-			return (DNS_R_MUSTBESECURE);
-		}
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "no supported algorithm/digest (DS)");
-		markanswer(val, "validatezonekey (3)");
-		return (ISC_R_SUCCESS);
+		return (markanswer(val, "validatezonekey (3)",
+				   "no supported algorithm/digest (DS)"));
 	} else {
 		validator_log(val, ISC_LOG_INFO,
 			      "no valid signature found (DS)");
@@ -2691,18 +2687,17 @@ nsecvalidate(dns_validator_t *val, bool resume) {
 			marksecure(val->event);
 			return (ISC_R_SUCCESS);
 		} else if (FOUNDOPTOUT(val) &&
-			   dns_name_countlabels(dns_fixedname_name(&val->wild))
-			   != 0)
+		      dns_name_countlabels(dns_fixedname_name(&val->wild)) != 0)
 		{
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "optout proof found");
 			val->event->optout = true;
-			markanswer(val, "nsecvalidate (1)");
+			markanswer(val, "nsecvalidate (1)", NULL);
 			return (ISC_R_SUCCESS);
 		} else if ((val->attributes & VALATTR_FOUNDUNKNOWN) != 0) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "unknown NSEC3 hash algorithm found");
-			markanswer(val, "nsecvalidate (2)");
+			markanswer(val, "nsecvalidate (2)", NULL);
 			return (ISC_R_SUCCESS);
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
@@ -2848,15 +2843,8 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 					 NULL, NULL) == ISC_R_SUCCESS &&
 		    dns_name_equal(tname, found))
 		{
-			if (val->mustbesecure) {
-				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure, "
-					      "no DS at zone cut");
-				*resp = DNS_R_MUSTBESECURE;
-			} else {
-				markanswer(val, "proveunsecure (3)");
-				*resp = ISC_R_SUCCESS;
-			}
+			*resp = markanswer(val, "proveunsecure (3)",
+					   "no DS at zone cut");
 			return (ISC_R_COMPLETE);
 		}
 
@@ -2875,16 +2863,8 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		}
 
 		if (isdelegation(tname, &val->frdataset, result)) {
-			if (val->mustbesecure) {
-				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure, "
-					      "%s is a delegation",
-					      namebuf);
-				*resp = DNS_R_MUSTBESECURE;
-			} else {
-				markanswer(val, "proveunsecure (4)");
-				*resp = ISC_R_SUCCESS;
-			}
+			*resp = markanswer(val, "proveunsecure (4)",
+					   "this is a delegation");
 			return (ISC_R_COMPLETE);
 		}
 
@@ -2920,18 +2900,9 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 					      "no supported algorithm/"
 					      "digest (%s/DS)",
 					      namebuf);
-				if (val->mustbesecure) {
-					validator_log(val,
-					      ISC_LOG_WARNING,
-					      "must be secure failure, "
-					      "no supported algorithm/"
-					      "digest (%s/DS)",
-					      namebuf);
-					*resp = DNS_R_MUSTBESECURE;
-				} else {
-					markanswer(val, "proveunsecure (5)");
-					*resp = ISC_R_SUCCESS;
-				}
+				*resp = markanswer(val, "proveunsecure (5)",
+						   "no supported "
+						   "algorithm/digest (DS)");
 				return (ISC_R_COMPLETE);
 			}
 
@@ -3069,17 +3040,10 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 
 	result = dns_keytable_finddeepestmatch(val->keytable, secroot, secroot);
 	if (result == ISC_R_NOTFOUND) {
-		if (val->mustbesecure) {
-			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure, "
-				      "not beneath secure root");
-			result = DNS_R_MUSTBESECURE;
-			goto out;
-		}
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "not beneath secure root");
-		markanswer(val, "proveunsecure (1)");
-		return (ISC_R_SUCCESS);
+		return (markanswer(val, "proveunsecure (1)",
+				   "not beneath secure root"));
 	} else if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -3105,18 +3069,10 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 		{
 			dns_name_format(dns_fixedname_name(&val->fname),
 					namebuf, sizeof(namebuf));
-			if (val->mustbesecure) {
-				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure at '%s'",
-					      namebuf);
-				result = DNS_R_MUSTBESECURE;
-				goto out;
-			}
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no supported algorithm/digest (%s/DS)",
 				      namebuf);
-			markanswer(val, "proveunsecure (2)");
-			result = ISC_R_SUCCESS;
+			result = markanswer(val, "proveunsecure (2)", namebuf);
 			goto out;
 		}
 		val->labels++;
@@ -3454,9 +3410,7 @@ dns_validator_destroy(dns_validator_t **validatorp) {
 	validator_log(val, ISC_LOG_DEBUG(4), "dns_validator_destroy");
 
 	want_destroy = exit_check(val);
-
 	UNLOCK(&val->lock);
-
 	if (want_destroy) {
 		destroy(val);
 	}
