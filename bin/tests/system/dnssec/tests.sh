@@ -1212,34 +1212,6 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "checking that positive validation in a privately secure zone works ($n)"
-ret=0
-dig_with_opts +noauth a.private.secure.example. a @10.53.0.2 \
-	> dig.out.ns2.test$n || ret=1
-dig_with_opts +noauth a.private.secure.example. a @10.53.0.4 \
-	> dig.out.ns4.test$n || ret=1
-digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
-grep "NOERROR" dig.out.ns4.test$n > /dev/null || ret=1
-# Note - this is looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "checking that negative validation in a privately secure zone works ($n)"
-ret=0
-dig_with_opts +noauth q.private.secure.example. a @10.53.0.2 \
-	> dig.out.ns2.test$n || ret=1
-dig_with_opts +noauth q.private.secure.example. a @10.53.0.4 \
-	> dig.out.ns4.test$n || ret=1
-digcomp dig.out.ns2.test$n dig.out.ns4.test$n || ret=1
-grep "NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
-# Note - this is looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
 echo_i "checking that lookups succeed after disabling an algorithm ($n)"
 ret=0
 dig_with_opts +noauth example. SOA @10.53.0.2 \
@@ -1249,28 +1221,6 @@ dig_with_opts +noauth example. SOA @10.53.0.6 \
 digcomp dig.out.ns2.test$n dig.out.ns6.test$n || ret=1
 # Note - this is looking for failure, hence the &&
 grep "flags:.*ad.*QUERY" dig.out.ns6.test$n > /dev/null && ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "checking privately secure to nxdomain works ($n)"
-ret=0
-dig_with_opts +noauth private2secure-nxdomain.private.secure.example. SOA @10.53.0.4 \
-	> dig.out.ns4.test$n || ret=1
-grep "NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
-# Note - this is looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-echo_i "checking privately secure wildcard to nxdomain works ($n)"
-ret=0
-dig_with_opts +noauth a.wild.private.secure.example. SOA @10.53.0.4 \
-	> dig.out.ns4.test$n || ret=1
-grep "NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
-# Note - this is looking for failure, hence the &&
-grep "flags:.*ad.*QUERY" dig.out.ns4.test$n > /dev/null && ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -1295,21 +1245,6 @@ grep "AUTHORITY: 0" dig.out.ns7.test$n > /dev/null || ret=1
 dig_with_opts +noauth b.nosoa.secure.example. txt @10.53.0.4 \
 	> dig.out.ns4.test$n || ret=1
 grep "status: NXDOMAIN" dig.out.ns4.test$n > /dev/null || ret=1
-n=$((n+1))
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-#
-# private.secure.example is served by the same server as its
-# grand parent and there is not a secure delegation from secure.example
-# to private.secure.example.  In addition secure.example is using a
-# algorithm which the validation does not support.
-#
-echo_i "checking dnssec-lookaside-validation works ($n)"
-ret=0
-dig_with_opts private.secure.example. SOA @10.53.0.6 \
-	> dig.out.ns6.test$n || ret=1
-grep "flags:.*ad.*QUERY" dig.out.ns6.test$n > /dev/null || ret=1
 n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -2433,7 +2368,7 @@ status=$((status+ret))
 echo_i "checking that DS at a RFC 1918 empty zone lookup succeeds ($n)"
 ret=0
 dig_with_opts +noauth 10.in-addr.arpa ds @10.53.0.2 >dig.out.ns2.test$n || ret=1
-dig_with_opts +noauth 10.in-addr.arpa ds @10.53.0.6 >dig.out.ns6.test$n || ret=1
+dig_with_opts +noauth 10.in-addr.arpa ds @10.53.0.4 >dig.out.ns6.test$n || ret=1
 digcomp dig.out.ns2.test$n dig.out.ns6.test$n || ret=1
 grep "status: NOERROR" dig.out.ns6.test$n > /dev/null || ret=1
 n=$((n+1))

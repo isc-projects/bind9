@@ -136,31 +136,6 @@ keyname2=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zon
 cat "$infile" "$keyname1.key" "$keyname2.key" > "$zonefile"
 "$SIGNER" -P -g -o "$zone" -k "$keyname1" "$zonefile" "$keyname2" > /dev/null 2>&1
 
-# Sign the privately secure file
-
-privzone=private.secure.example
-privinfile=private.secure.example.db.in
-privzonefile=private.secure.example.db
-
-privkeyname=$("$KEYGEN" -q -a "${DEFAULT_ALGORITHM}" -b "${DEFAULT_BITS}" -n zone "$privzone")
-
-cat "$privinfile" "$privkeyname.key" > "$privzonefile"
-
-"$SIGNER" -P -g -o "$privzone" -l dlv "$privzonefile" > /dev/null 2>&1
-
-# Sign the DLV secure zone.
-
-dlvzone=dlv.
-dlvinfile=dlv.db.in
-dlvzonefile=dlv.db
-dlvsetfile="dlvset-${privzone}${TP}"
-
-dlvkeyname=$("$KEYGEN" -q -a "${DEFAULT_ALGORITHM}" -b "${DEFAULT_BITS}" -n zone "$dlvzone")
-
-cat "$dlvinfile" "$dlvkeyname.key" "$dlvsetfile" > "$dlvzonefile"
-
-"$SIGNER" -P -g -o "$dlvzone" "$dlvzonefile" > /dev/null 2>&1
-
 # Sign the badparam secure file
 
 zone=badparam.
