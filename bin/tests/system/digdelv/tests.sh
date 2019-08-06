@@ -85,19 +85,19 @@ if [ -x "$DIG" ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo_i "checking dig +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
+  echo_i "checking dig +multi +norrcomments works for DNSKEY (when default is rrcomments)($n)"
   ret=0
-  $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > dig.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
+  $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments -t DNSKEY dnskey.example > dig.out.test$n || ret=1
+  grep "; ZSK; alg = " < dig.out.test$n > /dev/null && ret=1
   check_ttl_range dig.out.test$n "DNSKEY" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo_i "checking dig +multi +norrcomments works for soa (when default is rrcomments)($n)"
+  echo_i "checking dig +multi +norrcomments works for SOA (when default is rrcomments)($n)"
   ret=0
-  $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > dig.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < dig.out.test$n > /dev/null && ret=1
+  $DIG $DIGOPTS +tcp @10.53.0.3 +multi +norrcomments -t SOA example > dig.out.test$n || ret=1
+  grep "; serial" dig.out.test$n > /dev/null && ret=1
   check_ttl_range dig.out.test$n "SOA" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
@@ -560,6 +560,22 @@ if [ -x ${MDIG} ] ; then
   grep "ednsopt no code point specified" dig.out.test$n > /dev/null || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "checking mdig +multi +norrcomments works for DNSKEY (when default is rrcomments)($n)"
+  ret=0
+  $MDIG $MDIGOPTS +tcp @10.53.0.3 +multi +norrcomments -t DNSKEY dnskey.example > dig.out.test$n || ret=1
+  grep " ; ZSK; alg = " < dig.out.test$n > /dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
+
+  n=`expr $n + 1`
+  echo_i "checking mdig +multi +norrcomments works for SOA (when default is rrcomments)($n)"
+  ret=0
+  $MDIG $MDIGOPTS +tcp @10.53.0.3 +multi +norrcomments -t SOA example > dig.out.test$n || ret=1
+  grep "; serial" < dig.out.test$n > /dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=`expr $status + $ret`
 else
   echo_i "$MDIG is needed, so skipping these mdig tests"
 fi
@@ -658,19 +674,19 @@ if [ -x ${DELV} ] ; then
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo_i "checking delv +multi +norrcomments works for dnskey (when default is rrcomments)($n)"
+  echo_i "checking delv +multi +norrcomments works for DNSKEY (when default is rrcomments)($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +multi +norrcomments DNSKEY dnskey.example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
+  grep "; ZSK; alg = " < delv.out.test$n > /dev/null && ret=1
   check_ttl_range delv.out.test$n "DNSKEY" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
 
   n=`expr $n + 1`
-  echo_i "checking delv +multi +norrcomments works for soa (when default is rrcomments)($n)"
+  echo_i "checking delv +multi +norrcomments works for SOA (when default is rrcomments)($n)"
   ret=0
   $DELV $DELVOPTS +tcp @10.53.0.3 +multi +norrcomments SOA example > delv.out.test$n || ret=1
-  grep "; ZSK; alg = RSAMD5 ; key id = 30795" < delv.out.test$n > /dev/null && ret=1
+  grep "; ZSK; alg = " < delv.out.test$n > /dev/null && ret=1
   check_ttl_range delv.out.test$n "SOA" 300 || ret=1
   if [ $ret != 0 ]; then echo_i "failed"; fi
   status=`expr $status + $ret`
