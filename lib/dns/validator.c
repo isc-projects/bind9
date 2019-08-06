@@ -2781,10 +2781,262 @@ check_ds(dns_validator_t *val, dns_name_t *name, dns_rdataset_t *rdataset) {
 }
 
 /*%
- * proveunsecure walks down from the SEP looking for a break in the
- * chain of trust.  That occurs when we can prove the DS record does
- * not exist at a delegation point or the DS exists at a delegation
- * but we don't support the algorithm/digest.
+ * seek_ds looks for DS rrsets at the label indicated by val->labels,
+ * for an insecurity proof.
+ *
+ * Returns:
+ * \li	ISC_R_COMPLETE		a result has been determined and copied
+ * 				into `*resp`; ISC_R_SUCCESS indicates that
+ * 				the name has been proven insecure and any
+ * 				other result indicates failure.
+ * \li	DNS_R_CONTINUE		result is indeterminate; caller should
+ * 				continue walking down labels.
+ */
+static isc_result_t
+seek_ds(dns_validator_t *val, isc_result_t *resp) {
+	isc_result_t result;
+	char namebuf[DNS_NAME_FORMATSIZE];
+	dns_fixedname_t fixedfound;
+	dns_name_t *found = dns_fixedname_initname(&fixedfound);
+	dns_name_t *tname = dns_fixedname_initname(&val->fname);
+
+	if (val->labels == dns_name_countlabels(val->event->name)) {
+		dns_name_copynf(val->event->name, tname);
+	} else {
+		dns_name_split(val->event->name, val->labels, NULL, tname);
+	}
+
+	dns_name_format(tname, namebuf, sizeof(namebuf));
+	validator_log(val, ISC_LOG_DEBUG(3),
+		      "checking existence of DS at '%s'", namebuf);
+
+	result = view_find(val, tname, dns_rdatatype_ds);
+	switch (result) {
+	case DNS_R_NXRRSET:
+	case DNS_R_NCACHENXRRSET:
+		/*
+		 * There is no DS.  If this is a delegation,
+		 * we may be done.
+		 *
+		 * If we have "trust == answer" then this namespace
+		 * has switched from insecure to should be secure.
+		 */
+		if (DNS_TRUST_PENDING(val->frdataset.trust) ||
+		    DNS_TRUST_ANSWER(val->frdataset.trust))
+		{
+			result = create_validator(val, tname,
+						  dns_rdatatype_ds,
+						  &val->frdataset,
+						  NULL, dsvalidated,
+						  "proveunsecure");
+			*resp = DNS_R_WAIT;
+			if (result != ISC_R_SUCCESS) {
+				*resp = result;
+			}
+			return (ISC_R_COMPLETE);
+		}
+
+		/*
+		 * Zones using NSEC3 don't return a NSEC RRset so
+		 * we need to use dns_view_findzonecut2 to find
+		 * the zone cut.
+		 */
+		if (result == DNS_R_NXRRSET &&
+		    !dns_rdataset_isassociated(&val->frdataset) &&
+		    dns_view_findzonecut(val->view, tname, found, NULL,
+					 0, 0, false, false,
+					 NULL, NULL) == ISC_R_SUCCESS &&
+		    dns_name_equal(tname, found))
+		{
+			if (val->mustbesecure) {
+				validator_log(val, ISC_LOG_WARNING,
+					      "must be secure failure, "
+					      "no DS at zone cut");
+				*resp = DNS_R_MUSTBESECURE;
+			} else {
+				markanswer(val, "proveunsecure (3)");
+				*resp = ISC_R_SUCCESS;
+			}
+			return (ISC_R_COMPLETE);
+		}
+
+		if (val->frdataset.trust < dns_trust_secure) {
+			/*
+			 * This shouldn't happen, since the negative
+			 * response should have been validated.  Since
+			 * there's no way of validating existing
+			 * negative response blobs, give up.
+			 */
+			validator_log(val, ISC_LOG_WARNING,
+				      "can't validate existing "
+				      "negative responses (no DS)");
+			*resp = DNS_R_MUSTBESECURE;
+			return (ISC_R_COMPLETE);
+		}
+
+		if (isdelegation(tname, &val->frdataset, result)) {
+			if (val->mustbesecure) {
+				validator_log(val, ISC_LOG_WARNING,
+					      "must be secure failure, "
+					      "%s is a delegation",
+					      namebuf);
+				*resp = DNS_R_MUSTBESECURE;
+			} else {
+				markanswer(val, "proveunsecure (4)");
+				*resp = ISC_R_SUCCESS;
+			}
+			return (ISC_R_COMPLETE);
+		}
+
+		break;
+
+	case DNS_R_CNAME:
+		if (DNS_TRUST_PENDING(val->frdataset.trust) ||
+		    DNS_TRUST_ANSWER(val->frdataset.trust))
+		{
+			result = create_validator(val, tname,
+						  dns_rdatatype_cname,
+						  &val->frdataset,
+						  NULL, cnamevalidated,
+						  "proveunsecure "
+						  "(cname)");
+			*resp = DNS_R_WAIT;
+			if (result != ISC_R_SUCCESS) {
+				*resp = result;
+			}
+			return (ISC_R_COMPLETE);
+		}
+
+		break;
+
+	case ISC_R_SUCCESS:
+		/*
+		 * There is a DS here.  Verify that it's secure and
+		 * continue walking down labels.
+		 */
+		if (val->frdataset.trust >= dns_trust_secure) {
+			if (!check_ds(val, tname, &val->frdataset)) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "no supported algorithm/"
+					      "digest (%s/DS)",
+					      namebuf);
+				if (val->mustbesecure) {
+					validator_log(val,
+					      ISC_LOG_WARNING,
+					      "must be secure failure, "
+					      "no supported algorithm/"
+					      "digest (%s/DS)",
+					      namebuf);
+					*resp = DNS_R_MUSTBESECURE;
+				} else {
+					markanswer(val, "proveunsecure (5)");
+					*resp = ISC_R_SUCCESS;
+				}
+				return (ISC_R_COMPLETE);
+			}
+
+			break;
+		}
+
+		if (!dns_rdataset_isassociated(&val->fsigrdataset)) {
+			validator_log(val, ISC_LOG_DEBUG(3), "DS is unsigned");
+			*resp = DNS_R_NOVALIDSIG;
+		} else {
+			/*
+			 * Validate / re-validate answer.
+			 */
+			result = create_validator(val, tname,
+						  dns_rdatatype_ds,
+						  &val->frdataset,
+						  &val->fsigrdataset,
+						  dsvalidated,
+						  "proveunsecure");
+			*resp = DNS_R_WAIT;
+			if (result != ISC_R_SUCCESS) {
+				*resp = result;
+			}
+		}
+
+		return (ISC_R_COMPLETE);
+
+	case DNS_R_NXDOMAIN:
+	case DNS_R_NCACHENXDOMAIN:
+		/*
+		 * This is not a zone cut. Assuming things are
+		 * as expected, continue.
+		 */
+		if (!dns_rdataset_isassociated(&val->frdataset)) {
+			/*
+			 * There should be an NSEC here, since we
+			 * are still in a secure zone.
+			 */
+			*resp = DNS_R_NOVALIDNSEC;
+			return (ISC_R_COMPLETE);
+		} else if (DNS_TRUST_PENDING(val->frdataset.trust) ||
+			   DNS_TRUST_ANSWER(val->frdataset.trust))
+		{
+			/*
+			 * If we have "trust == answer" then this
+			 * namespace has switched from insecure to
+			 * should be secure.
+			 */
+			*resp = DNS_R_WAIT;
+			result = create_validator(val, tname,
+						  dns_rdatatype_ds,
+						  &val->frdataset,
+						  NULL, dsvalidated,
+						  "proveunsecure");
+			if (result != ISC_R_SUCCESS) {
+				*resp = result;
+			}
+			return (ISC_R_COMPLETE);
+		} else if (val->frdataset.trust < dns_trust_secure) {
+			/*
+			 * This shouldn't happen, since the negative
+			 * response should have been validated.  Since
+			 * there's no way of validating existing
+			 * negative response blobs, give up.
+			 */
+			validator_log(val, ISC_LOG_WARNING,
+				      "can't validate existing "
+				      "negative responses "
+				      "(not a zone cut)");
+			*resp = DNS_R_NOVALIDSIG;
+			return (ISC_R_COMPLETE);
+		}
+
+		break;
+
+	case ISC_R_NOTFOUND:
+		/*
+		 * We don't know anything about the DS.  Find it.
+		 */
+		*resp = DNS_R_WAIT;
+		result = create_fetch(val, tname, dns_rdatatype_ds,
+				      dsfetched2, "proveunsecure");
+		if (result != ISC_R_SUCCESS) {
+			*resp = result;
+		}
+		return (ISC_R_COMPLETE);
+
+	default:
+		*resp = result;
+		return (ISC_R_COMPLETE);
+	}
+
+	/*
+	 * No definite answer yet; continue walking down labels.
+	 */
+	return (DNS_R_CONTINUE);
+}
+
+/*%
+ * proveunsecure walks down, label by label, from the closest enclosing
+ * trust anchor to the name that is being validated, looking for an
+ * endpoint in the chain of trust.  That occurs when we can prove that
+ * a DS record does not exist at a delegation point, or that a DS exists
+ * at a delegation point but we don't support its algorithm/digest.  If
+ * no such endpoint is found, then the response should have been secure.
  *
  * Returns:
  * \li	ISC_R_SUCCESS		val->event->name is in a unsecure zone
@@ -2802,9 +3054,6 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_fixedname_t fixedsecroot;
 	dns_name_t *secroot = dns_fixedname_initname(&fixedsecroot);
-	dns_fixedname_t fixedfound;
-	dns_name_t *found = dns_fixedname_initname(&fixedfound);
-	dns_name_t *tname = NULL;
 	unsigned int labels;
 
 	dns_name_copynf(val->event->name, secroot);
@@ -2837,16 +3086,18 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 
 	if (!resume) {
 		/*
-		 * We are looking for breaks below the SEP so add a label.
+		 * We are looking for interruptions in the chain of trust.
+		 * That can only happen *below* the trust anchor, so we
+		 * start looking at the next label down.
 		 */
 		val->labels = dns_name_countlabels(secroot) + 1;
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3), "resuming proveunsecure");
+
 		/*
-		 * If we have a DS rdataset and it is secure then check if
-		 * the DS rdataset has a supported algorithm combination.
-		 * If not this is an insecure delegation as far as this
-		 * resolver is concerned.
+		 * If we have a DS rdataset and it is secure, check whether
+		 * it has a supported algorithm combination.  If not, this is
+		 * an insecure delegation as far as this resolver is concerned.
 		 */
 		if (have_ds && val->frdataset.trust >= dns_trust_secure &&
 		    !check_ds(val, dns_fixedname_name(&val->fname),
@@ -2871,223 +3122,33 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 		val->labels++;
 	}
 
-	for (;
-	     val->labels <= dns_name_countlabels(val->event->name);
-	     val->labels++)
-	{
-		tname = dns_fixedname_initname(&val->fname);
-		if (val->labels == dns_name_countlabels(val->event->name)) {
-			dns_name_copynf(val->event->name, tname);
-		} else {
-			dns_name_split(val->event->name, val->labels,
-				       NULL, tname);
+	/*
+	 * Walk down through each of the remaining labels in the name,
+	 * looking for DS records.
+	 */
+	while (val->labels <= dns_name_countlabels(val->event->name)) {
+		isc_result_t tresult;
+
+		result = seek_ds(val, &tresult);
+		if (result == ISC_R_COMPLETE) {
+			result = tresult;
+			goto out;
 		}
 
-		dns_name_format(tname, namebuf, sizeof(namebuf));
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "checking existence of DS at '%s'",
-			      namebuf);
-
-		result = view_find(val, tname, dns_rdatatype_ds);
-		switch (result) {
-		case DNS_R_NXRRSET:
-		case DNS_R_NCACHENXRRSET:
-			/*
-			 * There is no DS.  If this is a delegation,
-			 * we may be done.
-			 *
-			 * If we have "trust == answer" then this namespace
-			 * has switched from insecure to should be secure.
-			 */
-			if (DNS_TRUST_PENDING(val->frdataset.trust) ||
-			    DNS_TRUST_ANSWER(val->frdataset.trust))
-			{
-				result = create_validator(val, tname,
-							  dns_rdatatype_ds,
-							  &val->frdataset,
-							  NULL, dsvalidated,
-							  "proveunsecure");
-				if (result != ISC_R_SUCCESS) {
-					goto out;
-				}
-				return (DNS_R_WAIT);
-			}
-			/*
-			 * Zones using NSEC3 don't return a NSEC RRset so
-			 * we need to use dns_view_findzonecut2 to find
-			 * the zone cut.
-			 */
-			if (result == DNS_R_NXRRSET &&
-			    !dns_rdataset_isassociated(&val->frdataset) &&
-			    dns_view_findzonecut(val->view, tname, found, NULL,
-						 0, 0, false, false,
-						 NULL, NULL) == ISC_R_SUCCESS &&
-			    dns_name_equal(tname, found))
-			{
-				if (val->mustbesecure) {
-					validator_log(val, ISC_LOG_WARNING,
-						      "must be secure failure, "
-						      "no DS at zone cut");
-					return (DNS_R_MUSTBESECURE);
-				}
-				markanswer(val, "proveunsecure (3)");
-				return (ISC_R_SUCCESS);
-			}
-			if (val->frdataset.trust < dns_trust_secure) {
-				/*
-				 * This shouldn't happen, since the negative
-				 * response should have been validated.  Since
-				 * there's no way of validating existing
-				 * negative response blobs, give up.
-				 */
-				validator_log(val, ISC_LOG_WARNING,
-					      "can't validate existing "
-					      "negative responses (no DS)");
-				result = DNS_R_NOVALIDSIG;
-				goto out;
-			}
-			if (isdelegation(tname, &val->frdataset, result)) {
-				if (val->mustbesecure) {
-					validator_log(val, ISC_LOG_WARNING,
-						      "must be secure failure, "
-						      "%s is a delegation",
-						      namebuf);
-					return (DNS_R_MUSTBESECURE);
-				}
-				markanswer(val, "proveunsecure (4)");
-				return (ISC_R_SUCCESS);
-			}
-			continue;
-		case DNS_R_CNAME:
-			if (DNS_TRUST_PENDING(val->frdataset.trust) ||
-			    DNS_TRUST_ANSWER(val->frdataset.trust))
-			{
-				result = create_validator(val, tname,
-							  dns_rdatatype_cname,
-							  &val->frdataset,
-							  NULL, cnamevalidated,
-							  "proveunsecure "
-							  "(cname)");
-				if (result != ISC_R_SUCCESS) {
-					goto out;
-				}
-				return (DNS_R_WAIT);
-			}
-			continue;
-		case ISC_R_SUCCESS:
-			/*
-			 * There is a DS here.  Verify that it's secure and
-			 * continue.
-			 */
-			if (val->frdataset.trust >= dns_trust_secure) {
-				if (!check_ds(val, tname, &val->frdataset)) {
-					validator_log(val, ISC_LOG_DEBUG(3),
-						      "no supported algorithm/"
-						      "digest (%s/DS)",
-						      namebuf);
-					if (val->mustbesecure) {
-						validator_log(val,
-						      ISC_LOG_WARNING,
-						      "must be secure failure, "
-						      "no supported algorithm/"
-						      "digest (%s/DS)",
-						      namebuf);
-						result = DNS_R_MUSTBESECURE;
-						goto out;
-					}
-					markanswer(val, "proveunsecure (5)");
-					result = ISC_R_SUCCESS;
-					goto out;
-				}
-				continue;
-			} else if (!dns_rdataset_isassociated(&val->
-							      fsigrdataset))
-			{
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "DS is unsigned");
-				result = DNS_R_NOVALIDSIG;
-				goto out;
-			}
-			/*
-			 * Validate / re-validate answer.
-			 */
-			result = create_validator(val, tname, dns_rdatatype_ds,
-						  &val->frdataset,
-						  &val->fsigrdataset,
-						  dsvalidated,
-						  "proveunsecure");
-			if (result != ISC_R_SUCCESS) {
-				goto out;
-			}
-			return (DNS_R_WAIT);
-		case DNS_R_NXDOMAIN:
-		case DNS_R_NCACHENXDOMAIN:
-			/*
-			 * This is not a zone cut. Assuming things are
-			 * as expected, continue.
-			 */
-			if (!dns_rdataset_isassociated(&val->frdataset)) {
-				/*
-				 * There should be an NSEC here, since we
-				 * are still in a secure zone.
-				 */
-				result = DNS_R_NOVALIDNSEC;
-				goto out;
-			} else if (DNS_TRUST_PENDING(val->frdataset.trust) ||
-				   DNS_TRUST_ANSWER(val->frdataset.trust))
-			{
-				/*
-				 * If we have "trust == answer" then this
-				 * namespace has switched from insecure to
-				 * should be secure.
-				 */
-				result = create_validator(val, tname,
-							  dns_rdatatype_ds,
-							  &val->frdataset,
-							  NULL, dsvalidated,
-							  "proveunsecure");
-				if (result != ISC_R_SUCCESS) {
-					goto out;
-				}
-				return (DNS_R_WAIT);
-			} else if (val->frdataset.trust < dns_trust_secure) {
-				/*
-				 * This shouldn't happen, since the negative
-				 * response should have been validated.  Since
-				 * there's no way of validating existing
-				 * negative response blobs, give up.
-				 */
-				validator_log(val, ISC_LOG_WARNING,
-					      "can't validate existing "
-					      "negative responses "
-					      "(not a zone cut)");
-				result = DNS_R_NOVALIDSIG;
-				goto out;
-			}
-			continue;
-		case ISC_R_NOTFOUND:
-			/*
-			 * We don't know anything about the DS.  Find it.
-			 */
-			result = create_fetch(val, tname, dns_rdatatype_ds,
-					      dsfetched2, "proveunsecure");
-			if (result != ISC_R_SUCCESS) {
-				goto out;
-			}
-			return (DNS_R_WAIT);
-		case DNS_R_BROKENCHAIN:
-			return (result);
-		default:
-			break;
-		}
+		INSIST(result == DNS_R_CONTINUE);
+		val->labels++;
 	}
 
-	/* Couldn't complete insecurity proof */
-	validator_log(val, ISC_LOG_DEBUG(3), "insecurity proof failed");
+	/* Couldn't complete insecurity proof. */
+	validator_log(val, ISC_LOG_DEBUG(3),
+		      "insecurity proof failed: %s",
+		      isc_result_totext(result));
 	return (DNS_R_NOTINSECURE);
 
  out:
-	disassociate_rdatasets(val);
+	if (result != DNS_R_WAIT) {
+		disassociate_rdatasets(val);
+	}
 	return (result);
 }
 
@@ -3228,6 +3289,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				   DNS_EVENT_VALIDATORSTART,
 				   validator_start, NULL,
 				   sizeof(dns_validatorevent_t));
+
 	isc_task_attach(task, &tclone);
 	event->validator = val;
 	event->result = ISC_R_FAILURE;
@@ -3252,7 +3314,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->keytable = NULL;
 	result = dns_view_getsecroots(val->view, &val->keytable);
 	if (result != ISC_R_SUCCESS) {
-		goto cleanup_mutex;
+		goto cleanup;
 	}
 	val->keynode = NULL;
 	val->key = NULL;
@@ -3286,7 +3348,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 
 	return (ISC_R_SUCCESS);
 
- cleanup_mutex:
+ cleanup:
 	isc_mutex_destroy(&val->lock);
 
 	isc_task_detach(&tclone);
