@@ -26,8 +26,6 @@
  * the view and may fetch RRset to complete trust chains.  It implements
  * DNSSEC as specified in RFC 4033, 4034 and 4035.
  *
- * It can also optionally implement ISC's DNSSEC look-aside validation.
- *
  * Correct operation is critical to preventing spoofed answers from secure
  * zones being accepted.
  *

@@ -45,38 +45,20 @@
  * Basic processing sequences.
  *
  * \li When called with rdataset and sigrdataset:
- * validator_start -> validate -> proveunsecure -> startfinddlvsep ->
- *	dlv_validator_start -> validator_start -> validate -> proveunsecure
+ * validator_start -> validate -> proveunsecure
  *
  * validator_start -> validate -> nsecvalidate	(secure wildcard answer)
  *
- * \li When called with rdataset, sigrdataset and with DNS_VALIDATOR_DLV:
- * validator_start -> startfinddlvsep -> dlv_validator_start ->
- *	validator_start -> validate -> proveunsecure
- *
  * \li When called with rdataset:
- * validator_start -> proveunsecure -> startfinddlvsep ->
- *	dlv_validator_start -> validator_start -> proveunsecure
- *
- * \li When called with rdataset and with DNS_VALIDATOR_DLV:
- * validator_start -> startfinddlvsep -> dlv_validator_start ->
- *	validator_start -> proveunsecure
+ * validator_start -> proveunsecure
  *
  * \li When called without a rdataset:
- * validator_start -> nsecvalidate -> proveunsecure -> startfinddlvsep ->
- *	dlv_validator_start -> validator_start -> nsecvalidate -> proveunsecure
- *
- * Note: there isn't a case for DNS_VALIDATOR_DLV here as we want nsecvalidate()
- * to always validate the authority section even when it does not contain
- * signatures.
+ * validator_start -> nsecvalidate -> proveunsecure
  *
  * validator_start: determines what type of validation to do.
  * validate: attempts to perform a positive validation.
  * proveunsecure: attempts to prove the answer comes from a unsecure zone.
  * nsecvalidate: attempts to prove a negative response.
- * startfinddlvsep: starts the DLV record lookup.
- * dlv_validator_start: resets state and restarts the lookup using the
- *	DLV RRset found by startfinddlvsep.
  */
 
 #define VALIDATOR_MAGIC			ISC_MAGIC('V', 'a', 'l', '?')
@@ -86,8 +68,7 @@
 #define VALATTR_CANCELED		0x0002	/*%< Canceled. */
 #define VALATTR_TRIEDVERIFY		0x0004  /*%< We have found a key and
 						 * have attempted a verify. */
-#define VALATTR_INSECURITY		0x0010	/*%< Attempting proveunsecure. */
-#define VALATTR_DLVTRIED		0x0020	/*%< Looked for a DLV record. */
+#define VALATTR_INSECURITY		0x0010 /*%< Attempting proveunsecure. */
 
 /*!
  * NSEC proofs to be looked for.
@@ -113,7 +94,6 @@
 #define NEEDNODATA(val) ((val->attributes & VALATTR_NEEDNODATA) != 0)
 #define NEEDNOQNAME(val) ((val->attributes & VALATTR_NEEDNOQNAME) != 0)
 #define NEEDNOWILDCARD(val) ((val->attributes & VALATTR_NEEDNOWILDCARD) != 0)
-#define DLVTRIED(val) ((val->attributes & VALATTR_DLVTRIED) != 0)
 #define FOUNDNODATA(val) ((val->attributes & VALATTR_FOUNDNODATA) != 0)
 #define FOUNDNOQNAME(val) ((val->attributes & VALATTR_FOUNDNOQNAME) != 0)
 #define FOUNDNOWILDCARD(val) ((val->attributes & VALATTR_FOUNDNOWILDCARD) != 0)
@@ -158,18 +138,6 @@ static void
 validator_logcreate(dns_validator_t *val,
 		    dns_name_t *name, dns_rdatatype_t type,
 		    const char *caller, const char *operation);
-
-static isc_result_t
-dlv_validatezonekey(dns_validator_t *val);
-
-static void
-dlv_validator_start(dns_validator_t *val);
-
-static isc_result_t
-finddlvsep(dns_validator_t *val, bool resume);
-
-static isc_result_t
-startfinddlvsep(dns_validator_t *val, const dns_name_t *unsecure);
 
 /*%
  * Mark the RRsets as a answer.
@@ -226,38 +194,6 @@ exit_check(dns_validator_t *val) {
 		return (false);
 
 	return (true);
-}
-
-/*
- * Check that we have atleast one supported algorithm in the DLV RRset.
- */
-static inline bool
-dlv_algorithm_supported(dns_validator_t *val) {
-	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_rdata_dlv_t dlv;
-	isc_result_t result;
-
-	for (result = dns_rdataset_first(&val->dlv);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&val->dlv)) {
-		dns_rdata_reset(&rdata);
-		dns_rdataset_current(&val->dlv, &rdata);
-		result = dns_rdata_tostruct(&rdata, &dlv, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		if (!dns_resolver_algorithm_supported(val->view->resolver,
-						      val->event->name,
-						      dlv.algorithm))
-			continue;
-
-		if (!dns_resolver_ds_digest_supported(val->view->resolver,
-						      val->event->name,
-						      dlv.digest_type))
-			continue;
-
-		return (true);
-	}
-	return (false);
 }
 
 /*%
@@ -595,14 +531,9 @@ dsfetched2(isc_task_t *task, isc_event_t *event) {
 					      "must be secure failure, no DS"
 					      " and this is a delegation");
 				validator_done(val, DNS_R_MUSTBESECURE);
-			} else if (val->view->dlv == NULL || DLVTRIED(val)) {
-				markanswer(val, "dsfetched2");
-				validator_done(val, ISC_R_SUCCESS);
-			} else {
-				result = startfinddlvsep(val, tname);
-				if (result != DNS_R_WAIT)
-					validator_done(val, result);
 			}
+			markanswer(val, "dsfetched2");
+			validator_done(val, ISC_R_SUCCESS);
 		} else {
 			result = proveunsecure(val, false, true);
 			if (result != DNS_R_WAIT)
@@ -755,11 +686,9 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 					      "must be secure failure, no DS "
 					      "and this is a delegation");
 				result = DNS_R_MUSTBESECURE;
-			} else if (val->view->dlv == NULL || DLVTRIED(val)) {
-				markanswer(val, "dsvalidated");
-				result = ISC_R_SUCCESS;;
-			} else
-				result = startfinddlvsep(val, name);
+			}
+			markanswer(val, "dsvalidated");
+			result = ISC_R_SUCCESS;;
 		} else if ((val->attributes & VALATTR_INSECURITY) != 0) {
 			result = proveunsecure(val, have_dsset, true);
 		} else
@@ -950,9 +879,6 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 /*%
  * Looks for the requested name and type in the view (zones and cache).
  *
- * When looking for a DLV record also checks to make sure the NSEC record
- * returns covers the query name as part of aggressive negative caching.
- *
  * Returns:
  * \li	ISC_R_SUCCESS
  * \li	ISC_R_NOTFOUND
@@ -966,14 +892,9 @@ static inline isc_result_t
 view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 	dns_fixedname_t fixedname;
 	dns_name_t *foundname;
-	dns_rdata_nsec_t nsec;
-	dns_rdata_t rdata = DNS_RDATA_INIT;
 	isc_result_t result;
 	unsigned int options;
 	isc_time_t now;
-	char buf1[DNS_NAME_FORMATSIZE];
-	char buf2[DNS_NAME_FORMATSIZE];
-	char buf3[DNS_NAME_FORMATSIZE];
 	char namebuf[DNS_NAME_FORMATSIZE];
 	char typebuf[DNS_RDATATYPE_FORMATSIZE];
 
@@ -993,8 +914,6 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 	}
 
 	options = DNS_DBFIND_PENDINGOK;
-	if (type == dns_rdatatype_dlv)
-		options |= DNS_DBFIND_COVERINGNSEC;
 	foundname = dns_fixedname_initname(&fixedname);
 	result = dns_view_find(val->view, name, type, 0, options,
 			       false, false, NULL, NULL, foundname,
@@ -1005,74 +924,6 @@ view_find(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type) {
 			dns_rdataset_disassociate(&val->frdataset);
 		if (dns_rdataset_isassociated(&val->fsigrdataset))
 			dns_rdataset_disassociate(&val->fsigrdataset);
-	} else if (result == DNS_R_COVERINGNSEC) {
-		validator_log(val, ISC_LOG_DEBUG(3), "DNS_R_COVERINGNSEC");
-		/*
-		 * Check if the returned NSEC covers the name.
-		 */
-		INSIST(type == dns_rdatatype_dlv);
-		if (val->frdataset.trust != dns_trust_secure) {
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "covering nsec: trust %s",
-				      dns_trust_totext(val->frdataset.trust));
-			goto notfound;
-		}
-		result = dns_rdataset_first(&val->frdataset);
-		if (result != ISC_R_SUCCESS)
-			goto notfound;
-		dns_rdataset_current(&val->frdataset, &rdata);
-		if (dns_nsec_typepresent(&rdata, dns_rdatatype_ns) &&
-		    !dns_nsec_typepresent(&rdata, dns_rdatatype_soa)) {
-			/* Parent NSEC record. */
-			if (dns_name_issubdomain(name, foundname)) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "covering nsec: for parent");
-				goto notfound;
-			}
-		}
-		result = dns_rdata_tostruct(&rdata, &nsec, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto notfound;
-		if (dns_name_compare(foundname, &nsec.next) >= 0) {
-			/* End of zone chain. */
-			if (!dns_name_issubdomain(name, &nsec.next)) {
-				/*
-				 * XXXMPA We could look for a parent NSEC
-				 * at nsec.next and if found retest with
-				 * this NSEC.
-				 */
-				dns_rdata_freestruct(&nsec);
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "covering nsec: not in zone");
-				goto notfound;
-			}
-		} else if (dns_name_compare(name, &nsec.next) >= 0) {
-			/*
-			 * XXXMPA We could check if this NSEC is at a zone
-			 * apex and if the qname is not below it and look for
-			 * a parent NSEC with the same name.  This requires
-			 * that we can cache both NSEC records which we
-			 * currently don't support.
-			 */
-			dns_rdata_freestruct(&nsec);
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "covering nsec: not in range");
-			goto notfound;
-		}
-		if (isc_log_wouldlog(dns_lctx,ISC_LOG_DEBUG(3))) {
-			dns_name_format(name, buf1, sizeof buf1);
-			dns_name_format(foundname, buf2, sizeof buf2);
-			dns_name_format(&nsec.next, buf3, sizeof buf3);
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "covering nsec found: '%s' '%s' '%s'",
-				      buf1, buf2, buf3);
-		}
-		if (dns_rdataset_isassociated(&val->frdataset))
-			dns_rdataset_disassociate(&val->frdataset);
-		if (dns_rdataset_isassociated(&val->fsigrdataset))
-			dns_rdataset_disassociate(&val->fsigrdataset);
-		dns_rdata_freestruct(&nsec);
-		result = DNS_R_NCACHENXDOMAIN;
 	} else if (result != ISC_R_SUCCESS &&
 		   result != DNS_R_NCACHENXDOMAIN &&
 		   result != DNS_R_NCACHENXRRSET &&
@@ -1332,7 +1183,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 		{
 			/*
 			 * We know the key but haven't validated it yet or
-			 * we have a key of trust answer but a DS/DLV
+			 * we have a key of trust answer but a DS
 			 * record for the zone may have been added.
 			 */
 			result = create_validator(val, &siginfo->signer,
@@ -1791,137 +1642,6 @@ keyfromds(dns_validator_t *val, dns_rdataset_t *rdataset, dns_rdata_t *dsrdata,
 }
 
 /*%
- * Validate the DNSKEY RRset by looking for a DNSKEY that matches a
- * DLV record and that also verifies the DNSKEY RRset.
- */
-static isc_result_t
-dlv_validatezonekey(dns_validator_t *val) {
-	dns_rdata_dlv_t dlv;
-	dns_rdata_t dlvrdata = DNS_RDATA_INIT;
-	dns_rdata_t keyrdata = DNS_RDATA_INIT;
-	dns_rdataset_t trdataset;
-	bool supported_algorithm;
-	isc_result_t result;
-	char digest_types[256];
-
-	validator_log(val, ISC_LOG_DEBUG(3), "dlv_validatezonekey");
-
-	/*
-	 * Look through the DLV record and find the keys that can sign the
-	 * key set and the matching signature.  For each such key, attempt
-	 * verification.
-	 */
-	supported_algorithm = false;
-
-	/*
-	 * If DNS_DSDIGEST_SHA256 or DNS_DSDIGEST_SHA384 is present we
-	 * are required to prefer it over DNS_DSDIGEST_SHA1.  This in
-	 * practice means that we need to ignore DNS_DSDIGEST_SHA1 if a
-	 * DNS_DSDIGEST_SHA256 or DNS_DSDIGEST_SHA384 is present.
-	 */
-	memset(digest_types, 1, sizeof(digest_types));
-	for (result = dns_rdataset_first(&val->dlv);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&val->dlv)) {
-		dns_rdata_reset(&dlvrdata);
-		dns_rdataset_current(&val->dlv, &dlvrdata);
-		result = dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		if (!dns_resolver_ds_digest_supported(val->view->resolver,
-						      val->event->name,
-						      dlv.digest_type))
-			continue;
-
-		if (!dns_resolver_algorithm_supported(val->view->resolver,
-						      val->event->name,
-						      dlv.algorithm))
-			continue;
-
-		if ((dlv.digest_type == DNS_DSDIGEST_SHA256 &&
-		     dlv.length == ISC_SHA256_DIGESTLENGTH) ||
-		    (dlv.digest_type == DNS_DSDIGEST_SHA384 &&
-		     dlv.length == ISC_SHA384_DIGESTLENGTH))
-		{
-			digest_types[DNS_DSDIGEST_SHA1] = 0;
-			break;
-		}
-	}
-
-	for (result = dns_rdataset_first(&val->dlv);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&val->dlv))
-	{
-		dns_rdata_reset(&dlvrdata);
-		dns_rdataset_current(&val->dlv, &dlvrdata);
-		result = dns_rdata_tostruct(&dlvrdata, &dlv, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-
-		if (digest_types[dlv.digest_type] == 0)
-			continue;
-
-		if (!dns_resolver_ds_digest_supported(val->view->resolver,
-						      val->event->name,
-						      dlv.digest_type))
-			continue;
-
-		if (!dns_resolver_algorithm_supported(val->view->resolver,
-						      val->event->name,
-						      dlv.algorithm))
-			continue;
-
-		supported_algorithm = true;
-
-		dns_rdataset_init(&trdataset);
-		dns_rdataset_clone(val->event->rdataset, &trdataset);
-
-		/*
-		 * Convert to DLV to DS and find matching DNSKEY.
-		 */
-		dlvrdata.type = dns_rdatatype_ds;
-		result = keyfromds(val, &trdataset, &dlvrdata,
-				   dlv.digest_type, dlv.key_tag,
-				   dlv.algorithm, &keyrdata);
-		if (result != ISC_R_SUCCESS) {
-			dns_rdataset_disassociate(&trdataset);
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "no DNSKEY matching DLV");
-			continue;
-		}
-
-		validator_log(val, ISC_LOG_DEBUG(3),
-		      "Found matching DLV record: checking for signature");
-		/*
-		 * Check that this DNSKEY signed the DNSKEY rrset.
-		 */
-		result = checkkey(val, &keyrdata, dlv.key_tag, dlv.algorithm);
-
-		dns_rdataset_disassociate(&trdataset);
-		if (result == ISC_R_SUCCESS)
-			break;
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "no RRSIG matching DLV key");
-	}
-	if (result == ISC_R_SUCCESS) {
-		marksecure(val->event);
-		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure (dlv)");
-		return (result);
-	} else if (result == ISC_R_NOMORE && !supported_algorithm) {
-		if (val->mustbesecure) {
-			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure,"
-				      "no supported algorithm/digest (dlv)");
-			return (DNS_R_MUSTBESECURE);
-		}
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "no supported algorithm/digest (dlv)");
-		markanswer(val, "dlv_validatezonekey (2)");
-		return (ISC_R_SUCCESS);
-	} else
-		return (DNS_R_NOVALIDSIG);
-}
-
-/*%
  * Attempts positive response validation of an RRset containing zone keys
  * (i.e. a DNSKEY rrset).
  *
@@ -1953,22 +1673,7 @@ validatezonekey(dns_validator_t *val) {
 
 	event = val->event;
 
-	if (val->havedlvsep && val->dlv.trust >= dns_trust_secure &&
-	    dns_name_equal(event->name, dns_fixedname_name(&val->dlvsep)))
-		return (dlv_validatezonekey(val));
-
 	if (val->dsset == NULL) {
-
-		/*
-		 * We have a dlv sep.  Skip looking up the SEP from
-		 * {trusted,managed}-keys.  If the dlv sep is for the
-		 * root then it will have been handled above so we don't
-		 * need to check whether val->event->name is "." prior to
-		 * looking up the DS.
-		 */
-		if (val->havedlvsep)
-			goto find_ds;
-
 		/*
 		 * First, see if this key was signed by a trusted key.
 		 */
@@ -2005,11 +1710,8 @@ validatezonekey(dns_validator_t *val) {
 				} else
 					validator_log(val, ISC_LOG_DEBUG(3),
 						     "not beneath secure root");
-				if (val->view->dlv == NULL) {
-					markanswer(val, "validatezonekey (1)");
-					return (ISC_R_SUCCESS);
-				}
-				return (startfinddlvsep(val, dns_rootname));
+				markanswer(val, "validatezonekey (1)");
+				return (ISC_R_SUCCESS);
 			}
 			if (result == DNS_R_PARTIALMATCH ||
 			    result == ISC_R_SUCCESS)
@@ -2079,7 +1781,7 @@ validatezonekey(dns_validator_t *val) {
 				return (DNS_R_NOVALIDDS);
 			}
 		}
- find_ds:
+
 		/*
 		 * Otherwise, try to find the DS record.
 		 */
@@ -2157,11 +1859,8 @@ validatezonekey(dns_validator_t *val) {
 				      " insecure DS");
 			return (DNS_R_MUSTBESECURE);
 		}
-		if (val->view->dlv == NULL || DLVTRIED(val)) {
-			markanswer(val, "validatezonekey (2)");
-			return (ISC_R_SUCCESS);
-		}
-		return (startfinddlvsep(val, val->event->name));
+		markanswer(val, "validatezonekey (2)");
+		return (ISC_R_SUCCESS);
 	}
 
 	/*
@@ -2904,354 +2603,11 @@ check_ds(dns_validator_t *val, dns_name_t *name, dns_rdataset_t *rdataset) {
 	return (false);
 }
 
-static void
-dlvvalidated(isc_task_t *task, isc_event_t *event) {
-	dns_validatorevent_t *devent;
-	dns_validator_t *val;
-	isc_result_t eresult;
-	bool want_destroy;
-
-	UNUSED(task);
-	INSIST(event->ev_type == DNS_EVENT_VALIDATORDONE);
-
-	devent = (dns_validatorevent_t *)event;
-	val = devent->ev_arg;
-	eresult = devent->result;
-
-	isc_event_free(&event);
-	dns_validator_destroy(&val->subvalidator);
-
-	INSIST(val->event != NULL);
-
-	validator_log(val, ISC_LOG_DEBUG(3), "in dlvvalidated");
-	LOCK(&val->lock);
-	if (CANCELED(val)) {
-		validator_done(val, ISC_R_CANCELED);
-	} else if (eresult == ISC_R_SUCCESS) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "dlvset with trust %s",
-			      dns_trust_totext(val->frdataset.trust));
-		dns_rdataset_clone(&val->frdataset, &val->dlv);
-		val->havedlvsep = true;
-		if (dlv_algorithm_supported(val))
-			dlv_validator_start(val);
-		else {
-			markanswer(val, "dlvvalidated");
-			validator_done(val, ISC_R_SUCCESS);
-		}
-	} else {
-		if (eresult != DNS_R_BROKENCHAIN) {
-			if (dns_rdataset_isassociated(&val->frdataset))
-				dns_rdataset_expire(&val->frdataset);
-			if (dns_rdataset_isassociated(&val->fsigrdataset))
-				dns_rdataset_expire(&val->fsigrdataset);
-		}
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "dlvvalidated: got %s",
-			      isc_result_totext(eresult));
-		validator_done(val, DNS_R_BROKENCHAIN);
-	}
-	want_destroy = exit_check(val);
-	UNLOCK(&val->lock);
-	if (want_destroy)
-		destroy(val);
-}
-
-/*%
- * Callback from fetching a DLV record.
- *
- * Resumes the DLV lookup process.
- */
-static void
-dlvfetched(isc_task_t *task, isc_event_t *event) {
-	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_fetchevent_t *devent;
-	dns_validator_t *val;
-	bool want_destroy;
-	isc_result_t eresult;
-	isc_result_t result;
-	dns_fetch_t *fetch;
-
-	UNUSED(task);
-	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
-	devent = (dns_fetchevent_t *)event;
-	val = devent->ev_arg;
-	eresult = devent->result;
-
-	/* Free resources which are not of interest. */
-	if (devent->node != NULL)
-		dns_db_detachnode(devent->db, &devent->node);
-	if (devent->db != NULL)
-		dns_db_detach(&devent->db);
-	if (dns_rdataset_isassociated(&val->fsigrdataset))
-		dns_rdataset_disassociate(&val->fsigrdataset);
-	isc_event_free(&event);
-
-	INSIST(val->event != NULL);
-	validator_log(val, ISC_LOG_DEBUG(3), "in dlvfetched: %s",
-		      dns_result_totext(eresult));
-
-	LOCK(&val->lock);
-	fetch = val->fetch;
-	val->fetch = NULL;
-	if (eresult == ISC_R_SUCCESS) {
-		dns_name_format(dns_fixedname_name(&val->dlvsep), namebuf,
-				sizeof(namebuf));
-		dns_rdataset_clone(&val->frdataset, &val->dlv);
-		val->havedlvsep = true;
-		if (dlv_algorithm_supported(val)) {
-			validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found",
-				      namebuf);
-			dlv_validator_start(val);
-		} else {
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "DLV %s found with no supported algorithms",
-				      namebuf);
-			markanswer(val, "dlvfetched (1)");
-			validator_done(val, ISC_R_SUCCESS);
-		}
-	} else if (eresult == DNS_R_NXRRSET ||
-		   eresult == DNS_R_NXDOMAIN ||
-		   eresult == DNS_R_NCACHENXRRSET ||
-		   eresult == DNS_R_NCACHENXDOMAIN) {
-		result = finddlvsep(val, true);
-		if (result == ISC_R_SUCCESS) {
-			if (dlv_algorithm_supported(val)) {
-				dns_name_format(dns_fixedname_name(&val->dlvsep),
-						namebuf, sizeof(namebuf));
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "DLV %s found", namebuf);
-				dlv_validator_start(val);
-			} else {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "DLV %s found with no supported "
-					      "algorithms", namebuf);
-				markanswer(val, "dlvfetched (2)");
-				validator_done(val, ISC_R_SUCCESS);
-			}
-		} else if (result == ISC_R_NOTFOUND) {
-			validator_log(val, ISC_LOG_DEBUG(3), "DLV not found");
-			markanswer(val, "dlvfetched (3)");
-			validator_done(val, ISC_R_SUCCESS);
-		} else {
-			validator_log(val, ISC_LOG_DEBUG(3), "DLV lookup: %s",
-				      dns_result_totext(result));
-			if (result != DNS_R_WAIT)
-				validator_done(val, result);
-		}
-	} else {
-		validator_log(val, ISC_LOG_DEBUG(3), "DLV lookup: %s",
-			      dns_result_totext(eresult));
-		validator_done(val, eresult);
-	}
-	want_destroy = exit_check(val);
-	UNLOCK(&val->lock);
-	if (fetch != NULL)
-		dns_resolver_destroyfetch(&fetch);
-	if (want_destroy)
-		destroy(val);
-}
-
-/*%
- * Start the DLV lookup process.
- *
- * Returns
- * \li	ISC_R_SUCCESS
- * \li	DNS_R_WAIT
- * \li	Others on validation failures.
- */
-static isc_result_t
-startfinddlvsep(dns_validator_t *val, const dns_name_t *unsecure) {
-	char namebuf[DNS_NAME_FORMATSIZE];
-	isc_result_t result;
-
-	INSIST(!DLVTRIED(val));
-
-	val->attributes |= VALATTR_DLVTRIED;
-
-	dns_name_format(unsecure, namebuf, sizeof(namebuf));
-	validator_log(val, ISC_LOG_DEBUG(3),
-		      "plain DNSSEC returns unsecure (%s): looking for DLV",
-		      namebuf);
-
-	if (dns_name_issubdomain(val->event->name, val->view->dlv)) {
-		validator_log(val, ISC_LOG_WARNING, "must be secure failure, "
-			      " %s is under DLV (startfinddlvsep)", namebuf);
-		return (DNS_R_MUSTBESECURE);
-	}
-
-	val->dlvlabels = dns_name_countlabels(unsecure) - 1;
-	result = finddlvsep(val, false);
-	if (result == ISC_R_NOTFOUND) {
-		validator_log(val, ISC_LOG_DEBUG(3), "DLV not found");
-		markanswer(val, "startfinddlvsep (1)");
-		return (ISC_R_SUCCESS);
-	}
-	if (result == DNS_R_NTACOVERED) {
-		validator_log(val, ISC_LOG_DEBUG(3), "DLV covered by NTA");
-		validator_done(val, ISC_R_SUCCESS);
-		return (ISC_R_SUCCESS);
-	}
-	if (result != ISC_R_SUCCESS) {
-		validator_log(val, ISC_LOG_DEBUG(3), "DLV lookup: %s",
-			      dns_result_totext(result));
-		return (result);
-	}
-	dns_name_format(dns_fixedname_name(&val->dlvsep), namebuf,
-			sizeof(namebuf));
-	if (dlv_algorithm_supported(val)) {
-		validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found", namebuf);
-		dlv_validator_start(val);
-		return (DNS_R_WAIT);
-	}
-	validator_log(val, ISC_LOG_DEBUG(3), "DLV %s found with no supported "
-		      "algorithms", namebuf);
-	markanswer(val, "startfinddlvsep (2)");
-	validator_done(val, ISC_R_SUCCESS);
-	return (ISC_R_SUCCESS);
-}
-
-/*%
- * Continue the DLV lookup process.
- *
- * Returns
- * \li	ISC_R_SUCCESS
- * \li	ISC_R_NOTFOUND
- * \li	DNS_R_WAIT
- * \li	Others on validation failure.
- */
-static isc_result_t
-finddlvsep(dns_validator_t *val, bool resume) {
-	char namebuf[DNS_NAME_FORMATSIZE];
-	dns_fixedname_t dlvfixed;
-	dns_name_t *dlvname;
-	dns_name_t *dlvsep;
-	dns_name_t noroot;
-	isc_result_t result;
-	unsigned int labels;
-
-	INSIST(val->view->dlv != NULL);
-
-	if (!resume) {
-		if (dns_name_issubdomain(val->event->name, val->view->dlv)) {
-			dns_name_format(val->event->name, namebuf,
-					sizeof(namebuf));
-			validator_log(val, ISC_LOG_WARNING,
-				      "must be secure failure, "
-				      "%s is under DLV (finddlvsep)", namebuf);
-			return (DNS_R_MUSTBESECURE);
-		}
-
-		dlvsep = dns_fixedname_initname(&val->dlvsep);
-		dns_name_copy(val->event->name, dlvsep, NULL);
-		/*
-		 * If this is a response to a DS query, we need to look in
-		 * the parent zone for the trust anchor.
-		 */
-		if (val->event->type == dns_rdatatype_ds) {
-			labels = dns_name_countlabels(dlvsep);
-			if (labels == 0)
-				return (ISC_R_NOTFOUND);
-			dns_name_getlabelsequence(dlvsep, 1, labels - 1,
-						  dlvsep);
-		}
-	} else {
-		dlvsep = dns_fixedname_name(&val->dlvsep);
-		labels = dns_name_countlabels(dlvsep);
-		dns_name_getlabelsequence(dlvsep, 1, labels - 1, dlvsep);
-	}
-	dns_name_init(&noroot, NULL);
-	dlvname = dns_fixedname_initname(&dlvfixed);
-	labels = dns_name_countlabels(dlvsep);
-	if (labels == 0)
-		return (ISC_R_NOTFOUND);
-	dns_name_getlabelsequence(dlvsep, 0, labels - 1, &noroot);
-	result = dns_name_concatenate(&noroot, val->view->dlv, dlvname, NULL);
-	while (result == ISC_R_NOSPACE) {
-		labels = dns_name_countlabels(dlvsep);
-		dns_name_getlabelsequence(dlvsep, 1, labels - 1, dlvsep);
-		dns_name_getlabelsequence(dlvsep, 0, labels - 2, &noroot);
-		result = dns_name_concatenate(&noroot, val->view->dlv,
-					      dlvname, NULL);
-	}
-	if (result != ISC_R_SUCCESS) {
-		validator_log(val, ISC_LOG_DEBUG(2), "DLV concatenate failed");
-		return (DNS_R_NOVALIDSIG);
-	}
-
-	if (((val->options & DNS_VALIDATOR_NONTA) == 0) &&
-	    dns_view_ntacovers(val->view, val->start, dlvname, val->view->dlv))
-		return (DNS_R_NTACOVERED);
-
-	while (dns_name_countlabels(dlvname) >=
-	       dns_name_countlabels(val->view->dlv) + val->dlvlabels) {
-		dns_name_format(dlvname, namebuf, sizeof(namebuf));
-		validator_log(val, ISC_LOG_DEBUG(3), "looking for DLV %s",
-			      namebuf);
-		result = view_find(val, dlvname, dns_rdatatype_dlv);
-		if (result == ISC_R_SUCCESS) {
-			if (DNS_TRUST_PENDING(val->frdataset.trust) &&
-			    dns_rdataset_isassociated(&val->fsigrdataset))
-			{
-				dns_fixedname_init(&val->fname);
-				dns_name_copy(dlvname,
-					      dns_fixedname_name(&val->fname),
-					      NULL);
-				result = create_validator(val,
-						dns_fixedname_name(&val->fname),
-							  dns_rdatatype_dlv,
-							  &val->frdataset,
-							  &val->fsigrdataset,
-							  dlvvalidated,
-							  "finddlvsep");
-				if (result != ISC_R_SUCCESS)
-					return (result);
-				return (DNS_R_WAIT);
-			}
-			if (val->frdataset.trust < dns_trust_secure) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "DLV not validated");
-				return (DNS_R_NOVALIDSIG);
-			}
-			val->havedlvsep = true;
-			dns_rdataset_clone(&val->frdataset, &val->dlv);
-			return (ISC_R_SUCCESS);
-		}
-		if (result == ISC_R_NOTFOUND) {
-			result = create_fetch(val, dlvname, dns_rdatatype_dlv,
-					      dlvfetched, "finddlvsep");
-			if (result != ISC_R_SUCCESS)
-				return (result);
-			return (DNS_R_WAIT);
-		}
-		if (result != DNS_R_NXRRSET &&
-		    result != DNS_R_NXDOMAIN &&
-		    result != DNS_R_EMPTYNAME &&
-		    result != DNS_R_NCACHENXRRSET &&
-		    result != DNS_R_NCACHENXDOMAIN)
-			return (result);
-		/*
-		 * Strip first labels from both dlvsep and dlvname.
-		 */
-		labels = dns_name_countlabels(dlvsep);
-		if (labels == 0)
-			break;
-		dns_name_getlabelsequence(dlvsep, 1, labels - 1, dlvsep);
-		labels = dns_name_countlabels(dlvname);
-		dns_name_getlabelsequence(dlvname, 1, labels - 1, dlvname);
-	}
-	return (ISC_R_NOTFOUND);
-}
-
 /*%
  * proveunsecure walks down from the SEP looking for a break in the
  * chain of trust.  That occurs when we can prove the DS record does
  * not exist at a delegation point or the DS exists at a delegation
  * but we don't support the algorithm/digest.
- *
- * If DLV is active and we look for a DLV record at or below the
- * point we go insecure.  If found we restart the validation process.
- * If not found or DLV isn't active we mark the response as a answer.
  *
  * Returns:
  * \li	ISC_R_SUCCESS		val->event->name is in a unsecure zone
@@ -3264,8 +2620,7 @@ finddlvsep(dns_validator_t *val, bool resume) {
  * \li	DNS_R_BROKENCHAIN
  */
 static isc_result_t
-proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
-{
+proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 	isc_result_t result;
 	dns_fixedname_t fixedsecroot;
 	dns_name_t *secroot;
@@ -3273,42 +2628,36 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 	char namebuf[DNS_NAME_FORMATSIZE];
 	dns_name_t *found;
 	dns_fixedname_t fixedfound;
+	unsigned int labels;
 
 	secroot = dns_fixedname_initname(&fixedsecroot);
 	found = dns_fixedname_initname(&fixedfound);
-	if (val->havedlvsep)
-		dns_name_copy(dns_fixedname_name(&val->dlvsep), secroot, NULL);
-	else {
-		unsigned int labels;
-		dns_name_copy(val->event->name, secroot, NULL);
-		/*
-		 * If this is a response to a DS query, we need to look in
-		 * the parent zone for the trust anchor.
-		 */
+	dns_name_copy(val->event->name, secroot, NULL);
+	/*
+	 * If this is a response to a DS query, we need to look in
+	 * the parent zone for the trust anchor.
+	 */
 
-		labels = dns_name_countlabels(secroot);
-		if (val->event->type == dns_rdatatype_ds && labels > 1U)
-			dns_name_getlabelsequence(secroot, 1, labels - 1,
-						  secroot);
-		result = dns_keytable_finddeepestmatch(val->keytable,
-						       secroot, secroot);
-		if (result == ISC_R_NOTFOUND) {
-			if (val->mustbesecure) {
-				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure, "
-					      "not beneath secure root");
-				result = DNS_R_MUSTBESECURE;
-				goto out;
-			} else
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "not beneath secure root");
-			if (val->view->dlv == NULL || DLVTRIED(val)) {
-				markanswer(val, "proveunsecure (1)");
-				return (ISC_R_SUCCESS);
-			}
-			return (startfinddlvsep(val, dns_rootname));
-		} else if (result != ISC_R_SUCCESS)
-			return (result);
+	labels = dns_name_countlabels(secroot);
+	if (val->event->type == dns_rdatatype_ds && labels > 1U)
+		dns_name_getlabelsequence(secroot, 1, labels - 1,
+					  secroot);
+	result = dns_keytable_finddeepestmatch(val->keytable,
+					       secroot, secroot);
+	if (result == ISC_R_NOTFOUND) {
+		if (val->mustbesecure) {
+			validator_log(val, ISC_LOG_WARNING,
+				      "must be secure failure, "
+				      "not beneath secure root");
+			result = DNS_R_MUSTBESECURE;
+			goto out;
+		} else
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "not beneath secure root");
+		markanswer(val, "proveunsecure (1)");
+		return (ISC_R_SUCCESS);
+	} else if (result != ISC_R_SUCCESS) {
+		return (result);
 	}
 
 	if (!resume) {
@@ -3322,18 +2671,17 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 		 * If we have a DS rdataset and it is secure then check if
 		 * the DS rdataset has a supported algorithm combination.
 		 * If not this is an insecure delegation as far as this
-		 * resolver is concerned.  Fall back to DLV if available.
+		 * resolver is concerned.
 		 */
 		if (have_ds && val->frdataset.trust >= dns_trust_secure &&
 		    !check_ds(val, dns_fixedname_name(&val->fname),
-			      &val->frdataset)) {
+			      &val->frdataset))
+		{
 			dns_name_format(dns_fixedname_name(&val->fname),
 					namebuf, sizeof(namebuf));
-			if ((val->view->dlv == NULL || DLVTRIED(val)) &&
-			    val->mustbesecure) {
+			if (val->mustbesecure) {
 				validator_log(val, ISC_LOG_WARNING,
-					      "must be secure failure at '%s', "
-					      "can't fall back to DLV",
+					      "must be secure failure at '%s'",
 					      namebuf);
 				result = DNS_R_MUSTBESECURE;
 				goto out;
@@ -3341,13 +2689,9 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no supported algorithm/digest (%s/DS)",
 				      namebuf);
-			if (val->view->dlv == NULL || DLVTRIED(val)) {
-				markanswer(val, "proveunsecure (2)");
-				result = ISC_R_SUCCESS;
-				goto out;
-			}
-			return(startfinddlvsep(val,
-					      dns_fixedname_name(&val->fname)));
+			markanswer(val, "proveunsecure (2)");
+			result = ISC_R_SUCCESS;
+			goto out;
 		}
 		val->labels++;
 	}
@@ -3407,11 +2751,8 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 						      "no DS at zone cut");
 					return (DNS_R_MUSTBESECURE);
 				}
-				if (val->view->dlv == NULL || DLVTRIED(val)) {
-					markanswer(val, "proveunsecure (3)");
-					return (ISC_R_SUCCESS);
-				}
-				return (startfinddlvsep(val, tname));
+				markanswer(val, "proveunsecure (3)");
+				return (ISC_R_SUCCESS);
 			}
 			if (val->frdataset.trust < dns_trust_secure) {
 				/*
@@ -3434,11 +2775,8 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 						      namebuf);
 					return (DNS_R_MUSTBESECURE);
 				}
-				if (val->view->dlv == NULL || DLVTRIED(val)) {
-					markanswer(val, "proveunsecure (4)");
-					return (ISC_R_SUCCESS);
-				}
-				return (startfinddlvsep(val, tname));
+				markanswer(val, "proveunsecure (4)");
+				return (ISC_R_SUCCESS);
 			}
 			continue;
 		} else if (result == DNS_R_CNAME) {
@@ -3475,14 +2813,9 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 						result = DNS_R_MUSTBESECURE;
 						goto out;
 					}
-					if (val->view->dlv == NULL ||
-					    DLVTRIED(val)) {
-						markanswer(val,
-							   "proveunsecure (5)");
-						result = ISC_R_SUCCESS;
-						goto out;
-					}
-					return(startfinddlvsep(val, tname));
+					markanswer(val, "proveunsecure (5)");
+					result = ISC_R_SUCCESS;
+					goto out;
 				}
 				continue;
 			}
@@ -3520,8 +2853,9 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 			} else if (DNS_TRUST_PENDING(val->frdataset.trust) ||
 				   DNS_TRUST_ANSWER(val->frdataset.trust)) {
 				/*
-				 * If we have "trust == answer" then this namespace
-				 * has switched from insecure to should be secure.
+				 * If we have "trust == answer" then this
+				 * namespace has switched from insecure to
+				 * should be secure.
 				 */
 				result = create_validator(val, tname,
 							  dns_rdatatype_ds,
@@ -3572,25 +2906,6 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 }
 
 /*%
- * Reset state and revalidate the answer using DLV.
- */
-static void
-dlv_validator_start(dns_validator_t *val) {
-	isc_event_t *event;
-
-	validator_log(val, ISC_LOG_DEBUG(3), "dlv_validator_start");
-
-	/*
-	 * Reset state and try again.
-	 */
-	val->attributes &= VALATTR_DLVTRIED;
-	val->options &= ~DNS_VALIDATOR_DLV;
-
-	event = (isc_event_t *)val->event;
-	isc_task_send(val->task, &event);
-}
-
-/*%
  * Start the validation process.
  *
  * Attempt to validate the answer based on the category it appears to
@@ -3618,19 +2933,11 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 	if (val->event == NULL)
 		return;
 
-	if (DLVTRIED(val))
-		validator_log(val, ISC_LOG_DEBUG(3), "restarting using DLV");
-	else
-		validator_log(val, ISC_LOG_DEBUG(3), "starting");
+	validator_log(val, ISC_LOG_DEBUG(3), "starting");
 
 	LOCK(&val->lock);
 
-	if ((val->options & DNS_VALIDATOR_DLV) != 0 &&
-	     val->event->rdataset != NULL) {
-		validator_log(val, ISC_LOG_DEBUG(3), "looking for DLV");
-		result = startfinddlvsep(val, dns_rootname);
-	} else if (val->event->rdataset != NULL &&
-		   val->event->sigrdataset != NULL) {
+	if (val->event->rdataset != NULL && val->event->sigrdataset != NULL) {
 		isc_result_t saved_result;
 
 		/*
@@ -3780,9 +3087,7 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->currentset = NULL;
 	val->keyset = NULL;
 	val->dsset = NULL;
-	dns_rdataset_init(&val->dlv);
 	val->seensig = false;
-	val->havedlvsep = false;
 	val->depth = 0;
 	val->authcount = 0;
 	val->authfail = 0;
@@ -3880,8 +3185,6 @@ destroy(dns_validator_t *val) {
 		dns_keytable_detach(&val->keytable);
 	if (val->subvalidator != NULL)
 		dns_validator_destroy(&val->subvalidator);
-	if (val->havedlvsep)
-		dns_rdataset_disassociate(&val->dlv);
 	if (dns_rdataset_isassociated(&val->frdataset))
 		dns_rdataset_disassociate(&val->frdataset);
 	if (dns_rdataset_isassociated(&val->fsigrdataset))
