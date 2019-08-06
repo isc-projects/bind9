@@ -17,6 +17,7 @@
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/portset.h>
+#include <isc/refcount.h>
 #include <isc/safe.h>
 #include <isc/sockaddr.h>
 #include <isc/socket.h>
@@ -92,8 +93,9 @@ struct dns_client {
 	unsigned int			find_timeout;
 	unsigned int			find_udpretries;
 
+	isc_refcount_t			references;
+
 	/* Locked */
-	unsigned int			references;
 	dns_viewlist_t			viewlist;
 	ISC_LIST(struct resctx)		resctxs;
 	ISC_LIST(struct reqctx)		reqctxs;
@@ -498,12 +500,13 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
 
 	client->task = NULL;
 	result = isc_task_create(client->taskmgr, 0, &client->task);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_lock;
+	}
 
 	result = dns_dispatchmgr_create(mctx, &dispatchmgr);
 	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+		goto cleanup_task;
 	client->dispatchmgr = dispatchmgr;
 	(void)setsourceports(mctx, dispatchmgr);
 
@@ -516,8 +519,9 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
 		result = getudpdispatch(AF_INET, dispatchmgr, socketmgr,
 					taskmgr, true,
 					&dispatchv4, localaddr4);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			client->dispatchv4 = dispatchv4;
+		}
 	}
 
 	client->dispatchv6 = NULL;
@@ -525,22 +529,27 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
 		result = getudpdispatch(AF_INET6, dispatchmgr, socketmgr,
 					taskmgr, true,
 					&dispatchv6, localaddr6);
-		if (result == ISC_R_SUCCESS)
+		if (result == ISC_R_SUCCESS) {
 			client->dispatchv6 = dispatchv6;
+		}
 	}
 
 	/* We need at least one of the dispatchers */
 	if (dispatchv4 == NULL && dispatchv6 == NULL) {
 		INSIST(result != ISC_R_SUCCESS);
-		goto cleanup;
+		goto cleanup_dispatchmgr;
 	}
+
+	isc_refcount_init(&client->references, 1);
 
 	/* Create the default view for class IN */
 	result = createview(mctx, dns_rdataclass_in, options, taskmgr,
 			    RESOLVER_NTASKS, socketmgr, timermgr,
 			    dispatchmgr, dispatchv4, dispatchv6, &view);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup_references;
+	}
+
 	ISC_LIST_INIT(client->viewlist);
 	ISC_LIST_APPEND(client->viewlist, view, link);
 
@@ -560,31 +569,37 @@ dns_client_createx(isc_mem_t *mctx, isc_appctx_t *actx,
 	client->find_udpretries = DEF_FIND_UDPRETRIES;
 	client->attributes = 0;
 
-	client->references = 1;
 	client->magic = DNS_CLIENT_MAGIC;
 
 	*clientp = client;
 
 	return (ISC_R_SUCCESS);
 
- cleanup:
-	if (dispatchv4 != NULL)
+ cleanup_references:
+	isc_refcount_decrement(&client->references);
+	isc_refcount_destroy(&client->references);
+ cleanup_dispatchmgr:
+	if (dispatchv4 != NULL) {
 		dns_dispatch_detach(&dispatchv4);
-	if (dispatchv6 != NULL)
+	}
+	if (dispatchv6 != NULL) {
 		dns_dispatch_detach(&dispatchv6);
-	if (dispatchmgr != NULL)
-		dns_dispatchmgr_destroy(&dispatchmgr);
-	if (client->task != NULL)
-		isc_task_detach(&client->task);
+	}
+	dns_dispatchmgr_destroy(&dispatchmgr);
+ cleanup_task:
+	isc_task_detach(&client->task);
+ cleanup_lock:
+	isc_mutex_destroy(&client->lock);
 	isc_mem_put(mctx, client, sizeof(*client));
 
 	return (result);
 }
 
 static void
-destroyclient(dns_client_t **clientp) {
-	dns_client_t *client = *clientp;
+destroyclient(dns_client_t *client) {
 	dns_view_t *view;
+
+	isc_refcount_destroy(&client->references);
 
 	while ((view = ISC_LIST_HEAD(client->viewlist)) != NULL) {
 		ISC_LIST_UNLINK(client->viewlist, view, link);
@@ -617,32 +632,20 @@ destroyclient(dns_client_t **clientp) {
 	client->magic = 0;
 
 	isc_mem_putanddetach(&client->mctx, client, sizeof(*client));
-
-	*clientp = NULL;
 }
 
 void
 dns_client_destroy(dns_client_t **clientp) {
 	dns_client_t *client;
-	bool destroyok = false;
 
 	REQUIRE(clientp != NULL);
 	client = *clientp;
+	*clientp = NULL;
 	REQUIRE(DNS_CLIENT_VALID(client));
 
-	LOCK(&client->lock);
-	client->references--;
-	if (client->references == 0 && ISC_LIST_EMPTY(client->resctxs) &&
-	    ISC_LIST_EMPTY(client->reqctxs) &&
-	    ISC_LIST_EMPTY(client->updatectxs)) {
-		destroyok = true;
+	if (isc_refcount_decrement(&client->references) == 1) {
+		destroyclient(client);
 	}
-	UNLOCK(&client->lock);
-
-	if (destroyok)
-		destroyclient(&client);
-
-	*clientp = NULL;
 }
 
 isc_result_t
@@ -1428,6 +1431,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	rctx->event = event;
 
 	rctx->magic = RCTX_MAGIC;
+	isc_refcount_increment(&client->references);
 
 	LOCK(&client->lock);
 	ISC_LIST_APPEND(client->resctxs, rctx, link);
@@ -1498,10 +1502,10 @@ dns_client_destroyrestrans(dns_clientrestrans_t **transp) {
 	resctx_t *rctx;
 	isc_mem_t *mctx;
 	dns_client_t *client;
-	bool need_destroyclient = false;
 
 	REQUIRE(transp != NULL);
 	rctx = (resctx_t *)*transp;
+	*transp = NULL;
 	REQUIRE(RCTX_VALID(rctx));
 	REQUIRE(rctx->fetch == NULL);
 	REQUIRE(rctx->event == NULL);
@@ -1523,11 +1527,6 @@ dns_client_destroyrestrans(dns_clientrestrans_t **transp) {
 	INSIST(ISC_LINK_LINKED(rctx, link));
 	ISC_LIST_UNLINK(client->resctxs, rctx, link);
 
-	if (client->references == 0 && ISC_LIST_EMPTY(client->resctxs) &&
-	    ISC_LIST_EMPTY(client->reqctxs) &&
-	    ISC_LIST_EMPTY(client->updatectxs))
-		need_destroyclient = true;
-
 	UNLOCK(&client->lock);
 
 	INSIST(ISC_LIST_EMPTY(rctx->namelist));
@@ -1537,10 +1536,8 @@ dns_client_destroyrestrans(dns_clientrestrans_t **transp) {
 
 	isc_mem_put(mctx, rctx, sizeof(*rctx));
 
-	if (need_destroyclient)
-		destroyclient(&client);
+	dns_client_destroy(&client);
 
-	*transp = NULL;
 }
 
 isc_result_t
@@ -1804,6 +1801,7 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 
 	LOCK(&client->lock);
 	ISC_LIST_APPEND(client->reqctxs, ctx, link);
+	isc_refcount_increment(&client->references);
 	UNLOCK(&client->lock);
 
 	ctx->request = NULL;
@@ -1817,6 +1815,8 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 		*transp = (dns_clientreqtrans_t *)ctx;
 		return (ISC_R_SUCCESS);
 	}
+
+	isc_refcount_decrement(&client->references);
 
  cleanup:
 	if (ctx != NULL) {
@@ -1858,10 +1858,10 @@ dns_client_destroyreqtrans(dns_clientreqtrans_t **transp) {
 	reqctx_t *ctx;
 	isc_mem_t *mctx;
 	dns_client_t *client;
-	bool need_destroyclient = false;
 
 	REQUIRE(transp != NULL);
 	ctx = (reqctx_t *)*transp;
+	*transp = NULL;
 	REQUIRE(REQCTX_VALID(ctx));
 	client = ctx->client;
 	REQUIRE(DNS_CLIENT_VALID(client));
@@ -1876,12 +1876,6 @@ dns_client_destroyreqtrans(dns_clientreqtrans_t **transp) {
 	INSIST(ISC_LINK_LINKED(ctx, link));
 	ISC_LIST_UNLINK(client->reqctxs, ctx, link);
 
-	if (client->references == 0 && ISC_LIST_EMPTY(client->resctxs) &&
-	    ISC_LIST_EMPTY(client->reqctxs) &&
-	    ISC_LIST_EMPTY(client->updatectxs)) {
-		need_destroyclient = true;
-	}
-
 	UNLOCK(&client->lock);
 
 	isc_mutex_destroy(&ctx->lock);
@@ -1889,10 +1883,7 @@ dns_client_destroyreqtrans(dns_clientreqtrans_t **transp) {
 
 	isc_mem_put(mctx, ctx, sizeof(*ctx));
 
-	if (need_destroyclient)
-		destroyclient(&client);
-
-	*transp = NULL;
+	dns_client_destroy(&client);
 }
 
 /*%
@@ -2962,6 +2953,7 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 
 	LOCK(&client->lock);
 	ISC_LIST_APPEND(client->updatectxs, uctx, link);
+	isc_refcount_increment(&client->references);
 	UNLOCK(&client->lock);
 
 	*transp = (dns_clientupdatetrans_t *)uctx;
@@ -2980,6 +2972,8 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	}
 	if (result == ISC_R_SUCCESS)
 		return (result);
+
+	isc_refcount_decrement(&client->references);
 	*transp = NULL;
 
  fail:
@@ -3037,11 +3031,11 @@ dns_client_destroyupdatetrans(dns_clientupdatetrans_t **transp) {
 	updatectx_t *uctx;
 	isc_mem_t *mctx;
 	dns_client_t *client;
-	bool need_destroyclient = false;
 	isc_sockaddr_t *sa;
 
 	REQUIRE(transp != NULL);
 	uctx = (updatectx_t *)*transp;
+	*transp = NULL;
 	REQUIRE(UCTX_VALID(uctx));
 	client = uctx->client;
 	REQUIRE(DNS_CLIENT_VALID(client));
@@ -3062,11 +3056,6 @@ dns_client_destroyupdatetrans(dns_clientupdatetrans_t **transp) {
 	INSIST(ISC_LINK_LINKED(uctx, link));
 	ISC_LIST_UNLINK(client->updatectxs, uctx, link);
 
-	if (client->references == 0 && ISC_LIST_EMPTY(client->resctxs) &&
-	    ISC_LIST_EMPTY(client->reqctxs) &&
-	    ISC_LIST_EMPTY(client->updatectxs))
-		need_destroyclient = true;
-
 	UNLOCK(&client->lock);
 
 	isc_mutex_destroy(&uctx->lock);
@@ -3074,10 +3063,7 @@ dns_client_destroyupdatetrans(dns_clientupdatetrans_t **transp) {
 
 	isc_mem_put(mctx, uctx, sizeof(*uctx));
 
-	if (need_destroyclient)
-		destroyclient(&client);
-
-	*transp = NULL;
+	dns_client_destroy(&client);
 }
 
 isc_mem_t *
