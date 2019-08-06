@@ -125,18 +125,16 @@ static bool
 static bool
 	cdflag = false,
 	no_sigs = false,
-	root_validation = true,
-	dlv_validation = true;
+	root_validation = true;
 
 static bool use_tcp = false;
 
 static char *anchorfile = NULL;
 static char *trust_anchor = NULL;
-static char *dlv_anchor = NULL;
 static int num_keys = 0;
 
-static dns_fixedname_t afn, dfn;
-static dns_name_t *anchor_name = NULL, *dlv_name = NULL;
+static dns_fixedname_t afn;
+static dns_name_t *anchor_name = NULL;
 
 /* Default bind.keys contents */
 static char anchortext[] = DNSSEC_KEYS;
@@ -161,7 +159,7 @@ usage(void) {
 "        q-opt    is one of:\n"
 "                 -x dot-notation     (shortcut for reverse lookups)\n"
 "                 -d level            (set debugging level)\n"
-"                 -a anchor-file      (specify root and dlv trust anchors)\n"
+"                 -a anchor-file      (specify root trust anchor)\n"
 "                 -b address[#port]   (bind to source address/port)\n"
 "                 -p port             (specify port number)\n"
 "                 -q name             (specify query name)\n"
@@ -181,7 +179,8 @@ usage(void) {
 "                 +[no]comments       (Control display of comment lines)\n"
 "                 +[no]rrcomments     (Control display of per-record "
 				       "comments)\n"
-"                 +[no]unknownformat  (Print RDATA in RFC 3597 \"unknown\" format)\n"
+"                 +[no]unknownformat  (Print RDATA in RFC 3597 "
+					"\"unknown\" format)\n"
 "                 +[no]short          (Short form answer)\n"
 "                 +[no]split=##       (Split hex/base64 fields into chunks)\n"
 "                 +[no]tcp            (TCP mode)\n"
@@ -190,7 +189,7 @@ usage(void) {
 "                 +[no]rtrace         (Trace resolver fetches)\n"
 "                 +[no]mtrace         (Trace messages received)\n"
 "                 +[no]vtrace         (Trace validation process)\n"
-"                 +[no]dlv            (DNSSEC lookaside validation anchor)\n"
+"                 +[no]dlv            (Obsolete)\n"
 "                 +[no]root           (DNSSEC validation trust anchor)\n"
 "                 +[no]dnssec         (Display DNSSEC records)\n"
 "        -h                           (print help and exit)\n"
@@ -381,10 +380,9 @@ print_status(dns_rdataset_t *rdataset) {
 		tstr = "glue data";
 		break;
 	case dns_trust_answer:
-		if (root_validation || dlv_validation)
+		if (root_validation) {
 			tstr = "unsigned answer";
-		else
-			tstr = "answer not validated";
+		}
 		break;
 	case dns_trust_authauthority:
 		tstr = "authority data";
@@ -575,30 +573,30 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_fixedname_t fkeyname;
 	dns_name_t *keyname;
 	isc_result_t result;
-	bool match_root = false, match_dlv = false;
+	bool match_root = false;
 
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 	CHECK(convert_name(&fkeyname, &keyname, keynamestr));
 
-	if (!root_validation && !dlv_validation)
+	if (!root_validation) {
 		return (ISC_R_SUCCESS);
+	}
 
-	if (anchor_name)
+	if (anchor_name) {
 		match_root = dns_name_equal(keyname, anchor_name);
-	if (dlv_name)
-		match_dlv = dns_name_equal(keyname, dlv_name);
+	}
 
-	if (!match_root && !match_dlv)
+	if (!match_root) {
 		return (ISC_R_SUCCESS);
-	if ((!root_validation && match_root) || (!dlv_validation && match_dlv))
+	}
+	if (!root_validation && match_root) {
 		return (ISC_R_SUCCESS);
+	}
 
-	if (match_root)
+	if (match_root) {
 		delv_log(ISC_LOG_DEBUG(3), "adding trust anchor %s",
 			  trust_anchor);
-	if (match_dlv)
-		delv_log(ISC_LOG_DEBUG(3), "adding DLV trust anchor %s",
-			  dlv_anchor);
+	}
 
 	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
 	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
@@ -697,7 +695,7 @@ setup_dnsseckeys(dns_client_t *client) {
 	cfg_obj_t *bindkeys = NULL;
 	const char *filename = anchorfile;
 
-	if (!root_validation && !dlv_validation) {
+	if (!root_validation) {
 		return (ISC_R_SUCCESS);
 	}
 
@@ -718,9 +716,6 @@ setup_dnsseckeys(dns_client_t *client) {
 
 	if (trust_anchor != NULL) {
 		CHECK(convert_name(&afn, &anchor_name, trust_anchor));
-	}
-	if (dlv_anchor != NULL) {
-		CHECK(convert_name(&dfn, &dlv_name, dlv_anchor));
 	}
 
 	CHECK(cfg_parser_create(mctx, dns_lctx, &parser));
@@ -771,11 +766,6 @@ setup_dnsseckeys(dns_client_t *client) {
 	if (num_keys == 0) {
 		fatal("No trusted keys were loaded");
 	}
-
-	if (dlv_validation) {
-		dns_client_setdlv(client, dns_rdataclass_in, dlv_anchor);
-	}
-
 
  cleanup:
 	if (bindkeys != NULL) {
@@ -1024,11 +1014,10 @@ plus_option(char *option) {
 		switch (cmd[1]) {
 		case 'l': /* dlv */
 			FULLCHECK("dlv");
-			if (state && no_sigs)
-				break;
-			dlv_validation = state;
-			if (value != NULL) {
-				dlv_anchor = isc_mem_strdup(mctx, value);
+			if (state) {
+				fprintf(stderr, "Invalid option: "
+						"+dlv is obsolete\n");
+				exit(1);
 			}
 			break;
 		case 'n': /* dnssec */
@@ -1213,7 +1202,6 @@ dash_option(char *option, char *next, bool *open_type_class) {
 			/* NOTREACHED */
 		case 'i':
 			no_sigs = true;
-			dlv_validation = false;
 			root_validation = false;
 			break;
 		case 'm':
@@ -1648,14 +1636,18 @@ main(int argc, char *argv[]) {
 
 	/* Set up resolution options */
 	resopt = DNS_CLIENTRESOPT_ALLOWRUN | DNS_CLIENTRESOPT_NOCDFLAG;
-	if (no_sigs)
+	if (no_sigs) {
 		resopt |= DNS_CLIENTRESOPT_NODNSSEC;
-	if (!root_validation && !dlv_validation)
+	}
+	if (!root_validation) {
 		resopt |= DNS_CLIENTRESOPT_NOVALIDATE;
-	if (cdflag)
+	}
+	if (cdflag) {
 		resopt &= ~DNS_CLIENTRESOPT_NOCDFLAG;
-	if (use_tcp)
+	}
+	if (use_tcp) {
 		resopt |= DNS_CLIENTRESOPT_TCP;
+	}
 
 	/* Perform resolution */
 	ISC_LIST_INIT(namelist);
@@ -1680,8 +1672,6 @@ main(int argc, char *argv[]) {
 	dns_client_freeresanswer(client, &namelist);
 
 cleanup:
-	if (dlv_anchor != NULL)
-		isc_mem_free(mctx, dlv_anchor);
 	if (trust_anchor != NULL)
 		isc_mem_free(mctx, trust_anchor);
 	if (anchorfile != NULL)
