@@ -147,7 +147,6 @@ dns_client_freeupdate
 dns_client_mctx
 dns_client_request
 dns_client_resolve
-dns_client_setdlv
 dns_client_setservers
 dns_client_startrequest
 dns_client_startresolve

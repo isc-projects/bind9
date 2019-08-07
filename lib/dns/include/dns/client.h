@@ -272,26 +272,6 @@ dns_client_clearservers(dns_client_t *client, dns_rdataclass_t rdclass,
  */
 
 isc_result_t
-dns_client_setdlv(dns_client_t *client, dns_rdataclass_t rdclass,
-		  const char *dlvname);
-/*%<
- * Specify a name to use for DNSSEC lookaside validation.
- * If a trusted key has been added for that name, then DLV will be
- * used during validation.  If 'dlvname' is NULL, then DLV will no
- * longer be used for this client.
- *
- * Requires:
- *
- *\li	'client' is a valid client.
- *
- * Returns:
- *
- *\li	#ISC_R_SUCCESS				On success.
- *
- *\li	Anything else				Failure.
- */
-
-isc_result_t
 dns_client_resolve(dns_client_t *client, const dns_name_t *name,
 		   dns_rdataclass_t rdclass, dns_rdatatype_t type,
 		   unsigned int options, dns_namelist_t *namelist);
