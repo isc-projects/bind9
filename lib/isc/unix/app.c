@@ -101,19 +101,19 @@ typedef struct isc__appctx {
 	isc_mem_t		*mctx;
 	isc_mutex_t		lock;
 	isc_eventlist_t		on_run;
-	bool		shutdown_requested;
-	bool		running;
+	bool			shutdown_requested;
+	bool			running;
 
 	/*!
 	 * We assume that 'want_shutdown' can be read and written atomically.
 	 */
-	bool		want_shutdown;
+	bool			want_shutdown;
 	/*
 	 * We assume that 'want_reload' can be read and written atomically.
 	 */
-	bool		want_reload;
+	bool			want_reload;
 
-	bool		blocked;
+	bool			blocked;
 
 	isc_taskmgr_t		*taskmgr;
 	isc_socketmgr_t		*socketmgr;
