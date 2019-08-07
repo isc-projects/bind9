@@ -27,7 +27,7 @@ options {
 	listen-on { 10.53.0.1; };
 	listen-on-v6 { none; };
 	recursion yes;
-	max-stale-ttl 7200;
+	max-stale-ttl 35;
 	stale-answer-ttl 3;
 	stale-answer-enable yes;
 };

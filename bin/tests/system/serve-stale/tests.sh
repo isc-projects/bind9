@@ -31,6 +31,11 @@ n=0
 #$DIG -p ${PORT} @10.53.0.2 nodata.example TXT
 #$DIG -p ${PORT} @10.53.0.2 nxdomain.example TXT
 
+#
+# First test server with serve-stale options set.
+#
+echo_i "test server with serve-stale options set"
+
 n=`expr $n + 1`
 echo_i "prime cache longttl.example ($n)"
 ret=0
@@ -64,6 +69,22 @@ ret=0
 $DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
 grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "verify prime cache statistics ($n)"
+ret=0
+rm -f ns1/named.stats
+$RNDCCMD 10.53.0.1 stats > /dev/null 2>&1
+[ -f ns1/named.stats ] || ret=1
+cp ns1/named.stats ns1/named.stats.$n
+# Check first 10 lines of Cache DB statistics.  After prime queries, we expect
+# two active TXT one nxrrset TXT, and one NXDOMAIN.
+grep -A 10 "++ Cache DB RRsets ++" ns1/named.stats.$n > ns1/named.stats.$n.cachedb || ret=1
+grep "2 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 !TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -124,6 +145,24 @@ grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 grep "example\..*2.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "verify stale cache statistics ($n)"
+ret=0
+rm -f ns1/named.stats
+$RNDCCMD 10.53.0.1 stats > /dev/null 2>&1
+[ -f ns1/named.stats ] || ret=1
+cp ns1/named.stats ns1/named.stats.$n
+# Check first 10 lines of Cache DB statistics.  After serve-stale queries, we
+# expect one active TXT RRset, one stale TXT, one stale nxrrset TXT, and one
+# stale NXDOMAIN.
+grep -A 10 "++ Cache DB RRsets ++" ns1/named.stats.$n > ns1/named.stats.$n.cachedb || ret=1
+grep "1 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #!TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo_i "failed"; fi
 
 n=`expr $n + 1`
 echo_i "running 'rndc serve-stale off' ($n)"
@@ -362,6 +401,12 @@ grep '_default: off (rndc) (stale-answer-ttl=2 max-stale-ttl=3600)' rndc.out.tes
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+#
+# Update named.conf.
+# Test server with low max-stale-ttl.
+#
+echo_i "test server with serve-stale options set, low max-stale-ttl"
+
 n=`expr $n + 1`
 echo_i "updating ns1/named.conf ($n)"
 ret=0
@@ -380,23 +425,7 @@ n=`expr $n + 1`
 echo_i "check 'rndc serve-stale status' ($n)"
 ret=0
 $RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
-grep '_default: off (rndc) (stale-answer-ttl=3 max-stale-ttl=7200)' rndc.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check 'rndc serve-stale' ($n)"
-ret=0
-$RNDCCMD 10.53.0.1 serve-stale > rndc.out.test$n 2>&1 && ret=1
-grep "unexpected end of input" rndc.out.test$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
-
-n=`expr $n + 1`
-echo_i "check 'rndc serve-stale unknown' ($n)"
-ret=0
-$RNDCCMD 10.53.0.1 serve-stale unknown > rndc.out.test$n 2>&1 && ret=1
-grep "syntax error" rndc.out.test$n > /dev/null || ret=1
+grep '_default: off (rndc) (stale-answer-ttl=3 max-stale-ttl=35)' rndc.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -412,11 +441,184 @@ if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 n=`expr $n + 1`
+echo_i "check 'rndc serve-stale status' ($n)"
+ret=0
+$RNDCCMD 10.53.0.1 serve-stale status > rndc.out.test$n 2>&1 || ret=1
+grep '_default: on (rndc) (stale-answer-ttl=3 max-stale-ttl=35)' rndc.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
 echo_i "enable responses from authoritative server ($n)"
 ret=0
 $DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
 grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+sleep 1
+
+n=`expr $n + 1`
+echo_i "prime cache longttl.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 longttl.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "prime cache data.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "prime cache nodata.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "prime cache nxdomain.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "verify prime cache statistics (low max-stale-ttl) ($n)"
+ret=0
+rm -f ns1/named.stats
+$RNDCCMD 10.53.0.1 stats > /dev/null 2>&1
+[ -f ns1/named.stats ] || ret=1
+cp ns1/named.stats ns1/named.stats.$n
+# Check first 10 lines of Cache DB statistics.  After prime queries, we expect
+# two active TXT RRsets, one nxrrset TXT, and one NXDOMAIN.
+grep -A 10 "++ Cache DB RRsets ++" ns1/named.stats.$n > ns1/named.stats.$n.cachedb || ret=1
+grep "2 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 !TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
+n=`expr $n + 1`
+echo_i "disable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt disable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+sleep 1
+
+n=`expr $n + 1`
+echo_i "check stale data.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "data\.example\..*3.*IN.*TXT.*A text record with a 1 second ttl" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check stale nodata.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+grep "example\..*3.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check stale nxdomain.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+grep "status: NXDOMAIN" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+grep "example\..*3.*IN.*SOA" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "verify stale cache statistics (low max-stale-ttl) ($n)"
+ret=0
+rm -f ns1/named.stats
+$RNDCCMD 10.53.0.1 stats > /dev/null 2>&1
+[ -f ns1/named.stats ] || ret=1
+cp ns1/named.stats ns1/named.stats.$n
+# Check first 10 lines of Cache DB statistics.  After serve-stale queries, we
+# expect one active TXT RRset, one stale TXT, one stale nxrrset TXT, and one
+# stale NXDOMAIN.
+grep -A 10 "++ Cache DB RRsets ++" ns1/named.stats.$n > ns1/named.stats.$n.cachedb || ret=1
+grep "1 TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #!TXT" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #NXDOMAIN" ns1/named.stats.$n.cachedb > /dev/null || ret=1
+status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
+sleep 1
+
+n=`expr $n + 1`
+echo_i "check ancient data.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 data.example TXT > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check ancient nodata.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 nodata.example TXT > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check ancient nxdomain.example (low max-stale-ttl) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.1 nxdomain.example TXT > dig.out.test$n
+grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+#
+# Now test server with no serve-stale options set.
+#
+echo_i "test server with no serve-stale options set"
+
+n=`expr $n + 1`
+echo_i "enable responses from authoritative server ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.2 txt enable  > dig.out.test$n
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
+grep "TXT.\"1\"" dig.out.test$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "prime cache longttl.example (max-stale-ttl default) ($n)"
+ret=0
+$DIG -p ${PORT} @10.53.0.3 longttl.example TXT > dig.out.test$n
+grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
+grep "ANSWER: 1," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -459,6 +661,22 @@ grep "TXT.\"0\"" dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "verify prime cache statistics (max-stale-ttl default) ($n)"
+ret=0
+rm -f ns3/named.stats
+$RNDCCMD 10.53.0.3 stats > /dev/null 2>&1
+[ -f ns3/named.stats ] || ret=1
+cp ns3/named.stats ns3/named.stats.$n
+# Check first 10 lines of Cache DB statistics.  After prime queries, we expect
+# two active TXT RRsets, one nxrrset TXT, and one NXDOMAIN.
+grep -A 10 "++ Cache DB RRsets ++" ns3/named.stats.$n > ns3/named.stats.$n.cachedb || ret=1
+grep "2 TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 !TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 NXDOMAIN" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+
 sleep 1
 
 n=`expr $n + 1`
@@ -495,6 +713,24 @@ grep "status: SERVFAIL" dig.out.test$n > /dev/null || ret=1
 grep "ANSWER: 0," dig.out.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "verify stale cache statistics (max-stale-ttl default) ($n)"
+ret=0
+rm -f ns3/named.stats
+$RNDCCMD 10.53.0.3 stats > /dev/null 2>&1
+[ -f ns3/named.stats ] || ret=1
+cp ns3/named.stats ns3/named.stats.$n
+# Check first 10 lines of Cache DB statistics. After last queries, we expect
+# one active TXT RRset, one stale TXT, one stale nxrrset TXT, and one
+# stale NXDOMAIN.
+grep -A 10 "++ Cache DB RRsets ++" ns3/named.stats.$n > ns3/named.stats.$n.cachedb || ret=1
+grep "1 TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #!TXT" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+grep "1 #NXDOMAIN" ns3/named.stats.$n.cachedb > /dev/null || ret=1
+status=`expr $status + $ret`
+if [ $ret != 0 ]; then echo_i "failed"; fi
 
 n=`expr $n + 1`
 echo_i "check 'rndc serve-stale on' ($n)"
