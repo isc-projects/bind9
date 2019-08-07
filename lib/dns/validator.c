@@ -45,19 +45,19 @@
  * Basic processing sequences:
  *
  * \li When called with rdataset and sigrdataset:
- *     validator_start -> validate -> proveunsecure
- *     validator_start -> validate -> nsecvalidate (secure wildcard answer)
+ *     validator_start -> validate_answer -> proveunsecure
+ *     validator_start -> validate_answer -> validate_nx (if secure wildcard)
  *
- * \li When called with rdataset:
+ * \li When called with rdataset but no sigrdataset:
  *     validator_start -> proveunsecure
  *
- * \li When called without a rdataset:
- *     validator_start -> nsecvalidate -> proveunsecure
+ * \li When called with no rdataset or sigrdataset:
+ *     validator_start -> validate_nx-> proveunsecure
  *
- * validator_start: determines what type of validation to do.
- * validate:        attempts to perform a positive validation.
- * proveunsecure::  attempts to prove the answer comes from a unsecure zone.
- * nsecvalidate:    attempts to prove a negative response.
+ * validator_start:   determine what type of validation to do.
+ * validate_answer:   attempt to perform a positive validation.
+ * proveunsecure:     attempt to prove the answer comes from an unsecure zone.
+ * validate_nx:       attempt to prove a negative response.
  */
 
 #define VALIDATOR_MAGIC                 ISC_MAGIC('V', 'a', 'l', '?')
@@ -108,13 +108,13 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 	    dns_rdataset_t *rdataset);
 
 static isc_result_t
-validate(dns_validator_t *val, bool resume);
+validate_answer(dns_validator_t *val, bool resume);
 
 static isc_result_t
 validatezonekey(dns_validator_t *val);
 
 static isc_result_t
-nsecvalidate(dns_validator_t *val, bool resume);
+validate_nx(dns_validator_t *val, bool resume);
 
 static isc_result_t
 proveunsecure(dns_validator_t *val, bool have_ds, bool resume);
@@ -416,7 +416,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 				val->keyset = &val->frdataset;
 			}
 		}
-		result = validate(val, true);
+		result = validate_answer(val, true);
 		if (result == DNS_R_NOVALIDSIG &&
 		    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
 		{
@@ -684,7 +684,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 		if (val->frdataset.trust >= dns_trust_secure) {
 			(void) get_dst_key(val, val->siginfo, &val->frdataset);
 		}
-		result = validate(val, true);
+		result = validate_answer(val, true);
 		if (result == DNS_R_NOVALIDSIG &&
 		    (val->attributes & VALATTR_TRIEDVERIFY) == 0)
 		{
@@ -847,7 +847,7 @@ cnamevalidated(isc_task_t *task, isc_event_t *event) {
  *
  * Looks for NOQNAME, NODATA and OPTOUT proofs.
  *
- * Resumes nsecvalidate.
+ * Resumes validate_nx.
  */
 static void
 authvalidated(isc_task_t *task, isc_event_t *event) {
@@ -883,7 +883,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 		if (result == ISC_R_CANCELED) {
 			validator_done(val, result);
 		} else {
-			result = nsecvalidate(val, true);
+			result = validate_nx(val, true);
 			if (result != DNS_R_WAIT) {
 				validator_done(val, result);
 			}
@@ -943,7 +943,7 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 			}
 		}
 
-		result = nsecvalidate(val, true);
+		result = validate_nx(val, true);
 		if (result != DNS_R_WAIT) {
 			validator_done(val, result);
 		}
@@ -1518,7 +1518,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
  * \li	Other return codes are possible and all indicate failure.
  */
 static isc_result_t
-validate(dns_validator_t *val, bool resume) {
+validate_answer(dns_validator_t *val, bool resume) {
 	isc_result_t result, vresult = DNS_R_NOVALIDSIG;
 	dns_validatorevent_t *event;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -1648,7 +1648,7 @@ validate(dns_validator_t *val, bool resume) {
 			}
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "looking for noqname proof");
-			return (nsecvalidate(val, false));
+			return (validate_nx(val, false));
 		} else if (vresult == ISC_R_SUCCESS) {
 			marksecure(event);
 			validator_log(val, ISC_LOG_DEBUG(3),
@@ -2109,10 +2109,10 @@ validatezonekey(dns_validator_t *val) {
 static isc_result_t
 start_positive_validation(dns_validator_t *val) {
 	/*
-	 * If this is not a key, go straight into validate().
+	 * If this is not a key, go straight into validate_answer().
 	 */
 	if (val->event->type != dns_rdatatype_dnskey || !isselfsigned(val)) {
-		return (validate(val, false));
+		return (validate_answer(val, false));
 	}
 
 	return (validatezonekey(val));
@@ -2646,15 +2646,15 @@ validate_ncache(dns_validator_t *val, bool resume) {
  *
  * If the required proofs are found we are done.
  *
- * If the proofs are not found attempt to prove this is a unsecure
+ * If the proofs are not found attempt to prove this is an unsecure
  * response.
  */
 static isc_result_t
-nsecvalidate(dns_validator_t *val, bool resume) {
+validate_nx(dns_validator_t *val, bool resume) {
 	isc_result_t result;
 
 	if (resume) {
-		validator_log(val, ISC_LOG_DEBUG(3), "resuming nsecvalidate");
+		validator_log(val, ISC_LOG_DEBUG(3), "resuming validate_nx");
 	}
 
 	if (val->event->message == NULL) {
@@ -2689,12 +2689,12 @@ nsecvalidate(dns_validator_t *val, bool resume) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "optout proof found");
 			val->event->optout = true;
-			markanswer(val, "nsecvalidate (1)", NULL);
+			markanswer(val, "validate_nx (1)", NULL);
 			return (ISC_R_SUCCESS);
 		} else if ((val->attributes & VALATTR_FOUNDUNKNOWN) != 0) {
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "unknown NSEC3 hash algorithm found");
-			markanswer(val, "nsecvalidate (2)", NULL);
+			markanswer(val, "validate_nx (2)", NULL);
 			return (ISC_R_SUCCESS);
 		}
 
@@ -3009,7 +3009,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
  * no such endpoint is found, then the response should have been secure.
  *
  * Returns:
- * \li	ISC_R_SUCCESS		val->event->name is in a unsecure zone
+ * \li	ISC_R_SUCCESS		val->event->name is in an unsecure zone
  * \li	DNS_R_WAIT		validation is in progress.
  * \li	DNS_R_MUSTBESECURE	val->event->name is supposed to be secure
  *				(policy) but we proved that it is unsecure.
@@ -3116,7 +3116,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
  * \li	2. unsecure positive answer.
  * \li	3. a negative answer (secure or unsecure).
  *
- * Note a answer that appears to be a secure positive answer may actually
+ * Note an answer that appears to be a secure positive answer may actually
  * be an unsecure positive answer.
  */
 static void
@@ -3201,7 +3201,7 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		} else {
 			val->attributes |= VALATTR_NEEDNODATA;
 		}
-		result = nsecvalidate(val, false);
+		result = validate_nx(val, false);
 	} else {
 		INSIST(0);
 		ISC_UNREACHABLE();
