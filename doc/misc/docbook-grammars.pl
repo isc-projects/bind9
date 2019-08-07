@@ -59,12 +59,6 @@ while (<FH>) {
 		$display = 1
 	}
 
-	if (m{// not.*implemented} || m{// obsolete} ||
-            m{// ancient} || m{// test.*only})
-        {
-		next;
-	}
-
 	s{ // not configured}{};
 	s{ // non-operational}{};
 	s{ // may occur multiple times,*}{};

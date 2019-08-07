@@ -120,12 +120,6 @@ while (<FH>) {
 
 my $blank = 0;
 while (<FH>) {
-	if (m{// not.*implemented} || m{// obsolete} ||
-            m{// ancient} || m{// test.*only})
-        {
-		next;
-	}
-
 	s{ // not configured}{};
 	s{ // non-operational}{};
 	s{ (// )*may occur multiple times,*}{};
@@ -140,22 +134,22 @@ while (<FH>) {
   <refsection><info><title>$HEADING</title></info>
 END
 
-                if ($1 eq "trusted-keys") {
-                        print <<END;
+		if ($1 eq "trusted-keys") {
+			print <<END;
   <para>Deprecated - see DNSSEC-KEYS.</para>
 END
-                }
+		}
 
-                if ($1 eq "managed-keys") {
-                        print <<END;
+		if ($1 eq "managed-keys") {
+			print <<END;
   <para>Deprecated - see DNSSEC-KEYS.</para>
 END
-                }
+		}
 
 		print <<END;
     <literallayout class="normal">
 END
-        }
+	}
 
 	if (m{^\s*$} && !$blank) {
 		$blank = 1;

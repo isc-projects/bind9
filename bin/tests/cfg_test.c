@@ -49,7 +49,8 @@ output(void *closure, const char *text, int textlen) {
 static void
 usage(void) {
 	fprintf(stderr, "usage: cfg_test --rndc|--named "
-		"[--grammar] [--memstats] conffile\n");
+		"[--grammar] [--zonegrammar] [--active] "
+		"[--memstats] conffile\n");
 	exit(1);
 }
 
@@ -67,6 +68,7 @@ main(int argc, char **argv) {
 	bool memstats = false;
 	char *filename = NULL;
 	unsigned int zonetype = 0;
+	unsigned int pflags = 0;
 
 	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
 
@@ -98,7 +100,9 @@ main(int argc, char **argv) {
 		usage();
 
 	while (argc > 1) {
-		if (strcmp(argv[1], "--grammar") == 0) {
+		if (strcmp(argv[1], "--active") == 0) {
+			pflags |= CFG_PRINTER_ACTIVEONLY;
+		} else if (strcmp(argv[1], "--grammar") == 0) {
 			grammar = true;
 		} else if (strcmp(argv[1], "--zonegrammar") == 0) {
 			argv++, argc--;
@@ -149,13 +153,14 @@ main(int argc, char **argv) {
 	if (grammar) {
 		if (type == NULL)
 			usage();
-		cfg_print_grammar(type, output, NULL);
+		cfg_print_grammar(type, pflags, output, NULL);
 	} else if (zonetype != 0) {
-		cfg_print_zonegrammar(zonetype, output, NULL);
+		cfg_print_zonegrammar(zonetype, pflags, output, NULL);
 	} else {
 		if (type == NULL || filename == NULL)
 			usage();
-		RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &pctx) == ISC_R_SUCCESS);
+		RUNTIME_CHECK(cfg_parser_create(mctx, lctx, &pctx) ==
+			      ISC_R_SUCCESS);
 
 		result = cfg_parse_file(pctx, filename, type, &cfg);
 

@@ -58,7 +58,7 @@
 	<command>check-srv-cname</command> ( fail | warn | ignore );
 	<command>check-wildcard</command> <replaceable>boolean</replaceable>;
 	<command>clients-per-query</command> <replaceable>integer</replaceable>;
-	<command>cookie-algorithm</command> ( aes | sha1 | sha256 );
+	<command>cookie-algorithm</command> ( aes | siphash24 );
 	<command>cookie-secret</command> <replaceable>string</replaceable>;
 	<command>coresize</command> ( default | unlimited | <replaceable>sizeval</replaceable> );
 	<command>datasize</command> ( default | unlimited | <replaceable>sizeval</replaceable> );
@@ -89,9 +89,6 @@
 	<command>dnssec-accept-expired</command> <replaceable>boolean</replaceable>;
 	<command>dnssec-dnskey-kskonly</command> <replaceable>boolean</replaceable>;
 	<command>dnssec-loadkeys-interval</command> <replaceable>integer</replaceable>;
-	<command>dnssec-lookaside</command> ( <replaceable>string</replaceable>
-	    <command>trust-anchor</command> <replaceable>string</replaceable> |
-	    <command>auto</command> | no ); deprecated
 	<command>dnssec-must-be-secure</command> <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	<command>dnssec-secure-to-insecure</command> <replaceable>boolean</replaceable>;
 	<command>dnssec-update-mode</command> ( maintain | no-resign );

@@ -3851,7 +3851,7 @@ cfg_clause_validforzone(const char *name, unsigned int ztype) {
 }
 
 void
-cfg_print_zonegrammar(const unsigned int zonetype,
+cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		      void (*f)(void *closure, const char *text, int textlen),
 		      void *closure)
 {
@@ -3866,7 +3866,7 @@ cfg_print_zonegrammar(const unsigned int zonetype,
 	pctx.f = f;
 	pctx.closure = closure;
 	pctx.indent = 0;
-	pctx.flags = 0;
+	pctx.flags = flags;
 
 	memmove(clauses, zone_clauses, sizeof(zone_clauses));
 	memmove(clauses + sizeof(zone_clauses)/sizeof(zone_clauses[0]) - 1,
@@ -3922,8 +3922,17 @@ cfg_print_zonegrammar(const unsigned int zonetype,
 	}
 
 	for (clause = clauses; clause->name != NULL; clause++) {
+		if (((pctx.flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
+		    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
+		     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
+		     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
+		     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
+		{
+			continue;
+		}
 		if ((clause->flags & zonetype) == 0 ||
-		    strcasecmp(clause->name, "type") == 0) {
+		    strcasecmp(clause->name, "type") == 0)
+		{
 			continue;
 		}
 		cfg_print_indent(&pctx);

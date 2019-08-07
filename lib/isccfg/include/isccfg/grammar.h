@@ -550,7 +550,7 @@ cfg_clause_validforzone(const char *name, unsigned int ztype);
  */
 
 void
-cfg_print_zonegrammar(const unsigned int zonetype,
+cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		      void (*f)(void *closure, const char *text, int textlen),
 		      void *closure);
 /*%<
