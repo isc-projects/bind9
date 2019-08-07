@@ -24,7 +24,7 @@ ISC_LANG_BEGINDECLS
 isc_result_t
 dns_dsdigest_fromtext(dns_dsdigest_t *dsdigestp, isc_textregion_t *source);
 /*%<
- * Convert the text 'source' refers to into a DS/DLV digest type value.
+ * Convert the text 'source' refers to into a DS digest type value.
  * The text may contain either a mnemonic digest name or a decimal
  * digest number.
  *
@@ -42,7 +42,7 @@ dns_dsdigest_fromtext(dns_dsdigest_t *dsdigestp, isc_textregion_t *source);
 isc_result_t
 dns_dsdigest_totext(dns_dsdigest_t dsdigest, isc_buffer_t *target);
 /*%<
- * Put a textual representation of the DS/DLV digest type 'dsdigest'
+ * Put a textual representation of the DS digest type 'dsdigest'
  * into 'target'.
  *
  * Requires:

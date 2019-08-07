@@ -205,7 +205,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->dstport = 53;
 	view->preferred_glue = 0;
 	view->flush = false;
-	view->dlv = NULL;
 	view->maxudp = 0;
 	view->staleanswerttl = 1;
 	view->staleanswersok = dns_stale_answer_conf;
@@ -216,7 +215,6 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->maxbits = 0;
 	view->rpzs = NULL;
 	view->catzs = NULL;
-	dns_fixedname_init(&view->dlv_fixed);
 	view->managed_keys = NULL;
 	view->redirect = NULL;
 	view->redirectzone = NULL;

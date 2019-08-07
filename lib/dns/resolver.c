@@ -2446,10 +2446,6 @@ resquery_send(resquery_t *query) {
 		if (result != ISC_R_SUCCESS) {
 			secure_domain = false;
 		}
-		if (res->view->dlv != NULL) {
-			secure_domain = true;
-		}
-
 		if (secure_domain ||
 		    (ISFORWARDER(query->addrinfo) && ntacovered))
 		{
@@ -3714,7 +3710,6 @@ fctx_getaddresses(fetchctx_t *fctx, bool badcache) {
 			result = isc_time_nowplusinterval(&expire, &i);
 			if (badcache &&
 			    (fctx->type == dns_rdatatype_dnskey ||
-			     fctx->type == dns_rdatatype_dlv ||
 			     fctx->type == dns_rdatatype_ds) &&
 			     result == ISC_R_SUCCESS)
 				dns_resolver_addbadcache(res, &fctx->name,
@@ -5488,7 +5483,6 @@ validated(isc_task_t *task, isc_event_t *event) {
 			tresult = isc_time_nowplusinterval(&expire, &i);
 			if (negative &&
 			    (fctx->type == dns_rdatatype_dnskey ||
-			     fctx->type == dns_rdatatype_dlv ||
 			     fctx->type == dns_rdatatype_ds) &&
 			     tresult == ISC_R_SUCCESS)
 				dns_resolver_addbadcache(res, &fctx->name,
@@ -5928,11 +5922,6 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 					now, checknta, NULL, &secure_domain);
 		if (result != ISC_R_SUCCESS) {
 			return (result);
-		}
-
-		if (!secure_domain && res->view->dlv != NULL) {
-			valoptions |= DNS_VALIDATOR_DLV;
-			secure_domain = true;
 		}
 	}
 
@@ -6523,11 +6512,6 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 					now, checknta, NULL, &secure_domain);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-
-		if (!secure_domain && res->view->dlv != NULL) {
-			valoptions |= DNS_VALIDATOR_DLV;
-			secure_domain = true;
-		}
 	}
 
 	if ((fctx->options & DNS_FETCHOPT_NOCDFLAG) != 0)
