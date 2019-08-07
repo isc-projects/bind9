@@ -389,7 +389,6 @@ echo_i "check that 'dnssec-lookaside auto;' generates a warning ($n)"
 ret=0
 $CHECKCONF warn-dlv-auto.conf > checkconf.out$n 2>/dev/null || ret=1
 grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-grep "dnssec-lookaside 'auto' is no longer supported" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
@@ -398,7 +397,6 @@ echo_i "check that 'dnssec-lookaside . trust-anchor dlv.isc.org;' generates a wa
 ret=0
 $CHECKCONF warn-dlv-dlv.isc.org.conf > checkconf.out$n 2>/dev/null || ret=1
 grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
-grep "dlv.isc.org has been shut down" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
@@ -406,8 +404,6 @@ n=`expr $n + 1`
 echo_i "check that 'dnssec-lookaside . trust-anchor dlv.example.com;' generates a warning ($n)"
 ret=0
 $CHECKCONF warn-dlv-dlv.example.com.conf > checkconf.out$n 2>/dev/null || ret=1
-lines=$(wc -l < checkconf.out$n)
-if [ $lines != 1 ]; then ret=1; fi
 grep "option 'dnssec-lookaside' is obsolete and should be removed" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
@@ -454,14 +450,6 @@ echo_i "check that using dnssec-keys and managed-keys generates an error ($n)"
 ret=0
 $CHECKCONF check-mixed-keys.conf > checkconf.out$n 2>/dev/null && ret=1
 grep "use of managed-keys is not allowed" checkconf.out$n > /dev/null || ret=1
-if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
-status=`expr $status + $ret`
-
-echo_i "check that the dlv.isc.org KSK generates a warning ($n)"
-ret=0
-$CHECKCONF check-dlv-ksk-key.conf > checkconf.out$n 2>/dev/null || ret=1
-[ -s checkconf.out$n ] || ret=1
-grep "trust anchor for dlv.isc.org is present" < checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
