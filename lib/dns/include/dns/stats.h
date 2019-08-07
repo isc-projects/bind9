@@ -477,15 +477,9 @@ LIBDNS_EXTERNAL_DATA extern const char *dns_statscounter_names[];
  *	RRset type counters only.  This indicates a record that is stale
  *	but may still be served.
  *
- *	Note: incrementing _STALE will decrement the corresponding non-stale
- *	counter.
- *
  * _ANCIENT
  *	RRset type counters only.  This indicates a record that is marked for
  *	removal.
- *
- *	Note: incrementing _ANCIENT will decrement the corresponding
- *	non-ancient counter.
  */
 #define DNS_RDATASTATSTYPE_ATTR_OTHERTYPE	0x0001
 #define DNS_RDATASTATSTYPE_ATTR_NXRRSET		0x0002

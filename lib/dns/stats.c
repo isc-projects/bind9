@@ -49,19 +49,32 @@ typedef enum {
  * Ideally, we should have rdata handle this type of details.
  */
 /*
- * types, !types, nxdomain, stale types, stale !types, stale nxdomain
+ * types, !types, nxdomain, stale types, stale !types, stale nxdomain,
+ * ancient types, ancient !types, ancient nxdomain
  */
 enum {
 	/* For 0-255, we use the rdtype value as counter indices */
 	rdtypecounter_dlv = 256,	/* for dns_rdatatype_dlv */
 	rdtypecounter_others = 257,	/* anything else */
 	rdtypecounter_max = 258,
-	/* The following are used for rdataset */
+	/* The following are used for nxrrset rdataset */
 	rdtypenxcounter_max = rdtypecounter_max * 2,
+	/* nxdomain counter */
 	rdtypecounter_nxdomain = rdtypenxcounter_max,
 	/* stale counters offset */
 	rdtypecounter_stale = rdtypecounter_nxdomain + 1,
-	rdatasettypecounter_max = rdtypecounter_stale * 2,
+	rdtypecounter_stale_max = rdtypecounter_stale + rdtypecounter_max,
+	rdtypenxcounter_stale_max = rdtypecounter_stale_max + rdtypecounter_max,
+	rdtypecounter_stale_nxdomain = rdtypenxcounter_stale_max,
+	/* ancient counters offset */
+	rdtypecounter_ancient = rdtypecounter_stale_nxdomain + 1,
+	rdtypecounter_ancient_max = rdtypecounter_ancient + rdtypecounter_max,
+	rdtypenxcounter_ancient_max = rdtypecounter_ancient_max +
+				      rdtypecounter_max,
+	rdtypecounter_ancient_nxdomain = rdtypenxcounter_ancient_max,
+	/* limit of number counter types */
+	rdatasettypecounter_max = rdtypecounter_ancient_nxdomain + 1,
+	/* dnssec maximum key id */
 	dnssec_keyid_max = 65535
 };
 
@@ -262,17 +275,17 @@ update_rdatasetstats(dns_stats_t *stats, dns_rdatastatstype_t rrsettype,
 			counter += rdtypecounter_max;
 	}
 
+	if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
+	     DNS_RDATASTATSTYPE_ATTR_ANCIENT) != 0) {
+		counter += rdtypecounter_ancient;
+	} else if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
+	     DNS_RDATASTATSTYPE_ATTR_STALE) != 0) {
+		counter += rdtypecounter_stale;
+	}
+
 	if (increment) {
-		if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
-		     DNS_RDATASTATSTYPE_ATTR_STALE) != 0) {
-			isc_stats_decrement(stats->counters, counter);
-			counter += rdtypecounter_stale;
-		}
 		isc_stats_increment(stats->counters, counter);
 	} else {
-		if ((DNS_RDATASTATSTYPE_ATTR(rrsettype) &
-		     DNS_RDATASTATSTYPE_ATTR_STALE) != 0)
-			counter += rdtypecounter_stale;
 		isc_stats_decrement(stats->counters, counter);
 	}
 }
@@ -373,34 +386,46 @@ static void
 rdataset_dumpcb(isc_statscounter_t counter, uint64_t value, void *arg) {
 	rdatadumparg_t *rdatadumparg = arg;
 	unsigned int attributes;
+	bool dump = true;
 
 	if (counter < rdtypecounter_max) {
-		dump_rdentry(counter, value, 0, rdatadumparg->fn,
-			     rdatadumparg->arg);
-	} else if (counter < rdtypecounter_nxdomain) {
+		attributes = 0;
+	} else if (counter < rdtypenxcounter_max) {
 		counter -= rdtypecounter_max;
 		attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
-		dump_rdentry(counter, value, attributes, rdatadumparg->fn,
-			     rdatadumparg->arg);
 	} else if (counter == rdtypecounter_nxdomain) {
-		dump_rdentry(0, value, DNS_RDATASTATSTYPE_ATTR_NXDOMAIN,
-			     rdatadumparg->fn, rdatadumparg->arg);
-	} else if (counter < rdtypecounter_stale + rdtypecounter_max) {
+		counter = 0;
+		attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN;
+	} else if (counter < rdtypecounter_stale_max) {
 		counter -= rdtypecounter_stale;
 		attributes = DNS_RDATASTATSTYPE_ATTR_STALE;
-		dump_rdentry(counter, value, attributes, rdatadumparg->fn,
-			     rdatadumparg->arg);
-	} else if (counter < rdtypecounter_stale + rdtypecounter_nxdomain) {
-		counter -= rdtypecounter_stale + rdtypecounter_max;
+	} else if (counter < rdtypenxcounter_stale_max) {
+		counter -= rdtypecounter_stale_max;
 		attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET |
 			     DNS_RDATASTATSTYPE_ATTR_STALE;
-		dump_rdentry(counter, value, attributes, rdatadumparg->fn,
-			     rdatadumparg->arg);
-	} else {
+	} else if (counter == rdtypecounter_stale_nxdomain) {
+		counter = 0;
 		attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN |
 			     DNS_RDATASTATSTYPE_ATTR_STALE;
-		dump_rdentry(0, value, attributes, rdatadumparg->fn,
-			     rdatadumparg->arg);
+	} else if (counter < rdtypecounter_ancient_max) {
+		counter -= rdtypecounter_ancient;
+		attributes = DNS_RDATASTATSTYPE_ATTR_ANCIENT;
+	} else if (counter < rdtypenxcounter_ancient_max) {
+		counter -= rdtypecounter_ancient_max;
+		attributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET |
+			     DNS_RDATASTATSTYPE_ATTR_ANCIENT;
+	} else if (counter == rdtypecounter_ancient_nxdomain) {
+		counter = 0;
+		attributes = DNS_RDATASTATSTYPE_ATTR_NXDOMAIN |
+			     DNS_RDATASTATSTYPE_ATTR_ANCIENT;
+	} else {
+		/* Out of bounds, do not dump entry. */
+		dump = false;
+	}
+
+	if (dump) {
+		dump_rdentry(counter, value, attributes, rdatadumparg->fn,
+		     rdatadumparg->arg);
 	}
 }
 
