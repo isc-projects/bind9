@@ -1216,7 +1216,8 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 	namereln = dns_name_fullcompare(val->event->name, &siginfo->signer,
 					&order, &nlabels);
 	if (namereln != dns_namereln_subdomain &&
-	    namereln != dns_namereln_equal) {
+	    namereln != dns_namereln_equal)
+	{
 		return (DNS_R_CONTINUE);
 	}
 
@@ -2119,7 +2120,7 @@ start_positive_validation(dns_validator_t *val) {
 
 /*%
  * val_rdataset_first and val_rdataset_next provide iteration methods
- * that hide whether we are iterating across a message or a  negative
+ * that hide whether we are iterating across a message or a negative
  * cache rdataset.
  */
 static isc_result_t
@@ -2470,6 +2471,59 @@ findnsec3proofs(dns_validator_t *val) {
 	return (result);
 }
 
+/*
+ * Start a validator for negative response data.
+ *
+ * Returns:
+ * \li	DNS_R_CONTINUE	Validation skipped, continue
+ * \li	DNS_R_WAIT	Validation is in progress
+ *
+ * \li	Other return codes indicate failure.
+ */
+static isc_result_t
+validate_neg_rrset(dns_validator_t *val, dns_name_t *name,
+		   dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
+{
+	isc_result_t result;
+
+	/*
+	 * If a signed zone is missing the zone key, bad
+	 * things could happen.  A query for data in the zone
+	 * would lead to a query for the zone key, which
+	 * would return a negative answer, which would contain
+	 * an SOA and an NSEC signed by the missing key, which
+	 * would trigger another query for the DNSKEY (since
+	 * the first one is still in progress), and go into an
+	 * infinite loop.  Avoid that.
+	 */
+	if (val->event->type == dns_rdatatype_dnskey &&
+	    rdataset->type == dns_rdatatype_nsec &&
+	    dns_name_equal(name, val->event->name))
+	{
+		dns_rdata_t nsec = DNS_RDATA_INIT;
+
+		result = dns_rdataset_first(rdataset);
+		if (result != ISC_R_SUCCESS) {
+			return (result);
+		}
+		dns_rdataset_current(rdataset, &nsec);
+		if (dns_nsec_typepresent(&nsec, dns_rdatatype_soa)) {
+			return (DNS_R_CONTINUE);
+		}
+	}
+
+	val->currentset = rdataset;
+	result = create_validator(val, name, rdataset->type,
+				  rdataset, sigrdataset,
+				  authvalidated, "validate_neg_rrset");
+	if (result != ISC_R_SUCCESS) {
+		return (result);
+	}
+
+	val->authcount++;
+	return (DNS_R_WAIT);
+}
+
 /*%
  * Validate the authority section records.
  */
@@ -2519,43 +2573,12 @@ validate_authority(dns_validator_t *val, bool resume) {
 					break;
 				}
 			}
-			/*
-			 * If a signed zone is missing the zone key, bad
-			 * things could happen.  A query for data in the zone
-			 * would lead to a query for the zone key, which
-			 * would return a negative answer, which would contain
-			 * an SOA and an NSEC signed by the missing key, which
-			 * would trigger another query for the DNSKEY (since
-			 * the first one is still in progress), and go into an
-			 * infinite loop.  Avoid that.
-			 */
-			if (val->event->type == dns_rdatatype_dnskey &&
-			    rdataset->type == dns_rdatatype_nsec &&
-			    dns_name_equal(name, val->event->name))
-			{
-				dns_rdata_t nsec = DNS_RDATA_INIT;
 
-				result = dns_rdataset_first(rdataset);
-				if (result != ISC_R_SUCCESS) {
-					return (result);
-				}
-				dns_rdataset_current(rdataset, &nsec);
-				if (dns_nsec_typepresent(&nsec,
-							 dns_rdatatype_soa))
-				{
-					continue;
-				}
-			}
-			val->currentset = rdataset;
-			result = create_validator(val, name, rdataset->type,
-						  rdataset, sigrdataset,
-						  authvalidated,
-						  "validate_authority");
-			if (result != ISC_R_SUCCESS) {
+			result = validate_neg_rrset(val, name, rdataset,
+						    sigrdataset);
+			if (result != DNS_R_CONTINUE) {
 				return (result);
 			}
-			val->authcount++;
-			return (DNS_R_WAIT);
 		}
 	}
 	if (result == ISC_R_NOMORE) {
@@ -2601,40 +2624,12 @@ validate_ncache(dns_validator_t *val, bool resume) {
 			sigrdataset = &val->fsigrdataset;
 		}
 
-		/*
-		 * If a signed zone is missing the zone key, bad
-		 * things could happen.  A query for data in the zone
-		 * would lead to a query for the zone key, which
-		 * would return a negative answer, which would contain
-		 * an SOA and an NSEC signed by the missing key, which
-		 * would trigger another query for the DNSKEY (since
-		 * the first one is still in progress), and go into an
-		 * infinite loop.  Avoid that.
-		 */
-		if (val->event->type == dns_rdatatype_dnskey &&
-		    rdataset->type == dns_rdatatype_nsec &&
-		    dns_name_equal(name, val->event->name))
-		{
-			dns_rdata_t nsec = DNS_RDATA_INIT;
+		result = validate_neg_rrset(val, name, rdataset, sigrdataset);
+		if (result == DNS_R_CONTINUE) {
+			continue;
+		}
 
-			result = dns_rdataset_first(rdataset);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
-			}
-			dns_rdataset_current(rdataset, &nsec);
-			if (dns_nsec_typepresent(&nsec, dns_rdatatype_soa)) {
-				continue;
-			}
-		}
-		val->currentset = rdataset;
-		result = create_validator(val, name, rdataset->type,
-					  rdataset, sigrdataset,
-					  authvalidated, "validate_ncache");
-		if (result != ISC_R_SUCCESS) {
-			return (result);
-		}
-		val->authcount++;
-		return (DNS_R_WAIT);
+		return (result);
 	}
 	if (result == ISC_R_NOMORE) {
 		result = ISC_R_SUCCESS;
@@ -2680,8 +2675,10 @@ nsecvalidate(dns_validator_t *val, bool resume) {
 		if (!FOUNDNOQNAME(val)) {
 			findnsec3proofs(val);
 		}
+
 		if (FOUNDNOQNAME(val) && FOUNDCLOSEST(val) &&
-		    !FOUNDOPTOUT(val)) {
+		    !FOUNDOPTOUT(val))
+		{
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "marking as secure, noqname proof found");
 			marksecure(val->event);
@@ -2700,6 +2697,7 @@ nsecvalidate(dns_validator_t *val, bool resume) {
 			markanswer(val, "nsecvalidate (2)", NULL);
 			return (ISC_R_SUCCESS);
 		}
+
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "noqname proof not found");
 		return (DNS_R_NOVALIDNSEC);
@@ -2742,6 +2740,7 @@ nsecvalidate(dns_validator_t *val, bool resume) {
 	if (val->authfail != 0 && val->authcount == val->authfail) {
 		return (DNS_R_BROKENCHAIN);
 	}
+
 	validator_log(val, ISC_LOG_DEBUG(3),
 		      "nonexistence proof(s) not found");
 	val->attributes |= VALATTR_INSECURITY;
