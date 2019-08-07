@@ -1,3 +1,13 @@
+5277.	[bug]		Cache DB statistics could underflow when serve-stale
+			was in use, because of a bug in counter maintenance
+			when RRsets become stale.
+
+			Functions for dumping statistics have been updated
+			to dump active, stale, and ancient statistic
+			counters.  Ancient RRset counters are prefixed
+			with '~'; stale RRset counters are still prefixed
+			with '#'. [GL #602]
+
 5276.	[func]		DNSSEC Lookaside Validation (DLV) is now obsolete;
 			all code enabling its use has been removed from the
 			validator, "delv", and the DNSSEC tools. [GL #7]
