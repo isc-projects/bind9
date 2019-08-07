@@ -74,9 +74,10 @@ enum {
 	rdtypecounter_ancient_nxdomain = rdtypenxcounter_ancient_max,
 	/* limit of number counter types */
 	rdatasettypecounter_max = rdtypecounter_ancient_nxdomain + 1,
-	/* dnssec maximum key id */
-	dnssec_keyid_max = 65535
 };
+
+/* dnssec maximum key id */
+static int dnssec_keyid_max = 65535;
 
 struct dns_stats {
 	/*% Unlocked */
