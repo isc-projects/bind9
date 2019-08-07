@@ -194,7 +194,7 @@ typedef struct rdatasetheader {
 	rbtdb_serial_t                  serial;
 	dns_ttl_t                       rdh_ttl;
 	rbtdb_rdatatype_t               type;
-	uint16_t                    attributes;
+	uint16_t                        attributes;
 	dns_trust_t                     trust;
 	struct noqname                  *noqname;
 	struct noqname                  *closest;
@@ -831,17 +831,23 @@ update_rrsetstats(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 			statattributes = DNS_RDATASTATSTYPE_ATTR_NXRRSET;
 			base = RBTDB_RDATATYPE_EXT(header->type);
 		}
-	} else
+	} else {
 		base = RBTDB_RDATATYPE_BASE(header->type);
+	}
 
-	if (STALE(header))
+	if (STALE(header)) {
 		statattributes |= DNS_RDATASTATSTYPE_ATTR_STALE;
+	}
+	if (ANCIENT(header)) {
+		statattributes |= DNS_RDATASTATSTYPE_ATTR_ANCIENT;
+	}
 
 	type = DNS_RDATASTATSTYPE_VALUE(base, statattributes);
-	if (increment)
+	if (increment) {
 		dns_rdatasetstats_increment(rbtdb->rrsetstats, type);
-	else
+	} else {
 		dns_rdatasetstats_decrement(rbtdb->rrsetstats, type);
+	}
 }
 
 static void
@@ -1507,24 +1513,68 @@ rollback_node(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 
 static inline void
 mark_header_ancient(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
+	bool do_stats = false;
 
 	/*
 	 * If we are already ancient there is nothing to do.
 	 */
-	if (ANCIENT(header))
+	if (ANCIENT(header)) {
 		return;
+	}
+
+	if ((header->attributes & RDATASET_ATTR_STATCOUNT) != 0) {
+		do_stats = EXISTS(header);
+	}
+
+	if (do_stats) {
+		/*
+		 * Decrement the stats counter for the appropriate RRtype.
+		 * If the STALE attribute is set, this will decrement the
+		 * stale type counter, otherwise it decrements the active
+		 * stats type counter.
+		 */
+		update_rrsetstats(rbtdb, header, false);
+	}
 
 	header->attributes |= RDATASET_ATTR_ANCIENT;
 	header->node->dirty = 1;
 
-	/*
-	 * If we have not been counted then there is nothing to do.
-	 */
-	if ((header->attributes & RDATASET_ATTR_STATCOUNT) == 0)
-		return;
-
-	if (EXISTS(header))
+	if (do_stats) {
+		/* Increment the stats counter for the ancient RRtype. */
 		update_rrsetstats(rbtdb, header, true);
+	}
+}
+
+static inline void
+mark_header_stale(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
+	bool do_stats = false;
+
+	/*
+	 * If we are already stale there is nothing to do.
+	 */
+	if (STALE(header)) {
+		return;
+	}
+
+	if ((header->attributes & RDATASET_ATTR_STATCOUNT) != 0) {
+		do_stats = EXISTS(header);
+	}
+
+	if (do_stats) {
+		/* Decrement the stats counter for the appropriate RRtype.
+		 * If the ANCIENT attribute is set (although it is very
+		 * unlikely that an RRset goes from ANCIENT to STALE), this
+		 * will decrement the ancient stale type counter, otherwise it
+		 * decrements the active stats type counter.
+		 */
+		update_rrsetstats(rbtdb, header, false);
+	}
+
+	header->attributes |= RDATASET_ATTR_STALE;
+
+	if (do_stats) {
+		update_rrsetstats(rbtdb, header, true);
+	}
 }
 
 static inline void
@@ -4320,7 +4370,7 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 		 * skip this record.
 		 */
 		if (KEEPSTALE(search->rbtdb) && stale > search->now) {
-			header->attributes |= RDATASET_ATTR_STALE;
+			mark_header_stale(search->rbtdb, header);
 			*header_prev = header;
 			return ((search->options & DNS_DBFIND_STALEOK) == 0);
 		}
@@ -4328,7 +4378,7 @@ check_stale_header(dns_rbtnode_t *node, rdatasetheader_t *header,
 		/*
 		 * This rdataset is stale.  If no one else is using the
 		 * node, we can clean it up right now, otherwise we mark
-		 * it as stale, and the node as dirty, so it will get
+		 * it as ancient, and the node as dirty, so it will get
 		 * cleaned up later.
 		 */
 		if ((header->rdh_ttl < search->now - RBTDB_VIRTUAL) &&
@@ -5289,7 +5339,8 @@ expirenode(dns_db_t *db, dns_dbnode_t *node, isc_stdtime_t now) {
 			mark_header_ancient(rbtdb, header);
 			if (log)
 				isc_log_write(dns_lctx, category, module,
-					      level, "overmem cache: stale %s",
+					      level,
+					      "overmem cache: ancient %s",
 					      printname);
 		} else if (force_expire) {
 			if (! RETAIN(header)) {
@@ -5824,7 +5875,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 				 * which covers all types (NXDOMAIN,
 				 * NODATA(QTYPE=ANY)),
 				 *
-				 * We make all other data stale so that the
+				 * We make all other data ancient so that the
 				 * only rdataset that can be found at this
 				 * node is the negative cache entry.
 				 */
@@ -5839,7 +5890,7 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			}
 			/*
 			 * Otherwise look for any RRSIGs of the given
-			 * type so they can be marked stale later.
+			 * type so they can be marked ancient later.
 			 */
 			for (topheader = rbtnode->data;
 			     topheader != NULL;
@@ -5851,9 +5902,9 @@ add32(dns_rbtdb_t *rbtdb, dns_rbtnode_t *rbtnode, rbtdb_version_t *rbtversion,
 			/*
 			 * We're adding something that isn't a
 			 * negative cache entry.  Look for an extant
-			 * non-stale NXDOMAIN/NODATA(QTYPE=ANY) negative
+			 * non-ancient NXDOMAIN/NODATA(QTYPE=ANY) negative
 			 * cache entry.  If we're adding an RRSIG, also
-			 * check for an extant non-stale NODATA ncache
+			 * check for an extant non-ancient NODATA ncache
 			 * entry which covers the same type as the RRSIG.
 			 */
 			for (topheader = rbtnode->data;
@@ -6533,7 +6584,7 @@ addrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	 * If we're adding a delegation type, adding to the auxiliary NSEC tree,
 	 * or the DB is a cache in an overmem state, hold an exclusive lock on
 	 * the tree.  In the latter case the lock does not necessarily have to
-	 * be acquired but it will help purge stale entries more effectively.
+	 * be acquired but it will help purge ancient entries more effectively.
 	 */
 	if (IS_CACHE(rbtdb) && isc_mem_isovermem(rbtdb->common.mctx))
 		cache_is_overmem = true;
