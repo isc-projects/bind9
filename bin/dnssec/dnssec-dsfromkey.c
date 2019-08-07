@@ -208,8 +208,7 @@ loadkey(char *filename, unsigned char *key_buf, unsigned int key_buf_size,
 }
 
 static void
-logkey(dns_rdata_t *rdata)
-{
+logkey(dns_rdata_t *rdata) {
 	isc_result_t result;
 	dst_key_t    *key = NULL;
 	isc_buffer_t buf;
@@ -228,9 +227,7 @@ logkey(dns_rdata_t *rdata)
 }
 
 static void
-emit(dns_dsdigest_t dt, bool showall, char *lookaside,
-     bool cds, dns_rdata_t *rdata)
-{
+emit(dns_dsdigest_t dt, bool showall, bool cds, dns_rdata_t *rdata) {
 	isc_result_t result;
 	unsigned char buf[DNS_DS_BUFFERSIZE];
 	char text_buf[DST_KEY_MAXTEXTSIZE];
@@ -262,18 +259,6 @@ emit(dns_dsdigest_t dt, bool showall, char *lookaside,
 	if (result != ISC_R_SUCCESS)
 		fatal("can't print name");
 
-	/* Add lookaside origin, if set */
-	if (lookaside != NULL) {
-		if (isc_buffer_availablelength(&nameb) < strlen(lookaside))
-			fatal("DLV origin '%s' is too long", lookaside);
-		isc_buffer_putstr(&nameb, lookaside);
-		if (lookaside[strlen(lookaside) - 1] != '.') {
-			if (isc_buffer_availablelength(&nameb) < 1)
-				fatal("DLV origin '%s' is too long", lookaside);
-			isc_buffer_putstr(&nameb, ".");
-		}
-	}
-
 	result = dns_rdata_tofmttext(&ds, (dns_name_t *) NULL, 0, 0, 0, "",
 				     &textb);
 
@@ -293,26 +278,24 @@ emit(dns_dsdigest_t dt, bool showall, char *lookaside,
 	isc_buffer_usedregion(&classb, &r);
 	printf("%.*s", (int)r.length, r.base);
 
-	if (lookaside == NULL) {
-		if (cds)
-			printf(" CDS ");
-		else
-			printf(" DS ");
-	} else
-		printf(" DLV ");
+	if (cds) {
+		printf(" CDS ");
+	} else {
+		printf(" DS ");
+	}
 
 	isc_buffer_usedregion(&textb, &r);
 	printf("%.*s\n", (int)r.length, r.base);
 }
 
 static void
-emits(bool showall, char *lookaside, bool cds, dns_rdata_t *rdata) {
+emits(bool showall, bool cds, dns_rdata_t *rdata) {
 	unsigned i, n;
 
 	n = sizeof(dtype)/sizeof(dtype[0]);
 	for (i = 0; i < n; i++) {
 		if (dtype[i] != 0) {
-			emit(dtype[i], showall, lookaside, cds, rdata);
+			emit(dtype[i], showall, cds, rdata);
 		}
 	}
 }
@@ -338,12 +321,11 @@ usage(void) {
 "    -f zonefile: read keys from a zone file\n"
 "    -h: print help information\n"
 "    -K directory: where to find key or keyset files\n"
-"    -l zone: print DLV records in the given lookaside zone\n"
 "    -s: read keys from keyset-<dnsname> file\n"
 "    -T: TTL of output records (omitted by default)\n"
 "    -v level: verbosity\n"
 "    -V: print version information\n");
-	fprintf(stderr, "Output: DS, DLV, or CDS RRs\n");
+	fprintf(stderr, "Output: DS or CDS RRs\n");
 
 	exit (-1);
 }
@@ -352,7 +334,6 @@ int
 main(int argc, char **argv) {
 	char		*classname = NULL;
 	char		*filename = NULL, *dir = NULL, *namestr;
-	char		*lookaside = NULL;
 	char		*endp;
 	int		ch;
 	bool		cds = false;
@@ -397,9 +378,6 @@ main(int argc, char **argv) {
 			add_dtype(strtodsdigest(isc_commandline_argument));
 			break;
 		case 'C':
-			if (lookaside != NULL)
-				fatal("lookaside and CDS are mutually"
-				      " exclusive");
 			cds = true;
 			break;
 		case 'c':
@@ -418,12 +396,7 @@ main(int argc, char **argv) {
 			filename = isc_commandline_argument;
 			break;
 		case 'l':
-			if (cds)
-				fatal("lookaside and CDS are mutually"
-				      " exclusive");
-			lookaside = isc_commandline_argument;
-			if (strlen(lookaside) == 0U)
-				fatal("lookaside must be a non-empty string");
+			fatal("-l option (DLV lookaside) is obsolete");
 			break;
 		case 's':
 			usekeyset = true;
@@ -528,7 +501,7 @@ main(int argc, char **argv) {
 				logkey(&rdata);
 			}
 
-			emits(showall, lookaside, cds, &rdata);
+			emits(showall, cds, &rdata);
 		}
 	} else {
 		unsigned char key_buf[DST_KEY_MAXSIZE];
@@ -536,7 +509,7 @@ main(int argc, char **argv) {
 		loadkey(argv[isc_commandline_index], key_buf,
 			DST_KEY_MAXSIZE, &rdata);
 
-		emits(showall, lookaside, cds, &rdata);
+		emits(showall, cds, &rdata);
 	}
 
 	if (dns_rdataset_isassociated(&rdataset)) {

@@ -112,10 +112,8 @@
 
     <para>
       The <command>dnssec-dsfromkey</command> command outputs DS (Delegation
-      Signer) resource records (RRs) and other similarly-constructed RRs:
-      with the <option>-l</option> option it outputs DLV (DNSSEC Lookaside
-      Validation) RRs; or with the <option>-C</option> it outputs CDS (Child
-      DS) RRs.
+      Signer) resource records (RRs), or CDS (Child DS) RRs with the
+      <option>-C</option> option.
     </para>
 
     <para>
@@ -212,9 +210,7 @@
 	<term>-C</term>
 	<listitem>
 	  <para>
-	    Generate CDS records rather than DS records. This is mutually
-	    exclusive with the <option>-l</option> option for generating DLV
-	    records.
+	    Generate CDS records rather than DS records.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -256,19 +252,6 @@
 	  <para>
 	    Look for key files or <filename>keyset-</filename> files in
 	    <option>directory</option>.
-	  </para>
-	</listitem>
-      </varlistentry>
-
-      <varlistentry>
-	<term>-l <replaceable class="parameter">domain</replaceable></term>
-	<listitem>
-	  <para>
-	    Generate a DLV set instead of a DS set. The specified
-	    <replaceable>domain</replaceable> is appended to the name for each
-	    record in the set.
-	    This is mutually exclusive with the <option>-C</option> option
-	    for generating CDS records.
 	  </para>
 	</listitem>
       </varlistentry>
@@ -362,7 +345,6 @@
       </citerefentry>,
       <citetitle>BIND 9 Administrator Reference Manual</citetitle>,
       <citetitle>RFC 3658</citetitle> (DS RRs),
-      <citetitle>RFC 4431</citetitle> (DLV RRs),
       <citetitle>RFC 4509</citetitle> (SHA-256 for DS RRs),
       <citetitle>RFC 6605</citetitle> (SHA-384 for DS RRs),
       <citetitle>RFC 7344</citetitle> (CDS and CDNSKEY RRs).
