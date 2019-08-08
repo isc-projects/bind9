@@ -152,7 +152,7 @@ isc_rwlock_destroy(isc_rwlock_t *rwl) {
 # define isc_rwlock_pause() __asm__ __volatile__ ("yield")
 #elif defined(sun) && (defined(__sparc) || defined(__sparc__))
 # define isc_rwlock_pause() smt_pause()
-#elif defined(__sparc) || defined(__sparc__)
+#elif (defined(__sparc) || defined(__sparc__)) && HAVE_SPARC_PAUSE
 # define isc_rwlock_pause() __asm__ __volatile__ ("pause")
 #elif defined(__ppc__) || defined(_ARCH_PPC)  ||			\
 	defined(_ARCH_PWR) || defined(_ARCH_PWR2) || defined(_POWER)
