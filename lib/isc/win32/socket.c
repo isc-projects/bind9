@@ -300,19 +300,20 @@ typedef struct IoCompletionInfo {
 
 struct isc_socketmgr {
 	/* Not locked. */
-	unsigned int			magic;
-	isc_mem_t		       *mctx;
-	isc_mutex_t			lock;
-	isc_stats_t		       *stats;
+	unsigned int		magic;
+	isc_mem_t	       *mctx;
+	isc_mutex_t		lock;
+	isc_stats_t	       *stats;
 
 	/* Locked by manager lock. */
-	ISC_LIST(isc_socket_t)		socklist;
+	ISC_LIST(isc_socket_t)	socklist;
 	bool			bShutdown;
-	isc_condition_t			shutdown_ok;
-	HANDLE				hIoCompletionPort;
-	int				maxIOCPThreads;
-	HANDLE				hIOCPThreads[MAX_IOCPTHREADS];
-	DWORD				dwIOCPThreadIds[MAX_IOCPTHREADS];
+	isc_condition_t		shutdown_ok;
+	HANDLE			hIoCompletionPort;
+	int			maxIOCPThreads;
+	HANDLE			hIOCPThreads[MAX_IOCPTHREADS];
+	DWORD			dwIOCPThreadIds[MAX_IOCPTHREADS];
+	size_t			maxudp;
 
 	/*
 	 * Debugging.
@@ -1126,9 +1127,20 @@ fill_recv(isc_socket_t *sock, isc_socketevent_t *dev) {
 			sock->recvbuf.from_addr_len);
 		if (isc_sockaddr_getport(&dev->address) == 0) {
 			if (isc_log_wouldlog(isc_lctx, IOEVENT_LEVEL)) {
-				socket_log(__LINE__, sock, &dev->address, IOEVENT,
+				socket_log(__LINE__, sock, &dev->address,
+					   IOEVENT,
 					   "dropping source port zero packet");
 			}
+			sock->recvbuf.remaining = 0;
+			return;
+		}
+		/*
+		 * Simulate a firewall blocking UDP responses bigger than
+		 * 'maxudp' bytes.
+		 */
+		if (sock->manager->maxudp != 0 &&
+		    sock->recvbuf.remaining > sock->manager->maxudp)
+		{
 			sock->recvbuf.remaining = 0;
 			return;
 		}
@@ -1239,6 +1251,18 @@ startio_send(isc_socket_t *sock, isc_socketevent_t *dev, int *nbytes,
 	IoCompletionInfo *lpo;
 	int status;
 	struct msghdr *mh;
+
+	/*
+	 * Simulate a firewall blocking UDP responses bigger than
+	 * 'maxudp' bytes.
+	 */
+	if (sock->type == isc_sockettype_udp &&
+	    sock->manager->maxudp != 0 &&
+	    dev->region.length - dev->n > sock->manager->maxudp)
+	{
+		*nbytes = dev->region.length - dev->n;
+		return (DOIO_SUCCESS);
+	}
 
 	lpo = (IoCompletionInfo *)HeapAlloc(hHeapHandle,
 					    HEAP_ZERO_MEMORY,
@@ -2097,9 +2121,11 @@ internal_recv(isc_socket_t *sock, int nbytes)
 		   "internal_recv: %d bytes received", nbytes);
 
 	/*
-	 * If we got here, the I/O operation succeeded.  However, we might still have removed this
-	 * event from our notification list (or never placed it on it due to immediate completion.)
-	 * Handle the reference counting here, and handle the cancellation event just after.
+	 * If we got here, the I/O operation succeeded.  However, we might
+	 * still have removed this event from our notification list (or never
+	 * placed it on it due to immediate completion.)
+	 * Handle the reference counting here, and handle the cancellation
+	 * event just after.
 	 */
 	INSIST(sock->pending_iocp > 0);
 	sock->pending_iocp--;
@@ -2107,13 +2133,15 @@ internal_recv(isc_socket_t *sock, int nbytes)
 	sock->pending_recv--;
 
 	/*
-	 * The only way we could have gotten here is that our I/O has successfully completed.
-	 * Update our pointers, and move on.  The only odd case here is that we might not
-	 * have received enough data on a TCP stream to satisfy the minimum requirements.  If
-	 * this is the case, we will re-issue the recv() call for what we need.
+	 * The only way we could have gotten here is that our I/O has
+	 * successfully completed. Update our pointers, and move on.
+	 *  The only odd case here is that we might not have received
+	 * enough data on a TCP stream to satisfy the minimum requirements.
+	 * If this is the case, we will re-issue the recv() call for what
+	 * we need.
 	 *
-	 * We do check for a recv() of 0 bytes on a TCP stream.  This means the remote end
-	 * has closed.
+	 * We do check for a recv() of 0 bytes on a TCP stream.  This
+	 * means the remote end has closed.
 	 */
 	if (nbytes == 0 && sock->type == isc_sockettype_tcp) {
 		send_recvdone_abort(sock, ISC_R_EOF);
@@ -2508,6 +2536,7 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 	manager->bShutdown = false;
 	manager->totalSockets = 0;
 	manager->iocp_total = 0;
+	manager->maxudp = 0;
 
 	*managerp = manager;
 
@@ -3887,9 +3916,10 @@ isc_socketmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 	return (result);
 }
 
-/* Not implemented for win32 */
 void
-isc_socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
-	UNUSED(manager);
-	UNUSED(maxudp);
+isc_socketmgr_maxudp(isc_socketmgr_t *manager, unsigned int maxudp) {
+
+	REQUIRE(VALID_MANAGER(manager));
+
+	manager->maxudp = maxudp;
 }
