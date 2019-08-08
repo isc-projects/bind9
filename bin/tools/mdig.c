@@ -967,7 +967,6 @@ save_opt(struct query *query, char *code, char *value) {
 
 static isc_result_t
 parse_netprefix(isc_sockaddr_t **sap, const char *value) {
-	isc_result_t result = ISC_R_SUCCESS;
 	isc_sockaddr_t *sa = NULL;
 	struct in_addr in4;
 	struct in6_addr in6;
@@ -981,6 +980,7 @@ parse_netprefix(isc_sockaddr_t **sap, const char *value) {
 
 	slash = strchr(buf, '/');
 	if (slash != NULL) {
+		isc_result_t result;
 		*slash = '\0';
 		result = isc_parse_uint32(&netmask, slash + 1, 10);
 		if (result != ISC_R_SUCCESS) {

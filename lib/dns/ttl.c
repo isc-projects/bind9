@@ -121,6 +121,7 @@ dns_ttl_totext(uint32_t src, bool verbose,
 		 * here because region.base is type unsigned char *.
 		 */
 		isc_buffer_usedregion(target, &region);
+		/* cppcheck-suppress unreadVariable */
 		region.base[region.length - 1] =
 			toupper(region.base[region.length - 1]);
 	}

@@ -756,7 +756,9 @@ rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 	REQUIRE(iteratorp != NULL);
 	REQUIRE(DNS_RDATASETITER_VALID(*iteratorp));
 
+	/* cppcheck-suppress unreadVariable */
 	u.rdatasetiterator = *iteratorp;
+	*iteratorp = NULL;
 
 	mctx = u.ecdbiterator->common.db->mctx;
 	u.ecdbiterator->common.magic = 0;
@@ -765,8 +767,6 @@ rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 			  &u.ecdbiterator->common.node);
 	isc_mem_put(mctx, u.ecdbiterator,
 		    sizeof(ecdb_rdatasetiter_t));
-
-	*iteratorp = NULL;
 }
 
 static isc_result_t

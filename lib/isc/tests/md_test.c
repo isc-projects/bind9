@@ -157,8 +157,10 @@ isc_md_update_test(void **state) {
 static void
 isc_md_reset_test(void **state) {
 	isc_md_t *md = *state;
+#if 0
 	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
 	unsigned int digestlen __attribute((unused));
+#endif
 
 	assert_non_null(md);
 
