@@ -2716,6 +2716,10 @@ validate_nx(dns_validator_t *val, bool resume) {
 	return (proveunsecure(val, false, false));
 }
 
+/*%
+ * Check that DS rdataset has at least one record with
+ * a supported algorithm and digest.
+ */
 static bool
 check_ds(dns_validator_t *val, dns_name_t *name, dns_rdataset_t *rdataset) {
 	dns_rdata_t dsrdata = DNS_RDATA_INIT;
@@ -2775,6 +2779,59 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 
 	result = view_find(val, tname, dns_rdatatype_ds);
 	switch (result) {
+	case ISC_R_SUCCESS:
+		/*
+		 * There is a DS here.  Verify that it's secure and
+		 * continue walking down labels.
+		 */
+		if (val->frdataset.trust >= dns_trust_secure) {
+			if (!check_ds(val, tname, &val->frdataset)) {
+				validator_log(val, ISC_LOG_DEBUG(3),
+					      "no supported algorithm/"
+					      "digest (%s/DS)",
+					      namebuf);
+				*resp = markanswer(val, "proveunsecure (5)",
+						   "no supported "
+						   "algorithm/digest (DS)");
+				return (ISC_R_COMPLETE);
+			}
+
+			break;
+		}
+
+		if (!dns_rdataset_isassociated(&val->fsigrdataset)) {
+			validator_log(val, ISC_LOG_DEBUG(3), "DS is unsigned");
+			*resp = DNS_R_NOVALIDSIG;
+		} else {
+			/*
+			 * Validate / re-validate answer.
+			 */
+			result = create_validator(val, tname,
+						  dns_rdatatype_ds,
+						  &val->frdataset,
+						  &val->fsigrdataset,
+						  dsvalidated,
+						  "proveunsecure");
+			*resp = DNS_R_WAIT;
+			if (result != ISC_R_SUCCESS) {
+				*resp = result;
+			}
+		}
+
+		return (ISC_R_COMPLETE);
+
+	case ISC_R_NOTFOUND:
+		/*
+		 * We don't know anything about the DS.  Find it.
+		 */
+		*resp = DNS_R_WAIT;
+		result = create_fetch(val, tname, dns_rdatatype_ds,
+				      dsfetched, "proveunsecure");
+		if (result != ISC_R_SUCCESS) {
+			*resp = result;
+		}
+		return (ISC_R_COMPLETE);
+
 	case DNS_R_NXRRSET:
 	case DNS_R_NCACHENXRRSET:
 		/*
@@ -2838,66 +2895,6 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 
 		break;
 
-	case DNS_R_CNAME:
-		if (DNS_TRUST_PENDING(val->frdataset.trust) ||
-		    DNS_TRUST_ANSWER(val->frdataset.trust))
-		{
-			result = create_validator(val, tname,
-						  dns_rdatatype_cname,
-						  &val->frdataset,
-						  NULL, cnamevalidated,
-						  "proveunsecure "
-						  "(cname)");
-			*resp = DNS_R_WAIT;
-			if (result != ISC_R_SUCCESS) {
-				*resp = result;
-			}
-			return (ISC_R_COMPLETE);
-		}
-
-		break;
-
-	case ISC_R_SUCCESS:
-		/*
-		 * There is a DS here.  Verify that it's secure and
-		 * continue walking down labels.
-		 */
-		if (val->frdataset.trust >= dns_trust_secure) {
-			if (!check_ds(val, tname, &val->frdataset)) {
-				validator_log(val, ISC_LOG_DEBUG(3),
-					      "no supported algorithm/"
-					      "digest (%s/DS)",
-					      namebuf);
-				*resp = markanswer(val, "proveunsecure (5)",
-						   "no supported "
-						   "algorithm/digest (DS)");
-				return (ISC_R_COMPLETE);
-			}
-
-			break;
-		}
-
-		if (!dns_rdataset_isassociated(&val->fsigrdataset)) {
-			validator_log(val, ISC_LOG_DEBUG(3), "DS is unsigned");
-			*resp = DNS_R_NOVALIDSIG;
-		} else {
-			/*
-			 * Validate / re-validate answer.
-			 */
-			result = create_validator(val, tname,
-						  dns_rdatatype_ds,
-						  &val->frdataset,
-						  &val->fsigrdataset,
-						  dsvalidated,
-						  "proveunsecure");
-			*resp = DNS_R_WAIT;
-			if (result != ISC_R_SUCCESS) {
-				*resp = result;
-			}
-		}
-
-		return (ISC_R_COMPLETE);
-
 	case DNS_R_NXDOMAIN:
 	case DNS_R_NCACHENXDOMAIN:
 		/*
@@ -2946,17 +2943,24 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 
 		break;
 
-	case ISC_R_NOTFOUND:
-		/*
-		 * We don't know anything about the DS.  Find it.
-		 */
-		*resp = DNS_R_WAIT;
-		result = create_fetch(val, tname, dns_rdatatype_ds,
-				      dsfetched, "proveunsecure");
-		if (result != ISC_R_SUCCESS) {
-			*resp = result;
+	case DNS_R_CNAME:
+		if (DNS_TRUST_PENDING(val->frdataset.trust) ||
+		    DNS_TRUST_ANSWER(val->frdataset.trust))
+		{
+			result = create_validator(val, tname,
+						  dns_rdatatype_cname,
+						  &val->frdataset,
+						  NULL, cnamevalidated,
+						  "proveunsecure "
+						  "(cname)");
+			*resp = DNS_R_WAIT;
+			if (result != ISC_R_SUCCESS) {
+				*resp = result;
+			}
+			return (ISC_R_COMPLETE);
 		}
-		return (ISC_R_COMPLETE);
+
+		break;
 
 	default:
 		*resp = result;
