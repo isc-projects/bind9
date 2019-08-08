@@ -3094,9 +3094,8 @@ status=`expr $status + $ret`
 
 echo_i "check that key id are logged when dumping the cache ($n)"
 ret=0
-$RNDCCMD 10.53.0.4 dumpdb 2>&1 | sed 's/^/ns4 /' | cat_i
-sleep 1
-grep "; key id = " ns4/named_dump.db > /dev/null || ret=1
+rndc_dumpdb ns4
+grep "; key id = " ns4/named_dump.db.test$n > /dev/null || ret=1
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`

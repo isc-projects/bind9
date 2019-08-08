@@ -15,5 +15,7 @@ rm -f */named.memstats
 rm -f */named.run
 rm -f */named.conf
 rm -f dig.*
+rm -f rndc.*
 rm -f sfcache.*
 rm -f ns*/named.lock
+rm -f ns5/named_dump*
