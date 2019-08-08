@@ -343,6 +343,48 @@ rndc_reconfig() {
     done
 }
 
+# rndc_dumpdb: call "rndc dumpdb [...]" and wait until it completes
+#
+# The first argument is the name server instance to send the command to, in the
+# form of "nsX" (where "X" is the instance number), e.g. "ns5".  The remaining
+# arguments, if any, are appended to the rndc command line after "dumpdb".
+#
+# Control channel configuration for the name server instance to send the
+# command to must match the contents of bin/tests/system/common/rndc.conf.
+#
+# rndc output is stored in a file called rndc.out.test${n}; the "n" variable is
+# required to be set by the calling tests.sh script.
+#
+# Return 0 if the dump completes successfully; return 1 if rndc returns an exit
+# code other than 0 or if the "; Dump complete" string does not appear in the
+# dump within 10 seconds.
+rndc_dumpdb() {
+	__ret=0
+	__dump_complete=0
+	__server="${1}"
+	__ip="10.53.0.$(echo "${__server}" | tr -c -d "0-9")"
+
+	shift
+	${RNDC} -c ../common/rndc.conf -p "${CONTROLPORT}" -s "${__ip}" dumpdb "$@" > "rndc.out.test${n}" 2>&1 || __ret=1
+
+	for _ in 0 1 2 3 4 5 6 7 8 9
+	do
+		if grep '^; Dump complete$' "${__server}/named_dump.db" > /dev/null; then
+			mv "${__server}/named_dump.db" "${__server}/named_dump.db.test${n}"
+			__dump_complete=1
+			break
+		fi
+		sleep 1
+	done
+
+	if [ ${__dump_complete} -eq 0 ]; then
+		echo_i "timed out waiting for 'rndc dumpdb' to finish"
+		__ret=1
+	fi
+
+	return ${__ret}
+}
+
 # get_dig_xfer_stats: extract transfer statistics from dig output stored
 # in $1, converting them to a format used by some system tests.
 get_dig_xfer_stats() {
