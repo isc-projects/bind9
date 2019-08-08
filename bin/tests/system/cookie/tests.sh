@@ -141,13 +141,8 @@ status=`expr $status + $ret`
 n=`expr $n + 1`
 echo_i "checking for COOKIE value in adb ($n)"
 ret=0
-$RNDCCMD 10.53.0.1 dumpdb
-for i in 1 2 3 4 5 6 7 8 9 10
-do
-  sleep 1
-  grep "10.53.0.2.*\[cookie=" ns1/named_dump.db > /dev/null && break
-done
-grep "10.53.0.2.*\[cookie=" ns1/named_dump.db > /dev/null || ret=1
+rndc_dumpdb ns1
+grep "10.53.0.2.*\[cookie=" ns1/named_dump.db.test$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
