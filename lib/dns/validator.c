@@ -423,7 +423,6 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 			saved_result = result;
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "falling back to insecurity proof");
-			val->attributes |= VALATTR_INSECURITY;
 			result = proveunsecure(val, false, false);
 			if (result == DNS_R_NOTINSECURE) {
 				result = saved_result;
@@ -455,17 +454,12 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
-/*%
- * We were asked to look for a DS record as part of following a key chain
- * upwards.  If found resume the validation process.  If not found fail the
- * validation process.
- */
 static void
 dsfetched(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_validator_t *val;
 	dns_rdataset_t *rdataset;
-	bool want_destroy;
+	bool want_destroy, trustchain;
 	isc_result_t result;
 	isc_result_t eresult;
 	dns_fetch_t *fetch;
@@ -477,6 +471,12 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 	rdataset = &val->frdataset;
 	eresult = devent->result;
 
+	/*
+	 * Set to true if we're walking a chain of trust; false if
+	 * we're attempting to prove insecurity.
+	 */
+	trustchain = ((val->attributes & VALATTR_INSECURITY) == 0);
+
 	/* Free resources which are not of interest. */
 	if (devent->node != NULL) {
 		dns_db_detachnode(devent->db, &devent->node);
@@ -487,7 +487,6 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 	if (dns_rdataset_isassociated(&val->fsigrdataset)) {
 		dns_rdataset_disassociate(&val->fsigrdataset);
 	}
-	isc_event_free(&event);
 
 	INSIST(val->event != NULL);
 
@@ -495,33 +494,98 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 	LOCK(&val->lock);
 	fetch = val->fetch;
 	val->fetch = NULL;
+
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
-	} else if (eresult == ISC_R_SUCCESS) {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "dsset with trust %s",
-			      dns_trust_totext(rdataset->trust));
-		val->dsset = &val->frdataset;
-		result = validatezonekey(val);
-		if (result != DNS_R_WAIT) {
-			validator_done(val, result);
+		goto done;
+	}
+
+	switch (eresult) {
+	case DNS_R_NXDOMAIN:
+	case DNS_R_NCACHENXDOMAIN:
+		/*
+		 * These results only make sense if we're attempting
+		 * an insecurity proof, not when walking a chain of trust.
+		 */
+		if (trustchain) {
+			goto unexpected;
 		}
-	} else if (eresult == DNS_R_CNAME ||
-		   eresult == DNS_R_NXRRSET ||
-		   eresult == DNS_R_NCACHENXRRSET ||
-		   eresult == DNS_R_SERVFAIL)   /* RFC 1034 parent? */
-	{
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "falling back to insecurity proof (%s)",
-			      dns_result_totext(eresult));
-		val->attributes |= VALATTR_INSECURITY;
-		result = proveunsecure(val, false, false);
-		if (result != DNS_R_WAIT) {
-			validator_done(val, result);
+
+		/* FALLTHROUGH */
+	case ISC_R_SUCCESS:
+		if (trustchain) {
+			/*
+			 * We looked for a DS record as part of
+			 * following a key chain upwards; resume following
+			 * the chain.
+			 */
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "dsset with trust %s",
+				      dns_trust_totext(rdataset->trust));
+			val->dsset = &val->frdataset;
+			result = validatezonekey(val);
+			if (result != DNS_R_WAIT) {
+				validator_done(val, result);
+			}
+		} else {
+			/*
+			 * There is a DS which may or may not be a zone cut.
+			 * In either case we are still in a secure zone,
+			 * so keep looking for the break in the chain
+			 * of trust.
+			 */
+			result = proveunsecure(val, (eresult == ISC_R_SUCCESS),
+					       true);
+			if (result != DNS_R_WAIT) {
+				validator_done(val, result);
+			}
 		}
-	} else {
-		validator_log(val, ISC_LOG_DEBUG(3),
-			      "dsfetched: got %s",
+		break;
+	case DNS_R_CNAME:
+	case DNS_R_NXRRSET:
+	case DNS_R_NCACHENXRRSET:
+	case DNS_R_SERVFAIL: /* RFC 1034 parent? */
+		if (trustchain) {
+			/*
+			 * Failed to find a DS while following the
+			 * chain of trust; now we need to prove insecurity.
+			 */
+			validator_log(val, ISC_LOG_DEBUG(3),
+				      "falling back to insecurity proof (%s)",
+				      dns_result_totext(eresult));
+			result = proveunsecure(val, false, false);
+			if (result != DNS_R_WAIT) {
+				validator_done(val, result);
+			}
+		} else if (eresult == DNS_R_SERVFAIL) {
+			goto unexpected;
+		} else if (eresult != DNS_R_CNAME &&
+			   isdelegation(dns_fixedname_name(&devent->foundname),
+					&val->frdataset, eresult))
+		{
+			/*
+			 * Failed to find a DS while trying to prove
+			 * insecurity. If this is a zone cut, that
+			 * means we're insecure.
+			 */
+			result = markanswer(val, "dsfetched",
+					    "no DS and this is a delegation");
+			validator_done(val, result);
+		} else {
+			/*
+			 * Not a zone cut, so we have to keep looking for
+			 * the break point in the chain of trust.
+			 */
+			result = proveunsecure(val, false, true);
+			if (result != DNS_R_WAIT) {
+				validator_done(val, result);
+			}
+		}
+		break;
+
+	default:
+ unexpected:
+		validator_log(val, ISC_LOG_DEBUG(3), "dsfetched: got %s",
 			      isc_result_totext(eresult));
 		if (eresult == ISC_R_CANCELED) {
 			validator_done(val, eresult);
@@ -529,107 +593,7 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 			validator_done(val, DNS_R_BROKENCHAIN);
 		}
 	}
-
-	want_destroy = exit_check(val);
-	UNLOCK(&val->lock);
-
-	if (fetch != NULL) {
-		dns_resolver_destroyfetch(&fetch);
-	}
-
-	if (want_destroy) {
-		destroy(val);
-	}
-}
-
-/*%
- * We were asked to look for the DS record as part of proving that a
- * name is unsecure.
- *
- * If the DS record doesn't exist and the query name corresponds to
- * a delegation point we are transitioning from a secure zone to a
- * unsecure zone.
- *
- * If the DS record exists it will be secure.  We can continue looking
- * for the break point in the chain of trust.
- */
-static void
-dsfetched2(isc_task_t *task, isc_event_t *event) {
-	dns_fetchevent_t *devent;
-	dns_validator_t *val;
-	dns_name_t *tname;
-	bool want_destroy;
-	isc_result_t result;
-	isc_result_t eresult;
-	dns_fetch_t *fetch;
-
-	UNUSED(task);
-	INSIST(event->ev_type == DNS_EVENT_FETCHDONE);
-	devent = (dns_fetchevent_t *)event;
-	val = devent->ev_arg;
-	eresult = devent->result;
-
-	/* Free resources which are not of interest. */
-	if (devent->node != NULL) {
-		dns_db_detachnode(devent->db, &devent->node);
-	}
-	if (devent->db != NULL) {
-		dns_db_detach(&devent->db);
-	}
-	if (dns_rdataset_isassociated(&val->fsigrdataset)) {
-		dns_rdataset_disassociate(&val->fsigrdataset);
-	}
-
-	INSIST(val->event != NULL);
-
-	validator_log(val, ISC_LOG_DEBUG(3), "in dsfetched2: %s",
-		      dns_result_totext(eresult));
-	LOCK(&val->lock);
-	fetch = val->fetch;
-	val->fetch = NULL;
-	if (CANCELED(val)) {
-		validator_done(val, ISC_R_CANCELED);
-	} else if (eresult == DNS_R_CNAME ||
-		   eresult == DNS_R_NXRRSET ||
-		   eresult == DNS_R_NCACHENXRRSET)
-	{
-		/*
-		 * There is no DS.  If this is a delegation, we're done.
-		 */
-		tname = dns_fixedname_name(&devent->foundname);
-		if (eresult != DNS_R_CNAME &&
-		    isdelegation(tname, &val->frdataset, eresult))
-		{
-			result = markanswer(val, "dsfetched2",
-					    "no DS and this is a delegation");
-			validator_done(val, result);
-		} else {
-			result = proveunsecure(val, false, true);
-			if (result != DNS_R_WAIT) {
-				validator_done(val, result);
-			}
-		}
-	} else if (eresult == ISC_R_SUCCESS ||
-		   eresult == DNS_R_NXDOMAIN ||
-		   eresult == DNS_R_NCACHENXDOMAIN)
-	{
-		/*
-		 * There is a DS which may or may not be a zone cut.
-		 * In either case we are still in a secure zone resume
-		 * validation.
-		 */
-		result = proveunsecure(val, (eresult == ISC_R_SUCCESS),
-				       true);
-		if (result != DNS_R_WAIT) {
-			validator_done(val, result);
-		}
-	} else {
-		if (eresult == ISC_R_CANCELED) {
-			validator_done(val, eresult);
-		} else {
-			validator_done(val, DNS_R_NOVALIDDS);
-		}
-	}
+ done:
 
 	isc_event_free(&event);
 	want_destroy = exit_check(val);
@@ -691,7 +655,6 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 			saved_result = result;
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "falling back to insecurity proof");
-			val->attributes |= VALATTR_INSECURITY;
 			result = proveunsecure(val, false, false);
 			if (result == DNS_R_NOTINSECURE) {
 				result = saved_result;
@@ -2743,7 +2706,6 @@ validate_nx(dns_validator_t *val, bool resume) {
 
 	validator_log(val, ISC_LOG_DEBUG(3),
 		      "nonexistence proof(s) not found");
-	val->attributes |= VALATTR_INSECURITY;
 	return (proveunsecure(val, false, false));
 }
 
@@ -2983,7 +2945,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		 */
 		*resp = DNS_R_WAIT;
 		result = create_fetch(val, tname, dns_rdatatype_ds,
-				      dsfetched2, "proveunsecure");
+				      dsfetched, "proveunsecure");
 		if (result != ISC_R_SUCCESS) {
 			*resp = result;
 		}
@@ -3025,6 +2987,11 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 	dns_fixedname_t fixedsecroot;
 	dns_name_t *secroot = dns_fixedname_initname(&fixedsecroot);
 	unsigned int labels;
+
+	/*
+	 * We're attempting to prove insecurity.
+	 */
+	val->attributes |= VALATTR_INSECURITY;
 
 	dns_name_copynf(val->event->name, secroot);
 
@@ -3159,7 +3126,6 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 			saved_result = result;
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "falling back to insecurity proof");
-			val->attributes |= VALATTR_INSECURITY;
 			result = proveunsecure(val, false, false);
 			if (result == DNS_R_NOTINSECURE) {
 				result = saved_result;
@@ -3176,7 +3142,6 @@ validator_start(isc_task_t *task, isc_event_t *event) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "attempting insecurity proof");
 
-		val->attributes |= VALATTR_INSECURITY;
 		result = proveunsecure(val, false, false);
 		if (result == DNS_R_NOTINSECURE) {
 			validator_log(val, ISC_LOG_INFO,
