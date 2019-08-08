@@ -1223,7 +1223,7 @@ isc__socketmgr_setreserved(isc_socketmgr_t *mgr, uint32_t);
  */
 
 void
-isc__socketmgr_maxudp(isc_socketmgr_t *mgr, int maxudp);
+isc__socketmgr_maxudp(isc_socketmgr_t *mgr, unsigned int maxudp);
 /*%<
  * Test interface. Drop UDP packet > 'maxudp'.
  */

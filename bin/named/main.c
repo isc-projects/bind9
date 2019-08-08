@@ -507,6 +507,9 @@ parse_T_opt(char *option) {
 		maxudp = 1460;
 	} else if (!strncmp(option, "maxudp=", 7)) {
 		maxudp = atoi(option + 7);
+		if (maxudp <= 0) {
+			ns_main_earlyfatal("bad maxudp");
+		}
 	} else if (!strncmp(option, "mkeytimers=", 11)) {
 		p = strtok(option + 11, "/");
 		if (p == NULL) {

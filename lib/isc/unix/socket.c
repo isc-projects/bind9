@@ -483,7 +483,7 @@ struct isc__socketmgr {
 #else /* USE_WATCHER_THREAD */
 	unsigned int		refs;
 #endif /* USE_WATCHER_THREAD */
-	int			maxudp;
+	size_t			maxudp;
 };
 
 #ifdef USE_SHARED_MANAGER
@@ -2022,8 +2022,11 @@ doio_recv(isc__socket_t *sock, isc_socketevent_t *dev) {
 		 * Simulate a firewall blocking UDP responses bigger than
 		 * 'maxudp' bytes.
 		 */
-		if (sock->manager->maxudp != 0 && cc > sock->manager->maxudp)
+		if (sock->manager->maxudp != 0 &&
+		    cc > (int)sock->manager->maxudp)
+		{
 			return (DOIO_SOFT);
+		}
 	}
 
 	socket_log(sock, &dev->address, IOEVENT,
@@ -2116,7 +2119,7 @@ doio_send(isc__socket_t *sock, isc_socketevent_t *dev) {
  resend:
 	if (sock->type == isc_sockettype_udp &&
 	    sock->manager->maxudp != 0 &&
-	    write_count > (size_t)sock->manager->maxudp)
+	    write_count > sock->manager->maxudp)
 		cc = write_count;
 	else
 		cc = sendmsg(sock->fd, &msghdr, 0);
@@ -4420,7 +4423,7 @@ isc__socketmgr_setreserved(isc_socketmgr_t *manager0, uint32_t reserved) {
 }
 
 void
-isc__socketmgr_maxudp(isc_socketmgr_t *manager0, int maxudp) {
+isc__socketmgr_maxudp(isc_socketmgr_t *manager0, unsigned int maxudp) {
 	isc__socketmgr_t *manager = (isc__socketmgr_t *)manager0;
 
 	REQUIRE(VALID_MANAGER(manager));
