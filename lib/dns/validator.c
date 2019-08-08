@@ -1870,7 +1870,8 @@ validatezonekey(dns_validator_t *val) {
 		 * Otherwise, try to find the DS record.
 		 */
 		result = view_find(val, val->event->name, dns_rdatatype_ds);
-		if (result == ISC_R_SUCCESS) {
+		switch (result) {
+		case ISC_R_SUCCESS:
 			/*
 			 * We have DS records.
 			 */
@@ -1902,7 +1903,9 @@ validatezonekey(dns_validator_t *val) {
 				result = ISC_R_SUCCESS;
 				POST(result);
 			}
-		} else if (result == ISC_R_NOTFOUND) {
+			break;
+
+		case ISC_R_NOTFOUND:
 			/*
 			 * We don't have the DS.  Find it.
 			 */
@@ -1913,21 +1916,25 @@ validatezonekey(dns_validator_t *val) {
 				return (result);
 			}
 			return (DNS_R_WAIT);
-		} else if (result == DNS_R_NCACHENXDOMAIN ||
-			   result == DNS_R_NCACHENXRRSET ||
-			   result == DNS_R_EMPTYNAME ||
-			   result == DNS_R_NXDOMAIN ||
-			   result == DNS_R_NXRRSET ||
-			   result == DNS_R_CNAME)
-		{
+
+		case DNS_R_NCACHENXDOMAIN:
+		case DNS_R_NCACHENXRRSET:
+		case DNS_R_EMPTYNAME:
+		case DNS_R_NXDOMAIN:
+		case DNS_R_NXRRSET:
+		case DNS_R_CNAME:
 			/*
 			 * The DS does not exist.
 			 */
 			disassociate_rdatasets(val);
 			validator_log(val, ISC_LOG_DEBUG(2), "no DS record");
 			return (DNS_R_NOVALIDSIG);
-		} else if (result == DNS_R_BROKENCHAIN) {
+
+		case DNS_R_BROKENCHAIN:
 			return (result);
+
+		default:
+			break;
 		}
 	}
 
