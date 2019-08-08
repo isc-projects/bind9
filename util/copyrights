@@ -4509,6 +4509,7 @@
 ./lib/win32/bindevt/bindevt.vcxproj.user	X	2013,2018,2019
 ./libtool.m4/ax_restore_flags.m4		X	2019
 ./libtool.m4/ax_save_flags.m4			X	2019
+./libtool.m4/compat.m4				X	2019
 ./libtool.m4/libtool.m4				X	2012,2018,2019
 ./libtool.m4/ltoptions.m4			X	2012,2018,2019
 ./libtool.m4/ltsugar.m4				X	2012,2018,2019
