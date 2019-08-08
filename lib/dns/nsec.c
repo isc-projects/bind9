@@ -108,6 +108,8 @@ dns_nsec_buildrdata(dns_db_t *db, dns_dbversion_t *version,
 	unsigned int max_type;
 	dns_rdatasetiter_t *rdsiter;
 
+	REQUIRE(target != NULL);
+
 	memset(buffer, 0, DNS_NSEC_BUFFERSIZE);
 	dns_name_toregion(target, &r);
 	memmove(buffer, r.base, r.length);

@@ -858,7 +858,6 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 						   ISC_MSG_UNEXPECTEDSTATE,
 						   "Unexpected state %d"),
 				    state);
-			/* Does not return. */
 		}
 
 	} while (!done);
