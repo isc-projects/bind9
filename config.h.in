@@ -357,6 +357,9 @@
 /* Define to 1 if you have the `setresuid' function. */
 #undef HAVE_SETRESUID
 
+/* define if the SPARC pause instruction is available */
+#undef HAVE_SPARC_PAUSE
+
 /* define if struct stat has st_mtim.tv_nsec field */
 #undef HAVE_STAT_NSEC
 
