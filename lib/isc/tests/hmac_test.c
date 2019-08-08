@@ -172,8 +172,10 @@ isc_hmac_update_test(void **state) {
 static void
 isc_hmac_reset_test(void **state) {
 	isc_hmac_t *hmac = *state;
+#if 0
 	unsigned char digest[ISC_MAX_MD_SIZE] __attribute((unused));
 	unsigned int digestlen __attribute((unused));
+#endif
 
 	assert_non_null(hmac);
 

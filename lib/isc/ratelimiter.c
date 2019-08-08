@@ -198,7 +198,6 @@ isc_ratelimiter_dequeue(isc_ratelimiter_t *rl, isc_event_t *event) {
 
 static void
 ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
-	isc_result_t result = ISC_R_SUCCESS;
 	isc_ratelimiter_t *rl = (isc_ratelimiter_t *)event->ev_arg;
 	isc_event_t *p;
 	uint32_t pertic;
@@ -218,6 +217,7 @@ ratelimiter_tick(isc_task_t *task, isc_event_t *event) {
 			 */
 			ISC_LIST_UNLINK(rl->pending, p, ev_ratelink);
 		} else {
+			isc_result_t result;
 			/*
 			 * No work left to do.  Stop the timer so that we don't
 			 * waste resources by having it fire periodically.

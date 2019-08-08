@@ -2596,8 +2596,9 @@ parse_unitstring(char *str, isc_resourcevalue_t *valuep) {
 	default:
 		return (ISC_R_FAILURE);
 	}
-	if (value > UINT64_MAX / unit)
+	if (value > ((uint64_t)UINT64_MAX / unit)) {
 		return (ISC_R_FAILURE);
+	}
 	*valuep = value * unit;
 	return (ISC_R_SUCCESS);
 }
