@@ -443,6 +443,20 @@ AS_CASE([$host],
 			[define if the ARM yield instruction is available])],
 	     [AC_MSG_RESULT([no])])])
 
+#
+# Check for pause support on SPARC processors
+#
+AS_CASE([$host],
+	[sparc*],
+	[AC_MSG_CHECKING([for pause instruction support])
+	 AC_COMPILE_IFELSE(
+	     [AC_LANG_PROGRAM([[]],
+			     [[__asm__ __volatile__ ("pause")]])],
+	     [AC_MSG_RESULT([yes])
+	      AC_DEFINE([HAVE_SPARC_PAUSE], [1],
+			[define if the SPARC pause instruction is available])],
+	     [AC_MSG_RESULT([no])])])
+
 AC_CHECK_FUNCS([sysctlbyname])
 
 #
