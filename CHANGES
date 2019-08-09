@@ -1,3 +1,5 @@
+5285.	[port]		win32: implement "-T maxudpXXX". [GL #837]
+
 5283.	[bug]		When a response-policy zone expires, ensure that
 			its policies are removed from the RPZ summary
 			database. [GL #1146]
