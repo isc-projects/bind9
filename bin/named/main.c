@@ -352,7 +352,7 @@ save_command_line(int argc, char *argv[]) {
 		*dst++ = ' ';
 
 		while (*src != '\0' && dst < eob) {
-			if (isalnum(*src) ||
+			if (isalnum(*src) || *src == ',' ||
 			    *src == '-' || *src == '_' ||
 			    *src == '.' || *src == '/')
 			{
