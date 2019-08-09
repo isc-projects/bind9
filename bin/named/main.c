@@ -356,7 +356,7 @@ save_command_line(int argc, char *argv[]) {
 			 * nearly always be fine.
 			 */
 			if (quoted || isalnum(*src & 0xff) ||
-			    *src == '-' || *src == '_' ||
+			    *src == ',' || *src == '-' || *src == '_' ||
 			    *src == '.' || *src == '/') {
 				*dst++ = *src++;
 				quoted = false;
