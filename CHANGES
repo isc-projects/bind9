@@ -1,3 +1,5 @@
+5285.	[port]		win32: implement "-T maxudpXXX". [GL #837]
+
 5282.	[bug]		Fixed a bug in searching for possible wildcard matches
 			for query names in the RPZ summary database. [GL #1146]
 
