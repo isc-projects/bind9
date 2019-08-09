@@ -55,7 +55,7 @@ check_ttl_range() {
 
 # using delv insecure mode as not testing dnssec here
 delv_with_opts() {
-    "$DELV" +noroot +nodlv -p "$PORT" "$@"
+    "$DELV" +noroot -p "$PORT" "$@"
 }
 
 KEYID="$(cat ns2/keyid)"

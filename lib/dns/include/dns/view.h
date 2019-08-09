@@ -168,8 +168,6 @@ struct dns_view {
 	bool				rootdelonly;
 	dns_namelist_t *		rootexclude;
 	bool				checknames;
-	dns_name_t *			dlv;
-	dns_fixedname_t			dlv_fixed;
 	uint16_t			maxudp;
 	dns_ttl_t			staleanswerttl;
 	dns_stale_answer_t		staleanswersok;		/* rndc setting */

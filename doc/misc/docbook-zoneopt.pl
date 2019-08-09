@@ -44,12 +44,6 @@ print <<END;
 END
 
 while (<FH>) {
-	if (m{// not.*implemented} || m{// obsolete} ||
-            m{// ancient} || m{// test.*only})
-        {
-		next;
-	}
-
 	s{ // not configured}{};
 	s{ // may occur multiple times,*}{};
 	s{<([a-z0-9_-]+)>}{<replaceable>$1</replaceable>}g;

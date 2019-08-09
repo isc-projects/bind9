@@ -3783,7 +3783,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	const cfg_obj_t *zonelist;
 	const cfg_obj_t *dlzlist;
 	const cfg_obj_t *dlz;
-	const cfg_obj_t *dlvobj = NULL;
 	unsigned int dlzargc;
 	char **dlzargv;
 	const cfg_obj_t *dyndb_list, *plugin_list;
@@ -4614,7 +4613,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	}
 
 	/*
-	 * Set supported DS/DLV digest types.
+	 * Set supported DS digest types.
 	 */
 	dns_resolver_reset_ds_digests(view->resolver);
 	disabled = NULL;
@@ -5202,57 +5201,6 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 		view->prefetch_eligible = cfg_obj_asuint32(eligible);
 		if (view->prefetch_eligible < view->prefetch_trigger + 6)
 			view->prefetch_eligible = view->prefetch_trigger + 6;
-	}
-
-	obj = NULL;
-	result = named_config_get(optionmaps, "dnssec-lookaside", &obj);
-	if (result == ISC_R_SUCCESS) {
-		/* "auto" is deprecated, log a warning if seen */
-		const char *dom;
-		dlvobj = cfg_listelt_value(cfg_list_first(obj));
-		dom = cfg_obj_asstring(cfg_tuple_get(dlvobj, "domain"));
-		if (cfg_obj_isvoid(cfg_tuple_get(dlvobj, "trust-anchor"))) {
-			/* If "no", skip; if "auto", log warning */
-			if (!strcasecmp(dom, "no")) {
-				result = ISC_R_NOTFOUND;
-			} else if (!strcasecmp(dom, "auto")) {
-				/*
-				 * Warning logged by libbind9.
-				 */
-				result = ISC_R_NOTFOUND;
-			}
-		}
-	}
-
-	if (result == ISC_R_SUCCESS) {
-		dns_name_t *dlv, *iscdlv;
-		dns_fixedname_t f;
-
-		/* Also log a warning if manually configured to dlv.isc.org */
-		iscdlv = dns_fixedname_initname(&f);
-		CHECK(dns_name_fromstring(iscdlv, "dlv.isc.org", 0, NULL));
-
-		for (element = cfg_list_first(obj);
-		     element != NULL;
-		     element = cfg_list_next(element))
-		{
-			obj = cfg_listelt_value(element);
-			obj = cfg_tuple_get(obj, "trust-anchor");
-
-			dlv = dns_fixedname_name(&view->dlv_fixed);
-			CHECK(dns_name_fromstring(dlv, cfg_obj_asstring(obj),
-						  DNS_NAME_DOWNCASE, NULL));
-			if (dns_name_equal(dlv, iscdlv)) {
-				/*
-				 * Warning logged by libbind9.
-				 */
-				view->dlv = NULL;
-			} else {
-				view->dlv = dlv;
-			}
-		}
-	} else {
-		view->dlv = NULL;
 	}
 
 	/*

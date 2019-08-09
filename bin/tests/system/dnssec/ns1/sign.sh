@@ -25,7 +25,6 @@ zonefile=root.db
 echo_i "ns1/sign.sh"
 
 cp "../ns2/dsset-example$TP" .
-cp "../ns2/dsset-dlv$TP" .
 cp "../ns2/dsset-in-addr.arpa$TP" .
 
 grep "$DEFAULT_ALGORITHM_NUMBER [12] " "../ns2/dsset-algroll$TP" > "dsset-algroll$TP"

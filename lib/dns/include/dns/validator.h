@@ -26,8 +26,6 @@
  * the view and may fetch RRset to complete trust chains.  It implements
  * DNSSEC as specified in RFC 4033, 4034 and 4035.
  *
- * It can also optionally implement ISC's DNSSEC look-aside validation.
- *
  * Correct operation is critical to preventing spoofed answers from secure
  * zones being accepted.
  *
@@ -152,11 +150,7 @@ struct dns_validator {
 	dns_fixedname_t			nearest;
 	dns_fixedname_t			closest;
 	ISC_LINK(dns_validator_t)	link;
-	dns_rdataset_t 			dlv;
-	dns_fixedname_t			dlvsep;
-	bool			havedlvsep;
-	bool			mustbesecure;
-	unsigned int			dlvlabels;
+	bool				mustbesecure;
 	unsigned int			depth;
 	unsigned int			authcount;
 	unsigned int			authfail;
@@ -166,7 +160,7 @@ struct dns_validator {
 /*%
  * dns_validator_create() options.
  */
-#define DNS_VALIDATOR_DLV		0x0001U
+/* obsolete: #define DNS_VALIDATOR_DLV	0x0001U */
 #define DNS_VALIDATOR_DEFER		0x0002U
 #define DNS_VALIDATOR_NOCDFLAG		0x0004U
 #define DNS_VALIDATOR_NONTA		0x0008U  /*% Ignore NTA table */
@@ -210,11 +204,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
  * Its 'result' field will be ISC_R_SUCCESS iff the
  * response was successfully proven to be either secure or
  * part of a known insecure domain.
- *
- * options:
- * If DNS_VALIDATOR_DLV is set the caller knows there is not a
- * trusted key and the validator should immediately attempt to validate
- * the answer by looking for an appropriate DLV RRset.
  */
 
 void

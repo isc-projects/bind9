@@ -2184,11 +2184,11 @@ allow-update { !{ !localnets; any; }; key host1-host2. ;};
 	</para>
 
 	<para><command>dnssec-signzone</command>
-	  will also produce a keyset and dsset files and optionally a
-	  dlvset file.  These are used to provide the parent zone
-	  administrators with the <literal>DNSKEYs</literal> (or their
-	  corresponding <literal>DS</literal> records) that are the
-	  secure entry point to the zone.
+	  will also produce a keyset and dsset files.  These are used
+	  to provide the parent zone administrators with the
+	  <literal>DNSKEYs</literal> (or their corresponding
+	  <literal>DS</literal> records) that are the secure entry
+	  point to the zone.
 	</para>
 
       </section>
@@ -5069,7 +5069,7 @@ options {
 	    <term><command>disable-ds-digests</command></term>
 	    <listitem>
 	      <para>
-		Disable the specified DS/DLV digest types at and below the
+		Disable the specified DS digest types at and below the
 		specified name.
 		Multiple <command>disable-ds-digests</command>
 		statements are allowed.
@@ -5080,40 +5080,6 @@ options {
 		If all supported digest types are disabled, the zones covered
 		by the <command>disable-ds-digests</command> will be treated
 		as insecure.
-	      </para>
-	    </listitem>
-	  </varlistentry>
-
-	  <varlistentry>
-	    <term><command>dnssec-lookaside</command></term>
-	    <listitem>
-	      <para>
-		When set, <command>dnssec-lookaside</command> provides the
-		validator with an alternate method to validate DNSKEY
-		records at the top of a zone.  When a DNSKEY is at or
-		below a domain specified by the deepest
-		<command>dnssec-lookaside</command>, and the normal DNSSEC
-		validation has left the key untrusted, the trust-anchor
-		will be appended to the key name and a DLV record will be
-		looked up to see if it can validate the key.  If the DLV
-		record validates a DNSKEY (similarly to the way a DS
-		record does) the DNSKEY RRset is deemed to be trusted.
-	      </para>
-	      <para>
-		If <command>dnssec-lookaside</command> is set to
-		<userinput>no</userinput>, then dnssec-lookaside
-		is not used.
-	      </para>
-	      <para>
-		This option is deprecated and its use is discouraged.
-	      </para>
-	      <para>
-		NOTE: The ISC-provided DLV service at
-		<literal>dlv.isc.org</literal>, has been shut down.
-		The <command>dnssec-lookaside auto;</command>
-		configuration option, which set <command>named</command>
-		up to use ISC DLV with minimal configuration, has
-		accordingly been removed.
 	      </para>
 	    </listitem>
 	  </varlistentry>
@@ -13338,7 +13304,7 @@ view external {
 		    </entry>
 		    <entry colname="2">
 		      <para>
-			A DNS Look-aside Validation record which contains
+			A DNS Lookaside Validation record which contains
 			the records that are used as trust anchors for
 			zones in a DLV namespace.  Described in RFC 4431.
 		      </para>

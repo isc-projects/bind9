@@ -43,7 +43,6 @@ zone <string> [ <class> ] {
 	notify-source ( <ipv4_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
 	notify-source-v6 ( <ipv6_address> | * ) [ port ( <integer> | * ) ] [ dscp <integer> ];
 	notify-to-soa <boolean>;
-	nsec3-test-zone <boolean>; // test only
 	request-expire <boolean>;
 	request-ixfr <boolean>;
 	sig-signing-nodes <integer>;

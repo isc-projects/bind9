@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2019-06-28</date>
+    <date>2019-08-07</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -154,7 +154,6 @@ logging {
 </literallayout>
   </refsection>
 
-
   <refsection><info><title>MANAGED-KEYS</title></info>
   <para>Deprecated - see DNSSEC-KEYS.</para>
     <literallayout class="normal">
@@ -253,9 +252,6 @@ options {
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
-	dnssec-lookaside ( <replaceable>string</replaceable>
-	    trust-anchor <replaceable>string</replaceable> |
-	    auto | no ); deprecated
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
@@ -614,9 +610,6 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
 	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
-	dnssec-lookaside ( <replaceable>string</replaceable>
-	    trust-anchor <replaceable>string</replaceable> |
-	    auto | no ); deprecated
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
 	dnssec-update-mode ( maintain | no-resign );
@@ -866,7 +859,6 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		masters [ port <replaceable>integer</replaceable> ] [ dscp <replaceable>integer</replaceable> ] { ( <replaceable>masters</replaceable>
 		    | <replaceable>ipv4_address</replaceable> [ port <replaceable>integer</replaceable> ] | <replaceable>ipv6_address</replaceable> [
 		    port <replaceable>integer</replaceable> ] ) [ key <replaceable>string</replaceable> ]; ... };
-		max-ixfr-log-size ( default | unlimited |
 		max-journal-size ( default | unlimited | <replaceable>sizeval</replaceable> );
 		max-records <replaceable>integer</replaceable>;
 		max-refresh-time <replaceable>integer</replaceable>;
@@ -886,7 +878,6 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 		notify-source-v6 ( <replaceable>ipv6_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable>
 		    | * ) ] [ dscp <replaceable>integer</replaceable> ];
 		notify-to-soa <replaceable>boolean</replaceable>;
-		pubkey <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
 		request-expire <replaceable>boolean</replaceable>;
 		request-ixfr <replaceable>boolean</replaceable>;
 		serial-update-method ( date | increment | unixtime );

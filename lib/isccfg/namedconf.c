@@ -1876,7 +1876,7 @@ view_clauses[] = {
 	{ "dnssec-accept-expired", &cfg_type_boolean, 0 },
 	{ "dnssec-enable", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "dnssec-lookaside", &cfg_type_lookaside,
-	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_DEPRECATED },
+	  CFG_CLAUSEFLAG_MULTI|CFG_CLAUSEFLAG_OBSOLETE },
 	{ "dnssec-must-be-secure",  &cfg_type_mustbesecure,
 	  CFG_CLAUSEFLAG_MULTI },
 	{ "dnssec-validation", &cfg_type_boolorauto, 0 },
@@ -3851,7 +3851,7 @@ cfg_clause_validforzone(const char *name, unsigned int ztype) {
 }
 
 void
-cfg_print_zonegrammar(const unsigned int zonetype,
+cfg_print_zonegrammar(const unsigned int zonetype, unsigned int flags,
 		      void (*f)(void *closure, const char *text, int textlen),
 		      void *closure)
 {
@@ -3866,7 +3866,7 @@ cfg_print_zonegrammar(const unsigned int zonetype,
 	pctx.f = f;
 	pctx.closure = closure;
 	pctx.indent = 0;
-	pctx.flags = 0;
+	pctx.flags = flags;
 
 	memmove(clauses, zone_clauses, sizeof(zone_clauses));
 	memmove(clauses + sizeof(zone_clauses)/sizeof(zone_clauses[0]) - 1,
@@ -3922,8 +3922,17 @@ cfg_print_zonegrammar(const unsigned int zonetype,
 	}
 
 	for (clause = clauses; clause->name != NULL; clause++) {
+		if (((pctx.flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
+		    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
+		     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
+		     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
+		     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
+		{
+			continue;
+		}
 		if ((clause->flags & zonetype) == 0 ||
-		    strcasecmp(clause->name, "type") == 0) {
+		    strcasecmp(clause->name, "type") == 0)
+		{
 			continue;
 		}
 		cfg_print_indent(&pctx);

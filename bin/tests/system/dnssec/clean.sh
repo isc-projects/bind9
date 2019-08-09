@@ -11,7 +11,7 @@
 
 set -e
 
-rm -f ./*/K* ./*/keyset-* ./*/dsset-* ./*/dlvset-* ./*/signedkey-* ./*/*.signed
+rm -f ./*/K* ./*/keyset-* ./*/dsset-* ./*/signedkey-* ./*/*.signed
 rm -f ./*/example.bk
 rm -f ./*/named.conf
 rm -f ./*/named.memstats
@@ -44,10 +44,8 @@ rm -f ./ns2/cds-auto.secure.db ./ns2/cds-auto.secure.db.jnl
 rm -f ./ns2/cds-kskonly.secure.db
 rm -f ./ns2/cds-update.secure.db ./ns2/cds-update.secure.db.jnl
 rm -f ./ns2/cds.secure.db ./ns2/cds-x.secure.db
-rm -f ./ns2/dlv.db
 rm -f ./ns2/in-addr.arpa.db
 rm -f ./ns2/nsec3chain-test.db
-rm -f ./ns2/private.secure.example.db
 rm -f ./ns2/single-nsec3.db
 rm -f ./ns2/updatecheck-kskonly.secure.*
 rm -f ./ns3/secure.example.db ./ns3/*.managed.db ./ns3/*.trusted.db

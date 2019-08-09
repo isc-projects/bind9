@@ -21,7 +21,7 @@ prog = 'dnssec-checkds'
 
 ############################################################################
 # SECRR class:
-# Class for DS/DLV resource record
+# Class for DS resource record
 ############################################################################
 class SECRR:
     hashalgs = {1: 'SHA-1', 2: 'SHA-256', 3: 'GOST', 4: 'SHA-384'}
@@ -33,7 +33,7 @@ class SECRR:
     digest = ''
     ttl = 0
 
-    def __init__(self, rrtext, dlvname = None):
+    def __init__(self, rrtext):
         if not rrtext:
             raise Exception
 
@@ -45,24 +45,8 @@ class SECRR:
         if len(fields) < 7:
             raise Exception
 
-        if dlvname:
-            self.rrtype = "DLV"
-            self.dlvname = dlvname.lower()
-            parent = fields[0].lower().strip('.').split('.')
-            parent.reverse()
-            dlv = dlvname.split('.')
-            dlv.reverse()
-            while len(dlv) != 0 and len(parent) != 0 and parent[0] == dlv[0]:
-                parent = parent[1:]
-                dlv = dlv[1:]
-            if dlv:
-                raise Exception
-            parent.reverse()
-            self.parent = '.'.join(parent)
-            self.rrname = self.parent + '.' + self.dlvname + '.'
-        else:
-            self.rrtype = "DS"
-            self.rrname = fields[0].lower()
+        self.rrtype = "DS"
+        self.rrname = fields[0].lower()
 
         fields = fields[1:]
         if fields[0].upper() in ['IN', 'CH', 'HS']:
@@ -91,9 +75,9 @@ class SECRR:
 
 ############################################################################
 # check:
-# Fetch DS/DLV RRset for the given zone from the DNS; fetch DNSKEY
+# Fetch DS RRset for the given zone from the DNS; fetch DNSKEY
 # RRset from the masterfile if specified, or from DNS if not.
-# Generate a set of expected DS/DLV records from the DNSKEY RRset,
+# Generate a set of expected DS records from the DNSKEY RRset,
 # and report on congruency.
 ############################################################################
 def check(zone, args):
@@ -101,15 +85,13 @@ def check(zone, args):
     if args.dssetfile:
         fp = open(args.dssetfile).read()
     else:
-        cmd = [args.dig, "+noall", "+answer", "-t",
-                "dlv" if args.lookaside else "ds", "-q",
-                zone + "." + args.lookaside if args.lookaside else zone]
+        cmd = [args.dig, "+noall", "+answer", "-t", "ds", "-q", zone]
         fp, _ = Popen(cmd, stdout=PIPE).communicate()
 
     for line in fp.splitlines():
         if type(line) is not str:
             line = line.decode('ascii')
-        rrlist.append(SECRR(line, args.lookaside))
+        rrlist.append(SECRR(line))
     rrlist = sorted(rrlist, key=lambda rr: (rr.keyid, rr.keyalg, rr.hashalg))
 
     klist = []
@@ -117,8 +99,6 @@ def check(zone, args):
     cmd = [args.dsfromkey]
     for algo in args.algo:
         cmd += ['-a', algo]
-    if args.lookaside:
-        cmd += ["-l", args.lookaside]
 
     if args.masterfile:
         cmd += ["-f", args.masterfile, zone]
@@ -132,7 +112,7 @@ def check(zone, args):
     for line in fp.splitlines():
         if type(line) is not str:
             line = line.decode('ascii')
-        klist.append(SECRR(line, args.lookaside))
+        klist.append(SECRR(line))
 
     if len(klist) < 1:
         print("No DNSKEY records found in zone apex")
@@ -182,8 +162,6 @@ def parse_args():
                         type=str, help='path to \'dnssec-dsfromkey\'')
     parser.add_argument('-f', '--file', dest='masterfile', type=str,
                         help='zone master file')
-    parser.add_argument('-l', '--lookaside', dest='lookaside', type=str,
-                        help='DLV lookaside zone')
     parser.add_argument('-s', '--dsset', dest='dssetfile', type=str,
                         help='prepared DSset file')
     parser.add_argument('-v', '--version', action='version',
@@ -191,8 +169,6 @@ def parse_args():
     args = parser.parse_args()
 
     args.zone = args.zone.strip('.')
-    if args.lookaside:
-        args.lookaside = args.lookaside.strip('.')
 
     return args
 

@@ -59,7 +59,7 @@ PARALLEL_COMMON="dnssec rpzrecurse serve-stale \
 	acl additional addzone allow-query auth autosign \
 	builtin cacheclean case catz cds chain \
 	checkconf checknames checkzone \
-	cookie database digdelv dlv dlz dlzexternal \
+	cookie database digdelv dlz dlzexternal \
 	dns64 dscp dsdigest dyndb \
 	ednscompliance emptyzones \
 	fetchlimit filter-aaaa formerr forward \

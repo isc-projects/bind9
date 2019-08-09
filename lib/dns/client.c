@@ -706,46 +706,6 @@ dns_client_clearservers(dns_client_t *client, dns_rdataclass_t rdclass,
 	return (result);
 }
 
-isc_result_t
-dns_client_setdlv(dns_client_t *client, dns_rdataclass_t rdclass,
-		  const char *dlvname)
-{
-	isc_result_t result;
-	isc_buffer_t b;
-	dns_view_t *view = NULL;
-
-	REQUIRE(DNS_CLIENT_VALID(client));
-
-	LOCK(&client->lock);
-	result = dns_viewlist_find(&client->viewlist, DNS_CLIENTVIEW_NAME,
-				   rdclass, &view);
-	UNLOCK(&client->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	if (dlvname == NULL)
-		view->dlv = NULL;
-	else {
-		dns_name_t *newdlv;
-
-		isc_buffer_constinit(&b, dlvname, strlen(dlvname));
-		isc_buffer_add(&b, strlen(dlvname));
-		newdlv = dns_fixedname_name(&view->dlv_fixed);
-		result = dns_name_fromtext(newdlv, &b, dns_rootname,
-					   DNS_NAME_DOWNCASE, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
-
-		view->dlv = dns_fixedname_name(&view->dlv_fixed);
-	}
-
- cleanup:
-	if (view != NULL)
-		dns_view_detach(&view);
-
-	return (result);
-}
-
 static isc_result_t
 getrdataset(isc_mem_t *mctx, dns_rdataset_t **rdatasetp) {
 	dns_rdataset_t *rdataset;

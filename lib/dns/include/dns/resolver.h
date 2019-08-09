@@ -483,7 +483,7 @@ dns_resolver_reset_algorithms(dns_resolver_t *resolver);
 void
 dns_resolver_reset_ds_digests(dns_resolver_t *resolver);
 /*%<
- * Clear the disabled DS/DLV digest types.
+ * Clear the disabled DS digest types.
  */
 
 isc_result_t
@@ -503,7 +503,7 @@ isc_result_t
 dns_resolver_disable_ds_digest(dns_resolver_t *resolver,
 			       const dns_name_t *name, unsigned int digest_type);
 /*%<
- * Mark the given DS/DLV digest type as disabled and below 'name'.
+ * Mark the given DS digest type as disabled and below 'name'.
  * Valid types are less than 256.
  *
  * Returns:

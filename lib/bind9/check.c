@@ -58,11 +58,6 @@
 
 #include <bind9/check.h>
 
-static unsigned char dlviscorg_ndata[] = "\003dlv\003isc\003org";
-static unsigned char dlviscorg_offsets[] = { 0, 4, 8, 12 };
-static dns_name_t const dlviscorg =
-	DNS_NAME_INITABSOLUTE(dlviscorg_ndata, dlviscorg_offsets);
-
 static isc_result_t
 fileexist(const cfg_obj_t *obj, isc_symtab_t *symtab, bool writeable,
 	  isc_log_t *logctxlogc);
@@ -858,9 +853,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	const cfg_obj_t *resignobj = NULL;
 	const cfg_listelt_t *element;
 	isc_symtab_t *symtab = NULL;
-	dns_fixedname_t fixed;
 	const char *str;
-	dns_name_t *name;
 	isc_buffer_t b;
 	uint32_t lifetime = 3600;
 	const char *ccalg = "siphash24";
@@ -1069,7 +1062,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	}
 
 	/*
-	 * Set supported DS/DLV digest types.
+	 * Set supported DS digest types.
 	 */
 	obj = NULL;
 	(void)cfg_map_get(options, "disable-ds-digests", &obj);
@@ -1083,107 +1076,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			if (tresult != ISC_R_SUCCESS)
 				result = tresult;
 		}
-	}
-
-	name = dns_fixedname_initname(&fixed);
-
-	/*
-	 * Check the DLV zone name.
-	 */
-	obj = NULL;
-	(void)cfg_map_get(options, "dnssec-lookaside", &obj);
-	if (obj != NULL) {
-		tresult = isc_symtab_create(mctx, 100, freekey, mctx,
-					    false, &symtab);
-		if (tresult != ISC_R_SUCCESS)
-			result = tresult;
-		for (element = cfg_list_first(obj);
-		     element != NULL;
-		     element = cfg_list_next(element))
-		{
-			const char *dlv;
-			const cfg_obj_t *dlvobj, *anchor;
-
-			obj = cfg_listelt_value(element);
-
-			anchor = cfg_tuple_get(obj, "trust-anchor");
-			dlvobj = cfg_tuple_get(obj, "domain");
-			dlv = cfg_obj_asstring(dlvobj);
-
-			/*
-			 * If domain is "auto" or "no" and trust anchor
-			 * is missing, skip remaining tests
-			 */
-			if (cfg_obj_isvoid(anchor)) {
-				if (!strcasecmp(dlv, "no")) {
-					continue;
-				}
-				if (!strcasecmp(dlv, "auto")) {
-					cfg_obj_log(obj, logctx, ISC_LOG_WARNING,
-						    "dnssec-lookaside 'auto' "
-						    "is no longer supported");
-					continue;
-				}
-			}
-
-			tresult = dns_name_fromstring(name, dlv, 0, NULL);
-			if (tresult != ISC_R_SUCCESS) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "bad domain name '%s'", dlv);
-				result = tresult;
-				continue;
-			}
-			if (symtab != NULL) {
-				tresult = nameexist(obj, dlv, 1, symtab,
-						    "dnssec-lookaside '%s': "
-						    "already exists; previous "
-						    "definition: %s:%u",
-						    logctx, mctx);
-				if (tresult != ISC_R_SUCCESS &&
-				    result == ISC_R_SUCCESS)
-					result = tresult;
-			}
-
-			/*
-			 * XXXMPA to be removed when multiple lookaside
-			 * namespaces are supported.
-			 */
-			if (!dns_name_equal(dns_rootname, name)) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "dnssec-lookaside '%s': "
-					    "non-root not yet supported", dlv);
-				if (result == ISC_R_SUCCESS)
-					result = ISC_R_FAILURE;
-			}
-
-			if (cfg_obj_isvoid(anchor)) {
-				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-					    "dnssec-lookaside requires "
-					    "either or 'no' or a "
-					    "domain and trust anchor");
-				if (result == ISC_R_SUCCESS)
-					result = ISC_R_FAILURE;
-				continue;
-			}
-
-			dlv = cfg_obj_asstring(anchor);
-			tresult = dns_name_fromstring(name, dlv, 0, NULL);
-			if (tresult != ISC_R_SUCCESS) {
-				cfg_obj_log(anchor, logctx, ISC_LOG_ERROR,
-					    "bad domain name '%s'", dlv);
-				if (result == ISC_R_SUCCESS)
-					result = tresult;
-				continue;
-			}
-			if (dns_name_equal(&dlviscorg, name)) {
-				cfg_obj_log(anchor, logctx, ISC_LOG_WARNING,
-					    "dlv.isc.org has been shut down");
-				continue;
-			}
-		}
-
-		if (symtab != NULL)
-			isc_symtab_destroy(&symtab);
 	}
 
 	/*
@@ -3058,7 +2950,6 @@ check_servers(const cfg_obj_t *config, const cfg_obj_t *voptions,
 #define ROOT_KSK_ANY		0x03
 #define ROOT_KSK_2010		0x04
 #define ROOT_KSK_2017		0x08
-#define DLV_KSK_KEY		0x10
 
 static isc_result_t
 check_trusted_key(const cfg_obj_t *key, bool managed,
@@ -3233,13 +3124,6 @@ check_trusted_key(const cfg_obj_t *key, bool managed,
 		{
 			*keyflags |= ROOT_KSK_2017;
 		}
-	}
-
-	/*
-	 * Flag any use of dlv.isc.org, regardless of content.
-	 */
-	if (dns_name_equal(keyname, &dlviscorg)) {
-		*keyflags |= DLV_KSK_KEY;
 	}
 
 	return (result);
@@ -3830,14 +3714,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    "with initial-key instead.");
 			}
 
-			if ((flags & DLV_KSK_KEY) != 0) {
-				cfg_obj_log(check_keys[i], logctx,
-					    ISC_LOG_WARNING,
-					    "trust anchor for dlv.isc.org "
-					    "is present; dlv.isc.org has "
-					    "been shut down");
-			}
-
 			tflags |= flags;
 		}
 	}
@@ -3906,14 +3782,6 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 					    "initial-key entry for the root "
 					    "zone uses the 2010 key without "
 					    "the updated 2017 key");
-			}
-
-			if ((flags & DLV_KSK_KEY) != 0) {
-				cfg_obj_log(check_keys[i], logctx,
-					    ISC_LOG_WARNING,
-					    "trust anchor for dlv.isc.org "
-					    "is present; dlv.isc.org has "
-					    "been shut down");
 			}
 
 			dflags |= flags;

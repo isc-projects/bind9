@@ -163,8 +163,6 @@ static bool removefile = false;
 static bool generateds = false;
 static bool ignore_kskflag = false;
 static bool keyset_kskonly = false;
-static dns_name_t *dlv = NULL;
-static dns_fixedname_t dlv_fixed;
 static dns_master_style_t *dsstyle = NULL;
 static unsigned int serialformat = SOA_SERIAL_KEEP;
 static unsigned int hash_length = 0;
@@ -2906,7 +2904,6 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 	dns_dbversion_t *dbversion = NULL;
 	dns_diff_t diff;
 	dns_difftuple_t *tuple = NULL;
-	dns_fixedname_t fixed;
 	dns_name_t *name;
 	dns_rdata_t rdata, ds;
 	bool have_ksk = false;
@@ -2939,18 +2936,7 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 
 	dns_diff_init(mctx, &diff);
 
-	if (type == dns_rdatatype_dlv) {
-		dns_name_t tname;
-		unsigned int labels;
-
-		dns_name_init(&tname, NULL);
-		name = dns_fixedname_initname(&fixed);
-		labels = dns_name_countlabels(gorigin);
-		dns_name_getlabelsequence(gorigin, 0, labels - 1, &tname);
-		result = dns_name_concatenate(&tname, dlv, name, NULL);
-		check_result(result, "dns_name_concatenate");
-	} else
-		name = gorigin;
+	name = gorigin;
 
 	for (key = ISC_LIST_HEAD(keylist);
 	     key != NULL;
@@ -2991,8 +2977,6 @@ writeset(const char *prefix, dns_rdatatype_t type) {
 						   DNS_DSDIGEST_SHA256,
 						   dsbuf, &ds);
 			check_result(result, "dns_ds_buildrdata");
-			if (type == dns_rdatatype_dlv)
-				ds.type = dns_rdatatype_dlv;
 			result = dns_difftuple_create(mctx,
 						      DNS_DIFFOP_ADDRESIGN,
 						      name, 0, &ds, &tuple);
@@ -3130,7 +3114,6 @@ usage(void) {
 			"\t\twith older versions of dnssec-signzone -g\n");
 	fprintf(stderr, "\t-n ncpus (number of cpus present)\n");
 	fprintf(stderr, "\t-k key_signing_key\n");
-	fprintf(stderr, "\t-l lookasidezone\n");
 	fprintf(stderr, "\t-3 NSEC3 salt\n");
 	fprintf(stderr, "\t-H NSEC3 iterations (10)\n");
 	fprintf(stderr, "\t-A NSEC3 optout\n");
@@ -3206,8 +3189,6 @@ main(int argc, char *argv[]) {
 	int tempfilelen = 0;
 	dns_rdataclass_t rdclass;
 	isc_task_t **tasks = NULL;
-	isc_buffer_t b;
-	int len;
 	hashlist_t hashlist;
 	bool make_keyset = false;
 	bool set_salt = false;
@@ -3385,14 +3366,7 @@ main(int argc, char *argv[]) {
 			break;
 
 		case 'l':
-			len = strlen(isc_commandline_argument);
-			isc_buffer_init(&b, isc_commandline_argument, len);
-			isc_buffer_add(&b, len);
-
-			dlv = dns_fixedname_initname(&dlv_fixed);
-			result = dns_name_fromtext(dlv, &b, dns_rootname, 0,
-						   NULL);
-			check_result(result, "dns_name_fromtext(dlv)");
+			fatal("-l option (DLV lookaside) is obsolete");
 			break;
 
 		case 'M':
@@ -3798,10 +3772,8 @@ main(int argc, char *argv[]) {
 
 	if (!nokeys) {
 		writeset("dsset-", dns_rdatatype_ds);
-		if (make_keyset)
+		if (make_keyset) {
 			writeset("keyset-", dns_rdatatype_dnskey);
-		if (dlv != NULL) {
-			writeset("dlvset-", dns_rdatatype_dlv);
 		}
 	}
 

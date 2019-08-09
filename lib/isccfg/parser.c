@@ -2312,6 +2312,14 @@ cfg_doc_mapbody(cfg_printer_t *pctx, const cfg_type_t *type) {
 
 	for (clauseset = type->of; *clauseset != NULL; clauseset++) {
 		for (clause = *clauseset; clause->name != NULL; clause++) {
+			if (((pctx->flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
+			    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
+			     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
+			     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
+			     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
+			{
+				continue;
+			}
 			cfg_print_cstr(pctx, clause->name);
 			cfg_print_cstr(pctx, " ");
 			cfg_doc_obj(pctx, clause->type);
@@ -2359,6 +2367,14 @@ cfg_doc_map(cfg_printer_t *pctx, const cfg_type_t *type) {
 
 	for (clauseset = type->of; *clauseset != NULL; clauseset++) {
 		for (clause = *clauseset; clause->name != NULL; clause++) {
+			if (((pctx->flags & CFG_PRINTER_ACTIVEONLY) != 0) &&
+			    (((clause->flags & CFG_CLAUSEFLAG_OBSOLETE) != 0) ||
+			     ((clause->flags & CFG_CLAUSEFLAG_ANCIENT) != 0) ||
+			     ((clause->flags & CFG_CLAUSEFLAG_NYI) != 0) ||
+			     ((clause->flags & CFG_CLAUSEFLAG_TESTONLY) != 0)))
+			{
+				continue;
+			}
 			cfg_print_indent(pctx);
 			cfg_print_cstr(pctx, clause->name);
 			if (clause->type->print != cfg_print_void)
@@ -3460,7 +3476,7 @@ cfg_doc_terminal(cfg_printer_t *pctx, const cfg_type_t *type) {
 }
 
 void
-cfg_print_grammar(const cfg_type_t *type,
+cfg_print_grammar(const cfg_type_t *type, unsigned int flags,
 	void (*f)(void *closure, const char *text, int textlen),
 	void *closure)
 {
@@ -3469,7 +3485,7 @@ cfg_print_grammar(const cfg_type_t *type,
 	pctx.f = f;
 	pctx.closure = closure;
 	pctx.indent = 0;
-	pctx.flags = 0;
+	pctx.flags = flags;
 	cfg_doc_obj(&pctx, type);
 }
 

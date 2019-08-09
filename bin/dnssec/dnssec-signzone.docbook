@@ -225,16 +225,6 @@
       </varlistentry>
 
       <varlistentry>
-        <term>-l <replaceable class="parameter">domain</replaceable></term>
-        <listitem>
-          <para>
-            Generate a DLV set in addition to the key (DNSKEY) and DS sets.
-            The domain is appended to the name of the records.
-          </para>
-        </listitem>
-      </varlistentry>
-
-      <varlistentry>
         <term>-M <replaceable class="parameter">maxttl</replaceable></term>
         <listitem>
           <para>
