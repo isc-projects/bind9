@@ -4767,6 +4767,16 @@ zone_postload(dns_zone_t *zone, dns_db_t *db, isc_time_t loadtime,
 			goto cleanup;
 		}
 
+		if (zone->type == dns_zone_master) {
+			result = dns_zone_cdscheck(zone, db, NULL);
+			if (result != ISC_R_SUCCESS) {
+				dns_zone_log(zone, ISC_LOG_ERROR,
+					     "CDS/CDNSKEY consistency checks "
+					     "failed");
+				goto cleanup;
+			}
+		}
+
 		result = dns_zone_verifydb(zone, db, NULL);
 		if (result != ISC_R_SUCCESS) {
 			goto cleanup;
