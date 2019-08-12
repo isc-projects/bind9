@@ -1,3 +1,5 @@
+	--- 9.15.3 released ---
+
 5277.	[bug]		Cache DB statistics could underflow when serve-stale
 			was in use, because of a bug in counter maintenance
 			when RRsets become stale.
