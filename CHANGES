@@ -8,10 +8,6 @@
 			with '~'; stale RRset counters are still prefixed
 			with '#'. [GL #602]
 
-5276.	[func]		DNSSEC Lookaside Validation (DLV) is now obsolete;
-			all code enabling its use has been removed from the
-			validator, "delv", and the DNSSEC tools. [GL #7]
-
 5275.	[bug]		Mark DS records included in referral messages
 			with trust level "pending" so that they can be
 			validated and cached immediately, with no need to
