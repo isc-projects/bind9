@@ -341,6 +341,16 @@
 	  to root priming queries; this has been corrected. [GL #1092]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  Cache database statistics counters could report invalid values
+	  when stale answers were enabled, because of a bug in counter
+	  maintenance when cache data becomes stale. The statistics counters
+	  have been corrected to report the number of RRsets for each
+	  RR type that are active, stale but still potentially served,
+	  or stale and marked for deletion. [GL #602]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
