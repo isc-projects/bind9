@@ -15263,14 +15263,29 @@ HOST-127.EXAMPLE. MX 0 .
 		</entry>
 		<entry colname="2">
 		  <para>
-		    The number of RRsets per RR type and nonexistent
-		    names stored in the cache database.
-		    If the exclamation mark (!) is printed for a RR
-		    type, it means that particular type of RRset is
-		    known to be nonexistent (this is also known as
-		    "NXRRSET").  If a hash mark (#) is present then
-		    the RRset is marked for garbage collection.
-		    Maintained per view.
+		    Statistics counters related to cache contents;
+		    maintained per view.
+		  </para>
+		  <para>
+		    The "NXDOMAIN" counter is the number of names
+		    that have been cached as nonexistent.
+		    Counters named for RR types indicate the
+		    number of active RRsets for each type in the cache
+		    database.
+		  </para>
+		  <para>
+		    If an RR type name is preceded by an exclamation
+		    mark (!), it represents the number of records in the
+		    cache which indicate that the type does not exist
+		    for a particular name (this is also known as "NXRRSET").
+		    If an RR type name is preceded by a hash mark (#), it
+		    represents the number of RRsets for this type that are
+		    present in the cache but whose TTLs have expired; these
+		    RRsets may only be used if stale answers are enabled.
+		    If an RR type name is preceded by a tilde (~), it
+		    represents the number of RRsets for this type that are
+		    present in the cache database but are marked for garbage
+		    collection; these RRsets cannot be used.
 		  </para>
 		</entry>
 	      </row>
