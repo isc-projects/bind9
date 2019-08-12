@@ -50,11 +50,9 @@ dnssec-dsfromkey \- DNSSEC DS RR generation tool
 .PP
 The
 \fBdnssec\-dsfromkey\fR
-command outputs DS (Delegation Signer) resource records (RRs) and other similarly\-constructed RRs: with the
-\fB\-l\fR
-option it outputs DLV (DNSSEC Lookaside Validation) RRs; or with the
+command outputs DS (Delegation Signer) resource records (RRs), or CDS (Child DS) RRs with the
 \fB\-C\fR
-it outputs CDS (Child DS) RRs\&.
+option\&.
 .PP
 The input keys can be specified in a number of ways:
 .PP
@@ -119,9 +117,7 @@ zone file mode\&.
 .PP
 \-C
 .RS 4
-Generate CDS records rather than DS records\&. This is mutually exclusive with the
-\fB\-l\fR
-option for generating DLV records\&.
+Generate CDS records rather than DS records\&.
 .RE
 .PP
 \-f \fIfile\fR
@@ -154,15 +150,6 @@ Look for key files or
 keyset\-
 files in
 \fBdirectory\fR\&.
-.RE
-.PP
-\-l \fIdomain\fR
-.RS 4
-Generate a DLV set instead of a DS set\&. The specified
-\fIdomain\fR
-is appended to the name for each record in the set\&. This is mutually exclusive with the
-\fB\-C\fR
-option for generating CDS records\&.
 .RE
 .PP
 \-s
@@ -224,8 +211,6 @@ A keyfile error can give a "file not found" even if the file exists\&.
 BIND 9 Administrator Reference Manual,
 RFC 3658
 (DS RRs),
-RFC 4431
-(DLV RRs),
 RFC 4509
 (SHA\-256 for DS RRs),
 RFC 6605

@@ -39,7 +39,7 @@
 dnssec-verify \- DNSSEC zone verification tool
 .SH "SYNOPSIS"
 .HP \w'\fBdnssec\-verify\fR\ 'u
-\fBdnssec\-verify\fR [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-I\ \fR\fB\fIinput\-format\fR\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-V\fR] [\fB\-x\fR] [\fB\-z\fR] {zonefile}
+\fBdnssec\-verify\fR [\fB\-c\ \fR\fB\fIclass\fR\fR] [\fB\-E\ \fR\fB\fIengine\fR\fR] [\fB\-I\ \fR\fB\fIinput\-format\fR\fR] [\fB\-o\ \fR\fB\fIorigin\fR\fR] [\fB\-q\fR] [\fB\-v\ \fR\fB\fIlevel\fR\fR] [\fB\-V\fR] [\fB\-x\fR] [\fB\-z\fR] {zonefile}
 .SH "DESCRIPTION"
 .PP
 \fBdnssec\-verify\fR
@@ -79,6 +79,13 @@ Sets the debugging level\&.
 \-V
 .RS 4
 Prints version information\&.
+.RE
+.PP
+\-q
+.RS 4
+Quiet mode: Suppresses output\&. Without this option, when
+\fBdnssec\-verify\fR
+is run it will print to standard output the number of keys in use, the algorithms used to verify the zone was signed correctly and other status information\&. With it, all non\-error output is suppressed, and only the exit code will indicate success\&.
 .RE
 .PP
 \-x

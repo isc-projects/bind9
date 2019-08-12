@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.2</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.3</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
@@ -55,7 +55,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.2</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.3</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -234,6 +234,11 @@
 	  as a result of a zone update.  [GL #513]
 	</p>
       </li>
+<li class="listitem">
+	<p>
+	Statistics channel groups are now toggleable. [GL #1030]
+	</p>
+      </li>
 </ul></div>
   </div>
 
@@ -256,8 +261,13 @@
       </li>
 <li class="listitem">
 	<p>
-	  The <span class="command"><strong>dnssec-lookaside</strong></span> option has been deprecated.
-	  The feature still works, but it is discouraged to use it. [GL #7]
+	  DNSSEC Lookaside Validation (DLV) is now obsolete.
+	  The <span class="command"><strong>dnssec-lookaside</strong></span> option has been
+	  marked as deprecated; when used in <code class="filename">named.conf</code>,
+	  it will generate a warning but will otherwise be ignored.
+	  All code enabling the use of lookaside validation has been removed
+	  from the validator, <span class="command"><strong>delv</strong></span>, and the DNSSEC tools.
+	  [GL #7]
 	</p>
       </li>
 </ul></div>
@@ -270,9 +280,7 @@
 <li class="listitem">
  	<p>
  	  <span class="command"><strong>named</strong></span> will now log a warning if
-	  a static key is configured for the root zone, or if
-	  any key is configured for "dlv.isc.org", which has been shut
-	  down. [GL #6]
+	  a static key is configured for the root zone. [GL #6]
 	</p>
       </li>
 <li class="listitem">
@@ -313,6 +321,40 @@
 	  the <span class="command"><strong>json-c</strong></span> library as the new
 	  <span class="command"><strong>configure</strong></span> option does not take the library
 	  installation path as an optional argument.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added and
+	  made default.  Old non-default HMAC-SHA based DNS Cookie algorithms
+	  have been removed, and only the default AES algorithm is being kept
+	  for legacy reasons.  This changes doesn't have any operational impact
+	  in most common scenarios. [GL #605]
+	</p>
+	<p>
+	  If you are running multiple DNS Servers (different versions of BIND 9
+	  or DNS server from multiple vendors) responding from the same IP
+	  address (anycast or load-balancing scenarios), you'll have to make
+	  sure that all the servers are configured with the same DNS Cookie
+	  algorithm and same Server Secret for the best performance.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  The information from the <span class="command"><strong>dnssec-signzone</strong></span> and
+	  <span class="command"><strong>dnssec-verify</strong></span> commands is now printed to standard
+	  output.  The standard error output is only used to print warnings and
+	  errors, and in case the user requests the signed zone to be printed to
+	  standard output with <span class="command"><strong>-f -</strong></span> option.  A new
+	  configuration option <span class="command"><strong>-q</strong></span> has been added to silence
+	  all output on standard output except for the name of the signed zone.
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  DS records included in DNS referral messages can now be validated
+	  and cached immediately, reducing the number of queries needed for
+	  a DNSSEC validation. [GL #964]
 	</p>
       </li>
 </ul></div>
@@ -358,6 +400,47 @@
 	<p>
 	  Glue address records were not being returned in responses
 	  to root priming queries; this has been corrected. [GL #1092]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Cache database statistics counters could report invalid values
+	  when stale answers were enabled, because of a bug in counter
+	  maintenance when cache data becomes stale. The statistics counters
+	  have been corrected to report the number of RRsets for each
+	  RR type that are active, stale but still potentially served,
+	  or stale and marked for deletion. [GL #602]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Interaction between DNS64 and RPZ No Data rule (CNAME *.) could
+	  cause unexpected results; this has been fixed. [GL #1106]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named-checkconf</strong></span> now checks DNS64 prefixes
+          to ensure bits 64-71 are zero. [GL #1159]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>named-checkconf</strong></span> now correctly reports missing
+	  <span class="command"><strong>dnstap-output</strong></span> option when
+	  <span class="command"><strong>dnstap</strong></span> is set. [GL #1136]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  Handle ETIMEDOUT error on connect() with a non-blocking
+	  socket. [GL #1133]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dig</strong></span> now correctly expands the IPv6 address
+	  when run with <span class="command"><strong>+expandaaaa +short</strong></span>. [GL #1152]
 	</p>
       </li>
 </ul></div>
@@ -435,6 +518,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.2 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.3 (Development Release)</p>
 </body>
 </html>

@@ -64,9 +64,8 @@
 <a name="id-1.13.7.7"></a><h2>DESCRIPTION</h2>
 
     <p><span class="command"><strong>dnssec-checkds</strong></span>
-      verifies the correctness of Delegation Signer (DS) or DNSSEC
-      Lookaside Validation (DLV) resource records for keys in a specified
-      zone.
+      verifies the correctness of Delegation Signer (DS)
+      resource records for keys in a specified zone.
     </p>
   </div>
 
@@ -78,7 +77,7 @@
 <dd>
 	  <p>
 	    Specify a digest algorithm to use when converting the
-	    zone's DNSKEY records to expected DS or DLV records. This
+	    zone's DNSKEY records to expected DS records. This
 	    option can be repeated, so that multiple records are
 	    checked for each DNSKEY record.
           </p>
@@ -95,13 +94,6 @@
             If a <code class="option">file</code> is specified, then the zone is
             read from that file to find the DNSKEY records.  If not,
             then the DNSKEY records for the zone are looked up in the DNS.
-          </p>
-        </dd>
-<dt><span class="term">-l <em class="replaceable"><code>domain</code></em></span></dt>
-<dd>
-          <p>
-            Check for a DLV record in the specified lookaside domain,
-            instead of checking for a DS record in the zone's parent.
           </p>
         </dd>
 <dt><span class="term">-s <em class="replaceable"><code>file</code></em></span></dt>
@@ -164,6 +156,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.2 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.3 (Development Release)</p>
 </body>
 </html>
