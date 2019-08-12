@@ -813,6 +813,12 @@ update_cachestats(dns_rbtdb_t *rbtdb, isc_result_t result) {
 	}
 }
 
+static bool
+do_stats(rdatasetheader_t *header) {
+	return (EXISTS(header) &&
+		(header->attributes & RDATASET_ATTR_STATCOUNT) != 0);
+}
+
 static void
 update_rrsetstats(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 		  bool increment)
@@ -820,6 +826,10 @@ update_rrsetstats(dns_rbtdb_t *rbtdb, rdatasetheader_t *header,
 	dns_rdatastatstype_t statattributes = 0;
 	dns_rdatastatstype_t base = 0;
 	dns_rdatastatstype_t type;
+
+	if (!do_stats(header)) {
+		return;
+	}
 
 	/* At the moment we count statistics only for cache DB */
 	INSIST(IS_CACHE(rbtdb));
@@ -1447,10 +1457,7 @@ free_rdataset(dns_rbtdb_t *rbtdb, isc_mem_t *mctx, rdatasetheader_t *rdataset) {
 	unsigned int size;
 	int idx;
 
-	if (EXISTS(rdataset) &&
-	    (rdataset->attributes & RDATASET_ATTR_STATCOUNT) != 0) {
-		update_rrsetstats(rbtdb, rdataset, false);
-	}
+	update_rrsetstats(rbtdb, rdataset, false);
 
 	idx = rdataset->node->locknum;
 	if (ISC_LINK_LINKED(rdataset, link)) {
@@ -1513,8 +1520,6 @@ rollback_node(dns_rbtnode_t *node, rbtdb_serial_t serial) {
 
 static inline void
 mark_header_ancient(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
-	bool do_stats = false;
-
 	/*
 	 * If we are already ancient there is nothing to do.
 	 */
@@ -1522,33 +1527,23 @@ mark_header_ancient(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
 		return;
 	}
 
-	if ((header->attributes & RDATASET_ATTR_STATCOUNT) != 0) {
-		do_stats = EXISTS(header);
-	}
-
-	if (do_stats) {
-		/*
-		 * Decrement the stats counter for the appropriate RRtype.
-		 * If the STALE attribute is set, this will decrement the
-		 * stale type counter, otherwise it decrements the active
-		 * stats type counter.
-		 */
-		update_rrsetstats(rbtdb, header, false);
-	}
+	/*
+	 * Decrement the stats counter for the appropriate RRtype.
+	 * If the STALE attribute is set, this will decrement the
+	 * stale type counter, otherwise it decrements the active
+	 * stats type counter.
+	 */
+	update_rrsetstats(rbtdb, header, false);
 
 	header->attributes |= RDATASET_ATTR_ANCIENT;
 	header->node->dirty = 1;
 
-	if (do_stats) {
-		/* Increment the stats counter for the ancient RRtype. */
-		update_rrsetstats(rbtdb, header, true);
-	}
+	/* Increment the stats counter for the ancient RRtype. */
+	update_rrsetstats(rbtdb, header, true);
 }
 
 static inline void
 mark_header_stale(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
-	bool do_stats = false;
-
 	/*
 	 * If we are already stale there is nothing to do.
 	 */
@@ -1556,25 +1551,17 @@ mark_header_stale(dns_rbtdb_t *rbtdb, rdatasetheader_t *header) {
 		return;
 	}
 
-	if ((header->attributes & RDATASET_ATTR_STATCOUNT) != 0) {
-		do_stats = EXISTS(header);
-	}
-
-	if (do_stats) {
-		/* Decrement the stats counter for the appropriate RRtype.
-		 * If the ANCIENT attribute is set (although it is very
-		 * unlikely that an RRset goes from ANCIENT to STALE), this
-		 * will decrement the ancient stale type counter, otherwise it
-		 * decrements the active stats type counter.
-		 */
-		update_rrsetstats(rbtdb, header, false);
-	}
+	/* Decrement the stats counter for the appropriate RRtype.
+	 * If the ANCIENT attribute is set (although it is very
+	 * unlikely that an RRset goes from ANCIENT to STALE), this
+	 * will decrement the ancient stale type counter, otherwise it
+	 * decrements the active stats type counter.
+	 */
+	update_rrsetstats(rbtdb, header, false);
 
 	header->attributes |= RDATASET_ATTR_STALE;
 
-	if (do_stats) {
-		update_rrsetstats(rbtdb, header, true);
-	}
+	update_rrsetstats(rbtdb, header, true);
 }
 
 static inline void
