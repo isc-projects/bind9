@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2019-06-28
+.\"      Date: 2019-08-07
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2019\-06\-28" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2019\-08\-07" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -243,7 +243,7 @@ options {
 	check\-srv\-cname ( fail | warn | ignore );
 	check\-wildcard \fIboolean\fR;
 	clients\-per\-query \fIinteger\fR;
-	cookie\-algorithm ( aes | sha1 | sha256 );
+	cookie\-algorithm ( aes | siphash24 );
 	cookie\-secret \fIstring\fR;
 	coresize ( default | unlimited | \fIsizeval\fR );
 	datasize ( default | unlimited | \fIsizeval\fR );
@@ -274,9 +274,6 @@ options {
 	dnssec\-accept\-expired \fIboolean\fR;
 	dnssec\-dnskey\-kskonly \fIboolean\fR;
 	dnssec\-loadkeys\-interval \fIinteger\fR;
-	dnssec\-lookaside ( \fIstring\fR
-	    trust\-anchor \fIstring\fR |
-	    auto | no ); deprecated
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
@@ -661,9 +658,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 	    initial\-key ) \fIinteger\fR \fIinteger\fR
 	    \fIinteger\fR \fIquoted_string\fR; \&.\&.\&. };
 	dnssec\-loadkeys\-interval \fIinteger\fR;
-	dnssec\-lookaside ( \fIstring\fR
-	    trust\-anchor \fIstring\fR |
-	    auto | no ); deprecated
 	dnssec\-must\-be\-secure \fIstring\fR \fIboolean\fR;
 	dnssec\-secure\-to\-insecure \fIboolean\fR;
 	dnssec\-update\-mode ( maintain | no\-resign );
@@ -913,7 +907,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 		masters [ port \fIinteger\fR ] [ dscp \fIinteger\fR ] { ( \fImasters\fR
 		    | \fIipv4_address\fR [ port \fIinteger\fR ] | \fIipv6_address\fR [
 		    port \fIinteger\fR ] ) [ key \fIstring\fR ]; \&.\&.\&. };
-		max\-ixfr\-log\-size ( default | unlimited |
 		max\-journal\-size ( default | unlimited | \fIsizeval\fR );
 		max\-records \fIinteger\fR;
 		max\-refresh\-time \fIinteger\fR;
@@ -933,7 +926,6 @@ view \fIstring\fR [ \fIclass\fR ] {
 		notify\-source\-v6 ( \fIipv6_address\fR | * ) [ port ( \fIinteger\fR
 		    | * ) ] [ dscp \fIinteger\fR ];
 		notify\-to\-soa \fIboolean\fR;
-		pubkey \fIinteger\fR \fIinteger\fR \fIinteger\fR
 		request\-expire \fIboolean\fR;
 		request\-ixfr \fIboolean\fR;
 		serial\-update\-method ( date | increment | unixtime );

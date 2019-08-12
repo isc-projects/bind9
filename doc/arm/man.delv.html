@@ -101,7 +101,7 @@
       <span class="command"><strong>delv</strong></span> will send to a specified name server all
       queries needed to fetch and validate the requested data; this
       includes the original requested query, subsequent queries to follow
-      CNAME or DNAME chains, and queries for DNSKEY, DS and DLV records
+      CNAME or DNAME chains, and queries for DNSKEY and DS records
       to establish a chain of trust for DNSSEC validation.
       It does not perform iterative resolution, but simulates the
       behavior of a name server configured for DNSSEC validating and
@@ -211,10 +211,7 @@
 	  <p>
 	    Keys that do not match the root zone name are ignored.
             An alternate key name can be specified using the
-	    <code class="option">+root=NAME</code> options. DNSSEC Lookaside
-            Validation can also be turned on by using the
-	    <code class="option">+dlv=NAME</code> to specify the name of a
-            zone containing DLV records.
+	    <code class="option">+root=NAME</code> options.
 	  </p>
 	  <p>
 	    Note: When reading the trust anchor file,
@@ -538,29 +535,19 @@
 	      request DNSSEC records or whether to validate them.
 	      DNSSEC records are always requested, and validation
 	      will always occur unless suppressed by the use of
-	      <code class="option">-i</code> or <code class="option">+noroot</code> and
-	      <code class="option">+nodlv</code>.
+	      <code class="option">-i</code> or <code class="option">+noroot</code>.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]root[=ROOT]</code></span></dt>
 <dd>
 	    <p>
-	      Indicates whether to perform conventional (non-lookaside)
+	      Indicates whether to perform conventional
 	      DNSSEC validation, and if so, specifies the
 	      name of a trust anchor.  The default is to validate using
 	      a trust anchor of "." (the root zone), for which there is
 	      a built-in key.  If specifying a different trust anchor,
 	      then <code class="option">-a</code> must be used to specify a file
 	      containing the key.
-	    </p>
-	  </dd>
-<dt><span class="term"><code class="option">+[no]dlv[=DLV]</code></span></dt>
-<dd>
-	    <p>
-	      Indicates whether to perform DNSSEC lookaside validation,
-	      and if so, specifies the name of the DLV trust anchor.
-	      The <code class="option">-a</code> option must also be used to specify
-              a file containing the DLV key.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]tcp</code></span></dt>
@@ -628,6 +615,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.2 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.3 (Development Release)</p>
 </body>
 </html>

@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.15.2
+Release Notes for BIND Version 9.15.3
 
 Introduction
 
@@ -107,6 +107,8 @@ New Features
     maintenance, as opposed to having been generated as a result of a zone
     update. [GL #513]
 
+  * Statistics channel groups are now toggleable. [GL #1030]
+
 Removed Features
 
   * The dnssec-enable option has been obsoleted and no longer has any
@@ -115,14 +117,16 @@ Removed Features
 
   * The cleaning-interval option has been removed. [GL !1731]
 
-  * The dnssec-lookaside option has been deprecated. The feature still
-    works, but it is discouraged to use it. [GL #7]
+  * DNSSEC Lookaside Validation (DLV) is now obsolete. The
+    dnssec-lookaside option has been marked as deprecated; when used in
+    named.conf, it will generate a warning but will otherwise be ignored.
+    All code enabling the use of lookaside validation has been removed
+    from the validator, delv, and the DNSSEC tools. [GL #7]
 
 Feature Changes
 
   * named will now log a warning if a static key is configured for the
-    root zone, or if any key is configured for "dlv.isc.org", which has
-    been shut down. [GL #6]
+    root zone. [GL #6]
 
   * When static and managed DNSSEC keys were both configured for the same
     name, or when a static key was used to configure a trust anchor for
@@ -146,6 +150,29 @@ Feature Changes
     custom path to the json-c library as the new configure option does not
     take the library installation path as an optional argument.
 
+  * A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added and
+    made default. Old non-default HMAC-SHA based DNS Cookie algorithms
+    have been removed, and only the default AES algorithm is being kept
+    for legacy reasons. This changes doesn't have any operational impact
+    in most common scenarios. [GL #605]
+
+    If you are running multiple DNS Servers (different versions of BIND 9
+    or DNS server from multiple vendors) responding from the same IP
+    address (anycast or load-balancing scenarios), you'll have to make
+    sure that all the servers are configured with the same DNS Cookie
+    algorithm and same Server Secret for the best performance.
+
+  * The information from the dnssec-signzone and dnssec-verify commands is
+    now printed to standard output. The standard error output is only used
+    to print warnings and errors, and in case the user requests the signed
+    zone to be printed to standard output with -f - option. A new
+    configuration option -q has been added to silence all output on
+    standard output except for the name of the signed zone.
+
+  * DS records included in DNS referral messages can now be validated and
+    cached immediately, reducing the number of queries needed for a DNSSEC
+    validation. [GL #964]
+
 Bug Fixes
 
   * The allow-update and allow-update-forwarding options were
@@ -166,6 +193,28 @@ Bug Fixes
 
   * Glue address records were not being returned in responses to root
     priming queries; this has been corrected. [GL #1092]
+
+  * Cache database statistics counters could report invalid values when
+    stale answers were enabled, because of a bug in counter maintenance
+    when cache data becomes stale. The statistics counters have been
+    corrected to report the number of RRsets for each RR type that are
+    active, stale but still potentially served, or stale and marked for
+    deletion. [GL #602]
+
+  * Interaction between DNS64 and RPZ No Data rule (CNAME *.) could cause
+    unexpected results; this has been fixed. [GL #1106]
+
+  * named-checkconf now checks DNS64 prefixes to ensure bits 64-71 are
+    zero. [GL #1159]
+
+  * named-checkconf now correctly reports missing dnstap-output option
+    when dnstap is set. [GL #1136]
+
+  * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
+    1133]
+
+  * dig now correctly expands the IPv6 address when run with +expandaaaa
+    +short. [GL #1152]
 
 License
 

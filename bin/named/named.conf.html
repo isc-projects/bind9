@@ -139,7 +139,6 @@ logging {<br>
 </p></div>
   </div>
 
-
   <div class="refsection">
 <a name="id-1.15"></a><h2>MANAGED-KEYS</h2>
   <p>Deprecated - see DNSSEC-KEYS.</p>
@@ -210,7 +209,7 @@ options {<br>
 	check-srv-cname ( fail | warn | ignore );<br>
 	check-wildcard <em class="replaceable"><code>boolean</code></em>;<br>
 	clients-per-query <em class="replaceable"><code>integer</code></em>;<br>
-	cookie-algorithm ( aes | sha1 | sha256 );<br>
+	cookie-algorithm ( aes | siphash24 );<br>
 	cookie-secret <em class="replaceable"><code>string</code></em>;<br>
 	coresize ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );<br>
 	datasize ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );<br>
@@ -241,9 +240,6 @@ options {<br>
 	dnssec-accept-expired <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-dnskey-kskonly <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
-	dnssec-lookaside ( <em class="replaceable"><code>string</code></em><br>
-	    trust-anchor <em class="replaceable"><code>string</code></em> |<br>
-	    auto | no ); deprecated<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-update-mode ( maintain | no-resign );<br>
@@ -607,9 +603,6 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 	    initial-key ) <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
 	    <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>quoted_string</code></em>; ... };<br>
 	dnssec-loadkeys-interval <em class="replaceable"><code>integer</code></em>;<br>
-	dnssec-lookaside ( <em class="replaceable"><code>string</code></em><br>
-	    trust-anchor <em class="replaceable"><code>string</code></em> |<br>
-	    auto | no ); deprecated<br>
 	dnssec-must-be-secure <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-secure-to-insecure <em class="replaceable"><code>boolean</code></em>;<br>
 	dnssec-update-mode ( maintain | no-resign );<br>
@@ -859,7 +852,6 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		masters [ port <em class="replaceable"><code>integer</code></em> ] [ dscp <em class="replaceable"><code>integer</code></em> ] { ( <em class="replaceable"><code>masters</code></em><br>
 		    | <em class="replaceable"><code>ipv4_address</code></em> [ port <em class="replaceable"><code>integer</code></em> ] | <em class="replaceable"><code>ipv6_address</code></em> [<br>
 		    port <em class="replaceable"><code>integer</code></em> ] ) [ key <em class="replaceable"><code>string</code></em> ]; ... };<br>
-		max-ixfr-log-size ( default | unlimited |<br>
 		max-journal-size ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );<br>
 		max-records <em class="replaceable"><code>integer</code></em>;<br>
 		max-refresh-time <em class="replaceable"><code>integer</code></em>;<br>
@@ -879,7 +871,6 @@ view <em class="replaceable"><code>string</code></em> [ <em class="replaceable">
 		notify-source-v6 ( <em class="replaceable"><code>ipv6_address</code></em> | * ) [ port ( <em class="replaceable"><code>integer</code></em><br>
 		    | * ) ] [ dscp <em class="replaceable"><code>integer</code></em> ];<br>
 		notify-to-soa <em class="replaceable"><code>boolean</code></em>;<br>
-		pubkey <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em> <em class="replaceable"><code>integer</code></em><br>
 		request-expire <em class="replaceable"><code>boolean</code></em>;<br>
 		request-ixfr <em class="replaceable"><code>boolean</code></em>;<br>
 		serial-update-method ( date | increment | unixtime );<br>

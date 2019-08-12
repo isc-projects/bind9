@@ -55,6 +55,7 @@
        [<code class="option">-O <em class="replaceable"><code>output-format</code></em></code>]
        [<code class="option">-P</code>]
        [<code class="option">-Q</code>]
+       [<code class="option">-q</code>]
        [<code class="option">-R</code>]
        [<code class="option">-S</code>]
        [<code class="option">-s <em class="replaceable"><code>start-time</code></em></code>]
@@ -171,13 +172,6 @@
           <p>
             Treat specified key as a key signing key ignoring any
             key flags.  This option may be specified multiple times.
-          </p>
-        </dd>
-<dt><span class="term">-l <em class="replaceable"><code>domain</code></em></span></dt>
-<dd>
-          <p>
-            Generate a DLV set in addition to the key (DNSKEY) and DS sets.
-            The domain is appended to the name of the records.
           </p>
         </dd>
 <dt><span class="term">-M <em class="replaceable"><code>maxttl</code></em></span></dt>
@@ -427,6 +421,18 @@
             signatures from keys that are no longer active. This
             enables ZSK rollover using the procedure described in
             RFC 4641, section 4.2.1.1 ("Pre-Publish Key Rollover").
+          </p>
+        </dd>
+<dt><span class="term">-q</span></dt>
+<dd>
+          <p>
+	    Quiet mode: Suppresses unnecessary output.  Without this
+	    option, when <span class="command"><strong>dnssec-signzone</strong></span> is run it
+	    will print to standard output the number of keys in use,
+	    the algorithms used to verify the zone was signed correctly
+	    and other status information, and finally the filename
+	    containing the signed zone.  With it, that output is
+	    suppressed, leaving only the filename.
           </p>
         </dd>
 <dt><span class="term">-R</span></dt>

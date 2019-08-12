@@ -115,10 +115,8 @@
 
     <p>
       The <span class="command"><strong>dnssec-dsfromkey</strong></span> command outputs DS (Delegation
-      Signer) resource records (RRs) and other similarly-constructed RRs:
-      with the <code class="option">-l</code> option it outputs DLV (DNSSEC Lookaside
-      Validation) RRs; or with the <code class="option">-C</code> it outputs CDS (Child
-      DS) RRs.
+      Signer) resource records (RRs), or CDS (Child DS) RRs with the
+      <code class="option">-C</code> option.
     </p>
 
     <p>
@@ -200,9 +198,7 @@
 <dt><span class="term">-C</span></dt>
 <dd>
 	  <p>
-	    Generate CDS records rather than DS records. This is mutually
-	    exclusive with the <code class="option">-l</code> option for generating DLV
-	    records.
+	    Generate CDS records rather than DS records.
 	  </p>
 	</dd>
 <dt><span class="term">-f <em class="replaceable"><code>file</code></em></span></dt>
@@ -235,16 +231,6 @@
 	  <p>
 	    Look for key files or <code class="filename">keyset-</code> files in
 	    <code class="option">directory</code>.
-	  </p>
-	</dd>
-<dt><span class="term">-l <em class="replaceable"><code>domain</code></em></span></dt>
-<dd>
-	  <p>
-	    Generate a DLV set instead of a DS set. The specified
-	    <em class="replaceable"><code>domain</code></em> is appended to the name for each
-	    record in the set.
-	    This is mutually exclusive with the <code class="option">-C</code> option
-	    for generating CDS records.
 	  </p>
 	</dd>
 <dt><span class="term">-s</span></dt>
@@ -329,7 +315,6 @@
       </span>,
       <em class="citetitle">BIND 9 Administrator Reference Manual</em>,
       <em class="citetitle">RFC 3658</em> (DS RRs),
-      <em class="citetitle">RFC 4431</em> (DLV RRs),
       <em class="citetitle">RFC 4509</em> (SHA-256 for DS RRs),
       <em class="citetitle">RFC 6605</em> (SHA-384 for DS RRs),
       <em class="citetitle">RFC 7344</em> (CDS and CDNSKEY RRs).
@@ -356,6 +341,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.2 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.3 (Development Release)</p>
 </body>
 </html>

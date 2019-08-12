@@ -2431,7 +2431,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>check-srv-cname</strong></span> ( fail | warn | ignore );
 	<span class="command"><strong>check-wildcard</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>clients-per-query</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>cookie-algorithm</strong></span> ( aes | sha1 | sha256 );
+	<span class="command"><strong>cookie-algorithm</strong></span> ( aes | siphash24 );
 	<span class="command"><strong>cookie-secret</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>coresize</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
 	<span class="command"><strong>datasize</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
@@ -2462,9 +2462,6 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>dnssec-accept-expired</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-dnskey-kskonly</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-loadkeys-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>dnssec-lookaside</strong></span> ( <em class="replaceable"><code>string</code></em>
-	    <span class="command"><strong>trust-anchor</strong></span> <em class="replaceable"><code>string</code></em> |
-	    <span class="command"><strong>auto</strong></span> | no ); deprecated
 	<span class="command"><strong>dnssec-must-be-secure</strong></span> <em class="replaceable"><code>string</code></em> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-secure-to-insecure</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>dnssec-update-mode</strong></span> ( maintain | no-resign );
@@ -3450,7 +3447,7 @@ options {
 <dt><span class="term"><span class="command"><strong>disable-ds-digests</strong></span></span></dt>
 <dd>
               <p>
-                Disable the specified DS/DLV digest types at and below the
+                Disable the specified DS digest types at and below the
                 specified name.
                 Multiple <span class="command"><strong>disable-ds-digests</strong></span>
                 statements are allowed.
@@ -3461,37 +3458,6 @@ options {
                 If all supported digest types are disabled, the zones covered
                 by the <span class="command"><strong>disable-ds-digests</strong></span> will be treated
                 as insecure.
-              </p>
-            </dd>
-<dt><span class="term"><span class="command"><strong>dnssec-lookaside</strong></span></span></dt>
-<dd>
-              <p>
-                When set, <span class="command"><strong>dnssec-lookaside</strong></span> provides the
-                validator with an alternate method to validate DNSKEY
-                records at the top of a zone.  When a DNSKEY is at or
-                below a domain specified by the deepest
-                <span class="command"><strong>dnssec-lookaside</strong></span>, and the normal DNSSEC
-                validation has left the key untrusted, the trust-anchor
-                will be appended to the key name and a DLV record will be
-                looked up to see if it can validate the key.  If the DLV
-                record validates a DNSKEY (similarly to the way a DS
-                record does) the DNSKEY RRset is deemed to be trusted.
-              </p>
-              <p>
-                If <span class="command"><strong>dnssec-lookaside</strong></span> is set to
-                <strong class="userinput"><code>no</code></strong>, then dnssec-lookaside
-                is not used.
-              </p>
-              <p>
-                This option is deprecated and its use is discouraged.
-              </p>
-              <p>
-                NOTE: The ISC-provided DLV service at
-                <code class="literal">dlv.isc.org</code>, has been shut down.
-                The <span class="command"><strong>dnssec-lookaside auto;</strong></span>
-                configuration option, which set <span class="command"><strong>named</strong></span>
-                up to use ISC DLV with minimal configuration, has
-                accordingly been removed.
               </p>
             </dd>
 <dt><span class="term"><span class="command"><strong>dnssec-must-be-secure</strong></span></span></dt>
@@ -3520,7 +3486,9 @@ options {
               </p>
               <p>
                 Compatible IPv6 prefixes have lengths of 32, 40, 48, 56,
-                64 and 96 as per RFC 6052.
+                64 and 96 as per RFC 6052.  Bits 64..71 inclusive must
+                be zero with the most significate bit of the prefix in
+                position 0.
               </p>
               <p>
                 Additionally a reverse IP6.ARPA zone will be created for
@@ -6729,8 +6697,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
             appear, they are not combined &#8212; the last one applies.
           </p>
           <p>
-            By default, records are returned in indeterminate but
-            consistent order (see <span class="command"><strong>none</strong></span> above).
+            By default, records are returned in <span class="command"><strong>random</strong></span> order.
           </p>
 
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
@@ -7651,6 +7618,14 @@ deny-answer-aliases { "example.net"; };
             imposes an upper limit of 64 on the number of policy zones
             in a single <span class="command"><strong>response-policy</strong></span> option; more
             than that is a configuration error.
+          </p>
+
+          <p>
+            Rules encoded in response policy zones are processed after
+            <a class="link" href="Bv9ARM.ch05.html#access_control" title="Access Control">Access Control Lists
+            (ACLs)</a>.  All queries from clients which are not
+            permitted access to the resolver will be answered with a
+            status code of REFUSED, regardless of configured RPZ rules.
           </p>
 
           <p>
@@ -11463,7 +11438,7 @@ view external {
                     </td>
 <td>
                       <p>
-                        A DNS Look-aside Validation record which contains
+                        A DNS Lookaside Validation record which contains
                         the records that are used as trust anchors for
                         zones in a DLV namespace.  Described in RFC 4431.
                       </p>
@@ -13413,14 +13388,29 @@ HOST-127.EXAMPLE. MX 0 .
                 </td>
 <td>
                   <p>
-                    The number of RRsets per RR type and nonexistent
-                    names stored in the cache database.
-                    If the exclamation mark (!) is printed for a RR
-                    type, it means that particular type of RRset is
-                    known to be nonexistent (this is also known as
-                    "NXRRSET").  If a hash mark (#) is present then
-                    the RRset is marked for garbage collection.
-                    Maintained per view.
+                    Statistics counters related to cache contents;
+                    maintained per view.
+                  </p>
+                  <p>
+                    The "NXDOMAIN" counter is the number of names
+                    that have been cached as nonexistent.
+                    Counters named for RR types indicate the
+                    number of active RRsets for each type in the cache
+                    database.
+                  </p>
+                  <p>
+                    If an RR type name is preceded by an exclamation
+                    mark (!), it represents the number of records in the
+                    cache which indicate that the type does not exist
+                    for a particular name (this is also known as "NXRRSET").
+                    If an RR type name is preceded by a hash mark (#), it
+                    represents the number of RRsets for this type that are
+                    present in the cache but whose TTLs have expired; these
+                    RRsets may only be used if stale answers are enabled.
+                    If an RR type name is preceded by a tilde (~), it
+                    represents the number of RRsets for this type that are
+                    present in the cache database but are marked for garbage
+                    collection; these RRsets cannot be used.
                   </p>
                 </td>
 </tr>
@@ -14934,6 +14924,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.2 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.3 (Development Release)</p>
 </body>
 </html>
