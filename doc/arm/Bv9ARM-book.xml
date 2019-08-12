@@ -9890,6 +9890,14 @@ deny-answer-aliases { "example.net"; };
 	  </para>
 
 	  <para>
+	    Rules encoded in response policy zones are processed after
+	    <link linkend="access_control">Access Control Lists
+	    (ACLs)</link>.  All queries from clients which are not
+	    permitted access to the resolver will be answered with a
+	    status code of REFUSED, regardless of configured RPZ rules.
+	  </para>
+
+	  <para>
 	    Five policy triggers can be encoded in RPZ records.
 	    <variablelist>
 	      <varlistentry>
