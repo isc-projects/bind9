@@ -388,7 +388,7 @@ issue number. Prior to 2018, these were usually of the form `[RT #NNN]`
 and referred to entries in the "bind9-bugs" RT database, which was not open
 to the public. More recent entries use the form `[GL #NNN]` or, less often,
 `[GL !NNN]`, which, respectively, refer to issues or merge requests in the
-Gitlab database. Most of these are publically readable, unless they include
+Gitlab database. Most of these are publicly readable, unless they include
 information which is confidential or security senstive.
 
 To look up a Gitlab issue by its number, use the URL
