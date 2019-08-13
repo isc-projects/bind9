@@ -2408,7 +2408,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 	<span class="command"><strong>check-wildcard</strong></span> <em class="replaceable"><code>boolean</code></em>;
 	<span class="command"><strong>cleaning-interval</strong></span> <em class="replaceable"><code>integer</code></em>;
 	<span class="command"><strong>clients-per-query</strong></span> <em class="replaceable"><code>integer</code></em>;
-	<span class="command"><strong>cookie-algorithm</strong></span> ( aes | sha1 | sha256 );
+	<span class="command"><strong>cookie-algorithm</strong></span> ( aes | sha1 | sha256 | siphash24 );
 	<span class="command"><strong>cookie-secret</strong></span> <em class="replaceable"><code>string</code></em>;
 	<span class="command"><strong>coresize</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
 	<span class="command"><strong>datasize</strong></span> ( default | unlimited | <em class="replaceable"><code>sizeval</code></em> );
@@ -3492,7 +3492,9 @@ options {
               </p>
               <p>
                 Compatible IPv6 prefixes have lengths of 32, 40, 48, 56,
-                64 and 96 as per RFC 6052.
+                64 and 96 as per RFC 6052.  Bits 64..71 inclusive must
+                be zero with the most significate bit of the prefix in
+                position 0.
               </p>
               <p>
                 Additionally a reverse IP6.ARPA zone will be created for
@@ -6721,8 +6723,7 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
             appear, they are not combined &#8212; the last one applies.
           </p>
           <p>
-            By default, records are returned in indeterminate but
-            consistent order (see <span class="command"><strong>none</strong></span> above).
+            By default, records are returned in <span class="command"><strong>random</strong></span> order.
           </p>
 
           <div class="note" style="margin-left: 0.5in; margin-right: 0.5in;">
@@ -7643,6 +7644,14 @@ deny-answer-aliases { "example.net"; };
             imposes an upper limit of 64 on the number of policy zones
             in a single <span class="command"><strong>response-policy</strong></span> option; more
             than that is a configuration error.
+          </p>
+
+          <p>
+            Rules encoded in response policy zones are processed after
+            <a class="link" href="Bv9ARM.ch05.html#access_control" title="Access Control">Access Control Lists
+            (ACLs)</a>.  All queries from clients which are not
+            permitted access to the resolver will be answered with a
+            status code of REFUSED, regardless of configured RPZ rules.
           </p>
 
           <p>
@@ -13379,14 +13388,29 @@ HOST-127.EXAMPLE. MX 0 .
                 </td>
 <td>
                   <p>
-                    The number of RRsets per RR type and nonexistent
-                    names stored in the cache database.
-                    If the exclamation mark (!) is printed for a RR
-                    type, it means that particular type of RRset is
-                    known to be nonexistent (this is also known as
-                    "NXRRSET").  If a hash mark (#) is present then
-                    the RRset is marked for garbage collection.
-                    Maintained per view.
+                    Statistics counters related to cache contents;
+                    maintained per view.
+                  </p>
+                  <p>
+                    The "NXDOMAIN" counter is the number of names
+                    that have been cached as nonexistent.
+                    Counters named for RR types indicate the
+                    number of active RRsets for each type in the cache
+                    database.
+                  </p>
+                  <p>
+                    If an RR type name is preceded by an exclamation
+                    mark (!), it represents the number of records in the
+                    cache which indicate that the type does not exist
+                    for a particular name (this is also known as "NXRRSET").
+                    If an RR type name is preceded by a hash mark (#), it
+                    represents the number of RRsets for this type that are
+                    present in the cache but whose TTLs have expired; these
+                    RRsets may only be used if stale answers are enabled.
+                    If an RR type name is preceded by a tilde (~), it
+                    represents the number of RRsets for this type that are
+                    present in the cache database but are marked for garbage
+                    collection; these RRsets cannot be used.
                   </p>
                 </td>
 </tr>
@@ -14900,6 +14924,6 @@ HOST-127.EXAMPLE. MX 0 .
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.4 (Stable Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.14.5 (Stable Release)</p>
 </body>
 </html>
