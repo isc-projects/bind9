@@ -1,4 +1,4 @@
-        --- 9.11.10 released ---
+	--- 9.11.10 released ---
 
 5275.	[bug]		Mark DS records included in referral messages
 			with trust level "pending" so that they can be
