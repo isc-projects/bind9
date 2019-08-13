@@ -10,12 +10,12 @@
 .\"     Title: named.conf
 .\"    Author: 
 .\" Generator: DocBook XSL Stylesheets v1.78.1 <http://docbook.sf.net/>
-.\"      Date: 2019-02-20
+.\"      Date: 2019-07-22
 .\"    Manual: BIND9
 .\"    Source: ISC
 .\"  Language: English
 .\"
-.TH "NAMED\&.CONF" "5" "2019\-02\-20" "ISC" "BIND9"
+.TH "NAMED\&.CONF" "5" "2019\-07\-22" "ISC" "BIND9"
 .\" -----------------------------------------------------------------
 .\" * Define some portability stuff
 .\" -----------------------------------------------------------------
@@ -249,7 +249,7 @@ options {
 	check\-wildcard \fIboolean\fR;
 	cleaning\-interval \fIinteger\fR;
 	clients\-per\-query \fIinteger\fR;
-	cookie\-algorithm ( aes | sha1 | sha256 );
+	cookie\-algorithm ( aes | sha1 | sha256 | siphash24 );
 	cookie\-secret \fIstring\fR;
 	coresize ( default | unlimited | \fIsizeval\fR );
 	datasize ( default | unlimited | \fIsizeval\fR );

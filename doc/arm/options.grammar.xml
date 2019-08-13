@@ -62,7 +62,7 @@
 	<command>check-wildcard</command> <replaceable>boolean</replaceable>;
 	<command>cleaning-interval</command> <replaceable>integer</replaceable>;
 	<command>clients-per-query</command> <replaceable>integer</replaceable>;
-	<command>cookie-algorithm</command> ( aes | sha1 | sha256 );
+	<command>cookie-algorithm</command> ( aes | sha1 | sha256 | siphash24 );
 	<command>cookie-secret</command> <replaceable>string</replaceable>;
 	<command>coresize</command> ( default | unlimited | <replaceable>sizeval</replaceable> );
 	<command>datasize</command> ( default | unlimited | <replaceable>sizeval</replaceable> );
