@@ -362,11 +362,11 @@ isdelegation(dns_name_t *name, dns_rdataset_t *rdataset,
 
 /*%
  * We have been asked to look for a key.
- * If found resume the validation process.
- * If not found fail the validation process.
+ * If found, resume the validation process.
+ * If not found, fail the validation process.
  */
 static void
-fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
+fetch_callback_dnskey(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_validator_t *val;
 	dns_rdataset_t *rdataset;
@@ -397,7 +397,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(val->event != NULL);
 
-	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_validator");
+	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_dnskey");
 	LOCK(&val->lock);
 	fetch = val->fetch;
 	val->fetch = NULL;
@@ -433,7 +433,7 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 		}
 	} else {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "fetch_callback_validator: got %s",
+			      "fetch_callback_dnskey: got %s",
 			      isc_result_totext(eresult));
 		if (eresult == ISC_R_CANCELED) {
 			validator_done(val, eresult);
@@ -454,8 +454,12 @@ fetch_callback_validator(isc_task_t *task, isc_event_t *event) {
 	}
 }
 
+/*%
+ * We have been asked to look for a DS. This may be part of
+ * walking a trust chain, or an insecurity proof.
+ */
 static void
-dsfetched(isc_task_t *task, isc_event_t *event) {
+fetch_callback_ds(isc_task_t *task, isc_event_t *event) {
 	dns_fetchevent_t *devent;
 	dns_validator_t *val;
 	dns_rdataset_t *rdataset;
@@ -472,8 +476,8 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 	eresult = devent->result;
 
 	/*
-	 * Set to true if we're walking a chain of trust; false if
-	 * we're attempting to prove insecurity.
+	 * Set 'trustchain' to true if we're walking a chain of
+	 * trust; false if we're attempting to prove insecurity.
 	 */
 	trustchain = ((val->attributes & VALATTR_INSECURITY) == 0);
 
@@ -490,7 +494,7 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(val->event != NULL);
 
-	validator_log(val, ISC_LOG_DEBUG(3), "in dsfetched");
+	validator_log(val, ISC_LOG_DEBUG(3), "in fetch_callback_ds");
 	LOCK(&val->lock);
 	fetch = val->fetch;
 	val->fetch = NULL;
@@ -568,7 +572,7 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 			 * insecurity. If this is a zone cut, that
 			 * means we're insecure.
 			 */
-			result = markanswer(val, "dsfetched",
+			result = markanswer(val, "fetch_callback_ds",
 					    "no DS and this is a delegation");
 			validator_done(val, result);
 		} else {
@@ -585,7 +589,8 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
 
 	default:
  unexpected:
-		validator_log(val, ISC_LOG_DEBUG(3), "dsfetched: got %s",
+		validator_log(val, ISC_LOG_DEBUG(3),
+			      "fetch_callback_ds: got %s",
 			      isc_result_totext(eresult));
 		if (eresult == ISC_R_CANCELED) {
 			validator_done(val, eresult);
@@ -614,7 +619,7 @@ dsfetched(isc_task_t *task, isc_event_t *event) {
  * Resumes the stalled validation process.
  */
 static void
-keyvalidated(isc_task_t *task, isc_event_t *event) {
+validator_callback_dnskey(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
 	bool want_destroy;
@@ -634,7 +639,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(val->event != NULL);
 
-	validator_log(val, ISC_LOG_DEBUG(3), "in keyvalidated");
+	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_dnskey");
 	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
@@ -668,7 +673,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
 			expire_rdatasets(val);
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "keyvalidated: got %s",
+			      "validator_callback_dnskey: got %s",
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
@@ -686,7 +691,7 @@ keyvalidated(isc_task_t *task, isc_event_t *event) {
  * Resumes validation of the zone key or the unsecure zone proof.
  */
 static void
-dsvalidated(isc_task_t *task, isc_event_t *event) {
+validator_callback_ds(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
 	bool want_destroy;
@@ -705,7 +710,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(val->event != NULL);
 
-	validator_log(val, ISC_LOG_DEBUG(3), "in dsvalidated");
+	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_ds");
 	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
@@ -724,7 +729,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 		    NEGATIVE(&val->frdataset) &&
 		    isdelegation(name, &val->frdataset, DNS_R_NCACHENXRRSET))
 		{
-			result = markanswer(val, "dsvalidated",
+			result = markanswer(val, "validator_callback_ds",
 					    "no DS and this is a delegation");
 		} else if ((val->attributes & VALATTR_INSECURITY) != 0) {
 			result = proveunsecure(val, have_dsset, true);
@@ -739,7 +744,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
 			expire_rdatasets(val);
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "dsvalidated: got %s",
+			      "validator_callback_ds: got %s",
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
@@ -757,7 +762,7 @@ dsvalidated(isc_task_t *task, isc_event_t *event) {
  * Resumes validation of the unsecure zone proof.
  */
 static void
-cnamevalidated(isc_task_t *task, isc_event_t *event) {
+validator_callback_cname(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
 	bool want_destroy;
@@ -777,7 +782,7 @@ cnamevalidated(isc_task_t *task, isc_event_t *event) {
 	INSIST(val->event != NULL);
 	INSIST((val->attributes & VALATTR_INSECURITY) != 0);
 
-	validator_log(val, ISC_LOG_DEBUG(3), "in cnamevalidated");
+	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_cname");
 	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
@@ -793,7 +798,7 @@ cnamevalidated(isc_task_t *task, isc_event_t *event) {
 			expire_rdatasets(val);
 		}
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "cnamevalidated: got %s",
+			      "validator_callback_cname: got %s",
 			      isc_result_totext(eresult));
 		validator_done(val, DNS_R_BROKENCHAIN);
 	}
@@ -813,7 +818,7 @@ cnamevalidated(isc_task_t *task, isc_event_t *event) {
  * Resumes validate_nx.
  */
 static void
-authvalidated(isc_task_t *task, isc_event_t *event) {
+validator_callback_nsec(isc_task_t *task, isc_event_t *event) {
 	dns_validatorevent_t *devent;
 	dns_validator_t *val;
 	dns_rdataset_t *rdataset;
@@ -832,13 +837,13 @@ authvalidated(isc_task_t *task, isc_event_t *event) {
 
 	INSIST(val->event != NULL);
 
-	validator_log(val, ISC_LOG_DEBUG(3), "in authvalidated");
+	validator_log(val, ISC_LOG_DEBUG(3), "in validator_callback_nsec");
 	LOCK(&val->lock);
 	if (CANCELED(val)) {
 		validator_done(val, ISC_R_CANCELED);
 	} else if (result != ISC_R_SUCCESS) {
 		validator_log(val, ISC_LOG_DEBUG(3),
-			      "authvalidated: got %s",
+			      "validator_callback_nsec: got %s",
 			      isc_result_totext(result));
 		if (result == DNS_R_BROKENCHAIN) {
 			val->authfail++;
@@ -1137,8 +1142,7 @@ get_dst_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo,
 				 * This is the key we're looking for.
 				 */
 				return (ISC_R_SUCCESS);
-			} else if (dst_key_compare(oldkey,
-						   val->key) == true) {
+			} else if (dst_key_compare(oldkey, val->key)) {
 				foundold = true;
 				dst_key_free(&oldkey);
 			}
@@ -1243,7 +1247,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 						  dns_rdatatype_dnskey,
 						  &val->frdataset,
 						  &val->fsigrdataset,
-						  keyvalidated,
+						  validator_callback_dnskey,
 						  "get_key");
 			if (result != ISC_R_SUCCESS) {
 				return (result);
@@ -1285,7 +1289,7 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 		 */
 		result = create_fetch(val, &siginfo->signer,
 				      dns_rdatatype_dnskey,
-				      fetch_callback_validator, "get_key");
+				      fetch_callback_dnskey, "get_key");
 		if (result != ISC_R_SUCCESS) {
 			return (result);
 		}
@@ -1572,9 +1576,11 @@ validate_answer(dns_validator_t *val, bool resume) {
 					break;
 				}
 			} else {
-				if (get_dst_key(val, val->siginfo, val->keyset)
-				    != ISC_R_SUCCESS)
-				{
+				isc_result_t tresult;
+
+				tresult = get_dst_key(val, val->siginfo,
+						     val->keyset);
+				if (tresult != ISC_R_SUCCESS) {
 					break;
 				}
 			}
@@ -1885,7 +1891,7 @@ validatezonekey(dns_validator_t *val) {
 							  dns_rdatatype_ds,
 							  &val->frdataset,
 							  &val->fsigrdataset,
-							  dsvalidated,
+							  validator_callback_ds,
 							  "validatezonekey");
 				if (result != ISC_R_SUCCESS) {
 					return (result);
@@ -1910,7 +1916,8 @@ validatezonekey(dns_validator_t *val) {
 			 * We don't have the DS.  Find it.
 			 */
 			result = create_fetch(val, val->event->name,
-					      dns_rdatatype_ds, dsfetched,
+					      dns_rdatatype_ds,
+					      fetch_callback_ds,
 					      "validatezonekey");
 			if (result != ISC_R_SUCCESS) {
 				return (result);
@@ -2485,7 +2492,8 @@ validate_neg_rrset(dns_validator_t *val, dns_name_t *name,
 	val->currentset = rdataset;
 	result = create_validator(val, name, rdataset->type,
 				  rdataset, sigrdataset,
-				  authvalidated, "validate_neg_rrset");
+				  validator_callback_nsec,
+				  "validate_neg_rrset");
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -2612,7 +2620,8 @@ validate_ncache(dns_validator_t *val, bool resume) {
  * answer is from a wildcard.
  *
  * Loop through the authority section looking for NODATA, NOWILDCARD
- * and NOQNAME proofs in the NSEC records by calling authvalidated().
+ * and NOQNAME proofs in the NSEC records by calling
+ * validator_callback_nsec().
  *
  * If the required proofs are found we are done.
  *
@@ -2810,7 +2819,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 						  dns_rdatatype_ds,
 						  &val->frdataset,
 						  &val->fsigrdataset,
-						  dsvalidated,
+						  validator_callback_ds,
 						  "proveunsecure");
 			*resp = DNS_R_WAIT;
 			if (result != ISC_R_SUCCESS) {
@@ -2826,7 +2835,7 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		 */
 		*resp = DNS_R_WAIT;
 		result = create_fetch(val, tname, dns_rdatatype_ds,
-				      dsfetched, "proveunsecure");
+				      fetch_callback_ds, "proveunsecure");
 		if (result != ISC_R_SUCCESS) {
 			*resp = result;
 		}
@@ -2846,8 +2855,8 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		{
 			result = create_validator(val, tname,
 						  dns_rdatatype_ds,
-						  &val->frdataset,
-						  NULL, dsvalidated,
+						  &val->frdataset, NULL,
+						  validator_callback_ds,
 						  "proveunsecure");
 			*resp = DNS_R_WAIT;
 			if (result != ISC_R_SUCCESS) {
@@ -2919,8 +2928,8 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 			*resp = DNS_R_WAIT;
 			result = create_validator(val, tname,
 						  dns_rdatatype_ds,
-						  &val->frdataset,
-						  NULL, dsvalidated,
+						  &val->frdataset, NULL,
+						  validator_callback_ds,
 						  "proveunsecure");
 			if (result != ISC_R_SUCCESS) {
 				*resp = result;
@@ -2949,8 +2958,8 @@ seek_ds(dns_validator_t *val, isc_result_t *resp) {
 		{
 			result = create_validator(val, tname,
 						  dns_rdatatype_cname,
-						  &val->frdataset,
-						  NULL, cnamevalidated,
+						  &val->frdataset, NULL,
+						  validator_callback_cname,
 						  "proveunsecure "
 						  "(cname)");
 			*resp = DNS_R_WAIT;
