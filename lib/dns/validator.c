@@ -1229,7 +1229,8 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 	 * Do we know about this key?
 	 */
 	result = view_find(val, &siginfo->signer, dns_rdatatype_dnskey);
-	if (result == ISC_R_SUCCESS) {
+	switch (result) {
+	case ISC_R_SUCCESS:
 		/*
 		 * We have an rrset for the given keyname.
 		 */
@@ -1283,7 +1284,9 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 				result = DNS_R_CONTINUE;
 			}
 		}
-	} else if (result == ISC_R_NOTFOUND) {
+		break;
+
+	case ISC_R_NOTFOUND:
 		/*
 		 * We don't know anything about this key.
 		 */
@@ -1294,18 +1297,23 @@ get_key(dns_validator_t *val, dns_rdata_rrsig_t *siginfo) {
 			return (result);
 		}
 		return (DNS_R_WAIT);
-	} else if (result ==  DNS_R_NCACHENXDOMAIN ||
-		   result == DNS_R_NCACHENXRRSET ||
-		   result == DNS_R_EMPTYNAME ||
-		   result == DNS_R_NXDOMAIN ||
-		   result == DNS_R_NXRRSET)
-	{
+
+	case DNS_R_NCACHENXDOMAIN:
+	case DNS_R_NCACHENXRRSET:
+	case DNS_R_EMPTYNAME:
+	case DNS_R_NXDOMAIN:
+	case DNS_R_NXRRSET:
 		/*
 		 * This key doesn't exist.
 		 */
 		result = DNS_R_CONTINUE;
-	} else if (result == DNS_R_BROKENCHAIN) {
+		break;
+
+	case DNS_R_BROKENCHAIN:
 		return (result);
+
+	default:
+		break;
 	}
 
 	if (dns_rdataset_isassociated(&val->frdataset) &&
