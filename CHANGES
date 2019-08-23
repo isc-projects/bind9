@@ -1,3 +1,8 @@
+5279.	[bug]		When loading, reject zones containing CDS or CDNSKEY
+			RRsets at the zone apex if they would cause DNSSEC
+			validation failures if published in the parent zone
+			as the DS RRset.  [GL #1187]
+
 5278.	[func]		Add YAML output formats for dig, mdig and delv;
 			use the "+yaml" option to enable. [GL #1145]
 
