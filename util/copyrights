@@ -867,6 +867,8 @@
 ./bin/tests/system/checkzone/zones/.gitattributes	X	2015,2018,2019
 ./bin/tests/system/checkzone/zones/bad-badclass.raw	X	2015,2018,2019
 ./bin/tests/system/checkzone/zones/bad-caa-rr.db	ZONE	2015,2016,2018,2019
+./bin/tests/system/checkzone/zones/bad-cdnskey.db	ZONE	2019
+./bin/tests/system/checkzone/zones/bad-cds.db	ZONE	2019
 ./bin/tests/system/checkzone/zones/bad-dhcid.db	ZONE	2019
 ./bin/tests/system/checkzone/zones/bad-dns-sd-reverse.db	ZONE	2015,2016,2018,2019
 ./bin/tests/system/checkzone/zones/bad-eid.db	ZONE	2019
@@ -886,6 +888,8 @@
 ./bin/tests/system/checkzone/zones/badttl.db	ZONE	2014,2016,2018,2019
 ./bin/tests/system/checkzone/zones/crashzone.db	ZONE	2016,2018,2019
 ./bin/tests/system/checkzone/zones/delegating-ns-address-below-dname.db	ZONE	2017,2018,2019
+./bin/tests/system/checkzone/zones/good-cdnskey.db	ZONE	2019
+./bin/tests/system/checkzone/zones/good-cds.db	ZONE	2019
 ./bin/tests/system/checkzone/zones/good-dns-sd-reverse.db	ZONE	2015,2016,2018,2019
 ./bin/tests/system/checkzone/zones/good-gc-msdcs.db	ZONE	2015,2016,2018,2019
 ./bin/tests/system/checkzone/zones/good-nsap.db	ZONE	2015,2016,2018,2019
