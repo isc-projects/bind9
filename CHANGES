@@ -1,3 +1,6 @@
+5278.	[func]		Add YAML output formats for dig, mdig and delv;
+			use the "+yaml" option to enable. [GL #1145]
+
 	--- 9.15.3 released ---
 
 5277.	[bug]		Cache DB statistics could underflow when serve-stale

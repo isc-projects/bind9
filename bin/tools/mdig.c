@@ -105,6 +105,7 @@ static bool display_answer  = true;
 static bool display_authority = true;
 static bool display_additional = true;
 static bool display_unknown_format = false;
+static bool yaml = false;
 static bool continue_on_error = false;
 static uint32_t display_splitwidth = 0xffffffff;
 static isc_sockaddr_t srcaddr;
@@ -211,7 +212,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	dns_message_t *query = NULL, *response = NULL;
 	unsigned int parseflags = 0;
-	isc_buffer_t *buf = NULL;
+	isc_buffer_t *msgbuf = NULL, *buf = NULL;
 	unsigned int len = OUTPUTBUF;
 	dns_master_style_t *style = NULL;
 	unsigned int styleflags = 0;
@@ -239,35 +240,51 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 		parseflags |= DNS_MESSAGEPARSE_BESTEFFORT;
 		parseflags |= DNS_MESSAGEPARSE_IGNORETRUNCATION;
 	}
+
+
+	msgbuf = dns_request_getanswer(reqev->request);
 	result = dns_request_getresponse(reqev->request, response, parseflags);
 	CHECK("dns_request_getresponse", result);
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
-	if (display_comments)
-		styleflags |= DNS_STYLEFLAG_COMMENT;
-	if (display_unknown_format)
-		styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
-	if (display_rrcomments > 0)
-		styleflags |= DNS_STYLEFLAG_RRCOMMENT;
-	if (display_ttlunits)
-		styleflags |= DNS_STYLEFLAG_TTL_UNITS;
-	if (!display_ttl)
-		styleflags |= DNS_STYLEFLAG_NO_TTL;
-	if (!display_class)
-		styleflags |= DNS_STYLEFLAG_NO_CLASS;
-	if (!display_crypto)
-		styleflags |= DNS_STYLEFLAG_NOCRYPTO;
-	if (display_multiline) {
-		styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
-		styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
-		styleflags |= DNS_STYLEFLAG_REL_DATA;
-		styleflags |= DNS_STYLEFLAG_OMIT_TTL;
-		styleflags |= DNS_STYLEFLAG_TTL;
-		styleflags |= DNS_STYLEFLAG_MULTILINE;
-		styleflags |= DNS_STYLEFLAG_COMMENT;
-		/* Turn on rrcomments unless explicitly disabled */
-		if (display_rrcomments >= 0) {
+	if (yaml) {
+		dns_master_indentstr = "  ";
+		dns_master_indent = 3;
+		styleflags |= DNS_STYLEFLAG_YAML;
+	} else {
+		if (display_comments) {
+			styleflags |= DNS_STYLEFLAG_COMMENT;
+		}
+		if (display_unknown_format) {
+			styleflags |= DNS_STYLEFLAG_UNKNOWNFORMAT;
+		}
+		if (display_rrcomments > 0) {
 			styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+		}
+		if (display_ttlunits) {
+			styleflags |= DNS_STYLEFLAG_TTL_UNITS;
+		}
+		if (!display_ttl) {
+			styleflags |= DNS_STYLEFLAG_NO_TTL;
+		}
+		if (!display_class) {
+			styleflags |= DNS_STYLEFLAG_NO_CLASS;
+		}
+		if (!display_crypto) {
+			styleflags |= DNS_STYLEFLAG_NOCRYPTO;
+		}
+		if (display_multiline) {
+			styleflags |= DNS_STYLEFLAG_OMIT_OWNER;
+			styleflags |= DNS_STYLEFLAG_OMIT_CLASS;
+			styleflags |= DNS_STYLEFLAG_REL_DATA;
+			styleflags |= DNS_STYLEFLAG_OMIT_TTL;
+			styleflags |= DNS_STYLEFLAG_TTL;
+			styleflags |= DNS_STYLEFLAG_MULTILINE;
+			styleflags |= DNS_STYLEFLAG_COMMENT;
+			/* Turn on rrcomments unless explicitly disabled */
+			if (display_rrcomments >= 0) {
+				styleflags |= DNS_STYLEFLAG_RRCOMMENT;
+			}
 		}
 	}
 	if (display_multiline || (!display_ttl && !display_class))
@@ -295,7 +312,59 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 	result = isc_buffer_allocate(mctx, &buf, len);
 	CHECK("isc_buffer_allocate", result);
 
-	if (display_comments && !display_short_form) {
+	if (yaml) {
+		char sockstr[ISC_SOCKADDR_FORMATSIZE];
+		uint16_t sport;
+		char *hash;
+		int pf;
+
+		printf("-\n");
+		printf("  type: MESSAGE\n");
+		printf("  message:\n");
+
+		if (((response->flags & DNS_MESSAGEFLAG_RD) != 0) &&
+		    ((response->flags & DNS_MESSAGEFLAG_RA) != 0))
+		{
+			printf("    type: RECURSIVE_RESPONSE\n");
+		} else {
+			printf("    type: AUTH_RESPONSE\n");
+		}
+
+		printf("    message_size: %ub\n",
+		       isc_buffer_usedlength(msgbuf));
+
+		pf = isc_sockaddr_pf(&dstaddr);
+		if (pf == PF_INET || pf == PF_INET6) {
+			printf("    socket_family: %s\n",
+			       pf == PF_INET ? "INET" : "INET6");
+
+			printf("    socket_protocol: %s\n",
+			       tcp_mode ? "TCP" : "UDP");
+
+			sport = isc_sockaddr_getport(&dstaddr);
+			isc_sockaddr_format(&dstaddr, sockstr, sizeof(sockstr));
+			hash = strchr(sockstr, '#');
+			if (hash != NULL) {
+				*hash = '\0';
+			}
+			printf("    response_address: %s\n", sockstr);
+			printf("    response_port: %u\n", sport);
+		}
+
+		if (have_src) {
+			sport = isc_sockaddr_getport(&srcaddr);
+			isc_sockaddr_format(&srcaddr, sockstr, sizeof(sockstr));
+			hash = strchr(sockstr, '#');
+			if (hash != NULL) {
+				*hash = '\0';
+			}
+			printf("    query_address: %s\n", sockstr);
+			printf("    query_port: %u\n", sport);
+		}
+
+		printf("    %s:\n", "response_message_data");
+		result = dns_message_headertotext(response, style, flags, buf);
+	} else if (display_comments && !display_short_form) {
 		printf(";; Got answer:\n");
 
 		if (display_headers) {
@@ -465,8 +534,11 @@ buftoosmall:
 		CHECK("dns_message_pseudosectiontotext", result);
 	}
 
-	if (display_headers && display_comments && !display_short_form)
+	if (display_headers && display_comments &&
+	    !display_short_form && !yaml)
+	{
 		printf("\n");
+	}
 
 	printf("%.*s", (int)isc_buffer_usedlength(buf),
 	       (char *)isc_buffer_base(buf));
@@ -515,8 +587,7 @@ compute_cookie(unsigned char *cookie, size_t len) {
 }
 
 static isc_result_t
-sendquery(struct query *query, isc_task_t *task)
-{
+sendquery(struct query *query, isc_task_t *task) {
 	dns_request_t *request;
 	dns_message_t *message;
 	dns_name_t *qname;
@@ -699,8 +770,7 @@ sendquery(struct query *query, isc_task_t *task)
 }
 
 static void
-sendqueries(isc_task_t *task, isc_event_t *event)
-{
+sendqueries(isc_task_t *task, isc_event_t *event) {
 	struct query *query = (struct query *)event->ev_arg;
 
 	isc_event_free(&event);
@@ -1508,6 +1578,13 @@ plus_option(char *option, struct query *query, bool global)
 		FULLCHECK("vc");
 		GLOBAL();
 		tcp_mode = state;
+		break;
+	case 'y': /* yaml */
+		FULLCHECK("yaml");
+		yaml = state;
+		if (state) {
+			display_rrcomments = state;
+		}
 		break;
 	case 'z': /* zflag */
 		FULLCHECK("zflag");

@@ -429,8 +429,12 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 }
 
 static isc_result_t
-printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
+printmessage(dig_query_t *query, const isc_buffer_t *msgbuf,
+	     dns_message_t *msg, bool headers)
+{
 	char servtext[ISC_SOCKADDR_FORMATSIZE];
+
+	UNUSED(msgbuf);
 
 	/* I've we've gotten this far, we've reached a server. */
 	query_error = 0;
@@ -438,7 +442,8 @@ printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
 	debug("printmessage()");
 
 	if(!default_lookups || query->lookup->rdtype == dns_rdatatype_a) {
-		isc_sockaddr_format(&query->sockaddr, servtext, sizeof(servtext));
+		isc_sockaddr_format(&query->sockaddr, servtext,
+				    sizeof(servtext));
 		printf("Server:\t\t%s\n", query->userarg);
 		printf("Address:\t%s\n", servtext);
 
@@ -978,6 +983,17 @@ getinput(isc_task_t *task, isc_event_t *event) {
 	isc_app_shutdown();
 }
 
+static void
+nsl_error(const char *format, ...) {
+	va_list args;
+
+	printf(";; ");
+	va_start(args, format);
+	vfprintf(stdout, format, args);
+	va_end(args);
+	printf("\n");
+}
+
 int
 main(int argc, char **argv) {
 	isc_result_t result;
@@ -995,6 +1011,7 @@ main(int argc, char **argv) {
 	dighost_received = received;
 	dighost_trying = trying;
 	dighost_shutdown = query_finished;
+	dighost_error = nsl_error;
 
 	result = isc_app_start();
 	check_result(result, "isc_app_start");

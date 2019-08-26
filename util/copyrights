@@ -501,6 +501,7 @@
 ./bin/tests/system/digdelv/prereq.sh		SH	2018,2019
 ./bin/tests/system/digdelv/setup.sh		SH	2018,2019
 ./bin/tests/system/digdelv/tests.sh		SH	2015,2016,2017,2018,2019
+./bin/tests/system/digdelv/yamlget.py		PYTHON	2019
 ./bin/tests/system/ditch.pl			PERL	2015,2016,2018,2019
 ./bin/tests/system/dlz/clean.sh			SH	2010,2012,2014,2016,2018,2019
 ./bin/tests/system/dlz/ns1/dns-root/com/broken/dns.d/@/DNAME=10=example.net.=	TXT.BRIEF	2015,2016,2018,2019

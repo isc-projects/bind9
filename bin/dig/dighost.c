@@ -193,11 +193,15 @@ dig_lookup_t *current_lookup = NULL;
 /* dynamic callbacks */
 
 isc_result_t
-(*dighost_printmessage)(dig_query_t *query, dns_message_t *msg,
-	bool headers);
+(*dighost_printmessage)(dig_query_t *query, const isc_buffer_t *msgbuf,
+			dns_message_t *msg, bool headers);
 
 void
-(*dighost_received)(unsigned int bytes, isc_sockaddr_t *from, dig_query_t *query);
+(*dighost_error)(const char *format, ...);
+
+void
+(*dighost_received)(unsigned int bytes, isc_sockaddr_t *from,
+		    dig_query_t *query);
 
 void
 (*dighost_trying)(char *frm, dig_lookup_t *lookup);
@@ -2501,6 +2505,9 @@ setup_lookup(dig_lookup_t *lookup) {
 				COMMSIZE);
 		query->sendbuf = lookup->renderbuf;
 
+		isc_time_settoepoch(&query->time_sent);
+		isc_time_settoepoch(&query->time_recv);
+
 		ISC_LINK_INIT(query, clink);
 		ISC_LINK_INIT(query, link);
 
@@ -2509,16 +2516,6 @@ setup_lookup(dig_lookup_t *lookup) {
 		ISC_LIST_ENQUEUE(lookup->q, query, link);
 	}
 
-	/* XXX qrflag, print_query, etc... */
-	if (!ISC_LIST_EMPTY(lookup->q) && lookup->qr) {
-		extrabytes = 0;
-		dighost_printmessage(ISC_LIST_HEAD(lookup->q),
-				     lookup->sendmsg, true);
-		if (lookup->stats) {
-			printf(";; QUERY SIZE: %u\n\n",
-			       isc_buffer_usedlength(&lookup->renderbuf));
-		}
-	}
 	return (true);
 }
 
@@ -2856,6 +2853,18 @@ send_udp(dig_query_t *query) {
 				    sevent, ISC_SOCKFLAG_NORETRY);
 	check_result(result, "isc_socket_sendto2");
 	sendcount++;
+
+	/* XXX qrflag, print_query, etc... */
+	if (!ISC_LIST_EMPTY(query->lookup->q) && query->lookup->qr) {
+		extrabytes = 0;
+		dighost_printmessage(ISC_LIST_HEAD(query->lookup->q),
+				     &query->lookup->renderbuf,
+				     query->lookup->sendmsg, true);
+		if (query->lookup->stats) {
+			printf(";; QUERY SIZE: %u\n\n",
+			     isc_buffer_usedlength(&query->lookup->renderbuf));
+		}
+	}
 }
 
 /*%
@@ -2955,11 +2964,11 @@ connect_timeout(isc_task_t *task, isc_event_t *event) {
 			isc_netaddr_fromsockaddr(&netaddr, &query->sockaddr);
 			isc_netaddr_format(&netaddr, buf, sizeof(buf));
 
-			printf(";; no response from %s\n", buf);
+			dighost_error("no response from %s\n", buf);
 		} else {
 			fputs(l->cmdline, stdout);
-			printf(";; connection timed out; no servers could be "
-			       "reached\n");
+			dighost_error("connection timed out; "
+				      "no servers could be reached\n");
 		}
 		cancel_lookup(l);
 		check_next_lookup(l);
@@ -3031,8 +3040,8 @@ tcp_length_done(isc_task_t *task, isc_event_t *event) {
 		char sockstr[ISC_SOCKADDR_FORMATSIZE];
 		isc_sockaddr_format(&query->sockaddr, sockstr,
 				    sizeof(sockstr));
-		printf(";; communications error to %s: %s\n",
-		       sockstr, isc_result_totext(sevent->result));
+		dighost_error("communications error to %s: %s\n",
+			      sockstr, isc_result_totext(sevent->result));
 		if (keep != NULL)
 			isc_socket_detach(&keep);
 		l = query->lookup;
@@ -3131,6 +3140,19 @@ launch_next_query(dig_query_t *query, bool include_question) {
 		check_result(result, "isc_socket_send");
 		sendcount++;
 		debug("sendcount=%d", sendcount);
+
+		/* XXX qrflag, print_query, etc... */
+		if (!ISC_LIST_EMPTY(query->lookup->q) && query->lookup->qr) {
+			extrabytes = 0;
+			dighost_printmessage(ISC_LIST_HEAD(query->lookup->q),
+					     &query->lookup->renderbuf,
+					     query->lookup->sendmsg, true);
+			if (query->lookup->stats) {
+				printf(";; QUERY SIZE: %u\n\n",
+				       isc_buffer_usedlength(
+						    &query->lookup->renderbuf));
+			}
+		}
 	}
 	query->waiting_connect = false;
 #if 0
@@ -3505,7 +3527,6 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 
 	query = event->ev_arg;
 	TIME_NOW(&query->time_recv);
-	debug("lookup=%p, query=%p", query->lookup, query);
 
 	l = query->lookup;
 
@@ -3534,8 +3555,8 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 			debug("in recv cancel handler");
 			query->waiting_connect = false;
 		} else {
-			printf(";; communications error: %s\n",
-			       isc_result_totext(sevent->result));
+			dighost_error("communications error: %s\n",
+				      isc_result_totext(sevent->result));
 			if (keep != NULL)
 				isc_socket_detach(&keep);
 			isc_socket_detach(&query->sock);
@@ -3886,19 +3907,19 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 		if (msg->rcode == dns_rcode_nxdomain &&
 		    (l->origin != NULL || l->need_search)) {
 			if (!next_origin(query->lookup) || showsearch) {
-				dighost_printmessage(query, msg, true);
+				dighost_printmessage(query, &b, msg, true);
 				dighost_received(isc_buffer_usedlength(&b),
 						 &sevent->address, query);
 			}
 		} else if (!l->trace && !l->ns_search_only) {
-			dighost_printmessage(query, msg, true);
+			dighost_printmessage(query, &b, msg, true);
 		} else if (l->trace) {
 			int nl = 0;
 			int count = msg->counts[DNS_SECTION_ANSWER];
 
 			debug("in TRACE code");
 			if (!l->ns_search_only)
-				dighost_printmessage(query, msg, true);
+				dighost_printmessage(query, &b, msg, true);
 
 			l->rdtype = l->qrdtype;
 			if (l->trace_root || (l->ns_search_only && count > 0)) {
@@ -3929,7 +3950,7 @@ recv_done(isc_task_t *task, isc_event_t *event) {
 				l->trace_root = false;
 				usesearch = false;
 			} else {
-				dighost_printmessage(query, msg, true);
+				dighost_printmessage(query, &b, msg, true);
 			}
 		}
 	}

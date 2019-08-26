@@ -1196,6 +1196,13 @@ dns_request_getresponse(dns_request_t *request, dns_message_t *message,
 	return (result);
 }
 
+isc_buffer_t *
+dns_request_getanswer(dns_request_t *request) {
+	REQUIRE(VALID_REQUEST(request));
+
+	return (request->answer);
+}
+
 bool
 dns_request_usedtcp(dns_request_t *request) {
 	REQUIRE(VALID_REQUEST(request));

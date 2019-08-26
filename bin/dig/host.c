@@ -400,13 +400,16 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 }
 
 static isc_result_t
-printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
+printmessage(dig_query_t *query, const isc_buffer_t *msgbuf,
+	     dns_message_t *msg, bool headers)
+{
 	bool did_flag = false;
 	dns_rdataset_t *opt, *tsig = NULL;
 	const dns_name_t *tsigname;
 	isc_result_t result = ISC_R_SUCCESS;
 	int force_error;
 
+	UNUSED(msgbuf);
 	UNUSED(headers);
 
 	/*
@@ -854,6 +857,17 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 }
 
+static void
+host_error(const char *format, ...) {
+	va_list args;
+
+	printf(";; ");
+	va_start(args, format);
+	vfprintf(stdout, format, args);
+	va_end(args);
+	printf("\n");
+}
+
 int
 main(int argc, char **argv) {
 	isc_result_t result;
@@ -871,6 +885,7 @@ main(int argc, char **argv) {
 	dighost_received = received;
 	dighost_trying = trying;
 	dighost_shutdown = host_shutdown;
+	dighost_error = host_error;
 
 	debug("main()");
 	progname = argv[0];

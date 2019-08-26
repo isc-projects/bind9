@@ -496,6 +496,7 @@ dns_message_gettemprdataset
 dns_message_gettimeadjust
 dns_message_gettsig
 dns_message_gettsigkey
+dns_message_headertotext
 dns_message_logfmtpacket
 dns_message_logpacket
 dns_message_movename
@@ -847,6 +848,7 @@ dns_request_create
 dns_request_createraw
 dns_request_createvia
 dns_request_destroy
+dns_request_getanswer
 dns_request_getresponse
 dns_request_usedtcp
 dns_requestmgr_attach

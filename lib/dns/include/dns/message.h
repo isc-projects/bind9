@@ -385,6 +385,37 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 */
 
 isc_result_t
+dns_message_headertotext(dns_message_t *msg, const dns_master_style_t *style,
+		   dns_messagetextflag_t flags, isc_buffer_t *target);
+/*%<
+ * Convert the header section of message 'msg' to a cleartext
+ * representation. This is called from dns_message_totext().
+ *
+ * Notes on flags:
+ *\li	If #DNS_MESSAGETEXTFLAG_NOHEADERS is set, header lines will be
+ * 	suppressed and this function is a no-op.
+ *
+ * Requires:
+ *
+ *\li	'msg' is a valid message.
+ *
+ *\li	'target' is a valid buffer.
+ *
+ * Ensures:
+ *
+ *\li	If the result is success:
+ *		The used space in 'target' is updated.
+ *
+ * Returns:
+ *
+ *\li	#ISC_R_SUCCESS
+ *\li	#ISC_R_NOSPACE
+ *\li	#ISC_R_NOMORE
+ *
+ *\li	Note: On error return, *target may be partially filled with data.
+ */
+
+isc_result_t
 dns_message_totext(dns_message_t *msg, const dns_master_style_t *style,
 		   dns_messagetextflag_t flags, isc_buffer_t *target);
 /*%<

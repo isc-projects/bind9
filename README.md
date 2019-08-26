@@ -125,6 +125,7 @@ include:
 
 * Support for the new GeoIP2 geolocation API
 * Improved DNSSEC key configuration using `dnssec-keys`
+* YAML output for dig, mdig, and delv.
 
 ### <a name="build"/> Building BIND
 
