@@ -9345,6 +9345,8 @@ rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
 	isc_result_t result;
 	fetchctx_t *fctx = rctx->fctx;
 	bool bucket_empty;
+	dns_resolver_t *res = fctx->res;
+	unsigned int bucketnum;
 
 	FCTXTRACE("resend");
 	inc_stats(fctx->res, dns_resstatscounter_retry);
@@ -9354,12 +9356,13 @@ rctx_resend(respctx_t *rctx, dns_adbaddrinfo_t *addrinfo) {
 		return;
 	}
 
+	bucketnum = fctx->bucketnum;
 	fctx_done(fctx, result, __LINE__);
-	LOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+	LOCK(&res->buckets[bucketnum].lock);
 	bucket_empty = fctx_decreference(fctx);
-	UNLOCK(&fctx->res->buckets[fctx->bucketnum].lock);
+	UNLOCK(&res->buckets[bucketnum].lock);
 	if (bucket_empty) {
-		empty_bucket(fctx->res);
+		empty_bucket(res);
 	}
 }
 
