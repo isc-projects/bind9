@@ -241,7 +241,6 @@ typedef void (*dns_rbtdeleter_t)(void *, void *);
 
 typedef struct dns_rbtnodechain {
 	unsigned int            magic;
-	isc_mem_t *             mctx;
 	/*%
 	 * The terminal node of the chain.  It is not in levels[].
 	 * This is ostensibly private ... but in a pinch it could be
@@ -837,14 +836,12 @@ dns__rbtnode_getdistance(dns_rbtnode_t *node);
  *****/
 
 void
-dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx);
+dns_rbtnodechain_init(dns_rbtnodechain_t *chain);
 /*%<
  * Initialize 'chain'.
  *
  * Requires:
  *\li   'chain' is a valid pointer.
- *
- *\li   'mctx' is a valid memory context.
  *
  * Ensures:
  *\li   'chain' is suitable for use.

@@ -1462,7 +1462,7 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	if (chain == NULL) {
 		options |= DNS_RBTFIND_NOPREDECESSOR;
 		chain = &localchain;
-		dns_rbtnodechain_init(chain, rbt->mctx);
+		dns_rbtnodechain_init(chain);
 	} else
 		dns_rbtnodechain_reset(chain);
 
@@ -3121,14 +3121,12 @@ dns_rbt_printdot(dns_rbt_t *rbt, bool show_pointers, FILE *f) {
  */
 
 void
-dns_rbtnodechain_init(dns_rbtnodechain_t *chain, isc_mem_t *mctx) {
-
+dns_rbtnodechain_init(dns_rbtnodechain_t *chain) {
 	REQUIRE(chain != NULL);
 
 	/*
 	 * Initialize 'chain'.
 	 */
-	chain->mctx = mctx;
 	chain->end = NULL;
 	chain->level_count = 0;
 	chain->level_matches = 0;

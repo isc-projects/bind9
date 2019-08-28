@@ -664,7 +664,7 @@ dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **text) {
 	REQUIRE(text != NULL && *text != NULL);
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
-	dns_rbtnodechain_init(&chain, keytable->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, keytable->table, NULL, NULL);
 	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 		if (result == ISC_R_NOTFOUND)
@@ -713,7 +713,7 @@ dns_keytable_forall(dns_keytable_t *keytable,
 	REQUIRE(VALID_KEYTABLE(keytable));
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
-	dns_rbtnodechain_init(&chain, keytable->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, keytable->table, NULL, NULL);
 	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 		if (result == ISC_R_NOTFOUND)

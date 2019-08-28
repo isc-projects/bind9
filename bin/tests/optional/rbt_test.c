@@ -103,7 +103,7 @@ detail(dns_rbt_t *rbt, dns_name_t *name) {
 	isc_result_t result;
 	bool nodes_should_match = false;
 
-	dns_rbtnodechain_init(&chain, mctx);
+	dns_rbtnodechain_init(&chain);
 
 	origin = dns_fixedname_initname(&fixedorigin);
 	fullname = dns_fixedname_initname(&fixedfullname);
@@ -182,7 +182,7 @@ iterate(dns_rbt_t *rbt, bool forward) {
 	isc_result_t (*move)(dns_rbtnodechain_t *chain, dns_name_t *name,
 			     dns_name_t *origin);
 
-	dns_rbtnodechain_init(&chain, mctx);
+	dns_rbtnodechain_init(&chain);
 
 	dns_name_init(&foundname, NULL);
 	origin = dns_fixedname_initname(&fixedorigin);

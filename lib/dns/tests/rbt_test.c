@@ -292,7 +292,7 @@ rbtnode_get_distance(void **state) {
 	dns_test_namefromstring(name_str, &fname);
 	name = dns_fixedname_name(&fname);
 
-	dns_rbtnodechain_init(&chain, dt_mctx);
+	dns_rbtnodechain_init(&chain);
 
 	result = dns_rbt_findnode(ctx->rbt_distances, name, NULL,
 				  &node, &chain, 0, NULL, NULL);
@@ -730,7 +730,7 @@ rbt_remove(void **state) {
 		tree_ok = dns__rbt_checkproperties(mytree);
 		assert_true(tree_ok);
 
-		dns_rbtnodechain_init(&chain, dt_mctx);
+		dns_rbtnodechain_init(&chain);
 
 		/* Now, walk through nodes in order. */
 		if (j == 0) {
@@ -1157,7 +1157,7 @@ rbt_nodechain(void **state) {
 
 	ctx = test_context_setup();
 
-	dns_rbtnodechain_init(&chain, dt_mctx);
+	dns_rbtnodechain_init(&chain);
 
 	dns_test_namefromstring("a", &fname);
 	name = dns_fixedname_name(&fname);

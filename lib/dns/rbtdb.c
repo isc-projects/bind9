@@ -3410,7 +3410,7 @@ find_wildcard(rbtdb_search_t *search, dns_rbtnode_t **nodep,
 				break;
 
 			wnode = NULL;
-			dns_rbtnodechain_init(&wchain, NULL);
+			dns_rbtnodechain_init(&wchain);
 			result = dns_rbt_findnode(rbtdb->tree, wname,
 						  NULL, &wnode, &wchain,
 						  DNS_RBTFIND_EMPTYDATA,
@@ -3548,7 +3548,7 @@ previous_closest_nsec(dns_rdatatype_t type, rbtdb_search_t *search,
 			 * It is the first node sought in the NSEC tree.
 			 */
 			*firstp = false;
-			dns_rbtnodechain_init(nsecchain, NULL);
+			dns_rbtnodechain_init(nsecchain);
 			result = dns_name_concatenate(name, origin,
 						      target, NULL);
 			if (result != ISC_R_SUCCESS)
@@ -3862,7 +3862,7 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	search.wild = false;
 	search.zonecut = NULL;
 	dns_fixedname_init(&search.zonecut_name);
-	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
+	dns_rbtnodechain_init(&search.chain);
 	search.now = 0;
 
 	/*
@@ -4739,7 +4739,7 @@ cache_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	search.wild = false;
 	search.zonecut = NULL;
 	dns_fixedname_init(&search.zonecut_name);
-	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
+	dns_rbtnodechain_init(&search.chain);
 	search.now = now;
 	update = NULL;
 	updatesig = NULL;
@@ -5079,7 +5079,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	search.wild = false;
 	search.zonecut = NULL;
 	dns_fixedname_init(&search.zonecut_name);
-	dns_rbtnodechain_init(&search.chain, search.rbtdb->common.mctx);
+	dns_rbtnodechain_init(&search.chain);
 	search.now = now;
 
 	if (dcnull) {
@@ -5434,8 +5434,8 @@ createiterator(dns_db_t *db, unsigned int options, dns_dbiterator_t **iteratorp)
 	rbtdbiter->nsec3only = ((options & DNS_DB_NSEC3ONLY) != 0);
 	rbtdbiter->nonsec3 = ((options & DNS_DB_NONSEC3) != 0);
 	memset(rbtdbiter->deletions, 0, sizeof(rbtdbiter->deletions));
-	dns_rbtnodechain_init(&rbtdbiter->chain, db->mctx);
-	dns_rbtnodechain_init(&rbtdbiter->nsec3chain, db->mctx);
+	dns_rbtnodechain_init(&rbtdbiter->chain);
+	dns_rbtnodechain_init(&rbtdbiter->nsec3chain);
 	if (rbtdbiter->nsec3only)
 		rbtdbiter->current = &rbtdbiter->nsec3chain;
 	else

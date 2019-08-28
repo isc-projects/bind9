@@ -433,7 +433,7 @@ dns_zt_setviewcommit(dns_zt_t *zt) {
 
 	REQUIRE(VALID_ZT(zt));
 
-	dns_rbtnodechain_init(&chain, zt->mctx);
+	dns_rbtnodechain_init(&chain);
 
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
 	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
@@ -457,7 +457,7 @@ dns_zt_setviewrevert(dns_zt_t *zt) {
 
 	REQUIRE(VALID_ZT(zt));
 
-	dns_rbtnodechain_init(&chain, zt->mctx);
+	dns_rbtnodechain_init(&chain);
 
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
 	while (result == DNS_R_NEWORIGIN || result == ISC_R_SUCCESS) {
@@ -485,7 +485,7 @@ dns_zt_apply(dns_zt_t *zt, bool stop, isc_result_t *sub,
 	REQUIRE(VALID_ZT(zt));
 	REQUIRE(action != NULL);
 
-	dns_rbtnodechain_init(&chain, zt->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, zt->table, NULL, NULL);
 	if (result == ISC_R_NOTFOUND) {
 		/*
