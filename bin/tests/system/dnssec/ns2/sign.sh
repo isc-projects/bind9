@@ -247,8 +247,8 @@ infile=cds-auto.secure.db.in
 zonefile=cds-auto.secure.db
 key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
 key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-$DSFROMKEY -C $key1.key > $key1.cds
-cat $infile $key1.cds > $zonefile.signed
+$SETTIME -P sync now "$key1" > /dev/null
+cat "$infile" > "$zonefile.signed"
 
 zone=cdnskey.secure
 infile=cdnskey.secure.db.in
@@ -272,8 +272,8 @@ infile=cdnskey-auto.secure.db.in
 zonefile=cdnskey-auto.secure.db
 key1=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone -fk $zone`
 key2=`$KEYGEN -q -r $RANDFILE -a RSASHA1 -b 1024 -n zone $zone`
-sed 's/DNSKEY/CDNSKEY/' $key1.key > $key1.cds
-cat $infile $key1.cds > $zonefile.signed
+$SETTIME -P sync now "$key1" > /dev/null
+cat "$infile" > "$zonefile.signed"
 
 zone=updatecheck-kskonly.secure
 infile=template.secure.db.in
