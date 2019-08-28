@@ -1383,6 +1383,7 @@ typedef struct dig_ednsoptname {
 } dig_ednsoptname_t;
 
 dig_ednsoptname_t optnames[] = {
+	{ 1, "LLQ" },		/* draft-sekar-dns-llq */
 	{ 3, "NSID" },		/* RFC 5001 */
 	{ 5, "DAU" },		/* RFC 6975 */
 	{ 6, "DHU" },		/* RFC 6975 */
