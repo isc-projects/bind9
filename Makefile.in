@@ -18,7 +18,7 @@ SUBDIRS =	make lib fuzz bin doc
 TARGETS =
 PREREQS =	bind.keys.h
 
-MANOBJS =	README HISTORY OPTIONS CONTRIBUTING PLATFORMS \
+MANOBJS =	README HISTORY OPTIONS CONTRIBUTING PLATFORMS CODE_OF_CONDUCT \
 		${MANPAGES} ${HTMLPAGES}
 
 @BIND9_MAKE_RULES@
@@ -100,6 +100,11 @@ CONTRIBUTING: CONTRIBUTING.md
 
 PLATFORMS: PLATFORMS.md
 	${PANDOC} --email-obfuscation=none -s --metadata title="PLATFORMS" -f markdown-smart -t html PLATFORMS.md | \
+		${W3M} -dump -cols 75 -O ascii -T text/html | \
+		sed -e '$${/^$$/d;}' > $@
+
+CODE_OF_CONDUCT: CODE_OF_CONDUCT.md
+	${PANDOC} --email-obfuscation=none -s --metadata title="CODE OF CONDUCT" -f markdown-smart -t html $< | \
 		${W3M} -dump -cols 75 -O ascii -T text/html | \
 		sed -e '$${/^$$/d;}' > $@
 

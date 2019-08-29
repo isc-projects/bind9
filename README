@@ -87,8 +87,9 @@ ISC maintains a public git repository for BIND; details can be found at
 http://www.isc.org/git/.
 
 Information for BIND contributors can be found in the following files: -
-General information: CONTRIBUTING.md - BIND 9 code style: doc/dev/style.md
-- BIND architecture and developer guide: doc/dev/dev.md
+General information: CONTRIBUTING.md - Code of Conduct: CODE_OF_CONDUCT.md
+- BIND 9 code style: doc/dev/style.md - BIND architecture and developer
+guide: doc/dev/dev.md
 
 Patches for BIND may be submitted as Merge Requests in the ISC GitLab
 server at at https://gitlab.isc.org/isc-projects/bind9/merge_requests.
