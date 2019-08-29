@@ -2827,8 +2827,6 @@ catz_create_chg_task(dns_catz_entry_t *entry, dns_catz_zone_t *origin,
 	event = (catz_chgzone_event_t *) isc_event_allocate(view->mctx, origin,
 							    type, action, NULL,
 							    sizeof(*event));
-	if (event == NULL)
-		return (ISC_R_NOMEMORY);
 
 	event->cbd = (catz_cb_data_t *) udata;
 	event->entry = NULL;
@@ -13565,8 +13563,6 @@ named_server_delzone(named_server_t *server, isc_lex_t *lex,
 	dns_zone_attach(zone, &dz->zone);
 	dzevent = isc_event_allocate(named_g_mctx, server, NAMED_EVENT_DELZONE,
 				     rmzone, dz, sizeof(isc_event_t));
-	if (dzevent == NULL)
-		CHECK(ISC_R_NOMEMORY);
 
 	dns_zone_gettask(zone, &task);
 	isc_task_send(task, &dzevent);

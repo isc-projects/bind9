@@ -377,10 +377,6 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 
 	ievent = isc_event_allocate(mctx, lookup, DNS_EVENT_LOOKUPDONE,
 				    action, arg, sizeof(*lookup->event));
-	if (ievent == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_lookup;
-	}
 	lookup->event = (dns_lookupevent_t *)ievent;
 	lookup->event->ev_destroy = levent_destroy;
 	lookup->event->ev_destroy_arg = mctx;
@@ -426,7 +422,6 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 
 	isc_task_detach(&lookup->task);
 
- cleanup_lookup:
 	isc_mem_putanddetach(&mctx, lookup, sizeof(*lookup));
 
 	return (result);

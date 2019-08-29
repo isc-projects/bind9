@@ -213,10 +213,6 @@ syncptr(sample_instance_t *inst, dns_name_t *name,
 						      SYNCPTR_WRITE_EVENT,
 						      syncptr_write, NULL,
 						      sizeof(syncptrevent_t));
-	if (pevent == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	isc_buffer_init(&pevent->b, pevent->buf, sizeof(pevent->buf));
 	dns_fixedname_init(&pevent->ptr_target_name);
 

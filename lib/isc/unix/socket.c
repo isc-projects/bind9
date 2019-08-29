@@ -1451,9 +1451,6 @@ allocate_socketevent(isc_mem_t *mctx, void *sender,
 						     eventtype, action, arg,
 						     sizeof(*ev));
 
-	if (ev == NULL)
-		return (NULL);
-
 	ev->result = ISC_R_UNSET;
 	ISC_LINK_INIT(ev, ev_link);
 	ev->region.base = NULL;
@@ -4645,10 +4642,6 @@ isc_socket_accept(isc_socket_t *sock0,
 	dev = (isc_socket_newconnev_t *)
 		isc_event_allocate(manager->mctx, task, ISC_SOCKEVENT_NEWCONN,
 				   action, arg, sizeof(*dev));
-	if (dev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
 	ISC_LINK_INIT(dev, ev_link);
 
 	result = allocate_socket(manager, sock->type, &nsock);
@@ -4720,10 +4713,6 @@ isc_socket_connect(isc_socket_t *sock0, const isc_sockaddr_t *addr,
 							ISC_SOCKEVENT_CONNECT,
 							action,	arg,
 							sizeof(*dev));
-	if (dev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
 	ISC_LINK_INIT(dev, ev_link);
 
 	if (sock->connecting) {

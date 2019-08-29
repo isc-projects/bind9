@@ -2189,12 +2189,12 @@ dns_zone_asyncload(dns_zone_t *zone, bool newonly,
 {
 	isc_event_t *e;
 	dns_asyncload_t *asl = NULL;
-	isc_result_t result = ISC_R_SUCCESS;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	if (zone->zmgr == NULL)
+	if (zone->zmgr == NULL) {
 		return (ISC_R_FAILURE);
+	}
 
 	/* If we already have a load pending, stop now */
 	LOCK_ZONE(zone);
@@ -2214,8 +2214,6 @@ dns_zone_asyncload(dns_zone_t *zone, bool newonly,
 			       DNS_EVENT_ZONELOAD,
 			       zone_asyncload, asl,
 			       sizeof(isc_event_t));
-	if (e == NULL)
-		CHECK(ISC_R_NOMEMORY);
 
 	zone_iattach(zone, &asl->zone);
 	DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADPENDING);
@@ -2223,12 +2221,6 @@ dns_zone_asyncload(dns_zone_t *zone, bool newonly,
 	UNLOCK_ZONE(zone);
 
 	return (ISC_R_SUCCESS);
-
-  failure:
-	if (asl != NULL)
-		isc_mem_put(zone->mctx, asl, sizeof (*asl));
-	UNLOCK_ZONE(zone);
-	return (result);
 }
 
 bool
@@ -11363,8 +11355,6 @@ notify_send_queue(dns_notify_t *notify, bool startup) {
 	INSIST(notify->event == NULL);
 	e = isc_event_allocate(notify->mctx, NULL, DNS_EVENT_NOTIFYSENDTOADDR,
 			       notify_send_toaddr, notify, sizeof(isc_event_t));
-	if (e == NULL)
-		return (ISC_R_NOMEMORY);
 	if (startup)
 		notify->event = e;
 	e->ev_arg = notify;
@@ -12667,10 +12657,6 @@ queue_soa_query(dns_zone_t *zone) {
 
 	e = isc_event_allocate(zone->mctx, NULL, DNS_EVENT_ZONE,
 			       soa_query, zone, sizeof(isc_event_t));
-	if (e == NULL) {
-		cancel_refresh(zone);
-		return;
-	}
 
 	/*
 	 * Attach so that we won't clean up
@@ -14877,8 +14863,6 @@ zone_send_secureserial(dns_zone_t *zone, uint32_t serial) {
 			       DNS_EVENT_ZONESECURESERIAL,
 			       receive_secure_serial, zone->secure,
 			       sizeof(struct secure_event));
-	if (e == NULL)
-		return (ISC_R_NOMEMORY);
 	((struct secure_event *)e)->serial = serial;
 	INSIST(LOCKED_ZONE(zone->secure));
 	zone_iattach(zone->secure, &dummy);
@@ -15339,8 +15323,6 @@ zone_send_securedb(dns_zone_t *zone, dns_db_t *db) {
 			       DNS_EVENT_ZONESECUREDB,
 			       receive_secure_db, zone->secure,
 			       sizeof(struct secure_event));
-	if (e == NULL)
-		return (ISC_R_NOMEMORY);
 	dns_db_attach(db, &dummy);
 	((struct secure_event *)e)->db = dummy;
 	INSIST(LOCKED_ZONE(zone->secure));
@@ -17040,8 +17022,6 @@ zmgr_start_xfrin_ifquota(dns_zonemgr_t *zmgr, dns_zone_t *zone) {
 	 */
 	e = isc_event_allocate(zmgr->mctx, zmgr, DNS_EVENT_ZONESTARTXFRIN,
 			       got_transfer_quota, zone, sizeof(isc_event_t));
-	if (e == NULL)
-		return (ISC_R_NOMEMORY);
 
 	LOCK_ZONE(zone);
 	INSIST(zone->statelist == &zmgr->waiting_for_xfrin);
@@ -17097,10 +17077,6 @@ zonemgr_getio(dns_zonemgr_t *zmgr, bool high,
 
 	io->event = isc_event_allocate(zmgr->mctx, task, DNS_EVENT_IOREADY,
 				       action, arg, sizeof(*io->event));
-	if (io->event == NULL) {
-		isc_mem_put(zmgr->mctx, io, sizeof(*io));
-		return (ISC_R_NOMEMORY);
-	}
 
 	io->zmgr = zmgr;
 	io->high = high;
@@ -19253,10 +19229,6 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 
 	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_KEYDONE, keydone,
 			       zone, sizeof(struct keydone));
-	if (e == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failure;
-	}
 
 	kd = (struct keydone *) e;
 	if (strcasecmp(keystr, "all") == 0) {
@@ -19558,10 +19530,6 @@ dns_zone_setnsec3param(dns_zone_t *zone, uint8_t hash, uint8_t flags,
 
 	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_SETNSEC3PARAM,
 			       setnsec3param, zone, sizeof(struct np3event));
-	if (e == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failure;
-	}
 
 	npe = (struct np3event *) e;
 	np = &npe->params;
@@ -19823,10 +19791,6 @@ dns_zone_setserial(dns_zone_t *zone, uint32_t serial) {
 
 	e = isc_event_allocate(zone->mctx, zone, DNS_EVENT_SETSERIAL,
 			       setserial, zone, sizeof(struct ssevent));
-	if (e == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto failure;
-	}
 
 	sse = (struct ssevent *)e;
 	sse->serial = serial;

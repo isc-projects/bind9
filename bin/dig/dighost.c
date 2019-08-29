@@ -2633,10 +2633,6 @@ force_timeout(dig_query_t *query) {
 	event = isc_event_allocate(mctx, query, ISC_TIMEREVENT_IDLE,
 				   connect_timeout, query,
 				   sizeof(isc_event_t));
-	if (event == NULL) {
-		fatal("isc_event_allocate: %s",
-		      isc_result_totext(ISC_R_NOMEMORY));
-	}
 	isc_task_send(global_task, &event);
 
 	/*

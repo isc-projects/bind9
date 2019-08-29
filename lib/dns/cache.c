@@ -556,20 +556,12 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 					   DNS_EVENT_CACHECLEAN,
 					   incremental_cleaning_action,
 					   cleaner, sizeof(isc_event_t));
-		if (cleaner->resched_event == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 
 		cleaner->overmem_event =
 			isc_event_allocate(cache->mctx, cleaner,
 					   DNS_EVENT_CACHEOVERMEM,
 					   overmem_cleaning_action,
 					   cleaner, sizeof(isc_event_t));
-		if (cleaner->overmem_event == NULL) {
-			result = ISC_R_NOMEMORY;
-			goto cleanup;
-		}
 	}
 
 	return (ISC_R_SUCCESS);

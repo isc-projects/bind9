@@ -2444,10 +2444,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 					    DNS_EVENT_DISPATCHCONTROL,
 					    destroy_disp, disp,
 					    sizeof(isc_event_t));
-	if (disp->ctlevent == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto kill_task;
-	}
 
 	isc_task_setname(disp->task[0], "tcpdispatch", disp);
 
@@ -2485,11 +2481,6 @@ dns_dispatch_createtcp(dns_dispatchmgr_t *mgr, isc_socket_t *sock,
 
 	return (ISC_R_SUCCESS);
 
-	/*
-	 * Error returns.
-	 */
- kill_task:
-	isc_task_detach(&disp->task[0]);
  kill_socket:
 	isc_socket_detach(&disp->socket);
  deallocate_dispatch:
@@ -2897,10 +2888,6 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 					    DNS_EVENT_DISPATCHCONTROL,
 					    destroy_disp, disp,
 					    sizeof(isc_event_t));
-	if (disp->ctlevent == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto kill_task;
-	}
 
 	disp->sepool = NULL;
 	if (isc_mempool_create(mgr->mctx, sizeof(isc_socketevent_t),
@@ -2942,7 +2929,6 @@ dispatch_createudp(dns_dispatchmgr_t *mgr, isc_socketmgr_t *sockmgr,
 	 */
  kill_ctlevent:
 	isc_event_free(&disp->ctlevent);
- kill_task:
 	for (i = 0; i < disp->ntasks; i++) {
 		isc_task_detach(&disp->task[i]);
 	}
@@ -3554,8 +3540,6 @@ dns_dispatch_importrecv(dns_dispatch_t *disp, isc_event_t *event) {
 		    isc_event_allocate(disp->mgr->mctx, NULL,
 				      DNS_EVENT_IMPORTRECVDONE, udp_shrecv,
 				      disp, sizeof(isc_socketevent_t));
-	if (newsevent == NULL)
-		return;
 
 	buf = allocate_udp_buffer(disp);
 	if (buf == NULL) {

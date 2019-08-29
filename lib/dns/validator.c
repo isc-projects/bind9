@@ -3048,10 +3048,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 				   DNS_EVENT_VALIDATORSTART,
 				   validator_start, NULL,
 				   sizeof(dns_validatorevent_t));
-	if (event == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup_val;
-	}
 	isc_task_attach(task, &tclone);
 	event->validator = val;
 	event->result = ISC_R_FAILURE;
@@ -3114,7 +3110,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	isc_task_detach(&tclone);
 	isc_event_free(ISC_EVENT_PTR(&event));
 
- cleanup_val:
 	dns_view_weakdetach(&val->view);
 	isc_mem_put(view->mctx, val, sizeof(*val));
 

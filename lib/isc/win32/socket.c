@@ -983,8 +983,6 @@ allocate_socketevent(isc_mem_t *mctx, isc_socket_t *sock,
 	ev = (isc_socketevent_t *)isc_event_allocate(mctx, sock, eventtype,
 						     action, arg,
 						     sizeof(*ev));
-	if (ev == NULL)
-		return (NULL);
 
 	ev->result = ISC_R_IOERROR; // XXXMLG temporary change to detect failure to set
 	ISC_LINK_INIT(ev, ev_link);
@@ -3062,10 +3060,6 @@ isc_socket_accept(isc_socket_t *sock,
 	adev = (isc_socket_newconnev_t *)
 		isc_event_allocate(manager->mctx, task, ISC_SOCKEVENT_NEWCONN,
 				   action, arg, sizeof(*adev));
-	if (adev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
 	ISC_LINK_INIT(adev, ev_link);
 
 	result = allocate_socket(manager, sock->type, &nsock);
@@ -3210,10 +3204,6 @@ isc_socket_connect(isc_socket_t *sock, const isc_sockaddr_t *addr,
 							ISC_SOCKEVENT_CONNECT,
 							action,	arg,
 							sizeof(*cdev));
-	if (cdev == NULL) {
-		UNLOCK(&sock->lock);
-		return (ISC_R_NOMEMORY);
-	}
 	ISC_LINK_INIT(cdev, ev_link);
 
 	if (sock->connected) {
