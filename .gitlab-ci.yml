@@ -17,8 +17,8 @@ variables:
 stages:
   - precheck
   - build
-  - system
   - unit
+  - system
   - docs
   - push
 
