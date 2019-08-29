@@ -17,7 +17,8 @@ variables:
 stages:
   - precheck
   - build
-  - test
+  - system
+  - unit
   - push
 
 ### Runner Tag Templates
@@ -164,7 +165,7 @@ stages:
 
 .system_test: &system_test_job
   <<: *default_triggering_rules
-  stage: test
+  stage: system
   retry: 2
   before_script:
     - *setup_interfaces
@@ -186,7 +187,7 @@ stages:
 
 .unit_test: &unit_test_job
   <<: *default_triggering_rules
-  stage: test
+  stage: unit
   before_script:
     - *setup_softhsm
   script:
