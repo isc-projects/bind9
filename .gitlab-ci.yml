@@ -19,6 +19,7 @@ stages:
   - build
   - unit
   - system
+  - docs
   - push
 
 ### Runner Tag Templates
@@ -114,15 +115,44 @@ stages:
   <<: *debian_sid_amd64_image
   stage: precheck
 
+.autoconf: &autoconf_job
+  <<: *default_triggering_rules
+  <<: *debian_sid_amd64_image
+  stage: precheck
+  script:
+    - autoreconf -fi
+  artifacts:
+    untracked: true
+    expire_in: "1 hour"
+
+.configure: &configure |
+    ./configure \
+    --disable-maintainer-mode \
+    --enable-developer \
+    --with-libtool \
+    --with-geoip2=auto \
+    --disable-static \
+    --with-cmocka \
+    --with-libxml2 \
+    --with-json \
+    --prefix=$HOME/.local \
+    --without-make-clean \
+    $EXTRA_CONFIGURE \
+    || cat config.log
+
 .build: &build_job
   <<: *default_triggering_rules
   stage: build
   before_script:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
   script:
-    - ./configure --enable-developer --with-libtool --with-geoip2=auto --disable-static --with-cmocka --prefix=$HOME/.local --without-make-clean $EXTRA_CONFIGURE || cat config.log
+    - *configure
     - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
+  dependencies:
+    - autoreconf:sid:amd64
+  needs:
+    - autoreconf:sid:amd64
   artifacts:
     untracked: true
     expire_in: "1 hour"
@@ -180,6 +210,9 @@ stages:
 
 # Jobs in the precheck stage
 
+autoreconf:sid:amd64:
+  <<: *autoconf_job
+
 misc:sid:amd64:
   <<: *precheck_job
   script:
@@ -206,16 +239,23 @@ misc:sid:amd64:
 
 🐞:sid:amd64:
   <<: *precheck_job
-  script: util/check-cocci
+  script:
+    - util/check-cocci
+    - if test "$(git status --porcelain | grep -Ev '\?\?' | wc -l)" -gt "0"; then git status --short; exit 1; fi
 
 # Jobs for doc builds on Debian Sid (amd64)
 
 docs:sid:amd64:
   <<: *debian_sid_amd64_image
+  stage: docs
   script:
     - ./configure || cat config.log
     - make -C doc/misc docbook
     - make -C doc/arm Bv9ARM.html
+  dependencies:
+    - autoreconf:sid:amd64
+  needs:
+    - autoreconf:sid:amd64
   artifacts:
     paths:
       - doc/arm/
@@ -315,7 +355,7 @@ gcc:jessie:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
-    EXTRA_CONFIGURE: "--without-cmocka --with-python"
+    EXTRA_CONFIGURE: "--without-cmocka --with-python --disable-geoip"
   <<: *debian_jessie_amd64_image
   <<: *build_job
 
@@ -458,6 +498,7 @@ gcc:xenial:amd64:
   variables:
     CC: gcc
     CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--disable-geoip"
   <<: *ubuntu_xenial_amd64_image
   <<: *build_job
 
