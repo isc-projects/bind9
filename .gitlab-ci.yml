@@ -252,12 +252,14 @@ system:gcc:alpine3.10:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:alpine3.10:amd64
+  needs: ["gcc:alpine3.10:amd64"]
 
 unit:gcc:alpine3.10:amd64:
   <<: *alpine_3_10_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:alpine3.10:amd64
+  needs: ["gcc:alpine3.10:amd64"]
 
 # Jobs for regular GCC builds on CentOS 6 (amd64)
 
@@ -274,12 +276,14 @@ system:gcc:centos6:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:centos6:amd64
+  needs: ["gcc:centos6:amd64"]
 
 unit:gcc:centos6:amd64:
   <<: *centos_centos6_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:centos6:amd64
+  needs: ["gcc:centos6:amd64"]
 
 # Jobs for regular GCC builds on CentOS 7 (amd64)
 
@@ -296,12 +300,14 @@ system:gcc:centos7:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:centos7:amd64
+  needs: ["gcc:centos7:amd64"]
 
 unit:gcc:centos7:amd64:
   <<: *centos_centos7_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:centos7:amd64
+  needs: ["gcc:centos7:amd64"]
 
 # Jobs for regular GCC builds on Debian 8 Jessie (amd64)
 
@@ -318,12 +324,14 @@ system:gcc:jessie:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:jessie:amd64
+  needs: ["gcc:jessie:amd64"]
 
 unit:gcc:jessie:amd64:
   <<: *debian_jessie_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:jessie:amd64
+  needs: ["gcc:jessie:amd64"]
 
 # Jobs for regular GCC builds on Debian 9 Stretch (amd64)
 
@@ -339,12 +347,14 @@ system:gcc:stretch:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:stretch:amd64
+  needs: ["gcc:stretch:amd64"]
 
 unit:gcc:stretch:amd64:
   <<: *debian_stretch_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:stretch:amd64
+  needs: ["gcc:stretch:amd64"]
 
 # Jobs for regular GCC builds on Debian 10 Buster (amd64)
 
@@ -360,12 +370,14 @@ system:gcc:buster:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:buster:amd64
+  needs: ["gcc:buster:amd64"]
 
 unit:gcc:buster:amd64:
   <<: *debian_buster_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:buster:amd64
+  needs: ["gcc:buster:amd64"]
 
 # Jobs for regular GCC builds on Debian Sid (amd64)
 
@@ -383,12 +395,14 @@ system:gcc:sid:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:sid:amd64
+  needs: ["gcc:sid:amd64"]
 
 unit:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:sid:amd64
+  needs: ["gcc:sid:amd64"]
 
 # Jobs for regular GCC builds on Debian Sid (i386)
 
@@ -405,12 +419,14 @@ system:gcc:sid:i386:
   <<: *system_test_job
   dependencies:
     - gcc:sid:i386
+  needs: ["gcc:sid:i386"]
 
 unit:gcc:sid:i386:
   <<: *debian_sid_i386_image
   <<: *unit_test_job
   dependencies:
     - gcc:sid:i386
+  needs: ["gcc:sid:i386"]
 
 # Jobs for regular GCC builds on Fedora 30 (amd64)
 
@@ -427,12 +443,14 @@ system:gcc:fedora30:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:fedora30:amd64
+  needs: ["gcc:fedora30:amd64"]
 
 unit:gcc:fedora30:amd64:
   <<: *fedora_30_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:fedora30:amd64
+  needs: ["gcc:fedora30:amd64"]
 
 # Jobs for regular GCC builds on Ubuntu 16.04 Xenial Xerus (amd64)
 
@@ -448,12 +466,14 @@ system:gcc:xenial:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:xenial:amd64
+  needs: ["gcc:xenial:amd64"]
 
 unit:gcc:xenial:amd64:
   <<: *ubuntu_xenial_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:xenial:amd64
+  needs: ["gcc:xenial:amd64"]
 
 # Jobs for regular GCC builds on Ubuntu 18.04 Bionic Beaver (amd64)
 
@@ -470,12 +490,14 @@ system:gcc:bionic:amd64:
   <<: *system_test_job
   dependencies:
     - gcc:bionic:amd64
+  needs: ["gcc:bionic:amd64"]
 
 unit:gcc:bionic:amd64:
   <<: *ubuntu_bionic_amd64_image
   <<: *unit_test_job
   dependencies:
     - gcc:bionic:amd64
+  needs: ["gcc:bionic:amd64"]
 
 # Jobs for GCC builds with ASAN enabled on Debian Sid (amd64)
 
@@ -493,12 +515,14 @@ system:asan:sid:amd64:
   <<: *system_test_job
   dependencies:
     - asan:sid:amd64
+  needs: ["asan:sid:amd64"]
 
 unit:asan:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
     - asan:sid:amd64
+  needs: ["asan:sid:amd64"]
 
 # Jobs for Clang builds on Debian Stretch (amd64)
 
@@ -515,6 +539,7 @@ unit:clang:stretch:amd64:
   <<: *unit_test_job
   dependencies:
     - clang:stretch:amd64
+  needs: ["clang:stretch:amd64"]
 
 # Jobs for Clang builds on Debian Stretch (i386)
 
@@ -541,9 +566,35 @@ system:pkcs11:sid:amd64:
   <<: *system_test_job
   dependencies:
     - pkcs11:sid:amd64
+  needs: ["pkcs11:sid:amd64"]
 
 unit:pkcs11:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
   dependencies:
     - pkcs11:sid:amd64
+  needs: ["pkcs11:sid:amd64"]
+
+# Jobs with libtool disabled
+
+nolibtool:sid:amd64:
+  variables:
+    CC: gcc
+    CFLAGS: "-Wall -Wextra -Og -g"
+    EXTRA_CONFIGURE: "--with-libidn2 --without-libtool --with-dlopen"
+  <<: *debian_sid_amd64_image
+  <<: *build_job
+
+system:nolibtool:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *system_test_job
+  dependencies:
+    - nolibtool:sid:amd64
+  needs: ["nolibtool:sid:amd64"]
+
+unit:nolibtool:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *unit_test_job
+  dependencies:
+    - nolibtool:sid:amd64
+  needs: ["nolibtool:sid:amd64"]
