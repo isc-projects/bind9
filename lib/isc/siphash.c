@@ -17,6 +17,57 @@
 #include <isc/util.h>
 #include <isc/siphash.h>
 
+#if HAVE_OPENSSL_SIPHASH
+#include <openssl/evp.h>
+
+void
+isc_siphash24(const uint8_t *k,
+	      const uint8_t *in, const size_t inlen,
+	      uint8_t *out)
+{
+	REQUIRE(k != NULL);
+	REQUIRE(out != NULL);
+	size_t outlen = 8;
+	EVP_PKEY_CTX *pctx = NULL;
+
+	EVP_MD_CTX *mctx = EVP_MD_CTX_new();
+	EVP_PKEY *key = EVP_PKEY_new_raw_private_key(EVP_PKEY_SIPHASH, NULL,
+						     k, 16);
+	RUNTIME_CHECK(mctx != NULL);
+	RUNTIME_CHECK(key != NULL);
+
+	RUNTIME_CHECK(EVP_DigestSignInit(mctx, &pctx, NULL, NULL, key) == 1);
+	RUNTIME_CHECK(EVP_PKEY_CTX_ctrl(pctx, EVP_PKEY_SIPHASH,
+					EVP_PKEY_OP_SIGNCTX,
+					EVP_PKEY_CTRL_SET_DIGEST_SIZE, outlen,
+					NULL) == 1);
+	RUNTIME_CHECK(EVP_DigestSignUpdate(mctx, in, inlen) == 1);
+	RUNTIME_CHECK(EVP_DigestSignFinal(mctx, out, &outlen) == 1);
+
+	ENSURE(outlen == 8);
+
+	EVP_PKEY_free(key);
+	EVP_MD_CTX_free(mctx);
+}
+
+#else /* HAVE_OPENSSL_SIPHASH */
+
+/*
+ * The fallback implementation is based on SipHash reference C implementation by
+ *
+ * Copyright (c) 2012-2016 Jean-Philippe Aumasson <jeanphilippe.aumasson@gmail.com>
+ * Copyright (c) 2012-2014 Daniel J. Bernstein <djb@cr.yp.to>
+ *
+ * To the extent possible under law, the author(s) have dedicated all copyright
+ * and related and neighboring rights to this software to the public domain
+ * worldwide. This software is distributed without any warranty.  You should
+ * have received a copy of the CC0 Public Domain Dedication along with this
+ * software. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.
+ */
+
+#define cROUNDS 2
+#define dROUNDS 4
+
 /*
  * The implementation is based on SipHash reference C implementation by
  *
@@ -147,3 +198,4 @@ isc_siphash24(const uint8_t *k,
 
 	U64TO8_LE(out, b);
 }
+#endif /* HAVE_OPENSSL_SIPHASH */
