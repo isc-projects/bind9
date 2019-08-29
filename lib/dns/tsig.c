@@ -408,7 +408,7 @@ cleanup_ring(dns_tsig_keyring_t *ring)
 	origin = dns_fixedname_initname(&fixedorigin);
 
  again:
-	dns_rbtnodechain_init(&chain, ring->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, ring->keys, &foundname,
 					origin);
 	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
@@ -614,7 +614,7 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 	isc_stdtime_get(&now);
 	dns_name_init(&foundname, NULL);
 	origin = dns_fixedname_initname(&fixedorigin);
-	dns_rbtnodechain_init(&chain, ring->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, ring->keys, &foundname,
 					origin);
 	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {

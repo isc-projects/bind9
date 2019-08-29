@@ -11488,7 +11488,7 @@ delete_keynames(dns_tsig_keyring_t *ring, char *target,
 	origin = dns_fixedname_initname(&fixedorigin);
 
  again:
-	dns_rbtnodechain_init(&chain, ring->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, ring->keys, &foundname,
 					origin);
 	if (result == ISC_R_NOTFOUND) {
@@ -11604,7 +11604,7 @@ list_keynames(dns_view_t *view, dns_tsig_keyring_t *ring, isc_buffer_t **text,
 
 	dns_name_init(&foundname, NULL);
 	origin = dns_fixedname_initname(&fixedorigin);
-	dns_rbtnodechain_init(&chain, ring->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, ring->keys, &foundname,
 					origin);
 	if (result == ISC_R_NOTFOUND) {

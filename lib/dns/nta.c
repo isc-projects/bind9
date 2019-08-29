@@ -504,7 +504,7 @@ dns_ntatable_totext(dns_ntatable_t *ntatable, const char *view,
 	isc_stdtime_get(&now);
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_read);
-	dns_rbtnodechain_init(&chain, ntatable->view->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, ntatable->table, NULL, NULL);
 	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
 		if (result == ISC_R_NOTFOUND)
@@ -603,7 +603,7 @@ dns_ntatable_save(dns_ntatable_t *ntatable, FILE *fp) {
 	isc_stdtime_get(&now);
 
 	RWLOCK(&ntatable->rwlock, isc_rwlocktype_read);
-	dns_rbtnodechain_init(&chain, ntatable->view->mctx);
+	dns_rbtnodechain_init(&chain);
 	result = dns_rbtnodechain_first(&chain, ntatable->table, NULL, NULL);
 	if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN)
 		goto cleanup;
