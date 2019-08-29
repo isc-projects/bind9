@@ -386,7 +386,7 @@ extern isc_result_t
 /*
  * Print an error message in the appropriate format.
  */
-void
+extern void
 (*dighost_error)(const char *format, ...);
 
 /*%<
