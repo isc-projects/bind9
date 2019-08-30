@@ -3078,8 +3078,6 @@ task_send(dns_loadctx_t *lctx) {
 	event = isc_event_allocate(lctx->mctx, NULL,
 				   DNS_EVENT_MASTERQUANTUM,
 				   load_quantum, lctx, sizeof(*event));
-	if (event == NULL)
-		return (ISC_R_NOMEMORY);
 	isc_task_send(lctx->task, &event);
 	return (ISC_R_SUCCESS);
 }

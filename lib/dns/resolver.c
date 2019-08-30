@@ -4620,10 +4620,6 @@ fctx_join(fetchctx_t *fctx, isc_task_t *task, const isc_sockaddr_t *client,
 	event = (dns_fetchevent_t *)
 		isc_event_allocate(fctx->res->mctx, tclone, DNS_EVENT_FETCHDONE,
 				   action, arg, sizeof(*event));
-	if (event == NULL) {
-		isc_task_detach(&tclone);
-		return (ISC_R_NOMEMORY);
-	}
 	event->result = DNS_R_SERVFAIL;
 	event->qtype = fctx->type;
 	event->db = NULL;

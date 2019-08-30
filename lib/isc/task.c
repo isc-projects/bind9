@@ -785,8 +785,6 @@ isc_task_onshutdown(isc_task_t *task0, isc_taskaction_t action,
 				   action,
 				   arg,
 				   sizeof(*event));
-	if (event == NULL)
-		return (ISC_R_NOMEMORY);
 
 	LOCK(&task->lock);
 	if (TASK_SHUTTINGDOWN(task)) {

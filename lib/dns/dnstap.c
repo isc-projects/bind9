@@ -807,9 +807,6 @@ check_file_size_and_maybe_reopen(dns_dtenv_t *env) {
 	 */
 	event = isc_event_allocate(env->mctx, NULL, DNS_EVENT_FREESTORAGE,
 				   perform_reopen, env, sizeof(*event));
-	if (event == NULL) {
-		goto unlock_and_return;
-	}
 	isc_task_attach(env->reopen_task, &reopen_task);
 	isc_task_send(reopen_task, &event);
 	env->reopen_queued = true;

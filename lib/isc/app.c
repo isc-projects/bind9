@@ -224,10 +224,6 @@ isc_app_ctxonrun(isc_appctx_t *ctx, isc_mem_t *mctx, isc_task_t *task,
 	isc_task_attach(task, &cloned_task);
 	event = isc_event_allocate(mctx, cloned_task, ISC_APPEVENT_SHUTDOWN,
 				   action, arg, sizeof(*event));
-	if (event == NULL) {
-		isc_task_detach(&cloned_task);
-		return (ISC_R_NOMEMORY);
-	}
 
 	LOCK(&ctx->lock);
 	ISC_LINK_INIT(event, ev_link);

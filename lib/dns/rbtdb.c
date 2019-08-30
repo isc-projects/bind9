@@ -1052,8 +1052,6 @@ free_rbtdb(dns_rbtdb_t *rbtdb, bool log, isc_event_t *event) {
 							   free_rbtdb_callback,
 							   rbtdb,
 							   sizeof(isc_event_t));
-			if (event == NULL)
-				continue;
 			isc_task_send(rbtdb->task, &event);
 			return;
 		}
@@ -1861,16 +1859,11 @@ cleanup_dead_nodes(dns_rbtdb_t *rbtdb, int bucketnum) {
 						DNS_EVENT_RBTPRUNE,
 						prune_tree, node,
 						sizeof(isc_event_t));
-			if (ev != NULL) {
-				new_reference(rbtdb, node);
-				db = NULL;
-				attach((dns_db_t *)rbtdb, &db);
-				ev->ev_sender = db;
-				isc_task_send(rbtdb->task, &ev);
-			} else {
-				ISC_LIST_APPEND(rbtdb->deadnodes[bucketnum],
-						node, deadlink);
-			}
+			new_reference(rbtdb, node);
+			db = NULL;
+			attach((dns_db_t *)rbtdb, &db);
+			ev->ev_sender = db;
+			isc_task_send(rbtdb->task, &ev);
 		} else {
 			delete_node(rbtdb, node);
 		}
@@ -2067,34 +2060,12 @@ decrement_reference(dns_rbtdb_t *rbtdb, dns_rbtnode_t *node,
 						DNS_EVENT_RBTPRUNE,
 						prune_tree, node,
 						sizeof(isc_event_t));
-			if (ev != NULL) {
-				new_reference(rbtdb, node);
-				db = NULL;
-				attach((dns_db_t *)rbtdb, &db);
-				ev->ev_sender = db;
-				isc_task_send(rbtdb->task, &ev);
-				no_reference = false;
-			} else {
-				/*
-				 * XXX: this is a weird situation.  We could
-				 * ignore this error case, but then the stale
-				 * node will unlikely be purged except via a
-				 * rare condition such as manual cleanup.  So
-				 * we queue it in the deadnodes list, hoping
-				 * the memory shortage is temporary and the node
-				 * will be deleted later.
-				 */
-				isc_log_write(dns_lctx,
-					      DNS_LOGCATEGORY_DATABASE,
-					      DNS_LOGMODULE_CACHE,
-					      ISC_LOG_INFO,
-					      "decrement_reference: failed to "
-					      "allocate pruning event");
-				INSIST(node->data == NULL);
-				INSIST(!ISC_LINK_LINKED(node, deadlink));
-				ISC_LIST_APPEND(rbtdb->deadnodes[bucket], node,
-						deadlink);
-			}
+			new_reference(rbtdb, node);
+			db = NULL;
+			attach((dns_db_t *)rbtdb, &db);
+			ev->ev_sender = db;
+			isc_task_send(rbtdb->task, &ev);
+			no_reference = false;
 		} else {
 			delete_node(rbtdb, node);
 		}

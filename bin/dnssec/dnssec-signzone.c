@@ -1570,8 +1570,6 @@ assignwork(isc_task_t *task, isc_task_t *worker) {
 	sevent = (sevent_t *)
 		 isc_event_allocate(mctx, task, SIGNER_EVENT_WORK,
 				    sign, NULL, sizeof(sevent_t));
-	if (sevent == NULL)
-		fatal("failed to allocate event\n");
 
 	sevent->node = node;
 	sevent->fname = fname;
@@ -1627,8 +1625,6 @@ sign(isc_task_t *task, isc_event_t *event) {
 	wevent = (sevent_t *)
 		 isc_event_allocate(mctx, task, SIGNER_EVENT_WRITE,
 				    writenode, NULL, sizeof(sevent_t));
-	if (wevent == NULL)
-		fatal("failed to allocate event\n");
 	wevent->node = node;
 	wevent->fname = fname;
 	isc_task_send(master, ISC_EVENT_PTR(&wevent));

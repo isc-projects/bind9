@@ -1342,10 +1342,6 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	event = (dns_clientresevent_t *)
 		isc_event_allocate(mctx, tclone, DNS_EVENT_CLIENTRESDONE,
 				   action, arg, sizeof(*event));
-	if (event == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 	event->result = DNS_R_SERVFAIL;
 	ISC_LIST_INIT(event->answerlist);
 
@@ -1733,10 +1729,6 @@ dns_client_startrequest(dns_client_t *client, dns_message_t *qmessage,
 		isc_event_allocate(client->mctx, tclone,
 				   DNS_EVENT_CLIENTREQDONE,
 				   action, arg, sizeof(*event));
-	if (event == NULL) {
-		result = ISC_R_NOMEMORY;
-		goto cleanup;
-	}
 
 	ctx = isc_mem_get(client->mctx, sizeof(*ctx));
 	if (ctx == NULL)
@@ -2847,8 +2839,6 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 	uctx->event = (dns_clientupdateevent_t *)
 		isc_event_allocate(client->mctx, tclone, DNS_EVENT_UPDATEDONE,
 				   action, arg, sizeof(*uctx->event));
-	if (uctx->event == NULL)
-		goto fail;
 	if (zonename != NULL) {
 		uctx->zonename = dns_fixedname_name(&uctx->zonefname);
 		result = dns_name_copy(zonename, uctx->zonename, NULL);
@@ -2924,11 +2914,8 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		event = isc_event_allocate(client->mctx, dns_client_startupdate,
 					   DNS_EVENT_STARTUPDATE, startupdate,
 					   uctx, sizeof(*event));
-		if (event != NULL) {
-			result = ISC_R_SUCCESS;
-			isc_task_send(task, &event);
-		} else
-			result = ISC_R_NOMEMORY;
+		result = ISC_R_SUCCESS;
+		isc_task_send(task, &event);
 	}
 	if (result == ISC_R_SUCCESS)
 		return (result);

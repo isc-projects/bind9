@@ -1444,8 +1444,6 @@ task_send(dns_dumpctx_t *dctx) {
 
 	event = isc_event_allocate(dctx->mctx, NULL, DNS_EVENT_DUMPQUANTUM,
 				   dump_quantum, dctx, sizeof(*event));
-	if (event == NULL)
-		return (ISC_R_NOMEMORY);
 	isc_task_send(dctx->task, &event);
 	return (ISC_R_SUCCESS);
 }

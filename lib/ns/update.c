@@ -1534,8 +1534,6 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	event = (update_event_t *)
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
 				   update_action, NULL, sizeof(*event));
-	if (event == NULL)
-		FAIL(ISC_R_NOMEMORY);
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
 
@@ -1548,9 +1546,6 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	dns_zone_gettask(zone, &zonetask);
 	isc_task_send(zonetask, ISC_EVENT_PTR(&event));
 
- failure:
-	if (event != NULL)
-		isc_event_free(ISC_EVENT_PTR(&event));
 	return (result);
 }
 
@@ -3489,8 +3484,6 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	event = (update_event_t *)
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
 				   forward_action, NULL, sizeof(*event));
-	if (event == NULL)
-		FAIL(ISC_R_NOMEMORY);
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
 
