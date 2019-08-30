@@ -425,6 +425,7 @@ $CHECKCONF check-root-ksk-both.conf > checkconf.out$n 2>/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo_i "check that the 2017 ICANN ROOT KSK alone does not generate a warning ($n)"
 ret=0
 $CHECKCONF check-root-ksk-2017.conf > checkconf.out$n 2>/dev/null || ret=1
@@ -432,6 +433,7 @@ $CHECKCONF check-root-ksk-2017.conf > checkconf.out$n 2>/dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo_i "check that a static root key generates a warning ($n)"
 ret=0
 $CHECKCONF check-root-static-key.conf > checkconf.out$n 2>/dev/null || ret=1
@@ -439,6 +441,7 @@ grep "static-key entry for the root zone WILL FAIL" checkconf.out$n > /dev/null 
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo_i "check that a trusted-keys entry for root generates a warning ($n)"
 ret=0
 $CHECKCONF check-root-trusted-key.conf > checkconf.out$n 2>/dev/null || ret=1
@@ -446,6 +449,7 @@ grep "trusted-keys entry for the root zone WILL FAIL" checkconf.out$n > /dev/nul
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo_i "check that using dnssec-keys and managed-keys generates an error ($n)"
 ret=0
 $CHECKCONF check-mixed-keys.conf > checkconf.out$n 2>/dev/null && ret=1
@@ -453,6 +457,7 @@ grep "use of managed-keys is not allowed" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
 echo_i "check that 'geoip-use-ecs no' generates a warning ($n)"
 ret=0
 $CHECKCONF warn-geoip-use-ecs.conf > checkconf.out$n 2>/dev/null || ret=1
