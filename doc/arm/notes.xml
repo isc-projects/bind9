@@ -394,6 +394,13 @@
 	  when run with <command>+expandaaaa +short</command>. [GL #1152]
 	</para>
       </listitem>
+      <listitem>
+	<para>
+	  When a <command>response-policy</command> zone expires, ensure
+	  that its policies are removed from the RPZ summary database.
+	  [GL #1146]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

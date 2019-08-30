@@ -10573,6 +10573,8 @@ dns_zone_expire(dns_zone_t *zone) {
 
 static void
 zone_expire(dns_zone_t *zone) {
+	dns_db_t *db = NULL;
+
 	/*
 	 * 'zone' locked by caller.
 	 */
@@ -10585,6 +10587,32 @@ zone_expire(dns_zone_t *zone) {
 	zone->refresh = DNS_ZONE_DEFAULTREFRESH;
 	zone->retry = DNS_ZONE_DEFAULTRETRY;
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_HAVETIMERS);
+
+	/*
+	 * An RPZ zone has expired; before unloading it, we must
+	 * first remove it from the RPZ summary database. The
+	 * easiest way to do this is "update" it with an empty
+	 * database so that the update callback synchonizes
+	 * the diff automatically.
+	 */
+	if (zone->rpzs != NULL && zone->rpz_num != DNS_RPZ_INVALID_NUM) {
+		isc_result_t result;
+		dns_rpz_zone_t *rpz = zone->rpzs->zones[zone->rpz_num];
+
+		CHECK(dns_db_create(zone->mctx, "rbt", &zone->origin,
+				    dns_dbtype_zone, zone->rdclass,
+				    0, NULL, &db));
+		CHECK(dns_rpz_dbupdate_callback(db, rpz));
+		dns_zone_log(zone, ISC_LOG_WARNING,
+			     "response-policy zone expired; "
+			     "policies unloaded");
+	}
+
+ failure:
+	if (db != NULL) {
+		dns_db_detach(&db);
+	}
+
 	zone_unload(zone);
 }
 
