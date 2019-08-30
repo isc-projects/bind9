@@ -1,3 +1,6 @@
+5281.	[cleanup]	Don't escape commas when reporting named's command
+			line. [GL #1189]
+
 5280.	[protocol]	Add support for displaying EDNS option LLQ. [GL #1201]
 
 5279.	[bug]		When loading, reject zones containing CDS or CDNSKEY
