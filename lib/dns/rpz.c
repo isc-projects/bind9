@@ -1644,10 +1644,12 @@ dns_rpz_dbupdate_callback(dns_db_t *db, void *fn_arg) {
 		dns_name_format(&zone->origin, dname, DNS_NAME_FORMATSIZE);
 		isc_log_write(dns_lctx, DNS_LOGCATEGORY_GENERAL,
 			      DNS_LOGMODULE_MASTER, ISC_LOG_DEBUG(3),
-			      "rpz: %s: update already queued or running", dname);
-		if (zone->dbversion != NULL)
+			      "rpz: %s: update already queued or running",
+			      dname);
+		if (zone->dbversion != NULL) {
 			dns_db_closeversion(zone->db, &zone->dbversion,
 					    false);
+		}
 		dns_db_currentversion(zone->db, &zone->dbversion);
 	}
 
@@ -2618,39 +2620,47 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 	dns_rbtnode_t *nmnode;
 	const dns_rpz_nm_data_t *nm_data;
 	dns_rpz_zbits_t found_zbits;
+	dns_rbtnodechain_t chain;
 	isc_result_t result;
+	int i;
 
-	if (zbits == 0)
+	if (zbits == 0) {
 		return (0);
+	}
 
 	found_zbits = 0;
+
+	dns_rbtnodechain_init(&chain);
 
 	RWLOCK(&rpzs->search_lock, isc_rwlocktype_read);
 
 	nmnode = NULL;
-	result = dns_rbt_findnode(rpzs->rbt, trig_name, NULL, &nmnode, NULL,
-				  DNS_RBTFIND_EMPTYDATA, NULL, NULL);
+	result = dns_rbt_findnode(rpzs->rbt, trig_name, NULL, &nmnode,
+				  &chain, DNS_RBTFIND_EMPTYDATA, NULL, NULL);
 	switch (result) {
 	case ISC_R_SUCCESS:
 		nm_data = nmnode->data;
 		if (nm_data != NULL) {
-			if (rpz_type == DNS_RPZ_TYPE_QNAME)
+			if (rpz_type == DNS_RPZ_TYPE_QNAME) {
 				found_zbits = nm_data->set.qname;
-			else
+			} else {
 				found_zbits = nm_data->set.ns;
+			}
 		}
-		nmnode = nmnode->parent;
-		/* fall thru */
+		/* FALLTHROUGH */
+
 	case DNS_R_PARTIALMATCH:
-		while (nmnode != NULL) {
+		i = chain.level_matches;
+		while (i >= 0 && (nmnode = chain.levels[i]) != NULL) {
 			nm_data = nmnode->data;
 			if (nm_data != NULL) {
-				if (rpz_type == DNS_RPZ_TYPE_QNAME)
+				if (rpz_type == DNS_RPZ_TYPE_QNAME) {
 					found_zbits |= nm_data->wild.qname;
-				else
+				} else {
 					found_zbits |= nm_data->wild.ns;
+				}
 			}
-			nmnode = nmnode->parent;
+			i--;
 		}
 		break;
 
@@ -2670,6 +2680,9 @@ dns_rpz_find_name(dns_rpz_zones_t *rpzs, dns_rpz_type_t rpz_type,
 	}
 
 	RWUNLOCK(&rpzs->search_lock, isc_rwlocktype_read);
+
+	dns_rbtnodechain_invalidate(&chain);
+
 	return (zbits & found_zbits);
 }
 
