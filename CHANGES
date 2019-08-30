@@ -1,3 +1,6 @@
+5282.	[bug]		Fixed a bug in searching for possible wildcard matches
+			for query names in the RPZ summary database. [GL #1146]
+
 5281.	[cleanup]	Don't escape commas when reporting named's command
 			line. [GL #1189]
 

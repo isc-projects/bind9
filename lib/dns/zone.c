@@ -1812,7 +1812,7 @@ dns_zone_rpz_enable(dns_zone_t *zone, dns_rpz_zones_t *rpzs,
 {
 	/*
 	 * Only RBTDB zones can be used for response policy zones,
-	 * because only they have the code to load the create the summary data.
+	 * because only they have the code to create the summary data.
 	 * Only zones that are loaded instead of mmap()ed create the
 	 * summary data and so can be policy zones.
 	 */
