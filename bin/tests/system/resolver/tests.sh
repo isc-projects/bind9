@@ -779,5 +779,12 @@ grep "1\.2\.3\.4" dig.ns5.out.${n} > /dev/null && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "check logged command line ($n)"
+ret=0
+grep "running as: .* -m record,size,mctx " ns1/named.run > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
