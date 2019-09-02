@@ -1499,6 +1499,7 @@
 ./doc/design/db_rules				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019
 ./doc/design/decompression			TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019
 ./doc/design/dispatch				TXT.BRIEF	2000,2001,2004,2016,2018,2019
+./doc/design/dnssec-policy			TXT.BRIEF	2019
 ./doc/design/dscp				TXT.BRIEF	2013,2016,2018,2019
 ./doc/design/keydone				TXT.BRIEF	2011,2016,2018,2019
 ./doc/design/logging				TXT.BRIEF	1999,2000,2001,2004,2016,2018,2019
