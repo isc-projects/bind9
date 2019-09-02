@@ -18,6 +18,7 @@
 
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -82,6 +83,7 @@ static cfg_type_t cfg_type_controls_sockaddr;
 static cfg_type_t cfg_type_destinationlist;
 static cfg_type_t cfg_type_dialuptype;
 static cfg_type_t cfg_type_dlz;
+static cfg_type_t cfg_type_dnssecpolicy;
 static cfg_type_t cfg_type_dnstap;
 static cfg_type_t cfg_type_dnstapoutput;
 static cfg_type_t cfg_type_dyndb;
@@ -411,6 +413,20 @@ static cfg_type_t cfg_type_zone = {
 };
 
 /*%
+ * A dnssec-policy statement.
+ */
+static cfg_tuplefielddef_t dnssecpolicy_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "options", &cfg_type_dnssecpolicyopts, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_dnssecpolicy = {
+	"dnssec-policy", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, dnssecpolicy_fields
+};
+
+/*%
  * A "category" clause in the "logging" statement.
  */
 static cfg_tuplefielddef_t category_fields[] = {
@@ -463,6 +479,40 @@ static cfg_tuplefielddef_t managedkey_fields[] = {
 static cfg_type_t cfg_type_managedkey = {
 	"managedkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
 	&cfg_rep_tuple, managedkey_fields
+};
+
+/*%
+ * DNSSEC key roles.
+ */
+static const char *dnsseckeyrole_enums[] = { "csk", "ksk", "zsk", NULL };
+static cfg_type_t cfg_type_dnsseckeyrole = {
+	"dnssec-key-role", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &dnsseckeyrole_enums
+};
+
+/*%
+ * DNSSEC key storage types.
+ */
+static const char *dnsseckeystore_enums[] = { "key-directory", NULL };
+static cfg_type_t cfg_type_dnsseckeystore = {
+	"dnssec-key-storage", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &dnsseckeystore_enums
+};
+
+/*%
+ * A dnssec key, as used in the "keys" statement in a "dnssec-policy".
+ */
+static cfg_tuplefielddef_t kaspkey_fields[] = {
+	{ "role", &cfg_type_dnsseckeyrole, 0 },
+	{ "keystore-type", &cfg_type_dnsseckeystore, 0 },
+	{ "lifetime", &cfg_type_duration, 0 },
+	{ "algorithm", &cfg_type_uint32, 0 },
+	{ "length", &cfg_type_optional_uint32, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_kaspkey = {
+	"kaspkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, kaspkey_fields
 };
 
 static keyword_type_t wild_class_kw = { "class", &cfg_type_ustring };
@@ -635,6 +685,14 @@ static cfg_type_t cfg_type_trustedkeys = {
 static cfg_type_t cfg_type_dnsseckeys = {
 	"dnsseckeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_managedkey
+};
+
+/*%
+ * A list of key entries, used in a DNSSEC Key and Signing Policy.
+ */
+static cfg_type_t cfg_type_kaspkeys = {
+	"kaspkeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_kaspkey
 };
 
 static const char *forwardtype_enums[] = { "first", "only", NULL };
@@ -962,6 +1020,7 @@ static cfg_clausedef_t
 namedconf_clauses[] = {
 	{ "acl", &cfg_type_acl, CFG_CLAUSEFLAG_MULTI },
 	{ "controls", &cfg_type_controls, CFG_CLAUSEFLAG_MULTI },
+	{ "dnssec-policy", &cfg_type_dnssecpolicy, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
 	{ "lwres", &cfg_type_bracketed_text,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
@@ -1998,6 +2057,21 @@ static cfg_type_t cfg_type_validityinterval = {
 };
 
 /*%
+ * Clauses that can be found in a 'dnssec-policy' statement.
+ */
+static cfg_clausedef_t
+dnssecpolicy_clauses[] = {
+	{ "dnskey-ttl", &cfg_type_duration, 0 },
+	{ "keys", &cfg_type_kaspkeys, 0 },
+	{ "publish-safety", &cfg_type_duration, 0 },
+	{ "retire-safety", &cfg_type_duration, 0 },
+	{ "signatures-refresh", &cfg_type_duration, 0 },
+	{ "signatures-validity", &cfg_type_duration, 0 },
+	{ "signatures-validity-dnskey", &cfg_type_duration, 0 },
+	{ NULL, NULL, 0 }
+};
+
+/*%
  * Clauses that can be found in a 'zone' statement,
  * with defaults in the 'view' or 'options' statement.
  *
@@ -2241,6 +2315,9 @@ zone_only_clauses[] = {
 	{ "dlz", &cfg_type_astring,
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_REDIRECT
 	},
+	{ "dnssec-policy", &cfg_type_astring,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
 	{ "file", &cfg_type_qstring,
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR |
 		CFG_ZONE_STUB | CFG_ZONE_HINT | CFG_ZONE_REDIRECT
@@ -2344,6 +2421,16 @@ zone_clausesets[] = {
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_zoneopts = {
 	"zoneopts", cfg_parse_map, cfg_print_map,
 	cfg_doc_map, &cfg_rep_map, zone_clausesets };
+
+/*% The "dnssec-policy" statement syntax. */
+static cfg_clausedef_t *
+dnssecpolicy_clausesets[] = {
+	dnssecpolicy_clauses,
+	NULL
+};
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_dnssecpolicyopts = {
+	"dnssecpolicyopts", cfg_parse_map, cfg_print_map,
+	cfg_doc_map, &cfg_rep_map, dnssecpolicy_clausesets };
 
 /*% The "dynamically loadable zones" statement syntax. */
 

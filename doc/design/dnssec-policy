@@ -122,7 +122,6 @@ dnssec-policy "nsec3" {
     description "policy for zones that require zone walking mitigation";
 
     // Signatures
-    signatures-resign PT2H;
     signatures-refresh P3D;
     signatures-validity P14D;
     signatures-validity-dnskey P14D;
