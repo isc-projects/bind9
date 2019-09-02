@@ -2039,7 +2039,13 @@ conf_dnsrps_num(const cfg_obj_t *obj, const char *name,
 		return;
 	}
 
-	conf_dnsrps_sadd(ctx, " %s %d", name, cfg_obj_asuint32(sub_obj));
+	if (cfg_obj_isduration(sub_obj)) {
+		conf_dnsrps_sadd(ctx, " %s %d", name,
+				 cfg_obj_asduration(sub_obj));
+	} else {
+		conf_dnsrps_sadd(ctx, " %s %d", name,
+				 cfg_obj_asuint32(sub_obj));
+	}
 }
 
 /*
@@ -2221,15 +2227,15 @@ configure_rpz_zone(dns_view_t *view, const cfg_listelt_t *element,
 	}
 
 	obj = cfg_tuple_get(rpz_obj, "max-policy-ttl");
-	if (cfg_obj_isuint32(obj)) {
-		zone->max_policy_ttl = cfg_obj_asuint32(obj);
+	if (cfg_obj_isduration(obj)) {
+		zone->max_policy_ttl = cfg_obj_asduration(obj);
 	} else {
 		zone->max_policy_ttl = ttl_default;
 	}
 
 	obj = cfg_tuple_get(rpz_obj, "min-update-interval");
-	if (cfg_obj_isuint32(obj)) {
-		zone->min_update_interval = cfg_obj_asuint32(obj);
+	if (cfg_obj_isduration(obj)) {
+		zone->min_update_interval = cfg_obj_asduration(obj);
 	} else {
 		zone->min_update_interval = minupdateinterval_default;
 	}
@@ -2448,14 +2454,14 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	}
 
 	sub_obj = cfg_tuple_get(rpz_obj, "max-policy-ttl");
-	if (cfg_obj_isuint32(sub_obj))
-		ttl_default = cfg_obj_asuint32(sub_obj);
+	if (cfg_obj_isduration(sub_obj))
+		ttl_default = cfg_obj_asduration(sub_obj);
 	else
 		ttl_default = DNS_RPZ_MAX_TTL_DEFAULT;
 
 	sub_obj = cfg_tuple_get(rpz_obj, "min-update-interval");
-	if (cfg_obj_isuint32(sub_obj))
-		minupdateinterval_default = cfg_obj_asuint32(sub_obj);
+	if (cfg_obj_isduration(sub_obj))
+		minupdateinterval_default = cfg_obj_asduration(sub_obj);
 	else
 		minupdateinterval_default = DNS_RPZ_MINUPDATEINTERVAL_DEFAULT;
 
@@ -2992,8 +2998,8 @@ configure_catz_zone(dns_view_t *view, const cfg_obj_t *config,
 	}
 
 	obj = cfg_tuple_get(catz_obj, "min-update-interval");
-	if (obj != NULL && cfg_obj_isuint32(obj))
-		opts->min_update_interval = cfg_obj_asuint32(obj);
+	if (obj != NULL && cfg_obj_isduration(obj))
+		opts->min_update_interval = cfg_obj_asduration(obj);
 
   cleanup:
 	if (pview != NULL)
@@ -3641,7 +3647,7 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 		result = named_config_get(maps, "fstrm-set-reopen-interval",
 				       &obj);
 		if (result == ISC_R_SUCCESS) {
-			i = cfg_obj_asuint32(obj);
+			i = cfg_obj_asduration(obj);
 			fstrm_iothr_options_set_reopen_interval(fopt, i);
 		}
 
@@ -4217,22 +4223,22 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "max-cache-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->maxcachettl = cfg_obj_asuint32(obj);
+	view->maxcachettl = cfg_obj_asduration(obj);
 
 	obj = NULL;
 	result = named_config_get(maps, "max-ncache-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->maxncachettl = cfg_obj_asuint32(obj);
+	view->maxncachettl = cfg_obj_asduration(obj);
 
 	obj = NULL;
 	result = named_config_get(maps, "min-cache-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->mincachettl = cfg_obj_asuint32(obj);
+	view->mincachettl = cfg_obj_asduration(obj);
 
 	obj = NULL;
 	result = named_config_get(maps, "min-ncache-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->minncachettl = cfg_obj_asuint32(obj);
+	view->minncachettl = cfg_obj_asduration(obj);
 
 	obj = NULL;
 	result = named_config_get(maps, "synth-from-dnssec", &obj);
@@ -4242,7 +4248,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "max-stale-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	max_stale_ttl = ISC_MAX(cfg_obj_asuint32(obj), 1);
+	max_stale_ttl = ISC_MAX(cfg_obj_asduration(obj), 1);
 
 	obj = NULL;
 	result = named_config_get(maps, "stale-answer-enable", &obj);
@@ -4392,7 +4398,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "stale-answer-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->staleanswerttl = ISC_MAX(cfg_obj_asuint32(obj), 1);
+	view->staleanswerttl = ISC_MAX(cfg_obj_asduration(obj), 1);
 
 	/*
 	 * Resolver.
@@ -4512,7 +4518,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "lame-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	lame_ttl = cfg_obj_asuint32(obj);
+	lame_ttl = cfg_obj_asduration(obj);
 	if (lame_ttl > 1800)
 		lame_ttl = 1800;
 	dns_resolver_setlamettl(view->resolver, lame_ttl);
@@ -5216,12 +5222,12 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "nta-recheck", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->nta_recheck = cfg_obj_asuint32(obj);
+	view->nta_recheck = cfg_obj_asduration(obj);
 
 	obj = NULL;
 	result = named_config_get(maps, "nta-lifetime", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	view->nta_lifetime = cfg_obj_asuint32(obj);
+	view->nta_lifetime = cfg_obj_asduration(obj);
 
 	obj = NULL;
 	result = named_config_get(maps, "preferred-glue", &obj);
@@ -5464,7 +5470,7 @@ configure_view(dns_view_t *view, dns_viewlist_t *viewlist,
 	obj = NULL;
 	result = named_config_get(maps, "servfail-ttl", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	fail_ttl  = cfg_obj_asuint32(obj);
+	fail_ttl  = cfg_obj_asduration(obj);
 	if (fail_ttl > 30)
 		fail_ttl = 30;
 	dns_view_setfailttl(view, fail_ttl);
@@ -8560,7 +8566,7 @@ load_configuration(const char *filename, named_server_t *server,
 	obj = NULL;
 	result = named_config_get(maps, "interface-interval", &obj);
 	INSIST(result == ISC_R_SUCCESS);
-	interface_interval = cfg_obj_asuint32(obj) * 60;
+	interface_interval = cfg_obj_asduration(obj);
 	if (interface_interval == 0) {
 		CHECK(isc_timer_reset(server->interface_timer,
 				      isc_timertype_inactive,

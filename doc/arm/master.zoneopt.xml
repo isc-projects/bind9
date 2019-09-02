@@ -51,7 +51,7 @@
 	<command>max-records</command> <replaceable>integer</replaceable>;
 	<command>max-transfer-idle-out</command> <replaceable>integer</replaceable>;
 	<command>max-transfer-time-out</command> <replaceable>integer</replaceable>;
-	<command>max-zone-ttl</command> ( unlimited | <replaceable>ttlval</replaceable> );
+	<command>max-zone-ttl</command> ( unlimited | <replaceable>duration</replaceable> );
 	<command>notify</command> ( explicit | master-only | <replaceable>boolean</replaceable> );
 	<command>notify-delay</command> <replaceable>integer</replaceable>;
 	<command>notify-source</command> ( <replaceable>ipv4_address</replaceable> | * ) [ port ( <replaceable>integer</replaceable> | * ) ] [ dscp <replaceable>integer</replaceable> ];

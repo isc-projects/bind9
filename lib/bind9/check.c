@@ -929,7 +929,11 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		(void)cfg_map_get(options, intervals[i].name, &obj);
 		if (obj == NULL)
 			continue;
-		val = cfg_obj_asuint32(obj);
+		if (cfg_obj_isduration(obj)) {
+			val = cfg_obj_asduration(obj);
+		} else {
+			val = cfg_obj_asuint32(obj);
+		}
 		if (val > intervals[i].max) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "%s '%u' is out of range (0..%u)",
@@ -1176,7 +1180,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "nta-lifetime", &obj);
 	if (obj != NULL) {
-		lifetime = cfg_obj_asuint32(obj);
+		lifetime = cfg_obj_asduration(obj);
 		if (lifetime > 604800) {	/* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'nta-lifetime' cannot exceed one week");
@@ -1193,7 +1197,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "nta-recheck", &obj);
 	if (obj != NULL) {
-		uint32_t recheck = cfg_obj_asuint32(obj);
+		uint32_t recheck = cfg_obj_asduration(obj);
 		if (recheck > 604800) {		/* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'nta-recheck' cannot exceed one week");
@@ -1271,7 +1275,11 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		if (obj == NULL)
 			continue;
 
-		value = cfg_obj_asuint32(obj);
+		if (cfg_obj_isduration(obj)) {
+			value = cfg_obj_asduration(obj);
+		} else {
+			value = cfg_obj_asuint32(obj);
+		}
 		if (value < fstrm[i].min ||
 		    (fstrm[i].max != 0U && value > fstrm[i].max)) {
 			if (fstrm[i].max != 0U)

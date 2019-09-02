@@ -421,7 +421,7 @@ configure_zone(const char *vclass, const char *view,
 
 	obj = NULL;
 	if (get_maps(maps, "max-zone-ttl", &obj)) {
-		maxttl = cfg_obj_asuint32(obj);
+		maxttl = cfg_obj_asduration(obj);
 		zone_options |= DNS_ZONEOPT_CHECKTTL;
 	}
 

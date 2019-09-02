@@ -34,6 +34,8 @@
 #include <isccfg/grammar.h>
 #include <isccfg/log.h>
 
+#include <dns/ttl.h>
+
 /* Shorthand */
 #define CAT CFG_LOGCATEGORY_CONFIG
 #define MOD CFG_LOGMODULE_PARSER
@@ -132,6 +134,7 @@ LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_fixedpoint =
 	{ "fixedpoint", free_noop };
 LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_percentage =
 	{ "percentage", free_noop };
+LIBISCCFG_EXTERNAL_DATA cfg_rep_t cfg_rep_duration = { "duration", free_noop };
 
 /*
  * Configuration type definitions.
@@ -978,8 +981,352 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_uint64 = {
 };
 
 /*
+ * Get the number of digits in a number.
+ */
+static size_t
+numlen(time_t num) {
+	uint32_t period = (uint32_t) num;
+	size_t count = 0;
+
+	if (period == 0) {
+		return 1;
+	}
+	while (period > 0) {
+		count++;
+		period /= 10;
+	}
+	return (count);
+}
+
+/*
+ * duration
+ */
+void
+cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj) {
+	char buf[CFG_DURATION_MAXLEN];
+	char *str;
+	const char *indicators = "YMWDHMS";
+	int count, i;
+	int durationlen[7];
+	cfg_duration_t duration;
+	/*
+	 * D ? The duration has a date part.
+	 * T ? The duration has a time part.
+	 */
+	bool D = false, T = false;
+
+	REQUIRE(pctx != NULL);
+	REQUIRE(obj != NULL);
+
+	duration = obj->value.duration;
+
+	/* If this is not an ISO 8601 duration, just print it as a number. */
+	if (!duration.iso8601) {
+		return (cfg_print_rawuint(pctx, duration.parts[6]));
+	}
+
+	/* Calculate length of string. */
+	buf[0] = 'P';
+	buf[1] = '\0';
+	str = &buf[1];
+	count = 2;
+	for (i = 0; i < 6; i++) {
+		if (duration.parts[i] > 0) {
+			durationlen[i] = 1 + numlen(duration.parts[i]);
+			if (i < 4) {
+				D = true;
+			} else {
+				T = true;
+			}
+		} else {
+			durationlen[i] = 0;
+		}
+		count += durationlen[i];
+	}
+	/*
+	 * Special case for seconds which is not taken into account in the
+	 * above for loop: Count the length of the seconds part if it is
+	 * non-zero, or if all the other parts are also zero.  In the latter
+	 * case this function will print "PT0S".
+	 */
+	if (duration.parts[6] > 0 ||
+	    (!D && !duration.parts[4] && !duration.parts[5])) {
+		durationlen[6] = 1 + numlen(duration.parts[6]);
+		T = true;
+		count += durationlen[6];
+	}
+	/* Add one character for the time indicator. */
+	if (T) {
+		count++;
+	}
+	INSIST(count < CFG_DURATION_MAXLEN);
+
+	/* Now print the duration. */
+	for (i = 0; i < 6; i++) {
+		/*
+		 * We don't check here if weeks and other time indicator are
+		 * used mutually exclusively.
+		 */
+		if (duration.parts[i] > 0) {
+			snprintf(str, durationlen[i]+2, "%u%c",
+				 (uint32_t) duration.parts[i], indicators[i]);
+			str += durationlen[i]+1;
+		}
+		if (i == 3 && T) {
+			snprintf(str, 2, "T");
+			str += 1;
+		}
+
+	}
+	/* Special case for seconds. */
+	if (duration.parts[6] > 0 ||
+	    (!D && !duration.parts[4] && !duration.parts[3])) {
+		snprintf(str, durationlen[6]+2, "%u%c",
+			 (uint32_t) duration.parts[6], indicators[6]);
+	}
+	cfg_print_chars(pctx, buf, strlen(buf));
+}
+
+bool
+cfg_obj_isduration(const cfg_obj_t *obj) {
+	REQUIRE(obj != NULL);
+	return (obj->type->rep == &cfg_rep_duration);
+}
+
+uint32_t
+cfg_obj_asduration(const cfg_obj_t *obj) {
+	REQUIRE(obj != NULL && obj->type->rep == &cfg_rep_duration);
+	uint32_t duration = 0;
+	duration += obj->value.duration.parts[6];		// Seconds
+	duration += obj->value.duration.parts[5]*60;		// Minutes
+	duration += obj->value.duration.parts[4]*3600;		// Hours
+	duration += obj->value.duration.parts[3]*86400;		// Days
+	duration += obj->value.duration.parts[2]*86400*7;	// Weaks
+	/*
+	 * The below additions are not entirely correct
+	 * because days may very per month and per year.
+	 */
+	duration += obj->value.duration.parts[1]*86400*31;	// Months
+	duration += obj->value.duration.parts[0]*86400*365;	// Years
+	return (duration);
+}
+
+/*
+ * duration_fromtext initially taken from OpenDNSSEC code base.
+ * Modified to fit the BIND 9 code.
+ *
+ * Copyright (c) 2009-2018 NLNet Labs.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions
+ * are met:
+ * 1. Redistributions of source code must retain the above copyright
+ *    notice, this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ * WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY
+ * DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+ * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
+ * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER
+ * IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR
+ * OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN
+ * IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ */
+static isc_result_t
+duration_fromtext(isc_textregion_t *source, cfg_duration_t *duration) {
+	char buf[CFG_DURATION_MAXLEN];
+	char *P, *X, *T, *W, *str;
+	bool not_weeks = false;
+	int i;
+
+	/*
+	 * Copy the buffer as it may not be NULL terminated.
+	 * Anyone having a duration longer than 63 characters is crazy.
+	 */
+	if (source->length > sizeof(buf) - 1) {
+		return (ISC_R_BADNUMBER);
+	}
+	/* Copy source->length bytes and NULL terminate. */
+	snprintf(buf, sizeof(buf), "%.*s", (int)source->length, source->base);
+	str = buf;
+
+	/* Clear out duration. */
+	for (i = 0; i < 7; i++) {
+		duration->parts[i] = 0;
+	}
+
+	/* Every duration starts with 'P' */
+	P = strchr(str, 'P');
+	if (!P) {
+	return (ISC_R_BADNUMBER);
+	}
+
+	/* Record the time indicator. */
+	T = strchr(str, 'T');
+
+	/* Record years. */
+	X = strchr(str, 'Y');
+	if (X) {
+		duration->parts[0] = atoi(str+1);
+		str = X;
+		not_weeks = true;
+	}
+	/* Record months. */
+	X = strchr(str, 'M');
+	/*
+	 * M could be months or minutes. This is months if there is no time
+	 * part, or this M indicator is before the time indicator.
+	 */
+	if (X && (!T || (size_t) (X-P) < (size_t) (T-P))) {
+		duration->parts[1] = atoi(str+1);
+		str = X;
+		not_weeks = true;
+	}
+	/* Record days. */
+	X = strchr(str, 'D');
+	if (X) {
+		duration->parts[3] = atoi(str+1);
+		str = X;
+		not_weeks = true;
+	}
+
+	/* Time part? */
+	if (T) {
+		str = T;
+		not_weeks = true;
+	}
+
+	/* Record hours. */
+	X = strchr(str, 'H');
+	if (X && T) {
+		duration->parts[4] = atoi(str+1);
+		str = X;
+		not_weeks = true;
+	}
+	/* Record minutes. */
+	X = strrchr(str, 'M');
+	/*
+	 * M could be months or minutes. This is minutes if there is a time
+	 * part and the M indicator is behind the time indicator.
+	 */
+	if (X && T && (size_t) (X-P) > (size_t) (T-P)) {
+		duration->parts[5] = atoi(str+1);
+		str = X;
+		not_weeks = true;
+	}
+	/* Record seconds. */
+	X = strchr(str, 'S');
+	if (X && T) {
+		duration->parts[6] = atoi(str+1);
+		str = X;
+		not_weeks = true;
+	}
+
+	/* Or is the duration configured in weeks? */
+	W = strchr(buf, 'W');
+	if (W) {
+		if (not_weeks) {
+			/* Mix of weeks and other indicators is not allowed */
+			return (ISC_R_BADNUMBER);
+		} else {
+			duration->parts[2] = atoi(str+1);
+			str = W;
+		}
+	}
+
+	/* Deal with trailing garbage. */
+	if (str[1] != '\0') {
+		return (ISC_R_BADNUMBER);
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
+isc_result_t
+cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
+		   cfg_obj_t **ret)
+{
+	isc_result_t result;
+	cfg_obj_t *obj = NULL;
+	cfg_duration_t duration;
+
+	UNUSED(type);
+
+	CHECK(cfg_gettoken(pctx, 0));
+	if (pctx->token.type != isc_tokentype_string) {
+		result = ISC_R_UNEXPECTEDTOKEN;
+		goto cleanup;
+	}
+
+	if (TOKEN_STRING(pctx)[0] == 'P') {
+		result = duration_fromtext(&pctx->token.value.as_textregion,
+					   &duration);
+		duration.iso8601 = true;
+	} else {
+		uint32_t ttl;
+		result = dns_ttl_fromtext(&pctx->token.value.as_textregion,
+					  &ttl);
+		/*
+		 * With dns_ttl_fromtext() the information on optional units.
+		 * is lost, and is treated as seconds from now on.
+		 */
+		duration.parts[0] = 0;
+		duration.parts[1] = 0;
+		duration.parts[2] = 0;
+		duration.parts[3] = 0;
+		duration.parts[4] = 0;
+		duration.parts[5] = 0;
+		duration.parts[6] = ttl;
+		duration.iso8601 = false;
+	}
+	if (result == ISC_R_RANGE) {
+		cfg_parser_error(pctx, CFG_LOG_NEAR,
+				 "duration or TTL out of range");
+		return (result);
+	} else if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+	CHECK(cfg_create_obj(pctx, &cfg_type_duration, &obj));
+	obj->value.duration = duration;
+	*ret = obj;
+	return (ISC_R_SUCCESS);
+
+cleanup:
+	cfg_parser_error(pctx, CFG_LOG_NEAR,
+			 "expected ISO 8601 duration or TTL value");
+	return (result);
+}
+
+/*%
+ * A duration as defined by ISO 8601 (P[n]Y[n]M[n]DT[n]H[n]M[n]S).
+ * - P is the duration indicator ("period") placed at the start.
+ * - Y is the year indicator that follows the value for the number of years.
+ * - M is the month indicator that follows the value for the number of months.
+ * - D is the day indicator that follows the value for the number of days.
+ * - T is the time indicator that precedes the time components.
+ * - H is the hour indicator that follows the value for the number of hours.
+ * - M is the minute indicator that follows the value for the number of
+ *   minutes.
+ * - S is the second indicator that follows the value for the number of
+ *   seconds.
+ *
+ * A duration can also be a TTL value (number + optional unit).
+ */
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_duration = {
+	"duration", cfg_parse_duration, cfg_print_duration, cfg_doc_terminal,
+	&cfg_rep_duration, NULL
+};
+
+/*
  * qstring (quoted string), ustring (unquoted string), astring
- * (any string)
+ * (any string), sstring (secret string)
  */
 
 /* Create a string object from a null-terminated C string. */

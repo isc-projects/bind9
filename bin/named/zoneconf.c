@@ -1045,8 +1045,8 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	} else if (result == ISC_R_SUCCESS) {
 		dns_ttl_t maxttl = 0;	/* unlimited */
 
-		if (cfg_obj_isuint32(obj))
-			maxttl = cfg_obj_asuint32(obj);
+		if (cfg_obj_isduration(obj))
+			maxttl = cfg_obj_asduration(obj);
 		dns_zone_setmaxttl(zone, maxttl);
 		if (raw != NULL)
 			dns_zone_setmaxttl(raw, maxttl);
