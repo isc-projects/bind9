@@ -68,6 +68,7 @@ if [ -n "$PYTHON" ] ; then
 fi
 
 if [ -x "$DIG" ] ; then
+
   n=$((n+1))
   echo_i "checking dig short form works ($n)"
   ret=0
@@ -723,6 +724,7 @@ if [ -x "$DIG" ] ; then
   status=$((status+ret))
 
   n=$((n+1))
+
   echo_i "check that dig +short +expandaaaa works ($n)"
   ret=0
   dig_with_opts @10.53.0.3 +short +expandaaaa AAAA ns2.example > dig.out.test$n 2>&1 || ret=1
@@ -744,6 +746,33 @@ if [ -x "$DIG" ] ; then
     if [ $ret -ne 0 ]; then echo_i "failed"; fi
     status=$((status+ret))
   fi
+
+  echo_i "check that dig +unexpected works ($n)"
+  ret=0
+  dig_with_opts @10.53.0.6 +unexpected a a.example > dig.out.test$n || ret=1
+  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
+  grep 'status: NOERROR' dig.out.test$n > /dev/null || ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig +nounexpected works ($n)"
+  ret=0
+  dig_with_opts @10.53.0.6 +nounexpected +tries=1 +time=2 a a.example > dig.out.test$n && ret=1
+  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
+  grep "status: NOERROR" < dig.out.test$n > /dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
+  n=$((n+1))
+  echo_i "check that dig default for +[no]unexpected (+nounexpected) works ($n)"
+  ret=0
+  dig_with_opts @10.53.0.6 +tries=1 +time=2 a a.example > dig.out.test$n && ret=1
+  grep 'reply from unexpected source' dig.out.test$n > /dev/null || ret=1
+  grep "status: NOERROR" < dig.out.test$n > /dev/null && ret=1
+  if [ $ret -ne 0 ]; then echo_i "failed"; fi
+  status=$((status+ret))
+
 else
   echo_i "$DIG is needed, so skipping these dig tests"
 fi

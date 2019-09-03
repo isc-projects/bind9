@@ -1270,6 +1270,17 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>+[no]unexpected</option></term>
+	  <listitem>
+	    <para>
+	      Accept [do not accept] answers from unexpected sources.  By
+	      default, <command>dig</command> won't accept a reply from a
+	      source other than the one to which it sent the query.
+	    </para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>+[no]unknownformat</option></term>
 	  <listitem>
 	    <para>

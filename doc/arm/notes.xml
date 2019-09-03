@@ -115,6 +115,15 @@
     <itemizedlist>
       <listitem>
 	<para>
+          Added a new command line option to <command>dig</command>:
+	  <comand>+[no]unexpected</comand>. By default, <command>dig</command>
+	  won't accept a reply from a source other than the one to which
+	  it sent the query.  Add the <command>+unexpected</command> argument
+	  to enable it to process replies from unexpected sources.
+        </para>
+      </listitem>
+      <listitem>
+	<para>
 	  The GeoIP2 API from MaxMind is now supported. Geolocation support
 	  will be compiled in by default if the <command>libmaxminddb</command>
 	  library is found at compile time, but can be turned off by using

@@ -141,7 +141,9 @@ struct dig_lookup {
 		idnin,
 		idnout,
 		expandaaaa,
-		qr;
+		qr,
+		accept_reply_unexpected_src;  /*%  print replies from unexpected
+						   sources. */
 	char textname[MXNAME]; /*% Name we're going to be looking up */
 	char cmdline[MXNAME];
 	dns_rdatatype_t rdtype;
