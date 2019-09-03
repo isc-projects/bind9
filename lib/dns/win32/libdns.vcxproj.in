@@ -150,6 +150,7 @@
     <ClCompile Include="..\ipkeylist.c" />
     <ClCompile Include="..\iptable.c" />
     <ClCompile Include="..\journal.c" />
+    <ClCompile Include="..\kasp.c" />
     <ClCompile Include="..\key.c" />
     <ClCompile Include="..\keydata.c" />
     <ClCompile Include="..\keytable.c" />
@@ -265,6 +266,7 @@
     <ClInclude Include="..\include\dns\ipkeylist.h" />
     <ClInclude Include="..\include\dns\iptable.h" />
     <ClInclude Include="..\include\dns\journal.h" />
+    <ClInclude Include="..\include\dns\kasp.h" />
     <ClInclude Include="..\include\dns\keydata.h" />
     <ClInclude Include="..\include\dns\keyflags.h" />
     <ClInclude Include="..\include\dns\keytable.h" />

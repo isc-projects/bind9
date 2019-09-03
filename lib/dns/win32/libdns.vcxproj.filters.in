@@ -116,6 +116,9 @@
     <ClCompile Include="..\journal.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\kasp.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\keydata.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -447,6 +450,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\journal.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dns\kasp.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\keydata.h">

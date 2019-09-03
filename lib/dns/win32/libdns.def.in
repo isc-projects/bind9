@@ -413,6 +413,15 @@ dns_journal_rollforward
 dns_journal_set_sourceserial
 dns_journal_write_transaction
 dns_journal_writediff
+dns_kasp_create
+dns_kasp_attach
+dns_kasp_detach
+dns_kasp_freeze
+dns_kasp_getname
+dns_kasp_key_create
+dns_kasp_key_destroy
+dns_kasp_thaw
+dns_kasplist_find
 dns_keydata_fromdnskey
 dns_keydata_todnskey
 dns_keyflags_fromtext
@@ -1154,6 +1163,7 @@ dns_zone_getidleout
 dns_zone_getincludes
 dns_zone_getjournal
 dns_zone_getjournalsize
+dns_zone_getkasp
 dns_zone_getkeydirectory
 dns_zone_getkeyopts
 dns_zone_getkeyvalidityinterval
@@ -1255,6 +1265,7 @@ dns_zone_setidleout
 dns_zone_setisself
 dns_zone_setjournal
 dns_zone_setjournalsize
+dns_zone_setkasp
 dns_zone_setkeydirectory
 dns_zone_setkeyopt
 dns_zone_setkeyvalidityinterval

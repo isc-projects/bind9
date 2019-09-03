@@ -45,6 +45,7 @@
 #include <dns/dnssec.h>
 #include <dns/events.h>
 #include <dns/journal.h>
+#include <dns/kasp.h>
 #include <dns/keydata.h>
 #include <dns/keytable.h>
 #include <dns/keyvalues.h>
@@ -303,6 +304,7 @@ struct dns_zone {
 	uint32_t		sigresigninginterval;
 	dns_view_t		*view;
 	dns_view_t		*prev_view;
+	dns_kasp_t		*kasp;
 	dns_checkmxfunc_t	checkmx;
 	dns_checksrvfunc_t	checksrv;
 	dns_checknsfunc_t	checkns;
@@ -1014,6 +1016,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->sigvalidityinterval = 30 * 24 * 3600;
 	zone->keyvalidityinterval = 0;
 	zone->sigresigninginterval = 7 * 24 * 3600;
+	zone->kasp = NULL;
 	zone->view = NULL;
 	zone->prev_view = NULL;
 	zone->checkmx = NULL;
@@ -1184,6 +1187,9 @@ zone_free(dns_zone_t *zone) {
 		isc_mem_free(zone->mctx, zone->keydirectory);
 	}
 	zone->keydirectory = NULL;
+	if (zone->kasp != NULL) {
+		dns_kasp_detach(&zone->kasp);
+	}
 	zone->journalsize = -1;
 	if (zone->journal != NULL) {
 		isc_mem_free(zone->mctx, zone->journal);
@@ -5535,6 +5541,29 @@ dns_zone_setflag(dns_zone_t *zone, unsigned int flags, bool value) {
 	} else {
 		DNS_ZONE_CLRFLAG(zone, flags);
 	}
+}
+
+void
+dns_zone_setkasp(dns_zone_t *zone, dns_kasp_t* kasp)
+{
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	LOCK_ZONE(zone);
+	if (zone->kasp != NULL) {
+		dns_kasp_t* oldkasp = zone->kasp;
+		zone->kasp = NULL;
+		dns_kasp_detach(&oldkasp);
+	}
+	zone->kasp = kasp;
+	UNLOCK_ZONE(zone);
+}
+
+dns_kasp_t*
+dns_zone_getkasp(dns_zone_t *zone)
+{
+	REQUIRE(DNS_ZONE_VALID(zone));
+
+	return (zone->kasp);
 }
 
 void

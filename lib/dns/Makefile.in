@@ -64,7 +64,7 @@ DNSOBJS =	acl.@O@ adb.@O@ badcache.@O@ byaddr.@O@ \
 		db.@O@ dbiterator.@O@ dbtable.@O@ diff.@O@ dispatch.@O@ \
 		dlz.@O@ dns64.@O@ dnsrps.@O@ dnssec.@O@ ds.@O@ dyndb.@O@ \
 		ecs.@O@ fixedname.@O@ forward.@O@ \
-		ipkeylist.@O@ iptable.@O@ journal.@O@ keydata.@O@ \
+		ipkeylist.@O@ iptable.@O@ journal.@O@ kasp.@O@ keydata.@O@ \
 		keytable.@O@ lib.@O@ log.@O@ lookup.@O@ \
 		master.@O@ masterdump.@O@ message.@O@ \
 		name.@O@ ncache.@O@ nsec.@O@ nsec3.@O@ nta.@O@ \
@@ -101,8 +101,8 @@ DNSSRCS =	acl.c adb.c badcache. byaddr.c \
 		db.c dbiterator.c dbtable.c diff.c dispatch.c \
 		dlz.c dns64.c dnsrps.c dnssec.c ds.c dyndb.c \
 		ecs.c fixedname.c forward.c \
-		ipkeylist.c iptable.c journal.c keydata.c keytable.c lib.c \
-		log.c lookup.c master.c masterdump.c message.c \
+		ipkeylist.c iptable.c journal.c kasp.c keydata.c keytable.c \
+		lib.c log.c lookup.c master.c masterdump.c message.c \
 		name.c ncache.c nsec.c nsec3.c nta.c \
 		order.c peer.c portlist.c \
 		rbt.c rbtdb.c rcode.c rdata.c rdatalist.c \
