@@ -941,7 +941,7 @@ $DIG $DIGOPTS +short @10.53.0.3 master SOA > dig.out.ns3.test$n.1 || ret=1
 sleep 1
 nextpart ns3/named.run > /dev/null
 cp ns3/master5.db.in ns3/master.db
-rndc_reload ns3 10.53.0.3
+$RNDCCMD 10.53.0.3 reload 2>&1 | sed 's/^/ns3 /' | cat_i
 for i in 1 2 3 4 5 6 7 8 9 10
 do
 	if nextpart ns3/named.run |
