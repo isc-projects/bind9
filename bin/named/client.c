@@ -337,6 +337,10 @@ tcpconn_init(ns_client_t *client, bool force) {
 	 * is only executed for TCP connections.
 	 */
 	tconn = isc_mem_allocate(ns_g_mctx, sizeof(*tconn));
+	if (tconn == NULL) {
+		isc_quota_detach(&quota);
+		return (ISC_R_NOMEMORY);
+	}
 
 	isc_refcount_init(&tconn->refs, 1);
 	tconn->tcpquota = quota;
