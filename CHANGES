@@ -1,3 +1,6 @@
+5288.	[bug]		dnssec-must-be-secure was not always honoured.
+			[GL #1209]
+
 5287.	[placeholder]
 
 5286.	[contrib]	Address potential NULL pointer dereferences in
