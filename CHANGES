@@ -1,3 +1,5 @@
+5287.	[placeholder]
+
 5286.	[contrib]	Address potential NULL pointer dereferences in
 			dlz_mysqldyn_mod.c. [GL #1207]
 
