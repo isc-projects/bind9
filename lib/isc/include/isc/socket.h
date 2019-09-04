@@ -1002,7 +1002,7 @@ isc_socketmgr_setreserved(isc_socketmgr_t *mgr, uint32_t);
  */
 
 void
-isc_socketmgr_maxudp(isc_socketmgr_t *mgr, int maxudp);
+isc_socketmgr_maxudp(isc_socketmgr_t *mgr, unsigned int maxudp);
 /*%<
  * Test interface. Drop UDP packet > 'maxudp'.
  */
