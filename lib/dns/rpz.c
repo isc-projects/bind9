@@ -2137,7 +2137,7 @@ rpz_detach(dns_rpz_zone_t **rpzp) {
 		dns_db_detach(&rpz->db);
 	}
 	if (rpz->updaterunning) {
-		isc_task_purgeevent(rpz->rpzs->updater, &rpz->updateevent);
+		isc_task_purgeevent(rpzs->updater, &rpz->updateevent);
 		if (rpz->updbit != NULL) {
 			dns_dbiterator_destroy(&rpz->updbit);
 		}
