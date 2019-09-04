@@ -1,3 +1,5 @@
+5287.	[bug]		Address potential NULL pointer dereference. [GL #1208]
+
 5286.	[contrib]	Address potential NULL pointer dereferences in
 			dlz_mysqldyn_mod.c. [GL #1207]
 
