@@ -1,3 +1,6 @@
+5286.	[contrib]	Address potential NULL pointer dereferences in
+			dlz_mysqldyn_mod.c. [GL #1207]
+
 5285.	[port]		win32: implement "-T maxudpXXX". [GL #837]
 
 5282.	[bug]		Fixed a bug in searching for possible wildcard matches
