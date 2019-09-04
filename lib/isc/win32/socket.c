@@ -4002,10 +4002,11 @@ isc__socketmgr_setreserved(isc_socketmgr_t *manager, uint32_t reserved) {
 }
 
 void
-isc___socketmgr_maxudp(isc_socketmgr_t *manager, int maxudp) {
+isc___socketmgr_maxudp(isc_socketmgr_t *manager, unsigned int maxudp) {
 
-	UNUSED(manager);
-	UNUSED(maxudp);
+	REQUIRE(VALID_MANAGER(manager));
+
+	manager->maxudp = maxudp;
 }
 
 isc_socketevent_t *
@@ -4302,12 +4303,4 @@ isc_socketmgr_createinctx(isc_mem_t *mctx, isc_appctx_t *actx,
 		isc_appctx_setsocketmgr(actx, *managerp);
 
 	return (result);
-}
-
-void
-isc_socketmgr_maxudp(isc_socketmgr_t *manager, unsigned int maxudp) {
-
-	REQUIRE(VALID_MANAGER(manager));
-
-	manager->maxudp = maxudp;
 }
