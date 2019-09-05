@@ -367,9 +367,6 @@ main(int argc, char **argv) {
 			if (*endp != '\0')
 				fatal("-v must be followed by a number");
 			break;
-		case 'z':
-			/* already the default */
-			break;
 		case 'G':
 			genonly = true;
 			break;
