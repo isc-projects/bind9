@@ -252,29 +252,15 @@ struct isc_mempool {
 	} while (0)
 
 /*@{*/
-isc_result_t
-isc_mem_create(size_t max_size, size_t target_size,
-	       isc_mem_t **mctxp);
+void
+isc_mem_create(isc_mem_t **mctxp);
 
-isc_result_t
-isc_mem_createx(size_t max_size, size_t target_size,
-		isc_memalloc_t memalloc, isc_memfree_t memfree,
+void
+isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree,
 		void *arg, isc_mem_t **mctxp, unsigned int flags);
 
 /*!<
  * \brief Create a memory context.
- *
- * 'max_size' and 'target_size' are tuning parameters.  When
- * ISC_MEMFLAG_INTERNAL is set, allocations smaller than 'max_size'
- * will be satisfied by getting blocks of size 'target_size' from the
- * system allocator and breaking them up into pieces; larger allocations
- * will use the system allocator directly. If 'max_size' and/or
- * 'target_size' are zero, default values will be * used.  When
- * ISC_MEMFLAG_INTERNAL is not set, 'target_size' is ignored.
- *
- * 'max_size' is also used to size the statistics arrays and the array
- * used to record active memory when ISC_MEM_DEBUGRECORD is set.  Setting
- * 'max_size' too low can have detrimental effects on performance.
  *
  * A memory context created using isc_mem_createx() will obtain
  * memory from the system by calling 'memalloc' and 'memfree',

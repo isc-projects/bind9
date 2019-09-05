@@ -725,9 +725,8 @@ initialize_action(void) {
  * Public.
  */
 
-isc_result_t
-isc_mem_createx(size_t init_max_size, size_t target_size,
-		isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
+void
+isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 		isc_mem_t **ctxp, unsigned int flags)
 {
 	isc__mem_t *ctx;
@@ -748,10 +747,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 		isc_mutex_init(&ctx->lock);
 	}
 
-	if (init_max_size == 0U)
-		ctx->max_size = DEF_MAX_SIZE;
-	else
-		ctx->max_size = init_max_size;
+	ctx->max_size = DEF_MAX_SIZE;
 	ctx->flags = flags;
 	isc_refcount_init(&ctx->references, 1);
 	memset(ctx->name, 0, sizeof(ctx->name));
@@ -798,10 +794,7 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	ctx->maxmalloced += (ctx->max_size+1) * sizeof(struct stats);
 
 	if ((flags & ISC_MEMFLAG_INTERNAL) != 0) {
-		if (target_size == 0U)
-			ctx->mem_target = DEF_MEM_TARGET;
-		else
-			ctx->mem_target = target_size;
+		ctx->mem_target = DEF_MEM_TARGET;
 		ctx->freelists = (memalloc)(arg, ctx->max_size *
 						 sizeof(element *));
 		RUNTIME_CHECK(ctx->freelists != NULL);
@@ -830,8 +823,6 @@ isc_mem_createx(size_t init_max_size, size_t target_size,
 	UNLOCK(&contextslock);
 
 	*ctxp = (isc_mem_t *)ctx;
-
-	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -2371,11 +2362,10 @@ isc_mem_renderjson(void *memobj0) {
 }
 #endif /* HAVE_JSON_C */
 
-isc_result_t
-isc_mem_create(size_t init_max_size, size_t target_size, isc_mem_t **mctxp) {
-	return (isc_mem_createx(init_max_size, target_size,
-				default_memalloc, default_memfree,
-				NULL, mctxp, isc_mem_defaultflags));
+void
+isc_mem_create(isc_mem_t **mctxp) {
+	isc_mem_createx(default_memalloc, default_memfree,
+			NULL, mctxp, isc_mem_defaultflags);
 }
 
 void *
