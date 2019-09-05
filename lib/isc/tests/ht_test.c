@@ -53,9 +53,8 @@ test_ht_full(int bits, uintptr_t count) {
 	isc_mem_t *mctx = NULL;
 	uintptr_t i;
 
-	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
-				 NULL, &mctx, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_createx(default_memalloc, default_memfree,
+			NULL, &mctx, 0);
 
 	result = isc_ht_init(&ht, mctx, bits);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -207,9 +206,8 @@ test_ht_iterator() {
 	unsigned char key[16];
 	size_t tksize;
 
-	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
-				 NULL, &mctx, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_createx(default_memalloc, default_memfree,
+			NULL, &mctx, 0);
 
 	result = isc_ht_init(&ht, mctx, 16);
 	assert_int_equal(result, ISC_R_SUCCESS);

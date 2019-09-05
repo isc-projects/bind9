@@ -106,7 +106,7 @@ main(int argc, char **argv) {
 	lctx = NULL;
 	lcfg = NULL;
 
-	CHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 	CHECK(isc_log_create(mctx, &lctx, &lcfg));
 
 	CHECK(isc_log_settag(lcfg, progname));

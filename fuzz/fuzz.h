@@ -28,7 +28,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size);
 static isc_mem_t *mctx = NULL;
 
 static void __attribute__((constructor)) init(void) {
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 	RUNTIME_CHECK(dst_lib_init(mctx, NULL) == ISC_R_SUCCESS);
 }
 

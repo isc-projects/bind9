@@ -227,7 +227,7 @@ main(int argc, char *argv[]) {
 
 	mctx = NULL;
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
-	RUNCHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	log = NULL;
 	logconfig = NULL;

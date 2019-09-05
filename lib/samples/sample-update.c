@@ -240,11 +240,7 @@ main(int argc, char *argv[]) {
 		fprintf(stderr, "dns_lib_init failed: %u\n", result);
 		exit(1);
 	}
-	result = isc_mem_create(0, 0, &umctx);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to crate mctx\n");
-		exit(1);
-	}
+	isc_mem_create(&umctx);
 
 	result = dns_client_create(&client, 0);
 	if (result != ISC_R_SUCCESS) {

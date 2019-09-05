@@ -295,7 +295,7 @@ main(int argc, char **argv) {
 	/*
 	 * EVERYTHING needs a memory context.
 	 */
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	cmp = NULL;
 	RUNTIME_CHECK(isc_mempool_create(mctx, sizeof(client_t), &cmp)

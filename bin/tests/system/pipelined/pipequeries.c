@@ -268,7 +268,7 @@ main(int argc, char *argv[]) {
 	isc_sockaddr_fromin(&dstaddr, &inaddr, port);
 
 	mctx = NULL;
-	RUNCHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	lctx = NULL;
 	lcfg = NULL;

@@ -1642,9 +1642,7 @@ main(int argc, char *argv[]) {
 	if (result != ISC_R_SUCCESS)
 		fatal("dns_lib_init failed: %d", result);
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS)
-		fatal("failed to create mctx");
+	isc_mem_create(&mctx);
 
 	CHECK(isc_appctx_create(mctx, &actx));
 	CHECK(isc_taskmgr_createinctx(mctx, 1, 0, &taskmgr));

@@ -1462,10 +1462,7 @@ main(int argc, char *argv[]) {
 						named_g_chrootdir);
 	}
 
-	result = isc_mem_create(0, 0, &named_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		named_main_earlyfatal("isc_mem_create() failed: %s",
-				   isc_result_totext(result));
+	isc_mem_create(&named_g_mctx);
 	isc_mem_setname(named_g_mctx, "main", NULL);
 
 	setup();

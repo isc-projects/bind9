@@ -146,7 +146,7 @@ main(int argc, char *argv[]) {
 	if (doexit)
 		exit(0);
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 	RUNTIME_CHECK(isc_lex_create(mctx, 256, &lex) == ISC_R_SUCCESS);
 
 	/*

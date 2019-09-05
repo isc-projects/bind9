@@ -237,7 +237,7 @@ ns_test_begin(FILE *logfile, bool start_managers) {
 	}
 
 	INSIST(mctx == NULL);
-	CHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	if (!dst_active) {
 		CHECK(dst_lib_init(mctx, NULL));

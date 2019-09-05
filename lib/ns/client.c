@@ -3043,7 +3043,6 @@ client_timeout(isc_task_t *task, isc_event_t *event) {
 static isc_result_t
 get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 	isc_mem_t *clientmctx;
-	isc_result_t result;
 #if NMCTXS > 0
 	unsigned int nextmctx;
 #endif
@@ -3054,10 +3053,9 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 	 * Caller must be holding the manager lock.
 	 */
 	if ((manager->sctx->options & NS_SERVER_CLIENTTEST) != 0) {
-		result = isc_mem_create(0, 0, mctxp);
-		if (result == ISC_R_SUCCESS)
-			isc_mem_setname(*mctxp, "client", NULL);
-		return (result);
+		isc_mem_create(mctxp);
+		isc_mem_setname(*mctxp, "client", NULL);
+		return (ISC_R_SUCCESS);
 	}
 #if NMCTXS > 0
 	nextmctx = manager->nextmctx++;
@@ -3068,9 +3066,7 @@ get_clientmctx(ns_clientmgr_t *manager, isc_mem_t **mctxp) {
 
 	clientmctx = manager->mctxpool[nextmctx];
 	if (clientmctx == NULL) {
-		result = isc_mem_create(0, 0, &clientmctx);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		isc_mem_create(&clientmctx);
 		isc_mem_setname(clientmctx, "client", NULL);
 
 		manager->mctxpool[nextmctx] = clientmctx;

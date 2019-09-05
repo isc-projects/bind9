@@ -65,10 +65,7 @@ main(int argc, char *argv[]) {
 		exit(1);
 	}
 
-	if (isc_mem_create(0, 0, &mctx) != ISC_R_SUCCESS) {
-		fprintf(stderr, "isc_mem_create() failed\n");
-		exit(1);
-	}
+	isc_mem_create(&mctx);
 
 	pk11_result_register();
 

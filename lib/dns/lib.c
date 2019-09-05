@@ -54,9 +54,7 @@ initialize(void) {
 
 	isc_refcount_init(&references, 0);
 
-	result = isc_mem_create(0, 0, &dns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		return;
+	isc_mem_create(&dns_g_mctx);
 	dns_result_register();
 	result = dns_ecdb_register(dns_g_mctx, &dbimp);
 	if (result != ISC_R_SUCCESS)

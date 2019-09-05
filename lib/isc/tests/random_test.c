@@ -273,7 +273,6 @@ matrix_binaryrank(uint32_t *bits, size_t rows, size_t cols) {
 static void
 random_test(pvalue_func_t *func, isc_random_func test_func) {
 	isc_mem_t *mctx = NULL;
-	isc_result_t result;
 	uint32_t m;
 	uint32_t j;
 	uint32_t histogram[11] = { 0 };
@@ -287,8 +286,7 @@ random_test(pvalue_func_t *func, isc_random_func test_func) {
 
 	tables_init();
 
-	result = isc_mem_create(0, 0, &mctx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	m = 1000;
 	passed = 0;

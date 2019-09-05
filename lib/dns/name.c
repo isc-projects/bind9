@@ -1299,10 +1299,9 @@ totext_filter_proc_key_init(void) {
 
 	if (!thread_key_initialized) {
 		LOCK(&thread_key_mutex);
-		if (thread_key_mctx == NULL)
-			result = isc_mem_create(0, 0, &thread_key_mctx);
-		if (result != ISC_R_SUCCESS)
-			goto unlock;
+		if (thread_key_mctx == NULL) {
+			isc_mem_create(&thread_key_mctx);
+		}
 		isc_mem_setname(thread_key_mctx, "threadkey", NULL);
 		isc_mem_setdestroycheck(thread_key_mctx, false);
 
@@ -1311,9 +1310,9 @@ totext_filter_proc_key_init(void) {
 					   free_specific) != 0) {
 			result = ISC_R_FAILURE;
 			isc_mem_detach(&thread_key_mctx);
-		} else
+		} else {
 			thread_key_initialized = 1;
- unlock:
+		}
 		UNLOCK(&thread_key_mutex);
 	}
 	return (result);

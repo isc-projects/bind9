@@ -207,7 +207,7 @@ main(int argc, char **argv) {
 	/* Use canonical algorithm name */
 	algname = alg_totext(alg);
 
-	DO("create memory context", isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	if (keyname == NULL) {
 		const char *suffix = NULL;

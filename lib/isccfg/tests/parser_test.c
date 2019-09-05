@@ -71,7 +71,7 @@ setup() {
 	isc_result_t result;
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	CHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	isc_logdestination_t destination;
 	isc_logconfig_t *logconfig = NULL;

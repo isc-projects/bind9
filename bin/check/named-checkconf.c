@@ -585,7 +585,7 @@ main(int argc, char **argv) {
 	}
 	isc_commandline_reset = true;
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	while ((c = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != EOF) {
 		switch (c) {

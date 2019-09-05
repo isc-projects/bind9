@@ -3269,8 +3269,7 @@ main(int argc, char **argv) {
 
 	pre_parse_args(argc, argv);
 
-	result = isc_mem_create(0, 0, &gmctx);
-	check_result(result, "isc_mem_create");
+	isc_mem_create(&gmctx);
 
 	parse_args(argc, argv);
 
