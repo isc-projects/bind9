@@ -64,8 +64,7 @@ static char hexcookie[81];
 
 static bool short_form = false, printcmd = true,
 	plusquest = false, pluscomm = false,
-	ipv4only = false, ipv6only = false, digrc = true,
-	yaml = false;
+	ipv4only = false, ipv6only = false, digrc = true;
 static uint32_t splitwidth = 0xffffffff;
 
 /*% opcode text */
@@ -2446,6 +2445,36 @@ dig_error(const char *format, ...) {
 	}
 }
 
+static void
+dig_warning(const char *format, ...) {
+	va_list args;
+
+	if (!yaml) {
+		printf(";; ");
+
+		va_start(args, format);
+		vprintf(format, args);
+		va_end(args);
+
+		printf("\n");
+	}
+}
+
+static void
+dig_comments(dig_lookup_t *lookup, const char *format, ...) {
+	va_list args;
+
+	if (lookup->comments && !yaml) {
+		printf(";; ");
+
+		va_start(args, format);
+		vprintf(format, args);
+		va_end(args);
+
+		printf("\n");
+	}
+}
+
 void
 dig_setup(int argc, char **argv) {
 	isc_result_t result;
@@ -2462,6 +2491,8 @@ dig_setup(int argc, char **argv) {
 	dighost_trying = trying;
 	dighost_shutdown = query_finished;
 	dighost_error = dig_error;
+	dighost_warning = dig_warning;
+	dighost_comments = dig_comments;
 
 	progname = argv[0];
 	preparse_args(argc, argv);

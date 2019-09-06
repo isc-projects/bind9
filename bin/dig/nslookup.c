@@ -983,17 +983,6 @@ getinput(isc_task_t *task, isc_event_t *event) {
 	isc_app_shutdown();
 }
 
-static void
-nsl_error(const char *format, ...) {
-	va_list args;
-
-	printf(";; ");
-	va_start(args, format);
-	vfprintf(stdout, format, args);
-	va_end(args);
-	printf("\n");
-}
-
 int
 main(int argc, char **argv) {
 	isc_result_t result;
@@ -1011,7 +1000,6 @@ main(int argc, char **argv) {
 	dighost_received = received;
 	dighost_trying = trying;
 	dighost_shutdown = query_finished;
-	dighost_error = nsl_error;
 
 	result = isc_app_start();
 	check_result(result, "isc_app_start");

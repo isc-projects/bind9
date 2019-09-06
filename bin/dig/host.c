@@ -857,17 +857,6 @@ parse_args(bool is_batchfile, int argc, char **argv) {
 	ISC_LIST_APPEND(lookup_list, lookup, link);
 }
 
-static void
-host_error(const char *format, ...) {
-	va_list args;
-
-	printf(";; ");
-	va_start(args, format);
-	vfprintf(stdout, format, args);
-	va_end(args);
-	printf("\n");
-}
-
 int
 main(int argc, char **argv) {
 	isc_result_t result;
@@ -885,7 +874,6 @@ main(int argc, char **argv) {
 	dighost_received = received;
 	dighost_trying = trying;
 	dighost_shutdown = host_shutdown;
-	dighost_error = host_error;
 
 	debug("main()");
 	progname = argv[0];

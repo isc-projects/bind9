@@ -252,7 +252,7 @@ extern dig_searchlistlist_t search_list;
 extern unsigned int extrabytes;
 
 extern bool check_ra, have_ipv4, have_ipv6, specified_source,
-	usesearch, showsearch;
+	usesearch, showsearch, yaml;
 extern in_port_t port;
 extern unsigned int timeout;
 extern isc_mem_t *mctx;
@@ -390,6 +390,18 @@ extern isc_result_t
  */
 extern void
 (*dighost_error)(const char *format, ...);
+
+/*
+ * Print a warning message in the appropriate format.
+ */
+extern void
+(*dighost_warning)(const char *format, ...);
+
+/*
+ * Print a comment in the appropriate format.
+ */
+extern void
+(*dighost_comments)(dig_lookup_t *lookup, const char *format, ...);
 
 /*%<
  * Print the final result of the lookup.
