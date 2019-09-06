@@ -50,21 +50,6 @@ _setup(void **state) {
 	return (0);
 }
 
-static void *
-default_memalloc(void *arg, size_t size) {
-	UNUSED(arg);
-	if (size == 0U) {
-		size = 1;
-	}
-	return (malloc(size));
-}
-
-static void
-default_memfree(void *arg, void *ptr) {
-	UNUSED(arg);
-	free(ptr);
-}
-
 static int
 _teardown(void **state) {
 	UNUSED(state);
@@ -168,9 +153,7 @@ isc_mem_test(void **state) {
 
 	isc_mem_destroy(&localmctx);
 
-	isc_mem_createx(default_memalloc, default_memfree,
-			NULL, &localmctx,
-			ISC_MEMFLAG_FILL | ISC_MEMFLAG_INTERNAL);
+	isc_mem_create(&localmctx);
 
 	result = isc_mempool_create(localmctx, 2, &mp1);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -198,8 +181,7 @@ isc_mem_total_test(void **state) {
 
 	/* Local alloc, free */
 	mctx2 = NULL;
-	isc_mem_createx(default_memalloc, default_memfree,
-				 NULL, &mctx2, 0);
+	isc_mem_create(&mctx2);
 
 	before = isc_mem_total(mctx2);
 
@@ -247,8 +229,7 @@ isc_mem_inuse_test(void **state) {
 	UNUSED(state);
 
 	mctx2 = NULL;
-	isc_mem_createx(default_memalloc, default_memfree,
-			NULL, &mctx2, 0);
+	isc_mem_create(&mctx2);
 
 	before = isc_mem_inuse(mctx2);
 	ptr = isc_mem_allocate(mctx2, 1024000);
@@ -278,8 +259,7 @@ isc_mem_noflags_test(void **state) {
 
 	UNUSED(state);
 
-	isc_mem_createx(default_memalloc, default_memfree,
-			NULL, &mctx2, 0);
+	isc_mem_create(&mctx2);
 	isc_mem_debugging = 0;
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
@@ -324,8 +304,7 @@ isc_mem_recordflag_test(void **state) {
 
 	UNUSED(state);
 
-	isc_mem_createx(default_memalloc, default_memfree,
-			NULL, &mctx2, 0);
+	isc_mem_create(&mctx2);
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx2, f);
@@ -368,8 +347,7 @@ isc_mem_traceflag_test(void **state) {
 
 	UNUSED(state);
 
-	isc_mem_createx(default_memalloc, default_memfree,
-			NULL, &mctx2, 0);
+	isc_mem_create(&mctx2);
 	isc_mem_debugging = ISC_MEM_DEBUGTRACE;
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);

@@ -126,15 +126,17 @@ static isc_mutex_t		contextslock;
  */
 static uint64_t		totallost;
 
+typedef void * (*isc__memalloc_t)(size_t);
+typedef void (*isc__memfree_t)(void *);
+
 struct isc__mem {
 	isc_mem_t		common;
 	unsigned int		flags;
 	isc_mutex_t		lock;
-	isc_memalloc_t		memalloc;
-	isc_memfree_t		memfree;
-	void *			arg;
+	isc__memalloc_t		memalloc;
+	isc__memfree_t		memfree;
 	size_t			max_size;
-	bool		checkfree;
+	bool			checkfree;
 	struct stats *		stats;
 	isc_refcount_t		references;
 	char			name[16];
@@ -146,8 +148,8 @@ struct isc__mem {
 	size_t			maxmalloced;
 	size_t			hi_water;
 	size_t			lo_water;
-	bool		hi_called;
-	bool		is_overmem;
+	bool			hi_called;
+	bool			is_overmem;
 	isc_mem_water_t		water;
 	void *			water_arg;
 	ISC_LIST(isc__mempool_t) pools;
@@ -360,8 +362,7 @@ more_basic_blocks(isc__mem_t *ctx) {
 	INSIST(ctx->basic_table_count <= ctx->basic_table_size);
 	if (ctx->basic_table_count == ctx->basic_table_size) {
 		table_size = ctx->basic_table_size + TABLE_INCREMENT;
-		table = (ctx->memalloc)(ctx->arg,
-					table_size * sizeof(unsigned char *));
+		table = (ctx->memalloc)(table_size * sizeof(unsigned char *));
 		RUNTIME_CHECK(table != NULL);
 		ctx->malloced += table_size * sizeof(unsigned char *);
 		if (ctx->malloced > ctx->maxmalloced)
@@ -370,7 +371,7 @@ more_basic_blocks(isc__mem_t *ctx) {
 			memmove(table, ctx->basic_table,
 				ctx->basic_table_size *
 				  sizeof(unsigned char *));
-			(ctx->memfree)(ctx->arg, ctx->basic_table);
+			(ctx->memfree)(ctx->basic_table);
 			ctx->malloced -= ctx->basic_table_size *
 					 sizeof(unsigned char *);
 		}
@@ -378,7 +379,7 @@ more_basic_blocks(isc__mem_t *ctx) {
 		ctx->basic_table_size = table_size;
 	}
 
-	tmp = (ctx->memalloc)(ctx->arg, NUM_BASIC_BLOCKS * ctx->mem_target);
+	tmp = (ctx->memalloc)(NUM_BASIC_BLOCKS * ctx->mem_target);
 	RUNTIME_CHECK(tmp != NULL);
 	ctx->total += NUM_BASIC_BLOCKS * ctx->mem_target;;
 	ctx->basic_table[ctx->basic_table_count] = tmp;
@@ -471,7 +472,7 @@ mem_getunlocked(isc__mem_t *ctx, size_t size) {
 		/*
 		 * memget() was called on something beyond our upper limit.
 		 */
-		ret = (ctx->memalloc)(ctx->arg, size);
+		ret = (ctx->memalloc)(size);
 		RUNTIME_CHECK(ret != NULL);
 		ctx->total += size;
 		ctx->inuse += size;
@@ -550,7 +551,7 @@ mem_putunlocked(isc__mem_t *ctx, void *mem, size_t size) {
 		if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0))
 			memset(mem, 0xde, size); /* Mnemonic for "dead". */
 
-		(ctx->memfree)(ctx->arg, mem);
+		(ctx->memfree)(mem);
 		INSIST(ctx->stats[ctx->max_size].gets != 0U);
 		ctx->stats[ctx->max_size].gets--;
 		INSIST(size <= ctx->inuse);
@@ -594,7 +595,7 @@ mem_get(isc__mem_t *ctx, size_t size) {
 #if ISC_MEM_CHECKOVERRUN
 	size += 1;
 #endif
-	ret = (ctx->memalloc)(ctx->arg, size);
+	ret = (ctx->memalloc)(size);
 	RUNTIME_CHECK(ret != NULL);
 
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0)) {
@@ -623,7 +624,7 @@ mem_put(isc__mem_t *ctx, void *mem, size_t size) {
 #endif
 	if (ISC_UNLIKELY((ctx->flags & ISC_MEMFLAG_FILL) != 0))
 		memset(mem, 0xde, size); /* Mnemonic for "dead". */
-	(ctx->memfree)(ctx->arg, mem);
+	(ctx->memfree)(mem);
 }
 
 /*!
@@ -678,9 +679,8 @@ mem_putstats(isc__mem_t *ctx, void *ptr, size_t size) {
  */
 
 static void *
-default_memalloc(void *arg, size_t size) {
+default_memalloc(size_t size) {
 	void *ptr;
-	UNUSED(arg);
 
 	ptr = malloc(size);
 
@@ -709,8 +709,7 @@ default_memalloc(void *arg, size_t size) {
 }
 
 static void
-default_memfree(void *arg, void *ptr) {
-	UNUSED(arg);
+default_memfree(void *ptr) {
 	free(ptr);
 }
 
@@ -721,27 +720,19 @@ initialize_action(void) {
 	totallost = 0;
 }
 
-/*
- * Public.
- */
-
-void
-isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
-		isc_mem_t **ctxp, unsigned int flags)
+static void
+mem_create(isc_mem_t **ctxp, unsigned int flags)
 {
 	isc__mem_t *ctx;
 
 	REQUIRE(ctxp != NULL && *ctxp == NULL);
-	REQUIRE(memalloc != NULL);
-	REQUIRE(memfree != NULL);
 
 	STATIC_ASSERT((ALIGNMENT_SIZE & (ALIGNMENT_SIZE - 1)) == 0,
 		      "wrong alignment size");
 
 	RUNTIME_CHECK(isc_once_do(&once, initialize_action) == ISC_R_SUCCESS);
 
-	ctx = (memalloc)(arg, sizeof(*ctx));
-	RUNTIME_CHECK(ctx != NULL);
+	ctx = (default_memalloc)(sizeof(*ctx));
 
 	if ((flags & ISC_MEMFLAG_NOLOCK) == 0) {
 		isc_mutex_init(&ctx->lock);
@@ -766,9 +757,8 @@ isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 	ctx->common.impmagic = MEM_MAGIC;
 	ctx->common.magic = ISCAPI_MCTX_MAGIC;
 	ctx->common.methods = (isc_memmethods_t *)&memmethods;
-	ctx->memalloc = memalloc;
-	ctx->memfree = memfree;
-	ctx->arg = arg;
+	ctx->memalloc = default_memalloc;
+	ctx->memfree = default_memfree;
 	ctx->stats = NULL;
 	ctx->checkfree = true;
 #if ISC_MEM_TRACKLINES
@@ -785,8 +775,7 @@ isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 	ctx->lowest = NULL;
 	ctx->highest = NULL;
 
-	ctx->stats = (memalloc)(arg,
-				(ctx->max_size+1) * sizeof(struct stats));
+	ctx->stats = (ctx->memalloc)((ctx->max_size+1) * sizeof(struct stats));
 	RUNTIME_CHECK(ctx->stats != NULL);
 
 	memset(ctx->stats, 0, (ctx->max_size + 1) * sizeof(struct stats));
@@ -795,7 +784,7 @@ isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 
 	if ((flags & ISC_MEMFLAG_INTERNAL) != 0) {
 		ctx->mem_target = DEF_MEM_TARGET;
-		ctx->freelists = (memalloc)(arg, ctx->max_size *
+		ctx->freelists = (ctx->memalloc)(ctx->max_size *
 						 sizeof(element *));
 		RUNTIME_CHECK(ctx->freelists != NULL);
 		memset(ctx->freelists, 0,
@@ -808,7 +797,7 @@ isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 	if (ISC_UNLIKELY((isc_mem_debugging & ISC_MEM_DEBUGRECORD) != 0)) {
 		unsigned int i;
 
-		ctx->debuglist = (memalloc)(arg, (DEBUG_TABLE_COUNT *
+		ctx->debuglist = (ctx->memalloc)((DEBUG_TABLE_COUNT *
 						  sizeof(debuglist_t)));
 		RUNTIME_CHECK(ctx->debuglist != NULL);
 		for (i = 0; i < DEBUG_TABLE_COUNT; i++)
@@ -824,6 +813,10 @@ isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree, void *arg,
 
 	*ctxp = (isc_mem_t *)ctx;
 }
+
+/*
+ * Public.
+ */
 
 static void
 destroy(isc__mem_t *ctx) {
@@ -856,7 +849,7 @@ destroy(isc__mem_t *ctx) {
 				ctx->malloced -= sizeof(*dl);
 			}
 
-		(ctx->memfree)(ctx->arg, ctx->debuglist);
+		(ctx->memfree)(ctx->debuglist);
 		ctx->malloced -= DEBUG_TABLE_COUNT * sizeof(debuglist_t);
 	}
 #endif
@@ -877,18 +870,18 @@ destroy(isc__mem_t *ctx) {
 		}
 	}
 
-	(ctx->memfree)(ctx->arg, ctx->stats);
+	(ctx->memfree)(ctx->stats);
 	ctx->malloced -= (ctx->max_size+1) * sizeof(struct stats);
 
 	if ((ctx->flags & ISC_MEMFLAG_INTERNAL) != 0) {
 		for (i = 0; i < ctx->basic_table_count; i++) {
-			(ctx->memfree)(ctx->arg, ctx->basic_table[i]);
+			(ctx->memfree)(ctx->basic_table[i]);
 			ctx->malloced -= NUM_BASIC_BLOCKS * ctx->mem_target;
 		}
-		(ctx->memfree)(ctx->arg, ctx->freelists);
+		(ctx->memfree)(ctx->freelists);
 		ctx->malloced -= ctx->max_size * sizeof(element *);
 		if (ctx->basic_table != NULL) {
-			(ctx->memfree)(ctx->arg, ctx->basic_table);
+			(ctx->memfree)(ctx->basic_table);
 			ctx->malloced -= ctx->basic_table_size *
 					 sizeof(unsigned char *);
 		}
@@ -899,7 +892,7 @@ destroy(isc__mem_t *ctx) {
 	ctx->malloced -= sizeof(*ctx);
 	if (ctx->checkfree)
 		INSIST(ctx->malloced == 0);
-	(ctx->memfree)(ctx->arg, ctx);
+	(ctx->memfree)(ctx);
 }
 
 void
@@ -2364,8 +2357,7 @@ isc_mem_renderjson(void *memobj0) {
 
 void
 isc_mem_create(isc_mem_t **mctxp) {
-	isc_mem_createx(default_memalloc, default_memfree,
-			NULL, mctxp, isc_mem_defaultflags);
+	mem_create(mctxp, isc_mem_defaultflags);
 }
 
 void *

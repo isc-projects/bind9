@@ -28,9 +28,6 @@ ISC_LANG_BEGINDECLS
 #define ISC_MEM_HIWATER 1
 typedef void (*isc_mem_water_t)(void *, int);
 
-typedef void * (*isc_memalloc_t)(void *, size_t);
-typedef void (*isc_memfree_t)(void *, void *);
-
 /*%
  * Define ISC_MEM_TRACKLINES=1 to turn on detailed tracing of memory
  * allocation and freeing by file and line number.
@@ -123,14 +120,14 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 #endif
 
 /*
- * Flags for isc_mem_createx() calls.
+ * Flags for isc_mem_create() calls.
  */
 #define ISC_MEMFLAG_NOLOCK	0x00000001	 /* no lock is necessary */
 #define ISC_MEMFLAG_INTERNAL	0x00000002	 /* use internal malloc */
 #define ISC_MEMFLAG_FILL	0x00000004	 /* fill with pattern after alloc and frees */
 
 #if !ISC_MEM_USE_INTERNAL_MALLOC
-#define ISC_MEMFLAG_DEFAULT 	0
+#define ISC_MEMFLAG_DEFAULT	0
 #else
 #define ISC_MEMFLAG_DEFAULT	ISC_MEMFLAG_INTERNAL|ISC_MEMFLAG_FILL
 #endif
@@ -255,24 +252,8 @@ struct isc_mempool {
 void
 isc_mem_create(isc_mem_t **mctxp);
 
-void
-isc_mem_createx(isc_memalloc_t memalloc, isc_memfree_t memfree,
-		void *arg, isc_mem_t **mctxp, unsigned int flags);
-
 /*!<
  * \brief Create a memory context.
- *
- * A memory context created using isc_mem_createx() will obtain
- * memory from the system by calling 'memalloc' and 'memfree',
- * passing them the argument 'arg'.  A memory context created
- * using isc_mem_create() will use the standard library malloc()
- * and free().
- *
- * If ISC_MEMFLAG_NOLOCK is set in 'flags', the corresponding memory context
- * will be accessed without locking.  The user who creates the context must
- * ensure there be no race.  Since this can be a source of bug, it is generally
- * inadvisable to use this flag unless the user is very sure about the race
- * condition and the access to the object is highly performance sensitive.
  *
  * Requires:
  * mctxp != NULL && *mctxp == NULL */
