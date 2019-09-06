@@ -364,6 +364,7 @@ recvresponse(isc_task_t *task, isc_event_t *event) {
 
 		printf("    %s:\n", "response_message_data");
 		result = dns_message_headertotext(response, style, flags, buf);
+		CHECK("dns_message_headertotext", result);
 	} else if (display_comments && !display_short_form) {
 		printf(";; Got answer:\n");
 
