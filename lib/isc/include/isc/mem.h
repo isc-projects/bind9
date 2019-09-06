@@ -122,7 +122,7 @@ LIBISC_EXTERNAL_DATA extern unsigned int isc_mem_defaultflags;
 /*
  * Flags for isc_mem_create() calls.
  */
-#define ISC_MEMFLAG_NOLOCK	0x00000001	 /* no lock is necessary */
+#define ISC_MEMFLAG_RESERVED	0x00000001	 /* reserved, obsoleted, don't use */
 #define ISC_MEMFLAG_INTERNAL	0x00000002	 /* use internal malloc */
 #define ISC_MEMFLAG_FILL	0x00000004	 /* fill with pattern after alloc and frees */
 
