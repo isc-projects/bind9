@@ -169,7 +169,9 @@ isc_ht_find(const isc_ht_t *ht, const unsigned char *key,
 	while (node != NULL) {
 		if (keysize == node->keysize &&
 		    memcmp(key, node->key, keysize) == 0) {
-			*valuep = node->value;
+			if (valuep != NULL) {
+				*valuep = node->value;
+			}
 			return (ISC_R_SUCCESS);
 		}
 		node = node->next;

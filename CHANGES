@@ -1,3 +1,6 @@
+5290.	[bug]		Address potential NULL pointer dereference in
+			isc_ht_find. [GL #1211]
+
 5287.	[bug]		Address potential NULL pointer dereference. [GL #1208]
 
 5286.	[contrib]	Address potential NULL pointer dereferences in
