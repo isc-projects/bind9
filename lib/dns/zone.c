@@ -426,6 +426,7 @@ struct dns_zone {
 	 */
 	dns_diff_t		rss_diff;
 	isc_eventlist_t		rss_events;
+	isc_eventlist_t		rss_post;
 	dns_dbversion_t		*rss_newver;
 	dns_dbversion_t		*rss_oldver;
 	dns_db_t		*rss_db;
@@ -795,6 +796,7 @@ static isc_result_t zonemgr_getio(dns_zonemgr_t *zmgr, bool high,
 				  void *arg, dns_io_t **iop);
 static void zonemgr_putio(dns_io_t **iop);
 static void zonemgr_cancelio(dns_io_t *io);
+static void rss_post(dns_zone_t *, isc_event_t *);
 
 static isc_result_t
 zone_get_from_db(dns_zone_t *zone, dns_db_t *db, unsigned int *nscount,
@@ -1053,6 +1055,7 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->requestixfr = true;
 	zone->requestexpire = true;
 	ISC_LIST_INIT(zone->rss_events);
+	ISC_LIST_INIT(zone->rss_post);
 	zone->rss_db = NULL;
 	zone->rss_raw = NULL;
 	zone->rss_newver = NULL;
@@ -1109,7 +1112,7 @@ zone_free(dns_zone_t *zone) {
 	isc_mem_t *mctx = NULL;
 	dns_signing_t *signing;
 	dns_nsec3chain_t *nsec3chain;
-	isc_event_t *setnsec3param_event;
+	isc_event_t *event;
 	dns_include_t *include;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1144,10 +1147,14 @@ zone_free(dns_zone_t *zone) {
 
 	/* Unmanaged objects */
 	while (!ISC_LIST_EMPTY(zone->setnsec3param_queue)) {
-		setnsec3param_event = ISC_LIST_HEAD(zone->setnsec3param_queue);
-		ISC_LIST_UNLINK(zone->setnsec3param_queue, setnsec3param_event,
-				ev_link);
-		isc_event_free(&setnsec3param_event);
+		event = ISC_LIST_HEAD(zone->setnsec3param_queue);
+		ISC_LIST_UNLINK(zone->setnsec3param_queue, event, ev_link);
+		isc_event_free(&event);
+	}
+	while (!ISC_LIST_EMPTY(zone->rss_post)) {
+		event = ISC_LIST_HEAD(zone->setnsec3param_queue);
+		ISC_LIST_UNLINK(zone->rss_post, event, ev_link);
+		isc_event_free(&event);
 	}
 	for (signing = ISC_LIST_HEAD(zone->signing);
 	     signing != NULL;
@@ -14949,6 +14956,14 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 		ISC_LIST_UNLINK(zone->rss_events, event, ev_link);
 		goto nextevent;
 	}
+
+	event = ISC_LIST_HEAD(zone->rss_post);
+	while (event != NULL) {
+		ISC_LIST_UNLINK(zone->rss_post, event, ev_link);
+		rss_post(zone, event);
+		event = ISC_LIST_HEAD(zone->rss_post);
+	}
+
 	dns_zone_idetach(&zone);
 }
 
@@ -19434,19 +19449,47 @@ dns_zone_keydone(dns_zone_t *zone, const char *keystr) {
 /*
  * Called from the zone task's queue after the relevant event is posted by
  * dns_zone_setnsec3param().
- *
+ */
+static void
+setnsec3param(isc_task_t *task, isc_event_t *event) {
+	const char *me = "setnsec3param";
+	dns_zone_t *zone = event->ev_arg;
+
+	INSIST(DNS_ZONE_VALID(zone));
+
+	UNUSED(task);
+
+	ENTER;
+
+	/*
+	 * If receive_secure_serial is still processing or we have a
+	 * queued event append rss_post queue.
+	 */
+	if (zone->rss_newver != NULL ||
+	    ISC_LIST_HEAD(zone->rss_post) != NULL)
+	{
+		/*
+		 * Wait for receive_secure_serial() to finish processing.
+		 */
+		ISC_LIST_APPEND(zone->rss_post, event, ev_link);
+	} else {
+		rss_post(zone, event);
+	}
+	dns_zone_idetach(&zone);
+}
+
+/*
  * Check whether NSEC3 chain addition or removal specified by the private-type
  * record passed with the event was already queued (or even fully performed).
  * If not, modify the relevant private-type records at the zone apex and call
  * resume_addnsec3chain().
  */
 static void
-setnsec3param(isc_task_t *task, isc_event_t *event) {
-	const char *me = "setnsec3param";
+rss_post(dns_zone_t *zone, isc_event_t *event) {
+	const char *me = "rss_post";
 	bool commit = false;
 	isc_result_t result;
 	dns_dbversion_t *oldver = NULL, *newver = NULL;
-	dns_zone_t *zone;
 	dns_db_t *db = NULL;
 	dns_dbnode_t *node = NULL;
 	dns_rdataset_t prdataset, nrdataset;
@@ -19457,11 +19500,6 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 	dns_rdata_t rdata;
 	bool nseconly;
 	bool exists = false;
-
-	UNUSED(task);
-
-	zone = event->ev_arg;
-	INSIST(DNS_ZONE_VALID(zone));
 
 	ENTER;
 
@@ -19632,7 +19670,6 @@ setnsec3param(isc_task_t *task, isc_event_t *event) {
 	}
 	dns_diff_clear(&diff);
 	isc_event_free(&event);
-	dns_zone_idetach(&zone);
 
 	INSIST(oldver == NULL);
 	INSIST(newver == NULL);
