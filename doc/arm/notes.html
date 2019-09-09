@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.14.5</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.14.6</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -236,6 +236,13 @@
 	<p>
 	  Handle ETIMEDOUT error on connect() with a non-blocking
 	  socket. [GL #1133]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  When a <span class="command"><strong>response-policy</strong></span> zone expires, ensure
+	  that its policies are removed from the RPZ summary database.
+	  [GL #1146]
 	</p>
       </li>
 </ul></div>
