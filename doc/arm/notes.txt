@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.14.5
+Release Notes for BIND Version 9.14.6
 
 Introduction
 
@@ -128,6 +128,9 @@ Bug Fixes
 
   * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
     1133]
+
+  * When a response-policy zone expires, ensure that its policies are
+    removed from the RPZ summary database. [GL #1146]
 
 License
 
