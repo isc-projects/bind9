@@ -104,7 +104,7 @@ PLATFORMS: PLATFORMS.md
 		sed -e '$${/^$$/d;}' > $@
 
 CODE_OF_CONDUCT: CODE_OF_CONDUCT.md
-	${PANDOC} --email-obfuscation=none -s --metadata title="CODE OF CONDUCT" -f markdown-smart -t html $< | \
+	${PANDOC} --email-obfuscation=none -s --metadata title="CODE OF CONDUCT" -f markdown-smart -t html CODE_OF_CONDUCT.md | \
 		${W3M} -dump -cols 75 -O ascii -T text/html | \
 		sed -e '$${/^$$/d;}' > $@
 
