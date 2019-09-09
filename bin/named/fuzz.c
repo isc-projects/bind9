@@ -142,7 +142,7 @@ fuzz_thread_client(void *arg) {
 		 * Read the reply message from named to unclog it. Don't
 		 * bother if there isn't a reply.
 		 */
-		recvfrom(sockfd, buf, 65536, MSG_DONTWAIT, NULL, NULL);
+		(void)recvfrom(sockfd, buf, 65536, MSG_DONTWAIT, NULL, NULL);
 
 		while (!ready)
 			pthread_cond_wait(&cond, &mutex);
@@ -412,8 +412,8 @@ fuzz_thread_resolver(void *arg) {
 		 * Flush any pending data on the authoritative server.
 		 */
 		socklen = sizeof(recvaddr);
-		sent = recvfrom(listenfd, rbuf, 65536, MSG_DONTWAIT,
-			(struct sockaddr *) &recvaddr, &socklen);
+		(void)recvfrom(listenfd, rbuf, 65536, MSG_DONTWAIT,
+			       (struct sockaddr *) &recvaddr, &socklen);
 
 		/*
 		 * Send a fixed client query to named(resolver) of
@@ -511,7 +511,8 @@ fuzz_thread_resolver(void *arg) {
 				 * to the client(query driver), so we're
 				 * done.
 				 */
-				recvfrom(sockfd, buf, 65536, 0, NULL, NULL);
+				(void)recvfrom(sockfd, buf, 65536, 0, NULL,
+					       NULL);
 				break;
 			}
 

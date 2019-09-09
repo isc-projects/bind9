@@ -497,7 +497,7 @@ opensslrsa_generate(dst_key_t *key, int exp, void (*callback)(int)) {
 	} else {
 		/* cppcheck-suppress unreadVariable */
 		u.fptr = callback;
-		BN_GENCB_set(cb, &progress_cb, u.dptr);
+		BN_GENCB_set(cb, progress_cb, u.dptr);
 	}
 
 	if (RSA_generate_key_ex(rsa, key->key_size, e, cb)) {
@@ -600,8 +600,7 @@ opensslrsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 
 	ret = ISC_R_SUCCESS;
  err:
-	if (rsa != NULL)
-		RSA_free(rsa);
+	RSA_free(rsa);
 	return (ret);
 }
 

@@ -367,8 +367,7 @@ openssleddsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	ret = ISC_R_SUCCESS;
 
  err:
-	if (ctx != NULL)
-		EVP_MD_CTX_free(ctx);
+	EVP_MD_CTX_free(ctx);
 	isc_buffer_free(&buf);
 	dctx->ctxdata.generic = NULL;
 
@@ -435,8 +434,7 @@ openssleddsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
 	}
 
  err:
-	if (ctx != NULL)
-		EVP_MD_CTX_free(ctx);
+	EVP_MD_CTX_free(ctx);
 	isc_buffer_free(&buf);
 	dctx->ctxdata.generic = NULL;
 
@@ -507,8 +505,7 @@ openssleddsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	ret = ISC_R_SUCCESS;
 
  err:
-	if (ctx != NULL)
-		EVP_PKEY_CTX_free(ctx);
+	EVP_PKEY_CTX_free(ctx);
 	return (ret);
 }
 

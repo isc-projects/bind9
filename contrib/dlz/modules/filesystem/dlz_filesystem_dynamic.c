@@ -595,7 +595,6 @@ dlz_allnodes(const char *zone, void *dbdata, dns_sdlzallnodes_t *allnodes) {
 	dir_entry_t *next_de;
 
 	basepath = NULL;
-	dir_list = NULL;
 
 	/* allocate memory for list */
 	dir_list = malloc(sizeof(dlist_t));

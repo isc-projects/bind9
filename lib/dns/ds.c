@@ -118,8 +118,6 @@ dns_ds_buildrdata(dns_name_t *owner, dns_rdata_t *key,
 	ret = dns_rdata_fromstruct(rdata, key->rdclass, dns_rdatatype_ds,
 				   &ds, &b);
 end:
-	if (md != NULL) {
-		isc_md_free(md);
-	}
+	isc_md_free(md);
 	return (ret);
 }

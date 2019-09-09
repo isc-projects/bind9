@@ -255,8 +255,7 @@ build_querylist(const char *query_str, char **zone, char **record,
 
  flag_fail:
 	/* get rid of what was build of the query list */
-	if (tql != NULL)
-		destroy_querylist(&tql);
+	destroy_querylist(&tql);
 	return (result);
 }
 

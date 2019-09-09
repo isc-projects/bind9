@@ -635,14 +635,12 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	if (!match_root) {
 		return (ISC_R_SUCCESS);
 	}
-	if (!root_validation && match_root) {
+
+	if (!root_validation) {
 		return (ISC_R_SUCCESS);
 	}
 
-	if (match_root) {
-		delv_log(ISC_LOG_DEBUG(3), "adding trust anchor %s",
-			  trust_anchor);
-	}
+	delv_log(ISC_LOG_DEBUG(3), "adding trust anchor %s", trust_anchor);
 
 	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
 	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));

@@ -35,7 +35,7 @@
 
 /*
  * Copyright (C) 1999-2001, 2013-2014, 2016  Internet Systems Consortium, Inc. ("ISC")
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -277,8 +277,7 @@ sqlite3_get_resultset(const char *zone, const char *record,
 #endif /* PTHREADS */
 
 	if (dbi == NULL) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
+		return (ISC_R_FAILURE);
 	}
 
 	/* what type of query are we going to run? */
@@ -431,16 +430,13 @@ sqlite3_get_resultset(const char *zone, const char *record,
 	result = ISC_R_SUCCESS;
 	if (query == COUNTZONE) {
 		sqlite3_free_table(rs->pazResult);
-		if (rs == NULL)
-			result = ISC_R_FAILURE;
 	}
 
-	*rsp = rs;
+	if (rsp != NULL) {
+		*rsp = rs;
+	}
 
  cleanup:
-	if (dbi == NULL)
-		return (ISC_R_FAILURE);
-
 	if (dbi->zone != NULL) {
 		free(dbi->zone);
 		dbi->zone = NULL;

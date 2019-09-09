@@ -146,7 +146,7 @@ dns_dnsrps_server_create(void) {
 
 	isc_mutex_init(&dnsrps_mutex);
 
-	librpz->set_log(&dnsrps_log_fnc, NULL);
+	librpz->set_log(dnsrps_log_fnc, NULL);
 
 	clist = librpz->clist_create(&emsg, dnsrps_lock, dnsrps_unlock,
 				     dnsrps_mutex_destroy, &dnsrps_mutex,

@@ -649,7 +649,6 @@ make_empty_lookup(void) {
 	looknew->use_usec = false;
 	looknew->nocrypto = false;
 	looknew->ttlunits = false;
-	looknew->ttlunits = false;
 	looknew->expandaaaa = false;
 	looknew->qr = false;
 	looknew->accept_reply_unexpected_src = false;

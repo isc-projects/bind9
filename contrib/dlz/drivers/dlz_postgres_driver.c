@@ -303,8 +303,7 @@ postgres_get_resultset(const char *zone, const char *record,
 
 	/* if DBI is null, can't do anything else */
 	if (dbi == NULL) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
+		return (ISC_R_FAILURE);
 	}
 
 	/* what type of query are we going to run? */
@@ -563,10 +562,6 @@ postgres_get_resultset(const char *zone, const char *record,
 		      DNS_LOGMODULE_DLZ, ISC_LOG_ERROR,
 		      "%d cleaning up", dlz_thread_num);
 #endif
-
-	/* if we couldn't even allocate DBI, just return NULL */
-	if (dbi == NULL)
-		return ISC_R_FAILURE;
 
 	/* free dbi->zone string */
 	if (dbi->zone != NULL)
