@@ -1000,6 +1000,14 @@
 	      seconds, minutes, hours, days and weeks.  Implies +ttlid.
 	    </p>
 	  </dd>
+<dt><span class="term"><code class="option">+[no]unexpected</code></span></dt>
+<dd>
+	    <p>
+	      Accept [do not accept] answers from unexpected sources.  By
+	      default, <span class="command"><strong>dig</strong></span> won't accept a reply from a
+	      source other than the one to which it sent the query.
+	    </p>
+	  </dd>
 <dt><span class="term"><code class="option">+[no]unknownformat</code></span></dt>
 <dd>
 	    <p>
@@ -1015,6 +1023,13 @@
 	      alternate syntax to <em class="parameter"><code>+[no]tcp</code></em>
 	      is provided for backwards compatibility.  The "vc"
 	      stands for "virtual circuit".
+	    </p>
+	  </dd>
+<dt><span class="term"><code class="option">+[no]yaml</code></span></dt>
+<dd>
+	    <p>
+	      Print the responses (and, if <code class="option">+qr</code> is in use,
+	      also the outgoing queries) in a detailed YAML format.
 	    </p>
 	  </dd>
 <dt><span class="term"><code class="option">+[no]zflag</code></span></dt>

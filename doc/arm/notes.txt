@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.15.3
+Release Notes for BIND Version 9.15.4
 
 Introduction
 
@@ -65,6 +65,11 @@ Security Fixes
 
 New Features
 
+  * Added a new command line option to dig: <comand>+[no]unexpected</
+    comand>. By default, dig won't accept a reply from a source other than
+    the one to which it sent the query. Add the +unexpected argument to
+    enable it to process replies from unexpected sources.
+
   * The GeoIP2 API from MaxMind is now supported. Geolocation support will
     be compiled in by default if the libmaxminddb library is found at
     compile time, but can be turned off by using configure --disable-geoip
@@ -108,6 +113,9 @@ New Features
     update. [GL #513]
 
   * Statistics channel groups are now toggleable. [GL #1030]
+
+  * dig, mdig and delv can all now take a +yaml option to print output in
+    a a detailed YAML format. [RT #1145]
 
 Removed Features
 
@@ -153,8 +161,8 @@ Feature Changes
   * A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added and
     made default. Old non-default HMAC-SHA based DNS Cookie algorithms
     have been removed, and only the default AES algorithm is being kept
-    for legacy reasons. This changes doesn't have any operational impact
-    in most common scenarios. [GL #605]
+    for legacy reasons. This change doesn't have any operational impact in
+    most common scenarios. [GL #605]
 
     If you are running multiple DNS Servers (different versions of BIND 9
     or DNS server from multiple vendors) responding from the same IP
@@ -207,7 +215,7 @@ Bug Fixes
   * named-checkconf now checks DNS64 prefixes to ensure bits 64-71 are
     zero. [GL #1159]
 
-  * named-checkconf now correctly reports missing dnstap-output option
+  * named-checkconf now correctly reports a missing dnstap-output option
     when dnstap is set. [GL #1136]
 
   * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
@@ -215,6 +223,9 @@ Bug Fixes
 
   * dig now correctly expands the IPv6 address when run with +expandaaaa
     +short. [GL #1152]
+
+  * When a response-policy zone expires, ensure that its policies are
+    removed from the RPZ summary database. [GL #1146]
 
 License
 

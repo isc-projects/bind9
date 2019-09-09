@@ -744,6 +744,13 @@ Display [do not display] the TTL when printing the record\&.
 Display [do not display] the TTL in friendly human\-readable time units of "s", "m", "h", "d", and "w", representing seconds, minutes, hours, days and weeks\&. Implies +ttlid\&.
 .RE
 .PP
+\fB+[no]unexpected\fR
+.RS 4
+Accept [do not accept] answers from unexpected sources\&. By default,
+\fBdig\fR
+won\*(Aqt accept a reply from a source other than the one to which it sent the query\&.
+.RE
+.PP
 \fB+[no]unknownformat\fR
 .RS 4
 Print all RDATA in unknown RR type presentation format (RFC 3597)\&. The default is to print RDATA for known types in the type\*(Aqs presentation format\&.
@@ -754,6 +761,13 @@ Print all RDATA in unknown RR type presentation format (RFC 3597)\&. The default
 Use [do not use] TCP when querying name servers\&. This alternate syntax to
 \fI+[no]tcp\fR
 is provided for backwards compatibility\&. The "vc" stands for "virtual circuit"\&.
+.RE
+.PP
+\fB+[no]yaml\fR
+.RS 4
+Print the responses (and, if
+\fB+qr\fR
+is in use, also the outgoing queries) in a detailed YAML format\&.
 .RE
 .PP
 \fB+[no]zflag\fR

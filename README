@@ -110,6 +110,7 @@ of changes from BIND 9.14 and earlier releases. New features include:
 
   * Support for the new GeoIP2 geolocation API
   * Improved DNSSEC key configuration using dnssec-keys
+  * YAML output for dig, mdig, and delv.
 
 Building BIND
 
