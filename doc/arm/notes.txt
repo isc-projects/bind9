@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.10
+Release Notes for BIND Version 9.11.11
 
 Introduction
 
