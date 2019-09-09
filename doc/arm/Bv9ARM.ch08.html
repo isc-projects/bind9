@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.3</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.4</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
@@ -55,7 +55,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.3</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.4</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -165,6 +165,15 @@
     <div class="itemizedlist"><ul class="itemizedlist" style="list-style-type: disc; ">
 <li class="listitem">
 	<p>
+          Added a new command line option to <span class="command"><strong>dig</strong></span>:
+	  <span style="color: red">&lt;comand&gt;+[no]unexpected&lt;/comand&gt;</span>. By default, <span class="command"><strong>dig</strong></span>
+	  won't accept a reply from a source other than the one to which
+	  it sent the query.  Add the <span class="command"><strong>+unexpected</strong></span> argument
+	  to enable it to process replies from unexpected sources.
+        </p>
+      </li>
+<li class="listitem">
+	<p>
 	  The GeoIP2 API from MaxMind is now supported. Geolocation support
 	  will be compiled in by default if the <span class="command"><strong>libmaxminddb</strong></span>
 	  library is found at compile time, but can be turned off by using
@@ -236,8 +245,15 @@
       </li>
 <li class="listitem">
 	<p>
-	Statistics channel groups are now toggleable. [GL #1030]
+	  Statistics channel groups are now toggleable. [GL #1030]
 	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  <span class="command"><strong>dig</strong></span>, <span class="command"><strong>mdig</strong></span> and
+	  <span class="command"><strong>delv</strong></span> can all now take a <span class="command"><strong>+yaml</strong></span>
+	  option to print output in a a detailed YAML format. [RT #1145]
+        </p>
       </li>
 </ul></div>
   </div>
@@ -328,7 +344,7 @@
 	  A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added and
 	  made default.  Old non-default HMAC-SHA based DNS Cookie algorithms
 	  have been removed, and only the default AES algorithm is being kept
-	  for legacy reasons.  This changes doesn't have any operational impact
+	  for legacy reasons.  This change doesn't have any operational impact
 	  in most common scenarios. [GL #605]
 	</p>
 	<p>
@@ -426,8 +442,8 @@
       </li>
 <li class="listitem">
 	<p>
-	  <span class="command"><strong>named-checkconf</strong></span> now correctly reports missing
-	  <span class="command"><strong>dnstap-output</strong></span> option when
+	  <span class="command"><strong>named-checkconf</strong></span> now correctly reports
+	  a missing <span class="command"><strong>dnstap-output</strong></span> option when
 	  <span class="command"><strong>dnstap</strong></span> is set. [GL #1136]
 	</p>
       </li>
@@ -441,6 +457,13 @@
 	<p>
 	  <span class="command"><strong>dig</strong></span> now correctly expands the IPv6 address
 	  when run with <span class="command"><strong>+expandaaaa +short</strong></span>. [GL #1152]
+	</p>
+      </li>
+<li class="listitem">
+	<p>
+	  When a <span class="command"><strong>response-policy</strong></span> zone expires, ensure
+	  that its policies are removed from the RPZ summary database.
+	  [GL #1146]
 	</p>
       </li>
 </ul></div>
@@ -518,6 +541,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.3 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.4 (Development Release)</p>
 </body>
 </html>
