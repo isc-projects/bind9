@@ -301,6 +301,14 @@ BIND 9.11.9 is a maintenance release, and also adds support for
 the new MaxMind GeoIP2 geolocation API when built with
 `configure --with-geoip2`.
 
+#### BIND 9.11.10
+
+BIND 9.11.10 is a maintenance release.
+
+#### BIND 9.11.11
+
+BIND 9.11.11 is a maintenance release.
+
 ### <a name="build"/> Building BIND
 
 BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX

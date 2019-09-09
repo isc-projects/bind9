@@ -1,3 +1,5 @@
+	--- 9.11.11 released ---
+
 5291.	[cleanup]	Revert change #4825 as it was not appropriate for 9.11.
 			[GL #1213]
 
