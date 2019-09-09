@@ -1,3 +1,6 @@
+5291.	[cleanup]	Revert change #4825 as it was not appropriate for 9.11.
+			[GL #1213]
+
 5290.	[bug]		Address potential NULL pointer dereference in
 			isc_ht_find. [GL #1211]
 

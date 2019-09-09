@@ -9829,17 +9829,6 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_LOADED);
 		zone_needdump(zone, 30);
-	} else if (result == ISC_R_NOMORE) {
-		/*
-		 * If "updatekey" was true for all keys found in the DNSKEY
-		 * response and the previous update of those keys happened
-		 * during the same second (only possible if a key refresh was
-		 * externally triggered), it may happen that all relevant
-		 * update_one_rr() calls will return ISC_R_SUCCESS, but
-		 * diff.tuples will remain empty.  Reset result to
-		 * ISC_R_SUCCESS to prevent a bogus warning from being logged.
-		 */
-		result = ISC_R_SUCCESS;
 	}
 
  failure:
