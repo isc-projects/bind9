@@ -258,16 +258,7 @@ configure_zone_ssutable(const cfg_obj_t *zconfig, dns_zone_t *zone,
 
 		dns_fixedname_init(&fname);
 		if (usezone) {
-			result = dns_name_copy(dns_zone_getorigin(zone),
-					       dns_fixedname_name(&fname),
-					       NULL);
-			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(identity, named_g_lctx,
-					    ISC_LOG_ERROR,
-					    "error copying origin: %s",
-					    isc_result_totext(result));
-				goto cleanup;
-			}
+			RUNTIME_CHECK(dns_name_copy(dns_zone_getorigin(zone), dns_fixedname_name(&fname), NULL) == ISC_R_SUCCESS);
 		} else {
 			str = cfg_obj_asstring(dname);
 			isc_buffer_constinit(&b, str, strlen(str));

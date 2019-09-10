@@ -6054,13 +6054,7 @@ query_resume(query_ctx_t *qctx) {
 		tname = dns_fixedname_name(&qctx->event->foundname);
 	}
 
-	result = dns_name_copy(tname, qctx->fname, NULL);
-	if (result != ISC_R_SUCCESS) {
-		CCTRACE(ISC_LOG_ERROR,
-		       "query_resume: dns_name_copy failed");
-		QUERY_ERROR(qctx, result);
-		return (ns_query_done(qctx));
-	}
+	RUNTIME_CHECK(dns_name_copy(tname, qctx->fname, NULL) == ISC_R_SUCCESS);
 
 	if (qctx->rpz_st != NULL &&
 	    (qctx->rpz_st->state & DNS_RPZ_RECURSING) != 0) {
