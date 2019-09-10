@@ -1240,16 +1240,19 @@ dns_name_settotextfilter(dns_name_totextfilter_t proc);
 
 isc_result_t
 dns_name_copy(const dns_name_t *source, dns_name_t *dest, isc_buffer_t *target);
+void
+dns_name_copynf(const dns_name_t *source, dns_name_t *dest);
 /*%<
- * Makes 'dest' refer to a copy of the name in 'source'.  The data are
- * either copied to 'target' or the dedicated buffer in 'dest'.
+ * Makes 'dest' refer to a copy of the name in 'source'.  The data are either
+ * copied to 'target' or in case of dns_name_copyfixed the dedicated buffer in
+ * 'dest'.
  *
  * Requires:
  * \li	'source' is a valid name.
  *
  * \li	'dest' is an initialized name with a dedicated buffer.
  *
- * \li	'target' is NULL or an initialized buffer.
+ * \li	'target' is an initialized buffer.
  *
  * \li	Either dest has a dedicated buffer or target != NULL.
  *
