@@ -1929,7 +1929,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 	 */
 	if (dns_name_countlabels(zonename) == 0 ||
 	    dns_name_issubdomain(zone, zonename))
-		RUNTIME_CHECK(dns_name_copy(zone, zonename, NULL) == ISC_R_SUCCESS);
+		dns_name_copynf(zone, zonename);
 
 	if (!dns_name_equal(zone, zonename))
 		return (ISC_R_IGNORE);
@@ -2072,7 +2072,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 				(*logit)(arg, ISC_LOG_DEBUG(3),
 					 "NSEC3 indicates potential closest "
 					 "encloser: '%s'", namebuf);
-				RUNTIME_CHECK(dns_name_copy(qname, closest, NULL) == ISC_R_SUCCESS);
+				dns_name_copynf(qname, closest);
 				*setclosest = true;
 			}
 			dns_name_format(qname, namebuf, sizeof(namebuf));
@@ -2103,7 +2103,7 @@ dns_nsec3_noexistnodata(dns_rdatatype_t type, const dns_name_t *name,
 			if (nearest != NULL &&
 			    (dns_name_countlabels(nearest) == 0 ||
 			     dns_name_issubdomain(nearest, qname))) {
-				RUNTIME_CHECK(dns_name_copy(qname, nearest, NULL) == ISC_R_SUCCESS);
+				dns_name_copynf(qname, nearest);
 				*setnearest = true;
 			}
 

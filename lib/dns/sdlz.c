@@ -1033,7 +1033,7 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		dns_rdataset_disassociate(rdataset);
 
 	if (foundname != NULL) {
-		RUNTIME_CHECK(dns_name_copy(xname, foundname, NULL) == ISC_R_SUCCESS);
+		dns_name_copynf(xname, foundname);
 	}
 
 	if (nodep != NULL)
@@ -1416,7 +1416,7 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 
 	attachnode(iterator->db, sdlziter->current, nodep);
 	if (name != NULL) {
-		RUNTIME_CHECK(dns_name_copy(sdlziter->current->name, name, NULL) == ISC_R_SUCCESS);
+		dns_name_copynf(sdlziter->current->name, name);
 		return (ISC_R_SUCCESS);
 	}
 	return (ISC_R_SUCCESS);
@@ -1431,7 +1431,7 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 static isc_result_t
 dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	UNUSED(iterator);
-	RUNTIME_CHECK(dns_name_copy(dns_rootname, name, NULL) == ISC_R_SUCCESS);
+	dns_name_copynf(dns_rootname, name);
 	return (ISC_R_SUCCESS);
 }
 

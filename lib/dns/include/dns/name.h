@@ -1244,7 +1244,7 @@ void
 dns_name_copynf(const dns_name_t *source, dns_name_t *dest);
 /*%<
  * Makes 'dest' refer to a copy of the name in 'source'.  The data are either
- * copied to 'target' or in case of dns_name_copyfixed the dedicated buffer in
+ * copied to 'target' or in case of dns_name_copynf the dedicated buffer in
  * 'dest'.
  *
  * Requires:

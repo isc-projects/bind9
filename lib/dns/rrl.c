@@ -910,7 +910,8 @@ make_log_buf(dns_rrl_t *rrl, dns_rrl_entry_t *e,
 				e->log_qname = qbuf->index;
 				qbuf->e = e;
 				dns_fixedname_init(&qbuf->qname);
-				RUNTIME_CHECK(dns_name_copy(qname, dns_fixedname_name(&qbuf->qname), NULL) == ISC_R_SUCCESS);
+				dns_name_copynf(qname,
+						   dns_fixedname_name(&qbuf->qname));
 			}
 		}
 		if (qbuf != NULL)

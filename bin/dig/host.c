@@ -396,7 +396,7 @@ chase_cnamechain(dns_message_t *msg, dns_name_t *qname) {
 		dns_rdataset_current(rdataset, &rdata);
 		result = dns_rdata_tostruct(&rdata, &cname, NULL);
 		check_result(result, "dns_rdata_tostruct");
-		RUNTIME_CHECK(dns_name_copy(&cname.cname, qname, NULL) == ISC_R_SUCCESS);
+		dns_name_copynf(&cname.cname, qname);
 		dns_rdata_freestruct(&cname);
 	}
 }
@@ -455,7 +455,7 @@ printmessage(dig_query_t *query, dns_message_t *msg, bool headers) {
 
 		/* Add AAAA and MX lookups. */
 		name = dns_fixedname_initname(&fixed);
-		RUNTIME_CHECK(dns_name_copy(query->lookup->name, name, NULL) == ISC_R_SUCCESS);
+		dns_name_copynf(query->lookup->name, name);
 		chase_cnamechain(msg, name);
 		dns_name_format(name, namestr, sizeof(namestr));
 		lookup = clone_lookup(query->lookup, false);
