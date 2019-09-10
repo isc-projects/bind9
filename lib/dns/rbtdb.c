@@ -3062,7 +3062,6 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 		 dns_name_t *foundname, dns_rdataset_t *rdataset,
 		 dns_rdataset_t *sigrdataset)
 {
-	isc_result_t result;
 	dns_name_t *zcname;
 	rbtdb_rdatatype_t type;
 	dns_rbtnode_t *node;
@@ -3083,9 +3082,7 @@ setup_delegation(rbtdb_search_t *search, dns_dbnode_t **nodep,
 	 */
 	if (foundname != NULL && search->copy_name) {
 		zcname = dns_fixedname_name(&search->zonecut_name);
-		result = dns_name_copy(zcname, foundname, NULL);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		RUNTIME_CHECK(dns_name_copy(zcname, foundname, NULL) == ISC_R_SUCCESS);
 	}
 	if (nodep != NULL) {
 		/*
@@ -3913,9 +3910,7 @@ zone_find(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 			 */
 			result = find_wildcard(&search, &node, name);
 			if (result == ISC_R_SUCCESS) {
-				result = dns_name_copy(name, foundname, NULL);
-				if (result != ISC_R_SUCCESS)
-					goto tree_exit;
+				RUNTIME_CHECK(dns_name_copy(name, foundname, NULL) == ISC_R_SUCCESS);
 				wild = true;
 				goto found;
 			}

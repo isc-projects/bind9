@@ -1033,16 +1033,7 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		dns_rdataset_disassociate(rdataset);
 
 	if (foundname != NULL) {
-		isc_result_t xresult;
-
-		xresult = dns_name_copy(xname, foundname, NULL);
-		if (xresult != ISC_R_SUCCESS) {
-			if (node != NULL)
-				destroynode(node);
-			if (dns_rdataset_isassociated(rdataset))
-				dns_rdataset_disassociate(rdataset);
-			return (DNS_R_BADDB);
-		}
+		RUNTIME_CHECK(dns_name_copy(xname, foundname, NULL) == ISC_R_SUCCESS);
 	}
 
 	if (nodep != NULL)

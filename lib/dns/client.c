@@ -1419,9 +1419,7 @@ dns_client_startresolve(dns_client_t *client, const dns_name_t *name,
 	rctx->sigrdataset = sigrdataset;
 
 	dns_fixedname_init(&rctx->name);
-	result = dns_name_copy(name, dns_fixedname_name(&rctx->name), NULL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	RUNTIME_CHECK(dns_name_copy(name, dns_fixedname_name(&rctx->name), NULL) == ISC_R_SUCCESS);
 
 	rctx->client = client;
 	ISC_LINK_INIT(rctx, link);
@@ -2235,9 +2233,7 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset,
 
 	if (uctx->zonename == NULL) {
 		uctx->zonename = dns_fixedname_name(&uctx->zonefname);
-		result = dns_name_copy(soaname, uctx->zonename, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto out;
+		RUNTIME_CHECK(dns_name_copy(soaname, uctx->zonename, NULL) == ISC_R_SUCCESS);
 	}
 
 	if (uctx->currentserver != NULL)
@@ -2274,7 +2270,6 @@ process_soa(updatectx_t *uctx, dns_rdataset_t *soaset,
 		UNLOCK(&uctx->lock);
 	}
 
- out:
 	dns_rdata_freestruct(&soa);
 
 	return (result);
@@ -2614,9 +2609,7 @@ copy_name(isc_mem_t *mctx, dns_message_t *msg, const dns_name_t *name,
 	dns_name_init(newname, NULL);
 	dns_name_setbuffer(newname, namebuf);
 	dns_message_takebuffer(msg, &namebuf);
-	result = dns_name_copy(name, newname, NULL);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
+	RUNTIME_CHECK(dns_name_copy(name, newname, NULL) == ISC_R_SUCCESS);
 
 	for (rdataset = ISC_LIST_HEAD(name->list); rdataset != NULL;
 	     rdataset = ISC_LIST_NEXT(rdataset, link)) {

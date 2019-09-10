@@ -1047,9 +1047,7 @@ chain_name(dns_rbtnodechain_t *chain, dns_name_t *name,
 
 	if (include_chain_end && chain->end != NULL) {
 		NODENAME(chain->end, &nodename);
-		result = dns_name_copy(&nodename, name, NULL);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		RUNTIME_CHECK(dns_name_copy(&nodename, name, NULL) == ISC_R_SUCCESS);
 	} else
 		dns_name_reset(name);
 

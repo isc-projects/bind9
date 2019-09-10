@@ -5994,10 +5994,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		if (event != NULL) {
 			adbp = &event->db;
 			aname = dns_fixedname_name(&event->foundname);
-			result = dns_name_copy(name, aname, NULL);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
-			}
+			RUNTIME_CHECK(dns_name_copy(name, aname, NULL) == ISC_R_SUCCESS);
 			anodep = &event->node;
 			/*
 			 * If this is an ANY, SIG or RRSIG query, we're not
@@ -6630,9 +6627,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (event != NULL) {
 			adbp = &event->db;
 			aname = dns_fixedname_name(&event->foundname);
-			result = dns_name_copy(name, aname, NULL);
-			if (result != ISC_R_SUCCESS)
-				goto unlock;
+			RUNTIME_CHECK(dns_name_copy(name, aname, NULL) == ISC_R_SUCCESS);
 			anodep = &event->node;
 			ardataset = event->rdataset;
 		}
