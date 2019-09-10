@@ -79,8 +79,7 @@ dns_order_add(dns_order_t *order, const dns_name_t *name,
 	ent = isc_mem_get(order->mctx, sizeof(*ent));
 
 	dns_fixedname_init(&ent->name);
-	RUNTIME_CHECK(dns_name_copy(name, dns_fixedname_name(&ent->name), NULL)
-		      == ISC_R_SUCCESS);
+	dns_name_copynf(name, dns_fixedname_name(&ent->name));
 	ent->rdtype = rdtype;
 	ent->rdclass = rdclass;
 	ent->mode = mode;

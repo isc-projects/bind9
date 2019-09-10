@@ -257,7 +257,7 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			dns_rdata_reset(&rdata);
 			if (result != ISC_R_SUCCESS)
 				break;
-			RUNTIME_CHECK(dns_name_copy(&cname.cname, name, NULL) == ISC_R_SUCCESS);
+			dns_name_copynf(&cname.cname, name);
 			dns_rdata_freestruct(&cname);
 			want_restart = true;
 			send_event = false;
@@ -391,7 +391,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 
 	dns_fixedname_init(&lookup->name);
 
-	RUNTIME_CHECK(dns_name_copy(name, dns_fixedname_name(&lookup->name), NULL) == ISC_R_SUCCESS);
+	dns_name_copynf(name, dns_fixedname_name(&lookup->name));
 
 	lookup->type = type;
 	lookup->view = NULL;

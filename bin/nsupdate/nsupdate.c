@@ -2618,7 +2618,7 @@ recvsoa(isc_task_t *task, isc_event_t *event) {
 		 * address.
 		 */
 		zname = dns_fixedname_initname(&fzname);
-		RUNTIME_CHECK(dns_name_copy(name, zname, NULL) == ISC_R_SUCCESS);
+		dns_name_copynf(name, zname);
 	}
 
 	if (debugging) {

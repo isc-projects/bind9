@@ -603,7 +603,7 @@ rpsdb_finddb(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		nodep = &node;
 	}
 	rpsdb_findnode(db, name, false, nodep);
-	RUNTIME_CHECK(dns_name_copy(name, foundname, NULL) == ISC_R_SUCCESS);
+	dns_name_copynf(name, foundname);
 	return (rpsdb_findrdataset(db, *nodep, NULL, type, 0, 0,
 				    rdataset, sigrdataset));
 }

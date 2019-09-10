@@ -836,7 +836,8 @@ clone_lookup(dig_lookup_t *lookold, bool servers) {
 		memmove(looknew->ecs_addr, lookold->ecs_addr, len);
 	}
 
-	RUNTIME_CHECK(dns_name_copy(dns_fixedname_name(&lookold->fdomain), dns_fixedname_name(&looknew->fdomain), NULL) == ISC_R_SUCCESS);
+	dns_name_copynf(dns_fixedname_name(&lookold->fdomain),
+			   dns_fixedname_name(&looknew->fdomain));
 
 	if (servers)
 		clone_server_list(lookold->my_server_list,
@@ -1841,7 +1842,7 @@ followup_lookup(dns_message_t *msg, dig_query_t *query, dns_section_t section)
 				if (lookup->ns_search_only)
 					lookup->recurse = false;
 				domain = dns_fixedname_name(&lookup->fdomain);
-				RUNTIME_CHECK(dns_name_copy(name, domain, NULL) == ISC_R_SUCCESS);
+				dns_name_copynf(name, domain);
 			}
 			debug("adding server %s", namestr);
 			num = getaddresses(lookup, namestr, &lresult);

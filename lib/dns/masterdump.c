@@ -521,7 +521,7 @@ rdataset_totext(dns_rdataset_t *rdataset,
 
 	if (owner_name != NULL) {
 		name = dns_fixedname_initname(&fixed);
-		RUNTIME_CHECK(dns_name_copy(owner_name, name, NULL) == ISC_R_SUCCESS);
+		dns_name_copynf(owner_name, name);
 		dns_rdataset_getownercase(rdataset, name);
 	}
 
@@ -1215,7 +1215,7 @@ dump_rdatasets_raw(isc_mem_t *mctx, const dns_name_t *owner_name,
 	dns_name_t *name;
 
 	name = dns_fixedname_initname(&fixed);
-	RUNTIME_CHECK(dns_name_copy(owner_name, name, NULL) == ISC_R_SUCCESS);
+	dns_name_copynf(owner_name, name);
 	for (result = dns_rdatasetiter_first(rdsiter);
 	     result == ISC_R_SUCCESS;
 	     result = dns_rdatasetiter_next(rdsiter)) {

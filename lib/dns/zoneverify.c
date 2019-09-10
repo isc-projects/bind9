@@ -1777,11 +1777,11 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		}
 		if (is_delegation(vctx, name, node, NULL)) {
 			zonecut = dns_fixedname_name(&fzonecut);
-			RUNTIME_CHECK(dns_name_copy(name, zonecut, NULL) == ISC_R_SUCCESS);
+			dns_name_copynf(name, zonecut);
 			isdelegation = true;
 		} else if (has_dname(vctx, node)) {
 			zonecut = dns_fixedname_name(&fzonecut);
-			RUNTIME_CHECK(dns_name_copy(name, zonecut, NULL) == ISC_R_SUCCESS);
+			dns_name_copynf(name, zonecut);
 		}
 		nextnode = NULL;
 		result = dns_dbiterator_next(dbiter);
@@ -1862,7 +1862,7 @@ verify_nodes(vctx_t *vctx, isc_result_t *vresult) {
 		} else {
 			prevname = dns_fixedname_name(&fprevname);
 		}
-		RUNTIME_CHECK(dns_name_copy(name, prevname, NULL) == ISC_R_SUCCESS);
+		dns_name_copynf(name, prevname);
 		if (*vresult == ISC_R_SUCCESS) {
 			*vresult = tvresult;
 		}
