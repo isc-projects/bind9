@@ -1543,7 +1543,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 			 * for the NSEC3 NOQNAME proof.
 			 */
 			closest = dns_fixedname_name(&val->closest);
-			dns_name_copy(wild, closest, NULL);
+			RUNTIME_CHECK(dns_name_copy(wild, closest, NULL) == ISC_R_SUCCESS);
 			labels = dns_name_countlabels(closest) - 1;
 			dns_name_getlabelsequence(closest, 1, labels, closest);
 			val->attributes |= VALATTR_NEEDNOQNAME;
@@ -2544,7 +2544,7 @@ findnsec3proofs(dns_validator_t *val) {
 				 namebuf, sizeof(namebuf));
 		validator_log(val, ISC_LOG_DEBUG(3), "closest encloser from "
 			      "wildcard signature '%s'", namebuf);
-		dns_name_copy(dns_fixedname_name(&val->closest), closest, NULL);
+		RUNTIME_CHECK(dns_name_copy(dns_fixedname_name(&val->closest), closest, NULL) == ISC_R_SUCCESS);
 		closestp = NULL;
 		setclosestp = NULL;
 	} else {
@@ -3280,9 +3280,9 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 
 	secroot = dns_fixedname_initname(&fixedsecroot);
 	found = dns_fixedname_initname(&fixedfound);
-	if (val->havedlvsep)
-		dns_name_copy(dns_fixedname_name(&val->dlvsep), secroot, NULL);
-	else {
+	if (val->havedlvsep) {
+		RUNTIME_CHECK(dns_name_copy(val->event->name, secroot, NULL) == ISC_R_SUCCESS);
+	} else {
 		unsigned int labels;
 		dns_name_copy(val->event->name, secroot, NULL);
 		/*
@@ -3363,7 +3363,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume)
 
 		tname = dns_fixedname_initname(&val->fname);
 		if (val->labels == dns_name_countlabels(val->event->name))
-			dns_name_copy(val->event->name, tname, NULL);
+			RUNTIME_CHECK(dns_name_copy(val->event->name, tname, NULL) == ISC_R_SUCCESS);
 		else
 			dns_name_split(val->event->name, val->labels,
 				       NULL, tname);

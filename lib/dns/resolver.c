@@ -1519,9 +1519,8 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 			counter->logged = 0;
 			counter->allowed = 1;
 			counter->dropped = 0;
-			counter->domain =
-				dns_fixedname_initname(&counter->fdname);
-			dns_name_copy(&fctx->domain, counter->domain, NULL);
+			counter->domain = dns_fixedname_initname(&counter->fdname);
+			RUNTIME_CHECK(dns_name_copy(&fctx->domain, counter->domain, NULL) == ISC_R_SUCCESS);
 			ISC_LIST_APPEND(dbucket->list, counter, link);
 		}
 	} else {
@@ -5396,8 +5395,7 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		wild = dns_fixedname_initname(&fwild);
-		dns_name_copy(dns_fixedname_name(&vevent->validator->wild),
-			      wild, NULL);
+		RUNTIME_CHECK(dns_name_copy(dns_fixedname_name(&vevent->validator->wild), wild, NULL) == ISC_R_SUCCESS);
 	}
 	dns_validator_destroy(&vevent->validator);
 	isc_mem_put(fctx->mctx, valarg, sizeof(*valarg));
@@ -7150,7 +7148,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		 * Retrieve state from fctx->nsfetch before we destroy it.
 		 */
 		domain = dns_fixedname_initname(&fixed);
-		dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL);
+		RUNTIME_CHECK(dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL) == ISC_R_SUCCESS);
 		if (dns_name_equal(&fctx->nsname, domain)) {
 			if (dns_rdataset_isassociated(fevent->rdataset)) {
 				dns_rdataset_disassociate(fevent->rdataset);

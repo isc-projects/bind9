@@ -5117,7 +5117,7 @@ cache_findzonecut(dns_db_t *db, const dns_name_t *name, unsigned int options,
 	} else if (result != ISC_R_SUCCESS) {
 		goto tree_exit;
 	} else if (!dcnull) {
-		dns_name_copy(dcname, foundname, NULL);
+		RUNTIME_CHECK(dns_name_copy(dcname, foundname, NULL) == ISC_R_SUCCESS);
 	}
 	/*
 	 * We now go looking for an NS rdataset at the node.
@@ -9379,7 +9379,8 @@ dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	if (rbtdbiter->result != ISC_R_SUCCESS)
 		return (rbtdbiter->result);
 
-	return (dns_name_copy(origin, name, NULL));
+	RUNTIME_CHECK(dns_name_copy(origin, name, NULL) == ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 static void
@@ -9754,7 +9755,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 		}
 
 		gluename = dns_fixedname_initname(&glue->fixedname);
-		dns_name_copy(name_a, gluename, NULL);
+		RUNTIME_CHECK(dns_name_copy(name_a, gluename, NULL) == ISC_R_SUCCESS);
 
 		dns_rdataset_init(&glue->rdataset_a);
 		dns_rdataset_init(&glue->sigrdataset_a);
@@ -9782,7 +9783,7 @@ glue_nsdname_cb(void *arg, const dns_name_t *name, dns_rdatatype_t qtype) {
 			}
 
 			gluename = dns_fixedname_initname(&glue->fixedname);
-			dns_name_copy(name_aaaa, gluename, NULL);
+			RUNTIME_CHECK(dns_name_copy(name_aaaa, gluename, NULL) == ISC_R_SUCCESS);
 
 			dns_rdataset_init(&glue->rdataset_a);
 			dns_rdataset_init(&glue->sigrdataset_a);

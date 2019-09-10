@@ -1405,7 +1405,7 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 				dns_rdataset_disassociate(rdataset);
 			result = ISC_R_NOTFOUND;
 		} else if (dcname != NULL) {
-			dns_name_copy(fname, dcname, NULL);
+			RUNTIME_CHECK(dns_name_copy(fname, dcname, NULL) == ISC_R_SUCCESS);
 		}
 	}
 

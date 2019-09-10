@@ -3110,7 +3110,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 		/*
 		 * Remember bottom of zone due to NS.
 		 */
-		dns_name_copy(name, bottom, NULL);
+		RUNTIME_CHECK(dns_name_copy(name, bottom, NULL) == ISC_R_SUCCESS);
 
 		result = dns_rdataset_first(&rdataset);
 		while (result == ISC_R_SUCCESS) {
@@ -3133,7 +3133,7 @@ integrity_checks(dns_zone_t *zone, dns_db_t *db) {
 			/*
 			 * Remember bottom of zone due to DNAME.
 			 */
-			dns_name_copy(name, bottom, NULL);
+			RUNTIME_CHECK(dns_name_copy(name, bottom, NULL) == ISC_R_SUCCESS);
 			dns_rdataset_disassociate(&rdataset);
 		}
 
@@ -7921,7 +7921,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				 * Remember the obscuring name so that
 				 * we skip all obscured names.
 				 */
-				dns_name_copy(found, name, NULL);
+				RUNTIME_CHECK(dns_name_copy(found, name, NULL) == ISC_R_SUCCESS);
 				delegation = true;
 				goto next_addnode;
 			}
@@ -8184,7 +8184,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 				 * Remember the obscuring name so that
 				 * we skip all obscured names.
 				 */
-				dns_name_copy(found, name, NULL);
+				RUNTIME_CHECK(dns_name_copy(found, name, NULL) == ISC_R_SUCCESS);
 				delegation = true;
 				goto next_removenode;
 			}
@@ -8906,7 +8906,7 @@ zone_sign(dns_zone_t *zone) {
 				 * Remember the obscuring name so that
 				 * we skip all obscured names.
 				 */
-				dns_name_copy(found, name, NULL);
+				RUNTIME_CHECK(dns_name_copy(found, name, NULL) == ISC_R_SUCCESS);
 				is_bottom_of_zone = true;
 				goto next_node;
 			}

@@ -1424,8 +1424,10 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	sdlz_dbiterator_t *sdlziter = (sdlz_dbiterator_t *)iterator;
 
 	attachnode(iterator->db, sdlziter->current, nodep);
-	if (name != NULL)
-		return (dns_name_copy(sdlziter->current->name, name, NULL));
+	if (name != NULL) {
+		RUNTIME_CHECK(dns_name_copy(sdlziter->current->name, name, NULL) == ISC_R_SUCCESS);
+		return (ISC_R_SUCCESS);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -1438,7 +1440,8 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 static isc_result_t
 dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	UNUSED(iterator);
-	return (dns_name_copy(dns_rootname, name, NULL));
+	RUNTIME_CHECK(dns_name_copy(dns_rootname, name, NULL) == ISC_R_SUCCESS);
+	return (ISC_R_SUCCESS);
 }
 
 /*
