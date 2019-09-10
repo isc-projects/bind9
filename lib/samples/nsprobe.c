@@ -911,7 +911,7 @@ resolve_ns(isc_task_t *task, isc_event_t *event) {
 				ISC_LIST_APPEND(trans->nslist, pns, link);
 				ISC_LIST_INIT(pns->servers);
 
-				dns_name_copy(&ns.name, pns->name, NULL);
+				RUNTIME_CHECK(dns_name_copy(&ns.name, pns->name, NULL) == ISC_R_SUCCESS);
 				dns_rdata_reset(&rdata);
 				dns_rdata_freestruct(&ns);
 			}

@@ -1497,7 +1497,7 @@ dns_tkey_gssnegotiate(dns_message_t *qmsg, dns_message_t *rmsg,
 		dns_fixedname_t fixed;
 
 		dns_fixedname_init(&fixed);
-		dns_name_copy(tkeyname, dns_fixedname_name(&fixed), NULL);
+		RUNTIME_CHECK(dns_name_copy(tkeyname, dns_fixedname_name(&fixed), NULL) == ISC_R_SUCCESS);
 		tkeyname = dns_fixedname_name(&fixed);
 
 		tkey.common.rdclass = dns_rdataclass_any;
