@@ -21,6 +21,7 @@
 
 #include <dns/log.h>
 #include <dns/kasp.h>
+#include <dns/keyvalues.h>
 
 isc_result_t
 dns_kasp_create(isc_mem_t *mctx, const char *name, dns_kasp_t **kaspp)
@@ -64,6 +65,7 @@ void
 dns_kasp_attach(dns_kasp_t *source, dns_kasp_t **targetp) {
 	REQUIRE(DNS_KASP_VALID(source));
 	REQUIRE(targetp != NULL && *targetp == NULL);
+
 	isc_refcount_increment(&source->references);
 	*targetp = source;
 }
@@ -95,6 +97,12 @@ dns_kasp_detach(dns_kasp_t **kaspp) {
 	}
 }
 
+const char*
+dns_kasp_getname(dns_kasp_t *kasp) {
+	REQUIRE(DNS_KASP_VALID(kasp));
+	return kasp->name;
+}
+
 void
 dns_kasp_freeze(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
@@ -109,16 +117,17 @@ dns_kasp_thaw(dns_kasp_t *kasp) {
 	kasp->frozen = false;
 }
 
-const char*
-dns_kasp_getname(dns_kasp_t *kasp) {
+dns_ttl_t
+dns_kasp_dnskeyttl(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
-	return kasp->name;
+	REQUIRE(kasp->frozen);
+	return kasp->dnskey_ttl;
 }
 
 isc_result_t
 dns_kasplist_find(dns_kasplist_t *list, const char *name, dns_kasp_t **kaspp)
 {
-	dns_kasp_t *kasp;
+	dns_kasp_t *kasp = NULL;
 
 	if (list == NULL) {
 		return (ISC_R_NOTFOUND);
@@ -165,4 +174,78 @@ dns_kasp_key_destroy(dns_kasp_key_t* key)
 {
 	REQUIRE(key != NULL);
 	isc_mem_putanddetach(&key->mctx, key, sizeof(*key));
+}
+
+uint32_t
+dns_kasp_key_algorithm(dns_kasp_key_t *key) {
+
+	REQUIRE(key != NULL);
+	return key->algorithm;
+}
+
+unsigned int
+dns_kasp_key_size(dns_kasp_key_t *key) {
+	unsigned int size = 0;
+	unsigned int min = 0;
+
+	REQUIRE(key != NULL);
+
+	switch (key->algorithm) {
+	case DNS_KEYALG_RSASHA1:
+	case DNS_KEYALG_NSEC3RSASHA1:
+	case DNS_KEYALG_RSASHA256:
+	case DNS_KEYALG_RSASHA512:
+		min = DNS_KEYALG_RSASHA512 ? 1024 : 512;
+		if (key->length > -1) {
+			size = (unsigned int) key->length;
+			if (size < min) {
+				size = min;
+			}
+			if (size > 4096) {
+				size = 4096;
+			}
+		} else if (key->role & DNS_KASP_KEY_ROLE_KSK) {
+			size = 2048;
+		} else {
+			size = 1024;
+		}
+		break;
+	case DNS_KEYALG_ECDSA256:
+		size = 256;
+		break;
+	case DNS_KEYALG_ECDSA384:
+		size = 384;
+		break;
+	case DNS_KEYALG_ED25519:
+		size = 32;
+		break;
+	case DNS_KEYALG_ED448:
+		size = 57;
+		break;
+	default:
+		/* unsupported */
+		break;
+	}
+	return size;
+}
+
+time_t
+dns_kasp_key_lifetime(dns_kasp_key_t *key) {
+
+	REQUIRE(key != NULL);
+	return (key->lifetime);
+}
+
+bool
+dns_kasp_key_ksk(dns_kasp_key_t *key) {
+
+	REQUIRE(key != NULL);
+	return (key->role & DNS_KASP_KEY_ROLE_KSK);
+}
+
+bool
+dns_kasp_key_zsk(dns_kasp_key_t *key) {
+
+	REQUIRE(key != NULL);
+	return (key->role & DNS_KASP_KEY_ROLE_ZSK);
 }
