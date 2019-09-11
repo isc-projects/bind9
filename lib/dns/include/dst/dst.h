@@ -819,7 +819,7 @@ dst_key_getnum(const dst_key_t *key, int type, uint32_t *valuep);
  * Requires:
  *	"key" is a valid key.
  *	"type" is no larger than DST_MAX_NUMERIC
- *	"timep" is not null.
+ *	"valuep" is not null.
  */
 
 void
