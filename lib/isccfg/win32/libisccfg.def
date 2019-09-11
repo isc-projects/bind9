@@ -24,6 +24,7 @@ cfg_doc_tuple
 cfg_doc_void
 cfg_gettoken
 cfg_is_enum
+cfg_kasp_fromconfig
 cfg_list_first
 cfg_list_length
 cfg_list_next
