@@ -85,6 +85,7 @@ typedef struct dst_context 	dst_context_t;
 #define DST_TYPE_KEY		0x1000000	/* KEY key */
 #define DST_TYPE_PRIVATE	0x2000000
 #define DST_TYPE_PUBLIC		0x4000000
+#define DST_TYPE_STATE		0x8000000
 
 /* Key timing metadata definitions */
 #define DST_TIME_CREATED	0
@@ -103,7 +104,13 @@ typedef struct dst_context 	dst_context_t;
 #define DST_NUM_SUCCESSOR	1
 #define DST_NUM_MAXTTL		2
 #define DST_NUM_ROLLPERIOD	3
-#define DST_MAX_NUMERIC		3
+#define DST_NUM_LIFETIME	4
+#define DST_MAX_NUMERIC		4
+
+/* Boolean metadata definitions */
+#define DST_BOOL_KSK		0
+#define DST_BOOL_ZSK		1
+#define DST_MAX_BOOLEAN		1
 
 /*
  * Current format version number of the private key parser.
@@ -809,6 +816,37 @@ dst_key_setflags(dst_key_t *key, uint32_t flags);
  *
  * Requires:
  *	"key" is a valid key.
+ */
+
+isc_result_t
+dst_key_getbool(const dst_key_t *key, int type, bool *valuep);
+/*%<
+ * Get a member of the boolean metadata array and place it in '*valuep'.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_BOOLEAN
+ *	"valuep" is not null.
+ */
+
+void
+dst_key_setbool(dst_key_t *key, int type, bool value);
+/*%<
+ * Set a member of the boolean metadata array.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_BOOLEAN
+ */
+
+void
+dst_key_unsetbool(dst_key_t *key, int type);
+/*%<
+ * Flag a member of the boolean metadata array as "not set".
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_BOOLEAN
  */
 
 isc_result_t

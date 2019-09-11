@@ -107,11 +107,13 @@ struct dst_key {
 	} keydata;			/*%< pointer to key in crypto pkg fmt */
 
 	isc_stdtime_t	times[DST_MAX_TIMES + 1];    /*%< timing metadata */
-	bool	timeset[DST_MAX_TIMES + 1];  /*%< data set? */
+	bool		timeset[DST_MAX_TIMES + 1];  /*%< data set? */
 	uint32_t	nums[DST_MAX_NUMERIC + 1];   /*%< numeric metadata */
-	bool	numset[DST_MAX_NUMERIC + 1]; /*%< data set? */
-	bool 	inactive;      /*%< private key not present as it is
-					    inactive */
+	bool		numset[DST_MAX_NUMERIC + 1]; /*%< data set? */
+	bool		bools[DST_MAX_BOOLEAN + 1];   /*%< boolean metadata */
+	bool		boolset[DST_MAX_BOOLEAN + 1]; /*%< data set? */
+
+	bool 	inactive;      /*%< private key not present as it is inactive */
 	bool 	external;      /*%< external key */
 
 	int		fmt_major;     /*%< private key format, major version */

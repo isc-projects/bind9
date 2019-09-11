@@ -734,7 +734,9 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 			result = dst_key_getnum(key, i, &value);
 			if (result != ISC_R_SUCCESS)
 				continue;
-			fprintf(fp, "%s %u\n", numerictags[i], value);
+			if (numerictags[i] != NULL) {
+				fprintf(fp, "%s %u\n", numerictags[i], value);
+			}
 		}
 		for (i = 0; i < TIMING_NTAGS; i++) {
 			result = dst_key_gettime(key, i, &when);
@@ -750,8 +752,10 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 			isc_buffer_usedregion(&b, &r);
 
-			fprintf(fp, "%s %.*s\n", timetags[i], (int)r.length,
-				r.base);
+			if (timetags[i] != NULL) {
+				fprintf(fp, "%s %.*s\n", timetags[i],
+				        (int)r.length, r.base);
+			}
 		}
 	}
 

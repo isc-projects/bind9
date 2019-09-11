@@ -1400,6 +1400,7 @@ dst_key_fromlabel
 dst_key_fromnamedfile
 dst_key_generate
 dst_key_getbits
+dst_key_getbool
 dst_key_getfilename
 dst_key_getgssctx
 dst_key_getnum
@@ -1422,6 +1423,7 @@ dst_key_restore
 dst_key_rid
 dst_key_secretsize
 dst_key_setbits
+dst_key_setbool
 dst_key_setexternal
 dst_key_setflags
 dst_key_setinactive
@@ -1435,6 +1437,7 @@ dst_key_tkeytoken
 dst_key_tobuffer
 dst_key_todns
 dst_key_tofile
+dst_key_unsetbool
 dst_key_unsetnum
 dst_key_unsettime
 dst_lib_destroy

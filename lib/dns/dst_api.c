@@ -83,6 +83,8 @@ static dst_key_t *	get_key_struct(const dns_name_t *name,
 				       isc_mem_t *mctx);
 static isc_result_t	write_public_key(const dst_key_t *key, int type,
 					 const char *directory);
+static isc_result_t	write_key_state(const dst_key_t *key, int type,
+					 const char *directory);
 static isc_result_t	buildfilename(dns_name_t *name,
 				      dns_keytag_t id,
 				      unsigned int alg,
@@ -372,24 +374,35 @@ dst_key_tofile(const dst_key_t *key, int type, const char *directory) {
 
 	REQUIRE(dst_initialized == true);
 	REQUIRE(VALID_KEY(key));
-	REQUIRE((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) != 0);
+	REQUIRE((type &
+		(DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE)) != 0);
 
 	CHECKALG(key->key_alg);
 
-	if (key->func->tofile == NULL)
+	if (key->func->tofile == NULL) {
 		return (DST_R_UNSUPPORTEDALG);
+	}
 
 	if ((type & DST_TYPE_PUBLIC) != 0) {
 		ret = write_public_key(key, type, directory);
-		if (ret != ISC_R_SUCCESS)
+		if (ret != ISC_R_SUCCESS) {
 			return (ret);
+		}
+	}
+
+	if ((type & DST_TYPE_STATE) != 0) {
+		ret = write_key_state(key, type, directory);
+		if (ret != ISC_R_SUCCESS) {
+			return (ret);
+		}
 	}
 
 	if (((type & DST_TYPE_PRIVATE) != 0) &&
 	    (key->key_flags & DNS_KEYFLAG_TYPEMASK) != DNS_KEYTYPE_NOKEY)
+	{
 		return (key->func->tofile(key, directory));
-	else
-		return (ret);
+	}
+	return (ISC_R_SUCCESS);
 }
 
 void
@@ -885,13 +898,44 @@ dst_key_generate(const dns_name_t *name, unsigned int alg,
 }
 
 isc_result_t
+dst_key_getbool(const dst_key_t *key, int type, bool *valuep)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(valuep != NULL);
+	REQUIRE(type <= DST_MAX_BOOLEAN);
+	if (!key->boolset[type]) {
+		return (ISC_R_NOTFOUND);
+	}
+	*valuep = key->bools[type];
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst_key_setbool(dst_key_t *key, int type, bool value)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(type <= DST_MAX_BOOLEAN);
+	key->bools[type] = value;
+	key->boolset[type] = true;
+}
+
+void
+dst_key_unsetbool(dst_key_t *key, int type)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(type <= DST_MAX_BOOLEAN);
+	key->boolset[type] = false;
+}
+
+isc_result_t
 dst_key_getnum(const dst_key_t *key, int type, uint32_t *valuep)
 {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(valuep != NULL);
 	REQUIRE(type <= DST_MAX_NUMERIC);
-	if (!key->numset[type])
+	if (!key->numset[type]) {
 		return (ISC_R_NOTFOUND);
+	}
 	*valuep = key->nums[type];
 	return (ISC_R_SUCCESS);
 }
@@ -918,8 +962,9 @@ dst_key_gettime(const dst_key_t *key, int type, isc_stdtime_t *timep) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(timep != NULL);
 	REQUIRE(type <= DST_MAX_TIMES);
-	if (!key->timeset[type])
+	if (!key->timeset[type]) {
 		return (ISC_R_NOTFOUND);
+	}
 	*timep = key->times[type];
 	return (ISC_R_SUCCESS);
 }
@@ -937,6 +982,36 @@ dst_key_unsettime(dst_key_t *key, int type) {
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type <= DST_MAX_TIMES);
 	key->timeset[type] = false;
+}
+
+isc_result_t
+dst_key_getstate(const dst_key_t *key, int type, dst_key_state_t *statep)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(statep != NULL);
+	REQUIRE(type <= DST_MAX_KEYSTATES);
+	if (!key->keystateset[type]) {
+		return (ISC_R_NOTFOUND);
+	}
+	*statep = key->keystates[type];
+	return (ISC_R_SUCCESS);
+}
+
+void
+dst_key_setstate(dst_key_t *key, int type, dst_key_state_t state)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(type <= DST_MAX_KEYSTATES);
+	key->keystates[type] = state;
+	key->keystateset[type] = true;
+}
+
+void
+dst_key_unsetstate(dst_key_t *key, int type)
+{
+	REQUIRE(VALID_KEY(key));
+	REQUIRE(type <= DST_MAX_KEYSTATES);
+	key->keystateset[type] = false;
 }
 
 isc_result_t
@@ -1116,7 +1191,7 @@ dst_key_buildfilename(const dst_key_t *key, int type,
 
 	REQUIRE(VALID_KEY(key));
 	REQUIRE(type == DST_TYPE_PRIVATE || type == DST_TYPE_PUBLIC ||
-		type == 0);
+		type == DST_TYPE_STATE || type == 0);
 
 	return (buildfilename(key->key_name, key->key_id, key->key_alg,
 			      type, directory, out));
@@ -1477,6 +1552,36 @@ issymmetric(const dst_key_t *key) {
 }
 
 /*%
+ * Write key boolean metadata to a file pointer, preceded by 'tag'
+ */
+static void
+printbool(const dst_key_t *key, int type, const char *tag, FILE *stream) {
+	isc_result_t result;
+	bool value = 0;
+
+	result = dst_key_getbool(key, type, &value);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+	fprintf(stream, "%s: %s\n", tag, value ? "yes" : "no");
+}
+
+/*%
+ * Write key numeric metadata to a file pointer, preceded by 'tag'
+ */
+static void
+printnum(const dst_key_t *key, int type, const char *tag, FILE *stream) {
+	isc_result_t result;
+	uint32_t value = 0;
+
+	result = dst_key_getnum(key, type, &value);
+	if (result != ISC_R_SUCCESS) {
+		return;
+	}
+	fprintf(stream, "%s: %u\n", tag, value);
+}
+
+/*%
  * Write key timing metadata to a file pointer, preceded by 'tag'
  */
 static void
@@ -1518,6 +1623,77 @@ printtime(const dst_key_t *key, int type, const char *tag, FILE *stream) {
 }
 
 /*%
+ * Writes a key state to disk.
+ */
+static isc_result_t
+write_key_state(const dst_key_t *key, int type, const char *directory) {
+	FILE *fp;
+	isc_buffer_t fileb;
+	char filename[NAME_MAX];
+	isc_result_t ret;
+	isc_fsaccess_t access;
+
+	REQUIRE(VALID_KEY(key));
+
+	/*
+	 * Make the filename.
+	 */
+	isc_buffer_init(&fileb, filename, sizeof(filename));
+	ret = dst_key_buildfilename(key, DST_TYPE_STATE, directory, &fileb);
+	if (ret != ISC_R_SUCCESS) {
+		return (ret);
+	}
+
+	/*
+	 * Create public key file.
+	 */
+	if ((fp = fopen(filename, "w")) == NULL) {
+		return (DST_R_WRITEERROR);
+	}
+
+	if (issymmetric(key)) {
+		access = 0;
+		isc_fsaccess_add(ISC_FSACCESS_OWNER,
+				 ISC_FSACCESS_READ | ISC_FSACCESS_WRITE,
+				 &access);
+		(void)isc_fsaccess_set(filename, access);
+	}
+
+	/* Write key state */
+	if ((type & DST_TYPE_KEY) == 0) {
+		fprintf(fp, "; This is the state of key %d, for ",
+			key->key_id);
+		ret = dns_name_print(key->key_name, fp);
+		if (ret != ISC_R_SUCCESS) {
+			fclose(fp);
+			return (ret);
+		}
+		fputc('\n', fp);
+
+		printtime(key, DST_TIME_CREATED, "Generated", fp);
+		printtime(key, DST_TIME_PUBLISH, "Published", fp);
+		printtime(key, DST_TIME_ACTIVATE, "Active", fp);
+		printtime(key, DST_TIME_INACTIVE, "Retired", fp);
+		printtime(key, DST_TIME_REVOKE, "Revoked", fp);
+		printtime(key, DST_TIME_DELETE, "Removed", fp);
+
+		printnum(key, DST_NUM_LIFETIME, "Lifetime", fp);
+		fprintf(fp, "Algorithm: %u\n", key->key_alg);
+		fprintf(fp, "Length: %u\n", key->key_size);
+
+		printbool(key, DST_BOOL_KSK, "KSK", fp);
+		printbool(key, DST_BOOL_ZSK, "ZSK", fp);
+	}
+
+	fflush(fp);
+	if (ferror(fp))
+		ret = DST_R_WRITEERROR;
+	fclose(fp);
+
+	return (ret);
+}
+
+/*%
  * Writes a public key to disk in DNS format.
  */
 static isc_result_t
@@ -1540,33 +1716,38 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	isc_buffer_init(&classb, class_array, sizeof(class_array));
 
 	ret = dst_key_todns(key, &keyb);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		return (ret);
+	}
 
 	isc_buffer_usedregion(&keyb, &r);
 	dns_rdata_fromregion(&rdata, key->key_class, dns_rdatatype_dnskey, &r);
 
 	ret = dns_rdata_totext(&rdata, (dns_name_t *) NULL, &textb);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		return (DST_R_INVALIDPUBLICKEY);
+	}
 
 	ret = dns_rdataclass_totext(key->key_class, &classb);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		return (DST_R_INVALIDPUBLICKEY);
+	}
 
 	/*
 	 * Make the filename.
 	 */
 	isc_buffer_init(&fileb, filename, sizeof(filename));
 	ret = dst_key_buildfilename(key, DST_TYPE_PUBLIC, directory, &fileb);
-	if (ret != ISC_R_SUCCESS)
+	if (ret != ISC_R_SUCCESS) {
 		return (ret);
+	}
 
 	/*
 	 * Create public key file.
 	 */
-	if ((fp = fopen(filename, "w")) == NULL)
+	if ((fp = fopen(filename, "w")) == NULL) {
 		return (DST_R_WRITEERROR);
+	}
 
 	if (issymmetric(key)) {
 		access = 0;
@@ -1641,10 +1822,14 @@ buildfilename(dns_name_t *name, dns_keytag_t id,
 	isc_result_t result;
 
 	REQUIRE(out != NULL);
-	if ((type & DST_TYPE_PRIVATE) != 0)
+	if ((type & DST_TYPE_PRIVATE) != 0) {
 		suffix = ".private";
-	else if (type == DST_TYPE_PUBLIC)
+	} else if ((type & DST_TYPE_PUBLIC) != 0) {
 		suffix = ".key";
+	} else if ((type & DST_TYPE_STATE) != 0) {
+		suffix = ".state";
+	}
+
 	if (directory != NULL) {
 		if (isc_buffer_availablelength(out) < strlen(directory))
 			return (ISC_R_NOSPACE);
