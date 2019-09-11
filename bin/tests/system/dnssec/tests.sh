@@ -1485,7 +1485,7 @@ n=$((n+1))
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
-echo_i "checking that dnsssec-signzone updates originalttl on ttl changes ($n)"
+echo_i "checking that dnssec-signzone updates originalttl on ttl changes ($n)"
 ret=0
 zone=example
 key1=$($KEYGEN -K signer -q -a RSASHA1 -b 1024 -n zone $zone)
