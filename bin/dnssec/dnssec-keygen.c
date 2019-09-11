@@ -119,8 +119,6 @@ struct keygen_ctx {
 
 typedef struct keygen_ctx keygen_ctx_t;
 
-static void keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv);
-
 static void
 usage(void) {
 	fprintf(stderr, "Usage:\n");
@@ -229,323 +227,6 @@ progress(int p)
 	}
 	(void) putc(c, stderr);
 	(void) fflush(stderr);
-}
-
-int
-main(int argc, char **argv) {
-	char		*algname = NULL, *freeit = NULL;
-	char		*classname = NULL;
-	char		*endp;
-	isc_mem_t	*mctx = NULL;
-	isc_result_t	ret;
-	isc_textregion_t r;
-	isc_log_t	*log = NULL;
-	const char	*engine = NULL;
-	unsigned char	c;
-	int		ch;
-
-	keygen_ctx_t ctx = {
-		.options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC,
-		.prepub = -1,
-		.protocol = -1,
-		.size = -1,
-	};
-
-	if (argc == 1) {
-		usage();
-	}
-
-#if USE_PKCS11
-	pk11_result_register();
-#endif
-	dns_result_register();
-
-	isc_commandline_errprint = false;
-
-	/*
-	 * Process memory debugging argument first.
-	 */
-#define CMDLINE_FLAGS "3A:a:b:Cc:D:d:E:eFf:Gg:hI:i:K:L:m:n:P:p:qR:r:S:s:T:t:" \
-		      "v:V"
-	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
-		switch (ch) {
-		case 'm':
-			if (strcasecmp(isc_commandline_argument, "record") == 0)
-				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-			if (strcasecmp(isc_commandline_argument, "trace") == 0)
-				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
-			if (strcasecmp(isc_commandline_argument, "usage") == 0)
-				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
-			if (strcasecmp(isc_commandline_argument, "size") == 0)
-				isc_mem_debugging |= ISC_MEM_DEBUGSIZE;
-			if (strcasecmp(isc_commandline_argument, "mctx") == 0)
-				isc_mem_debugging |= ISC_MEM_DEBUGCTX;
-			break;
-		default:
-			break;
-		}
-	}
-	isc_commandline_reset = true;
-
-	isc_mem_create(&mctx);
-
-	isc_stdtime_get(&ctx.now);
-
-	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
-	    switch (ch) {
-		case '3':
-			ctx.use_nsec3 = true;
-			break;
-		case 'a':
-			algname = isc_commandline_argument;
-			break;
-		case 'b':
-			ctx.size = strtol(isc_commandline_argument, &endp, 10);
-			if (*endp != '\0' || ctx.size < 0)
-				fatal("-b requires a non-negative number");
-			break;
-		case 'C':
-			ctx.oldstyle = true;
-			break;
-		case 'c':
-			classname = isc_commandline_argument;
-			break;
-		case 'd':
-			ctx.dbits = strtol(isc_commandline_argument, &endp, 10);
-			if (*endp != '\0' || ctx.dbits < 0)
-				fatal("-d requires a non-negative number");
-			break;
-		case 'E':
-			engine = isc_commandline_argument;
-			break;
-		case 'e':
-			fprintf(stderr,
-				"phased-out option -e "
-				"(was 'use (RSA) large exponent')\n");
-			break;
-		case 'f':
-			c = (unsigned char)(isc_commandline_argument[0]);
-			if (toupper(c) == 'K')
-				ctx.kskflag = DNS_KEYFLAG_KSK;
-			else if (toupper(c) == 'R')
-				ctx.revflag = DNS_KEYFLAG_REVOKE;
-			else
-				fatal("unknown flag '%s'",
-				      isc_commandline_argument);
-			break;
-		case 'g':
-			ctx.generator = strtol(isc_commandline_argument,
-					   &endp, 10);
-			if (*endp != '\0' || ctx.generator <= 0)
-				fatal("-g requires a positive number");
-			break;
-		case 'K':
-			ctx.directory = isc_commandline_argument;
-			ret = try_dir(ctx.directory);
-			if (ret != ISC_R_SUCCESS)
-				fatal("cannot open directory %s: %s",
-				      ctx.directory, isc_result_totext(ret));
-			break;
-		case 'L':
-			ctx.ttl = strtottl(isc_commandline_argument);
-			ctx.setttl = true;
-			break;
-			break;
-		case 'n':
-			ctx.nametype = isc_commandline_argument;
-			break;
-		case 'm':
-			break;
-		case 'p':
-			ctx.protocol = strtol(isc_commandline_argument, &endp,
-					      10);
-			if (*endp != '\0' || ctx.protocol < 0 ||
-			    ctx.protocol > 255)
-			{
-				fatal("-p must be followed by a number "
-				      "[0..255]");
-			}
-			break;
-		case 'q':
-			ctx.quiet = true;
-			break;
-		case 'r':
-			fatal("The -r option has been deprecated.\n"
-			      "System random data is always used.\n");
-			break;
-		case 's':
-			ctx.signatory = strtol(isc_commandline_argument,
-					       &endp, 10);
-			if (*endp != '\0' || ctx.signatory < 0 ||
-			    ctx.signatory > 15)
-			{
-				fatal("-s must be followed by a number "
-				      "[0..15]");
-			}
-			break;
-		case 'T':
-			if (strcasecmp(isc_commandline_argument, "KEY") == 0)
-				ctx.options |= DST_TYPE_KEY;
-			else if (strcasecmp(isc_commandline_argument,
-				 "DNSKEY") == 0)
-				/* default behavior */
-				;
-			else
-				fatal("unknown type '%s'",
-				      isc_commandline_argument);
-			break;
-		case 't':
-			ctx.type = isc_commandline_argument;
-			break;
-		case 'v':
-			endp = NULL;
-			verbose = strtol(isc_commandline_argument, &endp, 0);
-			if (*endp != '\0')
-				fatal("-v must be followed by a number");
-			break;
-		case 'G':
-			ctx.genonly = true;
-			break;
-		case 'P':
-			/* -Psync ? */
-			if (isoptarg("sync", argv, usage)) {
-				if (ctx.setsyncadd)
-					fatal("-P sync specified more than "
-					      "once");
-
-				ctx.syncadd = strtotime(
-						       isc_commandline_argument,
-						       ctx.now, ctx.now,
-						       &ctx.setsyncadd);
-				break;
-			}
-			(void)isoptarg("dnskey", argv, usage);
-			if (ctx.setpub || ctx.unsetpub)
-				fatal("-P specified more than once");
-
-			ctx.publish = strtotime(isc_commandline_argument,
-					        ctx.now, ctx.now, &ctx.setpub);
-			ctx.unsetpub = !ctx.setpub;
-			break;
-		case 'A':
-			if (ctx.setact || ctx.unsetact)
-				fatal("-A specified more than once");
-
-			ctx.activate = strtotime(isc_commandline_argument,
-					         ctx.now, ctx.now, &ctx.setact);
-			ctx.unsetact = !ctx.setact;
-			break;
-		case 'R':
-			if (ctx.setrev || ctx.unsetrev)
-				fatal("-R specified more than once");
-
-			ctx.revokekey = strtotime(isc_commandline_argument,
-						 ctx.now, ctx.now, &ctx.setrev);
-			ctx.unsetrev = !ctx.setrev;
-			break;
-		case 'I':
-			if (ctx.setinact || ctx.unsetinact)
-				fatal("-I specified more than once");
-
-			ctx.inactive = strtotime(isc_commandline_argument,
-					       ctx.now, ctx.now, &ctx.setinact);
-			ctx.unsetinact = !ctx.setinact;
-			break;
-		case 'D':
-			/* -Dsync ? */
-			if (isoptarg("sync", argv, usage)) {
-				if (ctx.setsyncdel)
-					fatal("-D sync specified more than "
-					      "once");
-
-				ctx.syncdel = strtotime(
-						       isc_commandline_argument,
-						       ctx.now, ctx.now,
-						       &ctx.setsyncdel);
-				break;
-			}
-			(void)isoptarg("dnskey", argv, usage);
-			if (ctx.setdel || ctx.unsetdel)
-				fatal("-D specified more than once");
-
-			ctx.deltime = strtotime(isc_commandline_argument,
-					        ctx.now, ctx.now, &ctx.setdel);
-			ctx.unsetdel = !ctx.setdel;
-			break;
-		case 'S':
-			ctx.predecessor = isc_commandline_argument;
-			break;
-		case 'i':
-			ctx.prepub = strtottl(isc_commandline_argument);
-			break;
-		case 'F':
-			/* Reserved for FIPS mode */
-			/* FALLTHROUGH */
-		case '?':
-			if (isc_commandline_option != '?')
-				fprintf(stderr, "%s: invalid argument -%c\n",
-					program, isc_commandline_option);
-			/* FALLTHROUGH */
-		case 'h':
-			/* Does not return. */
-			usage();
-
-		case 'V':
-			/* Does not return. */
-			version(program);
-
-		default:
-			fprintf(stderr, "%s: unhandled option -%c\n",
-				program, isc_commandline_option);
-			exit(1);
-		}
-	}
-
-	if (!isatty(0))
-		ctx.quiet = true;
-
-	ret = dst_lib_init(mctx, engine);
-	if (ret != ISC_R_SUCCESS)
-		fatal("could not initialize dst: %s",
-		      isc_result_totext(ret));
-
-	setup_logging(mctx, &log);
-
-	ctx.rdclass = strtoclass(classname);
-
-	if (ctx.predecessor == NULL) {
-		if (argc < isc_commandline_index + 1)
-			fatal("the key name was not specified");
-		if (argc > isc_commandline_index + 1)
-			fatal("extraneous arguments");
-
-		if (algname == NULL)
-			fatal("no algorithm specified");
-
-		r.base = algname;
-		r.length = strlen(algname);
-		ret = dns_secalg_fromtext(&ctx.alg, &r);
-		if (ret != ISC_R_SUCCESS) {
-			fatal("unknown algorithm %s", algname);
-		}
-		if (!dst_algorithm_supported(ctx.alg)) {
-			fatal("unsupported algorithm: %s", algname);
-		}
-	}
-
-	keygen(&ctx, mctx, argc, argv);
-
-	cleanup_logging(&log);
-	dst_lib_destroy();
-	dns_name_destroy();
-	if (verbose > 10)
-		isc_mem_stats(mctx, stdout);
-	isc_mem_destroy(&mctx);
-
-	if (freeit != NULL)
-		free(freeit);
-
-	return (0);
 }
 
 static void
@@ -912,7 +593,7 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 
 			if (ctx->setpub)
 				dst_key_settime(key, DST_TIME_PUBLISH,
-					        ctx->publish);
+						ctx->publish);
 			else if (ctx->setact && !ctx->unsetpub)
 				dst_key_settime(key, DST_TIME_PUBLISH,
 						ctx->activate - ctx->prepub);
@@ -963,7 +644,6 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 			if (ctx->setsyncdel)
 				dst_key_settime(key, DST_TIME_SYNCDELETE,
 						ctx->syncdel);
-
 		} else {
 			if (ctx->setpub || ctx->setact || ctx->setrev ||
 			    ctx->setinact || ctx->setdel || ctx->unsetpub ||
@@ -1033,8 +713,325 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 		fatal("dst_key_buildfilename returned: %s\n",
 		      isc_result_totext(ret));
 	printf("%s\n", filename);
+
 	dst_key_free(&key);
 	if (prevkey != NULL) {
 		dst_key_free(&prevkey);
 	}
+}
+
+int
+main(int argc, char **argv) {
+	char		*algname = NULL, *freeit = NULL;
+	char		*classname = NULL;
+	char		*endp;
+	isc_mem_t	*mctx = NULL;
+	isc_result_t	ret;
+	isc_textregion_t r;
+	isc_log_t	*log = NULL;
+	const char	*engine = NULL;
+	unsigned char	c;
+	int		ch;
+
+	keygen_ctx_t ctx = {
+		.options = DST_TYPE_PRIVATE | DST_TYPE_PUBLIC,
+		.prepub = -1,
+		.protocol = -1,
+		.size = -1,
+	};
+
+	if (argc == 1) {
+		usage();
+	}
+
+#if USE_PKCS11
+	pk11_result_register();
+#endif
+	dns_result_register();
+
+	isc_commandline_errprint = false;
+
+	/*
+	 * Process memory debugging argument first.
+	 */
+#define CMDLINE_FLAGS "3A:a:b:Cc:D:d:E:eFf:Gg:hI:i:K:L:m:n:P:p:qR:r:S:s:T:t:" \
+		      "v:V"
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
+		switch (ch) {
+		case 'm':
+			if (strcasecmp(isc_commandline_argument, "record") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
+			if (strcasecmp(isc_commandline_argument, "trace") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGTRACE;
+			if (strcasecmp(isc_commandline_argument, "usage") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGUSAGE;
+			if (strcasecmp(isc_commandline_argument, "size") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGSIZE;
+			if (strcasecmp(isc_commandline_argument, "mctx") == 0)
+				isc_mem_debugging |= ISC_MEM_DEBUGCTX;
+			break;
+		default:
+			break;
+		}
+	}
+	isc_commandline_reset = true;
+
+	isc_mem_create(&mctx);
+	isc_stdtime_get(&ctx.now);
+
+	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
+	    switch (ch) {
+		case '3':
+			ctx.use_nsec3 = true;
+			break;
+		case 'a':
+			algname = isc_commandline_argument;
+			break;
+		case 'b':
+			ctx.size = strtol(isc_commandline_argument, &endp, 10);
+			if (*endp != '\0' || ctx.size < 0)
+				fatal("-b requires a non-negative number");
+			break;
+		case 'C':
+			ctx.oldstyle = true;
+			break;
+		case 'c':
+			classname = isc_commandline_argument;
+			break;
+		case 'd':
+			ctx.dbits = strtol(isc_commandline_argument, &endp, 10);
+			if (*endp != '\0' || ctx.dbits < 0)
+				fatal("-d requires a non-negative number");
+			break;
+		case 'E':
+			engine = isc_commandline_argument;
+			break;
+		case 'e':
+			fprintf(stderr,
+				"phased-out option -e "
+				"(was 'use (RSA) large exponent')\n");
+			break;
+		case 'f':
+			c = (unsigned char)(isc_commandline_argument[0]);
+			if (toupper(c) == 'K')
+				ctx.kskflag = DNS_KEYFLAG_KSK;
+			else if (toupper(c) == 'R')
+				ctx.revflag = DNS_KEYFLAG_REVOKE;
+			else
+				fatal("unknown flag '%s'",
+				      isc_commandline_argument);
+			break;
+		case 'g':
+			ctx.generator = strtol(isc_commandline_argument,
+					   &endp, 10);
+			if (*endp != '\0' || ctx.generator <= 0)
+				fatal("-g requires a positive number");
+			break;
+		case 'K':
+			ctx.directory = isc_commandline_argument;
+			ret = try_dir(ctx.directory);
+			if (ret != ISC_R_SUCCESS)
+				fatal("cannot open directory %s: %s",
+				      ctx.directory, isc_result_totext(ret));
+			break;
+		case 'L':
+			ctx.ttl = strtottl(isc_commandline_argument);
+			ctx.setttl = true;
+			break;
+			break;
+		case 'n':
+			ctx.nametype = isc_commandline_argument;
+			break;
+		case 'm':
+			break;
+		case 'p':
+			ctx.protocol = strtol(isc_commandline_argument, &endp,
+					      10);
+			if (*endp != '\0' || ctx.protocol < 0 ||
+			    ctx.protocol > 255)
+			{
+				fatal("-p must be followed by a number "
+				      "[0..255]");
+			}
+			break;
+		case 'q':
+			ctx.quiet = true;
+			break;
+		case 'r':
+			fatal("The -r option has been deprecated.\n"
+			      "System random data is always used.\n");
+			break;
+		case 's':
+			ctx.signatory = strtol(isc_commandline_argument,
+					       &endp, 10);
+			if (*endp != '\0' || ctx.signatory < 0 ||
+			    ctx.signatory > 15)
+			{
+				fatal("-s must be followed by a number "
+				      "[0..15]");
+			}
+			break;
+		case 'T':
+			if (strcasecmp(isc_commandline_argument, "KEY") == 0)
+				ctx.options |= DST_TYPE_KEY;
+			else if (strcasecmp(isc_commandline_argument,
+				 "DNSKEY") == 0)
+				/* default behavior */
+				;
+			else
+				fatal("unknown type '%s'",
+				      isc_commandline_argument);
+			break;
+		case 't':
+			ctx.type = isc_commandline_argument;
+			break;
+		case 'v':
+			endp = NULL;
+			verbose = strtol(isc_commandline_argument, &endp, 0);
+			if (*endp != '\0')
+				fatal("-v must be followed by a number");
+			break;
+		case 'G':
+			ctx.genonly = true;
+			break;
+		case 'P':
+			/* -Psync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (ctx.setsyncadd)
+					fatal("-P sync specified more than "
+					      "once");
+
+				ctx.syncadd = strtotime(
+						       isc_commandline_argument,
+						       ctx.now, ctx.now,
+						       &ctx.setsyncadd);
+				break;
+			}
+			(void)isoptarg("dnskey", argv, usage);
+			if (ctx.setpub || ctx.unsetpub)
+				fatal("-P specified more than once");
+
+			ctx.publish = strtotime(isc_commandline_argument,
+						ctx.now, ctx.now, &ctx.setpub);
+			ctx.unsetpub = !ctx.setpub;
+			break;
+		case 'A':
+			if (ctx.setact || ctx.unsetact)
+				fatal("-A specified more than once");
+
+			ctx.activate = strtotime(isc_commandline_argument,
+						 ctx.now, ctx.now, &ctx.setact);
+			ctx.unsetact = !ctx.setact;
+			break;
+		case 'R':
+			if (ctx.setrev || ctx.unsetrev)
+				fatal("-R specified more than once");
+
+			ctx.revokekey = strtotime(isc_commandline_argument,
+						 ctx.now, ctx.now, &ctx.setrev);
+			ctx.unsetrev = !ctx.setrev;
+			break;
+		case 'I':
+			if (ctx.setinact || ctx.unsetinact)
+				fatal("-I specified more than once");
+
+			ctx.inactive = strtotime(isc_commandline_argument,
+					       ctx.now, ctx.now, &ctx.setinact);
+			ctx.unsetinact = !ctx.setinact;
+			break;
+		case 'D':
+			/* -Dsync ? */
+			if (isoptarg("sync", argv, usage)) {
+				if (ctx.setsyncdel)
+					fatal("-D sync specified more than "
+					      "once");
+
+				ctx.syncdel = strtotime(
+						       isc_commandline_argument,
+						       ctx.now, ctx.now,
+						       &ctx.setsyncdel);
+				break;
+			}
+			(void)isoptarg("dnskey", argv, usage);
+			if (ctx.setdel || ctx.unsetdel)
+				fatal("-D specified more than once");
+
+			ctx.deltime = strtotime(isc_commandline_argument,
+						ctx.now, ctx.now, &ctx.setdel);
+			ctx.unsetdel = !ctx.setdel;
+			break;
+		case 'S':
+			ctx.predecessor = isc_commandline_argument;
+			break;
+		case 'i':
+			ctx.prepub = strtottl(isc_commandline_argument);
+			break;
+		case 'F':
+			/* Reserved for FIPS mode */
+			/* FALLTHROUGH */
+		case '?':
+			if (isc_commandline_option != '?')
+				fprintf(stderr, "%s: invalid argument -%c\n",
+					program, isc_commandline_option);
+			/* FALLTHROUGH */
+		case 'h':
+			/* Does not return. */
+			usage();
+
+		case 'V':
+			/* Does not return. */
+			version(program);
+
+		default:
+			fprintf(stderr, "%s: unhandled option -%c\n",
+				program, isc_commandline_option);
+			exit(1);
+		}
+	}
+
+	if (!isatty(0))
+		ctx.quiet = true;
+
+	ret = dst_lib_init(mctx, engine);
+	if (ret != ISC_R_SUCCESS)
+		fatal("could not initialize dst: %s",
+		      isc_result_totext(ret));
+
+	setup_logging(mctx, &log);
+
+	ctx.rdclass = strtoclass(classname);
+
+	if (ctx.predecessor == NULL) {
+		if (argc < isc_commandline_index + 1)
+			fatal("the key name was not specified");
+		if (argc > isc_commandline_index + 1)
+			fatal("extraneous arguments");
+
+		if (algname == NULL)
+			fatal("no algorithm specified");
+
+		r.base = algname;
+		r.length = strlen(algname);
+		ret = dns_secalg_fromtext(&ctx.alg, &r);
+		if (ret != ISC_R_SUCCESS) {
+			fatal("unknown algorithm %s", algname);
+		}
+		if (!dst_algorithm_supported(ctx.alg)) {
+			fatal("unsupported algorithm: %s", algname);
+		}
+	}
+
+	keygen(&ctx, mctx, argc, argv);
+
+	cleanup_logging(&log);
+	dst_lib_destroy();
+	dns_name_destroy();
+	if (verbose > 10)
+		isc_mem_stats(mctx, stdout);
+	isc_mem_destroy(&mctx);
+
+	if (freeit != NULL)
+		free(freeit);
+
+	return (0);
 }
