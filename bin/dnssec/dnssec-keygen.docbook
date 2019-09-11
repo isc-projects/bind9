@@ -75,7 +75,9 @@
       <arg choice="opt" rep="norepeat"><option>-I <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-i <replaceable class="parameter">interval</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-K <replaceable class="parameter">directory</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-k <replaceable class="parameter">policy</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-L <replaceable class="parameter">ttl</replaceable></option></arg>
+      <arg choice="opt" rep="norepeat"><option>-l <replaceable class="parameter">file</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-n <replaceable class="parameter">nametype</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P <replaceable class="parameter">date/offset</replaceable></option></arg>
       <arg choice="opt" rep="norepeat"><option>-P sync <replaceable class="parameter">date/offset</replaceable></option></arg>
@@ -289,6 +291,24 @@
       </varlistentry>
 
       <varlistentry>
+	<term>-k <replaceable class="parameter">policy</replaceable></term>
+	<listitem>
+	  <para>
+	    Create keys for a specific dnssec-policy.  If a policy uses
+	    multiple keys, <command>dnssec-keygen</command> will generate
+	    multiple keys.  This will also create a ".state" file to keep
+	    track of the key state.
+	  </para>
+	  <para>
+	    This option creates keys according to the dnssec-policy
+	    configuration, hence it cannot be used together with many of
+	    the other options that <command>dnssec-keygen</command>
+	    provides.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
 	<term>-L <replaceable class="parameter">ttl</replaceable></term>
 	<listitem>
 	  <para>
@@ -300,6 +320,16 @@
 	    is no existing DNSKEY RRset, the TTL will default to the
 	    SOA TTL. Setting the default TTL to <literal>0</literal>
 	    or <literal>none</literal> is the same as leaving it unset.
+	  </para>
+	</listitem>
+      </varlistentry>
+
+      <varlistentry>
+	<term>-l <replaceable class="parameter">file</replaceable></term>
+	<listitem>
+	  <para>
+	    Provide a configuration file that contains a dnssec-policy
+	    statement (matching the policy set with <command>-k</command>).
 	  </para>
 	</listitem>
       </varlistentry>
