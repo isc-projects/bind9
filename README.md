@@ -317,7 +317,7 @@ many versions of Linux and UNIX, including RedHat, Fedora, Debian, Ubuntu,
 SuSE, Slackware, FreeBSD, NetBSD, OpenBSD, Mac OS X, Solaris, HP-UX, AIX,
 SCO OpenServer, and OpenWRT. 
 
-BIND is also available for Windows XP, 2003, 2008, and higher.  See
+BIND is also available for Windows Server 2008 and higher.  See
 `win32utils/readme1st.txt` for details on building for Windows systems.
 
 To build on a UNIX or Linux system, use:
