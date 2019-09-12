@@ -1,0 +1,30 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes_versions"><info><title>Note on Version Numbering</title></info>
+  <para>
+    Until BIND 9.12, new feature development releases were tagged
+    as "alpha" and "beta", leading up to the first stable release
+    for a given development branch, which always ended in ".0".
+    More recently, BIND adopted the "odd-unstable/even-stable"
+    release numbering convention. There will be no "alpha" or "beta"
+    releases in the 9.15 branch, only increasing version numbers.
+    So, for example, what would previously have been called 9.15.0a1,
+    9.15.0a2, 9.15.0b1, and so on, will instead be called 9.15.0,
+    9.15.1, 9.15.2, etc.
+  </para>
+  <para>
+    The first stable release from this development branch will be
+    renamed as 9.16.0. Thereafter, maintenance releases will continue
+    on the 9.16 branch, while unstable feature development proceeds in
+    9.17.
+  </para>
+</section>

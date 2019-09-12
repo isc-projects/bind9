@@ -1,0 +1,107 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes_features"><info><title>New Features</title></info>
+  <itemizedlist>
+    <listitem>
+      <para>
+        Added a new command line option to <command>dig</command>:
+        <comand>+[no]unexpected</comand>. By default, <command>dig</command>
+        won't accept a reply from a source other than the one to which
+        it sent the query.  Add the <command>+unexpected</command> argument
+        to enable it to process replies from unexpected sources.
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        The GeoIP2 API from MaxMind is now supported. Geolocation support
+        will be compiled in by default if the <command>libmaxminddb</command>
+        library is found at compile time, but can be turned off by using
+        <command>configure --disable-geoip</command>.
+      </para>
+      <para>
+        The default path to the GeoIP2 databases will be set based
+        on the location of the <command>libmaxminddb</command> library;
+        for example, if it is in <filename>/usr/local/lib</filename>,
+        then the default path will be
+        <filename>/usr/local/share/GeoIP</filename>.
+        This value can be overridden in <filename>named.conf</filename>
+        using the <command>geoip-directory</command> option.
+      </para>
+      <para>
+        Some <command>geoip</command> ACL settings that were available with
+        legacy GeoIP, including searches for <command>netspeed</command>,
+        <command>org</command>, and three-letter ISO country codes, will
+        no longer work when using GeoIP2. Supported GeoIP2 database
+        types are <command>country</command>, <command>city</command>,
+        <command>domain</command>, <command>isp</command>, and
+        <command>as</command>. All of these databases support both IPv4
+        and IPv6 lookups. [GL #182] [GL #1112]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        In order to clarify the configuration of DNSSEC keys,
+        the <command>trusted-keys</command> and
+        <command>managed-keys</command> statements have been
+        deprecated, and the new <command>dnssec-keys</command>
+        statement should now be used for both types of key.
+      </para>
+      <para>
+        When used with the keyword <command>initial-key</command>,
+        <command>dnssec-keys</command> has the same behavior as
+        <command>managed-keys</command>, i.e., it configures
+        a trust anchor that is to be maintained via RFC 5011.
+      </para>
+      <para>
+        When used with the new keyword <command>static-key</command>, it
+        has the same behavior as <command>trusted-keys</command>,
+        configuring a permanent trust anchor that will not automatically
+        be updated.  (This usage is not recommended for the root key.)
+        [GL #6]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        The new <command>add-soa</command> option specifies whether
+        or not the <command>response-policy</command> zone's SOA record
+        should be included in the additional section of RPZ responses.
+        [GL #865]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Two new metrics have been added to the
+        <command>statistics-channel</command> to report DNSSEC
+        signing operations.  For each key in each zone, the
+        <command>dnssec-sign</command> counter indicates the total
+        number of signatures <command>named</command> has generated
+        using that key since server startup, and the
+        <command>dnssec-refresh</command> counter indicates how
+        many of those signatures were refreshed during zone
+        maintenance, as opposed to having been generated
+        as a result of a zone update.  [GL #513]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        Statistics channel groups are now toggleable. [GL #1030]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        <command>dig</command>, <command>mdig</command> and
+        <command>delv</command> can all now take a <command>+yaml</command>
+        option to print output in a a detailed YAML format. [RT #1145]
+      </para>
+    </listitem>
+  </itemizedlist>
+</section>
