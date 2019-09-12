@@ -17,7 +17,6 @@ set -e
 
 status=0
 n=0
-log=1
 
 ################################################################################
 # Utilities                                                                    #
@@ -35,9 +34,14 @@ get_keyids() {
 	ls ${start}*${end} | sed "s/$dir\/K${zone}.+${algorithm}+\([0-9]\{5\}\)${end}/\1/"
 }
 
+# By default log errors and don't quit immediately.
+_log=1
+_continue=1
 log_error() {
-	test $log -eq 1 && echo_i "error: $1"
+	test $_log -eq 1 && echo_i "error: $1"
 	ret=$((ret+1))
+
+	test $_continue -eq 1 || exit 1
 }
 
 # Check the created key in directory $1 for zone $2.
@@ -116,18 +120,6 @@ check_created_key() {
 # dnssec-keygen
 #
 n=$((n+1))
-echo_i "check that 'dnssec-keygen -k' (default policy) creates valid files ($n)"
-ret=0
-$KEYGEN -k _default kasp > keygen.out._default.test$n 2>/dev/null || ret=1
-lines=$(cat keygen.out._default.test$n | wc -l)
-test "$lines" -eq 1 || log_error "wrong number of keys created for policy _default"
-KEY_ID=$(get_keyids "." "kasp" "13")
-echo_i "check key $KEY_ID..."
-check_created_key "." "kasp" "csk" $KEY_ID "13" "ECDSAP256SHA256" "256" "3600" "0"
-test "$ret" -eq 0 || echo_i "failed"
-status=$((status+ret))
-
-n=$((n+1))
 echo_i "check that 'dnssec-keygen -k' (configured policy) creates valid files ($n)"
 ret=0
 $KEYGEN -K keys -k kasp -l kasp.conf kasp > keygen.out.kasp.test$n 2>/dev/null || ret=1
@@ -138,7 +130,7 @@ KEY_ID=$(get_keyids "keys" "kasp" "13")
 echo_i "check key $KEY_ID..."
 check_created_key "keys" "kasp" "csk" $KEY_ID "13" "ECDSAP256SHA256" "256" "200" "31536000"
 # Temporarily don't log errors because we are searching multiple files.
-log=0
+_log=0
 # Check the other algorithm.
 KEY_IDS=$(get_keyids "keys" "kasp" "8")
 for KEY_ID in $KEY_IDS; do
@@ -151,10 +143,21 @@ for KEY_ID in $KEY_IDS; do
 	# If ret is non-zero, non of the files matched.
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
-
 done
 # Turn error logs on again.
-log=1
+_log=1
+
+n=$((n+1))
+echo_i "check that 'dnssec-keygen -k' (default policy) creates valid files ($n)"
+ret=0
+$KEYGEN -k _default kasp > keygen.out._default.test$n 2>/dev/null || ret=1
+lines=$(cat keygen.out._default.test$n | wc -l)
+test "$lines" -eq 1 || log_error "wrong number of keys created for policy _default"
+KEY_ID=$(get_keyids "." "kasp" "13")
+echo_i "check key $KEY_ID..."
+check_created_key "." "kasp" "csk" $KEY_ID "13" "ECDSAP256SHA256" "256" "3600" "0"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 n=$((n+1))
 echo_i "check that 'dnssec-keygen -k' (default policy) creates valid files ($n)"
@@ -171,6 +174,45 @@ status=$((status+ret))
 #
 # dnssec-settime
 #
+BASE_FILE="K${zone}.+${alg_numpad}+${key_idpad}"
+KEY_FILE="${BASE_FILE}.key"
+PRIVATE_FILE="${BASE_FILE}.private"
+STATE_FILE="${BASE_FILE}.state"
+CMP_FILE="${BASE_FILE}.cmp"
+
+n=$((n+1))
+echo_i "check that 'dnssec-settime' by default does not edit key state file ($n)"
+ret=0
+cp $STATE_FILE $CMP_FILE
+$SETTIME -P +3600 $BASE_FILE >/dev/null || log_error "settime failed"
+grep "; Publish: " $KEY_FILE > /dev/null || log_error "mismatch published in $KEY_FILE"
+grep "Publish: " $PRIVATE_FILE > /dev/null || log_error "mismatch published in $PRIVATE_FILE"
+$DIFF $CMP_FILE $STATE_FILE || log_error "unexpected file change in $STATE_FILE"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check that 'dnssec-settime -s' also sets time metadata in key state file ($n)"
+ret=0
+cp $STATE_FILE $CMP_FILE
+now=$(date +%Y%m%d%H%M%S)
+$SETTIME -s -P $now $BASE_FILE >/dev/null || log_error "settime failed"
+grep "; Publish: $now" $KEY_FILE > /dev/null || log_error "mismatch published in $KEY_FILE"
+grep "Publish: $now" $PRIVATE_FILE > /dev/null || log_error "mismatch published in $PRIVATE_FILE"
+grep "Published: $now" $STATE_FILE > /dev/null || log_error "mismatch published in $STATE_FILE"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+n=$((n+1))
+echo_i "check that 'dnssec-settime -s' also unsets time metadata in key state file ($n)"
+ret=0
+cp $STATE_FILE $CMP_FILE
+$SETTIME -s -P none $BASE_FILE >/dev/null || log_error "settime failed"
+grep "; Publish:" $KEY_FILE > /dev/null && log_error "unexpected published in $KEY_FILE"
+grep "Publish:" $PRIVATE_FILE > /dev/null && log_error "unexpected published in $PRIVATE_FILE"
+grep "Published:" $STATE_FILE > /dev/null && log_error "unexpected published in $STATE_FILE"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
 #
 # named

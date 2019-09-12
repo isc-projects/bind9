@@ -71,6 +71,8 @@ cleanup_logging(isc_log_t **logp);
 
 dns_ttl_t strtottl(const char *str);
 
+dst_key_state_t strtokeystate(const char *str);
+
 isc_stdtime_t
 strtotime(const char *str, int64_t now, int64_t base,
 	  bool *setp);

@@ -57,6 +57,11 @@
 
 #include "dnssectool.h"
 
+#define KEYSTATES_NVALUES 4
+static const char *keystates[KEYSTATES_NVALUES] = {
+	"hidden", "rumoured", "omnipresent", "unretentive",
+};
+
 int verbose = 0;
 bool quiet = false;
 uint8_t dtype[8];
@@ -242,6 +247,21 @@ strtottl(const char *str) {
 		fatal("TTL must be numeric");
 	ttl = time_units(ttl, endp, orig);
 	return (ttl);
+}
+
+dst_key_state_t
+strtokeystate(const char *str) {
+	if (isnone(str)) {
+		return (DST_KEY_STATE_NA);
+	}
+
+	for (int i = 0; i < KEYSTATES_NVALUES; i++) {
+		if (keystates[i] != NULL &&
+		    strcasecmp(str, keystates[i]) == 0) {
+			return (dst_key_state_t) i;
+		}
+	}
+	fatal("unknown key state");
 }
 
 isc_stdtime_t

@@ -61,7 +61,11 @@ static const char *timetags[TIMING_NTAGS] = {
 	"Delete:",
 	"DSPublish:",
 	"SyncPublish:",
-	"SyncDelete:"
+	"SyncDelete:",
+	NULL,
+	NULL,
+	NULL,
+	NULL
 };
 
 #define NUMERIC_NTAGS (DST_MAX_NUMERIC + 1)
@@ -69,7 +73,8 @@ static const char *numerictags[NUMERIC_NTAGS] = {
 	"Predecessor:",
 	"Successor:",
 	"MaxTTL:",
-	"RollPeriod:"
+	"RollPeriod:",
+	NULL
 };
 
 struct parse_map {
@@ -754,7 +759,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 
 			if (timetags[i] != NULL) {
 				fprintf(fp, "%s %.*s\n", timetags[i],
-				        (int)r.length, r.base);
+					(int)r.length, r.base);
 			}
 		}
 	}

@@ -108,10 +108,15 @@ struct dst_key {
 
 	isc_stdtime_t	times[DST_MAX_TIMES + 1];    /*%< timing metadata */
 	bool		timeset[DST_MAX_TIMES + 1];  /*%< data set? */
+
 	uint32_t	nums[DST_MAX_NUMERIC + 1];   /*%< numeric metadata */
 	bool		numset[DST_MAX_NUMERIC + 1]; /*%< data set? */
+
 	bool		bools[DST_MAX_BOOLEAN + 1];   /*%< boolean metadata */
 	bool		boolset[DST_MAX_BOOLEAN + 1]; /*%< data set? */
+
+	dst_key_state_t	keystates[DST_MAX_KEYSTATES + 1]; /*%< key states */
+	bool		keystateset[DST_MAX_KEYSTATES + 1]; /*%< data set? */
 
 	bool 	inactive;      /*%< private key not present as it is inactive */
 	bool 	external;      /*%< external key */

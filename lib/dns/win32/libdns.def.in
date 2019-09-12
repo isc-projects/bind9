@@ -1411,6 +1411,7 @@ dst_key_getfilename
 dst_key_getgssctx
 dst_key_getnum
 dst_key_getprivateformat
+dst_key_getstate
 dst_key_gettime
 dst_key_getttl
 dst_key_id
@@ -1436,6 +1437,7 @@ dst_key_setflags
 dst_key_setinactive
 dst_key_setnum
 dst_key_setprivateformat
+dst_key_setstate
 dst_key_settime
 dst_key_setttl
 dst_key_sigsize
@@ -1446,6 +1448,7 @@ dst_key_todns
 dst_key_tofile
 dst_key_unsetbool
 dst_key_unsetnum
+dst_key_unsetstate
 dst_key_unsettime
 dst_lib_destroy
 dst_lib_init

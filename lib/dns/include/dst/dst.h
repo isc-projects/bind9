@@ -44,6 +44,38 @@ ISC_LANG_BEGINDECLS
 typedef struct dst_key		dst_key_t;
 typedef struct dst_context 	dst_context_t;
 
+/*%
+ * Key states for the DNSSEC records related to a key: DNSKEY, RRSIG (ksk),
+ * RRSIG (zsk), and DS.
+ *
+ * DST_KEY_STATE_HIDDEN:      Records of this type are not published in zone.
+ *                            This may be because the key parts were never
+ *                            introduced in the zone, or because the key has
+ *                            retired and has no records of this type left in
+ *                            the zone.
+ * DST_KEY_STATE_RUMOURED:    Records of this type are published in zone, but
+ *                            not long enough to ensure all resolvers know
+ *                            about it.
+ * DST_KEY_STATE_OMNIPRESENT: Records of this type are published in zone long
+ *                            enough so that all resolvers that know about
+ *                            these records, no longer have outdated data.
+ * DST_KEY_STATE_UNRETENTIVE: Records of this type have been removed from the
+ *                            zone, but there may be resolvers that still have
+ *                            have predecessor records cached.  Note that RRSIG
+ *                            records in this state may actually still be in the
+ *                            zone because they are reused, but retired RRSIG
+ *                            records will never be refreshed: A successor key
+ *                            is used to create signatures.
+ * DST_KEY_STATE_NA:          The state is not applicable for this record type.
+ */
+typedef enum dst_key_state {
+	DST_KEY_STATE_HIDDEN = 0,
+	DST_KEY_STATE_RUMOURED = 1,
+	DST_KEY_STATE_OMNIPRESENT = 2,
+	DST_KEY_STATE_UNRETENTIVE = 3,
+	DST_KEY_STATE_NA = 4
+} dst_key_state_t;
+
 /* DST algorithm codes */
 #define DST_ALG_UNKNOWN		0
 #define DST_ALG_RSA		1 /* Used for parsing RSASHA1, RSASHA256 and RSASHA512 */
@@ -97,7 +129,11 @@ typedef struct dst_context 	dst_context_t;
 #define DST_TIME_DSPUBLISH 	6
 #define DST_TIME_SYNCPUBLISH 	7
 #define DST_TIME_SYNCDELETE 	8
-#define DST_MAX_TIMES		8
+#define DST_TIME_DNSKEY		9
+#define DST_TIME_ZRRSIG		10
+#define DST_TIME_KRRSIG		11
+#define DST_TIME_DS		12
+#define DST_MAX_TIMES		12
 
 /* Numeric metadata definitions */
 #define DST_NUM_PREDECESSOR	0
@@ -111,6 +147,14 @@ typedef struct dst_context 	dst_context_t;
 #define DST_BOOL_KSK		0
 #define DST_BOOL_ZSK		1
 #define DST_MAX_BOOLEAN		1
+
+/* Key state metadata definitions */
+#define DST_KEY_DNSKEY		0
+#define DST_KEY_ZRRSIG		1
+#define DST_KEY_KRRSIG		2
+#define DST_KEY_DS		3
+#define DST_KEY_GOAL		4
+#define DST_MAX_KEYSTATES	4
 
 /*
  * Current format version number of the private key parser.
@@ -391,7 +435,7 @@ dst_key_read_public(const char *filename, int type,
  */
 
 isc_result_t
-dst_key_read_state(const char *filename, isc_mem_t *mctx, dst_key_t *keyp);
+dst_key_read_state(const char *filename, isc_mem_t *mctx, dst_key_t **keyp);
 /*%<
  * Reads a key state from permanent storage.
  *
@@ -927,6 +971,38 @@ dst_key_unsettime(dst_key_t *key, int type);
  * Requires:
  *	"key" is a valid key.
  *	"type" is no larger than DST_MAX_TIMES
+ */
+
+isc_result_t
+dst_key_getstate(const dst_key_t *key, int type, dst_key_state_t *statep);
+/*%<
+ * Get a member of the keystate metadata array and place it in '*statep'.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_KEYSTATES
+ *	"statep" is not null.
+ */
+
+void
+dst_key_setstate(dst_key_t *key, int type, dst_key_state_t state);
+/*%<
+ * Set a member of the keystate metadata array.
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"state" is a valid state.
+ *	"type" is no larger than DST_MAX_KEYSTATES
+ */
+
+void
+dst_key_unsetstate(dst_key_t *key, int type);
+/*%<
+ * Flag a member of the keystate metadata array as "not set".
+ *
+ * Requires:
+ *	"key" is a valid key.
+ *	"type" is no larger than DST_MAX_KEYSTATES
  */
 
 isc_result_t
