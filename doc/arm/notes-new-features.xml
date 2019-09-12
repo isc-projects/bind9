@@ -14,7 +14,7 @@
     <listitem>
       <para>
         Added a new command line option to <command>dig</command>:
-        <comand>+[no]unexpected</comand>. By default, <command>dig</command>
+        <command>+[no]unexpected</command>. By default, <command>dig</command>
         won't accept a reply from a source other than the one to which
         it sent the query.  Add the <command>+unexpected</command> argument
         to enable it to process replies from unexpected sources.
