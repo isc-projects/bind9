@@ -360,8 +360,10 @@ dns_secalg_format(dns_secalg_t alg, char *cp, unsigned int size) {
 	result = dns_secalg_totext(alg, &b);
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		/* cppcheck-suppress unreadVariable */
 		r.base[0] = 0;
+	}
 }
 
 isc_result_t
@@ -390,7 +392,10 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 {
 	isc_result_t result;
 	char *text, *end;
-	unsigned int value, mask;
+	unsigned int value = 0;
+#ifdef notyet
+	unsigned int mask = 0;
+#endif
 
 	result = maybe_numeric(&value, source, 0xffff, true);
 	if (result == ISC_R_SUCCESS) {
@@ -402,7 +407,6 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 
 	text = source->base;
 	end = source->base + source->length;
-	value = mask = 0;
 
 	while (text < end) {
 		struct keyflag *p;
@@ -422,8 +426,8 @@ dns_keyflags_fromtext(dns_keyflags_t *flagsp, isc_textregion_t *source)
 #ifdef notyet
 		if ((mask & p->mask) != 0)
 			warn("overlapping key flags");
-#endif
 		mask |= p->mask;
+#endif
 		text += len;
 		if (delim != NULL)
 			text++; /* Skip "|" */
@@ -456,8 +460,10 @@ dns_dsdigest_format(dns_dsdigest_t typ, char *cp, unsigned int size) {
 	result = dns_dsdigest_totext(typ, &b);
 	isc_buffer_usedregion(&b, &r);
 	r.base[r.length] = 0;
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
+		/* cppcheck-suppress unreadVariable */
 		r.base[0] = 0;
+	}
 }
 
 /*

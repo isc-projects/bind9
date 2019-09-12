@@ -26,6 +26,9 @@
 
 static isc_mem_t *mctx = NULL;
 
+ISC_PLATFORM_NORETURN_PRE static inline void
+fatal(const char *message) ISC_PLATFORM_NORETURN_POST;
+
 static inline void
 fatal(const char *message) {
 	fprintf(stderr, "%s\n", message);

@@ -55,6 +55,7 @@ __wrap_isc__mem_get(isc_mem_t *mctx, size_t size)
 	mock_assert(has_enough_memory, "mock isc_mem_get failed",
 		    __FILE__, __LINE__);
 
+	/* cppcheck-suppress leakNoVarFunctionCall */
 	return (malloc(size));
 }
 

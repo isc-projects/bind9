@@ -32,7 +32,6 @@ isc_result_t
 get_win32_searchlist(irs_resconf_t *conf) {
 	isc_result_t result = ISC_R_SUCCESS;
 	HKEY hKey;
-	BOOL keyFound = TRUE;
 	char searchlist[MAX_PATH];
 	DWORD searchlen = MAX_PATH;
 	LSTATUS status;

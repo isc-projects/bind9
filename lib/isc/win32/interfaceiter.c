@@ -278,8 +278,6 @@ isc_interfaceiter_create(isc_mem_t *mctx, isc_interfaceiter_t **iterp) {
  ioctl_failure:
 	if (iter->buf4 != NULL)
 		isc_mem_put(mctx, iter->buf4, iter->buf4size);
-
- alloc_failure:
 	if (iter->socket != INVALID_SOCKET)
 		(void) closesocket(iter->socket);
 

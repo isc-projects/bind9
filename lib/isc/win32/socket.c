@@ -1334,9 +1334,9 @@ use_min_mtu(isc_socket_t *sock) {
 
 static isc_result_t
 allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
-		isc_socket_t **socketp) {
+		isc_socket_t **socketp)
+{
 	isc_socket_t *sock;
-	isc_result_t result;
 
 	sock = isc_mem_get(manager->mctx, sizeof(*sock));
 
@@ -1385,13 +1385,6 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	*socketp = sock;
 
 	return (ISC_R_SUCCESS);
-
- error:
-	if (sock->recvbuf.base != NULL)
-		isc_mem_put(manager->mctx, sock->recvbuf.base, sock->recvbuf.len);
-	isc_mem_put(manager->mctx, sock, sizeof(*sock));
-
-	return (result);
 }
 
 /*
@@ -2321,7 +2314,6 @@ restart_accept(isc_socket_t *parent, IoCompletionInfo *lpo)
 static isc_threadresult_t WINAPI
 SocketIoThread(LPVOID ThreadContext) {
 	isc_socketmgr_t *manager = ThreadContext;
-	BOOL bSuccess = FALSE;
 	DWORD nbytes;
 	IoCompletionInfo *lpo = NULL;
 	isc_socket_t *sock = NULL;
@@ -2351,6 +2343,8 @@ SocketIoThread(LPVOID ThreadContext) {
 	 * Loop forever waiting on I/O Completions and then processing them
 	 */
 	while (TRUE) {
+		BOOL bSuccess;
+
 		wait_again:
 		bSuccess = GetQueuedCompletionStatus(manager->hIoCompletionPort,
 						     &nbytes,
@@ -3491,6 +3485,7 @@ isc_socket_cancel(isc_socket_t *sock, isc_task_t *task, unsigned int how) {
 		_set_state(sock, SOCK_CLOSED);
 	}
 	how &= ~ISC_SOCKCANCEL_CONNECT;
+	UNUSED(how);
 
 	maybe_free_socket(&sock, __LINE__);
 }

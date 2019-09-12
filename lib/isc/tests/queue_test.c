@@ -137,6 +137,8 @@ queue_valid(void **state) {
 	assert_non_null(p);
 	assert_int_equal(p->value, 5);
 
+	assert_null(queue.head);
+	assert_null(queue.tail);
 	assert_true(ISC_QUEUE_EMPTY(queue));
 
 	ISC_QUEUE_DESTROY(queue);
