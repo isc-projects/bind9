@@ -1425,6 +1425,7 @@ dst_key_privatefrombuffer
 dst_key_proto
 dst_key_pubcompare
 dst_key_read_public
+dst_key_read_state
 dst_key_restore
 dst_key_rid
 dst_key_secretsize

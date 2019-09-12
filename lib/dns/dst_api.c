@@ -64,6 +64,63 @@
 
 #define DST_AS_STR(t) ((t).value.as_textregion.base)
 
+#define NEXTTOKEN(lex, opt, token) {				\
+	ret = isc_lex_gettoken(lex, opt, token);		\
+	if (ret != ISC_R_SUCCESS)				\
+		goto cleanup;					\
+	}
+
+#define NEXTTOKEN_OR_EOF(lex, opt, token) {			\
+	ret = isc_lex_gettoken(lex, opt, token);		\
+	if (ret == ISC_R_EOF)					\
+		break;						\
+	if (ret != ISC_R_SUCCESS)				\
+		goto cleanup;					\
+	}
+
+#define READLINE(lex, opt, token)				\
+	do {							\
+		ret = isc_lex_gettoken(lex, opt, token);	\
+		if (ret == ISC_R_EOF)				\
+			break;					\
+		else if (ret != ISC_R_SUCCESS)			\
+			goto cleanup;				\
+	} while ((*token).type != isc_tokentype_eol)
+
+#define BADTOKEN() {						\
+	ret = ISC_R_UNEXPECTEDTOKEN;				\
+	goto cleanup;						\
+	}
+
+#define NUMERIC_NTAGS (DST_MAX_NUMERIC + 1)
+static const char *numerictags[NUMERIC_NTAGS] = {
+	"Lifetime:"
+};
+
+#define BOOLEAN_NTAGS (DST_MAX_BOOLEAN + 1)
+static const char *booleantags[BOOLEAN_NTAGS] = {
+	"KSK:",
+	"ZSK:"
+};
+
+#define TIMING_NTAGS (DST_MAX_TIMES + 1)
+static const char *timingtags[TIMING_NTAGS] = {
+	"Generated:",
+	"Published:",
+	"Active:",
+	"Retired:",
+	"Revoked:",
+	"Removed:",
+
+	"DSPublish:",
+	"SyncPublish:",
+	"SyncDelete:"
+};
+
+#define STATE_ALGORITHM_STR "Algorithm:"
+#define STATE_LENGTH_STR "Length:"
+#define MAX_NTAGS (DST_MAX_NUMERIC + DST_MAX_BOOLEAN + DST_MAX_TIMES)
+
 static dst_func_t *dst_t_func[DST_MAX_ALGS];
 
 static bool dst_initialized = false;
@@ -84,7 +141,7 @@ static dst_key_t *	get_key_struct(const dns_name_t *name,
 static isc_result_t	write_public_key(const dst_key_t *key, int type,
 					 const char *directory);
 static isc_result_t	write_key_state(const dst_key_t *key, int type,
-					 const char *directory);
+					const char *directory);
 static isc_result_t	buildfilename(dns_name_t *name,
 				      dns_keytag_t id,
 				      unsigned int alg,
@@ -424,7 +481,8 @@ dst_key_getfilename(dns_name_t *name, dns_keytag_t id,
 
 	REQUIRE(dst_initialized == true);
 	REQUIRE(dns_name_isabsolute(name));
-	REQUIRE((type & (DST_TYPE_PRIVATE | DST_TYPE_PUBLIC)) != 0);
+	REQUIRE((type &
+		(DST_TYPE_PRIVATE | DST_TYPE_PUBLIC | DST_TYPE_STATE)) != 0);
 	REQUIRE(mctx != NULL);
 	REQUIRE(buf != NULL);
 
@@ -544,6 +602,25 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 	if (result != ISC_R_SUCCESS) {
 		dst_key_free(&pubkey);
 		return (result);
+	}
+
+	/*
+	 * Read the state file, if requested by type.
+	 */
+	if ((type & DST_TYPE_STATE) != 0) {
+		newfilenamelen = strlen(filename) + 7;
+		if (dirname != NULL) {
+			newfilenamelen += strlen(dirname) + 1;
+		}
+		newfilename = isc_mem_get(mctx, newfilenamelen);
+		result = addsuffix(newfilename, newfilenamelen,
+				   dirname, filename, ".state");
+		INSIST(result == ISC_R_SUCCESS);
+
+		result = dst_key_read_state(newfilename, mctx, pubkey);
+		isc_mem_put(mctx, newfilename, newfilenamelen);
+		newfilename = NULL;
+		RETERR(result);
 	}
 
 	key = get_key_struct(pubkey->key_name, pubkey->key_alg,
@@ -1396,7 +1473,7 @@ dst_key_setinactive(dst_key_t *key, bool inactive) {
 }
 
 /*%
- * Reads a public key from disk
+ * Reads a public key from disk.
  */
 isc_result_t
 dst_key_read_public(const char *filename, int type,
@@ -1437,17 +1514,6 @@ dst_key_read_public(const char *filename, int type,
 	ret = isc_lex_openfile(lex, filename);
 	if (ret != ISC_R_SUCCESS)
 		goto cleanup;
-
-#define NEXTTOKEN(lex, opt, token) { \
-	ret = isc_lex_gettoken(lex, opt, token); \
-	if (ret != ISC_R_SUCCESS) \
-		goto cleanup; \
-	}
-
-#define BADTOKEN() { \
-	ret = ISC_R_UNEXPECTEDTOKEN; \
-	goto cleanup; \
-	}
 
 	/* Read the domain name */
 	NEXTTOKEN(lex, opt, &token);
@@ -1518,6 +1584,165 @@ dst_key_read_public(const char *filename, int type,
  cleanup:
 	if (lex != NULL)
 		isc_lex_destroy(&lex);
+	return (ret);
+}
+
+static int
+find_metadata(const char *s, const char *tags[], int ntags) {
+	for (int i = 0; i < ntags; i++) {
+		if (tags[i] != NULL && strcasecmp(s, tags[i]) == 0)
+			return (i);
+	}
+	return (-1);
+}
+
+static int
+find_numericdata(const char *s) {
+	return (find_metadata(s, numerictags, NUMERIC_NTAGS));
+}
+
+static int
+find_booleandata(const char *s) {
+	return (find_metadata(s, booleantags, BOOLEAN_NTAGS));
+}
+
+static int
+find_timingdata(const char *s) {
+	return (find_metadata(s, timingtags, TIMING_NTAGS));
+}
+
+
+/*%
+ * Reads a key state from disk.
+ */
+isc_result_t
+dst_key_read_state(const char *filename, isc_mem_t *mctx, dst_key_t *key)
+{
+	isc_lex_t *lex = NULL;
+	isc_token_t token;
+	isc_result_t ret;
+	unsigned int opt = ISC_LEXOPT_DNSMULTILINE;
+
+	ret = isc_lex_create(mctx, 1500, &lex);
+	if (ret != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+	isc_lex_setcomments(lex, ISC_LEXCOMMENT_DNSMASTERFILE);
+
+	ret = isc_lex_openfile(lex, filename);
+	if (ret != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	/*
+	 * Read the algorithm line.
+	 */
+	NEXTTOKEN(lex, opt, &token);
+	if (token.type != isc_tokentype_string ||
+	    strcmp(DST_AS_STR(token), STATE_ALGORITHM_STR) != 0)
+	{
+		BADTOKEN();
+	}
+
+	NEXTTOKEN(lex, opt | ISC_LEXOPT_NUMBER, &token);
+	if (token.type != isc_tokentype_number ||
+		token.value.as_ulong != (unsigned long) dst_key_alg(key))
+	{
+		BADTOKEN();
+	}
+
+	/*
+	 * Read the length line.
+	 */
+	NEXTTOKEN(lex, opt, &token);
+	if (token.type != isc_tokentype_string ||
+	    strcmp(DST_AS_STR(token), STATE_LENGTH_STR) != 0)
+	{
+		BADTOKEN();
+	}
+
+	NEXTTOKEN(lex, opt | ISC_LEXOPT_NUMBER, &token);
+	if (token.type != isc_tokentype_number ||
+		token.value.as_ulong != (unsigned long) dst_key_size(key))
+	{
+		BADTOKEN();
+	}
+
+	/*
+	 * Read the metadata.
+	 */
+	for (int n = 0; n < MAX_NTAGS; n++) {
+		int tag;
+
+		NEXTTOKEN_OR_EOF(lex, opt, &token);
+		if (token.type != isc_tokentype_string) {
+			BADTOKEN();
+		}
+
+		/* Numeric metadata */
+		tag = find_numericdata(DST_AS_STR(token));
+		if (tag >= 0) {
+			NEXTTOKEN(lex, opt | ISC_LEXOPT_NUMBER, &token);
+			if (token.type != isc_tokentype_number) {
+				BADTOKEN();
+			}
+			dst_key_setnum(key, tag, token.value.as_ulong);
+
+			goto next;
+		}
+
+		/* Boolean metadata */
+		tag = find_booleandata(DST_AS_STR(token));
+		if (tag >= 0) {
+			INSIST(tag < BOOLEAN_NTAGS);
+
+			NEXTTOKEN(lex, opt, &token);
+			if (token.type != isc_tokentype_string) {
+				BADTOKEN();
+			}
+			if (strcmp(DST_AS_STR(token), "yes") == 0) {
+				dst_key_setbool(key, tag, true);
+			} else if (strcmp(DST_AS_STR(token), "no") == 0) {
+				dst_key_setbool(key, tag, false);
+			} else {
+				BADTOKEN();
+			}
+
+			goto next;
+		}
+
+		/* Timing metadata */
+		tag = find_timingdata(DST_AS_STR(token));
+		if (tag >= 0) {
+			uint32_t when;
+
+			INSIST(tag < TIMING_NTAGS);
+
+			NEXTTOKEN(lex, opt, &token);
+			if (token.type != isc_tokentype_string) {
+				BADTOKEN();
+			}
+
+			ret = dns_time32_fromtext(DST_AS_STR(token), &when);
+			if (ret != ISC_R_SUCCESS) {
+				goto cleanup;
+			}
+			dst_key_settime(key, tag, when);
+
+			goto next;
+		}
+
+next:
+		READLINE(lex, opt, &token);
+	}
+
+	/* Done, successfully parsed the whole file. */
+	ret = ISC_R_SUCCESS;
+
+cleanup:
+	if (lex != NULL) {
+		isc_lex_destroy(&lex);
+	}
 	return (ret);
 }
 
@@ -1670,6 +1895,9 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 		}
 		fputc('\n', fp);
 
+		fprintf(fp, "Algorithm: %u\n", key->key_alg);
+		fprintf(fp, "Length: %u\n", key->key_size);
+
 		printtime(key, DST_TIME_CREATED, "Generated", fp);
 		printtime(key, DST_TIME_PUBLISH, "Published", fp);
 		printtime(key, DST_TIME_ACTIVATE, "Active", fp);
@@ -1678,8 +1906,6 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 		printtime(key, DST_TIME_DELETE, "Removed", fp);
 
 		printnum(key, DST_NUM_LIFETIME, "Lifetime", fp);
-		fprintf(fp, "Algorithm: %u\n", key->key_alg);
-		fprintf(fp, "Length: %u\n", key->key_size);
 
 		printbool(key, DST_BOOL_KSK, "KSK", fp);
 		printbool(key, DST_BOOL_ZSK, "ZSK", fp);

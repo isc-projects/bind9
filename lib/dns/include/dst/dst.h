@@ -317,16 +317,17 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id, unsigned int alg, int type,
 		 const char *directory, isc_mem_t *mctx, dst_key_t **keyp);
 /*%<
  * Reads a key from permanent storage.  The key can either be a public or
- * private key, and is specified by name, algorithm, and id.  If a private key
- * is specified, the public key must also be present.  If directory is NULL,
- * the current directory is assumed.
+ * private key, or a key state. It specified by name, algorithm, and id.  If
+ * a private key or key state is specified, the public key must also be
+ * present.  If directory is NULL, the current directory is assumed.
  *
  * Requires:
  * \li	"name" is a valid absolute dns name.
  * \li	"id" is a valid key tag identifier.
  * \li	"alg" is a supported key algorithm.
- * \li	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union.
- *		  DST_TYPE_KEY look for a KEY record otherwise DNSKEY
+ * \li	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE or the bitwise union.
+ *		  DST_TYPE_KEY look for a KEY record otherwise DNSKEY.
+ *		  DST_TYPE_STATE to also read the key state.
  * \li	"mctx" is a valid memory context.
  * \li	"keyp" is not NULL and "*keyp" is NULL.
  *
@@ -343,8 +344,8 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
 		      int type, isc_mem_t *mctx, dst_key_t **keyp);
 /*%<
  * Reads a key from permanent storage.  The key can either be a public or
- * key, and is specified by filename.  If a private key is specified, the
- * public key must also be present.
+ * private key, or a key stae. It is specified by filename.  If a private key
+ * or key state is specified, the public key must also be present.
  *
  * If 'dirname' is not NULL, and 'filename' is a relative path,
  * then the file is looked up relative to the given directory.
@@ -352,8 +353,9 @@ dst_key_fromnamedfile(const char *filename, const char *dirname,
  *
  * Requires:
  * \li	"filename" is not NULL
- * \li	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union
- *		  DST_TYPE_KEY look for a KEY record otherwise DNSKEY
+ * \li	"type" is DST_TYPE_PUBLIC, DST_TYPE_PRIVATE, or the bitwise union.
+ *		  DST_TYPE_KEY look for a KEY record otherwise DNSKEY.
+ *		  DST_TYPE_STATE to also read the key state.
  * \li	"mctx" is a valid memory context
  * \li	"keyp" is not NULL and "*keyp" is NULL.
  *
@@ -373,9 +375,9 @@ dst_key_read_public(const char *filename, int type,
  * Reads a public key from permanent storage.  The key must be a public key.
  *
  * Requires:
- * \li	"filename" is not NULL
- * \li	"type" is DST_TYPE_KEY look for a KEY record otherwise DNSKEY
- * \li	"mctx" is a valid memory context
+ * \li	"filename" is not NULL.
+ * \li	"type" is DST_TYPE_KEY look for a KEY record otherwise DNSKEY.
+ * \li	"mctx" is a valid memory context.
  * \li	"keyp" is not NULL and "*keyp" is NULL.
  *
  * Returns:
@@ -386,6 +388,22 @@ dst_key_read_public(const char *filename, int type,
  *
  * Ensures:
  * \li	If successful, *keyp will contain a valid key.
+ */
+
+isc_result_t
+dst_key_read_state(const char *filename, isc_mem_t *mctx, dst_key_t *keyp);
+/*%<
+ * Reads a key state from permanent storage.
+ *
+ * Requires:
+ * \li	"filename" is not NULL.
+ * \li	"mctx" is a valid memory context.
+ * \li	"keyp" is not NULL and "*keyp" is NULL.
+ *
+ * Returns:
+ * \li	ISC_R_SUCCESS
+ * \li	ISC_R_UNEXPECTEDTOKEN if the file can not be parsed as a public key
+ * \li	any other result indicates failure
  */
 
 isc_result_t
