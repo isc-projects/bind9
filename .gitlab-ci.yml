@@ -11,6 +11,7 @@ variables:
   # VirtualBox driver needs to set build_dir to "/builds" in gitlab-runner.toml
   KYUA_RESULT: "$CI_PROJECT_DIR/kyua.results"
 
+  GIT_DEPTH: 1
   BUILD_PARALLEL_JOBS: 6
   TEST_PARALLEL_JOBS: 6
 
@@ -23,6 +24,13 @@ stages:
   - push
 
 ### Runner Tag Templates
+
+# Note: FreeBSD runners extract the FreeBSD version to use from job name
+
+.freebsd-amd64: &freebsd_amd64
+  tags:
+    - freebsd
+    - amd64
 
 .linux-amd64: &linux_amd64
   tags:
@@ -184,7 +192,7 @@ stages:
     when: on_failure
 
 .kyua_report: &kyua_report_html |
-  kyua report-html \
+  kyua --logfile /dev/null report-html \
        --force \
        --results-file "$KYUA_RESULT" \
        --results-filter "" \
@@ -638,6 +646,57 @@ unit:pkcs11:sid:amd64:
   dependencies:
     - pkcs11:sid:amd64
   needs: ["pkcs11:sid:amd64"]
+
+# Jobs for Clang builds on FreeBSD 11.3 (amd64)
+
+clang:freebsd11.3:amd64:
+  variables:
+    CFLAGS: "-Wall -Wextra -O2 -g"
+  <<: *freebsd_amd64
+  <<: *build_job
+  when: manual
+
+system:clang:freebsd11.3:amd64:
+  <<: *freebsd_amd64
+  <<: *system_test_job
+  dependencies:
+    - clang:freebsd11.3:amd64
+  needs: ["clang:freebsd11.3:amd64"]
+  when: manual
+
+unit:clang:freebsd11.3:amd64:
+  <<: *freebsd_amd64
+  <<: *unit_test_job
+  dependencies:
+    - clang:freebsd11.3:amd64
+  needs: ["clang:freebsd11.3:amd64"]
+  when: manual
+
+# Jobs for Clang builds on FreeBSD 12.0 (amd64)
+
+clang:freebsd12.0:amd64:
+  variables:
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    EXTRA_CONFIGURE: "--enable-dnstap"
+  <<: *freebsd_amd64
+  <<: *build_job
+  when: manual
+
+system:clang:freebsd12.0:amd64:
+  <<: *freebsd_amd64
+  <<: *system_test_job
+  dependencies:
+    - clang:freebsd12.0:amd64
+  needs: ["clang:freebsd12.0:amd64"]
+  when: manual
+
+unit:clang:freebsd12.0:amd64:
+  <<: *freebsd_amd64
+  <<: *unit_test_job
+  dependencies:
+    - clang:freebsd12.0:amd64
+  needs: ["clang:freebsd12.0:amd64"]
+  when: manual
 
 # Jobs with libtool disabled
 
