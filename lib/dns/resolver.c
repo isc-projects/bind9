@@ -9184,6 +9184,23 @@ rctx_referral(respctx_t *rctx) {
 		return (ISC_R_COMPLETE);
 	}
 
+	if ((fctx->options & DNS_FETCHOPT_QMINIMIZE) != 0) {
+		dns_name_free(&fctx->qmindcname, fctx->mctx);
+		dns_name_init(&fctx->qmindcname, NULL);
+		result = dns_name_dup(rctx->ns_name, fctx->mctx,
+				      &fctx->qmindcname);
+		if (result != ISC_R_SUCCESS) {
+			rctx->result = result;
+			return (ISC_R_COMPLETE);
+		}
+
+		result= fctx_minimize_qname(fctx);
+		if (result != ISC_R_SUCCESS) {
+			rctx->result = result;
+			return (ISC_R_COMPLETE);
+		}
+	}
+
 	result = fcount_incr(fctx, true);
 	if (result != ISC_R_SUCCESS) {
 		rctx->result = result;
