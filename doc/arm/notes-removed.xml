@@ -1,0 +1,39 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes_removed"><info><title>Removed Features</title></info>
+  <itemizedlist>
+    <listitem>
+      <para>
+        The <command>dnssec-enable</command> option has been obsoleted and
+        no longer has any effect. DNSSEC responses are always enabled
+        if signatures and other DNSSEC data are present. [GL #866]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        The <command>cleaning-interval</command> option has been
+        removed.  [GL !1731]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
+        DNSSEC Lookaside Validation (DLV) is now obsolete.
+        The <command>dnssec-lookaside</command> option has been
+        marked as deprecated; when used in <filename>named.conf</filename>,
+        it will generate a warning but will otherwise be ignored.
+        All code enabling the use of lookaside validation has been removed
+        from the validator, <command>delv</command>, and the DNSSEC tools.
+        [GL #7]
+      </para>
+    </listitem>
+  </itemizedlist>
+</section>
