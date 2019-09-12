@@ -12,8 +12,10 @@
 <section xml:id="end_of_life"><info><title>End of Life</title></info>
   <para>
     BIND 9.11 (Extended Support Version) will be supported until at
-    least December, 2021. See
-    <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/downloads/software-support-policy/">https://www.isc.org/downloads/software-support-policy/</link>
+    least December, 2021.
+  </para>
+  <para>
+    See <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://www.isc.org/downloads/software-support-policy/">https://www.isc.org/downloads/software-support-policy/</link>
     for details of ISC's software support policy.
   </para>
 </section>
