@@ -349,8 +349,6 @@ affect compilation:
 Building on macOS assumes that the "Command Tools for Xcode" is installed.
 This can be downloaded from https://developer.apple.com/download/more/
 or if you have Xcode already installed you can run "xcode-select --install".
-This will add /usr/include to the system and install the compiler and other
-tools so that they can be easily found.
 
 ### <a name="dependencies"/> Dependencies
 
