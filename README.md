@@ -82,6 +82,9 @@ assertion failure or other crash in `named`, please do *NOT* use GitLab to
 report it. Instead, please send mail to
 [security-officer@isc.org](mailto:security-officer@isc.org).
 
+For a general overview of ISC security policies, read the Knowledge Base
+article at [https://kb.isc.org/docs/aa-00861](https://kb.isc.org/docs/aa-00861).
+
 Professional support and training for BIND are available from
 ISC at [https://www.isc.org/support](https://www.isc.org/support).
 
@@ -103,7 +106,7 @@ Information for BIND contributors can be found in the following files:
 - BIND architecture and developer guide: [doc/dev/dev.md](doc/dev/dev.md)
 
 Patches for BIND may be submitted as
-[Merge Requests](https://gitlab.isc.org/isc-projects/bind9/merge_requests)
+[merge requests](https://gitlab.isc.org/isc-projects/bind9/merge_requests)
 in the [ISC GitLab server](https://gitlab.isc.org) at
 at [https://gitlab.isc.org/isc-projects/bind9/merge_requests](https://gitlab.isc.org/isc-projects/bind9/merge_requests).
 
@@ -311,14 +314,15 @@ BIND 9.11.11 is a maintenance release.
 
 ### <a name="build"/> Building BIND
 
-BIND requires a UNIX or Linux system with an ANSI C compiler, basic POSIX
-support, and a 64-bit integer type. Successful builds have been observed on
-many versions of Linux and UNIX, including RedHat, Fedora, Debian, Ubuntu,
-SuSE, Slackware, FreeBSD, NetBSD, OpenBSD, Mac OS X, Solaris, HP-UX, AIX,
-SCO OpenServer, and OpenWRT. 
+Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
+basic POSIX support, and a 64-bit integer type. Successful builds have been
+observed on many versions of Linux and UNIX, including RHEL/CentOS, Fedora,
+Debian, Ubuntu, SLES, openSUSE, Slackware, Alpine, FreeBSD, NetBSD,
+OpenBSD, macOS, Solaris, OpenIndiana, OmniOS CE, HP-UX, and OpenWRT.
 
 BIND is also available for Windows Server 2008 and higher.  See
-`win32utils/readme1st.txt` for details on building for Windows systems.
+`win32utils/readme1st.txt` for details on building for Windows
+systems.
 
 To build on a UNIX or Linux system, use:
 
@@ -339,24 +343,24 @@ affect compilation:
 |`STD_CDEFINES`|Any additional preprocessor symbols you want defined.  Defaults to empty string. For a list of possible settings, see the file [OPTIONS](OPTIONS.md).|
 |`LDFLAGS`|Linker flags. Defaults to empty string.|
 |`BUILD_CC`|Needed when cross-compiling: the native C compiler to use when building for the target system.|
-|`BUILD_CFLAGS`|Optional, used for cross-compiling|
-|`BUILD_CPPFLAGS`||
-|`BUILD_LDFLAGS`||
-|`BUILD_LIBS`||
+|`BUILD_CFLAGS`|`CFLAGS` for the target system during cross-compiling.|
+|`BUILD_CPPFLAGS`|`CPPFLAGS` for the target system during cross-compiling.|
+|`BUILD_LDFLAGS`|`LDFLAGS` for the target system during cross-compiling.|
+|`BUILD_LIBS`|`LIBS` for the target system during cross-compiling.|
 
 #### <a name="macos"> macOS
 
 Building on macOS assumes that the "Command Tools for Xcode" is installed.
-This can be downloaded from https://developer.apple.com/download/more/
-or if you have Xcode already installed you can run "xcode-select --install".
+This can be downloaded from [https://developer.apple.com/download/more/](https://developer.apple.com/download/more/)
+or if you have Xcode already installed you can run `xcode-select --install`.
 
 ### <a name="dependencies"/> Dependencies
 
 Portions of BIND that are written in Python, including
 `dnssec-keymgr`, `dnssec-coverage`, `dnssec-checkds`, and some of the
-system tests, require the 'argparse' and 'ply' modules to be available.
-'argparse' is a standard module as of Python 2.7 and Python 3.2.
-'ply' is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
+system tests, require the `argparse` and `ply` modules to be available.
+`argparse` is a standard module as of Python 2.7 and Python 3.2.
+`ply` is available from [https://pypi.python.org/pypi/ply](https://pypi.python.org/pypi/ply).
 
 #### <a name="opts"/> Compile-time options
 
@@ -378,34 +382,36 @@ command line.
 For the server to support DNSSEC, you need to build it with crypto support.
 To use OpenSSL, you should have OpenSSL 1.0.2e or newer installed.  If the
 OpenSSL library is installed in a nonstandard location, specify the prefix
-using "--with-openssl=&lt;PREFIX&gt;" on the configure command line. To use a
+using `--with-openssl=<PREFIX>` on the configure command line. To use a
 PKCS#11 hardware service module for cryptographic operations, specify the
-path to the PKCS#11 provider library using "--with-pkcs11=&lt;PREFIX&gt;", and
+path to the PKCS#11 provider library using `--with-pkcs11=<PREFIX>`, and
 configure BIND with "--enable-native-pkcs11".
 
 To support the HTTP statistics channel, the server must be linked with at
-least one of the following: libxml2
-[http://xmlsoft.org](http://xmlsoft.org) or json-c
-[https://github.com/json-c](https://github.com/json-c).  If these are
-installed at a nonstandard location, specify the prefix using
-`--with-libxml2=/prefix` or `--with-libjson=/prefix`.
+least one of the following libraries: `libxml2`
+[http://xmlsoft.org](http://xmlsoft.org) or `json-c`
+[https://github.com/json-c/json-c](https://github.com/json-c/json-c).
+If these are installed at a nonstandard location, then:
+
+* for `libxml2`, specify the prefix using `--with-libxml2=/prefix`,
+* for `json-c`, adjust `PKG_CONFIG_PATH`.
 
 To support compression on the HTTP statistics channel, the server must be
-linked against libzlib.  If this is installed in a nonstandard location,
+linked against `libzlib`.  If this is installed in a nonstandard location,
 specify the prefix using `--with-zlib=/prefix`.
 
 To support storing configuration data for runtime-added zones in an LMDB
 database, the server must be linked with liblmdb. If this is installed in a
-nonstandard location, specify the prefix using "with-lmdb=/prefix".
+nonstandard location, specify the prefix using `with-lmdb=/prefix`.
 
 To support GeoIP location-based ACLs, the server must be linked with
 libGeoIP. This is not turned on by default; BIND must be configured with
 "--with-geoip". If the library is installed in a nonstandard location, use
 specify the prefix using "--with-geoip=/prefix".
 
-For DNSTAP packet logging, you must have installed libfstrm
+For DNSTAP packet logging, you must have installed `libfstrm`
 [https://github.com/farsightsec/fstrm](https://github.com/farsightsec/fstrm)
-and libprotobuf-c
+and `libprotobuf-c`
 [https://developers.google.com/protocol-buffers](https://developers.google.com/protocol-buffers),
 and BIND must be configured with `--enable-dnstap`.
 
@@ -453,20 +459,21 @@ multiple servers to run locally and communicate with one another).  These
 IP addresses can be configured by running the command
 `bin/tests/system/ifconfig.sh up` as root.
 
-Some tests require Perl and the Net::DNS and/or IO::Socket::INET6 modules,
+Some tests require Perl and the `Net::DNS` and/or `IO::Socket::INET6` modules,
 and will be skipped if these are not available. Some tests require Python
-and the 'dnspython' module and will be skipped if these are not available.
+and the `dnspython` module and will be skipped if these are not available.
 See bin/tests/system/README for further details.
 
-Unit tests are implemented using the CMocka unit testing framework.
+Unit tests are implemented using the [CMocka unit testing framework](https://cmocka.org/).
 To build them, use `configure --with-cmocka`. Execution of tests is done
-by the Kyua test execution engine; if the `kyua` command is available,
-then unit tests can be run via `make test` or `make unit`.
+by the [Kyua test execution engine](https://github.com/jmmv/kyua); if the
+`kyua` command is available, then unit tests can be run via `make test`
+or `make unit`.
 
 ### <a name="doc"/> Documentation
 
 The *BIND 9 Administrator Reference Manual* is included with the source
-distribution, in DocBook XML, HTML and PDF format, in the `doc/arm`
+distribution, in DocBook XML, HTML, and PDF format, in the `doc/arm`
 directory.
 
 Some of the programs in the BIND 9 distribution have man pages in their
@@ -516,17 +523,17 @@ issue number. Prior to 2018, these were usually of the form `[RT #NNN]`
 and referred to entries in the "bind9-bugs" RT database, which was not open
 to the public. More recent entries use the form `[GL #NNN]` or, less often,
 `[GL !NNN]`, which, respectively, refer to issues or merge requests in the
-Gitlab database. Most of these are publicly readable, unless they include
-information which is confidential or security senstive.
+GitLab database. Most of these are publicly readable, unless they include
+information which is confidential or security sensitive.
 
-To look up a Gitlab issue by its number, use the URL
+To look up a GitLab issue by its number, use the URL
 [https://gitlab.isc.org/isc-projects/bind9/issues/NNN](https://gitlab.isc.org/isc-projects/bind9/issues).
 To look up a merge request, use
 [https://gitlab.isc.org/isc-projects/bind9/merge_requests/NNN](https://gitlab.isc.org/isc-projects/bind9/merge_requests).
 
 In rare cases, an issue or merge request number may be followed with the
 letter "P". This indicates that the information is in the private ISC
-Gitlab instance, which is not visible to the public.
+GitLab instance, which is not visible to the public.
 
 ### <a name="ack"/> Acknowledgments
 
