@@ -91,6 +91,7 @@
 #define IDC_ACCOUNT_PASSWORD            1031
 #define IDC_ACCOUNT_PASSWORD_CONFIRM    1032
 #define IDC_TOOLS_ONLY			1033
+#define IDS_ERR_START_SERVICE		1034
 
 // Next default values for new objects
 // 

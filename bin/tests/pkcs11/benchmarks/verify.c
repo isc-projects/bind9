@@ -78,10 +78,10 @@ clock_gettime(int32_t id, struct timespec *tp)
 	UNUSED(id);
 
 	result = gettimeofday(&tv, NULL);
-	if (result)
-		return (result);
-	tp->tv_sec = tv.tv_sec;
-	tp->tv_nsec = (long) tv.tv_usec * 1000;
+	if (result == 0) {
+		tp->tv_sec = tv.tv_sec;
+		tp->tv_nsec = (long) tv.tv_usec * 1000;
+	}
 	return (result);
 }
 #endif
@@ -284,7 +284,7 @@ main(int argc, char *argv[]) {
 			fprintf(stderr,
 				"C_DestroyObject: Error = 0x%.8lX\n",
 				rv);
-			errflg = 1;
+			error = 1;
 		}
 	}
 

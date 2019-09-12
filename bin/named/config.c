@@ -863,6 +863,7 @@ ns_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 	if (stack != NULL)
 		isc_mem_put(mctx, stack, stackcount * sizeof(*stack));
 
+	INSIST(dscpcount == addrcount);
 	INSIST(keycount == addrcount);
 	INSIST(keycount == dscpcount);
 

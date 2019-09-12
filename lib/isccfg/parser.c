@@ -1950,7 +1950,6 @@ print_symval(cfg_printer_t *pctx, const char *name, cfg_obj_t *obj) {
 
 void
 cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
-	isc_result_t result = ISC_R_SUCCESS;
 	const cfg_clausedef_t * const *clauseset;
 
 	REQUIRE(pctx != NULL);
@@ -1966,6 +1965,7 @@ cfg_print_mapbody(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 		for (clause = *clauseset;
 		     clause->name != NULL;
 		     clause++) {
+			isc_result_t result;
 			result = isc_symtab_lookup(obj->value.map.symtab,
 						   clause->name, 0, &symval);
 			if (result == ISC_R_SUCCESS) {

@@ -509,24 +509,29 @@ main(int argc, char **argv) {
 	dns_rdataset_init(&rdataset);
 
 	if (usekeyset || filename != NULL) {
-		if (argc < isc_commandline_index + 1 && filename != NULL) {
+		if (argc < isc_commandline_index + 1) {
 			/* using zone name as the zone file name */
 			namestr = filename;
-		} else
+		} else {
 			namestr = argv[isc_commandline_index];
+		}
 
 		result = initname(namestr);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("could not initialize name %s", namestr);
+		}
 
-		if (usekeyset)
+		if (usekeyset) {
 			result = loadkeyset(dir, &rdataset);
-		else
+		} else {
+			INSIST(filename != NULL);
 			result = loadset(filename, &rdataset);
+		}
 
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			fatal("could not load DNSKEY set: %s\n",
 			      isc_result_totext(result));
+		}
 
 		for (result = dns_rdataset_first(&rdataset);
 		     result == ISC_R_SUCCESS;
@@ -534,16 +539,18 @@ main(int argc, char **argv) {
 			dns_rdata_init(&rdata);
 			dns_rdataset_current(&rdataset, &rdata);
 
-			if (verbose > 2)
+			if (verbose > 2) {
 				logkey(&rdata);
+			}
 
 			if (both) {
 				emit(DNS_DSDIGEST_SHA1, showall, lookaside,
 				     cds, &rdata);
 				emit(DNS_DSDIGEST_SHA256, showall, lookaside,
 				     cds, &rdata);
-			} else
+			} else {
 				emit(dtype, showall, lookaside, cds, &rdata);
+			}
 		}
 	} else {
 		unsigned char key_buf[DST_KEY_MAXSIZE];
@@ -556,8 +563,9 @@ main(int argc, char **argv) {
 			     &rdata);
 			emit(DNS_DSDIGEST_SHA256, showall, lookaside, cds,
 			     &rdata);
-		} else
+		} else {
 			emit(dtype, showall, lookaside, cds, &rdata);
+		}
 	}
 
 	if (dns_rdataset_isassociated(&rdataset))

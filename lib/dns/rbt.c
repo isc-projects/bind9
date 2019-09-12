@@ -2997,6 +2997,12 @@ dns_rbt_indent(FILE *f, int depth) {
 
 void
 dns_rbt_printnodeinfo(dns_rbtnode_t *n, FILE *f) {
+
+	if (n == NULL) {
+		fprintf(f, "Null node\n");
+		return;
+	}
+
 	fprintf(f, "Node info for nodename: ");
 	printnodename(n, true, f);
 	fprintf(f, "\n");
@@ -3016,7 +3022,7 @@ dns_rbt_printnodeinfo(dns_rbtnode_t *n, FILE *f) {
 	fprintf(f, "Right: %p\n", n->right);
 	fprintf(f, "Left: %p\n", n->left);
 	fprintf(f, "Down: %p\n", n->down);
-	fprintf(f, "daTa: %p\n", n->data);
+	fprintf(f, "Data: %p\n", n->data);
 }
 
 static void
@@ -3049,8 +3055,12 @@ print_text_helper(dns_rbtnode_t *root, dns_rbtnode_t *parent,
 
 	if (root != NULL) {
 		printnodename(root, true, f);
+		/*
+		 * Don't use IS_RED(root) as it tests for 'root != NULL'
+		 * and cppcheck produces false positives.
+		 */
 		fprintf(f, " (%s, %s", direction,
-			IS_RED(root) ? "RED" : "BLACK");
+			COLOR(root) == RED ? "RED" : "BLACK");
 
 		if ((! IS_ROOT(root) && PARENT(root) != parent) ||
 		    (  IS_ROOT(root) && depth > 0 &&
@@ -3074,13 +3084,22 @@ print_text_helper(dns_rbtnode_t *root, dns_rbtnode_t *parent,
 
 		depth++;
 
-		if (IS_RED(root) && IS_RED(LEFT(root)))
+		/*
+		 * Don't use IS_RED(root) as it tests for 'root != NULL'
+		 * and cppcheck produces false positives.
+		 */
+		if (COLOR(root) == RED && IS_RED(LEFT(root))) {
 			fprintf(f, "** Red/Red color violation on left\n");
+		}
 		print_text_helper(LEFT(root), root, depth, "left",
 					  data_printer, f);
 
-		if (IS_RED(root) && IS_RED(RIGHT(root)))
+		/*
+		 * Don't use IS_RED(root) as cppcheck produces false positives.
+		 */
+		if (COLOR(root) == RED && IS_RED(RIGHT(root))) {
 			fprintf(f, "** Red/Red color violation on right\n");
+		}
 		print_text_helper(RIGHT(root), root, depth, "right",
 					  data_printer, f);
 
