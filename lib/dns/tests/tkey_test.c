@@ -27,7 +27,7 @@
 
 #include <dns/tkey.h>
 
-#if LD_WRAP
+#if defined(USE_LIBTOOL) || LD_WRAP
 static isc_mem_t mock_mctx = {
 	.impmagic = 0,
 	.magic = ISCAPI_MCTX_MAGIC,
@@ -84,14 +84,14 @@ __wrap_isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size) {
 	__wrap_isc_mem_detach(ctxp);
 }
 
-
+#ifdef USE_LIBTOOL
 #if ISC_MEM_TRACKLINES
 #define FLARG		, const char *file, unsigned int line
 #else
 #define FLARG
 #endif
 
-__attribute__((weak)) void *
+void *
 isc__mem_get(isc_mem_t *mctx, size_t size FLARG)
 {
 	UNUSED(file);
@@ -99,7 +99,7 @@ isc__mem_get(isc_mem_t *mctx, size_t size FLARG)
 	return (__wrap_isc__mem_get(mctx, size));
 }
 
-__attribute__((weak)) void
+void
 isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG)
 {
 	UNUSED(file);
@@ -107,22 +107,23 @@ isc__mem_put(isc_mem_t *ctx0, void *ptr, size_t size FLARG)
 	__wrap_isc__mem_put(ctx0, ptr, size);
 }
 
-__attribute__((weak)) void
+void
 isc_mem_attach(isc_mem_t *source0, isc_mem_t **targetp) {
 	__wrap_isc_mem_attach(source0, targetp);
 }
 
-__attribute__((weak)) void
+void
 isc_mem_detach(isc_mem_t **ctxp) {
 	__wrap_isc_mem_detach(ctxp);
 }
 
-__attribute__((weak)) void
+void
 isc__mem_putanddetach(isc_mem_t **ctxp, void *ptr, size_t size FLARG){
 	UNUSED(file);
 	UNUSED(line);
 	__wrap_isc__mem_putanddetach(ctxp, ptr, size);
 }
+#endif /* USE_LIBTOOL */
 
 static int
 _setup(void **state) {
@@ -166,11 +167,11 @@ dns_tkeyctx_destroy_test(void **state) {
 	assert_non_null(tctx);
 	dns_tkeyctx_destroy(&tctx);
 }
-#endif /* LD_WRAP */
+#endif /* defined(USE_LIBTOOL) || LD_WRAP */
 
 int
 main(void) {
-#if LD_WRAP
+#if defined(USE_LIBTOOL) || LD_WRAP
 	const struct CMUnitTest tkey_tests[] = {
 		cmocka_unit_test_teardown(dns_tkeyctx_create_test, _teardown),
 		cmocka_unit_test_setup(dns_tkeyctx_destroy_test, _setup),
@@ -186,9 +187,9 @@ main(void) {
 #endif
 	};
 	return (cmocka_run_group_tests(tkey_tests, NULL, NULL));
-#else /* LD_WRAP */
-	print_message("1..0 # Skip tkey_test requires LD_WRAP\n");
-#endif /* LD_WRAP */
+#else /* defined(USE_LIBTOOL) || LD_WRAP */
+	print_message("1..0 # Skip tkey_test requires libtool or LD_WRAP\n");
+#endif /* defined(USE_LIBTOOL) || LD_WRAP */
 }
 
 #else /* CMOCKA */

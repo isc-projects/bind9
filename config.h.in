@@ -544,6 +544,9 @@
    non-blocking. */
 #undef USE_FIONBIO_IOCTL
 
+/* Define if libtool is used for compilation */
+#undef USE_LIBTOOL
+
 /* define if OpenSSL is used for Public-Key Cryptography */
 #undef USE_OPENSSL
 
