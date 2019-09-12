@@ -183,7 +183,7 @@ stages:
     when: on_failure
 
 .kyua_report: &kyua_report_html |
-  kyua report-html \
+  kyua --logfile /dev/null report-html \
        --force \
        --results-file "$KYUA_RESULT" \
        --results-filter "" \
