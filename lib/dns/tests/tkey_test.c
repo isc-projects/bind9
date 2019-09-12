@@ -27,7 +27,7 @@
 
 #include <dns/tkey.h>
 
-#if LD_WRAP
+#if defined(USE_LIBTOOL) || LD_WRAP
 static isc_mem_t mock_mctx = {
 	.impmagic = 0,
 	.magic = ISCAPI_MCTX_MAGIC,
@@ -167,11 +167,11 @@ dns_tkeyctx_destroy_test(void **state) {
 	assert_non_null(tctx);
 	dns_tkeyctx_destroy(&tctx);
 }
-#endif /* LD_WRAP */
+#endif /* defined(USE_LIBTOOL) || LD_WRAP */
 
 int
 main(void) {
-#if LD_WRAP
+#if defined(USE_LIBTOOL) || LD_WRAP
 	const struct CMUnitTest tkey_tests[] = {
 		cmocka_unit_test_teardown(dns_tkeyctx_create_test, _teardown),
 		cmocka_unit_test_setup(dns_tkeyctx_destroy_test, _setup),
@@ -187,9 +187,9 @@ main(void) {
 #endif
 	};
 	return (cmocka_run_group_tests(tkey_tests, NULL, NULL));
-#else /* LD_WRAP */
-	print_message("1..0 # Skip tkey_test requires LD_WRAP\n");
-#endif /* LD_WRAP */
+#else /* defined(USE_LIBTOOL) || LD_WRAP */
+	print_message("1..0 # Skip tkey_test requires libtool or LD_WRAP\n");
+#endif /* defined(USE_LIBTOOL) || LD_WRAP */
 }
 
 #else /* CMOCKA */
