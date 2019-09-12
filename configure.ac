@@ -669,6 +669,7 @@ case $use_libtool in
 		LIBTOOL_MODE_LINK='--mode=link'
 		LIBTOOL_MODE_UNINSTALL='--mode=uninstall'
 		INSTALL_LIBRARY='${INSTALL_PROGRAM}'
+		AC_DEFINE([USE_LIBTOOL],[1],[Define if libtool is used for compilation])
 		;;
 	*)
 		AC_MSG_RESULT(no)
