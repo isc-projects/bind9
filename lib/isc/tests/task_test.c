@@ -423,6 +423,8 @@ basic_cb(isc_task_t *task, isc_event_t *event) {
 		j += 100;
 	}
 
+	UNUSED(j);
+
 	if (verbose) {
 		print_message("# task %s\n", (char *)event->ev_arg);
 	}

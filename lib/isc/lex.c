@@ -855,7 +855,6 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			FATAL_ERROR(__FILE__, __LINE__,
 				    "Unexpected state %d",
 				    state);
-			ISC_UNREACHABLE();
 		}
 
 	} while (!done);

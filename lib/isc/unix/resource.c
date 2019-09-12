@@ -167,6 +167,7 @@ isc_resource_setlimit(isc_resource_t resource, isc_resourcevalue_t value) {
 			return (ISC_R_SUCCESS);
 	}
 #endif
+	/* cppcheck-suppress duplicateCondition */
 	if (resource == isc_resource_openfiles && rlim_value == RLIM_INFINITY) {
 		if (getrlimit(unixresource, &rl) == 0) {
 			rl.rlim_cur = rl.rlim_max;
