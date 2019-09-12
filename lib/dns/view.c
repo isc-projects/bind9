@@ -778,11 +778,7 @@ dns_view_createresolver(dns_view_t *view,
 	view->attributes &= ~DNS_VIEWATTR_RESSHUTDOWN;
 	isc_refcount_increment(&view->weakrefs);
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS) {
-		dns_resolver_shutdown(view->resolver);
-		return (result);
-	}
+	isc_mem_create(&mctx);
 
 	result = dns_adb_create(mctx, view, timermgr, taskmgr, &view->adb);
 	isc_mem_setname(mctx, "ADB", NULL);

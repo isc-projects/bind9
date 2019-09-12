@@ -9977,12 +9977,7 @@ dns_resolver_create(dns_view_t *view,
 		 * contention among multiple threads.  Do this only when
 		 * enabling threads because it will be require more memory.
 		 */
-		result = isc_mem_create(0, 0, &res->buckets[i].mctx);
-		if (result != ISC_R_SUCCESS) {
-			isc_task_detach(&res->buckets[i].task);
-			isc_mutex_destroy(&res->buckets[i].lock);
-			goto cleanup_buckets;
-		}
+		isc_mem_create(&res->buckets[i].mctx);
 		isc_mem_setname(res->buckets[i].mctx, name, NULL);
 		isc_task_setname(res->buckets[i].task, name, res);
 		ISC_LIST_INIT(res->buckets[i].fctxs);

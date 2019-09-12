@@ -930,7 +930,7 @@ main(int argc, char **argv) {
 
 	serial = isc_random32();
 
-	DO("create memory context", isc_mem_create(0, 0, &rndc_mctx));
+	isc_mem_create(&rndc_mctx);
 	DO("create socket manager", isc_socketmgr_create(rndc_mctx, &socketmgr));
 	DO("create task manager", isc_taskmgr_create(rndc_mctx, 1, 0, &taskmgr));
 	DO("create task", isc_task_create(taskmgr, 0, &task));

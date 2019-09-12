@@ -209,7 +209,7 @@ main(int argc, char **argv) {
 		keysize = alg_bits(alg);
 	algname = alg_totext(alg);
 
-	DO("create memory context", isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 	isc_buffer_init(&key_txtbuffer, &key_txtsecret, sizeof(key_txtsecret));
 
 	generate_key(mctx, alg, keysize, &key_txtbuffer);

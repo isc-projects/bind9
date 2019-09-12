@@ -98,7 +98,7 @@ int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 	rdtype = typelist[(*data++) % types]; size--;
 	rdclass = classlist[(*data++) % classes]; size--;
 
-	CHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	CHECK(isc_lex_create(mctx, 64, &lex));
 	memset(specials, 0, sizeof(specials));

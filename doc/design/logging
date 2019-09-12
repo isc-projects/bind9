@@ -282,8 +282,8 @@ rudimentary initialization of both.
   isc_log_t *lctx;
   isc_logconfig_t *lcfg;
 
-  if (isc_mem_create(0, 0, &mctx) != ISC_R_SUCCESS) ||
-      isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS))
+  isc_mem_create(&mctx);
+  if (isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS))
           oops_it_didnt_work();
 
 3) Initalize any additional libraries.  The convention for the name of

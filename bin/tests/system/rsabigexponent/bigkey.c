@@ -101,7 +101,7 @@ main(int argc, char **argv) {
 
 	dns_result_register();
 
-	CHECK(isc_mem_create(0, 0, &mctx), "isc_mem_create()");
+	isc_mem_create(&mctx);
 	CHECK(dst_lib_init(mctx, NULL), "dst_lib_init()");
 	CHECK(isc_log_create(mctx, &log_, &logconfig), "isc_log_create()");
 	isc_log_setcontext(log_);

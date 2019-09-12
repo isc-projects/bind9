@@ -69,8 +69,7 @@ getoriginnode_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mem_create(0, 0, &mctx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_zone,
 			       dns_rdataclass_in, 0, NULL, &db);
@@ -98,8 +97,7 @@ getsetservestalettl_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mem_create(0, 0, &mctx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);
@@ -142,8 +140,7 @@ dns_dbfind_staleok_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mem_create(0, 0, &mctx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	result = dns_db_create(mctx, "rbt", dns_rootname, dns_dbtype_cache,
 			       dns_rdataclass_in, 0, NULL, &db);

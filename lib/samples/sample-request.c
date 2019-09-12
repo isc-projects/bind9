@@ -188,11 +188,7 @@ main(int argc, char *argv[]) {
 	qmessage = NULL;
 	rmessage = NULL;
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS) {
-		fprintf(stderr, "failed to create a memory context\n");
-		exit(1);
-	}
+	isc_mem_create(&mctx);
 	result = dns_message_create(mctx, DNS_MESSAGE_INTENTRENDER, &qmessage);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_message_create(mctx, DNS_MESSAGE_INTENTPARSE,

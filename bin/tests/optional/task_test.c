@@ -77,7 +77,7 @@ main(int argc, char *argv[]) {
 		workers = 2;
 	printf("%u workers\n", workers);
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
 		      ISC_R_SUCCESS);

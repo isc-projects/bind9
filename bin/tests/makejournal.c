@@ -96,7 +96,7 @@ main(int argc, char **argv) {
 	journal = argv[4];
 
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
-	CHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	CHECK(dst_lib_init(mctx, NULL));
 	dst_active = true;

@@ -34,10 +34,7 @@ static isc_mem_t *mctx = NULL;
 
 static void
 setup_test() {
-	isc_result_t result;
-
-	result = isc_mem_create(0, 0, &mctx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	/*
 	 * the caller might run from another directory, but tests

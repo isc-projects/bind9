@@ -186,12 +186,10 @@ nsecify(char *filename) {
 int
 main(int argc, char *argv[]) {
 	int i;
-	isc_result_t result;
 
 	dns_result_register();
 
-	result = isc_mem_create(0, 0, &mctx);
-	check_result(result, "isc_mem_create()");
+	isc_mem_create(&mctx);
 
 	argc--;
 	argv++;

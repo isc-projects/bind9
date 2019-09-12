@@ -109,7 +109,7 @@ isc_test_begin(FILE *logfile, bool start_managers,
 	isc_mem_debugging |= ISC_MEM_DEBUGRECORD;
 
 	INSIST(mctx == NULL);
-	CHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	if (logfile != NULL) {
 		isc_logdestination_t destination;

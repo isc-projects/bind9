@@ -413,9 +413,7 @@ dns_client_create(dns_client_t **clientp, unsigned int options) {
 	unsigned int logdebuglevel = 0;
 #endif
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS)
-		return (result);
+	isc_mem_create(&mctx);
 	result = isc_appctx_create(mctx, &actx);
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;

@@ -1074,10 +1074,7 @@ main(int argc, char *argv[]) {
 	int ch;
 	char *endp;
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS) {
-		fatal("out of memory");
-	}
+	isc_mem_create(&mctx);
 
 #if USE_PKCS11
 	pk11_result_register();

@@ -201,7 +201,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	mctx = NULL;
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	while ((ch = isc_commandline_parse(argc, argv, "d:vw:")) != -1) {
 		switch (ch) {

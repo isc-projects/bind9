@@ -57,7 +57,7 @@ main(int argc, char *argv[]) {
 
 	UNUSED(argc);
 
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 
 	if (argv[1]) {
 		isc_buffer_init(&source, argv[1], strlen(argv[1]));

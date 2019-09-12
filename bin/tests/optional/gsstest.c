@@ -445,7 +445,7 @@ main(int argc, char *argv[]) {
 	dns_result_register();
 
 	mctx = NULL;
-	RUNCHECK(isc_mem_create(0, 0, &mctx));
+	isc_mem_create(&mctx);
 
 	RUNCHECK(isc_log_create(mctx, &lctx, &lcfg));
 	isc_log_setcontext(lctx);

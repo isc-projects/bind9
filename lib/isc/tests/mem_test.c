@@ -50,21 +50,6 @@ _setup(void **state) {
 	return (0);
 }
 
-static void *
-default_memalloc(void *arg, size_t size) {
-	UNUSED(arg);
-	if (size == 0U) {
-		size = 1;
-	}
-	return (malloc(size));
-}
-
-static void
-default_memfree(void *arg, void *ptr) {
-	UNUSED(arg);
-	free(ptr);
-}
-
 static int
 _teardown(void **state) {
 	UNUSED(state);
@@ -95,8 +80,7 @@ isc_mem_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mem_create(0, 0, &localmctx);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&localmctx);
 
 	result = isc_mempool_create(localmctx, 24, &mp1);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -169,10 +153,7 @@ isc_mem_test(void **state) {
 
 	isc_mem_destroy(&localmctx);
 
-	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
-				 NULL, &localmctx,
-				 ISC_MEMFLAG_FILL | ISC_MEMFLAG_INTERNAL);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&localmctx);
 
 	result = isc_mempool_create(localmctx, 2, &mp1);
 	assert_int_equal(result, ISC_R_SUCCESS);
@@ -191,7 +172,6 @@ isc_mem_test(void **state) {
 /* test TotalUse calculation */
 static void
 isc_mem_total_test(void **state) {
-	isc_result_t result;
 	isc_mem_t *mctx2 = NULL;
 	size_t before, after;
 	ssize_t diff;
@@ -201,11 +181,7 @@ isc_mem_total_test(void **state) {
 
 	/* Local alloc, free */
 	mctx2 = NULL;
-	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
-				 NULL, &mctx2, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto out;
-	}
+	isc_mem_create(&mctx2);
 
 	before = isc_mem_total(mctx2);
 
@@ -239,17 +215,12 @@ isc_mem_total_test(void **state) {
 	/* 2048 +8 bytes extra for size_info */
 	assert_int_equal(diff, (2048 + 8) * 100000);
 
- out:
-	if (mctx2 != NULL) {
-		isc_mem_destroy(&mctx2);
-	}
-
+	isc_mem_destroy(&mctx2);
 }
 
 /* test InUse calculation */
 static void
 isc_mem_inuse_test(void **state) {
-	isc_result_t result;
 	isc_mem_t *mctx2 = NULL;
 	size_t before, after;
 	ssize_t diff;
@@ -258,11 +229,7 @@ isc_mem_inuse_test(void **state) {
 	UNUSED(state);
 
 	mctx2 = NULL;
-	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
-				 NULL, &mctx2, 0);
-	if (result != ISC_R_SUCCESS) {
-		goto out;
-	}
+	isc_mem_create(&mctx2);
 
 	before = isc_mem_inuse(mctx2);
 	ptr = isc_mem_allocate(mctx2, 1024000);
@@ -273,11 +240,7 @@ isc_mem_inuse_test(void **state) {
 
 	assert_int_equal(diff, 0);
 
- out:
-	if (mctx2 != NULL) {
-		isc_mem_destroy(&mctx2);
-	}
-
+	isc_mem_destroy(&mctx2);
 }
 
 #if ISC_MEM_TRACKLINES
@@ -296,9 +259,7 @@ isc_mem_noflags_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
-				 NULL, &mctx2, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&mctx2);
 	isc_mem_debugging = 0;
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
@@ -343,9 +304,7 @@ isc_mem_recordflag_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
-				 NULL, &mctx2, 0);
-	assert_int_equal(result, ISC_R_SUCCESS);
+	isc_mem_create(&mctx2);
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx2, f);
@@ -388,10 +347,8 @@ isc_mem_traceflag_test(void **state) {
 
 	UNUSED(state);
 
-	result = isc_mem_createx(0, 0, default_memalloc, default_memfree,
-				 NULL, &mctx2, 0);
+	isc_mem_create(&mctx2);
 	isc_mem_debugging = ISC_MEM_DEBUGTRACE;
-	assert_int_equal(result, ISC_R_SUCCESS);
 	ptr = isc_mem_get(mctx2, 2048);
 	assert_non_null(ptr);
 	isc__mem_printactive(mctx2, f);

@@ -167,9 +167,7 @@ main(int argc, char **argv) {
 	if (argc == 1)
 		usage();
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS)
-		fatal("Out of memory");
+	isc_mem_create(&mctx);
 
 	setup_logging(mctx, &log);
 

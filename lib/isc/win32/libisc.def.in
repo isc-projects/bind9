@@ -348,7 +348,6 @@ isc_md
 isc_mem_attach
 isc_mem_checkdestroyed
 isc_mem_create
-isc_mem_createx
 isc_mem_destroy
 isc_mem_detach
 isc_mem_getname

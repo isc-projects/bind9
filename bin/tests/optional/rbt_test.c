@@ -277,12 +277,7 @@ main(int argc, char **argv) {
 	 */
 	isc_mem_debugging = ISC_MEM_DEBUGRECORD;
 
-	result = isc_mem_create(0, 0, &mctx);
-	if (result != ISC_R_SUCCESS) {
-		printf("isc_mem_create: %s: exiting\n",
-		       dns_result_totext(result));
-		exit(1);
-	}
+	isc_mem_create(&mctx);
 
 	result = dns_rbt_create(mctx, delete_name, NULL, &rbt);
 	if (result != ISC_R_SUCCESS) {

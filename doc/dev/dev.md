@@ -504,7 +504,7 @@ memory has not been freed when BIND shuts down.
 To create a basic memory context, use:
 
         isc_mem_t *mctx = NULL;
-        result = isc_mem_create(0, 0, &mctx);
+        isc_mem_create(&mctx);
 
 (The zeroes are tuning parameters, `max_size` and `target_size`: Any
 allocations smaller than `max_size` will be satisfied by getting
@@ -1069,9 +1069,10 @@ the following steps need to be taken to initialize it.
         isc_log_t *lctx;
         isc_logconfig_t *lcfg;
 
-        if (isc_mem_create(0, 0, &mctx) != ISC_R_SUCCESS) ||
-            isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS))
+        isc_mem_create(&mctx);
+        if (isc_log_create(mctx, &lctx, &lcfg) != ISC_R_SUCCESS)) {
                 oops_it_didnt_work();
+        }
 
 1. Initalize any additional libraries.  The convention for the name of
    the initialization function is `{library}_log_init()`, with a pointer to

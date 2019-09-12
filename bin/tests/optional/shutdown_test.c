@@ -178,9 +178,9 @@ main(int argc, char *argv[]) {
 	printf("%u workers\n", workers);
 
 	mctx = NULL;
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx);
 	mctx2 = NULL;
-	RUNTIME_CHECK(isc_mem_create(0, 0, &mctx2) == ISC_R_SUCCESS);
+	isc_mem_create(&mctx2);
 	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &task_manager) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timer_manager) ==

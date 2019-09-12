@@ -43,13 +43,9 @@ static isc_refcount_t references;
 
 static void
 initialize(void) {
-	isc_result_t result;
-
 	REQUIRE(initialize_done == false);
 
-	result = isc_mem_create(0, 0, &ns_g_mctx);
-	if (result != ISC_R_SUCCESS)
-		return;
+	isc_mem_create(&ns_g_mctx);
 
 	isc_refcount_init(&references, 0);
 	initialize_done = true;

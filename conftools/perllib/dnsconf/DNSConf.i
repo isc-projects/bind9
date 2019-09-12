@@ -60,8 +60,7 @@ int ctx_init(void) {
 		goto done;
 	}
 
-	if (isc_mem_create(0, 0, &ctx.mem) != ISC_R_SUCCESS)
-		goto done;
+	isc_mem_create(&ctx.mem);
 
 	if (isc_log_create(ctx.mem, &ctx.log, &ctx.logcfg) != ISC_R_SUCCESS)
 		goto done;
@@ -337,6 +336,3 @@ struct DNSConf {
 	%readonly
 	dns_c_ctx_t *confctx;
 };
-
-
-

@@ -164,10 +164,9 @@ dt_init(void) {
 	if (!dt_initialized) {
 		int ret;
 
-		if (dt_mctx == NULL)
-			result = isc_mem_create(0, 0, &dt_mctx);
-		if (result != ISC_R_SUCCESS)
-			goto unlock;
+		if (dt_mctx == NULL) {
+			isc_mem_create(&dt_mctx);
+		}
 		isc_mem_setname(dt_mctx, "dt", NULL);
 		isc_mem_setdestroycheck(dt_mctx, false);
 
@@ -177,7 +176,6 @@ dt_init(void) {
 		else
 			result = ISC_R_FAILURE;
 	}
-unlock:
 	UNLOCK(&dt_mutex);
 
 	return (result);
