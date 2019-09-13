@@ -1530,6 +1530,14 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 	*socketp = sock;
 
 	return (ISC_R_SUCCESS);
+
+ error:
+	if (sock->recvbuf.base != NULL) {
+		isc_mem_put(manager->mctx, sock->recvbuf.base,
+			    sock->recvbuf.len);
+	}
+	isc_mem_put(manager->mctx, sock, sizeof(*sock));
+	return (result);
 }
 
 /*
