@@ -1330,6 +1330,7 @@ allocate_socket(isc_socketmgr_t *manager, isc_sockettype_t type,
 		isc_socket_t **socketp)
 {
 	isc_socket_t *sock;
+	isc_result_t result;
 
 	sock = isc_mem_get(manager->mctx, sizeof(*sock));
 
