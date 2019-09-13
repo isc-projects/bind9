@@ -4570,14 +4570,11 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 								      foundname,
 								      NULL);
 					if (result != ISC_R_SUCCESS) {
-						break;
+						if (nodep != NULL) {
+							*nodep = NULL;
+						}
+						goto node_exit;
 					}
-				}
-				if (result != ISC_R_SUCCESS) {
-					if (nodep != NULL) {
-						*nodep = NULL;
-					}
-					goto node_exit;
 				}
 			}
 			result = DNS_R_DELEGATION;
