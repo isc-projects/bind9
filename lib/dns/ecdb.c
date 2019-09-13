@@ -167,44 +167,36 @@ attach(dns_db_t *source, dns_db_t **targetp) {
 }
 
 static void
-destroy_ecdb(dns_ecdb_t **ecdbp) {
-	dns_ecdb_t *ecdb = *ecdbp;
-	isc_mem_t *mctx = ecdb->common.mctx;
+destroy_ecdb(dns_ecdb_t *ecdb) {
+	if (isc_refcount_decrement(&ecdb->references) == 1) {
+		isc_refcount_destroy(&ecdb->references);
 
-	if (dns_name_dynamic(&ecdb->common.origin))
-		dns_name_free(&ecdb->common.origin, mctx);
+		INSIST(ISC_LIST_EMPTY(ecdb->nodes));
 
-	isc_mutex_destroy(&ecdb->lock);
-	isc_refcount_destroy(&ecdb->references);
+		if (dns_name_dynamic(&ecdb->common.origin)) {
+			dns_name_free(&ecdb->common.origin, ecdb->common.mctx);
+		}
 
-	ecdb->common.impmagic = 0;
-	ecdb->common.magic = 0;
+		isc_mutex_destroy(&ecdb->lock);
 
-	isc_mem_putanddetach(&mctx, ecdb, sizeof(*ecdb));
+		ecdb->common.impmagic = 0;
+		ecdb->common.magic = 0;
 
-	*ecdbp = NULL;
+		isc_mem_putanddetach(&ecdb->common.mctx, ecdb, sizeof(*ecdb));
+	}
 }
 
 static void
 detach(dns_db_t **dbp) {
 	dns_ecdb_t *ecdb;
-	bool need_destroy = false;
 
 	REQUIRE(dbp != NULL);
 	ecdb = (dns_ecdb_t *)*dbp;
 	REQUIRE(VALID_ECDB(ecdb));
 
-	LOCK(&ecdb->lock);
-	if (isc_refcount_decrement(&ecdb->references) == 1 &&
-	    ISC_LIST_EMPTY(ecdb->nodes)) {
-		need_destroy = true;
-	}
-	UNLOCK(&ecdb->lock);
-
-	if (need_destroy)
-		destroy_ecdb(&ecdb);
-
 	*dbp = NULL;
+
+	destroy_ecdb(ecdb);
 }
 
 static void
@@ -217,6 +209,7 @@ attachnode(dns_db_t *db, dns_dbnode_t *source, dns_dbnode_t **targetp) {
 	REQUIRE(targetp != NULL && *targetp == NULL);
 
 	isc_refcount_increment(&node->references);
+	isc_refcount_increment(&node->references);
 
 	*targetp = node;
 }
@@ -225,17 +218,12 @@ static void
 destroynode(dns_ecdbnode_t *node) {
 	isc_mem_t *mctx;
 	dns_ecdb_t *ecdb = node->ecdb;
-	bool need_destroydb = false;
 	rdatasetheader_t *header;
 
 	mctx = ecdb->common.mctx;
 
 	LOCK(&ecdb->lock);
 	ISC_LIST_UNLINK(ecdb->nodes, node, link);
-	if (isc_refcount_current(&ecdb->references) == 0 &&
-	    ISC_LIST_EMPTY(ecdb->nodes)) {
-		need_destroydb = true;
-	}
 	UNLOCK(&ecdb->lock);
 
 	dns_name_free(&node->name, mctx);
@@ -244,9 +232,8 @@ destroynode(dns_ecdbnode_t *node) {
 		unsigned int headersize;
 
 		ISC_LIST_UNLINK(node->rdatasets, header, link);
-		headersize =
-			dns_rdataslab_size((unsigned char *)header,
-					   sizeof(*header));
+		headersize = dns_rdataslab_size((unsigned char *)header,
+						sizeof(*header));
 		isc_mem_put(mctx, header, headersize);
 	}
 
@@ -256,8 +243,7 @@ destroynode(dns_ecdbnode_t *node) {
 	node->magic = 0;
 	isc_mem_put(mctx, node, sizeof(*node));
 
-	if (need_destroydb)
-		destroy_ecdb(&ecdb);
+	destroy_ecdb(ecdb);
 }
 
 static void
@@ -353,11 +339,14 @@ findnode(dns_db_t *db, const dns_name_t *name, bool create,
 		isc_mem_put(mctx, node, sizeof(*node));
 		return (result);
 	}
-	node->ecdb= ecdb;
+
 	isc_refcount_init(&node->references, 1);
 	ISC_LIST_INIT(node->rdatasets);
 
 	ISC_LINK_INIT(node, link);
+
+	isc_refcount_increment(&ecdb->references);
+	node->ecdb = ecdb;
 
 	LOCK(&ecdb->lock);
 	ISC_LIST_APPEND(ecdb->nodes, node, link);

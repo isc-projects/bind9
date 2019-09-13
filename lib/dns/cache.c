@@ -132,9 +132,9 @@ struct dns_cache {
 	isc_mem_t		*hmctx;		/* Heap memory */
 	char			*name;
 	isc_refcount_t		references;
+	isc_refcount_t		live_tasks;
 
 	/* Locked by 'lock'. */
-	int			live_tasks;
 	dns_rdataclass_t	rdclass;
 	dns_db_t		*db;
 	cache_cleaner_t		cleaner;
@@ -210,7 +210,7 @@ dns_cache_create(isc_mem_t *cmctx, isc_mem_t *hmctx, isc_taskmgr_t *taskmgr,
 	isc_mutex_init(&cache->filelock);
 
 	isc_refcount_init(&cache->references, 1);
-	cache->live_tasks = 0;
+	isc_refcount_init(&cache->live_tasks, 1);
 	cache->rdclass = rdclass;
 	cache->serve_stale_ttl = 0;
 
@@ -317,21 +317,27 @@ cache_free(dns_cache_t *cache) {
 	int i;
 
 	REQUIRE(VALID_CACHE(cache));
-	REQUIRE(isc_refcount_current(&cache->references) == 0);
+
+	isc_refcount_destroy(&cache->references);
+	isc_refcount_destroy(&cache->live_tasks);
 
 	isc_mem_setwater(cache->mctx, NULL, NULL, 0, 0);
 
-	if (cache->cleaner.task != NULL)
+	if (cache->cleaner.task != NULL) {
 		isc_task_detach(&cache->cleaner.task);
+	}
 
-	if (cache->cleaner.overmem_event != NULL)
+	if (cache->cleaner.overmem_event != NULL) {
 		isc_event_free(&cache->cleaner.overmem_event);
+	}
 
-	if (cache->cleaner.resched_event != NULL)
+	if (cache->cleaner.resched_event != NULL) {
 		isc_event_free(&cache->cleaner.resched_event);
+	}
 
-	if (cache->cleaner.iterator != NULL)
+	if (cache->cleaner.iterator != NULL) {
 		dns_dbiterator_destroy(&cache->cleaner.iterator);
+	}
 
 	isc_mutex_destroy(&cache->cleaner.lock);
 
@@ -340,8 +346,9 @@ cache_free(dns_cache_t *cache) {
 		cache->filename = NULL;
 	}
 
-	if (cache->db != NULL)
+	if (cache->db != NULL) {
 		dns_db_detach(&cache->db);
+	}
 
 	if (cache->db_argv != NULL) {
 		/*
@@ -349,23 +356,30 @@ cache_free(dns_cache_t *cache) {
 		 * as it's a pointer to hmctx
 		 */
 		int extra = 0;
-		if (strcmp(cache->db_type, "rbt") == 0)
+		if (strcmp(cache->db_type, "rbt") == 0) {
 			extra = 1;
-		for (i = extra; i < cache->db_argc; i++)
-			if (cache->db_argv[i] != NULL)
-				isc_mem_free(cache->mctx, cache->db_argv[i]);
+		}
+		for (i = extra; i < cache->db_argc; i++) {
+			if (cache->db_argv[i] != NULL) {
+				isc_mem_free(cache->mctx,
+					     cache->db_argv[i]);
+			}
+		}
 		isc_mem_put(cache->mctx, cache->db_argv,
 			    cache->db_argc * sizeof(char *));
 	}
 
-	if (cache->db_type != NULL)
+	if (cache->db_type != NULL) {
 		isc_mem_free(cache->mctx, cache->db_type);
+	}
 
-	if (cache->name != NULL)
+	if (cache->name != NULL) {
 		isc_mem_free(cache->mctx, cache->name);
+	}
 
-	if (cache->stats != NULL)
+	if (cache->stats != NULL) {
 		isc_stats_detach(&cache->stats);
+	}
 
 	isc_mutex_destroy(&cache->lock);
 	isc_mutex_destroy(&cache->filelock);
@@ -390,7 +404,6 @@ dns_cache_attach(dns_cache_t *cache, dns_cache_t **targetp) {
 void
 dns_cache_detach(dns_cache_t **cachep) {
 	dns_cache_t *cache;
-	bool free_cache = false;
 
 	REQUIRE(cachep != NULL);
 	cache = *cachep;
@@ -398,33 +411,27 @@ dns_cache_detach(dns_cache_t **cachep) {
 	*cachep = NULL;
 
 	if (isc_refcount_decrement(&cache->references) == 1) {
-		LOCK(&cache->lock);
-		free_cache = true;
 		cache->cleaner.overmem = false;
 		/*
 		 * When the cache is shut down, dump it to a file if one is
 		 * specified.
 		 */
 		isc_result_t result = dns_cache_dump(cache);
-		if (result != ISC_R_SUCCESS)
+		if (result != ISC_R_SUCCESS) {
 			isc_log_write(dns_lctx, DNS_LOGCATEGORY_DATABASE,
 				      DNS_LOGMODULE_CACHE, ISC_LOG_WARNING,
 				      "error dumping cache: %s ",
 				      isc_result_totext(result));
+		}
 
 		/*
 		 * If the cleaner task exists, let it free the cache.
 		 */
-		if (cache->live_tasks > 0) {
+		if (isc_refcount_decrement(&cache->live_tasks) > 1) {
 			isc_task_shutdown(cache->cleaner.task);
-			free_cache = false;
+		} else {
+			cache_free(cache);
 		}
-		UNLOCK(&cache->lock);
-	}
-
-
-	if (free_cache) {
-		cache_free(cache);
 	}
 }
 
@@ -538,12 +545,13 @@ cache_cleaner_init(dns_cache_t *cache, isc_taskmgr_t *taskmgr,
 			result = ISC_R_UNEXPECTED;
 			goto cleanup;
 		}
-		cleaner->cache->live_tasks++;
+		isc_refcount_increment(&cleaner->cache->live_tasks);
 		isc_task_setname(cleaner->task, "cachecleaner", cleaner);
 
 		result = isc_task_onshutdown(cleaner->task,
 					     cleaner_shutdown_action, cache);
 		if (result != ISC_R_SUCCESS) {
+			isc_refcount_decrement(&cleaner->cache->live_tasks);
 			UNEXPECTED_ERROR(__FILE__, __LINE__,
 					 "cache cleaner: "
 					 "isc_task_onshutdown() failed: %s",
@@ -976,34 +984,24 @@ dns_cache_getservestalettl(dns_cache_t *cache) {
 static void
 cleaner_shutdown_action(isc_task_t *task, isc_event_t *event) {
 	dns_cache_t *cache = event->ev_arg;
-	bool should_free = false;
 
 	UNUSED(task);
 
 	INSIST(task == cache->cleaner.task);
 	INSIST(event->ev_type == ISC_TASKEVENT_SHUTDOWN);
 
-	if (CLEANER_BUSY(&cache->cleaner))
+	if (CLEANER_BUSY(&cache->cleaner)) {
 		end_cleaning(&cache->cleaner, event);
-	else
+	} else {
 		isc_event_free(&event);
-
-	LOCK(&cache->lock);
-
-	cache->live_tasks--;
-	INSIST(cache->live_tasks == 0);
-
-	if (isc_refcount_current(&cache->references) == 0) {
-		should_free = true;
 	}
 
 	/* Make sure we don't reschedule anymore. */
 	(void)isc_task_purge(task, NULL, DNS_EVENT_CACHECLEAN, NULL);
 
-	UNLOCK(&cache->lock);
+	INSIST(isc_refcount_decrement(&cache->live_tasks) == 1);
 
-	if (should_free)
-		cache_free(cache);
+	cache_free(cache);
 }
 
 isc_result_t

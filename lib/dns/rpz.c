@@ -2081,70 +2081,68 @@ rpz_detach(dns_rpz_zone_t **rpzp) {
 	rpz = *rpzp;
 	*rpzp = NULL;
 
-	if (isc_refcount_decrement(&rpz->refs) != 1) {
-		return;
-	}
+	if (isc_refcount_decrement(&rpz->refs) == 1) {
+		isc_refcount_destroy(&rpz->refs);
 
-	isc_refcount_destroy(&rpz->refs);
+		rpzs = rpz->rpzs;
+		rpz->rpzs = NULL;
 
-	rpzs = rpz->rpzs;
-	rpz->rpzs = NULL;
-
-	if (dns_name_dynamic(&rpz->origin)) {
-		dns_name_free(&rpz->origin, rpzs->mctx);
-	}
-	if (dns_name_dynamic(&rpz->client_ip)) {
-		dns_name_free(&rpz->client_ip, rpzs->mctx);
-	}
-	if (dns_name_dynamic(&rpz->ip)) {
-		dns_name_free(&rpz->ip, rpzs->mctx);
-	}
-	if (dns_name_dynamic(&rpz->nsdname)) {
-		dns_name_free(&rpz->nsdname, rpzs->mctx);
-	}
-	if (dns_name_dynamic(&rpz->nsip)) {
-		dns_name_free(&rpz->nsip, rpzs->mctx);
-	}
-	if (dns_name_dynamic(&rpz->passthru)) {
-		dns_name_free(&rpz->passthru, rpzs->mctx);
-	}
-	if (dns_name_dynamic(&rpz->drop)) {
-		dns_name_free(&rpz->drop, rpzs->mctx);
-	}
-	if (dns_name_dynamic(&rpz->tcp_only)) {
-		dns_name_free(&rpz->tcp_only, rpzs->mctx);
-	}
-	if (dns_name_dynamic(&rpz->cname)) {
-		dns_name_free(&rpz->cname, rpzs->mctx);
-	}
-	if (rpz->dbversion != NULL) {
-		dns_db_closeversion(rpz->db, &rpz->dbversion, false);
-	}
-	if (rpz->db != NULL) {
-		dns_db_updatenotify_unregister(
-			rpz->db, dns_rpz_dbupdate_callback, rpz);
-		dns_db_detach(&rpz->db);
-	}
-	if (rpz->updaterunning) {
-		isc_task_purgeevent(rpzs->updater, &rpz->updateevent);
-		if (rpz->updbit != NULL) {
-			dns_dbiterator_destroy(&rpz->updbit);
+		if (dns_name_dynamic(&rpz->origin)) {
+			dns_name_free(&rpz->origin, rpzs->mctx);
 		}
-		if (rpz->newnodes != NULL) {
-			isc_ht_destroy(&rpz->newnodes);
+		if (dns_name_dynamic(&rpz->client_ip)) {
+			dns_name_free(&rpz->client_ip, rpzs->mctx);
 		}
-		dns_db_closeversion(rpz->updb, &rpz->updbversion, false);
-		dns_db_detach(&rpz->updb);
+		if (dns_name_dynamic(&rpz->ip)) {
+			dns_name_free(&rpz->ip, rpzs->mctx);
+		}
+		if (dns_name_dynamic(&rpz->nsdname)) {
+			dns_name_free(&rpz->nsdname, rpzs->mctx);
+		}
+		if (dns_name_dynamic(&rpz->nsip)) {
+			dns_name_free(&rpz->nsip, rpzs->mctx);
+		}
+		if (dns_name_dynamic(&rpz->passthru)) {
+			dns_name_free(&rpz->passthru, rpzs->mctx);
+		}
+		if (dns_name_dynamic(&rpz->drop)) {
+			dns_name_free(&rpz->drop, rpzs->mctx);
+		}
+		if (dns_name_dynamic(&rpz->tcp_only)) {
+			dns_name_free(&rpz->tcp_only, rpzs->mctx);
+		}
+		if (dns_name_dynamic(&rpz->cname)) {
+			dns_name_free(&rpz->cname, rpzs->mctx);
+		}
+		if (rpz->dbversion != NULL) {
+			dns_db_closeversion(rpz->db, &rpz->dbversion, false);
+		}
+		if (rpz->db != NULL) {
+			dns_db_updatenotify_unregister(
+				rpz->db, dns_rpz_dbupdate_callback, rpz);
+			dns_db_detach(&rpz->db);
+		}
+		if (rpz->updaterunning) {
+			isc_task_purgeevent(rpzs->updater, &rpz->updateevent);
+			if (rpz->updbit != NULL) {
+				dns_dbiterator_destroy(&rpz->updbit);
+			}
+			if (rpz->newnodes != NULL) {
+				isc_ht_destroy(&rpz->newnodes);
+			}
+			dns_db_closeversion(rpz->updb, &rpz->updbversion, false);
+			dns_db_detach(&rpz->updb);
+		}
+
+		isc_timer_reset(rpz->updatetimer, isc_timertype_inactive,
+				NULL, NULL, true);
+		isc_timer_detach(&rpz->updatetimer);
+
+		isc_ht_destroy(&rpz->nodes);
+
+		isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
+		rpz_detach_rpzs(&rpzs);
 	}
-
-	isc_timer_reset(rpz->updatetimer, isc_timertype_inactive,
-			NULL, NULL, true);
-	isc_timer_detach(&rpz->updatetimer);
-
-	isc_ht_destroy(&rpz->nodes);
-
-	isc_mem_put(rpzs->mctx, rpz, sizeof(*rpz));
-	rpz_detach_rpzs(&rpzs);
 }
 
 void
