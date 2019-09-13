@@ -327,17 +327,15 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 	 */
 	if ((ctx->style.flags & DNS_STYLEFLAG_MULTILINE) != 0) {
 		isc_buffer_t buf;
-		isc_region_t r;
 		unsigned int col = 0;
 
 		isc_buffer_init(&buf, ctx->linebreak_buf,
 				sizeof(ctx->linebreak_buf));
 
-		isc_buffer_availableregion(&buf, &r);
-		if (r.length < 1)
+		if (isc_buffer_availablelength(&buf) < 1) {
 			return (DNS_R_TEXTTOOLONG);
-		r.base[0] = '\n';
-		isc_buffer_add(&buf, 1);
+		}
+		isc_buffer_putuint8(&buf, '\n');
 
 		if ((ctx->style.flags & DNS_STYLEFLAG_INDENT) != 0 ||
 		    (ctx->style.flags & DNS_STYLEFLAG_YAML) != 0)
@@ -351,11 +349,10 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 		}
 
 		if ((ctx->style.flags & DNS_STYLEFLAG_COMMENTDATA) != 0) {
-			isc_buffer_availableregion(&buf, &r);
-			if (r.length < 1)
+			if (isc_buffer_availablelength(&buf) < 1) {
 				return (DNS_R_TEXTTOOLONG);
-			r.base[0] = ';';
-			isc_buffer_add(&buf, 1);
+			}
+			isc_buffer_putuint8(&buf, ';');
 		}
 
 		result = indent(&col, ctx->style.rdata_column,
@@ -372,11 +369,10 @@ totext_ctx_init(const dns_master_style_t *style, dns_totext_ctx_t *ctx) {
 		if (result != ISC_R_SUCCESS)
 			return (result);
 
-		isc_buffer_availableregion(&buf, &r);
-		if (r.length < 1)
+		if (isc_buffer_availablelength(&buf) < 1) {
 			return (DNS_R_TEXTTOOLONG);
-		r.base[0] = '\0';
-		isc_buffer_add(&buf, 1);
+		}
+		isc_buffer_putuint8(&buf, '\0');
 		ctx->linebreak = ctx->linebreak_buf;
 	} else {
 		ctx->linebreak = NULL;
@@ -665,7 +661,6 @@ rdataset_totext(dns_rdataset_t *rdataset,
 			break;
 		} else {
 			dns_rdata_t rdata = DNS_RDATA_INIT;
-			isc_region_t r;
 
 			dns_rdataset_current(rdataset, &rdata);
 
@@ -679,11 +674,10 @@ rdataset_totext(dns_rdataset_t *rdataset,
 						   ctx->linebreak,
 						   target));
 
-			isc_buffer_availableregion(target, &r);
-			if (r.length < 1)
+			if (isc_buffer_availablelength(target) < 1) {
 				return (ISC_R_NOSPACE);
-			r.base[0] = '\n';
-			isc_buffer_add(target, 1);
+			}
+			isc_buffer_putuint8(target, '\n');
 		}
 
 		first = false;
@@ -721,7 +715,6 @@ question_totext(dns_rdataset_t *rdataset,
 {
 	unsigned int column;
 	isc_result_t result;
-	isc_region_t r;
 
 	REQUIRE(DNS_RDATASET_VALID(rdataset));
 	result = dns_rdataset_first(rdataset);
@@ -770,11 +763,10 @@ question_totext(dns_rdataset_t *rdataset,
 		column += (target->used - type_start);
 	}
 
-	isc_buffer_availableregion(target, &r);
-	if (r.length < 1)
+	if (isc_buffer_availablelength(target) < 1) {
 		return (ISC_R_NOSPACE);
-	r.base[0] = '\n';
-	isc_buffer_add(target, 1);
+	}
+	isc_buffer_putuint8(target, '\n');
 
 	return (ISC_R_SUCCESS);
 }

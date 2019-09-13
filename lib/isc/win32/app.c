@@ -86,10 +86,10 @@ enum {
 };
 
 typedef struct isc__appctx {
-	isc_appctx_t		common;
-	isc_mem_t		*mctx;
-	isc_eventlist_t		on_run;
-	isc_mutex_t		lock;
+	isc_appctx_t	common;
+	isc_mem_t	*mctx;
+	isc_eventlist_t	on_run;
+	isc_mutex_t	lock;
 	bool		shutdown_requested;
 	bool		running;
 	/*
@@ -103,11 +103,11 @@ typedef struct isc__appctx {
 
 	bool		blocked;
 
-	HANDLE			hEvents[NUM_EVENTS];
+	HANDLE		hEvents[NUM_EVENTS];
 
-	isc_taskmgr_t		*taskmgr;
-	isc_socketmgr_t		*socketmgr;
-	isc_timermgr_t		*timermgr;
+	isc_taskmgr_t	*taskmgr;
+	isc_socketmgr_t	*socketmgr;
+	isc_timermgr_t	*timermgr;
 } isc__appctx_t;
 
 static isc__appctx_t isc_g_appctx;
