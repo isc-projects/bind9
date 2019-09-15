@@ -866,10 +866,6 @@ validator_callback_nsec(isc_task_t *task, isc_event_t *event) {
 		dns_name_t **proofs = val->event->proofs;
 		dns_name_t *wild = dns_fixedname_name(&val->wild);
 
-		if (rdataset->trust == dns_trust_secure) {
-			val->seensig = true;
-		}
-
 		if (rdataset->type == dns_rdatatype_nsec &&
 		    rdataset->trust == dns_trust_secure &&
 		    (NEEDNODATA(val) || NEEDNOQNAME(val)) &&
@@ -1104,16 +1100,16 @@ create_validator(dns_validator_t *val, dns_name_t *name, dns_rdatatype_t type,
 }
 
 /*%
- * Try to find a key that could have signed 'siginfo' among those
- * in 'rdataset'.  If found, build a dst_key_t for it and point
- * val->key at it.
+ * Try to find a key that could have signed val->siginfo among those in
+ * 'rdataset'.  If found, build a dst_key_t for it and point val->key at
+ * it.
  *
- * If val->key is already non-NULL, locate it in the rdataset and
- * then search past it for the *next* key that could have signed
- * 'siginfo', then set val->key to that.
+ * If val->key is already non-NULL, locate it in the rdataset and then
+ * search past it for the *next* key that could have signed 'siginfo', then
+ * set val->key to that.
  *
- * Returns ISC_R_SUCCESS if a possible matching key has been
- * found, ISC_R_NOTFOUND if not. Any other value indicates error.
+ * Returns ISC_R_SUCCESS if a possible matching key has been found,
+ * ISC_R_NOTFOUND if not. Any other value indicates error.
  */
 static isc_result_t
 select_signing_key(dns_validator_t *val, dns_rdataset_t *rdataset) {
@@ -1577,35 +1573,16 @@ validate_answer(dns_validator_t *val, bool resume) {
 		}
 
 		do {
+			isc_result_t tresult;
 			vresult = verify(val, val->key, &rdata,
 					 val->siginfo->keyid);
 			if (vresult == ISC_R_SUCCESS) {
 				break;
 			}
-			if (val->keynode != NULL) {
-				dns_keynode_t *nextnode = NULL;
-				result = dns_keytable_findnextkeynode(
-					val->keytable,
-					val->keynode,
-					&nextnode);
-				dns_keytable_detachkeynode(val->keytable,
-							   &val->keynode);
-				val->keynode = nextnode;
-				if (result != ISC_R_SUCCESS) {
-					val->key = NULL;
-					break;
-				}
-				val->key = dns_keynode_key(val->keynode);
-				if (val->key == NULL) {
-					break;
-				}
-			} else {
-				isc_result_t tresult;
 
-				tresult = select_signing_key(val, val->keyset);
-				if (tresult != ISC_R_SUCCESS) {
-					break;
-				}
+			tresult = select_signing_key(val, val->keyset);
+			if (tresult != ISC_R_SUCCESS) {
+				break;
 			}
 		} while (1);
 		if (vresult != ISC_R_SUCCESS) {
@@ -1618,17 +1595,12 @@ validate_answer(dns_validator_t *val, bool resume) {
 					     val->view->acceptexpired);
 		}
 
-		if (val->keynode != NULL) {
-			dns_keytable_detachkeynode(val->keytable,
-						   &val->keynode);
-		} else {
-			if (val->key != NULL) {
-				dst_key_free(&val->key);
-			}
-			if (val->keyset != NULL) {
-				dns_rdataset_disassociate(val->keyset);
-				val->keyset = NULL;
-			}
+		if (val->key != NULL) {
+			dst_key_free(&val->key);
+		}
+		if (val->keyset != NULL) {
+			dns_rdataset_disassociate(val->keyset);
+			val->keyset = NULL;
 		}
 		val->key = NULL;
 		if (NEEDNOQNAME(val)) {
@@ -3321,7 +3293,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
-	val->keynode = NULL;
 	val->key = NULL;
 	val->siginfo = NULL;
 	val->task = task;
@@ -3331,7 +3302,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	val->currentset = NULL;
 	val->keyset = NULL;
 	val->dsset = NULL;
-	val->seensig = false;
 	val->depth = 0;
 	val->authcount = 0;
 	val->authfail = 0;
@@ -3339,7 +3309,6 @@ dns_validator_create(dns_view_t *view, dns_name_t *name, dns_rdatatype_t type,
 	dns_rdataset_init(&val->frdataset);
 	dns_rdataset_init(&val->fsigrdataset);
 	dns_fixedname_init(&val->wild);
-	dns_fixedname_init(&val->nearest);
 	dns_fixedname_init(&val->closest);
 	isc_stdtime_get(&val->start);
 	ISC_LINK_INIT(val, link);
@@ -3422,9 +3391,7 @@ destroy(dns_validator_t *val) {
 	REQUIRE(val->event == NULL);
 	REQUIRE(val->fetch == NULL);
 
-	if (val->keynode != NULL) {
-		dns_keytable_detachkeynode(val->keytable, &val->keynode);
-	} else if (val->key != NULL) {
+	if (val->key != NULL) {
 		dst_key_free(&val->key);
 	}
 	if (val->keytable != NULL) {
