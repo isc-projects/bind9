@@ -698,104 +698,143 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 }
 
 static isc_result_t
-dstkey_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
-		  const char **keynamestrp, isc_mem_t *mctx)
+ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
+	      const char **keynamestrp, isc_mem_t *mctx)
 {
 	dns_rdata_dnskey_t keystruct;
-	uint32_t flags, proto, alg;
-	const char *keystr, *keynamestr;
-	unsigned char keydata[4096];
-	isc_buffer_t keydatabuf;
+	uint32_t n1, n2, n3;
+	const char *datastr = NULL, *keynamestr = NULL;
+	unsigned char data[4096];
+	isc_buffer_t databuf;
 	unsigned char rrdata[4096];
 	isc_buffer_t rrdatabuf;
 	isc_region_t r;
 	dns_fixedname_t fkeyname;
-	dns_name_t *keyname;
+	dns_name_t *keyname = NULL;
 	isc_buffer_t namebuf;
 	isc_result_t result;
 	dst_key_t *dstkey = NULL;
+	const char *atstr = NULL;
+	enum {
+		INIT_DNSKEY,
+		STATIC_DNSKEY,
+		INIT_DS,
+		STATIC_DS,
+		TRUSTED
+	} anchortype;
 
-	INSIST(target != NULL && *target == NULL);
-	INSIST(keynamestrp != NULL && *keynamestrp == NULL);
+	REQUIRE(target != NULL && *target == NULL);
+	REQUIRE(keynamestrp != NULL && *keynamestrp == NULL);
 
-	flags = cfg_obj_asuint32(cfg_tuple_get(key, "flags"));
-	proto = cfg_obj_asuint32(cfg_tuple_get(key, "protocol"));
-	alg = cfg_obj_asuint32(cfg_tuple_get(key, "algorithm"));
-	keyname = dns_fixedname_name(&fkeyname);
+	/* if DNSKEY, flags; if DS, key tag */
+	n1 = cfg_obj_asuint32(cfg_tuple_get(key, "n1"));
+
+	/* if DNSKEY, protocol; if DS, algorithm */
+	n2 = cfg_obj_asuint32(cfg_tuple_get(key, "n2"));
+
+	/* if DNSKEY, algorithm; if DS, digest type */
+	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
+
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 	*keynamestrp = keynamestr;
 
-	if (*initialp) {
-		const char *initmethod;
-		initmethod = cfg_obj_asstring(cfg_tuple_get(key, "init"));
-
-		if (strcasecmp(initmethod, "static-key") == 0) {
-			*initialp = false;
-		} else if (strcasecmp(initmethod, "initial-key") != 0) {
-			cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
-				    "key '%s': "
-				    "invalid initialization method '%s'",
-				    keynamestr, initmethod);
-			result = ISC_R_FAILURE;
-			goto cleanup;
-		}
-	}
-
-	/*
-	 * This function should never be reached for non-IN classes.
-	 */
-	keystruct.common.rdclass = dns_rdataclass_in;
-	keystruct.common.rdtype = dns_rdatatype_dnskey;
-
-	/*
-	 * The key data in keystruct is not dynamically allocated.
-	 */
-	keystruct.mctx = NULL;
-
-	ISC_LINK_INIT(&keystruct.common, link);
-
-	if (flags > 0xffff)
-		CHECKM(ISC_R_RANGE, "key flags");
-	if (flags & DNS_KEYFLAG_REVOKE)
-		CHECKM(DST_R_BADKEYTYPE, "key flags revoke bit set");
-	if (proto > 0xff)
-		CHECKM(ISC_R_RANGE, "key protocol");
-	if (alg > 0xff)
-		CHECKM(ISC_R_RANGE, "key algorithm");
-	keystruct.flags = (uint16_t)flags;
-	keystruct.protocol = (uint8_t)proto;
-	keystruct.algorithm = (uint8_t)alg;
-
-	isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
-	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
-
-	keystr = cfg_obj_asstring(cfg_tuple_get(key, "key"));
-	CHECK(isc_base64_decodestring(keystr, &keydatabuf));
-	isc_buffer_usedregion(&keydatabuf, &r);
-	keystruct.datalen = r.length;
-	keystruct.data = r.base;
-
-	if ((keystruct.algorithm == DST_ALG_RSASHA1) &&
-	    r.length > 1 && r.base[0] == 1 && r.base[1] == 3)
-	{
-		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
-			    "%s '%s' has a weak exponent",
-			    *initialp ? "initial-key" : "static-key",
-			    keynamestr);
-	}
-
-	CHECK(dns_rdata_fromstruct(NULL,
-				   keystruct.common.rdclass,
-				   keystruct.common.rdtype,
-				   &keystruct, &rrdatabuf));
-	dns_fixedname_init(&fkeyname);
+	keyname = dns_fixedname_initname(&fkeyname);
 	isc_buffer_constinit(&namebuf, keynamestr, strlen(keynamestr));
 	isc_buffer_add(&namebuf, strlen(keynamestr));
 	CHECK(dns_name_fromtext(keyname, &namebuf, dns_rootname, 0, NULL));
-	CHECK(dst_key_fromdns(keyname, dns_rdataclass_in, &rrdatabuf,
-			      mctx, &dstkey));
 
-	*target = dstkey;
+	if (*initialp) {
+		atstr = cfg_obj_asstring(cfg_tuple_get(key, "anchortype"));
+
+		if (strcasecmp(atstr, "static-key") == 0) {
+			*initialp = false;
+			anchortype = STATIC_DNSKEY;
+		} else if (strcasecmp(atstr, "static-ds") == 0) {
+			*initialp = false;
+			anchortype = STATIC_DS;
+		} else if (strcasecmp(atstr, "initial-key") == 0) {
+			anchortype = INIT_DNSKEY;
+		} else if (strcasecmp(atstr, "initial-ds") == 0) {
+			anchortype = INIT_DS;
+		} else {
+			cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
+				    "key '%s': "
+				    "invalid initialization method '%s'",
+				    keynamestr, atstr);
+			result = ISC_R_FAILURE;
+			goto cleanup;
+		}
+	} else {
+		anchortype = TRUSTED;
+	}
+
+	switch(anchortype) {
+	case INIT_DNSKEY:
+	case STATIC_DNSKEY:
+	case TRUSTED:
+		/*
+		 * This function should never be reached for view
+		 * class other than IN
+		 */
+		keystruct.common.rdclass = dns_rdataclass_in;
+		keystruct.common.rdtype = dns_rdatatype_dnskey;
+
+		/*
+		 * The key data in keystruct is not dynamically allocated.
+		 */
+		keystruct.mctx = NULL;
+
+		ISC_LINK_INIT(&keystruct.common, link);
+
+		if (n1 > 0xffff) {
+			CHECKM(ISC_R_RANGE, "key flags");
+		}
+		if (n1 & DNS_KEYFLAG_REVOKE) {
+			CHECKM(DST_R_BADKEYTYPE, "key flags revoke bit set");
+		}
+		if (n2 > 0xff) {
+			CHECKM(ISC_R_RANGE, "key protocol");
+		}
+		if (n3> 0xff) {
+			CHECKM(ISC_R_RANGE, "key algorithm");
+		}
+
+		keystruct.flags = (uint16_t)n1;
+		keystruct.protocol = (uint8_t)n2;
+		keystruct.algorithm = (uint8_t)n3;
+
+		isc_buffer_init(&databuf, data, sizeof(data));
+		isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
+
+		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
+		CHECK(isc_base64_decodestring(datastr, &databuf));
+		isc_buffer_usedregion(&databuf, &r);
+		keystruct.datalen = r.length;
+		keystruct.data = r.base;
+
+		CHECK(dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
+					   keystruct.common.rdtype,
+					   &keystruct, &rrdatabuf));
+		CHECK(dst_key_fromdns(keyname, dns_rdataclass_in,
+				      &rrdatabuf, mctx, &dstkey));
+
+		*target = dstkey;
+		break;
+
+	case INIT_DS:
+	case STATIC_DS:
+		cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
+			    "key '%s': "
+			    "initialization method '%s' is "
+			    "not yet supported", keynamestr, atstr);
+		result = ISC_R_FAILURE;
+		goto cleanup;
+
+	default:
+		INSIST(0);
+		ISC_UNREACHABLE();
+	}
+
 	return (ISC_R_SUCCESS);
 
  cleanup:
@@ -829,8 +868,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	isc_result_t result;
 	bool initializing = managed;
 
-	result = dstkey_fromconfig(key, &initializing,
-				   &dstkey, &keynamestr, mctx);
+	result = ta_fromconfig(key, &initializing, &dstkey, &keynamestr, mctx);
 
 	switch (result) {
 	case ISC_R_SUCCESS:
@@ -1117,15 +1155,17 @@ configure_view_dnsseckeys(dns_view_t *view, const cfg_obj_t *vconfig,
 		}
 	}
 
-	CHECK(load_view_keys(view_keys, view, false, NULL, mctx));
-	CHECK(load_view_keys(view_managed_keys, view, true, NULL, mctx));
-	CHECK(load_view_keys(view_dnssec_keys, view, true, NULL, mctx));
-
 	if (view->rdclass == dns_rdataclass_in) {
+		CHECK(load_view_keys(view_keys, view, false, NULL, mctx));
+		CHECK(load_view_keys(view_dnssec_keys, view, true, NULL,
+				     mctx));
+		CHECK(load_view_keys(view_managed_keys, view, true, NULL,
+				     mctx));
+
 		CHECK(load_view_keys(global_keys, view, false, NULL, mctx));
-		CHECK(load_view_keys(global_managed_keys, view, true,
-				     NULL, mctx));
 		CHECK(load_view_keys(global_dnssec_keys, view, true,
+				     NULL, mctx));
+		CHECK(load_view_keys(global_managed_keys, view, true,
 				     NULL, mctx));
 	}
 
