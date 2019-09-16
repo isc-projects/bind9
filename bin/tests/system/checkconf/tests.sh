@@ -437,7 +437,15 @@ n=`expr $n + 1`
 echo_i "check that a static root key generates a warning ($n)"
 ret=0
 $CHECKCONF check-root-static-key.conf > checkconf.out$n 2>/dev/null || ret=1
-grep "static-key entry for the root zone WILL FAIL" checkconf.out$n > /dev/null || ret=1
+grep "static entry for the root zone WILL FAIL" checkconf.out$n > /dev/null || ret=1
+if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
+status=`expr $status + $ret`
+
+n=`expr $n + 1`
+echo_i "check that a static root DS trust anchor generates a warning ($n)"
+ret=0
+$CHECKCONF check-root-static-ds.conf > checkconf.out$n 2>/dev/null || ret=1
+grep "static entry for the root zone WILL FAIL" checkconf.out$n > /dev/null || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; ret=1; fi
 status=`expr $status + $ret`
 

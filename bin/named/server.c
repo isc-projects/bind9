@@ -698,19 +698,20 @@ configure_view_nametable(const cfg_obj_t *vconfig, const cfg_obj_t *config,
 }
 
 static isc_result_t
-ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
-	      const char **keynamestrp, isc_mem_t *mctx)
+ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **keyp,
+	      dns_rdata_ds_t **dsp, const char **namestrp, isc_mem_t *mctx)
 {
 	dns_rdata_dnskey_t keystruct;
+	dns_rdata_ds_t *ds = NULL;
 	uint32_t n1, n2, n3;
-	const char *datastr = NULL, *keynamestr = NULL;
+	const char *datastr = NULL, *namestr = NULL;
 	unsigned char data[4096];
 	isc_buffer_t databuf;
 	unsigned char rrdata[4096];
 	isc_buffer_t rrdatabuf;
 	isc_region_t r;
-	dns_fixedname_t fkeyname;
-	dns_name_t *keyname = NULL;
+	dns_fixedname_t fname;
+	dns_name_t *name = NULL;
 	isc_buffer_t namebuf;
 	isc_result_t result;
 	dst_key_t *dstkey = NULL;
@@ -723,8 +724,9 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
 		TRUSTED
 	} anchortype;
 
-	REQUIRE(target != NULL && *target == NULL);
-	REQUIRE(keynamestrp != NULL && *keynamestrp == NULL);
+	REQUIRE(keyp != NULL && *keyp == NULL);
+	REQUIRE(dsp != NULL && *dsp == NULL);
+	REQUIRE(namestrp != NULL && *namestrp == NULL);
 
 	/* if DNSKEY, flags; if DS, key tag */
 	n1 = cfg_obj_asuint32(cfg_tuple_get(key, "n1"));
@@ -735,13 +737,13 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
 	/* if DNSKEY, algorithm; if DS, digest type */
 	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
 
-	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
-	*keynamestrp = keynamestr;
+	namestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
+	*namestrp = namestr;
 
-	keyname = dns_fixedname_initname(&fkeyname);
-	isc_buffer_constinit(&namebuf, keynamestr, strlen(keynamestr));
-	isc_buffer_add(&namebuf, strlen(keynamestr));
-	CHECK(dns_name_fromtext(keyname, &namebuf, dns_rootname, 0, NULL));
+	name = dns_fixedname_initname(&fname);
+	isc_buffer_constinit(&namebuf, namestr, strlen(namestr));
+	isc_buffer_add(&namebuf, strlen(namestr));
+	CHECK(dns_name_fromtext(name, &namebuf, dns_rootname, 0, NULL));
 
 	if (*initialp) {
 		atstr = cfg_obj_asstring(cfg_tuple_get(key, "anchortype"));
@@ -760,13 +762,16 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
 			cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 				    "key '%s': "
 				    "invalid initialization method '%s'",
-				    keynamestr, atstr);
+				    namestr, atstr);
 			result = ISC_R_FAILURE;
 			goto cleanup;
 		}
 	} else {
 		anchortype = TRUSTED;
 	}
+
+	isc_buffer_init(&databuf, data, sizeof(data));
+	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 
 	switch(anchortype) {
 	case INIT_DNSKEY:
@@ -803,9 +808,6 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
 		keystruct.protocol = (uint8_t)n2;
 		keystruct.algorithm = (uint8_t)n3;
 
-		isc_buffer_init(&databuf, data, sizeof(data));
-		isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
-
 		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
 		CHECK(isc_base64_decodestring(datastr, &databuf));
 		isc_buffer_usedregion(&databuf, &r);
@@ -815,20 +817,65 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
 		CHECK(dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
 					   keystruct.common.rdtype,
 					   &keystruct, &rrdatabuf));
-		CHECK(dst_key_fromdns(keyname, dns_rdataclass_in,
+		CHECK(dst_key_fromdns(name, dns_rdataclass_in,
 				      &rrdatabuf, mctx, &dstkey));
 
-		*target = dstkey;
+		*keyp = dstkey;
 		break;
 
 	case INIT_DS:
 	case STATIC_DS:
-		cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
-			    "key '%s': "
-			    "initialization method '%s' is "
-			    "not yet supported", keynamestr, atstr);
-		result = ISC_R_FAILURE;
-		goto cleanup;
+		ds = isc_mem_get(mctx, sizeof(*ds));
+		ds->common.rdclass = dns_rdataclass_in;
+		ds->common.rdtype = dns_rdatatype_ds;
+		ds->mctx = NULL;
+
+		ISC_LINK_INIT(&ds->common, link);
+
+		if (n1 > 0xffff) {
+			CHECKM(ISC_R_RANGE, "key tag");
+		}
+		if (n2 > 0xff) {
+			CHECKM(ISC_R_RANGE, "key algorithm");
+		}
+		if (n3 > 0xff) {
+			CHECKM(ISC_R_RANGE, "digest type");
+		}
+
+		ds->key_tag = (uint16_t)n1;
+		ds->algorithm = (uint8_t)n2;
+		ds->digest_type = (uint8_t)n3;
+
+		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
+		CHECK(isc_hex_decodestring(datastr, &databuf));
+		isc_buffer_usedregion(&databuf, &r);
+
+		switch (ds->digest_type) {
+		case DNS_DSDIGEST_SHA1:
+			if (r.length != ISC_SHA1_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		case DNS_DSDIGEST_SHA256:
+			if (r.length != ISC_SHA256_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		case DNS_DSDIGEST_SHA384:
+			if (r.length != ISC_SHA384_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		}
+
+		ds->mctx = mctx;
+		ds->length = r.length;
+		ds->digest = isc_mem_allocate(mctx, r.length);
+		memmove(ds->digest, r.base, r.length);
+
+		*dsp = ds;
+		ds = NULL;
+		break;
 
 	default:
 		INSIST(0);
@@ -840,6 +887,11 @@ ta_fromconfig(const cfg_obj_t *key, bool *initialp, dst_key_t **target,
  cleanup:
 	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
+	}
+
+	if (ds != NULL) {
+		dns_rdata_freestruct(ds);
+		isc_mem_put(mctx, ds, sizeof(*ds));
 	}
 
 	return (result);
@@ -861,23 +913,45 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	    const dns_name_t *keyname_match, dns_resolver_t *resolver,
 	    bool managed, isc_mem_t *mctx)
 {
-	const dns_name_t *keyname = NULL;
-	const char *keynamestr = NULL;
+	dns_fixedname_t fkeyname;
+	dns_name_t *keyname = NULL;
+	const char *namestr = NULL;
 	dst_key_t *dstkey = NULL;
+	dns_rdata_ds_t *ds = NULL;
 	unsigned int keyalg;
 	isc_result_t result;
 	bool initializing = managed;
 
-	result = ta_fromconfig(key, &initializing, &dstkey, &keynamestr, mctx);
+	result = ta_fromconfig(key, &initializing, &dstkey, &ds,
+			       &namestr, mctx);
 
 	switch (result) {
 	case ISC_R_SUCCESS:
 		/*
-		 * Key was parsed correctly, its algorithm is supported by the
-		 * crypto library, and it is not revoked.
+		 * Trust anchor was parsed correctly. If dstkey is
+		 * not NULL, then it was a key anchor, its algorithm
+		 * is supported by the crypto library, and it is not
+		 * revoked. If dstkey is NULL, then it was a DS
+		 * trust anchor instead.
 		 */
-		keyname = dst_key_name(dstkey);
-		keyalg = dst_key_alg(dstkey);
+		if (dstkey != NULL) {
+			keyname = dst_key_name(dstkey);
+			keyalg = dst_key_alg(dstkey);
+		} else {
+			isc_buffer_t b;
+
+			INSIST(ds != NULL);
+
+			isc_buffer_constinit(&b, namestr, strlen(namestr));
+			isc_buffer_add(&b, strlen(namestr));
+			keyname = dns_fixedname_initname(&fkeyname);
+			result = dns_name_fromtext(keyname, &b,
+						   dns_rootname, 0, NULL);
+			if (result != ISC_R_SUCCESS) {
+				return (result);
+			}
+			keyalg = ds->algorithm;
+		}
 		break;
 	case DST_R_UNSUPPORTEDALG:
 	case DST_R_BADKEYTYPE:
@@ -889,7 +963,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "ignoring %s for '%s': %s",
 			    initializing ? "initial-key" : "static-key",
-			    keynamestr, isc_result_totext(result));
+			    namestr, isc_result_totext(result));
 		return (ISC_R_SUCCESS);
 	case DST_R_NOCRYPTO:
 		/*
@@ -898,7 +972,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 			    "ignoring %s for '%s': no crypto support",
 			    initializing ? "initial-key" : "static-key",
-			    keynamestr);
+			    namestr);
 		return (result);
 	default:
 		/*
@@ -909,7 +983,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_ERROR,
 			    "configuring %s for '%s': %s",
 			    initializing ? "initial-key" : "static-key",
-			    keynamestr, isc_result_totext(result));
+			    namestr, isc_result_totext(result));
 		return (ISC_R_FAILURE);
 	}
 
@@ -931,7 +1005,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 		cfg_obj_log(key, named_g_lctx, ISC_LOG_WARNING,
 			    "ignoring %s for '%s': algorithm is disabled",
 			    initializing ? "initial-key" : "static-key",
-			    keynamestr);
+			    namestr);
 		goto done;
 	}
 
@@ -953,6 +1027,14 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	 */
 	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
+	}
+
+	/*
+	 * Ensure 'ds' does not leak.
+	 */
+	if (ds != NULL) {
+		dns_rdata_freestruct(ds);
+		isc_mem_put(mctx, ds, sizeof(*ds));
 	}
 
 	return (result);
