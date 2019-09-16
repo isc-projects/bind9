@@ -3539,6 +3539,118 @@ check_initializing_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
 	return (ret);
 }
 
+static isc_result_t
+record_ds_keys(isc_symtab_t *symtab, isc_mem_t *mctx, const cfg_obj_t *keylist)
+{
+	isc_result_t result, ret = ISC_R_SUCCESS;
+	const cfg_listelt_t *elt;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	char namebuf[DNS_NAME_FORMATSIZE], *p = NULL;
+
+	name = dns_fixedname_initname(&fixed);
+
+	for (elt = cfg_list_first(keylist);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		const char *initmethod;
+		const cfg_obj_t *init = NULL;
+		const cfg_obj_t *obj = cfg_listelt_value(elt);
+		const char *str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		isc_symvalue_t symvalue;
+
+		result = dns_name_fromstring(name, str, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
+			continue;
+		}
+
+		init = cfg_tuple_get(obj, "anchortype");
+		if (!cfg_obj_isvoid(init)) {
+			initmethod = cfg_obj_asstring(init);
+			if (strcasecmp(initmethod, "initial-key") == 0 ||
+			    strcasecmp(initmethod, "static-key") == 0)
+			{
+				/* Key-style key, skip it */
+				continue;
+			}
+		}
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		symvalue.as_cpointer = obj;
+		p = isc_mem_strdup(mctx, namebuf);
+		result = isc_symtab_define(symtab, p, 1, symvalue,
+					   isc_symexists_reject);
+		if (result == ISC_R_EXISTS) {
+			isc_mem_free(mctx, p);
+		} else if (result != ISC_R_SUCCESS) {
+			isc_mem_free(mctx, p);
+			ret = result;
+			continue;
+		}
+	}
+
+	return (ret);
+}
+
+static isc_result_t
+check_non_ds_keys(isc_symtab_t *symtab, const cfg_obj_t *keylist,
+		  isc_log_t *logctx)
+{
+	isc_result_t result, ret = ISC_R_SUCCESS;
+	const cfg_listelt_t *elt;
+	dns_fixedname_t fixed;
+	dns_name_t *name;
+	char namebuf[DNS_NAME_FORMATSIZE];
+
+	name = dns_fixedname_initname(&fixed);
+
+	for (elt = cfg_list_first(keylist);
+	     elt != NULL;
+	     elt = cfg_list_next(elt))
+	{
+		const cfg_obj_t *obj = cfg_listelt_value(elt);
+		const cfg_obj_t *init = NULL;
+		const char *str;
+		isc_symvalue_t symvalue;
+
+		init = cfg_tuple_get(obj, "anchortype");
+		if (cfg_obj_isvoid(init) ||
+		    strcasecmp(cfg_obj_asstring(init), "static-ds") == 0 ||
+		    strcasecmp(cfg_obj_asstring(init), "initial-ds") == 0)
+		{
+			/* DS-style entry, skip it */
+			continue;
+		}
+
+		str = cfg_obj_asstring(cfg_tuple_get(obj, "name"));
+		result = dns_name_fromstring(name, str, 0, NULL);
+		if (result != ISC_R_SUCCESS) {
+			continue;
+		}
+
+		dns_name_format(name, namebuf, sizeof(namebuf));
+		result = isc_symtab_lookup(symtab, namebuf, 1, &symvalue);
+		if (result == ISC_R_SUCCESS) {
+			const char *file = cfg_obj_file(symvalue.as_cpointer);
+			unsigned int line = cfg_obj_line(symvalue.as_cpointer);
+			if (file == NULL) {
+				file = "<unknown file>";
+			}
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "ds-style and key-style keys "
+				    "cannot be used for the "
+				    "same domain. "
+				    "ds-style defined at "
+				    "%s:%u", file, line);
+
+			ret = ISC_R_FAILURE;
+		}
+	}
+
+	return (ret);
+}
+
 /*
  * Check for conflicts between static and initialiizing keys.
  */
@@ -3550,24 +3662,35 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	isc_result_t result, tresult;
 	const cfg_listelt_t *elt = NULL;
 	const cfg_obj_t *keylist = NULL;
-	isc_symtab_t *symtab = NULL;
+	isc_symtab_t *statictab = NULL, *dstab = NULL;
 
-	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &symtab);
+	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &statictab);
+	if (result != ISC_R_SUCCESS) {
+		goto cleanup;
+	}
+
+	result = isc_symtab_create(mctx, 100, freekey, mctx, false, &dstab);
 	if (result != ISC_R_SUCCESS) {
 		goto cleanup;
 	}
 
 	/*
 	 * First we record all the static keys (i.e., old-style
-	 * trusted-keys and dnssec-keys configured with "static-key")
+	 * trusted-keys and dnssec-keys configured with "static-key"),
+	 * and all the DS-style trust anchors.
 	 */
 	for (elt = cfg_list_first(global_dkeys);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, mctx, keylist,
+		tresult = record_static_keys(statictab, mctx, keylist,
 					     logctx, autovalidation);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+
+		tresult = record_ds_keys(dstab, mctx, keylist);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3578,8 +3701,13 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, mctx, keylist,
+		tresult = record_static_keys(statictab, mctx, keylist,
 					     logctx, autovalidation);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+
+		tresult = record_ds_keys(dstab, mctx, keylist);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3590,7 +3718,7 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, mctx, keylist,
+		tresult = record_static_keys(statictab, mctx, keylist,
 					     logctx, autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
@@ -3602,24 +3730,29 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = record_static_keys(symtab, mctx, keylist,
+		tresult = record_static_keys(statictab, mctx, keylist,
 					     logctx, autovalidation);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
 	}
 
-
 	/*
 	 * Next, ensure that there's no conflict between the
-	 * static keys and the dnssec-keys configured with "initial-key"
+	 * static keys and the dnssec-keys configured with "initial-key",
+	 * or between DS-style and DNSKEY-style dnssec-keys.
 	 */
 	for (elt = cfg_list_first(global_dkeys);
 	     elt != NULL;
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = check_initializing_keys(symtab, keylist, logctx);
+		tresult = check_initializing_keys(statictab, keylist, logctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+
+		tresult = check_non_ds_keys(dstab, keylist, logctx);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
@@ -3630,15 +3763,23 @@ check_ta_conflicts(const cfg_obj_t *global_dkeys, const cfg_obj_t *view_dkeys,
 	     elt = cfg_list_next(elt))
 	{
 		keylist = cfg_listelt_value(elt);
-		tresult = check_initializing_keys(symtab, keylist, logctx);
+		tresult = check_initializing_keys(statictab, keylist, logctx);
+		if (result == ISC_R_SUCCESS) {
+			result = tresult;
+		}
+
+		tresult = check_non_ds_keys(dstab, keylist, logctx);
 		if (result == ISC_R_SUCCESS) {
 			result = tresult;
 		}
 	}
 
  cleanup:
-	if (symtab != NULL) {
-		isc_symtab_destroy(&symtab);
+	if (statictab != NULL) {
+		isc_symtab_destroy(&statictab);
+	}
+	if (dstab != NULL) {
+		isc_symtab_destroy(&dstab);
 	}
 	return (result);
 }
