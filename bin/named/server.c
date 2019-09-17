@@ -1017,7 +1017,9 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	 * 'managed' and 'initializing' arguments to dns_keytable_add().
 	 */
 	result = dns_keytable_add(secroots, initializing,
-				  initializing, &dstkey);
+				  initializing, keyname,
+				  dstkey != NULL ? &dstkey : NULL,
+				  ds);
 
  done:
 	/*
@@ -1030,7 +1032,7 @@ process_key(const cfg_obj_t *key, dns_keytable_t *secroots,
 	}
 
 	/*
-	 * Ensure 'ds' does not leak.
+	 * Free 'ds'.
 	 */
 	if (ds != NULL) {
 		dns_rdata_freestruct(ds);

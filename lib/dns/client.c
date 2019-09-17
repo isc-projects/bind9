@@ -1507,7 +1507,8 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	if (result != ISC_R_SUCCESS)
 		goto cleanup;
 
-	result = dns_keytable_add(secroots, false, false, &dstkey);
+	result = dns_keytable_add(secroots, false, false,
+				  dst_key_name(dstkey), &dstkey, NULL);
 
  cleanup:
 	if (dstkey != NULL)

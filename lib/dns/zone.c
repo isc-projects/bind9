@@ -3985,7 +3985,8 @@ trust_key(dns_zone_t *zone, dns_name_t *keyname,
 		goto failure;
 
 	CHECK(dns_dnssec_keyfromrdata(keyname, &rdata, mctx, &dstkey));
-	CHECK(dns_keytable_add(sr, true, initial, &dstkey));
+	CHECK(dns_keytable_add(sr, true, initial,
+			       dst_key_name(dstkey), &dstkey, NULL));
 	dns_keytable_detach(&sr);
 
   failure:

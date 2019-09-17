@@ -155,12 +155,14 @@ create_tables() {
 
 	/* Add a normal key */
 	create_key(257, 3, 5, "example.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, false, false, &key),
+	assert_int_equal(dns_keytable_add(keytable, false, false,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 
 	/* Add an initializing managed key */
 	create_key(257, 3, 5, "managed.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, true, &key),
+	assert_int_equal(dns_keytable_add(keytable, true, true,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 
 	/* Add a null key */
@@ -216,7 +218,8 @@ add_test(void **state) {
 	 * nextkeynode() should still return NOTFOUND.
 	 */
 	create_key(257, 3, 5, "example.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, false, false, &key),
+	assert_int_equal(dns_keytable_add(keytable, false, false,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_nextkeynode(keytable, keynode,
 						  &next_keynode),
@@ -225,7 +228,8 @@ add_test(void **state) {
 	/* Add another key (different keydata) */
 	dns_keytable_detachkeynode(keytable, &keynode);
 	create_key(257, 3, 5, "example.com", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, false, false, &key),
+	assert_int_equal(dns_keytable_add(keytable, false, false,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("example.com"),
 					   &keynode),
@@ -259,7 +263,8 @@ add_test(void **state) {
 	 * ISC_R_NOTFOUND and that the added key is an initializing key.
 	 */
 	create_key(257, 3, 5, "managed.com", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, true, &key),
+	assert_int_equal(dns_keytable_add(keytable, true, true,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("managed.com"),
 					   &keynode),
@@ -278,7 +283,8 @@ add_test(void **state) {
 	 * nodes for managed.com, both containing non-initializing keys.
 	 */
 	create_key(257, 3, 5, "managed.com", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, false, &key),
+	assert_int_equal(dns_keytable_add(keytable, true, false,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("managed.com"),
 					   &keynode),
@@ -302,7 +308,8 @@ add_test(void **state) {
 	 * that the added key is an initializing key.
 	 */
 	create_key(257, 3, 5, "two.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, true, &key),
+	assert_int_equal(dns_keytable_add(keytable, true, true,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
@@ -319,7 +326,8 @@ add_test(void **state) {
 	 * ISC_R_NOTFOUND and that the added key is not an initializing key.
 	 */
 	create_key(257, 3, 5, "two.com", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, false, &key),
+	assert_int_equal(dns_keytable_add(keytable, true, false,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
@@ -337,7 +345,8 @@ add_test(void **state) {
 	 * nodes for two.com, both containing non-initializing keys.
 	 */
 	create_key(257, 3, 5, "two.com", keystr1, &key);
-	assert_int_equal(dns_keytable_add(keytable, true, false, &key),
+	assert_int_equal(dns_keytable_add(keytable, true, false,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("two.com"),
 					   &keynode),
@@ -363,7 +372,8 @@ add_test(void **state) {
 					   &null_keynode),
 			 ISC_R_SUCCESS);
 	create_key(257, 3, 5, "null.example", keystr2, &key);
-	assert_int_equal(dns_keytable_add(keytable, false, false, &key),
+	assert_int_equal(dns_keytable_add(keytable, false, false,
+					  dst_key_name(key), &key, NULL),
 			 ISC_R_SUCCESS);
 	assert_int_equal(dns_keytable_find(keytable, str2name("null.example"),
 					   &keynode),
@@ -663,7 +673,8 @@ nta_test(void **state) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	create_key(257, 3, 5, "example", keystr1, &key);
-	result = dns_keytable_add(keytable, false, false, &key);
+	result = dns_keytable_add(keytable, false, false,
+					  dst_key_name(key), &key, NULL),
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_stdtime_get(&now);
