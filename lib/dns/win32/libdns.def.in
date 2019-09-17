@@ -320,6 +320,7 @@ dns_dnssec_get_hints
 dns_dnssec_keyactive
 dns_dnssec_keyfromrdata
 dns_dnssec_keylistfromrdataset
+dns_dnssec_matchdskey
 dns_dnssec_selfsigns
 dns_dnssec_sign
 dns_dnssec_signmessage

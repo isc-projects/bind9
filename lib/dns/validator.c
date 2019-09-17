@@ -1684,49 +1684,6 @@ check_signer(dns_validator_t *val, dns_rdata_t *keyrdata,
 	return (result);
 }
 
-/*%
- * Find the DNSKEY that corresponds to the DS.
- */
-static isc_result_t
-dnskey_for_ds(dns_validator_t *val, dns_rdataset_t *rdataset,
-	      dns_rdata_t *dsrdata, dns_rdata_ds_t *ds, dns_rdata_t *keyrdata)
-{
-	dns_keytag_t keytag;
-	dns_rdata_dnskey_t key;
-	isc_result_t result;
-	unsigned char dsbuf[DNS_DS_BUFFERSIZE];
-
-	for (result = dns_rdataset_first(rdataset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(rdataset))
-	{
-		dns_rdata_t newdsrdata = DNS_RDATA_INIT;
-
-		dns_rdata_reset(keyrdata);
-		dns_rdataset_current(rdataset, keyrdata);
-		result = dns_rdata_tostruct(keyrdata, &key, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
-		keytag = compute_keytag(keyrdata);
-		if (ds->key_tag != keytag || ds->algorithm != key.algorithm) {
-			continue;
-		}
-		dns_rdata_reset(&newdsrdata);
-		result = dns_ds_buildrdata(val->event->name, keyrdata,
-					   ds->digest_type,
-					   dsbuf, &newdsrdata);
-		if (result != ISC_R_SUCCESS) {
-			validator_log(val, ISC_LOG_DEBUG(3),
-				      "dns_ds_buildrdata() -> %s",
-				      dns_result_totext(result));
-			continue;
-		}
-		if (dns_rdata_compare(dsrdata, &newdsrdata) == 0) {
-			break;
-		}
-	}
-	return (result);
-}
-
 static isc_result_t
 anchor_signed(dns_validator_t *val, isc_result_t *resp) {
 	isc_result_t result;
@@ -1935,7 +1892,6 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
 static isc_result_t
 validate_dnskey(dns_validator_t *val) {
 	isc_result_t result;
-	dns_rdataset_t trdataset;
 	dns_rdata_t dsrdata = DNS_RDATA_INIT;
 	dns_rdata_t keyrdata = DNS_RDATA_INIT;
 	dns_rdata_ds_t ds;
@@ -2069,16 +2025,14 @@ validate_dnskey(dns_validator_t *val) {
 
 		supported_algorithm = true;
 
-		dns_rdataset_init(&trdataset);
-		dns_rdataset_clone(val->event->rdataset, &trdataset);
-
 		/*
 		 * Find the DNSKEY matching the DS...
 		 */
-		result = dnskey_for_ds(val, &trdataset, &dsrdata,
-				       &ds, &keyrdata);
+		result = dns_dnssec_matchdskey(val->event->name,
+					       &dsrdata,
+					       val->event->rdataset,
+					       &keyrdata);
 		if (result != ISC_R_SUCCESS) {
-			dns_rdataset_disassociate(&trdataset);
 			validator_log(val, ISC_LOG_DEBUG(3),
 				      "no DNSKEY matching DS");
 			continue;
@@ -2088,7 +2042,6 @@ validate_dnskey(dns_validator_t *val) {
 		 * ... and check that it signed the DNSKEY RRset.
 		 */
 		result = check_signer(val, &keyrdata, ds.key_tag, ds.algorithm);
-		dns_rdataset_disassociate(&trdataset);
 		if (result == ISC_R_SUCCESS) {
 			break;
 		}

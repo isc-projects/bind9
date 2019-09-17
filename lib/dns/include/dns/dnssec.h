@@ -360,6 +360,18 @@ dns_dnssec_syncupdate(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *rmkeys,
  * Update the CDS and CDNSKEY RRsets, adding and removing keys as needed.
  */
 
+isc_result_t
+dns_dnssec_matchdskey(dns_name_t *name, dns_rdata_t *dsrdata,
+		      dns_rdataset_t *keyset, dns_rdata_t *keyrdata);
+/*%<
+ * Given a DS rdata and a DNSKEY RRset, find the DNSKEY rdata that matches
+ * the DS, and place it in 'keyrdata'.
+ *
+ * Returns:
+ *\li	ISC_R_SUCCESS
+ *\li	ISC_R_NOTFOUND
+ *\li	Other values indicate error
+ */
 ISC_LANG_ENDDECLS
 
 #endif /* DNS_DNSSEC_H */
