@@ -685,8 +685,6 @@ CMOCKA_CFLAGS
 LIBIDN2_LIBS
 LIBIDN2_CFLAGS
 IDNKIT_LIBS
-XSLT_DBLATEX_FASTBOOK
-XSLT_DBLATEX_STYLE
 XSLT_DOCBOOK_MAKETOC_XHTML
 XSLT_DOCBOOK_MAKETOC_HTML
 XSLT_DOCBOOK_CHUNKTOC_XHTML
@@ -23017,7 +23015,7 @@ case "$docbook_path" in
 auto)
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: auto" >&5
 $as_echo "auto" >&6; }
-	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook-ns /usr/local/share/xsl/docbook /usr/share/xsl/docbook /opt/local/share/xsl/docbook-xsl /opt/local/share/xsl/docbook-xsl-nons /usr/share/xml/docbook/stylesheet/docbook-xsl"
+	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook-ns /usr/local/share/xsl/docbook /usr/share/xsl/docbook /usr/share/sgml/docbook/xsl-stylesheets /opt/local/share/xsl/docbook-xsl /opt/local/share/xsl/docbook-xsl-nons /usr/share/xml/docbook/stylesheet/docbook-xsl"
 	;;
 *)
 	docbook_xsl_trees="$withval"
@@ -23234,57 +23232,6 @@ then
 	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
 $as_echo "\"not found\"" >&6; };
 	XSLT_DOCBOOK_MAKETOC_XHTML=xhtml/maketoc.xsl
-fi
-
-
-
-#
-# Same dance for dblatex
-#
-dblatex_xsl_trees="/usr/local/share/xml/docbook/stylesheet/dblatex /usr/pkg/share/xml/docbook/stylesheet/dblatex /usr/share/xml/docbook/stylesheet/dblatex"
-
-XSLT_DBLATEX_STYLE=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xsl/docbook.xsl" >&5
-$as_echo_n "checking for xsl/docbook.xsl... " >&6; }
-for d in $dblatex_xsl_trees
-do
-	f=$d/xsl/docbook.xsl
-	if test -f $f
-	then
-		XSLT_DBLATEX_STYLE=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DBLATEX_STYLE" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DBLATEX_STYLE=xsl/docbook.xsl
-fi
-
-
-
-XSLT_DBLATEX_FASTBOOK=""
-{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for xsl/latex_book_fast.xsl" >&5
-$as_echo_n "checking for xsl/latex_book_fast.xsl... " >&6; }
-for d in $dblatex_xsl_trees
-do
-	f=$d/xsl/latex_book_fast.xsl
-	if test -f $f
-	then
-		XSLT_DBLATEX_FASTBOOK=$f
-		{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $f" >&5
-$as_echo "$f" >&6; }
-		break
-	fi
-done
-if test "X$XSLT_DBLATEX_FASTBOOK" = "X"
-then
-	{ $as_echo "$as_me:${as_lineno-$LINENO}: result: \"not found\"" >&5
-$as_echo "\"not found\"" >&6; };
-	XSLT_DBLATEX_FASTBOOK=xsl/latex_book_fast.xsl
 fi
 
 
