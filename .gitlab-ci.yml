@@ -631,7 +631,6 @@ clang:freebsd11.3:amd64:
     CFLAGS: "-Wall -Wextra -O2 -g"
   <<: *freebsd_amd64
   <<: *build_job
-  when: manual
 
 system:clang:freebsd11.3:amd64:
   <<: *freebsd_amd64
@@ -639,7 +638,6 @@ system:clang:freebsd11.3:amd64:
   dependencies:
     - clang:freebsd11.3:amd64
   needs: ["clang:freebsd11.3:amd64"]
-  when: manual
 
 unit:clang:freebsd11.3:amd64:
   <<: *freebsd_amd64
@@ -647,7 +645,6 @@ unit:clang:freebsd11.3:amd64:
   dependencies:
     - clang:freebsd11.3:amd64
   needs: ["clang:freebsd11.3:amd64"]
-  when: manual
 
 # Jobs for Clang builds on FreeBSD 12.0 (amd64)
 
@@ -657,7 +654,6 @@ clang:freebsd12.0:amd64:
     EXTRA_CONFIGURE: "--enable-dnstap"
   <<: *freebsd_amd64
   <<: *build_job
-  when: manual
 
 system:clang:freebsd12.0:amd64:
   <<: *freebsd_amd64
@@ -665,7 +661,6 @@ system:clang:freebsd12.0:amd64:
   dependencies:
     - clang:freebsd12.0:amd64
   needs: ["clang:freebsd12.0:amd64"]
-  when: manual
 
 unit:clang:freebsd12.0:amd64:
   <<: *freebsd_amd64
@@ -673,7 +668,6 @@ unit:clang:freebsd12.0:amd64:
   dependencies:
     - clang:freebsd12.0:amd64
   needs: ["clang:freebsd12.0:amd64"]
-  when: manual
 
 # Jobs with libtool disabled
 
