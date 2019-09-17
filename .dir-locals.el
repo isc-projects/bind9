@@ -15,9 +15,6 @@
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "./"))
 
-	       ;; current directory
-	       (expand-file-name (concat default-directory "./"))
-
 	       ;; libisc
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "lib/isc/unix/include"))
@@ -25,11 +22,16 @@
 		(concat directory-of-current-dir-locals-file "lib/isc/pthreads/include"))
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "lib/isc/include"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "lib/isc"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "lib/isc/netmgr"))
 
 	       ;; libdns
-
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "lib/dns/include"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "lib/dns"))
 
 	       ;; libisccc
 	       (expand-file-name
@@ -50,6 +52,28 @@
 	       ;; libbind9
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "lib/bind9/include"))
+
+	       ;; bin
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/check"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/confgen/include"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/confgen"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/confgen/include"))	       
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/dig/include"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/named/include"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/rndc/include"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/dnssec/include"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/named/include"))
+	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/rndc/include"))
 
 	       (expand-file-name "/usr/local/opt/openssl@1.1/include")
 	       (expand-file-name "/usr/local/opt/libxml2/include/libxml2")
