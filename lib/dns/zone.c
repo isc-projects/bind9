@@ -3828,13 +3828,18 @@ set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
 }
 
 /*
- * Convert key(s) linked from 'keynode' to KEYDATA and add to the key zone.
+ * Convert key(s) linked from 'keynode' to KEYDATA and add it to the
+ * key zone.  If `keynode` doesn't point to a key, then this is a
+ * DS-style trust anchor, so create an empty KEYDATA instead; it
+ * will be replaced with the correct key on refresh.
+ *
  * If the key zone is changed, set '*changed' to true.
  */
 static isc_result_t
 create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	       dns_diff_t *diff, dns_keytable_t *keytable,
-	       dns_keynode_t **keynodep, bool *changed)
+	       dns_keynode_t **keynodep, dns_name_t *keyname,
+	       bool *changed)
 {
 	const char me[] = "create_keydata";
 	isc_result_t result = ISC_R_SUCCESS;
@@ -3843,10 +3848,10 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	dns_rdata_keydata_t keydata;
 	dns_rdata_dnskey_t dnskey;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_keynode_t *keynode;
+	dns_keynode_t *keynode = NULL;
 	isc_stdtime_t now;
 	isc_region_t r;
-	dst_key_t *key;
+	dst_key_t *key = NULL;
 
 	REQUIRE(keynodep != NULL);
 	keynode = *keynodep;
@@ -3854,13 +3859,47 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	ENTER;
 	isc_stdtime_get(&now);
 
+	if (dns_keynode_dsset(keynode) != NULL) {
+		dns_rdata_keydata_t kd = { 0 };
+		unsigned char rrdata[4096];
+		isc_buffer_t rrdatabuf;
+
+		/*
+		 * We're creating a placeholder KEYDATA record
+		 * to be updated when the key zone is refreshed
+		 * later.
+		 */
+		kd.common.rdclass = zone->rdclass;
+		kd.common.rdtype = dns_rdatatype_keydata;
+		ISC_LINK_INIT(&kd.common, link);
+
+		isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
+
+		CHECK(dns_rdata_fromstruct(&rdata, zone->rdclass,
+					   dns_rdatatype_keydata,
+					   &kd, &rrdatabuf));
+		/* Add rdata to zone. */
+		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
+				    keyname, 0, &rdata));
+		*changed = true;
+
+		/* Refresh new keys from the zone apex as soon as possible. */
+		set_refreshkeytimer(zone, &keydata, now, true);
+
+		result = ISC_R_NOMORE;
+	} else {
+		/* Proceed to the while loop below */
+		result = ISC_R_SUCCESS;
+	}
+
 	/* Loop in case there's more than one key. */
 	while (result == ISC_R_SUCCESS) {
 		dns_keynode_t *nextnode = NULL;
 
 		key = dns_keynode_key(keynode);
-		if (key == NULL)
+		if (key == NULL) {
 			goto skip;
+		}
 
 		isc_buffer_init(&dstb, dst_buf, sizeof(dst_buf));
 		CHECK(dst_key_todns(key, &dstb));
@@ -3885,7 +3924,7 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 
 		/* Add rdata to zone. */
 		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
-				    dst_key_name(key), 0, &rdata));
+				    keyname, 0, &rdata));
 		*changed = true;
 
 		/* Refresh new keys from the zone apex as soon as possible. */
@@ -3899,8 +3938,9 @@ create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 		}
 	}
 
-	if (keynode != NULL)
+	if (keynode != NULL) {
 		dns_keytable_detachkeynode(keytable, &keynode);
+	}
 	*keynodep = NULL;
 
 	return (ISC_R_SUCCESS);
@@ -4263,7 +4303,9 @@ struct addifmissing_arg {
 };
 
 static void
-addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
+addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
+	     dns_name_t *keyname, void *arg)
+{
 	dns_db_t *db = ((struct addifmissing_arg *)arg)->db;
 	dns_dbversion_t *ver = ((struct addifmissing_arg *)arg)->ver;
 	dns_diff_t *diff = ((struct addifmissing_arg *)arg)->diff;
@@ -4271,43 +4313,61 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	bool *changed = ((struct addifmissing_arg *)arg)->changed;
 	isc_result_t result;
 	dns_keynode_t *dummy = NULL;
+	dns_fixedname_t fname;
 
-	if (((struct addifmissing_arg *)arg)->result != ISC_R_SUCCESS)
+
+	if (((struct addifmissing_arg *)arg)->result != ISC_R_SUCCESS) {
 		return;
-
-	if (dns_keynode_managed(keynode)) {
-		dns_fixedname_t fname;
-		dns_name_t *keyname;
-		dst_key_t *key;
-
-		key = dns_keynode_key(keynode);
-		if (key == NULL)
-			return;
-		dns_fixedname_init(&fname);
-
-		keyname = dst_key_name(key);
-		result = dns_db_find(db, keyname, ver,
-				     dns_rdatatype_keydata,
-				     DNS_DBFIND_NOWILD, 0, NULL,
-				     dns_fixedname_name(&fname),
-				     NULL, NULL);
-		if (result == ISC_R_SUCCESS)
-			return;
-		dns_keytable_attachkeynode(keytable, keynode, &dummy);
-		result = create_keydata(zone, db, ver, diff, keytable,
-					&dummy, changed);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE)
-			((struct addifmissing_arg *)arg)->result = result;
 	}
-};
+
+	if (!dns_keynode_managed(keynode)) {
+		return;
+	}
+
+	/*
+	 * If the keynode has neither a key-style nor a DS-style
+	 * trust anchor, return.
+	 */
+	if (dns_keynode_dsset(keynode) == NULL &&
+	    dns_keynode_key(keynode) == NULL)
+	{
+		return;
+	}
+
+	/*
+	 * Check whether there's already a KEYDATA entry for this name;
+	 * if so, we don't need to add another.
+	 */
+	dns_fixedname_init(&fname);
+	result = dns_db_find(db, keyname, ver, dns_rdatatype_keydata,
+			     DNS_DBFIND_NOWILD, 0, NULL,
+			     dns_fixedname_name(&fname),
+			     NULL, NULL);
+	if (result == ISC_R_SUCCESS) {
+		return;
+	}
+
+	/*
+	 * Create the keydata.
+	 */
+	dns_keytable_attachkeynode(keytable, keynode, &dummy);
+	result = create_keydata(zone, db, ver, diff, keytable, &dummy,
+				keyname, changed);
+	if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
+		((struct addifmissing_arg *)arg)->result = result;
+	}
+}
 
 /*
  * Synchronize the set of initializing keys found in managed-keys {}
  * statements with the set of trust anchors found in the managed-keys.bind
  * zone.  If a domain is no longer named in managed-keys, delete all keys
- * from that domain from the key zone.	If a domain is mentioned in in
- * managed-keys but there are no references to it in the key zone, load
- * the key zone with the initializing key(s) for that domain.
+ * from that domain from the key zone.	If a domain is configured as an
+ * initial-key in dnssec-keys, but there are no references to it in the
+ * key zone, load the key zone with the initializing key(s) for that
+ * domain and schedule a key refresh. If a domain is configured as
+ * an initial-ds in dnssec-keys, fetch the DNSKEY RRset, load the key
+ * zone with the matching key, and schedule a key refresh.
  */
 static isc_result_t
 sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
@@ -4338,9 +4398,9 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 
 	/*
 	 * Walk the zone DB.  If we find any keys whose names are no longer
-	 * in managed-keys as initial-keys (or which are now configured as
-	 * static keys, meaning they are permanent and not RFC5011-maintained),
-	 * delete them from the zone.  Otherwise call load_secroots(), which
+	 * in dnssec-keys, or which have been changed from initial to static,
+	 * (meaning they are permanent and not RFC5011-maintained), delete
+	 * them from the zone.  Otherwise call load_secroots(), which
 	 * loads keys into secroots as appropriate.
 	 */
 	dns_rriterator_init(&rrit, db, ver, 0);
@@ -4363,12 +4423,8 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 		}
 
 		result = dns_keytable_find(sr, rrname, &keynode);
-		if ((result != ISC_R_SUCCESS &&
-		     result != DNS_R_PARTIALMATCH) ||
-		    dns_keynode_managed(keynode) == false)
-		{
-			CHECK(delete_keydata(db, ver, &diff,
-					     rrname, rdataset));
+		if (result != ISC_R_SUCCESS || !dns_keynode_managed(keynode)) {
+			CHECK(delete_keydata(db, ver, &diff, rrname, rdataset));
 			changed = true;
 		} else {
 			load_secroots(zone, rrname, rdataset);
@@ -4381,8 +4437,10 @@ sync_keyzone(dns_zone_t *zone, dns_db_t *db) {
 	dns_rriterator_destroy(&rrit);
 
 	/*
-	 * Now walk secroots to find any managed keys that aren't
-	 * in the zone.  If we find any, we add them to the zone.
+	 * Walk secroots to find any initial keys that aren't in
+	 * the zone.  If we find any, add them to the zone directly.
+	 * If any DS-style initial keys are found, refresh the key
+	 * zone so that they'll be looked up.
 	 */
 	arg.db = db;
 	arg.ver = ver;
@@ -9741,7 +9799,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	dns_diff_t diff;
 	bool alldone = false;
 	bool commit = false;
-	dns_name_t *keyname;
+	dns_name_t *keyname = NULL;
 	dns_rdata_t sigrr = DNS_RDATA_INIT;
 	dns_rdata_t dnskeyrr = DNS_RDATA_INIT;
 	dns_rdata_t keydatarr = DNS_RDATA_INIT;
@@ -9752,11 +9810,14 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	char namebuf[DNS_NAME_FORMATSIZE];
 	unsigned char key_buf[4096];
 	isc_buffer_t keyb;
-	dst_key_t *dstkey;
+	dst_key_t *dstkey = NULL;
 	isc_stdtime_t now;
 	int pending = 0;
 	bool secure = false, initial = false;
 	bool free_needed;
+	dns_keynode_t *keynode = NULL;
+	dns_rdataset_t *dnskeys = NULL, *dnskeysigs = NULL;
+	dns_rdataset_t *keydataset = NULL, *dsset = NULL;
 
 	UNUSED(task);
 	INSIST(event != NULL && event->ev_type == DNS_EVENT_FETCHDONE);
@@ -9766,6 +9827,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	zone = kfetch->zone;
 	isc_mem_attach(zone->mctx, &mctx);
 	keyname = dns_fixedname_name(&kfetch->name);
+	dnskeys = &kfetch->dnskeyset;
+	dnskeysigs = &kfetch->dnskeysigset;
+	keydataset = &kfetch->keydataset;
 
 	devent = (dns_fetchevent_t *) event;
 	eresult = devent->result;
@@ -9807,9 +9871,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		   namebuf, dns_result_totext(eresult));
 
 	/* Fetch failed */
-	if (eresult != ISC_R_SUCCESS ||
-	    !dns_rdataset_isassociated(&kfetch->dnskeyset))
-	{
+	if (eresult != ISC_R_SUCCESS || !dns_rdataset_isassociated(dnskeys)) {
 		dnssec_log(zone, ISC_LOG_WARNING,
 			   "Unable to fetch DNSKEY set '%s': %s",
 			   namebuf, dns_result_totext(eresult));
@@ -9818,7 +9880,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	}
 
 	/* No RRSIGs found */
-	if (!dns_rdataset_isassociated(&kfetch->dnskeysigset)) {
+	if (!dns_rdataset_isassociated(dnskeysigs)) {
 		dnssec_log(zone, ISC_LOG_WARNING,
 			   "No DNSKEY RRSIGs found for '%s': %s",
 			   namebuf, dns_result_totext(eresult));
@@ -9830,27 +9892,110 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 * Clear any cached trust level, as we need to run validation
 	 * over again; trusted keys might have changed.
 	 */
-	kfetch->dnskeyset.trust = kfetch->dnskeysigset.trust = dns_trust_none;
+	dnskeys->trust = dnskeysigs->trust = dns_trust_none;
+
+	/* Look up the trust anchor */
+	result = dns_keytable_find(secroots, keyname, &keynode);
+	if (result != ISC_R_SUCCESS) {
+		goto anchors_done;
+	}
 
 	/*
-	 * Validate the dnskeyset against the current trusted keys.
+	 * If the first keynode has a DS trust anchor, use that for
+	 * verification.
 	 */
-	for (result = dns_rdataset_first(&kfetch->dnskeysigset);
-	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->dnskeysigset))
-	{
-		dns_keynode_t *keynode = NULL;
+	if ((dsset = dns_keynode_dsset(keynode)) != NULL) {
+		for (result = dns_rdataset_first(dnskeysigs);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(dnskeysigs))
+		{
+			isc_result_t tresult;
+			dns_rdata_t keyrdata = DNS_RDATA_INIT;
 
+			dns_rdata_reset(&sigrr);
+			dns_rdataset_current(dnskeysigs, &sigrr);
+			result = dns_rdata_tostruct(&sigrr, &sig, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+			for (tresult = dns_rdataset_first(dsset);
+			     tresult == ISC_R_SUCCESS;
+			     tresult = dns_rdataset_next(dsset))
+			{
+				dns_rdata_t dsrdata = DNS_RDATA_INIT;
+				dns_rdata_ds_t ds;
+
+				dns_rdata_reset(&dsrdata);
+				dns_rdataset_current(dsset, &dsrdata);
+				tresult = dns_rdata_tostruct(&dsrdata, &ds,
+							     NULL);
+				RUNTIME_CHECK(tresult == ISC_R_SUCCESS);
+
+				if (ds.key_tag != sig.keyid ||
+				    ds.algorithm != sig.algorithm)
+				{
+					continue;
+				}
+
+				result = dns_dnssec_matchdskey(keyname,
+							       &dsrdata,
+							       dnskeys,
+							       &keyrdata);
+				if (result == ISC_R_SUCCESS) {
+					break;
+				}
+			}
+
+			if (tresult == ISC_R_NOMORE) {
+				continue;
+			}
+
+			result = dns_dnssec_keyfromrdata(keyname, &keyrdata,
+							 mctx, &dstkey);
+			if (result != ISC_R_SUCCESS) {
+				continue;
+			}
+
+			result = dns_dnssec_verify(keyname, dnskeys,
+						   dstkey, false, 0,
+						   mctx, &sigrr, NULL);
+			dst_key_free(&dstkey);
+
+			dnssec_log(zone, ISC_LOG_DEBUG(3),
+				   "Verifying DNSKEY set for zone "
+				   "'%s' using DS %d/%d: %s",
+				   namebuf, sig.keyid, sig.algorithm,
+				   dns_result_totext(result));
+
+			if (result == ISC_R_SUCCESS) {
+				dnskeys->trust = dns_trust_secure;
+				dnskeysigs->trust = dns_trust_secure;
+				initial = dns_keynode_initial(keynode);
+				dns_keynode_trust(keynode);
+				secure = true;
+				break;
+			}
+		}
+
+		dns_keytable_detachkeynode(secroots, &keynode);
+		goto anchors_done;
+	}
+
+	/*
+	 * Validate the DNSKEY set against using the key-style
+	 * trust anchor(s).
+	 */
+	for (result = dns_rdataset_first(dnskeysigs);
+	     result == ISC_R_SUCCESS;
+	     result = dns_rdataset_next(dnskeysigs))
+	{
 		dns_rdata_reset(&sigrr);
-		dns_rdataset_current(&kfetch->dnskeysigset, &sigrr);
+		dns_rdataset_current(dnskeysigs, &sigrr);
 		result = dns_rdata_tostruct(&sigrr, &sig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		result = dns_keytable_find(secroots, keyname, &keynode);
+		result = ISC_R_SUCCESS;
 		while (result == ISC_R_SUCCESS) {
 			dns_keynode_t *nextnode = NULL;
-			dns_fixedname_t fixed;
-			dns_fixedname_init(&fixed);
 
 			dstkey = dns_keynode_key(keynode);
 			if (dstkey == NULL) {
@@ -9861,26 +10006,21 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 			if (dst_key_alg(dstkey) == sig.algorithm &&
 			    dst_key_id(dstkey) == sig.keyid)
 			{
-				result = dns_dnssec_verify(keyname,
-							   &kfetch->dnskeyset,
-							   dstkey, false,
-							   0,
-							   zone->view->mctx,
-							   &sigrr,
-							   dns_fixedname_name(
-							   &fixed));
+				result = dns_dnssec_verify(keyname, dnskeys,
+							   dstkey, false, 0,
+							   mctx, &sigrr, NULL);
 
 				dnssec_log(zone, ISC_LOG_DEBUG(3),
-					   "Verifying DNSKEY set for zone "
-					   "'%s' using key %d/%d: %s",
-					   namebuf, sig.keyid, sig.algorithm,
+					   "Verifying DNSKEY set "
+					   "for zone '%s' "
+					   "using key %d/%d: %s",
+					   namebuf, sig.keyid,
+					   sig.algorithm,
 					   dns_result_totext(result));
 
 				if (result == ISC_R_SUCCESS) {
-					kfetch->dnskeyset.trust =
-						dns_trust_secure;
-					kfetch->dnskeysigset.trust =
-						dns_trust_secure;
+					dnskeys->trust = dns_trust_secure;
+					dnskeysigs->trust = dns_trust_secure;
 					secure = true;
 					initial = dns_keynode_initial(keynode);
 					dns_keynode_trust(keynode);
@@ -9888,20 +10028,24 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 				}
 			}
 
-			result = dns_keytable_nextkeynode(secroots,
-							  keynode, &nextnode);
-			dns_keytable_detachkeynode(secroots, &keynode);
-			keynode = nextnode;
-		}
-
-		if (keynode != NULL) {
-			dns_keytable_detachkeynode(secroots, &keynode);
+			result = dns_keytable_nextkeynode(secroots, keynode,
+							  &nextnode);
+			if (result == ISC_R_SUCCESS) {
+				dns_keytable_detachkeynode(secroots, &keynode);
+				keynode = nextnode;
+			}
 		}
 
 		if (secure) {
 			break;
 		}
 	}
+
+ anchors_done:
+	if (keynode != NULL) {
+		dns_keytable_detachkeynode(secroots, &keynode);
+	}
+
 
 	/*
 	 * If we were not able to verify the answer using the current
@@ -9927,14 +10071,14 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 *     updated
 	 */
 	initializing = true;
-	for (result = dns_rdataset_first(&kfetch->keydataset);
+	for (result = dns_rdataset_first(keydataset);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->keydataset))
+	     result = dns_rdataset_next(keydataset))
 	{
 		dns_keytag_t keytag;
 
 		dns_rdata_reset(&keydatarr);
-		dns_rdataset_current(&kfetch->keydataset, &keydatarr);
+		dns_rdataset_current(keydataset, &keydatarr);
 		result = dns_rdata_tostruct(&keydatarr, &keydata, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -9961,7 +10105,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		 */
 		initializing = initializing && (keydata.addhd == 0);
 
-		if (! matchkey(&kfetch->dnskeyset, &keydatarr)) {
+		if (! matchkey(dnskeys, &keydatarr)) {
 			bool deletekey = false;
 
 			if (!secure) {
@@ -10042,9 +10186,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	 *   - All keys not being removed have their refresh
 	 *     timers updated
 	 */
-	for (result = dns_rdataset_first(&kfetch->dnskeyset);
+	for (result = dns_rdataset_first(dnskeys);
 	     result == ISC_R_SUCCESS;
-	     result = dns_rdataset_next(&kfetch->dnskeyset))
+	     result = dns_rdataset_next(dnskeys))
 	{
 		bool revoked = false;
 		bool newkey = false;
@@ -10054,7 +10198,7 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 		dns_keytag_t keytag;
 
 		dns_rdata_reset(&dnskeyrr);
-		dns_rdataset_current(&kfetch->dnskeyset, &dnskeyrr);
+		dns_rdataset_current(dnskeys, &dnskeyrr);
 		result = dns_rdata_tostruct(&dnskeyrr, &dnskey, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -10079,9 +10223,9 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 
 		revoked = ((dnskey.flags & DNS_KEYFLAG_REVOKE) != 0);
 
-		if (matchkey(&kfetch->keydataset, &dnskeyrr)) {
+		if (matchkey(keydataset, &dnskeyrr)) {
 			dns_rdata_reset(&keydatarr);
-			dns_rdataset_current(&kfetch->keydataset, &keydatarr);
+			dns_rdataset_current(keydataset, &keydatarr);
 			result = dns_rdata_tostruct(&keydatarr, &keydata, NULL);
 			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -10340,14 +10484,14 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 	zone->irefs--;
 	kfetch->zone = NULL;
 
-	if (dns_rdataset_isassociated(&kfetch->keydataset)) {
-		dns_rdataset_disassociate(&kfetch->keydataset);
+	if (dns_rdataset_isassociated(keydataset)) {
+		dns_rdataset_disassociate(keydataset);
 	}
-	if (dns_rdataset_isassociated(&kfetch->dnskeyset)) {
-		dns_rdataset_disassociate(&kfetch->dnskeyset);
+	if (dns_rdataset_isassociated(dnskeys)) {
+		dns_rdataset_disassociate(dnskeys);
 	}
-	if (dns_rdataset_isassociated(&kfetch->dnskeysigset)) {
-		dns_rdataset_disassociate(&kfetch->dnskeysigset);
+	if (dns_rdataset_isassociated(dnskeysigs)) {
+		dns_rdataset_disassociate(dnskeysigs);
 	}
 
 	dns_name_free(keyname, mctx);
@@ -10367,8 +10511,8 @@ keyfetch_done(isc_task_t *task, isc_event_t *event) {
 }
 
 /*
- * Refresh the data in the key zone.  Initiate a fetch to get new DNSKEY
- * records from the zone apex.
+ * Refresh the data in the key zone.  Initiate a fetch to look up
+ * DNSKEY records at the trust anchor name.
  */
 static void
 zone_refreshkeys(dns_zone_t *zone) {

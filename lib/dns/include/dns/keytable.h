@@ -477,7 +477,8 @@ dns_keynode_detachall(isc_mem_t *mctx, dns_keynode_t **target);
 
 isc_result_t
 dns_keytable_forall(dns_keytable_t *keytable,
-		    void (*func)(dns_keytable_t *, dns_keynode_t *, void *),
+		    void (*func)(dns_keytable_t *, dns_keynode_t *,
+				 dns_name_t *, void *),
 		    void *arg);
 ISC_LANG_ENDDECLS
 

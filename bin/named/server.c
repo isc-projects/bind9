@@ -6886,7 +6886,9 @@ get_tat_qname(dns_name_t *dst, const dns_name_t **origin,
 }
 
 static void
-dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
+dotat(dns_keytable_t *keytable, dns_keynode_t *keynode,
+      dns_name_t *name, void *arg)
+{
 	struct dotat_arg *dotat_arg = arg;
 	char namebuf[DNS_NAME_FORMATSIZE];
 	const dns_name_t *origin = NULL;
@@ -6901,6 +6903,8 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 	REQUIRE(keytable != NULL);
 	REQUIRE(keynode != NULL);
 	REQUIRE(dotat_arg != NULL);
+
+	UNUSED(name);
 
 	view = dotat_arg->view;
 	task = dotat_arg->task;

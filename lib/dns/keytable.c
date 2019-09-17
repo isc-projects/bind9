@@ -866,14 +866,21 @@ dns_keytable_totext(dns_keytable_t *keytable, isc_buffer_t **text) {
 
 isc_result_t
 dns_keytable_forall(dns_keytable_t *keytable,
-		    void (*func)(dns_keytable_t *, dns_keynode_t *, void *),
+		    void (*func)(dns_keytable_t *, dns_keynode_t *,
+				 dns_name_t *, void *),
 		    void *arg)
 {
 	isc_result_t result;
 	dns_rbtnode_t *node;
 	dns_rbtnodechain_t chain;
+	dns_fixedname_t fixedfoundname, fixedorigin, fixedfullname;
+	dns_name_t *foundname, *origin, *fullname;
 
 	REQUIRE(VALID_KEYTABLE(keytable));
+
+	origin = dns_fixedname_initname(&fixedorigin);
+	fullname = dns_fixedname_initname(&fixedfullname);
+	foundname = dns_fixedname_initname(&fixedfoundname);
 
 	RWLOCK(&keytable->rwlock, isc_rwlocktype_read);
 	dns_rbtnodechain_init(&chain);
@@ -886,9 +893,12 @@ dns_keytable_forall(dns_keytable_t *keytable,
 	}
 	isc_refcount_increment0(&keytable->active_nodes);
 	for (;;) {
-		dns_rbtnodechain_current(&chain, NULL, NULL, &node);
+		dns_rbtnodechain_current(&chain, foundname, origin, &node);
 		if (node->data != NULL) {
-			(*func)(keytable, node->data, arg);
+			result = dns_name_concatenate(foundname, origin,
+						      fullname, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
+			(*func)(keytable, node->data, fullname, arg);
 		}
 		result = dns_rbtnodechain_next(&chain, NULL, NULL);
 		if (result != ISC_R_SUCCESS && result != DNS_R_NEWORIGIN) {
