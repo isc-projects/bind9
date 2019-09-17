@@ -2070,7 +2070,7 @@ AC_ARG_WITH(docbook-xsl,
 case "$docbook_path" in
 auto)
 	AC_MSG_RESULT(auto)
-	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook-ns /usr/local/share/xsl/docbook /usr/share/xsl/docbook /opt/local/share/xsl/docbook-xsl /opt/local/share/xsl/docbook-xsl-nons /usr/share/xml/docbook/stylesheet/docbook-xsl"
+	docbook_xsl_trees="/usr/pkg/share/xsl/docbook /usr/local/share/xsl/docbook-ns /usr/local/share/xsl/docbook /usr/share/xsl/docbook /usr/share/sgml/docbook/xsl-stylesheets /opt/local/share/xsl/docbook-xsl /opt/local/share/xsl/docbook-xsl-nons /usr/share/xml/docbook/stylesheet/docbook-xsl"
 	;;
 *)
 	docbook_xsl_trees="$withval"
@@ -2091,13 +2091,6 @@ NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_HTML, html/chunktoc.xsl, $docbook_xsl_trees)
 NOM_PATH_FILE(XSLT_DOCBOOK_CHUNKTOC_XHTML, xhtml/chunktoc.xsl, $docbook_xsl_trees)
 NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_HTML, html/maketoc.xsl, $docbook_xsl_trees)
 NOM_PATH_FILE(XSLT_DOCBOOK_MAKETOC_XHTML, xhtml/maketoc.xsl, $docbook_xsl_trees)
-
-#
-# Same dance for dblatex
-#
-dblatex_xsl_trees="/usr/local/share/xml/docbook/stylesheet/dblatex /usr/pkg/share/xml/docbook/stylesheet/dblatex /usr/share/xml/docbook/stylesheet/dblatex"
-NOM_PATH_FILE(XSLT_DBLATEX_STYLE, xsl/docbook.xsl, $dblatex_xsl_trees)
-NOM_PATH_FILE(XSLT_DBLATEX_FASTBOOK, xsl/latex_book_fast.xsl, $dblatex_xsl_trees)
 
 #
 # IDN support using libidn2
