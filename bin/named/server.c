@@ -6824,35 +6824,55 @@ struct dotat_arg {
  * reported in the TAT query.
  */
 static isc_result_t
-get_tat_qname(dns_name_t *dst, const dns_name_t **origin,
+get_tat_qname(dns_name_t *target, dns_name_t *keyname,
 	      dns_keytable_t *keytable, dns_keynode_t *keynode)
 {
 	dns_keynode_t *firstnode = keynode;
-	dns_keynode_t *nextnode;
+	dns_keynode_t *nextnode = NULL;
+	dns_rdataset_t *dsset = NULL;
 	unsigned int i, n = 0;
 	uint16_t ids[12];
 	isc_textregion_t r;
 	char label[64];
 	int m;
 
-	REQUIRE(origin != NULL && *origin == NULL);
+	if ((dsset = dns_keynode_dsset(keynode)) != NULL) {
+		isc_result_t result;
 
-	do {
-		dst_key_t *key = dns_keynode_key(keynode);
-		if (key != NULL) {
-			*origin = dst_key_name(key);
+		for (result = dns_rdataset_first(dsset);
+		     result == ISC_R_SUCCESS;
+		     result = dns_rdataset_next(dsset))
+		{
+			dns_rdata_t rdata = DNS_RDATA_INIT;
+			dns_rdata_ds_t ds;
+
+			dns_rdata_reset(&rdata);
+			dns_rdataset_current(dsset, &rdata);
+			result = dns_rdata_tostruct(&rdata, &ds, NULL);
+			RUNTIME_CHECK(result == ISC_R_SUCCESS);
 			if (n < (sizeof(ids)/sizeof(ids[0]))) {
-				ids[n] = dst_key_id(key);
+				ids[n] = ds.key_tag;
 				n++;
 			}
 		}
-		nextnode = NULL;
-		(void)dns_keytable_nextkeynode(keytable, keynode, &nextnode);
-		if (keynode != firstnode) {
-			dns_keytable_detachkeynode(keytable, &keynode);
-		}
-		keynode = nextnode;
-	} while (keynode != NULL);
+	} else {
+		do {
+			dst_key_t *key = dns_keynode_key(keynode);
+			if (key != NULL) {
+				if (n < (sizeof(ids)/sizeof(ids[0]))) {
+					ids[n] = dst_key_id(key);
+					n++;
+				}
+			}
+			nextnode = NULL;
+			(void)dns_keytable_nextkeynode(keytable, keynode,
+						       &nextnode);
+			if (keynode != firstnode) {
+				dns_keytable_detachkeynode(keytable, &keynode);
+			}
+			keynode = nextnode;
+		} while (keynode != NULL);
+	}
 
 	if (n == 0) {
 		return (DNS_R_EMPTYNAME);
@@ -6882,16 +6902,15 @@ get_tat_qname(dns_name_t *dst, const dns_name_t **origin,
 		isc_textregion_consume(&r, m);
 	}
 
-	return (dns_name_fromstring2(dst, label, *origin, 0, NULL));
+	return (dns_name_fromstring2(target, label, keyname, 0, NULL));
 }
 
 static void
 dotat(dns_keytable_t *keytable, dns_keynode_t *keynode,
-      dns_name_t *name, void *arg)
+      dns_name_t *keyname, void *arg)
 {
 	struct dotat_arg *dotat_arg = arg;
 	char namebuf[DNS_NAME_FORMATSIZE];
-	const dns_name_t *origin = NULL;
 	dns_fixedname_t fixed, fdomain;
 	dns_name_t *tatname, *domain;
 	dns_rdataset_t nameservers;
@@ -6904,13 +6923,11 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	REQUIRE(keynode != NULL);
 	REQUIRE(dotat_arg != NULL);
 
-	UNUSED(name);
-
 	view = dotat_arg->view;
 	task = dotat_arg->task;
 
 	tatname = dns_fixedname_initname(&fixed);
-	result = get_tat_qname(tatname, &origin, keytable, keynode);
+	result = get_tat_qname(tatname, keyname, keytable, keynode);
 	if (result != ISC_R_SUCCESS) {
 		return;
 	}
@@ -6948,17 +6965,13 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	 * order to eventually find the destination host to send the TAT query
 	 * to.
 	 *
-	 * 'origin' holds the domain name at 'keynode', i.e. the domain name
-	 * for which the trust anchors to be reported by this TAT query are
-	 * defined.
-	 *
 	 * After the dns_view_findzonecut() call, 'domain' will hold the
-	 * deepest zone cut we can find for 'origin' while 'nameservers' will
+	 * deepest zone cut we can find for 'keyname' while 'nameservers' will
 	 * hold the NS RRset at that zone cut.
 	 */
 	domain = dns_fixedname_initname(&fdomain);
 	dns_rdataset_init(&nameservers);
-	result = dns_view_findzonecut(view, origin, domain, NULL, 0, 0,
+	result = dns_view_findzonecut(view, keyname, domain, NULL, 0, 0,
 				      true, true, &nameservers, NULL);
 	if (result == ISC_R_SUCCESS) {
 		result = dns_resolver_createfetch(view->resolver, tatname,
