@@ -3828,121 +3828,59 @@ set_refreshkeytimer(dns_zone_t *zone, dns_rdata_keydata_t *key,
 }
 
 /*
- * Convert key(s) linked from 'keynode' to KEYDATA and add it to the
- * key zone.  If `keynode` doesn't point to a key, then this is a
- * DS-style trust anchor, so create an empty KEYDATA instead; it
- * will be replaced with the correct key on refresh.
+ * If keynode references a key or a DS rdataset, and if the key
+ * zone does not contain a KEYDATA record for the corresponding name,
+ * then create an empty KEYDATA and push it into the zone as a placeholder,
+ * then schedule a key refresh immediately. This new KEYDATA record will be
+ * updated during the refresh.
  *
  * If the key zone is changed, set '*changed' to true.
  */
 static isc_result_t
 create_keydata(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
-	       dns_diff_t *diff, dns_keytable_t *keytable,
-	       dns_keynode_t **keynodep, dns_name_t *keyname,
-	       bool *changed)
+	       dns_diff_t *diff, dns_keynode_t *keynode,
+	       dns_name_t *keyname, bool *changed)
 {
 	const char me[] = "create_keydata";
 	isc_result_t result = ISC_R_SUCCESS;
-	isc_buffer_t keyb, dstb;
-	unsigned char key_buf[4096], dst_buf[DST_KEY_MAXSIZE];
-	dns_rdata_keydata_t keydata;
-	dns_rdata_dnskey_t dnskey;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
-	dns_keynode_t *keynode = NULL;
+	dns_rdata_keydata_t kd;
+	unsigned char rrdata[4096];
+	isc_buffer_t rrdatabuf;
 	isc_stdtime_t now;
-	isc_region_t r;
-	dst_key_t *key = NULL;
 
-	REQUIRE(keynodep != NULL);
-	keynode = *keynodep;
+	REQUIRE(keynode != NULL);
 
 	ENTER;
 	isc_stdtime_get(&now);
 
-	if (dns_keynode_dsset(keynode) != NULL) {
-		dns_rdata_keydata_t kd = { 0 };
-		unsigned char rrdata[4096];
-		isc_buffer_t rrdatabuf;
-
-		/*
-		 * We're creating a placeholder KEYDATA record
-		 * to be updated when the key zone is refreshed
-		 * later.
-		 */
-		kd.common.rdclass = zone->rdclass;
-		kd.common.rdtype = dns_rdatatype_keydata;
-		ISC_LINK_INIT(&kd.common, link);
-
-		isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
-
-		CHECK(dns_rdata_fromstruct(&rdata, zone->rdclass,
-					   dns_rdatatype_keydata,
-					   &kd, &rrdatabuf));
-		/* Add rdata to zone. */
-		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
-				    keyname, 0, &rdata));
-		*changed = true;
-
-		/* Refresh new keys from the zone apex as soon as possible. */
-		set_refreshkeytimer(zone, &keydata, now, true);
-
-		result = ISC_R_NOMORE;
-	} else {
-		/* Proceed to the while loop below */
-		result = ISC_R_SUCCESS;
+	/*
+	 * If the keynode has neither a key nor a DS RRset,
+	 * we shouldn't be here.
+	 */
+	if (dns_keynode_key(keynode) == NULL &&
+	    dns_keynode_dsset(keynode) == NULL)
+	{
+		return (ISC_R_FAILURE);
 	}
 
-	/* Loop in case there's more than one key. */
-	while (result == ISC_R_SUCCESS) {
-		dns_keynode_t *nextnode = NULL;
+	memset(&kd, 0, sizeof(kd));
+	kd.common.rdclass = zone->rdclass;
+	kd.common.rdtype = dns_rdatatype_keydata;
+	ISC_LINK_INIT(&kd.common, link);
 
-		key = dns_keynode_key(keynode);
-		if (key == NULL) {
-			goto skip;
-		}
+	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 
-		isc_buffer_init(&dstb, dst_buf, sizeof(dst_buf));
-		CHECK(dst_key_todns(key, &dstb));
+	CHECK(dns_rdata_fromstruct(&rdata, zone->rdclass,
+				   dns_rdatatype_keydata,
+				   &kd, &rrdatabuf));
+	/* Add rdata to zone. */
+	CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
+			    keyname, 0, &rdata));
+	*changed = true;
 
-		/* Convert DST key to DNSKEY. */
-		dns_rdata_reset(&rdata);
-		isc_buffer_usedregion(&dstb, &r);
-		dns_rdata_fromregion(&rdata, dst_key_class(key),
-				     dns_rdatatype_dnskey, &r);
-
-		/* DSTKEY to KEYDATA. */
-		CHECK(dns_rdata_tostruct(&rdata, &dnskey, NULL));
-		CHECK(dns_keydata_fromdnskey(&keydata, &dnskey, now, 0, 0,
-					     NULL));
-
-		/* KEYDATA to rdata. */
-		dns_rdata_reset(&rdata);
-		isc_buffer_init(&keyb, key_buf, sizeof(key_buf));
-		CHECK(dns_rdata_fromstruct(&rdata,
-					   zone->rdclass, dns_rdatatype_keydata,
-					   &keydata, &keyb));
-
-		/* Add rdata to zone. */
-		CHECK(update_one_rr(db, ver, diff, DNS_DIFFOP_ADD,
-				    keyname, 0, &rdata));
-		*changed = true;
-
-		/* Refresh new keys from the zone apex as soon as possible. */
-		set_refreshkeytimer(zone, &keydata, now, true);
-
- skip:
-		result = dns_keytable_nextkeynode(keytable, keynode, &nextnode);
-		if (result != ISC_R_NOTFOUND) {
-			dns_keytable_detachkeynode(keytable, &keynode);
-			keynode = nextnode;
-		}
-	}
-
-	if (keynode != NULL) {
-		dns_keytable_detachkeynode(keytable, &keynode);
-	}
-	*keynodep = NULL;
-
+	/* Refresh new keys from the zone apex as soon as possible. */
+	set_refreshkeytimer(zone, &kd, now, true);
 	return (ISC_R_SUCCESS);
 
   failure:
@@ -4312,9 +4250,9 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	dns_zone_t *zone = ((struct addifmissing_arg *)arg)->zone;
 	bool *changed = ((struct addifmissing_arg *)arg)->changed;
 	isc_result_t result;
-	dns_keynode_t *dummy = NULL;
 	dns_fixedname_t fname;
 
+	UNUSED(keytable);
 
 	if (((struct addifmissing_arg *)arg)->result != ISC_R_SUCCESS) {
 		return;
@@ -4350,9 +4288,7 @@ addifmissing(dns_keytable_t *keytable, dns_keynode_t *keynode,
 	/*
 	 * Create the keydata.
 	 */
-	dns_keytable_attachkeynode(keytable, keynode, &dummy);
-	result = create_keydata(zone, db, ver, diff, keytable, &dummy,
-				keyname, changed);
+	result = create_keydata(zone, db, ver, diff, keynode, keyname, changed);
 	if (result != ISC_R_SUCCESS && result != ISC_R_NOMORE) {
 		((struct addifmissing_arg *)arg)->result = result;
 	}

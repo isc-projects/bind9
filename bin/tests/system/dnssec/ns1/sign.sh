@@ -30,14 +30,15 @@ cp "../ns2/dsset-in-addr.arpa$TP" .
 grep "$DEFAULT_ALGORITHM_NUMBER [12] " "../ns2/dsset-algroll$TP" > "dsset-algroll$TP"
 cp "../ns6/dsset-optout-tld$TP" .
 
-keyname=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+ksk=$("$KEYGEN" -q -fk -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
+zsk=$("$KEYGEN" -q -a "$DEFAULT_ALGORITHM" -b "$DEFAULT_BITS" -n zone "$zone")
 
-cat "$infile" "$keyname.key" > "$zonefile"
+cat "$infile" "$ksk.key" "$zsk.key" > "$zonefile"
 
 "$SIGNER" -P -g -o "$zone" "$zonefile" > /dev/null 2>&1
 
 # Configure the resolving server with a staitc key.
-keyfile_to_static_keys "$keyname" > trusted.conf
+keyfile_to_static_keys "$ksk" > trusted.conf
 cp trusted.conf ../ns2/trusted.conf
 cp trusted.conf ../ns3/trusted.conf
 cp trusted.conf ../ns4/trusted.conf
@@ -46,11 +47,11 @@ cp trusted.conf ../ns7/trusted.conf
 cp trusted.conf ../ns9/trusted.conf
 
 # ...or with an initializing key.
-keyfile_to_initial_keys "$keyname" > managed.conf
+keyfile_to_initial_keys "$ksk" > managed.conf
 cp managed.conf ../ns4/managed.conf
 
 #
 #  Save keyid for managed key id test.
 #
 
-keyfile_to_key_id "$keyname" > managed.key.id
+keyfile_to_key_id "$ksk" > managed.key.id
