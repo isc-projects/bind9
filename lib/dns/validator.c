@@ -1883,6 +1883,8 @@ get_dsset(dns_validator_t *val, dns_name_t *tname, isc_result_t *resp) {
  * Attempts positive response validation of an RRset containing zone keys
  * (i.e. a DNSKEY rrset).
  *
+ * Caller must be holding the validator lock.
+ *
  * Returns:
  * \li	ISC_R_SUCCESS	Validation completed successfully
  * \li	DNS_R_WAIT	Validation has started but is waiting
@@ -1894,14 +1896,31 @@ validate_dnskey(dns_validator_t *val) {
 	isc_result_t result;
 	dns_rdata_t dsrdata = DNS_RDATA_INIT;
 	dns_rdata_t keyrdata = DNS_RDATA_INIT;
+	dns_keynode_t *keynode = NULL;
 	dns_rdata_ds_t ds;
 	bool supported_algorithm;
 	char digest_types[256];
 
 	/*
-	 * Caller must be holding the validator lock.
+	 * If we don't already have a DS RRset, check to see if there's
+	 * a DS style trust anchor configured for this key.
 	 */
+	if (val->dsset == NULL) {
+		result = dns_keytable_find(val->keytable,
+					   val->event->name, &keynode);
+		if (result == ISC_R_SUCCESS) {
+			val->dsset = dns_keynode_dsset(keynode);
+			if (val->dsset == NULL) {
+				dns_keytable_detachkeynode(val->keytable,
+							   &keynode);
+			}
+		}
+	}
 
+	/*
+	 * If that didn't work, see if there's a key-style trust anchor we
+	 * can validate against. If not, look up the DS at the parent.
+	 */
 	if (val->dsset == NULL) {
 		isc_result_t tresult = ISC_R_SUCCESS;
 
@@ -1945,6 +1964,7 @@ validate_dnskey(dns_validator_t *val) {
 	INSIST(val->dsset != NULL);
 
 	if (val->dsset->trust < dns_trust_secure) {
+		INSIST(keynode == NULL);
 		return (markanswer(val, "validate_dnskey (2)", "insecure DS"));
 	}
 
@@ -2048,6 +2068,12 @@ validate_dnskey(dns_validator_t *val) {
 		validator_log(val, ISC_LOG_DEBUG(3),
 			      "no RRSIG matching DS key");
 	}
+
+	if (keynode != NULL) {
+		val->dsset = NULL;
+		dns_keytable_detachkeynode(val->keytable, &keynode);
+	}
+
 	if (result == ISC_R_SUCCESS) {
 		marksecure(val->event);
 		validator_log(val, ISC_LOG_DEBUG(3), "marking as secure (DS)");
