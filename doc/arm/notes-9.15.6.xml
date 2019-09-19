@@ -33,6 +33,27 @@
           policy used by <command>dnssec-keymgr</command>.) [GL #1134]
         </para>
       </listitem>
+      <listitem>
+	<para>
+	  Two new keywords have been added to the
+	  <command>dnssec-keys</command> statement:
+	  <command>initial-ds</command> and <command>static-ds</command>.
+	  These allow the use of trust anchors in DS format instead of
+	  DNSKEY format.  DS format allows trust anchors to be configured
+	  for keys that have not yet been published; this is the format
+	  used by IANA when announcing future root keys.
+	</para>
+	<para>
+	  As with the <command>initial-key</command> and
+	  <command>static-key</command> keywords, <command>initial-ds</command>
+	  configures a dynamic trust anchor to be maintained via RFC 5011, and
+	  <command>static-ds</command> configures a permanent trust anchor.
+	</para>
+	<para>
+	  (Note: Currently, DNSKEY-format and DS-format trust anchors
+	  cannot both be used for the same domain name.) [GL #6] [GL #622]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

@@ -1,3 +1,12 @@
+5319.	[func]		Trust anchors can now be configured using DS
+			format to represent a key digest, by using the
+			new "initial-ds" or "static-ds" keywords in
+			the "dnssec-keys" statement.
+
+			Note: DNSKEY-format and DS-format trust anchors
+			cannot both be used for the same domain name.
+			[GL #622]
+
 5318.	[cleanup]	The DNSSEC validation code has been refactored
 			for clarity and to reduce code duplication.
 			[GL #622]
