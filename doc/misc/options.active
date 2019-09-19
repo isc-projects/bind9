@@ -22,7 +22,8 @@ dlz <string> {
 }; // may occur multiple times
 
 dnssec-keys { <string> ( static-key |
-    initial-key ) <integer> <integer> <integer>
+    initial-key | static-ds | initial-ds )
+    <integer> <integer> <integer>
     <quoted_string>; ... }; // may occur multiple times
 
 dyndb <string> <quoted_string> {
@@ -50,9 +51,9 @@ logging {
 };
 
 managed-keys { <string> ( static-key
-    | initial-key ) <integer>
-    <integer> <integer>
-    <quoted_string>; ... }; // may occur multiple times, deprecated
+    | initial-key | static-ds |
+    initial-ds ) <integer> <integer>
+    <integer> <quoted_string>; ... }; // may occur multiple times, deprecated
 
 masters <string> [ port <integer> ] [ dscp
     <integer> ] { ( <masters> | <ipv4_address> [
@@ -175,7 +176,7 @@ options {
         fstrm-set-output-queue-model ( mpsc | spsc ); // not configured
         fstrm-set-output-queue-size <integer>; // not configured
         fstrm-set-reopen-interval <ttlval>; // not configured
-        geoip-directory ( <quoted_string> | none ); // not configured
+        geoip-directory ( <quoted_string> | none );
         glue-cache <boolean>;
         heartbeat-interval <integer>;
         hostname ( <quoted_string> | none );
@@ -192,7 +193,7 @@ options {
         listen-on-v6 [ port <integer> ] [ dscp
             <integer> ] {
             <address_match_element>; ... }; // may occur multiple times
-        lmdb-mapsize <sizeval>; // non-operational
+        lmdb-mapsize <sizeval>;
         lock-file ( <quoted_string> | none );
         managed-keys-directory <quoted_string>;
         masterfile-format ( map | raw | text );
@@ -470,8 +471,9 @@ view <string> [ <class> ] {
         dnssec-accept-expired <boolean>;
         dnssec-dnskey-kskonly <boolean>;
         dnssec-keys { <string> ( static-key |
-            initial-key ) <integer> <integer>
-            <integer> <quoted_string>; ... }; // may occur multiple times
+            initial-key | static-ds | initial-ds
+            ) <integer> <integer> <integer>
+            <quoted_string>; ... }; // may occur multiple times
         dnssec-loadkeys-interval <integer>;
         dnssec-must-be-secure <string> <boolean>; // may occur multiple times
         dnssec-secure-to-insecure <boolean>;
@@ -506,9 +508,10 @@ view <string> [ <class> ] {
         }; // may occur multiple times
         key-directory <quoted_string>;
         lame-ttl <ttlval>;
-        lmdb-mapsize <sizeval>; // non-operational
+        lmdb-mapsize <sizeval>;
         managed-keys { <string> (
             static-key | initial-key
+            | static-ds | initial-ds
             ) <integer> <integer>
             <integer>
             <quoted_string>; ... }; // may occur multiple times, deprecated

@@ -13,7 +13,7 @@
 
 <refentry xmlns:db="http://docbook.org/ns/docbook" version="5.0" xml:id="man.named.conf">
   <info>
-    <date>2019-08-07</date>
+    <date>2019-08-12</date>
   </info>
   <refentryinfo>
     <corpname>ISC</corpname>
@@ -113,7 +113,8 @@ dlz <replaceable>string</replaceable> {
   <refsection><info><title>DNSSEC-KEYS</title></info>
     <literallayout class="normal">
 dnssec-keys { <replaceable>string</replaceable> ( static-key |
-    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    initial-key | static-ds | initial-ds )
+    <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
     <replaceable>quoted_string</replaceable>; ... };
 </literallayout>
   </refsection>
@@ -158,9 +159,9 @@ logging {
   <para>Deprecated - see DNSSEC-KEYS.</para>
     <literallayout class="normal">
 managed-keys { <replaceable>string</replaceable> ( static-key
-    | initial-key ) <replaceable>integer</replaceable>
-    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-    <replaceable>quoted_string</replaceable>; ... }; deprecated
+    | initial-key | static-ds |
+    initial-ds ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... }; deprecated
 </literallayout>
   </refsection>
 
@@ -607,8 +608,9 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	dnssec-accept-expired <replaceable>boolean</replaceable>;
 	dnssec-dnskey-kskonly <replaceable>boolean</replaceable>;
 	dnssec-keys { <replaceable>string</replaceable> ( static-key |
-	    initial-key ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-	    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... };
+	    initial-key | static-ds | initial-ds
+	    ) <replaceable>integer</replaceable> <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+	    <replaceable>quoted_string</replaceable>; ... };
 	dnssec-loadkeys-interval <replaceable>integer</replaceable>;
 	dnssec-must-be-secure <replaceable>string</replaceable> <replaceable>boolean</replaceable>;
 	dnssec-secure-to-insecure <replaceable>boolean</replaceable>;
@@ -646,6 +648,7 @@ view <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 	lmdb-mapsize <replaceable>sizeval</replaceable>;
 	managed-keys { <replaceable>string</replaceable> (
 	    static-key | initial-key
+	    | static-ds | initial-ds
 	    ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
 	    <replaceable>integer</replaceable>
 	    <replaceable>quoted_string</replaceable>; ... }; deprecated

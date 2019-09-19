@@ -13,7 +13,7 @@
 
 <programlisting>
 <command>managed-keys</command> { <replaceable>string</replaceable> ( static-key
-    | initial-key ) <replaceable>integer</replaceable>
-    <replaceable>integer</replaceable> <replaceable>integer</replaceable>
-    <replaceable>quoted_string</replaceable>; ... }; deprecated
+    | initial-key | static-ds |
+    <command>initial-ds</command> ) <replaceable>integer</replaceable> <replaceable>integer</replaceable>
+    <replaceable>integer</replaceable> <replaceable>quoted_string</replaceable>; ... }; deprecated
 </programlisting>
