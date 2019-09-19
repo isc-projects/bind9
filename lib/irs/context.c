@@ -255,6 +255,7 @@ irs_context_create(irs_context_t **contextp) {
 	     trustedkey != NULL;
 	     trustedkey = ISC_LIST_NEXT(trustedkey, link)) {
 		result = dns_client_addtrustedkey(client, dns_rdataclass_in,
+						  dns_rdatatype_dnskey,
 						  trustedkey->keyname,
 						  trustedkey->keydatabuf);
 		if (result != ISC_R_SUCCESS)

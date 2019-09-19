@@ -33,8 +33,10 @@
 #include <isc/app.h>
 #include <isc/base64.h>
 #include <isc/buffer.h>
+#include <isc/hex.h>
 #include <isc/lib.h>
 #include <isc/log.h>
+#include <isc/md.h>
 #include <isc/mem.h>
 #ifdef WIN32
 #include <isc/ntpaths.h>
@@ -608,11 +610,12 @@ convert_name(dns_fixedname_t *fn, dns_name_t **name, const char *text) {
 
 static isc_result_t
 key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
-	dns_rdata_dnskey_t keystruct;
+	dns_rdata_dnskey_t dnskey;
+	dns_rdata_ds_t ds;
 	uint32_t n1, n2, n3;
-	const char *keystr, *keynamestr;
-	unsigned char keydata[4096];
-	isc_buffer_t keydatabuf;
+	const char *datastr = NULL, *keynamestr = NULL, *atstr = NULL;
+	unsigned char data[4096];
+	isc_buffer_t databuf;
 	unsigned char rrdata[4096];
 	isc_buffer_t rrdatabuf;
 	isc_region_t r;
@@ -620,6 +623,13 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	dns_name_t *keyname;
 	isc_result_t result;
 	bool match_root = false;
+	enum {
+		INITIAL_KEY,
+		STATIC_KEY,
+		INITIAL_DS,
+		STATIC_DS,
+		TRUSTED
+	} anchortype;
 
 	keynamestr = cfg_obj_asstring(cfg_tuple_get(key, "name"));
 	CHECK(convert_name(&fkeyname, &keyname, keynamestr));
@@ -651,14 +661,26 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 	/* if DNSKEY, algorithm; if DS, digest type */
 	n3 = cfg_obj_asuint32(cfg_tuple_get(key, "n3"));
 
-	keystruct.common.rdclass = dns_rdataclass_in;
-	keystruct.common.rdtype = dns_rdatatype_dnskey;
-	/*
-	 * The key data in keystruct is not dynamically allocated.
-	 */
-	keystruct.mctx = NULL;
+	/* What type of trust anchor is this? */
+	atstr = cfg_obj_asstring(cfg_tuple_get(key, "anchortype"));
+	if (strcasecmp(atstr, "static-key") == 0) {
+		anchortype = STATIC_KEY;
+	} else if (strcasecmp(atstr, "static-ds") == 0) {
+		anchortype = STATIC_DS;
+	} else if (strcasecmp(atstr, "initial-key") == 0) {
+		anchortype = INITIAL_KEY;
+	} else if (strcasecmp(atstr, "initial-ds") == 0) {
+		anchortype = INITIAL_DS;
+	} else {
+		delv_log(ISC_LOG_ERROR,
+			 "key '%s': invalid initialization method '%s'",
+			 keynamestr, atstr);
+		result = ISC_R_FAILURE;
+		goto cleanup;
+	}
 
-	ISC_LINK_INIT(&keystruct.common, link);
+	isc_buffer_init(&databuf, data, sizeof(data));
+	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
 
 	if (n1 > 0xffff) {
 		CHECK(ISC_R_RANGE);
@@ -670,25 +692,78 @@ key_fromconfig(const cfg_obj_t *key, dns_client_t *client) {
 		CHECK(ISC_R_RANGE);
 	}
 
-	keystruct.flags = (uint16_t)n1;
-	keystruct.protocol = (uint8_t)n2;
-	keystruct.algorithm = (uint8_t)n3;
+	switch (anchortype) {
+	case STATIC_KEY:
+	case INITIAL_KEY:
+	case TRUSTED:
+		dnskey.common.rdclass = dns_rdataclass_in;
+		dnskey.common.rdtype = dns_rdatatype_dnskey;
+		dnskey.mctx = NULL;
 
-	isc_buffer_init(&keydatabuf, keydata, sizeof(keydata));
-	isc_buffer_init(&rrdatabuf, rrdata, sizeof(rrdata));
+		ISC_LINK_INIT(&dnskey.common, link);
 
-	keystr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
-	CHECK(isc_base64_decodestring(keystr, &keydatabuf));
-	isc_buffer_usedregion(&keydatabuf, &r);
-	keystruct.datalen = r.length;
-	keystruct.data = r.base;
+		dnskey.flags = (uint16_t)n1;
+		dnskey.protocol = (uint8_t)n2;
+		dnskey.algorithm = (uint8_t)n3;
 
-	CHECK(dns_rdata_fromstruct(NULL, keystruct.common.rdclass,
-				   keystruct.common.rdtype,
-				   &keystruct, &rrdatabuf));
+		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
+		CHECK(isc_base64_decodestring(datastr, &databuf));
+		isc_buffer_usedregion(&databuf, &r);
+		dnskey.datalen = r.length;
+		dnskey.data = r.base;
 
-	CHECK(dns_client_addtrustedkey(client, dns_rdataclass_in,
-				       keyname, &rrdatabuf));
+		CHECK(dns_rdata_fromstruct(NULL, dnskey.common.rdclass,
+					   dnskey.common.rdtype,
+					   &dnskey, &rrdatabuf));
+		CHECK(dns_client_addtrustedkey(client, dns_rdataclass_in,
+					       dns_rdatatype_dnskey,
+					       keyname, &rrdatabuf));
+		break;
+	case INITIAL_DS:
+	case STATIC_DS:
+		ds.common.rdclass = dns_rdataclass_in;
+		ds.common.rdtype = dns_rdatatype_ds;
+		ds.mctx = NULL;
+
+		ISC_LINK_INIT(&ds.common, link);
+
+		ds.key_tag = (uint16_t)n1;
+		ds.algorithm = (uint8_t)n2;
+		ds.digest_type = (uint8_t)n3;
+
+		datastr = cfg_obj_asstring(cfg_tuple_get(key, "data"));
+		CHECK(isc_hex_decodestring(datastr, &databuf));
+		isc_buffer_usedregion(&databuf, &r);
+
+		switch (ds.digest_type) {
+		case DNS_DSDIGEST_SHA1:
+			if (r.length != ISC_SHA1_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		case DNS_DSDIGEST_SHA256:
+			if (r.length != ISC_SHA256_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		case DNS_DSDIGEST_SHA384:
+			if (r.length != ISC_SHA384_DIGESTLENGTH) {
+				CHECK(ISC_R_UNEXPECTEDEND);
+			}
+			break;
+		}
+
+		ds.length = r.length;
+		ds.digest = r.base;
+
+		CHECK(dns_rdata_fromstruct(NULL, ds.common.rdclass,
+					   ds.common.rdtype,
+					   &ds, &rrdatabuf));
+		CHECK(dns_client_addtrustedkey(client, dns_rdataclass_in,
+					       dns_rdatatype_ds,
+					       keyname, &rrdatabuf));
+	};
+
 	num_keys++;
 
  cleanup:

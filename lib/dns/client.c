@@ -69,6 +69,13 @@
 #define RESOLVER_NTASKS 31
 #endif /* TUNE_LARGE */
 
+#define CHECK(r) \
+	do { \
+		result = (r); \
+		if (result != ISC_R_SUCCESS) \
+			goto cleanup; \
+	} while (0)
+
 /*%
  * DNS client object
  */
@@ -1482,12 +1489,19 @@ dns_client_destroyrestrans(dns_clientrestrans_t **transp) {
 
 isc_result_t
 dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
-			 const dns_name_t *keyname, isc_buffer_t *keydatabuf)
+			 dns_rdatatype_t rdtype, const dns_name_t *keyname,
+			 isc_buffer_t *databuf)
 {
 	isc_result_t result;
 	dns_view_t *view = NULL;
 	dst_key_t *dstkey = NULL;
 	dns_keytable_t *secroots = NULL;
+	dns_name_t *name = NULL;
+	char dsbuf[DNS_DS_BUFFERSIZE];
+	dns_rdata_ds_t ds;
+	dns_decompress_t dctx;
+	dns_rdata_t rdata;
+	isc_buffer_t b;
 
 	REQUIRE(DNS_CLIENT_VALID(client));
 
@@ -1495,28 +1509,49 @@ dns_client_addtrustedkey(dns_client_t *client, dns_rdataclass_t rdclass,
 	result = dns_viewlist_find(&client->viewlist, DNS_CLIENTVIEW_NAME,
 				   rdclass, &view);
 	UNLOCK(&client->lock);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(result);
 
-	result = dns_view_getsecroots(view, &secroots);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	CHECK(dns_view_getsecroots(view, &secroots));
 
-	result = dst_key_fromdns(keyname, rdclass, keydatabuf, client->mctx,
-				 &dstkey);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup;
+	DE_CONST(keyname, name);
 
-	result = dns_keytable_add(secroots, false, false,
-				  dst_key_name(dstkey), &dstkey, NULL);
+	switch (rdtype) {
+	case dns_rdatatype_dnskey:
+		result = dst_key_fromdns(keyname, rdclass, databuf,
+					 client->mctx, &dstkey);
+		if (result != ISC_R_SUCCESS) {
+			goto cleanup;
+		}
+		CHECK(dns_keytable_add(secroots, false, false,
+				       name, &dstkey, NULL));
+		break;
+	case dns_rdatatype_ds:
+		isc_buffer_init(&b, dsbuf, sizeof(dsbuf));
+		dns_decompress_init(&dctx, -1, DNS_DECOMPRESS_NONE);
+		dns_rdata_init(&rdata);
+		isc_buffer_setactive(databuf, isc_buffer_usedlength(databuf));
+		CHECK(dns_rdata_fromwire(&rdata, rdclass, rdtype,
+					 databuf, &dctx, 0, &b));
+		dns_decompress_invalidate(&dctx);
+		CHECK(dns_rdata_tostruct(&rdata, &ds, NULL));
+		CHECK(dns_keytable_add(secroots, false, false,
+				       name, NULL, &ds));
+		break;
+
+	default:
+		result = ISC_R_NOTIMPLEMENTED;
+	}
 
  cleanup:
-	if (dstkey != NULL)
+	if (dstkey != NULL) {
 		dst_key_free(&dstkey);
-	if (view != NULL)
+	}
+	if (view != NULL) {
 		dns_view_detach(&view);
-	if (secroots != NULL)
+	}
+	if (secroots != NULL) {
 		dns_keytable_detach(&secroots);
+	}
 	return (result);
 }
 
