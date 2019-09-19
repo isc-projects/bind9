@@ -31,4 +31,4 @@ cat $ksk.key $zsk.key dsset-ds.example.net$TP >> $zonefile
 $SIGNER -P -o $zone $zonefile > /dev/null
 
 # Configure a static key to be used by delv
-keyfile_to_static_keys $ksk > ../ns5/trusted.conf
+keyfile_to_static_ds $ksk > ../ns5/trusted.conf

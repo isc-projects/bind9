@@ -221,9 +221,9 @@ assert_int_equal() {
 }
 
 # keyfile_to_keys_section: helper function for keyfile_to_*_keys() which
-# converts keyfile data into a configuration section using the supplied
-# parameters
-keyfile_to_keys_section() {
+# converts keyfile data into a key-style trust anchor configuration
+# section using the supplied parameters
+keyfile_to_keys() {
     section_name=$1
     key_prefix=$2
     shift
@@ -241,18 +241,54 @@ keyfile_to_keys_section() {
     echo "};"
 }
 
+# keyfile_to_dskeys_section: helper function for keyfile_to_*_dskeys()
+# converts keyfile data into a DS-style trust anchor configuration
+# section using the supplied parameters
+keyfile_to_dskeys() {
+    section_name=$1
+    key_prefix=$2
+    shift
+    shift
+    echo "$section_name {"
+    for keyname in $*; do
+        $DSFROMKEY $keyname.key | \
+	awk '!/^; /{
+	    printf "\t\""$1"\" "
+	    printf "'"$key_prefix "'"
+	    printf $4 " " $5 " " $6 " \""
+	    for (i=7; i<=NF; i++) printf $i
+	    printf "\";\n"
+	}'
+    done
+    echo "};"
+}
+
 # keyfile_to_static_keys: convert key data contained in the keyfile(s)
-# provided to a *static* "dnssec-keys" section suitable for including in a
+# provided to a *static-key* "dnssec-keys" section suitable for including in a
 # resolver's configuration file
 keyfile_to_static_keys() {
-    keyfile_to_keys_section "dnssec-keys" "static-key" $*
+    keyfile_to_keys "dnssec-keys" "static-key" $*
 }
 
 # keyfile_to_initial_keys: convert key data contained in the keyfile(s)
-# provided to an *initialzing* "dnssec-keys" section suitable for including
+# provided to an *initial-key* "dnssec-keys" section suitable for including
 # in a resolver's configuration file
 keyfile_to_initial_keys() {
-    keyfile_to_keys_section "dnssec-keys" "initial-key" $*
+    keyfile_to_keys "dnssec-keys" "initial-key" $*
+}
+
+# keyfile_to_static_ds_keys: convert key data contained in the keyfile(s)
+# provided to a *static-ds* "dnssec-keys" section suitable for including in a
+# resolver's configuration file
+keyfile_to_static_ds() {
+    keyfile_to_dskeys "dnssec-keys" "static-ds" $*
+}
+
+# keyfile_to_initial_ds_keys: convert key data contained in the keyfile(s)
+# provided to an *initial-ds* "dnssec-keys" section suitable for including
+# in a resolver's configuration file
+keyfile_to_initial_ds() {
+    keyfile_to_dskeys "dnssec-keys" "initial-ds" $*
 }
 
 # keyfile_to_key_id: convert a key file name to a key ID
