@@ -32,7 +32,6 @@
 #include <pk11/result.h>
 #include <pk11/site.h>
 
-#include <pkcs11/cryptoki.h>
 #include <pkcs11/pkcs11.h>
 #include <pkcs11/eddsa.h>
 

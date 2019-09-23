@@ -2821,7 +2821,6 @@ AC_CONFIG_FILES([
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile
 	lib/isc/unix/include/isc/Makefile
-	lib/isc/unix/include/pkcs11/Makefile
 	lib/isccc/Makefile
 	lib/isccc/include/Makefile
 	lib/isccc/include/isccc/Makefile
