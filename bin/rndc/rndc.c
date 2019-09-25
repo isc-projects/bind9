@@ -16,6 +16,7 @@
 #include <stdlib.h>
 
 #include <isc/app.h>
+#include <isc/atomic.h>
 #include <isc/buffer.h>
 #include <isc/commandline.h>
 #include <isc/file.h>
@@ -24,6 +25,7 @@
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/random.h>
+#include <isc/refcount.h>
 #include <isc/socket.h>
 #include <isc/stdtime.h>
 #include <isc/string.h>
@@ -73,7 +75,7 @@ static isccc_region_t secret;
 static bool failed = false;
 static bool c_flag = false;
 static isc_mem_t *rndc_mctx;
-static int sends, recvs, connects;
+static isc_refcount_t sends, recvs, connects;
 static char *command;
 static char *args;
 static char program[256];
@@ -271,11 +273,13 @@ rndc_senddone(isc_task_t *task, isc_event_t *event) {
 
 	UNUSED(task);
 
-	sends--;
-	if (sevent->result != ISC_R_SUCCESS)
+	if (sevent->result != ISC_R_SUCCESS) {
 		fatal("send failed: %s", isc_result_totext(sevent->result));
+	}
 	isc_event_free(&event);
-	if (sends == 0 && recvs == 0) {
+	if (isc_refcount_decrement(&sends) == 1 &&
+	    isc_refcount_current(&recvs) == 0)
+	{
 		isc_socket_detach(&sock);
 		isc_task_shutdown(task);
 		isc_app_shutdown();
@@ -291,7 +295,7 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 	char *textmsg = NULL;
 	isc_result_t result;
 
-	recvs--;
+	isc_refcount_decrement(&recvs);
 
 	if (ccmsg.result == ISC_R_EOF)
 		fatal("connection to remote host closed\n"
@@ -344,7 +348,8 @@ rndc_recvdone(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 	isccc_sexpr_free(&response);
-	if (sends == 0 && recvs == 0) {
+	if (isc_refcount_current(&sends) == 0
+	    && isc_refcount_current(&recvs) == 0) {
 		isc_socket_detach(&sock);
 		isc_task_shutdown(task);
 		isc_app_shutdown();
@@ -364,7 +369,7 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 	isccc_sexpr_t *data;
 	isc_buffer_t b;
 
-	recvs--;
+	isc_refcount_decrement(&recvs);
 
 	if (ccmsg.result == ISC_R_EOF)
 		fatal("connection to remote host closed\n"
@@ -425,10 +430,10 @@ rndc_recvnonce(isc_task_t *task, isc_event_t *event) {
 	isccc_ccmsg_cancelread(&ccmsg);
 	DO("schedule recv", isccc_ccmsg_readmessage(&ccmsg, task,
 						    rndc_recvdone, NULL));
-	recvs++;
+	isc_refcount_increment(&recvs);
 	DO("send message", isc_socket_send(sock, &r, task, rndc_senddone,
 					   NULL));
-	sends++;
+	isc_refcount_increment(&sends);
 
 	isc_event_free(&event);
 	isccc_sexpr_free(&response);
@@ -447,7 +452,7 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 	isc_buffer_t b;
 	isc_result_t result;
 
-	connects--;
+	isc_refcount_decrement(&connects);
 
 	if (sevent->result != ISC_R_SUCCESS) {
 		isc_sockaddr_format(&serveraddrs[currentaddr], socktext,
@@ -493,10 +498,10 @@ rndc_connected(isc_task_t *task, isc_event_t *event) {
 
 	DO("schedule recv", isccc_ccmsg_readmessage(&ccmsg, task,
 						    rndc_recvnonce, NULL));
-	recvs++;
+	isc_refcount_increment(&recvs);
 	DO("send message", isc_socket_send(sock, &r, task, rndc_senddone,
 					   NULL));
-	sends++;
+	isc_refcount_increment(&sends);
 	isc_event_free(&event);
 	isccc_sexpr_free(&request);
 }
@@ -531,7 +536,7 @@ rndc_startconnect(isc_sockaddr_t *addr, isc_task_t *task) {
 	}
 	DO("connect", isc_socket_connect(sock, addr, task, rndc_connected,
 					 NULL));
-	connects++;
+	isc_refcount_increment(&connects);
 }
 
 static void
@@ -995,8 +1000,12 @@ main(int argc, char **argv) {
 	if (result != ISC_R_SUCCESS)
 		fatal("isc_app_run() failed: %s", isc_result_totext(result));
 
-	if (connects > 0 || sends > 0 || recvs > 0)
+	if (isc_refcount_current(&connects) > 0 ||
+	    isc_refcount_current(&sends) > 0 ||
+	    isc_refcount_current(&recvs) > 0)
+	{
 		isc_socket_cancel(sock, task, ISC_SOCKCANCEL_ALL);
+	}
 
 	isc_task_detach(&task);
 	isc_taskmgr_destroy(&taskmgr);
