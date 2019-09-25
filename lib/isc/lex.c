@@ -293,7 +293,10 @@ typedef enum {
 	lexstate_ccommentend,
 	lexstate_eatline,
 	lexstate_qstring,
-	lexstate_btext
+	lexstate_btext,
+	lexstate_vpair,
+	lexstate_vpairstart,
+	lexstate_qvpair,
 } lexstate;
 
 #define IWSEOL (ISC_LEXOPT_INITIALWS | ISC_LEXOPT_EOL)
@@ -663,6 +666,29 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			remaining--;
 			break;
 		case lexstate_string:
+			if (!escaped && c == '=' &&
+			    (options & ISC_LEXOPT_VPAIR) != 0) {
+				INSIST(remaining > 0U);
+				*curr++ = c;
+				*curr = '\0';
+				remaining--;
+				state = lexstate_vpairstart;
+				break;
+			}
+			/* FALLTHROUGH */
+		case lexstate_vpairstart:
+			if (state == lexstate_vpairstart) {
+				if (c == '"' &&
+				    (options & ISC_LEXOPT_QVPAIR) != 0) {
+					INSIST(remaining > 0U);
+					no_comments = true;
+					state = lexstate_qvpair;
+					break;
+				}
+				state = lexstate_vpair;
+			}
+			/* FALLTHROUGH */
+		case lexstate_vpair:
 			/*
 			 * EOF needs to be checked before lex->specials[c]
 			 * as lex->specials[EOF] is not a good idea.
@@ -676,7 +702,13 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					result = source->result;
 					goto done;
 				}
-				tokenp->type = isc_tokentype_string;
+				if (escaped && c == EOF) {
+					result = ISC_R_UNEXPECTEDEND;
+					goto done;
+				}
+				tokenp->type = (state == lexstate_string)
+						       ? isc_tokentype_string
+						       : isc_tokentype_vpair;
 				tokenp->value.as_textregion.base = lex->data;
 				tokenp->value.as_textregion.length =
 					(unsigned int)(lex->max_token -
@@ -753,6 +785,7 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 			}
 			break;
 		case lexstate_qstring:
+		case lexstate_qvpair:
 			if (c == EOF) {
 				result = ISC_R_UNEXPECTEDEND;
 				goto done;
@@ -766,7 +799,10 @@ isc_lex_gettoken(isc_lex_t *lex, unsigned int options, isc_token_t *tokenp) {
 					INSIST(prev != NULL);
 					*prev = '"';
 				} else {
-					tokenp->type = isc_tokentype_qstring;
+					tokenp->type =
+						(state == lexstate_qstring)
+							? isc_tokentype_qstring
+							: isc_tokentype_qvpair;
 					tokenp->value.as_textregion.base =
 						lex->data;
 					tokenp->value.as_textregion.length =
@@ -876,7 +912,12 @@ isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
 			       ISC_LEXOPT_DNSMULTILINE | ISC_LEXOPT_ESCAPE;
 	isc_result_t result;
 
-	if (expect == isc_tokentype_qstring) {
+	if (expect == isc_tokentype_vpair) {
+		options |= ISC_LEXOPT_VPAIR;
+	} else if (expect == isc_tokentype_qvpair) {
+		options |= ISC_LEXOPT_VPAIR;
+		options |= ISC_LEXOPT_QVPAIR;
+	} else if (expect == isc_tokentype_qstring) {
 		options |= ISC_LEXOPT_QSTRING;
 	} else if (expect == isc_tokentype_number) {
 		options |= ISC_LEXOPT_NUMBER;
@@ -895,7 +936,12 @@ isc_lex_getmastertoken(isc_lex_t *lex, isc_token_t *token,
 		return (ISC_R_SUCCESS);
 	}
 	if (token->type == isc_tokentype_string &&
-	    expect == isc_tokentype_qstring) {
+	    (expect == isc_tokentype_qstring || expect == isc_tokentype_qvpair))
+	{
+		return (ISC_R_SUCCESS);
+	}
+	if (token->type == isc_tokentype_vpair &&
+	    expect == isc_tokentype_qvpair) {
 		return (ISC_R_SUCCESS);
 	}
 	if (token->type != expect) {
