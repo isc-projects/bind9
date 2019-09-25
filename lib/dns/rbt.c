@@ -1652,9 +1652,11 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 				/*
 				 * This might be the closest enclosing name.
 				 */
-				if (DATA(current) != NULL ||
-				    (options & DNS_RBTFIND_EMPTYDATA) != 0)
+				if ((options & DNS_RBTFIND_EMPTYDATA) != 0 ||
+				    DATA(current) != NULL)
+				{
 					*node = current;
+				}
 
 				/*
 				 * Point the chain to the next level.   This
@@ -1725,8 +1727,8 @@ dns_rbt_findnode(dns_rbt_t *rbt, const dns_name_t *name, dns_name_t *foundname,
 	 * ISC_R_SUCCESS to indicate an exact match.
 	 */
 	if (current != NULL && (options & DNS_RBTFIND_NOEXACT) == 0 &&
-	    (DATA(current) != NULL ||
-	     (options & DNS_RBTFIND_EMPTYDATA) != 0)) {
+	    ((options & DNS_RBTFIND_EMPTYDATA) != 0 || DATA(current) != NULL))
+	{
 		/*
 		 * Found an exact match.
 		 */
