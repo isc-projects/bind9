@@ -321,7 +321,7 @@ Debian, Ubuntu, SLES, openSUSE, Slackware, Alpine, FreeBSD, NetBSD,
 OpenBSD, macOS, Solaris, OpenIndiana, OmniOS CE, HP-UX, and OpenWRT.
 
 BIND is also available for Windows Server 2008 and higher.  See
-`win32utils/readme1st.txt` for details on building for Windows
+`win32utils/build.txt` for details on building for Windows
 systems.
 
 To build on a UNIX or Linux system, use:
