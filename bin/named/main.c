@@ -1363,6 +1363,17 @@ main(int argc, char *argv[]) {
 	(void) ProfilerStart(NULL);
 #endif
 
+#ifdef WIN32
+	/*
+	 * Prevent unbuffered I/O from crippling named performance on Windows
+	 * when it is logging to stderr (e.g. in system tests).  Use full
+	 * buffering (_IOFBF) as line buffering (_IOLBF) is unavailable on
+	 * Windows and fflush() is called anyway after each log message gets
+	 * written to the default stderr logging channels created by libisc.
+	*/
+	setvbuf(stderr, NULL, _IOFBF, BUFSIZ);
+#endif
+
 	/*
 	 * Record version in core image.
 	 * strings named.core | grep "named version:"
