@@ -405,6 +405,7 @@ copy_setports() {
 export ARPANAME
 export BIGKEY
 export CHECKZONE
+export CYGWIN
 export DESCRIPTION
 export DIG
 export FEATURETEST
