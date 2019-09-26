@@ -692,3 +692,62 @@ unit:nolibtool:sid:amd64:
   dependencies:
     - nolibtool:sid:amd64
   needs: ["nolibtool:sid:amd64"]
+
+# Jobs for Visual Studio 2017 builds on Windows (amd64)
+
+msvc:windows:amd64:
+  <<: *default_triggering_rules
+  stage: build
+  tags:
+    - windows
+    - amd64
+  variables:
+    VSCONF: Release
+  script:
+    - 'Push-Location "C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Auxiliary/Build"'
+    - '& cmd.exe /C "vcvarsall.bat x64 & set" | Foreach-Object { if ($_ -match "(.*?)=(.*)") { Set-Item -force -path "Env:\$($matches[1])" -value "$($matches[2])" } }'
+    - 'Pop-Location'
+    - 'Set-Location win32utils'
+    - '& "C:/Strawberry/perl/bin/perl.exe" Configure
+         "with-tools-version=15.0"
+         "with-platform-toolset=v141"
+         "with-platform-version=10.0.17763.0"
+         "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
+         "with-openssl=C:/OpenSSL"
+         "with-libxml2=C:/libxml2"
+         "without-python"
+         "with-system-tests"
+         x64'
+    - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
+    - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
+  artifacts:
+    untracked: true
+    expire_in: "1 hour"
+
+system:msvc:windows:amd64:
+  stage: system
+  tags:
+    - windows
+    - amd64
+  variables:
+    VSCONF: Release
+  script:
+    - 'Push-Location bin/tests/system'
+    - '$ifIndex = Get-NetIPInterface -AddressFamily IPv4 -InterfaceMetric 75 | Select-Object -ExpandProperty ifIndex'
+    - '& C:/tools/cygwin/bin/sed.exe -i "s/^exit.*/netsh interface ipv4 set dnsservers $ifIndex dhcp/; s/\(name\|interface\)=Loopback/$ifIndex/;" ifconfig.bat'
+    - '& C:/tools/cygwin/bin/sed.exe -i "s/kill -f/kill -W/;" conf.sh stop.pl'
+    - '& cmd.exe /C ifconfig.bat up; ""'
+    - 'Start-Sleep 2'
+    - '$Env:Path = "C:/tools/cygwin/bin;$Env:Path"'
+    - '& sh.exe runall.sh $TEST_PARALLEL_JOBS'
+    - 'If (Test-Path C:/CrashDumps/*) { dir C:/CrashDumps; Throw }'
+  dependencies:
+    - msvc:windows:amd64
+  needs: ["msvc:windows:amd64"]
+  artifacts:
+    untracked: true
+    expire_in: "1 week"
+    when: on_failure
+  only:
+    - tags
+    - web
