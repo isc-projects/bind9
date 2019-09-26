@@ -364,6 +364,18 @@ typedef __int64 off_t;
 /* Define if your OpenSSL version supports AES */
 @HAVE_OPENSSL_AES@
 
+/* Define if your OpenSSL version supports DH functions. */
+@HAVE_DH_GET0_KEY@
+
+/* Define if your OpenSSL version supports DSA functions. */
+@HAVE_DSA_GET0_PQG@
+
+/* Define if your OpenSSL version supports ECDSA functions. */
+@HAVE_ECDSA_SIG_GET0@
+
+/* Define if your OpenSSL version supports RSA functions. */
+@HAVE_RSA_SET0_KEY@
+
 /* HMAC_*() return ints */
 @HMAC_RETURN_INT@
 

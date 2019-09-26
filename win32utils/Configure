@@ -345,6 +345,9 @@ my @substdefh = ("ALLOW_FILTER_AAAA",
                  "DNS_RDATASET_FIXED",
                  "ENABLE_RPZ_NSDNAME",
                  "ENABLE_RPZ_NSIP",
+                 "HAVE_DH_GET0_KEY",
+                 "HAVE_DSA_GET0_PQG",
+                 "HAVE_ECDSA_SIG_GET0",
                  "HAVE_EVP_SHA256",
                  "HAVE_EVP_SHA384",
                  "HAVE_EVP_SHA512",
@@ -366,6 +369,7 @@ my @substdefh = ("ALLOW_FILTER_AAAA",
                  "HAVE_PKCS11_ED448",
                  "HAVE_PKCS11_GOST",
                  "HAVE_READLINE",
+                 "HAVE_RSA_SET0_KEY",
                  "HAVE_ZLIB",
                  "ISC_LIST_CHECKINIT",
                  "PREFER_GOSTASN1",
@@ -1787,6 +1791,41 @@ EOF
         }
     } else {
         die "can't compile OpenSSL version test: $compret\n";
+    }
+}
+
+# check OpenSSL built-in support for DH/DSA/ECDSA/RSA functions
+if ($use_openssl eq "yes") {
+    if ($verbose) {
+        printf "checking OpenSSL built-in support for DH/DSA/ECDSA/RSA functions\n";
+    }
+    open F, ">testosslfunc.c" || die $!;
+    print F << 'EOF';
+#include <stdio.h>
+#include <openssl/opensslv.h>
+
+int main() {
+        if (OPENSSL_VERSION_NUMBER >= 0x10100000L) {
+                return (0);
+        }
+        printf("\n\nFound   OPENSSL_VERSION_NUMBER %#010x\n",
+               OPENSSL_VERSION_NUMBER);
+        printf("This version has no built-in support for DH/DSA/ECDSA/RSA functions.\n\n");
+        return (1);
+}
+EOF
+    close F;
+    my $include = $configinc{"OPENSSL_INC"};
+    my $library = $configlib{"OPENSSL_LIB"};
+    $compret = `cl /nologo /MD /I "$include" testosslfunc.c "$library"`;
+    if (grep { -f and -x } ".\\testosslfunc.exe") {
+        `.\\testosslfunc.exe`;
+        if ($? == 0) {
+            $configdefh{"HAVE_DH_GET0_KEY"} = 1;
+            $configdefh{"HAVE_DSA_GET0_PQG"} = 1;
+            $configdefh{"HAVE_ECDSA_SIG_GET0"} = 1;
+            $configdefh{"HAVE_RSA_SET0_KEY"} = 1;
+        }
     }
 }
 
