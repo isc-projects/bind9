@@ -1,3 +1,6 @@
+5293.	[bug]		On Windows, named crashed upon any attempt to fetch XML
+			statistics from it. [GL #1245]
+
 5292.	[bug]		Queue 'rndc nsec3param' requests while signing inline
 			zone changes. [GL #1205]
 
