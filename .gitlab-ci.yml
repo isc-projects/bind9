@@ -250,7 +250,6 @@ stages:
       - cppcheck_html/
     expire_in: "1 week"
     when: on_failure
-  allow_failure: true
 
 ### Job Definitions
 
