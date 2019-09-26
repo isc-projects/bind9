@@ -322,7 +322,7 @@ random_test(pvalue_func_t *func, isc_random_func test_func) {
 		case ISC_RANDOM_UNIFORM:
 			uniform_values = (uint16_t *)values;
 			for (i = 0;
-			     i < (sizeof(values) / sizeof(*uniform_values));
+			     i < (sizeof(values) / (sizeof(*uniform_values)));
 			     i++)
 			{
 				uniform_values[i] =
