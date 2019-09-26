@@ -15,6 +15,8 @@ variables:
   BUILD_PARALLEL_JOBS: 6
   TEST_PARALLEL_JOBS: 6
 
+  MAKE: make
+
 stages:
   - precheck
   - build
@@ -22,6 +24,7 @@ stages:
   - system
   - docs
   - push
+  - postcheck
 
 ### Runner Tag Templates
 
@@ -155,7 +158,7 @@ stages:
     - test -w "${CCACHE_DIR}" && export PATH="/usr/lib/ccache:${PATH}"
   script:
     - *configure
-    - make -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
+    - ${MAKE} -j${BUILD_PARALLEL_JOBS:-1} -k all V=1
     - test -z "${RUN_MAKE_INSTALL}" || make install
   dependencies:
     - autoreconf:sid:amd64
@@ -211,6 +214,39 @@ stages:
       - kyua.log
       - kyua.results
       - kyua_html/
+    expire_in: "1 week"
+    when: on_failure
+
+.cppcheck_args: &run_cppcheck |
+  cppcheck --enable=warning,performance,portability,information,missingInclude \
+           --include=config.h \
+           --quiet \
+           --std=c11 \
+           --language=c \
+           --project=compile_commands.json \
+           --error-exitcode=2 \
+           -j ${TEST_PARALLEL_JOBS:-1} \
+           --xml \
+           --output-file=cppcheck.results \
+           --inline-suppr
+
+.cppcheck_report: &cppcheck_report_html |
+  cppcheck-htmlreport --title="BIND 9 ($CI_COMMIT_SHORT_SHA) Cppcheck Report" \
+                      --file=cppcheck.results \
+                      --report-dir=cppcheck_html/
+
+.cppcheck: &cppcheck_job
+  <<: *default_triggering_rules
+  stage: postcheck
+  script:
+    - *run_cppcheck
+  after_script:
+    - *cppcheck_report_html
+  artifacts:
+    paths:
+      - compile_commands.json
+      - cppcheck.results
+      - cppcheck_html/
     expire_in: "1 week"
     when: on_failure
 
@@ -435,6 +471,7 @@ gcc:sid:amd64:
     CFLAGS: "-Wall -Wextra -O3 -g"
     EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
     RUN_MAKE_INSTALL: 1
+    MAKE: bear make
   <<: *debian_sid_amd64_image
   <<: *build_job
 
@@ -448,6 +485,13 @@ system:gcc:sid:amd64:
 unit:gcc:sid:amd64:
   <<: *debian_sid_amd64_image
   <<: *unit_test_job
+  dependencies:
+    - gcc:sid:amd64
+  needs: ["gcc:sid:amd64"]
+
+cppcheck:gcc:sid:amd64:
+  <<: *debian_sid_amd64_image
+  <<: *cppcheck_job
   dependencies:
     - gcc:sid:amd64
   needs: ["gcc:sid:amd64"]
