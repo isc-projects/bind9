@@ -196,7 +196,7 @@ static inline isc_result_t
 fromstruct_zonemd(ARGS_FROMSTRUCT) {
 	dns_rdata_zonemd_t *zonemd = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(zonemd != NULL);
 	REQUIRE(zonemd->common.rdtype == type);
 	REQUIRE(zonemd->common.rdclass == rdclass);
 
@@ -222,7 +222,7 @@ tostruct_zonemd(ARGS_TOSTRUCT) {
 	isc_region_t region;
 
 	REQUIRE(rdata->type == dns_rdatatype_zonemd);
-	REQUIRE(target != NULL);
+	REQUIRE(zonemd != NULL);
 	REQUIRE(rdata->length != 0);
 
 	zonemd->common.rdclass = rdata->rdclass;

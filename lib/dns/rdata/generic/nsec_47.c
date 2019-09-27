@@ -135,7 +135,7 @@ fromstruct_nsec(ARGS_FROMSTRUCT) {
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_nsec);
-	REQUIRE(source != NULL);
+	REQUIRE(nsec != NULL);
 	REQUIRE(nsec->common.rdtype == type);
 	REQUIRE(nsec->common.rdclass == rdclass);
 	REQUIRE(nsec->typebits != NULL || nsec->len == 0);
@@ -159,7 +159,7 @@ tostruct_nsec(ARGS_TOSTRUCT) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_nsec);
-	REQUIRE(target != NULL);
+	REQUIRE(nsec != NULL);
 	REQUIRE(rdata->length != 0);
 
 	nsec->common.rdclass = rdata->rdclass;
@@ -191,7 +191,7 @@ static inline void
 freestruct_nsec(ARGS_FREESTRUCT) {
 	dns_rdata_nsec_t *nsec = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(nsec != NULL);
 	REQUIRE(nsec->common.rdtype == dns_rdatatype_nsec);
 
 	if (nsec->mctx == NULL)
