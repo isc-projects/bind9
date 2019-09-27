@@ -2385,13 +2385,14 @@ setup_lookup(dig_lookup_t *lookup) {
 	char idn_origin[MXNAME], idn_textname[MXNAME];
 #endif
 
+	REQUIRE(lookup != NULL);
+
 #ifdef WITH_IDN_OUT_SUPPORT
 	result = dns_name_settotextfilter(lookup->idnout ?
 					  output_filter : NULL);
 	check_result(result, "dns_name_settotextfilter");
 #endif
 
-	REQUIRE(lookup != NULL);
 	INSIST(!free_now);
 
 	debug("setup_lookup(%p)", lookup);
