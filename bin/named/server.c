@@ -9558,7 +9558,7 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 		if (message->rdclass == view->rdclass ||
 		    message->rdclass == dns_rdataclass_any)
 		{
-			dns_name_t *tsig = NULL;
+			const dns_name_t *tsig = NULL;
 
 			*sigresult = dns_message_rechecksig(message, view);
 			if (*sigresult == ISC_R_SUCCESS) {
