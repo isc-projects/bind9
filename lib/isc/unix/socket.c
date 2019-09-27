@@ -4234,6 +4234,7 @@ isc_socket_cleanunix(const isc_sockaddr_t *sockaddr, bool active) {
 #endif
 
 #if !defined(S_ISFIFO) && !defined(S_ISSOCK)
+/* cppcheck-suppress preprocessorErrorDirective */
 #error You need to define S_ISFIFO and S_ISSOCK as appropriate for your platform.  See <sys/stat.h>.
 #endif
 
