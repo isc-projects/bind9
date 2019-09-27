@@ -2045,6 +2045,9 @@ setup_lookup(dig_lookup_t *lookup) {
 	char cookiebuf[256];
 	char *origin = NULL;
 	char *textname = NULL;
+
+	REQUIRE(lookup != NULL);
+
 #ifdef HAVE_LIBIDN2
 	char idn_origin[MXNAME], idn_textname[MXNAME];
 
@@ -2053,7 +2056,6 @@ setup_lookup(dig_lookup_t *lookup) {
 	check_result(result, "dns_name_settotextfilter");
 #endif /* HAVE_LIBIDN2 */
 
-	REQUIRE(lookup != NULL);
 	INSIST(!free_now);
 
 	debug("setup_lookup(%p)", lookup);
