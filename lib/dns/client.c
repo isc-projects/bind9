@@ -984,12 +984,10 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			dns_rdata_reset(&rdata);
 			if (tresult != ISC_R_SUCCESS)
 				goto done;
-			tresult = dns_name_copy(&cname.cname, name, NULL);
+			RUNTIME_CHECK(dns_name_copy(&cname.cname, name, NULL)
+				      == ISC_R_SUCCESS);
 			dns_rdata_freestruct(&cname);
-			if (tresult == ISC_R_SUCCESS)
-				want_restart = true;
-			else
-				result = tresult;
+			want_restart = true;
 			goto done;
 		case DNS_R_DNAME:
 			/*
@@ -2908,7 +2906,8 @@ dns_client_startupdate(dns_client_t *client, dns_rdataclass_t rdclass,
 		goto fail;
 	if (zonename != NULL) {
 		uctx->zonename = dns_fixedname_name(&uctx->zonefname);
-		result = dns_name_copy(zonename, uctx->zonename, NULL);
+		RUNTIME_CHECK(dns_name_copy(zonename, uctx->zonename, NULL)
+			      == ISC_R_SUCCESS);
 	}
 	if (servers != NULL) {
 		for (server = ISC_LIST_HEAD(*servers);

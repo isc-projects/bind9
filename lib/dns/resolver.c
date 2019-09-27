@@ -5244,7 +5244,6 @@ same_question(fetchctx_t *fctx) {
 static void
 clone_results(fetchctx_t *fctx) {
 	dns_fetchevent_t *event, *hevent;
-	isc_result_t result;
 	dns_name_t *name, *hname;
 
 	FCTXTRACE("clone_results");
@@ -5265,11 +5264,9 @@ clone_results(fetchctx_t *fctx) {
 	     event != NULL;
 	     event = ISC_LIST_NEXT(event, ev_link)) {
 		name = dns_fixedname_name(&event->foundname);
-		result = dns_name_copy(hname, name, NULL);
-		if (result != ISC_R_SUCCESS)
-			event->result = result;
-		else
-			event->result = hevent->result;
+		RUNTIME_CHECK(dns_name_copy(hname, name, NULL)
+			      == ISC_R_SUCCESS);
+		event->result = hevent->result;
 		dns_db_attach(hevent->db, &event->db);
 		dns_db_attachnode(hevent->db, hevent->node, &event->node);
 		INSIST(hevent->rdataset != NULL);

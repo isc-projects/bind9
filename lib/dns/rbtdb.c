@@ -4559,21 +4559,27 @@ find_deepest_zonecut(rbtdb_search_t *search, dns_rbtnode_t *node,
 			if (foundname != NULL) {
 				dns_name_init(&name, NULL);
 				dns_rbt_namefromnode(node, &name);
-				result = dns_name_copy(&name, foundname, NULL);
-				while (result == ISC_R_SUCCESS && i > 0) {
+				RUNTIME_CHECK(dns_name_copy(&name, foundname,
+							    NULL)
+					      == ISC_R_SUCCESS);
+				while (i > 0) {
 					i--;
 					level_node = search->chain.levels[i];
 					dns_name_init(&name, NULL);
 					dns_rbt_namefromnode(level_node,
 							     &name);
-					result =
-						dns_name_concatenate(foundname,
-								     &name,
-								     foundname,
-								     NULL);
+					result = dns_name_concatenate(foundname,
+								      &name,
+								      foundname,
+								      NULL);
+					if (result != ISC_R_SUCCESS) {
+						break;
+					}
 				}
 				if (result != ISC_R_SUCCESS) {
-					*nodep = NULL;
+					if (nodep != NULL) {
+						*nodep = NULL;
+					}
 					goto node_exit;
 				}
 			}

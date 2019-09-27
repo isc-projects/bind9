@@ -2138,22 +2138,26 @@ setup_lookup(dig_lookup_t *lookup) {
 			isc_buffer_init(&b, textname, len);
 			isc_buffer_add(&b, len);
 			result = dns_name_fromtext(name, &b, NULL, 0, NULL);
-			if (result == ISC_R_SUCCESS &&
-			    !dns_name_isabsolute(name))
-				result = dns_name_concatenate(name,
-							      lookup->oname,
-							      lookup->name,
-							      &lookup->namebuf);
-			else if (result == ISC_R_SUCCESS)
-				result = dns_name_copy(name, lookup->name,
-						       &lookup->namebuf);
+			if (result == ISC_R_SUCCESS) {
+				if (!dns_name_isabsolute(name)) {
+					result = dns_name_concatenate(name,
+							     lookup->oname,
+							     lookup->name,
+							     &lookup->namebuf);
+				} else {
+					result = dns_name_copy(name,
+							     lookup->name,
+							     &lookup->namebuf);
+				}
+			}
 			if (result != ISC_R_SUCCESS) {
 				dns_message_puttempname(lookup->sendmsg,
 							&lookup->name);
 				dns_message_puttempname(lookup->sendmsg,
 							&lookup->oname);
-				if (result == DNS_R_NAMETOOLONG)
+				if (result == DNS_R_NAMETOOLONG) {
 					return (false);
+				}
 				fatal("'%s' is not in legal name syntax (%s)",
 				      lookup->textname,
 				      isc_result_totext(result));

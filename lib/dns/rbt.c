@@ -3209,10 +3209,12 @@ dns_rbtnodechain_current(dns_rbtnodechain_t *chain, dns_name_t *name,
 	}
 
 	if (origin != NULL) {
-		if (chain->level_count > 0)
+		if (chain->level_count > 0) {
 			result = chain_name(chain, origin, false);
-		else
-			result = dns_name_copy(dns_rootname, origin, NULL);
+		} else {
+			RUNTIME_CHECK(dns_name_copy(dns_rootname, origin, NULL)
+				      == ISC_R_SUCCESS);
+		}
 	}
 
 	return (result);

@@ -3147,7 +3147,7 @@ finddlvsep(dns_validator_t *val, bool resume) {
 		}
 
 		dlvsep = dns_fixedname_initname(&val->dlvsep);
-		dns_name_copy(val->event->name, dlvsep, NULL);
+		RUNTIME_CHECK(dns_name_copy(val->event->name, dlvsep, NULL) == ISC_R_SUCCESS);
 		/*
 		 * If this is a response to a DS query, we need to look in
 		 * the parent zone for the trust anchor.
@@ -3198,9 +3198,7 @@ finddlvsep(dns_validator_t *val, bool resume) {
 			    dns_rdataset_isassociated(&val->fsigrdataset))
 			{
 				dns_fixedname_init(&val->fname);
-				dns_name_copy(dlvname,
-					      dns_fixedname_name(&val->fname),
-					      NULL);
+				RUNTIME_CHECK(dns_name_copy(dlvname, dns_fixedname_name(&val->fname), NULL) == ISC_R_SUCCESS);
 				result = create_validator(val,
 						dns_fixedname_name(&val->fname),
 							  dns_rdatatype_dlv,
