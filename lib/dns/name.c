@@ -1345,7 +1345,7 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 	unsigned int trem, count;
 	unsigned int labels;
 	bool saw_root = false;
-	unsigned int oused = target->used;
+	unsigned int oused;
 	dns_name_totextfilter_t *mem;
 	dns_name_totextfilter_t totext_filter_proc = NULL;
 	isc_result_t result;
@@ -1357,6 +1357,8 @@ dns_name_totext2(const dns_name_t *name, unsigned int options,
 	 */
 	REQUIRE(VALID_NAME(name));
 	REQUIRE(ISC_BUFFER_VALID(target));
+
+	oused = target->used;
 
 	result = totext_filter_proc_key_init();
 	if (result != ISC_R_SUCCESS)
