@@ -496,11 +496,8 @@ dns_test_getdata(const char *file, unsigned char *buf,
 
 static void
 nullmsg(dns_rdatacallbacks_t *cb, const char *fmt, ...) {
-	va_list ap;
-
 	UNUSED(cb);
 	UNUSED(fmt);
-	UNUSED(ap);
 }
 
 isc_result_t
