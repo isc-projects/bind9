@@ -4047,6 +4047,35 @@ fctx_try(fetchctx_t *fctx, bool retrying, bool badcache) {
 	if (fctx->minimized && !fctx->forwarding) {
 		unsigned int options = fctx->options;
 		options &= ~DNS_FETCHOPT_QMINIMIZE;
+
+		/*
+		 * Is another QNAME minimization fetch still running?
+		 */
+		if (fctx->qminfetch != NULL) {
+			bool validfctx = (DNS_FETCH_VALID(fctx->qminfetch) &&
+					  VALID_FCTX(fctx->qminfetch->private));
+			char namebuf[DNS_NAME_FORMATSIZE];
+			char typebuf[DNS_RDATATYPE_FORMATSIZE];
+
+			dns_name_format(&fctx->qminname, namebuf,
+					sizeof(namebuf));
+			dns_rdatatype_format(fctx->qmintype, typebuf,
+					     sizeof(typebuf));
+
+			isc_log_write(dns_lctx, DNS_LOGCATEGORY_RESOLVER,
+				      DNS_LOGMODULE_RESOLVER, ISC_LOG_ERROR,
+				      "fctx %p(%s): attempting QNAME "
+				      "minimization fetch for %s/%s but "
+				      "fetch %p(%s) still running",
+				      fctx, fctx->info, namebuf, typebuf,
+				      fctx->qminfetch,
+				      validfctx
+				       ? fctx->qminfetch->private->info
+				       : "<invalid>");
+			fctx_done(fctx, DNS_R_SERVFAIL, __LINE__);
+			return;
+		}
+
 		/*
 		 * In "_ A" mode we're asking for _.domain -
 		 * resolver by default will follow delegations
