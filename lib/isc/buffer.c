@@ -550,9 +550,10 @@ isc_buffer_allocate(isc_mem_t *mctx, isc_buffer_t **dynbuffer,
 	bdata = isc_mem_get(mctx, length);
 
 	isc_buffer_init(dbuf, bdata, length);
-	dbuf->mctx = mctx;
 
 	ENSURE(ISC_BUFFER_VALID(dbuf));
+
+	dbuf->mctx = mctx;
 
 	*dynbuffer = dbuf;
 
