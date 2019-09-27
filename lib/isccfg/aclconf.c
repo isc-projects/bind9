@@ -166,6 +166,7 @@ convert_named_acl(const cfg_obj_t *nameobj, const cfg_obj_t *cctx,
 	     dacl != NULL;
 	     dacl = ISC_LIST_NEXT(dacl, nextincache))
 	{
+		/* cppcheck-suppress nullPointerRedundantCheck symbolName=dacl */
 		if (strcasecmp(aclname, dacl->name) == 0) {
 			if (ISC_MAGIC_VALID(dacl, LOOP_MAGIC)) {
 				cfg_obj_log(nameobj, lctx, ISC_LOG_ERROR,
