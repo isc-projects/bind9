@@ -2083,15 +2083,17 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 	} else {
 		old = NULL;
 	}
-	if (old == NULL)
+	if (old == NULL) {
 		*old_rpz_okp = false;
-	else
+	} else {
 		*old_rpz_okp = true;
+	}
 
 	for (i = 0;
 	     zone_element != NULL;
-	     ++i, zone_element = cfg_list_next(zone_element)) {
-		INSIST(old != NULL || !*old_rpz_okp);
+	     ++i, zone_element = cfg_list_next(zone_element))
+	{
+		INSIST(!*old_rpz_okp || old != NULL);
 		if (*old_rpz_okp && i < old->p.num_zones) {
 			old_zone = old->zones[i];
 		} else {
@@ -2126,8 +2128,9 @@ configure_rpz(dns_view_t *view, const cfg_obj_t *rpz_obj,
 			    view->rpzs->rpz_ver);
 	}
 
-	if (pview != NULL)
+	if (pview != NULL) {
 		dns_view_detach(&pview);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -6229,7 +6232,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 
 	REQUIRE(keytable != NULL);
 	REQUIRE(keynode != NULL);
-	REQUIRE(arg != NULL);
+	REQUIRE(dotat_arg != NULL);
 
 	view = dotat_arg->view;
 	task = dotat_arg->task;

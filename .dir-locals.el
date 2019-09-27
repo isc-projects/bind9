@@ -67,6 +67,8 @@
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "bin/named/include"))
 	       (expand-file-name
+		(concat directory-of-current-dir-locals-file "bin/named/unix/include"))
+	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "bin/rndc/include"))
 	       (expand-file-name
 		(concat directory-of-current-dir-locals-file "bin/dnssec/include"))
