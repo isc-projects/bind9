@@ -166,7 +166,6 @@ isc_sockaddr_totext(const isc_sockaddr_t *sockaddr, isc_buffer_t *target) {
 	 */
 	isc_buffer_availableregion(target, &avail);
 	INSIST(avail.length >= 1);
-	/* cppcheck-suppress unreadVariable */
 	avail.base[0] = '\0';
 
 	return (ISC_R_SUCCESS);
