@@ -113,7 +113,7 @@ fromstruct_eui48(ARGS_FROMSTRUCT) {
 	dns_rdata_eui48_t *eui48 = source;
 
 	REQUIRE(type == dns_rdatatype_eui48);
-	REQUIRE(source != NULL);
+	REQUIRE(eui48 != NULL);
 	REQUIRE(eui48->common.rdtype == type);
 	REQUIRE(eui48->common.rdclass == rdclass);
 
@@ -128,7 +128,7 @@ tostruct_eui48(ARGS_TOSTRUCT) {
 	dns_rdata_eui48_t *eui48 = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_eui48);
-	REQUIRE(target != NULL);
+	REQUIRE(eui48 != NULL);
 	REQUIRE(rdata->length == 6);
 
 	UNUSED(mctx);
@@ -145,7 +145,7 @@ static inline void
 freestruct_eui48(ARGS_FREESTRUCT) {
 	dns_rdata_eui48_t *eui48 = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(eui48 != NULL);
 	REQUIRE(eui48->common.rdtype == dns_rdatatype_eui48);
 
 	return;

@@ -124,7 +124,7 @@ fromstruct_l32(ARGS_FROMSTRUCT) {
 	uint32_t n;
 
 	REQUIRE(type == dns_rdatatype_l32);
-	REQUIRE(source != NULL);
+	REQUIRE(l32 != NULL);
 	REQUIRE(l32->common.rdtype == type);
 	REQUIRE(l32->common.rdclass == rdclass);
 
@@ -143,7 +143,7 @@ tostruct_l32(ARGS_TOSTRUCT) {
 	uint32_t n;
 
 	REQUIRE(rdata->type == dns_rdatatype_l32);
-	REQUIRE(target != NULL);
+	REQUIRE(l32 != NULL);
 	REQUIRE(rdata->length == 6);
 
 	UNUSED(mctx);
@@ -163,7 +163,7 @@ static inline void
 freestruct_l32(ARGS_FREESTRUCT) {
 	dns_rdata_l32_t *l32 = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(l32 != NULL);
 	REQUIRE(l32->common.rdtype == dns_rdatatype_l32);
 
 	return;

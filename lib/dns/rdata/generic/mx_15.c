@@ -192,7 +192,7 @@ fromstruct_mx(ARGS_FROMSTRUCT) {
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_mx);
-	REQUIRE(source != NULL);
+	REQUIRE(mx != NULL);
 	REQUIRE(mx->common.rdtype == type);
 	REQUIRE(mx->common.rdclass == rdclass);
 
@@ -211,7 +211,7 @@ tostruct_mx(ARGS_TOSTRUCT) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_mx);
-	REQUIRE(target != NULL);
+	REQUIRE(mx != NULL);
 	REQUIRE(rdata->length != 0);
 
 	mx->common.rdclass = rdata->rdclass;
@@ -233,7 +233,7 @@ static inline void
 freestruct_mx(ARGS_FREESTRUCT) {
 	dns_rdata_mx_t *mx = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(mx != NULL);
 	REQUIRE(mx->common.rdtype == dns_rdatatype_mx);
 
 	if (mx->mctx == NULL)

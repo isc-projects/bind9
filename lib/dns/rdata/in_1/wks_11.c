@@ -295,7 +295,7 @@ fromstruct_in_wks(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_wks);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(source != NULL);
+	REQUIRE(wks != NULL);
 	REQUIRE(wks->common.rdtype == type);
 	REQUIRE(wks->common.rdclass == rdclass);
 	REQUIRE((wks->map != NULL && wks->map_len <= 8*1024) ||
@@ -316,6 +316,7 @@ tostruct_in_wks(ARGS_TOSTRUCT) {
 	uint32_t n;
 	isc_region_t region;
 
+	REQUIRE(wks != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_wks);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length != 0);
@@ -342,7 +343,7 @@ static inline void
 freestruct_in_wks(ARGS_FREESTRUCT) {
 	dns_rdata_in_wks_t *wks = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(wks != NULL);
 	REQUIRE(wks->common.rdtype == dns_rdatatype_wks);
 	REQUIRE(wks->common.rdclass == dns_rdataclass_in);
 
