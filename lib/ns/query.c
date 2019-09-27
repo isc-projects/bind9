@@ -5515,11 +5515,8 @@ query_lookup(query_ctx_t *qctx) {
 	 * Fixup fname and sigrdataset.
 	 */
 	if (qctx->dns64 && qctx->rpz) {
-		isc_result_t rresult;
-
-		rresult = dns_name_copy(qctx->client->query.qname,
-					qctx->fname, NULL);
-		RUNTIME_CHECK(rresult == ISC_R_SUCCESS);
+		RUNTIME_CHECK(dns_name_copy(qctx->client->query.qname,
+					    qctx->fname, NULL) == ISC_R_SUCCESS);
 		if (qctx->sigrdataset != NULL &&
 		    dns_rdataset_isassociated(qctx->sigrdataset))
 		{
@@ -5685,8 +5682,6 @@ static void
 recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 		const dns_name_t *qname, const dns_name_t *qdomain)
 {
-	isc_result_t result;
-
 	REQUIRE(param != NULL);
 
 	param->qtype = qtype;
@@ -5695,16 +5690,16 @@ recparam_update(ns_query_recparam_t *param, dns_rdatatype_t qtype,
 		param->qname = NULL;
 	} else {
 		param->qname = dns_fixedname_initname(&param->fqname);
-		result = dns_name_copy(qname, param->qname, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		RUNTIME_CHECK(dns_name_copy(qname, param->qname, NULL)
+			      == ISC_R_SUCCESS);
 	}
 
 	if (qdomain == NULL) {
 		param->qdomain = NULL;
 	} else {
 		param->qdomain = dns_fixedname_initname(&param->fqdomain);
-		result = dns_name_copy(qdomain, param->qdomain, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		RUNTIME_CHECK(dns_name_copy(qdomain, param->qdomain, NULL)
+			      == ISC_R_SUCCESS);
 	}
 }
 static atomic_uint_fast32_t last_soft, last_hard;
@@ -6375,9 +6370,9 @@ query_checkrpz(query_ctx_t *qctx, isc_result_t result) {
 		 * we looked up even if we were stopped short
 		 * in recursion or for a deferral.
 		 */
-		rresult = dns_name_copy(qctx->client->query.qname,
-					qctx->fname, NULL);
-		RUNTIME_CHECK(rresult == ISC_R_SUCCESS);
+		RUNTIME_CHECK(dns_name_copy(qctx->client->query.qname,
+					qctx->fname, NULL)
+			      == ISC_R_SUCCESS);
 		rpz_clean(&qctx->zone, &qctx->db, &qctx->node, NULL);
 		if (qctx->rpz_st->m.rdataset != NULL) {
 			ns_client_putrdataset(qctx->client, &qctx->rdataset);
@@ -6550,8 +6545,8 @@ query_rpzcname(query_ctx_t *qctx, dns_name_t *cname) {
 			return (result);
 		}
 	} else {
-		result = dns_name_copy(cname, qctx->fname, NULL);
-		RUNTIME_CHECK(result == ISC_R_SUCCESS);
+		RUNTIME_CHECK(dns_name_copy(cname, qctx->fname, NULL)
+			      == ISC_R_SUCCESS);
 	}
 
 	ns_client_keepname(client, qctx->fname, qctx->dbuf);
