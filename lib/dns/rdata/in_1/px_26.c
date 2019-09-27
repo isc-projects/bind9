@@ -224,7 +224,7 @@ fromstruct_in_px(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_px);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(source != NULL);
+	REQUIRE(px != NULL);
 	REQUIRE(px->common.rdtype == type);
 	REQUIRE(px->common.rdclass == rdclass);
 
@@ -247,7 +247,7 @@ tostruct_in_px(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == dns_rdatatype_px);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(target != NULL);
+	REQUIRE(px != NULL);
 	REQUIRE(rdata->length != 0);
 
 	px->common.rdclass = rdata->rdclass;
@@ -283,7 +283,7 @@ static inline void
 freestruct_in_px(ARGS_FREESTRUCT) {
 	dns_rdata_in_px_t *px = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(px != NULL);
 	REQUIRE(px->common.rdclass == dns_rdataclass_in);
 	REQUIRE(px->common.rdtype == dns_rdatatype_px);
 
