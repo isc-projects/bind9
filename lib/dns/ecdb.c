@@ -745,7 +745,6 @@ rdatasetiter_destroy(dns_rdatasetiter_t **iteratorp) {
 	REQUIRE(iteratorp != NULL);
 	REQUIRE(DNS_RDATASETITER_VALID(*iteratorp));
 
-	/* cppcheck-suppress unreadVariable */
 	u.rdatasetiterator = *iteratorp;
 	*iteratorp = NULL;
 
