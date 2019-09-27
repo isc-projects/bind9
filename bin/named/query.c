@@ -9431,14 +9431,18 @@ log_queryerror(ns_client_t *client, isc_result_t result, int line, int level) {
 void
 ns_query_start(ns_client_t *client) {
 	isc_result_t result;
-	dns_message_t *message = client->message;
+	dns_message_t *message;
 	dns_rdataset_t *rdataset;
 	ns_client_t *qclient;
 	dns_rdatatype_t qtype;
-	unsigned int saved_extflags = client->extflags;
-	unsigned int saved_flags = client->message->flags;
+	unsigned int saved_extflags;
+	unsigned int saved_flags;
 
 	REQUIRE(NS_CLIENT_VALID(client));
+
+	message = client->message;
+	saved_extflags = client->extflags;
+	saved_flags = client->message->flags;
 
 	CTRACE(ISC_LOG_DEBUG(3), "ns_query_start");
 
