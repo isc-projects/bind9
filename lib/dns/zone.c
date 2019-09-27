@@ -446,50 +446,52 @@ struct dns_zone {
 #define DNS_ZONE_FLAG(z,f) ((atomic_load_relaxed(&(z)->flags) & (f)) != 0)
 #define DNS_ZONE_SETFLAG(z,f) atomic_fetch_or(&(z)->flags, (f))
 #define DNS_ZONE_CLRFLAG(z,f) atomic_fetch_and(&(z)->flags, ~(f))
-	/* XXX MPA these may need to go back into zone.h */
-#define DNS_ZONEFLG_REFRESH	0x00000001U	/*%< refresh check in progress */
-#define DNS_ZONEFLG_NEEDDUMP	0x00000002U	/*%< zone need consolidation */
-#define DNS_ZONEFLG_USEVC	0x00000004U	/*%< use tcp for refresh query */
-#define DNS_ZONEFLG_DUMPING	0x00000008U	/*%< a dump is in progress */
-#define DNS_ZONEFLG_HASINCLUDE	0x00000010U	/*%< $INCLUDE in zone file */
-#define DNS_ZONEFLG_LOADED	0x00000020U	/*%< database has loaded */
-#define DNS_ZONEFLG_EXITING	0x00000040U	/*%< zone is being destroyed */
-#define DNS_ZONEFLG_EXPIRED	0x00000080U	/*%< zone has expired */
-#define DNS_ZONEFLG_NEEDREFRESH	0x00000100U	/*%< refresh check needed */
-#define DNS_ZONEFLG_UPTODATE	0x00000200U	/*%< zone contents are
+typedef enum {
+	DNS_ZONEFLG_REFRESH	= 0x00000001U,	/*%< refresh check in progress */
+	DNS_ZONEFLG_NEEDDUMP	= 0x00000002U,	/*%< zone need consolidation */
+	DNS_ZONEFLG_USEVC	= 0x00000004U,	/*%< use tcp for refresh query */
+	DNS_ZONEFLG_DUMPING	= 0x00000008U,	/*%< a dump is in progress */
+	DNS_ZONEFLG_HASINCLUDE	= 0x00000010U,	/*%< $INCLUDE in zone file */
+	DNS_ZONEFLG_LOADED	= 0x00000020U,	/*%< database has loaded */
+	DNS_ZONEFLG_EXITING	= 0x00000040U,	/*%< zone is being destroyed */
+	DNS_ZONEFLG_EXPIRED	= 0x00000080U,	/*%< zone has expired */
+	DNS_ZONEFLG_NEEDREFRESH	= 0x00000100U,	/*%< refresh check needed */
+	DNS_ZONEFLG_UPTODATE	= 0x00000200U,	/*%< zone contents are
 						 * uptodate */
-#define DNS_ZONEFLG_NEEDNOTIFY	0x00000400U	/*%< need to send out notify
+	DNS_ZONEFLG_NEEDNOTIFY	= 0x00000400U,	/*%< need to send out notify
 						 * messages */
-#define DNS_ZONEFLG_DIFFONRELOAD 0x00000800U	/*%< generate a journal diff on
+	DNS_ZONEFLG_DIFFONRELOAD = 0x00000800U,	/*%< generate a journal diff on
 						 * reload */
-#define DNS_ZONEFLG_NOMASTERS	0x00001000U	/*%< an attempt to refresh a
+	DNS_ZONEFLG_NOMASTERS	= 0x00001000U,	/*%< an attempt to refresh a
 						 * zone with no masters
 						 * occurred */
-#define DNS_ZONEFLG_LOADING	0x00002000U	/*%< load from disk in progress*/
-#define DNS_ZONEFLG_HAVETIMERS	0x00004000U	/*%< timer values have been set
+	DNS_ZONEFLG_LOADING	= 0x00002000U,	/*%< load from disk in progress*/
+	DNS_ZONEFLG_HAVETIMERS	= 0x00004000U,	/*%< timer values have been set
 						 * from SOA (if not set, we
 						 * are still using
 						 * default timer values) */
-#define DNS_ZONEFLG_FORCEXFER	0x00008000U	/*%< Force a zone xfer */
-#define DNS_ZONEFLG_NOREFRESH	0x00010000U
-#define DNS_ZONEFLG_DIALNOTIFY	0x00020000U
-#define DNS_ZONEFLG_DIALREFRESH	0x00040000U
-#define DNS_ZONEFLG_SHUTDOWN	0x00080000U
-#define DNS_ZONEFLAG_NOIXFR	0x00100000U	/*%< IXFR failed, force AXFR */
-#define DNS_ZONEFLG_FLUSH	0x00200000U
-#define DNS_ZONEFLG_NOEDNS	0x00400000U
-#define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
-#define DNS_ZONEFLG_SOABEFOREAXFR 0x01000000U
-#define DNS_ZONEFLG_NEEDCOMPACT 0x02000000U
-#define DNS_ZONEFLG_REFRESHING	0x04000000U	/*%< Refreshing keydata */
-#define DNS_ZONEFLG_THAW	0x08000000U
-#define DNS_ZONEFLG_LOADPENDING	0x10000000U	/*%< Loading scheduled */
-#define DNS_ZONEFLG_NODELAY	0x20000000U
-#define DNS_ZONEFLG_SENDSECURE  0x40000000U
-#define DNS_ZONEFLG_NEEDSTARTUPNOTIFY 0x80000000U /*%< need to send out notify
+	DNS_ZONEFLG_FORCEXFER	= 0x00008000U,	/*%< Force a zone xfer */
+	DNS_ZONEFLG_NOREFRESH	= 0x00010000U,
+	DNS_ZONEFLG_DIALNOTIFY	= 0x00020000U,
+	DNS_ZONEFLG_DIALREFRESH	= 0x00040000U,
+	DNS_ZONEFLG_SHUTDOWN	= 0x00080000U,
+	DNS_ZONEFLAG_NOIXFR	= 0x00100000U,	/*%< IXFR failed, force AXFR */
+	DNS_ZONEFLG_FLUSH	= 0x00200000U,
+	DNS_ZONEFLG_NOEDNS	= 0x00400000U,
+	DNS_ZONEFLG_USEALTXFRSRC = 0x00800000U,
+	DNS_ZONEFLG_SOABEFOREAXFR = 0x01000000U,
+	DNS_ZONEFLG_NEEDCOMPACT = 0x02000000U,
+	DNS_ZONEFLG_REFRESHING	= 0x04000000U,	/*%< Refreshing keydata */
+	DNS_ZONEFLG_THAW	= 0x08000000U,
+	DNS_ZONEFLG_LOADPENDING	= 0x10000000U,	/*%< Loading scheduled */
+	DNS_ZONEFLG_NODELAY	= 0x20000000U,
+	DNS_ZONEFLG_SENDSECURE  = 0x40000000U,
+	DNS_ZONEFLG_NEEDSTARTUPNOTIFY = 0x80000000U, /*%< need to send out notify
 						   *   due to the zone just
 						   *   being loaded for the
 						   *   first time.  */
+	DNS_ZONEFLG___MAX            = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
+} dns_zoneflg_t;
 
 #define DNS_ZONE_OPTION(z,o) ((atomic_load_relaxed(&(z)->options) & (o)) != 0)
 #define DNS_ZONE_SETOPTION(z,o) atomic_fetch_or(&(z)->options, (o))
@@ -500,9 +502,10 @@ struct dns_zone {
 #define DNS_ZONEKEY_CLROPTION(z,o) atomic_fetch_and(&(z)->keyopts, ~(o))
 
 /* Flags for zone_load() */
-#define DNS_ZONELOADFLAG_NOSTAT        0x00000001U     /* Do not stat() master files */
-#define DNS_ZONELOADFLAG_THAW  0x00000002U     /* Thaw the zone on successful
-						  load. */
+typedef enum {
+	DNS_ZONELOADFLAG_NOSTAT	= 0x00000001U,     /* Do not stat() master files */
+	DNS_ZONELOADFLAG_THAW	= 0x00000002U,     /* Thaw the zone on successful load. */
+} dns_zoneloadflag_t;
 
 #define UNREACH_CACHE_SIZE	10U
 #define UNREACH_HOLD_TIME	600	/* 10 minutes */

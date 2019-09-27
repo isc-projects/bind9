@@ -83,16 +83,20 @@ typedef enum {
 	DNS_ZONEOPT_CHECKSPF         = 1<<27, /*%< check SPF records */
 	DNS_ZONEOPT_CHECKTTL         = 1<<28, /*%< check max-zone-ttl */
 	DNS_ZONEOPT_AUTOEMPTY        = 1<<29, /*%< automatic empty zone */
+	DNS_ZONEOPT___MAX            = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
 } dns_zoneopt_t;
 
 /*
  * Zone key maintenance options
  */
-#define DNS_ZONEKEY_ALLOW	0x00000001U	/*%< fetch keys on command */
-#define DNS_ZONEKEY_MAINTAIN	0x00000002U	/*%< publish/sign on schedule */
-#define DNS_ZONEKEY_CREATE	0x00000004U	/*%< make keys when needed */
-#define DNS_ZONEKEY_FULLSIGN    0x00000008U     /*%< roll to new keys immediately */
-#define DNS_ZONEKEY_NORESIGN	0x00000010U	/*%< no automatic resigning */
+typedef enum {
+	DNS_ZONEKEY_ALLOW	= 0x00000001U,	/*%< fetch keys on command */
+	DNS_ZONEKEY_MAINTAIN	= 0x00000002U,	/*%< publish/sign on schedule */
+	DNS_ZONEKEY_CREATE	= 0x00000004U,	/*%< make keys when needed */
+	DNS_ZONEKEY_FULLSIGN    = 0x00000008U,     /*%< roll to new keys immediately */
+	DNS_ZONEKEY_NORESIGN	= 0x00000010U,	/*%< no automatic resigning */
+	DNS_ZONEKEY___MAX	= UINT64_MAX, /* trick to make the ENUM 64-bit wide */
+} dns_zonekey_t;
 
 #ifndef DNS_ZONE_MINREFRESH
 #define DNS_ZONE_MINREFRESH		    300	/*%< 5 minutes */
