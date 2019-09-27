@@ -758,7 +758,6 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 	dns_aclenv_t *env = ns_interfacemgr_getaclenv(interfacemgr);
 	dns_view_t *view;
 	dns_tsigkey_t *key = NULL;
-	dns_name_t *tsig = NULL;
 	isc_netaddr_t netsrc;
 	isc_netaddr_t netdst;
 
@@ -773,7 +772,9 @@ isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 
 	for (view = ISC_LIST_HEAD(named_g_server->viewlist);
 	     view != NULL;
-	     view = ISC_LIST_NEXT(view, link)) {
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		const dns_name_t *tsig = NULL;
 
 		if (view->matchrecursiveonly)
 			continue;
