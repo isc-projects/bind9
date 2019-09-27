@@ -88,12 +88,20 @@ struct dns_tsigkey {
 	ISC_LINK(dns_tsigkey_t) link;
 };
 
-#define dns_tsigkey_identity(tsigkey) \
-	((tsigkey) == NULL ? NULL : \
-	 (tsigkey)->generated ? ((tsigkey)->creator) : \
-	 (&((tsigkey)->name)))
-
 ISC_LANG_BEGINDECLS
+
+const dns_name_t *
+dns_tsigkey_identity(const dns_tsigkey_t *tsigkey);
+/*%<
+ *	Returns the identity of the provided TSIG key.
+ *
+ *	Requires:
+ *\li		'tsigkey' is a valid TSIG key or NULL
+ *
+ *	Returns:
+ *\li		NULL if 'tsigkey' was NULL
+ *\li		identity of the provided TSIG key
+ */
 
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
