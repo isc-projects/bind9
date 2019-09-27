@@ -502,7 +502,7 @@ setup_style(dns_master_style_t **stylep) {
 	isc_result_t result;
 	dns_master_style_t *style = NULL;
 
-	REQUIRE(stylep != NULL || *stylep == NULL);
+	REQUIRE(stylep != NULL && *stylep == NULL);
 
 	styleflags |= DNS_STYLEFLAG_REL_OWNER;
 	if (showcomments)
