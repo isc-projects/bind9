@@ -1694,6 +1694,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		 * XXX Can TCP transfers be forwarded?  How would that
 		 * work?
 		 */
+		/* cppcheck-suppress uninitStructMember symbolName=tsig.originalid */
 		id = htons(tsig.originalid);
 		memmove(&header[0], &id, 2);
 	}
