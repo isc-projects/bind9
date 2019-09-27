@@ -1874,7 +1874,6 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 {
 	dns_view_t *view;
 	dns_tsigkey_t *key = NULL;
-	dns_name_t *tsig = NULL;
 	isc_netaddr_t netsrc;
 	isc_netaddr_t netdst;
 
@@ -1894,7 +1893,9 @@ ns_client_isself(dns_view_t *myview, dns_tsigkey_t *mykey,
 
 	for (view = ISC_LIST_HEAD(ns_g_server->viewlist);
 	     view != NULL;
-	     view = ISC_LIST_NEXT(view, link)) {
+	     view = ISC_LIST_NEXT(view, link))
+	{
+		const dns_name_t *tsig = NULL;
 
 		if (view->matchrecursiveonly)
 			continue;
