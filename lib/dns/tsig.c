@@ -660,6 +660,20 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 	return (result);
 }
 
+const dns_name_t *
+dns_tsigkey_identity(const dns_tsigkey_t *tsigkey) {
+	REQUIRE(tsigkey == NULL || VALID_TSIG_KEY(tsigkey));
+
+	if (tsigkey == NULL) {
+		return (NULL);
+	}
+	if (tsigkey->generated) {
+		return (tsigkey->creator);
+	} else {
+		return (&tsigkey->name);
+	}
+}
+
 isc_result_t
 dns_tsigkey_create(const dns_name_t *name, const dns_name_t *algorithm,
 		   unsigned char *secret, int length, bool generated,
