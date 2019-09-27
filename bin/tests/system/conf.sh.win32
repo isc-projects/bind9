@@ -24,7 +24,7 @@ TOP=${SYSTEMTESTTOP:=.}/../../..
 TOP=`cd $TOP && pwd`
 
 # Visual Studio build configurations are Release and Debug
-VSCONF=Debug
+VSCONF=${VSCONF:-Debug}
 
 # Default algorithm for testing
 DEFAULT_ALGORITHM=RSASHA256
