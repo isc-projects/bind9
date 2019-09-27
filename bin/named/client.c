@@ -249,7 +249,7 @@ static isc_result_t get_client(ns_clientmgr_t *manager, ns_interface_t *ifp,
 static isc_result_t get_worker(ns_clientmgr_t *manager, ns_interface_t *ifp,
 			       isc_socket_t *sock, ns_client_t *oldclient);
 static inline bool
-allowed(isc_netaddr_t *addr, dns_name_t *signer,
+allowed(isc_netaddr_t *addr, const dns_name_t *signer,
 	isc_netaddr_t *ecs_addr, uint8_t ecs_addrlen,
 	uint8_t *ecs_scope, dns_acl_t *acl);
 static void compute_cookie(ns_client_t *client, uint32_t when,
@@ -1843,7 +1843,7 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 }
 
 static inline bool
-allowed(isc_netaddr_t *addr, dns_name_t *signer,
+allowed(isc_netaddr_t *addr, const dns_name_t *signer,
 	isc_netaddr_t *ecs_addr, uint8_t ecs_addrlen,
 	uint8_t *ecs_scope, dns_acl_t *acl)
 {
@@ -2864,7 +2864,7 @@ client_request(isc_task_t *task, isc_event_t *event) {
 		if (client->message->rdclass == view->rdclass ||
 		    client->message->rdclass == dns_rdataclass_any)
 		{
-			dns_name_t *tsig = NULL;
+			const dns_name_t *tsig = NULL;
 			isc_netaddr_t *addr = NULL;
 			uint8_t *scope = NULL;
 
