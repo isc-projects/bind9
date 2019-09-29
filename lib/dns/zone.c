@@ -1139,7 +1139,7 @@ zone_free(dns_zone_t *zone) {
 		isc_event_free(&event);
 	}
 	while (!ISC_LIST_EMPTY(zone->rss_post)) {
-		event = ISC_LIST_HEAD(zone->setnsec3param_queue);
+		event = ISC_LIST_HEAD(zone->rss_post);
 		ISC_LIST_UNLINK(zone->rss_post, event, ev_link);
 		isc_event_free(&event);
 	}
