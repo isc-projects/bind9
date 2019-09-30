@@ -75,22 +75,22 @@ typedef enum memory_order memory_order;
 
 typedef struct atomic_int_fast32 {
 	isc_mutex_t m;
-	int32_t v;
+	int_fast32_t v;
 } atomic_int_fast32_t;
 
 typedef struct atomic_int_fast64 {
 	isc_mutex_t m;
-	int64_t v;
+	int_fast64_t v;
 } atomic_int_fast64_t;
 
 typedef struct atomic_uint_fast32 {
 	isc_mutex_t m;
-	uint32_t v;
+	uint_fast32_t v;
 } atomic_uint_fast32_t;
 
 typedef struct atomic_uint_fast64 {
 	isc_mutex_t m;
-	uint64_t v;
+	uint_fast64_t v;
 } atomic_uint_fast64_t;
 
 typedef struct atomic_uintptr {
