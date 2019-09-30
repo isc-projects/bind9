@@ -1,3 +1,6 @@
+5294.	[func]		Fallback to ACE name on output in locale, which does not
+			support converting it to unicode.  [GL #846]
+
 5293.	[bug]		On Windows, named crashed upon any attempt to fetch XML
 			statistics from it. [GL #1245]
 
