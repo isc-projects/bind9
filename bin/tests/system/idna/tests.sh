@@ -254,12 +254,14 @@ idna_enabled_test() {
     # The "+[no]idnout" flag has no effect in these cases.
     text="Checking valid A-label in C locale"
     label="xn--nxasmq6b.com"
-    LC_ALL=C idna_test "$text" ""                   "$label" "$label."
-    LC_ALL=C idna_test "$text" "+noidnin +noidnout" "$label" "$label."
-    LC_ALL=C idna_test "$text" "+noidnin +idnout"   "$label" "$label."
-    LC_ALL=C idna_test "$text" "+idnin +noidnout"   "$label" "$label."
-    LC_ALL=C idna_test "$text" "+idnin +idnout"     "$label" "$label."
-    LC_ALL=C idna_test "$text" "+noidnin +idnout"   "$label" "$label."
+    if command -v idn2 >/dev/null && ! LC_ALL=C idn2 -d "$label" >/dev/null 2>/dev/null; then
+	LC_ALL=C idna_test "$text" ""                   "$label" "$label."
+	LC_ALL=C idna_test "$text" "+noidnin +noidnout" "$label" "$label."
+	LC_ALL=C idna_test "$text" "+noidnin +idnout"   "$label" "$label."
+	LC_ALL=C idna_test "$text" "+idnin +noidnout"   "$label" "$label."
+	LC_ALL=C idna_test "$text" "+idnin +idnout"     "$label" "$label."
+	LC_ALL=C idna_test "$text" "+noidnin +idnout"   "$label" "$label."
+    fi
 
 
 
