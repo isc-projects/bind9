@@ -1,3 +1,5 @@
+5296.	[placeholder]
+
 5295.	[cleanup]	Split dns_name_copy() calls into dns_name_copy() and
 			dns_name_copynf() for those calls that can potentially
 			fail and those that should not fail respectively.
