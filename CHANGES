@@ -1,3 +1,8 @@
+5295.	[cleanup]	Split dns_name_copy() calls into dns_name_copy() and
+			dns_name_copynf() for those calls that can potentially
+			fail and those that should not fail respectively.
+			[GL !2265]
+
 5294.	[func]		Fallback to ACE name on output in locale, which does not
 			support converting it to unicode.  [GL #846]
 

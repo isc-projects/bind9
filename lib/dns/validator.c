@@ -1394,7 +1394,7 @@ verify(dns_validator_t *val, dst_key_t *key, dns_rdata_t *rdata,
 			 * for the NSEC3 NOQNAME proof.
 			 */
 			closest = dns_fixedname_name(&val->closest);
-			dns_name_copy(wild, closest, NULL);
+			dns_name_copynf(wild, closest);
 			labels = dns_name_countlabels(closest) - 1;
 			dns_name_getlabelsequence(closest, 1, labels, closest);
 			val->attributes |= VALATTR_NEEDNOQNAME;
@@ -2241,7 +2241,7 @@ findnsec3proofs(dns_validator_t *val) {
 				 namebuf, sizeof(namebuf));
 		validator_log(val, ISC_LOG_DEBUG(3), "closest encloser from "
 			      "wildcard signature '%s'", namebuf);
-		dns_name_copy(dns_fixedname_name(&val->closest), closest, NULL);
+		dns_name_copynf(dns_fixedname_name(&val->closest), closest);
 		closestp = NULL;
 		setclosestp = NULL;
 	} else {
@@ -2634,7 +2634,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 
 	secroot = dns_fixedname_initname(&fixedsecroot);
 	found = dns_fixedname_initname(&fixedfound);
-	dns_name_copy(val->event->name, secroot, NULL);
+	dns_name_copynf(val->event->name, secroot);
 	/*
 	 * If this is a response to a DS query, we need to look in
 	 * the parent zone for the trust anchor.
@@ -2705,7 +2705,7 @@ proveunsecure(dns_validator_t *val, bool have_ds, bool resume) {
 
 		tname = dns_fixedname_initname(&val->fname);
 		if (val->labels == dns_name_countlabels(val->event->name))
-			dns_name_copy(val->event->name, tname, NULL);
+			dns_name_copynf(val->event->name, tname);
 		else
 			dns_name_split(val->event->name, val->labels,
 				       NULL, tname);

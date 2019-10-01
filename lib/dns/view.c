@@ -1297,9 +1297,7 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 			 * We found an answer, but the cache may be better.
 			 */
 			zfname = dns_fixedname_name(&zfixedname);
-			result = dns_name_copy(fname, zfname, NULL);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
+			dns_name_copynf(fname, zfname);
 			dns_rdataset_clone(rdataset, &zrdataset);
 			dns_rdataset_disassociate(rdataset);
 			if (sigrdataset != NULL &&
@@ -1340,6 +1338,7 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 				 */
 				try_hints = true;
 			}
+			result = ISC_R_SUCCESS;
 		} else {
 			/*
 			 * Something bad happened.
@@ -1356,13 +1355,9 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 			    dns_rdataset_isassociated(sigrdataset))
 				dns_rdataset_disassociate(sigrdataset);
 		}
-		result = dns_name_copy(zfname, fname, NULL);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		dns_name_copynf(zfname, fname);
 		if (dcname != NULL) {
-			result = dns_name_copy(zfname, dcname, NULL);
-			if (result != ISC_R_SUCCESS)
-				goto cleanup;
+			dns_name_copynf(zfname, dcname);
 		}
 		dns_rdataset_clone(&zrdataset, rdataset);
 		if (sigrdataset != NULL &&
@@ -1384,7 +1379,7 @@ dns_view_findzonecut(dns_view_t *view, const dns_name_t *name,
 				dns_rdataset_disassociate(rdataset);
 			result = ISC_R_NOTFOUND;
 		} else if (dcname != NULL) {
-			dns_name_copy(fname, dcname, NULL);
+			dns_name_copynf(fname, dcname);
 		}
 	}
 
@@ -2165,9 +2160,7 @@ dns_view_searchdlz(dns_view_t *view, const dns_name_t *name,
 		 */
 		for (i = namelabels; i > minlabels && i > 1; i--) {
 			if (i == namelabels) {
-				result = dns_name_copy(name, zonename, NULL);
-				if (result != ISC_R_SUCCESS)
-					return (result);
+				dns_name_copynf(name, zonename);
 			} else
 				dns_name_split(name, i, NULL, zonename);
 

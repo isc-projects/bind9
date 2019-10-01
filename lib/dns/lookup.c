@@ -257,12 +257,10 @@ lookup_find(dns_lookup_t *lookup, dns_fetchevent_t *event) {
 			dns_rdata_reset(&rdata);
 			if (result != ISC_R_SUCCESS)
 				break;
-			result = dns_name_copy(&cname.cname, name, NULL);
+			dns_name_copynf(&cname.cname, name);
 			dns_rdata_freestruct(&cname);
-			if (result == ISC_R_SUCCESS) {
-				want_restart = true;
-				send_event = false;
-			}
+			want_restart = true;
+			send_event = false;
 			break;
 		case DNS_R_DNAME:
 			namereln = dns_name_fullcompare(name, fname, &order,
@@ -366,7 +364,6 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 		  dns_view_t *view, unsigned int options, isc_task_t *task,
 		  isc_taskaction_t action, void *arg, dns_lookup_t **lookupp)
 {
-	isc_result_t result;
 	dns_lookup_t *lookup;
 	isc_event_t *ievent;
 
@@ -394,9 +391,7 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 
 	dns_fixedname_init(&lookup->name);
 
-	result = dns_name_copy(name, dns_fixedname_name(&lookup->name), NULL);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup_lock;
+	dns_name_copynf(name, dns_fixedname_name(&lookup->name));
 
 	lookup->type = type;
 	lookup->view = NULL;
@@ -413,18 +408,6 @@ dns_lookup_create(isc_mem_t *mctx, const dns_name_t *name, dns_rdatatype_t type,
 	lookup_find(lookup, NULL);
 
 	return (ISC_R_SUCCESS);
-
- cleanup_lock:
-	isc_mutex_destroy(&lookup->lock);
-	ievent = (isc_event_t *)lookup->event;
-	isc_event_free(&ievent);
-	lookup->event = NULL;
-
-	isc_task_detach(&lookup->task);
-
-	isc_mem_putanddetach(&mctx, lookup, sizeof(*lookup));
-
-	return (result);
 }
 
 void

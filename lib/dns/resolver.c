@@ -1519,7 +1519,7 @@ fcount_incr(fetchctx_t *fctx, bool force) {
 			counter->allowed = 1;
 			counter->dropped = 0;
 			counter->domain = dns_fixedname_initname(&counter->fdname);
-			dns_name_copy(&fctx->domain, counter->domain, NULL);
+			dns_name_copynf(&fctx->domain, counter->domain);
 			ISC_LIST_APPEND(dbucket->list, counter, link);
 		}
 	} else {
@@ -5192,7 +5192,6 @@ same_question(fetchctx_t *fctx) {
 static void
 clone_results(fetchctx_t *fctx) {
 	dns_fetchevent_t *event, *hevent;
-	isc_result_t result;
 	dns_name_t *name, *hname;
 
 	FCTXTRACE("clone_results");
@@ -5213,11 +5212,8 @@ clone_results(fetchctx_t *fctx) {
 	     event != NULL;
 	     event = ISC_LIST_NEXT(event, ev_link)) {
 		name = dns_fixedname_name(&event->foundname);
-		result = dns_name_copy(hname, name, NULL);
-		if (result != ISC_R_SUCCESS)
-			event->result = result;
-		else
-			event->result = hevent->result;
+		dns_name_copynf(hname, name);
+		event->result = hevent->result;
 		dns_db_attach(hevent->db, &event->db);
 		dns_db_attachnode(hevent->db, hevent->node, &event->node);
 		INSIST(hevent->rdataset != NULL);
@@ -5345,8 +5341,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 	 */
 	if (vevent->proofs[DNS_VALIDATOR_NOQNAMEPROOF] != NULL) {
 		wild = dns_fixedname_initname(&fwild);
-		dns_name_copy(dns_fixedname_name(&vevent->validator->wild),
-			      wild, NULL);
+		dns_name_copynf(dns_fixedname_name(&vevent->validator->wild),
+				   wild);
 	}
 	dns_validator_destroy(&vevent->validator);
 	isc_mem_put(fctx->mctx, valarg, sizeof(*valarg));
@@ -5715,9 +5711,8 @@ validated(isc_task_t *task, isc_event_t *event) {
 			       eresult == DNS_R_NCACHENXRRSET);
 		}
 		hevent->result = eresult;
-		RUNTIME_CHECK(dns_name_copy(vevent->name,
-			      dns_fixedname_name(&hevent->foundname), NULL)
-			      == ISC_R_SUCCESS);
+		dns_name_copynf(vevent->name,
+				   dns_fixedname_name(&hevent->foundname));
 		dns_db_attach(fctx->cache, &hevent->db);
 		dns_db_transfernode(fctx->cache, &node, &hevent->node);
 		clone_results(fctx);
@@ -5939,10 +5934,7 @@ cache_name(fetchctx_t *fctx, dns_name_t *name, dns_adbaddrinfo_t *addrinfo,
 		if (event != NULL) {
 			adbp = &event->db;
 			aname = dns_fixedname_name(&event->foundname);
-			result = dns_name_copy(name, aname, NULL);
-			if (result != ISC_R_SUCCESS) {
-				return (result);
-			}
+			dns_name_copynf(name, aname);
 			anodep = &event->node;
 			/*
 			 * If this is an ANY, SIG or RRSIG query, we're not
@@ -6570,9 +6562,7 @@ ncache_message(fetchctx_t *fctx, dns_adbaddrinfo_t *addrinfo,
 		if (event != NULL) {
 			adbp = &event->db;
 			aname = dns_fixedname_name(&event->foundname);
-			result = dns_name_copy(name, aname, NULL);
-			if (result != ISC_R_SUCCESS)
-				goto unlock;
+			dns_name_copynf(name, aname);
 			anodep = &event->node;
 			ardataset = event->rdataset;
 		}
@@ -7080,7 +7070,7 @@ resume_dslookup(isc_task_t *task, isc_event_t *event) {
 		 * Retrieve state from fctx->nsfetch before we destroy it.
 		 */
 		domain = dns_fixedname_initname(&fixed);
-		dns_name_copy(&fctx->nsfetch->private->domain, domain, NULL);
+		dns_name_copynf(&fctx->nsfetch->private->domain, domain);
 		if (dns_name_equal(&fctx->nsname, domain)) {
 			if (dns_rdataset_isassociated(fevent->rdataset)) {
 				dns_rdataset_disassociate(fevent->rdataset);
