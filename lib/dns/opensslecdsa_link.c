@@ -186,8 +186,7 @@ opensslecdsa_sign(dst_context_t *dctx, isc_buffer_t *sig) {
 	ret = ISC_R_SUCCESS;
 
  err:
-	if (eckey != NULL)
-		EC_KEY_free(eckey);
+	EC_KEY_free(eckey);
 	return (ret);
 }
 
@@ -251,8 +250,7 @@ opensslecdsa_verify(dst_context_t *dctx, const isc_region_t *sig) {
  err:
 	if (ecdsasig != NULL)
 		ECDSA_SIG_free(ecdsasig);
-	if (eckey != NULL)
-		EC_KEY_free(eckey);
+	EC_KEY_free(eckey);
 	return (ret);
 }
 
@@ -340,8 +338,7 @@ opensslecdsa_generate(dst_key_t *key, int unused, void (*callback)(int)) {
 	ret = ISC_R_SUCCESS;
 
  err:
-	if (eckey != NULL)
-		EC_KEY_free(eckey);
+	EC_KEY_free(eckey);
 	return (ret);
 }
 
@@ -396,8 +393,7 @@ opensslecdsa_todns(const dst_key_t *key, isc_buffer_t *data) {
 	ret = ISC_R_SUCCESS;
 
  err:
-	if (eckey != NULL)
-		EC_KEY_free(eckey);
+	EC_KEY_free(eckey);
 	return (ret);
 }
 
@@ -497,8 +493,7 @@ opensslecdsa_tofile(const dst_key_t *key, const char *directory) {
 	ret = dst__privstruct_writefile(key, &priv, directory);
 
  err:
-	if (eckey != NULL)
-		EC_KEY_free(eckey);
+	EC_KEY_free(eckey);
 	if (buf != NULL)
 		isc_mem_put(key->mctx, buf, BN_num_bytes(privkey));
 	return (ret);
@@ -529,8 +524,7 @@ ecdsa_check(EC_KEY *eckey, dst_key_t *pub)
 		DST_RET (ISC_R_SUCCESS);
 
  err:
-	if (pubeckey != NULL)
-		EC_KEY_free(pubeckey);
+	EC_KEY_free(pubeckey);
 	return (ret);
 }
 

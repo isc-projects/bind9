@@ -1706,7 +1706,6 @@ remove_records(dns_dbnode_t *node, dns_rdatatype_t which,
 			result = dns_db_deleterdataset(gdb, node, gversion,
 						       type, covers);
 			check_result(result, "dns_db_deleterdataset()");
-			continue;
 		}
 	}
 	dns_rdatasetiter_destroy(&rdsiter);
@@ -3583,7 +3582,6 @@ main(int argc, char *argv[]) {
 			outputformat = dns_masterformat_raw;
 		} else if (strncasecmp(outputformatstr, "raw=", 4) == 0) {
 			char *end;
-			outputformat = dns_masterformat_raw;
 
 			outputformat = dns_masterformat_raw;
 			rawversion = strtol(outputformatstr + 4, &end, 10);

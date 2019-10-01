@@ -35,7 +35,7 @@
 
 /*
  * Copyright (C) 1999-2001, 2016  Internet Systems Consortium, Inc. ("ISC")
- * 
+ *
  * This Source Code Form is subject to the terms of the Mozilla Public
  * License, v. 2.0. If a copy of the MPL was not distributed with this
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
@@ -433,8 +433,7 @@ odbc_get_resultset(const char *zone, const char *record,
 
 	/* if DBI is null, can't do anything else */
 	if (dbi == NULL) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
+		return (ISC_R_FAILURE);
 	}
 
 	/* what type of query are we going to run? */
@@ -615,10 +614,6 @@ odbc_get_resultset(const char *zone, const char *record,
 	}	/* end for loop */
 
  cleanup:	/* it's always good to cleanup after yourself */
-
-		/* if we couldn't even allocate DBI, just return NULL */
-	if (dbi == NULL)
-		return ISC_R_FAILURE;
 
 	/* free dbi->zone string */
 	if (dbi->zone != NULL)

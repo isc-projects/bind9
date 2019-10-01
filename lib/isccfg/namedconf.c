@@ -312,7 +312,7 @@ static cfg_type_t cfg_type_matchtype = {
 
 static cfg_type_t cfg_type_matchname = {
 	"optional_matchname", parse_matchname, cfg_print_ustring,
-	&doc_matchname, &cfg_rep_tuple, &cfg_type_ustring
+	doc_matchname, &cfg_rep_tuple, &cfg_type_ustring
 };
 
 /*%

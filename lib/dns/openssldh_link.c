@@ -306,7 +306,7 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		} else {
 			/* cppcheck-suppress unreadVariable */
 			u.fptr = callback;
-			BN_GENCB_set(cb, &progress_cb, u.dptr);
+			BN_GENCB_set(cb, progress_cb, u.dptr);
 		}
 
 		if (!DH_generate_parameters_ex(dh, key->key_size, generator,

@@ -211,9 +211,7 @@ cleanup:
 					     sizeof(*plugin));
 		}
 
-		if (handle != NULL) {
-			(void) dlclose(handle);
-		}
+		(void) dlclose(handle);
 	}
 
 	return (result);

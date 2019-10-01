@@ -50,7 +50,7 @@ static __declspec( thread ) uint32_t seed[4];
 #else
 #if defined(_WIN32) || defined(_WIN64)
 #include <windows.h>
-static volatile HANDLE _mutex = NULL;
+static volatile void *_mutex = NULL;
 
 /*
  * Initialize the mutex on the first lock attempt. On collision, each thread
@@ -60,7 +60,7 @@ static volatile HANDLE _mutex = NULL;
 #define _LOCK() \
 	do {								\
 		if (!_mutex) {						\
-			HANDLE p = CreateMutex(NULL, FALSE, NULL);	\
+			void *p = CreateMutex(NULL, FALSE, NULL);	\
 			if (InterlockedCompareExchangePointer		\
 			    ((void **)&_mutex, (void *)p, NULL)) {	\
 				CloseHandle(p);				\

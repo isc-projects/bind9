@@ -594,8 +594,7 @@ isc_result_t dlz_lookup(const char *zone, const char *name, void *dbdata,
 	if (data_cursor != NULL)
 		data_cursor->c_close(data_cursor);
 	
-	if (keyStr != NULL)
-		free(keyStr);
+	free(keyStr);
 	if (tmp != NULL)
 		free(tmp);
 	

@@ -246,8 +246,7 @@ mysql_get_resultset(const char *zone, const char *record,
 #endif /* PTHREADS */
 
 	if (dbi == NULL) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
+		return (ISC_R_FAILURE);
 	}
 
 	/* what type of query are we going to run? */
@@ -401,9 +400,6 @@ mysql_get_resultset(const char *zone, const char *record,
 		result = ISC_R_FAILURE;
 
  cleanup:
-	if (dbi == NULL)
-		return (ISC_R_FAILURE);
-
 	if (dbi->zone != NULL) {
 		free(dbi->zone);
 		dbi->zone = NULL;

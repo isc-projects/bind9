@@ -138,8 +138,7 @@ mysql_get_resultset(const char *zone, const char *record,
 
 	/* if DBI is null, can't do anything else */
 	if (dbi == NULL) {
-		result = ISC_R_FAILURE;
-		goto cleanup;
+		return (ISC_R_FAILURE);
 	}
 
 	/* what type of query are we going to run? */
@@ -329,10 +328,6 @@ mysql_get_resultset(const char *zone, const char *record,
 
  cleanup:
 	/* it's always good to cleanup after yourself */
-
-	/* if we couldn't even get DBI, just return NULL */
-	if (dbi == NULL)
-		return ISC_R_FAILURE;
 
 	/* free dbi->zone string */
 	if (dbi->zone != NULL)

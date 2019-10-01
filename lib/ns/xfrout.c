@@ -279,7 +279,7 @@ ixfr_rrstream_current(rrstream_t *rs,
 static void
 ixfr_rrstream_destroy(rrstream_t **rsp) {
 	ixfr_rrstream_t *s = (ixfr_rrstream_t *) *rsp;
-	if (s->journal != 0)
+	if (s->journal != NULL)
 		dns_journal_destroy(&s->journal);
 	isc_mem_putanddetach(&s->common.mctx, s, sizeof(*s));
 }
