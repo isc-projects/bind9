@@ -121,6 +121,14 @@ stages:
     - tags
     - web
 
+.release-branch-triggering-rules: &release_branch_triggering_rules
+  only:
+    - merge_requests
+    - tags
+    - web
+    - master@isc-projects/bind9
+    - /^v9_[1-9][0-9]$/@isc-projects/bind9
+
 .precheck: &precheck_job
   <<: *default_triggering_rules
   <<: *debian_sid_amd64_image
@@ -257,6 +265,7 @@ stages:
 # Jobs in the precheck stage
 
 autoreconf:sid:amd64:
+  <<: *release_branch_triggering_rules
   <<: *autoconf_job
 
 misc:sid:amd64:
@@ -292,6 +301,7 @@ misc:sid:amd64:
 # Jobs for doc builds on Debian Sid (amd64)
 
 docs:sid:amd64:
+  <<: *release_branch_triggering_rules
   <<: *debian_sid_amd64_image
   stage: docs
   script:
@@ -306,12 +316,6 @@ docs:sid:amd64:
     paths:
       - doc/arm/
     expire_in: "1 month"
-  only:
-    - merge_requests
-    - tags
-    - web
-    - master@isc-projects/bind9
-    - /^v9_[1-9][0-9]$/@isc-projects/bind9
 
 push:docs:sid:amd64:
   <<: *debian_sid_amd64_image
