@@ -3600,6 +3600,20 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 					ADD_STRING(target, ")\n");
 					continue;
 				}
+			} else if (optcode == DNS_OPT_TCP_KEEPALIVE) {
+				if (optlen == 2) {
+					unsigned int dsecs;
+					dsecs = isc_buffer_getuint16(&optbuf);
+					INDENT(style);
+					ADD_STRING(target, "TCP-KEEPALIVE: ");
+					snprintf(buf, sizeof(buf), "%u.%u",
+						 dsecs / 10U, dsecs % 10U);
+					ADD_STRING(target, buf);
+					ADD_STRING(target, " secs\n");
+					continue;
+				}
+				INDENT(style);
+				ADD_STRING(target, "TCP-KEEPALIVE:");
 			} else if (optcode == DNS_OPT_PAD) {
 				INDENT(style);
 				ADD_STRING(target, "PAD:");
