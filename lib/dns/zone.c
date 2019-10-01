@@ -6907,13 +6907,16 @@ next_active(dns_db_t *db, dns_dbversion_t *version, dns_name_t *oldname,
 }
 
 static bool
-signed_with_key(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
-		dns_rdatatype_t type, dst_key_t *key)
+signed_with_good_key(dns_zone_t* zone, dns_db_t *db, dns_dbnode_t *node,
+		     dns_dbversion_t *version, dns_rdatatype_t type,
+		     dst_key_t *key)
 {
 	isc_result_t result;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
 	dns_rdata_rrsig_t rrsig;
+	int count = 0;
+	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 
 	dns_rdataset_init(&rdataset);
 	result = dns_db_findrdataset(db, node, version, dns_rdatatype_rrsig,
@@ -6933,8 +6936,49 @@ signed_with_key(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 			dns_rdataset_disassociate(&rdataset);
 			return (true);
 		}
+		if (rrsig.algorithm == dst_key_alg(key)) {
+			count++;
+		}
 		dns_rdata_reset(&rdata);
 	}
+
+	if (kasp) {
+		dns_kasp_key_t* kkey;
+		int ksk_count = 0, zsk_count = 0;
+		bool approved = false;
+
+		for (kkey = ISC_LIST_HEAD(kasp->keys); kkey != NULL;
+		     kkey = ISC_LIST_NEXT(kkey, link))
+		{
+			if (dns_kasp_key_algorithm(kkey) != dst_key_alg(key)) {
+				continue;
+			}
+			if (dns_kasp_key_ksk(kkey)) {
+				ksk_count++;
+			}
+			if (dns_kasp_key_zsk(kkey)) {
+				zsk_count++;
+			}
+		}
+
+		if (type == dns_rdatatype_dnskey ||
+		    type == dns_rdatatype_cdnskey || type == dns_rdatatype_cds)
+		{
+			/*
+			 * CDS and CDNSKEY are signed with KSK like DNSKEY.
+			 * (RFC 7344, section 4.1 specifies that they must
+			 * be signed with a key in the current DS RRset,
+			 * which would only include KSK's.)
+			 */
+			approved = (ksk_count == count);
+		} else {
+			approved = (zsk_count == count);
+		}
+
+		dns_rdataset_disassociate(&rdataset);
+		return (approved);
+	}
+
 	dns_rdataset_disassociate(&rdataset);
 	return (false);
 }
@@ -7117,7 +7161,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 		{
 			goto next_rdataset;
 		}
-		if (signed_with_key(db, node, version, rdataset.type, key)) {
+		if (signed_with_good_key(zone, db, node, version, rdataset.type, key)) {
 			goto next_rdataset;
 		}
 		/* Calculate the signature, creating a RRSIG RDATA. */
@@ -15346,8 +15390,14 @@ receive_secure_db(isc_task_t *task, isc_event_t *event) {
 			    rdataset.type == dns_rdatatype_nsec3 ||
 			    rdataset.type == dns_rdatatype_dnskey ||
 			    rdataset.type == dns_rdatatype_nsec3param) {
-				dns_rdataset_disassociate(&rdataset);
-				continue;
+				/*
+				 * Allow DNSSEC records with dnssec-policy.
+				 * WMM: Perhaps add config option for it.
+				 */
+				if (dns_zone_getkasp(zone) == NULL) {
+					dns_rdataset_disassociate(&rdataset);
+					continue;
+				}
 			}
 			if (rdataset.type == dns_rdatatype_soa &&
 			    have_oldserial) {
