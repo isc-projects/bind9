@@ -240,6 +240,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 			char *deconst_name;
 		} u;
 
+		/* cppcheck-suppress unreadVariable */
 		u.const_name = name;
 		if (v4 == 1 && af == AF_INET6) {
 			strcpy(mappedname, "::ffff:");
@@ -369,6 +370,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	 * with our own, cleanly discarding the const is the easiest
 	 * thing to do.
 	 */
+	/* cppcheck-suppress unreadVariable */
 	u.konst = src;
 
 	/*
