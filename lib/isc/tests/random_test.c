@@ -352,6 +352,7 @@ random_test(pvalue_func_t *func) {
 	histogram[10] = 0;
 
 	/* Pre-requisite that at least 55 sequences are processed. */
+	/* cppcheck-suppress constArgument */
 	assert_true(m >= 55);
 
 	if (verbose) {
