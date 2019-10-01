@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lwresd.c,v 1.60 2009/09/02 23:48:01 tbox Exp $ */
-
 /*! \file
  * \brief
  * Main program for the Lightweight Resolver Daemon.
@@ -493,6 +491,7 @@ ns_lwreslistener_detach(ns_lwreslistener_t **listenerp) {
 	INSIST(VALID_LWRESLISTENER(*listenerp));
 
 	listener = *listenerp;
+	*listenerp = NULL;
 
 	LOCK(&listener->lock);
 	INSIST(listener->refs > 0);
@@ -514,7 +513,6 @@ ns_lwreslistener_detach(ns_lwreslistener_t **listenerp) {
 	mctx = listener->mctx;
 	isc_mem_put(mctx, listener, sizeof(*listener));
 	isc_mem_detach(&mctx);
-	listenerp = NULL;
 }
 
 static isc_result_t
