@@ -163,7 +163,6 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 #endif
 	int family, i;
 	const void *addr;
-	char *p;
 #if 0
 	unsigned long v4a;
 	unsigned char pfx;
@@ -311,7 +310,7 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		}
 		if (n == 0) {
 			if (flags & NI_NOFQDN) {
-				p = strchr(by->realname, '.');
+				char *p = strchr(by->realname, '.');
 				if (p)
 					*p = '\0';
 			}
