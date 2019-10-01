@@ -17,7 +17,6 @@
 
 #include <isc/commandline.h>
 #include <isc/hash.h>
-#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/util.h>
 
@@ -76,7 +75,6 @@ dyndb_init(isc_mem_t *mctx, const char *name, const char *parameters,
 	 * to initialize libisc/libdns
 	 */
 	if (dctx->refvar != &isc_bind9) {
-		isc_lib_register();
 		isc_log_setcontext(dctx->lctx);
 		dns_log_setcontext(dctx->lctx);
 		isc_hash_set_initializer(dctx->hashinit);

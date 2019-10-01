@@ -12,7 +12,6 @@
 /*! \file */
 
 #include <isc/bind9.h>
-#include <isc/lib.h>
 #include <isc/mem.h>
 #include <isc/os.h>
 #include <isc/tls.h>
@@ -30,11 +29,6 @@
 /***
  *** Functions
  ***/
-
-void
-isc_lib_register(void) {
-	isc_bind9 = false;
-}
 
 void
 isc__initialize(void) ISC_CONSTRUCTOR;
