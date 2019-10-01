@@ -8245,29 +8245,25 @@ load_configuration(const char *filename, ns_server_t *server,
 			}
 #endif
 		}
-	}
 
 #ifdef HAVE_LMDB
-	/*
-	 * If we're using LMDB, we may have created newzones databases
-	 * as root, making it impossible to reopen them later after
-	 * switching to a new userid. We close them now, and reopen
-	 * after relinquishing privileges them.
-	 */
-	if (first_time) {
+		/*
+		 * If we're using LMDB, we may have created newzones
+		 * databases as root, making it impossible to reopen
+		 * them later after switching to a new userid. We
+		 * close them now, and reopen after relinquishing
+		 * privileges them.
+		 */
 		for (view = ISC_LIST_HEAD(server->viewlist);
-		     view != NULL;
-		     view = ISC_LIST_NEXT(view, link))
+		     view != NULL; view = ISC_LIST_NEXT(view, link))
 		{
 			nzd_env_close(view);
 		}
-	}
 #endif /* HAVE_LMDB */
 
-	/*
-	 * Relinquish root privileges.
-	 */
-	if (first_time) {
+		/*
+		 * Relinquish root privileges.
+		 */
 		ns_os_changeuser();
 	}
 

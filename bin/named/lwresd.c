@@ -207,15 +207,13 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 	 * Build the search path
 	 */
 	if (lwc->searchnxt > 0) {
-		if (lwc->searchnxt > 0) {
-			CHECK(buffer_putstr(&b, "\tsearch {\n"));
-			for (i = 0; i < lwc->searchnxt; i++) {
-				CHECK(buffer_putstr(&b, "\t\t\""));
-				CHECK(buffer_putstr(&b, lwc->search[i]));
-				CHECK(buffer_putstr(&b, "\";\n"));
-			}
-			CHECK(buffer_putstr(&b, "\t};\n"));
+		CHECK(buffer_putstr(&b, "\tsearch {\n"));
+		for (i = 0; i < lwc->searchnxt; i++) {
+			CHECK(buffer_putstr(&b, "\t\t\""));
+			CHECK(buffer_putstr(&b, lwc->search[i]));
+			CHECK(buffer_putstr(&b, "\";\n"));
 		}
+		CHECK(buffer_putstr(&b, "\t};\n"));
 	}
 
 	/*

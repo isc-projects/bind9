@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: getipnode.c,v 1.47 2009/09/01 23:47:45 tbox Exp $ */
-
 /*! \file */
 
 /**
@@ -384,11 +382,12 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		if (af == AF_INET6)
 			cp += 12;
 		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
-		if (n == LWRES_R_SUCCESS)
+		if (n == LWRES_R_SUCCESS) {
 			(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
-		if (n == LWRES_R_SUCCESS)
+
 			n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V4,
 						INADDRSZ, cp, &by);
+		}
 		if (n != LWRES_R_SUCCESS) {
 			lwres_conf_clear(lwrctx);
 			lwres_context_destroy(&lwrctx);
@@ -428,11 +427,11 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	}
 
 	n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
-	if (n == LWRES_R_SUCCESS)
+	if (n == LWRES_R_SUCCESS) {
 		(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
-	if (n == LWRES_R_SUCCESS)
 		n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V6, IN6ADDRSZ,
 					src, &by);
+	}
 	if (n != 0) {
 		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
