@@ -868,6 +868,7 @@ default_memalloc(void *arg, size_t size) {
 		size = 1;
 	}
 
+	/* cppcheck-suppress leakNoVarFunctionCall */
 	return (malloc(size));
 }
 

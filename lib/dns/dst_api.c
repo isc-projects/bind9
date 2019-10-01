@@ -134,6 +134,7 @@ default_memalloc(void *arg, size_t size) {
 	UNUSED(arg);
 	if (size == 0U)
 		size = 1;
+	/* cppcheck-suppress leakNoVarFunctionCall */
 	return (malloc(size));
 }
 
