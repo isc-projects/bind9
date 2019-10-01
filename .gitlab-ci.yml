@@ -132,7 +132,7 @@ stages:
   stage: precheck
 
 .autoconf: &autoconf_job
-  <<: *default_triggering_rules
+  <<: *release_branch_triggering_rules
   <<: *debian_sid_amd64_image
   stage: precheck
   script:
@@ -226,7 +226,6 @@ stages:
 # Jobs in the precheck stage
 
 autoreconf:sid:amd64:
-  <<: *release_branch_triggering_rules
   <<: *autoconf_job
 
 misc:sid:amd64:
