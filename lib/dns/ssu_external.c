@@ -68,7 +68,7 @@ ux_socket_connect(const char *path) {
 
 	if (strlen(path) > sizeof(addr.sun_path)) {
 		ssu_e_log(3, "ssu_external: socket path '%s' "
-			     "longer than system maximum %u",
+			     "longer than system maximum %zu",
 			  path, sizeof(addr.sun_path));
 		return (-1);
 	}
