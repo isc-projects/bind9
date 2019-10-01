@@ -591,7 +591,6 @@ rpsdb_finddb(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 	     dns_rdataset_t *rdataset, dns_rdataset_t *sigrdataset)
 {
 	dns_dbnode_t *node;
-	isc_result_t result;
 
 	UNUSED(version);
 	UNUSED(options);
