@@ -578,7 +578,6 @@ isc__nothread_signal_hack(isc_condition_t *cp) {
 isc_result_t
 isc__app_ctxrun(isc_appctx_t *ctx0) {
 	isc__appctx_t *ctx = (isc__appctx_t *)ctx0;
-	int result;
 	isc_event_t *event, *next_event;
 	isc_task_t *task;
 #ifdef ISC_PLATFORM_USETHREADS
@@ -618,15 +617,18 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 	UNLOCK(&ctx->lock);
 
 #ifndef ISC_PLATFORM_USETHREADS
-	if (isc_bind9 && ctx == &isc_g_appctx) {
-		result = handle_signal(SIGHUP, reload_action);
-		if (result != ISC_R_SUCCESS)
-			return (ISC_R_SUCCESS);
-	}
+	{
+		isc_result_t result;
+		if (isc_bind9 && ctx == &isc_g_appctx) {
+			result = handle_signal(SIGHUP, reload_action);
+			if (result != ISC_R_SUCCESS)
+				return (ISC_R_SUCCESS);
+		}
 
-	(void) isc__taskmgr_dispatch(ctx->taskmgr);
-	result = evloop(ctx);
-	return (result);
+		(void) isc__taskmgr_dispatch(ctx->taskmgr);
+		result = evloop(ctx);
+		return (result);
+	}
 #else /* ISC_PLATFORM_USETHREADS */
 	/*
 	 * BIND9 internal tools using multiple contexts do not
@@ -660,14 +662,12 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 			}
 
 #ifndef HAVE_UNIXWARE_SIGWAIT
-			result = sigwait(&sset, &sig);
-			if (result == 0) {
+			if (sigwait(&sset, &sig) == 0) {
 				if (sig == SIGINT || sig == SIGTERM)
 					ctx->want_shutdown = true;
 				else if (sig == SIGHUP)
 					ctx->want_reload = true;
 			}
-
 #else /* Using UnixWare sigwait semantics. */
 			sig = sigwait(&sset);
 			if (sig >= 0) {
@@ -694,6 +694,7 @@ isc__app_ctxrun(isc_appctx_t *ctx0) {
 		}
 #else  /* Don't have sigwait(). */
 		if (isc_bind9) {
+			isc_result_t result;
 			/*
 			 * BIND9 internal; single context:
 			 * Install a signal handler for SIGHUP, then wait for

@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id$ */
-
 /*! \file */
 
 /*
@@ -165,7 +163,6 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 #endif
 	int family, i;
 	const void *addr;
-	char *p;
 #if 0
 	unsigned long v4a;
 	unsigned char pfx;
@@ -304,16 +301,16 @@ lwres_getnameinfo(const struct sockaddr *sa, size_t salen, char *host,
 		}
 
 		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
-		if (n == 0)
+		if (n == 0) {
 			(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
 
-		if (n == 0)
 			n = lwres_getnamebyaddr(lwrctx, lwf,
 						(uint16_t)afd->a_addrlen,
 						addr, &by);
+		}
 		if (n == 0) {
 			if (flags & NI_NOFQDN) {
-				p = strchr(by->realname, '.');
+				char *p = strchr(by->realname, '.');
 				if (p)
 					*p = '\0';
 			}

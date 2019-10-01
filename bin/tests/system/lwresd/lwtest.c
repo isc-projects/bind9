@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lwtest.c,v 1.32 2008/04/02 02:37:42 marka Exp $ */
-
 #include <config.h>
 
 #include <assert.h>
@@ -42,7 +40,7 @@ static int fails = 0;
 static void
 CHECK(lwres_result_t val, const char *msg) {
 	if (val != 0) {
-		printf("I:%s returned %d\n", msg, val);
+		printf("I:%s returned %u\n", msg, val);
 		exit(1);
 	}
 }
@@ -139,7 +137,7 @@ test_gabn(const char *target, lwres_result_t expected, const char *address,
 				   LWRES_ADDRTYPE_V4 | LWRES_ADDRTYPE_V6,
 				   &res);
 	if (ret != expected) {
-		printf("I:gabn(%s) failed: %d\n", target, ret);
+		printf("I:gabn(%s) failed: %u\n", target, ret);
 		if (res != NULL)
 			lwres_gabnresponse_free(ctx, &res);
 		fails++;
@@ -207,7 +205,7 @@ test_gnba(const char *target, uint32_t af, lwres_result_t expected,
 	res = NULL;
 	ret = lwres_getnamebyaddr(ctx, af, len, addrbuf, &res);
 	if (ret != expected) {
-		printf("I:gnba(%s) failed: %d\n", target, ret);
+		printf("I:gnba(%s) failed: %u\n", target, ret);
 		if (res != NULL)
 			lwres_gnbaresponse_free(ctx, &res);
 		fails++;
@@ -622,12 +620,12 @@ test_getrrsetbyname(const char *name, int rdclass, int rdtype,
 	} else if (ret != 0)
 		return;
 	if (rrinfo->rri_nrdatas != nrdatas) {
-		printf("I:getrrsetbyname(%s, %d): got %d rr, expected %d\n",
+		printf("I:getrrsetbyname(%s, %d): got %u rr, expected %u\n",
 			name, rdtype, rrinfo->rri_nrdatas, nrdatas);
 		fails++;
 	}
 	if (rrinfo->rri_nsigs != nsigs) {
-		printf("I:getrrsetbyname(%s, %d): got %d sig, expected %d\n",
+		printf("I:getrrsetbyname(%s, %d): got %u sig, expected %u\n",
 			name, rdtype, rrinfo->rri_nsigs, nsigs);
 		fails++;
 	}

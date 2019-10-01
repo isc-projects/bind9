@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: getipnode.c,v 1.47 2009/09/01 23:47:45 tbox Exp $ */
-
 /*! \file */
 
 /**
@@ -242,6 +240,7 @@ lwres_getipnodebyname(const char *name, int af, int flags, int *error_num) {
 			char *deconst_name;
 		} u;
 
+		/* cppcheck-suppress unreadVariable */
 		u.const_name = name;
 		if (v4 == 1 && af == AF_INET6) {
 			strcpy(mappedname, "::ffff:");
@@ -371,6 +370,7 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	 * with our own, cleanly discarding the const is the easiest
 	 * thing to do.
 	 */
+	/* cppcheck-suppress unreadVariable */
 	u.konst = src;
 
 	/*
@@ -384,11 +384,12 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 		if (af == AF_INET6)
 			cp += 12;
 		n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
-		if (n == LWRES_R_SUCCESS)
+		if (n == LWRES_R_SUCCESS) {
 			(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
-		if (n == LWRES_R_SUCCESS)
+
 			n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V4,
 						INADDRSZ, cp, &by);
+		}
 		if (n != LWRES_R_SUCCESS) {
 			lwres_conf_clear(lwrctx);
 			lwres_context_destroy(&lwrctx);
@@ -428,11 +429,11 @@ lwres_getipnodebyaddr(const void *src, size_t len, int af, int *error_num) {
 	}
 
 	n = lwres_context_create(&lwrctx, NULL, NULL, NULL, 0);
-	if (n == LWRES_R_SUCCESS)
+	if (n == LWRES_R_SUCCESS) {
 		(void) lwres_conf_parse(lwrctx, lwres_resolv_conf);
-	if (n == LWRES_R_SUCCESS)
 		n = lwres_getnamebyaddr(lwrctx, LWRES_ADDRTYPE_V6, IN6ADDRSZ,
 					src, &by);
+	}
 	if (n != 0) {
 		lwres_conf_clear(lwrctx);
 		lwres_context_destroy(&lwrctx);
@@ -974,6 +975,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	 */
 	he->h_addrtype = af;
 	he->h_length = (af == AF_INET) ? INADDRSZ : IN6ADDRSZ;
+	/* cppcheck-suppress memleak */
 	return (he);
 
  cleanup2:

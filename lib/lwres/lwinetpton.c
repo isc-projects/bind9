@@ -12,10 +12,6 @@
 /*! \file lwinetpton.c
  */
 
-#if defined(LIBC_SCCS) && !defined(lint)
-static char rcsid[] = "$Id$";
-#endif /* LIBC_SCCS and not lint */
-
 #include <config.h>
 
 #include <errno.h>
@@ -75,11 +71,11 @@ static int
 inet_pton4(const char *src, unsigned char *dst) {
 	static const char digits[] = "0123456789";
 	int saw_digit, octets, ch;
-	unsigned char tmp[NS_INADDRSZ], *tp;
+	unsigned char tmp[NS_INADDRSZ] = { 0 }, *tp;
 
 	saw_digit = 0;
 	octets = 0;
-	*(tp = tmp) = 0;
+	tp = tmp;
 	while ((ch = *src++) != '\0') {
 		const char *pch;
 
@@ -98,12 +94,7 @@ inet_pton4(const char *src, unsigned char *dst) {
 		} else if (ch == '.' && saw_digit) {
 			if (octets == 4)
 				return (0);
-			/*
-			 * "clang --analyse" generates warnings using:
-			 * 		*++tp = 0;
-			 */
 			tp++;
-			*tp = 0;
 			saw_digit = 0;
 		} else
 			return (0);

@@ -484,12 +484,15 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 			break;
 
 		case 'D':	/*deprecated*/
+			/* cppcheck-suppress literalWithCharPtrCompare */
 			INSIST("use %ld instead of %D" == NULL);
 			break;
 		case 'O':	/*deprecated*/
+			/* cppcheck-suppress literalWithCharPtrCompare */
 			INSIST("use %lo instead of %O" == NULL);
 			break;
 		case 'U':	/*deprecated*/
+			/* cppcheck-suppress literalWithCharPtrCompare */
 			INSIST("use %lu instead of %U" == NULL);
 			break;
 
@@ -497,6 +500,7 @@ lwres__print_vsnprintf(char *str, size_t size, const char *format, va_list ap) {
 #ifdef HAVE_LONG_DOUBLE
 			l = 1;
 #else
+			/* cppcheck-suppress literalWithCharPtrCompare */
 			INSIST("long doubles are not supported" == NULL);
 #endif
 			/* FALLTHROUGH */

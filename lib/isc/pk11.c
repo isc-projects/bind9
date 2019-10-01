@@ -1393,6 +1393,7 @@ pk11_dump_tokens(void) {
 			if (!first)
 				printf(",");
 			first = false;
+			UNUSED(first);
 			printf("AES");
 		}
 		printf(")\n");

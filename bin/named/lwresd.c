@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: lwresd.c,v 1.60 2009/09/02 23:48:01 tbox Exp $ */
-
 /*! \file
  * \brief
  * Main program for the Lightweight Resolver Daemon.
@@ -209,15 +207,13 @@ ns_lwresd_parseeresolvconf(isc_mem_t *mctx, cfg_parser_t *pctx,
 	 * Build the search path
 	 */
 	if (lwc->searchnxt > 0) {
-		if (lwc->searchnxt > 0) {
-			CHECK(buffer_putstr(&b, "\tsearch {\n"));
-			for (i = 0; i < lwc->searchnxt; i++) {
-				CHECK(buffer_putstr(&b, "\t\t\""));
-				CHECK(buffer_putstr(&b, lwc->search[i]));
-				CHECK(buffer_putstr(&b, "\";\n"));
-			}
-			CHECK(buffer_putstr(&b, "\t};\n"));
+		CHECK(buffer_putstr(&b, "\tsearch {\n"));
+		for (i = 0; i < lwc->searchnxt; i++) {
+			CHECK(buffer_putstr(&b, "\t\t\""));
+			CHECK(buffer_putstr(&b, lwc->search[i]));
+			CHECK(buffer_putstr(&b, "\";\n"));
 		}
+		CHECK(buffer_putstr(&b, "\t};\n"));
 	}
 
 	/*
@@ -493,6 +489,7 @@ ns_lwreslistener_detach(ns_lwreslistener_t **listenerp) {
 	INSIST(VALID_LWRESLISTENER(*listenerp));
 
 	listener = *listenerp;
+	*listenerp = NULL;
 
 	LOCK(&listener->lock);
 	INSIST(listener->refs > 0);
@@ -514,7 +511,6 @@ ns_lwreslistener_detach(ns_lwreslistener_t **listenerp) {
 	mctx = listener->mctx;
 	isc_mem_put(mctx, listener, sizeof(*listener));
 	isc_mem_detach(&mctx);
-	listenerp = NULL;
 }
 
 static isc_result_t

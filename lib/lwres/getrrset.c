@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: getrrset.c,v 1.18 2007/06/19 23:47:22 tbox Exp $ */
-
 /*! \file */
 
 /**
@@ -119,6 +117,7 @@ static void *
 sane_malloc(size_t size) {
 	if (size == 0U)
 		size = 1;
+	/* cppcheck-suppress leakNoVarFunctionCall */
 	return (malloc(size));
 }
 

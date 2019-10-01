@@ -9,8 +9,6 @@
  * information regarding copyright ownership.
  */
 
-/* $Id: acache.c,v 1.22 2008/02/07 23:46:54 tbox Exp $ */
-
 #include <config.h>
 
 #include <isc/atomic.h>
@@ -1597,20 +1595,20 @@ dns_acache_setentry(dns_acache_t *acache, dns_acacheentry_t *entry,
 		dns_db_closeversion(db, &version, false);
 	/* Set DB node. */
 	if (node != NULL) {
-		INSIST(db != NULL);
-		dns_db_attachnode(db, node, &entry->node);
-	}
-
-	/*
-	 * Set list of the corresponding rdatasets, if given.
-	 * To minimize the overhead and memory consumption, we'll do this for
-	 * positive cache only, in which case the DB node is non NULL.
-	 * We do not want to cache incomplete information, so give up the
-	 * entire entry when a memory shortage happen during the process.
-	 */
-	if (node != NULL) {
 		dns_rdataset_t *ardataset, *crdataset;
 
+		INSIST(db != NULL);
+		dns_db_attachnode(db, node, &entry->node);
+
+		/*
+		 * Set list of the corresponding rdatasets, if
+		 * given. To minimize the overhead and memory
+		 * consumption, we'll do this for positive cache
+		 * only, in which case the DB node is non NULL.  We
+		 * do not want to cache incomplete information, so
+		 * give up the entire entry when a memory shortage
+		 * happen during the process.
+		 */
 		entry->foundname = isc_mem_get(acache->mctx,
 					       sizeof(*entry->foundname));
 
