@@ -1864,7 +1864,7 @@ buildfilename(dns_name_t *name, dns_keytag_t id,
 		return (ISC_R_NOSPACE);
 	snprintf((char *) isc_buffer_used(out),
 		 (int)isc_buffer_availablelength(out),
-		 "+%03d+%05d%s", alg, id, suffix);
+		 "+%03u+%05d%s", alg, id, suffix);
 	isc_buffer_add(out, len);
 
 	return (ISC_R_SUCCESS);
