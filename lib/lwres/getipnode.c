@@ -973,6 +973,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	 */
 	he->h_addrtype = af;
 	he->h_length = (af == AF_INET) ? INADDRSZ : IN6ADDRSZ;
+	/* cppcheck-suppress memleak */
 	return (he);
 
  cleanup2:
