@@ -622,16 +622,20 @@ isc__print_printf(void (*emit)(char, void *), void *arg,
 			}
 			break;
 		case 'D':	/*deprecated*/
+			/* cppcheck-suppress literalWithCharPtrCompare */
 			assert("use %ld instead of %D" == NULL);
 		case 'O':	/*deprecated*/
+			/* cppcheck-suppress literalWithCharPtrCompare */
 			assert("use %lo instead of %O" == NULL);
 		case 'U':	/*deprecated*/
+			/* cppcheck-suppress literalWithCharPtrCompare */
 			assert("use %lu instead of %U" == NULL);
 
 		case 'L':
 #ifdef HAVE_LONG_DOUBLE
 			l = 1;
 #else
+			/* cppcheck-suppress literalWithCharPtrCompare */
 			assert("long doubles are not supported" == NULL);
 #endif
 			/* FALLTHROUGH */
