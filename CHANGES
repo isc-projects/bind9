@@ -1,3 +1,5 @@
+5296.	[bug]		Address various issues reported by cppcheck. [GL !2421]
+
 5294.	[func]		Fallback to ACE name on output in locale, which does not
 			support converting it to unicode.  [GL #846]
 
