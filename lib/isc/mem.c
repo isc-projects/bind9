@@ -2557,7 +2557,7 @@ isc_mem_renderxml(xmlTextWriterPtr writer) {
 
 static isc_result_t
 json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
-	isc_result_t result = ISC_R_FAILURE;
+	isc_result_t result = ISC_R_SUCCESS;
 	json_object *ctxobj, *obj;
 	char buf[1024];
 
@@ -2639,7 +2639,7 @@ json_renderctx(isc__mem_t *ctx, summarystat_t *summary, json_object *array) {
 
 	MCTXUNLOCK(ctx, &ctx->lock);
 	json_object_array_add(array, ctxobj);
-	return (ISC_R_SUCCESS);
+	return (result);
 
  error:
 	MCTXUNLOCK(ctx, &ctx->lock);
@@ -2696,7 +2696,7 @@ isc_mem_renderjson(json_object *memobj) {
 	json_object_object_add(memobj, "Lost", obj);
 
 	json_object_object_add(memobj, "contexts", ctxarray);
-	return (ISC_R_SUCCESS);
+	return (result);
 
  error:
 	if (ctxarray != NULL)
