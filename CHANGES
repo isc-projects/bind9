@@ -1,3 +1,5 @@
+	--- 9.14.7 released ---
+
 5299.	[security]	A flaw in DNSSEC verification when transferring
 			mirror zones could allow data to be incorrectly
 			marked valid. (CVE-2019-6475) [GL #16P]
