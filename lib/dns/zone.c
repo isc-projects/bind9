@@ -15,6 +15,7 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#include <isc/atomic.h>
 #include <isc/file.h>
 #include <isc/hex.h>
 #include <isc/mutex.h>
@@ -211,11 +212,11 @@ struct dns_zone {
 	dns_masterformat_t	masterformat;
 	const dns_master_style_t *masterstyle;
 	char			*journal;
-	int32_t		journalsize;
+	int32_t			journalsize;
 	dns_rdataclass_t	rdclass;
 	dns_zonetype_t		type;
-	unsigned int		flags;
-	dns_zoneopt_t		options;
+	atomic_uint_fast64_t	flags;
+	atomic_uint_fast64_t	options;
 	unsigned int		db_argc;
 	char			**db_argv;
 	isc_time_t		expiretime;
@@ -248,7 +249,7 @@ struct dns_zone {
 	isc_sockaddr_t		*masters;
 	isc_dscp_t		*masterdscps;
 	dns_name_t		**masterkeynames;
-	bool		*mastersok;
+	bool			*mastersok;
 	unsigned int		masterscnt;
 	unsigned int		curmaster;
 	isc_sockaddr_t		masteraddr;
@@ -360,7 +361,7 @@ struct dns_zone {
 	/*%
 	 * Autosigning/key-maintenance options
 	 */
-	uint32_t		keyopts;
+	atomic_uint_fast64_t	keyopts;
 
 	/*%
 	 * True if added by "rndc addzone"
@@ -442,67 +443,69 @@ struct dns_zone {
 		(_z)->offline = false; \
 	} while (0)
 
-#define DNS_ZONE_FLAG(z,f) ((z)->flags & (f))
-#define DNS_ZONE_SETFLAG(z,f) do { \
-		INSIST(LOCKED_ZONE(z)); \
-		(z)->flags |= (f); \
-		} while (0)
-#define DNS_ZONE_CLRFLAG(z,f) do { \
-		INSIST(LOCKED_ZONE(z)); \
-		(z)->flags &= ~(f); \
-		} while (0)
-	/* XXX MPA these may need to go back into zone.h */
-#define DNS_ZONEFLG_REFRESH	0x00000001U	/*%< refresh check in progress */
-#define DNS_ZONEFLG_NEEDDUMP	0x00000002U	/*%< zone need consolidation */
-#define DNS_ZONEFLG_USEVC	0x00000004U	/*%< use tcp for refresh query */
-#define DNS_ZONEFLG_DUMPING	0x00000008U	/*%< a dump is in progress */
-#define DNS_ZONEFLG_HASINCLUDE	0x00000010U	/*%< $INCLUDE in zone file */
-#define DNS_ZONEFLG_LOADED	0x00000020U	/*%< database has loaded */
-#define DNS_ZONEFLG_EXITING	0x00000040U	/*%< zone is being destroyed */
-#define DNS_ZONEFLG_EXPIRED	0x00000080U	/*%< zone has expired */
-#define DNS_ZONEFLG_NEEDREFRESH	0x00000100U	/*%< refresh check needed */
-#define DNS_ZONEFLG_UPTODATE	0x00000200U	/*%< zone contents are
+#define DNS_ZONE_FLAG(z,f) ((atomic_load_relaxed(&(z)->flags) & (f)) != 0)
+#define DNS_ZONE_SETFLAG(z,f) atomic_fetch_or(&(z)->flags, (f))
+#define DNS_ZONE_CLRFLAG(z,f) atomic_fetch_and(&(z)->flags, ~(f))
+typedef enum {
+	DNS_ZONEFLG_REFRESH	= 0x00000001U,	/*%< refresh check in progress */
+	DNS_ZONEFLG_NEEDDUMP	= 0x00000002U,	/*%< zone need consolidation */
+	DNS_ZONEFLG_USEVC	= 0x00000004U,	/*%< use tcp for refresh query */
+	DNS_ZONEFLG_DUMPING	= 0x00000008U,	/*%< a dump is in progress */
+	DNS_ZONEFLG_HASINCLUDE	= 0x00000010U,	/*%< $INCLUDE in zone file */
+	DNS_ZONEFLG_LOADED	= 0x00000020U,	/*%< database has loaded */
+	DNS_ZONEFLG_EXITING	= 0x00000040U,	/*%< zone is being destroyed */
+	DNS_ZONEFLG_EXPIRED	= 0x00000080U,	/*%< zone has expired */
+	DNS_ZONEFLG_NEEDREFRESH	= 0x00000100U,	/*%< refresh check needed */
+	DNS_ZONEFLG_UPTODATE	= 0x00000200U,	/*%< zone contents are
 						 * uptodate */
-#define DNS_ZONEFLG_NEEDNOTIFY	0x00000400U	/*%< need to send out notify
+	DNS_ZONEFLG_NEEDNOTIFY	= 0x00000400U,	/*%< need to send out notify
 						 * messages */
-#define DNS_ZONEFLG_DIFFONRELOAD 0x00000800U	/*%< generate a journal diff on
+	DNS_ZONEFLG_DIFFONRELOAD = 0x00000800U,	/*%< generate a journal diff on
 						 * reload */
-#define DNS_ZONEFLG_NOMASTERS	0x00001000U	/*%< an attempt to refresh a
+	DNS_ZONEFLG_NOMASTERS	= 0x00001000U,	/*%< an attempt to refresh a
 						 * zone with no masters
 						 * occurred */
-#define DNS_ZONEFLG_LOADING	0x00002000U	/*%< load from disk in progress*/
-#define DNS_ZONEFLG_HAVETIMERS	0x00004000U	/*%< timer values have been set
+	DNS_ZONEFLG_LOADING	= 0x00002000U,	/*%< load from disk in progress*/
+	DNS_ZONEFLG_HAVETIMERS	= 0x00004000U,	/*%< timer values have been set
 						 * from SOA (if not set, we
 						 * are still using
 						 * default timer values) */
-#define DNS_ZONEFLG_FORCEXFER	0x00008000U	/*%< Force a zone xfer */
-#define DNS_ZONEFLG_NOREFRESH	0x00010000U
-#define DNS_ZONEFLG_DIALNOTIFY	0x00020000U
-#define DNS_ZONEFLG_DIALREFRESH	0x00040000U
-#define DNS_ZONEFLG_SHUTDOWN	0x00080000U
-#define DNS_ZONEFLAG_NOIXFR	0x00100000U	/*%< IXFR failed, force AXFR */
-#define DNS_ZONEFLG_FLUSH	0x00200000U
-#define DNS_ZONEFLG_NOEDNS	0x00400000U
-#define DNS_ZONEFLG_USEALTXFRSRC 0x00800000U
-#define DNS_ZONEFLG_SOABEFOREAXFR 0x01000000U
-#define DNS_ZONEFLG_NEEDCOMPACT 0x02000000U
-#define DNS_ZONEFLG_REFRESHING	0x04000000U	/*%< Refreshing keydata */
-#define DNS_ZONEFLG_THAW	0x08000000U
-#define DNS_ZONEFLG_LOADPENDING	0x10000000U	/*%< Loading scheduled */
-#define DNS_ZONEFLG_NODELAY	0x20000000U
-#define DNS_ZONEFLG_SENDSECURE  0x40000000U
-#define DNS_ZONEFLG_NEEDSTARTUPNOTIFY 0x80000000U /*%< need to send out notify
+	DNS_ZONEFLG_FORCEXFER	= 0x00008000U,	/*%< Force a zone xfer */
+	DNS_ZONEFLG_NOREFRESH	= 0x00010000U,
+	DNS_ZONEFLG_DIALNOTIFY	= 0x00020000U,
+	DNS_ZONEFLG_DIALREFRESH	= 0x00040000U,
+	DNS_ZONEFLG_SHUTDOWN	= 0x00080000U,
+	DNS_ZONEFLAG_NOIXFR	= 0x00100000U,	/*%< IXFR failed, force AXFR */
+	DNS_ZONEFLG_FLUSH	= 0x00200000U,
+	DNS_ZONEFLG_NOEDNS	= 0x00400000U,
+	DNS_ZONEFLG_USEALTXFRSRC = 0x00800000U,
+	DNS_ZONEFLG_SOABEFOREAXFR = 0x01000000U,
+	DNS_ZONEFLG_NEEDCOMPACT = 0x02000000U,
+	DNS_ZONEFLG_REFRESHING	= 0x04000000U,	/*%< Refreshing keydata */
+	DNS_ZONEFLG_THAW	= 0x08000000U,
+	DNS_ZONEFLG_LOADPENDING	= 0x10000000U,	/*%< Loading scheduled */
+	DNS_ZONEFLG_NODELAY	= 0x20000000U,
+	DNS_ZONEFLG_SENDSECURE  = 0x40000000U,
+	DNS_ZONEFLG_NEEDSTARTUPNOTIFY = 0x80000000U, /*%< need to send out notify
 						   *   due to the zone just
 						   *   being loaded for the
 						   *   first time.  */
+	DNS_ZONEFLG___MAX            = UINT64_MAX, /* trick to make the ENUM 64-bit wide */
+} dns_zoneflg_t;
 
-#define DNS_ZONE_OPTION(z,o) (((z)->options & (o)) != 0)
-#define DNS_ZONEKEY_OPTION(z,o) (((z)->keyopts & (o)) != 0)
+#define DNS_ZONE_OPTION(z,o) ((atomic_load_relaxed(&(z)->options) & (o)) != 0)
+#define DNS_ZONE_SETOPTION(z,o) atomic_fetch_or(&(z)->options, (o))
+#define DNS_ZONE_CLROPTION(z,o) atomic_fetch_and(&(z)->options, ~(o))
+
+#define DNS_ZONEKEY_OPTION(z,o) ((atomic_load_relaxed(&(z)->keyopts) & (o)) != 0)
+#define DNS_ZONEKEY_SETOPTION(z,o) atomic_fetch_or(&(z)->keyopts, (o))
+#define DNS_ZONEKEY_CLROPTION(z,o) atomic_fetch_and(&(z)->keyopts, ~(o))
 
 /* Flags for zone_load() */
-#define DNS_ZONELOADFLAG_NOSTAT        0x00000001U     /* Do not stat() master files */
-#define DNS_ZONELOADFLAG_THAW  0x00000002U     /* Thaw the zone on successful
-						  load. */
+typedef enum {
+	DNS_ZONELOADFLAG_NOSTAT	= 0x00000001U,     /* Do not stat() master files */
+	DNS_ZONELOADFLAG_THAW	= 0x00000002U,     /* Thaw the zone on successful load. */
+} dns_zoneloadflag_t;
 
 #define UNREACH_CACHE_SIZE	10U
 #define UNREACH_HOLD_TIME	600	/* 10 minutes */
@@ -933,9 +936,9 @@ dns_zone_create(dns_zone_t **zonep, isc_mem_t *mctx) {
 	zone->journal = NULL;
 	zone->rdclass = dns_rdataclass_none;
 	zone->type = dns_zone_none;
-	zone->flags = 0;
-	zone->options = 0;
-	zone->keyopts = 0;
+	atomic_init(&zone->flags, 0);
+	atomic_init(&zone->options, 0);
+	atomic_init(&zone->keyopts, 0);
 	zone->db_argc = 0;
 	zone->db_argv = NULL;
 	isc_time_settoepoch(&zone->expiretime);
@@ -1625,10 +1628,11 @@ dns_zone_setmaxttl(dns_zone_t *zone, dns_ttl_t maxttl) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	LOCK_ZONE(zone);
-	if (maxttl != 0)
-		zone->options |= DNS_ZONEOPT_CHECKTTL;
-	else
-		zone->options &= ~DNS_ZONEOPT_CHECKTTL;
+	if (maxttl != 0) {
+		DNS_ZONE_SETOPTION(zone, DNS_ZONEOPT_CHECKTTL);
+	} else {
+		DNS_ZONE_CLROPTION(zone, DNS_ZONEOPT_CHECKTTL);
+	}
 	zone->maxttl = maxttl;
 	UNLOCK_ZONE(zone);
 
@@ -5464,8 +5468,8 @@ zone_iattach(dns_zone_t *source, dns_zone_t **target) {
 	/*
 	 * 'source' locked by caller.
 	 */
-	REQUIRE(LOCKED_ZONE(source));
 	REQUIRE(DNS_ZONE_VALID(source));
+	REQUIRE(LOCKED_ZONE(source));
 	REQUIRE(target != NULL && *target == NULL);
 	INSIST(source->irefs + isc_refcount_current(&source->erefs) > 0);
 	source->irefs++;
@@ -5526,12 +5530,11 @@ void
 dns_zone_setflag(dns_zone_t *zone, unsigned int flags, bool value) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	LOCK_ZONE(zone);
-	if (value)
+	if (value) {
 		DNS_ZONE_SETFLAG(zone, flags);
-	else
+	} else {
 		DNS_ZONE_CLRFLAG(zone, flags);
-	UNLOCK_ZONE(zone);
+	}
 }
 
 void
@@ -5540,19 +5543,18 @@ dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option,
 {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	LOCK_ZONE(zone);
-	if (value)
-		zone->options |= option;
-	else
-		zone->options &= ~option;
-	UNLOCK_ZONE(zone);
+	if (value) {
+		DNS_ZONE_SETOPTION(zone, option);
+	} else {
+		DNS_ZONE_CLROPTION(zone, option);
+	}
 }
 
 dns_zoneopt_t
 dns_zone_getoptions(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (zone->options);
+	return (atomic_load_relaxed(&zone->options));
 }
 
 void
@@ -5560,12 +5562,11 @@ dns_zone_setkeyopt(dns_zone_t *zone, unsigned int keyopt, bool value)
 {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	LOCK_ZONE(zone);
-	if (value)
-		zone->keyopts |= keyopt;
-	else
-		zone->keyopts &= ~keyopt;
-	UNLOCK_ZONE(zone);
+	if (value) {
+		DNS_ZONEKEY_SETOPTION(zone, keyopt);
+	} else {
+		DNS_ZONEKEY_CLROPTION(zone, keyopt);
+	}
 }
 
 unsigned int
@@ -5573,7 +5574,7 @@ dns_zone_getkeyopts(dns_zone_t *zone) {
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 
-	return (zone->keyopts);
+	return (atomic_load_relaxed(&zone->keyopts));
 }
 
 isc_result_t
@@ -10641,7 +10642,7 @@ dns_zone_refresh(dns_zone_t *zone) {
 	 */
 
 	LOCK_ZONE(zone);
-	oldflags = zone->flags;
+	oldflags = atomic_load(&zone->flags);
 	if (zone->masterscnt == 0) {
 		DNS_ZONE_SETFLAG(zone, DNS_ZONEFLG_NOMASTERS);
 		if ((oldflags & DNS_ZONEFLG_NOMASTERS) == 0)
@@ -14210,6 +14211,8 @@ dns_zone_logv(dns_zone_t *zone, isc_logcategory_t *category, int level,
 	char message[4096];
 	const char *zstr;
 
+	REQUIRE(DNS_ZONE_VALID(zone));
+
 	if (!isc_log_wouldlog(dns_lctx, level)) {
 		return;
 	}
@@ -15629,7 +15632,7 @@ zone_xfrdone(dns_zone_t *zone, isc_result_t result) {
 		}
 	}
 
-	INSIST((zone->flags & DNS_ZONEFLG_REFRESH) != 0);
+	INSIST(DNS_ZONE_FLAG(zone, DNS_ZONEFLG_REFRESH));
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_REFRESH);
 	DNS_ZONE_CLRFLAG(zone, DNS_ZONEFLG_SOABEFOREAXFR);
 
@@ -18593,7 +18596,7 @@ zone_rekey(dns_zone_t *zone) {
 		 * Clear fullsign flag, if it was set, so we don't do
 		 * another full signing next time
 		 */
-		zone->keyopts &= ~DNS_ZONEKEY_FULLSIGN;
+		DNS_ZONEKEY_CLROPTION(zone, DNS_ZONEKEY_FULLSIGN);
 
 		/*
 		 * Cause the zone to add/delete NSEC3 chains for the
@@ -18746,8 +18749,9 @@ dns_zone_rekey(dns_zone_t *zone, bool fullsign) {
 	if (zone->type == dns_zone_master && zone->task != NULL) {
 		LOCK_ZONE(zone);
 
-		if (fullsign)
-			zone->keyopts |= DNS_ZONEKEY_FULLSIGN;
+		if (fullsign) {
+			DNS_ZONEKEY_SETOPTION(zone, DNS_ZONEKEY_FULLSIGN);
+		}
 
 		TIME_NOW(&now);
 		zone->refreshkeytime = now;
@@ -19875,7 +19879,7 @@ dns_zone_getgluecachestats(dns_zone_t *zone) {
 }
 
 bool
-dns_zone_isloaded(const dns_zone_t *zone) {
+dns_zone_isloaded(dns_zone_t *zone) {
 	REQUIRE(DNS_ZONE_VALID(zone));
 
 	return (DNS_ZONE_FLAG(zone, DNS_ZONEFLG_LOADED));
@@ -19889,10 +19893,11 @@ dns_zone_verifydb(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver) {
 	dns_name_t *origin;
 
 	const char me[] = "dns_zone_verifydb";
-	ENTER;
 
 	REQUIRE(DNS_ZONE_VALID(zone));
 	REQUIRE(db != NULL);
+
+	ENTER;
 
 	if (dns_zone_gettype(zone) != dns_zone_mirror) {
 		return (ISC_R_SUCCESS);
