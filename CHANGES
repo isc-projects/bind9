@@ -1,3 +1,7 @@
+5297.	[bug]		Check whether a previous QNAME minimization fetch
+			is still running before starting a new one; return
+			SERVFAIL and log an error if so. [GL #1191]
+
 5296.	[placeholder]
 
 5295.	[cleanup]	Split dns_name_copy() calls into dns_name_copy() and
