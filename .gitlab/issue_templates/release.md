@@ -28,9 +28,9 @@
  - [ ] (QA) Tell Support to handle notification of release.
  - [ ] (Manager) Inform Marketing of the release
  - [ ] (Manager) Update the internal [BIND release dates wiki page](https://wiki.isc.org/bin/view/Main/BindReleaseDates) when public announcement has been made.
-
- - [ ] (SwEng) Update DEB and RPM packages
- - [ ] (SwEng) Merge the automatically prepared `prep 9.X.Y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_X`)
+ - [ ] (SwEng) Push tags for the published releases to the public repository.
+ - [ ] (SwEng) Update DEB and RPM packages.
+ - [ ] (SwEng) Merge the automatically prepared `prep 9.X.Y` commit which updates `version` and documentation on the release branch into the relevant maintenance branch (`v9_X`).
 
 ## Support
  - [ ] Make tarballs and signatures available to download.
