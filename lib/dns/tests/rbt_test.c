@@ -1202,7 +1202,7 @@ rbt_nodechain(void **state) {
 	test_context_teardown(ctx);
 }
 
-#ifdef DNS_BENCHMARK_TESTS
+#if defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)
 
 /*
  * XXXMUKS: Don't delete this code. It is useful in benchmarking the
@@ -1317,7 +1317,7 @@ benchmark(void **state) {
 
 	dns_rbt_destroy(&mytree);
 }
-#endif /* DNS_BENCHMARK_TESTS */
+#endif /* defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)  */
 
 int
 main(void) {
@@ -1342,9 +1342,9 @@ main(void) {
 						_setup, _teardown),
 		cmocka_unit_test_setup_teardown(rbt_nodechain,
 						_setup, _teardown),
-#ifdef DNS_BENCHMARK_TESTS
+#if defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__)
 		cmocka_unit_test_setup_teardown(benchmark, _setup, _teardown),
-#endif /* DNS_BENCHMARK_TESTS */
+#endif /* defined(DNS_BENCHMARK_TESTS) && !defined(__SANITIZE_THREAD__) */
 	};
 
 	return (cmocka_run_group_tests(tests, NULL, NULL));
