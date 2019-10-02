@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.11.11
+Release Notes for BIND Version 9.11.12
 
 Introduction
 
@@ -88,7 +88,7 @@ Bug Fixes
   * named-checkconf could crash during configuration if configured to use
     "geoip continent" ACLs with legacy GeoIP. [GL #1163]
 
-  * named-checkconf now correctly reports missing dnstap-output option
+  * named-checkconf now correctly reports a missing dnstap-output option
     when dnstap is set. [GL #1136]
 
   * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
@@ -97,8 +97,10 @@ Bug Fixes
 End of Life
 
 BIND 9.11 (Extended Support Version) will be supported until at least
-December, 2021. See https://www.isc.org/downloads/software-support-policy/
-for details of ISC's software support policy.
+December, 2021.
+
+See https://www.isc.org/downloads/software-support-policy/ for details of
+ISC's software support policy.
 
 Thank You
 
