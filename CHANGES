@@ -1,3 +1,7 @@
+5299.	[placeholder]
+
+5298.	[placeholder]
+
 5297.	[bug]		Check whether a previous QNAME minimization fetch
 			is still running before starting a new one; return
 			SERVFAIL and log an error if so. [GL #1191]
