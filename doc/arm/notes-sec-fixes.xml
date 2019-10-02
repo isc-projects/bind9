@@ -34,5 +34,13 @@
         This flaw is disclosed in CVE-2019-6471. [GL #942]
       </para>
     </listitem>
+    <listitem>
+      <para>
+	<command>named</command> could crash with an assertion failure
+	if a forwarder returned a referral, rather than resolving the
+	query, when QNAME minimization was enabled.  This flaw is
+	disclosed in CVE-2019-6476. [GL #1501]
+      </para>
+    </listitem>
   </itemizedlist>
 </section>

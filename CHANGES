@@ -1,6 +1,8 @@
 5299.	[placeholder]
 
-5298.	[placeholder]
+5298.	[security]	Named could assert if a forwarder returned a
+			referral, rather than resolving the query, when QNAME
+			minimization was enabled. (CVE-2019-6476) [GL #1051]
 
 5297.	[bug]		Check whether a previous QNAME minimization fetch
 			is still running before starting a new one; return
@@ -31,7 +33,7 @@
 5289.	[bug]		Address NULL pointer dereference in rpz.c:rpz_detach.
 			[GL #1210]
 
-5288.	[bug]		dnssec-must-be-secure was not always honoured.
+5288.	[bug]		dnssec-must-be-secure was not always honored.
 			[GL #1209]
 
 5287.	[placeholder]
@@ -108,7 +110,7 @@
 
 5268.	[placeholder]
 
-5267.	[func]		Allow statistics groups display to be toggleable.
+5267.	[func]		Allow statistics groups display to be toggle-able.
 			[GL #1030]
 
 5266.	[bug]		named-checkconf failed to report dnstap-output
@@ -216,7 +218,7 @@
 			code in a high-load cold-cache resolver scenario.
 			[GL #943]
 
-5242.	[bug]		In relaxed qname minimizatiom mode, fall back to
+5242.	[bug]		In relaxed qname minimization mode, fall back to
 			normal resolution when encountering a lame
 			delegation, and use _.domain/A queries rather
 			than domain/NS. [GL #1055]
