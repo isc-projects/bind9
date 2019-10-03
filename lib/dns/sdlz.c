@@ -859,7 +859,7 @@ findrdataset(dns_db_t *db, dns_dbnode_t *node, dns_dbversion_t *version,
 	dns_rdatalist_t *list;
 	dns_sdlznode_t *sdlznode = (dns_sdlznode_t *)node;
 
-	REQUIRE(VALID_SDLZNODE(node));
+	REQUIRE(VALID_SDLZNODE(sdlznode));
 
 	UNUSED(db);
 	UNUSED(version);
