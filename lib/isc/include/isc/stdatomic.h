@@ -34,6 +34,7 @@
 #elif __GNUC_PREREQ__(4, 7)
 #define __GNUC_ATOMICS
 #elif !defined(__GNUC__)
+/* cppcheck-suppress preprocessorErrorDirective */
 #error "isc/stdatomic.h does not support your compiler"
 #endif
 #endif
