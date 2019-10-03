@@ -229,7 +229,9 @@ stages:
            -j ${TEST_PARALLEL_JOBS:-1} \
            --xml \
            --output-file=cppcheck.results \
-           --inline-suppr
+           --relative-paths="$CI_PROJECT_DIR" \
+           --inline-suppr \
+           --suppressions-list=util/suppressions.txt
 
 .cppcheck_report: &cppcheck_report_html |
   cppcheck-htmlreport --title="BIND 9 ($CI_COMMIT_SHORT_SHA) Cppcheck Report" \
