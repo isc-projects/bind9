@@ -842,7 +842,7 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	struct hostent *he = NULL;
 	int addresses = 1;	/* NULL terminator */
 	int names = 1;		/* NULL terminator */
-	int len = 0;
+	char *cp_name;
 	char **cpp, **npp;
 
 	/*
@@ -949,14 +949,17 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	 * Copy aliases.
 	 */
 	npp = he->h_aliases;
-	cpp = (he1 != NULL) ? he1->h_aliases
-		: ((he2 != NULL) ?  he2->h_aliases : NULL);
+	if (he1 != NULL) {
+		cpp = he1->h_aliases;
+	} else if (he2 != NULL) {
+		cpp = he2->h_aliases;
+	} else {
+		cpp = NULL;
+	}
 	while (cpp != NULL && *cpp != NULL) {
-		len = strlen (*cpp) + 1;
-		*npp = malloc(len);
+		*npp = strdup(*cpp);
 		if (*npp == NULL)
 			goto cleanup2;
-		strcpy(*npp, *cpp);
 		npp++;
 		cpp++;
 	}
@@ -964,11 +967,17 @@ copyandmerge(struct hostent *he1, struct hostent *he2, int af, int *error_num)
 	/*
 	 * Copy hostname.
 	 */
-	he->h_name = malloc(strlen((he1 != NULL) ?
-			    he1->h_name : he2->h_name) + 1);
-	if (he->h_name == NULL)
+	if (he1 != NULL) {
+		cp_name = he1->h_name;
+	} else if (he2 != NULL) {
+		cp_name = he2->h_name;
+	} else {
 		goto cleanup2;
-	strcpy(he->h_name, (he1 != NULL) ? he1->h_name : he2->h_name);
+	}
+	he->h_name = strdup(cp_name);
+	if (he->h_name == NULL) {
+		goto cleanup2;
+	}
 
 	/*
 	 * Set address type and length.
