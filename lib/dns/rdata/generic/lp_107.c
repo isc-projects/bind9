@@ -130,7 +130,7 @@ fromstruct_lp(ARGS_FROMSTRUCT) {
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_lp);
-	REQUIRE(source != NULL);
+	REQUIRE(lp != NULL);
 	REQUIRE(lp->common.rdtype == type);
 	REQUIRE(lp->common.rdclass == rdclass);
 
@@ -149,7 +149,7 @@ tostruct_lp(ARGS_TOSTRUCT) {
 	dns_name_t name;
 
 	REQUIRE(rdata->type == dns_rdatatype_lp);
-	REQUIRE(target != NULL);
+	REQUIRE(lp != NULL);
 	REQUIRE(rdata->length != 0);
 
 	lp->common.rdclass = rdata->rdclass;
@@ -171,7 +171,7 @@ static inline void
 freestruct_lp(ARGS_FREESTRUCT) {
 	dns_rdata_lp_t *lp = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(lp != NULL);
 	REQUIRE(lp->common.rdtype == dns_rdatatype_lp);
 
 	if (lp->mctx == NULL)

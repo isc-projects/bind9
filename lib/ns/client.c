@@ -1204,7 +1204,7 @@ client_send(ns_client_t *client) {
 	unsigned int preferred_glue;
 	bool opt_included = false;
 	size_t respsize;
-	dns_aclenv_t *env = ns_interfacemgr_getaclenv(client->interface->mgr);
+	dns_aclenv_t *env;
 #ifdef HAVE_DNSTAP
 	unsigned char zone[DNS_NAME_MAXWIRE];
 	dns_dtmsgtype_t dtmsgtype;
@@ -1212,6 +1212,8 @@ client_send(ns_client_t *client) {
 #endif /* HAVE_DNSTAP */
 
 	REQUIRE(NS_CLIENT_VALID(client));
+
+	env = ns_interfacemgr_getaclenv(client->interface->mgr);
 
 	CTRACE("send");
 
@@ -1747,12 +1749,13 @@ ns_client_addopt(ns_client_t *client, dns_message_t *message,
 	unsigned int flags;
 	unsigned char expire[4];
 	unsigned char advtimo[2];
-	dns_aclenv_t *env = ns_interfacemgr_getaclenv(client->interface->mgr);
+	dns_aclenv_t *env;
 
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(opt != NULL && *opt == NULL);
 	REQUIRE(message != NULL);
 
+	env = ns_interfacemgr_getaclenv(client->interface->mgr);
 	view = client->view;
 	resolver = (view != NULL) ? view->resolver : NULL;
 	if (resolver != NULL)
@@ -3348,12 +3351,14 @@ client_newconn(isc_task_t *task, isc_event_t *event) {
 	isc_result_t result;
 	ns_client_t *client = event->ev_arg;
 	isc_socket_newconnev_t *nevent = (isc_socket_newconnev_t *)event;
-	dns_aclenv_t *env = ns_interfacemgr_getaclenv(client->interface->mgr);
+	dns_aclenv_t *env;
 	uint32_t old;
 
 	REQUIRE(event->ev_type == ISC_SOCKEVENT_NEWCONN);
 	REQUIRE(NS_CLIENT_VALID(client));
 	REQUIRE(client->task == task);
+
+	env = ns_interfacemgr_getaclenv(client->interface->mgr);
 
 	UNUSED(task);
 

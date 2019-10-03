@@ -112,7 +112,7 @@ fromstruct_in_eid(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_eid);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(source != NULL);
+	REQUIRE(eid != NULL);
 	REQUIRE(eid->common.rdtype == type);
 	REQUIRE(eid->common.rdclass == rdclass);
 	REQUIRE(eid->eid != NULL || eid->eid_len == 0);
@@ -130,7 +130,7 @@ tostruct_in_eid(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == dns_rdatatype_eid);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(target != NULL);
+	REQUIRE(eid != NULL);
 	REQUIRE(rdata->length != 0);
 
 	eid->common.rdclass = rdata->rdclass;
@@ -152,7 +152,7 @@ static inline void
 freestruct_in_eid(ARGS_FREESTRUCT) {
 	dns_rdata_in_eid_t *eid = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(eid != NULL);
 	REQUIRE(eid->common.rdclass == dns_rdataclass_in);
 	REQUIRE(eid->common.rdtype == dns_rdatatype_eid);
 

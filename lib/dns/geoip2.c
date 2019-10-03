@@ -333,7 +333,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	geoip_state_t *state = NULL;
 	dns_geoip_subtype_t subtype;
 	const char *s = NULL;
-	int ret, i;
+	int ret;
 
 	REQUIRE(reqaddr != NULL);
 	REQUIRE(elt != NULL);
@@ -354,7 +354,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	case dns_geoip_country_code:
 	case dns_geoip_city_countrycode:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "country", "iso_code", NULL);
+				     "country", "iso_code", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -363,7 +363,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	case dns_geoip_country_name:
 	case dns_geoip_city_countryname:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "country", "names", "en", NULL);
+				     "country", "names", "en", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -372,7 +372,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	case dns_geoip_country_continentcode:
 	case dns_geoip_city_continentcode:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "continent", "code", NULL);
+				     "continent", "code", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -381,7 +381,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	case dns_geoip_country_continent:
 	case dns_geoip_city_continent:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "continent", "names", "en", NULL);
+				     "continent", "names", "en", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -390,7 +390,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	case dns_geoip_region:
 	case dns_geoip_city_region:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "subdivisions", "0", "iso_code", NULL);
+				     "subdivisions", "0", "iso_code", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -399,7 +399,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 	case dns_geoip_regionname:
 	case dns_geoip_city_regionname:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "subdivisions", "0", "names", "en", NULL);
+				     "subdivisions", "0", "names", "en", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -407,7 +407,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_city_name:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "city", "names", "en", NULL);
+				     "city", "names", "en", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -415,7 +415,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_city_postalcode:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "postal", "code", NULL);
+				     "postal", "code", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -423,7 +423,7 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_city_timezonecode:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "location", "time_zone", NULL);
+				     "location", "time_zone", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -432,14 +432,14 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_city_metrocode:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "location", "metro_code", NULL);
+				     "location", "metro_code", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
 		break;
 
 	case dns_geoip_isp_name:
-		ret = MMDB_get_value(&state->entry, &value, "isp", NULL);
+		ret = MMDB_get_value(&state->entry, &value, "isp", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
@@ -449,8 +449,9 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 		INSIST(elt->as_string != NULL);
 
 		ret = MMDB_get_value(&state->entry, &value,
-				     "autonomous_system_number", NULL);
+				     "autonomous_system_number", (char *)0);
 		if (ret == MMDB_SUCCESS) {
+			int i;
 			s = elt->as_string;
 			if (strncasecmp(s, "AS", 2) == 0) {
 				s += 2;
@@ -462,14 +463,14 @@ dns_geoip_match(const isc_netaddr_t *reqaddr,
 
 	case dns_geoip_org_name:
 		ret = MMDB_get_value(&state->entry, &value,
-				     "autonomous_system_organization", NULL);
+				     "autonomous_system_organization", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}
 		break;
 
 	case dns_geoip_domain_name:
-		ret = MMDB_get_value(&state->entry, &value, "domain", NULL);
+		ret = MMDB_get_value(&state->entry, &value, "domain", (char *)0);
 		if (ret == MMDB_SUCCESS) {
 			return (match_string(&value, elt->as_string));
 		}

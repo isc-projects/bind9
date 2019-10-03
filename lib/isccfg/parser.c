@@ -243,7 +243,7 @@ cfg_printx(const cfg_obj_t *obj, unsigned int flags,
 isc_result_t
 cfg_create_tuple(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	isc_result_t result;
-	const cfg_tuplefielddef_t *fields = type->of;
+	const cfg_tuplefielddef_t *fields;
 	const cfg_tuplefielddef_t *f;
 	cfg_obj_t *obj = NULL;
 	unsigned int nfields = 0;
@@ -252,6 +252,8 @@ cfg_create_tuple(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 	REQUIRE(pctx != NULL);
 	REQUIRE(type != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
+
+	fields = type->of;
 
 	for (f = fields; f->name != NULL; f++)
 		nfields++;
@@ -278,7 +280,7 @@ isc_result_t
 cfg_parse_tuple(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 {
 	isc_result_t result;
-	const cfg_tuplefielddef_t *fields = type->of;
+	const cfg_tuplefielddef_t *fields;
 	const cfg_tuplefielddef_t *f;
 	cfg_obj_t *obj = NULL;
 	unsigned int i;
@@ -286,6 +288,8 @@ cfg_parse_tuple(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 	REQUIRE(pctx != NULL);
 	REQUIRE(type != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
+
+	fields = type->of;
 
 	CHECK(cfg_create_tuple(pctx, type, &obj));
 	for (f = fields, i = 0; f->name != NULL; f++, i++)
@@ -1795,12 +1799,14 @@ cfg_parse_spacelist(cfg_parser_t *pctx, const cfg_type_t *listtype,
 		    cfg_obj_t **ret)
 {
 	cfg_obj_t *listobj = NULL;
-	const cfg_type_t *listof = listtype->of;
+	const cfg_type_t *listof;
 	isc_result_t result;
 
 	REQUIRE(pctx != NULL);
 	REQUIRE(listtype != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
+
+	listof = listtype->of;
 
 	CHECK(cfg_create_list(pctx, listtype, &listobj));
 
@@ -1905,7 +1911,7 @@ cfg_listelt_value(const cfg_listelt_t *elt) {
 isc_result_t
 cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 {
-	const cfg_clausedef_t * const *clausesets = type->of;
+	const cfg_clausedef_t * const *clausesets;
 	isc_result_t result;
 	const cfg_clausedef_t * const *clauseset;
 	const cfg_clausedef_t *clause;
@@ -1919,6 +1925,8 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret)
 	REQUIRE(pctx != NULL);
 	REQUIRE(type != NULL);
 	REQUIRE(ret != NULL && *ret == NULL);
+
+	clausesets = type->of;
 
 	CHECK(create_map(pctx, type, &obj));
 
@@ -3019,11 +3027,13 @@ cfg_print_sockaddr(cfg_printer_t *pctx, const cfg_obj_t *obj) {
 
 void
 cfg_doc_sockaddr(cfg_printer_t *pctx, const cfg_type_t *type) {
-	const unsigned int *flagp = type->of;
+	const unsigned int *flagp;
 	int n = 0;
 
 	REQUIRE(pctx != NULL);
 	REQUIRE(type != NULL);
+
+	flagp = type->of;
 
 	cfg_print_cstr(pctx, "( ");
 	if ((*flagp & CFG_ADDR_V4OK) != 0) {

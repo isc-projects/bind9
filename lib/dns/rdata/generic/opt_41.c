@@ -260,7 +260,7 @@ fromstruct_opt(ARGS_FROMSTRUCT) {
 	uint16_t length;
 
 	REQUIRE(type == dns_rdatatype_opt);
-	REQUIRE(source != NULL);
+	REQUIRE(opt != NULL);
 	REQUIRE(opt->common.rdtype == type);
 	REQUIRE(opt->common.rdclass == rdclass);
 	REQUIRE(opt->options != NULL || opt->length == 0);
@@ -290,7 +290,7 @@ tostruct_opt(ARGS_TOSTRUCT) {
 	isc_region_t r;
 
 	REQUIRE(rdata->type == dns_rdatatype_opt);
-	REQUIRE(target != NULL);
+	REQUIRE(opt != NULL);
 
 	opt->common.rdclass = rdata->rdclass;
 	opt->common.rdtype = rdata->type;
@@ -311,7 +311,7 @@ static inline void
 freestruct_opt(ARGS_FREESTRUCT) {
 	dns_rdata_opt_t *opt = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(opt != NULL);
 	REQUIRE(opt->common.rdtype == dns_rdatatype_opt);
 
 	if (opt->mctx == NULL)

@@ -201,7 +201,7 @@ fromstruct_in_atma(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_atma);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(source != NULL);
+	REQUIRE(atma != NULL);
 	REQUIRE(atma->common.rdtype == type);
 	REQUIRE(atma->common.rdclass == rdclass);
 	REQUIRE(atma->atma != NULL || atma->atma_len == 0);
@@ -220,7 +220,7 @@ tostruct_in_atma(ARGS_TOSTRUCT) {
 
 	REQUIRE(rdata->type == dns_rdatatype_atma);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
-	REQUIRE(target != NULL);
+	REQUIRE(atma != NULL);
 	REQUIRE(rdata->length != 0);
 
 	atma->common.rdclass = rdata->rdclass;
@@ -244,7 +244,7 @@ static inline void
 freestruct_in_atma(ARGS_FREESTRUCT) {
 	dns_rdata_in_atma_t *atma = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(atma != NULL);
 	REQUIRE(atma->common.rdclass == dns_rdataclass_in);
 	REQUIRE(atma->common.rdtype == dns_rdatatype_atma);
 

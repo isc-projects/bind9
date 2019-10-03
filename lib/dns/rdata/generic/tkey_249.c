@@ -343,7 +343,7 @@ fromstruct_tkey(ARGS_FROMSTRUCT) {
 	dns_rdata_tkey_t *tkey = source;
 
 	REQUIRE(type == dns_rdatatype_tkey);
-	REQUIRE(source != NULL);
+	REQUIRE(tkey != NULL);
 	REQUIRE(tkey->common.rdtype == type);
 	REQUIRE(tkey->common.rdclass == rdclass);
 
@@ -403,7 +403,7 @@ tostruct_tkey(ARGS_TOSTRUCT) {
 	isc_region_t sr;
 
 	REQUIRE(rdata->type == dns_rdatatype_tkey);
-	REQUIRE(target != NULL);
+	REQUIRE(tkey != NULL);
 	REQUIRE(rdata->length != 0);
 
 	tkey->common.rdclass = rdata->rdclass;
@@ -489,7 +489,7 @@ static inline void
 freestruct_tkey(ARGS_FREESTRUCT) {
 	dns_rdata_tkey_t *tkey = (dns_rdata_tkey_t *) source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(tkey != NULL);
 
 	if (tkey->mctx == NULL)
 		return;
