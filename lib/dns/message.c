@@ -3065,7 +3065,7 @@ dns_message_signer(dns_message_t *msg, dns_name_t *signer) {
 		dns_name_clone(&sig.signer, signer);
 		dns_rdata_freestruct(&sig);
 	} else {
-		dns_name_t *identity;
+		const dns_name_t *identity;
 		dns_rdata_any_tsig_t tsig;
 
 		result = dns_rdataset_first(msg->tsig);

@@ -337,7 +337,7 @@ generic_tostruct_key(ARGS_TOSTRUCT) {
 	dns_rdata_key_t *key = target;
 	isc_region_t sr;
 
-	REQUIRE(rdata != NULL);
+	REQUIRE(key != NULL);
 	REQUIRE(rdata->length != 0);
 
 	REQUIRE(key != NULL);

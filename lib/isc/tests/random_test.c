@@ -518,7 +518,6 @@ blockfrequency(isc_mem_t *mctx, uint16_t *values, size_t length) {
 
 	/* Preconditions (section 2.2.7 in NIST SP 800-22) */
 	assert_true(numbits >= 100);
-	/* cppcheck-suppress constArgument */
 	assert_true(mbits >= 20);
 	assert_true((double) mbits > (0.01 * numbits));
 	assert_true(numblocks < 100);

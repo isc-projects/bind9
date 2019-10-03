@@ -248,7 +248,6 @@ progress_cb(int p, int n, BN_GENCB *cb) {
 
 	UNUSED(n);
 
-	/* cppcheck-suppress unreadVariable */
 	u.dptr = BN_GENCB_get_arg(cb);
 	if (u.fptr != NULL)
 		u.fptr(p);
@@ -316,7 +315,6 @@ openssldh_generate(dst_key_t *key, int generator, void (*callback)(int)) {
 		if (callback == NULL) {
 			BN_GENCB_set_old(cb, NULL, NULL);
 		} else {
-			/* cppcheck-suppress unreadVariable */
 			u.fptr = callback;
 			BN_GENCB_set(cb, &progress_cb, u.dptr);
 		}

@@ -1061,6 +1061,7 @@ dns_tsigkey_create
 dns_tsigkey_createfromkey
 dns_tsigkey_detach
 dns_tsigkey_find
+dns_tsigkey_identity
 dns_tsigkey_setdeleted
 dns_tsigkeyring_add
 dns_tsigkeyring_attach

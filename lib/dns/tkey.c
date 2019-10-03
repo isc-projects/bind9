@@ -625,7 +625,7 @@ process_deletetkey(dns_name_t *signer, dns_name_t *name,
 {
 	isc_result_t result;
 	dns_tsigkey_t *tsigkey = NULL;
-	dns_name_t *identity;
+	const dns_name_t *identity;
 
 	result = dns_tsigkey_find(&tsigkey, name, &tkeyin->algorithm, ring);
 	if (result != ISC_R_SUCCESS) {

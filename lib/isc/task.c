@@ -1719,7 +1719,11 @@ isc_result_t
 isc__task_beginexclusive(isc_task_t *task0) {
 #ifdef USE_WORKER_THREADS
 	isc__task_t *task = (isc__task_t *)task0;
-	isc__taskmgr_t *manager = task->manager;
+	isc__taskmgr_t *manager;
+
+	REQUIRE(VALID_TASK(task));
+
+	manager = task->manager;
 
 	REQUIRE(task->state == task_state_running);
 /*
@@ -1747,7 +1751,10 @@ void
 isc__task_endexclusive(isc_task_t *task0) {
 #ifdef USE_WORKER_THREADS
 	isc__task_t *task = (isc__task_t *)task0;
-	isc__taskmgr_t *manager = task->manager;
+	isc__taskmgr_t *manager;
+
+	REQUIRE(VALID_TASK(task));
+	manager = task->manager;
 
 	REQUIRE(task->state == task_state_running);
 	LOCK(&manager->lock);

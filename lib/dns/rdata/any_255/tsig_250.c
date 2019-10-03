@@ -358,7 +358,7 @@ fromstruct_any_tsig(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_tsig);
 	REQUIRE(rdclass == dns_rdataclass_any);
-	REQUIRE(source != NULL);
+	REQUIRE(tsig != NULL);
 	REQUIRE(tsig->common.rdclass == rdclass);
 	REQUIRE(tsig->common.rdtype == type);
 
@@ -523,7 +523,7 @@ static inline void
 freestruct_any_tsig(ARGS_FREESTRUCT) {
 	dns_rdata_any_tsig_t *tsig = (dns_rdata_any_tsig_t *) source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(tsig != NULL);
 	REQUIRE(tsig->common.rdtype == dns_rdatatype_tsig);
 	REQUIRE(tsig->common.rdclass == dns_rdataclass_any);
 

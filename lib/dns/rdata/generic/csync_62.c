@@ -140,7 +140,7 @@ fromstruct_csync(ARGS_FROMSTRUCT) {
 	isc_region_t region;
 
 	REQUIRE(type == dns_rdatatype_csync);
-	REQUIRE(source != NULL);
+	REQUIRE(csync != NULL);
 	REQUIRE(csync->common.rdtype == type);
 	REQUIRE(csync->common.rdclass == rdclass);
 	REQUIRE(csync->typebits != NULL || csync->len == 0);
@@ -163,7 +163,7 @@ tostruct_csync(ARGS_TOSTRUCT) {
 	dns_rdata_csync_t *csync = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_csync);
-	REQUIRE(target != NULL);
+	REQUIRE(csync != NULL);
 	REQUIRE(rdata->length != 0);
 
 	csync->common.rdclass = rdata->rdclass;
@@ -194,7 +194,7 @@ static inline void
 freestruct_csync(ARGS_FREESTRUCT) {
 	dns_rdata_csync_t *csync = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(csync != NULL);
 	REQUIRE(csync->common.rdtype == dns_rdatatype_csync);
 
 	if (csync->mctx == NULL)

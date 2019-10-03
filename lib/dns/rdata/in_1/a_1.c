@@ -127,7 +127,7 @@ fromstruct_in_a(ARGS_FROMSTRUCT) {
 
 	REQUIRE(type == dns_rdatatype_a);
 	REQUIRE(rdclass == dns_rdataclass_in);
-	REQUIRE(source != NULL);
+	REQUIRE(a != NULL);
 	REQUIRE(a->common.rdtype == type);
 	REQUIRE(a->common.rdclass == rdclass);
 
@@ -146,6 +146,7 @@ tostruct_in_a(ARGS_TOSTRUCT) {
 	uint32_t n;
 	isc_region_t region;
 
+	REQUIRE(a != NULL);
 	REQUIRE(rdata->type == dns_rdatatype_a);
 	REQUIRE(rdata->rdclass == dns_rdataclass_in);
 	REQUIRE(rdata->length == 4);
@@ -167,7 +168,7 @@ static inline void
 freestruct_in_a(ARGS_FREESTRUCT) {
 	dns_rdata_in_a_t *a = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(a != NULL);
 	REQUIRE(a->common.rdtype == dns_rdatatype_a);
 	REQUIRE(a->common.rdclass == dns_rdataclass_in);
 

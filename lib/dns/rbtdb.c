@@ -7457,17 +7457,14 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 	dns_rbtdb_t *rbtdb = (dns_rbtdb_t *) arg;
 	rdatasetheader_t *header;
 	unsigned char *limit = ((unsigned char *) base) + filesize;
-	unsigned char *p;
-	size_t size;
-	unsigned int count;
 
 	REQUIRE(rbtnode != NULL);
+	REQUIRE(VALID_RBTDB(rbtdb));
 
 	for (header = rbtnode->data; header != NULL; header = header->next) {
-		p = (unsigned char *) header;
-
-		size = dns_rdataslab_size(p, sizeof(*header));
-		count = dns_rdataslab_count(p, sizeof(*header));;
+		unsigned char *p = (unsigned char *) header;
+		size_t size = dns_rdataslab_size(p, sizeof(*header));
+		unsigned int count = dns_rdataslab_count(p, sizeof(*header));;
 		rbtdb->current_version->records += count;
 		rbtdb->current_version->bytes += size;
 		isc_crc64_update(crc, p, size);
@@ -7481,7 +7478,7 @@ rbt_datafixer(dns_rbtnode_t *rbtnode, void *base, size_t filesize,
 		header->node = rbtnode;
 		header->node_is_relative = 0;
 
-		if (rbtdb != NULL && RESIGN(header) &&
+		if (RESIGN(header) &&
 		    (header->resign != 0 || header->resign_lsb != 0))
 		{
 			int idx = header->node->locknum;

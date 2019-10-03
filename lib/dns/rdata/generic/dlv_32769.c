@@ -92,6 +92,7 @@ tostruct_dlv(ARGS_TOSTRUCT) {
 	dns_rdata_dlv_t *dlv = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_dlv);
+	REQUIRE(dlv != NULL);
 
 	dlv->common.rdclass = rdata->rdclass;
 	dlv->common.rdtype = rdata->type;

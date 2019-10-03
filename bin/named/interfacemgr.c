@@ -597,10 +597,12 @@ ns_interface_shutdown(ns_interface_t *ifp) {
 
 static void
 ns_interface_destroy(ns_interface_t *ifp) {
-	isc_mem_t *mctx = ifp->mgr->mctx;
+	isc_mem_t *mctx;
 	int disp;
 
 	REQUIRE(NS_INTERFACE_VALID(ifp));
+
+	mctx = ifp->mgr->mctx;
 
 	ns_interface_shutdown(ifp);
 

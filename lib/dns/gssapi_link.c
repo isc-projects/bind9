@@ -327,7 +327,7 @@ gssapi_dump(dst_key_t *key, isc_mem_t *mctx, char **buffer, int *length) {
 	major = gss_export_sec_context(&minor, &key->keydata.gssctx,
 				       &gssbuffer);
 	if (major != GSS_S_COMPLETE) {
-		fprintf(stderr, "gss_export_sec_context -> %d, %d\n",
+		fprintf(stderr, "gss_export_sec_context -> %u, %u\n",
 			major, minor);
 		return (ISC_R_FAILURE);
 	}

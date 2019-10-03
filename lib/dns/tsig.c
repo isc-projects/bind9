@@ -668,6 +668,20 @@ dns_tsigkeyring_dumpanddetach(dns_tsig_keyring_t **ringp, FILE *fp) {
 	return (result);
 }
 
+const dns_name_t *
+dns_tsigkey_identity(const dns_tsigkey_t *tsigkey) {
+	REQUIRE(tsigkey == NULL || VALID_TSIG_KEY(tsigkey));
+
+	if (tsigkey == NULL) {
+		return (NULL);
+	}
+	if (tsigkey->generated) {
+		return (tsigkey->creator);
+	} else {
+		return (&tsigkey->name);
+	}
+}
+
 isc_result_t
 dns_tsigkey_create(dns_name_t *name, dns_name_t *algorithm,
 		   unsigned char *secret, int length, bool generated,
@@ -1680,6 +1694,7 @@ tsig_verify_tcp(isc_buffer_t *source, dns_message_t *msg) {
 		 * XXX Can TCP transfers be forwarded?  How would that
 		 * work?
 		 */
+		/* cppcheck-suppress uninitStructMember symbolName=tsig.originalid */
 		id = htons(tsig.originalid);
 		memmove(&header[0], &id, 2);
 	}

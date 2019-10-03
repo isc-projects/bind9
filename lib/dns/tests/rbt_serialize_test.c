@@ -174,7 +174,7 @@ write_data(FILE *file, unsigned char *datap, void *arg, uint64_t *crc) {
 
 static isc_result_t
 fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc) {
-	data_holder_t *data = p->data;
+	data_holder_t *data;
 	size_t size;
 
 	UNUSED(base);
@@ -184,6 +184,7 @@ fix_data(dns_rbtnode_t *p, void *base, size_t max, void *arg, uint64_t *crc) {
 	REQUIRE(crc != NULL);
 	REQUIRE(p != NULL);
 
+	data = p->data;
 
 	if (data == NULL ||
 	    (data->len == 0 && data->data != NULL) ||

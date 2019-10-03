@@ -1219,7 +1219,7 @@ dns_rdata_tostruct(const dns_rdata_t *rdata, void *target, isc_mem_t *mctx) {
 void
 dns_rdata_freestruct(void *source) {
 	dns_rdatacommon_t *common = source;
-	REQUIRE(source != NULL);
+	REQUIRE(common != NULL);
 
 	FREESTRUCTSWITCH
 }
