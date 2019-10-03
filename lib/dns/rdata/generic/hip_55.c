@@ -254,7 +254,7 @@ fromstruct_hip(ARGS_FROMSTRUCT) {
 	isc_result_t result;
 
 	REQUIRE(type == dns_rdatatype_hip);
-	REQUIRE(source != NULL);
+	REQUIRE(hip != NULL);
 	REQUIRE(hip->common.rdtype == type);
 	REQUIRE(hip->common.rdclass == rdclass);
 	REQUIRE(hip->hit_len > 0 && hip->hit != NULL);
@@ -286,7 +286,7 @@ tostruct_hip(ARGS_TOSTRUCT) {
 	dns_rdata_hip_t *hip = target;
 
 	REQUIRE(rdata->type == dns_rdatatype_hip);
-	REQUIRE(target != NULL);
+	REQUIRE(hip != NULL);
 	REQUIRE(rdata->length != 0);
 
 	hip->common.rdclass = rdata->rdclass;
@@ -344,7 +344,7 @@ static inline void
 freestruct_hip(ARGS_FREESTRUCT) {
 	dns_rdata_hip_t *hip = source;
 
-	REQUIRE(source != NULL);
+	REQUIRE(hip != NULL);
 
 	if (hip->mctx == NULL)
 		return;

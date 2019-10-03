@@ -182,7 +182,7 @@ dns_acl_isinsecure(const dns_acl_t *a);
  */
 
 bool
-dns_acl_allowed(isc_netaddr_t *addr, dns_name_t *signer,
+dns_acl_allowed(isc_netaddr_t *addr, const dns_name_t *signer,
 		dns_acl_t *acl, dns_aclenv_t *aclenv);
 /*%<
  * Return #true iff the 'addr', 'signer', or ECS values are

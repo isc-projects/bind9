@@ -2485,15 +2485,17 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	} else {
 		old = NULL;
 	}
-	if (old == NULL)
+	if (old == NULL) {
 		*old_rpz_okp = false;
-	else
+	} else {
 		*old_rpz_okp = true;
+	}
 
 	for (i = 0;
 	     zone_element != NULL;
-	     ++i, zone_element = cfg_list_next(zone_element)) {
-		INSIST(old != NULL || !*old_rpz_okp);
+	     ++i, zone_element = cfg_list_next(zone_element))
+	{
+		INSIST(!*old_rpz_okp || old != NULL);
 		if (*old_rpz_okp && i < old->p.num_zones) {
 			old_zone = old->zones[i];
 		} else {
@@ -2518,24 +2520,21 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 	 * zones are unchanged, then use the same policy data.
 	 * Data for individual zones that must be reloaded will be merged.
 	 */
-	if (*old_rpz_okp &&
-	    old != NULL && memcmp(&old->p, &zones->p, sizeof(zones->p)) != 0)
-	{
-		*old_rpz_okp = false;
-	}
-
-	if (*old_rpz_okp &&
-	    (old == NULL ||
-	     old->rps_cstr == NULL) != (zones->rps_cstr == NULL))
-	{
-		*old_rpz_okp = false;
-	}
-
-	if (*old_rpz_okp &&
-	    (zones->rps_cstr != NULL &&
-	     strcmp(old->rps_cstr, zones->rps_cstr) != 0))
-	{
-		*old_rpz_okp = false;
+	if (*old_rpz_okp) {
+		if (old != NULL &&
+		    memcmp(&old->p, &zones->p, sizeof(zones->p)) != 0)
+		{
+			*old_rpz_okp = false;
+		} else if ((old == NULL || old->rps_cstr == NULL) !=
+			   (zones->rps_cstr == NULL))
+		{
+			*old_rpz_okp = false;
+		} else if (old != NULL &&
+			   zones->rps_cstr != NULL &&
+			   strcmp(old->rps_cstr, zones->rps_cstr) != 0)
+		{
+			*old_rpz_okp = false;
+		}
 	}
 
 	if (*old_rpz_okp) {
@@ -2549,8 +2548,9 @@ configure_rpz(dns_view_t *view, const cfg_obj_t **maps,
 			    view->rpzs->rpz_ver);
 	}
 
-	if (pview != NULL)
+	if (pview != NULL) {
 		dns_view_detach(&pview);
+	}
 
 	return (ISC_R_SUCCESS);
 }
@@ -6769,7 +6769,7 @@ dotat(dns_keytable_t *keytable, dns_keynode_t *keynode, void *arg) {
 
 	REQUIRE(keytable != NULL);
 	REQUIRE(keynode != NULL);
-	REQUIRE(arg != NULL);
+	REQUIRE(dotat_arg != NULL);
 
 	view = dotat_arg->view;
 	task = dotat_arg->task;
@@ -9558,7 +9558,7 @@ get_matching_view(isc_netaddr_t *srcaddr, isc_netaddr_t *destaddr,
 		if (message->rdclass == view->rdclass ||
 		    message->rdclass == dns_rdataclass_any)
 		{
-			dns_name_t *tsig = NULL;
+			const dns_name_t *tsig = NULL;
 
 			*sigresult = dns_message_rechecksig(message, view);
 			if (*sigresult == ISC_R_SUCCESS) {
