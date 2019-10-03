@@ -144,6 +144,7 @@ isc_random_get(uint32_t *val) {
 	*val = ((rand() >> 4) & 0x000007ff) | ((rand() << 7) & 0x003ff800) |
 		((rand() << 18) & 0xffc00000);
 #else
+/* cppcheck-suppress preprocessorErrorDirective */
 #error RAND_MAX is too small
 #endif
 #else
