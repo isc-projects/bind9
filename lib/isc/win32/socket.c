@@ -2508,7 +2508,6 @@ isc_socketmgr_create2(isc_mem_t *mctx, isc_socketmgr_t **managerp,
 		      unsigned int maxsocks, int nthreads)
 {
 	isc_socketmgr_t *manager;
-	isc_result_t result;
 
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
