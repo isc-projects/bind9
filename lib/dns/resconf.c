@@ -72,7 +72,6 @@
  */
 
 #define RESCONFMAXNAMESERVERS 3U   /*%< max 3 "nameserver" entries */
-#define RESCONFMAXSEARCH      8U   /*%< max 8 domains in "search" entry */
 #define RESCONFMAXLINELEN     256U /*%< max size of a line */
 #define RESCONFMAXSORTLIST    10U  /*%< max 10 */
 
@@ -99,7 +98,6 @@ struct irs_resconf {
 	unsigned int numns; /*%< number of configured servers */
 
 	char *domainname;
-	char *search[RESCONFMAXSEARCH];
 	uint8_t searchnxt; /*%< index for next free slot */
 
 	irs_resconf_searchlist_t searchlist;
@@ -139,10 +137,9 @@ static int
 eatline(FILE *fp) {
 	int ch;
 
-	ch = fgetc(fp);
-	while (ch != '\n' && ch != EOF) {
+	do {
 		ch = fgetc(fp);
-	}
+	} while (ch != '\n' && ch != EOF);
 
 	return ch;
 }
@@ -156,10 +153,9 @@ static int
 eatwhite(FILE *fp) {
 	int ch;
 
-	ch = fgetc(fp);
-	while (ch != '\n' && ch != EOF && isspace((unsigned char)ch)) {
+	do {
 		ch = fgetc(fp);
-	}
+	} while (ch != EOF && ch != '\n' && isspace((unsigned char)ch));
 
 	if (ch == ';' || ch == '#') {
 		ch = eatline(fp);
@@ -186,7 +182,6 @@ getword(FILE *fp, char *buffer, size_t size) {
 	*p = '\0';
 
 	ch = eatwhite(fp);
-
 	if (ch == EOF) {
 		return EOF;
 	}
@@ -194,7 +189,7 @@ getword(FILE *fp, char *buffer, size_t size) {
 	do {
 		*p = '\0';
 
-		if (ch == EOF || isspace((unsigned char)ch)) {
+		if (isspace((unsigned char)ch)) {
 			break;
 		} else if ((size_t)(p - buffer) == size - 1) {
 			return EOF; /* Not enough space. */
@@ -202,7 +197,7 @@ getword(FILE *fp, char *buffer, size_t size) {
 
 		*p++ = (char)ch;
 		ch = fgetc(fp);
-	} while (1);
+	} while (ch != EOF);
 
 	return ch;
 }
@@ -298,7 +293,7 @@ resconf_parsenameserver(irs_resconf_t *conf, FILE *fp) {
 	isc_result_t result;
 
 	cp = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0U) {
+	if (cp == EOF || strlen(word) == 0U) {
 		return ISC_R_UNEXPECTEDEND; /* Nothing on line. */
 	} else if (cp == ' ' || cp == '\t') {
 		cp = eatwhite(fp);
@@ -325,10 +320,9 @@ static isc_result_t
 resconf_parsedomain(irs_resconf_t *conf, FILE *fp) {
 	char word[RESCONFMAXLINELEN];
 	int res;
-	unsigned int i;
 
 	res = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0U) {
+	if (res == EOF || strlen(word) == 0U) {
 		return ISC_R_UNEXPECTEDEND; /* Nothing else on line. */
 	} else if (res == ' ' || res == '\t') {
 		res = eatwhite(fp);
@@ -344,16 +338,41 @@ resconf_parsedomain(irs_resconf_t *conf, FILE *fp) {
 
 	/*
 	 * Search and domain are mutually exclusive.
+	 * Search is cleared later.
 	 */
-	for (i = 0; i < RESCONFMAXSEARCH; i++) {
-		if (conf->search[i] != NULL) {
-			isc_mem_free(conf->mctx, conf->search[i]);
-			conf->search[i] = NULL;
-		}
-	}
-	conf->searchnxt = 0;
 
 	conf->domainname = isc_mem_strdup(conf->mctx, word);
+
+	return ISC_R_SUCCESS;
+}
+
+static void
+free_search(irs_resconf_t *conf) {
+	irs_resconf_search_t *searchentry;
+
+	while ((searchentry = ISC_LIST_HEAD(conf->searchlist)) != NULL) {
+		ISC_LIST_UNLINK(conf->searchlist, searchentry, link);
+		isc_mem_free(conf->mctx, searchentry->domain);
+		isc_mem_put(conf->mctx, searchentry, sizeof(*searchentry));
+	}
+}
+
+/*!
+ * Append new search entry to searchlist.
+ *
+ * Always copy domain name passed.
+ */
+static isc_result_t
+add_search(irs_resconf_t *conf, char *domain) {
+	irs_resconf_search_t *entry = NULL;
+
+	entry = isc_mem_get(conf->mctx, sizeof(*entry));
+	*entry = (irs_resconf_search_t){
+		.domain = isc_mem_strdup(conf->mctx, domain),
+		.link = ISC_LINK_INITIALIZER,
+	};
+
+	ISC_LIST_APPEND(conf->searchlist, entry, link);
 
 	return ISC_R_SUCCESS;
 }
@@ -361,8 +380,8 @@ resconf_parsedomain(irs_resconf_t *conf, FILE *fp) {
 static isc_result_t
 resconf_parsesearch(irs_resconf_t *conf, FILE *fp) {
 	int delim;
-	unsigned int idx;
 	char word[RESCONFMAXLINELEN];
+	isc_result_t result;
 
 	if (conf->domainname != NULL) {
 		/*
@@ -375,37 +394,27 @@ resconf_parsesearch(irs_resconf_t *conf, FILE *fp) {
 	/*
 	 * Remove any previous search definitions.
 	 */
-	for (idx = 0; idx < RESCONFMAXSEARCH; idx++) {
-		if (conf->search[idx] != NULL) {
-			isc_mem_free(conf->mctx, conf->search[idx]);
-			conf->search[idx] = NULL;
-		}
-	}
-	conf->searchnxt = 0;
+	free_search(conf);
 
 	delim = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0U) {
+	if (delim == EOF || strlen(word) == 0U) {
 		return ISC_R_UNEXPECTEDEND; /* Nothing else on line. */
 	}
-
-	idx = 0;
-	while (strlen(word) > 0U) {
-		if (conf->searchnxt == RESCONFMAXSEARCH) {
-			goto ignore; /* Too many domains. */
+	do {
+		result = add_search(conf, word);
+		if (result != ISC_R_SUCCESS) {
+			return result;
 		}
 
-		INSIST(idx < sizeof(conf->search) / sizeof(conf->search[0]));
-		conf->search[idx] = isc_mem_strdup(conf->mctx, word);
-		idx++;
-		conf->searchnxt++;
-
-	ignore:
-		if (delim == EOF || delim == '\n') {
+		if (delim == '\n') {
 			break;
-		} else {
-			delim = getword(fp, word, sizeof(word));
 		}
-	}
+
+		delim = getword(fp, word, sizeof(word));
+		if (delim == EOF) {
+			return ISC_R_UNEXPECTEDEND;
+		}
+	} while (strlen(word) > 0U);
 
 	return ISC_R_SUCCESS;
 }
@@ -418,11 +427,11 @@ resconf_parsesortlist(irs_resconf_t *conf, FILE *fp) {
 	char *p;
 
 	delim = getword(fp, word, sizeof(word));
-	if (strlen(word) == 0U) {
+	if (delim == EOF || strlen(word) == 0U) {
 		return ISC_R_UNEXPECTEDEND; /* Empty line after keyword. */
 	}
 
-	while (strlen(word) > 0U) {
+	while (delim != EOF && strlen(word) > 0U) {
 		if (conf->sortlistnxt == RESCONFMAXSORTLIST) {
 			return ISC_R_QUOTA; /* Too many values. */
 		}
@@ -515,19 +524,6 @@ cleanup:
 	return result;
 }
 
-static isc_result_t
-add_search(irs_resconf_t *conf, char *domain) {
-	irs_resconf_search_t *entry;
-
-	entry = isc_mem_get(conf->mctx, sizeof(*entry));
-
-	entry->domain = domain;
-	ISC_LINK_INIT(entry, link);
-	ISC_LIST_APPEND(conf->searchlist, entry, link);
-
-	return ISC_R_SUCCESS;
-}
-
 /*% parses a file and fills in the data structure. */
 isc_result_t
 irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
@@ -535,8 +531,7 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
 	char word[256];
 	isc_result_t rval, ret = ISC_R_SUCCESS;
 	irs_resconf_t *conf;
-	unsigned int i;
-	int stopchar;
+	int stopchar = EOF;
 
 	REQUIRE(mctx != NULL);
 	REQUIRE(filename != NULL);
@@ -544,29 +539,24 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
 	REQUIRE(confp != NULL && *confp == NULL);
 
 	conf = isc_mem_get(mctx, sizeof(*conf));
-
-	conf->mctx = mctx;
-	ISC_LIST_INIT(conf->nameservers);
-	ISC_LIST_INIT(conf->searchlist);
-	conf->numns = 0;
-	conf->domainname = NULL;
-	conf->searchnxt = 0;
-	conf->sortlistnxt = 0;
-	conf->resdebug = 0;
-	conf->ndots = 1;
-	conf->attempts = 3;
-	conf->timeout = 0;
-	for (i = 0; i < RESCONFMAXSEARCH; i++) {
-		conf->search[i] = NULL;
-	}
+	*conf = (irs_resconf_t){
+		.mctx = mctx,
+		.nameservers = ISC_LIST_INITIALIZER,
+		.searchlist = ISC_LIST_INITIALIZER,
+		.ndots = 1,
+		.attempts = 3,
+	};
 
 	errno = 0;
 	if ((fp = fopen(filename, "r")) != NULL) {
-		do {
+		while (!feof(fp) && !ferror(fp)) {
 			stopchar = getword(fp, word, sizeof(word));
 			if (stopchar == EOF) {
-				rval = ISC_R_SUCCESS;
-				POST(rval);
+				if (strlen(word) != 0) {
+					if (ret == ISC_R_SUCCESS) {
+						ret = ISC_R_UNEXPECTEDEND;
+					}
+				}
 				break;
 			}
 
@@ -583,11 +573,10 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
 			} else if (strcmp(word, "options") == 0) {
 				rval = resconf_parseoption(conf, fp);
 			} else {
-				/* unrecognised word. Ignore entire line */
+				/* Unrecognised word. Ignore entire line. */
 				rval = ISC_R_SUCCESS;
 				if (stopchar != '\n') {
-					stopchar = eatline(fp);
-					if (stopchar == EOF) {
+					if (eatline(fp) == EOF) {
 						break;
 					}
 				}
@@ -595,7 +584,7 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
 			if (ret == ISC_R_SUCCESS && rval != ISC_R_SUCCESS) {
 				ret = rval;
 			}
-		} while (1);
+		}
 
 		fclose(fp);
 	} else {
@@ -614,17 +603,11 @@ irs_resconf_load(isc_mem_t *mctx, const char *filename, irs_resconf_t **confp) {
 
 	/*
 	 * Construct unified search list from domain or configured
-	 * search list
+	 * search list. Last specified is used.
 	 */
 	if (conf->domainname != NULL) {
+		free_search(conf);
 		ret = add_search(conf, conf->domainname);
-	} else if (conf->searchnxt > 0) {
-		for (i = 0; i < conf->searchnxt; i++) {
-			ret = add_search(conf, conf->search[i]);
-			if (ret != ISC_R_SUCCESS) {
-				break;
-			}
-		}
 	}
 
 	/* If we don't find a nameserver fall back to localhost */
@@ -655,18 +638,13 @@ void
 irs_resconf_destroy(irs_resconf_t **confp) {
 	irs_resconf_t *conf;
 	isc_sockaddr_t *address;
-	irs_resconf_search_t *searchentry;
-	unsigned int i;
 
 	REQUIRE(confp != NULL);
 	conf = *confp;
 	*confp = NULL;
 	REQUIRE(IRS_RESCONF_VALID(conf));
 
-	while ((searchentry = ISC_LIST_HEAD(conf->searchlist)) != NULL) {
-		ISC_LIST_UNLINK(conf->searchlist, searchentry, link);
-		isc_mem_put(conf->mctx, searchentry, sizeof(*searchentry));
-	}
+	free_search(conf);
 
 	while ((address = ISC_LIST_HEAD(conf->nameservers)) != NULL) {
 		ISC_LIST_UNLINK(conf->nameservers, address, link);
@@ -675,12 +653,6 @@ irs_resconf_destroy(irs_resconf_t **confp) {
 
 	if (conf->domainname != NULL) {
 		isc_mem_free(conf->mctx, conf->domainname);
-	}
-
-	for (i = 0; i < RESCONFMAXSEARCH; i++) {
-		if (conf->search[i] != NULL) {
-			isc_mem_free(conf->mctx, conf->search[i]);
-		}
 	}
 
 	isc_mem_put(conf->mctx, conf, sizeof(*conf));
