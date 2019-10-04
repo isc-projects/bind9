@@ -1031,16 +1031,7 @@ findext(dns_db_t *db, const dns_name_t *name, dns_dbversion_t *version,
 		dns_rdataset_disassociate(rdataset);
 
 	if (foundname != NULL) {
-		isc_result_t xresult;
-
-		xresult = dns_name_copy(xname, foundname, NULL);
-		if (xresult != ISC_R_SUCCESS) {
-			if (node != NULL)
-				destroynode(node);
-			if (dns_rdataset_isassociated(rdataset))
-				dns_rdataset_disassociate(rdataset);
-			return (DNS_R_BADDB);
-		}
+		dns_name_copynf(xname, foundname);
 	}
 
 	if (nodep != NULL)
@@ -1602,8 +1593,10 @@ dbiterator_current(dns_dbiterator_t *iterator, dns_dbnode_t **nodep,
 	sdb_dbiterator_t *sdbiter = (sdb_dbiterator_t *)iterator;
 
 	attachnode(iterator->db, sdbiter->current, nodep);
-	if (name != NULL)
-		return (dns_name_copy(sdbiter->current->name, name, NULL));
+	if (name != NULL) {
+		dns_name_copynf(sdbiter->current->name, name);
+		return (ISC_R_SUCCESS);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -1616,7 +1609,8 @@ dbiterator_pause(dns_dbiterator_t *iterator) {
 static isc_result_t
 dbiterator_origin(dns_dbiterator_t *iterator, dns_name_t *name) {
 	UNUSED(iterator);
-	return (dns_name_copy(dns_rootname, name, NULL));
+	dns_name_copynf(dns_rootname, name);
+	return (ISC_R_SUCCESS);
 }
 
 /*

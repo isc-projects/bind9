@@ -329,7 +329,7 @@ nta_create(dns_ntatable_t *ntatable, const dns_name_t *name,
 	isc_refcount_init(&nta->refcount, 1);
 
 	nta->name = dns_fixedname_initname(&nta->fn);
-	dns_name_copy(name, nta->name, NULL);
+	dns_name_copynf(name, nta->name);
 
 	nta->magic = NTA_MAGIC;
 
