@@ -3416,7 +3416,7 @@ render_ecs(isc_buffer_t *ecsbuf, isc_buffer_t *target) {
 		return (DNS_R_OPTERR);
 	}
 
-	ADD_STRING(target, ": ");
+	ADD_STRING(target, " ");
 	ADD_STRING(target, addr_text);
 	snprintf(addr_text, sizeof(addr_text), "/%d/%d", addrlen, scopelen);
 	ADD_STRING(target, addr_text);
@@ -3551,8 +3551,8 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 
 			if (optcode == DNS_OPT_LLQ) {
 				INDENT(style);
+				ADD_STRING(target, "LLQ:");
 				if (optlen == 18U) {
-					ADD_STRING(target, "LLQ: ");
 					result = render_llq(&optbuf, target);
 					if (result != ISC_R_SUCCESS) {
 						goto cleanup;
@@ -3560,24 +3560,24 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 					ADD_STRING(target, "\n");
 					continue;
 				}
-				ADD_STRING(target, "LLQ");
 			} else if (optcode == DNS_OPT_NSID) {
 				INDENT(style);
-				ADD_STRING(target, "NSID");
+				ADD_STRING(target, "NSID:");
 			} else if (optcode == DNS_OPT_COOKIE) {
 				INDENT(style);
-				ADD_STRING(target, "COOKIE");
+				ADD_STRING(target, "COOKIE:");
 			} else if (optcode == DNS_OPT_CLIENT_SUBNET) {
 				isc_buffer_t ecsbuf;
 				INDENT(style);
-				ADD_STRING(target, "CLIENT-SUBNET");
+				ADD_STRING(target, "CLIENT-SUBNET:");
 				isc_buffer_init(&ecsbuf,
 						isc_buffer_current(&optbuf),
 						optlen);
 				isc_buffer_add(&ecsbuf, optlen);
 				result = render_ecs(&ecsbuf, target);
-				if (result == ISC_R_NOSPACE)
+				if (result == ISC_R_NOSPACE) {
 					goto cleanup;
+				}
 				if (result == ISC_R_SUCCESS) {
 					isc_buffer_forward(&optbuf, optlen);
 					ADD_STRING(target, "\n");
@@ -3585,40 +3585,50 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 				}
 				ADD_STRING(target, "\n");
 			} else if (optcode == DNS_OPT_EXPIRE) {
+				INDENT(style);
+				ADD_STRING(target, "EXPIRE:");
 				if (optlen == 4) {
 					uint32_t secs;
 					secs = isc_buffer_getuint32(&optbuf);
-					INDENT(style);
-					ADD_STRING(target, "EXPIRE: ");
-					snprintf(buf, sizeof(buf), "%u", secs);
+					snprintf(buf, sizeof(buf), " %u", secs);
 					ADD_STRING(target, buf);
 					ADD_STRING(target, " (");
-					result = dns_ttl_totext(secs,
-								true,
-								true,
-								target);
+					result = dns_ttl_totext(secs, true,
+								true, target);
 					if (result != ISC_R_SUCCESS)
 						goto cleanup;
 					ADD_STRING(target, ")\n");
 					continue;
 				}
+			} else if (optcode == DNS_OPT_TCP_KEEPALIVE) {
+				if (optlen == 2) {
+					unsigned int dsecs;
+					dsecs = isc_buffer_getuint16(&optbuf);
+					INDENT(style);
+					ADD_STRING(target, "TCP-KEEPALIVE: ");
+					snprintf(buf, sizeof(buf), "%u.%u",
+						 dsecs / 10U, dsecs % 10U);
+					ADD_STRING(target, buf);
+					ADD_STRING(target, " secs\n");
+					continue;
+				}
 				INDENT(style);
-				ADD_STRING(target, "EXPIRE");
+				ADD_STRING(target, "TCP-KEEPALIVE:");
 			} else if (optcode == DNS_OPT_PAD) {
 				INDENT(style);
-				ADD_STRING(target, "PAD");
+				ADD_STRING(target, "PAD:");
 			} else if (optcode == DNS_OPT_KEY_TAG) {
 				INDENT(style);
-				ADD_STRING(target, "KEY-TAG");
+				ADD_STRING(target, "KEY-TAG:");
 				if (optlen > 0U && (optlen % 2U) == 0U) {
-					const char *sep = ": ";
+					const char *sep = "";
 					uint16_t id;
 					while (optlen > 0U) {
 					    id = isc_buffer_getuint16(&optbuf);
-					    snprintf(buf, sizeof(buf), "%s%u",
+					    snprintf(buf, sizeof(buf), "%s %u",
 						     sep, id);
 					    ADD_STRING(target, buf);
-					    sep = ", ";
+					    sep = ",";
 					    optlen -= 2;
 					}
 					ADD_STRING(target, "\n");
@@ -3627,11 +3637,10 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 			} else if (optcode == DNS_OPT_CLIENT_TAG) {
 				uint16_t id;
 				INDENT(style);
-				ADD_STRING(target, "CLIENT-TAG");
+				ADD_STRING(target, "CLIENT-TAG:");
 				if (optlen == 2U) {
 					id = isc_buffer_getuint16(&optbuf);
-					snprintf(buf, sizeof(buf), ": %u\n",
-						 id);
+					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					optlen -= 2;
 					POST(optlen);
@@ -3640,11 +3649,10 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 			} else if (optcode == DNS_OPT_SERVER_TAG) {
 				uint16_t id;
 				INDENT(style);
-				ADD_STRING(target, "SERVER-TAG");
+				ADD_STRING(target, "SERVER-TAG:");
 				if (optlen == 2U) {
 					id = isc_buffer_getuint16(&optbuf);
-					snprintf(buf, sizeof(buf), ": %u\n",
-						 id);
+					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					optlen -= 2;
 					POST(optlen);
@@ -3652,15 +3660,15 @@ dns_message_pseudosectiontoyaml(dns_message_t *msg,
 				}
 			} else {
 				INDENT(style);
-				ADD_STRING(target, "OPT: ");
-				snprintf(buf, sizeof(buf), "%u", optcode);
+				ADD_STRING(target, "OPT=");
+				snprintf(buf, sizeof(buf), "%u:", optcode);
 				ADD_STRING(target, buf);
-				ADD_STRING(target, "\n");
 			}
 
 			if (optlen != 0) {
 				int i;
-				ADD_STRING(target, ": ");
+
+				ADD_STRING(target, " ");
 
 				optdata = isc_buffer_current(&optbuf);
 				for (i = 0; i < optlen; i++) {
@@ -3844,8 +3852,8 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 			INDENT(style);
 
 			if (optcode == DNS_OPT_LLQ) {
+				ADD_STRING(target, "; LLQ:");
 				if (optlen == 18U) {
-					ADD_STRING(target, "; LLQ:");
 					result = render_llq(&optbuf, target);
 					if (result != ISC_R_SUCCESS) {
 						return (result);
@@ -3853,59 +3861,55 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 					ADD_STRING(target, "\n");
 					continue;
 				}
-				ADD_STRING(target, "; LLQ");
 			} else if (optcode == DNS_OPT_NSID) {
-				ADD_STRING(target, "; NSID");
+				ADD_STRING(target, "; NSID:");
 			} else if (optcode == DNS_OPT_COOKIE) {
-				ADD_STRING(target, "; COOKIE");
+				ADD_STRING(target, "; COOKIE:");
 			} else if (optcode == DNS_OPT_CLIENT_SUBNET) {
 				isc_buffer_t ecsbuf;
 
-				ADD_STRING(target, "; CLIENT-SUBNET");
+				ADD_STRING(target, "; CLIENT-SUBNET:");
 				isc_buffer_init(&ecsbuf,
 						isc_buffer_current(&optbuf),
 						optlen);
 				isc_buffer_add(&ecsbuf, optlen);
 				result = render_ecs(&ecsbuf, target);
-				if (result == ISC_R_NOSPACE)
+				if (result == ISC_R_NOSPACE) {
 					return (result);
+				}
 				if (result == ISC_R_SUCCESS) {
 					isc_buffer_forward(&optbuf, optlen);
 					ADD_STRING(target, "\n");
 					continue;
 				}
 			} else if (optcode == DNS_OPT_EXPIRE) {
+				ADD_STRING(target, "; EXPIRE:");
 				if (optlen == 4) {
 					uint32_t secs;
 					secs = isc_buffer_getuint32(&optbuf);
-					ADD_STRING(target, "; EXPIRE: ");
-					snprintf(buf, sizeof(buf), "%u", secs);
+					snprintf(buf, sizeof(buf), " %u", secs);
 					ADD_STRING(target, buf);
 					ADD_STRING(target, " (");
-					result = dns_ttl_totext(secs,
-								true,
-								true,
-								target);
+					result = dns_ttl_totext(secs, true,
+								true, target);
 					if (result != ISC_R_SUCCESS)
 						return (result);
 					ADD_STRING(target, ")\n");
 					continue;
 				}
-				ADD_STRING(target, "; EXPIRE");
 			} else if (optcode == DNS_OPT_TCP_KEEPALIVE) {
+				ADD_STRING(target, "; TCP KEEPALIVE:");
 				if (optlen == 2) {
 					unsigned int dsecs;
 					dsecs = isc_buffer_getuint16(&optbuf);
-					ADD_STRING(target, "; TCP KEEPALIVE:");
 					snprintf(buf, sizeof(buf), " %u.%u",
 						 dsecs / 10U, dsecs % 10U);
 					ADD_STRING(target, buf);
 					ADD_STRING(target, " secs\n");
 					continue;
 				}
-				ADD_STRING(target, "; TCP KEEPALIVE");
 			} else if (optcode == DNS_OPT_PAD) {
-				ADD_STRING(target, "; PAD");
+				ADD_STRING(target, "; PAD:");
 				if (optlen > 0U) {
 					snprintf(buf, sizeof(buf),
 						 " (%u bytes)", optlen);
@@ -3915,16 +3919,16 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				ADD_STRING(target, "\n");
 				continue;
 			} else if (optcode == DNS_OPT_KEY_TAG) {
-				ADD_STRING(target, "; KEY-TAG");
+				ADD_STRING(target, "; KEY-TAG:");
 				if (optlen > 0U && (optlen % 2U) == 0U) {
-					const char *sep = ": ";
+					const char *sep = "";
 					uint16_t id;
 					while (optlen > 0U) {
 					    id = isc_buffer_getuint16(&optbuf);
-					    snprintf(buf, sizeof(buf), "%s%u",
+					    snprintf(buf, sizeof(buf), "%s %u",
 						     sep, id);
 					    ADD_STRING(target, buf);
-					    sep = ", ";
+					    sep = ",";
 					    optlen -= 2;
 					}
 					ADD_STRING(target, "\n");
@@ -3932,11 +3936,10 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				}
 			} else if (optcode == DNS_OPT_CLIENT_TAG) {
 				uint16_t id;
-				ADD_STRING(target, "; CLIENT-TAG");
+				ADD_STRING(target, "; CLIENT-TAG:");
 				if (optlen == 2U) {
 					id = isc_buffer_getuint16(&optbuf);
-					snprintf(buf, sizeof(buf), ": %u\n",
-						 id);
+					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					optlen -= 2;
 					POST(optlen);
@@ -3944,11 +3947,10 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				}
 			} else if (optcode == DNS_OPT_SERVER_TAG) {
 				uint16_t id;
-				ADD_STRING(target, "; SERVER-TAG");
+				ADD_STRING(target, "; SERVER-TAG:");
 				if (optlen == 2U) {
 					id = isc_buffer_getuint16(&optbuf);
-					snprintf(buf, sizeof(buf), ": %u\n",
-						 id);
+					snprintf(buf, sizeof(buf), " %u\n", id);
 					ADD_STRING(target, buf);
 					optlen -= 2;
 					POST(optlen);
@@ -3956,13 +3958,14 @@ dns_message_pseudosectiontotext(dns_message_t *msg,
 				}
 			} else {
 				ADD_STRING(target, "; OPT=");
-				snprintf(buf, sizeof(buf), "%u", optcode);
+				snprintf(buf, sizeof(buf), "%u:", optcode);
 				ADD_STRING(target, buf);
 			}
 
 			if (optlen != 0) {
 				int i;
-				ADD_STRING(target, ": ");
+
+				ADD_STRING(target, " ");
 
 				optdata = isc_buffer_current(&optbuf);
 				for (i = 0; i < optlen; i++) {

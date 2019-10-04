@@ -1,3 +1,8 @@
+5300.	[bug]		dig/mdig/delv: Add a colon after EDNS option names,
+			even when the option is empty, to improve
+			readability and allow correct parsing of YAML
+			output. [GL #1226]
+
 5299.	[placeholder]
 
 5298.	[placeholder]
