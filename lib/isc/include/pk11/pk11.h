@@ -15,6 +15,7 @@
 /*! \file pk11/pk11.h */
 
 #include <stdbool.h>
+#include <unistd.h>
 
 #include <isc/lang.h>
 #include <isc/magic.h>
@@ -24,7 +25,7 @@
 	((void) (((rv = (func) args) == CKR_OK) || \
 		 ((pk11_error_fatalcheck)(__FILE__, __LINE__, #func, rv), 0)))
 
-#include <pkcs11/cryptoki.h>
+#include <pkcs11/pkcs11.h>
 #include <pk11/site.h>
 
 ISC_LANG_BEGINDECLS

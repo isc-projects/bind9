@@ -23,7 +23,6 @@
 #include <isc/thread.h>
 #include <isc/util.h>
 
-#include <pkcs11/cryptoki.h>
 #include <pkcs11/pkcs11.h>
 
 #define KEEP_PKCS11_NAMES
