@@ -348,7 +348,7 @@ main(int argc, char **argv) {
 	char		*classname = NULL;
 	char		*filename = NULL, *dir = NULL, *namestr;
 	char		*lookaside = NULL;
-	char		*endp;
+	char		*endp, *arg1;
 	int		ch;
 	dns_dsdigest_t	dtype = DNS_DSDIGEST_SHA1;
 	bool	cds = false;
@@ -476,10 +476,15 @@ main(int argc, char **argv) {
 		showall = true;
 	}
 
-	if (argc < isc_commandline_index + 1 && filename == NULL) {
+	/*
+	 * Use local variable arg1 so that clang can correctly analyse
+	 * reachable paths rather than 'argc < isc_commandline_index + 1'.
+	 */
+	arg1 = argv[isc_commandline_index];
+	if (arg1 == NULL && filename == NULL) {
 		fatal("the key file name was not specified");
 	}
-	if (argc > isc_commandline_index + 1) {
+	if (arg1 != NULL && argv[isc_commandline_index + 1] != NULL) {
 		fatal("extraneous arguments");
 	}
 
@@ -494,11 +499,11 @@ main(int argc, char **argv) {
 	dns_rdataset_init(&rdataset);
 
 	if (usekeyset || filename != NULL) {
-		if (argc < isc_commandline_index + 1) {
-			/* using zone name as the zone file name */
+		if (arg1 == NULL) {
+			/* using file name as the zone name */
 			namestr = filename;
 		} else {
-			namestr = argv[isc_commandline_index];
+			namestr = arg1;
 		}
 
 		result = initname(namestr);
@@ -540,8 +545,7 @@ main(int argc, char **argv) {
 	} else {
 		unsigned char key_buf[DST_KEY_MAXSIZE];
 
-		loadkey(argv[isc_commandline_index], key_buf,
-			DST_KEY_MAXSIZE, &rdata);
+		loadkey(arg1, key_buf, DST_KEY_MAXSIZE, &rdata);
 
 		if (both) {
 			emit(DNS_DSDIGEST_SHA1, showall, lookaside, cds,
