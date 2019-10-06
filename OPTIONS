@@ -4,18 +4,18 @@ defined in configure.
 
 Some of these settings are:
 
-Setting                   Description
+         Setting                            Description
                           Overwrite memory with tag values when allocating
 -DISC_MEM_DEFAULTFILL=1   or freeing it; this impairs performance but
                           makes debugging of memory problems easier.
-                          Don't track memory allocations by file and line
+                          Don?t track memory allocations by file and line
 -DISC_MEM_TRACKLINES=0    number; this improves performance but makes
                           debugging more difficult.
 -DISC_FACILITY=LOG_LOCAL0 Change the default syslog facility for named
 -DNS_CLIENT_DROPPORT=0    Disable dropping queries from particular
                           well-known ports:
--DCHECK_SIBLING=0         Don't check sibling glue in named-checkzone
--DCHECK_LOCAL=0           Don't check out-of-zone addresses in
+-DCHECK_SIBLING=0         Don?t check sibling glue in named-checkzone
+-DCHECK_LOCAL=0           Don?t check out-of-zone addresses in
                           named-checkzone
 -DNS_RUN_PID_DIR=0        Create default PID files in ${localstatedir}/run
                           rather than ${localstatedir}/run/named/
