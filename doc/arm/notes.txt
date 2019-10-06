@@ -50,14 +50,14 @@ operating systems.
 
 Security Fixes
 
+  * The TCP client quota set using the tcp-clients option could be
+    exceeded in some cases. This could lead to exhaustion of file
+    descriptors. This flaw is disclosed in CVE-2018-5743. [GL #615]
+
   * In certain configurations, named could crash with an assertion failure
     if nxdomain-redirect was in use and a redirected query resulted in an
     NXDOMAIN from the cache. This flaw is disclosed in CVE-2019-6467. [GL
     #880]
-
-  * The TCP client quota set using the tcp-clients option could be
-    exceeded in some cases. This could lead to exhaustion of file
-    descriptors. This flaw is disclosed in CVE-2018-5743. [GL #615]
 
   * A race condition could trigger an assertion failure when a large
     number of incoming packets were being rejected. This flaw is disclosed
@@ -65,10 +65,10 @@ Security Fixes
 
 New Features
 
-  * Added a new command line option to dig: <comand>+[no]unexpected</
-    comand>. By default, dig won't accept a reply from a source other than
-    the one to which it sent the query. Add the +unexpected argument to
-    enable it to process replies from unexpected sources.
+  * Added a new command line option to dig: +[no]unexpected. By default,
+    dig won't accept a reply from a source other than the one to which it
+    sent the query. Add the +unexpected argument to enable it to process
+    replies from unexpected sources.
 
   * The GeoIP2 API from MaxMind is now supported. Geolocation support will
     be compiled in by default if the libmaxminddb library is found at
@@ -202,13 +202,6 @@ Bug Fixes
   * Glue address records were not being returned in responses to root
     priming queries; this has been corrected. [GL #1092]
 
-  * Cache database statistics counters could report invalid values when
-    stale answers were enabled, because of a bug in counter maintenance
-    when cache data becomes stale. The statistics counters have been
-    corrected to report the number of RRsets for each RR type that are
-    active, stale but still potentially served, or stale and marked for
-    deletion. [GL #602]
-
   * Interaction between DNS64 and RPZ No Data rule (CNAME *.) could cause
     unexpected results; this has been fixed. [GL #1106]
 
@@ -220,6 +213,13 @@ Bug Fixes
 
   * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
     1133]
+
+  * Cache database statistics counters could report invalid values when
+    stale answers were enabled, because of a bug in counter maintenance
+    when cache data becomes stale. The statistics counters have been
+    corrected to report the number of RRsets for each RR type that are
+    active, stale but still potentially served, or stale and marked for
+    deletion. [GL #602]
 
   * dig now correctly expands the IPv6 address when run with +expandaaaa
     +short. [GL #1152]
