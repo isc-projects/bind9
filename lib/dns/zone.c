@@ -6675,8 +6675,8 @@ zone_resigninc(dns_zone_t *zone) {
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	bool check_ksk, keyset_kskonly = false;
 	isc_result_t result;
-	isc_stdtime_t now, inception, soaexpire, expire, stop;
-	uint32_t jitter, sigvalidityinterval;
+	isc_stdtime_t now, inception, soaexpire, expire, fullexpire, stop;
+	uint32_t sigvalidityinterval, expiryinterval;
 	unsigned int i;
 	unsigned int nkeys = 0;
 	unsigned int resign;
@@ -6724,20 +6724,34 @@ zone_resigninc(dns_zone_t *zone) {
 	sigvalidityinterval = zone->sigvalidityinterval;
 	inception = now - 3600;	/* Allow for clock skew. */
 	soaexpire = now + sigvalidityinterval;
+	expiryinterval = dns_zone_getsigresigninginterval(zone);
+	if (expiryinterval > sigvalidityinterval) {
+		expiryinterval = sigvalidityinterval;
+	} else {
+		expiryinterval = sigvalidityinterval - expiryinterval;
+	}
+
 	/*
 	 * Spread out signatures over time if they happen to be
 	 * clumped.  We don't do this for each add_sigs() call as
-	 * we still want some clustering to occur.
+	 * we still want some clustering to occur.  In normal operations
+	 * the records should be re-signed as they fall due and they should
+	 * already be spread out.  However if the server is off for a
+	 * period we need to ensure that the clusters don't become
+	 * synchronised by using the full jitter range.
 	 */
 	if (sigvalidityinterval >= 3600U) {
+		uint32_t normaljitter, fulljitter;
 		if (sigvalidityinterval > 7200U) {
-			jitter = isc_random_uniform(3600);
+			normaljitter = isc_random_uniform(3600);
+			fulljitter = isc_random_uniform(expiryinterval);
 		} else {
-			jitter = isc_random_uniform(1200);
+			normaljitter = fulljitter = isc_random_uniform(1200);
 		}
-		expire = soaexpire - jitter - 1;
+		expire = soaexpire - normaljitter - 1;
+		fullexpire = soaexpire - fulljitter - 1;
 	} else {
-		expire = soaexpire - 1;
+		expire = fullexpire = soaexpire - 1;
 	}
 	stop = now + 5;
 
@@ -6777,9 +6791,17 @@ zone_resigninc(dns_zone_t *zone) {
 			break;
 		}
 
+		/*
+		 * If re-signing is over 5 minutes late use 'fullexpire'
+		 * to redistribute the signature over the complete
+		 * re-signing window, otherwise only add a small amount
+		 * of jitter.
+		 */
 		result = add_sigs(db, version, name, zone, covers,
 				  zonediff.diff, zone_keys, nkeys, zone->mctx,
-				  inception, expire, check_ksk, keyset_kskonly);
+				  inception,
+				  resign > (now - 300) ? expire : fullexpire,
+				  check_ksk, keyset_kskonly);
 		if (result != ISC_R_SUCCESS) {
 			dns_zone_log(zone, ISC_LOG_ERROR,
 				     "zone_resigninc:add_sigs -> %s",
@@ -7739,7 +7761,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	bool first;
 	isc_result_t result;
 	isc_stdtime_t now, inception, soaexpire, expire;
-	uint32_t jitter, sigvalidityinterval;
+	uint32_t jitter, sigvalidityinterval, expiryinterval;
 	unsigned int i;
 	unsigned int nkeys = 0;
 	uint32_t nodes;
@@ -7811,6 +7833,12 @@ zone_nsec3chain(dns_zone_t *zone) {
 	sigvalidityinterval = dns_zone_getsigvalidityinterval(zone);
 	inception = now - 3600;	/* Allow for clock skew. */
 	soaexpire = now + sigvalidityinterval;
+	expiryinterval = dns_zone_getsigresigninginterval(zone);
+	if (expiryinterval > sigvalidityinterval) {
+		expiryinterval = sigvalidityinterval;
+	} else {
+		expiryinterval = sigvalidityinterval - expiryinterval;
+	}
 
 	/*
 	 * Spread out signatures over time if they happen to be
@@ -7819,7 +7847,7 @@ zone_nsec3chain(dns_zone_t *zone) {
 	 */
 	if (sigvalidityinterval >= 3600U) {
 		if (sigvalidityinterval > 7200U) {
-			jitter = isc_random_uniform(3600);
+			jitter = isc_random_uniform(expiryinterval);
 		} else {
 			jitter = isc_random_uniform(1200);
 		}
