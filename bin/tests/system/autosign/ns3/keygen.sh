@@ -53,6 +53,21 @@ $KEYGEN -q -3 -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
 $DSFROMKEY $ksk.key > dsset-${zone}$TP
 
 #
+#  Jitter/NSEC3 test zone
+#
+setup jitter.nsec3.example
+cp $infile $zonefile
+count=1
+while [ $count -le 100 ]
+do
+    echo "label${count} IN TXT label${count}" >> $zonefile
+    count=`expr $count + 1`
+done
+# Don't create keys just yet, because the scenario we want to test
+# is an unsigned zone that has a NSEC3PARAM record added with
+# dynamic update before the keys are generated.
+
+#
 #  OPTOUT/NSEC3 test zone
 #
 setup optout.nsec3.example
@@ -150,9 +165,16 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 #
 setup oldsigs.example
 cp $infile $zonefile
+count=1
+while [ $count -le 100 ]
+do
+    echo "label${count} IN TXT label${count}" >> $zonefile
+    count=`expr $count + 1`
+done
 $KEYGEN -q -r $RANDFILE -fk $zone > kg.out 2>&1 || dumpit kg.out
 $KEYGEN -q -r $RANDFILE $zone > kg.out 2>&1 || dumpit kg.out
-$SIGNER -PS -s now-1y -e now-6mo -o $zone -f $zonefile $infile > s.out 2>&1 || dumpit s.out
+$SIGNER -PS -s now-1y -e now-6mo -o $zone -f $zonefile.signed $zonefile > s.out 2>&1 || dumpit s.out
+mv $zonefile.signed $zonefile
 
 #
 # NSEC3->NSEC transition test zone.
