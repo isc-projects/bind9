@@ -142,7 +142,7 @@ stages:
     - autoreconf -fi
   artifacts:
     untracked: true
-    expire_in: "1 hour"
+    expire_in: "1 week"
 
 .configure: &configure |
     ./configure \
@@ -174,7 +174,7 @@ stages:
     - autoreconf:sid:amd64
   artifacts:
     untracked: true
-    expire_in: "1 hour"
+    expire_in: "1 week"
 
 .setup_interfaces: &setup_interfaces |
     if [ "$(id -u)" -eq "0" ]; then
@@ -771,7 +771,7 @@ msvc:windows:amd64:
     - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
   artifacts:
     untracked: true
-    expire_in: "1 hour"
+    expire_in: "1 week"
 
 system:msvc:windows:amd64:
   stage: system
