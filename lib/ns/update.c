@@ -3181,14 +3181,14 @@ update_action(isc_task_t *task, isc_event_t *event) {
 			 CHECK(dns_nsec3param_deletechains(db, ver, zone,
 							   true, &diff));
 		} else if (has_dnskey && isdnssec(db, ver, privatetype)) {
-			uint32_t interval;
 			dns_update_log_t log;
+			uint32_t interval = dns_zone_getsigvalidityinterval(zone);
 
-			interval = dns_zone_getsigvalidityinterval(zone);
 			log.func = update_log_cb;
 			log.arg = client;
 			result = dns_update_signatures(&log, zone, db, oldver,
-						       ver, &diff, interval);
+						       ver, &diff,
+						       interval);
 
 			if (result != ISC_R_SUCCESS) {
 				update_log(client, zone,
