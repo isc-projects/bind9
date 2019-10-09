@@ -19,6 +19,7 @@
  #include <lmdb.h>
 #endif
 
+#include <isc/atomic.h>
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lex.h>
@@ -64,9 +65,9 @@
 	       if (result != ISC_R_SUCCESS) goto cleanup;	 \
 	} while (0)
 
-#define RESSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_RESSHUTDOWN) != 0)
-#define ADBSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_ADBSHUTDOWN) != 0)
-#define REQSHUTDOWN(v)	(((v)->attributes & DNS_VIEWATTR_REQSHUTDOWN) != 0)
+#define RESSHUTDOWN(v)	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_RESSHUTDOWN) != 0)
+#define ADBSHUTDOWN(v)	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_ADBSHUTDOWN) != 0)
+#define REQSHUTDOWN(v)	((atomic_load(&(v)->attributes) & DNS_VIEWATTR_REQSHUTDOWN) != 0)
 
 #define DNS_VIEW_DELONLYHASH 111
 #define DNS_VIEW_FAILCACHESIZE 1021
@@ -140,8 +141,9 @@ dns_view_create(isc_mem_t *mctx, dns_rdataclass_t rdclass,
 	view->task = NULL;
 	isc_refcount_init(&view->references, 1);
 	isc_refcount_init(&view->weakrefs, 1);
-	view->attributes = (DNS_VIEWATTR_RESSHUTDOWN|DNS_VIEWATTR_ADBSHUTDOWN|
-			    DNS_VIEWATTR_REQSHUTDOWN);
+	atomic_init(&view->attributes, (DNS_VIEWATTR_RESSHUTDOWN |
+					DNS_VIEWATTR_ADBSHUTDOWN |
+					DNS_VIEWATTR_REQSHUTDOWN));
 	view->statickeys = NULL;
 	view->dynamickeys = NULL;
 	view->matchclients = NULL;
@@ -685,10 +687,7 @@ resolver_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	LOCK(&view->lock);
-	view->attributes |= DNS_VIEWATTR_RESSHUTDOWN;
-	UNLOCK(&view->lock);
-
+	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_RESSHUTDOWN);
 	dns_view_weakdetach(&view);
 }
 
@@ -704,9 +703,7 @@ adb_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	LOCK(&view->lock);
-	view->attributes |= DNS_VIEWATTR_ADBSHUTDOWN;
-	UNLOCK(&view->lock);
+	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_ADBSHUTDOWN);
 
 	dns_view_weakdetach(&view);
 }
@@ -723,9 +720,7 @@ req_shutdown(isc_task_t *task, isc_event_t *event) {
 
 	isc_event_free(&event);
 
-	LOCK(&view->lock);
-	view->attributes |= DNS_VIEWATTR_REQSHUTDOWN;
-	UNLOCK(&view->lock);
+	atomic_fetch_or(&view->attributes, DNS_VIEWATTR_REQSHUTDOWN);
 
 	dns_view_weakdetach(&view);
 }
@@ -775,7 +770,7 @@ dns_view_createresolver(dns_view_t *view,
 	}
 	event = &view->resevent;
 	dns_resolver_whenshutdown(view->resolver, view->task, &event);
-	view->attributes &= ~DNS_VIEWATTR_RESSHUTDOWN;
+	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_RESSHUTDOWN);
 	isc_refcount_increment(&view->weakrefs);
 
 	isc_mem_create(&mctx);
@@ -789,7 +784,7 @@ dns_view_createresolver(dns_view_t *view,
 	}
 	event = &view->adbevent;
 	dns_adb_whenshutdown(view->adb, view->task, &event);
-	view->attributes &= ~DNS_VIEWATTR_ADBSHUTDOWN;
+	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_ADBSHUTDOWN);
 	isc_refcount_increment(&view->weakrefs);
 
 	result = dns_requestmgr_create(view->mctx, timermgr, socketmgr,
@@ -804,7 +799,7 @@ dns_view_createresolver(dns_view_t *view,
 	}
 	event = &view->reqevent;
 	dns_requestmgr_whenshutdown(view->requestmgr, view->task, &event);
-	view->attributes &= ~DNS_VIEWATTR_REQSHUTDOWN;
+	atomic_fetch_and(&view->attributes, ~DNS_VIEWATTR_REQSHUTDOWN);
 	isc_refcount_increment(&view->weakrefs);
 
 	return (ISC_R_SUCCESS);
