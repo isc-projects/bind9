@@ -68,6 +68,15 @@ typedef atomic_uint_fast32_t isc_refcount_t;
  *  \param[in] ref pointer to reference counter.
  *  \returns previous value of reference counter.
  */
+#if _MSC_VER
+static inline uint_fast32_t
+isc_refcount_increment0(isc_refcount_t *target) {
+	uint_fast32_t __v;
+	__v = (uint_fast32_t)atomic_fetch_add_relaxed(target, 1);
+	INSIST(__v < UINT32_MAX);
+	return (__v);
+}
+#else /* _MSC_VER */
 #define isc_refcount_increment0(target)					\
 	({								\
 		/* cppcheck-suppress shadowVariable */			\
@@ -76,12 +85,22 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 		INSIST(__v < UINT32_MAX);				\
 		__v;							\
 	})
+#endif /* _MSC_VER */
 
 /** \def isc_refcount_increment(ref)
  *  \brief increases reference counter by 1.
  *  \param[in] ref pointer to reference counter.
  *  \returns previous value of reference counter.
  */
+#if _MSC_VER
+static inline uint_fast32_t
+isc_refcount_increment(isc_refcount_t *target) {
+	uint_fast32_t __v;
+	__v = (uint_fast32_t)atomic_fetch_add_relaxed(target, 1);
+	INSIST(__v > 0 && __v < UINT32_MAX);
+	return(__v);
+}
+#else /* _MSC_VER */
 #define isc_refcount_increment(target)					\
 	({								\
 		/* cppcheck-suppress shadowVariable */			\
@@ -90,12 +109,22 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 		INSIST(__v > 0 && __v < UINT32_MAX);			\
 		__v;							\
 	})
+#endif /* _MSC_VER */
 
 /** \def isc_refcount_decrement(ref)
  *  \brief decreases reference counter by 1.
  *  \param[in] ref pointer to reference counter.
  *  \returns previous value of reference counter.
  */
+#if _MSC_VER
+static inline uint_fast32_t
+isc_refcount_decrement(isc_refcount_t *target) {
+		uint_fast32_t __v;
+		__v = (uint_fast32_t)atomic_fetch_sub_release(target, 1);
+		INSIST(__v > 0);
+		return(__v);
+}
+#else /* _MSC_VER */
 #define isc_refcount_decrement(target)					\
 	({								\
 		/* cppcheck-suppress shadowVariable */			\
@@ -104,5 +133,6 @@ typedef atomic_uint_fast32_t isc_refcount_t;
 		INSIST(__v > 0);					\
 		__v;							\
 	})
+#endif /* _MSC_VER */
 
 ISC_LANG_ENDDECLS
