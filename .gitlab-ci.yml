@@ -16,6 +16,8 @@ variables:
   TEST_PARALLEL_JOBS: 6
 
   MAKE: make
+  CONFIGURE: ./configure
+  SCAN_BUILD: scan-build-9
 
 stages:
   - precheck
@@ -88,7 +90,7 @@ stages:
 
 .debian-buster-amd64: &debian_buster_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-buster-amd64"
-  <<: *linux_i386
+  <<: *linux_amd64
 
 .debian-sid-amd64: &debian_sid_amd64_image
   image: "$CI_REGISTRY_IMAGE:debian-sid-amd64"
@@ -158,7 +160,7 @@ stages:
     expire_in: "1 week"
 
 .configure: &configure |
-    ./configure \
+    ${CONFIGURE} \
     --disable-maintainer-mode \
     --enable-developer \
     --with-randomdev=/dev/urandom \
@@ -505,6 +507,38 @@ unit:gcc:buster:amd64:
   dependencies:
     - gcc:buster:amd64
   needs: ["gcc:buster:amd64"]
+
+# Jobs for scan-build builds on Debian Buster (amd64)
+
+.scan_build: &scan_build |
+  ${SCAN_BUILD} --html-title="BIND 9 ($CI_COMMIT_SHORT_SHA)" \
+                --keep-cc \
+                --status-bugs \
+                --keep-going \
+                -o scan-build.reports \
+                make -j${BUILD_PARALLEL_JOBS:-1} all V=1
+
+scan-build:buster:amd64:
+  <<: *default_triggering_rules
+  <<: *debian_buster_amd64_image
+  stage: postcheck
+  variables:
+    CC: clang-9
+    CFLAGS: "-Wall -Wextra -O2 -g"
+    CONFIGURE: "${SCAN_BUILD} ./configure"
+    EXTRA_CONFIGURE: "--enable-dnstap --with-libidn2"
+  script:
+    - *configure
+    - *scan_build
+  dependencies:
+    - autoreconf:sid:amd64
+  needs:
+    - autoreconf:sid:amd64
+  artifacts:
+    paths:
+      - scan-build.reports/
+    expire_in: "1 week"
+    when: on_failure
 
 # Jobs for regular GCC builds on Debian Sid (amd64)
 
