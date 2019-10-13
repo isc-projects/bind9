@@ -7555,6 +7555,7 @@ load_configuration(const char *filename, ns_server_t *server,
 	INSIST(result == ISC_R_SUCCESS);
 	CHECKM(setstring(server, &server->bindkeysfile,
 	       cfg_obj_asstring(obj)), "strdup");
+	INSIST(server->bindkeysfile != NULL);
 
 	if (access(server->bindkeysfile, R_OK) == 0) {
 		isc_log_write(ns_g_lctx, NS_LOGCATEGORY_GENERAL,
