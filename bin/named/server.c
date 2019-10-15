@@ -11078,7 +11078,8 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 	     view != NULL;
 	     view = ISC_LIST_NEXT(view, link))
 	{
-		if (ptr != NULL && strcasecmp(ptr, view->name) != 0)
+		if ((ptr != NULL && strcasecmp(ptr, view->name) != 0)
+		    || strcasecmp("_bind", view->name) == 0)
 			continue;
 		CHECK(dns_view_flushcache(view, false));
 
@@ -11094,10 +11095,10 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 			CHECK(putstr(text, " (view "));
 			CHECK(putstr(text, view->name));
 			CHECK(putstr(text, ")"));
-			CHECK(putnull(text));
 			first = false;
 		}
 	}
+	CHECK(putnull(text));
 
 	if (!set)
 		result = ISC_R_SUCCESS;
