@@ -193,7 +193,7 @@ stages:
     - *setup_interfaces
     - *setup_softhsm
   script:
-    - ( cd bin/tests && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
+    - ( cd bin/tests/system && make -j${TEST_PARALLEL_JOBS:-1} -k test V=1 )
     - test -s bin/tests/system/systests.output
   artifacts:
     untracked: true
