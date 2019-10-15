@@ -741,6 +741,9 @@ system:clang:openbsd6.5:amd64:
   dependencies:
     - clang:openbsd6.5:amd64
   needs: ["clang:openbsd6.5:amd64"]
+  only:
+    - tags
+    - web
 
 # Jobs with libtool disabled
 
