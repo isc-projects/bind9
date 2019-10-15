@@ -793,6 +793,9 @@ msvc:windows:amd64:
          x64'
     - 'Set-Item -path "Env:CL" -value "/MP$([Math]::Truncate($BUILD_PARALLEL_JOBS/2))"'
     - '& msbuild.exe /maxCpuCount:2 /t:Build /p:Configuration=$VSCONF bind9.sln'
+  dependencies: []
+  needs:
+    - autoreconf:sid:amd64
   artifacts:
     untracked: true
     expire_in: "1 week"
