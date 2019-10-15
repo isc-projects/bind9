@@ -531,7 +531,6 @@ my @enablelist = ("developer",
 # with-xxx/without-xxx
 
 my @withlist = ("aes",
-                "cc-alg",
                 "cross-compile",
                 "ecdsa",
                 "eddsa",
@@ -600,7 +599,6 @@ my @help = (
 "  with-eddsa            crypto EDDSA yes|all|no\n",
 "  with-gost[=ENC]       crypto GOST yes|no|raw|ans1\n",
 "  with-aes              crypto AES\n",
-"  with-cc-alg           choose the algorithm for cookies aes|sha1|sha256\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
 "  with-libxml2[=PATH]   build with libxml2 library yes|no|path\n",
 "  with-geoip[=PATH]     build with GeoIP support yes|no|path\n",
@@ -653,7 +651,6 @@ my $use_ed448 = "auto";
 my $use_gost = "auto";
 my $gost_encoding = "raw";
 my $use_aes = "auto";
-my $cookie_algorithm = "aes";
 my $use_gssapi = "no";
 my $gssapi_path = "C:\\Program\ Files\\MIT\\Kerberos\\";
 my $use_geoip = "no";
@@ -976,8 +973,6 @@ sub mywith {
         } elsif ($val =~ /^yes$/i) {
             $use_aes = "yes";
         }
-    } elsif ($key =~ /^cc-alg$/i) {
-        $cookie_algorithm = $val;
     } elsif ($key =~ /^gssapi$/i) {
         if ($val !~ /^no$/i) {
             $use_gssapi = "yes";
@@ -1198,7 +1193,6 @@ if ($verbose) {
     } else {
         print "rpz-nsdname: disabled\n";
     }
-    print "cookie algorithm: $cookie_algorithm\n";
     if ($use_openssl eq "no") {
         print "openssl: disabled\n";
     } else {
@@ -3695,7 +3689,6 @@ exit 0;
 #  --with-eddsa supported
 #  --with-gost supported
 #  --with-aes supported
-#  --with-cc-alg supported
 #  --with-geoip supported
 #  --with-geoip2 supported
 #  --with-gssapi supported with MIT (K)erberos (f)or (W)indows
