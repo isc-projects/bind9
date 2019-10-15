@@ -11081,9 +11081,9 @@ named_server_validation(named_server_t *server, isc_lex_t *lex,
 		if ((ptr != NULL && strcasecmp(ptr, view->name) != 0)
 		    || strcasecmp("_bind", view->name) == 0)
 			continue;
-		CHECK(dns_view_flushcache(view, false));
 
 		if (set) {
+			CHECK(dns_view_flushcache(view, false));
 			view->enablevalidation = enable;
 			changed = true;
 		} else {
