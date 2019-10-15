@@ -15253,6 +15253,8 @@ named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 	 * If -dump was specified, list NTA's and return
 	 */
 	if (dump) {
+		size_t last = 0;
+
 		for (view = ISC_LIST_HEAD(server->viewlist); view != NULL;
 		     view = ISC_LIST_NEXT(view, link))
 		{
@@ -15263,6 +15265,12 @@ named_server_nta(named_server_t *server, isc_lex_t *lex, bool readonly,
 			if (result == ISC_R_NOTFOUND) {
 				continue;
 			}
+
+			if (last != isc_buffer_usedlength(*text)) {
+				CHECK(putstr(text, "\n"));
+			}
+
+			last = isc_buffer_usedlength(*text);
 
 			CHECK(dns_ntatable_totext(ntatable, view->name, text));
 		}
