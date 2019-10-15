@@ -5511,9 +5511,6 @@ report() {
     test -z "$MAXMINDDB_LIBS" || echo "    GeoIP2 access control (--with-geoip2)"
     test "no" = "$use_geoip" || echo "    Legacy GeoIP access control (--with-geoip)"
     test "no" = "$use_gssapi" || echo "    GSS-API (--with-gssapi)"
-    if test "yes" = "$enable_full_report" -o "aes" != "$with_cc_alg"; then
-	echo "        Algorithm: $with_cc_alg"
-    fi
 
     # these lines are only printed if run with --enable-full-report
     if test "yes" = "$enable_full_report"; then
