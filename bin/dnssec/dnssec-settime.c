@@ -715,6 +715,11 @@ main(int argc, char **argv) {
 	if (setttl)
 		dst_key_setttl(key, ttl);
 
+	if (predecessor != NULL && prevkey != NULL) {
+		dst_key_setnum(prevkey, DST_NUM_SUCCESSOR, dst_key_id(key));
+		dst_key_setnum(key, DST_NUM_PREDECESSOR, dst_key_id(prevkey));
+	}
+
 	/*
 	 * No metadata changes were made but we're forcing an upgrade
 	 * to the new format anyway: use "-P now -A now" as the default
@@ -816,6 +821,9 @@ main(int argc, char **argv) {
 
 	if (changed) {
 		writekey(key, directory, write_state);
+		if (predecessor != NULL && prevkey != NULL) {
+			writekey(prevkey, directory, write_state);
+		}
 	}
 
 	if (prevkey != NULL)

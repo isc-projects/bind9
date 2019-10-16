@@ -767,6 +767,19 @@ keygen(keygen_ctx_t *ctx, isc_mem_t *mctx, int argc, char **argv)
 		fatal("cannot generate a null key due to possible key ID "
 		      "collision");
 
+	if (ctx->predecessor != NULL && prevkey != NULL) {
+		dst_key_setnum(prevkey, DST_NUM_SUCCESSOR, dst_key_id(key));
+		dst_key_setnum(key, DST_NUM_PREDECESSOR, dst_key_id(prevkey));
+
+		ret = dst_key_tofile(prevkey, ctx->options, ctx->directory);
+		if (ret != ISC_R_SUCCESS) {
+			char keystr[DST_KEY_FORMATSIZE];
+			dst_key_format(prevkey, keystr, sizeof(keystr));
+			fatal("failed to update predecessor %s: %s\n", keystr,
+			      isc_result_totext(ret));
+		}
+	}
+
 	ret = dst_key_tofile(key, ctx->options, ctx->directory);
 	if (ret != ISC_R_SUCCESS) {
 		char keystr[DST_KEY_FORMATSIZE];

@@ -1997,6 +1997,8 @@ write_key_state(const dst_key_t *key, int type, const char *directory) {
 		fprintf(fp, "Length: %u\n", key->key_size);
 
 		printnum(key, DST_NUM_LIFETIME, "Lifetime", fp);
+		printnum(key, DST_NUM_PREDECESSOR, "Predecessor", fp);
+		printnum(key, DST_NUM_SUCCESSOR, "Successor", fp);
 
 		printbool(key, DST_BOOL_KSK, "KSK", fp);
 		printbool(key, DST_BOOL_ZSK, "ZSK", fp);
