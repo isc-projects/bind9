@@ -103,6 +103,13 @@
 #define SEND_BUFFER_SIZE		4096
 #define RECV_BUFFER_SIZE		4096
 
+#define TCP_CLIENTS_PER_CONN		23
+/*%<
+ * Number of simultaneous ns_clients_t (queries in flight) for one
+ * TCP connection.  The number was arbitrarily picked and might be
+ * changed in the future.
+ */
+
 #define NMCTXS				100
 /*%<
  * Number of 'mctx pools' for clients. (Should this be configurable?)
@@ -2669,27 +2676,38 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 	/*
 	 * Pipeline TCP query processing.
 	 */
-	if (TCP_CLIENT(client) &&
-	    client->message->opcode != dns_opcode_query)
-	{
-		client->tcpconn->pipelined = false;
-	}
-	if (TCP_CLIENT(client) && client->tcpconn->pipelined) {
-		/*
-		 * We're pipelining. Replace the client; the
-		 * replacement can read the TCP socket looking
-		 * for new messages and this one can process the
-		 * current message asynchronously.
-		 *
-		 * There will now be at least three clients using this
-		 * TCP socket - one accepting new connections,
-		 * one reading an existing connection to get new
-		 * messages, and one answering the message already
-		 * received.
-		 */
-		result = ns_client_replace(client);
-		if (result != ISC_R_SUCCESS) {
+	if (TCP_CLIENT(client)) {
+		if (client->message->opcode != dns_opcode_query) {
 			client->tcpconn->pipelined = false;
+		}
+
+		/*
+		 * Limit the maximum number of simultaneous pipelined
+		 * queries on TCP connection to TCP_CLIENTS_PER_CONN.
+		 */
+		if ((isc_refcount_current(&client->tcpconn->refs)
+			    > TCP_CLIENTS_PER_CONN))
+		{
+			client->tcpconn->pipelined = false;
+		}
+
+		if (client->tcpconn->pipelined) {
+			/*
+			 * We're pipelining. Replace the client; the
+			 * replacement can read the TCP socket looking
+			 * for new messages and this one can process the
+			 * current message asynchronously.
+			 *
+			 * There will now be at least three clients using this
+			 * TCP socket - one accepting new connections,
+			 * one reading an existing connection to get new
+			 * messages, and one answering the message already
+			 * received.
+			 */
+			result = ns_client_replace(client);
+			if (result != ISC_R_SUCCESS) {
+				client->tcpconn->pipelined = false;
+			}
 		}
 	}
 
