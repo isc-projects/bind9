@@ -364,7 +364,7 @@ tcpconn_init(ns_client_t *client, bool force) {
 	 */
 	tconn = isc_mem_allocate(client->sctx->mctx, sizeof(*tconn));
 
-	isc_refcount_init(&tconn->refs, 1);
+	isc_refcount_init(&tconn->clients, 1);	/* Current client */
 	tconn->tcpquota = quota;
 	quota = NULL;
 	tconn->pipelined = false;
@@ -381,14 +381,14 @@ tcpconn_init(ns_client_t *client, bool force) {
  */
 static void
 tcpconn_attach(ns_client_t *source, ns_client_t *target) {
-	int old_refs;
+	int old_clients;
 
 	REQUIRE(source->tcpconn != NULL);
 	REQUIRE(target->tcpconn == NULL);
 	REQUIRE(source->tcpconn->pipelined);
 
-	old_refs = isc_refcount_increment(&source->tcpconn->refs);
-	INSIST(old_refs > 0);
+	old_clients = isc_refcount_increment(&source->tcpconn->clients);
+	INSIST(old_clients > 0);
 	target->tcpconn = source->tcpconn;
 }
 
@@ -401,17 +401,17 @@ tcpconn_attach(ns_client_t *source, ns_client_t *target) {
 static void
 tcpconn_detach(ns_client_t *client) {
 	ns_tcpconn_t *tconn = NULL;
-	int old_refs;
+	int old_clients;
 
 	REQUIRE(client->tcpconn != NULL);
 
 	tconn = client->tcpconn;
 	client->tcpconn = NULL;
 
-	old_refs = isc_refcount_decrement(&tconn->refs);
-	INSIST(old_refs > 0);
+	old_clients = isc_refcount_decrement(&tconn->clients);
+	INSIST(old_clients > 0);
 
-	if (old_refs == 1) {
+	if (old_clients == 1) {
 		isc_quota_detach(&tconn->tcpquota);
 		isc_mem_free(client->sctx->mctx, tconn);
 	}
@@ -2685,7 +2685,7 @@ ns__client_request(isc_task_t *task, isc_event_t *event) {
 		 * Limit the maximum number of simultaneous pipelined
 		 * queries on TCP connection to TCP_CLIENTS_PER_CONN.
 		 */
-		if ((isc_refcount_current(&client->tcpconn->refs)
+		if ((isc_refcount_current(&client->tcpconn->clients)
 			    > TCP_CLIENTS_PER_CONN))
 		{
 			client->tcpconn->pipelined = false;
