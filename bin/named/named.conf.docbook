@@ -1016,11 +1016,16 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
 dnssec-policy <replaceable>string</replaceable> {
 	dnskey-ttl <replaceable>ttlval</replaceable>;
 	keys { ( csk | ksk | zsk ) key-directory <replaceable>duration</replaceable> <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ] ; ... };
+	parent-ds-ttl <replaceable>duration</replaceable>;
+	parent-propagation-delay <replaceable>duration</replaceable>;
+	parent-registration-delay <replaceable>duration</replaceable>;
 	publish-safety <replaceable>duration</replaceable>;
 	retire-safety <replaceable>duration</replaceable>;
 	signatures-refresh <replaceable>duration</replaceable>;
 	signatures-validity <replaceable>duration</replaceable>;
 	signatures-validity-dnskey <replaceable>duration</replaceable>;
+	zone-max-ttl <replaceable>duration</replaceable>;
+	zone-propagation-delay <replaceable>duration</replaceable>;
 };
 </literallayout>
   </refsection>

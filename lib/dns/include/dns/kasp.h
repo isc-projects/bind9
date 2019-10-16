@@ -81,6 +81,15 @@ struct dns_kasp {
 	uint32_t			publish_safety;
 	uint32_t			retire_safety;
 
+	/* Zone settings */
+	dns_ttl_t			zone_max_ttl;
+	time_t				zone_propagation_delay;
+
+	/* Parent settings */
+	dns_ttl_t			parent_ds_ttl;
+	time_t				parent_propagation_delay;
+	time_t				parent_registration_delay;
+
 	// TODO: The rest of the KASP configuration
 };
 
@@ -92,8 +101,13 @@ struct dns_kasp {
 #define DNS_KASP_SIG_VALIDITY		(86400*14)
 #define DNS_KASP_SIG_VALIDITY_DNSKEY	(86400*14)
 #define DNS_KASP_KEY_TTL		(3600)
+#define DNS_KASP_DS_TTL			(3600)
 #define DNS_KASP_PUBLISH_SAFETY		(300)
 #define DNS_KASP_RETIRE_SAFETY		(300)
+#define DNS_KASP_ZONE_MAXTTL		(86400)
+#define DNS_KASP_ZONE_PROPDELAY		(300)
+#define DNS_KASP_PARENT_PROPDELAY	(3600)
+#define DNS_KASP_PARENT_REGDELAY	(86400)
 
 /* Key roles */
 #define DNS_KASP_KEY_ROLE_KSK		0x01
@@ -194,6 +208,53 @@ dns_kasp_getname(dns_kasp_t *kasp);
  *\li   name of 'kasp'.
  */
 
+time_t
+dns_kasp_signdelay(dns_kasp_t *kasp);
+/*%<
+ * Get the delay that is needed to ensure that all existing RRsets have been
+ * re-signed with a successor key.  This is the signature validity minus the
+ * signature refresh time (that indicates how far before signature expiry an
+ * RRSIG should be refreshed).
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   signature refresh interval.
+ */
+
+time_t
+dns_kasp_sigrefresh(dns_kasp_t *kasp);
+/*%<
+ * Get signature refresh interval.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   signature refresh interval.
+ */
+
+time_t
+dns_kasp_sigvalidity(dns_kasp_t *kasp);
+time_t
+dns_kasp_sigvalidity_dnskey(dns_kasp_t *kasp);
+/*%<
+ * Get signature validity.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   signature validity.
+ */
+
 dns_ttl_t
 dns_kasp_dnskeyttl(dns_kasp_t *kasp);
 /*%<
@@ -206,6 +267,104 @@ dns_kasp_dnskeyttl(dns_kasp_t *kasp);
  * Returns:
  *
  *\li   DNSKEY TTL.
+ */
+
+time_t
+dns_kasp_publishsafety(dns_kasp_t *kasp);
+/*%<
+ * Get publish safety interval.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   Publish safety interval.
+ */
+
+time_t
+dns_kasp_retiresafety(dns_kasp_t *kasp);
+/*%<
+ * Get retire safety interval.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   Retire safety interval.
+ */
+
+dns_ttl_t
+dns_kasp_zonemaxttl(dns_kasp_t *kasp);
+/*%<
+ * Get maximum zone TTL.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   Maximum zone TTL.
+ */
+
+time_t
+dns_kasp_zonepropagationdelay(dns_kasp_t *kasp);
+/*%<
+ * Get zone propagation delay.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   Zone propagation delay.
+ */
+
+dns_ttl_t
+dns_kasp_dsttl(dns_kasp_t *kasp);
+/*%<
+ * Get DS TTL (should match that of the parent DS record).
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   Expected parent DS TTL.
+ */
+
+time_t
+dns_kasp_parentpropagationdelay(dns_kasp_t *kasp);
+/*%<
+ * Get parent zone propagation delay.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   Parent zone propagation delay.
+ */
+
+time_t
+dns_kasp_parentregistrationdelay(dns_kasp_t *kasp);
+/*%<
+ * Get parent registration delay for submitting new DS.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li   Parent registration delay.
  */
 
 isc_result_t

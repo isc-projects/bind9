@@ -11151,6 +11151,83 @@ example.com                 CNAME   rpz-tcp-only.
 	      </listitem>
 	    </varlistentry>
 
+	    <varlistentry>
+	      <term><command>zone-max-ttl</command></term>
+	      <listitem>
+		<para>
+		Like <command>max-zone-ttl</command>, specifies the maximum
+		permissible TTL value in seconds. When loading a zone file
+		using a <option>masterfile-format</option> or
+		<constant>text</constant> or <constant>raw</constant>,
+		any record encountered with a TTL higher than
+		<option>zone-max-ttl</option> will be capped to the maximum
+		permissible TTL value.
+		</para>
+		<para>
+		This is needed in DNSSEC-maintained zones because when
+		rolling to a new DNSKEY, the old key needs to remain
+		available until RRSIG records have expired from
+		caches.  The <option>zone-max-ttl</option> option guarantees
+		that the largest TTL in the zone will be no higher than the
+		set value.
+		</para>
+	      <para>
+		(NOTE: Because <constant>map</constant>-format files
+		load directly into memory, this option cannot be
+		used with them.)
+	      </para>
+	      <para>
+		The default value is <constant>PT24H</constant> (24 hours).
+		A <option>zone-max-ttl</option> of zero is treated as if
+		the default value is in use.
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>zone-propagation-delay</command></term>
+	      <listitem>
+		<para>
+		The expected propagation delay from when a zone is updated
+		and when the new version of the zone is served by all its
+		name servers.  Default is <constant>PT5M</constant> (5 minutes).
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>parent-ds-ttl</command></term>
+	      <listitem>
+		<para>
+		The TTL of the DS RRset that the parent uses.  Default is
+		<constant>PT1H</constant> (1 hour).
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>parent-propagation-delay</command></term>
+	      <listitem>
+		<para>
+		The expected propagation delay from when the parent zone is
+		updated and when the new version of the parent zone is served
+		by all its name servers.  Default is
+		<constant>PT1H</constant> (1 hour).
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>parent-registration-delay</command></term>
+	      <listitem>
+		<para>
+		The expected registration delay from when a DS RRset change
+		is requested and when the DS RRset has been updated in the
+		parent zone.  Default is <constant>P1D</constant> (1 day).
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
 	  </variablelist>
 
 	</section>

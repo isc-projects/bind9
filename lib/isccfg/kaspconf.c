@@ -192,6 +192,25 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 	}
 	ISC_INSIST(!(ISC_LIST_EMPTY(kasp->keys)));
 
+	/* Configuration: Zone settings */
+	kasp->zone_max_ttl = get_duration(maps, "zone-max-ttl",
+					  DNS_KASP_ZONE_MAXTTL);
+	kasp->zone_propagation_delay = get_duration(maps,
+						    "zone-propagation-delay",
+						    DNS_KASP_ZONE_PROPDELAY);
+
+	/* Configuration: Parent settings */
+	kasp->parent_ds_ttl = get_duration(maps, "parent-ds-ttl",
+					   DNS_KASP_DS_TTL);
+	kasp->parent_propagation_delay = get_duration(
+						     maps,
+						     "parent-propagation-delay",
+						     DNS_KASP_PARENT_PROPDELAY);
+	kasp->parent_registration_delay = get_duration(
+						    maps,
+						    "parent-registration-delay",
+						    DNS_KASP_PARENT_REGDELAY);
+
 	// TODO: Rest of the configuration
 
 	/* Success: Attach the kasp to the pointer and return. */
