@@ -6257,8 +6257,10 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	     strcasecmp(ztypestr, "master") == 0 ||
 	     strcasecmp(ztypestr, "secondary") == 0 ||
 	     strcasecmp(ztypestr, "slave") == 0) &&
-	    cfg_map_get(zoptions, "inline-signing", &signing) == ISC_R_SUCCESS &&
-	    cfg_obj_asboolean(signing))
+	    ((cfg_map_get(zoptions, "inline-signing", &signing) ==
+	      ISC_R_SUCCESS && cfg_obj_asboolean(signing)) ||
+	     (cfg_map_get(zoptions, "dnssec-policy", &signing) ==
+	      ISC_R_SUCCESS  && signing != NULL)))
 	{
 		dns_zone_getraw(zone, &raw);
 		if (raw == NULL) {

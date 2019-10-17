@@ -443,7 +443,8 @@
 	    allowed to incrementally re-sign over time.
 	  </para>
 	  <para>
-	    This command requires that the
+	    This command requires that the zone is configured with a
+	    <command>dnssec-policy</command>, or that the
 	    <command>auto-dnssec</command> zone option
 	    be set to <literal>maintain</literal>,
 	    and also requires the zone to be configured to
@@ -849,7 +850,8 @@
 	    re-signed with the new key set.
 	  </para>
 	  <para>
-	    This command requires that the
+	    This command requires that the zone is configured with a
+	    <command>dnssec-policy</command>, or that the
 	    <command>auto-dnssec</command> zone option be set
 	    to <literal>allow</literal> or
 	    <literal>maintain</literal>,
