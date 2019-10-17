@@ -270,6 +270,7 @@ transform(uint32_t state[5], const unsigned char buffer[64]) {
 	INSIST(state != NULL);
 
 	block = &workspace;
+	/* cppcheck-suppress uninitvar */
 	(void)memmove(block, buffer, 64);
 
 	/* Copy context->state[] to working vars */
