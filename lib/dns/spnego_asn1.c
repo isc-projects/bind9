@@ -695,6 +695,7 @@ decode_NegTokenResp(const unsigned char *p, size_t len, NegTokenResp * data, siz
 	size_t l;
 	int e;
 
+	/* cppcheck-suppress uninitvar */
 	memset(data, 0, sizeof(*data));
 	reallen = 0;
 	e = der_match_tag_and_length(p, len, ASN1_C_UNIV, CONS, UT_Sequence, &reallen, &l);
