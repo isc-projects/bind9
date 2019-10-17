@@ -33,6 +33,7 @@ controls {
 };
 
 include "policies/kasp.conf";
+include "policies/autosign.conf";
 
 /* Zones that are getting initially signed */
 
@@ -119,4 +120,116 @@ zone "ecdsa384.kasp" {
 	type master;
 	file "ecdsa384.kasp.db";
 	dnssec-policy "ecdsa384";
+};
+
+/*
+ * Zones in different signing states.
+ */
+
+/*
+ * Zone that has expired signatures.
+ */
+zone "expired-sigs.autosign" {
+	type master;
+	file "expired-sigs.autosign.db";
+	dnssec-policy "autosign";
+};
+
+/*
+ * Zone that has valid, fresh signatures.
+ */
+zone "fresh-sigs.autosign" {
+	type master;
+	file "fresh-sigs.autosign.db";
+	dnssec-policy "autosign";
+};
+
+/*
+ * Zone that has unfresh signatures.
+ */
+zone "unfresh-sigs.autosign" {
+	type master;
+	file "unfresh-sigs.autosign.db";
+	dnssec-policy "autosign";
+};
+
+/*
+ * Zone that has missing private ZSK.
+ */
+zone "zsk-missing.autosign" {
+	type master;
+	file "zsk-missing.autosign.db";
+	dnssec-policy "autosign";
+};
+
+/*
+ * Zone that has inactive ZSK.
+ */
+zone "zsk-retired.autosign" {
+	type master;
+	file "zsk-retired.autosign.db";
+	dnssec-policy "autosign";
+};
+
+/*
+ * Zones for testing ZSK Pre-Publication steps.
+ */
+zone "step1.zsk-prepub.autosign" {
+	type master;
+	file "step1.zsk-prepub.autosign.db";
+	dnssec-policy "zsk-prepub";
+};
+zone "step2.zsk-prepub.autosign" {
+	type master;
+	file "step2.zsk-prepub.autosign.db";
+	dnssec-policy "zsk-prepub";
+};
+zone "step3.zsk-prepub.autosign" {
+	type master;
+	file "step3.zsk-prepub.autosign.db";
+	dnssec-policy "zsk-prepub";
+};
+zone "step4.zsk-prepub.autosign" {
+	type master;
+	file "step4.zsk-prepub.autosign.db";
+	dnssec-policy "zsk-prepub";
+};
+zone "step5.zsk-prepub.autosign" {
+	type master;
+	file "step5.zsk-prepub.autosign.db";
+	dnssec-policy "zsk-prepub";
+};
+
+/*
+ * Zones for testing KSK Double-KSK steps.
+ */
+zone "step1.ksk-doubleksk.autosign" {
+	type master;
+	file "step1.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step2.ksk-doubleksk.autosign" {
+	type master;
+	file "step2.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step3.ksk-doubleksk.autosign" {
+	type master;
+	file "step3.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step4.ksk-doubleksk.autosign" {
+	type master;
+	file "step4.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step5.ksk-doubleksk.autosign" {
+	type master;
+	file "step5.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
+};
+zone "step6.ksk-doubleksk.autosign" {
+	type master;
+	file "step6.ksk-doubleksk.autosign.db";
+	dnssec-policy "ksk-doubleksk";
 };

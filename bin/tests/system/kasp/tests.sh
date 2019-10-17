@@ -1080,5 +1080,407 @@ dnssec_verify
 
 # TODO: ED25519 and ED448.
 
+#
+# Zone: expired-sigs.autosign.
+#
+zone_properties "ns3" "expired-sigs.autosign" "autosign" "300" "2"
+# Both KSK and ZSK stay OMNIPRESENT.
+key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "yes"
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+# Expect only two keys.
+key_clear "KEY3"
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Verify all signatures have been refreshed.
+check_rrsig_refresh() {
+	# Apex.
+	_qtypes="DNSKEY SOA NS NSEC"
+	for _qtype in $_qtypes
+	do
+		n=$((n+1))
+		echo_i "check ${_qtype} rrsig is refreshed correctly for zone ${ZONE} ($n)"
+		ret=0
+		dig_with_opts $ZONE @10.53.0.3 $_qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${_qtype} failed"
+		grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+		grep "${ZONE}\..*IN.*RRSIG.*${_qtype}.*${ZONE}" dig.out.$DIR.test$n > rrsig.out.$ZONE.$_qtype || log_error "missing RRSIG (${_qtype}) record in response"
+		# If this exact RRSIG is also in the zone file it is not refreshed.
+		_rrsig=`cat rrsig.out.$ZONE.$_qtype`
+		grep "${_rrsig}" "${DIR}/${ZONE}.db" > /dev/null && log_error "RRSIG (${_qtype}) not refreshed in zone ${ZONE}"
+		test "$ret" -eq 0 || echo_i "failed"
+		status=$((status+ret))
+	done
+
+	# Below apex.
+	_labels="a b c ns3"
+	for _label in $_labels;
+	do
+		_qtypes="A NSEC"
+		for _qtype in $_qtypes
+		do
+			n=$((n+1))
+			echo_i "check ${_label} ${_qtype} rrsig is refreshed correctly for zone ${ZONE} ($n)"
+			ret=0
+			dig_with_opts "${_label}.${ZONE}" @10.53.0.3 $_qtype > dig.out.$DIR.test$n || log_error "dig ${_label}.${ZONE} ${_qtype} failed"
+			grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+			grep "${ZONE}\..*IN.*RRSIG.*${_qtype}.*${ZONE}" dig.out.$DIR.test$n > rrsig.out.$ZONE.$_qtype || log_error "missing RRSIG (${_qtype}) record in response"
+			_rrsig=`cat rrsig.out.$ZONE.$_qtype`
+			grep "${_rrsig}" "${DIR}/${ZONE}.db" > /dev/null && log_error "RRSIG (${_qtype}) not refreshed in zone ${ZONE}"
+			test "$ret" -eq 0 || echo_i "failed"
+			status=$((status+ret))
+		done
+	done
+}
+
+check_rrsig_refresh
+
+#
+# Zone: fresh-sigs.autosign.
+#
+zone_properties "ns3" "fresh-sigs.autosign" "autosign" "300" "2"
+# key_properties, key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Verify signature reuse.
+check_rrsig_reuse() {
+	# Apex.
+	_qtypes="NS NSEC"
+	for _qtype in $_qtypes
+	do
+		n=$((n+1))
+		echo_i "check ${_qtype} rrsig is reused correctly for zone ${ZONE} ($n)"
+		ret=0
+		dig_with_opts $ZONE @10.53.0.3 $_qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${_qtype} failed"
+		grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+		grep "${ZONE}\..*IN.*RRSIG.*${_qtype}.*${ZONE}" dig.out.$DIR.test$n > rrsig.out.$ZONE.$_qtype || log_error "missing RRSIG (${_qtype}) record in response"
+		# If this exact RRSIG is also in the zone file it is not refreshed.
+		_rrsig=$(awk '{print $5, $6, $7, $8, $9, $10, $11, $12, $13, $14;}' < rrsig.out.$ZONE.$_qtype)
+		grep "${_rrsig}" "${DIR}/${ZONE}.db" > /dev/null || log_error "RRSIG (${_qtype}) not reused in zone ${ZONE}"
+		test "$ret" -eq 0 || echo_i "failed"
+		status=$((status+ret))
+	done
+
+	# Below apex.
+	_labels="a b c ns3"
+	for _label in $_labels;
+	do
+		_qtypes="A NSEC"
+		for _qtype in $_qtypes
+		do
+			n=$((n+1))
+			echo_i "check ${_label} ${_qtype} rrsig is reused correctly for zone ${ZONE} ($n)"
+			ret=0
+			dig_with_opts "${_label}.${ZONE}" @10.53.0.3 $_qtype > dig.out.$DIR.test$n || log_error "dig ${_label}.${ZONE} ${_qtype} failed"
+			grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+			grep "${ZONE}\..*IN.*RRSIG.*${_qtype}.*${ZONE}" dig.out.$DIR.test$n > rrsig.out.$ZONE.$_qtype || log_error "missing RRSIG (${_qtype}) record in response"
+			_rrsig=$(awk '{print $5, $6, $7, $8, $9, $10, $11, $12, $13, $14;}' < rrsig.out.$ZONE.$_qtype)
+			grep "${_rrsig}" "${DIR}/${ZONE}.db" > /dev/null || log_error "RRSIG (${_qtype}) not reused in zone ${ZONE}"
+			test "$ret" -eq 0 || echo_i "failed"
+			status=$((status+ret))
+		done
+	done
+}
+
+check_rrsig_reuse
+
+#
+# Zone: unfresh-sigs.autosign.
+#
+zone_properties "ns3" "unfresh-sigs.autosign" "autosign" "300" "2"
+# key_properties, key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+check_rrsig_refresh
+
+#
+# Zone: zsk-missing.autosign.
+#
+zone_properties "ns3" "zsk-missing.autosign" "autosign" "300" "2"
+# KSK stays OMNIPRESENT.
+key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "yes"
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+# key_properties, key_timings and key_states same as above.
+# TODO
+
+#
+# Zone: zsk-retired.autosign.
+#
+zone_properties "ns3" "zsk-retired.autosign" "autosign" "300" "3"
+# KSK properties, timings and states same as above.
+# The ZSK goal is set to HIDDEN but records stay OMNIPRESENT until the new ZSK
+# is active.
+key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+key_states "KEY2" "hidden" "omnipresent" "omnipresent" "none" "none"
+# A new ZSK should be introduced, so expect a key with goal OMNIPRESENT,
+# the DNSKEY introduced (RUMOURED) and the signatures HIDDEN.
+key_properties "KEY3" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "no"
+key_timings "KEY3" "published" "active" "retired" "none" "none"
+key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
+
+#
+# Testing ZSK Pre-Publication rollover.
+#
+
+#
+# Zone: step1.zsk-prepub.autosign.
+#
+zone_properties "ns3" "step1.zsk-prepub.autosign" "zsk-prepub" "3600" "2"
+# Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
+key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "yes"
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+# Initially only two keys.
+key_clear "KEY3"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+check_next_key_event() {
+	_expect=$1
+
+	n=$((n+1))
+	echo_i "check next key event for zone ${ZONE} ($n)"
+	ret=0
+	grep "zone ${ZONE}.*: next key event in .* seconds" "${DIR}/named.run" > keyevent.out.$ZONE.test$n || log_error "no next key event for zone ${ZONE}"
+
+	_time=$(awk '{print $10}' < keyevent.out.$ZONE.test$n)
+
+	# The next key event time must within 10 seconds of the
+	# expected time.
+	_expectmin=$((_expect-10))
+	_expectmax=$((_expect+10))
+
+	test $_expectmin -le $_time || log_error "bad next key event time ${_time} for zone ${ZONE} (expect ${_expect})"
+	test $_expectmax -ge $_time || log_error "bad next key event time ${_time} for zone ${ZONE} (expect ${_expect})"
+
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+}
+
+# Next key event is when the successor ZSK needs to be published.  That is
+# the ZSK lifetime - prepublication time.  The prepublication time is DNSKEY
+# TTL plus publish safety plus the zone propagation delay.  For the
+# zsk-prepub policy that means: 30d - 3600s + 1d + 1h = 2498400 seconds.
+check_next_key_event 2498400
+
+#
+# Zone: step2.zsk-prepub.autosign.
+#
+zone_properties "ns3" "step2.zsk-prepub.autosign" "zsk-prepub" "3600" "3"
+# KSK (KEY1) doesn't change.
+# ZSK (KEY2) remains active, no change in properties/timings/states.
+# New ZSK (KEY3) is prepublished.
+key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no"
+key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
+key_timings "KEY3" "published" "active" "retired" "none" "none"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the successor ZSK becomes OMNIPRESENT.  That is the
+# DNSKEY TTL plus the zone propagation delay, plus the publish-safety. For
+# the zsk-prepub policy, this means: 3600s + 1h + 1d = 93600 seconds.
+check_next_key_event 93600
+
+#
+# Zone: step3.zsk-prepub.autosign.
+#
+zone_properties "ns3" "step3.zsk-prepub.autosign" "zsk-prepub" "3600" "3"
+# KSK (KEY1) doesn't change.
+# ZSK (KEY2) properties and timing metadata same as above.
+# ZSK (KEY2) no longer is actively signing, RRSIG state in UNRETENTIVE.
+# New ZSK (KEY3) is now actively signing, RRSIG state in RUMOURED.
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no"
+key_states "KEY2" "hidden" "omnipresent" "unretentive" "none" "none"
+
+key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes"
+key_states "KEY3" "omnipresent" "omnipresent" "rumoured" "none" "none"
+check_keys
+check_apex
+# Subdomain still has good signatures of ZSK (KEY2)
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no"
+check_subdomain
+dnssec_verify
+
+# Next key event is when all the RRSIG records have been replaced with
+# signatures of the new ZSK, in other words when ZRRSIG becomes OMNIPRESENT.
+# That is Dsgn plus the maximum zone TTL plus the zone propagation delay plus
+# retire-safety. For the zsk-prepub policy that means: 1w (because 2w validity
+# and refresh within a week) + 1d + 1h + 2d = 10d1h = 867600 seconds.
+check_next_key_event 867600
+
+#
+# Zone: step4.zsk-prepub.autosign.
+#
+zone_properties "ns3" "step4.zsk-prepub.autosign" "zsk-prepub" "3600" "3"
+# KSK (KEY1) doesn't change.
+# ZSK (KEY2) properties and timing metadata same as above.
+# ZSK (KEY2) DNSKEY is no longer needed.
+# ZSK (KEY3) is now actively signing, RRSIG state in RUMOURED.
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no"
+key_states "KEY2" "hidden" "unretentive" "hidden" "none" "none"
+key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes"
+key_states "KEY3" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DNSKEY enters the HIDDEN state.  This is the
+# DNSKEY TTL plus zone propagation delay. For the zsk-prepub policy this is:
+# 3600s + 1h = 7200s
+check_next_key_event 7200
+
+#
+# Zone: step5.zsk-prepub.autosign.
+#
+zone_properties "ns3" "step5.zsk-prepub.autosign" "zsk-prepub" "3600" "3"
+# KSK (KEY1) doesn't change.
+# ZSK (KEY2) properties and timing metadata same as above.
+# ZSK (KEY3) DNSKEY is now completely HIDDEN and removed.
+key_timings "KEY2" "published" "active" "retired" "none" "removed"
+key_states "KEY2" "hidden" "hidden" "hidden" "none" "none"
+# ZSK (KEY3) remains actively signing, staying in OMNIPRESENT.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the new successor needs to be published.  This is the
+# ZSK lifetime minus Iret minus Ipub minus DNSKEY TTL.  For the zsk-prepub
+# policy this is: 30d - 867600s - 93600s - 3600s = 1627200 seconds.
+check_next_key_event 1627200
+
+#
+# Testing KSK Double-KSK rollover.
+#
+
+#
+# Zone: step1.ksk-doubleksk.autosign.
+#
+zone_properties "ns3" "step1.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "2"
+# Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
+key_properties "KEY1" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "yes"
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
+# Initially only two keys.
+key_clear "KEY3"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the successor KSK needs to be published.  That is
+# the KSK lifetime - prepublication time - DS registration delay.  The
+# prepublication time is DNSKEY TTL plus publish safety plus the zone
+# propagation delay.  For the ksk-doubleksk policy that means:
+# 60d - (1d3h) - (1d) = 5000400 seconds.
+check_next_key_event 5000400
+
+#
+# Zone: step2.ksk-doubleksk.autosign.
+#
+zone_properties "ns3" "step2.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3"
+# ZSK (KEY2) doesn't change.
+# KSK (KEY1) remains active, no change in properties/timings/states.
+# New KSK (KEY3) is prepublished (and signs DNSKEY RRset).
+key_properties "KEY3" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "yes"
+key_states "KEY3" "omnipresent" "rumoured" "none" "rumoured" "hidden"
+key_timings "KEY3" "published" "active" "retired" "none" "none"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the successor KSK becomes OMNIPRESENT.  That is the
+# DNSKEY TTL plus the zone propagation delay, plus the publish-safety.  For
+# the ksk-doubleksk policy, this means: 7200s + 1h + 1d = 97200 seconds.
+check_next_key_event 97200
+
+#
+# Zone: step3.ksk-doubleksk.autosign.
+#
+zone_properties "ns3" "step3.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3"
+# ZSK (KEY2) doesn't change.
+# KSK (KEY1) DS will be removed, so it is UNRETENTIVE.
+key_states "KEY1" "hidden" "omnipresent" "none" "omnipresent" "unretentive"
+# New KSK (KEY3) has its DS submitted.
+key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "rumoured"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the predecessor DS has been replaced with the
+# successor DS and enough time has passed such that the all validators that
+# have this DS RRset cached only know about the successor DS.  This is the
+# registration delay plus the retire interval, which is the parent
+# propagation delay plus the DS TTL plus the retire-safety.  For the
+# ksk-double-ksk policy this means: 1d + 1h + 3600s + 2d = 3d2h =
+# 266400 seconds.
+check_next_key_event 266400
+
+#
+# Zone: step4.ksk-doubleksk.autosign.
+#
+zone_properties "ns3" "step4.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3"
+# ZSK (KEY2) doesn't change.
+# KSK (KEY1) DNSKEY can be removed.
+key_properties "KEY1" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "no"
+key_states "KEY1" "hidden" "unretentive" "none" "unretentive" "hidden"
+# New KSK (KEY3) DS is now OMNIPRESENT.
+key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DNSKEY enters the HIDDEN state.  This is the
+# DNSKEY TTL plus zone propagation delay. For the ksk-doubleksk policy this is:
+# 7200s + 1h = 10800s
+check_next_key_event 10800
+
+#
+# Zone: step5.ksk-doubleksk.autosign.
+#
+zone_properties "ns3" "step5.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3"
+# ZSK (KEY2) doesn't change.
+# KSK (KEY1) DNSKEY is now HIDDEN.
+key_states "KEY1" "hidden" "hidden" "none" "hidden" "hidden"
+# New KSK (KEY3) stays OMNIPRESENT.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the new successor needs to be published.  This is the
+# KSK lifetime minus Ipub minus Dreg minus Iret minus DNSKEY TTL.  For the
+# ksk-doubleksk this is: 60d - 1d3h - 1d - 2d2h - 2h =
+# 5184000 - 97200 - 86400 - 180000 - 7200 = 4813200 seconds.
+check_next_key_event 4813200
+
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
