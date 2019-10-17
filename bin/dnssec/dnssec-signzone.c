@@ -2717,7 +2717,7 @@ build_final_keylist(void) {
 	 * Update keylist with information from from the key repository.
 	 */
 	dns_dnssec_updatekeys(&keylist, &matchkeys, NULL, gorigin, keyttl,
-			      &diff, ignore_kskflag, mctx, report);
+			      &diff, mctx, report);
 
 	/*
 	 * Update keylist with sync records.

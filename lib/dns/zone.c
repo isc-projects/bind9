@@ -18558,8 +18558,7 @@ zone_rekey(dns_zone_t *zone) {
 		check_ksk = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_UPDATECHECKKSK);
 		result = dns_dnssec_updatekeys(&dnskeys, &keys, &rmkeys,
 					       &zone->origin, ttl, &diff,
-					       !check_ksk, mctx,
-					       dnssec_report);
+					       mctx, dnssec_report);
 		/*
 		 * Keys couldn't be updated for some reason;
 		 * try again later.
