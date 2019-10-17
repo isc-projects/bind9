@@ -17,6 +17,7 @@ rm -f *.pid
 rm -f rndc.out*
 [ -d ns2/nope ] && chmod 755 ns2/nope
 rm -rf ns2/nope
+rm -rf ns2/tmp.*
 rm -f ns*/managed-keys.bind*
 rm -rf "ns2/`cat ctrl-char-dir-name`"
 rm -rf "ns2/$;"
