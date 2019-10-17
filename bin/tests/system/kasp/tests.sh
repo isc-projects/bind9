@@ -436,6 +436,62 @@ check_key() {
 	grep "Generated: " $STATE_FILE > /dev/null || log_error "mismatch generated in $STATE_FILE"
 }
 
+# Check the key with key id $1 and see if it is unused.
+# This requires environment variables to be set with 'zone_properties',
+# and 'key_properties'.
+#
+# This will set the following environment variables for testing:
+# BASE_FILE="${_dir}/K${_zone}.+${_alg_numpad}+${_key_idpad}"
+# KEY_FILE="${BASE_FILE}.key"
+# PRIVATE_FILE="${BASE_FILE}.private"
+# STATE_FILE="${BASE_FILE}.state"
+# KEY_ID=$(echo $1 | sed 's/^0*//')
+key_unused() {
+	_dir=$DIR
+	_zone=$ZONE
+	_key_idpad=$1
+	_key_id=$(echo $_key_idpad | sed 's/^0*//')
+	_alg_num="${KEY1[$ALG_NUM]}"
+        _alg_numpad=$(printf "%03d" $_alg_num)
+
+	BASE_FILE="${_dir}/K${_zone}.+${_alg_numpad}+${_key_idpad}"
+	KEY_FILE="${BASE_FILE}.key"
+	PRIVATE_FILE="${BASE_FILE}.private"
+	STATE_FILE="${BASE_FILE}.state"
+	KEY_ID="${_key_id}"
+
+	test $_log -eq 1 && echo_i "key unused $KEY_ID?"
+
+	# Check timing metadata.
+	grep "; Publish:" $KEY_FILE > /dev/null && log_error "unexpected publish comment in $KEY_FILE"
+	grep "Publish:" $PRIVATE_FILE > /dev/null && log_error "unexpected publish in $PRIVATE_FILE"
+	grep "Published: " $STATE_FILE > /dev/null && log_error "unexpected publish in $STATE_FILE"
+	grep "; Activate:" $KEY_FILE > /dev/null && log_error "unexpected active comment in $KEY_FILE"
+	grep "Activate:" $PRIVATE_FILE > /dev/null && log_error "unexpected active in $PRIVATE_FILE"
+	grep "Active: " $STATE_FILE > /dev/null && log_error "unexpected active in $STATE_FILE"
+	grep "; Inactive:" $KEY_FILE > /dev/null && log_error "unexpected retired comment in $KEY_FILE"
+	grep "Inactive:" $PRIVATE_FILE > /dev/null && log_error "unexpected retired in $PRIVATE_FILE"
+	grep "Retired: " $STATE_FILE > /dev/null && log_error "unexpected retired in $STATE_FILE"
+	grep "; Revoke:" $KEY_FILE > /dev/null && log_error "unexpected revoked comment in $KEY_FILE"
+	grep "Revoke:" $PRIVATE_FILE > /dev/null && log_error "unexpected revoked in $PRIVATE_FILE"
+	grep "Revoked: " $STATE_FILE > /dev/null && log_error "unexpected revoked in $STATE_FILE"
+	grep "; Delete:" $KEY_FILE > /dev/null && log_error "unexpected removed comment in $KEY_FILE"
+	grep "Delete:" $PRIVATE_FILE > /dev/null && log_error "unexpected removed in $PRIVATE_FILE"
+	grep "Removed: " $STATE_FILE > /dev/null && log_error "unexpected removed in $STATE_FILE"
+}
+
+# Test: dnssec-verify zone $1.
+dnssec_verify()
+{
+	n=$((n+1))
+	echo_i "dnssec-verify zone ${ZONE} ($n)"
+	ret=0
+	dig_with_opts $ZONE @10.53.0.3 AXFR > dig.out.axfr.test$n || log_error "dig ${ZONE} AXFR failed"
+	$VERIFY -z -o $ZONE dig.out.axfr.test$n > /dev/null || log_error "dnssec verify zone $ZONE failed"
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+}
+
 ###############################################################################
 # Tests                                                                       #
 ###############################################################################
@@ -579,7 +635,450 @@ status=$((status+ret))
 #
 # named
 #
+#
+#  The NSEC record at the apex of the zone and its RRSIG records are
+#  added as part of the last step in signing a zone.  We wait for the
+#  NSEC records to appear before proceeding with a counter to prevent
+#  infinite loops if there is a error.
+#
+n=$((n+1))
+echo_i "waiting for kasp signing changes to take effect ($n)"
+i=0
+while [ $i -lt 30 ]
+do
+	ret=0
+	for z in `cat ns3/zones`
+	do
+		dig_with_opts $z @10.53.0.3 nsec > dig.out.ns3.test$n.$z || ret=1
+		grep "NS SOA" dig.out.ns3.test$n.$z > /dev/null || ret=1
+		grep "$z\..*IN.*RRSIG" dig.out.ns3.test$n.$z > /dev/null || ret=1
+	done
+	i=`expr $i + 1`
+	if [ $ret = 0 ]; then break; fi
+	echo_i "waiting ... ($i)"
+	sleep 1
+done
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
 
+#
+# Zone: default.kasp.
+#
+
+# Check the zone with default kasp policy has loaded and is signed.
+zone_properties "ns3" "default.kasp" "_default" "3600"
+key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes"
+# The first key is immediately published and activated.
+key_timings "KEY1" "published" "active" "none" "none" "none" "none"
+# DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
+key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
+
+n=$((n+1))
+echo_i "check key is created for zone ${ZONE} ($n)"
+ret=0
+id=$(get_keyids $DIR $ZONE "${KEY1[$ALG_NUM]}")
+check_key "KEY1" $id
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Verify signed zone.
+dnssec_verify $ZONE
+
+# Test DNSKEY query.
+qtype="DNSKEY"
+n=$((n+1))
+echo_i "check ${qtype} rrset is signed correctly for zone ${ZONE} ($n)"
+ret=0
+dig_with_opts $ZONE @10.53.0.3 $qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${qtype} failed"
+grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${qtype}.*257.*.3.*${KEY1[$ALG_NUM]}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${qtype} record in response"
+lines=$(get_keys_which_signed $qtype dig.out.$DIR.test$n | wc -l)
+test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
+get_keys_which_signed $qtype dig.out.$DIR.test$n | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with ${KEY_ID}"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Test SOA query.
+qtype="SOA"
+n=$((n+1))
+echo_i "check ${qtype} rrset is signed correctly for zone ${ZONE} ($n)"
+ret=0
+dig_with_opts $ZONE @10.53.0.3 $qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${qtype} failed"
+grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+grep "${ZONE}\..*${DEFAULT_TTL}.*IN.*${qtype}.*mname1\..*\." dig.out.$DIR.test$n > /dev/null || log_error "missing ${qtype} record in response"
+lines=$(get_keys_which_signed $qtype dig.out.$DIR.test$n | wc -l)
+test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
+get_keys_which_signed $qtype dig.out.$DIR.test$n | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with ${KEY_ID}"
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# Update zone.
+n=$((n+1))
+echo_i "check that we can update unsigned zone file and new record gets signed for zone ${ZONE} ($n)"
+ret=0
+cp "${DIR}/template2.db.in" "${DIR}/${ZONE}.db"
+rndccmd 10.53.0.3 reload $ZONE > /dev/null || log_error "rndc reload zone ${ZONE} failed"
+_log=0
+i=0
+while [ $i -lt 5 ]
+do
+	ret=0
+
+	dig_with_opts "a.${ZONE}" @10.53.0.3 A > dig.out.$DIR.test$n.a || log_error "dig a.${ZONE} A failed"
+	grep "status: NOERROR" dig.out.$DIR.test$n.a > /dev/null || log_error "mismatch status in DNS response"
+	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.11" dig.out.$DIR.test$n.a > /dev/null || log_error "missing a.${ZONE} A record in response"
+	lines=$(get_keys_which_signed A dig.out.$DIR.test$n.a | wc -l)
+	test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
+	get_keys_which_signed A dig.out.$DIR.test$n.a | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with ${KEY_ID}"
+
+	dig_with_opts "d.${ZONE}" @10.53.0.3 A > dig.out.$DIR.test$n.d || log_error "dig d.${ZONE} A failed"
+	grep "status: NOERROR" dig.out.$DIR.test$n.d > /dev/null || log_error "mismatch status in DNS response"
+	grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.4" dig.out.$DIR.test$n.d > /dev/null || log_error "missing d.${ZONE} A record in response"
+	lines=$(get_keys_which_signed A dig.out.$DIR.test$n.d | wc -l)
+	test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
+	get_keys_which_signed A dig.out.$DIR.test$n.d | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with ${KEY_ID}"
+
+	i=`expr $i + 1`
+	if [ $ret = 0 ]; then break; fi
+	echo_i "waiting ... ($i)"
+	sleep 1
+done
+_log=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+#
+# Zone: rsasha1.kasp.
+#
+zone_properties "ns3" "rsasha1.kasp" "rsasha1" "1234" "3"
+key_properties "KEY1" "ksk" "315360000" "5" "RSASHA1" "2048" "yes"
+key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "1024" "yes"
+key_properties "KEY3" "zsk" "31536000" "5" "RSASHA1" "2000" "yes"
+# The first keys are immediately published and activated.
+# Because lifetime > 0, retired timing is also set.
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+key_timings "KEY3" "published" "active" "retired" "none" "none"
+# KSK: DNSKEY, RRSIG (ksk) published. DS needs to wait.
+# ZSK: DNSKEY, RRSIG (zsk) published.
+key_states "KEY1" "omnipresent" "rumoured" "none" "rumoured" "hidden"
+key_states "KEY2" "omnipresent" "rumoured" "rumoured" "none" "none"
+key_states "KEY3" "omnipresent" "rumoured" "rumoured" "none" "none"
+
+# Check keys for a configured zone. This verifies:
+# 1. The right number of keys exist in the key pool ($1).
+# 2. The right number of keys is active (always expect three keys).
+#    The algorithm expected is set with $2 (string) and $3 (number), and the
+#    expected sizes for the keys are set with $4 (ksk), $5 and $6 (zsk).
+#    A size set to 0 means the corresponding key (KEY1, KEY2 or KEY3) is not
+#    expected.
+#
+# It is expected that KEY1, KEY2 and KEY3 arrays are set correctly. Found key
+# identifiers are stored in the right key array.
+check_keys()
+{
+	n=$((n+1))
+	echo_i "check keys are created for zone ${ZONE} ($n)"
+	ret=0
+
+	_key_algnum="${KEY1[$ALG_NUM]}"
+
+	n=$((n+1))
+	echo_i "check number of keys with algorithm ${_key_algnum} for zone ${ZONE} in dir ${DIR} ($n)"
+	ret=0
+	_numkeys=$(get_keyids $DIR $ZONE $_key_algnum | wc -l)
+	test "$_numkeys" -eq $NUM_KEYS || log_error "bad number ($_numkeys) of key files for zone $ZONE (expected $NUM_KEYS)"
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+
+	# Temporarily don't log errors because we are searching multiple files.
+	_log=0
+
+	# Clear key ids.
+	KEY1[$ID]="0"
+	KEY2[$ID]="0"
+	KEY3[$ID]="0"
+
+	# Check key files.
+	_ids=$(get_keyids $DIR $ZONE "$_key_algnum")
+	for _id in $_ids; do
+		# There are three key files with the same algorithm.
+		# Check them until a match is found.
+		echo_i "check key $_id"
+
+		if [ "0" == "${KEY1[$ID]}" ] && [ "${KEY1[$EXPECT]}" == "yes" ]; then
+			ret=0
+			check_key "KEY1" $_id
+			test "$ret" -eq 0 && KEY1[$ID]=$KEY_ID && continue
+		fi
+		if [ "0" == "${KEY2[$ID]}" ] && [ "${KEY2[$EXPECT]}" == "yes" ]; then
+			ret=0
+			check_key "KEY2" $_id
+			test "$ret" -eq 0 && KEY2[$ID]=$KEY_ID && continue
+		fi
+		if [ "0" == "${KEY3[$ID]}" ] && [ "${KEY3[$EXPECT]}" == "yes"  ]; then
+			ret=0
+			check_key "KEY3" $_id
+			test "$ret" -eq 0 && KEY3[$ID]=$KEY_ID && continue
+		fi
+
+		# This may be an unused key.
+		ret=0 && key_unused $_id
+		test "$ret" -eq 0 && continue
+
+		# If ret is still non-zero, non of the files matched.
+		test "$ret" -eq 0 || echo_i "failed"
+		status=$((status+ret))
+	done
+
+	# Turn error logs on again.
+	_log=1
+
+	ret=0
+	if [ "${KEY1[$EXPECT]}" == "yes" ]; then
+		test "0" == "${KEY1[$ID]}" && log_error "No KEY1 found for zone ${ZONE}"
+	fi
+	if [ "${KEY2[$EXPECT]}" == "yes" ]; then
+		test "0" == "${KEY2[$ID]}" && log_error "No KEY2 found for zone ${ZONE}"
+	fi
+	if [ "${KEY3[$EXPECT]}" == "yes" ]; then
+		test "0" == "${KEY3[$ID]}" && log_error "No KEY3 found for zone ${ZONE}"
+	fi
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+}
+
+# Check if RRset of type $1 in file $2 is signed with the right keys.
+# The right keys are the ones that expect a signature and matches the role $3.
+check_signatures() {
+	_qtype=$1
+	_file=$2
+	_role=$3
+
+	if [ "${KEY1[$EXPECT_RRSIG]}" == "yes" ] && [ "${KEY1[$_role]}" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with key ${KEY1[$ID]}"
+	elif [ "${KEY1[$EXPECT]}" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY1[$ID]}"
+	fi
+
+	if [ "${KEY2[$EXPECT_RRSIG]}" == "yes" ] && [ "${KEY2[$_role]}" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with ${KEY2[$ID]}"
+	elif [ "${KEY2[$EXPECT]}" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY2[$ID]}"
+	fi
+
+	if [ "${KEY3[$EXPECT_RRSIG]}" == "yes" ] && [ "${KEY3[$_role]}" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with ${KEY3[$ID]}"
+	elif [ "${KEY3[$EXPECT]}" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY3[$ID]}"
+	fi
+}
+
+# Test the apex of a configured zone. This checks that the SOA and DNSKEY
+# RRsets are signed correctly and with the appropriate keys.
+check_apex() {
+
+	# Test DNSKEY query.
+	_qtype="DNSKEY"
+	n=$((n+1))
+	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
+	ret=0
+	dig_with_opts $ZONE @10.53.0.3 $_qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${_qtype} failed"
+	grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+	grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response"
+	lines=$(get_keys_which_signed $_qtype dig.out.$DIR.test$n | wc -l)
+	check_signatures $_qtype dig.out.$DIR.test$n $KSK
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+
+	# Test SOA query.
+	_qtype="SOA"
+	n=$((n+1))
+	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
+	ret=0
+	dig_with_opts $ZONE @10.53.0.3 $_qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${_qtype} failed"
+	grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+	grep "${ZONE}\..*${DEFAULT_TTL}.*IN.*${_qtype}.*" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response"
+	lines=$(get_keys_which_signed $_qtype dig.out.$DIR.test$n | wc -l)
+	check_signatures $_qtype dig.out.$DIR.test$n $ZSK
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+}
+
+# Test an RRset below the apex and verify it is signed correctly.
+check_subdomain() {
+	_qtype="A"
+	n=$((n+1))
+	echo_i "check ${_qtype} a.${ZONE} rrset is signed correctly for zone ${ZONE} ($n)"
+	ret=0
+	dig_with_opts a.$ZONE @10.53.0.3 $_qtype > dig.out.$DIR.test$n || log_error "dig a.${ZONE} ${_qtype} failed"
+	grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*${_qtype}.*10\.0\.0\.1" dig.out.$DIR.test$n > /dev/null || log_error "missing a.${ZONE} ${_qtype} record in response"
+	lines=$(get_keys_which_signed $_qtype dig.out.$DIR.test$n | wc -l)
+	check_signatures $_qtype dig.out.$DIR.test$n $ZSK
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
+}
+
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: dnssec-keygen.kasp.
+#
+zone_properties "ns3" "dnssec-keygen.kasp" "rsasha1" "1234" "3"
+# key_properties, key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: some-keys.kasp.
+#
+zone_properties "ns3" "some-keys.kasp" "rsasha1" "1234" "3"
+# key_properties, key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: legacy-keys.kasp.
+#
+zone_properties "ns3" "legacy-keys.kasp" "rsasha1" "1234" "3"
+# key_properties, key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: pregenerated.kasp.
+#
+# There are more pregenerated keys than needed, hence the number of keys is
+# six, not three.
+zone_properties "ns3" "pregenerated.kasp" "rsasha1" "1234" "6"
+# key_properties, key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: secondary.kasp.
+#
+zone_properties "ns3" "secondary.kasp" "rsasha1" "1234" "3"
+# KSK properties, timings and states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Update zone.
+n=$((n+1))
+echo_i "check that we correctly sign the zone after IXFR for zone ${ZONE} ($n)"
+ret=0
+cp ns2/secondary.kasp.db.in2 ns2/secondary.kasp.db
+rndccmd 10.53.0.2 reload $ZONE > /dev/null || log_error "rndc reload zone ${ZONE} failed"
+_log=0
+i=0
+while [ $i -lt 5 ]
+do
+	ret=0
+
+	dig_with_opts "a.${ZONE}" @10.53.0.3 A > dig.out.$DIR.test$n.a || log_error "dig a.${ZONE} A failed"
+	grep "status: NOERROR" dig.out.$DIR.test$n.a > /dev/null || log_error "mismatch status in DNS response"
+	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.11" dig.out.$DIR.test$n.a > /dev/null || log_error "missing a.${ZONE} A record in response"
+	check_signatures $_qtype dig.out.$DIR.test$n.a $ZSK
+
+	dig_with_opts "d.${ZONE}" @10.53.0.3 A > dig.out.$DIR.test$n.d || log_error "dig d.${ZONE} A failed"
+	grep "status: NOERROR" dig.out.$DIR.test$n.d > /dev/null || log_error "mismatch status in DNS response"
+	grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.4" dig.out.$DIR.test$n.d > /dev/null || log_error "missing d.${ZONE} A record in response"
+	lines=$(get_keys_which_signed A dig.out.$DIR.test$n.d | wc -l)
+	check_signatures $_qtype dig.out.$DIR.test$n.d $ZSK
+
+	i=`expr $i + 1`
+	if [ $ret = 0 ]; then break; fi
+	echo_i "waiting ... ($i)"
+	sleep 1
+done
+_log=1
+test "$ret" -eq 0 || echo_i "failed"
+status=$((status+ret))
+
+# TODO: we might want to test:
+# - configuring a zone with too many active keys (should trigger retire).
+# - configuring a zone with keys not matching the policy.
+
+#
+# Zone: rsasha1-nsec3.kasp.
+#
+zone_properties "ns3" "rsasha1-nsec3.kasp" "rsasha1-nsec3" "1234" "3"
+key_properties "KEY1" "ksk" "315360000" "7" "NSEC3RSASHA1" "2048" "yes"
+key_properties "KEY2" "zsk" "157680000" "7" "NSEC3RSASHA1" "1024" "yes"
+key_properties "KEY3" "zsk" "31536000" "7" "NSEC3RSASHA1" "2000" "yes"
+# key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: rsasha256.kasp.
+#
+zone_properties "ns3" "rsasha256.kasp" "rsasha256" "1234" "3"
+key_properties "KEY1" "ksk" "315360000" "8" "RSASHA256" "2048" "yes"
+key_properties "KEY2" "zsk" "157680000" "8" "RSASHA256" "1024" "yes"
+key_properties "KEY3" "zsk" "31536000" "8" "RSASHA256" "2000" "yes"
+# key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: rsasha512.kasp.
+#
+zone_properties "ns3" "rsasha512.kasp" "rsasha512" "1234" "3"
+key_properties "KEY1" "ksk" "315360000" "10" "RSASHA512" "2048" "yes"
+key_properties "KEY2" "zsk" "157680000" "10" "RSASHA512" "1024" "yes"
+key_properties "KEY3" "zsk" "31536000" "10" "RSASHA512" "2000" "yes"
+# key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: ecdsa256.kasp.
+#
+zone_properties "ns3" "ecdsa256.kasp" "ecdsa256" "1234" "3"
+key_properties "KEY1" "ksk" "315360000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY2" "zsk" "157680000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY3" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+# key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+#
+# Zone: ecdsa512.kasp.
+#
+zone_properties "ns3" "ecdsa384.kasp" "ecdsa384" "1234" "3"
+key_properties "KEY1" "ksk" "315360000" "14" "ECDSAP384SHA384" "384" "yes"
+key_properties "KEY2" "zsk" "157680000" "14" "ECDSAP384SHA384" "384" "yes"
+key_properties "KEY3" "zsk" "31536000" "14" "ECDSAP384SHA384" "384" "yes"
+# key_timings and key_states same as above.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# TODO: ED25519 and ED448.
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

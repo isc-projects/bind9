@@ -12,22 +12,10 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
-set -e
+echo_i "ns2/setup.sh"
 
-$SHELL clean.sh
-
-mkdir keys
-
-copy_setports ns2/named.conf.in ns2/named.conf
-copy_setports ns3/named.conf.in ns3/named.conf
-
-# ns2: Setup zones
-(
-	cd ns2
-	$SHELL setup.sh
-)
-# ns3: Setup zones
-(
-	cd ns3
-	$SHELL setup.sh
-)
+echo_i "setting up zone: $zone"
+zone="secondary.kasp"
+zonefile="${zone}.db"
+infile="${zonefile}.in"
+cp $infile $zonefile

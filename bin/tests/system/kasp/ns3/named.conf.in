@@ -1,0 +1,122 @@
+/*
+ * Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ *
+ * This Source Code Form is subject to the terms of the Mozilla Public
+ * License, v. 2.0. If a copy of the MPL was not distributed with this
+ * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ *
+ * See the COPYRIGHT file distributed with this work for additional
+ * information regarding copyright ownership.
+ */
+
+// NS3
+
+options {
+	query-source address 10.53.0.3;
+	notify-source 10.53.0.3;
+	transfer-source 10.53.0.3;
+	port @PORT@;
+	pid-file "named.pid";
+	listen-on { 10.53.0.3; };
+	listen-on-v6 { none; };
+	allow-transfer { any; };
+	recursion no;
+};
+
+key rndc_key {
+        secret "1234abcd8765";
+        algorithm hmac-sha256;
+};
+
+controls {
+        inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
+
+include "policies/kasp.conf";
+
+/* Zones that are getting initially signed */
+
+/* The default case: No keys created, using default policy. */
+zone "default.kasp" {
+	type master;
+	file "default.kasp.db";
+	dnssec-policy "default";
+};
+
+/* A master zone with dnssec-policy, no keys created. */
+zone "rsasha1.kasp" {
+	type master;
+	file "rsasha1.kasp.db";
+	dnssec-policy "rsasha1";
+};
+
+/* A master zone with dnssec-policy but keys already created. */
+zone "dnssec-keygen.kasp" {
+	type master;
+	file "dnssec-keygen.kasp.db";
+	dnssec-policy "rsasha1";
+};
+
+/* A secondary zone with dnssec-policy. */
+zone "secondary.kasp" {
+	type secondary;
+	masters { 10.53.0.2; };
+	file "secondary.kasp.db";
+	dnssec-policy "rsasha1";
+};
+
+/*
+ * A configured dnssec-policy but some keys already created.
+ */
+zone "some-keys.kasp" {
+	type master;
+	file "some-keys.kasp.db";
+	dnssec-policy "rsasha1";
+};
+
+/*
+ * A configured dnssec-policy but some keys already in use.
+ */
+zone "legacy-keys.kasp" {
+	type master;
+	file "legacy-keys.kasp.db";
+	dnssec-policy "rsasha1";
+};
+
+/*
+ * A configured dnssec-policy with (too) many keys pregenerated.
+ */
+zone "pregenerated.kasp" {
+	type master;
+	file "pregenerated.kasp.db";
+	dnssec-policy "rsasha1";
+};
+
+/*
+ * Different algorithms.
+ */
+zone "rsasha1-nsec3.kasp" {
+	type master;
+	file "rsasha1-nsec3.kasp.db";
+	dnssec-policy "rsasha1-nsec3";
+};
+zone "rsasha256.kasp" {
+	type master;
+	file "rsasha256.kasp.db";
+	dnssec-policy "rsasha256";
+};
+zone "rsasha512.kasp" {
+	type master;
+	file "rsasha512.kasp.db";
+	dnssec-policy "rsasha512";
+};
+zone "ecdsa256.kasp" {
+	type master;
+	file "ecdsa256.kasp.db";
+	dnssec-policy "ecdsa256";
+};
+zone "ecdsa384.kasp" {
+	type master;
+	file "ecdsa384.kasp.db";
+	dnssec-policy "ecdsa384";
+};
