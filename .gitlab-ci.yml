@@ -319,7 +319,8 @@ docs:sid:amd64:
     - make -C doc/arm Bv9ARM.html
   dependencies:
     - autoreconf:sid:amd64
-  needs: ["autoreconf:sid:amd64"]
+  needs:
+    - autoreconf:sid:amd64
   artifacts:
     paths:
       - doc/arm/
