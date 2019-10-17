@@ -122,6 +122,9 @@
     <ClCompile Include="..\keydata.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\keymgr.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\keytable.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -459,6 +462,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\keyflags.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\dns\keymgr.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\dns\keytable.h">

@@ -152,6 +152,7 @@
     <ClCompile Include="..\journal.c" />
     <ClCompile Include="..\kasp.c" />
     <ClCompile Include="..\key.c" />
+    <ClCompile Include="..\keymgr.c" />
     <ClCompile Include="..\keydata.c" />
     <ClCompile Include="..\keytable.c" />
     <ClCompile Include="..\lib.c" />
@@ -269,6 +270,7 @@
     <ClInclude Include="..\include\dns\kasp.h" />
     <ClInclude Include="..\include\dns\keydata.h" />
     <ClInclude Include="..\include\dns\keyflags.h" />
+    <ClInclude Include="..\include\dns\keymgr.h" />
     <ClInclude Include="..\include\dns\keytable.h" />
     <ClInclude Include="..\include\dns\keyvalues.h" />
     <ClInclude Include="..\include\dns\lib.h" />

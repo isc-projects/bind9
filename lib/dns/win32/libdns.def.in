@@ -442,6 +442,7 @@ dns_kasplist_find
 dns_keydata_fromdnskey
 dns_keydata_todnskey
 dns_keyflags_fromtext
+dns_keymgr_run
 dns_keynode_attach
 dns_keynode_create
 dns_keynode_detach
