@@ -1,6 +1,16 @@
 5301.	[bug]		Detect partial prefixes / incomplete IPv4 address in
 			acls. [GL #1143]
 
+	--- 9.14.7 released ---
+
+5299.	[security]	A flaw in DNSSEC verification when transferring
+			mirror zones could allow data to be incorrectly
+			marked valid. (CVE-2019-6475) [GL #1252]
+
+5298.	[security]	Named could assert if a forwarder returned a
+			referral, rather than resolving the query, when QNAME
+			minimization was enabled. (CVE-2019-6476) [GL #1051]
+
 5297.	[bug]		Check whether a previous QNAME minimization fetch
 			is still running before starting a new one; return
 			SERVFAIL and log an error if so. [GL #1191]
@@ -143,7 +153,7 @@
 			code in a high-load cold-cache resolver scenario.
 			[GL #943]
 
-5242.	[bug]		In relaxed qname minimizatiom mode, fall back to
+5242.	[bug]		In relaxed qname minimization mode, fall back to
 			normal resolution when encountering a lame
 			delegation, and use _.domain/A queries rather
 			than domain/NS. [GL #1055]
