@@ -36,7 +36,7 @@
 <div class="toc">
 <p><b>Table of Contents</b></p>
 <dl class="toc">
-<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.4</a></span></dt>
+<dt><span class="section"><a href="Bv9ARM.ch08.html#id-1.9.2">Release Notes for BIND Version 9.15.5</a></span></dt>
 <dd><dl>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_intro">Introduction</a></span></dt>
 <dt><span class="section"><a href="Bv9ARM.ch08.html#relnotes_versions">Note on Version Numbering</a></span></dt>
@@ -55,7 +55,7 @@
 </div>
       <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.4</h2></div></div></div>
+<a name="id-1.9.2"></a>Release Notes for BIND Version 9.15.5</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -150,6 +150,21 @@
         A race condition could trigger an assertion failure when
         a large number of incoming packets were being rejected.
         This flaw is disclosed in CVE-2019-6471. [GL #942]
+      </p>
+    </li>
+<li class="listitem">
+      <p>
+	<span class="command"><strong>named</strong></span> could crash with an assertion failure
+	if a forwarder returned a referral, rather than resolving the
+	query, when QNAME minimization was enabled.  This flaw is
+	disclosed in CVE-2019-6476. [GL #1051]
+      </p>
+    </li>
+<li class="listitem">
+      <p>
+	A flaw in DNSSEC verification when transferring mirror zones
+	could allow data to be incorrectly marked valid. This flaw
+	is disclosed in CVE-2019-6475. [GL #1252]
       </p>
     </li>
 </ul></div>
@@ -530,6 +545,6 @@
 </tr>
 </table>
 </div>
-<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.4 (Development Release)</p>
+<p xmlns:db="http://docbook.org/ns/docbook" style="text-align: center;">BIND 9.15.5 (Development Release)</p>
 </body>
 </html>

@@ -1,4 +1,4 @@
-Release Notes for BIND Version 9.15.4
+Release Notes for BIND Version 9.15.5
 
 Introduction
 
@@ -62,6 +62,14 @@ Security Fixes
   * A race condition could trigger an assertion failure when a large
     number of incoming packets were being rejected. This flaw is disclosed
     in CVE-2019-6471. [GL #942]
+
+  * named could crash with an assertion failure if a forwarder returned a
+    referral, rather than resolving the query, when QNAME minimization was
+    enabled. This flaw is disclosed in CVE-2019-6476. [GL #1051]
+
+  * A flaw in DNSSEC verification when transferring mirror zones could
+    allow data to be incorrectly marked valid. This flaw is disclosed in
+    CVE-2019-6475. [GL #1252]
 
 New Features
 

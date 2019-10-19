@@ -15,7 +15,7 @@
 
   <div class="section">
 <div class="titlepage"><div><div><h2 class="title" style="clear: both">
-<a name="id-1.2"></a>Release Notes for BIND Version 9.15.4</h2></div></div></div>
+<a name="id-1.2"></a>Release Notes for BIND Version 9.15.5</h2></div></div></div>
   
   <div class="section">
 <div class="titlepage"><div><div><h3 class="title">
@@ -110,6 +110,21 @@
         A race condition could trigger an assertion failure when
         a large number of incoming packets were being rejected.
         This flaw is disclosed in CVE-2019-6471. [GL #942]
+      </p>
+    </li>
+<li class="listitem">
+      <p>
+	<span class="command"><strong>named</strong></span> could crash with an assertion failure
+	if a forwarder returned a referral, rather than resolving the
+	query, when QNAME minimization was enabled.  This flaw is
+	disclosed in CVE-2019-6476. [GL #1051]
+      </p>
+    </li>
+<li class="listitem">
+      <p>
+	A flaw in DNSSEC verification when transferring mirror zones
+	could allow data to be incorrectly marked valid. This flaw
+	is disclosed in CVE-2019-6475. [GL #1252]
       </p>
     </li>
 </ul></div>
