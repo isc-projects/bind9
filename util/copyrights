@@ -1232,8 +1232,11 @@
 ./bin/tests/system/dnstap/bad-fstrm-set-output-queue-size-min.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/dnstap/bad-fstrm-set-reopen-interval-max.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/dnstap/bad-fstrm-set-reopen-interval-min.conf	CONF-C	2016,2018,2019
+./bin/tests/system/dnstap/bad-missing-dnstap-output-view.conf	CONF-C	2019
 ./bin/tests/system/dnstap/bad-missing-dnstap-output.conf	CONF-C	2019
 ./bin/tests/system/dnstap/clean.sh		SH	2015,2016,2017,2018,2019
+./bin/tests/system/dnstap/good-dnstap-in-options.conf	CONF-C	2019
+./bin/tests/system/dnstap/good-dnstap-in-view.conf	CONF-C	2019
 ./bin/tests/system/dnstap/good-fstrm-set-buffer-hint.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/dnstap/good-fstrm-set-flush-timeout.conf	CONF-C	2016,2018,2019
 ./bin/tests/system/dnstap/good-fstrm-set-input-queue-size.conf	CONF-C	2016,2018,2019
