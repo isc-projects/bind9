@@ -1356,16 +1356,6 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 					result = ISC_R_FAILURE;
 			}
 		}
-	} else {
-		(void) cfg_map_get(options, "dnstap", &obj);
-		if (obj != NULL) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "'dnstap-output' must be set if 'dnstap' "
-				    "is set");
-			if (result == ISC_R_SUCCESS) {
-				result = ISC_R_FAILURE;
-			}
-		}
 	}
 #endif
 
@@ -3488,6 +3478,44 @@ check_one_plugin(const cfg_obj_t *config, const cfg_obj_t *obj,
 #endif
 
 static isc_result_t
+check_dnstap(const cfg_obj_t *voptions, const cfg_obj_t *config,
+	     isc_log_t *logctx)
+{
+#ifdef HAVE_DNSTAP
+	const cfg_obj_t *options = NULL;
+	const cfg_obj_t *obj = NULL;
+
+	if (config != NULL) {
+		(void) cfg_map_get(config, "options", &options);
+	}
+	if (options != NULL) {
+		(void) cfg_map_get(options, "dnstap-output", &obj);
+	}
+	if (obj == NULL) {
+		if (voptions != NULL) {
+			(void) cfg_map_get(voptions, "dnstap", &obj);
+		}
+		if (options != NULL && obj == NULL) {
+			(void) cfg_map_get(options, "dnstap", &obj);
+		}
+		if (obj != NULL) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "'dnstap-output' must be set if 'dnstap' "
+				    "is set");
+			return (ISC_R_FAILURE);
+		}
+	}
+	return (ISC_R_SUCCESS);
+#else
+	UNUSED(voptions);
+	UNUSED(config);
+	UNUSED(logctx);
+
+	return (ISC_R_SUCCESS);
+#endif
+}
+
+static isc_result_t
 check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 	       const char *viewname, dns_rdataclass_t vclass,
 	       isc_symtab_t *files, bool check_plugins, isc_symtab_t *inview,
@@ -3830,6 +3858,11 @@ check_viewconf(const cfg_obj_t *config, const cfg_obj_t *voptions,
 		tresult = check_options(config, logctx, mctx,
 					optlevel_config);
 	}
+	if (tresult != ISC_R_SUCCESS) {
+		result = tresult;
+	}
+
+	tresult = check_dnstap(voptions, config, logctx);
 	if (tresult != ISC_R_SUCCESS) {
 		result = tresult;
 	}
