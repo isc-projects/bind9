@@ -502,11 +502,23 @@ static cfg_type_t cfg_type_dnsseckeystore = {
 /*%
  * A dnssec key, as used in the "keys" statement in a "dnssec-policy".
  */
+static keyword_type_t algorithm_kw = { "algorithm", &cfg_type_uint32 };
+static cfg_type_t cfg_type_algorithm = {
+	"algorithm", parse_keyvalue, print_keyvalue,
+	doc_keyvalue, &cfg_rep_uint32, &algorithm_kw
+};
+
+static keyword_type_t lifetime_kw = { "lifetime", &cfg_type_duration };
+static cfg_type_t cfg_type_lifetime = {
+	"lifetime", parse_keyvalue, print_keyvalue,
+	doc_keyvalue, &cfg_rep_duration, &lifetime_kw
+};
+
 static cfg_tuplefielddef_t kaspkey_fields[] = {
 	{ "role", &cfg_type_dnsseckeyrole, 0 },
 	{ "keystore-type", &cfg_type_dnsseckeystore, 0 },
-	{ "lifetime", &cfg_type_duration, 0 },
-	{ "algorithm", &cfg_type_uint32, 0 },
+	{ "lifetime", &cfg_type_lifetime, 0 },
+	{ "algorithm", &cfg_type_algorithm, 0 },
 	{ "length", &cfg_type_optional_uint32, 0 },
 	{ NULL, NULL, 0 }
 };
@@ -515,6 +527,9 @@ static cfg_type_t cfg_type_kaspkey = {
 	&cfg_rep_tuple, kaspkey_fields
 };
 
+/*%
+ * Wild class, type, name.
+ */
 static keyword_type_t wild_class_kw = { "class", &cfg_type_ustring };
 
 static cfg_type_t cfg_type_optional_wild_class = {

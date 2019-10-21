@@ -1015,7 +1015,7 @@ zone <replaceable>string</replaceable> [ <replaceable>class</replaceable> ] {
     <literallayout class="normal">
 dnssec-policy <replaceable>string</replaceable> {
 	dnskey-ttl <replaceable>ttlval</replaceable>;
-	keys { ( csk | ksk | zsk ) key-directory <replaceable>duration</replaceable> <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ] ; ... };
+	keys { ( csk | ksk | zsk ) key-directory lifetime <replaceable>duration</replaceable> algorithm <replaceable>integer</replaceable> [ <replaceable>integer</replaceable> ] ; ... };
 	parent-ds-ttl <replaceable>duration</replaceable>;
 	parent-propagation-delay <replaceable>duration</replaceable>;
 	parent-registration-delay <replaceable>duration</replaceable>;

@@ -54,7 +54,7 @@
   <programlisting>
 	dnssec-policy csk {
 		keys {
-			csk key-directory P5Y 13;
+			csk key-directory lifetime P5Y algorithm 13;
 		};
 	};
   </programlisting>

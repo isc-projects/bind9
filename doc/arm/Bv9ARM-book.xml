@@ -11059,9 +11059,9 @@ example.com                 CNAME   rpz-tcp-only.
 		</para>
 
 <programlisting>keys {
-	ksk key-directory P5Y 8 2048;
-	zsk key-directory P30D 8;
-	csk key-directory P6MT12H3M15S 13;
+    ksk key-directory lifetime P5Y algorithm 8 2048;
+    zsk key-directory lifetime P30D algorithm 8;
+    csk key-directory lifetime P6MT12H3M15S algorithm 13;
 };
 </programlisting>
 
