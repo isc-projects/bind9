@@ -747,7 +747,7 @@ dump_zone(const char *zonename, dns_zone_t *zone, const char *filename,
 	FILE *output = stdout;
 	const char *flags;
 
-	flags = (fileformat == dns_masterformat_text) ? "w+" : "wb+";
+	flags = (fileformat == dns_masterformat_text) ? "w" : "wb";
 
 	if (debug) {
 		if (filename != NULL && strcmp(filename, "-") != 0)
