@@ -1,13 +1,3 @@
-<!--
- - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
- -
- - This Source Code Form is subject to the terms of the Mozilla Public
- - License, v. 2.0. If a copy of the MPL was not distributed with this
- - file, You can obtain one at http://mozilla.org/MPL/2.0/.
- -
- - See the COPYRIGHT file distributed with this work for additional
- - information regarding copyright ownership.
--->
 ## BIND 9 Coding Style
 
 BIND 9 is principally written in [C](#cstyle), with some additional code
@@ -19,50 +9,50 @@ below.
 
 #### Compiler
 
-An ANSI standard C compiler and library are assumed.  Feel free to use any
-ANSI C feature.
+A C11 compiler, library with C11 extensions and POSIX:2001 are assumed.  Feel
+free to use any C11 feature, but make sure to provide compatibility shims for
+all supported platforms, e.g. Windows MSVC that doesn't support all of the C11
+features.
 
 #### Warnings
 
-Given a reasonable set of things to warn about (e.g. -W -Wall for gcc), the
-goal is to compile with no warnings.
+Given a reasonable set of things to warn about (e.g. -W -Wall for gcc), the goal
+is to compile with no warnings.
 
 #### Copyright Notices
 
-All source files should have a copyright.  The copyright year(s) should be
-kept current.  The files and the copyright year(s) should be listed in
-util/copyrights.  When an existing file is updated in the source
-repository, its copyright notice and dates are updated automatically.
+Source files with significant content should have a copyright.  The copyright
+year(s) should be kept current.
 
-#### Line Formatting
+#### Indentation
 
 Use tabs for indentation.  Spaces before statements are only allowed when
 needed to line up a continued expression.  In the following example, spaces
 used for indentation are indicated with `"_"`:
 
-        if (i == 0) {
-                printf("this is going to be %s very long %s statement\\n",
-                _______"a", "printf");
-        }
+    	if (i == 0) {
+    		printf("this is going to be %s very long %s statement\\n",
+    		_______"a", "printf");
+    	}
 
-Text editors should be configured with tabstop set to 8 characters, and
+Text editors should be configured with tab-stop set to 8 characters, and
 tabs should not be expanded to into spaces.  The following `vim` settings
 conform well to BIND 9 C style:
 
-        set showmatch
-        set showmode
-        set autoindent
-        set expandtab
-
-        filetype plugin on
-        let c_syntax_for_h = 1
-        autocmd FileType c,cc,cpp set cindent
-        autocmd FileType c,cc,cpp set cino=(0:0l1
-        autocmd FileType c,cc,cpp set fo=rotcq
-        autocmd FileType c,cc,cpp set noexpandtab ts=8
-        autocmd FileType python set ts=4 sw=4
-        
-        filetype indent on
+    	set showmatch
+    	set showmode
+    	set autoindent
+    	set expandtab
+    
+    	filetype plugin on
+    	let c_syntax_for_h = 1
+    	autocmd FileType c,cc,cpp set cindent
+    	autocmd FileType c,cc,cpp set cino=(0:0l1
+    	autocmd FileType c,cc,cpp set fo=rotcq
+    	autocmd FileType c,cc,cpp set noexpandtab ts=8
+    	autocmd FileType python set ts=4 sw=4
+    
+    	filetype indent on
 
 #### Vertical Whitespace
 
@@ -73,15 +63,20 @@ to one another.
 
 #### Line Length
 
-Lines should be no longer than 79 characters, even if it requires violating
-indentation rules to make them fit.  Since ANSI C is assumed, the best way to
-deal with strings that extend past column 79 is to break them into two or
+Lines should be no longer than 80 characters, even if it requires violating
+indentation rules to make them fit.  Since C11 is assumed, the best way to
+deal with strings that extend past column 80 is to break them into two or
 more sections separated from each other by a newline and indentation:
 
-                                  puts("This string got very far to the "
-                                       "right and wrapped.  ANSI catenation "
-                                       "rules will turn this into one "
-                                       "long string.");
+    					puts("This string got very far to the "
+    					     "right and wrapped.  ANSI "
+    					     "catenation rules will turn this "
+    					     "into one long string.");
+
+The rule for string formatting can be violated in cases where breaking
+the string prevents ability to lookup the string using grep.  Also please
+bear in mind that if you are too deeply nested, the code needs refactoring
+and not more line breaks.
 
 #### Comments
 
@@ -90,12 +85,12 @@ comprehensibility of the code.  Comments describing public functions are
 usually in the header file below the function prototype; comments
 describing static functions are above the function declaration.
 
-Comments may be single-line or multiline.  A single-line comment should be
+Comments may be single-line or multi-line.  A single-line comment should be
 at the end of the line if there is other text on the line, and should start
 in the same column as other nearby end-of-line comments.  The comment
 should be at the same indentation level as the code it is referring to.
 
-Multiline comments should start with `"/*"` on a line by itself.
+Multi-line comments should start with `"/*"` on a line by itself.
 Subsequent lines should have `" *"` lined-up with the `"*"` above.  The end of
 the comment should be `" */"` on a line by itself, again with the `"*"`
 lined-up with the one above.  Comments should start with a capital letter
@@ -103,13 +98,13 @@ and end with a period.
 
 Good:
 
-        /*
-         * Private variables.
-         */
- 
-        static int              a               /* Description of 'a'. */
-        static int              b               /* Description of 'b'. */
-        static char *           c               /* Description of 'c'. */
+    	/*
+    	 * Private variables.
+    	 */
+    
+    	static int	a	       /* Description of 'a'. */
+    	static int	b	       /* Description of 'b'. */
+    	static char *	c	       /* Description of 'c'. */
 
 
 The following lint and lint-like comments should be used where appropriate:
@@ -151,65 +146,63 @@ include the file.  `<isc/lang.h>` SHOULD be included for private header files
 or for public files that do not declare any functions.
 
 
-        /*
-	 * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
-	 *
-	 * This Source Code Form is subject to the terms of the Mozilla Public
-	 * License, v. 2.0. If a copy of the MPL was not distributed with this
-	 * file, You can obtain one at http://mozilla.org/MPL/2.0/.
-         */
+    	/*
+    	 * Copyright (C) 2016  Internet Systems Consortium, Inc. ("ISC")
+    	 *
+    	 * This Source Code Form is subject to the terms of the Mozilla Public
+    	 * License, v. 2.0. If a copy of the MPL was not distributed with this
+    	 * file, You can obtain one at http://mozilla.org/MPL/2.0/.
+    	 */
     
-        #pragma once
+    	#pragma once
     
-        /*****
-         ***** Module Info
-         *****/
+    	/*****
+    	 ***** Module Info
+    	 *****/
     
-        /*
-         * (Module name here.)
-         *
-         * (One line description here.)
-         *
-         * (Extended description and notes here.)
-         *
-         * MP:
-         *	(Information about multiprocessing considerations
-         *	here, e.g. locking requirements.)
-         *
-         * Reliability:
-         *	(Any reliability concerns should be mentioned here.)
-         *
-         * Resources:
-         *	(A rough guide to how resources are used by this module.)
-         *
-         * Security:
-         *	(Any security issues are discussed here.)
-         *
-         * Standards:
-         *	(Any standards relevant to the module are listed here.)
-         */
+    	/*
+    	 * (Module name here.)
+    	 *
+    	 * (One line description here.)
+    	 *
+    	 * (Extended description and notes here.)
+    	 *
+    	 * MP:
+    	 *	(Information about multiprocessing considerations
+    	 *	here, e.g. locking requirements.)
+    	 *
+    	 * Reliability:
+    	 *	(Any reliability concerns should be mentioned here.)
+    	 *
+    	 * Resources:
+    	 *	(A rough guide to how resources are used by this module.)
+    	 *
+    	 * Security:
+    	 *	(Any security issues are discussed here.)
+    	 *
+    	 * Standards:
+    	 *	(Any standards relevant to the module are listed here.)
+    	 */
     
-        /***
-         *** Imports
-         ***/
+    	/***
+    	 *** Imports
+    	 ***/
     
-        /* #includes here. */
-        #include <isc/lang.h>
+    	/* #includes here. */
+    	#include <isc/lang.h>
     
-        /***
-         *** Types
-         ***/
+    	/***
+    	 *** Types
+    	 ***/
     
-        /* (Type definitions here.) */
+    	/* (Type definitions here.) */
     
-        /***
-         *** Functions
-         ***/
-        ISC_LANG_BEGINDECLS
-        /* (Function declarations here, with full prototypes.) */
-        ISC_LANG_ENDDECLS
-    
-        #endif /* ISC_WHATEVER_H */
+    	/***
+    	 *** Functions
+    	 ***/
+    	ISC_LANG_BEGINDECLS
+    	/* (Function declarations here, with full prototypes.) */
+    	ISC_LANG_ENDDECLS
 
 #### Including Interfaces (.h files)
 
@@ -286,28 +279,28 @@ this.
 
 Good:
 
-       static void
-       f(int i) {
-               if (i > 0) {
-                       printf("yes\\n");
-                       i = 0;
-               } else {
-                       printf("no\\n");
-               }
+    	static void
+    	f(int i) {
+    	       if (i > 0) {
+    		       printf("yes\\n");
+    		       i = 0;
+    	       } else {
+    		       printf("no\\n");
+    	       }
        }
 
 Bad:
 
-       void f(int i)
-         {
-           if(i<0){i=0;printf("was negative\\n");}
-           if (i == 0)
-               printf("no\\n");
-           if (i > 0)
-             {
-               printf("yes\\n");
-               i = 0;
-             }}
+    	void f(int i)
+    	 {
+    	   if(i<0){i=0;printf("was negative\\n");}
+    	   if (i == 0)
+    	       printf("no\\n");
+    	   if (i > 0)
+    	     {
+    	       printf("yes\\n");
+    	       i = 0;
+    	     }}
 
 #### Spaces
 
@@ -369,16 +362,18 @@ Not so good:
 
 #### Integral Types
 
-Careful thought should be given to whether an integral type should be
-signed or unsigned, and to whether a specific size is required.  `int`
-should be used for generic variables (e.g. iteration counters, array
-subscripts).  Other than for generic variables, if a negative value isn't
-meaningful, the variable should be unsigned.  Assignments and comparisons
-between signed and unsigned integers should be avoided; suppressing the
-warnings with casts is not desireable.
+Careful thought should be given to whether an integral type should be signed or
+unsigned, and to whether a specific size is required.  The basic rule of thumb
+is to use `size_t` for sizes, cardinalities or ordinal numbers (e.g. iteration
+counters, array subscripts).  Use unsigned type for small quantities that can’t
+be negative, use signed types for small quantities that bear a sign, and finally
+use ptrdiff_t for large differences that bear a sign.  Assignments and
+comparisons between signed and unsigned integers should be avoided; suppressing
+the warnings with casts is not desirable.
 
-C99 standard integer types must be used when `unsigned long` or
-`short` could be ambiguous.
+C99 standard integer types are generally preferred, and must be used when
+`unsigned long` or `short` could be ambiguous, and `size_t` is preferred to
+`unsigned int` variables.
 
 #### Clear Success or Failure
 
@@ -431,7 +426,7 @@ Bad:
 Explicit testing against zero is required for numeric, non-boolean
 variables.
 
-Good: 
+Good:
 
     	int i = 10;
     
@@ -540,16 +535,133 @@ Good:
     	isc_mem_free(mctx, text);
     	text = NULL;
 
+#### Variable Scopes
+
+Always use minimal scopes for the variables, e.g. use block scope instead of
+local scope whenever possible.
+
+Bad:
+    	void
+    	foo() {
+    		size_t i;
+    		[...];
+    		for (i = 0; i < 10; i++);
+    		[...]
+    	}
+
+Good:
+    	void
+    	foo() {
+    		[...];
+    		for (size_t i = 0; i < 10; i++);
+    		[...]
+    	}
+
+Bad:
+    	void
+    	foo() {
+    		size_t j = 0;
+    		[...] /* j not used here */
+    		if (true) {
+    			while (j < 10) ++j;
+    		}
+    		[...] /* j not used here */
+    		return (0);
+    	}
+
+Good:
+    	void
+    	foo() {
+    		[...]
+    		if (true) {
+    			size_t j = 0;
+    			while (j < 10) ++j;
+    		}
+    		[...]
+    	}
+
+Integrating cppcheck with editor of your choice (f.e. flycheck with emacs) could
+be a great help in identifying places where variable scopes can be reduced.
+
+#### Initializing variables
+
+Static initializers should be used instead of memset.
+
+Good:
+    	char array[10] = { 0 };
+
+Bad:
+    	char array[10];
+    	memset(array, 0, sizeof(array));
+
+Designated initializers should be used to initialize structures.
+
+Good:
+    	struct example {
+    		int foo;
+    		int bar;
+    		int baz;
+    	};
+    
+    	struct example x = { .foo = -1 };
+
+Bad:
+    	struct example {
+    		int foo;
+    		int bar;
+    		int baz;
+    	};
+    
+    	struct example x;
+    
+    	x.foo = -1;
+    	x.bar = 0;
+    	x.baz = 0;
+
+Good:
+    	struct example {
+    		int foo;
+    		int bar;
+    		int baz;
+    	};
+    
+    	struct example *x = isc_mem_get(mctx, sizeof(*x));
+    
+    	*x = (struct example){ .foo = -1 };
+
+Bad:
+    	struct example {
+    		int foo;
+    		int bar;
+    		int baz;
+    	};
+    
+    	struct example *x = isc_mem_get(mctx, sizeof(*x));
+    
+    	x->foo = -1;
+    	x->bar = 0;
+    	x->baz = 0;
+
+#### Const
+
+Declare variables as constant if they are not to be modified.
+
+#### Variable-Length Arrays
+
+Use VLAs where it is more appropriate to allocate the memory on the stack rather
+than allocate it using `isc_mem_get()` from the heap.  Usually, a short lived
+arrays local to that particular functions would be good fit for using VLAs.
+
 #### <a name="public_namespace"></a>Public Interface Namespace
 
 All public interfaces to functions, macros, typedefs, and variables
 provided by the library, should use names of the form
 `{library}_{module}_{what}`, such as:
 
-    	isc_buffer_t                            /* typedef */
-    	dns_name_setbuffer(name, buffer)        /* function */
-    	ISC_LIST_HEAD(list)                     /* macro */
-    	isc_commandline_argument                /* variable */
+    	isc_buffer_t			    /* typedef */
+    	dns_name_setbuffer(name, buffer)	/* function */
+    	ISC_LIST_HEAD(list)		     /* macro */
+    	isc_commandline_argument		/* variable */
 
 Structures which are `typedef`'d generally have the name of the typedef
 sans the final `_t`:
@@ -594,17 +706,17 @@ parameter, it was changed to `dns_zone_setfile2()`; the original function
 name became a wrapper for the new function, calling it with the default
 value of the format parameter:
 
-        isc_result_t
-        dns_zone_setfile(dns_zone_t *zone, const char *file) {
-                return (dns_zone_setfile2(zone, file, dns_masterformat_text);
-        }
-
-        isc_result_t
-        dns_zone_setfile2(dns_zone_t *zone, const char *file,
-                          dns_masterformat_t format)
-        {
-                ...
-        }
+    	isc_result_t
+    	dns_zone_setfile(dns_zone_t *zone, const char *file) {
+    		return (dns_zone_setfile2(zone, file, dns_masterformat_text);
+    	}
+    
+    	isc_result_t
+    	dns_zone_setfile2(dns_zone_t *zone, const char *file,
+    			  dns_masterformat_t format)
+    	{
+    		...
+    	}
 
 #### <a name="private_namespace"></a>Shared Private Interfaces
 
@@ -650,12 +762,12 @@ support it.  Is it in the POSIX standard?  If so, how long has it been
 there? (BIND is still run on some operating systems released in the
 1990s.)  Is its behavior the same on all platforms?  Is its signature
 the same?  Are integer parameters the same size and signedness?  Does it
-alwasy return the same values on success, and set the same `errno` codes
+always return the same values on success, and set the same `errno` codes
 on failure?
 
 If there is a chance the library call may not be completely portable,
 edit `configure.in` to check for it on the local system and only call
-it from within a suitable `#ifdef`.  If the function is nonoptional, 
+it from within a suitable `#ifdef`.  If the function is nonoptional,
 it may be necessary to add your own implentation of it (or copy one
 from a source with a BSD-compatible license).
 
@@ -711,14 +823,14 @@ For Python coding, we abide by the Python style guidelines described [here](http
 * The `__init__()` method should always be the first one declared in a
   class definition, like so:
 
-        class Foo:
-            # constructor definition here
-            def __init__(self):
-                ...
-            # other functions may follow
-            def bar(self):
-                ...
-                Close all file and socket objects
+    	class Foo:
+    	    # constructor definition here
+    	    def __init__(self):
+    		...
+    	    # other functions may follow
+    	    def bar(self):
+    		...
+    		Close all file and socket objects
 
 * All Python standard library objects that have an underlying file
   descriptor (fd) should be closed explicitly using the `.close()` method.
@@ -726,8 +838,8 @@ For Python coding, we abide by the Python style guidelines described [here](http
 * In cases where a file is opened and closed in a single block, it
   is often preferable to use the `with` statement:
 
-        with open('filename') as f:
-            do_something_with(f)
+    	with open('filename') as f:
+    	    do_something_with(f)
 
 ### <a name="plstyle"></a>Perl
 
