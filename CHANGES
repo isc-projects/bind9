@@ -1,5 +1,8 @@
+5307.	[bug]		Fix hang when named-compilezone output is sent to pipe.
+			Thanks to Tony Finch. [GL !2481]
+
 5302.	[bug]		Fix checking that "dnstap-output" is defined when
-			"dnstap" is specified" in a view. [GL #1281]
+			"dnstap" is specified in a view. [GL #1281]
 
 5301.	[bug]		Detect partial prefixes / incomplete IPv4 address in
 			acls. [GL #1143]
