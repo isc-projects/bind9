@@ -17,12 +17,12 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
-#include <glob.h>
 
 #include <isc/buffer.h>
 #include <isc/dir.h>
 #include <isc/errno.h>
 #include <isc/formatcheck.h>
+#include <isc/glob.h>
 #include <isc/lex.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -109,9 +109,6 @@ cfg_getstringtoken(cfg_parser_t *pctx);
 static void
 parser_complain(cfg_parser_t *pctx, bool is_warning, unsigned int flags,
 		const char *format, va_list args);
-
-static isc_result_t
-glob_include(const char * restrict pattern, glob_t * restrict pglob);
 
 #if defined(HAVE_GEOIP2)
 static isc_result_t
@@ -2398,12 +2395,14 @@ cfg_parse_mapbody(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
 			/* Allow include to specify a pattern that follows
 			 * the same rules as the shell e.g "/path/zone*.conf" */
 			glob_t glob_obj;
-			CHECK(glob_include(includename->value.string.base, &glob_obj));
+			CHECK(isc_glob(includename->value.string.base, &glob_obj));
 			cfg_obj_destroy(pctx, &includename);
 
 			for (size_t i = 0; i < glob_obj.gl_pathc; ++i) {
 				CHECK(parser_openfile(pctx, glob_obj.gl_pathv[i]));
 			}
+
+			isc_globfree(&glob_obj);
 
 			goto redo;
 		}
@@ -4094,28 +4093,4 @@ cfg_pluginlist_foreach(const cfg_obj_t *config, const cfg_obj_t *list,
 	}
 
 	return (result);
-}
-
-
-static isc_result_t
-glob_include(const char * restrict pattern, glob_t * restrict pglob)
-{
-	int rc = glob(pattern, GLOB_ERR, NULL, pglob);
-
-	switch (rc) {
-		case 0:
-			return (ISC_R_SUCCESS);
-		case GLOB_NOMATCH:
-			/* if a magic char (*?[]) was in pattern
-			 * and no path matched we report error early,
-			 * otherwise proceed as normal */
-			return (strpbrk(pattern, "[]*?")) ?
-					(ISC_R_FILENOTFOUND) : (ISC_R_SUCCESS);
-
-		case GLOB_NOSPACE:
-			return (ISC_R_NOMEMORY);
-		default:
-			return (errno != 0 ? isc_errno_toresult(errno) : ISC_R_IOERROR);
-	}
-
 }
