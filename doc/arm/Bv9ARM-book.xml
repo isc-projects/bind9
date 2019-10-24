@@ -8854,6 +8854,26 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    </varlistentry>
 
 	    <varlistentry>
+	      <term><command>resolver-nonbackoff-tries</command></term>
+	      <listitem>
+		<para>
+		  Specifies how many retries occur before exponential
+		  backoff kicks in.  The default is <userinput>3</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>resolver-retry-interval</command></term>
+	      <listitem>
+		<para>
+		  The base retry interval in milliseconds.
+		  The default is <userinput>800</userinput>.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
 	      <term><command>sig-validity-interval</command></term>
 	      <listitem>
 		<para>
