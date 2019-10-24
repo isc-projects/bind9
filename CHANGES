@@ -1,3 +1,5 @@
+5303.	[placeholder]
+
 5302.	[bug]		Fix checking that "dnstap-output" is defined when
 			"dnstap" is specified" in a view. [GL #1281]
 
