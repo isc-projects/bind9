@@ -6181,6 +6181,7 @@ options {
 		  response to a UDP request from a cookie aware client.
 		  BADCOOKIE is sent if there is a bad or no existent
 		  server cookie.
+		  The default is <userinput>no</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -6230,6 +6231,7 @@ options {
 		  do not send a correct COOKIE option may be limited
 		  to receiving smaller responses via the
 		  <command>nocookie-udp-size</command> option.
+		  The default is <userinput>yes</userinput>.
 		</para>
 	      </listitem>
 	    </varlistentry>
