@@ -6183,6 +6183,12 @@ options {
 		  server cookie.
 		  The default is <userinput>no</userinput>.
 		</para>
+		<para>
+		  Set this to <userinput>yes</userinput> to test that DNS
+		  COOKIE clients correctly handle BADCOOKIE or if you are
+		  getting a lot of forged DNS requests with DNS COOKIES
+		  present.
+		</para>
 	      </listitem>
 	    </varlistentry>
 
