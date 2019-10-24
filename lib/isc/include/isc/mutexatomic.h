@@ -93,6 +93,11 @@ typedef struct atomic_uint_fast64 {
 	uint64_t v;
 } atomic_uint_fast64_t;
 
+typedef struct atomic_uintptr {
+	isc_mutex_t m;
+	uintptr_t v;
+} atomic_uintptr_t;
+
 typedef struct atomic_bool_s {
 	isc_mutex_t m;
 	bool v;
@@ -198,3 +203,14 @@ typedef struct atomic_bool_s {
 	atomic_compare_exchange_weak_explicit(obj, expected, desired, \
 					      memory_order_seq_cst,   \
 					      memory_order_seq_cst)
+#define atomic_exchange_explicit(obj, desired, order)			\
+	({								\
+		typeof((obj)->v) ___v;					\
+		REQUIRE(isc_mutex_lock(&(obj)->m) == ISC_R_SUCCESS);	\
+		___v = (obj)->v;					\
+		(obj)->v = desired;					\
+		REQUIRE(isc_mutex_unlock(&(obj)->m) == ISC_R_SUCCESS);	\
+		___v;							\
+	})
+#define atomic_exchange(obj, desired) \
+	atomic_exchange_explicit(obj, desired, memory_order_seq_cst)

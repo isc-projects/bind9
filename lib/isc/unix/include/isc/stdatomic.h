@@ -80,6 +80,8 @@ typedef int_fast64_t	atomic_int_fast64_t;
 typedef uint_fast64_t	atomic_uint_fast64_t;
 typedef bool		atomic_bool;
 
+typedef uint_fast64_t	atomic_uintptr_t;
+
 #if defined(__CLANG_ATOMICS) /* __c11_atomic builtins */
 #define atomic_init(obj, desired)		\
 	__c11_atomic_init(obj, desired)
@@ -99,6 +101,8 @@ typedef bool		atomic_bool;
 	__c11_atomic_compare_exchange_strong_explicit(obj, expected, desired, succ, fail)
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail)	\
 	__c11_atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail)
+#define atomic_exchange_explicit(obj, desired, order)	\
+	__c11_atomic_exchange_explicit(obj, expected, order)
 #elif defined(__GNUC_ATOMICS) /* __atomic builtins */
 #define atomic_init(obj, desired)			\
 	(*obj = desired)
@@ -118,6 +122,8 @@ typedef bool		atomic_bool;
 	__atomic_compare_exchange_n(obj, expected, desired, 0, succ, fail)
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail)	\
 	__atomic_compare_exchange_n(obj, expected, desired, 1, succ, fail)
+#define atomic_exchange_explicit(obj, desired, order)	\
+	__atomic_exchange_n(obj, desired, order)
 #else /* __sync builtins */
 #define atomic_init(obj, desired)			\
 	(*obj = desired)
@@ -150,6 +156,9 @@ typedef bool		atomic_bool;
 	})
 #define atomic_compare_exchange_weak_explicit(obj, expected, desired, succ, fail)	\
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, succ, fail)
+#define atomic_exchange_explicit(obj, desired, order) \
+	__sync_lock_test_and_set(obj, desired)
+
 #endif
 
 #define atomic_load(obj) \
@@ -168,3 +177,5 @@ typedef bool		atomic_bool;
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, memory_order_seq_cst, memory_order_seq_cst)
 #define atomic_compare_exchange_weak(obj, expected, desired)	\
 	atomic_compare_exchange_weak_explicit(obj, expected, desired, memory_order_seq_cst, memory_order_seq_cst)
+#define atomic_exchange(obj, desired)	\
+	atomic_exchange_explicit(obj, desired, memory_order_seq_cst)
