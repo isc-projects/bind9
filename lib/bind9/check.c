@@ -1011,9 +1011,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		uint32_t keyvalidity;
 
 		keyvalidity = cfg_obj_asuint32(obj);
-		if (keyvalidity > 3660 || keyvalidity == 0) { /* 10 years */
+		if (keyvalidity > 3660) {		 /* 10 years */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "%s '%u' is out of range (1..3660)",
+				    "%s '%u' is out of range (0..3660)",
 				    "dnskey-sig-validity",
 				    keyvalidity);
 			result = ISC_R_RANGE;

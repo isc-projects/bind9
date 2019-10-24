@@ -1,3 +1,6 @@
+5304.	[bug]		"dnskey-sig-validity 0;" was not being accepted.
+			[GL #876]
+
 5302.	[bug]		Fix checking that "dnstap-output" is defined when
 			"dnstap" is specified" in a view. [GL #1281]
 
