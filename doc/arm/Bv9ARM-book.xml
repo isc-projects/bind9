@@ -6812,7 +6812,9 @@ options {
 		<para>
 		  Synthesize answers from cached NSEC, NSEC3 and
 		  other RRsets that have been proved to be correct
-		  using DNSSEC.  The default is <command>yes</command>.
+		  using DNSSEC.  The default is <command>no</command>,
+		  but it will become <command>yes</command> again
+		  in the future releases.
 		</para>
 		<para>
 		  Note:
