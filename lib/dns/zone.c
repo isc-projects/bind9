@@ -14738,6 +14738,7 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	dns_update_log_t log = { update_log_cb, NULL };
 	uint32_t newserial = 0, desired = 0;
 	isc_time_t timenow;
+	int level = ISC_LOG_ERROR;
 
 	UNUSED(task);
 
@@ -14771,16 +14772,18 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 		 */
 		result = ISC_R_SUCCESS;
 		ZONEDB_LOCK(&zone->dblock, isc_rwlocktype_read);
-		if (zone->db != NULL)
+		if (zone->db != NULL) {
 			dns_db_attach(zone->db, &zone->rss_db);
-		else
+		} else {
 			result = ISC_R_FAILURE;
+		}
 		ZONEDB_UNLOCK(&zone->dblock, isc_rwlocktype_read);
 
-		if (result == ISC_R_SUCCESS && zone->raw != NULL)
+		if (result == ISC_R_SUCCESS && zone->raw != NULL) {
 			dns_zone_attach(zone->raw, &zone->rss_raw);
-		else
+		} else {
 			result = ISC_R_FAILURE;
+		}
 
 		UNLOCK_ZONE(zone);
 
@@ -14801,8 +14804,9 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 
 		result = dns_journal_open(zone->mctx, zone->journal,
 					  DNS_JOURNAL_READ, &sjournal);
-		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND)
+		if (result != ISC_R_SUCCESS && result != ISC_R_NOTFOUND) {
 			goto failure;
+		}
 
 		if (!dns_journal_get_sourceserial(rjournal, &start)) {
 			start = dns_journal_first_serial(rjournal);
@@ -14833,12 +14837,14 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 		result = sync_secure_journal(zone, zone->rss_raw, rjournal,
 					     start, end, &soatuple,
 					     &zone->rss_diff);
-		if (result == DNS_R_UNCHANGED)
+		if (result == DNS_R_UNCHANGED) {
+			level = ISC_LOG_INFO;
 			goto failure;
-		else if (result != ISC_R_SUCCESS)
+		} else if (result != ISC_R_SUCCESS) {
 			CHECK(sync_secure_db(zone, zone->rss_raw, zone->rss_db,
 					     zone->rss_oldver, &soatuple,
 					     &zone->rss_diff));
+		}
 
 		CHECK(dns_diff_apply(&zone->rss_diff, zone->rss_db,
 				     zone->rss_newver));
@@ -14855,18 +14861,20 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 				    dns_soa_getserial(&soatuple->rdata);
 			if (!isc_serial_gt(newserial, oldserial)) {
 				newserial = oldserial + 1;
-				if (newserial == 0)
+				if (newserial == 0) {
 					newserial++;
+				}
 				dns_soa_setserial(newserial, &soatuple->rdata);
 			}
 			CHECK(do_one_tuple(&tuple, zone->rss_db,
 					   zone->rss_newver, &zone->rss_diff));
 			CHECK(do_one_tuple(&soatuple, zone->rss_db,
 					   zone->rss_newver, &zone->rss_diff));
-		} else
+		} else {
 			CHECK(update_soa_serial(zone->rss_db, zone->rss_newver,
 						&zone->rss_diff, zone->mctx,
 						zone->updatemethod));
+		}
 
 	}
 	result = dns_update_signaturesinc(&log, zone, zone->rss_db,
@@ -14875,8 +14883,9 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 					  zone->sigvalidityinterval,
 					  &zone->rss_state);
 	if (result == DNS_R_CONTINUE) {
-		if (rjournal != NULL)
+		if (rjournal != NULL) {
 			dns_journal_destroy(&rjournal);
+		}
 		isc_task_send(task, &event);
 		return;
 	}
@@ -14892,10 +14901,11 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 		goto failure;
 	}
 
-	if (rjournal == NULL)
+	if (rjournal == NULL) {
 		CHECK(dns_journal_open(zone->rss_raw->mctx,
 				       zone->rss_raw->journal,
 				       DNS_JOURNAL_WRITE, &rjournal));
+	}
 	CHECK(zone_journal(zone, &zone->rss_diff, &end,
 			   "receive_secure_serial"));
 
@@ -14925,28 +14935,35 @@ receive_secure_serial(isc_task_t *task, isc_event_t *event) {
 	isc_event_free(&zone->rss_event);
 	event = ISC_LIST_HEAD(zone->rss_events);
 
-	if (zone->rss_raw != NULL)
+	if (zone->rss_raw != NULL) {
 		dns_zone_detach(&zone->rss_raw);
-	if (result != ISC_R_SUCCESS)
-		dns_zone_log(zone, ISC_LOG_ERROR, "receive_secure_serial: %s",
+	}
+	if (result != ISC_R_SUCCESS) {
+		dns_zone_log(zone, level, "receive_secure_serial: %s",
 			     dns_result_totext(result));
-	if (tuple != NULL)
+	}
+	if (tuple != NULL) {
 		dns_difftuple_free(&tuple);
-	if (soatuple != NULL)
+	}
+	if (soatuple != NULL) {
 		dns_difftuple_free(&soatuple);
+	}
 	if (zone->rss_db != NULL) {
-		if (zone->rss_oldver != NULL)
+		if (zone->rss_oldver != NULL) {
 			dns_db_closeversion(zone->rss_db, &zone->rss_oldver,
 					    false);
-		if (zone->rss_newver != NULL)
+		}
+		if (zone->rss_newver != NULL) {
 			dns_db_closeversion(zone->rss_db, &zone->rss_newver,
 					    false);
+		}
 		dns_db_detach(&zone->rss_db);
 	}
 	INSIST(zone->rss_oldver == NULL);
 	INSIST(zone->rss_newver == NULL);
-	if (rjournal != NULL)
+	if (rjournal != NULL) {
 		dns_journal_destroy(&rjournal);
+	}
 	dns_diff_clear(&zone->rss_diff);
 
 	if (event != NULL) {
