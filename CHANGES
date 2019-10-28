@@ -1,3 +1,8 @@
+5305.	[bug]		NSEC Aggressive Cache ("synth-from-dnssec") has been
+			disabled by default because it was found to have
+			a significant performance impact on the recursive
+			service. [GL #1265]
+
 5304.	[bug]		"dnskey-sig-validity 0;" was not being accepted.
 			[GL #876]
 
