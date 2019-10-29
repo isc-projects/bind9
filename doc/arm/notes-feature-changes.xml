@@ -91,5 +91,13 @@
         a DNSSEC validation. [GL #964]
       </para>
     </listitem>
+    <listitem>
+      <para>
+	NSEC Aggressive Cache (synth-from-dnssec) has been disabled by default
+	because it was found to have a significant performance impact on the
+	recursive service. The NSEC Aggressive Cache will be enable by default
+	in the future releases. [GL #1265]
+      </para>
+    </listitem>
   </itemizedlist>
 </section>
