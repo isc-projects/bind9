@@ -1,3 +1,5 @@
+5306.	[placeholder]
+
 5305.	[bug]		NSEC Aggressive Cache ("synth-from-dnssec") has been
 			disabled by default because it was found to have
 			a significant performance impact on the recursive
