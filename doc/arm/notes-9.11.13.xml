@@ -11,8 +11,15 @@
 
 <section xml:id="relnotes-9.11.13"><info><title>Notes for BIND 9.11.13</title></info>
 
-  <para>
-    None.
-  </para>
-
+  <section xml:id="relnotes-9.11.10-features"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+	<para>
+          Added a new statistics variable <command>tcp-highwater</command>
+          that reports the maximum number of simultaneous TCP clients BIND
+          has handled while running.
+	</para>
+      </listitem>
+    </itemizedlist>
+  </section>
 </section>
