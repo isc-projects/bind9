@@ -1525,6 +1525,7 @@
 ./doc/arm/notes-bug-fixes.xml			SGML	2019
 ./doc/arm/notes-download.xml			SGML	2019
 ./doc/arm/notes-eol.xml				SGML	2019
+./doc/arm/notes-feature-changes.xml		SGML	2019
 ./doc/arm/notes-intro.xml			SGML	2019
 ./doc/arm/notes-license.xml			SGML	2019
 ./doc/arm/notes-new-features.xml		SGML	2019
