@@ -47,7 +47,6 @@ Server 2012 R2, none of these are tested regularly by ISC.
   * Windows 10 / x64
   * macOS 10.12+
   * Solaris 11
-  * FreeBSD 10.x
   * NetBSD
   * Other Linux distributions still supported by their vendors, such as:
       + Ubuntu 19.04+
@@ -55,6 +54,22 @@ Server 2012 R2, none of these are tested regularly by ISC.
       + Arch Linux
   * OpenWRT/LEDE 17.01+
   * Other CPU architectures (mips, mipsel, sparc, ...)
+
+Community maintained
+
+These systems may not all have easily available the required dependencies
+for building BIND although it will be possible in many cases to compile
+those directly from source. The community and interested parties may wish
+to help with maintenance and we welcome patch contributions, although we
+cannot guarantee that we will accept them. All contributions will be
+assessed against the risk of adverse effect on officially supported
+platforms.
+
+  * Platforms past or close to their respective EOL dates, such as:
+      + Ubuntu 14.04, 18.10
+      + CentOS 6
+      + Debian Jessie
+      + FreeBSD 10.x
 
 Unsupported platforms
 
@@ -69,6 +84,5 @@ These are platforms on which BIND 9.15 is known not to build or run:
     library)
   * Linux without NPTL (Native POSIX Thread Library)
   * Platforms where libuv cannot be compiled
-  * Platforms past their respective EOL date
 
 Platform quirks
