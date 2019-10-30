@@ -1,3 +1,5 @@
+5309.	[placeholder]
+
 5308.	[bug]		Don't log DNS_R_UNCHANGED from sync_secure_journal()
 			at ERROR level in receive_secure_serial(). [GL #1288]
 
