@@ -984,8 +984,8 @@ LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_uint64 = {
  * Get the number of digits in a number.
  */
 static size_t
-numlen(time_t num) {
-	uint32_t period = (uint32_t) num;
+numlen(uint32_t num) {
+	uint32_t period = num;
 	size_t count = 0;
 
 	if (period == 0) {

@@ -46,8 +46,8 @@ confget(cfg_obj_t const * const *maps, const char *name, const cfg_obj_t **obj)
 /*
  * Utility function for configuring durations.
  */
-static time_t
-get_duration(const cfg_obj_t **maps, const char* option, time_t dfl)
+static uint32_t
+get_duration(const cfg_obj_t **maps, const char* option, uint32_t dfl)
 {
 	const cfg_obj_t *obj;
 	isc_result_t result;

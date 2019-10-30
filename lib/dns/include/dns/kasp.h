@@ -24,8 +24,6 @@
  * signed and maintained.
  */
 
-#include <time.h>
-
 #include <isc/lang.h>
 #include <isc/magic.h>
 #include <isc/mutex.h>
@@ -46,7 +44,7 @@ struct dns_kasp_key {
 	ISC_LINK(struct dns_kasp_key)   link;
 
 	/* Configuration */
-	time_t				lifetime;
+	uint32_t			lifetime;
 	uint32_t			algorithm;
 	int				length;
 	uint8_t				role;
@@ -75,7 +73,7 @@ struct dns_kasp {
 
 	/* Configuration: Keys */
 	dns_kasp_keylist_t		keys;
-	uint32_t			dnskey_ttl;
+	dns_ttl_t			dnskey_ttl;
 
 	/* Configuration: Timings */
 	uint32_t			publish_safety;
@@ -83,12 +81,12 @@ struct dns_kasp {
 
 	/* Zone settings */
 	dns_ttl_t			zone_max_ttl;
-	time_t				zone_propagation_delay;
+	uint32_t			zone_propagation_delay;
 
 	/* Parent settings */
 	dns_ttl_t			parent_ds_ttl;
-	time_t				parent_propagation_delay;
-	time_t				parent_registration_delay;
+	uint32_t			parent_propagation_delay;
+	uint32_t			parent_registration_delay;
 
 	// TODO: The rest of the KASP configuration
 };
@@ -208,7 +206,7 @@ dns_kasp_getname(dns_kasp_t *kasp);
  *\li   name of 'kasp'.
  */
 
-time_t
+uint32_t
 dns_kasp_signdelay(dns_kasp_t *kasp);
 /*%<
  * Get the delay that is needed to ensure that all existing RRsets have been
@@ -225,7 +223,7 @@ dns_kasp_signdelay(dns_kasp_t *kasp);
  *\li   signature refresh interval.
  */
 
-time_t
+uint32_t
 dns_kasp_sigrefresh(dns_kasp_t *kasp);
 /*%<
  * Get signature refresh interval.
@@ -239,9 +237,9 @@ dns_kasp_sigrefresh(dns_kasp_t *kasp);
  *\li   signature refresh interval.
  */
 
-time_t
+uint32_t
 dns_kasp_sigvalidity(dns_kasp_t *kasp);
-time_t
+uint32_t
 dns_kasp_sigvalidity_dnskey(dns_kasp_t *kasp);
 /*%<
  * Get signature validity.
@@ -269,7 +267,7 @@ dns_kasp_dnskeyttl(dns_kasp_t *kasp);
  *\li   DNSKEY TTL.
  */
 
-time_t
+uint32_t
 dns_kasp_publishsafety(dns_kasp_t *kasp);
 /*%<
  * Get publish safety interval.
@@ -283,7 +281,7 @@ dns_kasp_publishsafety(dns_kasp_t *kasp);
  *\li   Publish safety interval.
  */
 
-time_t
+uint32_t
 dns_kasp_retiresafety(dns_kasp_t *kasp);
 /*%<
  * Get retire safety interval.
@@ -311,7 +309,7 @@ dns_kasp_zonemaxttl(dns_kasp_t *kasp);
  *\li   Maximum zone TTL.
  */
 
-time_t
+uint32_t
 dns_kasp_zonepropagationdelay(dns_kasp_t *kasp);
 /*%<
  * Get zone propagation delay.
@@ -339,7 +337,7 @@ dns_kasp_dsttl(dns_kasp_t *kasp);
  *\li   Expected parent DS TTL.
  */
 
-time_t
+uint32_t
 dns_kasp_parentpropagationdelay(dns_kasp_t *kasp);
 /*%<
  * Get parent zone propagation delay.
@@ -353,7 +351,7 @@ dns_kasp_parentpropagationdelay(dns_kasp_t *kasp);
  *\li   Parent zone propagation delay.
  */
 
-time_t
+uint32_t
 dns_kasp_parentregistrationdelay(dns_kasp_t *kasp);
 /*%<
  * Get parent registration delay for submitting new DS.
@@ -441,7 +439,7 @@ dns_kasp_key_size(dns_kasp_key_t *key);
  *     configured.
  */
 
-time_t
+uint32_t
 dns_kasp_key_lifetime(dns_kasp_key_t *key);
 /*%<
  * The lifetime of this key (how long may this key be active?)
