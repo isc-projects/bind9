@@ -6046,7 +6046,11 @@ options {
 		  Set this to <userinput>yes</userinput> to test that DNS
 		  COOKIE clients correctly handle BADCOOKIE or if you are
 		  getting a lot of forged DNS requests with DNS COOKIES
-		  present.
+		  present. Setting this to <userinput>yes</userinput> will
+		  result in reduced amplification effect in a reflection
+		  attack, as the BADCOOKIE response will be smaller than
+		  a full response, while also requiring a legitimate client
+		  to follow up with a second query with the new, valid, cookie.
 		</para>
 	      </listitem>
 	    </varlistentry>
