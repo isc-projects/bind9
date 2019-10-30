@@ -584,12 +584,24 @@ bool
 dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
 	isc_result_t result;
 	isc_stdtime_t publish, active, revoke, remove;
-	bool hint_publish, hint_sign, hint_revoke, hint_remove;
+	bool hint_publish, hint_zsign, hint_ksign, hint_revoke, hint_remove;
 	int major, minor;
+	bool ksk = false, zsk = false;
+	isc_result_t ret;
 
 	/* Is this an old-style key? */
 	result = dst_key_getprivateformat(key, &major, &minor);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
+
+	/* Is this a KSK? */
+	ret = dst_key_getbool(key, DST_BOOL_KSK, &ksk);
+	if (ret != ISC_R_SUCCESS) {
+		ksk = ((dst_key_flags(key) & DNS_KEYFLAG_KSK) != 0);
+	}
+	ret = dst_key_getbool(key, DST_BOOL_ZSK, &zsk);
+	if (ret != ISC_R_SUCCESS) {
+		zsk = ((dst_key_flags(key) & DNS_KEYFLAG_KSK) == 0);
+	}
 
 	/*
 	 * Smart signing started with key format 1.3; prior to that, all
@@ -599,7 +611,8 @@ dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
 		return (true);
 
 	hint_publish = dst_key_is_published(key, now, &publish);
-	hint_sign = dst_key_is_signing(key, now, &active);
+	hint_zsign = dst_key_is_signing(key, DST_BOOL_ZSK, now, &active);
+	hint_ksign = dst_key_is_signing(key, DST_BOOL_KSK, now, &active);
 	hint_revoke = dst_key_is_revoked(key, now, &revoke);
 	hint_remove = dst_key_is_removed(key, now, &remove);
 
@@ -609,7 +622,10 @@ dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
 	if (hint_publish && hint_revoke) {
 		return (true);
 	}
-	if (hint_sign) {
+	if (hint_zsign && zsk) {
+		return (true);
+	}
+	if (hint_ksign && ksk) {
 		return (true);
 	}
 	return (false);
@@ -1255,7 +1271,8 @@ dns_dnssec_get_hints(dns_dnsseckey_t *key, isc_stdtime_t now) {
 	REQUIRE(key != NULL && key->key != NULL);
 
 	key->hint_publish = dst_key_is_published(key->key, now, &publish);
-	key->hint_sign = dst_key_is_signing(key->key, now, &active);
+	key->hint_sign = dst_key_is_signing(key->key, DST_BOOL_ZSK, now,
+					    &active);
 	key->hint_revoke = dst_key_is_revoked(key->key, now, &revoke);
 	key->hint_remove = dst_key_is_removed(key->key, now, &remove);
 

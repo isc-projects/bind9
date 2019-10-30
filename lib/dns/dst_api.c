@@ -2476,7 +2476,7 @@ dst_key_is_active(dst_key_t *key, isc_stdtime_t now)
 
 
 bool
-dst_key_is_signing(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *active)
+dst_key_is_signing(dst_key_t *key, int role, isc_stdtime_t now, isc_stdtime_t *active)
 {
 	dst_key_state_t state;
 	isc_result_t result;
@@ -2503,7 +2503,7 @@ dst_key_is_signing(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *active)
 	 * If the RRSIG state is RUMOURED or OMNIPRESENT, it means the key
 	 * is active.
 	 */
-	if (ksk) {
+	if (ksk && role == DST_BOOL_KSK) {
 		result = dst_key_getstate(key, DST_KEY_KRRSIG, &state);
 		if (result == ISC_R_SUCCESS) {
 			krrsig_ok = ((state == DST_KEY_STATE_RUMOURED) ||
@@ -2515,8 +2515,7 @@ dst_key_is_signing(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *active)
 			time_ok = true;
 			inactive = false;
 		}
-	}
-	if (zsk) {
+	} else if (zsk && role == DST_BOOL_ZSK) {
 		result = dst_key_getstate(key, DST_KEY_ZRRSIG, &state);
 		if (result == ISC_R_SUCCESS) {
 			zrrsig_ok = ((state == DST_KEY_STATE_RUMOURED) ||

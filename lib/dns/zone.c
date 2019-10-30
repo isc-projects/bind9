@@ -6616,6 +6616,7 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			 * key should sign.
 			 */
 			isc_result_t kresult;
+			isc_stdtime_t when;
 			bool ksk = false;
 			bool zsk = false;
 
@@ -6646,6 +6647,12 @@ add_sigs(dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			} else if (!zsk) {
 				/*
 				 * Other RRsets are signed with ZSK.
+				 */
+				continue;
+			} else if (!dst_key_is_signing(keys[i], DST_BOOL_ZSK,
+						       inception, &when)) {
+				/*
+				 * This key is not active for zone-signing.
 				 */
 				continue;
 			}
@@ -7027,17 +7034,14 @@ signed_with_good_key(dns_zone_t* zone, dns_db_t *db, dns_dbnode_t *node,
 
 	if (kasp) {
 		dns_kasp_key_t* kkey;
-		int ksk_count = 0, zsk_count = 0;
-		bool approved = false;
+		int zsk_count = 0;
+		bool approved;
 
 		for (kkey = ISC_LIST_HEAD(kasp->keys); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
 		{
 			if (dns_kasp_key_algorithm(kkey) != dst_key_alg(key)) {
 				continue;
-			}
-			if (dns_kasp_key_ksk(kkey)) {
-				ksk_count++;
 			}
 			if (dns_kasp_key_zsk(kkey)) {
 				zsk_count++;
@@ -7053,7 +7057,7 @@ signed_with_good_key(dns_zone_t* zone, dns_db_t *db, dns_dbnode_t *node,
 			 * be signed with a key in the current DS RRset,
 			 * which would only include KSK's.)
 			 */
-			approved = (ksk_count == count);
+			approved = false;
 		} else {
 			approved = (zsk_count == count);
 		}
@@ -7149,6 +7153,7 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	    dns_diff_t *diff, int32_t *signatures, isc_mem_t *mctx)
 {
 	isc_result_t result;
+	dns_kasp_t *kasp = dns_zone_getkasp(zone);
 	dns_rdatasetiter_t *iterator = NULL;
 	dns_rdataset_t rdataset;
 	dns_rdata_t rdata = DNS_RDATA_INIT;
@@ -7216,6 +7221,8 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 	}
 	result = dns_rdatasetiter_first(iterator);
 	while (result == ISC_R_SUCCESS) {
+		isc_stdtime_t when;
+
 		dns_rdatasetiter_current(iterator, &rdataset);
 		if (rdataset.type == dns_rdatatype_soa ||
 		    rdataset.type == dns_rdatatype_rrsig)
@@ -7237,7 +7244,14 @@ sign_a_node(dns_db_t *db, dns_zone_t *zone, dns_name_t *name,
 			}
 		} else if (!is_zsk) {
 			goto next_rdataset;
+		} else if (is_zsk && !dst_key_is_signing(key, DST_BOOL_ZSK,
+							 inception, &when)) {
+			/* Only applies to dnssec-policy. */
+			if (kasp != NULL) {
+				goto next_rdataset;
+			}
 		}
+
 		if (seen_ns && !seen_soa &&
 		    rdataset.type != dns_rdatatype_ds &&
 		    rdataset.type != dns_rdatatype_nsec)

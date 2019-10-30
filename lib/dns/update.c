@@ -1167,6 +1167,7 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 * A dnssec-policy is found. Check what RRsets this
 			 * key should sign.
 			 */
+			isc_stdtime_t when;
 			isc_result_t kresult;
 			bool ksk = false;
 			bool zsk = false;
@@ -1198,6 +1199,14 @@ add_sigs(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			} else if (!zsk) {
 				/*
 				 * Other RRsets are signed with ZSK.
+				 */
+				continue;
+			} else if (zsk && !dst_key_is_signing(keys[i],
+							      DST_BOOL_ZSK,
+							      inception,
+							      &when)) {
+				/*
+				 * This key is not active for zone-signing.
 				 */
 				continue;
 			}

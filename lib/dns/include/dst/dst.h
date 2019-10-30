@@ -1138,9 +1138,10 @@ dst_key_is_active(dst_key_t *key, isc_stdtime_t now);
  */
 
 bool
-dst_key_is_signing(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *active);
+dst_key_is_signing(dst_key_t *key, int role, isc_stdtime_t now,
+		   isc_stdtime_t *active);
 /*%<
- * Check if it is safe to use this key for signing.
+ * Check if it is safe to use this key for signing, given the role.
  *
  * Requires:
  *	'key' to be valid.
