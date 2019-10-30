@@ -233,3 +233,73 @@ zone "step6.ksk-doubleksk.autosign" {
 	file "step6.ksk-doubleksk.autosign.db";
 	dnssec-policy "ksk-doubleksk";
 };
+
+/*
+ * Zones for testing CSK rollover steps.
+ */
+zone "step1.csk-roll.autosign" {
+	type master;
+	file "step1.csk-roll.autosign.db";
+	dnssec-policy "csk-roll";
+};
+zone "step2.csk-roll.autosign" {
+	type master;
+	file "step2.csk-roll.autosign.db";
+	dnssec-policy "csk-roll";
+};
+zone "step3.csk-roll.autosign" {
+	type master;
+	file "step3.csk-roll.autosign.db";
+	dnssec-policy "csk-roll";
+};
+zone "step4.csk-roll.autosign" {
+	type master;
+	file "step4.csk-roll.autosign.db";
+	dnssec-policy "csk-roll";
+};
+zone "step5.csk-roll.autosign" {
+	type master;
+	file "step5.csk-roll.autosign.db";
+	dnssec-policy "csk-roll";
+};
+zone "step6.csk-roll.autosign" {
+	type master;
+	file "step6.csk-roll.autosign.db";
+	dnssec-policy "csk-roll";
+};
+zone "step7.csk-roll.autosign" {
+	type master;
+	file "step7.csk-roll.autosign.db";
+	dnssec-policy "csk-roll";
+};
+
+zone "step1.csk-roll2.autosign" {
+	type master;
+	file "step1.csk-roll2.autosign.db";
+	dnssec-policy "csk-roll2";
+};
+zone "step2.csk-roll2.autosign" {
+	type master;
+	file "step2.csk-roll2.autosign.db";
+	dnssec-policy "csk-roll2";
+};
+zone "step3.csk-roll2.autosign" {
+	type master;
+	file "step3.csk-roll2.autosign.db";
+	dnssec-policy "csk-roll2";
+};
+zone "step4.csk-roll2.autosign" {
+	type master;
+	file "step4.csk-roll2.autosign.db";
+	dnssec-policy "csk-roll2";
+};
+zone "step5.csk-roll2.autosign" {
+	type master;
+	file "step5.csk-roll2.autosign.db";
+	dnssec-policy "csk-roll2";
+};
+zone "step6.csk-roll2.autosign" {
+	type master;
+	file "step6.csk-roll2.autosign.db";
+	dnssec-policy "csk-roll2";
+};

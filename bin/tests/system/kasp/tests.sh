@@ -43,7 +43,8 @@ STATE_DNSKEY=15
 STATE_ZRRSIG=16
 STATE_KRRSIG=17
 STATE_DS=18
-EXPECT_RRSIG=19
+EXPECT_ZRRSIG=19
+EXPECT_KRRSIG=20
 
 # Clear key state.
 #
@@ -58,7 +59,8 @@ key_clear() {
 		[$REMOVED]="none" \
 		[$GOAL]="none" [$STATE_DNSKEY]="none" \
 		[$STATE_KRRSIG]="none" [$STATE_ZRRSIG]="none" \
-		[$STATE_DS]="none" [$EXPECT_RRSIG]="no")
+		[$STATE_DS]="none" \
+	        [$EXPECT_ZRRSIG]="no" [$EXPECT_KRRSIG]="no")
 
 	if [ $1 == "KEY1" ]; then
 		KEY1=(${_key[*]})
@@ -140,7 +142,8 @@ zone_properties() {
 # $4: Algorithm (number)
 # $5: Algorithm (string-format)
 # $6: Algorithm length
-# $7: Is signing
+# $7: Is zone signing
+# $8: Is key signing
 #
 # This will update either the KEY1, KEY2 or KEY3 array.
 key_properties() {
@@ -157,7 +160,8 @@ key_properties() {
 		KEY1[$ALG_NUM]=$4
 		KEY1[$ALG_STR]=$5
 		KEY1[$ALG_LEN]=$6
-		KEY1[$EXPECT_RRSIG]=$7
+		KEY1[$EXPECT_ZRRSIG]=$7
+		KEY1[$EXPECT_KRRSIG]=$8
 	elif [ $1 == "KEY2" ]; then
 		KEY2[$EXPECT]="yes"
 		KEY2[$ROLE]=$2
@@ -171,7 +175,8 @@ key_properties() {
 		KEY2[$ALG_NUM]=$4
 		KEY2[$ALG_STR]=$5
 		KEY2[$ALG_LEN]=$6
-		KEY2[$EXPECT_RRSIG]=$7
+		KEY2[$EXPECT_ZRRSIG]=$7
+		KEY2[$EXPECT_KRRSIG]=$8
 	elif [ $1 == "KEY3" ]; then
 		KEY3[$EXPECT]="yes"
 		KEY3[$ROLE]=$2
@@ -185,7 +190,8 @@ key_properties() {
 		KEY3[$ALG_NUM]=$4
 		KEY3[$ALG_STR]=$5
 		KEY3[$ALG_LEN]=$6
-		KEY3[$EXPECT_RRSIG]=$7
+		KEY3[$EXPECT_ZRRSIG]=$7
+		KEY3[$EXPECT_KRRSIG]=$8
 	fi
 }
 
@@ -510,7 +516,7 @@ test "$lines" -eq 4 || log_error "wrong number of keys created for policy kasp: 
 # Temporarily don't log errors because we are searching multiple files.
 _log=0
 # Check one algorithm.
-key_properties "KEY1" "csk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "csk" "31536000" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "none" "none" "none" "none" "none"
 key_states "KEY1" "none" "none" "none" "none" "none"
 id=$(get_keyids $DIR $ZONE "${KEY1[$ALG_NUM]}")
@@ -518,15 +524,15 @@ check_key "KEY1" $id
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 # Check the other algorithm.
-key_properties "KEY1" "ksk" "31536000" "8" "RSASHA256" "2048" "yes"
+key_properties "KEY1" "ksk" "31536000" "8" "RSASHA256" "2048" "no" "yes"
 key_timings "KEY1" "none" "none" "none" "none" "none"
 key_states "KEY1" "none" "none" "none" "none" "none"
 
-key_properties "KEY2" "zsk" "2592000" "8" "RSASHA256" "1024" "yes"
+key_properties "KEY2" "zsk" "2592000" "8" "RSASHA256" "1024" "yes" "no"
 key_timings "KEY2" "none" "none" "none" "none" "none"
 key_states "KEY2" "none" "none" "none" "none" "none"
 
-key_properties "KEY3" "zsk" "16070400" "8" "RSASHA256" "2000" "yes"
+key_properties "KEY3" "zsk" "16070400" "8" "RSASHA256" "2000" "yes" "no"
 key_timings "KEY3" "none" "none" "none" "none" "none"
 key_states "KEY3" "none" "none" "none" "none" "none"
 
@@ -552,7 +558,7 @@ n=$((n+1))
 echo_i "check that 'dnssec-keygen -k' (default policy) creates valid files ($n)"
 ret=0
 zone_properties "." "kasp" "default" "3600"
-key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "none" "none" "none" "none" "none"
 key_states "KEY1" "none" "none" "none" "none" "none"
 $KEYGEN -k $POLICY $ZONE > keygen.out.$POLICY.test$n 2>/dev/null || ret=1
@@ -567,7 +573,7 @@ n=$((n+1))
 echo_i "check that 'dnssec-keygen -k' (default policy) creates valid files ($n)"
 ret=0
 zone_properties "." "kasp" "default" "3600"
-key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "none" "none" "none" "none" "none"
 key_states "KEY1" "none" "none" "none" "none" "none"
 $KEYGEN -k $POLICY $ZONE > keygen.out.$POLICY.test$n 2>/dev/null || ret=1
@@ -667,7 +673,7 @@ status=$((status+ret))
 
 # Check the zone with default kasp policy has loaded and is signed.
 zone_properties "ns3" "default.kasp" "_default" "3600"
-key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "csk" "0" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 # The first key is immediately published and activated.
 key_timings "KEY1" "published" "active" "none" "none" "none" "none"
 # DNSKEY, RRSIG (ksk), RRSIG (zsk) are published. DS needs to wait.
@@ -751,9 +757,9 @@ status=$((status+ret))
 # Zone: rsasha1.kasp.
 #
 zone_properties "ns3" "rsasha1.kasp" "rsasha1" "1234" "3"
-key_properties "KEY1" "ksk" "315360000" "5" "RSASHA1" "2048" "yes"
-key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "1024" "yes"
-key_properties "KEY3" "zsk" "31536000" "5" "RSASHA1" "2000" "yes"
+key_properties "KEY1" "ksk" "315360000" "5" "RSASHA1" "2048" "no" "yes"
+key_properties "KEY2" "zsk" "157680000" "5" "RSASHA1" "1024" "yes" "no"
+key_properties "KEY3" "zsk" "31536000" "5" "RSASHA1" "2000" "yes" "no"
 # The first keys are immediately published and activated.
 # Because lifetime > 0, retired timing is also set.
 key_timings "KEY1" "published" "active" "retired" "none" "none"
@@ -855,19 +861,25 @@ check_signatures() {
 	_file=$2
 	_role=$3
 
-	if [ "${KEY1[$EXPECT_RRSIG]}" == "yes" ] && [ "${KEY1[$_role]}" == "yes" ]; then
+	if [ $_role == $KSK ]; then
+		_expect_type=$EXPECT_KRRSIG
+	elif [ $_role == $ZSK ]; then
+		_expect_type=$EXPECT_ZRRSIG
+	fi
+
+	if [ "${KEY1[$_expect_type]}" == "yes" ] && [ "${KEY1[$_role]}" == "yes" ]; then
 		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with key ${KEY1[$ID]}"
 	elif [ "${KEY1[$EXPECT]}" == "yes" ]; then
 		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY1[$ID]}"
 	fi
 
-	if [ "${KEY2[$EXPECT_RRSIG]}" == "yes" ] && [ "${KEY2[$_role]}" == "yes" ]; then
+	if [ "${KEY2[$_expect_type]}" == "yes" ] && [ "${KEY2[$_role]}" == "yes" ]; then
 		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with ${KEY2[$ID]}"
 	elif [ "${KEY2[$EXPECT]}" == "yes" ]; then
 		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY2[$ID]}"
 	fi
 
-	if [ "${KEY3[$EXPECT_RRSIG]}" == "yes" ] && [ "${KEY3[$_role]}" == "yes" ]; then
+	if [ "${KEY3[$_expect_type]}" == "yes" ] && [ "${KEY3[$_role]}" == "yes" ]; then
 		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with ${KEY3[$ID]}"
 	elif [ "${KEY3[$EXPECT]}" == "yes" ]; then
 		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY3[$ID]}"
@@ -880,6 +892,7 @@ check_apex() {
 
 	# Test DNSKEY query.
 	_qtype="DNSKEY"
+	_key_algnum="${KEY1[$ALG_NUM]}"
 	n=$((n+1))
 	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
 	ret=0
@@ -1017,9 +1030,9 @@ status=$((status+ret))
 # Zone: rsasha1-nsec3.kasp.
 #
 zone_properties "ns3" "rsasha1-nsec3.kasp" "rsasha1-nsec3" "1234" "3"
-key_properties "KEY1" "ksk" "315360000" "7" "NSEC3RSASHA1" "2048" "yes"
-key_properties "KEY2" "zsk" "157680000" "7" "NSEC3RSASHA1" "1024" "yes"
-key_properties "KEY3" "zsk" "31536000" "7" "NSEC3RSASHA1" "2000" "yes"
+key_properties "KEY1" "ksk" "315360000" "7" "NSEC3RSASHA1" "2048" "no" "yes"
+key_properties "KEY2" "zsk" "157680000" "7" "NSEC3RSASHA1" "1024" "yes" "no"
+key_properties "KEY3" "zsk" "31536000" "7" "NSEC3RSASHA1" "2000" "yes" "no"
 # key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1030,9 +1043,9 @@ dnssec_verify
 # Zone: rsasha256.kasp.
 #
 zone_properties "ns3" "rsasha256.kasp" "rsasha256" "1234" "3"
-key_properties "KEY1" "ksk" "315360000" "8" "RSASHA256" "2048" "yes"
-key_properties "KEY2" "zsk" "157680000" "8" "RSASHA256" "1024" "yes"
-key_properties "KEY3" "zsk" "31536000" "8" "RSASHA256" "2000" "yes"
+key_properties "KEY1" "ksk" "315360000" "8" "RSASHA256" "2048" "no" "yes"
+key_properties "KEY2" "zsk" "157680000" "8" "RSASHA256" "1024" "yes" "no"
+key_properties "KEY3" "zsk" "31536000" "8" "RSASHA256" "2000" "yes" "no"
 # key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1043,9 +1056,9 @@ dnssec_verify
 # Zone: rsasha512.kasp.
 #
 zone_properties "ns3" "rsasha512.kasp" "rsasha512" "1234" "3"
-key_properties "KEY1" "ksk" "315360000" "10" "RSASHA512" "2048" "yes"
-key_properties "KEY2" "zsk" "157680000" "10" "RSASHA512" "1024" "yes"
-key_properties "KEY3" "zsk" "31536000" "10" "RSASHA512" "2000" "yes"
+key_properties "KEY1" "ksk" "315360000" "10" "RSASHA512" "2048" "no" "yes"
+key_properties "KEY2" "zsk" "157680000" "10" "RSASHA512" "1024" "yes" "no"
+key_properties "KEY3" "zsk" "31536000" "10" "RSASHA512" "2000" "yes" "no"
 # key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1056,9 +1069,9 @@ dnssec_verify
 # Zone: ecdsa256.kasp.
 #
 zone_properties "ns3" "ecdsa256.kasp" "ecdsa256" "1234" "3"
-key_properties "KEY1" "ksk" "315360000" "13" "ECDSAP256SHA256" "256" "yes"
-key_properties "KEY2" "zsk" "157680000" "13" "ECDSAP256SHA256" "256" "yes"
-key_properties "KEY3" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "ksk" "315360000" "13" "ECDSAP256SHA256" "256" "no" "yes"
+key_properties "KEY2" "zsk" "157680000" "13" "ECDSAP256SHA256" "256" "yes" "no"
+key_properties "KEY3" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes" "no"
 # key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1069,9 +1082,9 @@ dnssec_verify
 # Zone: ecdsa512.kasp.
 #
 zone_properties "ns3" "ecdsa384.kasp" "ecdsa384" "1234" "3"
-key_properties "KEY1" "ksk" "315360000" "14" "ECDSAP384SHA384" "384" "yes"
-key_properties "KEY2" "zsk" "157680000" "14" "ECDSAP384SHA384" "384" "yes"
-key_properties "KEY3" "zsk" "31536000" "14" "ECDSAP384SHA384" "384" "yes"
+key_properties "KEY1" "ksk" "315360000" "14" "ECDSAP384SHA384" "384" "no" "yes"
+key_properties "KEY2" "zsk" "157680000" "14" "ECDSAP384SHA384" "384" "yes" "no"
+key_properties "KEY3" "zsk" "31536000" "14" "ECDSAP384SHA384" "384" "yes" "no"
 # key_timings and key_states same as above.
 check_keys
 check_apex
@@ -1085,10 +1098,10 @@ dnssec_verify
 #
 zone_properties "ns3" "expired-sigs.autosign" "autosign" "300" "2"
 # Both KSK and ZSK stay OMNIPRESENT.
-key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes" "no"
 key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
 key_timings "KEY2" "published" "active" "retired" "none" "none"
 # Expect only two keys.
@@ -1209,7 +1222,7 @@ check_rrsig_refresh
 #
 zone_properties "ns3" "zsk-missing.autosign" "autosign" "300" "2"
 # KSK stays OMNIPRESENT.
-key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
 # key_properties, key_timings and key_states same as above.
@@ -1222,12 +1235,12 @@ zone_properties "ns3" "zsk-retired.autosign" "autosign" "300" "3"
 # KSK properties, timings and states same as above.
 # The ZSK goal is set to HIDDEN but records stay OMNIPRESENT until the new ZSK
 # is active.
-key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes" "no"
 key_timings "KEY2" "published" "active" "retired" "none" "none"
 key_states "KEY2" "hidden" "omnipresent" "omnipresent" "none" "none"
 # A new ZSK should be introduced, so expect a key with goal OMNIPRESENT,
 # the DNSKEY introduced (RUMOURED) and the signatures HIDDEN.
-key_properties "KEY3" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "no"
+key_properties "KEY3" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_timings "KEY3" "published" "active" "retired" "none" "none"
 key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
 
@@ -1240,10 +1253,10 @@ key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
 #
 zone_properties "ns3" "step1.zsk-prepub.autosign" "zsk-prepub" "3600" "2"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "ksk" "63072000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes" "no"
 key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
 key_timings "KEY2" "published" "active" "retired" "none" "none"
 # Initially only two keys.
@@ -1288,7 +1301,7 @@ zone_properties "ns3" "step2.zsk-prepub.autosign" "zsk-prepub" "3600" "3"
 # KSK (KEY1) doesn't change.
 # ZSK (KEY2) remains active, no change in properties/timings/states.
 # New ZSK (KEY3) is prepublished.
-key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no"
+key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY3" "omnipresent" "rumoured" "hidden" "none" "none"
 key_timings "KEY3" "published" "active" "retired" "none" "none"
 check_keys
@@ -1309,16 +1322,16 @@ zone_properties "ns3" "step3.zsk-prepub.autosign" "zsk-prepub" "3600" "3"
 # ZSK (KEY2) properties and timing metadata same as above.
 # ZSK (KEY2) no longer is actively signing, RRSIG state in UNRETENTIVE.
 # New ZSK (KEY3) is now actively signing, RRSIG state in RUMOURED.
-key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no"
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY2" "hidden" "omnipresent" "unretentive" "none" "none"
 
-key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes" "no"
 key_states "KEY3" "omnipresent" "omnipresent" "rumoured" "none" "none"
 check_keys
 check_apex
 # Subdomain still has good signatures of ZSK (KEY2)
-key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes"
-key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no"
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes" "no"
+key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no" "no"
 check_subdomain
 dnssec_verify
 
@@ -1337,9 +1350,9 @@ zone_properties "ns3" "step4.zsk-prepub.autosign" "zsk-prepub" "3600" "3"
 # ZSK (KEY2) properties and timing metadata same as above.
 # ZSK (KEY2) DNSKEY is no longer needed.
 # ZSK (KEY3) is now actively signing, RRSIG state in RUMOURED.
-key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no"
+key_properties "KEY2" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY2" "hidden" "unretentive" "hidden" "none" "none"
-key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY3" "zsk" "2592000" "13" "ECDSAP256SHA256" "256" "yes" "no"
 key_states "KEY3" "omnipresent" "omnipresent" "omnipresent" "none" "none"
 check_keys
 check_apex
@@ -1380,10 +1393,10 @@ check_next_key_event 1627200
 #
 zone_properties "ns3" "step1.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "2"
 # Both KSK (KEY1) and ZSK (KEY2) start in OMNIPRESENT.
-key_properties "KEY1" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY1" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_timings "KEY1" "published" "active" "retired" "none" "none"
 key_states "KEY1" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
-key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY2" "zsk" "31536000" "13" "ECDSAP256SHA256" "256" "yes" "no"
 key_timings "KEY2" "published" "active" "retired" "none" "none"
 key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "none" "none"
 # Initially only two keys.
@@ -1407,7 +1420,7 @@ zone_properties "ns3" "step2.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3"
 # ZSK (KEY2) doesn't change.
 # KSK (KEY1) remains active, no change in properties/timings/states.
 # New KSK (KEY3) is prepublished (and signs DNSKEY RRset).
-key_properties "KEY3" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "yes"
+key_properties "KEY3" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "no" "yes"
 key_states "KEY3" "omnipresent" "rumoured" "none" "rumoured" "hidden"
 key_timings "KEY3" "published" "active" "retired" "none" "none"
 check_keys
@@ -1449,7 +1462,7 @@ check_next_key_event 266400
 zone_properties "ns3" "step4.ksk-doubleksk.autosign" "ksk-doubleksk" "7200" "3"
 # ZSK (KEY2) doesn't change.
 # KSK (KEY1) DNSKEY can be removed.
-key_properties "KEY1" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "no"
+key_properties "KEY1" "ksk" "5184000" "13" "ECDSAP256SHA256" "256" "no" "no"
 key_states "KEY1" "hidden" "unretentive" "none" "unretentive" "hidden"
 # New KSK (KEY3) DS is now OMNIPRESENT.
 key_states "KEY3" "omnipresent" "omnipresent" "none" "omnipresent" "omnipresent"
@@ -1481,6 +1494,301 @@ dnssec_verify
 # ksk-doubleksk this is: 60d - 1d3h - 1d - 2d2h - 2h =
 # 5184000 - 97200 - 86400 - 180000 - 7200 = 4813200 seconds.
 check_next_key_event 4813200
+
+#
+# Testing CSK key rollover (1).
+#
+
+#
+# Zone: step1.csk-roll.autosign.
+#
+zone_properties "ns3" "step1.csk-roll.autosign" "csk-roll" "3600" "1"
+# The CSK (KEY1) starts in OMNIPRESENT.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+# Initially only one key.
+key_clear "KEY2"
+key_clear "KEY3"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the successor CSK needs to be published.  That is
+# the CSK lifetime - prepublication time - DS registration delay.  The
+# prepublication time is DNSKEY TTL plus publish safety plus the zone
+# propagation delay.  For the csk-roll policy that means:
+# 6mo - 1d - 3h = 15973200 seconds.
+check_next_key_event 15973200
+
+#
+# Zone: step2.csk-roll.autosign.
+#
+# Set key properties for testing keys.
+zone_properties "ns3" "step2.csk-roll.autosign" "csk-roll" "3600" "2"
+# CSK (KEY1) remains active, no change in properties/timings/states.
+# New CSK (KEY2) is prepublished (and signs DNSKEY RRset).
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
+key_states "KEY2" "omnipresent" "rumoured" "hidden" "rumoured" "hidden"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the successor CSK becomes OMNIPRESENT.  That is the
+# DNSKEY TTL plus the zone propagation delay, plus the publish-safety. For
+# the csk-roll policy, this means 3 hours = 10800 seconds.
+check_next_key_event 10800
+
+#
+# Zone: step3.csk-roll.autosign.
+#
+# Set key properties for testing keys.
+zone_properties "ns3" "step3.csk-roll.autosign" "csk-roll" "3600" "2"
+# CSK (KEY1) DS and ZRRSIG will be removed, so it is UNRETENTIVE.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
+key_states "KEY1" "hidden" "omnipresent" "unretentive" "omnipresent" "unretentive"
+# New CSK (KEY2) has its DS submitted, and is signing, so the DS and ZRRSIG
+# are in RUMOURED state.
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "rumoured" "omnipresent" "rumoured"
+check_keys
+check_apex
+# Subdomain still has good signatures of old CSK (KEY1)
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
+check_subdomain
+dnssec_verify
+
+# Next key event is when the predecessor DS has been replaced with the
+# successor DS and enough time has passed such that the all validators that
+# have this DS RRset cached only know about the successor DS.  This is the
+# registration delay plus the retire interval, which is the parent
+# propagation delay plus the DS TTL plus the retire-safety.  For the
+# csk-roll policy this means: 1d + 1h + 1h + 2h = 1d4h = 100800 seconds.
+check_next_key_event 100800
+
+#
+# Zone: step4.csk-roll.autosign.
+#
+zone_properties "ns3" "step4.csk-roll.autosign" "csk-roll" "3600" "2"
+# The old CSK (KEY1) DS is hidden.  We still need to keep the DNSKEY public
+# but can remove the KRRSIG records.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
+key_states "KEY1" "hidden" "omnipresent" "unretentive" "unretentive" "hidden"
+# The new CSK (KEY2) DS is now OMNIPRESENT.
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "rumoured" "omnipresent" "omnipresent"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the KRRSIG enters the HIDDEN state.  This is the
+# DNSKEY TTL plus zone propagation delay. For the csk-roll policy this is:
+# 1h + 1h = 7200 seconds.
+check_next_key_event 7200
+
+#
+# Zone: step5.csk-roll.autosign.
+#
+zone_properties "ns3" "step5.csk-roll.autosign" "csk-roll" "3600" "2"
+# The old CSK (KEY1) KRRSIG records are now all hidden.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
+key_states "KEY1" "hidden" "omnipresent" "unretentive" "hidden" "hidden"
+# The new CSK (KEY2) state does not change.
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DNSKEY can be removed.  This is when all ZRRSIG
+# records have been replaced with signatures of the new CSK.  We have
+# calculated the interval to be 26d3h of which 1d4h (Dreg + Iret(KSK)) plus
+# 2h (DNSKEY TTL + Dprp) have already passed.  So next key event is in
+# 26d3h - 1d4h - 2h = 597h = 2149200 seconds.
+check_next_key_event 2149200
+
+#
+# Zone: step6.csk-roll.autosign.
+#
+zone_properties "ns3" "step6.csk-roll.autosign" "csk-roll" "3600" "2"
+# The old CSK (KEY1) DNSKEY can be removed.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
+key_states "KEY1" "hidden" "unretentive" "hidden" "hidden" "hidden"
+# The new CSK (KEY2) is now fully OMNIPRESENT.
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DNSKEY enters the HIDDEN state.  This is the
+# DNSKEY TTL plus zone propagation delay. For the csk-roll policy this is:
+# 1h + 1h = 7200 seconds.
+check_next_key_event 7200
+
+#
+# Zone: step7.csk-roll.autosign.
+#
+zone_properties "ns3" "step7.csk-roll.autosign" "csk-roll" "3600" "2"
+# The old CSK (KEY1) is now completely HIDDEN.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
+key_states "KEY1" "hidden" "hidden" "hidden" "hidden" "hidden"
+# The new CSK (KEY2) is now fully OMNIPRESENT.
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the new successor needs to be published.  This is the
+# CSK lifetime minus Ipub minus Dreg minus Iret minus DNSKEY TTL minus zone
+# propagation delay.  For the csk-roll this is:
+# 6mo - 3h - 1d - 26d3h - 1h - 1h = 6mo - 27d8h = 13708800 seconds.
+check_next_key_event 13708800
+
+#
+# Testing CSK key rollover (1).
+#
+
+#
+# Zone: step1.csk-roll2.autosign.
+#
+zone_properties "ns3" "step1.csk-roll2.autosign" "csk-roll2" "3600" "1"
+# The CSK (KEY1) starts in OMNIPRESENT.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_timings "KEY1" "published" "active" "retired" "none" "none"
+key_states "KEY1" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+# Initially only one key.
+key_clear "KEY2"
+key_clear "KEY3"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the successor CSK needs to be published.  That is
+# the CSK lifetime - prepublication time - DS registration delay.  The
+# prepublication time is DNSKEY TTL plus publish safety plus the zone
+# propagation delay.  For the csk-roll2 policy that means:
+# 6mo - 3h - 1w = 15454800 seconds.
+check_next_key_event 15454800
+
+#
+# Zone: step2.csk-roll2.autosign.
+#
+# Set key properties for testing keys.
+zone_properties "ns3" "step2.csk-roll2.autosign" "csk-roll2" "3600" "2"
+# CSK (KEY1) remains active, no change in properties/timings/states.
+# New CSK (KEY2) is prepublished (and signs DNSKEY RRset).
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
+key_states "KEY2" "omnipresent" "rumoured" "hidden" "rumoured" "hidden"
+key_timings "KEY2" "published" "active" "retired" "none" "none"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the successor CSK becomes OMNIPRESENT.  That is the
+# DNSKEY TTL plus the zone propagation delay, plus the publish-safety. For
+# the csk-roll2 policy, this means 3 hours = 10800 seconds.
+check_next_key_event 10800
+
+#
+# Zone: step3.csk-roll2.autosign.
+#
+# Set key properties for testing keys.
+zone_properties "ns3" "step3.csk-roll2.autosign" "csk-roll2" "3600" "2"
+# CSK (KEY1) DS and ZRRSIG will be removed, so it is UNRETENTIVE.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
+key_states "KEY1" "hidden" "omnipresent" "unretentive" "omnipresent" "unretentive"
+# New CSK (KEY2) has its DS submitted, and is signing, so the DS and ZRRSIG
+# are in RUMOURED state.
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "rumoured" "omnipresent" "rumoured"
+check_keys
+check_apex
+# Subdomain still has good signatures of old CSK (KEY1)
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
+check_subdomain
+dnssec_verify
+
+# Next key event is when the predecessor ZRRSIG records have been replaced
+# with that of the successor and enough time has passed such that the all
+# validators that have such signed RRsets in cache only know about the
+# successor signatures.  This is the retire interval: Dsgn plus the
+# maximum zone TTL plus the zone propagation delay plus retire-safety. For the
+# csk-roll2 policy that means: 12h (because 1d validity and refresh within
+# 12 hours) + 1d + 1h + 1h = 38h = 136800 seconds.
+check_next_key_event 136800
+
+#
+# Zone: step4.csk-roll2.autosign.
+#
+zone_properties "ns3" "step4.csk-roll2.autosign" "csk-roll2" "3600" "2"
+# The old CSK (KEY1) ZRRSIG is now HIDDEN.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "yes"
+key_states "KEY1" "hidden" "omnipresent" "hidden" "omnipresent" "unretentive"
+# The new CSK (KEY2) ZRRSIG is now OMNIPRESENT.
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "rumoured"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the predecessor DS has been replaced with the
+# successor DS and enough time has passed such that the all validators that
+# have this DS RRset cached only know about the successor DS.  This is the
+# registration delay plus the retire interval, which is the parent
+# propagation delay plus the DS TTL plus the retire-safety.  For the
+# csk-roll2 policy this means: 1w + 1h + 1h + 1h = 171h = 615600 seconds.
+# However, 136800 seconds have passed already, so 478800 seconds left.
+check_next_key_event 478800
+
+#
+# Zone: step5.csk-roll2.autosign.
+#
+zone_properties "ns3" "step5.csk-roll2.autosign" "csk-roll2" "3600" "2"
+# The old CSK (KEY1) DNSKEY can be removed.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
+key_states "KEY1" "hidden" "unretentive" "hidden" "unretentive" "hidden"
+# The new CSK (KEY2) is now fully OMNIPRESENT.
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the DNSKEY enters the HIDDEN state.  This is the
+# DNSKEY TTL plus zone propagation delay. For the csk-roll policy this is:
+# 1h + 1h = 7200 seconds.
+check_next_key_event 7200
+
+#
+# Zone: step6.csk-roll2.autosign.
+#
+zone_properties "ns3" "step6.csk-roll2.autosign" "csk-roll" "3600" "2"
+# The old CSK (KEY1) is now completely HIDDEN.
+key_properties "KEY1" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "no" "no"
+key_states "KEY1" "hidden" "hidden" "hidden" "hidden" "hidden"
+# The new CSK (KEY2) is now fully OMNIPRESENT.
+key_properties "KEY2" "csk" "16070400" "13" "ECDSAP256SHA256" "256" "yes" "yes"
+key_states "KEY2" "omnipresent" "omnipresent" "omnipresent" "omnipresent" "omnipresent"
+check_keys
+check_apex
+check_subdomain
+dnssec_verify
+
+# Next key event is when the new successor needs to be published.
+check_next_key_event 14684400
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1

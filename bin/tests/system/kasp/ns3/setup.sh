@@ -356,3 +356,292 @@ private_type_record $zone 13 $KSK1 >> "$infile"
 private_type_record $zone 13 $KSK2 >> "$infile"
 private_type_record $zone 13 $ZSK >> "$infile"
 $SIGNER -S -x -s now-1h -e now+2w -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+#
+# The zones at csk-roll.autosign represent the various steps of a CSK rollover
+# (which is essentially a ZSK Pre-Publication / KSK Double-KSK rollover).
+#
+
+# Step 1:
+# Introduce the first key. This will immediately be active.
+setup step1.csk-roll.autosign
+CSK=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+TactN="now"
+$SETTIME -s -P $TactN -A $TactN  -g $O -k $O $TactN -r $O $TactN -d $O $TactN -z $O $TactN $CSK > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 $CSK >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 2:
+# It is time to introduce the new CSK.
+setup step2.csk-roll.autosign
+CSK=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# According to RFC 7583: ZSK: Tpub(N+1) <= Tact(N) + Lzsk - Ipub
+# According to RFC 7583: KSK: Tpub(N+1) <= Tact(N) + Lksk - Dreg - IpubC
+# Also: Ipub = Dprp + TTLkey (+publish-safety)
+# Also: IpubC = DprpC + TTLkey (+publish-safety)
+# Both sums are almost the same, but the KSK case has Dreg in the equation.
+# so:   Tact(N) = Tpub(N+1) - Lcsk + Dreg + IpubC = now - 6mo + 1d + 3h =
+#       now - 4464h + 24h + 3h = now - 4437h
+TactN="now-4437h"
+$SETTIME -s -P $TactN -A $TactN  -g $O -k $O $TactN -r $O $TactN -d $O $TactN -z $O $TactN $CSK > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 $CSK >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 3:
+# It is time to submit the DS and to roll signatures.
+setup step3.csk-roll.autosign
+CSK1=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# According to RFC 7583: Tsbm(N+1) >= Trdy(N+1)
+# Also: Tact(N+1) = Tsbm(N+1) + Dreg
+# so:   Tact(N) = Tsbm(N+1) + Dreg - Lksk = now + 1d - 6mo = now - 185d
+# and:  Tret(N) = Tsbm(N+1) + Dreg = now + 1d
+# and:  Tpub(N+1) <= Tsbm(N+1) - IpubC = now - 3h
+# and:  Tret(N+1) = Tsbm(N+1) + Dreg + Lksk = now + 1d + 6mo = now + 187d
+TactN="now-185d"
+TretN="now+1d"
+TpubN1="now-3h"
+TretN1="now+187d"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  -z $O $TactN  $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                      $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TretN  -I $TretN1 -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 4:
+# Some time later all the ZRRSIG records should be from the new CSK, and the
+# DS should be swapped.  The ZRRSIG records are all replaced after Iret
+# which is Dsgn + Dprp + TTLsig + retire-safety (25d + 1h + 1d + 2h = 26d3h).
+# The DS is swapped after Dreg + DprpP + TTLds + retire-safety
+# (1d + 1h + 1h + 2h = 1d4h).  In other words, the DS is swapped before all
+# zone signatures are replaced.
+setup step4.csk-roll.autosign
+CSK1=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# According to RFC 7583: Tdea(N) = Tret(N) + Iret
+# Also: Iret = 1h + 1h + 2h = 4h
+# Also: Tact(N+1) = Tret(N)
+# so:   Tact(N) = Tdea(N) - Lksk - Iret = now - 6mo - 4h = now - 4468h
+# and:  Tret(N) = Tdea(N) - Iret = now - 4h = now - 4h
+# and:  Tpub(N+1) = Tdea(N) - Iret - Dreg - IpubC = now - 4h - 1d - 3h = now - 31h
+# and:  Tsbm(N+1) = Tdea(N) - Iret - Dreg = now - 4h - 1d = now - 28h
+# and:  Tact(N+1) = Tret(N)
+# and:  Tret(N+1) = Tdea(N) + Lksk - Iret = now + 6mo - 4h = now + 4460h
+TactN="now-4468h"
+TretN="now-4h"
+TpubN1="now-31h"
+TsbmN1="now-28h"
+TactN1="${TretN}"
+TretN1="now+4460h"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $O $TactN  -d $U $TsbmN1 -z $U $TsbmN1 $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                     $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $R $TsbmN1 -z $R $TsbmN1 $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 5:
+# After the DS is swapped in step 4, also the KRRSIG records can be removed.
+# At this time these have all become hidden.
+setup step5.csk-roll.autosign
+CSK1=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# Substract DNSKEY TTL plus zone propagation delay from all the times (2h).
+TactN="now-4470h"
+TretN="now-6h"
+TdeaN="now-2h"
+TpubN1="now-33h"
+TsbmN1="now-30h"
+TactN1="${TretN}"
+TretN1="now+4458h"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $U $TdeaN  -d $H $TdeaN  -z $U $TsbmN1 $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                     $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $R $TsbmN1 $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 6:
+# After the retire interval has passed the predecessor DNSKEY can be
+# removed from the zone.
+setup step6.csk-roll.autosign
+CSK1=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# According to RFC 7583: Tdea(N) = Tret(N) + Iret
+# Also: Tret(N) = Tact(N) + Lzsk
+# Also: Iret = Dsgn + Dprp + TTLsig (+retire-safety)
+# so:   Tact(N) = Tdea(N) - Iret - Lzsk = now - 25d1h1d2h - 6mo =
+#       now - 26d3h - 6mo = now - 627h - 4464h = now - 5091h
+# and:  Tret(N) = Tdea(N) - Iret = now - 627h
+# and:  Tpub(N+1) = Tdea(N) - Iret - Ipub = now - 627h - 3h = now - 630h
+# and:  Tact(N+1) = Tdea(N) - Iret = Tret(N)
+# and:  Tret(N+1) = Tdea(N) - Iret + Lzsk = now - 627h + 6mo = now + 3837h
+TactN="now-5091h"
+TretN="now-627h"
+TdeaN="now-623h"
+TpubN1="now-630h"
+TsbmN1="now-627h"
+TactN1="${TretN}"
+TretN1="now+3837h"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN  -r $H $TdeaN  -d $H $TdeaN  -z $U $TsbmN1 $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                     $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $R $TsbmN1 $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 7:
+# Some time later the predecessor DNSKEY enters the HIDDEN state.
+setup step7.csk-roll.autosign
+CSK1=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# Substract DNSKEY TTL plus zone propagation delay from all the times (2h).
+TactN="now-5093h"
+TretN="now-629h"
+TdeaN="now-625h"
+TpubN1="now-632h"
+TsbmN1="now-629h"
+TactN1="${TretN}"
+TretN1="now+3835h"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $U now-2h  -r $H $TdeaN  -d $H $TdeaN  -z $H $TsbmN1 $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                     $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TsbmN1 -r $O $TsbmN1 -d $O $TdeaN  -z $O $TsbmN1 $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+#
+# The zones at csk-roll2.autosign represent the various steps of a CSK rollover
+# (which is essentially a ZSK Pre-Publication / KSK Double-KSK rollover).
+# This scenario differs from the above one because the zone signatures (ZRRSIG)
+# are replaced with the new key sooner than the DS is swapped.
+#
+
+# Step 1:
+# Introduce the first key. This will immediately be active.
+setup step1.csk-roll2.autosign
+CSK=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+TactN="now"
+$SETTIME -s -P $TactN -A $TactN  -g $O -k $O $TactN -r $O $TactN -d $O $TactN -z $O $TactN $CSK > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 $CSK >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 2:
+# It is time to introduce the new CSK.
+setup step2.csk-roll2.autosign
+CSK=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# According to RFC 7583: ZSK: Tpub(N+1) <= Tact(N) + Lzsk - Ipub
+# According to RFC 7583: KSK: Tpub(N+1) <= Tact(N) + Lksk - Dreg - IpubC
+# Also: Ipub = Dprp + TTLkey (+publish-safety)
+# Also: IpubC = DprpC + TTLkey (+publish-safety)
+# Both sums are almost the same, but the KSK case has Dreg in the equation.
+# so:   Tact(N) = Tpub(N+1) - Lcsk + Dreg + IpubC = now - 6mo + 1w + 3h =
+#       now - 4464h + 168h + 3h = now - 4635h
+TactN="now-4635h"
+$SETTIME -s -P $TactN -A $TactN  -g $O -k $O $TactN -r $O $TactN -d $O $TactN -z $O $TactN $CSK > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK}.key" > "$infile"
+private_type_record $zone 13 $CSK >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 3:
+# It is time to submit the DS and to roll signatures.
+setup step3.csk-roll2.autosign
+CSK1=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# According to RFC 7583: Tsbm(N+1) >= Trdy(N+1)
+# Also: Tact(N+1) = Tsbm(N+1) + Dreg
+# so:   Tact(N) = Tsbm(N+1) + Dreg - Lksk = now + 1w - 6mo = now - 179d
+# and:  Tret(N) = Tsbm(N+1) + Dreg = now + 1w
+# and:  Tpub(N+1) <= Tsbm(N+1) - IpubC = now - 3h
+# and:  Tret(N+1) = Tsbm(N+1) + Dreg + Lksk = now + 1w + 6mo = now + 193d
+TactN="now-179d"
+TretN="now+1w"
+TpubN1="now-3h"
+TretN1="now+193d"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN   -r $O $TactN  -d $O $TactN  -z $O $TactN  $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                      $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TretN  -I $TretN1 -g $O -k $R $TpubN1  -r $R $TpubN1 -d $H $TpubN1 -z $H $TpubN1 $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 4:
+# Some time later all the ZRRSIG records should be from the new CSK, and the
+# DS should be swapped.  The ZRRSIG records are all replaced after Iret
+# which is Dsgn + Dprp + TTLsig + retire-safety (12h + 1h + 1d + 2h = 38h).
+# The DS is swapped after Dreg + DprpP + TTLds + retire-safety
+# (1w + 1h + 1h + 1h = 1w3h).  In other words, the zone signatures are
+# replaced before the DS is swapped.
+setup step4.csk-roll2.autosign
+CSK1=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# According to RFC 7583: Tdea(N) = Tret(N) + Iret
+# Also: Tret(N) = Tact(N) + Lzsk
+# Also: Iret = Dsgn + Dprp + TTLsig (+retire-safety)
+# so:   Tact(N) = Tdea(N) - Iret - Lzsk = now - 38h - 6mo = now - 4502h
+# and:  Tret(N) = Tdea(N) - Iret = now - 38h
+# and:  Tpub(N+1) = Tdea(N) - Iret - Ipub = now - 41h
+# and:  Tact(N+1) = Tdea(N) - Iret = Tret(N)
+# and:  Tret(N+1) = Tdea(N) - Iret + Lzsk = now - 38h + 6mo = now + 4426h
+TactN="now-4502h"
+TretN="now-38h"
+TpubN1="now-41h"
+TactN1="${TretN}"
+TretN1="now+4426"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN -r $O $TactN  -d $U $TretN -z $U $TretN $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                  $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN  -d $R $TretN -z $R $TretN $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 5:
+# Some time later the DS can be swapped and the old DNSKEY can be removed from
+# the zone.
+setup step5.csk-roll2.autosign
+CSK1=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# Substract Dreg + Iret (174h).
+TactN="now-4676h"
+TretN="now-212h"
+TpubN1="now-215h"
+TactN1="${TretN}"
+TretN1="now+4252h"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $O $TactN -r $O $TactN -d $U $TretN -z $H $TretN $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                 $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN -d $R $TretN -z $O $TretN $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
+
+# Step 6:
+# Some time later the predecessor DNSKEY enters the HIDDEN state.
+setup step6.csk-roll2.autosign
+CSK1=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+CSK2=`$KEYGEN -k csk-roll2 -l policies/autosign.conf $zone 2> keygen.out.$zone.1`
+# Substract DNSKEY TTL plus zone propagation delay (2h).
+TactN="now-4678h"
+TretN="now-214h"
+TdeaN="now-2h"
+TpubN1="now-217h"
+TactN1="${TretN}"
+TretN1="now+4250h"
+$SETTIME -s -P $TactN  -A $TactN  -I $TretN  -g $H -k $U $TdeaN -r $U $TdeaN -d $H $TretN -z $H $TretN $CSK1 > settime.out.$zone.1 2>&1
+$SETTIME -s -S $CSK1              -i 0                                                                 $CSK2 > settime.out.$zone.3 2>&1
+$SETTIME -s -P $TpubN1 -A $TactN1 -I $TretN1 -g $O -k $O $TretN -r $O $TretN -d $O $TretN -z $O $TretN $CSK2 > settime.out.$zone.1 2>&1
+cat template.db.in "${CSK1}.key" "${CSK2}.key" > "$infile"
+private_type_record $zone 13 $CSK1 >> "$infile"
+private_type_record $zone 13 $CSK2 >> "$infile"
+$SIGNER -S -z -x -s now-1h -e now+30d -o $zone -O full -f $zonefile $infile > signer.out.$zone.1 2>&1
