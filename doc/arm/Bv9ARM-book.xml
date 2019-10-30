@@ -5441,15 +5441,21 @@ options {
 	      <term><command>automatic-interface-scan</command></term>
 	      <listitem>
 		<para>
-		  If <userinput>yes</userinput> and supported by the OS,
-		  automatically rescan network interfaces when the interface
-		  addresses are added or removed.  The default is
-		  <userinput>yes</userinput>.
+		  If <userinput>yes</userinput> and supported by the operating
+		  system, automatically rescan network interfaces when the
+		  interface addresses are added or removed.  The default is
+		  <userinput>yes</userinput>.  This configuration option does
+		  not affect time based <command>interface-interval</command>
+		  option, and it is recommended to set the time based
+		  <command>interface-interval</command> to 0 when the operator
+		  confirms that automatic interface scanning is supported by the
+		  operating system.
 		</para>
 		<para>
-		  Currently the OS needs to support routing sockets for
-		  <command>automatic-interface-scan</command> to be
-		  supported.
+		  The <command>automatic-interface-scan</command> implementation
+		  uses routing sockets for the network interface discovery,
+		  and therefore the operating system has to support the routing
+		  sockets for this feature to work.
 		</para>
 	      </listitem>
 	    </varlistentry>
@@ -8443,10 +8449,11 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 		  minutes. The default
 		  is 60 minutes. The maximum value is 28 days (40320 minutes).
 		  If set to 0, interface scanning will only occur when
-		  the configuration file is  loaded. After the scan, the
-		  server will
-		  begin listening for queries on any newly discovered
-		  interfaces (provided they are allowed by the
+		  the configuration file is loaded, or when
+		  <command>automatic-interface-scan</command> is enabled
+		  and supported by the operating system. After the scan, the
+		  server will begin listening for queries on any newly
+		  discovered interfaces (provided they are allowed by the
 		  <command>listen-on</command> configuration), and
 		  will stop listening on interfaces that have gone away.
 		  For convenience, TTL-style time unit suffixes may be
