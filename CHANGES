@@ -1,3 +1,6 @@
+5309.	[bug]		"geoip-use-ecs yes;" was not working for GeoIP2.
+			[GL #1275]
+
 5308.	[bug]		Don't log DNS_R_UNCHANGED from sync_secure_journal()
 			at ERROR level in receive_secure_serial(). [GL #1288]
 
