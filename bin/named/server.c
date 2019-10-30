@@ -5894,7 +5894,7 @@ static isc_result_t
 scan_interfaces(ns_server_t *server, bool verbose) {
 	isc_result_t result;
 	bool match_mapped = server->aclenv.match_mapped;
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	bool use_ecs = server->aclenv.geoip_use_ecs;
 #endif
 
@@ -5907,7 +5907,7 @@ scan_interfaces(ns_server_t *server, bool verbose) {
 			ns_interfacemgr_getaclenv(server->interfacemgr));
 
 	server->aclenv.match_mapped = match_mapped;
-#ifdef HAVE_GEOIP
+#if defined(HAVE_GEOIP) || defined(HAVE_GEOIP2)
 	server->aclenv.geoip_use_ecs = use_ecs;
 #endif
 
