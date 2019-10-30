@@ -4920,7 +4920,7 @@ badresp:1,adberr:0,findfail:0,valfail:0]
 		the first time; if unsuccessful, the server will
 		will terminate, under the assumption that another
 		server is already running.  If not specified, the default is
-		<filename>/var/run/named/named.lock</filename>.
+		<filename>none</filename>.
 	      </para>
 	      <para>
 		Specifying <command>lock-file none</command> disables the
