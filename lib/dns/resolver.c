@@ -1141,6 +1141,25 @@ resquery_destroy(resquery_t **queryp) {
 		empty_bucket(res);
 }
 
+/*%
+ * Update EDNS statistics for a server after not getting a response to a UDP
+ * query sent to it.
+ */
+static void
+update_edns_stats(resquery_t *query) {
+	fetchctx_t *fctx = query->fctx;
+
+	if ((query->options & DNS_FETCHOPT_TCP) != 0) {
+		return;
+	}
+
+	if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0) {
+		dns_adb_ednsto(fctx->adb, query->addrinfo, query->udpsize);
+	} else {
+		dns_adb_timeout(fctx->adb, query->addrinfo);
+	}
+}
+
 static void
 fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 		 isc_time_t *finish, bool no_response,
@@ -1201,11 +1220,7 @@ fctx_cancelquery(resquery_t **queryp, dns_dispatchevent_t **deventp,
 			uint32_t value;
 			uint32_t mask;
 
-			if ((query->options & DNS_FETCHOPT_NOEDNS0) == 0)
-				dns_adb_ednsto(fctx->adb, query->addrinfo,
-					       query->udpsize);
-			else
-				dns_adb_timeout(fctx->adb, query->addrinfo);
+			update_edns_stats(query);
 
 			/*
 			 * If "forward first;" is used and a forwarder timed
