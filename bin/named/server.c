@@ -3050,7 +3050,7 @@ configure_dnstap(const cfg_obj_t **maps, dns_view_t *view) {
 	isc_result_t result;
 	const cfg_obj_t *obj, *obj2;
 	const cfg_listelt_t *element;
-	const char *dpath = ns_g_defaultdnstap;
+	const char *dpath;
 	const cfg_obj_t *dlist = NULL;
 	dns_dtmsgtype_t dttypes = 0;
 	dns_dtmode_t dmode;
