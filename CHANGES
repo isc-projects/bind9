@@ -1,3 +1,7 @@
+5407.	[func]		The zone timers are now exported to the statistics
+			channel.  Thanks to Paul Frieden, Verizon Media.
+			[GL #1232]
+
 5405.	[bug]		'named-checkconf -p' could include spurious text
 			in server-addresses statements due to an uninitialized
 			DSCP value. [GL #1812]
