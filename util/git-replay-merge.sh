@@ -14,6 +14,7 @@ set -e
 SELF="$(basename $0)"
 SELF="${SELF/-/ }"
 
+STATE_FILE=".git/REPLAY_MERGE"
 DONT_PUSH=${DONT_PUSH:=false}
 DONT_ACCEPT=${DONT_ACCEPT:=false}
 
@@ -39,6 +40,13 @@ die_with_usage() {
 	    "	${SELF} --abort"
 }
 
+verify_gitlab_cli() {
+	which gitlab >/dev/null 2>&1 || \
+		die "You need to have gitlab cli installed and configured: "\
+		    "" \
+		    "$ gem install --user-install gitlab"
+}
+
 die_with_continue_instructions() {
 	die ""								\
 	    "Replay interrupted.  Conflicts need to be fixed manually."	\
@@ -54,7 +62,7 @@ die_before_push() {
 }
 
 die_if_wrong_dir() {
-	if [[ ! -d "$WORKDIR" ]]; then
+	if [[ ! -d ".git" ]]; then
 		die "You need to run this command from the toplevel of the working tree."
 	fi
 }
@@ -80,21 +88,6 @@ die_if_local_behind_target() {
 		    "Update or remove the local branch, then run \"${SELF} --continue\"."		\
 		    "Use \"${SELF} --abort\" to abort the replay."
 	fi
-}
-
-get_workdir() {
-	DOTGIT="$(git rev-parse --show-toplevel)/.git"
-	if [[ -f "${WORKDIR}" ]]; then
-		sed -n 's/^gitdir: //p' "${DOTGIT}"
-	fi
-	echo "${DOTGIT}"
-}
-
-verify_gitlab_cli() {
-	which gitlab >/dev/null 2>&1 || \
-		die "You need to have gitlab cli installed and configured: "\
-		    "" \
-		    "$ gem install --user-install gitlab"
 }
 
 branch_exists() {
@@ -182,26 +175,18 @@ resume() {
 		die_before_push
 	fi
 
-	git push ${TARGET_REMOTE} -u ${REPLAY_BRANCH}:${REPLAY_BRANCH}
-
-	REPLAY_COMMIT_TITLE="$(git show --format="%b" "${SOURCE_COMMIT}" 2>&1 | head -1)"
-
-	MERGE_REQUEST_BASE_URI="${GITLAB_URI}/${GITLAB_PROJECT_GROUP}/${GITLAB_PROJECT_NAME}/merge_requests/"
-
-	MERGE_REQUEST_ID=$(gitlab create_merge_request "${GITLAB_PROJECT_ID}" "(${TARGET_BRANCH}) ${REPLAY_COMMIT_TITLE}" "{source_branch: '${REPLAY_BRANCH}', target_branch: '${TARGET_BRANCH}'}" | grep opened | cut -f 15 -d \| | sed -e 's/^[[:space:]]*//' -e 's/[[:space:]]*$//')
-
-	if [[ -z "$MERGE_REQUEST_ID" ]]; then
-		die "Creating MR failed."
+	if [[ "$DONT_ACCEPT" = "true" ]]; then
+		AUTOMERGE=""
+	else
+		AUTO_MERGE="-o merge_request.merge_when_pipeline_succeeds"
 	fi
 
-	REPLAY_HASH=$(git show-ref --hash --heads "${REPLAY_BRANCH}")
-
-#	gitlab accept_merge_request ${GITLAB_PROJECT_ID} ${MERGE_REQUEST_ID} "{should_remove_source_branch: true, merge_when_pipeline_succeeds: true, sha: '$REPLAY_HASH'}"
-
-	echo "================================================================================"
-	echo "=== Your new MR !${MERGE_REQUEST_ID} has been created"
-	echo "=== ${MERGE_REQUEST_BASE_URI}${MERGE_REQUEST_ID} ==="
-	echo "================================================================================"
+	git push -u ${TARGET_REMOTE} \
+	    -o merge_request.create \
+	    -o merge_request.remove_source_branch \
+	    -o "merge_request.target=${TARGET_BRANCH}" \
+	    ${AUTO_MERGE} \
+	    "${REPLAY_BRANCH}:${REPLAY_BRANCH}"
 
 	cleanup
 	exit 0
@@ -218,7 +203,7 @@ cleanup() {
 	rm -f "${STATE_FILE}"
 }
 
-STATE_FILE="$(get_workdir)/REPLAY_MERGE"
+cd $(git rev-parse --show-toplevel)
 
 next_action="go"
 while [[ $# -ge 1 ]]; do
