@@ -2734,6 +2734,19 @@ resquery_connected(isc_task_t *task, isc_event_t *event) {
 			 * No route to remote.
 			 */
 			isc_socket_detach(&query->tcpsocket);
+			/*
+			 * Do not query this server again in this fetch context
+			 * if we already tried reducing the advertised EDNS UDP
+			 * payload size to 512 bytes and the server is
+			 * unavailable over TCP.  This prevents query loops
+			 * lasting until the fetch context restart limit is
+			 * reached when attempting to get answers whose size
+			 * exceeds 512 bytes from broken servers.
+			 */
+			if ((query->options & DNS_FETCHOPT_EDNS512) != 0) {
+				add_bad(fctx, query->addrinfo, sevent->result,
+					badns_unreachable);
+			}
 			fctx_cancelquery(&query, NULL, NULL, true, false);
 			retry = true;
 			break;
