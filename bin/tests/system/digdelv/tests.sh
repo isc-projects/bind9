@@ -310,7 +310,7 @@ if [ -x "$DIG" ] ; then
 
   n=$((n+1))
   echo_i "checking dig @IPv6addr -4 A a.example ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null
+  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
     dig_with_opts +tcp @fd92:7065:b8e:ffff::2 -4 A a.example > dig.out.test$n 2>&1 && ret=1
@@ -323,7 +323,7 @@ if [ -x "$DIG" ] ; then
 
   n=$((n+1))
   echo_i "checking dig @IPv4addr -6 +mapped A a.example ($n)"
-  if "$TESTSOCK6" fd92:7065:b8e:ffff::2 2>/dev/null && [ "$(uname -s)" != "OpenBSD" ]
+  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null && [ "$(uname -s)" != "OpenBSD" ]
   then
     ret=0
     dig_with_opts +tcp @10.53.0.2 -6 +mapped A a.example > dig.out.test$n 2>&1 || ret=1
@@ -336,7 +336,7 @@ if [ -x "$DIG" ] ; then
 
   n=$((n+1))
   echo_i "checking dig +tcp @IPv4addr -6 +nomapped A a.example ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null
+  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
     dig_with_opts +tcp @10.53.0.2 -6 +nomapped A a.example > dig.out.test$n 2>&1 || ret=1
@@ -349,7 +349,7 @@ if [ -x "$DIG" ] ; then
   n=$((n+1))
 
   echo_i "checking dig +notcp @IPv4addr -6 +nomapped A a.example ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::2 2>/dev/null
+  if testsock6 fd92:7065:b8e:ffff::2 2>/dev/null
   then
     ret=0
     dig_with_opts +notcp @10.53.0.2 -6 +nomapped A a.example > dig.out.test$n 2>&1 || ret=1
@@ -860,7 +860,7 @@ if [ -x "$DELV" ] ; then
 
   n=$((n+1))
   echo_i "checking delv with IPv6 on IPv4 does not work ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::3 2>/dev/null
+  if testsock6 fd92:7065:b8e:ffff::3 2>/dev/null
   then
     ret=0
     # following should fail because @IPv4 overrides earlier @IPv6 above
@@ -878,7 +878,7 @@ if [ -x "$DELV" ] ; then
 
   n=$((n+1))
   echo_i "checking delv with IPv4 on IPv6 does not work ($n)"
-  if $TESTSOCK6 fd92:7065:b8e:ffff::3 2>/dev/null
+  if testsock6 fd92:7065:b8e:ffff::3 2>/dev/null
   then
     ret=0
     # following should fail because @IPv6 overrides earlier @IPv4 above
