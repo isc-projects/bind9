@@ -1078,6 +1078,8 @@
 	  <para>
 	    Enable, disable, or check the current status of
 	    DNSSEC validation.  By default, validation is enabled.
+	    The cache is flushed when validation is turned on or off
+	    to avoid using data that might differ between states.
 	  </para>
 	</listitem>
       </varlistentry>

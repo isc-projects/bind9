@@ -1,3 +1,6 @@
+5312.	[bug]		Do not flush the cache for `rndc validation status`.
+			Thanks to Tony Finch. [GL !2462]
+
 5311.	[cleanup]	Include all views in output of `rndc validation status`.
 			Thanks to Tony Finch. [GL !2461]
 
