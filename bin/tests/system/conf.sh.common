@@ -9,17 +9,14 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
-if test -n "$PERL"
-then
-	if $PERL -e "use IO::Socket::INET6;" 2> /dev/null
+testsock6() {
+	if test -n "$PERL" && $PERL -e "use IO::Socket::INET6;" 2> /dev/null
 	then
-		TESTSOCK6="$PERL $TOP/bin/tests/system/testsock6.pl"
+		$PERL "$TOP/bin/tests/system/testsock6.pl" "$@"
 	else
-		TESTSOCK6=false
+		false
 	fi
-else
-	TESTSOCK6=false
-fi
+}
 
 export LANG=C
 
@@ -491,6 +488,5 @@ export RRCHECKER
 export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
-export TESTSOCK6
 export TSIGKEYGEN
 export WIRETEST
