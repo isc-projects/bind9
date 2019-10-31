@@ -241,6 +241,18 @@ fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
+n=`expr $n + 1`
+echo_i "checking that TCP failures do not influence EDNS statistics in the ADB ($n)"
+ret=0
+rndc_dumpdb ns1 -adb || ret=1
+timeouts512=`sed -n "s|.*10\.53\.0\.7.*\[edns \([0-9/][0-9/]*\).*|\1|p" ns1/named_dump.db.test$n | awk -F/ '{print $NF}'`
+if [ $timeouts512 -ne 0 ]; then
+	echo_i "512-byte EDNS timeouts according to ADB: $timeouts512, expected: 0"
+	ret=1
+fi
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
+
 if $SHELL ../testcrypto.sh > /dev/null 2>&1
 then
     $PERL $SYSTEMTESTTOP/stop.pl --use-rndc --port ${CONTROLPORT} legacy ns1
