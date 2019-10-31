@@ -60,7 +60,6 @@ named_paths_init(void) {
 	named_g_keyfile = isc_ntpaths_get(RNDC_KEY_PATH);
 	named_g_defaultsessionkeyfile = isc_ntpaths_get(SESSION_KEY_PATH);
 	named_g_defaultbindkeys = isc_ntpaths_get(BIND_KEYS_PATH);
-	named_g_defaultdnstap = NULL;
 
 	Initialized = TRUE;
 }
