@@ -1031,7 +1031,7 @@ dns_name_split(const dns_name_t *name, unsigned int suffixlabels,
  *\li	#ISC_R_SUCCESS	No worries.  (This function should always success).
  */
 
-isc_result_t
+void
 dns_name_dup(const dns_name_t *source, isc_mem_t *mctx,
 	     dns_name_t *target);
 /*%<
