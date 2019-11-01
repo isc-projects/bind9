@@ -444,12 +444,7 @@ getnode(dns_sdballnodes_t *allnodes, const char *name, dns_sdbnode_t **nodep) {
 			return (result);
 		sdbnode->name = isc_mem_get(mctx, sizeof(dns_name_t));
 		dns_name_init(sdbnode->name, NULL);
-		result = dns_name_dup(newname, mctx, sdbnode->name);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(mctx, sdbnode->name, sizeof(dns_name_t));
-			destroynode(sdbnode);
-			return (result);
-		}
+		dns_name_dup(newname, mctx, sdbnode->name);
 		ISC_LIST_PREPEND(allnodes->nodelist, sdbnode, link);
 		if (allnodes->origin == NULL &&
 		    dns_name_equal(newname, &sdb->common.origin))

@@ -1402,10 +1402,8 @@ set_target(dns_adb_t *adb, const dns_name_t *name, const dns_name_t *fname,
 		result = dns_rdata_tostruct(&rdata, &cname, NULL);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		result = dns_name_dup(&cname.cname, adb->mctx, target);
+		dns_name_dup(&cname.cname, adb->mctx, target);
 		dns_rdata_freestruct(&cname);
-		if (result != ISC_R_SUCCESS)
-			return (result);
 	} else {
 		dns_rdata_dname_t dname;
 
@@ -1433,9 +1431,7 @@ set_target(dns_adb_t *adb, const dns_name_t *name, const dns_name_t *fname,
 		dns_rdata_freestruct(&dname);
 		if (result != ISC_R_SUCCESS)
 			return (result);
-		result = dns_name_dup(new_target, adb->mctx, target);
-		if (result != ISC_R_SUCCESS)
-			return (result);
+		dns_name_dup(new_target, adb->mctx, target);
 	}
 
 	return (ISC_R_SUCCESS);
@@ -1669,10 +1665,7 @@ new_adbname(dns_adb_t *adb, const dns_name_t *dnsname) {
 		return (NULL);
 
 	dns_name_init(&name->name, NULL);
-	if (dns_name_dup(dnsname, adb->mctx, &name->name) != ISC_R_SUCCESS) {
-		isc_mempool_put(adb->nmp, name);
-		return (NULL);
-	}
+	dns_name_dup(dnsname, adb->mctx, &name->name);
 	dns_name_init(&name->target, NULL);
 	name->magic = DNS_ADBNAME_MAGIC;
 	name->adb = adb;
@@ -1775,10 +1768,7 @@ new_adblameinfo(dns_adb_t *adb, const dns_name_t *qname,
 		return (NULL);
 
 	dns_name_init(&li->qname, NULL);
-	if (dns_name_dup(qname, adb->mctx, &li->qname) != ISC_R_SUCCESS) {
-		isc_mempool_put(adb->limp, li);
-		return (NULL);
-	}
+	dns_name_dup(qname, adb->mctx, &li->qname);
 	li->magic = DNS_ADBLAMEINFO_MAGIC;
 	li->lame_timer = 0;
 	li->qtype = qtype;

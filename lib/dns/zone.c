@@ -1547,7 +1547,7 @@ dns_zone_setviewrevert(dns_zone_t *zone) {
 
 isc_result_t
 dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
-	isc_result_t result;
+	isc_result_t result = ISC_R_SUCCESS;
 	char namebuf[1024];
 
 	REQUIRE(DNS_ZONE_VALID(zone));
@@ -1559,7 +1559,7 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 		dns_name_free(&zone->origin, zone->mctx);
 		dns_name_init(&zone->origin, NULL);
 	}
-	result = dns_name_dup(origin, zone->mctx, &zone->origin);
+	dns_name_dup(origin, zone->mctx, &zone->origin);
 
 	if (zone->strnamerd != NULL)
 		isc_mem_free(zone->mctx, zone->strnamerd);
@@ -1571,8 +1571,9 @@ dns_zone_setorigin(dns_zone_t *zone, const dns_name_t *origin) {
 	zone_name_tostr(zone, namebuf, sizeof namebuf);
 	zone->strname = isc_mem_strdup(zone->mctx, namebuf);
 
-	if (result == ISC_R_SUCCESS && inline_secure(zone))
+	if (inline_secure(zone)) {
 		result = dns_zone_setorigin(zone->raw, origin);
+	}
 	UNLOCK_ZONE(zone);
 	return (result);
 }
@@ -5884,7 +5885,6 @@ set_addrkeylist(unsigned int count,
 		dns_name_t **names, dns_name_t ***newnamesp,
 		isc_mem_t *mctx)
 {
-	isc_result_t result;
 	isc_sockaddr_t *newaddrs = NULL;
 	isc_dscp_t *newdscp = NULL;
 	dns_name_t **newnames = NULL;
@@ -5912,22 +5912,7 @@ set_addrkeylist(unsigned int count,
 				newnames[i] = isc_mem_get(mctx,
 							  sizeof(dns_name_t));
 				dns_name_init(newnames[i], NULL);
-				result = dns_name_dup(names[i], mctx,
-						      newnames[i]);
-				if (result != ISC_R_SUCCESS) {
-					for (i = 0; i < count; i++)
-						if (newnames[i] != NULL)
-							dns_name_free(
-							       newnames[i],
-							       mctx);
-					isc_mem_put(mctx, newaddrs,
-						    count * sizeof(*newaddrs));
-					isc_mem_put(mctx, newdscp,
-						    count * sizeof(*newdscp));
-					isc_mem_put(mctx, newnames,
-						    count * sizeof(*newnames));
-					return (ISC_R_NOMEMORY);
-				}
+				dns_name_dup(names[i], mctx, newnames[i]);
 			}
 		}
 	} else
@@ -12029,11 +12014,9 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 	result = dns_rdata_tostruct(&rdata, &soa, NULL);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	dns_rdata_reset(&rdata);
-	result = dns_name_dup(&soa.origin, zone->mctx, &master);
+	dns_name_dup(&soa.origin, zone->mctx, &master);
 	serial = soa.serial;
 	dns_rdataset_disassociate(&soardset);
-	if (result != ISC_R_SUCCESS)
-		goto cleanup3;
 
 	/*
 	 * Enqueue notify requests for 'also-notify' servers.
@@ -12136,13 +12119,7 @@ zone_notify(dns_zone_t *zone, isc_time_t *now) {
 		if (result != ISC_R_SUCCESS)
 			continue;
 		dns_zone_iattach(zone, &notify->zone);
-		result = dns_name_dup(&ns.name, zone->mctx, &notify->ns);
-		if (result != ISC_R_SUCCESS) {
-			LOCK_ZONE(zone);
-			notify_destroy(notify, true);
-			UNLOCK_ZONE(zone);
-			continue;
-		}
+		dns_name_dup(&ns.name, zone->mctx, &notify->ns);
 		LOCK_ZONE(zone);
 		ISC_LIST_APPEND(zone->notifies, notify, link);
 		UNLOCK_ZONE(zone);

@@ -863,7 +863,7 @@ xfrin_create(isc_mem_t *mctx,
 	xfr->axfr.add = NULL;
 	xfr->axfr.add_private = NULL;
 
-	CHECK(dns_name_dup(zonename, mctx, &xfr->name));
+	dns_name_dup(zonename, mctx, &xfr->name);
 
 	CHECK(isc_timer_create(timermgr, isc_timertype_inactive, NULL, NULL,
 			       task, xfrin_timeout, xfr, &xfr->timer));

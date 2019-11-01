@@ -128,12 +128,8 @@ copy_ptr_targets(dns_byaddr_t *byaddr, dns_rdataset_t *rdataset) {
 			return (result);
 		name = isc_mem_get(byaddr->mctx, sizeof(*name));
 		dns_name_init(name, NULL);
-		result = dns_name_dup(&ptr.ptr, byaddr->mctx, name);
+		dns_name_dup(&ptr.ptr, byaddr->mctx, name);
 		dns_rdata_freestruct(&ptr);
-		if (result != ISC_R_SUCCESS) {
-			isc_mem_put(byaddr->mctx, name, sizeof(*name));
-			return (ISC_R_NOMEMORY);
-		}
 		ISC_LIST_APPEND(byaddr->event->names, name, link);
 		dns_rdata_reset(&rdata);
 		result = dns_rdataset_next(rdataset);

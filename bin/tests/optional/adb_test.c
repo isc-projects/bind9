@@ -244,8 +244,7 @@ lookup(const char *target) {
 	result = dns_name_fromtext(&name, &t, dns_rootname, 0, &namebuf);
 	check_result(result, "dns_name_fromtext %s", target);
 
-	result = dns_name_dup(&name, mctx, &client->name);
-	check_result(result, "dns_name_dup %s", target);
+	dns_name_dup(&name, mctx, &client->name);
 
 	options = 0;
 	options |= DNS_ADBFIND_INET;

@@ -8983,12 +8983,7 @@ query_synthcnamewildcard(query_ctx_t *qctx, dns_rdataset_t *rdataset,
 	dns_rdata_reset(&rdata);
 
 	dns_name_init(tname, NULL);
-	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		dns_rdata_freestruct(&cname);
-		return (result);
-	}
+	dns_name_dup(&cname.cname, qctx->client->mctx, tname);
 
 	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
@@ -9608,12 +9603,7 @@ query_cname(query_ctx_t *qctx) {
 	dns_rdata_reset(&rdata);
 
 	dns_name_init(tname, NULL);
-	result = dns_name_dup(&cname.cname, qctx->client->mctx, tname);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(qctx->client->message, &tname);
-		dns_rdata_freestruct(&cname);
-		return (ns_query_done(qctx));
-	}
+	dns_name_dup(&cname.cname, qctx->client->mctx, tname);
 
 	dns_rdata_freestruct(&cname);
 	ns_client_qnamereplace(qctx->client, tname);
@@ -9798,11 +9788,7 @@ query_addcname(query_ctx_t *qctx, dns_trust_t trust, dns_ttl_t ttl) {
 	result = dns_message_gettempname(client->message, &aname);
 	if (result != ISC_R_SUCCESS)
 		return (result);
-	result = dns_name_dup(client->query.qname, client->mctx, aname);
-	if (result != ISC_R_SUCCESS) {
-		dns_message_puttempname(client->message, &aname);
-		return (result);
-	}
+	dns_name_dup(client->query.qname, client->mctx, aname);
 
 	result = dns_message_gettemprdatalist(client->message, &rdatalist);
 	if (result != ISC_R_SUCCESS) {

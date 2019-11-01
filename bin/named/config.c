@@ -800,10 +800,7 @@ named_config_getipandkeylist(const cfg_obj_t *config, const cfg_obj_t *list,
 					   dns_rootname, 0, NULL);
 		if (result != ISC_R_SUCCESS)
 			goto cleanup;
-		result = dns_name_dup(dns_fixedname_name(&fname), mctx,
-				      keys[i - 1]);
-		if (result != ISC_R_SUCCESS)
-			goto cleanup;
+		dns_name_dup(dns_fixedname_name(&fname), mctx, keys[i - 1]);
 	}
 	if (pushed != 0) {
 		pushed--;

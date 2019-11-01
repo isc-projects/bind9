@@ -99,14 +99,10 @@ build_event(dns_lookup_t *lookup) {
 	dns_name_t *name = NULL;
 	dns_rdataset_t *rdataset = NULL;
 	dns_rdataset_t *sigrdataset = NULL;
-	isc_result_t result;
 
 	name = isc_mem_get(lookup->mctx, sizeof(dns_name_t));
 	dns_name_init(name, NULL);
-	result = dns_name_dup(dns_fixedname_name(&lookup->name),
-			      lookup->mctx, name);
-	if (result != ISC_R_SUCCESS)
-		goto fail;
+	dns_name_dup(dns_fixedname_name(&lookup->name), lookup->mctx, name);
 
 	if (dns_rdataset_isassociated(&lookup->rdataset)) {
 		rdataset = isc_mem_get(lookup->mctx, sizeof(dns_rdataset_t));
@@ -126,19 +122,6 @@ build_event(dns_lookup_t *lookup) {
 	lookup->event->sigrdataset = sigrdataset;
 
 	return (ISC_R_SUCCESS);
-
- fail:
-	if (name != NULL) {
-		if (dns_name_dynamic(name))
-			dns_name_free(name, lookup->mctx);
-		isc_mem_put(lookup->mctx, name, sizeof(dns_name_t));
-	}
-	if (rdataset != NULL) {
-		if (dns_rdataset_isassociated(rdataset))
-			dns_rdataset_disassociate(rdataset);
-		isc_mem_put(lookup->mctx, rdataset, sizeof(dns_rdataset_t));
-	}
-	return (result);
 }
 
 static isc_result_t

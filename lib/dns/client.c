@@ -897,7 +897,7 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			ansname = isc_mem_get(mctx, sizeof(*ansname));
 			dns_name_init(ansname, NULL);
 
-			(void)dns_name_dup(aname, mctx, ansname);
+			dns_name_dup(aname, mctx, ansname);
 		}
 
 		switch (result) {

@@ -85,7 +85,7 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 		RETERR(dns_name_fromtext(name, &b, dns_rootname, 0, NULL));
 		tctx->domain = isc_mem_get(mctx, sizeof(dns_name_t));
 		dns_name_init(tctx->domain, NULL);
-		RETERR(dns_name_dup(name, mctx, tctx->domain));
+		dns_name_dup(name, mctx, tctx->domain);
 	}
 
 	obj = NULL;
@@ -114,4 +114,3 @@ named_tkeyctx_fromconfig(const cfg_obj_t *options, isc_mem_t *mctx,
 	dns_tkeyctx_destroy(&tctx);
 	return (result);
 }
-
