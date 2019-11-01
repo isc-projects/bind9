@@ -4211,7 +4211,9 @@ dns_adb_changeflags(dns_adb_t *adb, dns_adbaddrinfo_t *addr,
 }
 
 /*
- * (10000 / ((10 + n) / 10)^(3/2)) for n in 0..99.
+ * The polynomial backoff curve (10000 / ((10 + n) / 10)^(3/2)) <0..99> drops
+ * fairly aggressively at first, then slows down and tails off at around 2-3%.
+ *
  * These will be used to make quota adjustments.
  */
 static int quota_adj[] = {
