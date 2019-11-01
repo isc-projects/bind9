@@ -152,23 +152,16 @@ XSLTPROC=@XSLTPROC@
 # PERL will be an empty string if no perl interpreter was found.
 PERL=@PERL@
 
-if test -n "$PERL"
-then
-	if $PERL -e "use IO::Socket::INET6;" 2> /dev/null
+testsock6() {
+	if test -n "$PERL" \
+		&& $PERL -e "use IO::Socket::INET6;" 2> /dev/null \
+		&& grep "^#define WANT_IPV6 1" "$TOP/config.h" > /dev/null 2>&1
 	then
-		TESTSOCK6="$PERL $TOP/bin/tests/system/testsock6.pl"
+		$PERL "$TOP/bin/tests/system/testsock6.pl" "$@"
 	else
-		TESTSOCK6=false
+		false
 	fi
-else
-	TESTSOCK6=false
-fi
-
-if grep "^#define WANT_IPV6 1" $TOP/config.h > /dev/null 2>&1 ; then
-	TESTSOCK6="$TESTSOCK6"
-else
-	TESTSOCK6=false
-fi
+}
 
 # Windows process management leave empty
 PSSUSPEND=
@@ -463,4 +456,3 @@ export RRCHECKER
 export SAMPLEUPDATE
 export SIGNER
 export SUBDIRS
-export TESTSOCK6

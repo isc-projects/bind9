@@ -156,7 +156,7 @@ copy_setports ns2/named6.conf.in ns2/named.conf
 $RNDCCMD 10.53.0.2 reload 2>&1 | sed 's/^/ns2 /' | cat_i
 sleep 3
 
-if $TESTSOCK6 fd92:7065:b8e:ffff::3
+if testsock6 fd92:7065:b8e:ffff::3
 then
   n=`expr $n + 1`
   echo_i "checking GeoIP city database by city name using IPv6 ($n)"
@@ -466,7 +466,7 @@ ret=0
 $DIG $DIGOPTS -4 txt example -b 10.53.0.2 > dig.out.ns2.test$n.1 || ret=1
 j=`cat dig.out.ns2.test$n.1 | tr -d '"'`
 [ "$j" = "bogus" ] || ret=1
-if $TESTSOCK6 fd92:7065:b8e:ffff::2; then
+if testsock6 fd92:7065:b8e:ffff::2; then
     $DIG $DIGOPTS6 txt example -b fd92:7065:b8e:ffff::2 > dig.out.ns2.test$n.2 || ret=1
     j=`cat dig.out.ns2.test$n.2 | tr -d '"'`
     [ "$j" = "2" ] || ret=1
