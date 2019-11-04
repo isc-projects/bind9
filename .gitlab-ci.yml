@@ -675,6 +675,7 @@ unit:gcc:bionic:amd64:
 asan:sid:amd64:
   variables:
     CC: gcc
+    ASAN_OPTIONS: "detect_leaks=0"
     CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2"
