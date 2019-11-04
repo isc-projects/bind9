@@ -6383,7 +6383,9 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		result = dns_rdata_tostruct(&rdata, &rrsig, NULL);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
-		if (type != dns_rdatatype_dnskey) {
+		if (type != dns_rdatatype_dnskey &&
+		    type != dns_rdatatype_cds &&
+		    type != dns_rdatatype_cdnskey) {
 			bool warn = false, deleted = false;
 			if (delsig_ok(&rrsig, keys, nkeys, &warn)) {
 				result = update_one_rr(db, ver, zonediff->diff,
@@ -6438,7 +6440,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 		}
 
 		/*
-		 * RRSIG(DNSKEY) requires special processing.
+		 * KSK RRSIGs requires special processing.
 		 */
 		found = false;
 		for (i = 0; i < nkeys; i++) {
@@ -6446,7 +6448,7 @@ del_sigs(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver, dns_name_t *name,
 			    rrsig.keyid == dst_key_id(keys[i])) {
 				found = true;
 				/*
-				 * Mark offline RRSIG(DNSKEY).
+				 * Mark offline DNSKEY.
 				 * We want the earliest offline expire time
 				 * iff there is a new offline signature.
 				 */
@@ -18368,6 +18370,57 @@ add_signing_records(dns_db_t *db, dns_rdatatype_t privatetype,
 	return (result);
 }
 
+
+/*
+ * See if dns__zone_updatesigs() will update signature for RRset 'rrtype' at
+ * the apex, and if not tickle them and cause to sign so that newly activated
+ * keys are used.
+ */
+static isc_result_t
+tickle_apex_rrset(dns_rdatatype_t rrtype, dns_zone_t *zone, dns_db_t *db,
+		  dns_dbversion_t *ver, isc_stdtime_t now, dns_diff_t *diff,
+		  dns__zonediff_t *zonediff, dst_key_t **keys,
+		  unsigned int nkeys, isc_stdtime_t inception,
+		  isc_stdtime_t keyexpire, bool check_ksk, bool keyset_kskonly)
+{
+	dns_difftuple_t *tuple;
+	isc_result_t result;
+
+	for (tuple = ISC_LIST_HEAD(diff->tuples);
+	     tuple != NULL;
+	     tuple = ISC_LIST_NEXT(tuple, link))
+	{
+		if (tuple->rdata.type == rrtype &&
+		    dns_name_equal(&tuple->name, &zone->origin))
+		{
+			break;
+		}
+	}
+
+	if (tuple == NULL) {
+		result = del_sigs(zone, db, ver, &zone->origin, rrtype,
+				  zonediff, keys, nkeys, now, false);
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "sign_apex:del_sigs -> %s",
+				   dns_result_totext(result));
+			return (result);
+		}
+		result = add_sigs(db, ver, &zone->origin, zone, rrtype,
+				  zonediff->diff, keys, nkeys, zone->mctx,
+				  inception, keyexpire, check_ksk,
+				  keyset_kskonly);
+		if (result != ISC_R_SUCCESS) {
+			dnssec_log(zone, ISC_LOG_ERROR,
+				   "sign_apex:add_sigs -> %s",
+				   dns_result_totext(result));
+			return (result);
+		}
+	}
+
+	return (ISC_R_SUCCESS);
+}
+
 static isc_result_t
 sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	  isc_stdtime_t now, dns_diff_t *diff, dns__zonediff_t *zonediff)
@@ -18377,7 +18430,6 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	bool check_ksk, keyset_kskonly;
 	dst_key_t *zone_keys[DNS_MAXZONEKEYS];
 	unsigned int nkeys = 0, i;
-	dns_difftuple_t *tuple;
 
 	result = dns__zone_findkeys(zone, db, ver, now, zone->mctx,
 				    DNS_MAXZONEKEYS, zone_keys, &nkeys);
@@ -18402,40 +18454,27 @@ sign_apex(dns_zone_t *zone, dns_db_t *db, dns_dbversion_t *ver,
 	keyset_kskonly = DNS_ZONE_OPTION(zone, DNS_ZONEOPT_DNSKEYKSKONLY);
 
 	/*
-	 * See if dns__zone_updatesigs() will update DNSKEY signature and if
-	 * not cause them to sign so that newly activated keys are used.
+	 * See if dns__zone_updatesigs() will update DNSKEY/CDS/CDNSKEY
+	 * signature and if not cause them to sign so that newly activated
+	 * keys are used.
 	 */
-	for (tuple = ISC_LIST_HEAD(diff->tuples);
-	     tuple != NULL;
-	     tuple = ISC_LIST_NEXT(tuple, link))
-	{
-		if (tuple->rdata.type == dns_rdatatype_dnskey &&
-		    dns_name_equal(&tuple->name, &zone->origin))
-		{
-			break;
-		}
+	result = tickle_apex_rrset(dns_rdatatype_dnskey, zone, db, ver, now,
+				   diff, zonediff, zone_keys, nkeys, inception,
+				   keyexpire, check_ksk, keyset_kskonly);
+	if (result != ISC_R_SUCCESS) {
+		goto failure;
 	}
-
-	if (tuple == NULL) {
-		result = del_sigs(zone, db, ver, &zone->origin,
-				  dns_rdatatype_dnskey, zonediff,
-				  zone_keys, nkeys, now, false);
-		if (result != ISC_R_SUCCESS) {
-			dnssec_log(zone, ISC_LOG_ERROR,
-				   "sign_apex:del_sigs -> %s",
-				   dns_result_totext(result));
-			goto failure;
-		}
-		result = add_sigs(db, ver, &zone->origin, zone,
-				  dns_rdatatype_dnskey, zonediff->diff,
-				  zone_keys, nkeys, zone->mctx, inception,
-				  keyexpire, check_ksk, keyset_kskonly);
-		if (result != ISC_R_SUCCESS) {
-			dnssec_log(zone, ISC_LOG_ERROR,
-				   "sign_apex:add_sigs -> %s",
-				   dns_result_totext(result));
-			goto failure;
-		}
+	result = tickle_apex_rrset(dns_rdatatype_cds, zone, db, ver, now,
+				   diff, zonediff, zone_keys, nkeys, inception,
+				   keyexpire, check_ksk, keyset_kskonly);
+	if (result != ISC_R_SUCCESS) {
+		goto failure;
+	}
+	result = tickle_apex_rrset(dns_rdatatype_cdnskey, zone, db, ver, now,
+				   diff, zonediff, zone_keys, nkeys, inception,
+				   keyexpire, check_ksk, keyset_kskonly);
+	if (result != ISC_R_SUCCESS) {
+		goto failure;
 	}
 
 	result = dns__zone_updatesigs(diff, db, ver, zone_keys, nkeys, zone,
@@ -18701,6 +18740,8 @@ zone_rekey(dns_zone_t *zone) {
 	}
 
 	if (kasp && (result == ISC_R_SUCCESS || result == ISC_R_NOTFOUND)) {
+		ttl = dns_kasp_dnskeyttl(kasp);
+
 		result = dns_keymgr_run(&zone->origin, zone->rdclass, dir,
 					mctx, &keys, kasp, now, &nexttime);
 		if (result != ISC_R_SUCCESS) {
