@@ -7039,7 +7039,7 @@ signed_with_good_key(dns_zone_t* zone, dns_db_t *db, dns_dbnode_t *node,
 		int zsk_count = 0;
 		bool approved;
 
-		for (kkey = ISC_LIST_HEAD(kasp->keys); kkey != NULL;
+		for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 		     kkey = ISC_LIST_NEXT(kkey, link))
 		{
 			if (dns_kasp_key_algorithm(kkey) != dst_key_alg(key)) {

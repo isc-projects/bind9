@@ -237,6 +237,16 @@ dns_kasp_sigrefresh(dns_kasp_t *kasp);
  *\li   signature refresh interval.
  */
 
+void
+dns_kasp_setsigrefresh(dns_kasp_t *kasp, uint32_t value);
+/*%<
+ * Set signature refresh interval.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ */
+
 uint32_t
 dns_kasp_sigvalidity(dns_kasp_t *kasp);
 uint32_t
@@ -253,10 +263,22 @@ dns_kasp_sigvalidity_dnskey(dns_kasp_t *kasp);
  *\li   signature validity.
  */
 
+void
+dns_kasp_setsigvalidity(dns_kasp_t *kasp, uint32_t value);
+void
+dns_kasp_setsigvalidity_dnskey(dns_kasp_t *kasp, uint32_t value);
+/*%<
+ * Set signature validity.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ */
+
 dns_ttl_t
 dns_kasp_dnskeyttl(dns_kasp_t *kasp);
 /*%<
- * Get dnskey ttl.
+ * Get DNSKEY TTL.
  *
  * Requires:
  *
@@ -265,6 +287,16 @@ dns_kasp_dnskeyttl(dns_kasp_t *kasp);
  * Returns:
  *
  *\li   DNSKEY TTL.
+ */
+
+void
+dns_kasp_setdnskeyttl(dns_kasp_t *kasp, dns_ttl_t ttl);
+/*%<
+ * Set DNSKEY TTL.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
  */
 
 uint32_t
@@ -281,6 +313,16 @@ dns_kasp_publishsafety(dns_kasp_t *kasp);
  *\li   Publish safety interval.
  */
 
+void
+dns_kasp_setpublishsafety(dns_kasp_t *kasp, uint32_t value);
+/*%<
+ * Set publish safety interval.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ */
+
 uint32_t
 dns_kasp_retiresafety(dns_kasp_t *kasp);
 /*%<
@@ -293,6 +335,16 @@ dns_kasp_retiresafety(dns_kasp_t *kasp);
  * Returns:
  *
  *\li   Retire safety interval.
+ */
+
+void
+dns_kasp_setretiresafety(dns_kasp_t *kasp, uint32_t value);
+/*%<
+ * Set retire safety interval.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
  */
 
 dns_ttl_t
@@ -309,6 +361,16 @@ dns_kasp_zonemaxttl(dns_kasp_t *kasp);
  *\li   Maximum zone TTL.
  */
 
+void
+dns_kasp_setzonemaxttl(dns_kasp_t *kasp, dns_ttl_t ttl);
+/*%<
+ * Set maximum zone TTL.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ */
+
 uint32_t
 dns_kasp_zonepropagationdelay(dns_kasp_t *kasp);
 /*%<
@@ -321,6 +383,16 @@ dns_kasp_zonepropagationdelay(dns_kasp_t *kasp);
  * Returns:
  *
  *\li   Zone propagation delay.
+ */
+
+void
+dns_kasp_setzonepropagationdelay(dns_kasp_t *kasp, uint32_t value);
+/*%<
+ * Set zone propagation delay.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
  */
 
 dns_ttl_t
@@ -337,6 +409,16 @@ dns_kasp_dsttl(dns_kasp_t *kasp);
  *\li   Expected parent DS TTL.
  */
 
+void
+dns_kasp_setdsttl(dns_kasp_t *kasp, dns_ttl_t ttl);
+/*%<
+ * Set DS TTL.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ */
+
 uint32_t
 dns_kasp_parentpropagationdelay(dns_kasp_t *kasp);
 /*%<
@@ -351,6 +433,16 @@ dns_kasp_parentpropagationdelay(dns_kasp_t *kasp);
  *\li   Parent zone propagation delay.
  */
 
+void
+dns_kasp_setparentpropagationdelay(dns_kasp_t *kasp, uint32_t value);
+/*%<
+ * Set parent propagation delay.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ */
+
 uint32_t
 dns_kasp_parentregistrationdelay(dns_kasp_t *kasp);
 /*%<
@@ -363,6 +455,16 @@ dns_kasp_parentregistrationdelay(dns_kasp_t *kasp);
  * Returns:
  *
  *\li   Parent registration delay.
+ */
+
+void
+dns_kasp_setparentregistrationdelay(dns_kasp_t *kasp, uint32_t value);
+/*%<
+ * Set parent registration delay.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
  */
 
 isc_result_t
@@ -381,14 +483,56 @@ dns_kasplist_find(dns_kasplist_t *list, const char *name, dns_kasp_t **kaspp);
  *\li   #ISC_R_NOTFOUND         No matching kasp was found.
  */
 
+dns_kasp_keylist_t
+dns_kasp_keys(dns_kasp_t *kasp);
+/*%<
+ * Get the list of kasp keys.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, frozen kasp.
+ *
+ * Returns:
+ *
+ *\li  #ISC_R_SUCCESS
+ *\li  #ISC_R_NOMEMORY
+ *
+ *\li  Other errors are possible.
+ */
+
+bool
+dns_kasp_keylist_empty(dns_kasp_t *kasp);
+/*%<
+ * Check if the keylist is empty.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid kasp.
+ *
+ * Returns:
+ *
+ *\li  true if the keylist is empty, false otherwise.
+ */
+
+void
+dns_kasp_addkey(dns_kasp_t *kasp, dns_kasp_key_t *key);
+/*%<
+ * Add a key.
+ *
+ * Requires:
+ *
+ *\li   'kasp' is a valid, thawed kasp.
+ *\li   'key' is not NULL.
+ */
+
 isc_result_t
-dns_kasp_key_create(isc_mem_t* mctx, dns_kasp_key_t **keyp);
+dns_kasp_key_create(dns_kasp_t *kasp, dns_kasp_key_t **keyp);
 /*%<
  * Create a key inside a KASP.
  *
  * Requires:
  *
- *\li  'mctx' is a valid memory context.
+ *\li   'kasp' is a valid kasp.
  *
  *\li  keyp != NULL && *keyp == NULL
  *

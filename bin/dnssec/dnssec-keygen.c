@@ -1187,7 +1187,7 @@ main(int argc, char **argv) {
 				fatal("failed to load dnssec-policy '%s'",
 				      ctx.policy);
 			}
-			if (ISC_LIST_EMPTY(kasp->keys)) {
+			if (ISC_LIST_EMPTY(dns_kasp_keys(kasp))) {
 				fatal("dnssec-policy '%s' has no keys "
 				      "configured", ctx.policy);
 			}
@@ -1195,7 +1195,7 @@ main(int argc, char **argv) {
 			ctx.ttl = dns_kasp_dnskeyttl(kasp);
 			ctx.setttl = true;
 
-			kaspkey = ISC_LIST_HEAD(kasp->keys);
+			kaspkey = ISC_LIST_HEAD(dns_kasp_keys(kasp));
 
 			while (kaspkey != NULL) {
 				ctx.use_nsec3 = false;

@@ -71,7 +71,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp)
 	dns_kasp_key_t *key = NULL;
 
 	/* Create a new key reference. */
-	result = dns_kasp_key_create(kasp->mctx, &key);
+	result = dns_kasp_key_create(kasp, &key);
 	if (result != ISC_R_SUCCESS) {
 		return (result);
 	}
@@ -103,8 +103,7 @@ cfg_kaspkey_fromconfig(const cfg_obj_t *config, dns_kasp_t* kasp)
 			key->length = cfg_obj_asuint32(obj);
 		}
 	}
-	ISC_LIST_APPEND(kasp->keys, key, link);
-	ISC_INSIST(!(ISC_LIST_EMPTY(kasp->keys)));
+	dns_kasp_addkey(kasp, key);
 	return (result);
 }
 
@@ -158,20 +157,21 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 	maps[i] = NULL;
 
 	/* Configuration: Signatures */
-	kasp->signatures_refresh = get_duration(
-		maps, "signatures-refresh", DNS_KASP_SIG_REFRESH);
-	kasp->signatures_validity = get_duration(
-		maps, "signatures-validity", DNS_KASP_SIG_VALIDITY);
-	kasp->signatures_validity_dnskey = get_duration(
-		maps, "signatures-validity-dnskey",
-		DNS_KASP_SIG_VALIDITY_DNSKEY);
+	dns_kasp_setsigrefresh(kasp, get_duration(maps, "signatures-refresh",
+						  DNS_KASP_SIG_REFRESH));
+	dns_kasp_setsigvalidity(kasp, get_duration(maps, "signatures-validity",
+						   DNS_KASP_SIG_VALIDITY));
+	dns_kasp_setsigvalidity_dnskey(kasp, get_duration(maps,
+						   "signatures-validity-dnskey",
+						 DNS_KASP_SIG_VALIDITY_DNSKEY));
 
 	/* Configuration: Keys */
-	kasp->dnskey_ttl = get_duration(maps, "dnskey-ttl", DNS_KASP_KEY_TTL);
-	kasp->publish_safety = get_duration(maps, "publish-safety",
-					    DNS_KASP_PUBLISH_SAFETY);
-	kasp->retire_safety = get_duration(maps, "retire-safety",
-					   DNS_KASP_RETIRE_SAFETY);
+	dns_kasp_setdnskeyttl(kasp, get_duration(maps, "dnskey-ttl",
+						 DNS_KASP_KEY_TTL));
+	dns_kasp_setpublishsafety(kasp, get_duration(maps, "publish-safety",
+						     DNS_KASP_PUBLISH_SAFETY));
+	dns_kasp_setretiresafety(kasp, get_duration(maps, "retire-safety",
+						    DNS_KASP_RETIRE_SAFETY));
 
 	(void)confget(maps, "keys", &keys);
 	if (keys == NULL) {
@@ -190,26 +190,24 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 			}
 		}
 	}
-	ISC_INSIST(!(ISC_LIST_EMPTY(kasp->keys)));
+	ISC_INSIST(!(dns_kasp_keylist_empty(kasp)));
 
 	/* Configuration: Zone settings */
-	kasp->zone_max_ttl = get_duration(maps, "zone-max-ttl",
-					  DNS_KASP_ZONE_MAXTTL);
-	kasp->zone_propagation_delay = get_duration(maps,
-						    "zone-propagation-delay",
-						    DNS_KASP_ZONE_PROPDELAY);
+	dns_kasp_setzonemaxttl(kasp, get_duration(maps, "zone-max-ttl",
+						  DNS_KASP_ZONE_MAXTTL));
+	dns_kasp_setzonepropagationdelay(kasp, get_duration(maps,
+						       "zone-propagation-delay",
+						      DNS_KASP_ZONE_PROPDELAY));
 
 	/* Configuration: Parent settings */
-	kasp->parent_ds_ttl = get_duration(maps, "parent-ds-ttl",
-					   DNS_KASP_DS_TTL);
-	kasp->parent_propagation_delay = get_duration(
-						     maps,
+	dns_kasp_setdsttl(kasp, get_duration(maps, "parent-ds-ttl",
+					     DNS_KASP_DS_TTL));
+	dns_kasp_setparentpropagationdelay(kasp, get_duration(maps,
 						     "parent-propagation-delay",
-						     DNS_KASP_PARENT_PROPDELAY);
-	kasp->parent_registration_delay = get_duration(
-						    maps,
+						    DNS_KASP_PARENT_PROPDELAY));
+	dns_kasp_setparentregistrationdelay(kasp, get_duration(maps,
 						    "parent-registration-delay",
-						    DNS_KASP_PARENT_REGDELAY);
+						     DNS_KASP_PARENT_REGDELAY));
 
 	// TODO: Rest of the configuration
 

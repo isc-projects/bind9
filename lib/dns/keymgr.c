@@ -1330,7 +1330,7 @@ dns_keymgr_run(const dns_name_t *origin, dns_rdataclass_t rdclass,
 	}
 
 	/* Create keys according to the policy, if come in short. */
-	for (kkey = ISC_LIST_HEAD(kasp->keys); kkey != NULL;
+	for (kkey = ISC_LIST_HEAD(dns_kasp_keys(kasp)); kkey != NULL;
 	     kkey = ISC_LIST_NEXT(kkey, link))
 	{
 		isc_stdtime_t retire = 0, active = 0, prepub = 0;
