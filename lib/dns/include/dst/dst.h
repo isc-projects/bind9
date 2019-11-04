@@ -1166,6 +1166,16 @@ dst_key_is_removed(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *remove);
  *	'key' to be valid.
  */
 
+void
+dst_key_copy_metadata(dst_key_t *to, dst_key_t *from);
+/*%<
+ * Copy key metadata from one key to another.
+ *
+ * Requires:
+ *	'to' and 'from' to be valid.
+ */
+
+
 ISC_LANG_ENDDECLS
 
 #endif /* DST_DST_H */

@@ -2587,3 +2587,52 @@ dst_key_is_removed(dst_key_t *key, isc_stdtime_t now, isc_stdtime_t *remove)
 
 	return state_ok && time_ok;
 }
+
+void
+dst_key_copy_metadata(dst_key_t *to, dst_key_t *from)
+{
+	dst_key_state_t state;
+	isc_stdtime_t when;
+	uint32_t num;
+	bool yesno;
+	isc_result_t result;
+
+	REQUIRE(VALID_KEY(to));
+	REQUIRE(VALID_KEY(from));
+
+	for (int i = 0; i < DST_MAX_TIMES+1; i++) {
+		result = dst_key_gettime(from, i, &when);
+		if (result == ISC_R_SUCCESS) {
+			dst_key_settime(to, i, when);
+		} else {
+			dst_key_unsettime(to, i);
+		}
+	}
+
+	for (int i = 0; i < DST_MAX_NUMERIC+1; i++) {
+		result = dst_key_getnum(from, i, &num);
+		if (result == ISC_R_SUCCESS) {
+			dst_key_setnum(to, i, num);
+		} else {
+			dst_key_unsetnum(to, i);
+		}
+	}
+
+	for (int i = 0; i < DST_MAX_BOOLEAN+1; i++) {
+		result = dst_key_getbool(from, i, &yesno);
+		if (result == ISC_R_SUCCESS) {
+			dst_key_setbool(to, i, yesno);
+		} else {
+			dst_key_unsetnum(to, i);
+		}
+	}
+
+	for (int i = 0; i < DST_MAX_KEYSTATES+1; i++) {
+		result = dst_key_getstate(from, i, &state);
+		if (result == ISC_R_SUCCESS) {
+			dst_key_setstate(to, i, state);
+		} else {
+			dst_key_unsetstate(to, i);
+		}
+	}
+}

@@ -1405,6 +1405,7 @@ dst_key_attach
 dst_key_buildfilename
 dst_key_buildinternal
 dst_key_class
+dst_key_copy_metadata
 dst_key_compare
 dst_key_computesecret
 dst_key_dump
