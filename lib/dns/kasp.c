@@ -107,7 +107,7 @@ dns_kasp_detach(dns_kasp_t **kaspp) {
 const char*
 dns_kasp_getname(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
-	return kasp->name;
+	return (kasp->name);
 }
 
 void
@@ -135,83 +135,85 @@ uint32_t
 dns_kasp_sigrefresh(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->signatures_refresh;
+	return (kasp->signatures_refresh);
 }
 
 uint32_t
 dns_kasp_sigvalidity(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->signatures_validity;
+	return (kasp->signatures_validity);
 }
 
 uint32_t
 dns_kasp_sigvalidity_dnskey(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->signatures_validity_dnskey;
+	return (kasp->signatures_validity_dnskey);
 }
 
 dns_ttl_t
 dns_kasp_dnskeyttl(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->dnskey_ttl;
+	return (kasp->dnskey_ttl);
 }
 
 uint32_t
 dns_kasp_publishsafety(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->publish_safety;
+	return (kasp->publish_safety);
 }
 
 uint32_t
 dns_kasp_retiresafety(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->retire_safety;
+	return (kasp->retire_safety);
 }
 
 dns_ttl_t
 dns_kasp_zonemaxttl(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->zone_max_ttl;
+	return (kasp->zone_max_ttl);
 }
 
 uint32_t
 dns_kasp_zonepropagationdelay(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->zone_propagation_delay;
+	return (kasp->zone_propagation_delay);
 }
 
 dns_ttl_t
 dns_kasp_dsttl(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->parent_ds_ttl;
+	return (kasp->parent_ds_ttl);
 }
 
 uint32_t
 dns_kasp_parentpropagationdelay(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->parent_propagation_delay;
+	return (kasp->parent_propagation_delay);
 }
 
 uint32_t
 dns_kasp_parentregistrationdelay(dns_kasp_t *kasp) {
 	REQUIRE(DNS_KASP_VALID(kasp));
 	REQUIRE(kasp->frozen);
-	return kasp->parent_registration_delay;
+	return (kasp->parent_registration_delay);
 }
 
 isc_result_t
 dns_kasplist_find(dns_kasplist_t *list, const char *name, dns_kasp_t **kaspp)
 {
 	dns_kasp_t *kasp = NULL;
+
+	REQUIRE(kaspp != NULL && *kaspp == NULL);
 
 	if (list == NULL) {
 		return (ISC_R_NOTFOUND);
@@ -264,7 +266,7 @@ uint32_t
 dns_kasp_key_algorithm(dns_kasp_key_t *key) {
 
 	REQUIRE(key != NULL);
-	return key->algorithm;
+	return (key->algorithm);
 }
 
 unsigned int
@@ -310,7 +312,7 @@ dns_kasp_key_size(dns_kasp_key_t *key) {
 		/* unsupported */
 		break;
 	}
-	return size;
+	return (size);
 }
 
 uint32_t
