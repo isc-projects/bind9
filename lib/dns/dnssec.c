@@ -635,7 +635,10 @@ dns_dnssec_keyactive(dst_key_t *key, isc_stdtime_t now) {
  * Indicate whether a key is scheduled to to have CDS/CDNSKEY records
  * published now.
  *
- * Returns true iff.
+ * Returns true if.
+ *  - kasp says the DS record should be published (e.g. the DS state is in
+ *    RUMOURED or OMNIPRESENT state).
+ * Or:
  *  - SyncPublish is set and in the past, AND
  *  - SyncDelete is unset or in the future
  */
@@ -643,6 +646,7 @@ static bool
 syncpublish(dst_key_t *key, isc_stdtime_t now) {
 	isc_result_t result;
 	isc_stdtime_t when;
+	dst_key_state_t state;
 	int major, minor;
 
 	/*
@@ -654,18 +658,29 @@ syncpublish(dst_key_t *key, isc_stdtime_t now) {
 	/*
 	 * Smart signing started with key format 1.3
 	 */
-	if (major == 1 && minor <= 2)
+	if (major == 1 && minor <= 2) {
 		return (false);
+	}
 
+	/* Check kasp state first. */
+	result = dst_key_getstate(key, DST_KEY_DS, &state);
+	if (result == ISC_R_SUCCESS) {
+		return (state == DST_KEY_STATE_RUMOURED ||
+			state == DST_KEY_STATE_OMNIPRESENT);
+	}
+
+	/* If no kasp state, check timings. */
 	result = dst_key_gettime(key, DST_TIME_SYNCPUBLISH, &when);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (false);
-
+	}
 	result = dst_key_gettime(key, DST_TIME_SYNCDELETE, &when);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (true);
-	if (when <= now)
+	}
+	if (when <= now) {
 		return (false);
+	}
 	return (true);
 }
 
@@ -673,12 +688,17 @@ syncpublish(dst_key_t *key, isc_stdtime_t now) {
  * Indicate whether a key is scheduled to to have CDS/CDNSKEY records
  * deleted now.
  *
- * Returns true iff. SyncDelete is set and in the past.
+ * Returns true if:
+ *  - kasp says the DS record should be unpublished (e.g. the DS state is in
+ *    UNRETENTIVE or HIDDEN state).
+ * Or:
+ * - SyncDelete is set and in the past.
  */
 static bool
 syncdelete(dst_key_t *key, isc_stdtime_t now) {
 	isc_result_t result;
 	isc_stdtime_t when;
+	dst_key_state_t state;
 	int major, minor;
 
 	/*
@@ -690,14 +710,25 @@ syncdelete(dst_key_t *key, isc_stdtime_t now) {
 	/*
 	 * Smart signing started with key format 1.3.
 	 */
-	if (major == 1 && minor <= 2)
+	if (major == 1 && minor <= 2) {
 		return (false);
+	}
 
+	/* Check kasp state first. */
+	result = dst_key_getstate(key, DST_KEY_DS, &state);
+	if (result == ISC_R_SUCCESS) {
+		return (state == DST_KEY_STATE_UNRETENTIVE ||
+			state == DST_KEY_STATE_HIDDEN);
+	}
+
+	/* If no kasp state, check timings. */
 	result = dst_key_gettime(key, DST_TIME_SYNCDELETE, &when);
-	if (result != ISC_R_SUCCESS)
+	if (result != ISC_R_SUCCESS) {
 		return (false);
-	if (when <= now)
+	}
+	if (when <= now) {
 		return (true);
+	}
 	return (false);
 }
 
@@ -2134,6 +2165,9 @@ dns_dnssec_updatekeys(dns_dnsseckeylist_t *keys, dns_dnsseckeylist_t *newkeys,
 
 		/* Printable version of key2 (the old key, if any) */
 		dst_key_format(key2->key, keystr2, sizeof(keystr2));
+
+		/* Copy key metadata. */
+		dst_key_copy_metadata(key2->key, key1->key);
 
 		/* Match found: remove or update it as needed */
 		if (key1->hint_remove) {

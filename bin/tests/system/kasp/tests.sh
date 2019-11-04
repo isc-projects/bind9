@@ -700,7 +700,7 @@ grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch st
 grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${qtype}.*257.*.3.*${KEY1[$ALG_NUM]}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${qtype} record in response"
 lines=$(get_keys_which_signed $qtype dig.out.$DIR.test$n | wc -l)
 test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
-get_keys_which_signed $qtype dig.out.$DIR.test$n | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with ${KEY_ID}"
+get_keys_which_signed $qtype dig.out.$DIR.test$n | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with key ${KEY_ID}"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -714,7 +714,7 @@ grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch st
 grep "${ZONE}\..*${DEFAULT_TTL}.*IN.*${qtype}.*mname1\..*\." dig.out.$DIR.test$n > /dev/null || log_error "missing ${qtype} record in response"
 lines=$(get_keys_which_signed $qtype dig.out.$DIR.test$n | wc -l)
 test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
-get_keys_which_signed $qtype dig.out.$DIR.test$n | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with ${KEY_ID}"
+get_keys_which_signed $qtype dig.out.$DIR.test$n | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with key ${KEY_ID}"
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
 
@@ -735,14 +735,14 @@ do
 	grep "a.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.11" dig.out.$DIR.test$n.a > /dev/null || log_error "missing a.${ZONE} A record in response"
 	lines=$(get_keys_which_signed A dig.out.$DIR.test$n.a | wc -l)
 	test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
-	get_keys_which_signed A dig.out.$DIR.test$n.a | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with ${KEY_ID}"
+	get_keys_which_signed A dig.out.$DIR.test$n.a | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with key ${KEY_ID}"
 
 	dig_with_opts "d.${ZONE}" @10.53.0.3 A > dig.out.$DIR.test$n.d || log_error "dig d.${ZONE} A failed"
 	grep "status: NOERROR" dig.out.$DIR.test$n.d > /dev/null || log_error "mismatch status in DNS response"
 	grep "d.${ZONE}\..*${DEFAULT_TTL}.*IN.*A.*10\.0\.0\.4" dig.out.$DIR.test$n.d > /dev/null || log_error "missing d.${ZONE} A record in response"
 	lines=$(get_keys_which_signed A dig.out.$DIR.test$n.d | wc -l)
 	test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
-	get_keys_which_signed A dig.out.$DIR.test$n.d | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with ${KEY_ID}"
+	get_keys_which_signed A dig.out.$DIR.test$n.d | grep "^${KEY_ID}$" > /dev/null || log_error "A RRset not signed with key ${KEY_ID}"
 
 	i=`expr $i + 1`
 	if [ $ret = 0 ]; then break; fi
@@ -870,20 +870,57 @@ check_signatures() {
 	if [ "${KEY1[$_expect_type]}" == "yes" ] && [ "${KEY1[$_role]}" == "yes" ]; then
 		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with key ${KEY1[$ID]}"
 	elif [ "${KEY1[$EXPECT]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY1[$ID]}"
+		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key ${KEY1[$ID]}"
 	fi
 
 	if [ "${KEY2[$_expect_type]}" == "yes" ] && [ "${KEY2[$_role]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with ${KEY2[$ID]}"
+		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with key ${KEY2[$ID]}"
 	elif [ "${KEY2[$EXPECT]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY2[$ID]}"
+		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key ${KEY2[$ID]}"
 	fi
 
 	if [ "${KEY3[$_expect_type]}" == "yes" ] && [ "${KEY3[$_role]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with ${KEY3[$ID]}"
+		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with key ${KEY3[$ID]}"
 	elif [ "${KEY3[$EXPECT]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with ${KEY3[$ID]}"
+		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key ${KEY3[$ID]}"
 	fi
+}
+
+# Test CDS and CDNSKEY publication.
+check_cds() {
+
+	_qtype="CDS"
+	_key_algnum="${KEY1[$ALG_NUM]}"
+
+	n=$((n+1))
+	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
+	ret=0
+	dig_with_opts $ZONE @10.53.0.3 $_qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${_qtype} failed"
+	grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
+
+	if [ "${KEY1[$STATE_DS]}" == "rumoured" ] || [ "${KEY1[$STATE_DS]}" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY1[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY1[$ID]}"
+		check_signatures $_qtype dig.out.$DIR.test$n $KSK
+	elif [ "${KEY1[$EXPECT]}" == "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY1[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY1[$ID]}"
+	fi
+
+	if [ "${KEY2[$STATE_DS]}" == "rumoured" ] || [ "${KEY2[$STATE_DS]}" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY2[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY2[$ID]}"
+		check_signatures $_qtype dig.out.$DIR.test$n $KSK
+	elif [ "${KEY2[$EXPECT]}" == "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY2[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY2[$ID]}"
+	fi
+
+	if [ "${KEY3[$STATE_DS]}" == "rumoured" ] || [ "${KEY3[$STATE_DS]}" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY3[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY3[$ID]}"
+		check_signatures $_qtype dig.out.$DIR.test$n $KSK
+	elif [ "${KEY3[$EXPECT]}" == "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY3[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY3[$ID]}"
+	fi
+
+	test "$ret" -eq 0 || echo_i "failed"
+	status=$((status+ret))
 }
 
 # Test the apex of a configured zone. This checks that the SOA and DNSKEY
@@ -916,6 +953,9 @@ check_apex() {
 	check_signatures $_qtype dig.out.$DIR.test$n $ZSK
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
+
+	# Test CDS publication.
+	check_cds
 }
 
 # Test an RRset below the apex and verify it is signed correctly.
