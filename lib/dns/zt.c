@@ -322,7 +322,7 @@ asyncload(dns_zone_t *zone, void *paramsv) {
 	isc_result_t result;
 	struct zt_load_params * params = (struct zt_load_params*) paramsv;
 
-	dns_zt_t *zt = params->zt;
+	dns_zt_t *zt;
 
 	REQUIRE(zone != NULL);
 	zt = dns_zone_getview(zone)->zonetable;
