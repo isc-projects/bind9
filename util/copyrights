@@ -2335,6 +2335,7 @@
 ./bin/tests/system/stub/ns3/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/stub/setup.sh		SH	2018,2019
 ./bin/tests/system/stub/tests.sh		SH	2000,2001,2004,2007,2011,2012,2013,2016,2018,2019
+./bin/tests/system/tcp/ans6/ans.py		PYTHON	2019
 ./bin/tests/system/tcp/clean.sh			SH	2014,2016,2018,2019
 ./bin/tests/system/tcp/ns1/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/tcp/ns1/root.db		ZONE	2014,2016,2018,2019
@@ -2342,6 +2343,8 @@
 ./bin/tests/system/tcp/ns2/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/tcp/ns3/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/tcp/ns4/named.conf.in	CONF-C	2018,2019
+./bin/tests/system/tcp/ns5/named.conf.in	CONF-C	2019
+./bin/tests/system/tcp/prereq.sh		SH	2019
 ./bin/tests/system/tcp/setup.sh			SH	2018,2019
 ./bin/tests/system/tcp/tests.sh			SH	2014,2016,2018,2019
 ./bin/tests/system/testcrypto.sh		SH	2014,2016,2017,2018,2019
