@@ -31,6 +31,7 @@
  */
 #define ISC_LIST(type) struct { type *head, *tail; }
 
+typedef struct isc_astack		isc_astack_t;		/*%< Array-based fast stack */
 typedef struct isc_appctx		isc_appctx_t;	 	/*%< Application context */
 typedef struct isc_backtrace_symmap	isc_backtrace_symmap_t; /*%< Symbol Table Entry */
 typedef struct isc_buffer		isc_buffer_t;		/*%< Buffer */

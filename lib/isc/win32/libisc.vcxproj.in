@@ -288,6 +288,7 @@ copy InstallFiles ..\Build\Release\
     <ClInclude Include="..\include\isc\aes.h" />
     <ClInclude Include="..\include\isc\app.h" />
     <ClInclude Include="..\include\isc\assertions.h" />
+    <ClInclude Include="..\include\isc\astack.h" />
     <ClInclude Include="..\include\isc\atomic.h" />
     <ClInclude Include="..\include\isc\backtrace.h" />
     <ClInclude Include="..\include\isc\base32.h" />
@@ -405,6 +406,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\aes.c" />
     <ClCompile Include="..\app.c" />
     <ClCompile Include="..\assertions.c" />
+    <ClCompile Include="..\astack.c" />
     <ClCompile Include="..\backtrace-emptytbl.c" />
     <ClCompile Include="..\backtrace.c" />
     <ClCompile Include="..\base32.c" />

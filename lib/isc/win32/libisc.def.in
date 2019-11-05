@@ -24,6 +24,10 @@ isc_app_start
 isc_app_unblock
 isc_appctx_create
 isc_appctx_destroy
+isc_astack_destroy
+isc_astack_new
+isc_astack_pop
+isc_astack_trypush
 isc__buffer_activeregion
 isc__buffer_add
 isc__buffer_availableregion

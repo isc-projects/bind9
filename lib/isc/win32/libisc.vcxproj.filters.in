@@ -35,6 +35,9 @@
     <ClInclude Include="..\include\isc\assertions.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\astack.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\atomic.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -450,6 +453,9 @@
       <Filter>Win32 Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\assertions.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\astack.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\backtrace.c">
