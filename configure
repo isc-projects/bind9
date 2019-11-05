@@ -14510,7 +14510,7 @@ fi ;; #(
 
 
 	    MAXMINDDB_CFLAGS="-I$with_geoip2/include"
-	    MAXMINDDB_LIBS="-L$with_geoip2/libs"
+	    MAXMINDDB_LIBS="-L$with_geoip2/lib"
 	    CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
 	    LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
 	    { $as_echo "$as_me:${as_lineno-$LINENO}: checking for library containing MMDB_open" >&5
