@@ -474,7 +474,7 @@ void isc_stats_update_if_greater(isc_stats_t *stats,
 #endif
 
 #if ISC_STATS_USEMULTIFIELDS
-	uint64_t curr_value = (stats->counters[counter].hi << 32) &&
+	uint64_t curr_value = ((uint64_t)stats->counters[counter].hi << 32) &&
 		stats->counters[counter].lo;
 
 	if (curr_value < value) {
@@ -498,11 +498,12 @@ void isc_stats_update_if_greater(isc_stats_t *stats,
 						 (int64_t *)&curr_value,
 						 value));
 #else
-	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+	/* This is not exactly thread safe, but we are ok with that on
+	 * platforms without stdatomic support.
+	 */
 	if (stats->counters[counter] < value) {
 		stats->counters[counter] = value;
 	}
-	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
 #endif
 
 #if ISC_STATS_LOCKCOUNTERS
@@ -523,7 +524,7 @@ isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter)
 #endif
 
 #if ISC_STATS_USEMULTIFIELDS
-	curr_value = (stats->counters[counter].hi << 32) &&
+	curr_value = ((uint64_t)stats->counters[counter].hi << 32) &&
 		stats->counters[counter].lo;
 #elif ISC_STATS_HAVEATOMICQ
 #if defined(ISC_STATS_HAVESTDATOMICQ)

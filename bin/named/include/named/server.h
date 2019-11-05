@@ -220,7 +220,9 @@ enum {
 
 	dns_nsstatscounter_keytagopt = 56,
 
-	dns_nsstatscounter_max = 57
+	dns_nsstatscounter_tcphighwater = 57,
+
+	dns_nsstatscounter_max = 58
 };
 
 /*%

@@ -3507,7 +3507,6 @@ client_accept(ns_client_t *client) {
 	isc_result_t result;
 
 	CTRACE("accept");
-
 	/*
 	 * Set up a new TCP connection. This means try to attach to the
 	 * TCP client quota (tcp-clients), but fail if we're over quota.
@@ -3557,6 +3556,12 @@ client_accept(ns_client_t *client) {
 		result = tcpconn_init(client, true);
 		RUNTIME_CHECK(result == ISC_R_SUCCESS);
 	}
+
+	/* TCP high-water stats update. */
+	unsigned int curr_tcpquota = isc_quota_getused(&ns_g_server->tcpquota);
+	isc_stats_update_if_greater(ns_g_server->nsstats,
+				    dns_nsstatscounter_tcphighwater,
+				    curr_tcpquota);
 
 	/*
 	 * If this client was set up using get_client() or get_worker(),

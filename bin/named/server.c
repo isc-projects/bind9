@@ -10880,6 +10880,11 @@ ns_server_status(ns_server_t *server, isc_buffer_t **text) {
 		     server->tcpquota.used, server->tcpquota.max);
 	CHECK(putstr(text, line));
 
+	snprintf(line, sizeof(line), "TCP high-water: %" PRIu64 "\n",
+		 isc_stats_get_counter(ns_g_server->nsstats,
+				       dns_nsstatscounter_tcphighwater));
+	CHECK(putstr(text, line));
+
 	CHECK(putstr(text, "server is up and running"));
 	CHECK(putnull(text));
 
