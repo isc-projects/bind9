@@ -12,31 +12,17 @@
 # shellcheck source=conf.sh
 . "$SYSTEMTESTTOP/conf.sh"
 
-set -e
+echo_i "ns4/setup.sh"
 
-$SHELL clean.sh
-
-mkdir keys
-
-copy_setports ns2/named.conf.in ns2/named.conf
-copy_setports ns3/named.conf.in ns3/named.conf
-copy_setports ns4/named.conf.in ns4/named.conf
-copy_setports ns5/named.conf.in ns5/named.conf
-
-# Setup zones
-(
-	cd ns2
-	$SHELL setup.sh
-)
-(
-	cd ns3
-	$SHELL setup.sh
-)
-(
-	cd ns4
-	$SHELL setup.sh
-)
-(
-	cd ns5
-	$SHELL setup.sh
-)
+#
+# Set up zones that potentially will be initially signed.
+#
+for zn in inherit.inherit override.inherit none.inherit \
+	  inherit.override override.override none.override \
+	  inherit.none override.none none.none
+do
+	zone="$zn.signed"
+	echo_i "setting up zone: $zone"
+	zonefile="${zone}.db"
+	cp template.db.in $zonefile
+done

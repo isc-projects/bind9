@@ -21,6 +21,7 @@ options {
 	listen-on-v6 { none; };
 	allow-transfer { any; };
 	recursion no;
+	dnssec-policy "none";
 };
 
 key rndc_key {
@@ -30,6 +31,21 @@ key rndc_key {
 
 controls {
 	inet 10.53.0.2 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
+};
+
+/* Inherit dnssec-policy (which is none) */
+
+zone "unsigned.tld" {
+	type master;
+	file "unsigned.tld.db";
+};
+
+/* Override dnssec-policy */
+
+zone "signed.tld" {
+	type master;
+	dnssec-policy "default";
+	file "signed.tld.db";
 };
 
 /* Primary service for ns3 */

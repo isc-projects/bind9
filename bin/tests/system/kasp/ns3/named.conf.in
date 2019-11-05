@@ -11,6 +11,9 @@
 
 // NS3
 
+include "policies/kasp.conf";
+include "policies/autosign.conf";
+
 options {
 	query-source address 10.53.0.3;
 	notify-source 10.53.0.3;
@@ -21,6 +24,7 @@ options {
 	listen-on-v6 { none; };
 	allow-transfer { any; };
 	recursion no;
+	dnssec-policy "rsasha1";
 };
 
 key rndc_key {
@@ -31,9 +35,6 @@ key rndc_key {
 controls {
         inet 10.53.0.3 port @CONTROLPORT@ allow { any; } keys { rndc_key; };
 };
-
-include "policies/kasp.conf";
-include "policies/autosign.conf";
 
 /* Zones that are getting initially signed */
 
@@ -49,6 +50,19 @@ zone "rsasha1.kasp" {
 	type master;
 	file "rsasha1.kasp.db";
 	dnssec-policy "rsasha1";
+};
+
+/* A zone that inherits dnssec-policy. */
+zone "inherit.kasp" {
+	type master;
+	file "inherit.kasp.db";
+};
+
+/* A zone that overrides dnssec-policy. */
+zone "unsigned.kasp" {
+	type master;
+	file "unsigned.kasp.db";
+	dnssec-policy "none";
 };
 
 /* A master zone with dnssec-policy but keys already created. */

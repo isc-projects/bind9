@@ -126,6 +126,8 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 		    cfg_obj_asstring(cfg_tuple_get(config, "name")) :
 		    "default";
 
+	REQUIRE(strcmp(kaspname, "none") != 0);
+
 	result = dns_kasplist_find(kasplist, kaspname, &kasp);
 
 	if (result == ISC_R_SUCCESS) {

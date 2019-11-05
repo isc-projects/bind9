@@ -842,6 +842,21 @@ check_name(const char *str) {
 	return (dns_name_fromstring(dns_fixedname_name(&fixed), str, 0, NULL));
 }
 
+static bool
+kasp_name_allowed(const cfg_listelt_t *element)
+{
+	const char* name = cfg_obj_asstring(cfg_tuple_get(
+		cfg_listelt_value(element), "name"));
+
+	if (strcmp("none", name) == 0) {
+		return false;
+	}
+	if (strcmp("default", name) == 0) {
+		return false;
+	}
+	return true;
+}
+
 static isc_result_t
 check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	      optlevel_t optlevel)
@@ -950,14 +965,15 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	}
 
 	/*
-	 * Check dnssec-policy at the view/options level
+	 * Check dnssec-policy.
 	 */
 	obj = NULL;
 	(void)cfg_map_get(options, "dnssec-policy", &obj);
 	if (obj != NULL) {
-		bool bad_kasp = true;
-		if (optlevel == optlevel_zone && cfg_obj_isstring(obj)) {
-			bad_kasp = false;
+		bool bad_kasp = false;
+		bool bad_name = false;
+		if (optlevel != optlevel_config && !cfg_obj_isstring(obj)) {
+			bad_kasp = true;
 		} else if (optlevel == optlevel_config) {
 			if (cfg_obj_islist(obj)) {
 				for (element = cfg_list_first(obj);
@@ -967,18 +983,29 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 					if (!cfg_obj_istuple(
 						    cfg_listelt_value(element)))
 					{
-						break;
+						bad_kasp = true;
+					}
+					if (!kasp_name_allowed(element)) {
+						bad_name = true;
 					}
 				}
-				bad_kasp = false;
 			}
 		}
 
 		if (bad_kasp) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "dnssec-policy may only be activated at "
-				    "the top level and referenced to at the "
-				    "zone level");
+				    "dnssec-policy may only be configured at "
+				    "the top level, please use name reference "
+				    "at the zone level");
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+
+		if (bad_name) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-policy name may not be 'none' or "
+				    "'default' (which is the built-in policy)");
 			if (result == ISC_R_SUCCESS) {
 				result = ISC_R_FAILURE;
 			}
@@ -2135,6 +2162,8 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 
 		if (strcmp(kaspname, "default") == 0) {
 			has_dnssecpolicy = true;
+		} else if (strcmp(kaspname, "none") == 0) {
+			has_dnssecpolicy = false;
 		} else {
 			(void)cfg_map_get(config, "dnssec-policy", &kasps);
 			for (element = cfg_list_first(kasps); element != NULL;
@@ -2147,15 +2176,16 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 					has_dnssecpolicy = true;
 				}
 			}
-		}
 
-		if (!has_dnssecpolicy) {
-			cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
-				    "zone '%s': option 'dnssec-policy %s' "
-				    "has no matching dnssec-policy config",
-				    znamestr, kaspname);
-			if (result == ISC_R_SUCCESS) {
-				result = ISC_R_FAILURE;
+			if (!has_dnssecpolicy) {
+				cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+					    "zone '%s': option "
+					    "'dnssec-policy %s' has no "
+					    "matching dnssec-policy config",
+					    znamestr, kaspname);
+				if (result == ISC_R_SUCCESS) {
+					result = ISC_R_FAILURE;
+				}
 			}
 		}
 	}

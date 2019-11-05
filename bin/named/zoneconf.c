@@ -1197,18 +1197,21 @@ named_zone_configure(const cfg_obj_t *config, const cfg_obj_t *vconfig,
 	if (ztype != dns_zone_stub && ztype != dns_zone_staticstub &&
 	    ztype != dns_zone_redirect) {
 		obj = NULL;
-		result = cfg_map_get(zoptions, "dnssec-policy", &obj);
+		result = named_config_get(maps, "dnssec-policy", &obj);
 		if (result == ISC_R_SUCCESS) {
 			kaspname = cfg_obj_asstring(obj);
-			result = dns_kasplist_find(kasplist, kaspname, &kasp);
-			if (result != ISC_R_SUCCESS) {
-				cfg_obj_log(obj, named_g_lctx,
-					    ISC_LOG_ERROR,
-					    "'dnssec-policy '%s' not found ",
-					    kaspname);
-				RETERR(result);
+			if (strcmp(kaspname, "none") != 0) {
+				result = dns_kasplist_find(kasplist, kaspname,
+							   &kasp);
+				if (result != ISC_R_SUCCESS) {
+					cfg_obj_log(obj, named_g_lctx,
+						    ISC_LOG_ERROR,
+						    "'dnssec-policy '%s' not "
+						    "found ", kaspname);
+					RETERR(result);
+				}
+				dns_zone_setkasp(zone, kasp);
 			}
-			dns_zone_setkasp(zone, kasp);
 		}
 
 		obj = NULL;

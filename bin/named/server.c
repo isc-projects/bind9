@@ -6260,7 +6260,8 @@ configure_zone(const cfg_obj_t *config, const cfg_obj_t *zconfig,
 	    ((cfg_map_get(zoptions, "inline-signing", &signing) ==
 	      ISC_R_SUCCESS && cfg_obj_asboolean(signing)) ||
 	     (cfg_map_get(zoptions, "dnssec-policy", &signing) ==
-	      ISC_R_SUCCESS  && signing != NULL)))
+	      ISC_R_SUCCESS && signing != NULL &&
+	      strcmp(cfg_obj_asstring(signing), "none") != 0)))
 	{
 		dns_zone_getraw(zone, &raw);
 		if (raw == NULL) {

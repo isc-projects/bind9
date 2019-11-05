@@ -2165,6 +2165,9 @@ zone_clauses[] = {
 	{ "dnssec-loadkeys-interval", &cfg_type_uint32,
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
 	},
+	{ "dnssec-policy", &cfg_type_astring,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
 	{ "dnssec-secure-to-insecure", &cfg_type_boolean,
 		CFG_ZONE_MASTER
 	},
@@ -2334,9 +2337,6 @@ zone_only_clauses[] = {
 	},
 	{ "dlz", &cfg_type_astring,
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_REDIRECT
-	},
-	{ "dnssec-policy", &cfg_type_astring,
-		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
 	},
 	{ "file", &cfg_type_qstring,
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE | CFG_ZONE_MIRROR |

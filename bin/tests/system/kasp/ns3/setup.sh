@@ -43,11 +43,18 @@ U="UNRETENTIVE"
 # Set up zones that will be initially signed.
 #
 for zn in default rsasha1 dnssec-keygen some-keys legacy-keys pregenerated \
-	  rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384
+	  rsasha1-nsec3 rsasha256 rsasha512 ecdsa256 ecdsa384 inherit
 do
 	setup "${zn}.kasp"
 	cp template.db.in $zonefile
 done
+
+# Set up zone that stays unsigned.
+zone="unsigned.kasp"
+echo_i "setting up zone: $zone"
+zonefile="${zone}.db"
+infile="${zone}.db.infile"
+cp template.db.in $zonefile
 
 # Some of these zones already have keys.
 zone="dnssec-keygen.kasp"

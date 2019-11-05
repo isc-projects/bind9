@@ -58,6 +58,7 @@ options {\n\
 "\
 #	deallocate-on-exit <obsolete>;\n\
 #	directory <none>\n\
+	dnssec-policy \"none\";\n\
 	dump-file \"named_dump.db\";\n\
 	edns-udp-size 4096;\n\
 #	fake-iquery <obsolete>;\n"
