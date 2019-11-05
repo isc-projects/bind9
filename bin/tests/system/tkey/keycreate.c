@@ -236,7 +236,7 @@ main(int argc, char *argv[]) {
 	RUNCHECK(dst_lib_init(mctx, NULL));
 
 	taskmgr = NULL;
-	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));
+	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr));
 	task = NULL;
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	timermgr = NULL;

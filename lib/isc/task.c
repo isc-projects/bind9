@@ -155,6 +155,7 @@ struct isc__taskmgr {
 	atomic_uint_fast32_t		curq;
 	atomic_uint_fast32_t		tasks_count;
 	isc__taskqueue_t		*queues;
+	isc_nm_t			*nm;
 
 	/* Locked by task manager lock. */
 	unsigned int			default_quantum;
@@ -405,7 +406,8 @@ task_ready(isc__task_t *task) {
 	LOCK(&manager->queues[task->threadid].lock);
 	push_readyq(manager, task, task->threadid);
 	if (atomic_load(&manager->mode) == isc_taskmgrmode_normal ||
-	    has_privilege) {
+	    has_privilege)
+	{
 		SIGNAL(&manager->queues[task->threadid].work_available);
 	}
 	UNLOCK(&manager->queues[task->threadid].lock);
@@ -1323,7 +1325,8 @@ manager_free(isc__taskmgr_t *manager) {
 
 isc_result_t
 isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
-		    unsigned int default_quantum, isc_taskmgr_t **managerp)
+		    unsigned int default_quantum,
+		    isc_nm_t *nm, isc_taskmgr_t **managerp)
 {
 	unsigned int i;
 	isc__taskmgr_t *manager;
@@ -1354,6 +1357,11 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
 	}
 	manager->default_quantum = default_quantum;
+
+	if (nm != NULL) {
+		isc_nm_attach(nm, &manager->nm);
+	}
+
 	INIT_LIST(manager->tasks);
 	atomic_store(&manager->tasks_count, 0);
 	manager->queues = isc_mem_get(mctx,
@@ -1484,6 +1492,13 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 		isc_thread_join(manager->queues[i].thread, NULL);
 	}
 
+	/*
+	 * Detach from the network manager if it was set.
+	 */
+	if (manager->nm != NULL) {
+		isc_nm_detach(&manager->nm);
+	}
+
 	manager_free(manager);
 
 	*managerp = NULL;
@@ -1600,6 +1615,9 @@ isc_task_beginexclusive(isc_task_t *task0) {
 		WAIT(&manager->halt_cond, &manager->halt_lock);
 	}
 	UNLOCK(&manager->halt_lock);
+	if (manager->nm != NULL) {
+		isc_nm_pause(manager->nm);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -1610,9 +1628,11 @@ isc_task_endexclusive(isc_task_t *task0) {
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(task->state == task_state_running);
-
 	manager = task->manager;
 
+	if (manager->nm != NULL) {
+		isc_nm_resume(manager->nm);
+	}
 	LOCK(&manager->halt_lock);
 	REQUIRE(atomic_load_relaxed(&manager->exclusive_req) == true);
 	atomic_store_relaxed(&manager->exclusive_req, false);
@@ -1888,8 +1908,8 @@ isc_taskmgr_createinctx(isc_mem_t *mctx,
 {
 	isc_result_t result;
 
-	result = isc_taskmgr_create(mctx, workers, default_quantum,
-				       managerp);
+	result = isc_taskmgr_create(mctx, workers, default_quantum, NULL,
+				    managerp);
 
 	return (result);
 }

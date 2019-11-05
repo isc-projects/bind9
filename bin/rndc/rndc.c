@@ -936,11 +936,14 @@ main(int argc, char **argv) {
 	serial = isc_random32();
 
 	isc_mem_create(&rndc_mctx);
-	DO("create socket manager", isc_socketmgr_create(rndc_mctx, &socketmgr));
-	DO("create task manager", isc_taskmgr_create(rndc_mctx, 1, 0, &taskmgr));
+	DO("create socket manager", isc_socketmgr_create(rndc_mctx,
+							 &socketmgr));
+	DO("create task manager", isc_taskmgr_create(rndc_mctx, 1, 0,
+						     NULL, &taskmgr));
 	DO("create task", isc_task_create(taskmgr, 0, &task));
 
-	DO("create logging context", isc_log_create(rndc_mctx, &log, &logconfig));
+	DO("create logging context", isc_log_create(rndc_mctx, &log,
+						    &logconfig));
 	isc_log_setcontext(log);
 	DO("setting log tag", isc_log_settag(logconfig, progname));
 	logdest.file.stream = stderr;

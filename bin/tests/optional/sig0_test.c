@@ -226,7 +226,7 @@ main(int argc, char *argv[]) {
 	dst_result_register();
 
 	taskmgr = NULL;
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, 2, 0, &taskmgr) ==
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, 2, 0, NULL, &taskmgr) ==
 		      ISC_R_SUCCESS);
 	task1 = NULL;
 	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task1) == ISC_R_SUCCESS);

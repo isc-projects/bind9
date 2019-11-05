@@ -144,7 +144,7 @@ create_managers(void) {
 	isc_result_t result;
 
 	taskmgr = NULL;
-	result = isc_taskmgr_create(mctx, 5, 0, &taskmgr);
+	result = isc_taskmgr_create(mctx, 5, 0, NULL, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
 	timermgr = NULL;

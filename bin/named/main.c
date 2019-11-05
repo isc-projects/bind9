@@ -897,7 +897,7 @@ create_managers(void) {
 		      "using %u UDP listener%s per interface",
 		      named_g_udpdisp, named_g_udpdisp == 1 ? "" : "s");
 
-	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0,
+	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0, NULL,
 				    &named_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,

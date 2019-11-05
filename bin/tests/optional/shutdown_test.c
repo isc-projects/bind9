@@ -181,7 +181,7 @@ main(int argc, char *argv[]) {
 	isc_mem_create(&mctx);
 	mctx2 = NULL;
 	isc_mem_create(&mctx2);
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &task_manager) ==
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, NULL, &task_manager) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timer_manager) ==
 		      ISC_R_SUCCESS);

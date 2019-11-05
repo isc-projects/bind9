@@ -79,7 +79,7 @@ main(int argc, char *argv[]) {
 
 	isc_mem_create(&mctx);
 
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &manager) ==
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, NULL, &manager) ==
 		      ISC_R_SUCCESS);
 
 	RUNTIME_CHECK(isc_task_create(manager, 0, &t1) == ISC_R_SUCCESS);

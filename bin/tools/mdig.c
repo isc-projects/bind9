@@ -2047,7 +2047,7 @@ main(int argc, char *argv[]) {
 		fatal("can't choose between IPv4 and IPv6");
 
 	taskmgr = NULL;
-	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, &taskmgr));
+	RUNCHECK(isc_taskmgr_create(mctx, 1, 0, NULL, &taskmgr));
 	task = NULL;
 	RUNCHECK(isc_task_create(taskmgr, 0, &task));
 	timermgr = NULL;

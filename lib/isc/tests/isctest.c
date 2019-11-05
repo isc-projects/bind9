@@ -88,7 +88,7 @@ create_managers(unsigned int workers) {
 		workers = atoi(p);
 	}
 
-	CHECK(isc_taskmgr_create(mctx, workers, 0, &taskmgr));
+	CHECK(isc_taskmgr_create(mctx, workers, 0, NULL, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 

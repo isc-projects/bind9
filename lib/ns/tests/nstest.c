@@ -177,7 +177,7 @@ create_managers(void) {
 	isc_event_t *event = NULL;
 	ncpus = isc_os_ncpus();
 
-	CHECK(isc_taskmgr_create(mctx, ncpus, 0, &taskmgr));
+	CHECK(isc_taskmgr_create(mctx, ncpus, 0, NULL, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 	CHECK(isc_task_onshutdown(maintask, shutdown_managers, NULL));

@@ -906,7 +906,7 @@ setup_system(void) {
 	result = isc_timermgr_create(gmctx, &timermgr);
 	check_result(result, "dns_timermgr_create");
 
-	result = isc_taskmgr_create(gmctx, 1, 0, &taskmgr);
+	result = isc_taskmgr_create(gmctx, 1, 0, NULL, &taskmgr);
 	check_result(result, "isc_taskmgr_create");
 
 	result = isc_task_create(taskmgr, 0, &global_task);

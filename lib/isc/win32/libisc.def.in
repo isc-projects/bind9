@@ -611,6 +611,7 @@ isc_task_exiting
 isc_task_getcurrenttime
 isc_task_getcurrenttimex
 isc_task_onshutdown
+isc_task_pause
 isc_task_privilege
 isc_task_purge
 isc_task_purgeevent
@@ -622,6 +623,7 @@ isc_task_sendtoanddetach
 isc_task_setname
 isc_task_setprivilege
 isc_task_shutdown
+isc_task_unpause
 isc_task_unsend
 isc_taskmgr_create
 isc_taskmgr_createinctx
