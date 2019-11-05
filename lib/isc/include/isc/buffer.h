@@ -105,6 +105,7 @@
 #include <isc/assertions.h>
 #include <isc/formatcheck.h>
 #include <isc/lang.h>
+#include <isc/list.h>
 #include <isc/likely.h>
 #include <isc/magic.h>
 #include <isc/types.h>

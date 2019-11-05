@@ -20,15 +20,16 @@
  */
 #include <inttypes.h>
 #include <stdbool.h>
+
+#include <isc/lang.h>
 #include <isc/offset.h>
 
-/*
- * XXXDCL This is just for ISC_LIST and ISC_LINK, but gets all of the other
- * list macros too.
- */
-#include <isc/list.h>
-
 /* Core Types.  Alphabetized by defined type. */
+
+/*
+ * Defined here so we don't need to include list.h.
+ */
+#define ISC_LIST(type) struct { type *head, *tail; }
 
 typedef struct isc_appctx		isc_appctx_t;	 	/*%< Application context */
 typedef struct isc_backtrace_symmap	isc_backtrace_symmap_t; /*%< Symbol Table Entry */
@@ -44,7 +45,7 @@ typedef unsigned int			isc_eventtype_t;	/*%< Event Type */
 typedef uint32_t			isc_fsaccess_t;		/*%< FS Access */
 typedef struct isc_hash			isc_hash_t;		/*%< Hash */
 typedef struct isc_hp			isc_hp_t;		/*%< Hazard
-								  pointer */
+								     pointer */
 typedef struct isc_httpd		isc_httpd_t;		/*%< HTTP client */
 typedef void (isc_httpdfree_t)(isc_buffer_t *, void *);		/*%< HTTP free function */
 typedef struct isc_httpdmgr		isc_httpdmgr_t;		/*%< HTTP manager */

@@ -16,12 +16,12 @@
 #include <isc/formatcheck.h>
 #include <isc/fuzz.h>
 #include <isc/hmac.h>
+#include <isc/list.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/nonce.h>
 #include <isc/platform.h>
 #include <isc/print.h>
-#include <isc/queue.h>
 #include <isc/random.h>
 #include <isc/safe.h>
 #include <isc/serial.h>

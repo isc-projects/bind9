@@ -18,6 +18,7 @@
 #include <stdbool.h>
 
 #include <isc/lang.h>
+#include <isc/list.h>
 #include <isc/net.h>
 #include <isc/types.h>
 #ifdef ISC_PLATFORM_HAVESYSUNH

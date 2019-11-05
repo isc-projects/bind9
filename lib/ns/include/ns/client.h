@@ -58,10 +58,10 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
+#include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/stdtime.h>
 #include <isc/quota.h>
-#include <isc/queue.h>
 #include <isc/platform.h>
 
 #include <dns/db.h>

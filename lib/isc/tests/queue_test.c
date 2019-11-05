@@ -24,7 +24,7 @@
 #define UNIT_TESTING
 #include <cmocka.h>
 
-#include <isc/queue.h>
+#include <isc/list.h>
 #include <isc/util.h>
 
 #include "isctest.h"
