@@ -572,6 +572,22 @@ isc_task_endexclusive(isc_task_t *task);
  */
 
 void
+isc_task_pause(isc_task_t *task0);
+void
+isc_task_unpause(isc_task_t *task0);
+/*%<
+ * Pause/unpause this task. Pausing a task removes it from the ready
+ * queue if it is present there; this ensures that the task will not
+ * run again until unpaused. This is necessary when the libuv network
+ * thread executes a function which schedules task manager events; this
+ * prevents the task manager from executing the next event in a task
+ * before the network thread has finished.
+ *
+ * Requires:
+ *\li	'task' is a valid task, and is not already paused or shutting down.
+ */
+
+void
 isc_task_getcurrenttime(isc_task_t *task, isc_stdtime_t *t);
 void
 isc_task_getcurrenttimex(isc_task_t *task, isc_time_t *t);

@@ -78,8 +78,8 @@
  ***/
 
 typedef enum {
-	task_state_idle, task_state_ready, task_state_running,
-	task_state_done
+	task_state_idle, task_state_ready, task_state_paused,
+	task_state_running, task_state_done
 } task_state_t;
 
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
@@ -371,6 +371,7 @@ task_shutdown(isc__task_t *task) {
 			was_idle = true;
 		}
 		INSIST(task->state == task_state_ready ||
+		       task->state == task_state_paused ||
 		       task->state == task_state_running);
 
 		/*
@@ -491,7 +492,8 @@ task_send(isc__task_t *task, isc_event_t **eventp, int c) {
 		task->state = task_state_ready;
 	}
 	INSIST(task->state == task_state_ready ||
-	       task->state == task_state_running);
+	       task->state == task_state_running ||
+	       task->state == task_state_paused);
 	ENQUEUE(task->events, event, ev_link);
 	task->nevents++;
 	*eventp = NULL;
@@ -1134,12 +1136,15 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 							event);
 						LOCK(&task->lock);
 					}
+					XTRACE("execution complete");
 					dispatch_count++;
 				}
 
-				if (isc_refcount_current(&task->references) == 0 &&
+				if (isc_refcount_current(
+						 &task->references) == 0 &&
 				    EMPTY(task->events) &&
-				    !TASK_SHUTTINGDOWN(task)) {
+				    !TASK_SHUTTINGDOWN(task))
+				{
 					bool was_idle;
 
 					/*
@@ -1174,16 +1179,19 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					 * right now.
 					 */
 					XTRACE("empty");
-					if (isc_refcount_current(&task->references) == 0 &&
-					    TASK_SHUTTINGDOWN(task)) {
+					if (isc_refcount_current(
+						     &task->references) == 0 &&
+					    TASK_SHUTTINGDOWN(task))
+					{
 						/*
 						 * The task is done.
 						 */
 						XTRACE("done");
 						finished = true;
 						task->state = task_state_done;
-					} else
+					} else {
 						task->state = task_state_idle;
+					}
 					done = true;
 				} else if (dispatch_count >= task->quantum) {
 					/*
@@ -1641,6 +1649,55 @@ isc_task_endexclusive(isc_task_t *task0) {
 		WAIT(&manager->halt_cond, &manager->halt_lock);
 	}
 	UNLOCK(&manager->halt_lock);
+}
+
+void
+isc_task_pause(isc_task_t *task0) {
+	REQUIRE(ISCAPI_TASK_VALID(task0));
+	isc__task_t *task = (isc__task_t *)task0;
+	isc__taskmgr_t *manager = task->manager;
+	bool running = false;
+
+	LOCK(&task->lock);
+	INSIST(task->state == task_state_idle ||
+	       task->state == task_state_ready ||
+	       task->state == task_state_running);
+	running = (task->state == task_state_running);
+	task->state = task_state_paused;
+	UNLOCK(&task->lock);
+
+	if (running) {
+		return;
+	}
+
+	LOCK(&manager->queues[task->threadid].lock);
+	if (ISC_LINK_LINKED(task, ready_link)) {
+		DEQUEUE(manager->queues[task->threadid].ready_tasks,
+			task, ready_link);
+	}
+	UNLOCK(&manager->queues[task->threadid].lock);
+}
+
+void
+isc_task_unpause(isc_task_t *task0) {
+	isc__task_t *task = (isc__task_t *)task0;
+	bool was_idle = false;
+
+	REQUIRE(ISCAPI_TASK_VALID(task0));
+
+	LOCK(&task->lock);
+	INSIST(task->state == task_state_paused);
+	if (!EMPTY(task->events)) {
+		task->state = task_state_ready;
+		was_idle = true;
+	} else {
+		task->state = task_state_idle;
+	}
+	UNLOCK(&task->lock);
+
+	if (was_idle) {
+		task_ready(task);
+	}
 }
 
 void
