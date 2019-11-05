@@ -554,6 +554,9 @@
     <ClCompile Include="..\portset.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\queue.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\quota.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>

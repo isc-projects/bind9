@@ -440,6 +440,7 @@ copy InstallFiles ..\Build\Release\
     <ClCompile Include="..\parseint.c" />
     <ClCompile Include="..\pool.c" />
     <ClCompile Include="..\portset.c" />
+    <ClCompile Include="..\queue.c" />
     <ClCompile Include="..\quota.c" />
     <ClCompile Include="..\radix.c" />
     <ClCompile Include="..\random.c" />

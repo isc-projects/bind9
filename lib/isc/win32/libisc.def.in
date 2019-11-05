@@ -452,6 +452,10 @@ isc_portset_isset
 isc_portset_nports
 isc_portset_remove
 isc_portset_removerange
+isc_queue_enqueue
+isc_queue_dequeue
+isc_queue_destroy
+isc_queue_new
 isc_quota_attach
 isc_quota_destroy
 isc_quota_detach

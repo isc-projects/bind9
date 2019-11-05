@@ -9,7 +9,46 @@
  * information regarding copyright ownership.
  */
 
-#ifndef ISC_QUEUE_H
-#define ISC_QUEUE_H 1
+#pragma once
+#include <isc/mem.h>
 
-#endif /* ISC_QUEUE_H */
+typedef struct isc_queue isc_queue_t;
+
+isc_queue_t *
+isc_queue_new(isc_mem_t *mctx, int max_threads);
+/*%<
+ * Create a new fetch-and-add array queue.
+ *
+ * 'max_threads' is currently unused. In the future it can be used
+ * to pass a maximum threads parameter when creating hazard pointers,
+ * but currently `isc_hp_t` uses a hard-coded value.
+ */
+
+void
+isc_queue_enqueue(isc_queue_t *queue, uintptr_t item);
+/*%<
+ * Enqueue an object pointer 'item' at the tail of the queue.
+ *
+ * Requires:
+ * \li	'item' is not null.
+ */
+
+uintptr_t
+isc_queue_dequeue(isc_queue_t *queue);
+/*%<
+ * Remove an object pointer from the head of the queue and return the
+ * pointer. If the queue is empty, return `nulluintptr` (the uintptr_t
+ * representation of NULL).
+ *
+ * Requires:
+ * \li	'queue' is not null.
+ */
+
+void
+isc_queue_destroy(isc_queue_t *queue);
+/*%<
+ * Destroy a queue.
+ *
+ * Requires:
+ * \li	'queue' is not null.
+ */
