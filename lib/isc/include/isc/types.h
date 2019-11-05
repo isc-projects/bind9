@@ -43,6 +43,8 @@ typedef ISC_LIST(isc_event_t)		isc_eventlist_t;	/*%< Event List */
 typedef unsigned int			isc_eventtype_t;	/*%< Event Type */
 typedef uint32_t			isc_fsaccess_t;		/*%< FS Access */
 typedef struct isc_hash			isc_hash_t;		/*%< Hash */
+typedef struct isc_hp			isc_hp_t;		/*%< Hazard
+								  pointer */
 typedef struct isc_httpd		isc_httpd_t;		/*%< HTTP client */
 typedef void (isc_httpdfree_t)(isc_buffer_t *, void *);		/*%< HTTP free function */
 typedef struct isc_httpdmgr		isc_httpdmgr_t;		/*%< HTTP manager */

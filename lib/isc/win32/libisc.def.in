@@ -242,6 +242,13 @@ isc_heap_insert
 isc_hex_decodestring
 isc_hex_tobuffer
 isc_hex_totext
+isc_hp_clear
+isc_hp_destroy
+isc_hp_protect
+isc_hp_protect_ptr
+isc_hp_protect_release
+isc_hp_new
+isc_hp_retire
 isc_hmac
 isc_hmac_new
 isc_hmac_free
@@ -252,6 +259,13 @@ isc_hmac_final
 isc_hmac_get_md_type
 isc_hmac_get_size
 isc_hmac_get_block_size
+isc_hp_new
+isc_hp_destroy
+isc_hp_clear
+isc_hp_protect
+isc_hp_protect_ptr
+isc_hp_protect_release
+isc_hp_retire
 isc_ht_add
 isc_ht_count
 isc_ht_delete
