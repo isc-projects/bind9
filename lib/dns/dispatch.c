@@ -598,7 +598,8 @@ deref_portentry(dns_dispatch_t *disp, dispportentry_t **portentryp) {
 	dns_qid_t *qid;
 
 	REQUIRE(disp->port_table != NULL);
-	REQUIRE(portentry != NULL && isc_refcount_current(&portentry->refs) > 0);
+	REQUIRE(portentry != NULL &&
+		isc_refcount_current(&portentry->refs) > 0);
 
 	if (isc_refcount_decrement(&portentry->refs) == 1) {
 		qid = DNS_QID(disp);

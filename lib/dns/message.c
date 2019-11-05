@@ -1103,7 +1103,7 @@ getquestions(isc_buffer_t *source, dns_message_t *msg, dns_decompress_t *dctx,
 			result = ISC_R_NOMEMORY;
 			goto cleanup;
 		}
-		rdataset =  isc_mempool_get(msg->rdspool);
+		rdataset = isc_mempool_get(msg->rdspool);
 		if (rdataset == NULL) {
 			result = ISC_R_NOMEMORY;
 			goto cleanup;

@@ -36,7 +36,6 @@
 #define NS_SERVER_NOAA		0x00000002U	/*%< -T noaa */
 #define NS_SERVER_NOSOA		0x00000004U	/*%< -T nosoa */
 #define NS_SERVER_NONEAREST	0x00000008U	/*%< -T nonearest */
-#define NS_SERVER_CLIENTTEST	0x00000010U	/*%< -T clienttest */
 #define NS_SERVER_NOEDNS	0x00000020U	/*%< -T noedns */
 #define NS_SERVER_DROPEDNS	0x00000040U	/*%< -T dropedns */
 #define NS_SERVER_NOTCP		0x00000080U	/*%< -T notcp */

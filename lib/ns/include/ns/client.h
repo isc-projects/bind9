@@ -36,10 +36,10 @@
  * notified of this by calling one of the following functions
  * exactly once in the context of its task:
  * \code
- *   ns_client_send()	(sending a non-error response)
+ *   ns_client_send()	 (sending a non-error response)
  *   ns_client_sendraw() (sending a raw response)
- *   ns_client_error()	(sending an error response)
- *   ns_client_next()	(sending no response)
+ *   ns_client_error()	 (sending an error response)
+ *   ns_client_drop() (sending no response, logging the reason)
  *\endcode
  * This will release any resources used by the request and
  * and allow the ns_client_t to listen for the next request.
@@ -60,6 +60,7 @@
 #include <isc/buffer.h>
 #include <isc/list.h>
 #include <isc/magic.h>
+#include <isc/netmgr.h>
 #include <isc/stdtime.h>
 #include <isc/quota.h>
 #include <isc/platform.h>
@@ -80,58 +81,141 @@
  *** Types
  ***/
 
-/*% reference-counted TCP connection object */
-typedef struct ns_tcpconn {
-	isc_refcount_t		refs;
-	isc_quota_t		*tcpquota;
-	bool			pipelined;
-} ns_tcpconn_t;
+#define NS_CLIENT_TCP_BUFFER_SIZE			(65535 + 2)
+#define NS_CLIENT_SEND_BUFFER_SIZE		4096
+#define NS_CLIENT_RECV_BUFFER_SIZE		4096
+
+#define CLIENT_NMCTXS				100
+/*%<
+ * Number of 'mctx pools' for clients. (Should this be configurable?)
+ * When enabling threads, we use a pool of memory contexts shared by
+ * client objects, since concurrent access to a shared context would cause
+ * heavy contentions.  The above constant is expected to be enough for
+ * completely avoiding contentions among threads for an authoritative-only
+ * server.
+ */
+
+#define CLIENT_NTASKS				100
+/*%<
+ * Number of tasks to be used by clients - those are used only when recursing
+ */
+
+/*!
+ * Client object states.  Ordering is significant: higher-numbered
+ * states are generally "more active", meaning that the client can
+ * have more dynamically allocated data, outstanding events, etc.
+ * In the list below, any such properties listed for state N
+ * also apply to any state > N.
+ */
+
+typedef enum {
+	NS_CLIENTSTATE_FREED = 0,
+	/*%<
+	 * The client object no longer exists.
+	 */
+
+	NS_CLIENTSTATE_INACTIVE = 1,
+	/*%<
+	 * The client object exists and has a task and timer.
+	 * Its "query" struct and sendbuf are initialized.
+	 * It has a message and OPT, both in the reset state.
+	 */
+
+	NS_CLIENTSTATE_READY = 2,
+	/*%<
+	 * The client object is either a TCP or a UDP one, and
+	 * it is associated with a network interface.  It is on the
+	 * client manager's list of active clients.
+	 *
+	 * If it is a TCP client object, it has a TCP listener socket
+	 * and an outstanding TCP listen request.
+	 *
+	 * If it is a UDP client object, it has a UDP listener socket
+	 * and an outstanding UDP receive request.
+	 */
+
+	NS_CLIENTSTATE_WORKING = 3,
+	/*%<
+	 * The client object has received a request and is working
+	 * on it.  It has a view, and it may have any of a non-reset OPT,
+	 * recursion quota, and an outstanding write request.
+	 */
+
+	NS_CLIENTSTATE_RECURSING = 4,
+	/*%<
+	 * The client object is recursing.  It will be on the
+	 * 'recursing' list.
+	 */
+
+	NS_CLIENTSTATE_MAX = 5
+	/*%<
+	 * Sentinel value used to indicate "no state".
+	 */
+} ns_clientstate_t;
+
+typedef ISC_LIST(ns_client_t) client_list_t;
+
+/*% nameserver client manager structure */
+struct ns_clientmgr {
+	/* Unlocked. */
+	unsigned int		magic;
+
+	isc_mem_t *		mctx;
+	ns_server_t *		sctx;
+	isc_taskmgr_t *		taskmgr;
+	isc_timermgr_t *	timermgr;
+	isc_task_t *		excl;
+	isc_refcount_t		references;
+
+	/* Attached by clients, needed for e.g. recursion */
+	isc_task_t **		taskpool;
+
+	ns_interface_t		*interface;
+
+	/* Lock covers manager state. */
+	isc_mutex_t		lock;
+	bool			exiting;
+
+	/* Lock covers the recursing list */
+	isc_mutex_t		reclock;
+	client_list_t		recursing;    /*%< Recursing clients */
+
+#if CLIENT_NMCTXS > 0
+	/*%< mctx pool for clients. */
+	unsigned int		nextmctx;
+	isc_mem_t *		mctxpool[CLIENT_NMCTXS];
+#endif
+};
 
 /*% nameserver client structure */
 struct ns_client {
 	unsigned int		magic;
 	isc_mem_t		*mctx;
+	bool			allocated;	/* Do we need to free it? */
 	ns_server_t		*sctx;
 	ns_clientmgr_t		*manager;
-	int			state;
-	int			newstate;
+	ns_clientstate_t	state;
 	int			naccepts;
 	int			nreads;
 	int			nsends;
 	int			nrecvs;
 	int			nupdates;
 	int			nctls;
-	isc_refcount_t		references;
-	bool			tcpactive;
-	bool			needshutdown; 	/*
-						 * Used by clienttest to get
-						 * the client to go from
-						 * inactive to free state
-						 * by shutting down the
-						 * client's task.
-						 */
+	bool			shuttingdown;
 	unsigned int		attributes;
 	isc_task_t		*task;
 	dns_view_t		*view;
 	dns_dispatch_t		*dispatch;
-	isc_socket_t		*udpsocket;
-	isc_socket_t		*tcplistener;
-	isc_socket_t		*tcpsocket;
+	isc_nmhandle_t		*handle;
 	unsigned char		*tcpbuf;
-	dns_tcpmsg_t		tcpmsg;
-	bool			tcpmsg_valid;
-	isc_timer_t		*timer;
-	isc_timer_t		*delaytimer;
-	bool 			timerset;
 	dns_message_t		*message;
-	isc_socketevent_t	*sendevent;
-	isc_socketevent_t	*recvevent;
 	unsigned char		*recvbuf;
+	unsigned char		sendbuf[NS_CLIENT_SEND_BUFFER_SIZE];
 	dns_rdataset_t		*opt;
 	uint16_t		udpsize;
 	uint16_t		extflags;
 	int16_t			ednsversion;	/* -1 noedns */
-	void			(*next)(ns_client_t *);
+	void			(*cleanup)(ns_client_t *);
 	void			(*shutdown)(void *arg, isc_result_t result);
 	void 			*shutdown_arg;
 	ns_query_t		query;
@@ -141,9 +225,7 @@ struct ns_client {
 	dns_name_t		signername;   /*%< [T]SIG key name */
 	dns_name_t		*signer;      /*%< NULL if not valid sig */
 	bool			mortal;	      /*%< Die after handling request */
-	ns_tcpconn_t		*tcpconn;
 	isc_quota_t		*recursionquota;
-	ns_interface_t		*interface;
 
 	isc_sockaddr_t		peeraddr;
 	bool			peeraddr_valid;
@@ -154,7 +236,6 @@ struct ns_client {
 
 	struct in6_pktinfo	pktinfo;
 	isc_dscp_t		dscp;
-	isc_event_t		ctlevent;
 	/*%
 	 * Information about recent FORMERR response(s), for
 	 * FORMERR loop avoidance.  This is separate for each
@@ -170,9 +251,7 @@ struct ns_client {
 	/*% Callback function to send a response when unit testing */
 	void			(*sendcb)(isc_buffer_t *buf);
 
-	ISC_LINK(ns_client_t)	link;
 	ISC_LINK(ns_client_t)	rlink;
-	ISC_QLINK(ns_client_t)	ilink;
 	unsigned char		cookie[8];
 	uint32_t		expire;
 	unsigned char		*keytag;
@@ -186,9 +265,6 @@ struct ns_client {
 	 */
 	int32_t			rcode_override;
 };
-
-typedef ISC_QUEUE(ns_client_t) client_queue_t;
-typedef ISC_LIST(ns_client_t) client_list_t;
 
 #define NS_CLIENT_MAGIC			ISC_MAGIC('N','S','C','c')
 #define NS_CLIENT_VALID(c)		ISC_MAGIC_VALID(c, NS_CLIENT_MAGIC)
@@ -256,28 +332,16 @@ ns_client_error(ns_client_t *client, isc_result_t result);
  */
 
 void
-ns_client_next(ns_client_t *client, isc_result_t result);
+ns_client_drop(ns_client_t *client, isc_result_t result);
 /*%<
- * Finish processing the current client request,
- * return no response to the client.
+ * Log the reason the current client request has failed; no response
+ * will be sent.
  */
 
 bool
 ns_client_shuttingdown(ns_client_t *client);
 /*%<
  * Return true iff the client is currently shutting down.
- */
-
-void
-ns_client_attach(ns_client_t *source, ns_client_t **target);
-/*%<
- * Attach '*targetp' to 'source'.
- */
-
-void
-ns_client_detach(ns_client_t **clientp);
-/*%<
- * Detach '*clientp' from its client.
  */
 
 isc_result_t
@@ -296,7 +360,8 @@ ns_client_settimeout(ns_client_t *client, unsigned int seconds);
 
 isc_result_t
 ns_clientmgr_create(isc_mem_t *mctx, ns_server_t *sctx, isc_taskmgr_t *taskmgr,
-		    isc_timermgr_t *timermgr, ns_clientmgr_t **managerp);
+		    isc_timermgr_t *timermgr, ns_interface_t *ifp,
+		    ns_clientmgr_t **managerp);
 /*%<
  * Create a client manager.
  */
@@ -306,15 +371,6 @@ ns_clientmgr_destroy(ns_clientmgr_t **managerp);
 /*%<
  * Destroy a client manager and all ns_client_t objects
  * managed by it.
- */
-
-isc_result_t
-ns_clientmgr_createclients(ns_clientmgr_t *manager, unsigned int n,
-			   ns_interface_t *ifp, bool tcp);
-/*%<
- * Create up to 'n' clients listening on interface 'ifp'.
- * If 'tcp' is true, the clients will listen for TCP connections,
- * otherwise for UDP requests.
  */
 
 isc_sockaddr_t *
@@ -427,16 +483,14 @@ isc_result_t
 ns_client_addopt(ns_client_t *client, dns_message_t *message,
 		 dns_rdataset_t **opt);
 
-isc_result_t
-ns__clientmgr_getclient(ns_clientmgr_t *manager, ns_interface_t *ifp,
-			bool tcp, ns_client_t **clientp);
 /*
  * Get a client object from the inactive queue, or create one, as needed.
  * (Not intended for use outside this module and associated tests.)
  */
 
 void
-ns__client_request(isc_task_t *task, isc_event_t *event);
+ns__client_request(isc_nmhandle_t *handle, isc_region_t *region, void *arg);
+
 /*
  * Handle client requests.
  * (Not intended for use outside this module and associated tests.)
@@ -507,5 +561,25 @@ ns_client_findversion(ns_client_t *client, dns_db_t *db);
  * otherwise, take a database version from the list of dbversions
  * allocated by ns_client_newdbversion().
  */
+
+isc_result_t
+ns__client_setup(ns_client_t *client, ns_clientmgr_t *manager, bool new);
+/*%<
+ * Perform initial setup of an allocated client.
+ */
+
+void
+ns__client_reset_cb(void *client0);
+/*%<
+ * Reset the client object so that it can be reused.
+ */
+
+void
+ns__client_put_cb(void *client0);
+/*%<
+ * Free all resources allocated to this client object, so that
+ * it can be freed.
+ */
+
 
 #endif /* NS_CLIENT_H */

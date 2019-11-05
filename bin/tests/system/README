@@ -584,10 +584,6 @@ By default, start.pl starts a "named" server with the following options:
                     preventing multiple instances of this named running in this
                     directory (which could possibly interfere with the test).
 
-In addition, start.pl also sets the following undocumented flag:
-
-    -T clienttest   Makes clients single-shot with their own memory context.
-
 All output is sent to a file called "named.run" in the nameserver directory.
 
 The options used to start named can be altered.  There are three ways of doing
@@ -608,9 +604,9 @@ the named command-line arguments.  The rest of the file is ignored.
 
 3. Tweaking the default command line arguments with "-T" options.  This flag is
 used to alter the behavior of BIND for testing and is not documented in the
-ARM.  The "clienttest" option has already been mentioned, but the presence of
-certain files in the "nsN" directory adds flags to the default command line
-(the content of the files is irrelevant - it is only the presence that counts):
+ARM.  The presence of certain files in the "nsN" directory adds flags to
+the default command line (the content of the files is irrelevant - it
+is only the presence that counts):
 
     named.noaa       Appends "-T noaa" to the command line, which causes
                      "named" to never set the AA bit in an answer.
@@ -634,7 +630,6 @@ certain files in the "nsN" directory adds flags to the default command line
                      the addition of SOA records to negative responses (or to
                      the additional section if the response is triggered by RPZ
                      rewriting).
-
 
 Starting Other Nameservers
 ---

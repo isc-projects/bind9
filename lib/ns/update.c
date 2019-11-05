@@ -1529,7 +1529,6 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	isc_result_t result = ISC_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
-	ns_client_t *evclient;
 
 	event = (update_event_t *)
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
@@ -1537,12 +1536,11 @@ send_update_event(ns_client_t *client, dns_zone_t *zone) {
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
 
-	evclient = NULL;
-	ns_client_attach(client, &evclient);
 	INSIST(client->nupdates == 0);
 	client->nupdates++;
-	event->ev_arg = evclient;
+	event->ev_arg = client;
 
+	isc_nmhandle_ref(client->handle);
 	dns_zone_gettask(zone, &zonetask);
 	isc_task_send(zonetask, ISC_EVENT_PTR(&event));
 
@@ -1559,6 +1557,7 @@ respond(ns_client_t *client, isc_result_t result) {
 	client->message->rcode = dns_result_torcode(result);
 
 	ns_client_send(client);
+	isc_nmhandle_unref(client->handle);
 	return;
 
  msg_failure:
@@ -1566,7 +1565,8 @@ respond(ns_client_t *client, isc_result_t result) {
 		      ISC_LOG_ERROR,
 		      "could not create update response message: %s",
 		      isc_result_totext(msg_result));
-	ns_client_next(client, msg_result);
+	ns_client_drop(client, msg_result);
+	isc_nmhandle_unref(client->handle);
 }
 
 void
@@ -2518,7 +2518,8 @@ update_action(isc_task_t *task, isc_event_t *event) {
 	dns_ttl_t maxttl = 0;
 	uint32_t maxrecords;
 	uint64_t records;
-	dns_aclenv_t *env = ns_interfacemgr_getaclenv(client->interface->mgr);
+	dns_aclenv_t *env =
+		ns_interfacemgr_getaclenv(client->manager->interface->mgr);
 
 	INSIST(event->ev_type == DNS_EVENT_UPDATE);
 
@@ -3389,7 +3390,7 @@ updatedone_action(isc_task_t *task, isc_event_t *event) {
 	client->nupdates--;
 	respond(client, uev->result);
 	isc_event_free(&event);
-	ns_client_detach(&client);
+	isc_nmhandle_unref(client->handle);
 }
 
 /*%
@@ -3406,9 +3407,8 @@ forward_fail(isc_task_t *task, isc_event_t *event) {
 	client->nupdates--;
 	respond(client, DNS_R_SERVFAIL);
 	isc_event_free(&event);
-	ns_client_detach(&client);
+	isc_nmhandle_unref(client->handle);
 }
-
 
 static void
 forward_callback(void *arg, isc_result_t result, dns_message_t *answer) {
@@ -3443,7 +3443,7 @@ forward_done(isc_task_t *task, isc_event_t *event) {
 	ns_client_sendraw(client, uev->answer);
 	dns_message_destroy(&uev->answer);
 	isc_event_free(&event);
-	ns_client_detach(&client);
+	isc_nmhandle_unref(client->handle);
 }
 
 static void
@@ -3461,8 +3461,10 @@ forward_action(isc_task_t *task, isc_event_t *event) {
 		isc_task_send(client->task, &event);
 		inc_stats(client, zone, ns_statscounter_updatefwdfail);
 		dns_zone_detach(&zone);
-	} else
+	} else {
 		inc_stats(client, zone, ns_statscounter_updatereqfwd);
+	}
+
 	isc_task_detach(&task);
 }
 
@@ -3473,13 +3475,6 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	isc_result_t result = ISC_R_SUCCESS;
 	update_event_t *event = NULL;
 	isc_task_t *zonetask = NULL;
-	ns_client_t *evclient;
-
-	/*
-	 * This may take some time so replace this client.
-	 */
-	if (!client->mortal && (client->attributes & NS_CLIENTATTR_TCP) == 0)
-		CHECK(ns_client_replace(client));
 
 	event = (update_event_t *)
 		isc_event_allocate(client->mctx, client, DNS_EVENT_UPDATE,
@@ -3487,11 +3482,9 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 	event->zone = zone;
 	event->result = ISC_R_SUCCESS;
 
-	evclient = NULL;
-	ns_client_attach(client, &evclient);
 	INSIST(client->nupdates == 0);
 	client->nupdates++;
-	event->ev_arg = evclient;
+	event->ev_arg = client;
 
 	dns_name_format(dns_zone_getorigin(zone), namebuf,
 			sizeof(namebuf));
@@ -3503,10 +3496,11 @@ send_forward_event(ns_client_t *client, dns_zone_t *zone) {
 		      namebuf, classbuf);
 
 	dns_zone_gettask(zone, &zonetask);
+	isc_nmhandle_ref(client->handle);
 	isc_task_send(zonetask, ISC_EVENT_PTR(&event));
 
- failure:
-	if (event != NULL)
+	if (event != NULL) {
 		isc_event_free(ISC_EVENT_PTR(&event));
+	}
 	return (result);
 }

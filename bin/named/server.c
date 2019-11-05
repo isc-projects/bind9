@@ -9462,6 +9462,7 @@ run_server(isc_task_t *task, isc_event_t *event) {
 	CHECKFATAL(ns_interfacemgr_create(named_g_mctx, server->sctx,
 					  named_g_taskmgr, named_g_timermgr,
 					  named_g_socketmgr,
+					  named_g_nm,
 					  named_g_dispatchmgr,
 					  server->task, named_g_udpdisp, geoip,
 					  &server->interfacemgr),
@@ -9525,6 +9526,12 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 	INSIST(task == server->task);
 
+	/*
+	 * We need to shutdown the interface before going
+	 * exclusive (which would pause the netmgr).
+	 */
+	ns_interfacemgr_shutdown(server->interfacemgr);
+
 	result = isc_task_beginexclusive(server->task);
 	RUNTIME_CHECK(result == ISC_R_SUCCESS);
 
@@ -9582,7 +9589,6 @@ shutdown_server(isc_task_t *task, isc_event_t *event) {
 	isc_timer_detach(&server->pps_timer);
 	isc_timer_detach(&server->tat_timer);
 
-	ns_interfacemgr_shutdown(server->interfacemgr);
 	ns_interfacemgr_detach(&server->interfacemgr);
 
 	dns_dispatchmgr_destroy(&named_g_dispatchmgr);

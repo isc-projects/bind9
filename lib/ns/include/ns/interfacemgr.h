@@ -44,6 +44,7 @@
 
 #include <isc/magic.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/socket.h>
 #include <isc/refcount.h>
 
@@ -66,16 +67,18 @@
 /*% The nameserver interface structure */
 struct ns_interface {
 	unsigned int		magic;		/*%< Magic number. */
-	ns_interfacemgr_t *	mgr;		/*%< Interface manager. */
+	ns_interfacemgr_t	*mgr;		/*%< Interface manager. */
 	isc_mutex_t		lock;
 	isc_refcount_t		references;
 	unsigned int		generation;     /*%< Generation number. */
 	isc_sockaddr_t		addr;           /*%< Address and port. */
-	unsigned int		flags;		/*%< Interface characteristics */
+	unsigned int		flags;		/*%< Interface flags */
 	char 			name[32];	/*%< Null terminated. */
-	dns_dispatch_t *	udpdispatch[MAX_UDP_DISPATCH];
+	dns_dispatch_t		*udpdispatch[MAX_UDP_DISPATCH];
 						/*%< UDP dispatchers. */
-	isc_socket_t *		tcpsocket;	/*%< TCP socket. */
+	isc_socket_t		*tcpsocket;	/*%< TCP socket. */
+	isc_nmsocket_t 		*udplistensocket;
+	isc_nmsocket_t		*tcplistensocket;
 	isc_dscp_t		dscp;		/*%< "listen-on" DSCP value */
 	isc_refcount_t		ntcpaccepting;	/*%< Number of clients
 						     ready to accept new
@@ -86,7 +89,7 @@ struct ns_interface {
 						     (whether accepting or
 						     connected) */
 	int			nudpdispatch;	/*%< Number of UDP dispatches */
-	ns_clientmgr_t *	clientmgr;	/*%< Client manager. */
+	ns_clientmgr_t		*clientmgr;	/*%< Client manager. */
 	ISC_LINK(ns_interface_t) link;
 };
 
@@ -95,15 +98,11 @@ struct ns_interface {
  ***/
 
 isc_result_t
-ns_interfacemgr_create(isc_mem_t *mctx,
-		       ns_server_t *sctx,
-		       isc_taskmgr_t *taskmgr,
-		       isc_timermgr_t *timermgr,
-		       isc_socketmgr_t *socketmgr,
-		       dns_dispatchmgr_t *dispatchmgr,
-		       isc_task_t *task,
-		       unsigned int udpdisp,
-		       dns_geoip_databases_t *geoip,
+ns_interfacemgr_create(isc_mem_t *mctx, ns_server_t *sctx,
+		       isc_taskmgr_t *taskmgr, isc_timermgr_t *timermgr,
+		       isc_socketmgr_t *socketmgr, isc_nm_t *nm,
+		       dns_dispatchmgr_t *dispatchmgr, isc_task_t *task,
+		       unsigned int udpdisp, dns_geoip_databases_t *geoip,
 		       ns_interfacemgr_t **mgrp);
 /*%<
  * Create a new interface manager.
