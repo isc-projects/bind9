@@ -82,6 +82,8 @@ destroy(dns_kasp_t *kasp) {
 	dns_kasp_key_t *key;
 	dns_kasp_key_t *key_next;
 
+	ISC_INSIST(!ISC_LINK_LINKED(kasp, link));
+
 	for (key = ISC_LIST_HEAD(kasp->keys); key != NULL; key = key_next) {
 		key_next = ISC_LIST_NEXT(key, link);
 		ISC_LIST_UNLINK(kasp->keys, key, link);
