@@ -29,17 +29,17 @@
 #define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
 #if defined(_WIN32) && !defined(_WIN64)
-	typedef atomic_int_fast32_t isc__atomic_statcounter_t;
+typedef atomic_int_fast32_t isc_stat_t;
 #else
-	typedef atomic_int_fast64_t isc__atomic_statcounter_t;
+typedef atomic_int_fast64_t isc_stat_t;
 #endif
 
 struct isc_stats {
-	unsigned int			magic;
-	isc_mem_t			*mctx;
-	isc_refcount_t			references;
-	int				ncounters;
-	isc__atomic_statcounter_t	*counters;
+	unsigned int		magic;
+	isc_mem_t		*mctx;
+	isc_refcount_t		references;
+	int			ncounters;
+	isc_stat_t		*counters;
 };
 
 static isc_result_t
@@ -148,4 +148,35 @@ isc_stats_set(isc_stats_t *stats, uint64_t val,
 
 	atomic_store_explicit(&stats->counters[counter], val,
 			      memory_order_relaxed);
+}
+
+void isc_stats_update_if_greater(isc_stats_t *stats,
+				 isc_statscounter_t counter,
+				 isc_statscounter_t value)
+{
+	REQUIRE(ISC_STATS_VALID(stats));
+	REQUIRE(counter < stats->ncounters);
+
+	isc_statscounter_t curr_value;
+
+	do {
+		curr_value = atomic_load_explicit(&stats->counters[counter],
+						  memory_order_relaxed);
+		if (curr_value >= value) {
+			break;
+		}
+
+	} while (!atomic_compare_exchange_strong(&stats->counters[counter],
+						 &curr_value,
+						 value));
+}
+
+isc_statscounter_t
+isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter)
+{
+	REQUIRE(ISC_STATS_VALID(stats));
+	REQUIRE(counter < stats->ncounters);
+
+	return (atomic_load_explicit(&stats->counters[counter],
+				    memory_order_relaxed));
 }

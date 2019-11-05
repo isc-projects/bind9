@@ -123,4 +123,11 @@ ns_stats_decrement(ns_stats_t *stats, isc_statscounter_t counter);
 isc_stats_t *
 ns_stats_get(ns_stats_t *stats);
 
+void ns_stats_update_if_greater(ns_stats_t *stats,
+				isc_statscounter_t counter,
+				isc_statscounter_t value);
+
+isc_statscounter_t
+ns_stats_get_counter(ns_stats_t *stats, isc_statscounter_t counter);
+
 #endif /* NS_STATS_H */
