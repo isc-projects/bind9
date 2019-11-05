@@ -143,10 +143,6 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 	}
 	INSIST(kasp != NULL);
 
-	/* Append it to the list for future lookups. */
-	ISC_LIST_APPEND(*kasplist, kasp, link);
-	ISC_INSIST(!(ISC_LIST_EMPTY(*kasplist)));
-
 	/* Now configure. */
 	INSIST(DNS_KASP_VALID(kasp));
 
@@ -211,8 +207,13 @@ cfg_kasp_fromconfig(const cfg_obj_t *config, isc_mem_t* mctx,
 
 	// TODO: Rest of the configuration
 
+	/* Append it to the list for future lookups. */
+	ISC_LIST_APPEND(*kasplist, kasp, link);
+	ISC_INSIST(!(ISC_LIST_EMPTY(*kasplist)));
+
 	/* Success: Attach the kasp to the pointer and return. */
 	dns_kasp_attach(kasp, kaspp);
+	/* Don't detach as kasp is on '*kasplist' */
 	return (ISC_R_SUCCESS);
 
 cleanup:
