@@ -563,7 +563,7 @@ AS_IF([test "$enable_geoip" = "yes"],
 	       [ # default
 		   AX_SAVE_FLAGS([maxminddb])
 		   MAXMINDDB_CFLAGS="-I$with_maxminddb/include"
-		   MAXMINDDB_LIBS="-L$with_maxminddb/libs"
+		   MAXMINDDB_LIBS="-L$with_maxminddb/lib"
 		   CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
 		   LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
 		   AC_SEARCH_LIBS([MMDB_open], [maxminddb],

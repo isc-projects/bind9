@@ -1,3 +1,7 @@
+5313.	[bug]		The default GeoIP2 database location did not match
+			the ARM.  'named -V' now reports the default
+			location. [GL #1301]
+
 5312.	[bug]		Do not flush the cache for `rndc validation status`.
 			Thanks to Tony Finch. [GL !2462]
 
