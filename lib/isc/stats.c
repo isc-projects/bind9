@@ -29,17 +29,17 @@
 #define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
 #if defined(_WIN32) && !defined(_WIN64)
-typedef atomic_int_fast32_t isc_stat_t;
+	typedef atomic_int_fast32_t isc__atomic_statcounter_t;
 #else
-typedef atomic_int_fast64_t isc_stat_t;
+	typedef atomic_int_fast64_t isc__atomic_statcounter_t;
 #endif
 
 struct isc_stats {
-	unsigned int		magic;
-	isc_mem_t		*mctx;
-	isc_refcount_t		references;
-	int			ncounters;
-	isc_stat_t		*counters;
+	unsigned int			magic;
+	isc_mem_t			*mctx;
+	isc_refcount_t			references;
+	int				ncounters;
+	isc__atomic_statcounter_t	*counters;
 };
 
 static isc_result_t
