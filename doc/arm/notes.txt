@@ -43,25 +43,37 @@ support for systems that are still supported by their respective vendors.
 
 Download
 
-The latest versions of BIND 9 software can always be found at http://
-www.isc.org/downloads/. There you will find additional information about
+The latest versions of BIND 9 software can always be found at https://
+www.isc.org/download/. There you will find additional information about
 each release, source code, and pre-compiled versions for Microsoft Windows
 operating systems.
 
+Notes for BIND 9.15.6
+
+New Features
+
+  * A new asynchronous network communications system based on libuv is now
+    used by named for listening for incoming requests and responding to
+    them. This change will make it easier to improve performance and
+    implement new protocol layers (for example, DNS over TLS) in the
+    future. [GL #29]
+
+  * The new dnssec-policy option allows the configuration key and signing
+    policy (KASP) for zones. This option enables named to generate new
+    keys as needed and automatically roll both ZSK and KSK keys. (Note
+    that the syntax for this statement differs from the DNSSEC policy used
+    by dnssec-keymgr.) [GL #1134]
+
+Feature Changes
+
+  * NSEC Aggressive Cache (synth-from-dnssec) has been disabled by default
+    because it was found to have a significant performance impact on the
+    recursive service. The NSEC Aggressive Cache will be enable by default
+    in the future releases. [GL #1265]
+
+Notes for BIND 9.15.5
+
 Security Fixes
-
-  * The TCP client quota set using the tcp-clients option could be
-    exceeded in some cases. This could lead to exhaustion of file
-    descriptors. This flaw is disclosed in CVE-2018-5743. [GL #615]
-
-  * In certain configurations, named could crash with an assertion failure
-    if nxdomain-redirect was in use and a redirected query resulted in an
-    NXDOMAIN from the cache. This flaw is disclosed in CVE-2019-6467. [GL
-    #880]
-
-  * A race condition could trigger an assertion failure when a large
-    number of incoming packets were being rejected. This flaw is disclosed
-    in CVE-2019-6471. [GL #942]
 
   * named could crash with an assertion failure if a forwarder returned a
     referral, rather than resolving the query, when QNAME minimization was
@@ -71,6 +83,8 @@ Security Fixes
     allow data to be incorrectly marked valid. This flaw is disclosed in
     CVE-2019-6475. [GL #1252]
 
+Notes for BIND 9.15.4
+
 New Features
 
   * Added a new command line option to dig: +[no]unexpected. By default,
@@ -78,60 +92,21 @@ New Features
     sent the query. Add the +unexpected argument to enable it to process
     replies from unexpected sources.
 
-  * The GeoIP2 API from MaxMind is now supported. Geolocation support will
-    be compiled in by default if the libmaxminddb library is found at
-    compile time, but can be turned off by using configure --disable-geoip
-    .
-
-    The default path to the GeoIP2 databases will be set based on the
-    location of the libmaxminddb library; for example, if it is in /usr/
-    local/lib, then the default path will be /usr/local/share/GeoIP. This
-    value can be overridden in named.conf using the geoip-directory
-    option.
-
-    Some geoip ACL settings that were available with legacy GeoIP,
-    including searches for netspeed, org, and three-letter ISO country
-    codes, will no longer work when using GeoIP2. Supported GeoIP2
-    database types are country, city, domain, isp, and as. All of these
-    databases support both IPv4 and IPv6 lookups. [GL #182] [GL #1112]
-
-  * In order to clarify the configuration of DNSSEC keys, the trusted-keys
-    and managed-keys statements have been deprecated, and the new
-    dnssec-keys statement should now be used for both types of key.
-
-    When used with the keyword initial-key, dnssec-keys has the same
-    behavior as managed-keys, i.e., it configures a trust anchor that is
-    to be maintained via RFC 5011.
-
-    When used with the new keyword static-key, it has the same behavior as
-    trusted-keys, configuring a permanent trust anchor that will not
-    automatically be updated. (This usage is not recommended for the root
-    key.) [GL #6]
-
-  * The new add-soa option specifies whether or not the response-policy
-    zone's SOA record should be included in the additional section of RPZ
-    responses. [GL #865]
-
-  * Two new metrics have been added to the statistics-channel to report
-    DNSSEC signing operations. For each key in each zone, the dnssec-sign
-    counter indicates the total number of signatures named has generated
-    using that key since server startup, and the dnssec-refresh counter
-    indicates how many of those signatures were refreshed during zone
-    maintenance, as opposed to having been generated as a result of a zone
-    update. [GL #513]
-
-  * Statistics channel groups are now toggleable. [GL #1030]
-
   * dig, mdig and delv can all now take a +yaml option to print output in
     a a detailed YAML format. [RT #1145]
 
+Bug Fixes
+
+  * When a response-policy zone expires, ensure that its policies are
+    removed from the RPZ summary database. [GL #1146]
+
+Notes for BIND 9.15.3
+
+New Features
+
+  * Statistics channel groups are now toggleable. [GL #1030]
+
 Removed Features
-
-  * The dnssec-enable option has been obsoleted and no longer has any
-    effect. DNSSEC responses are always enabled if signatures and other
-    DNSSEC data are present. [GL #866]
-
-  * The cleaning-interval option has been removed. [GL !1731]
 
   * DNSSEC Lookaside Validation (DLV) is now obsolete. The
     dnssec-lookaside option has been marked as deprecated; when used in
@@ -140,31 +115,6 @@ Removed Features
     from the validator, delv, and the DNSSEC tools. [GL #7]
 
 Feature Changes
-
-  * named will now log a warning if a static key is configured for the
-    root zone. [GL #6]
-
-  * When static and managed DNSSEC keys were both configured for the same
-    name, or when a static key was used to configure a trust anchor for
-    the root zone and dnssec-validation was set to the default value of
-    auto, automatic RFC 5011 key rollovers would be disabled. This
-    combination of settings was never intended to work, but there was no
-    check for it in the parser. This has been corrected, and it is now a
-    fatal configuration error. [GL #868]
-
-  * DS and CDS records are now generated with SHA-256 digests only,
-    instead of both SHA-1 and SHA-256. This affects the default output of
-    dnssec-dsfromkey, the dsset files generated by dnssec-signzone, the DS
-    records added to a zone by dnssec-signzone based on keyset files, the
-    CDS records added to a zone by named and dnssec-signzone based on
-    "sync" timing parameters in key files, and the checks performed by
-    dnssec-checkds.
-
-  * JSON-C is now the only supported library for enabling JSON support for
-    BIND statistics. The configure option has been renamed from
-    --with-libjson to --with-json-c. Use PKG_CONFIG_PATH to specify a
-    custom path to the json-c library as the new configure option does not
-    take the library installation path as an optional argument.
 
   * A SipHash 2-4 based DNS Cookie (RFC 7873) algorithm has been added and
     made default. Old non-default HMAC-SHA based DNS Cookie algorithms
@@ -191,9 +141,58 @@ Feature Changes
 
 Bug Fixes
 
-  * The allow-update and allow-update-forwarding options were
-    inadvertently treated as configuration errors when used at the options
-    or view level. This has now been corrected. [GL #913]
+  * Cache database statistics counters could report invalid values when
+    stale answers were enabled, because of a bug in counter maintenance
+    when cache data becomes stale. The statistics counters have been
+    corrected to report the number of RRsets for each RR type that are
+    active, stale but still potentially served, or stale and marked for
+    deletion. [GL #602]
+
+  * Interaction between DNS64 and RPZ No Data rule (CNAME *.) could cause
+    unexpected results; this has been fixed. [GL #1106]
+
+  * named-checkconf now checks DNS64 prefixes to ensure bits 64-71 are
+    zero. [GL #1159]
+
+  * named-checkconf now correctly reports a missing dnstap-output option
+    when dnstap is set. [GL #1136]
+
+  * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
+    1133]
+
+  * dig now correctly expands the IPv6 address when run with +expandaaaa
+    +short. [GL #1152]
+
+Notes for BIND 9.15.2
+
+New Features
+
+  * The GeoIP2 API from MaxMind is now supported. Geolocation support will
+    be compiled in by default if the libmaxminddb library is found at
+    compile time, but can be turned off by using configure --disable-geoip
+    .
+
+    The default path to the GeoIP2 databases will be set based on the
+    location of the libmaxminddb library; for example, if it is in /usr/
+    local/lib, then the default path will be /usr/local/share/GeoIP. This
+    value can be overridden in named.conf using the geoip-directory
+    option.
+
+    Some geoip ACL settings that were available with legacy GeoIP,
+    including searches for netspeed, org, and three-letter ISO country
+    codes, will no longer work when using GeoIP2. Supported GeoIP2
+    database types are country, city, domain, isp, and as. All of these
+    databases support both IPv4 and IPv6 lookups. [GL #182] [GL #1112]
+
+  * Two new metrics have been added to the statistics-channel to report
+    DNSSEC signing operations. For each key in each zone, the dnssec-sign
+    counter indicates the total number of signatures named has generated
+    using that key since server startup, and the dnssec-refresh counter
+    indicates how many of those signatures were refreshed during zone
+    maintenance, as opposed to having been generated as a result of a zone
+    update. [GL #513]
+
+Bug Fixes
 
   * When qname-minimization was set to relaxed, some improperly configured
     domains would fail to resolve, but would have succeeded when
@@ -210,30 +209,92 @@ Bug Fixes
   * Glue address records were not being returned in responses to root
     priming queries; this has been corrected. [GL #1092]
 
-  * Interaction between DNS64 and RPZ No Data rule (CNAME *.) could cause
-    unexpected results; this has been fixed. [GL #1106]
+Notes for BIND 9.15.1
 
-  * named-checkconf now checks DNS64 prefixes to ensure bits 64-71 are
-    zero. [GL #1159]
+Security Fixes
 
-  * named-checkconf now correctly reports a missing dnstap-output option
-    when dnstap is set. [GL #1136]
+  * A race condition could trigger an assertion failure when a large
+    number of incoming packets were being rejected. This flaw is disclosed
+    in CVE-2019-6471. [GL #942]
 
-  * Handle ETIMEDOUT error on connect() with a non-blocking socket. [GL #
-    1133]
+New Features
 
-  * Cache database statistics counters could report invalid values when
-    stale answers were enabled, because of a bug in counter maintenance
-    when cache data becomes stale. The statistics counters have been
-    corrected to report the number of RRsets for each RR type that are
-    active, stale but still potentially served, or stale and marked for
-    deletion. [GL #602]
+  * In order to clarify the configuration of DNSSEC keys, the trusted-keys
+    and managed-keys statements have been deprecated, and the new
+    dnssec-keys statement should now be used for both types of key.
 
-  * dig now correctly expands the IPv6 address when run with +expandaaaa
-    +short. [GL #1152]
+    When used with the keyword initial-key, dnssec-keys has the same
+    behavior as managed-keys, i.e., it configures a trust anchor that is
+    to be maintained via RFC 5011.
 
-  * When a response-policy zone expires, ensure that its policies are
-    removed from the RPZ summary database. [GL #1146]
+    When used with the new keyword static-key, it has the same behavior as
+    trusted-keys, configuring a permanent trust anchor that will not
+    automatically be updated. (This usage is not recommended for the root
+    key.) [GL #6]
+
+Removed Features
+
+  * The cleaning-interval option has been removed. [GL !1731]
+
+Feature Changes
+
+  * named will now log a warning if a static key is configured for the
+    root zone. [GL #6]
+
+  * JSON-C is now the only supported library for enabling JSON support for
+    BIND statistics. The configure option has been renamed from
+    --with-libjson to --with-json-c. Use PKG_CONFIG_PATH to specify a
+    custom path to the json-c library as the new configure option does not
+    take the library installation path as an optional argument.
+
+Notes for BIND 9.15.0
+
+Security Fixes
+
+  * In certain configurations, named could crash with an assertion failure
+    if nxdomain-redirect was in use and a redirected query resulted in an
+    NXDOMAIN from the cache. This flaw is disclosed in CVE-2019-6467. [GL
+    #880]
+
+  * The TCP client quota set using the tcp-clients option could be
+    exceeded in some cases. This could lead to exhaustion of file
+    descriptors. This flaw is disclosed in CVE-2018-5743. [GL #615]
+
+New Features
+
+  * The new add-soa option specifies whether or not the response-policy
+    zone's SOA record should be included in the additional section of RPZ
+    responses. [GL #865]
+
+Removed Features
+
+  * The dnssec-enable option has been obsoleted and no longer has any
+    effect. DNSSEC responses are always enabled if signatures and other
+    DNSSEC data are present. [GL #866]
+
+Feature Changes
+
+  * When static and managed DNSSEC keys were both configured for the same
+    name, or when a static key was used to configure a trust anchor for
+    the root zone and dnssec-validation was set to the default value of
+    auto, automatic RFC 5011 key rollovers would be disabled. This
+    combination of settings was never intended to work, but there was no
+    check for it in the parser. This has been corrected, and it is now a
+    fatal configuration error. [GL #868]
+
+  * DS and CDS records are now generated with SHA-256 digests only,
+    instead of both SHA-1 and SHA-256. This affects the default output of
+    dnssec-dsfromkey, the dsset files generated by dnssec-signzone, the DS
+    records added to a zone by dnssec-signzone based on keyset files, the
+    CDS records added to a zone by named and dnssec-signzone based on
+    "sync" timing parameters in key files, and the checks performed by
+    dnssec-checkds.
+
+Bug Fixes
+
+  * The allow-update and allow-update-forwarding options were
+    inadvertently treated as configuration errors when used at the options
+    or view level. This has now been corrected. [GL #913]
 
 License
 
@@ -258,12 +319,12 @@ complete, it will be renamed to BIND 9.16, which will be a stable branch.
 The end of life date for BIND 9.16 has not yet been determined. For those
 needing long term support, the current Extended Support Version (ESV) is
 BIND 9.11, which will be supported until at least December 2021. See
-https://www.isc.org/downloads/software-support-policy/ for details of
-ISC's software support policy.
+https://kb.isc.org/docs/aa-00896 for details of ISC's software support
+policy.
 
 Thank You
 
 Thank you to everyone who assisted us in making this release possible. If
 you would like to contribute to ISC to assist us in continuing to make
-quality open source software, please visit our donations page at http://
+quality open source software, please visit our donations page at https://
 www.isc.org/donate/.
