@@ -1,3 +1,7 @@
+5313.	[bug]		The default GeoIP2 database location did not match
+			the ARM.  'named -V' now reports the default
+			location. [GL #1301]
+
 5310.	[bug]		TCP failures were affecting EDNS statistics. [GL #1059]
 
 5308.	[bug]		Don't log DNS_R_UNCHANGED from sync_secure_journal()
