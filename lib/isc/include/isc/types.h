@@ -63,6 +63,10 @@ typedef struct isc_logmodule		isc_logmodule_t;	/*%< Log Module */
 typedef struct isc_mem			isc_mem_t;		/*%< Memory */
 typedef struct isc_mempool		isc_mempool_t;		/*%< Memory Pool */
 typedef struct isc_netaddr		isc_netaddr_t;		/*%< Net Address */
+typedef struct isc_nm			 isc_nm_t;		/*%< Network manager */
+typedef struct isc_nmsocket		 isc_nmsocket_t;	/*%< Network manager socket */
+typedef struct isc_nmiface		 isc_nmiface_t;		/*%< Network manager interface.  */
+typedef struct isc_nmhandle		 isc_nmhandle_t;	/*%< Network manager handle */
 typedef struct isc_portset		isc_portset_t;		/*%< Port Set */
 typedef struct isc_quota		isc_quota_t;		/*%< Quota */
 typedef struct isc_ratelimiter		isc_ratelimiter_t;	/*%< Rate Limiter */

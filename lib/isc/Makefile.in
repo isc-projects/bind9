@@ -54,6 +54,8 @@ OBJS =		pk11.@O@ pk11_result.@O@ \
 		hmac.@O@ hp.@O@ httpd.@O@ iterated_hash.@O@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
 		md.@O@ mem.@O@ mutexblock.@O@ \
+		netmgr/netmgr.@O@ netmgr/tcp.@O@ netmgr/udp.@O@ \
+		netmgr/tcpdns.@O@ netmgr/uverr2result.@O@ \
 		netaddr.@O@ netscope.@O@ nonce.@O@ openssl_shim.@O@ pool.@O@ \
 		parseint.@O@ portset.@O@ queue.@O@ quota.@O@ \
 		radix.@O@ random.@O@ ratelimiter.@O@ \
@@ -86,7 +88,7 @@ LIBS =		${OPENSSL_LIBS} @LIBS@
 # Attempt to disable parallel processing.
 .NOTPARALLEL:
 .NO_PARALLEL:
-SUBDIRS =	include unix pthreads
+SUBDIRS =	include netmgr unix pthreads
 TARGETS =	timestamp
 TESTDIRS =	@UNITTESTS@
 

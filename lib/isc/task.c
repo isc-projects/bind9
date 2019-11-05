@@ -1336,11 +1336,12 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	RUNTIME_CHECK(manager != NULL);
-	manager->common.impmagic = TASK_MANAGER_MAGIC;
-	manager->common.magic = ISCAPI_TASKMGR_MAGIC;
+	*manager = (isc__taskmgr_t) {
+		.common.impmagic = TASK_MANAGER_MAGIC,
+		.common.magic = ISCAPI_TASKMGR_MAGIC
+	};
+
 	atomic_store(&manager->mode, isc_taskmgrmode_normal);
-	manager->mctx = NULL;
 	isc_mutex_init(&manager->lock);
 	isc_mutex_init(&manager->excl_lock);
 
@@ -1363,8 +1364,6 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	atomic_init(&manager->tasks_ready, 0);
 	atomic_init(&manager->curq, 0);
 	atomic_init(&manager->exiting, false);
-	manager->excl = NULL;
-	manager->halted = 0;
 	atomic_store_relaxed(&manager->exclusive_req, false);
 	atomic_store_relaxed(&manager->pause_req, false);
 
