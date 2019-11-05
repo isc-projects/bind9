@@ -31,29 +31,31 @@
 #define ISC_STATS_VALID(x)		ISC_MAGIC_VALID(x, ISC_STATS_MAGIC)
 
 #if defined(_WIN32) && !defined(_WIN64)
-typedef atomic_int_fast32_t isc_stat_t;
+	typedef atomic_int_fast32_t isc__atomic_statcounter_t;
 #else
-typedef atomic_int_fast64_t isc_stat_t;
+	typedef atomic_int_fast64_t isc__atomic_statcounter_t;
 #endif
 
 struct isc_stats {
-	unsigned int		magic;
-	isc_mem_t		*mctx;
-	isc_refcount_t		refs;
-	int			ncounters;
-	isc_stat_t		*counters;
+	unsigned int			magic;
+	isc_mem_t			*mctx;
+	isc_refcount_t			refs;
+	int				ncounters;
+	isc__atomic_statcounter_t	*counters;
 };
 
 static isc_result_t
 create_stats(isc_mem_t *mctx, int ncounters, isc_stats_t **statsp) {
 	isc_stats_t *stats;
+	size_t counters_alloc_size;
 
 	REQUIRE(statsp != NULL && *statsp == NULL);
 
 	stats = isc_mem_get(mctx, sizeof(*stats));
-	stats->counters = isc_mem_get(mctx, sizeof(isc_stat_t) * ncounters);
+	counters_alloc_size = sizeof(isc__atomic_statcounter_t) * ncounters;
+	stats->counters = isc_mem_get(mctx, counters_alloc_size);
 	isc_refcount_init(&stats->refs, 1);
-	memset(stats->counters, 0, sizeof(isc_stat_t) * ncounters);
+	memset(stats->counters, 0, counters_alloc_size);
 	stats->mctx = NULL;
 	isc_mem_attach(mctx, &stats->mctx);
 	stats->ncounters = ncounters;
@@ -83,7 +85,8 @@ isc_stats_detach(isc_stats_t **statsp) {
 
 	if (isc_refcount_decrement(&stats->refs) == 1) {
 		isc_mem_put(stats->mctx, stats->counters,
-			    sizeof(isc_stat_t) * stats->ncounters);
+			    sizeof(isc__atomic_statcounter_t) *
+				stats->ncounters);
 		isc_mem_putanddetach(&stats->mctx, stats, sizeof(*stats));
 	}
 }
