@@ -1,0 +1,47 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.15.4"><info><title>Notes for BIND 9.15.4</title></info>
+
+  <section xml:id="relnotes-9.15.4-new"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Added a new command line option to <command>dig</command>:
+          <command>+[no]unexpected</command>. By default, <command>dig</command>
+          won't accept a reply from a source other than the one to which
+          it sent the query.  Add the <command>+unexpected</command> argument
+          to enable it to process replies from unexpected sources.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig</command>, <command>mdig</command> and
+          <command>delv</command> can all now take a <command>+yaml</command>
+          option to print output in a a detailed YAML format. [RT #1145]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.15.4-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          When a <command>response-policy</command> zone expires, ensure
+          that its policies are removed from the RPZ summary database.
+          [GL #1146]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>

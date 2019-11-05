@@ -23,11 +23,15 @@
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-numbering.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-platforms.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-download.xml"/>
-  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-sec-fixes.xml"/>
-  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-new-features.xml"/>
-  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-removed.xml"/>
-  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-feature-changes.xml"/>
-  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-bug-fixes.xml"/>
+
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.15.6.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.15.5.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.15.4.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.15.3.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.15.2.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.15.1.xml"/>
+  <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-9.15.0.xml"/>
+
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-license.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-eol.xml"/>
   <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="notes-thankyou.xml"/>
