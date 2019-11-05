@@ -953,21 +953,12 @@ client_resfind(resctx_t *rctx, dns_fetchevent_t *event) {
 			 * Otherwise, get some resource for copying the
 			 * result.
 			 */
-			ansname = isc_mem_get(mctx, sizeof(*ansname));
-			if (ansname == NULL)
-				tresult = ISC_R_NOMEMORY;
-			else {
-				dns_name_t *aname;
+			dns_name_t *aname = dns_fixedname_name(&rctx->name);
 
-				aname = dns_fixedname_name(&rctx->name);
-				dns_name_init(ansname, NULL);
-				tresult = dns_name_dup(aname, mctx, ansname);
-				if (tresult != ISC_R_SUCCESS)
-					isc_mem_put(mctx, ansname,
-						    sizeof(*ansname));
-			}
-			if (tresult != ISC_R_SUCCESS)
-				result = tresult;
+			ansname = isc_mem_get(mctx, sizeof(*ansname));
+			dns_name_init(ansname, NULL);
+
+			(void)dns_name_dup(aname, mctx, ansname);
 		}
 
 		switch (result) {

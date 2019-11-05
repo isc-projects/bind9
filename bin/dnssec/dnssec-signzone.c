@@ -792,7 +792,10 @@ hashlist_comp(const void *a, const void *b) {
 
 static void
 hashlist_sort(hashlist_t *l) {
-	qsort(l->hashbuf, l->entries, l->length, hashlist_comp);
+	INSIST(l->hashbuf != NULL || l->length == 0);
+	if (l->length > 0) {
+		qsort(l->hashbuf, l->entries, l->length, hashlist_comp);
+	}
 }
 
 static bool

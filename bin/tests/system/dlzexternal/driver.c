@@ -109,6 +109,7 @@ add_name(struct dlz_example_data *state, struct record *list,
 	int first_empty = -1;
 
 	for (i = 0; i < MAX_RECORDS; i++) {
+		INSIST(list[i].name != NULL);
 		if (first_empty == -1 && strlen(list[i].name) == 0U) {
 			first_empty = i;
 		}

@@ -903,7 +903,7 @@ remove_nodes(dns_rbt_t *mytree, char **names,
 
 	UNUSED(mytree);
 
-	for (i = 0; i < num_names; i++) {
+	for (i = 0; i < num_names && *names_count > 0; i++) {
 		uint32_t node;
 		dns_fixedname_t fname;
 		dns_name_t *name;
@@ -920,11 +920,10 @@ remove_nodes(dns_rbt_t *mytree, char **names,
 		assert_int_equal(result, ISC_R_SUCCESS);
 
 		isc_mem_free(mctx, names[node]);
-		if (*names_count > 0) {
-			names[node] = names[*names_count - 1];
-			names[*names_count - 1] = NULL;
-			*names_count -= 1;
-		}
+
+		names[node] = names[*names_count - 1];
+		names[*names_count - 1] = NULL;
+		*names_count -= 1;
 	}
 }
 

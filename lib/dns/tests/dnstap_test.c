@@ -167,6 +167,7 @@ send_test(void **state) {
 	cleanup();
 
 	result = dns_test_makeview("test", &view);
+	assert_int_equal(result, ISC_R_SUCCESS);
 
 	fopt = fstrm_iothr_options_init();
 	assert_non_null(fopt);
@@ -190,6 +191,7 @@ send_test(void **state) {
 	memset(&zr, 0, sizeof(zr));
 	isc_buffer_init(&zb, zone, sizeof(zone));
 	result = dns_compress_init(&cctx, -1, mctx);
+	assert_int_equal(result, ISC_R_SUCCESS);
 	dns_compress_setmethods(&cctx, DNS_COMPRESS_NONE);
 	result = dns_name_towire(zname, &cctx, &zb);
 	assert_int_equal(result, ISC_R_SUCCESS);
