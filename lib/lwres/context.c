@@ -402,8 +402,8 @@ lwres_context_recv(lwres_context_t *ctx,
 		   int *recvd_len)
 {
 	LWRES_SOCKADDR_LEN_T fromlen;
-	struct sockaddr_in sin;
-	struct sockaddr_in6 sin6;
+	struct sockaddr_in sin = { .sin_port = 0 };
+	struct sockaddr_in6 sin6 = { .sin6_port = 0 };
 	struct sockaddr *sa;
 	int ret;
 
