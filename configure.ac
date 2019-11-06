@@ -590,7 +590,7 @@ AS_CASE([$with_geoip2],
 	[ # default
 	    AX_SAVE_FLAGS([geoip2])
 	    MAXMINDDB_CFLAGS="-I$with_geoip2/include"
-	    MAXMINDDB_LIBS="-L$with_geoip2/libs"
+	    MAXMINDDB_LIBS="-L$with_geoip2/lib"
 	    CFLAGS="$CFLAGS $MAXMINDDB_CFLAGS"
 	    LDFLAGS="$LDFLAGS $MAXMINDDB_LIBS"
 	    AC_SEARCH_LIBS([MMDB_open], [maxminddb],
