@@ -100,7 +100,7 @@ n=$((n + 1))
 echo_i "TCP high-water: check initial statistics ($n)"
 ret=0
 refresh_tcp_stats
-assert_int_equal "${TCP_CUR}" 1 "current TCP clients count"
+assert_int_equal "${TCP_CUR}" 1 "current TCP clients count" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -113,8 +113,8 @@ OLD_TCP_CUR="${TCP_CUR}"
 TCP_ADDED=9
 open_connections "${TCP_ADDED}"
 refresh_tcp_stats
-assert_int_equal "${TCP_CUR}" $((OLD_TCP_CUR + TCP_ADDED)) "current TCP clients count"
-assert_int_equal "${TCP_HIGH}" $((OLD_TCP_CUR + TCP_ADDED)) "TCP high-water value"
+assert_int_equal "${TCP_CUR}" $((OLD_TCP_CUR + TCP_ADDED)) "current TCP clients count" || ret=1
+assert_int_equal "${TCP_HIGH}" $((OLD_TCP_CUR + TCP_ADDED)) "TCP high-water value" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -128,8 +128,8 @@ OLD_TCP_HIGH="${TCP_HIGH}"
 TCP_REMOVED=5
 close_connections "${TCP_REMOVED}"
 refresh_tcp_stats
-assert_int_equal "${TCP_CUR}" $((OLD_TCP_CUR - TCP_REMOVED)) "current TCP clients count"
-assert_int_equal "${TCP_HIGH}" "${OLD_TCP_HIGH}" "TCP high-water value"
+assert_int_equal "${TCP_CUR}" $((OLD_TCP_CUR - TCP_REMOVED)) "current TCP clients count" || ret=1
+assert_int_equal "${TCP_HIGH}" "${OLD_TCP_HIGH}" "TCP high-water value" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
@@ -140,8 +140,8 @@ echo_i "TCP high-water: ensure tcp-clients is an upper bound ($n)"
 ret=0
 open_connections $((TCP_LIMIT + 1))
 refresh_tcp_stats
-assert_int_equal "${TCP_CUR}" "${TCP_LIMIT}" "current TCP clients count"
-assert_int_equal "${TCP_HIGH}" "${TCP_LIMIT}" "TCP high-water value"
+assert_int_equal "${TCP_CUR}" "${TCP_LIMIT}" "current TCP clients count" || ret=1
+assert_int_equal "${TCP_HIGH}" "${TCP_LIMIT}" "TCP high-water value" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
