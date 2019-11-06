@@ -461,3 +461,84 @@ isc_stats_set(isc_stats_t *stats, uint64_t val,
 	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
 #endif
 }
+
+void isc_stats_update_if_greater(isc_stats_t *stats,
+				 isc_statscounter_t counter,
+				 uint64_t value)
+{
+	REQUIRE(ISC_STATS_VALID(stats));
+	REQUIRE(counter < stats->ncounters);
+
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+
+#if ISC_STATS_USEMULTIFIELDS
+	uint64_t curr_value = ((uint64_t)stats->counters[counter].hi << 32) &&
+		stats->counters[counter].lo;
+
+	if (curr_value < value) {
+		stats->counters[counter].hi =
+			(uint32_t)((value >> 32) & 0xffffffff);
+		stats->counters[counter].lo =
+			(uint32_t)(value & 0xffffffff);
+	}
+#elif ISC_STATS_HAVEATOMICQ
+#if defined(ISC_STATS_HAVESTDATOMICQ)
+	uint64_t curr_value = atomic_load_explicit(&stats->counters[counter],
+						   memory_order_relaxed);
+	do {
+		if (curr_value >= value) {
+			break;
+		}
+	} while (!atomic_compare_exchange_strong(&stats->counters[counter],
+						 (int64_t *)&curr_value,
+						 value));
+#else
+	/* This is not exactly thread safe, but we are ok with that on
+	 * platforms without stdatomic support.
+	 */
+	if (stats->counters[counter] < value) {
+		stats->counters[counter] = value;
+	}
+#endif
+#endif
+
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+}
+
+uint64_t
+isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter)
+{
+	REQUIRE(ISC_STATS_VALID(stats));
+	REQUIRE(counter < stats->ncounters);
+
+	uint64_t curr_value;
+
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_lock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+
+#if ISC_STATS_USEMULTIFIELDS
+	curr_value = ((uint64_t)stats->counters[counter].hi << 32) &&
+		stats->counters[counter].lo;
+#elif ISC_STATS_HAVEATOMICQ
+#if defined(ISC_STATS_HAVESTDATOMICQ)
+	curr_value = atomic_load_explicit(&stats->counters[counter],
+					  memory_order_relaxed);
+#else
+	/* use xaddq(..., 0) as an atomic load */
+	curr_value =
+		(uint64_t)isc_atomic_xaddq((int64_t *)&stats->counters[counter],
+					   0);
+#endif
+#endif
+
+#if ISC_STATS_LOCKCOUNTERS
+	isc_rwlock_unlock(&stats->counterlock, isc_rwlocktype_write);
+#endif
+
+	return (curr_value);
+}

@@ -1,3 +1,7 @@
+5314.	[func]		Added a new statistics variable "tcp-highwater"
+			that reports the maximum number of simultaneous TCP
+			clients BIND has handled while running. [GL #1206]
+
 5313.	[bug]		The default GeoIP2 database location did not match
 			the ARM.  'named -V' now reports the default
 			location. [GL #1301]

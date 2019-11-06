@@ -114,6 +114,12 @@ isc_quota_detach(isc_quota_t **p);
  * quota.
  */
 
+unsigned int
+isc_quota_getused(isc_quota_t *quota);
+/*%<
+ * Get the current usage of quota.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_QUOTA_H */

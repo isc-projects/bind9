@@ -132,6 +132,31 @@ isc_stats_set(isc_stats_t *stats, uint64_t val,
  *\li	'stats' is a valid isc_stats_t.
  */
 
+void isc_stats_update_if_greater(isc_stats_t *stats,
+				 isc_statscounter_t counter,
+				 uint64_t value);
+/*%<
+* Atomically assigns 'value' to 'counter' if value > counter.
+*
+* Requires:
+*\li	'stats' is a valid isc_stats_t.
+*
+*\li	counter is less than the maximum available ID for the stats specified
+*	on creation.
+*/
+
+uint64_t
+isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter);
+/*%<
+ * Returns value currently stored in counter.
+ *
+ * Requires:
+ *\li	'stats' is a valid isc_stats_t.
+ *
+ *\li	counter is less than the maximum available ID for the stats specified
+ *	on creation.
+ */
+
 ISC_LANG_ENDDECLS
 
 #endif /* ISC_STATS_H */
