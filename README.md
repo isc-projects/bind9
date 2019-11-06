@@ -316,6 +316,11 @@ BIND 9.11.11 is a maintenance release.
 
 BIND 9.11.12 is a maintenance release.
 
+#### BIND 9.11.13
+
+BIND 9.11.13 is a maintenance release, and also addresse the security
+vulnerability disclosed in CVE-2019-6477.
+
 ### <a name="build"/> Building BIND
 
 Minimally, BIND requires a UNIX or Linux system with an ANSI C compiler,
