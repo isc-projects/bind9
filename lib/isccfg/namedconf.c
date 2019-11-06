@@ -18,6 +18,7 @@
 
 #include <isc/lex.h>
 #include <isc/mem.h>
+#include <isc/print.h>
 #include <isc/result.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -82,6 +83,7 @@ static cfg_type_t cfg_type_controls_sockaddr;
 static cfg_type_t cfg_type_destinationlist;
 static cfg_type_t cfg_type_dialuptype;
 static cfg_type_t cfg_type_dlz;
+static cfg_type_t cfg_type_dnssecpolicy;
 static cfg_type_t cfg_type_dnstap;
 static cfg_type_t cfg_type_dnstapoutput;
 static cfg_type_t cfg_type_dyndb;
@@ -121,7 +123,6 @@ static cfg_type_t cfg_type_sizeval;
 static cfg_type_t cfg_type_sockaddr4wild;
 static cfg_type_t cfg_type_sockaddr6wild;
 static cfg_type_t cfg_type_statschannels;
-static cfg_type_t cfg_type_ttlval;
 static cfg_type_t cfg_type_view;
 static cfg_type_t cfg_type_viewopts;
 static cfg_type_t cfg_type_zone;
@@ -412,6 +413,20 @@ static cfg_type_t cfg_type_zone = {
 };
 
 /*%
+ * A dnssec-policy statement.
+ */
+static cfg_tuplefielddef_t dnssecpolicy_fields[] = {
+	{ "name", &cfg_type_astring, 0 },
+	{ "options", &cfg_type_dnssecpolicyopts, 0 },
+	{ NULL, NULL, 0 }
+};
+
+static cfg_type_t cfg_type_dnssecpolicy = {
+	"dnssec-policy", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, dnssecpolicy_fields
+};
+
+/*%
  * A "category" clause in the "logging" statement.
  */
 static cfg_tuplefielddef_t category_fields[] = {
@@ -466,6 +481,55 @@ static cfg_type_t cfg_type_managedkey = {
 	&cfg_rep_tuple, managedkey_fields
 };
 
+/*%
+ * DNSSEC key roles.
+ */
+static const char *dnsseckeyrole_enums[] = { "csk", "ksk", "zsk", NULL };
+static cfg_type_t cfg_type_dnsseckeyrole = {
+	"dnssec-key-role", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &dnsseckeyrole_enums
+};
+
+/*%
+ * DNSSEC key storage types.
+ */
+static const char *dnsseckeystore_enums[] = { "key-directory", NULL };
+static cfg_type_t cfg_type_dnsseckeystore = {
+	"dnssec-key-storage", cfg_parse_enum, cfg_print_ustring, cfg_doc_enum,
+	&cfg_rep_string, &dnsseckeystore_enums
+};
+
+/*%
+ * A dnssec key, as used in the "keys" statement in a "dnssec-policy".
+ */
+static keyword_type_t algorithm_kw = { "algorithm", &cfg_type_uint32 };
+static cfg_type_t cfg_type_algorithm = {
+	"algorithm", parse_keyvalue, print_keyvalue,
+	doc_keyvalue, &cfg_rep_uint32, &algorithm_kw
+};
+
+static keyword_type_t lifetime_kw = { "lifetime", &cfg_type_duration };
+static cfg_type_t cfg_type_lifetime = {
+	"lifetime", parse_keyvalue, print_keyvalue,
+	doc_keyvalue, &cfg_rep_duration, &lifetime_kw
+};
+
+static cfg_tuplefielddef_t kaspkey_fields[] = {
+	{ "role", &cfg_type_dnsseckeyrole, 0 },
+	{ "keystore-type", &cfg_type_dnsseckeystore, 0 },
+	{ "lifetime", &cfg_type_lifetime, 0 },
+	{ "algorithm", &cfg_type_algorithm, 0 },
+	{ "length", &cfg_type_optional_uint32, 0 },
+	{ NULL, NULL, 0 }
+};
+static cfg_type_t cfg_type_kaspkey = {
+	"kaspkey", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
+	&cfg_rep_tuple, kaspkey_fields
+};
+
+/*%
+ * Wild class, type, name.
+ */
 static keyword_type_t wild_class_kw = { "class", &cfg_type_ustring };
 
 static cfg_type_t cfg_type_optional_wild_class = {
@@ -636,6 +700,14 @@ static cfg_type_t cfg_type_trustedkeys = {
 static cfg_type_t cfg_type_dnsseckeys = {
 	"dnsseckeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
 	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_managedkey
+};
+
+/*%
+ * A list of key entries, used in a DNSSEC Key and Signing Policy.
+ */
+static cfg_type_t cfg_type_kaspkeys = {
+	"kaspkeys", cfg_parse_bracketed_list, cfg_print_bracketed_list,
+	cfg_doc_bracketed_list, &cfg_rep_list, &cfg_type_kaspkey
 };
 
 static const char *forwardtype_enums[] = { "first", "only", NULL };
@@ -963,6 +1035,7 @@ static cfg_clausedef_t
 namedconf_clauses[] = {
 	{ "acl", &cfg_type_acl, CFG_CLAUSEFLAG_MULTI },
 	{ "controls", &cfg_type_controls, CFG_CLAUSEFLAG_MULTI },
+	{ "dnssec-policy", &cfg_type_dnssecpolicy, CFG_CLAUSEFLAG_MULTI },
 	{ "logging", &cfg_type_logging, 0 },
 	{ "lwres", &cfg_type_bracketed_text,
 	  CFG_CLAUSEFLAG_MULTI | CFG_CLAUSEFLAG_OBSOLETE },
@@ -1054,7 +1127,7 @@ options_clauses[] = {
 	{ "fstrm-set-output-notify-threshold", &cfg_type_uint32, 0 },
 	{ "fstrm-set-output-queue-model", &cfg_type_fstrm_model, 0 },
 	{ "fstrm-set-output-queue-size", &cfg_type_uint32, 0 },
-	{ "fstrm-set-reopen-interval", &cfg_type_ttlval, 0 },
+	{ "fstrm-set-reopen-interval", &cfg_type_duration, 0 },
 #else
 	{ "fstrm-set-buffer-hint", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
@@ -1068,7 +1141,7 @@ options_clauses[] = {
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 	{ "fstrm-set-output-queue-size", &cfg_type_uint32,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
-	{ "fstrm-set-reopen-interval", &cfg_type_ttlval,
+	{ "fstrm-set-reopen-interval", &cfg_type_duration,
 	  CFG_CLAUSEFLAG_NOTCONFIGURED },
 #endif /* HAVE_DNSTAP */
 #if defined(HAVE_GEOIP2)
@@ -1083,7 +1156,7 @@ options_clauses[] = {
 	{ "host-statistics", &cfg_type_boolean, CFG_CLAUSEFLAG_ANCIENT },
 	{ "host-statistics-max", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
 	{ "hostname", &cfg_type_qstringornone, 0 },
-	{ "interface-interval", &cfg_type_ttlval, 0 },
+	{ "interface-interval", &cfg_type_duration, 0 },
 	{ "keep-response-order", &cfg_type_bracketed_aml, 0 },
 	{ "listen-on", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
 	{ "listen-on-v6", &cfg_type_listenon, CFG_CLAUSEFLAG_MULTI },
@@ -1611,8 +1684,8 @@ static cfg_tuplefielddef_t rpz_zone_fields[] = {
 	{ "zone name", &cfg_type_rpz_zone, 0 },
 	{ "add-soa", &cfg_type_boolean, 0 },
 	{ "log", &cfg_type_boolean, 0 },
-	{ "max-policy-ttl", &cfg_type_ttlval, 0 },
-	{ "min-update-interval", &cfg_type_ttlval, 0 },
+	{ "max-policy-ttl", &cfg_type_duration, 0 },
+	{ "min-update-interval", &cfg_type_duration, 0 },
 	{ "policy", &cfg_type_rpz_policy, 0 },
 	{ "recursive-only", &cfg_type_boolean, 0 },
 	{ "nsip-enable", &cfg_type_boolean, 0 },
@@ -1633,8 +1706,8 @@ static cfg_tuplefielddef_t rpz_fields[] = {
 	{ "zone list", &cfg_type_rpz_list, 0 },
 	{ "add-soa", &cfg_type_boolean, 0 },
 	{ "break-dnssec", &cfg_type_boolean, 0 },
-	{ "max-policy-ttl", &cfg_type_ttlval, 0 },
-	{ "min-update-interval", &cfg_type_ttlval, 0 },
+	{ "max-policy-ttl", &cfg_type_duration, 0 },
+	{ "min-update-interval", &cfg_type_duration, 0 },
 	{ "min-ns-dots", &cfg_type_uint32, 0 },
 	{ "nsip-wait-recurse", &cfg_type_boolean, 0 },
 	{ "qname-wait-recurse", &cfg_type_boolean, 0 },
@@ -1671,7 +1744,7 @@ static cfg_tuplefielddef_t catz_zone_fields[] = {
 	{ "default-masters", &cfg_type_namesockaddrkeylist, 0 },
 	{ "zone-directory", &cfg_type_qstring, 0 },
 	{ "in-memory", &cfg_type_boolean, 0 },
-	{ "min-update-interval", &cfg_type_ttlval, 0 },
+	{ "min-update-interval", &cfg_type_duration, 0 },
 	{ NULL, NULL, 0 }
 };
 static cfg_type_t cfg_type_catz_tuple = {
@@ -1899,7 +1972,7 @@ view_clauses[] = {
 	{ "filter-aaaa-on-v6", &cfg_type_boolean, CFG_CLAUSEFLAG_OBSOLETE  },
 	{ "glue-cache", &cfg_type_boolean, 0 },
 	{ "ixfr-from-differences", &cfg_type_ixfrdifftype, 0 },
-	{ "lame-ttl", &cfg_type_ttlval, 0 },
+	{ "lame-ttl", &cfg_type_duration, 0 },
 #ifdef HAVE_LMDB
 	{ "lmdb-mapsize", &cfg_type_sizeval, 0 },
 #else
@@ -1907,16 +1980,16 @@ view_clauses[] = {
 #endif
 	{ "max-acache-size", &cfg_type_sizenodefault, CFG_CLAUSEFLAG_OBSOLETE },
 	{ "max-cache-size", &cfg_type_sizeorpercent, 0 },
-	{ "max-cache-ttl", &cfg_type_ttlval, 0 },
+	{ "max-cache-ttl", &cfg_type_duration, 0 },
 	{ "max-clients-per-query", &cfg_type_uint32, 0 },
-	{ "max-ncache-ttl", &cfg_type_ttlval, 0 },
+	{ "max-ncache-ttl", &cfg_type_duration, 0 },
 	{ "max-recursion-depth", &cfg_type_uint32, 0 },
 	{ "max-recursion-queries", &cfg_type_uint32, 0 },
-	{ "max-stale-ttl", &cfg_type_ttlval, 0 },
+	{ "max-stale-ttl", &cfg_type_duration, 0 },
 	{ "max-udp-size", &cfg_type_uint32, 0 },
 	{ "message-compression", &cfg_type_boolean, 0 },
-	{ "min-cache-ttl", &cfg_type_ttlval, 0 },
-	{ "min-ncache-ttl", &cfg_type_ttlval, 0 },
+	{ "min-cache-ttl", &cfg_type_duration, 0 },
+	{ "min-ncache-ttl", &cfg_type_duration, 0 },
 	{ "min-roots", &cfg_type_uint32, CFG_CLAUSEFLAG_ANCIENT },
 	{ "minimal-any", &cfg_type_boolean, 0 },
 	{ "minimal-responses", &cfg_type_minimal, 0 },
@@ -1924,8 +1997,8 @@ view_clauses[] = {
 	{ "no-case-compress", &cfg_type_bracketed_aml, 0 },
 	{ "nocookie-udp-size", &cfg_type_uint32, 0 },
 	{ "nosit-udp-size", &cfg_type_uint32, CFG_CLAUSEFLAG_OBSOLETE },
-	{ "nta-lifetime", &cfg_type_ttlval, 0 },
-	{ "nta-recheck", &cfg_type_ttlval, 0 },
+	{ "nta-lifetime", &cfg_type_duration, 0 },
+	{ "nta-recheck", &cfg_type_duration, 0 },
 	{ "nxdomain-redirect", &cfg_type_astring, 0 },
 	{ "preferred-glue", &cfg_type_astring, 0 },
 	{ "prefetch", &cfg_type_prefetch, 0 },
@@ -1955,10 +2028,10 @@ view_clauses[] = {
 	{ "root-key-sentinel", &cfg_type_boolean, 0 },
 	{ "rrset-order", &cfg_type_rrsetorder, 0 },
 	{ "send-cookie", &cfg_type_boolean, 0 },
-	{ "servfail-ttl", &cfg_type_ttlval, 0 },
+	{ "servfail-ttl", &cfg_type_duration, 0 },
 	{ "sortlist", &cfg_type_bracketed_aml, 0 },
 	{ "stale-answer-enable", &cfg_type_boolean, 0 },
-	{ "stale-answer-ttl", &cfg_type_ttlval, 0 },
+	{ "stale-answer-ttl", &cfg_type_duration, 0 },
 	{ "suppress-initial-notify", &cfg_type_boolean, CFG_CLAUSEFLAG_NYI },
 	{ "synth-from-dnssec", &cfg_type_boolean, 0 },
 	{ "topology", &cfg_type_bracketed_aml, CFG_CLAUSEFLAG_ANCIENT },
@@ -1996,6 +2069,26 @@ static cfg_tuplefielddef_t validityinterval_fields[] = {
 static cfg_type_t cfg_type_validityinterval = {
 	"validityinterval", cfg_parse_tuple, cfg_print_tuple, cfg_doc_tuple,
 	&cfg_rep_tuple, validityinterval_fields
+};
+
+/*%
+ * Clauses that can be found in a 'dnssec-policy' statement.
+ */
+static cfg_clausedef_t
+dnssecpolicy_clauses[] = {
+	{ "dnskey-ttl", &cfg_type_duration, 0 },
+	{ "keys", &cfg_type_kaspkeys, 0 },
+	{ "publish-safety", &cfg_type_duration, 0 },
+	{ "retire-safety", &cfg_type_duration, 0 },
+	{ "signatures-refresh", &cfg_type_duration, 0 },
+	{ "signatures-validity", &cfg_type_duration, 0 },
+	{ "signatures-validity-dnskey", &cfg_type_duration, 0 },
+	{ "zone-max-ttl", &cfg_type_duration, 0 },
+	{ "zone-propagation-delay", &cfg_type_duration, 0 },
+	{ "parent-ds-ttl", &cfg_type_duration, 0 },
+	{ "parent-propagation-delay", &cfg_type_duration, 0 },
+	{ "parent-registration-delay", &cfg_type_duration, 0 },
+	{ NULL, NULL, 0 }
 };
 
 /*%
@@ -2070,6 +2163,9 @@ zone_clauses[] = {
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
 	},
 	{ "dnssec-loadkeys-interval", &cfg_type_uint32,
+		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
+	},
+	{ "dnssec-policy", &cfg_type_astring,
 		CFG_ZONE_MASTER | CFG_ZONE_SLAVE
 	},
 	{ "dnssec-secure-to-insecure", &cfg_type_boolean,
@@ -2345,6 +2441,16 @@ zone_clausesets[] = {
 LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_zoneopts = {
 	"zoneopts", cfg_parse_map, cfg_print_map,
 	cfg_doc_map, &cfg_rep_map, zone_clausesets };
+
+/*% The "dnssec-policy" statement syntax. */
+static cfg_clausedef_t *
+dnssecpolicy_clausesets[] = {
+	dnssecpolicy_clauses,
+	NULL
+};
+LIBISCCFG_EXTERNAL_DATA cfg_type_t cfg_type_dnssecpolicyopts = {
+	"dnssecpolicyopts", cfg_parse_map, cfg_print_map,
+	cfg_doc_map, &cfg_rep_map, dnssecpolicy_clausesets };
 
 /*% The "dynamically loadable zones" statement syntax. */
 
@@ -3762,53 +3868,13 @@ static cfg_type_t cfg_type_masterselement = {
 };
 
 static isc_result_t
-parse_ttlval(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	isc_result_t result;
-	cfg_obj_t *obj = NULL;
-	uint32_t ttl;
-
-	UNUSED(type);
-
-	CHECK(cfg_gettoken(pctx, 0));
-	if (pctx->token.type != isc_tokentype_string) {
-		result = ISC_R_UNEXPECTEDTOKEN;
-		goto cleanup;
-	}
-
-	result = dns_ttl_fromtext(&pctx->token.value.as_textregion, &ttl);
-	if (result == ISC_R_RANGE ) {
-		cfg_parser_error(pctx, CFG_LOG_NEAR, "TTL out of range ");
-		return (result);
-	} else if (result != ISC_R_SUCCESS)
-		goto cleanup;
-
-	CHECK(cfg_create_obj(pctx, &cfg_type_uint32, &obj));
-	obj->value.uint32 = ttl;
-	*ret = obj;
-	return (ISC_R_SUCCESS);
-
- cleanup:
-	cfg_parser_error(pctx, CFG_LOG_NEAR,
-			 "expected integer and optional unit");
-	return (result);
-}
-
-/*%
- * A TTL value (number + optional unit).
- */
-static cfg_type_t cfg_type_ttlval = {
-	"ttlval", parse_ttlval, cfg_print_uint64, cfg_doc_terminal,
-	&cfg_rep_uint64, NULL
-};
-
-static isc_result_t
 parse_maxttl(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret) {
-	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_ttlval, ret));
+	return (cfg_parse_enum_or_other(pctx, type, &cfg_type_duration, ret));
 }
 
 static void
 doc_maxttl(cfg_printer_t *pctx, const cfg_type_t *type) {
-	cfg_doc_enum_or_other(pctx, type, &cfg_type_ttlval);
+	cfg_doc_enum_or_other(pctx, type, &cfg_type_duration);
 }
 
 /*%

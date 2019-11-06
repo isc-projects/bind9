@@ -30,12 +30,17 @@ ISCCFGDEPLIBS = ../libisccfg.@A@
 LIBS =		@LIBS@ @CMOCKA_LIBS@
 
 OBJS =
-SRCS =		parser_test.c
+SRCS =		duration_test.c parser_test.c
 
 SUBDIRS =
-TARGETS =	parser_test@EXEEXT@
+TARGETS =	duration_test@EXEEXT@ parser_test@EXEEXT@
 
 @BIND9_MAKE_RULES@
+
+duration_test@EXEEXT@: duration_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCCFGDEPLIBS}
+	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
+		${LDFLAGS} -o $@ duration_test.@O@ \
+		${ISCCFGLIBS} ${DNSLIBS} ${ISCLIBS} ${LIBS}
 
 parser_test@EXEEXT@: parser_test.@O@ ${ISCDEPLIBS} ${DNSDEPLIBS} ${ISCCFGDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \

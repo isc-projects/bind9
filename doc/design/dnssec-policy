@@ -1,0 +1,226 @@
+Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+
+See COPYRIGHT in the source root or http://isc.org/copyright.html for terms.
+
+# DNSSEC Key and Signing Policy
+
+A DNSSEC key and signing policy (KASP) defines a DNSSEC policy that can be
+applied to one or more zones.
+
+For some background information, see:
+
+    https://www.ietf.org/archive/id/draft-mekking-dnsop-kasp-00.txt
+
+# DNSSEC in BIND 9
+
+DNSSEC is first implemented in BIND 9.  Many adaptations have been made since
+then.  A lot of configuration knobs were added.  One aim with introducing KASP
+configuration is that all these configuration options are grouped together,
+making the named configuration more intuitive when it comes to DNSSEC, and
+making it easier to turn on DNSSEC for zones. Instead of configuring many
+different options per zone, you would be able to do the following:
+
+```
+zone "example.com." {
+    ...
+    dnssec-policy "_default";
+};
+```
+
+## Existing DNSSEC configuration options
+
+### Signing
+
+The following configuration options exist nowadays for `named` to maintain
+DNSSEC signed zones.  These will no longer work if an explicit DNSSEC policy
+is set for a zone.
+
+1. `auto-dnssec`: When setting a DNSSEC policy for a zone instead, the
+   behavior will be as if `auto-dnssec` was set to `maintain`.
+
+1. `dnskey-sig-validity`: This option will be replaced in favor of the KASP
+   configuration value `signatures-validity-dnskey`.
+
+1. `dnssec-dnskey-kskonly`: This option will be removed and the key
+   configuration from the policy will be used to determine what RRsets will be
+   signed with which keys (Keys will have a role "KSK" and/or "ZSK").
+
+1. `dnssec-loadkeys-interval`: This option will determine how the period that
+   BIND 9 will check its key repository (default once per hour) to see if
+   there are new keys added or if existing keys metadata has changed.  This
+   option might go away because the entity that performs DNSSEC maintenance
+   knows exactly when the next step needs to happen. We can set the interval
+   accordingly.  This does mean that whenever a new key is added or deprecated
+   manually, the interval needs to be set to now.  Alternatively, we keep this
+   option and only pick up new keys when at a certain interval.
+
+1. `dnssec-secure-to-insecure`: This option allows a dynamic zone to
+   transition from secure to insecure.  This seems to be a safety check
+   when named is not responsible for signing.  This will likely go away
+   because explicitly removing the dnssec-policy will be the same signal
+   to (safely) make the zone insecure.
+
+1. `dnssec-update-mode`: This option determines how DNSSEC signed dynamic
+   zones are updated. Default is `maintain` and it is unclear how it is
+   different from `auto-dnssec`.  With KASP, the behavior will be as if
+   the `dnssec-update-mode` was set to `maintain`.  If you want DNSSEC
+   maintenance to be done outside `named`, you should not configure a
+   `dnssec-policy` for that zone.
+
+1. `inline-signing`:  When set to "yes", this option will sign transferred
+   unsigned zones, and unsigned zone from file.  This is also no longer needed
+   when KASP is introduced because when setting a `dnssec-policy` for a
+   secondary zone or a zone with zone file, this indicates that
+   `inline-signing` is desired.
+
+1. `max-zone-ttl`: This will cap all TTLs in a zone file to the specified
+   value. Although this option may be used for non-DNSSEC zones, it is really
+   only useful for DNSSEC-signed zones because when performing key rollovers
+   the timing depends on the largest TTL in the zone.  The value set in the
+   `dnssec-policy` statement will override the existing `max-zone-ttl` value.
+
+1. `sig-signing-nodes`: This specifies the number of nodes to be examined
+   in a quantum when signing a zone with a new DNSKEY.  This presumable is 
+   to avoid keeping the database connection open for a long time.  With the
+   current database approach this probably needs to stay.
+
+1. `sig-signing-signatures`: This specifies a threshold number of how many
+   signatures will be generated in a quantum.  Similar to `sig-signing-nodes`.
+
+1. `sig-signing-type`: Internal record type number, used to track zone
+   signing process.  This likely will go away in favor of a new method.
+
+1. `sig-validity-interval`: Specifies the number of days a signature is valid.
+   The second optional value is the refresh interval. Thos option will
+   be replaced by KASP configuration values "signatures-validity" and
+   "signatures-refresh".
+
+1. `update-check-ksk`: When set to "no", KSK will also sign non-DNSKEY RRsets.
+   This option will go away and key roles will be used to determine what
+   keys sign which RRsets (A KSK that should sign all RRsets will have both
+   the KSK and ZSK role and is referred to as a CSK).
+
+Other DNSSEC related configuration options that are not related to the policy
+are likely to stay:
+
+1. `key-directory`: This is where the DNSKEY key files can be found.
+
+1. `serial-update-method`: This is used for dynamic zones to determne how
+   the SOA SERIAL should be updated.  There will likely be a separate
+   configuration option for the serial update method when resigning a zone.
+
+
+# KASP Configuration
+
+The KASP Configuration may look something like the example configuration
+below. This includes all options as described in the KASP draft, but we may
+decide that some options are not required.
+
+```
+dnssec-policy "nsec3" {
+
+    description "policy for zones that require zone walking mitigation";
+
+    // Signatures
+    signatures-refresh P3D;
+    signatures-validity P14D;
+    signatures-validity-dnskey P14D;
+
+    // Denial of existence
+    denial-type nsec3;
+    nsec3-param ttl 0 hash algorithm 1 iterations 5 optout;
+    nsec3-salt length 8 resalt P100D;
+
+    // Keys
+    dnskey-ttl 3600;
+    publish-safety PT3600S;
+    retire-safety PT3600S;
+    share-keys no;
+    purge-keys-after P14D;
+
+    keys {
+	ksk key-directory P5Y ECDSAP256SHA256;
+	zsk key-directory P30D ECDSAP256SHA256;
+	csk key-directory PT0S 8 2048;
+    };
+
+    // Parent synchronization
+    cds yes;
+    cdnskey yes;
+    check-ds { 127.0.0.53; };
+    check-ds-interval PT3600S;
+
+    // Zone properties
+    zone-propagation-delay PT3600S;
+    zone-registration-delay PT3600S;
+    zone-soa-ttl 3600;
+    zone-soa-minimum 3600;
+    zone-soa-serial-update-method unixtime;
+    zone-max-ttl 24h;
+
+    // Parent properties
+    parent-propagation-delay PT24H;
+    parent-ds-ttl 3600;
+    parent-soa-ttl 3600;
+    parent-soa-minimum 3600;
+};
+```
+
+# KASP design
+
+## dnssec-policy versus dnssec-keymgr
+
+Key management in BIND 9 is currently implemented with a Python script
+called `dnssec-keymgr`. It uses the DNSSEC tools for manipulating DNSSEC key
+metadata. 
+
+With `dnssec-policy` configured in `named.conf` you no longer need to manually
+call `dnssec-keymgr` or the tools it wraps around, `dnssec-keygen` and
+`dnssec-settime` (although it is still possible to use them). The policy in
+`named.conf` will make `named` create keys when necessary and set the key
+timings accordingly.
+
+## Key roles
+
+BIND 9.14 allows sign your zones with a Zone Signing Key (ZSK) and a
+Key Signing Key (KSK). If you provide only one key, the zone will be signed
+with just one key (effectively acting as a Combined Signing Key (CSK). If
+one of the keys is offline, BIND 9 will temporarily change the key usage: A
+KSK may sign DNSKEY unrelated RRsets.
+
+With BIND 9.14, ZSKs by default sign the complete zone, except when
+`dnssec-dnskey-kskonly` and `update-check-ksk` are both set to `yes`.
+
+KASP introduces key roles making key usage more explicit, without depending
+on state of the keys or additional configuration values. A key that has the
+KSK role will always sign only DNSKEY related RRsets, and a key with a ZSK role
+will always sign only DNSKEY unrelated RRsets. A key can have both roles, which
+is referred to as a CSK. Below is an example configuration for the three types
+of keys:
+```
+	keys {
+		ksk key-directory lifetime P5Y  algorithm ECDSAP256SHA256;
+		zsk key-directory lifetime P30D algorithm ECDSAP256SHA256;
+		csk key-directory lifetime PT0S algorithm 8 2048;
+	};
+```
+
+## NSEC3
+
+Currently if you want to sign your zone with NSEC3 you can do so by introducing
+an NSEC3PARAM record via Dynamic Update. This is no longer necessary with
+`dnssec-policy` as you can configure NSEC3 usage in `named.conf`.
+
+## Changing policies
+
+You can change a zone's policy by referring to a different `dnssec-policy`
+or by changing the `dnssec-policy` itself. After a reload of the configuration
+key timings may be adjusted. This may trigger a key rollover (for example if
+the key lifetimes have been shortened, or if other key properties have changed.
+
+## Key state machines
+
+Rollover correctness are guaranteed by key state machines. See for more
+information:
+
+    https://nlnetlabs.nl/downloads/publications/satin2012-Schaeffer.pdf

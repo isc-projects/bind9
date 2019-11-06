@@ -88,6 +88,15 @@ usage(void) {
 	fprintf(stderr, "    -i <interval>: prepublication interval for "
 					   "successor key "
 					   "(default: 30 days)\n");
+	fprintf(stderr, "Key state options:\n");
+	fprintf(stderr, "    -s: update key state file (default no)\n");
+	fprintf(stderr, "    -g state: set the goal state for this key\n");
+	fprintf(stderr, "    -d state date/[+-]offset: set the DS state\n");
+	fprintf(stderr, "    -k state date/[+-]offset: set the DNSKEY state\n");
+	fprintf(stderr, "    -r state date/[+-]offset: set the RRSIG (KSK) "
+						      "state\n");
+	fprintf(stderr, "    -z state date/[+-]offset: set the RRSIG (ZSK) "
+						      "state\n");
 	fprintf(stderr, "Printing options:\n");
 	fprintf(stderr, "    -p C/P/Psync/A/R/I/D/Dsync/all: print a "
 					"particular time value or values\n");
@@ -123,29 +132,87 @@ printtime(dst_key_t *key, int type, const char *tag, bool epoch,
 	}
 }
 
+static void
+writekey(dst_key_t *key, const char *directory, bool write_state)
+{
+	char newname[1024];
+	char keystr[DST_KEY_FORMATSIZE];
+	isc_buffer_t buf;
+	isc_result_t result;
+	int options = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE;
+
+	if (write_state) {
+		options |= DST_TYPE_STATE;
+	}
+
+	isc_buffer_init(&buf, newname, sizeof(newname));
+	result = dst_key_buildfilename(key, DST_TYPE_PUBLIC, directory, &buf);
+	if (result != ISC_R_SUCCESS) {
+		fatal("Failed to build public key filename: %s",
+		      isc_result_totext(result));
+	}
+
+	result = dst_key_tofile(key, options, directory);
+	if (result != ISC_R_SUCCESS) {
+		dst_key_format(key, keystr, sizeof(keystr));
+		fatal("Failed to write key %s: %s", keystr,
+		      isc_result_totext(result));
+	}
+	printf("%s\n", newname);
+
+	isc_buffer_clear(&buf);
+	result = dst_key_buildfilename(key, DST_TYPE_PRIVATE, directory, &buf);
+	if (result != ISC_R_SUCCESS) {
+		fatal("Failed to build private key filename: %s",
+		      isc_result_totext(result));
+	}
+	printf("%s\n", newname);
+
+	if (write_state) {
+		isc_buffer_clear(&buf);
+		result = dst_key_buildfilename(key, DST_TYPE_STATE, directory,
+					       &buf);
+		if (result != ISC_R_SUCCESS) {
+			fatal("Failed to build key state filename: %s",
+			      isc_result_totext(result));
+		}
+		printf("%s\n", newname);
+	}
+}
+
 int
 main(int argc, char **argv) {
 	isc_result_t	result;
 	const char	*engine = NULL;
 	const char 	*filename = NULL;
 	char		*directory = NULL;
-	char		newname[1024];
 	char		keystr[DST_KEY_FORMATSIZE];
 	char		*endp, *p;
 	int		ch;
 	const char	*predecessor = NULL;
 	dst_key_t	*prevkey = NULL;
 	dst_key_t	*key = NULL;
-	isc_buffer_t	buf;
 	dns_name_t	*name = NULL;
 	dns_secalg_t 	alg = 0;
 	unsigned int 	size = 0;
 	uint16_t	flags = 0;
 	int		prepub = -1;
+	int		options;
 	dns_ttl_t	ttl = 0;
 	isc_stdtime_t	now;
+	isc_stdtime_t	dstime = 0, dnskeytime = 0;
+	isc_stdtime_t	krrsigtime = 0, zrrsigtime = 0;
 	isc_stdtime_t	pub = 0, act = 0, rev = 0, inact = 0, del = 0;
 	isc_stdtime_t	prevact = 0, previnact = 0, prevdel = 0;
+	dst_key_state_t	goal = DST_KEY_STATE_NA;
+	dst_key_state_t	ds = DST_KEY_STATE_NA;
+	dst_key_state_t	dnskey = DST_KEY_STATE_NA;
+	dst_key_state_t	krrsig = DST_KEY_STATE_NA;
+	dst_key_state_t	zrrsig = DST_KEY_STATE_NA;
+	bool	setgoal = false, setds = false, setdnskey = false;
+	bool	setkrrsig = false, setzrrsig = false;
+	bool	setdstime = false, setdnskeytime = false;
+	bool	setkrrsigtime = false, setzrrsigtime = false;
 	bool	setpub = false, setact = false;
 	bool	setrev = false, setinact = false;
 	bool	setdel = false, setttl = false;
@@ -156,13 +223,16 @@ main(int argc, char **argv) {
 	bool	printact = false,  printrev = false;
 	bool	printinact = false, printdel = false;
 	bool	force = false;
-	bool   epoch = false;
-	bool   changed = false;
+	bool	epoch = false;
+	bool	changed = false;
+	bool	write_state = false;
 	isc_log_t       *log = NULL;
 	isc_stdtime_t	syncadd = 0, syncdel = 0;
 	bool	unsetsyncadd = false, setsyncadd = false;
 	bool	unsetsyncdel = false, setsyncdel = false;
 	bool	printsyncadd = false, printsyncdel = false;
+
+	options = DST_TYPE_PUBLIC|DST_TYPE_PRIVATE|DST_TYPE_STATE;
 
 	if (argc == 1)
 		usage();
@@ -180,7 +250,7 @@ main(int argc, char **argv) {
 
 	isc_stdtime_get(&now);
 
-#define CMDLINE_FLAGS "A:D:E:fhI:i:K:L:P:p:R:S:uv:V"
+#define CMDLINE_FLAGS "A:D:d:E:fg:hI:i:K:k:L:P:p:R:r:S:suv:Vz:"
 	while ((ch = isc_commandline_parse(argc, argv, CMDLINE_FLAGS)) != -1) {
 		switch (ch) {
 		case 'E':
@@ -339,6 +409,70 @@ main(int argc, char **argv) {
 		case 'i':
 			prepub = strtottl(isc_commandline_argument);
 			break;
+		case 's':
+			write_state = true;
+			break;
+		case 'g':
+			if (setgoal) {
+				fatal("-g specified more than once");
+			}
+
+			goal = strtokeystate(isc_commandline_argument);
+			if (goal != DST_KEY_STATE_NA &&
+			    goal != DST_KEY_STATE_HIDDEN &&
+			    goal != DST_KEY_STATE_OMNIPRESENT) {
+				fatal("-g must be either none, hidden, or "
+				      "omnipresent");
+			}
+			setgoal = true;
+			break;
+		case 'd':
+			if (setds) {
+				fatal("-d specified more than once");
+			}
+
+			ds = strtokeystate(isc_commandline_argument);
+			setds = true;
+			/* time */
+			(void)isoptarg(isc_commandline_argument, argv, usage);
+			dstime = strtotime(isc_commandline_argument,
+					   now, now, &setdstime);
+			break;
+		case 'k':
+			if (setdnskey) {
+				fatal("-k specified more than once");
+			}
+
+			dnskey = strtokeystate(isc_commandline_argument);
+			setdnskey = true;
+			/* time */
+			(void)isoptarg(isc_commandline_argument, argv, usage);
+			dnskeytime = strtotime(isc_commandline_argument,
+					       now, now, &setdnskeytime);
+			break;
+		case 'r':
+			if (setkrrsig) {
+				fatal("-r specified more than once");
+			}
+
+			krrsig = strtokeystate(isc_commandline_argument);
+			setkrrsig = true;
+			/* time */
+			(void)isoptarg(isc_commandline_argument, argv, usage);
+			krrsigtime = strtotime(isc_commandline_argument,
+					       now, now, &setkrrsigtime);
+			break;
+		case 'z':
+			if (setzrrsig) {
+				fatal("-z specified more than once");
+			}
+
+			zrrsig = strtokeystate(isc_commandline_argument);
+			setzrrsig = true;
+			(void)isoptarg(isc_commandline_argument, argv, usage);
+			zrrsigtime = strtotime(isc_commandline_argument,
+					       now, now, &setzrrsigtime);
+			break;
 		case '?':
 			if (isc_commandline_option != '?')
 				fprintf(stderr, "%s: invalid argument -%c\n",
@@ -365,6 +499,12 @@ main(int argc, char **argv) {
 	if (argc > isc_commandline_index + 1)
 		fatal("Extraneous arguments");
 
+	if ((setgoal || setds || setdnskey || setkrrsig || setzrrsig) &&
+	    !write_state)
+	{
+		fatal("Options -g, -d, -k, -r and -z require -s to be set");
+	}
+
 	result = dst_lib_init(mctx, engine);
 	if (result != ISC_R_SUCCESS)
 		fatal("Could not initialize dst: %s",
@@ -381,9 +521,7 @@ main(int argc, char **argv) {
 		if (setact || unsetact)
 			fatal("-S and -A cannot be used together");
 
-		result = dst_key_fromnamedfile(predecessor, directory,
-					       DST_TYPE_PUBLIC |
-					       DST_TYPE_PRIVATE,
+		result = dst_key_fromnamedfile(predecessor, directory, options,
 					       mctx, &prevkey);
 		if (result != ISC_R_SUCCESS)
 			fatal("Invalid keyfile %s: %s",
@@ -475,9 +613,8 @@ main(int argc, char **argv) {
 			      isc_result_totext(result));
 	}
 
-	result = dst_key_fromnamedfile(filename, directory,
-				       DST_TYPE_PUBLIC | DST_TYPE_PRIVATE,
-				       mctx, &key);
+	result = dst_key_fromnamedfile(filename, directory, options, mctx,
+				       &key);
 	if (result != ISC_R_SUCCESS)
 		fatal("Invalid keyfile %s: %s",
 		      filename, isc_result_totext(result));
@@ -578,6 +715,11 @@ main(int argc, char **argv) {
 	if (setttl)
 		dst_key_setttl(key, ttl);
 
+	if (predecessor != NULL && prevkey != NULL) {
+		dst_key_setnum(prevkey, DST_NUM_SUCCESSOR, dst_key_id(key));
+		dst_key_setnum(key, DST_NUM_PREDECESSOR, dst_key_id(prevkey));
+	}
+
 	/*
 	 * No metadata changes were made but we're forcing an upgrade
 	 * to the new format anyway: use "-P now -A now" as the default
@@ -586,6 +728,63 @@ main(int argc, char **argv) {
 		dst_key_settime(key, DST_TIME_PUBLISH, now);
 		dst_key_settime(key, DST_TIME_ACTIVATE, now);
 		changed = true;
+	}
+
+	/*
+	 * Make sure the key state goals are written.
+	 */
+	if (write_state) {
+		if (setgoal) {
+			if (goal == DST_KEY_STATE_NA) {
+				dst_key_unsetstate(key, DST_KEY_GOAL);
+			} else {
+				dst_key_setstate(key, DST_KEY_GOAL, goal);
+			}
+			changed = true;
+		}
+		if (setds) {
+			if (ds == DST_KEY_STATE_NA) {
+				dst_key_unsetstate(key, DST_KEY_DS);
+				dst_key_unsettime(key, DST_TIME_DS);
+			} else {
+				dst_key_setstate(key, DST_KEY_DS, ds);
+				dst_key_settime(key, DST_TIME_DS, dstime);
+			}
+			changed = true;
+		}
+		if (setdnskey) {
+			if (dnskey == DST_KEY_STATE_NA) {
+				dst_key_unsetstate(key, DST_KEY_DNSKEY);
+				dst_key_unsettime(key, DST_TIME_DNSKEY);
+			} else {
+				dst_key_setstate(key, DST_KEY_DNSKEY, dnskey);
+				dst_key_settime(key, DST_TIME_DNSKEY,
+						dnskeytime);
+			}
+			changed = true;
+		}
+		if (setkrrsig) {
+			if (krrsig == DST_KEY_STATE_NA) {
+				dst_key_unsetstate(key, DST_KEY_KRRSIG);
+				dst_key_unsettime(key, DST_TIME_KRRSIG);
+			} else {
+				dst_key_setstate(key, DST_KEY_KRRSIG, krrsig);
+				dst_key_settime(key, DST_TIME_KRRSIG,
+						krrsigtime);
+			}
+			changed = true;
+		}
+		if (setzrrsig) {
+			if (zrrsig == DST_KEY_STATE_NA) {
+				dst_key_unsetstate(key, DST_KEY_ZRRSIG);
+				dst_key_unsettime(key, DST_TIME_ZRRSIG);
+			} else {
+				dst_key_setstate(key, DST_KEY_ZRRSIG, zrrsig);
+				dst_key_settime(key, DST_TIME_ZRRSIG,
+						zrrsigtime);
+			}
+			changed = true;
+		}
 	}
 
 	if (!changed && setttl)
@@ -621,32 +820,10 @@ main(int argc, char **argv) {
 			  epoch, stdout);
 
 	if (changed) {
-		isc_buffer_init(&buf, newname, sizeof(newname));
-		result = dst_key_buildfilename(key, DST_TYPE_PUBLIC, directory,
-					       &buf);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Failed to build public key filename: %s",
-			      isc_result_totext(result));
+		writekey(key, directory, write_state);
+		if (predecessor != NULL && prevkey != NULL) {
+			writekey(prevkey, directory, write_state);
 		}
-
-		result = dst_key_tofile(key, DST_TYPE_PUBLIC|DST_TYPE_PRIVATE,
-					directory);
-		if (result != ISC_R_SUCCESS) {
-			dst_key_format(key, keystr, sizeof(keystr));
-			fatal("Failed to write key %s: %s", keystr,
-			      isc_result_totext(result));
-		}
-
-		printf("%s\n", newname);
-
-		isc_buffer_clear(&buf);
-		result = dst_key_buildfilename(key, DST_TYPE_PRIVATE, directory,
-					       &buf);
-		if (result != ISC_R_SUCCESS) {
-			fatal("Failed to build private key filename: %s",
-			      isc_result_totext(result));
-		}
-		printf("%s\n", newname);
 	}
 
 	if (prevkey != NULL)

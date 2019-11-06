@@ -665,6 +665,24 @@ dns_zone_unload(dns_zone_t *zone);
  *\li	'zone' to be a valid zone.
  */
 
+dns_kasp_t*
+dns_zone_getkasp(dns_zone_t *zone);
+/*%<
+ *	Returns the current kasp.
+ *
+ * Require:
+ *\li	'zone' to be a valid zone.
+ */
+
+void
+dns_zone_setkasp(dns_zone_t *zone, dns_kasp_t* kasp);
+/*%<
+ *	Set kasp for zone.  If a kasp is already set, it will be detached.
+ *
+ * Requires:
+ *\li	'zone' to be a valid zone.
+ */
+
 void
 dns_zone_setoption(dns_zone_t *zone, dns_zoneopt_t option,
 		   bool value);

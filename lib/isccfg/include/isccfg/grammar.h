@@ -82,6 +82,9 @@ typedef struct cfg_printer cfg_printer_t;
 typedef ISC_LIST(cfg_listelt_t) cfg_list_t;
 typedef struct cfg_map cfg_map_t;
 typedef struct cfg_rep cfg_rep_t;
+typedef struct cfg_duration cfg_duration_t;
+
+#define CFG_DURATION_MAXLEN 64
 
 /*
  * Function types for configuration object methods
@@ -155,6 +158,24 @@ struct cfg_netprefix {
 };
 
 /*%
+ * A configuration object to store ISO 8601 durations.
+ */
+struct cfg_duration {
+	/*
+	 * The duration is stored in multiple parts:
+	 * [0] Years
+	 * [1] Months
+	 * [2] Weeks
+	 * [3] Days
+	 * [4] Hours
+	 * [5] Minutes
+	 * [6] Seconds
+	 */
+	uint32_t parts[7];
+	bool iso8601;
+};
+
+/*%
  * A configuration data representation.
  */
 struct cfg_rep {
@@ -183,6 +204,7 @@ struct cfg_obj {
 			isc_dscp_t	dscp;
 		} sockaddrdscp;
 		cfg_netprefix_t netprefix;
+		cfg_duration_t  duration;
 	}               value;
 	isc_refcount_t  references;     /*%< reference counter */
 	const char *	file;
@@ -290,6 +312,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_netprefix;
 LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_void;
 LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_fixedpoint;
 LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_percentage;
+LIBISCCFG_EXTERNAL_DATA extern cfg_rep_t cfg_rep_duration;
 /*@}*/
 
 /*@{*/
@@ -320,6 +343,7 @@ LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_token;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_unsupported;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_fixedpoint;
 LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_percentage;
+LIBISCCFG_EXTERNAL_DATA extern cfg_type_t cfg_type_duration;
 /*@}*/
 
 isc_result_t
@@ -503,6 +527,13 @@ cfg_parse_percentage(cfg_parser_t *pctx, const cfg_type_t *type,
 
 void
 cfg_print_percentage(cfg_printer_t *pctx, const cfg_obj_t *obj);
+
+isc_result_t
+cfg_parse_duration(cfg_parser_t *pctx, const cfg_type_t *type,
+		   cfg_obj_t **ret);
+
+void
+cfg_print_duration(cfg_printer_t *pctx, const cfg_obj_t *obj);
 
 isc_result_t
 cfg_parse_obj(cfg_parser_t *pctx, const cfg_type_t *type, cfg_obj_t **ret);

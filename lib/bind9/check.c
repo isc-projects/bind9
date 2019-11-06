@@ -842,6 +842,21 @@ check_name(const char *str) {
 	return (dns_name_fromstring(dns_fixedname_name(&fixed), str, 0, NULL));
 }
 
+static bool
+kasp_name_allowed(const cfg_listelt_t *element)
+{
+	const char* name = cfg_obj_asstring(cfg_tuple_get(
+		cfg_listelt_value(element), "name"));
+
+	if (strcmp("none", name) == 0) {
+		return false;
+	}
+	if (strcmp("default", name) == 0) {
+		return false;
+	}
+	return true;
+}
+
 static isc_result_t
 check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	      optlevel_t optlevel)
@@ -856,6 +871,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	const char *str;
 	isc_buffer_t b;
 	uint32_t lifetime = 3600;
+	bool has_dnssecpolicy = false;
 	const char *ccalg = "siphash24";
 
 	/*
@@ -929,7 +945,11 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		(void)cfg_map_get(options, intervals[i].name, &obj);
 		if (obj == NULL)
 			continue;
-		val = cfg_obj_asuint32(obj);
+		if (cfg_obj_isduration(obj)) {
+			val = cfg_obj_asduration(obj);
+		} else {
+			val = cfg_obj_asuint32(obj);
+		}
 		if (val > intervals[i].max) {
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "%s '%u' is out of range (0..%u)",
@@ -942,6 +962,56 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				    intervals[i].name, val);
 			result = ISC_R_RANGE;
 		}
+	}
+
+	/*
+	 * Check dnssec-policy.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(options, "dnssec-policy", &obj);
+	if (obj != NULL) {
+		bool bad_kasp = false;
+		bool bad_name = false;
+		if (optlevel != optlevel_config && !cfg_obj_isstring(obj)) {
+			bad_kasp = true;
+		} else if (optlevel == optlevel_config) {
+			if (cfg_obj_islist(obj)) {
+				for (element = cfg_list_first(obj);
+				     element != NULL;
+				     element = cfg_list_next(element))
+				{
+					if (!cfg_obj_istuple(
+						    cfg_listelt_value(element)))
+					{
+						bad_kasp = true;
+					}
+					if (!kasp_name_allowed(element)) {
+						bad_name = true;
+					}
+				}
+			}
+		}
+
+		if (bad_kasp) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-policy may only be configured at "
+				    "the top level, please use name reference "
+				    "at the zone level");
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+
+		if (bad_name) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-policy name may not be 'none' or "
+				    "'default' (which is the built-in policy)");
+			if (result == ISC_R_SUCCESS) {
+				result = ISC_R_FAILURE;
+			}
+		}
+
+		has_dnssecpolicy = true;
 	}
 
 	obj = NULL;
@@ -992,6 +1062,13 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 				result = ISC_R_RANGE;
 			}
 		}
+
+		if (has_dnssecpolicy) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "sig-validity-interval: cannot be "
+				    "configured if dnssec-policy is also set");
+			result = ISC_R_FAILURE;
+		}
 	}
 
 	obj = NULL;
@@ -1008,6 +1085,12 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			result = ISC_R_RANGE;
 		}
 
+		if (has_dnssecpolicy) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnskey-sig-validity: cannot be "
+				    "configured if dnssec-policy is also set");
+			result = ISC_R_FAILURE;
+		}
 	}
 
 	obj = NULL;
@@ -1113,8 +1196,9 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 			if (result == ISC_R_SUCCESS && tresult != ISC_R_SUCCESS)
 				result = tresult;
 		}
-		if (symtab != NULL)
+		if (symtab != NULL) {
 			isc_symtab_destroy(&symtab);
+		}
 	}
 
 	/*
@@ -1176,7 +1260,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "nta-lifetime", &obj);
 	if (obj != NULL) {
-		lifetime = cfg_obj_asuint32(obj);
+		lifetime = cfg_obj_asduration(obj);
 		if (lifetime > 604800) {	/* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'nta-lifetime' cannot exceed one week");
@@ -1193,7 +1277,7 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 	obj = NULL;
 	(void)cfg_map_get(options, "nta-recheck", &obj);
 	if (obj != NULL) {
-		uint32_t recheck = cfg_obj_asuint32(obj);
+		uint32_t recheck = cfg_obj_asduration(obj);
 		if (recheck > 604800) {		/* 7 days */
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "'nta-recheck' cannot exceed one week");
@@ -1271,7 +1355,11 @@ check_options(const cfg_obj_t *options, isc_log_t *logctx, isc_mem_t *mctx,
 		if (obj == NULL)
 			continue;
 
-		value = cfg_obj_asuint32(obj);
+		if (cfg_obj_isduration(obj)) {
+			value = cfg_obj_asduration(obj);
+		} else {
+			value = cfg_obj_asuint32(obj);
+		}
 		if (value < fstrm[i].min ||
 		    (fstrm[i].max != 0U && value > fstrm[i].max)) {
 			if (fstrm[i].max != 0U)
@@ -1850,6 +1938,7 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 	bool dlz;
 	dns_masterformat_t masterformat;
 	bool ddns = false;
+	bool has_dnssecpolicy = false;
 	const void *clauses = NULL;
 	const char *option = NULL;
 	static const char *acls[] = {
@@ -2063,6 +2152,45 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		result = ISC_R_FAILURE;
 
 	/*
+	 * Check if a dnssec-policy is set.
+	 */
+	obj = NULL;
+	(void)cfg_map_get(zoptions, "dnssec-policy", &obj);
+	if (obj != NULL) {
+		const cfg_obj_t *kasps = NULL;
+		const char* kaspname = cfg_obj_asstring(obj);
+
+		if (strcmp(kaspname, "default") == 0) {
+			has_dnssecpolicy = true;
+		} else if (strcmp(kaspname, "none") == 0) {
+			has_dnssecpolicy = false;
+		} else {
+			(void)cfg_map_get(config, "dnssec-policy", &kasps);
+			for (element = cfg_list_first(kasps); element != NULL;
+			     element = cfg_list_next(element))
+			{
+				const char* kn = cfg_obj_asstring(
+				       cfg_tuple_get(cfg_listelt_value(element),
+						     "name"));
+				if (strcmp(kaspname, kn) == 0) {
+					has_dnssecpolicy = true;
+				}
+			}
+
+			if (!has_dnssecpolicy) {
+				cfg_obj_log(zconfig, logctx, ISC_LOG_ERROR,
+					    "zone '%s': option "
+					    "'dnssec-policy %s' has no "
+					    "matching dnssec-policy config",
+					    znamestr, kaspname);
+				if (result == ISC_R_SUCCESS) {
+					result = ISC_R_FAILURE;
+				}
+			}
+		}
+	}
+
+	/*
 	 * Check validity of the zone options.
 	 */
 	option = cfg_map_firstclause(&cfg_type_zoneopts, &clauses, &i);
@@ -2248,19 +2376,36 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 		if (res1 == ISC_R_SUCCESS)
 			signing = cfg_obj_asboolean(obj);
 
+		if (signing && has_dnssecpolicy) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "inline-signing: cannot be configured if "
+				    "dnssec-policy is also set");
+			result = ISC_R_FAILURE;
+		}
+
 		obj = NULL;
 		arg = "off";
 		res3 = cfg_map_get(zoptions, "auto-dnssec", &obj);
-		if (res3 == ISC_R_SUCCESS)
+		if (res3 == ISC_R_SUCCESS) {
 			arg = cfg_obj_asstring(obj);
-		if (strcasecmp(arg, "off") != 0 && !ddns && !signing) {
-			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
-				    "'auto-dnssec %s;' requires%s "
-				    "inline-signing to be configured for "
-				    "the zone", arg,
-				    (ztype == CFG_ZONE_MASTER) ?
-					 " dynamic DNS or" : "");
-			result = ISC_R_FAILURE;
+		}
+		if (strcasecmp(arg, "off") != 0) {
+			if (!ddns && !signing) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "'auto-dnssec %s;' requires%s "
+					    "inline-signing to be configured "
+					    "for the zone", arg,
+					    (ztype == CFG_ZONE_MASTER) ?
+					    " dynamic DNS or" : "");
+				result = ISC_R_FAILURE;
+			}
+			if (has_dnssecpolicy) {
+				cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+					    "'auto-dnssec %s;' cannot be "
+					    "configured if dnssec-policy is "
+					    "also set", arg);
+				result = ISC_R_FAILURE;
+			}
 		}
 
 		obj = NULL;
@@ -2285,6 +2430,21 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 				    "inline-signing when used in slave zone");
 			result = ISC_R_FAILURE;
 		}
+		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-dnskey-kskonly: cannot be "
+				    "configured if dnssec-policy is also set");
+			result = ISC_R_FAILURE;
+		}
+
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "dnssec-secure-to-insecure", &obj);
+		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-secure-to-insecure: cannot be "
+				    "configured if dnssec-policy is also set");
+			result = ISC_R_FAILURE;
+		}
 
 		obj = NULL;
 		res1 = cfg_map_get(zoptions, "dnssec-loadkeys-interval", &obj);
@@ -2305,6 +2465,21 @@ check_zoneconf(const cfg_obj_t *zconfig, const cfg_obj_t *voptions,
 			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
 				    "update-check-ksk: requires "
 				    "inline-signing when used in slave zone");
+			result = ISC_R_FAILURE;
+		}
+		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "update-check-ksk: cannot be configured "
+				    "if dnssec-policy is also set");
+			result = ISC_R_FAILURE;
+		}
+
+		obj = NULL;
+		res1 = cfg_map_get(zoptions, "dnssec-update-mode", &obj);
+		if (res1 == ISC_R_SUCCESS && has_dnssecpolicy) {
+			cfg_obj_log(obj, logctx, ISC_LOG_ERROR,
+				    "dnssec-update-mode: cannot be configured "
+				    "if dnssec-policy is also set");
 			result = ISC_R_FAILURE;
 		}
 	}

@@ -16,6 +16,7 @@ zone <string> [ <class> ] {
 	dnskey-sig-validity <integer>;
 	dnssec-dnskey-kskonly <boolean>;
 	dnssec-loadkeys-interval <integer>;
+	dnssec-policy <string>;
 	dnssec-update-mode ( maintain | no-resign );
 	file <quoted_string>;
 	forward ( first | only );

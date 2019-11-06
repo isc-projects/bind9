@@ -3122,6 +3122,16 @@ $ORIGIN 0.0.0.0.0.0.0.0.8.b.d.0.1.0.0.2.ip6.arpa.
 	    </row>
 	    <row rowsep="0">
 	      <entry colname="1">
+		<para><command>dnssec-policy</command></para>
+	      </entry>
+	      <entry colname="2">
+		<para>
+		  describes a DNSSEC key and signing policy for zones.
+		</para>
+	      </entry>
+	    </row>
+	    <row rowsep="0">
+	      <entry colname="1">
 		<para><command>include</command></para>
 	      </entry>
 	      <entry colname="2">
@@ -11004,6 +11014,224 @@ example.com                 CNAME   rpz-tcp-only.
 	  </para>
 	</section>
 
+	<section xml:id="dnssec_policy_grammar"><info><title><command>dnssec-policy</command> Statement Grammar</title></info>
+	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="dnssec-policy.grammar.xml"/>
+	</section>
+
+	<section xml:id="dnssec_policy"><info><title><command>dnssec-policy</command> Statement Definition
+	    and Usage</title></info>
+
+	  <para>
+	    The <command>dnssec-policy</command> statement defines a key and
+	    signing policy (KASP) for zones.
+	  </para>
+	  <para>
+	    KASP is used to determine how one or more zones need to be signed
+	    with DNSSEC.  For example, how often RRSIG records need to be
+	    refreshed, or what cryptographic algorithms to use.
+	  </para>
+	  <para>
+	    You can configure multiple policies.  To attach a policy to a zone
+	    simply add <userinput>dnssec-policy "policy_name"</userinput>
+	    option to the <command>zone</command> statement with a matching
+	    policy name.
+	  </para>
+
+	  <variablelist>
+
+	    <varlistentry>
+	      <term><command>dnskey-ttl</command></term>
+	      <listitem>
+		<para>
+		The TTL of the DNSKEY resource records.
+		Default is <constant>3600</constant> seconds.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>keys</command></term>
+	      <listitem>
+		<para>
+		A list of keys to use.  Each line represents one key. Here is
+	        an example (for illustration purposes only) of some possible
+		keys in a <command>dnssec-policy</command>:
+		</para>
+
+<programlisting>keys {
+    ksk key-directory lifetime P5Y algorithm 8 2048;
+    zsk key-directory lifetime P30D algorithm 8;
+    csk key-directory lifetime P6MT12H3M15S algorithm 13;
+};
+</programlisting>
+
+		<para>
+		This example lists three keys. The first token determines
+		what RRsets the key will sign. If set to
+		<userinput>ksk</userinput> the key will sign the DNSKEY, CDS,
+		and CDNSKEY RRsets, if set to <userinput>zsk</userinput> the
+		key will sign the other RRsets, and if set to
+		<userinput>csk</userinput> the key will sign all RRsets.
+		</para>
+		<para>
+		The following part determines where the key will be stored.
+		Currently keys can only be stored in the configured
+		<command>key-directory</command>.
+		</para>
+		<para>
+		The third token tells how long the key may be used.  In the
+		example the first key has a lifetime of 5 years, the second
+		key may be used for 30 days and the third key has a rather
+	        peculiar lifetime of 6 months, 12 hours, 3 minutes and 15
+		seconds.
+		</para>
+		<para>
+		The last token(s) are the key's algorithm and algorithm length.
+		The length may be omitted as shown in the example for the
+		second and third key.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>publish-safety</command></term>
+	      <listitem>
+		<para>
+		A margin that is added to the publish interval in key timing
+		equations to give some extra time to cover unforeseen events.
+		Default is <constant>PT5M</constant> (5 minutes).
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>retire-safety</command></term>
+	      <listitem>
+		<para>
+		A margin that is added to the retire interval in key timing
+		equations to give some extra time to cover unforeseen events.
+		Default is <constant>PT5M</constant> (5 minutes).
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>signatures-refresh</command></term>
+	      <listitem>
+		<para>
+		This determines when a RRSIG record needs to be refreshed.
+		The signatures is renewed when the time until the expiration
+		time is closer than <command>signatures-refresh</command>.
+		<command>signatures-resign</command> interval.
+		Default is <constant>P5D</constant> (5 days), meaning a
+		signature that will expire in 5 days or sooner will be
+		refreshed.
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>signatures-validity</command></term>
+	      <listitem>
+		<para>
+		The validity period of an RRSIG record (minus the inception
+		offset and jitter). Default is <constant>P2W</constant>
+		(2 weeks).
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>signatures-validity-dnskey</command></term>
+	      <listitem>
+		<para>
+		Like <command>signatures-validity</command> but for DNSKEY
+		records. Default is <constant>P2W</constant> (2 weeks).
+		</para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>zone-max-ttl</command></term>
+	      <listitem>
+		<para>
+		Like <command>max-zone-ttl</command>, specifies the maximum
+		permissible TTL value in seconds. When loading a zone file
+		using a <option>masterfile-format</option> or
+		<constant>text</constant> or <constant>raw</constant>,
+		any record encountered with a TTL higher than
+		<option>zone-max-ttl</option> will be capped to the maximum
+		permissible TTL value.
+		</para>
+		<para>
+		This is needed in DNSSEC-maintained zones because when
+		rolling to a new DNSKEY, the old key needs to remain
+		available until RRSIG records have expired from
+		caches.  The <option>zone-max-ttl</option> option guarantees
+		that the largest TTL in the zone will be no higher than the
+		set value.
+		</para>
+	      <para>
+		(NOTE: Because <constant>map</constant>-format files
+		load directly into memory, this option cannot be
+		used with them.)
+	      </para>
+	      <para>
+		The default value is <constant>PT24H</constant> (24 hours).
+		A <option>zone-max-ttl</option> of zero is treated as if
+		the default value is in use.
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>zone-propagation-delay</command></term>
+	      <listitem>
+		<para>
+		The expected propagation delay from when a zone is updated
+		and when the new version of the zone is served by all its
+		name servers.  Default is <constant>PT5M</constant> (5 minutes).
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>parent-ds-ttl</command></term>
+	      <listitem>
+		<para>
+		The TTL of the DS RRset that the parent uses.  Default is
+		<constant>PT1H</constant> (1 hour).
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>parent-propagation-delay</command></term>
+	      <listitem>
+		<para>
+		The expected propagation delay from when the parent zone is
+		updated and when the new version of the parent zone is served
+		by all its name servers.  Default is
+		<constant>PT1H</constant> (1 hour).
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	    <varlistentry>
+	      <term><command>parent-registration-delay</command></term>
+	      <listitem>
+		<para>
+		The expected registration delay from when a DS RRset change
+		is requested and when the DS RRset has been updated in the
+		parent zone.  Default is <constant>P1D</constant> (1 day).
+	      </para>
+	      </listitem>
+	    </varlistentry>
+
+	  </variablelist>
+
+	</section>
+
 	<section xml:id="managed-keys"><info><title><command>managed-keys</command> Statement Grammar</title></info>
 	<xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="managed-keys.grammar.xml"/>
 	</section>
@@ -11874,6 +12102,17 @@ view "external" {
 		  <para>
 		    See the description of
 		    <command>dnssec-loadkeys-interval</command> in <xref linkend="options"/>.
+		  </para>
+		</listitem>
+	      </varlistentry>
+
+	      <varlistentry>
+		<term><command>dnssec-policy</command></term>
+		<listitem>
+		  <para>
+		    The key and signing policy for this zone.  Set to
+		    <userinput>"default"</userinput> if you want to make use
+		    of the default policy.
 		  </para>
 		</listitem>
 	      </varlistentry>

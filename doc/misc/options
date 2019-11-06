@@ -25,6 +25,22 @@ dnssec-keys { <string> ( static-key |
     initial-key ) <integer> <integer> <integer>
     <quoted_string>; ... }; // may occur multiple times
 
+dnssec-policy <string> {
+        dnskey-ttl <ttlval>;
+        keys { ( csk | ksk | zsk ) key-directory lifetime <duration> algorithm <integer>
+	    [ <integer> ]; ... };
+	parent-ds-ttl <duration>;
+	parent-propagation-delay <duration>;
+	parent-registration-delay <duration>;
+        publish-safety <duration>;
+        retire-safety <duration>;
+        signatures-refresh <duration>;
+        signatures-validity <duration>;
+        signatures-validity-dnskey <duration>;
+        zone-max-ttl <duration>;
+	zone-propagation-delay <duration>;
+}; // may occur multiple times
+
 dyndb <string> <quoted_string> {
     <unspecified-text> }; // may occur multiple times
 
