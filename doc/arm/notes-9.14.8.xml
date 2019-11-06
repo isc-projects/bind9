@@ -11,6 +11,18 @@
 
 <section xml:id="relnotes-9.14.8"><info><title>Notes for BIND 9.14.8</title></info>
 
+  <section xml:id="relnotes-9.14.8-features"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Added a new statistics variable <command>tcp-highwater</command>
+          that reports the maximum number of simultaneous TCP clients BIND
+          has handled while running. [GL #1206]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
   <section xml:id="relnotes-9.14.8-changes"><info><title>Feature Changes</title></info>
     <itemizedlist>
       <listitem>
@@ -20,13 +32,6 @@
           recursive service. The NSEC Aggressive Cache will be enable by default
           in the future releases. [GL #1265]
         </para>
-      </listitem>
-      <listitem>
-	<para>
-          Added a new statistics variable <command>tcp-highwater</command>
-          that reports the maximum number of simultaneous TCP clients BIND
-          has handled while running.
-	</para>
       </listitem>
     </itemizedlist>
   </section>
