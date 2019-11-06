@@ -14,12 +14,13 @@
   <section xml:id="relnotes-9.11.13-features"><info><title>New Features</title></info>
     <itemizedlist>
       <listitem>
-	<para>
+        <para>
           Added a new statistics variable <command>tcp-highwater</command>
           that reports the maximum number of simultaneous TCP clients BIND
-          has handled while running.
-	</para>
+          has handled while running. [GL #1206]
+        </para>
       </listitem>
     </itemizedlist>
   </section>
+
 </section>
