@@ -15,7 +15,7 @@
       <para>
         Added a new statistics variable <command>tcp-highwater</command>
         that reports the maximum number of simultaneous TCP clients BIND
-        has handled while running.
+        has handled while running. [GL #1206]
       </para>
     </listitem>
     <listitem>
