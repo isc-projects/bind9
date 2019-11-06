@@ -33,6 +33,7 @@ isc_log_t *lctx = NULL;
 isc_taskmgr_t *taskmgr = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
+isc_nm_t *netmgr = NULL;
 isc_task_t *maintask = NULL;
 int ncpus;
 
@@ -55,6 +56,9 @@ static isc_logcategory_t categories[] = {
 
 static void
 cleanup_managers(void) {
+	if (netmgr != NULL) {
+		isc_nm_detach(&netmgr);
+	}
 	if (maintask != NULL) {
 		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
@@ -90,6 +94,7 @@ create_managers(unsigned int workers) {
 
 	CHECK(isc_timermgr_create(mctx, &timermgr));
 	CHECK(isc_socketmgr_create(mctx, &socketmgr));
+	netmgr = isc_nm_start(mctx, 3);
 	return (ISC_R_SUCCESS);
 
  cleanup:
