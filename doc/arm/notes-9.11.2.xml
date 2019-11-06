@@ -1,0 +1,114 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.11.2"><info><title>Notes for BIND 9.11.2</title></info>
+
+  <section xml:id="relnotes-9.11.2-security"><info><title>Security Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          An error in TSIG handling could permit unauthorized zone
+          transfers or zone updates. These flaws are disclosed in
+          CVE-2017-3142 and CVE-2017-3143. [RT #45383]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The BIND installer on Windows used an unquoted service path,
+          which can enable privilege escalation. This flaw is disclosed
+          in CVE-2017-3141. [RT #45229]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          With certain RPZ configurations, a response with TTL 0
+          could cause <command>named</command> to go into an infinite
+          query loop. This flaw is disclosed in CVE-2017-3140.
+          [RT #45181]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.2-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <command>dig +ednsopt</command> now accepts the names
+          for EDNS options in addition to numeric values. For example,
+          an EDNS Client-Subnet option could be sent using
+          <command>dig +ednsopt=ecs:...</command>. Thanks to
+          John Worley of Secure64 for the contribution. [RT #44461]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Threads in <command>named</command> are now set to human-readable
+          names to assist debugging on operating systems that support that.
+          Threads will have names such as "isc-timer", "isc-sockmgr",
+          "isc-worker0001", and so on. This will affect the reporting of
+          subsidiary thread names in <command>ps</command> and
+          <command>top</command>, but not the main thread. [RT #43234]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          DiG now warns about .local queries which are reserved for
+          Multicast DNS. [RT #44783]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.2-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Fixed a bug that was introduced in an earlier development
+          release which caused multi-packet AXFR and IXFR messages to fail
+          validation if not all packets contained TSIG records; this
+          caused interoperability problems with some other DNS
+          implementations. [RT #45509]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Reloading or reconfiguring <command>named</command> could
+          fail on some platforms when LMDB was in use. [RT #45203]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Due to some incorrectly deleted code, when BIND was
+          built with LMDB, zones that were deleted via
+          <command>rndc delzone</command> were removed from the
+          running server but were not removed from the new zone
+          database, so that deletion did not persist after a
+          server restart. This has been corrected. [RT #45185]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Semicolons are no longer escaped when printing CAA and
+          URI records.  This may break applications that depend on the
+          presence of the backslash before the semicolon. [RT #45216]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          AD could be set on truncated answer with no records present
+          in the answer and authority sections. [RT #45140]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>

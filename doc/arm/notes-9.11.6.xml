@@ -1,0 +1,73 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.11.6"><info><title>Notes for BIND 9.11.6</title></info>
+
+  <section xml:id="relnotes-9.11.6-security"><info><title>Security Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Code change #4964, intended to prevent double signatures
+          when deleting an inactive zone DNSKEY in some situations,
+          introduced a new problem during zone processing in which
+          some delegation glue RRsets are incorrectly identified
+          as needing RRSIGs, which are then created for them using
+          the current active ZSK for the zone. In some, but not all
+          cases, the newly-signed RRsets are added to the zone's
+          NSEC/NSEC3 chain, but incompletely -- this can result in
+          a broken chain, affecting validation of proof of nonexistence
+          for records in the zone. [GL #771]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named</command> could crash if it managed a DNSSEC
+          security root with <command>managed-keys</command> and the
+          authoritative zone rolled the key to an algorithm not supported
+          by BIND 9.  This flaw is disclosed in CVE-2018-5745. [GL #780]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named</command> leaked memory when processing a
+          request with multiple Key Tag EDNS options present. ISC
+          would like to thank Toshifumi Sakaguchi for bringing this
+          to our attention.  This flaw is disclosed in CVE-2018-5744.
+          [GL #772]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Zone transfer controls for writable DLZ zones were not
+          effective as the <command>allowzonexfr</command> method was
+          not being called for such zones. This flaw is disclosed in
+          CVE-2019-6465. [GL #790]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.6-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          When compiled with IDN support, the <command>dig</command> and the
+          <command>nslookup</command> commands now disable IDN processing when
+          the standard output is not a tty (e.g. not used by human).  The command
+          line options +idnin and +idnout need to be used to enable IDN
+          processing when <command>dig</command> or <command>nslookup</command>
+          is used from the shell scripts.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>

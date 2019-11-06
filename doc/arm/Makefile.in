@@ -19,9 +19,22 @@ TXTOBJS = notes.txt
 
 PDFOBJS = Bv9ARM.pdf notes.pdf
 
-NOTESXML = notes-bug-fixes.xml notes-download.xml notes-eol.xml \
-	   notes-intro.xml notes-license.xml notes-new-features.xml \
-	   notes-sec-fixes.xml notes-thankyou.xml notes.xml
+NOTESXML = notes-download.xml notes-eol.xml notes-intro.xml notes-license.xml \
+	   notes-thankyou.xml \
+	   notes-9.11.12.xml \
+	   notes-9.11.11.xml \
+	   notes-9.11.10.xml \
+	   notes-9.11.9.xml \
+	   notes-9.11.8.xml \
+	   notes-9.11.7.xml \
+	   notes-9.11.6.xml \
+	   notes-9.11.5.xml \
+	   notes-9.11.4.xml \
+	   notes-9.11.3.xml \
+	   notes-9.11.2.xml \
+	   notes-9.11.1.xml \
+	   notes-9.11.0.xml \
+	   notes.xml
 
 doc man:: ${MANOBJS} ${TXTOBJS} ${PDFOBJS}
 

@@ -9,14 +9,10 @@
  - information regarding copyright ownership.
 -->
 
-<section xml:id="relnotes_security"><info><title>Security Fixes</title></info>
-  <itemizedlist>
-    <listitem>
-      <para>
-        A race condition could trigger an assertion failure when
-        a large number of incoming packets were being rejected.
-        This flaw is disclosed in CVE-2019-6471. [GL #942]
-      </para>
-    </listitem>
-  </itemizedlist>
+<section xml:id="relnotes-9.11.12"><info><title>Notes for BIND 9.11.12</title></info>
+
+  <para>
+    None.
+  </para>
+
 </section>
