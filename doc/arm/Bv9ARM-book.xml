@@ -8492,7 +8492,8 @@ avoid-v6-udp-ports { 40000; range 50000 60000; };
 	    The first element (which may be an IP address, an IP prefix, an
 	    ACL name or a nested <command>address_match_list</command>) of
 	    each top level list is checked against the source address of
-	    the query until a match is found.
+	    the query until a match is found. When the addresses in the
+	    first element overlap, the first rule to match gets selected.
 	  </para>
 	  <para>
 	    Once the source address of the query has been matched, if the
