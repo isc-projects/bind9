@@ -1,3 +1,14 @@
+5317.	[func]		A new asynchronous network communications system
+			based on libuv is now used for listening for
+			incoming requests and responding to them. (The
+			old isc_socket API remains in use for sending
+			iterative queries and processing responses; this
+			will be changed too in a later release.)
+
+			This change will make it easier to improve
+			performance and implement new protocol layers
+			(e.g., DNS over TLS) in the future. [GL #29]
+
 5316.	[func]		A new "dnssec-policy" option has been added to
 			named.conf to implement a key and signing policy
 			(KASP) for zones. When this option is in use,
