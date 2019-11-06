@@ -18,7 +18,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/stat.h>
-#ifdef HAVE_SYS_SYSCTL_H
+#if defined(HAVE_SYS_SYSCTL_H) && !defined(__linux__)
 #include <sys/sysctl.h>
 #endif
 #include <sys/time.h>
