@@ -33,7 +33,7 @@ SRCS =		isctest.c aes_test.c buffer_test.c \
 		counter_test.c crc64_test.c errno_test.c file_test.c hash_test.c \
 		heap_test.c hmac_test.c ht_test.c lex_test.c \
 		mem_test.c md_test.c netaddr_test.c parse_test.c pool_test.c \
-		queue_test.c radix_test.c random_test.c \
+		radix_test.c random_test.c \
 		regex_test.c result_test.c safe_test.c siphash_test.c sockaddr_test.c \
 		socket_test.c socket_test.c symtab_test.c task_test.c \
 		taskpool_test.c time_test.c timer_test.c
@@ -46,7 +46,7 @@ TARGETS =	aes_test@EXEEXT@ buffer_test@EXEEXT@ \
 		ht_test@EXEEXT@ \
 		lex_test@EXEEXT@ mem_test@EXEEXT@ md_test@EXEEXT@ \
 		netaddr_test@EXEEXT@ parse_test@EXEEXT@ pool_test@EXEEXT@ \
-		queue_test@EXEEXT@ radix_test@EXEEXT@ \
+		radix_test@EXEEXT@ \
 		random_test@EXEEXT@ regex_test@EXEEXT@ result_test@EXEEXT@ \
 		safe_test@EXEEXT@ siphash_test@EXEEXT@ sockaddr_test@EXEEXT@ socket_test@EXEEXT@ \
 		socket_test@EXEEXT@ symtab_test@EXEEXT@ task_test@EXEEXT@ \
@@ -132,11 +132,6 @@ parse_test@EXEEXT@: parse_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 pool_test@EXEEXT@: pool_test.@O@ isctest.@O@ ${ISCDEPLIBS}
 	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
 		${LDFLAGS} -o $@ pool_test.@O@ isctest.@O@ \
-		${ISCLIBS} ${LIBS}
-
-queue_test@EXEEXT@: queue_test.@O@ isctest.@O@ ${ISCDEPLIBS}
-	${LIBTOOL_MODE_LINK} ${PURIFY} ${CC} ${CFLAGS} \
-		${LDFLAGS} -o $@ queue_test.@O@ isctest.@O@ \
 		${ISCLIBS} ${LIBS}
 
 radix_test@EXEEXT@: radix_test.@O@ isctest.@O@ ${ISCDEPLIBS}

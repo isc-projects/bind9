@@ -58,7 +58,6 @@
 #include <stdbool.h>
 
 #include <isc/buffer.h>
-#include <isc/list.h>
 #include <isc/magic.h>
 #include <isc/netmgr.h>
 #include <isc/stdtime.h>

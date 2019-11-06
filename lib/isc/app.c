@@ -29,7 +29,6 @@
 #include <isc/atomic.h>
 #include <isc/app.h>
 #include <isc/condition.h>
-#include <isc/list.h>
 #include <isc/mem.h>
 #include <isc/mutex.h>
 #include <isc/event.h>

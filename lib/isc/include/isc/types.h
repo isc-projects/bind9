@@ -20,16 +20,15 @@
  */
 #include <inttypes.h>
 #include <stdbool.h>
-
-#include <isc/lang.h>
 #include <isc/offset.h>
 
-/* Core Types.  Alphabetized by defined type. */
-
 /*
- * Defined here so we don't need to include list.h.
+ * XXXDCL This is just for ISC_LIST and ISC_LINK, but gets all of the other
+ * list macros too.
  */
-#define ISC_LIST(type) struct { type *head, *tail; }
+#include <isc/list.h>
+
+/* Core Types.  Alphabetized by defined type. */
 
 typedef struct isc_astack		isc_astack_t;		/*%< Array-based fast stack */
 typedef struct isc_appctx		isc_appctx_t;	 	/*%< Application context */

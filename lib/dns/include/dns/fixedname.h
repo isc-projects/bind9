@@ -51,7 +51,6 @@
 
 #include <isc/buffer.h>
 #include <isc/lang.h>
-#include <isc/list.h>
 
 #include <dns/name.h>
 

@@ -16,7 +16,6 @@
 #include <isc/formatcheck.h>
 #include <isc/fuzz.h>
 #include <isc/hmac.h>
-#include <isc/list.h>
 #include <isc/mutex.h>
 #include <isc/once.h>
 #include <isc/nonce.h>
