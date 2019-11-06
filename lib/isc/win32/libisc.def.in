@@ -520,6 +520,7 @@ isc_quota_attach
 isc_quota_destroy
 isc_quota_detach
 isc_quota_force
+isc_quota_getused
 isc_quota_init
 isc_quota_max
 isc_quota_release

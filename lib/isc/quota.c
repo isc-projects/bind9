@@ -111,3 +111,13 @@ isc_quota_detach(isc_quota_t **p) {
 	isc_quota_release(*p);
 	*p = NULL;
 }
+
+unsigned int
+isc_quota_getused(isc_quota_t *quota) {
+	int used;
+
+	LOCK(&quota->lock);
+	used = quota->used;
+	UNLOCK(&quota->lock);
+	return (used);
+}
