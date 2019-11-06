@@ -1,0 +1,863 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.11.0"><info><title>Notes for BIND 9.11.0</title></info>
+
+  <section xml:id="relnotes-9.11.0-security"><info><title>Security Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          It was possible to trigger a assertion when rendering a
+          message using a specially crafted request. This flaw is
+          disclosed in CVE-2016-2776. [RT #43139]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+         getrrsetbyname with a non absolute name could trigger an
+         infinite recursion bug in lwresd and named with lwres
+         configured if when combined with a search list entry the
+         resulting name is too long.  This flaw is disclosed in
+         CVE-2016-2775. [RT #42694]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.0-features"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          A new method of provisioning secondary servers called
+          "Catalog Zones" has been added. This is an implementation of
+          <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://datatracker.ietf.org/doc/draft-muks-dnsop-dns-catalog-zones/">
+            draft-muks-dnsop-dns-catalog-zones/
+          </link>.
+        </para>
+        <para>
+          A catalog zone is a regular DNS zone which contains a list
+          of "member zones", along with the configuration options for
+          each of those zones.  When a server is configured to use a
+          catalog zone, all the zones listed in the catalog zone are
+          added to the local server as slave zones.  When the catalog
+          zone is updated (e.g., by adding or removing zones, or
+          changing configuration options for existing zones) those
+          changes will be put into effect.  Since the catalog zone is
+          itself a DNS zone, this means configuration changes can be
+          propagated to slaves using the standard AXFR/IXFR update
+          mechanism.
+        </para>
+        <para>
+          This feature should be considered experimental. It currently
+          supports only basic features; more advanced features such as
+          ACLs and TSIG keys are not yet supported. Example catalog
+          zone configurations can be found in the Chapter 9 of the
+          BIND Administrator Reference Manual.
+        </para>
+        <para>
+          Support for master entries with TSIG keys has been added to catalog
+          zones, as well as support for allow-query and allow-transfer.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Added an <command>isc.rndc</command> Python module, which allows
+          <command>rndc</command> commands to be sent from Python programs.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Added support for DynDB, a new interface for loading zone data
+          from an external database, developed by Red Hat for the FreeIPA
+          project.  (Thanks in particular to Adam Tkac and Petr
+          Spacek of Red Hat for the contribution.)
+        </para>
+        <para>
+          Unlike the existing DLZ and SDB interfaces, which provide a
+          limited subset of database functionality within BIND -
+          translating DNS queries into real-time database lookups with
+          relatively poor performance and with no ability to handle
+          DNSSEC-signed data - DynDB is able to fully implement
+          and extend the database API used natively by BIND.
+        </para>
+        <para>
+          A DynDB module could pre-load data from an external data
+          source, then serve it with the same performance and
+          functionality as conventional BIND zones, and with the
+          ability to take advantage of database features not
+          available in BIND, such as multi-master replication.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Fetch quotas are now compiled in by default: they
+          no longer require BIND to be configured with
+          <command>--enable-fetchlimit</command>, as was the case
+          when the feature was introduced in BIND 9.10.3.
+        </para>
+        <para>
+          These quotas limit the queries that are sent by recursive
+          resolvers to authoritative servers experiencing denial-of-service
+          attacks. They can both reduce the harm done to authoritative
+          servers and also avoid the resource exhaustion that can be
+          experienced by recursive servers when they are being used as a
+          vehicle for such an attack.
+        </para>
+        <itemizedlist>
+          <listitem>
+            <para>
+              <option>fetches-per-server</option> limits the number of
+              simultaneous queries that can be sent to any single
+              authoritative server.  The configured value is a starting
+              point; it is automatically adjusted downward if the server is
+              partially or completely non-responsive. The algorithm used to
+              adjust the quota can be configured via the
+              <option>fetch-quota-params</option> option.
+            </para>
+          </listitem>
+          <listitem>
+            <para>
+              <option>fetches-per-zone</option> limits the number of
+              simultaneous queries that can be sent for names within a
+              single domain.  (Note: Unlike "fetches-per-server", this
+              value is not self-tuning.)
+            </para>
+          </listitem>
+        </itemizedlist>
+        <para>
+          Statistics counters have also been added to track the number
+          of queries affected by these quotas.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Added support for <command>dnstap</command>, a fast,
+          flexible method for capturing and logging DNS traffic,
+          developed by Robert Edmonds at Farsight Security, Inc.,
+          whose assistance is gratefully acknowledged.
+        </para>
+        <para>
+          To enable <command>dnstap</command> at compile time,
+          the <command>fstrm</command> and <command>protobuf-c</command>
+          libraries must be available, and BIND must be configured with
+          <option>--enable-dnstap</option>.
+        </para>
+        <para>
+          A new utility <command>dnstap-read</command> has been added
+          to allow <command>dnstap</command> data to be presented in
+          a human-readable format.
+        </para>
+        <para>
+          <command>rndc dnstap -roll</command> causes <command>dnstap</command>
+          output files to be rolled like log files -- the most recent output
+          file is renamed with a <filename>.0</filename> suffix, the next
+          most recent with <filename>.1</filename>, etc. (Note that this
+          only works when <command>dnstap</command> output is being written
+          to a file, not to a UNIX domain socket.) An optional numerical
+          argument specifies how many backup log files to retain; if not
+          specified or set to 0, there is no limit.
+        </para>
+        <para>
+          <command>rndc dnstap -reopen</command> simply closes and reopens
+          the <command>dnstap</command> output channel without renaming
+          the output file.
+        </para>
+        <para>
+          For more information on <command>dnstap</command>, see
+          <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="https://dnstap.info">https://dnstap.info</link>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          New statistics counters have been added to track traffic
+          sizes, as specified in RSSAC002.  Query and response
+          message sizes are broken up into ranges of histogram buckets:
+          TCP and UDP queries of size 0-15, 16-31, ..., 272-288, and 288+,
+          and TCP and UDP responses of size 0-15, 16-31, ..., 4080-4095,
+          and 4096+.  These values can be accessed via the XML and JSON
+          statistics channels at, for example,
+          <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8888/xml/v3/traffic">http://localhost:8888/xml/v3/traffic</link>
+          or
+          <link xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="http://localhost:8888/json/v1/traffic">http://localhost:8888/json/v1/traffic</link>.
+        </para>
+        <para>
+                Statistics for RSSAC02v3 traffic-volume, traffic-sizes and
+                rcode-volume reporting are now collected.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A new DNSSEC key management utility,
+          <command>dnssec-keymgr</command>, has been added. This tool
+          is meant to run unattended (e.g., under <command>cron</command>).
+          It reads a policy definition file
+          (default <filename>/etc/dnssec-policy.conf</filename>)
+          and creates or updates DNSSEC keys as necessary to ensure that a
+          zone's keys match the defined policy for that zone.  New keys are
+          created whenever necessary to ensure rollovers occur correctly.
+          Existing keys' timing metadata is adjusted as needed to set the
+          correct rollover period, prepublication interval, etc.  If
+          the configured policy changes, keys are corrected automatically.
+          See the <command>dnssec-keymgr</command> man page for full details.
+        </para>
+        <para>
+          Note: <command>dnssec-keymgr</command> depends on Python and on
+          the Python lex/yacc module, PLY. The other Python-based tools,
+          <command>dnssec-coverage</command> and
+          <command>dnssec-checkds</command>, have been
+          refactored and updated as part of this work.
+        </para>
+        <para>
+          <command>dnssec-keymgr</command> now takes a -r
+          <replaceable>randomfile</replaceable> option.
+        </para>
+        <para>
+          (Many thanks to Sebastián
+          Castro for his assistance in developing this tool at the IETF
+          95 Hackathon in Buenos Aires, April 2016.)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The serial number of a dynamically updatable zone can
+          now be set using
+          <command>rndc signing -serial <replaceable>number</replaceable> <replaceable>zonename</replaceable></command>.
+          This is particularly useful with <option>inline-signing</option>
+          zones that have been reset.  Setting the serial number to a value
+          larger than that on the slaves will trigger an AXFR-style
+          transfer.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When answering recursive queries, SERVFAIL responses can now be
+          cached by the server for a limited time; subsequent queries for
+          the same query name and type will return another SERVFAIL until
+          the cache times out.  This reduces the frequency of retries
+          when a query is persistently failing, which can be a burden
+          on recursive servers.  The SERVFAIL cache timeout is controlled
+          by <option>servfail-ttl</option>, which defaults to 1 second
+          and has an upper limit of 30.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The new <command>rndc nta</command> command can now be used to
+          set a "negative trust anchor" (NTA), disabling DNSSEC validation for
+          a specific domain; this can be used when responses from a domain
+          are known to be failing validation due to administrative error
+          rather than because of a spoofing attack. NTAs are strictly
+          temporary; by default they expire after one hour, but can be
+          configured to last up to one week.  The default NTA lifetime
+          can be changed by setting the <option>nta-lifetime</option> in
+          <filename>named.conf</filename>. When added, NTAs are stored in a
+          file (<filename><replaceable>viewname</replaceable>.nta</filename>)
+          in order to persist across restarts of the <command>named</command> server.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The EDNS Client Subnet (ECS) option is now supported for
+          authoritative servers; if a query contains an ECS option then
+          ACLs containing <option>geoip</option> or <option>ecs</option>
+          elements can match against the address encoded in the option.
+          This can be used to select a view for a query, so that different
+          answers can be provided depending on the client network.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The EDNS EXPIRE option has been implemented on the client
+          side, allowing a slave server to set the expiration timer
+          correctly when transferring zone data from another slave
+          server.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A new <option>masterfile-style</option> zone option controls
+          the formatting of text zone files:  When set to
+          <literal>full</literal>, the zone file will dumped in
+          single-line-per-record format.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig +ednsopt</command> can now be used to set
+          arbitrary EDNS options in DNS requests.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig +ednsflags</command> can now be used to set
+          yet-to-be-defined EDNS flags in DNS requests.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig +[no]ednsnegotiation</command> can now be used enable /
+          disable EDNS version negotiation.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig +header-only</command> can now be used to send
+          queries without a question section.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig +ttlunits</command> causes <command>dig</command>
+          to print TTL values with time-unit suffixes: w, d, h, m, s for
+          weeks, days, hours, minutes, and seconds.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig +zflag</command> can be used to set the last
+          unassigned DNS header flag bit.  This bit is normally zero.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig +dscp=<replaceable>value</replaceable></command>
+          can now be used to set the DSCP code point in outgoing query
+          packets.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dig +mapped</command> can now be used to determine
+          if mapped IPv4 addresses can be used.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>nslookup</command> will now look up IPv6 as well
+          as IPv4 addresses by default. [RT #40420]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <option>serial-update-method</option> can now be set to
+          <literal>date</literal>. On update, the serial number will
+          be set to the current date in YYYYMMDDNN format.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>dnssec-signzone -N date</command> also sets the serial
+          number to YYYYMMDDNN.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named -L <replaceable>filename</replaceable></command>
+          causes <command>named</command> to send log messages to the
+          specified file by default instead of to the system log.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The rate limiter configured by the
+          <option>serial-query-rate</option> option no longer covers
+          NOTIFY messages; those are now separately controlled by
+          <option>notify-rate</option> and
+          <option>startup-notify-rate</option> (the latter of which
+          controls the rate of NOTIFY messages sent when the server
+          is first started up or reconfigured).
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The default number of tasks and client objects available
+          for serving lightweight resolver queries have been increased,
+          and are now configurable via the new <option>lwres-tasks</option>
+          and <option>lwres-clients</option> options in
+          <filename>named.conf</filename>. [RT #35857]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Log output to files can now be buffered by specifying
+          <command>buffered yes;</command> when creating a channel.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>delv +tcp</command> will exclusively use TCP when
+          sending queries.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named</command> will now check to see whether
+          other name server processes are running before starting up.
+          This is implemented in two ways: 1) by refusing to start
+          if the configured network interfaces all return "address
+          in use", and 2) by attempting to acquire a lock on a file
+          specified by the <option>lock-file</option> option or
+          the <command>-X</command> command line option.  The
+          default lock file is
+          <filename>/var/run/named/named.lock</filename>.
+          Specifying <literal>none</literal> will disable the lock
+          file check.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>rndc delzone</command> can now be applied to zones
+          which were configured in <filename>named.conf</filename>;
+          it is no longer restricted to zones which were added by
+          <command>rndc addzone</command>.  (Note, however, that
+          this does not edit <filename>named.conf</filename>; the zone
+          must be removed from the configuration or it will return
+          when <command>named</command> is restarted or reloaded.)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>rndc modzone</command> can be used to reconfigure
+          a zone, using similar syntax to <command>rndc addzone</command>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>rndc showzone</command> displays the current
+          configuration for a specified zone.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When BIND is built with the <command>lmdb</command> library
+          (Lightning Memory-Mapped Database), <command>named</command>
+          will store the configuration information for zones
+          that are added via <command>rndc addzone</command>
+          in a database, rather than in a flat "NZF" file.  This
+          dramatically improves performance for
+          <command>rndc delzone</command> and
+          <command>rndc modzone</command>: deleting or changing
+          the contents of a database is much faster than rewriting
+          a text file.
+        </para>
+        <para>
+          On startup, if <command>named</command> finds an existing
+          NZF file, it will automatically convert it to the new NZD
+          database format.
+        </para>
+        <para>
+          To view the contents of an NZD, or to convert an
+          NZD back to an NZF file (for example, to revert back
+          to an earlier version of BIND which did not support the
+          NZD format), use the new command <command>named-nzd2nzf</command>
+          [RT #39837]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Added server-side support for pipelined TCP queries.  Clients
+          may continue sending queries via TCP while previous queries are
+          processed in parallel.  Responses are sent when they are
+          ready, not necessarily in the order in which the queries were
+          received.
+        </para>
+        <para>
+          To revert to the former behavior for a particular
+          client address or range of addresses, specify the address prefix
+          in the "keep-response-order" option.  To revert to the former
+          behavior for all clients, use "keep-response-order { any; };".
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The new <command>mdig</command> command is a version of
+          <command>dig</command> that sends multiple pipelined
+          queries and then waits for responses, instead of sending one
+          query and waiting the response before sending the next. [RT #38261]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          To enable better monitoring and troubleshooting of RFC 5011
+          trust anchor management, the new <command>rndc managed-keys</command>
+          can be used to check status of trust anchors or to force keys
+          to be refreshed.  Also, the managed-keys data file now has
+          easier-to-read comments. [RT #38458]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          An <command>--enable-querytrace</command> configure switch is
+          now available to enable very verbose query trace logging. This
+          option can only be set at compile time. This option has a
+          negative performance impact and should be used only for
+          debugging. [RT #37520]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A new <command>tcp-only</command> option can be specified
+          in <command>server</command> statements to force
+          <command>named</command> to connect to the specified
+          server via TCP. [RT #37800]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The <command>nxdomain-redirect</command> option specifies
+          a DNS namespace to use for NXDOMAIN redirection. When a
+          recursive lookup returns NXDOMAIN, a second lookup is
+          initiated with the specified name appended to the query
+          name. This allows NXDOMAIN redirection data to be supplied
+          by multiple zones configured on the server, or by recursive
+          queries to other servers. (The older method, using
+          a single <command>type redirect</command> zone, has
+          better average performance but is less flexible.) [RT #37989]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The following types have been implemented: CSYNC, NINFO, RKEY,
+          SINK, TA, TALINK.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A new <command>message-compression</command> option can be
+          used to specify whether or not to use name compression when
+          answering queries. Setting this to <userinput>no</userinput>
+          results in larger responses, but reduces CPU consumption and
+          may improve throughput.  The default is <userinput>yes</userinput>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A <command>read-only</command> option is now available in the
+          <command>controls</command> statement to grant non-destructive
+          control channel access. In such cases, a restricted set of
+          <command>rndc</command> commands are allowed, which can
+          report information from <command>named</command>, but cannot
+          reconfigure or stop the server. By default, the control channel
+          access is <emphasis>not</emphasis> restricted to these
+          read-only operations. [RT #40498]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When loading a signed zone, <command>named</command> will
+          now check whether an RRSIG's inception time is in the future,
+          and if so, it will regenerate the RRSIG immediately. This helps
+          when a system's clock needs to be reset backwards.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The new <command>minimal-any</command> option reduces the size
+          of answers to UDP queries for type ANY by implementing one of
+          the strategies in "draft-ietf-dnsop-refuse-any": returning
+          a single arbitrarily-selected RRset that matches the query
+          name rather than returning all of the matching RRsets.
+          Thanks to Tony Finch for the contribution. [RT #41615]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named</command> now provides feedback to the
+          owners of zones which have trust anchors configured
+          (<command>trusted-keys</command>,
+          <command>managed-keys</command>, <command>dnssec-validation
+          auto;</command> and <command>dnssec-lookaside auto;</command>)
+          by sending a daily query which encodes the keyids of the
+          configured trust anchors for the zone.  This is controlled
+          by <command>trust-anchor-telemetry</command> and defaults
+          to yes.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.0-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The logging format used for <command>querylog</command> has been
+          altered. It now includes an additional field indicating the
+          address in memory of the client object processing the query.
+        </para>
+        <para>
+          The ISC DNSSEC Lookaside Validation (DLV) service is scheduled
+          to be disabled in 2017.  A warning is now logged when
+          <command>named</command> is configured to use this service,
+          either explicitly or via <option>dnssec-lookaside auto;</option>.
+          [RT #42207]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The timers returned by the statistics channel (indicating current
+          time, server boot time, and most recent reconfiguration time) are
+          now reported with millisecond accuracy. [RT #40082]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Updated the compiled-in addresses for H.ROOT-SERVERS.NET
+          and L.ROOT-SERVERS.NET.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          ACLs containing <command>geoip asnum</command> elements were
+          not correctly matched unless the full organization name was
+          specified in the ACL (as in
+          <command>geoip asnum "AS1234 Example, Inc.";</command>).
+          They can now match against the AS number alone (as in
+          <command>geoip asnum "AS1234";</command>).
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When using native PKCS#11 cryptography (i.e.,
+          <command>configure --enable-native-pkcs11</command>) HSM PINs
+          of up to 256 characters can now be used.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          NXDOMAIN responses to queries of type DS are now cached separately
+          from those for other types. This helps when using "grafted" zones
+          of type forward, for which the parent zone does not contain a
+          delegation, such as local top-level domains.  Previously a query
+          of type DS for such a zone could cause the zone apex to be cached
+          as NXDOMAIN, blocking all subsequent queries.  (Note: This
+          change is only helpful when DNSSEC validation is not enabled.
+          "Grafted" zones without a delegation in the parent are not a
+          recommended configuration.)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Update forwarding performance has been improved by allowing
+          a single TCP connection to be shared between multiple updates.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          By default, <command>nsupdate</command> will now check
+          the correctness of hostnames when adding records of type
+          A, AAAA, MX, SOA, NS, SRV or PTR.  This behavior can be
+          disabled with <command>check-names no</command>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Added support for OPENPGPKEY type.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The names of the files used to store managed keys and added
+          zones for each view are no longer based on the SHA256 hash
+          of the view name, except when this is necessary because the
+          view name contains characters that would be incompatible with use
+          as a file name.  For views whose names do not contain forward
+          slashes ('/'), backslashes ('\'), or capital letters - which
+          could potentially cause namespace collision problems on
+          case-insensitive filesystems - files will now be named
+          after the view (for example, <filename>internal.mkeys</filename>
+          or <filename>external.nzf</filename>).  However, to ensure
+          consistent behavior when upgrading, if a file using the old
+          name format is found to exist, it will continue to be used.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          "rndc" can now return text output of arbitrary size to
+          the caller. (Prior to this, certain commands such as
+          "rndc tsig-list" and "rndc zonestatus" could return
+          truncated output.)
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Errors reported when running <command>rndc addzone</command>
+          (e.g., when a zone file cannot be loaded) have been clarified
+          to make it easier to diagnose problems.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When encountering an authoritative name server whose name is
+          an alias pointing to another name, the resolver treats
+          this as an error and skips to the next server. Previously
+          this happened silently; now the error will be logged to
+          the newly-created "cname" log category.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          If <command>named</command> is not configured to validate
+          answers, then allow fallback to plain DNS on timeout even when
+          we know the server supports EDNS.  This will allow the server to
+          potentially resolve signed queries when TCP is being
+          blocked.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Large inline-signing changes should be less disruptive.
+          Signature generation is now done incrementally; the number
+          of signatures to be generated in each quantum is controlled
+          by "sig-signing-signatures <replaceable>number</replaceable>;".
+          [RT #37927]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The experimental SIT option (code point 65001) of BIND
+          9.10.0 through BIND 9.10.2 has been replaced with the COOKIE
+          option (code point 10). It is no longer experimental, and
+          is sent by default, by both <command>named</command> and
+          <command>dig</command>.
+        </para>
+        <para>
+          The SIT-related named.conf options have been marked as
+          obsolete, and are otherwise ignored.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When <command>dig</command> receives a truncated (TC=1)
+          response or a BADCOOKIE response code from a server, it
+          will automatically retry the query using the server COOKIE
+          that was returned by the server in its initial response.
+          [RT #39047]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Retrieving the local port range from net.ipv4.ip_local_port_range
+          on Linux is now supported.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A new <option>nsip-wait-recurse</option> directive has been
+          added to RPZ, specifying whether to look up unknown name server
+          IP addresses and wait for a response before applying RPZ-NSIP rules.
+          The default is <userinput>yes</userinput>. If set to
+          <userinput>no</userinput>, <command>named</command> will only
+          apply RPZ-NSIP rules to servers whose addresses are already cached.
+          The addresses will be looked up in the background so the rule can
+          be applied on subsequent queries. This improves performance when
+          the cache is cold, at the cost of temporary imprecision in applying
+          policy directives. [RT #35009]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Within the <option>response-policy</option> option, it is now
+          possible to configure RPZ rewrite logging on a per-zone basis
+          using the <option>log</option> clause.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The default preferred glue is now the address type of the
+          transport the query was received over.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          On machines with 2 or more processors (CPU), the default value
+          for the number of UDP listeners has been changed to the number
+          of detected processors minus one.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Zone transfers now use smaller message sizes to improve
+          message compression. This results in reduced network usage.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Added support for the AVC resource record type (Application
+          Visibility and Control).
+        </para>
+        <para>
+          Changed <command>rndc reconfig</command> behavior so that newly
+          added zones are loaded asynchronously and the loading does not
+          block the server.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>minimal-responses</command> now takes two new
+          arguments: <option>no-auth</option> suppresses
+          populating the authority section but not the additional
+          section; <option>no-auth-recursive</option>
+          does the same but only when answering recursive queries.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          At server startup time, the queues for processing
+          notify and zone refresh queries are now processed in
+          LIFO rather than FIFO order, to speed up
+          loading of newly added zones. [RT #42825]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When answering queries of type MX or SRV, TLSA records for
+          the target name are now included in the additional section
+          to speed up DANE processing. [RT #42894]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named</command> can now use the TCP Fast Open
+          mechanism on the server side, if supported by the
+          local operating system. [RT #42866]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.0-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Fixed a crash when calling <command>rndc stats</command> on some
+          Windows builds: some Visual Studio compilers generate code that
+          crashes when the "%z" printf() format specifier is used. [RT #42380]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Windows installs were failing due to triggering UAC without
+          the installation binary being signed.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          A change in the internal binary representation of the RBT database
+          node structure enabled a race condition to occur (especially when
+          BIND was built with certain compilers or optimizer settings),
+          leading to inconsistent database state which caused random
+          assertion failures. [RT #42380]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>

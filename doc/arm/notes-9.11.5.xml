@@ -1,0 +1,67 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.11.5"><info><title>Notes for BIND 9.11.5</title></info>
+
+  <section xml:id="relnotes-9.11.5-security"><info><title>Security Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <command>named</command> could crash during recursive processing
+          of DNAME records when <command>deny-answer-aliases</command> was
+          in use. This flaw is disclosed in CVE-2018-5740. [GL #387]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.5-features"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Two new update policy rule types have been added
+          <command>krb5-selfsub</command> and <command>ms-selfsub</command>
+          which allow machines with Kerberos principals to update
+          the name space at or below the machine names identified
+          in the respective principals.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.5-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The <command>rndc nta</command> command could not differentiate
+          between views of the same name but different class; this
+          has been corrected with the addition of a <command>-class</command>
+          option. [GL #105]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.5-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          When a negative trust anchor was added to multiple views
+          using <command>rndc nta</command>, the text returned via
+          <command>rndc</command> was incorrectly truncated after the
+          first line, making it appear that only one NTA had been
+          added. This has been fixed. [GL #105]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>

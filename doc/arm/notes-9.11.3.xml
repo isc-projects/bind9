@@ -1,0 +1,163 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.11.3"><info><title>Notes for BIND 9.11.3</title></info>
+
+  <section xml:id="relnotes-9.11.3-security"><info><title>Security Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Addresses could be referenced after being freed during resolver
+          processing, causing an assertion failure. The chances of this
+          happening were remote, but the introduction of a delay in
+          resolution increased them. This bug is disclosed in
+          CVE-2017-3145. [RT #46839]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          update-policy rules that otherwise ignore the name field now
+          require that it be set to "." to ensure that any type list
+          present is properly interpreted.  If the name field was omitted
+          from the rule declaration and a type list was present it wouldn't
+          be interpreted as expected.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.3-removed"><info><title>Removed Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The ISC DNSSEC Lookaside Validation (DLV) service has
+          been shut down; all DLV records in the dlv.isc.org zone
+          have been removed.  References to the service have been
+          removed from BIND documentation.  Lookaside validation
+          is no longer used by default by <command>delv</command>.
+          The DLV key has been removed from <filename>bind.keys</filename>.
+          Setting <command>dnssec-lookaside</command> to
+          <command>auto</command> or to use dlv.isc.org as a trust
+          anchor results in a warning being issued.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named</command> will now log a warning if the old
+          root DNSSEC key is explicitly configured and has not been updated.
+          [RT #43670]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="proto_changes"><info><title>Protocol Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          BIND can now use the Ed25519 and Ed448 Edwards Curve DNSSEC
+          signing algorithms described in RFC 8080. Note, however, that
+          these algorithms must be supported in OpenSSL;
+          currently they are only available in the development branch
+          of OpenSSL at
+          <link xmlns:xlink="http://www.w3.org/1999/xlink"
+            xlink:href="https://github.com/openssl/openssl">
+            https://github.com/openssl/openssl</link>.
+          [RT #44696]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When parsing DNS messages, EDNS KEY TAG options are checked
+          for correctness. When printing messages (for example, in
+          <command>dig</command>), EDNS KEY TAG options are printed
+          in readable format.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.3-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          <command>named</command> will no longer start or accept
+          reconfiguration if <command>managed-keys</command> or
+          <command>dnssec-validation auto</command> are in use and
+          the managed-keys directory (specified by
+          <command>managed-keys-directory</command>, and defaulting
+          to the working directory if not specified),
+          is not writable by the effective user ID. [RT #46077]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Previously, <command>update-policy local;</command> accepted
+          updates from any source so long as they were signed by the
+          locally-generated session key. This has been further restricted;
+          updates are now only accepted from locally configured addresses.
+          [RT #45492]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.11.3-bugs"><info><title>Bug Fixes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          Attempting to validate improperly unsigned CNAME responses
+          from secure zones could cause a validator loop. This caused
+          a delay in returning SERVFAIL and also increased the chances
+          of encountering the crash bug described in CVE-2017-3145.
+          [RT #46839]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          When <command>named</command> was reconfigured, failure of some
+          zones to load correctly could leave the system in an inconsistent
+          state; while generally harmless, this could lead to a crash later
+          when using <command>rndc addzone</command>.  Reconfiguration changes
+          are now fully rolled back in the event of failure. [RT #45841]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Some header files included &lt;isc/util.h&gt; incorrectly as
+          it pollutes with namespace with non ISC_ macros and this should
+          only be done by explicitly including &lt;isc/util.h&gt;.  This
+          has been corrected.  Some code may depend on &lt;isc/util.h&gt;
+          being implicitly included via other header files.  Such
+          code should explicitly include &lt;isc/util.h&gt;.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          Zones created with <command>rndc addzone</command> could
+          temporarily fail to inherit the <command>allow-transfer</command>
+          ACL set in the <command>options</command> section of
+          <filename>named.conf</filename>. [RT #46603]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <command>named</command> failed to properly determine whether
+          there were active KSK and ZSK keys for an algorithm when
+          <command>update-check-ksk</command> was true (which is the
+          default setting). This could leave records unsigned
+          when rolling keys. [RT #46743] [RT #46754] [RT #46774]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>
