@@ -159,15 +159,12 @@ void isc_stats_update_if_greater(isc_stats_t *stats,
 	REQUIRE(ISC_STATS_VALID(stats));
 	REQUIRE(counter < stats->ncounters);
 
-	isc_statscounter_t curr_value;
-
+	isc_statscounter_t curr_value =
+		atomic_load_relaxed(&stats->counters[counter]);
 	do {
-		curr_value = atomic_load_explicit(&stats->counters[counter],
-						  memory_order_relaxed);
 		if (curr_value >= value) {
 			break;
 		}
-
 	} while (!atomic_compare_exchange_strong(&stats->counters[counter],
 						 &curr_value,
 						 value));
