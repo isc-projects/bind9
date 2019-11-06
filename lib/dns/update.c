@@ -21,6 +21,7 @@
 #include <isc/netaddr.h>
 #include <isc/platform.h>
 #include <isc/print.h>
+#include <isc/random.h>
 #include <isc/serial.h>
 #include <isc/stats.h>
 #include <isc/stdtime.h>
@@ -1380,6 +1381,27 @@ struct dns_update_state {
 	       sign_nsec, update_nsec3, process_nsec3, sign_nsec3 } state;
 };
 
+static uint32_t
+dns__jitter_expire(dns_zone_t *zone, uint32_t sigvalidityinterval) {
+	/* Spread out signatures over time */
+	if (sigvalidityinterval >= 3600U) {
+		uint32_t expiryinterval = dns_zone_getsigresigninginterval(zone);
+		uint32_t jitter;
+		isc_random_get(&jitter);
+
+		if (sigvalidityinterval < 7200U) {
+			expiryinterval = 1200;
+		} else if (expiryinterval > sigvalidityinterval) {
+			expiryinterval = sigvalidityinterval;
+		} else {
+			expiryinterval = sigvalidityinterval - expiryinterval;
+		}
+		jitter %= expiryinterval;
+		sigvalidityinterval -= jitter;
+	}
+	return (sigvalidityinterval);
+}
+
 isc_result_t
 dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 			 dns_dbversion_t *oldver, dns_dbversion_t *newver,
@@ -1433,7 +1455,7 @@ dns_update_signaturesinc(dns_update_log_t *log, dns_zone_t *zone, dns_db_t *db,
 
 		isc_stdtime_get(&now);
 		state->inception = now - 3600; /* Allow for some clock skew. */
-		state->expire = now + sigvalidityinterval;
+		state->expire = now + dns__jitter_expire(zone, sigvalidityinterval);
 
 		/*
 		 * Do we look at the KSK flag on the DNSKEY to determining which

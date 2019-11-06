@@ -618,6 +618,7 @@
 ./bin/tests/system/autosign/ns3/inaczsk2.example.db.in	ZONE	2017,2018,2019
 ./bin/tests/system/autosign/ns3/inaczsk3.example.db.in	ZONE	2017,2018,2019
 ./bin/tests/system/autosign/ns3/insecure.example.db	ZONE	2009,2016,2018,2019
+./bin/tests/system/autosign/ns3/jitter.nsec3.example.db.in	ZONE	2019
 ./bin/tests/system/autosign/ns3/keygen.sh	SH	2009,2010,2011,2012,2014,2015,2016,2017,2018,2019
 ./bin/tests/system/autosign/ns3/named.conf.in	CONF-C	2018,2019
 ./bin/tests/system/autosign/ns3/nozsk.example.db.in	ZONE	2011,2016,2018,2019
