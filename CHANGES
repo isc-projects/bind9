@@ -1,3 +1,5 @@
+	--- 9.11.13 released ---
+
 5315.	[bug]		Apply the inital RRSIG expiration spread fixed
 			to all dynamically created records in the zone
 			including NSEC3. Also fix the signature clusters
