@@ -21,6 +21,13 @@
           in the future releases. [GL #1265]
         </para>
       </listitem>
+      <listitem>
+	<para>
+          Added a new statistics variable <command>tcp-highwater</command>
+          that reports the maximum number of simultaneous TCP clients BIND
+          has handled while running.
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 
