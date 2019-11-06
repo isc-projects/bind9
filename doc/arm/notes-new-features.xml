@@ -13,6 +13,13 @@
   <itemizedlist>
     <listitem>
       <para>
+        Added a new statistics variable <command>tcp-highwater</command>
+        that reports the maximum number of simultaneous TCP clients BIND
+        has handled while running.
+      </para>
+    </listitem>
+    <listitem>
+      <para>
         Added a new command line option to <command>dig</command>:
         <command>+[no]unexpected</command>. By default, <command>dig</command>
         won't accept a reply from a source other than the one to which

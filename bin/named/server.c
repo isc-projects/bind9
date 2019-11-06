@@ -11447,6 +11447,11 @@ named_server_status(named_server_t *server, isc_buffer_t **text) {
 		     isc_quota_getmax(&server->sctx->tcpquota));
 	CHECK(putstr(text, line));
 
+	snprintf(line, sizeof(line), "TCP high-water: %u\n",
+		     (unsigned)ns_stats_get_counter(server->sctx->nsstats,
+					  ns_statscounter_tcphighwater));
+	CHECK(putstr(text, line));
+
 	if (server->reload_status != NAMED_RELOAD_DONE) {
 		snprintf(line, sizeof(line), "reload/reconfig %s\n",
 			 server->reload_status == NAMED_RELOAD_FAILED
