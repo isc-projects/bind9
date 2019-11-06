@@ -485,15 +485,12 @@ void isc_stats_update_if_greater(isc_stats_t *stats,
 	}
 #elif ISC_STATS_HAVEATOMICQ
 #if defined(ISC_STATS_HAVESTDATOMICQ)
-	isc_statscounter_t curr_value;
-
+	uint64_t curr_value = atomic_load_explicit(&stats->counters[counter],
+						   memory_order_relaxed);
 	do {
-		curr_value = atomic_load_explicit(&stats->counters[counter],
-						  memory_order_relaxed);
 		if (curr_value >= value) {
 			break;
 		}
-
 	} while (!atomic_compare_exchange_strong(&stats->counters[counter],
 						 (int64_t *)&curr_value,
 						 value));
@@ -504,6 +501,7 @@ void isc_stats_update_if_greater(isc_stats_t *stats,
 	if (stats->counters[counter] < value) {
 		stats->counters[counter] = value;
 	}
+#endif
 #endif
 
 #if ISC_STATS_LOCKCOUNTERS
@@ -531,11 +529,11 @@ isc_stats_get_counter(isc_stats_t *stats, isc_statscounter_t counter)
 	curr_value = atomic_load_explicit(&stats->counters[counter],
 					  memory_order_relaxed);
 #else
-#else
 	/* use xaddq(..., 0) as an atomic load */
 	curr_value =
 		(uint64_t)isc_atomic_xaddq((int64_t *)&stats->counters[counter],
 					   0);
+#endif
 #endif
 
 #if ISC_STATS_LOCKCOUNTERS
