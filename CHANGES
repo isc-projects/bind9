@@ -1,3 +1,9 @@
+5315.	[bug]		Apply the inital RRSIG expiration spread fixed
+			to all dynamically created records in the zone
+			including NSEC3. Also fix the signature clusters
+			when the server has been offline for prolonged
+			period of times. [GL #1256]
+
 5314.	[func]		Added a new statistics variable "tcp-highwater"
 			that reports the maximum number of simultaneous TCP
 			clients BIND has handled while running. [GL #1206]
