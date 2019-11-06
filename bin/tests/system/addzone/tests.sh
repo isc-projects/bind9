@@ -696,11 +696,17 @@ $RNDCCMD 10.53.0.3 addzone "test4.baz" '{ type master; file "e.db"; };' > /dev/n
 $RNDCCMD 10.53.0.3 addzone "test5.baz" '{ type master; file "e.db"; };' > /dev/null 2>&1 || ret=1
 $PERL $SYSTEMTESTTOP/stop.pl addzone ns3
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} addzone ns3 || ret=1
-$DIG $DIGOPTS @10.53.0.3 version.bind txt ch > dig.out.test$n || ret=1
-grep "status: NOERROR" dig.out.test$n > /dev/null || ret=1
-n=`expr $n + 1`
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    iret=0
+    $DIG $DIGOPTS @10.53.0.3 version.bind txt ch > dig.out.test$n || iret=1
+    grep "status: NOERROR" dig.out.test$n > /dev/null || iret=1
+    [ "$iret" -eq 0 ] && break
+    sleep 1
+done
+[ "$iret" -ne 0 ] && ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
+n=`expr $n + 1`
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
