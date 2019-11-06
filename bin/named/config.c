@@ -71,7 +71,7 @@ options {\n\
 "	files unlimited;\n"
 #endif
 #if defined(HAVE_GEOIP2) && !defined(WIN32)
-"	geoip-directory \"" MAXMINDDB_PREFIX "/share/GeoIP2\";\n"
+"	geoip-directory \"" MAXMINDDB_PREFIX "/share/GeoIP\";\n"
 #elif defined(HAVE_GEOIP2)
 "	geoip-directory \".\";\n"
 #endif
