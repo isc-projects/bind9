@@ -32,51 +32,65 @@ SHA256="R16NojROxtxH/xbDl//ehDsHm5DjWTQ2YXV+hGC2iBY="
 ###############################################################################
 # Key properties                                                              #
 ###############################################################################
-ID=0
-EXPECT=1
-ROLE=2
-KSK=3
-ZSK=4
-LIFETIME=5
-ALG_NUM=6
-ALG_STR=7
-ALG_LEN=8
-PUBLISHED=9
-ACTIVE=10
-RETIRED=11
-REVOKED=12
-REMOVED=13
-GOAL=14
-STATE_DNSKEY=15
-STATE_ZRRSIG=16
-STATE_KRRSIG=17
-STATE_DS=18
-EXPECT_ZRRSIG=19
-EXPECT_KRRSIG=20
+# ID=0
+# EXPECT=1
+# ROLE=2
+# KSK=3
+# ZSK=4
+# LIFETIME=5
+# ALG_NUM=6
+# ALG_STR=7
+# ALG_LEN=8
+# PUBLISHED=9
+# ACTIVE=10
+# RETIRED=11
+# REVOKED=12
+# REMOVED=13
+# GOAL=14
+# STATE_DNSKEY=15
+# STATE_ZRRSIG=16
+# STATE_KRRSIG=17
+# STATE_DS=18
+# EXPECT_ZRRSIG=19
+# EXPECT_KRRSIG=20
+
+key_key() {
+	echo "${1}__${2}"
+}
+
+key_get() {
+	eval "echo \${$(key_key "$1" "$2")}"
+}
+
+key_set() {
+	eval "$(key_key "$1" "$2")='$3'"
+}
 
 # Clear key state.
 #
 # This will update either the KEY1, KEY2, or KEY3 array.
 key_clear() {
-	_key=(	[$ID]="no" [$EXPECT]="no" \
-		[$ROLE]="none" [$KSK]="no" [$ZSK]="no" \
-		[$LIFETIME]="0" [$ALG_NUM]="0" \
-		[$ALG_STR]="none" [$ALG_LEN]="0" \
-		[$PUBLISHED]="none" [$ACTIVE]="none" \
-		[$RETIRED]="none" [$REVOKED]="none" \
-		[$REMOVED]="none" \
-		[$GOAL]="none" [$STATE_DNSKEY]="none" \
-		[$STATE_KRRSIG]="none" [$STATE_ZRRSIG]="none" \
-		[$STATE_DS]="none" \
-	        [$EXPECT_ZRRSIG]="no" [$EXPECT_KRRSIG]="no")
-
-	if [ $1 == "KEY1" ]; then
-		KEY1=(${_key[*]})
-	elif [ $1 == "KEY2" ]; then
-		KEY2=(${_key[*]})
-	elif [ $1 == "KEY3" ]; then
-		KEY3=(${_key[*]})
-	fi
+	key_set "$1" "ID" 'no'
+	key_set "$1" "EXPECT" 'no'
+	key_set "$1" "ROLE" 'none'
+	key_set "$1" "KSK" 'no'
+	key_set "$1" "ZSK" 'no'
+	key_set "$1" "LIFETIME" '0'
+	key_set "$1" "ALG_NUM" '0'
+	key_set "$1" "ALG_STR" 'none'
+	key_set "$1" "ALG_LEN" '0'
+	key_set "$1" "PUBLISHED" 'none'
+	key_set "$1" "ACTIVE" 'none'
+	key_set "$1" "RETIRED" 'none'
+	key_set "$1" "REVOKED" 'none'
+	key_set "$1" "REMOVED" 'none'
+	key_set "$1" "GOAL" 'none'
+	key_set "$1" "STATE_DNSKEY" 'none'
+	key_set "$1" "STATE_KRRSIG" 'none'
+	key_set "$1" "STATE_ZRRSIG" 'none'
+	key_set "$1" "STATE_DS" 'none'
+	key_set "$1" "EXPECT_ZRRSIG" 'no'
+	key_set "$1" "EXPECT_KRRSIG" 'no'
 }
 
 # Start clear.
@@ -164,52 +178,20 @@ zone_properties() {
 #
 # This will update either the KEY1, KEY2 or KEY3 array.
 key_properties() {
-	if [ $1 == "KEY1" ]; then
-		KEY1[$EXPECT]="yes"
-		KEY1[$ROLE]=$2
-		KEY1[$KSK]="no"
-		KEY1[$ZSK]="no"
-		test $2 == "ksk" && KEY1[$KSK]="yes"
-		test $2 == "zsk" && KEY1[$ZSK]="yes"
-		test $2 == "csk" && KEY1[$KSK]="yes"
-		test $2 == "csk" && KEY1[$ZSK]="yes"
-		KEY1[$LIFETIME]=$3
-		KEY1[$ALG_NUM]=$4
-		KEY1[$ALG_STR]=$5
-		KEY1[$ALG_LEN]=$6
-		KEY1[$EXPECT_ZRRSIG]=$7
-		KEY1[$EXPECT_KRRSIG]=$8
-	elif [ $1 == "KEY2" ]; then
-		KEY2[$EXPECT]="yes"
-		KEY2[$ROLE]=$2
-		KEY2[$KSK]="no"
-		KEY2[$ZSK]="no"
-		test $2 == "ksk" && KEY2[$KSK]="yes"
-		test $2 == "zsk" && KEY2[$ZSK]="yes"
-		test $2 == "csk" && KEY2[$KSK]="yes"
-		test $2 == "csk" && KEY2[$ZSK]="yes"
-		KEY2[$LIFETIME]=$3
-		KEY2[$ALG_NUM]=$4
-		KEY2[$ALG_STR]=$5
-		KEY2[$ALG_LEN]=$6
-		KEY2[$EXPECT_ZRRSIG]=$7
-		KEY2[$EXPECT_KRRSIG]=$8
-	elif [ $1 == "KEY3" ]; then
-		KEY3[$EXPECT]="yes"
-		KEY3[$ROLE]=$2
-		KEY3[$KSK]="no"
-		KEY3[$ZSK]="no"
-		test $2 == "ksk" && KEY3[$KSK]="yes"
-		test $2 == "zsk" && KEY3[$ZSK]="yes"
-		test $2 == "csk" && KEY3[$KSK]="yes"
-		test $2 == "csk" && KEY3[$ZSK]="yes"
-		KEY3[$LIFETIME]=$3
-		KEY3[$ALG_NUM]=$4
-		KEY3[$ALG_STR]=$5
-		KEY3[$ALG_LEN]=$6
-		KEY3[$EXPECT_ZRRSIG]=$7
-		KEY3[$EXPECT_KRRSIG]=$8
-	fi
+	key_set "$1" "EXPECT" "yes"
+	key_set "$1" "ROLE" "$2"
+	key_set "$1" "KSK" "no"
+	key_set "$1" "ZSK" "no"
+	test $2 == "ksk" && key_set "$1" "KSK" "yes"
+	test $2 == "zsk" && key_set "$1" "ZSK" "yes"
+	test $2 == "csk" && key_set "$1" "KSK" "yes"
+	test $2 == "csk" && key_set "$1" "ZSK" "yes"
+	key_set "$1" "LIFETIME" "$3"
+	key_set "$1" "ALG_NUM" "$4"
+	key_set "$1" "ALG_STR" "$5"
+	key_set "$1" "ALG_LEN" "$6"
+	key_set "$1" "EXPECT_ZRRSIG" "$7"
+	key_set "$1" "EXPECT_KRRSIG" "$8"
 }
 
 # Set key timing metadata. Set to "none" to unset.
@@ -224,28 +206,12 @@ key_properties() {
 #
 # This will update either the KEY1, KEY2 or KEY3 array.
 key_timings() {
-	if [ $1 == "KEY1" ]; then
-		KEY1[$EXPECT]="yes"
-		KEY1[$PUBLISHED]=$2
-		KEY1[$ACTIVE]=$3
-		KEY1[$RETIRED]=$4
-		KEY1[$REVOKED]=$5
-		KEY1[$REMOVED]=$6
-	elif [ $1 == "KEY2" ]; then
-		KEY2[$EXPECT]="yes"
-		KEY2[$PUBLISHED]=$2
-		KEY2[$ACTIVE]=$3
-		KEY2[$RETIRED]=$4
-		KEY2[$REVOKED]=$5
-		KEY2[$REMOVED]=$6
-	elif [ $1 == "KEY3" ]; then
-		KEY3[$EXPECT]="yes"
-		KEY3[$PUBLISHED]=$2
-		KEY3[$ACTIVE]=$3
-		KEY3[$RETIRED]=$4
-		KEY3[$REVOKED]=$5
-		KEY3[$REMOVED]=$6
-	fi
+	key_set "$1" "EXPECT" "yes"
+	key_set "$1" "PUBLISHED" "$2"
+	key_set "$1" "ACTIVE" "$3"
+	key_set "$1" "RETIRED" "$4"
+	key_set "$1" "REVOKED" "$5"
+	key_set "$1" "REMOVED" "$6"
 }
 
 # Set key state metadata. Set to "none" to unset.
@@ -258,28 +224,12 @@ key_timings() {
 #
 # This will update either the KEY1, KEY2, OR KEY3 array.
 key_states() {
-	if [ $1 == "KEY1" ]; then
-		KEY1[$EXPECT]="yes"
-		KEY1[$GOAL]=$2
-		KEY1[$STATE_DNSKEY]=$3
-		KEY1[$STATE_ZRRSIG]=$4
-		KEY1[$STATE_KRRSIG]=$5
-		KEY1[$STATE_DS]=$6
-	elif [ $1 == "KEY2" ]; then
-		KEY2[$EXPECT]="yes"
-		KEY2[$GOAL]=$2
-		KEY2[$STATE_DNSKEY]=$3
-		KEY2[$STATE_ZRRSIG]=$4
-		KEY2[$STATE_KRRSIG]=$5
-		KEY2[$STATE_DS]=$6
-	elif [ $1 == "KEY3" ]; then
-		KEY3[$EXPECT]="yes"
-		KEY3[$GOAL]=$2
-		KEY3[$STATE_DNSKEY]=$3
-		KEY3[$STATE_ZRRSIG]=$4
-		KEY3[$STATE_KRRSIG]=$5
-		KEY3[$STATE_DS]=$6
-	fi
+	key_set "$1" "EXPECT" "yes"
+	key_set "$1" "GOAL" "$2"
+	key_set "$1" "STATE_DNSKEY" "$3"
+	key_set "$1" "STATE_ZRRSIG" "$4"
+	key_set "$1" "STATE_KRRSIG" "$5"
+	key_set "$1" "STATE_DS" "$6"
 }
 
 # Check the key $1 with id $2.
@@ -293,37 +243,29 @@ key_states() {
 # STATE_FILE="${BASE_FILE}.state"
 # KEY_ID=$(echo $1 | sed 's/^0*//')
 check_key() {
-	if [ $1 == "KEY1" ]; then
-		_key=(${KEY1[*]})
-	elif [ $1 == "KEY2" ]; then
-		_key=(${KEY2[*]})
-	elif [ $1 == "KEY3" ]; then
-		_key=(${KEY3[*]})
-	fi
-
-	_dir=$DIR
-	_zone=$ZONE
-	_role="${_key[$ROLE]}"
+	_dir="$DIR"
+	_zone="$ZONE"
+	_role=$(key_get "$1" ROLE)
 	_key_idpad=$2
 	_key_id=$(echo $_key_idpad | sed 's/^0*//')
-	_alg_num="${_key[$ALG_NUM]}"
-        _alg_numpad=$(printf "%03d" $_alg_num)
-	_alg_string="${_key[$ALG_STR]}"
-	_length="${_key[$ALG_LEN]}"
-	_dnskey_ttl=$DNSKEY_TTL
-	_lifetime="${_key[$LIFETIME]}"
+	_alg_num=$(key_get "$1" ALG_NUM)
+	_alg_numpad=$(printf "%03d" $_alg_num)
+	_alg_string=$(key_get "$1" ALG_STR)
+	_length=$(key_get "$1" "ALG_LEN")
+	_dnskey_ttl="$DNSKEY_TTL"
+	_lifetime=$(key_get "$1" LIFETIME)
 
-	_published="${_key[$PUBLISHED]}"
-	_active="${_key[$ACTIVE]}"
-	_retired="${_key[$RETIRED]}"
-	_revoked="${_key[$REVOKED]}"
-	_removed="${_key[$REMOVED]}"
+	_published=$(key_get "$1" PUBLISHED)
+	_active=$(key_get "$1" ACTIVE)
+	_retired=$(key_get "$1" RETIRED)
+	_revoked=$(key_get "$1" REVOKED)
+	_removed=$(key_get "$1" REMOVED)
 
-	_goal="${_key[$GOAL]}"
-	_state_dnskey="${_key[$STATE_DNSKEY]}"
-	_state_zrrsig="${_key[$STATE_ZRRSIG]}"
-	_state_krrsig="${_key[$STATE_KRRSIG]}"
-	_state_ds="${_key[$STATE_DS]}"
+	_goal=$(key_get "$1" GOAL)
+	_state_dnskey=$(key_get "$1" STATE_DNSKEY)
+	_state_zrrsig=$(key_get "$1" STATE_ZRRSIG)
+	_state_krrsig=$(key_get "$1" STATE_KRRSIG)
+	_state_ds=$(key_get "$1" STATE_DS)
 
 	_ksk="no"
 	_zsk="no"
@@ -474,7 +416,7 @@ key_unused() {
 	_zone=$ZONE
 	_key_idpad=$1
 	_key_id=$(echo $_key_idpad | sed 's/^0*//')
-	_alg_num="${KEY1[$ALG_NUM]}"
+	_alg_num=$(key_get KEY1 ALG_NUM)
         _alg_numpad=$(printf "%03d" $_alg_num)
 
 	BASE_FILE="${_dir}/K${_zone}.+${_alg_numpad}+${_key_idpad}"
@@ -536,7 +478,7 @@ _log=0
 key_properties "KEY1" "csk" "31536000" "13" "ECDSAP256SHA256" "256" "yes" "yes"
 key_timings "KEY1" "none" "none" "none" "none" "none"
 key_states "KEY1" "none" "none" "none" "none" "none"
-id=$(get_keyids $DIR $ZONE "${KEY1[$ALG_NUM]}")
+id=$(get_keyids $DIR $ZONE $(key_get KEY1 ALG_NUM))
 check_key "KEY1" $id
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -553,7 +495,7 @@ key_properties "KEY3" "zsk" "16070400" "8" "RSASHA256" "2000" "yes" "no"
 key_timings "KEY3" "none" "none" "none" "none" "none"
 key_states "KEY3" "none" "none" "none" "none" "none"
 
-ids=$(get_keyids $DIR $ZONE "${KEY1[$ALG_NUM]}")
+ids=$(get_keyids $DIR $ZONE $(key_get KEY1 ALG_NUM))
 for id in $ids; do
 	# There are three key files with the same algorithm.
 	# Check them until a match is found.
@@ -581,7 +523,7 @@ key_states "KEY1" "none" "none" "none" "none" "none"
 $KEYGEN -k $POLICY $ZONE > keygen.out.$POLICY.test$n 2>/dev/null || ret=1
 lines=$(cat keygen.out.default.test$n | wc -l)
 test "$lines" -eq 1 || log_error "wrong number of keys created for policy default: $lines"
-id=$(get_keyids $DIR $ZONE "${KEY1[$ALG_NUM]}")
+id=$(get_keyids $DIR $ZONE $(key_get KEY1 ALG_NUM))
 check_key "KEY1" $id
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -596,7 +538,7 @@ key_states "KEY1" "none" "none" "none" "none" "none"
 $KEYGEN -k $POLICY $ZONE > keygen.out.$POLICY.test$n 2>/dev/null || ret=1
 lines=$(cat keygen.out.$POLICY.test$n | wc -l)
 test "$lines" -eq 1 || log_error "wrong number of keys created for policy default: $lines"
-id=$(get_keyids $DIR $ZONE "${KEY1[$ALG_NUM]}")
+id=$(get_keyids $DIR $ZONE $(key_get KEY1 ALG_NUM))
 check_key "KEY1" $id
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -699,7 +641,7 @@ key_states "KEY1" "omnipresent" "rumoured" "rumoured" "rumoured" "hidden"
 n=$((n+1))
 echo_i "check key is created for zone ${ZONE} ($n)"
 ret=0
-id=$(get_keyids $DIR $ZONE "${KEY1[$ALG_NUM]}")
+id=$(get_keyids $DIR $ZONE $(key_get KEY1 ALG_NUM))
 check_key "KEY1" $id
 test "$ret" -eq 0 || echo_i "failed"
 status=$((status+ret))
@@ -714,7 +656,7 @@ echo_i "check ${qtype} rrset is signed correctly for zone ${ZONE} ($n)"
 ret=0
 dig_with_opts $ZONE @${SERVER} $qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${qtype} failed"
 grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
-grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${qtype}.*257.*.3.*${KEY1[$ALG_NUM]}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${qtype} record in response"
+grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${qtype}.*257.*.3.*${KEY1__ALG_NUM}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${qtype} record in response"
 lines=$(get_keys_which_signed $qtype dig.out.$DIR.test$n | wc -l)
 test "$lines" -eq 1 || log_error "bad number ($lines) of RRSIG records in DNS response"
 get_keys_which_signed $qtype dig.out.$DIR.test$n | grep "^${KEY_ID}$" > /dev/null || log_error "${qtype} RRset not signed with key ${KEY_ID}"
@@ -804,7 +746,7 @@ check_keys()
 	echo_i "check keys are created for zone ${ZONE} ($n)"
 	ret=0
 
-	_key_algnum="${KEY1[$ALG_NUM]}"
+	_key_algnum=$(key_get KEY1 ALG_NUM)
 
 	n=$((n+1))
 	echo_i "check number of keys with algorithm ${_key_algnum} for zone ${ZONE} in dir ${DIR} ($n)"
@@ -818,9 +760,9 @@ check_keys()
 	_log=0
 
 	# Clear key ids.
-	KEY1[$ID]="0"
-	KEY2[$ID]="0"
-	KEY3[$ID]="0"
+	key_set KEY1 ID 0
+	key_set KEY2 ID 0
+	key_set KEY3 ID 0
 
 	# Check key files.
 	_ids=$(get_keyids $DIR $ZONE "$_key_algnum")
@@ -829,20 +771,20 @@ check_keys()
 		# Check them until a match is found.
 		echo_i "check key $_id"
 
-		if [ "0" == "${KEY1[$ID]}" ] && [ "${KEY1[$EXPECT]}" == "yes" ]; then
+		if [ "0" == "$(key_get KEY1 ID)" ] && [ "$(key_get KEY1 EXPECT)" == "yes" ]; then
 			ret=0
 			check_key "KEY1" $_id
-			test "$ret" -eq 0 && KEY1[$ID]=$KEY_ID && continue
+			test "$ret" -eq 0 && key_set "$1" "ID" "$KEY_ID" && continue
 		fi
-		if [ "0" == "${KEY2[$ID]}" ] && [ "${KEY2[$EXPECT]}" == "yes" ]; then
+		if [ "0" == "$(key_get KEY2 ID)" ] && [ "$(key_get KEY2 EXPECT)" == "yes" ]; then
 			ret=0
 			check_key "KEY2" $_id
-			test "$ret" -eq 0 && KEY2[$ID]=$KEY_ID && continue
+			test "$ret" -eq 0 && key_set KEY2 "ID" "$KEY_ID" && continue
 		fi
-		if [ "0" == "${KEY3[$ID]}" ] && [ "${KEY3[$EXPECT]}" == "yes"  ]; then
+		if [ "0" == "$(key_get KEY3 ID)" ] && [ "$(key_get KEY3 EXPECT)" == "yes"  ]; then
 			ret=0
 			check_key "KEY3" $_id
-			test "$ret" -eq 0 && KEY3[$ID]=$KEY_ID && continue
+			test "$ret" -eq 0 && key_set KEY3 ID "$KEY_ID" && continue
 		fi
 
 		# This may be an unused key.
@@ -858,14 +800,14 @@ check_keys()
 	_log=1
 
 	ret=0
-	if [ "${KEY1[$EXPECT]}" == "yes" ]; then
-		test "0" == "${KEY1[$ID]}" && log_error "No KEY1 found for zone ${ZONE}"
+	if [ "$(key_get KEY1 EXPECT)" == "yes" ]; then
+		test "0" == "$(key_get KEY1 ID)" && log_error "No KEY1 found for zone ${ZONE}"
 	fi
-	if [ "${KEY2[$EXPECT]}" == "yes" ]; then
-		test "0" == "${KEY2[$ID]}" && log_error "No KEY2 found for zone ${ZONE}"
+	if [ "$(key_get KEY2 EXPECT)" == "yes" ]; then
+		test "0" == "$(key_get KEY2 ID)" && log_error "No KEY2 found for zone ${ZONE}"
 	fi
-	if [ "${KEY3[$EXPECT]}" == "yes" ]; then
-		test "0" == "${KEY3[$ID]}" && log_error "No KEY3 found for zone ${ZONE}"
+	if [ "$(key_get KEY3 EXPECT)" == "yes" ]; then
+		test "0" == "$(key_get KEY3 ID)" && log_error "No KEY3 found for zone ${ZONE}"
 	fi
 	test "$ret" -eq 0 || echo_i "failed"
 	status=$((status+ret))
@@ -884,22 +826,22 @@ check_signatures() {
 		_expect_type=$EXPECT_ZRRSIG
 	fi
 
-	if [ "${KEY1[$_expect_type]}" == "yes" ] && [ "${KEY1[$_role]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with key ${KEY1[$ID]}"
-	elif [ "${KEY1[$EXPECT]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY1[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key ${KEY1[$ID]}"
+	if [ "$(key_get KEY1 _expect_type)" == "yes" ] && [ "$(key_get KEY1 _role)" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^$(key_get KEY1 ID)$" > /dev/null || log_error "${_qtype} RRset not signed with key $(key_get KEY1 ID)"
+	elif [ "$(key_get KEY1 EXPECT)" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^$(key_get KEY1 ID)$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key $(key_get KEY1 ID)"
 	fi
 
-	if [ "${KEY2[$_expect_type]}" == "yes" ] && [ "${KEY2[$_role]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with key ${KEY2[$ID]}"
-	elif [ "${KEY2[$EXPECT]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY2[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key ${KEY2[$ID]}"
+	if [ "$(key_get KEY2 _expect_type)" == "yes" ] && [ "$(key_get KEY2 _role)" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^$(key_get KEY2 ID)$" > /dev/null || log_error "${_qtype} RRset not signed with key $(key_get KEY2 ID)"
+	elif [ "$(key_get KEY2 EXPECT)" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^$(key_get KEY2 ID)$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key $(key_get KEY2 ID)"
 	fi
 
-	if [ "${KEY3[$_expect_type]}" == "yes" ] && [ "${KEY3[$_role]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null || log_error "${_qtype} RRset not signed with key ${KEY3[$ID]}"
-	elif [ "${KEY3[$EXPECT]}" == "yes" ]; then
-		get_keys_which_signed $_qtype $_file | grep "^${KEY3[$ID]}$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key ${KEY3[$ID]}"
+	if [ "$(key_get KEY3 _expect_type)" == "yes" ] && [ "$(key_get KEY3 _role)" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^$(key_get KEY3 ID)$" > /dev/null || log_error "${_qtype} RRset not signed with key $(key_get KEY3 ID)"
+	elif [ "$(key_get KEY3 EXPECT)" == "yes" ]; then
+		get_keys_which_signed $_qtype $_file | grep "^$(key_get KEY3 ID)$" > /dev/null && log_error "${_qtype} RRset signed unexpectedly with key $(key_get KEY3 ID)"
 	fi
 }
 
@@ -907,7 +849,7 @@ check_signatures() {
 check_cds() {
 
 	_qtype="CDS"
-	_key_algnum="${KEY1[$ALG_NUM]}"
+	_key_algnum="$(key_get KEY1 ALG_NUM)"
 
 	n=$((n+1))
 	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
@@ -915,25 +857,25 @@ check_cds() {
 	dig_with_opts $ZONE @${SERVER} $_qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${_qtype} failed"
 	grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
 
-	if [ "${KEY1[$STATE_DS]}" == "rumoured" ] || [ "${KEY1[$STATE_DS]}" == "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY1[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY1[$ID]}"
+	if [ "$(key_get KEY1 STATE_DS)" == "rumoured" ] || [ "$(key_get KEY1 STATE_DS)" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*$(key_get KEY1 ID).*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key $(key_get KEY1 ID)"
 		check_signatures $_qtype dig.out.$DIR.test$n $KSK
-	elif [ "${KEY1[$EXPECT]}" == "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY1[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY1[$ID]}"
+	elif [ "$(key_get KEY1 EXPECT)" == "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*$(key_get KEY1 ID).*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key $(key_get KEY1 ID)"
 	fi
 
-	if [ "${KEY2[$STATE_DS]}" == "rumoured" ] || [ "${KEY2[$STATE_DS]}" == "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY2[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY2[$ID]}"
+	if [ "$(key_get KEY2 STATE_DS)" == "rumoured" ] || [ "$(key_get KEY2 STATE_DS)" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*$(key_get KEY2 ID).*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key $(key_get KEY2 ID)"
 		check_signatures $_qtype dig.out.$DIR.test$n $KSK
-	elif [ "${KEY2[$EXPECT]}" == "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY2[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY2[$ID]}"
+	elif [ "$(key_get KEY2 EXPECT)" == "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*$(key_get KEY2 ID).*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key $(key_get KEY2 ID)"
 	fi
 
-	if [ "${KEY3[$STATE_DS]}" == "rumoured" ] || [ "${KEY3[$STATE_DS]}" == "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY3[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY3[$ID]}"
+	if [ "$(key_get KEY3 STATE_DS)" == "rumoured" ] || [ "$(key_get KEY3 STATE_DS)" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*$(key_get KEY3 ID).*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key $(key_get KEY3 ID)"
 		check_signatures $_qtype dig.out.$DIR.test$n $KSK
-	elif [ "${KEY3[$EXPECT]}" == "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*${KEY3[$ID]}.*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY3[$ID]}"
+	elif [ "$(key_get KEY3 EXPECT)" == "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*$(key_get KEY3 ID).*${_key_algnum}.*2" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key $(key_get KEY3 ID)"
 	fi
 
 	test "$ret" -eq 0 || echo_i "failed"
@@ -946,35 +888,35 @@ check_apex() {
 
 	# Test DNSKEY query.
 	_qtype="DNSKEY"
-	_key_algnum="${KEY1[$ALG_NUM]}"
+	_key_algnum="$(key_get KEY1 ALG_NUM)"
 	n=$((n+1))
 	echo_i "check ${_qtype} rrset is signed correctly for zone ${ZONE} ($n)"
 	ret=0
 	dig_with_opts $ZONE @${SERVER} $_qtype > dig.out.$DIR.test$n || log_error "dig ${ZONE} ${_qtype} failed"
 	grep "status: NOERROR" dig.out.$DIR.test$n > /dev/null || log_error "mismatch status in DNS response"
 
-	if [ "${KEY1[$STATE_DNSKEY]}" == "rumoured" ] || [ "${KEY1[$STATE_DNSKEY]}" == "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY1[$ID]}"
+	if [ "$(key_get KEY1 STATE_DNSKEY)" == "rumoured" ] || [ "$(key_get KEY1 STATE_DNSKEY)" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key $(key_get KEY1 ID)"
 		check_signatures $_qtype dig.out.$DIR.test$n $KSK
 		numkeys=$((numkeys+1))
-	elif [ "${KEY1[$EXPECT]}" == "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY1[$ID]}"
+	elif [ "$(key_get KEY1 EXPECT)" == "yes" ]; then
+		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key $(key_get KEY1 ID)"
 	fi
 
-	if [ "${KEY2[$STATE_DNSKEY]}" == "rumoured" ] || [ "${KEY2[$STATE_DNSKEY]}" == "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY2[$ID]}"
+	if [ "$(key_get KEY2 STATE_DNSKEY)" == "rumoured" ] || [ "$(key_get KEY2 STATE_DNSKEY)" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key $(key_get KEY2 ID)"
 		check_signatures $_qtype dig.out.$DIR.test$n $KSK
 		numkeys=$((numkeys+1))
-	elif [ "${KEY2[$EXPECT]}" == "yes" ]; then
-		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY2[$ID]}"
+	elif [ "$(key_get KEY2 EXPECT)" == "yes" ]; then
+		grep "${ZONE}\.*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key $(key_get KEY2 ID)"
 	fi
 
-	if [ "${KEY3[$STATE_DNSKEY]}" == "rumoured" ] || [ "${KEY3[$STATE_DNSKEY]}" == "omnipresent" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key ${KEY3[$ID]}"
+	if [ "$(key_get KEY3 STATE_DNSKEY)" == "rumoured" ] || [ "$(key_get KEY3 STATE_DNSKEY)" == "omnipresent" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null || log_error "missing ${_qtype} record in response for key $(key_get KEY3 ID)"
 		check_signatures $_qtype dig.out.$DIR.test$n $KSK
 		numkeys=$((numkeys+1))
-	elif [ "${KEY3[$EXPECT]}" == "yes" ]; then
-		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key ${KEY3[$ID]}"
+	elif [ "$(key_get KEY3 EXPECT)" == "yes" ]; then
+		grep "${ZONE}\..*${DNSKEY_TTL}.*IN.*${_qtype}.*257.*.3.*${_key_algnum}" dig.out.$DIR.test$n > /dev/null && log_error "unexpected ${_qtype} record in response for key $(key_get KEY3 ID)"
 	fi
 
 	lines=$(get_keys_which_signed $_qtype dig.out.$DIR.test$n | wc -l)
