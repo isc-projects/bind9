@@ -22,19 +22,21 @@ n=0
 n=$((n + 1))
 echo_i "initializing TCP statistics ($n)"
 ret=0
-$RNDCCMD -s 10.53.0.1 stats > /dev/null 2>&1
-$RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
+$RNDCCMD -s 10.53.0.1 stats || ret=1
+$RNDCCMD -s 10.53.0.2 stats || ret=1
 mv ns1/named.stats ns1/named.stats.test$n
 mv ns2/named.stats ns2/named.stats.test$n
 ntcp10=`grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}'`
 ntcp20=`grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{print $1}'`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 n=$((n + 1))
 echo_i "checking TCP request statistics (resolver) ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.3 txt.example. > dig.out.test$n
-$RNDCCMD -s 10.53.0.1 stats > /dev/null 2>&1
-$RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
+$RNDCCMD -s 10.53.0.1 stats || ret=1
+$RNDCCMD -s 10.53.0.2 stats || ret=1
 mv ns1/named.stats ns1/named.stats.test$n
 mv ns2/named.stats ns2/named.stats.test$n
 ntcp11=`grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}'`
@@ -48,8 +50,8 @@ n=$((n + 1))
 echo_i "checking TCP request statistics (forwarder) ($n)"
 ret=0
 $DIG $DIGOPTS @10.53.0.4 txt.example. > dig.out.test$n
-$RNDCCMD -s 10.53.0.1 stats > /dev/null 2>&1
-$RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
+$RNDCCMD -s 10.53.0.1 stats || ret=1
+$RNDCCMD -s 10.53.0.2 stats || ret=1
 mv ns1/named.stats ns1/named.stats.test$n
 mv ns2/named.stats ns2/named.stats.test$n
 ntcp12=`grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}'`
