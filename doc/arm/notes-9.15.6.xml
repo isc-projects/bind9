@@ -46,6 +46,12 @@
           in the future releases. [GL #1265]
         </para>
       </listitem>
+      <listitem>
+	<para>
+	  The DNSSEC validation code has been refactored for clarity and to
+	  reduce code duplication.  [GL #622]
+	</para>
+      </listitem>
     </itemizedlist>
   </section>
 

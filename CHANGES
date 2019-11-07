@@ -1,3 +1,7 @@
+5318.	[cleanup]	The DNSSEC validation code has been refactored
+			for clarity and to reduce code duplication.
+			[GL #622]
+
 5317.	[func]		A new asynchronous network communications system
 			based on libuv is now used for listening for
 			incoming requests and responding to them. (The
