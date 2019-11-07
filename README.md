@@ -129,8 +129,9 @@ include:
 
 * New "dnssec-policy" statement to configure a key and signing policy
   for zones, enabling automatic key regeneration and rollover.
+* A new network manager based on libuv.
 * Support for the new GeoIP2 geolocation API
-* Improved DNSSEC key configuration using `dnssec-keys`
+* Improved DNSSEC trust anchor configuration using `dnssec-keys`
 * YAML output for `dig`, `mdig`, and `delv`.
 
 ### <a name="build"/> Building BIND

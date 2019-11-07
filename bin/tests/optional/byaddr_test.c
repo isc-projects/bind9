@@ -112,7 +112,7 @@ main(int argc, char *argv[]) {
 	}
 
 	taskmgr = NULL;
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, &taskmgr)
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, workers, 0, NULL, &taskmgr)
 		      == ISC_R_SUCCESS);
 	task = NULL;
 	RUNTIME_CHECK(isc_task_create(taskmgr, 0, &task)

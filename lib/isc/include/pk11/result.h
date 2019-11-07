@@ -16,6 +16,7 @@
 
 #include <isc/lang.h>
 #include <isc/resultclass.h>
+#include <isc/types.h>
 
 /*
  * Nothing in this file truly depends on <isc/result.h>, but the

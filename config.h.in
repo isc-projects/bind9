@@ -366,6 +366,9 @@
 /* define if struct stat has st_mtim.tv_nsec field */
 #undef HAVE_STAT_NSEC
 
+/* Define to 1 if you have the <stdalign.h> header file. */
+#undef HAVE_STDALIGN_H
+
 /* Define to 1 if you have the <stdatomic.h> header file. */
 #undef HAVE_STDATOMIC_H
 

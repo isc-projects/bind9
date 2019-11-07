@@ -16,7 +16,6 @@ tap_test_program{name='mem_test'}
 tap_test_program{name='netaddr_test'}
 tap_test_program{name='parse_test'}
 tap_test_program{name='pool_test'}
-tap_test_program{name='queue_test'}
 tap_test_program{name='radix_test'}
 tap_test_program{name='regex_test'}
 tap_test_program{name='result_test'}

@@ -78,8 +78,8 @@
  ***/
 
 typedef enum {
-	task_state_idle, task_state_ready, task_state_running,
-	task_state_done
+	task_state_idle, task_state_ready, task_state_paused,
+	task_state_running, task_state_done
 } task_state_t;
 
 #if defined(HAVE_LIBXML2) || defined(HAVE_JSON_C)
@@ -155,6 +155,7 @@ struct isc__taskmgr {
 	atomic_uint_fast32_t		curq;
 	atomic_uint_fast32_t		tasks_count;
 	isc__taskqueue_t		*queues;
+	isc_nm_t			*nm;
 
 	/* Locked by task manager lock. */
 	unsigned int			default_quantum;
@@ -370,6 +371,7 @@ task_shutdown(isc__task_t *task) {
 			was_idle = true;
 		}
 		INSIST(task->state == task_state_ready ||
+		       task->state == task_state_paused ||
 		       task->state == task_state_running);
 
 		/*
@@ -405,7 +407,8 @@ task_ready(isc__task_t *task) {
 	LOCK(&manager->queues[task->threadid].lock);
 	push_readyq(manager, task, task->threadid);
 	if (atomic_load(&manager->mode) == isc_taskmgrmode_normal ||
-	    has_privilege) {
+	    has_privilege)
+	{
 		SIGNAL(&manager->queues[task->threadid].work_available);
 	}
 	UNLOCK(&manager->queues[task->threadid].lock);
@@ -489,7 +492,8 @@ task_send(isc__task_t *task, isc_event_t **eventp, int c) {
 		task->state = task_state_ready;
 	}
 	INSIST(task->state == task_state_ready ||
-	       task->state == task_state_running);
+	       task->state == task_state_running ||
+	       task->state == task_state_paused);
 	ENQUEUE(task->events, event, ev_link);
 	task->nevents++;
 	*eventp = NULL;
@@ -1132,12 +1136,15 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 							event);
 						LOCK(&task->lock);
 					}
+					XTRACE("execution complete");
 					dispatch_count++;
 				}
 
-				if (isc_refcount_current(&task->references) == 0 &&
+				if (isc_refcount_current(
+						 &task->references) == 0 &&
 				    EMPTY(task->events) &&
-				    !TASK_SHUTTINGDOWN(task)) {
+				    !TASK_SHUTTINGDOWN(task))
+				{
 					bool was_idle;
 
 					/*
@@ -1172,16 +1179,19 @@ dispatch(isc__taskmgr_t *manager, unsigned int threadid) {
 					 * right now.
 					 */
 					XTRACE("empty");
-					if (isc_refcount_current(&task->references) == 0 &&
-					    TASK_SHUTTINGDOWN(task)) {
+					if (isc_refcount_current(
+						     &task->references) == 0 &&
+					    TASK_SHUTTINGDOWN(task))
+					{
 						/*
 						 * The task is done.
 						 */
 						XTRACE("done");
 						finished = true;
 						task->state = task_state_done;
-					} else
+					} else {
 						task->state = task_state_idle;
+					}
 					done = true;
 				} else if (dispatch_count >= task->quantum) {
 					/*
@@ -1323,7 +1333,8 @@ manager_free(isc__taskmgr_t *manager) {
 
 isc_result_t
 isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
-		    unsigned int default_quantum, isc_taskmgr_t **managerp)
+		    unsigned int default_quantum,
+		    isc_nm_t *nm, isc_taskmgr_t **managerp)
 {
 	unsigned int i;
 	isc__taskmgr_t *manager;
@@ -1336,11 +1347,12 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	REQUIRE(managerp != NULL && *managerp == NULL);
 
 	manager = isc_mem_get(mctx, sizeof(*manager));
-	RUNTIME_CHECK(manager != NULL);
-	manager->common.impmagic = TASK_MANAGER_MAGIC;
-	manager->common.magic = ISCAPI_TASKMGR_MAGIC;
+	*manager = (isc__taskmgr_t) {
+		.common.impmagic = TASK_MANAGER_MAGIC,
+		.common.magic = ISCAPI_TASKMGR_MAGIC
+	};
+
 	atomic_store(&manager->mode, isc_taskmgrmode_normal);
-	manager->mctx = NULL;
 	isc_mutex_init(&manager->lock);
 	isc_mutex_init(&manager->excl_lock);
 
@@ -1353,6 +1365,11 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 		default_quantum = DEFAULT_DEFAULT_QUANTUM;
 	}
 	manager->default_quantum = default_quantum;
+
+	if (nm != NULL) {
+		isc_nm_attach(nm, &manager->nm);
+	}
+
 	INIT_LIST(manager->tasks);
 	atomic_store(&manager->tasks_count, 0);
 	manager->queues = isc_mem_get(mctx,
@@ -1363,8 +1380,6 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
 	atomic_init(&manager->tasks_ready, 0);
 	atomic_init(&manager->curq, 0);
 	atomic_init(&manager->exiting, false);
-	manager->excl = NULL;
-	manager->halted = 0;
 	atomic_store_relaxed(&manager->exclusive_req, false);
 	atomic_store_relaxed(&manager->pause_req, false);
 
@@ -1485,6 +1500,13 @@ isc_taskmgr_destroy(isc_taskmgr_t **managerp) {
 		isc_thread_join(manager->queues[i].thread, NULL);
 	}
 
+	/*
+	 * Detach from the network manager if it was set.
+	 */
+	if (manager->nm != NULL) {
+		isc_nm_detach(&manager->nm);
+	}
+
 	manager_free(manager);
 
 	*managerp = NULL;
@@ -1601,6 +1623,9 @@ isc_task_beginexclusive(isc_task_t *task0) {
 		WAIT(&manager->halt_cond, &manager->halt_lock);
 	}
 	UNLOCK(&manager->halt_lock);
+	if (manager->nm != NULL) {
+		isc_nm_pause(manager->nm);
+	}
 	return (ISC_R_SUCCESS);
 }
 
@@ -1611,9 +1636,11 @@ isc_task_endexclusive(isc_task_t *task0) {
 
 	REQUIRE(VALID_TASK(task));
 	REQUIRE(task->state == task_state_running);
-
 	manager = task->manager;
 
+	if (manager->nm != NULL) {
+		isc_nm_resume(manager->nm);
+	}
 	LOCK(&manager->halt_lock);
 	REQUIRE(atomic_load_relaxed(&manager->exclusive_req) == true);
 	atomic_store_relaxed(&manager->exclusive_req, false);
@@ -1622,6 +1649,55 @@ isc_task_endexclusive(isc_task_t *task0) {
 		WAIT(&manager->halt_cond, &manager->halt_lock);
 	}
 	UNLOCK(&manager->halt_lock);
+}
+
+void
+isc_task_pause(isc_task_t *task0) {
+	REQUIRE(ISCAPI_TASK_VALID(task0));
+	isc__task_t *task = (isc__task_t *)task0;
+	isc__taskmgr_t *manager = task->manager;
+	bool running = false;
+
+	LOCK(&task->lock);
+	INSIST(task->state == task_state_idle ||
+	       task->state == task_state_ready ||
+	       task->state == task_state_running);
+	running = (task->state == task_state_running);
+	task->state = task_state_paused;
+	UNLOCK(&task->lock);
+
+	if (running) {
+		return;
+	}
+
+	LOCK(&manager->queues[task->threadid].lock);
+	if (ISC_LINK_LINKED(task, ready_link)) {
+		DEQUEUE(manager->queues[task->threadid].ready_tasks,
+			task, ready_link);
+	}
+	UNLOCK(&manager->queues[task->threadid].lock);
+}
+
+void
+isc_task_unpause(isc_task_t *task0) {
+	isc__task_t *task = (isc__task_t *)task0;
+	bool was_idle = false;
+
+	REQUIRE(ISCAPI_TASK_VALID(task0));
+
+	LOCK(&task->lock);
+	INSIST(task->state == task_state_paused);
+	if (!EMPTY(task->events)) {
+		task->state = task_state_ready;
+		was_idle = true;
+	} else {
+		task->state = task_state_idle;
+	}
+	UNLOCK(&task->lock);
+
+	if (was_idle) {
+		task_ready(task);
+	}
 }
 
 void
@@ -1889,8 +1965,8 @@ isc_taskmgr_createinctx(isc_mem_t *mctx,
 {
 	isc_result_t result;
 
-	result = isc_taskmgr_create(mctx, workers, default_quantum,
-				       managerp);
+	result = isc_taskmgr_create(mctx, workers, default_quantum, NULL,
+				    managerp);
 
 	return (result);
 }

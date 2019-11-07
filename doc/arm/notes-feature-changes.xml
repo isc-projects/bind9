@@ -13,6 +13,16 @@
   <itemizedlist>
     <listitem>
       <para>
+	A new asynchronous network communications system based on
+	<command>libuv</command> is now used by <command>named</command>
+	for listening for incoming requests and responding to them.
+	This change will make it easier to improve performance and
+	implement new protocol layers (for example, DNS over TLS) in
+	the future. [GL #29]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
         <command>named</command> will now log a warning if
         a static key is configured for the root zone. [GL #6]
       </para>

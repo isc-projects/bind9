@@ -30,6 +30,7 @@
 
 /* Core Types.  Alphabetized by defined type. */
 
+typedef struct isc_astack		isc_astack_t;		/*%< Array-based fast stack */
 typedef struct isc_appctx		isc_appctx_t;	 	/*%< Application context */
 typedef struct isc_backtrace_symmap	isc_backtrace_symmap_t; /*%< Symbol Table Entry */
 typedef struct isc_buffer		isc_buffer_t;		/*%< Buffer */
@@ -43,6 +44,8 @@ typedef ISC_LIST(isc_event_t)		isc_eventlist_t;	/*%< Event List */
 typedef unsigned int			isc_eventtype_t;	/*%< Event Type */
 typedef uint32_t			isc_fsaccess_t;		/*%< FS Access */
 typedef struct isc_hash			isc_hash_t;		/*%< Hash */
+typedef struct isc_hp			isc_hp_t;		/*%< Hazard
+								     pointer */
 typedef struct isc_httpd		isc_httpd_t;		/*%< HTTP client */
 typedef void (isc_httpdfree_t)(isc_buffer_t *, void *);		/*%< HTTP free function */
 typedef struct isc_httpdmgr		isc_httpdmgr_t;		/*%< HTTP manager */
@@ -59,6 +62,10 @@ typedef struct isc_logmodule		isc_logmodule_t;	/*%< Log Module */
 typedef struct isc_mem			isc_mem_t;		/*%< Memory */
 typedef struct isc_mempool		isc_mempool_t;		/*%< Memory Pool */
 typedef struct isc_netaddr		isc_netaddr_t;		/*%< Net Address */
+typedef struct isc_nm			 isc_nm_t;		/*%< Network manager */
+typedef struct isc_nmsocket		 isc_nmsocket_t;	/*%< Network manager socket */
+typedef struct isc_nmiface		 isc_nmiface_t;		/*%< Network manager interface.  */
+typedef struct isc_nmhandle		 isc_nmhandle_t;	/*%< Network manager handle */
 typedef struct isc_portset		isc_portset_t;		/*%< Port Set */
 typedef struct isc_quota		isc_quota_t;		/*%< Quota */
 typedef struct isc_ratelimiter		isc_ratelimiter_t;	/*%< Rate Limiter */

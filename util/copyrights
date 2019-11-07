@@ -624,9 +624,8 @@
 ./bin/tests/system/emptyzones/setup.sh		SH	2014,2016,2018,2019
 ./bin/tests/system/emptyzones/tests.sh		SH	2014,2015,2016,2018,2019
 ./bin/tests/system/feature-test.c		C	2016,2017,2018,2019
-./bin/tests/system/fetchlimit/ans4/ans.pl	PERL	2015,2016,2018,2019
+./bin/tests/system/fetchlimit/ans4/ans.pl	PERL	2019
 ./bin/tests/system/fetchlimit/clean.sh		SH	2015,2016,2018,2019
-./bin/tests/system/fetchlimit/ns3/named.args	X	2015,2018,2019
 ./bin/tests/system/fetchlimit/prereq.sh		SH	2018,2019
 ./bin/tests/system/fetchlimit/setup.sh		SH	2015,2016,2018,2019
 ./bin/tests/system/fetchlimit/tests.sh		SH	2015,2016,2018,2019
@@ -909,13 +908,12 @@
 ./bin/tests/system/redirect/ns5/sign.sh		SH	2019
 ./bin/tests/system/redirect/setup.sh		SH	2011,2012,2013,2014,2015,2016,2017,2018,2019
 ./bin/tests/system/redirect/tests.sh		SH	2011,2012,2013,2014,2015,2016,2018,2019
-./bin/tests/system/resolver/ans2/ans.pl		PERL	2000,2001,2004,2007,2009,2010,2012,2016,2018,2019
+./bin/tests/system/resolver/ans2/ans.pl		PERL	2019
 ./bin/tests/system/resolver/ans3/ans.pl		PERL	2000,2001,2004,2007,2009,2012,2016,2018,2019
 ./bin/tests/system/resolver/ans8/ans.pl		PERL	2017,2018,2019
 ./bin/tests/system/resolver/clean.sh		SH	2008,2009,2010,2011,2012,2013,2014,2015,2016,2018,2019
 ./bin/tests/system/resolver/ns4/named.noaa	TXT.BRIEF	2010,2016,2018,2019
 ./bin/tests/system/resolver/ns6/keygen.sh	SH	2010,2012,2014,2016,2017,2018,2019
-./bin/tests/system/resolver/ns7/named.args	X	2011,2012,2014,2018,2019
 ./bin/tests/system/resolver/prereq.sh		SH	2000,2001,2004,2007,2012,2014,2016,2018,2019
 ./bin/tests/system/resolver/setup.sh		SH	2010,2011,2012,2013,2014,2016,2017,2018,2019
 ./bin/tests/system/resolver/tests.sh		SH	2000,2001,2004,2007,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019
@@ -2129,6 +2127,7 @@
 ./lib/isc/api					X	1999,2000,2001,2006,2008,2009,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019
 ./lib/isc/app.c					C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2009,2013,2014,2015,2016,2017,2018,2019
 ./lib/isc/assertions.c				C	1997,1998,1999,2000,2001,2004,2005,2007,2008,2009,2015,2016,2018,2019
+./lib/isc/astack.c				C	2019
 ./lib/isc/backtrace-emptytbl.c			C	2009,2016,2018,2019
 ./lib/isc/backtrace.c				C	2009,2013,2014,2015,2016,2018,2019
 ./lib/isc/base32.c				C	2008,2009,2013,2014,2015,2016,2018,2019
@@ -2148,6 +2147,7 @@
 ./lib/isc/heap.c				C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019
 ./lib/isc/hex.c					C	2000,2001,2002,2003,2004,2005,2007,2008,2013,2014,2015,2016,2018,2019
 ./lib/isc/hmac.c				C	2000,2001,2004,2005,2006,2007,2009,2011,2012,2013,2014,2015,2016,2017,2018,2019
+./lib/isc/hp.c					C	2019
 ./lib/isc/ht.c					C	2016,2017,2018,2019
 ./lib/isc/httpd.c				C	2006,2007,2008,2010,2011,2012,2013,2014,2015,2016,2017,2018,2019
 ./lib/isc/include/Makefile.in			MAKE	1998,1999,2000,2001,2004,2007,2012,2014,2016,2018,2019
@@ -2155,6 +2155,7 @@
 ./lib/isc/include/isc/aes.h			C	2014,2016,2018,2019
 ./lib/isc/include/isc/app.h			C	1999,2000,2001,2004,2005,2006,2007,2009,2013,2014,2015,2016,2018,2019
 ./lib/isc/include/isc/assertions.h		C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2008,2009,2016,2017,2018,2019
+./lib/isc/include/isc/astack.h			C	2019
 ./lib/isc/include/isc/atomic.h			C	2018,2019
 ./lib/isc/include/isc/backtrace.h		C	2009,2016,2018,2019
 ./lib/isc/include/isc/base32.h			C	2008,2014,2016,2018,2019
@@ -2179,6 +2180,7 @@
 ./lib/isc/include/isc/heap.h			C	1997,1998,1999,2000,2001,2004,2005,2006,2007,2009,2012,2016,2018,2019
 ./lib/isc/include/isc/hex.h			C	2000,2001,2004,2005,2006,2007,2008,2016,2018,2019
 ./lib/isc/include/isc/hmac.h			C	2000,2001,2004,2005,2006,2007,2009,2011,2012,2013,2014,2015,2016,2017,2018,2019
+./lib/isc/include/isc/hp.h			C	2019
 ./lib/isc/include/isc/ht.h			C	2016,2017,2018,2019
 ./lib/isc/include/isc/httpd.h			C	2006,2007,2008,2014,2016,2018,2019
 ./lib/isc/include/isc/interfaceiter.h		C	1999,2000,2001,2004,2005,2006,2007,2016,2018,2019
@@ -2197,6 +2199,7 @@
 ./lib/isc/include/isc/mutexatomic.h		C	2019
 ./lib/isc/include/isc/mutexblock.h		C	1999,2000,2001,2004,2005,2006,2007,2016,2018,2019
 ./lib/isc/include/isc/netaddr.h			C	1998,1999,2000,2001,2002,2004,2005,2006,2007,2009,2015,2016,2017,2018,2019
+./lib/isc/include/isc/netmgr.h			C	2019
 ./lib/isc/include/isc/netscope.h		C	2002,2004,2005,2006,2007,2009,2016,2018,2019
 ./lib/isc/include/isc/nonce.h			C	2018,2019
 ./lib/isc/include/isc/os.h			C	2000,2001,2004,2005,2006,2007,2016,2018,2019
@@ -2251,6 +2254,12 @@
 ./lib/isc/mem_p.h				C	2018,2019
 ./lib/isc/mutexblock.c				C	1999,2000,2001,2004,2005,2007,2011,2012,2016,2018,2019
 ./lib/isc/netaddr.c				C	1999,2000,2001,2002,2004,2005,2007,2010,2011,2012,2014,2015,2016,2017,2018,2019
+./lib/isc/netmgr/netmgr-int.h			C	2019
+./lib/isc/netmgr/netmgr.c			C	2019
+./lib/isc/netmgr/tcp.c				C	2019
+./lib/isc/netmgr/tcpdns.c			C	2019
+./lib/isc/netmgr/udp.c				C	2019
+./lib/isc/netmgr/uverr2result.c			C	2019
 ./lib/isc/netscope.c				C	2002,2004,2005,2006,2007,2016,2018,2019
 ./lib/isc/nonce.c				C	2018,2019
 ./lib/isc/openssl_shim.c			C	2018,2019
@@ -2268,6 +2277,7 @@
 ./lib/isc/pthreads/include/isc/thread.h		C	1998,1999,2000,2001,2004,2005,2007,2013,2016,2017,2018,2019
 ./lib/isc/pthreads/mutex.c			C	2000,2001,2002,2004,2005,2007,2008,2011,2012,2014,2015,2016,2018,2019
 ./lib/isc/pthreads/thread.c			C	2000,2001,2003,2004,2005,2007,2013,2016,2017,2018,2019
+./lib/isc/queue.c				C	2019
 ./lib/isc/quota.c				C	2000,2001,2004,2005,2007,2016,2018,2019
 ./lib/isc/radix.c				C	2007,2008,2009,2011,2012,2013,2014,2015,2016,2018,2019
 ./lib/isc/random.c				C	1999,2000,2001,2002,2003,2004,2005,2007,2009,2013,2014,2016,2017,2018,2019
@@ -2304,7 +2314,6 @@
 ./lib/isc/tests/netaddr_test.c			C	2016,2018,2019
 ./lib/isc/tests/parse_test.c			C	2012,2013,2016,2018,2019
 ./lib/isc/tests/pool_test.c			C	2013,2016,2018,2019
-./lib/isc/tests/queue_test.c			C	2011,2012,2016,2018,2019
 ./lib/isc/tests/radix_test.c			C	2014,2016,2018,2019
 ./lib/isc/tests/random_test.c			C	2014,2015,2016,2017,2018,2019
 ./lib/isc/tests/regex_test.c			C	2013,2015,2016,2018,2019
@@ -2329,6 +2338,7 @@
 ./lib/isc/unix/file.c				C	2000,2001,2002,2004,2005,2007,2009,2011,2012,2013,2014,2015,2016,2017,2018,2019
 ./lib/isc/unix/fsaccess.c			C	2000,2001,2004,2005,2006,2007,2016,2018,2019
 ./lib/isc/unix/ifiter_getifaddrs.c		C	2003,2004,2005,2007,2008,2009,2014,2016,2018,2019
+./lib/isc/unix/include/isc/align.h		C	2019
 ./lib/isc/unix/include/isc/dir.h		C	1999,2000,2001,2004,2005,2007,2016,2018,2019
 ./lib/isc/unix/include/isc/net.h		C	1999,2000,2001,2002,2003,2004,2005,2007,2008,2012,2013,2014,2016,2017,2018,2019
 ./lib/isc/unix/include/isc/netdb.h		C	1999,2000,2001,2004,2005,2007,2016,2018,2019
@@ -2361,6 +2371,7 @@
 ./lib/isc/win32/fsaccess.c			C	2000,2001,2002,2004,2007,2013,2016,2017,2018,2019
 ./lib/isc/win32/include/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2014,2016,2018,2019
 ./lib/isc/win32/include/isc/Makefile.in		MAKE	1999,2000,2001,2004,2007,2012,2013,2014,2015,2016,2018,2019
+./lib/isc/win32/include/isc/align.h		C	2019
 ./lib/isc/win32/include/isc/bind_registry.h	C	2001,2004,2007,2016,2018,2019
 ./lib/isc/win32/include/isc/bindevt.h		C	2001,2004,2007,2016,2018,2019
 ./lib/isc/win32/include/isc/condition.h		C	1998,1999,2000,2001,2004,2007,2016,2018,2019
@@ -2501,6 +2512,7 @@
 ./lib/ns/tests/plugin_test.c			C	2019
 ./lib/ns/tests/query_test.c			C	2017,2018,2019
 ./lib/ns/tests/testdata/notify/notify1.msg	X	2017,2018,2019
+./lib/ns/tests/wrap.c				C	2019
 ./lib/ns/update.c				C	2017,2018,2019
 ./lib/ns/version.c				C	2017,2018,2019
 ./lib/ns/win32/DLLMain.c			C	2017,2018,2019

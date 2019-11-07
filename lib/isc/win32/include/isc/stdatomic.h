@@ -70,6 +70,7 @@ typedef int_fast32_t volatile	atomic_int_fast32_t;
 typedef uint_fast32_t volatile	atomic_uint_fast32_t;
 typedef int_fast64_t volatile	atomic_int_fast64_t;
 typedef uint_fast64_t volatile	atomic_uint_fast64_t;
+typedef uintptr_t volatile	atomic_uintptr_t;
 
 #define atomic_init(obj, desired)				\
 	(*(obj) = (desired))
@@ -396,8 +397,7 @@ atomic_compare_exchange_strong_explicit64(atomic_int_fast64_t *obj,
 	return (__r);
 }
 
-static inline
-bool
+static inline bool
 atomic_compare_exchange_abort() {
 	INSIST(0);
 	ISC_UNREACHABLE();
@@ -419,8 +419,7 @@ atomic_compare_exchange_abort() {
 							   succ, fail)	\
 		    : atomic_compare_exchange_abort())))
 
-#define atomic_compare_exchange_strong(obj, expected, desired,		\
-				       succ, fail)			\
+#define atomic_compare_exchange_strong(obj, expected, desired)		\
 	atomic_compare_exchange_strong_explicit(obj, expected, desired, \
 						memory_order_seq_cst,	\
 						memory_order_seq_cst)
@@ -434,3 +433,23 @@ atomic_compare_exchange_abort() {
 	atomic_compare_exchange_weak_explicit(obj, expected, desired,	\
 					      memory_order_seq_cst,	\
 					      memory_order_seq_cst)
+
+static inline
+bool
+atomic_exchange_abort() {
+	INSIST(0);
+	ISC_UNREACHABLE();
+}
+
+
+#define atomic_exchange_explicit(obj, desired, order)	\
+	(sizeof(*(obj)) == 8				\
+	 ? InterlockedExchange64(obj, desired) 		\
+	 : (sizeof(*(obj)) == 4				\
+	    ? InterlockedExchange(obj, desired)		\
+		: (sizeof(*(obj)) == 1			\
+		? InterlockedExchange8(obj, desired)	\
+		    : atomic_exchange_abort())))
+
+#define atomic_exchange(obj, desired)					\
+	atomic_exchange_explicit(obj, desired, memory_order_seq_cst)	\

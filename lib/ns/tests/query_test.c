@@ -598,6 +598,15 @@ main(void) {
 						_setup, _teardown),
 	};
 
+	/*
+	 * We disable this test when the address sanitizer is in
+	 * the use, as libuv will trigger errors.
+	 */
+	if (getenv("ASAN_OPTIONS") != NULL) {
+		printf("1..0 # Skip ASAN is in use\n");
+		return (0);
+	}
+
 	return (cmocka_run_group_tests(tests, NULL, NULL));
 }
 #else /* HAVE_CMOCKA */
@@ -606,7 +615,7 @@ main(void) {
 
 int
 main(void) {
-	printf("1..0 # Skipped: cmocka not available\n");
+	printf("1..0 # Skip cmocka not available\n");
 	return (0);
 }
 

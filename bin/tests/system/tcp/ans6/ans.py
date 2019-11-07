@@ -42,7 +42,7 @@ import time
 
 # Timeout for establishing all connections requested by a single 'open' command.
 OPEN_TIMEOUT = 2
-
+VERSION_QUERY = b'\x00\x1e\xaf\xb8\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07version\x04bind\x00\x00\x10\x00\x03'
 
 def log(msg):
     print(datetime.datetime.now().strftime('%d-%b-%Y %H:%M:%S.%f ') + msg)
@@ -84,6 +84,7 @@ def open_connections(active_conns, count, host, port):
                 log('%s for socket %s' % (errno.errorcode[err], sock))
                 errors.append(sock)
             else:
+                sock.send(VERSION_QUERY)
                 active_conns.append(sock)
 
     if errors:

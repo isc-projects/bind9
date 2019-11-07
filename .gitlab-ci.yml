@@ -675,6 +675,7 @@ unit:gcc:bionic:amd64:
 asan:sid:amd64:
   variables:
     CC: gcc
+    ASAN_OPTIONS: "detect_leaks=0"
     CFLAGS: "-Wall -Wextra -O2 -g -fsanitize=address,undefined -DISC_MEM_USE_INTERNAL_MALLOC=0"
     LDFLAGS: "-fsanitize=address,undefined"
     EXTRA_CONFIGURE: "--with-libidn2"
@@ -901,6 +902,7 @@ msvc:windows:amd64:
          "with-vcredist=C:/Program Files (x86)/Microsoft Visual Studio/2017/BuildTools/VC/Redist/MSVC/14.16.27012/vcredist_x64.exe"
          "with-openssl=C:/OpenSSL"
          "with-libxml2=C:/libxml2"
+         "with-libuv=C:/libuv"
          "without-python"
          "with-system-tests"
          x64'

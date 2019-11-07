@@ -35,6 +35,9 @@
     <ClInclude Include="..\include\isc\assertions.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\include\isc\astack.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="..\include\isc\atomic.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
@@ -102,6 +105,9 @@
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\hmac.h">
+      <Filter>Library Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\isc\hp.h">
       <Filter>Library Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\include\isc\ht.h">
@@ -449,6 +455,9 @@
     <ClCompile Include="..\assertions.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\astack.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\backtrace.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -500,6 +509,9 @@
     <ClCompile Include="..\hmac.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\hp.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="..\ht.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
@@ -546,6 +558,9 @@
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\portset.c">
+      <Filter>Library Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\queue.c">
       <Filter>Library Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\quota.c">

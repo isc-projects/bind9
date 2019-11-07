@@ -230,6 +230,10 @@ isc_sockaddr_frompath(isc_sockaddr_t *sockaddr, const char *path);
  * \li	ISC_R_SUCCESS
  */
 
+isc_result_t
+isc_sockaddr_fromsockaddr(isc_sockaddr_t *isa, const struct sockaddr *sa);
+
+
 #define ISC_SOCKADDR_FORMATSIZE \
 	sizeof("xxxx:xxxx:xxxx:xxxx:xxxx:xxxx:XXX.XXX.XXX.XXX%SSSSSSSSSS#YYYYY")
 /*%<

@@ -654,10 +654,6 @@ Items can be removed from the list using `ISC_LIST_UNLINK`:
 
         ISC_LIST_UNLINK(foolist, foo, link);
 
-A similar but smaller set of `ISC_QUEUE` macros, including `ISC_QUEUE_PUSH`
-and `ISC_QUEUE_POP`, are provided to implement strict FIFO lists, with
-built-in fine-grained locking.
-
 #### <a name="names"></a>Names
 
 The `dns_name` API has facilities for processing DNS names and labels,

@@ -641,6 +641,15 @@ AC_CHECK_FUNCS([pthread_setaffinity_np cpuset_setaffinity processor_bind sched_s
 AC_CHECK_FUNCS([pthread_setname_np pthread_set_name_np])
 AC_CHECK_HEADERS([pthread_np.h], [], [], [#include <pthread.h>])
 
+# libuv
+AC_MSG_CHECKING(for libuv)
+PKG_CHECK_MODULES([LIBUV], [libuv >= 1.0.0], [],
+		  [AC_MSG_ERROR([libuv not found])])
+AX_SAVE_FLAGS([libuv])
+
+CFLAGS="$CFLAGS $LIBUV_CFLAGS"
+LIBS="$LIBS $LIBUV_LIBS"
+
 #
 # flockfile is usually provided by pthreads
 #
@@ -1321,7 +1330,7 @@ AS_CASE([$host],
 		  [MKDEPCFLAGS="-xM"])])
 
 AS_IF([test "$GCC" = "yes"],
-      [STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith"]
+      [STD_CWARNINGS="$STD_CWARNINGS -W -Wall -Wmissing-prototypes -Wcast-qual -Wwrite-strings -Wformat -Wpointer-arith -Wno-missing-field-initializers"]
       )
 
 AX_CHECK_COMPILE_FLAG([-fno-strict-aliasing],
@@ -1795,6 +1804,8 @@ AC_CHECK_HEADERS(
      ])
   ])
 LIBS="$LIBS $ISC_ATOMIC_LIBS"
+
+AC_CHECK_HEADERS([stdalign.h])
 
 AC_CHECK_HEADERS([uchar.h])
 
@@ -2817,6 +2828,7 @@ AC_CONFIG_FILES([
 	lib/isc/include/isc/platform.h
 	lib/isc/include/pk11/Makefile
 	lib/isc/include/pkcs11/Makefile
+	lib/isc/netmgr/Makefile
 	lib/isc/tests/Makefile
 	lib/isc/unix/Makefile
 	lib/isc/unix/include/Makefile

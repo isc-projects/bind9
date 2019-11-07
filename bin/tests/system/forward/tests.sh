@@ -98,10 +98,15 @@ status=`expr $status + $ret`
 
 echo_i "checking that forward only zone overrides empty zone"
 ret=0
-$DIG $DIGOPTS 1.0.10.in-addr.arpa TXT @10.53.0.4 > dig.out.f2
-grep "status: NOERROR" dig.out.f2 > /dev/null || ret=1
-$DIG $DIGOPTS 2.0.10.in-addr.arpa TXT @10.53.0.4 > dig.out.f2
-grep "status: NXDOMAIN" dig.out.f2 > /dev/null || ret=1
+# retry loop in case the server restart above causes transient failure
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    $DIG $DIGOPTS 1.0.10.in-addr.arpa TXT @10.53.0.4 > dig.out.f2
+    grep "status: NOERROR" dig.out.f2 > /dev/null || ret=1
+    $DIG $DIGOPTS 2.0.10.in-addr.arpa TXT @10.53.0.4 > dig.out.f2
+    grep "status: NXDOMAIN" dig.out.f2 > /dev/null || ret=1
+    [ "$ret" -eq 0 ] && break
+    sleep 1
+done
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 

@@ -3797,7 +3797,7 @@ main(int argc, char *argv[]) {
 	print_time(outfp);
 	print_version(outfp);
 
-	result = isc_taskmgr_create(mctx, ntasks, 0, &taskmgr);
+	result = isc_taskmgr_create(mctx, ntasks, 0, NULL, &taskmgr);
 	if (result != ISC_R_SUCCESS)
 		fatal("failed to create task manager: %s",
 		      isc_result_totext(result));

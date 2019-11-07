@@ -102,7 +102,7 @@ main(int argc, char *argv[]) {
 	isc_interval_set(&linterval, 1, 0);
 
 	isc_mem_create(&mctx);
-	RUNTIME_CHECK(isc_taskmgr_create(mctx, 3, 0, &taskmgr) ==
+	RUNTIME_CHECK(isc_taskmgr_create(mctx, 3, 0, NULL, &taskmgr) ==
 		      ISC_R_SUCCESS);
 	RUNTIME_CHECK(isc_timermgr_create(mctx, &timermgr) ==
 		      ISC_R_SUCCESS);

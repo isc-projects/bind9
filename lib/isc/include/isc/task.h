@@ -78,6 +78,7 @@
 #include <isc/eventclass.h>
 #include <isc/lang.h>
 #include <isc/stdtime.h>
+#include <isc/netmgr.h>
 #include <isc/types.h>
 
 #define ISC_TASKEVENT_FIRSTEVENT	(ISC_EVENTCLASS_TASK + 0)
@@ -544,6 +545,8 @@ isc_task_beginexclusive(isc_task_t *task);
  * task.  Waits for any other concurrently executing tasks to finish their
  * current event, and prevents any new events from executing in any of the
  * tasks sharing a task manager with 'task'.
+ * It also pauses processing of network events in netmgr if it was provided
+ * when taskmgr was created.
  *
  * The exclusive access must be relinquished by calling
  * isc_task_endexclusive() before returning from the current event handler.
@@ -566,6 +569,22 @@ isc_task_endexclusive(isc_task_t *task);
  * Requires:
  *\li	'task' is the calling task, and has obtained
  *		exclusive access by calling isc_task_spl().
+ */
+
+void
+isc_task_pause(isc_task_t *task0);
+void
+isc_task_unpause(isc_task_t *task0);
+/*%<
+ * Pause/unpause this task. Pausing a task removes it from the ready
+ * queue if it is present there; this ensures that the task will not
+ * run again until unpaused. This is necessary when the libuv network
+ * thread executes a function which schedules task manager events; this
+ * prevents the task manager from executing the next event in a task
+ * before the network thread has finished.
+ *
+ * Requires:
+ *\li	'task' is a valid task, and is not already paused or shutting down.
  */
 
 void
@@ -633,7 +652,8 @@ isc_taskmgr_createinctx(isc_mem_t *mctx,
 			isc_taskmgr_t **managerp);
 isc_result_t
 isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
-		   unsigned int default_quantum, isc_taskmgr_t **managerp);
+		   unsigned int default_quantum,
+		   isc_nm_t *nm, isc_taskmgr_t **managerp);
 /*%<
  * Create a new task manager.  isc_taskmgr_createinctx() also associates
  * the new manager with the specified application context.
@@ -649,6 +669,9 @@ isc_taskmgr_create(isc_mem_t *mctx, unsigned int workers,
  *\li	If 'default_quantum' is non-zero, then it will be used as the default
  *	quantum value when tasks are created.  If zero, then an implementation
  *	defined default quantum will be used.
+ *
+ *\li	If 'nm' is set then netmgr is paused when an exclusive task mode
+ *	is requested.
  *
  * Requires:
  *

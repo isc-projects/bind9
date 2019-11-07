@@ -524,7 +524,7 @@ isc_result_t
 isc_socket_filter(isc_socket_t *sock, const char *filter);
 /*%<
  * Inform the kernel that it should perform accept filtering.
- * If filter is NULL the current filter will be removed.:w
+ * If filter is NULL the current filter will be removed.
  */
 
 isc_result_t

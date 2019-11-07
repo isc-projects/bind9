@@ -24,6 +24,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/httpd.h>
+#include <isc/netmgr.h>
 #include <isc/os.h>
 #include <isc/platform.h>
 #include <isc/print.h>
@@ -124,7 +125,6 @@ static int		maxudp = 0;
 /*
  * -T options:
  */
-static bool clienttest = false;
 static bool dropedns = false;
 static bool ednsformerr = false;
 static bool ednsnotimp = false;
@@ -622,17 +622,12 @@ parse_T_opt(char *option) {
 	/*
 	 * force the server to behave (or misbehave) in
 	 * specified ways for testing purposes.
-	 *
-	 * clienttest: make clients single shot with their
-	 * 	       own memory context.
 	 * delay=xxxx: delay client responses by xxxx ms to
 	 *	       simulate remote servers.
 	 * dscp=x:     check that dscp values are as
 	 * 	       expected and assert otherwise.
 	 */
-	if (!strcmp(option, "clienttest")) {
-		clienttest = true;
-	} else if (!strncmp(option, "delay=", 6)) {
+	if (!strncmp(option, "delay=", 6)) {
 		delay = atoi(option + 6);
 	} else if (!strcmp(option, "dropedns")) {
 		dropedns = true;
@@ -897,8 +892,15 @@ create_managers(void) {
 		      "using %u UDP listener%s per interface",
 		      named_g_udpdisp, named_g_udpdisp == 1 ? "" : "s");
 
+	named_g_nm = isc_nm_start(named_g_mctx, named_g_cpus);
+	if (named_g_nm == NULL) {
+		UNEXPECTED_ERROR(__FILE__, __LINE__,
+				"isc_nm_start() failed");
+		return (ISC_R_UNEXPECTED);
+	}
+
 	result = isc_taskmgr_create(named_g_mctx, named_g_cpus, 0,
-				    &named_g_taskmgr);
+				    named_g_nm, &named_g_taskmgr);
 	if (result != ISC_R_SUCCESS) {
 		UNEXPECTED_ERROR(__FILE__, __LINE__,
 				 "isc_taskmgr_create() failed: %s",
@@ -923,6 +925,7 @@ create_managers(void) {
 		return (ISC_R_UNEXPECTED);
 	}
 	isc_socketmgr_maxudp(named_g_socketmgr, maxudp);
+	isc_nm_maxudp(named_g_nm, maxudp);
 	result = isc_socketmgr_getmaxsockets(named_g_socketmgr, &socks);
 	if (result == ISC_R_SUCCESS) {
 		isc_log_write(named_g_lctx, NAMED_LOGCATEGORY_GENERAL,
@@ -941,6 +944,7 @@ destroy_managers(void) {
 	isc_taskmgr_destroy(&named_g_taskmgr);
 	isc_timermgr_destroy(&named_g_timermgr);
 	isc_socketmgr_destroy(&named_g_socketmgr);
+	isc_nm_destroy(&named_g_nm);
 }
 
 static void
@@ -1254,8 +1258,6 @@ setup(void) {
 	/*
 	 * Modify server context according to command line options
 	 */
-	if (clienttest)
-		ns_server_setoption(sctx, NS_SERVER_CLIENTTEST, true);
 	if (disable4)
 		ns_server_setoption(sctx, NS_SERVER_DISABLE4, true);
 	if (disable6)

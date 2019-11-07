@@ -253,6 +253,7 @@ my @substinc = ("GSSAPI_INC",
                 "GEOIP_INC",
                 "IDN_INC",
                 "LIBXML2_INC",
+                "LIBUV_INC",
                 "OPENSSL_INC",
                 "READLINE_INC",
                 "ZLIB_INC");
@@ -266,6 +267,7 @@ my @substlib = ("GSSAPI_LIB",
                 "IDN_LIB",
                 "KRB5_LIB",
                 "LIBXML2_LIB",
+                "LIBUV_LIB",
                 "OPENSSL_LIB",
                 "READLINE_LIB",
                 "READLINE_LIBD",
@@ -282,6 +284,7 @@ my @substdll = ("COMERR_DLL",
                 "KRB5_DLL",
                 "K5SPRT_DLL",
                 "LIBXML2_DLL",
+                "LIBUV_DLL",
                 "OPENSSL_DLL",
                 "WSHELP_DLL",
                 "ZLIB_DLL");
@@ -379,6 +382,7 @@ my @withlist = ("aes",
                 "system-tests",
                 "tests",
                 "tuning",
+                "libuv",
                 "vcredist",
                 "zlib");
 
@@ -418,6 +422,7 @@ my @help = (
 "  with-system-tests     build with system test suite\n",
 "  with-samples          build with sample programs\n",
 "  with-openssl[=PATH]   build with OpenSSL yes|path (mandatory)\n",
+"  with-libuv[=PATH]     build with libuv yes|path (mandatory)\n",
 "  with-pkcs11[=PATH]    build with PKCS#11 support yes|no|provider-path\n",
 "  with-eddsa            crypto EDDSA yes|all|no\n",
 "  with-gssapi[=PATH]    build with MIT KfW GSSAPI yes|no|path\n",
@@ -461,6 +466,8 @@ my $use_tests = "no";
 my $use_xtests = "no";
 my $use_stests = "no";
 my $use_samples = "no";
+my $use_libuv = "auto";
+my $libuv_path = "..\\..\\";
 my $use_openssl = "auto";
 my $openssl_path = "..\\..\\";
 my $use_pkcs11 = "no";
@@ -736,6 +743,13 @@ sub mywith {
             $use_openssl = "yes";
             $openssl_path = $val;
         }
+    } elsif ($key =~ /^libuv$/i) {
+        if ($val =~ /^no$/i) {
+            die "libuv is required\n";
+        } elsif ($val !~ /^yes$/i) {
+            $use_libuv = "yes";
+            $libuv_path = $val;
+        }
     } elsif ($key =~ /^pkcs11$/i) {
         if ($val =~ /^yes$/i) {
             $use_pkcs11 = "yes";
@@ -937,6 +951,7 @@ if ($verbose) {
     } else {
         print "querytrace: disabled\n";
     }
+    print "libuv-path: $libuv_path\n";
     print "openssl-path: $openssl_path\n";
     if ($use_tests eq "yes") {
         print "tests: enabled\n";
@@ -1278,6 +1293,65 @@ if ($use_stests eq "yes") {
 # with-samples
 if ($use_samples eq "yes") {
     $configcond{"SAMPLES"} = 1;
+}
+
+# with-libuv
+if ($use_libuv eq "auto") {
+    if ($verbose) {
+        print "checking for an libuv built directory at sibling root\n";
+    }
+    opendir DIR, $libuv_path || die "No Directory: $!\n";
+    my @dirlist = grep (/^libuv-v[0-9]+\.[0-9]+\.[0-9]+(-rc[0-9]+){0,1}$/i,
+                        readdir(DIR));
+    closedir(DIR);
+
+    # Make sure we have something
+    if (scalar(@dirlist) == 0) {
+        die "can't find an libuv at sibling root\n";
+    }
+    # Now see if we have a directory or just a file.
+    # Make sure we are case insensitive
+    my $file;
+    foreach $file (sort {uc($b) cmp uc($a)} @dirlist) {
+        if (-f File::Spec->catfile($libuv_path,
+                                   $file,
+                                   "include\\uv.h")) {
+            $libuv_path = File::Spec->catdir($libuv_path, $file);
+            $use_libuv = "yes";
+            last;
+        }
+    }
+
+    # If we have one use it otherwise report the error
+    if ($use_libuv eq "auto") {
+        die "can't find an libuv built directory at sibling root\n";
+    }
+}
+# falls into (so no else)
+if ($use_libuv eq "yes") {
+    $libuv_path = File::Spec->rel2abs($libuv_path);
+    if ($verbose) {
+        print "checking for libuv built directory at \"$libuv_path\"\n";
+    }
+    my $libuv_new = 0;
+    if (!-f File::Spec->catfile($libuv_path,
+                                "include\\uv.h")) {
+        die "can't find libuv uv.h include\n";
+    }
+    my $libuv_inc = File::Spec->catdir($libuv_path, "include");
+    my $libuv_libdir = File::Spec->catdir($libuv_path, "Release");
+    my $libuv_lib = File::Spec->catfile($libuv_libdir, "libuv.lib");
+    my $libuv_dll = File::Spec->catfile($libuv_libdir, "libuv.dll");
+    if (!-f $libuv_lib) {
+       die "can't find libuv.lib library\n";
+    }
+    if (!-f $libuv_dll) {
+       die "can't find libuv.dll library\n";
+    }
+    $configvar{"LIBUV_PATH"} = "$libuv_path";
+    $configinc{"LIBUV_INC"} = "$libuv_inc";
+    $configlib{"LIBUV_LIB"} = "$libuv_lib";
+    $configdll{"LIBUV_DLL"} = "$libuv_dll";
 }
 
 # with-openssl

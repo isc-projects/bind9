@@ -17,6 +17,7 @@
 #include <isc/buffer.h>
 #include <isc/hash.h>
 #include <isc/log.h>
+#include <isc/netmgr.h>
 #include <isc/mem.h>
 #include <isc/print.h>
 #include <isc/result.h>
@@ -37,6 +38,7 @@ extern isc_log_t *lctx;
 extern isc_taskmgr_t *taskmgr;
 extern isc_timermgr_t *timermgr;
 extern isc_socketmgr_t *socketmgr;
+extern isc_nm_t *netmgr;
 extern int ncpus;
 
 isc_result_t

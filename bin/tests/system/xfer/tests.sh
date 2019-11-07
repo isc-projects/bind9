@@ -431,11 +431,17 @@ $DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.1.$n
 grep "status: NOERROR," dig.out.1.$n > /dev/null || tmp=1
 $PERL $SYSTEMTESTTOP/stop.pl xfer ns3
 $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} xfer ns3
-$DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2.$n
-grep "status: NOERROR," dig.out.2.$n > /dev/null || tmp=1
-$DIG -p ${PORT} axfr mapped @10.53.0.3 > dig.out.3.$n
-digcomp knowngood.mapped dig.out.3.$n || tmp=1
-if test $tmp != 0 ; then echo_i "failed"; fi
+for try in 0 1 2 3 4 5 6 7 8 9; do
+    iret=0
+    $DIG -p ${PORT} txt mapped @10.53.0.3 > dig.out.2.$n
+    grep "status: NOERROR," dig.out.2.$n > /dev/null || iret=1
+    $DIG -p ${PORT} axfr mapped @10.53.0.3 > dig.out.3.$n
+    digcomp knowngood.mapped dig.out.3.$n || iret=1
+    [ "$iret" -eq 0 ] && break
+    sleep 1
+done
+[ "$iret" -eq 0 ] || tmp=1
+[ "$tmp" -ne 0 ] && echo_i "failed"
 status=`expr $status + $tmp`
 
 n=`expr $n + 1`

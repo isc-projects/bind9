@@ -22,6 +22,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
+#include <isc/netmgr.h>
 #include <isc/os.h>
 #include <isc/print.h>
 #include <isc/random.h>
@@ -55,6 +56,7 @@ isc_taskmgr_t *taskmgr = NULL;
 isc_task_t *maintask = NULL;
 isc_timermgr_t *timermgr = NULL;
 isc_socketmgr_t *socketmgr = NULL;
+isc_nm_t *nm = NULL;
 dns_zonemgr_t *zonemgr = NULL;
 dns_dispatchmgr_t *dispatchmgr = NULL;
 ns_clientmgr_t *clientmgr = NULL;
@@ -69,6 +71,37 @@ static bool dst_active = false;
 static bool test_running = false;
 
 static dns_zone_t *served_zone = NULL;
+
+/*
+ * We don't want to use netmgr-based client accounting, we need to emulate it.
+ */
+atomic_uint_fast32_t client_refs[16];
+atomic_uintptr_t client_addrs[16];
+
+void
+__wrap_isc_nmhandle_unref(isc_nmhandle_t *handle);
+
+void
+__wrap_isc_nmhandle_unref(isc_nmhandle_t *handle) {
+	ns_client_t *client = (ns_client_t *)handle;
+	int i;
+
+	for (i = 0; i < 16; i++) {
+		if (atomic_load(&client_addrs[i]) == (uintptr_t) client) {
+			break;
+		}
+	}
+	REQUIRE(i < 16);
+
+	if (atomic_fetch_sub(&client_refs[i], 1) == 1) {
+		dns_view_detach(&client->view);
+		client->state = 4;
+		ns__client_reset_cb(client);
+		ns__client_put_cb(client);
+		isc_mem_put(mctx, client, sizeof(ns_client_t));
+	}
+	return;
+}
 
 /*
  * Logging categories: this needs to match the list in lib/ns/log.c.
@@ -108,10 +141,6 @@ static void
 shutdown_managers(isc_task_t *task, isc_event_t *event) {
 	UNUSED(task);
 
-	if (clientmgr != NULL) {
-		ns_clientmgr_destroy(&clientmgr);
-	}
-
 	if (interfacemgr != NULL) {
 		ns_interfacemgr_shutdown(interfacemgr);
 		ns_interfacemgr_detach(&interfacemgr);
@@ -148,8 +177,21 @@ cleanup_managers(void) {
 	if (sctx != NULL) {
 		ns_server_detach(&sctx);
 	}
+	if (interfacemgr != NULL) {
+		ns_interfacemgr_detach(&interfacemgr);
+	}
 	if (socketmgr != NULL) {
 		isc_socketmgr_destroy(&socketmgr);
+	}
+	ns_test_nap(500000);
+	if (nm != NULL ){
+		/*
+		 * Force something in the workqueue as a workaround
+		 * for libuv bug - not sending uv_close callback.
+		 */
+		isc_nm_pause(nm);
+		isc_nm_resume(nm);
+		isc_nm_detach(&nm);
 	}
 	if (taskmgr != NULL) {
 		isc_taskmgr_destroy(&taskmgr);
@@ -177,7 +219,7 @@ create_managers(void) {
 	isc_event_t *event = NULL;
 	ncpus = isc_os_ncpus();
 
-	CHECK(isc_taskmgr_create(mctx, ncpus, 0, &taskmgr));
+	CHECK(isc_taskmgr_create(mctx, ncpus, 0, NULL, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 	CHECK(isc_task_onshutdown(maintask, shutdown_managers, NULL));
@@ -186,16 +228,15 @@ create_managers(void) {
 
 	CHECK(isc_socketmgr_create(mctx, &socketmgr));
 
+	nm = isc_nm_start(mctx, ncpus);
+
 	CHECK(ns_server_create(mctx, matchview, &sctx));
 
 	CHECK(dns_dispatchmgr_create(mctx, &dispatchmgr));
 
 	CHECK(ns_interfacemgr_create(mctx, sctx, taskmgr, timermgr,
-				     socketmgr, dispatchmgr, maintask,
+				     socketmgr, nm, dispatchmgr, maintask,
 				     ncpus, NULL, &interfacemgr));
-
-	CHECK(ns_clientmgr_create(mctx, sctx, taskmgr, timermgr,
-				  &clientmgr));
 
 	CHECK(ns_listenlist_default(mctx, 5300, -1, true, &listenon));
 	ns_interfacemgr_setlistenon4(interfacemgr, listenon);
@@ -212,6 +253,8 @@ create_managers(void) {
 	 * we'll just sleep for a bit and hope.
 	 */
 	ns_test_nap(500000);
+	ns_interface_t *ifp = ns__interfacemgr_getif(interfacemgr);
+	clientmgr = ifp->clientmgr;
 
 	run_managers = true;
 
@@ -510,16 +553,28 @@ ns_test_getclient(ns_interface_t *ifp0, bool tcp,
 		  ns_client_t **clientp)
 {
 	isc_result_t result;
-	ns_interface_t *ifp = ifp0;
+	ns_client_t *client = isc_mem_get(mctx, sizeof(ns_client_t));
+	int i;
 
-	if (ifp == NULL) {
-		ifp = ns__interfacemgr_getif(interfacemgr);
-	}
-	if (ifp == NULL) {
-		return (ISC_R_FAILURE);
-	}
+	UNUSED(ifp0);
+	UNUSED(tcp);
 
-	result = ns__clientmgr_getclient(clientmgr, ifp, tcp, clientp);
+	result = ns__client_setup(client, clientmgr, true);
+
+	for (i = 0; i < 16; i++) {
+		if (atomic_load(&client_addrs[i]) == (uintptr_t) NULL ||
+		    atomic_load(&client_addrs[i]) == (uintptr_t) client)
+		{
+			break;
+		}
+	}
+	REQUIRE(i < 16);
+
+	atomic_store(&client_refs[i], 2);
+	atomic_store(&client_addrs[i], (uintptr_t) client);
+	client->handle = (isc_nmhandle_t *) client; /* Hack */
+	*clientp = client;
+
 	return (result);
 }
 
@@ -765,14 +820,14 @@ ns_test_qctx_create(const ns_test_qctx_create_params_t *params,
 	 * Reference count for "client" is now at 2, so decrement it in order
 	 * for it to drop to zero when "qctx" gets destroyed.
 	 */
-	ns_client_detach(&client);
+	isc_nmhandle_unref(client->handle);
 
 	return (ISC_R_SUCCESS);
 
 destroy_query:
 	dns_message_destroy(&client->message);
 detach_client:
-	ns_client_detach(&client);
+	isc_nmhandle_unref(client->handle);
 
 	return (result);
 }
@@ -786,13 +841,14 @@ ns_test_qctx_destroy(query_ctx_t **qctxp) {
 
 	qctx = *qctxp;
 
-	ns_client_detach(&qctx->client);
-
 	if (qctx->zone != NULL) {
 		dns_zone_detach(&qctx->zone);
 	}
 	if (qctx->db != NULL) {
 		dns_db_detach(&qctx->db);
+	}
+	if (qctx->client != NULL) {
+		isc_nmhandle_unref(qctx->client->handle);
 	}
 
 	isc_mem_put(mctx, qctx, sizeof(*qctx));

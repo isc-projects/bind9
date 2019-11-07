@@ -135,6 +135,7 @@ for mode in native dnsrps; do
     else
       echo_i "running DNSRPS sub-test"
       $PERL $SYSTEMTESTTOP/start.pl --noclean --restart --port ${PORT} rpzrecurse
+      sleep 3
     fi
     ;;
   esac

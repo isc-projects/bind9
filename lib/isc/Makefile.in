@@ -46,18 +46,20 @@ WIN32OBJS = 	win32/condition.@O@ win32/dir.@O@ win32/errno.@O@ \
 
 # Alphabetically
 OBJS =		pk11.@O@ pk11_result.@O@ \
-		aes.@O@ app.@O@ assertions.@O@ \
+		aes.@O@ app.@O@ assertions.@O@ astack.@O@ \
 		backtrace.@O@ base32.@O@ base64.@O@ \
 		bind9.@O@ buffer.@O@ bufferlist.@O@ \
 		commandline.@O@ counter.@O@ crc64.@O@ error.@O@ entropy.@O@ \
-		event.@O@ hash.@O@ ht.@O@ heap.@O@ hex.@O@ hmac.@O@ \
-		httpd.@O@ iterated_hash.@O@ \
+		event.@O@ hash.@O@ ht.@O@ heap.@O@ hex.@O@ \
+		hmac.@O@ hp.@O@ httpd.@O@ iterated_hash.@O@ \
 		lex.@O@ lfsr.@O@ lib.@O@ log.@O@ \
 		md.@O@ mem.@O@ mutexblock.@O@ \
+		netmgr/netmgr.@O@ netmgr/tcp.@O@ netmgr/udp.@O@ \
+		netmgr/tcpdns.@O@ netmgr/uverr2result.@O@ \
 		netaddr.@O@ netscope.@O@ nonce.@O@ openssl_shim.@O@ pool.@O@ \
-		parseint.@O@ portset.@O@ quota.@O@ radix.@O@ random.@O@ \
-		ratelimiter.@O@ region.@O@ regex.@O@ result.@O@ \
-		rwlock.@O@ \
+		parseint.@O@ portset.@O@ queue.@O@ quota.@O@ \
+		radix.@O@ random.@O@ ratelimiter.@O@ \
+		region.@O@ regex.@O@ result.@O@ rwlock.@O@ \
 		serial.@O@ siphash.@O@ sockaddr.@O@ stats.@O@ \
 		string.@O@ symtab.@O@ task.@O@ taskpool.@O@ \
 		tm.@O@ timer.@O@ version.@O@ \
@@ -66,15 +68,15 @@ SYMTBLOBJS =	backtrace-emptytbl.@O@
 
 # Alphabetically
 SRCS =		pk11.c pk11_result.c \
-		aes.c app.c assertions.c \
+		aes.c app.c assertions.c astack.c \
 		backtrace.c base32.c base64.c bind9.c \
 		buffer.c bufferlist.c commandline.c counter.c crc64.c \
-		entropy.c error.c event.c hash.c ht.c heap.c hex.c hmac.c \
-		httpd.c iterated_hash.c \
+		entropy.c error.c event.c hash.c ht.c heap.c \
+		hex.c hmac.c hp.c httpd.c iterated_hash.c \
 		lex.c lfsr.c lib.c log.c \
 		md.c mem.c mutexblock.c \
 		netaddr.c netscope.c nonce.c openssl_shim.c pool.c \
-		parseint.c portset.c quota.c radix.c random.c \
+		parseint.c portset.c queue.c quota.c radix.c random.c \
 		ratelimiter.c region.c regex.c result.c rwlock.c \
 		serial.c siphash.c sockaddr.c stats.c string.c \
 		symtab.c task.c taskpool.c timer.c \
@@ -86,7 +88,7 @@ LIBS =		${OPENSSL_LIBS} @LIBS@
 # Attempt to disable parallel processing.
 .NOTPARALLEL:
 .NO_PARALLEL:
-SUBDIRS =	include unix pthreads
+SUBDIRS =	include netmgr unix pthreads
 TARGETS =	timestamp
 TESTDIRS =	@UNITTESTS@
 
