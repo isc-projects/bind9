@@ -13,6 +13,16 @@
   <itemizedlist>
     <listitem>
       <para>
+	The new <command>dnssec-policy</command> option allows the
+	configuration key and signing policy (KASP) for zones. This
+	option enables <command>named</command> to generate new keys
+	as needed and automatically roll both ZSK and KSK keys.
+	(Note that the syntax for this statement differs from the dnssec
+	policy used by <command>dnssec-keymgr</command>.) [GL #1134]
+      </para>
+    </listitem>
+    <listitem>
+      <para>
         Added a new statistics variable <command>tcp-highwater</command>
         that reports the maximum number of simultaneous TCP clients BIND
         has handled while running. [GL #1206]

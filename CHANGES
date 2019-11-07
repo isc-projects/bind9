@@ -1,3 +1,13 @@
+5316.	[func]		A new "dnssec-policy" option has been added to
+			named.conf to implement a key and signing policy
+			(KASP) for zones. When this option is in use,
+			named can generate new keys as needed and
+			automatically roll both ZSK and KSK keys. (Note
+			that the syntax for this statement differs from
+			the dnssec policy used by dnssec-keymgr.)
+
+			See the ARM for configuration details. [GL #1134]
+
 5315.	[bug]		Apply the inital RRSIG expiration spread fixed
 			to all dynamically created records in the zone
 			including NSEC3. Also fix the signature clusters
