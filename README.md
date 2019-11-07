@@ -127,6 +127,8 @@ BIND 9.15 is the newest development branch of BIND 9. It includes a
 number of changes from BIND 9.14 and earlier releases. New features
 include:
 
+* New "dnssec-policy" statement to configure a key and signing policy
+  for zones, enabling automatic key regeneration and rollover.
 * Support for the new GeoIP2 geolocation API
 * Improved DNSSEC key configuration using `dnssec-keys`
 * YAML output for `dig`, `mdig`, and `delv`.
