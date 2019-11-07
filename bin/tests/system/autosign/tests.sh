@@ -68,6 +68,11 @@ wait_for_notifies () {
 	wait_for_log "zone ${1}/IN: sending notifies" "${2}/named.run" || return 1
 }
 
+freq() {
+	_file=$1
+	# remove first and last line that has incomplete set and skews the distribution
+	awk '$4 == "RRSIG" {print substr($9,1,8)}' < "$_file" | sort | uniq -c | sed '1d;$d'
+}
 # Check the signatures expiration times.  First check how many signatures
 # there are in total ($rrsigs).  Then see what the distribution of signature
 # expiration times is ($expiretimes).  Ignore the time part for a better
@@ -76,27 +81,49 @@ checkjitter () {
 	_file=$1
 	_ret=0
 
-	cat $_file | awk '$4 == "RRSIG" {print substr($9,1,8)}' | sort | uniq -c | cat_i
-	_rrsigs=$(cat $_file | awk '$4 == "RRSIG" {print $4}' | cat_i | wc -l)
-	_expiretimes=$(cat $_file | awk '$4 == "RRSIG" {print substr($9,1,8)}' | sort | uniq -c | awk '{print $1}')
+	if ! command -v bc >/dev/null 2>&1; then
+		echo_i "skip: bc not available"
+		return 0
+	fi
+
+	freq "$_file" | cat_i
+	_expiretimes=`freq "$_file" | awk '{print $1}'`
+
 	_count=0
+	# Check if we have at least 8 days
+	for _num in $_expiretimes
+	do
+		_count=$((_count+1))
+	done
+	if [ "$_count" -lt 8 ]; then
+		echo_i "error: not enough categories"
+	fi
+
+	# Calculate mean
 	_total=0
 	for _num in $_expiretimes
 	do
-		_total=$(($_total + $_num))
+		_total=$((_total+_num))
 	done
-	# Make sure the total number of numbers matches the number of RRSIGs.
-	test $_total -eq $_rrsigs || _ret=1
-	# Calculate mean: The number of signatures divided over 8 days.
-	_mean=$(($_total / 8))
-	# We expect the number of signatures not to exceed twice the mean.
-	_limit=$(($_mean * 2))
-	# Add an additional margin.
-	_limit=$(($_limit + 10))
-	# Find outliers.
+	_mean=$(($_total / $_count))
+
+	# Calculate stddev
+	_stddev=0
 	for _num in $_expiretimes
 	do
-		if [ $_num -gt $_limit ]; then
+		_stddev=`echo "$_stddev + (($_num - $_mean) * ($_num - $_mean))" | bc`
+	done
+	_stddev=`echo "sqrt($_stddev/$_count)" | bc`
+
+	# We expect the number of signatures not to exceed the mean +- 2.5 * stddev.
+	_limit=$(((_stddev*25)/10))
+	_low=$((_mean-_limit))
+	_high=$((_mean+_limit))
+	# Find outliers.
+	echo_i "checking whether all frequencies falls into <$_low;$_high> interval"
+	for _num in $_expiretimes
+	do
+		if [ $_num -gt $_high ] || [ $_num -lt $_low ]; then
 			echo_i "error: too many RRSIG records ($_num) with the same expiration time"
 			_ret=1
 		fi

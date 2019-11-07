@@ -58,7 +58,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 setup jitter.nsec3.example
 cp $infile $zonefile
 count=1
-while [ $count -le 100 ]
+while [ $count -le 1000 ]
 do
     echo "label${count} IN TXT label${count}" >> $zonefile
     count=`expr $count + 1`
@@ -166,7 +166,7 @@ $DSFROMKEY $ksk.key > dsset-${zone}$TP
 setup oldsigs.example
 cp $infile $zonefile
 count=1
-while [ $count -le 100 ]
+while [ $count -le 1000 ]
 do
     echo "label${count} IN TXT label${count}" >> $zonefile
     count=`expr $count + 1`
