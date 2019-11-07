@@ -1511,10 +1511,10 @@ check_next_key_event() {
 
 	_time=$(awk '{print $10}' < "keyevent.out.$ZONE.test$n")
 
-	# The next key event time must within 10 seconds of the
+	# The next key event time must within 60 seconds of the
 	# expected time.
-	_expectmin=$((_expect-10))
-	_expectmax=$((_expect+10))
+	_expectmin=$((_expect-60))
+	_expectmax=$((_expect+60))
 
 	test $_expectmin -le "$_time" || log_error "bad next key event time ${_time} for zone ${ZONE} (expect ${_expect})"
 	test $_expectmax -ge "$_time" || log_error "bad next key event time ${_time} for zone ${ZONE} (expect ${_expect})"
@@ -1528,7 +1528,6 @@ check_next_key_event() {
 # TTL plus publish safety plus the zone propagation delay.  For the
 # zsk-prepub policy that means: 30d - 3600s + 1d + 1h = 2498400 seconds.
 check_next_key_event 2498400
-
 #
 # Zone: step2.zsk-prepub.autosign.
 #
