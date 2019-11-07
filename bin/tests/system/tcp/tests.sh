@@ -9,6 +9,8 @@
 # See the COPYRIGHT file distributed with this work for additional
 # information regarding copyright ownership.
 
+set -e
+
 SYSTEMTESTTOP=..
 . $SYSTEMTESTTOP/conf.sh
 
@@ -29,7 +31,7 @@ mv ns2/named.stats ns2/named.stats.test$n
 ntcp10=`grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}'`
 ntcp20=`grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{print $1}'`
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n + 1))
 echo_i "checking TCP request statistics (resolver) ($n)"
@@ -45,7 +47,7 @@ ntcp21=`grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{pr
 if [ "$ntcp10" -ge "$ntcp11" ]; then ret=1; fi
 if [ "$ntcp20" -ne "$ntcp21" ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 n=$((n + 1))
 echo_i "checking TCP request statistics (forwarder) ($n)"
@@ -61,7 +63,7 @@ ntcp22=`grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{pr
 if [ "$ntcp11" -ne "$ntcp12" ]; then ret=1; fi
 if [ "$ntcp21" -ge "$ntcp22" ];then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 # -------- TCP high-water tests ----------
 refresh_tcp_stats() {
@@ -107,7 +109,7 @@ ret=0
 refresh_tcp_stats
 assert_int_equal "${TCP_CUR}" 1 "current TCP clients count" || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 # Ensure the TCP high-water statistic gets updated after some TCP connections
 # are established.
@@ -124,7 +126,7 @@ check_stats_added() {
 }
 retry 2 check_stats_added || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 # Ensure the TCP high-water statistic remains unchanged after some TCP
 # connections are closed.
@@ -142,7 +144,7 @@ check_stats_removed() {
 }
 retry 2 check_stats_removed || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 # Ensure the TCP high-water statistic never exceeds the configured TCP clients
 # limit.
@@ -157,7 +159,7 @@ check_stats_limit() {
 }
 retry 2 check_stats_limit || ret=1
 if [ $ret != 0 ]; then echo_i "failed"; fi
-status=`expr $status + $ret`
+status=$((status + ret))
 
 echo_i "exit status: $status"
 [ $status -eq 0 ] || exit 1
