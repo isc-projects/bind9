@@ -29,7 +29,7 @@ private_type_record() {
 
 	_id=$(keyfile_to_key_id "$_keyfile")
 
-	printf "%s. 0 IN TYPE65534 \# 5 %02x%04x0000\n" "$_zone" "$_algorithm" "$_id"
+	printf "%s. 0 IN TYPE65534 %s 5 %02x%04x0000\n" "$_zone" "\\#" "$_algorithm" "$_id"
 }
 
 
