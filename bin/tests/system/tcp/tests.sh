@@ -17,48 +17,51 @@ RNDCCMD="$RNDC -p ${CONTROLPORT} -c ../common/rndc.conf"
 SEND="$PERL $SYSTEMTESTTOP/send.pl 10.53.0.6 ${CONTROLPORT}"
 
 status=0
+n=0
 
-echo_i "initialize counters"
+n=$((n + 1))
+echo_i "initializing TCP statistics ($n)"
+ret=0
 $RNDCCMD -s 10.53.0.1 stats > /dev/null 2>&1
 $RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
-ntcp10=`grep "TCP requests received" ns1/named.stats | tail -1 | awk '{print $1}'`
-ntcp20=`grep "TCP requests received" ns2/named.stats | tail -1 | awk '{print $1}'`
-#echo ntcp10 ':' "$ntcp10"
-#echo ntcp20 ':' "$ntcp20"
+mv ns1/named.stats ns1/named.stats.test$n
+mv ns2/named.stats ns2/named.stats.test$n
+ntcp10=`grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}'`
+ntcp20=`grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{print $1}'`
 
-echo_i "check TCP transport"
+n=$((n + 1))
+echo_i "checking TCP request statistics (resolver) ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.3 txt.example. > dig.out.3
+$DIG $DIGOPTS @10.53.0.3 txt.example. > dig.out.test$n
 sleep 1
 $RNDCCMD -s 10.53.0.1 stats > /dev/null 2>&1
 $RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
-ntcp11=`grep "TCP requests received" ns1/named.stats | tail -1 | awk '{print $1}'`
-ntcp21=`grep "TCP requests received" ns2/named.stats | tail -1 | awk '{print $1}'`
-#echo ntcp11 ':' "$ntcp11"
-#echo ntcp21 ':' "$ntcp21"
+mv ns1/named.stats ns1/named.stats.test$n
+mv ns2/named.stats ns2/named.stats.test$n
+ntcp11=`grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}'`
+ntcp21=`grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{print $1}'`
 if [ "$ntcp10" -ge "$ntcp11" ]; then ret=1; fi
 if [ "$ntcp20" -ne "$ntcp21" ]; then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-echo_i "check TCP forwarder"
+n=$((n + 1))
+echo_i "checking TCP request statistics (forwarder) ($n)"
 ret=0
-$DIG $DIGOPTS @10.53.0.4 txt.example. > dig.out.4
+$DIG $DIGOPTS @10.53.0.4 txt.example. > dig.out.test$n
 sleep 1
 $RNDCCMD -s 10.53.0.1 stats > /dev/null 2>&1
 $RNDCCMD -s 10.53.0.2 stats > /dev/null 2>&1
-ntcp12=`grep "TCP requests received" ns1/named.stats | tail -1 | awk '{print $1}'`
-ntcp22=`grep "TCP requests received" ns2/named.stats | tail -1 | awk '{print $1}'`
-#echo ntcp12 ':' "$ntcp12"
-#echo ntcp22 ':' "$ntcp22"
+mv ns1/named.stats ns1/named.stats.test$n
+mv ns2/named.stats ns2/named.stats.test$n
+ntcp12=`grep "TCP requests received" ns1/named.stats.test$n | tail -1 | awk '{print $1}'`
+ntcp22=`grep "TCP requests received" ns2/named.stats.test$n | tail -1 | awk '{print $1}'`
 if [ "$ntcp11" -ne "$ntcp12" ]; then ret=1; fi
 if [ "$ntcp21" -ge "$ntcp22" ];then ret=1; fi
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
 # -------- TCP high-water tests ----------
-n=0
-
 refresh_tcp_stats() {
 	$RNDCCMD -s 10.53.0.5 status > rndc.out.$n || ret=1
 	TCP_CUR="$(sed -n "s/^tcp clients: \([0-9][0-9]*\).*/\1/p" rndc.out.$n)"
