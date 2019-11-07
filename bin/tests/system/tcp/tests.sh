@@ -93,7 +93,7 @@ wait_for_log() {
 send_command() {
 	nextpart ans6/ans.run > /dev/null
 	echo "$*" | "${PERL}" "${SYSTEMTESTTOP}/send.pl" 10.53.0.6 "${CONTROLPORT}"
-	wait_for_log "result=OK" ans6/ans.run
+	wait_for_log "result=" ans6/ans.run
 }
 
 # Instructs ans6 to open $1 TCP connections to 10.53.0.5.
