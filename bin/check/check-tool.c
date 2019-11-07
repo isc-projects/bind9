@@ -695,8 +695,13 @@ load_zone(isc_mem_t *mctx, const char *zonename, const char *filename,
 	CHECK(dns_name_fromtext(origin, &buffer, dns_rootname, 0, NULL));
 	CHECK(dns_zone_setorigin(zone, origin));
 	dns_zone_setdbtype(zone, 1, (const char *const *)dbtype);
-	CHECK(dns_zone_setfile(zone, filename, fileformat,
-			       &dns_master_style_default));
+	if (strcmp(filename, "-") == 0) {
+		CHECK(dns_zone_setstream(zone, stdin, fileformat,
+					 &dns_master_style_default));
+	} else {
+		CHECK(dns_zone_setfile(zone, filename, fileformat,
+				       &dns_master_style_default));
+	}
 	if (journal != NULL) {
 		CHECK(dns_zone_setjournal(zone, journal));
 	}

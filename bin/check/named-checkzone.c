@@ -18,6 +18,7 @@
 #include <isc/app.h>
 #include <isc/commandline.h>
 #include <isc/dir.h>
+#include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/log.h>
 #include <isc/mem.h>
@@ -76,7 +77,7 @@ usage(void) {
 		"[-i (full|full-sibling|local|local-sibling|none)] "
 		"[-M (ignore|warn|fail)] [-S (ignore|warn|fail)] "
 		"[-W (ignore|warn)] "
-		"%s zonename filename\n",
+		"%s zonename [ (filename|-) ]\n",
 		prog_name,
 		progmode == progmode_check ? "[-o filename]" : "-o filename");
 	exit(1);
@@ -94,7 +95,7 @@ int
 main(int argc, char **argv) {
 	int c;
 	char *origin = NULL;
-	char *filename = NULL;
+	const char *filename = NULL;
 	isc_log_t *lctx = NULL;
 	isc_result_t result;
 	char classname_in[] = "IN";
@@ -512,7 +513,8 @@ main(int argc, char **argv) {
 		logdump = false;
 	}
 
-	if (isc_commandline_index + 2 != argc) {
+	if (argc - isc_commandline_index < 1 ||
+	    argc - isc_commandline_index > 2) {
 		usage();
 	}
 
@@ -529,7 +531,16 @@ main(int argc, char **argv) {
 	dns_result_register();
 
 	origin = argv[isc_commandline_index++];
-	filename = argv[isc_commandline_index++];
+
+	if (isc_commandline_index == argc) {
+		/* "-" will be interpreted as stdin */
+		filename = "-";
+	} else {
+		filename = argv[isc_commandline_index];
+	}
+
+	isc_commandline_index++;
+
 	result = load_zone(mctx, origin, filename, inputformat, classname,
 			   maxttl, &zone);
 
@@ -563,5 +574,6 @@ main(int argc, char **argv) {
 #ifdef _WIN32
 	DestroySockets();
 #endif /* ifdef _WIN32 */
+
 	return ((result == ISC_R_SUCCESS) ? 0 : 1);
 }
