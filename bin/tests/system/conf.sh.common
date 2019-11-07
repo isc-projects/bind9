@@ -338,6 +338,26 @@ nextpartpeek() {
 	nextpartread $1 2> /dev/null
 }
 
+# retry: keep running a command until it succeeds, up to $1 times, with
+# one-second intervals
+retry() {
+	__retries="${1}"
+	shift
+
+	while :; do
+		if "$@"; then
+			return 0
+		fi
+		__retries=$((__retries-1))
+		if [ "${__retries}" -gt 0 ]; then
+			echo_i "retrying"
+			sleep 1
+		else
+			return 1
+		fi
+	done
+}
+
 rndc_reload() {
     echo_i "`$RNDC -c ../common/rndc.conf -s $2 -p ${CONTROLPORT} reload $3 2>&1 | sed 's/^/'$1' /'`"
     # reloading single zone is synchronous, if we're reloading whole server
