@@ -357,6 +357,26 @@ nextpart () {
 	 END          { print NR > "/dev/stderr" }' $1 2> $1.prev
 }
 
+# retry: keep running a command until it succeeds, up to $1 times, with
+# one-second intervals
+retry() {
+	__retries="${1}"
+	shift
+
+	while :; do
+		if "$@"; then
+			return 0
+		fi
+		__retries=$((__retries-1))
+		if [ "${__retries}" -gt 0 ]; then
+			echo_i "retrying"
+			sleep 1
+		else
+			return 1
+		fi
+	done
+}
+
 # rndc_dumpdb: call "rndc dumpdb [...]" and wait until it completes
 #
 # The first argument is the name server instance to send the command to, in the
