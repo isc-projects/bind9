@@ -292,12 +292,12 @@ digcomp() {
 # the error using the description of the tested variable provided in $3
 # and return 1.
 assert_int_equal() {
-	expected="$1"
-	found="$2"
+	found="$1"
+	expected="$2"
 	description="$3"
 
 	if [ "${expected}" -ne "${found}" ]; then
-		echo_i "incorrect ${description}: expected ${expected}, got ${found}"
+		echo_i "incorrect ${description}: got ${found}, expected ${expected}"
 		return 1
 	fi
 
