@@ -62,7 +62,8 @@
 5307.	[bug]		Fix hang when named-compilezone output is sent to pipe.
 			Thanks to Tony Finch. [GL !2481]
 
-5306.	[placeholder]
+5306.	[security]	Set a limit on number of simultaneous pipelined TCP
+			queries. (CVE-2019-6477) [GL #1264]
 
 5305.	[bug]		NSEC Aggressive Cache ("synth-from-dnssec") has been
 			disabled by default because it was found to have
