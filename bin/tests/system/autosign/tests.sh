@@ -97,8 +97,8 @@ checkjitter () {
 	done
 	_stddev=$(echo "sqrt($_stddev/$_count)" | bc)
 
-	# We expect the number of signatures not to exceed the mean +- 2.5 * stddev.
-	_limit=$(((_stddev*25)/10))
+	# We expect the number of signatures not to exceed the mean +- 3 * stddev.
+	_limit=$((_stddev*3))
 	_low=$((_mean-_limit))
 	_high=$((_mean+_limit))
 	# Find outliers.
