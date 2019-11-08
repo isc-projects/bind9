@@ -97,6 +97,7 @@ checkjitter () {
 	done
 	if [ "$_count" -lt 8 ]; then
 		echo_i "error: not enough categories"
+		return 1
 	fi
 
 	# Calculate mean
@@ -1052,13 +1053,15 @@ $KEYGEN -r $RANDFILE -a rsasha256 -b 2048 -3 -q -K ns3 jitter.nsec3.example > /d
 # Trigger zone signing.
 ($RNDCCMD 10.53.0.3 sign jitter.nsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i) || ret=1
 # Wait until zone has been signed.
-for i in 0 1 2 3 4 5 6 7 8 9; do
+i=0
+while [ "$i" -lt 20 ]; do
 	failed=0
 	$DIG $DIGOPTS axfr jitter.nsec3.example @10.53.0.3 > dig.out.ns3.test$n || failed=1
 	grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null || failed=1
 	[ $failed -eq 0 ] && break
 	echo_i "waiting ... ($i)"
-	sleep 2
+	sleep $((i/5))
+	i=$((i+1))
 done
 [ $failed != 0 ] && echo_i "error: no NSEC3PARAM found in AXFR" && ret=1
 # Check jitter distribution.
