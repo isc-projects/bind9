@@ -50,6 +50,11 @@ checkprivate () {
     return 1
 }
 
+freq() {
+	_file=$1
+	# remove first and last line that has incomplete set and skews the distribution
+	awk '$4 == "RRSIG" {print substr($9,1,8)}' < "$_file" | sort | uniq -c | sed '1d;$d'
+}
 # Check the signatures expiration times.  First check how many signatures
 # there are in total ($rrsigs).  Then see what the distribution of signature
 # expiration times is ($expiretimes).  Ignore the time part for a better
@@ -58,27 +63,49 @@ checkjitter () {
 	_file=$1
 	_ret=0
 
-	cat $_file | awk '$4 == "RRSIG" {print substr($9,1,8)}' | sort | uniq -c | cat_i
-	_rrsigs=$(cat $_file | awk '$4 == "RRSIG" {print $4}' | cat_i | wc -l)
-	_expiretimes=$(cat $_file | awk '$4 == "RRSIG" {print substr($9,1,8)}' | sort | uniq -c | awk '{print $1}')
+	if ! command -v bc >/dev/null 2>&1; then
+		echo_i "skip: bc not available"
+		return 0
+	fi
+
+	freq "$_file" | cat_i
+	_expiretimes=$(freq "$_file" | awk '{print $1}')
+
 	_count=0
+	# Check if we have at least 8 days
+	for _num in $_expiretimes
+	do
+		_count=$((_count+1))
+	done
+	if [ "$_count" -lt 8 ]; then
+		echo_i "error: not enough categories"
+	fi
+
+	# Calculate mean
 	_total=0
 	for _num in $_expiretimes
 	do
-		_total=$(($_total + $_num))
+		_total=$((_total+_num))
 	done
-	# Make sure the total number of numbers matches the number of RRSIGs.
-	test $_total -eq $_rrsigs || _ret=1
-	# Calculate mean: The number of signatures divided over 8 days.
-	_mean=$(($_total / 8))
-	# We expect the number of signatures not to exceed twice the mean.
-	_limit=$(($_mean * 2))
-	# Add an additional margin.
-	_limit=$(($_limit + 10))
-	# Find outliers.
+	_mean=$(($_total / $_count))
+
+	# Calculate stddev
+	_stddev=0
 	for _num in $_expiretimes
 	do
-		if [ $_num -gt $_limit ]; then
+		_stddev=$(echo "$_stddev + (($_num - $_mean) * ($_num - $_mean))" | bc)
+	done
+	_stddev=$(echo "sqrt($_stddev/$_count)" | bc)
+
+	# We expect the number of signatures not to exceed the mean +- 2.5 * stddev.
+	_limit=$(((_stddev*25)/10))
+	_low=$((_mean-_limit))
+	_high=$((_mean+_limit))
+	# Find outliers.
+	echo_i "checking whether all frequencies falls into <$_low;$_high> interval"
+	for _num in $_expiretimes
+	do
+		if [ $_num -gt $_high ] || [ $_num -lt $_low ]; then
 			echo_i "error: too many RRSIG records ($_num) with the same expiration time"
 			_ret=1
 		fi
@@ -373,24 +400,14 @@ done
 n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
-
-# XXX temporarily disable jitter test below until we have a better and more
-# portable method for evaluating the evenness of the distribution.
-if false; then
-
-    # Check jitter distribution.
-    echo_i "checking expired signatures were jittered correctly ($n)"
-    ret=0
-    $DIG $DIGOPTS axfr oldsigs.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
-    checkjitter dig.out.ns3.test$n || ret=1
-    n=`expr $n + 1`
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=`expr $status + $ret`
-
-# XXX temporarily disabled
-else
-    echowarn "I:autosign:jitter tests disabled"
-fi
+# Check jitter distribution.
+echo_i "checking expired signatures were jittered correctly ($n)"
+ret=0
+$DIG $DIGOPTS axfr oldsigs.example @10.53.0.3 > dig.out.ns3.test$n || ret=1
+checkjitter dig.out.ns3.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "checking NSEC->NSEC3 conversion succeeded ($n)"
 ret=0
@@ -994,44 +1011,35 @@ n=`expr $n + 1`
 if [ $ret != 0 ]; then echo_i "failed"; fi
 status=`expr $status + $ret`
 
-# XXX temporarily disable jitter test below until we have a better and more
-# portable method for evaluating the evenness of the distribution.
-if false; then
-
-    echo_i "checking jitter in a newly signed NSEC3 zone ($n)"
-    ret=0
-    # Use DNS UPDATE to add an NSEC3PARAM record into the zone.
-    $NSUPDATE > nsupdate.out.test$n 2>&1 <<-END || ret=1
-    server 10.53.0.3 ${PORT}
-    zone jitter.nsec3.example.
-    update add jitter.nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
-    send
+echo_i "checking jitter in a newly signed NSEC3 zone ($n)"
+ret=0
+# Use DNS UPDATE to add an NSEC3PARAM record into the zone.
+$NSUPDATE > nsupdate.out.test$n 2>&1 <<END || ret=1
+server 10.53.0.3 ${PORT}
+zone jitter.nsec3.example.
+update add jitter.nsec3.example. 3600 NSEC3PARAM 1 0 10 BEEF
+send
 END
-    [ $ret != 0 ] && echo_i "error: dynamic update add NSEC3PARAM failed"
-    # Create DNSSEC keys in the zone directory.
-    $KEYGEN -a rsasha1 -3 -q -K ns3 jitter.nsec3.example > /dev/null
-    # Trigger zone signing.
-    $RNDCCMD 10.53.0.3 sign jitter.nsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i
-    # Wait until zone has been signed.
-    for i in 0 1 2 3 4 5 6 7 8 9; do
-            failed=0
-            $DIG $DIGOPTS axfr jitter.nsec3.example @10.53.0.3 > dig.out.ns3.test$n || failed=1
-            grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null || failed=1
-            [ $failed -eq 0 ] && break
-            echo_i "waiting ... ($i)"
-            sleep 2
-    done
-    [ $failed != 0 ] && echo_i "error: no NSEC3PARAM found in AXFR" && ret=1
-    # Check jitter distribution.
-    checkjitter dig.out.ns3.test$n || ret=1
-    n=`expr $n + 1`
-    if [ $ret != 0 ]; then echo_i "failed"; fi
-    status=`expr $status + $ret`
-
-# XXX temporarily disabled
-else
-    echowarn "I:autosign:jitter tests disabled"
-fi
+[ $ret != 0 ] && echo_i "error: dynamic update add NSEC3PARAM failed"
+# Create DNSSEC keys in the zone directory.
+$KEYGEN -a rsasha1 -3 -q -K ns3 jitter.nsec3.example > /dev/null
+# Trigger zone signing.
+$RNDCCMD 10.53.0.3 sign jitter.nsec3.example. 2>&1 | sed 's/^/ns3 /' | cat_i
+# Wait until zone has been signed.
+for i in 0 1 2 3 4 5 6 7 8 9; do
+	failed=0
+	$DIG $DIGOPTS axfr jitter.nsec3.example @10.53.0.3 > dig.out.ns3.test$n || failed=1
+	grep "NSEC3PARAM" dig.out.ns3.test$n > /dev/null || failed=1
+	[ $failed -eq 0 ] && break
+	echo_i "waiting ... ($i)"
+	sleep 2
+done
+[ $failed != 0 ] && echo_i "error: no NSEC3PARAM found in AXFR" && ret=1
+# Check jitter distribution.
+checkjitter dig.out.ns3.test$n || ret=1
+n=`expr $n + 1`
+if [ $ret != 0 ]; then echo_i "failed"; fi
+status=`expr $status + $ret`
 
 echo_i "checking that serial number and RRSIGs are both updated (rt21045) ($n)"
 ret=0
