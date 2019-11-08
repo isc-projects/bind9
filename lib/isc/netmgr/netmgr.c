@@ -529,7 +529,7 @@ nmsocket_cleanup(isc_nmsocket_t *sock, bool dofree) {
 	}
 
 	if (sock->buf != NULL) {
-		isc_mem_put(sock->mgr->mctx, sock->buf, sock->buf_size);
+		isc_mem_free(sock->mgr->mctx, sock->buf);
 	}
 
 	if (sock->quota != NULL) {
@@ -580,11 +580,11 @@ nmsocket_maybe_destroy(isc_nmsocket_t *sock) {
 	 * accept destruction.
 	 */
 	LOCK(&sock->lock);
-	active_handles += sock->ah_cpos;
+	active_handles += sock->ah;
 	if (sock->children != NULL) {
 		for (int i = 0; i < sock->nchildren; i++) {
 			LOCK(&sock->children[i].lock);
-			active_handles += sock->children[i].ah_cpos;
+			active_handles += sock->children[i].ah;
 			UNLOCK(&sock->children[i].lock);
 		}
 	}
@@ -701,7 +701,12 @@ isc__nmsocket_init(isc_nmsocket_t *sock, isc_nm_t *mgr,
 	isc_mutex_init(&sock->lock);
 	isc_condition_init(&sock->cond);
 	isc_refcount_init(&sock->references, 1);
+
 	atomic_init(&sock->active, true);
+	atomic_init(&sock->sequential, false);
+	atomic_init(&sock->overlimit, false);
+	atomic_init(&sock->processing, false);
+	atomic_init(&sock->readpaused, false);
 
 	sock->magic = NMSOCK_MAGIC;
 }
@@ -729,13 +734,14 @@ isc__nm_free_uvbuf(isc_nmsocket_t *sock, const uv_buf_t *buf) {
 	isc__networker_t *worker = NULL;
 
 	REQUIRE(VALID_NMSOCK(sock));
-
+	if (buf->base == NULL) {
+		/* Empty buffer: might happen in case of error. */
+		return;
+	}
 	worker = &sock->mgr->workers[sock->tid];
 
 	REQUIRE(worker->udprecvbuf_inuse);
 	REQUIRE(buf->base == worker->udprecvbuf);
-
-	UNUSED(buf);
 
 	worker->udprecvbuf_inuse = false;
 }
@@ -791,7 +797,7 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 
 	LOCK(&sock->lock);
 	/* We need to add this handle to the list of active handles */
-	if (sock->ah_cpos == sock->ah_size) {
+	if (sock->ah == sock->ah_size) {
 		sock->ah_frees =
 			isc_mem_reallocate(sock->mgr->mctx, sock->ah_frees,
 					   sock->ah_size * 2 *
@@ -810,7 +816,7 @@ isc__nmhandle_get(isc_nmsocket_t *sock, isc_sockaddr_t *peer,
 		sock->ah_size *= 2;
 	}
 
-	pos = sock->ah_frees[sock->ah_cpos++];
+	pos = sock->ah_frees[sock->ah++];
 	INSIST(sock->ah_handles[pos] == NULL);
 	sock->ah_handles[pos] = handle;
 	handle->ah_pos = pos;
@@ -847,7 +853,7 @@ static void
 nmhandle_free(isc_nmsocket_t *sock, isc_nmhandle_t *handle) {
 	size_t extra = sock->extrahandlesize;
 
-	if (handle->dofree) {
+	if (handle->dofree != NULL) {
 		handle->dofree(handle->opaque);
 	}
 
@@ -881,9 +887,9 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		LOCK(&sock->lock);
 		INSIST(sock->ah_handles[handle->ah_pos] == handle);
 		INSIST(sock->ah_size > handle->ah_pos);
-		INSIST(sock->ah_cpos > 0);
+		INSIST(sock->ah > 0);
 		sock->ah_handles[handle->ah_pos] = NULL;
-		sock->ah_frees[--sock->ah_cpos] = handle->ah_pos;
+		sock->ah_frees[--sock->ah] = handle->ah_pos;
 		handle->ah_pos = 0;
 
 		if (atomic_load(&sock->active)) {
@@ -892,11 +898,20 @@ isc_nmhandle_unref(isc_nmhandle_t *handle) {
 		}
 		UNLOCK(&sock->lock);
 
+		/*
+		 * Handle is closed. If the socket has a callback
+		 * configured for that (e.g., to perform cleanup after
+		 * request processing), call it now.
+		 */
+		if (sock->closehandle_cb != NULL) {
+			sock->closehandle_cb(sock);
+		}
+
 		if (!reuse) {
 			nmhandle_free(sock, handle);
 		}
 
-		if (sock->ah_cpos == 0 &&
+		if (sock->ah == 0 &&
 		    !atomic_load(&sock->active) &&
 		    !atomic_load(&sock->destroying))
 		{
@@ -914,7 +929,7 @@ isc_nmhandle_getdata(isc_nmhandle_t *handle) {
 
 void
 isc_nmhandle_setdata(isc_nmhandle_t *handle, void *arg,
-		     isc_nm_opaquecb doreset, isc_nm_opaquecb dofree)
+		     isc_nm_opaquecb_t doreset, isc_nm_opaquecb_t dofree)
 {
 	REQUIRE(VALID_NMHANDLE(handle));
 

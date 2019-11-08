@@ -280,6 +280,12 @@ isc_result_t
 isc_nm_pauseread(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 
+	if (atomic_load(&sock->readpaused)) {
+		return (ISC_R_SUCCESS);
+	}
+
+	atomic_store(&sock->readpaused, true);
+
 	if (sock->tid == isc_nm_tid()) {
 		int r = uv_read_stop(&sock->uv_handle.stream);
 		INSIST(r == 0);
@@ -311,6 +317,12 @@ isc_result_t
 isc_nm_resumeread(isc_nmsocket_t *sock) {
 	REQUIRE(VALID_NMSOCK(sock));
 	REQUIRE(sock->rcb.recv != NULL);
+
+	if (!atomic_load(&sock->readpaused)) {
+		return (ISC_R_SUCCESS);
+	}
+
+	atomic_store(&sock->readpaused, false);
 
 	if (sock->tid == isc_nm_tid()) {
 		int r = uv_read_start(&sock->uv_handle.stream,
