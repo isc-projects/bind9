@@ -2690,6 +2690,7 @@ sub makeinstallfile {
     print LOUT "libdns.dll-BCFT\n";
     print LOUT "libirs.dll-BCFT\n";
     print LOUT "libns.dll-BCFT\n";
+    print LOUT "libuv.dll-BCFT\n";
     if ($use_openssl eq "yes") {
         my $v;
         my $d;

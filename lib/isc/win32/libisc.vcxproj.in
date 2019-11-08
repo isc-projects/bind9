@@ -243,7 +243,7 @@ copy @OPENSSL_DLL@ ..\Build\Release\
 copy @OPENSSL_PATH@\LICENSE ..\Build\Release\OpenSSL-LICENSE
 
 echo Copying libuv DLL.
-copy @LIBUV_DLL@ ..\Build\Debug\
+copy @LIBUV_DLL@ ..\Build\Release\
 
 @IF LIBXML2
 echo Copying the libxml DLL.
