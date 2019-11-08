@@ -1,0 +1,52 @@
+<!--
+ - Copyright (C) Internet Systems Consortium, Inc. ("ISC")
+ -
+ - This Source Code Form is subject to the terms of the Mozilla Public
+ - License, v. 2.0. If a copy of the MPL was not distributed with this
+ - file, You can obtain one at http://mozilla.org/MPL/2.0/.
+ -
+ - See the COPYRIGHT file distributed with this work for additional
+ - information regarding copyright ownership.
+-->
+
+<section xml:id="relnotes-9.15.6"><info><title>Notes for BIND 9.15.6</title></info>
+
+  <section xml:id="relnotes-9.15.6-new"><info><title>New Features</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          A new asynchronous network communications system based on
+          <command>libuv</command> is now used by <command>named</command>
+          for listening for incoming requests and responding to them.
+          This change will make it easier to improve performance and
+          implement new protocol layers (for example, DNS over TLS) in
+          the future. [GL #29]
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The new <command>dnssec-policy</command> option allows the
+          configuration key and signing policy (KASP) for zones. This
+          option enables <command>named</command> to generate new keys
+          as needed and automatically roll both ZSK and KSK keys.
+          (Note that the syntax for this statement differs from the DNSSEC
+          policy used by <command>dnssec-keymgr</command>.) [GL #1134]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+  <section xml:id="relnotes-9.15.6-changes"><info><title>Feature Changes</title></info>
+    <itemizedlist>
+      <listitem>
+        <para>
+          NSEC Aggressive Cache (synth-from-dnssec) has been disabled by default
+          because it was found to have a significant performance impact on the
+          recursive service. The NSEC Aggressive Cache will be enable by default
+          in the future releases. [GL #1265]
+        </para>
+      </listitem>
+    </itemizedlist>
+  </section>
+
+</section>
