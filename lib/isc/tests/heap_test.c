@@ -28,6 +28,29 @@
 #include <isc/mem.h>
 #include <isc/util.h>
 
+#include "isctest.h"
+
+static int
+_setup(void **state) {
+	isc_result_t result;
+
+	UNUSED(state);
+
+	result = isc_test_begin(NULL, true, 0);
+	assert_int_equal(result, ISC_R_SUCCESS);
+
+	return (0);
+}
+
+static int
+_teardown(void **state) {
+	UNUSED(state);
+
+	isc_test_end();
+
+	return (0);
+}
+
 struct e {
 	unsigned int value;
 	unsigned int index;
@@ -51,16 +74,13 @@ idx(void *p, unsigned int i) {
 /* test isc_heap_delete() */
 static void
 isc_heap_delete_test(void **state) {
-	isc_mem_t *mctx = NULL;
 	isc_heap_t *heap = NULL;
 	isc_result_t result;
 	struct e e1 = { 100, 0 };
 
 	UNUSED(state);
 
-	isc_mem_create(&mctx);
-
-	result = isc_heap_create(mctx, compare, idx, 0, &heap);
+	result = isc_heap_create(test_mctx, compare, idx, 0, &heap);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_non_null(heap);
 
@@ -73,9 +93,6 @@ isc_heap_delete_test(void **state) {
 
 	isc_heap_destroy(&heap);
 	assert_int_equal(heap, NULL);
-
-	isc_mem_detach(&mctx);
-	assert_int_equal(mctx, NULL);
 }
 
 int
@@ -84,7 +101,7 @@ main(void) {
 		cmocka_unit_test(isc_heap_delete_test),
 	};
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
 }
 
 #else /* HAVE_CMOCKA */

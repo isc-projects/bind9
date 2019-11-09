@@ -79,7 +79,7 @@ create_pool(void **state) {
 
 	UNUSED(state);
 
-	result = isc_pool_create(mctx, 8, poolfree, poolinit, taskmgr, &pool);
+	result = isc_pool_create(test_mctx, 8, poolfree, poolinit, taskmgr, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool), 8);
 
@@ -95,7 +95,7 @@ expand_pool(void **state) {
 
 	UNUSED(state);
 
-	result = isc_pool_create(mctx, 10, poolfree, poolinit, taskmgr, &pool1);
+	result = isc_pool_create(test_mctx, 10, poolfree, poolinit, taskmgr, &pool1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool1), 10);
 
@@ -141,7 +141,7 @@ get_objects(void **state) {
 
 	UNUSED(state);
 
-	result = isc_pool_create(mctx, 2, poolfree, poolinit, taskmgr, &pool);
+	result = isc_pool_create(test_mctx, 2, poolfree, poolinit, taskmgr, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_pool_count(pool), 2);
 

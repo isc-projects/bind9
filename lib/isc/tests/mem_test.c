@@ -73,19 +73,16 @@ isc_mem_test(void **state) {
 	void *items1[50];
 	void *items2[50];
 	void *tmp;
-	isc_mem_t *localmctx = NULL;
 	isc_mempool_t *mp1 = NULL, *mp2 = NULL;
 	unsigned int i, j;
 	int rval;
 
 	UNUSED(state);
 
-	isc_mem_create(&localmctx);
-
-	result = isc_mempool_create(localmctx, 24, &mp1);
+	result = isc_mempool_create(test_mctx, 24, &mp1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
-	result = isc_mempool_create(localmctx, 31, &mp2);
+	result = isc_mempool_create(test_mctx, 31, &mp2);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_mempool_setfreemax(mp1, MP1_FREEMAX);
@@ -151,11 +148,7 @@ isc_mem_test(void **state) {
 	isc_mempool_destroy(&mp1);
 	isc_mempool_destroy(&mp2);
 
-	isc_mem_destroy(&localmctx);
-
-	isc_mem_create(&localmctx);
-
-	result = isc_mempool_create(localmctx, 2, &mp1);
+	result = isc_mempool_create(test_mctx, 2, &mp1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	tmp = isc_mempool_get(mp1);
@@ -164,9 +157,6 @@ isc_mem_test(void **state) {
 	isc_mempool_put(mp1, tmp);
 
 	isc_mempool_destroy(&mp1);
-
-	isc_mem_destroy(&localmctx);
-
 }
 
 /* test TotalUse calculation */
@@ -200,16 +190,16 @@ isc_mem_total_test(void **state) {
 
 	/* ISC_MEMFLAG_INTERNAL */
 
-	before = isc_mem_total(mctx);
+	before = isc_mem_total(test_mctx);
 
 	for (i = 0; i < 100000; i++) {
 		void *ptr;
 
-		ptr = isc_mem_allocate(mctx, 2048);
-		isc_mem_free(mctx, ptr);
+		ptr = isc_mem_allocate(test_mctx, 2048);
+		isc_mem_free(test_mctx, ptr);
 	}
 
-	after = isc_mem_total(mctx);
+	after = isc_mem_total(test_mctx);
 	diff = after - before;
 
 	/* 2048 +8 bytes extra for size_info */
@@ -397,10 +387,10 @@ mem_thread(void *arg) {
 
 	for (int i = 0; i < ITERS; i++) {
 		for (int j = 0; j < NUM_ITEMS; j++) {
-			items[j] = isc_mem_get(mctx, size);
+			items[j] = isc_mem_get(test_mctx, size);
 		}
 		for (int j = 0; j < NUM_ITEMS; j++) {
-			isc_mem_put(mctx, items[j], size);
+			isc_mem_put(test_mctx, items[j], size);
 		}
 	}
 
@@ -470,7 +460,7 @@ isc_mempool_benchmark(void **state) {
 
 	isc_mutex_init(&mplock);
 
-	result = isc_mempool_create(mctx, ITEM_SIZE, &mp);
+	result = isc_mempool_create(test_mctx, ITEM_SIZE, &mp);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_mempool_associatelock(mp, &mplock);

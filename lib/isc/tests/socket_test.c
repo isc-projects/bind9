@@ -358,7 +358,7 @@ udp_dscp_v4_test(void **state) {
 
 	completion_init(&completion);
 
-	socketevent = isc_socket_socketevent(mctx, s1, ISC_SOCKEVENT_SENDDONE,
+	socketevent = isc_socket_socketevent(test_mctx, s1, ISC_SOCKEVENT_SENDDONE,
 					     event_done, &completion);
 	assert_non_null(socketevent);
 
@@ -452,7 +452,7 @@ udp_dscp_v6_test(void **state) {
 
 	completion_init(&completion);
 
-	socketevent = isc_socket_socketevent(mctx, s1, ISC_SOCKEVENT_SENDDONE,
+	socketevent = isc_socket_socketevent(test_mctx, s1, ISC_SOCKEVENT_SENDDONE,
 					     event_done, &completion);
 	assert_non_null(socketevent);
 
@@ -769,7 +769,7 @@ udp_trunc_test(void **state) {
 
 	completion_init(&completion);
 
-	socketevent = isc_socket_socketevent(mctx, s1, ISC_SOCKEVENT_SENDDONE,
+	socketevent = isc_socket_socketevent(test_mctx, s1, ISC_SOCKEVENT_SENDDONE,
 					     event_done, &completion);
 	assert_non_null(socketevent);
 
@@ -801,7 +801,7 @@ udp_trunc_test(void **state) {
 
 	completion_init(&completion);
 
-	socketevent = isc_socket_socketevent(mctx, s1, ISC_SOCKEVENT_SENDDONE,
+	socketevent = isc_socket_socketevent(test_mctx, s1, ISC_SOCKEVENT_SENDDONE,
 					     event_done, &completion);
 	assert_non_null(socketevent);
 

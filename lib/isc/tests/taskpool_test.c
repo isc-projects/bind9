@@ -58,7 +58,7 @@ create_pool(void **state) {
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, mctx, 8, 2, &pool);
+	result = isc_taskpool_create(taskmgr, test_mctx, 8, 2, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 8);
 
@@ -74,7 +74,7 @@ expand_pool(void **state) {
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, mctx, 10, 2, &pool1);
+	result = isc_taskpool_create(taskmgr, test_mctx, 10, 2, &pool1);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool1), 10);
 
@@ -119,7 +119,7 @@ get_tasks(void **state) {
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, mctx, 2, 2, &pool);
+	result = isc_taskpool_create(taskmgr, test_mctx, 2, 2, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 2);
 
@@ -150,7 +150,7 @@ set_privilege(void **state) {
 
 	UNUSED(state);
 
-	result = isc_taskpool_create(taskmgr, mctx, 2, 2, &pool);
+	result = isc_taskpool_create(taskmgr, test_mctx, 2, 2, &pool);
 	assert_int_equal(result, ISC_R_SUCCESS);
 	assert_int_equal(isc_taskpool_size(pool), 2);
 

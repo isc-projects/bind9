@@ -518,7 +518,7 @@ purge(void **state) {
 
 	LOCK(&mx);
 
-	event = isc_event_allocate(mctx, (void *)1 , (isc_eventtype_t)1,
+	event = isc_event_allocate(test_mctx, (void *)1 , (isc_eventtype_t)1,
 				   start_event, NULL, sizeof(*event));
 	assert_non_null(event);
 	isc_task_send(task1, &event);
