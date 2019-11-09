@@ -36,6 +36,8 @@
 
 #include "isctest.h"
 
+#include "../timer.c"
+
 /* Set to true (or use -v option) for verbose output */
 static bool verbose = false;
 
