@@ -136,10 +136,6 @@
 #define dumpzone dumpzone_file
 #endif /* HAVE_LMDB */
 
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif
-
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t)-1)
 #endif

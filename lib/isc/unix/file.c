@@ -63,6 +63,7 @@
 #include <isc/log.h>
 #include <isc/md.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/string.h>
@@ -696,9 +697,6 @@ isc_file_munmap(void *addr, size_t len) {
 }
 
 #define DISALLOW "\\/ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif
 
 static isc_result_t
 digest2hex(unsigned char *digest, unsigned int digestlen,
