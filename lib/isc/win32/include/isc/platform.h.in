@@ -18,13 +18,17 @@
 
 #define ISC_PLATFORM_USETHREADS 1
 
-/***
- *** Network.
- ***/
+#ifndef NAME_MAX
+#define NAME_MAX _MAX_FNAME
+#endif
 
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
 #endif
+
+/***
+ *** Network.
+ ***/
 
 #define ISC_PLATFORM_HAVEIPV6
 #if _MSC_VER > 1200

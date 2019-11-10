@@ -26,6 +26,7 @@
 
 #include <isc/file.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/random.h>
 #include <isc/result.h>
@@ -777,9 +778,6 @@ isc_file_munmap(void *addr, size_t len) {
 }
 
 #define DISALLOW "\\/:ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif
 
 isc_result_t
 isc_file_sanitize(const char *dir, const char *base, const char *ext,

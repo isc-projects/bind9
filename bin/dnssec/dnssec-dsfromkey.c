@@ -22,6 +22,7 @@
 #include <isc/entropy.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/string.h>
 #include <isc/util.h>
@@ -49,10 +50,6 @@
 #endif
 
 #include "dnssectool.h"
-
-#ifndef PATH_MAX
-#define PATH_MAX 1024   /* AIX, WIN32, and others don't define this. */
-#endif
 
 const char *program = "dnssec-dsfromkey";
 int verbose;
