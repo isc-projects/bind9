@@ -17,18 +17,11 @@
 #include <stdlib.h>
 
 #include <isc/lang.h>
+#include <isc/platform.h>
 #include <isc/result.h>
 
-#ifndef NAME_MAX
-#define NAME_MAX _MAX_FNAME
-#endif
-
-#ifndef PATH_MAX
-#define PATH_MAX _MAX_PATH
-#endif
-
 typedef struct {
-	char 		name[NAME_MAX];
+	char		name[NAME_MAX];
 	unsigned int	length;
 	WIN32_FIND_DATA	find_data;
 } isc_direntry_t;
