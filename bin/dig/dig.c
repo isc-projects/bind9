@@ -239,6 +239,7 @@ help(void) {
 "                 +[no]unknownformat  (Print RDATA in RFC 3597 \"unknown\" "
 					"format)\n"
 "                 +[no]vc             (TCP mode (+[no]tcp))\n"
+"                 +[no]yaml           (Present the results as YAML)\n"
 "                 +[no]zflag          (Set Z flag in query)\n"
 "        global d-opts and servers (before host name) affect all queries.\n"
 "        local d-opts and servers (after host name) affect only that lookup.\n"

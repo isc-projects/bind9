@@ -196,7 +196,8 @@ usage(void) {
 "                 +[no]trust          (Control display of trust level)\n"
 "                 +[no]unknownformat  (Print RDATA in RFC 3597 "
 					"\"unknown\" format)\n"
-"                 +[no]vtrace         (Trace validation process)\n",
+"                 +[no]vtrace         (Trace validation process)\n"
+"                 +[no]yaml           (Present the results as YAML)\n",
 	stderr);
 	exit(1);
 }
