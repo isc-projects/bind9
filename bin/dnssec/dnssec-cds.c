@@ -28,6 +28,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/mem.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/serial.h>
 #include <isc/string.h>
@@ -60,10 +61,6 @@
 #endif
 
 #include "dnssectool.h"
-
-#ifndef PATH_MAX
-#define PATH_MAX 1024   /* WIN32, and others don't define this. */
-#endif
 
 const char *program = "dnssec-cds";
 int verbose;

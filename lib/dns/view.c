@@ -24,6 +24,7 @@
 #include <isc/file.h>
 #include <isc/hash.h>
 #include <isc/lex.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/stats.h>
 #include <isc/string.h>		/* Required for HP/UX (and others?) */
@@ -1969,10 +1970,6 @@ dns_view_untrust(dns_view_t *view, const dns_name_t *keyname,
  * a new path is created; returns ISC_R_NOSPACE if the path won't
  * fit in 'buflen'.
  */
-
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif
 
 static isc_result_t
 nz_legacy(const char *directory, const char *viewname,

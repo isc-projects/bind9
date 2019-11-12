@@ -48,9 +48,9 @@ typedef uint32_t socklen_t;
 
 #define __attribute__(attribute) /* do nothing */
 
-/***
- *** Network.
- ***/
+#ifndef NAME_MAX
+#define NAME_MAX _MAX_FNAME
+#endif
 
 #ifndef PATH_MAX
 #define PATH_MAX _MAX_PATH
