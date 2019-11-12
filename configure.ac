@@ -2191,6 +2191,19 @@ AX_RESTORE_FLAGS([wrap])
 
 AC_SUBST([LD_WRAP_TESTS])
 
+WRAP_INTERPOSE=
+AC_MSG_CHECKING([for linker support for '-z interpose' option])
+AX_SAVE_FLAGS([interpose])
+LDFLAGS="-Wl,-z,interpose"
+AC_LINK_IFELSE(
+    [AC_LANG_PROGRAM([],[])],
+    [WRAP_INTERPOSE="-Wl,-z,interpose"
+     AC_MSG_RESULT([yes])],
+    [AC_MSG_RESULT([no])])
+AX_RESTORE_FLAGS([interpose])
+
+AC_SUBST([WRAP_INTERPOSE])
+
 #
 # Check for i18n
 #
