@@ -48,6 +48,7 @@ static isc_timer_t *timer = NULL;
 static isc_condition_t cv;
 static isc_mutex_t mx;
 static isc_time_t endtime;
+static isc_mutex_t lasttime_mx = PTHREAD_MUTEX_INITIALIZER;
 static isc_time_t lasttime;
 static int seconds;
 static int nanoseconds;
@@ -119,7 +120,9 @@ setup_test(isc_timertype_t timertype, isc_time_t *expires,
 	result = isc_task_onshutdown(task, shutdown, NULL);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
+	isc_mutex_lock(&lasttime_mx);
 	result = isc_time_now(&lasttime);
+	isc_mutex_unlock(&lasttime_mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	result = isc_timer_create(timermgr, timertype, expires, interval,
@@ -172,7 +175,9 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, seconds, nanoseconds);
+	isc_mutex_lock(&lasttime_mx);
 	result = isc_time_add(&lasttime, &interval, &base);
+	isc_mutex_unlock(&lasttime_mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, FUDGE_SECONDS, FUDGE_NANOSECONDS);
@@ -184,7 +189,10 @@ ticktock(isc_task_t *task, isc_event_t *event) {
 
 	assert_true(isc_time_compare(&llim, &now) <= 0);
 	assert_true(isc_time_compare(&ulim, &now) >= 0);
-	lasttime = now;
+	isc_interval_set(&interval, 0, 0);
+	isc_mutex_lock(&lasttime_mx);
+	isc_time_add(&now, &interval, &lasttime);
+	isc_mutex_unlock(&lasttime_mx);
 
 	if (atomic_load(&eventcnt) == nevents) {
 		result = isc_time_now(&endtime);
@@ -259,7 +267,9 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, seconds, nanoseconds);
+	isc_mutex_lock(&lasttime_mx);
 	result = isc_time_add(&lasttime, &interval, &base);
+	isc_mutex_unlock(&lasttime_mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, FUDGE_SECONDS, FUDGE_NANOSECONDS);
@@ -271,7 +281,10 @@ test_idle(isc_task_t *task, isc_event_t *event) {
 
 	assert_true(isc_time_compare(&llim, &now) <= 0);
 	assert_true(isc_time_compare(&ulim, &now) >= 0);
-	lasttime = now;
+	isc_interval_set(&interval, 0, 0);
+	isc_mutex_lock(&lasttime_mx);
+	isc_time_add(&now, &interval, &lasttime);
+	isc_mutex_unlock(&lasttime_mx);
 
 	assert_int_equal(event->ev_type, ISC_TIMEREVENT_IDLE);
 
@@ -327,7 +340,9 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, seconds, nanoseconds);
+	isc_mutex_lock(&lasttime_mx);
 	result = isc_time_add(&lasttime, &interval, &base);
+	isc_mutex_unlock(&lasttime_mx);
 	assert_int_equal(result, ISC_R_SUCCESS);
 
 	isc_interval_set(&interval, FUDGE_SECONDS, FUDGE_NANOSECONDS);
@@ -339,7 +354,10 @@ test_reset(isc_task_t *task, isc_event_t *event) {
 
 	assert_true(isc_time_compare(&llim, &now) <= 0);
 	assert_true(isc_time_compare(&ulim, &now) >= 0);
-	lasttime = now;
+	isc_interval_set(&interval, 0, 0);
+	isc_mutex_lock(&lasttime_mx);
+	isc_time_add(&now, &interval, &lasttime);
+	isc_mutex_unlock(&lasttime_mx);
 
 	int _eventcnt = atomic_load(&eventcnt);
 
