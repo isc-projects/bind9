@@ -18,15 +18,8 @@
 #include <dirent.h>
 
 #include <isc/lang.h>
+#include <isc/platform.h>
 #include <isc/result.h>
-
-#ifndef NAME_MAX
-#define NAME_MAX 256
-#endif
-
-#ifndef PATH_MAX
-#define PATH_MAX 1024
-#endif
 
 /*% Directory Entry */
 typedef struct isc_direntry {
