@@ -57,8 +57,8 @@ For a detailed list of changes made throughout the history of BIND 9, see
 the file [CHANGES](CHANGES). See [below](#changes) for details on the
 CHANGES file format.
 
-For up-to-date release notes and errata, see
-[http://www.isc.org/software/bind9/releasenotes](http://www.isc.org/software/bind9/releasenotes)
+For up-to-date versions and release notes, see
+[https://www.isc.org/download/](https://www.isc.org/download/).
 
 For information about supported platforms, see [PLATFORMS](PLATFORMS.md).
 
