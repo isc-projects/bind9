@@ -3000,7 +3000,7 @@ parser_complain(cfg_parser_t *pctx, bool is_warning,
 		va_list args)
 {
 	char tokenbuf[MAX_LOG_TOKEN + 10];
-	static char where[ISC_DIR_PATHMAX + 100];
+	static char where[PATH_MAX + 100];
 	static char message[2048];
 	int level = ISC_LOG_ERROR;
 	const char *prep = "";

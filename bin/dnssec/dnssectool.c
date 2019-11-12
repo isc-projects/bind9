@@ -476,7 +476,7 @@ key_collision(dst_key_t *dstkey, dns_name_t *name, const char *dir,
 	uint16_t id, oldid;
 	uint32_t rid, roldid;
 	dns_secalg_t alg;
-	char filename[ISC_DIR_NAMEMAX];
+	char filename[NAME_MAX];
 	isc_buffer_t fileb;
 
 	if (exact != NULL)

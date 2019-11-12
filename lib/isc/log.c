@@ -28,6 +28,7 @@
 #include <isc/magic.h>
 #include <isc/mem.h>
 #include <isc/msgs.h>
+#include <isc/platform.h>
 #include <isc/print.h>
 #include <isc/stat.h>
 #include <isc/stdio.h>
@@ -45,10 +46,6 @@
  * XXXDCL make dynamic?
  */
 #define LOG_BUFFER_SIZE	(8 * 1024)
-
-#ifndef PATH_MAX
-#define PATH_MAX 1024	/* AIX and others don't define this. */
-#endif
 
 /*!
  * This is the structure that holds each named channel.  A simple linked

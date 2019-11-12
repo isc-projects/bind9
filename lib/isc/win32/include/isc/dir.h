@@ -17,20 +17,21 @@
 #include <stdlib.h>
 
 #include <isc/lang.h>
+#include <isc/platform.h>
 #include <isc/result.h>
 
-#define ISC_DIR_NAMEMAX _MAX_FNAME
-#define ISC_DIR_PATHMAX _MAX_PATH
+#define ISC_DIR_NAMEMAX NAME_MAX
+#define ISC_DIR_PATHMAX PATH_MAX
 
 typedef struct {
-	char 		name[ISC_DIR_NAMEMAX];
+	char		name[NAME_MAX];
 	unsigned int	length;
 	WIN32_FIND_DATA	find_data;
 } isc_direntry_t;
 
 typedef struct {
 	unsigned int	magic;
-	char		dirname[ISC_DIR_PATHMAX];
+	char		dirname[PATH_MAX];
 	isc_direntry_t	entry;
 	bool	entry_filled;
 	HANDLE        	search_handle;

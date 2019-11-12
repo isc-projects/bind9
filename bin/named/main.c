@@ -115,8 +115,8 @@ LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_day;
 LIBDNS_EXTERNAL_DATA extern unsigned int dns_zone_mkey_month;
 
 static bool	want_stats = false;
-static char		program_name[ISC_DIR_NAMEMAX] = "named";
-static char		absolute_conffile[ISC_DIR_PATHMAX];
+static char		program_name[NAME_MAX] = "named";
+static char		absolute_conffile[PATH_MAX];
 static char		saved_command_line[512];
 static char		version[512];
 static unsigned int	maxsocks = 0;
