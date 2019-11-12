@@ -671,7 +671,7 @@ dst__privstruct_writefile(const dst_key_t *key, const dst_private_t *priv,
 {
 	FILE *fp;
 	isc_result_t result;
-	char filename[ISC_DIR_NAMEMAX];
+	char filename[NAME_MAX];
 	char buffer[MAXFIELDSIZE * 2];
 	isc_fsaccess_t access;
 	isc_stdtime_t when;

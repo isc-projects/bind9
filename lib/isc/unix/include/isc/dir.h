@@ -21,6 +21,9 @@
 #include <isc/platform.h>
 #include <isc/result.h>
 
+#define ISC_DIR_NAMEMAX NAME_MAX
+#define ISC_DIR_PATHMAX PATH_MAX
+
 /*% Directory Entry */
 typedef struct isc_direntry {
 	char		name[NAME_MAX];

@@ -556,7 +556,7 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 		 isc_mem_t *mctx, dst_key_t **keyp)
 {
 	isc_result_t result;
-	char filename[ISC_DIR_NAMEMAX];
+	char filename[NAME_MAX];
 	isc_buffer_t buf;
 	dst_key_t *key;
 
@@ -570,7 +570,7 @@ dst_key_fromfile(dns_name_t *name, dns_keytag_t id,
 
 	key = NULL;
 
-	isc_buffer_init(&buf, filename, ISC_DIR_NAMEMAX);
+	isc_buffer_init(&buf, filename, NAME_MAX);
 	result = dst_key_getfilename(name, id, alg, type, NULL, mctx, &buf);
 	if (result != ISC_R_SUCCESS)
 		goto out;
@@ -1725,7 +1725,7 @@ write_public_key(const dst_key_t *key, int type, const char *directory) {
 	FILE *fp;
 	isc_buffer_t keyb, textb, fileb, classb;
 	isc_region_t r;
-	char filename[ISC_DIR_NAMEMAX];
+	char filename[NAME_MAX];
 	unsigned char key_array[DST_KEY_MAXSIZE];
 	char text_array[DST_KEY_MAXTEXTSIZE];
 	char class_array[10];

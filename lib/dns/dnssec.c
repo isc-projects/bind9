@@ -809,7 +809,7 @@ dns_dnssec_findzonekeys3(dns_db_t *db, dns_dbversion_t *ver,
 			isc_result_t result2;
 			isc_buffer_t buf;
 
-			isc_buffer_init(&buf, filename, ISC_DIR_NAMEMAX);
+			isc_buffer_init(&buf, filename, NAME_MAX);
 			result2 = dst_key_getfilename(dst_key_name(pubkey),
 						      dst_key_id(pubkey),
 						      dst_key_alg(pubkey),
@@ -1750,7 +1750,7 @@ dns_dnssec_keylistfromrdataset(dns_name_t *origin,
 			isc_result_t result2;
 			isc_buffer_t buf;
 
-			isc_buffer_init(&buf, filename, ISC_DIR_NAMEMAX);
+			isc_buffer_init(&buf, filename, NAME_MAX);
 			result2 = dst_key_getfilename(dst_key_name(pubkey),
 						      dst_key_id(pubkey),
 						      dst_key_alg(pubkey),

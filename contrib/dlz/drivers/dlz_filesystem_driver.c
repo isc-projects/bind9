@@ -84,7 +84,7 @@ typedef struct config_data {
 typedef struct dir_entry dir_entry_t;
 
 struct dir_entry {
-	char dirpath[ISC_DIR_PATHMAX];
+	char dirpath[PATH_MAX];
 	ISC_LINK(dir_entry_t)	link;
 };
 
@@ -361,7 +361,7 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 	    dlist_t *dir_list, unsigned int basedirlen)
 {
 
-	char tmp[ISC_DIR_PATHMAX + ISC_DIR_NAMEMAX];
+	char tmp[PATH_MAX + NAME_MAX];
 	int astPos;
 	struct stat	sb;
 	isc_result_t result = ISC_R_FAILURE;
@@ -369,7 +369,7 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 	char *type;
 	char *ttlStr;
 	char *data;
-	char host[ISC_DIR_NAMEMAX];
+	char host[NAME_MAX];
 	char *tmpString;
 	char *tmpPtr;
 	int ttl;
@@ -408,7 +408,7 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 					{
 						if ((strlen(host) +
 						     strlen(tmpPtr + 1) + 2)
-						    > ISC_DIR_NAMEMAX)
+						    > NAME_MAX)
 							continue;
 						strcat(host, tmpPtr + 1);
 						strcat(host, ".");
@@ -416,7 +416,7 @@ process_dir(isc_dir_t *dir, void *passback, config_data_t *cd,
 					}
 					if ((strlen(host) +
 					     strlen(tmpString) + 1)
-					    <= ISC_DIR_NAMEMAX)
+					    <= NAME_MAX)
 						strcat(host, tmpString);
 				}
 
