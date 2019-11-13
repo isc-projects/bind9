@@ -624,11 +624,11 @@ purge(void **state) {
 int
 main(int argc, char **argv) {
 	const struct CMUnitTest tests[] = {
-		cmocka_unit_test_setup_teardown(ticker, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(once_life, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(once_idle, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(reset, _setup, _teardown),
-		cmocka_unit_test_setup_teardown(purge, _setup, _teardown),
+		cmocka_unit_test(ticker),
+		cmocka_unit_test(once_life),
+		cmocka_unit_test(once_idle),
+		cmocka_unit_test(reset),
+		cmocka_unit_test(purge),
 	};
 	int c;
 
@@ -642,7 +642,7 @@ main(int argc, char **argv) {
 		}
 	}
 
-	return (cmocka_run_group_tests(tests, NULL, NULL));
+	return (cmocka_run_group_tests(tests, _setup, _teardown));
 }
 
 #else /* HAVE_CMOCKA */

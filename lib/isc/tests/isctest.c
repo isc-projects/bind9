@@ -56,9 +56,6 @@ static isc_logcategory_t categories[] = {
 
 static void
 cleanup_managers(void) {
-	if (netmgr != NULL) {
-		isc_nm_detach(&netmgr);
-	}
 	if (maintask != NULL) {
 		isc_task_shutdown(maintask);
 		isc_task_destroy(&maintask);
@@ -71,6 +68,9 @@ cleanup_managers(void) {
 	}
 	if (timermgr != NULL) {
 		isc_timermgr_destroy(&timermgr);
+	}
+	if (netmgr != NULL) {
+		isc_nm_detach(&netmgr);
 	}
 }
 
@@ -88,13 +88,13 @@ create_managers(unsigned int workers) {
 		workers = atoi(p);
 	}
 
-	CHECK(isc_taskmgr_create(test_mctx, workers, 0, NULL, &taskmgr));
+	netmgr = isc_nm_start(test_mctx, workers);
+	CHECK(isc_taskmgr_create(test_mctx, workers, 0, netmgr, &taskmgr));
 	CHECK(isc_task_create(taskmgr, 0, &maintask));
 	isc_taskmgr_setexcltask(taskmgr, maintask);
 
 	CHECK(isc_timermgr_create(test_mctx, &timermgr));
 	CHECK(isc_socketmgr_create(test_mctx, &socketmgr));
-	netmgr = isc_nm_start(test_mctx, 3);
 	return (ISC_R_SUCCESS);
 
  cleanup:
