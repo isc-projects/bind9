@@ -2204,6 +2204,10 @@ AX_RESTORE_FLAGS([interpose])
 
 AC_SUBST([WRAP_INTERPOSE])
 
+WRAP_NAME=''
+AS_CASE([$host],[*-darwin*],[WRAP_NAME='${WRAP_NAME}'])
+AC_SUBST([WRAP_NAME])
+
 #
 # Check for i18n
 #

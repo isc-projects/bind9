@@ -17,6 +17,7 @@ VERSION=@BIND9_VERSION@
 
 WRAP_INTERPOSE=	@WRAP_INTERPOSE@
 WRAP_OPTIONS =	-Wl,--wrap=isc_nmhandle_unref
+WRAP_NAME =	-Wl,-install_name,${top_builddir}/lib/ns/tests/$@
 WRAP_RPATH =	-Wl,-rpath,${top_builddir}/lib/ns/tests
 WRAP_LIB =	-L${top_builddir}/lib/ns/tests -lwrap
 
@@ -60,7 +61,7 @@ LD_WRAP_TESTS=@LD_WRAP_TESTS@
 @BIND9_MAKE_RULES@
 
 libwrap.@SO@: wrap.@O@
-	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} ${WRAP_INTERPOSE} -o $@ wrap.@O@ ${LIBS}
+	${LIBTOOL_MODE_LINK} @SO_LD@ ${SO_LDFLAGS} ${WRAP_INTERPOSE} @WRAP_NAME@ -o $@ wrap.@O@ ${LIBS}
 
 listenlist_test@EXEEXT@: listenlist_test.@O@ nstest.@O@ libwrap.@SO@ ${NSDEPLIBS} ${ISCDEPLIBS} ${DNSDEPLIBS}
 	if test "${LD_WRAP_TESTS}" = true -a -z "${LIBTOOL}"; then WRAP="${WRAP_OPTIONS}"; fi; \

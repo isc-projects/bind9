@@ -669,6 +669,7 @@ BIND9_ISCCFG_BUILDINCLUDE
 BIND9_ISCCC_BUILDINCLUDE
 BIND9_ISC_BUILDINCLUDE
 BIND9_TOP_BUILDDIR
+WRAP_NAME
 WRAP_INTERPOSE
 LD_WRAP_TESTS
 KYUA
@@ -21952,6 +21953,15 @@ rm -f core conftest.err conftest.$ac_objext \
 
 
 
+
+
+WRAP_NAME=''
+case $host in #(
+  *-darwin*) :
+    WRAP_NAME='${WRAP_NAME}' ;; #(
+  *) :
+     ;;
+esac
 
 
 #
